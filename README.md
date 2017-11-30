@@ -120,7 +120,7 @@ CNL (Cannonlake)
 | VC-1       |  D  | BDW/SKL/CNL |
 | JPEG       |  D  | BDW/SKL/CNL |
 | JPEG       |  E  | SKL         |
-| VP8        |  D  | CNL         |
+| VP8        |  D  | BDW/SKL/CNL |
 | HEVC       |  D  | SKL/CNL     |
 | HEVC       |  E  | SKL         |
 | HEVC 10bit |  D  | CNL         |
