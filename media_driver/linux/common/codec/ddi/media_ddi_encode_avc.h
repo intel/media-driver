@@ -1,0 +1,411 @@
+/*
+* Copyright (c) 2017, Intel Corporation
+*
+* Permission is hereby granted, free of charge, to any person obtaining a
+* copy of this software and associated documentation files (the "Software"),
+* to deal in the Software without restriction, including without limitation
+* the rights to use, copy, modify, merge, publish, distribute, sublicense,
+* and/or sell copies of the Software, and to permit persons to whom the
+* Software is furnished to do so, subject to the following conditions:
+*
+* The above copyright notice and this permission notice shall be included
+* in all copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+* OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+* THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+* OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+* ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+* OTHER DEALINGS IN THE SOFTWARE.
+*/
+//!
+//! \file     media_ddi_encode_avc.h
+//! \brief    Defines class for DDI media avc encode
+//!
+
+#ifndef __MEDIA_DDI_ENCODE_AVC_H__
+#define __MEDIA_DDI_ENCODE_AVC_H__
+
+#include "media_ddi_encode_base.h"
+
+class DdiEncodeAvc : public DdiEncodeBase
+{
+public:
+    //!
+    //! \brief    Constructor
+    //!
+    DdiEncodeAvc(){};
+
+    //!
+    //! \brief    Destructor
+    //!
+    virtual ~DdiEncodeAvc();
+
+    virtual VAStatus ContextInitialize(PCODECHAL_SETTINGS codecHalSettings);
+
+    virtual VAStatus RenderPicture(
+        VADriverContextP ctx,
+        VAContextID      context,
+        VABufferID       *buffers,
+        int32_t          numBuffers);
+
+    //!
+    //! \brief    Parse Qp matrix
+    //! \details  Parse Qp matrix which called by RenderPicture
+    //!
+    //! \param    [in] ptr
+    //!           Pointer to buffer VAIQMatrixBufferH264
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if successful, else fail reason
+    //!
+    VAStatus Qmatrix(void *ptr);
+
+    //!
+    //! \brief    Parse Sequence parameters
+    //! \details  Parse Sequence parameters which called by RenderPicture
+    //!
+    //! \param    [in] ptr
+    //!           Pointer to buffer VAEncSequenceParameterBufferH264
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if successful, else fail reason
+    //!
+    VAStatus ParseSeqParams(void *ptr);
+
+    //!
+    //! \brief    Parse slice parameters
+    //! \details  Parse slice parameters which called by RenderPicture
+    //!
+    //! \param    [in] ptr
+    //!           Pointer to buffer VAEncSliceParameterBufferH264
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if successful, else fail reason
+    //!
+    VAStatus ParseSlcParams(
+        DDI_MEDIA_CONTEXT *mediaCtx,
+        void              *ptr,
+        uint32_t          numSlices);
+
+    //!
+    //! \brief    Parse packedHeader paramters
+    //! \details  Parse packedHeader parameters which called by RenderPicture
+    //!
+    //! \param    [in] ptr
+    //!           Pointer to buffer VAEncPackedHeaderParameterBuffer
+    //!
+    //! \return   MOS_STATUS
+    //!           VA_STATUS_SUCCESS if successful, else fail reason
+    //!
+    VAStatus ParsePackedHeaderParams(void *ptr);
+
+    //!
+    //! \brief    Parse packedHeader data
+    //! \details  Parse packedHeader data which called by RenderPicture
+    //!
+    //! \param    [in] ptr
+    //!           Pointer to packedHeader data
+    //!
+    //! \return   MOS_STATUS
+    //!           VA_STATUS_SUCCESS if successful, else fail reason
+    //!
+    VAStatus ParsePackedHeaderData(void *ptr);
+
+    //!
+    //! \brief    Parse misc parameters
+    //! \details  Parse misc parameters data which called by RenderPicture
+    //!           including hrd, framerate, ratecontrol, private, quantization,
+    //!           RIR, SkipFrame, FrameSize, QualityLevel, SliceSize, ROI,
+    //!           CustomRoundingControl, SubMbPartPelIntel, ROIPrivate
+    //!
+    //! \param    [in] ptr
+    //!           Pointer to misc paramters buffer
+    //!
+    //! \return   MOS_STATUS
+    //!           VA_STATUS_SUCCESS if successful, else fail reason
+    //!
+    virtual VAStatus ParseMiscParams(void *ptr);
+
+protected:
+    uint32_t getSliceParameterBufferSize() override;
+
+    uint32_t getSequenceParameterBufferSize() override;
+
+    uint32_t getPictureParameterBufferSize() override;
+
+    uint32_t getQMatrixBufferSize() override;
+
+    virtual VAStatus EncodeInCodecHal(uint32_t numSlices);
+
+    virtual VAStatus ResetAtFrameLevel();
+
+    virtual VAStatus ParsePicParams(
+        DDI_MEDIA_CONTEXT *mediaCtx,
+        void              *ptr);
+
+    //!
+    //! \brief    Convert slice struct from VA to codechal
+    //! \details  Convert slice struct from VA to codechal
+    //!
+    //! \param    [in] vaSliceStruct
+    //!           VA Slice Struct
+    //!
+    //! \return   uint8_t
+    //!           CODECHAL_SLICE_STRUCT_ARBITRARYROWSLICE,
+    //!           CODECHAL_SLICE_STRUCT_POW2ROWS,
+    //!           CODECHAL_SLICE_STRUCT_ARBITRARYMBSLICE,
+    //!           CODECHAL_SLICE_STRUCT_ROWSLICE,
+    //!           default is CODECHAL_SLICE_STRUCT_ONESLICE
+    //!
+    uint8_t ConvertSliceStruct(uint32_t vaSliceStruct);
+
+    //!
+    //! \brief    Convert va slice type to codechal picture type
+    //! \details  Convert va slice type to codechal picture type
+    //!
+    //! \param    [in] vaSliceType
+    //!           VA Slice Type
+    //!
+    //! \return   uin8_t
+    //!           I_TYPE, P_TYPE, B_TYPE
+    //!
+    uint8_t CodechalPicTypeFromVaSlcType(uint8_t vaSliceType);
+
+    //!
+    //! \brief    Get profile from va profile
+    //! \details  Get profile from va profile
+    //!
+    //! \return   CODECHAL_AVC_PROFILE_IDC
+    //!           CODECHAL_AVC_BASE_PROFILE, CODECHAL_AVC_MAIN_PROFILE
+    //!           or CODECHAL_AVC_HIGH_PROFILE, default is
+    //!           CODECHAL_AVC_MAIN_PROFILE
+    //!
+    CODECHAL_AVC_PROFILE_IDC GetAVCProfileFromVAProfile();
+
+    //!
+    //! \brief    Parse DirtyROI params
+    //! \details  Parse DirtyROI params
+    //!
+    //! \param    [in] data
+    //!           Pointer to buffer VAEncMiscParameterBufferDirtyROI
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if successful, else fail reason
+    //!
+    VAStatus ParseMiscParamDirtyROI(void *data);
+
+    //!
+    //! \brief    Parse frame rate settings
+    //! \details  Parse VAEncMiscParameterFrameRate to
+    //!           PCODEC_AVC_ENCODE_SEQUENCE_PARAMS
+    //!
+    //! \param    [in] data
+    //!           Pointer to buffer VAEncMiscParameterFrameRate
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if successful, else fail reason
+    //!
+    VAStatus ParseMiscParamFR(void *data);
+
+    //!
+    //! \brief    Parse HRD settings
+    //! \details  Parse VAEncMiscParameterHRD to
+    //!           PCODEC_AVC_ENCODE_SEQUENCE_PARAMS
+    //!
+    //! \param    [in] data
+    //!           Pointer to buffer VAEncMiscParameterHRD
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if successful, else fail reason
+    //!
+    VAStatus ParseMiscParamHRD(void *data);
+
+    //!
+    //! \brief    Parse max frame size setting
+    //! \details  Parse VAEncMiscParameterMaxFrameSize to
+    //!           PCODECHAL_AVC_ENCODE_SEQ_PARAMS
+    //!
+    //! \param    [in] data
+    //!           Pointer to buffer VAEncMiscParameterBufferMaxFrameSize
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if successful, else fail reason
+    //!
+    VAStatus ParseMiscParamMaxFrameSize(void *data);
+
+    //!
+    //! \brief    Parse sliceSizeInBytes for enabling VDENC dynamic slice
+    //! \details  Parse sliceSizeInBytes for enabling VDENC dynamic slice
+    //!
+    //! \param    [in] data
+    //!           Pointer to buffer VAEncMiscParameterMaxSliceSize
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if successful, else fail reason
+    //!
+    VAStatus ParseMiscParamMaxSliceSize(void *data);
+
+    //!
+    //! \brief    Parse enc quality parameters settings
+    //! \details  Parse enc quality parameters settings
+    //!
+    //! \param    [in] data
+    //!           Pointer to buffer VAEncMiscParameterPrivate
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if successful, else fail reason
+    //!
+
+    VAStatus ParseMiscParamEncQuality(void *data);
+
+    //!
+    //! \brief    Parse qualtiy level settings
+    //! \details  Parse quality level(Target Usage) settings passed by app
+    //!
+    //! \param    [in] data
+    //!           Pointer to buffer VAEncMiscParameterBufferQualityLevel
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if successful, else fail reason
+    //!
+    VAStatus ParseMiscParamQualityLevel(void *data);
+
+    //!
+    //! \brief    Parse trellis related settings
+    //! \details  Parse trellis related settings
+    //!
+    //! \param    [in] data
+    //!           Pointer to buffer VAEncMiscParameterQuantization
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if successful, else fail reason
+    //!
+    VAStatus ParseMiscParamQuantization(void *data);
+
+    //!
+    //! \brief    Parse rate control related settings
+    //! \details  Parse rate control related settings
+    //!
+    //! \param    [in] data
+    //!           Pointer to buffer VAEncMiscParameterRateControl
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if successful, else fail reason
+    //!
+    VAStatus ParseMiscParamRC(void *data);
+
+    //!
+    //! \brief    Parse region of interest settings
+    //! \details  Parse region of interest settings
+    //!
+    //! \param    [in] data
+    //!           Pointer to buffer VAEncMiscParameterBufferROI
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if successful, else fail reason
+    //!
+    VAStatus ParseMiscParamROI(void *data);
+
+    //!
+    //! \brief    Parse rounding parameters for slices
+    //! \details  Parse rounding parameters for slices
+    //!
+    //! \param    [in] data
+    //!           Pointer to buffer VAEncMiscParameterCustomRoundingControl
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if successful, else fail reason
+    //!
+    VAStatus ParseMiscParamRounding(void *data);
+
+    //!
+    //! \brief    Parse rolling intra refresh setting
+    //! \details  Parse rolling intra refresh setting, Row/Colum
+    //!           rolling supported on Gen8
+    //!
+    //! \param    [in] data
+    //!           Pointer to buffer VAEncMiscParameterSkipFrame
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if successful, else fail reason
+    //!
+    VAStatus ParseMiscParamSkipFrame(void *data);
+
+    //!
+    //! \brief    Parse sub macroblock partition setting
+    //! \details  Parse sub marcoblock partition setting
+    //!
+    //! \param    [in] data
+    //!           Pointer to buffer VAEncMiscParameterSubMbPartPelH264
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if successful, else fail reason
+    //!
+    VAStatus ParseMiscParamSubMbPartPel(void *data);
+
+    //!
+    //! \brief    Parse rolling intra refresh setting
+    //! \details  Parse rolling intra refresh setting, Row/Colum
+    //!           rolling supported on Gen8
+    //!
+    //! \param    [in] data
+    //!           Pointer to buffer VAEncMiscParameterRIR
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if successful, else fail reason
+    //!
+    VAStatus ParseMiscParameterRIR(void *data);
+
+    //!
+    //! \brief    Get Slice Reference Index
+    //! \details  To change the value of  sliceParams->RefPicList[][].FrameIdx
+    //!           from the frame itself  to the index in picParams->RefFrameList
+    //!
+    //! \param    [in] picReference
+    //!           Pointer to CODEC_PICTURE
+    //! \param    [in] slcReference
+    //!           Pointer to CODEC_PICTURE
+    //!
+    //! \return   void
+    //!
+    void GetSlcRefIdx(CODEC_PICTURE *picReference, CODEC_PICTURE *slcReference);
+
+    //!
+    //! \brief    Setup Codec Picture for AVC
+    //!
+    //! \param    [in] mediaCtx
+    //!           Pointer to DDI_MEDIA_CONTEXT
+    //! \param    [in] rtTbl
+    //!           Pointer to DDI_CODEC_RENDER_TARGET_TABLE
+    //! \param    [in] vaPic
+    //!           H264 VAPicture structure
+    //! \param    [in] fieldPicFlag
+    //!           Field picture flag
+    //! \param    [in] picReference
+    //!           Reference picture flag
+    //! \param    [in] sliceReference
+    //!           Reference slice flag
+    //! \param    [out] codecHalPic
+    //!           Pointer to CODEC_PICTURE
+    //!
+    //! \return   void
+    //!
+    void SetupCodecPicture(
+        DDI_MEDIA_CONTEXT                   *mediaCtx,
+        DDI_CODEC_RENDER_TARGET_TABLE       *rtTbl,
+        CODEC_PICTURE                       *codecHalPic,
+        VAPictureH264                       vaPic,
+        bool                                fieldPicFlag,
+        bool                                picReference,
+        bool                                sliceReference);
+
+private:
+    //! \brief H.264 Inverse Quantization Matrix Buffer.
+    PCODECHAL_AVC_IQ_MATRIX_PARAMS iqMatrixParams = nullptr;
+
+    //! \brief H.264 Inverse Quantization Weight Scale.
+    PCODEC_AVC_ENCODE_IQ_WEIGTHSCALE_LISTS iqWeightScaleLists = nullptr;
+};
+#endif /* __MEDIA_DDI_ENCODE_AVC_H__ */

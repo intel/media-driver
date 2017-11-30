@@ -1,0 +1,184 @@
+/*
+* Copyright (c) 2011-2017, Intel Corporation
+*
+* Permission is hereby granted, free of charge, to any person obtaining a
+* copy of this software and associated documentation files (the "Software"),
+* to deal in the Software without restriction, including without limitation
+* the rights to use, copy, modify, merge, publish, distribute, sublicense,
+* and/or sell copies of the Software, and to permit persons to whom the
+* Software is furnished to do so, subject to the following conditions:
+*
+* The above copyright notice and this permission notice shall be included
+* in all copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+* OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+* THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+* OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+* ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+* OTHER DEALINGS IN THE SOFTWARE.
+*/
+//!
+//! \file     codechal.cpp
+//! \brief    Impelements the public interface for CodecHal.
+//! \details
+//!
+
+#include "codechal.h"
+#include "codechal_hw.h"
+#include "codechal_debug.h"
+#include "codechal_cenc_decode.h"
+#include "mos_solo_generic.h"
+
+Codechal::Codechal(
+    CodechalHwInterface*    hwInterface,
+    CodechalDebugInterface* debugInterface)
+{
+    CODECHAL_PUBLIC_FUNCTION_ENTER;
+
+    CODECHAL_PUBLIC_CHK_NULL_NO_STATUS_RETURN(hwInterface);
+    CODECHAL_PUBLIC_CHK_NULL_NO_STATUS_RETURN(hwInterface->GetOsInterface());
+    MOS_UNUSED(debugInterface);
+
+    m_hwInterface       = hwInterface;
+    m_osInterface       = hwInterface->GetOsInterface();
+
+#if USE_CODECHAL_DEBUG_TOOL
+    CODECHAL_DECODE_CHK_NULL_NO_STATUS_RETURN(debugInterface);
+    m_debugInterface    = debugInterface;
+#endif // USE_CODECHAL_DEBUG_TOOL
+}
+
+Codechal::~Codechal()
+{
+    CODECHAL_PUBLIC_FUNCTION_ENTER;
+
+    MOS_TraceEvent(EVENT_CODECHAL_DESTROY, EVENT_TYPE_START, nullptr, 0, nullptr, 0);
+
+#if USE_CODECHAL_DEBUG_TOOL
+    if (m_debugInterface != nullptr)
+    {
+        MOS_Delete(m_debugInterface);
+        m_debugInterface = nullptr;
+    }
+#endif // USE_CODECHAL_DEBUG_TOOL
+
+    // Destroy decypting objects (intermediate surfaces, BBs, etc)
+    if (m_cencDecoder != nullptr)
+    {
+        MOS_Delete(m_cencDecoder);
+        m_cencDecoder = nullptr;
+    }
+
+    // Destroy HW interface objects (GSH, SSH, etc)
+    if (m_hwInterface != nullptr)
+    {
+        MOS_Delete(m_hwInterface);
+        m_hwInterface = nullptr;
+    }
+
+    // Destroy OS interface objects (CBs, etc)
+    if (m_osInterface != nullptr)
+    {
+        m_osInterface->pfnDestroy(m_osInterface, false);
+
+        // Deallocate OS interface structure (except if externally provided)
+        if (m_osInterface->bDeallocateOnExit)
+        {
+            MOS_FreeMemory(m_osInterface);
+        }
+    }
+
+    MOS_TraceEvent(EVENT_CODECHAL_DESTROY, EVENT_TYPE_END, nullptr, 0, nullptr, 0);
+}
+
+MOS_STATUS Codechal::Allocate(PCODECHAL_SETTINGS codecHalSettings)
+{
+    CODECHAL_PUBLIC_FUNCTION_ENTER;
+
+    CODECHAL_PUBLIC_CHK_NULL_RETURN(codecHalSettings);
+    CODECHAL_PUBLIC_CHK_NULL_RETURN(m_hwInterface);
+    CODECHAL_PUBLIC_CHK_NULL_RETURN(m_osInterface);
+
+    CODECHAL_PUBLIC_CHK_STATUS_RETURN(m_hwInterface->Initialize(codecHalSettings));
+
+    MOS_NULL_RENDERING_FLAGS nullHWAccelerationEnable;
+    nullHWAccelerationEnable.Value = 0;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    CodecHal_UserFeature_ReadValue(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_NULL_HW_ACCELERATION_ENABLE_ID,
+        &userFeatureData);
+    nullHWAccelerationEnable.Value = userFeatureData.u32Data;
+
+    m_useNullHw[MOS_GPU_CONTEXT_VIDEO]         = 
+        (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxVideo);
+    m_useNullHw[MOS_GPU_CONTEXT_VIDEO2]        = 
+        (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxVideo2);
+    m_useNullHw[MOS_GPU_CONTEXT_VIDEO3]        = 
+        (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxVideo3);
+    m_useNullHw[MOS_GPU_CONTEXT_VDBOX2_VIDEO]  = 
+        (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxVDBox2Video);
+    m_useNullHw[MOS_GPU_CONTEXT_VDBOX2_VIDEO2] = 
+        (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxVDBox2Video2);
+    m_useNullHw[MOS_GPU_CONTEXT_VDBOX2_VIDEO3] = 
+        (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxVDBox2Video3);
+    m_useNullHw[MOS_GPU_CONTEXT_RENDER]        = 
+        (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxRender);
+    m_useNullHw[MOS_GPU_CONTEXT_RENDER2]       = 
+        (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxRender2);
+#endif // _DEBUG || _RELEASE_INTERNAL
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Codechal::BeginFrame()
+{
+    CODECHAL_PUBLIC_FUNCTION_ENTER;
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Codechal::EndFrame()
+{
+    CODECHAL_PUBLIC_FUNCTION_ENTER;
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Codechal::Execute(void *params)
+{
+    CODECHAL_PUBLIC_FUNCTION_ENTER;
+
+    CODECHAL_PUBLIC_CHK_NULL_RETURN(params);
+
+    CODECHAL_DEBUG_TOOL(
+        CODECHAL_PUBLIC_CHK_NULL_RETURN(m_osInterface);
+        CODECHAL_PUBLIC_CHK_NULL_RETURN(m_debugInterface);
+
+        CODECHAL_PUBLIC_CHK_STATUS_RETURN(Mos_Solo_ForceDumps(
+            m_debugInterface->dwBufferDumpFrameNum,
+            m_osInterface));
+    )
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Codechal::GetStatusReport(
+    void                *status,
+    uint16_t            numStatus)
+{
+    CODECHAL_PUBLIC_FUNCTION_ENTER;
+    MOS_UNUSED(status);
+    MOS_UNUSED(numStatus);
+    CODECHAL_PUBLIC_ASSERTMESSAGE("Unsupported codec function requested.");
+    return MOS_STATUS_UNKNOWN;
+}
+
+void Codechal::Destroy()
+{
+    CODECHAL_PUBLIC_FUNCTION_ENTER;
+}
+
