@@ -22,6 +22,12 @@ include_directories(${BS_DIR_SKUWA}/linux)
 
 if(NOT "${LIBVA_INSTALL_PATH}" STREQUAL "")
     include_directories(BEFORE ${LIBVA_INSTALL_PATH})
+else()
+    include(FindPkgConfig)
+    pkg_check_modules(LIBVA REQUIRED libva>=1.0.0)
+    if(LIBVA_FOUND)
+        include_directories(BEFORE ${LIBVA_INCLUDE_DIRS})
+    endif()
 endif()
 
 
