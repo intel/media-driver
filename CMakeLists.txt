@@ -30,9 +30,14 @@ endif()
 
 if (TARGET iHD_drv_video AND TARGET igfxcmrt)
 
+    if("${LIBVA_DRIVERS_PATH}" STREQUAL "")
+        set(LIBVA_DRIVERS_PATH "${CMAKE_INSTALL_FULL_LIBDIR}/dri/")
+    endif()
+    message(STATUS "LIBVA_DRIVERS_PATH = ${LIBVA_DRIVERS_PATH}")
+
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/media_driver/cmake/linux/intel-media.sh.in ${CMAKE_CURRENT_BINARY_DIR}/media_driver/cmake/linux/intel-media.sh)
 
-    install (FILES ${CMAKE_CURRENT_BINARY_DIR}/media_driver/iHD_drv_video.so DESTINATION ${CMAKE_INSTALL_LIBDIR}/dri/)
+    install (FILES ${CMAKE_CURRENT_BINARY_DIR}/media_driver/iHD_drv_video.so DESTINATION ${LIBVA_DRIVERS_PATH})
     install (FILES ${CMAKE_CURRENT_BINARY_DIR}/media_driver/cmake/linux/intel-media.sh  DESTINATION ${CMAKE_INSTALL_FULL_SYSCONFDIR}/profile.d/)
     install (FILES ${CMAKE_CURRENT_BINARY_DIR}/cmrtlib/linux/igfxcmrt64.so DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
