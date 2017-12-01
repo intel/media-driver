@@ -20,6 +20,8 @@
 
 cmake_minimum_required(VERSION 3.5)
 
+include(GNUInstallDirs)
+
 add_subdirectory(media_driver)
 
 if (DEFINED BUILD_ALONG_WITH_CMRTLIB)
@@ -27,23 +29,26 @@ if (DEFINED BUILD_ALONG_WITH_CMRTLIB)
 endif()
 
 if (TARGET iHD_drv_video AND TARGET igfxcmrt)
-    install (FILES ${CMAKE_CURRENT_BINARY_DIR}/media_driver/iHD_drv_video.so DESTINATION /usr/lib/x86_64-linux-gnu/dri/)
-    install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/media_driver/cmake/linux/intel-media.sh  DESTINATION /etc/profile.d/)
-    install (FILES ${CMAKE_CURRENT_BINARY_DIR}/cmrtlib/linux/igfxcmrt64.so DESTINATION /usr/lib/x86_64-linux-gnu/)
+
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/media_driver/cmake/linux/intel-media.sh.in ${CMAKE_CURRENT_BINARY_DIR}/media_driver/cmake/linux/intel-media.sh)
+
+    install (FILES ${CMAKE_CURRENT_BINARY_DIR}/media_driver/iHD_drv_video.so DESTINATION ${CMAKE_INSTALL_LIBDIR}/dri/)
+    install (FILES ${CMAKE_CURRENT_BINARY_DIR}/media_driver/cmake/linux/intel-media.sh  DESTINATION ${CMAKE_INSTALL_FULL_SYSCONFDIR}/profile.d/)
+    install (FILES ${CMAKE_CURRENT_BINARY_DIR}/cmrtlib/linux/igfxcmrt64.so DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
     if (IS_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../libva-install/usr/bin)
-        install (DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../libva-install/usr/bin DESTINATION /usr/
+        install (DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../libva-install/usr/bin DESTINATION ${CMAKE_INSTALL_PREFIX}
                  FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
     endif()
     if (IS_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../libva-install/usr/include)
-        install (DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../libva-install/usr/include DESTINATION /usr/)
+        install (DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../libva-install/usr/include DESTINATION ${CMAKE_INSTALL_PREFIX})
     endif()
     if (IS_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../libva-install/usr/lib)
-        install (DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../libva-install/usr/lib DESTINATION /usr/)
+        install (DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../libva-install/usr/lib DESTINATION ${CMAKE_INSTALL_PREFIX})
     endif()
 
     if (IS_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../libdrm-install/usr/lib)
-        install (DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../libdrm-install/usr/lib DESTINATION /usr/)
+        install (DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../libdrm-install/usr/lib DESTINATION ${CMAKE_INSTALL_PREFIX})
     endif()
 
     set(CPACK_GENERATOR "DEB")
