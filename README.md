@@ -53,6 +53,7 @@ $ cd <workspace>/build
 5. 
 ```
 $ cmake ../media-driver \
+-DCMAKE_INSTALL_PREFIX=/usr \
 -DMEDIA_VERSION="2.0.0" \
 -DBUILD_ALONG_WITH_CMRTLIB=1 \
 -DBS_DIR_GMMLIB=`pwd`/../gmmlib/Source/GmmLib/ \
@@ -82,18 +83,12 @@ $ make -j8
 ```
 $ sudo make install
 ```
-This will install the following files:
+This will install the following files (e.g. on Ubuntu):
 ```
 -- Installing: /usr/lib/x86_64-linux-gnu/dri/iHD_drv_video.so
 -- Installing: /etc/profile.d/intel-media.sh
 -- Installing: /usr/lib/x86_64-linux-gnu/igfxcmrt64.so
 ```
-Note that ‘make install’ only supports Ubuntu at this time. For other distributions, please locate the following files:
-```
-<workspace>/build/media_driver/iHD_drv_video.so
-<workspace>/build/cmrtlib/linux/igfxcmrt64.so
-```
-and copy them to proper system path (instead of using ‘make install’ directly).
 
 For iHD_drv_video.so please export related LIBVA environment variables.
 ```
