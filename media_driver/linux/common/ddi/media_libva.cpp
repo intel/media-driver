@@ -4300,7 +4300,11 @@ VAStatus DdiMedia_CreateImage(
         pVAImg->format.bits_per_pixel    = format->bits_per_pixel;
         pVAImg->width                    = width;
         pVAImg->height                   = height;
-        pVAImg->data_size                = iPitch * height * 3 / 2;
+#if UFO_GRALLOC_NEW_FORMAT
+        pVAImg->data_size                = iPitch *  MOS_ALIGN_CEIL(height,64) * 3 / 2;
+#else
+        pVAImg->data_size                = iPitch *  MOS_ALIGN_CEIL(height,32) * 3 / 2;
+#endif
         pVAImg->num_planes               = 2;
         pVAImg->pitches[0]               = iPitch;
         pVAImg->pitches[1]               =
