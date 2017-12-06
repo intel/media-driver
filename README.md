@@ -124,6 +124,7 @@ CNL (Cannonlake)
 | HEVC       |  D  | SKL/CNL     |
 | HEVC       |  E  | SKL         |
 | HEVC 10bit |  D  | CNL         |
+| VP9        |  D  | CNL         |
 | VP9 10bit  |  D  | CNL         |
 
 
