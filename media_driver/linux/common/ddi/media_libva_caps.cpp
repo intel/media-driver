@@ -1994,18 +1994,18 @@ VAStatus MediaLibvaCaps::QuerySurfaceAttributes(
         return VA_STATUS_ERROR_UNIMPLEMENTED;
     }
 
-    if (i <= *numAttribs)
+    if (i > *numAttribs)
     {
-        MOS_SecureMemcpy(attribList, i * sizeof(*attribs), attribs, i * sizeof(*attribs));
         *numAttribs = i;
         MOS_FreeMemory(attribs);
-        return status;
-
-    }
-    else
-    {
         return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
     }
+
+    *numAttribs = i;
+    MOS_SecureMemcpy(attribList, i * sizeof(*attribs), attribs, i * sizeof(*attribs));
+
+    MOS_FreeMemory(attribs);
+    return status;
 }
 
 bool MediaLibvaCaps::IsVc1Profile(VAProfile profile)
