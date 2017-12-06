@@ -906,36 +906,34 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
             seqParams->RateControlMethod = RATECONTROL_CQP;
             seqParams->MBBRC             = 0;
         }
-        else if ((VA_RC_CBR | VA_RC_MB) == m_encodeCtx->uiRCMethod || (VA_RC_CBR | VA_RC_MB | VA_RC_PARALLEL) == m_encodeCtx->uiRCMethod)
+        else if (VA_RC_CBR | m_encodeCtx->uiRCMethod )
         {
             seqParams->MaxBitRate        = seqParams->TargetBitRate;
             seqParams->MinBitRate        = seqParams->TargetBitRate;
             seqParams->RateControlMethod = RATECONTROL_CBR;
         }
-        else if (VA_RC_ICQ == m_encodeCtx->uiRCMethod || (VA_RC_ICQ | VA_RC_PARALLEL) == m_encodeCtx->uiRCMethod)
+        else if (VA_RC_ICQ | m_encodeCtx->uiRCMethod)
         {
             seqParams->ICQQualityFactor  = vaEncMiscParamRC->ICQ_quality_factor;
             seqParams->RateControlMethod = RATECONTROL_ICQ;
             seqParams->MBBRC             = 1;
         }
+        else if(VA_RC_VCM | m_encodeCtx->uiRCMethod)
+        {
+            seqParams->RateControlMethod = RATECONTROL_VCM;
+            seqParams->MBBRC             = 0;
+        }
+        else if(VA_RC_VBR | m_encodeCtx->uiRCMethod)
+        {
+            seqParams->RateControlMethod = RATECONTROL_VBR;
+        }
         else
         {
-            switch (m_encodeCtx->uiRCMethod)
-            {
-            case (VA_RC_VCM | VA_RC_PARALLEL):
-            case VA_RC_VCM:
-                seqParams->RateControlMethod = RATECONTROL_VCM;
-                seqParams->MBBRC             = 0;
-                break;
-            case (VA_RC_VBR | VA_RC_MB | VA_RC_PARALLEL):
-            case (VA_RC_VBR | VA_RC_MB):
-                seqParams->RateControlMethod = RATECONTROL_VBR;
-                break;
-            default:
-                DDI_ASSERTMESSAGE("invalid RC method.");
-                return VA_STATUS_ERROR_INVALID_PARAMETER;
-            }
-
+            DDI_ASSERTMESSAGE("invalid RC method.");
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
+        if((RATECONTROL_VCM == seqParams->RateControlMethod) || (RATECONTROL_VBR == seqParams->RateControlMethod))
+        {
             seqParams->MaxBitRate    = seqParams->TargetBitRate;
             seqParams->MinBitRate    = seqParams->TargetBitRate * (2 * vaEncMiscParamRC->target_percentage - 100) / 100;
             seqParams->TargetBitRate = seqParams->TargetBitRate * vaEncMiscParamRC->target_percentage / 100;
