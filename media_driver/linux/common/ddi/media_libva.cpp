@@ -2377,12 +2377,16 @@ DdiMedia_CreateSurfaces2(
                       break;
                   case VASurfaceAttribMemoryType:
                       DDI_ASSERT(attrib_list[i].value.type == VAGenericValueTypeInteger);
-                      if ( (attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM)
-                          ||(attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)
+                      if (attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_VA)
+                      {
+                          // Default memory type - no effect.
+                      }
+                      else if ( (attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM)
+                                ||(attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)
 #ifdef ANDROID
-                          ||(attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_ANDROID_GRALLOC)
+                                ||(attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_ANDROID_GRALLOC)
 
-                          ||(attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR)
+                                ||(attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR)
 #endif
                           )
                       {
