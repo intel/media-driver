@@ -2001,7 +2001,6 @@ static VAStatus DdiMedia_QueryConfigAttributes (
     DDI_CHK_NULL(entrypoint,  "Null entrypoint", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(ctx,         "Null Ctx", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CHK_NULL(num_attribs, "Null num_attribs", VA_STATUS_ERROR_INVALID_PARAMETER);
-    DDI_CHK_LESS(*num_attribs, VAConfigAttribTypeMax, "Invalid attribute number", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     pMediaCtx = DdiMedia_GetMediaContext(ctx);
     DDI_CHK_NULL(pMediaCtx,   "Null pMediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
