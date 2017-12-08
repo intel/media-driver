@@ -134,7 +134,7 @@ MOS_STATUS OsContextSpecific::DestroySemaphore(unsigned int semid)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS OsContextSpecific::ConnectCreateShm(long key, uint32_t size, uint32_t *pShmid, void* *ppShm)
+MOS_STATUS OsContextSpecific::ConnectCreateShm(long key, uint32_t size, int32_t *pShmid, void* *ppShm)
 {
     struct shmid_ds buf;
     int32_t         shmid;
@@ -196,7 +196,7 @@ MOS_STATUS OsContextSpecific::DetachDestroyShm(int32_t shmid, void  *pShm)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS OsContextSpecific::ConnectCreateSemaphore(long key, uint32_t *pSemid)
+MOS_STATUS OsContextSpecific::ConnectCreateSemaphore(long key, int32_t *pSemid)
 {
     int32_t         semid;
     struct sembuf   sop;
