@@ -60,12 +60,12 @@ class OsContextSpecific : public OsContext
     //!
     //! \brief Initial share memory handle
     //!
-    constexpr static void* MOS_LINUX_SHM_INVALID       = (void *)-1;
+    constexpr static void* MOS_LINUX_SHM_INVALID       = (void *)nullptr;
 
     //!
     //! \brief Initial share memory ID
     //!
-    constexpr static uint32_t MOS_LINUX_IPC_INVALID_ID = -1;
+    constexpr static int32_t MOS_LINUX_IPC_INVALID_ID = -1;
 
     //!
     //! \brief maximum number to try to get a valid semaphore
@@ -131,13 +131,12 @@ public:
     //! \brief  Return the semaphore ID we use to protect the IPC creation process
     //! \return sem id
     //!
-    uint32_t GetSemId(){return m_semId;};
+    int32_t GetSemId(){return m_semId;};
 
     //!
-    //! \brief  Return the shm ID for the IPC
-    //! \return shm id
-    //!
-    uint32_t GetShmId(){return m_shmId;};
+    //! \brief  Return the shm ID for the gPC
+    //! \return shm gd
+    int32_t GetShmId(){return m_shmId;};
 
     //!
     //! \brief  Return the shm object for the IPC
@@ -178,7 +177,7 @@ private:
     //!         ptr to ptr for share memory
     //! \return MOS_SUCCESS in success case, MOS error status in fail cases
     //!
-    MOS_STATUS ConnectCreateShm(long key, uint32_t size, uint32_t * pShmid, void* *ppShm);
+    MOS_STATUS ConnectCreateShm(long key, uint32_t size, int32_t * pShmid, void* *ppShm);
 
     //!
     //! \brief  destory the share memory
@@ -198,7 +197,7 @@ private:
     //!         ptr to sem id created
     //! \return MOS_SUCCESS in success case, MOS error status in fail cases
     //!
-    MOS_STATUS ConnectCreateSemaphore(long key, uint32_t *pSemid);
+    MOS_STATUS ConnectCreateSemaphore(long key, int32_t *pSemid);
 
     //!
     //! \brief  create driver secure IPC
@@ -276,11 +275,11 @@ private:
     //!
     //! \brief  Semophore ID for secure IPC
     //!
-    uint32_t            m_semId = 0;
+    int32_t            m_semId = 0;
     //!
     //! \brief  Share memory ID for secure IPC
     //!
-    uint32_t            m_shmId = 0;
+    int32_t            m_shmId = 0;
     //!
     //! \brief  Share memory ptr for secure IPC
     //!
@@ -299,11 +298,11 @@ private:
     //!
     //! \brief  Semophore ID for ruling SSEU configration
     //!
-    uint32_t            m_sseuSemId = 0;
+    int32_t            m_sseuSemId = 0;
     //!
     //! \brief  Share memory ID for ruling SSEU configration
     //!
-    uint32_t            m_sseuShmId = 0;
+    int32_t            m_sseuShmId = 0;
     //!
     //! \brief  Share memory ptr to the ruling SSEU configration
     //!
