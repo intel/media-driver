@@ -32,10 +32,6 @@
 #include "media_ddi_decode_const.h"
 #include "media_ddi_factory.h"
 
-#define BFraction_ShortCode_Max 6
-#define BFraction_LongCode_Min  112
-#define BFraction_LongCode_Max  125
-
 static const int32_t FractionToScaleFactor[21] = {
     128, 85,  170, 64,  192,
     51,  102, 153, 204, 43,
@@ -204,10 +200,9 @@ VAStatus DdiDecodeVC1::ParsePicParams(
     }
     uint32_t scaleFactor = 0;
     // See spec, table 40 && Figure 70
-    if ((picParam->b_picture_fraction <= BFraction_ShortCode_Max) ||
-        ((picParam->b_picture_fraction >= BFraction_LongCode_Min) && (picParam->b_picture_fraction <= BFraction_LongCode_Max)))
+    if ((picParam->b_picture_fraction >= 0) && (picParam->b_picture_fraction < 21))
     {
-        scaleFactor = (picParam->b_picture_fraction >= BFraction_LongCode_Min) ? FractionToScaleFactor[picParam->b_picture_fraction - BFraction_LongCode_Min + BFraction_ShortCode_Max + 1] : FractionToScaleFactor[picParam->b_picture_fraction];
+        scaleFactor = FractionToScaleFactor[picParam->b_picture_fraction];
     }
     else
     {
