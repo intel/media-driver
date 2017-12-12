@@ -1075,7 +1075,7 @@ finish:
         if(pGPUCopyTask)                    m_pDevice->DestroyTask(pGPUCopyTask);
         if(pBufferUP)                       m_pDevice->DestroyBufferUP(pBufferUP);
         if(pHybridCopyAuxBufferUP)          m_pDevice->DestroyBufferUP(pHybridCopyAuxBufferUP);
-        if(pHybridCopyAuxSysMem)            MOS_AlignedFreeMemory(pHybridCopyAuxSysMem); pHybridCopyAuxSysMem = nullptr;
+        if(pHybridCopyAuxSysMem)            { MOS_AlignedFreeMemory(pHybridCopyAuxSysMem); pHybridCopyAuxSysMem = nullptr; }
     }
 
     return hr;
