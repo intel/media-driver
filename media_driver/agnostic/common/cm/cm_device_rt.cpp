@@ -2345,7 +2345,7 @@ CmDeviceRT::DestroySampler8x8Surface(SurfaceIndex* & pSampler8x8Index)
 //| Purpose:    Coefficient Format Transform
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-#define FloatToS1_6(x)  (BYTE)((char)(x * 64))
+#define FloatToS1_6(x)  (uint8_t)((char)(x * 64))
 void
 CmDeviceRT::Sampler8x8CoefficientFormatTransform(
             CM_AVS_INTERNEL_NONPIPLINED_STATE* dst_avs_state,

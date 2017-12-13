@@ -268,7 +268,7 @@ typedef char**                  PPCHAR;                     //!< Pointer to a PC
 //! \def MOS_WITHIN_RANGE(_x, _min, _max)
 //! Check that value within provided (_min, _max) range
 //!
-#define MOS_WITHIN_RANGE(_x, _min, _max)  (((_x >= _min) && (_x <= _max)) ? (TRUE) : (FALSE))
+#define MOS_WITHIN_RANGE(_x, _min, _max)  (((_x >= _min) && (_x <= _max)) ? (true) : (false))
 
 //!
 //! \def MOS_ALIGNED(_alignment)

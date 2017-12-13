@@ -170,10 +170,10 @@ struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION
         // RangeThrStart0
         struct
         {
-            DWORD       RangeThrStart0;
+            uint32_t       RangeThrStart0;
         };
 
-        DWORD       Value;
+        uint32_t       Value;
     } DW00;
 
     // DWORD 1
@@ -182,10 +182,10 @@ struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION
         // RangeThrStart1
         struct
         {
-            DWORD       RangeThrStart1;
+            uint32_t       RangeThrStart1;
         };
 
-        DWORD       Value;
+        uint32_t       Value;
     } DW01;
 
     // DWORD 2
@@ -194,10 +194,10 @@ struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION
         // RangeThrStart2
         struct
         {
-            DWORD       RangeThrStart2;
+            uint32_t       RangeThrStart2;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW02;
 
     // DWORD 3
@@ -206,10 +206,10 @@ struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION
         // RangeThrStart3
         struct
         {
-            DWORD       RangeThrStart3;
+            uint32_t       RangeThrStart3;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW03;
 
     // DWORD 4
@@ -218,10 +218,10 @@ struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION
         // RangeThrStart4
         struct
         {
-            DWORD       RangeThrStart4;
+            uint32_t       RangeThrStart4;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW04;
 
     // DWORD 5
@@ -230,10 +230,10 @@ struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION
         // RangeThrStart5
         struct
         {
-            DWORD       RangeThrStart5;
+            uint32_t       RangeThrStart5;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW05;
 
     // DWORD 6
@@ -242,10 +242,10 @@ struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION
         // Reserved
         struct
         {
-            DWORD       Reserved;
+            uint32_t       Reserved;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW06;
 
     // DWORD 7
@@ -254,10 +254,10 @@ struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION
         // Reserved
         struct
         {
-            DWORD       Reserved;
+            uint32_t       Reserved;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW07;
 
     // DWORD 8
@@ -266,10 +266,10 @@ struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION
         // RangeWgt0
         struct
         {
-            DWORD       RangeWgt0;
+            uint32_t       RangeWgt0;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW08;
 
     // DWORD 9
@@ -278,10 +278,10 @@ struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION
         // RangeWgt1
         struct
         {
-            DWORD       RangeWgt1;
+            uint32_t       RangeWgt1;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW09;
 
     // DWORD 10
@@ -290,10 +290,10 @@ struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION
         // RangeWgt2
         struct
         {
-            DWORD       RangeWgt2;
+            uint32_t       RangeWgt2;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW10;
 
     // DWORD 11
@@ -302,10 +302,10 @@ struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION
         // RangeWgt3
         struct
         {
-            DWORD       RangeWgt3;
+            uint32_t       RangeWgt3;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW11;
 
     // DWORD 12
@@ -314,10 +314,10 @@ struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION
         // RangeWgt4
         struct
         {
-            DWORD       RangeWgt4;
+            uint32_t       RangeWgt4;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW12;
 
     // DWORD 13
@@ -326,10 +326,10 @@ struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION
         // RangeWgt5
         struct
         {
-            DWORD       RangeWgt5;
+            uint32_t       RangeWgt5;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW13;
 
     // DWORD 14
@@ -338,10 +338,10 @@ struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION
         // Reserved
         struct
         {
-            DWORD       Reserved;
+            uint32_t       Reserved;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW14;
 
     // DWORD 15
@@ -350,17 +350,17 @@ struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION
         // Reserved
         struct
         {
-            DWORD       Reserved;
+            uint32_t       Reserved;
         };
 
-        DWORD   Value;
+        uint32_t   Value;
     } DW15;
 
     // DWORD 16 - 41: DistWgt[5][5]
-    DWORD DistWgt[5][5];
+    uint32_t DistWgt[5][5];
 
-    // Padding for 32-byte alignment, VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION_G9 is 7 DWORDs
-    DWORD dwPad[7];
+    // Padding for 32-byte alignment, VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION_G9 is 7 uint32_ts
+    uint32_t dwPad[7];
 };
 
 //!

@@ -1520,7 +1520,7 @@ VAStatus DdiMedia__Initialize (
     if(pDRMState->fd < 0 || pDRMState->fd == 0 )
     {
         DDI_ASSERTMESSAGE("DDI:LIBVA Wrapper doesn't pass file descriptor for graphics adaptor, trying to open the graphics... ");
-        pDRMState->fd = DdiMediaUtil_OpenGraphicsAdaptor((CHAR *)DEVICE_NAME);
+        pDRMState->fd = DdiMediaUtil_OpenGraphicsAdaptor((char *)DEVICE_NAME);
         if (pDRMState->fd < 0) {
             DDI_ASSERTMESSAGE("DDI: Still failed to open the graphic adaptor, return failure");
             return VA_STATUS_ERROR_INVALID_PARAMETER;
@@ -2827,7 +2827,7 @@ static VAStatus DdiMedia_CreateContext (
     PDDI_MEDIA_CONTEXT     pMediaDrvCtx;
     VAStatus               vaStatus;
     int32_t                i;
-    UINT32                 surfaceId;
+    uint32_t               surfaceId;
 
     DDI_FUNCTION_ENTER();
 
@@ -2845,7 +2845,7 @@ static VAStatus DdiMedia_CreateContext (
         DDI_CHK_NULL(pMediaDrvCtx->pSurfaceHeap, "Null pMediaDrvCtx->pSurfaceHeap", VA_STATUS_ERROR_INVALID_CONTEXT);
         for(i = 0; i < num_render_targets; i++)
         {
-            surfaceId = (UINT32)render_targets[i];
+            surfaceId = (uint32_t)render_targets[i];
             DDI_CHK_LESS(surfaceId, pMediaDrvCtx->pSurfaceHeap->uiAllocatedHeapElements, "Invalid Surface", VA_STATUS_ERROR_INVALID_SURFACE);
         }
     }
@@ -2908,7 +2908,7 @@ static VAStatus DdiMedia_CreateBuffer (
     VABufferType        type,
     uint32_t            size,
     uint32_t            num_elements,
-    VOID                *pData,
+    void                *pData,
     VABufferID          *pBufId
 )
 {

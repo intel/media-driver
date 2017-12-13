@@ -29,7 +29,7 @@
 #include "mos_os.h"
 #include "mos_solo_generic.h"
 
-extern CONST MEDIA_OBJECT_KA2_INLINE_DATA g_cInit_MEDIA_OBJECT_KA2_INLINE_DATA =
+extern const MEDIA_OBJECT_KA2_INLINE_DATA g_cInit_MEDIA_OBJECT_KA2_INLINE_DATA =
 {
     // DWORD 0
     {

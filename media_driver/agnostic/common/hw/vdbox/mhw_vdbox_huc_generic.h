@@ -312,7 +312,7 @@ protected:
             resourceParams.dwOffset = 0;
             resourceParams.pdwCmd = (cmd.HucDataSourceBaseAddress[0].DW0_1.Value);
             resourceParams.dwLocationInCmd = 1;
-            resourceParams.bIsWritable = FALSE;
+            resourceParams.bIsWritable = false;
 
             MHW_MI_CHK_STATUS(AddResourceToCmd(
                 m_osInterface,
@@ -393,7 +393,7 @@ protected:
             resourceParams.dwOffset = params->dwDataOffset;
             resourceParams.pdwCmd = (cmd.DW1_2.Value);
             resourceParams.dwLocationInCmd = 1;
-            resourceParams.bIsWritable = FALSE;
+            resourceParams.bIsWritable = false;
             resourceParams.dwSize = params->dwDataSize;
 
             MHW_MI_CHK_STATUS(AddResourceToCmd(
@@ -409,7 +409,7 @@ protected:
             resourceParams.dwOffset = params->dwStreamOutObjectOffset;
             resourceParams.pdwCmd = (cmd.DW6_7.Value);
             resourceParams.dwLocationInCmd = 6;
-            resourceParams.bIsWritable = TRUE;
+            resourceParams.bIsWritable = true;
             resourceParams.dwSize = params->dwStreamOutObjectSize;
 
             MHW_MI_CHK_STATUS(AddResourceToCmd(

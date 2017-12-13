@@ -106,7 +106,7 @@ CodechalHwInterfaceG10::CodechalHwInterfaceG10(
     m_checkBankCount = true;
     InitCacheabilityControlSettings(codecFunction);
 
-    m_isVdencSuperSliceEnabled = TRUE;
+    m_isVdencSuperSliceEnabled = true;
 
     m_ssEuTable = m_defaultSsEuLutG10;
 

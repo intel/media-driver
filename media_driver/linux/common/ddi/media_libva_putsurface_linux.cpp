@@ -291,7 +291,7 @@ VAStatus DdiCodec_PutSurfaceLinuxVphalExt(
         return VA_STATUS_ERROR_UNKNOWN;
     }
 
-    pXimg->data = (CHAR*)DdiMediaUtil_LockSurface(pDstSurfBuffObj, (MOS_LOCKFLAG_READONLY | MOS_LOCKFLAG_WRITEONLY));
+    pXimg->data = (char *)DdiMediaUtil_LockSurface(pDstSurfBuffObj, (MOS_LOCKFLAG_READONLY | MOS_LOCKFLAG_WRITEONLY));
 
     if (nullptr == pXimg->data) 
     {

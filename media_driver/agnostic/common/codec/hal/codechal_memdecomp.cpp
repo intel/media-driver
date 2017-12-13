@@ -587,9 +587,9 @@ MOS_STATUS MediaMemDecompState::MemoryDecompress(
 
         MOS_ZeroMemory(&pipeControlParams, sizeof(pipeControlParams));
         pipeControlParams.dwFlushMode = MHW_FLUSH_WRITE_CACHE;
-        pipeControlParams.bGenericMediaStateClear = TRUE;
-        pipeControlParams.bIndirectStatePointersDisable = TRUE;
-        pipeControlParams.bDisableCSStall = FALSE;
+        pipeControlParams.bGenericMediaStateClear = true;
+        pipeControlParams.bIndirectStatePointersDisable = true;
+        pipeControlParams.bDisableCSStall = false;
         MHW_CHK_STATUS_RETURN(m_miInterface->AddPipeControl(&cmdBuffer, NULL, &pipeControlParams));
 
         if (MEDIA_IS_WA(m_osInterface->pfnGetWaTable(m_osInterface), WaSendDummyVFEafterPipelineSelect))

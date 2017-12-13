@@ -155,7 +155,7 @@ static const MEDIA_OBJECT_KA2_STATIC_DATA g_cInit_MEDIA_OBJECT_KA2_STATIC_DATA =
     {
         0,                                      // LumakeyLowThreshold
         0,                                      // LumakeyHighThreshold
-        FALSE,                                  // NLASEnable
+        0,                                      // NLASEnable
     },
 
     // DWORD 15
@@ -356,7 +356,7 @@ static const MEDIA_WALKER_KA2_STATIC_DATA g_cInit_MEDIA_WALKER_KA2_STATIC_DATA =
     {
         0,                                      // LumakeyLowThreshold
         0,                                      // LumakeyHighThreshold
-        FALSE,                                  // NLASEnable
+        0,                                  // NLASEnable
     },
 
     // DWORD 15
@@ -588,7 +588,7 @@ static const MEDIA_WALKER_KA2_STATIC_DATA g_cInit_MEDIA_WALKER_KA2_STATIC_DATA =
    {0,0}
 };
 
-static CONST MEDIA_OBJECT_NLAS_INLINE_DATA g_cInit_MEDIA_OBJECT_NLAS_INLINE_DATA =
+static const MEDIA_OBJECT_NLAS_INLINE_DATA g_cInit_MEDIA_OBJECT_NLAS_INLINE_DATA =
 {
     0,                                          // HorizontalFrameOriginLayer0
     0,                                          // HorizontalFrameOriginLayer1
@@ -1667,7 +1667,7 @@ bool CompositeState::AddCompLayer(
         pComposite->nLumaKeys--;
 		if (pComposite->nLumaKeys < 0 || pComposite->uSourceCount > 1)
 		{
-			bResult = FALSE;
+			bResult = false;
 			goto finish;
 		}
 		if (pComposite->uSourceCount == 1)
@@ -2793,8 +2793,8 @@ void CompositeState::SetSurfaceParams(
 //!
 static void GetOffsetChromasiting(
     PVPHAL_SURFACE                      pSource,
-    FLOAT*                              pHorizGap,
-    FLOAT*                              pVertGap
+    float*                              pHorizGap,
+    float*                              pVertGap
     )
 {
     float  HorizGap = 0.0f;
@@ -4416,7 +4416,7 @@ bool CompositeState::SubmitStates(
             &(pStatic->DW15.DestinationPackedUOffset),
             &(pStatic->DW15.DestinationPackedVOffset));
     }
-    else if (pFilter->bFillOutputAlphaWithConstant == TRUE && pRenderingData->pCompAlpha != nullptr)
+    else if (pFilter->bFillOutputAlphaWithConstant && pRenderingData->pCompAlpha != nullptr)
     {
         switch (pRenderingData->pCompAlpha->AlphaMode)
         {
@@ -6742,16 +6742,16 @@ int32_t CompositeState::GetThreadCountForVfeState(
     PVPHAL_RENDERING_DATA_COMPOSITE     pRenderingData,
     PVPHAL_SURFACE                      pTarget)
 {
-    INT iThreadCount;
+    int iThreadCount;
 
     // For optimal performance, we use a different ThreadCount if we are doing
     // Composition for Primary Layer only, and the RenderTarget is Overlay or
     // FlipChain.
     iThreadCount = VPHAL_USE_MEDIA_THREADS_MAX;
     if (pRenderingData->iLayers == 1 &&
-        (pTarget->bOverlay == TRUE || pTarget->bFlipChain == TRUE))
+        (pTarget->bOverlay || pTarget->bFlipChain))
     {
-        for (INT i = 0; i < VPHAL_COMP_MAX_LAYERS; i++)
+        for (int i = 0; i < VPHAL_COMP_MAX_LAYERS; i++)
         {
             VPHAL_SURFACE *pSurface = pRenderingData->pLayers[i];
             if (pSurface != nullptr)

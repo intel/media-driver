@@ -55,8 +55,8 @@
 #define BLOCK_WIDTH                  (64)
 #define PAGE_ALIGNED                 (0x1000)
 
-#define GPUCOPY_KERNEL_LOCK(a) ((a)->bLocked = TRUE)
-#define GPUCOPY_KERNEL_UNLOCK(a) ((a)->bLocked = FALSE)
+#define GPUCOPY_KERNEL_LOCK(a) ((a)->bLocked = true)
+#define GPUCOPY_KERNEL_UNLOCK(a) ((a)->bLocked = false)
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Create Queue

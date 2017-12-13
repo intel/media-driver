@@ -2371,7 +2371,7 @@ MOS_STATUS CodechalDecodeVc1::ParseFieldPictureLayerPAdvanced()
     else
     {
         CODECHAL_DECODE_CHK_STATUS_RETURN(GetBits(CODECHAL_DECODE_VC1_BITS_4MVSWITCH, value));
-        if (TRUE == value)
+        if (value)
         {
             mvMode = CODECHAL_VC1_MVMODE_MIXEDMV;
         }
@@ -2382,7 +2382,7 @@ MOS_STATUS CodechalDecodeVc1::ParseFieldPictureLayerPAdvanced()
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(GetBits(CODECHAL_DECODE_VC1_BITS_INTCOMP, value));
 
-        if (TRUE == value)
+        if (value)
         {
             CODECHAL_DECODE_CHK_STATUS_RETURN(SkipBits(CODECHAL_DECODE_VC1_BITS_LUMSCALE + CODECHAL_DECODE_VC1_BITS_LUMSHIFT, value));
         }
@@ -2488,7 +2488,7 @@ MOS_STATUS CodechalDecodeVc1::ParseFieldPictureLayerBAdvanced()
     {
         CODECHAL_DECODE_CHK_STATUS_RETURN(GetBits(CODECHAL_DECODE_VC1_BITS_INTCOMP, value));
 
-        if (TRUE == value)
+        if (value)
         {
             CODECHAL_DECODE_VERBOSEMESSAGE("INTCOMP is not false.");
         }
@@ -2659,7 +2659,7 @@ MOS_STATUS CodechalDecodeVc1::ParsePictureHeaderAdvanced()
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(GetBits(CODECHAL_DECODE_VC1_BITS_PS_PRESENT, value));
 
-        if (TRUE == value)
+        if (value)
         {
             skipBits = CODECHAL_DECODE_VC1_BITS_PS_HOFFSET + CODECHAL_DECODE_VC1_BITS_PS_VOFFSET;
             skipBits += CODECHAL_DECODE_VC1_BITS_PS_WIDTH + CODECHAL_DECODE_VC1_BITS_PS_HEIGHT;
@@ -3670,9 +3670,9 @@ MOS_STATUS CodechalDecodeVc1::DecodePrimitiveLevelVLD()
             int32_t offset = slc->macroblock_offset >> 3;
 
             // Check that the slice data does not overrun the bitstream buffer size
-            if (((ULONG_PTR)(slc->slice_data_offset) + length) > u32DataSize)
+            if (((uintptr_t)(slc->slice_data_offset) + length) > u32DataSize)
             {
-                length = u32DataSize - (ULONG_PTR)(slc->slice_data_offset);
+                length = u32DataSize - (uintptr_t)(slc->slice_data_offset);
 
                 if (length < 0)
                 {
@@ -3681,7 +3681,7 @@ MOS_STATUS CodechalDecodeVc1::DecodePrimitiveLevelVLD()
             }
 
             // Error handling for garbage data
-            if (((ULONG_PTR)(slc->slice_data_offset)) > u32DataSize)
+            if (((uintptr_t)(slc->slice_data_offset)) > u32DataSize)
             {
                 slc++;
                 pVldSliceRecord[slcCount].dwSkip = true;

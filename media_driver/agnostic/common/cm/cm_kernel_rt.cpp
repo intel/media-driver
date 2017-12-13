@@ -5923,7 +5923,7 @@ int CmKernelRT::UpdateSamplerHeap(CmKernelData *pCmKernelData)
                 if (arg_param->Kind == CM_ARGUMENT_SAMPLER)
                 {
                     unsigned char *arg = arg_param->pFirstValue + (thread_index * arg_param->iUnitSize);
-                    unsigned int sampler_table_index = *((PUINT)arg);
+                    unsigned int sampler_table_index = *((uint32_t *)arg);
 
                     SamplerParam sampler = {};
                     sampler.sampler_table_index = sampler_table_index;

@@ -75,7 +75,7 @@ void     DdiMediaUtil_ReleasePVAContextFromHeap(PDDI_MEDIA_HEAP pVaContextHeap, 
 
 void     DdiMediaUtil_UnRefBufObjInMediaBuffer(PDDI_MEDIA_BUFFER pBuf);
 void     DdiMediaUtil_GetEnabledFeature(PDDI_MEDIA_CONTEXT pMediaDrvCtx);
-int32_t  DdiMediaUtil_OpenGraphicsAdaptor(CHAR *pDevName);
+int32_t  DdiMediaUtil_OpenGraphicsAdaptor(char *pDevName);
 
 //------------------------------------------------------------------------------
 // Macros for debug messages, Assert, Null check and condition check within ddi files

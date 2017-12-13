@@ -37,8 +37,8 @@
 
 #define GSH_DYNAMIC
 
-#define DiscardLow8Bits(x)  (WORD)(0xff00 & x)
-#define FloatToS3_12(x)  (WORD)((short)(x * 4096))
+#define DiscardLow8Bits(x)  (uint16_t)(0xff00 & x)
+#define FloatToS3_12(x)  (uint16_t)((short)(x * 4096))
 #define FloatToS3_4(x)   (DiscardLow8Bits(FloatToS3_12(x)))
 
 #ifdef GSH_DYNAMIC

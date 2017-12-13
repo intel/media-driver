@@ -1321,21 +1321,21 @@ MOS_STATUS CodechalVdencAvcState::Initialize(PCODECHAL_SETTINGS settings)
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_VDENC_CRE_PREFETCH_ENABLE_ID,
             &userFeatureData);
-        m_crePrefetchEnable = userFeatureData.bData == TRUE;
+        m_crePrefetchEnable = userFeatureData.bData == 1;
 
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
         CodecHal_UserFeature_ReadValue(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_VDENC_SINGLE_PASS_ENABLE_ID,
             &userFeatureData);
-        m_vdencSinglePassEnable = userFeatureData.bData == TRUE;
+        m_vdencSinglePassEnable = userFeatureData.bData == 1;
 
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
         CodecHal_UserFeature_ReadValue(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_VDENC_TLB_PREFETCH_ENABLE_ID,
             &userFeatureData);
-        m_tlbPrefetchEnable = userFeatureData.bData == TRUE;
+        m_tlbPrefetchEnable = userFeatureData.bData == 1;
 
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
         CodecHal_UserFeature_ReadValue(
@@ -4589,7 +4589,7 @@ MOS_STATUS CodechalVdencAvcState::ExecuteSliceLevel()
             pakInsertObjectParams.dwLastPicInStreamData = (uint32_t)((1 << 16) | CODECHAL_ENCODE_AVC_NAL_UT_EOSTREAM << 24);
         }
         pakInsertObjectParams.bHeaderLengthExcludeFrmSize = true;
-        if (pakInsertObjectParams.bEmulationByteBitsInsert == TRUE)
+        if (pakInsertObjectParams.bEmulationByteBitsInsert)
         {
             //Does not matter here, but keeping for consistency
             CODECHAL_ENCODE_ASSERTMESSAGE("The emulation prevention bytes are not inserted by the app and are requested to be inserted by HW.");

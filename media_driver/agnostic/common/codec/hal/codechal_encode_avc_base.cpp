@@ -316,7 +316,7 @@ MOS_STATUS CodecHalAvcEncode_SendSlice(
                 pakInsertObjectParams.dwOffset = offSet;
                 pakInsertObjectParams.bHeaderLengthExcludeFrmSize = true; // Exclude header length from size calculation for accurate Cabac Zero Word Insertion
 
-                if (pakInsertObjectParams.bEmulationByteBitsInsert == TRUE)
+                if (pakInsertObjectParams.bEmulationByteBitsInsert)
                 {
                     CODECHAL_ENCODE_VERBOSEMESSAGE("The emulation prevention bytes are not inserted by the app and are requested to be inserted by HW.");
                 }

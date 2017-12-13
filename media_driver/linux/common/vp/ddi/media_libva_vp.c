@@ -99,7 +99,7 @@ VAStatus     DdiVp_UpdateProcPipelineBackwardReferenceFrames(PDDI_VP_CONTEXT pVp
 /////////////////////////////////////////////////////////////////////////////
 PDDI_VP_CONTEXT DdiVp_GetVpContextFromContextID(VADriverContextP ctx, VAContextID vaCtxID)
 {
-    UINT  uiCtxType;
+    uint32_t  uiCtxType;
     return (PDDI_VP_CONTEXT)DdiMedia_GetContextFromContextID(ctx, vaCtxID, &uiCtxType);
 }
 
@@ -2886,8 +2886,8 @@ DdiVp_SetProcPipelineBlendingParams(
     bool                      bPreMultAlpha;
 
     const VABlendState * blend_state = pPipelineParam->blend_state;
-    bGlobalAlpha=FALSE;
-    bPreMultAlpha=FALSE;
+    bGlobalAlpha = false;
+    bPreMultAlpha = false;
 
     VP_DDI_FUNCTION_ENTER;
     DDI_CHK_NULL(pVpCtx, "Null pVpCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);

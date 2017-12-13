@@ -1538,7 +1538,7 @@ MOS_STATUS CodechalDecodeAvc::ParseSlice(
             break;
         }
 
-        if (pVldSliceRecord[slcCount].dwSkip == TRUE)
+        if (pVldSliceRecord[slcCount].dwSkip)
         {
             continue;
         }

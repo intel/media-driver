@@ -942,7 +942,7 @@ uint16_t VpHal_FloatToHalfFloat(
     uint32_t                    dwInput;
     VPHAL_HALF_PRECISION_FLOAT  outFloat;
 
-    dwInput   = *((DWORD*) (&fInput));
+    dwInput   = *((uint32_t *) (&fInput));
     Sign      = (dwInput >> 31) &  0x01;
     Exp       = (dwInput >> 23) &  0x0FF;
     Mantissa  = dwInput & 0x07FFFFF;

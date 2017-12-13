@@ -1836,7 +1836,7 @@ MOS_STATUS CodechalEncodeHevcBase::SendMIAtomicCmd(
     atomicParams.pOsResource = semaMem;
     atomicParams.dwDataSize = sizeof(uint32_t);
     atomicParams.Operation = opCode;
-    atomicParams.bInlineData = TRUE;
+    atomicParams.bInlineData = true;
     atomicParams.dwOperand1Data[0] = immData;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiAtomicCmd(cmdBuffer, &atomicParams));
 

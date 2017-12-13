@@ -1890,7 +1890,7 @@ MOS_STATUS CodechalEncodeAvcEncG9Skl::UpdateMfeMbEncBindingTable(uint32_t submit
 {
     auto pBindingTable = &MbEncBindingTable;
 
-    DWORD dwBindingTableBase = CODECHAL_ENCODE_AVC_MBENC_NUM_SURFACES_G9 * submitIndex;
+    uint32_t dwBindingTableBase = CODECHAL_ENCODE_AVC_MBENC_NUM_SURFACES_G9 * submitIndex;
 
     pBindingTable->dwAvcMBEncMfcAvcPakObj               = CODECHAL_ENCODE_AVC_MBENC_MFC_AVC_PAK_OBJ_G9 + dwBindingTableBase;
     pBindingTable->dwAvcMBEncIndMVData                  = CODECHAL_ENCODE_AVC_MBENC_IND_MV_DATA_G9 + dwBindingTableBase;
@@ -2591,7 +2591,7 @@ MOS_STATUS CodechalEncodeAvcEncG9Skl::SetCurbeAvcMbEnc(PCODECHAL_ENCODE_AVC_MBEN
             &LockFlagsWriteOnly);
         CODECHAL_ENCODE_CHK_NULL_RETURN(pData);
 
-        MOS_SecureMemcpy(pData, sizeof(Cmd.common), (PVOID)&Cmd, sizeof(Cmd.common));
+        MOS_SecureMemcpy(pData, sizeof(Cmd.common), (void *)&Cmd, sizeof(Cmd.common));
 
         m_osInterface->pfnUnlockResource(m_osInterface, &BrcBuffers.resMbEncBrcBuffer);
     }

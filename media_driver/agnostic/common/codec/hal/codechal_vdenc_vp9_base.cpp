@@ -767,7 +767,7 @@ MOS_STATUS CodechalVdencVp9State::ConstructPicStateBatchBuf(
     picState.uiMinBitRate                    = pVp9SeqParams->MinBitRate * CODECHAL_ENCODE_BRC_KBPS;
     constructedCmdBuf.iOffset += m_cmd1Size;  
     m_hucPicStateOffset = (uint16_t)constructedCmdBuf.iOffset;
-    constructedCmdBuf.pCmdPtr += constructedCmdBuf.iOffset/sizeof(DWORD);
+    constructedCmdBuf.pCmdPtr += constructedCmdBuf.iOffset/sizeof(uint32_t);
     eStatus = m_hcpInterface->AddHcpVp9PicStateEncCmd(&constructedCmdBuf, nullptr, &picState);
     if (eStatus != MOS_STATUS_SUCCESS)
     {
@@ -805,7 +805,7 @@ MOS_STATUS CodechalVdencVp9State::ConstructPicStateBatchBuf(
     }
     m_slbbImgStateOffset = (uint16_t)constructedCmdBuf.iOffset;
     constructedCmdBuf.iOffset += m_cmd2Size;
-    constructedCmdBuf.pCmdPtr += m_cmd2Size/ sizeof(DWORD);
+    constructedCmdBuf.pCmdPtr += m_cmd2Size/ sizeof(uint32_t);
     
     // BB_END
     eStatus = m_miInterface->AddMiBatchBufferEnd(&constructedCmdBuf, nullptr);

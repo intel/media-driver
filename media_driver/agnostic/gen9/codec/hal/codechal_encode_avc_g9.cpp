@@ -2544,8 +2544,8 @@ MOS_STATUS CodechalEncodeAvcEncG9::SendAvcBrcFrameUpdateSurfaces(PMOS_COMMAND_BU
 	if (pParams->psMvDataBuffer)
 	{
 		memset(&SurfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
-		SurfaceCodecParams.bIs2DSurface = TRUE;
-		SurfaceCodecParams.bMediaBlockRW = TRUE;
+		SurfaceCodecParams.bIs2DSurface = true;
+		SurfaceCodecParams.bMediaBlockRW = true;
 		SurfaceCodecParams.psSurface = pParams->psMvDataBuffer;
 		SurfaceCodecParams.dwOffset = pParams->dwMvBottomFieldOffset;
 		SurfaceCodecParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_MV_DATA_ENCODE].Value;

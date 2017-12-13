@@ -452,10 +452,10 @@ struct MEDIA_WALKER_KA2_STATIC_DATA
         // Save
         struct
         {
-            BYTE        DestinationPackedYOffset;
-            BYTE        DestinationPackedUOffset;
-            BYTE        DestinationPackedVOffset;
-            BYTE        DestinationRGBFormat;
+            uint8_t     DestinationPackedYOffset;
+            uint8_t     DestinationPackedUOffset;
+            uint8_t     DestinationPackedVOffset;
+            uint8_t     DestinationRGBFormat;
         };
 
         uint32_t       Value;
@@ -569,10 +569,10 @@ struct MEDIA_WALKER_KA2_STATIC_DATA
         // Dataport Load
         struct
         {
-            BYTE        SourcePackedYOffset;
-            BYTE        SourcePackedUOffset;
-            BYTE        SourcePackedVOffset;
-            BYTE        Reserved;
+            uint8_t        SourcePackedYOffset;
+            uint8_t        SourcePackedUOffset;
+            uint8_t        SourcePackedVOffset;
+            uint8_t        Reserved;
         };
 
         uint32_t       Value;
@@ -1458,10 +1458,10 @@ struct MEDIA_OBJECT_KA2_STATIC_DATA
         // Save
         struct
         {
-            BYTE        DestinationPackedYOffset;
-            BYTE        DestinationPackedUOffset;
-            BYTE        DestinationPackedVOffset;
-            BYTE        DestinationRGBFormat;
+            uint8_t        DestinationPackedYOffset;
+            uint8_t        DestinationPackedUOffset;
+            uint8_t        DestinationPackedVOffset;
+            uint8_t        DestinationRGBFormat;
         };
 
         uint32_t       Value;
@@ -1575,10 +1575,10 @@ struct MEDIA_OBJECT_KA2_STATIC_DATA
         // Dataport Load
         struct
         {
-            BYTE        SourcePackedYOffset;
-            BYTE        SourcePackedUOffset;
-            BYTE        SourcePackedVOffset;
-            BYTE        Reserved;
+            uint8_t     SourcePackedYOffset;
+            uint8_t     SourcePackedUOffset;
+            uint8_t     SourcePackedVOffset;
+            uint8_t     Reserved;
         };
 
         uint32_t       Value;
@@ -2102,7 +2102,7 @@ struct MEDIA_OBJECT_KA2_INLINE_DATA
     } DW15;
 };
 
-extern CONST MEDIA_OBJECT_KA2_INLINE_DATA g_cInit_MEDIA_OBJECT_KA2_INLINE_DATA;
+extern const MEDIA_OBJECT_KA2_INLINE_DATA g_cInit_MEDIA_OBJECT_KA2_INLINE_DATA;
 
 //!
 //! \brief Vebox mode of operation

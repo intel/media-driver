@@ -7240,8 +7240,8 @@ MOS_STATUS CodechalEncodeAvcEnc::ExecuteSliceLevel()
         {
             pakInsertObjectParams.dwLastPicInStreamData = (uint32_t)((1 << 16) | CODECHAL_ENCODE_AVC_NAL_UT_EOSTREAM << 24);
         }
-        pakInsertObjectParams.bHeaderLengthExcludeFrmSize = TRUE;
-        if (pakInsertObjectParams.bEmulationByteBitsInsert == TRUE)
+        pakInsertObjectParams.bHeaderLengthExcludeFrmSize = true;
+        if (pakInsertObjectParams.bEmulationByteBitsInsert)
         {
             //Does not matter here, but keeping for consistency
             CODECHAL_ENCODE_ASSERTMESSAGE("The emulation prevention bytes are not inserted by the app and are requested to be inserted by HW.");

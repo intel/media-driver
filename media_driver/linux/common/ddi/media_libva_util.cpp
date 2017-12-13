@@ -1626,7 +1626,7 @@ void DdiMediaUtil_GetEnabledFeature(PDDI_MEDIA_CONTEXT pMediaCtx)
 }
 
 // Open Intel's Graphics Device to get the file descriptor
-int32_t DdiMediaUtil_OpenGraphicsAdaptor(CHAR *pDevName)
+int32_t DdiMediaUtil_OpenGraphicsAdaptor(char *pDevName)
 {
     struct stat st;
     int32_t         hDevice;

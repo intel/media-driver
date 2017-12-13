@@ -639,11 +639,11 @@ struct CODECHAL_FEI_HEVC_B_PAK_CURBE_G9
     {
         struct
         {
-            DWORD  BTI_WA_CU_Record;
+            uint32_t  BTI_WA_CU_Record;
         };
         struct
         {
-            DWORD   Value;
+            uint32_t   Value;
         };
     } DW24;
 
@@ -651,11 +651,11 @@ struct CODECHAL_FEI_HEVC_B_PAK_CURBE_G9
     {
         struct
         {
-            DWORD  BTI_WA_PAK_Obj;
+            uint32_t  BTI_WA_PAK_Obj;
         };
         struct
         {
-            DWORD   Value;
+            uint32_t  Value;
         };
     } DW25;
     
@@ -1812,7 +1812,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::SetMbEncKernelParams(MHW_KERNEL_PARAM* ker
     case CODECHAL_HEVC_FEI_MBENC_PENC:
         kernelParams->iBTCount = CODECHAL_HEVC_FEI_P_MBENC_END - CODECHAL_HEVC_FEI_P_MBENC_BEGIN;
         //P MBEnc curbe has one less DWord than B MBEnc curbe
-        kernelParams->iCurbeLength = MOS_ALIGN_CEIL(sizeof(CODECHAL_FEI_HEVC_B_MB_ENC_CURBE_G9) - sizeof(uint32_t), (SIZE_T)curbeAlignment);
+        kernelParams->iCurbeLength = MOS_ALIGN_CEIL(sizeof(CODECHAL_FEI_HEVC_B_MB_ENC_CURBE_G9) - sizeof(uint32_t), (size_t)curbeAlignment);
         kernelParams->iBlockWidth = 16;
         kernelParams->iBlockHeight = 16;
         break;
@@ -3757,7 +3757,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PBMbEncKernel()
     CalcForwardCoeffThd(forwardTransformThd, sliceQp);
 
     uint32_t curbeSize = 0;
-    PVOID defaultCurbe = (PVOID)GetDefaultCurbeEncBKernel(curbeSize);
+    void *defaultCurbe = (void *)GetDefaultCurbeEncBKernel(curbeSize);
     CODECHAL_ENCODE_ASSERT(defaultCurbe);
 
     CODECHAL_FEI_HEVC_B_MB_ENC_CURBE_G9 cmd, *curbe = &cmd;
@@ -5161,7 +5161,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PBMbEncKernel()
     CalcForwardCoeffThd(forwardTransformThd, sliceQp);
 
     uint32_t curbeSize = 0;
-    PVOID defaultCurbe = (void *)GetDefaultCurbeEncBKernel(curbeSize);
+    void *defaultCurbe = (void *)GetDefaultCurbeEncBKernel(curbeSize);
     CODECHAL_ENCODE_ASSERT(defaultCurbe);
 
     CODECHAL_FEI_HEVC_B_MB_ENC_CURBE_G9 cmd, *curbe = &cmd;
@@ -6711,6 +6711,6 @@ CodechalFeiHevcStateG9Skl::CodechalFeiHevcStateG9Skl(CodechalHwInterface* hwInte
     m_kuid = IDR_CODEC_HEVC_FEI_COMBINED_KENREL_INTEL;
     pfnGetKernelHeaderAndSize = GetKernelHeaderAndSize;
     m_noMeKernelForPFrame = false;
-    m_feiEnable = TRUE;
+    m_feiEnable = true;
 }
 

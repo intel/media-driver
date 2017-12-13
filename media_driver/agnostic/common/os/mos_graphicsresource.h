@@ -134,8 +134,8 @@ public:
             m_depth           = pParams->dwDepth;
             m_format          = pParams->Format;
             m_height          = pParams->dwHeight;
-            m_isCompressed    = (pParams->bIsCompressed == TRUE) ? true : false;
-            m_isPersistent    = (pParams->bIsPersistent == TRUE) ? true : false;
+            m_isCompressed    = (pParams->bIsCompressed == 1) ? true : false;
+            m_isPersistent    = (pParams->bIsPersistent == 1) ? true : false;
             if (pParams->pBufName != nullptr)
             {
                  m_name = pParams->pBufName;
@@ -211,9 +211,9 @@ public:
             m_semaphoreCount          = pParams->uiSemaphoreCount;
             m_semaphoreValue          = pParams->uiSemaphoreValue;
             m_semaphoreOffset         = pParams->uiSemaphoreOffset;
-            m_readOnly                = (pParams->bReadOnly == TRUE) ? true : false;
-            m_disableDecodeSyncLock   = (pParams->bDisableDecodeSyncLock == TRUE) ? true : false;
-            m_disableLockForTranscode = (pParams->bDisableLockForTranscode == TRUE) ? true : false;
+            m_readOnly                = (pParams->bReadOnly == 1) ? true : false;
+            m_disableDecodeSyncLock   = (pParams->bDisableDecodeSyncLock == 1) ? true : false;
+            m_disableLockForTranscode = (pParams->bDisableLockForTranscode == 1) ? true : false;
         };
 
         SyncParams() 

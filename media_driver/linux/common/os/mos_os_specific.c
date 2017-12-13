@@ -446,7 +446,7 @@ int32_t Linux_Refresh(MOS_CONTEXT *pOsContext)
 #ifndef ANDROID
 
 #define MOS_LINUX_IPC_INVALID_ID -1
-#define MOS_LINUX_SHM_INVALID (PVOID)-1
+#define MOS_LINUX_SHM_INVALID (void *)-1
 #define MOS_LINUX_SEM_MAX_TRIES 10
 
 static MOS_STATUS DetachDestroyShm(int32_t shmid, void  *pShm)
@@ -1116,7 +1116,7 @@ MOS_STATUS Linux_InitContext(
         }
 
         pContext->OsGpuContext[i].pbWriteMode    =
-            (int32_t*)MOS_AllocAndZeroMemory(sizeof(BOOL) * ALLOCATIONLIST_SIZE);
+            (int32_t*)MOS_AllocAndZeroMemory(sizeof(int32_t) * ALLOCATIONLIST_SIZE);
         if (nullptr == pContext->OsGpuContext[i].pbWriteMode)
         {
             MOS_OS_ASSERTMESSAGE("pContext->OsGpuContext[%d].pbWriteMode malloc failed.", i);

@@ -43,8 +43,8 @@
 #define DDI_ENCODE_ENCODE_JPEG_PIC_WIDTH_MIN 16
 #define DDI_ENCODE_ENCODE_JPEG_PIC_HEIGHT_MIN 16
 
-extern INT32 MosMemAllocCounter;
-extern INT32 MosMemAllocCounterGfx;
+extern int32_t MosMemAllocCounter;
+extern int32_t MosMemAllocCounterGfx;
 
 typedef MediaDdiFactoryNoArg<DdiEncodeBase> DdiEncodeFactory;
 

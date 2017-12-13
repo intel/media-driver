@@ -37,6 +37,7 @@
 #include "media_libva_common.h"
 #include <sys/types.h>
 #include <sys/syscall.h>
+#include <unistd.h>
 
 //Require DRM VMAP patch,
 //Referecing:
@@ -52,7 +53,7 @@ typedef void* UMD_RESOURCE;
 
 #define CM_LINUX  1
 
-typedef INT  (__cdecl *pCallBackReleaseVaSurface)( PVOID VaDpy, PVOID pVaSurfID);
+typedef int  (__cdecl *pCallBackReleaseVaSurface)( void *VaDpy, void *pVaSurfID);
 
 #define CM_INVALID_TAG              (LONG_LONG_MAX)
 

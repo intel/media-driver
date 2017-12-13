@@ -4873,7 +4873,7 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::SetCurbeAvcMbEnc(PCODECHAL_ENCODE_AVC_MBEN
             &LockFlagsWriteOnly);
         CODECHAL_ENCODE_CHK_NULL_RETURN(pData);
 
-        MOS_SecureMemcpy(pData, m_mbencCurbeDataSizeFei, (PVOID)&Cmd, m_mbencCurbeDataSizeFei);
+        MOS_SecureMemcpy(pData, m_mbencCurbeDataSizeFei, (void *)&Cmd, m_mbencCurbeDataSizeFei);
 
         m_osInterface->pfnUnlockResource(m_osInterface, &BrcBuffers.resMbEncBrcBuffer);
         return eStatus;

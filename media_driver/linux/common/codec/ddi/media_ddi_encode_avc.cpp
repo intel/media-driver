@@ -762,7 +762,7 @@ VAStatus DdiEncodeAvc::ContextInitialize(PCODECHAL_SETTINGS codecHalSettings)
     m_encodeCtx->pbsBuffer = (PBSBuffer)MOS_AllocAndZeroMemory(sizeof(BSBuffer));
     DDI_CHK_NULL(m_encodeCtx->pbsBuffer, "nullptr m_encodeCtx->pbsBuffer", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
-    m_encodeCtx->pbsBuffer->pBase = (BYTE *)MOS_AllocAndZeroMemory(ENCODE_AVC_MAX_SLICES_SUPPORTED * PACKED_HEADER_SIZE_PER_ROW);
+    m_encodeCtx->pbsBuffer->pBase = (uint8_t *)MOS_AllocAndZeroMemory(ENCODE_AVC_MAX_SLICES_SUPPORTED * PACKED_HEADER_SIZE_PER_ROW);
     DDI_CHK_NULL(m_encodeCtx->pbsBuffer->pBase, "nullptr m_encodeCtx->pbsBuffer->pBase", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     m_encodeCtx->pbsBuffer->BufferSize = ENCODE_AVC_MAX_SLICES_SUPPORTED * PACKED_HEADER_SIZE_PER_ROW;

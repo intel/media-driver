@@ -50,7 +50,7 @@ class GraphicsResource;
 
 ////////////////////////////////////////////////////////////////////
 
-#define HINSTANCE PVOID
+#define HINSTANCE void*
 
 #define MAKEFOURCC(ch0, ch1, ch2, ch3)  \
     ((uint32_t)(uint8_t)(ch0) | ((uint32_t)(uint8_t)(ch1) << 8) |  \

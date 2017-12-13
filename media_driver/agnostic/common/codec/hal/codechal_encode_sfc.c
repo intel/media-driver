@@ -128,8 +128,8 @@ bool CodecHalSfc_IsCspace(MHW_CSPACE srcCspace, MHW_CSPACE dstCspace)
 
 bool CodecHalSfc_GetRgbRangeAndOffset(
     MHW_CSPACE          srcCspace,
-    PFLOAT              rgbOffset,
-    PFLOAT              rgbExcursion)
+    float               *rgbOffset,
+    float               *rgbExcursion)
 {
     bool ret = true;
 
@@ -157,10 +157,10 @@ bool CodecHalSfc_GetRgbRangeAndOffset(
 
 bool CodecHalSfc_GetYuvRangeAndOffset(
     MHW_CSPACE          srcCspace,
-    PFLOAT              lumaOffset,
-    PFLOAT              lumaExcursion,
-    PFLOAT              chromaZero,
-    PFLOAT              chromaExcursion)
+    float               *lumaOffset,
+    float               *lumaExcursion,
+    float               *chromaZero,
+    float               *chromaExcursion)
 {
     bool ret = true;
 
@@ -214,8 +214,8 @@ bool CodecHalSfc_GetYuvRangeAndOffset(
 bool CodecHalSfc_CalcYuvToRgbMatrix(
     MHW_CSPACE      SrcCspace,                          // [in] YUV Color space 
     MHW_CSPACE      DstCspace,                          // [in] RGB Color space
-    PFLOAT          transferMatrix,                     // [in] Transfer matrix (3x3)
-    PFLOAT          outMatrix)                          // [out] Conversion matrix (3x4)
+    float           *transferMatrix,                    // [in] Transfer matrix (3x3)
+    float           *outMatrix)                         // [out] Conversion matrix (3x4)
 {
     bool    ret;
     float   lumaOffset, lumaExcursion, chromaZero, chromaExcursion;
@@ -258,8 +258,8 @@ finish:
 bool CodecHalSfc_CalcRgbToYuvMatrix(
     MHW_CSPACE      SrcCspace,                      // [in] RGB Color space 
     MHW_CSPACE      DstCspace,                      // [in] YUV Color space
-    PFLOAT          transferMatrix,                 // [in] Transfer matrix (3x3)
-    PFLOAT          outMatrix)                      // [out] Conversion matrix (3x4)
+    float           *transferMatrix,                // [in] Transfer matrix (3x3)
+    float           *outMatrix)                     // [out] Conversion matrix (3x4)
 {
     bool    ret;
     float   lumaOffset, lumaExcursion, chromaZero, chromaExcursion;
@@ -302,7 +302,7 @@ finish:
 void CodecHalSfc_GetCSCMatrix(
     MHW_CSPACE          SrcCspace,                      // [in] Source Color space
     MHW_CSPACE          DstCspace,                      // [in] Destination Color space
-    PFLOAT              cscMatrix)                      // [out] CSC matrix to use
+    float               *cscMatrix)                     // [out] CSC matrix to use
 {
     int32_t         i;
 
@@ -313,11 +313,11 @@ void CodecHalSfc_GetCSCMatrix(
         {
             if (CODECHAL_IS_BT601_CSPACE(SrcCspace))
             {
-                CodecHalSfc_CalcYuvToRgbMatrix(SrcCspace, DstCspace, (PFLOAT) CODECHAL_CSC_BT601_YUV_RGB, cscMatrix);
+                CodecHalSfc_CalcYuvToRgbMatrix(SrcCspace, DstCspace, (float *) CODECHAL_CSC_BT601_YUV_RGB, cscMatrix);
             }
             else // if (IS_BT709_CSPACE(SrcCspace))
             {
-                CodecHalSfc_CalcYuvToRgbMatrix(SrcCspace, DstCspace, (PFLOAT) CODECHAL_CSC_BT709_YUV_RGB, cscMatrix);
+                CodecHalSfc_CalcYuvToRgbMatrix(SrcCspace, DstCspace, (float *) CODECHAL_CSC_BT709_YUV_RGB, cscMatrix);
             }
         }
     }
@@ -328,11 +328,11 @@ void CodecHalSfc_GetCSCMatrix(
         {
             if (CODECHAL_IS_BT601_CSPACE(DstCspace))
             {
-                CodecHalSfc_CalcRgbToYuvMatrix(SrcCspace, DstCspace, (PFLOAT)CODECHAL_CSC_BT601_RGB_YUV, cscMatrix);
+                CodecHalSfc_CalcRgbToYuvMatrix(SrcCspace, DstCspace, (float *)CODECHAL_CSC_BT601_RGB_YUV, cscMatrix);
             }
             else // if (IS_BT709_CSPACE(SrcCspace))
             {
-                CodecHalSfc_CalcRgbToYuvMatrix(SrcCspace, DstCspace, (PFLOAT)CODECHAL_CSC_BT709_RGB_YUV, cscMatrix);
+                CodecHalSfc_CalcRgbToYuvMatrix(SrcCspace, DstCspace, (float *)CODECHAL_CSC_BT709_RGB_YUV, cscMatrix);
             }
         }        
     }
@@ -341,7 +341,7 @@ void CodecHalSfc_GetCSCMatrix(
     {
         if (CodecHalSfc_IsCspace(DstCspace, MHW_CSpace_BT2020_RGB))
         {
-            CodecHalSfc_CalcYuvToRgbMatrix(SrcCspace, DstCspace, (PFLOAT)CODECHAL_CSC_BT2020_YUV_RGB, cscMatrix);
+            CodecHalSfc_CalcYuvToRgbMatrix(SrcCspace, DstCspace, (float *)CODECHAL_CSC_BT2020_YUV_RGB, cscMatrix);
         }
     }
     // BT2020 RGB to YUV conversion
@@ -349,7 +349,7 @@ void CodecHalSfc_GetCSCMatrix(
     {
         if (CodecHalSfc_IsCspace(DstCspace, MHW_CSpace_BT2020))
         {
-            CodecHalSfc_CalcRgbToYuvMatrix(SrcCspace, DstCspace, (PFLOAT)CODECHAL_CSC_BT2020_RGB_YUV, cscMatrix);
+            CodecHalSfc_CalcRgbToYuvMatrix(SrcCspace, DstCspace, (float *)CODECHAL_CSC_BT2020_RGB_YUV, cscMatrix);
         }
     }
     else
@@ -371,9 +371,9 @@ void CodecHalSfc_GetCSCMatrix(
 void CodecHal_GetCscMatrix(
     MHW_CSPACE             SrcCspace,                                    // [in] Source Cspace
     MHW_CSPACE             DstCspace,                                    // [in] Destination Cspace
-    PFLOAT                 cscCoeff,                                     // [out] [3x3] Coefficients matrix
-    PFLOAT                 cscInOffset,                                  // [out] [3x1] Input Offset matrix
-    PFLOAT                 cscOutOffset)                                 // [out] [3x1] Output Offset matrix
+    float                  *cscCoeff,                                    // [out] [3x3] Coefficients matrix
+    float                  *cscInOffset,                                 // [out] [3x1] Input Offset matrix
+    float                  *cscOutOffset)                                // [out] [3x1] Output Offset matrix
 {
     float   cscMatrix[12];
     int32_t i;
