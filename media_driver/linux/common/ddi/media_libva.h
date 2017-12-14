@@ -55,7 +55,7 @@
 
 #define DDI_CODEC_GEN_MAX_IMAGE_FORMATS            2    // NV12 and P010
 #define DDI_CODEC_GEN_MAX_SUBPIC_FORMATS           4    // no sub-pic blending support, still set to 4 for further implementation
-#define DDI_CODEC_GEN_MAX_DISPLAY_ATTRIBUTES       4    // Use the same value as I965
+#define DDI_CODEC_GEN_MAX_DISPLAY_ATTRIBUTES       0    // set it to zero, unsupported.
 #define DDI_CODEC_GEN_MAX_ATTRIBS_TYPE             4    //VAConfigAttribRTFormat,    VAConfigAttribRateControl,    VAConfigAttribDecSliceMode,    VAConfigAttribEncPackedHeaders
 
 #define DDI_CODEC_GEN_MAX_SURFACE_ATTRIBUTES       17   // Use the same value as I965  
