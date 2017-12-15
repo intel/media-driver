@@ -5772,7 +5772,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::EncodeKernelFunctions()
 
                 if (frameStoreId >= CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC)
                 {
-                    CODECHAL_ENCODE_ASSERT(FALSE);
+                    CODECHAL_ENCODE_ASSERT(0);
                     eStatus = MOS_STATUS_INVALID_PARAMETER;
                     return eStatus;
                 }

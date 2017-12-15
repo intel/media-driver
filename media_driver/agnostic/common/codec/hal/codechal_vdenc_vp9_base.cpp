@@ -2060,7 +2060,7 @@ MOS_STATUS CodechalVdencVp9State::SoftwareBRC(bool update)
 
         // AUX Buffer IN/OUT (DLL extension buffer)
         HUC_AUX_BUFFER auxBuffer = { 0 };
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(pfnSetBuffer((PUCHAR)&auxBuffer, eVp9AUX_BUFF, pvBrcIfHandle));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(pfnSetBuffer((uint8_t *)&auxBuffer, eVp9AUX_BUFF, pvBrcIfHandle));
 
         // Execute update firmware
         pfnProcess(pvBrcIfHandle, BRCUpdate);

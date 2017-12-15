@@ -167,9 +167,9 @@ void DdiMediaUtil_MediaPrintFps()
 
     if (++g_iFrameCountFps >= g_iVAFpsSampleSize) 
     {
-        CHAR   cFpsFileName[LENGTH_OF_FPS_FILE_NAME];
+        char   cFpsFileName[LENGTH_OF_FPS_FILE_NAME];
         FILE   *fp;
-        CHAR   cTemp[LENGTH_OF_FPS_FILE_NAME];
+        char   cTemp[LENGTH_OF_FPS_FILE_NAME];
 
         fp      = nullptr;
         i64Diff = (Tv2.tv_sec - g_Tv1.tv_sec)*1000000 + Tv2.tv_usec - g_Tv1.tv_usec;

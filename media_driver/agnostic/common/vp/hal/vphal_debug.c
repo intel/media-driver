@@ -1319,7 +1319,7 @@ MOS_STATUS VphalHwStateDumper::DumpGshBinary(
     VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(true, &pcOutContents, XMLHEADER));
     VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, 
                                   "<GSH><NAME>GSH</NAME><LOC>0x%x</LOC><VERSION>%s</VERSION>\r\n", 
-                                  (ULONG_PTR)pStateHeap->pGshBuffer, VPDEBUG_VERSION));
+                                  (uintptr_t)pStateHeap->pGshBuffer, VPDEBUG_VERSION));
 
     VPHAL_DEBUG_CHK_STATUS(DumpSubfields(&pcOutContents, nullptr, pGshLayout, uiNumGSHFields));
 
@@ -1399,7 +1399,7 @@ MOS_STATUS VphalHwStateDumper::DumpSshBinary(
     VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(true, &pcOutContents, XMLHEADER));
     VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, 
                                   "<SSH><NAME>SSH</NAME><LOC>0x%x</LOC><VERSION>%s</VERSION>\r\n",
-                                  (ULONG_PTR)pStateHeap->pSshBuffer, VPDEBUG_VERSION));
+                                  (uintptr_t)pStateHeap->pSshBuffer, VPDEBUG_VERSION));
 
     VPHAL_DEBUG_CHK_STATUS(DumpSubfields(&pcOutContents, nullptr, pSshLayout, 
                                     uiNumSSHFields));
@@ -3541,7 +3541,7 @@ MOS_STATUS VphalDumperTool::AppendString(
         }
     }
     MOS_SecureMemcpy(
-        (char*)(((ULONG_PTR)(*ppcBigString)) + stStrLenOld - 1),
+        (char*)(((uintptr_t)(*ppcBigString)) + stStrLenOld - 1),
         stStrLenToAppend + 1,
         pcToAppend, 
         stStrLenToAppend + 1);

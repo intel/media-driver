@@ -885,7 +885,7 @@ const char    *KernelDll_GetRuleIDString       (Kdll_RuleID      RID);
 const char    *KernelDll_GetCoeffIDString      (Kdll_CoeffID     CID);
 
 int32_t KernelDll_PrintRule(
-    LPTSTR                  szOut,
+    char                    *szOut,
     int                     iSize,
     const Kdll_RuleEntry    *pEntry,
     Kdll_KernelCache        *pCache);

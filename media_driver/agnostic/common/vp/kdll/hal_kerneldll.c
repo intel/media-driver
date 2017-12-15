@@ -633,7 +633,7 @@ const char    *KernelDll_GetShuffleString(Kdll_Shuffling shuffling)
 }
 
 int32_t KernelDll_PrintRule(
-    LPTSTR                  szOut,
+    char                    *szOut,
     int32_t                 iSize,
     const Kdll_RuleEntry    *pEntry,
     Kdll_KernelCache        *pCache)

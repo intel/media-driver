@@ -36,7 +36,7 @@
 #define PLATFORM_DIR_SEPERATOR   "\\"
 #endif
 
-#define SIZE_OF_DWORD_PLUS_ONE                  (2*sizeof(DWORD) +1)
+#define SIZE_OF_DWORD_PLUS_ONE                  (2*sizeof(uint32_t) +1)
 //!
 //! \brief    Dump Hex Dword to dest buffer
 //! \param    [in] pDestBuf
@@ -182,7 +182,7 @@ int32_t HalCm_DumpCommadBuffer(PCM_HAL_STATE pState, PMOS_COMMAND_BUFFER pCmdBuf
         dwBytesWritten += HalCm_CopyHexDwordLine(pOutputBuffer + dwBytesWritten, dwSizeToAllocate - dwBytesWritten, (uint32_t*)pSurfaceState, sizeOfSurfaceState / sizeof(uint32_t));
     }
 
-    MOS_OS_CHK_STATUS(MOS_WriteFileFromPtr((LPCTSTR)sFileName, pOutputBuffer, dwBytesWritten));
+    MOS_OS_CHK_STATUS(MOS_WriteFileFromPtr((const char *)sFileName, pOutputBuffer, dwBytesWritten));
 
     dwCommandBufferNumber++;
 
@@ -309,7 +309,7 @@ int32_t HalCm_DumpCurbeData(PCM_HAL_STATE pState)
                           dwNumberOfDwords);
     }
 
-    MOS_OS_CHK_STATUS(MOS_WriteFileFromPtr((LPCTSTR)sFileName, pOutputBuffer, dwBytesWritten));
+    MOS_OS_CHK_STATUS(MOS_WriteFileFromPtr((const char *)sFileName, pOutputBuffer, dwBytesWritten));
 
     dwCurbeDataNumber++;
 
