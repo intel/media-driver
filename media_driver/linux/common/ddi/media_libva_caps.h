@@ -668,12 +668,14 @@ protected:
     static const uint16_t m_maxProfileEntries = 64; //!< Maximum number of supported profile & entrypoint combinations
     static const uint32_t m_numVpSurfaceAttr = 10; //!< Number of VP surface attributes
     static const uint32_t m_numJpegSurfaceAttr = 7; //!< Number of JPEG surface attributes
+    static const uint32_t m_numJpegEncSurfaceAttr = 4; //!< Number of JPEG encode surface attributes
     static const uint16_t m_maxEntrypoints = 7; //!<  Maximum number of supported entrypoints
     static const uint32_t m_decSliceMode[2]; //!< Store 2 decode slices modes 
     static const uint32_t m_decProcessMode[2]; //!< Store 2 decode process modes
     static const uint32_t m_encRcMode[7]; //!< Store 7 encode rate control modes
     static const uint32_t m_vpSurfaceAttr[m_numVpSurfaceAttr]; //!< Store the VP surface attributes
     static const uint32_t m_jpegSurfaceAttr[m_numJpegSurfaceAttr]; //!< Store the JPEG surface attributes
+    static const uint32_t m_jpegEncSurfaceAttr[m_numJpegEncSurfaceAttr]; //!< Store the JPEG encode surface attributes
     static const VAImageFormat m_supportedImageformats[]; //!< Store all the supported image formats
 
     static const uint32_t m_decMpeg2MaxWidth = 2048; //!< Maximum width for Mpeg2 decode

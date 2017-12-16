@@ -90,6 +90,14 @@ const uint32_t MediaLibvaCaps::m_jpegSurfaceAttr[m_numJpegSurfaceAttr] =
     VA_FOURCC_444P
 };
 
+const uint32_t MediaLibvaCaps::m_jpegEncSurfaceAttr[m_numJpegEncSurfaceAttr] =
+{
+    VA_FOURCC_NV12,
+    VA_FOURCC_YUY2,
+    VA_FOURCC_UYVY,
+    VA_FOURCC_Y800
+};
+
 const VAImageFormat MediaLibvaCaps::m_supportedImageformats[] =
 {   {VA_FOURCC_BGRA, VA_LSB_FIRST, 32,  24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000},
     {VA_FOURCC_ARGB, VA_LSB_FIRST, 32,  24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000},
@@ -2060,6 +2068,84 @@ VAStatus MediaLibvaCaps::QuerySurfaceAttributes(
             attribs[i].value.value.i = VA_FOURCC('N', 'V', '1', '2');
             i++;
         }
+    }
+    else if(entrypoint == VAEntrypointEncSlice)
+    {
+        if (profile == VAProfileHEVCMain10 || profile == VAProfileVP9Profile2)
+        {
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC('P', '0', '1', '0');
+            i++;
+        }
+        else if (profile == VAProfileJPEGBaseline)
+        {
+            for (int32_t j = 0; j < m_numJpegEncSurfaceAttr; j++)
+            {
+                attribs[i].type = VASurfaceAttribPixelFormat;
+                attribs[i].value.type = VAGenericValueTypeInteger;
+                attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+                attribs[i].value.value.i = m_jpegEncSurfaceAttr[j];
+                i++;
+            }
+        }
+        else
+        {
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC('N', 'V', '1', '2');
+            i++;
+        }
+        attribs[i].type = VASurfaceAttribMaxWidth;
+        attribs[i].value.type = VAGenericValueTypeInteger;
+        attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE;
+        attribs[i].value.value.i = CODEC_MAX_PIC_WIDTH;
+
+        if(profile == VAProfileJPEGBaseline)
+        {
+            attribs[i].value.value.i = ENCODE_JPEG_MAX_PIC_WIDTH;
+        }
+        if(IsAvcProfile(profile)||IsHevcProfile(profile))
+        {
+            attribs[i].value.value.i = CODEC_4K_MAX_PIC_WIDTH;
+        }
+        i++;
+
+        attribs[i].type = VASurfaceAttribMaxHeight;
+        attribs[i].value.type = VAGenericValueTypeInteger;
+        attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE;
+        attribs[i].value.value.i = CODEC_MAX_PIC_HEIGHT;
+        if(profile == VAProfileJPEGBaseline)
+        {
+            attribs[i].value.value.i = ENCODE_JPEG_MAX_PIC_HEIGHT;
+        }
+        if(IsAvcProfile(profile)||IsHevcProfile(profile))
+        {
+            attribs[i].value.value.i = CODEC_4K_MAX_PIC_HEIGHT;
+        }
+        i++;
+
+        attribs[i].type = VASurfaceAttribMinWidth;
+        attribs[i].value.type = VAGenericValueTypeInteger;
+        attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE;
+        attribs[i].value.value.i = m_encMinWidth;
+        if(profile == VAProfileJPEGBaseline)
+        {
+            attribs[i].value.value.i = m_encJpegMinWidth;
+        }
+        i++;
+
+        attribs[i].type = VASurfaceAttribMinHeight;
+        attribs[i].value.type = VAGenericValueTypeInteger;
+        attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE;
+        attribs[i].value.value.i = m_encMinHeight;
+        if(profile == VAProfileJPEGBaseline)
+        {
+            attribs[i].value.value.i = m_encJpegMinHeight;
+        }
+        i++;
     }
     else
     {
