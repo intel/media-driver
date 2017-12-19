@@ -202,6 +202,11 @@ VAStatus DdiEncodeAvc::ParseMiscParamFR(void *data)
     {
         seqParams->FramesPer100Sec = (uint16_t)(numerator/denominator);
     }
+    else
+    {
+        seqParams->FramesPer100Sec = (uint16_t)numerator;
+    }
+
     return VA_STATUS_SUCCESS;
 }
 
