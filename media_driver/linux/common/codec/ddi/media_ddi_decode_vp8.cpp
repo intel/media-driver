@@ -149,17 +149,23 @@ VAStatus DdiDecodeVP8::ParsePicParams(
     DDI_MEDIA_CONTEXT           *mediaCtx,
     VAPictureParameterBufferVP8 *picParam)
 {
+    PDDI_MEDIA_SURFACE lastRefSurface   = nullptr;
+    PDDI_MEDIA_SURFACE goldenRefSurface = nullptr;
+    PDDI_MEDIA_SURFACE altRefSurface    = nullptr;
+
     PCODEC_VP8_PIC_PARAMS codecPicParams = (PCODEC_VP8_PIC_PARAMS)(m_ddiDecodeCtx->DecodeParams.m_picParams);
 
     PDDI_MEDIA_SURFACE *vp8Surfaces = m_ddiDecodeCtx->BufMgr.Codec_Param.Codec_Param_VP8.pReferenceFrames;
 
     PDDI_MEDIA_SURFACE currentSurface = m_ddiDecodeCtx->RTtbl.pCurrentRT;
 
-    PDDI_MEDIA_SURFACE lastRefSurface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->last_ref_frame);
-
-    PDDI_MEDIA_SURFACE goldenRefSurface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->golden_ref_frame);
-
-    PDDI_MEDIA_SURFACE altRefSurface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->alt_ref_frame);
+    // only no-keyframe have last/gold/alt reference frame
+    if (picParam->pic_fields.bits.key_frame)
+    {
+        lastRefSurface   = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->last_ref_frame);
+        goldenRefSurface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->golden_ref_frame);
+        altRefSurface    = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->alt_ref_frame);
+    }
 
     int32_t frameIdx;
     frameIdx = GetRenderTargetID(&m_ddiDecodeCtx->RTtbl, currentSurface);
