@@ -296,6 +296,9 @@ VAStatus DdiEncodeMpeg2::EncodeInCodecHal(
 
     encodeParams.pMpeg2UserDataListHead = m_userDataListHead;
 
+    CodecEncodeMpeg2SequenceParams *mpeg2Sps = (CodecEncodeMpeg2SequenceParams *)m_encodeCtx->pSeqParams;
+    mpeg2Sps->m_targetUsage               = m_encodeCtx->targetUsage;
+
     encodeParams.pSeqParams   = m_encodeCtx->pSeqParams;
     encodeParams.pVuiParams   = m_encodeCtx->pVuiParams;
     encodeParams.pPicParams   = m_encodeCtx->pPicParams;
@@ -469,7 +472,6 @@ VAStatus DdiEncodeMpeg2::ParseSeqParams(void *ptr)
     mpeg2Sps->m_progressiveSequence       = seqParams->sequence_extension.bits.progressive_sequence;
     mpeg2Sps->m_rateControlMethod         = VARC2HalRC(m_encodeCtx->uiRCMethod);
     mpeg2Sps->m_resetBRC                  = false;  // if reset the brc each i frame
-    mpeg2Sps->m_targetUsage               = TARGETUSAGE_BEST_QUALITY;
     mpeg2Sps->m_bitrate                   = seqParams->bits_per_second;
     mpeg2Sps->m_vbvBufferSize             = seqParams->vbv_buffer_size;
     //set Initial vbv buffer fullness to half of vbv buffer size in byte
@@ -876,13 +878,12 @@ void DdiEncodeMpeg2::ParseMiscParamEncQuality(void *data)
 void DdiEncodeMpeg2::ParseMiscParamEncQualityLevel(void *data)
 {
     VAEncMiscParameterBufferQualityLevel *vaMiscParamQualityLevel = (VAEncMiscParameterBufferQualityLevel*) data;
-    CodecEncodeMpeg2SequenceParams *mpeg2SeqParams = (CodecEncodeMpeg2SequenceParams *)(m_encodeCtx->pSeqParams);
-    mpeg2SeqParams->m_targetUsage= vaMiscParamQualityLevel->quality_level;
+    m_encodeCtx->targetUsage= vaMiscParamQualityLevel->quality_level;
     // check TU, correct to default if wrong
-    if ((mpeg2SeqParams->m_targetUsage > TARGETUSAGE_BEST_SPEED) ||
-        (0 == mpeg2SeqParams->m_targetUsage))
+    if ((m_encodeCtx->targetUsage > TARGETUSAGE_BEST_SPEED) ||
+        (0 == m_encodeCtx->targetUsage))
     {
-        mpeg2SeqParams->m_targetUsage = TARGETUSAGE_RT_SPEED;
+        m_encodeCtx->targetUsage = TARGETUSAGE_RT_SPEED;
         DDI_ASSERTMESSAGE("Target usage from application is not correct, should be in [0,7]!\n");
     }
 }
