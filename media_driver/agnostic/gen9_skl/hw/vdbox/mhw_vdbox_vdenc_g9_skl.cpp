@@ -231,7 +231,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG9Skl::AddVdencImgStateCmd(
         cmd.DW30.RoiQpAdjustmentForZone3 = priorityLevelOrDQp[2];
     }
 
-    if (params->bVdencBRCEnabled && avcPicParams->NumDirtyROI)
+    if (params->bVdencBRCEnabled && avcPicParams->NumDirtyROI && params->bVdencStreamInEnabled)
     {
         cmd.DW34.RoiEnable = true;
     }

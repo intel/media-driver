@@ -29,6 +29,10 @@
 
 #include "media_libva_caps.h"
 
+//!
+//! \class  MediaLibvaCapsG9
+//! \brief  Media libva caps Gen9
+//!
 class MediaLibvaCapsG9 : public MediaLibvaCaps
 {
 public:
@@ -37,20 +41,48 @@ public:
     //!
     MediaLibvaCapsG9(DDI_MEDIA_CONTEXT *mediaCtx) : MediaLibvaCaps(mediaCtx)
     {
-        LoadProfileEntrypoints();
         return;
     }
 
+    virtual VAStatus Init()
+    {
+        LoadProfileEntrypoints();
+        return VA_STATUS_SUCCESS;
+    }   
 protected:
     virtual VAStatus GetPlatformSpecificAttrib(VAProfile profile,
             VAEntrypoint entrypoint,
             VAConfigAttribType type,
             unsigned int *value);
 
+    //! 
+    //! \brief  Load profile entry points
+    //! 
+    //! \return VAStatus
+    //!     Return VA_STATUS_SUCCESS if call success, else fail reason
+    //!
     VAStatus LoadProfileEntrypoints();
 
+    //! 
+    //! \brief  Is P010 supported
+    //! 
+    //! \return true
+    //!
     bool IsP010Supported() { return true; }
 
+    //! 
+    //! \brief  Query AVC ROI maximum number
+    //! 
+    //! \param  [in] rcMode
+    //!     RC mode
+    //! \param  [in] maxNum
+    //!     Maximum number
+    //! \param  [in] isRoiInDeltaQP
+    //!     Is ROI in delta QP
+    //! 
+    //! \return VAStatus
+    //!     Return VA_STATUS_SUCCESS if call success, else fail reason
+    //!
     VAStatus QueryAVCROIMaxNum(uint32_t rcMode, int32_t *maxNum, bool *isRoiInDeltaQP);
 };
 #endif

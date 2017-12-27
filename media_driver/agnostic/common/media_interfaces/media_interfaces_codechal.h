@@ -33,6 +33,10 @@
 #include "codechal_hw.h"
 #include "codechal_cenc_decode.h"
 
+//!
+//! \class    CodechalDevice
+//! \brief    Cddehal device
+//!
 class CodechalDevice
 {
 public:

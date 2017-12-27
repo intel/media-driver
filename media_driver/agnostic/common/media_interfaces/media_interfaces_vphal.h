@@ -30,6 +30,10 @@
 #include "media_interfaces.h"
 #include "vphal.h"
 
+//!
+//! \class    VphalDevice
+//! \brief    Vphal device
+//!
 class VphalDevice
 {
 public:
@@ -60,6 +64,8 @@ public:
     //!           If an OS interface already exists, it may be passed in here for use by the VpHal device, if not, one is created.
     //! \param    [in] osDriverContext
     //!           OS context used by to initialize the MOS_INTERFACE, includes information necessary for resource management and interfacing with KMD in general
+    //! \param    [out] eStatus
+    //!           MOS status, return MOS_STATUS_SUCCESS if successful, otherwise failed.
     //! \return   MOS_STATUS_SUCCESS if succeeded, else error code.
     //!
     virtual MOS_STATUS Initialize(

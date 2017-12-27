@@ -31,6 +31,7 @@
 #include "codechal_memdecomp.h"
 #include "media_interfaces_codechal.h"
 #include "media_interfaces_mmd.h"
+#include "mos_solo_generic.h"
 
 DdiMediaDecode::DdiMediaDecode(DDI_DECODE_CONFIG_ATTR *ddiDecodeAttr)
     : DdiMediaBase()
@@ -84,9 +85,9 @@ VAStatus DdiMediaDecode::ParseProcessingBuffer(
     VAProcPipelineParameterBuffer *procBuf =
         (VAProcPipelineParameterBuffer *)bufAddr;
 
-    DDI_CHK_NULL(procBuf, "Null Processing buffer", VA_STATUS_ERROR_INVALID_PARAMETER)
+    DDI_CHK_NULL(procBuf, "nullptr Processing buffer", VA_STATUS_ERROR_INVALID_PARAMETER)
 
-    if (m_ddiDecodeCtx->uiDecProcessingType == VA_DEC_PROCESSING)
+    if (m_decProcessingType == VA_DEC_PROCESSING)
     {
         PCODECHAL_DECODE_PROCESSING_PARAMS decProcessingParams;
         PMOS_SURFACE                       decProcessingSurface;
@@ -177,7 +178,7 @@ VAStatus DdiMediaDecode::BeginPicture(
     VAContextID      context,
     VASurfaceID      renderTarget)
 {
-    DDI_FUNCTION_ENTER();;
+    DDI_FUNCTION_ENTER();
 
     PDDI_MEDIA_CONTEXT mediaCtx;
 
@@ -186,18 +187,18 @@ VAStatus DdiMediaDecode::BeginPicture(
 
     DDI_MEDIA_SURFACE *curRT;
     curRT = (DDI_MEDIA_SURFACE *)DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, renderTarget);
-    DDI_CHK_NULL(curRT, "Null pCurRT", VA_STATUS_ERROR_INVALID_SURFACE);
+    DDI_CHK_NULL(curRT, "nullptr pCurRT", VA_STATUS_ERROR_INVALID_SURFACE);
     curRT->pDecCtx = m_ddiDecodeCtx;
 
     DDI_CODEC_RENDER_TARGET_TABLE *RTtbl;
     RTtbl             = &(m_ddiDecodeCtx->RTtbl);
     RTtbl->pCurrentRT = curRT;
 
-    m_ddiDecodeCtx->bStreamOutEnabled              = false;
+    m_streamOutEnabled              = false;
     m_ddiDecodeCtx->DecodeParams.m_numSlices       = 0;
     m_ddiDecodeCtx->DecodeParams.m_dataSize        = 0;
     m_ddiDecodeCtx->DecodeParams.m_deblockDataSize = 0;
-    m_ddiDecodeCtx->m_groupIndex                   = 0;
+    m_groupIndex                                   = 0;
 
     // register render targets
     DDI_CHK_RET(RegisterRTSurfaces(&m_ddiDecodeCtx->RTtbl, curRT),"RegisterRTSurfaces failed!");
@@ -344,10 +345,10 @@ void DdiMediaDecode::DestroyContext(VADriverContextP ctx)
         m_ddiDecodeCtx->pCpDdiInterface = nullptr;
     }
 
-    if (m_ddiDecodeCtx->pDecodeStatusReport)
+    if (m_decodeStatusReport)
     {
-        MOS_DeleteArray(m_ddiDecodeCtx->pDecodeStatusReport);
-        m_ddiDecodeCtx->pDecodeStatusReport = nullptr;
+        MOS_DeleteArray(m_decodeStatusReport);
+        m_decodeStatusReport = nullptr;
     }
 
 
@@ -380,29 +381,470 @@ void DdiMediaDecode::DestroyContext(VADriverContextP ctx)
     return;
 }
 
+int32_t DdiMediaDecode::GetBitstreamBufIndexFromBuffer(DDI_CODEC_COM_BUFFER_MGR *bufMgr, DDI_MEDIA_BUFFER *buf)
+{
+    int32_t i;
+    for(i = 0; i < DDI_CODEC_MAX_BITSTREAM_BUFFER; i++)
+    {
+        if(bufMgr->pBitStreamBuffObject[i]->bo == buf->bo)
+        {
+            return i;
+        }
+    }
+
+    return DDI_CODEC_INVALID_BUFFER_INDEX;
+}
+
+
+VAStatus DdiMediaDecode::AllocBsBuffer(
+    DDI_CODEC_COM_BUFFER_MGR    *bufMgr,
+    DDI_MEDIA_BUFFER            *buf)
+{
+    int32_t           index, i;
+    VAStatus          vaStatus;
+    uint8_t          *sliceBuf;
+    DDI_MEDIA_BUFFER *bsBufObj = nullptr;
+    uint8_t          *bsBufBaseAddr = nullptr;
+    bool              createBsBuffer = false;
+
+    if ( nullptr == bufMgr || nullptr == buf || nullptr == (m_ddiDecodeCtx->pMediaCtx) )
+    {
+        DDI_ASSERTMESSAGE("invalidate input parameters.");
+        return VA_STATUS_ERROR_ALLOCATION_FAILED;
+    }
+
+    index       = bufMgr->dwNumSliceData;
+    vaStatus    = VA_STATUS_SUCCESS;
+    sliceBuf   = nullptr;
+
+    /* the pSliceData needs to be reallocated in order to contain more SliceDataBuf */
+    if (index >= bufMgr->m_maxNumSliceData)
+    {
+        /* In theroy it can resize the m_maxNumSliceData one by one. But in order to
+         * avoid calling realloc frequently, it will try to allocate 10 to  hold more
+         * SliceDataBuf. This is only for the optimized purpose.
+         */
+        int32_t reallocSize = bufMgr->m_maxNumSliceData + 10;
+
+        bufMgr->pSliceData = (DDI_CODEC_BITSTREAM_BUFFER_INFO *)realloc(bufMgr->pSliceData, sizeof(bufMgr->pSliceData[0]) * reallocSize);
+
+        if (bufMgr->pSliceData == nullptr)
+        {
+            DDI_ASSERTMESSAGE("fail to reallocate pSliceData\n.");
+            return VA_STATUS_ERROR_ALLOCATION_FAILED;
+        }
+        memset(bufMgr->pSliceData + bufMgr->m_maxNumSliceData, 0,
+               sizeof(bufMgr->pSliceData[0]) * 10);
+
+        bufMgr->m_maxNumSliceData += 10;
+    }
+
+    if(index >= 1)
+    {
+        buf->uiOffset = bufMgr->pSliceData[index-1].uiOffset + bufMgr->pSliceData[index-1].uiLength;
+        if((buf->uiOffset + buf->iSize) > bufMgr->pBitStreamBuffObject[bufMgr->dwBitstreamIndex]->iSize)
+        {
+            sliceBuf = (uint8_t*)MOS_AllocAndZeroMemory(buf->iSize);
+            if(sliceBuf == nullptr)
+            {
+                DDI_ASSERTMESSAGE("DDI:AllocAndZeroMem return failure.")
+                return VA_STATUS_ERROR_ALLOCATION_FAILED;
+            }
+            bufMgr->bIsSliceOverSize = true;
+        }
+        else
+        {
+            bufMgr->bIsSliceOverSize = false;
+        }
+    }
+    else
+    {
+        bufMgr->bIsSliceOverSize = false;
+        for (i = 0; i < DDI_CODEC_MAX_BITSTREAM_BUFFER; i++)
+        {
+            if (bufMgr->pBitStreamBuffObject[i]->bo != nullptr)
+            {
+                if (!mos_bo_busy(bufMgr->pBitStreamBuffObject[i]->bo))
+                {
+                    //find a bitstream buffer whoes graphic memory is allocated but not used by HW now.
+                    break;
+                }
+            }
+            else
+            {
+                //find a new bitstream buffer whoes graphic memory is not allocated yet
+                break;
+            }
+        }
+
+        if (i == DDI_CODEC_MAX_BITSTREAM_BUFFER)
+        {
+            //find the oldest bistream buffer which is the most possible one to become free in the shortest time.
+            bufMgr->dwBitstreamIndex = (bufMgr->ui64BitstreamOrder >> (DDI_CODEC_BITSTREAM_BUFFER_INDEX_BITS * DDI_CODEC_MAX_BITSTREAM_BUFFER_MINUS1)) & DDI_CODEC_MAX_BITSTREAM_BUFFER_INDEX;
+            // wait until decode complete
+            mos_bo_wait_rendering(bufMgr->pBitStreamBuffObject[bufMgr->dwBitstreamIndex]->bo);
+        }
+        else
+        {
+            bufMgr->dwBitstreamIndex = i;
+        }
+        bufMgr->ui64BitstreamOrder = (bufMgr->ui64BitstreamOrder << 4) + bufMgr->dwBitstreamIndex;
+        
+        bsBufObj                   = bufMgr->pBitStreamBuffObject[bufMgr->dwBitstreamIndex];
+        bsBufObj ->pMediaCtx       = m_ddiDecodeCtx->pMediaCtx;
+        bsBufBaseAddr              = bufMgr->pBitStreamBase[bufMgr->dwBitstreamIndex];
+
+        if(bsBufBaseAddr == nullptr)
+        {
+            createBsBuffer = true;
+            if (buf->iSize > bsBufObj->iSize)
+            {
+                bsBufObj->iSize = buf->iSize;
+            }
+        }
+        else if(buf->iSize > bsBufObj->iSize)
+        {
+           //free bo
+            DdiMediaUtil_UnlockBuffer(bsBufObj);
+            DdiMediaUtil_FreeBuffer(bsBufObj);
+            bsBufBaseAddr = nullptr;
+
+            createBsBuffer = true;
+            bsBufObj->iSize = buf->iSize;
+        }
+
+        if (createBsBuffer)
+        {
+            if(VA_STATUS_SUCCESS != DdiMediaUtil_CreateBuffer(bsBufObj, m_ddiDecodeCtx->pMediaCtx->pDrmBufMgr))
+            {
+               return VA_STATUS_ERROR_ALLOCATION_FAILED;
+            }
+            
+            bsBufBaseAddr = (uint8_t*)DdiMediaUtil_LockBuffer(bsBufObj, MOS_LOCKFLAG_WRITEONLY);
+            if(bsBufBaseAddr == nullptr)
+            {
+                DdiMediaUtil_FreeBuffer(bsBufObj);
+                return VA_STATUS_ERROR_ALLOCATION_FAILED;
+            }
+            bufMgr->pBitStreamBase[bufMgr->dwBitstreamIndex] = bsBufBaseAddr;
+        }
+    }
+    
+    if(bufMgr->pBitStreamBase[bufMgr->dwBitstreamIndex] == nullptr)
+    {
+        return VA_STATUS_ERROR_ALLOCATION_FAILED;
+    }
+
+    bufMgr->pSliceData[index].uiLength = buf->iSize;
+    bufMgr->pSliceData[index].uiOffset = buf->uiOffset;
+
+    if(bufMgr->bIsSliceOverSize == true)
+    {
+        buf->pData                              = sliceBuf;
+        buf->uiOffset                           = 0;
+        bufMgr->pSliceData[index].bIsUseExtBuf  = true;
+        bufMgr->pSliceData[index].pSliceBuf     = sliceBuf;
+    }
+    else
+    {
+        buf->pData                              = (uint8_t*)(bufMgr->pBitStreamBase[bufMgr->dwBitstreamIndex]);
+        bufMgr->pSliceData[index].bIsUseExtBuf  = false;
+        bufMgr->pSliceData[index].pSliceBuf     = nullptr;
+    }
+
+    bufMgr->dwNumSliceData ++;
+    buf->bo                            = bufMgr->pBitStreamBuffObject[bufMgr->dwBitstreamIndex]->bo;
+    buf->bCFlushReq                    = true;
+
+    return VA_STATUS_SUCCESS;
+}
+
+MOS_FORMAT DdiMediaDecode::GetFormat()
+{
+    return  Format_NV12; 
+}
+
+
+VAStatus DdiMediaDecode::InitDecodeParams(
+	VADriverContextP ctx,
+	VAContextID      context)
+{
+    m_ctxType = DDI_MEDIA_CONTEXT_TYPE_DECODER;
+    if ((context & DDI_MEDIA_MASK_VACONTEXT_TYPE) == DDI_MEDIA_VACONTEXTID_OFFSET_CENC)
+    {
+        m_ctxType = DDI_MEDIA_CONTEXT_TYPE_CENC_DECODER;
+    }
+	/* skip the mediaCtx check as it is checked in caller */
+    PDDI_MEDIA_CONTEXT mediaCtx;
+    mediaCtx = DdiMedia_GetMediaContext(ctx);
+    DDI_CHK_RET(DecodeCombineBitstream(mediaCtx),"DecodeCombineBitstream failed!");
+    DDI_CODEC_COM_BUFFER_MGR *bufMgr = &(m_ddiDecodeCtx->BufMgr);
+    bufMgr->dwNumSliceData    = 0;
+    bufMgr->dwNumSliceControl = 0;
+    memset(&m_destSurface, 0, sizeof(MOS_SURFACE));
+    m_destSurface.dwOffset = 0;
+    if (m_ctxType == DDI_MEDIA_CONTEXT_TYPE_CENC_DECODER)
+    {
+        DDI_CHK_RET(m_ddiDecodeCtx->pCpDdiInterface->EndPictureCenc(ctx, context),"EndPictureCenc failed!");
+    } 
+    DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_ddiDecodeCtx->RTtbl);
+
+    if ((rtTbl == nullptr) || (rtTbl->pCurrentRT == nullptr))
+    {
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
+    return VA_STATUS_SUCCESS;
+	
+}
+
+VAStatus DdiMediaDecode::SetDecodeParams()
+{
+    DDI_CODEC_COM_BUFFER_MGR *bufMgr = &(m_ddiDecodeCtx->BufMgr);
+    if ((&m_ddiDecodeCtx->DecodeParams)->m_numSlices == 0)
+    {
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
+    
+    MOS_FORMAT expectedFormat = m_ddiDecodeCtx->m_ddiDecode->GetFormat();
+    m_destSurface.Format   = expectedFormat;
+    DdiMedia_MediaSurfaceToMosResource((&(m_ddiDecodeCtx->RTtbl))->pCurrentRT, &(m_destSurface.OsResource));
+
+    if (m_destSurface.OsResource.Format != expectedFormat)
+    {
+        DDI_NORMALMESSAGE("Surface fomrat of decoded surface is inconsistent with Codec bitstream\n");
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
+
+    (&m_ddiDecodeCtx->DecodeParams)->m_destSurface = &m_destSurface;
+    (&m_ddiDecodeCtx->DecodeParams)->m_deblockSurface = nullptr;
+    (&m_ddiDecodeCtx->DecodeParams)->m_dataBuffer    = &bufMgr->resBitstreamBuffer;
+    (&m_ddiDecodeCtx->DecodeParams)->m_bitStreamBufData = bufMgr->pBitstreamBuffer;
+    Mos_Solo_OverrideBufferSize((&m_ddiDecodeCtx->DecodeParams)->m_dataSize, (&m_ddiDecodeCtx->DecodeParams)->m_dataBuffer);
+
+    (&m_ddiDecodeCtx->DecodeParams)->m_bitplaneBuffer = nullptr;
+
+    if (m_streamOutEnabled)
+    {
+        (&m_ddiDecodeCtx->DecodeParams)->m_streamOutEnabled           = true;
+        (&m_ddiDecodeCtx->DecodeParams)->m_externalStreamOutBuffer    = &bufMgr->resExternalStreamOutBuffer;
+    }    
+    else
+    {
+        (&m_ddiDecodeCtx->DecodeParams)->m_streamOutEnabled           = false;
+        (&m_ddiDecodeCtx->DecodeParams)->m_externalStreamOutBuffer    = nullptr;
+    }
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiMediaDecode::EndPicture(
+    VADriverContextP ctx,
+    VAContextID      context)
+{
+    DDI_FUNCTION_ENTER();   
+    DDI_CHK_RET(m_ddiDecodeCtx->m_ddiDecode->InitDecodeParams(ctx,context),"InitDecodeParams failed!");
+    DDI_CHK_RET(m_ddiDecodeCtx->m_ddiDecode->SetDecodeParams(), "SetDecodeParams failed!");
+    DDI_CHK_RET(ClearRefList(&(m_ddiDecodeCtx->RTtbl), true), "ClearRefList failed!");
+    if (m_ddiDecodeCtx->pCodecHal == nullptr)
+    {
+        return VA_STATUS_ERROR_ALLOCATION_FAILED;
+    }
+
+    MOS_STATUS status = m_ddiDecodeCtx->pCodecHal->Execute((void *)(&m_ddiDecodeCtx->DecodeParams));
+    if (status != MOS_STATUS_SUCCESS)
+    {
+        DDI_ASSERTMESSAGE("DDI:DdiDecode_DecodeInCodecHal return failure.");
+        return VA_STATUS_ERROR_DECODING_ERROR;
+    }
+
+    (&(m_ddiDecodeCtx->RTtbl))->pCurrentRT = nullptr;
+
+    status = m_ddiDecodeCtx->pCodecHal->EndFrame();
+    if (status != MOS_STATUS_SUCCESS)
+    {
+        return VA_STATUS_ERROR_DECODING_ERROR;
+    }
+    DDI_FUNCTION_EXIT(VA_STATUS_SUCCESS);
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiMediaDecode::CreateBuffer(
+    VABufferType             type,
+    uint32_t                 size,
+    uint32_t                 numElements,
+    void                    *data,
+    VABufferID              *bufId)
+{
+    DDI_MEDIA_BUFFER                *buf;
+    PDDI_MEDIA_BUFFER_HEAP_ELEMENT   bufferHeapElement;
+    uint16_t                         segMapWidth, segMapHeight;
+    MOS_STATUS                       status = MOS_STATUS_SUCCESS;
+    VAStatus                         va = VA_STATUS_SUCCESS;
+
+    segMapWidth = m_picWidthInMB;
+    segMapHeight= m_picHeightInMB;
+
+    // only for VASliceParameterBufferType of buffer, the number of elements can be greater than 1
+    if(type != VASliceParameterBufferType && numElements > 1)
+    {
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
+
+    buf               = (DDI_MEDIA_BUFFER *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_BUFFER));
+    if (buf == nullptr)
+    {
+        return VA_STATUS_ERROR_ALLOCATION_FAILED;
+    }
+    buf->iSize        = size * numElements;
+    buf->iNumElements = numElements;
+    buf->uiType       = type;
+    buf->format       = Media_Format_Buffer;
+    buf->uiOffset     = 0;
+    buf->bCFlushReq   = false;
+    buf->pMediaCtx    = m_ddiDecodeCtx->pMediaCtx;
+
+    switch ((int32_t)type)
+    {
+        case VABitPlaneBufferType:
+            buf->pData = (uint8_t*)((m_ddiDecodeCtx->BufMgr.Codec_Param.Codec_Param_VC1.pBitPlaneBuffer));
+            break;
+        case VASliceDataBufferType:
+        case VAProtectedSliceDataBufferType:
+            va = m_ddiDecodeCtx->m_ddiDecode->AllocBsBuffer(&(m_ddiDecodeCtx->BufMgr), buf);
+            if(va != VA_STATUS_SUCCESS)
+            {
+                goto CleanUpandReturn;   
+	    }
+            
+            break;
+        case VASliceParameterBufferType:
+            va = m_ddiDecodeCtx->m_ddiDecode->AllocSliceControlBuffer(buf);
+	    if(va != VA_STATUS_SUCCESS)
+            {
+                goto CleanUpandReturn;   
+	    }
+            buf->format     = Media_Format_CPU;
+            break;
+        case VAPictureParameterBufferType:
+            buf->pData      = m_ddiDecodeCtx->m_ddiDecode->GetPicParamBuf(&(m_ddiDecodeCtx->BufMgr)); 
+            buf->format     = Media_Format_CPU;
+            break;
+        case VAIQMatrixBufferType:
+            buf->pData      = (uint8_t*)MOS_AllocAndZeroMemory(size * numElements);
+            buf->format     = Media_Format_CPU;
+            break;
+        case VAProbabilityBufferType:
+            buf->pData      = (uint8_t*)(&(m_ddiDecodeCtx->BufMgr.Codec_Param.Codec_Param_VP8.ProbabilityDataVP8));
+            break;
+        case VAProcFilterParameterBufferType:
+            buf->pData      = (uint8_t*)MOS_AllocAndZeroMemory(sizeof(VAProcPipelineCaps));
+            buf->format     = Media_Format_CPU;
+            break;
+        case VAProcPipelineParameterBufferType:
+            buf->pData      = (uint8_t*)MOS_AllocAndZeroMemory(sizeof(VAProcPipelineParameterBuffer));
+            buf->format     = Media_Format_CPU;
+            break;
+        case VADecodeStreamoutBufferType:
+        {
+            segMapHeight = ((segMapHeight + 1) >> 1);   //uiSize must be equal and bigger than size for interlaced case
+
+            if (size < MOS_ALIGN_CEIL(segMapHeight * segMapWidth * CODEC_SIZE_MFX_STREAMOUT_DATA, 64))
+            {
+                va = VA_STATUS_ERROR_INVALID_PARAMETER;
+                goto CleanUpandReturn;
+            }
+            buf->iSize  = size * numElements;   
+            buf->format = Media_Format_Buffer;
+            va = DdiMediaUtil_CreateBuffer(buf, m_ddiDecodeCtx->pMediaCtx->pDrmBufMgr);
+            if(va != VA_STATUS_SUCCESS)
+            {
+                goto CleanUpandReturn;
+            }
+            break;
+        }
+        case VAHuffmanTableBufferType:
+            buf->pData      = (uint8_t*)MOS_AllocAndZeroMemory(size * numElements);
+            buf->format     = Media_Format_CPU;
+            break;
+        default:
+            va = m_ddiDecodeCtx->pCpDdiInterface->CreateBuffer(type, buf, size, numElements);
+            if (va  == VA_STATUS_ERROR_UNSUPPORTED_BUFFERTYPE)
+            {
+                MOS_FreeMemory(buf);
+                return va;
+            }
+            break;
+    }
+
+    bufferHeapElement  = DdiMediaUtil_AllocPMediaBufferFromHeap(m_ddiDecodeCtx->pMediaCtx->pBufferHeap);
+    if (nullptr == bufferHeapElement)
+    {
+        va = VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
+        goto CleanUpandReturn;
+    }
+    bufferHeapElement->pBuffer      = buf;
+    bufferHeapElement->pCtx         = (void*)m_ddiDecodeCtx;
+    bufferHeapElement->uiCtxType    = DDI_MEDIA_CONTEXT_TYPE_DECODER;
+    *bufId                          = bufferHeapElement->uiVaBufferID;
+
+
+    // Keep record the VaBufferID of JPEG slice data buffer we allocated, in order to do buffer mapping when render this buffer. otherwise we
+    // can not get correct buffer address when application create them disordered.
+    if (type == VASliceDataBufferType && m_ddiDecodeCtx->wMode == CODECHAL_DECODE_MODE_JPEG)
+    {
+        // since the dwNumSliceData already +1 when allocate buffer, but here we need to track the VaBufferID before dwSliceData increased.
+        m_ddiDecodeCtx->BufMgr.pSliceData[m_ddiDecodeCtx->BufMgr.dwNumSliceData - 1].vaBufferId = *bufId;
+    }
+    m_ddiDecodeCtx->pMediaCtx->uiNumBufs++;
+
+    if(data == nullptr)
+    {
+        return va;
+    }
+
+    if( true == buf->bCFlushReq )
+    {
+        mos_bo_subdata(buf->bo, buf->uiOffset, size * numElements, data);
+    }
+    else
+    {
+        status = MOS_SecureMemcpy((void *)(buf->pData + buf->uiOffset), size * numElements, data, size * numElements);
+        DDI_CHK_CONDITION((status != MOS_STATUS_SUCCESS), "DDI:Failed to copy buffer data!", VA_STATUS_ERROR_OPERATION_FAILED);
+    }
+    return va;
+
+CleanUpandReturn:
+    if(buf)
+    {
+        MOS_FreeMemory(buf->pData);
+        MOS_FreeMemory(buf);
+    }
+    return va;
+
+}
+
 void DdiMediaDecode::ContextInit(
     int32_t picWidth,
     int32_t picHeight)
 {
-    m_ddiDecodeCtx->dwWidth           = picWidth;
-    m_ddiDecodeCtx->dwHeight          = picHeight;
-    m_ddiDecodeCtx->wPicWidthInMB     = (int16_t)(DDI_CODEC_NUM_MACROBLOCKS_WIDTH(picWidth));
-    m_ddiDecodeCtx->wPicHeightInMB    = (int16_t)(DDI_CODEC_NUM_MACROBLOCKS_HEIGHT(picHeight));
+    m_width           = picWidth;
+    m_height          = picHeight;
+    m_picWidthInMB     = (int16_t)(DDI_CODEC_NUM_MACROBLOCKS_WIDTH(picWidth));
+    m_picHeightInMB    = (int16_t)(DDI_CODEC_NUM_MACROBLOCKS_HEIGHT(picHeight));
     m_ddiDecodeCtx->wMode             = CODECHAL_DECODE_MODE_AVCVLD;
     m_ddiDecodeCtx->bShortFormatInUse = false;
 #ifdef _DECODE_PROCESSING_SUPPORTED
     if (m_ddiDecodeAttr->uiDecProcessingType == VA_DEC_PROCESSING)
     {
         DDI_NORMALMESSAGE("Decoding context has scaling/format conversion capabilities");
-        m_ddiDecodeCtx->uiDecProcessingType = VA_DEC_PROCESSING;
+        m_decProcessingType = VA_DEC_PROCESSING;
     }
     else
 #endif
     {
         DDI_NORMALMESSAGE("Decoding context DOESN'T have scaling/format conversion capabilities");
-        m_ddiDecodeCtx->uiDecProcessingType = VA_DEC_PROCESSING_NONE;
+        m_decProcessingType = VA_DEC_PROCESSING_NONE;
     }
-    m_ddiDecodeCtx->bStreamOutEnabled                  = false;
+    m_streamOutEnabled                  = false;
     m_ddiDecodeCtx->DecodeParams.m_picIdRemappingInUse = true;
 }
 
@@ -489,16 +931,14 @@ VAStatus DdiMediaDecode::CreateCodecHal(
 
     if (decoder->IsStatusQueryReportingEnabled())
     {
-        m_ddiDecodeCtx->pDecodeStatusReport =
+        m_decodeStatusReport =
             MOS_NewArray(CodechalDecodeStatusReport, CODECHAL_DECODE_STATUS_NUM);
-        if (m_ddiDecodeCtx->pDecodeStatusReport == nullptr)
+        if (m_decodeStatusReport == nullptr)
         {
             DDI_ASSERTMESSAGE("Failure to allocate the status buffer for decoding\n");
             vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
     }
-
-    m_ddiDecodeCtx->wDecStatusReportNum = 0;
 
     return vaStatus;
 }

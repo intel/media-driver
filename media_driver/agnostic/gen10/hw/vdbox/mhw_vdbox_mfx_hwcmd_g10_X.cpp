@@ -325,10 +325,8 @@ mhw_vdbox_mfx_g10_X::MFX_AVC_IMG_STATE_CMD::MFX_AVC_IMG_STATE_CMD()
     DW11.Value                                       = 0;        
     DW11.Framebitratemaxdelta                        = FRAMEBITRATEMAXDELTA_UNNAMED0;
 
-    DW12.Value                                       = 0;        
-    DW12.Mpeg2OldbModeSelect                         = MPEG2_OLDB_MODE_SELECT_DISABLE;
+    DW12.Value                                       = 0; 
     DW12.VadErrorLogic                               = VAD_ERROR_LOGIC_ENABLE;
-    DW12.VmdErrorLogic                               = VMD_ERROR_LOGIC_DISABLE;
 
     DW13.Value                                       = 0;        
 
@@ -601,10 +599,7 @@ mhw_vdbox_mfx_g10_X::MFX_MPEG2_PIC_STATE_CMD::MFX_MPEG2_PIC_STATE_CMD()
     DW11.Value                                       = 0;        
     DW11.Framebitratemaxdelta                        = FRAMEBITRATEMAXDELTA_UNNAMED0;
 
-    DW12.Value                                       = 0;        
-    DW12.VmdOldbControlSignalDetermination           = VMD_OLDB_CONTROL_SIGNAL_DETERMINATION_DISABLE;
-    DW12.VadErrorLogic                               = VAD_ERROR_LOGIC_ENABLE;
-    DW12.VmdErrorLogic                               = VMD_ERROR_LOGIC_DISABLE;
+    DW12.Value                                       = 0;
 
 }
 

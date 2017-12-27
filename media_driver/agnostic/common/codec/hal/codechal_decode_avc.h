@@ -20,10 +20,6 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      codechal_decode_avc.h
-//! \brief     This modules implements Render interface layer for AVC decoding to be used on all operating systems/DDIs, across CODECHAL components.
-//!
-//!
 //! \file     codechal_decode_avc.h
 //! \brief    Defines the decode interface extension for AVC.
 //! \details  Defines all types, macros, and functions required by CodecHal for AVC decoding.
@@ -36,7 +32,6 @@
 #include "codechal.h"
 #include "codechal_decoder.h"
 #include "codechal_decode_sfc_avc.h"
-#include "codechal_common_avc.h"
 
 //!
 //! \def CODECHAL_DECODE_AVC_MONOPIC_CHROMA_DEFAULT
@@ -107,7 +102,7 @@ public:
     } PIC_MHW_PARAMS;
 
     //!
-    //! \brief  Constructor
+    //! \brief    Constructor
     //! \param    [in] hwInterface
     //!           Hardware interface
     //! \param    [in] debugInterface
@@ -180,7 +175,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS          AllocateResources_FixedSizes();
+    MOS_STATUS          AllocateResourcesFixedSizes();
 
     //!
     //! \brief    Allocate variable sized resources
@@ -188,7 +183,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS          AllocateResources_VariableSizes();
+    MOS_STATUS          AllocateResourcesVariableSizes();
 
     //!
     //! \brief    Allocate invalid ref buffer
@@ -319,6 +314,16 @@ public:
     //!
     MOS_STATUS          FormatAvcMonoPicture();
 
+    //!
+    //! \brief    Set frame store Id for avc codec.
+    //! \details
+    //! \param    [in] frameIdx
+    //!           frame index
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS SetFrameStoreIds(uint8_t frameIdx);
+
     MOS_STATUS InitMmcState() override;
 
 #if USE_CODECHAL_DEBUG_TOOL
@@ -333,7 +338,7 @@ public:
         uint32_t                numSlices);
 
     MOS_STATUS DumpIQParams(
-        PCODECHAL_AVC_IQ_MATRIX_PARAMS matrixData);
+        PCODEC_AVC_IQ_MATRIX_PARAMS matrixData);
 #endif
 
 private:
@@ -364,25 +369,25 @@ public:
     uint32_t                        u32RefSurfaceNum;                                   //!< Number of reference frame surface
 
     bool                            bSecondField;                                       //!< Indicate it is second field
-    bool                            bIntelProprietaryFormatInUse;                       //!< Indicate it is Intel Proprietary Format
+    bool                            bIntelEntrypointInUse;                              //!< Indicate it is Intel-specific Format
     bool                            bShortFormatInUse;                                  //!< Indicate it is Short Format
     bool                            bPicIdRemappingInUse;                               //!< Indicate PicId Remapping are in use
     bool                            bDeblockingEnabled;                                 //!< Indicate Deblocking is enabled
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
-    CODECHAL_AVC_SFC_STATE          SfcState;                                           //!< Avc Sfc State
+    CodechalAvcSfcState          SfcState;                                           //!< Avc Sfc State
 #endif
 
     CODEC_PICTURE                   CurrPic;                                            //!< Current Picture Struct
-    CODECHAL_AVC_FRAME_STORE_ID     avcFrameStoreID[CODEC_AVC_MAX_NUM_REF_FRAME];       //!< Avc Frame Store ID
+    CODEC_AVC_FRAME_STORE_ID     avcFrameStoreID[CODEC_AVC_MAX_NUM_REF_FRAME];       //!< Avc Frame Store ID
     CODEC_AVC_DMV_LIST              avcDmvList[CODEC_AVC_NUM_DMV_BUFFERS];              //!< Avc Dmv List
     CODEC_PIC_ID                    avcPicIdx[CODEC_AVC_MAX_NUM_REF_FRAME];             //!< Avc Pic Index
 
-    PCODEC_REF_LIST                 pAvcRefList[CODECHAL_AVC_NUM_UNCOMPRESSED_SURFACE]; //!< Pointer to AVC Ref List
+    PCODEC_REF_LIST                 pAvcRefList[CODEC_AVC_NUM_UNCOMPRESSED_SURFACE]; //!< Pointer to AVC Ref List
     PCODEC_AVC_PIC_PARAMS           pAvcPicParams;                                      //!< Pointer to AVC picture parameter
     PCODEC_MVC_EXT_PIC_PARAMS       pMvcExtPicParams;                                   //!< Pointer to MVC ext picture parameter
     PCODEC_AVC_SLICE_PARAMS         pAvcSliceParams;                                    //!< Pointer to AVC slice parameter
-    PCODECHAL_AVC_IQ_MATRIX_PARAMS  pAvcIQMatrixParams;                                 //!< Pointer to AVC IQ matrix parameter
+    PCODEC_AVC_IQ_MATRIX_PARAMS  pAvcIQMatrixParams;                                 //!< Pointer to AVC IQ matrix parameter
     PCODECHAL_VLD_SLICE_RECORD      pVldSliceRecord;
 
     MOS_RESOURCE                    resDataBuffer;                                      //!< Handle of Data Buffer

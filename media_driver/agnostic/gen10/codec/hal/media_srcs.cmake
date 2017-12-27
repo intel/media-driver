@@ -42,10 +42,12 @@ endif()
 set(TMP_2_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_nv12top010_g10.cpp
     ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_nv12top010_kernel_g10.cpp
+	${CMAKE_CURRENT_LIST_DIR}/codechal_decode_histogram_vebox_g10.cpp
 )
 
 set(TMP_2_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_nv12top010_g10.h
+	${CMAKE_CURRENT_LIST_DIR}/codechal_decode_histogram_vebox_g10.h
 )
 
 if(${Decode_Processing_Supported} STREQUAL "yes")
@@ -82,7 +84,6 @@ if(${Common_Encode_Supported} STREQUAL "yes")
 
     set(TMP_3_HEADERS_
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_csc_ds_g10.h
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_encoder_g10.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_kernel_hme_g10.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_wp_g10.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_debug_encode_par_g10.h
@@ -138,6 +139,16 @@ if(${MPEG2_Encode_Supported} STREQUAL "yes")
     )
 endif()
 
+if(${VP8_Encode_Supported} STREQUAL "yes")
+    set(TMP_3_SOURCES_
+        ${TMP_3_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_vp8_g10.cpp
+    )
+    set(TMP_3_HEADERS_
+        ${TMP_3_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_vp8_g10.h
+    )
+endif()
 
 set(SOURCES_
     ${SOURCES_}

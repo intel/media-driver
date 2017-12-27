@@ -51,12 +51,6 @@ MOS_STATUS MhwRenderInterfaceG8::AddMediaVfeCmd(
 
     MHW_MI_CHK_STATUS(MhwRenderInterfaceGeneric<mhw_render_g8_X>::AddMediaVfeCmd(cmdBuffer, params));
 
-    if (params->bGpGpuWalkerMode)
-    {
-        cmd->DW3.Reserved96            = 4;
-        cmd->DW3.BypassGatewayControl  = 1;
-    }
-
     cmd->DW4.SliceDisable = params->eVfeSliceDisable;
 
     cmd->DW6.ScoreboardType = params->Scoreboard.ScoreboardType;

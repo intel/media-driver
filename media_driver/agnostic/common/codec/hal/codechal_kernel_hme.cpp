@@ -26,7 +26,6 @@
 //!
 
 #include "codechal_kernel_hme.h"
-#include "codechal_encoder.h"
 #if USE_CODECHAL_DEBUG_TOOL
 #include "codechal_debug.h"
 #endif
@@ -263,7 +262,7 @@ MOS_STATUS CodechalKernelHme::SendSurfaces(PMOS_COMMAND_BUFFER cmd, MHW_KERNEL_S
     surfaceParams.psSurface->dwHeight = m_surfaceParam.downScaledHeightInMb * 4 * CODECHAL_ENCODE_ME_DATA_SIZE_MULTIPLIER;
     surfaceParams.psSurface->dwPitch = surfaceParams.psSurface->dwWidth;
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         cmd,
         &surfaceParams,
@@ -279,7 +278,7 @@ MOS_STATUS CodechalKernelHme::SendSurfaces(PMOS_COMMAND_BUFFER cmd, MHW_KERNEL_S
         surfaceParams.dwOffset              = currBottomField ? m_32xMeMvBottomFieldOffset : 0;
         surfaceParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ME_MV_DATA_ENCODE].Value;
         surfaceParams.dwBindingTableOffset  = BindingTableOffset::meInputMvDataSurface;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
             m_hwInterface,
             cmd,
             &surfaceParams,
@@ -295,7 +294,7 @@ MOS_STATUS CodechalKernelHme::SendSurfaces(PMOS_COMMAND_BUFFER cmd, MHW_KERNEL_S
         surfaceParams.dwOffset              = currBottomField ? m_16xMeMvBottomFieldOffset : 0;
         surfaceParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ME_MV_DATA_ENCODE].Value;
         surfaceParams.dwBindingTableOffset  = BindingTableOffset::meInputMvDataSurface;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
             m_hwInterface,
             cmd,
             &surfaceParams,
@@ -316,7 +315,7 @@ MOS_STATUS CodechalKernelHme::SendSurfaces(PMOS_COMMAND_BUFFER cmd, MHW_KERNEL_S
             surfaceParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ME_MV_DATA_ENCODE].Value;
             surfaceParams.bIsWritable = true;
             surfaceParams.bRenderTarget = true;
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
                 m_hwInterface,
                 cmd,
                 &surfaceParams,
@@ -334,7 +333,7 @@ MOS_STATUS CodechalKernelHme::SendSurfaces(PMOS_COMMAND_BUFFER cmd, MHW_KERNEL_S
             surfaceParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ME_DISTORTION_ENCODE].Value;
             surfaceParams.bIsWritable = true;
             surfaceParams.bRenderTarget = true;
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
                 m_hwInterface,
                 cmd,
                 &surfaceParams,
@@ -375,7 +374,7 @@ MOS_STATUS CodechalKernelHme::SendSurfaces(PMOS_COMMAND_BUFFER cmd, MHW_KERNEL_S
                 surfaceParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_HME_DOWNSAMPLED_ENCODE].Value;
                 surfaceParams.dwBindingTableOffset  = BindingTableOffset::meCurrForFwdRef;
                 surfaceParams.ucVDirection          = currVDirection;
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
                     m_hwInterface,
                     cmd,
                     &surfaceParams,
@@ -410,7 +409,7 @@ MOS_STATUS CodechalKernelHme::SendSurfaces(PMOS_COMMAND_BUFFER cmd, MHW_KERNEL_S
             surfaceParams.dwBindingTableOffset  = fwdRefBTOffset[refIdx];
             surfaceParams.ucVDirection          = !currFieldPicture ? CODECHAL_VDIRECTION_FRAME :
                                                   ((refBottomField) ? CODECHAL_VDIRECTION_BOT_FIELD : CODECHAL_VDIRECTION_TOP_FIELD);
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
                 m_hwInterface,
                 cmd,
                 &surfaceParams,
@@ -440,7 +439,7 @@ MOS_STATUS CodechalKernelHme::SendSurfaces(PMOS_COMMAND_BUFFER cmd, MHW_KERNEL_S
                 surfaceParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_HME_DOWNSAMPLED_ENCODE].Value;
                 surfaceParams.dwBindingTableOffset  = BindingTableOffset::meCurrForBwdRef;
                 surfaceParams.ucVDirection          = currVDirection;
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
                     m_hwInterface,
                     cmd,
                     &surfaceParams,
@@ -474,7 +473,7 @@ MOS_STATUS CodechalKernelHme::SendSurfaces(PMOS_COMMAND_BUFFER cmd, MHW_KERNEL_S
             surfaceParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_HME_DOWNSAMPLED_ENCODE].Value;
             surfaceParams.dwBindingTableOffset  = bwdRefBTOffset[refIdx];
             surfaceParams.ucVDirection          = (!currFieldPicture) ? CODECHAL_VDIRECTION_FRAME : ((refBottomField) ? CODECHAL_VDIRECTION_BOT_FIELD : CODECHAL_VDIRECTION_TOP_FIELD);
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
                 m_hwInterface,
                 cmd,
                 &surfaceParams,
@@ -491,8 +490,8 @@ MOS_STATUS CodechalKernelHme::Execute(CurbeParam &curbeParam, SurfaceParams &sur
     m_16xMeInUse = Is16xMeEnabled() ? (hmeLevel & HmeLevel::hmeLevel16x) != 0  : false;
     m_32xMeInUse = Is32xMeEnabled() ? (hmeLevel & HmeLevel::hmeLevel32x) != 0 : false;
     
-    memcpy(&m_curbeParam, &curbeParam, sizeof(m_curbeParam));
-    memcpy(&m_surfaceParam, &surfaceParam, sizeof(m_surfaceParam));
+    memcpy_s(&m_curbeParam, sizeof(m_curbeParam), &curbeParam, sizeof(m_curbeParam));
+    memcpy_s(&m_surfaceParam, sizeof(m_surfaceParam), &surfaceParam, sizeof(m_surfaceParam));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(Run());
     return MOS_STATUS_SUCCESS;

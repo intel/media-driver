@@ -37,14 +37,13 @@ enum {
     QP_TYPE_CU_LEVEL
 };
 
-//!  HEVC dual-pipe encoder base class
-/*!
-This class defines the base class for HEVC dual-pipe encoder, it includes
-common member fields, functions, interfaces etc shared by all GENs.
-Gen specific definitions, features should be put into their corresponding classes.
-
-To create a HEVC dual-pipe encoder instance, client needs to call #CodechalEncHevcState::CreateHevcState()
-*/
+//! \class    CodechalEncHevcState
+//! \brief    HEVC dual-pipe encoder base class
+//! \details  This class defines the base class for HEVC dual-pipe encoder, it includes
+//!        common member fields, functions, interfaces etc shared by all GENs.
+//!        Gen specific definitions, features should be put into their corresponding classes.
+//!        To create a HEVC dual-pipe encoder instance, client needs to call CodechalEncHevcState::CreateHevcState()
+//!
 class CodechalEncHevcState : public CodechalEncodeHevcBase
 {
 public:
@@ -140,7 +139,6 @@ public:
     // MBENC
     PMHW_KERNEL_STATE                           pMbEncKernelStates = nullptr;                   //!< Pointer to MbEnc kernel state
     PCODECHAL_ENCODE_BINDING_TABLE_GENERIC      pMbEncKernelBindingTable = nullptr;             //!< MbEnc kernel binding table
-    CODECHAL_ENCODE_BUFFER                      BrcInputForEncKernelBuffer;                     //!< BRC input buffer for ENC kernel
     uint32_t                                    dwNumMbEncEncKrnStates = 0;                     //!< Number of MbEnc kernel states
     EncStatsBuffers                             m_encStatsBuffers;
 
@@ -323,7 +321,20 @@ public:
         PMOS_COMMAND_BUFFER             cmdBuffer,
         PMHW_VDBOX_HEVC_SLICE_STATE     params);
 
+    //!
+    //! \brief    Allocate encoder states resources
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
     MOS_STATUS AllocateEncStatsResources();
+    
+    //!
+    //! \brief    Free encoder states resources
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
     MOS_STATUS FreeEncStatsResources();
 
     //! Inherited virtual functions
@@ -400,14 +411,14 @@ public:
     //!
     //! \brief    Get max supported number of reference frames
     //!
-    //! \param    [out] MaxNumRef0
+    //! \param    [out] maxNumRef0
     //!           Max suppoted number of referenace frame 0
-    //! \param    [out] MaxNumRef1
+    //! \param    [out] maxNumRef1
     //!           Max suppoted number of referenace frame 1
     //!
     //! \return   void
     //!
-    virtual void GetMaxRefFrames(uint8_t& MaxNumRef0, uint8_t& MaxNumRef1) = 0;
+    virtual void GetMaxRefFrames(uint8_t& maxNumRef0, uint8_t& maxNumRef1) = 0;
 
     //!
     //! \brief    Prepare and add Hcp Pipe Mode Select Cmd
@@ -442,8 +453,4 @@ public:
     //!
     virtual MOS_STATUS AddHcpPictureStateCmd(MOS_COMMAND_BUFFER* cmdBuffer);
 };
-
-//! typedef of class CodechalEncHevcState*
-using PCODECHAL_ENC_HEVC_STATE = class CodechalEncHevcState*;
-
 #endif  // __CODECHAL_ENCODE_HEVC_H__

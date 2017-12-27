@@ -3484,6 +3484,7 @@ void KernelDll_ReleaseStates(Kdll_State *pState)
     if (!pState) return;
     KernelDll_ReleaseAdditionalCacheEntries(&pState->KernelCache);
     MOS_FreeMemory(pState->ComponentKernelCache.pCache);
+    MOS_FreeMemory(pState->CmFcPatchCache.pCache);
     MOS_FreeMemory(pState->pSortedRules);
     MOS_FreeMemory(pState);
 }
@@ -4464,6 +4465,22 @@ void KernelDll_StartKernelSearch(
     }
 }
 
+/*----------------------------------------------------------------------------
+| Name      : KernelDll_UpdatePatchedCSC
+| Purpose   : Update Patched CSC Coeff when necessary a given kernel cache
+|
+| Input     : pState       - Kernel Dll state
+|             pKernelEntry - current cache entry
+|
+| Return    :
+\---------------------------------------------------------------------------*/
+bool KernelDll_UpdatePatchedCSC(
+    Kdll_State       *pState,
+    Kdll_CacheEntry  *pKernelEntry)
+{
+    return true;
+}
+
 //---------------------------------------------------------------------------------------
 // KernelDll_SetupFunctionPointers - Setup Function pointers based on platform
 //
@@ -4481,6 +4498,7 @@ static bool KernelDll_SetupFunctionPointers(
     VPHAL_RENDER_FUNCTION_ENTER;
 
     pState->pfnSetupCSC          = KernelDll_SetupCSC;
+    pState->pfnUpdatePatchedCSC  = KernelDll_UpdatePatchedCSC;
     pState->pfnMapCSCMatrix      = KernelDll_MapCSCMatrix;
     pState->pfnFindRule          = KernelDll_FindRule;
     pState->pfnUpdateState       = KernelDll_UpdateState;

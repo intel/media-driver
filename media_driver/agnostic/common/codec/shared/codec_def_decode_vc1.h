@@ -38,8 +38,8 @@
 #define CODECHAL_VC1_ALL_COMP            0x000F0000
 
 //!
-//! \enum vc1FieldPictureType
-//! \brief VC1 field picture Types
+//! \enum  Vc1FramPictureType
+//! \brief VC1 fram picture Types
 //!
 enum Vc1FramPictureType
 {
@@ -51,7 +51,7 @@ enum Vc1FramPictureType
 };
 
 //!
-//! \enum Vc1FieldPictureType
+//! \enum  Vc1FieldPictureType
 //! \brief VC1 field picture Types
 //!
 enum Vc1FieldPictureType
@@ -67,7 +67,7 @@ enum Vc1FieldPictureType
 };
 
 //!
-//! \enum Vc1QuantizerType
+//! \enum  Vc1QuantizerType
 //! \brief VC-1 Spec Table 259: Quantizer Specification
 //!
 enum Vc1QuantizerType

@@ -28,6 +28,8 @@
 #define MEDIADRIVER_AGNOSTIC_COMMON_CM_CMTASKRT_H_
 
 #include "cm_task.h"
+#include "cm_hal.h"
+#include "cm_log.h"
 
 namespace CMRT_UMD
 {
@@ -51,10 +53,6 @@ public:
     CM_RT_API int32_t AddSync();
 
     CM_RT_API int32_t SetPowerOption(PCM_POWER_OPTION pPowerOption);
-
-    int32_t SetPreemptionMode(CM_PREEMPTION_MODE mode);
-
-    CM_RT_API CM_PREEMPTION_MODE GetPreemptionMode();
 
     CM_RT_API int32_t AddConditionalEnd(SurfaceIndex *pConditionalSurface,
                                         uint32_t offset,
@@ -125,8 +123,6 @@ protected:
     m_ConditionalEndInfo[CM_MAX_CONDITIONAL_END_CMDS];
 
     CM_POWER_OPTION m_PowerOption;
-
-    CM_PREEMPTION_MODE m_PreemptionMode;
 
     CM_TASK_CONFIG m_TaskConfig;
 

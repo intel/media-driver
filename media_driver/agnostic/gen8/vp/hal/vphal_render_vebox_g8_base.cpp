@@ -1387,8 +1387,8 @@ MOS_STATUS VPHAL_VEBOX_STATE_G8_BASE::SetupSurfaceStatesForDenoise()
     // Treat the 1D buffer as 2D surface
     // VEBox State Surface
     pVeboxState->VeboxHeapResource.Format   = Format_L8;
-    pVeboxState->VeboxHeapResource.dwWidth  = SECURE_BLOCK_COPY_KERNEL_SURF_WIDTH; // Hard code for Crypto Block Copy kernel
-    pVeboxState->VeboxHeapResource.dwPitch  = SECURE_BLOCK_COPY_KERNEL_SURF_WIDTH; // Hard code for Crypto Block Copy kernel
+    pVeboxState->VeboxHeapResource.dwWidth  = SECURE_BLOCK_COPY_KERNEL_SURF_WIDTH; // Hard code for secure Block Copy kernel
+    pVeboxState->VeboxHeapResource.dwPitch  = SECURE_BLOCK_COPY_KERNEL_SURF_WIDTH; // Hard code for secure Block Copy kernel
     pVeboxState->VeboxHeapResource.dwHeight =
         MOS_ROUNDUP_DIVIDE(pVeboxHeap->uiInstanceSize, SECURE_BLOCK_COPY_KERNEL_SURF_WIDTH);
     pVeboxState->VeboxHeapResource.dwOffset =
@@ -1401,8 +1401,8 @@ MOS_STATUS VPHAL_VEBOX_STATE_G8_BASE::SetupSurfaceStatesForDenoise()
 
     // Temp Surface: for Noise Level History
     pVeboxState->tmpResource.Format = Format_L8;
-    pVeboxState->tmpResource.dwWidth = SECURE_BLOCK_COPY_KERNEL_SURF_WIDTH; // Hard code for Crypto Block Copy kernel
-    pVeboxState->tmpResource.dwPitch = SECURE_BLOCK_COPY_KERNEL_SURF_WIDTH; // Hard code for Crypto Block Copy kernel
+    pVeboxState->tmpResource.dwWidth = SECURE_BLOCK_COPY_KERNEL_SURF_WIDTH; // Hard code for secure Block Copy kernel
+    pVeboxState->tmpResource.dwPitch = SECURE_BLOCK_COPY_KERNEL_SURF_WIDTH; // Hard code for secure Block Copy kernel
     pVeboxState->tmpResource.dwHeight =
         MOS_ROUNDUP_DIVIDE(MHW_PAGE_SIZE, SECURE_BLOCK_COPY_KERNEL_SURF_WIDTH);
     pVeboxState->tmpResource.dwOffset = 0;

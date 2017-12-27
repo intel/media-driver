@@ -259,12 +259,12 @@ public:
     //!     gpgpu workloads. During context restore 3D semi pipeline state is
     //!     restored to WM, which triggers implicit flush. Theoretically under
     //!     certain conditions RCS can trigger FFDOP CG while WM  in doing implicit
-    //!     flush leading to hangs. Only way to work around this issue is by
+    //!     flush leading to hangs. Only way to resolve this issue is by
     //!     disabling FFDOP CG feature. This issue is being fixed on G0 stepping.  
     //!      
     //!     So far this issue is not yet hit in pre-silicon validation, emulation,
-    //!     Silicon-SV or Silicon-Driver being a rare condition. Work around to
-    //!     disable FFDOP CG is not being applied at this point to allow valdiaiton
+    //!     Silicon-SV or Silicon-Driver being a rare condition. 
+    //!     Disabling FFDOP CG is not being applied at this point to allow valdiaiton
     //!     to make progress on FFDOP CG feature, further decision will be taken
     //!     when this issue occurs. Validation teams are requested to triage any
     //!     GPGPU workload hangs with WM no done with FFDOP CG disabled to eliminate

@@ -21,7 +21,7 @@
 */
 //!
 //! \file     codechal_fei_avc_g8.h
-//! \brief    This file defines the C++ class/interface for Gen8 platform's AVC 
+//! \brief    This file defines the C++ class/interface for Gen8 platform's AVC
 //!           FEI encoding to be used across CODECHAL components.
 //!
 
@@ -33,7 +33,7 @@
 class CodechalEncodeAvcEncFeiG8 : public CodechalEncodeAvcEncG8
 {
 public:
-    static const uint32_t m_feiMBEncCurbeSizeInDword = 95;    
+    static const uint32_t m_feiMBEncCurbeSizeInDword = 95;
 
     static const uint32_t m_modeMvCost_Cm_PreProc[3][CODEC_AVC_NUM_QP][8];
     static const uint32_t m_meCurbeCmFei[39];
@@ -56,19 +56,19 @@ public:
     static const uint32_t m_feiMBEncCurbeDataSizeExcludeSurfaceIdx = 236;
     static const uint32_t m_feiPreProcCurbeDataSize = 160;
 
-#ifdef FEI_ENABLE_CMRT        
+#ifdef FEI_ENABLE_CMRT
     static const uint32_t m_mdfDsBufSize = 2;           //ds use 2 buffer & 4 surface for each channel,  6 buffer and 12 totally
     static const uint32_t m_mdfDsSurfSize = 4;
     static const uint32_t m_mdfDsVmeSurfSize = 0;
-       
+
     static const uint32_t m_mdfMeBufSize = 0;           //me use 0 buffer and 12 surface
     static const uint32_t m_mdfMeSurfSize = 12;
     static const uint32_t m_mdfMeVmeSurfSize = 2;
-       
+
     static const uint32_t m_mdfPreProcBufSize = 6;           //preproc use 5 buffers and  4 surface
     static const uint32_t m_mdfPreProcSurfSize  = 4;
     static const uint32_t m_mdfPreProcVmeSurfSize = 2;
-       
+
     static const uint32_t m_mdfMbencBufSize = 12;           //MBEnc is not in a context with preenc
     static const uint32_t m_mdfMbencSurfSize = 16;
     static const uint32_t m_mdfMbencVmeSurfSize = 2;
@@ -76,9 +76,9 @@ public:
     CodechalEncodeMdfKernelResource m_resMBEncKernel;
     CodechalEncodeMdfKernelResource m_resPreProcKernel;
     CodechalEncodeMdfKernelResource m_resMEKernel;
-    void                               *m_avcCmSurfIdx;  
+    void                               *m_avcCmSurfIdx;
     uint32_t                            m_dsKernelIdx;
-#endif    
+#endif
     //!
     //! \brief    Constructor
     //!
@@ -94,8 +94,8 @@ public:
 
     //!
     //! \brief    Initializes the kernel.
-    //! \details  
-    //!           
+    //! \details
+    //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success
     //!
@@ -104,7 +104,7 @@ public:
     //!
     //! \brief    Initializes the FEI PreEnc kernel.
     //! \details  If PreEnc mode, initial PreEnc kernel.
-    //!           
+    //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success
     //!
@@ -130,16 +130,16 @@ public:
         //!
         //! \brief    Run Encode ME kernel
         //!
-        //! \param [in] pBrcBuffers
+        //! \param [in] brcBuffers
         //!           Pointer to the brc buffer
-        //! \param   [in] HmeLevel
+        //! \param   [in] hmeLevel
         //!           Hme level
         //! \return   MOS_STATUS
         //!           MOS_STATUS_SUCCESS if success
         //!
         virtual MOS_STATUS EncodeMeKernel(
-            PCODECHAL_ENCODE_BRC_BUFFERS pBrcBuffers,
-            CODECHAL_ENCODE_HME_LEVEL HmeLevel);
+            PCODECHAL_ENCODE_BRC_BUFFERS brcBuffers,
+            CODECHAL_ENCODE_HME_LEVEL hmeLevel);
 
         //!
         //! \brief    Dispatch MDF Encode ME kernel
@@ -165,15 +165,15 @@ public:
         //!
         //! \brief    Dispatch MDF Encode MBEnc kernel
         //!
-        //! \param  [in]  pParams
+        //! \param  [in]  params
         //!           Dispatch Parameters
         //! \return   MOS_STATUS
         //!           MOSs_STATUS_SUCCESS if success
         //!
 
         MOS_STATUS DispatchKernelMbEnc(
-            void      *pParams);
-            
+            void      *params);
+
 
         //!
         //! \brief    Dispatch MDF FEI preproc
@@ -208,13 +208,13 @@ public:
         //!           MOS_STATUS_SUCCESS if success, else fail reason
         //!
 
-        static MOS_STATUS InitKernelStateScaling(PCODECHAL_ENCODER pAvcEncoder);
+        static MOS_STATUS InitKernelStateScaling(PCODECHAL_ENCODER avcEncoder);
 
         //!
         //! \brief    Dispatch MDF FEI 4x DownScalling
         //! \param  [in]  flatnessThreshold
-        //!           flatness threshold 
-        //! \param [in]  options 
+        //!           flatness threshold
+        //! \param [in]  options
         //!           down scaling option
         //!             bit0 enable/disable flatness check
         //!             bit1 enable/disable variance output
@@ -222,7 +222,7 @@ public:
         //!             bit3 eanble/disable 8x8 statistics output
         //! \param  [in]  sourceWidth
         //!           input picture width
-        //!\param   [in]  wSource_Height
+        //!\param   [in]  sourceHeight
         //!           input sourceHeight
         //!\param   [in] kernelType
         //!           if input picture frame (0) or field (1)
@@ -242,25 +242,25 @@ public:
         //!
         //! \brief    MBEnc Encode kernel functions
         //!
-        //! \param [in]  pParams
+        //! \param [in]  params
         //!           downscalling parameters
         //!
         //! \return   MOS_STATUS
         //!           MOS_STATUS_SUCCESS if success, else fail reason
         //!
 
-        MOS_STATUS EncodeScalingKernel(PCODECHAL_ENCODE_CSC_SCALING_KERNEL_PARAMS pParams);
+        MOS_STATUS EncodeScalingKernel(PCODECHAL_ENCODE_CSC_SCALING_KERNEL_PARAMS params);
 
 #endif
         //!
         //! \brief    Set AVC ME kernel curbe
         //!
-        //! \param    [in] pParams
+        //! \param    [in] params
         //!           Pointer to the CODECHAL_ME_CURBE_PARAMS
         //! \return   MOS_STATUS
         //!           MOS_STATUS_SUCCESS if success, else fail reason
         //!
-        virtual MOS_STATUS SetCurbeMe (MeCurbeParams* pParams);
+        virtual MOS_STATUS SetCurbeMe (MeCurbeParams* params);
 
     //!
     //! \brief    Send surface cmd to AVC ME kernel.
@@ -269,32 +269,32 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS SendMeSurfaces (
-        PMOS_COMMAND_BUFFER pCmdBuffer,
-        MeSurfaceParams* pParams);
+        PMOS_COMMAND_BUFFER cmdBuffer,
+        MeSurfaceParams* params);
 
     //!
     //! \brief    Get encoder kernel header and kernel size
     //!
-    //! \param    [in] pvBinary
+    //! \param    [in] binary
     //!           Pointer to kernel binary
     //! \param    [in] operation
     //!           Enc kernel operation
-    //! \param    [in] dwKrnStateIdx
+    //! \param    [in] krnStateIdx
     //!           Kernel state index
-    //! \param    [out] pvKrnHeader
+    //! \param    [out] krnHeader
     //!           Pointer to kernel header
-    //! \param    [out] pdwKrnSize
+    //! \param    [out] krnSize
     //!           Pointer to kernel size
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     static MOS_STATUS EncodeGetKernelHeaderAndSize(
-        void                           *pvBinary,
-        EncOperation                   Operation,
-        uint32_t                       dwKrnStateIdx,
-        void                           *pvKrnHeader,
-        uint32_t                       *pdwKrnSize);
+        void                           *binary,
+        EncOperation                   operation,
+        uint32_t                       krnStateIdx,
+        void                           *krnHeader,
+        uint32_t                       *krnSize);
 
     //!
     //! \brief    PreEnc Encode kernel functions
@@ -316,20 +316,17 @@ public:
     //!
     //! \brief    Validate reference list L0 and L1.
     //!
-    //! \param    [in] pParams
+    //! \param    [in] params
     //!           pointer to CODECHAL_ENCODE_AVC_VALIDATE_NUM_REFS_PARAMS
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS ValidateNumReferences(
-        PCODECHAL_ENCODE_AVC_VALIDATE_NUM_REFS_PARAMS pParams);
+        PCODECHAL_ENCODE_AVC_VALIDATE_NUM_REFS_PARAMS params);
 
     //!
     //! \brief    Init MbEnc kernel State.
-    //!
-    //! \param    [in] pSlcParams
-    //!           Pointer to slice parameter
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
@@ -355,71 +352,71 @@ public:
     //!
     //! \brief    Get MbEnc kernel state idx
     //!
-    //! \param    [in] pParams
-    //!           Pointer to the CODECHAL_ENCODE_ID_OFFSET_PARAMS
-    //! \param    [in] pdwKernelOffset
-    //!           kernel offset 
+    //! \param    [in] params
+    //!           Pointer to the CodechalEncodeIdOffsetParams
+    //! \param    [in] kernelOffset
+    //!           kernel offset
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS GetMbEncKernelStateIdx(
-        PCODECHAL_ENCODE_ID_OFFSET_PARAMS   pParams,
-        uint32_t                           *pdwKernelOffset);
+        CodechalEncodeIdOffsetParams       *params,
+        uint32_t                           *kernelOffset);
 
     //!
     //! \brief    Set AVC MbEnc kernel Curbe data.
     //!
-    //! \param    [in] pParams
+    //! \param    [in] params
     //!           Pointer to the CODECHAL_ENCODE_AVC_MBENC_CURBE_PARAMS
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS SetCurbeAvcMbEnc(
-        PCODECHAL_ENCODE_AVC_MBENC_CURBE_PARAMS pParams);
+        PCODECHAL_ENCODE_AVC_MBENC_CURBE_PARAMS params);
 
     //!
     //! \brief    Set AVC PreProc kernel Curbe data.
     //!
-    //! \param    [in] pParams
+    //! \param    [in] params
     //!           Pointer to the CODECHAL_ENCODE_AVC_PREPROC_CURBE_PARAMS
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS SetCurbeAvcPreProc(
-        PCODECHAL_ENCODE_AVC_PREPROC_CURBE_PARAMS pParams);
+        PCODECHAL_ENCODE_AVC_PREPROC_CURBE_PARAMS params);
 
     //!
     //! \brief    Set AVC MbEnc kernel Surface data.
     //!
-    //! \param    [in] pCmdBuffer
+    //! \param    [in] cmdBuffer
     //!           Pointer to the MOS_COMMAND_BUFFER
-    //! \param    [in] pParams
+    //! \param    [in] params
     //!           Pointer to the CODECHAL_ENCODE_AVC_MBENC_SURFACE_PARAMS
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS SendAvcMbEncSurfaces(
-        PMOS_COMMAND_BUFFER pCmdBuffer,
-        PCODECHAL_ENCODE_AVC_MBENC_SURFACE_PARAMS pParams);
+        PMOS_COMMAND_BUFFER cmdBuffer,
+        PCODECHAL_ENCODE_AVC_MBENC_SURFACE_PARAMS params);
 
     //!
     //! \brief    Set AVC PreProc kernel Surface data.
     //!
-    //! \param    [in] pCmdBuffer
+    //! \param    [in] cmdBuffer
     //!           Pointer to the MOS_COMMAND_BUFFER
-    //! \param    [in]  pParams
+    //! \param    [in]  params
     //!           Pointer to the CODECHAL_ENCODE_AVC_PREPROC_SURFACE_PARAMS
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS SendAvcPreProcSurfaces(
-        PMOS_COMMAND_BUFFER pCmdBuffer,
-        PCODECHAL_ENCODE_AVC_PREPROC_SURFACE_PARAMS pParams);
+        PMOS_COMMAND_BUFFER cmdBuffer,
+        PCODECHAL_ENCODE_AVC_PREPROC_SURFACE_PARAMS params);
 
     //!
     //! \brief    Invoke FEI PreProc kernel.

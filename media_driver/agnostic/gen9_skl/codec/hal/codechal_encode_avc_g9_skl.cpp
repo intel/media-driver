@@ -24,8 +24,6 @@
 //! \brief    AVC dual-pipe encoder for GEN9 SKL & BXT.
 //!
 #include "codechal_encode_avc_g9_skl.h"
-#include "codechal_encoder_g9.h"
-
 #include "igcodeckrn_g9.h"
 #if USE_CODECHAL_DEBUG_TOOL
 #include "mhw_vdbox_mfx_hwcmd_g9_skl.h"
@@ -1824,7 +1822,7 @@ MOS_STATUS CodechalEncodeAvcEncG9Skl::InitMfe()
         // Whether mfe mbenc kernel is enabled or not
         MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
         MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-        CodecHal_UserFeature_ReadValue(
+        MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_MFE_MBENC_ENABLE_ID,
             &UserFeatureData);
@@ -2950,7 +2948,7 @@ MOS_STATUS CodechalEncodeAvcEncG9Skl::InitKernelStateMbEnc()
     uint8_t* kernelBinary;
     uint32_t kernelSize;
 
-    MOS_STATUS status = CodecHal_GetKernelBinaryAndSize(m_kernelBase, m_kuid, &kernelBinary, &kernelSize);
+    MOS_STATUS status = CodecHalGetKernelBinaryAndSize(m_kernelBase, m_kuid, &kernelBinary, &kernelSize);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(status);
 
     for (uint32_t dwKrnStateIdx = 0; dwKrnStateIdx < dwNumMbEncEncKrnStates; dwKrnStateIdx++)
@@ -2981,7 +2979,7 @@ MOS_STATUS CodechalEncodeAvcEncG9Skl::InitKernelStateMbEnc()
             &pKernelStatePtr->dwSshSize,
             &pKernelStatePtr->dwBindingTableSize));
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_MhwInitISH(m_stateHeapInterface, pKernelStatePtr));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->MhwInitISH(m_stateHeapInterface, pKernelStatePtr));
 
         pKernelStatePtr++;
     }
@@ -3072,7 +3070,7 @@ MOS_STATUS CodechalEncodeAvcEncG9Skl::InitKernelStateMfeMbEnc()
     uint8_t* kernelBinary;
     uint32_t kernelSize;
 
-    MOS_STATUS status = CodecHal_GetKernelBinaryAndSize(m_kernelBase, m_kuid, &kernelBinary, &kernelSize);
+    MOS_STATUS status = CodecHalGetKernelBinaryAndSize(m_kernelBase, m_kuid, &kernelBinary, &kernelSize);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(status);
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(GetKernelHeaderAndSize(
@@ -3099,7 +3097,7 @@ MOS_STATUS CodechalEncodeAvcEncG9Skl::InitKernelStateMfeMbEnc()
         &pKernelStatePtr->dwSshSize,
         &pKernelStatePtr->dwBindingTableSize));
     
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_MhwInitISH(m_stateHeapInterface, pKernelStatePtr));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->MhwInitISH(m_stateHeapInterface, pKernelStatePtr));
 
     return eStatus;
 }
@@ -3113,7 +3111,7 @@ MOS_STATUS CodechalEncodeAvcEncG9Skl::InitKernelStateBrc()
     uint8_t* kernelBinary;
     uint32_t kernelSize;
 
-    MOS_STATUS status = CodecHal_GetKernelBinaryAndSize(m_kernelBase, m_kuid, &kernelBinary, &kernelSize);
+    MOS_STATUS status = CodecHalGetKernelBinaryAndSize(m_kernelBase, m_kuid, &kernelBinary, &kernelSize);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(status);
 
     CODECHAL_KERNEL_HEADER CurrKrnHeader;
@@ -3144,7 +3142,7 @@ MOS_STATUS CodechalEncodeAvcEncG9Skl::InitKernelStateBrc()
             &pKernelStatePtr->dwSshSize,
             &pKernelStatePtr->dwBindingTableSize));
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_MhwInitISH(m_stateHeapInterface, pKernelStatePtr));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->MhwInitISH(m_stateHeapInterface, pKernelStatePtr));
     }
 
     // Until a better way can be found, maintain old binding table structures

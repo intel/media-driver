@@ -31,10 +31,13 @@
 
 #include "codechal.h"
 #include "codechal_hw.h"
-#include "codechal_encoder.h"
 #include "codechal_encoder_base.h"
 #include <map>
 
+//!
+//! \class    CodechalKernelBase
+//! \brief    Codechal kernel base
+//!
 class CodechalKernelBase
 {
 public:

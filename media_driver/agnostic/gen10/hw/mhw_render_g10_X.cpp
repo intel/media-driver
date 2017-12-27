@@ -116,7 +116,7 @@ MOS_STATUS MhwRenderInterfaceG10::AddMediaObjectWalkerCmd(
     // for media walker with groups, need to disable pre-emption to WA image corruption during context switch
     if (params->GroupIdLoopSelect && MEDIA_IS_WA(waTable, WaDisablePreemptForMediaWalkerWithGroups))
     {
-        // set bit 11 of CS_CHICKEN1 to disable pre-emption
+        // disable pre-emption
         MOS_ZeroMemory(&loadRegisterParams, sizeof(loadRegisterParams));
         loadRegisterParams.dwRegister   = m_preemptionCntlRegisterOffset;
         loadRegisterParams.dwData       = m_preemptionCntlRegisterValue | (1 << 11);
@@ -258,4 +258,33 @@ MOS_STATUS MhwRenderInterfaceG10::SetL3Cache(
     }
 
     return eStatus;
+}
+
+MOS_STATUS MhwRenderInterfaceG10::AddGpgpuCsrBaseAddrCmd(
+	PMOS_COMMAND_BUFFER             cmdBuffer,
+	PMOS_RESOURCE                   csrResource)
+{
+	MHW_MI_CHK_NULL(cmdBuffer);
+	MHW_MI_CHK_NULL(csrResource);
+
+#if (EMUL)
+	MHW_NORMALMESSAGE("GPGPU_CSR_BASE_ADDRESS not supported.");
+	return MOS_STATUS_SUCCESS;
+#endif
+
+	mhw_render_g10_X::STATE_CSR_BASE_ADDRESS_CMD cmd;
+	MHW_RESOURCE_PARAMS resourceParams;
+	MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
+	resourceParams.presResource = csrResource;
+	resourceParams.pdwCmd = (uint32_t *)cmd.DW1_2.Value;
+	resourceParams.dwLocationInCmd = 1;
+
+	MHW_MI_CHK_STATUS(AddResourceToCmd(
+		m_osInterface,
+		cmdBuffer,
+		&resourceParams));
+
+	MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+
+	return MOS_STATUS_SUCCESS;
 }

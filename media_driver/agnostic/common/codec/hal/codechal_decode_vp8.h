@@ -171,7 +171,7 @@ typedef enum
 #define VP8_ENTROPY_NODES 11
 
 //!
-//! \struct VP8_FRAME_CONTEXT
+//! \struct _VP8_FRAME_CONTEXT
 //! \brief Define variables for VP8 Frame Context
 //!
 typedef struct _VP8_FRAME_CONTEXT
@@ -185,7 +185,7 @@ typedef struct _VP8_FRAME_CONTEXT
 typedef struct _CODECHAL_DECODE_VP8_FRAME_HEAD CODECHAL_DECODE_VP8_FRAME_HEAD, *PCODECHAL_DECODE_VP8_FRAME_HEAD;
 
 //!
-//! \struct CODECHAL_DECODE_VP8_FRAME_HEAD
+//! \struct _CODECHAL_DECODE_VP8_FRAME_HEAD
 //! \brief Define variables for VP8 Frame Head
 //!
 struct _CODECHAL_DECODE_VP8_FRAME_HEAD
@@ -268,10 +268,10 @@ struct _CODECHAL_DECODE_VP8_FRAME_HEAD
 };
 
 //!
-//! \class VP8_ENTROPY_STATE
+//! \class Vp8EntropyState
 //! \brief This class defines the member fields, functions etc used by VP8 entropy decoder to parse frame head.
 //!
-class VP8_ENTROPY_STATE
+class Vp8EntropyState
 {
 public:
     const uint8_t KEY_FRAME = 0;                                //!< VP8 Key Frame Flag
@@ -283,11 +283,11 @@ public:
     //!
     //! \brief    Constructor
     //!
-    VP8_ENTROPY_STATE() {};
+    Vp8EntropyState() {};
     //!
     //! \brief    Destructor
     //!
-    ~VP8_ENTROPY_STATE() {};
+    ~Vp8EntropyState() {};
 
     //!
     //! \brief    Initialize VP8 entropy state
@@ -503,7 +503,7 @@ private:
     uint32_t           uiRange;                 //!< Entropy Range
 };
 
-using PVP8_ENTROPY_STATE = VP8_ENTROPY_STATE*;
+using PVP8_ENTROPY_STATE = Vp8EntropyState*;
 
 
 //!
@@ -577,7 +577,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS  AllocateResources_FixedSizes();
+    MOS_STATUS  AllocateResourcesFixedSizes();
 
     //!
     //! \brief    Allocate variable sized resources
@@ -585,7 +585,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS  AllocateResources_VariableSizes();
+    MOS_STATUS  AllocateResourcesVariableSizes();
 
     // Parameters passed by application
     uint16_t                        u16PicWidthInMbLastMaxAlloced;              //!< Max Picture Width in MB used for buffer allocation in past frames
@@ -623,7 +623,7 @@ public:
     bool                            bDeblockingEnabled;                             //!< VP8 Loop Filter Enable Indicator
 
     // VP8 Frame Head
-    VP8_ENTROPY_STATE               Vp8EntropyState;                                //!< VP8 Entropy State class to parse frame head
+    Vp8EntropyState               Vp8EntropyState;                                //!< VP8 Entropy State class to parse frame head
     CODECHAL_DECODE_VP8_FRAME_HEAD  Vp8FrameHead;                                   //!< VP8 Frame Head
 
     // HuC copy related

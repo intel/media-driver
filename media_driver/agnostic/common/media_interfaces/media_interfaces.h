@@ -30,6 +30,10 @@
 #include <map>
 #include "mos_utilities.h"
 
+//!
+//! \class    MediaInterfacesFactory
+//! \brief    Media interfaces factory
+//!
 template <class T>
 class MediaInterfacesFactory
 {
@@ -41,16 +45,16 @@ public:
     typedef typename Creators::iterator Iterator;
 
     //!
-    //! \brief    register one Class C with @param key.
-    //! \details  Use the member template to register class C with @param key and C is the
+    //! \brief    register one Class C with key.
+    //! \details  Use the member template to register class C with key and C is the
     //!           derived class of base class T.
     //!
     //! \param    [in] key
     //!           KeyType, the type alias of uint32_t.
     //!
-    //! \return   true is returned if class C is successfully registerted with @param key
-    //!           false is returned if @param key is already registered and doesn't register
-    //!           class C with @param key.
+    //! \return   true is returned if class C is successfully registerted with key
+    //!           false is returned if key is already registered and doesn't register
+    //!           class C with key.
     //!
     template <class C>
     static bool RegisterHal(KeyType key)
@@ -70,15 +74,15 @@ public:
     }
 
     //!
-    //! \brief    create a new object that is registered with @param key.
-    //! \details  create and return one new object that is registered with @param key. And Args is passed to create
+    //! \brief    create a new object that is registered with key.
+    //! \details  create and return one new object that is registered with key. And Args is passed to create
     //!           the new object.
     //!
     //! \param    [in] key
     //!           KeyType, the type alias of uint32_t.
     //!
-    //! \return   the derived object of T is returned if @param key is found and the object is created.
-    //!           nullptr is returned if @param key is not found
+    //! \return   the derived object of T is returned if key is found and the object is created.
+    //!           nullptr is returned if key is not found
     //!
     static Type CreateHal(
         KeyType key)
@@ -96,7 +100,7 @@ public:
 private:
 
     //!
-    //! \brief    the callback function with @param key.
+    //! \brief    the callback function with key.
     //! \details  The member template to create the derived object
     //!
     //! \param    [in] arg

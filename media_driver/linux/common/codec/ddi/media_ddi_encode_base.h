@@ -31,6 +31,10 @@
 #include "media_ddi_base.h"
 #include "media_libva_encoder.h"
 
+//!
+//! \class  DdiEncodeBase
+//! \brief  Ddi encode base
+//!
 class DdiEncodeBase : public DdiMediaBase
 {
 public:
@@ -239,8 +243,8 @@ public:
     //!
     virtual void FreeCompBuffer();
 
-    //! \brief    The referred DDI_ENCODE_CONTEXT object
-    DDI_ENCODE_CONTEXT *m_encodeCtx = nullptr;
+    DDI_ENCODE_CONTEXT *m_encodeCtx = nullptr; //!< The referred DDI_ENCODE_CONTEXT object.
+    bool m_is10Bit                  = false;   //!< 10 bit flag.
 
 protected:
     //!
@@ -459,5 +463,11 @@ protected:
     //!
     //! \return   void
     void CleanUpBufferandReturn(DDI_MEDIA_BUFFER *buf);
+
+    bool    m_newSeqHeader           = false;    //!< Flag for new Sequence Header.
+    bool    m_newPpsHeader           = false;    //!< Flag for new Pps Header.
+    bool    m_arbitraryNumMbsInSlice = false;    //!< Flag to indicate if the sliceMapSurface needs to be programmed or not.
+    uint8_t m_scalingLists4x4[6][16]{};          //!< Inverse quantization scale lists 4x4.
+    uint8_t m_scalingLists8x8[2][64]{};          //!< Inverse quantization scale lists 8x8.
 };
 #endif /* __MEDIA_DDI_ENCODE_BASE_H__ */

@@ -1051,8 +1051,7 @@ public:
                 uint32_t                 Sizeid                                           : __CODEGEN_BITFIELD( 1,  2)    ; //!< SIZEID
                 uint32_t                 ColorComponent                                   : __CODEGEN_BITFIELD( 3,  4)    ; //!< COLOR_COMPONENT
                 uint32_t                 DcCoefficient                                    : __CODEGEN_BITFIELD( 5, 12)    ; //!< DC Coefficient
-                uint32_t                 Reserved45                                       : __CODEGEN_BITFIELD(13, 30)    ; //!< Reserved
-                uint32_t                 ChickenBitTransquantBypassClampDisable           : __CODEGEN_BITFIELD(31, 31)    ; //!< CHICKEN_BIT_TRANSQUANT_BYPASS_CLAMP_DISABLE_
+                uint32_t                 Reserved45                                       : __CODEGEN_BITFIELD(13, 31)    ; //!< Reserved
             };
             uint32_t                     Value;
         } DW1;
@@ -1108,16 +1107,6 @@ public:
             COLOR_COMPONENT_LUMA                                             = 0, //!< No additional details
             COLOR_COMPONENT_CHROMACB                                         = 1, //!< No additional details
             COLOR_COMPONENT_CHROMACR                                         = 2, //!< No additional details
-        };
-
-        //! \brief CHICKEN_BIT_TRANSQUANT_BYPASS_CLAMP_DISABLE_
-        //! \details
-        //!     This bit is chicken bit for SKL only for transquant bypass clamp
-        //!     disable.  Default is 0
-        enum CHICKEN_BIT_TRANSQUANT_BYPASS_CLAMP_DISABLE_
-        {
-            CHICKEN_BIT_TRANSQUANT_BYPASS_CLAMP_DISABLE_ENABLE               = 0, //!< This will enable the correct clamping for IT during transquant bypass.
-            CHICKEN_BIT_TRANSQUANT_BYPASS_CLAMP_DISABLE_DISABLE              = 1, //!< In this case, transCoeff with more than 9 bits will NOT work during transquant bypass mode.
         };
 
         //! \name Initializations
@@ -3107,8 +3096,8 @@ public:
             struct
             {
                 uint32_t                 Reserved32                                       : __CODEGEN_BITFIELD( 0, 29)    ; //!< Reserved
-                uint32_t                 ChickenBitToDisableHtqPerformanceFix1            : __CODEGEN_BITFIELD(30, 30)    ; //!< Chicken bit to disable HTQ performance fix1
-                uint32_t                 ChickenBitToDisableHtqPerformanceFix0            : __CODEGEN_BITFIELD(31, 31)    ; //!< Chicken bit to disable HTQ performance fix0
+                uint32_t                 DisableHtqPerformance1                           : __CODEGEN_BITFIELD(30, 30)    ; //!< Disable HTQ performance fix1
+                uint32_t                 DisableHtqPerformance0                           : __CODEGEN_BITFIELD(31, 31)    ; //!< Disable HTQ performance fix0
             };
             uint32_t                     Value;
         } DW1;

@@ -42,6 +42,10 @@ typedef struct _CODEC_AVC_DMV_LIST
     bool                bReUse;
 } CODEC_AVC_DMV_LIST, *PCODEC_AVC_DMV_LIST;
 
+//!
+//! \enum     AvcChromaFormatIdc
+//! \brief    AVC chroma format Idc
+//!
 enum AvcChromaFormatIdc
 {
     avcChromaFormatMono = 0,

@@ -35,8 +35,8 @@ static const uint8_t maxTimeCodeMin = 59;
 static const uint8_t maxTimeCodeHr  = 23;
 
 //!
-//! \struct DDI_ENCODE_MPEG2_FRAME_RATE
-//! \brief Define Mpeg2 encode frame rate
+//! \struct _DDI_ENCODE_MPEG2_FRAME_RATE
+//! \brief  Define Mpeg2 encode frame rate
 //!
 static struct _DDI_ENCODE_MPEG2_FRAME_RATE
 {
@@ -52,6 +52,10 @@ static struct _DDI_ENCODE_MPEG2_FRAME_RATE
     {7, 59.94},
     {8, 60}};
 
+//!
+//! \class  DdiEncodeMpeg2
+//! \brief  Ddi encode MPEG2
+//!
 class DdiEncodeMpeg2 : public DdiEncodeBase
 {
 public:

@@ -559,7 +559,7 @@ void MhwVeboxInterfaceG10::SetVeboxSurfaces(
     pVeboxSurfaceState->DW5.YOffsetForV           = wVYOffset;
 
     // May fix this for stereo surfaces
-    pVeboxSurfaceState->DW6.YOffsetForFrame = 0;
+    pVeboxSurfaceState->DW6.YOffsetForFrame = pSurfaceParam->dwYoffset;
     pVeboxSurfaceState->DW6.XOffsetForFrame = 0;
 
     pVeboxSurfaceState->DW7.DerivedSurfacePitch                    = pDerivedSurfaceParam->dwPitch - 1;

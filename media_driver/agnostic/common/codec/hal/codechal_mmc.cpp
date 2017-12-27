@@ -52,7 +52,7 @@ CodecHalMmcState::CodecHalMmcState(CodechalHwInterface  *hwInterface)
         userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
 
         MOS_USER_FEATURE_VALUE_ID valueId = __MEDIA_USER_FEATURE_VALUE_CODEC_MMC_ENABLE_ID;
-        CodecHal_UserFeature_ReadValue(
+        MOS_UserFeature_ReadValue_ID(
             nullptr,
             valueId,
             &userFeatureData);
@@ -63,7 +63,7 @@ CodecHalMmcState::CodecHalMmcState(CodechalHwInterface  *hwInterface)
         MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
         userFeatureWriteData.Value.i32Data = m_mmcEnabled;
         userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_CODEC_MMC_IN_USE_ID;
-        CodecHal_UserFeature_WriteValue(nullptr, &userFeatureWriteData);
+        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
     }
 #endif
 }
@@ -196,12 +196,12 @@ MOS_STATUS CodecHalMmcState::UpdateUserFeatureKey(PMOS_SURFACE surface)
         userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
         userFeatureWriteData.Value.i32Data = surface->bCompressible;
         userFeatureWriteData.ValueID = (MOS_USER_FEATURE_VALUE_ID)m_compressibleId;
-        CodecHal_UserFeature_WriteValue(nullptr, &userFeatureWriteData);
+        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
 
         userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__; 
         userFeatureWriteData.Value.i32Data = surface->MmcState;
         userFeatureWriteData.ValueID = (MOS_USER_FEATURE_VALUE_ID)m_compressModeId;
-        CodecHal_UserFeature_WriteValue(nullptr, &userFeatureWriteData);
+        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
         
         m_userFeatureUpdated = true;
     }

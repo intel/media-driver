@@ -34,10 +34,12 @@
 #include "codechal_decode_downsampling.h"
 #include "codechal_decode_sfc.h"
 #include "codechal_mmc.h"
+#include "codechal_utilities.h"
 #include "cm_wrapper.h"
 
 class CodechalSecureDecode;
 class CodechalCencDecode;
+class CodechalDecodeHistogram;
 
 //------------------------------------------------------------------------------
 // Macros specific to MOS_CODEC_SUBCOMP_DECODE sub-comp
@@ -100,9 +102,46 @@ class CodechalCencDecode;
 
 #define CODECHAL_DECODE_STATUS_NUM             512
 
+typedef enum _CODECHAL_CS_ENGINE_ID_DEF
+{
+    // Instance ID
+    CODECHAL_CS_INSTANCE_ID_VDBOX0 = 0,
+    CODECHAL_CS_INSTANCE_ID_VDBOX1 = 1,
+    CODECHAL_CS_INSTANCE_ID_VDBOX2 = 2,
+    CODECHAL_CS_INSTANCE_ID_VDBOX3 = 3,
+    CODECHAL_CS_INSTANCE_ID_VDBOX4 = 4,
+    CODECHAL_CS_INSTANCE_ID_VDBOX5 = 5,
+    CODECHAL_CS_INSTANCE_ID_VDBOX6 = 6,
+    CODECHAL_CS_INSTANCE_ID_VDBOX7 = 7,
+    CODECHAL_CS_INSTANCE_ID_MAX,
+    // Class ID
+    CODECHAL_CLASS_ID_VIDEO_ENGINE = 1,
+} CODECHAL_CS_ENGINE_ID_DEF;
+
+typedef union _CODECHAL_CS_ENGINE_ID
+{
+    struct
+    {
+        uint32_t       ClassId            : 3;    //[0...4]
+        uint32_t       ReservedFiled1     : 1;    //[0]
+        uint32_t       InstanceId         : 6;    //[0...7]
+        uint32_t       ReservedField2     : 22;   //[0]
+    } fields;
+    uint32_t            value;
+} CODECHAL_CS_ENGINE_ID, *PCODECHAL_CS_ENGINE_ID;
+
+typedef struct _CODECHAL_VLD_SLICE_RECORD
+{
+    uint32_t   dwSkip;
+    uint32_t   dwOffset;
+    uint32_t   dwLength;
+    uint32_t   dwSliceStartMbOffset;
+    bool       bIsLastSlice;
+} CODECHAL_VLD_SLICE_RECORD, *PCODECHAL_VLD_SLICE_RECORD;
+
 //!
 //! \struct CodechalDecodeStatusReport
-//! \brief Information pertaining to a particular picture's decode operation
+//! \brief  Information pertaining to a particular picture's decode operation
 //!
 struct CodechalDecodeStatusReport
 {
@@ -141,7 +180,7 @@ struct CodechalDecodeStatusReport
 
 //!
 //! \struct CodechalDecodeStatus
-//! \brief Codechal decode status for the frame
+//! \brief  Codechal decode status for the frame
 //!
 struct CodechalDecodeStatus
 {
@@ -167,7 +206,7 @@ struct CodechalDecodeStatus
 
 //!
 //! \struct CodechalDecodeStatusBuffer
-//! \brief Codechal decode status buffer
+//! \brief  Codechal decode status buffer
 //!
 struct CodechalDecodeStatusBuffer
 {
@@ -206,7 +245,7 @@ struct CodechalDecodeStatusBuffer
 
 //!
 //! \struct CodechalDecodeParams
-//! \brief Parameters passed in via Execute() to perform decoding.
+//! \brief  Parameters passed in via Execute() to perform decoding.
 //!
 struct CodechalDecodeParams
 {
@@ -264,8 +303,8 @@ struct CodechalDecodeParams
     //! \brief Additional picture level parameters to be used for decoding.
     //!      In certain cases additional parameters are needed to supplement m_picParams (MVC, etc).
     void                    *m_extPicParams = nullptr;
-    //! \brief Picture Level parameters for HEVC SCC
-    void                    *m_sccPicParams = nullptr;
+    //! \brief Picture Level parameters for HEVC advanced feature
+    void                    *m_advPicParams = nullptr;
     //! \brief [VLD mode] Slice level parameters to be used for decoding
     void                    *m_sliceParams = nullptr;
     //!< [VLD LF mode] Intel long format
@@ -305,8 +344,6 @@ struct CodechalDecodeParams
     bool                    m_picIdRemappingInUse = false;
 
     // MPEG2 Specific Parameters
-    //! \brief [MPEG2] Indicates whether or not OLDB is requested for MPEG2
-    bool                    m_deblockingEnabled = false;
     //! \brief [MPEG2] MPEG2 I slice concealment mode
     uint32_t                m_mpeg2ISliceConcealmentMode = 0;
     //! \brief [MPEG2] MPEG2 P/B slice concealment mode
@@ -342,7 +379,7 @@ public:
     };
 
     //!
-    //! \enum CodechalDecodeMotionType
+    //! \enum  CodechalDecodeMotionType
     //! \brief Codechal decode motion type
     //!
     enum CodechalDecodeMotionType
@@ -354,7 +391,7 @@ public:
     };
 
     //!
-    //! \enum CodechalDecodeMvPacking
+    //! \enum  CodechalDecodeMvPacking
     //! \brief For motion vector packing: the equivilant derefences of a [2][2][2] array mapped as a [8] array
     //!
     enum CodechalDecodeMvPacking
@@ -370,7 +407,7 @@ public:
     };
 
     //!
-    //! \enum CodechalDecodeRefAddrIndex
+    //! \enum  CodechalDecodeRefAddrIndex
     //! \brief Reference address indexes
     //!
     enum CodechalDecodeRefAddrIndex
@@ -387,7 +424,7 @@ public:
     };
 
     //!
-    //! \brief  Constructor
+    //! \brief    Constructor
     //! \param    [in] hwInterface
     //!           Hardware interface
     //! \param    [in] debugInterface
@@ -499,11 +536,14 @@ public:
     //! \brief  Inserts the generic prologue command for a command buffer
     //! \param  [in] cmdBuffer
     //!         Command buffer
+    //! \param  [in] frameTrackingRequested
+    //!         frame Tracking Requested
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS SendPrologWithFrameTracking(
-        PMOS_COMMAND_BUFFER cmdBuffer);
+        PMOS_COMMAND_BUFFER cmdBuffer,
+        bool                frameTrackingRequested);
 
     //!
     //! \brief  Inserts predication command for a command buffer
@@ -581,6 +621,12 @@ public:
     //! \return The video context \see m_videoContext
     //!
     MOS_GPU_CONTEXT GetVideoContext() { return m_videoContext; }
+
+    //!
+    //! \brief  Gets video WA context
+    //! \return The video WA context \see m_videoContextForWa
+    //!
+    MOS_GPU_CONTEXT GetVideoWAContext() { return m_videoContextForWa; }
 
     //!
     //! \brief  Gets cenc decoder interface
@@ -665,6 +711,18 @@ public:
     //! \return N/A
     //!
     void SetHuCProductFamily(uint32_t huCProductFamily) { m_huCProductFamily = huCProductFamily; }
+
+    //!
+    //! \brief  Set decode histogram
+    //! \return No return
+    //!
+    void SetDecodeHistogram(CodechalDecodeHistogram *decodeHistogram) { m_decodeHistogram = decodeHistogram; }
+
+    //!
+    //! \brief  Get decode histogram
+    //! \return Pointer of codechal decode histogram
+    //!
+    CodechalDecodeHistogram* GetDecodeHistogram() { return m_decodeHistogram; }
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     //! \brief Field scaling interface
@@ -782,7 +840,19 @@ protected:
     {
         return MOS_STATUS_SUCCESS;
     }
-
+    
+    //!
+    //! \brief  Linear to Y tiled address
+    //!
+    //! \param  [in] x
+    //!         Position of X
+    //! \param  [in] y
+    //!         Position of Y
+    //! \param  [in] pitch
+    //!         Pitch
+    //! \return uint32_t
+    //!         Return 0 if success, else -1 if fail
+    //!
     uint32_t LinearToYTiledAddress(
         uint32_t x,
         uint32_t y,
@@ -797,14 +867,14 @@ protected:
 private:
 
     //!
-    //! \brief  Calculate command buffer size needed for picture level and slice level commands
+    //! \brief    Calculate command buffer size needed for picture level and slice level commands
     //! \param    [out] requestedSize
     //!           Return command buffer size for picture level and slice level command
     //! \param    [out] additionalSizeNeeded
     //!           Return additianl size needed
     //! \param    [out] requestedPatchListSize
     //!           return patch list size used in this command buffer
-    //! \return None
+    //! \return   None
     //!
     virtual void CalcRequestedSpace(
         uint32_t       &requestedSize,
@@ -820,18 +890,18 @@ private:
 
     //!
     //! \brief  Create GPU context for GEN specific decoder
-    //! \param    [in] pCodecHalSettings
-    //!           Pointer to CODECHAL Settings
+    //! \param  [in] codecHalSettings
+    //!         Pointer to CODECHAL Settings
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS CreateGpuContexts(
-        PCODECHAL_SETTINGS pCodecHalSettings);
+        PCODECHAL_SETTINGS codecHalSettings);
 
     //!
     //! \brief  Indicates whether or not the SFC is inuse
-    //! \param    [in] codecHalSettings
-    //!           Pointer to CODECHAL Settings
+    //! \param  [in] codecHalSettings
+    //!         Pointer to CODECHAL Settings
     //! \return If SFC is inuse
     //!
     virtual bool IsSfcInUse(PCODECHAL_SETTINGS codecHalSettings) { return false; }
@@ -844,18 +914,18 @@ private:
 
     //!
     //! \brief  The virtual function for decode standard to override the requested space size
-    //! \param    [in] requestedSize
-    //!           The intial request size computed by picture level and slice level
+    //! \param  [in] requestedSize
+    //!         The intial request size computed by picture level and slice level
     //! \return The final requested space size
     //!
     virtual uint32_t RequestedSpaceSize(uint32_t requestedSize) { return requestedSize; }
 
     //!
     //! \brief  The virtual function for decode standard to override the extra requested space size
-    //! \param    [in] requestedSize
-    //!           The intial request size computed by picture level and slice level
-    //! \param    [in] additionalSizeNeeded
-    //!           The additional request size for command buffer
+    //! \param  [in] requestedSize
+    //!         The intial request size computed by picture level and slice level
+    //! \param  [in] additionalSizeNeeded
+    //!         The additional request size for command buffer
     //! \return The extra requested space size
     //!
     virtual MOS_STATUS VerifyExtraSpace(
@@ -1024,6 +1094,10 @@ protected:
 
     //! \brief Huc product family
     uint32_t                    m_huCProductFamily = HUC_UNKNOWN;
+
+    //! \brief    Decode histogram interface
+    //! \details  Support YUV Luma histogram.
+    CodechalDecodeHistogram    *m_decodeHistogram = nullptr;
 };
 
 //!

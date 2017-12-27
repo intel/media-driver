@@ -28,6 +28,8 @@
 #define MEDIADRIVER_AGNOSTIC_COMMON_CM_CMEVENTRT_H_
 
 #include "cm_event.h"
+#include "cm_csync.h"
+#include "cm_hal.h"
 
 namespace CMRT_UMD
 {

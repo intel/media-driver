@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      media_libva_encoder.h 
-//! \brief     libva(and its extension) encoder head file  
+//! \file      media_libva_encoder.h
+//! \brief     libva(and its extension) encoder head file
 //!
 
 #ifndef  __MEDIA_LIBVA_ENCODER_H__
@@ -30,8 +30,6 @@
 #include "media_libva.h"
 #include "media_libva_cp.h"
 #include <vector>
-
-#define CONVERT_TO_K(x, k)      (((x) + k - 1) / k)
 
 // change to 0x1000 for memory optimization, double check when implement slice header packing in app
 #define PACKED_HEADER_SIZE_PER_ROW      0x1000
@@ -45,9 +43,6 @@ typedef enum _DDI_ENCODE_FEI_ENC_BUFFER_TYPE
     FEI_ENC_BUFFER_TYPE_DISTORTION = 2,
     FEI_ENC_BUFFER_TYPE_MAX        = 3
 } DDI_ENCODE_FEI_ENC_BUFFER_TYPE;
-
-#define FEI_ENC_BUFFER_TYPE_CTB_CMD       FEI_ENC_BUFFER_TYPE_MVDATA
-#define FEI_ENC_BUFFER_TYPE_CU_RECORD     FEI_ENC_BUFFER_TYPE_MBCODE
 
 typedef enum _DDI_ENCODE_PRE_ENC_BUFFER_TYPE
 {
@@ -86,19 +81,18 @@ typedef struct _DDI_ENCODE_STATUS_REPORT_INFO_BUF
     DDI_ENCODE_STATUS_REPORT_INFO          infos[DDI_ENCODE_MAX_STATUS_REPORT_BUFFER];
     DDI_ENCODE_STATUS_REPORT_ENC_INFO      encInfos[DDI_ENCODE_MAX_STATUS_REPORT_BUFFER];
     DDI_ENCODE_STATUS_REPORT_PREENC_INFO   preencInfos[DDI_ENCODE_MAX_STATUS_REPORT_BUFFER];
-    unsigned long                          ulHeadPosition;
-    unsigned long                          ulUpdatePosition;
+    uint32_t                               ulHeadPosition;
+    uint32_t                               ulUpdatePosition;
 } DDI_ENCODE_STATUS_REPORT_INFO_BUF;
 
 class DdiEncodeBase;
 
 typedef struct _DDI_ENCODE_CONTEXT
-{    
+{
     DdiEncodeBase                    *m_encode;
     Codechal                         *pCodecHal;
     CODECHAL_MODE                     wModeType;
     CODECHAL_FUNCTION                 codecFunction;
-    CODECHAL_FUNCTION                 feiFunction;
     VAProfile                         vaProfile;
     void                             *pSeqParams;
     void                             *pVuiParams;
@@ -106,18 +100,11 @@ typedef struct _DDI_ENCODE_CONTEXT
     void                             *pSliceParams;
     void                             *pEncodeStatusReport;
     void                             *pQmatrixParams;
-    void                             *pHuffmanParams;
-    void                             *pJpegAppData;
     void                             *pFeiPicParams;
-    void                             *pAvcQCParams;
-    void                             *pAvcRoundingParams;
     void                             *pVpxSegParams;
     bool                              bMbDisableSkipMapEnabled;
     MOS_RESOURCE                      resPerMBSkipMapBuffer;
     void                             *pPreEncParams;
-    MOS_RESOURCE                      resFeiMvPredictorBuffer;
-    MOS_RESOURCE                      resFeiMbQpBuffer;
-    MOS_RESOURCE                      resFeiDistortionBuffer;
     DDI_ENCODE_STATUS_REPORT_INFO_BUF statusReportBuf;
     MOS_RESOURCE                      resBitstreamBuffer;
     MOS_RESOURCE                      resMbCodeBuffer;
@@ -127,40 +114,25 @@ typedef struct _DDI_ENCODE_CONTEXT
     //CP related
     DdiCpInterface                   *pCpDdiInterface;
 
-    uint8_t                           WeightScale4x4[6][16];
-    uint8_t                           WeightScale8x8[2][64];
-    uint8_t                           bScalingLists4x4[6][16];
-    uint8_t                           bScalingLists8x8[2][64];
     uint32_t                          indexNALUnit;
     uint8_t                           PicParamId;
     MOS_SURFACE                       segMapBuffer;
-    bool                              bExtSatusReportEnable;// For VP8-F encoder now, but it can be used for any encoder to enable a Status report  using single-linked list via VAEncCodedBufferType
-    bool                              bFirstFrame;
-    uint32_t                          dwStoreData;
-    uint8_t                           ucCurrPAKSet;
-    uint8_t                           ucCurrENCSet;
     uint16_t                          wPicWidthInMB;          // Picture Width in MB width count
     uint16_t                          wPicHeightInMB;         // Picture Height in MB height count
     uint16_t                          wOriPicWidthInMB;
     uint16_t                          wOriPicHeightInMB;
     uint16_t                          wContextPicWidthInMB;
     uint16_t                          wContextPicHeightInMB;
-    bool                              bMultiCallsPerPic;      // apply only for ENC only mode; app indicate at creat device time
-    uint16_t                          usNumCallsPerPic;       // valid only when bMultiCallsPerPic is set; app indicate at creat device time
     uint32_t                          dwFrameWidth;           // Frame width in luma samples
     uint32_t                          dwFrameHeight;          // Frame height in luma samples
-    uint32_t                          dwAppDataSize;
     PBSBuffer                         pbsBuffer;
     uint32_t                          dwNumSlices;
     bool                              bNewSeq;
     bool                              bPicQuant;
     bool                              bNewQmatrixData;
     bool                              bNewVuiData;
-    bool                              bNewTimecodeMPEG2;     // This flag will only be asserted every time when parsing a new Seq Params for MPEG2 encode
-    uint32_t                          uTimecode;             // Time code is only used by MPEG2 encoder for packing GOP header.
     uint32_t                          uFrameRate;
 
-    uint32_t                          dwPicNum;
     PCODECHAL_NAL_UNIT_PARAMS        *ppNALUnitParams;
     PCODEC_ENCODER_SLCDATA            pSliceHeaderData;
     uint32_t                          uiSliceHeaderCnt;
@@ -169,17 +141,14 @@ typedef struct _DDI_ENCODE_CONTEXT
     uint32_t                          uiIntraRefreshMBx;
     uint32_t                          uiIntraRefreshMBy;
 
-    // whether Quant table is supplied by the app for JPEG encoder
-    bool                              bJPEGQuantSupplied;
-    
     // whether packed slice headers are passed from application;
     bool                              bHavePackedSliceHdr;
 
     // whether the latest packed header type is for slice header
     bool                              bLastPackedHdrIsSlice;
-    
+
     // SEI stream passed by app
-    PCODECHAL_ENCODE_SEI_DATA         pSEIFromApp;
+    CodechalEncodeSeiData            *pSEIFromApp;
     uint32_t                          uiRCMethod;
 
     uint32_t                          uiTargetBitRate;
@@ -193,17 +162,10 @@ typedef struct _DDI_ENCODE_CONTEXT
     bool                              EnableSliceLevelRateCtrl;
     //Per-MB Qp control
     bool                              bMBQpEnable;
-    
+
     DDI_CODEC_RENDER_TARGET_TABLE     RTtbl;
     DDI_CODEC_COM_BUFFER_MGR          BufMgr;
     PDDI_MEDIA_CONTEXT                pMediaCtx;
-    
-    uint32_t                          ulMVOffset;
-
-    void                             *pMpeg2UserDataListHead; 
-    void                             *pMpeg2UserDataListTail;
-
-    bool                              bIs10Bit;
 
 } DDI_ENCODE_CONTEXT, *PDDI_ENCODE_CONTEXT;
 
@@ -215,53 +177,211 @@ typedef struct _DDI_ENCODE_MFE_CONTEXT
     MfeSharedState                   *mfeEncodeSharedState;         // Keep shared state across sub contexts
 }DDI_ENCODE_MFE_CONTEXT, *PDDI_ENCODE_MFE_CONTEXT;
 
-static __inline PDDI_ENCODE_CONTEXT DdiEncode_GetEncContextFromPVOID (void *pEncCtx)
+static __inline PDDI_ENCODE_CONTEXT DdiEncode_GetEncContextFromPVOID (void *encCtx)
 {
-    return (PDDI_ENCODE_CONTEXT)pEncCtx;
+    return (PDDI_ENCODE_CONTEXT)encCtx;
 }
 
+//!
+//! \brief  Get encode context from context ID
+//!
+//! \param  [in] ctx
+//!     Pointer to VA driver context
+//! \param  [in] vaCtxID
+//!     VA context ID
+//!
+//! \return PDDI_ENCODE_CONTEXT
+//!     Pointer to ddi encode context
+//!
 PDDI_ENCODE_CONTEXT DdiEncode_GetEncContextFromContextID (VADriverContextP ctx, VAContextID vaCtxID);
 
-VAStatus DdiEncode_RemoveFromStatusReportQueue(PDDI_ENCODE_CONTEXT  pEncCtx, PDDI_MEDIA_BUFFER pBuf);
+//!
+//! \brief  Remove from status report queue
+//!
+//! \param  [in] encCtx
+//!     Pointer to ddi encode context
+//! \param  [in] buf
+//!     Pointer to ddi media buffer
+//!
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
+VAStatus DdiEncode_RemoveFromStatusReportQueue(PDDI_ENCODE_CONTEXT  encCtx, PDDI_MEDIA_BUFFER buf);
 
-VAStatus DdiEncode_RemoveFromEncStatusReportQueue(PDDI_ENCODE_CONTEXT pEncCtx, PDDI_MEDIA_BUFFER pBuf, DDI_ENCODE_FEI_ENC_BUFFER_TYPE idx);
+//!
+//! \brief  Remove from encode status report queue
+//!
+//! \param  [in] encCtx
+//!     Pointer to ddi encode context
+//! \param  [in] buf
+//!     Pointer to ddi media buffer
+//! \param  [in] idx
+//!     Ddi encode FEI encode buffer type
+//!
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
+VAStatus DdiEncode_RemoveFromEncStatusReportQueue(PDDI_ENCODE_CONTEXT encCtx, PDDI_MEDIA_BUFFER buf, DDI_ENCODE_FEI_ENC_BUFFER_TYPE idx);
 
-VAStatus DdiEncode_RemoveFromPreEncStatusReportQueue(PDDI_ENCODE_CONTEXT pEncCtx, PDDI_MEDIA_BUFFER pBuf, DDI_ENCODE_PRE_ENC_BUFFER_TYPE idx);
+//!
+//! \brief  Remove form preencode status report queue
+//!
+//! \param  [in] encCtx
+//!     Pointer to ddi encode context
+//! \param  [in] buf
+//!     Pointer to ddi media buffer
+//! \param  [in] idx
+//!     Ddi encode PRE encode buffer type
+//!
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
+VAStatus DdiEncode_RemoveFromPreEncStatusReportQueue(PDDI_ENCODE_CONTEXT encCtx, PDDI_MEDIA_BUFFER buf, DDI_ENCODE_PRE_ENC_BUFFER_TYPE idx);
 
+//!
+//! \brief  Get encode context from context ID
+//!
+//! \param  [in] ctx
+//!     Pointer to VA driver context
+//! \param  [in] vaCtxID
+//!     VA context ID
+//!
+//! \return PDDI_ENCODE_CONTEXT
+//!     Pointer to ddi encode context
+//!
 PDDI_ENCODE_CONTEXT DdiEncode_GetEncContextFromContextID (VADriverContextP ctx, VAContextID vaCtxID);
 
+//!
+//! \brief  Coded buffer exist in status report
+//!
+//! \param  [in] encCtx
+//!     Pointer to ddi encode context
+//! \param  [in] buf
+//!     Pointer to ddi media buffer
+//!
+//! \return bool
+//!     true if call success, else false
+//!
 bool DdiEncode_CodedBufferExistInStatusReport(
-    PDDI_ENCODE_CONTEXT     pEncCtx,
-    PDDI_MEDIA_BUFFER       pBuf);
+    PDDI_ENCODE_CONTEXT     encCtx,
+    PDDI_MEDIA_BUFFER       buf);
 
+//!
+//! \brief  Encode buffer exist in status report
+//!
+//! \param  [in] encCtx
+//!     Pointer to ddi encode context
+//! \param  [in] buf
+//!     Pointer to ddi media buffer
+//! \param  [in] typeIdx
+//!     Ddi encode FEI encode buffer type
+//!
+//! \return bool
+//!     true if call success, else false
+//!
 bool DdiEncode_EncBufferExistInStatusReport(
-    PDDI_ENCODE_CONTEXT             pEncCtx,
-    PDDI_MEDIA_BUFFER               pBuf,
-    DDI_ENCODE_FEI_ENC_BUFFER_TYPE  TypeIdx);
+    PDDI_ENCODE_CONTEXT             encCtx,
+    PDDI_MEDIA_BUFFER               buf,
+    DDI_ENCODE_FEI_ENC_BUFFER_TYPE  typeIdx);
 
+//!
+//! \brief  Pre encode buffer exist in status report
+//!
+//! \param  [in] encCtx
+//!     Pointer to ddi encode context
+//! \param  [in] buf
+//!     Pointer to ddi media buffer
+//! \param  [in] typeIdx
+//!     Ddi encode PRE encode buffer type
+//!
+//! \return bool
+//!     true if call success, else false
+//!
 bool DdiEncode_PreEncBufferExistInStatusReport(
-    PDDI_ENCODE_CONTEXT             pEncCtx,
-    PDDI_MEDIA_BUFFER               pBuf,
-    DDI_ENCODE_PRE_ENC_BUFFER_TYPE  TypeIdx);
+    PDDI_ENCODE_CONTEXT             encCtx,
+    PDDI_MEDIA_BUFFER               buf,
+    DDI_ENCODE_PRE_ENC_BUFFER_TYPE  typeIdx);
 
+//!
+//! \brief  Encode status report
+//!
+//! \param  [in] encCtx
+//!     Pointer to ddi encode context
+//! \param  [in] mediaBuf
+//!     Ddi media buffer
+//! \param  [out] pbuf
+//!     Pointer buffer
+//!
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
 VAStatus DdiEncode_EncStatusReport (
-    PDDI_ENCODE_CONTEXT pEncCtx,
-    DDI_MEDIA_BUFFER    *pMediaBuf,
+    PDDI_ENCODE_CONTEXT encCtx,
+    DDI_MEDIA_BUFFER    *mediaBuf,
     void                **pbuf
 );
 
+//!
+//! \brief  Pre encode status report
+//!
+//! \param  [in] encCtx
+//!     Pointer to ddi encode context
+//! \param  [in] mediaBuf
+//!     Ddi media buffer
+//! \param  [out] pbuf
+//!     Pointer buffer
+//!
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
 VAStatus DdiEncode_PreEncStatusReport (
-    PDDI_ENCODE_CONTEXT pEncCtx,
-    DDI_MEDIA_BUFFER    *pMediaBuf,
+    PDDI_ENCODE_CONTEXT encCtx,
+    DDI_MEDIA_BUFFER    *mediaBuf,
     void                **pbuf
 );
 
+//!
+//! \brief  Status report
+//!
+//! \param  [in] encCtx
+//!     Pointer to ddi encode context
+//! \param  [in] mediaBuf
+//!     Ddi media buffer
+//! \param  [out] pbuf
+//!     Pointer buffer
+//!
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
 VAStatus DdiEncode_StatusReport (
-    PDDI_ENCODE_CONTEXT pEncCtx,
-    DDI_MEDIA_BUFFER    *pMediaBuf,
+    PDDI_ENCODE_CONTEXT encCtx,
+    DDI_MEDIA_BUFFER    *mediaBuf,
     void                **pbuf
 );
 
+//!
+//! \brief  Create context
+//!
+//! \param  [in] ctx
+//!     Pointer to VA driver context
+//! \param  [in] config_id
+//!     VA configuration ID
+//! \param  [in] picture_width
+//!     The width of picture
+//! \param  [in] picture_height
+//!     The height of picture
+//! \param  [in] flag
+//!     Flag
+//! \param  [in] render_targets
+//!     Render targets
+//! \param  [in] num_render_targets
+//!     Number of render targets
+//! \param  [in] context
+//!     VA context ID
+//!
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
 VAStatus DdiEncode_CreateContext (
     VADriverContextP    ctx,
     VAConfigID          config_id,
@@ -273,10 +393,42 @@ VAStatus DdiEncode_CreateContext (
     VAContextID        *context
 );
 
+//!
+//! \brief  Destroy context
+//!
+//! \param  [in] ctx
+//!     Pointer to VA driver context
+//! \param  [in] context
+//!     VA context ID
+//!
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
 VAStatus DdiEncode_DestroyContext (
-    VADriverContextP    ctx, 
+    VADriverContextP    ctx,
     VAContextID         context);
 
+//!
+//! \brief  Create buffer
+//!
+//! \param  [in] ctx
+//!     Pointer to VA driver context
+//! \param  [in] context
+//!     VA context ID
+//! \param  [in] type
+//!     VA buffer type
+//! \param  [in] size
+//!     Size
+//! \param  [in] num_elements
+//!     Number of elements
+//! \param  [in] data
+//!     Data
+//! \param  [in] buf_id
+//!     VA buffer ID    
+//!
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
 VAStatus DdiEncode_CreateBuffer (
     VADriverContextP    ctx,
     VAContextID         context,
@@ -287,18 +439,59 @@ VAStatus DdiEncode_CreateBuffer (
     VABufferID         *buf_id
 );
 
+//!
+//! \brief  Begin picture
+//!
+//! \param  [in] ctx
+//!     Pointer to VA driver context
+//! \param  [in] context
+//!     VA context ID
+//! \param  [in] render_target
+//!     VA surface ID
+//!
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
 VAStatus DdiEncode_BeginPicture (
     VADriverContextP    ctx,
     VAContextID         context,
     VASurfaceID         render_target
 );
 
+//!
+//! \brief  Begin Picture
+//!
+//! \param  [in] ctx
+//!     Pointer to VA driver context
+//! \param  [in] context
+//!     VA context ID
+//! \param  [in] render_target
+//!     VA surface ID
+//!
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
 VAStatus vDdiEncode_BeginPicture (
     VADriverContextP    ctx,
     VAContextID         context,
     VASurfaceID         render_target
 );
 
+//!
+//! \brief  Render picture
+//!
+//! \param  [in] ctx
+//!     Pointer to VA driver context
+//! \param  [in] context
+//!     VA context ID
+//! \param  [in] buffers
+//!     VA buffer ID
+//! \param  [in] num_buffers
+//!     Number of buffers
+//!
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
 VAStatus DdiEncode_RenderPicture (
     VADriverContextP    ctx,
     VAContextID         context,
@@ -306,10 +499,36 @@ VAStatus DdiEncode_RenderPicture (
     int32_t             num_buffers
 );
 
+//!
+//! \brief  End picture
+//!
+//! \param  [in] ctx
+//!     Pointer to VA driver context
+//! \param  [in] context
+//!     VA context ID
+//!
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
 VAStatus DdiEncode_EndPicture(
     VADriverContextP    ctx,
     VAContextID         context);
 
+//!
+//! \brief  MFE submit
+//!
+//! \param  [in] ctx
+//!     Pointer to VA driver context
+//! \param  [in] mfe_context
+//!     VA MF context ID
+//! \param  [in] contexts
+//!     VA context ID
+//! \param  [in] num_contexts
+//!     Number of contexts
+//!
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
 VAStatus DdiEncode_MfeSubmit(
     VADriverContextP    ctx,
     VAMFContextID       mfe_context,
@@ -317,4 +536,3 @@ VAStatus DdiEncode_MfeSubmit(
     int32_t             num_contexts
 );
 #endif
-

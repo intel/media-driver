@@ -27,6 +27,10 @@
 
 #include "media_ddi_encode_base.h"
 
+//!
+//! \class  DdiEncodeVp9
+//! \brief  Ddi encode VP9
+//!
 class DdiEncodeVp9 : public DdiEncodeBase
 {
 public:
@@ -288,4 +292,6 @@ private:
     //!
     VAStatus ParseFrameRate(
         void *ptr);
+
+    CODEC_VP9_ENCODE_SEGMENT_PARAMS *m_segParams = nullptr; //!< Segment parameters.
 };

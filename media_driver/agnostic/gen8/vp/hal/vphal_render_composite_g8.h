@@ -103,15 +103,15 @@ protected:
         MEDIA_OBJECT_KA2_STATIC_DATA        *pStatic);
 
     //!
-    //! \brief    Get Plane Offset override parameter for Kernel WA
-    //! \details  Get Y/UV Plane Offset override parameters for Kernel WA
+    //! \brief    Get Plane Offset override parameter for Kernel solution
+    //! \details  Get Y/UV Plane Offset override parameters for Kernel solution
     //! \param    [in,out] pRenderHalSurface
     //!           Pointer to Render Hal Surface
     //! \param    [in] pParams
     //!           Pointer to Surface State Params
     //! \param    [out] pOverride
     //!           Pointer to override param that provides adjustments to
-    //!           Y, UV plane offsets, used for kernel WA in a few cases.
+    //!           Y, UV plane offsets, used for kernel solution in a few cases.
     //! \return   RENDERHAL_OFFSET_OVERRIDE
     //!           return pointer to RENDERHAL_OFFSET_OVERRIDE if need, otherwise return nullptr.
     //!

@@ -1913,7 +1913,7 @@ PRENDERHAL_MEDIA_STATE RenderHal_DSH_AssignDynamicState(
 
     // Kernel Spill Area
     if (pParams->iMaxSpillSize > 0)
-    {   // per thread scratch space must be 1K*(2^n) per B-spec (2K*(2^n) for BDW A0), alignment is 1kB
+    {   // per thread scratch space must be 1K*(2^n), (2K*(2^n) for BDW A0), alignment is 1kB
         int iPerThreadScratchSpace;
         if (pRenderHal->pfnPerThreadScratchSpaceStart2K(pRenderHal))
             iPerThreadScratchSpace = 2048;
@@ -2595,8 +2595,6 @@ finish:
 //!           [in] URB Entry Allocation Size
 //! \param    PRENDERHAL_SCOREBOARD_PARAMS pScoreboardParams
 //!           [in] Pointer to Scoreboard Params
-//! \param    bool bGpGpuWalkerMode
-//!           [in] true if using GpGpu Walker, false otherwise
 //! \return   MOS_STATUS
 //!
 MOS_STATUS RenderHal_DSH_SetVfeStateParams(
@@ -2605,8 +2603,7 @@ MOS_STATUS RenderHal_DSH_SetVfeStateParams(
     uint32_t                dwMaximumNumberofThreads,
     uint32_t                dwCURBEAllocationSize,
     uint32_t                dwURBEntryAllocationSize,
-    PMHW_VFE_SCOREBOARD     pScoreboardParams,
-    bool                    bGpGpuWalkerMode)
+    PMHW_VFE_SCOREBOARD     pScoreboardParams)
 {
     PMHW_VFE_PARAMS                 pVfeParams;
     PRENDERHAL_STATE_HEAP           pStateHeap;
@@ -2637,7 +2634,6 @@ MOS_STATUS RenderHal_DSH_SetVfeStateParams(
 
     pVfeParams->pKernelState = nullptr;
     pVfeParams->eVfeSliceDisable = MHW_VFE_SLICE_ALL;
-    pVfeParams->bGpGpuWalkerMode = bGpGpuWalkerMode;
 
     // Get pointer to current dynamic state
     MHW_RENDERHAL_CHK_NULL(pStateHeap->pCurMediaState);
@@ -2963,6 +2959,7 @@ MOS_STATUS RenderHal_InitInterface_Dynamic(
     pRenderHal->pfnResetKernels               = RenderHal_DSH_ResetKernels;
     pRenderHal->pfnTouchKernel                = RenderHal_DSH_TouchKernel;
     pRenderHal->pfnGetKernelOffset            = RenderHal_DSH_GetKernelOffset;
+    pRenderHal->pfnUnregisterKernel           = RenderHal_DSH_UnregisterKernel;
 
     // Dynamic Kernel management functions (not implemented here)
     pRenderHal->pfnLoadDynamicKernel          = RenderHal_DSH_LoadDynamicKernel;

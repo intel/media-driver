@@ -27,7 +27,6 @@
 #include "media_interfaces_g8_bdw.h"
 
 #include "codechal_cenc_decode.h"
-#include "codechal_encoder.h"
 #include "igcodeckrn_g8.h"
 
 #ifdef _HYBRID_HEVC_DECODE_SUPPORTED
@@ -201,7 +200,7 @@ MOS_STATUS CodechalInterfacesG8Bdw::Initialize(
     #ifdef _HYBRID_HEVC_DECODE_SUPPORTED
             if (info->bIsHybridCodec)
             {
-                m_codechalDevice = MOS_New(CODECHAL_DECODE_HYBRID_HEVC_STATE, hwInterface, debugInterface, info);
+                m_codechalDevice = MOS_New(CodechalDecodeHybridHevcState, hwInterface, debugInterface, info);
             }
             else
     #endif
@@ -217,7 +216,7 @@ MOS_STATUS CodechalInterfacesG8Bdw::Initialize(
     #ifdef _HYBRID_VP9_DECODE_SUPPORTED
             if (info->bIsHybridCodec)
             {
-                m_codechalDevice = MOS_New(CODECHAL_DECODE_HYBRID_VP9_STATE, hwInterface, debugInterface, info);
+                m_codechalDevice = MOS_New(CodechalDecodeHybridVp9State, hwInterface, debugInterface, info);
             }
             else
     #endif

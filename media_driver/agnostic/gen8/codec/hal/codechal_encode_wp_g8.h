@@ -35,7 +35,6 @@ public:
     //!
     //! \brief    Constructor
     //!            
-    CodechalEncodeWPG8(PCODECHAL_ENCODER encoder);
     CodechalEncodeWPG8(CodechalEncoderState* encoder);
 
     //!

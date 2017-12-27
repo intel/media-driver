@@ -23,11 +23,16 @@
 //! \file      cm_kernel_data.cpp  
 //! \brief     Contains Class CmKernelData definitions  
 //!
+
 #include "cm_kernel_data.h"
+
 #include "cm_device.h"
+#include "cm_mem.h"
 
 #define minimum(a,b) (((a)<(b))?(a):(b))
 
+namespace CMRT_UMD
+{
 //*-----------------------------------------------------------------------------
 //| Purpose:    Create Kernel Data 
 //| Returns:    Result of the operation.
@@ -231,4 +236,4 @@ int32_t CmKernelData::ResetStatus( void )
 
     return CM_SUCCESS;
 }
-
+}  // namespace

@@ -21,11 +21,15 @@
 */
 //!
 //! \file      BRCIF.h  
-//! \brief         This modules implements the interface for BRC dll  
+//! \brief     This modules implements the interface for BRC dll  
 //!
 #ifndef _BRCIF_H__
 #define _BRCIF_H__
 
+//!
+//! \enum     ErrorCode
+//! \brief    Error code
+//!
 enum ErrorCode {
     SUCCEED = 0,
     NO_CURBE,
@@ -41,6 +45,10 @@ enum ErrorCode {
     UNKNOWN_ERROR
 };
 
+//!
+//! \enum     ProcessType
+//! \brief    Process type
+//!
 enum ProcessType {
     UnknownProc = 0,
     BRCInit,
@@ -48,6 +56,10 @@ enum ProcessType {
     BRCUpdate
 };
 
+//!
+//! \enum     BufferType
+//! \brief    Buffer type
+//!
 enum BufferType {
     UnknownBuff = 0,
     CURBE,
@@ -61,6 +73,10 @@ enum BufferType {
     STATISTICS
 };
 
+//!
+//! \enum     HEVCBufferType
+//! \brief    HEVC buffer type
+//!
 enum HEVCBufferType {
     HEVC_UnknownBuff = 0,
     HEVC_CURBE,
@@ -79,12 +95,12 @@ enum HEVCBufferType {
     HEVC_EXTD
 };
 
-extern "C"	void * MC_CreateInstance(ProcessType processor);
+extern "C"    void * MC_CreateInstance(ProcessType processor);
 
-extern "C"	void MC_ReleaseInstance(void *obj);
+extern "C"    void MC_ReleaseInstance(void *obj);
 
-extern "C"	int MC_Process(void *obj);
+extern "C"    int MC_Process(void *obj);
 
-extern "C"	int MC_SetBuff(unsigned char *buf, BufferType type, void *obj);
+extern "C"    int MC_SetBuff(unsigned char *buf, BufferType type, void *obj);
 
 #endif

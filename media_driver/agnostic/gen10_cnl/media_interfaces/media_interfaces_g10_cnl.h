@@ -35,6 +35,7 @@
 #include "media_interfaces_vphal.h"
 #include "media_interfaces_renderhal.h"
 #include "media_interfaces_nv12top010.h"
+#include "media_interfaces_decode_histogram.h"
 
 #include "mhw_cp.h"
 #include "mhw_mi_g10_X.h"
@@ -106,11 +107,17 @@
 #include "codechal_encode_mpeg2_g10.h"
 #endif
 
+#ifdef _VP8_ENCODE_SUPPORTED
+#include "codechal_encode_vp8_g10.h"
+#endif
+
 #include "cm_hal_g10.h"
 #include "mos_utilities.h"
 #include "vphal_g10.h"
 
 #include "renderhal_g10.h"
+
+#include "codechal_decode_histogram_vebox_g10.h"
 
 class MhwInterfacesG10Cnl : public MhwInterfaces
 {
@@ -201,6 +208,9 @@ public:
     using HevcEnc = CodechalEncHevcStateG10;
     using HevcVdenc = CodechalVdencHevcStateG10;
 #endif
+#ifdef _VP8_ENCODE_SUPPORTED
+    using Vp8 = CodechalEncodeVp8G10;
+#endif
 };
 
 class CodechalInterfacesG10Cnl : public CodechalDevice
@@ -255,6 +265,16 @@ class RenderHalInterfacesG10Cnl : public RenderHalDevice
 protected:
     using XRenderHal = XRenderHal_Interface_g10;
     MOS_STATUS Initialize();
+};
+
+class DecodeHistogramDeviceG10Cnl : public DecodeHistogramDevice
+{
+public:
+    using DecodeHistogramVebox = CodechalDecodeHistogramVeboxG10;
+
+    MOS_STATUS Initialize(
+        CodechalHwInterface *hwInterface,
+        PMOS_INTERFACE osInterface);
 };
 
 #endif // __MEDIA_INTERFACES_G10_CNL_H__

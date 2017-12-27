@@ -20,21 +20,20 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_wrapper_os.h  
-//! \brief     Contains CM Device creation/destory definitionsthe and function tables for CM Ults  
+//! \file      cm_wrapper_os.h
+//! \brief     Contains various Linux-dependent data structures and functions
+//!            for executing commands from cmrtlib.
 //!
 
-#ifndef __CM_WRAPPER_OS_H__
-#define __CM_WRAPPER_OS_H__
+#ifndef MEDIADRIVER_LINUX_COMMON_CM_CMWRAPPEROS_H_
+#define MEDIADRIVER_LINUX_COMMON_CM_CMWRAPPEROS_H_
 
-#include "cm_func.h"
-#include "cm_device.h"
 #include "cm_def.h"
+#include "media_libva_common.h"  // for VADriverContextP
 
 #define CM_OSAL_SURFACE_FORMAT uint32_t
 #define CM_SURFACE_FORMAT_R8U  62
 #define CM_SURFACE_FORMAT_R16U 57
-
 
 //////////////////////////////////////////////////////////////////////////////////////
 // Thin CMRT definition -- START
@@ -71,17 +70,23 @@ typedef struct _CM_CREATESURFACE2D_PARAM
     void        *pVaDpy;                     // [in] VaDisplay used to free va sruface
 }CM_CREATESURFACE2D_PARAM, *PCM_CREATESURFACE2D_PARAM;
 
-int32_t CmFillMosResource(
-    VASurfaceID        iVASurfaceID, 
-    VADriverContext*   pUMDCtx,
-    PMOS_RESOURCE      pOsResource);
+#if defined(__cplusplus)
+extern "C" {
+#endif
+int32_t CmThinExecute(VADriverContextP pVaDrvCtx,
+                      void *pCmDeviceHandle,
+                      uint32_t inputFunctionId,  
+                      void *inputData, 
+                      uint32_t inputDataLen);
+#if defined(__cplusplus)
+};
+#endif
+
+int32_t CmFillMosResource(VASurfaceID iVASurfaceID,
+                          VADriverContext *pUMDCtx,
+                          PMOS_RESOURCE pOsResource);
 
 MOS_FORMAT              CmOSFmtToMosFmt(CM_OSAL_SURFACE_FORMAT format);
 CM_OSAL_SURFACE_FORMAT  CmMosFmtToOSFmt(MOS_FORMAT format);
 
-int32_t CmCreateDevice(VADriverContextP pVaDrvCtx, CmDevice* &pCmDev, uint32_t DevOption);
-int32_t CmDestroyDevice(VADriverContextP pVaDrvCtx, CmDevice *pCmDev);
-
-#endif
-
-
+#endif  // #ifndef MEDIADRIVER_LINUX_COMMON_CM_CMWRAPPEROS_H_

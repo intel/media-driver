@@ -88,6 +88,17 @@ const float CODECHAL_CSC_BT2020_YUV_RGB[9] =
     1.000000f, 1.881400f,  0.000000f      //B
 };
 
+//!
+//! \brief    Check if is Cspac
+//!
+//! \param    [in] srcCspace
+//!           MHW cspace
+//! \param    [in] dstCspace
+//!           MHW cspace
+//!
+//! \return   bool
+//!           true if call success, else false
+//!
 bool CodecHalSfc_IsCspace(MHW_CSPACE srcCspace, MHW_CSPACE dstCspace)
 {
     switch (dstCspace)
@@ -126,6 +137,19 @@ bool CodecHalSfc_IsCspace(MHW_CSPACE srcCspace, MHW_CSPACE dstCspace)
     return false;
 }
 
+//!
+//! \brief    Get RGB range and offset
+//!
+//! \param    [in] srcCspace
+//!           MHW cspace
+//! \param    [in] rgbOffset
+//!           RGB offset
+//! \param    [in] rgbExcursion
+//!           RGB excursion
+//!
+//! \return   bool
+//!           true if call success, else false
+//!
 bool CodecHalSfc_GetRgbRangeAndOffset(
     MHW_CSPACE          srcCspace,
     float               *rgbOffset,
@@ -155,6 +179,23 @@ bool CodecHalSfc_GetRgbRangeAndOffset(
     return ret;
 }
 
+//!
+//! \brief    Get YUV range and offset
+//!
+//! \param    [in] srcCspace
+//!           MHW cspace
+//! \param    [in] lumaOffset
+//!           Luma offset
+//! \param    [in] lumaExcursion
+//!           Luma excursion
+//! \param    [in] chromaZero
+//!           Chroma zero
+//! \param    [in] chromaExcursion
+//!           Chroma excursion
+//!
+//! \return   bool
+//!           true if call success, else false
+//!
 bool CodecHalSfc_GetYuvRangeAndOffset(
     MHW_CSPACE          srcCspace,
     float               *lumaOffset,
@@ -196,21 +237,29 @@ bool CodecHalSfc_GetYuvRangeAndOffset(
     return ret;
 }
 
-/*----------------------------------------------------------------------------
-| Name      : KernelDll_CalcYuvToRgbMatrix
-| Purpose   : Given the YUV->RGB transfer matrix, get the final matrix after
-|             applying offsets and excursions.
-|
-| [R']     [R_o]                                 [R_e/Y_e    0       0   ]  [Y'  - Y_o]
-| [G']  =  [R_o] + [YUVtoRGBCoeff (3x3 matrix)]. [   0    R_e/C_e    0   ]. [Cb' - C_z]
-| [B']     [R_o]                                 [   0       0    R_e/C_e]. [Cr' - C_z]
-|
-| [R']  = [C0  C1   C2] [Y' ]   [C3]      {Out pMatrix}
-| [G']  = [C4  C5   C6].[Cb'] + [C7]
-| [B']  = [C8  C9  C10] [Cr'] + [C11]
-|
-| Return    : true if success else false
-\---------------------------------------------------------------------------*/
+//!
+//! \brief    Calculate YUV To RGB matrix
+//! \details  Given the YUV->RGB transfer matrix, get the final matrix after
+//!             applying offsets and excursions.
+//!
+//! [R']     [R_o]                                 [R_e/Y_e    0       0   ]  [Y'  - Y_o]
+//! [G']  =  [R_o] + [YUVtoRGBCoeff (3x3 matrix)]. [   0    R_e/C_e    0   ]. [Cb' - C_z]
+//! [B']     [R_o]                                 [   0       0    R_e/C_e]. [Cr' - C_z]
+//!
+//! [R']  = [C0  C1   C2] [Y' ]   [C3]      {Out pMatrix}
+//! [G']  = [C4  C5   C6].[Cb'] + [C7]
+//! [B']  = [C8  C9  C10] [Cr'] + [C11]
+//!
+//! \param    [in] SrcCspace
+//!           YUV Color space 
+//! \param    [in] DstCspace
+//!           RGB Color space
+//! \param    [in] transferMatrix
+//!           Transfer matrix (3x3)
+//! \param    [out] outMatrix
+//!           Conversion matrix (3x4)
+//! \return   true if success else false
+//!
 bool CodecHalSfc_CalcYuvToRgbMatrix(
     MHW_CSPACE      SrcCspace,                          // [in] YUV Color space 
     MHW_CSPACE      DstCspace,                          // [in] RGB Color space
@@ -255,6 +304,19 @@ finish:
     return ret;
 }
 
+//!
+//! \brief    Calculate RGB To YUV matrix
+//!
+//! \param    [in] SrcCspace
+//!           RGB Color space 
+//! \param    [in] DstCspace
+//!           YUV Color space
+//! \param    [in] transferMatrix
+//!           Transfer matrix (3x3)
+//! \param    [out] outMatrix
+//!           Conversion matrix (3x4)
+//! \return   bool
+//!           true if call success, else false
 bool CodecHalSfc_CalcRgbToYuvMatrix(
     MHW_CSPACE      SrcCspace,                      // [in] RGB Color space 
     MHW_CSPACE      DstCspace,                      // [in] YUV Color space
@@ -299,6 +361,16 @@ finish:
     return ret;
 }
 
+//!
+//! \brief    Get csc matrix
+//!
+//! \param    [in] SrcCspace
+//!           Source Color space
+//! \param    [in] DstCspace
+//!           Destination Color space
+//! \param    [out] cscMatrix
+//!           CSC matrix to use
+//!
 void CodecHalSfc_GetCSCMatrix(
     MHW_CSPACE          SrcCspace,                      // [in] Source Color space
     MHW_CSPACE          DstCspace,                      // [in] Destination Color space
@@ -368,6 +440,20 @@ void CodecHalSfc_GetCSCMatrix(
     }
 }
 
+//!
+//! \brief    Get csc matrix
+//!
+//! \param    [in] SrcCspace
+//!           Source Cspace
+//! \param    [in] DstCspace
+//!           Destination Cspace
+//! \param    [out] cscCoeff
+//!           Coefficients matrix
+//! \param    [out] cscInOffset
+//!           Input Offset matrix
+//! \param    [out] cscOutOffset
+//!           Output Offset matrix
+//!
 void CodecHal_GetCscMatrix(
     MHW_CSPACE             SrcCspace,                                    // [in] Source Cspace
     MHW_CSPACE             DstCspace,                                    // [in] Destination Cspace
@@ -520,6 +606,17 @@ void CodecHal_GetCscMatrix(
     }
 }
 
+//!
+//! \brief    Allocate resources
+//!
+//! \param    [in] osInterface
+//!           Pointer to MOS interface
+//! \param    [in] sfcState
+//!           Pointer to codechal encode sfc state
+//!
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if call success, else fail reason
+//!
 MOS_STATUS CodecHalEncodeSfc_AllocateResources(
     PMOS_INTERFACE                     osInterface,
     PCODECHAL_ENCODE_SFC_STATE         sfcState)
@@ -596,6 +693,17 @@ finish:
     return eStatus;
 }
 
+//!
+//! \brief    Free resources
+//!
+//! \param    [in] osInterface
+//!           Pointer to MOS interface
+//! \param    [in] sfcState
+//!           Pointer to codechal encode sfc state
+//!
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if call success, else fail reason
+//!
 MOS_STATUS CodecHalEncodeSfc_FreeResources(
     PMOS_INTERFACE                     osInterface,
     PCODECHAL_ENCODE_SFC_STATE         sfcState)
@@ -624,6 +732,15 @@ finish:
     return eStatus;
 }
 
+//!
+//! \brief    Set vebox state parameters
+//!
+//! \param    [in] params
+//!           Pointer to vebox state command params
+//!
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if call success, else fail reason
+//!
 MOS_STATUS CodecHalEncodeSfc_SetVeboxStateParams(
     PMHW_VEBOX_STATE_CMD_PARAMS         params)
 {
@@ -663,6 +780,17 @@ finish:
     return eStatus;
 }
 
+//!
+//! \brief    Set vebox surface state params
+//!
+//! \param    [in] sfcState
+//!           Pointer to codechal encode sfc state
+//! \param    [in] params
+//!           Pointer to MHW vebox surface state command parameters
+//!
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if call success, else fail reason
+//!
 MOS_STATUS CodecHalEncodeSfc_SetVeboxSurfaceStateParams(
     PCODECHAL_ENCODE_SFC_STATE                  sfcState,
     PMHW_VEBOX_SURFACE_STATE_CMD_PARAMS         params)
@@ -681,6 +809,7 @@ MOS_STATUS CodecHalEncodeSfc_SetVeboxSurfaceStateParams(
     params->SurfInput.dwHeight               = sfcState->pInputSurface->dwHeight;
     params->SurfInput.dwPitch                = sfcState->pInputSurface->dwPitch;
     params->SurfInput.TileType               = sfcState->pInputSurface->TileType;
+    params->SurfInput.dwYoffset              = sfcState->pInputSurface->YPlaneOffset.iYOffset;
     params->SurfInput.pOsResource            = &sfcState->pInputSurface->OsResource;
     params->SurfInput.rcMaxSrc.left          = sfcState->rcInputSurfaceRegion.X;
     params->SurfInput.rcMaxSrc.top           = sfcState->rcInputSurfaceRegion.Y;
@@ -697,6 +826,19 @@ finish:
     return eStatus;
 }
 
+//!
+//! \brief    Set vebox di iecp parameters
+//!
+//! \param    [in] osInterface
+//!           Pointer to MOS interface
+//! \param    [in] sfcState
+//!           Pointer to codechal encode sfc state
+//! \param    [in] params
+//!           Pointer to MHW vebox di iecp command parameters
+//!
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if call success, else fail reason
+//!
 MOS_STATUS CodecHalEncodeSfc_SetVeboxDiIecpParams(
     PMOS_INTERFACE                        osInterface,
     PCODECHAL_ENCODE_SFC_STATE            sfcState,
@@ -722,7 +864,7 @@ MOS_STATUS CodecHalEncodeSfc_SetVeboxDiIecpParams(
     params->pOsResCurrInput         = &sfcState->pInputSurface->OsResource;
     params->CurrInputSurfCtrl.Value = 0;  //Keep it here untill VPHAL moving to new CMD definition and remove this parameter definition.
 
-    CodecHal_GetResourceInfo(
+    CodecHalGetResourceInfo(
         osInterface,
         sfcState->pInputSurface);
 
@@ -786,8 +928,21 @@ finish:
 }
 
 
-// input -> RGB (from app)
-// output -> NV12 (raw surface?)
+//!
+//! \brief    Vebox set iecp parameters
+//! \details  input -> RGB (from app)
+//!           output -> NV12 (raw surface?)
+//!
+//! \param    [in] osInterface
+//!           Pointer to MOS interface
+//! \param    [in] sfcState
+//!           Pointer to codechal encode sfc state
+//! \param    [in] mhwVeboxIecpParams
+//!           Pointer t MHW vebox iecp paramters
+//!
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if call success, else fail reason
+//!
 MOS_STATUS CodecHalEncodeSfc_VeboxSetIecpParams(
     PMOS_INTERFACE                 osInterface,
     PCODECHAL_ENCODE_SFC_STATE     sfcState,
@@ -848,6 +1003,21 @@ MOS_STATUS CodecHalEncodeSfc_VeboxSetIecpParams(
     return MOS_STATUS_SUCCESS;
 }
 
+//!
+//! \brief    Set sfc state parameters
+//!
+//! \param    [in] sfcInterface
+//!           Pointer to MHW sfc interface
+//! \param    [in] sfcState
+//!           Pointer to codechal encode sfc state
+//! \param    [in] params
+//!           Pointer to MHW sfc state parameters
+//! \param    [in] outSurfaceParams
+//!           Pointer to MHW sfc out surface parameters
+//!
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if call success, else fail reason
+//!
 MOS_STATUS CodecHalEncodeSfc_SetSfcStateParams(
     PMHW_SFC_INTERFACE             sfcInterface,
     PCODECHAL_ENCODE_SFC_STATE     sfcState,
@@ -969,8 +1139,19 @@ MOS_STATUS CodecHalEncodeSfc_SetSfcStateParams(
 
 finish:
     return eStatus;
-    }
+}
 
+//!
+//! \brief    Set sfc avs state parameters
+//!
+//! \param    [in] sfcInterface
+//!           Pointer to MHW sfc interface
+//! \param    [in] sfcState
+//!           Pointer to codechal encode sfc state
+//!
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if call success, else fail reason
+//!
 MOS_STATUS CodecHalEncodeSfc_SetSfcAvsStateParams(
     PMHW_SFC_INTERFACE             sfcInterface,
     PCODECHAL_ENCODE_SFC_STATE     sfcState)
@@ -1013,6 +1194,17 @@ finish:
     return eStatus;
 }
 
+//!
+//! \brief    Set sfc ief state parameters
+//!
+//! \param    [in] sfcState
+//!           Pointer to codechal encode sfc state
+//! \param    [in] params
+//!           Pointer to MHW sfc ief state parameters
+//!
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if call success, else fail reason
+//!
 MOS_STATUS CodecHalEncodeSfc_SetSfcIefStateParams(
     PCODECHAL_ENCODE_SFC_STATE        sfcState,
     PMHW_SFC_IEF_STATE_PARAMS         params)
@@ -1034,7 +1226,6 @@ MOS_STATUS CodecHalEncodeSfc_SetSfcIefStateParams(
 finish:
     return eStatus;
 }
-
 
 MOS_STATUS CodecHalEncodeSfc_Initialize(
     CodechalHwInterface                *hwInterface,
@@ -1068,7 +1259,6 @@ finish:
     return eStatus;
 }
 
-
 MOS_STATUS CodecHalEncodeSfc_Destroy(
     CodechalHwInterface            *hwInterface,
     PMOS_INTERFACE                  osInterface,
@@ -1093,7 +1283,6 @@ finish:
     return eStatus;
 }
 
-// call every frame.  get the input/output surface and  color space...
 MOS_STATUS CodecHalEncodeSfc_SetParams(
     PMOS_INTERFACE                      osInterface,
     PCODECHAL_ENCODE_SFC_STATE          sfcState,
@@ -1141,6 +1330,19 @@ finish:
     return eStatus;
 }
 
+//!
+//! \brief    Add sfc commands
+//!
+//! \param    [in] sfcInterface
+//!           Pointer to MHW sfc interface
+//! \param    [in] sfcState
+//!           POinter to codechal encode sfc state
+//! \param    [in] cmdBuffer
+//!           Pointer to MOS command buffer
+//!
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if call success, else fail reason
+//!
 MOS_STATUS CodecHalEncodeSfc_AddSfcCommands(
     PMHW_SFC_INTERFACE              sfcInterface,
     PCODECHAL_ENCODE_SFC_STATE      sfcState,

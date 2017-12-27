@@ -30,7 +30,18 @@
 #include "cm_queue.h"
 
 #include <queue>
+
 #include "cm_array.h"
+#include "cm_csync.h"
+#include "cm_hal.h"
+
+enum CM_GPUCOPY_DIRECTION
+{
+    CM_FASTCOPY_GPU2CPU = 0,
+    CM_FASTCOPY_CPU2GPU = 1,
+    CM_FASTCOPY_GPU2GPU = 2,
+    CM_FASTCOPY_CPU2CPU = 3
+};
 
 namespace CMRT_UMD
 {
@@ -246,7 +257,6 @@ protected:
                        CmEventRT *&pEvent,
                        const CmThreadGroupSpace *pTGS = nullptr,
                        const uint64_t uiSyncBitmap = 0,
-                       CM_PREEMPTION_MODE preemptionMode = UN_PREEMPTABLE_MODE,
                        PCM_POWER_OPTION pPowerOption = nullptr,
                        CM_TASK_CONFIG *pTaskConfig = nullptr);
 

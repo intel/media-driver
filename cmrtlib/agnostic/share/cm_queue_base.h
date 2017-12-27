@@ -332,6 +332,81 @@ public:
                                                         CmEvent *& pEvent) = 0;
 
     //!
+    //! \brief    Enqueue the kernel to copy memory from system memory to video memory with width and height stride.
+    //! \details  This function enqueues a task, which contains a pre-defined kernel to copy from system memory to a surface.
+    //!           Depending on user "opiton", this is a non-blocking or blocking call.
+    //!           A CmEvent is generated each time a task is enqueued. The CmEvent can be used to check the status or other data
+    //!           regarding the task execution. To avoid generating event, user can set the pEvent as CM_NO_EVENT and pass it to
+    //!           this function. The host memory pSysMem's width stride must be 16-Byte aligned, and height stride has no any
+    //!           alignment restriction.
+    //! \param    [in] pSurface
+    //!           surface as copy destination
+    //! \param    [in] pSysMem
+    //!           system memory as copy source must be 16-Byte aligned
+    //! \param    [in] widthStride
+    //!           width stride of memory stored in host memory, in bytes, must be 16-Byte aligned
+    //! \param    [in] heightStride
+    //!           height stride of memory stored in host memory, in bytes.
+    //! \param    [in] option
+    //!           If it is "CM_FASTCOPY_OPTION_NONBLOCKING", it returns immediately without waiting for GPU to start or finish.\n
+    //!           If it is "CM_FASTCOPY_OPTION_BLOCKING", this function will return until copy is finished indeed.\n
+    //!           If it is "CM_FASTCOPY_OPTION_DISABLE_TURBO_BOOST", mdf turbo boost is disabled.
+    //! \param    [in,out] pEvent
+    //!           reference to pointer of event generated. If it is set as CM_NO_EVENT,
+    //!           its value returned by runtime is NULL.
+    //! \retval   CM_SUCCESS if the task is successfully enqueued
+    //! \retval   CM_GPUCOPY_INVALID_WIDTH if pSurface's width in bytes is not 16-Byte aligned
+    //!           or more than CM_MAX_GPUCOPY_SURFACE_WIDTH_IN_BYTE.
+    //! \retval   CM_GPUCOPY_INVALID_SYSMEM if pSysMem is not 16-Byte aligned.
+    //! \retval   CM_GPUCOPY_OUT_OF_RESOURCE if runtime runs out of resources
+    //! \retval   CM_GPUCOPY_INVALID_SIZE if pSurface's height is more than CM_MAX_GPUCOPY_SURFACE_HEIGHT
+    //! \retval   CM_FAILURE otherwise
+    //!
+    CM_RT_API virtual int32_t EnqueueCopyCPUToGPUFullStrideDup(CmSurface2D *pSurface,
+                                                        const unsigned char *pSysMem,
+                                                        const uint32_t widthStride,
+                                                        const uint32_t heightStride,
+                                                        const uint32_t option,
+                                                        CmEvent *& pEvent) = 0;
+
+    //!
+    //! \brief    Enqueue the kernel to copy memory from video memory to system memory with width and height stride.
+    //! \details  This function enqueues a task, which contains a pre-defined kernel to copy from surface to system memory.
+    //!           Depending on user "opiton", this is a non-blocking or blocking call.
+    //!           A CmEvent is generated each time a task is enqueued. The CmEvent can be used to check the status or other data
+    //!           regarding the task execution. To avoid generating event, user can set the pEvent as CM_NO_EVENT and pass it to
+    //!           this function. The host memory pSysMem's width stride must be 16-Byte aligned, and height stride has no any
+    //!           alignment restriction.
+    //! \param    [in] pSurface
+    //!           surface as copy source
+    //! \param    [in] pSysMem
+    //!           system memory as copy destination, must be 16-Byte aligned
+    //! \param    [in] widthStride
+    //!           width stride of memory stored in host memory, in bytes, must be 16-Byte aligned
+    //! \param    [in] heightStride
+    //!           height stride of memory stored in host memory, in bytes,
+    //! \param    [in] option
+    //!           If it is "CM_FASTCOPY_OPTION_NONBLOCKING", it returns immediately without waiting for GPU to start or finish.\n
+    //!           If it is "CM_FASTCOPY_OPTION_BLOCKING", this function will return until copy is finished indeed.\n
+    //!           If it is "CM_FASTCOPY_OPTION_DISABLE_TURBO_BOOST", mdf turbo boost is disabled.
+    //! \param    [in,out] pEvent
+    //!           reference to pointer of event generated. If it is set as CM_NO_EVENT,
+    //!           its value returned by runtime is NULL.
+    //! \retval   CM_SUCCESS if the task is successfully enqueued
+    //! \retval   CM_GPUCOPY_INVALID_STRIDE if stride is not 16-Byte aligned or less than pSurface’s width in bytes.
+    //! \retval   CM_GPUCOPY_INVALID_SYSMEM if pSysMem is not 16-Byte aligned.
+    //! \retval   CM_GPUCOPY_INVALID_SIZE if pSurface's height is more than CM_MAX_GPUCOPY_SURFACE_HEIGHT
+    //! \retval   CM_GPUCOPY_OUT_OF_RESOURCE if runtime runs out of resources
+    //! \retval   CM_FAILURE otherwise
+    //!
+    CM_RT_API virtual int32_t EnqueueCopyGPUToCPUFullStrideDup(CmSurface2D *pSurface,
+                                                        unsigned char *pSysMem,
+                                                        const uint32_t widthStride,
+                                                        const uint32_t heightStride,
+                                                        const uint32_t option,
+                                                        CmEvent *& pEvent) = 0;
+
+    //!
     //! \brief   Enqueue a task for execution with hints.
     //! \details This API is designed to saturate the EUs when running a large dependency kernel.
     //!          At least two kernels must exist in the task. The ideal case is at least one large dependency kernel

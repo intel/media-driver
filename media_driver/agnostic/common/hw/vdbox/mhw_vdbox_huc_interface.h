@@ -210,6 +210,8 @@ public:
     //!           The maximum command buffer size
     //! \param    [out] patchListSize
     //!           The maximum command patch list size
+    //! \param    [in] params
+    //!           PM HW Vdbox state command size parameters
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
@@ -222,7 +224,7 @@ public:
     //!
     //! \brief    Calculates maximum size for HUC slice/MB level commands
     //! \details  Client facing function to calculate maximum size for HUC slice/MB level commands
-    //! \param    [in] Mode
+    //! \param    [in] mode
     //!           Indicate the codec mode
     //! \param    [out] commandsSize
     //!            The maximum command buffer size

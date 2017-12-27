@@ -95,8 +95,7 @@ MOS_STATUS MhwMiInterfaceG10::AddMiConditionalBatchBufferEndCmd(
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(params);
     MHW_MI_CHK_NULL(params->presSemaphoreBuffer);
-    
-    // Force Protected Memory Disabling for Gen8+
+
     // Case 1 - Batch buffer condition matches - If this is not present then conditional 
     //          batch buffer will  exit to ring with terminating CP.
     // Case 2 - Batch buffer condition DOES NOT match - Although this will disable CP 

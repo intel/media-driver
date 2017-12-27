@@ -35,6 +35,7 @@
 #include "media_interfaces_vphal.h"
 #include "media_interfaces_renderhal.h"
 #include "media_interfaces_nv12top010.h"
+#include "media_interfaces_decode_histogram.h"
 
 #include "mhw_cp.h"
 #include "mhw_mi_g9_X.h"
@@ -79,10 +80,6 @@
 
 #include "codechal_decode_nv12top010_g9.h"
 
-#ifdef _COMMON_ENCODE_SUPPORTED
-#include "codechal_encoder.h"
-#endif
-
 #ifdef _JPEG_ENCODE_SUPPORTED
 #include "codechal_encode_jpeg.h"
 #endif
@@ -109,6 +106,8 @@
 #include "vphal_g9.h"
 
 #include "renderhal_g9.h"
+
+#include "codechal_decode_histogram_vebox_g9.h"
 
 class MhwInterfacesG9Skl : public MhwInterfaces
 {
@@ -251,6 +250,16 @@ class RenderHalInterfacesG9Skl : public RenderHalDevice
 protected:
     using XRenderHal = XRenderHal_Interface_g9;
     MOS_STATUS Initialize();
+};
+
+class DecodeHistogramDeviceG9Skl : public DecodeHistogramDevice
+{
+public:
+    using DecodeHistogramVebox = CodechalDecodeHistogramVeboxG9;
+
+    MOS_STATUS Initialize(
+        CodechalHwInterface *hwInterface,
+        PMOS_INTERFACE osInterface);
 };
 
 #endif // __MEDIA_INTERFACES_G9_SKL_H__

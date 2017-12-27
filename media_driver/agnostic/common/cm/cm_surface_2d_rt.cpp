@@ -31,10 +31,11 @@
 #include "cm_device_rt.h"
 #include "cm_mem.h"
 #include "cm_queue_rt.h"
-#include "cm_hal.h"
 
 #define COPY_OPTION(uiOption)    (uiOption & 0x1)
 
+namespace CMRT_UMD
+{
 //*-----------------------------------------------------------------------------
 //| Purpose:    Create Surface 2D 
 //| Arguments :
@@ -1212,4 +1213,4 @@ CM_RT_API int32_t CmSurface2DRT::SetProperty(CM_FRAME_TYPE frameType)
     m_SurfaceMgr->UpdateSurface2DTableFrameType(m_Handle, frameType);
     return CM_SUCCESS;
 }
-
+}

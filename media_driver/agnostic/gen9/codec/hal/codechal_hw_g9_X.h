@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2017, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -88,6 +88,7 @@ public:
 
         m_sizeOfCmdMediaObject = mhw_render_g9_X::MEDIA_OBJECT_CMD::byteSize;
         m_sizeOfCmdMediaStateFlush = mhw_mi_g9_X::MEDIA_STATE_FLUSH_CMD::byteSize;
+        
     }
 
     //!

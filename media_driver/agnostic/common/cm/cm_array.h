@@ -23,9 +23,11 @@
 //! \file      cm_array.h  
 //! \brief     Contains CM array function definitions  
 //!
-#pragma once
 
-#include "cm_mem.h"
+#ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMARRAY_H_
+#define MEDIADRIVER_AGNOSTIC_COMMON_CM_CMARRAY_H_
+
+#include "cm_def.h"
 
 namespace CMRT_UMD{
 class CmDynamicArray
@@ -68,3 +70,4 @@ private:
 };
 } //namespace
 
+#endif  // #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMARRAY_H_

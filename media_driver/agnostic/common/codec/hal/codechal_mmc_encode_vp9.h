@@ -42,7 +42,7 @@ public:
     //!
     CodechalMmcEncodeVp9(
         CodechalHwInterface    *hwInterface, 
-        PMOS_SURFACE  reconSurface);
+        void *standardState);
 
     //!
     //! \brief    Destructor
@@ -53,9 +53,7 @@ public:
         PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams,
         PMOS_COMMAND_BUFFER cmdBuffer = nullptr) override;
     
-    PMOS_SURFACE m_reconSurf = nullptr;
     CodechalVdencVp9State  *m_vp9State = nullptr; //!< Pinter to VP9 encode state
-    
 };
 
 #endif  // __CODECHAL_MMC_ENCODE_AVC_H__

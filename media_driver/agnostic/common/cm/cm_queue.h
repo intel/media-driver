@@ -29,6 +29,13 @@
 
 #include "cm_def.h"
 
+enum CM_FASTCOPY_OPTION
+{
+    CM_FASTCOPY_OPTION_NONBLOCKING = 0x00,
+    CM_FASTCOPY_OPTION_BLOCKING = 0x01,
+    CM_FASTCOPY_OPTION_DISABLE_TURBO_BOOST = 0x02
+};
+
 namespace CMRT_UMD
 {
 class CmTask;

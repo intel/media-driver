@@ -229,7 +229,7 @@ protected:
     MOS_RESOURCE            resSyncObjectVideoContextInUse;                     //!< Signals on the video context
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
-    CODECHAL_JPEG_SFC_STATE SfcState;                                           //!< SFC state
+    CodechalJpegSfcState SfcState;                                           //!< SFC state
 #endif
 };
 #endif

@@ -82,17 +82,17 @@ protected:
         MFD_MPEG2_IT_OBJECT_CMD_NUMBER_OF_ADDRESSES             =  0, //  0 DW for    address fields
         MFD_VP8_BSD_OBJECT_CMD_NUMBER_OF_ADDRESSES              =  0, //  0 DW for    address fields
     };
- 
+
 public:
     //!
     //! \brief  Constructor
     //!
     MhwVdboxMfxInterfaceG10(
         PMOS_INTERFACE osInterface,
-        MhwMiInterface *pMiInterface,
+        MhwMiInterface *miInterface,
         MhwCpInterface *cpInterface,
         bool decodeInUse)
-        : MhwVdboxMfxInterfaceGeneric(osInterface, pMiInterface, cpInterface, decodeInUse)
+        : MhwVdboxMfxInterfaceGeneric(osInterface, miInterface, cpInterface, decodeInUse)
     {
         MHW_FUNCTION_ENTER;
 
@@ -132,67 +132,67 @@ protected:
     MOS_STATUS AddMfxPipeModeSelectCmd(
         PMOS_COMMAND_BUFFER cmdBuffer,
         PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS params);
-    
+
     MOS_STATUS AddMfxSurfaceCmd(
         PMOS_COMMAND_BUFFER cmdBuffer,
         PMHW_VDBOX_SURFACE_PARAMS params);
-   
+
     MOS_STATUS AddMfxPipeBufAddrCmd(
         PMOS_COMMAND_BUFFER cmdBuffer,
         PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS params);
-    
+
     MOS_STATUS AddMfxIndObjBaseAddrCmd(
         PMOS_COMMAND_BUFFER cmdBuffer,
         PMHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS params);
-   
+
     MOS_STATUS AddMfxBspBufBaseAddrCmd(
         PMOS_COMMAND_BUFFER cmdBuffer,
         PMHW_VDBOX_BSP_BUF_BASE_ADDR_PARAMS params);
-   
+
     MOS_STATUS AddMfxDecodeAvcImgCmd(
         PMOS_COMMAND_BUFFER cmdBuffer,
         PMHW_BATCH_BUFFER batchBuffer,
         PMHW_VDBOX_AVC_IMG_PARAMS params);
-    
+
     MOS_STATUS AddMfxEncodeAvcImgCmd(
         PMOS_COMMAND_BUFFER cmdBuffer,
         PMHW_BATCH_BUFFER batchBuffer,
         PMHW_VDBOX_AVC_IMG_PARAMS params);
-   
+
     MOS_STATUS AddMfxAvcDirectmodeCmd(
         PMOS_COMMAND_BUFFER cmdBuffer,
         PMHW_VDBOX_AVC_DIRECTMODE_PARAMS params);
-   
+
     MOS_STATUS AddMfdAvcSliceAddrCmd(
         PMOS_COMMAND_BUFFER cmdBuffer,
         PMHW_VDBOX_AVC_SLICE_STATE avcSliceState);
-   
+
     MOS_STATUS AddMfdAvcBsdObjectCmd(
         PMOS_COMMAND_BUFFER cmdBuffer,
         PMHW_VDBOX_AVC_SLICE_STATE avcSliceState);
-   
+
     MOS_STATUS AddMfxPakInsertObject(
         PMOS_COMMAND_BUFFER cmdBuffer,
         PMHW_BATCH_BUFFER batchBuffer,
         PMHW_VDBOX_PAK_INSERT_PARAMS params);
-    
+
     MOS_STATUS AddMfxJpegPicCmd(
         PMOS_COMMAND_BUFFER cmdBuffer,
         PMHW_VDBOX_JPEG_PIC_STATE params);
-   
+
     MOS_STATUS AddMfxJpegEncodePicStateCmd(
         PMOS_COMMAND_BUFFER cmdBuffer,
         MhwVdboxJpegEncodePicState *params);
-   
+
     MOS_STATUS AddMfxJpegFqmCmd(
         PMOS_COMMAND_BUFFER cmdBuffer,
         PMHW_VDBOX_QM_PARAMS params,
         uint32_t numQuantTables);
-   
+
     MOS_STATUS AddMfcJpegHuffTableStateCmd(
         PMOS_COMMAND_BUFFER cmdBuffer,
         PMHW_VDBOX_ENCODE_HUFF_TABLE_PARAMS params);
-   
+
     MOS_STATUS AddMfcJpegScanObjCmd(
         PMOS_COMMAND_BUFFER cmdBuffer,
         MhwVdboxJpegScanParams *params);
@@ -216,7 +216,7 @@ protected:
     MOS_STATUS AddMfxVp8BspBufBaseAddrCmd(
         PMOS_COMMAND_BUFFER cmdBuffer,
         PMHW_VDBOX_VP8_BSP_BUF_BASE_ADDR_PARAMS params);
-    
+
 };
 
 #endif

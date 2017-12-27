@@ -25,8 +25,8 @@
 //! \details  The encode interface is further sub-divided by standard, this file is for the base interface which is shared by all encode standards.
 //!
 
-#include "codechal_encoder.h"
 #include "codechal_encoder_base.h"
+#include "codechal_encode_tracked_buffer_hevc.h"
 #include "mos_solo_generic.h"
 /*****************************************************************************\
 Function:
@@ -504,13 +504,24 @@ MOS_STATUS CodechalEncoderState::Allocate(PCODECHAL_SETTINGS codecHalSettings)
         CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState = MOS_New(CodecHalMmcState, m_hwInterface));
     }
 
+    // create resource allocator
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_allocator = MOS_New(CodechalEncodeAllocator, this));
+
+    // create tracked buffer state
+    if (m_standard == CODECHAL_HEVC)
+    {
+        CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBuf = MOS_New(CodechalEncodeTrackedBufferHevc, this));
+    }
+    else
+    {
+        CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBuf = MOS_New(CodechalEncodeTrackedBuffer, this));
+    }
+
     MotionEstimationDisableCheck();
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateResources());
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CreateGpuContexts());
-
-    m_videoContextUsesNullHw = m_useNullHw[m_videoContext];
 
     if (CodecHalUsesRenderEngine(codecHalSettings->CodecFunction, codecHalSettings->Standard))
     {
@@ -519,6 +530,7 @@ MOS_STATUS CodechalEncoderState::Allocate(PCODECHAL_SETTINGS codecHalSettings)
 
     if (CodecHalUsesVideoEngine(codecHalSettings->CodecFunction))
     {
+        m_videoContextUsesNullHw = m_useNullHw[m_videoContext];
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnRegisterBBCompleteNotifyEvent(
             m_osInterface,
             m_videoContext));
@@ -588,26 +600,10 @@ MOS_STATUS CodechalEncoderState::Initialize(
 
         m_hwScoreboardType = 1;
 
-        m_halfSliceSelect = 0;
-#if (_DEBUG || _RELEASE_INTERNAL)
-        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-        CodecHal_UserFeature_ReadValue(
-            nullptr,
-            __MEDIA_USER_FEATURE_VALUE_ENCODE_HALF_SLICE_SELECT_ID,
-            &userFeatureData);
-        m_halfSliceSelect = (uint32_t)userFeatureData.i32Data;
-#endif // _DEBUG || _RELEASE_INTERNAL
-
-        if ((GFX_IS_GEN_10_OR_LATER(m_platform) && m_gtSystemInfo->SliceCount == 1) ||
-            MEDIA_IS_SKU(m_skuTable, FtrGT1))
-        {
-            m_halfSliceSelect = 0;
-        }
-
         m_encodeVfeMaxThreads = 0;
 #if (_DEBUG || _RELEASE_INTERNAL)
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-        CodecHal_UserFeature_ReadValue(
+        MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_ENCODE_VFE_MAX_THREADS_ID,
             &userFeatureData);
@@ -617,7 +613,7 @@ MOS_STATUS CodechalEncoderState::Initialize(
         m_encodeVfeMaxThreadsScaling = 0;
 #if (_DEBUG || _RELEASE_INTERNAL)
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-        CodecHal_UserFeature_ReadValue(
+        MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_ENCODE_VFE_MAX_THREADS_SCALING_ID,
             &userFeatureData);
@@ -626,7 +622,7 @@ MOS_STATUS CodechalEncoderState::Initialize(
 
         {
             MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-            CodecHal_UserFeature_ReadValue(
+            MOS_UserFeature_ReadValue_ID(
                 nullptr,
                 __MEDIA_USER_FEATURE_VALUE_ENCODE_HW_WALKER_ID,
                 &userFeatureData);
@@ -638,7 +634,7 @@ MOS_STATUS CodechalEncoderState::Initialize(
                 m_walkerMode = (MHW_WALKER_MODE)0;
 #if (_DEBUG || _RELEASE_INTERNAL)
                 MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-                CodecHal_UserFeature_ReadValue(
+                MOS_UserFeature_ReadValue_ID(
                     nullptr,
                     __MEDIA_USER_FEATURE_VALUE_ENCODE_HW_WALKER_MODE_ID,
                     &userFeatureData);
@@ -651,7 +647,7 @@ MOS_STATUS CodechalEncoderState::Initialize(
                     m_sliceShutdownDefaultState = (uint32_t)0;
 #if (_DEBUG || _RELEASE_INTERNAL)
                     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-                    CodecHal_UserFeature_ReadValue(
+                    MOS_UserFeature_ReadValue_ID(
                         nullptr,
                         __MEDIA_USER_FEATURE_VALUE_SLICE_SHUTDOWN_DEFAULT_STATE_ID,
                         &userFeatureData);
@@ -662,7 +658,7 @@ MOS_STATUS CodechalEncoderState::Initialize(
                     m_sliceShutdownRequestState = (uint32_t)0;
 #if (_DEBUG || _RELEASE_INTERNAL)
                     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-                    CodecHal_UserFeature_ReadValue(
+                    MOS_UserFeature_ReadValue_ID(
                         nullptr,
                         __MEDIA_USER_FEATURE_VALUE_SLICE_SHUTDOWN_REQUEST_STATE_ID,
                         &userFeatureData);
@@ -673,7 +669,7 @@ MOS_STATUS CodechalEncoderState::Initialize(
                     m_ssdResolutionThreshold = (uint32_t)0;
 #if (_DEBUG || _RELEASE_INTERNAL)
                     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-                    CodecHal_UserFeature_ReadValue(
+                    MOS_UserFeature_ReadValue_ID(
                         nullptr,
                         __MEDIA_USER_FEATURE_VALUE_SLICE_SHUTDOWN_RESOLUTION_THRESHOLD_ID,
                         &userFeatureData);
@@ -684,7 +680,7 @@ MOS_STATUS CodechalEncoderState::Initialize(
                     m_ssdTargetUsageThreshold = (uint32_t)0;
 #if (_DEBUG || _RELEASE_INTERNAL)
                     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-                    CodecHal_UserFeature_ReadValue(
+                    MOS_UserFeature_ReadValue_ID(
                         nullptr,
                         __MEDIA_USER_FEATURE_VALUE_SLICE_SHUTDOWN_TARGET_USAGE_THRESHOLD_ID,
                         &userFeatureData);
@@ -752,7 +748,7 @@ MOS_STATUS CodechalEncoderState::Initialize(
         if (MEDIA_IS_SKU(m_skuTable, FtrSliceShutdown))
         {
             MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-            CodecHal_UserFeature_ReadValue(
+            MOS_UserFeature_ReadValue_ID(
                 nullptr,
                 __MEDIA_USER_FEATURE_VALUE_SLICE_SHUTDOWN_ENABLE_ID,
                 &userFeatureData);
@@ -762,7 +758,7 @@ MOS_STATUS CodechalEncoderState::Initialize(
         m_targetUsageOverride = (uint8_t)0;
 #if (_DEBUG || _RELEASE_INTERNAL)
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-        CodecHal_UserFeature_ReadValue(
+        MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_ENCODE_TARGET_USAGE_OVERRIDE_ID,
             &userFeatureData);
@@ -774,7 +770,7 @@ MOS_STATUS CodechalEncoderState::Initialize(
     {
         //RCPanic settings
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-        CodecHal_UserFeature_ReadValue(
+        MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_RC_PANIC_ENABLE_ID,
             &userFeatureData);
@@ -783,7 +779,7 @@ MOS_STATUS CodechalEncoderState::Initialize(
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
         userFeatureData.i32Data = 1;
         userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
-        CodecHal_UserFeature_ReadValue(
+        MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_ENCODE_SUPPRESS_RECON_PIC_ENABLE_ID,
             &userFeatureData);
@@ -792,7 +788,7 @@ MOS_STATUS CodechalEncoderState::Initialize(
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    CodecHal_UserFeature_ReadValue(
+    MOS_UserFeature_ReadValue_ID(
         NULL,
         __MEDIA_USER_FEATURE_VALUE_ENCODE_ENABLE_COMPUTE_CONTEXT_ID,
         &userFeatureData);
@@ -866,15 +862,6 @@ MOS_STATUS CodechalEncoderState::Initialize(
     if (m_standard == CODECHAL_VP9)
     {
         m_frameTrackingEnabled = false;
-    }
-
-    if (CodecHalUsesRenderEngine(m_codecFunction, m_standard))
-    {
-        // Init all tracked buffer slots to usable
-        for( int i = 0; i < CODEC_NUM_REF_BUFFERS; i++)
-        {
-            m_trackedBuffer[i].ucSurfIndex7bits = PICTURE_MAX_7BITS;
-        }
     }
 
     if (m_standard == CODECHAL_AVC)
@@ -1162,6 +1149,41 @@ MOS_STATUS CodechalEncoderState::InitCommon()
     }
 
     return eStatus;
+}
+
+void CodechalEncoderState::ResizeOnResChange()
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    // if resolution changed, free existing tracked buffer resources
+    m_trackedBuf->Resize();
+#ifndef _USE_OPEN_KENREL
+    m_cscDsState->Resize();
+#endif
+}
+
+MOS_STATUS CodechalEncoderState::CheckResChangeAndCsc()
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    if (m_resolutionChanged)
+    {
+        ResizeOnResChange();
+    }
+#ifndef _FULL_OPEN_SOURCE
+    if (!m_cscDsState->IsEnabled() ||
+        CodecHal_PictureIsField(m_currOriginalPic) ||
+        CodecHal_PictureIsInterlacedFrame(m_currOriginalPic))
+    {
+        m_cscDsState->ResetCscFlag();
+    }
+    else
+    {
+        // check if we need to do CSC or copy non-aligned surface
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->CheckCondition());
+    }
+#endif
+    return MOS_STATUS_SUCCESS;
 }
 
 // Function to allocate all resources common to all encoders
@@ -1546,47 +1568,11 @@ MOS_STATUS CodechalEncoderState::AllocateResources()
             "%s: Failed to allocate HUC STATUS 2 Buffer\n", __FUNCTION__);
     }
 
-    if (m_vdencEnabled)
-    {
-        // Huc Initializer DMEM
-        allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(sizeof(HucComDmem), CODECHAL_CACHELINE_SIZE);
-        allocParamsForBufferLinear.pBufName = "VDEnc CmdInitializer Dmem Buffer";
-        CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(
-            m_osInterface->pfnAllocateResource(
-                m_osInterface,
-                &allocParamsForBufferLinear,
-                &m_resVdencCmdInitializerDmemBuffer),
-            "Failed to allocate VDEnc CmdInitializer Dmem Buffer.");
-
-        // Huc Initializer Data buffer
-        allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(sizeof(HucComData), CODECHAL_PAGE_SIZE);
-        allocParamsForBufferLinear.pBufName = "VDEnc CmdInitializer Data Buffer";
-
-        for (auto i = 0; i < 2; i++)
-        {
-            CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(
-                m_osInterface->pfnAllocateResource(
-                    m_osInterface,
-                    &allocParamsForBufferLinear,
-                    &m_resVdencCmdInitializerDataBuffer[i]),
-                "Failed to allocate VDEnc CmdInitializer Data Buffer.");
-
-            data = (uint8_t*)m_osInterface->pfnLockResource(
-                m_osInterface,
-                &(m_resVdencCmdInitializerDataBuffer[i]),
-                &lockFlagsWriteOnly);
-            CODECHAL_ENCODE_CHK_NULL_RETURN(data);
-            MOS_ZeroMemory(data, allocParamsForBufferLinear.dwBytes);
-            m_osInterface->pfnUnlockResource(m_osInterface, &m_resVdencCmdInitializerDataBuffer[i]);
-        }
-    }
-
     return eStatus;
 }
 
 MOS_STATUS CodechalEncoderState::AllocateScalingResources()
 {
-    PCODEC_TRACKED_BUFFER       trackedBuffer;
     uint32_t                    numMBs, size;
     MOS_ALLOC_GFXRES_PARAMS     allocParamsForBuffer2D;
     MOS_ALLOC_GFXRES_PARAMS     allocParamsForBufferLinear;
@@ -1672,7 +1658,7 @@ MOS_STATUS CodechalEncoderState::AllocateScalingResources()
             return eStatus;
         }
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_GetResourceInfo(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(
             m_osInterface,
             &m_flatnessCheckSurface));
 
@@ -1732,7 +1718,7 @@ MOS_STATUS CodechalEncoderState::ExecuteMeKernel(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(VerifySpaceAvailable());
     }
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_AssignDshAndSshSpace(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AssignDshAndSshSpace(
         m_stateHeapInterface,
         kernelState,
         false,
@@ -1896,7 +1882,7 @@ MOS_STATUS CodechalEncoderState::ExecuteMeKernel(
     walkerCodecParams.ucGroupId = m_groupId;
 
     MHW_WALKER_PARAMS walkerParams;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_InitMediaObjectWalkerParams(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalInitMediaObjectWalkerParams(
         m_hwInterface,
         &walkerParams,
         &walkerCodecParams));
@@ -1935,177 +1921,6 @@ MOS_STATUS CodechalEncoderState::ExecuteMeKernel(
     return eStatus;
 }
 
-/*
- * When resolution changes, tracked buffers used by earlier submitted frames may not have finished execution,
- * destruction of these in-the-fly buffers need to be deferred after execution completes
- * We make a resonable assumption that the number of unfinished frames should not exceed 3, and free all other
- * existing buffers except the last 3 used
- * Inside TrackedBufferLookUpBufIndex(), the counter is checked and decremented, each time freeing
- * one of the remaining 3 buffers in previous encode session/sequence (with old resolution)
- * The net result is that 3 frames into the new encode session/sequence, all tracked buffers have been re-allocated
- * according to the new resolution
- */
-void CodechalEncoderState::TrackedBufferResize()
-{
-    CODECHAL_ENCODE_FUNCTION_ENTER;
-
-    // free existing allocations except last 3 slots
-    m_trackedBufCountResize = CODEC_NUM_NON_REF_BUFFERS;
-    for(uint8_t i = 0; i < CODEC_NUM_TRACKED_BUFFERS; i++ )
-    {
-        if( m_trackedBufAnteIdx != i && m_trackedBufPenuIdx != i && m_trackedBufLastIdx != i )
-        {
-            TrackedBufferReleaseSlot(i);
-			m_cscDsState->ReleaseSurfaceDS(i);
-        }
-        else
-        {
-            m_trackedBuffer[i].ucSurfIndex7bits = PICTURE_RESIZE;
-        }
-    }
-
-    return;
-}
-
-MOS_STATUS CodechalEncoderState::TrackedBufferAllocateMbCodeResources(
-    uint8_t bufIndex)
-{
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
-    CODECHAL_ENCODE_FUNCTION_ENTER;
-
-    CODECHAL_ENCODE_MODS_CHK_COND(
-        bufIndex >= CODEC_NUM_TRACKED_BUFFERS,
-        "No MbCode buffer is available!");
-
-    PCODEC_TRACKED_BUFFER trackedBuffer = &m_trackedBuffer[bufIndex];
-
-    // allocate MbCode buffer
-    if(!Mos_ResourceIsNull(&trackedBuffer->resMbCodeBuffer))
-    {
-        return eStatus;
-    }
-
-    // initiate allocation paramters
-    MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferLinear;
-    MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
-    allocParamsForBufferLinear.Type     = MOS_GFXRES_BUFFER;
-    allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
-    allocParamsForBufferLinear.Format   = Format_Buffer;
-    
-    // Must reserve at least 8 cachelines after MI_BATCH_BUFFER_END_CMD since HW prefetch max 8 cachelines from BB everytime
-    allocParamsForBufferLinear.dwBytes  = m_mbCodeSize + 8 * CODECHAL_CACHELINE_SIZE;
-    
-    allocParamsForBufferLinear.pBufName = "MB Code Buffer";
-
-    CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
-        m_osInterface,
-        &allocParamsForBufferLinear,
-        &trackedBuffer->resMbCodeBuffer),
-        "Failed to allocate MB Code Buffer.");
-
-    CleanUpResource(&trackedBuffer->resMbCodeBuffer, &allocParamsForBufferLinear);
-
-    return eStatus;
-}
-
-MOS_STATUS CodechalEncoderState::TrackedBufferAllocateMvDataResources(
-    uint8_t bufIndex)
-{
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
-    CODECHAL_ENCODE_FUNCTION_ENTER;
-
-    PCODEC_TRACKED_BUFFER trackedBuffer = &m_trackedBuffer[bufIndex];
-
-    if(!Mos_ResourceIsNull(&trackedBuffer->resMvDataBuffer))
-    {
-        return eStatus;
-    }
-
-    // initiate allocation paramters
-    MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferLinear;
-    MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
-    allocParamsForBufferLinear.Type     = MOS_GFXRES_BUFFER;
-    allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
-    allocParamsForBufferLinear.Format   = Format_Buffer;
-    allocParamsForBufferLinear.dwBytes  = m_mvDataSize;
-    allocParamsForBufferLinear.pBufName = "MV Data Buffer";
-
-    CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
-        m_osInterface,
-        &allocParamsForBufferLinear,
-        &trackedBuffer->resMvDataBuffer),
-        "Failed to allocate MV Data Buffer.");
-
-    CleanUpResource(
-        &trackedBuffer->resMvDataBuffer, 
-        &allocParamsForBufferLinear);
-
-    return eStatus;
-}
-
-MOS_STATUS CodechalEncoderState::TrackedBufferAllocateDsReconSurfacesVdenc(
-    uint8_t bufIndex)
-{
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
-    CODECHAL_ENCODE_FUNCTION_ENTER;
-
-    PCODEC_TRACKED_BUFFER trackedBuffer = &m_trackedBuffer[bufIndex];
-
-    if(!Mos_ResourceIsNull(&trackedBuffer->sVDEncScaled4xSurface.OsResource))
-    {
-        return eStatus;
-    }
-
-    // initiate allocation paramters
-    MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferNV12;
-    MOS_ZeroMemory(&allocParamsForBufferNV12, sizeof(MOS_ALLOC_GFXRES_PARAMS));
-    allocParamsForBufferNV12.Type     = MOS_GFXRES_2D;
-    allocParamsForBufferNV12.TileType = MOS_TILE_Y;
-    allocParamsForBufferNV12.Format   = Format_NV12;
-
-    // MB-alignment not required since dataport handles out-of-bound pixel replication, but HW IME requires this.
-    uint32_t downscaledSurfaceWidth4x  = m_downscaledWidthInMb4x * CODECHAL_MACROBLOCK_WIDTH;
-    // Account for field case, offset needs to be 4K aligned if tiled for DI surface state.
-    // Width will be allocated tile Y aligned, so also tile align height.
-    uint32_t downscaledSurfaceHeight4x = ((m_downscaledHeightInMb4x + 1) >> 1) * CODECHAL_MACROBLOCK_HEIGHT;
-    downscaledSurfaceHeight4x = MOS_ALIGN_CEIL(downscaledSurfaceHeight4x, MOS_YTILE_H_ALIGNMENT) << 1;
-
-    // Allocating VDEnc 4x/8xDS ref surfaces
-    allocParamsForBufferNV12.dwWidth         = downscaledSurfaceWidth4x;
-    allocParamsForBufferNV12.dwHeight        = downscaledSurfaceHeight4x;
-    allocParamsForBufferNV12.bIsCompressed   = CodecHalMmcState::IsMmcEnabled();
-    allocParamsForBufferNV12.pBufName        = "4x Scaled Surface for VDEnc";
-
-    CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
-        m_osInterface,
-        &allocParamsForBufferNV12,
-        &trackedBuffer->sVDEncScaled4xSurface.OsResource),
-        "Failed to allocate 4xScaled ref surface for VDEnc.");
-
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_GetResourceInfo(
-        m_osInterface,
-        &trackedBuffer->sVDEncScaled4xSurface));
-
-    allocParamsForBufferNV12.dwWidth  = downscaledSurfaceWidth4x  >> 1;
-    allocParamsForBufferNV12.dwHeight = downscaledSurfaceHeight4x >> 1;
-    allocParamsForBufferNV12.pBufName = "8x Scaled Surface for VDEnc";
-
-    CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
-        m_osInterface,
-        &allocParamsForBufferNV12,
-        &trackedBuffer->sVDEncScaled8xSurface.OsResource),
-        "Failed to allocate 8xScaled ref surface for VDEnc.");
-
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_GetResourceInfo(
-        m_osInterface,
-        &trackedBuffer->sVDEncScaled8xSurface));
-
-    return eStatus;
-}
-
 bool CodechalEncoderState::CheckSupportedFormat(
     PMOS_SURFACE surface)
 {
@@ -2127,139 +1942,6 @@ bool CodechalEncoderState::CheckSupportedFormat(
     return isColorFormatSupported;
 }
 
-uint8_t CodechalEncoderState::TrackedBufferLookUpBufIndex(
-    PCODEC_PICTURE refList,
-    uint8_t        numRefFrame,
-    bool           usedAsRef)
-{
-    CODECHAL_ENCODE_FUNCTION_ENTER;
-
-    if(m_trackedBufCountResize)
-    {
-        m_trackedBufCountResize--;
-
-        if((m_trackedBufAnteIdx != m_trackedBufPenuIdx) && 
-            (m_trackedBufAnteIdx != m_trackedBufLastIdx))
-        {
-            TrackedBufferReleaseSlot(m_trackedBufAnteIdx);
-			m_cscDsState->ReleaseSurfaceDS(m_trackedBufAnteIdx);
-            CODECHAL_ENCODE_NORMALMESSAGE("Tracked buffer = %d re-allocated", m_trackedBufAnteIdx);
-        }
-    }
-
-    uint8_t index = PICTURE_MAX_7BITS;
-    if(usedAsRef && numRefFrame <= CODEC_MAX_NUM_REF_FRAME &&
-        !m_gopIsIdrFrameOnly)
-    {
-        uint8_t refPicIdx[CODEC_MAX_NUM_REF_FRAME];
-        bool notFound = true;
-
-        for (auto i = 0; i < numRefFrame; i++)
-        {
-            refPicIdx[i] = refList[i].FrameIdx;
-        }
-
-        // find the first empty slot to re-use
-        for(uint8_t i = 0; i < CODEC_NUM_REF_BUFFERS; i++)
-        {
-            PCODEC_TRACKED_BUFFER trackedBuffer = &m_trackedBuffer[i];
-            uint8_t refFrameIdx = trackedBuffer->ucSurfIndex7bits;
-
-            if(refFrameIdx != PICTURE_MAX_7BITS && refFrameIdx != PICTURE_RESIZE)
-            {
-                // check whether this ref frame is still active
-                uint8_t j = 0;
-                for(j = 0; j < numRefFrame; j++)
-                {
-                    if(refFrameIdx == refPicIdx[j])
-                        break;
-                }
-                
-                if(j == numRefFrame)
-                {
-                    // this ref frame is no longer active, can be re-used
-                    trackedBuffer->ucSurfIndex7bits = PICTURE_MAX_7BITS;
-                }
-            }
-
-            if(notFound && PICTURE_MAX_7BITS == trackedBuffer->ucSurfIndex7bits)
-            {
-                index   = i;
-                notFound = false;
-                continue;
-            }
-        }
-    }
-    else
-    {
-        if(!m_waitForPak)
-        {
-            m_trackedBufCountNonRef += m_trackedBufCountNonRef < CODEC_NUM_NON_REF_BUFFERS;
-            CODECHAL_ENCODE_NORMALMESSAGE("Tracked buffer count = %d", m_trackedBufCountNonRef);
-        }
-        else
-        {
-            m_trackedBufCountNonRef = 0;
-        }
-        m_waitForTrackedBuffer = m_trackedBufCountNonRef >= CODEC_NUM_NON_REF_BUFFERS;
-
-        m_trackedBufCurrIdx = (m_trackedBufCurrIdx + 1) % CODEC_NUM_NON_REF_BUFFERS;
-        index = CODEC_NUM_REF_BUFFERS + m_trackedBufCurrIdx;
-    }
-
-    // update the last 3 buffer index
-    m_trackedBufAnteIdx = m_trackedBufPenuIdx;
-    m_trackedBufPenuIdx = m_trackedBufLastIdx;
-    m_trackedBufLastIdx = index;
-    m_trackedBuffer[index].ucSurfIndex7bits = m_currReconstructedPic.FrameIdx;
-
-    return index;
-}
-
-void CodechalEncoderState::TrackedBufferReleaseSlot(
-    uint8_t bufIndex)
-{
-    CODECHAL_ENCODE_FUNCTION_ENTER;
-    
-    PCODEC_TRACKED_BUFFER trackedBuffer = &m_trackedBuffer[bufIndex];
-
-    // free MbCode
-    m_osInterface->pfnFreeResource(
-        m_osInterface,
-        &trackedBuffer->resMbCodeBuffer);
-
-    // free MvData
-    m_osInterface->pfnFreeResource(
-        m_osInterface,
-        &trackedBuffer->resMvDataBuffer);
-
-    // free DsRecon VDEnc surface
-    m_osInterface->pfnFreeResource(
-        m_osInterface,
-        &trackedBuffer->sVDEncScaled4xSurface.OsResource);
-
-    m_osInterface->pfnFreeResource(
-        m_osInterface,
-        &trackedBuffer->sVDEncScaled8xSurface.OsResource);
-
-    // this slot can now be re-used
-    trackedBuffer->ucSurfIndex7bits = PICTURE_MAX_7BITS;
-
-    return;
-}
-
-void CodechalEncoderState::TrackedBufferReleaseResources()
-{
-    CODECHAL_ENCODE_FUNCTION_ENTER;
-
-    for(uint8_t i = 0; i < CODEC_NUM_TRACKED_BUFFERS; i++)
-    {
-        TrackedBufferReleaseSlot(i);
-    }
-
-    return;
-}
-
 void CodechalEncoderState::FreeResources()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
@@ -2277,6 +1959,24 @@ void CodechalEncoderState::FreeResources()
     // Release eStatus buffer
     if (!Mos_ResourceIsNull(&m_encodeStatusBuf.resStatusBuffer))
     {
+        MOS_LOCK_PARAMS lockFlags;
+        MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+        lockFlags.ReadOnly = true;
+
+        uint8_t* data = (uint8_t*)m_osInterface->pfnLockResource(
+            m_osInterface,
+            (&m_encodeStatusBuf.resStatusBuffer),
+            &lockFlags);
+
+        EncodeStatus* dataStatus = nullptr;
+
+        for (int i = 0; i < CODECHAL_ENCODE_STATUS_NUM; i++)
+        {
+            uint32_t baseOffset = (i * m_encodeStatusBuf.dwReportSize + sizeof(uint32_t) * 2);  // encodeStatus is offset by 2 DWs in the resource
+            dataStatus = (EncodeStatus*)(data + baseOffset);
+            MOS_FreeMemory(dataStatus->sliceReport.pSliceSize);
+        }
+
         m_osInterface->pfnUnlockResource(
             m_osInterface,
             &(m_encodeStatusBuf.resStatusBuffer));
@@ -2344,17 +2044,14 @@ void CodechalEncoderState::FreeResources()
             }
         }
     }
-
-    // release tracked buffer/resource
-    TrackedBufferReleaseResources();
-
+#ifndef _FULL_OPEN_SOURCE
     // release CSC Downscaling kernel resources
     if (m_cscDsState)
     {
         MOS_Delete(m_cscDsState);
         m_cscDsState = nullptr;
     }
-
+#endif
     if (m_encoderGenState)
     {
         MOS_Delete(m_encoderGenState);
@@ -2458,9 +2155,14 @@ void CodechalEncoderState::Destroy()
         m_mmcState = nullptr;
     }
 
+    MOS_Delete(m_allocator);
+    m_allocator = nullptr;
+
+    MOS_Delete(m_trackedBuf);
+    m_trackedBuf = nullptr;
+
     // Release encoder resources
     FreeResources();
-    DestroyMDFResources();
     return;
 }
 
@@ -2719,6 +2421,9 @@ MOS_STATUS CodechalEncoderState::AddMediaVfeCmd(
         vfeParams.Scoreboard.ScoreboardDelta[7].y = 0xE;
     }
 
+    if (MEDIA_IS_WA(m_waTable, WaUseStallingScoreBoard))
+        vfeParams.Scoreboard.ScoreboardType = 0;
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_renderEngineInterface->AddMediaVfeCmd(cmdBuffer, &vfeParams));
 
     return MOS_STATUS_SUCCESS;
@@ -2797,6 +2502,7 @@ MOS_STATUS CodechalEncoderState::SendGenericKernelCmds(
     stateBaseAddrParams.dwDynamicStateSize = params->pKernelState->m_dshRegion.GetHeapSize();
     stateBaseAddrParams.presInstructionBuffer = ish;
     stateBaseAddrParams.dwInstructionBufferSize = params->pKernelState->m_ishRegion.GetHeapSize();
+    stateBaseAddrParams.mocs4InstructionCache = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ELLC_LLC_L3].Value;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_renderEngineInterface->AddStateBaseAddrCmd(cmdBuffer, &stateBaseAddrParams));
 
@@ -2824,7 +2530,7 @@ MOS_STATUS CodechalEncoderState::SendGenericKernelCmds(
 // Refer to layout of EncodeBRCPAKStatistics_g7
 MOS_STATUS CodechalEncoderState::ReadBrcPakStatistics(
     PMOS_COMMAND_BUFFER cmdBuffer,
-    PCODECHAL_ENCODE_READ_BRC_PAK_STATS_PARAMS params)
+    EncodeReadBrcPakStatsParams* params)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -3917,21 +3623,18 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
 
                         /*CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_DbgDumpEncode1Dbuffer(
                             m_debugInterface,
-                            pEncoder));
-
-                        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_DbgDumpEncodeFeiPreprocOutput(
-                            m_debugInterface,
                             pEncoder));*/
+
                         // dump EncodeFeiPreproc
-             /*           CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-                                CodecHal_PictureIsBottomField(m_currOriginalPic) ? &pPreEncParams->resStatsBotFieldBuffer
-                                : &pPreEncParams->resStatsBotFieldBuffer,
+                        FeiPreEncParams PreEncParams;
+                        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+                                CodecHal_PictureIsBottomField(m_currOriginalPic) ? &PreEncParams.resStatsBotFieldBuffer
+                                : &PreEncParams.resStatsBotFieldBuffer,
                                 CodechalDbgAttr::attrOutput,
                                 "MbStats",
                                 m_picWidthInMb *m_frameFieldHeightInMb * 64,
                                 CodecHal_PictureIsBottomField(m_currOriginalPic) ? dwMBVProcStatsBottomFieldOffset : 0,
-                                CODECHAL_MEDIA_STATE_PREPROC));
-                                */
+                                CODECHAL_MEDIA_STATE_PREPROC));                          
                    )
                     encodeStatusReport->CodecStatus = CODECHAL_STATUS_SUCCESSFUL;
                 }
@@ -4116,7 +3819,7 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
 
                         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpData(
                             encodeStatusReport,
-                            sizeof(CODECHAL_ENCODE_STATUS_REPORT),
+                            sizeof(EncodeStatusReport),
                             CodechalDbgAttr::attrStatusReport,
                             "EncodeStatusReport_Buffer"));
 
@@ -4219,7 +3922,7 @@ MOS_STATUS CodechalEncoderState::UserFeatureKeyReport()
     userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
     userFeatureWriteData.Value.i32Data = m_hwWalker;
     userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_ENCODE_HW_WALKER_ID;
-    CodecHal_UserFeature_WriteValue(nullptr, &userFeatureWriteData);
+    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
 
     if (m_hwWalker)
     {
@@ -4228,7 +3931,7 @@ MOS_STATUS CodechalEncoderState::UserFeatureKeyReport()
         userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
         userFeatureWriteData.Value.i32Data = m_walkerMode;
         userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_ENCODE_HW_WALKER_MODE_ID;
-        CodecHal_UserFeature_WriteValue(nullptr, &userFeatureWriteData);
+        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
 #endif // _DEBUG || _RELEASE_INTERNAL
     }
 
@@ -4238,28 +3941,30 @@ MOS_STATUS CodechalEncoderState::UserFeatureKeyReport()
         userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
         userFeatureWriteData.Value.i32Data = m_sliceShutdownEnable;
         userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_SLICE_SHUTDOWN_ENABLE_ID;
-        CodecHal_UserFeature_WriteValue(nullptr, &userFeatureWriteData);
+        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
     }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
+#ifndef _FULL_OPEN_SOURCE
     // report encode CSC method
     if (m_cscDsState)
     {
         userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
         userFeatureWriteData.Value.i32Data = m_cscDsState->CscMethod();
         userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_ENCODE_CSC_METHOD_ID;
-        CodecHal_UserFeature_WriteValue(nullptr, &userFeatureWriteData);
+        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
 
         userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
         userFeatureWriteData.Value.u32Data = (uint32_t)m_rawSurface.TileType;
         userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_ENCODE_RAW_TILE_ID;
-        CodecHal_UserFeature_WriteValue(nullptr, &userFeatureWriteData);
+        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
 
         userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
         userFeatureWriteData.Value.u32Data = (uint32_t)m_rawSurface.Format;
         userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_ENCODE_RAW_FORMAT_ID;
-        CodecHal_UserFeature_WriteValue(nullptr, &userFeatureWriteData);
+        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
     }
+#endif
 #endif
 
     return eStatus;
@@ -4346,6 +4051,10 @@ MOS_STATUS CodechalEncoderState::SendPrologWithFrameTracking(
         cmdBuffer->Attributes.dwMediaFrameTrackingAddrOffset   = 0;
     }
 
+#ifdef _MMC_SUPPORTED
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SendPrologCmd(m_miInterface, cmdBuffer, MOS_RCS_ENGINE_USED(gpuContext)));
+#endif
+
     MHW_GENERIC_PROLOG_PARAMS genericPrologParams;
     MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
     genericPrologParams.pOsInterface            = m_osInterface;
@@ -4412,20 +4121,20 @@ MOS_STATUS CodechalEncoderState::ExecuteEnc(
         // These parameters are updated at the DDI level
         if (encodeParams->bMbDisableSkipMapEnabled)
         {
-            CodecHal_GetResourceInfo(m_osInterface, encodeParams->psMbDisableSkipMapSurface);
+            CodecHalGetResourceInfo(m_osInterface, encodeParams->psMbDisableSkipMapSurface);
         }
 
         CODECHAL_ENCODE_CHK_NULL_RETURN(encodeParams->psRawSurface);
-        CodecHal_GetResourceInfo(m_osInterface, encodeParams->psRawSurface);
+        CodecHalGetResourceInfo(m_osInterface, encodeParams->psRawSurface);
         if (encodeParams->bMbQpDataEnabled)
         {
-            CodecHal_GetResourceInfo(m_osInterface, encodeParams->psMbQpDataSurface);
+            CodecHalGetResourceInfo(m_osInterface, encodeParams->psMbQpDataSurface);
         }
 
         if (m_standard != CODECHAL_JPEG)
         {
             CODECHAL_ENCODE_CHK_NULL_RETURN(encodeParams->psReconSurface);
-            CodecHal_GetResourceInfo(m_osInterface, encodeParams->psReconSurface);
+            CodecHalGetResourceInfo(m_osInterface, encodeParams->psReconSurface);
         }
 
         m_encodeParams = *encodeParams;
@@ -4451,6 +4160,11 @@ MOS_STATUS CodechalEncoderState::ExecuteEnc(
 
         CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(InitializePicture(m_encodeParams),
             "Encoding initialization failed.");
+
+        if (m_newSeq)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(CheckResChangeAndCsc());
+        }
 
         if (FRAME_SKIP_NORMAL == m_skipFrameFlag)
         {
@@ -4496,7 +4210,6 @@ MOS_STATUS CodechalEncoderState::ExecuteEnc(
 
         CODECHAL_ENCODE_CHK_NULL_RETURN(m_currRefList);
 
-        // allocate tracked surface/buffer: Csc/DS/MbCode/MvData
         if (CODECHAL_JPEG != m_standard &&  m_firstField)
         {
             for (int i = 0; i < m_currRefList->ucNumRef; i++)
@@ -4508,54 +4221,32 @@ MOS_STATUS CodechalEncoderState::ExecuteEnc(
             }
 
             // clear flags
-            m_waitForTrackedBuffer =
-                m_currRefList->b2xScalingUsed =
-                m_currRefList->b4xScalingUsed =
-                m_currRefList->b16xScalingUsed =
-                m_currRefList->b32xScalingUsed = false;
+            m_currRefList->b2xScalingUsed =
+            m_currRefList->b4xScalingUsed =
+            m_currRefList->b16xScalingUsed =
+            m_currRefList->b32xScalingUsed = false;
 
-            // find out tracked buffer index
-            m_currRefList->ucScalingIdx = m_currScalingIdx = TrackedBufferLookUpBufIndex(
-                m_currRefList->RefList,
-                m_currRefList->ucNumRef,
-                m_currRefList->bUsedAsRef);
-            CODECHAL_ENCODE_NORMALMESSAGE("currFrame = %d, currRef = %d, ucNumRef = %d, usedAsRef = %d, scaling index = %d",
-                m_currOriginalPic.FrameIdx, m_currReconstructedPic.FrameIdx,
-                m_currRefList->ucNumRef, m_currRefList->bUsedAsRef, m_currScalingIdx);
+            // allocate tracked buffer for current frame
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_trackedBuf->AllocateForCurrFrame());
+            m_currRefList->ucScalingIdx = m_currScalingIdx = m_trackedBuf->GetCurrIndex();
 
-            // allocate MbCode/MvData
-            if (PICTURE_INVALID == m_currMbCodeIdx)
+            if (m_trackedBuf->IsMbCodeAllocationNeeded())
             {
                 // MbCode/MvData buffer can be tracked using the same index as DS surface
-                m_currRefList->ucMbCodeIdx = m_currMbCodeIdx = m_currScalingIdx;
+                m_currRefList->ucMbCodeIdx = m_currMbCodeIdx = m_trackedBuf->GetCurrIndexMbCode();
 
-                CODECHAL_ENCODE_MODS_CHK_COND(
-                    m_currMbCodeIdx >= CODEC_NUM_TRACKED_BUFFERS,
-                    "No MbCode buffer is available!");
-
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(TrackedBufferAllocateMbCodeResources(m_currMbCodeIdx));
-
-                // for non-AVC codec, MbCode and MvData surface are combined, this function won't be called
-                if (m_mvDataSize)
+                m_resMbCodeSurface = m_currRefList->resRefMbCodeBuffer = *m_trackedBuf->GetCurrMbCodeBuffer();
+                if (m_trackedBuf->GetCurrMvDataBuffer())
                 {
-                    CODECHAL_ENCODE_CHK_STATUS_RETURN(TrackedBufferAllocateMvDataResources(m_currMbCodeIdx));
+                    m_resMvDataSurface = m_currRefList->resRefMvDataBuffer = *m_trackedBuf->GetCurrMvDataBuffer();
                 }
-
-                m_resMbCodeSurface =
-                    m_currRefList->resRefMbCodeBuffer = m_trackedBuffer[m_currMbCodeIdx].resMbCodeBuffer;
-                m_resMvDataSurface =
-                    m_currRefList->resRefMvDataBuffer = m_trackedBuffer[m_currMbCodeIdx].resMvDataBuffer;
             }
             else
             {
                 CODECHAL_ENCODE_NORMALMESSAGE("App provides MbCode and MvData buffer!");
             }
 
-            // allocate VDEnc downscaled recon surface
-            if (m_vdencEnabled)
-            {
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(TrackedBufferAllocateDsReconSurfacesVdenc(m_currScalingIdx));
-            }
+            m_trackedBuf->SetAllocationFlag(false);
         }
 
         if (CodecHalUsesRenderEngine(m_codecFunction, m_standard))
@@ -4567,15 +4258,13 @@ MOS_STATUS CodechalEncoderState::ExecuteEnc(
             // set all status reports to completed state
             InitStatusReport();
 
-            // wait to re-use tracked buffer
+            // on-demand sync for tracked buffer
             syncParams = g_cInitSyncParams;
             syncParams.GpuContext = m_renderContext;
             syncParams.bReadOnly = false;
-
-            PMOS_RESOURCE resSyncObjectReuseTrackedBuffer = &m_resMbCodeSurface;
-            if (m_waitForTrackedBuffer && !Mos_ResourceIsNull(resSyncObjectReuseTrackedBuffer))
+            if (m_trackedBuf->GetWait() && !Mos_ResourceIsNull(&m_resMbCodeSurface))
             {
-                syncParams.presSyncResource = resSyncObjectReuseTrackedBuffer;
+                syncParams.presSyncResource = &m_resMbCodeSurface;
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnResourceWait(m_osInterface, &syncParams));
                 m_osInterface->pfnSetResourceSyncTag(m_osInterface, &syncParams);
             }
@@ -4639,6 +4328,30 @@ MOS_STATUS CodechalEncoderState::ExecuteEnc(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(Mos_Solo_PostProcessEncode(m_osInterface, &m_resBitstreamBuffer, &m_reconSurface));
     }
     return eStatus;
+}
+
+uint8_t CodechalEncoderState::GetNumBrcPakPasses(uint16_t usBRCPrecision)
+{
+    uint8_t numBRCPAKPasses = CODECHAL_ENCODE_BRC_DEFAULT_NUM_PASSES;
+
+    switch (usBRCPrecision)
+    {
+    case 0:
+    case 2:     numBRCPAKPasses = CODECHAL_ENCODE_BRC_DEFAULT_NUM_PASSES;
+        break;
+
+    case 1:     numBRCPAKPasses = CODECHAL_ENCODE_BRC_MINIMUM_NUM_PASSES;
+        break;
+
+    case 3:     numBRCPAKPasses = CODECHAL_ENCODE_BRC_MAXIMUM_NUM_PASSES;
+        break;
+
+    default:    CODECHAL_ENCODE_ASSERT("Invalid BRC Precision value in Pic Params.");
+        numBRCPAKPasses = CODECHAL_ENCODE_BRC_DEFAULT_NUM_PASSES;
+        break;
+    }
+
+    return numBRCPAKPasses;
 }
 
 CodechalEncoderGenState::CodechalEncoderGenState(CodechalEncoderState* encoder)
@@ -4747,13 +4460,14 @@ CodechalEncoderState::CodechalEncoderState(
 
     MOS_ZeroMemory(&m_meBindingTable, sizeof(m_meBindingTable));
 
-    for (auto i = 0; i < CODEC_NUM_TRACKED_BUFFERS; i++)
-    {
-        MOS_ZeroMemory(&m_trackedBuffer[i], sizeof(m_trackedBuffer[i]));  // Csc/Ds/MbCode/MvData surface/buffer
-    }
     MOS_ZeroMemory(&m_vdencMeKernelBindingTable, sizeof(m_vdencMeKernelBindingTable));
 
     MOS_ZeroMemory(&m_vdencStreaminKernelBindingTable, sizeof(m_vdencStreaminKernelBindingTable));
+}
+
+CodechalEncoderState::~CodechalEncoderState()
+{
+    DestroyMDFResources();
 }
 
 #if USE_CODECHAL_DEBUG_TOOL

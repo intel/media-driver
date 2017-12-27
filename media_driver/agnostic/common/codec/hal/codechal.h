@@ -26,7 +26,6 @@
 #ifndef __CODECHAL_H__
 #define __CODECHAL_H__
 
-#include "codechal_common.h"
 #include "mos_os.h"
 #include "mos_util_debug.h"
 #include "codec_def_common.h"
@@ -42,9 +41,8 @@ extern "C" {
 //-----------------------------------------------------------------------------
 class CodechalDebugInterface;
 class CodechalDecode;
-typedef struct _CODECHAL_ENCODER            CODECHAL_ENCODER, *PCODECHAL_ENCODER;
-
 class CodechalEncoderState;
+class CodechalHwInterface;
 
 // Forward Declarations
 class USERMODE_DEVICE_CONTEXT;
@@ -60,12 +58,12 @@ class CodechalCencDecode;
     userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;                                              \
     userFeatureWriteData.Value.i32Data = surface.bCompressible;                                                \
     userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_MMC_ENC_RECON_COMPRESSIBLE_ID;                        \
-    CodecHal_UserFeature_WriteValue(nullptr, &userFeatureWriteData);                                               \
+    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);                                               \
     \
     userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;                                              \
     userFeatureWriteData.Value.i32Data = surface.MmcState;                                                     \
     userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_MMC_ENC_RECON_COMPRESSMODE_ID;                        \
-    CodecHal_UserFeature_WriteValue(nullptr, &userFeatureWriteData);                                               \
+    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);                                               \
 }
 #endif
 
@@ -81,7 +79,7 @@ do                                                                              
         __MEDIA_USER_FEATURE_VALUE_NUMBER_OF_CODEC_DEVICES_ON_VDBOX1_ID);                                           \
                                                                                                                 \
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));                                                  \
-    CodecHal_UserFeature_ReadValue(                                                                             \
+    MOS_UserFeature_ReadValue_ID(                                                                             \
         nullptr,                                                                                                   \
         valueID,                                                                                                \
         &userFeatureData);                                                                                      \
@@ -93,7 +91,7 @@ do                                                                              
             &userFeatureData,                                                                                   \
             &userFeatureWriteData.Value,                                                                        \
             MOS_USER_FEATURE_VALUE_TYPE_INT32);                                                                 \
-    CodecHal_UserFeature_WriteValue(nullptr, &userFeatureWriteData);                                               \
+    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);                                               \
 } while (0)
 
 #define CODECHAL_UPDATE_USED_VDBOX_ID_USER_FEATURE(instanceId)                                                  \
@@ -105,7 +103,7 @@ do                                                                              
                                                                                                                 \
     valueID = __MEDIA_USER_FEATURE_VALUE_VDBOX_ID_USED;                                                             \
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));                                                  \
-    CodecHal_UserFeature_ReadValue(                                                                             \
+    MOS_UserFeature_ReadValue_ID(                                                                             \
         nullptr,                                                                                                   \
         valueID,                                                                                                \
         &userFeatureData);                                                                                      \
@@ -117,7 +115,7 @@ do                                                                              
             &userFeatureData,                                                                                   \
             &userFeatureWriteData.Value,                                                                        \
             MOS_USER_FEATURE_VALUE_TYPE_INT32);                                                                 \
-    CodecHal_UserFeature_WriteValue(nullptr, &userFeatureWriteData);                                               \
+    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);                                               \
 } while (0)
 
 typedef struct CODECHAL_SSEU_SETTING
@@ -217,14 +215,14 @@ typedef struct _CODECHAL_SETTINGS
     uint32_t                Standard;                       //!< Codec standard requested.
     uint8_t                 ucLumaChromaDepth;              //!< Applies currently to HEVC only, specifies bit depth as either 8 or 10 bits.
     uint8_t                 ucChromaFormat;                 //!< Applies currently to HEVC/VP9 only, specifies chromaformat as 420/422/444.
-    bool                    bIntelProprietaryFormatInUse;   //!< Applies to decode only, application is using a Intel proprietary entrypoint.
+    bool                    bIntelEntrypointInUse;          //!< Applies to decode only, application is using a Intel-specific entrypoint.
     bool                    bShortFormatInUse;              //!< Applies to decode only, application is passing short format slice data.
 
     bool                    bDisableDecodeSyncLock;         //!< Flag to indicate if Decode O/P can be locked for sync.
     void*                   pCpParams;                      //!< Reserved
 
     // Decode Downsampling
-    bool                            bDownsamplingHinted;    //!< Apples to decode only, application may request field scaling.
+    bool                            bDownsamplingHinted;    //!< Applies to decode only, application may request field scaling.
 } CODECHAL_SETTINGS, *PCODECHAL_SETTINGS;
 
 /*! \brief Settings used to create the CodecHal device.
@@ -369,7 +367,7 @@ protected:
     //! \details  This interface is only valid for release internal and debug builds.
     CodechalDebugInterface  *m_debugInterface   = nullptr;
 
-    /*! \brief Decrypt interface used by Huc, such as 2nd level BB, extra surface to eStatus register.
+    /*! \brief CENC interface used by Huc, such as 2nd level BB, extra surface to eStatus register.
     *
     *   The decypt interface is only valid for a particular codec standard/funciton/mode combination and may not be re-used for something else. If pDecoder is valid, pEncoder should be nullptr.
     */

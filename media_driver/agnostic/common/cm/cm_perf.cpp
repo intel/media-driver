@@ -25,6 +25,7 @@
 //!
 
 #include <iostream>
+#include <cm_debug.h>
 #include "cm_log.h"
 
 #if CM_LOG_ON

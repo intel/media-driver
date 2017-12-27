@@ -122,7 +122,7 @@ typedef enum
     MOS_CP_SUBCOMP_CODEC            = 5,             // Content Protection portions of the Codec UMD
     MOS_CP_SUBCOMP_UMD_CONTEXT      = 6,             // Content Protection portions of UMD device context
     MOS_CP_SUBCOMP_CMD_BUFFER       = 7,             // Content Protection Command buffer class
-    MOS_CP_SUBCOMP_CRYPTOSESSION    = 8,             // The Cryptosession classes
+    MOS_CP_SUBCOMP_SECURESESSION    = 8,             // The secure session classes
     MOS_CP_SUBCOMP_AUTHCHANNEL      = 9,             // The AuthChannel classes
     MOS_CP_SUBCOMP_DLL              = 10,            // CP DLL classes
     MOS_CP_SUBCOMP_LIB              = 11,            // Lib classes
@@ -518,8 +518,7 @@ void _MOS_Assert(
     if (_condition)                                                                         \
     {                                                                                       \
         MOS_ASSERTMESSAGE(_compID, _subCompID,  _message, ##__VA_ARGS__);                   \
-        eStatus = MOS_STATUS_INVALID_PARAMETER;                                             \
-        return eStatus;                                                                     \
+        return MOS_STATUS_INVALID_PARAMETER;                                                \
     }                                                                                       \
 }
 

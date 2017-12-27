@@ -41,6 +41,7 @@ struct EncodeCommonPar
 
     // HME Params
     uint8_t                     superCombineDist;
+    uint8_t                     meMethod;
     bool                        superHME;
     bool                        ultraHME;
     bool                        streamInEnable;
@@ -80,6 +81,8 @@ public:
     //!           16x ME enabled flag
     //! \param    [in] is32xMeEnabled
     //!           32x ME enabled flag
+    //! \param    [in] meMethod
+    //!           ME method
     //! \param    [in] *cmd
     //!           pointer to curbe data
     //!
@@ -87,17 +90,15 @@ public:
     //!           MOS_STATUS_SUCCESS if success
     //!
     virtual MOS_STATUS PopulateHmeParam(
-        bool is16xMeEnabled,
-        bool is32xMeEnabled,
-        void *curbe) { return MOS_STATUS_SUCCESS; }
+        bool    is16xMeEnabled,
+        bool    is32xMeEnabled,
+        uint8_t meMethod,
+        void    *curbe) { return MOS_STATUS_SUCCESS; }
 
     EncodeCommonPar             *commonPar = nullptr;                         //!< Pointer to common PAR;
 
     // Control flags
-    bool                        isSeqDumped = false;                          //!< Is sequence dumped;
-    bool                        isISliceDumped = false;                       //!< Is I slice dumped;
-    bool                        isPSliceDumped = false;                       //!< Is P slice dumped;
-    bool                        isBSliceDumped = false;                       //!< Is B slice dumped;
+    bool                        isConstDumped = false;                        //!< Is const data dumped;
 
 protected:
     //!

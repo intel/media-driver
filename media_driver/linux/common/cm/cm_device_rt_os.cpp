@@ -28,7 +28,7 @@
 
 #include "cm_hal.h"
 #include "cm_surface_manager.h"
-#include "cm_def.h"
+#include "cm_mem.h"
 #include "cm_surface_2d_rt.h"
 
 //*-----------------------------------------------------------------------------
@@ -163,7 +163,7 @@ CM_RT_API int32_t CmDeviceRT::DestroySurface(CmSurface2D* & pSurface)
     CmSurface2DRT *pSurfaceRT = static_cast<CmSurface2DRT *>(pSurface);
     status = m_pSurfaceMgr->DestroySurface( pSurfaceRT, APP_DESTROY);
 
-    if (status != CM_FAILURE) //CM_SURFACE_IN_USE, or  CM_SURFACE_CACHED may be returned, which should be treated as SUCCESS.
+    if (status != CM_FAILURE) //CM_SURFACE_IN_USE may be returned, which should be treated as SUCCESS.
     {
         pSurface = nullptr;
         return CM_SUCCESS;
@@ -258,6 +258,7 @@ int32_t CmDeviceRT::LoadJITDll()
         m_hJITDll = dlopen( "libigc.so", RTLD_LAZY );
         if (nullptr == m_hJITDll)
         {
+            CM_NORMALMESSAGE("Warning: Failed to load IGC library, will try JIT library.");
             if (sizeof(void *) == 4)  //32-bit
             {
                 m_hJITDll = dlopen( "igfxcmjit32.so", RTLD_LAZY );
@@ -270,7 +271,7 @@ int32_t CmDeviceRT::LoadJITDll()
         if (nullptr == m_hJITDll)
         {
             result = CM_JITDLL_LOAD_FAILURE;
-            CM_ASSERTMESSAGE("Error: Failed to get JIT version function due to loading JIT dll failure.");
+            CM_ASSERTMESSAGE("Error: Failed to load either IGC or JIT library.");
             return result;
         }
         if (nullptr == m_fJITCompile || nullptr == m_fFreeBlock || nullptr == m_fJITVersion)
@@ -283,7 +284,7 @@ int32_t CmDeviceRT::LoadJITDll()
         if ((NULL==m_fJITCompile) || (NULL==m_fFreeBlock) || (NULL==m_fJITVersion))
         {
             result = CM_JITDLL_LOAD_FAILURE;
-            CM_ASSERTMESSAGE("Error: Failed to get JIT version function due to loading JIT dll failure.");
+            CM_ASSERTMESSAGE("Error: Failed to get JIT functions.");
             return result;
         }
     }

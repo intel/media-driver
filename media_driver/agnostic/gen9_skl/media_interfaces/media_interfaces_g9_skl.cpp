@@ -45,6 +45,7 @@ extern template class MediaInterfacesFactory<MosUtilDevice>;
 extern template class MediaInterfacesFactory<VphalDevice>;
 extern template class MediaInterfacesFactory<RenderHalDevice>;
 extern template class MediaInterfacesFactory<Nv12ToP010Device>;
+extern template class MediaInterfacesFactory<DecodeHistogramDevice>;
 
 static bool sklRegisteredVphal =
     MediaInterfacesFactory<VphalDevice>::
@@ -311,7 +312,7 @@ MOS_STATUS CodechalInterfacesG9Skl::Initialize(
     #ifdef _HYBRID_HEVC_DECODE_SUPPORTED
             if (info->bIsHybridCodec)
             {
-                m_codechalDevice = MOS_New(CODECHAL_DECODE_HYBRID_HEVC_STATE, hwInterface, debugInterface, info);
+                m_codechalDevice = MOS_New(CodechalDecodeHybridHevcState, hwInterface, debugInterface, info);
             }
             else
     #endif
@@ -327,7 +328,7 @@ MOS_STATUS CodechalInterfacesG9Skl::Initialize(
     #ifdef _HYBRID_VP9_DECODE_SUPPORTED
             if (info->bIsHybridCodec)
             {
-                m_codechalDevice = MOS_New(CODECHAL_DECODE_HYBRID_VP9_STATE, hwInterface, debugInterface, info);
+                m_codechalDevice = MOS_New(CodechalDecodeHybridVp9State, hwInterface, debugInterface, info);
             }
             else
     #endif
@@ -422,11 +423,13 @@ MOS_STATUS CodechalInterfacesG9Skl::Initialize(
 
             encoder->m_kernelBase = (uint8_t*)IGCODECKRN_G9;
 
+#ifndef _FULL_OPEN_SOURCE
             // Create CSC and Downscaling interface
             if ((encoder->m_cscDsState = MOS_New(Encode::CscDs, encoder)) == nullptr)
             {
                 return MOS_STATUS_INVALID_PARAMETER;
             }
+#endif
         }
         else
 #endif
@@ -456,11 +459,13 @@ MOS_STATUS CodechalInterfacesG9Skl::Initialize(
                 m_codechalDevice = encoder;
             }
 
+#ifndef _FULL_OPEN_SOURCE
             // Create CSC and Downscaling interface
             if ((encoder->m_cscDsState = MOS_New(Encode::CscDs, encoder)) == nullptr)
             {
                 return MOS_STATUS_INVALID_PARAMETER;
             }
+#endif
         }
         else
 #endif
@@ -584,6 +589,25 @@ MOS_STATUS RenderHalInterfacesG9Skl::Initialize()
         MHW_ASSERTMESSAGE("Create Render Hal interfaces failed.")
         return MOS_STATUS_NO_SPACE;
     }
+    return MOS_STATUS_SUCCESS;
+}
+
+static bool sklRegisteredDecodeHistogram =
+MediaInterfacesFactory<DecodeHistogramDevice>::
+RegisterHal<DecodeHistogramDeviceG9Skl>((uint32_t)IGFX_SKYLAKE);
+
+MOS_STATUS DecodeHistogramDeviceG9Skl::Initialize(
+    CodechalHwInterface       *hwInterface,
+    PMOS_INTERFACE            osInterface)
+{
+    m_decodeHistogramDevice = MOS_New(DecodeHistogramVebox, hwInterface, osInterface);
+
+    if (m_decodeHistogramDevice == nullptr)
+    {
+        MHW_ASSERTMESSAGE("Create vebox decode histogram  interfaces failed.")
+            return MOS_STATUS_NO_SPACE;
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 

@@ -32,6 +32,10 @@ if(${GEN9_Supported} STREQUAL "yes")
     media_include_subdirectory(gen9)
 endif()
 
+if(${GEN9_BXT_Supported} STREQUAL "yes")
+    media_include_subdirectory(gen9_bxt)
+endif()
+
 if(${GEN9_SKL_Supported} STREQUAL "yes")
     media_include_subdirectory(gen9_skl)
 endif()

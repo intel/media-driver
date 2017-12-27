@@ -108,7 +108,7 @@ public:
     //!           media state surface format
     //!
     VdencSurfaceFormat MosFormatToVdencSurfaceFormat(
-        MOS_FORMAT Format);
+        MOS_FORMAT format);
 
     MOS_STATUS AddVdencPipeModeSelectCmd(
         PMOS_COMMAND_BUFFER                  cmdBuffer,

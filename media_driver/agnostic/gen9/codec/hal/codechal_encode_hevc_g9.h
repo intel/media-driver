@@ -29,6 +29,39 @@
 
 #include "codechal_encode_hevc.h"
 
+enum CODECHAL_ENCODE_BINDING_TABLE_OFFSET_ME_CM_G9
+{
+    CODECHAL_ENCODE_ME_MV_DATA_SURFACE_CM_G9 = 0,
+    CODECHAL_ENCODE_16xME_MV_DATA_SURFACE_CM_G9 = 1,
+    CODECHAL_ENCODE_32xME_MV_DATA_SURFACE_CM_G9 = 1,
+    CODECHAL_ENCODE_ME_DISTORTION_SURFACE_CM_G9 = 2,
+    CODECHAL_ENCODE_ME_BRC_DISTORTION_CM_G9 = 3,
+    CODECHAL_ENCODE_ME_RESERVED0_CM_G9 = 4,
+    CODECHAL_ENCODE_ME_CURR_FOR_FWD_REF_CM_G9 = 5,
+    CODECHAL_ENCODE_ME_FWD_REF_IDX0_CM_G9 = 6,
+    CODECHAL_ENCODE_ME_RESERVED1_CM_G9 = 7,
+    CODECHAL_ENCODE_ME_FWD_REF_IDX1_CM_G9 = 8,
+    CODECHAL_ENCODE_ME_RESERVED2_CM_G9 = 9,
+    CODECHAL_ENCODE_ME_FWD_REF_IDX2_CM_G9 = 10,
+    CODECHAL_ENCODE_ME_RESERVED3_CM_G9 = 11,
+    CODECHAL_ENCODE_ME_FWD_REF_IDX3_CM_G9 = 12,
+    CODECHAL_ENCODE_ME_RESERVED4_CM_G9 = 13,
+    CODECHAL_ENCODE_ME_FWD_REF_IDX4_CM_G9 = 14,
+    CODECHAL_ENCODE_ME_RESERVED5_CM_G9 = 15,
+    CODECHAL_ENCODE_ME_FWD_REF_IDX5_CM_G9 = 16,
+    CODECHAL_ENCODE_ME_RESERVED6_CM_G9 = 17,
+    CODECHAL_ENCODE_ME_FWD_REF_IDX6_CM_G9 = 18,
+    CODECHAL_ENCODE_ME_RESERVED7_CM_G9 = 19,
+    CODECHAL_ENCODE_ME_FWD_REF_IDX7_CM_G9 = 20,
+    CODECHAL_ENCODE_ME_RESERVED8_CM_G9 = 21,
+    CODECHAL_ENCODE_ME_CURR_FOR_BWD_REF_CM_G9 = 22,
+    CODECHAL_ENCODE_ME_BWD_REF_IDX0_CM_G9 = 23,
+    CODECHAL_ENCODE_ME_RESERVED9_CM_G9 = 24,
+    CODECHAL_ENCODE_ME_BWD_REF_IDX1_CM_G9 = 25,
+    CODECHAL_ENCODE_ME_VDENC_STREAMIN_CM_G9 = 26,
+    CODECHAL_ENCODE_ME_NUM_SURFACES_CM_G9 = 27
+};
+
 //! Intra transform type
 enum
 {
@@ -37,6 +70,82 @@ enum
     INTRA_TRANSFORM_HAAR = 2,
     INTRA_TRANSFORM_HADAMARD = 3
 };
+
+// Downscaling 2x kernels for Ultra HME
+struct MEDIA_OBJECT_DOWNSCALING_2X_STATIC_DATA_G9
+{
+    union {
+        struct {
+            uint32_t       PicWidth : MOS_BITFIELD_RANGE(0, 15);
+            uint32_t       PicHeight : MOS_BITFIELD_RANGE(16, 31);
+        };
+        uint32_t Value;
+    } DW0;
+
+    union {
+        struct {
+            uint32_t       Reserved;
+        };
+        uint32_t Value;
+    } DW1;
+
+    union {
+        struct {
+            uint32_t       Reserved;
+        };
+        uint32_t Value;
+    } DW2;
+
+    union {
+        struct {
+            uint32_t       Reserved;
+        };
+        uint32_t Value;
+    } DW3;
+
+    union {
+        struct {
+            uint32_t       Reserved;
+        };
+        uint32_t Value;
+    } DW4;
+
+    union {
+        struct {
+            uint32_t       Reserved;
+        };
+        uint32_t Value;
+    } DW5;
+
+    union {
+        struct {
+            uint32_t       Reserved;
+        };
+        uint32_t Value;
+    } DW6;
+
+    union {
+        struct {
+            uint32_t       Reserved;
+        };
+        uint32_t Value;
+    } DW7;
+
+    union {
+        struct {
+            uint32_t       BTI_Src_Y;
+        };
+        uint32_t Value;
+    } DW8;
+
+    union {
+        struct {
+            uint32_t       BTI_Dst_Y;
+        };
+        uint32_t Value;
+    } DW9;
+};
+
 
 //! HEVC encoder intra 32x32 PU mode decision kernel curbe for GEN9
 struct CODECHAL_ENC_HEVC_I_32x32_PU_MODE_DECISION_CURBE_G9
@@ -1769,7 +1878,7 @@ protected:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS Encode32x32_B_IntraCheckKernel();
+    MOS_STATUS Encode32X32BIntraCheckKernel();
 
     //!
     //! \brief    Invoke 16x16 PU SAD computation kernel

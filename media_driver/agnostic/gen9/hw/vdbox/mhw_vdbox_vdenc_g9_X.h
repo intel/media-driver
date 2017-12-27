@@ -62,22 +62,34 @@ protected:
     {
         MHW_FUNCTION_ENTER;
 
-        MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
+        MOS_USER_FEATURE_VALUE_DATA userFeatureData;
         MEDIA_FEATURE_TABLE *skuTable = this->m_osInterface->pfnGetSkuTable(this->m_osInterface);
 
         MHW_MI_CHK_NULL(skuTable);
 
-        MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-        UserFeatureData.u32Data = 0;
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        userFeatureData.u32Data = 0;
 
-        UserFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
+        userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
 #if (_DEBUG || _RELEASE_INTERNAL)
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_ROWSTORE_CACHE_DISABLE_ID,
-            &UserFeatureData);
+            &userFeatureData);
 #endif // _DEBUG || _RELEASE_INTERNAL
-        this->m_rowstoreCachingSupported = UserFeatureData.i32Data ? false : true;
+        this->m_rowstoreCachingSupported = userFeatureData.i32Data ? false : true;
+
+        if (this->m_rowstoreCachingSupported)
+        {
+            MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+#if (_DEBUG || _RELEASE_INTERNAL)
+            MOS_UserFeature_ReadValue_ID(
+                nullptr,
+                __MEDIA_USER_FEATURE_VALUE_VDENCROWSTORECACHE_DISABLE_ID,
+                &userFeatureData);
+#endif // _DEBUG || _RELEASE_INTERNAL
+            this->m_vdencRowStoreCache.bSupported = userFeatureData.i32Data ? false : true;
+        }
 
         return MOS_STATUS_SUCCESS;
     }
@@ -89,7 +101,7 @@ protected:
 
         MHW_ASSERT(rowstoreParams);
 
-        if (this->m_vdencRowStoreCache.bSupported)
+        if (this->m_vdencRowStoreCache.bSupported && rowstoreParams->Mode == CODECHAL_ENCODE_MODE_AVC)
         {
             this->m_vdencRowStoreCache.bEnabled = true;
 
@@ -111,8 +123,6 @@ protected:
                 this->m_vdencRowStoreCache.bEnabled = false;
             }
         }
-
-        rowstoreParams->bVdenc = this->m_vdencRowStoreCache.bEnabled;
 
         return MOS_STATUS_SUCCESS;
     }
@@ -189,7 +199,7 @@ protected:
         PMOS_COMMAND_BUFFER              cmdBuffer,
         PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS  params)
     {
-        MOS_SURFACE resDetails;
+        MOS_SURFACE details;
         uint8_t     refIdx;
 
         MHW_FUNCTION_ENTER;
@@ -200,7 +210,7 @@ protected:
 
         typename TVdencCmds::VDENC_PIPE_BUF_ADDR_STATE_CMD cmd;
 
-        MOS_MEMCOMP_STATE   resMmcMode = MOS_MEMCOMP_DISABLED;
+        MOS_MEMCOMP_STATE   mmcMode = MOS_MEMCOMP_DISABLED;
         MHW_RESOURCE_PARAMS resourceParams;
         MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
         resourceParams.dwLsbNum        = MHW_VDBOX_MFX_GENERAL_STATE_SHIFT;
@@ -209,13 +219,13 @@ protected:
         if (params->psRawSurface != nullptr)
         {
 
-            MHW_MI_CHK_STATUS(this->m_osInterface->pfnGetMemoryCompressionMode(this->m_osInterface, &params->psRawSurface->OsResource, &resMmcMode));
+            MHW_MI_CHK_STATUS(this->m_osInterface->pfnGetMemoryCompressionMode(this->m_osInterface, &params->psRawSurface->OsResource, &mmcMode));
 
             cmd.OriginalUncompressedPicture.PictureFields.DW0.MemoryCompressionEnable =
-                resMmcMode != MOS_MEMCOMP_DISABLED ? TVdencCmds::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE 
+                mmcMode != MOS_MEMCOMP_DISABLED ? TVdencCmds::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE 
                 : TVdencCmds::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_DISABLE;
             cmd.OriginalUncompressedPicture.PictureFields.DW0.MemoryCompressionMode =
-                resMmcMode == MOS_MEMCOMP_HORIZONTAL ? TVdencCmds::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE 
+                mmcMode == MOS_MEMCOMP_HORIZONTAL ? TVdencCmds::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE 
                 : TVdencCmds::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_VERTICALCOMPRESSIONMODE;
             cmd.OriginalUncompressedPicture.PictureFields.DW0.MemoryObjectControlState =
                 this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_ORIGINAL_UNCOMPRESSED_PICTURE_ENCODE].Value;
@@ -296,12 +306,12 @@ protected:
             if (params->presVdencReferences[refIdx])
             {
                 // L0 references
-                MOS_ZeroMemory(&resDetails, sizeof(resDetails));
-                resDetails.Format = Format_Invalid;
-                MHW_MI_CHK_STATUS(this->m_osInterface->pfnGetResourceInfo(this->m_osInterface, params->presVdencReferences[refIdx], &resDetails));
+                MOS_ZeroMemory(&details, sizeof(details));
+                details.Format = Format_Invalid;
+                MHW_MI_CHK_STATUS(this->m_osInterface->pfnGetResourceInfo(this->m_osInterface, params->presVdencReferences[refIdx], &details));
 
                 resourceParams.presResource    = params->presVdencReferences[refIdx];
-                resourceParams.dwOffset        = resDetails.RenderOffset.YUV.Y.BaseOffset;
+                resourceParams.dwOffset        = details.RenderOffset.YUV.Y.BaseOffset;
                 resourceParams.dwLocationInCmd = (refIdx * 3) + 22;
                 resourceParams.bIsWritable     = false;
                 switch (refIdx)
@@ -319,42 +329,42 @@ protected:
                     break;
                 }
 
-                MHW_MI_CHK_STATUS(this->m_osInterface->pfnGetMemoryCompressionMode(this->m_osInterface, resourceParams.presResource, &resMmcMode));
+                MHW_MI_CHK_STATUS(this->m_osInterface->pfnGetMemoryCompressionMode(this->m_osInterface, resourceParams.presResource, &mmcMode));
 
                 switch (refIdx)
                 {
                 case 0:
                     cmd.FwdRef0.PictureFields.DW0.MemoryCompressionEnable =
-                        resMmcMode != MOS_MEMCOMP_DISABLED ? TVdencCmds::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE 
+                        mmcMode != MOS_MEMCOMP_DISABLED ? TVdencCmds::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE 
                         : TVdencCmds::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_DISABLE;
                     cmd.FwdRef0.PictureFields.DW0.MemoryCompressionMode =
-                        resMmcMode == MOS_MEMCOMP_HORIZONTAL ? TVdencCmds::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE 
+                        mmcMode == MOS_MEMCOMP_HORIZONTAL ? TVdencCmds::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE 
                         : TVdencCmds::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_VERTICALCOMPRESSIONMODE;
                     cmd.FwdRef0.PictureFields.DW0.MemoryObjectControlState =
                         this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC].Value;
-                    cmd.FwdRef0.PictureFields.DW0.TiledResourceMode = Mhw_ConvertToTRMode(resDetails.TileType);
+                    cmd.FwdRef0.PictureFields.DW0.TiledResourceMode = Mhw_ConvertToTRMode(details.TileType);
                     break;
                 case 1:
                     cmd.FwdRef1.PictureFields.DW0.MemoryCompressionEnable =
-                        resMmcMode != MOS_MEMCOMP_DISABLED ? TVdencCmds::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE 
+                        mmcMode != MOS_MEMCOMP_DISABLED ? TVdencCmds::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE 
                         : TVdencCmds::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_DISABLE;
                     cmd.FwdRef1.PictureFields.DW0.MemoryCompressionMode =
-                        resMmcMode == MOS_MEMCOMP_HORIZONTAL ? TVdencCmds::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE 
+                        mmcMode == MOS_MEMCOMP_HORIZONTAL ? TVdencCmds::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE 
                         : TVdencCmds::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_VERTICALCOMPRESSIONMODE;
                     cmd.FwdRef1.PictureFields.DW0.MemoryObjectControlState =
                         this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC].Value;
-                    cmd.FwdRef1.PictureFields.DW0.TiledResourceMode = Mhw_ConvertToTRMode(resDetails.TileType);
+                    cmd.FwdRef1.PictureFields.DW0.TiledResourceMode = Mhw_ConvertToTRMode(details.TileType);
                     break;
                 case 2:
                     cmd.FwdRef2.PictureFields.DW0.MemoryCompressionEnable =
-                        resMmcMode != MOS_MEMCOMP_DISABLED ? TVdencCmds::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE 
+                        mmcMode != MOS_MEMCOMP_DISABLED ? TVdencCmds::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE 
                         : TVdencCmds::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_DISABLE;
                     cmd.FwdRef2.PictureFields.DW0.MemoryCompressionMode =
-                        resMmcMode == MOS_MEMCOMP_HORIZONTAL ? TVdencCmds::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE 
+                        mmcMode == MOS_MEMCOMP_HORIZONTAL ? TVdencCmds::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE 
                         : TVdencCmds::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_VERTICALCOMPRESSIONMODE;
                     cmd.FwdRef2.PictureFields.DW0.MemoryObjectControlState =
                         this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC].Value;
-                    cmd.FwdRef2.PictureFields.DW0.TiledResourceMode = Mhw_ConvertToTRMode(resDetails.TileType);
+                    cmd.FwdRef2.PictureFields.DW0.TiledResourceMode = Mhw_ConvertToTRMode(details.TileType);
                     break;
                 default:
                     break;
@@ -370,12 +380,12 @@ protected:
             if ((refIdx <= 1) && params->presVdenc4xDsSurface[refIdx])
             {
                 // 4x DS surface for VDEnc
-                MOS_ZeroMemory(&resDetails, sizeof(resDetails));
-                resDetails.Format = Format_Invalid;
-                MHW_MI_CHK_STATUS(this->m_osInterface->pfnGetResourceInfo(this->m_osInterface, params->presVdenc4xDsSurface[refIdx], &resDetails));
+                MOS_ZeroMemory(&details, sizeof(details));
+                details.Format = Format_Invalid;
+                MHW_MI_CHK_STATUS(this->m_osInterface->pfnGetResourceInfo(this->m_osInterface, params->presVdenc4xDsSurface[refIdx], &details));
 
                 resourceParams.presResource    = params->presVdenc4xDsSurface[refIdx];
-                resourceParams.dwOffset        = resDetails.RenderOffset.YUV.Y.BaseOffset;
+                resourceParams.dwOffset        = details.RenderOffset.YUV.Y.BaseOffset;
                 resourceParams.dwLocationInCmd = (refIdx * 3) + 1;
                 resourceParams.bIsWritable     = false;
                 switch (refIdx)
@@ -390,27 +400,27 @@ protected:
                     break;
                 }
 
-                MHW_MI_CHK_STATUS(this->m_osInterface->pfnGetMemoryCompressionMode(this->m_osInterface, resourceParams.presResource, &resMmcMode));
+                MHW_MI_CHK_STATUS(this->m_osInterface->pfnGetMemoryCompressionMode(this->m_osInterface, resourceParams.presResource, &mmcMode));
 
                 switch (refIdx)
                 {
                 case 0:
                     cmd.DsFwdRef0.PictureFields.DW0.MemoryCompressionEnable =
-                        resMmcMode != MOS_MEMCOMP_DISABLED ? TVdencCmds::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE 
+                        mmcMode != MOS_MEMCOMP_DISABLED ? TVdencCmds::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE 
                         : TVdencCmds::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_DISABLE;
                     cmd.DsFwdRef0.PictureFields.DW0.MemoryCompressionMode =
-                        resMmcMode == MOS_MEMCOMP_HORIZONTAL ? TVdencCmds::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE 
+                        mmcMode == MOS_MEMCOMP_HORIZONTAL ? TVdencCmds::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE 
                         : TVdencCmds::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_VERTICALCOMPRESSIONMODE;
-                    cmd.DsFwdRef0.PictureFields.DW0.TiledResourceMode = Mhw_ConvertToTRMode(resDetails.TileType);
+                    cmd.DsFwdRef0.PictureFields.DW0.TiledResourceMode = Mhw_ConvertToTRMode(details.TileType);
                     break;
                 case 1:
                     cmd.DsFwdRef1.PictureFields.DW0.MemoryCompressionEnable =
-                        resMmcMode != MOS_MEMCOMP_DISABLED ? TVdencCmds::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE 
+                        mmcMode != MOS_MEMCOMP_DISABLED ? TVdencCmds::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE 
                         : TVdencCmds::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_DISABLE;
                     cmd.DsFwdRef1.PictureFields.DW0.MemoryCompressionMode =
-                        resMmcMode == MOS_MEMCOMP_HORIZONTAL ? TVdencCmds::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE 
+                        mmcMode == MOS_MEMCOMP_HORIZONTAL ? TVdencCmds::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE 
                         : TVdencCmds::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_VERTICALCOMPRESSIONMODE;
-                    cmd.DsFwdRef1.PictureFields.DW0.TiledResourceMode = Mhw_ConvertToTRMode(resDetails.TileType);
+                    cmd.DsFwdRef1.PictureFields.DW0.TiledResourceMode = Mhw_ConvertToTRMode(details.TileType);
                     break;
                 default:
                     break;

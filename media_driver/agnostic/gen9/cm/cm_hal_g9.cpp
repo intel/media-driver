@@ -29,6 +29,7 @@
 #include "cm_gpucopy_kernel_g9.h" 
 #include "cm_gpuinit_kernel_g9.h" 
 #include "renderhal_platform_interface.h"
+#include "mhw_render.h"
 
 // Gen9 Surface state tokenized commands - a SURFACE_STATE_G9 command and
 // a surface state command, either SURFACE_STATE_G9 or SURFACE_STATE_ADV_G9
@@ -639,7 +640,6 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
         CM_CHK_MOSSTATUS(SetupHwDebugControl(pRenderHal, &CmdBuffer));
     }
 
-
     // Adds granularity control for preemption for Gen9.
     // Supporting Preemption granularity control reg for 3D and GPGPU mode for per ctx and with non-privileged access
     if ( MEDIA_IS_SKU(pState->pSkuTable, FtrPerCtxtPreemptionGranularityControl ))
@@ -647,52 +647,52 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
         MHW_MI_LOAD_REGISTER_IMM_PARAMS LoadRegImm;
         MOS_ZeroMemory( &LoadRegImm, sizeof( MHW_MI_LOAD_REGISTER_IMM_PARAMS ) );
 
-        LoadRegImm.dwRegister = MDF_CS_CHICKEN1_PREEMPTION_CONTROL_OFFSET;
+        LoadRegImm.dwRegister = MHW_RENDER_ENGINE_PREEMPTION_CONTROL_OFFSET;
 
         // Same reg offset and value for gpgpu pipe and media pipe
         if ( enableGpGpu )
         {
             if (MEDIA_IS_SKU(pState->pSkuTable, FtrGpGpuMidThreadLevelPreempt)) {
 				if (csr_enable)
-					LoadRegImm.dwData = MDF_CS_CHICKEN1_MID_THREAD_PREEMPT_VALUE;
+					LoadRegImm.dwData = MHW_RENDER_ENGINE_MID_THREAD_PREEMPT_VALUE;
 				else
-					LoadRegImm.dwData = MDF_CS_CHICKEN1_THREAD_GROUP_PREEMPT_VALUE;
+					LoadRegImm.dwData = MHW_RENDER_ENGINE_THREAD_GROUP_PREEMPT_VALUE;
 
             }
             else if ( MEDIA_IS_SKU(pState->pSkuTable, FtrGpGpuThreadGroupLevelPreempt ))
             {
-                LoadRegImm.dwData = MDF_CS_CHICKEN1_THREAD_GROUP_PREEMPT_VALUE;
+                LoadRegImm.dwData = MHW_RENDER_ENGINE_THREAD_GROUP_PREEMPT_VALUE;
                 pState->pRenderHal->pfnEnableGpgpuMiddleBatchBufferPreemption( pState->pRenderHal );
             }
             else if ( MEDIA_IS_SKU(pState->pSkuTable, FtrGpGpuMidBatchPreempt ))
             {
-                LoadRegImm.dwData = MDF_CS_CHICKEN1_MID_BATCH_PREEMPT_VALUE;
+                LoadRegImm.dwData = MHW_RENDER_ENGINE_MID_BATCH_PREEMPT_VALUE;
                 pState->pRenderHal->pfnEnableGpgpuMiddleBatchBufferPreemption( pState->pRenderHal );
             }
             else
             {
-                // if hit this branch then platform does not support any media preemption in render engine. Still program the chicken bits to avoid GPU hang
-                LoadRegImm.dwData = MDF_CS_CHICKEN1_MID_BATCH_PREEMPT_VALUE;
+                // if hit this branch then platform does not support any media preemption in render engine. Still program the register to avoid GPU hang
+                LoadRegImm.dwData = MHW_RENDER_ENGINE_MID_BATCH_PREEMPT_VALUE;
             }
         }
         else
         {
             if ( MEDIA_IS_SKU(pState->pSkuTable, FtrMediaMidThreadLevelPreempt))
             {
-                LoadRegImm.dwData = MDF_CS_CHICKEN1_MID_THREAD_PREEMPT_VALUE;
+                LoadRegImm.dwData = MHW_RENDER_ENGINE_MID_THREAD_PREEMPT_VALUE;
             }
             else if ( MEDIA_IS_SKU(pState->pSkuTable, FtrMediaThreadGroupLevelPreempt) )
             {
-                LoadRegImm.dwData = MDF_CS_CHICKEN1_THREAD_GROUP_PREEMPT_VALUE;
+                LoadRegImm.dwData = MHW_RENDER_ENGINE_THREAD_GROUP_PREEMPT_VALUE;
             }
             else if ( MEDIA_IS_SKU(pState->pSkuTable, FtrMediaMidBatchPreempt))
             {
-                LoadRegImm.dwData = MDF_CS_CHICKEN1_MID_BATCH_PREEMPT_VALUE;
+                LoadRegImm.dwData = MHW_RENDER_ENGINE_MID_BATCH_PREEMPT_VALUE;
             }
             else
             {
-                // if hit this branch then platform does not support any media preemption in render engine. Still program the chicken bits to avoid GPU hang
-                LoadRegImm.dwData = MDF_CS_CHICKEN1_MID_BATCH_PREEMPT_VALUE;
+                // if hit this branch then platform does not support any media preemption in render engine. Still program the register to avoid GPU hang
+                LoadRegImm.dwData = MHW_RENDER_ENGINE_MID_BATCH_PREEMPT_VALUE;
             }
         }
         CM_CHK_MOSSTATUS(pMhwMiInterface->AddMiLoadRegisterImmCmd(&CmdBuffer, &LoadRegImm ) );
@@ -760,8 +760,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
         iTmp,
         pState->pTaskParam->dwVfeCurbeSize,
         pState->pTaskParam->dwUrbEntrySize,
-        &pState->ScoreboardParams,
-        enableGpGpu);
+        &pState->ScoreboardParams);
 
     // Send VFE State
     CM_CHK_MOSSTATUS(pMhwRender->AddMediaVfeCmd(&CmdBuffer,
@@ -1255,6 +1254,43 @@ MOS_STATUS CM_HAL_G9_X::GetSamplerParamInfoForSamplerType(
     if (sampler_param_ptr->SamplerType == MHW_SAMPLER_TYPE_CONV)
     {
         sampler_param.size = 2048;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CM_HAL_G9_X::GetExpectedGtSystemConfig(
+    PCM_EXPECTED_GT_SYSTEM_INFO pExpectedConfig)
+{
+    if (m_gengt == PLATFORM_INTEL_GT1)
+    {
+        pExpectedConfig->numSlices    = SKL_GT1_MAX_NUM_SLICES;
+        pExpectedConfig->numSubSlices = SKL_GT1_MAX_NUM_SUBSLICES;
+    }
+    else if (m_gengt == PLATFORM_INTEL_GT1_5)
+    {
+        pExpectedConfig->numSlices    = SKL_GT1_5_MAX_NUM_SLICES;
+        pExpectedConfig->numSubSlices = SKL_GT1_5_MAX_NUM_SUBSLICES;
+    }
+    else if (m_gengt == PLATFORM_INTEL_GT2)
+    {
+        pExpectedConfig->numSlices    = SKL_GT2_MAX_NUM_SLICES;
+        pExpectedConfig->numSubSlices = SKL_GT2_MAX_NUM_SUBSLICES;
+    }
+    else if (m_gengt == PLATFORM_INTEL_GT3)
+    {
+        pExpectedConfig->numSlices    = SKL_GT3_MAX_NUM_SLICES;
+        pExpectedConfig->numSubSlices = SKL_GT3_MAX_NUM_SUBSLICES;
+    }
+    else if (m_gengt == PLATFORM_INTEL_GT4)
+    {
+        pExpectedConfig->numSlices    = SKL_GT4_MAX_NUM_SLICES;
+        pExpectedConfig->numSubSlices = SKL_GT4_MAX_NUM_SUBSLICES;
+    }
+    else
+    {
+        pExpectedConfig->numSlices    = 0;
+        pExpectedConfig->numSubSlices = 0;
     }
 
     return MOS_STATUS_SUCCESS;

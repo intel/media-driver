@@ -32,6 +32,55 @@
 #include "cm_mem.h"
 #include "renderhal_platform_interface.h"
 
+#define INDEX_ALIGN(index, elemperIndex, base) ((index * elemperIndex)/base + ( (index *elemperIndex % base))? 1:0)
+
+//----------------------------------
+//| CM scoreboard XY
+//----------------------------------
+struct CM_HAL_SCOREBOARD_XY
+{
+    int32_t x;
+    int32_t y;
+};
+typedef CM_HAL_SCOREBOARD_XY *PCM_HAL_SCOREBOARD_XY;
+
+//---------------------------------------
+//| CM scoreboard XY with mask
+//---------------------------------------
+struct CM_HAL_SCOREBOARD_XY_MASK
+{
+    int32_t x;
+    int32_t y;
+    uint8_t mask;
+    uint8_t resetMask;
+};
+typedef CM_HAL_SCOREBOARD_XY_MASK *PCM_HAL_SCOREBOARD_XY_MASK;
+
+//------------------------------------------------------------------------------
+//| CM kernel slice and subslice being assigned to (for EnqueueWithHints)
+//------------------------------------------------------------------------------
+struct CM_HAL_KERNEL_SLICE_SUBSLICE
+{
+    uint32_t slice;
+    uint32_t subSlice;
+};
+typedef CM_HAL_KERNEL_SLICE_SUBSLICE *PCM_HAL_KERNEL_SLICE_SUBSLICE;
+
+//------------------------------------------------------------------------------
+//| CM kernel information for EnqueueWithHints to assign subslice
+//------------------------------------------------------------------------------
+struct CM_HAL_KERNEL_SUBSLICE_INFO
+{
+    uint32_t numSubSlices;
+    uint32_t counter;
+    PCM_HAL_KERNEL_SLICE_SUBSLICE  pDestination;
+};
+typedef CM_HAL_KERNEL_SUBSLICE_INFO *PCM_HAL_KERNEL_SUBSLICE_INFO;
+
+
+
+
+
 // forward declaration
 int32_t HalCm_InsertCloneKernel(
     PCM_HAL_STATE              pState,
@@ -313,46 +362,6 @@ __inline void HalCm_FreeSipResource(
             &pState->SipResource.OsResource,
             SURFACE_FLAG_ASSUME_NOT_IN_USE);
     }
-}
-
-//*-----------------------------------------------------------------------------
-//| Purpose: Get Field from Kernel
-//| Returns: Copied data
-//*-----------------------------------------------------------------------------
-__inline uint32_t HalCm_GetKernelField(
-    const uint8_t *pKernel,                                                        // [in] Pointer to kernel data
-    uint32_t    iOffset,                                                        // [in] Offset from base of the kernel data
-    uint32_t    dwSize)                                                         // [in] Size of the data
-{
-    uint32_t dwData = 0;
-
-    //------------------------------------
-    CM_ASSERT((dwSize > 0) && (dwSize <= sizeof(dwData)));
-    //------------------------------------
-
-    MOS_SecureMemcpy(&dwData, dwSize, (pKernel + iOffset), dwSize);
-    return dwData;
-}
-
-//*-----------------------------------------------------------------------------
-//| Purpose: Get data of the field that fits in a uint32_t
-//| Returns: Copied data
-//*-----------------------------------------------------------------------------
-__inline uint32_t HalCm_GetThreadField(
-    const uint8_t *pValue,                                                         // [in] Pointer to the first value
-    uint32_t    dwSize,                                                         // [in] Size of the data
-    uint32_t    iThreadIndex)                                                   // [in] Thread Index
-{
-    uint32_t dwData;
-    uint32_t iOffset;
-
-    //------------------------------------
-    CM_ASSERT((dwSize > 0) && (dwSize <= sizeof(dwData)));
-    //------------------------------------
-
-    iOffset = (iThreadIndex * dwSize);
-    MOS_SecureMemcpy(&dwData, dwSize, (pValue + iOffset), dwSize);
-    return dwData;
 }
 
 //*-----------------------------------------------------------------------------
@@ -1333,8 +1342,6 @@ MOS_STATUS HalCm_ParseGroupTask(
     //Make sure surfacePerBT do not exceed CM_MAX_STATIC_SURFACE_STATES_PER_BT
     pTaskParam->surfacePerBT = MOS_MIN(CM_MAX_STATIC_SURFACE_STATES_PER_BT, pTaskParam->surfacePerBT);
 
-    pTaskParam->iPreemptionMode = pExecGroupParam->iPreemptionMode;
-    
     return hr;
 }
 
@@ -1446,7 +1453,6 @@ finish:
     return hr;
 }
 
-#ifdef GSH_DYNAMIC
 
 /*
 ** check to see if kernel entry is flaged as free or it is null
@@ -1510,7 +1516,7 @@ void CmLoadKernel(PCM_HAL_STATE             pState,
                 pKernelParam->pKernelBinary,
                 pKernelParam->iKernelBinarySize - pKernelParam->iMovInsDataSize);
 
-            // Padding bytes dummy instructions after kernel binary to work around page fault issue
+            // Padding bytes dummy instructions after kernel binary to resolve page fault issue
             MOS_ZeroMemory(pStateHeap->pIshBuffer + pKernelAllocation->dwOffset + pKernelParam->iKernelBinarySize, CM_KERNEL_BINARY_PADDING_SIZE);
         }
     }
@@ -2738,264 +2744,9 @@ int32_t HalCm_AllocateMediaID(
             &InterfaceDescriptorParams);
     }
 
-#ifndef GSH_DYNAMIC
-    // no need to update kernel usage
-    pRenderHal->pfnTouchKernel(pRenderHal, iInterfaceDescriptor);
-#endif
-
 finish:
     return iInterfaceDescriptor;
 }
-
-#else
-
-/*----------------------------------------------------------------------------
-| Name      : HalCm_LoadKernel ( Replace RenderHal_LoadKernel)
-|
-| Purpose   : Load a kernel from cache into GSH; searches for unused space in 
-|             the kernel heap; deallocates kernels identified as no longer in use.
-|             Remove the memset for (kernel slot's Size - kernel's actual size).
-|
-| Arguments : [in] pRenderHal    - Pointer to HW interface structure
-|             [in] pKernelParam  - Kernel parameters
-|             [in] iSamplerCount - Kernel Sampler Count
-|             [in] piKAID        - Pointer to Kernel Allocation Index
-|
-| Returns   : Index to a kernel allocation index
-|             -1 if invalid parameters
-|                   no available space, and no deallocation possible
-\---------------------------------------------------------------------------*/
-MOS_STATUS HalCm_LoadKernel(
-    PCM_HAL_STATE           pState,
-    PCM_HAL_KERNEL_PARAM    pKernelParam,
-    int32_t                 iSamplerCount,
-    int32_t                 *piKAID)
-{
-    PRENDERHAL_STATE_HEAP     pStateHeap;
-    PRENDERHAL_KRN_ALLOCATION pKernelAllocation;
-    PRENDERHAL_INTERFACE      pRenderHal;
-    MOS_STATUS              hr;
-    PRENDERHAL_KERNEL_PARAM   pParameters;
-    MHW_KERNEL_PARAM         *pMhwKernelParam;
-
-    int32_t iKernelAllocationID;    // Kernel allocation ID in GSH
-    int32_t iKernelCacheID;         // Kernel cache ID
-    int32_t iKernelUniqueID;        // Kernel unique ID
-    void    *pKernelPtr;
-    int32_t iKernelSize;
-    int32_t iSearchIndex;
-    int32_t iMaxKernels;            // Max number of kernels allowed in GSH
-    uint32_t dwOffset;
-    int32_t iSize;
-
-    hr                  = MOS_STATUS_UNKNOWN;
-    pRenderHal          = pState->pRenderHal;
-    pStateHeap                = (pRenderHal) ? pRenderHal->pStateHeap : nullptr;
-    iKernelAllocationID = RENDERHAL_KERNEL_LOAD_FAIL;
-    pMhwKernelParam             = &(pState->KernelSetup.CacheEntry);
-    pParameters         = &(pState->KernelSetup.Param);
-
-    // Validate parameters
-    if (pStateHeap == nullptr ||
-        pStateHeap->bGSHLocked == false ||
-        pStateHeap->pKernelAllocation == nullptr ||
-        pParameters == nullptr || 
-        pMhwKernelParam == nullptr ||
-        pKernelParam->iKernelBinarySize == 0)
-    {
-        CM_NORMALMESSAGE("Failed to load kernel - invalid parameters.");
-        goto finish;
-    }
-
-    pParameters->Sampler_Count = iSamplerCount;
-    pMhwKernelParam->iKUID    = static_cast<int>( (pKernelParam->uiKernelId >> 32) );
-    pMhwKernelParam->iKCID    = -1;
-    pMhwKernelParam->pBinary  = pKernelParam->pKernelBinary;
-    pMhwKernelParam->iSize    = pKernelParam->iKernelBinarySize;
-
-    // Kernel parameters
-    pKernelPtr      = pMhwKernelParam->pBinary;
-    iKernelSize     = pMhwKernelParam->iSize;
-    iKernelUniqueID = pMhwKernelParam->iKUID;
-    iKernelCacheID  = pMhwKernelParam->iKCID;
-
-    // Check if kernel is already loaded; Search free allocation index
-    iSearchIndex = -1;
-    iMaxKernels  = pRenderHal->StateHeapSettings.iKernelCount;
-    pKernelAllocation = pStateHeap->pKernelAllocation;
-    for (iKernelAllocationID = 0;
-         iKernelAllocationID < iMaxKernels;
-         iKernelAllocationID++, pKernelAllocation++)
-    {
-        if (pKernelAllocation->iKUID == iKernelUniqueID &&
-            pKernelAllocation->iKCID == iKernelCacheID)
-        {
-            break;
-        }
-
-        if (iSearchIndex < 0 &&
-            pKernelAllocation->dwFlags == RENDERHAL_KERNEL_ALLOCATION_FREE)
-        {
-            iSearchIndex = iKernelAllocationID;
-        }
-    }
-
-    // Kernel already loaded: refresh timer; return allocation index
-    if (iKernelAllocationID < iMaxKernels)
-    {
-        goto finish;
-    }
-
-    // Simple allocation: allocation index available, space available
-    if ((iSearchIndex >= 0) &&
-        (pStateHeap->iKernelUsed + iKernelSize <= pStateHeap->iKernelSize))
-    {
-        // Allocate kernel at the end of the heap
-        iKernelAllocationID = iSearchIndex;
-        pKernelAllocation   = &(pStateHeap->pKernelAllocation[iSearchIndex]);
-
-        // Allocate block from the end of the heap
-        dwOffset = pStateHeap->dwKernelBase + pStateHeap->iKernelUsed;
-        iSize    = MOS_ALIGN_CEIL(iKernelSize, pRenderHal->StateHeapSettings.iKernelBlockSize);
-
-        // Update heap
-        pStateHeap->iKernelUsed += iSize;
-
-        // Load kernel
-        goto loadkernel;
-    }
-
-    // Search block from deallocated entry
-    if (iSearchIndex >= 0)
-    {
-        int32_t iMinSize = 0;
-
-        iSearchIndex = -1;
-        pKernelAllocation = pStateHeap->pKernelAllocation;
-        for (iKernelAllocationID = 0;
-             iKernelAllocationID < iMaxKernels;
-             iKernelAllocationID++, pKernelAllocation++)
-        {
-            // Skip allocated/empty entries
-            if (pKernelAllocation->dwFlags != RENDERHAL_KERNEL_ALLOCATION_FREE ||
-                pKernelAllocation->iSize   == 0)
-            {
-                continue;
-            }
-
-            // Allocate minimum available block
-            if (pKernelAllocation->iSize >= iKernelSize)
-            {
-                if (iSearchIndex < 0 ||
-                    pKernelAllocation->iSize < iMinSize)
-                {
-                    iSearchIndex = iKernelAllocationID;
-                    iMinSize     = pKernelAllocation->iSize;
-                }
-            }
-        }
-    }
-
-    // Did not find block, try to deallocate a kernel not recently used
-    if (iSearchIndex < 0)
-    {
-        uint32_t dwOldest = 0;
-        uint32_t dwLastUsed;
-
-        // Search and deallocate least used kernel
-        pKernelAllocation = pStateHeap->pKernelAllocation;
-        for (iKernelAllocationID = 0;
-             iKernelAllocationID < iMaxKernels;
-             iKernelAllocationID++, pKernelAllocation++)
-        {
-            // Skip unused entries and entries that would not fit
-            // Skip kernels flagged as locked (cannot be automatically deallocated)
-            if (pKernelAllocation->dwFlags == RENDERHAL_KERNEL_ALLOCATION_FREE ||
-                pKernelAllocation->dwFlags == RENDERHAL_KERNEL_ALLOCATION_LOCKED ||
-                pKernelAllocation->iSize < iKernelSize)
-            {
-                continue;
-            }
-
-            // Check if kernel may be replaced (not in use by GPU)
-            if ((int32_t)(pStateHeap->dwSyncTag - pKernelAllocation->dwSync) < 0)
-            {
-                continue;
-            }
-
-            // Find kernel not used for the greater amount of time (measured in number of operations)
-            // Must not unload recently allocated kernels
-            dwLastUsed = (uint32_t)(pStateHeap->dwAccessCounter - pKernelAllocation->dwCount);
-            if (dwLastUsed > dwOldest)
-            {
-                iSearchIndex = iKernelAllocationID;
-                dwOldest     = dwLastUsed;
-            }
-        }
-
-        // Did not found any entry for deallocation
-        if (iSearchIndex < 0)
-        {
-            CM_NORMALMESSAGE("Failed to load kernel - no space available in GSH.");
-            iKernelAllocationID = RENDERHAL_KERNEL_LOAD_FAIL;
-            goto finish;
-        }
-
-        // Free kernel entry and states associated with the kernel (if any)
-        if (HalCm_UnloadKerne(pRenderHal, iSearchIndex) != MOS_STATUS_SUCCESS)
-        {
-            CM_NORMALMESSAGE("Failed to load kernel - no space available in GSH.");
-            iKernelAllocationID = RENDERHAL_KERNEL_LOAD_FAIL;
-            goto finish;
-        }
-    }
-
-    // Allocate the entry
-    iKernelAllocationID = iSearchIndex;
-    pKernelAllocation   = &(pStateHeap->pKernelAllocation[iSearchIndex]);
-
-    dwOffset = pKernelAllocation->dwOffset;
-    iSize    = pKernelAllocation->iSize;
-
-loadkernel:
-    // Allocate kernel
-    pKernelAllocation->iKID        = -1;
-    pKernelAllocation->iKUID       = iKernelUniqueID;
-    pKernelAllocation->iKCID       = iKernelCacheID;
-    pKernelAllocation->dwSync      = 0;
-    pKernelAllocation->dwOffset    = dwOffset;
-    pKernelAllocation->iSize       = iSize;
-    pKernelAllocation->dwFlags     = RENDERHAL_KERNEL_ALLOCATION_USED;
-    pKernelAllocation->dwCount     = 0;  // will be updated by "TouchKernel"
-    pKernelAllocation->Params      = *pParameters;
-    pKernelAllocation->pMhwKernelParam     = pMhwKernelParam;
-
-    // Copy kernel data
-    // Copy MovInstruction First
-    MOS_SecureMemcpy(pStateHeap->pStateHeap + dwOffset, pKernelParam->iMovInsDataSize, pKernelParam->pMovInsData, pKernelParam->iMovInsDataSize);
-
-    // Copy Cm Kernel Binary
-    MOS_SecureMemcpy(pStateHeap->pStateHeap + dwOffset + pKernelParam->iMovInsDataSize , pKernelParam->iKernelBinarySize - pKernelParam->iMovInsDataSize, 
-            pKernelParam->pKernelBinary, pKernelParam->iKernelBinarySize - pKernelParam->iMovInsDataSize);
-
-finish:
-    if (iKernelAllocationID != RENDERHAL_KERNEL_LOAD_FAIL)
-    {
-        // Update kernel usage
-        pRenderHal->pfnTouchKernel(pRenderHal, iKernelAllocationID);
-
-        // Increment reference counter
-        pMhwKernelParam->dwLoaded = 1;
-
-        // Record allocation ID
-        *piKAID = iKernelAllocationID;
-
-        hr = MOS_STATUS_SUCCESS;
-    }
-
-    return hr;
-}
-#endif
 
 
 bool isRenderTarget(PCM_HAL_STATE pState, uint32_t iIndex)
@@ -3009,81 +2760,6 @@ bool isRenderTarget(PCM_HAL_STATE pState, uint32_t iIndex)
         return false;
     else
         return true;
-}
-
-
-/*----------------------------------------------------------------------------
-| Name      : HalCm_DSH_LoadKernel ( Replace RenderHal_LoadKernel)
-\---------------------------------------------------------------------------*/
-int32_t HalCm_DSH_LoadKernel(
-    PCM_HAL_STATE             pState,
-    PCM_HAL_KERNEL_PARAM      pKernelParam,
-    int32_t                   iSamplerCount,
-    PRENDERHAL_KRN_ALLOCATION &pKernelAllocation)
-{
-    PRENDERHAL_INTERFACE      pRenderHal;
-    int32_t                   hr;
-    PRENDERHAL_KERNEL_PARAM   pParameters;
-    PMHW_KERNEL_PARAM         pMhwKernelParam;
-
-    int32_t iKernelAllocationID;    // Kernel allocation ID in GSH
-    int32_t iKernelCacheID;         // Kernel cache ID
-    int32_t iKernelUniqueID;        // Kernel unique ID
-    uint8_t *pKernelPtr;
-    int32_t iKernelSize;
-
-    hr = CM_FAILURE;
-    pRenderHal = pState->pRenderHal;
-    iKernelAllocationID = RENDERHAL_KERNEL_LOAD_FAIL;
-    pMhwKernelParam = &(pState->KernelParams_Mhw);
-    pParameters = &(pState->KernelParams_RenderHal.Params);
-
-    // Validate parameters
-    if (pRenderHal == nullptr || pKernelParam->iKernelBinarySize == 0)
-    {
-        CM_ERROR_ASSERT("Failed to load kernel - invalid parameters.");
-        return CM_FAILURE;
-    }
-
-    pParameters->Sampler_Count = iSamplerCount;
-    pMhwKernelParam->iKUID = iKernelUniqueID = static_cast<int>((pKernelParam->uiKernelId >> 32));
-    pMhwKernelParam->iKCID = iKernelCacheID = -1;
-    pMhwKernelParam->pBinary = pKernelPtr = pKernelParam->pKernelBinary;
-    pMhwKernelParam->iSize = iKernelSize = pKernelParam->iKernelBinarySize + CM_KERNEL_BINARY_PADDING_SIZE;
-
-    // Check if kernel is already loaded
-    pKernelAllocation = pRenderHal->pfnSearchDynamicKernel(pRenderHal, iKernelUniqueID, iKernelCacheID);
-    if (pKernelAllocation)
-    {
-        // found match and Update kernel usage
-        pRenderHal->pfnTouchDynamicKernel(pRenderHal, pKernelAllocation);
-        goto finish;
-    }
-
-    // here is the algorithm
-    // 1) unload kernels no longer in use based on age.
-    //    NOTE: older kernels show up first in kernel allocation linked list
-    //          as kernels are submitted, they are placed back at the end of the list
-    // 2) try again to load the kernel
-    // 3) if kernel load fails, grow ISH and flag all kernels for tranfer to new ISH
-    // 4) if ISH size hits the limit, then sit and wait until a kernel is no longer in use
-    do
-    {
-        // try to load the kernel
-        pKernelAllocation = pRenderHal->pfnLoadDynamicKernel(pRenderHal, pParameters, pMhwKernelParam, nullptr);
-        if (pKernelAllocation) break;
-
-        // unload old kernels no longer being executed - need to have iKernelSize contiguous
-        if (pRenderHal->pfnRefreshDynamicKernels(pRenderHal, iKernelSize, nullptr, 0) != MOS_STATUS_SUCCESS)
-        {
-            return CM_FAILURE;
-        }
-    } while (1);
-
-finish:
-    pMhwKernelParam->bLoaded = 1;  // Increment reference counter
-
-    return CM_SUCCESS;
 }
 
 int32_t HalCm_DSH_LoadKernelArray(
@@ -3265,7 +2941,7 @@ int32_t HalCm_DSH_LoadKernelArray(
                                 pKernelParam->pKernelBinary,
                                 pKernelParam->iKernelBinarySize - pKernelParam->iMovInsDataSize);
 
-                            // Padding bytes dummy instructions after kernel binary to work around page fault issue
+                            // Padding bytes dummy instructions after kernel binary to resolve page fault issue
                             MOS_ZeroMemory(pAllocation->pMemoryBlock->pDataPtr + pKernelParam->iKernelBinarySize, CM_KERNEL_BINARY_PADDING_SIZE);
                         }
 
@@ -3390,7 +3066,7 @@ MOS_STATUS HalCm_DSH_GetDynamicStateConfiguration(
         // So the offset of largest element plus the size of all of the largest 
         // element samplers should be equal to the maximum size. However we cannot 
         // do this because of the DSH's mechanism. 
-        // To work around this, we first let DSH allocate enough 3D samplers
+        // To resolve this, we first let DSH allocate enough 3D samplers
         // (because 3D samplers has indirect state), then just convert the rest of 
         // the heap to AVS. Here we only care about the size, not the correct 
         // number because we are going to calculate the offset by ourself. 
@@ -3414,6 +3090,19 @@ MOS_STATUS HalCm_DSH_GetDynamicStateConfiguration(
         pParams->iMaxSamplerIndexConv = 0;
         pParams->iMaxSamplerIndexMisc = 0;
         pParams->iMax8x8Tables = CM_MAX_AVS_SAMPLER_SIZE;
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS HalCm_DSH_UnregisterKernel(
+    PCM_HAL_STATE               pState,
+    uint64_t                    uiKernelId)
+{
+    PRENDERHAL_INTERFACE pRenderHal = pState->pRenderHal;
+    PRENDERHAL_KRN_ALLOCATION pKrnAllocation = pRenderHal->pfnSearchDynamicKernel(pRenderHal, static_cast<int>((uiKernelId >> 32)), -1);
+    if (pKrnAllocation)
+    {
+        pRenderHal->pfnUnregisterKernel(pRenderHal, pKrnAllocation);
     }
     return MOS_STATUS_SUCCESS;
 }
@@ -5836,6 +5525,7 @@ MOS_STATUS HalCm_FinishStatesForKernelMix(
     PCM_HAL_KERNEL_GROUP_INFO          pGroupInfo              = nullptr;
     CM_HAL_DEPENDENCY                  vfeDependencyInfo             ;
     CM_PLATFORM_INFO                   platformInfo                  ;
+    CM_GT_SYSTEM_INFO                  systemInfo                    ;
     CM_HAL_SCOREBOARD_XY_MASK          threadCoordinates             ;
     uint32_t                           **pDependRemap            = nullptr;
     uint32_t                           **pDispatchFreq           = nullptr;
@@ -5884,8 +5574,6 @@ MOS_STATUS HalCm_FinishStatesForKernelMix(
     uint32_t                           iRoundRobinCount        = 0;
     uint32_t                           numTasks                = 0;
     uint32_t                           extraSWThreads          = 0;
-    uint32_t                           subSliceDestStart       = 0;
-    uint32_t                           plusNSubSliceDest       = 0;
     UNUSED(iTaskId);
 
     CM_CHK_NULL_RETURN_MOSSTATUS(pBatchBuffer);
@@ -5893,6 +5581,7 @@ MOS_STATUS HalCm_FinishStatesForKernelMix(
     MOS_ZeroMemory(&threadCoordinates, sizeof(CM_HAL_SCOREBOARD_XY_MASK));
     MOS_ZeroMemory(&vfeDependencyInfo, sizeof(CM_HAL_DEPENDENCY));
     MOS_ZeroMemory(&platformInfo, sizeof(CM_PLATFORM_INFO));
+    MOS_ZeroMemory(&systemInfo, sizeof(CM_GT_SYSTEM_INFO));
 
     pMediaObjectParams = (PMHW_MEDIA_OBJECT_PARAMS)MOS_AllocAndZeroMemory(sizeof(MHW_MEDIA_OBJECT_PARAMS)*iNumKernels);
     pKernelParams = (PCM_HAL_KERNEL_PARAM*)MOS_AllocAndZeroMemory(sizeof(PCM_HAL_KERNEL_PARAM)*iNumKernels);
@@ -6032,6 +5721,8 @@ MOS_STATUS HalCm_FinishStatesForKernelMix(
 
     CM_CHK_MOSSTATUS(pState->pfnGetPlatformInfo(pState, &platformInfo, true));
     bSingleSubSlice = (platformInfo.numSubSlices == 1) ? true : false;
+
+    CM_CHK_MOSSTATUS(pState->pfnGetGTSystemInfo(pState, &systemInfo));
 
     if( !bSingleSubSlice )
     {
@@ -6178,23 +5869,26 @@ MOS_STATUS HalCm_FinishStatesForKernelMix(
         }
 
         // set slice, subslice for each kernel group
-        subSliceDestStart = 0;
-        plusNSubSliceDest = 0;
-
-        for( i = 0; i < platformInfo.numSlices; ++i )
+        if (systemInfo.isSliceInfoValid)
         {
-            for(j = subSliceDestStart; j < (platformInfo.numSubSlices/platformInfo.numSlices) + plusNSubSliceDest; ++j)
+            for (i = 0; i < systemInfo.numMaxSlicesSupported; ++i)
             {
-                if( pKernelsSliceInfo[curKernel].numSubSlices == numSet )
+                for (j = 0; j < (systemInfo.numMaxSubSlicesSupported / systemInfo.numMaxSlicesSupported); ++j)
                 {
-                    curKernel++;
-                    numSet = 0;
+                    if (systemInfo.sliceInfo[i].SubSliceInfo[j].Enabled && systemInfo.sliceInfo[i].Enabled)
+                    {
+                        if (pKernelsSliceInfo[curKernel].numSubSlices == numSet)
+                        {
+                            curKernel++;
+                            numSet = 0;
+                        }
+
+                        pKernelsSliceInfo[curKernel].pDestination[numSet].slice = i;
+                        pKernelsSliceInfo[curKernel].pDestination[numSet].subSlice = j;
+
+                        numSet++;
+                    }
                 }
-
-                pKernelsSliceInfo[curKernel].pDestination[numSet].slice = i;
-                pKernelsSliceInfo[curKernel].pDestination[numSet].subSlice = j;
-
-                numSet++;
             }
         }
 
@@ -6563,7 +6257,7 @@ MOS_STATUS HalCm_FinishStatesForKernelMix(
             pMediaObjectParams[iCurrentKernel].VfeScoreboard.ScoreboardEnable =
                     (pKernelParams[iCurrentKernel]->KernelThreadSpaceParam.dependencyInfo.count == 0) ? 0:1;
 
-            if( !bSingleSubSlice )
+            if( !bSingleSubSlice && systemInfo.isSliceInfoValid )
             {
                 sliceIndex = pKernelsSliceInfo[pRemapKrnToGrp[iCurrentKernel]].counter % pKernelsSliceInfo[pRemapKrnToGrp[iCurrentKernel]].numSubSlices;
                 pMediaObjectParams[iCurrentKernel].dwSliceDestinationSelect = pKernelsSliceInfo[pRemapKrnToGrp[iCurrentKernel]].pDestination[sliceIndex].slice;
@@ -7302,10 +6996,10 @@ MOS_STATUS HalCm_SetupMediaWalkerParams(
                     pWalkerParams->LocalOutLoopStride.x = 1;
                     pWalkerParams->LocalOutLoopStride.y = 0;
                     pWalkerParams->LocalInnerLoopUnit.x = 0xFFFF;  // -1 in uint32_t:16
-                    pWalkerParams->LocalInnerLoopUnit.y = 3;
+                    pWalkerParams->LocalInnerLoopUnit.y = 2;
 
                     // Mid
-                    pWalkerParams->MiddleLoopExtraSteps = 2;
+                    pWalkerParams->MiddleLoopExtraSteps = 1;
                     pWalkerParams->MidLoopUnitX = 0;
                     pWalkerParams->MidLoopUnitY = 1;
 
@@ -7824,7 +7518,7 @@ MOS_STATUS HalCm_Allocate(
     pStateHeapSettings->iCurbeSize        = CM_MAX_CURBE_SIZE_PER_TASK;
     pStateHeapSettings->iMediaStateHeaps  = pDeviceParam->iMaxTasks + 1;              // + 1 to handle sync issues with current RenderHal impl (we can remove this once we insert sync value in 2nd level BB)
     pStateHeapSettings->iMediaIDs         = pDeviceParam->iMaxKernelsPerTask;         // Number of Media IDs = Number of Kernels/Task
-#ifdef GSH_DYNAMIC
+
     pStateHeapSettings->iKernelCount      = pDeviceParam->iMaxGSHKernelEntries;
     pStateHeapSettings->iKernelBlockSize  = pDeviceParam->iMaxKernelBinarySize;       // The kernel occupied memory need be this block size aligned 256K for IVB/HSW
     pStateHeapSettings->iKernelHeapSize   = pDeviceParam->iMaxGSHKernelEntries * CM_32K;                       // CM_MAX_GSH_KERNEL_ENTRIES * 32*1024;      
@@ -7835,14 +7529,7 @@ MOS_STATUS HalCm_Allocate(
         hr = MOS_STATUS_NO_SPACE;
         goto finish;
     }
-#else
-    pStateHeapSettings->iKernelCount      = pDeviceParam->iMaxTasks           *       // Number of kernels to load
-                                      pDeviceParam->iMaxKernelsPerTask;
-    pStateHeapSettings->iKernelBlockSize  = pDeviceParam->iMaxKernelBinarySize;       // The kernel occupied memory need be this block size aligned 256K for IVB/HSW
-    pStateHeapSettings->iKernelHeapSize   = pStateHeapSettings->iMediaStateHeaps     *      // Allocate Space for all kernels in a task (max)
-                                      pDeviceParam->iMaxKernelBinarySize *
-                                      pDeviceParam->iMaxKernelsPerTask;
-#endif
+
     pStateHeapSettings->iPerThreadScratchSize = pDeviceParam->iMaxPerThreadScratchSpaceSize;
     pStateHeapSettings->iSipSize          = CM_MAX_SIP_SIZE;
     pStateHeapSettings->iBindingTables    = pDeviceParam->iMaxKernelsPerTask;         // Number of Binding tables = Number of Kernels/Task
@@ -7856,7 +7543,6 @@ MOS_STATUS HalCm_Allocate(
     // Initialize Vebox Interface
     CM_CHK_MOSSTATUS(pState->pVeboxInterface->CreateHeap());
 
-#ifdef GSH_DYNAMIC
     // Initialize the table only in Static Mode (DSH doesn't use this table at all)
     if (!pState->bDynamicStateHeap)
     {
@@ -7874,7 +7560,6 @@ MOS_STATUS HalCm_Allocate(
         }
         pState->nNumKernelsInGSH = 1;
     }
-#endif
 
     // Allocate BB (one for each media-state heap)
     pState->iNumBatchBuffers = pStateHeapSettings->iMediaStateHeaps;
@@ -7923,12 +7608,15 @@ MOS_STATUS HalCm_Allocate(
     pState->bNullHwRenderCm          = NullHWAccelerationEnable.Cm || NullHWAccelerationEnable.VPGobal;
 
     //during initialization stage to allocate sip resource and Get sip binary.
-    if(pState->Platform.eRenderCoreFamily < IGFX_GEN10_CORE)
-    if ((pState->bDisabledMidThreadPreemption == false) || (pState->bEnabledKernelDebug == true)) {
-        CM_CHK_MOSSTATUS(pState->pCmHalInterface->AllocateSIPCSRResource());
-        pState->pfnGetSipBinary(pState);
+    if (pState->Platform.eRenderCoreFamily < IGFX_GEN10_CORE)
+    {
+        if ((pState->bDisabledMidThreadPreemption == false)
+            || (pState->bEnabledKernelDebug == true))
+        {
+            CM_CHK_MOSSTATUS(pState->pCmHalInterface->AllocateSIPCSRResource());
+            pState->pfnGetSipBinary(pState);
+        }
     }
-
     //Init flag for conditional batch buffer
     pState->bCBBEnabled = HalCm_IsCbbEnabled(pState);
     
@@ -9121,58 +8809,6 @@ finish:
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Update the properties of buffer
-//| Returns:    Result of the operation.
-//*-----------------------------------------------------------------------------
-MOS_STATUS HalCm_UpdateBuffer(
-    PCM_HAL_STATE           pState,                                             // [in]  Pointer to CM State
-    uint32_t                dwHandle,                                           // [in]  Pointer to Buffer Param
-    uint32_t                dwSize)                                             // [in]  size of buffer
-{
-    MOS_STATUS              hr;
-    PCM_HAL_BUFFER_ENTRY    pEntry;
-    PMOS_INTERFACE     pOsInterface;
-
-    hr              = MOS_STATUS_SUCCESS;
-    pOsInterface    = pState->pOsInterface;
-
-    // Get the Buffer Entry
-    CM_CHK_MOSSTATUS(HalCm_GetBufferEntry(pState, dwHandle, &pEntry));
-
-    pEntry->iSize = dwSize;
-
-finish:
-    return hr;
-}
-
-//*-----------------------------------------------------------------------------
-//| Purpose:    Update the properties of 2D surface
-//| Returns:    Result of the operation.
-//*-----------------------------------------------------------------------------
-MOS_STATUS HalCm_UpdateSurface2D(
-    PCM_HAL_STATE           pState,                                             // [in]  Pointer to CM State
-    uint32_t                dwHandle,                                           // [in]  Pointer to Buffer Param
-    uint32_t                dwWidth,                                            // [in]  width of 2D surfce
-    uint32_t                dwHeight)                                           // [in]  Height of 2D surface
-{
-    MOS_STATUS                 hr;
-    PCM_HAL_SURFACE2D_ENTRY    pEntry;
-    PMOS_INTERFACE     pOsInterface;
-
-    hr              = MOS_STATUS_SUCCESS;
-    pOsInterface    = pState->pOsInterface;
-
-    // Get the Buffer Entry
-    CM_CHK_MOSSTATUS(HalCm_GetSurface2DEntry(pState, dwHandle, &pEntry));
-
-    pEntry->iWidth = dwWidth;
-    pEntry->iHeight = dwHeight;
-
-finish:
-    return hr;
-}
-
-//*-----------------------------------------------------------------------------
 //| Purpose:    Set surface read flag used in on demand sync 
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
@@ -9196,35 +8832,6 @@ MOS_STATUS HalCm_SetSurfaceReadFlag(
     {
         return MOS_STATUS_UNKNOWN;
     }
-
-finish:
-    return hr;
-}
-
-//*-----------------------------------------------------------------------------
-//| Purpose:    Update the properties of buffer
-//| Returns:    Result of the operation.
-//*-----------------------------------------------------------------------------
-MOS_STATUS HalCm_UpdateSurface3D(
-    PCM_HAL_STATE           pState,                                             // [in]  Pointer to CM State
-    uint32_t                dwHandle,                                           // [in]  Pointer to Buffer Param
-    uint32_t                dwWidth,                                            // [in]  Width of 3D surface
-    uint32_t                dwHeight,                                           // [in]  Height of 3D surface
-    uint32_t                dwDepth)                                            // [in]  Depth of 3D surface
-{
-    MOS_STATUS                  hr;
-    PCM_HAL_3DRESOURCE_ENTRY    pEntry;
-    PMOS_INTERFACE     pOsInterface;
-
-    hr              = MOS_STATUS_SUCCESS;
-    pOsInterface    = pState->pOsInterface;
-
-    // Get the Buffer Entry
-    CM_CHK_MOSSTATUS(HalCm_Get3DResourceEntry(pState, dwHandle, &pEntry));
-
-    pEntry->iWidth = dwWidth;
-    pEntry->iHeight = dwHeight;
-    pEntry->iDepth = dwDepth;
 
 finish:
     return hr;
@@ -10176,7 +9783,15 @@ MOS_STATUS HalCm_Create(
     pState->CmDeviceParam.iMaxKernelBinarySize      = CM_KERNEL_BINARY_BLOCK_SIZE;
 
     // set if the new sampler heap management is used or not
-    pState->use_new_sampler_heap = true;
+    // currently new sampler heap management depends on DSH
+    if (pState->bDynamicStateHeap) 
+    {
+        pState->use_new_sampler_heap = true;
+    } 
+    else 
+    {
+        pState->use_new_sampler_heap = false;
+    }
 
     //Get Max Scratch Space Size
     if( pParam->DisableScratchSpace)
@@ -10222,6 +9837,10 @@ MOS_STATUS HalCm_Create(
     MOS_ZeroMemory(&pState->HintIndexes.iKernelIndexes, sizeof(uint32_t) * CM_MAX_TASKS_EU_SATURATION);
     MOS_ZeroMemory(&pState->HintIndexes.iDispatchIndexes, sizeof(uint32_t) * CM_MAX_TASKS_EU_SATURATION);
 
+#if USE_EXTENSION_CODE
+    pState->bMockRuntimeEnabled = pParam->bMockRuntimeEnabled;
+#endif
+
     pState->CmDeviceParam.iMaxKernelsPerTask        = CM_MAX_KERNELS_PER_TASK;
     pState->CmDeviceParam.iMaxSamplerTableSize      = CM_MAX_SAMPLER_TABLE_SIZE;
     pState->CmDeviceParam.iMaxSampler8x8TableSize   = pState->pRenderHal->pHwSizes->dwSizeSampler8x8Table;
@@ -10252,9 +9871,6 @@ MOS_STATUS HalCm_Create(
     pState->pfnRegisterSampler8x8          = HalCm_RegisterSampler8x8; 
     pState->pfnUnRegisterSampler8x8        = HalCm_UnRegisterSampler8x8;
     pState->pfnFreeBuffer                  = HalCm_FreeBuffer;
-    pState->pfnUpdateBuffer                = HalCm_UpdateBuffer;
-    pState->pfnUpdateSurface2D             = HalCm_UpdateSurface2D;
-    pState->pfnUpdateSurface3D             = HalCm_UpdateSurface3D;
     pState->pfnLockBuffer                  = HalCm_LockBuffer;
     pState->pfnUnlockBuffer                = HalCm_UnlockBuffer;
     pState->pfnFreeSurface2DUP             = HalCm_FreeSurface2DUP;
@@ -10296,6 +9912,7 @@ MOS_STATUS HalCm_Create(
     pState->pfnGetStateBufferSizeForKernel = HalCm_GetStateBufferSizeForKernel;
     pState->pfnGetStateBufferTypeForKernel = HalCm_GetStateBufferTypeForKernel;
     pState->pfnCreateGPUContext            = HalCm_CreateGPUContext;
+    pState->pfnDSHUnregisterKernel         = HalCm_DSH_UnregisterKernel;
 
     //==========<Initialize 5 OS-dependent DDI functions: pfnAllocate3DResource, pfnAllocateSurface2DUP====
     //                 pfnAllocateBuffer,pfnRegisterKMDNotifyEventHandle, pfnGetSurface2DPitchAndSize >==== 
@@ -11408,19 +11025,9 @@ MOS_STATUS HalCm_SendMediaWalkerState(
         MediaWalkerParams.ScoreboardMask = pRenderHal->VfeScoreboard.ScoreboardMask;
     }
 
-    MediaWalkerParams.WalkerMode = pRenderHal->pfnSelectWalkerStateMode(pRenderHal);
+    hr = pRenderHal->pMhwRenderInterface->AddMediaObjectWalkerCmd(
+                                  pCmdBuffer, &MediaWalkerParams);
 
-    if ((MediaWalkerParams.WalkerMode == MHW_WALKER_MODE_QUAD) &&
-        (MEDIA_IS_SKU(pState->pSkuTable, FtrSliceShutdown) || MediaWalkerParams.bRequestSingleSlice))
-    {
-        hr = pRenderHal->pMhwRenderInterface->AddMediaObjectWalkerCmd(
-                                pCmdBuffer, &MediaWalkerParams);
-    }
-    else
-    {
-        hr = pRenderHal->pMhwRenderInterface->AddMediaObjectWalkerCmd(
-                                pCmdBuffer, &MediaWalkerParams);
-    }
 
     return hr;
 }

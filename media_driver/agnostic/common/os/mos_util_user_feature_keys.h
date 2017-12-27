@@ -176,7 +176,7 @@
 //!        Each component has to create a separate key for its sub-comps.
 //!
 //!     63_____48_47___44_43____40_39_______36_35_________32_31___28_27____24_23___20_19___16_15__12_11__8_7_________4_3_________0
-//!     |        |  LIB  |  DLL   |AUTHCHANNEL|CRYPTOSESSION|CMD_BFR|UMD_CTXT| CODEC |GPU_HAL|PCH_HAL| OS |  DEVICE   |CP_DDI    |
+//!     |        |  LIB  |  DLL   |AUTHCHANNEL|SECURESESSION|CMD_BFR|UMD_CTXT| CODEC |GPU_HAL|PCH_HAL| OS |  DEVICE   |CP_DDI    |
 //!     |Reserved|  A|L  |   A|L  |    A|L    |     A|L     |  A|L  |  A|L   |  A|L  |  A|L  |  A|L  |A|L |Asrt|level |Asrt|level|
 //!     |________|_______|________|___________|_____________|_______|________|_______|_______|_______|____|___________|__________|
 //!

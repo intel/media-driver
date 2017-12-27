@@ -54,8 +54,10 @@ typedef struct _CODECHAL_ENCODE_RECTANGLE
     uint32_t              Height;
 } CODECHAL_ENCODE_RECTANGLE, *PCODECHAL_ENCODE_RECTANGLE;
 
-/*! \brief Parameters needed for the processing of the encode render target.
-*/
+//!
+//! \struct    CODECHAL_ENCODE_SFC_PARAMS
+//! \brief     Parameters needed for the processing of the encode render target
+//!
 struct CODECHAL_ENCODE_SFC_PARAMS
 {
     CODECHAL_ENCODE_SFC_PARAMS()
@@ -73,6 +75,10 @@ struct CODECHAL_ENCODE_SFC_PARAMS
     CODECHAL_ENCODE_RECTANGLE    rcOutputSurfaceRegion;
 };
 
+//!
+//! \struct    CODECHAL_ENCODE_SFC_STATE
+//! \brief     Codechal encode sfc state
+//!
 struct CODECHAL_ENCODE_SFC_STATE
 {
     CODECHAL_ENCODE_SFC_STATE()
@@ -123,20 +129,73 @@ struct CODECHAL_ENCODE_SFC_STATE
 };
 using PCODECHAL_ENCODE_SFC_STATE = CODECHAL_ENCODE_SFC_STATE*;
 
+//!
+//! \brief    Initialize
+//!
+//! \param    [in] hwInterface
+//!           Codechal hardware interface
+//! \param    [in] osInterface
+//!           Pointer to MOS interface
+//!
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if call success, else fail reason
+//!
 MOS_STATUS CodecHalEncodeSfc_Initialize(
     CodechalHwInterface                *hwInterface,
     PMOS_INTERFACE                      osInterface);
 
+//!
+//! \brief    Set parameters
+//! \details    call every frame.  get the input/output surface and  color space...
+//!
+//! \param    [in] osInterface
+//!           Pointer to MOS interface
+//! \param    [in] sfcState
+//!           Pointer to codechal encode sfc state
+//! \param    [in] params
+//!           Pointer to codechal encode sfc parameters
+//!
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if call success, else fail reason
+//!
 MOS_STATUS CodecHalEncodeSfc_SetParams(
     PMOS_INTERFACE                      osInterface,
     PCODECHAL_ENCODE_SFC_STATE          sfcState,
     CODECHAL_ENCODE_SFC_PARAMS*         params);
 
+//!
+//! \brief    Destroy
+//!
+//! \param    [in] hwInterface
+//!           Codechal hardware interface
+//! \param    [in] osInterface
+//!           Pointer to MOS interface
+//! \param    [in] sfcState
+//!           Pointer to codechal encode sfc state
+//!
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if call success, else fail reason
+//!
 MOS_STATUS CodecHalEncodeSfc_Destroy(
     CodechalHwInterface            *hwInterface,
     PMOS_INTERFACE                  osInterface,
     PCODECHAL_ENCODE_SFC_STATE      sfcState);
 
+//!
+//! \brief    Render start
+//!
+//! \param    [in] hwInterface
+//!           Codechal hardware interface
+//! \param    [in] osInterface
+//!           Pointer to MOS interface
+//! \param    [in] encoder
+//!           Pointer to codechal encoder state
+//! \param    [in] sfcState
+//!           Pointer to codechal encode sfc state
+//!
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if call success, else fail reason
+//!
 MOS_STATUS CodecHalEncodeSfc_RenderStart(
     CodechalHwInterface            *hwInterface,
     PMOS_INTERFACE                  osInterface,

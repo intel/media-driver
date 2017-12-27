@@ -43,11 +43,11 @@
 #define VP_MIN_PIC_WIDTH    16
 #define VP_MIN_PIC_HEIGHT   16
 
-// surface flag : 1 encrypted;  0 clear
+// surface flag : 1 secure;  0 clear
 #ifdef ANDROID
-#define VPHAL_IS_SURFACE_ENCRYPTED_FLAG 0x80000000
+#define VPHAL_SURFACE_ENCRYPTION_FLAG 0x80000000
 #else
-#define VPHAL_IS_SURFACE_ENCRYPTED_FLAG 0x00000001
+#define VPHAL_SURFACE_ENCRYPTION_FLAG 0x00000001
 #endif
 #define NUM_SURFS 1
 

@@ -31,12 +31,13 @@
 #include "codechal.h"
 #include "codechal_hw.h"
 #include "codechal_debug.h"
-#include "codechal_encoder.h"
 #include "codechal_encode_sfc.h"
 #include "codechal_encode_csc_ds.h"
+#include "codechal_encode_tracked_buffer.h"
+#include "codechal_encode_allocator.h"
 #include "codechal_mmc.h"
-#include "cm_def.h"
-#include "cm_wrapper.h"
+#include "codechal_utilities.h"
+#include "cm_rt_umd.h"
 
 //------------------------------------------------------------------------------
 // Macros specific to MOS_CODEC_SUBCOMP_ENCODE sub-comp
@@ -86,6 +87,32 @@
 #define CODECHAL_ENCODE_CHK_COND_RETURN(_expr, _message, ...)                           \
     MOS_CHK_COND_RETURN(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_ENCODE,_expr,_message, ##__VA_ARGS__)
 
+// User Feature Report Writeout
+#define CodecHalEncode_WriteKey64(key, value)\
+{\
+    MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;\
+    UserFeatureWriteData.Value.i64Data  = (value);\
+    UserFeatureWriteData.ValueID        = (key);\
+    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);\
+}
+
+#define CodecHalEncode_WriteKey(key, value)\
+{\
+    MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;\
+    UserFeatureWriteData.Value.i32Data  = (value);\
+    UserFeatureWriteData.ValueID        = (key);\
+    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);\
+}
+
+#define CodecHalEncode_WriteStringKey(key, value, len)\
+{\
+    MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;\
+    UserFeatureWriteData.Value.StringData.pStringData = (value);\
+    UserFeatureWriteData.Value.StringData.uSize = (len);\
+    UserFeatureWriteData.ValueID        = (key);\
+    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);\
+}
+
 //!
 //! \brief Recycled buffers are buffers which are locked and populated each execute
 //!        to be consumed by HW. The driver loops through these buffers, if for the
@@ -117,6 +144,36 @@
 #define CODECHAL_ENCODE_BRC_KBPS                        1000     // 1000bps for disk storage, aligned with industry usage
 #define CODECHAL_ENCODE_SCENE_CHANGE_DETECTED_MASK      0xffff
 
+typedef enum _CODECHAL_ENCODE_FUNCTION_ID
+{
+    CODECHAL_ENCODE_ENC_ID           = 0x100,
+    CODECHAL_ENCODE_PAK_ID           = 0x101,
+    CODECHAL_ENCODE_ENC_PAK_ID       = 0x102,
+    CODECHAL_ENCODE_VPP_ID           = 0x103,
+    CODECHAL_ENCODE_FORMAT_COUNT_ID  = 0x104,
+    CODECHAL_ENCODE_FORMATS_ID       = 0x105,
+    CODECHAL_ENCODE_ENC_CTRL_CAPS_ID = 0x106,
+    CODECHAL_ENCODE_ENC_CTRL_GET_ID  = 0x107,
+    CODECHAL_ENCODE_ENC_CTRL_SET_ID  = 0x108,
+    CODECHAL_ENCODE_MBDATA_LAYOUT_ID = 0x109,
+    CODECHAL_ENCODE_FEI_PRE_ENC_ID   = 0x10A,
+    CODECHAL_ENCODE_FEI_ENC_ID       = 0x10B,
+    CODECHAL_ENCODE_FEI_PAK_ID       = 0x10C,
+    CODECHAL_ENCODE_FEI_ENC_PAK_ID   = 0x10D,
+    CODECHAL_ENCODE_QUERY_STATUS_ID  = 0x121
+} CODECHAL_ENCODE_FUNCTION_ID;
+
+typedef enum _CODECHAL_ENCODE_BRC_KERNEL_STATE_IDX
+{
+    CODECHAL_ENCODE_BRC_IDX_INIT = 0,
+    CODECHAL_ENCODE_BRC_IDX_FrameBRC_UPDATE,
+    CODECHAL_ENCODE_BRC_IDX_RESET,
+    CODECHAL_ENCODE_BRC_IDX_IFRAMEDIST,
+    CODECHAL_ENCODE_BRC_IDX_BLOCKCOPY,
+    CODECHAL_ENCODE_BRC_IDX_MbBRC_UPDATE, // extra MbBRCUpdate kernel starting GEN9
+    CODECHAL_ENCODE_BRC_IDX_NUM
+} CODECHAL_ENCODE_BRC_KERNEL_STATE_IDX;
+
 typedef struct KernelHeaderEncode
 {
     int nKernelCount;
@@ -139,6 +196,10 @@ typedef struct KernelHeaderEncode
 
 }KernelHeaderEncode;
 
+//!
+//! \enum     BindingTableOffsetKernel
+//! \brief    Binding table offset kernel
+//!
 enum BindingTableOffsetKernel
 {
     // VDEnc HME kernel
@@ -175,13 +236,52 @@ enum BindingTableOffsetKernel
     HmeEnd,
 };
 
+
+//!
+//! \enum   BrcUpdateFlag
+//! \brief  Indicate the Brc Update Flag
+//!
+enum BrcUpdateFlag
+{
+    brcUpdateIsField         = 0x01,
+    brcUpdateIsMbaff         = (0x01 << 1),
+    brcUpdateIsBottomField   = (0x01 << 2),
+    brcUpdateAutoPbFrameSize = (0x01 << 3),
+    brcUpdateIsActualQp      = (0x01 << 6),
+    brcUpdateIsReference     = (0x01 << 7)
+};
+
+//!
+//! \enum   TrellisSetting
+//! \brief  Indicate the different Trellis Settings
+//!
+enum TrellisSetting
+{
+    trellisInternal = 0,
+    trellisDisabled = 1,
+    trellisEnabledI = 2,
+    trellisEnabledP = 4,
+    trellisEnabledB = 8
+};
+
+//!
+//! \enum   MbBrcSetting
+//! \brief  Indicate the MBBRC settings
+//!
+enum MbBrcSetting
+{
+    mbBrcInternal = 0, 
+    mbBrcEnabled  = 1, 
+    mbBrcDisabled = 2, 
+};
+
 // User Feature Key Report Writeout
 #define CodecHalEncodeWriteKey64(key, value)\
 {\
     MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;\
     UserFeatureWriteData.Value.i64Data  = (value);\
     UserFeatureWriteData.ValueID        = (key);\
-    CodecHal_UserFeature_WriteValue(nullptr, &UserFeatureWriteData);\
+    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);\
 }
 
 #define CodecHalEncodeWriteKey(key, value)\
@@ -189,7 +289,7 @@ enum BindingTableOffsetKernel
     MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;\
     UserFeatureWriteData.Value.i32Data  = (value);\
     UserFeatureWriteData.ValueID        = (key);\
-    CodecHal_UserFeature_WriteValue(nullptr, &UserFeatureWriteData);\
+    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);\
 }
 
 #define CodecHalEncodeWriteStringKey(key, value, len)\
@@ -198,7 +298,7 @@ enum BindingTableOffsetKernel
     UserFeatureWriteData.Value.StringData.pStringData = (value);\
     UserFeatureWriteData.Value.StringData.uSize = (len);\
     UserFeatureWriteData.ValueID        = (key);\
-    CodecHal_UserFeature_WriteValue(nullptr, &UserFeatureWriteData);\
+    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);\
 }
 
 
@@ -218,6 +318,10 @@ enum BindingTableOffsetKernel
     m_osInterface->pfnSetPerfTag(m_osInterface, perfTag.Value);                         \
     m_osInterface->pfnIncPerfBufferID(m_osInterface);             }
 
+//!
+//! \struct    CodechalEncodeMdfKernelResource
+//! \brief     Codechal encode mdf kernel resource
+//!
 struct CodechalEncodeMdfKernelResource
 {
     void                            *pCommonISA;
@@ -269,7 +373,10 @@ struct MfeSharedState
     std::vector<CodechalEncoderState*>      encoders;
 };
 
-
+//!
+//! \struct    FeiPreEncParams
+//! \brief     Fei pre-encode parameters
+//!
 struct FeiPreEncParams
 {
     MOS_RESOURCE                    resMvPredBuffer;
@@ -367,12 +474,28 @@ enum HmeLevel
     HME_LEVEL_32x = 2
 };
 
+//!
+//! \enum     EncodeMeMode
+//! \brief    Encode me mode
+//!
 enum EncodeMeMode
 {
     CODECHAL_ENCODE_ME16X_BEFORE_ME4X = 0,
     CODECHAL_ENCODE_ME16X_ONLY = 1,
     CODECHAL_ENCODE_ME4X_ONLY = 2,
     CODECHAL_ENCODE_ME4X_AFTER_ME16X = 3
+};
+
+//!
+//! \enum     CodechalEncodeBrcNumPasses
+//! \brief    used in GetNumBrcPakPasses
+//!
+enum CodechalEncodeBrcNumPasses
+{
+    CODECHAL_ENCODE_BRC_SINGLE_PASS        = 1, // No IPCM case
+    CODECHAL_ENCODE_BRC_MINIMUM_NUM_PASSES = 2, // 2 to cover IPCM case
+    CODECHAL_ENCODE_BRC_DEFAULT_NUM_PASSES = 4,
+    CODECHAL_ENCODE_BRC_MAXIMUM_NUM_PASSES = 7
 };
 
 //!
@@ -388,6 +511,18 @@ struct HmeParams
     PMOS_SURFACE            ps4xMeDistortionBuffer;
     PMOS_RESOURCE           presMvAndDistortionSumSurface;
     bool                    b4xMeDistortionBufferSupported;
+};
+
+//!
+//! \struct CodechalEncodeSeiData
+//! \brief  Indicate the SeiData parameters
+//!
+struct CodechalEncodeSeiData
+{
+    bool       newSEIData;
+    uint32_t   dwSEIDataSize;
+    uint32_t   dwSEIBufSize;
+    uint8_t*   pSEIBuffer;
 };
 
 //!
@@ -415,7 +550,7 @@ struct EncoderParams
     bool                            bNewSeq;                    //!< Indicates the start of a new sequence.
     bool                            bPicQuant;                  //!< Indicates whether the scaling list is for SPS (0) or PPS (1).
     bool                            bNewQmatrixData;            //!< Indicates that new QM data was provided by framework.
-    PCODECHAL_ENCODE_SEI_DATA       pSeiData;                   //!< [AVC & HEVC] Information pertaining to pSeiParamBuffer.
+    CodechalEncodeSeiData           *pSeiData;                   //!< [AVC & HEVC] Information pertaining to pSeiParamBuffer.
     uint32_t                        dwSEIDataOffset;            //!< [AVC & HEVC] Offset to the first SEI message within pSeiParamBuffer.
     uint8_t                         *pSeiParamBuffer;           //!< [AVC & HEVC] Packed SEI messages provided by the framework
     uint32_t                        dwNumSlices;                //!< Number of slice data structures in pSliceParams.
@@ -436,7 +571,9 @@ struct EncoderParams
     bool                            bMbDisableSkipMapEnabled;   //!< [AVC] Indicates that psMbDisableSkipMapSurface is present.
     bool                            bReportStatisticsEnabled;   //!< [HEVC] Indicates whether statistic reporting is enabled, disabled by default.
     bool                            bQualityImprovementEnable;  //!< [HEVC] Indicates whether quality improvement is enabled, disabled by default.
-
+    bool                            newSeqHeader;               //!< [AVC] Flag for new Sequence Header.
+    bool                            newPpsHeader;               //!< [AVC] Flag for new PPS Header.
+    bool                            arbitraryNumMbsInSlice;     //!< [AVC] Flag to indicate if the sliceMapSurface needs to be programmed or not.
 
     void                            *pSeqParams;                 //!< Sequence parameter set structure defined per standard.
     void                            *pPicParams;                 //!< Picture parameter set structure defined per standard.
@@ -475,6 +612,18 @@ struct EncoderParams
     MOS_SURFACE                     mbQpSurface;
     MOS_SURFACE                     disableSkipMapSurface;          //!< [AVC] MB disable skip map provided by framework
 };
+
+//!
+//! \brief  Generic binding table
+//!
+struct GenericBindingTable
+{
+    uint32_t   dwMediaState;
+    uint32_t   dwBindingTableStartOffset;
+    uint32_t   dwNumBindingTableEntries;
+    uint32_t   dwBindingTableEntries[64];
+};
+using PCODECHAL_ENCODE_BINDING_TABLE_GENERIC = GenericBindingTable*;
 
 //!
 //! \struct MeKernelBindingTable
@@ -596,99 +745,28 @@ struct MeCurbeParams
 };
 
 //!
-//! \struct HucComDmem
-//! \brief  The struct of Huc Com Dmem
+//! \struct    EncodeReadBrcPakStatsParams
+//! \brief     Encode read brc pak states parameters
 //!
-struct HucComDmem
+struct EncodeReadBrcPakStatsParams
 {
-    uint32_t    OutputSize;               //!< Total size in byte of the Output SLB
-    uint32_t    TotalOutputCommands;      //!< Total Commands in the output SLB
-    uint8_t     TargetUsage;              //!< TU number
-    uint8_t     Codec;                    //!< 0-HEVC VDEnc; 1-VP9 VDEnc; 2-AVC VDEnc
-    uint8_t     FrameType;                //!< 0-I Frame; 1-P Frame; 2-B Frame
-    uint8_t     Reserved[37];
-    struct
-    {
-        uint16_t    StartInBytes;        //!< Command starts offset in bytes in Output SLB
-        uint8_t     ID;                  //!< Command ID
-        uint8_t     Type;                //!< Command Type
-        uint32_t    BBEnd;
-    } OutputCOM[50];
+    CodechalHwInterface    *pHwInterface;
+    PMOS_RESOURCE           presBrcPakStatisticBuffer;
+    PMOS_RESOURCE           presStatusBuffer;
+    uint32_t                dwStatusBufNumPassesOffset;
+    uint8_t                 ucPass;
+    MOS_GPU_CONTEXT         VideoContext;
 };
 
 //!
-//! \struct HucComData
-//! \brief  The struct of Huc commands data
-//!
-struct HucComData
-{
-    uint32_t        TotalCommands;       //!< Total Commands in the Data buffer
-    struct
-    {
-        uint16_t    ID;              //!< Command ID, defined and order must be same as that in DMEM
-        uint16_t    SizeOfData;      //!< data size in uint32_t
-        uint32_t    data[40];
-    } InputCOM[50];
-};
-
-//!
-//! \struct HucInputCmd1
-//! \brief  The struct of Huc input command 1
-//!
-struct HucInputCmd1
-{
-    // Shared
-    uint32_t FrameWidthInMinCbMinus1;
-    uint32_t FrameHeightInMinCbMinus1;
-    uint32_t log2_min_coding_block_size_minus3;
-    uint8_t  VdencStreamInEnabled;
-    uint8_t  PakOnlyMultipassEnable;
-    uint16_t num_ref_idx_l0_active_minus1;
-    uint16_t SADQPLambda;
-    uint16_t RDQPLambda;
-
-    // HEVC
-    uint16_t num_ref_idx_l1_active_minus1;
-    uint8_t  RSVD0;
-    uint8_t  ROIStreamInEnabled;
-    int8_t   ROIDeltaQp[8]; // [-3..3] or [-51..51]
-    uint8_t  FwdPocNumForRefId0inL0;
-    uint8_t  FwdPocNumForRefId0inL1;
-    uint8_t  FwdPocNumForRefId1inL0;
-    uint8_t  FwdPocNumForRefId1inL1;
-    uint8_t  FwdPocNumForRefId2inL0;
-    uint8_t  FwdPocNumForRefId2inL1;
-    uint8_t  FwdPocNumForRefId3inL0;
-    uint8_t  FwdPocNumForRefId3inL1;
-    uint8_t  EnableRollingIntraRefresh;
-    int8_t   QpDeltaForInsertedIntra;
-    uint16_t IntraInsertionSize;
-    uint16_t IntraInsertionLocation;
-    int8_t   QpY;
-    uint8_t  RoundingEnabled;
-    uint8_t  UseDefaultQpDeltas;
-    uint8_t  PanicEnabled;
-    uint8_t  RSVD[2];
-
-    // VP9
-    uint16_t DstFrameWidthMinus1;
-    uint16_t DstFrameHeightMinus1;
-    uint8_t  SegmentationEnabled;
-    uint8_t  PrevFrameSegEnabled;
-    uint8_t  SegMapStreamInEnabled;
-    uint8_t  LumaACQIndex;
-    int8_t   LumaDCQIndexDelta;
-    uint8_t  RESERVED[3];
-    int16_t  SegmentQIndexDelta[8];
-};
-
-//!
-//! \struct HucInputCmd2
+//! \struct PakIntegrationBrcData
 //! \brief  The struct of Huc input command 2
 //!
-struct HucInputCmd2
+struct PakIntegrationBrcData
 {
-    uint32_t SADQPLambda;
+    uint32_t FrameByteCount;
+    uint32_t FrameByteCountNoHeader;
+    uint32_t HCP_ImageStatusControl;
 };
 
 //!
@@ -701,6 +779,10 @@ struct SearchPathDelta
     uint8_t   SearchPathDelta_Y       : 4;
 };
 
+//!
+//! \struct    HwCounter
+//! \brief     Hardware counter
+//!
 struct HwCounter
 {
     uint64_t IV;         // Big-Endian IV
@@ -745,7 +827,7 @@ struct SendKernelCmdsParams
 
 //!
 //! \struct BrcQpReport
-//! \brief Struct of Query bit rate control and QP Status
+//! \brief  Struct of Query bit rate control and QP Status
 //!
 struct BrcQpReport
 {
@@ -772,6 +854,10 @@ struct BrcQpReport
     };
 };
 
+//!
+//! \struct    EncodeBrcBuffers
+//! \brief     Encode brc buffers
+//!
 struct EncodeBrcBuffers
 {
     MOS_RESOURCE            resBrcHistoryBuffer;                                                    // BRC history buffer
@@ -800,6 +886,17 @@ struct EncodeBrcBuffers
     MOS_SURFACE             sBrcRoiSurface;                 // BRC ROI surface
     PMHW_KERNEL_STATE       pMbEncKernelStateInUse;
 };
+
+//!
+//! \struct    CODECHAL_ENCODE_BUFFER
+//! \brief     Codechal encode buffer
+//!
+struct CODECHAL_ENCODE_BUFFER
+{
+    MOS_RESOURCE    sResource;
+    uint32_t        dwSize;
+};
+using PCODECHAL_ENCODE_BUFFER = CODECHAL_ENCODE_BUFFER*;
 
 //!
 //! \struct CodechalTileInfo
@@ -889,8 +986,20 @@ struct EncodeStatusReport
 };
 
 //!
+//! \struct EncodeStatusSliceReport
+//! \brief  The struct stores Encode status buffers
+//!
+struct EncodeStatusSliceReport
+{
+    uint16_t*                       pSliceSize;
+    uint8_t                         NumberSlices;
+    uint32_t                        SizeOfSliceSizesBuffer;
+    uint32_t                        SliceSizeOverflow : 1;
+};
+
+//!
 //! \struct EncodeStatus
-//! \brief  The sturct stores Encode status
+//! \brief  The struct stores Encode status
 //!
 struct EncodeStatus
 {
@@ -921,6 +1030,7 @@ struct EncodeStatus
     MHW_VDBOX_IMAGE_STATUS_CONTROL  ImageStatusCtrlOfLastBRCPass;   //!< The level of loop filter
     uint32_t                        dwSceneChangedFlag;     //!< The flag indicate if the scene is changed
     uint64_t                        sumSquareError[3];      //!< The list of sum square error
+    EncodeStatusSliceReport         sliceReport;
 };
 
 //!
@@ -973,12 +1083,48 @@ struct AtomicScratchBuffer
 };
 
 //!
+//! \struct CodechalEncodeBbuf
+//! \brief  Struct for Batch buffer
+//!
+struct CodechalEncodeBbuf
+{
+    MHW_BATCH_BUFFER        BatchBuffer;
+    uint32_t                dwSize;
+    uint32_t                dwNumMbsInBBuf;
+    bool                    fieldScale;
+};
+
+//!
+//! \struct CodechalEncodeIdOffsetParams
+//! \brief  Indicate the ID Offset parameters
+//!
+struct CodechalEncodeIdOffsetParams
+{
+    uint32_t                                Standard;
+    CODECHAL_MEDIA_STATE_TYPE               EncFunctionType;
+    uint16_t                                wPictureCodingType;
+    uint8_t                                 ucDmvPredFlag;
+    bool                                    interlacedField;
+};
+
+//!
 //! \struct VdencBrcPakMmio
 //! \brief  MMIO of BRC and PAK
 //!
 struct VdencBrcPakMmio
 {
     uint32_t                dwReEncode[4];
+};
+
+//!
+//! \enum    EncodeMode
+//! \brief   Encode mode
+//!
+enum EncodeMode
+{
+    encodeNormalMode = 0,
+    encodePerformanceMode = 1,
+    encodeQualityMode = 2
 };
 
 enum
@@ -1030,6 +1176,10 @@ class CodechalEncodeWP;
 class CodechalDebugEncodePar;
 #endif
 
+//!
+//! \class    CodechalEncoderGenState
+//! \brief    Codechal encoder gen state
+//!
 class CodechalEncoderGenState
 {
 public:
@@ -1067,13 +1217,10 @@ public:
 class CodechalEncoderState : public Codechal
 {
 public:
-    enum MbBrcSetting
-    {
-        CODECHAL_ENCODE_MBBRC_INTERNAL = 0,
-        CODECHAL_ENCODE_MBBRC_ENABLED = 1,
-        CODECHAL_ENCODE_MBBRC_DISABLED = 2,
-    };
-
+    //!
+    //! \enum     RefId
+    //! \brief    Reference id
+    //!
     enum RefId
     {
         CODECHAL_ENCODE_REF_ID_0 = 0,
@@ -1084,13 +1231,6 @@ public:
         CODECHAL_ENCODE_REF_ID_5 = 5,
         CODECHAL_ENCODE_REF_ID_6 = 6,
         CODECHAL_ENCODE_REF_ID_7 = 7,
-    };
-
-    enum EncodeMode
-    {
-        CODECHAL_ENCODE_NORMAL_MODE = 0,
-        CODECHAL_ENCODE_PERFORMANCE_MODE = 1,
-        CODECHAL_ENCODE_QUALITY_MODE = 2
     };
 
     // this is used for Mpeg2 encoding BRC as well,
@@ -1212,6 +1352,10 @@ public:
         CODECHAL_ENCODE_ME_IDX_NUM   = 2
     };
 
+    //!
+    //! \struct    MediaObjectInlineData
+    //! \brief     Media object inline data
+    //!
     struct MediaObjectInlineData
     {
         // uint32_t 0
@@ -1247,7 +1391,7 @@ public:
     //!
     //! \brief    Destructor
     //!
-    virtual ~CodechalEncoderState() {}
+    virtual ~CodechalEncoderState();
 
     // Encoder private data
     MhwVdboxMfxInterface*           m_mfxInterface = nullptr;                       //!< Mfx Interface
@@ -1257,6 +1401,8 @@ public:
     MhwMiInterface*                 m_miInterface = nullptr;                        //!< Mi Interface
     MhwRenderInterface*             m_renderEngineInterface = nullptr;              //!< Render engine interface
     PMHW_STATE_HEAP_INTERFACE       m_stateHeapInterface = nullptr;                 //!< State heap interface
+    CodechalEncodeAllocator*        m_allocator = nullptr;                          //!< Resource allocator
+    CodechalEncodeTrackedBuffer*    m_trackedBuf = nullptr;                         //!< Tracked buffer state
 
     PLATFORM                        m_platform;                                     //!< The platorm info
     MEDIA_FEATURE_TABLE             *m_skuTable = nullptr;                          //!< SKU table
@@ -1403,7 +1549,6 @@ public:
     bool                            m_sliceShutdownEnable = false;        //!< Slice Shutdown Enable
     uint32_t                        m_encodeVfeMaxThreads = 0;            //!< Encode vfe max threads number
     uint32_t                        m_encodeVfeMaxThreadsScaling = 0;     //!< Encode vfe max threads scaling number
-    uint32_t                        m_halfSliceSelect = 0;                //!< Half slice select
     uint32_t                        m_hwScoreboardType = 0;               //!< HW score board type
     bool                            m_flatnessCheckSupported = false;     //!< Flatness check supported flag
     bool                            m_groupIdSelectSupported = false;     //!< Group id select supported flag
@@ -1491,7 +1636,7 @@ public:
     ScalingBindingTable             m_scaling2xBindingTable;                              //!< Scaling 2x Binding Table
     uint32_t                        m_scalingCurbeSize;                                   //!< Scaling curbe size
     bool                            m_interlacedFieldDisabled = false;                    //!< interlaced field disabled flag
-    CODECHAL_ENCODE_BBUF            m_scalingBBUF[CODECHAL_ENCODE_VME_BBUF_NUM];          //!< This Batch Buffer is used for scaling kernel.
+    CodechalEncodeBbuf              m_scalingBBUF[CODECHAL_ENCODE_VME_BBUF_NUM];          //!< This Batch Buffer is used for scaling kernel.
     uint32_t                        m_scaledBottomFieldOffset = 0;                        //!< Scaled Bottom Field Offset
     uint32_t                        m_scaled16xBottomFieldOffset = 0;                     //!< Scaled 16x Bottom Field Offset
     uint32_t                        m_scaled32xBottomFieldOffset = 0;                     //!< Scaled 32x Bottom Field Offset
@@ -1534,13 +1679,6 @@ public:
     MeKernelBindingTable            m_meBindingTable;                                 //!< ME binding table
 
     // tracked buffer
-    uint8_t                         m_trackedBufCurrIdx = 0;                     //!< current tracked buffer index when ring buffer is used
-    uint8_t                         m_trackedBufCountNonRef = 0;                 //!< counting number of tracked buffer when ring buffer is used
-    uint8_t                         m_trackedBufCountResize = 0;                 //!< 3 buffers to be delay-destructed during res change
-    uint8_t                         m_trackedBufLastIdx = 0;                     //!< last tracked buffer index
-    uint8_t                         m_trackedBufPenuIdx = 0;                     //!< 2nd-to-last tracked buffer index
-    uint8_t                         m_trackedBufAnteIdx= 0;                      //!< 3rd-to-last tracked buffer index
-    bool                            m_waitForTrackedBuffer= false;               //!< wait to re-use tracked buffer
     CODEC_TRACKED_BUFFER            m_trackedBuffer[CODEC_NUM_TRACKED_BUFFERS];  //!< Csc/Ds/MbCode/MvData surface/buffer
 
     // Ds+Copy kernel optimization
@@ -1551,11 +1689,11 @@ public:
     PMOS_SURFACE                    m_rawSurfaceToPak = nullptr;                                  //!< raw surf to pak
     
     // HME VDEnc
-    CODECHAL_ENCODE_BINDING_TABLE_GENERIC      m_vdencMeKernelBindingTable;        //!< Vdenc ME kernel binding table
-    MHW_KERNEL_STATE                           m_vdencMeKernelState;               //!< Vdenc ME kernel state
+    GenericBindingTable             m_vdencMeKernelBindingTable;        //!< Vdenc ME kernel binding table
+    MHW_KERNEL_STATE                m_vdencMeKernelState;               //!< Vdenc ME kernel state
 
-    CODECHAL_ENCODE_BINDING_TABLE_GENERIC      m_vdencStreaminKernelBindingTable;  //!< Vdenc stream in kernel binding table
-    MHW_KERNEL_STATE                           m_vdencStreaminKernelState;         //!< Vdenc stream in kernel state
+    GenericBindingTable             m_vdencStreaminKernelBindingTable;  //!< Vdenc stream in kernel binding table
+    MHW_KERNEL_STATE                m_vdencStreaminKernelState;         //!< Vdenc stream in kernel state
 
     // Common kernel
     uint32_t                        m_kuidCommon = 0;                    //!< Common kernel UID
@@ -1666,13 +1804,13 @@ public:
 
     //!
     //! \brief  Initialize the encoder state
-    //! \param  [in] pSettings
+    //! \param  [in] settings
     //!         Pointer to the initialize settings
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS Initialize(
-        PCODECHAL_SETTINGS pSettings);
+        PCODECHAL_SETTINGS settings);
 
     //!
     //! \brief  Allocate resources for encoder
@@ -1719,17 +1857,17 @@ public:
 
     //!
     //! \brief  Get Status Report
-    //! \detail Each Codec need to define its own GetStatusReport
-    //! \param  [out] pEncodeStatus
+    //! \details Each Codec need to define its own GetStatusReport
+    //! \param  [out] encodeStatus
     //!         Encoder status
-    //! \param  [out] pEncodeStatusReport
+    //! \param  [out] encodeStatusReport
     //!         Encoder status report
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS GetStatusReport(
-        EncodeStatus* pEncodeStatus,
-        EncodeStatusReport* pEncodeStatusReport) = 0;
+        EncodeStatus* encodeStatus,
+        EncodeStatusReport* encodeStatusReport) = 0;
 
     //!
     //! \brief  User Feature Key Report
@@ -1990,90 +2128,20 @@ public:
     MOS_STATUS InitCommon();
 
     //!
-    //! \brief  Resize the Tracked Buffer
-    //!
-    //! \return void
-    //!
-    void TrackedBufferResize();
-
-    //!
-    //! \brief  Tracked Buffer Allocate Mb Code Resources
-    //!
-    //! \param  [in] bufIndex
-    //!         buffer index used
-    //!
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS TrackedBufferAllocateMbCodeResources(
-        uint8_t bufIndex);
-
-    //!
-    //! \brief  Tracked Buffer Allocate Mv Data Resources
-    //!
-    //! \param  [in] bufIndex
-    //!         buffer index used
-    //!
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS TrackedBufferAllocateMvDataResources(
-        uint8_t bufIndex);
-
-    //!
-    //! \brief  Tracked Buffer Allocate Ds Recon Surfaces Vdenc
-    //!
-    //! \param  [in] bufIndex
-    //!         buffer index used
-    //!
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS TrackedBufferAllocateDsReconSurfacesVdenc(
-        uint8_t bufIndex);
-
-    //!
-    //! \brief  Tracked Buffer Look Up Buf Index
+    //! \brief  Resize Internal Buffer on Resolution Change
     //! 
-    //! \detail Encode needs to track and store certain surface/resource/buffers, to be used as reference for future frames
-    //!         Given the RefFrame list of current frame, this function returns a slot to be used to index/track these resources
-    //!         Whenever a RefFrame is no longer used, its corresponding slot will be re-used to minimize memory allocation
-    //!         These "tracked buffer" so far includes copy surface, downscaling surface, and MbCode/MvData buffer
-    //!
-    //! \param  [in] refList
-    //!         buffer index used
-    //! \param  [in] numRefFrame
-    //!         buffer index used
-    //! \param  [in] usedAsRef
-    //!         Flag of used as reference
-    //!
-    //! \return uint8_t
-    //!         Index found
-    //!
-    uint8_t TrackedBufferLookUpBufIndex(
-        PCODEC_PICTURE refList,
-        uint8_t        numRefFrame,
-        bool           usedAsRef);
+    virtual void ResizeOnResChange();
 
     //!
-    //! \brief  Tracked Buffer Releas eSlot
+    //! \brief   Check Resolution Change and CSC
+    //! 
+    //! \details On resolution change, resize internal buffer
+    //!          Check raw surface to set flag for CSC operation
     //!
-    //! \param  [in] bufIndex
-    //!         buffer index used
+    //! \return  MOS_STATUS
+    //!          MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    void TrackedBufferReleaseSlot(
-        uint8_t bufIndex);
-
-
-    //!
-    //! \brief  Tracked Buffer Release Resources
-    //!
-    //! \return void
-    //!
-    void TrackedBufferReleaseResources();
+    virtual MOS_STATUS CheckResChangeAndCsc();
 
     //!
     //! \brief  Destroy encode state
@@ -2152,22 +2220,22 @@ public:
     //!
     MOS_STATUS ReadBrcPakStatistics(
         PMOS_COMMAND_BUFFER cmdBuffer,
-        PCODECHAL_ENCODE_READ_BRC_PAK_STATS_PARAMS params);
+        EncodeReadBrcPakStatsParams* params);
 
     //!
     //! \brief  Update command buffer attribute
     //!
     //! \param  [in] cmdBuffer
     //!         cmdbuffer to send cmds
-    //! \param  [in] bRenderEngineInUse
-    //!         bRenderEngineInUse flag used
+    //! \param  [in] renderEngineInUse
+    //!         renderEngineInUse flag used
     //!
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS UpdateCmdBufAttribute(
         PMOS_COMMAND_BUFFER cmdBuffer,
-        bool                bRenderEngineInUse);
+        bool                renderEngineInUse);
 
     //!
     //! \brief    Function pointer of Get Kernel Header And Size
@@ -2199,7 +2267,7 @@ public:
     MOS_STATUS DestroyMDFResources();
 
     //!
-    //! \brief    Function to add MDF kernel
+    //! \brief  Function to add MDF kernel
     //!
     //! \param  [in] device
     //!         pointer to CmDevice
@@ -2216,8 +2284,8 @@ public:
     //! \param  [in] isEnqueue
     //!         bool
     //!
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS AddKernelMdf(
         CmDevice      *device,
@@ -2244,8 +2312,8 @@ public:
     //! \param  [in] curbeSize
     //!         uint16_t, curbe structure size
     //!
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS CreateMDFKernelResource(
         CodechalEncodeMdfKernelResource *resource,
@@ -2258,8 +2326,8 @@ public:
     //!
     //! \brief    Function to destroy Mdf kernel resource
     //!
-    //! \param  [in] resource
-    //!         pointer to CodechalEncodeMdfKernelResource
+    //! \param    [in] resource
+    //!           pointer to CodechalEncodeMdfKernelResource
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
@@ -2270,8 +2338,8 @@ public:
     //!
     //! \brief    Function to free Mdf kernel surfaces
     //!
-    //! \param  [in] resource
-    //!         pointer to CodechalEncodeMdfKernelResource
+    //! \param    [in] resource
+    //!           pointer to CodechalEncodeMdfKernelResource
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
@@ -2279,9 +2347,90 @@ public:
     MOS_STATUS FreeMDFKernelSurfaces(
         CodechalEncodeMdfKernelResource *resource);
 
+    //!
+    //! \brief  Returns number of PAK Passes based on BRC Precision flag
+    //!
+    //! \param  [in] usBRCPrecision
+    //!         refer to CodechalEncodeBrcNumPasses
+    //!
+    //! \return uint8_t
+    //!         number of pak passes
+    //!
+    uint8_t GetNumBrcPakPasses(uint16_t usBRCPrecision);
+
 #if USE_CODECHAL_DEBUG_TOOL
     virtual MOS_STATUS DumpMbEncPakOutput(PCODEC_REF_LIST currRefList);
     virtual MOS_STATUS DumpFrameStatsBuffer() { return MOS_STATUS_SUCCESS; }
 #endif
 };
+
+static void PutBit(BSBuffer *bsbuffer, uint32_t code)
+{
+    if (code & 1)
+    {
+        *(bsbuffer->pCurrent) = (*(bsbuffer->pCurrent) | (uint8_t)(0x01 << (7 - bsbuffer->BitOffset)));
+    }
+
+    bsbuffer->BitOffset++;
+    if (bsbuffer->BitOffset == 8)
+    {
+        bsbuffer->BitOffset = 0;
+        bsbuffer->pCurrent++;
+        *(bsbuffer->pCurrent) = 0;
+    }
+}
+
+static void PutBitsSub(BSBuffer *bsbuffer, uint32_t code, uint32_t length)
+{
+    uint8_t *byte = bsbuffer->pCurrent;
+
+    // make sure that the number of bits given is <= 24
+    CODECHAL_ENCODE_ASSERT(length <= 24);
+
+    code <<= (32 - length);
+
+    // shift field so that the given code begins at the current bit
+    // offset in the most significant byte of the 32-bit word
+    length += bsbuffer->BitOffset;
+    code >>= bsbuffer->BitOffset;
+
+    // write bytes back into memory, big-endian
+    byte[0] = (uint8_t)((code >> 24) | byte[0]);
+    byte[1] = (uint8_t)(code >> 16);
+    if (length > 16)
+    {
+        byte[2] = (uint8_t)(code >> 8);
+        byte[3] = (uint8_t)code;
+    }
+    else
+    {
+        byte[2] = 0;
+    }
+
+    // update bitstream pointer and bit offset
+    bsbuffer->pCurrent += (length >> 3);
+    bsbuffer->BitOffset = (length & 7);
+}
+
+static void PutBits(BSBuffer *bsbuffer, uint32_t code, uint32_t length)
+{
+    uint32_t code1, code2;
+
+    // temp solution, only support up to 32 bits based on current usage
+    CODECHAL_ENCODE_ASSERT(length <= 32);
+
+    if (length >= 24)
+    {
+        code1 = code & 0xFFFF;
+        code2 = code >> 16;
+
+        // high bits go first
+        PutBitsSub(bsbuffer, code2, length - 16);
+        PutBitsSub(bsbuffer, code1, 16);
+    }
+    else
+    {
+        PutBitsSub(bsbuffer, code, length);
+    }
+}
 #endif  // __CODECHAL_ENCODER_BASE_H__

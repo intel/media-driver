@@ -45,7 +45,7 @@ CodechalDecodeVp9 :: ~CodechalDecodeVp9 ()
     m_osInterface->pfnDestroySyncResource(m_osInterface, &resSyncObjectWaContextInUse);
     m_osInterface->pfnDestroySyncResource(m_osInterface, &resSyncObjectVideoContextInUse);
 
-    CodecHal_FreeDataList(pVp9RefList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9);
+    CodecHalFreeDataList(pVp9RefList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9);
 
     if (!Mos_ResourceIsNull(&resDeblockingFilterLineRowStoreScratchBuffer))
     {
@@ -85,7 +85,7 @@ CodechalDecodeVp9 :: ~CodechalDecodeVp9 ()
         m_osInterface,
         &resHvcTileRowstoreBuffer);
 
-    for (uint8_t i = 0; i < CODECHAL_VP9_NUM_CONTEXTS + 1; i++)
+    for (uint8_t i = 0; i < CODEC_VP9_NUM_CONTEXTS + 1; i++)
     {
         m_osInterface->pfnFreeResource(
             m_osInterface,
@@ -204,7 +204,7 @@ CodechalDecodeVp9 :: CodechalDecodeVp9(
 
     PrevFrameParams.value           = 0;
     
-    for (uint8_t i = 0; i < CODECHAL_VP9_NUM_CONTEXTS; i++)
+    for (uint8_t i = 0; i < CODEC_VP9_NUM_CONTEXTS; i++)
     {
         bPendingResetFullTables[i]  = 0;
         bPendingCopySegProbs[i]     = 0;
@@ -226,12 +226,12 @@ MOS_STATUS CodechalDecodeVp9 :: ProbBufferPartialUpdatewithDrv()
     if (ProbUpdateFlags.bSegProbCopy)
     {        
         CODECHAL_DECODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(
-            (data + CODECHAL_VP9_SEG_PROB_OFFSET), 
+            (data + CODEC_VP9_SEG_PROB_OFFSET), 
             7, 
             ProbUpdateFlags.SegTreeProbs, 
             7));
         CODECHAL_DECODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(
-            (data + CODECHAL_VP9_SEG_PROB_OFFSET + 7), 
+            (data + CODEC_VP9_SEG_PROB_OFFSET + 7), 
             3, 
             ProbUpdateFlags.SegPredProbs, 
             3)); 
@@ -242,7 +242,7 @@ MOS_STATUS CodechalDecodeVp9 :: ProbBufferPartialUpdatewithDrv()
         CODECHAL_DECODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(
             InterProbSaved, 
             CODECHAL_VP9_INTER_PROB_SIZE, 
-            data + CODECHAL_VP9_INTER_PROB_OFFSET, 
+            data + CODEC_VP9_INTER_PROB_OFFSET, 
             CODECHAL_VP9_INTER_PROB_SIZE));
     }
 
@@ -250,12 +250,12 @@ MOS_STATUS CodechalDecodeVp9 :: ProbBufferPartialUpdatewithDrv()
     {
         if (ProbUpdateFlags.bResetFull)
         {            
-            CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalVP9_ContextBufferInit(
+            CODECHAL_DECODE_CHK_STATUS_RETURN(ContextBufferInit(
                 data, (ProbUpdateFlags.bResetKeyDefault ? true : false)));
         }
         else
         {
-            CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalVP9_CtxBufDiffInit(
+            CODECHAL_DECODE_CHK_STATUS_RETURN(CtxBufDiffInit(
                 data, (ProbUpdateFlags.bResetKeyDefault ? true : false)));
         }
     }
@@ -263,7 +263,7 @@ MOS_STATUS CodechalDecodeVp9 :: ProbBufferPartialUpdatewithDrv()
     if (ProbUpdateFlags.bProbRestore)
     {
         CODECHAL_DECODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(
-            data + CODECHAL_VP9_INTER_PROB_OFFSET, 
+            data + CODEC_VP9_INTER_PROB_OFFSET, 
             CODECHAL_VP9_INTER_PROB_SIZE,
             InterProbSaved, 
             CODECHAL_VP9_INTER_PROB_SIZE));
@@ -282,15 +282,15 @@ MOS_STATUS CodechalDecodeVp9 :: ProbBufFullUpdatewithDrv()
     auto data = (uint8_t*)ResourceLock.Lock(CodechalResLock::writeOnly);
     CODECHAL_DECODE_CHK_NULL_RETURN(data);
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalVP9_ContextBufferInit(
+    CODECHAL_DECODE_CHK_STATUS_RETURN(ContextBufferInit(
         data, (ProbUpdateFlags.bResetKeyDefault ? true : false)));
     CODECHAL_DECODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(
-        (data + CODECHAL_VP9_SEG_PROB_OFFSET), 
+        (data + CODEC_VP9_SEG_PROB_OFFSET), 
         7, 
         ProbUpdateFlags.SegTreeProbs, 
         7));
     CODECHAL_DECODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(
-        (data + CODECHAL_VP9_SEG_PROB_OFFSET + 7), 
+        (data + CODEC_VP9_SEG_PROB_OFFSET + 7), 
         3, 
         ProbUpdateFlags.SegPredProbs, 
         3)); 
@@ -327,27 +327,27 @@ MOS_STATUS CodechalDecodeVp9 :: ProbBufFullUpdatewithHucStreamout(
         (uint16_t)(((m_mode << 4) & 0xF0) | COPY_TYPE));
     m_osInterface->pfnResetPerfBufferID(m_osInterface);
     
-    uint32_t bufSize = CODECHAL_VP9_PROB_MAX_NUM_ELEM; // 16 byte aligned
+    uint32_t bufSize = CODEC_VP9_PROB_MAX_NUM_ELEM; // 16 byte aligned
 
-    CodechalResLock ResourceLock(m_osInterface, &resVp9ProbBuffer[CODECHAL_VP9_NUM_CONTEXTS]);
+    CodechalResLock ResourceLock(m_osInterface, &resVp9ProbBuffer[CODEC_VP9_NUM_CONTEXTS]);
     auto data = (uint8_t*)ResourceLock.Lock(CodechalResLock::writeOnly);
     CODECHAL_DECODE_CHK_NULL_RETURN(data);
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalVP9_ContextBufferInit(
+    CODECHAL_DECODE_CHK_STATUS_RETURN(ContextBufferInit(
         data,
         (ProbUpdateFlags.bResetKeyDefault ? true : false)));
     CODECHAL_DECODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(
-        (data + CODECHAL_VP9_SEG_PROB_OFFSET), 
+        (data + CODEC_VP9_SEG_PROB_OFFSET), 
         7, 
         ProbUpdateFlags.SegTreeProbs, 7));
     CODECHAL_DECODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(
-        (data + CODECHAL_VP9_SEG_PROB_OFFSET + 7), 
+        (data + CODEC_VP9_SEG_PROB_OFFSET + 7), 
         3, 
         ProbUpdateFlags.SegPredProbs, 3)); 
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(HucCopy(
         cmdBuffer,                                      // cmdBuffer
-        &resVp9ProbBuffer[CODECHAL_VP9_NUM_CONTEXTS],   // presSrc
+        &resVp9ProbBuffer[CODEC_VP9_NUM_CONTEXTS],   // presSrc
         &resVp9ProbBuffer[ucFrameCtxIdx],               // presDst
         bufSize,                                      // u32CopyLength
         0,                                              // u32CopyInputOffset
@@ -439,7 +439,7 @@ MOS_STATUS CodechalDecodeVp9 :: DetermineInternalBufferUpdate()
         pVp9PicParams->PicFlags.fields.segmentation_update_map)
     {
         copySegProbs = true;
-        for ( uint8_t ctxIdx = 0; ctxIdx < CODECHAL_VP9_NUM_CONTEXTS; ctxIdx++)
+        for ( uint8_t ctxIdx = 0; ctxIdx < CODEC_VP9_NUM_CONTEXTS; ctxIdx++)
         {
             bPendingCopySegProbs[ctxIdx] = true; 
         }        
@@ -465,7 +465,7 @@ MOS_STATUS CodechalDecodeVp9 :: DetermineInternalBufferUpdate()
         bPendingResetPartial = (keyFrame || intraOnly);         
 
         //prob buffer 0 will be used for current frame decoding
-        for ( uint8_t ctxIdx = 1; ctxIdx < CODECHAL_VP9_NUM_CONTEXTS; ctxIdx++)
+        for ( uint8_t ctxIdx = 1; ctxIdx < CODEC_VP9_NUM_CONTEXTS; ctxIdx++)
         {
             bPendingResetFullTables[ctxIdx] = true; 
         }
@@ -557,7 +557,7 @@ MOS_STATUS CodechalDecodeVp9 :: DetermineInternalBufferUpdate()
     return eStatus;
 }
 
-MOS_STATUS CodechalDecodeVp9 :: AllocateResources_FixedSizes()
+MOS_STATUS CodechalDecodeVp9 :: AllocateResourcesFixedSizes()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -570,17 +570,16 @@ MOS_STATUS CodechalDecodeVp9 :: AllocateResources_FixedSizes()
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateSyncResource(
         m_osInterface, &resSyncObjectVideoContextInUse));
 
-    CodecHal_AllocateDataList(
-        CODEC_REF_LIST,
+    CodecHalAllocateDataList(
         pVp9RefList,
         CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9);
 
     // VP9 Probability buffer
-    for (uint8_t i = 0; i < CODECHAL_VP9_NUM_CONTEXTS + 1; i++)
+    for (uint8_t i = 0; i < CODEC_VP9_NUM_CONTEXTS + 1; i++)
     {
         CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(AllocateBuffer(
             &resVp9ProbBuffer[i],
-            MOS_ALIGN_CEIL(CODECHAL_VP9_PROB_MAX_NUM_ELEM, CODECHAL_PAGE_SIZE),
+            MOS_ALIGN_CEIL(CODEC_VP9_PROB_MAX_NUM_ELEM, CODECHAL_PAGE_SIZE),
             "Vp9ProbabilityBuffer"),
             "Failed to allocate VP9 probability Buffer.");
 
@@ -588,10 +587,10 @@ MOS_STATUS CodechalDecodeVp9 :: AllocateResources_FixedSizes()
         auto data = (uint8_t*)ResourceLock.Lock(CodechalResLock::writeOnly);
         CODECHAL_DECODE_CHK_NULL_RETURN(data);
 
-        MOS_ZeroMemory(data, CODECHAL_VP9_PROB_MAX_NUM_ELEM);
+        MOS_ZeroMemory(data, CODEC_VP9_PROB_MAX_NUM_ELEM);
         //initialize seg_tree_prob and seg_pred_prob
-        MOS_FillMemory((data + CODECHAL_VP9_SEG_PROB_OFFSET), 7, CODECHAL_VP9_MAX_PROB);
-        MOS_FillMemory((data + CODECHAL_VP9_SEG_PROB_OFFSET + 7), 3, CODECHAL_VP9_MAX_PROB);
+        MOS_FillMemory((data + CODEC_VP9_SEG_PROB_OFFSET), 7, CODEC_VP9_MAX_PROB);
+        MOS_FillMemory((data + CODEC_VP9_SEG_PROB_OFFSET + 7), 3, CODEC_VP9_MAX_PROB);
     }
     
     
@@ -614,21 +613,21 @@ MOS_STATUS CodechalDecodeVp9 :: AllocateResources_FixedSizes()
     // VP9 shared buffer with HuC FW, mapping to region 15
     CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(AllocateBuffer(
         &resHucSharedBuffer,
-        MOS_ALIGN_CEIL(CODECHAL_VP9_PROB_MAX_NUM_ELEM, CODECHAL_PAGE_SIZE),
+        MOS_ALIGN_CEIL(CODEC_VP9_PROB_MAX_NUM_ELEM, CODECHAL_PAGE_SIZE),
         "VP9HucSharedBuffer"),
         "Failed to allocate VP9 Huc shared Buffer.");
 
     return eStatus;
 }
 
-MOS_STATUS CodechalDecodeVp9 :: AllocateResources_VariableSizes()
+MOS_STATUS CodechalDecodeVp9 :: AllocateResourcesVariableSizes()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_DECODE_FUNCTION_ENTER;
 
-    uint32_t widthInSb   = MOS_ROUNDUP_DIVIDE(m_width, CODECHAL_VP9_SUPER_BLOCK_WIDTH);
-    uint32_t heightInSb  = MOS_ROUNDUP_DIVIDE(m_height, CODECHAL_VP9_SUPER_BLOCK_HEIGHT);
+    uint32_t widthInSb   = MOS_ROUNDUP_DIVIDE(m_width, CODEC_VP9_SUPER_BLOCK_WIDTH);
+    uint32_t heightInSb  = MOS_ROUNDUP_DIVIDE(m_height, CODEC_VP9_SUPER_BLOCK_HEIGHT);
     uint8_t maxBitDepth  = 8 + ucVP9DepthIndicator*2;
     uint8_t chromaFormat = ucChromaFormatinProfile;
 
@@ -980,14 +979,9 @@ MOS_STATUS CodechalDecodeVp9 :: CopyDataSurface()
         0));
 
     // Send command buffer header at the beginning (OS dependent)
-    MHW_GENERIC_PROLOG_PARAMS genericPrologParams;
-    MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
-    genericPrologParams.pOsInterface = m_osInterface;
-    genericPrologParams.pvMiInterface = m_miInterface;
-    genericPrologParams.bMmcEnabled = CodecHalMmcState::IsMmcEnabled();
-    CODECHAL_DECODE_CHK_STATUS_RETURN(Mhw_SendGenericPrologCmd(
+    CODECHAL_DECODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(
         &cmdBuffer,
-        &genericPrologParams));
+        false));
     
     CODECHAL_DECODE_CHK_STATUS_RETURN(HucCopy(
         &cmdBuffer,         // pCmdBuffer
@@ -1005,6 +999,9 @@ MOS_STATUS CodechalDecodeVp9 :: CopyDataSurface()
         &cmdBuffer, 
         &flushDwParams));
     
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(
+        &cmdBuffer));
+
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(
         &cmdBuffer,
         nullptr));
@@ -1198,9 +1195,9 @@ MOS_STATUS CodechalDecodeVp9::SetFrameStates ()
     m_height                 =
         MOS_MAX(m_height, (uint32_t)(pVp9PicParams->FrameHeightMinus1 + 1));
     usFrameWidthAlignedMinBlk  = 
-        MOS_ALIGN_CEIL(pVp9PicParams->FrameWidthMinus1 + 1, CODECHAL_VP9_MIN_BLOCK_WIDTH);
+        MOS_ALIGN_CEIL(pVp9PicParams->FrameWidthMinus1 + 1, CODEC_VP9_MIN_BLOCK_WIDTH);
     usFrameHeightAlignedMinBlk = 
-        MOS_ALIGN_CEIL(pVp9PicParams->FrameHeightMinus1 + 1, CODECHAL_VP9_MIN_BLOCK_WIDTH);
+        MOS_ALIGN_CEIL(pVp9PicParams->FrameHeightMinus1 + 1, CODEC_VP9_MIN_BLOCK_WIDTH);
 
     // Overwrite the actual surface height with the coded height and width of the frame
     // for VP9 since it's possible for a VP9 frame to change size during playback
@@ -1232,7 +1229,7 @@ MOS_STATUS CodechalDecodeVp9::SetFrameStates ()
 
 
     if (m_hcpInterface->IsRowStoreCachingSupported() &&
-        usFrameWidthAlignedMinBlk != MOS_ALIGN_CEIL(dwPrevFrmWidth, CODECHAL_VP9_MIN_BLOCK_WIDTH))
+        usFrameWidthAlignedMinBlk != MOS_ALIGN_CEIL(dwPrevFrmWidth, CODEC_VP9_MIN_BLOCK_WIDTH))
     {
         MHW_VDBOX_ROWSTORE_PARAMS rowstoreParams;
         uint8_t usChromaSamplingFormat;
@@ -1263,7 +1260,7 @@ MOS_STATUS CodechalDecodeVp9::SetFrameStates ()
     CODECHAL_DECODE_CHK_STATUS_RETURN(InitSfcState());
 
     // Allocate internal buffer or reallocate When current resolution is bigger than allocated internal buffer size
-    CODECHAL_DECODE_CHK_STATUS_RETURN(AllocateResources_VariableSizes());
+    CODECHAL_DECODE_CHK_STATUS_RETURN(AllocateResourcesVariableSizes());
     
     CODECHAL_DECODE_CHK_STATUS_RETURN(DetermineInternalBufferUpdate());
 
@@ -1273,7 +1270,7 @@ MOS_STATUS CodechalDecodeVp9::SetFrameStates ()
 
     m_crrPic = pVp9PicParams->CurrPic;
 
-    if (pVp9PicParams->PicFlags.fields.frame_type == CODECHAL_VP9_INTER_FRAME &&
+    if (pVp9PicParams->PicFlags.fields.frame_type == CODEC_VP9_INTER_FRAME &&
         !pVp9PicParams->PicFlags.fields.intra_only)
     {
         ucCurMvTempBufIdx = (ucCurMvTempBufIdx + 1) % CODECHAL_VP9_NUM_MV_BUFFERS;
@@ -1337,7 +1334,7 @@ MOS_STATUS CodechalDecodeVp9 :: InitPicStateMhwParams()
     uint8_t lastRefPicIndex       = pVp9PicParams->PicFlags.fields.LastRefIdx;
     uint8_t goldenRefPicIndex     = pVp9PicParams->PicFlags.fields.GoldenRefIdx;
     uint8_t altRefPicIndex        = pVp9PicParams->PicFlags.fields.AltRefIdx;
-    if(pVp9PicParams->PicFlags.fields.frame_type == CODECHAL_VP9_KEY_FRAME || 
+    if(pVp9PicParams->PicFlags.fields.frame_type == CODEC_VP9_KEY_FRAME || 
        pVp9PicParams->PicFlags.fields.intra_only)  
     {
         // reference surface should be nullptr when key_frame == true or intra only frame
@@ -1401,39 +1398,39 @@ MOS_STATUS CodechalDecodeVp9 :: InitPicStateMhwParams()
     m_picMhwParams.SurfaceParams[0]->dwUVPlaneAlignment = 8;
 
     // Populate surface param for reference pictures
-    if (pVp9PicParams->PicFlags.fields.frame_type == CODECHAL_VP9_INTER_FRAME &&
-       !pVp9PicParams->PicFlags.fields.intra_only)  
+    if (pVp9PicParams->PicFlags.fields.frame_type == CODEC_VP9_INTER_FRAME &&
+       !pVp9PicParams->PicFlags.fields.intra_only && 
+        presLastRefSurface != nullptr && 
+        presGoldenRefSurface != nullptr && 
+        presAltRefSurface != nullptr)
     {
-        CODECHAL_DECODE_ASSERT(presLastRefSurface);
         //MOS_SURFACE lastRefSurface;
         CODECHAL_DECODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(
             &sLastRefSurface.OsResource, 
             sizeof(MOS_RESOURCE), 
             presLastRefSurface, 
             sizeof(MOS_RESOURCE)));
-        CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHal_GetResourceInfo(
+        CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(
             m_osInterface, 
             &sLastRefSurface));
 
-        CODECHAL_DECODE_ASSERT(presGoldenRefSurface);
         //MOS_SURFACE goldenRefSurface;
         CODECHAL_DECODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(
             &sGoldenRefSurface.OsResource, 
             sizeof(MOS_RESOURCE), 
             presGoldenRefSurface, 
             sizeof(MOS_RESOURCE)));
-        CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHal_GetResourceInfo(
+        CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(
             m_osInterface, 
             &sGoldenRefSurface));
 
-        CODECHAL_DECODE_ASSERT(presAltRefSurface);
         //MOS_SURFACE altRefSurface;
         CODECHAL_DECODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(
             &sAltRefSurface.OsResource, 
             sizeof(MOS_RESOURCE), 
             presAltRefSurface, 
             sizeof(MOS_RESOURCE)));
-        CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHal_GetResourceInfo(
+        CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(
             m_osInterface, 
             &sAltRefSurface));
 
@@ -1504,7 +1501,7 @@ MOS_STATUS CodechalDecodeVp9 :: InitPicStateMhwParams()
     m_picMhwParams.PipeBufAddrParams->presHvdLineRowStoreBuffer    = &resHvcLineRowstoreBuffer;
     m_picMhwParams.PipeBufAddrParams->presHvdTileRowStoreBuffer    = &resHvcTileRowstoreBuffer;
 
-    if (pVp9PicParams->PicFlags.fields.frame_type == CODECHAL_VP9_INTER_FRAME &&
+    if (pVp9PicParams->PicFlags.fields.frame_type == CODEC_VP9_INTER_FRAME &&
         !pVp9PicParams->PicFlags.fields.intra_only)
     {
         m_picMhwParams.PipeBufAddrParams->presCurMvTempBuffer = &resVp9MvTemporalBuffer[ucCurMvTempBufIdx];
@@ -1563,7 +1560,7 @@ MOS_STATUS CodechalDecodeVp9 :: AddPicStateMhwCmds(
 		m_picMhwParams.SurfaceParams[0]));
 
     // For non-key frame, send extra surface commands for reference pictures
-    if (pVp9PicParams->PicFlags.fields.frame_type == CODECHAL_VP9_INTER_FRAME &&
+    if (pVp9PicParams->PicFlags.fields.frame_type == CODEC_VP9_INTER_FRAME &&
         !pVp9PicParams->PicFlags.fields.intra_only)
     {
         for (uint8_t i = 1; i < 4; i++)
@@ -1594,7 +1591,7 @@ MOS_STATUS CodechalDecodeVp9 :: AddPicStateMhwCmds(
     }
     else 
     {
-        for (uint8_t i = 0; i < CODECHAL_VP9_MAX_SEGMENTS; i++)
+        for (uint8_t i = 0; i < CODEC_VP9_MAX_SEGMENTS; i++)
         {
             // Error handling for illegal programming on segmentation fields @ KEY/INTRA_ONLY frames
             PCODEC_VP9_SEG_PARAMS vp9SegData = &(m_picMhwParams.Vp9SegmentState->pVp9SegmentParams->SegData[i]);
@@ -1682,7 +1679,7 @@ MOS_STATUS CodechalDecodeVp9 :: UpdatePicStateBuffers(
             &(resVp9ProbBuffer[ucFrameCtxIdx]),
             CodechalDbgAttr::attrCoefProb,
             "PakHwCoeffProbs_beforeHCP",
-            CODECHAL_VP9_PROB_MAX_NUM_ELEM));
+            CODEC_VP9_PROB_MAX_NUM_ELEM));
     )
 
     return eStatus;
@@ -1713,7 +1710,7 @@ MOS_STATUS CodechalDecodeVp9 :: DecodeStateLevel()
     //Frame tracking functionality is called at the start of a command buffer.
     //Called at FE decode phase, since BE decode phase will only construct BE batch buffers.
     CODECHAL_DECODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(
-        &cmdBuffer));
+        &cmdBuffer, true));
     
     CODECHAL_DECODE_CHK_STATUS_RETURN(InitPicStateMhwParams());
 
@@ -1838,6 +1835,9 @@ MOS_STATUS CodechalDecodeVp9 :: DecodePrimitiveLevel()
         &cmdBuffer,
         &flushDwParams));
 
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(
+        &cmdBuffer));
+
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(
         &cmdBuffer,
         nullptr));
@@ -1896,7 +1896,7 @@ MOS_STATUS CodechalDecodeVp9 :: DecodePrimitiveLevel()
     CODECHAL_DECODE_CHK_STATUS(m_debugInterface->DumpHucRegion(
         &pVp9State->resHucSharedBuffer,
         0,
-        CODECHAL_VP9_PROB_MAX_NUM_ELEM,
+        CODEC_VP9_PROB_MAX_NUM_ELEM,
         15,
         "",
         false,
@@ -1916,7 +1916,7 @@ MOS_STATUS CodechalDecodeVp9 :: DecodePrimitiveLevel()
         &(resVp9ProbBuffer[ucFrameCtxIdx]),
         CodechalDbgAttr::attrCoefProb,
         "PakHwCoeffProbs",
-        CODECHAL_VP9_PROB_MAX_NUM_ELEM));
+        CODEC_VP9_PROB_MAX_NUM_ELEM));
     )
 
     // Needs to be re-set for Linux buffer re-use scenarios
@@ -1978,7 +1978,7 @@ MOS_STATUS CodechalDecodeVp9 :: AllocateStandard (
         false);   
     
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(AllocateResources_FixedSizes());
+    CODECHAL_DECODE_CHK_STATUS_RETURN(AllocateResourcesFixedSizes());
 
     // Prepare Pic Params
     m_picMhwParams.PipeModeSelectParams = MOS_New(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS);
@@ -2130,3 +2130,372 @@ MOS_STATUS CodechalDecodeVp9::DumpDecodeSegmentParams(
 }
 
 #endif
+
+MOS_STATUS CodechalDecodeVp9::CtxBufDiffInit(
+    uint8_t             *ctxBuffer,
+    bool                 setToKey)
+{
+    int32_t i, j;
+    uint32_t byteCnt = CODEC_VP9_INTER_PROB_OFFSET;
+    //inter mode probs. have to be zeros for Key frame
+    for (i = 0; i < CODEC_VP9_INTER_MODE_CONTEXTS; i++)
+    {
+        for (j = 0; j < CODEC_VP9_INTER_MODES - 1; j++)
+        {
+            if (!setToKey)
+            {
+                ctxBuffer[byteCnt++] = DefaultInterModeProbs[i][j];
+            }
+            else
+            {
+                //zeros for key frame
+                byteCnt++;
+            }
+        }
+    }
+    //switchable interprediction probs
+    for (i = 0; i < CODEC_VP9_SWITCHABLE_FILTERS + 1; i++)
+    {
+        for (j = 0; j < CODEC_VP9_SWITCHABLE_FILTERS - 1; j++)
+        {
+            if (!setToKey)
+            {
+                ctxBuffer[byteCnt++] = DefaultSwitchableInterpProb[i][j];
+            }
+            else
+            {
+                //zeros for key frame
+                byteCnt++;
+            }
+        }
+    }
+    //intra inter probs
+    for (i = 0; i < CODEC_VP9_INTRA_INTER_CONTEXTS; i++)
+    {
+        if (!setToKey)
+        {
+            ctxBuffer[byteCnt++] = DefaultIntraInterProb[i];
+        }
+        else
+        {
+            //zeros for key frame
+            byteCnt++;
+        }
+    }
+    //comp inter probs
+    for (i = 0; i < CODEC_VP9_COMP_INTER_CONTEXTS; i++)
+    {
+        if (!setToKey)
+        {
+            ctxBuffer[byteCnt++] = DefaultCompInterProb[i];
+        }
+        else
+        {
+            //zeros for key frame
+            byteCnt++;
+        }
+    }
+    //single ref probs
+    for (i = 0; i < CODEC_VP9_REF_CONTEXTS; i++)
+    {
+        for (j = 0; j < 2; j++)
+        {
+            if (!setToKey)
+            {
+                ctxBuffer[byteCnt++] = DefaultSingleRefProb[i][j];
+            }
+            else
+            {
+                //zeros for key frame
+                byteCnt++;
+            }
+        }
+    }
+    //comp ref probs
+    for (i = 0; i < CODEC_VP9_REF_CONTEXTS; i++)
+    {
+        if (!setToKey)
+        {
+            ctxBuffer[byteCnt++] = DefaultCompRefProb[i];
+        }
+        else
+        {
+            //zeros for key frame
+            byteCnt++;
+        }
+    }
+    //y mode probs
+    for (i = 0; i < CODEC_VP9_BLOCK_SIZE_GROUPS; i++)
+    {
+        for (j = 0; j < CODEC_VP9_INTRA_MODES - 1; j++)
+        {
+            if (!setToKey)
+            {
+                ctxBuffer[byteCnt++] = DefaultIFYProb[i][j];
+            }
+            else
+            {
+                //zeros for key frame, since HW will not use this buffer, but default right buffer.
+                byteCnt++;
+            }
+        }
+    }
+    //partition probs, key & intra-only frames use key type, other inter frames use inter type
+    for (i = 0; i < CODECHAL_VP9_PARTITION_CONTEXTS; i++)
+    {
+        for (j = 0; j < CODEC_VP9_PARTITION_TYPES - 1; j++)
+        {
+            if (setToKey)
+            {
+                ctxBuffer[byteCnt++] = DefaultKFPartitionProb[i][j];
+            }
+            else
+            {
+                ctxBuffer[byteCnt++] = DefaultPartitionProb[i][j];
+            }
+        }
+    }
+    //nmvc joints
+    for (i = 0; i < (CODEC_VP9_MV_JOINTS - 1); i++)
+    {
+        if (!setToKey)
+        {
+            ctxBuffer[byteCnt++] = DefaultNmvContext.joints[i];
+        }
+        else
+        {
+            //zeros for key frame
+            byteCnt++;
+        }
+    }
+    //nmvc comps
+    for (i = 0; i < 2; i++)
+    {
+        if (!setToKey)
+        {
+            ctxBuffer[byteCnt++] = DefaultNmvContext.comps[i].sign;
+            for (j = 0; j < (CODEC_VP9_MV_CLASSES - 1); j++)
+            {
+                ctxBuffer[byteCnt++] = DefaultNmvContext.comps[i].classes[j];
+            }
+            for (j = 0; j < (CODECHAL_VP9_CLASS0_SIZE - 1); j++)
+            {
+                ctxBuffer[byteCnt++] = DefaultNmvContext.comps[i].class0[j];
+            }
+            for (j = 0; j < CODECHAL_VP9_MV_OFFSET_BITS; j++)
+            {
+                ctxBuffer[byteCnt++] = DefaultNmvContext.comps[i].bits[j];
+            }
+        }
+        else
+        {
+            byteCnt += 1;
+            byteCnt += (CODEC_VP9_MV_CLASSES - 1);
+            byteCnt += (CODECHAL_VP9_CLASS0_SIZE - 1);
+            byteCnt += (CODECHAL_VP9_MV_OFFSET_BITS);
+        }
+    }
+    for (i = 0; i < 2; i++)
+    {
+        if (!setToKey)
+        {
+            for (j = 0; j < CODECHAL_VP9_CLASS0_SIZE; j++)
+            {
+                for (int32_t k = 0; k < (CODEC_VP9_MV_FP_SIZE - 1); k++)
+                {
+                    ctxBuffer[byteCnt++] = DefaultNmvContext.comps[i].class0_fp[j][k];
+                }
+            }
+            for (j = 0; j < (CODEC_VP9_MV_FP_SIZE - 1); j++)
+            {
+                ctxBuffer[byteCnt++] = DefaultNmvContext.comps[i].fp[j];
+            }
+        }
+        else
+        {
+            byteCnt += (CODECHAL_VP9_CLASS0_SIZE * (CODEC_VP9_MV_FP_SIZE - 1));
+            byteCnt += (CODEC_VP9_MV_FP_SIZE - 1);
+        }
+    }
+    for (i = 0; i < 2; i++)
+    {
+        if (!setToKey)
+        {
+            ctxBuffer[byteCnt++] = DefaultNmvContext.comps[i].class0_hp;
+            ctxBuffer[byteCnt++] = DefaultNmvContext.comps[i].hp;
+        }
+        else
+        {
+            byteCnt += 2;
+        }
+    }
+
+    //47 bytes of zeros
+    byteCnt += 47;
+
+    //uv mode probs
+    for (i = 0; i < CODEC_VP9_INTRA_MODES; i++)
+    {
+        for (j = 0; j < CODEC_VP9_INTRA_MODES - 1; j++)
+        {
+            if (setToKey)
+            {
+                ctxBuffer[byteCnt++] = DefaultKFUVModeProb[i][j];
+            }
+            else
+            {
+                ctxBuffer[byteCnt++] = DefaultIFUVProbs[i][j];
+            }
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalDecodeVp9::ContextBufferInit(
+    uint8_t             *ctxBuffer,
+    bool                 setToKey)
+{
+
+    MOS_ZeroMemory(ctxBuffer, CODEC_VP9_SEG_PROB_OFFSET);
+
+    int32_t i, j;
+    uint32_t byteCnt = 0;
+    //TX probs
+    for (i = 0; i < CODEC_VP9_TX_SIZE_CONTEXTS; i++)
+    {
+        for (j = 0; j < CODEC_VP9_TX_SIZES - 3; j++)
+        {
+            ctxBuffer[byteCnt++] = DefaultTxProbs.p8x8[i][j];
+        }
+    }
+    for (i = 0; i < CODEC_VP9_TX_SIZE_CONTEXTS; i++)
+    {
+        for (j = 0; j < CODEC_VP9_TX_SIZES - 2; j++)
+        {
+            ctxBuffer[byteCnt++] = DefaultTxProbs.p16x16[i][j];
+        }
+    }
+    for (i = 0; i < CODEC_VP9_TX_SIZE_CONTEXTS; i++)
+    {
+        for (j = 0; j < CODEC_VP9_TX_SIZES - 1; j++)
+        {
+            ctxBuffer[byteCnt++] = DefaultTxProbs.p32x32[i][j];
+        }
+    }
+
+    //52 bytes of zeros
+    byteCnt += 52;
+
+    uint8_t blocktype = 0;
+    uint8_t reftype = 0;
+    uint8_t coeffbands = 0;
+    uint8_t unConstrainedNodes = 0;
+    uint8_t prevCoefCtx = 0;
+    //coeff probs
+    for (blocktype = 0; blocktype < CODEC_VP9_BLOCK_TYPES; blocktype++)
+    {
+        for (reftype = 0; reftype < CODEC_VP9_REF_TYPES; reftype++)
+        {
+            for (coeffbands = 0; coeffbands < CODEC_VP9_COEF_BANDS; coeffbands++)
+            {
+                uint8_t numPrevCoeffCtxts = (coeffbands == 0) ? 3 : CODEC_VP9_PREV_COEF_CONTEXTS;
+                for (prevCoefCtx = 0; prevCoefCtx < numPrevCoeffCtxts; prevCoefCtx++)
+                {
+                    for (unConstrainedNodes = 0; unConstrainedNodes < CODEC_VP9_UNCONSTRAINED_NODES; unConstrainedNodes++)
+                    {
+                        ctxBuffer[byteCnt++] = DefaultCoefProbs4x4[blocktype][reftype][coeffbands][prevCoefCtx][unConstrainedNodes];
+                    }
+                }
+            }
+        }
+    }
+
+    for (blocktype = 0; blocktype < CODEC_VP9_BLOCK_TYPES; blocktype++)
+    {
+        for (reftype = 0; reftype < CODEC_VP9_REF_TYPES; reftype++)
+        {
+            for (coeffbands = 0; coeffbands < CODEC_VP9_COEF_BANDS; coeffbands++)
+            {
+                uint8_t numPrevCoeffCtxts = (coeffbands == 0) ? 3 : CODEC_VP9_PREV_COEF_CONTEXTS;
+                for (prevCoefCtx = 0; prevCoefCtx < numPrevCoeffCtxts; prevCoefCtx++)
+                {
+                    for (unConstrainedNodes = 0; unConstrainedNodes < CODEC_VP9_UNCONSTRAINED_NODES; unConstrainedNodes++)
+                    {
+                        ctxBuffer[byteCnt++] = DefaultCoefPprobs8x8[blocktype][reftype][coeffbands][prevCoefCtx][unConstrainedNodes];
+                    }
+                }
+            }
+        }
+    }
+
+    for (blocktype = 0; blocktype < CODEC_VP9_BLOCK_TYPES; blocktype++)
+    {
+        for (reftype = 0; reftype < CODEC_VP9_REF_TYPES; reftype++)
+        {
+            for (coeffbands = 0; coeffbands < CODEC_VP9_COEF_BANDS; coeffbands++)
+            {
+                uint8_t numPrevCoeffCtxts = (coeffbands == 0) ? 3 : CODEC_VP9_PREV_COEF_CONTEXTS;
+                for (prevCoefCtx = 0; prevCoefCtx < numPrevCoeffCtxts; prevCoefCtx++)
+                {
+                    for (unConstrainedNodes = 0; unConstrainedNodes < CODEC_VP9_UNCONSTRAINED_NODES; unConstrainedNodes++)
+                    {
+                        ctxBuffer[byteCnt++] = DefaultCoefProbs16x16[blocktype][reftype][coeffbands][prevCoefCtx][unConstrainedNodes];
+                    }
+                }
+            }
+        }
+    }
+
+    for (blocktype = 0; blocktype < CODEC_VP9_BLOCK_TYPES; blocktype++)
+    {
+        for (reftype = 0; reftype < CODEC_VP9_REF_TYPES; reftype++)
+        {
+            for (coeffbands = 0; coeffbands < CODEC_VP9_COEF_BANDS; coeffbands++)
+            {
+                uint8_t numPrevCoeffCtxts = (coeffbands == 0) ? 3 : CODEC_VP9_PREV_COEF_CONTEXTS;
+                for (prevCoefCtx = 0; prevCoefCtx < numPrevCoeffCtxts; prevCoefCtx++)
+                {
+                    for (unConstrainedNodes = 0; unConstrainedNodes < CODEC_VP9_UNCONSTRAINED_NODES; unConstrainedNodes++)
+                    {
+                        ctxBuffer[byteCnt++] = DefaultCoefProbs32x32[blocktype][reftype][coeffbands][prevCoefCtx][unConstrainedNodes];
+                    }
+                }
+            }
+        }
+    }
+
+    //16 bytes of zeros 
+    byteCnt += 16;
+
+    // mb skip probs            
+    for (i = 0; i < CODEC_VP9_MBSKIP_CONTEXTS; i++)
+    {
+        ctxBuffer[byteCnt++] = DefaultMbskipProbs[i];
+    }
+
+    // populate prob values which are different between Key and Non-Key frame
+    CtxBufDiffInit(ctxBuffer, setToKey);
+
+    //skip Seg tree/pred probs, updating not done in this function.
+    byteCnt = CODEC_VP9_SEG_PROB_OFFSET;
+    byteCnt += 7;
+    byteCnt += 3;
+
+    //28 bytes of zeros
+    for (i = 0; i < 28; i++)
+    {
+        ctxBuffer[byteCnt++] = 0;
+    }
+
+    //Just a check.
+    if (byteCnt > CODEC_VP9_PROB_MAX_NUM_ELEM)
+    {
+        CODECHAL_PUBLIC_ASSERTMESSAGE("Error: FrameContext array out-of-bounds, byteCnt = %d!\n", byteCnt);
+        return MOS_STATUS_NO_SPACE;
+    }
+    else
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+}

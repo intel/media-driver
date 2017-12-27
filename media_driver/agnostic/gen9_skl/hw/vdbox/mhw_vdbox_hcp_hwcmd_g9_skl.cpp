@@ -215,7 +215,6 @@ mhw_vdbox_hcp_g9_skl::HCP_QM_STATE_CMD::HCP_QM_STATE_CMD()
     DW1.PredictionType                               = PREDICTION_TYPE_INTRA;
     DW1.Sizeid                                       = SIZEID_4X_4;
     DW1.ColorComponent                               = COLOR_COMPONENT_LUMA;
-    DW1.ChickenBitTransquantBypassClampDisable       = CHICKEN_BIT_TRANSQUANT_BYPASS_CLAMP_DISABLE_ENABLE;
 
     MOS_ZeroMemory(&Quantizermatrix, sizeof(Quantizermatrix));        
 }

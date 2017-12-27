@@ -408,6 +408,8 @@ public:
     //!           Command buffer to which HW command is added
     //! \param    [in] params
     //!           Params structure used to populate the HW command
+    //! \param    [in] numSurfaces
+    //!           Number of surfaces
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail type
     //!

@@ -29,13 +29,12 @@
 #include "cm_log.h"
 #include "cm_csync.h"
 #include "mos_utilities.h"
-#include "cm_perf.h"
 
 #if CM_LOG_ON
 
 // Definition (and initialization) of static attributes
 CmLogger* CmLogger::GlobalCmLogger = nullptr;
-CSync     GlobalCmLogLock;
+CMRT_UMD::CSync     GlobalCmLogLock;
 
 
 /**

@@ -1,3 +1,4 @@
+
 /*
 * Copyright (c) 2017, Intel Corporation
 *
@@ -24,8 +25,10 @@
 //! \brief  Auto-generated definitions for MHW commands and states.
 //!
 
+// DO NOT EDIT
+
 #include "mhw_render_hwcmd_g10_X.h"
-#include "mos_utilities.h"
+#include <string.h>
 
 mhw_render_g10_X::MEDIA_OBJECT_CMD::MEDIA_OBJECT_CMD()
 {
@@ -51,7 +54,6 @@ mhw_render_g10_X::MEDIA_OBJECT_CMD::MEDIA_OBJECT_CMD()
     DW5.Value                                        = 0;        
 
 }
-
 mhw_render_g10_X::PIPELINE_SELECT_CMD::PIPELINE_SELECT_CMD()
 {
     DW0.Value                                        = 0;        
@@ -66,7 +68,6 @@ mhw_render_g10_X::PIPELINE_SELECT_CMD::PIPELINE_SELECT_CMD()
     DW0.CommandType                                  = COMMAND_TYPE_GFXPIPE;
 
 }
-
 mhw_render_g10_X::STATE_BASE_ADDRESS_CMD::STATE_BASE_ADDRESS_CMD()
 {
     DW0.Value                                        = 0;        
@@ -116,7 +117,6 @@ mhw_render_g10_X::STATE_BASE_ADDRESS_CMD::STATE_BASE_ADDRESS_CMD()
     DW21.Value                                       = 0;        
 
 }
-
 mhw_render_g10_X::MEDIA_VFE_STATE_CMD::MEDIA_VFE_STATE_CMD()
 {
     DW0.Value                                        = 0;        
@@ -149,7 +149,6 @@ mhw_render_g10_X::MEDIA_VFE_STATE_CMD::MEDIA_VFE_STATE_CMD()
     DW8.Value                                        = 0;        
 
 }
-
 mhw_render_g10_X::MEDIA_CURBE_LOAD_CMD::MEDIA_CURBE_LOAD_CMD()
 {
     DW0.Value                                        = 0;        
@@ -166,7 +165,6 @@ mhw_render_g10_X::MEDIA_CURBE_LOAD_CMD::MEDIA_CURBE_LOAD_CMD()
     DW3.Value                                        = 0;        
 
 }
-
 mhw_render_g10_X::MEDIA_INTERFACE_DESCRIPTOR_LOAD_CMD::MEDIA_INTERFACE_DESCRIPTOR_LOAD_CMD()
 {
     DW0.Value                                        = 0;        
@@ -183,7 +181,6 @@ mhw_render_g10_X::MEDIA_INTERFACE_DESCRIPTOR_LOAD_CMD::MEDIA_INTERFACE_DESCRIPTO
     DW3.Value                                        = 0;        
 
 }
-
 mhw_render_g10_X::MEDIA_OBJECT_WALKER_CMD::MEDIA_OBJECT_WALKER_CMD()
 {
     DW0.Value                                        = 0;        
@@ -230,7 +227,6 @@ mhw_render_g10_X::MEDIA_OBJECT_WALKER_CMD::MEDIA_OBJECT_WALKER_CMD()
     DW16.Value                                       = 0;        
 
 }
-
 mhw_render_g10_X::GPGPU_WALKER_CMD::GPGPU_WALKER_CMD()
 {
     DW0.Value                                        = 0;        
@@ -270,7 +266,6 @@ mhw_render_g10_X::GPGPU_WALKER_CMD::GPGPU_WALKER_CMD()
     DW14.Value                                       = 0;        
 
 }
-
 mhw_render_g10_X::_3DSTATE_CHROMA_KEY_CMD::_3DSTATE_CHROMA_KEY_CMD()
 {
     DW0.Value                                        = 0;        
@@ -287,17 +282,16 @@ mhw_render_g10_X::_3DSTATE_CHROMA_KEY_CMD::_3DSTATE_CHROMA_KEY_CMD()
     DW3.Value                                        = 0;        
 
 }
-
 mhw_render_g10_X::_3DSTATE_SAMPLER_PALETTE_LOAD0_CMD::_3DSTATE_SAMPLER_PALETTE_LOAD0_CMD()
 {
     DW0.Value                                        = 0;        
+    DW0.DwordLength                                  = __CODEGEN_OP_LENGTH(dwSize);
     DW0.Command3DSubOpcode                           = _3D_COMMAND_SUB_OPCODE_3DSTATESAMPLERPALETTELOAD0;
     DW0.Command3DOpcode                              = _3D_COMMAND_OPCODE_3DSTATENONPIPELINED;
     DW0.CommandSubtype                               = COMMAND_SUBTYPE_GFXPIPE3D;
     DW0.CommandType                                  = COMMAND_TYPE_GFXPIPE;
 
 }
-
 mhw_render_g10_X::_3DSTATE_SAMPLER_PALETTE_LOAD1_CMD::_3DSTATE_SAMPLER_PALETTE_LOAD1_CMD()
 {
     DW0.Value                                        = 0;        
@@ -308,13 +302,11 @@ mhw_render_g10_X::_3DSTATE_SAMPLER_PALETTE_LOAD1_CMD::_3DSTATE_SAMPLER_PALETTE_L
     DW0.CommandType                                  = COMMAND_TYPE_GFXPIPE;
 
 }
-
 mhw_render_g10_X::PALETTE_ENTRY_CMD::PALETTE_ENTRY_CMD()
 {
     DW0.Value                                        = 0;        
 
 }
-
 mhw_render_g10_X::STATE_SIP_CMD::STATE_SIP_CMD()
 {
     DW0.Value                                        = 0;        
@@ -327,4 +319,15 @@ mhw_render_g10_X::STATE_SIP_CMD::STATE_SIP_CMD()
     DW1_2.Value[0] = DW1_2.Value[1]                  = 0;        
 
 }
+mhw_render_g10_X::STATE_CSR_BASE_ADDRESS_CMD::STATE_CSR_BASE_ADDRESS_CMD()
+{
+    DW0.Value                                        = 0;        
+    DW0.DwordLength                                  = __CODEGEN_OP_LENGTH(dwSize);
+    DW0.Command3DSubOpcode                           = _3D_COMMAND_SUB_OPCODE_STATECSRBASEADDRESS;
+    DW0.Command3DOpcode                              = _3D_COMMAND_OPCODE_GFXPIPENONPIPELINED;
+    DW0.CommandSubtype                               = COMMAND_SUBTYPE_GFXPIPECOMMON;
+    DW0.CommandType                                  = COMMAND_TYPE_GFXPIPE;
 
+    DW1_2.Value[0] = DW1_2.Value[1]                  = 0;        
+
+}

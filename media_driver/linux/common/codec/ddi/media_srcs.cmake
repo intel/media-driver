@@ -105,6 +105,17 @@ if(${VP8_Decode_Supported} STREQUAL "yes")
     )
 endif()
 
+if(${VP8_Encode_Supported} STREQUAL "yes")
+    set(TMP_2_SOURCES_
+        ${TMP_2_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/media_ddi_encode_vp8.cpp
+    )
+    set(TMP_2_HEADERS_
+        ${TMP_2_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/media_ddi_encode_vp8.h
+    )
+endif()
+
 if(${VP9_Decode_Supported} STREQUAL "yes")
     set(TMP_2_SOURCES_
         ${TMP_2_SOURCES_}

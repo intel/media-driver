@@ -20,15 +20,130 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_hal_generic.h  
-//! \brief     Main Entry point for CM HAL Generic component  
+//! \file      cm_hal_generic.h
+//! \brief     Main Entry point for CM HAL Generic component
 //!
-#ifndef __CM_HAL_GENERIC_H__
-#define __CM_HAL_GENERIC_H__
+
+#ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMHALGENERIC_H_
+#define MEDIADRIVER_AGNOSTIC_COMMON_CM_CMHALGENERIC_H_
 
 typedef struct CM_HAL_GENERIC *PCM_HAL_GENERIC;
 typedef struct _CM_HAL_SAMPLER_8X8_PARAM *PCM_HAL_SAMPLER_8X8_PARAM;
 typedef struct CmHalL3Settings *PCmHalL3Settings;
+
+//-------------------------------
+//| CM HW platform info
+//-------------------------------
+struct CM_PLATFORM_INFO
+{
+    uint32_t numSlices;
+    uint32_t numSubSlices;
+    uint32_t numEUsPerSubSlice;
+    uint32_t numHWThreadsPerEU;
+    uint32_t numMaxEUsPerPool;
+};
+typedef CM_PLATFORM_INFO *PCM_PLATFORM_INFO;
+
+
+struct CM_HAL_WALKER_XY
+{
+    union
+    {
+        struct
+        {
+            uint32_t x : 16;
+            uint32_t y : 16;
+        };
+        uint32_t value;
+    };
+};
+typedef CM_HAL_WALKER_XY *PCM_HAL_WALKER_XY;
+
+// The following enum type must match
+// MHW_WALKER_MODE defined in mhw_render.h
+enum CM_HAL_WALKER_MODE
+{
+    CM_HAL_WALKER_MODE_NOT_SET  = -1,
+    CM_HAL_WALKER_MODE_DISABLED = 0,
+    CM_HAL_WALKER_MODE_SINGLE   = 1,    // dual = 0, repel = 1
+    CM_HAL_WALKER_MODE_DUAL     = 2,    // dual = 1, repel = 0)
+    CM_HAL_WALKER_MODE_TRI      = 3,    // applies in BDW GT2 which has 1 slice and 3 sampler/VME per slice
+    CM_HAL_WALKER_MODE_QUAD     = 4,    // applies in HSW GT3 which has 2 slices and 2 sampler/VME per slice
+    CM_HAL_WALKER_MODE_HEX      = 6,    // applies in BDW GT2 which has 2 slices and 3 sampler/VME per slice
+    CM_HAL_WALKER_MODE_OCT      = 8     // may apply in future Gen media architectures
+};
+
+// The following structure must match the structure
+// MHW_WALKER_PARAMS defined in mhw_render.h
+struct CM_HAL_WALKER_PARAMS
+{
+    uint32_t InterfaceDescriptorOffset : 5;
+    uint32_t CmWalkerEnable            : 1;
+    uint32_t ColorCountMinusOne        : 8;
+    uint32_t UseScoreboard             : 1;
+    uint32_t ScoreboardMask            : 8;
+    uint32_t MidLoopUnitX              : 2;
+    uint32_t MidLoopUnitY              : 2;
+    uint32_t MiddleLoopExtraSteps      : 5;
+    uint32_t GroupIdLoopSelect         : 24;
+    uint32_t                           : 8;
+
+    uint32_t InlineDataLength;
+    uint8_t *pInlineData;
+    uint32_t dwLocalLoopExecCount;
+    uint32_t dwGlobalLoopExecCount;
+
+    CM_HAL_WALKER_MODE WalkerMode;
+    CM_HAL_WALKER_XY BlockResolution;
+    CM_HAL_WALKER_XY LocalStart;
+    CM_HAL_WALKER_XY LocalEnd;
+    CM_HAL_WALKER_XY LocalOutLoopStride;
+    CM_HAL_WALKER_XY LocalInnerLoopUnit;
+    CM_HAL_WALKER_XY GlobalResolution;
+    CM_HAL_WALKER_XY GlobalStart;
+    CM_HAL_WALKER_XY GlobalOutlerLoopStride;
+    CM_HAL_WALKER_XY GlobalInnerLoopUnit;
+
+    bool bAddMediaFlush;
+    bool bRequestSingleSlice;
+};
+typedef CM_HAL_WALKER_PARAMS *PCM_HAL_WALKER_PARAMS;
+
+
+struct SamplerParam
+{
+    unsigned int sampler_table_index;
+    unsigned int heap_offset;
+    unsigned int bti;
+    unsigned int bti_stepping;
+    unsigned int bti_multiplier;
+    bool user_defined_bti;
+    bool regular_bti;
+    unsigned int element_type;
+    unsigned int size;
+};
+
+
+struct CM_SURFACE_BTI_INFO
+{
+    uint32_t dwNormalSurfaceStart;   // start index of normal surface
+    uint32_t dwNormalSurfaceEnd;     // end index of normal surface
+    uint32_t dwReservedSurfaceStart; // start index of reserved surface
+    uint32_t dwReservedSurfaceEnd;   // end index of reserved surface
+};
+typedef CM_SURFACE_BTI_INFO *PCM_SURFACE_BTI_INFO;
+
+
+//------------------------------------------------------------------------------
+//| CM HW Expected GT system info
+//------------------------------------------------------------------------------
+struct CM_EXPECTED_GT_SYSTEM_INFO
+{
+    uint32_t numSlices;
+    uint32_t numSubSlices;
+};
+typedef CM_EXPECTED_GT_SYSTEM_INFO *PCM_EXPECTED_GT_SYSTEM_INFO;
+
 
 struct CM_HAL_GENERIC
 {
@@ -37,7 +152,7 @@ struct CM_HAL_GENERIC
     if (ptr)                        \
     {                               \
         *ptr = value;               \
-    }                               
+    }
 
 public:
     PCM_HAL_STATE m_pCmState;
@@ -45,7 +160,7 @@ public:
     CM_HAL_GENERIC(PCM_HAL_STATE pCmState):
         m_pCmState(pCmState),
         m_sliceShutdownEnabled(false) {};
-        
+
     virtual ~CM_HAL_GENERIC(){};
 
     //!
@@ -110,8 +225,8 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS RegisterSampler8x8(    
-                        PCM_HAL_SAMPLER_8X8_PARAM    pParam) = 0; 
+    virtual MOS_STATUS RegisterSampler8x8(
+                        PCM_HAL_SAMPLER_8X8_PARAM    pParam) = 0;
 
     //!
     //! \brief    Submit commmand to kernel mode driver
@@ -128,14 +243,14 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS SubmitCommands(
-                        PMHW_BATCH_BUFFER       pBatchBuffer,       
-                        int32_t                 iTaskId,           
-                        PCM_HAL_KERNEL_PARAM    *pKernels,          
-                        void                    **ppCmdBuffer) = 0; 
+                        PMHW_BATCH_BUFFER       pBatchBuffer,
+                        int32_t                 iTaskId,
+                        PCM_HAL_KERNEL_PARAM    *pKernels,
+                        void                    **ppCmdBuffer) = 0;
 
     //!
     //! \brief    Update platform information from power option
-    //! \details  Power option can be used to do slice shutdown. This function is 
+    //! \details  Power option can be used to do slice shutdown. This function is
     //!           to adjust platform info (EU numbers/Slice number) accordingly.
     //! \param    [in]  platformInfo
     //!           pointer to platform info
@@ -150,21 +265,21 @@ public:
 
     //!
     //! \brief    Get media walker's max width
-    //! \details  Get media walker's max width 
+    //! \details  Get media walker's max width
     //! \return   media walker's max width
     //!
     virtual uint32_t   GetMediaWalkerMaxThreadWidth() = 0;
 
     //!
     //! \brief    Get media walker's max height
-    //! \details  Get media walker's max height 
+    //! \details  Get media walker's max height
     //! \return   media walker's max height
     //!
     virtual uint32_t   GetMediaWalkerMaxThreadHeight() = 0;
 
     //!
     //! \brief    Get Surface binding table index info
-    //! \details  Get Surface binding table index info, including the start/end index of 
+    //! \details  Get Surface binding table index info, including the start/end index of
     //!           reserved surfaces and normal surfaces
     //! \param    [in]  pBTIinfo
     //!           pointer to binding table information
@@ -181,7 +296,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     virtual MOS_STATUS SetSuggestedL3Conf(
-                       L3_SUGGEST_CONFIG L3Conf) = 0;    
+                       L3_SUGGEST_CONFIG L3Conf) = 0;
 
     //!
     //! \brief    Allocate SIP/CSR Resource for Preemption and Debug
@@ -193,7 +308,7 @@ public:
     //!
     //! \brief    Get the stepping string of Gen platform
     //! \details  Get the stepping string of Gen platform
-    //! \param    [in/out]  stepinfostr
+    //! \param    [in,out]  stepinfostr
     //!           reference to stepping information string
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
@@ -209,7 +324,7 @@ public:
     //!           pointer to platform string
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
-    virtual MOS_STATUS GetGenPlatformInfo(uint32_t *pPlatformID, 
+    virtual MOS_STATUS GetGenPlatformInfo(uint32_t *pPlatformID,
                                                  uint32_t *pGengt,
                                                  const char **ppPlatformStr)
     {
@@ -229,7 +344,7 @@ public:
     //!           platform string
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
-    virtual MOS_STATUS SetGenPlatformInfo(uint32_t platformID, 
+    virtual MOS_STATUS SetGenPlatformInfo(uint32_t platformID,
                                                  uint32_t gengt,
                                                  const char *pPlatformStr)
     {
@@ -291,30 +406,30 @@ public:
         }
         return MOS_STATUS_SUCCESS;
     }
-    
+
     //!
-    //! \brief    Check if Qpitch is supported by hw in surface 3d lock 
-    //! \details  Check if Qpitch is supported by hw in surface 3d lock  
+    //! \brief    Check if Qpitch is supported by hw in surface 3d lock
+    //! \details  Check if Qpitch is supported by hw in surface 3d lock
     //!           Qpitch is supported from SKL
     //! \return   True for SKL+
     virtual bool IsSurf3DQpitchSupportedbyHw(){ return true;};
 
     //!
     //! \brief    Check if compare mask supported by hw in conditional buffer
-    //! \details  Check if compare mask supported by hw in conditional buffer 
+    //! \details  Check if compare mask supported by hw in conditional buffer
     //!           compare mask is supported from SKL
     //! \return   True for SKL+
     virtual bool IsCompareMaskSupportedbyHw(){ return true;};
 
     //!
-    //! \brief    Check if two adjacent sampler index requried by hardware 
-    //! \details  Check if two adjacent sampler index requried by hardware 
+    //! \brief    Check if two adjacent sampler index requried by hardware
+    //! \details  Check if two adjacent sampler index requried by hardware
     //!           compare mask is supported from SKL
     //! \return   True for BDW, and False for SKL+
     virtual bool IsAdjacentSamplerIndexRequiredbyHw(){ return false;};
 
     //!
-    //! \brief    Check if the WA to disable surface compression required  
+    //! \brief    Check if the WA to disable surface compression required
     //! \details  Check if the WA to disable surface compression required
     //! \return   False for BDW, and True for SKL+
     virtual bool IsSurfaceCompressionWARequired(){ return true;};
@@ -347,21 +462,21 @@ public:
     //! \details  Sanity check for memory object control policy.
     //!           Each platform supports different control policy.
     //! \param    [in]  memCtrl
-    //!           input of memory object control to check 
+    //!           input of memory object control to check
     //! \return   Result of the operation.
     virtual bool MemoryObjectCtrlPolicyCheck(uint32_t memCtrl) = 0;
 
     //!
-    //! \brief    Check if the WA to use No cache setting for GPUCopy surface required 
+    //! \brief    Check if the WA to use No cache setting for GPUCopy surface required
     //! \details  Check if the WA to use No cache setting for GPUCopy surface required
-    //!           Configure memory object control for the two BufferUP to solve the same 
+    //!           Configure memory object control for the two BufferUP to solve the same
     //!           cache-line coherency issue.
     //! \return   False for BDW, and True for SKL+
     virtual bool IsGPUCopySurfaceNoCacheWARequired(){ return true;};
 
     //!
-    //! \brief    Check if one plane P010 surface is supported. 
-    //! \details  Check if one plane P010 surface is supported. 
+    //! \brief    Check if one plane P010 surface is supported.
+    //! \details  Check if one plane P010 surface is supported.
     //!           one plane P010 surface is supported since CNL.
     //! \return   False for pre-CNL, and True for CNL+
     virtual bool IsP010SinglePassSupported() { return true; };
@@ -394,7 +509,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     virtual MOS_STATUS SetL3CacheConfig(
-            const L3ConfigRegisterValues *values_ptr, 
+            const L3ConfigRegisterValues *values_ptr,
             PCmHalL3Settings cmhal_l3_cache_ptr) = 0;
 
     //!
@@ -403,14 +518,26 @@ public:
     //!           type for current platform.
     //! \param    [in]  sampler_param_ptr
     //!           pointer to the sampler param defined by MHW
-    //! \param    [in/out]  sampler_param
-    //!           Will get sampler size, sampler element type, sampler bti 
+    //! \param    [in,out]  sampler_param
+    //!           Will get sampler size, sampler element type, sampler bti
     //!           stepping and sampler multiplier for this type of sampler
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     virtual MOS_STATUS GetSamplerParamInfoForSamplerType(
             PMHW_SAMPLER_STATE_PARAM sampler_param_ptr,
             SamplerParam  &sampler_param) = 0;
+
+
+    //!
+    //! \brief    Get the expected configuration for specific GT
+    //! \details  Get the expected configuration for specific GT
+    //! \param    [in]  pExpectedConfig
+    //!           pointer to expected config
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS GetExpectedGtSystemConfig(
+        PCM_EXPECTED_GT_SYSTEM_INFO pExpectedConfig) = 0;
 
 protected:
     uint32_t m_platformID;
@@ -420,4 +547,4 @@ protected:
     bool m_sliceShutdownEnabled;
 };
 
-#endif
+#endif  // #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMHALGENERIC_H_

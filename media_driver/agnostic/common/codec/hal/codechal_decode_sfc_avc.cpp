@@ -27,7 +27,7 @@
 
 #include "codechal_decode_sfc_avc.h"
 
-MOS_STATUS CODECHAL_AVC_SFC_STATE::CheckAndInitialize(
+MOS_STATUS CodechalAvcSfcState::CheckAndInitialize(
     PCODECHAL_DECODE_PROCESSING_PARAMS  decProcessingParams,
     PCODEC_AVC_PIC_PARAMS               picParams,
     uint32_t                            width,
@@ -58,7 +58,7 @@ MOS_STATUS CODECHAL_AVC_SFC_STATE::CheckAndInitialize(
     return eStatus;
 }
 
-MOS_STATUS CODECHAL_AVC_SFC_STATE::UpdateInputInfo(
+MOS_STATUS CodechalAvcSfcState::UpdateInputInfo(
     PMHW_SFC_STATE_PARAMS   sfcStateParams)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;

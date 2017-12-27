@@ -30,7 +30,7 @@
 #define __CODECHAL_DECODE_VP9_H__
 
 #include "codechal_decoder.h"
-#include "codechal_common_vp9.h"
+#include "codec_def_vp9_probs.h"
 
 //!
 //! \enum CODECHAL_DECODE_VP9_SEG_LVL_FEATURES
@@ -60,8 +60,8 @@ typedef enum
 } CODECHAL_DECODE_VP9_MV_REFERENCE_FRAME;
 
 //!
-//! \struct CODECHAL_DECODE_VP9_PROB_UPDATE
-//! \brief Define variables for VP9 decode probabilty updated
+//! \struct _CODECHAL_DECODE_VP9_PROB_UPDATE
+//! \brief  Define variables for VP9 decode probabilty updated
 //!
 typedef struct _CODECHAL_DECODE_VP9_PROB_UPDATE
 {
@@ -86,7 +86,7 @@ class CodechalDecodeVp9 : public CodechalDecode
 {
 public:
     //!
-    //! \brief  Constructor
+    //! \brief    Constructor
     //! \param    [in] hwInterface
     //!           Hardware interface
     //! \param    [in] debugInterface
@@ -142,6 +142,38 @@ public:
     MOS_STATUS  InitMmcState() override;
 
     //!
+    //! \brief    Init context buffer 
+    //! \details
+    //! \param    [in,out] ctxBuffer 
+    //!           Pointer to context buffer 
+    //!
+    //! \param    [in] setToKey 
+    //!           Specify if it's key frame 
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS ContextBufferInit(
+            uint8_t *ctxBuffer,
+            bool setToKey);
+
+    //!
+    //! \brief    Populate prob values which are different between Key and Non-Key frame 
+    //! \details
+    //! \param    [in,out] ctxBuffer 
+    //!           Pointer to context buffer 
+    //!
+    //! \param    [in] setToKey 
+    //!           Specify if it's key frame 
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS CtxBufDiffInit(
+            uint8_t *ctxBuffer,
+            bool setToKey);
+
+    //!
     //! \brief    Intialize VP9 decode mode
     //! \details  Do nothing for base class, will be overloaded by inheritted class for dynamic mode switch support
     //!
@@ -165,7 +197,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS AllocateResources_FixedSizes();
+    virtual MOS_STATUS AllocateResourcesFixedSizes();
 
     //!
     //! \brief    Allocate variable sized resources
@@ -173,7 +205,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS AllocateResources_VariableSizes();
+    virtual MOS_STATUS AllocateResourcesVariableSizes();
 
     //!
     //! \brief    Determine Decode Phase
@@ -214,7 +246,7 @@ public:
     MOS_RESOURCE                    resMetadataTileColumnBuffer;                           //!< Handle of Metadata Tile Column data buffer
     MOS_RESOURCE                    resHvcLineRowstoreBuffer;                              //!< Handle of HVC Line Row Store surface
     MOS_RESOURCE                    resHvcTileRowstoreBuffer;                              //!< Handle of HVC Tile Row Store surface
-    MOS_RESOURCE                    resVp9ProbBuffer[CODECHAL_VP9_NUM_CONTEXTS + 1];       //!< Handle of VP9 Probability surface
+    MOS_RESOURCE                    resVp9ProbBuffer[CODEC_VP9_NUM_CONTEXTS + 1];       //!< Handle of VP9 Probability surface
     MOS_RESOURCE                    resVp9SegmentIdBuffer;                                 //!< Handle of VP9 Segment ID surface
     MOS_RESOURCE                    resVp9MvTemporalBuffer[CODECHAL_VP9_NUM_MV_BUFFERS];   //!< Handle of VP9 MV Temporal buffer
     PCODEC_REF_LIST                 pVp9RefList[CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9];    //!< Pointer to reference list
@@ -230,7 +262,7 @@ public:
     uint32_t                        HcpDecPhase;                                           //!< Hcp Decode phase
 
 
-    uint8_t                         RefFrameMap[CODECHAL_VP9_NUM_REF_FRAMES];              //!< Reference frame map for DPB management
+    uint8_t                         RefFrameMap[CODEC_VP9_NUM_REF_FRAMES];              //!< Reference frame map for DPB management
 
     union
     {
@@ -254,8 +286,8 @@ public:
     bool                            bResetSegIdBuffer;                                  //!< if segment id buffer need to do reset
     bool                            bPendingResetPartial;                               //!< indicating if there is pending partial reset operation on prob buffer 0.
     bool                            bSaveInterProbs;                                    //!< indicating if inter probs is saved for prob buffer 0.
-    bool                            bPendingResetFullTables[CODECHAL_VP9_NUM_CONTEXTS]; //!< indicating if there is pending full frame context table reset operation on each prob buffers except 0.
-    bool                            bPendingCopySegProbs[CODECHAL_VP9_NUM_CONTEXTS];    //!< indicating if there is pending seg probs copy operation on each prob buffers.
+    bool                            bPendingResetFullTables[CODEC_VP9_NUM_CONTEXTS]; //!< indicating if there is pending full frame context table reset operation on each prob buffers except 0.
+    bool                            bPendingCopySegProbs[CODEC_VP9_NUM_CONTEXTS];    //!< indicating if there is pending seg probs copy operation on each prob buffers.
     uint8_t                         SegTreeProbs[7];                                    //!< saved seg tree probs for pending seg probs copy operation to use
     uint8_t                         SegPredProbs[3];                                    //!< saved seg pred probs for pending seg probs copy operation to use
     bool                            bFullProbBufferUpdate;                              //!< indicating if prob buffer is a full buffer update
@@ -272,7 +304,7 @@ protected:
 
     //!
     //! \struct CodechalDecodeVp9:: PIC_STATE_MHW_PARAMS
-    //! \brief Define MHW parameters for picture state
+    //! \brief  Define MHW parameters for picture state
     //!
     typedef struct
     {
@@ -289,7 +321,7 @@ protected:
     //!
     //! \brief    VP9 Prob buffer partial update with driver
     //! \details  using driver to do the parital prob buffer update
-    //!           for clear decode and cp lite mode
+    //!           for clear decode
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
@@ -297,7 +329,7 @@ protected:
 
     //!
     //! \brief    VP9 Prob buffer full update with driver
-    //! \details  full prob buffer udpate in clear decode and cp lite mode
+    //! \details  full prob buffer udpate in clear decode
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
@@ -306,7 +338,6 @@ protected:
     //!
     //! \brief    VP9 Segment id buffer reset with driver
     //! \details  VP9 Segment id buffer reset with driver in clear decode
-    //!           and cp lite mode
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
@@ -314,7 +345,7 @@ protected:
 
     //!
     //! \brief    VP9 Prob buffer full update with Huc Streamout command
-    //! \details  VP9 prob buffer full update with Huc Streamout in cp heavy mode
+    //! \details  VP9 prob buffer full update with Huc Streamout
     //! \param    cmdBuffer
     //!           [in] command buffer to hold HW commands
     //! \return   MOS_STATUS
@@ -325,7 +356,7 @@ protected:
 
     //!
     //! \brief    VP9 Segment Id buffer reset with HucStreamout command
-    //! \details  vp9 segment id buffer reset in CP heavy mode using Huc Streamout command
+    //! \details  vp9 segment id buffer reset using Huc Streamout command
     //! \param    cmdBuffer
     //!           [in] command buffer to hold HW commands
     //! \return   MOS_STATUS
@@ -387,7 +418,7 @@ protected:
     //!
     virtual MOS_STATUS  AddPicStateMhwCmds(
         PMOS_COMMAND_BUFFER       cmdBuffer
-	);
+    );
 
     //!
     //! \brief    Update picture state buffers

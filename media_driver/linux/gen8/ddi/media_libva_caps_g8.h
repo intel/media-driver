@@ -29,6 +29,10 @@
 
 #include "media_libva_caps.h"
 
+//!
+//! \class  MediaLibvaCapsG8
+//! \brief  Media libva caps Gen8
+//!
 class MediaLibvaCapsG8 : public MediaLibvaCaps
 {
 public:
@@ -48,10 +52,58 @@ protected:
             VAConfigAttribType type,
             uint32_t *value);
 
+    //! 
+    //! \brief  Load profile entry points
+    //! 
+    //! \return VAStatus
+    //!     Return VA_STATUS_SUCCESS if call success, else fail reason
+    //!
     VAStatus LoadProfileEntrypoints();
 
+    //! 
+    //! \brief  Is P010 supported
+    //! 
+    //! \return false
+    //!
     bool IsP010Supported() { return false; };
 
+    //! 
+    //! \brief  Query AVC ROI maximum number
+    //! 
+    //! \param  [in] rcMode
+    //!     RC mode
+    //! \param  [in] maxNum
+    //!     Maximum number
+    //! \param  [in] isRoiInDeltaQP
+    //!     Is ROI in delta QP
+    //! 
+    //! \return VAStatus
+    //!     Return VA_STATUS_SUCCESS if call success, else fail reason
+    //!
     VAStatus QueryAVCROIMaxNum(uint32_t rcMode, int32_t *maxNum, bool *isRoiInDeltaQP);
+
+    //! 
+    //! \brief  Get mb processing rate encode
+    //! 
+    //! \param  [in] skuTable
+    //!     Media feature table
+    //! \param  [in] tuIdx
+    //!     TU index
+    //! \param  [in] codecMode
+    //!     Codec mode
+    //! \param  [in] vdencActive
+    //!     VDENC active
+    //! \param  [in] mbProcessingRatePerSec
+    //!     Mb processing rate per second
+    //! 
+    //! \return VAStatus
+    //!     Return VA_STATUS_SUCCESS if call success, else fail reason
+    //!
+    VAStatus GetMbProcessingRateEnc(
+            MEDIA_FEATURE_TABLE *skuTable,
+            uint32_t tuIdx,
+            uint32_t codecMode,
+            bool vdencActive,
+            uint32_t *mbProcessingRatePerSec);
 };
 #endif

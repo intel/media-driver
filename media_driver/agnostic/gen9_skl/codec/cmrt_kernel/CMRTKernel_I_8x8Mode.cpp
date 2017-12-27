@@ -173,12 +173,9 @@ CM_RETURN_CODE CMRTKernelI8x8ModeUMD::AllocateSurfaces(void *params)
     CM_CHK_STATUS_RETURN(m_cmSurface2D[2]->GetIndex(m_surfIndex[8]));
     CM_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D((MOS_RESOURCE *)I8x8ModeParams->m_cmBRCConstSurf, m_cmSurface2D[3]));
     CM_CHK_STATUS_RETURN(m_cmSurface2D[3]->GetIndex(m_surfIndex[9]));
-    CM_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D((MOS_RESOURCE *)I8x8ModeParams->m_cmSurfHaarDist, m_cmSurface2D[4]));
-    CM_CHK_STATUS_RETURN(m_cmSurface2D[4]->GetIndex(m_surfIndex[10]));
-    CM_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D((MOS_RESOURCE *)I8x8ModeParams->m_cmSurfStats, m_cmSurface2D[5]));
-    CM_CHK_STATUS_RETURN(m_cmSurface2D[5]->GetIndex(m_surfIndex[11]));
-    CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE *)I8x8ModeParams->m_cmSurfFrameStats, m_cmBuffer[5]));
-    CM_CHK_STATUS_RETURN(m_cmBuffer[5]->GetIndex(m_surfIndex[12]));
+    m_surfIndex[10] = (SurfaceIndex *)CM_NULL_SURFACE;
+    m_surfIndex[11] = (SurfaceIndex *)CM_NULL_SURFACE;
+    m_surfIndex[12] = (SurfaceIndex *)CM_NULL_SURFACE;
     m_surfIndex[13] = (SurfaceIndex *)CM_NULL_SURFACE;
     m_surfIndex[14] = (SurfaceIndex *)CM_NULL_SURFACE;
 

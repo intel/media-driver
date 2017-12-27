@@ -31,6 +31,88 @@
 #include "codechal_hw.h"
 #include "codechal_encode_hevc.h"
 
+struct DsConvCurbeDataG10
+{
+    DsConvCurbeDataG10()
+    {
+        DW0_InputBitDepthForChroma = 10;
+        DW0_InputBitDepthForLuma = 10;
+        DW0_OutputBitDepthForChroma = 8;
+        DW0_OutputBitDepthForLuma = 8;
+        DW0_RoundingEnable = 1;
+        DW1_PictureFormat = 0;
+        DW1_ConvertFlag = 0;
+        DW1_DownscaleStage = dsDisabled;
+        DW1_MbStatisticsDumpFlag = 0;
+        DW1_Reserved_0 = 0;
+        DW1_LcuSize = 0;
+        DW1_JobQueueSize = 2656;
+        DW2_OriginalPicWidthInSamples = 0;
+        DW2_OriginalPicHeightInSamples = 0;
+        DW3_BTI_InputConversionSurface = 0xffff;
+        DW4_BTI_Value = 0xffff;
+        DW5_BTI_4xDsSurface = 0xffff;
+        DW6_BTI_MBStatsSurface = 0xffff;
+        DW7_BTI_2xDsSurface = 0xffff;
+        DW8_BTI_MB_Split_Surface = 0xffff;
+        DW9_BTI_LCU32_JobQueueScratchBufferSurface = 0xffff;
+        DW10_BTI_LCU64_CU32_JobQueueScratchBufferSurface = 0xffff;
+        DW11_BTI_LCU64_CU32_64x64_DistortionSurface = 0xffff;
+    }
+
+    // DWORD 0
+    uint32_t   DW0_InputBitDepthForChroma : MOS_BITFIELD_RANGE(0, 7);
+    uint32_t   DW0_InputBitDepthForLuma : MOS_BITFIELD_RANGE(8, 15);
+    uint32_t   DW0_OutputBitDepthForChroma : MOS_BITFIELD_RANGE(16, 23);
+    uint32_t   DW0_OutputBitDepthForLuma : MOS_BITFIELD_RANGE(24, 30);
+    uint32_t   DW0_RoundingEnable : MOS_BITFIELD_BIT(31);
+
+    // DWORD 1
+    uint32_t   DW1_PictureFormat : MOS_BITFIELD_RANGE(0, 7);
+    uint32_t   DW1_ConvertFlag : MOS_BITFIELD_BIT(8);
+    uint32_t   DW1_DownscaleStage : MOS_BITFIELD_RANGE(9, 11);
+    uint32_t   DW1_MbStatisticsDumpFlag : MOS_BITFIELD_BIT(12);
+    uint32_t   DW1_Reserved_0 : MOS_BITFIELD_RANGE(13, 14);
+    uint32_t   DW1_LcuSize : MOS_BITFIELD_BIT(15);
+    uint32_t   DW1_JobQueueSize : MOS_BITFIELD_RANGE(16, 31);
+
+    // DWORD 2
+    uint32_t   DW2_OriginalPicWidthInSamples : MOS_BITFIELD_RANGE(0, 15);
+    uint32_t   DW2_OriginalPicHeightInSamples : MOS_BITFIELD_RANGE(16, 31);
+
+    // DWORD 3
+    uint32_t   DW3_BTI_InputConversionSurface : MOS_BITFIELD_RANGE(0, 31);
+
+    // DWORD 4
+    union {
+        uint32_t   DW4_BTI_OutputConversionSurface : MOS_BITFIELD_RANGE(0, 31);
+        uint32_t   DW4_BTI_InputDsSurface : MOS_BITFIELD_RANGE(0, 31);
+        uint32_t   DW4_BTI_Value : MOS_BITFIELD_RANGE(0, 31);
+    };
+
+    // DWORD 5
+    uint32_t   DW5_BTI_4xDsSurface : MOS_BITFIELD_RANGE(0, 31);
+
+    // DWORD 6
+    uint32_t   DW6_BTI_MBStatsSurface : MOS_BITFIELD_RANGE(0, 31);
+
+    // DWORD 7
+    uint32_t   DW7_BTI_2xDsSurface : MOS_BITFIELD_RANGE(0, 31);
+
+    // DWORD 8
+    uint32_t   DW8_BTI_MB_Split_Surface : MOS_BITFIELD_RANGE(0, 31);
+
+    // DWORD 9
+    uint32_t   DW9_BTI_LCU32_JobQueueScratchBufferSurface : MOS_BITFIELD_RANGE(0, 31);
+
+    // DWORD 10
+    uint32_t   DW10_BTI_LCU64_CU32_JobQueueScratchBufferSurface : MOS_BITFIELD_RANGE(0, 31);
+
+    // DWORD 11
+    uint32_t   DW11_BTI_LCU64_CU32_64x64_DistortionSurface : MOS_BITFIELD_RANGE(0, 31);
+
+};
+
 //!
 //! \brief    Surface params for DsConv kernel
 //!

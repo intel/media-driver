@@ -27,8 +27,6 @@
 #ifndef __CODECHAL_ENCODE_AVC_BASE_H__
 #define __CODECHAL_ENCODE_AVC_BASE_H__
 
-#include "codechal_common.h"
-#include "codechal_common_avc.h"
 #include "codechal_encoder_base.h"
 #include "codechal_kernel_hme.h"
 #if USE_CODECHAL_DEBUG_TOOL
@@ -47,7 +45,9 @@
 #define CODECHAL_ENCODE_AVC_DEFAULT_AVBR_CONVERGENCE        150
 #define CODECHAL_ENCODE_AVC_REF_PIC_SELECT_ENTRIES          (CODEC_AVC_MAX_NUM_REF_FRAME + 1) // one extra for current picture
 // Invalid AVC PicID
-#define CODECHAL_ENCODE_AVC_INVALID_PIC_ID                      CODECHAL_AVC_NUM_UNCOMPRESSED_SURFACE
+#define CODECHAL_ENCODE_AVC_INVALID_PIC_ID                      CODEC_AVC_NUM_UNCOMPRESSED_SURFACE
+
+#define CODECHAL_ENCODE_AVC_SFD_OUTPUT_BUFFER_SIZE_COMMON   128
 
 #if USE_CODECHAL_DEBUG_TOOL
 #define CODECHAL_DEBUG_ENCODE_AVC_NAL_START_CODE_SEI        0x00000106
@@ -217,8 +217,8 @@ struct EncodeAvcPar
 #endif
 
 static const uint8_t CodecHal_TargetUsageToMode_AVC[NUM_TARGET_USAGE_MODES] =
-{CODECHAL_ENCODE_NORMAL_MODE,  CODECHAL_ENCODE_QUALITY_MODE,  CODECHAL_ENCODE_QUALITY_MODE, CODECHAL_ENCODE_NORMAL_MODE,
-CODECHAL_ENCODE_NORMAL_MODE, CODECHAL_ENCODE_NORMAL_MODE, CODECHAL_ENCODE_NORMAL_MODE, CODECHAL_ENCODE_PERFORMANCE_MODE };
+{ encodeNormalMode,  encodeQualityMode,  encodeQualityMode, encodeNormalMode,
+encodeNormalMode, encodeNormalMode, encodeNormalMode, encodePerformanceMode };
 
 typedef struct _CODEC_AVC_REF_PIC_SELECT_LIST
 {
@@ -247,291 +247,6 @@ typedef struct _CODECHAL_ENCODE_AVC_GENERIC_PICTURE_LEVEL_PARAMS
     bool                        bPostDeblockOutEnable;
     bool                        bPreDeblockOutEnable;
 } CODECHAL_ENCODE_AVC_GENERIC_PICTURE_LEVEL_PARAMS, *PCODECHAL_ENCODE_AVC_GENERIC_PICTURE_LEVEL_PARAMS;
-
-// Force RepartitionCheck
-typedef enum _CODECHAL_ENCODE_AVC_RPC
-{
-    CODECHAL_ENCODE_RPC_FOLLOW_DRIVER = 0,
-    CODECHAL_ENCODE_RPC_FORCE_ENABLE,
-    CODECHAL_ENCODE_RPC_FORCE_DISABLE
-} CODECHAL_ENCODE_AVC_RPC;
-
-typedef struct _CODECHAL_ENCODE_AVC_BINDING_TABLE_MBENC
-{
-    uint32_t   dwAvcMBEncMfcAvcPakObj;
-    uint32_t   dwAvcMBEncIndMVData;
-    uint32_t   dwAvcVPPStatistics;
-    uint32_t   dwAvcMBEncCurrY;
-    uint32_t   dwAvcMBEncCurrUV;
-    uint32_t   dwAvcMBEncMbSpecificData;
-    uint32_t   dwAvcMBEncFwdRefY;
-    uint32_t   dwAvcMBEncBwdRefY;
-    uint32_t   dwAvcMBEncFwdRefMVData;
-    uint32_t   dwAvcMBEncBwdRefMBData;
-    uint32_t   dwAvcMBEncBwdRefMVData;
-    uint32_t   dwAvcMBEncMVDataFromME;
-    uint32_t   dwAvcMBEncRefPicSelectL0;
-    uint32_t   dwAvcMBEncRefPicSelectL1;
-    uint32_t   dwAvcMBEncCurrPic;
-    uint32_t   dwAvcMBEncFwdPic;
-    uint32_t   dwAvcMBEncBwdPic;
-    uint32_t   dwAvcMBEncMbBrcConstData;
-    uint32_t   dwAvcMBEncMEDist;
-    uint32_t   dwAvcMBEncBRCDist;
-    uint32_t   dwAvcMBEncDebugScratch;
-    uint32_t   dwAvcMBEncFlatnessChk;
-    uint32_t   dwAvcMBEncMBStats;
-    uint32_t   dwAvcMBEncMADData;
-    uint32_t   dwAvcMBEncVMEDistortion;
-    uint32_t   dwAvcMbEncBRCCurbeData;
-    uint32_t   dwAvcMBEncSliceMapData;
-    uint32_t   dwAvcMBEncMvPrediction;
-    uint32_t   dwAvcMBEncMbNonSkipMap;
-    uint32_t   dwAvcMBEncAdv;
-    uint32_t   dwAvcMBEncStaticDetectionCostTable;
-
-    // Frame Binding Table Entries
-    uint32_t   dwAvcMBEncCurrPicFrame[CODEC_AVC_NUM_REF_LISTS];
-    uint32_t   dwAvcMBEncFwdPicFrame[CODECHAL_ENCODE_NUM_MAX_VME_L0_REF];
-    uint32_t   dwAvcMBEncBwdPicFrame[CODECHAL_ENCODE_NUM_MAX_VME_L1_REF * 2];   // Bwd ref IDX0 and IDX1 are repeated, so include two extra to account for this
-    uint32_t   dwAvcMBEncMbQpFrame;
-    uint32_t   dwAvcMbEncMADFrame;
-    uint32_t   dwAvcMBEncSliceMapFrame;
-    uint32_t   dwAvcMBEncMbNonSkipMapFrame;
-
-    // Field Binding Table Entries
-    uint32_t   dwAvcMBEncFieldCurrPic[CODEC_AVC_NUM_REF_LISTS];
-    uint32_t   dwAvcMBEncFwdPicTopField[CODECHAL_ENCODE_NUM_MAX_VME_L0_REF];
-    uint32_t   dwAvcMBEncFwdPicBotField[CODECHAL_ENCODE_NUM_MAX_VME_L0_REF];
-    uint32_t   dwAvcMBEncBwdPicTopField[CODECHAL_ENCODE_NUM_MAX_VME_L1_REF * 2];
-    uint32_t   dwAvcMBEncBwdPicBotField[CODECHAL_ENCODE_NUM_MAX_VME_L1_REF * 2];
-    uint32_t   dwAvcMBEncMbQpField;
-    uint32_t   dwAvcMBEncMADField;
-    uint32_t   dwAvcMBEncSliceMapField;
-    uint32_t   dwAvcMBEncMbNonSkipMapField;
-
-    uint32_t   dwBindingTableStartOffset;
-    uint32_t   dwNumBindingTableEntries;
-} CODECHAL_ENCODE_AVC_BINDING_TABLE_MBENC, *PCODECHAL_ENCODE_AVC_BINDING_TABLE_MBENC;
-
-typedef struct _CODECHAL_ENCODE_AVC_GENERIC_STATE CODECHAL_ENCODE_AVC_GENERIC_STATE, *PCODECHAL_ENCODE_AVC_GENERIC_STATE;
-
-struct _CODECHAL_ENCODE_AVC_GENERIC_STATE
-{
-    // External components
-    PMOS_INTERFACE                              pOsInterface;                               // Os Inteface
-    CodechalHwInterface                        *pHwInterface;                               // Hw Interface
-    MEDIA_FEATURE_TABLE                         *pSkuTable;                                  // SKU table
-    MEDIA_WA_TABLE                              *pWaTable;                                   // SKU table
-
-    // Parameters passed by application
-    PCODEC_AVC_ENCODE_PIC_PARAMS                pAvcPicParams;
-    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS           pAvcSeqParams;
-    PCODECHAL_ENCODE_AVC_VUI_PARAMS             pAvcVuiParams;
-    PCODEC_AVC_ENCODE_SLICE_PARAMS              pAvcSliceParams;
-    CodecEncodeAvcFeiPicParams                  *pAvcFeiPicParams;
-    PCODECHAL_AVC_IQ_MATRIX_PARAMS              pAvcIQMatrixParams;
-    PCODEC_AVC_ENCODE_IQ_WEIGTHSCALE_LISTS      pAvcIQWeightScaleLists;
-    CODEC_AVC_ENCODE_USER_FLAGS                 UserFlags;
-
-    CODEC_PIC_ID                        PicIdx[CODEC_AVC_MAX_NUM_REF_FRAME];
-    PCODEC_REF_LIST                     pRefList[CODECHAL_AVC_NUM_UNCOMPRESSED_SURFACE];
-    CODECHAL_AVC_FRAME_STORE_ID         avcFrameStoreID[CODEC_AVC_MAX_NUM_REF_FRAME];
-    CODECHAL_ENCODE_AVC_NAL_UNIT_TYPE   NalUnitType;
-    PCODECHAL_NAL_UNIT_PARAMS           *ppNALUnitParams;
-    uint16_t                            usSliceHeight;
-    uint8_t                             ucBiWeightNumB;
-    bool                                bDeblockingEnabled;
-    bool                                bMbaff;
-    bool                                bFirstFieldIdrPic;
-
-    bool                                bHmeEnabled;
-    bool                                b16xMeEnabled;
-    bool                                b32xMeEnabled;
-    bool                                bSkipBiasAdjustmentEnable;      // Enable SkipBiasAdjustment
-    bool                                bStaticFrameDetectionInUse;
-    uint32_t                            uiSlcStructCaps;
-
-    // Trellis Quantization params
-    CODECHAL_ENCODE_AVC_TQ_PARAMS       TrellisQuantParams;
-
-    // B-frame
-    uint32_t                            DistScaleFactorList0[CODEC_AVC_MAX_NUM_REF_FRAME * 2];
-    uint32_t                            dwBiWeight;
-
-    // Batch Buffers
-    MHW_BATCH_BUFFER                    BatchBufferForVdencImgStat[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];
-
-    // ME
-    MOS_SURFACE                         s4xMeMvDataBuffer;
-    uint32_t                            ulMeMvBottomFieldOffset;
-    MOS_SURFACE                         s16xMeMvDataBuffer;
-    uint32_t                            ulMeMv16xBottomFieldOffset;
-    MOS_SURFACE                         s32xMeMvDataBuffer;
-    uint32_t                            ulMeMv32xBottomFieldOffset;
-    MOS_SURFACE                         s4xMeDistortionBuffer;
-    uint32_t                            ulMeDistortionBottomFieldOffset;
-    uint8_t*                            pBMEMethodTable;
-    uint8_t*                            pMEMethodTable;
-
-    // PAK Scratch Buffers
-    MOS_RESOURCE                        resIntraRowStoreScratchBuffer;                  // Handle of intra row store surface
-    MHW_BATCH_BUFFER                    BatchBufferForPakSlices[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];
-    uint32_t                            dwPakSliceSize;
-    uint32_t                            dwPakSlicePatchListSize;
-    uint32_t                            ucCurrPakSliceIdx;
-
-    // VDENC Scratch Buffers
-    MOS_RESOURCE                        resVdencIntraRowStoreScratchBuffer;             // Handle of intra row store surface
-    MOS_RESOURCE                        resPakStatsBuffer;
-    MOS_RESOURCE                        resVdencStatsBuffer;
-
-    MOS_RESOURCE                        resVdencTlbMmioBuffer;
-    uint32_t                            dwMmioMfxLra0Override;
-    uint32_t                            dwMmioMfxLra1Override;
-    uint32_t                            dwMmioMfxLra2Override;
-
-    uint8_t                            *pVDEncModeCost;
-    uint8_t                            *pVDEncMvCost;
-    uint8_t                            *pVDEncHmeMvCost;
-
-    // Generation Specific Support Flags & User Feature Key Reads
-    bool                                b4xMeDistortionBufferSupported;
-
-    // PAK Slice Size Streamout, valid for AVC VDEnc on KBL/CNL+
-    bool                                bSliceSizeStreamoutSupported;
-    MOS_RESOURCE                        resPakSliceSizeStreamoutBuffer;
-
-    // CRE & TLB prefrech enable/disable flags
-    bool                                bCrePrefetchEnable;
-    bool                                bTlbPrefetchEnable;
-
-    // VDEnc Single Pass flag
-    bool                                bVDEncSinglePassEnable;
-};
-
-typedef struct _CODECHAL_ENCODE_AVC_MBENC_SURFACE_PARAMS
-{
-    CODECHAL_MEDIA_STATE_TYPE                   MediaStateType;
-    PCODEC_AVC_ENCODE_SLICE_PARAMS              pAvcSlcParams;
-    CodecEncodeAvcFeiPicParams                  *pFeiPicParams;
-    PCODEC_REF_LIST                             *ppRefList;
-    PCODEC_PIC_ID                               pAvcPicIdx;
-    PCODEC_PICTURE                              pCurrOriginalPic;
-    PCODEC_PICTURE                              pCurrReconstructedPic;
-    uint16_t                                    wPictureCodingType;
-    PMOS_SURFACE                                psCurrPicSurface;
-    uint32_t                                    dwCurrPicSurfaceOffset;
-    uint32_t                                    dwMbCodeBottomFieldOffset;
-    uint32_t                                    dwMvBottomFieldOffset;
-    PMOS_SURFACE                                ps4xMeMvDataBuffer;
-    uint32_t                                    dwMeMvBottomFieldOffset;
-    PMOS_SURFACE                                ps4xMeDistortionBuffer;
-    uint32_t                                    dwMeDistortionBottomFieldOffset;
-    uint32_t                                    dwRefPicSelectBottomFieldOffset;
-    PMOS_SURFACE                                psMeBrcDistortionBuffer;
-    uint32_t                                    dwMeBrcDistortionBottomFieldOffset;
-    PMOS_RESOURCE                               presMbBrcConstDataBuffer;
-    PMOS_RESOURCE                               presMbSpecificDataBuffer;
-    PMOS_SURFACE                                psMbQpBuffer;
-    uint32_t                                    dwMbQpBottomFieldOffset;
-    bool                                        bFlatnessCheckEnabled;
-    PMOS_SURFACE                                psFlatnessCheckSurface;
-    uint32_t                                    dwFlatnessCheckBottomFieldOffset;
-    bool                                        bMBVProcStatsEnabled;
-    PMOS_RESOURCE                               presMBVProcStatsBuffer;
-    uint32_t                                    dwMBVProcStatsBottomFieldOffset;
-    PMOS_RESOURCE                               presMADDataBuffer;
-    bool                                        bMADEnabled;
-    uint32_t                                    dwFrameWidthInMb;
-    uint32_t                                    dwFrameFieldHeightInMb;
-    uint32_t                                    dwFrameHeightInMb;
-    uint32_t                                    dwVerticalLineStride;
-    uint32_t                                    dwVerticalLineStrideOffset;
-    bool                                        bHmeEnabled;
-    bool                                        bMbEncIFrameDistInUse;
-    bool                                        bMbQpBufferInUse;
-    bool                                        bMbSpecificDataEnabled;
-    bool                                        bMbConstDataBufferInUse;
-    bool                                        bUsedAsRef;
-    PMOS_RESOURCE                               presMbEncCurbeBuffer;
-    PMOS_RESOURCE                               presMbEncBRCBuffer;  //extra surface on KBL BRC update
-    uint32_t                                    dwMbEncBRCBufferSize;
-    bool                                        bUseMbEncAdvKernel;
-    bool                                        bArbitraryNumMbsInSlice;
-    PMOS_SURFACE                                psSliceMapSurface;           // Slice map for arbitrary number of mbs in slice feature
-    uint32_t                                    dwSliceMapBottomFieldOffset;
-    bool                                        bBrcEnabled;
-    PMHW_KERNEL_STATE                           pKernelState;
-    bool                                        bUseAdvancedDsh;
-    PCODECHAL_ENCODE_AVC_BINDING_TABLE_MBENC    pMbEncBindingTable;
-    bool                                        bMbDisableSkipMapEnabled;
-    PMOS_SURFACE                                psMbDisableSkipMapSurface;
-    bool                                        bStaticFrameDetectionEnabled;
-    PMOS_RESOURCE                               presSFDOutputBuffer;
-    PMOS_RESOURCE                               presSFDCostTableBuffer;
-    PCODEC_AVC_REF_PIC_SELECT_LIST              pWeightedPredOutputPicSelectList;
-    bool                                        bUseWeightedSurfaceForL0;
-    bool                                        bUseWeightedSurfaceForL1;
-} CODECHAL_ENCODE_AVC_MBENC_SURFACE_PARAMS,     *PCODECHAL_ENCODE_AVC_MBENC_SURFACE_PARAMS;
-
-typedef struct _CODECHAL_ENCODE_AVC_INIT_BRC_CONSTANT_BUFFER_PARAMS
-{
-    PMOS_INTERFACE                              pOsInterface;
-    PCODEC_AVC_ENCODE_SLICE_PARAMS              pAvcSlcParams;
-    PCODEC_PIC_ID                               pAvcPicIdx;
-    MOS_SURFACE                                 sBrcConstantDataBuffer; // sBrcConstantDataBuffer[uiCurrDSH]
-    uint32_t                                    dwMbEncBlockBasedSkipEn;
-    PCODEC_AVC_ENCODE_PIC_PARAMS                pPicParams;             // pAvcPicParams[ucPPSIdx]
-    uint16_t                                    wPictureCodingType;
-    bool                                        bSkipBiasAdjustmentEnable;
-    bool                                        bAdaptiveIntraScalingEnable;
-    bool                                        bOldModeCostEnable;
-    PCODECHAL_ENCODE_AVC_QUALITY_CTRL_PARAMS    pAvcQCParams;
-} CODECHAL_ENCODE_AVC_INIT_BRC_CONSTANT_BUFFER_PARAMS, *PCODECHAL_ENCODE_AVC_INIT_BRC_CONSTANT_BUFFER_PARAMS;
-
-typedef struct _CODECHAL_ENCODE_AVC_BINDING_TABLE_PREPROC
-{
-    uint32_t   dwAvcPreProcCurrY;
-    uint32_t   dwAvcPreProcCurrUV;
-    uint32_t   dwAvcPreProcMVDataFromHME;
-    uint32_t   dwAvcPreProcMvPredictor;
-    uint32_t   dwAvcPreProcMbQp;
-    uint32_t   dwAvcPreProcMvDataOut;
-    uint32_t   dwAvcPreProcMbStatsOut;
-
-    uint32_t   dwAvcPreProcVMECurrPicFrame[CODEC_AVC_NUM_REF_LISTS];
-    uint32_t   dwAvcPreProcVMEFwdPicFrame;
-    uint32_t   dwAvcPreProcVMEBwdPicFrame[2];   // Bwd ref IDX0 and IDX1 are repeated, so include two to account for this
-    uint32_t   dwAvcPreProcFtqLut;
-
-    uint32_t   dwAvcPreProcVMECurrPicField[2];
-    uint32_t   dwAvcPreProcVMEFwdPicField[2];
-    uint32_t   dwAvcPreProcVMEBwdPicField[2];
-    uint32_t   dwAvcPreProcFtqLutField;
-
-    uint32_t   dwBindingTableStartOffset;
-    uint32_t   dwNumBindingTableEntries;
-} CODECHAL_ENCODE_AVC_BINDING_TABLE_PREPROC, *PCODECHAL_ENCODE_AVC_BINDING_TABLE_PREPROC;
-
-typedef struct _CODECHAL_ENCOCDE_AVC_PREPROC_SURFACE_PARAMS
-{
-    FeiPreEncParams                             *pPreEncParams;
-    PCODEC_REF_LIST                             *ppRefList;
-    PCODEC_PICTURE                              pCurrOriginalPic;
-    PMOS_SURFACE                                psCurrPicSurface;
-    PMOS_SURFACE                                ps4xMeMvDataBuffer;
-    PMOS_RESOURCE                               presFtqLutBuffer;
-    uint32_t                                    dwMeMvBottomFieldOffset;
-    uint32_t                                    dwMBVProcStatsBottomFieldOffset;
-    uint32_t                                    dwFrameWidthInMb;
-    uint32_t                                    dwFrameFieldHeightInMb;
-    uint32_t                                    dwVerticalLineStride;
-    uint32_t                                    dwVerticalLineStrideOffset;
-    bool                                        bHmeEnabled;
-    PMHW_KERNEL_STATE                           pKernelState;
-    PCODECHAL_ENCODE_AVC_BINDING_TABLE_PREPROC  pPreProcBindingTable;
-} CODECHAL_ENCODE_AVC_PREPROC_SURFACE_PARAMS, *PCODECHAL_ENCODE_AVC_PREPROC_SURFACE_PARAMS;
 
 typedef struct _CODECHAL_ENCODE_AVC_ME_CURBE
 {
@@ -1408,67 +1123,6 @@ typedef struct _CODECHAL_ENCODE_AVC_SFD_CURBE_COMMON
 } CODECHAL_ENCODE_AVC_SFD_CURBE_COMMON, *PCODECHAL_ENCODE_AVC_SFD_CURBE_COMMON;
 C_ASSERT(MOS_BYTES_TO_DWORDS(sizeof(CODECHAL_ENCODE_AVC_SFD_CURBE_COMMON)) == 30);
 
-typedef struct _CODECHAL_ENCODE_AVC_WP_CURBE_PARAMS
-{
-    uint8_t   RefPicListIdx;
-    uint32_t  WPIdx;
-} CODECHAL_ENCODE_AVC_WP_CURBE_PARAMS, *PCODECHAL_ENCODE_AVC_WP_CURBE_PARAMS;
-
-typedef struct _CODECHAL_ENCODE_AVC_BINDING_TABLE_BRC_UPDATE
-{
-    uint32_t   dwFrameBrcHistoryBuffer;
-    uint32_t   dwFrameBrcPakStatisticsOutputBuffer;
-    uint32_t   dwFrameBrcImageStateReadBuffer;
-    uint32_t   dwFrameBrcImageStateWriteBuffer;
-    uint32_t   dwFrameBrcMbEncCurbeReadBuffer;
-    uint32_t   dwFrameBrcMbEncCurbeWriteData;
-    uint32_t   dwFrameBrcDistortionBuffer;
-    uint32_t   dwFrameBrcConstantData;
-    uint32_t   dwFrameBrcMbStatBuffer;
-    uint32_t   dwFrameBrcMvDataBuffer;
-    uint32_t   dwMbBrcHistoryBuffer;
-    uint32_t   dwMbBrcDistortionBuffer;
-    uint32_t   dwMbBrcMbQpBuffer;
-    uint32_t   dwMbBrcROISurface;
-    uint32_t   dwMbBrcIntraDistortionPBFrameSurface;
-    uint32_t   dwMbBrcMbStatBuffer;
-    uint32_t   dwBindingTableStartOffset;
-    uint32_t   dwNumBindingTableEntries;
-} CODECHAL_ENCODE_AVC_BINDING_TABLE_BRC_UPDATE, *PCODECHAL_ENCODE_AVC_BINDING_TABLE_BRC_UPDATE;
-
-typedef struct _CODECHAL_ENCODE_AVC_BRC_UPDATE_SURFACE_PARAMS
-{
-    CODECHAL_MEDIA_STATE_TYPE                       MbEncMediaStateType;
-    EncodeBrcBuffers*                               pBrcBuffers;
-    uint32_t                                        dwDownscaledWidthInMb4x;
-    uint32_t                                        dwDownscaledFrameFieldHeightInMb4x;
-    bool                                            bMbBrcEnabled;
-    bool                                            bUseAdvancedDsh;
-    bool                                            bBrcRoiEnabled;
-    PMOS_RESOURCE                                   presMbEncCurbeBuffer;
-    PMOS_RESOURCE                                   presMbEncBRCBuffer; //extra surface on KBL BRC update
-    PMOS_SURFACE                                    psRoiSurface;
-    PMOS_RESOURCE                                   presMbStatBuffer;
-    PMOS_SURFACE                                    psMvDataBuffer;
-    uint32_t                                        dwBrcPakStatisticsSize;
-    uint32_t                                        dwBrcHistoryBufferSize;
-    uint32_t                                        dwMbEncBRCBufferSize;
-    uint32_t                                        dwMvBottomFieldOffset;
-    uint8_t                                         ucCurrRecycledBufIdx;
-    PCODECHAL_ENCODE_AVC_BINDING_TABLE_BRC_UPDATE   pBrcUpdateBindingTable;
-    PMHW_KERNEL_STATE                               pKernelState;
-} CODECHAL_ENCODE_AVC_BRC_UPDATE_SURFACE_PARAMS, *PCODECHAL_ENCODE_AVC_BRC_UPDATE_SURFACE_PARAMS;
-
-typedef struct _CODECHAL_ENCODE_AVC_WP_SURFACE_PARAMS
-{
-    PMOS_SURFACE                       psInputRefBuffer;
-    PMOS_SURFACE                       psOutputScaledBuffer;
-    uint32_t                           dwVerticalLineStride;
-    uint32_t                           dwVerticalLineStrideOffset;
-    uint8_t                            ucVDirection;
-    PMHW_KERNEL_STATE                  pKernelState;
-} CODECHAL_ENCODE_AVC_WP_SURFACE_PARAMS, *PCODECHAL_ENCODE_AVC_WP_SURFACE_PARAMS;
-
 typedef struct _CODECHAL_ENCODE_AVC_SFD_SURFACE_PARAMS
 {
     uint32_t                                dwDownscaledWidthInMb4x;
@@ -1491,9 +1145,9 @@ typedef struct _CODECHAL_ENCODE_AVC_PACK_PIC_HEADER_PARAMS
     PCODEC_AVC_ENCODE_PIC_PARAMS            pPicParams;     // pAvcPicParams[ucPPSIdx]
     PCODEC_AVC_ENCODE_SEQUENCE_PARAMS       pSeqParams;     // pAvcSeqParams[ucSPSIdx]
     PCODECHAL_ENCODE_AVC_VUI_PARAMS         pAvcVuiParams;
-    PCODECHAL_AVC_IQ_MATRIX_PARAMS          pAvcIQMatrixParams;
+    PCODEC_AVC_IQ_MATRIX_PARAMS          pAvcIQMatrixParams;
     PCODECHAL_NAL_UNIT_PARAMS               *ppNALUnitParams;
-    PCODECHAL_ENCODE_SEI_DATA               pSeiData;
+    CodechalEncodeSeiData*                  pSeiData;
     uint32_t                                dwFrameHeight;
     uint32_t                                dwOriFrameHeight;
     uint16_t                                wPictureCodingType;
@@ -1539,463 +1193,35 @@ typedef struct _CODECHAL_ENCODE_AVC_TQ_INPUT_PARAMS
     bool      bVdEncEnabled;
 } CODECHAL_ENCODE_AVC_TQ_INPUT_PARAMS, *PCODECHAL_ENCODE_AVC_TQ_INPUT_PARAMS;
 
-typedef struct _CODECHAL_ENCODE_AVC_PREPROC_CURBE_PARAMS
-{
-    FeiPreEncParams                         *pPreEncParams;
-    uint16_t                                wPicWidthInMb;
-    uint16_t                                wFieldFrameHeightInMb;
-    PMHW_KERNEL_STATE                       pKernelState;
-    uint8_t*                                pCurbeBinary;
-} CODECHAL_ENCODE_AVC_PREPROC_CURBE_PARAMS, *PCODECHAL_ENCODE_AVC_PREPROC_CURBE_PARAMS;
-
-typedef struct _CODECHAL_ENCODE_AVC_BRC_INIT_RESET_CURBE_PARAMS
-{
-    double                                 *pdBrcInitCurrentTargetBufFullInBits;   // Passed back to Render Interface
-    double                                 *pdBrcInitResetInputBitsPerFrame;       // Passed back to Render Interface
-    uint32_t*                               pdwBrcInitResetBufSizeInBits;           // Passed back to Render Interface
-    PMHW_KERNEL_STATE                       pKernelState;
-} CODECHAL_ENCODE_AVC_BRC_INIT_RESET_CURBE_PARAMS, *PCODECHAL_ENCODE_AVC_BRC_INIT_RESET_CURBE_PARAMS;
-
-typedef struct _CODECHAL_ENCODE_AVC_BRC_UPDATE_CURBE_PARAMS
-{
-    double                                  *pdBrcInitCurrentTargetBufFullInBits;    // Passed in and back
-    uint32_t                                dwNumSkipFrames;
-    uint32_t                                dwSizeSkipFrames;
-    uint8_t                                 ucMinQP;  // Limit min QP that the kernel can choose, based on app setting
-    uint8_t                                 ucMaxQP;  // Limit max QP that the kernel can choose, based on app setting
-    uint8_t                                 ucEnableROI;                            // ROI feature for BRC
-    uint32_t                                dwIntraRefreshQpThreshold;
-    bool                                    bSquareRollingIEnabled;
-    PMHW_KERNEL_STATE                       pKernelState;
-} CODECHAL_ENCODE_AVC_BRC_UPDATE_CURBE_PARAMS, *PCODECHAL_ENCODE_AVC_BRC_UPDATE_CURBE_PARAMS;
-
-typedef struct _CODECHAL_ENCODE_AVC_BRC_BLOCK_COPY_CURBE_PARAMS
-{
-    PMHW_KERNEL_STATE                       pKernelState;
-    uint32_t                                dwBufferOffset;
-    uint32_t                                dwBlockHeight;
-} CODECHAL_ENCODE_AVC_BRC_BLOCK_COPY_CURBE_PARAMS, *PCODECHAL_ENCODE_AVC_BRC_BLOCK_COPY_CURBE_PARAMS;
-
 typedef struct _CODECHAL_ENCODE_AVC_SFD_CURBE_PARAMS
 {
     PMHW_KERNEL_STATE                       pKernelState;
 } CODECHAL_ENCODE_AVC_SFD_CURBE_PARAMS, *PCODECHAL_ENCODE_AVC_SFD_CURBE_PARAMS;
 
-typedef struct _CODECHAL_ENCODE_AVC_INIT_MBBRC_CONSTANT_DATA_BUFFER_PARAMS
-{
-    PMOS_INTERFACE                              pOsInterface;
-    PMOS_RESOURCE                               presBrcConstantDataBuffer;
-    uint32_t                                    dwMbEncBlockBasedSkipEn;
-    PCODEC_AVC_ENCODE_PIC_PARAMS                pPicParams;             // pAvcPicParams[ucPPSIdx]
-    uint16_t                                    wPictureCodingType;
-    bool                                        bSkipBiasAdjustmentEnable;
-    bool                                        bAdaptiveIntraScalingEnable;
-    bool                                        bOldModeCostEnable;
-    bool                                        bPreProcEnable;
-    bool                                        bEnableKernelTrellis;
-    PCODECHAL_ENCODE_AVC_QUALITY_CTRL_PARAMS    pAvcQCParams;
-    uint32_t                                    Lambda[52][2];
-} CODECHAL_ENCODE_AVC_INIT_MBBRC_CONSTANT_DATA_BUFFER_PARAMS, *PCODECHAL_ENCODE_AVC_INIT_MBBRC_CONSTANT_DATA_BUFFER_PARAMS;
-
-typedef struct _CODECHAL_ENCODE_AVC_MBENC_CURBE_PARAMS
-{
-    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS           pSeqParams;
-    PCODEC_AVC_ENCODE_PIC_PARAMS                pPicParams;
-    PCODEC_AVC_ENCODE_SLICE_PARAMS              pSlcParams;
-    PCODEC_REF_LIST                             *ppRefList;
-    PCODEC_PIC_ID                               pPicIdx;
-    PCODECHAL_ENCODE_AVC_QUALITY_CTRL_PARAMS    pAvcQCParams;
-    uint16_t                                    wPicWidthInMb;
-    uint16_t                                    wFieldFrameHeightInMb;
-    uint32_t*                                   pdwBlockBasedSkipEn; // To be returned to render interface
-    bool                                        bBrcEnabled;
-    bool                                        bMbEncIFrameDistEnabled;
-    bool                                        bRoiEnabled;
-    bool                                        bDirtyRoiEnabled;
-    bool                                        bUseMbEncAdvKernel;
-    bool                                        bMbDisableSkipMapEnabled;
-    bool                                        bStaticFrameDetectionEnabled;   // static frame detection enable or not
-    bool                                        bApdatvieSearchWindowSizeEnabled;
-    bool                                        bSquareRollingIEnabled;
-    uint16_t                                    usSliceHeight;
-    PMHW_KERNEL_STATE                           pKernelState;
-    uint8_t*                                    pCurbeBinary;
-} CODECHAL_ENCODE_AVC_MBENC_CURBE_PARAMS, *PCODECHAL_ENCODE_AVC_MBENC_CURBE_PARAMS;
-
-typedef struct _CODECHAL_ENCODE_AVC_STATE CODECHAL_ENCODE_AVC_STATE, *PCODECHAL_ENCODE_AVC_STATE;
-
-struct _CODECHAL_ENCODE_AVC_STATE
-{
-    // AVC Generic State
-    PCODECHAL_ENCODE_AVC_GENERIC_STATE          pAvcGenericState;
-
-    // External components
-    PMOS_INTERFACE                              pOsInterface;                               // Os Inteface
-    CodechalHwInterface                        *pHwInterface;                               // Hw Interface
-    MEDIA_FEATURE_TABLE                         *pSkuTable;                                  // SKU table
-    MEDIA_WA_TABLE                              *pWaTable;                                   // SKU table
-
-    // Parameters passed by application
-    PCODEC_AVC_ENCODE_PIC_PARAMS                pAvcPicParams[CODECHAL_AVC_MAX_PPS_NUM];
-    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS           pAvcSeqParams[CODECHAL_AVC_MAX_SPS_NUM];
-    PCODECHAL_ENCODE_AVC_QUALITY_CTRL_PARAMS    pAvcQCParams;
-    PCODECHAL_ENCODE_AVC_ROUNDING_PARAMS        pAvcRoundingParams;
-
-    // SEI
-    CODECHAL_ENCODE_SEI_DATA            SeiData;
-    uint32_t                            dwSEIDataOffset;
-    uint8_t*                            pSeiParamBuffer;
-
-    bool                                bMbEncCurbeSetInBrcUpdate;
-    bool                                bMbEncIFrameDistEnabled;
-    bool                                bBrcInit;
-    bool                                bBrcReset;
-    bool                                bBrcEnabled;
-    bool                                bMbBrcEnabled;
-    bool                                bBrcRoiEnabled;                 // BRC ROI feature
-    bool                                bROIValueInDeltaQP;
-    bool                                bROISmoothEnabled;
-    bool                                bMbBrcUserFeatureKeyControl;
-    double                              dBrcTargetSize;
-    uint32_t                            dwTrellis;
-    bool                                bAcceleratorHeaderPackingCaps; //flag set by driver from driver caps
-    uint32_t                            dwIntraRefreshQpThreshold;
-    bool                                bSquareRollingIEnabled;
-
-    // VME Scratch Buffers
-    MOS_RESOURCE                        resVMEScratchBuffer;
-    bool                                bVMEScratchBuffer;
-    MOS_RESOURCE                        resVmeKernelDumpBuffer;
-    bool                                bVMEKernelDump;
-    uint32_t                            ulVMEKernelDumpBottomFieldOffset;
-
-    // MbEnc
-    PMHW_KERNEL_STATE                           pMbEncKernelStates;
-    CODECHAL_ENCODE_AVC_BINDING_TABLE_MBENC     MbEncBindingTable;
-    uint32_t                                    dwNumMbEncEncKrnStates;
-    CODEC_AVC_REF_PIC_SELECT_LIST               RefPicSelectList[CODECHAL_ENCODE_AVC_REF_PIC_SELECT_ENTRIES];
-    uint8_t                                     ucCurrRefPicSelectIndex;
-    uint32_t                                    ulRefPicSelectBottomFieldOffset;
-    uint32_t                                    dwMbEncBlockBasedSkipEn;
-    bool                                        bKernelTrellis; // Kernel controlled Trellis Quantization
-    bool                                        bExtendedMvCostRange; // Extended MV Cost Range for Gen10+
-
-    // Intra Distortion
-    PMHW_KERNEL_STATE                           pIntraDistortionKernelStates;
-
-    // WP
-    PMHW_KERNEL_STATE                   pWPKernelState;
-    CODEC_AVC_REF_PIC_SELECT_LIST       WeightedPredOutputPicSelectList[CODEC_AVC_NUM_WP_FRAME];
-
-    // BRC Params
-    MHW_KERNEL_STATE                                BrcKernelStates[CODECHAL_ENCODE_BRC_IDX_NUM];
-    CODECHAL_ENCODE_AVC_BINDING_TABLE_BRC_UPDATE    BrcUpdateBindingTable;
-
-    // PreProc
-    MHW_KERNEL_STATE                                PreProcKernelState;
-    CODECHAL_ENCODE_AVC_BINDING_TABLE_PREPROC       PreProcBindingTable;
-
-    EncodeBrcBuffers                    BrcBuffers;
-    uint16_t                            usAVBRAccuracy;
-    uint16_t                            usAVBRConvergence;
-    double                              dBrcInitCurrentTargetBufFullInBits;
-    double                              dBrcInitResetInputBitsPerFrame;
-    uint32_t                            dwBrcInitResetBufSizeInBits;
-    uint32_t                            dwBrcInitPreviousTargetBufFullInBits;
-    // Below values will be set if qp control params are sent by app
-    bool                                bMinMaxQPControlEnabled;  // Flag to indicate if min/max QP feature is enabled or not.
-    uint8_t                             ucIMinQP;
-    uint8_t                             ucIMaxQP;
-    uint8_t                             ucPMinQP;
-    uint8_t                             ucPMaxQP;
-    uint8_t                             ucBMinQP;
-    uint8_t                             ucBMaxQP;
-    bool                                bPFrameMinMaxQPControl;   // Indicates min/max QP values for P-frames are set separately or not.
-    bool                                bBFrameMinMaxQPControl;   // Indicates min/max QP values for B-frames are set separately or not.
-
-    uint32_t                            dwSkipFrameBufferSize;     // size of skip frame packed data
-    MOS_RESOURCE                        resSkipFrameBuffer;        // copy skip frame packed data from DDI
-    // Mb Disable Skip Map
-    bool                                bMbDisableSkipMapEnabled;
-    PMOS_SURFACE                        psMbDisableSkipMapSurface;
-
-    // Mb Qp Data
-    bool                                bMbQpDataEnabled;
-    MOS_SURFACE                         sMbQpDataSurface;         // Pointer to MOS_SURFACE of Mb Qp data surface, provided by DDI
-
-    // Mb specific Data
-    bool                                bMbSpecificDataEnabled;
-    MOS_RESOURCE                        resMbSpecificDataBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];
-
-    // VDENC BRC Buffers
-    MOS_RESOURCE                        resVdencBrcUpdateDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_VDENC_BRC_NUM_OF_PASSES];
-    MOS_RESOURCE                        resVdencBrcInitDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];
-    MOS_RESOURCE                        resVdencBrcImageStatesReadBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM]; // read only VDENC+PAK IMG STATE buffer
-    MOS_RESOURCE                        resVdencBrcConstDataBuffer;
-    MOS_RESOURCE                        resVdencBrcHistoryBuffer;
-    MOS_RESOURCE                        resVdencBrcDbgBuffer;
-
-    // Static frame detection
-    bool                                bStaticFrameDetectionEnable;    // Static frame detection enable
-    bool                                bApdatvieSearchWindowEnable;    // allow search window size change when SFD enabled
-    bool                                bPerMbSFD;
-    MOS_RESOURCE                        resSFDOutputBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];
-    MOS_RESOURCE                        resSFDCostTablePFrameBuffer;
-    MOS_RESOURCE                        resSFDCostTableBFrameBuffer;
-    MOS_RESOURCE                        resVdencSFDImageStateReadBuffer;
-    PMHW_KERNEL_STATE                   pSFDKernelState;
-
-    // Generation Specific Support Flags & User Feature Key Reads
-    bool                                bBrcDistortionBufferSupported;
-    bool                                bRefPicSelectListSupported;
-    uint8_t                             ucMbBrcSupportCaps;
-    bool                                bMultiPredEnable;               // MultiPredictor enable, 6 predictors
-    bool                                bFTQEnable;                     // FTQEnable
-    bool                                bCAFSupported;                  // CAFSupported
-    bool                                bCAFEnable;                     // CAFEnable
-    bool                                bCAFDisableHD;                  // Disable CAF for HD
-    bool                                bSkipBiasAdjustmentSupported;   // SkipBiasAdjustment support for P frame
-    bool                                bAdaptiveIntraScalingEnable;    // Enable AdaptiveIntraScaling
-    bool                                bOldModeCostEnable;             // Enable Old Mode Cost (HSW cost table for BDW)
-    bool                                bMultiRefQpEnabled;             // BDW Mutiref Qp
-    bool                                bAdvancedDshInUse;              // Use MbEnc Adv kernel
-    bool                                bUseMbEncAdvKernel;            // Use MbEnc Adv kernel
-    bool                                bUseWeightedSurfaceForL0;       //Use WP Surface for L0
-    bool                                bUseWeightedSurfaceForL1;       //Use WP Surface for L1
-    bool                                bWeightedPredictionSupported;   //Weighted prediction support
-    bool                                bBrcSplitEnable;                // starting GEN9 BRC kernel has split into frame-level and MB-level update.
-    bool                                bDecoupleMbEncCurbeFromBRC;     // starting GEN95 BRC kernel write to extra surface instread of MBEnc curbe.
-    bool                                bSliceLevelReportSupported;     // Slice Level Report support
-    bool                                bFBRBypassEnable;               // FBRBypassEnable
-    bool                                bBrcRoiSupported;
-    bool                                bMvDataNeededByBRC;             // starting from G95, mv data buffer from HME is needed by BRC frame update kernel
-    bool                                bHighTextureModeCostEnable;
-
-    bool                                bRoundingInterEnable;
-    bool                                bAdaptiveRoundingInterEnable;
-    uint32_t                            dwRoundingInterP;
-    uint32_t                            dwRoundingInterB;
-    uint32_t                            dwRoundingInterBRef;
-    uint32_t                            dwBrcConstantSurfaceWidth;
-    uint32_t                            dwBrcConstantSurfaceHeight;
-
-    uint8_t                             VDEncModeCost[12];
-    uint8_t                             VDEncMvCost[8];
-    uint8_t                             VDEncHmeMvCost[8];
-
-    uint32_t                            dwSlidingWindowSize;
-    bool                                bForceToSkipEnable;
-    bool                                bBRCVarCompuBypass;
-    uint32_t                            dwVdencBrcInitDmemBufferSize;
-    uint32_t                            dwVdencBrcUpdateDmemBufferSize;
-    bool                                bVdencStaticFrame;
-    uint32_t                            dwVdencStaticRegionPct;
-
-    MOS_STATUS(*pfnInitialize) (
-        PCODECHAL_ENCODE_AVC_STATE  pAvcState,
-        PCODECHAL_ENCODER           pEncoder);
-
-    MOS_STATUS (* pfnValidateNumReferences) (
-        PCODECHAL_ENCODE_AVC_VALIDATE_NUM_REFS_PARAMS               pParams);
-
-    MOS_STATUS (* pfnInitBrcConstantBuffer) (
-        PCODECHAL_ENCODE_AVC_INIT_BRC_CONSTANT_BUFFER_PARAMS        pParams);
-
-    MOS_STATUS (* pfnInitMbBrcConstantDataBuffer) (
-        PCODECHAL_ENCODE_AVC_INIT_MBBRC_CONSTANT_DATA_BUFFER_PARAMS pParams);
-
-    MOS_STATUS (* pfnGetInterRounding) (
-        PCODECHAL_ENCODE_AVC_STATE  pAvcState,
-        PCODECHAL_ENCODER           pEncoder,
-        PMHW_VDBOX_AVC_SLICE_STATE   pSliceState);
-
-    MOS_STATUS (* pfnCalcLambdaTable)(
-        PCODECHAL_ENCODE_AVC_STATE  pAvcState,
-        PCODECHAL_ENCODER           pEncoder,
-        uint16_t                    slice_type,
-        uint32_t*                   pLambda);
-
-    MOS_STATUS  (* pfnGetTrellisQuantization) (
-        PCODECHAL_ENCODE_AVC_TQ_INPUT_PARAMS    pParams,
-        PCODECHAL_ENCODE_AVC_TQ_PARAMS          pTrellisQuantParams);
-
-    MOS_STATUS  (* pfnGetSkipBiasAdjustment) (
-        PCODECHAL_ENCODE_AVC_STATE  pAvcState,
-        PCODECHAL_ENCODER           pEncoder,
-        uint8_t                     ucSliceQP,
-        uint16_t                    GopRefDist,
-        bool                       *pbSkipBiasAdjustmentEnable);
-
-    MOS_STATUS (* pfnGetHmeSupportedBasedOnTU) (
-        PCODECHAL_ENCODER           pEncoder,
-        HmeLevel                    hmeLevel,
-        bool                       *pbSupported);
-
-    MOS_STATUS (* pfnGetMbBrcEnabled) (
-        uint32_t                    dwTargetUsage,
-        bool                       *pbMbBrcEnabled);
-
-    MOS_STATUS (* pfnGetCAFEnabled) (
-        PCODECHAL_ENCODE_AVC_STATE      pAvcState,
-        PCODECHAL_ENCODER               pEncoder,
-        bool                           *pbCAFEnable);
-
-    MOS_STATUS (* pfnGetATDEnabled) (
-        PCODECHAL_ENCODER               pEncoder);
-
-    MOS_STATUS(* pfnInitKernelStateMbEnc) (
-        PCODECHAL_ENCODE_AVC_STATE  pAvcState,
-        PCODECHAL_ENCODER           pEncoder);
-
-    MOS_STATUS(* pfnInitKernelStateWP) (
-        PCODECHAL_ENCODE_AVC_STATE  pAvcState,
-        PCODECHAL_ENCODER           pEncoder);
-
-    MOS_STATUS(*pfnInitKernelStateBrc) (
-        PCODECHAL_ENCODE_AVC_STATE  pAvcState,
-        PCODECHAL_ENCODER           pEncoder);
-
-    MOS_STATUS(*pfnInitKernelStatePreProc) (
-        PCODECHAL_ENCODE_AVC_STATE  pAvcState,
-        PCODECHAL_ENCODER           pEncoder);
-
-    MOS_STATUS(* pfnInitKernelStateSFD) (
-        PCODECHAL_ENCODE_AVC_STATE  pAvcState,
-        PCODECHAL_ENCODER           pEncoder);
-
-    MOS_STATUS(*pfnGetMbEncKernelStateIdx) (
-        PCODECHAL_ENCODE_ID_OFFSET_PARAMS   pParams,
-        uint32_t*                           pdwKernelOffset);
-
-    MOS_STATUS (* pfnSetCurbeAvcMbEnc) (
-        PCODECHAL_ENCODE_AVC_STATE              pAvcState,
-        PCODECHAL_ENCODER                       pEncoder,
-        PCODECHAL_ENCODE_AVC_MBENC_CURBE_PARAMS pParams);
-
-    MOS_STATUS (* pfnSetCurbeAvcWP) (
-        PCODECHAL_ENCODE_AVC_STATE           pAvcState,
-        PCODECHAL_ENCODE_AVC_WP_CURBE_PARAMS pParams);
-
-    MOS_STATUS(*pfnSetCurbeAvcPreProc) (
-        PCODECHAL_ENCODE_AVC_STATE                      pAvcState,
-        PCODECHAL_ENCODER                               pEncoder,
-        PCODECHAL_ENCODE_AVC_PREPROC_CURBE_PARAMS       pParams);
-
-    MOS_STATUS (* pfnSetCurbeAvcBrcInitReset) (
-        PCODECHAL_ENCODE_AVC_STATE                          pAvcState,
-        PCODECHAL_ENCODER                                   pEncoder,
-        PCODECHAL_ENCODE_AVC_BRC_INIT_RESET_CURBE_PARAMS    pParams);
-
-    MOS_STATUS (* pfnSetCurbeAvcFrameBrcUpdate) (
-        PCODECHAL_ENCODE_AVC_STATE                      pAvcState,
-        PCODECHAL_ENCODER                               pEncoder,
-        PCODECHAL_ENCODE_AVC_BRC_UPDATE_CURBE_PARAMS    pParams);
-
-    MOS_STATUS (* pfnSetCurbeAvcMbBrcUpdate) (
-        PCODECHAL_ENCODE_AVC_STATE                      pAvcState,
-        PCODECHAL_ENCODER                               pEncoder,
-        PCODECHAL_ENCODE_AVC_BRC_UPDATE_CURBE_PARAMS    pParams);
-
-    MOS_STATUS(* pfnSetCurbeAvcBrcBlockCopy) (
-        PCODECHAL_ENCODE_AVC_STATE                          pAvcState,
-        PCODECHAL_ENCODE_AVC_BRC_BLOCK_COPY_CURBE_PARAMS    pParams);
-
-    MOS_STATUS (* pfnSetCurbeAvcSFD) (
-        PCODECHAL_ENCODE_AVC_STATE                      pAvcState,
-        PCODECHAL_ENCODER                               pEncoder,
-        PCODECHAL_ENCODE_AVC_SFD_CURBE_PARAMS           pParams);
-
-    MOS_STATUS(* pfnSendAvcMbEncSurfaces)(
-        CodechalHwInterface                        *pHwInterface,
-        PMOS_COMMAND_BUFFER                         pCmdBuffer,
-        PCODECHAL_ENCODE_AVC_MBENC_SURFACE_PARAMS   pParams);
-
-    MOS_STATUS(* pfnSendAvcWPSurfaces)(
-        CodechalHwInterface                    *pHwInterface,
-        PMOS_COMMAND_BUFFER                     pCmdBuffer,
-        PCODECHAL_ENCODE_AVC_WP_SURFACE_PARAMS  pParams);
-
-    MOS_STATUS(*pfnSendAvcPreProcSurfaces)(
-        CodechalHwInterface                        *pHwInterface,
-        PMOS_COMMAND_BUFFER                         pCmdBuffer,
-        PCODECHAL_ENCODE_AVC_PREPROC_SURFACE_PARAMS pParams);
-
-    MOS_STATUS(* pfnSendAvcBrcFrameUpdateSurfaces) (
-        CodechalHwInterface                            *pHwInterface,
-        PMOS_COMMAND_BUFFER                             pCmdBuffer,
-        PCODECHAL_ENCODE_AVC_BRC_UPDATE_SURFACE_PARAMS  pParams);
-
-    MOS_STATUS(* pfnSendAvcBrcMbUpdateSurfaces) (
-        CodechalHwInterface                            *pHwInterface,
-        PMOS_COMMAND_BUFFER                             pCmdBuffer,
-        PCODECHAL_ENCODE_AVC_BRC_UPDATE_SURFACE_PARAMS  pParams);
-
-    MOS_STATUS(* pfnSendAvcSFDSurfaces) (
-        CodechalHwInterface                        *pHwInterface,
-        PMOS_COMMAND_BUFFER                         pCmdBuffer,
-        PCODECHAL_ENCODE_AVC_SFD_SURFACE_PARAMS     pParams);
-
-    MOS_STATUS(* pfnSetupROISurface) (
-        PCODECHAL_ENCODE_AVC_STATE          pAvcState,
-        PCODECHAL_ENCODER                   pEncoder);
-
-    //VDENC
-    MOS_STATUS(*pfnVdencSetupROIStreamIn) (
-        PCODEC_AVC_ENCODE_PIC_PARAMS        pPicParams,
-        PCODECHAL_ENCODER                   pEncoder,
-        PMOS_RESOURCE                       presVdencStreamIn);
-
-
-    MOS_STATUS(*pfnVdencSetupDirtyROI) (
-        PCODECHAL_ENCODE_AVC_STATE          pAvcState,
-        PCODECHAL_ENCODER                   pEncoder,
-        PMOS_RESOURCE                       presVdencStreamIn);
-
-    MOS_STATUS(*pfnVdencSetDmemHuCBrcInitReset) (
-        PCODECHAL_ENCODE_AVC_STATE          pAvcState,
-        PCODECHAL_ENCODER                   pEncoder);
-
-    MOS_STATUS(*pfnVdencSetDmemHuCBrcUpdate) (
-        PCODECHAL_ENCODE_AVC_STATE          pAvcState,
-        PCODECHAL_ENCODER                   pEncoder);
-
-	MOS_STATUS(*pfnVdencLoadMvCost) (
-		PCODECHAL_ENCODE_AVC_STATE          pAvcState,
-		uint8_t                             QP);
-
-	MOS_STATUS(*pfnVdencLoadHmeMvCost) (
-		PCODECHAL_ENCODE_AVC_STATE          pAvcState,
-		uint8_t                             QP);
-
-    MOS_STATUS(*pfnVdencLoadHmeMvCostTable) (
-        PCODEC_AVC_ENCODE_SEQUENCE_PARAMS   pAvcSeqParams,
-        uint8_t                             HMEMVCostTable[8][42]);
-}
-;
      //!
-     //! \brief    Vertical MV component range based on LevelIdc
+     //! \brief    Vertical MV component range based on levelIdc
      //! \details  VDBOX private function to get vertical MV componet range
-     //! \param    [in]LevelIdc
+     //! \param    [in] levelIdc
      //!           AVC level
      //! \return   uint32_t
      //!           return the max vertical mv component base on input level
      //!
-     uint32_t CodecHalAvcEncode_GetMaxVmvR(uint8_t LevelIdc);
+     uint32_t CodecHalAvcEncode_GetMaxVmvR(uint8_t levelIdc);
 
      //!
-     //! \brief    Get MV component range based on LevelIdc
+     //! \brief    Get MV component range based on levelIdc
      //! \details  VDBOX private function to get MV componet range
-     //! \param    [in]LevelIdc
+     //! \param    [in] levelIdc
      //!           AVC level
      //! \return   uint32_t
      //!           return the max mv component base on input level
      //!
-     uint32_t CodecHalAvcEncode_GetMaxMvLen(uint8_t LevelIdc);
+     uint32_t CodecHalAvcEncode_GetMaxMvLen(uint8_t levelIdc);
 
      //!
      //! \brief    Get the filed parity: Top filed or Bottom filed
      //! \details  Client facing function to get the filed parity: Top filed or Bottom filed
-     //! \param    [in] pParams
+     //! \param    [in] params
      //!           PCODEC_AVC_ENCODE_SLICE_PARAMS pSlcParams
      //! \param    [list] list
      //!           forword or backword reference
@@ -2005,117 +1231,93 @@ struct _CODECHAL_ENCODE_AVC_STATE
      //!           Bottom field or Top field
      //!
      bool CodecHalAvcEncode_GetFieldParity(
-        PCODEC_AVC_ENCODE_SLICE_PARAMS      pParams,
+        PCODEC_AVC_ENCODE_SLICE_PARAMS      params,
         uint32_t                            list,
         uint32_t                            index);
 
      //!
      //! \brief    Build slices with header insertion
-     //! \param    [in] pHwInterface
+     //! \param    [in] hwInterface
      //!           HW Encoder interface pointer
-     //! \param    [in] pCmdBuffer
+     //! \param    [in] cmdBuffer
      //!           command buffer
-     //! \param    [in] pParams
+     //! \param    [in] params
      //!           VDBOX AVC slice state params
      //! \return   MOS_STATUS
      //!           MOS_STATUS_SUCCESS if success, else fail reason
      //!
      MOS_STATUS CodecHalAvcEncode_SendSlice(
-        CodechalHwInterface            *pHwInterface,
-        PMOS_COMMAND_BUFFER             pCmdBuffer,
-        PMHW_VDBOX_AVC_SLICE_STATE      pParams);
+        CodechalHwInterface            *hwInterface,
+        PMOS_COMMAND_BUFFER             cmdBuffer,
+        PMHW_VDBOX_AVC_SLICE_STATE      params);
 
      //!
      //! \brief    Get profile level max frame size
-     //! \param    [in] pSeqParams
+     //! \param    [in] seqParams
      //!           Encoder Sequence params
-     //! \param    [in] pEncoder
+     //! \param    [in] encoder
      //!           Encoder structure
-     //! \param    [in] pdwProfileLevelMaxFrame
+     //! \param    [in] profileLevelMaxFrame
      //!           Profile Level Max Frame
      //! \return   MOS_STATUS
      //!           MOS_STATUS_SUCCESS if success, else fail reason
      //!
      MOS_STATUS CodecHalAvcEncode_GetProfileLevelMaxFrameSize(
-        PCODEC_AVC_ENCODE_SEQUENCE_PARAMS   pSeqParams,
-        CodechalEncoderState*               pEncoder,
-        uint32_t*                           pdwProfileLevelMaxFrame);
+        PCODEC_AVC_ENCODE_SEQUENCE_PARAMS   seqParams,
+        CodechalEncoderState*               encoder,
+        uint32_t*                           profileLevelMaxFrame);
 
-     //!
-     //! \brief    Set picture structure
-     //! \param    [in] pAvcState
-     //!           Encoder AVC State
-     //! \param    [in] pEncoder
-     //!           Encoder structure
-     //! \return   MOS_STATUS
-     //!           MOS_STATUS_SUCCESS if success, else fail reason
-     //!
-     MOS_STATUS CodecHalAvcEncode_SetPictureStructs(
-        PCODECHAL_ENCODE_AVC_STATE  pAvcState,
-        PCODECHAL_ENCODER           pEncoder);
-
-     //!
      //! \brief    Get the max number of allowed slice
-     //! \param    [in] ProfileIdc
+     //! \param    [in] profileIdc
      //!           AVC profile idc
-     //! \param    [in] LevelIdc
+     //! \param    [in] levelIdc
      //!           AVC level idc
-     //! \param    [in] uiFramesPer100Sec
-     //!           uiFrame Per 100Sec
+     //! \param    [in] framesPer100Sec
+     //!           frame Per 100Sec
      //! \return   uint16_t
      //!           return uiMaxAllowedNumSlices
      //!
      uint16_t CodecHalAvcEncode_GetMaxNumSlicesAllowed(
-        CODECHAL_AVC_PROFILE_IDC ProfileIdc,
-        CODECHAL_AVC_LEVEL_IDC   LevelIdc,
-        uint32_t                 uiFramesPer100Sec);
+        CODEC_AVC_PROFILE_IDC profileIdc,
+        CODEC_AVC_LEVEL_IDC   levelIdc,
+        uint32_t                 framesPer100Sec);
 
      //!
      //! \brief    Use to pack picture header related params
-     //! \param    [in] pParams
+     //! \param    [in] params
      //!           picture header pack params
      //! \return   MOS_STATUS
      //!           MOS_STATUS_SUCCESS if success, else fail reason
      //!
      MOS_STATUS CodecHalAvcEncode_PackPictureHeader(
-        PCODECHAL_ENCODE_AVC_PACK_PIC_HEADER_PARAMS    pParams);
+        PCODECHAL_ENCODE_AVC_PACK_PIC_HEADER_PARAMS    params);
 
      //!
      //! \brief    Use to pack slice header related params
-     //! \param    [in] pParams
+     //! \param    [in] params
      //!           slice header pack params
      //! \return   MOS_STATUS
      //!           MOS_STATUS_SUCCESS if success, else fail reason
      //!
      MOS_STATUS CodecHalAvcEncode_PackSliceHeader(
-        PCODECHAL_ENCODE_AVC_PACK_SLC_HEADER_PARAMS    pParams);
+        PCODECHAL_ENCODE_AVC_PACK_SLC_HEADER_PARAMS    params);
 
      //!
      //! \brief    Use to get picture num of slice header to be packed
-     //! \param    [in] pParams
+     //! \param    [in] params
      //!           pack slice header pack params
-     //! \param    [in] List
+     //! \param    [in] list
      //!           forword or backword reference
      //! \return   void
      //!
      static void CodecHal_PackSliceHeader_GetPicNum (
-        PCODECHAL_ENCODE_AVC_PACK_SLC_HEADER_PARAMS     pParams,
-        uint8_t                                         List);
+        PCODECHAL_ENCODE_AVC_PACK_SLC_HEADER_PARAMS     params,
+        uint8_t                                         list);
 
-     //!
-     //! \brief    Allocate resource for encoder
-     //! \param    [in] pAvcState
-     //!           AVC Encoder State
-     //! \param    [in] pEncoder
-     //!           Encoder structure
-     //! \return   MOS_STATUS
-     //!           MOS_STATUS_SUCCESS if success, else fail reason
-     //!
-     MOS_STATUS CodecHalAvcEncode_AllocateResourcesMbBrc (
-        PCODECHAL_ENCODE_AVC_STATE  pAvcState,
-        PCODECHAL_ENCODER           pEncoder);
-
-
+//!
+//! \class    CodechalEncodeAvcBase
+//! \brief    CodechalE encode Avc base
+//!
 class CodechalEncodeAvcBase : public CodechalEncoderState
 {
 public:
@@ -2196,7 +1398,6 @@ public:
     virtual MOS_STATUS SendMeSurfaces(
         PMOS_COMMAND_BUFFER         cmdBuffer,
         MeSurfaceParams* params) = 0;
-
     //!
     //! \brief    AVC State Initialization.
     //!           
@@ -2240,7 +1441,7 @@ public:
     //!
     //! \brief    Run Encode ME kernel
     //!
-    //! \param    [in]brcBuffers
+    //! \param    [in] brcBuffers
     //!           Pointer to the EncodeBrcBuffers
     //! \param    [in] hmeLevel
     //!           Hme level
@@ -2339,20 +1540,35 @@ public:
     //!
     virtual void UpdateSSDSliceCount();
 
+    //!
+    //! \brief      Store number passes
+    //! 
+    //! \param      [in] encodeStatusBuf
+    //!             Encode status buffer
+    //! \param      [in] miInterface
+    //!             Mi interface
+    //! \param      [in] cmdBuffer
+    //!             Command buffer
+    //! \param      [in] currPass
+    //!             Curr pass
+    //!
+    //! \return     MOS_STATUS
+    //!             MOS_STATUS_SUCCESS if success, else fail reason
+    //!
     MOS_STATUS StoreNumPasses(
-        EncodeStatusBuffer  *pEncodeStatusBuf,
-        MhwMiInterface *               pMiInterface,
-        PMOS_COMMAND_BUFFER            pCmdBuffer,
-        uint32_t                       dwCurrPass);
+        EncodeStatusBuffer             *encodeStatusBuf,
+        MhwMiInterface                 *miInterface,
+        PMOS_COMMAND_BUFFER            cmdBuffer,
+        uint32_t                       currPass);
 
 #if USE_CODECHAL_DEBUG_TOOL
     MOS_STATUS DumpSeqParams(
         PCODEC_AVC_ENCODE_SEQUENCE_PARAMS seqParams,
-        PCODECHAL_AVC_IQ_MATRIX_PARAMS    matrixParams);
+        PCODEC_AVC_IQ_MATRIX_PARAMS    matrixParams);
 
     MOS_STATUS DumpPicParams(
         PCODEC_AVC_ENCODE_PIC_PARAMS   picParams,
-        PCODECHAL_AVC_IQ_MATRIX_PARAMS matrixParams);
+        PCODEC_AVC_IQ_MATRIX_PARAMS matrixParams);
 
     MOS_STATUS DumpFeiPicParams(
         CodecEncodeAvcFeiPicParams *feiPicParams);
@@ -2445,8 +1661,8 @@ public:
     PMHW_STATE_HEAP_INTERFACE                   m_origStateHeapInterface    = nullptr;    //!< StateHeap Interface
 
     // Parameters passed by application
-    PCODEC_AVC_ENCODE_PIC_PARAMS                m_avcPicParams[CODECHAL_AVC_MAX_PPS_NUM];    //!< Pointer to array of picture parameter, could be removed
-    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS           m_avcSeqParams[CODECHAL_AVC_MAX_SPS_NUM];    //!< Pointer to array of sequence parameter, could be removed
+    PCODEC_AVC_ENCODE_PIC_PARAMS                m_avcPicParams[CODEC_AVC_MAX_PPS_NUM];    //!< Pointer to array of picture parameter, could be removed
+    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS           m_avcSeqParams[CODEC_AVC_MAX_SPS_NUM];    //!< Pointer to array of sequence parameter, could be removed
     PCODEC_AVC_ENCODE_PIC_PARAMS                m_avcPicParam           = nullptr;  //!< Pointer to AVC picture parameter
     PCODEC_AVC_ENCODE_SEQUENCE_PARAMS           m_avcSeqParam           = nullptr;  //!< Pointer to AVC sequence parameter
     PCODECHAL_ENCODE_AVC_QUALITY_CTRL_PARAMS    m_avcQCParams           = nullptr;  //!< Pointer to video quality control parameter
@@ -2454,13 +1670,13 @@ public:
     PCODECHAL_ENCODE_AVC_VUI_PARAMS             m_avcVuiParams          = nullptr;  //!< Pointer to AVC Uvi parameter
     PCODEC_AVC_ENCODE_SLICE_PARAMS              m_avcSliceParams        = nullptr;  //!< Pointer to AVC slice parameter
     CodecEncodeAvcFeiPicParams                  *m_avcFeiPicParams       = nullptr;  //!< Pointer to FEI picture parameter
-    PCODECHAL_AVC_IQ_MATRIX_PARAMS              m_avcIQMatrixParams     = nullptr;  //!< Pointer to IQMaxtrix parameter
+    PCODEC_AVC_IQ_MATRIX_PARAMS              m_avcIQMatrixParams     = nullptr;  //!< Pointer to IQMaxtrix parameter
     PCODEC_AVC_ENCODE_IQ_WEIGTHSCALE_LISTS      m_avcIQWeightScaleLists = nullptr;  //!< Pointer to IQWidght ScaleLists
     CODEC_AVC_ENCODE_USER_FLAGS                 m_userFlags;                        //!< Encoder user flag settings
 
     CODEC_PIC_ID                                m_picIdx[CODEC_AVC_MAX_NUM_REF_FRAME];              //!< Picture index
-    PCODEC_REF_LIST                             m_refList[CODECHAL_AVC_NUM_UNCOMPRESSED_SURFACE];   //!< Pointer to reference list
-    CODECHAL_AVC_FRAME_STORE_ID                 m_avcFrameStoreID[CODEC_AVC_MAX_NUM_REF_FRAME];     //!< Refer to CODECHAL_AVC_FRAME_STORE_ID
+    PCODEC_REF_LIST                             m_refList[CODEC_AVC_NUM_UNCOMPRESSED_SURFACE];   //!< Pointer to reference list
+    CODEC_AVC_FRAME_STORE_ID                 m_avcFrameStoreID[CODEC_AVC_MAX_NUM_REF_FRAME];     //!< Refer to CODEC_AVC_FRAME_STORE_ID
     CODECHAL_ENCODE_AVC_NAL_UNIT_TYPE           m_nalUnitType;                      //!< Nal unit type
     PCODECHAL_NAL_UNIT_PARAMS                   *m_nalUnitParams    = nullptr;      //!< Pointers to NAL unit parameters array
     uint16_t                                    m_sliceHeight       = 0;            //!< Slice height
@@ -2554,12 +1770,20 @@ protected:
     MOS_STATUS DestroyAvcPar();
 
     //!
-    //! \brief    Dump PAR file
+    //! \brief    Dump sequence PAR file
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS DumpParFile() { return MOS_STATUS_SUCCESS; }
+    virtual MOS_STATUS DumpSeqParFile() { return MOS_STATUS_SUCCESS; }
+
+    //!
+    //! \brief    Dump frame PAR file
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS DumpFrameParFile() { return MOS_STATUS_SUCCESS; }
 
     //!
     //! \brief    Populate const parameters
@@ -2621,6 +1845,8 @@ protected:
     //!           16x ME enabled flag
     //! \param    [in] is32xMeEnabled
     //!           32x ME enabled flag
+    //! \param    [in] meMethod
+    //!           ME method
     //! \param    [in] *cmd
     //!           pointer to command
     //!
@@ -2628,9 +1854,10 @@ protected:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS PopulateHmeParam(
-        bool is16xMeEnabled,
-        bool is32xMeEnabled,
-        void *cmd) { return MOS_STATUS_SUCCESS; }
+        bool    is16xMeEnabled,
+        bool    is32xMeEnabled,
+        uint8_t meMethod,
+        void    *cmd) { return MOS_STATUS_SUCCESS; }
 
     //!
     //! \brief    Set MHW_VDBOX_AVC_IMG_STATE parameter
@@ -2689,5 +1916,14 @@ protected:
     EncodeAvcPar *avcPar = nullptr;            //!< AVC PAR parameters
 #endif
 
+    //!
+    //! \brief    Set frame store Id for avc codec.
+    //! \details
+    //! \return   frameIdx
+    //!           [in] frame index
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS SetFrameStoreIds(uint8_t frameIdx);
 };
 #endif // __CODECHAL_ENCODE_AVC_BASE_H__

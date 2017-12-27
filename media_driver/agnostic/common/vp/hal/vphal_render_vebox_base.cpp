@@ -300,6 +300,31 @@ MOS_STATUS VPHAL_VEBOX_STATE::Initialize(
     // Vebox Comp Bypass is on by default
     pVeboxState->dwCompBypassMode = VPHAL_COMP_BYPASS_ENABLED;
 
+    // Read user feature key to get the Composition Bypass mode
+    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+    UserFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
+
+    // Vebox Comp Bypass is on by default
+    UserFeatureData.u32Data = VPHAL_COMP_BYPASS_ENABLED;
+
+    MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __VPHAL_BYPASS_COMPOSITION_ID,
+        &UserFeatureData));
+    pVeboxState->dwCompBypassMode = UserFeatureData.u32Data;
+
+    if (MEDIA_IS_SKU(pVeboxState->m_pSkuTable, FtrSFCPipe) &&
+        m_sfcPipeState)
+    {
+        // Read user feature key to Disable SFC
+        MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+        MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __VPHAL_VEBOX_DISABLE_SFC_ID,
+            &UserFeatureData));
+        m_sfcPipeState->SetDisable(UserFeatureData.bData ? true : false);
+    }
+
     pVeboxState->bEnableMMC = 0;
     pVeboxState->bDisableTemporalDenoiseFilter = 0;
     pVeboxState->bDisableTemporalDenoiseFilterUserKey = 0;
@@ -1495,8 +1520,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxUpdateVeboxStates(
         pVeboxState->pKernelParamTable[KERNEL_UPDATEDNSTATE].Thread_Count,
         pRenderData->iCurbeLength,
         pRenderData->iInlineLength,
-        nullptr,
-        false));
+        nullptr));
 
     //----------------------------------
     // Load DN update kernel to GSH
@@ -2721,9 +2745,9 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderMode2(
     // For CP HM which requires to use render engine for copy and
     // update Vebox heap, speculative copy has already been done in previous
     // blt call to increase the Vebox & Render engine parallelism.
-    // For lite mode, CPU can lock & update the resource quickly here because
+    // For LM, CPU can lock & update the resource quickly here because
     // previous blt's Vebox workload should be already done. 
-    // Thus, here we do the copy & update only for lite mode.
+    // Thus, here we do the copy & update only for LM.
     if (!pOsInterface->osCpInterface->IsHMEnabled())
     {
         // Setup, Copy and Update VEBOX State

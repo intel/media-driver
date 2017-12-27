@@ -56,7 +56,17 @@ MOS_STATUS CodechalDebugConfigMgr::ParseConfig()
 
     if (!configStream.good())
     {
-        CODECHAL_DEBUG_VERBOSEMESSAGE("CodecDbgSetting.cfg is not valid");
+        CODECHAL_DEBUG_VERBOSEMESSAGE("CodecDbgSetting.cfg is not valid, we generate a template for your reference");
+        MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_CODECHAL_DEBUG_CFG_GENERATION_ID,
+            &userFeatureData);
+        if (userFeatureData.i32Data)
+        {
+            GenerateDefaultConfig();
+        }
         return MOS_STATUS_SUCCESS;
     }
 
@@ -177,6 +187,128 @@ MOS_STATUS CodechalDebugConfigMgr::ParseConfig()
     }
 
     return MOS_STATUS_SUCCESS;
+}
+
+void CodechalDebugConfigMgr::GenerateDefaultConfig()
+{
+    std::string   configFilePath = m_outputFolderPath + "CodecDbgSetting.cfg";
+    std::ofstream ofs(configFilePath);
+    ofs << "###################################################################" << std::endl;
+    ofs << "## CodecDbgSettings.cfg" << std::endl;
+    ofs << "## - White space should be agnostic." << std::endl;
+    ofs << "## - '#' as first non-white space char denotes line as comment" << std::endl;
+    ofs << "## - '@frame ALL' MUST be present as the first directive, even if " << std::endl;
+    ofs << "##   nothing is dumped for every frame." << std::endl;
+    ofs << "###################################################################" << std::endl;
+    ofs << std::endl;
+
+    ofs << "###################################################################" << std::endl;
+    ofs << "## key words defined under @mode ALL works for both encode & decode" << std::endl;
+    ofs << "###################################################################" << std::endl;
+    ofs << std::endl;
+    ofs << "@mode ALL" << std::endl;
+    ofs << "@Frame ALL" << std::endl;
+    ofs << std::endl;
+
+    ofs << "#" << CodechalDbgAttr::attrPicParams <<":0"<< std::endl;
+    ofs << "#" << CodechalDbgAttr::attrSlcParams << ":0" << std::endl;
+    ofs << "#" << CodechalDbgAttr::attrIqParams << ":0" << std::endl;
+    ofs << "#" << CodechalDbgAttr::attrBitstream << ":0" << std::endl;
+    ofs << "#" << CodechalDbgAttr::attrHucRegions << ":0" << std::endl;
+    ofs << "#" << CodechalDbgAttr::attrHuCDmem << ":0" << std::endl;
+    ofs << "#" << CodechalDbgAttr::attrCmdBufferMfx << ":0" << std::endl;
+    ofs << "#" << CodechalDbgAttr::attr2ndLvlBatchMfx << ":0" << std::endl;
+    ofs << "#" << CodechalDbgAttr::attrHuffmanTbl << ":0" << std::endl;
+    ofs << "#" << CodechalDbgAttr::attrScanParams << ":0" << std::endl;
+    ofs << "#" << CodechalDbgAttr::attrDriverUltDump << ":0" << std::endl;
+    ofs << "#" << CodechalDbgAttr::attrDumpBufferInBinary << ":0" << std::endl;
+    ofs << "#" << CodechalDbgAttr::attrDumpToThreadFolder << ":0" << std::endl;
+    ofs << "#" << CodechalDbgAttr::attrDumpCmdBufInBinary << ":0" << std::endl;
+    ofs << "#" << CodechalDbgAttr::attrStatusReport << ":0" << std::endl;
+    ofs << std::endl;
+
+    ofs << "##" << CodechalDbgAttr::attrStreamOut << ":0" << std::endl;
+    ofs << "##" << CodechalDbgAttr::attrStreamIn << ":0" << std::endl;
+    ofs << "##" << CodechalDbgAttr::attrResidualDifference << ":0" << std::endl;
+    ofs << "##" << CodechalDbgAttr::attrDeblocking << ":0" << std::endl;
+    ofs << "##" << CodechalDbgAttr::attrMvData << ":0" << std::endl;
+    ofs << "##" << CodechalDbgAttr::attrSfcOutputSurface << ":0" << std::endl;
+    ofs << "##" << CodechalDbgAttr::attrReferenceSurfaces << ":0" << std::endl;
+    ofs << "##" << CodechalDbgAttr::attrEncodeRawInputSurface << ":0" << std::endl;
+    ofs << "##" << CodechalDbgAttr::attrReconstructedSurface << ":0" << std::endl;
+    ofs << "##" << CodechalDbgAttr::attrPakInput << ":0" << std::endl;
+    ofs << "##" << CodechalDbgAttr::attrPakOutput << ":0" << std::endl;
+    ofs << "##" << CodechalDbgAttr::attrUpsamlingInput << ":0" << std::endl;
+    ofs << "##" << CodechalDbgAttr::attrResidualSurface << ":0" << std::endl;
+    ofs << "##" << CodechalDbgAttr::attrStCoeff << ":0" << std::endl;
+    ofs << "##" << CodechalDbgAttr::attrCoeffPredCs << ":0" << std::endl;
+    ofs << "##" << CodechalDbgAttr::attrMbRecord << ":0" << std::endl;
+    ofs << "##" << CodechalDbgAttr::attrPakObjStreamout << ":0" << std::endl;
+    ofs << "##" << CodechalDbgAttr::attrOverwriteCommands << ":0" << std::endl;
+    ofs << "##" << CodechalDbgAttr::attrForceCmdDumpLvl << ":0" << std::endl;
+    ofs << "##" << CodechalDbgAttr::attrForceCurbeDumpLvl << ":0" << std::endl;
+    ofs << "##" << CodechalDbgAttr::attrFrameState << ":0" << std::endl;
+    ofs << "##" << CodechalDbgAttr::attrImageState << ":0" << std::endl;
+    ofs << "##" << CodechalDbgAttr::attrSliceSizeStreamout << ":0" << std::endl;
+    ofs << "##" << CodechalDbgAttr::attrCoeffProb << ":0" << std::endl;
+    // MD5 attributes
+    ofs << "##" << CodechalDbgAttr::attrMD5HashEnable << ":0" << std::endl;
+    ofs << "##" << CodechalDbgAttr::attrMD5FlushInterval << ":0" << std::endl;
+    ofs << "##" << CodechalDbgAttr::attrMD5PicWidth << ":0" << std::endl;
+    ofs << "##" << CodechalDbgAttr::attrMD5PicHeight << ":0" << std::endl;
+    ofs << std::endl;
+
+    ofs << "###################################################################" << std::endl;
+    ofs << "## key words defined under @mode decode works for decode only" << std::endl;
+    ofs << "###################################################################" << std::endl;
+    ofs << std::endl;
+    ofs << "#@mode decode" << std::endl;
+    ofs << "#@Frame ALL" << std::endl;
+    ofs << std::endl;
+
+    ofs << "#" << CodechalDbgAttr::attrMvcExtPicParams << ":0" << std::endl;
+    ofs << "#" << CodechalDbgAttr::attrSegmentParams << ":0" << std::endl;
+    ofs << "#" << CodechalDbgAttr::attrMbParams << ":0" << std::endl;
+    ofs << "#" << CodechalDbgAttr::attrVc1Bitplane << ":0" << std::endl;
+    ofs << "#" << CodechalDbgAttr::attrCoefProb << ":0" << std::endl;
+    ofs << "#" << CodechalDbgAttr::attrSegId << ":0" << std::endl;
+    ofs << "#" << CodechalDbgAttr::attrDecodeOutputSurface << ":0" << std::endl;
+    ofs << "#" << CodechalDbgAttr::attrDecodeProcParams << ":0" << std::endl;
+    ofs << std::endl;
+
+    ofs << "###############################################################" << std::endl;
+    ofs << "## key words defined under @mode encode works for encode only" << std::endl;
+    ofs << "###############################################################" << std::endl;
+    ofs << std::endl;
+    ofs << "#@mode encode" << std::endl;
+    ofs << "#@Frame ALL" << std::endl;
+    ofs << std::endl;
+
+    ofs << "#" << CodechalDbgAttr::attrFeiPicParams << ":0" << std::endl;
+    ofs << "#" << CodechalDbgAttr::attrSeqParams << ":0" << std::endl;
+    ofs << "#" << CodechalDbgAttr::attrVuiParams << ":0" << std::endl;
+    ofs << "#" << CodechalDbgAttr::attrDumpEncodePar << ":0" << std::endl;
+    ofs << "#" << CodechalDbgAttr::attrVdencOutput << ":0" << std::endl;
+    ofs << std::endl;
+
+    ofs << "###############################################################" << std::endl;
+    ofs << "## key words defined for kernel" << std::endl;
+    ofs << "###############################################################" << std::endl;
+    // generate kernel related config
+    CodechalDbgKernel::KernelStateMap::kernelMapType &kernelMap = CodechalDbgKernel::KernelStateMap::GetKernelStateMap();
+    for (auto &it : kernelMap)
+    {
+        ofs << "#@" << it.second << " ALL" << std::endl;
+    }
+    ofs << std::endl;
+
+    ofs << "### Encode plug-in ###" << std::endl;
+    ofs << "#@force" << std::endl;
+    ofs << "#ForceCmpDumpLvl:3" << std::endl;
+    ofs << "#@OverwriteCurbe" << std::endl;
+    ofs << "#ForceCurbeDumpLvl:3" << std::endl;
+
+    ofs.close();
 }
 
 uint32_t CodechalDebugConfigMgr::GetFrameConfig(uint32_t frameIdx)

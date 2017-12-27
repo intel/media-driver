@@ -35,7 +35,10 @@
 #define CODEC_ENCODE_MPEG2_VBV_BUFFER_SIZE_UNITS             (16 * 1024) //!< 16 K bits
 #define CODEC_ENCODE_MPEG2_MAX_NAL_TYPE                      0x1f
 
-
+//!
+//! \enum     CodecEncodeMpeg2ExtensionStartCode
+//! \brief    Codec encode MPEG2 extension start code
+//!
 enum CodecEncodeMpeg2ExtensionStartCode
 {
     // 0x00 - Reserved
@@ -54,7 +57,7 @@ enum CodecEncodeMpeg2ExtensionStartCode
 
 //!
 //! \struct CodecEncodeMpeg2SequenceParams
-//! \brief MPEG2 Sequence Parameter Set
+//! \brief  MPEG2 Sequence Parameter Set
 //! 
 struct CodecEncodeMpeg2SequenceParams
 {
@@ -100,7 +103,7 @@ struct CodecEncodeMpeg2SequenceParams
 
 //!
 //! \struct CodecEncodeMpeg2PictureParams
-//! \brief MPEG2 Picture Parameter Set
+//! \brief  MPEG2 Picture Parameter Set
 //! 
 struct CodecEncodeMpeg2PictureParams
 {
@@ -171,7 +174,7 @@ struct CodecEncodeMpeg2PictureParams
 
 //!
 //! \struct CodecEncodeMpeg2SliceParmas
-//! \brief MPEG2 Slice Parameters
+//! \brief  MPEG2 Slice Parameters
 //! 
 struct CodecEncodeMpeg2SliceParmas
 {
@@ -184,7 +187,7 @@ struct CodecEncodeMpeg2SliceParmas
 
 //!
 //! \struct CodecEncodeMpeg2VuiParams
-//! \brief MPEG2 VUI Parameters
+//! \brief  MPEG2 VUI Parameters
 //!
 struct CodecEncodeMpeg2VuiParams
 {
@@ -204,7 +207,7 @@ struct CodecEncodeMpeg2VuiParams
 
 //!
 //! \struct CodecEncodeMpeg2QmatixParams
-//! \brief MPEG2 QMATRIX Parameters
+//! \brief  MPEG2 QMATRIX Parameters
 //!
 struct CodecEncodeMpeg2QmatixParams
 {
@@ -214,9 +217,9 @@ struct CodecEncodeMpeg2QmatixParams
 
 //!
 //! \struct CodecEncodeMpeg2UserDataList
-//! \brief Linked List for MPEG-2 User Data
-//! User data may be provided in several pieces.
-//! So a linked list is implemented to keep track of them.
+//! \brief  Linked List for MPEG-2 User Data
+//!         User data may be provided in several pieces.
+//!         So a linked list is implemented to keep track of them.
 //!
 struct CodecEncodeMpeg2UserDataList
 {

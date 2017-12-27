@@ -31,6 +31,20 @@
 #include "renderhal_platform_interface.h"
 #include "mhw_state_heap_hwcmd_g8_X.h"
 
+union CM_HAL_MEMORY_OBJECT_CONTROL_G8
+{
+    struct
+    {
+        uint32_t Age          : 2;
+        uint32_t              : 1;
+        uint32_t TargetCache  : 2;
+        uint32_t CacheControl : 2;
+        uint32_t              : 25;
+    } Gen8;
+
+    uint32_t DwordValue;
+};
+
 MOS_STATUS CM_HAL_G8_X::SubmitCommands(
     PMHW_BATCH_BUFFER       pBatchBuffer,       
     int32_t                 iTaskId,           
@@ -106,13 +120,9 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
     // The flag is required for both Middle Batch Buffer(Thread Group) and Middle Thread preemptions.
     if (enableGpGpu)
     {
-        if ((pTaskParam->iPreemptionMode == THREAD_GROUP_MODE) ||
-            (pTaskParam->iPreemptionMode == MIDDLE_THREAD_MODE))
+        if (pTaskParam->SLMSize == 0 && pTaskParam->HasBarrier == false)
         {
-            if (pTaskParam->SLMSize == 0 && pTaskParam->HasBarrier == false)
-            {
-                pState->pRenderHal->pfnEnableGpgpuMiddleBatchBufferPreemption(pState->pRenderHal);
-            }
+            pState->pRenderHal->pfnEnableGpgpuMiddleBatchBufferPreemption(pState->pRenderHal);
         }
     }
 
@@ -206,8 +216,7 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
         iTmp,
         pState->pTaskParam->dwVfeCurbeSize,
         pState->pTaskParam->dwUrbEntrySize,
-        &pState->ScoreboardParams,
-        enableGpGpu);
+        &pState->ScoreboardParams);
 
     // Send VFE State
     CM_CHK_MOSSTATUS(pMhwRender->AddMediaVfeCmd(&CmdBuffer, 
@@ -868,6 +877,38 @@ MOS_STATUS CM_HAL_G8_X::UpdatePlatformInfoFromPower(
         CMPower.nEU       = (uint16_t)(platformInfo->numEUsPerSubSlice * platformInfo->numSubSlices);
 
         pState->pfnSetPowerOption(pState, &CMPower);
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CM_HAL_G8_X::GetExpectedGtSystemConfig(
+    PCM_EXPECTED_GT_SYSTEM_INFO pExpectedConfig)
+{
+    if (m_gengt == PLATFORM_INTEL_GT1)
+    {
+        pExpectedConfig->numSlices    = BDW_GT1_MAX_NUM_SLICES;
+        pExpectedConfig->numSubSlices = BDW_GT1_MAX_NUM_SUBSLICES;
+    }
+    else if( m_gengt == PLATFORM_INTEL_GT1_5 )
+    {
+        pExpectedConfig->numSlices    = BDW_GT1_5_MAX_NUM_SLICES;
+        pExpectedConfig->numSubSlices = BDW_GT1_5_MAX_NUM_SUBSLICES;
+    }
+    else if (m_gengt == PLATFORM_INTEL_GT2)
+    {
+        pExpectedConfig->numSlices    = BDW_GT2_MAX_NUM_SLICES;
+        pExpectedConfig->numSubSlices = BDW_GT2_MAX_NUM_SUBSLICES;
+    }
+    else if (m_gengt == PLATFORM_INTEL_GT3)
+    {
+        pExpectedConfig->numSlices    = BDW_GT3_MAX_NUM_SLICES;
+        pExpectedConfig->numSubSlices = BDW_GT3_MAX_NUM_SUBSLICES;
+    }
+    else
+    {
+        pExpectedConfig->numSlices    = 0;
+        pExpectedConfig->numSubSlices = 0;
     }
 
     return MOS_STATUS_SUCCESS;

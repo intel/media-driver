@@ -28,6 +28,28 @@
 #define MEDIADRIVER_AGNOSTIC_COMMON_CM_CMTHREADSPACERT_H_
 
 #include "cm_thread_space.h"
+#include "cm_hal.h"
+#include "cm_log.h"
+
+struct CM_THREAD_SPACE_UNIT 
+{
+    void *pKernel;
+    uint32_t threadId;
+    int32_t numEdges; //For Emulation mode
+    CM_COORDINATE scoreboardCoordinates;
+    uint8_t dependencyMask;
+    uint8_t reset; 
+    uint8_t scoreboardColor;
+    uint8_t sliceDestinationSelect;
+    uint8_t subSliceDestinationSelect;
+};
+
+enum CM_THREAD_SPACE_DIRTY_STATUS
+{
+    CM_THREAD_SPACE_CLEAN                 = 0,
+    CM_THREAD_SPACE_DEPENDENCY_MASK_DIRTY = 1,
+    CM_THREAD_SPACE_DATA_DIRTY            = 2
+};
 
 namespace CMRT_UMD
 {
@@ -223,7 +245,7 @@ private:
 
     CmThreadSpaceRT &operator=(const CmThreadSpaceRT &other);
 
-    PCM_THREAD_SPACE_DIRTY_STATUS m_pDirtyStatus;
+    CM_THREAD_SPACE_DIRTY_STATUS *m_pDirtyStatus;
 
     CM_HAL_WAVEFRONT26Z_DISPATCH_INFO m_Wavefront26ZDispatchInfo;
 

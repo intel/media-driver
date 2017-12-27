@@ -31,6 +31,7 @@
 #include "cm_gpucopy_kernel_g10.h" 
 #include "cm_gpuinit_kernel_g10.h"
 #include "renderhal_platform_interface.h"
+#include "mhw_render.h"
 
 // Gen10 Surface state tokenized commands - a SURFACE_STATE_G10 command and
 // a surface state command, either SURFACE_STATE_G10 or SURFACE_STATE_ADV_G10
@@ -72,15 +73,13 @@ MOS_STATUS CM_HAL_G10_X::SubmitCommands(
     int32_t                      iSyncOffset;
     int32_t                      iTmp;
     bool                         sip_enable = pRenderHal->bSIPKernel? true: false;
+	bool                         csr_enable = pRenderHal->bCSRKernel ? true : false;
     uint32_t                     i;
     RENDERHAL_GENERIC_PROLOG_PARAMS genericPrologParams;
     MOS_RESOURCE                 OsResource;
 
     MOS_ZeroMemory(&CmdBuffer, sizeof(MOS_COMMAND_BUFFER));
     MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
-
-    //get preemption mode
-    uint32_t preemptionMode = pState->pTaskParam->iPreemptionMode;
 
     // Get the task sync offset
     iSyncOffset     = pState->pfnGetTaskSyncLocation(iTaskId);
@@ -157,61 +156,49 @@ MOS_STATUS CM_HAL_G10_X::SubmitCommands(
         MHW_MI_LOAD_REGISTER_IMM_PARAMS loadRegImm;
         MOS_ZeroMemory(&loadRegImm, sizeof(MHW_MI_LOAD_REGISTER_IMM_PARAMS));
 
-        loadRegImm.dwRegister = MDF_CS_CHICKEN1_PREEMPTION_CONTROL_OFFSET;
+        loadRegImm.dwRegister = MHW_RENDER_ENGINE_PREEMPTION_CONTROL_OFFSET;
 
         // Same reg offset and value for gpgpu pipe and media pipe
         if (enableGpGpu)
         {
-            if (MEDIA_IS_SKU(pState->pSkuTable, FtrGpGpuMidThreadLevelPreempt)) {
-                switch (preemptionMode) {
-                case MIDDLE_THREAD_MODE:
-                    loadRegImm.dwData = MDF_CS_CHICKEN1_MID_THREAD_PREEMPT_VALUE;
-                    break;
-                case COMMAND_BUFFER_MODE:
-                    loadRegImm.dwData = MDF_CS_CHICKEN1_MID_BATCH_PREEMPT_VALUE;
-                    break;
-                case THREAD_GROUP_MODE:
-                    loadRegImm.dwData = MDF_CS_CHICKEN1_THREAD_GROUP_PREEMPT_VALUE;
-                    break;
-                default:
-                    printf("No such preemption mode\r\n");
-                    CM_CHK_MOSSTATUS(MOS_STATUS_INVALID_PARAMETER);
-                }
+            if (MEDIA_IS_SKU(pState->pSkuTable, FtrGpGpuMidThreadLevelPreempt))
+            {
+                loadRegImm.dwData = MHW_RENDER_ENGINE_MID_THREAD_PREEMPT_VALUE;
             }
             else if (MEDIA_IS_SKU(pState->pSkuTable, FtrGpGpuThreadGroupLevelPreempt))
             {
-                loadRegImm.dwData = MDF_CS_CHICKEN1_THREAD_GROUP_PREEMPT_VALUE;
+                loadRegImm.dwData = MHW_RENDER_ENGINE_THREAD_GROUP_PREEMPT_VALUE;
                 pState->pRenderHal->pfnEnableGpgpuMiddleBatchBufferPreemption(pState->pRenderHal);
             }
             else if (MEDIA_IS_SKU(pState->pSkuTable, FtrGpGpuMidBatchPreempt))
             {
-                loadRegImm.dwData = MDF_CS_CHICKEN1_MID_BATCH_PREEMPT_VALUE;
+                loadRegImm.dwData = MHW_RENDER_ENGINE_MID_BATCH_PREEMPT_VALUE;
                 pState->pRenderHal->pfnEnableGpgpuMiddleBatchBufferPreemption(pState->pRenderHal);
             }
             else
             {
-                // if hit this branch then platform does not support any media preemption in render engine. Still program the chicken bits to avoid GPU hang
-                loadRegImm.dwData = MDF_CS_CHICKEN1_MID_BATCH_PREEMPT_VALUE;
+                // if hit this branch then platform does not support any media preemption in render engine. Still program the register to avoid GPU hang
+                loadRegImm.dwData = MHW_RENDER_ENGINE_MID_BATCH_PREEMPT_VALUE;
             }
         }
         else
         {
             if (MEDIA_IS_SKU(pState->pSkuTable, FtrMediaMidThreadLevelPreempt))
             {
-                loadRegImm.dwData = MDF_CS_CHICKEN1_MID_THREAD_PREEMPT_VALUE;
+                loadRegImm.dwData = MHW_RENDER_ENGINE_MID_THREAD_PREEMPT_VALUE;
             }
             else if (MEDIA_IS_SKU(pState->pSkuTable, FtrMediaThreadGroupLevelPreempt))
             {
-                loadRegImm.dwData = MDF_CS_CHICKEN1_THREAD_GROUP_PREEMPT_VALUE;
+                loadRegImm.dwData = MHW_RENDER_ENGINE_THREAD_GROUP_PREEMPT_VALUE;
             }
             else if (MEDIA_IS_SKU(pState->pSkuTable, FtrMediaMidBatchPreempt))
             {
-                loadRegImm.dwData = MDF_CS_CHICKEN1_MID_BATCH_PREEMPT_VALUE;
+                loadRegImm.dwData = MHW_RENDER_ENGINE_MID_BATCH_PREEMPT_VALUE;
             }
             else
             {
-                // if hit this branch then platform does not support any media preemption in render engine. Still program the chicken bits to avoid GPU hang
-                loadRegImm.dwData = MDF_CS_CHICKEN1_MID_BATCH_PREEMPT_VALUE;
+                // if hit this branch then platform does not support any media preemption in render engine. Still program the register to avoid GPU hang
+                loadRegImm.dwData = MHW_RENDER_ENGINE_MID_BATCH_PREEMPT_VALUE;
             }
         }
         CM_CHK_MOSSTATUS(pMhwMiInterface->AddMiLoadRegisterImmCmd(&CmdBuffer, &loadRegImm));
@@ -226,11 +213,34 @@ MOS_STATUS CM_HAL_G10_X::SubmitCommands(
     // Send Surface States
     CM_CHK_MOSSTATUS(pRenderHal->pfnSendSurfaces(pRenderHal, &CmdBuffer));
 
-    if (sip_enable)
-    {
-        // Send SIP State
-        CM_CHK_MOSSTATUS(pRenderHal->pfnSendSipStateCmd(pRenderHal, &CmdBuffer));
-    }
+	if (enableGpGpu) {
+		if (csr_enable) {
+
+			// Send CS_STALL pipe control
+			//Insert a pipe control as synchronization
+			PipeCtlParams = g_cRenderHal_InitPipeControlParams;
+			PipeCtlParams.presDest = &pState->TsResource.OsResource;
+			PipeCtlParams.dwPostSyncOp = MHW_FLUSH_NOWRITE;
+			PipeCtlParams.dwFlushMode = MHW_FLUSH_WRITE_CACHE;
+			PipeCtlParams.bDisableCSStall = 0;
+			CM_CHK_MOSSTATUS(pMhwMiInterface->AddPipeControl(&CmdBuffer, nullptr, &PipeCtlParams));
+		}
+
+		if (sip_enable || csr_enable)
+		{
+			// Send SIP State
+			CM_CHK_MOSSTATUS(pRenderHal->pfnSendSipStateCmd(pRenderHal, &CmdBuffer));
+
+			CM_HRESULT2MOSSTATUS_AND_CHECK(pOsInterface->pfnRegisterResource(
+				pOsInterface,
+				&pState->CSRResource,
+				true,
+				true));
+
+			// Send csr base addr command
+			CM_CHK_MOSSTATUS(pMhwRender->AddGpgpuCsrBaseAddrCmd(&CmdBuffer, &pState->CSRResource));
+		}
+	}
 
     // Setup VFE State params. Each Renderer MUST call pfnSetVfeStateParams().
     // See comment in VpHal_HwSetVfeStateParams() for details.
@@ -256,8 +266,7 @@ MOS_STATUS CM_HAL_G10_X::SubmitCommands(
         iTmp,
         pState->pTaskParam->dwVfeCurbeSize,
         pState->pTaskParam->dwUrbEntrySize,
-        &pState->ScoreboardParams,
-        enableGpGpu);
+        &pState->ScoreboardParams);
 
     // Send VFE State
     CM_CHK_MOSSTATUS(pMhwRender->AddMediaVfeCmd(&CmdBuffer, 
@@ -1207,6 +1216,33 @@ MOS_STATUS CM_HAL_G10_X::GetSamplerParamInfoForSamplerType(
     if (sampler_param_ptr->SamplerType == MHW_SAMPLER_TYPE_CONV)
     {
         sampler_param.size = 2048;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CM_HAL_G10_X::GetExpectedGtSystemConfig(
+    PCM_EXPECTED_GT_SYSTEM_INFO pExpectedConfig)
+{
+    if (m_gengt == PLATFORM_INTEL_GT1)
+    {
+        pExpectedConfig->numSlices    = CNL_GT1_4X8_MAX_NUM_SLICES;
+        pExpectedConfig->numSubSlices = CNL_GT1_4X8_MAX_NUM_SUBSLICES;
+    }
+    else if (m_gengt == PLATFORM_INTEL_GT2)
+    {
+        pExpectedConfig->numSlices    = CNL_GT2_7X8_MAX_NUM_SLICES;
+        pExpectedConfig->numSubSlices = CNL_GT2_7X8_MAX_NUM_SUBSLICES;
+    }
+    else if (m_gengt == PLATFORM_INTEL_GT3)
+    {
+        pExpectedConfig->numSlices    = CNL_GT3_9X8_MAX_NUM_SLICES;
+        pExpectedConfig->numSubSlices = CNL_GT3_9_8MAX_NUM_SUBSLICES;
+    }
+    else
+    {
+        pExpectedConfig->numSlices    = 0;
+        pExpectedConfig->numSubSlices = 0;
     }
 
     return MOS_STATUS_SUCCESS;

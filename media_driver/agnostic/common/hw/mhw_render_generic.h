@@ -170,6 +170,7 @@ public:
         {
             cmd.DW10_11.InstructionBaseAddressModifyEnable   = true;
             cmd.DW15.InstructionBufferSizeModifyEnable       = true;
+            cmd.DW10_11.InstructionMemoryObjectControlState  = params->mocs4InstructionCache;
             resourceParams.presResource                      = params->presInstructionBuffer;
             resourceParams.dwOffset                          = 0;
             resourceParams.pdwCmd                            = cmd.DW10_11.Value;

@@ -80,13 +80,13 @@ VAStatus DdiEncodeHevcFei::EncodeInCodecHal(uint32_t numSlices)
 
     CodecEncodeHevcFeiPicParams *feiPicParams = (CodecEncodeHevcFeiPicParams *)(m_encodeCtx->pFeiPicParams);
 
-    if(CodecHalIsFeiEncode(m_encodeCtx->feiFunction))
+    if(CodecHalIsFeiEncode(m_encodeCtx->codecFunction))
     {
-        encodeParams.ExecCodecFunction = m_encodeCtx->feiFunction;
+        encodeParams.ExecCodecFunction = m_encodeCtx->codecFunction;
     }
     else
     {
-        CODEC_DDI_ASSERTMESSAGE("DDI:Failed in HEVC FEI Function check!");
+        DDI_ASSERTMESSAGE("DDI:Failed in HEVC FEI Function check!");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
@@ -121,14 +121,14 @@ VAStatus DdiEncodeHevcFei::EncodeInCodecHal(uint32_t numSlices)
     DdiMedia_MediaSurfaceToMosResource(rtTbl->pCurrentReconTarget, &(reconSurface.OsResource));
 
     // Bitstream surface
-    MOS_RESOURCE resBitstreamSurface;
-    MOS_ZeroMemory(&resBitstreamSurface, sizeof(resBitstreamSurface));
-    resBitstreamSurface        = m_encodeCtx->resBitstreamBuffer;  // in render picture
-    resBitstreamSurface.Format = Format_Buffer;
+    MOS_RESOURCE bitstreamSurface;
+    MOS_ZeroMemory(&bitstreamSurface, sizeof(bitstreamSurface));
+    bitstreamSurface        = m_encodeCtx->resBitstreamBuffer;  // in render picture
+    bitstreamSurface.Format = Format_Buffer;
 
     encodeParams.psRawSurface        = &rawSurface;
     encodeParams.psReconSurface      = &reconSurface;
-    encodeParams.presBitstreamBuffer = &resBitstreamSurface;
+    encodeParams.presBitstreamBuffer = &bitstreamSurface;
 
     MOS_SURFACE mbQpSurface;
     if(feiPicParams->bPerBlockQP)
@@ -185,7 +185,7 @@ VAStatus DdiEncodeHevcFei::EncodeInCodecHal(uint32_t numSlices)
     MOS_STATUS status = m_encodeCtx->pCodecHal->Execute(&encodeParams);
     if (MOS_STATUS_SUCCESS != status)
     {
-        CODEC_DDI_ASSERTMESSAGE("DDI:Failed in Codechal!");
+        DDI_ASSERTMESSAGE("DDI:Failed in Codechal!");
         return VA_STATUS_ERROR_ENCODING_ERROR;
     }
 
@@ -213,7 +213,7 @@ VAStatus DdiEncodeHevcFei::ResetAtFrameLevel()
 
     CodecEncodeHevcFeiPicParams *feiPicParams = (CodecEncodeHevcFeiPicParams *)(m_encodeCtx->pFeiPicParams);
 
-    m_encodeCtx->feiFunction              = CODECHAL_FUNCTION_FEI_ENC_PAK;
+    m_encodeCtx->codecFunction              = CODECHAL_FUNCTION_FEI_ENC_PAK;
     feiPicParams->NumMVPredictorsL0       = 0;     // number of MV Predictors L0 provided, max is 4
     feiPicParams->NumMVPredictorsL1       = 0;     // number of MV Predictors L1 provided, max is 2
     feiPicParams->SearchPath              = 0;     // search path, default is 0, 0 and 2 mean full search, 1 means diamond search
@@ -270,7 +270,6 @@ VAStatus DdiEncodeHevcFei::RenderPicture(VADriverContextP ctx, VAContextID conte
     DDI_CHK_NULL(mediaCtx, "Null mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
 
     DDI_CHK_NULL(m_encodeCtx, "Null m_encodeCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(m_encodeCtx->pCodecHal, "Null m_encodeCtx->pCodecHal", VA_STATUS_ERROR_INVALID_CONTEXT);
 
     for (int32_t i = 0; i < numBuffers; i++)
     {
@@ -357,13 +356,13 @@ VAStatus DdiEncodeHevcFei::ParseMiscParamFeiPic(void *data)
     DDI_CHK_NULL(feiPicParams, "nullptr feiPicParams", VA_STATUS_ERROR_INVALID_PARAMETER);
     VAEncMiscParameterFEIFrameControlHEVC *vaEncMiscParamFeiPic = (VAEncMiscParameterFEIFrameControlHEVC *)data;
 
-    m_encodeCtx->feiFunction     = CODECHAL_FUNCTION_INVALID;
+    m_encodeCtx->codecFunction     = CODECHAL_FUNCTION_INVALID;
     if(vaEncMiscParamFeiPic->function & VA_FEI_FUNCTION_ENC_PAK)
-        m_encodeCtx->feiFunction = CODECHAL_FUNCTION_FEI_ENC_PAK;
+        m_encodeCtx->codecFunction = CODECHAL_FUNCTION_FEI_ENC_PAK;
     if(vaEncMiscParamFeiPic->function == VA_FEI_FUNCTION_ENC)
-        m_encodeCtx->feiFunction = CODECHAL_FUNCTION_FEI_ENC;
+        m_encodeCtx->codecFunction = CODECHAL_FUNCTION_FEI_ENC;
     if(vaEncMiscParamFeiPic->function == VA_FEI_FUNCTION_PAK)
-        m_encodeCtx->feiFunction = CODECHAL_FUNCTION_FEI_PAK;
+        m_encodeCtx->codecFunction = CODECHAL_FUNCTION_FEI_PAK;
 
     feiPicParams->NumMVPredictorsL0       = vaEncMiscParamFeiPic->num_mv_predictors_l0;
     feiPicParams->NumMVPredictorsL1       = vaEncMiscParamFeiPic->num_mv_predictors_l1;
@@ -404,7 +403,7 @@ VAStatus DdiEncodeHevcFei::ParseMiscParamFeiPic(void *data)
     }
     else if((feiPicParams->NumMVPredictorsL0 !=0) || (feiPicParams->NumMVPredictorsL1 != 0))
     {
-        CODEC_DDI_ASSERTMESSAGE("feiPicParams->NumMVPredictorsL0 and NumMVPredictorsL1 should be set to 0 when feiPicParams->MVPredictorInput is false!");
+        DDI_ASSERTMESSAGE("feiPicParams->NumMVPredictorsL0 and NumMVPredictorsL1 should be set to 0 when feiPicParams->MVPredictorInput is false!");
         status = VA_STATUS_ERROR_INVALID_PARAMETER;
     }
     if(feiPicParams->bPerBlockQP)
@@ -421,12 +420,12 @@ VAStatus DdiEncodeHevcFei::ParseMiscParamFeiPic(void *data)
         mediaBuffer = DdiMedia_GetBufferFromVABufferID(m_encodeCtx->pMediaCtx, vaEncMiscParamFeiPic->ctb_cmd);
         DDI_CHK_NULL(mediaBuffer, "nullptr mediaBuffer", VA_STATUS_ERROR_INVALID_PARAMETER);
         DdiMedia_MediaBufferToMosResource(mediaBuffer, &(feiPicParams->resCTBCmd));
-        if(m_encodeCtx->feiFunction == CODECHAL_FUNCTION_FEI_ENC)
+        if(m_encodeCtx->codecFunction == CODECHAL_FUNCTION_FEI_ENC)
         {
-            RemoveFromEncStatusReportQueue(mediaBuffer, FEI_ENC_BUFFER_TYPE_CTB_CMD);
-            if( VA_STATUS_SUCCESS != AddToEncStatusReportQueue( (void *)(feiPicParams->resCTBCmd.bo), FEI_ENC_BUFFER_TYPE_CTB_CMD) )
+            RemoveFromEncStatusReportQueue(mediaBuffer, FEI_ENC_BUFFER_TYPE_MVDATA);
+            if( VA_STATUS_SUCCESS != AddToEncStatusReportQueue( (void *)(feiPicParams->resCTBCmd.bo), FEI_ENC_BUFFER_TYPE_MVDATA) )
             {
-                CODEC_DDI_ASSERTMESSAGE("feiPicParams->resCTBCmd is invalid for FEI ENC only");
+                DDI_ASSERTMESSAGE("feiPicParams->resCTBCmd is invalid for FEI ENC only");
                 status = VA_STATUS_ERROR_INVALID_PARAMETER;
             }
         }
@@ -435,18 +434,18 @@ VAStatus DdiEncodeHevcFei::ParseMiscParamFeiPic(void *data)
     {
         if(feiPicParams->bCTBCmdCuRecordEnable == false)
         {
-            CODEC_DDI_ASSERTMESSAGE("CTB cmd and CU record should be enabled or disabled together!");
+            DDI_ASSERTMESSAGE("CTB cmd and CU record should be enabled or disabled together!");
             status = VA_STATUS_ERROR_INVALID_PARAMETER;
         }
         mediaBuffer = DdiMedia_GetBufferFromVABufferID(m_encodeCtx->pMediaCtx, vaEncMiscParamFeiPic->cu_record);
         DDI_CHK_NULL(mediaBuffer, "nullptr mediaBuffer", VA_STATUS_ERROR_INVALID_PARAMETER);
         DdiMedia_MediaBufferToMosResource(mediaBuffer, &(feiPicParams->resCURecord));
-        if(m_encodeCtx->feiFunction == CODECHAL_FUNCTION_FEI_ENC)
+        if(m_encodeCtx->codecFunction == CODECHAL_FUNCTION_FEI_ENC)
         {
-            RemoveFromEncStatusReportQueue(mediaBuffer, FEI_ENC_BUFFER_TYPE_CU_RECORD);
-            if( VA_STATUS_SUCCESS != AddToEncStatusReportQueue((void *)(feiPicParams->resCURecord.bo), FEI_ENC_BUFFER_TYPE_CU_RECORD) )
+            RemoveFromEncStatusReportQueue(mediaBuffer, FEI_ENC_BUFFER_TYPE_MBCODE);
+            if( VA_STATUS_SUCCESS != AddToEncStatusReportQueue((void *)(feiPicParams->resCURecord.bo), FEI_ENC_BUFFER_TYPE_MBCODE) )
             {
-                CODEC_DDI_ASSERTMESSAGE("feiPicParams->resCURecord is invalid for FEI ENC only");
+                DDI_ASSERTMESSAGE("feiPicParams->resCURecord is invalid for FEI ENC only");
                 status = VA_STATUS_ERROR_INVALID_PARAMETER;
             }
         }
@@ -458,17 +457,17 @@ VAStatus DdiEncodeHevcFei::ParseMiscParamFeiPic(void *data)
         mediaBuffer = DdiMedia_GetBufferFromVABufferID(m_encodeCtx->pMediaCtx, vaEncMiscParamFeiPic->distortion);
         DDI_CHK_NULL(mediaBuffer, "nullptr mediaBuffer", VA_STATUS_ERROR_INVALID_PARAMETER);
         DdiMedia_MediaBufferToMosResource(mediaBuffer, &(feiPicParams->resDistortion));
-        if(m_encodeCtx->feiFunction == CODECHAL_FUNCTION_FEI_ENC)
+        if(m_encodeCtx->codecFunction == CODECHAL_FUNCTION_FEI_ENC)
         {
             RemoveFromEncStatusReportQueue(mediaBuffer, FEI_ENC_BUFFER_TYPE_DISTORTION);
             if( VA_STATUS_SUCCESS != AddToEncStatusReportQueue((void *)(feiPicParams->resDistortion.bo), FEI_ENC_BUFFER_TYPE_DISTORTION) )
             {
-                CODEC_DDI_ASSERTMESSAGE("feiPicParams->resDistortion is invalid for FEI ENC only");
+                DDI_ASSERTMESSAGE("feiPicParams->resDistortion is invalid for FEI ENC only");
                 status = VA_STATUS_ERROR_INVALID_PARAMETER;
             }
         }
     }
-    if(m_encodeCtx->feiFunction == CODECHAL_FUNCTION_FEI_ENC)
+    if(m_encodeCtx->codecFunction == CODECHAL_FUNCTION_FEI_ENC)
     {
         AddToEncStatusReportQueueUpdatePos();
     }
@@ -511,14 +510,14 @@ VAStatus DdiEncodeHevcFei::AddToEncStatusReportQueue(
     CodecEncodeHevcFeiPicParams *feiPicParams = (CodecEncodeHevcFeiPicParams *)(m_encodeCtx->pFeiPicParams);
     DDI_CHK_NULL(feiPicParams, "nullptr feiPicParams", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    if (m_encodeCtx->feiFunction != CODECHAL_FUNCTION_FEI_ENC)
+    if (m_encodeCtx->codecFunction != CODECHAL_FUNCTION_FEI_ENC)
     {
-        CODEC_DDI_ASSERTMESSAGE("ENC output buffers status checking is not allowed for non-FEI_ENC case! .");
+        DDI_ASSERTMESSAGE("ENC output buffers status checking is not allowed for non-FEI_ENC case! .");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
     if ((typeIdx < 0) || (typeIdx >= FEI_ENC_BUFFER_TYPE_MAX))
     {
-        CODEC_DDI_ASSERTMESSAGE("ENC output buffers status checking, gets invalid buffer type index! .");
+        DDI_ASSERTMESSAGE("ENC output buffers status checking, gets invalid buffer type index! .");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
@@ -535,9 +534,9 @@ VAStatus DdiEncodeHevcFei::AddToEncStatusReportQueueUpdatePos()
     CodecEncodeHevcFeiPicParams *feiPicParams = (CodecEncodeHevcFeiPicParams *)(m_encodeCtx->pFeiPicParams);
     DDI_CHK_NULL(feiPicParams, "nullptr feiPicParams", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    if(m_encodeCtx->feiFunction != CODECHAL_FUNCTION_FEI_ENC)
+    if(m_encodeCtx->codecFunction != CODECHAL_FUNCTION_FEI_ENC)
     {
-        CODEC_DDI_ASSERTMESSAGE("ENC output buffers status checking is not allowed for non-FEI_ENC case! .");
+        DDI_ASSERTMESSAGE("ENC output buffers status checking is not allowed for non-FEI_ENC case! .");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
@@ -574,7 +573,7 @@ VAStatus DdiEncodeHevcFei::ParseMiscParams(void *ptr)
         // HEVC only supports TU=1, 4, and 7
         if (1 != seqParams->TargetUsage && 4 != seqParams->TargetUsage && 7 != seqParams->TargetUsage)
         {
-            CODEC_DDI_ASSERTMESSAGE("unsupported target usage in HEVC encoder.");
+            DDI_ASSERTMESSAGE("unsupported target usage in HEVC encoder.");
             return VA_STATUS_ERROR_INVALID_PARAMETER;
         }
         break;
@@ -603,8 +602,8 @@ VAStatus DdiEncodeHevcFei::ParseMiscParams(void *ptr)
         // Assume only one SPS here, modify when enable multiple SPS support
         VAEncMiscParameterRateControl *vaEncMiscParamRC = (VAEncMiscParameterRateControl *)miscParamBuf->data;
 
-        seqParams->TargetBitRate = CONVERT_TO_K(vaEncMiscParamRC->bits_per_second, CODECHAL_ENCODE_BRC_KBPS);
-        seqParams->MBBRC         = (vaEncMiscParamRC->rc_flags.bits.mb_rate_control <= CODECHAL_ENCODE_MBBRC_DISABLED) ? vaEncMiscParamRC->rc_flags.bits.mb_rate_control : 0;
+        seqParams->TargetBitRate = MOS_ROUNDUP_DIVIDE(vaEncMiscParamRC->bits_per_second, CODECHAL_ENCODE_BRC_KBPS);
+        seqParams->MBBRC         = (vaEncMiscParamRC->rc_flags.bits.mb_rate_control <= mbBrcDisabled) ? vaEncMiscParamRC->rc_flags.bits.mb_rate_control : 0;
         //enable parallelBRC for Android and Linux
         seqParams->ParallelBRC = vaEncMiscParamRC->rc_flags.bits.enable_parallel_brc;
 
@@ -643,7 +642,7 @@ VAStatus DdiEncodeHevcFei::ParseMiscParams(void *ptr)
                 seqParams->RateControlMethod = RATECONTROL_VBR;
                 break;
             default:
-                CODEC_DDI_ASSERTMESSAGE("invalid RC method.");
+                DDI_ASSERTMESSAGE("invalid RC method.");
                 return VA_STATUS_ERROR_INVALID_PARAMETER;
             }
 
@@ -699,7 +698,7 @@ VAStatus DdiEncodeHevcFei::ParseMiscParams(void *ptr)
     {
         VAEncMiscParameterBufferROI *vaEncMiscParamROI = (VAEncMiscParameterBufferROI *)miscParamBuf->data;
         uint32_t                     maxROIsupported   = CODECHAL_ENCODE_HEVC_MAX_NUM_ROI;
-        uint8_t                      uiBlockSize       = (m_encodeCtx->bVdencActive) ? vdencRoiBlockSize : CODECHAL_MACROBLOCK_WIDTH;
+        uint8_t                      blockSize         = (m_encodeCtx->bVdencActive) ? vdencRoiBlockSize : CODECHAL_MACROBLOCK_WIDTH;
 
         if (vaEncMiscParamROI->num_roi)
         {
@@ -723,10 +722,10 @@ VAStatus DdiEncodeHevcFei::ParseMiscParams(void *ptr)
                 }
 
                 // Convert from pixel units to block size units
-                picParams->ROI[i].Left /= uiBlockSize;
-                picParams->ROI[i].Right /= uiBlockSize;
-                picParams->ROI[i].Top /= uiBlockSize;
-                picParams->ROI[i].Bottom /= uiBlockSize;
+                picParams->ROI[i].Left /= blockSize;
+                picParams->ROI[i].Right /= blockSize;
+                picParams->ROI[i].Top /= blockSize;
+                picParams->ROI[i].Bottom /= blockSize;
             }
             picParams->NumROI = MOS_MIN(vaEncMiscParamROI->num_roi, maxROIsupported);
         }
@@ -742,7 +741,7 @@ VAStatus DdiEncodeHevcFei::ParseMiscParams(void *ptr)
         // populate skipped frame params from DDI
         if (FRAME_SKIP_NORMAL != vaEncMiscParamSkipFrame->skip_frame_flag)
         {
-            CODEC_DDI_ASSERTMESSAGE("unsupported misc parameter type.");
+            DDI_ASSERTMESSAGE("unsupported misc parameter type.");
             return VA_STATUS_ERROR_INVALID_PARAMETER;
         }
         picParams->SkipFrameFlag  = vaEncMiscParamSkipFrame->skip_frame_flag;
@@ -768,13 +767,13 @@ VAStatus DdiEncodeHevcFei::ParseMiscParams(void *ptr)
     {
         if (VA_STATUS_SUCCESS != ParseMiscParamFeiPic((void *)miscParamBuf->data))
         {
-            CODEC_DDI_ASSERTMESSAGE("parse misc FEI picture parameters error.");
+            DDI_ASSERTMESSAGE("parse misc FEI picture parameters error.");
             return VA_STATUS_ERROR_INVALID_PARAMETER;
         }
         break;
     }
     default:
-        CODEC_DDI_ASSERTMESSAGE("unsupported misc parameter type.");
+        DDI_ASSERTMESSAGE("unsupported misc parameter type.");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 

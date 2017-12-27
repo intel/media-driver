@@ -484,7 +484,7 @@ const CODECHAL_DECODE_VC1_OLP_STATIC_DATA g_cInit_CODECHAL_DECODE_VC1_OLP_STATIC
 
 //==<Functions>=======================================================
 
-int16_t CodechalDecodeVc1::PackMotionVectors_Median3(int16_t mv1, int16_t mv2, int16_t mv3)
+int16_t CodechalDecodeVc1::PackMotionVectorsMedian3(int16_t mv1, int16_t mv2, int16_t mv3)
 {
     if (mv1 > mv2)
     {
@@ -501,7 +501,7 @@ int16_t CodechalDecodeVc1::PackMotionVectors_Median3(int16_t mv1, int16_t mv2, i
     return mv2;
 }
 
-int16_t CodechalDecodeVc1::PackMotionVectors_Median4(int16_t mv1, int16_t mv2, int16_t mv3, int16_t mv4)
+int16_t CodechalDecodeVc1::PackMotionVectorsMedian4(int16_t mv1, int16_t mv2, int16_t mv3, int16_t mv4)
 {
     int16_t max = mv1, min = mv1;
 
@@ -535,21 +535,21 @@ int16_t CodechalDecodeVc1::PackMotionVectors_Median4(int16_t mv1, int16_t mv2, i
     return (mv1 + mv2 + mv3 + mv4 - max - min) / 2;
 }
 
-void CodechalDecodeVc1::PackMotionVectors_Chroma4MvP(uint16_t intraFlags, int16_t *lmv, int16_t *cmv)
+void CodechalDecodeVc1::PackMotionVectorsChroma4MvP(uint16_t intraFlags, int16_t *lmv, int16_t *cmv)
 {
     int16_t mvX = 0, mvY = 0;
 
     if (CODECHAL_DECODE_VC1_LumaBlocks_P[intraFlags].u8NumIntercodedBlocks == 4)
     {
-        mvX = PackMotionVectors_Median4(lmv[0], lmv[2], lmv[4], lmv[6]);
-        mvY = PackMotionVectors_Median4(lmv[1], lmv[3], lmv[5], lmv[7]);
+        mvX = PackMotionVectorsMedian4(lmv[0], lmv[2], lmv[4], lmv[6]);
+        mvY = PackMotionVectorsMedian4(lmv[1], lmv[3], lmv[5], lmv[7]);
     }
     else if (CODECHAL_DECODE_VC1_LumaBlocks_P[intraFlags].u8NumIntercodedBlocks == 3)
     {
-        mvX = PackMotionVectors_Median3(lmv[CODECHAL_DECODE_VC1_LumaBlocks_P[intraFlags].u8MvIndex1],
+        mvX = PackMotionVectorsMedian3(lmv[CODECHAL_DECODE_VC1_LumaBlocks_P[intraFlags].u8MvIndex1],
             lmv[CODECHAL_DECODE_VC1_LumaBlocks_P[intraFlags].u8MvIndex2],
             lmv[CODECHAL_DECODE_VC1_LumaBlocks_P[intraFlags].u8MvIndex3]);
-        mvY = PackMotionVectors_Median3(lmv[CODECHAL_DECODE_VC1_LumaBlocks_P[intraFlags].u8MvIndex1 + 1],
+        mvY = PackMotionVectorsMedian3(lmv[CODECHAL_DECODE_VC1_LumaBlocks_P[intraFlags].u8MvIndex1 + 1],
             lmv[CODECHAL_DECODE_VC1_LumaBlocks_P[intraFlags].u8MvIndex2 + 1],
             lmv[CODECHAL_DECODE_VC1_LumaBlocks_P[intraFlags].u8MvIndex3 + 1]);
     }
@@ -563,7 +563,7 @@ void CodechalDecodeVc1::PackMotionVectors_Chroma4MvP(uint16_t intraFlags, int16_
     cmv[1] = CODECHAL_DECODE_VC1_CHROMA_MV(mvY);
 }
 
-uint8_t CodechalDecodeVc1::PackMotionVectors_Chroma4MvI(
+uint8_t CodechalDecodeVc1::PackMotionVectorsChroma4MvI(
     uint16_t    fieldSelect,
     uint16_t    currentField,
     bool        fastUVMotionCompensation,
@@ -601,8 +601,8 @@ uint8_t CodechalDecodeVc1::PackMotionVectors_Chroma4MvI(
         lmv[5] += offset;
         lmv[7] += offset;
 
-        mvX = PackMotionVectors_Median4(lmv[0], lmv[2], lmv[4], lmv[6]);
-        mvY = PackMotionVectors_Median4(lmv[1], lmv[3], lmv[5], lmv[7]);
+        mvX = PackMotionVectorsMedian4(lmv[0], lmv[2], lmv[4], lmv[6]);
+        mvY = PackMotionVectorsMedian4(lmv[1], lmv[3], lmv[5], lmv[7]);
     }
     else if (CODECHAL_DECODE_VC1_LumaBlocks_I[fieldSelect].u8NumSamePolarity == 3)
     {
@@ -630,10 +630,10 @@ uint8_t CodechalDecodeVc1::PackMotionVectors_Chroma4MvI(
 
         lmv[index1 + 1] += offset;
 
-        mvX = PackMotionVectors_Median3(lmv[index2],
+        mvX = PackMotionVectorsMedian3(lmv[index2],
             lmv[index3],
             lmv[index4]);
-        mvY = PackMotionVectors_Median3(lmv[index2 + 1],
+        mvY = PackMotionVectorsMedian3(lmv[index2 + 1],
             lmv[index3 + 1],
             lmv[index4 + 1]);
     }
@@ -723,12 +723,12 @@ void CodechalDecodeVc1::PackMotionVectors(
         if (vc1MbState->PicFlags == PICTURE_FRAME)
         {
             selectFlags = mb->pattern_code.block_luma_intra;
-            PackMotionVectors_Chroma4MvP(selectFlags, packedLumaMvs, packedChromaMv);
+            PackMotionVectorsChroma4MvP(selectFlags, packedLumaMvs, packedChromaMv);
         }
         else if (vc1MbState->PicFlags != PICTURE_INTERLACED_FRAME)
         {
             selectFlags = (mb->mb_type.value & 0xF000) >> 12;
-            vc1MbState->bFieldPolarity = PackMotionVectors_Chroma4MvI(
+            vc1MbState->bFieldPolarity = PackMotionVectorsChroma4MvI(
                 selectFlags,
                 vc1MbState->PicFlags,
                 vc1PicParams->fast_uvmc_flag ? true : false,
@@ -1020,7 +1020,7 @@ MOS_STATUS CodechalDecodeVc1::InitializeUnequalFieldSurface(
         MOS_ZeroMemory(&srcSurface, sizeof(MOS_SURFACE));
         srcSurface.Format = Format_NV12;
         srcSurface.OsResource = pVc1RefList[refListIdx]->resRefPic;
-        CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHal_GetResourceInfo(m_osInterface, &srcSurface));
+        CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, &srcSurface));
 
         // Format the unequal field reference
         CODECHAL_DECODE_CHK_STATUS_RETURN(FormatUnequalFieldPicture(
@@ -1067,12 +1067,7 @@ MOS_STATUS CodechalDecodeVc1::FormatUnequalFieldPicture(
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
 
     // Send command buffer header at the beginning (OS dependent)
-    MHW_GENERIC_PROLOG_PARAMS genericPrologParams;
-    MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
-    genericPrologParams.pOsInterface = m_osInterface;
-    genericPrologParams.pvMiInterface = m_miInterface;
-    genericPrologParams.bMmcEnabled = CodecHalMmcState::IsMmcEnabled();
-    CODECHAL_DECODE_CHK_STATUS_RETURN(Mhw_SendGenericPrologCmd(&cmdBuffer, &genericPrologParams));
+    CODECHAL_DECODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(&cmdBuffer, false));
 
     uint32_t frameSize = MOS_ALIGN_CEIL((srcSurface.dwPitch * (frameHeight + frameHeight / 2)), MOS_YTILE_H_ALIGNMENT);
 
@@ -1233,6 +1228,9 @@ MOS_STATUS CodechalDecodeVc1::FormatUnequalFieldPicture(
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(&cmdBuffer, &flushDwParams));
     }
 
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(
+        &cmdBuffer));
+
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(
         &cmdBuffer,
         nullptr));
@@ -1276,12 +1274,7 @@ MOS_STATUS CodechalDecodeVc1::ConstructBistreamBuffer()
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
 
     // Send command buffer header at the beginning (OS dependent)
-    MHW_GENERIC_PROLOG_PARAMS genericPrologParams;
-    MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
-    genericPrologParams.pOsInterface = m_osInterface;
-    genericPrologParams.pvMiInterface = m_miInterface;
-    genericPrologParams.bMmcEnabled = CodecHalMmcState::IsMmcEnabled();
-    CODECHAL_DECODE_CHK_STATUS_RETURN(Mhw_SendGenericPrologCmd(&cmdBuffer, &genericPrologParams));
+    CODECHAL_DECODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(&cmdBuffer, false));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(HucCopy(
         &cmdBuffer,                             // pCmdBuffer
@@ -1296,6 +1289,9 @@ MOS_STATUS CodechalDecodeVc1::ConstructBistreamBuffer()
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(
         &cmdBuffer,
         &flushDwParams));
+
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(
+        &cmdBuffer));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(
         &cmdBuffer,
@@ -1342,7 +1338,7 @@ MOS_STATUS CodechalDecodeVc1::HandleSkipFrame()
     MOS_ZeroMemory(&srcSurface, sizeof(MOS_SURFACE));
     srcSurface.Format      = Format_NV12;
     srcSurface.OsResource  = pVc1RefList[fwdRefIdx]->resRefPic;
-    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHal_GetResourceInfo(m_osInterface, &srcSurface));
+    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, &srcSurface));
         
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetSurfaceMmcMode(&sDestSurface, &srcSurface));
     
@@ -1384,11 +1380,7 @@ MOS_STATUS CodechalDecodeVc1::HandleSkipFrame()
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
      
         // Send command buffer header at the beginning (OS dependent)
-        MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
-        genericPrologParams.pOsInterface        = m_osInterface;
-        genericPrologParams.pvMiInterface       = m_miInterface;
-        genericPrologParams.bMmcEnabled         = CodecHalMmcState::IsMmcEnabled();
-        CODECHAL_DECODE_CHK_STATUS_RETURN(Mhw_SendGenericPrologCmd(&cmdBuffer, &genericPrologParams));
+        CODECHAL_DECODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(&cmdBuffer, false));
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(HucCopy(
             &cmdBuffer,                             // pCmdBuffer
@@ -1424,6 +1416,9 @@ MOS_STATUS CodechalDecodeVc1::HandleSkipFrame()
             &cmdBuffer,
             &flushDwParams));
         
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(
+            &cmdBuffer));
+
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(
                 &cmdBuffer,
                 nullptr));
@@ -2907,8 +2902,7 @@ MOS_STATUS CodechalDecodeVc1::AllocateResources()
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateSyncResource(m_osInterface, &resSyncObject));
 
-    CodecHal_AllocateDataList(
-        CODEC_REF_LIST,
+    CodecHalAllocateDataList(
         pVc1RefList,
         CODECHAL_NUM_UNCOMPRESSED_SURFACE_VC1);
 
@@ -3032,7 +3026,7 @@ CodechalDecodeVc1::~CodechalDecodeVc1()
 
     m_osInterface->pfnDestroySyncResource(m_osInterface, &resSyncObject);
 
-    CodecHal_FreeDataList(pVc1RefList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_VC1);
+    CodecHalFreeDataList(pVc1RefList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_VC1);
 
     MOS_FreeMemory(pVldSliceRecord);
 
@@ -3450,7 +3444,7 @@ MOS_STATUS CodechalDecodeVc1::DecodeStateLevel()
                 MOS_ZeroMemory(&dstSurface, sizeof(MOS_SURFACE));
                 dstSurface.Format = Format_NV12;
                 dstSurface.OsResource = *(pipeBufAddrParams.presReferences[i]);
-                CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHal_GetResourceInfo(
+                CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(
                     m_osInterface,
                     &dstSurface));
 
@@ -3538,20 +3532,7 @@ MOS_STATUS CodechalDecodeVc1::DecodeStateLevel()
         vc1DirectmodeParams.presDmvWriteBuffer = &resVc1BsdMvData[dmvBufferIdx];
     }
 
-    if (bOlpNeeded)
-    {
-        MHW_GENERIC_PROLOG_PARAMS   genericPrologParams;
-        MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
-        genericPrologParams.pOsInterface = m_osInterface;
-        genericPrologParams.pvMiInterface = m_miInterface;
-        genericPrologParams.bMmcEnabled = CodecHalMmcState::IsMmcEnabled();
-        CODECHAL_DECODE_CHK_STATUS_RETURN(Mhw_SendGenericPrologCmd(&cmdBuffer, &genericPrologParams));
-    }
-    else
-    {
-        CODECHAL_DECODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(
-            &cmdBuffer));
-    }
+    CODECHAL_DECODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(&cmdBuffer, !bOlpNeeded));
 
     if (m_statusQueryReportingEnabled)
     {
@@ -3582,7 +3563,7 @@ MOS_STATUS CodechalDecodeVc1::DecodeStateLevel()
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxVc1PredPipeCmd(&cmdBuffer, &vc1PredPipeParams));
 
-    if (bIntelProprietaryFormatInUse || m_mode == CODECHAL_DECODE_MODE_VC1IT)
+    if (bIntelEntrypointInUse || m_mode == CODECHAL_DECODE_MODE_VC1IT)
     {
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxVc1LongPicCmd(&cmdBuffer, &vc1PicState));
     }
@@ -3862,6 +3843,8 @@ submit:
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(EndStatusReport(decodeStatusReport, &cmdBuffer));
     }
+
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(&cmdBuffer));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
 
@@ -4167,6 +4150,8 @@ MOS_STATUS CodechalDecodeVc1::DecodePrimitiveLevelIT()
         CODECHAL_DECODE_CHK_STATUS_RETURN(EndStatusReport(decodeStatusReport, &cmdBuffer));
     }
 
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(&cmdBuffer));
+
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
 
     m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBuffer, 0);
@@ -4280,7 +4265,7 @@ MOS_STATUS CodechalDecodeVc1::AddVc1OlpCmd(
     walkerCodecParams.bNoDependency = true;     // force raster scan mode
 
     MHW_WALKER_PARAMS walkerParams;
-    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHal_InitMediaObjectWalkerParams(
+    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalInitMediaObjectWalkerParams(
         m_hwInterface,
         &walkerParams,
         &walkerCodecParams));
@@ -4360,7 +4345,7 @@ MOS_STATUS CodechalDecodeVc1::PerformVc1Olp()
         (uint16_t)(((m_mode << 4) & 0xF0) | OLP_TYPE));
     m_osInterface->pfnResetPerfBufferID(m_osInterface);
 
-    CodecHal_GetResourceInfo(m_osInterface, &sDeblockSurface);    // DstSurface
+    CodecHalGetResourceInfo(m_osInterface, &sDeblockSurface);    // DstSurface
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->DisableSurfaceMmcState(&sDeblockSurface));
 
@@ -4368,7 +4353,7 @@ MOS_STATUS CodechalDecodeVc1::PerformVc1Olp()
         stateHeapInterface,
         kernelState->KernelParams.iBTCount));
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHal_AssignDshAndSshSpace(
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_hwInterface->AssignDshAndSshSpace(
         stateHeapInterface,
         kernelState,
         false,
@@ -4394,9 +4379,8 @@ MOS_STATUS CodechalDecodeVc1::PerformVc1Olp()
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_hwInterface->GetDefaultSSEuSetting(CODECHAL_MEDIA_STATE_OLP, false, false, false));
 
-    // Send command buffer header at the beginning (OS dependent)
     CODECHAL_DECODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(
-        &cmdBuffer));
+        &cmdBuffer, true));
 
     if (renderEngineInterface->GetL3CacheConfig()->bL3CachingEnabled)
     {
@@ -4552,6 +4536,8 @@ MOS_STATUS CodechalDecodeVc1::PerformVc1Olp()
         }
     }
 
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(&cmdBuffer));
+
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
 
     // To clear the SSEU values in the hw interface struct, so next kernel can be programmed correctly
@@ -4628,7 +4614,7 @@ MOS_STATUS CodechalDecodeVc1::InitKernelStateVc1Olp()
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(UpdateVc1KernelState());
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHal_MhwInitISH(
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_hwInterface->MhwInitISH(
         stateHeapInterface,
         &OlpKernelState));
 
@@ -4725,7 +4711,7 @@ MOS_STATUS CodechalDecodeVc1::AllocateStandard(
         MOS_GPU_CONTEXT_CREATE_DEFAULT));
     m_renderContext = MOS_GPU_CONTEXT_RENDER;
 
-    bIntelProprietaryFormatInUse = settings->bIntelProprietaryFormatInUse;
+    bIntelEntrypointInUse = settings->bIntelEntrypointInUse;
     m_width = settings->dwWidth;
     m_height = settings->dwHeight;
     u16PicWidthInMb = (uint16_t)CODECHAL_GET_WIDTH_IN_MACROBLOCKS(m_width);

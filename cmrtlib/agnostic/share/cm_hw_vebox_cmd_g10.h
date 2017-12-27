@@ -4940,7 +4940,7 @@ public:
             struct
             {
                 /// uint32_t 2
-                uint32_t                 CurrentFrameSurfaceControlBitsEncryptedData      : __CODEGEN_BITFIELD( 0,  0)    ; ///< Sub-structure
+                uint32_t                 CurrentFrameSurfaceControlBitsReserved0          : __CODEGEN_BITFIELD( 0,  0)    ; ///< Sub-structure
                 uint32_t                 CurrentFrameSurfaceControlBitsIndexToMemoryObjectControlStateMocsTables : __CODEGEN_BITFIELD( 1,  6)    ; ///< Sub-structure
                 uint32_t                 CurrentFrameSurfaceControlBitsMemoryCompressionEnable : __CODEGEN_BITFIELD( 7,  7)    ; ///< Sub-structure
                 uint32_t                 CurrentFrameSurfaceControlBitsMemoryCompressionMode : __CODEGEN_BITFIELD( 8,  8)    ; ///< Sub-structure
@@ -4966,7 +4966,7 @@ public:
             struct
             {
                 /// uint32_t 4
-                uint32_t                 PreviousFrameSurfaceControlBitsEncryptedData     : __CODEGEN_BITFIELD( 0,  0)    ; ///< Sub-structure
+                uint32_t                 PreviousFrameSurfaceControlBitsReserved0         : __CODEGEN_BITFIELD( 0,  0)    ; ///< Sub-structure
                 uint32_t                 PreviousFrameSurfaceControlBitsIndexToMemoryObjectControlStateMocsTables : __CODEGEN_BITFIELD( 1,  6)    ; ///< Sub-structure
                 uint32_t                 PreviousFrameSurfaceControlBitsMemoryCompressionEnable : __CODEGEN_BITFIELD( 7,  7)    ; ///< Sub-structure
                 uint32_t                 PreviousFrameSurfaceControlBitsMemoryCompressionMode : __CODEGEN_BITFIELD( 8,  8)    ; ///< Sub-structure
@@ -4992,7 +4992,7 @@ public:
             struct
             {
                 /// uint32_t 6
-                uint32_t                 StmmInputSurfaceControlBitsEncryptedData         : __CODEGEN_BITFIELD( 0,  0)    ; ///< Sub-structure
+                uint32_t                 StmmInputSurfaceControlBitsReserved0             : __CODEGEN_BITFIELD( 0,  0)    ; ///< Sub-structure
                 uint32_t                 StmmInputSurfaceControlBitsIndexToMemoryObjectControlStateMocsTables : __CODEGEN_BITFIELD( 1,  6)    ; ///< Sub-structure
                 uint32_t                 StmmInputSurfaceControlBitsMemoryCompressionEnable : __CODEGEN_BITFIELD( 7,  7)    ; ///< Sub-structure
                 uint32_t                 StmmInputSurfaceControlBitsMemoryCompressionMode : __CODEGEN_BITFIELD( 8,  8)    ; ///< Sub-structure
@@ -5018,7 +5018,7 @@ public:
             struct
             {
                 /// uint32_t 8
-                uint32_t                 StmmOutputSurfaceControlBitsEncryptedData        : __CODEGEN_BITFIELD( 0,  0)    ; ///< Sub-structure
+                uint32_t                 StmmOutputSurfaceControlBitsReserved0            : __CODEGEN_BITFIELD( 0,  0)    ; ///< Sub-structure
                 uint32_t                 StmmOutputSurfaceControlBitsIndexToMemoryObjectControlStateMocsTables : __CODEGEN_BITFIELD( 1,  6)    ; ///< Sub-structure
                 uint32_t                 StmmOutputSurfaceControlBitsMemoryCompressionEnable : __CODEGEN_BITFIELD( 7,  7)    ; ///< Sub-structure
                 uint32_t                 StmmOutputSurfaceControlBitsMemoryCompressionMode : __CODEGEN_BITFIELD( 8,  8)    ; ///< Sub-structure
@@ -5044,7 +5044,7 @@ public:
             struct
             {
                 /// uint32_t 10
-                uint32_t                 DenoisedCurrentOutputSurfaceControlBitsEncryptedData : __CODEGEN_BITFIELD( 0,  0)    ; ///< Sub-structure
+                uint32_t                 DenoisedCurrentOutputSurfaceControlBitsReserved0 : __CODEGEN_BITFIELD( 0,  0)    ; ///< Sub-structure
                 uint32_t                 DenoisedCurrentOutputSurfaceControlBitsIndexToMemoryObjectControlStateMocsTables : __CODEGEN_BITFIELD( 1,  6)    ; ///< Sub-structure
                 uint32_t                 DenoisedCurrentOutputSurfaceControlBitsMemoryCompressionEnable : __CODEGEN_BITFIELD( 7,  7)    ; ///< Sub-structure
                 uint32_t                 DenoisedCurrentOutputSurfaceControlBitsMemoryCompressionMode : __CODEGEN_BITFIELD( 8,  8)    ; ///< Sub-structure
@@ -5070,7 +5070,7 @@ public:
             struct
             {
                 /// uint32_t 12
-                uint32_t                 CurrentFrameOutputSurfaceControlBitsEncryptedData : __CODEGEN_BITFIELD( 0,  0)    ; ///< Sub-structure
+                uint32_t                 CurrentFrameOutputSurfaceControlBitsReserved0    : __CODEGEN_BITFIELD( 0,  0)    ; ///< Sub-structure
                 uint32_t                 CurrentFrameOutputSurfaceControlBitsIndexToMemoryObjectControlStateMocsTables : __CODEGEN_BITFIELD( 1,  6)    ; ///< Sub-structure
                 uint32_t                 CurrentFrameOutputSurfaceControlBitsMemoryCompressionEnable : __CODEGEN_BITFIELD( 7,  7)    ; ///< Sub-structure
                 uint32_t                 CurrentFrameOutputSurfaceControlBitsMemoryCompressionMode : __CODEGEN_BITFIELD( 8,  8)    ; ///< Sub-structure
@@ -5096,7 +5096,7 @@ public:
             struct
             {
                 /// uint32_t 14
-                uint32_t                 PreviousFrameOutputSurfaceControlBitsEncryptedData : __CODEGEN_BITFIELD( 0,  0)    ; ///< Sub-structure
+                uint32_t                 PreviousFrameOutputSurfaceControlBitsReserved0   : __CODEGEN_BITFIELD( 0,  0)    ; ///< Sub-structure
                 uint32_t                 PreviousFrameOutputSurfaceControlBitsIndexToMemoryObjectControlStateMocsTables : __CODEGEN_BITFIELD( 1,  6)    ; ///< Sub-structure
                 uint32_t                 PreviousFrameOutputSurfaceControlBitsMemoryCompressionEnable : __CODEGEN_BITFIELD( 7,  7)    ; ///< Sub-structure
                 uint32_t                 PreviousFrameOutputSurfaceControlBitsMemoryCompressionMode : __CODEGEN_BITFIELD( 8,  8)    ; ///< Sub-structure
@@ -5122,7 +5122,7 @@ public:
             struct
             {
                 /// uint32_t 16
-                uint32_t                 StatisticsOutputSurfaceControlBitsEncryptedData  : __CODEGEN_BITFIELD( 0,  0)    ; ///< Sub-structure
+                uint32_t                 StatisticsOutputSurfaceControlBitsReserved0      : __CODEGEN_BITFIELD( 0,  0)    ; ///< Sub-structure
                 uint32_t                 StatisticsOutputSurfaceControlBitsIndexToMemoryObjectControlStateMocsTables : __CODEGEN_BITFIELD( 1,  6)    ; ///< Sub-structure
                 uint32_t                 StatisticsOutputSurfaceControlBitsMemoryCompressionEnable : __CODEGEN_BITFIELD( 7,  7)    ; ///< Sub-structure
                 uint32_t                 StatisticsOutputSurfaceControlBitsMemoryCompressionMode : __CODEGEN_BITFIELD( 8,  8)    ; ///< Sub-structure
@@ -5148,7 +5148,7 @@ public:
             struct
             {
                 /// uint32_t 18
-                uint32_t                 AlphaVignetteControlBitsEncryptedData            : __CODEGEN_BITFIELD( 0,  0)    ; ///< Sub-structure
+                uint32_t                 AlphaVignetteControlBitsReserved0                : __CODEGEN_BITFIELD( 0,  0)    ; ///< Sub-structure
                 uint32_t                 AlphaVignetteControlBitsIndexToMemoryObjectControlStateMocsTables : __CODEGEN_BITFIELD( 1,  6)    ; ///< Sub-structure
                 uint32_t                 AlphaVignetteControlBitsMemoryCompressionEnable  : __CODEGEN_BITFIELD( 7,  7)    ; ///< Sub-structure
                 uint32_t                 AlphaVignetteControlBitsMemoryCompressionMode    : __CODEGEN_BITFIELD( 8,  8)    ; ///< Sub-structure
@@ -5174,7 +5174,7 @@ public:
             struct
             {
                 /// uint32_t 20
-                uint32_t                 LaceAceRgbHistogramControlBitsEncryptedData      : __CODEGEN_BITFIELD( 0,  0)    ; ///< Sub-structure
+                uint32_t                 LaceAceRgbHistogramControlBitsReserved0          : __CODEGEN_BITFIELD( 0,  0)    ; ///< Sub-structure
                 uint32_t                 LaceAceRgbHistogramControlBitsIndexToMemoryObjectControlStateMocsTables : __CODEGEN_BITFIELD( 1,  6)    ; ///< Sub-structure
                 uint32_t                 LaceAceRgbHistogramControlBitsMemoryCompressionEnable : __CODEGEN_BITFIELD( 7,  7)    ; ///< Sub-structure
                 uint32_t                 LaceAceRgbHistogramControlBitsMemoryCompressionMode : __CODEGEN_BITFIELD( 8,  8)    ; ///< Sub-structure
@@ -5200,7 +5200,7 @@ public:
             struct
             {
                 /// uint32_t 22
-                uint32_t                 SkinScoreOutputControlBitsEncryptedData          : __CODEGEN_BITFIELD( 0,  0)    ; ///< Sub-structure
+                uint32_t                 SkinScoreOutputControlBitsReserved0              : __CODEGEN_BITFIELD( 0,  0)    ; ///< Sub-structure
                 uint32_t                 SkinScoreOutputControlBitsIndexToMemoryObjectControlStateMocsTables : __CODEGEN_BITFIELD( 1,  6)    ; ///< Sub-structure
                 uint32_t                 SkinScoreOutputControlBitsMemoryCompressionEnable : __CODEGEN_BITFIELD( 7,  7)    ; ///< Sub-structure
                 uint32_t                 SkinScoreOutputControlBitsMemoryCompressionMode  : __CODEGEN_BITFIELD( 8,  8)    ; ///< Sub-structure

@@ -379,22 +379,6 @@ MOS_STATUS CodechalVdencAvcStateG10::GetKernelHeaderAndSize(void *binary, EncOpe
     {
         currKrnHeader = &kernelHeaderTable->m_meVdenc;
     }
-    else if (operation == ENC_BRC)
-    {
-        currKrnHeader = &kernelHeaderTable->m_initFrameBrc;
-    }
-    else if (operation == ENC_MBENC)
-    {
-        currKrnHeader = &kernelHeaderTable->m_mbEncQltyI;
-    }
-    else if (operation == ENC_MBENC_ADV)
-    {
-        currKrnHeader = &kernelHeaderTable->m_mbEncAdvI;
-    }
-    else if (operation == ENC_WP)
-    {
-        currKrnHeader = &kernelHeaderTable->m_weightedPrediction;
-    }
     else if (operation == ENC_SFD)
     {
         currKrnHeader = &kernelHeaderTable->m_staticFrameDetection;
@@ -432,6 +416,7 @@ CodechalVdencAvcStateG10::CodechalVdencAvcStateG10(
     
     m_cmKernelEnable = true;
     m_mbStatsSupported = true; //Starting from GEN9
+	m_needCheckCpEnabled = true;
 
     pfnGetKernelHeaderAndSize    = CodechalVdencAvcStateG10::GetKernelHeaderAndSize;
 
@@ -450,8 +435,8 @@ CodechalVdencAvcStateG10::~CodechalVdencAvcStateG10()
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     CODECHAL_DEBUG_TOOL(
-        MOS_Delete(m_encodeParState);
         DestroyAvcPar();
+        MOS_Delete(m_encodeParState);
     )
 }
 
@@ -464,7 +449,6 @@ MOS_STATUS CodechalVdencAvcStateG10::InitializeState()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalVdencAvcState::InitializeState());
 
     m_sliceSizeStreamoutSupported = true;
-    bForceBrcMbStatsEnabled = true;
 
     return eStatus;
 }

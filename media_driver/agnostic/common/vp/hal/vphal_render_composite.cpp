@@ -50,7 +50,7 @@
 // CMFC macro
 #define VPHAL_COMP_CMFC_COEFF_WIDTH        24
 #define VPHAL_COMP_CMFC_COEFF_HEIGHT       8
-#define VPHAL_COMP_BTINDEX_CSC_COEFF       30
+#define VPHAL_COMP_BTINDEX_CSC_COEFF       34
 
 //!
 //! \brief  Sampler State Indices
@@ -1469,6 +1469,7 @@ bool CompositeState::PreparePhases(
             dwTempHeight = MOS_ALIGN_CEIL(dwTempHeight, VPHAL_BUFFER_SIZE_INCREMENT);
 
             MOS_ZeroMemory(&AllocParams, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+            MOS_ZeroMemory(&OsResource, sizeof(MOS_RESOURCE));
 
             AllocParams.Type     = MOS_GFXRES_2D;
             AllocParams.TileType = MOS_TILE_Y;
@@ -1480,6 +1481,13 @@ bool CompositeState::PreparePhases(
                 pOsInterface,
                 &AllocParams,
                 &OsResource);
+
+            // Get Allocation index of source for rendering 
+            pOsInterface->pfnRegisterResource(
+                pOsInterface,
+                &OsResource,
+                false,
+                true);
 
             if (!Mos_ResourceIsNull(&OsResource))
             {
@@ -3881,6 +3889,7 @@ int32_t CompositeState::SetLayerRT(
     uTargetIndex = 0;
     do
     {
+        SetSurfaceCompressionParams(pRenderingData->pTarget[uTargetIndex], true);
         // Get surface state allocation parameters for RT (scaling mode, stride)
         SetSurfaceParams(
             pRenderingData->pTarget[uTargetIndex],
@@ -4573,8 +4582,7 @@ bool CompositeState::SubmitStates(
         iThreadCount,
         iCurbeLength,
         iInlineLength,
-        nullptr,
-        false));
+        nullptr));
 
     bResult = true;
 
@@ -4763,7 +4771,7 @@ MOS_STATUS CompositeState::AllocateBuffer(
 
     // Some app had memory overrun when generating the AI44/IA44 sample contents.
     // As result, the batch buffer was trashed and causes hardware hang (TDR).
-    // Adding this work around to always regenerate the media objects for AI44
+    // Adding this solution to always regenerate the media objects for AI44
     // and IA44.
     if (pRenderingData->iLayers == 1                         &&
         (pRenderingData->pLayers[0]->Format == Format_AI44   ||
@@ -5716,6 +5724,38 @@ MOS_STATUS CompositeState::RenderPhase(
             pProcamp           = &(m_Procamp[pMatrix->iProcampID]);
             bKernelEntryUpdate = (pProcamp->iProcampVersion != pMatrix->iProcampVersion) ? true : false;
         }
+
+        if (pKernelDllState->bEnableCMFC)
+        {
+            if (!Mos_ResourceIsNull(&m_CmfcCoeff.OsResource))
+            {
+                MOS_LOCK_PARAMS                 LockFlags;
+                MOS_ZeroMemory(&LockFlags, sizeof(LockFlags));
+
+                LockFlags.WriteOnly = 1;
+
+                m_pKernelDllState->pCscCoeffCMFC = (uint8_t*)m_pOsInterface->pfnLockResource(
+                    m_pOsInterface,
+                    &m_CmfcCoeff.OsResource,
+                    &LockFlags);
+
+                m_pKernelDllState->dwCscCoeffStride = m_CmfcCoeff.dwPitch;
+
+                if (nullptr == m_pKernelDllState->pCscCoeffCMFC)
+                {
+                    m_pOsInterface->pfnUnlockResource(m_pOsInterface,
+                        &m_CmfcCoeff.OsResource);
+
+                    eStatus = MOS_STATUS_NULL_POINTER;
+                    goto finish;
+                }
+            }
+
+            pKernelDllState->pfnUpdatePatchedCSC(pKernelDllState, pKernelEntry);
+
+            m_pOsInterface->pfnUnlockResource(m_pOsInterface,
+                                              &m_CmfcCoeff.OsResource);
+        }
     }
 
     if (!pKernelEntry || bKernelEntryUpdate)
@@ -5745,12 +5785,51 @@ MOS_STATUS CompositeState::RenderPhase(
             goto finish;
         }
 
+        // Get CMFC CSC Coeff surface pointer
+        if (pKernelDllState->bEnableCMFC)
+        {
+            if (!Mos_ResourceIsNull(&m_CmfcCoeff.OsResource))
+            {
+                MOS_LOCK_PARAMS                 LockFlags;
+                MOS_ZeroMemory(&LockFlags, sizeof(LockFlags));
+
+                LockFlags.WriteOnly = 1;
+
+                m_pKernelDllState->pCscCoeffCMFC = (uint8_t*)m_pOsInterface->pfnLockResource(
+                    m_pOsInterface,
+                    &m_CmfcCoeff.OsResource,
+                    &LockFlags);
+
+                m_pKernelDllState->dwCscCoeffStride = m_CmfcCoeff.dwPitch;
+
+                if (nullptr == m_pKernelDllState->pCscCoeffCMFC)
+                {
+                    m_pOsInterface->pfnUnlockResource(m_pOsInterface,
+                                                      &m_CmfcCoeff.OsResource);
+
+                    eStatus = MOS_STATUS_NULL_POINTER;
+                    goto finish;
+                }
+            }
+            else
+            {
+                eStatus = MOS_STATUS_NULL_POINTER;
+                goto finish;
+            }
+        }
+
         // Build kernel
         if (!pKernelDllState->pfnBuildKernel(pKernelDllState, pSearchState))
         {
             VPHAL_RENDER_ASSERTMESSAGE("Failed to build kernel.");
             eStatus = MOS_STATUS_UNKNOWN;
             goto finish;
+        }
+
+        if (pKernelDllState->bEnableCMFC && m_pKernelDllState->pCscCoeffCMFC)
+        {
+            m_pOsInterface->pfnUnlockResource(m_pOsInterface,
+                                              &m_CmfcCoeff.OsResource);
         }
 
         // Load resulting kernel into kernel cache
@@ -6421,7 +6500,6 @@ MOS_STATUS CompositeState::Initialize(
     MOS_USER_FEATURE_VALUE_DATA     UserFeatureData;
     MOS_NULL_RENDERING_FLAGS        NullRenderingFlags;
     bool                            bAllocated;
-    MOS_LOCK_PARAMS                 LockFlags;
     MOS_STATUS                      eStatus;
 
     eStatus = MOS_STATUS_SUCCESS;
@@ -6463,33 +6541,12 @@ MOS_STATUS CompositeState::Initialize(
             "CSCCoeffSurface",
             Format_L8,
             MOS_GFXRES_2D,
-            MOS_TILE_LINEAR,
+            MOS_TILE_Y,
             VPHAL_COMP_CMFC_COEFF_WIDTH,
             VPHAL_COMP_CMFC_COEFF_HEIGHT,
             false,
             MOS_MMC_DISABLED,
             &bAllocated));
-
-        if (!Mos_ResourceIsNull(&m_CmfcCoeff.OsResource))
-        {
-            MOS_ZeroMemory(&LockFlags, sizeof(LockFlags));
-
-            LockFlags.NoOverWrite = 1;
-
-            m_pKernelDllState->pCscCoeffCMFC = (uint8_t*)m_pOsInterface->pfnLockResource(
-                m_pOsInterface,
-                &m_CmfcCoeff.OsResource,
-                &LockFlags);
-
-            m_pKernelDllState->dwCscCoeffStride = m_CmfcCoeff.dwPitch;
-
-            VPHAL_RENDER_CHK_NULL(m_pKernelDllState->pCscCoeffCMFC);
-        }
-        else
-        {
-            eStatus = MOS_STATUS_NULL_POINTER;
-            goto finish;
-        }
     }
 
     // Setup Procamp Parameters

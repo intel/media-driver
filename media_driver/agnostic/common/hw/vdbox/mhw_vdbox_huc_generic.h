@@ -39,7 +39,10 @@ class MhwVdboxHucInterfaceGeneric : public MhwVdboxHucInterface
 {
 protected:
     #define PATCH_LIST_COMMAND(x)  (x##_NUMBER_OF_ADDRESSES)
-
+    //!
+    //! \enum     CommandsNumberOfAddresses
+    //! \brief    Commands number of addresses
+    //!
     enum CommandsNumberOfAddresses
     {
         MI_STORE_DATA_IMM_CMD_NUMBER_OF_ADDRESSES                  =  1, //  2 DW for  1 address field
@@ -310,7 +313,7 @@ protected:
         {
             resourceParams.presResource = params->presHucDataSource;
             resourceParams.dwOffset = 0;
-            resourceParams.pdwCmd = (cmd.HucDataSourceBaseAddress[0].DW0_1.Value);
+            resourceParams.pdwCmd = (cmd.HucDataSourceBaseAddress.DW0_1.Value);
             resourceParams.dwLocationInCmd = 1;
             resourceParams.bIsWritable = false;
 
@@ -351,12 +354,12 @@ protected:
         {
             if (params->regionParams[i].presRegion)
             {
-                cmd.HucVirtualAddressRegion[i].DW2.MemoryObjectControlState = 
+                cmd.HucVirtualAddressRegion[i].HucSurfaceVirtualaddrregion015.DW0.Value =
                     m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_HUC_VIRTUAL_ADDR_REGION_BUFFER_CODEC].Value;
                 resourceParams.presResource = params->regionParams[i].presRegion;
                 resourceParams.dwOffset = params->regionParams[i].dwOffset;
                 resourceParams.bIsWritable = params->regionParams[i].isWritable;
-                resourceParams.pdwCmd = cmd.HucVirtualAddressRegion[i].HucSurfaceBaseAddressVirtualaddrregion015[0].DW0_1.Value;
+                resourceParams.pdwCmd = cmd.HucVirtualAddressRegion[i].HucSurfaceBaseAddressVirtualaddrregion015.DW0_1.Value;
                 resourceParams.dwLocationInCmd = 1 + (i * 3);
 
                 MHW_MI_CHK_STATUS(AddResourceToCmd(
@@ -391,7 +394,7 @@ protected:
         {
             resourceParams.presResource = params->presDataBuffer;
             resourceParams.dwOffset = params->dwDataOffset;
-            resourceParams.pdwCmd = (cmd.DW1_2.Value);
+            resourceParams.pdwCmd = cmd.HucIndirectStreamInObjectbaseAddress.DW0_1.Value;
             resourceParams.dwLocationInCmd = 1;
             resourceParams.bIsWritable = false;
             resourceParams.dwSize = params->dwDataSize;
@@ -407,7 +410,7 @@ protected:
             // base address of the stream out buffer
             resourceParams.presResource = params->presStreamOutObjectBuffer;
             resourceParams.dwOffset = params->dwStreamOutObjectOffset;
-            resourceParams.pdwCmd = (cmd.DW6_7.Value);
+            resourceParams.pdwCmd = cmd.HucIndirectStreamOutObjectbaseAddress.DW0_1.Value;
             resourceParams.dwLocationInCmd = 6;
             resourceParams.bIsWritable = true;
             resourceParams.dwSize = params->dwStreamOutObjectSize;

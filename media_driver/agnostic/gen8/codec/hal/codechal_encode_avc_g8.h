@@ -927,14 +927,14 @@ struct CodechalEncodeAvcEncG8 : public CodechalEncodeAvcEnc
     static MOS_STATUS GetKernelHeaderAndSize(
         void                           *pvBinary,
         EncOperation                   operation,
-		uint32_t                       dwKrnStateIdx,
-        void                           *pvKrnHeader,
-		uint32_t                       *pdwKrnSize);
+		uint32_t                       krnStateIdx,
+        void                           *krnHeader,
+		uint32_t                       *krnSize);
 
     void UpdateSSDSliceCount();
     
     virtual MOS_STATUS InitMbBrcConstantDataBuffer(
-        PCODECHAL_ENCODE_AVC_INIT_MBBRC_CONSTANT_DATA_BUFFER_PARAMS pParams);
+        PCODECHAL_ENCODE_AVC_INIT_MBBRC_CONSTANT_DATA_BUFFER_PARAMS params);
 
     virtual MOS_STATUS InitializeState();
 
@@ -954,56 +954,56 @@ struct CodechalEncodeAvcEncG8 : public CodechalEncodeAvcEnc
     virtual MOS_STATUS InitKernelStateBrc();
 
     virtual MOS_STATUS GetMbEncKernelStateIdx(
-        PCODECHAL_ENCODE_ID_OFFSET_PARAMS   pParams,
-        uint32_t*                              pdwKernelOffset);
+        CodechalEncodeIdOffsetParams*   params,
+        uint32_t*                       kernelOffset);
 
-    virtual MOS_STATUS InitBrcConstantBuffer(PCODECHAL_ENCODE_AVC_INIT_BRC_CONSTANT_BUFFER_PARAMS pParams);
+    virtual MOS_STATUS InitBrcConstantBuffer(PCODECHAL_ENCODE_AVC_INIT_BRC_CONSTANT_BUFFER_PARAMS params);
 
     virtual MOS_STATUS GetTrellisQuantization(
-        PCODECHAL_ENCODE_AVC_TQ_INPUT_PARAMS    pParams,
-        PCODECHAL_ENCODE_AVC_TQ_PARAMS          pTrellisQuantParams);
+        PCODECHAL_ENCODE_AVC_TQ_INPUT_PARAMS    params,
+        PCODECHAL_ENCODE_AVC_TQ_PARAMS          trellisQuantParams);
 
     virtual MOS_STATUS SetCurbeAvcWP(
-        PCODECHAL_ENCODE_AVC_WP_CURBE_PARAMS pParams);
+        PCODECHAL_ENCODE_AVC_WP_CURBE_PARAMS params);
 
     virtual MOS_STATUS SetCurbeAvcMbEnc(
-        PCODECHAL_ENCODE_AVC_MBENC_CURBE_PARAMS pParams);
+        PCODECHAL_ENCODE_AVC_MBENC_CURBE_PARAMS params);
 
     virtual MOS_STATUS SetCurbeAvcBrcInitReset(
-        PCODECHAL_ENCODE_AVC_BRC_INIT_RESET_CURBE_PARAMS pParams);
+        PCODECHAL_ENCODE_AVC_BRC_INIT_RESET_CURBE_PARAMS params);
 
     virtual MOS_STATUS SetCurbeAvcFrameBrcUpdate(
-        PCODECHAL_ENCODE_AVC_BRC_UPDATE_CURBE_PARAMS pParams);
+        PCODECHAL_ENCODE_AVC_BRC_UPDATE_CURBE_PARAMS params);
 
     virtual MOS_STATUS SendAvcBrcFrameUpdateSurfaces(
         PMOS_COMMAND_BUFFER pCmdBuffer,
-        PCODECHAL_ENCODE_AVC_BRC_UPDATE_SURFACE_PARAMS pParams);
+        PCODECHAL_ENCODE_AVC_BRC_UPDATE_SURFACE_PARAMS params);
 
     virtual MOS_STATUS SetCurbeAvcBrcBlockCopy(
-        PCODECHAL_ENCODE_AVC_BRC_BLOCK_COPY_CURBE_PARAMS pParams);
+        PCODECHAL_ENCODE_AVC_BRC_BLOCK_COPY_CURBE_PARAMS params);
 
     virtual MOS_STATUS SendAvcMbEncSurfaces(
         PMOS_COMMAND_BUFFER pCmdBuffer,
-        PCODECHAL_ENCODE_AVC_MBENC_SURFACE_PARAMS pParams);
+        PCODECHAL_ENCODE_AVC_MBENC_SURFACE_PARAMS params);
 
     virtual MOS_STATUS SendAvcWPSurfaces(
         PMOS_COMMAND_BUFFER pCmdBuffer,
-        PCODECHAL_ENCODE_AVC_WP_SURFACE_PARAMS pParams);
+        PCODECHAL_ENCODE_AVC_WP_SURFACE_PARAMS params);
 
     virtual MOS_STATUS SendMeSurfaces(
         PMOS_COMMAND_BUFFER pCmdBuffer,
-        MeSurfaceParams* pParams);
+        MeSurfaceParams* params);
         
-    virtual MOS_STATUS SetCurbeMe(MeCurbeParams* pParams);
+    virtual MOS_STATUS SetCurbeMe(MeCurbeParams* params);
     //!
     //! \brief    initial multi ref Qp BRC constant Buffer.
     //!
-    //! \param    [in] pParams
+    //! \param    [in] params
     //!           BRC init constant buffer params.
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason   
-    MOS_STATUS InitBrcConstantBufferMultiRefQP(PCODECHAL_ENCODE_AVC_INIT_BRC_CONSTANT_BUFFER_PARAMS pParams);
+    MOS_STATUS InitBrcConstantBufferMultiRefQP(PCODECHAL_ENCODE_AVC_INIT_BRC_CONSTANT_BUFFER_PARAMS params);
 
     
 };

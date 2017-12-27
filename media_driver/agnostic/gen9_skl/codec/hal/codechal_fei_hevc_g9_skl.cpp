@@ -25,7 +25,6 @@
 //!
 
 #include "codechal_fei_hevc_g9_skl.h"
-#include "codechal_encoder_g9.h"
 #include "igcodeckrn_g9.h"
 #include "codeckrnheader.h"
 
@@ -1916,6 +1915,9 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::EndKernelCall(
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncHevcStateG9::EndKernelCall(mediaStateType, kernelState, cmdBuffer));
 
+    // skip haar distortion surface, statstics data dump surface
+    // and frame level statstics data surface because they are not used
+#if 0
     CODECHAL_DEBUG_TOOL( 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpSurface(
             &m_encStatsBuffers.m_puStatsSurface,
@@ -1951,6 +1953,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::EndKernelCall(
             0,
             CODECHAL_MEDIA_STATE_HEVC_B_MBENC));
     )
+#endif
     return eStatus;
 }
 
@@ -1967,7 +1970,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::InitKernelState()
     CODECHAL_ENCODE_CHK_NULL_RETURN(pMbEncKernelStates);
     
     pMbEncKernelBindingTable = (PCODECHAL_ENCODE_BINDING_TABLE_GENERIC)MOS_AllocAndZeroMemory(
-        sizeof(CODECHAL_ENCODE_BINDING_TABLE_GENERIC) * dwNumMbEncEncKrnStates);
+        sizeof(GenericBindingTable) * dwNumMbEncEncKrnStates);
     CODECHAL_ENCODE_CHK_NULL_RETURN(pMbEncKernelBindingTable);
     
     auto krnStateIdx = pMbEncKernelStates;
@@ -2008,7 +2011,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::InitKernelState()
             &krnStateIdx->dwSshSize,
             &krnStateIdx->dwBindingTableSize));
         
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_MhwInitISH(m_stateHeapInterface, krnStateIdx));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->MhwInitISH(m_stateHeapInterface, krnStateIdx));
 
         krnStateIdx++;
     }
@@ -2137,12 +2140,12 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode2xScalingKernel()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(RequestSshAndVerifyCommandBufferSize(kernelState));
     }
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_GetResourceInfo(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(
         m_osInterface,
         &m_scaled2xSurface));
 
     // Setup DSH
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_AssignDshAndSshSpace(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AssignDshAndSshSpace(
         m_stateHeapInterface,
         kernelState,
         false,
@@ -2220,7 +2223,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode2xScalingKernel()
     walkerCodecParams.bNoDependency     = true;
 
     MHW_WALKER_PARAMS walkerParams;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_InitMediaObjectWalkerParams(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalInitMediaObjectWalkerParams(
         m_hwInterface,
         &walkerParams,
         &walkerCodecParams));
@@ -2253,7 +2256,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode32x32PuModeDecisionKernel()
     }
 
     // Setup DSH
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_AssignDshAndSshSpace(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AssignDshAndSshSpace(
         m_stateHeapInterface,
         kernelState,
         false,
@@ -2316,7 +2319,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode32x32PuModeDecisionKernel()
     curbe->DW15.BTI_Brc_Data       = bindingTable->dwBindingTableEntries[startIndex++];
     curbe->DW16.BTI_Stats_Surface  = bindingTable->dwBindingTableEntries[startIndex++];
     curbe->DW17.BTI_Kernel_Debug   = bindingTable->dwBindingTableEntries[startIndex++];
-        
+
     CODECHAL_ENCODE_ASSERT(startIndex == bindingTable->dwNumBindingTableEntries);
 
     CODECHAL_MEDIA_STATE_TYPE encFunctionType = CODECHAL_MEDIA_STATE_32x32_PU_MODE_DECISION;
@@ -2392,12 +2395,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode32x32PuModeDecisionKernel()
         SURFACE_BRC_DATA,
         &bindingTable->dwBindingTableEntries[startIndex++]));
 
-    // 32x32 PU statistics data dump
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(SetSurfacesState(
-                kernelState,
-                &cmdBuffer,
-                SURFACE_PU_STATS,
-                &bindingTable->dwBindingTableEntries[startIndex++]));
+    // skip statstics data dump surface because it is not used
 
     if (!m_hwWalker)
     {
@@ -2414,7 +2412,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode32x32PuModeDecisionKernel()
     walkerCodecParams.bNoDependency         = true;     /* Enforce no dependency dispatch order for 32x32 MD kernel  */
 
     MHW_WALKER_PARAMS walkerParams;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_InitMediaObjectWalkerParams(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalInitMediaObjectWalkerParams(
         m_hwInterface,
         &walkerParams,
         &walkerCodecParams));
@@ -2449,7 +2447,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode16x16SadPuComputationKernel()
     }
 
     //Setup DSH
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_AssignDshAndSshSpace(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AssignDshAndSshSpace(
         m_stateHeapInterface,
         kernelState,
         false,
@@ -2556,7 +2554,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode16x16SadPuComputationKernel()
     walkerCodecParams.bNoDependency     = true;
 
     MHW_WALKER_PARAMS walkerParams;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_InitMediaObjectWalkerParams(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalInitMediaObjectWalkerParams(
         m_hwInterface,
         &walkerParams,
         &walkerCodecParams));
@@ -2591,7 +2589,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode16x16PuModeDecisionKernel()
     }
 
     // Setup DSH
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_AssignDshAndSshSpace(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AssignDshAndSshSpace(
         m_stateHeapInterface,
         kernelState,
         false,
@@ -2815,7 +2813,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode16x16PuModeDecisionKernel()
     walkerCodecParams.bNoDependency     = true;
 
     MHW_WALKER_PARAMS walkerParams;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_InitMediaObjectWalkerParams(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalInitMediaObjectWalkerParams(
         m_hwInterface,
         &walkerParams,
         &walkerCodecParams));
@@ -2850,7 +2848,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PUKernel()
     }
 
     // Setup DSH
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_AssignDshAndSshSpace(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AssignDshAndSshSpace(
         m_stateHeapInterface,
         kernelState,
         false,
@@ -3034,7 +3032,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PUKernel()
     if(m_numMb8x8IntraKernelSplit == 0)
     {
         MHW_WALKER_PARAMS walkerParams;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_InitMediaObjectWalkerParams(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalInitMediaObjectWalkerParams(
             m_hwInterface,
             &walkerParams,
             &walkerCodecParams));
@@ -3059,7 +3057,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PUKernel()
             CODECHAL_ENCODE_CHK_STATUS_RETURN(SendGenericKernelCmds(&cmdBuffer, &sendKernelCmdsParams));
       
             MHW_WALKER_PARAMS walkerParams;
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_InitMediaObjectWalkerParams(
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalInitMediaObjectWalkerParams(
                 m_hwInterface,
                 &walkerParams,
                 &walkerCodecParams));
@@ -3111,7 +3109,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PUFMODEKernel()
     }
 
     // Setup DSH
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_AssignDshAndSshSpace(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AssignDshAndSshSpace(
         m_stateHeapInterface,
         kernelState,
         false,
@@ -3275,29 +3273,8 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PUFMODEKernel()
         SURFACE_BRC_DATA,
         &bindingTable->dwBindingTableEntries[startBTI++]));
 
-    // Haar distortion for 16x16 surface
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(SetSurfacesState(
-                kernelState,
-                &cmdBuffer,
-                SURFACE_8X8_PU_HAAR_DIST,
-                &bindingTable->dwBindingTableEntries[startBTI++]));
-
-    // 8x8 PU statistics data dump, take the statistics surface from Hevc_LCUEnc_I_32x32_PU_ModeDecision as input
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(SetSurfacesState(
-                kernelState,
-                &cmdBuffer,
-                SURFACE_PU_STATS,
-                &bindingTable->dwBindingTableEntries[startBTI++]));
-
-    // Frame level Statistics data surface
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(SetSurfacesState(
-                kernelState,
-                &cmdBuffer,
-                SURFACE_8X8_PU_FRAME_STATS,
-                &bindingTable->dwBindingTableEntries[startBTI++]));
-
-    startBTI++;
-
+    // skip haar distortion surface, statstics data dump surface
+    // and frame level statstics data surface because they are not used
 
     if (!m_hwWalker)
     {
@@ -3316,7 +3293,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PUFMODEKernel()
     walkerCodecParams.bNoDependency     = true;
 
     MHW_WALKER_PARAMS walkerParams;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_InitMediaObjectWalkerParams(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalInitMediaObjectWalkerParams(
         m_hwInterface,
         &walkerParams,
         &walkerCodecParams));
@@ -3333,7 +3310,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PUFMODEKernel()
     return eStatus;
 }
 
-MOS_STATUS CodechalFeiHevcStateG9Skl::Encode32x32_B_IntraCheckKernel()
+MOS_STATUS CodechalFeiHevcStateG9Skl::Encode32X32BIntraCheckKernel()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
    
@@ -3352,7 +3329,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode32x32_B_IntraCheckKernel()
     }
 
     // Setup DSH
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_AssignDshAndSshSpace(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AssignDshAndSshSpace(
         m_stateHeapInterface,
         kernelState,
         false,
@@ -3400,7 +3377,8 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode32x32_B_IntraCheckKernel()
     curbe->DW11.BTI_Slice_Map       = bindingTable->dwBindingTableEntries[startIndex++];
     curbe->DW12.BTI_VME_Y2X         = bindingTable->dwBindingTableEntries[startIndex++];
     curbe->DW13.BTI_Simplest_Intra  = bindingTable->dwBindingTableEntries[startIndex++];
-    startIndex += 2;
+    curbe->DW14.BTI_HME_MVPred      = bindingTable->dwBindingTableEntries[startIndex++];
+    curbe->DW15.BTI_HME_Dist        = bindingTable->dwBindingTableEntries[startIndex++];
     curbe->DW16.BTI_LCU_Skip        = bindingTable->dwBindingTableEntries[startIndex++];
     curbe->DW17.BTI_Debug           = bindingTable->dwBindingTableEntries[startIndex++];
         
@@ -3495,7 +3473,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode32x32_B_IntraCheckKernel()
     walkerCodecParams.bNoDependency     = true;
 
     MHW_WALKER_PARAMS walkerParams;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_InitMediaObjectWalkerParams(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalInitMediaObjectWalkerParams(
         m_hwInterface,
         &walkerParams,
         &walkerCodecParams));
@@ -3533,7 +3511,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8BPakKernel(
     }
     
     //Setup DSH
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_AssignDshAndSshSpace(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AssignDshAndSshSpace(
         m_stateHeapInterface,
         kernelState,
         false,
@@ -3671,7 +3649,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8BPakKernel(
     walkerCodecParams.bUseScoreboard        = m_useHwScoreboard;
 
     MHW_WALKER_PARAMS walkerParams;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_InitMediaObjectWalkerParams(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalInitMediaObjectWalkerParams(
         m_hwInterface,
         &walkerParams,
         &walkerCodecParams));
@@ -3730,7 +3708,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PBMbEncKernel()
         {
             uint8_t FrameIdx = pHevcPicParams->RefFrameList[pHevcPicParams->CollocatedRefPicIndex].FrameIdx;
 
-            mbCodeIdxForTempMVP = pRefList[FrameIdx]->ucMbCodeIdx;
+            mbCodeIdxForTempMVP = pRefList[FrameIdx]->ucScalingIdx;
         }
 
         if(mbCodeIdxForTempMVP == 0xFF && pHevcSliceParams->slice_temporal_mvp_enable_flag)
@@ -3744,7 +3722,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PBMbEncKernel()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(GenerateWalkingControlRegion());
 
     //Setup DSH
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_AssignDshAndSshSpace(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AssignDshAndSshSpace(
         m_stateHeapInterface,
         kernelState,
         false,
@@ -4034,7 +4012,8 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PBMbEncKernel()
     startBTI++; //skip UV index
     curbe->DW59.BTI_Intra_Dist                 = bindingTable->dwBindingTableEntries[startBTI++];
     curbe->DW60.BTI_Min_Dist                   = bindingTable->dwBindingTableEntries[startBTI++];
-    startBTI += 2;
+    curbe->DW61.BTI_HMEMVPredFwdBwdSurfIndex   = bindingTable->dwBindingTableEntries[startBTI++];
+    curbe->DW62.BTI_HMEDistSurfIndex           = bindingTable->dwBindingTableEntries[startBTI++];
     curbe->DW63.BTI_Slice_Map                  = bindingTable->dwBindingTableEntries[startBTI++];
     curbe->DW64.BTI_VME_Saved_UNI_SIC          = bindingTable->dwBindingTableEntries[startBTI++];
     curbe->DW65.BTI_Simplest_Intra             = bindingTable->dwBindingTableEntries[startBTI++];
@@ -4053,8 +4032,10 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PBMbEncKernel()
         curbe->DW74.BTI_MVP_CurFrame       = bindingTable->dwBindingTableEntries[startBTI++];
         curbe->DW75.BTI_Haar_Dist_Surface  = bindingTable->dwBindingTableEntries[startBTI++];
         curbe->DW76.BTI_Stats_Surface      = bindingTable->dwBindingTableEntries[startBTI++];
-        curbe->DW77.BTI_Frame_Stats_Surface = bindingTable->dwBindingTableEntries[startBTI++];
-        curbe->DW78.BTI_MVPredictor_Surface = bindingTable->dwBindingTableEntries[startBTI++];
+        curbe->DW77.BTI_Frame_Stats_Surface= bindingTable->dwBindingTableEntries[startBTI++];
+        curbe->DW78.BTI_MVPredictor_Surface= bindingTable->dwBindingTableEntries[startBTI++];
+        curbe->DW79.Value                  = 0;
+        curbe->DW80.Value                  = 0;
         startBTI += 2;
         curbe->DW81.BTI_Debug              = bindingTable->dwBindingTableEntries[startBTI++];
     }
@@ -4070,8 +4051,10 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PBMbEncKernel()
         curbe->DW75.BTI_MVP_CurFrame       = bindingTable->dwBindingTableEntries[startBTI++];
         curbe->DW76.BTI_Haar_Dist_Surface  = bindingTable->dwBindingTableEntries[startBTI++];
         curbe->DW77.BTI_Stats_Surface      = bindingTable->dwBindingTableEntries[startBTI++];
-        curbe->DW78.BTI_Frame_Stats_Surface = bindingTable->dwBindingTableEntries[startBTI++];
-        curbe->DW79.BTI_MVPredictor_Surface = bindingTable->dwBindingTableEntries[startBTI++];
+        curbe->DW78.BTI_Frame_Stats_Surface= bindingTable->dwBindingTableEntries[startBTI++];
+        curbe->DW79.BTI_MVPredictor_Surface= bindingTable->dwBindingTableEntries[startBTI++];
+        curbe->DW80.Value                  = 0;
+        curbe->DW81.Value                  = 0;
         startBTI += 2;
         curbe->DW82.BTI_Debug              = bindingTable->dwBindingTableEntries[startBTI++];
     }
@@ -4222,7 +4205,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PBMbEncKernel()
             &cmdBuffer,
             SURFACE_COL_MB_MV,
             &bindingTable->dwBindingTableEntries[startBTI++],
-            &resMvTemporalBuffer[mbCodeIdxForTempMVP]));
+            (MOS_RESOURCE*)m_allocator->GetResource(m_standard, mvTemporalBuffer, mbCodeIdxForTempMVP)));
     }
 
     // 12: Current frame col-located data surface -- reserved now
@@ -4377,26 +4360,9 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PBMbEncKernel()
         SURFACE_MVP_INDEX,
         &bindingTable->dwBindingTableEntries[startBTI++]));
 
-    // 45: Haar distortion for 16x16 surface, take same surface name from Hevc_LCUEnc_I_8x8_PU_FMode_inLCU as input
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(SetSurfacesState(
-                kernelState,
-                &cmdBuffer,
-                SURFACE_8X8_PU_HAAR_DIST,
-                &bindingTable->dwBindingTableEntries[startBTI++]));
-
-    // 46: Statistics data dump surface
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(SetSurfacesState(
-                kernelState,
-                &cmdBuffer,
-                SURFACE_MB_ENC_STATS,
-                &bindingTable->dwBindingTableEntries[startBTI++]));
-
-    // 47: Frame level statistics data surface
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(SetSurfacesState(
-                kernelState,
-                &cmdBuffer,
-                SURFACE_MB_ENC_FRAME_STATS,
-                &bindingTable->dwBindingTableEntries[startBTI++]));
+    // skip three BTI for haar distortion surface, statstics data dump surface
+    // and frame level statstics data surface because they are not used
+    startBTI += 3;
 
     // 48: FEI external MVPredictor surface 
     if (pFeiPicParams->MVPredictorInput)
@@ -4625,10 +4591,9 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode32x32PuModeDecisionKernel()
     I32x32Params.m_cmSurfCurrY = &m_rawSurfaceToEnc->OsResource;
     I32x32Params.m_cmSurfCurrY2 = &m_scaled2xSurface.OsResource;
     I32x32Params.m_cmSurfSliceMap = &m_sliceMapSurface.OsResource;
-    I32x32Params.m_cmSurfCombinedQP = &BrcInputForEncKernelBuffer.sResource;
+    I32x32Params.m_cmSurfCombinedQP = (MOS_RESOURCE*)m_allocator->GetResource(m_standard, brcInputForEncKernel);
     I32x32Params.m_cmLCUQPSurf = &m_lcuQP.OsResource;
     I32x32Params.m_cmBRCConstSurf = &BrcBuffers.sBrcConstantDataBuffer[m_currRecycledBufIdx].OsResource;
-    I32x32Params.m_cmSurfStats = &m_encStatsBuffers.m_puStatsSurface.OsResource;
 
     if (m_cmKernelMap.count("I_32X32") == 0)
     {
@@ -4802,7 +4767,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode16x16PuModeDecisionKernel()
     I16x16ModeParams.m_cmSurfVMEMode = &m_vme8x8Mode.sResource;
     I16x16ModeParams.m_cmSurfSliceMap = &m_sliceMapSurface.OsResource;
     I16x16ModeParams.m_cmSurfSIF = &m_simplestIntraSurface.OsResource;
-    I16x16ModeParams.m_cmSurfCombinedQP = &BrcInputForEncKernelBuffer.sResource;
+    I16x16ModeParams.m_cmSurfCombinedQP = (MOS_RESOURCE*)m_allocator->GetResource(m_standard, brcInputForEncKernel);
     I16x16ModeParams.m_cmLCUQPSurf = &m_lcuQP.OsResource;
     I16x16ModeParams.m_cmBRCConstSurf = &BrcBuffers.sBrcConstantDataBuffer[m_currRecycledBufIdx].OsResource;
 
@@ -4885,7 +4850,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PUKernel()
     I8x8Params.m_cmSurfSliceMap = &m_sliceMapSurface.OsResource;
     I8x8Params.m_cmSurfVMEMode = &m_vme8x8Mode.sResource;
     I8x8Params.m_cmSurfMode = &m_intraMode.sResource;
-    I8x8Params.m_cmSurfCombinedQP = &BrcInputForEncKernelBuffer.sResource;
+    I8x8Params.m_cmSurfCombinedQP = (MOS_RESOURCE*)m_allocator->GetResource(m_standard, brcInputForEncKernel);
     I8x8Params.m_cmSurfSIF = &m_simplestIntraSurface.OsResource;
     I8x8Params.m_cmLCUQPSurf = &m_lcuQP.OsResource;
     I8x8Params.m_cmBRCConstSurf = &BrcBuffers.sBrcConstantDataBuffer[m_currRecycledBufIdx].OsResource;
@@ -4972,12 +4937,9 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PUFMODEKernel()
     I8x8ModeParams.m_cmSurfSliceMap = &m_sliceMapSurface.OsResource;
     I8x8ModeParams.m_cmSurfIntraDist = &m_intraDist.sResource;
     I8x8ModeParams.m_cmSurfSIF = &m_simplestIntraSurface.OsResource;
-    I8x8ModeParams.m_cmSurfCombinedQP = &BrcInputForEncKernelBuffer.sResource;
+    I8x8ModeParams.m_cmSurfCombinedQP = (MOS_RESOURCE*)m_allocator->GetResource(m_standard, brcInputForEncKernel);
     I8x8ModeParams.m_cmLCUQPSurf = &m_lcuQP.OsResource;
     I8x8ModeParams.m_cmBRCConstSurf = &BrcBuffers.sBrcConstantDataBuffer[m_currRecycledBufIdx].OsResource;
-    I8x8ModeParams.m_cmSurfHaarDist = &m_encStatsBuffers.m_8x8PuHaarDist.OsResource;
-    I8x8ModeParams.m_cmSurfStats = &m_encStatsBuffers.m_puStatsSurface.OsResource;
-    I8x8ModeParams.m_cmSurfFrameStats = &m_encStatsBuffers.m_8x8PuFrameStats.sResource;
 
     if (m_cmKernelMap.count("I_8X8_MODE") == 0)
     {
@@ -4992,7 +4954,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PUFMODEKernel()
     return eStatus;
 }
 
-MOS_STATUS CodechalFeiHevcStateG9Skl::Encode32x32_B_IntraCheckKernel()
+MOS_STATUS CodechalFeiHevcStateG9Skl::Encode32X32BIntraCheckKernel()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -5099,7 +5061,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8BPakKernel(
     PB8x8PakParams.m_bufSize = m_mbCodeSize - m_mvOffset;
     PB8x8PakParams.m_bufOffset = m_mvOffset;
     PB8x8PakParams.m_cmSurfSliceMap = &m_sliceMapSurface.OsResource;
-    PB8x8PakParams.m_cmSurfCombinedQP = &BrcInputForEncKernelBuffer.sResource;
+    PB8x8PakParams.m_cmSurfCombinedQP = (MOS_RESOURCE*)m_allocator->GetResource(m_standard, brcInputForEncKernel);
     PB8x8PakParams.m_cmLCUQPSurf = &m_lcuQP.OsResource;
     PB8x8PakParams.m_cmBRCConstSurf = &BrcBuffers.sBrcConstantDataBuffer[m_currRecycledBufIdx].OsResource;
     PB8x8PakParams.m_cmSurfMVIndex = &m_mvIndex.sResource;
@@ -5139,7 +5101,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PBMbEncKernel()
         {
             uint8_t FrameIdx = pHevcPicParams->RefFrameList[pHevcPicParams->CollocatedRefPicIndex].FrameIdx;
 
-            mbCodeIdxForTempMVP = pRefList[FrameIdx]->ucMbCodeIdx;
+            mbCodeIdxForTempMVP = pRefList[FrameIdx]->ucScalingIdx;
         }
 
         if(mbCodeIdxForTempMVP == 0xFF && pHevcSliceParams->slice_temporal_mvp_enable_flag)
@@ -5494,14 +5456,15 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PBMbEncKernel()
     }
     else
     {
-        PB8x8MbEncParams.m_cmSurfColRefData = &resMvTemporalBuffer[mbCodeIdxForTempMVP];
+        PB8x8MbEncParams.m_cmSurfColRefData = 
+            (MOS_RESOURCE*)m_allocator->GetResource(m_standard, mvTemporalBuffer, mbCodeIdxForTempMVP);
     }
     PB8x8MbEncParams.m_cmSurfIntraDist = &m_intraDist.sResource; 
     PB8x8MbEncParams.m_cmSurfMinDist = &m_minDistortion.OsResource;
     PB8x8MbEncParams.m_cmSurfSliceMap = &m_sliceMapSurface.OsResource;
     PB8x8MbEncParams.m_cmSurfVMEIN = &m_vmeSavedUniSic.sResource;
     PB8x8MbEncParams.m_cmSurfSIF = &m_simplestIntraSurface.OsResource;
-    PB8x8MbEncParams.m_cmSurfCombinedQP = &BrcInputForEncKernelBuffer.sResource;
+    PB8x8MbEncParams.m_cmSurfCombinedQP = (MOS_RESOURCE*)m_allocator->GetResource(m_standard, brcInputForEncKernel);
     PB8x8MbEncParams.m_cmLCUQPSurf = &m_lcuQP.OsResource;
     PB8x8MbEncParams.m_cmBRCConstSurf = &BrcBuffers.sBrcConstantDataBuffer[m_currRecycledBufIdx].OsResource;
     PB8x8MbEncParams.m_cmWaveFrontMap = &m_concurrentThreadSurface[m_concurrentThreadIndex].OsResource;
@@ -5511,9 +5474,6 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PBMbEncKernel()
     }
     PB8x8MbEncParams.m_cmSurfMVIndex = &m_mvIndex.sResource; 
     PB8x8MbEncParams.m_cmSurfMVPred = &m_mvpIndex.sResource;
-    PB8x8MbEncParams.m_cmSurfHaarDist = &m_encStatsBuffers.m_8x8PuHaarDist.OsResource;
-    PB8x8MbEncParams.m_cmSurfStats = &m_encStatsBuffers.m_mbEncStatsSurface;
-    PB8x8MbEncParams.m_cmSurfFrameStats = &m_encStatsBuffers.m_mbEncFrameStats.sResource;
     if (pFeiPicParams->MVPredictorInput)
     {
         PB8x8MbEncParams.m_cmSurfMVPredictor = &pFeiPicParams->resMVPredictor;
@@ -5650,7 +5610,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::EncodeKernelFunctions()
     }
     else
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(Encode32x32_B_IntraCheckKernel());
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(Encode32X32BIntraCheckKernel());
     }
 
     //Step 3: 16x16 SAD Computation
@@ -5845,21 +5805,21 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Initialize(PCODECHAL_SETTINGS settings)
     // regkey setup
     MOS_USER_FEATURE_VALUE_DATA userFeatureData;
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    CodecHal_UserFeature_ReadValue(
+    MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_SINGLE_TASK_PHASE_ENABLE_ID,
         &userFeatureData);
     m_singleTaskPhaseSupported = (userFeatureData.i32Data) ? true : false;
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    CodecHal_UserFeature_ReadValue(
+    MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_26Z_ENABLE_ID,
         &userFeatureData);
     bEnable26WalkingPattern = (userFeatureData.i32Data) ? false : true;
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    eStatus = CodecHal_UserFeature_ReadValue(
+    eStatus = MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_REGION_NUMBER_ID,
         &userFeatureData);
@@ -5876,21 +5836,21 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Initialize(PCODECHAL_SETTINGS settings)
     }
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    CodecHal_UserFeature_ReadValue(
+    MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_NUM_8x8_INTRA_KERNEL_SPLIT,
         &userFeatureData);
     m_numMb8x8IntraKernelSplit = (userFeatureData.i32Data < 0) ? 0 : userFeatureData.i32Data;
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    CodecHal_UserFeature_ReadValue(
+    MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_NUM_B_KERNEL_SPLIT,
         &userFeatureData);
     m_numMbBKernelSplit = (userFeatureData.i32Data < 0) ? 0 : userFeatureData.i32Data;
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    CodecHal_UserFeature_ReadValue(
+    MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_POWER_SAVING,
         &userFeatureData);
@@ -6054,10 +6014,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::AllocateEncResources()
         uiHeight,
         "Simplest Intra surface"));
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateBuffer(
-        &BrcInputForEncKernelBuffer,
-        1024,
-        "BRC Input for ENC kernel surface"));
+    m_allocator->AllocateResource(m_standard, 1024, 1, brcInputForEncKernel, true);
    
     if (MEDIA_IS_SKU(m_skuTable, FtrEncodeHEVC10bit))
     {
@@ -6106,8 +6063,6 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::AllocateEncResources()
         uiWidth,
         uiHeight,
         "ROI Buffer"));
-
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateEncStatsResources());
 
     return eStatus;
 }
@@ -6194,10 +6149,6 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::FreeEncResources()
             m_osInterface,
             &m_concurrentThreadSurface[i].OsResource);
     }
-   
-    m_osInterface->pfnFreeResource(
-        m_osInterface,
-        &BrcInputForEncKernelBuffer.sResource);
     
     m_osInterface->pfnFreeResource(
         m_osInterface,
@@ -6244,8 +6195,6 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::FreeEncResources()
      m_cmKernelMap.swap(deallocator);
 
 #endif
-
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(FreeEncStatsResources());
 
     return eStatus;
 }
@@ -6356,8 +6305,8 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::InitSurfaceInfoTable()
     param = &m_surfaceParams[SURFACE_BRC_INPUT];
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParams1D(
         param,
-        &BrcInputForEncKernelBuffer.sResource,
-        BrcInputForEncKernelBuffer.dwSize,
+        (MOS_RESOURCE*)m_allocator->GetResource(m_standard, brcInputForEncKernel),
+        m_allocator->GetResourceSize(m_standard, brcInputForEncKernel),
         0,
         m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_MV_DATA_ENCODE].Value,
         0,
@@ -6490,7 +6439,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::InitSurfaceInfoTable()
     param = &m_surfaceParams[SURFACE_COL_MB_MV];
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParams1D(
         param,
-        &resMvTemporalBuffer[0],
+        nullptr,
         dwSizeOfMvTemporalBuffer,
         0,
         m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_MV_DATA_ENCODE].Value,
@@ -6592,6 +6541,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::InitSurfaceInfoTable()
         0,
         false));
 
+#if 0
     param = &m_surfaceParams[SURFACE_PU_STATS];
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParams2D(
                 param,
@@ -6639,7 +6589,6 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::InitSurfaceInfoTable()
                 0,
                 true));
 
-#if 0
     param = &m_surfaceParams[SURFACE_FEI_EXTERNAL_MVP];
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParams1D(
         param,

@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      media_libva_decoder.h 
-//! \brief     libva(and its extension) decoder head file  
+//! \file      media_libva_decoder.h
+//! \brief     libva(and its extension) decoder head file
 //!
 
 #ifndef __MEDIA_LIBVA_DECODER_H__
@@ -34,16 +34,11 @@
 #define DDI_DECODE_SFC_MAX_HEIGHT                   4096
 #define DDI_DECODE_SFC_MIN_WIDTH                    128
 #define DDI_DECODE_SFC_MIN_HEIGHT                   128
-#define DDI_DECODE_SFC_MIN_SCALE_RATIO              (1.0F/8.0F)
 
-typedef enum _DDI_DECODE_MODE
-{
-    MPEG2 = 1,
-    VC1   = 2,
-    H264  = 4,
-    JPEG  = 8
-} DDI_DECODE_MODE;
-
+//!
+//! \struct DDI_DECODE_CONFIG_ATTR
+//! \brief  Ddi decode configuration attribute
+//!
 struct DDI_DECODE_CONFIG_ATTR
 {
     VAProfile           profile;
@@ -57,6 +52,10 @@ typedef struct DDI_DECODE_CONFIG_ATTR *PDDI_DECODE_CONFIG_ATTR;
 
 class DdiMediaDecode;
 
+//!
+//! \struct DDI_DECODE_CONTEXT
+//! \brief  Ddi decode context
+//!
 struct DDI_DECODE_CONTEXT
 {
     // Decoder data related with the specific codec
@@ -64,33 +63,17 @@ struct DDI_DECODE_CONTEXT
     DdiMediaDecode                  *m_ddiDecode;
     // Decoder private data
     DdiCpInterface                  *pCpDdiInterface;
-
     // Parameters
     CodechalDecodeParams            DecodeParams;
-    CODECHAL_STANDARD               Standard;
-    uint32_t                        m_groupIndex;
-
-    uint16_t                        wPicWidthInMB;          // Picture Width in MB width count
-    uint16_t                        wPicHeightInMB;         // Picture Height in MB height count
-
-    uint16_t                        wMode;                  // Get the info during hand shaking
-    uint32_t                        dwWidth;                // Picture Width
-    uint32_t                        dwHeight;               // Picture Height
+    uint16_t                        wMode;                  // Get the info during hand shaking    
     Codechal                        *pCodecHal;
     bool                            bShortFormatInUse;
-    bool                            bStreamOutEnabled;
-
-    // Status Report
-    CodechalDecodeStatusReport     *pDecodeStatusReport;
-    uint16_t                        wDecStatusReportNum;
     VASurfaceDecodeMBErrors         vaSurfDecErrOutput[2];
-
     DDI_CODEC_RENDER_TARGET_TABLE   RTtbl;
     DDI_CODEC_COM_BUFFER_MGR        BufMgr;
     PDDI_MEDIA_CONTEXT              pMediaCtx;
-
     // Add a list to track DPB.
-    VASurfaceID                     RecListSurfaceID[CODECHAL_AVC_NUM_UNCOMPRESSED_SURFACE];
+    VASurfaceID                     RecListSurfaceID[CODEC_AVC_NUM_UNCOMPRESSED_SURFACE];
     uint32_t                        dwSliceParamBufNum;
     uint32_t                        dwSliceCtrlBufNum;
     uint32_t                        uiDecProcessingType;
@@ -98,65 +81,159 @@ struct DDI_DECODE_CONTEXT
 
 typedef struct DDI_DECODE_CONTEXT *PDDI_DECODE_CONTEXT;
 
-static __inline PDDI_DECODE_CONTEXT DdiDecode_GetDecContextFromPVOID (void *pDecCtx)
+static __inline PDDI_DECODE_CONTEXT DdiDecode_GetDecContextFromPVOID (void *decCtx)
 {
-    return (PDDI_DECODE_CONTEXT)pDecCtx;
+    return (PDDI_DECODE_CONTEXT)decCtx;
 }
 
-PDDI_DECODE_CONTEXT DdiDecode_GetDecContextFromContextID (VADriverContextP ctx, VAContextID vaCtxID);
-int32_t DdiDecode_GetBitstreamBufIndexFromBuffer(DDI_CODEC_COM_BUFFER_MGR *pBufMgr, DDI_MEDIA_BUFFER *pBuf);
-
+//!
+//! \brief  Create buffer
+//!
+//! \param  [in] ctx
+//!     Pointer to VA driver context
+//! \param  [in] decCtx
+//!     Pointer to ddi decode context
+//! \param  [in] type
+//!     VA buffer type
+//! \param  [in] size
+//!     Size
+//! \param  [in] numElements
+//!     Number of elements
+//! \param  [in] data
+//!     DAta
+//! \param  [in] bufId
+//!     VA buffer ID
+//!     
+//! \return     VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
 VAStatus DdiDecode_CreateBuffer(
     VADriverContextP         ctx,
-    PDDI_DECODE_CONTEXT      pDecCtx,
+    PDDI_DECODE_CONTEXT      decCtx,
     VABufferType             type,
     uint32_t                 size,
-    uint32_t                 num_elements,
-    void                    *pData,
-    VABufferID              *pBufId
+    uint32_t                 numElements,
+    void                    *data,
+    VABufferID              *bufId
 );
 
+//!
+//! \brief  Unregister RT surfaces
+//!
+//! \param  [in] ctx
+//!     Pointer to VA driver context
+//! \param  [in] surface
+//!     Pointer to ddi media surface
+//!     
+//! \return     VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
 VAStatus DdiDecode_UnRegisterRTSurfaces(
     VADriverContextP    ctx,
     PDDI_MEDIA_SURFACE surface);
 
-VAStatus DdiDecode_CreateConfig (
-    VAProfile           profile,
-    VAEntrypoint        entrypoint,
-    VAConfigAttrib     *attrib_list,
-    int32_t             num_attribs,
-    VAConfigID         *config_id
-);
-
+//!
+//! \brief  Begin picture
+//!
+//! \param  [in] ctx
+//!     Pointer to VA driver context
+//! \param  [in] context
+//!     VA context ID
+//! \param  [in] renderTarget
+//!     VA surface ID
+//!     
+//! \return     VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
 VAStatus DdiDecode_BeginPicture (
     VADriverContextP    ctx,
     VAContextID         context,
-    VASurfaceID         render_target
+    VASurfaceID         renderTarget
 );
 
+//!
+//! \brief  End picture
+//!
+//! \param  [in] ctx
+//!     Pointer to VA driver context
+//! \param  [in] context
+//!     VA context ID
+//!     
+//! \return     VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
 VAStatus DdiDecode_EndPicture (
     VADriverContextP    ctx,
     VAContextID         context
 );
 
+//!
+//! \brief  Render picture
+//!
+//! \param  [in] ctx
+//!     Pointer to VA driver context
+//! \param  [in] context
+//!     VA context ID
+//! \param  [in] buffers
+//!     VA buffer ID
+//! \param  [in] numBuffers
+//!     Number of buffers
+//!     
+//! \return     VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
 VAStatus DdiDecode_RenderPicture (
     VADriverContextP    ctx,
     VAContextID         context,
     VABufferID         *buffers,
-    int32_t             num_buffers
+    int32_t             numBuffers
 );
 
+//!
+//! \brief  Create context
+//!
+//! \param  [in] ctx
+//!     Pointer to VA driver context
+//! \param  [in] configId
+//!     VA configuration ID
+//! \param  [in] pictureWidth
+//!     The width of picture
+//! \param  [in] pictureHeight
+//!     The height of picture
+//! \param  [in] flag
+//!     Flag
+//! \param  [in] renderTargets
+//!     VA surface ID
+//! \param  [in] numRenderTargets
+//!     Number of render targets
+//! \param  [in] context
+//!     VA context ID
+//!     
+//! \return     VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
 VAStatus DdiDecode_CreateContext (
     VADriverContextP    ctx,
-    VAConfigID          config_id,
-    int32_t             picture_width,
-    int32_t             picture_height,
+    VAConfigID          configId,
+    int32_t             pictureWidth,
+    int32_t             pictureHeight,
     int32_t             flag,
-    VASurfaceID        *render_targets,
-    int32_t             num_render_targets,
+    VASurfaceID        *renderTargets,
+    int32_t             numRenderTargets,
     VAContextID        *context
 );
 
+//!
+//! \brief  Destroy context
+//!
+//! \param  [in] ctx
+//!     Pointer to VA driver context
+//! \param  [in] context
+//!     VA context ID
+//!     
+//! \return     VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
 VAStatus DdiDecode_DestroyContext (
     VADriverContextP    ctx,
     VAContextID         context

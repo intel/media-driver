@@ -580,7 +580,7 @@ PRINT_FMT_STATUS PFParser::GetNextFmtToken(char* tkn, size_t size)
             // Copy the whole of the format string into the token
             if ((size_t)(mCurrLoc - mInputStart) <= size)
             {
-                memcpy(tkn, mInputStart, mCurrLoc - mInputStart);
+                CmSafeMemCopy(tkn, mInputStart, mCurrLoc - mInputStart);
                 tkn[mCurrLoc - mInputStart] = '\0';
                 return PF_SUCCESS;
             }

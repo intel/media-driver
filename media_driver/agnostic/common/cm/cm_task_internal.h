@@ -23,13 +23,51 @@
 //! \file      cm_task_internal.h  
 //! \brief     Contains Class CmTaskInternal  definitions  
 //!
-#pragma once
+
+#ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMTASKINTERNAL_H_
+#define MEDIADRIVER_AGNOSTIC_COMMON_CM_CMTASKINTERNAL_H_
+
 #include "cm_def.h"
 #include "cm_array.h"
+#include "cm_event.h"
+#include "cm_hal.h"
+#include "cm_hal_vebox.h"
+#include "cm_log.h"
+
+enum CM_INTERNAL_TASK_TYPE
+{
+    CM_INTERNAL_TASK_WITH_THREADSPACE,
+    CM_INTERNAL_TASK_WITH_THREADGROUPSPACE,
+    CM_INTERNAL_TASK_VEBOX,
+    CM_INTERNAL_TASK_ENQUEUEWITHHINTS
+};
+
+#define CM_TASK_TYPE_DEFAULT CM_INTERNAL_TASK_WITH_THREADSPACE
+
+//*-----------------------------------------------------------------------------
+//| CM Task Profiling Information
+//*-----------------------------------------------------------------------------
+struct CM_PROFILING_INFO
+{
+    uint32_t dwTaskID;
+    uint32_t dwThreadID;
+    uint32_t dwKernelCount;
+    uint32_t dwKernelNameLen;
+    char     *pKernelNames;
+    uint32_t *pLocalWorkWidth;
+    uint32_t *pLocalWorkHeight;
+    uint32_t *pGlobalWorkWidth;
+    uint32_t *pGlobalWorkHeight;
+
+    LARGE_INTEGER EnqueueTime;
+    LARGE_INTEGER FlushTime;
+    LARGE_INTEGER HwStartTime;
+    LARGE_INTEGER HwEndTime;
+    LARGE_INTEGER CompleteTime;
+};
 
 namespace CMRT_UMD
 {
-
 class CmKernelRT;
 class CmEventRT;
 class CmKernelData;
@@ -105,9 +143,6 @@ public:
 
     int32_t SetPowerOption( PCM_POWER_OPTION pPowerOption );
     PCM_POWER_OPTION GetPowerOption();
-    int32_t SetPreemptionMode(CM_PREEMPTION_MODE mode);
-    CM_PREEMPTION_MODE GetPreemptionMode();
-
     int32_t GetTaskStatus(CM_STATUS & TaskStatus);
     int32_t SetProperty(CM_TASK_CONFIG * pTaskConfig);
     PCM_TASK_CONFIG GetTaskConfig();
@@ -193,8 +228,6 @@ protected:
     CM_VEBOX_SURFACE_DATA m_VeboxSurfaceData;
 
     CM_POWER_OPTION m_PowerOption;
-    CM_PREEMPTION_MODE m_PreemptionMode;
-
     CM_PROFILING_INFO   m_TaskProfilingInfo;
     CM_TASK_CONFIG  m_TaskConfig;
     void            *m_media_state_ptr;
@@ -203,3 +236,5 @@ private:
     CmTaskInternal& operator= (const CmTaskInternal& other);
 };
 }; //namespace
+
+#endif  // #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMTASKINTERNAL_H_

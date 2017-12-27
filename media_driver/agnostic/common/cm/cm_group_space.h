@@ -24,13 +24,14 @@
 //! \brief     Contains Class CmThreadGroupSpace definitions  
 //!
 
-#pragma once
+#ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMGROUPSPACE_H_
+#define MEDIADRIVER_AGNOSTIC_COMMON_CM_CMGROUPSPACE_H_
 
 #include "cm_def.h"
+#include "cm_log.h"
 
 namespace CMRT_UMD
 {
-
 class CmDeviceRT;
 
 class CmThreadGroupSpace
@@ -63,3 +64,5 @@ protected:
     uint32_t m_IndexInTGSArray;
 };
 };//namespace
+
+#endif  // #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMGROUPSPACE_H_

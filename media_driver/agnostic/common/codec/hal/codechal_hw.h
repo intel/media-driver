@@ -100,6 +100,10 @@
 
 #define CODECHAL_INVALID_BINDING_TABLE_IDX  0xFFFFFFFF
 
+//!
+//! \enum     MoTargetCache
+//! \brief    Mo target cache
+//!
 enum MoTargetCache
 {
     CODECHAL_MO_TARGET_CACHE_ELLC = 0x0,
@@ -108,6 +112,10 @@ enum MoTargetCache
     CODECHAL_MO_TARGET_CACHE_L3_LLC_ELLC = 0x3
 };
 
+//!
+//! \enum     CodechalCacheabilityType
+//! \brief    Codechal cacheability type
+//!
 enum CodechalCacheabilityType
 {
     codechalUncacheable    = 0,
@@ -116,6 +124,10 @@ enum CodechalCacheabilityType
     codechalUncacheableWa  = 8
 };
 
+//!
+//! \enum     CodechalWalkingPattern
+//! \brief    Codechal walking pattern
+//!
 enum CodechalWalkingPattern
 {
     codechalHorizontal26DegreeScan           = 0,
@@ -125,6 +137,85 @@ enum CodechalWalkingPattern
     codechalVerticalRasterScan               = 4
 };
 
+typedef enum _CODECHAL_MEDIA_STATE_TYPE
+{
+    CODECHAL_MEDIA_STATE_OLP                                = 0,
+    CODECHAL_MEDIA_STATE_ENC_NORMAL                         = 1,
+    CODECHAL_MEDIA_STATE_ENC_PERFORMANCE                    = 2,
+    CODECHAL_MEDIA_STATE_ENC_QUALITY                        = 3,
+    CODECHAL_MEDIA_STATE_ENC_I_FRAME_DIST                   = 4,
+    CODECHAL_MEDIA_STATE_32X_SCALING                        = 5,
+    CODECHAL_MEDIA_STATE_16X_SCALING                        = 6,
+    CODECHAL_MEDIA_STATE_4X_SCALING                         = 7,
+    CODECHAL_MEDIA_STATE_32X_ME                             = 8,
+    CODECHAL_MEDIA_STATE_16X_ME                             = 9,
+    CODECHAL_MEDIA_STATE_4X_ME                              = 10,
+    CODECHAL_MEDIA_STATE_BRC_INIT_RESET                     = 11,
+    CODECHAL_MEDIA_STATE_BRC_UPDATE                         = 12,
+    CODECHAL_MEDIA_STATE_BRC_BLOCK_COPY                     = 13,
+    CODECHAL_MEDIA_STATE_HYBRID_PAK_P1                      = 14,
+    CODECHAL_MEDIA_STATE_HYBRID_PAK_P2                      = 15,
+    CODECHAL_MEDIA_STATE_ENC_I_FRAME_CHROMA                 = 16,
+    CODECHAL_MEDIA_STATE_ENC_I_FRAME_LUMA                   = 17,
+    CODECHAL_MEDIA_STATE_MPU_FHB                            = 18,
+    CODECHAL_MEDIA_STATE_TPU_FHB                            = 19,
+    CODECHAL_MEDIA_STATE_PA_COPY                            = 20,
+    CODECHAL_MEDIA_STATE_PL2_COPY                           = 21,
+    CODECHAL_MEDIA_STATE_ENC_ADV                            = 22,
+    CODECHAL_MEDIA_STATE_2X_SCALING                         = 23,
+    CODECHAL_MEDIA_STATE_32x32_PU_MODE_DECISION             = 24,
+    CODECHAL_MEDIA_STATE_16x16_PU_SAD                       = 25,
+    CODECHAL_MEDIA_STATE_16x16_PU_MODE_DECISION             = 26,
+    CODECHAL_MEDIA_STATE_8x8_PU                             = 27,
+    CODECHAL_MEDIA_STATE_8x8_PU_FMODE                       = 28,
+    CODECHAL_MEDIA_STATE_32x32_B_INTRA_CHECK                = 29,
+    CODECHAL_MEDIA_STATE_HEVC_B_MBENC                       = 30,
+    CODECHAL_MEDIA_STATE_RESET_VLINE_STRIDE                 = 31,
+    CODECHAL_MEDIA_STATE_HEVC_B_PAK                         = 32,
+    CODECHAL_MEDIA_STATE_HEVC_BRC_LCU_UPDATE                = 33,
+    CODECHAL_MEDIA_STATE_ME_VDENC_STREAMIN                  = 34,
+    CODECHAL_MEDIA_STATE_VP9_ENC_I_32x32                    = 35,
+    CODECHAL_MEDIA_STATE_VP9_ENC_I_16x16                    = 36,
+    CODECHAL_MEDIA_STATE_VP9_ENC_P                          = 37,
+    CODECHAL_MEDIA_STATE_VP9_ENC_TX                         = 38,
+    CODECHAL_MEDIA_STATE_VP9_DYS                            = 39,
+    CODECHAL_MEDIA_STATE_VP9_PAK_LUMA_RECON                 = 40,
+    CODECHAL_MEDIA_STATE_VP9_PAK_CHROMA_RECON               = 41,
+    CODECHAL_MEDIA_STATE_VP9_PAK_DEBLOCK_MASK               = 42,
+    CODECHAL_MEDIA_STATE_VP9_PAK_LUMA_DEBLOCK               = 43,
+    CODECHAL_MEDIA_STATE_VP9_PAK_CHROMA_DEBLOCK             = 44,
+    CODECHAL_MEDIA_STATE_VP9_PAK_MC_PRED                    = 45,
+    CODECHAL_MEDIA_STATE_VP9_PAK_P_FRAME_LUMA_RECON         = 46,
+    CODECHAL_MEDIA_STATE_VP9_PAK_P_FRAME_LUMA_RECON_32x32   = 47,
+    CODECHAL_MEDIA_STATE_VP9_PAK_P_FRAME_CHROMA_RECON       = 48,
+    CODECHAL_MEDIA_STATE_VP9_PAK_P_FRAME_INTRA_LUMA_RECON   = 49,
+    CODECHAL_MEDIA_STATE_VP9_PAK_P_FRAME_INTRA_CHROMA_RECON = 50,
+    CODECHAL_MEDIA_STATE_PREPROC                            = 51,
+    CODECHAL_MEDIA_STATE_ENC_WP                             = 52,
+    CODECHAL_MEDIA_STATE_HEVC_I_MBENC                       = 53,
+    CODECHAL_MEDIA_STATE_CSC_DS_COPY                        = 54,
+    CODECHAL_MEDIA_STATE_2X_4X_SCALING                      = 55,
+    CODECHAL_MEDIA_STATE_HEVC_LCU64_B_MBENC                 = 56,
+    CODECHAL_MEDIA_STATE_MB_BRC_UPDATE                      = 57,
+    CODECHAL_MEDIA_STATE_STATIC_FRAME_DETECTION             = 58,
+    CODECHAL_MEDIA_STATE_HEVC_ROI                           = 59,
+    CODECHAL_MEDIA_STATE_SW_SCOREBOARD_INIT                 = 60,
+    CODECHAL_NUM_MEDIA_STATES                               = 61
+} CODECHAL_MEDIA_STATE_TYPE;
+
+C_ASSERT(CODECHAL_NUM_MEDIA_STATES == (CODECHAL_MEDIA_STATE_SW_SCOREBOARD_INIT + 1)); //!< update this and add new entry in the default SSEU table for each platform()
+
+typedef enum _CODECHAL_SLICE_STATE
+{
+    CODECHAL_SLICE_SHUTDOWN_DEFAULT     = 0,
+    CODECHAL_SLICE_SHUTDOWN_ONE_SLICE   = 1,
+    CODECHAL_SLICE_SHUTDOWN_TWO_SLICES  = 2
+} CODECHAL_SLICE_STATE;
+
+//!
+//! \struct    CodechalQpStatusCount
+//! \brief     Codechal qp status count
+//!
 struct CodechalQpStatusCount
 {
     union{
@@ -152,6 +243,10 @@ struct CodechalQpStatusCount
     };
 };
 
+//!
+//! \struct    CodechalHucStreamoutParams
+//! \brief     Codechal Huc streamout parameters
+//!
 struct CodechalHucStreamoutParams
 {
     CODECHAL_MODE       mode;
@@ -178,6 +273,10 @@ struct CodechalHucStreamoutParams
     uint32_t            curNumSegments;
 };
 
+//!
+//! \struct    CodechalDataCopyParams
+//! \brief     Codechal data copy parameters
+//!
 struct CodechalDataCopyParams
 {
     // Src params
@@ -250,6 +349,7 @@ public:
     bool                        m_isVdencSuperSliceEnabled = false;             //!> Flag indicating Vdenc super slice is enabled
     bool                        m_noHuC = false;                                //!> This flag to indicate HuC present on Linux
     uint16_t                    m_sizeOfCmdBatchBufferEnd = 0;                  //!> Size of batch buffer end cmd
+    uint16_t                    m_sizeOfCmdMediaReset = 0;                      //!> Size of media reset cmd
     uint32_t                    m_vdencBrcImgStateBufferSize = 0;               //!> vdenc brc img state buffer size
     uint32_t                    m_vdencBatchBuffer1stGroupSize = 0;             //!> vdenc batch buffer 1st group size
     uint32_t                    m_vdencBatchBuffer2ndGroupSize = 0;             //!> vdenc batch buffer 2nd group size
@@ -775,7 +875,7 @@ public:
     //! \brief    Add vdenc sfd img buffer
     //! \details  Add vdenc static frame detection image buffer into cmdbuffer
     //! 
-    //! \param    [in] resVdencSfdImgBuffer
+    //! \param    [in] vdencSfdImgBuffer
     //!           Resource of vdenc brc img buffer
     //! \param    [in] params
     //!           parameter used for AVC img parameters
@@ -784,7 +884,7 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS AddVdencSfdImgBuffer(
-        PMOS_RESOURCE               resVdencSfdImgBuffer,
+        PMOS_RESOURCE               vdencSfdImgBuffer,
         PMHW_VDBOX_AVC_IMG_PARAMS   params);
 
     //!
@@ -1031,7 +1131,7 @@ public:
     //!
     //! \param    [in] resource
     //!           Reource used in conditional batch buffer end cmd
-    //! \param    [in] resOffset
+    //! \param    [in] offset
     //!           Reource offset used in mi atomic dword cmd
     //! \param    [in] compData
     //!           Compare data
@@ -1045,10 +1145,52 @@ public:
     //!
     MOS_STATUS SendCondBbEndCmd(
         PMOS_RESOURCE              resource,
-        uint32_t                   resOffset,
+        uint32_t                   offset,
         uint32_t                   compData,
         bool                       disableCompMask,
         PMOS_COMMAND_BUFFER        cmdBuffer);
+
+    //!
+    //! \brief    Loads kernel data into the ISH
+    //! \details  Uses the data described in the kernel state to assign an ISH block and load the kernel data into it
+    //! \param    stateHeapInterface
+    //!           [in] State heap interface
+    //! \param    kernelState
+    //!           [in] Kernel state describing the kernel data to be loaded
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    static MOS_STATUS MhwInitISH(
+        PMHW_STATE_HEAP_INTERFACE   stateHeapInterface,
+        PMHW_KERNEL_STATE           kernelState);
+
+    //!
+    //! \brief    Assigns space in both DSH and SSH to the kernel state
+    //! \details  Uses input parameters to assign DSH/SSH regions to the kernel state
+    //! \param    stateHeapInterface
+    //!           [in] State heap interface
+    //! \param    kernelState
+    //!           [in] The kernel state to assign the new DSH/ISH regions
+    //! \param    noDshSpaceRequested
+    //!           [in] No DSH space should be assigned in this call
+    //! \param    forcedDshSize
+    //!           [in] The size of the DSH space required for this kernel state.
+    //!                If this value is 0, the size is calculated from the kernel state.
+    //! \param    noSshSpaceRequested
+    //!           [in] No SSH space should be assigned in this call
+    //! \param    currCmdBufId
+    //!           [in] Command buffer Id to keep track of the state heap resource
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    static MOS_STATUS AssignDshAndSshSpace(
+        PMHW_STATE_HEAP_INTERFACE   stateHeapInterface,
+        PMHW_KERNEL_STATE           kernelState,
+        bool                        noDshSpaceRequested,
+        uint32_t                    forcedDshSize,
+        bool                        noSshSpaceRequested,
+        uint32_t                    currCmdBufId);
+
 };
 
 extern const MOS_SYNC_PARAMS                        g_cInitSyncParams;

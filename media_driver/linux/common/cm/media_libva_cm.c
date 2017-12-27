@@ -34,12 +34,7 @@
 #include "media_libva_cm.h"
 #include "media_libva_util.h"
 #include "cm_debug.h"
-#include "cm_func.h"
-
-
-
-
-
+#include "cm_wrapper_os.h"
 
 /////////////////////////////////////////////////////////////////////////////
 //! \purpose: Free CM context 

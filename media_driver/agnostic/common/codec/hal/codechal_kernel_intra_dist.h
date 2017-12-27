@@ -28,14 +28,26 @@
 #define __CODECHAL_KERNEL_INTRA_DIST_H__
 #include "codechal_kernel_base.h"
 
+//!
+//! \class    CodechalKernelIntraDist
+//! \brief    Codechal kernel intra dist
+//!
 class CodechalKernelIntraDist : public CodechalKernelBase
 {
 public:
+    //!
+    //! \enum     KernelIndex
+    //! \brief    Kernel index
+    //!
     enum KernelIndex
     {
         intraDistortion = 0
     };
 
+    //!
+    //! \enum     BindingTableOffset
+    //! \brief    Binding table offset
+    //!
     enum BindingTableOffset
     {
         intraDistCurrent4xY   = 0,
@@ -44,12 +56,20 @@ public:
         intraDistSurfaceNum   = 3
     };
 
+    //!
+    //! \class    CurbeParam
+    //! \brief    Curbe parameter
+    //!
     struct CurbeParam
     {
         uint32_t downScaledWidthInMb4x = 0;
         uint32_t downScaledHeightInMb4x = 0;
     };
 
+    //!
+    //! \class    SurfaceParams
+    //! \brief    Surface parameters
+    //!
     struct SurfaceParams
     {
         uint32_t     intraDistBottomFieldOffset = 0;
@@ -59,6 +79,10 @@ public:
     };
 
     // clang-format off
+    //!
+    //! \class    Curbe
+    //! \brief    Curbe
+    //!
     class Curbe
     {
     public:
@@ -71,6 +95,10 @@ public:
             m_data.DW9.value    = 0xFFFFFFFF;
             m_data.DW10.value   = 0xFFFFFFFF;
         }
+        //!
+        //! \struct    CurbeData
+        //! \brief     Curbe data
+        //!
         struct CurbeData
         {
             //DW0

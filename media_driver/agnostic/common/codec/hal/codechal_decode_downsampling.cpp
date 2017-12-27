@@ -432,7 +432,7 @@ MOS_STATUS FieldScalingInterface::InitInterfaceStateHeapSetting(
     {
         kernelState = &m_kernelStates[krnlIdx];
 
-        CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHal_GetKernelBinaryAndSize(
+        CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalGetKernelBinaryAndSize(
             m_kernelBase,
             m_kernelUID[krnlIdx],
             &m_kernelBinary[krnlIdx],
@@ -633,7 +633,7 @@ MOS_STATUS FieldScalingInterface::InitializeKernelState(
             MOS_ALIGN_CEIL(kernelState->KernelParams.iCurbeLength, m_stateHeapInterface->pStateHeapInterface->GetCurbeAlignment()) +
             kernelState->KernelParams.iSamplerLength * m_samplerNum;
 
-        MHW_CHK_STATUS_RETURN(CodecHal_MhwInitISH(
+        MHW_CHK_STATUS_RETURN(m_hwInterface->MhwInitISH(
             m_stateHeapInterface,
             kernelState));
     }
@@ -697,7 +697,7 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
         m_stateHeapInterface,
         kernelState->KernelParams.iBTCount));
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHal_AssignDshAndSshSpace(
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_hwInterface->AssignDshAndSshSpace(
         m_stateHeapInterface,
         kernelState,
         false,
@@ -741,7 +741,7 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
 
     // Send command buffer header at the beginning (OS dependent)
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_decoder->SendPrologWithFrameTracking(
-        &cmdBuffer));
+        &cmdBuffer, true));
 
     if (m_renderInterface->GetL3CacheConfig()->bL3CachingEnabled)
     {
@@ -782,7 +782,7 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
             (MOS_MEMCOMP_STATE*) &surfaceCodecParams.psSurface->CompressionMode));
     }
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         &cmdBuffer,
         &surfaceCodecParams,
@@ -793,7 +793,7 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
     surfaceCodecParams.dwUVBindingTableOffset     = fieldBotSrcUV;
     surfaceCodecParams.dwVerticalLineStrideOffset = 1;
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         &cmdBuffer,
         &surfaceCodecParams,
@@ -824,7 +824,7 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
             (PMOS_MEMCOMP_STATE) &surfaceCodecParams.psSurface->CompressionMode));
     }
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         &cmdBuffer,
         &surfaceCodecParams,
@@ -868,7 +868,7 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
     walkerCodecParams.bNoDependency         = true;     // raster scan mode
 
     MHW_WALKER_PARAMS walkerParams;
-    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHal_InitMediaObjectWalkerParams(
+    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalInitMediaObjectWalkerParams(
         m_hwInterface,
         &walkerParams,
         &walkerCodecParams));
@@ -899,6 +899,8 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
     
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_stateHeapInterface->pfnUpdateGlobalCmdBufId(
         m_stateHeapInterface));
+
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(&cmdBuffer));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
 

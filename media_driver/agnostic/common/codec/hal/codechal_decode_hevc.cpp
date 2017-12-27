@@ -62,7 +62,7 @@ uint8_t CodechalDecodeHevc::GetMvBufferIndex(
     return i;
 }
 
-MOS_STATUS CodechalDecodeHevc::AllocateResources_FixedSizes()
+MOS_STATUS CodechalDecodeHevc::AllocateResourcesFixedSizes()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -72,8 +72,7 @@ MOS_STATUS CodechalDecodeHevc::AllocateResources_FixedSizes()
         m_osInterface,
         &resSyncObjectWaContextInUse));
 
-    CodecHal_AllocateDataList(
-        CODEC_REF_LIST,
+    CodecHalAllocateDataList(
         pHevcRefList,
         CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC);
 
@@ -106,7 +105,7 @@ MOS_STATUS CodechalDecodeHevc::AllocateResources_FixedSizes()
     return eStatus;
 }
 
-MOS_STATUS CodechalDecodeHevc::AllocateResources_VariableSizes()
+MOS_STATUS CodechalDecodeHevc::AllocateResourcesVariableSizes()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -487,44 +486,6 @@ MOS_STATUS CodechalDecodeHevc::AllocateResources_VariableSizes()
             "Failed to allocate SAO Tile Column Buffer.");
     }
 
-    reallocParam.dwPicWidth         = widthMax;
-    reallocParam.dwPicWidthAlloced  = u32WidthLastMaxAlloced;
-    reallocParam.dwPicHeight        = heightMax;
-    reallocParam.dwPicHeightAlloced = u32HeightLastMaxAlloced;
-    CODECHAL_DECODE_CHK_STATUS_RETURN(m_hcpInterface->IsHevcBufferReallocNeeded(
-        MHW_VDBOX_HCP_INTERNAL_BUFFER_CURR_MV_TEMPORAL,
-        &reallocParam));
-    if (reallocParam.bNeedBiggerSize || u32MVBufferSize == 0)
-    {
-        uint32_t i;
-        for (i = 0; i < CODEC_NUM_HEVC_MV_BUFFERS; i++)
-        {
-            if (!Mos_ResourceIsNull(&resMvTemporalBuffer[i]))
-            {
-                m_osInterface->pfnFreeResource(
-                    m_osInterface,
-                    &resMvTemporalBuffer[i]);
-            }
-        }
-
-        // MV Temporal buffers
-        hcpBufSizeParam.dwPicWidth  = widthMax;
-        hcpBufSizeParam.dwPicHeight = heightMax;
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_hcpInterface->GetHevcBufferSize(
-            MHW_VDBOX_HCP_INTERNAL_BUFFER_CURR_MV_TEMPORAL,
-            &hcpBufSizeParam));
-        u32MVBufferSize          = hcpBufSizeParam.dwBufferSize;;
-
-        for (i = 0; i < CODEC_NUM_HEVC_MV_BUFFERS; i++)
-        {
-            CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(AllocateBuffer(
-                &resMvTemporalBuffer[i],
-                hcpBufSizeParam.dwBufferSize,
-                "CurrentMvTemporalBuffer"),
-                "Failed to allocate MV Temporal Buffer.");
-        }
-    }
-
     if (m_secureDecoder)
     {
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_secureDecoder->AllocateResource(this));
@@ -533,6 +494,65 @@ MOS_STATUS CodechalDecodeHevc::AllocateResources_VariableSizes()
     u32WidthLastMaxAlloced  = widthMax;
     u32HeightLastMaxAlloced = heightMax;
     u32CtbLog2SizeYMax      = ctbLog2SizeY;
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalDecodeHevc::AllocateMvTemporalBuffer(
+    uint8_t hevcMvBuffIndex)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    CODECHAL_DECODE_FUNCTION_ENTER;
+
+    if (hevcMvBuffIndex == CODEC_NUM_HEVC_MV_BUFFERS)
+    {
+        // Should never happen, something must be wrong
+        CODECHAL_DECODE_ASSERTMESSAGE("Failed to get avaiable MV buffer.");
+        return     MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    uint32_t widthMax  = MOS_MAX(m_width, u32WidthLastMaxAlloced);
+    uint32_t heightMax = MOS_MAX(m_height, u32HeightLastMaxAlloced);
+
+    MHW_VDBOX_HCP_BUFFER_REALLOC_PARAMS reallocParam;
+    MOS_ZeroMemory(&reallocParam, sizeof(reallocParam));
+
+    reallocParam.dwPicWidth         = widthMax;
+    reallocParam.dwPicWidthAlloced  = u32WidthLastMaxAlloced;
+    reallocParam.dwPicHeight        = heightMax;
+    reallocParam.dwPicHeightAlloced = u32HeightLastMaxAlloced;
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_hcpInterface->IsHevcBufferReallocNeeded(
+        MHW_VDBOX_HCP_INTERNAL_BUFFER_CURR_MV_TEMPORAL,
+        &reallocParam));
+
+    int32_t isResMvTemporalBufferNull = Mos_ResourceIsNull(&resMvTemporalBuffer[hevcMvBuffIndex]);
+
+    if (reallocParam.bNeedBiggerSize || isResMvTemporalBufferNull)
+    {
+        MHW_VDBOX_HCP_BUFFER_SIZE_PARAMS hcpBufSizeParam;
+        MOS_ZeroMemory(&hcpBufSizeParam, sizeof(hcpBufSizeParam));
+
+        if (!isResMvTemporalBufferNull)
+        {
+            m_osInterface->pfnFreeResource(
+                m_osInterface,
+                &resMvTemporalBuffer[hevcMvBuffIndex]);
+        }
+
+        // MV Temporal buffers
+        hcpBufSizeParam.dwPicWidth  = widthMax;
+        hcpBufSizeParam.dwPicHeight = heightMax;
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_hcpInterface->GetHevcBufferSize(
+            MHW_VDBOX_HCP_INTERNAL_BUFFER_CURR_MV_TEMPORAL,
+            &hcpBufSizeParam));
+        u32MVBufferSize = hcpBufSizeParam.dwBufferSize;
+
+        CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(AllocateBuffer(
+            &resMvTemporalBuffer[hevcMvBuffIndex],
+            hcpBufSizeParam.dwBufferSize,
+            "CurrentMvTemporalBuffer"),
+            "Failed to allocate MV Temporal Buffer.");
+    }
 
     return eStatus;
 }
@@ -546,7 +566,7 @@ CodechalDecodeHevc::~CodechalDecodeHevc ()
         
     m_osInterface->pfnDestroySyncResource(m_osInterface, &resSyncObjectWaContextInUse);
 
-    CodecHal_FreeDataList(pHevcRefList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC);
+    CodecHalFreeDataList(pHevcRefList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC);
 
     if (!m_hcpInterface->IsHevcDfRowstoreCacheEnabled())
     {
@@ -928,15 +948,9 @@ MOS_STATUS CodechalDecodeHevc::CopyDataSurface()
         &cmdBuffer,
         0));
 
-    // Send command buffer header at the beginning (OS dependent)
-    MHW_GENERIC_PROLOG_PARAMS genericPrologParams;
-    MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
-    genericPrologParams.pOsInterface         = m_osInterface;
-    genericPrologParams.pvMiInterface        = m_miInterface;
-    genericPrologParams.bMmcEnabled          = CodecHalMmcState::IsMmcEnabled();
-    CODECHAL_DECODE_CHK_STATUS_RETURN(Mhw_SendGenericPrologCmd(
+    CODECHAL_DECODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(
         &cmdBuffer,
-        &genericPrologParams));
+        false));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(HucCopy(
         &cmdBuffer,         // pCmdBuffer
@@ -953,6 +967,9 @@ MOS_STATUS CodechalDecodeHevc::CopyDataSurface()
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(
         &cmdBuffer,
         &flushDwParams));
+
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(
+        &cmdBuffer));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(
         &cmdBuffer,
@@ -1244,7 +1261,7 @@ MOS_STATUS CodechalDecodeHevc::SetFrameStates ()
     }
 
 
-    AllocateResources_VariableSizes();
+    AllocateResourcesVariableSizes();
     
     // Calculate Tile info
     if (pHevcPicParams->tiles_enabled_flag)
@@ -1381,6 +1398,8 @@ MOS_STATUS CodechalDecodeHevc::SetPictureStructs()
     //Find out an unused MvBuffer for current frame
     hevcMvBufferIndex = GetMvBufferIndex(
         CurrPic.FrameIdx);
+
+    AllocateMvTemporalBuffer(hevcMvBufferIndex);
 
     hevcRefList[CurrPic.FrameIdx]->ucDMVIdx[0] = hevcMvBufferIndex;
 
@@ -1544,7 +1563,7 @@ MOS_STATUS CodechalDecodeHevc::SendPictureS2L()
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(
-        &cmdBuffer));
+        &cmdBuffer, true));
 
     PMOS_COMMAND_BUFFER cmdBufferInUse = &cmdBuffer;
 
@@ -1638,7 +1657,8 @@ MOS_STATUS CodechalDecodeHevc::InitPicLongFormatMhwParams()
                     for (uint8_t j = 0; j < CODEC_NUM_HEVC_MV_BUFFERS; j++)
                     {
                         if ((hevcMvList[j].bInUse) &&
-                            (hevcMvList[j].u8FrameId == refFrameValue))
+                            (hevcMvList[j].u8FrameId == refFrameValue) && 
+                            !Mos_ResourceIsNull(&resMvTemporalBuffer[j]))
                         {
                             m_picMhwParams.PipeBufAddrParams->presColMvTempBuffer[m++] = &resMvTemporalBuffer[j];
                             if (firstValidMvBuf == nullptr)
@@ -1672,7 +1692,8 @@ MOS_STATUS CodechalDecodeHevc::InitPicLongFormatMhwParams()
         {
             firstValidFrame = &destSurface->OsResource;
         }
-        if (firstValidMvBuf == nullptr)
+        if (firstValidMvBuf == nullptr && 
+            !Mos_ResourceIsNull(&resMvTemporalBuffer[hevcMvBufferIndex]))
         {
             firstValidMvBuf = &resMvTemporalBuffer[hevcMvBufferIndex];
         }
@@ -1688,7 +1709,8 @@ MOS_STATUS CodechalDecodeHevc::InitPicLongFormatMhwParams()
 
         for (uint32_t n = 0; n < CODEC_NUM_HEVC_MV_BUFFERS; n++)
         {
-            if (m_picMhwParams.PipeBufAddrParams->presColMvTempBuffer[n] == nullptr)
+            if (m_picMhwParams.PipeBufAddrParams->presColMvTempBuffer[n] == nullptr && 
+                !Mos_ResourceIsNull(&resMvTemporalBuffer[n]))
             {
                 m_picMhwParams.PipeBufAddrParams->presColMvTempBuffer[n] = &resMvTemporalBuffer[n];
             }
@@ -1791,21 +1813,9 @@ MOS_STATUS CodechalDecodeHevc::SendPictureLongFormat()
         sendPrologWithFrameTracking = true;
     }
 
-    if (sendPrologWithFrameTracking)
-    {
-        //Frame tracking functionality is called at the start of a command buffer.
-        CODECHAL_DECODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(
-            &cmdBuffer));
-    }
-    else
-    {
-        MHW_GENERIC_PROLOG_PARAMS genericPrologParams;
-        MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
-        genericPrologParams.pOsInterface        = m_osInterface;
-        genericPrologParams.pvMiInterface       = m_miInterface;
-        genericPrologParams.bMmcEnabled         = CodecHalMmcState::IsMmcEnabled();
-        CODECHAL_DECODE_CHK_STATUS_RETURN(Mhw_SendGenericPrologCmd(&cmdBuffer, &genericPrologParams));
-    }
+    CODECHAL_DECODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(
+        &cmdBuffer, 
+        sendPrologWithFrameTracking));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(InitPicLongFormatMhwParams());
 
@@ -1817,16 +1827,16 @@ MOS_STATUS CodechalDecodeHevc::SendPictureLongFormat()
                 MOS_SURFACE dstSurface;
                 MOS_ZeroMemory(&dstSurface, sizeof(MOS_SURFACE));
                 dstSurface.OsResource = *(m_picMhwParams.PipeBufAddrParams->presReferences[n]);
-                CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHal_GetResourceInfo(
+                CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(
                     m_osInterface,
                     &dstSurface));
 
                 m_debugInterface->wRefIndex = n;
-                std::string refSurfName = "RefSurf" + std::to_string(static_cast<uint32_t>(m_debugInterface->wRefIndex));
+                std::string refSurfName = "RefSurf[" + std::to_string(static_cast<uint32_t>(m_debugInterface->wRefIndex))+"]";
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
                     &dstSurface,
                     CodechalDbgAttr::attrReferenceSurfaces,
-                    refSurfName.data()));
+                    refSurfName.c_str()));
             }
 
             if (m_picMhwParams.PipeBufAddrParams->presColMvTempBuffer[n])
@@ -1836,7 +1846,7 @@ MOS_STATUS CodechalDecodeHevc::SendPictureLongFormat()
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
                     m_picMhwParams.PipeBufAddrParams->presColMvTempBuffer[n],
                     CodechalDbgAttr::attrMvData,
-                    "_DEC",
+                    "DEC",
                     u32MVBufferSize));
             }
         }
@@ -2144,7 +2154,7 @@ MOS_STATUS CodechalDecodeHevc::DecodePrimitiveLevel()
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->Dump2ndLvlBatch(
                 &secondLevelBatchBuffer,
                 CODECHAL_NUM_MEDIA_STATES,
-                "_DEC"));
+                "DEC"));
             )
         }
 
@@ -2253,6 +2263,9 @@ MOS_STATUS CodechalDecodeHevc::DecodePrimitiveLevel()
 
             if (bEnableSF2DMASubmits)
             {
+                CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(
+                    &cmdBuffer));
+
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(
                     cmdBufferInUse,
                     nullptr));
@@ -2266,7 +2279,7 @@ MOS_STATUS CodechalDecodeHevc::DecodePrimitiveLevel()
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpCmdBuffer(
                     cmdBufferInUse,
                     CODECHAL_NUM_MEDIA_STATES,
-                    "_DEC"));
+                    "DEC"));
 
                 //CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHal_DbgReplaceAllCommands(
                 //    m_debugInterface,
@@ -2372,6 +2385,9 @@ MOS_STATUS CodechalDecodeHevc::DecodePrimitiveLevel()
         cmdBufferInUse,
         &flushDwParams));
 
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(
+        &cmdBuffer));
+
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(
         cmdBufferInUse,
         nullptr));
@@ -2401,7 +2417,7 @@ MOS_STATUS CodechalDecodeHevc::DecodePrimitiveLevel()
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpCmdBuffer(
                 cmdBufferInUse,
                 CODECHAL_NUM_MEDIA_STATES,
-                "_DEC"));
+                "DEC"));
 
             //CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHal_DbgReplaceAllCommands(
             //    m_debugInterface,
@@ -2539,7 +2555,7 @@ MOS_STATUS CodechalDecodeHevc::AllocateStandard (
     bShortFormatInUse               = (m_cencDecoder == nullptr) && settings->bShortFormatInUse;
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
-    m_sfcState = MOS_New(CODECHAL_HEVC_SFC_STATE);
+    m_sfcState = MOS_New(CodechalHevcSfcState);
     CODECHAL_DECODE_CHK_NULL_RETURN(m_sfcState);
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_sfcState->InitializeSfcState(
         this,
@@ -2558,7 +2574,7 @@ MOS_STATUS CodechalDecodeHevc::AllocateStandard (
 
         MOS_USER_FEATURE_VALUE_DATA userFeatureData;
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-        CodecHal_UserFeature_ReadValue(
+        MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_HEVC_SF_2_DMA_SUBMITS_ENABLE_ID,
             &userFeatureData);
@@ -2585,7 +2601,7 @@ MOS_STATUS CodechalDecodeHevc::AllocateStandard (
         &m_standardDecodePatchListSizeNeeded,
         bShortFormatInUse));
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(AllocateResources_FixedSizes());
+    CODECHAL_DECODE_CHK_STATUS_RETURN(AllocateResourcesFixedSizes());
 
     // Prepare Pic Params
     m_picMhwParams.PipeModeSelectParams = MOS_New(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS);
@@ -2651,7 +2667,7 @@ CodechalDecodeHevc::CodechalDecodeHevc (
 #if USE_CODECHAL_DEBUG_TOOL
 MOS_STATUS CodechalDecodeHevc::DumpPicParams(
     PCODEC_HEVC_PIC_PARAMS     picParams,
-    PCODEC_HEVC_EXT_PIC_PARAMS extPicParams)
+    void*                      extPicParams)
 {
     CODECHAL_DEBUG_FUNCTION_ENTER;
 
@@ -2812,40 +2828,6 @@ MOS_STATUS CodechalDecodeHevc::DumpPicParams(
     oss << "RefBottomFieldFlag: " << +picParams->RefBottomFieldFlag << std::endl;
     oss << "StatusReportFeedbackNumber: " << +picParams->StatusReportFeedbackNumber << std::endl;
 
-    if (extPicParams)
-    {
-        //PicRangeExtensionFlags
-        oss << "transform_skip_rotation_enabled_flag: " << +extPicParams->PicRangeExtensionFlags.fields.transform_skip_rotation_enabled_flag << std::endl;
-        oss << "transform_skip_context_enabled_flag: " << +extPicParams->PicRangeExtensionFlags.fields.transform_skip_context_enabled_flag << std::endl;
-        oss << "implicit_rdpcm_enabled_flag: " << +extPicParams->PicRangeExtensionFlags.fields.implicit_rdpcm_enabled_flag << std::endl;
-        oss << "explicit_rdpcm_enabled_flag: " << +extPicParams->PicRangeExtensionFlags.fields.explicit_rdpcm_enabled_flag << std::endl;
-        oss << "extended_precision_processing_flag: " << +extPicParams->PicRangeExtensionFlags.fields.extended_precision_processing_flag << std::endl;
-        oss << "intra_smoothing_disabled_flag: " << +extPicParams->PicRangeExtensionFlags.fields.intra_smoothing_disabled_flag << std::endl;
-        oss << "high_precision_offsets_enabled_flag: " << +extPicParams->PicRangeExtensionFlags.fields.high_precision_offsets_enabled_flag << std::endl;
-        oss << "persistent_rice_adaptation_enabled_flag: " << +extPicParams->PicRangeExtensionFlags.fields.persistent_rice_adaptation_enabled_flag << std::endl;
-        oss << "cabac_bypass_alignment_enabled_flag: " << +extPicParams->PicRangeExtensionFlags.fields.cabac_bypass_alignment_enabled_flag << std::endl;
-        oss << "cross_component_prediction_enabled_flag: " << +extPicParams->PicRangeExtensionFlags.fields.cross_component_prediction_enabled_flag << std::endl;
-        oss << "chroma_qp_offset_list_enabled_flag: " << +extPicParams->PicRangeExtensionFlags.fields.chroma_qp_offset_list_enabled_flag << std::endl;
-        oss << "BitDepthLuma16: " << +extPicParams->PicRangeExtensionFlags.fields.BitDepthLuma16 << std::endl;
-        oss << "BitDepthChroma16: " << +extPicParams->PicRangeExtensionFlags.fields.BitDepthChroma16 << std::endl;
-        oss << "diff_cu_chroma_qp_offset_depth: " << +extPicParams->diff_cu_chroma_qp_offset_depth << std::endl;
-        oss << "chroma_qp_offset_list_len_minus1: " << +extPicParams->chroma_qp_offset_list_len_minus1 << std::endl;
-        oss << "log2_sao_offset_scale_luma: " << +extPicParams->log2_sao_offset_scale_luma << std::endl;
-        oss << "log2_sao_offset_scale_chroma: " << +extPicParams->log2_sao_offset_scale_chroma << std::endl;
-        oss << "log2_max_transform_skip_block_size_minus2: " << +extPicParams->log2_max_transform_skip_block_size_minus2 << std::endl;
-
-        //Dump cb_qp_offset_list[6]
-        oss << "cb_qp_offset_list[6]: ";
-        for (uint8_t i = 0; i < 6; i++)
-            oss << extPicParams->cb_qp_offset_list[i] << " ";
-        oss << std::endl;
-
-        //Dump cr_qp_offset_list[6]
-        oss << "cr_qp_offset_list[6]: ";
-        for (uint8_t i = 0; i < 6; i++)
-            oss << extPicParams->cr_qp_offset_list[i] << " ";
-    }
-
     const char *fileName = m_debugInterface->CreateFileName(
         "_DEC",
         CodechalDbgBufferType::bufPicParams,
@@ -2860,7 +2842,7 @@ MOS_STATUS CodechalDecodeHevc::DumpPicParams(
 
 MOS_STATUS CodechalDecodeHevc::DumpSliceParams(
     PCODEC_HEVC_SLICE_PARAMS     sliceParams,
-    PCODEC_HEVC_EXT_SLICE_PARAMS extSliceParams,
+    void*                        extSliceParams,
     uint32_t                     numSlices,
     bool                         shortFormatInUse)
 {
@@ -2873,7 +2855,6 @@ MOS_STATUS CodechalDecodeHevc::DumpSliceParams(
     CODECHAL_DEBUG_CHK_NULL(sliceParams);
 
     PCODEC_HEVC_SLICE_PARAMS     hevcSliceControl    = nullptr;
-    PCODEC_HEVC_EXT_SLICE_PARAMS hevcExtSliceControl = nullptr;
 
     std::ostringstream oss;
     oss.setf(std::ios::showbase | std::ios::uppercase);
@@ -2881,10 +2862,6 @@ MOS_STATUS CodechalDecodeHevc::DumpSliceParams(
     for (uint16_t j = 0; j < numSlices; j++)
     {
         hevcSliceControl = &sliceParams[j];
-        if (extSliceParams)
-        {
-            hevcExtSliceControl = &extSliceParams[j];
-        }
 
         oss << "====================================================================================================" << std::endl;
         oss << "Data for Slice number = " << +j << std::endl;
@@ -2940,8 +2917,8 @@ MOS_STATUS CodechalDecodeHevc::DumpSliceParams(
             //Dump luma_offset[2][15]
             for (uint8_t i = 0; i < 15; i++)
             {
-                oss << "luma_offset_l0[" << +i << "]: " << (extSliceParams ? +hevcExtSliceControl->luma_offset_l0[i] : +hevcSliceControl->luma_offset_l0[i]) << std::endl;
-                oss << "luma_offset_l1[" << +i << "]: " << (extSliceParams ? +hevcExtSliceControl->luma_offset_l1[i] : +hevcSliceControl->luma_offset_l1[i]) << std::endl;
+                oss << "luma_offset_l0[" << +i << "]: " << (+hevcSliceControl->luma_offset_l0[i]) << std::endl;
+                oss << "luma_offset_l1[" << +i << "]: " << (+hevcSliceControl->luma_offset_l1[i]) << std::endl;
             }
             //Dump delta_luma_weight[2][15]
             for (uint8_t i = 0; i < 15; i++)
@@ -2952,13 +2929,13 @@ MOS_STATUS CodechalDecodeHevc::DumpSliceParams(
             //Dump chroma_offset[2][15][2]
             for (uint8_t i = 0; i < 15; i++)
             {
-                oss << "ChromaOffsetL0[" << +i << "][0]: " << (extSliceParams ? +hevcExtSliceControl->ChromaOffsetL0[i][0] : +hevcSliceControl->ChromaOffsetL0[i][0]) << std::endl;
+                oss << "ChromaOffsetL0[" << +i << "][0]: " << (+hevcSliceControl->ChromaOffsetL0[i][0]) << std::endl;
 
-                oss << "ChromaOffsetL0[" << +i << "][1]: " << (extSliceParams ? +hevcExtSliceControl->ChromaOffsetL0[i][1] : +hevcSliceControl->ChromaOffsetL0[i][1]) << std::endl;
+                oss << "ChromaOffsetL0[" << +i << "][1]: " << (+hevcSliceControl->ChromaOffsetL0[i][1]) << std::endl;
 
-                oss << "ChromaOffsetL1[" << +i << "][0]: " << (extSliceParams ? +hevcExtSliceControl->ChromaOffsetL1[i][0] : +hevcSliceControl->ChromaOffsetL1[i][0]) << std::endl;
+                oss << "ChromaOffsetL1[" << +i << "][0]: " << (+hevcSliceControl->ChromaOffsetL1[i][0]) << std::endl;
 
-                oss << "ChromaOffsetL1[" << +i << "][1]: " << (extSliceParams ? +hevcExtSliceControl->ChromaOffsetL1[i][1] : +hevcSliceControl->ChromaOffsetL1[i][1]) << std::endl;
+                oss << "ChromaOffsetL1[" << +i << "][1]: " << (+hevcSliceControl->ChromaOffsetL1[i][1]) << std::endl;
             }
             //Dump delta_chroma_weight[2][15][2]
             for (uint8_t i = 0; i < 15; i++)
@@ -2971,10 +2948,6 @@ MOS_STATUS CodechalDecodeHevc::DumpSliceParams(
 
             oss << "five_minus_max_num_merge_cand: " << +hevcSliceControl->five_minus_max_num_merge_cand << std::endl;
 
-            if (extSliceParams)
-            {
-                oss << "cu_chroma_qp_offset_enabled_flag: " << +hevcExtSliceControl->cu_chroma_qp_offset_enabled_flag << std::endl;
-            }
         }
 
         const char *fileName = m_debugInterface->CreateFileName(

@@ -138,9 +138,17 @@ static uint32_t codechalEncodeSearchPath[2][8][16] =
     }
 };
 // clang-format on
+//!
+//! \class    CodechalKernelHme
+//! \brief    Codechal kernel hme
+//!
 class CodechalKernelHme : public CodechalKernelBase
 {
 public:
+    //!
+    //! \enum     HmeLevel
+    //! \brief    Hme level
+    //!
     enum HmeLevel
     {
         hmeLevelNone = 0,
@@ -149,12 +157,20 @@ public:
         hmeLevel32x  = 1 << 2
     };
 
+    //!
+    //! \enum     KernelIndex
+    //! \brief    Kernel index
+    //!
     enum KernelIndex
     {
         hmeP = 0,
         hmeB = 1
     };
 
+    //!
+    //! \enum     SurfaceId
+    //! \brief    SurfaceI id
+    //!
     enum SurfaceId
     {
         me4xMvDataBuffer = 0,
@@ -163,6 +179,10 @@ public:
         me4xDistortionBuffer = 3
     };
 
+    //!
+    //! \enum     BindingTableOffset
+    //! \brief    Binding table offset
+    //!
     enum BindingTableOffset
     {
         meOutputMvDataSurface = 0,
@@ -184,6 +204,10 @@ public:
         meSurfaceNum          = 27
     };
 
+    //!
+    //! \struct    CurbeParam
+    //! \brief     Curbe parameter
+    //!
     struct CurbeParam
     {
         uint8_t       subPelMode = 3;
@@ -208,6 +232,10 @@ public:
         uint32_t list1RefID1FieldParity : MOS_BITFIELD_BIT(9);
     };
 
+    //!
+    //! \struct    SurfaceParams
+    //! \brief     Surface parameters
+    //!
     struct SurfaceParams
     {
         bool                  mbaffEnabled;
@@ -233,8 +261,10 @@ public:
     };
 
     //!
-    //! \brief Constructor
+    //! \brief  Constructor
     //!
+    //! \param  [in] encoder
+    //!         Codechal encoder state
     //! \param  [in] me4xDistBufferSupported
     //!         flag to support 4x Distortion buffer
     //!

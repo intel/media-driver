@@ -32,6 +32,7 @@
 #include "media_interfaces_vphal.h"
 #include "media_interfaces_renderhal.h"
 #include "media_interfaces_nv12top010.h"
+#include "media_interfaces_decode_histogram.h"
 
 #include "mhw_cp.h"
 #include "mhw_mi.h"
@@ -52,6 +53,7 @@ template class MediaInterfacesFactory<CMHalDevice>;
 template class MediaInterfacesFactory<VphalDevice>;
 template class MediaInterfacesFactory<RenderHalDevice>;
 template class MediaInterfacesFactory<Nv12ToP010Device>;
+template class MediaInterfacesFactory<DecodeHistogramDevice>;
 
 typedef MediaInterfacesFactory<MhwInterfaces> MhwFactory;
 typedef MediaInterfacesFactory<MmdDevice> MmdFactory;
@@ -61,6 +63,7 @@ typedef MediaInterfacesFactory<CMHalDevice> CMHalFactory;
 typedef MediaInterfacesFactory<VphalDevice> VphalFactory;
 typedef MediaInterfacesFactory<RenderHalDevice> RenderHalFactory;
 typedef MediaInterfacesFactory<Nv12ToP010Device> Nv12ToP010Factory;
+typedef MediaInterfacesFactory<DecodeHistogramDevice> DecodeHistogramFactory;
 
 VphalState* VphalDevice::CreateFactory(
     PMOS_INTERFACE  osInterface,
@@ -472,4 +475,30 @@ XRenderHal_Platform_Interface* RenderHalDevice::CreateFactory(
     XRenderHal_Platform_Interface *pRet = device->m_renderhalDevice;
     MOS_Delete(device);
     return pRet;
+}
+
+CodechalDecodeHistogram* DecodeHistogramDevice::CreateFactory(
+    CodechalHwInterface *hwInterface,
+    PMOS_INTERFACE osInterface)
+{
+    if (hwInterface == nullptr || osInterface == nullptr)
+    {
+        MHW_ASSERTMESSAGE("Invalid(nullptr) hwInterface or osInterface!");
+        return nullptr;
+    }
+
+    PLATFORM platform = {};
+    osInterface->pfnGetPlatform(osInterface, &platform);
+    DecodeHistogramDevice *device = nullptr;
+    CodechalDecodeHistogram *decodeHistogramDevice = nullptr;
+    device = DecodeHistogramFactory::CreateHal(platform.eProductFamily);
+    if (device != nullptr)
+    {
+        device->Initialize(hwInterface, osInterface);
+        decodeHistogramDevice = device->m_decodeHistogramDevice;
+    }
+
+    MOS_Delete(device);
+
+    return decodeHistogramDevice;
 }

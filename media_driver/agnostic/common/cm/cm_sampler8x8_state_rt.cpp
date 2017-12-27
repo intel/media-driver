@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_sampler8x8_state_rt.cpp  
-//! \brief     Contains CmSampler8x8State_RT implementations.  
+//! \file      cm_sampler8x8_state_rt.cpp
+//! \brief     Contains CmSampler8x8State_RT implementations.
 //!
 
 #include "cm_sampler8x8_state_rt.h"
@@ -30,11 +30,12 @@
 #include "cm_debug.h"
 #include "cm_mem.h"
 
+namespace CMRT_UMD
+{
 //*-----------------------------------------------------------------------------
 //| Purpose:    Get the Index of CmSampler8x8State_RT
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-
 int32_t CmSampler8x8State_RT::GetIndex( SamplerIndex* & pIndex )
 {
     pIndex=m_pIndex;
@@ -134,4 +135,4 @@ int32_t CmSampler8x8State_RT::Initialize( uint32_t index )
     }
     return status;
 }
-
+}  // namespace

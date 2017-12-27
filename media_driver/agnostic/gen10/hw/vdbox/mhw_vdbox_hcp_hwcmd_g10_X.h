@@ -120,19 +120,8 @@ public:
         {
             //!< DWORD 4
             struct
-            {
-                uint32_t                 Vp9FlushHandling                                 : __CODEGEN_BITFIELD( 0,  0)    ; //!< VP9_FLUSH_HANDLING
-                uint32_t                 HevcDecoderHmxChickenBitDisable                  : __CODEGEN_BITFIELD( 1,  1)    ; //!< HEVC Decoder HMX Chicken Bit Disable
-                uint32_t                 ChickenBit32                                     : __CODEGEN_BITFIELD( 2,  3)    ; //!< Chicken Bit[3:2]
-                uint32_t                 HevcEncoderHlcEmulationPreventionChickenBitDisable : __CODEGEN_BITFIELD( 4,  4)    ; //!< HEVC_ENCODER_HLC_EMULATION_PREVENTION_CHICKEN_BIT_DISABLE
-                uint32_t                 TileRowXPropagationFixChickenBitDisable          : __CODEGEN_BITFIELD( 5,  5)    ; //!< TILE_ROW_X_PROPAGATION_FIX_CHICKEN_BIT_DISABLE
-                uint32_t                 ChickenBit6                                      : __CODEGEN_BITFIELD( 6,  6)    ; //!< Chicken Bit[6]
-                uint32_t                 Reserved135                                      : __CODEGEN_BITFIELD( 7,  7)    ; //!< Reserved
-                uint32_t                 ChickenBit158                                    : __CODEGEN_BITFIELD( 8, 15)    ; //!< Chicken Bit[15:8]
-                uint32_t                 HvdNoaSelection                                  : __CODEGEN_BITFIELD(16, 17)    ; //!< HVD_NOA_SELECTION
-                uint32_t                 BitstreamDecoderErrorHandlingMode                : __CODEGEN_BITFIELD(18, 18)    ; //!< BITSTREAM_DECODER_ERROR_HANDLING_MODE
-                uint32_t                 VneunitTailInsertionHangChickenBit19             : __CODEGEN_BITFIELD(19, 19)    ; //!< VNEunit Tail Insertion Hang Chicken Bit[19]
-                uint32_t                 ChickenBit3120                                   : __CODEGEN_BITFIELD(20, 31)    ; //!< Chicken Bit [31:20]
+            {                
+                uint32_t                 Reserved128                                      : __CODEGEN_BITFIELD( 0,  31)    ; //!< Reserved
             };
             uint32_t                     Value;
         } DW4;
@@ -141,7 +130,7 @@ public:
             //!< DWORD 5
             struct
             {
-                uint32_t                 ChickenBit6332                                                                   ; //!< Chicken Bit [63:32]
+                uint32_t                 Reserved160                                                                      ; //!< Reserved
             };
             uint32_t                     Value;
         } DW5;
@@ -249,57 +238,7 @@ public:
             VP9_FLUSH_HANDLING_FLUSHUSINGUNITDONE                            = 0, //!< No additional details
             VP9_FLUSH_HANDLING_FLUSHUSINGFRAMEDONE                           = 1, //!< No additional details
         };
-
-        //! \brief HEVC_ENCODER_HLC_EMULATION_PREVENTION_CHICKEN_BIT_DISABLE
-        //! \details
-        //!     <p>A chicken bit was added to address newer slice size conformance logic
-        //!     to handle emulation insertion bytes. The purpose of the chicken bit
-        //!     (default=0) is to prevent insertion of emulation byte across EMU ON/OFF
-        //!     cases in small headers that are created due to slice size conformance.
-        //!     </p>
-        enum HEVC_ENCODER_HLC_EMULATION_PREVENTION_CHICKEN_BIT_DISABLE
-        {
-            HEVC_ENCODER_HLC_EMULATION_PREVENTION_CHICKEN_BIT_DISABLE_DISABLE = 0, //!< No additional details
-            HEVC_ENCODER_HLC_EMULATION_PREVENTION_CHICKEN_BIT_DISABLE_ENABLE = 1, //!< No additional details
-        };
-
-        //! \brief TILE_ROW_X_PROPAGATION_FIX_CHICKEN_BIT_DISABLE
-        //! \details
-        //!     <p style="margin-left:3.0pt;">This modifies the Tile row X-propagation
-        //!     fix</p>
-        //!     <p style="margin-left:3.0pt;">"0"-- Enable Tile row X-propagation fix on
-        //!     HPP/HPR/HLF</p>
-        //!     <p style="margin-left:3.0pt;">"1" -- Disable Tile row X-propagation fix
-        //!     on HPP/HPR/HLF</p>
-        enum TILE_ROW_X_PROPAGATION_FIX_CHICKEN_BIT_DISABLE
-        {
-            TILE_ROW_X_PROPAGATION_FIX_CHICKEN_BIT_DISABLE_ENABLE            = 0, //!< Enable Tile row X-propagation fix on HPP/HPR/HLF [Default]
-            TILE_ROW_X_PROPAGATION_FIX_CHICKEN_BIT_DISABLE_DISABLE           = 1, //!< <p style="margin-left:3.0pt;">"1" -- Disable Tile row X-propagation fix on HPP/HPR/HLF
-        };
-
-        //! \brief HVD_NOA_SELECTION
-        //! \details
-        //!     This is for debug purpose only.  It modifies NOA selection for HVD
-        enum HVD_NOA_SELECTION
-        {
-            HVD_NOA_SELECTION_DEFAULT                                        = 0, //!< No additional details
-        };
-
-        //! \brief BITSTREAM_DECODER_ERROR_HANDLING_MODE
-        //! \details
-        //!     <p>This modifies how bitstream decoder handles error when there are
-        //!     extra bitstream within the tiles</p>
-        //!     <p>"0"--Decoder will trust the tile byte length and flush extra unused
-        //!     bitstream</p>
-        //!     <p>"1"--Decoder will trust its own decoding logic (ignore byte length). 
-        //!     Decoder will start decoding the next tile right after the previous tile
-        //!     finished decoding (bitstream handling)</p>
-        enum BITSTREAM_DECODER_ERROR_HANDLING_MODE
-        {
-            BITSTREAM_DECODER_ERROR_HANDLING_MODE_TRUSTBYTELENGTH            = 0, //!< No additional details
-            BITSTREAM_DECODER_ERROR_HANDLING_MODE_TRUSTDECODINGLOGIC         = 1, //!< No additional details
-        };
-
+        
         //! \name Initializations
 
         //! \brief Explicit member initialization function
@@ -3661,11 +3600,9 @@ public:
             //!< DWORD 11
             struct
             {
-                uint32_t                 Chickenbits0                                     : __CODEGEN_BITFIELD( 0,  0)    ; //!< ChickenBits[0]
-                uint32_t                 MotionCompScalingChickenBit                      : __CODEGEN_BITFIELD( 1,  1)    ; //!< MOTION_COMP_SCALING_CHICKEN_BIT
-                uint32_t                 MvClampDisable                                   : __CODEGEN_BITFIELD( 2,  2)    ; //!< MV_CLAMP_DISABLE
-                uint32_t                 ChromaFractionalCalculationModified              : __CODEGEN_BITFIELD( 3,  3)    ; //!< CHROMA_FRACTIONAL_CALCULATION_MODIFIED
-                uint32_t                 Chickenbits314                                   : __CODEGEN_BITFIELD( 4, 31)    ; //!< ChickenBits [31:4]
+                uint32_t                 Reserved352                                      : __CODEGEN_BITFIELD( 0,  0)    ; //!< Reserved
+                uint32_t                 MotionCompScaling                                : __CODEGEN_BITFIELD( 1,  1)    ; //!< MOTION_COMP_SCALING                
+                uint32_t                 Reserved354                                      : __CODEGEN_BITFIELD( 2,  31)    ; //!< Reserved                
             };
             uint32_t                     Value;
         } DW11;
@@ -3674,7 +3611,7 @@ public:
             //!< DWORD 12
             struct
             {
-                uint32_t                 Chickenbits6332                                                                  ; //!< ChickenBits [63:32]
+                uint32_t                 Reserved384                                                                  ; //!< Reserved
             };
             uint32_t                     Value;
         } DW12;
@@ -3974,7 +3911,7 @@ public:
 
         //! \brief REFRESH_FRAME_CONTEXT
         //! \details
-        //!     <p>Indicates if Frame Context should be refresh.  This bit should come
+        //!     <p>Indicates if Frame Context should be refresh.� This bit should come
         //!     from Uncompressed header</p>
         enum REFRESH_FRAME_CONTEXT
         {
@@ -3984,7 +3921,7 @@ public:
 
         //! \brief ERROR_RESILIENT_MODE
         //! \details
-        //!     <p>Indicates if error resilient mode is enabled. This bit should come
+        //!     <p>Indicates if error resilient mode is enabled.�This bit should come
         //!     from Uncompressed header.When error resilient is 1, Frame Parallel
         //!     Decoding Mode will be 1, and Refresh Frame Context will be 0.When error
         //!     resilient is 0, Frame Parallel Decoding Mode and Refresh Frame Context
@@ -3998,8 +3935,8 @@ public:
 
         //! \brief FRAME_PARALLEL_DECODING_MODE
         //! \details
-        //!     <p>Indicates if parallel decoding mode is enabled.  This bit should come
-        //!     from Uncompressed header.  Together with Error Resilient mode, they
+        //!     <p>Indicates if parallel decoding mode is enabled.� This bit should come
+        //!     from Uncompressed header.� Together with Error Resilient mode, they
         //!     decide the value of AdaptProbabilityFlag.</p>
         enum FRAME_PARALLEL_DECODING_MODE
         {
@@ -4088,38 +4025,15 @@ public:
             LOG2_TILE_ROW_4TILEROW                                           = 2, //!< No additional details
         };
 
-        //! \brief MOTION_COMP_SCALING_CHICKEN_BIT
+        //! \brief MOTION_COMP_SCALING
         //! \details
         //!     <p>This modifies how VP9 Motion Comp to handle scaling x/y
         //!     calculation.</p>
         //!     <p>0 -- Pre-Dec13 version; 1--Post-Dec13 version</p>
-        enum MOTION_COMP_SCALING_CHICKEN_BIT
+        enum MOTION_COMP_SCALING
         {
-            MOTION_COMP_SCALING_CHICKEN_BIT_PRE_DEC13VERSION                 = 0, //!< No additional details
-            MOTION_COMP_SCALING_CHICKEN_BIT_POST_DEC13VERSION                = 1, //!< No additional details
-        };
-
-        //! \brief MV_CLAMP_DISABLE
-        //! \details
-        //!     <p>This modifies how hardware handles MV clamping logic</p>
-        //!     <p>"0"--MV clamping logic is enabled; "1"--MV clamping logic is
-        //!     disabled</p>
-        //!     <p>Not used in Encoder Mode</p>
-        enum MV_CLAMP_DISABLE
-        {
-            MV_CLAMP_DISABLE_ENABLE                                          = 0, //!< No additional details
-            MV_CLAMP_DISABLE_DISABLE                                         = 1, //!< No additional details
-        };
-
-        //! \brief CHROMA_FRACTIONAL_CALCULATION_MODIFIED
-        //! \details
-        //!     <p>This changes how Chroma Fractional Calculation is handled in MC</p>
-        //!     <p>"0"--Default version (current);  "1"--Matched an earlier version of
-        //!     ref decoder</p>
-        enum CHROMA_FRACTIONAL_CALCULATION_MODIFIED
-        {
-            CHROMA_FRACTIONAL_CALCULATION_MODIFIED_CURRENT                   = 0, //!< No additional details
-            CHROMA_FRACTIONAL_CALCULATION_MODIFIED_OUTDATED                  = 1, //!< No additional details
+            MOTION_COMP_SCALING_PRE_DEC13VERSION                 = 0, //!< No additional details
+            MOTION_COMP_SCALING_POST_DEC13VERSION                = 1, //!< No additional details
         };
 
         //! \brief NONFIRSTPASSFLAG
@@ -4250,8 +4164,8 @@ public:
             struct
             {
                 uint32_t                 Reserved32                                       : __CODEGEN_BITFIELD( 0, 29)    ; //!< Reserved
-                uint32_t                 ChickenBitToDisableHtqPerformanceFix1            : __CODEGEN_BITFIELD(30, 30)    ; //!< Chicken bit to disable HTQ performance fix1
-                uint32_t                 ChickenBitToDisableHtqPerformanceFix0            : __CODEGEN_BITFIELD(31, 31)    ; //!< Chicken bit to disable HTQ performance fix0
+                uint32_t                 DisableHtqPerformance1                           : __CODEGEN_BITFIELD(30, 30)    ; //!< Disable HTQ performance fix1
+                uint32_t                 DisableHtqPerformance0                           : __CODEGEN_BITFIELD(31, 31)    ; //!< Disable HTQ performance fix0
             };
             uint32_t                     Value;
         } DW1;

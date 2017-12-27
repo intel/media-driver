@@ -1095,9 +1095,9 @@ DdiVp_SetProcPipelineParams(
 	Mos_Solo_SetOsResource(pMediaSrcSurf->pGmmResourceInfo, &pVpHalSrcSurf->OsResource);
 
     //Set encryption bit for input surface
-    //This setting only used for secure VPP test app which do secure VP and provide encrypted YUV as input
+    //This setting only used for secure VPP test app which do secure VP and provide secure YUV as input
     //Since APP cannot set encryption flag, it will set input_surface_flag to ask driver add encryption bit to input surface
-    if (pOsInterface->osCpInterface->IsHMEnabled() && (pPipelineParam->input_surface_flag & VPHAL_IS_SURFACE_ENCRYPTED_FLAG))
+    if (pOsInterface->osCpInterface->IsHMEnabled() && (pPipelineParam->input_surface_flag & VPHAL_SURFACE_ENCRYPTION_FLAG))
     {
         pOsInterface->osCpInterface->SetResourceEncryption(&(pVpHalSrcSurf->OsResource), true);
     }
@@ -3289,8 +3289,8 @@ DdiVp_QueryVideoProcFilterCaps (
     
     VP_DDI_FUNCTION_ENTER;
 
-    DDI_CHK_NULL(filter_caps, "Null filter_caps.", VA_STATUS_ERROR_INVALID_PARAMETER);
-    DDI_CHK_NULL(num_filter_caps, "Null num_filter_caps.", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL (filter_caps, "Null filter_caps.", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL (num_filter_caps, "Null num_filter_caps.", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     if (*num_filter_caps != 0)
     {

@@ -20,58 +20,26 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_wrapper.h  
-//! \brief     Contains CM Device creation/destory definitionsthe and function tables for CM Ults  
+//! \file      cm_wrapper.h
+//! \brief     Contains declarations of various OS-agnostic data structures and
+//!            functions for executing commands from cmrtlib.
 //!
-#ifndef __CM_WRAPPER_H__
-#define __CM_WRAPPER_H__
 
-#include "cm_func.h"
-#include "cm_device.h"
-#include "cm_program.h"
-#include "cm_kernel.h"
-#include "cm_surface_2d_up.h"
-#include "cm_surface_3d.h"
-#include "cm_buffer.h"
-#include "cm_event.h"
-#include "cm_task.h"
-#include "cm_queue.h"
-#include "cm_def.h"
-#include "cm_thread_space.h"
-#include "cm_surface_vme.h"
-#include "cm_sampler.h"
-#include "cm_surface_sampler8x8.h"
-#include "cm_sampler8x8.h"
-#include "cm_group_space.h"
-#include "cm_surface_2d.h"
-#include "cm_vebox.h"
+#ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMWRAPPER_H_
+#define MEDIADRIVER_AGNOSTIC_COMMON_CM_CMWRAPPER_H_
 
 #include "cm_wrapper_os.h"
+#include "cm_device.h"
 
+#define CM_BOUNDARY_PIXEL_MODE GFX3DSTATE_MEDIA_BOUNDARY_PIXEL_MODE
 
-#define CM_BOUNDARY_PIXEL_MODE                  GFX3DSTATE_MEDIA_BOUNDARY_PIXEL_MODE
+#define CM_SURFACE_2D(pSurf) static_cast<CmSurface2DRT*>((CmSurface2D *)(pSurf))
 
-#define CM_SURFACE_2D(pSurf)                    static_cast<CmSurface2DRT*>((CmSurface2D *)(pSurf))
-
-//////////////////////////////////////////////////////////////////////////////////////
-// Thin CMRT definition -- START
-//////////////////////////////////////////////////////////////////////////////////////
 typedef struct _CM_DESTROYCMDEVICE_PARAM
 {
     void        *pCmDeviceHandle;        // [in/out] pointer to CmDevice object
     int32_t     iReturnValue;           // [out] the return value from CMRT@UMD
 }CM_DESTROYCMDEVICE_PARAM, *PCM_DESTROYCMDEVICE_PARAM;
-
-typedef struct _CM_CREATEBUFFER_PARAM
-{
-    uint32_t        iSize;                  // [in]  buffer size in byte
-    CM_BUFFER_TYPE  bufferType;             // [in]  Buffer type (Buffer, BufferUP, or Buffer SVM)
-    void            *pSysMem;                // [in]  Address of system memory
-    void            *pCmBufferHandle;        // [out] pointer to CmBuffer object in CMRT@UMD
-    int32_t         iReturnValue;           // [out] the return value from CMRT@UMD
-    uint32_t        uiReserved;             // Reserved field to ensure sizeof(CM_CREATEBUFFER_PARAM_V2) is different from sizeof(CM_CREATEBUFFER_PARAM_V1) in x64 mode
-}CM_CREATEBUFFER_PARAM, *PCM_CREATEBUFFER_PARAM;
-
 
 typedef struct _CM_DESTROYBUFFER_PARAM
 {
@@ -171,7 +139,7 @@ typedef struct _CM_ENQUEUE_PARAM
     void                *pCmThreadSpaceHandle;   // [in]
     void                *pCmEventHandle;         // [out]
     uint32_t            iEventIndex;            // [out] index of pCmEventHandle in m_EventArray
-    int32_t             iReturnValue;           // [out]               
+    int32_t             iReturnValue;           // [out]
 }CM_ENQUEUE_PARAM, *PCM_ENQUEUE_PARAM;
 
 typedef struct _CM_ENQUEUEHINTS_PARAM
@@ -197,7 +165,7 @@ typedef struct _CM_CREATETHREADSPACE_PARAM
     uint32_t            TsHeight;               // [in]
     void                *pCmTsHandle;            // [out]
     uint32_t            indexInTSArray;         // [out]
-    int32_t             iReturnValue;           // [out]               
+    int32_t             iReturnValue;           // [out]
 }CM_CREATETHREADSPACE_PARAM, *PCM_CREATETHREADSPACE_PARAM;
 
 typedef struct _CM_DESTROYTHREADSPACE_PARAM
@@ -259,7 +227,7 @@ typedef struct _CM_ENQUEUEGROUP_PARAM
     void                *pCmTGrpSpaceHandle;     // [in]
     void                *pCmEventHandle;         // [out]
     uint32_t            iEventIndex;            // [out] index of pCmEventHandle in m_EventArray
-    int32_t             iReturnValue;           // [out]               
+    int32_t             iReturnValue;           // [out]
 }CM_ENQUEUEGROUP_PARAM, *PCM_ENQUEUEGROUP_PARAM;
 
 typedef struct _CM_CREATETGROUPSPACE_PARAM
@@ -271,7 +239,7 @@ typedef struct _CM_CREATETGROUPSPACE_PARAM
     uint32_t                grpSpaceHeight;              // [in]
     uint32_t                grpSpaceDepth;               // [in]
     void                    *pCmGrpSpaceHandle;           // [out]
-    uint32_t                iTGSIndex;                   // [out] 
+    uint32_t                iTGSIndex;                   // [out]
     int32_t                 iReturnValue;                // [out]
 }CM_CREATETGROUPSPACE_PARAM, *PCM_CREATETGROUPSPACE_PARAM;
 
@@ -299,21 +267,6 @@ typedef struct _CM_GETCAPS_PARAM
     uint32_t                        iReturnValue;           //[out]        Return value
 }CM_GETCAPS_PARAM, *PCM_GETCAPS_PARAM;
 
-//CM_ENQUEUE_GPUCOPY_PARAM version 2: two new fields are added
-typedef struct _CM_ENQUEUE_GPUCOPY_PARAM
-{
-    void                    *pCmQueueHandle;         // [in] CmQueue pointer in CMRT@UMD
-    void                    *pCmSurface2d;           // [in] CmSurface2d pointer in CMRT@UMD
-    void                    *pSysMem;                // [in] pointer of system memory
-    CM_GPUCOPY_DIRECTION    iCopyDir;               // [in] direction for GPUCopy: CM_FASTCOPY_GPU2CPU (0) or CM_FASTCOPY_CPU2GPU(1)
-    uint32_t                iWidthStride;           // [in] width stride in byte for system memory, ZERO means no setting
-    uint32_t                iHeightStride;          // [in] height stride in row for system memory, ZERO means no setting
-    uint32_t                iOption;                // [in] option passed by user, only support CM_FASTCOPY_OPTION_NONBLOCKING(0) and CM_FASTCOPY_OPTION_BLOCKING(1)
-    void                    *pCmEventHandle;         // [in/out] return CmDevice pointer in CMRT@UMD, nullptr if the input is CM_NO_EVENT
-    uint32_t                iEventIndex;            // [out] index of Event in m_EventArray
-    int32_t                 iReturnValue;           // [out] return value from CMRT@UMD              
-} CM_ENQUEUE_GPUCOPY_PARAM, *PCM_ENQUEUE_GPUCOPY_PARAM;
-
 typedef struct _CM_ENQUEUE_GPUCOPY_V2V_PARAM
 {
     void                    *pCmQueueHandle;         // [in]
@@ -322,7 +275,7 @@ typedef struct _CM_ENQUEUE_GPUCOPY_V2V_PARAM
     uint32_t                iOption;                 // [in]
     void                    *pCmEventHandle;         // [out]
     uint32_t                iEventIndex;             // [out] index of pCmEventHandle in m_EventArray
-    int32_t                 iReturnValue;            // [out]               
+    int32_t                 iReturnValue;            // [out]
 }CM_ENQUEUE_GPUCOPY_V2V_PARAM, *PCM_ENQUEUE_GPUCOPY_V2V_PARAM;
 
 typedef struct _CM_ENQUEUE_GPUCOPY_L2L_PARAM
@@ -334,7 +287,7 @@ typedef struct _CM_ENQUEUE_GPUCOPY_L2L_PARAM
     uint32_t                iOption;                 // [in]
     void                    *pCmEventHandle;         // [out]
     uint32_t                iEventIndex;             // [out] index of pCmEventHandle in m_EventArray
-    int32_t                 iReturnValue;            // [out]               
+    int32_t                 iReturnValue;            // [out]
 }CM_ENQUEUE_GPUCOPY_L2L_PARAM, *PCM_ENQUEUE_GPUCOPY_L2L_PARAM;
 
 typedef struct _CM_CREATE_SURFACE3D_PARAM
@@ -373,7 +326,7 @@ typedef struct _CM_CREATESAMPLER3D_PARAM
     void                *pSamplerSurfIndexHandle;    // [out] pointer of SurfaceIndex used in driver
     int32_t             iReturnValue;               // [out] the return value from CMRT@UMD
  }CM_CREATESAMPLER3D_PARAM, *PCM_CREATESAMPLER3D_PARAM;
-    
+
 typedef struct _CM_DESTROYSAMPLERSURF_PARAM
 {
     void                *pSamplerSurfIndexHandle;    // [in] pointer of SamplerSurfaceIndex used in driver
@@ -394,6 +347,7 @@ typedef struct _CM_DEVICE_SETSUGGESTEDL3_PARAM
     int32_t             iReturnValue;               // [out] the return value from CMRT@UMD
 }CM_DEVICE_SETSUGGESTEDL3_PARAM, *PCM_DEVICE_SETSUGGESTEDL3_PARAM;
 
+using CMRT_UMD::SamplerIndex;
 typedef struct _CM_CREATESAMPLER8x8_PARAM
 {
     CM_SAMPLER_8X8_DESCR        Sample8x8Desc;                // [in]
@@ -408,6 +362,7 @@ typedef struct _CM_DESTROYSAMPLER8x8_PARAM
     int32_t                 iReturnValue;                 // [out]
 }CM_DESTROYSAMPLER8x8_PARAM, *PCM_DESTROYSAMPLER8x8_PARAM;
 
+using CMRT_UMD::SurfaceIndex;
 typedef struct _CM_CREATESAMPLER8x8SURF_PARAM
 {
     void                        *pCmSurf2DHandle;              // [in]
@@ -429,10 +384,10 @@ typedef struct _CM_CREATESAMPLER8x8SURFEX_PARAM
 
 typedef struct _CM_CREATESAMPLER2DEX_PARAM
 {
-    void                *pCmSurface2DHandle;                   // [in] 
+    void                *pCmSurface2DHandle;                   // [in]
     CM_FLAG*            pFlag;                                // [in]
-    void                *pSamplerSurfIndexHandle;              // [out] 
-    int32_t             iReturnValue;                         // [out] 
+    void                *pSamplerSurfIndexHandle;              // [out]
+    int32_t             iReturnValue;                         // [out]
 }CM_CREATESAMPLER2DEX_PARAM, *PCM_CREATESAMPLER2DEX_PARAM;
 
 typedef struct _CM_DESTROYSAMPLER8x8SURF_PARAM
@@ -445,10 +400,10 @@ typedef struct _CM_ENQUEUE_2DINIT_PARAM
 {
     void                    *pCmQueueHandle;         // [in] handle of Queue
     void                    *pCmSurface2d;           // [in] handle of surface 2d
-    uint32_t                dwInitValue;            // [in] init value  
+    uint32_t                dwInitValue;            // [in] init value
     void                    *pCmEventHandle;         // [out] event's handle
     uint32_t                iEventIndex;            // [out] event's index
-    int32_t                 iReturnValue;           // [out] return value               
+    int32_t                 iReturnValue;           // [out] return value
 }CM_ENQUEUE_2DINIT_PARAM, *PCM_ENQUEUE_2DINIT_PARAM;
 
 typedef struct _CM_DEVICE_INIT_PRINT_BUFFER_PARAM
@@ -462,13 +417,13 @@ typedef struct _CM_CREATEVEBOX_PARAM
 {
     void                    *pCmVeboxHandle;         // [out] CmVeboxG75's handle
     uint32_t                indexInVeboxArray;      // [out] index in m_VeboxArray
-    int32_t                 iReturnValue;           // [out] return value               
+    int32_t                 iReturnValue;           // [out] return value
 }CM_CREATEVEBOX_PARAM, *PCM_CREATEVEBOX_PARAM;
 
 typedef struct _CM_DESTROYVEBOX_PARAM
 {
     void                    *pCmVeboxHandle;         // [IN] CmVeboxG75's handle
-    int32_t                 iReturnValue;           // [out] return value               
+    int32_t                 iReturnValue;           // [out] return value
 }CM_DESTROYVEBOX_PARAM, *PCM_DESTROYVEBOX_PARAM;
 
 typedef struct _CM_DEVICE_CREATE_SURF2D_ALIAS_PARAM
@@ -494,11 +449,11 @@ typedef struct _CM_CLONE_KERNEL_PARAM
 
 typedef struct _CM_ENQUEUE_VEBOX_PARAM
 {
-    void                    *pCmQueueHandle;         // [IN] 
+    void                    *pCmQueueHandle;         // [IN]
     void                    *pCmVeboxHandle;         // [IN] CmVeboxG75's handle
     void                    *pCmEventHandle;         // [out] event's handle
     uint32_t                iEventIndex;            // [out] event's index
-    int32_t                 iReturnValue;           // [out] return value               
+    int32_t                 iReturnValue;           // [out] return value
 }CM_ENQUEUE_VEBOX_PARAM, *PCM_ENQUEUE_VEBOX_PARAM;
 
 struct CM_GET_VISA_VERSION_PARAM
@@ -508,48 +463,101 @@ struct CM_GET_VISA_VERSION_PARAM
     int32_t                   iReturnValue;          // [OUT] return value
 };
 
-//!
-//! \brief    Creates a CmDevice from a MOS context.
-//! \details  If an existing CmDevice has already associated to the MOS context,
-//!           the existing CmDevice will be returned. Otherwise, a new CmDevice
-//!           instance will be created and associatied with that MOS context.
-//! \param    pMosContext
-//!           [in] pointer to MOS conetext.
-//! \param    pDevice
-//!           [in/out] reference to the pointer to the CmDevice.
-//! \param    devCreateOption
-//!           [in] option to customize CmDevice.
-//! \retval   CM_SUCCESS if the CmDevice is successfully created.
-//! \retval   CM_NULL_POINTER if pMosContext is null.
-//! \retval   CM_FAILURE otherwise.
-//!
-CM_RT_API int32_t CreateCmDevice(MOS_CONTEXT *pMosContext, CmDevice* &pDevice, uint32_t devCreateOption);
+//*-----------------------------------------------------------------------------
+//| CM extension Function Codes
+//*-----------------------------------------------------------------------------
+enum CM_FUNCTION_ID
+{
+    CM_FN_RT_ULT      = 0x900,
+    CM_FN_RT_ULT_INFO = 0x902,
 
-//!
-//! \brief    Destroys the CmDevice associated with MOS context. 
-//! \details  This function also destroys surfaces, kernels, programs, samplers,
-//!           threadspaces, tasks and the queues that were created using this
-//!           device instance but haven’t explicitly been destroyed by calling
-//!           respective destroy functions. 
-//! \param    pMosContext
-//!           [in] pointer to MOS conetext.
-//! \retval   CM_SUCCESS if CmDevice is successfully destroyed.
-//! \retval   CM_NULL_POINTER if MOS context is null.
-//! \retval   CM_FAILURE otherwise.
-//!
-CM_RT_API int32_t DestroyCmDevice(MOS_CONTEXT *pMosContext);
+    CM_FN_CREATECMDEVICE  = 0x1000,
+    CM_FN_DESTROYCMDEVICE = 0x1001,
 
-//!
-//! \brief      Returns the corresponding CM_RETURN_CODE error string.
-//! \param      [in] errCode
-//!             CM error code.
-//! \return     Corresponding error string if valid Code. \n
-//!             "Internal Error" if invalid.
-//!
-CM_RT_API const char* GetCmErrorString(int errCode);
-//////////////////////////////////////////////////////////////////////////////////////
-// Thin CMRT definition -- END
-//////////////////////////////////////////////////////////////////////////////////////
+    CM_FN_CMDEVICE_CREATEBUFFER             = 0x1100,
+    CM_FN_CMDEVICE_DESTROYBUFFER            = 0x1101,
+    CM_FN_CMDEVICE_CREATEBUFFERUP           = 0x1102,
+    CM_FN_CMDEVICE_DESTROYBUFFERUP          = 0x1103,
+    CM_FN_CMDEVICE_CREATESURFACE2D          = 0x1104,
+    CM_FN_CMDEVICE_DESTROYSURFACE2D         = 0x1105,
+    CM_FN_CMDEVICE_CREATESURFACE2DUP        = 0x1106,
+    CM_FN_CMDEVICE_DESTROYSURFACE2DUP       = 0x1107,
+    CM_FN_CMDEVICE_GETSURFACE2DINFO         = 0x1108,
+    CM_FN_CMDEVICE_CREATESURFACE3D          = 0x1109,
+    CM_FN_CMDEVICE_DESTROYSURFACE3D         = 0x110A,
+    CM_FN_CMDEVICE_CREATEQUEUE              = 0x110B,
+    CM_FN_CMDEVICE_LOADPROGRAM              = 0x110C,
+    CM_FN_CMDEVICE_DESTROYPROGRAM           = 0x110D,
+    CM_FN_CMDEVICE_CREATEKERNEL             = 0x110E,
+    CM_FN_CMDEVICE_DESTROYKERNEL            = 0x110F,
+    CM_FN_CMDEVICE_CREATETASK               = 0x1110,
+    CM_FN_CMDEVICE_DESTROYTASK              = 0x1111,
+    CM_FN_CMDEVICE_GETCAPS                  = 0x1112,
+    CM_FN_CMDEVICE_SETCAPS                  = 0x1113,
+    CM_FN_CMDEVICE_CREATETHREADSPACE        = 0x1114,
+    CM_FN_CMDEVICE_DESTROYTHREADSPACE       = 0x1115,
+    CM_FN_CMDEVICE_CREATETHREADGROUPSPACE   = 0x1116,
+    CM_FN_CMDEVICE_DESTROYTHREADGROUPSPACE  = 0x1117,
+    CM_FN_CMDEVICE_SETL3CONFIG              = 0x1118,
+    CM_FN_CMDEVICE_SETSUGGESTEDL3CONFIG     = 0x1119,
+    CM_FN_CMDEVICE_CREATESAMPLER            = 0x111A,
+    CM_FN_CMDEVICE_DESTROYSAMPLER           = 0x111B,
+    CM_FN_CMDEVICE_CREATESAMPLER8X8         = 0x111C,
+    CM_FN_CMDEVICE_DESTROYSAMPLER8X8        = 0x111D,
+    CM_FN_CMDEVICE_CREATESAMPLER8X8SURFACE  = 0x111E,
+    CM_FN_CMDEVICE_DESTROYSAMPLER8X8SURFACE = 0x111F,
+    CM_FN_CMDEVICE_DESTROYVMESURFACE        = 0x1123,
+    CM_FN_CMDEVICE_CREATEVMESURFACEG7_5     = 0x1124,
+    CM_FN_CMDEVICE_DESTROYVMESURFACEG7_5    = 0x1125,
+    CM_FN_CMDEVICE_CREATESAMPLERSURFACE2D   = 0x1126,
+    CM_FN_CMDEVICE_CREATESAMPLERSURFACE3D   = 0x1127,
+    CM_FN_CMDEVICE_DESTROYSAMPLERSURFACE    = 0x1128,
+    CM_FN_CMDEVICE_ENABLE_GTPIN             = 0X112A,
+    CM_FN_CMDEVICE_INIT_PRINT_BUFFER        = 0x112C,
+    CM_FN_CMDEVICE_CREATEVEBOX              = 0x112D,
+    CM_FN_CMDEVICE_DESTROYVEBOX             = 0x112E,
+    CM_FN_CMDEVICE_CREATEBUFFERSVM          = 0x1131,
+    CM_FN_CMDEVICE_DESTROYBUFFERSVM         = 0x1132,
+    CM_FN_CMDEVICE_CREATESAMPLERSURFACE2DUP = 0x1133,
+    CM_FN_CMDEVICE_REGISTER_GTPIN_MARKERS   = 0x1136,
+    CM_FN_CMDEVICE_CLONEKERNEL              = 0x1137,
+    CM_FN_CMDEVICE_CREATESURFACE2D_ALIAS    = 0x1138,
+    CM_FN_CMDEVICE_CREATESAMPLER_EX         = 0x1139,
 
+    CM_FN_CMDEVICE_CREATESAMPLER8X8SURFACE_EX = 0x113A,
+    CM_FN_CMDEVICE_CREATESAMPLERSURFACE2D_EX  = 0x113B,
+    CM_FN_CMDEVICE_CREATESURFACE2D_EX         = 0x113C,
+    CM_FN_CMDEVICE_CREATEBUFFER_ALIAS         = 0x113D,
+    CM_FN_CMDEVICE_CONFIGVMESURFACEDIMENSION  = 0x113E,
+    CM_FN_CMDEVICE_CREATEHEVCVMESURFACEG10    = 0x113F,
+    CM_FN_CMDEVICE_GETVISAVERSION             = 0x1140,
 
-#endif
+    CM_FN_CMQUEUE_ENQUEUE           = 0x1500,
+    CM_FN_CMQUEUE_DESTROYEVENT      = 0x1501,
+    CM_FN_CMQUEUE_ENQUEUECOPY       = 0x1502,
+    CM_FN_CMQUEUE_ENQUEUEWITHGROUP  = 0x1504,
+    CM_FN_CMQUEUE_ENQUEUESURF2DINIT = 0x1505,
+    CM_FN_CMQUEUE_ENQUEUECOPY_V2V   = 0x1506,
+    CM_FN_CMQUEUE_ENQUEUECOPY_L2L   = 0x1507,
+    CM_FN_CMQUEUE_ENQUEUEVEBOX      = 0x1508,
+    CM_FN_CMQUEUE_ENQUEUEWITHHINTS  = 0x1509,
+};
+
+//*-----------------------------------------------------------------------------
+//| Purpose:    CMRT thin layer library supported function execution
+//| Return:     CM_SUCCESS if successful
+//*-----------------------------------------------------------------------------
+using CMRT_UMD::CmDevice;
+int32_t CmThinExecuteEx(CmDevice *pCmDevice,
+                        CM_FUNCTION_ID cmFunctionID,
+                        void *pInputData,
+                        uint32_t inputDataLen);
+
+// Below APIs are called in CmThinExecute(), so they are declared here again.
+extern int32_t CreateCmDevice(MOS_CONTEXT *pMosContext,
+                              CmDevice* &pDevice,
+                              uint32_t devCreateOption);
+
+extern int32_t DestroyCmDevice(MOS_CONTEXT *pMosContext);
+
+#endif  // #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMWRAPPER_H_

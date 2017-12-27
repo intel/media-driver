@@ -30,7 +30,12 @@
 #include "codechal.h"
 #include "codechal_hw.h"
 #include "codechal_encode_sfc.h"
+#include "codechal_utilities.h"
 
+//!
+//! \enum     DsStage
+//! \brief    Ds stage
+//!
 enum DsStage
 {
     dsDisabled = 0,
@@ -51,6 +56,10 @@ enum DsStage
     convDs2x4xFromOrig = 11,
 };
 
+//!
+//! \class    ScalingBindingTable
+//! \brief    Scaling binding table
+//!
 struct ScalingBindingTable
 {
     uint32_t   dwScalingFrameSrcY;
@@ -70,9 +79,9 @@ struct ScalingBindingTable
 };
 
 //!
-//! CSC and Downscaling base class
-//! \details  Entry point to create CSC Downscaling class instance
-//!
+//! \class    CodechalEncodeCscDs
+//! \details  CSC and Downscaling base class
+//!           Entry point to create CSC Downscaling class instance
 //! This class defines the base class for CSC and Downscaling feature, it includes
 //! common member fields, functions, interfaces etc shared by all Gens.
 //!
@@ -108,7 +117,7 @@ public:
     //!
     //! \brief    Kernel params for CSC kernel
     //!
-	struct KernelParams
+    struct KernelParams
     {
         DsStage                     stageDsConversion = dsDisabled;
         bool                        b16xScalingInUse = false;
@@ -127,7 +136,7 @@ public:
         ENCODE_INPUT_COLORSPACE     inputColorSpace = ECOLORSPACE_P709;
         PMOS_SURFACE                psFormatConversionOnlyInputSurface = nullptr;
         PMOS_SURFACE                psFormatConvertedSurface = nullptr;
-        void*			            hevcExtParams = nullptr;
+        void*                       hevcExtParams = nullptr;
     };
 
     //!
@@ -137,7 +146,18 @@ public:
     {
         Ds4xKernelCurbeData()
         {
-            MOS_ZeroMemory(this, sizeof(*this));
+            DW0 = 0;
+            DW1 = ds4xSrcYPlane;
+            DW2 = ds4xDstYPlane;
+            DW3_InputYBTIBottomField =
+            DW4_OutputYBTIBottomField =
+            DW5_FlatnessThreshold =
+            DW6 =
+            DW7_Reserved = 0;
+            DW8 = ds4xDstFlatness;
+            DW9_FlatnessOutputBTIBottomField = 0;
+            DW10 = ds4xDstMbVProc;
+            DW11_MBVProcStatsBTIBottomField = 0;
         }
 
         // uint32_t 0 - GRF R1.0
@@ -148,7 +168,7 @@ public:
                 uint32_t   DW0_InputPictureWidth : MOS_BITFIELD_RANGE(0, 15);
                 uint32_t   DW0_InputPictureHeight : MOS_BITFIELD_RANGE(16, 31);
             };
-            uint32_t DW0 = 0;
+            uint32_t DW0;
         };
 
         // DW1
@@ -162,7 +182,7 @@ public:
             {
                 uint32_t   DW1_InputYBTITopField;
             };
-            uint32_t DW1 = ds4xSrcYPlane;
+            uint32_t DW1;
         };
 
         // DW2
@@ -176,17 +196,17 @@ public:
             {
                 uint32_t   DW2_OutputYBTITopField;
             };
-            uint32_t DW2 = ds4xDstYPlane;
+            uint32_t DW2;
         };
 
         // DW3
-        uint32_t DW3_InputYBTIBottomField = 0;
+        uint32_t DW3_InputYBTIBottomField;
 
         // DW4
-        uint32_t DW4_OutputYBTIBottomField = 0;
+        uint32_t DW4_OutputYBTIBottomField;
 
         // DW5
-        uint32_t DW5_FlatnessThreshold = 0;
+        uint32_t DW5_FlatnessThreshold;
 
         // DW6
         union
@@ -199,11 +219,11 @@ public:
                 uint32_t   DW6_EnableBlock8x8StatisticsOutput : MOS_BITFIELD_BIT(3);
                 uint32_t   : MOS_BITFIELD_RANGE(4, 31);
             };
-            uint32_t DW6 = 0;
+            uint32_t DW6;
         };
 
         // DW7
-        uint32_t DW7_Reserved = 0;
+        uint32_t DW7_Reserved;
 
         // DW8
         union
@@ -216,11 +236,11 @@ public:
             {
                 uint32_t   DW8_FlatnessOutputBTITopField;
             };
-            uint32_t DW8 = ds4xDstFlatness;
+            uint32_t DW8;
         };
 
         // DW9
-        uint32_t DW9_FlatnessOutputBTIBottomField = 0;
+        uint32_t DW9_FlatnessOutputBTIBottomField;
 
         // DW10
         union
@@ -233,11 +253,11 @@ public:
             {
                 uint32_t   DW10_MBVProcStatsBTITopField;
             };
-            uint32_t DW10 = ds4xDstMbVProc;
+            uint32_t DW10;
         };
 
         // DW11
-        uint32_t DW11_MBVProcStatsBTIBottomField = 0;
+        uint32_t DW11_MBVProcStatsBTIBottomField;
     };
     C_ASSERT(MOS_BYTES_TO_DWORDS(sizeof(Ds4xKernelCurbeData)) == 12);
 
@@ -349,13 +369,13 @@ public:
     //!
     MOS_STATUS AllocateSurface2xDS();
 
-	//!
-	//! \brief    Release DS surface
-	//!
-	//! \return   MOS_STATUS
-	//!           MOS_STATUS_SUCCESS if success, else fail reason
-	//!
-	void ReleaseSurfaceDS(uint8_t index);
+    //!
+    //! \brief    Release DS surface
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    void ReleaseSurfaceDS(uint8_t index);
 
 protected:
     //!
@@ -379,6 +399,19 @@ protected:
     //!
     struct CscKernelCurbeData
     {
+        CscKernelCurbeData()
+        {
+            DW0 = 0;
+            DW1_SrcNV12SurfYIndex = cscSrcYPlane;
+            DW2_DstYSurfIndex = cscDstDsYPlane;
+            DW3_FlatDstSurfIndex = cscDstFlatOrMbStats;
+            DW4_CopyDstNV12SurfIndex = cscDstCopyYPlane;
+            DW5 = 0;
+            DW6_FlatnessThreshold = 0;
+            DW7 = 0;
+            DW8_SrcNV12SurfUVIndex = cscSrcUVPlane;
+        }
+
         union
         {
             struct
@@ -387,20 +420,20 @@ protected:
                 uint32_t    DW0_InputPictureWidth : MOS_BITFIELD_RANGE(0, 15);
                 uint32_t    DW0_InputPictureHeight : MOS_BITFIELD_RANGE(16, 31);
             };
-            uint32_t DW0 = 0;
+            uint32_t DW0;
         };
 
         // DW1: Surface index source linear NV12 Y Plane
-        uint32_t    DW1_SrcNV12SurfYIndex = cscSrcYPlane;
+        uint32_t    DW1_SrcNV12SurfYIndex;
 
         // DW2: Surface index downscale destination Planar Y
-        uint32_t    DW2_DstYSurfIndex = cscDstDsYPlane;
+        uint32_t    DW2_DstYSurfIndex;
 
         // DW3: Surface index flatness destination
-        uint32_t    DW3_FlatDstSurfIndex = cscDstFlatOrMbStats;
+        uint32_t    DW3_FlatDstSurfIndex;
 
         // DW4: Surface index copy destination NV12
-        uint32_t    DW4_CopyDstNV12SurfIndex = cscDstCopyYPlane;
+        uint32_t    DW4_CopyDstNV12SurfIndex;
 
         union
         {
@@ -411,11 +444,11 @@ protected:
                 uint32_t    DW5_InputColorFormat : MOS_BITFIELD_RANGE(8, 15);
                 uint32_t    DW5_Reserved : MOS_BITFIELD_RANGE(16, 31);
             };
-            uint32_t DW5 = 0;
+            uint32_t DW5;
         };
 
         // DW6: MBFlatnessThreshold
-        uint32_t    DW6_FlatnessThreshold = 0;
+        uint32_t    DW6_FlatnessThreshold;
 
         union
         {
@@ -425,11 +458,11 @@ protected:
                 uint32_t    DW7_EnableMBFlatnessCheck : MOS_BITFIELD_BIT(0);
                 uint32_t    DW7_Reserved : MOS_BITFIELD_RANGE(1, 31);
             };
-            uint32_t DW7 = 0;
+            uint32_t DW7;
         };
 
         // DW8: Surface index source linear NV12 UV Plane
-        uint32_t    DW8_SrcNV12SurfUVIndex = cscSrcUVPlane;
+        uint32_t    DW8_SrcNV12SurfUVIndex;
     };
     C_ASSERT(MOS_BYTES_TO_DWORDS(sizeof(CscKernelCurbeData)) == 9);
 
@@ -446,7 +479,7 @@ protected:
         PMOS_SURFACE                psOutputCopiedSurface = nullptr;
         PMOS_SURFACE                psFlatnessCheckSurface = nullptr;
         PMOS_RESOURCE               presMBVProcStatsBuffer = nullptr;
-        void*			            hevcExtParams = nullptr;
+        void*                       hevcExtParams = nullptr;
     };
 
     //!
@@ -478,8 +511,6 @@ protected:
     //!
     //! \brief    Constructor
     //!
-    CodechalEncodeCscDs(PCODECHAL_ENCODER encoder);
-
     CodechalEncodeCscDs(CodechalEncoderState* encoder);
 
     //!
@@ -527,7 +558,7 @@ protected:
             uint8_t             m_cscUsingSfc : 1;                                          //!< bit 4 = 1: use SFC to do CSC, only applies to RGB
             uint8_t             reserved1 : 3;
         };
-        uint8_t                 m_cscFlag = 0;                                              //!< the actual CSC/Copy operation to be performed for raw surface
+        uint8_t                 m_cscFlag;                                                  //!< the actual CSC/Copy operation to be performed for raw surface
     };
 
     uint8_t                     m_cscBufCurrIdx = 0;                                        //!< curr copy buffer index
@@ -681,6 +712,22 @@ private:
     //!
     struct Ds2xKernelCurbeData
     {
+        Ds2xKernelCurbeData()
+        {
+            DW0 =
+            DW1_Reserved =
+            DW2_Reserved =
+            DW3_Reserved =
+            DW4_Reserved =
+            DW5_Reserved =
+            DW6_Reserved =
+            DW7_Reserved = 0;
+            DW8 = ds2xSrcYPlane;
+            DW9 = ds2xDstYPlane;
+            DW10_InputYBTIBottomField =
+            DW11_OutputYBTIBottomField = 0;
+        }
+
         // uint32_t 0 - GRF R1.0
         union
         {
@@ -689,29 +736,29 @@ private:
                 uint32_t   DW0_InputPictureWidth : MOS_BITFIELD_RANGE(0, 15);
                 uint32_t   DW0_InputPictureHeight : MOS_BITFIELD_RANGE(16, 31);
             };
-            uint32_t DW0 = 0;
+            uint32_t DW0;
         };
 
         // DW1
-		uint32_t DW1_Reserved = 0;
+        uint32_t DW1_Reserved;
 
         // DW2
-		uint32_t DW2_Reserved = 0;
+        uint32_t DW2_Reserved;
 
         // DW3
-		uint32_t DW3_Reserved = 0;
+		uint32_t DW3_Reserved;
 
         // DW4
-		uint32_t DW4_Reserved = 0;
+		uint32_t DW4_Reserved;
 
         // DW5
-		uint32_t DW5_Reserved = 0;
+		uint32_t DW5_Reserved;
 
         // DW6
-        uint32_t DW6_Reserved = 0;
+        uint32_t DW6_Reserved;
 
         // DW7
-		uint32_t DW7_Reserved = 0;
+		uint32_t DW7_Reserved;
 
         // DW8
         union
@@ -724,7 +771,7 @@ private:
             {
                 uint32_t   DW8_InputYBTITopField : MOS_BITFIELD_RANGE(0, 31);
             };
-			uint32_t DW8 = ds2xSrcYPlane;
+            uint32_t DW8;
         };
 
         // DW9
@@ -738,14 +785,14 @@ private:
             {
                 uint32_t   DW9_OutputYBTITopField : MOS_BITFIELD_RANGE(0, 31);
             };
-			uint32_t DW9 = ds2xDstYPlane;
+            uint32_t DW9;
         };
 
         // DW10
-		uint32_t DW10_InputYBTIBottomField = 0;
+        uint32_t DW10_InputYBTIBottomField;
 
         // DW11
-		uint32_t DW11_OutputYBTIBottomField = 0;
+        uint32_t DW11_OutputYBTIBottomField;
     };
     C_ASSERT(MOS_BYTES_TO_DWORDS(sizeof(Ds2xKernelCurbeData)) == 12);
 
@@ -753,6 +800,26 @@ private:
     //! \brief    DS kernel Curbe data
     struct DsKernelInlineData
     {
+        DsKernelInlineData()
+        {
+            DW04_VideoXScalingStep = 
+            DW05_VideoStepDelta = 0.0;
+            DW00 = 
+            DW01 =
+            DW02 =
+            DW03 =
+            DW06 =
+            DW07_GroupIDNumber =
+            DW08 =
+            DW09 =
+            DW10 =
+            DW11 =
+            DW12 =
+            DW13_Reserved =
+            DW14_Reserved =
+            DW15_Reserved = 0;
+        }
+
 		// uint32_t 0 - GRF R7.0
 		union
 		{
@@ -773,7 +840,7 @@ private:
 			{
 				uint32_t       StartRowOffset;
 			};
-			uint32_t DW00 = 0;
+			uint32_t DW00;
 		};
 
 		// uint32_t 1 - GRF R7.1
@@ -790,7 +857,7 @@ private:
 			{
 				uint32_t       TotalRows;
 			};
-			uint32_t DW01 = 0;
+			uint32_t DW01;
 		};
 
 		// uint32_t 2 - GRF R7.2
@@ -807,7 +874,7 @@ private:
 			{
 				uint32_t       StartColumnOffset;
 			};
-			uint32_t DW02 = 0;
+			uint32_t DW02;
 		};
 
 		// uint32_t 3 - GRF R7.3
@@ -824,16 +891,16 @@ private:
 			{
 				uint32_t       TotalColumns;
 			};
-			uint32_t DW03 = 0;
+            uint32_t DW03;
 		};
 
 		// uint32_t 4 - GRF R7.4
 		// Sampler Load
-		float       DW04_VideoXScalingStep = 0;
+        float       DW04_VideoXScalingStep;
 
 		// uint32_t 5 - GRF R7.5
 		// NLAS
-		float       DW05_VideoStepDelta;
+        float       DW05_VideoStepDelta;
 
 		// uint32_t 6 - GRF R7.6
 		union
@@ -845,12 +912,12 @@ private:
 				uint32_t       AreaOfInterest : 1;
 				uint32_t : 14;
 			};
-			uint32_t DW06 = 0;
+            uint32_t DW06;
 		};
 
 		// uint32_t 7 - GRF R7.7
 		// AVScaling
-		uint32_t       DW07_GroupIDNumber = 0;
+        uint32_t       DW07_GroupIDNumber;
 
 		// uint32_t 8 - GRF R8.0
 		union
@@ -861,7 +928,7 @@ private:
 				uint32_t       HorizontalBlockCompositeMaskLayer3 : 16;
 				uint32_t       VerticalBlockCompositeMaskLayer3 : 16;
 			};
-			uint32_t DW08 = 0;
+            uint32_t DW08;
 		};
 
 		// uint32_t 9 - GRF R8.1
@@ -873,7 +940,7 @@ private:
 				uint32_t       HorizontalBlockCompositeMaskLayer4 : 16;
 				uint32_t       VerticalBlockCompositeMaskLayer4 : 16;
 			};
-            uint32_t DW09 = 0;
+            uint32_t DW09;
 		};
 
 		// uint32_t 10 - GRF R8.2
@@ -885,7 +952,7 @@ private:
 				uint32_t       HorizontalBlockCompositeMaskLayer5 : 16;
 				uint32_t       VerticalBlockCompositeMaskLayer5 : 16;
 			};
-            uint32_t DW10 = 0;
+            uint32_t DW10;
 		};
 
 		// uint32_t 11 - GRF R8.3
@@ -897,7 +964,7 @@ private:
 				uint32_t       HorizontalBlockCompositeMaskLayer6 : 16;
 				uint32_t       VerticalBlockCompositeMaskLayer6 : 16;
 			};
-            uint32_t DW11 = 0;
+            uint32_t DW11;
 		};
 
 		// uint32_t 12 - GRF R8.4
@@ -909,17 +976,17 @@ private:
 				uint32_t       HorizontalBlockCompositeMaskLayer7 : 16;
 				uint32_t       VerticalBlockCompositeMaskLayer7 : 16;
 			};
-            uint32_t DW12 = 0;
+            uint32_t DW12;
 		};
 
 		// uint32_t 13 - GRF R8.5
-		uint32_t DW13_Reserved = 0;
+        uint32_t DW13_Reserved;
 
 		// uint32_t 14 - GRF R8.6
-        uint32_t DW14_Reserved = 0;
+        uint32_t DW14_Reserved;
 
 		// uint32_t 15 - GRF R8.7
-        uint32_t DW15_Reserved = 0;
+        uint32_t DW15_Reserved;
     };
 	C_ASSERT(MOS_BYTES_TO_DWORDS(sizeof(DsKernelInlineData)) == 16);
 
@@ -1004,12 +1071,12 @@ private:
     MOS_STATUS SetSurfacesToEncPak();
 
     //!
-	//! \brief    Setup Curbe for DS kernel
-	//!
-	//! \return   MOS_STATUS
-	//!           MOS_STATUS_SUCCESS if success, else fail reason
-	//!
-	virtual MOS_STATUS SetCurbeDS2x();
+    //! \brief    Setup Curbe for DS kernel
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SetCurbeDS2x();
 
     //!
     //! \brief    Send surface for DS kernel
@@ -1029,7 +1096,7 @@ private:
             uint8_t             m_cscEnableSfc : 1;                                         //!< bit 3 = 1: VEBOX is enabled to perform ARGB CSC
             uint8_t             reserved : 4;
         };
-        uint8_t                 m_cscDsConvEnable = 0;
+        uint8_t                 m_cscDsConvEnable;
     };
 
     uint8_t                     m_cscBufLastIdx = 0;                                        //!< last copy buffer index

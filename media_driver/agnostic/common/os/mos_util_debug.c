@@ -507,9 +507,6 @@ void MOS_MessageInit()
 
     if(g_MosMsgParams.uiCounter == 0)   // first time only
     {
-        MosMemAllocCounter  = 0;
-        MosMemAllocCounterGfx = 0;
-
         // Set all sub component messages to critical level by default.
         MOS_SetCompMessageLevelAll(MOS_MESSAGE_LVL_CRITICAL);
 
@@ -538,6 +535,10 @@ void MOS_MessageInit()
 
         MOS_HLTInit();
         MOS_DDIDumpInit();
+
+        // all above action should not be covered by memninja since its destroy is behind memninja counter report to test result. 
+        MosMemAllocCounter  = 0;
+        MosMemAllocCounterGfx = 0;
     }
 
     // uiCounter's thread safety depends on global_lock in VPG_Initialize

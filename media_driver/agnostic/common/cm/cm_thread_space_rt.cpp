@@ -28,14 +28,19 @@
 
 #include "cm_kernel_rt.h"
 #include "cm_task_rt.h"
-#include "cm_log.h"
 #include "cm_mem.h"
 #include "cm_device_rt.h"
-#include "cm_hal.h"
 
 #if USE_EXTENSION_CODE
 #include "cm_thread_space_ext.h"
 #endif
+
+enum CM_TS_FLAG
+{
+    WHITE = 0, 
+    GRAY  = 1,
+    BLACK = 2
+};
 
 static CM_DEPENDENCY WavefrontPattern =
 {
@@ -93,6 +98,8 @@ static CM_DEPENDENCY Wavefront26ZIGPattern =
     { 1, 0, -1, -1, -1 }
 };
 
+namespace CMRT_UMD
+{
 //*-----------------------------------------------------------------------------
 //| Purpose:    Reset task and clear all the kernel
 //| Returns:    Result of the operation.
@@ -2006,3 +2013,4 @@ std::string CmThreadSpaceRT::Log()
     return oss.str();
 }
 #endif
+}

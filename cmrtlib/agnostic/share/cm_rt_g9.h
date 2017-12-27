@@ -56,7 +56,7 @@ typedef struct _VEBOX_SURFACE_CONTROL_BITS_G9
     // DWORD 0
     union {
         struct {
-            DWORD       EncryptedData : BITFIELD_BIT(0);
+            DWORD       Reserved0 : BITFIELD_BIT(0);
             DWORD       IndexToMemoryObjectControlStateMocsTables : BITFIELD_RANGE(1, 6);
             DWORD       MemoryCompressionEnable : BITFIELD_BIT(7);
             DWORD       MemoryCompressionMode : BITFIELD_BIT(8);

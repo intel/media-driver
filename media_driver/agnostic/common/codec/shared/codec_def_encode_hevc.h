@@ -172,21 +172,21 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
             *   This setting is only valid if RateControlMethod is AVBR or VBR and the current picture is an I picture. If the frame resolution is changed, it should be set with IDR picture. It should not be set when RateControlMethod is CBR or CQP. The following table indicates which BRC parameters can be changed via a BRC reset.
             *
             *  \n BRC Parameters       Changes allowed via reset
-            *  \n Profile & Level    	        Yes
-            *  \n UserMaxFrameSize    	        Yes
-            *  \n InitVBVBufferFullnessInBit	No
+            *  \n Profile & Level               Yes
+            *  \n UserMaxFrameSize              Yes
+            *  \n InitVBVBufferFullnessInBit    No
             *  \n TargetBitRate                 Yes 
             *  \n VBVBufferSizeInBit            No
             *  \n MaxBitRate                    Yes 
-            *  \n FramesPer100Sec *  	        No
+            *  \n FramesPer100Sec *             No
             *  \n RateControlMethod             No
-            *  \n GopPicSize	                No
-            *  \n GopRefDist                	No
-            *  \n GopOptFlag	                Yes
+            *  \n GopPicSize                    No
+            *  \n GopRefDist                    No
+            *  \n GopOptFlag                    Yes
             *  \n FrameWidth                    No
-            *  \n FrameHeight         	        No
-            *  \n AVBRAccuracy      	        No
-            *  \n AVBRConvergence     	        No
+            *  \n FrameHeight                   No
+            *  \n AVBRAccuracy                  No
+            *  \n AVBRConvergence               No
             *  \n Note: when resolution (FrameWidth and/or FrameHeight) changes, framework should re-start a new bit stream and not using BRC reset.
             */
             uint32_t        bResetBRC           : 1;
@@ -245,10 +245,10 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
             uint32_t        SliceSizeControl    : 1;
             /*! \brief Specifies input source format
             *
-            *    \n 0:	YUV420
-            *    \n 1:	YUV422
-            *    \n 2:	YUV444
-            *    \n 3:	RGB
+            *    \n 0:    YUV420
+            *    \n 1:    YUV422
+            *    \n 2:    YUV444
+            *    \n 3:    RGB
             *    \n Note1: Encoder cannot do up-sampling. For example, if source format is YUV422, the encoder can generates bit stream of 420 or 422 only. It cannot generate YUV444 format. But it may generates RGB format.
             *    Note2: For RGB, the actual input source format is also determined by flag DisplayFormatSwizzle (formats below is in MSB->LSB order).
             *        \n - If DisplayFromatSwizzle is 0, and 8b intut is specified the format is A8B8G8R8, if 10 bit is specified the format is A2B10G10R10
@@ -257,10 +257,10 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
             uint32_t        SourceFormat        : 2;
             /*! \brief Specifies input source bit depth.
             *
-            *    \n 0:	8b
-            *    \n 1:	10b
-            *    \n 2:	12b
-            *    \n 3:	16b
+            *    \n 0:    8b
+            *    \n 1:    10b
+            *    \n 2:    12b
+            *    \n 3:    16b
             *    \n Note: Encoder cannot do up-sampling. For example, if source bit depth is 10b, the encoder can generates bit stream of 8b or 10b only, and that it cannot generate 12b format. It is subjected to the limit set by MaxEncodedBitDepth.
             */
             uint32_t        SourceBitDepth      : 2;
@@ -412,12 +412,12 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
     *   It affects the BRC algorithm used, but may or may not have an effect based on the combination of other BRC parameters.  Only valid when the driver reports support for FrameSizeToleranceSupport.
     */
     ENCODE_FRAMESIZE_TOLERANCE  FrameSizeTolerance;
-	
+    
     uint32_t palette_mode_enabled_flag;
     uint32_t motion_vector_resolution_control_idc;
     uint32_t intra_boundary_filtering_disabled_flag;
-    uint8_t	 palette_max_size;
-    uint8_t	 delta_palette_max_predictor_size;
+    uint8_t     palette_max_size;
+    uint8_t     delta_palette_max_predictor_size;
 } CODEC_HEVC_ENCODE_SEQUENCE_PARAMS, *PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS;
 
 /*! \brief Provides the picture-level parameters of a compressed picture for HEVC decoding.
@@ -630,6 +630,7 @@ typedef struct _CODEC_HEVC_ENCODE_PICTURE_PARAMS
     *    Value entries are distinct and within [MinDeltaQp..MaxDeltaQp]. 
     */
     int8_t                  ROIDistinctDeltaQp[8];
+    uint32_t                RollingIntraReferenceLocation[16];
     /*! \brief Dictates the value of delta QP for any ROI should be within [MinDeltaQp..MaxDeltaQp]
     *
     *    Applies only to BRC case.
@@ -712,17 +713,17 @@ typedef struct _CODEC_HEVC_ENCODE_PICTURE_PARAMS
     */
     uint32_t                bScreenContent;
 
-	/*! \brief Picture parameter, Same as syntax element.
+    /*! \brief Picture parameter, Same as syntax element.
     *
     */
-    uint32_t		        pps_curr_pic_ref_enabled_flag;
-	uint32_t		        residual_adaptive_colour_transform_enabled_flag;
-	uint32_t		        pps_slice_act_qp_offsets_present_flag;
-	uint8_t	                PredictorPaletteSize;
-	uint16_t		        PredictorPaletteEntries[3][128];
-	char		            pps_act_y_qp_offset_plus5;
-	char		            pps_act_cb_qp_offset_plus5;
-	char		            pps_act_cr_qp_offset_plus3;
+    uint32_t                pps_curr_pic_ref_enabled_flag;
+    uint32_t                residual_adaptive_colour_transform_enabled_flag;
+    uint32_t                pps_slice_act_qp_offsets_present_flag;
+    uint8_t                 PredictorPaletteSize;
+    uint16_t                PredictorPaletteEntries[3][128];
+    char                    pps_act_y_qp_offset_plus5;
+    char                    pps_act_cb_qp_offset_plus5;
+    char                    pps_act_cr_qp_offset_plus3;
 } CODEC_HEVC_ENCODE_PICTURE_PARAMS, *PCODEC_HEVC_ENCODE_PICTURE_PARAMS;
 
 /*! \brief Slice-level parameters of a compressed picture for HEVC encoding.
@@ -883,6 +884,10 @@ typedef struct _CODEC_HEVC_ENCODE_SLICE_PARAMS
     uint32_t            SliceSAOFlagBitOffset;
 } CODEC_HEVC_ENCODE_SLICE_PARAMS, *PCODEC_HEVC_ENCODE_SLICE_PARAMS;
 
+//!
+//! \struct    CodecEncodeHevcFeiPicParams
+//! \brief     Codec encode HEVC FEI pic params
+//!
 struct CodecEncodeHevcFeiPicParams
 {
     MOS_RESOURCE                resCTBCtrl;              // input CTB control buffer

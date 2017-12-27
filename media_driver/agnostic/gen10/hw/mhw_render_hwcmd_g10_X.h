@@ -1,3 +1,4 @@
+
 /*
 * Copyright (c) 2017, Intel Corporation
 *
@@ -25,6 +26,9 @@
 //! \details  This file may not be included outside of g10_X as other components
 //!           should use MHW interface to interact with MHW commands and states.
 //!
+
+// DO NOT EDIT
+
 #ifndef __MHW_RENDER_HWCMD_G10_X_H__
 #define __MHW_RENDER_HWCMD_G10_X_H__
 
@@ -226,8 +230,6 @@ public:
     //!     Flush Enable, DC Flush Enable) PIPE_CONTROL  (Constant Cache Invalidate,
     //!     Texture Cache Invalidate, Instruction Cache Invalidate, State Cache
     //!     invalidate) PIPELINE_SELECT ( GPGPU)
-    //!     : This command must be followed by a PIPE_CONTROL with CS Stall bit
-    //!     set.,
     //!     
     struct PIPELINE_SELECT_CMD
     {
@@ -376,9 +378,6 @@ public:
     //!     programming PIPE_CONTROL has performance implications then preemption
     //!     latencies can be traded off against performance by not implementing this
     //!     programming note.
-    //!     
-    //!     : This command must be followed by a PIPE_CONTROL with CS Stall bit
-    //!     set.,
     //!     
     struct STATE_BASE_ADDRESS_CMD
     {
@@ -929,6 +928,8 @@ public:
 
     //!
     //! \brief MEDIA_CURBE_LOAD
+    //! \details
+    //!     
     //!     
     struct MEDIA_CURBE_LOAD_CMD
     {
@@ -1595,9 +1596,6 @@ public:
     //!     texture sampler state variable.Texture Color Key (keying on a paletted
     //!     texture index) is not supported.
     //!     
-    //!     : This command must be followed by a PIPE_CONTROL with CS Stall bit
-    //!     set.,
-    //!     
     struct _3DSTATE_CHROMA_KEY_CMD
     {
         union
@@ -1686,9 +1684,6 @@ public:
     //!     the first palette. Partial loads always start from the first (index 0)
     //!     entry.
     //!     
-    //!     : This command must be followed by a PIPE_CONTROL with CS Stall bit
-    //!     set.,
-    //!     
     struct _3DSTATE_SAMPLER_PALETTE_LOAD0_CMD
     {
         union
@@ -1696,7 +1691,7 @@ public:
             //!< DWORD 0
             struct
             {
-                uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0,  7)    ; //!< DWord Length
+                uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0,  7)    ; //!< DWORD_LENGTH
                 uint32_t                 Reserved8                                        : __CODEGEN_BITFIELD( 8, 15)    ; //!< Reserved
                 uint32_t                 Command3DSubOpcode                               : __CODEGEN_BITFIELD(16, 23)    ; //!< _3D_COMMAND_SUB_OPCODE
                 uint32_t                 Command3DOpcode                                  : __CODEGEN_BITFIELD(24, 26)    ; //!< _3D_COMMAND_OPCODE
@@ -1746,9 +1741,6 @@ public:
     //!     "Px...[palette1]") is referenced by the sampler.This instruction is used
     //!     to load all or a subset of the 256 entries of the second palette.
     //!     Partial loads always start from the first (index 0) entry.
-    //!     
-    //!     : This command must be followed by a PIPE_CONTROL with CS Stall bit
-    //!     set.,
     //!     
     struct _3DSTATE_SAMPLER_PALETTE_LOAD1_CMD
     {
@@ -1835,9 +1827,6 @@ public:
     //!     The STATE_SIP command specifies the starting instruction location of the
     //!     System Routine that is shared by all threads in execution.
     //!     
-    //!     : This command must be followed by a PIPE_CONTROL with CS Stall bit
-    //!     set.,
-    //!     
     struct STATE_SIP_CMD
     {
         union
@@ -1891,6 +1880,75 @@ public:
 
         //! \brief Explicit member initialization function
         STATE_SIP_CMD();
+
+        static const size_t dwSize = 3;
+        static const size_t byteSize = 12;
+    };
+
+    //!
+    //! \brief STATE_CSR_BASE_ADDRESS
+    //! \details
+    //!     The STATE_CSR_BASE_ADDRESS command sets the base pointers for EU and L3
+    //!     to Context Save and Restore EU State and SLM for GPGPU mid-thread
+    //!     preemption and URB for high priority preemption.
+    //!     
+    //!     This command must be programmed with allocated memory to the support the
+    //!     size of the context to be saved and restored during a GPGPU mid-thread
+    //!     preemption or a high priority suspend of a 3D context.
+    //!     
+    struct STATE_CSR_BASE_ADDRESS_CMD
+    {
+        union
+        {
+            //!< DWORD 0
+            struct
+            {
+                uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0,  7)    ; //!< DWORD_LENGTH
+                uint32_t                 Reserved8                                        : __CODEGEN_BITFIELD( 8, 15)    ; //!< Reserved
+                uint32_t                 Command3DSubOpcode                               : __CODEGEN_BITFIELD(16, 23)    ; //!< _3D_COMMAND_SUB_OPCODE
+                uint32_t                 Command3DOpcode                                  : __CODEGEN_BITFIELD(24, 26)    ; //!< _3D_COMMAND_OPCODE
+                uint32_t                 CommandSubtype                                   : __CODEGEN_BITFIELD(27, 28)    ; //!< COMMAND_SUBTYPE
+                uint32_t                 CommandType                                      : __CODEGEN_BITFIELD(29, 31)    ; //!< COMMAND_TYPE
+            };
+            uint32_t                     Value;
+        } DW0;
+        union
+        {
+            //!< DWORD 1..2
+            struct
+            {
+                uint64_t                 Reserved32                                       : __CODEGEN_BITFIELD( 0, 11)    ; //!< Reserved
+                uint64_t                 CsrBaseAddress                                   : __CODEGEN_BITFIELD(12, 63)    ; //!< CSR Base Address
+            };
+            uint32_t                     Value[2];
+        } DW1_2;
+
+        //! \name Local enumerations
+
+        enum _3D_COMMAND_SUB_OPCODE
+        {
+            _3D_COMMAND_SUB_OPCODE_STATECSRBASEADDRESS                       = 4, //!< No additional details
+        };
+
+        enum _3D_COMMAND_OPCODE
+        {
+            _3D_COMMAND_OPCODE_GFXPIPENONPIPELINED                           = 1, //!< No additional details
+        };
+
+        enum COMMAND_SUBTYPE
+        {
+            COMMAND_SUBTYPE_GFXPIPECOMMON                                    = 0, //!< No additional details
+        };
+
+        enum COMMAND_TYPE
+        {
+            COMMAND_TYPE_GFXPIPE                                             = 3, //!< No additional details
+        };
+
+        //! \name Initializations
+
+        //! \brief Explicit member initialization function
+        STATE_CSR_BASE_ADDRESS_CMD();
 
         static const size_t dwSize = 3;
         static const size_t byteSize = 12;

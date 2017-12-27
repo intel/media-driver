@@ -80,7 +80,20 @@
 #define CODECHAL_DECODE_VC1_SC_PREFIX_LENGTH            3
 
 //!
-//! \enum CODECHAL_DECODE_VC1_BINDING_TABLE_OFFSET_OLP
+//! \struct _CODECHAL_VC1_VLD_SLICE_RECORD 
+//! VC1 slice record 
+//!
+typedef struct _CODECHAL_VC1_VLD_SLICE_RECORD
+{
+    uint32_t   dwSkip;
+    uint32_t   dwOffset;
+    uint32_t   dwLength;
+    uint32_t   dwSliceYOffset;
+    uint32_t   dwNextSliceYOffset;
+} CODECHAL_VC1_VLD_SLICE_RECORD, *PCODECHAL_VC1_VLD_SLICE_RECORD;
+
+//!
+//! \enum _CODECHAL_DECODE_VC1_BINDING_TABLE_OFFSET_OLP
 //! VC1 OLP Binding Table Offset
 //!
 typedef enum _CODECHAL_DECODE_VC1_BINDING_TABLE_OFFSET_OLP
@@ -93,7 +106,7 @@ typedef enum _CODECHAL_DECODE_VC1_BINDING_TABLE_OFFSET_OLP
 }CODECHAL_DECODE_VC1_BINDING_TABLE_OFFSET_OLP;
 
 //!
-//! \enum CODECHAL_DECODE_VC1_DMV_INDEX
+//! \enum _CODECHAL_DECODE_VC1_DMV_INDEX
 //! VC1 DMV index
 //!
 typedef enum _CODECHAL_DECODE_VC1_DMV_INDEX
@@ -104,8 +117,8 @@ typedef enum _CODECHAL_DECODE_VC1_DMV_INDEX
 }CODECHAL_DECODE_VC1_DMV_INDEX;
 
 //!
-//! \struct CODECHAL_DECODE_VC1_I_LUMA_BLOCKS
-//! \brief Define Look Up Table Structure for Luma Polarity of Interlaced Picture
+//! \struct _CODECHAL_DECODE_VC1_I_LUMA_BLOCKS
+//! \brief  Define Look Up Table Structure for Luma Polarity of Interlaced Picture
 //!
 typedef struct _CODECHAL_DECODE_VC1_I_LUMA_BLOCKS
 {
@@ -121,8 +134,8 @@ typedef struct _CODECHAL_DECODE_VC1_I_LUMA_BLOCKS
 }CODECHAL_DECODE_VC1_I_LUMA_BLOCKS;
 
 //!
-//! \struct CODECHAL_DECODE_VC1_P_LUMA_BLOCKS
-//! \brief Define Look Up Table for Luma Inter-coded Blocks of Progressive Picture
+//! \struct _CODECHAL_DECODE_VC1_P_LUMA_BLOCKS
+//! \brief  Define Look Up Table for Luma Inter-coded Blocks of Progressive Picture
 //!
 typedef struct _CODECHAL_DECODE_VC1_P_LUMA_BLOCKS
 {
@@ -133,8 +146,8 @@ typedef struct _CODECHAL_DECODE_VC1_P_LUMA_BLOCKS
 }CODECHAL_DECODE_VC1_P_LUMA_BLOCKS;
 
 //!
-//! \struct CODECHAL_DECODE_VC1_BITSTREAM
-//! \brief Define variables for VC1 bitstream
+//! \struct _CODECHAL_DECODE_VC1_BITSTREAM
+//! \brief  Define variables for VC1 bitstream
 //!
 typedef struct _CODECHAL_DECODE_VC1_BITSTREAM
 {
@@ -152,8 +165,8 @@ typedef struct _CODECHAL_DECODE_VC1_BITSTREAM
 } CODECHAL_DECODE_VC1_BITSTREAM, *PCODECHAL_DECODE_VC1_BITSTREAM;
 
 //!
-//! \struct CODECHAL_DECODE_VC1_OLP_PARAMS
-//! \brief Define variables of VC1 Olp params for hw cmd
+//! \struct _CODECHAL_DECODE_VC1_OLP_PARAMS
+//! \brief  Define variables of VC1 Olp params for hw cmd
 //!
 typedef struct _CODECHAL_DECODE_VC1_OLP_PARAMS
 {
@@ -166,8 +179,8 @@ typedef struct _CODECHAL_DECODE_VC1_OLP_PARAMS
 }CODECHAL_DECODE_VC1_OLP_PARAMS, *PCODECHAL_DECODE_VC1_OLP_PARAMS;
 
 //!
-//! \struct CODECHAL_DECODE_VC1_OLP_STATIC_DATA
-//! \brief Define VC1 OLP Static Data
+//! \struct _CODECHAL_DECODE_VC1_OLP_STATIC_DATA
+//! \brief  Define VC1 OLP Static Data
 //!
 typedef struct _CODECHAL_DECODE_VC1_OLP_STATIC_DATA
 {
@@ -297,7 +310,7 @@ typedef struct _CODECHAL_DECODE_VC1_OLP_STATIC_DATA
 #define CODECHAL_DECODE_VC1_CURBE_SIZE_OLP          (sizeof(CODECHAL_DECODE_VC1_OLP_STATIC_DATA))
 
 //!
-//! \struct CODECHAL_DECODE_VC1_KERNEL_HEADER_CM
+//! \struct _CODECHAL_DECODE_VC1_KERNEL_HEADER_CM
 //! \brief Define VC1 Kernel Header CM
 //!
 typedef struct _CODECHAL_DECODE_VC1_KERNEL_HEADER_CM {
@@ -319,7 +332,7 @@ class CodechalDecodeVc1 : public CodechalDecode
 {
 public:
     //!
-    //! \brief  Constructor
+    //! \brief    Constructor
     //! \param    [in] hwInterface
     //!           Hardware interface
     //! \param    [in] debugInterface
@@ -590,16 +603,16 @@ protected:
     //!
     //! \brief    Parse Progressive Mv Mode for VC1 decoder
     //! \details  Parse Progressive Mv Mode for VC1 decoder
-    //! \param    [in] MvModeTable[]
+    //! \param    [in] mvModeTable[]
     //!           const MV Mode Table
-    //! \param    [out] pu32MvMode
+    //! \param    [out] mvMode
     //!           pointer to Mv Mode
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS ParseProgressiveMvMode(
-        const uint32_t                     MvModeTable[],
-        uint32_t*                          pu32MvMode);
+        const uint32_t                     mvModeTable[],
+        uint32_t*                          mvMode);
 
     //!
     //! \brief    Parse Interlace Mv Mode for VC1 decoder
@@ -701,7 +714,7 @@ protected:
     // Parameters passed by application
     uint16_t                        u16PicWidthInMb         = 0;                    //!< Picture Width in MB width count
     uint16_t                        u16PicHeightInMb        = 0;                    //!< Picture Height in MB height count
-    bool                            bIntelProprietaryFormatInUse    = false;        //!< Indicator of using a Intel proprietary entrypoint.
+    bool                            bIntelEntrypointInUse   = false;                //!< Indicator of using a Intel-specific entrypoint.
     bool                            bShortFormatInUse       = false;                //!< Short format slice data
     bool                            bVC1OddFrameHeight      = false;                //!< VC1 Odd Frame Height
     uint32_t                        u32DataSize             = 0;                    //!< Size of the data contained in presDataBuffer
@@ -804,7 +817,7 @@ private:
 
     //!
     //! \brief    Read bits from VC1 bitstream
-    //! \param    [in] u32BitsRead
+    //! \param    [in] bitsRead
     //!           Number of bits to be read
     //! \return   uint32_t
     //!           EOS if reaching end of stream, else bitstream value
@@ -829,7 +842,7 @@ private:
 
     //!
     //! \brief    Read bits from VC1 bitstream and don't update bitstream pointer
-    //! \param    [in] u32BitsRead
+    //! \param    [in] bitsRead
     //!           Number of bits to be read
     //! \return   uint32_t
     //!           EOS if reaching end of stream, else bitstream value
@@ -838,7 +851,7 @@ private:
 
     //!
     //! \brief    Skip bits from VC1 bitstream
-    //! \param    [in] u32Bits
+    //! \param    [in] bits
     //!           Number of bits to be skipped
     //! \return   uint32_t
     //!           EOS if reaching end of stream, else bitstream value
@@ -847,19 +860,19 @@ private:
 
     //!
     //! \brief    Pack Chroma/Luma Motion Vectors for Interlaced frame
-    //! \param    [in] u16FieldSelect
+    //! \param    [in] fieldSelect
     //!           Field Select Index
-    //! \param    [in] u16CurrentField
+    //! \param    [in] currentField
     //!           Current Filed Indicator
-    //! \param    [in] bFastUVMotionCompensation
+    //! \param    [in] fastUVMotionCompensation
     //!           Fast UV Motion Compensation Indicator
-    //! \param    [out] pLmv
+    //! \param    [out] lmv
     //!           Pointer to Adjusted Luma Motion Vectors
-    //! \param    [out] pCmv
+    //! \param    [out] cmv
     //!           Pointer to Adjusted Chroma Motion Vectors
     //! \return   void
     //!
-    uint8_t PackMotionVectors_Chroma4MvI(
+    uint8_t PackMotionVectorsChroma4MvI(
         uint16_t    fieldSelect,
         uint16_t    currentField,
         bool        fastUVMotionCompensation,
@@ -876,7 +889,7 @@ private:
     //!           Pointer to Adjusted Chroma Motion Vectors
     //! \return   void
     //!
-    void PackMotionVectors_Chroma4MvP(uint16_t intraFlags, int16_t *lmv, int16_t *cmv);
+    void PackMotionVectorsChroma4MvP(uint16_t intraFlags, int16_t *lmv, int16_t *cmv);
 
     //!
     //! \brief    Find Median for 3 MVs
@@ -885,7 +898,7 @@ private:
     //! \return   int16_t
     //!           return median for 3 MVs
     //!
-    int16_t PackMotionVectors_Median3(int16_t mv1, int16_t mv2, int16_t mv3);
+    int16_t PackMotionVectorsMedian3(int16_t mv1, int16_t mv2, int16_t mv3);
     //!
     //! \brief    Find Median for 4 MVs
     //! \param    [in] mv#
@@ -893,7 +906,7 @@ private:
     //! \return   int16_t
     //!           return median for 4 MVs
     //!
-    int16_t PackMotionVectors_Median4(int16_t mv1, int16_t mv2, int16_t mv3, int16_t mv4);
+    int16_t PackMotionVectorsMedian4(int16_t mv1, int16_t mv2, int16_t mv3, int16_t mv4);
 
 #if USE_CODECHAL_DEBUG_TOOL
     MOS_STATUS DumpPicParams(

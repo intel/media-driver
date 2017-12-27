@@ -22,11 +22,9 @@ cmake_minimum_required(VERSION 3.5)
 
 include(GNUInstallDirs)
 
-add_subdirectory(media_driver)
+add_subdirectory(cmrtlib)
 
-if (DEFINED BUILD_ALONG_WITH_CMRTLIB)
-    add_subdirectory(cmrtlib)
-endif()
+add_subdirectory(media_driver)
 
 if (TARGET iHD_drv_video AND TARGET igfxcmrt)
 

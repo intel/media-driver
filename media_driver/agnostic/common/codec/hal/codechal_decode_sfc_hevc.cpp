@@ -27,7 +27,7 @@
 
 #include "codechal_decode_sfc_hevc.h"
 
-MOS_STATUS CODECHAL_HEVC_SFC_STATE::CheckAndInitialize(
+MOS_STATUS CodechalHevcSfcState::CheckAndInitialize(
     PCODECHAL_DECODE_PROCESSING_PARAMS  decProcessingParams,
     PCODEC_HEVC_PIC_PARAMS              hevcPicParams)
 {
@@ -66,7 +66,7 @@ MOS_STATUS CODECHAL_HEVC_SFC_STATE::CheckAndInitialize(
     return eStatus;
 }
 
-MOS_STATUS CODECHAL_HEVC_SFC_STATE::UpdateInputInfo(
+MOS_STATUS CodechalHevcSfcState::UpdateInputInfo(
     PMHW_SFC_STATE_PARAMS   sfcStateParams)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;

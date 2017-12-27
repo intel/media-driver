@@ -65,9 +65,11 @@ public:
         VABufferID       *buffers,
         int32_t          numBuffers) override;
 
-    virtual VAStatus EndPicture(
+    virtual VAStatus InitDecodeParams(
         VADriverContextP ctx,
         VAContextID      context) override;
+
+    virtual VAStatus SetDecodeParams() override;
 
     virtual void ContextInit(
         int32_t picWidth,
@@ -76,6 +78,16 @@ public:
     virtual VAStatus CodecHalInit(
         DDI_MEDIA_CONTEXT *mediaCtx,
         void              *ptr) override;
+
+    virtual VAStatus AllocSliceControlBuffer(
+        DDI_MEDIA_BUFFER       *buf) override;
+
+    virtual VAStatus AllocBsBuffer(
+        DDI_CODEC_COM_BUFFER_MGR    *bufMgr,
+        DDI_MEDIA_BUFFER            *buf) override;
+
+    virtual uint8_t* GetPicParamBuf( 
+        DDI_CODEC_COM_BUFFER_MGR	 *bufMgr) override;
 
 private:
     //!
@@ -106,7 +118,7 @@ private:
     //! \param   [in] *matrix
     //!          VAIQMatrixBufferJPEGBaseline
     //!
-    //! \param   [in] dwNumSlices
+    //! \param   [in] numSlices
     //!          int32_t
     //!
     //! \return  VA_STATUS_SUCCESS is returned if it is parsed successfully.
@@ -123,7 +135,7 @@ private:
     //! \param   [in] picParam
     //!          VAPictureParameterBufferJPEGBaseline
     //!
-    //! \param   [in] dwNumSlices
+    //! \param   [in] numSlices
     //!          int32_t
     //! \return  VA_STATUS_SUCCESS is returned if it is parsed successfully.
     //!          else fail reason
@@ -134,7 +146,7 @@ private:
     //! \brief   Alloc SliceParam content for JPEG
     //! \details Alloc/resize SlicePram content for JPEG decoding
     //!
-    //! \param   [in] dwNumSlices
+    //! \param   [in] numSlices
     //!          int32_t the required number of slices
     //!
     //! \return  VA_STATUS_SUCCESS is returned if it is parsed successfully.

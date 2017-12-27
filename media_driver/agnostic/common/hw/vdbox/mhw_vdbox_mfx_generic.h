@@ -408,7 +408,7 @@ protected:
         {
             uint8_t idx = params->RefPicList[params->uiList][i].FrameIdx;
 
-            if (!params->bIntelProprietaryFormatInUse)
+            if (!params->bIntelEntrypointInUse)
             {
                 if (idx >= CODEC_MAX_NUM_REF_FRAME)
                 {
@@ -1124,6 +1124,10 @@ protected:
         return eStatus;
     }
 
+    //!
+    //! \struct   MFD_MPEG2_IT_OBJECT_CMD
+    //! \brief    MFD MPEG2 it object command
+    //!
     struct MFD_MPEG2_IT_OBJECT_CMD
     {
         typename TMfxCmds::MFD_IT_OBJECT_CMD m_header;
@@ -2316,12 +2320,27 @@ protected:
         return eStatus;
     }
 
+    //!
+    //! \struct   MFD_VC1_IT_OBJECT_CMD
+    //! \brief    MFD VC1 it object command
+    //!
     struct MFD_VC1_IT_OBJECT_CMD
     {
         typename TMfxCmds::MFD_IT_OBJECT_CMD m_header;
         typename TMfxCmds::MFD_IT_OBJECT_VC1_INLINE_DATA_CMD m_inlineData;
     };
 
+    //!
+    //! \brief    Get VC1 intra flag
+    //! 
+    //! \param    [in] mbState
+    //!           Pointer to MHW vdbox VC1 mb state 
+    //! \param    [in] mbParams
+    //!           Pointer to codec VC1 mb parameters
+    //!
+    //! \return   uint8_t
+    //!           VC1 intra flag
+    //!
     uint8_t GetVc1IntraFlag(PMHW_VDBOX_VC1_MB_STATE mbState, PCODEC_VC1_MB_PARAMS mbParams)
     {             
         const uint8_t PATTERN_CODE_INTRA_MB = 0xF;
@@ -2345,6 +2364,20 @@ protected:
 
     #define GET_VC1_BLOCK(mb, i) ((mb >> (3 - i)) & 1)
 
+    //!
+    //! \brief    VC1 it object set overlap smoothing filter
+    //!
+    //! \param    [in] inlineDataVc1
+    //!           MFD it object VC1 inline data command
+    //! \param    [in] mbState
+    //!           Pointer to MHW vdbox VC1 mb state 
+    //! \param    [in] mbParams
+    //!           Pointer to codec VC1 mb parameters
+    //! \param    [in] mbHorizOrigin
+    //!           Mb horizontal origin
+    //! \param    [in] mbVertOrigin
+    //!           Mb vertical origin
+    //!
     void Vc1ItObjectSetOverlapSmoothingFilter(
         typename TMfxCmds::MFD_IT_OBJECT_VC1_INLINE_DATA_CMD *inlineDataVc1,
         PMHW_VDBOX_VC1_MB_STATE mbState,

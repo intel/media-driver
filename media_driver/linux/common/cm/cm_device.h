@@ -83,7 +83,7 @@ public:
     //!            owned by caller.
     //! \param    [in] pMosResource
     //!           pointer to MOS resource.
-    //! \param    [in/out] pSurface
+    //! \param    [in,out] pSurface
     //!           reference to pointer of surface to be created.
     //! \retval   CM_SUCCESS if the CmBuffer is successfully created.
     //! \retval   CM_INVALID_MOS_RESOURCE_HANDLE if pMosResource is nullptr.
@@ -162,7 +162,7 @@ public:
     //!            owned by caller.
     //! \param    [in] pMosResource
     //!           pointer to MOS resource.
-    //! \param    [in/out] pSurface
+    //! \param    [in,out] pSurface
     //!           reference to pointer of surface to be created.
     //! \retval   CM_SUCCESS if the CmSurface2D is successfully created.
     //! \retval   CM_INVALID_MOS_RESOURCE_HANDLE if pMosResrouce is nullptr.
@@ -183,7 +183,7 @@ public:
     //!           indext to VA surface.
     //! \param    [in] pUMDCtx
     //!           pointer to VA driver context.
-    //! \param    [in/out] pSurface
+    //! \param    [in,out] pSurface
     //!           reference to pointer of surface to be created.
     //! \retval   CM_SUCCESS if the CmSurface2D is successfully created.
     //! \retval   CM_EXCEED_SURFACE_AMOUNT if maximum amount of 2D surfaces
@@ -1075,7 +1075,7 @@ public:
     //! \note       This function is implemented for both hardware mode and
     //!             simulation mode.
     //!
-    CM_RT_API virtual int32_t SetL3Config(L3ConfigRegisterValues *l3_c) = 0;
+    CM_RT_API virtual int32_t SetL3Config(const L3ConfigRegisterValues *l3_c) = 0;
 
     //!
     //! \brief      Sets the suggested configuration for L3 cache.

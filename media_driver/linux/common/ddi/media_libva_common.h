@@ -77,7 +77,7 @@ static int32_t atrace_switch            = 0;
 
 #define DDI_UNUSED(param)                      MOS_UNUSED(param)
 
-#define DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT   127 
+#define DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT   127
 #define DDI_MEDIA_MAX_INSTANCE_NUMBER          0x0FFFFFFF
 
 // heap
@@ -103,7 +103,7 @@ static int32_t atrace_switch            = 0;
 
 #define DDI_MEDIA_INVALID_VACONTEXTID              0
 
-#define DDI_MEDIA_MAX_COLOR_PLANES                 4       //Maximum color planes supported by media driver, like (A/R/G/B in different planes) 
+#define DDI_MEDIA_MAX_COLOR_PLANES                 4       //Maximum color planes supported by media driver, like (A/R/G/B in different planes)
 
 typedef pthread_mutex_t  MEDIA_MUTEX_T, *PMEDIA_MUTEX_T;
 #define MEDIA_MUTEX_INITIALIZER  PTHREAD_MUTEX_INITIALIZER
@@ -139,7 +139,7 @@ typedef enum _DDI_MEDIA_FORMAT
     Media_Format_NV21        ,
     Media_Format_Buffer      ,
     Media_Format_2DBuffer    ,
-    Media_Format_Perf_Buffer , 
+    Media_Format_Perf_Buffer ,
     Media_Format_X8R8G8B8    ,
     Media_Format_A8R8G8B8    ,
     Media_Format_X8B8G8R8    ,
@@ -179,33 +179,45 @@ typedef enum _DDI_MEDIA_STATUS_REPORT_QUERY_STATE
 //!
 //! \brief Surface descriptor for external DRM buffer
 //!
-typedef struct _DDI_MEDIA_SURFACE_DESCRIPTOR 
-{    
-    uint32_t   uiPlanes;                              // brief number of planes for planar layout 
+typedef struct _DDI_MEDIA_SURFACE_DESCRIPTOR
+{
+    uint32_t   uiPlanes;                              // brief number of planes for planar layout
     uint32_t   uiPitches[DDI_MEDIA_MAX_COLOR_PLANES]; // pitch for each plane in bytes
     uint32_t   uiOffsets[DDI_MEDIA_MAX_COLOR_PLANES]; // offset for each plane in bytes
-    uintptr_t  ulBuffer;                              // buffer handle or user pointer 
+    uintptr_t  ulBuffer;                              // buffer handle or user pointer
     uint32_t   uiSize;                                // buffer size
     uint32_t   uiFlags;                               // See "Surface external buffer descriptor flags"
     uint32_t   uiTile;                                // Used for user pointer
     uint32_t   uiBuffserSize;                         // Used for user pointer
     bool       bIsGralloc;                            // buffer allocated by Gralloc
-    void      *pPrivateData;                          // brief reserved for passing private data 
+    void      *pPrivateData;                          // brief reserved for passing private data
     GMM_RESCREATE_PARAMS GmmParam;                    // GMM Params for Gralloc buffer
 } DDI_MEDIA_SURFACE_DESCRIPTOR,*PDDI_MEDIA_SURFACE_DESCRIPTOR;
 
+//!
+//! \struct DDI_MEDIA_CONTEXT
+//! \brief  Ddi media context
+//!
 struct DDI_MEDIA_CONTEXT;
 
 typedef struct DDI_MEDIA_CONTEXT *PDDI_MEDIA_CONTEXT;
 
 typedef union _DDI_MEDIA_SURFACE_STATUS_REPORT
 {
+    //!
+    //! \struct _DDI_MEDIA_SURFACE_DECODE_STATUS
+    //! \brief  Ddi media surface decode status
+    //! 
     struct _DDI_MEDIA_SURFACE_DECODE_STATUS
     {
         uint32_t                   status;    // indicate latest decode status for current surface, refer to CODECHAL_STATUS in CodechalDecodeStatusReport.
         uint32_t                   errMbNum;  // indicate number of MB s with decode error, refer to NumMbsAffected in CodechalDecodeStatusReport
         uint32_t                   crcValue;  // indicate the CRC value of the decoded data
     } decode;
+    //!
+    //! \struct _DDI_MEDIA_SURFACE_VPP_STATUS
+    //! \brief  Ddi media surface vpp status
+    //! 
     struct _DDI_MEDIA_SURFACE_VPP_STATUS
     {
         uint32_t                   status;    // indicate latest vpp status for current surface.
@@ -218,9 +230,9 @@ typedef struct _DDI_MEDIA_SURFACE
     // for hwcomposer, remove this after we have a solution
     uint32_t                base;
     int32_t                 iWidth;
-    int32_t                 iHeight;             // allocate height after alignment 
-    int32_t                 iRealHeight;         // real height before alignment 
-    int32_t                 iPitch;  
+    int32_t                 iHeight;             // allocate height after alignment
+    int32_t                 iRealHeight;         // real height before alignment
+    int32_t                 iPitch;
     uint32_t                uiOffset;
     DDI_MEDIA_FORMAT        format;
     uint32_t                uiLockedBufID;
@@ -239,7 +251,7 @@ typedef struct _DDI_MEDIA_SURFACE
     uint32_t                frame_idx;
     void                   *pDecCtx;
     void                   *pVpCtx;
-    
+
     uint32_t                            curCtxType;                // indicate current surface is using in which context type.
     DDI_MEDIA_STATUS_REPORT_QUERY_STATE curStatusReportQueryState; // indicate status report is queried or not.
     DDI_MEDIA_SURFACE_STATUS_REPORT     curStatusReport;           // union for both decode and vpp status.
@@ -332,14 +344,15 @@ typedef struct _DDI_X11_FUNC_TABLE
 #endif
 
 //!
-//! \brief Media heap for shared internal structures
+//! \struct DDI_MEDIA_CONTEXT
+//! \brief  Media heap for shared internal structures
 //!
 struct DDI_MEDIA_CONTEXT
 {
     MOS_BUFMGR         *pDrmBufMgr;
 
     // handle for /dev/dri/card0
-    int32_t             fd; 
+    int32_t             fd;
     int32_t             iDeviceId;
     bool                bIsAtomSOC;
 
@@ -348,13 +361,13 @@ struct DDI_MEDIA_CONTEXT
 
     PDDI_MEDIA_HEAP     pSurfaceHeap;
     uint32_t            uiNumSurfaces;
-    
+
     PDDI_MEDIA_HEAP     pBufferHeap;
     uint32_t            uiNumBufs;
 
     PDDI_MEDIA_HEAP     pImageHeap;
     uint32_t            uiNumImages;
-    
+
     PDDI_MEDIA_HEAP     pDecoderCtxHeap;
     uint32_t            uiNumDecoders;
 
@@ -383,18 +396,12 @@ struct DDI_MEDIA_CONTEXT
     MEDIA_MUTEX_T       ImageMutex;
     MEDIA_MUTEX_T       DecoderMutex;
     MEDIA_MUTEX_T       EncoderMutex;
-    MEDIA_MUTEX_T       VpMutex;   
+    MEDIA_MUTEX_T       VpMutex;
     MEDIA_MUTEX_T       CmMutex;
     MEDIA_MUTEX_T       MfeMutex;
 
     // GT system Info
     MEDIA_SYSTEM_INFO  *pGtSystemInfo;
-    
-    //VC1 enable flag
-    bool                bVC1Enabled;
-
-    // Hybrid Decoder Multi-Thread Enable Flag
-    int32_t             bHybridDecMultiThreadEnabled;
 
     // Media memory decompression data structure
     void               *pMediaMemDecompState;
@@ -405,7 +412,7 @@ struct DDI_MEDIA_CONTEXT
         PMOS_RESOURCE pOsResource);
 
     uint32_t            FeiFunction;
-    PLATFORM	        platform;
+    PLATFORM            platform;
 
     MediaLibvaCaps     *m_caps;
 #ifndef ANDROID
@@ -425,16 +432,75 @@ static __inline PDDI_MEDIA_CONTEXT DdiMedia_GetMediaContext (VADriverContextP ct
     return (PDDI_MEDIA_CONTEXT)ctx->pDriverData;
 }
 
-void DdiMedia_MediaSurfaceToMosResource(DDI_MEDIA_SURFACE *pMediaSurface, MOS_RESOURCE  *pMhalOsResource);
+//!
+//! \brief  Media surface to mos resource
+//!
+//! \param  [in] mediaSurface
+//!     Ddi media surface
+//! \param  [in] mhalOsResource
+//!     Mos resource
+//!
+void DdiMedia_MediaSurfaceToMosResource(DDI_MEDIA_SURFACE *mediaSurface, MOS_RESOURCE  *mhalOsResource);
 
-void DdiMedia_MediaBufferToMosResource(DDI_MEDIA_BUFFER *pMediaBuffer, MOS_RESOURCE  *pMhalOsResource);
+//!
+//! \brief  Media buffer to mos resource
+//!
+//! \param  [in] mediaBuffer
+//!     Ddi media buffer
+//! \param  [in] mhalOsResource
+//!     Mos resource
+//!
+void DdiMedia_MediaBufferToMosResource(DDI_MEDIA_BUFFER *mediaBuffer, MOS_RESOURCE  *mhalOsResource);
 
-void* DdiMedia_GetContextFromContextID (VADriverContextP ctx, VAContextID vaCtxID, uint32_t *pCtxType);
+//!
+//! \brief  Get context from context ID
+//!
+//! \param  [in] ctx
+//!     Pointer to VA driver context
+//! \param  [in] vaCtxID
+//!     VA context ID
+//! \param  [in] ctxType
+//!     Ctx type
+//!
+void* DdiMedia_GetContextFromContextID (VADriverContextP ctx, VAContextID vaCtxID, uint32_t *ctxType);
 
-DDI_MEDIA_SURFACE* DdiMedia_GetSurfaceFromVASurfaceID (PDDI_MEDIA_CONTEXT pMediaCtx, VASurfaceID surfaceID);
+//!
+//! \brief  Get surface from VA surface ID
+//!
+//! \param  [in] mediaCtx
+//!     Pointer to ddi media context
+//! \param  [in] surfaceID
+//!     VA surface ID
+//!
+//! \return DDI_MEDIA_SURFACE*
+//!     Pointer to ddi media surface
+//!
+DDI_MEDIA_SURFACE* DdiMedia_GetSurfaceFromVASurfaceID (PDDI_MEDIA_CONTEXT mediaCtx, VASurfaceID surfaceID);
 
-DDI_MEDIA_BUFFER* DdiMedia_GetBufferFromVABufferID (PDDI_MEDIA_CONTEXT pMediaCtx, VABufferID bufferID);
+//!
+//! \brief  Get buffer from VA buffer ID
+//!
+//! \param  [in] mediaCtx
+//!     Pointer to ddi media context
+//! \param  [in] bufferID
+//!     VA buffer ID
+//!
+//! \return DDI_MEDIA_BUFFER*
+//!     Pointer to ddi media buffer
+//!
+DDI_MEDIA_BUFFER* DdiMedia_GetBufferFromVABufferID (PDDI_MEDIA_CONTEXT mediaCtx, VABufferID bufferID);
 
-bool DdiMedia_DestroyBufFromVABufferID (PDDI_MEDIA_CONTEXT pMediaCtx, VABufferID bufferID);
+//!
+//! \brief  Destroy buffer from VA buffer ID
+//!
+//! \param  [in] mediaCtx
+//!     Pointer to ddi media context
+//! \param  [in] bufferID
+//!     VA buffer ID
+//!
+//! \return     bool
+//!     true if destroy buffer from VA buffer ID, else false
+//!
+bool DdiMedia_DestroyBufFromVABufferID (PDDI_MEDIA_CONTEXT mediaCtx, VABufferID bufferID);
 
 #endif

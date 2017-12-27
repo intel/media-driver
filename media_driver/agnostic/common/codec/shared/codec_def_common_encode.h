@@ -51,6 +51,27 @@
 #define CODEC_WP_OUTPUT_L0_START        0
 #define CODEC_WP_OUTPUT_L1_START        6
 
+#define CODEC_MAX_PIC_WIDTH            1920
+#define CODEC_MAX_PIC_HEIGHT           1920                // Tablet usage in portrait mode, image resolution = 1200x1920, so change MAX_HEIGHT to 1920
+#define CODEC_4K_MAX_PIC_WIDTH         4096
+#define CODEC_4K_MAX_PIC_HEIGHT        4096
+
+#define CODEC_8K_MAX_PIC_WIDTH    8192
+#define CODEC_8K_MAX_PIC_HEIGHT   8192
+
+#define CODEC_16K_MAX_PIC_WIDTH        16384
+#define CODEC_16K_MAX_PIC_HEIGHT       16384
+
+#define CODECHAL_MAD_BUFFER_SIZE                4 // buffer size is 4 bytes
+
+// HME
+#define SCALE_FACTOR_2x     2
+#define SCALE_FACTOR_4x     4
+#define SCALE_FACTOR_16x    16
+#define SCALE_FACTOR_32x    32
+
+#define CODECHAL_VP9_MB_CODE_SIZE                   204
+
 /*! \brief Defines ROI settings.
 *
 *    {Top, Bottom, Left, Right} defines the ROI boundary. The values are in unit of blocks. The block size M should use LCU size (e.g. sif LCU size is 32x32, M is 32). And its range should be within the frame boundary, so that:
@@ -323,5 +344,86 @@ typedef enum _CODEC_VDENC_LUTMODE
     CODEC_VDENC_NUM_MODE_COST                      = 0x57
 } CODEC_VDENC_LUTMODE;
 
+// Batch buffer type
+enum
+{
+    MB_ENC_Frame_BB    = 0,
+    MB_ENC_Field_BB,
+    //Add new buffer type here
+    NUM_ENCODE_BB_TYPE
+};
+
+typedef enum
+{
+    FRAME_NO_SKIP       = 0,        // encode as normal, no skip frames
+    FRAME_SKIP_NORMAL   = 1         // one or more frames were skipped prior to curr frame. Encode curr frame as normal, update BRC
+} FRAME_SKIP_FLAG;
+
+typedef enum _CODEC_SLICE_STRUCTS
+{
+    CODECHAL_SLICE_STRUCT_ONESLICE           = 0,    // Once slice for the whole frame
+    CODECHAL_SLICE_STRUCT_POW2ROWS           = 1,    // Slices are power of 2 number of rows, all slices the same
+    CODECHAL_SLICE_STRUCT_ROWSLICE           = 2,    // Slices are any number of rows, all slices the same
+    CODECHAL_SLICE_STRUCT_ARBITRARYROWSLICE  = 3,    // Slices are any number of rows, slices can be different
+    CODECHAL_SLICE_STRUCT_ARBITRARYMBSLICE   = 4     // Slices are any number of MBs, slices can be different
+    // 5 - 7 are Reserved
+} CODEC_SLICE_STRUCTS;
+
+//FEI Encode Macros
+#define CodecHalIsFeiEncode(codecFunction)              \
+    ( codecFunction == CODECHAL_FUNCTION_FEI_PRE_ENC ||  \
+      codecFunction == CODECHAL_FUNCTION_FEI_ENC ||  \
+    codecFunction == CODECHAL_FUNCTION_FEI_PAK ||  \
+    codecFunction == CODECHAL_FUNCTION_FEI_ENC_PAK)
+
+//Encode Macros
+#define CodecHalIsEncode(codecFunction)                 \
+        (codecFunction == CODECHAL_FUNCTION_ENC ||      \
+         codecFunction == CODECHAL_FUNCTION_PAK ||      \
+         codecFunction == CODECHAL_FUNCTION_ENC_PAK ||  \
+         codecFunction == CODECHAL_FUNCTION_ENC_VDENC_PAK ||\
+         codecFunction == CODECHAL_FUNCTION_HYBRIDPAK) || \
+         CodecHalIsFeiEncode(codecFunction)
+
+#define CodecHalUsesVideoEngine(codecFunction)            \
+        (codecFunction == CODECHAL_FUNCTION_PAK       ||  \
+         codecFunction == CODECHAL_FUNCTION_ENC_PAK   ||  \
+         codecFunction == CODECHAL_FUNCTION_ENC_VDENC_PAK || \
+         codecFunction == CODECHAL_FUNCTION_FEI_PAK   ||  \
+         codecFunction == CODECHAL_FUNCTION_FEI_ENC_PAK)
+
+#define CodecHalUsesRenderEngine(codecFunction, standard)   \
+    (codecFunction == CODECHAL_FUNCTION_ENC ||              \
+    (codecFunction == CODECHAL_FUNCTION_ENC_PAK) ||           \
+    codecFunction == CODECHAL_FUNCTION_HYBRIDPAK ||         \
+    ((codecFunction == CODECHAL_FUNCTION_DECODE) && (standard == CODECHAL_VC1)) || \
+    codecFunction == CODECHAL_FUNCTION_ENC_VDENC_PAK || \
+    codecFunction == CODECHAL_FUNCTION_FEI_PRE_ENC || \
+    codecFunction == CODECHAL_FUNCTION_FEI_ENC   ||  \
+    codecFunction == CODECHAL_FUNCTION_FEI_ENC_PAK)
+
+#define CodecHalUsesOnlyRenderEngine(codecFunction) \
+    (codecFunction == CODECHAL_FUNCTION_ENC ||      \
+     codecFunction == CODECHAL_FUNCTION_FEI_ENC ||      \
+    codecFunction == CODECHAL_FUNCTION_HYBRIDPAK)
+
+#define CodecHalUsesVdencEngine(codecFunction)   \
+        (codecFunction == CODECHAL_FUNCTION_ENC_VDENC_PAK)
+
+#define CodecHalIsRateControlBrc(rateControl, standard) (\
+    (rateControl == RATECONTROL_CBR)                || \
+    (rateControl == RATECONTROL_VBR)                || \
+    (rateControl == RATECONTROL_AVBR)               || \
+    (rateControl == RATECONTROL_CQL)                || \
+    ((( rateControl == RATECONTROL_VCM)       || \
+      ( rateControl == RATECONTROL_ICQ)       || \
+      ( rateControl == RATECONTROL_QVBR)      || \
+      ( rateControl == RATECONTROL_IWD_VBR))  && \
+            ( standard == CODECHAL_AVC ))               )
+
+// The current definition of the first encode mode CODECHAL_ENCODE_MODE_AVC should be used
+// as a base for subsequent encode modes
+#define CODECHAL_ENCODE_MODE_BIT_OFFSET     ((uint32_t)(log((double)CODECHAL_ENCODE_MODE_AVC)/log(2.)))
+#define CODECHAL_ENCODE_MODE_BIT_MASK       (( 1L << CODECHAL_ENCODE_MODE_BIT_OFFSET) - 1 )
 
 #endif  // __CODEC_DEF_COMMON_ENCODE_H__

@@ -379,7 +379,7 @@ public:
     //!     The command temporarily halts commands that will cause cycles down the
     //!     3D pipeline.
     //!     
-    //!     Destination register with mask implemented (Ex: All chicken bit
+    //!     Destination register with mask implemented (Ex: some
     //!     registers have bits [31:16] as mask bits and bits[15:0] as data) will
     //!     not get updated unless the  value read from source register has the bits
     //!     corresponding to the mask bits set. Note that any mask implemented
@@ -978,7 +978,7 @@ public:
     //!     Since this issue is only applicable when MI_SEMAPHORE_WAIT is used in
     //!     signal mode, SW has to WA this issue by doing one of the below:
     //!     
-    //!     SW Work Around:
+    //!     SW WA:
     //!     
     //!     1. Scheduler on encountering a Context Waiting for semaphore signal to
     //!     occur for a long time can assume above scenario could have occurred and
@@ -1662,7 +1662,7 @@ public:
                 uint32_t                 TlbInvalidate                                    : __CODEGEN_BITFIELD(18, 18)    ; //!< TLB Invalidate
                 uint32_t                 Reserved19                                       : __CODEGEN_BITFIELD(19, 20)    ; //!< Reserved
                 uint32_t                 StoreDataIndex                                   : __CODEGEN_BITFIELD(21, 21)    ; //!< Store Data Index
-                uint32_t                 ProtectedMemoryEnable                            : __CODEGEN_BITFIELD(22, 22)    ; //!< Protected memory Enable
+                uint32_t                 Reserved22                                       : __CODEGEN_BITFIELD(22, 22)    ; //!< Reserved
                 uint32_t                 MiCommandOpcode                                  : __CODEGEN_BITFIELD(23, 28)    ; //!< MI_COMMAND_OPCODE
                 uint32_t                 CommandType                                      : __CODEGEN_BITFIELD(29, 31)    ; //!< COMMAND_TYPE
             };
@@ -1763,7 +1763,7 @@ public:
                 uint32_t                 ConstantCacheInvalidationEnable                  : __CODEGEN_BITFIELD( 3,  3)    ; //!< Constant Cache Invalidation Enable
                 uint32_t                 VfCacheInvalidationEnable                        : __CODEGEN_BITFIELD( 4,  4)    ; //!< VF Cache Invalidation Enable
                 uint32_t                 DcFlushEnable                                    : __CODEGEN_BITFIELD( 5,  5)    ; //!< DC  Flush Enable
-                uint32_t                 ProtectedMemoryApplicationId                     : __CODEGEN_BITFIELD( 6,  6)    ; //!< Protected Memory Application ID
+                uint32_t                 Reserved38                                       : __CODEGEN_BITFIELD( 6,  6)    ; //!< Reserved
                 uint32_t                 PipeControlFlushEnable                           : __CODEGEN_BITFIELD( 7,  7)    ; //!< Pipe Control Flush Enable
                 uint32_t                 NotifyEnable                                     : __CODEGEN_BITFIELD( 8,  8)    ; //!< Notify Enable
                 uint32_t                 IndirectStatePointersDisable                     : __CODEGEN_BITFIELD( 9,  9)    ; //!< Indirect State Pointers Disable
@@ -1781,9 +1781,7 @@ public:
                 uint32_t                 Reserved54                                       : __CODEGEN_BITFIELD(22, 22)    ; //!< Reserved
                 uint32_t                 LriPostSyncOperation                             : __CODEGEN_BITFIELD(23, 23)    ; //!< LRI_POST_SYNC_OPERATION
                 uint32_t                 DestinationAddressType                           : __CODEGEN_BITFIELD(24, 24)    ; //!< DESTINATION_ADDRESS_TYPE
-                uint32_t                 Reserved57                                       : __CODEGEN_BITFIELD(25, 26)    ; //!< Reserved
-                uint32_t                 ProtectedMemoryDisable                           : __CODEGEN_BITFIELD(27, 27)    ; //!< Protected Memory Disable
-                uint32_t                 Reserved60                                       : __CODEGEN_BITFIELD(28, 31)    ; //!< Reserved
+                uint32_t                 Reserved57                                       : __CODEGEN_BITFIELD(25, 31)    ; //!< Reserved
             };
             uint32_t                     Value;
         } DW1;

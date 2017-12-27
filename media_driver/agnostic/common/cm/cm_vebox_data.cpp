@@ -26,6 +26,10 @@
 
 #include "cm_vebox_data.h"
 
+#include "cm_mem.h"
+
+namespace CMRT_UMD
+{
 //*-----------------------------------------------------------------------------
 //| Purpose:    Create Vebox Data 
 //| Returns:    Result of the operation.
@@ -163,3 +167,4 @@ int32_t CmVeboxData::SafeRelease( )
         return m_RefCount;
     }
 }
+}  // namespace

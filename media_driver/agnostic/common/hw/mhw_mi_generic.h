@@ -900,6 +900,39 @@ public:
 
         return MOS_STATUS_SUCCESS;
     }
+
+    MOS_STATUS SetWatchdogTimerThreshold(
+        uint32_t frameWidth,
+        uint32_t frameHeight)
+    {
+        MHW_FUNCTION_ENTER;
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS SetWatchdogTimerRegisterOffset(
+        MOS_GPU_CONTEXT gpuContext)
+    {
+        MHW_FUNCTION_ENTER;
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS AddWatchdogTimerStartCmd(
+        PMOS_COMMAND_BUFFER cmdBuffer)
+    {
+        MHW_FUNCTION_ENTER;
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS AddWatchdogTimerStopCmd(
+        PMOS_COMMAND_BUFFER cmdBuffer)
+    {
+        MHW_FUNCTION_ENTER;
+
+        return MOS_STATUS_SUCCESS;
+    }
 };
 
 #endif // __MHW_MI_GENERIC_H__

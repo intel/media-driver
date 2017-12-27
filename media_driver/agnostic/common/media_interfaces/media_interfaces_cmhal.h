@@ -30,6 +30,10 @@
 #include "media_interfaces.h"
 #include "cm_hal.h"
 
+//!
+//! \class    CMHalDevice
+//! \brief    CM hal device
+//!
 class CMHalDevice
 {
 public:

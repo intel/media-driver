@@ -29,6 +29,36 @@
 
 #include "cm_def.h"
 
+struct CM_DEPENDENCY
+{
+    uint32_t count;
+    int32_t deltaX[CM_MAX_DEPENDENCY_COUNT];
+    int32_t deltaY[CM_MAX_DEPENDENCY_COUNT];
+};
+
+struct CM_COORDINATE
+{
+    int32_t x;
+    int32_t y;
+};
+
+struct CM_THREAD_PARAM
+{
+    CM_COORDINATE scoreboardCoordinates;     //[X, Y] terms of the scoreboard values of the current thread.
+    uint8_t scoreboardColor;           // dependency color the current thread.
+    uint8_t sliceDestinationSelect;    //select determines the slice of the current thread must be sent to.
+    uint8_t subSliceDestinationSelect;    //select determines the sub-slice of the current thread must be sent to.
+};
+
+//| CM different dispatch patterns for 26ZI media object
+enum CM_26ZI_DISPATCH_PATTERN
+{
+    VVERTICAL_HVERTICAL_26        = 0,
+    VVERTICAL_HHORIZONTAL_26      = 1,
+    VVERTICAL26_HHORIZONTAL26     = 2,
+    VVERTICAL1X26_HHORIZONTAL1X26 = 3
+};
+
 namespace CMRT_UMD
 {
 class CmKernel;

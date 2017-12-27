@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_sampler8x8.h  
-//! \brief     Contains CmSampler8x8 declarations.  
+//! \file      cm_sampler8x8.h
+//! \brief     Contains CmSampler8x8 declarations.
 //!
 
 #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMSAMPLER8X8_H_
@@ -31,8 +31,6 @@
 
 namespace CMRT_UMD
 {
-class SamplerIndex;
-
 //!
 //! \brief      Abstaction of media sampler intrinsics and hardware.
 //! \details    A CmSampler8x8 object is used to specify sampling operations to be

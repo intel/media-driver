@@ -82,7 +82,7 @@ CodechalHwInterface::CodechalHwInterface(
         userFeatureData.i32Data = true;
         userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
 
-        regStatus = CodecHal_UserFeature_ReadValue(
+        regStatus = MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_CODEC_MMC_ENABLE_ID,
             &userFeatureData);
@@ -92,12 +92,12 @@ CodechalHwInterface::CodechalHwInterface(
         MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
         userFeatureWriteData.Value.i32Data = m_mmcEnabled;
         userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_CODEC_MMC_IN_USE_ID;
-        CodecHal_UserFeature_WriteValue(nullptr, &userFeatureWriteData);
+        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
 
 		bool isDecode = codecFunction == CODECHAL_FUNCTION_DECODE || codecFunction == CODECHAL_FUNCTION_CENC_DECODE;
 
         // check Encode/Decode MMC enabling
-        regStatus = CodecHal_UserFeature_ReadValue(
+        regStatus = MOS_UserFeature_ReadValue_ID(
             nullptr,
             isDecode ? __MEDIA_USER_FEATURE_VALUE_DECODE_MMC_ENABLE_ID : __MEDIA_USER_FEATURE_VALUE_ENCODE_MMC_ENABLE_ID,
             &userFeatureData);
@@ -105,7 +105,7 @@ CodechalHwInterface::CodechalHwInterface(
 
         userFeatureWriteData.Value.i32Data = m_mmcEnabled;
         userFeatureWriteData.ValueID = isDecode ? __MEDIA_USER_FEATURE_VALUE_DECODE_MMC_IN_USE_ID : __MEDIA_USER_FEATURE_VALUE_ENCODE_MMC_IN_USE_ID;
-        CodecHal_UserFeature_WriteValue(nullptr, &userFeatureWriteData);
+        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
     }
 
     MOS_ZeroMemory(&m_hucDmemDummy, sizeof(m_hucDmemDummy));
@@ -147,7 +147,6 @@ MOS_STATUS CodechalHwInterface::SetRowstoreCachingOffsets(
 
     CODECHAL_HW_FUNCTION_ENTER;
 
-    //VDENC function will set rowstoreParams->bVdenc which is used by MFX function to avoid BSD and VDENC row store cache conflict
     if (m_vdencInterface)
     {
         CODECHAL_HW_CHK_STATUS_RETURN(m_vdencInterface->GetRowstoreCachingAddrs(rowstoreParams));
@@ -893,7 +892,7 @@ MOS_STATUS CodechalHwInterface::PerformHucStreamOut(
     pipeModeSelectParams.bStreamOutEnabled = true;
     if (hucStreamOutParams->segmentInfo == nullptr && m_osInterface->osCpInterface->IsCpEnabled())
     {
-        // Disable protection control setting in huc drm cp heavy mode
+        // Disable protection control setting in huc drm
         pipeModeSelectParams.disableProtectionSetting = true;
     }
 
@@ -1014,7 +1013,7 @@ MOS_STATUS CodechalHwInterface::GetDefaultSSEuSetting(
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_USER_FEATURE_VALUE_DATA userFeatureData;
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    CodecHal_UserFeature_ReadValue(
+    MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_SSEU_SETTING_OVERRIDE_ID,
         &userFeatureData);
@@ -1213,6 +1212,8 @@ MOS_STATUS CodechalHwInterface::SendCondBbEndCmd(
 		CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(cmdBuffer, &flushDwParams));
 	}
 
+    CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(cmdBuffer));
+
 	MHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS conditionalBatchBufferEndParams;
 	MOS_ZeroMemory(&conditionalBatchBufferEndParams, sizeof(conditionalBatchBufferEndParams));
 	conditionalBatchBufferEndParams.presSemaphoreBuffer = resource;
@@ -1221,5 +1222,86 @@ MOS_STATUS CodechalHwInterface::SendCondBbEndCmd(
 	conditionalBatchBufferEndParams.bDisableCompareMask = disableCompMask;
 	eStatus = m_miInterface->AddMiConditionalBatchBufferEndCmd(cmdBuffer, &conditionalBatchBufferEndParams);
 
+    CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStartCmd(cmdBuffer));
+
 	return eStatus;
+}
+
+
+MOS_STATUS CodechalHwInterface::MhwInitISH(
+    PMHW_STATE_HEAP_INTERFACE   stateHeapInterface,
+    PMHW_KERNEL_STATE           kernelState)
+{
+    CODECHAL_HW_FUNCTION_ENTER;
+
+    CODECHAL_HW_CHK_NULL_RETURN(stateHeapInterface);
+    CODECHAL_HW_CHK_NULL_RETURN(kernelState);
+
+    MOS_STATUS                              eStatus = MOS_STATUS_SUCCESS;
+    CODECHAL_HW_CHK_STATUS_RETURN(stateHeapInterface->pfnAssignSpaceInStateHeap(
+        stateHeapInterface,
+        MHW_ISH_TYPE,
+        kernelState,
+        kernelState->KernelParams.iSize,
+        true,
+        false));
+
+    CODECHAL_HW_CHK_STATUS_RETURN(kernelState->m_ishRegion.AddData(
+        kernelState->KernelParams.pBinary,
+        0,
+        kernelState->KernelParams.iSize));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalHwInterface::AssignDshAndSshSpace(
+    PMHW_STATE_HEAP_INTERFACE   stateHeapInterface,
+    PMHW_KERNEL_STATE           kernelState,
+    bool                        noDshSpaceRequested,
+    uint32_t                    forcedDshSize,
+    bool                        noSshSpaceRequested,
+    uint32_t                    currCmdBufId)
+{
+    CODECHAL_HW_FUNCTION_ENTER;
+
+    CODECHAL_HW_CHK_NULL_RETURN(stateHeapInterface);
+    CODECHAL_HW_CHK_NULL_RETURN(kernelState);
+
+    kernelState->m_currTrackerId = currCmdBufId;
+
+    if (!noDshSpaceRequested)
+    {
+        uint32_t dshSize = 0;
+        if (forcedDshSize != 0)
+        {
+            dshSize = forcedDshSize;
+        }
+        else
+        {
+            dshSize = stateHeapInterface->pStateHeapInterface->GetSizeofCmdInterfaceDescriptorData()+
+                MOS_ALIGN_CEIL(kernelState->KernelParams.iCurbeLength,
+                stateHeapInterface->pStateHeapInterface->GetCurbeAlignment());
+        }
+
+        CODECHAL_HW_CHK_STATUS_RETURN(stateHeapInterface->pfnAssignSpaceInStateHeap(
+            stateHeapInterface,
+            MHW_DSH_TYPE,
+            kernelState,
+            dshSize,
+            false,
+            true));
+    }
+
+    if (!noSshSpaceRequested)
+    {
+        CODECHAL_HW_CHK_STATUS_RETURN(stateHeapInterface->pfnAssignSpaceInStateHeap(
+            stateHeapInterface,
+            MHW_SSH_TYPE,
+            kernelState,
+            kernelState->dwSshSize,
+            false,
+            false));
+    }
+
+    return MOS_STATUS_SUCCESS;
 }

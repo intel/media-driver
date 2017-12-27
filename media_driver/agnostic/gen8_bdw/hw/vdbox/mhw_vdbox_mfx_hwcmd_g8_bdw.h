@@ -1744,13 +1744,9 @@ public:
             //!< DWORD 12
             struct
             {
-                uint32_t                 Reserved384                                      : __CODEGEN_BITFIELD( 0, 15)    ; //!< Reserved
-                uint32_t                 Mpeg2OldbModeSelect                              : __CODEGEN_BITFIELD(16, 16)    ; //!< MPEG2_OLDB_MODE_SELECT_
-                uint32_t                 Reserved401                                      : __CODEGEN_BITFIELD(17, 17)    ; //!< Reserved
+                uint32_t                 Reserved384                                      : __CODEGEN_BITFIELD( 0, 17)    ; //!< Reserved
                 uint32_t                 VadErrorLogic                                    : __CODEGEN_BITFIELD(18, 18)    ; //!< VAD_ERROR_LOGIC
-                uint32_t                 Reserved403                                      : __CODEGEN_BITFIELD(19, 19)    ; //!< Reserved
-                uint32_t                 VmdErrorLogic                                    : __CODEGEN_BITFIELD(20, 20)    ; //!< VMD_ERROR_LOGIC
-                uint32_t                 Reserved405                                      : __CODEGEN_BITFIELD(21, 31)    ; //!< Reserved
+                uint32_t                 Reserved403                                      : __CODEGEN_BITFIELD(19, 31)    ; //!< Reserved
             };
             uint32_t                     Value;
         } DW12;
@@ -2233,22 +2229,10 @@ public:
             FRAMEBITRATEMAXDELTA_UNNAMED0                                    = 0, //!< No additional details
         };
 
-        enum MPEG2_OLDB_MODE_SELECT_
-        {
-            MPEG2_OLDB_MODE_SELECT_DISABLE                                   = 0, //!< Set to Original OLDB Determination
-            MPEG2_OLDB_MODE_SELECT_ENABLE                                    = 1, //!< Consider all MB as INTRA MB for OLDB Determination
-        };
-
         enum VAD_ERROR_LOGIC
         {
             VAD_ERROR_LOGIC_ENABLE                                           = 0, //!< Error reporting ON in case of premature Slice done
             VAD_ERROR_LOGIC_DISABLE                                          = 1, //!< CABAC Engine will auto decode the bitstream in case of premature slice done.
-        };
-
-        enum VMD_ERROR_LOGIC
-        {
-            VMD_ERROR_LOGIC_DISABLE                                          = 0, //!< No additional details
-            VMD_ERROR_LOGIC_ENABLE                                           = 1, //!< Error Handling
         };
 
         //! \brief INTER_VIEW_ORDER_DISABLE
@@ -3907,13 +3891,7 @@ public:
             //!< DWORD 12
             struct
             {
-                uint32_t                 Reserved384                                      : __CODEGEN_BITFIELD( 0, 15)    ; //!< Reserved
-                uint32_t                 VmdOldbControlSignalDetermination                : __CODEGEN_BITFIELD(16, 16)    ; //!< VMD_OLDB_CONTROL_SIGNAL_DETERMINATION
-                uint32_t                 Reserved401                                      : __CODEGEN_BITFIELD(17, 17)    ; //!< Reserved
-                uint32_t                 VadErrorLogic                                    : __CODEGEN_BITFIELD(18, 18)    ; //!< VAD_ERROR_LOGIC
-                uint32_t                 Reserved403                                      : __CODEGEN_BITFIELD(19, 19)    ; //!< Reserved
-                uint32_t                 VmdErrorLogic                                    : __CODEGEN_BITFIELD(20, 20)    ; //!< VMD_ERROR_LOGIC
-                uint32_t                 Reserved405                                      : __CODEGEN_BITFIELD(21, 31)    ; //!< Reserved
+                uint32_t                 Reserved384                                      : __CODEGEN_BITFIELD( 0, 31)    ; //!< Reserved
             };
             uint32_t                     Value;
         } DW12;
@@ -4249,24 +4227,6 @@ public:
         enum FRAMEBITRATEMAXDELTA
         {
             FRAMEBITRATEMAXDELTA_UNNAMED0                                    = 0, //!< No additional details
-        };
-
-        enum VMD_OLDB_CONTROL_SIGNAL_DETERMINATION
-        {
-            VMD_OLDB_CONTROL_SIGNAL_DETERMINATION_DISABLE                    = 0, //!< Set to original OLDB determination.
-            VMD_OLDB_CONTROL_SIGNAL_DETERMINATION_ENABLE                     = 1, //!< Set all MBs as intra MB while calculating OLDB Control Signal.
-        };
-
-        enum VAD_ERROR_LOGIC
-        {
-            VAD_ERROR_LOGIC_ENABLE                                           = 0, //!< Error reporting ON in case of premature Slice done
-            VAD_ERROR_LOGIC_DISABLE                                          = 1, //!< CABAC Engine will auto decode the bitstream in case of premature slice done.
-        };
-
-        enum VMD_ERROR_LOGIC
-        {
-            VMD_ERROR_LOGIC_DISABLE                                          = 0, //!< No additional details
-            VMD_ERROR_LOGIC_ENABLE                                           = 1, //!< Error Handling
         };
 
         //! \name Initializations

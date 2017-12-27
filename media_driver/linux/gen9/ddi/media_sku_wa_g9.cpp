@@ -39,10 +39,10 @@ static struct LinuxCodecInfo sklCodecInfo =
     .vp8Decoding        = 1,
     .vc1Decoding        = 1,
     .jpegDecoding       = 1,
-    .avcEncoding        = 1,
+    .avcEncoding        = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
     .mpeg2Encoding      = 1,
     .hevcDecoding       = 1,
-    .hevcEncoding       = 1,
+    .hevcEncoding       = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
     .jpegEncoding       = 1,
     .avcVdenc           = 1,
 };
@@ -54,10 +54,10 @@ static struct LinuxCodecInfo bxtCodecInfo =
     .vp8Decoding        = 1,
     .vc1Decoding        = 1,
     .jpegDecoding       = 1,
-    .avcEncoding        = 1,
+    .avcEncoding        = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
     .mpeg2Encoding      = 0,
     .hevcDecoding       = 1,
-    .hevcEncoding       = 1,
+    .hevcEncoding       = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
     .jpegEncoding       = 1,
     .avcVdenc           = 1,
     .vp9Decoding        = 1,
@@ -72,10 +72,10 @@ static struct LinuxCodecInfo kblCodecInfo =
     .vp8Decoding        = 1,
     .vc1Decoding        = 1,
     .jpegDecoding       = 1,
-    .avcEncoding        = 1,
+    .avcEncoding        = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
     .mpeg2Encoding      = 1,
     .hevcDecoding       = 1,
-    .hevcEncoding       = 1,
+    .hevcEncoding       = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
     .jpegEncoding       = 1,
     .avcVdenc           = 1,
     .vp9Decoding        = 1,
@@ -91,16 +91,16 @@ static struct LinuxCodecInfo glkCodecInfo =
     .vp8Decoding        = 1,
     .vc1Decoding        = 1,
     .jpegDecoding       = 1,
-    .avcEncoding        = 1,
+    .avcEncoding        = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
     .mpeg2Encoding      = 0,
     .hevcDecoding       = 1,
-    .hevcEncoding       = 1,
+    .hevcEncoding       = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
     .jpegEncoding       = 1,
     .avcVdenc           = 1,
     .vp9Decoding        = 1,
     .hevc10Decoding     = 1,
     .vp9b10Decoding     = 1,
-    .hevc10Encoding     = 1,
+    .hevc10Encoding     = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
 };
 
 static bool InitSklMediaSku(struct GfxDeviceInfo *devInfo,
@@ -175,8 +175,8 @@ static bool InitSklMediaSku(struct GfxDeviceInfo *devInfo,
     {
         MEDIA_WR_SKU(skuTable, FtrSingleVeboxSlice, 1);
     }
-
-    MEDIA_WR_SKU(skuTable, FtrSFCPipe, 0);
+    //SFC enabled/disabled 
+    MEDIA_WR_SKU(skuTable, FtrSFCPipe, 1);
 
     MEDIA_WR_SKU(skuTable, FtrSSEUPowerGating, 1);
     MEDIA_WR_SKU(skuTable, FtrMemoryCompression, 0);
@@ -199,7 +199,7 @@ static bool InitSklMediaWa(struct GfxDeviceInfo *devInfo,
 
     MEDIA_WR_WA(waTable, WaForceGlobalGTT, !drvInfo->hasPpgtt);
     MEDIA_WR_WA(waTable, WaAddMediaStateFlushCmd, 1);
-    MEDIA_WR_WA(waTable, WaChickenBitsMidBatchPreemption, 1);
+    MEDIA_WR_WA(waTable, WaMidBatchPreemption, 1);
     MEDIA_WR_WA(waTable, WaSendDummyVFEafterPipelineSelect, 1);
     MEDIA_WR_WA(waTable, WaHucStreamoutEnable, 1);
     MEDIA_WR_WA(waTable, WaEnableDscale, 1);
@@ -254,6 +254,7 @@ static bool InitBxtMediaSku(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_SKU(skuTable, FtrSSEUPowerGating, 1);
     MEDIA_WR_SKU(skuTable, FtrMemoryCompression, 0);
     MEDIA_WR_SKU(skuTable, FtrHcpDecMemoryCompression, 0);
+    MEDIA_WR_SKU(skuTable, FtrPPGTT, drvInfo->hasPpgtt);
 
     MEDIA_WR_SKU(skuTable, FtrPerCtxtPreemptionGranularityControl, 1);
 
@@ -273,7 +274,7 @@ static bool InitBxtMediaWa(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_WA(waTable, WaForceGlobalGTT, !drvInfo->hasPpgtt);
     MEDIA_WR_WA(waTable, WaLLCCachingUnsupported, 1);
     MEDIA_WR_WA(waTable, WaAddMediaStateFlushCmd, 1);
-    MEDIA_WR_WA(waTable, WaChickenBitsMidBatchPreemption, 1);
+    MEDIA_WR_WA(waTable, WaMidBatchPreemption, 1);
     MEDIA_WR_WA(waTable, WaDisableLockForTranscodePerf, 1);
     MEDIA_WR_WA(waTable, WaSendDummyVFEafterPipelineSelect, 1);
     MEDIA_WR_WA(waTable, WaHucStreamoutEnable, 1);
@@ -394,7 +395,7 @@ static bool InitKblMediaWa(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_WA(waTable, WaForceGlobalGTT, !drvInfo->hasPpgtt);
     MEDIA_WR_WA(waTable, WaMSFWithNoWatermarkTSGHang, 1);
     MEDIA_WR_WA(waTable, WaAddMediaStateFlushCmd, 1);
-    MEDIA_WR_WA(waTable, WaChickenBitsMidBatchPreemption, 1);
+    MEDIA_WR_WA(waTable, WaMidBatchPreemption, 1);
     MEDIA_WR_WA(waTable, WaSendDummyVFEafterPipelineSelect, 1);
     MEDIA_WR_WA(waTable, WaHucStreamoutEnable, 1);
     MEDIA_WR_WA(waTable, WaSuperSliceHeaderPacking, 1);
@@ -479,7 +480,7 @@ static bool InitGlkMediaWa(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_WA(waTable, WaForceGlobalGTT, !drvInfo->hasPpgtt);
     MEDIA_WR_WA(waTable, WaLLCCachingUnsupported, 1);
     MEDIA_WR_WA(waTable, WaAddMediaStateFlushCmd, 1);
-    MEDIA_WR_WA(waTable, WaChickenBitsMidBatchPreemption, 1);
+    MEDIA_WR_WA(waTable, WaMidBatchPreemption, 1);
     MEDIA_WR_WA(waTable, WaDisableLockForTranscodePerf, 1);
     MEDIA_WR_WA(waTable, WaSendDummyVFEafterPipelineSelect, 1);
     MEDIA_WR_WA(waTable, WaHucStreamoutEnable, 1);

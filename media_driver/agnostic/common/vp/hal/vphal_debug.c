@@ -2851,7 +2851,7 @@ MOS_STATUS VphalParameterDumper::DumpSourceSurface(
         VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t<VPHAL_SURFACE_TYPE>%s</VPHAL_SURFACE_TYPE>\n", GetSurfaceTypeStr(pSrc->SurfType)));
         VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t<VPHAL_SAMPLE_TYPE>%s</VPHAL_SAMPLE_TYPE>\n",   GetSampleTypeStr(pSrc->SampleType)));
         VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t<VPHAL_SCALING_MODE>%s</VPHAL_SCALING_MODE>\n", GetScalingModeStr(pSrc->ScalingMode)));
-        VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t<VPHAL_ROTATION_MODE type=\"real\">%s</VPHAL_ROTATION_MODE>\n", GetRotationModeStr(pSrc->Rotation)));
+        VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t<VPHAL_ROTATION_MODE>%s</VPHAL_ROTATION_MODE>\n", GetRotationModeStr(pSrc->Rotation)));
         VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t<RCSRC>%d,%d,%d,%d</RCSRC>\n",                  pSrc->rcSrc.left, pSrc->rcSrc.top, pSrc->rcSrc.right, pSrc->rcSrc.bottom));
         VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t<RCDST>%d,%d,%d,%d</RCDST>\n",                  pSrc->rcDst.left, pSrc->rcDst.top, pSrc->rcDst.right, pSrc->rcDst.bottom));
             
@@ -3133,6 +3133,8 @@ const char * VphalDumperTool::GetFormatStr(MOS_FORMAT format)
         case Format_P010        : return _T("p010");
         case Format_P016        : return _T("p016");
         case Format_R16F        : return _T("r16f");
+        case Format_Y210        : return _T("y210");
+        case Format_Y410        : return _T("y410");
         default                 : return _T("Err");
     }
 
@@ -3759,6 +3761,8 @@ const char * VphalParameterDumper::GetWholeFormatStr(MOS_FORMAT format)
     case Format_B10G10R10A2:        return _T("Format_B10G10R10A2");
     case Format_P016:               return _T("Format_P016");
     case Format_P010:               return _T("Format_P010");
+    case Format_Y210:               return _T("Format_Y210");
+    case Format_Y410:               return _T("Format_Y410");
     case Format_YV12_Planar:        return _T("Format_YV12_Planar");
     case Format_Count:              return _T("Format_Count");
     default:                        return _T("Err");

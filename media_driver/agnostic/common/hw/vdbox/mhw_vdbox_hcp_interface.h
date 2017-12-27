@@ -43,8 +43,6 @@ typedef struct _MHW_VDBOX_HEVC_PIC_STATE
 {
     // Decode
     PCODEC_HEVC_PIC_PARAMS                  pHevcPicParams;
-    PCODEC_HEVC_EXT_PIC_PARAMS              pHevcExtPicParams;
-    PCODEC_HEVC_SCC_PIC_PARAMS              pHevcSccPicParams;
 
     // Encode
     PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS      pHevcEncSeqParams;
@@ -314,6 +312,10 @@ typedef enum _MHW_VDBOX_HCP_INTERNAL_BUFFER_TYPE
     MHW_VDBOX_VP9_INTERNAL_BUFFER_HVD_TILE
 } MHW_VDBOX_HCP_INTERNAL_BUFFER_TYPE;
 
+//!
+//! \struct   MmioRegistersHcp
+//! \brief    MMIO registers HCP
+//!
 struct MmioRegistersHcp
 {
     uint32_t                   watchdogCountCtrlOffset;
@@ -344,7 +346,10 @@ This class defines the interfaces for constructing Vdbox Hcp commands across all
 class MhwVdboxHcpInterface
 {
 public:
-
+    //!
+    //! \enum     HevcSliceType
+    //! \brief    HEVC slice type
+    //!
     enum HevcSliceType
     {
         hevcSliceB  = 0,
@@ -682,7 +687,7 @@ public:
     //!
     //! \brief    Calculates maximum size for HCP slice/MB level commands
     //! \details  Client facing function to calculate maximum size for HCP slice/MB level commands
-    //! \param    [in] Mode
+    //! \param    [in] mode
     //!           Indicate the codec mode
     //! \param    [out] commandsSize
     //!            The maximum command buffer size
@@ -759,10 +764,10 @@ public:
     //! \brief    Get the required buffer size for VDBOX
     //! \details  Internal function to judge if buffer realloc is needed for HEVC codec
     //!
-    //! \param    MHW_VDBOX_HCP_INTERNAL_BUFFER_TYPE    bufferType
-    //!           [in] HEVC Buffer type
-    //! \param    PMHW_VDBOX_HCP_BUFFER_REALLOC_PARAMS  reallocParam
-    //!           [in, out] HCP Re-allocate parameters
+    //! \param    [in] bufferType
+    //!          HEVC Buffer type
+    //! \param    [in, out] reallocParam
+    //!          HCP Re-allocate parameters
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
@@ -926,10 +931,10 @@ public:
     //!
     //! \brief    Adds HCP QM State command in command buffer
     //!
-    //! \param    PMOS_COMMAND_BUFFER cmdBuffer
-    //!           [in] Command buffer to which HW command is added
-    //! \param    PMHW_VDBOX_QM_PARAMS params
-    //!           [in] Params structure used to populate the HW command
+    //! \param    [in] cmdBuffer
+    //!          Command buffer to which HW command is added
+    //! \param    [in] params
+    //!          Params structure used to populate the HW command
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
@@ -1164,7 +1169,7 @@ public:
     //!
     //! \brief    Adds HEVC Brc buffer
     //!
-    //! \param    [in] resHcpImgStates
+    //! \param    [in] hcpImgStates
     //!           Resource to which Brc buffer is added
     //! \param    [in] hevcPicState
     //!           Params structure used to add the Brc buffer
@@ -1179,11 +1184,11 @@ public:
     //!
     //! \brief    Get OsResLaceOrAceOrRgbHistogramBuffer Size
     //!
-    //! \param    [in] dwWidth
+    //! \param    [in] width
     //!           Width of Surface
-    //! \param    [in] dwHeight
+    //! \param    [in] height
     //!           Height of Surface
-    //! \param    [out] pSize
+    //! \param    [out] size
     //!           Size of OsResLaceOrAceOrRgbHistogramBuffer
     //!
     //! \return   MOS_STATUS
@@ -1197,11 +1202,11 @@ public:
     //!
     //! \brief    Get OsResStatisticsOutputBuffer Size
     //!
-    //! \param    [in] dwWidth
+    //! \param    [in] width
     //!           Width of Surface
-    //! \param    [in] dwHeight
+    //! \param    [in] height
     //!           Height of Surface
-    //! \param    [out] pSize
+    //! \param    [out] size
     //!           Size of OsResStatisticsOutputBuffer
     //!
     //! \return   MOS_STATUS

@@ -32,6 +32,10 @@
 
 struct _DDI_MEDIA_BUFFER;
 
+//!
+//! \class  DdiDecodeVC1
+//! \brief  Ddi decode VC1
+//!
 class DdiDecodeVC1 : public DdiMediaDecode
 {
 public:
@@ -60,9 +64,7 @@ public:
         VABufferID       *buffers,
         int32_t          num_buffers) override;
 
-    virtual VAStatus EndPicture(
-        VADriverContextP ctx,
-        VAContextID      context) override;
+    virtual VAStatus SetDecodeParams() override;
 
     virtual void ContextInit(
         int32_t picWidth,
@@ -72,6 +74,11 @@ public:
         DDI_MEDIA_CONTEXT *mediaCtx,
         void              *ptr) override;
 
+    virtual VAStatus AllocSliceControlBuffer(
+        DDI_MEDIA_BUFFER       *buf) override;
+
+    virtual uint8_t* GetPicParamBuf( 
+     DDI_CODEC_COM_BUFFER_MGR    *bufMgr) override;
 private:
     //!
     //! \brief   ParaSliceParam for VC1
@@ -170,6 +177,7 @@ private:
 
     //! \brief the current Pic Idx for VC1
     uint32_t m_currPicIdx = 0xffffffff;
+    MOS_SURFACE m_deblockSurface;
 };
 
 #endif /* _MEDIA_DDI_DECODER_VC1_H */

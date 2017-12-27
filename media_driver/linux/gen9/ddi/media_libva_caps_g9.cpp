@@ -174,16 +174,3 @@ VAStatus MediaLibvaCapsG9::QueryAVCROIMaxNum(uint32_t rcMode, int32_t *maxNum, b
     *isRoiInDeltaQP = true;
     return VA_STATUS_SUCCESS;
 }
-
-extern template class MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>;
-
-static bool sklRegistered = MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>::
-    RegisterCaps<MediaLibvaCapsG9>((uint32_t)IGFX_SKYLAKE); 
-static bool bxtRegistered = MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>::
-    RegisterCaps<MediaLibvaCapsG9>((uint32_t)IGFX_BROXTON); 
-static bool kblRegistered = MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>::
-    RegisterCaps<MediaLibvaCapsG9>((uint32_t)IGFX_KABYLAKE); 
-static bool gmlRegistered = MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>::
-    RegisterCaps<MediaLibvaCapsG9>((uint32_t)IGFX_GEMINILAKE); 
-static bool cflRegistered = MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>::
-    RegisterCaps<MediaLibvaCapsG9>((uint32_t)IGFX_COFFEELAKE); 

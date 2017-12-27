@@ -29,6 +29,8 @@
 #include "cm_debug.h"
 #include "cm_mem.h"
 
+namespace CMRT_UMD
+{
 //*-----------------------------------------------------------------------------
 //| Purpose:    Create CmSampler
 //| Returns:    Result of the operation.
@@ -117,3 +119,5 @@ CM_RT_API int32_t CmSamplerRT::GetIndex( SamplerIndex* & pIndex )
     pIndex = m_pIndex;
     return CM_SUCCESS;
 }
+
+}  // namespace

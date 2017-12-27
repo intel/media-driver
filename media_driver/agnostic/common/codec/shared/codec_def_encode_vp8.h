@@ -35,6 +35,17 @@
 #define VP8_QINDEX_Y2_DC                        3
 #define VP8_QINDEX_Y2_AC                        4
 
+#define ENCODE_VP8_NUM_MAX_L0_REF     3    // used in LibVa
+
+#define CODECHAL_VP8_MAX_QP                         128
+#define CODECHAL_VP8_MB_CODE_SIZE                   204
+#define CODECHAL_VP8_MB_MV_CODE_SIZE                64
+#define CODECHAL_VP8_MB_MV_CODE_OFFSET_ALIGNMENT    4096
+#define CODECHAL_VP8_MB_CODE_ALIGNMENT              32
+#define CODECHAL_VP8_FRAME_HEADER_SIZE              4096
+#define CODECHAL_VP8_MAX_SEGMENTS                   4
+#define CODECHAL_VP8_ME_ME_DATA_SIZE_MULTIPLIER     3
+
 //VP8 Sequence Params
 typedef struct _CODEC_VP8_ENCODE_SEQUENCE_PARAMS
 {

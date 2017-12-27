@@ -30,6 +30,10 @@
 #include "codechal_decoder.h"
 #include "mos_defs.h"
 
+//!
+//! \class  CodechalCencDecode
+//! \brief  Codechal cenc decode
+//!
 class CodechalCencDecode
 {
 
@@ -70,9 +74,9 @@ public:
     //!
     MOS_STATUS Execute(
         void                        *params)
-	{
-		return MOS_STATUS_UNIMPLEMENTED;
-	};
+    {
+        return MOS_STATUS_UNIMPLEMENTED;
+    };
 
 
     //!
@@ -84,8 +88,8 @@ public:
         void                         *status,
         uint16_t                     numStatus)
     {
-		return MOS_STATUS_UNIMPLEMENTED;
-	};
+        return MOS_STATUS_UNIMPLEMENTED;
+    };
 
     //!
     //! \brief  Set Params For Decode
@@ -97,8 +101,8 @@ public:
         CodechalDebugInterface      *debugInterface,
         CodechalDecodeParams        *decodeParams)
     {
-		return MOS_STATUS_UNIMPLEMENTED;
-	};
+        return MOS_STATUS_UNIMPLEMENTED;
+    };
 
     //!
     //! \brief  Set Batch Buffer For Decode
@@ -109,8 +113,8 @@ public:
         uint8_t                      sliceBatchBufferIdx,
         PMOS_COMMAND_BUFFER          cmdBuffer)
     {
-		return MOS_STATUS_UNIMPLEMENTED;
-	};
+        return MOS_STATUS_UNIMPLEMENTED;
+    };
 
     //!
     //! \brief  Check Status Report Num
@@ -121,8 +125,8 @@ public:
         PMOS_COMMAND_BUFFER          cmdBuffer,
         MHW_VDBOX_NODE_IND           vdboxIndex)
     {
-		return MOS_STATUS_UNIMPLEMENTED;
-	};
+        return MOS_STATUS_UNIMPLEMENTED;
+    };
 
     PMOS_INTERFACE                  osInterface = nullptr;
 

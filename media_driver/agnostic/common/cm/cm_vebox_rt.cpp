@@ -29,6 +29,8 @@
 #include "cm_device_rt.h"
 #include "cm_surface_2d_rt.h"
 
+namespace CMRT_UMD
+{
 //*-----------------------------------------------------------------------------
 //| Purpose:    Create Vebox 
 //*-----------------------------------------------------------------------------
@@ -277,4 +279,5 @@ uint16_t CmVeboxRT::GetSurfaceControlBits(uint32_t usage)
         return m_wSurfaceCtrlBits[usage];
     else
         return CM_FAILURE;
+}
 }

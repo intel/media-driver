@@ -20,18 +20,17 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_kernel_data.h  
-//! \brief     Contains Class Cm Logger definitions  
+//! \file      cm_log.h  
+//! \brief     Contains Class CmLogger declarations.  
 //!
 
-#pragma once
+#ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMLOG_H_
+#define MEDIADRIVER_AGNOSTIC_COMMON_CM_CMLOG_H_
 
 #include <fstream>
 #include <ostream>
 #include <string>
 #include <sstream>
-#include "cm_common.h"
-#include "cm_csync.h"
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 #define CM_LOG_ON                   1
@@ -145,3 +144,4 @@ private:
 
 #endif
 
+#endif  // #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMLOG_H_

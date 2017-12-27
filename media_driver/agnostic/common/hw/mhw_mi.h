@@ -34,6 +34,15 @@ class MhwCpInterface;
 #include "mhw_utilities.h"
 #include "mhw_cp.h"
 
+#define MHW_MI_WATCHDOG_ENABLE_COUNTER                 0x0
+#define MHW_MI_WATCHDOG_DISABLE_COUNTER                0xFFFFFFFF
+#define MHW_MI_DEFAULT_WATCHDOG_THRESHOLD_IN_MS        60
+#define MHW_MI_16K_WATCHDOG_THRESHOLD_IN_MS            1306
+#define MHW_MI_8K_WATCHDOG_THRESHOLD_IN_MS             326
+#define MHW_MI_4K_WATCHDOG_THRESHOLD_IN_MS             82
+#define MHW_MI_FHD_WATCHDOG_THRESHOLD_IN_MS            20
+#define MHW_MI_WATCHDOG_COUNTS_PER_MILLISECOND         (19200123 / 1000)   // Time stamp counts per millisecond
+
 typedef enum _MHW_COMMON_MI_ADDRESS_SHIFT
 {
     MHW_COMMON_MI_GENERAL_SHIFT                         = 2,
@@ -641,6 +650,38 @@ public:
     //!
     virtual uint32_t GetMiBatchBufferEndCmdSize() = 0;
 
+    //!
+    //! \brief    Set Watchdog Timer Threshold
+    //! \details  Set Watchdog Timer Threshold
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SetWatchdogTimerThreshold(uint32_t frameWidth, uint32_t frameHeight) = 0;
+
+    //!
+    //! \brief    Set Watchdog Timer Register Offset
+    //! \details  Set Watchdog Timer Register Offset
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SetWatchdogTimerRegisterOffset(MOS_GPU_CONTEXT gpuContext) = 0;
+
+    //!
+    //! \brief    Add Watchdog Timer Start Cmd
+    //! \details  Add Watchdog Timer Start Cmd
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS AddWatchdogTimerStartCmd(PMOS_COMMAND_BUFFER cmdBuffer) = 0;
+
+    //!
+    //! \brief    Add Watchdog Timer Stop Cmd
+    //! \details  Add Watchdog Timer Stop Cmd
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS AddWatchdogTimerStopCmd(PMOS_COMMAND_BUFFER cmdBuffer) = 0;
+
 protected:
     //!
     //! \brief    Initializes the MI interface
@@ -693,6 +734,14 @@ protected:
         uint8_t m_vcs : 1;   //!< GGTT in use for VDBOX.
         uint8_t m_vecs : 1;  //!< GGTT in use for VEBOX.
     } UseGlobalGtt;
+
+    //! \brief Indicates the MediaReset Parameter.
+    struct
+    {
+        uint32_t watchdogCountThreshold;
+        uint32_t watchdogCountCtrlOffset;
+        uint32_t watchdogCountThresholdOffset;
+    } MediaResetParam;
 };
 
 #endif // __MHW_MI_H__

@@ -85,9 +85,9 @@ DdiEncodeMpeg2::~DdiEncodeMpeg2()
 VAStatus DdiEncodeMpeg2::ContextInitialize(
     CODECHAL_SETTINGS *codecHalSettings)
 {
-    DDI_CHK_NULL(m_encodeCtx, "Null m_encodeCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(m_encodeCtx->pCpDdiInterface, "Null m_encodeCtx->pCpDdiInterface.", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(codecHalSettings, "Null codecHalSettings.", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(m_encodeCtx->pCpDdiInterface, "nullptr m_encodeCtx->pCpDdiInterface.", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(codecHalSettings, "nullptr codecHalSettings.", VA_STATUS_ERROR_INVALID_CONTEXT);
 
     codecHalSettings->CodecFunction = CODECHAL_FUNCTION_ENC_PAK;
     codecHalSettings->dwWidth       = m_encodeCtx->dwFrameWidth;
@@ -96,42 +96,42 @@ VAStatus DdiEncodeMpeg2::ContextInitialize(
     codecHalSettings->Standard      = CODECHAL_MPEG2;
 
     m_encodeCtx->pSeqParams = (void *)MOS_AllocAndZeroMemory(sizeof(CodecEncodeMpeg2SequenceParams));
-    DDI_CHK_NULL(m_encodeCtx->pSeqParams, "Null m_encodeCtx->pSeqParams.", VA_STATUS_ERROR_ALLOCATION_FAILED);
+    DDI_CHK_NULL(m_encodeCtx->pSeqParams, "nullptr m_encodeCtx->pSeqParams.", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     m_encodeCtx->pPicParams = (void *)MOS_AllocAndZeroMemory(sizeof(CodecEncodeMpeg2PictureParams));
-    DDI_CHK_NULL(m_encodeCtx->pPicParams, "Null m_encodeCtx->pPicParams.", VA_STATUS_ERROR_ALLOCATION_FAILED);
+    DDI_CHK_NULL(m_encodeCtx->pPicParams, "nullptr m_encodeCtx->pPicParams.", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     m_encodeCtx->pQmatrixParams = (void *)MOS_AllocAndZeroMemory(sizeof(CodecEncodeMpeg2QmatixParams));
-    DDI_CHK_NULL(m_encodeCtx->pQmatrixParams, "Null m_encodeCtx->pQmatrixParams.", VA_STATUS_ERROR_ALLOCATION_FAILED);
+    DDI_CHK_NULL(m_encodeCtx->pQmatrixParams, "nullptr m_encodeCtx->pQmatrixParams.", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     codecHalSettings->pCpParams = m_encodeCtx->pCpDdiInterface->GetParams();
 
     m_encodeCtx->pVuiParams = (void *)MOS_AllocAndZeroMemory(sizeof(CodecEncodeMpeg2VuiParams));
-    DDI_CHK_NULL(m_encodeCtx->pVuiParams, "Null m_encodeCtx->pVuiParams.", VA_STATUS_ERROR_ALLOCATION_FAILED);
+    DDI_CHK_NULL(m_encodeCtx->pVuiParams, "nullptr m_encodeCtx->pVuiParams.", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     // Allocate SliceParams
     // slice params num should equal to the mbHeight  //attention !!! zxf
     m_encodeCtx->pSliceParams = (void *)MOS_AllocAndZeroMemory((m_encodeCtx->dwFrameHeight >> 4) * sizeof(CodecEncodeMpeg2SliceParmas));
-    DDI_CHK_NULL(m_encodeCtx->pSliceParams, "Null m_encodeCtx->pSliceParams.", VA_STATUS_ERROR_ALLOCATION_FAILED);
+    DDI_CHK_NULL(m_encodeCtx->pSliceParams, "nullptr m_encodeCtx->pSliceParams.", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     // Allocate Encode Status Report
-    m_encodeCtx->pEncodeStatusReport = (void *)MOS_AllocAndZeroMemory(CODECHAL_ENCODE_STATUS_NUM * sizeof(CODECHAL_ENCODE_STATUS_REPORT));
-    DDI_CHK_NULL(m_encodeCtx->pEncodeStatusReport, "Null m_encodeCtx->pEncodeStatusReport.", VA_STATUS_ERROR_ALLOCATION_FAILED);
+    m_encodeCtx->pEncodeStatusReport = (void *)MOS_AllocAndZeroMemory(CODECHAL_ENCODE_STATUS_NUM * sizeof(EncodeStatusReport));
+    DDI_CHK_NULL(m_encodeCtx->pEncodeStatusReport, "nullptr m_encodeCtx->pEncodeStatusReport.", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     // Allocate SEI structure
-    m_encodeCtx->pSEIFromApp = (CODECHAL_ENCODE_SEI_DATA *)MOS_AllocAndZeroMemory(sizeof(CODECHAL_ENCODE_SEI_DATA));
-    DDI_CHK_NULL(m_encodeCtx->pSEIFromApp, "Null m_encodeCtx->pSEIFromApp.", VA_STATUS_ERROR_ALLOCATION_FAILED);
+    m_encodeCtx->pSEIFromApp = (CodechalEncodeSeiData *)MOS_AllocAndZeroMemory(sizeof(CodechalEncodeSeiData));
+    DDI_CHK_NULL(m_encodeCtx->pSEIFromApp, "nullptr m_encodeCtx->pSEIFromApp.", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     m_encodeCtx->pSliceHeaderData = (CODEC_ENCODER_SLCDATA *)MOS_AllocAndZeroMemory(m_encodeCtx->wPicHeightInMB *
                                                                                     sizeof(CODEC_ENCODER_SLCDATA));
-    DDI_CHK_NULL(m_encodeCtx->pSliceHeaderData, "Null m_encodeCtx->pSliceHeaderData.", VA_STATUS_ERROR_ALLOCATION_FAILED);
+    DDI_CHK_NULL(m_encodeCtx->pSliceHeaderData, "nullptr m_encodeCtx->pSliceHeaderData.", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     // Create the bit stream buffer to hold the packed headers from application
     m_encodeCtx->pbsBuffer = (BSBuffer *)MOS_AllocAndZeroMemory(sizeof(BSBuffer));
-    DDI_CHK_NULL(m_encodeCtx->pbsBuffer, "Null m_encodeCtx->pbsBuffer.", VA_STATUS_ERROR_ALLOCATION_FAILED);
+    DDI_CHK_NULL(m_encodeCtx->pbsBuffer, "nullptr m_encodeCtx->pbsBuffer.", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     m_encodeCtx->pbsBuffer->pBase = (uint8_t *)MOS_AllocAndZeroMemory(m_encodeCtx->wPicHeightInMB * PACKED_HEADER_SIZE_PER_ROW);
-    DDI_CHK_NULL(m_encodeCtx->pbsBuffer->pBase, "Null m_encodeCtx->pbsBuffer->pBase.", VA_STATUS_ERROR_ALLOCATION_FAILED);
+    DDI_CHK_NULL(m_encodeCtx->pbsBuffer->pBase, "nullptr m_encodeCtx->pbsBuffer->pBase.", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     m_encodeCtx->pbsBuffer->BufferSize = m_encodeCtx->wPicHeightInMB * PACKED_HEADER_SIZE_PER_ROW;
 
@@ -151,10 +151,9 @@ VAStatus DdiEncodeMpeg2::RenderPicture(
     DDI_CHK_NULL(ctx, "nullptr context", VA_STATUS_ERROR_INVALID_CONTEXT);
 
     DDI_MEDIA_CONTEXT *mediaCtx = DdiMedia_GetMediaContext(ctx);
-    DDI_CHK_NULL(mediaCtx, "Null mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(mediaCtx, "nullptr mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    DDI_CHK_NULL(m_encodeCtx, "Null m_encodeCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(m_encodeCtx->pCodecHal, "Null m_encodeCtx->pCodecHal", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
 
     for (uint32_t i = 0; i < numBuffers; i++)
     {
@@ -170,7 +169,7 @@ VAStatus DdiEncodeMpeg2::RenderPicture(
         // can use internal function instead of DdiMedia_MapBuffer here?
         void *data = nullptr;
         DdiMedia_MapBuffer(ctx, buffers[i], &data);
-        DDI_CHK_NULL(data, "Null data.", VA_STATUS_ERROR_INVALID_BUFFER);
+        DDI_CHK_NULL(data, "nullptr data.", VA_STATUS_ERROR_INVALID_BUFFER);
 
         switch (buf->uiType)
         {
@@ -231,6 +230,7 @@ VAStatus DdiEncodeMpeg2::EncodeInCodecHal(
 {
     DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(m_encodeCtx->pMediaCtx, "nullptr m_encodeCtx->pMediaCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(m_encodeCtx->pCodecHal, "nullptr m_encodeCtx->pCodecHal", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     EncoderParams encodeParams;
     MOS_ZeroMemory(&encodeParams, sizeof(EncoderParams));
@@ -261,14 +261,14 @@ VAStatus DdiEncodeMpeg2::EncodeInCodecHal(
     DdiMedia_MediaSurfaceToMosResource(rtTbl->pCurrentReconTarget, &(reconSurface.OsResource));
 
     // Bitstream surface
-    MOS_RESOURCE resBitstreamSurface;
-    MOS_ZeroMemory(&resBitstreamSurface, sizeof(MOS_RESOURCE));
-    resBitstreamSurface        = m_encodeCtx->resBitstreamBuffer;  // in render picture
-    resBitstreamSurface.Format = Format_Buffer;
+    MOS_RESOURCE bitstreamSurface;
+    MOS_ZeroMemory(&bitstreamSurface, sizeof(MOS_RESOURCE));
+    bitstreamSurface        = m_encodeCtx->resBitstreamBuffer;  // in render picture
+    bitstreamSurface.Format = Format_Buffer;
 
     encodeParams.psRawSurface        = &rawSurface;
     encodeParams.psReconSurface      = &reconSurface;
-    encodeParams.presBitstreamBuffer = &resBitstreamSurface;
+    encodeParams.presBitstreamBuffer = &bitstreamSurface;
 
     MOS_SURFACE mbQpSurface;
     if (m_encodeCtx->bMBQpEnable)
@@ -316,24 +316,24 @@ VAStatus DdiEncodeMpeg2::EncodeInCodecHal(
     encodeParams.pSeiParamBuffer = m_encodeCtx->pSEIFromApp->pSEIBuffer;
     encodeParams.dwSEIDataOffset = 0;
 
-    CODECHAL_AVC_IQ_MATRIX_PARAMS iqMatrixParams;
+    CODEC_AVC_IQ_MATRIX_PARAMS iqMatrixParams;
     MOS_STATUS                    status = MOS_SecureMemcpy(&iqMatrixParams.ScalingList4x4,
         6 * 16 * sizeof(uint8_t),
-        &m_encodeCtx->bScalingLists4x4,
+        &m_scalingLists4x4,
         6 * 16 * sizeof(uint8_t));
     if (MOS_STATUS_SUCCESS != status)
     {
-        CODEC_DDI_ASSERTMESSAGE("DDI:Failed to copy scaling list 4x4!");
+        DDI_ASSERTMESSAGE("DDI:Failed to copy scaling list 4x4!");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
     status = MOS_SecureMemcpy(&iqMatrixParams.ScalingList8x8,
         2 * 64 * sizeof(uint8_t),
-        &m_encodeCtx->bScalingLists8x8,
+        &m_scalingLists8x8,
         2 * 64 * sizeof(uint8_t));
     if (MOS_STATUS_SUCCESS != status)
     {
-        CODEC_DDI_ASSERTMESSAGE("DDI:Failed to copy scaling list 8x8!");
+        DDI_ASSERTMESSAGE("DDI:Failed to copy scaling list 8x8!");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
@@ -355,7 +355,7 @@ VAStatus DdiEncodeMpeg2::EncodeInCodecHal(
     status = m_encodeCtx->pCodecHal->Execute(&encodeParams);
     if (MOS_STATUS_SUCCESS != status)
     {
-        CODEC_DDI_ASSERTMESSAGE("DDI:Failed in Codechal!");
+        DDI_ASSERTMESSAGE("DDI:Failed in Codechal!");
         return VA_STATUS_ERROR_ENCODING_ERROR;
     }
 
@@ -382,28 +382,28 @@ VAStatus DdiEncodeMpeg2::Qmatrix(void *ptr)
     {
         for (uint8_t idx = 0; idx < 64; idx++)
         {
-            mpeg2QParams->m_qmatrix[0][CODECHAL_AVC_Qmatrix_scan_8x8[idx]] = qMatrix->intra_quantiser_matrix[idx];
+            mpeg2QParams->m_qmatrix[0][CODEC_AVC_Qmatrix_scan_8x8[idx]] = qMatrix->intra_quantiser_matrix[idx];
         }
     }
     if (mpeg2QParams->m_newQmatrix[1])
     {
         for (uint8_t idx = 0; idx < 64; idx++)
         {
-            mpeg2QParams->m_qmatrix[1][CODECHAL_AVC_Qmatrix_scan_8x8[idx]] = qMatrix->non_intra_quantiser_matrix[idx];
+            mpeg2QParams->m_qmatrix[1][CODEC_AVC_Qmatrix_scan_8x8[idx]] = qMatrix->non_intra_quantiser_matrix[idx];
         }
     }
     if (mpeg2QParams->m_newQmatrix[2])
     {
         for (uint8_t idx = 0; idx < 64; idx++)
         {
-            mpeg2QParams->m_qmatrix[2][CODECHAL_AVC_Qmatrix_scan_8x8[idx]] = qMatrix->chroma_intra_quantiser_matrix[idx];
+            mpeg2QParams->m_qmatrix[2][CODEC_AVC_Qmatrix_scan_8x8[idx]] = qMatrix->chroma_intra_quantiser_matrix[idx];
         }
     }
     if (mpeg2QParams->m_newQmatrix[3])
     {
         for (uint8_t idx = 0; idx < 64; idx++)
         {
-            mpeg2QParams->m_qmatrix[3][CODECHAL_AVC_Qmatrix_scan_8x8[idx]] = qMatrix->chroma_non_intra_quantiser_matrix[idx];
+            mpeg2QParams->m_qmatrix[3][CODEC_AVC_Qmatrix_scan_8x8[idx]] = qMatrix->chroma_non_intra_quantiser_matrix[idx];
         }
     }
 
@@ -493,7 +493,7 @@ VAStatus DdiEncodeMpeg2::ParseSeqParams(void *ptr)
 
     if (mpeg2Sps->m_frameRateCode == 0)
     {
-        CODEC_DDI_ASSERTMESSAGE("invalidate frame rate code");
+        DDI_ASSERTMESSAGE("invalidate frame rate code");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
@@ -729,7 +729,7 @@ VAStatus DdiEncodeMpeg2::ParsePackedHeaderParams(void *ptr)
     }
 
     CodecEncodeMpeg2UserDataList *userDataNode = (CodecEncodeMpeg2UserDataList *)MOS_AllocAndZeroMemory(sizeof(CodecEncodeMpeg2UserDataList));
-    DDI_CHK_NULL(userDataNode, "Null userDataNode.", VA_STATUS_ERROR_ALLOCATION_FAILED);
+    DDI_CHK_NULL(userDataNode, "nullptr userDataNode.", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     if (nullptr == m_userDataListHead)
     {
@@ -790,10 +790,10 @@ void DdiEncodeMpeg2::ParseMiscParamFR(void *data)
 {
     CodecEncodeMpeg2SequenceParams *mpeg2SeqParams = (CodecEncodeMpeg2SequenceParams *)(m_encodeCtx->pSeqParams);
 
-    VAEncMiscParameterFrameRate *pVAEncMiscParamFR = (VAEncMiscParameterFrameRate *)data;
+    VAEncMiscParameterFrameRate *vaencMiscParamFR = (VAEncMiscParameterFrameRate *)data;
 
-    float frameRate                 = (float)(pVAEncMiscParamFR->framerate & 0xffff);
-    uint32_t denominator            = (pVAEncMiscParamFR->framerate >> 16) & 0xffff;
+    float frameRate                 = (float)(vaencMiscParamFR->framerate & 0xffff);
+    uint32_t denominator            = (vaencMiscParamFR->framerate >> 16) & 0xffff;
     if(denominator == 0)
     {
         denominator = 1;
@@ -811,7 +811,7 @@ void DdiEncodeMpeg2::ParseMiscParamRC(void *data)
 
     CodecEncodeMpeg2SequenceParams *mpeg2SeqParams = (CodecEncodeMpeg2SequenceParams *)(m_encodeCtx->pSeqParams);
 
-    mpeg2SeqParams->m_bitrate = CONVERT_TO_K(vaEncMiscParamRC->bits_per_second, CODECHAL_ENCODE_BRC_KBPS);
+    mpeg2SeqParams->m_bitrate = MOS_ROUNDUP_DIVIDE(vaEncMiscParamRC->bits_per_second, CODECHAL_ENCODE_BRC_KBPS);
 
     if (VA_RC_CQP == m_encodeCtx->uiRCMethod)
     {
@@ -880,7 +880,7 @@ void DdiEncodeMpeg2::ParseMiscParamMaxFrame(void *data)
 {
     if (nullptr == m_encodeCtx || nullptr == data)
     {
-        CODEC_DDI_ASSERTMESSAGE("invalidate input parameters.");
+        DDI_ASSERTMESSAGE("invalidate input parameters.");
         return;
     }
 
@@ -898,7 +898,7 @@ void DdiEncodeMpeg2::ParseMiscParamTypeExtension(void *data)
 {
     if (nullptr == m_encodeCtx || nullptr == data)
     {
-        CODEC_DDI_ASSERTMESSAGE("invalidate input parameters.");
+        DDI_ASSERTMESSAGE("invalidate input parameters.");
         return;
     }
 
@@ -926,7 +926,7 @@ void DdiEncodeMpeg2::ParseMiscParamSkipFrame(void *data)
 {
     if (nullptr == m_encodeCtx || nullptr == data)
     {
-        CODEC_DDI_ASSERTMESSAGE("invalidate input parameters.");
+        DDI_ASSERTMESSAGE("invalidate input parameters.");
         return;
     }
 
@@ -937,13 +937,13 @@ void DdiEncodeMpeg2::ParseMiscParamSkipFrame(void *data)
 
     if (nullptr == mpeg2PicParams)
     {
-        CODEC_DDI_ASSERTMESSAGE("invalidate mpeg2 picture header.");
+        DDI_ASSERTMESSAGE("invalidate mpeg2 picture header.");
         return;
     }
     //MPEG2 only support normal skip frame
     if (FRAME_SKIP_NORMAL < mpeg2PicParams->m_skipFrameFlag)
     {
-        CODEC_DDI_ASSERTMESSAGE("invalidate input parameters, skip_frame_flag should equal to 0 or 1.");
+        DDI_ASSERTMESSAGE("invalidate input parameters, skip_frame_flag should equal to 0 or 1.");
         return;
     }
 
@@ -1007,7 +1007,7 @@ VAStatus DdiEncodeMpeg2::ParseMiscParams(void *ptr)
 
     default:
     {
-        CODEC_DDI_ASSERTMESSAGE("DDI: unsupported misc parameter type.");
+        DDI_ASSERTMESSAGE("DDI: unsupported misc parameter type.");
         return VA_STATUS_ERROR_FLAG_NOT_SUPPORTED;
     }
     }

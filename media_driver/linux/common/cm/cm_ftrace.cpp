@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_ftrace.cpp  
-//! \brief     Class Cm Ftrace definitions  
+//! \file      cm_ftrace.cpp
+//! \brief     Class Cm Ftrace definitions
 //!
 
 #include "cm_ftrace.h"
@@ -30,6 +30,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <string.h>
+
+#include "cm_task_internal.h"
 
 #define TRACE_MARKER_PATH "/sys/kernel/debug/tracing/trace_marker"
 
@@ -43,7 +45,7 @@
 
 
 //Global static pointer to ensure a single instance
-CmFtrace* CmFtrace::m_ftrace = nullptr; 
+CmFtrace* CmFtrace::m_ftrace = nullptr;
 
 CmFtrace::CmFtrace()
 {
@@ -64,12 +66,12 @@ CmFtrace* CmFtrace::GetInstance()
     {
         m_ftrace = new (std::nothrow) CmFtrace();
     }
-    
+
     return m_ftrace;
 }
 
 
-void CmFtrace::WriteTaskProfilingInfo(PCM_PROFILING_INFO  pTaskInfo)
+void CmFtrace::WriteTaskProfilingInfo(CM_PROFILING_INFO *pTaskInfo)
 {
     if(pTaskInfo == nullptr)
     {
@@ -81,7 +83,7 @@ void CmFtrace::WriteTaskProfilingInfo(PCM_PROFILING_INFO  pTaskInfo)
     uint byte_input = 0;
 
     PRINT_TO_STRING("%s: ", "mdf_v1")
-    PRINT_TO_STRING("kernelcount=%d|", pTaskInfo->dwKernelCount);    
+    PRINT_TO_STRING("kernelcount=%d|", pTaskInfo->dwKernelCount);
     PRINT_TO_STRING("taskid=%d|",      pTaskInfo->dwTaskID);
     PRINT_TO_STRING("threadid=%u|",    pTaskInfo->dwThreadID);
 
@@ -99,15 +101,15 @@ void CmFtrace::WriteTaskProfilingInfo(PCM_PROFILING_INFO  pTaskInfo)
 
         //Global work width&height
         PRINT_TO_STRING("globalwidth=%d|",  pTaskInfo->pGlobalWorkWidth[i]);
-        PRINT_TO_STRING("globalheight=%d|", pTaskInfo->pGlobalWorkHeight[i]);          
+        PRINT_TO_STRING("globalheight=%d|", pTaskInfo->pGlobalWorkHeight[i]);
     }
 
     //Note: enqueuetime/flushtime/completetime are measured in performance counter
-    //Don't need to convert to nanosec on Linux since MOS_QueryPerformanceFrequency returns 1 
-    //On linux, we can't get the gpu ticks when the command submitted, so that 
+    //Don't need to convert to nanosec on Linux since MOS_QueryPerformanceFrequency returns 1
+    //On linux, we can't get the gpu ticks when the command submitted, so that
     //we can't do the adjustment the ticks b/w cpu and gpu, as what we did on windoes by GetGpuTime
     //hw_start_time = flush_time; hw_end_time = hw_start_time + kernel_execution_time
-    
+
     LARGE_INTEGER kernel_exe_time;
     kernel_exe_time.QuadPart = pTaskInfo->HwEndTime.QuadPart - pTaskInfo->HwStartTime.QuadPart;
 
@@ -117,12 +119,9 @@ void CmFtrace::WriteTaskProfilingInfo(PCM_PROFILING_INFO  pTaskInfo)
     PRINT_TO_STRING("hwstarttime=%lld|",   (long long)pTaskInfo->FlushTime.QuadPart);
     PRINT_TO_STRING("hwendtime=%lld|",     (long long)(pTaskInfo->FlushTime.QuadPart + kernel_exe_time.QuadPart) );
     PRINT_TO_STRING("completetime=%lld\n", (long long)pTaskInfo->CompleteTime.QuadPart);
-   
+
     // write message to trace_marker
     size_t writeSize = write(m_filehandle, msg_buf, byte_offset);
 
     return;
 }
-
-
-

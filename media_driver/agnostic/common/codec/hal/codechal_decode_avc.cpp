@@ -91,7 +91,7 @@ MOS_STATUS CodechalDecodeAvc::SendSlice(
 
             refIdxParams.pAvcPicIdx = avcSliceState->pAvcPicIdx;
             refIdxParams.ppAvcRefList = avcSliceState->ppAvcRefList;
-            refIdxParams.bIntelProprietaryFormatInUse = avcSliceState->bIntelProprietaryFormatInUse;
+            refIdxParams.bIntelEntrypointInUse = avcSliceState->bIntelEntrypointInUse;
             refIdxParams.bPicIdRemappingInUse = avcSliceState->bPicIdRemappingInUse;
 
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxAvcRefIdx(cmdBuffer, nullptr, &refIdxParams));
@@ -159,7 +159,7 @@ MOS_STATUS CodechalDecodeAvc::FormatAvcMonoPicture()
     MOS_ZeroMemory(&dstSurface, sizeof(MOS_SURFACE));
     dstSurface.Format = Format_NV12;
     dstSurface.OsResource = m_decodeParams.m_destSurface->OsResource;
-    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHal_GetResourceInfo(m_osInterface, &dstSurface));
+    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, &dstSurface));
 
     uint32_t height = dstSurface.dwHeight;
     uint32_t pitch = dstSurface.dwPitch;
@@ -191,13 +191,7 @@ MOS_STATUS CodechalDecodeAvc::FormatAvcMonoPicture()
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
 
-        // Send command buffer header at the beginning (OS dependent)
-        MHW_GENERIC_PROLOG_PARAMS genericPrologParams;
-        MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
-        genericPrologParams.pOsInterface = m_osInterface;
-        genericPrologParams.pvMiInterface = m_miInterface;
-        genericPrologParams.bMmcEnabled = CodecHalMmcState::IsMmcEnabled();
-        CODECHAL_DECODE_CHK_STATUS_RETURN(Mhw_SendGenericPrologCmd(&cmdBuffer, &genericPrologParams));
+        CODECHAL_DECODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(&cmdBuffer, false));
 
         // use huc stream out to do clear to clear copy
 
@@ -269,6 +263,8 @@ MOS_STATUS CodechalDecodeAvc::FormatAvcMonoPicture()
         MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(&cmdBuffer, &flushDwParams));
 
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(&cmdBuffer));
+
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
 
         m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBuffer, 0);
@@ -302,7 +298,7 @@ MOS_STATUS CodechalDecodeAvc::AllocateInvalidRefBuffer()
     //AlloctateResource
     if (Mos_ResourceIsNull(&resInvalidRefBuffer))
     {
-        CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHal_GetResourceInfo(m_osInterface, &sDestSurface));
+        CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, &sDestSurface));
 
         MOS_SURFACE surface;
         CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(AllocateSurface(
@@ -421,7 +417,7 @@ MOS_STATUS CodechalDecodeAvc::SetPictureStructs()
     CODECHAL_DECODE_FUNCTION_ENTER;
     
     CODECHAL_DECODE_CHK_NULL_RETURN(pAvcRefList);
-    for (int i = 0; i < CODECHAL_AVC_NUM_UNCOMPRESSED_SURFACE; i++)
+    for (int i = 0; i < CODEC_AVC_NUM_UNCOMPRESSED_SURFACE; i++)
     {
         CODECHAL_DECODE_CHK_NULL_RETURN(pAvcRefList[i]);
     }
@@ -534,13 +530,13 @@ MOS_STATUS CodechalDecodeAvc::SetPictureStructs()
     else if (pAvcRefList[currPic.FrameIdx]->bUsedAsRef && !bSecondField)
     {
         dmvidx = pAvcRefList[currPic.FrameIdx]->ucFrameId;
-        if (avcFrameStoreID[dmvidx].bReUse)
+        if (avcFrameStoreID[dmvidx].reUse)
         {
-            avcFrameStoreID[dmvidx].bReUse = false;
+            avcFrameStoreID[dmvidx].reUse = false;
         }
         else
         {
-            avcFrameStoreID[dmvidx].bInUse = false;
+            avcFrameStoreID[dmvidx].inUse = false;
         }
 
         dmvidx = pAvcRefList[currPic.FrameIdx]->ucDMVIdx[0];
@@ -601,7 +597,7 @@ MOS_STATUS CodechalDecodeAvc::SetPictureStructs()
 
     for (i = 0; i < CODEC_AVC_MAX_NUM_REF_FRAME; i++)
     {
-        avcFrameStoreID[i].bInUse = false;
+        avcFrameStoreID[i].inUse = false;
     }
 
     PCODEC_PIC_ID picIdx = &avcPicIdx[0];
@@ -674,7 +670,7 @@ MOS_STATUS CodechalDecodeAvc::SetPictureStructs()
                             CODECHAL_DECODE_ASSERTMESSAGE("Invaid Ref Frame Id Found");
                             pAvcRefList[index]->ucFrameId = 0;
                         }
-                        avcFrameStoreID[pAvcRefList[index]->ucFrameId].bInUse = true;
+                        avcFrameStoreID[pAvcRefList[index]->ucFrameId].inUse = true;
                         break;
                     }
                 }
@@ -712,11 +708,7 @@ MOS_STATUS CodechalDecodeAvc::SetPictureStructs()
     pAvcRefList[currPic.FrameIdx]->usNonExistingFrameFlags = nonExistingFrameFlags;
     pAvcRefList[currPic.FrameIdx]->uiUsedForReferenceFlags = usedForReferenceFlags;
 
-    CodecHalAvc_SetFrameStoreIds(
-        &avcFrameStoreID[0],
-        pAvcRefList,
-        CODECHAL_DECODE_MODE_AVCVLD,
-        currPic.FrameIdx);
+    SetFrameStoreIds(currPic.FrameIdx);
 
     // Store CurrFieldOrderCnt
     if (CodecHal_PictureIsBottomField(currPic))
@@ -753,7 +745,7 @@ MOS_STATUS CodechalDecodeAvc::SetPictureStructs()
     }
 }
 
-MOS_STATUS CodechalDecodeAvc::AllocateResources_VariableSizes()
+MOS_STATUS CodechalDecodeAvc::AllocateResourcesVariableSizes()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -950,7 +942,7 @@ MOS_STATUS CodechalDecodeAvc::AllocateResources_VariableSizes()
 }
 
 
-MOS_STATUS CodechalDecodeAvc::AllocateResources_FixedSizes()
+MOS_STATUS CodechalDecodeAvc::AllocateResourcesFixedSizes()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -968,13 +960,12 @@ MOS_STATUS CodechalDecodeAvc::AllocateResources_FixedSizes()
     MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
     lockFlagsWriteOnly.WriteOnly = 1;
 
-    CodecHal_AllocateDataList(
-        CODEC_REF_LIST,
+    CodecHalAllocateDataList(
         pAvcRefList,
-        CODECHAL_AVC_NUM_UNCOMPRESSED_SURFACE);
+        CODEC_AVC_NUM_UNCOMPRESSED_SURFACE);
 
     CurrPic.PicFlags = PICTURE_INVALID;
-    CurrPic.FrameIdx = CODECHAL_AVC_NUM_UNCOMPRESSED_SURFACE;
+    CurrPic.FrameIdx = CODEC_AVC_NUM_UNCOMPRESSED_SURFACE;
 
     return eStatus;
 }
@@ -1010,7 +1001,7 @@ MOS_STATUS CodechalDecodeAvc::AllocateStandard(
         m_renderContext = MOS_GPU_CONTEXT_RENDER;
     }
 
-    bIntelProprietaryFormatInUse = (settings->bIntelProprietaryFormatInUse) ? true : false;
+    bIntelEntrypointInUse = (settings->bIntelEntrypointInUse) ? true : false;
     m_width = settings->dwWidth;
     m_height = settings->dwHeight;
     u16PicWidthInMb = (uint16_t)CODECHAL_GET_WIDTH_IN_MACROBLOCKS(m_width);
@@ -1042,7 +1033,7 @@ MOS_STATUS CodechalDecodeAvc::AllocateStandard(
         &m_standardDecodePatchListSizeNeeded,
         bShortFormatInUse);
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(AllocateResources_FixedSizes());
+    CODECHAL_DECODE_CHK_STATUS_RETURN(AllocateResourcesFixedSizes());
 
     return eStatus;
 }
@@ -1051,7 +1042,7 @@ CodechalDecodeAvc::~CodechalDecodeAvc()
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
 
-    CodecHal_FreeDataList(pAvcRefList, CODECHAL_AVC_NUM_UNCOMPRESSED_SURFACE);
+    CodecHalFreeDataList(pAvcRefList, CODEC_AVC_NUM_UNCOMPRESSED_SURFACE);
 
     m_osInterface->pfnDestroySyncResource(
         m_osInterface,
@@ -1133,7 +1124,7 @@ MOS_STATUS CodechalDecodeAvc::SetFrameStates()
         pAvcPicParams = (PCODEC_AVC_PIC_PARAMS)m_decodeParams.m_picParams;
         pMvcExtPicParams = (PCODEC_MVC_EXT_PIC_PARAMS)m_decodeParams.m_extPicParams;
         pAvcSliceParams = (PCODEC_AVC_SLICE_PARAMS)m_decodeParams.m_sliceParams;
-        pAvcIQMatrixParams = (PCODECHAL_AVC_IQ_MATRIX_PARAMS)m_decodeParams.m_iqMatrixBuffer;
+        pAvcIQMatrixParams = (PCODEC_AVC_IQ_MATRIX_PARAMS)m_decodeParams.m_iqMatrixBuffer;
         sDestSurface = *(m_decodeParams.m_destSurface);
         pRefFrameSurface = m_decodeParams.m_refFrameSurface;
         u32RefSurfaceNum = m_decodeParams.m_refSurfaceNum;
@@ -1180,7 +1171,7 @@ MOS_STATUS CodechalDecodeAvc::SetFrameStates()
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_hwInterface->SetRowstoreCachingOffsets(&rowstoreParams));
     }
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(AllocateResources_VariableSizes());
+    CODECHAL_DECODE_CHK_STATUS_RETURN(AllocateResourcesVariableSizes());
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(SetPictureStructs());
 
@@ -1339,7 +1330,7 @@ MOS_STATUS CodechalDecodeAvc::InitPicMhwParams(
                 MOS_ZeroMemory(&dstSurface, sizeof(MOS_SURFACE));
             dstSurface.Format = Format_NV12;
             dstSurface.OsResource = *(presReferences[frameId]);
-            CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHal_GetResourceInfo(
+            CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(
                 m_osInterface,
                 &dstSurface));
 
@@ -1477,7 +1468,7 @@ MOS_STATUS CodechalDecodeAvc::DecodeStateLevel()
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(
-        &cmdBuffer));
+        &cmdBuffer, true));
 
     PIC_MHW_PARAMS picMhwParams;
     CODECHAL_DECODE_CHK_STATUS_RETURN(InitPicMhwParams(&picMhwParams));
@@ -1514,7 +1505,7 @@ MOS_STATUS CodechalDecodeAvc::ParseSlice(
     // Setup static slice state parameters
     MHW_VDBOX_AVC_SLICE_STATE avcSliceState;
     MOS_ZeroMemory(&avcSliceState, sizeof(avcSliceState));
-    avcSliceState.bIntelProprietaryFormatInUse = bIntelProprietaryFormatInUse;
+    avcSliceState.bIntelEntrypointInUse = bIntelEntrypointInUse;
     avcSliceState.bPicIdRemappingInUse = bPicIdRemappingInUse;
     avcSliceState.bShortFormatInUse = bShortFormatInUse;
     avcSliceState.presDataBuffer = &resDataBuffer;
@@ -1775,6 +1766,8 @@ MOS_STATUS CodechalDecodeAvc::DecodePrimitiveLevel()
         CODECHAL_DECODE_CHK_STATUS_RETURN(EndStatusReport(decodeStatusReport, &cmdBuffer));
     }
 
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(&cmdBuffer));
+
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
 
     m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBuffer, 0);
@@ -1864,7 +1857,7 @@ MOS_STATUS CodechalDecodeAvc::DecodePrimitiveLevel()
             dstSurface.Format = Format_NV12;
             dstSurface.OsResource = decProcessingParams->pOutputSurface->OsResource;
 
-            CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHal_GetResourceInfo(
+            CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(
                 m_osInterface,
                 &dstSurface));
 
@@ -1922,7 +1915,7 @@ CodechalDecodeAvc::CodechalDecodeAvc(
     u16PicHeightInMb = 0;
     u16PicWidthInMbLastMaxAlloced = 0;
     u16PicHeightInMbLastMaxAlloced = 0;
-    bIntelProprietaryFormatInUse = false;
+    bIntelEntrypointInUse = false;
     bShortFormatInUse = false;
     bPicIdRemappingInUse = false;
     u32DataSize = 0;
@@ -1960,13 +1953,13 @@ CodechalDecodeAvc::CodechalDecodeAvc(
     // Decode process usage
     MOS_ZeroMemory(&CurrPic, sizeof(CODEC_PICTURE));
 
-    MOS_ZeroMemory(&avcFrameStoreID, (sizeof(CODECHAL_AVC_FRAME_STORE_ID)* CODEC_AVC_MAX_NUM_REF_FRAME));
+    MOS_ZeroMemory(&avcFrameStoreID, (sizeof(CODEC_AVC_FRAME_STORE_ID)* CODEC_AVC_MAX_NUM_REF_FRAME));
 
     u8AvcMvBufferIndex = 0;
     MOS_ZeroMemory(&avcDmvList, (sizeof(CODEC_AVC_DMV_LIST)* CODEC_AVC_NUM_DMV_BUFFERS));
 
     MOS_ZeroMemory(&avcPicIdx, (sizeof(CODEC_PIC_ID)* CODEC_AVC_MAX_NUM_REF_FRAME));
-    MOS_ZeroMemory(pAvcRefList, (sizeof(PCODEC_REF_LIST)* CODECHAL_AVC_NUM_UNCOMPRESSED_SURFACE));
+    MOS_ZeroMemory(pAvcRefList, (sizeof(PCODEC_REF_LIST)* CODEC_AVC_NUM_UNCOMPRESSED_SURFACE));
 
     u32AvcDmvBufferSize = 0;
 
@@ -2218,7 +2211,7 @@ MOS_STATUS CodechalDecodeAvc::DumpSliceParams(
 }
 
 MOS_STATUS CodechalDecodeAvc::DumpIQParams(
-    PCODECHAL_AVC_IQ_MATRIX_PARAMS matrixData)
+    PCODEC_AVC_IQ_MATRIX_PARAMS matrixData)
 {
     CODECHAL_DEBUG_FUNCTION_ENTER;
 
@@ -2280,3 +2273,39 @@ MOS_STATUS CodechalDecodeAvc::DumpIQParams(
     return MOS_STATUS_SUCCESS;
 }
 #endif
+
+MOS_STATUS CodechalDecodeAvc::SetFrameStoreIds(uint8_t frameIdx)
+{
+
+    CODECHAL_DECODE_CHK_NULL_RETURN(avcFrameStoreID);
+    CODECHAL_DECODE_CHK_NULL_RETURN(pAvcRefList);
+
+    uint8_t invalidFrame = 0x7f;
+
+    for (uint8_t i = 0; i < pAvcRefList[frameIdx]->ucNumRef; i++)
+    {
+        uint8_t index;
+        index = pAvcRefList[frameIdx]->RefList[i].FrameIdx;
+        if (pAvcRefList[index]->ucFrameId == invalidFrame)
+        {
+            uint8_t j;
+            for (j = 0; j < CODEC_AVC_MAX_NUM_REF_FRAME; j++)
+            {
+                if (!avcFrameStoreID[j].inUse)
+                {
+                    pAvcRefList[index]->ucFrameId = j;
+                    avcFrameStoreID[j].inUse = true;
+                    break;
+                }
+            }
+            if (j == CODEC_AVC_MAX_NUM_REF_FRAME)
+            {
+                // should never happen, something must be wrong
+                CODECHAL_PUBLIC_ASSERT(false);
+                pAvcRefList[index]->ucFrameId = 0;
+                avcFrameStoreID[0].inUse = true;
+            }
+        }
+    }
+    return MOS_STATUS_SUCCESS;
+}

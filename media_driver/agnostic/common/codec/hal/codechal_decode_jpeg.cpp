@@ -130,14 +130,9 @@ MOS_STATUS CodechalDecodeJpeg::CopyDataSurface()
         0));
 
     // Send command buffer header at the beginning (OS dependent)
-    MHW_GENERIC_PROLOG_PARAMS genericPrologParams;
-    MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
-    genericPrologParams.pOsInterface = m_osInterface;
-    genericPrologParams.pvMiInterface = m_miInterface;
-    genericPrologParams.bMmcEnabled = CodecHalMmcState::IsMmcEnabled();
-    CODECHAL_DECODE_CHK_STATUS_RETURN(Mhw_SendGenericPrologCmd(
+    CODECHAL_DECODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(
         &cmdBuffer,
-        &genericPrologParams));
+        false));
 
     // Use huc stream out to do the copy
     CODECHAL_DECODE_CHK_STATUS_RETURN(HucCopy(
@@ -155,6 +150,9 @@ MOS_STATUS CodechalDecodeJpeg::CopyDataSurface()
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(
         &cmdBuffer,
         &flushDwParams));
+
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(
+        &cmdBuffer));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(
         &cmdBuffer,
@@ -651,7 +649,7 @@ MOS_STATUS CodechalDecodeJpeg::DecodeStateLevel()
         0));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(
-        &cmdBuffer));
+        &cmdBuffer, true));
 
     // Set PIPE_MODE_SELECT
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams;
@@ -942,6 +940,9 @@ MOS_STATUS CodechalDecodeJpeg::DecodePrimitiveLevel()
             decodeStatusReport,
             &cmdBuffer));
     }
+
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(
+        &cmdBuffer));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(
         &cmdBuffer,

@@ -20,15 +20,17 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_perf.h  
-//! \brief     Contains functions which recode time and calculate performance  
+//! \file      cm_perf.h
+//! \brief     Contains functions which recode time and calculate performance
 //!
-#pragma once
 
-#include "cm_log.h"
-#include <iostream>
+#ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMPERF_H_
+#define MEDIADRIVER_AGNOSTIC_COMMON_CM_CMPERF_H_
 
-#if CM_LOG_ON 
+#include <string>
+#include "mos_os.h"
+
+#if CM_LOG_ON
 
 class CmTimer
 {
@@ -41,7 +43,7 @@ public:
 private:
     float TotalMilliSecond();
     void Start();
-    
+
     uint64_t            m_cycles;
     LARGE_INTEGER       m_start;
     LARGE_INTEGER       m_end;
@@ -50,4 +52,6 @@ private:
     bool                m_bstopped;
 };
 
-#endif
+#endif  // #if CM_LOG_ON
+
+#endif  // #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMPERF_H_

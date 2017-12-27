@@ -33,8 +33,7 @@
 #include "cm_rt.h"
 #include <cm/cm.h>
 #else
-#include "cm_def.h"
-#include "cm_wrapper.h"
+#include "cm_rt_umd.h"
 #endif
 
 #define CM_CHK_STATUS_RETURN(stmt)                                              \

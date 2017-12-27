@@ -42,7 +42,7 @@ CodechalDecodeVc1G10::CodechalDecodeVc1G10(
 
     u32OlpCurbeStaticDataLength = CODECHAL_DECODE_VC1_CURBE_SIZE_OLP;
 
-    MOS_STATUS eStatus = CodecHal_GetKernelBinaryAndSize(
+    MOS_STATUS eStatus = CodecHalGetKernelBinaryAndSize(
         (uint8_t*)IGCODECKRN_G10,
         IDR_CODEC_AllVC1_NV12,
         &OlpKernelBase,

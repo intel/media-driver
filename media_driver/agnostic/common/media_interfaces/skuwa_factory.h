@@ -33,6 +33,10 @@
 #include <cstdarg>
 
 
+//!
+//! \class    DeviceInfoFactory
+//! \brief    Device info factory
+//!
 template <class T>
 class DeviceInfoFactory
 {

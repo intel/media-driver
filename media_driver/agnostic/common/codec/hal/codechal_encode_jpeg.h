@@ -28,7 +28,6 @@
 #ifndef __CODECHAL_ENCODER_JPEG_H__
 #define __CODECHAL_ENCODER_JPEG_H__
 
-#include "codechal_encoder.h"
 #include "codechal_encoder_base.h"
 
 //!
@@ -160,6 +159,8 @@ public:
     void FreeResources();
 
     MOS_STATUS InitializePicture(const EncoderParams& params);
+
+    virtual MOS_STATUS CheckResChangeAndCsc() override;
 
     MOS_STATUS ExecutePictureLevel();
 

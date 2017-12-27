@@ -25,7 +25,6 @@
 //!           VDEnc encoding to be used CODECHAL components.
 //!
 
-#include "codechal_encoder.h"
 #include "codechal_vdenc_avc_g9_skl.h"
 #if USE_CODECHAL_DEBUG_TOOL
 #include "mhw_vdbox_mfx_hwcmd_g9_skl.h"
@@ -323,22 +322,6 @@ MOS_STATUS CodechalVdencAvcStateG9Skl::EncodeGetKernelHeaderAndSize(void *pvBina
     else if (Operation == VDENC_ME)
     {
         pCurrKrnHeader = &pKernelHeaderTable->AVC_ME_VDENC;
-    }
-    else if (Operation == ENC_BRC)
-    {
-        pCurrKrnHeader = &pKernelHeaderTable->InitFrameBRC;
-    }
-    else if (Operation == ENC_MBENC)
-    {
-        pCurrKrnHeader = &pKernelHeaderTable->AVCMBEnc_Qlty_I;
-    }
-    else if (Operation == ENC_MBENC_ADV)
-    {
-        pCurrKrnHeader = &pKernelHeaderTable->AVCMBEnc_Adv_I;
-    }
-    else if (Operation == ENC_WP)
-    {
-        pCurrKrnHeader = &pKernelHeaderTable->AVC_WeightedPrediction;
     }
     else if (Operation == ENC_SFD)
     {

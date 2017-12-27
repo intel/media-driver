@@ -42,7 +42,6 @@
 #include "codec_def_encode_vp9.h"
 #include "codec_def_encode_avc.h"
 #include "codec_def_encode_hevc.h"
-#include "codechal_common_avc.h"
 
 #include "codechal_debug_config_manager.h"
 #include <sstream>

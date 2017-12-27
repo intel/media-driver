@@ -20,15 +20,15 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_def.h  
-//! \brief     Contains CM definitions  
+//! \file      cm_def.h
+//! \brief     Contains CM definitions
 //!
-#pragma once
-#include "cm_jitter_info.h"
-#include "cm_debug.h"
-#include "cm_csync.h"
-#include "cm_log.h"
+
+#ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMDEF_H_
+#define MEDIADRIVER_AGNOSTIC_COMMON_CM_CMDEF_H_
+
 #include "cm_def_os.h"
+#include "cm_common.h"
 
 //! Map CM_SURFACE_FORMAT to MOS_FORMAT
 #define CM_SURFACE_FORMAT                       MOS_FORMAT
@@ -51,7 +51,7 @@
 #define CM_SURFACE_FORMAT_IRW0                  Format_IRW0
 #define CM_SURFACE_FORMAT_IRW1                  Format_IRW1
 #define CM_SURFACE_FORMAT_IRW2                  Format_IRW2
-#define CM_SURFACE_FORMAT_IRW3                  Format_IRW3 
+#define CM_SURFACE_FORMAT_IRW3                  Format_IRW3
 #define CM_SURFACE_FORMAT_R32_SINT              Format_R32S
 #define CM_SURFACE_FORMAT_R16_FLOAT             Format_R16F
 #define CM_SURFACE_FORMAT_A8P8                  Format_A8P8
@@ -81,7 +81,7 @@
 #define CM_SURFACE_FORMAT_R16_UINT              Format_R16U
 #define CM_SURFACE_FORMAT_R16_TYPELESS          Format_D16
 #define CM_SURFACE_FORMAT_R16G16_UNORM          Format_R16G16UN
-#define CM_SURFACE_FORMAT_L16                   Format_L16 
+#define CM_SURFACE_FORMAT_L16                   Format_L16
 #define CM_SURFACE_FORMAT_YUY2                  Format_YUY2
 #define CM_SURFACE_FORMAT_L8                    Format_L8
 #define CM_SURFACE_FORMAT_UYVY                  Format_UYVY
@@ -94,7 +94,7 @@
 
 typedef unsigned char byte;
 
-#define CM_RT_API 
+#define CM_RT_API
 #define CMRT_UMD_API
 
 #define CISA_MAGIC_NUMBER       0x41534943      //"CISA"
@@ -115,14 +115,14 @@ typedef unsigned char byte;
 #define CM_MAX_3D_SURF_DEPTH            2048
 
 
-#define CM_INIT_PROGRAM_COUNT       16 
-#define CM_INIT_KERNEL_COUNT        64  
-#define CM_INIT_SAMPLER_COUNT       32  
+#define CM_INIT_PROGRAM_COUNT       16
+#define CM_INIT_KERNEL_COUNT        64
+#define CM_INIT_SAMPLER_COUNT       32
 #define CM_INIT_TASK_COUNT              16
-#define CM_INIT_THREADGROUPSPACE_COUNT  8 
-#define CM_INIT_SAMPLER_8X8_STATE_COUNT 8 
+#define CM_INIT_THREADGROUPSPACE_COUNT  8
+#define CM_INIT_SAMPLER_8X8_STATE_COUNT 8
 #define CM_INIT_EVENT_COUNT             128
-#define CM_INIT_THREADSPACE_COUNT       8  
+#define CM_INIT_THREADSPACE_COUNT       8
 #define CM_INIT_VEBOX_COUNT             16
 
 #define CM_NO_EVENT                     ((CmEvent *)(-1)) // Magic Number for invisible event.
@@ -153,7 +153,7 @@ typedef unsigned char byte;
 #define CM_GTPIN_BUFFER_NUM             3
 
 
-#define CM_INIT_KERNEL_PER_PROGRAM              64  // 
+#define CM_INIT_KERNEL_PER_PROGRAM              64  //
 
 #define CM_MAX_SURFACE3D_FORMAT_COUNT   3
 
@@ -165,12 +165,6 @@ typedef unsigned char byte;
 #define CM_RT_MUL_FRAME_FILE_BEGIN   0
 #define CM_RT_MUL_FRAME_FILE_MIDDLE  1
 #define CM_RT_MUL_FRAME_FILE_END     2
-#define CM_RT_JITTER_DEBUG_FLAG      "-debug"
-#define CM_RT_JITTER_GTPIN_FLAG      "-gtpin"
-#define CM_RT_JITTER_NCSTATELESS_FLAG      "-ncstateless"
-#define CM_RT_JITTER_MAX_NUM_FLAGS      30
-#define CM_RT_JITTER_NUM_RESERVED_FLAGS 3// one for gtpin;  two for hw stepping info
-#define CM_RT_JITTER_MAX_NUM_USER_FLAGS (CM_RT_JITTER_MAX_NUM_FLAGS - CM_RT_JITTER_NUM_RESERVED_FLAGS)
 
 #define CM_RT_USER_FEATURE_FORCE_COHERENT_STATELESSBTI    "ForceCoherentStatelessBTI"
 
@@ -193,7 +187,7 @@ typedef unsigned char byte;
 #define COMMON_ISA_NUM_PREDEFINED_SURF_VER_3_1  6
 
 #define CM_FLAG_CURBE_ENABLED                   0x00000001  //bit 0
-#define CM_FLAG_NONSTALLING_SCOREBOARD_ENABLED  0x00000002  //bit 1    
+#define CM_FLAG_NONSTALLING_SCOREBOARD_ENABLED  0x00000002  //bit 1
 
 #define GT_PIN_MSG_SIZE 1024
 
@@ -231,21 +225,10 @@ typedef unsigned char byte;
 #define PRINT_BUFFER_HEADER_SIZE            32
 #define CM_PRINTF_STATIC_BUFFER_ID          1
 
-#define CM_THREADSPACE_MAX_COLOR_COUNT      16
 #define CM_INVALID_COLOR_COUNT              0
-
-#define CM_KERNEL_DATA_CLEAN                    0           // kernel data clean
-#define CM_KERNEL_DATA_KERNEL_ARG_DIRTY         1           // per kernel arg dirty
-#define CM_KERNEL_DATA_THREAD_ARG_DIRTY         (1 << 1)    // per thread arg dirty
-#define CM_KERNEL_DATA_PAYLOAD_DATA_DIRTY       (1 << 2)    // indirect payload data dirty
-#define CM_KERNEL_DATA_PAYLOAD_DATA_SIZE_DIRTY  (1 << 3)    // indirect payload data size changes
-#define CM_KERNEL_DATA_GLOBAL_SURFACE_DIRTY     (1 << 4)    // global surface dirty
-#define CM_KERNEL_DATA_THREAD_COUNT_DIRTY       (1 << 5)    // thread count dirty, reset() be called
-#define CM_KERNEL_DATA_SAMPLER_BTI_DIRTY        (1 << 6)    // sampler bti dirty
 
 #define CM_INIT_GPUCOPY_KERNL_COUNT             16
 
-#define SURFACE_FLAG_ASSUME_NOT_IN_USE          1
 #define CM_NUM_VME_HEVC_REFS                    4
 
 #define PLATFORM_INTEL_UNKNOWN                  0
@@ -256,6 +239,33 @@ typedef unsigned char byte;
 #define PLATFORM_INTEL_GT3                      3
 #define PLATFORM_INTEL_GT4                      4
 #define PLATFORM_INTEL_GT1_5                    10
+
+#define BDW_GT1_MAX_NUM_SLICES                  (1)
+#define BDW_GT1_MAX_NUM_SUBSLICES               (2)
+#define BDW_GT1_5_MAX_NUM_SLICES                (1)
+#define BDW_GT1_5_MAX_NUM_SUBSLICES             (3)
+#define BDW_GT2_MAX_NUM_SLICES                  (1)
+#define BDW_GT2_MAX_NUM_SUBSLICES               (3)
+#define BDW_GT3_MAX_NUM_SLICES                  (2)
+#define BDW_GT3_MAX_NUM_SUBSLICES               (6)
+
+#define SKL_GT1_MAX_NUM_SLICES                  (1)
+#define SKL_GT1_MAX_NUM_SUBSLICES               (2)
+#define SKL_GT1_5_MAX_NUM_SLICES                (1)
+#define SKL_GT1_5_MAX_NUM_SUBSLICES             (3)
+#define SKL_GT2_MAX_NUM_SLICES                  (1)
+#define SKL_GT2_MAX_NUM_SUBSLICES               (3)
+#define SKL_GT3_MAX_NUM_SLICES                  (2)
+#define SKL_GT3_MAX_NUM_SUBSLICES               (6)
+#define SKL_GT4_MAX_NUM_SLICES                  (3)
+#define SKL_GT4_MAX_NUM_SUBSLICES               (9)
+
+#define CNL_GT1_4X8_MAX_NUM_SLICES              (2)
+#define CNL_GT1_4X8_MAX_NUM_SUBSLICES           (4)
+#define CNL_GT2_7X8_MAX_NUM_SLICES              (3)
+#define CNL_GT2_7X8_MAX_NUM_SUBSLICES           (7)
+#define CNL_GT3_9X8_MAX_NUM_SLICES              (4)
+#define CNL_GT3_9_8MAX_NUM_SUBSLICES            (9)
 
 typedef enum _CM_DEVICE_CAP_NAME
 {
@@ -298,103 +308,6 @@ typedef enum _CM_DEVICE_CAP_NAME
 #define HW_GT_STEPPING_C0   "C0"
 #define HW_GT_STEPPING_D0   "D0"
 
-typedef enum _SURFACE_DESTROY_KIND{
-    APP_DESTROY         = 0,
-    GC_DESTROY          = 1, 
-    FORCE_DESTROY       = 2,
-    DELAYED_DESTROY     = 3
-} SURFACE_DESTROY_KIND;
-
-typedef enum _CM_GPUCOPY_DIRECTION
-{
-    CM_FASTCOPY_GPU2CPU = 0,
-    CM_FASTCOPY_CPU2GPU = 1,
-    CM_FASTCOPY_GPU2GPU = 2,
-    CM_FASTCOPY_CPU2CPU = 3
-} CM_GPUCOPY_DIRECTION;
-
-typedef enum _CM_FASTCOPY_OPTION
-{
-    CM_FASTCOPY_OPTION_NONBLOCKING = 0x00,
-    CM_FASTCOPY_OPTION_BLOCKING = 0x01,
-    CM_FASTCOPY_OPTION_DISABLE_TURBO_BOOST = 0x02
-} CM_FASTCOPY_OPTION;
-
-typedef enum _CM_STATUS
-{
-    CM_STATUS_QUEUED         = 0,
-    CM_STATUS_FLUSHED        = 1,
-    CM_STATUS_FINISHED       = 2,
-    CM_STATUS_STARTED        = 3,
-    CM_STATUS_RESET          = 4
-
-}CM_STATUS;
-
-typedef enum _CM_TS_FLAG
-{
-    WHITE = 0, 
-    GRAY  = 1,
-    BLACK = 2
-} CM_TS_FLAG;
-
-typedef struct _CM_COORDINATE
-{
-    int32_t x;
-    int32_t y;
-} CM_COORDINATE, *PCM_COORDINATE;
-
-typedef struct _CM_THREAD_SPACE_UNIT 
-{
-    void            *pKernel;
-    uint32_t        threadId;
-    int32_t         numEdges; //For Emulation mode
-    CM_COORDINATE   scoreboardCoordinates;
-    uint8_t         dependencyMask;
-    uint8_t         reset; 
-    uint8_t         scoreboardColor;
-    uint8_t         sliceDestinationSelect;
-    uint8_t         subSliceDestinationSelect;
-} CM_THREAD_SPACE_UNIT;
-
-typedef struct _CM_THREAD_PARAM
-{
-    CM_COORDINATE   scoreboardCoordinates;     //[X, Y] terms of the scoreboard values of the current thread.
-    uint8_t         scoreboardColor;           // dependency color the current thread.
-    uint8_t         sliceDestinationSelect;    //select determines the slice of the current thread must be sent to.
-    uint8_t         subSliceDestinationSelect;    //select determines the sub-slice of the current thread must be sent to.
-}CM_THREAD_PARAM;
-
-typedef enum _CM_THREAD_SPACE_DIRTY_STATUS
-{
-    CM_THREAD_SPACE_CLEAN                 = 0,
-    CM_THREAD_SPACE_DEPENDENCY_MASK_DIRTY = 1,
-    CM_THREAD_SPACE_DATA_DIRTY            = 2
-}CM_THREAD_SPACE_DIRTY_STATUS, *PCM_THREAD_SPACE_DIRTY_STATUS;
-
-typedef struct _CM_DEPENDENCY
-{
-    uint32_t count;
-    int32_t deltaX[CM_MAX_DEPENDENCY_COUNT];
-    int32_t deltaY[CM_MAX_DEPENDENCY_COUNT];
-}CM_DEPENDENCY;
-
-typedef enum _SAMPLER_SURFACE_TYPE
-{
-    SAMPLER_SURFACE_TYPE_2D,
-    SAMPLER_SURFACE_TYPE_2DUP,
-    SAMPLER_SURFACE_TYPE_3D
-} SAMPLER_SURFACE_TYPE;
-
-typedef enum _CM_INTERNAL_TASK_TYPE
-{
-    CM_INTERNAL_TASK_WITH_THREADSPACE,
-    CM_INTERNAL_TASK_WITH_THREADGROUPSPACE,
-    CM_INTERNAL_TASK_VEBOX,
-    CM_INTERNAL_TASK_ENQUEUEWITHHINTS
-} CM_INTERNAL_TASK_TYPE;
-
-#define CM_TASK_TYPE_DEFAULT    CM_INTERNAL_TASK_WITH_THREADSPACE
-
 /**************** L3/Cache ***************/
 typedef enum _MEMORY_OBJECT_CONTROL{
     // SNB
@@ -406,7 +319,7 @@ typedef enum _MEMORY_OBJECT_CONTROL{
     // IVB
     MEMORY_OBJECT_CONTROL_FROM_GTT_ENTRY = MEMORY_OBJECT_CONTROL_USE_GTT_ENTRY,  // Caching dependent on pte
     MEMORY_OBJECT_CONTROL_L3,                                             // Cached in L3$
-    MEMORY_OBJECT_CONTROL_LLC,                                            // Cached in LLC 
+    MEMORY_OBJECT_CONTROL_LLC,                                            // Cached in LLC
     MEMORY_OBJECT_CONTROL_LLC_L3,                                         // Cached in LLC & L3$
 
     // HSW
@@ -439,7 +352,6 @@ typedef enum _MEMORY_OBJECT_CONTROL{
     MEMORY_OBJECT_CONTROL_UNKNOW = 0xff
 } MEMORY_OBJECT_CONTROL;
 
-
 typedef enum _MEMORY_TYPE {
     CM_USE_PTE,
     CM_UN_CACHEABLE,
@@ -460,264 +372,9 @@ typedef struct _CM_SURFACE_MEM_OBJ_CTRL {
     int32_t age;
 } CM_SURFACE_MEM_OBJ_CTRL;
 
-typedef enum _L3_ALLOC_KIND
-{
-    SLM_ALLOCATION = 0,
-    URB_ALLOCATION,
-    REST_ALLOCATION,
-    DC_ASSIGNMENT,
-    READ_ONLY_POOL,
-    IS_ALLOCATION,
-    CONSTANT_ALLICATION,
-    TEXTURE_ALLICATION,
-    SUM_ALLICATION
-} L3_ALLOC_KIND;
-
-typedef struct _CM_SET_CAPS
-{
-    CM_SET_TYPE Type;
-    union
-    {
-        uint32_t MaxValue;
-        struct
-        {
-            uint32_t ConfigRegsiter0;
-            uint32_t ConfigRegsiter1;
-            uint32_t ConfigRegsiter2;
-            uint32_t ConfigRegsiter3;
-        };
-    };
-} CM_SET_CAPS, *PCM_SET_CAPS;
-
-typedef struct _CM_HAL_EXEC_GROUPED_TASK_PARAM
-{
-    void    **pKernels;              // [in]  Array of Kernel data
-    uint32_t *piKernelSizes;          // [in]  Parallel array of Kernel Size
-    uint32_t iNumKernels;            // [in]  Number of Kernels in a task
-    int32_t iTaskIdOut;             // [out] Task ID 
-    uint32_t threadSpaceWidth;       // [in]  thread space width within group
-    uint32_t threadSpaceHeight;      // [in]  thread space height within group
-    uint32_t groupSpaceWidth;        // [in]  group space width
-    uint32_t groupSpaceHeight;       // [in]  group space height
-    uint32_t iSLMSize;               // [in]  SLM size per thread group in 1K unit
-} CM_HAL_EXEC_GROUPED_TASK_PARAM, *PCM_HAL_EXEC_GROUPED_TASK_PARAM;
-
-// Need to consistant with compiler
-typedef enum _CM_ARG_KIND
-{
-    // compiler-defined kind
-    ARG_KIND_GENERAL = 0x0,
-    ARG_KIND_SAMPLER = 0x1,
-    //ARG_KIND_SURFACE = 0x2, compiler value for surface 
-    // runtime classify further surface to 1D/2D/3D
-    ARG_KIND_SURFACE_2D = 0x2,
-    ARG_KIND_SURFACE_1D = 0x3,
-    ARG_KIND_SURFACE_3D = 0x4,
-    ARG_KIND_SURFACE_VME = 0x5,
-    ARG_KIND_VME_INDEX = 0x6,
-    ARG_KIND_SURFACE_2D_UP = 0x7,
-    ARG_KIND_SURFACE_SAMPLER8X8_AVS = 0x8,
-    ARG_KIND_SURFACE_SAMPLER8X8_VA = 0x9, //get compiler update before checking this in
-    ARG_KIND_SURFACE_SAMPLER = 0xb,
-    ARG_KIND_SURFACE = 0xc,
-    ARG_KIND_SURFACE2DUP_SAMPLER = 0xd,
-    ARG_KIND_IMPLICT_LOCALSIZE = 0xe,
-    ARG_KIND_IMPLICT_GROUPSIZE = 0xf,
-    ARG_KIND_IMPLICIT_LOCALID = 0x10,
-    ARG_KIND_STATE_BUFFER = 0x11,
-    ARG_KIND_GENERAL_DEPVEC = 0x20,
-    ARG_KIND_SURFACE_2D_SCOREBOARD = 0x2A  //used for SW scoreboarding
-} CM_ARG_KIND;
-
-typedef enum _SURFACE_KIND
-{
-    DATA_PORT_SURF,
-    SAMPLER_SURF,
-} SURFACE_KIND;
-
-typedef struct _SURFACE_ARRAY_ARG
-{
-    uint16_t argKindForArray; //record each arg kind in array, used for surface array
-    uint32_t addressModeForArray; // record each arg address control mode for media sampler in surface array
-
-}SURFACE_ARRAY_ARG;
-
-typedef struct _CM_ARG
-{
-    uint16_t unitKind; // value is of type CM_ARG_KIND
-    uint16_t unitKindOrig; // used to restore unitKind when reset
-
-    uint16_t index;
-    SURFACE_KIND s_k;
-    
-    uint32_t unitCount; // 1 for for per kernel arg ; thread # for per thread arg
-
-    uint16_t unitSize; // size of arg in byte
-    uint16_t unitSizeOrig; // used to restore unitSize when reset
-
-    uint16_t unitOffsetInPayload; // offset relative to R0 in payload
-    uint16_t unitOffsetInPayloadOrig; // used to restore unitOffsetInPayload in adding move instruction for CURBE
-    bool bIsDirty;      // used to indicate if its value be changed
-    bool bIsSet;        // used to indicate if this argument is set correctly
-    uint32_t nCustomValue;  // CM defined value for special argument kind
-
-    uint32_t aliasIndex;    // CmSurface2D alias index
-    bool bAliasCreated; // whether or not alias was created for this argument
-
-    bool bIsNull;       // used to indicate if this is a null surface
-
-    uint32_t unitVmeArraySize; // number of Vme surfaces in surface array 
-
-    // pointer to the arg values. the size is unitCount * unitSize
-    union
-    {
-        uint8_t *pValue; 
-        int32_t *pIValue;
-        uint32_t *pUIValue;
-        float  *pFValue; 
-    };
-
-    uint16_t *surfIndex;
-    SURFACE_ARRAY_ARG *pSurfArrayArg; // record each arg kind and address control mode for media sampler in surface array
-    _CM_ARG()
-    {
-        unitKind = 0;
-        unitCount = 0;
-        unitSize = 0;
-        unitOffsetInPayload = 0;
-        pValue = nullptr;
-        bIsDirty = false;
-        bIsNull = false;
-        unitVmeArraySize = 0;
-    }
-} CM_ARG ;
-
-#define  CM_JIT_FLAG_SIZE                          256 
-#define  CM_JIT_ERROR_MESSAGE_SIZE                 512  
-#define  CM_JIT_PROF_INFO_SIZE                     4096
-
-typedef struct {
-    unsigned short name_index;
-    unsigned char size;
-    unsigned char* values;
-    char *name;
-} attribute_info_t;
-
-typedef struct {
-    unsigned short name_index;
-    unsigned char bit_properties;
-    unsigned short num_elements;
-    unsigned short alias_index;
-    unsigned short alias_offset;
-    unsigned char attribute_count;
-    attribute_info_t* attributes;
-} gen_var_info_t;
-
-typedef struct {
-    unsigned short name_index;
-    unsigned short num_elements;
-    unsigned char attribute_count;
-    attribute_info_t* attributes;
-} spec_var_info_t;
-
-typedef struct {
-    unsigned short name_index;
-    unsigned char kind;
-    unsigned char attribute_count;
-    attribute_info_t* attributes;
-} label_info_t;
-
-
-typedef struct _CM_KERNEL_INFO
-{
-    char kernelName[ CM_MAX_KERNEL_NAME_SIZE_IN_BYTE ];
-    uint32_t inputCountOffset;
-
-    //Used to store the input for the jitter from CISA
-    uint32_t kernelIsaOffset;
-    uint32_t kernelIsaSize;
-
-    //Binary Size
-    union
-    {
-        uint32_t jitBinarySize;
-        uint32_t genxBinarySize;
-    };
-
-    union
-    {
-        void* jitBinaryCode;   //pointer to code created by jitter
-        uint32_t genxBinaryOffset; //pointer to binary offset in CISA (use when jit is not enabled)
-    };
-
-    //Just a copy for original binary pointer and size (GTPin using only)
-    void* pOrigBinary;
-    uint32_t uiOrigBinarySize; 
-
-    uint32_t globalStringCount;
-    const char** globalStrings; 
-    char kernelASMName[CM_MAX_KERNEL_NAME_SIZE_IN_BYTE + 1];        //The name of the Gen assembly file for this kernel (no extension)
-    uint8_t kernelSLMSize;     //Size of the SLM used by each thread group
-    bool blNoBarrier;       //Indicate if the barrier is used in kernel: true means no barrier used, false means barrier is used.
-
-    FINALIZER_INFO *jitInfo;
-    
-    uint32_t variable_count;
-    gen_var_info_t *variables;
-    uint32_t address_count;
-    spec_var_info_t *address;
-    uint32_t predicte_count;
-    spec_var_info_t *predictes;
-    uint32_t label_count;
-    label_info_t *label;
-    uint32_t sampler_count;
-    spec_var_info_t *sampler;
-    uint32_t surface_count;
-    spec_var_info_t *surface;
-    uint32_t vme_count;
-    spec_var_info_t *vme;
-
-    uint32_t kernelInfoRefCount;    //reference counter for kernel info to reuse kernel info and jitbinary 
-} CM_KERNEL_INFO ;
-
-
 //GT-PIN
 #define CM_MAX_ENTRY_FOR_A_SURFACE  6   //maxium planes(3)*dual state(2)
 #define CM_GTPIN_BUFFER_NUM 3
-
-
-typedef struct _CM_ARG_64
-{
-    void * pValue;
-    int size;
-}CM_ARG_64;
-
-//Sampler8x8 data structures
-
-typedef enum _CM_MESSAGE_SEQUENCE_
-{
-    CM_MS_1x1 = 0,
-    CM_MS_16x1 = 1,
-    CM_MS_16x4 = 2,
-    CM_MS_32x1 = 3,
-    CM_MS_32x4 = 4,
-    CM_MS_64x1 = 5,
-    CM_MS_64x4 = 6
-}CM_MESSAGE_SEQUENCE;
-
-typedef enum _CM_MIN_MAX_FILTER_CONTROL_
-{
-    CM_MIN_FILTER = 0,
-    CM_MAX_FILTER = 1,
-    CM_BOTH_FILTER = 3
-}CM_MIN_MAX_FILTER_CONTROL;
-
-typedef enum _CM_VA_FUNCTION_
-{
-    CM_VA_MINMAXFILTER = 0,
-    CM_VA_DILATE = 1,
-    CM_VA_ERODE = 2
-} CM_VA_FUNCTION;
 
 typedef enum _CM_SAMPLER8x8_SURFACE_
 {
@@ -730,7 +387,6 @@ typedef enum _CM_SURFACE_ADDRESS_CONTROL_MODE_
     CM_SURFACE_CLAMP = 0,
     CM_SURFACE_MIRROR = 1
 }CM_SURFACE_ADDRESS_CONTROL_MODE;
-
 
 typedef struct _CM_SAMPLER_STATE
 {
@@ -751,10 +407,10 @@ typedef enum _CM_PIXEL_TYPE
 typedef struct _CM_SAMPLER_STATE_EX
 {
     CM_TEXTURE_FILTER_TYPE minFilterType;
-    CM_TEXTURE_FILTER_TYPE magFilterType;   
-    CM_TEXTURE_ADDRESS_TYPE addressU;   
-    CM_TEXTURE_ADDRESS_TYPE addressV;   
-    CM_TEXTURE_ADDRESS_TYPE addressW; 
+    CM_TEXTURE_FILTER_TYPE magFilterType;
+    CM_TEXTURE_ADDRESS_TYPE addressU;
+    CM_TEXTURE_ADDRESS_TYPE addressV;
+    CM_TEXTURE_ADDRESS_TYPE addressW;
 
     CM_PIXEL_TYPE SurfaceFormat;
     union {
@@ -774,7 +430,7 @@ typedef struct _CM_SAMPLER_STATE_EX
         int32_t BorderColorBlueS;
         float BorderColorBlueF;
     };
-    
+
     union {
         uint32_t BorderColorAlphaU;
         int32_t BorderColorAlphaS;
@@ -803,7 +459,7 @@ typedef struct _CM_AVS_NONPIPLINED_STATE{
     uint8_t maxDerivative4Pixels;
     uint8_t maxDerivative8Pixels;
     uint8_t transitionArea4Pixels;
-    uint8_t transitionArea8Pixels;    
+    uint8_t transitionArea8Pixels;
     CM_AVS_COEFF_TABLE Tbl0X[ CM_NUM_COEFF_ROWS_SKL ];
     CM_AVS_COEFF_TABLE Tbl0Y[ CM_NUM_COEFF_ROWS_SKL ];
     CM_AVS_COEFF_TABLE Tbl1X[ CM_NUM_COEFF_ROWS_SKL ];
@@ -819,7 +475,7 @@ typedef struct _CM_AVS_INTERNEL_NONPIPLINED_STATE{
     uint8_t maxDerivative4Pixels;
     uint8_t maxDerivative8Pixels;
     uint8_t transitionArea4Pixels;
-    uint8_t transitionArea8Pixels;    
+    uint8_t transitionArea8Pixels;
     CM_AVS_INTERNEL_COEFF_TABLE Tbl0X[ CM_NUM_COEFF_ROWS_SKL ];
     CM_AVS_INTERNEL_COEFF_TABLE Tbl0Y[ CM_NUM_COEFF_ROWS_SKL ];
     CM_AVS_INTERNEL_COEFF_TABLE Tbl1X[ CM_NUM_COEFF_ROWS_SKL ];
@@ -829,7 +485,7 @@ typedef struct _CM_AVS_INTERNEL_NONPIPLINED_STATE{
 }CM_AVS_INTERNEL_NONPIPLINED_STATE, *PCM_AVS_INTERNEL_NONPIPLINED_STATE;
 
 typedef struct _CM_AVS_STATE_MSG{
-    bool AVSTYPE; //true nearest, false adaptive  
+    bool AVSTYPE; //true nearest, false adaptive
     bool EightTapAFEnable; //HSW+
     bool BypassIEF; //ignored for BWL, moved to sampler8x8 payload.
     bool ShuffleOutputWriteback; //SKL mode only to be set when AVS msg sequence is 4x4 or 8x4
@@ -894,7 +550,7 @@ typedef struct _CM_CONVOLVE_STATE_MSG{
   bool CoeffSize; //true 16-bit, false 8-bit
   byte SclDwnValue; //Scale down value
   byte Width; //Kernel Width
-  byte Height; //Kernel Height  
+  byte Height; //Kernel Height
   //SKL mode
   bool isVertical32Mode;
   bool isHorizontal32Mode;
@@ -1102,73 +758,6 @@ typedef struct _CM_SAMPLER_8X8_DESCR{
     };
 } CM_SAMPLER_8X8_DESCR;
 
-
-
-
-
-
-
-//Function pointer definition for jitter compilation functions.
-typedef int (__cdecl *pJITCompile)( const char* kernelName, 
-                const void* kernelIsa, 
-                uint32_t kernelIsaSize,
-                void* &genBinary,
-                uint32_t& genBinarySize,
-                const char* platform,
-                int majorVersion,
-                int minorVersion,
-                int numArgs,
-                const char* args[],
-                char* errorMsg,
-                FINALIZER_INFO* jitInfo);
-typedef void (__cdecl *pFreeBlock)(void* );
-typedef void (__cdecl *pJITVersion)(unsigned int& majorV, 
-                                    unsigned int& minorV);
-
-#define JITCOMPILE_FUNCTION_STR   "JITCompile"
-#define FREEBLOCK_FUNCTION_STR    "freeBlock"
-#define JITVERSION_FUNCTION_STR     "getJITVersion"
-
-#define USING_IGC_DLL             1
-#ifdef USING_IGC_DLL
-#define JITTER_DLL_NAME_64BIT     "igc64.dll"
-#define JITTER_DLL_NAME_32BIT     "igc32.dll"
-#else
-#define JITTER_DLL_NAME_64BIT     "igfxcmjit64.dll"
-#define JITTER_DLL_NAME_32BIT     "igfxcmjit32.dll"
-#endif
-
-typedef enum _JITDLL_FUNCTION_ORDINAL_
-{
-  JITDLL_ORDINAL_JITCOMPILE = 1, 
-  JITDLL_ORDINAL_JITCOMPILESIM = 2,
-  JITDLL_ORDINAL_FREEBLOCK = 3,
-  JITDLL_ORDINAL_JITVERSION = 4
-} JITDLL_FUNCTION_ORDINAL;
-
-//non-depend on rtti::dynamic_cast
-typedef enum _CM_ENUM_CLASS_TYPE
-{
-    CM_ENUM_CLASS_TYPE_CMBUFFER_RT          = 0,
-    CM_ENUM_CLASS_TYPE_CMSURFACE2D          = 1,
-    CM_ENUM_CLASS_TYPE_CMSURFACE2DUP        = 2, 
-    CM_ENUM_CLASS_TYPE_CMSURFACE3D          = 3, 
-    CM_ENUM_CLASS_TYPE_CMSURFACESAMPLER     = 4,
-    CM_ENUM_CLASS_TYPE_CMSURFACESAMPLER8X8  = 5, 
-    CM_ENUM_CLASS_TYPE_CMSURFACEVME         = 6, 
-    CM_ENUM_CLASS_TYPE_CMSAMPLER_RT         = 7,
-    CM_ENUM_CLASS_TYPE_CMSAMPLER8X8STATE_RT = 8,
-    CM_ENUM_CLASS_TYPE_CM_STATE_BUFFER      = 9
-}CM_ENUM_CLASS_TYPE;
-
-using namespace CMRT_UMD;
-
-typedef enum _CM_KERNEL_INTERNAL_ARG_TYPE
-{
-    CM_KERNEL_INTERNEL_ARG_PERKERNEL = 0,
-    CM_KERNEL_INTERNEL_ARG_PERTHREAD = 1
-} CM_KERNEL_INTERNAL_ARG_TYPE, *PCM_KERNEL_INTERNAL_ARG_TYPE;
-
 typedef enum _CM_ROTATION
 {
     CM_ROTATION_IDENTITY = 0,      //!< Rotation 0 degrees
@@ -1179,7 +768,7 @@ typedef enum _CM_ROTATION
 
 // to support new flag with current API
 // new flag/field could be add to the end of this structure
-// 
+//
 struct CM_FLAG {
     CM_FLAG();
     CM_ROTATION rotationFlag;
@@ -1206,3 +795,5 @@ typedef struct _CM_SURFACE2D_STATE_PARAM
     uint32_t surface_y_offset;
     uint32_t reserved[4]; // for future usage
 } CM_SURFACE2D_STATE_PARAM;
+
+#endif  // #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMDEF_H_

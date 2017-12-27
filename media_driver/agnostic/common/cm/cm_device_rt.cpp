@@ -34,17 +34,32 @@
 #include "cm_buffer_rt.h"
 #include "cm_thread_space_rt.h"
 #include "cm_debug.h"
+#include "cm_mem.h"
 #include "cm_surface_vme.h"
 #include "cm_sampler8x8_state_rt.h"
 #include "cm_sampler_rt.h"
-#include "cm_def.h"
 #include "cm_group_space.h"
 #include "cm_surface_2d_rt.h"
 #include "cm_surface_2d_up_rt.h"
 #include "cm_surface_3d_rt.h"
-#include "cm_hal.h"
 #include "cm_vebox_rt.h"
 #include "cm_printf_host.h"
+
+struct CM_SET_CAPS
+{
+    CM_SET_TYPE Type;
+    union
+    {
+        uint32_t MaxValue;
+        struct
+        {
+            uint32_t ConfigRegsiter0;
+            uint32_t ConfigRegsiter1;
+            uint32_t ConfigRegsiter2;
+            uint32_t ConfigRegsiter3;
+        };
+    };
+};
 
 namespace CMRT_UMD
 {
@@ -457,7 +472,7 @@ CM_RT_API int32_t CmDeviceRT::CreateBuffer(uint32_t size, CmBuffer* & pSurface)
 //!            owned by caller.
 //! \param    [in] pMosResource
 //!           pointer to MOS resource.
-//! \param    [in/out] pSurface
+//! \param    [in,out] pSurface
 //!           reference to pointer of surface to be created.
 //! \retval   CM_SUCCESS if the CmBuffer is successfully created.
 //! \retval   CM_INVALID_MOS_RESOURCE_HANDLE if pMosResource is nullptr.
@@ -558,7 +573,7 @@ CM_RT_API int32_t CmDeviceRT::DestroyBufferUP(CmBufferUP* & pSurface)
 
     int32_t status = m_pSurfaceMgr->DestroySurface(temp, APP_DESTROY);
 
-    if (status != CM_FAILURE) //CM_SURFACE_IN_USE, or  CM_SURFACE_CACHED may be returned, which should be treated as SUCCESS.
+    if (status != CM_FAILURE) //CM_SURFACE_IN_USE may be returned, which should be treated as SUCCESS.
     {
         pSurface = nullptr;
         return CM_SUCCESS;
@@ -2837,7 +2852,7 @@ int32_t CmDeviceRT::GetSampler8x8(uint32_t index,
 //| Purpose:    Set L3 config
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-CM_RT_API int32_t CmDeviceRT::SetL3Config(L3ConfigRegisterValues *l3_c)
+CM_RT_API int32_t CmDeviceRT::SetL3Config(const L3ConfigRegisterValues *l3_c)
 {
     INSERT_API_CALL_LOG();
 
@@ -3193,26 +3208,6 @@ int32_t CmDeviceRT::LoadProgramWithGenCode(void* pCISACode,
     return result;
 }
 
-int32_t CmDeviceRT::GetSurface2DInPool(uint32_t width,
-                                       uint32_t height,
-                                       CM_SURFACE_FORMAT format,
-                                       CmSurface2D* & pSurface)
-{
-    CLock locker(m_CriticalSection_Surface);
-
-    CmSurface2DRT *pSurfaceRT = nullptr;
-    int32_t result = m_pSurfaceMgr->GetSurface2DInPool(width, height, format, pSurfaceRT);
-    pSurface = pSurfaceRT;
-    return result;
-}
-
-int32_t CmDeviceRT::GetSurfaceIDInPool(int32_t iIndex)
-{
-    CLock locker(m_CriticalSection_Surface);
-    int32_t result = m_pSurfaceMgr->GetSurfaceIdInPool(iIndex);
-    return result;
-}
-
 int32_t CmDeviceRT::DestroySurfaceInPool(uint32_t &freeSurfNum)
 {
     CLock locker(m_CriticalSection_Surface);
@@ -3370,9 +3365,6 @@ int32_t CmDeviceRT::InitDevCreateOption(CM_HAL_CREATE_PARAM & DevCreateParam,
     //Flag to disable scratch space
     DevCreateParam.DisableScratchSpace = (DevCreateOption & CM_DEVICE_CREATE_OPTION_SCRATCH_SPACE_MASK);
 
-    //Flag to enable surface reuse
-    DevCreateParam.EnableSurfaceReuse = (DevCreateOption & CM_DEVICE_CONFIG_SURFACE_REUSE_ENABLE) ? true : false;
-
     //Calculate Scratch Space
     if(DevCreateParam.DisableScratchSpace)
     {
@@ -3416,6 +3408,12 @@ int32_t CmDeviceRT::InitDevCreateOption(CM_HAL_CREATE_PARAM & DevCreateParam,
     KernelBinarySizeInGSH = KernelBinarySizeInGSH * CM_KERNELBINARY_BLOCKSIZE_2MB;
     DevCreateParam.KernelBinarySizeinGSH = KernelBinarySizeInGSH;
 
+#if USE_EXTENSION_CODE
+    // [31] mock runtime
+    DevCreateParam.bMockRuntimeEnabled = (DevCreateOption & CM_DEVICE_CONFIG_MOCK_RUNTIME_ENABLE) ? true : false;
+    m_bIsMockRuntime = DevCreateParam.bMockRuntimeEnabled;
+#endif
+
     return CM_SUCCESS;
 }
 
@@ -3423,11 +3421,6 @@ int32_t CmDeviceRT::InitDevCreateOption(CM_HAL_CREATE_PARAM & DevCreateParam,
 bool CmDeviceRT::IsScratchSpaceDisabled()
 {
     return m_DevCreateOption.DisableScratchSpace ? true : false;
-}
-
-bool CmDeviceRT::IsSurfaceReuseEnabled()
-{
-    return m_DevCreateOption.EnableSurfaceReuse ? true : false;
 }
 
 //*-----------------------------------------------------------------------------

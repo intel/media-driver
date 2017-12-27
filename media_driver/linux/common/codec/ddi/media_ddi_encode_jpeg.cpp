@@ -47,8 +47,8 @@ DdiEncodeJpeg::~DdiEncodeJpeg()
     MOS_FreeMemory(m_encodeCtx->pEncodeStatusReport);
     m_encodeCtx->pEncodeStatusReport = nullptr;
 
-    MOS_FreeMemory(m_encodeCtx->pHuffmanParams);
-    m_encodeCtx->pHuffmanParams = nullptr;
+    MOS_FreeMemory(m_huffmanTable);
+    m_huffmanTable = nullptr;
 
     MOS_FreeMemory(m_encodeCtx->pQmatrixParams);
     m_encodeCtx->pQmatrixParams = nullptr;
@@ -59,15 +59,15 @@ DdiEncodeJpeg::~DdiEncodeJpeg()
     MOS_FreeMemory(m_encodeCtx->pbsBuffer);
     m_encodeCtx->pbsBuffer = nullptr;
 
-    MOS_FreeMemory(m_encodeCtx->pJpegAppData);
-    m_encodeCtx->pJpegAppData = nullptr;
+    MOS_FreeMemory(m_appData);
+    m_appData = nullptr;
 }
 
 VAStatus DdiEncodeJpeg::ContextInitialize(CODECHAL_SETTINGS *codecHalSettings)
 {
-    DDI_CHK_NULL(m_encodeCtx, "Null m_encodeCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(m_encodeCtx->pCpDdiInterface, "Null m_encodeCtx->pCpDdiInterface.", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(codecHalSettings, "Null codecHalSettings.", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(m_encodeCtx->pCpDdiInterface, "nullptr m_encodeCtx->pCpDdiInterface.", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(codecHalSettings, "nullptr codecHalSettings.", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     codecHalSettings->CodecFunction = CODECHAL_FUNCTION_PAK;
     codecHalSettings->dwWidth       = m_encodeCtx->dwFrameWidth;
@@ -77,32 +77,32 @@ VAStatus DdiEncodeJpeg::ContextInitialize(CODECHAL_SETTINGS *codecHalSettings)
 
     VAStatus vaStatus = VA_STATUS_SUCCESS;
 
-    m_encodeCtx->bJPEGQuantSupplied = false;
-    m_encodeCtx->dwAppDataSize      = 0;
+    m_quantSupplied                 = false;
+    m_appDataSize      = 0;
 
     m_encodeCtx->pPicParams = (void *)MOS_AllocAndZeroMemory(sizeof(CodecEncodeJpegPictureParams));
-    DDI_CHK_NULL(m_encodeCtx->pPicParams, "Null m_encodeCtx->pPicParams.", VA_STATUS_ERROR_ALLOCATION_FAILED);
+    DDI_CHK_NULL(m_encodeCtx->pPicParams, "nullptr m_encodeCtx->pPicParams.", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     codecHalSettings->pCpParams = m_encodeCtx->pCpDdiInterface->GetParams();
 
     m_encodeCtx->pbsBuffer = (BSBuffer *)MOS_AllocAndZeroMemory(sizeof(BSBuffer));
-    DDI_CHK_NULL(m_encodeCtx->pbsBuffer, "Null m_encodeCtx->pbsBuffer.", VA_STATUS_ERROR_ALLOCATION_FAILED);
+    DDI_CHK_NULL(m_encodeCtx->pbsBuffer, "nullptr m_encodeCtx->pbsBuffer.", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     // Allocate Encode Status Report
-    m_encodeCtx->pEncodeStatusReport = (void *)MOS_AllocAndZeroMemory(CODECHAL_ENCODE_STATUS_NUM * sizeof(CODECHAL_ENCODE_STATUS_REPORT));
-    DDI_CHK_NULL(m_encodeCtx->pEncodeStatusReport, "Null m_encodeCtx->pEncodeStatusReport.", VA_STATUS_ERROR_ALLOCATION_FAILED);
+    m_encodeCtx->pEncodeStatusReport = (void *)MOS_AllocAndZeroMemory(CODECHAL_ENCODE_STATUS_NUM * sizeof(EncodeStatusReport));
+    DDI_CHK_NULL(m_encodeCtx->pEncodeStatusReport, "nullptr m_encodeCtx->pEncodeStatusReport.", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     // for scan header from application
     m_encodeCtx->pSliceParams = (void *)MOS_AllocAndZeroMemory(sizeof(CodecEncodeJpegScanHeader));
-    DDI_CHK_NULL(m_encodeCtx->pSliceParams, "Null m_encodeCtx->pSliceParams.", VA_STATUS_ERROR_ALLOCATION_FAILED);
+    DDI_CHK_NULL(m_encodeCtx->pSliceParams, "nullptr m_encodeCtx->pSliceParams.", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     // for Quant table
     m_encodeCtx->pQmatrixParams = (void *)MOS_AllocAndZeroMemory(sizeof(CodecEncodeJpegQuantTable));
-    DDI_CHK_NULL(m_encodeCtx->pQmatrixParams, "Null m_encodeCtx->pQmatrixParams.", VA_STATUS_ERROR_ALLOCATION_FAILED);
+    DDI_CHK_NULL(m_encodeCtx->pQmatrixParams, "nullptr m_encodeCtx->pQmatrixParams.", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     // for pHuffmanTable
-    m_encodeCtx->pHuffmanParams = (void **)MOS_AllocAndZeroMemory(sizeof(CodecEncodeJpegHuffmanDataArray));
-    DDI_CHK_NULL(m_encodeCtx->pHuffmanParams, "Null m_encodeCtx->pHuffmanParams.", VA_STATUS_ERROR_ALLOCATION_FAILED);
+    m_huffmanTable = (CodecEncodeJpegHuffmanDataArray *)MOS_AllocAndZeroMemory(sizeof(CodecEncodeJpegHuffmanDataArray));
+    DDI_CHK_NULL(m_huffmanTable, "nullptr m_huffmanTable.", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     return vaStatus;
 }
@@ -120,10 +120,9 @@ VAStatus DdiEncodeJpeg::RenderPicture(
     DDI_CHK_NULL(ctx, "nullptr context", VA_STATUS_ERROR_INVALID_CONTEXT);
 
     DDI_MEDIA_CONTEXT *mediaCtx = DdiMedia_GetMediaContext(ctx);
-    DDI_CHK_NULL(mediaCtx, "Null mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(mediaCtx, "nullptr mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    DDI_CHK_NULL(m_encodeCtx, "Null m_encodeCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(m_encodeCtx->pCodecHal, "Null m_encodeCtx->pCodecHal", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
 
     for (int32_t i = 0; i < numBuffers; i++)
     {
@@ -139,7 +138,7 @@ VAStatus DdiEncodeJpeg::RenderPicture(
         // can use internal function instead of DdiMedia_MapBuffer here?
         void *data = nullptr;
         DdiMedia_MapBuffer(ctx, buffers[i], &data);
-        DDI_CHK_NULL(data, "Null data.", VA_STATUS_ERROR_INVALID_BUFFER);
+        DDI_CHK_NULL(data, "nullptr data.", VA_STATUS_ERROR_INVALID_BUFFER);
 
         switch (buf->uiType)
         {
@@ -205,7 +204,7 @@ VAStatus DdiEncodeJpeg::ResetAtFrameLevel()
 
     picParams->m_inputSurfaceFormat = ConvertMediaFormatToInputSurfaceFormat(m_encodeCtx->RTtbl.pCurrentRT->format);
 
-    m_encodeCtx->dwAppDataSize = 0;
+    m_appDataSize = 0;
 
     return VA_STATUS_SUCCESS;
 }
@@ -229,12 +228,7 @@ VAStatus DdiEncodeJpeg::ParsePicParams(DDI_MEDIA_CONTEXT *mediaCtx, void *ptr)
     DDI_MEDIA_BUFFER *buf = DdiMedia_GetBufferFromVABufferID(mediaCtx, picParams->coded_buf);
     DDI_CHK_NULL(buf, "nullptr buf", VA_STATUS_ERROR_INVALID_PARAMETER);
     RemoveFromStatusReportQueue(buf);
-
-	buf = DdiMedia_GetBufferFromVABufferID(mediaCtx, picParams->coded_buf);
-	if(buf != NULL)
-	{
-        DdiMedia_MediaBufferToMosResource(buf, &(m_encodeCtx->resBitstreamBuffer));
-	}
+    DdiMedia_MediaBufferToMosResource(buf, &(m_encodeCtx->resBitstreamBuffer));
 
     jpegPicParams->m_profile      = picParams->pic_flags.bits.profile;
     jpegPicParams->m_progressive  = picParams->pic_flags.bits.progressive;
@@ -270,11 +264,9 @@ VAStatus DdiEncodeJpeg::ParseSlcParams(DDI_MEDIA_CONTEXT *mediaCtx, void *ptr, u
 
     DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(ptr, "nullptr ptr", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(m_huffmanTable, "nullptr m_huffmanTable", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     VAEncSliceParameterBufferJPEG *scanParams = (VAEncSliceParameterBufferJPEG *)ptr;
-
-    CodecEncodeJpegHuffmanDataArray *huffTbl = (CodecEncodeJpegHuffmanDataArray *)m_encodeCtx->pHuffmanParams;
-    DDI_CHK_NULL(huffTbl, "nullptr huffTbl", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     CodecEncodeJpegScanHeader *scanData = (CodecEncodeJpegScanHeader *)m_encodeCtx->pSliceParams;
     DDI_CHK_NULL(scanData, "nullptr scanData", VA_STATUS_ERROR_INVALID_PARAMETER);
@@ -292,20 +284,20 @@ VAStatus DdiEncodeJpeg::ParseSlcParams(DDI_MEDIA_CONTEXT *mediaCtx, void *ptr, u
         scanData->m_acCodingTblSelector[componentCount] = scanParams->components[componentCount].ac_table_selector;
 
         // AC and DC table selectors always have the same value for android
-        huffTbl->m_huffmanData[componentCount].m_tableID = scanData->m_dcCodingTblSelector[componentCount];
+        m_huffmanTable->m_huffmanData[componentCount].m_tableID = scanData->m_dcCodingTblSelector[componentCount];
     }
 
     // Table ID for DC table for luma
-    huffTbl->m_huffmanData[0].m_tableID = scanData->m_dcCodingTblSelector[0];
+    m_huffmanTable->m_huffmanData[0].m_tableID = scanData->m_dcCodingTblSelector[0];
 
     //Table ID for AC table for luma
-    huffTbl->m_huffmanData[1].m_tableID = scanData->m_acCodingTblSelector[0];
+    m_huffmanTable->m_huffmanData[1].m_tableID = scanData->m_acCodingTblSelector[0];
 
     // Table ID for DC table for chroma
-    huffTbl->m_huffmanData[2].m_tableID = scanData->m_dcCodingTblSelector[1];
+    m_huffmanTable->m_huffmanData[2].m_tableID = scanData->m_dcCodingTblSelector[1];
 
     // Table ID for AC table for chroma
-    huffTbl->m_huffmanData[3].m_tableID = scanData->m_dcCodingTblSelector[1];
+    m_huffmanTable->m_huffmanData[3].m_tableID = scanData->m_dcCodingTblSelector[1];
 
     return VA_STATUS_SUCCESS;
 }
@@ -341,7 +333,7 @@ VAStatus DdiEncodeJpeg::Qmatrix(void *ptr)
     else  // no luma quantization table present - invalid argument
     {
         // switch to default quantization table
-        m_encodeCtx->bJPEGQuantSupplied = false;
+        m_quantSupplied = false;
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
@@ -358,7 +350,7 @@ VAStatus DdiEncodeJpeg::Qmatrix(void *ptr)
         }
     }
 
-    m_encodeCtx->bJPEGQuantSupplied = true;
+    m_quantSupplied = true;
 
     return VA_STATUS_SUCCESS;
 }
@@ -367,11 +359,9 @@ VAStatus DdiEncodeJpeg::ParseHuffmanParams(void *ptr)
 {
     DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(ptr, "nullptr ptr", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(m_huffmanTable, "nullptr m_huffmanTable", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     VAHuffmanTableBufferJPEGBaseline *params = (VAHuffmanTableBufferJPEGBaseline *)ptr;
-
-    CodecEncodeJpegHuffmanDataArray *huffTbl = (CodecEncodeJpegHuffmanDataArray *)m_encodeCtx->pHuffmanParams;
-    DDI_CHK_NULL(huffTbl, "nullptr huffTbl", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     // Setting number of Huffman tables in Picture Params
     CodecEncodeJpegPictureParams *picParams = (CodecEncodeJpegPictureParams *)m_encodeCtx->pPicParams;
@@ -393,29 +383,29 @@ VAStatus DdiEncodeJpeg::ParseHuffmanParams(void *ptr)
             numHuffBuffers++;
 
             // first copy DC table
-            huffTbl->m_huffmanData[tblCount * 2].m_tableClass = 0;
-            huffTbl->m_huffmanData[tblCount * 2].m_tableID    = scanData->m_dcCodingTblSelector[tblCount];
+            m_huffmanTable->m_huffmanData[tblCount * 2].m_tableClass = 0;
+            m_huffmanTable->m_huffmanData[tblCount * 2].m_tableID    = scanData->m_dcCodingTblSelector[tblCount];
 
             for (int32_t i = 0; i < JPEG_NUM_HUFF_TABLE_DC_BITS; i++)
             {
-                huffTbl->m_huffmanData[tblCount * 2].m_bits[i] = params->huffman_table[tblCount].num_dc_codes[i] & 0xFF;
+                m_huffmanTable->m_huffmanData[tblCount * 2].m_bits[i] = params->huffman_table[tblCount].num_dc_codes[i] & 0xFF;
             }
             for (int32_t i = 0; i < JPEG_NUM_HUFF_TABLE_DC_HUFFVAL; i++)
             {
-                huffTbl->m_huffmanData[tblCount * 2].m_huffVal[i] = params->huffman_table[tblCount].dc_values[i] & 0xFF;
+                m_huffmanTable->m_huffmanData[tblCount * 2].m_huffVal[i] = params->huffman_table[tblCount].dc_values[i] & 0xFF;
             }
 
             // Now copy AC table
-            huffTbl->m_huffmanData[(tblCount * 2) + 1].m_tableClass = 1;
-            huffTbl->m_huffmanData[(tblCount * 2) + 1].m_tableID    = scanData->m_acCodingTblSelector[tblCount];
+            m_huffmanTable->m_huffmanData[(tblCount * 2) + 1].m_tableClass = 1;
+            m_huffmanTable->m_huffmanData[(tblCount * 2) + 1].m_tableID    = scanData->m_acCodingTblSelector[tblCount];
 
             for (int32_t i = 0; i < JPEG_NUM_HUFF_TABLE_AC_BITS; i++)
             {
-                huffTbl->m_huffmanData[(tblCount * 2) + 1].m_bits[i] = params->huffman_table[tblCount].num_ac_codes[i] & 0xFF;
+                m_huffmanTable->m_huffmanData[(tblCount * 2) + 1].m_bits[i] = params->huffman_table[tblCount].num_ac_codes[i] & 0xFF;
             }
             for (int32_t i = 0; i < JPEG_NUM_HUFF_TABLE_AC_HUFFVAL; i++)
             {
-                huffTbl->m_huffmanData[(tblCount * 2) + 1].m_huffVal[i] = params->huffman_table[tblCount].ac_values[i] & 0xFF;
+                m_huffmanTable->m_huffmanData[(tblCount * 2) + 1].m_huffVal[i] = params->huffman_table[tblCount].ac_values[i] & 0xFF;
             }
         }
     }
@@ -433,21 +423,21 @@ VAStatus DdiEncodeJpeg::ParseHuffmanParams(void *ptr)
 
 VAStatus DdiEncodeJpeg::ParseAppData(void *ptr, int32_t size)
 {
-    DDI_CHK_NULL(m_encodeCtx, "Null m_encodeCtx.", VA_STATUS_ERROR_INVALID_PARAMETER);
-    DDI_CHK_NULL(ptr, "Null ptr.", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx.", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(ptr, "nullptr ptr.", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    uint32_t prevAppDataSize = m_encodeCtx->dwAppDataSize;
+    uint32_t prevAppDataSize = m_appDataSize;
 
-    if (m_encodeCtx->pJpegAppData == nullptr)
+    if (m_appData == nullptr)
     {
-        m_encodeCtx->pJpegAppData = (void *)MOS_AllocAndZeroMemory(size);
+        m_appData = (void *)MOS_AllocAndZeroMemory(size);
 
-        if (!m_encodeCtx->pJpegAppData)
+        if (!m_appData)
         {
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
 
-        MOS_SecureMemcpy(m_encodeCtx->pJpegAppData, size, ptr, size);
+        MOS_SecureMemcpy(m_appData, size, ptr, size);
     }
     else  // app data had been sent before
     {
@@ -459,7 +449,7 @@ VAStatus DdiEncodeJpeg::ParseAppData(void *ptr, int32_t size)
         }
 
         // Copy over previous app data to a new location
-        MOS_SecureMemcpy(tempAppData, prevAppDataSize, (uint8_t *)m_encodeCtx->pJpegAppData, prevAppDataSize);
+        MOS_SecureMemcpy(tempAppData, prevAppDataSize, (uint8_t *)m_appData, prevAppDataSize);
 
         uint8_t *newAddress = (uint8_t *)tempAppData + prevAppDataSize;
 
@@ -467,18 +457,21 @@ VAStatus DdiEncodeJpeg::ParseAppData(void *ptr, int32_t size)
         MOS_SecureMemcpy(newAddress, size, (uint8_t *)ptr, size);
 
         // Now free the previous location containing app data and overwrite with new app data buffer
-        MOS_FreeMemory(m_encodeCtx->pJpegAppData);
+        MOS_FreeMemory(m_appData);
+        m_appData = tempAppData;
 
-        m_encodeCtx->pJpegAppData = tempAppData;
     }
 
-    m_encodeCtx->dwAppDataSize += size;
+    m_appDataSize += size;
 
     return VA_STATUS_SUCCESS;
 }
 
 VAStatus DdiEncodeJpeg::EncodeInCodecHal(uint32_t numSlices)
 {
+    DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(m_encodeCtx->pCodecHal, "nullptr m_encodeCtx->pCodecHal", VA_STATUS_ERROR_INVALID_CONTEXT);
+
     if (numSlices != 1)
     {
         return VA_STATUS_ERROR_INVALID_PARAMETER;
@@ -495,7 +488,7 @@ VAStatus DdiEncodeJpeg::EncodeInCodecHal(uint32_t numSlices)
     encodeParams.ExecCodecFunction = CODECHAL_FUNCTION_PAK;
 
     // Check if Qunt table was sent by application
-    if (!m_encodeCtx->bJPEGQuantSupplied)
+    if (!m_quantSupplied)
     {
         DefaultQmatrix();
     }
@@ -513,7 +506,7 @@ VAStatus DdiEncodeJpeg::EncodeInCodecHal(uint32_t numSlices)
     reconSurface.Format   = Format_Invalid;
     reconSurface.dwOffset = 0;
 
-    encodeParams.bJpegQuantMatrixSent = m_encodeCtx->bJPEGQuantSupplied;
+    encodeParams.bJpegQuantMatrixSent = m_quantSupplied;
 
     // Bitstream surface
     MOS_RESOURCE bitstreamSurface;
@@ -527,15 +520,15 @@ VAStatus DdiEncodeJpeg::EncodeInCodecHal(uint32_t numSlices)
 
     encodeParams.pPicParams       = m_encodeCtx->pPicParams;
     encodeParams.pSliceParams     = m_encodeCtx->pSliceParams;
-    encodeParams.pApplicationData = m_encodeCtx->pJpegAppData;
+    encodeParams.pApplicationData = m_appData;
 
     // Slice level data
     encodeParams.dwNumSlices      = numSlices;
     encodeParams.dwNumHuffBuffers = picParams->m_numCodingTable;
-    encodeParams.dwAppDataSize    = m_encodeCtx->dwAppDataSize;
+    encodeParams.dwAppDataSize    = m_appDataSize;
 
     encodeParams.pQuantizationTable = m_encodeCtx->pQmatrixParams;
-    encodeParams.pHuffmanTable      = m_encodeCtx->pHuffmanParams;
+    encodeParams.pHuffmanTable      = m_huffmanTable;
     encodeParams.pBSBuffer          = m_encodeCtx->pbsBuffer;
     encodeParams.pSlcHeaderData     = (void *)m_encodeCtx->pSliceHeaderData;
 

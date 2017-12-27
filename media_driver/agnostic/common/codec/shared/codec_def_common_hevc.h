@@ -31,6 +31,8 @@
 
 #define CODEC_MAX_NUM_REF_FRAME_HEVC        15
 #define CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC 8
+#define CODEC_HEVC_VDENC_LCU_WIDTH          64
+#define CODEC_HEVC_VDENC_LCU_HEIGHT         64
 
 /*! \brief Quantization matrix data, which is sent on a per-picture basis.
  *

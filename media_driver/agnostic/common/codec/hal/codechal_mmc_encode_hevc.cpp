@@ -34,10 +34,10 @@ CodechalMmcEncodeHevc::CodechalMmcEncodeHevc(
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     m_hevcState = (CodechalEncodeHevcBase *)standardState;
-    CODECHAL_HW_ASSERT(m_hevcState);
+    CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(m_hevcState);
 
-    CODECHAL_HW_ASSERT(hwInterface);
-    CODECHAL_HW_ASSERT(hwInterface->GetSkuTable());
+    CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(hwInterface);
+    CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(hwInterface->GetSkuTable());
     if (MEDIA_IS_SKU(hwInterface->GetSkuTable(), FtrMemoryCompression))
     {
         MOS_USER_FEATURE_VALUE_DATA userFeatureData;
@@ -45,7 +45,7 @@ CodechalMmcEncodeHevc::CodechalMmcEncodeHevc(
         userFeatureData.i32Data = m_mmcEnabled;
         userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
 
-        CodecHal_UserFeature_ReadValue(
+        MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_ENCODE_MMC_ENABLE_ID,
             &userFeatureData);
@@ -55,7 +55,7 @@ CodechalMmcEncodeHevc::CodechalMmcEncodeHevc(
         MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
         userFeatureWriteData.Value.i32Data = m_mmcEnabled;
         userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_ENCODE_MMC_IN_USE_ID;
-        CodecHal_UserFeature_WriteValue(nullptr, &userFeatureWriteData);
+        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
     }
     
 #if (_DEBUG || _RELEASE_INTERNAL)

@@ -21,18 +21,22 @@
 */
 //!
 //! \file      cm_wrapper.cpp  
-//! \brief     Contains CM Device creation/destroy definitions and function tables for CM Ults  
+//! \brief     Contains implementations of OS-agnostic functions for executing
+//!            commands from cmrtlib.
 //!
-
 
 #include "cm_wrapper.h"
 
 #include "cm_device_rt.h"
 #include "cm_hal.h"
 #include "cm_kernel_rt.h"
+#include "cm_program.h"
 #include "cm_task_rt.h"
 #include "cm_thread_space_rt.h"
+#include "cm_group_space.h"
 #include "cm_queue_rt.h"
+#include "cm_sampler.h"
+#include "cm_sampler8x8.h"
 #include "cm_surface_2d_rt.h"
 #include "cm_vebox_rt.h"
 
@@ -40,6 +44,31 @@
 #include "cm_ult.h"
 #include "cm_gtpin.h"
 #endif
+
+struct CM_ENQUEUE_GPUCOPY_PARAM
+{
+    void *pCmQueueHandle;  // [in] CmQueue pointer in CMRT@UMD
+    void *pCmSurface2d;    // [in] CmSurface2d pointer in CMRT@UMD
+    void *pSysMem;         // [in] pointer of system memory
+    CM_GPUCOPY_DIRECTION iCopyDir;  // [in] direction for GPUCopy: CM_FASTCOPY_GPU2CPU (0) or CM_FASTCOPY_CPU2GPU(1)
+    uint32_t iWidthStride;   // [in] width stride in byte for system memory, ZERO means no setting
+    uint32_t iHeightStride;  // [in] height stride in row for system memory, ZERO means no setting
+    uint32_t iOption;        // [in] option passed by user, only support CM_FASTCOPY_OPTION_NONBLOCKING(0) and CM_FASTCOPY_OPTION_BLOCKING(1)
+    void *pCmEventHandle;    // [in/out] return CmDevice pointer in CMRT@UMD, nullptr if the input is CM_NO_EVENT
+    uint32_t iEventIndex;    // [out] index of Event in m_EventArray
+    int32_t iReturnValue;    // [out] return value from CMRT@UMD
+};
+
+struct CM_CREATEBUFFER_PARAM
+{
+    uint32_t iSize;             // [in]  buffer size in byte
+    CM_BUFFER_TYPE bufferType;  // [in]  Buffer type (Buffer, BufferUP, or Buffer SVM)
+    void *pSysMem;              // [in]  Address of system memory
+    void *pCmBufferHandle;      // [out] pointer to CmBuffer object in CMRT@UMD
+    int32_t iReturnValue;       // [out] the return value from CMRT@UMD
+    uint32_t uiReserved;        // Reserved field to ensure sizeof(CM_CREATEBUFFER_PARAM_V2) is different from sizeof(CM_CREATEBUFFER_PARAM_V1) in x64 mode
+};
+
 //*-----------------------------------------------------------------------------
 //| Purpose:    Get Time in ms and used in performance measurement
 //| Returns:    Current system time.
@@ -94,12 +123,10 @@ extern int CmThinExecuteRegGTPinMarkers(CmDevice *pDevice, void *pCmPrivateInput
 //| Purpose:    CMRT thin layer library supported function execution
 //| Return:     CM_SUCCESS if successful
 //*-----------------------------------------------------------------------------
-int32_t CmThinExecuteEx(
-            CmDevice            *pDevice,
-            CM_FUNCTION_ID      CmFunctionID,
-            void                *pCmPrivateInputData,
-            uint32_t            CmPrivateInputDataSize
-)
+int32_t CmThinExecuteEx(CmDevice *pDevice,
+                        CM_FUNCTION_ID CmFunctionID,
+                        void *pCmPrivateInputData,
+                        uint32_t CmPrivateInputDataSize)
 {
     int32_t                     hr                  = CM_SUCCESS;
     int32_t                     cmRet               = CM_INVALID_PRIVATE_DATA;
@@ -146,8 +173,8 @@ int32_t CmThinExecuteEx(
     case CM_FN_CMDEVICE_CREATEBUFFER:
         if(CmPrivateInputDataSize == sizeof(CM_CREATEBUFFER_PARAM))
         {
-            PCM_CREATEBUFFER_PARAM pCmBufferParam;
-            pCmBufferParam = (PCM_CREATEBUFFER_PARAM)(pCmPrivateInputData);
+            CM_CREATEBUFFER_PARAM *pCmBufferParam
+                = (CM_CREATEBUFFER_PARAM*)(pCmPrivateInputData);
 
             //pDevice = CmGetDeviceHandle(hUMDevice);
             //CM_DDI_ASSERT(pDevice);
@@ -680,8 +707,8 @@ int32_t CmThinExecuteEx(
         
     case CM_FN_CMQUEUE_ENQUEUECOPY:
 
-        PCM_ENQUEUE_GPUCOPY_PARAM pEnqueueGpuCopyParam;
-        pEnqueueGpuCopyParam = (PCM_ENQUEUE_GPUCOPY_PARAM)(pCmPrivateInputData);
+        CM_ENQUEUE_GPUCOPY_PARAM *pEnqueueGpuCopyParam;
+        pEnqueueGpuCopyParam = (CM_ENQUEUE_GPUCOPY_PARAM*)(pCmPrivateInputData);
         pCmQueue     =  (CmQueue *)pEnqueueGpuCopyParam->pCmQueueHandle;
         pCmQueueRT   = static_cast<CmQueueRT*>(pCmQueue);
         pCmSurface2d =  CM_SURFACE_2D(pEnqueueGpuCopyParam->pCmSurface2d);
@@ -995,132 +1022,4 @@ int32_t CmThinExecuteEx(
     }
 finish:
     return hr;
-}
-
-//!
-//! \brief      Returns the corresponding CM_RETURN_CODE error string.
-//! \param      [in] errCode
-//!             CM error code.
-//! \return     Corresponding error string if valid Code. \n
-//!             "Internal Error" if invalid.
-//!
-CM_RT_API const char* GetCmErrorString(int errCode)
-{
-    if (errCode == CM_SUCCESS)
-        return nullptr;
-
-    static const char *ErrorStrings[] = {
-#define ENUM_STRING(e)  #e
-        ENUM_STRING(CM_SUCCESS),
-        ENUM_STRING(CM_FAILURE),
-        ENUM_STRING(CM_NOT_IMPLEMENTED),
-        ENUM_STRING(CM_SURFACE_ALLOCATION_FAILURE),
-        ENUM_STRING(CM_OUT_OF_HOST_MEMORY),
-        ENUM_STRING(CM_SURFACE_FORMAT_NOT_SUPPORTED),
-        ENUM_STRING(CM_EXCEED_SURFACE_AMOUNT),
-        ENUM_STRING(CM_EXCEED_KERNEL_ARG_AMOUNT),
-        ENUM_STRING(CM_EXCEED_KERNEL_ARG_SIZE_IN_BYTE),
-        ENUM_STRING(CM_INVALID_ARG_INDEX),
-        ENUM_STRING(CM_INVALID_ARG_VALUE),
-        ENUM_STRING(CM_INVALID_ARG_SIZE),
-        ENUM_STRING(CM_INVALID_THREAD_INDEX),
-        ENUM_STRING(CM_INVALID_WIDTH),
-        ENUM_STRING(CM_INVALID_HEIGHT),
-        ENUM_STRING(CM_INVALID_DEPTH),
-        ENUM_STRING(CM_INVALID_COMMON_ISA),
-        ENUM_STRING(CM_OPEN_VIDEO_DEVICE_HANDLE_FAILURE),
-        ENUM_STRING( CM_VIDEO_DEVICE_LOCKED),
-        ENUM_STRING(CM_LOCK_VIDEO_DEVICE_FAILURE),
-        ENUM_STRING(CM_EXCEED_SAMPLER_AMOUNT),
-        ENUM_STRING(CM_EXCEED_MAX_KERNEL_PER_ENQUEUE),
-        ENUM_STRING(CM_EXCEED_MAX_KERNEL_SIZE_IN_BYTE),
-        ENUM_STRING(CM_EXCEED_MAX_THREAD_AMOUNT_PER_ENQUEUE),
-        ENUM_STRING(CM_EXCEED_VME_STATE_G6_AMOUNT),
-        ENUM_STRING(CM_INVALID_THREAD_SPACE),
-        ENUM_STRING(CM_EXCEED_MAX_TIMEOUT),
-        ENUM_STRING(CM_JITDLL_LOAD_FAILURE),
-        ENUM_STRING(CM_JIT_COMPILE_FAILURE),
-        ENUM_STRING(CM_JIT_COMPILESIM_FAILURE),
-        ENUM_STRING(CM_INVALID_THREAD_GROUP_SPACE),
-        ENUM_STRING(CM_THREAD_ARG_NOT_ALLOWED),
-        ENUM_STRING(CM_INVALID_GLOBAL_BUFFER_INDEX),
-        ENUM_STRING(CM_INVALID_BUFFER_HANDLER),
-        ENUM_STRING(CM_EXCEED_MAX_SLM_SIZE),
-        ENUM_STRING(CM_JITDLL_OLDER_THAN_ISA),
-        ENUM_STRING(CM_INVALID_HARDWARE_THREAD_NUMBER),
-        ENUM_STRING(CM_GTPIN_INVOKE_FAILURE),
-        ENUM_STRING(CM_INVALIDE_L3_CONFIGURATION),
-        ENUM_STRING(CM_INVALID_TEXTURE2D_USAGE),
-        ENUM_STRING(CM_INTEL_GFX_NOTFOUND),
-        ENUM_STRING(CM_GPUCOPY_INVALID_SYSMEM),
-        ENUM_STRING(CM_GPUCOPY_INVALID_WIDTH),
-        ENUM_STRING(CM_GPUCOPY_INVALID_STRIDE),
-        ENUM_STRING(CM_EVENT_DRIVEN_FAILURE),
-        ENUM_STRING(CM_LOCK_SURFACE_FAIL),
-        ENUM_STRING(CM_INVALID_GENX_BINARY),
-        ENUM_STRING(CM_FEATURE_NOT_SUPPORTED_IN_DRIVER),
-        ENUM_STRING(CM_QUERY_DLL_VERSION_FAILURE),
-        ENUM_STRING(CM_KERNELPAYLOAD_PERTHREADARG_MUTEX_FAIL),
-        ENUM_STRING(CM_KERNELPAYLOAD_PERKERNELARG_MUTEX_FAIL),
-        ENUM_STRING(CM_KERNELPAYLOAD_SETTING_FAILURE),
-        ENUM_STRING(CM_KERNELPAYLOAD_SURFACE_INVALID_BTINDEX),
-        ENUM_STRING(CM_NOT_SET_KERNEL_ARGUMENT),
-        ENUM_STRING(CM_GPUCOPY_INVALID_SURFACES),
-        ENUM_STRING(CM_GPUCOPY_INVALID_SIZE),
-        ENUM_STRING(CM_GPUCOPY_OUT_OF_RESOURCE),
-        ENUM_STRING(CM_INVALID_VIDEO_DEVICE),
-        ENUM_STRING(CM_SURFACE_DELAY_DESTROY),
-        ENUM_STRING(CM_INVALID_VEBOX_STATE),
-        ENUM_STRING(CM_INVALID_VEBOX_SURFACE),
-        ENUM_STRING(CM_FEATURE_NOT_SUPPORTED_BY_HARDWARE),
-        ENUM_STRING(CM_RESOURCE_USAGE_NOT_SUPPORT_READWRITE),
-        ENUM_STRING(CM_MULTIPLE_MIPLEVELS_NOT_SUPPORTED),
-        ENUM_STRING(CM_INVALID_UMD_CONTEXT),
-        ENUM_STRING(CM_INVALID_LIBVA_SURFACE),
-        ENUM_STRING(CM_INVALID_LIBVA_INITIALIZE),
-        ENUM_STRING(CM_KERNEL_THREADSPACE_NOT_SET),
-        ENUM_STRING(CM_INVALID_KERNEL_THREADSPACE),
-        ENUM_STRING(CM_KERNEL_THREADSPACE_THREADS_NOT_ASSOCIATED),
-        ENUM_STRING(CM_KERNEL_THREADSPACE_INTEGRITY_FAILED),
-        ENUM_STRING(CM_INVALID_USERPROVIDED_GENBINARY),
-        ENUM_STRING(CM_INVALID_PRIVATE_DATA),
-        ENUM_STRING(CM_INVALID_MOS_RESOURCE_HANDLE),
-        ENUM_STRING(CM_SURFACE_CACHED),
-        ENUM_STRING(CM_SURFACE_IN_USE),
-        ENUM_STRING(CM_INVALID_GPUCOPY_KERNEL),
-        ENUM_STRING(CM_INVALID_DEPENDENCY_WITH_WALKING_PATTERN),
-        ENUM_STRING(CM_INVALID_MEDIA_WALKING_PATTERN),
-        ENUM_STRING(CM_FAILED_TO_ALLOCATE_SVM_BUFFER),
-        ENUM_STRING(CM_EXCEED_MAX_POWER_OPTION_FOR_PLATFORM),
-        ENUM_STRING(CM_INVALID_KERNEL_THREADGROUPSPACE),
-        ENUM_STRING(CM_INVALID_KERNEL_SPILL_CODE),
-        ENUM_STRING(CM_UMD_DRIVER_NOT_SUPPORTED),
-        ENUM_STRING(CM_INVALID_GPU_FREQUENCY_VALUE),
-        ENUM_STRING(CM_SYSTEM_MEMORY_NOT_4KPAGE_ALIGNED),
-        ENUM_STRING(CM_KERNEL_ARG_SETTING_FAILED),
-        ENUM_STRING(CM_NO_AVAILABLE_SURFACE),
-        ENUM_STRING(CM_VA_SURFACE_NOT_SUPPORTED),
-        ENUM_STRING(CM_TOO_MUCH_THREADS),
-        ENUM_STRING(CM_NULL_POINTER),
-        ENUM_STRING(CM_EXCEED_MAX_NUM_2D_ALIASES),
-        ENUM_STRING(CM_INVALID_PARAM_SIZE),
-        ENUM_STRING(CM_GT_UNSUPPORTED),
-        ENUM_STRING(CM_GTPIN_FLAG_NO_LONGER_SUPPORTED),
-        ENUM_STRING(CM_PLATFORM_UNSUPPORTED_FOR_API),
-        ENUM_STRING(CM_TASK_MEDIA_RESET),
-        ENUM_STRING(CM_KERNELPAYLOAD_SAMPLER_INVALID_BTINDEX),
-        ENUM_STRING(CM_EXCEED_MAX_NUM_BUFFER_ALIASES),
-        ENUM_STRING(CM_SYSTEM_MEMORY_NOT_4PIXELS_ALIGNED),
-        ENUM_STRING(CM_FAILED_TO_CREATE_CURBE_SURFACE),
-        ENUM_STRING(CM_INVALID_CAP_NAME),
-#undef ENUM_STRING
-    };
-
-    const char *ErrorString = "Internal Error";
-    if (errCode > CM_INTERNAL_ERROR_CODE_OFFSET && errCode >= CM_INVALID_CAP_NAME && errCode <= CM_SUCCESS)
-    {
-        ErrorString = ErrorStrings[-errCode];
-    }
-
-    return ErrorString;
 }

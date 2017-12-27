@@ -43,11 +43,107 @@ typedef enum _CODECHAL_CMD_INITIALIZER_CMDTYPE
     CODECHAL_CMD2 = 2
 } CODECHAL_CMD_INITIALIZER_CMDTYPE;
 
-//! VP9 Params struct
-/*
-This struct defines VP9 params for huc initializer
-*/
+//!
+//! \struct HucComDmem
+//! \brief  The struct of Huc Com Dmem
+//!
+struct HucComDmem
+{
+    uint32_t    OutputSize;               //!< Total size in byte of the Output SLB
+    uint32_t    TotalOutputCommands;      //!< Total Commands in the output SLB
+    uint8_t     TargetUsage;              //!< TU number
+    uint8_t     Codec;                    //!< 0-HEVC VDEnc; 1-VP9 VDEnc; 2-AVC VDEnc
+    uint8_t     FrameType;                //!< 0-I Frame; 1-P Frame; 2-B Frame
+    uint8_t     Reserved[37];
+    struct
+    {
+        uint16_t    StartInBytes;        //!< Command starts offset in bytes in Output SLB
+        uint8_t     ID;                  //!< Command ID
+        uint8_t     Type;                //!< Command Type
+        uint32_t    BBEnd;
+    } OutputCOM[50];
+};
+
+//!
+//! \struct HucComData
+//! \brief  The struct of Huc commands data
+//!
+struct HucComData
+{
+    uint32_t        TotalCommands;       //!< Total Commands in the Data buffer
+    struct
+    {
+        uint16_t    ID;              //!< Command ID, defined and order must be same as that in DMEM
+        uint16_t    SizeOfData;      //!< data size in uint32_t
+        uint32_t    data[40];
+    } InputCOM[50];
+};
+
+//!
+//! \struct HucInputCmd1
+//! \brief  The struct of Huc input command 1
+//!
+struct HucInputCmd1
+{
+    // Shared
+    uint32_t FrameWidthInMinCbMinus1;
+    uint32_t FrameHeightInMinCbMinus1;
+    uint32_t log2_min_coding_block_size_minus3;
+    uint8_t  VdencStreamInEnabled;
+    uint8_t  PakOnlyMultipassEnable;
+    uint16_t num_ref_idx_l0_active_minus1;
+    uint16_t SADQPLambda;
+    uint16_t RDQPLambda;
+
+    // HEVC
+    uint16_t num_ref_idx_l1_active_minus1;
+    uint8_t  RSVD0;
+    uint8_t  ROIStreamInEnabled;
+    int8_t   ROIDeltaQp[8]; // [-3..3] or [-51..51]
+    uint8_t  FwdPocNumForRefId0inL0;
+    uint8_t  FwdPocNumForRefId0inL1;
+    uint8_t  FwdPocNumForRefId1inL0;
+    uint8_t  FwdPocNumForRefId1inL1;
+    uint8_t  FwdPocNumForRefId2inL0;
+    uint8_t  FwdPocNumForRefId2inL1;
+    uint8_t  FwdPocNumForRefId3inL0;
+    uint8_t  FwdPocNumForRefId3inL1;
+    uint8_t  EnableRollingIntraRefresh;
+    int8_t   QpDeltaForInsertedIntra;
+    uint16_t IntraInsertionSize;
+    uint16_t IntraInsertionLocation;
+    int8_t   QpY;
+    uint8_t  RoundingEnabled;
+    uint8_t  UseDefaultQpDeltas;
+    uint8_t  PanicEnabled;
+    uint8_t  RSVD[2];
+
+    // VP9
+    uint16_t DstFrameWidthMinus1;
+    uint16_t DstFrameHeightMinus1;
+    uint8_t  SegmentationEnabled;
+    uint8_t  PrevFrameSegEnabled;
+    uint8_t  SegMapStreamInEnabled;
+    uint8_t  LumaACQIndex;
+    int8_t   LumaDCQIndexDelta;
+    uint8_t  RESERVED[3];
+    int16_t  SegmentQIndexDelta[8];
+};
+
+//!
+//! \struct HucInputCmd2
+//! \brief  The struct of Huc input command 2
+//!
+struct HucInputCmd2
+{
+    uint32_t SADQPLambda;
+};
+
 #ifdef _VP9_ENCODE_SUPPORTED
+//!
+//! \struct Vp9CmdInitializerParams
+//! \brief  VP9 Params struct for huc initializer
+//!
 struct Vp9CmdInitializerParams
 {
     uint8_t                             vdencMvCosts[12] = { 0 };
@@ -85,10 +181,10 @@ struct Vp9CmdInitializerParams
 };
 #endif
 
-//! Command Initializer class
-/*
-This class defines huc command initializer
-*/
+//!
+//! \class  CodechalCmdInitializer
+//! \brief  Command Initializer class
+//!
 class CodechalCmdInitializer
 {
 public:
@@ -115,11 +211,8 @@ public:
     Vp9CmdInitializerParams                     m_vp9Params;
 #endif
     CodechalHwInterface*                        m_hwInterface;
-    MHW_BATCH_BUFFER                            m_cmdInitializer2ndLevelBatchBuffer[3];
     MOS_RESOURCE                                m_cmdInitializerDmemBuffer[3];
     MOS_RESOURCE                                m_cmdInitializerDataBuffer[3];
-
-    MHW_BATCH_BUFFER                            m_cmdInitializerDysScaling2ndLevelBatchBuffer;
     MOS_RESOURCE                                m_cmdInitializerDysScalingDmemBuffer;
     MOS_RESOURCE                                m_cmdInitializerDysScalingDataBuffer;
 
@@ -143,6 +236,20 @@ public:
     //! \brief    Destructor
     //!
     virtual ~CodechalCmdInitializer() {};
+
+    //!
+    //! \brief    Free Resources
+    //!
+    void CmdInitializerFreeResources();
+
+    //!
+    //! \brief    Allocate resources for VP9
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS CmdInitializerAllocateResources(CodechalHwInterface*    m_hwInterface);
+
 
     //!
     //! \brief    Set all the data of the InputCom of command initializer HuC FW
@@ -212,20 +319,6 @@ public:
     }
 #ifdef _VP9_ENCODE_SUPPORTED
     //!
-    //! \brief    Free Resources
-    //!
-    void CmdInitializerVp9FreeResources();
-
-    //!
-    //! \brief    Allocate resources for VP9
-    //!
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS CmdInitializerVp9AllocateResources(CodechalVdencVp9State *state);
-
-
-    //!
     //! \brief    Set all const VP9 data of the InputCom of command initializer HuC FW
     //!
     //! \param    [in] state
@@ -271,6 +364,18 @@ public:
     { 
         return MOS_STATUS_SUCCESS; 
     }
+#endif
+#if USE_CODECHAL_DEBUG_TOOL
+    //!
+    //! \brief    Dump HuC Cmd Initializer
+    //!
+    //! \param    [in] secondlevelBB
+    //!           Kernel output commands is stored in secondlevelBB
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS DumpHucCmdInit(PMOS_RESOURCE secondlevelBB);
 #endif
 };
 using PCODECHAL_CMD_INITIALIZER = class CodechalCmdInitializer*;

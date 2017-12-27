@@ -90,16 +90,22 @@ extern int32_t MosMemAllocCounter;
 extern int32_t MosMemAllocCounterGfx;
 
 //! Helper Macros for MEMNINJA debug messages
-#define MOS_MEMNINJA_ALLOC_MESSAGE(ptr, size, functionName, filename, line)                   \
-   MOS_OS_VERBOSEMESSAGE(                                                                     \
-       "<MemNinjaSysAllocPtr memPtr = \"%d\" size = \"%d\" memType = \"Sys\"/>.", ptr, size); \
-   MOS_OS_VERBOSEMESSAGE(                                                                     \
-       "<MemNinjaSysLastFuncCall memPtr = \"%d\" functionName = \"%s\" filename = \"%s\" "    \
-       "memType = \"Sys\" line = \"%d\"/>.", ptr, functionName, filename, line);
+#define MOS_MEMNINJA_ALLOC_MESSAGE(ptr, size, functionName, filename, line)                            \
+   MOS_OS_VERBOSEMESSAGE(                                                                              \
+       "<MemNinjaSysAllocPtr memPtr = \"%d\" size = \"%d\" memType = \"Sys\"/>.", ptr, size);          \
+   MOS_OS_VERBOSEMESSAGE(                                                                              \
+       "<MemNinjaSysLastFuncCall memPtr = \"%d\" functionName = \"%s\" filename = \"%s\" "             \
+       "memType = \"Sys\" line = \"%d\"/>.", ptr, functionName, filename, line);                       \
+   MOS_OS_VERBOSEMESSAGE(                                                                              \
+       "MemNinjaCounter = %d, Addr = 0x%x, size = \"%d\", memType = \"Sys\", functionName = \"%s\",    \
+       line = \"%d\", filename = \"%s\"/", MosMemAllocCounter, ptr, size, functionName, line, filename);
 
-#define MOS_MEMNINJA_FREE_MESSAGE(ptr)                                                        \
-   MOS_OS_VERBOSEMESSAGE("MosMemAllocCounter = %d, Addr = 0x%x.", MosMemAllocCounter, ptr);   \
-   MOS_OS_VERBOSEMESSAGE("<MemNinjaSysFreePtr memPtr = \"%d\" memType = \"Sys\"/>.", ptr);
+#define MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line)                                   \
+   MOS_OS_VERBOSEMESSAGE("MosMemAllocCounter = %d, Addr = 0x%x.", MosMemAllocCounter, ptr);            \
+   MOS_OS_VERBOSEMESSAGE("<MemNinjaSysFreePtr memPtr = \"%d\" memType = \"Sys\"/>.", ptr);             \
+   MOS_OS_VERBOSEMESSAGE(                                                                              \
+       "MemNinjaCounter = %d, Addr = 0x%x, memType = \"Sys\", functionName = \"%s\", line = \"%d\",    \
+       filename = \"%s\"/", MosMemAllocCounter, ptr, functionName, line, filename);
 
 //!
 //! \brief User Feature Value IDs
@@ -108,6 +114,7 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
 {
     __MOS_USER_FEATURE_KEY_INVALID_ID = 0,
     __MEDIA_USER_FEATURE_VALUE_MEDIA_RESET_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_MEDIA_RESET_TH_ID,
     __MEDIA_USER_FEATURE_VALUE_SOFT_RESET_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_SIM_IN_USE_ID,
     __MEDIA_USER_FEATURE_VALUE_FORCE_VDBOX_ID,
@@ -219,7 +226,9 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_ENCODE_MMC_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_CODEC_MMC_IN_USE_ID,
     __MEDIA_USER_FEATURE_VALUE_DECODE_MMC_IN_USE_ID,
+    __MEDIA_USER_FEATURE_VALUE_DECODE_EXTENDED_MMC_IN_USE_ID,
     __MEDIA_USER_FEATURE_VALUE_ENCODE_MMC_IN_USE_ID,
+    __MEDIA_USER_FEATURE_VALUE_ENCODE_EXTENDED_MMC_IN_USE_ID,
     __MEDIA_USER_FEATURE_VALUE_MMC_DEC_RT_COMPRESSIBLE_ID,
     __MEDIA_USER_FEATURE_VALUE_MMC_DEC_RT_COMPRESSMODE_ID,
     __MEDIA_USER_FEATURE_VALUE_MMC_ENC_RECON_COMPRESSIBLE_ID,
@@ -237,13 +246,18 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_VDI_MODE_ID,
     __MEDIA_USER_FEATURE_VALUE_MEDIA_WALKER_MODE_ID,
     __MEDIA_USER_FEATURE_VALUE_CSC_COEFF_PATCH_MODE_DISABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_VP8_HW_SCOREBOARD_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_VP8_ENCODE_ME_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_VP8_ENCODE_16xME_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_VP8_ENCODE_REPAK_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_VP8_ENCODE_MULTIPASS_BRC_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_VP8_ENCODE_ADAPTIVE_REPAK_ENABLE_ID,
 #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
     __MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_BUFFER_ENABLE_ID,
 #endif // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
 #if (_DEBUG || _RELEASE_INTERNAL)
     __MEDIA_USER_FEATURE_VALUE_GROUP_ID_ID,
     __MEDIA_USER_FEATURE_VALUE_MEDIA_PREEMPTION_ENABLE_ID,
-    __MEDIA_USER_FEATURE_VALUE_ENCODE_HALF_SLICE_SELECT_ID,
     __MEDIA_USER_FEATURE_VALUE_ENCODE_VFE_MAX_THREADS_ID,
     __MEDIA_USER_FEATURE_VALUE_ENCODE_VFE_MAX_THREADS_SCALING_ID,
     __MEDIA_USER_FEATURE_VALUE_AVC_FTQ_IN_USE_ID,
@@ -257,8 +271,6 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_ENCODE_L3_LRA_1_REG1_OVERRIDE_ID,
     __MEDIA_USER_FEATURE_VALUE_NULL_HW_ACCELERATION_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_VDBOX_ID_USED,
-    __MEDIA_USER_FEATURE_VALUE_ENABLE_HEVC_DECODE_RT_FRAME_COUNT_ID,
-    __MEDIA_USER_FEATURE_VALUE_ENABLE_HEVC_DECODE_VT_FRAME_COUNT_ID,
     __MEDIA_USER_FEATURE_VALUE_VDENC_IN_USE_ID,
     __MEDIA_USER_FEATURE_VALUE_ENCODE_CSC_METHOD_ID,
     __MEDIA_USER_FEATURE_VALUE_ENCODE_RAW_TILE_ID,
@@ -276,6 +288,7 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_MEDIASOLO_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_STREAM_OUT_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_CODECHAL_DEBUG_OUTPUT_DIRECTORY_ID,
+    __MEDIA_USER_FEATURE_VALUE_CODECHAL_DEBUG_CFG_GENERATION_ID,
 
 #endif // (_DEBUG || _RELEASE_INTERNAL)
     __MEDIA_USER_FEATURE_VALUE_STATUS_REPORTING_ENABLE_ID,
@@ -656,8 +669,11 @@ _Ty* MOS_NewArrayUtil(int32_t numElements)
 #endif
 {
         _Ty* ptr = new (std::nothrow) _Ty[numElements]();
-        MOS_MEMNINJA_ALLOC_MESSAGE(ptr, numElements*sizeof(_Ty), functionName, filename, line);
-        MosMemAllocCounter++;
+        if (ptr != nullptr)
+        {
+            MOS_MEMNINJA_ALLOC_MESSAGE(ptr, numElements*sizeof(_Ty), functionName, filename, line);
+            MosMemAllocCounter++;
+        }
         return ptr; 
 }
 
@@ -669,32 +685,58 @@ _Ty* MOS_NewArrayUtil(int32_t numElements)
 #define MOS_New(classType, ...) MOS_NewUtil<classType>(__VA_ARGS__)
 #endif
 
-
-template <class _Ty> inline
-void MOS_Delete(_Ty& ptr)
+#if MOS_MESSAGES_ENABLED
+template<class _Ty> inline
+void MOS_DeleteUtil(
+    const char *functionName,
+    const char *filename,
+    int32_t     line,
+    _Ty&        ptr)
+#else
+template<class _Ty> inline
+void MOS_DeleteUtil(_Ty& ptr)
+#endif
 {
     if (ptr != nullptr)
     {
         MosMemAllocCounter--;
-        MOS_MEMNINJA_FREE_MESSAGE(ptr);
+        MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line);
         delete(ptr);
         ptr = nullptr;
     }
 }
 
+#if MOS_MESSAGES_ENABLED
+template<class _Ty> inline
+void MOS_DeleteArrayUtil(
+    const char *functionName,
+    const char *filename,
+    int32_t     line,
+    _Ty&        ptr)
+#else
 template <class _Ty> inline
-void MOS_DeleteArray(_Ty& ptr)
+void MOS_DeleteArrayUtil(_Ty& ptr)
+#endif
 {
     if (ptr != nullptr)
     {
         MosMemAllocCounter--;
 
-        MOS_MEMNINJA_FREE_MESSAGE(ptr);
+        MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line);
 
         delete[](ptr);
         ptr = nullptr;
     }
 }
+
+#if MOS_MESSAGES_ENABLED
+#define MOS_DeleteArray(ptr) MOS_DeleteArrayUtil(__FUNCTION__, __FILE__, __LINE__, ptr)
+#define MOS_Delete(ptr) MOS_DeleteUtil(__FUNCTION__, __FILE__, __LINE__, ptr)
+#else
+#define MOS_DeleteArray(ptr) MOS_DeleteArrayUtil(ptr)
+#define MOS_Delete(ptr) MOS_DeleteUtil(ptr)
+#endif
+
 #endif
 
 #ifdef __cplusplus
@@ -781,8 +823,21 @@ void  *MOS_AlignedAllocMemory(
 //!           Pointer to the memory to be freed
 //! \return   void
 //!
+#if MOS_MESSAGES_ENABLED
+void MOS_AlignedFreeMemoryUtils(
+    void        *ptr,
+    const char  *functionName,
+    const char  *filename,
+    int32_t     line);
+
+#define MOS_AlignedFreeMemory(ptr) \
+    MOS_AlignedFreeMemoryUtils(ptr, __FUNCTION__, __FILE__, __LINE__)
+
+#else // !MOS_MESSAGES_ENABLED
+
 void MOS_AlignedFreeMemory(void  *ptr);
 
+#endif // MOS_MESSAGES_ENABLED
 //!
 //! \brief    Allocates memory and performs error checking
 //! \details  Wrapper for malloc(). Performs error checking.
@@ -845,8 +900,20 @@ void  *MOS_AllocAndZeroMemory(
 //!           Pointer to the memory to be freed
 //! \return   void
 //!
+#if MOS_MESSAGES_ENABLED
+void MOS_FreeMemoryUtils(
+    void       *ptr,
+    const char *functionName,
+    const char *filename,
+    int32_t    line);
+
+#define MOS_FreeMemory(ptr) \
+    MOS_FreeMemoryUtils(ptr, __FUNCTION__, __FILE__, __LINE__)
+
+#else // !MOS_MESSAGES_ENABLED
 void MOS_FreeMemory(
     void            *ptr);
+#endif // MOS_MESSAGES_ENABLED
 
 //!
 //! \brief    Wrapper for MOS_FreeMemory().

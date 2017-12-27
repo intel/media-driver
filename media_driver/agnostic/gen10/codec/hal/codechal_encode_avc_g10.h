@@ -21,7 +21,7 @@
 */
 //!
 //! \file     codechal_encode_avc_g10.h
-//! \brief    This file defines the C++ class/interface for Gen10 platform's AVC 
+//! \brief    This file defines the C++ class/interface for Gen10 platform's AVC
 //!           DualPipe encoding to be used across CODECHAL components.
 //!
 
@@ -37,15 +37,15 @@ public:
     //!
     //! \brief    Get encoder kernel header and kernel size
     //!
-    //! \param    [in] pvBinary
+    //! \param    [in] binary
     //!           Pointer to kernel binary
     //! \param    [in] operation
     //!           Enc kernel operation
-    //! \param    [in] dwKrnStateIdx
+    //! \param    [in] krnStateIdx
     //!           Kernel state index
-    //! \param    [out] pvKrnHeader
+    //! \param    [out] krnHeader
     //!           Pointer to kernel header
-    //! \param    [out] pdwKrnSize
+    //! \param    [out] krnSize
     //!           Pointer to kernel size
     //!
     //! \return   MOS_STATUS
@@ -119,7 +119,7 @@ public:
         PCODECHAL_ENCODE_AVC_TQ_PARAMS          trellisQuantParams);
 
     MOS_STATUS GetMbEncKernelStateIdx(
-        PCODECHAL_ENCODE_ID_OFFSET_PARAMS params,
+        CodechalEncodeIdOffsetParams     *params,
         uint32_t                         *kernelOffset);
 
     MOS_STATUS SetupROISurface();

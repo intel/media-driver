@@ -1009,7 +1009,6 @@ MOS_STATUS Linux_InitContext(
     pContext->pPerfData = pOsDriverContext->pPerfData;
     mos_bufmgr_gem_enable_reuse(pOsDriverContext->bufmgr);
     pContext->pCpContext                  = pOsDriverContext->pCpContext;
-    pContext->pbHybridDecMultiThreadEnabled = pOsDriverContext->pbHybridDecMultiThreadEnabled;
 
     // DDI layer can pass over the DeviceID.
     iDeviceId = pOsDriverContext->iDeviceId;
@@ -1270,7 +1269,7 @@ void Mos_Specific_Destroy(
         return;
     }
     
-    if (pOsInterface->bModsEnabled && !Mos_Solo_IsEnabled())
+    if (pOsInterface->modulizedMosEnabled && !Mos_Solo_IsEnabled())
     {
         OsContext* pOsContext = pOsInterface->osContextPtr;
         if (pOsContext == nullptr)
@@ -1298,7 +1297,7 @@ void Mos_Specific_Destroy(
         pOsInterface->pOsContext->SkuTable.reset();
         pOsInterface->pOsContext->WaTable.reset();
         Mos_Specific_ClearGpuContext(pOsInterface->pOsContext);
-        pOsInterface->pOsContext->pfnDestroy(pOsInterface->pOsContext, pOsInterface->bModsEnabled);
+        pOsInterface->pOsContext->pfnDestroy(pOsInterface->pOsContext, pOsInterface->modulizedMosEnabled);
         pOsInterface->pOsContext = nullptr;
     }
 }
@@ -1516,7 +1515,7 @@ MOS_STATUS Mos_Specific_AllocateResource(
         }
     }
 
-    if ((pOsInterface->bModsEnabled) && (!Mos_Solo_IsEnabled()) && (osContextValid == true))
+    if ((pOsInterface->modulizedMosEnabled) && (!Mos_Solo_IsEnabled()) && (osContextValid == true))
     {
         pOsResource->pGfxResource = GraphicsResource::CreateGraphicResource(GraphicsResource::osSpecificResource);
         if (pOsResource->pGfxResource == nullptr)
@@ -1943,7 +1942,7 @@ void Mos_Specific_FreeResource(
         }
     }
 
-    if ((pOsInterface->bModsEnabled) 
+    if ((pOsInterface->modulizedMosEnabled) 
      && (!pOsResource->bConvertedFromDDIResource)
      && (osContextValid == true)
      && (!Mos_Solo_IsEnabled())
@@ -2098,7 +2097,7 @@ void  *Mos_Specific_LockResource(
         }
     }
 
-    if ((pOsInterface->bModsEnabled) 
+    if ((pOsInterface->modulizedMosEnabled) 
        && (!pOsResource->bConvertedFromDDIResource)
        && (osContextValid == true)
        && (!Mos_Solo_IsEnabled())
@@ -2222,7 +2221,7 @@ MOS_STATUS Mos_Specific_UnlockResource(
         }
     }
 
-    if ((pOsInterface->bModsEnabled) 
+    if ((pOsInterface->modulizedMosEnabled) 
      && (!pOsResource->bConvertedFromDDIResource) 
      && (osContextValid == true)
      && (!Mos_Solo_IsEnabled())
@@ -5117,7 +5116,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     }
 
     pOsContext->intel_context = nullptr;
-    if (pOsInterface->bModsEnabled && !Mos_Solo_IsEnabled())
+    if (pOsInterface->modulizedMosEnabled && !Mos_Solo_IsEnabled())
     {
         OsContext*  osContextPtr = OsContext::GetOsContextObject();
         if (osContextPtr == nullptr)
@@ -5145,7 +5144,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     }
    
     // Initialize
-    eStatus = Linux_InitContext(pOsContext, pOsDriverContext, pOsInterface->bModsEnabled);
+    eStatus = Linux_InitContext(pOsContext, pOsDriverContext, pOsInterface->modulizedMosEnabled);
     if( MOS_STATUS_SUCCESS != eStatus )
     {
         MOS_OS_ASSERTMESSAGE("Unable to initialize context.");
@@ -5268,6 +5267,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnIsGPUHung                              = Mos_Specific_IsGPUHung;
     pOsInterface->pfnGetAuxTableBaseAddr                    = Mos_Specific_GetAuxTableBaseAddr;
     pOsInterface->pfnSetSliceCount                          = Mos_Specific_SetSliceCount;
+    pOsInterface->pfnGetResourceIndex                       = Mos_Specific_GetResourceIndex;
 
     pOsUserFeatureInterface->bIsNotificationSupported   = false;
     pOsUserFeatureInterface->pOsInterface               = pOsInterface;
@@ -5288,7 +5288,8 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->dwGPUPendingBatch = 0;
 
     // disable it on Linux
-    pOsInterface->bMediaReset       = false;
+    pOsInterface->bMediaReset         = false;
+    pOsInterface->umdMediaResetEnable = false;
 
     // initialize MOS_CP interface
     pOsInterface->osCpInterface = MOS_New(MosCpInterface, pOsInterface);
@@ -5437,6 +5438,20 @@ MOS_TILE_TYPE LinuxToMosTileType(uint32_t type)
             return MOS_TILE_INVALID;
     }
 };
+
+//!
+//! \brief    Get resource index
+//! \details  Get resource index of MOS_RESOURCE
+//! \param    PMOS_RESOURCE osResource
+//!           [in] Pointer to OS resource
+//! \return   uint32_t
+//!           Resource index
+//!
+uint32_t Mos_Specific_GetResourceIndex(
+    PMOS_RESOURCE           osResource)
+{
+    return 0;
+}
 
 uint32_t Mos_Specific_GetResourcePitch(
     PMOS_RESOURCE               pOsResource)

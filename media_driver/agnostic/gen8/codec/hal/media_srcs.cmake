@@ -55,7 +55,6 @@ if(${Common_Encode_Supported} STREQUAL "yes")
 
     set(TMP_3_HEADERS_
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_csc_ds_g8.h
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_encoder_g8.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_kernel_hme_g8.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_wp_g8.h
     )

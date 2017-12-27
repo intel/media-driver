@@ -23,7 +23,7 @@
 //!
 //! \file     codechal_decode_vc1_g8.h
 //! \brief    Defines the decode interface extension for Gen8 VC1.
-//! \details  Defines all types, macros, and functions required by CodecHal for Gen8 VC1 decoding. 
+//! \details  Defines all types, macros, and functions required by CodecHal for Gen8 VC1 decoding.
 //!           Definitions are not externally facing.
 //!
 
@@ -263,18 +263,18 @@ public:
     //!
     //! \brief    Add VC1 Olp MediaObjects to a batch buffer
     //! \details  Populate the OLP Media Objects and adds them to a batch buffer
-    //! \param    [in,out] pBatchBuffer
+    //! \param    [in,out] batchBuffer
     //!           Pointer of Batch Buffer
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS AddVc1OlpMediaObjectsBB(
-        PMHW_BATCH_BUFFER               pBatchBuffer);
+        PMHW_BATCH_BUFFER               batchBuffer);
 
     MOS_STATUS UpdateVc1KernelState();
 
     MOS_STATUS AddVc1OlpCmd(
-        PCODECHAL_DECODE_VC1_OLP_PARAMS pVc1OlpParams);
+        PCODECHAL_DECODE_VC1_OLP_PARAMS vc1OlpParams);
 
 protected:
     MHW_BATCH_BUFFER OlpBatchBuffer;        //!< Olp Batch Buffer

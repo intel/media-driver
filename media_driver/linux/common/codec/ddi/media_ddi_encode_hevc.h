@@ -36,6 +36,10 @@ static const uint8_t sliceTypeI = 2;
 static const uint8_t numMaxRefFrame    = 15;
 static const uint8_t vdencRoiBlockSize = 32;
 
+//!
+//! \class  DdiEncodeHevc
+//! \brief  DDi encode HEVC
+//!
 class DdiEncodeHevc : public DdiEncodeBase
 {
 public:
@@ -232,9 +236,6 @@ private:
         VAPictureHEVC                 vaPicHEVC,
         bool                          picReference,
         bool                          sliceReference);
-
-protected:
-    bool m_is10Bit = false;  //!< 10 bit flag.
 
 };
 #endif  //__MEDIA_LIBVA_ENCODER_HEVC_H__

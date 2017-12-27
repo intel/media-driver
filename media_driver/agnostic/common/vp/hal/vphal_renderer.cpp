@@ -448,7 +448,7 @@ MOS_STATUS VphalRenderer::AdjustSurfaceParam(
     {
         // VEBOX timing on KBL ULT might be about 2x ms when DN is on, and it seems to be
         // in relation to the lag problem on WMP after scaling up & down the playback window.
-        // Disable DN for 4K to work around this phenomenon.
+        // Disable DN for 4K to resolve this phenomenon.
         if (bSkuDisableDNFor4K &&
             pSrcSurface->pDenoiseParams)
         {

@@ -69,25 +69,26 @@ VAStatus DdiEncodeAvcFei::ContextInitialize(PCODECHAL_SETTINGS codecHalSettings)
 
     codecHalSettings->CodecFunction = m_encodeCtx->codecFunction;
 
-    m_encodeCtx->pFeiPicParams = (void *)MOS_AllocAndZeroMemory(CODECHAL_AVC_MAX_PPS_NUM * sizeof(CodecEncodeAvcFeiPicParams));
+    m_encodeCtx->pFeiPicParams = (void *)MOS_AllocAndZeroMemory(CODEC_AVC_MAX_PPS_NUM * sizeof(CodecEncodeAvcFeiPicParams));
     DDI_CHK_NULL(m_encodeCtx->pFeiPicParams, "nullptr m_encodeCtx->pFeiPicParams", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
-    m_encodeCtx->pPreEncParams = (void *)MOS_AllocAndZeroMemory(CODECHAL_AVC_MAX_PPS_NUM * sizeof(FeiPreEncParams));
+    m_encodeCtx->pPreEncParams = (void *)MOS_AllocAndZeroMemory(CODEC_AVC_MAX_PPS_NUM * sizeof(FeiPreEncParams));
     DDI_CHK_NULL(m_encodeCtx->pPreEncParams, "nullptr m_encodeCtx->pPreEncParams", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
-    iqMatrixParams = (PCODECHAL_AVC_IQ_MATRIX_PARAMS)MOS_AllocAndZeroMemory(sizeof(CODECHAL_AVC_IQ_MATRIX_PARAMS));
-    DDI_CHK_NULL(iqMatrixParams, "NULL iqMatrixParams", VA_STATUS_ERROR_ALLOCATION_FAILED);
+    iqMatrixParams = (PCODEC_AVC_IQ_MATRIX_PARAMS)MOS_AllocAndZeroMemory(sizeof(CODEC_AVC_IQ_MATRIX_PARAMS));
+    DDI_CHK_NULL(iqMatrixParams, "nullptr iqMatrixParams", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     iqWeightScaleLists = (PCODEC_AVC_ENCODE_IQ_WEIGTHSCALE_LISTS)MOS_AllocAndZeroMemory(sizeof(CODEC_AVC_ENCODE_IQ_WEIGTHSCALE_LISTS));
-    DDI_CHK_NULL(iqWeightScaleLists, "NULL iqWeightScaleLists", VA_STATUS_ERROR_ALLOCATION_FAILED);
+    DDI_CHK_NULL(iqWeightScaleLists, "nullptr iqWeightScaleLists", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     return VA_STATUS_SUCCESS;
 }
 
 VAStatus DdiEncodeAvcFei::EncodeInCodecHal(uint32_t numSlices)
 {
-    DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
-    DDI_CHK_NULL(m_encodeCtx->pMediaCtx, "nullptr m_encodeCtx->pMediaCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(m_encodeCtx->pCodecHal, "nullptr m_encodeCtx->pCodecHal", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(m_encodeCtx->pMediaCtx, "nullptr m_encodeCtx->pMediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
     CodecEncodeAvcFeiPicParams *feiPicParams = (CodecEncodeAvcFeiPicParams *)(m_encodeCtx->pFeiPicParams);
     FeiPreEncParams *preEncParams = (FeiPreEncParams*)(m_encodeCtx->pPreEncParams);
 
@@ -98,9 +99,9 @@ VAStatus DdiEncodeAvcFei::EncodeInCodecHal(uint32_t numSlices)
     EncoderParams *encodeParams = &m_encodeCtx->EncodeParams;
     MOS_ZeroMemory(encodeParams, sizeof(EncoderParams));
 
-    if ((feiPicParams != nullptr) && CodecHalIsFeiEncode(m_encodeCtx->feiFunction))
+    if ((feiPicParams != nullptr) && CodecHalIsFeiEncode(m_encodeCtx->codecFunction))
     {
-        encodeParams->ExecCodecFunction = m_encodeCtx->feiFunction;
+        encodeParams->ExecCodecFunction = m_encodeCtx->codecFunction;
     }
     else if (m_encodeCtx->codecFunction == CODECHAL_FUNCTION_FEI_PRE_ENC)
     {
@@ -122,7 +123,7 @@ VAStatus DdiEncodeAvcFei::EncodeInCodecHal(uint32_t numSlices)
     {
         if (rtTbl->pRT[preEncParams->CurrOriginalPicture.FrameIdx] != rtTbl->pCurrentRT)
         {
-            CODEC_DDI_ASSERTMESSAGE("PREENC CurrOriginalPicture.FrameIdx != pCurrentRT");
+            DDI_ASSERTMESSAGE("PREENC CurrOriginalPicture.FrameIdx != pCurrentRT");
         }
         rawSurface->dwWidth                  = rawSurface->OsResource.iWidth;
         rawSurface->dwHeight                 = rawSurface->OsResource.iHeight;
@@ -142,9 +143,9 @@ VAStatus DdiEncodeAvcFei::EncodeInCodecHal(uint32_t numSlices)
         DdiMedia_MediaSurfaceToMosResource(rtTbl->pCurrentReconTarget, &(reconSurface->OsResource));
      
         // Bitstream surface
-        PMOS_RESOURCE resBitstreamSurface = &encodeParams->resBitstreamBuffer;
-        *resBitstreamSurface        = m_encodeCtx->resBitstreamBuffer;  // in render picture
-        resBitstreamSurface->Format = Format_Buffer;
+        PMOS_RESOURCE bitstreamSurface = &encodeParams->resBitstreamBuffer;
+        *bitstreamSurface        = m_encodeCtx->resBitstreamBuffer;  // in render picture
+        bitstreamSurface->Format = Format_Buffer;
 
         encodeParams->psRawSurface = &encodeParams->rawSurface;
         encodeParams->psReconSurface = &encodeParams->reconSurface;
@@ -197,8 +198,8 @@ VAStatus DdiEncodeAvcFei::EncodeInCodecHal(uint32_t numSlices)
         encodeParams->pVuiParams         = m_encodeCtx->pVuiParams;
         encodeParams->pPicParams         = m_encodeCtx->pPicParams;
         encodeParams->pSliceParams       = m_encodeCtx->pSliceParams;
-        encodeParams->pAVCQCParams       = m_encodeCtx->pAvcQCParams;
-        encodeParams->pAVCRoundingParams = m_encodeCtx->pAvcRoundingParams;
+        encodeParams->pAVCQCParams       = m_qcParams;
+        encodeParams->pAVCRoundingParams = m_roundingParams;
 
         // Sequence data
         encodeParams->bNewSeq = m_encodeCtx->bNewSeq;
@@ -218,21 +219,21 @@ VAStatus DdiEncodeAvcFei::EncodeInCodecHal(uint32_t numSlices)
 
         status = MOS_SecureMemcpy(&iqMatrixParams->ScalingList4x4,
             6 * 16 * sizeof(uint8_t),
-            &m_encodeCtx->bScalingLists4x4,
+            &m_scalingLists4x4,
             6 * 16 * sizeof(uint8_t));
         if (MOS_STATUS_SUCCESS != status)
         {
-            CODEC_DDI_ASSERTMESSAGE("DDI:Failed to copy scaling list 4x4!");
+            DDI_ASSERTMESSAGE("DDI:Failed to copy scaling list 4x4!");
             return VA_STATUS_ERROR_INVALID_PARAMETER;
         }
 
         status = MOS_SecureMemcpy(&iqMatrixParams->ScalingList8x8,
             2 * 64 * sizeof(uint8_t),
-            &m_encodeCtx->bScalingLists8x8,
+            &m_scalingLists8x8,
             2 * 64 * sizeof(uint8_t));
         if (MOS_STATUS_SUCCESS != status)
         {
-            CODEC_DDI_ASSERTMESSAGE("DDI:Failed to copy scaling list 8x8!");
+            DDI_ASSERTMESSAGE("DDI:Failed to copy scaling list 8x8!");
             return VA_STATUS_ERROR_INVALID_PARAMETER;
         }
 
@@ -240,21 +241,21 @@ VAStatus DdiEncodeAvcFei::EncodeInCodecHal(uint32_t numSlices)
 
         status = MOS_SecureMemcpy(&iqWeightScaleLists->WeightScale4x4,
             (CODEC_AVC_WEIGHT_SCALE_4x4 * sizeof(uint32_t)),
-            &m_encodeCtx->WeightScale4x4,
+            &m_weightScale4x4,
             (CODEC_AVC_WEIGHT_SCALE_4x4 * sizeof(uint32_t)));
         if (MOS_STATUS_SUCCESS != status)
         {
-            CODEC_DDI_ASSERTMESSAGE("DDI:Failed to copy weight scale list 4x4!");
+            DDI_ASSERTMESSAGE("DDI:Failed to copy weight scale list 4x4!");
             return VA_STATUS_ERROR_INVALID_PARAMETER;
         }
 
         status = MOS_SecureMemcpy(&iqWeightScaleLists->WeightScale8x8,
             (CODEC_AVC_WEIGHT_SCALE_8x8 * sizeof(uint32_t)),
-            &m_encodeCtx->WeightScale8x8,
+            &m_weightScale8x8,
             (CODEC_AVC_WEIGHT_SCALE_8x8 * sizeof(uint32_t)));
         if (MOS_STATUS_SUCCESS != status)
         {
-            CODEC_DDI_ASSERTMESSAGE("DDI:Failed to copy weight scale list 8x8!");
+            DDI_ASSERTMESSAGE("DDI:Failed to copy weight scale list 8x8!");
             return VA_STATUS_ERROR_INVALID_PARAMETER;
         }
 
@@ -278,7 +279,7 @@ VAStatus DdiEncodeAvcFei::EncodeInCodecHal(uint32_t numSlices)
     status = m_encodeCtx->pCodecHal->Execute(encodeParams);
     if (MOS_STATUS_SUCCESS != status)
     {
-        CODEC_DDI_ASSERTMESSAGE("DDI:Failed in Codechal!");
+        DDI_ASSERTMESSAGE("DDI:Failed in Codechal!");
         return VA_STATUS_ERROR_ENCODING_ERROR;
     }
 
@@ -319,14 +320,14 @@ VAStatus DdiEncodeAvcFei::ResetAtFrameLevel()
     m_encodeCtx->bMbDisableSkipMapEnabled = false;
     m_encodeCtx->bMBQpEnable              = false;
 
-    if (nullptr != m_encodeCtx->pAvcRoundingParams)
+    if (nullptr != m_roundingParams)
     {
-        MOS_ZeroMemory(m_encodeCtx->pAvcRoundingParams, sizeof(CODECHAL_ENCODE_AVC_ROUNDING_PARAMS));
+        MOS_ZeroMemory(m_roundingParams, sizeof(CODECHAL_ENCODE_AVC_ROUNDING_PARAMS));
     }
 
-    if (CodecHalIsFeiEncode(m_encodeCtx->feiFunction))
+    if (CodecHalIsFeiEncode(m_encodeCtx->codecFunction) && m_encodeCtx->codecFunction != CODECHAL_FUNCTION_FEI_PRE_ENC)
     {
-        m_encodeCtx->feiFunction             = CODECHAL_FUNCTION_FEI_ENC_PAK;
+        m_encodeCtx->codecFunction             = CODECHAL_FUNCTION_FEI_ENC_PAK;
         feiPicParams->NumMVPredictorsL0      = 0;      // number of MV Predictors L0 provided, max is 4
         feiPicParams->NumMVPredictorsL1      = 0;      // number of MV Predictors L1 provided, max is 2
         feiPicParams->SearchPath             = 0;      // search path, default is 0, 0 and 2 mean full search, 1 means diamond search
@@ -399,11 +400,10 @@ VAStatus DdiEncodeAvcFei::RenderPicture(
 
     DDI_CHK_NULL(ctx, "nullptr context in vpgEncodeRenderPicture!", VA_STATUS_ERROR_INVALID_CONTEXT);
     PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);
-    DDI_CHK_NULL(mediaCtx, "Null mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(mediaCtx, "nullptr mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
 
     // assume the VAContextID is encoder ID
-    DDI_CHK_NULL(m_encodeCtx, "Null m_encodeCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(m_encodeCtx->pCodecHal, "Null m_encodeCtx->pCodecHal", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
 
     uint32_t numSlices = 0;
     VAStatus vaStatus  = VA_STATUS_SUCCESS;
@@ -509,13 +509,13 @@ VAStatus DdiEncodeAvcFei::ParseMiscParamFeiPic(void *data)
     DDI_CHK_NULL(feiPicParams, "nullptr feiPicParams", VA_STATUS_ERROR_INVALID_PARAMETER);
     VAEncMiscParameterFEIFrameControlH264 *vaEncMiscParamFeiPic = (VAEncMiscParameterFEIFrameControlH264*)data;
 
-    m_encodeCtx->feiFunction     = CODECHAL_FUNCTION_INVALID;
+    m_encodeCtx->codecFunction     = CODECHAL_FUNCTION_INVALID;
     if (vaEncMiscParamFeiPic->function & VA_FEI_FUNCTION_ENC_PAK)
-        m_encodeCtx->feiFunction = CODECHAL_FUNCTION_FEI_ENC_PAK;
+        m_encodeCtx->codecFunction = CODECHAL_FUNCTION_FEI_ENC_PAK;
     if (vaEncMiscParamFeiPic->function == VA_FEI_FUNCTION_ENC)
-        m_encodeCtx->feiFunction = CODECHAL_FUNCTION_FEI_ENC;
+        m_encodeCtx->codecFunction = CODECHAL_FUNCTION_FEI_ENC;
     if (vaEncMiscParamFeiPic->function == VA_FEI_FUNCTION_PAK)
-        m_encodeCtx->feiFunction = CODECHAL_FUNCTION_FEI_PAK;
+        m_encodeCtx->codecFunction = CODECHAL_FUNCTION_FEI_PAK;
 
     feiPicParams->NumMVPredictorsL0      = vaEncMiscParamFeiPic->num_mv_predictors_l0;
     feiPicParams->NumMVPredictorsL1      = vaEncMiscParamFeiPic->num_mv_predictors_l1;
@@ -555,7 +555,7 @@ VAStatus DdiEncodeAvcFei::ParseMiscParamFeiPic(void *data)
     }
     else if ((feiPicParams->NumMVPredictorsL0 != 0) || (feiPicParams->NumMVPredictorsL1 != 0))
     {
-        CODEC_DDI_ASSERTMESSAGE("feiPicParams->NumMVPredictorsL0 and NumMVPredictorsL1 should be set to 0 when feiPicParams->MVPredictorEnable is false!");
+        DDI_ASSERTMESSAGE("feiPicParams->NumMVPredictorsL0 and NumMVPredictorsL1 should be set to 0 when feiPicParams->MVPredictorEnable is false!");
         status = VA_STATUS_ERROR_INVALID_PARAMETER;
     }
     if (feiPicParams->bMBQp)
@@ -572,12 +572,12 @@ VAStatus DdiEncodeAvcFei::ParseMiscParamFeiPic(void *data)
         mediaBuffer                  = DdiMedia_GetBufferFromVABufferID(m_encodeCtx->pMediaCtx, vaEncMiscParamFeiPic->mv_data);
         DDI_CHK_NULL(mediaBuffer, "nullptr mediaBuffer", VA_STATUS_ERROR_INVALID_PARAMETER);
         DdiMedia_MediaBufferToMosResource(mediaBuffer, &(feiPicParams->resMVData));
-        if (m_encodeCtx->feiFunction == CODECHAL_FUNCTION_FEI_ENC)
+        if (m_encodeCtx->codecFunction == CODECHAL_FUNCTION_FEI_ENC)
         {
             RemoveFromEncStatusReportQueue(mediaBuffer, FEI_ENC_BUFFER_TYPE_MVDATA);
             if (VA_STATUS_SUCCESS != AddToEncStatusReportQueue((void *)(feiPicParams->resMVData.bo), FEI_ENC_BUFFER_TYPE_MVDATA))
             {
-                CODEC_DDI_ASSERTMESSAGE("feiPicParams->resMVData is invalid for FEI ENC only");
+                DDI_ASSERTMESSAGE("feiPicParams->resMVData is invalid for FEI ENC only");
                 status = VA_STATUS_ERROR_INVALID_PARAMETER;
             }
         }
@@ -586,18 +586,18 @@ VAStatus DdiEncodeAvcFei::ParseMiscParamFeiPic(void *data)
     {
         if (feiPicParams->MbCodeMvEnable == false)
         {
-            CODEC_DDI_ASSERTMESSAGE("MV data and MB Code should be enabled or disabled together!");
+            DDI_ASSERTMESSAGE("MV data and MB Code should be enabled or disabled together!");
             status = MOS_STATUS_INVALID_PARAMETER;
         }
         mediaBuffer = DdiMedia_GetBufferFromVABufferID(m_encodeCtx->pMediaCtx, vaEncMiscParamFeiPic->mb_code_data);
         DDI_CHK_NULL(mediaBuffer, "nullptr mediaBuffer", VA_STATUS_ERROR_INVALID_PARAMETER);
         DdiMedia_MediaBufferToMosResource(mediaBuffer, &(feiPicParams->resMBCode));
-        if (m_encodeCtx->feiFunction == CODECHAL_FUNCTION_FEI_ENC)
+        if (m_encodeCtx->codecFunction == CODECHAL_FUNCTION_FEI_ENC)
         {
             RemoveFromEncStatusReportQueue(mediaBuffer, FEI_ENC_BUFFER_TYPE_MBCODE);
             if (MOS_STATUS_SUCCESS != AddToEncStatusReportQueue((void *)(feiPicParams->resMBCode.bo), FEI_ENC_BUFFER_TYPE_MBCODE))
             {
-                CODEC_DDI_ASSERTMESSAGE("feiPicParams->resMBCode is invalid for FEI ENC only");
+                DDI_ASSERTMESSAGE("feiPicParams->resMBCode is invalid for FEI ENC only");
                 status = VA_STATUS_ERROR_INVALID_PARAMETER;
             }
         }
@@ -608,17 +608,17 @@ VAStatus DdiEncodeAvcFei::ParseMiscParamFeiPic(void *data)
         mediaBuffer                    = DdiMedia_GetBufferFromVABufferID(m_encodeCtx->pMediaCtx, vaEncMiscParamFeiPic->distortion);
         DDI_CHK_NULL(mediaBuffer, "nullptr mediaBuffer", VA_STATUS_ERROR_INVALID_PARAMETER);
         DdiMedia_MediaBufferToMosResource(mediaBuffer, &(feiPicParams->resDistortion));
-        if (m_encodeCtx->feiFunction == CODECHAL_FUNCTION_FEI_ENC)
+        if (m_encodeCtx->codecFunction == CODECHAL_FUNCTION_FEI_ENC)
         {
             RemoveFromEncStatusReportQueue(mediaBuffer, FEI_ENC_BUFFER_TYPE_DISTORTION);
             if (MOS_STATUS_SUCCESS != AddToEncStatusReportQueue((void *)(feiPicParams->resDistortion.bo), FEI_ENC_BUFFER_TYPE_DISTORTION))
             {
-                CODEC_DDI_ASSERTMESSAGE("feiPicParams->resDistortion is invalid for FEI ENC only");
+                DDI_ASSERTMESSAGE("feiPicParams->resDistortion is invalid for FEI ENC only");
                 status = VA_STATUS_ERROR_INVALID_PARAMETER;
             }
         }
     }
-    if (m_encodeCtx->feiFunction == CODECHAL_FUNCTION_FEI_ENC)
+    if (m_encodeCtx->codecFunction == CODECHAL_FUNCTION_FEI_ENC)
     {
         AddToEncStatusReportQueueUpdatePos();
     }
@@ -660,14 +660,14 @@ VAStatus DdiEncodeAvcFei::AddToEncStatusReportQueue(
     CodecEncodeAvcFeiPicParams *feiPicParams = (CodecEncodeAvcFeiPicParams *)(m_encodeCtx->pFeiPicParams);
     DDI_CHK_NULL(feiPicParams, "nullptr feiPicParams", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    if (m_encodeCtx->feiFunction != CODECHAL_FUNCTION_FEI_ENC)
+    if (m_encodeCtx->codecFunction != CODECHAL_FUNCTION_FEI_ENC)
     {
-        CODEC_DDI_ASSERTMESSAGE("ENC output buffers status checking is not allowed for non-FEI_ENC case! .");
+        DDI_ASSERTMESSAGE("ENC output buffers status checking is not allowed for non-FEI_ENC case! .");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
     if ((typeIdx < 0) || (typeIdx >= FEI_ENC_BUFFER_TYPE_MAX))
     {
-        CODEC_DDI_ASSERTMESSAGE("ENC output buffers status checking, gets invalid buffer type index! .");
+        DDI_ASSERTMESSAGE("ENC output buffers status checking, gets invalid buffer type index! .");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
@@ -684,9 +684,9 @@ VAStatus DdiEncodeAvcFei::AddToEncStatusReportQueueUpdatePos()
     CodecEncodeAvcFeiPicParams *feiPicParams = (CodecEncodeAvcFeiPicParams *)(m_encodeCtx->pFeiPicParams);
     DDI_CHK_NULL(feiPicParams, "nullptr feiPicParams", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    if (m_encodeCtx->feiFunction != CODECHAL_FUNCTION_FEI_ENC)
+    if (m_encodeCtx->codecFunction != CODECHAL_FUNCTION_FEI_ENC)
     {
-        CODEC_DDI_ASSERTMESSAGE("ENC output buffers status checking is not allowed for non-FEI_ENC case! .");
+        DDI_ASSERTMESSAGE("ENC output buffers status checking is not allowed for non-FEI_ENC case! .");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
@@ -708,12 +708,12 @@ VAStatus DdiEncodeAvcFei::AddToPreEncStatusReportQueue(
 
     if (m_encodeCtx->codecFunction != CODECHAL_FUNCTION_FEI_PRE_ENC)
     {
-        CODEC_DDI_ASSERTMESSAGE("PRE ENC output buffers status checking is not allowed for non-PRE_ENC case! .");
+        DDI_ASSERTMESSAGE("PRE ENC output buffers status checking is not allowed for non-PRE_ENC case! .");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
     if ((typeIdx < 0) || (typeIdx >= PRE_ENC_BUFFER_TYPE_MAX))
     {
-        CODEC_DDI_ASSERTMESSAGE("PRE ENC output buffers status checking, gets invalid buffer type index! .");
+        DDI_ASSERTMESSAGE("PRE ENC output buffers status checking, gets invalid buffer type index! .");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
@@ -732,7 +732,7 @@ VAStatus DdiEncodeAvcFei::AddToPreEncStatusReportQueueUpdatePos()
 
     if (m_encodeCtx->codecFunction != CODECHAL_FUNCTION_FEI_PRE_ENC)
     {
-        CODEC_DDI_ASSERTMESSAGE("PRE ENC output buffers status checking is not allowed for non-PRE_ENC case! .");
+        DDI_ASSERTMESSAGE("PRE ENC output buffers status checking is not allowed for non-PRE_ENC case! .");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
@@ -821,7 +821,7 @@ VAStatus DdiEncodeAvcFei::ParseMiscParams(void *ptr)
 
 
     default:
-        CODEC_DDI_ASSERTMESSAGE("unsupported misc parameter type.");
+        DDI_ASSERTMESSAGE("unsupported misc parameter type.");
         status = VA_STATUS_ERROR_INVALID_PARAMETER;
         break;
     }
@@ -833,7 +833,7 @@ VAStatus DdiEncodeAvcFei::ParseStatsParams(PDDI_MEDIA_CONTEXT mediaCtx, void *pt
 {
     if ((nullptr == ptr) || (nullptr == m_encodeCtx))
     {
-        CODEC_DDI_ASSERTMESSAGE("invalidate input parameters");
+        DDI_ASSERTMESSAGE("invalidate input parameters");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
@@ -870,7 +870,7 @@ VAStatus DdiEncodeAvcFei::ParseStatsParams(PDDI_MEDIA_CONTEXT mediaCtx, void *pt
 
     if (statsParams->stats_params.input.picture_id == VA_INVALID_ID)
     {
-        CODEC_DDI_ASSERTMESSAGE("invalidate input parameters, current picture id is invalidate");
+        DDI_ASSERTMESSAGE("invalidate input parameters, current picture id is invalidate");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
@@ -885,7 +885,7 @@ VAStatus DdiEncodeAvcFei::ParseStatsParams(PDDI_MEDIA_CONTEXT mediaCtx, void *pt
     DDI_MEDIA_SURFACE *currentSurface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, statsParams->stats_params.input.picture_id);
     if (nullptr == currentSurface)
     {
-        CODEC_DDI_ASSERTMESSAGE("invalidate current ref surface");
+        DDI_ASSERTMESSAGE("invalidate current ref surface");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
@@ -902,7 +902,7 @@ VAStatus DdiEncodeAvcFei::ParseStatsParams(PDDI_MEDIA_CONTEXT mediaCtx, void *pt
         DDI_MEDIA_SURFACE *pastRefSurface = (DDI_MEDIA_SURFACE *)DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, statsParams->stats_params.past_references->picture_id);
         if (nullptr == pastRefSurface)
         {
-            CODEC_DDI_ASSERTMESSAGE("invalidate Future ref surface");
+            DDI_ASSERTMESSAGE("invalidate Future ref surface");
             return VA_STATUS_ERROR_INVALID_PARAMETER;
         }
         DDI_CHK_RET(RegisterRTSurfaces(&m_encodeCtx->RTtbl, pastRefSurface), "RegisterRTSurfaces failed!");
@@ -924,7 +924,7 @@ VAStatus DdiEncodeAvcFei::ParseStatsParams(PDDI_MEDIA_CONTEXT mediaCtx, void *pt
                 mediaBuffer = DdiMedia_GetBufferFromVABufferID(mediaCtx, *(statsParams->stats_params.past_ref_stat_buf));
                 if (nullptr == mediaBuffer)
                 {
-                    CODEC_DDI_ASSERTMESSAGE("invalidate statistics output media buffer for Past ref");
+                    DDI_ASSERTMESSAGE("invalidate statistics output media buffer for Past ref");
                     return VA_STATUS_ERROR_INVALID_PARAMETER;
                 }
                 DdiMedia_MediaBufferToMosResource(mediaBuffer, &(preEncParams->sPastRefStatsBuffer));
@@ -933,7 +933,7 @@ VAStatus DdiEncodeAvcFei::ParseStatsParams(PDDI_MEDIA_CONTEXT mediaCtx, void *pt
                     mediaBuffer = DdiMedia_GetBufferFromVABufferID(mediaCtx, *(statsParams->stats_params.past_ref_stat_buf + 1));
                     if (nullptr == mediaBuffer)
                     {
-                        CODEC_DDI_ASSERTMESSAGE("invalidate statistics output media buffer for Past bottom field ref");
+                        DDI_ASSERTMESSAGE("invalidate statistics output media buffer for Past bottom field ref");
                         return VA_STATUS_ERROR_INVALID_PARAMETER;
                     }
                     DdiMedia_MediaBufferToMosResource(mediaBuffer, &(preEncParams->sPastRefStatsBotFieldBuffer));
@@ -959,7 +959,7 @@ VAStatus DdiEncodeAvcFei::ParseStatsParams(PDDI_MEDIA_CONTEXT mediaCtx, void *pt
         DDI_MEDIA_SURFACE *futureRefSurface = (DDI_MEDIA_SURFACE *)DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, statsParams->stats_params.future_references->picture_id);
         if (nullptr == futureRefSurface)
         {
-            CODEC_DDI_ASSERTMESSAGE("invalidate Future ref surface");
+            DDI_ASSERTMESSAGE("invalidate Future ref surface");
             return VA_STATUS_ERROR_INVALID_PARAMETER;
         }
         DDI_CHK_RET(RegisterRTSurfaces(&m_encodeCtx->RTtbl, futureRefSurface), "RegisterRTSurfaces failed!");
@@ -980,7 +980,7 @@ VAStatus DdiEncodeAvcFei::ParseStatsParams(PDDI_MEDIA_CONTEXT mediaCtx, void *pt
                 mediaBuffer = DdiMedia_GetBufferFromVABufferID(mediaCtx, *(statsParams->stats_params.future_ref_stat_buf));
                 if (nullptr == mediaBuffer)
                 {
-                    CODEC_DDI_ASSERTMESSAGE("invalidate statistics output media buffer for Future ref");
+                    DDI_ASSERTMESSAGE("invalidate statistics output media buffer for Future ref");
                     return VA_STATUS_ERROR_INVALID_PARAMETER;
                 }
                 DdiMedia_MediaBufferToMosResource(mediaBuffer, &(preEncParams->sFutureRefStatsBuffer));
@@ -989,7 +989,7 @@ VAStatus DdiEncodeAvcFei::ParseStatsParams(PDDI_MEDIA_CONTEXT mediaCtx, void *pt
                     mediaBuffer = DdiMedia_GetBufferFromVABufferID(mediaCtx, *(statsParams->stats_params.future_ref_stat_buf + 1));
                     if (nullptr == mediaBuffer)
                     {
-                        CODEC_DDI_ASSERTMESSAGE("invalidate statistics output media buffer for Future ref");
+                        DDI_ASSERTMESSAGE("invalidate statistics output media buffer for Future ref");
                         return VA_STATUS_ERROR_INVALID_PARAMETER;
                     }
                     DdiMedia_MediaBufferToMosResource(mediaBuffer, &(preEncParams->sFutureRefStatsBotFieldBuffer));
@@ -1011,7 +1011,7 @@ VAStatus DdiEncodeAvcFei::ParseStatsParams(PDDI_MEDIA_CONTEXT mediaCtx, void *pt
         mediaBuffer = DdiMedia_GetBufferFromVABufferID(mediaCtx, statsParams->stats_params.mv_predictor);
         if (nullptr == mediaBuffer)
         {
-            CODEC_DDI_ASSERTMESSAGE("invalidate mv_predictor media buffer");
+            DDI_ASSERTMESSAGE("invalidate mv_predictor media buffer");
             return VA_STATUS_ERROR_INVALID_PARAMETER;
         }
         DdiMedia_MediaBufferToMosResource(mediaBuffer, &(preEncParams->resMvPredBuffer));
@@ -1021,7 +1021,7 @@ VAStatus DdiEncodeAvcFei::ParseStatsParams(PDDI_MEDIA_CONTEXT mediaCtx, void *pt
         mediaBuffer = DdiMedia_GetBufferFromVABufferID(mediaCtx, statsParams->stats_params.qp);
         if (nullptr == mediaBuffer)
         {
-            CODEC_DDI_ASSERTMESSAGE("invalidate qp media buffer");
+            DDI_ASSERTMESSAGE("invalidate qp media buffer");
             return VA_STATUS_ERROR_INVALID_PARAMETER;
         }
         DdiMedia_MediaBufferToMosResource(mediaBuffer, &(preEncParams->resMbQpBuffer));
@@ -1033,14 +1033,14 @@ VAStatus DdiEncodeAvcFei::ParseStatsParams(PDDI_MEDIA_CONTEXT mediaCtx, void *pt
         mediaBuffer = DdiMedia_GetBufferFromVABufferID(mediaCtx, statsParams->stats_params.outputs[i++]);
         if (nullptr == mediaBuffer)
         {
-            CODEC_DDI_ASSERTMESSAGE("invalidate mv output media buffer");
+            DDI_ASSERTMESSAGE("invalidate mv output media buffer");
             return VA_STATUS_ERROR_INVALID_PARAMETER;
         }
         DdiMedia_MediaBufferToMosResource(mediaBuffer, &(preEncParams->resMvBuffer));
         RemoveFromPreEncStatusReportQueue(mediaBuffer, PRE_ENC_BUFFER_TYPE_MVDATA);
         if (VA_STATUS_SUCCESS != AddToPreEncStatusReportQueue((void *)(preEncParams->resMvBuffer.bo), PRE_ENC_BUFFER_TYPE_MVDATA))
         {
-            CODEC_DDI_ASSERTMESSAGE("preEncParams->resMvBuffer is invalid for PREENC only");
+            DDI_ASSERTMESSAGE("preEncParams->resMvBuffer is invalid for PREENC only");
             return VA_STATUS_ERROR_INVALID_PARAMETER;
         }
     }
@@ -1050,14 +1050,14 @@ VAStatus DdiEncodeAvcFei::ParseStatsParams(PDDI_MEDIA_CONTEXT mediaCtx, void *pt
         mediaBuffer = DdiMedia_GetBufferFromVABufferID(mediaCtx, statsParams->stats_params.outputs[i++]);
         if (nullptr == mediaBuffer)
         {
-            CODEC_DDI_ASSERTMESSAGE("invalidate statistics output media buffer");
+            DDI_ASSERTMESSAGE("invalidate statistics output media buffer");
             return VA_STATUS_ERROR_INVALID_PARAMETER;
         }
         DdiMedia_MediaBufferToMosResource(mediaBuffer, &(preEncParams->resStatsBuffer));
         RemoveFromPreEncStatusReportQueue(mediaBuffer, PRE_ENC_BUFFER_TYPE_STATS);
         if (VA_STATUS_SUCCESS != AddToPreEncStatusReportQueue((void *)(preEncParams->resStatsBuffer.bo), PRE_ENC_BUFFER_TYPE_STATS))
         {
-            CODEC_DDI_ASSERTMESSAGE("preEncParams->resStatsBuffer is invalid for PREENC only");
+            DDI_ASSERTMESSAGE("preEncParams->resStatsBuffer is invalid for PREENC only");
             return VA_STATUS_ERROR_INVALID_PARAMETER;
         }
 
@@ -1066,14 +1066,14 @@ VAStatus DdiEncodeAvcFei::ParseStatsParams(PDDI_MEDIA_CONTEXT mediaCtx, void *pt
             mediaBuffer = DdiMedia_GetBufferFromVABufferID(mediaCtx, statsParams->stats_params.outputs[i++]);
             if (nullptr == mediaBuffer)
             {
-                CODEC_DDI_ASSERTMESSAGE("invalidate statistics output media bottom field buffer, must provide bottom field statistics buffer for both top and bottom field PreENC");
+                DDI_ASSERTMESSAGE("invalidate statistics output media bottom field buffer, must provide bottom field statistics buffer for both top and bottom field PreENC");
                 return VA_STATUS_ERROR_INVALID_PARAMETER;
             }
             DdiMedia_MediaBufferToMosResource(mediaBuffer, &(preEncParams->resStatsBotFieldBuffer));
             RemoveFromPreEncStatusReportQueue(mediaBuffer, PRE_ENC_BUFFER_TYPE_STATS_BOT);
             if (VA_STATUS_SUCCESS != AddToPreEncStatusReportQueue((void *)(preEncParams->resStatsBotFieldBuffer.bo), PRE_ENC_BUFFER_TYPE_STATS_BOT))
             {
-                CODEC_DDI_ASSERTMESSAGE("preEncParams->resStatsBotFieldBuffer is invalid for PREENC only");
+                DDI_ASSERTMESSAGE("preEncParams->resStatsBotFieldBuffer is invalid for PREENC only");
                 return VA_STATUS_ERROR_INVALID_PARAMETER;
             }
         }

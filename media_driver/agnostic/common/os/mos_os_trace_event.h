@@ -44,7 +44,7 @@ typedef enum _MEDIA_EVENT
     EVENT_PPED_HW_CAPS,             //! event for PPED HW capability
     EVENT_MOS_MESSAGE,              //! event for MOS debug message
     EVENT_CODEC_NV12ToP010,         //! event for NV12 to P010 in codechal
-    EVENT_CODEC_DECRYPT,            //! event for Decode Decrypt
+    EVENT_CODEC_CENC,               //! event for CENC Decode
     EVENT_CODEC_DECODE_DDI,         //! event for Decoder decode DDI level
     EVENT_CODEC_DECODE,             //! event for Decoder decode
     EVENT_CODEC_ENCODE_DDI,         //! event for Decoder encode DDI level

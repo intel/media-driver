@@ -31,6 +31,10 @@
 #define CODECHAL_ENCODE_MPEG2_FCODE_X(width) ((width < 200) ? 3 : (width < 500) ? 4 : (width < 1400) ? 5 : 6)
 #define CODECHAL_ENCODE_MPEG2_FCODE_Y(fcodeX) ((fcodeX > 5) ? 5 : fcodeX)
 
+//!
+//! \enum     ProfileIdc
+//! \brief    Profile idc
+//!
 enum ProfileIdc
 {
     highProfile      = 0x10,
@@ -40,6 +44,10 @@ enum ProfileIdc
     simpleProfile    = 0x50
 } ;
 
+//!
+//! \enum     LevelIdc
+//! \brief    Level idc
+//!
 enum LevelIdc
 {
     levelHigh        = 4,
@@ -48,6 +56,10 @@ enum LevelIdc
     levelLow         = 10
 } ;
 
+//!
+//! \enum     StartCode
+//! \brief    Start code
+//!
 enum StartCode
 {
     startCodePrefix         = 0x000001, // bit string 0000 0000 0000 0000 0000 0001
@@ -63,6 +75,10 @@ enum StartCode
     // system start codes = 0xB9..0xFF
 } ;
 
+//!
+//! \enum     BingdingTableOffsetBrcInitReset
+//! \brief    Bingding table offset brc init reset
+//!
 enum BingdingTableOffsetBrcInitReset
 {
     brcInitResetHistory                 = 0,
@@ -70,6 +86,10 @@ enum BingdingTableOffsetBrcInitReset
     brcInitResetNumBindingTableEntries  = 2
 } ;
 
+//!
+//! \enum     BindingTableOffsetBrcUpdate
+//! \brief    Binding table offset brc update
+//!
 enum BindingTableOffsetBrcUpdate
 {
     brcUpdateHistory                    = 0,
@@ -85,9 +105,17 @@ enum BindingTableOffsetBrcUpdate
     brcUpdateNumBindingTableEntries     = 10
 } ;
 
+//!
+//! \class    BrcInitResetCurbe
+//! \brief    Brc initialization reset curbe
+//!
 class BrcInitResetCurbe
 {
 public:
+    //!
+    //! \struct    CurbeData
+    //! \brief     Curbe data
+    //!
     struct CurbeData
     {
         union
@@ -433,9 +461,17 @@ public:
 
 };
 
+//!
+//! \struct    BrcUpdateCurbe
+//! \brief     BRC update curbe
+//!
 class BrcUpdateCurbe
 {
 public:
+    //!
+    //! \struct    CurbeData
+    //! \brief     Curbe data
+    //!
     struct CurbeData
     {
         union
@@ -705,6 +741,10 @@ public:
 
  } ;
 
+//!
+//! \struct    VLCode
+//! \brief     VL code
+//!
 struct VLCode{
     uint32_t m_code;
     uint32_t m_len;
@@ -761,6 +801,10 @@ struct MediaObjectInlineDataMpeg2
     } DW2;
 } ;
 
+//!
+//! \struct    SliceRecord
+//! \brief     Slice record
+//!
 struct SliceRecord
 {
     // DW 1
@@ -796,65 +840,65 @@ struct SliceRecord
  /* VL codes for macroblock_address_increment ISO/IEC 13818-2, B.1, Table B-1. */
 static const VLCode mpeg2AddrIncreamentTbl[35] =
 {
-	{ 0x00, 0 }, // forbidden m_value
-	{ 0x01, 1 },
-	{ 0x03, 3 }, { 0x02, 3 },
-	{ 0x03, 4 }, { 0x02, 4 },
-	{ 0x03, 5 }, { 0x02, 5 },
-	{ 0x07, 7 }, { 0x06, 7 },
-	{ 0x0b, 8 }, { 0x0a, 8 }, { 0x09, 8 }, { 0x08, 8 }, { 0x07, 8 }, { 0x06, 8 },
-	{ 0x17, 10 }, { 0x16, 10 }, { 0x15, 10 }, { 0x14, 10 }, { 0x13, 10 }, { 0x12, 10 },
-	{ 0x23, 11 }, { 0x22, 11 }, { 0x21, 11 }, { 0x20, 11 }, { 0x1f, 11 }, { 0x1e, 11 }, { 0x1d, 11 }, { 0x1c, 11 }, { 0x1b, 11 }, { 0x1a, 11 }, { 0x19, 11 }, { 0x18, 11 },
-	{ 0x08, 11 } // macroblock_escape
+    { 0x00, 0 }, // forbidden m_value
+    { 0x01, 1 },
+    { 0x03, 3 }, { 0x02, 3 },
+    { 0x03, 4 }, { 0x02, 4 },
+    { 0x03, 5 }, { 0x02, 5 },
+    { 0x07, 7 }, { 0x06, 7 },
+    { 0x0b, 8 }, { 0x0a, 8 }, { 0x09, 8 }, { 0x08, 8 }, { 0x07, 8 }, { 0x06, 8 },
+    { 0x17, 10 }, { 0x16, 10 }, { 0x15, 10 }, { 0x14, 10 }, { 0x13, 10 }, { 0x12, 10 },
+    { 0x23, 11 }, { 0x22, 11 }, { 0x21, 11 }, { 0x20, 11 }, { 0x1f, 11 }, { 0x1e, 11 }, { 0x1d, 11 }, { 0x1c, 11 }, { 0x1b, 11 }, { 0x1a, 11 }, { 0x19, 11 }, { 0x18, 11 },
+    { 0x08, 11 } // macroblock_escape
 };
 
 /* VL codes for macroblock_type ISO/IEC 13818-2, B.2, Tables B-2, B-3, B-4. */
 static const VLCode mpeg2MbTypeTbl[3][32] =
 {
-	/* I */
-	{
-		{ 0x00, 0 }, { 0x01, 1 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 },
-		{ 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 },
-		{ 0x00, 0 }, { 0x01, 2 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 },
-		{ 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }
-	},
-	/* P */
-	{
-		{ 0x00, 0 }, { 0x03, 5 }, { 0x01, 2 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 },
-		{ 0x01, 3 }, { 0x00, 0 }, { 0x01, 1 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 },
-		{ 0x00, 0 }, { 0x01, 6 }, { 0x01, 5 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 },
-		{ 0x00, 0 }, { 0x00, 0 }, { 0x02, 5 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }
-	},
-	/* B */
-	{
-		{ 0x00, 0 }, { 0x03, 5 }, { 0x00, 0 }, { 0x00, 0 }, { 0x02, 3 }, { 0x00, 0 }, { 0x03, 3 }, { 0x00, 0 },
-		{ 0x02, 4 }, { 0x00, 0 }, { 0x03, 4 }, { 0x00, 0 }, { 0x02, 2 }, { 0x00, 0 }, { 0x03, 2 }, { 0x00, 0 },
-		{ 0x00, 0 }, { 0x01, 6 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x02, 6 }, { 0x00, 0 },
-		{ 0x00, 0 }, { 0x00, 0 }, { 0x03, 6 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x02, 5 }, { 0x00, 0 }
-	}
+    /* I */
+    {
+        { 0x00, 0 }, { 0x01, 1 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 },
+        { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 },
+        { 0x00, 0 }, { 0x01, 2 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 },
+        { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }
+    },
+    /* P */
+    {
+        { 0x00, 0 }, { 0x03, 5 }, { 0x01, 2 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 },
+        { 0x01, 3 }, { 0x00, 0 }, { 0x01, 1 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 },
+        { 0x00, 0 }, { 0x01, 6 }, { 0x01, 5 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 },
+        { 0x00, 0 }, { 0x00, 0 }, { 0x02, 5 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }
+    },
+    /* B */
+    {
+        { 0x00, 0 }, { 0x03, 5 }, { 0x00, 0 }, { 0x00, 0 }, { 0x02, 3 }, { 0x00, 0 }, { 0x03, 3 }, { 0x00, 0 },
+        { 0x02, 4 }, { 0x00, 0 }, { 0x03, 4 }, { 0x00, 0 }, { 0x02, 2 }, { 0x00, 0 }, { 0x03, 2 }, { 0x00, 0 },
+        { 0x00, 0 }, { 0x01, 6 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x02, 6 }, { 0x00, 0 },
+        { 0x00, 0 }, { 0x00, 0 }, { 0x03, 6 }, { 0x00, 0 }, { 0x00, 0 }, { 0x00, 0 }, { 0x02, 5 }, { 0x00, 0 }
+    }
 };
 
 /* VL codes for motion_code+16 ISO/IEC 13818-2, B.4, Table B-10. */
 static const VLCode mpeg2MvVlcTbl[33] =
 {
-	// negative motion_code
-	{ 0x19, 11 }, { 0x1b, 11 }, { 0x1d, 11 }, { 0x1f, 11 }, { 0x21, 11 }, { 0x23, 11 },
-	{ 0x13, 10 }, { 0x15, 10 }, { 0x17, 10 },
-	{ 0x07, 8 }, { 0x09, 8 }, { 0x0b, 8 },
-	{ 0x07, 7 },
-	{ 0x03, 5 },
-	{ 0x03, 4 },
-	{ 0x03, 3 },
-	// zero motion_code
-	{ 0x01, 1 },
-	// positive motion_code
-	{ 0x02, 3 },
-	{ 0x02, 4 },
-	{ 0x02, 5 },
-	{ 0x06, 7 },
-	{ 0x0a, 8 }, { 0x08, 8 }, { 0x06, 8 },
-	{ 0x16, 10 }, { 0x14, 10 }, { 0x12, 10 },
-	{ 0x22, 11 }, { 0x20, 11 }, { 0x1e, 11 }, { 0x1c, 11 }, { 0x1a, 11 }, { 0x18, 11 }
+    // negative motion_code
+    { 0x19, 11 }, { 0x1b, 11 }, { 0x1d, 11 }, { 0x1f, 11 }, { 0x21, 11 }, { 0x23, 11 },
+    { 0x13, 10 }, { 0x15, 10 }, { 0x17, 10 },
+    { 0x07, 8 }, { 0x09, 8 }, { 0x0b, 8 },
+    { 0x07, 7 },
+    { 0x03, 5 },
+    { 0x03, 4 },
+    { 0x03, 3 },
+    // zero motion_code
+    { 0x01, 1 },
+    // positive motion_code
+    { 0x02, 3 },
+    { 0x02, 4 },
+    { 0x02, 5 },
+    { 0x06, 7 },
+    { 0x0a, 8 }, { 0x08, 8 }, { 0x06, 8 },
+    { 0x16, 10 }, { 0x14, 10 }, { 0x12, 10 },
+    { 0x22, 11 }, { 0x20, 11 }, { 0x1e, 11 }, { 0x1c, 11 }, { 0x1a, 11 }, { 0x18, 11 }
 };
 
 BrcInitResetCurbe::BrcInitResetCurbe()
@@ -1035,10 +1079,10 @@ const uint8_t CodechalEncodeMpeg2::m_distQpAdjustmentB[] = {
     0x00,   0x00,   0x00,   0x00,   0x00,   0x00};
 
 const uint8_t CodechalEncodeMpeg2::m_targetUsageToKernelMode[] = {
-    CODECHAL_ENCODE_NORMAL_MODE, CODECHAL_ENCODE_NORMAL_MODE,
-    CODECHAL_ENCODE_NORMAL_MODE, CODECHAL_ENCODE_NORMAL_MODE,
-    CODECHAL_ENCODE_NORMAL_MODE, CODECHAL_ENCODE_NORMAL_MODE,
-    CODECHAL_ENCODE_NORMAL_MODE, CODECHAL_ENCODE_NORMAL_MODE };
+    encodeNormalMode, encodeNormalMode,
+    encodeNormalMode, encodeNormalMode,
+    encodeNormalMode, encodeNormalMode,
+    encodeNormalMode, encodeNormalMode };
 
 const uint32_t CodechalEncodeMpeg2::m_vmeLutXyP[] = { 0x34262410, 0x46454436 };
 
@@ -1132,7 +1176,7 @@ CodechalEncodeMpeg2::CodechalEncodeMpeg2(
 
     MOS_USER_FEATURE_VALUE_DATA userFeatureData;
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    CodecHal_UserFeature_ReadValue(
+    MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_SINGLE_TASK_PHASE_ENABLE_ID,
         &userFeatureData);
@@ -1174,14 +1218,14 @@ MOS_STATUS CodechalEncodeMpeg2::Initialize(PCODECHAL_SETTINGS codecHalSettings)
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_USER_FEATURE_VALUE_DATA userFeatureData;
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    CodecHal_UserFeature_ReadValue(
+    MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_MPEG2_ENCODE_BRC_DISTORTION_BUFFER_ENABLE_ID,
         &userFeatureData);
     m_brcDistortionBufferSupported = (userFeatureData.i32Data) ? true : false;
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    CodecHal_UserFeature_ReadValue(
+    MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_MPEG2_SLICE_STATE_ENABLE_ID,
         &userFeatureData);
@@ -1491,8 +1535,7 @@ MOS_STATUS CodechalEncodeMpeg2::AllocateResources()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncoderState::AllocateResources());
 
     // Allocate Ref Lists
-    CodecHal_AllocateDataList(
-        CODEC_REF_LIST,
+    CodecHalAllocateDataList(
         m_refList,
         CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2);
 
@@ -1636,7 +1679,7 @@ void CodechalEncodeMpeg2::FreeResources()
     CodechalEncoderState::FreeResources();
 
     // Release Ref Lists
-    CodecHal_FreeDataList(m_refList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2);
+    CodecHalFreeDataList(m_refList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2);
 
     if (m_encEnabled)
     {
@@ -1878,7 +1921,7 @@ MOS_STATUS CodechalEncodeMpeg2::SetPictureStructs()
     else if (m_codecFunction == CODECHAL_FUNCTION_ENC_PAK)
     {
         // the actual MbCode/MvData surface to be allocated later
-        m_currMbCodeIdx = PICTURE_INVALID;
+        m_trackedBuf->SetAllocationFlag(true);
     }
 
     m_hmeEnabled = m_hmeSupported && m_pictureCodingType != I_TYPE;
@@ -2383,7 +2426,7 @@ MOS_STATUS CodechalEncodeMpeg2::PackPicUserData()
 
     auto bsBuffer = &m_bsBuffer;
 
-	for (auto p = userDataListHead; p; p = p->m_nextItem)
+    for (auto p = userDataListHead; p; p = p->m_nextItem)
     {
         auto userData = (uint8_t*)p->m_userData;
 
@@ -2591,18 +2634,6 @@ MOS_STATUS CodechalEncodeMpeg2::InitializePicture(const EncoderParams& params)
     if (m_newSeq)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SetSequenceStructs());
-
-        if (m_resolutionChanged)
-        {
-            ResizeBuffer();
-        }
-
-        if (m_cscDsState->IsEnabled())
-        {
-            // check if we need to do CSC or copy non-aligned surface
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->CheckCondition());
-        }
-
     }
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetPictureStructs());
@@ -2749,7 +2780,7 @@ MOS_STATUS CodechalEncodeMpeg2::InitKernelStateBrc()
             &kernelState->dwSshSize,
             &kernelState->dwBindingTableSize));
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_MhwInitISH(m_stateHeapInterface, kernelState));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->MhwInitISH(m_stateHeapInterface, kernelState));
     }
 
     return eStatus;
@@ -2807,7 +2838,7 @@ MOS_STATUS CodechalEncodeMpeg2::EncodeMeKernel()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(VerifySpaceAvailable());
     }
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_AssignDshAndSshSpace(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AssignDshAndSshSpace(
         m_stateHeapInterface,
         kernelState,
         false,
@@ -2882,7 +2913,7 @@ MOS_STATUS CodechalEncodeMpeg2::EncodeMeKernel()
     walkerCodecParams.bNoDependency         = true;
 
     MHW_WALKER_PARAMS walkerParams;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_InitMediaObjectWalkerParams(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalInitMediaObjectWalkerParams(
         m_hwInterface,
         &walkerParams,
         &walkerCodecParams));
@@ -2976,7 +3007,7 @@ MOS_STATUS CodechalEncodeMpeg2::SetCurbeBrcInitReset()
     BrcInitResetCurbe cmd;
 
     cmd.m_curbeData.DW1.m_initBufFullInBits = m_seqParams->m_initVBVBufferFullnessInBit;
-	cmd.m_curbeData.DW2.m_bufSizeInBits = m_seqParams->m_vbvBufferSize * CODEC_ENCODE_MPEG2_VBV_BUFFER_SIZE_UNITS;
+    cmd.m_curbeData.DW2.m_bufSizeInBits = m_seqParams->m_vbvBufferSize * CODEC_ENCODE_MPEG2_VBV_BUFFER_SIZE_UNITS;
     cmd.m_curbeData.DW3.m_averageBitRate = m_seqParams->m_bitrate * CODECHAL_ENCODE_BRC_KBPS;
     cmd.m_curbeData.DW4.m_maxBitRate = m_seqParams->m_maxBitRate * CODECHAL_ENCODE_BRC_KBPS;
 
@@ -2996,7 +3027,7 @@ MOS_STATUS CodechalEncodeMpeg2::SetCurbeBrcInitReset()
     cmd.m_curbeData.DW12.m_noSlices = ((m_frameHeight + 31) >> 5) << 1;
 
     // Frame Rate m_value Scaled by m_frameRateDenom
-	uint32_t scaledFrameRateValue = CalcFrameRateValue(m_seqParams->m_frameRateCode, m_frameRateDenom);
+    uint32_t scaledFrameRateValue = CalcFrameRateValue(m_seqParams->m_frameRateCode, m_frameRateDenom);
 
     if (CodecHal_PictureIsFrame(m_picParams->m_currOriginalPic))
     {
@@ -3007,7 +3038,7 @@ MOS_STATUS CodechalEncodeMpeg2::SetCurbeBrcInitReset()
         cmd.m_curbeData.DW6.m_frameRateM = scaledFrameRateValue * 2;
     }
 
-	cmd.m_curbeData.DW7.m_frameRateD = m_frameRateDenom;
+    cmd.m_curbeData.DW7.m_frameRateD = m_frameRateDenom;
     cmd.m_curbeData.DW8.m_brcFlag = (CodecHal_PictureIsFrame(m_picParams->m_currOriginalPic)) ? (0) : (CODECHAL_ENCODE_BRCINIT_FIELD_PIC);
 
     if (m_seqParams->m_rateControlMethod == RATECONTROL_CBR)
@@ -3082,7 +3113,7 @@ MOS_STATUS CodechalEncodeMpeg2::SendBrcInitResetSurfaces(
     surfaceCodecParams.dwBindingTableOffset = brcInitResetHistory;
     surfaceCodecParams.bIsWritable = true;
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         cmdBuffer,
         &surfaceCodecParams,
@@ -3101,7 +3132,7 @@ MOS_STATUS CodechalEncodeMpeg2::SendBrcInitResetSurfaces(
     surfaceCodecParams.dwOffset = m_brcBuffers.dwMeBrcDistortionBottomFieldOffset;
     surfaceCodecParams.dwBindingTableOffset = brcInitResetDistortion;
     surfaceCodecParams.bIsWritable = true;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         cmdBuffer,
         &surfaceCodecParams,
@@ -3138,7 +3169,7 @@ MOS_STATUS CodechalEncodeMpeg2::EncodeBrcInitResetKernel()
     }
 
     // Setup Mpeg2 Curbe
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_AssignDshAndSshSpace(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AssignDshAndSshSpace(
         m_stateHeapInterface,
         kernelState,
         false,
@@ -3245,212 +3276,6 @@ MOS_STATUS CodechalEncodeMpeg2::EncodeBrcInitResetKernel()
     return eStatus;
 }
 
-MOS_STATUS CodechalEncodeMpeg2::SendMediaObjectsBB(
-    PMHW_BATCH_BUFFER batchBuffer,
-    bool mbEncIFrameDistEnabled)
-{
-    MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
-
-    CODECHAL_ENCODE_FUNCTION_ENTER;
-
-    uint16_t frameFieldHeightInMb;
-    uint16_t widthInMb;
-    uint32_t numSlice;
-    bool bDistortionCalc;
-    if(mbEncIFrameDistEnabled)
-    {
-        frameFieldHeightInMb = (uint16_t)m_downscaledFrameFieldHeightInMb4x;
-        widthInMb = (uint16_t)m_downscaledWidthInMb4x;
-        numSlice  = 1;
-        bDistortionCalc = true;
-    }
-    else
-    {
-        frameFieldHeightInMb = m_frameFieldHeightInMb;
-        widthInMb = m_picWidthInMb;
-        numSlice  = m_numSlices;
-        bDistortionCalc = false;
-    }
-    uint32_t numObjs = frameFieldHeightInMb * widthInMb;
-    uint16_t *mBOffset = nullptr;
-
-    // use Mb Walker
-    mBOffset = (uint16_t *)MOS_AllocAndZeroMemory(numObjs * sizeof(uint16_t));
-    if (!mBOffset)
-    {
-        CODECHAL_ENCODE_ASSERT(false);
-        MOS_ZeroMemory(
-            batchBuffer->pData,
-            batchBuffer->iCurrent + batchBuffer->iRemaining);
-        eStatus = MOS_STATUS_NO_SPACE;
-        return eStatus;
-    }
-
-    uint32_t walkingPattern = 0;
-    if (m_pictureCodingType == I_TYPE )
-    {
-        walkingPattern = codechalHorizontalRasterScan;
-    }
-    else if (m_pictureCodingType == P_TYPE)
-    {
-        walkingPattern = codechalHorizontal45DegreeScan;
-    }
-    else // B_TYPE
-    {
-        walkingPattern = codechalVerticalRasterScan;
-    }
-    switch (walkingPattern)
-    {
-    case codechalHorizontal45DegreeScan:
-        CodecHalEncode_MBWalker_45(widthInMb, frameFieldHeightInMb, mBOffset);
-        break;
-    case codechalHorizontalRasterScan:
-        CodecHalEncode_MBWalker_RasterScan(widthInMb, frameFieldHeightInMb, mBOffset);
-        break;
-    case codechalVerticalRasterScan:
-        CodecHalEncode_MBWalker_VerticalScan(widthInMb, frameFieldHeightInMb, mBOffset);
-        break;
-    default:
-        eStatus = MOS_STATUS_UNKNOWN;
-        MOS_FreeMemory(mBOffset);
-        return eStatus;;
-        break;
-    }
-
-    auto slcData = m_slcData;
-    auto slcParams = m_sliceParams;
-    auto slcRecord = (SliceRecord *)MOS_AllocAndZeroMemory(sizeof(SliceRecord)* (numObjs));
-    if (!slcRecord)
-    {
-        MOS_FreeMemory(mBOffset);
-        eStatus = MOS_STATUS_NO_SPACE;
-        return eStatus;
-    }
-
-    int32_t mbX, mbY;
-
-    if (m_codecFunction != CODECHAL_FUNCTION_ENC)
-    {
-        uint32_t numMbsForSlice;
-        int32_t numMbLeftInRow;
-        // Populate slcRecord lookup table
-        auto pSlcRecordStart = slcRecord;
-        for (uint32_t i = 0; i < numSlice; i++)
-        {
-            if (bDistortionCalc)
-            {
-                mbY = 0;
-                mbX = 0;
-                numMbLeftInRow = widthInMb;
-                numMbsForSlice = widthInMb * frameFieldHeightInMb;
-            }
-            else
-            {
-                mbY = slcParams->m_firstMbX;
-                mbX = slcParams->m_firstMbX;
-                numMbLeftInRow = widthInMb - mbX;
-                numMbsForSlice = slcParams->m_numMbsForSlice;
-            }
-
-            // make sure enough memory is allocated
-            CODECHAL_ENCODE_ASSERT((numMbsForSlice * numSlice) <= numObjs);
-
-            for (uint32_t j = 0; j < numMbsForSlice; j++)
-            {
-                if (j == 0)
-                {
-                    slcRecord->DW1.m_firstMbInSlice = 0x40;
-                    slcRecord->DW1.m_firstMbInSliceGroup = (bDistortionCalc || (slcData->SliceGroup & SLICE_GROUP_START)) ? 0x01 : 0;
-                }
-                if (j == numMbsForSlice - 1)
-                {
-                    slcRecord->DW1.m_lastMbInSlice = 0x80;
-                    if (bDistortionCalc || (slcData->SliceGroup & SLICE_GROUP_END))
-                    {
-                        slcRecord->DW1.m_lastMbInSliceGroup = 0x04;
-                        slcRecord->DW2.m_value = 0x05000000;
-                    }
-                }
-                mbX++;
-                slcRecord++;
-                numMbLeftInRow --;
-                if (numMbLeftInRow  <= 0)
-                {
-                    mbX = 0;
-                    mbY++;
-                    numMbLeftInRow = widthInMb;
-                }
-            }
-            slcParams++;
-            slcData++;
-        }
-
-        slcRecord = pSlcRecordStart;
-    }
-
-    MHW_MEDIA_OBJECT_PARAMS mediaObjectParams;
-    MOS_ZeroMemory(&mediaObjectParams, sizeof(mediaObjectParams));
-    mediaObjectParams.VfeScoreboard.ScoreboardEnable    =
-        (m_pictureCodingType == I_TYPE )? false:m_useHwScoreboard;;
-    mediaObjectParams.dwHalfSliceDestinationSelect      = m_halfSliceSelect;
-    MediaObjectInlineDataMpeg2  mediaObjectInlineData;
-    MOS_ZeroMemory(&mediaObjectInlineData, sizeof(mediaObjectInlineData));
-    mediaObjectParams.pInlineData                       = &mediaObjectInlineData;
-    mediaObjectParams.dwInlineDataSize                  = sizeof(mediaObjectInlineData);
-
-    for (uint32_t i = 0; i < numObjs; i++)
-    {
-        uint32_t mbOffset = mBOffset[i];
-        mbX = mbOffset % widthInMb;
-        mbY = mbOffset / widthInMb;
-        uint32_t idx = mbX + (mbY * widthInMb);
-
-        mediaObjectParams.VfeScoreboard.Value[0] = mbX;
-        mediaObjectParams.VfeScoreboard.Value[1] = mbY;
-        mediaObjectInlineData.DW0.m_mbX = mbX;
-        mediaObjectInlineData.DW0.m_mbY = mbY;
-        mediaObjectInlineData.DW1.m_value = slcRecord[idx].DW1.m_value;
-        mediaObjectInlineData.DW2.m_value = slcRecord[idx].DW2.m_value;
-
-        switch (walkingPattern)
-        {
-        case codechalHorizontal45DegreeScan:
-            // Dependent on both previous hor,ver MBs
-            mediaObjectParams.VfeScoreboard.ScoreboardMask = 0x03;
-            break;
-        case codechalVerticalRasterScan:
-            // Dependent on both previous ver MBs
-            mediaObjectParams.VfeScoreboard.ScoreboardMask = 0x01;
-            break;
-        default:
-            break;
-        }
-
-        eStatus = m_hwInterface->GetRenderInterface()->AddMediaObject(
-            nullptr,
-            batchBuffer,
-            &mediaObjectParams);
-        if (eStatus != MOS_STATUS_SUCCESS)
-        {
-            MOS_FreeMemory(mBOffset);
-            MOS_FreeMemory(slcRecord);
-            return eStatus;
-        }
-    }
-
-    eStatus = m_miInterface->AddMiBatchBufferEnd(
-        nullptr,
-        batchBuffer);
-
-    if (eStatus != MOS_STATUS_SUCCESS)
-    {
-        MOS_FreeMemory(mBOffset);
-        MOS_FreeMemory(slcRecord);
-        return eStatus;
-    }
-
-    return eStatus;
-}
 MOS_STATUS CodechalEncodeMpeg2::EncodeMbEncKernel(bool mbEncIFrameDistEnabled)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
@@ -3470,11 +3295,11 @@ MOS_STATUS CodechalEncodeMpeg2::EncodeMbEncKernel(bool mbEncIFrameDistEnabled)
     {
         encFunctionType = CODECHAL_MEDIA_STATE_ENC_I_FRAME_DIST;
     }
-    else if (m_kernelMode == CODECHAL_ENCODE_NORMAL_MODE)
+    else if (m_kernelMode == encodeNormalMode)
     {
         encFunctionType = CODECHAL_MEDIA_STATE_ENC_NORMAL;
     }
-    else if (m_kernelMode == CODECHAL_ENCODE_PERFORMANCE_MODE)
+    else if (m_kernelMode == encodePerformanceMode)
     {
         encFunctionType = CODECHAL_MEDIA_STATE_ENC_PERFORMANCE;
     }
@@ -3512,7 +3337,7 @@ MOS_STATUS CodechalEncodeMpeg2::EncodeMbEncKernel(bool mbEncIFrameDistEnabled)
     if (m_mbEncCurbeSetInBrcUpdate)
     {
         // single task phase disabled for MPEG2 MbEnc
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_AssignDshAndSshSpace(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AssignDshAndSshSpace(
             m_stateHeapInterface,
             kernelState,
             true,
@@ -3523,7 +3348,7 @@ MOS_STATUS CodechalEncodeMpeg2::EncodeMbEncKernel(bool mbEncIFrameDistEnabled)
     else
     {
         // Set up the DSH as normal
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_AssignDshAndSshSpace(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AssignDshAndSshSpace(
             m_stateHeapInterface,
             kernelState,
             false,
@@ -3567,10 +3392,10 @@ MOS_STATUS CodechalEncodeMpeg2::EncodeMbEncKernel(bool mbEncIFrameDistEnabled)
             if (m_codecFunction == CODECHAL_FUNCTION_ENC_PAK)
             {
                 m_refList[Index]->resRefMbCodeBuffer =
-                    m_trackedBuffer[m_refList[Index]->ucMbCodeIdx].resMbCodeBuffer;
+                    *(MOS_RESOURCE*)m_allocator->GetResource(m_standard, mbCodeBuffer, m_refList[Index]->ucMbCodeIdx);
             }
 
-            CodecHal_GetResourceInfo(m_osInterface, &m_refList[Index]->sRefBuffer);
+            CodecHalGetResourceInfo(m_osInterface, &m_refList[Index]->sRefBuffer);
         }
     }
 
@@ -3622,7 +3447,7 @@ MOS_STATUS CodechalEncodeMpeg2::EncodeMbEncKernel(bool mbEncIFrameDistEnabled)
     }
 
     MHW_WALKER_PARAMS walkerParams;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_InitMediaObjectWalkerParams(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalInitMediaObjectWalkerParams(
         m_hwInterface,
         &walkerParams,
         &walkerCodecParams));
@@ -3687,10 +3512,10 @@ MOS_STATUS CodechalEncodeMpeg2::SendBrcUpdateSurfaces(
     MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
     surfaceCodecParams.bIsWritable = true;
     surfaceCodecParams.presBuffer = &m_brcBuffers.resBrcHistoryBuffer;
-	surfaceCodecParams.dwSize = m_brcHistoryBufferSize;
+    surfaceCodecParams.dwSize = m_brcHistoryBufferSize;
     surfaceCodecParams.dwBindingTableOffset = brcUpdateHistory;
     surfaceCodecParams.bIsWritable = true;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         cmdBuffer,
         &surfaceCodecParams,
@@ -3701,7 +3526,7 @@ MOS_STATUS CodechalEncodeMpeg2::SendBrcUpdateSurfaces(
     surfaceCodecParams.presBuffer = &m_brcBuffers.resBrcPakStatisticBuffer[0];
     surfaceCodecParams.dwSize = MOS_BYTES_TO_DWORDS(m_brcPakStatisticsSize);
     surfaceCodecParams.dwBindingTableOffset = brcUpdatePakStaticOutput;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         cmdBuffer,
         &surfaceCodecParams,
@@ -3714,7 +3539,7 @@ MOS_STATUS CodechalEncodeMpeg2::SendBrcUpdateSurfaces(
         &m_brcBuffers.resBrcImageStatesReadBuffer[m_currRecycledBufIdx];
     surfaceCodecParams.dwSize = bufSize;
     surfaceCodecParams.dwBindingTableOffset = brcUpdatePictureStateRead;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         cmdBuffer,
         &surfaceCodecParams,
@@ -3726,7 +3551,7 @@ MOS_STATUS CodechalEncodeMpeg2::SendBrcUpdateSurfaces(
     surfaceCodecParams.presBuffer = &m_brcBuffers.resBrcImageStatesWriteBuffer;
     surfaceCodecParams.dwSize = bufSize;
     surfaceCodecParams.dwBindingTableOffset = brcUpdatePictureStateWrite;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         cmdBuffer,
         &surfaceCodecParams,
@@ -3747,7 +3572,7 @@ MOS_STATUS CodechalEncodeMpeg2::SendBrcUpdateSurfaces(
     surfaceCodecParams.dwBindingTableOffset = brcUpdateMbencCurbeRead;
     // If the protection DSH isn't used, the same DSH is used for both the MbEnc CURBE read and write
     surfaceCodecParams.bIsWritable = true;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         cmdBuffer,
         &surfaceCodecParams,
@@ -3763,7 +3588,7 @@ MOS_STATUS CodechalEncodeMpeg2::SendBrcUpdateSurfaces(
     surfaceCodecParams.dwBindingTableOffset = brcUpdateMbencCurbeWrite;
     surfaceCodecParams.bRenderTarget = true;
     surfaceCodecParams.bIsWritable = true;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         cmdBuffer,
         &surfaceCodecParams,
@@ -3778,7 +3603,7 @@ MOS_STATUS CodechalEncodeMpeg2::SendBrcUpdateSurfaces(
     surfaceCodecParams.dwSize = bufSize;
     surfaceCodecParams.dwBindingTableOffset = brcUpdateDistortion;
     surfaceCodecParams.bIsWritable = true;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         cmdBuffer,
         &surfaceCodecParams,
@@ -3791,7 +3616,7 @@ MOS_STATUS CodechalEncodeMpeg2::SendBrcUpdateSurfaces(
     surfaceCodecParams.psSurface =
         &m_brcBuffers.sBrcConstantDataBuffer[m_currRecycledBufIdx];
     surfaceCodecParams.dwBindingTableOffset = brcUpdateConstantData;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         cmdBuffer,
         &surfaceCodecParams,
@@ -3804,7 +3629,7 @@ MOS_STATUS CodechalEncodeMpeg2::SendBrcUpdateSurfaces(
         &m_brcBuffers.resBrcPicHeaderInputBuffer;
     surfaceCodecParams.dwSize = bufSize;
     surfaceCodecParams.dwBindingTableOffset = brcUpdatePicHeaderInputData;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         cmdBuffer,
         &surfaceCodecParams,
@@ -3816,7 +3641,7 @@ MOS_STATUS CodechalEncodeMpeg2::SendBrcUpdateSurfaces(
     surfaceCodecParams.presBuffer = &m_brcBuffers.resBrcPicHeaderOutputBuffer;
     surfaceCodecParams.dwSize = bufSize;
     surfaceCodecParams.dwBindingTableOffset = brcUpdateOutputData;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         cmdBuffer,
         &surfaceCodecParams,
@@ -3934,22 +3759,22 @@ MOS_STATUS CodechalEncodeMpeg2::InitBrcConstantBuffer()
     // The surface width happens to be the size of the array.
     CODECHAL_ENCODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(
         data, 
-		m_frameThresholdArraySize,
+        m_frameThresholdArraySize,
         maxFrameThresholdArray, 
-		m_frameThresholdArraySize));
+        m_frameThresholdArraySize));
 
-	data += m_frameThresholdArraySize;
+    data += m_frameThresholdArraySize;
 
-	for (uint32_t i = 0; i < m_distQpAdjustmentArraySize; i += m_brcConstantSurfaceWidth)
+    for (uint32_t i = 0; i < m_distQpAdjustmentArraySize; i += m_brcConstantSurfaceWidth)
     {
         uint32_t copySize;
-		if ((m_distQpAdjustmentArraySize - i) > m_brcConstantSurfaceWidth)
+        if ((m_distQpAdjustmentArraySize - i) > m_brcConstantSurfaceWidth)
         {
-			copySize = m_brcConstantSurfaceWidth;
+            copySize = m_brcConstantSurfaceWidth;
         }
         else
         {
-			copySize = m_distQpAdjustmentArraySize - i;
+            copySize = m_distQpAdjustmentArraySize - i;
         }
         CODECHAL_ENCODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(
             data + i, 
@@ -3995,7 +3820,7 @@ MOS_STATUS CodechalEncodeMpeg2::EncodeBrcUpdateKernel()
 
 
     // Setup MbEnc Curbe
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_AssignDshAndSshSpace(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AssignDshAndSshSpace(
         m_stateHeapInterface,
         mbEncKernelState,
         false,
@@ -4014,7 +3839,7 @@ MOS_STATUS CodechalEncodeMpeg2::EncodeBrcUpdateKernel()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetCurbeMbEnc(0, 0));
 
     // Brc Update
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_AssignDshAndSshSpace(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AssignDshAndSshSpace(
         m_stateHeapInterface,
         kernelState,
         false,
@@ -4035,11 +3860,11 @@ MOS_STATUS CodechalEncodeMpeg2::EncodeBrcUpdateKernel()
 
     CODECHAL_MEDIA_STATE_TYPE encFunctionType = CODECHAL_MEDIA_STATE_BRC_UPDATE;
     CODECHAL_MEDIA_STATE_TYPE mbEncFunctionType;
-    if (m_kernelMode == CODECHAL_ENCODE_NORMAL_MODE)
+    if (m_kernelMode == encodeNormalMode)
     {
         mbEncFunctionType = CODECHAL_MEDIA_STATE_ENC_NORMAL;
     }
-    else if (m_kernelMode == CODECHAL_ENCODE_PERFORMANCE_MODE)
+    else if (m_kernelMode == encodePerformanceMode)
     {
         mbEncFunctionType = CODECHAL_MEDIA_STATE_ENC_PERFORMANCE;
     }
@@ -4125,66 +3950,67 @@ MOS_STATUS CodechalEncodeMpeg2::EncodeBrcUpdateKernel()
             encFunctionType,
             nullptr));
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-        &m_brcBuffers.resBrcImageStatesReadBuffer[m_currRecycledBufIdx],
-        CodechalDbgAttr::attrInput,
-        "ImgStateRead",
-        BRC_IMG_STATE_SIZE_PER_PASS * m_hwInterface->GetMfxInterface()->GetBrcNumPakPasses(),
-        0,
-        CODECHAL_MEDIA_STATE_BRC_UPDATE));
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-        &m_brcBuffers.sBrcConstantDataBuffer[m_currRecycledBufIdx].OsResource,
-        CodechalDbgAttr::attrInput,
-        "ConstData",
-        m_brcBuffers.sBrcConstantDataBuffer[m_currRecycledBufIdx].dwPitch * m_brcBuffers.sBrcConstantDataBuffer[m_currRecycledBufIdx].dwHeight,
-        0,
-        CODECHAL_MEDIA_STATE_BRC_UPDATE));
-    // PAK statistics buffer is only dumped for BrcUpdate kernel input
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-        &m_brcBuffers.resBrcPakStatisticBuffer[0],
-        CodechalDbgAttr::attrInput,
-        "PakStats",
-        m_brcPakStatisticsSize,
-        0,
-        CODECHAL_MEDIA_STATE_BRC_UPDATE));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+            &m_brcBuffers.resBrcImageStatesReadBuffer[m_currRecycledBufIdx],
+            CodechalDbgAttr::attrInput,
+            "ImgStateRead",
+            BRC_IMG_STATE_SIZE_PER_PASS * m_hwInterface->GetMfxInterface()->GetBrcNumPakPasses(),
+            0,
+            CODECHAL_MEDIA_STATE_BRC_UPDATE));
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-        &m_brcBuffers.sMeBrcDistortionBuffer.OsResource,
-        CodechalDbgAttr::attrInput,
-        "BrcDist",
-        m_brcBuffers.sMeBrcDistortionBuffer.dwPitch * m_brcBuffers.sMeBrcDistortionBuffer.dwHeight,
-        m_brcBuffers.dwMeBrcDistortionBottomFieldOffset,
-        CODECHAL_MEDIA_STATE_BRC_UPDATE));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+            &m_brcBuffers.sBrcConstantDataBuffer[m_currRecycledBufIdx].OsResource,
+            CodechalDbgAttr::attrInput,
+            "ConstData",
+            m_brcBuffers.sBrcConstantDataBuffer[m_currRecycledBufIdx].dwPitch * m_brcBuffers.sBrcConstantDataBuffer[m_currRecycledBufIdx].dwHeight,
+            0,
+            CODECHAL_MEDIA_STATE_BRC_UPDATE));
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-        &m_brcBuffers.resBrcHistoryBuffer,
-        CodechalDbgAttr::attrInput,
-        "HistoryRead",
-        m_brcHistoryBufferSize,
-        0,
-        CODECHAL_MEDIA_STATE_BRC_UPDATE));
-    if (m_brcBuffers.pMbEncKernelStateInUse)
-    {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_brcBuffers.pMbEncKernelStateInUse->m_dshRegion.Dump(
-            "BrcUpdate_DrcMbPakCurbeRead",
-            m_brcBuffers.pMbEncKernelStateInUse->dwCurbeOffset,
-            m_brcBuffers.pMbEncKernelStateInUse->KernelParams.iCurbeLength));
-    }
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-        &m_resMbStatsBuffer,
-        CodechalDbgAttr::attrInput,
-        "MBStatsSurf",
-        m_hwInterface->m_avcMbStatBufferSize,
-        0,
-        CODECHAL_MEDIA_STATE_BRC_UPDATE));
+        // PAK statistics buffer is only dumped for BrcUpdate kernel input
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+            &m_brcBuffers.resBrcPakStatisticBuffer[0],
+            CodechalDbgAttr::attrInput,
+            "PakStats",
+            m_brcPakStatisticsSize,
+            0,
+            CODECHAL_MEDIA_STATE_BRC_UPDATE));
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-        &m_brcBuffers.resBrcPicHeaderInputBuffer,
-        CodechalDbgAttr::attrInput,
-        "PicHeaderRead",
-        CODEC_ENCODE_MPEG2_BRC_PIC_HEADER_SURFACE_SIZE,
-        0,
-        CODECHAL_MEDIA_STATE_BRC_UPDATE));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+            &m_brcBuffers.sMeBrcDistortionBuffer.OsResource,
+            CodechalDbgAttr::attrInput,
+            "BrcDist",
+            m_brcBuffers.sMeBrcDistortionBuffer.dwPitch * m_brcBuffers.sMeBrcDistortionBuffer.dwHeight,
+            m_brcBuffers.dwMeBrcDistortionBottomFieldOffset,
+            CODECHAL_MEDIA_STATE_BRC_UPDATE));
+
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+            &m_brcBuffers.resBrcHistoryBuffer,
+            CodechalDbgAttr::attrInput,
+            "HistoryRead",
+            m_brcHistoryBufferSize,
+            0,
+            CODECHAL_MEDIA_STATE_BRC_UPDATE));
+        if (m_brcBuffers.pMbEncKernelStateInUse)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpCurbe(
+                CODECHAL_MEDIA_STATE_BRC_UPDATE,
+                m_brcBuffers.pMbEncKernelStateInUse));
+        }
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+            &m_resMbStatsBuffer,
+            CodechalDbgAttr::attrInput,
+            "MBStatsSurf",
+            m_hwInterface->m_avcMbStatBufferSize,
+            0,
+            CODECHAL_MEDIA_STATE_BRC_UPDATE));
+
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+            &m_brcBuffers.resBrcPicHeaderInputBuffer,
+            CodechalDbgAttr::attrInput,
+            "PicHeaderRead",
+            CODEC_ENCODE_MPEG2_BRC_PIC_HEADER_SURFACE_SIZE,
+            0,
+            CODECHAL_MEDIA_STATE_BRC_UPDATE));
     )
        
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_stateHeapInterface->pfnSubmitBlocks(
@@ -4367,58 +4193,60 @@ MOS_STATUS CodechalEncodeMpeg2::ExecuteKernelFunctions()
             0,
             CODECHAL_MEDIA_STATE_ENC_QUALITY));
     }
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-        &m_brcBuffers.resBrcImageStatesReadBuffer[m_currRecycledBufIdx],
-        CodechalDbgAttr::attrOutput,
-        "ImgStateWrite",
-        BRC_IMG_STATE_SIZE_PER_PASS * m_hwInterface->GetMfxInterface()->GetBrcNumPakPasses(),
-        0,
-        CODECHAL_MEDIA_STATE_BRC_UPDATE));
-
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-        &m_brcBuffers.resBrcHistoryBuffer,
-        CodechalDbgAttr::attrOutput,
-        "HistoryWrite",
-        m_brcHistoryBufferSize,
-        0,
-        CODECHAL_MEDIA_STATE_BRC_UPDATE));
-    if (!Mos_ResourceIsNull(&m_brcBuffers.sBrcMbQpBuffer.OsResource))
+    if (m_brcEnabled)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-            &m_brcBuffers.resBrcPakStatisticBuffer[m_brcPakStatisticsSize],
+            &m_brcBuffers.resBrcImageStatesReadBuffer[m_currRecycledBufIdx],
             CodechalDbgAttr::attrOutput,
-            "MbQp",
-            m_brcBuffers.dwBrcMbQpBottomFieldOffset,
-            m_brcBuffers.sBrcMbQpBuffer.dwPitch*m_brcBuffers.sBrcMbQpBuffer.dwHeight,
-            CODECHAL_MEDIA_STATE_BRC_UPDATE));
-    }
-
-    if (m_brcBuffers.pMbEncKernelStateInUse)
-    {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_brcBuffers.pMbEncKernelStateInUse->m_dshRegion.Dump(
-            "MbEncCurbeWrite",
-            m_brcBuffers.pMbEncKernelStateInUse->dwCurbeOffset,
-            m_brcBuffers.pMbEncKernelStateInUse->KernelParams.iCurbeLength));
-    }
-    if (m_mbencBrcBufferSize>0)
-    {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-            &m_brcBuffers.resMbEncBrcBuffer,
-            CodechalDbgAttr::attrOutput,
-            "MbEncBRCWrite",
-            m_mbencBrcBufferSize,
+            "ImgStateWrite",
+            BRC_IMG_STATE_SIZE_PER_PASS * m_hwInterface->GetMfxInterface()->GetBrcNumPakPasses(),
             0,
             CODECHAL_MEDIA_STATE_BRC_UPDATE));
-    }
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(
-        m_debugInterface->DumpBuffer(
-        &m_brcBuffers.resBrcPicHeaderOutputBuffer,
-        CodechalDbgAttr::attrOutput,
-        "PicHeaderWrite",
-        CODEC_ENCODE_MPEG2_BRC_PIC_HEADER_SURFACE_SIZE,
-        0,
-        CODECHAL_MEDIA_STATE_BRC_UPDATE));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+            &m_brcBuffers.resBrcHistoryBuffer,
+            CodechalDbgAttr::attrOutput,
+            "HistoryWrite",
+            m_brcHistoryBufferSize,
+            0,
+            CODECHAL_MEDIA_STATE_BRC_UPDATE));
+        if (!Mos_ResourceIsNull(&m_brcBuffers.sBrcMbQpBuffer.OsResource))
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+                &m_brcBuffers.resBrcPakStatisticBuffer[m_brcPakStatisticsSize],
+                CodechalDbgAttr::attrOutput,
+                "MbQp",
+                m_brcBuffers.dwBrcMbQpBottomFieldOffset,
+                m_brcBuffers.sBrcMbQpBuffer.dwPitch*m_brcBuffers.sBrcMbQpBuffer.dwHeight,
+                CODECHAL_MEDIA_STATE_BRC_UPDATE));
+        }
+
+        if (m_brcBuffers.pMbEncKernelStateInUse)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpCurbe(
+                CODECHAL_MEDIA_STATE_BRC_UPDATE,
+                m_brcBuffers.pMbEncKernelStateInUse));
+        }
+        if (m_mbencBrcBufferSize > 0)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+                &m_brcBuffers.resMbEncBrcBuffer,
+                CodechalDbgAttr::attrOutput,
+                "MbEncBRCWrite",
+                m_mbencBrcBufferSize,
+                0,
+                CODECHAL_MEDIA_STATE_BRC_UPDATE));
+        }
+
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(
+            m_debugInterface->DumpBuffer(
+                &m_brcBuffers.resBrcPicHeaderOutputBuffer,
+                CodechalDbgAttr::attrOutput,
+                "PicHeaderWrite",
+                CODEC_ENCODE_MPEG2_BRC_PIC_HEADER_SURFACE_SIZE,
+                0,
+                CODECHAL_MEDIA_STATE_BRC_UPDATE));
+    }
     )
 
     // Reset after BRC Init has been processed
@@ -4426,7 +4254,7 @@ MOS_STATUS CodechalEncodeMpeg2::ExecuteKernelFunctions()
 
     m_setRequestedEUSlices = false;
 
-	// Reset indices for next frame
+    // Reset indices for next frame
     if (m_brcEnabled)
     {        
         m_mbEncCurbeSetInBrcUpdate = false;
@@ -4485,7 +4313,7 @@ MOS_STATUS CodechalEncodeMpeg2::ExecutePictureLevel()
         if (m_picIdx[i].bValid)
         {
             uint8_t picIdx = m_picIdx[i].ucPicIdx;
-            CodecHal_GetResourceInfo(
+            CodecHalGetResourceInfo(
                 m_osInterface,
                 &(m_refList[picIdx]->sRefReconBuffer));
             pipeBufAddrParams.presReferences[i] = &(m_refList[picIdx]->sRefReconBuffer.OsResource);
@@ -4500,16 +4328,16 @@ MOS_STATUS CodechalEncodeMpeg2::ExecutePictureLevel()
                 MOS_ZeroMemory(&refSurface, sizeof(refSurface));
                 refSurface.Format     = Format_NV12;
                 refSurface.OsResource = *(pipeBufAddrParams.presReferences[i]);
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_GetResourceInfo(
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(
                     m_osInterface,
                     &refSurface));
 
                 m_debugInterface->wRefIndex = (uint16_t)i;
-                std::string refSurfName = "RefSurf" + std::to_string(static_cast<uint32_t>(m_debugInterface->wRefIndex));
+                std::string refSurfName = "RefSurf[" + std::to_string(static_cast<uint32_t>(m_debugInterface->wRefIndex))+"]";
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
                     &refSurface,
                     CodechalDbgAttr::attrReferenceSurfaces,
-                    refSurfName.data()));
+                    refSurfName.c_str()));
             )
         }
     }
@@ -4656,7 +4484,7 @@ MOS_STATUS CodechalEncodeMpeg2::ExecutePictureLevel()
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpData(
                 (void *)picStateCmdStart,
                 picStateCmdSize,
-                CodechalDbgAttr::attrInput,
+                CodechalDbgAttr::attrPicParams,
                 "PicState")));
     }
 
@@ -4812,7 +4640,7 @@ MOS_STATUS CodechalEncodeMpeg2::ExecuteSliceLevel()
             m_encodeStatusBuf.dwNumPassesOffset                              +   // Num passes offset
             sizeof(uint32_t) * 2;                                                          // pEncodeStatus is offset by 2 DWs in the resource
 
-        CODECHAL_ENCODE_READ_BRC_PAK_STATS_PARAMS   readBrcPakStatsParams;
+        EncodeReadBrcPakStatsParams   readBrcPakStatsParams;
         readBrcPakStatsParams.pHwInterface                  = m_hwInterface;
         readBrcPakStatsParams.presBrcPakStatisticBuffer     = &m_brcBuffers.resBrcPakStatisticBuffer[0];
         readBrcPakStatsParams.presStatusBuffer              = &m_encodeStatusBuf.resStatusBuffer;
@@ -4836,12 +4664,12 @@ MOS_STATUS CodechalEncodeMpeg2::ExecuteSliceLevel()
             nullptr));
     }
 
-    std::string Pak_pass = "PAK_PASS" + std::to_string(static_cast<uint32_t>(m_currPass));
+    std::string Pak_pass = "PAK_PASS[" + std::to_string(static_cast<uint32_t>(m_currPass))+"]";
     CODECHAL_DEBUG_TOOL(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpCmdBuffer(
             &cmdBuffer,
             CODECHAL_NUM_MEDIA_STATES,
-            Pak_pass.data()));
+            Pak_pass.c_str()));
 
         //CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_DbgReplaceAllCommands(
         //    m_debugInterface,
@@ -5022,7 +4850,7 @@ MOS_STATUS CodechalEncodeMpeg2::EncodeCopySkipFrame()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(StartStatusReport(&cmdBuffer, CODECHAL_NUM_MEDIA_STATES));
 
     //fill status report
-    auto encodeStatus = (PCODECHAL_ENCODE_STATUS)(m_encodeStatusBuf.pEncodeStatus +
+    auto encodeStatus = (EncodeStatus*)(m_encodeStatusBuf.pEncodeStatus +
                     m_encodeStatusBuf.wCurrIndex * m_encodeStatusBuf.dwReportSize);
     encodeStatus->dwMFCBitstreamByteCountPerFrame  = bsSize;
     encodeStatus->dwHeaderBytesInserted            = 0;  // set dwHeaderBytesInserted to 0
@@ -5079,7 +4907,7 @@ MOS_STATUS CodechalEncodeMpeg2::SendMbEncSurfaces(
     surfaceCodecParams.dwBindingTableOffset = m_mbEncBindingTable.m_mbEncPakObj;
     surfaceCodecParams.bRenderTarget = true;
     surfaceCodecParams.bIsWritable = true;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         cmdBuffer,
         &surfaceCodecParams,
@@ -5101,7 +4929,7 @@ MOS_STATUS CodechalEncodeMpeg2::SendMbEncSurfaces(
         surfaceCodecParams.dwBindingTableOffset = m_mbEncBindingTable.m_mbEncPakObjPrev;
         surfaceCodecParams.bRenderTarget = true;
         surfaceCodecParams.bIsWritable = true;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
             m_hwInterface,
             cmdBuffer,
             &surfaceCodecParams,
@@ -5121,7 +4949,10 @@ MOS_STATUS CodechalEncodeMpeg2::SendMbEncSurfaces(
     surfaceCodecParams.dwVerticalLineStride = m_verticalLineStride;
     surfaceCodecParams.dwVerticalLineStrideOffset = m_verticalLineStrideOffset;
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+#ifdef _MMC_SUPPORTED
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceParams(&surfaceCodecParams));
+#endif
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         cmdBuffer,
         &surfaceCodecParams,
@@ -5140,7 +4971,10 @@ MOS_STATUS CodechalEncodeMpeg2::SendMbEncSurfaces(
     surfaceCodecParams.dwBindingTableOffset = m_mbEncBindingTable.m_mbEncCurrentPic;
     surfaceCodecParams.ucVDirection = vDirection;
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+#ifdef _MMC_SUPPORTED
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceParams(&surfaceCodecParams));
+#endif
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         cmdBuffer,
         &surfaceCodecParams,
@@ -5172,7 +5006,7 @@ MOS_STATUS CodechalEncodeMpeg2::SendMbEncSurfaces(
         }
 
         // Picture Y
-        CodecHal_GetResourceInfo(m_osInterface, &m_refList[picIdx0]->sRefBuffer);
+        CodecHalGetResourceInfo(m_osInterface, &m_refList[picIdx0]->sRefBuffer);
 
         // Picture Y VME
         MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
@@ -5183,7 +5017,10 @@ MOS_STATUS CodechalEncodeMpeg2::SendMbEncSurfaces(
         surfaceCodecParams.dwCacheabilityControl = 
             m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_REF_ENCODE].Value;
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+#ifdef _MMC_SUPPORTED
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceParams(&surfaceCodecParams));
+#endif
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
             m_hwInterface,
             cmdBuffer,
             &surfaceCodecParams,
@@ -5198,7 +5035,7 @@ MOS_STATUS CodechalEncodeMpeg2::SendMbEncSurfaces(
             vDirection = (refL1BottomField ? CODECHAL_VDIRECTION_BOT_FIELD : CODECHAL_VDIRECTION_TOP_FIELD);
         }
 
-        CodecHal_GetResourceInfo(m_osInterface, &m_refList[picIdx1]->sRefBuffer);
+        CodecHalGetResourceInfo(m_osInterface, &m_refList[picIdx1]->sRefBuffer);
 
         // Picture Y VME
         MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
@@ -5209,7 +5046,10 @@ MOS_STATUS CodechalEncodeMpeg2::SendMbEncSurfaces(
         surfaceCodecParams.dwBindingTableOffset = m_mbEncBindingTable.m_mbEncBackwardPic;
         surfaceCodecParams.ucVDirection = vDirection;
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+#ifdef _MMC_SUPPORTED
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceParams(&surfaceCodecParams));
+#endif
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
             m_hwInterface,
             cmdBuffer,
             &surfaceCodecParams,
@@ -5229,7 +5069,10 @@ MOS_STATUS CodechalEncodeMpeg2::SendMbEncSurfaces(
         surfaceCodecParams.dwBindingTableOffset = m_mbEncBindingTable.m_mbEncInterlaceFrameCurrentPic;
         surfaceCodecParams.ucVDirection = vDirection;
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+#ifdef _MMC_SUPPORTED
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceParams(&surfaceCodecParams));
+#endif
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
             m_hwInterface,
             cmdBuffer,
             &surfaceCodecParams,
@@ -5246,7 +5089,10 @@ MOS_STATUS CodechalEncodeMpeg2::SendMbEncSurfaces(
             surfaceCodecParams.dwBindingTableOffset = m_mbEncBindingTable.m_mbEncInterlaceFrameBackwardPic;
             surfaceCodecParams.ucVDirection = vDirection;
 
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+#ifdef _MMC_SUPPORTED
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceParams(&surfaceCodecParams));
+#endif
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
                 m_hwInterface,
                 cmdBuffer,
                 &surfaceCodecParams,
@@ -5264,7 +5110,7 @@ MOS_STATUS CodechalEncodeMpeg2::SendMbEncSurfaces(
         surfaceCodecParams.dwOffset = m_brcBuffers.dwMeBrcDistortionBottomFieldOffset;
         surfaceCodecParams.dwBindingTableOffset = m_mbEncBindingTable.m_mbEncBrcDistortionSurface;
         surfaceCodecParams.bRenderTarget = true;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
             m_hwInterface,
             cmdBuffer,
             &surfaceCodecParams,
@@ -5278,10 +5124,10 @@ MOS_STATUS CodechalEncodeMpeg2::SendMbEncSurfaces(
         surfaceCodecParams.bIs2DSurface = true;
         surfaceCodecParams.bMediaBlockRW = true;
         surfaceCodecParams.psSurface = &m_mbQpDataSurface;
-		surfaceCodecParams.dwCacheabilityControl = 
+        surfaceCodecParams.dwCacheabilityControl = 
            m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_MB_QP_CODEC].Value;
         surfaceCodecParams.dwBindingTableOffset = m_mbEncBindingTable.m_mbEncMbControl;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
             m_hwInterface,
             cmdBuffer,
             &surfaceCodecParams,
@@ -5289,15 +5135,6 @@ MOS_STATUS CodechalEncodeMpeg2::SendMbEncSurfaces(
     }
 
     return eStatus;
-}
-
-void CodechalEncodeMpeg2::ResizeBuffer()
-{
-    CODECHAL_ENCODE_FUNCTION_ENTER;
-
-    // if resolution changed, free existing DS/CSC/MbCode/MvData resources
-    TrackedBufferResize();
-    m_cscDsState->Resize();
 }
 
 MOS_STATUS CodechalEncodeMpeg2::SendPrologWithFrameTracking(
@@ -5542,3 +5379,222 @@ MOS_STATUS CodechalEncodeMpeg2::DumpVuiParams(
     return MOS_STATUS_SUCCESS;
 }
 #endif
+
+/**************************************************************************
+* MB sequence in a non-MBAFF picture with WidthInMB = 5 & HeightInMB = 6
+* 26 degree walking pattern
+*        0    1    2    3    4
+*       -----------------------
+*   0  | 0    1    2    4    6
+*   1  | 3    5    7    9    11
+*   2  | 8    10   12   14   16
+*   3  | 13   15   17   19   21
+*   4  | 18   20   22   24   26
+*   5  | 23   25   27   28   29
+***************************************************************************/
+void CodechalEncodeMpeg2::MBWalker(uint16_t picWidthInMB, uint16_t picHeightInMB, uint16_t *mbmap)
+{
+    uint16_t i, j;
+    uint16_t numMBs = picWidthInMB * picHeightInMB;
+    uint16_t curX = 0, curY = 0, wflenX, wflenY;
+    uint16_t wfstart = 0, wflen;
+    uint16_t walkX, walkY;
+
+    wflenY = picHeightInMB - 1;
+    for (i = 0; i < numMBs; i++)
+    {
+        // Get current region length
+        wflenX = curX / 2;
+        wflen = (wflenX < wflenY) ? wflenX : wflenY;
+
+        mbmap[wfstart] = curY * picWidthInMB + curX;
+
+        if (wfstart == (numMBs - 1))
+            break;
+
+        walkX = curX - 2;
+        walkY = curY + 1;
+        for (j = 0; j < wflen; j++)
+        {
+            mbmap[wfstart + j + 1] = walkY * picWidthInMB + walkX;
+            walkX -= 2;
+            walkY++;
+        }
+
+        // Start new region
+        if (curX == (picWidthInMB - 1))
+        {
+            // Right picture boundary reached, adjustment required
+            curX--;
+            curY++;
+            wflenY--;
+        }
+        else
+        {
+            curX++;
+        }
+        wfstart += (wflen + 1);
+    }
+}
+
+/**************************************************************************
+* MB sequence in a non-MBAFF picture with WidthInMB = 5 & HeightInMB = 6
+* 45 degree pattern
+*        0    1    2    3    4
+*       -----------------------
+*   0  | 0    1    3    6    10
+*   1  | 2    4    7    11   15
+*   2  | 5    8    12   16   20
+*   3  | 9    13   17   21   24
+*   4  | 14   18   22   25   27
+*   5  | 19   23   26   28   29
+***************************************************************************/
+void CodechalEncodeMpeg2::MBWalker45Degree(uint16_t picWidthInMB, uint16_t picHeightInMB, uint16_t *mbmap)
+{
+    uint16_t i, j;
+    uint16_t numMBs = picWidthInMB * picHeightInMB;
+    uint16_t curX = 0, curY = 0, wflenX, wflenY;
+    uint16_t wfstart = 0, wflen;
+    uint16_t walkX, walkY;
+
+    wflenY = picHeightInMB - 1;
+    for (i = 0; i < numMBs; i++)
+    {
+        // Get current region length
+        wflenX = curX;
+        wflen = (wflenX < wflenY) ? wflenX : wflenY;
+
+        mbmap[wfstart] = curY * picWidthInMB + curX;
+
+        if (wfstart == (numMBs - 1))
+            break;
+
+        walkX = curX - 1;
+        walkY = curY + 1;
+        for (j = 0; j < wflen; j++)
+        {
+            mbmap[wfstart + j + 1] = walkY * picWidthInMB + walkX;
+            walkX -= 1;
+            walkY++;
+        }
+
+        // Start new region
+        if (curX == (picWidthInMB - 1))
+        {
+            // Right picture boundary reached, adjustment required
+            curY++;
+            wflenY--;
+        }
+        else
+        {
+            curX++;
+        }
+        wfstart += (wflen + 1);
+    }
+}
+
+/**************************************************************************
+* MB sequence in a MBAFF picture with WidthInMB = 5 & HeightInMB = 6
+* 26 degree walking pattern
+*        0    1    2    3    4
+*       -----------------------
+*   0  | 0    2    4    8    12
+*   1  | 1    3    6    10   15
+*   2  | 5    9    13   18   22
+*   3  | 7    11   16   20   24
+*   4  | 14   19   23   26   28
+*   5  | 17   21   25   27   29
+***************************************************************************/
+void CodechalEncodeMpeg2::MBWalkerMBAFF(uint16_t picWidthInMB, uint16_t picHeightInMB, uint16_t *mbmap)
+{
+    uint16_t i, j, k;
+    uint16_t numMBs = picWidthInMB * picHeightInMB;
+    uint16_t curX = 0, curY = 0, wflenX, wflenY;
+    uint16_t wfstart = 0, wflen;
+    uint16_t walkX, walkY;
+
+    wflenY = picHeightInMB / 2 - 1;
+    for (i = 0; i < numMBs; i++)
+    {
+        // Get current region length
+        wflenX = curX / 2;
+        wflen = (wflenX < wflenY) ? wflenX : wflenY;
+
+        mbmap[wfstart] = curY * picWidthInMB + curX * 2;
+        mbmap[wfstart + wflen + 1] = mbmap[wfstart] + 1;
+
+        if ((wfstart + wflen + 1) == (numMBs - 1))
+            break;
+
+        walkX = curX - 2;
+        walkY = curY + 2;
+        for (j = 0; j < wflen; j++)
+        {
+            k = wfstart + j + 1;
+            mbmap[k] = walkY * picWidthInMB + walkX * 2;
+            mbmap[k + wflen + 1] = mbmap[k] + 1;
+            walkX -= 2;
+            walkY += 2;
+        }
+
+        // Start new region
+        if (curX == (picWidthInMB - 1))
+        {
+            // Right picture boundary reached, adjustment required
+            curX--;
+            curY += 2;
+            wflenY--;
+        }
+        else
+        {
+            curX++;
+        }
+        wfstart += ((wflen + 1) * 2);
+    }
+}
+
+/**************************************************************************
+* MB sequence in a non-MBAFF picture with WidthInMB = 5 & HeightInMB = 5
+* Raster scan pattern
+*        0    1    2    3    4
+*       -----------------------
+*   0  | 0    1    2    3    4
+*   1  | 5    6    7    8    9
+*   2  | 10   11   12   13   14
+*   3  | 15   16   17   18   19
+*   4  | 20   21   22   23   24
+***************************************************************************/
+void CodechalEncodeMpeg2::MBWalkerRasterScan(uint16_t picWidthInMB, uint16_t picHeightInMB, uint16_t *mbmap)
+{
+    uint32_t i;
+    uint32_t numMBs = picWidthInMB * picHeightInMB;
+
+    for (i = 0; i < numMBs; i++)
+    {
+        mbmap[i] = (uint16_t)i;
+    }
+}
+
+/**************************************************************************
+* MB sequence in a non-MBAFF picture with WidthInMB = 5 & HeightInMB = 5
+* Vertical scan pattern
+*        0    1    2    3    4
+*       -----------------------
+*   0  | 0    5    10   15   20
+*   1  | 1    6    11   16   21
+*   2  | 2    7    12   17   22
+*   3  | 3    8    13   18   23
+*   4  | 4    9    14   19   24
+***************************************************************************/
+void CodechalEncodeMpeg2::MBWalkerVerticalScan(uint16_t picWidthInMB, uint16_t picHeightInMB, uint16_t *mbmap)
+{
+    uint32_t i, j, k;
+
+    for (i = 0, k = 0; i < picWidthInMB; i++)
+    {
+        for (j = 0; j < picHeightInMB; j++)
+        {
+            mbmap[k++] = (uint16_t)(i + j * picWidthInMB);
+        }
+    }
+}

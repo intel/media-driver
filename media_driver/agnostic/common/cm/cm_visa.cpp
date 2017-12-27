@@ -40,7 +40,7 @@ ISAfile::ISAfile(const ISAfile& other) {
     size = other.size;
     delete[] error;
     char *perror = new char[std::strlen(other.error)];
-    memcpy_s(perror, sizeof(perror), other.error, sizeof(other.error));
+    MOS_SecureMemcpy(perror, sizeof(perror), other.error, sizeof(other.error));
     error = perror;
     kernel_data_loaded = other.kernel_data_loaded;
     function_data_loaded = other.function_data_loaded;
@@ -68,7 +68,7 @@ ISAfile& ISAfile::operator= (const ISAfile& other) {
         size = other.size;
         delete[] error;
         char *perror = new char[std::strlen(other.error)];
-        memcpy_s(perror, sizeof perror, other.error, sizeof other.error);
+        MOS_SecureMemcpy(perror, sizeof perror, other.error, sizeof other.error);
         error = perror;
         kernel_data_loaded = other.kernel_data_loaded;
         function_data_loaded = other.function_data_loaded;
@@ -169,7 +169,7 @@ const uint8_t* ISAfile::readField(const uint8_t *p, const uint8_t *buffEnd,
             return 0;
         }
         char *string = new char[dataSize + 1];
-        memcpy_s(string, dataSize + 1, p, dataSize);
+        MOS_SecureMemcpy(string, dataSize + 1, p, dataSize);
         string[dataSize] = '\0';
         field.size = dataSize;
         field.varchar = string;
@@ -181,7 +181,7 @@ const uint8_t* ISAfile::readField(const uint8_t *p, const uint8_t *buffEnd,
         const uint8_t *strEnd = (const uint8_t *)std::memchr(p, 0, end - p);
         auto len = strEnd - p;
         char *string = new char[len + 1];
-        memcpy_s(string, len + 1, p, len);
+        MOS_SecureMemcpy(string, len + 1, p, len);
         string[len] = '\0';
         field.size = (uint32_t)len + 1;
         field.varchar = string;
@@ -191,7 +191,7 @@ const uint8_t* ISAfile::readField(const uint8_t *p, const uint8_t *buffEnd,
     case Datatype::GDATA:
     {
         uint8_t *gdata = new uint8_t[dataSize];
-        memcpy_s(gdata, dataSize , p, dataSize);
+        MOS_SecureMemcpy(gdata, dataSize , p, dataSize);
         field.gdata = gdata;
         field.size = dataSize;
         p += dataSize;

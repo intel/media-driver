@@ -121,6 +121,20 @@ public:
     EnqueueWithGroup(CmTask *pTask,
                      CmEvent *&pEvent,
                      const CmThreadGroupSpace *pThreadGroupSpace = nullptr);
+                     
+    CM_RT_API int32_t EnqueueCopyCPUToGPUFullStrideDup(CmSurface2D *pSurface,
+                                                const unsigned char *pSysMem,
+                                                const uint32_t widthStride,
+                                                const uint32_t heightStride,
+                                                const uint32_t option,
+                                                CmEvent *&pEvent);
+
+    CM_RT_API int32_t EnqueueCopyGPUToCPUFullStrideDup(CmSurface2D *pSurface,
+                                                unsigned char *pSysMem,
+                                                const uint32_t widthStride,
+                                                const uint32_t heightStride,
+                                                const uint32_t option,
+                                                CmEvent *&pEvent);
 
     CM_RT_API int32_t EnqueueWithHints(CmTask *pTask,
                                    CmEvent *&pEvent,

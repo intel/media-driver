@@ -191,17 +191,23 @@ typedef enum _MHW_MEDIA_MEMORY_COMPRESSION_MODE
     MHW_MEDIA_MEMCOMP_MODE_VERTICAL = 0x1,
 } MHW_MEDIA_MEMORY_COMPRESSION_MODE;
 
-// Row Store Scratch Buffer Cache Select
+//!
+//! \enum     ROWSTORE_SCRATCH_BUFFER_CACHE
+//! \brief    Rowstore scratch buffer cache select
+//!
 enum ROWSTORE_SCRATCH_BUFFER_CACHE
 {
     BUFFER_TO_LLC                  = 0x0,
     BUFFER_TO_INTERNALMEDIASTORAGE = 0x1
 };
 
-// Dynamic slice tuning params
+//!
+//! \enum     SLICE_THRESHOLD_TABLE_MODE
+//! \brief    Slice thershold table mode, dynamic slice tuning params
+//!
 enum SLICE_THRESHOLD_TABLE_MODE
 {
-	NO_SLICE_THRESHOLD_TABLE = 0,
+    NO_SLICE_THRESHOLD_TABLE = 0,
     USE_SLICE_THRESHOLD_TABLE_100_PERCENT = 1,
     USE_SLICE_THRESHOLD_TABLE_90_PERCENT = 2
 };
@@ -257,6 +263,7 @@ typedef struct _MHW_VDBOX_SURFACE_PARAMS
     uint32_t                    dwActualWidth;
     uint32_t                    dwActualHeight;
     uint32_t                    dwReconSurfHeight;
+    MOS_MEMCOMP_STATE           mmcState;
 } MHW_VDBOX_SURFACE_PARAMS, *PMHW_VDBOX_SURFACE_PARAMS;
 
 typedef struct _MHW_VDBOX_PIPE_BUF_ADDR_PARAMS
@@ -267,9 +274,11 @@ typedef struct _MHW_VDBOX_PIPE_BUF_ADDR_PARAMS
     PMOS_SURFACE                psPostDeblockSurface;                           // Pointer to MOS_SURFACE of render surface
     MOS_MEMCOMP_STATE           PostDeblockSurfMmcState;
     PMOS_SURFACE                psRawSurface;                                   // Pointer to MOS_SURFACE of raw surface
+    MOS_MEMCOMP_STATE           RawSurfMmcState;
     PMOS_SURFACE                ps4xDsSurface;
     MOS_MEMCOMP_STATE           Ps4xDsSurfMmcState;
     PMOS_SURFACE                ps8xDsSurface;
+    MOS_MEMCOMP_STATE           Ps8xDsSurfMmcState;
     PMOS_RESOURCE               presDataBuffer;                                 // Handle of residual difference surface
     PMOS_RESOURCE               presReferences[CODEC_MAX_NUM_REF_FRAME];
     PMOS_RESOURCE               presMfdIntraRowStoreScratchBuffer;              // Handle of MFD Intra Row Store Scratch data surface
@@ -392,7 +401,7 @@ typedef struct _MHW_VDBOX_AVC_IMG_PARAMS
     bool                                    bCrePrefetchEnable;
 
     uint32_t                                dwMbSlcThresholdValue;  // For VDENC dynamic slice size control
-	uint32_t                                dwSliceThresholdTable;
+    uint32_t                                dwSliceThresholdTable;
     uint32_t                                dwVdencSliceMinusBytes;
     uint8_t                                *pVDEncModeCost;
     uint8_t                                *pVDEncMvCost;
@@ -420,7 +429,7 @@ typedef struct _MHW_VDBOX_AVC_WEIGHTOFFSET_PARAMS
     uint32_t                        uiChromaWeightFlag;
     uint32_t                        uiNumRefForList;
     int16_t                         Weights[2][32][3][2];
-	PCODEC_AVC_ENCODE_PIC_PARAMS    pAvcPicParams;
+    PCODEC_AVC_ENCODE_PIC_PARAMS    pAvcPicParams;
 } MHW_VDBOX_AVC_WEIGHTOFFSET_PARAMS, *PMHW_VDBOX_AVC_WEIGHTOFFSET_PARAMS;
 
 typedef struct _MHW_VDBOX_PAK_INSERT_PARAMS
@@ -470,10 +479,9 @@ typedef struct _MHW_VDBOX_ROWSTORE_PARAMS
     uint32_t   dwPicWidth;
     uint32_t   bMbaff;
     bool       bIsFrame;
-    bool       bVdenc;
     uint8_t    ucBitDepthMinus8;
     uint8_t    ucChromaFormat;
-	uint8_t    ucLCUSize;
+    uint8_t    ucLCUSize;
 } MHW_VDBOX_ROWSTORE_PARAMS, *PMHW_VDBOX_ROWSTORE_PARAMS;
 
 typedef struct _MHW_VDBOX_ROWSTORE_CACHE

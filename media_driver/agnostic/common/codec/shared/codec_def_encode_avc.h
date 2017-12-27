@@ -340,19 +340,19 @@ typedef struct _CODEC_AVC_ENCODE_SEQUENCE_PARAMS
             *   This setting is only valid if RateControlMethod is AVBR, VBR, CBR, VCM, ICQ, CQL or QVBR and the current picture is an I picture. If the frame resolution is changed, it should be set with IDR picture. It should not be set when RateControlMethod is CBR or CQP. The following table indicates which BRC parameters can be changed via a BRC reset.
             *
             *  \n BRC Parameters       Changes allowed via reset
-            *  \n Profile & Level    	        Yes
-            *  \n UserMaxFrameSize    	        Yes
-            *  \n InitVBVBufferFullnessInBit	No
+            *  \n Profile & Level               Yes
+            *  \n UserMaxFrameSize              Yes
+            *  \n InitVBVBufferFullnessInBit    No
             *  \n TargetBitRate                 Yes
             *  \n VBVBufferSizeInBit            No
             *  \n MaxBitRate                    Yes
-            *  \n FramesPer100Sec *  	        No
+            *  \n FramesPer100Sec *             No
             *  \n RateControlMethod             No
-            *  \n GopPicSize	                No
-            *  \n GopRefDist                	No
-            *  \n GopOptFlag	                Yes
+            *  \n GopPicSize                    No
+            *  \n GopRefDist                    No
+            *  \n GopOptFlag                    Yes
             *  \n FrameWidth                    No
-            *  \n FrameHeight         	        No
+            *  \n FrameHeight                   No
             *  \n Note: when resolution (FrameWidth and/or FrameHeight) changes, framework should re-start a new bit stream and not using BRC reset.
             */
             uint32_t           bResetBRC                    : 1;
@@ -875,6 +875,10 @@ typedef enum _CODEC_AVC_PIC_CODING_TYPE_VALUE
     CODEC_AVC_PIC_CODING_TYPE_BFF_FIELD = 0x3
 } CODEC_AVC_PIC_CODING_TYPE_VALUE;
 
+//!
+//! \struct    CodecEncodeAvcFeiPicParams
+//! \brief     Codec encode AVC FEI pic params
+//!
 struct CodecEncodeAvcFeiPicParams
 {
     MOS_RESOURCE                resMBCtrl;              // input MB control buffer

@@ -1399,6 +1399,10 @@ typedef struct _RENDERHAL_INTERFACE
                 PRENDERHAL_INTERFACE        pRenderHal,
                 int32_t                     iKernelAllocationIndex);
 
+    MOS_STATUS (* pfnUnregisterKernel) (
+                PRENDERHAL_INTERFACE        pRenderHal,
+                PRENDERHAL_KRN_ALLOCATION   pKernelAllocation);
+
     //---------------------------
     // New Dynamic State Heap interfaces
     //---------------------------
@@ -1486,14 +1490,11 @@ typedef struct _RENDERHAL_INTERFACE
                 uint32_t                    dwMaximumNumberofThreads,
                 uint32_t                    dwCURBEAllocationSize,
                 uint32_t                    dwURBEntryAllocationSize,
-                PMHW_VFE_SCOREBOARD         pScoreboardParams,
-                bool                        bGpGpuWalkerMode);
+                PMHW_VFE_SCOREBOARD         pScoreboardParams);
 
     bool (* pfnGetMediaWalkerStatus) (
                 PRENDERHAL_INTERFACE        pRenderHal);
 
-    MHW_WALKER_MODE (* pfnSelectWalkerStateMode)(
-                PRENDERHAL_INTERFACE        pRenderHal);
 
     //---------------------------
     // Command buffer programming functions
@@ -1628,9 +1629,6 @@ typedef struct _RENDERHAL_INTERFACE
                 PMOS_COMMAND_BUFFER         pCmdBuffer,                                             // [in] Command Buffer
                 bool                        bStartTime);                                            // [in] Start Timestamp flag
 
-    //---------------------------
-    // Work Around Function
-    //---------------------------
     uint32_t (* pfnGetScratchSpaceSize)(
                PRENDERHAL_INTERFACE         pRenderHal,                                             // [in] Hardware interface
                uint32_t                     iPerThreadScratchSpaceSize);                            // [in] Per thread scrach space size

@@ -35,8 +35,6 @@
 #include "mhw_render_hwcmd_g8_X.h" 
 #include "mhw_state_heap_hwcmd_g8_X.h"
 
-//#define RENDERHAL_MEMORY_OBJECT_CONTROL_ENCRYPTDATA_BIT_POS_G8   0x2
-
 //!
 //! \brief      L3$ registers and configuration Gen8
 //!

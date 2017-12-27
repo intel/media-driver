@@ -29,6 +29,10 @@
 
 #include "media_libva_caps.h"
 
+//!
+//! \class  MediaLibvaCapsG10
+//! \brief  Media libva caps Gen10
+//!
 class MediaLibvaCapsG10 : public MediaLibvaCaps
 {
 public:
@@ -37,15 +41,19 @@ public:
     //!
     MediaLibvaCapsG10(DDI_MEDIA_CONTEXT *mediaCtx) : MediaLibvaCaps(mediaCtx)
     {
-        LoadProfileEntrypoints();
         return;
     }
 
+    virtual VAStatus Init()
+    {
+        LoadProfileEntrypoints();
+        return VA_STATUS_SUCCESS;
+    }   
 protected:
     static const uint32_t m_maxHevcEncWidth =
-        ENCODE_HEVC_8K_MAX_PIC_WIDTH; //!< maxinum width for HEVC encode
+        CODEC_8K_MAX_PIC_WIDTH; //!< maxinum width for HEVC encode
     static const uint32_t m_maxHevcEncHeight =
-        ENCODE_HEVC_8K_MAX_PIC_HEIGHT; //!< maxinum height for HEVC encode
+        CODEC_8K_MAX_PIC_HEIGHT; //!< maxinum height for HEVC encode
 
     virtual VAStatus GetPlatformSpecificAttrib(VAProfile profile,
             VAEntrypoint entrypoint,
@@ -67,10 +75,31 @@ protected:
     //!
     //! \brief    Initialize HEVC low-power encode profiles, entrypoints and attributes
     //!
+    //! \return VAStatus
+    //!     Return VA_STATUS_SUCCESS if call success, else fail reason
+    //!
     VAStatus LoadHevcEncLpProfileEntrypoints();
 
+    //! 
+    //! \brief  Is P010 supported
+    //! 
+    //! \return true
+    //!
     bool IsP010Supported() { return true; }
 
+    //! 
+    //! \brief  Query AVC ROI maximum number
+    //! 
+    //! \param  [in] rcMode
+    //!     RC mode
+    //! \param  [in] maxNum
+    //!     Maximum number
+    //! \param  [in] isRoiInDeltaQP
+    //!     Is ROI in delta QP
+    //! 
+    //! \return VAStatus
+    //!     Return VA_STATUS_SUCCESS if call success, else fail reason
+    //!
     VAStatus QueryAVCROIMaxNum(uint32_t rcMode, int32_t *maxNum, bool *isRoiInDeltaQP);
 };
 #endif

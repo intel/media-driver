@@ -25,6 +25,7 @@
 //!
 
 #include "cm_state_buffer.h"
+#include "cm_debug.h"
 
 namespace CMRT_UMD
 {

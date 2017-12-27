@@ -67,9 +67,11 @@ MOS_STATUS CodechalEncodeHevcBase::Initialize(PCODECHAL_SETTINGS settings)
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(settings);
 
+#ifndef _FULL_OPEN_SOURCE
     // for HEVC: the Ds+Copy kernel is by default used to do CSC and copy non-aligned surface
     m_cscDsState->EnableCopy();
     m_cscDsState->EnableColor();
+#endif
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncoderState::Initialize(settings));
 
@@ -247,13 +249,27 @@ MOS_STATUS CodechalEncodeHevcBase::AllocatePakResources()
         return eStatus;
     }
 
-    // SAO Line buffer
-    size = ((((m_frameWidth >> 1) + picWidthInMinLCU * 3) + 15) & 0xFFFFFFF0) >> 3;
-    size = MOS_ALIGN_CEIL(MOS_ROUNDUP_DIVIDE(size * formatMultiFactor, formatDenom), 2);
-    size *= CODECHAL_CACHELINE_SIZE;
-    allocParamsForBufferLinear.dwBytes = size;
-    allocParamsForBufferLinear.pBufName = "SaoLineBuffer";
+    MHW_VDBOX_HCP_BUFFER_SIZE_PARAMS hcpBufSizeParam;
+    MOS_ZeroMemory(&hcpBufSizeParam, sizeof(hcpBufSizeParam));
+    hcpBufSizeParam.ucMaxBitDepth = ucBitDepth;
+    hcpBufSizeParam.ucChromaFormat = ucChromaFormat;
 
+    hcpBufSizeParam.dwCtbLog2SizeY = 6; // assume Max LCU size
+    hcpBufSizeParam.dwPicWidth = MOS_ALIGN_CEIL(m_frameWidth, MAX_LCU_SIZE);
+    hcpBufSizeParam.dwPicHeight = MOS_ALIGN_CEIL(m_frameHeight, MAX_LCU_SIZE);
+    // SAO Line buffer
+    eStatus = (MOS_STATUS)m_hcpInterface->GetHevcBufferSize(
+        MHW_VDBOX_HCP_INTERNAL_BUFFER_SAO_LINE,
+        &hcpBufSizeParam);
+
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        CODECHAL_ENCODE_ASSERTMESSAGE("Failed to get the size for SAO Line Buffer.");
+        return eStatus;
+    }
+
+    allocParamsForBufferLinear.dwBytes = hcpBufSizeParam.dwBufferSize;
+    allocParamsForBufferLinear.pBufName = "SaoLineBuffer";
     eStatus = (MOS_STATUS)m_osInterface->pfnAllocateResource(
         m_osInterface,
         &allocParamsForBufferLinear,
@@ -266,10 +282,17 @@ MOS_STATUS CodechalEncodeHevcBase::AllocatePakResources()
     }
 
     // SAO Tile Line buffer
-    size = ((((m_frameWidth >> 1) + picWidthInMinLCU * 6) + 15) & 0xFFFFFFF0) >> 3;
-    size = MOS_ALIGN_CEIL(MOS_ROUNDUP_DIVIDE(size * formatMultiFactor, formatDenom), 2);
-    size *= CODECHAL_CACHELINE_SIZE;
-    allocParamsForBufferLinear.dwBytes = size;
+    eStatus = (MOS_STATUS)m_hcpInterface->GetHevcBufferSize(
+        MHW_VDBOX_HCP_INTERNAL_BUFFER_SAO_TILE_LINE,
+        &hcpBufSizeParam);
+
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        CODECHAL_ENCODE_ASSERTMESSAGE("Failed to get the size for SAO Tile Line Buffer.");
+        return eStatus;
+    }
+
+    allocParamsForBufferLinear.dwBytes = hcpBufSizeParam.dwBufferSize;
     allocParamsForBufferLinear.pBufName = "SaoTileLineBuffer";
 
     eStatus = (MOS_STATUS)m_osInterface->pfnAllocateResource(
@@ -284,10 +307,17 @@ MOS_STATUS CodechalEncodeHevcBase::AllocatePakResources()
     }
 
     // SAO Tile Column buffer
-    size = ((((m_frameHeight >> 1) + picHeightInMinLCU * 6) + 15) & 0xFFFFFFF0) >> 3;
-    size = MOS_ALIGN_CEIL(MOS_ROUNDUP_DIVIDE(size * formatMultiFactor, formatDenom), 2);
-    size *= CODECHAL_CACHELINE_SIZE;
-    allocParamsForBufferLinear.dwBytes = size;
+    eStatus = (MOS_STATUS)m_hcpInterface->GetHevcBufferSize(
+        MHW_VDBOX_HCP_INTERNAL_BUFFER_SAO_TILE_COL,
+        &hcpBufSizeParam);
+
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        CODECHAL_ENCODE_ASSERTMESSAGE("Failed to get the size for SAO Tile Column Buffer.");
+        return eStatus;
+    }
+
+    allocParamsForBufferLinear.dwBytes = hcpBufSizeParam.dwBufferSize;
     allocParamsForBufferLinear.pBufName = "SaoTileColumnBuffer";
 
     eStatus = (MOS_STATUS)m_osInterface->pfnAllocateResource(
@@ -367,8 +397,7 @@ MOS_STATUS CodechalEncodeHevcBase::AllocateResources()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncoderState::AllocateResources());
 
     // Allocate Ref Lists
-    CodecHal_AllocateDataList(
-        CODEC_REF_LIST,
+    CodecHalAllocateDataList(
         pRefList,
         CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC);
 
@@ -506,7 +535,7 @@ MOS_STATUS CodechalEncodeHevcBase::AllocateBuffer2D(
 
     m_osInterface->pfnUnlockResource(m_osInterface, &(surface->OsResource));
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_GetResourceInfo(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(
         m_osInterface,
         surface));
 
@@ -545,55 +574,9 @@ MOS_STATUS CodechalEncodeHevcBase::AllocateSurface(
         return eStatus;
     }
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_GetResourceInfo(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(
         m_osInterface,
         surface));
-
-    return eStatus;
-}
-
-MOS_STATUS CodechalEncodeHevcBase::AllocateMvTemporalBuffer(
-    uint8_t bufIndex)
-{
-    CODECHAL_ENCODE_FUNCTION_ENTER; 
-    
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
-    if (!Mos_ResourceIsNull(&resMvTemporalBuffer[bufIndex]))
-    {
-        return eStatus;
-    }
-
-    // initiate allocation paramters
-    MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferLinear;
-    MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
-    allocParamsForBufferLinear.Type = MOS_GFXRES_BUFFER;
-    allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
-    allocParamsForBufferLinear.Format = Format_Buffer;
-    allocParamsForBufferLinear.dwBytes = dwSizeOfMvTemporalBuffer;
-    allocParamsForBufferLinear.pBufName = "CurrentMvTemporalBuffer";
-
-    CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
-        m_osInterface,
-        &allocParamsForBufferLinear,
-        &resMvTemporalBuffer[bufIndex]),
-        "Failed to allocate MV Temporal Buffer for HEVC.");
-
-    MOS_LOCK_PARAMS lockFlags;
-    MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
-    lockFlags.WriteOnly = 1;
-
-    uint8_t* data = (uint8_t*)m_osInterface->pfnLockResource(
-        m_osInterface,
-        &resMvTemporalBuffer[bufIndex],
-        &lockFlags);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(data);
-
-    MOS_ZeroMemory(data, dwSizeOfMvTemporalBuffer);
-
-    m_osInterface->pfnUnlockResource(
-        m_osInterface,
-        &resMvTemporalBuffer[bufIndex]);
 
     return eStatus;
 }
@@ -748,11 +731,6 @@ MOS_STATUS CodechalEncodeHevcBase::FreePakResources()
     m_osInterface->pfnFreeResource(m_osInterface, &resLcuILDBStreamOutBuffer);
     m_osInterface->pfnFreeResource(m_osInterface, &resLcuBaseAddressBuffer);
     m_osInterface->pfnFreeResource(m_osInterface, &resSaoStreamOutBuffer);
-
-    for (auto i = 0; i < CODEC_NUM_TRACKED_BUFFERS; i++)
-    {
-        m_osInterface->pfnFreeResource(m_osInterface, &resMvTemporalBuffer[i]);
-    }
     
     return MOS_STATUS_SUCCESS;
 }
@@ -768,7 +746,7 @@ void CodechalEncodeHevcBase::FreeResources()
     FreePakResources();
 
     // Release Ref Lists
-    CodecHal_FreeDataList(pRefList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC);
+    CodecHalFreeDataList(pRefList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC);
 
     for (auto i = 0; i < CODECHAL_GET_ARRAY_LENGTH(RefSync); i++)
     {
@@ -848,13 +826,13 @@ MOS_STATUS CodechalEncodeHevcBase::SetSequenceStructs()
     {
         switch (pHevcSeqParams->MBBRC)
         {
-        case CODECHAL_ENCODE_MBBRC_INTERNAL:
+        case mbBrcInternal:
             bLcuBrcEnabled = (pHevcSeqParams->TargetUsage == 1);
             break;
-        case CODECHAL_ENCODE_MBBRC_DISABLED:
+        case mbBrcDisabled:
             bLcuBrcEnabled = false;
             break;
-        case CODECHAL_ENCODE_MBBRC_ENABLED:
+        case mbBrcEnabled:
             bLcuBrcEnabled = true;
             break;
         }
@@ -1155,7 +1133,7 @@ MOS_STATUS CodechalEncodeHevcBase::SetPictureStructs()
         ucCurrMinus2MbCodeIndex = ucLastMbCodeIndex;
         ucLastMbCodeIndex = m_currMbCodeIdx;
         // the actual MbCode/MvData surface to be allocated later
-        m_currMbCodeIdx = PICTURE_INVALID;
+        m_trackedBuf->SetAllocationFlag(true);
     }
     else if (m_codecFunction == CODECHAL_FUNCTION_ENC)
     {
@@ -1266,7 +1244,7 @@ MOS_STATUS CodechalEncodeHevcBase::SetSliceStructs()
     MOS_USER_FEATURE_VALUE_DATA userFeatureData;
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     //read user feature key for pak pass number forcing.
-    CodecHal_UserFeature_ReadValue(
+    MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_FORCE_PAK_PASS_NUM_ID,
         &userFeatureData);
@@ -1916,7 +1894,7 @@ MOS_STATUS CodechalEncodeHevcBase::WaitForVDBOX(PMOS_COMMAND_BUFFER cmdBuffer)
 
 MOS_STATUS CodechalEncodeHevcBase::ReadBrcPakStatistics(
     PMOS_COMMAND_BUFFER cmdBuffer,
-    PCODECHAL_ENCODE_READ_BRC_PAK_STATS_PARAMS params)
+    EncodeReadBrcPakStatsParams* params)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -2138,19 +2116,6 @@ MOS_STATUS CodechalEncodeHevcBase::InitializePicture(const EncoderParams& params
     if (m_newSeq)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SetSequenceStructs());
-
-        if (m_resolutionChanged)
-        {
-            // if resolution changed, free existing DS/CSC/MbCode/MvData resources
-            TrackedBufferResize();
-            m_cscDsState->Resize();
-        }
-
-        if (m_cscDsState->IsEnabled())
-        {
-            // check if we need to do CSC or copy non-aligned surface
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->CheckCondition());
-        }
     }
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetPictureStructs());
@@ -2272,6 +2237,9 @@ void CodechalEncodeHevcBase::SetHcpReconSurfaceParams(MHW_VDBOX_SURFACE_PARAMS& 
     reconSurfaceParams.dwActualHeight = ((pHevcSeqParams->wFrameHeightInMinCbMinus1 + 1) <<
         (pHevcSeqParams->log2_min_coding_block_size_minus3 + 3));
     reconSurfaceParams.dwReconSurfHeight = MOS_ALIGN_CEIL(m_rawSurfaceToPak->dwHeight, reconSurfaceParams.dwUVPlaneAlignment);
+#ifdef _MMC_SUPPORTED
+    m_mmcState->SetSurfaceState(&reconSurfaceParams);
+#endif
 }
 
 void CodechalEncodeHevcBase::SetHcpPipeBufAddrParams(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS& pipeBufAddrParams)
@@ -2294,7 +2262,7 @@ void CodechalEncodeHevcBase::SetHcpPipeBufAddrParams(MHW_VDBOX_PIPE_BUF_ADDR_PAR
     pipeBufAddrParams.presSaoLineBuffer = &resSaoLineBuffer;
     pipeBufAddrParams.presSaoTileLineBuffer = &resSaoTileLineBuffer;
     pipeBufAddrParams.presSaoTileColumnBuffer = &resSaoTileColumnBuffer;
-    pipeBufAddrParams.presCurMvTempBuffer = &resMvTemporalBuffer[m_currMbCodeIdx];
+    pipeBufAddrParams.presCurMvTempBuffer = m_trackedBuf->GetCurrMvTemporalBuffer();
     pipeBufAddrParams.presLcuBaseAddressBuffer = &resLcuBaseAddressBuffer;
     pipeBufAddrParams.dwLcuStreamOutOffset = 0;
     pipeBufAddrParams.presLcuILDBStreamOutBuffer = &resLcuILDBStreamOutBuffer;
@@ -2317,13 +2285,14 @@ void CodechalEncodeHevcBase::SetHcpPipeBufAddrParams(MHW_VDBOX_PIPE_BUF_ADDR_PAR
             }
 
             uint8_t idx = PicIdx[i].ucPicIdx;
-            CodecHal_GetResourceInfo(m_osInterface, &(pRefList[idx]->sRefReconBuffer));
+            CodecHalGetResourceInfo(m_osInterface, &(pRefList[idx]->sRefReconBuffer));
 
             uint8_t frameStoreId = (uint8_t)RefIdxMapping[i];
             pipeBufAddrParams.presReferences[frameStoreId] = &(pRefList[idx]->sRefReconBuffer.OsResource);
 
-            uint8_t refMbCodeIdx = pRefList[idx]->ucMbCodeIdx;
-            pipeBufAddrParams.presColMvTempBuffer[frameStoreId] = &resMvTemporalBuffer[refMbCodeIdx];
+            uint8_t refMbCodeIdx = pRefList[idx]->ucScalingIdx;
+            pipeBufAddrParams.presColMvTempBuffer[frameStoreId] = 
+                (MOS_RESOURCE*)m_allocator->GetResource(m_standard, mvTemporalBuffer, refMbCodeIdx);
         }
     }
 }
@@ -2652,7 +2621,6 @@ CodechalEncodeHevcBase::CodechalEncodeHevcBase(
     MOS_ZeroMemory(&resSaoLineBuffer, sizeof(resSaoLineBuffer));
     MOS_ZeroMemory(&resSaoTileLineBuffer, sizeof(resSaoTileLineBuffer));
     MOS_ZeroMemory(&resSaoTileColumnBuffer, sizeof(resSaoTileColumnBuffer));
-    MOS_ZeroMemory(resMvTemporalBuffer, sizeof(resMvTemporalBuffer));
     MOS_ZeroMemory(&resLcuBaseAddressBuffer, sizeof(resLcuBaseAddressBuffer));
     MOS_ZeroMemory(&resLcuILDBStreamOutBuffer, sizeof(resLcuILDBStreamOutBuffer));
     MOS_ZeroMemory(&resSaoStreamOutBuffer, sizeof(resSaoStreamOutBuffer));
@@ -2711,7 +2679,9 @@ MOS_STATUS CodechalEncodeHevcBase::AddHcpPipeBufAddrCmd(
 
     MOS_ZeroMemory(m_pipeBufAddrParams, sizeof(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS));
     SetHcpPipeBufAddrParams(*m_pipeBufAddrParams);
+#ifdef _MMC_SUPPORTED
     m_mmcState->SetPipeBufAddr(m_pipeBufAddrParams);
+#endif
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpPipeBufAddrCmd(cmdBuffer, m_pipeBufAddrParams));
 
     return eStatus;
@@ -3023,9 +2993,6 @@ MOS_STATUS CodechalEncodeHevcBase::ExecuteKernelFunctions()
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
-
-    // allocate MV Temporal buffer
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateMvTemporalBuffer(m_currScalingIdx));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(EncodeKernelFunctions());
 

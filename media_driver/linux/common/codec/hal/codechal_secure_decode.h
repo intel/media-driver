@@ -28,6 +28,10 @@
 
 #include "codechal_hw.h"
 
+//!
+//! \class  CodechalSecureDecode
+//! \brief  Codechal secure decode
+//!
 class CodechalSecureDecode
 {
 public:
@@ -41,10 +45,10 @@ public:
         CodechalHwInterface       *hwInterfaceInput, 
         CodechalSecureDecode      **secureDecoder)
     
-	{
-		*secureDecoder = nullptr;
-		return MOS_STATUS_SUCCESS;
-	};
+    {
+        *secureDecoder = nullptr;
+        return MOS_STATUS_SUCCESS;
+    };
 
     //!
     //! \brief  Allocate Resource

@@ -31,17 +31,21 @@
 
 #include "codechal_decode_sfc.h"
 
-class CODECHAL_JPEG_SFC_STATE : public CODECHAL_SFC_STATE
+//!
+//! \class    CodechalJpegSfcState
+//! \brief    Codechal JPEG SFC state
+//!
+class CodechalJpegSfcState : public CodechalSfcState
 {
 public:
     //!
     //! \brief    Constructor
     //!
-    CODECHAL_JPEG_SFC_STATE() { CODECHAL_HW_FUNCTION_ENTER; };
+    CodechalJpegSfcState() { CODECHAL_HW_FUNCTION_ENTER; };
     //!
     //! \brief    Destructor
     //!
-    ~CODECHAL_JPEG_SFC_STATE() { CODECHAL_HW_FUNCTION_ENTER; };
+    ~CodechalJpegSfcState() { CODECHAL_HW_FUNCTION_ENTER; };
 
     //!
     //! \brief    Check if SFC output is supported and Initialize SFC

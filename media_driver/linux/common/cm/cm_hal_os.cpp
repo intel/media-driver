@@ -1000,6 +1000,53 @@ MOS_STATUS HalCm_GetPlatformInfo_Linux(
 }
 
 //*-----------------------------------------------------------------------------
+//| Purpose:  Gets GT system information for which slices/sub-slices are enabled
+//| Returns:  Result of the operation
+//*-----------------------------------------------------------------------------
+MOS_STATUS HalCm_GetGTSystemInfo_Linux(
+    PCM_HAL_STATE                pState,                // [in] Pointer to CM state
+    PCM_GT_SYSTEM_INFO           pSystemInfo            // [out] Pointer to CM GT system info
+)
+{
+    MEDIA_SYSTEM_INFO            *pGtSystemInfo;
+    CM_EXPECTED_GT_SYSTEM_INFO    expectedGTInfo;
+
+    pGtSystemInfo = pState->pOsInterface->pfnGetGtSystemInfo(pState->pOsInterface);
+
+    pSystemInfo->numMaxSlicesSupported    = pGtSystemInfo->MaxSlicesSupported;
+    pSystemInfo->numMaxSubSlicesSupported = pGtSystemInfo->MaxSubSlicesSupported;
+
+    pState->pCmHalInterface->GetExpectedGtSystemConfig(&expectedGTInfo);
+    
+    // check numSlices/SubSlices enabled equal the expected number for this GT
+    // if match, pSystemInfo->isSliceInfoValid = true, else pSystemInfo->isSliceInfoValid = false
+    if ((expectedGTInfo.numSlices    == pGtSystemInfo->SliceCount) &&
+        (expectedGTInfo.numSubSlices == pGtSystemInfo->SubSliceCount)) 
+    {
+        pSystemInfo->isSliceInfoValid = true;
+    }
+    else
+    {
+        pSystemInfo->isSliceInfoValid = false;
+    }
+
+    // if valid, set the number slice/subSlice to enabled for numSlices/numSubSlices
+    if(pSystemInfo->isSliceInfoValid)
+    {
+        for(int i = 0; i < pGtSystemInfo->SliceCount; ++i)
+        {
+            pSystemInfo->sliceInfo[i].Enabled = true;
+            for(int j = 0; j < pGtSystemInfo->SubSliceCount; ++j)
+            {
+                pSystemInfo->sliceInfo[i].SubSliceInfo[j].Enabled = true;
+            }
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+//*-----------------------------------------------------------------------------
 //| Purpose:    Query the status of the task
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
@@ -1272,7 +1319,7 @@ finish:
 //| Purpose:    If WA required to set SLM in L3
 //| Returns:    Display corruption observed when running MDF workload.
 //|             This issue is related to SLM setting in L3. 
-//|             To work around this problem, we need to disable SLM after 
+//|             To resolve this problem, we need to disable SLM after 
 //|             command submission. 
 //*-----------------------------------------------------------------------------
 bool HalCm_IsWaSLMinL3Cache_Linux()
@@ -1321,6 +1368,7 @@ void HalCm_OsInitInterface(
     pCmState->pfnGetGPUCurrentFrequency              = HalCm_GetGPUCurrentFrequency_Linux;
     pCmState->pfnGetGpuTime                          = HalCm_GetGpuTime_Linux;
     pCmState->pfnGetPlatformInfo                     = HalCm_GetPlatformInfo_Linux;
+    pCmState->pfnGetGTSystemInfo                     = HalCm_GetGTSystemInfo_Linux;
     pCmState->pfnReferenceCommandBuffer              = HalCm_ReferenceCommandBuf_Linux;
     pCmState->pfnSetCommandBufferResource            = HalCm_SetCommandBufResource_Linux;
     pCmState->pfnQueryTask                           = HalCm_QueryTask_Linux;

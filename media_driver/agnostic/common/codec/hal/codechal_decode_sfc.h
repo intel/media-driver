@@ -84,21 +84,21 @@ typedef struct _CODECHAL_DECODE_PROCESSING_PARAMS
 }CODECHAL_DECODE_PROCESSING_PARAMS, *PCODECHAL_DECODE_PROCESSING_PARAMS;
 
 //!
-//! \class CODECHAL_SFC_STATE
+//! \class CodechalSfcState
 //! \brief This class defines the member fields, functions etc used by SFC State.
 //!
-class CODECHAL_SFC_STATE
+class CodechalSfcState
 {
 public:
     //!
     //! \brief    Constructor
     //!
-    CODECHAL_SFC_STATE() {};
+    CodechalSfcState() {};
 
     //!
     //! \brief    Destructor
     //!
-    virtual ~CODECHAL_SFC_STATE();
+    virtual ~CodechalSfcState();
 
     //!
     //! \brief    Initialize Sfc State
@@ -280,7 +280,7 @@ protected:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS SetSfcStateParams(
+    virtual MOS_STATUS SetSfcStateParams(
         PMHW_SFC_STATE_PARAMS               sfcStateParams,
         PMHW_SFC_OUT_SURFACE_PARAMS         outSurfaceParams);
 
@@ -315,7 +315,7 @@ protected:
         PMHW_SFC_STATE_PARAMS          sfcStateParams) = 0;
 };
 
-using PCODECHAL_SFC_STATE = CODECHAL_SFC_STATE*;
+using PCODECHAL_SFC_STATE = CodechalSfcState*;
 
 #endif  // __CODECHAL_DECODE_SFC_H__
 

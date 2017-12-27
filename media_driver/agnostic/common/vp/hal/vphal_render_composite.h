@@ -621,6 +621,20 @@ protected:
     uint32_t GetOutputChromaSitting(
         PVPHAL_SURFACE                      pTarget);
 
+
+    //!
+    //! \brief    Set Surface Compressed Parameters
+    //! \details  Set Surface Compressed Parameters, and compression mode
+    //! \param    [in,out] pSource
+    //!           Pointer to Source Surface
+    //! \param    [in] isRenderTarget
+    //!           Render Target or not
+    //! \return   void
+    //!
+    virtual void SetSurfaceCompressionParams(
+        PVPHAL_SURFACE                  pSource,
+        bool                            isRenderTarget) {}
+
 private:
     //!
     //! \brief    Prepare phases for composite and determine intermediate colorspace

@@ -23,9 +23,12 @@
 //! \file      cm_kernel_data.h  
 //! \brief     Contains Class CmKernelData definitions  
 //!
-#pragma once
+
+#ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMKERNELDATA_H_
+#define MEDIADRIVER_AGNOSTIC_COMMON_CM_CMKERNELDATA_H_
 
 #include "cm_array.h"
+#include "cm_hal.h"
 
 namespace CMRT_UMD
 {
@@ -70,3 +73,5 @@ private:
     CmKernelData& operator= (const CmKernelData& other);
 };
 };//namespace
+
+#endif  // #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMKERNELDATA_H_

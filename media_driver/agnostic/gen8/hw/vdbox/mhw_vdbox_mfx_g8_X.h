@@ -106,10 +106,10 @@ protected:
     //!
     MhwVdboxMfxInterfaceG8<TMfxCmds>(
         PMOS_INTERFACE osInterface,
-        MhwMiInterface *pMiInterface,
+        MhwMiInterface *miInterface,
         MhwCpInterface *cpInterface,
         bool decodeInUse) :
-        MhwVdboxMfxInterfaceGeneric<TMfxCmds, mhw_mi_g8_X>(osInterface, pMiInterface, cpInterface, decodeInUse)
+        MhwVdboxMfxInterfaceGeneric<TMfxCmds, mhw_mi_g8_X>(osInterface, miInterface, cpInterface, decodeInUse)
     {
         MHW_FUNCTION_ENTER;
 
@@ -779,7 +779,7 @@ protected:
 
         return eStatus;
     }
-   
+
     MOS_STATUS AddMfxDecodeAvcImgCmd(
         PMOS_COMMAND_BUFFER cmdBuffer,
         PMHW_BATCH_BUFFER batchBuffer,
@@ -1234,7 +1234,7 @@ protected:
             cmd.DW2.IndirectBsdDataStartAddress = sliceParams->slice_data_offset + avcSliceState->dwOffset;
             cmd.DW4.FirstMacroblockMbBitOffset = sliceParams->slice_data_bit_offset;
 
-            if (!avcSliceState->bIntelProprietaryFormatInUse)
+            if (!avcSliceState->bIntelEntrypointInUse)
             {
                 // NAL Header Unit must be passed to HW in the compressed bitstream buffer
                 avcSliceState->dwOffset -= (this->m_osInterface->dwNumNalUnitBytesIncluded - 1);

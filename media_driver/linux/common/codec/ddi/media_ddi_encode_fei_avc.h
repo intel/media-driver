@@ -29,6 +29,10 @@
 
 #include "media_ddi_encode_avc.h"
 
+//!
+//! \class  DdiEncodeAvcFei
+//! \brief  Ddi encode AVC FEI
+//!
 class DdiEncodeAvcFei : public DdiEncodeAvc
 {
 public:
@@ -142,7 +146,7 @@ public:
 
 private:
     //! \brief H.264 Inverse Quantization Matrix Buffer.
-    PCODECHAL_AVC_IQ_MATRIX_PARAMS iqMatrixParams = nullptr;
+    PCODEC_AVC_IQ_MATRIX_PARAMS iqMatrixParams = nullptr;
 
     //! \brief H.264 Inverse Quantization Weight Scale.
     PCODEC_AVC_ENCODE_IQ_WEIGTHSCALE_LISTS iqWeightScaleLists = nullptr;

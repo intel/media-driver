@@ -27,6 +27,7 @@
 #include "cm_program.h"
 
 #include "cm_device_rt.h"
+#include "cm_mem.h"
 #include "cm_hal.h"
 
 #if USE_EXTENSION_CODE
@@ -35,8 +36,17 @@
 
 #define READ_FIELD_FROM_BUF( dst, type ) \
     dst = *((type *) &buf[byte_pos]); \
-    byte_pos += sizeof(type); 
+    byte_pos += sizeof(type);
 
+#define CM_RT_JITTER_DEBUG_FLAG "-debug"
+#define CM_RT_JITTER_NCSTATELESS_FLAG "-ncstateless"
+
+#define CM_RT_JITTER_MAX_NUM_FLAGS      30
+#define CM_RT_JITTER_NUM_RESERVED_FLAGS 3  // one for gtpin;  two for hw stepping info.
+#define CM_RT_JITTER_MAX_NUM_USER_FLAGS (CM_RT_JITTER_MAX_NUM_FLAGS - CM_RT_JITTER_NUM_RESERVED_FLAGS)
+
+namespace CMRT_UMD
+{
 //*-----------------------------------------------------------------------------
 //| Purpose:    Create Cm Program
 //| Arguments :
@@ -349,7 +359,7 @@ int32_t CmProgramRT::Initialize( void* pCISACode, const uint32_t uiCISACodeSize,
                 numJitFlags++;
 
                 CmSafeMemSet(pFlagStepInfo, 0, CM_JIT_FLAG_SIZE);
-                sprintf_s(pFlagStepInfo, CM_JIT_FLAG_SIZE, "%s", stepstr);
+                MOS_SecureStringPrint(pFlagStepInfo, CM_JIT_FLAG_SIZE, CM_JIT_FLAG_SIZE, "%s", stepstr);
                 if (numJitFlags >= CM_RT_JITTER_MAX_NUM_FLAGS)
                 {
                     CM_ASSERTMESSAGE("Error: Invalid jitter user flags number.");
@@ -940,4 +950,5 @@ uint32_t CmProgramRT::GetProgramIndex()
 vISA::ISAfile *CmProgramRT::getISAfile()
 {
     return m_ISAfile;
+}
 }

@@ -154,6 +154,10 @@ typedef struct {
 
 } HUC_HEVC_S2L_BSS, *PHUC_HEVC_S2L_BSS;
 
+//!
+//! \class    CodechalDecodeHevc
+//! \brief    Codechal decode HEVC
+//!
 class CodechalDecodeHevc : public CodechalDecode
 {
 public:
@@ -170,7 +174,7 @@ public:
     } PIC_LONG_FORMAT_MHW_PARAMS;
 
     //!
-    //! \brief  Constructor
+    //! \brief    Constructor
     //! \param    [in] hwInterface
     //!           Hardware interface
     //! \param    [in] debugInterface
@@ -446,7 +450,19 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS          AllocateResources_VariableSizes();
+    MOS_STATUS          AllocateResourcesVariableSizes();
+
+    //!
+    //! \brief    Allocate the MV Temporal buffer
+    //!
+    //! \param    [in] hevcMvBuffIndex
+    //!           buff index for unused mv buffer
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS          AllocateMvTemporalBuffer(
+        uint8_t                       hevcMvBuffIndex);
 
     //!
     //! \brief    Allocate fixed sized resources
@@ -454,7 +470,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS          AllocateResources_FixedSizes();
+    MOS_STATUS          AllocateResourcesFixedSizes();
 
     //!
     //! \brief    Get mv buffer index
@@ -472,11 +488,11 @@ public:
 #if USE_CODECHAL_DEBUG_TOOL
     MOS_STATUS DumpPicParams(
         PCODEC_HEVC_PIC_PARAMS     picParams,
-        PCODEC_HEVC_EXT_PIC_PARAMS extPicParams);
+        void*                      extPicParams);
 
     MOS_STATUS DumpSliceParams(
         PCODEC_HEVC_SLICE_PARAMS     sliceParams,
-        PCODEC_HEVC_EXT_SLICE_PARAMS extSliceParams,
+        void*                        extSliceParams,
         uint32_t                     numSlices,
         bool                         shortFormatInUse);
 
@@ -562,7 +578,7 @@ public:
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     // SFC
-    CODECHAL_HEVC_SFC_STATE         *m_sfcState;                                            //!< HEVC SFC State
+    CodechalHevcSfcState         *m_sfcState;                                            //!< HEVC SFC State
 #endif
     PIC_LONG_FORMAT_MHW_PARAMS      m_picMhwParams;                                         //!< picture parameters
 };

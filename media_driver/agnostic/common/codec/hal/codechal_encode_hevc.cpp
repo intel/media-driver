@@ -261,7 +261,7 @@ MOS_STATUS CodechalEncHevcState::ReadBrcPakStats(
         m_encodeStatusBuf.dwNumPassesOffset +   // Num passes offset
         sizeof(uint32_t)* 2;                               // pEncodeStatus is offset by 2 DWs in the resource
 
-    CODECHAL_ENCODE_READ_BRC_PAK_STATS_PARAMS   readBrcPakStatsParams;
+    EncodeReadBrcPakStatsParams   readBrcPakStatsParams;
     readBrcPakStatsParams.pHwInterface               = m_hwInterface;
     readBrcPakStatsParams.presBrcPakStatisticBuffer  = &BrcBuffers.resBrcPakStatisticBuffer[BrcBuffers.uiCurrBrcPakStasIdxForWrite];
     readBrcPakStatsParams.presStatusBuffer           = &m_encodeStatusBuf.resStatusBuffer;
@@ -967,7 +967,6 @@ CodechalEncHevcState::CodechalEncHevcState(
 
     // initialze class members
     MOS_ZeroMemory(&sFormatConvertedSurface, sizeof(sFormatConvertedSurface));
-    MOS_ZeroMemory(&BrcInputForEncKernelBuffer, sizeof(BrcInputForEncKernelBuffer));
     MOS_ZeroMemory(&BrcBuffers, sizeof(BrcBuffers));
 }
 
@@ -1041,7 +1040,7 @@ MOS_STATUS CodechalEncHevcState::AllocateBrcResources()
         &BrcBuffers.sBrcIntraDistortionBuffer.OsResource),
         "Failed to allocate  ME BRC Distortion Buffer.");
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_GetResourceInfo(m_osInterface, &BrcBuffers.sBrcIntraDistortionBuffer));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, &BrcBuffers.sBrcIntraDistortionBuffer));
     BrcBuffers.sBrcIntraDistortionBuffer.bArraySpacing = true;
     size = BrcBuffers.sBrcIntraDistortionBuffer.dwHeight * BrcBuffers.sBrcIntraDistortionBuffer.dwPitch;
 
@@ -1166,7 +1165,7 @@ MOS_STATUS CodechalEncHevcState::AllocateBrcResources()
             return eStatus;
         }
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_GetResourceInfo(m_osInterface, &BrcBuffers.sBrcConstantDataBuffer[i]));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, &BrcBuffers.sBrcConstantDataBuffer[i]));
         BrcBuffers.sBrcConstantDataBuffer[i].bArraySpacing = true;
     }
 
@@ -1193,7 +1192,7 @@ MOS_STATUS CodechalEncHevcState::AllocateBrcResources()
         return eStatus;
     }
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_GetResourceInfo(m_osInterface, &BrcBuffers.sBrcMbQpBuffer));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, &BrcBuffers.sBrcMbQpBuffer));
     BrcBuffers.sBrcMbQpBuffer.bArraySpacing = true;
 
     data = (uint8_t*)m_osInterface->pfnLockResource(

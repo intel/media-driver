@@ -30,6 +30,10 @@
 #include "codec_def_common.h"
 #include "codec_def_common_vp9.h"
 
+#define CODECHAL_MAX_CUR_NUM_REF_FRAME_VP9      3
+#define CODECHAL_DECODE_VP9_MAX_NUM_REF_FRAME   8
+#define CODECHAL_VP9_NUM_MV_BUFFERS             2
+
 // VP9 Decode Slice Parameter Buffer
 typedef struct _CODEC_VP9_SLICE_PARAMS {
     uint32_t              BSNALunitDataLocation;

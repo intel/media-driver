@@ -28,6 +28,7 @@
 #define MEDIADRIVER_AGNOSTIC_COMMON_CM_CMVEBOXRT_H_
 
 #include "cm_vebox.h"
+#include "cm_hal_vebox.h"
 
 namespace CMRT_UMD
 {

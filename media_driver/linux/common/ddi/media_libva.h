@@ -43,14 +43,9 @@
 #include "va_internal_android.h"
 #endif
 #include <va/va_dec_hevc.h>
-#include "codec_ddi.h"
 #include "codechal.h"
 #include "codechal_decoder.h"
-#include "codechal_encoder.h"
 #include "codechal_encoder_base.h"
-#include "codechal_common.h"
-#include "codechal_common_avc.h"
-
 #include "media_libva_common.h"
 
 #define DDI_CODEC_GEN_MAX_PROFILES                 17   //  the number of va profiles, some profiles in va_private.h
@@ -287,12 +282,34 @@ typedef struct _DDI_CODEC_RENDER_TARGET_TABLE
 #define DDI_CODEC_NUM_MACROBLOCKS_WIDTH(dwWidth)     ((dwWidth + (CODECHAL_MACROBLOCK_WIDTH - 1)) / CODECHAL_MACROBLOCK_WIDTH)
 #define DDI_CODEC_NUM_MACROBLOCKS_HEIGHT(dwHeight)   ((dwHeight + (CODECHAL_MACROBLOCK_HEIGHT - 1)) / CODECHAL_MACROBLOCK_HEIGHT)
 
+//! \brief  Map buffer
+//!
+//! \param  [in] ctx
+//!     Pointer to VA driver context
+//! \param  [in] buf_id
+//!     VA buffer ID
+//! \param  [out] pbuf
+//!     Pointer to buffer
+//!
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
 VAStatus DdiMedia_MapBuffer (
     VADriverContextP    ctx,
     VABufferID          buf_id,
     void                **pbuf
 );
 
+//! \brief  Unmap buffer
+//!
+//! \param  [in] ctx
+//!     Pointer to VA driver context
+//! \param  [in] buf_id
+//!     VA buffer ID
+//!
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
 VAStatus DdiMedia_UnmapBuffer (
     VADriverContextP    ctx,
     VABufferID          buf_id
@@ -302,14 +319,41 @@ VAStatus DdiMedia_UnmapBuffer (
 extern "C" {
 #endif
 
-MEDIAAPI_EXPORT
-VAStatus DdiMedia_HybridQueryBufferAttributes(
+//! \brief  Hybrid query buffer attributes
+//!
+//! \param  [in] dpy
+//!     VA display
+//! \param  [in] context
+//!     VA context ID
+//! \param  [in] bufferType
+//!     VA buffer type
+//! \param  [out] outputData
+//!     Output data
+//! \param  [out] outputDataLen
+//!     Length of output data
+//!
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
+MEDIAAPI_EXPORT VAStatus DdiMedia_HybridQueryBufferAttributes(
     VADisplay    dpy,
     VAContextID  context,
     VABufferType bufferType,
     void        *outputData,
     uint32_t    *outputDataLen);
 
+//! \brief  Set frame ID
+//!
+//! \param  [in] ctx
+//!     Pointer to VA driver context
+//! \param  [in] surface
+//!     VA surface ID
+//! \param  [in] frame_id
+//!     Frame ID
+//!
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
 VAStatus DdiMedia_SetFrameID(
     VADriverContextP    ctx,
     VASurfaceID         surface,

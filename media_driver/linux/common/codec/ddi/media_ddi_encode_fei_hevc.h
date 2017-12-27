@@ -29,6 +29,10 @@
 
 #include "media_ddi_encode_hevc.h"
 
+//!
+//! \class  DdiEncodeHevcFei
+//! \brief  Ddi encode HEVC FEI
+//!
 class DdiEncodeHevcFei : public DdiEncodeHevc
 {
 public:

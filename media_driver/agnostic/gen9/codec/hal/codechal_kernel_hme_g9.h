@@ -65,7 +65,7 @@ public:
     public:
         Curbe()
         {
-            memcpy((void *)&m_data, &m_initCurbe, sizeof(m_initCurbe));
+            memcpy_s(&m_data, sizeof(m_data), &m_initCurbe, sizeof(m_initCurbe));
         }
         struct CurbeData
         {

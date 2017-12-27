@@ -442,7 +442,7 @@ protected:
     }
 
     MOS_STATUS IsHevcBufferReallocNeeded(
-        MHW_VDBOX_HCP_INTERNAL_BUFFER_TYPE   BufferType,
+        MHW_VDBOX_HCP_INTERNAL_BUFFER_TYPE   bufferType,
         PMHW_VDBOX_HCP_BUFFER_REALLOC_PARAMS reallocParam)
     {
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
@@ -457,7 +457,7 @@ protected:
         uint32_t picWidthAlloced = reallocParam->dwPicWidthAlloced;
         uint32_t picHeightAlloced = reallocParam->dwPicHeightAlloced;
 
-        switch (BufferType)
+        switch (bufferType)
         {
         case MHW_VDBOX_HCP_INTERNAL_BUFFER_DBLK_LINE:
         case MHW_VDBOX_HCP_INTERNAL_BUFFER_DBLK_TILE_LINE:
@@ -485,7 +485,7 @@ protected:
     }
 
     MOS_STATUS IsVp9BufferReallocNeeded(
-        MHW_VDBOX_HCP_INTERNAL_BUFFER_TYPE   BufferType,
+        MHW_VDBOX_HCP_INTERNAL_BUFFER_TYPE   bufferType,
         PMHW_VDBOX_HCP_BUFFER_REALLOC_PARAMS reallocParam)
     {
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
@@ -500,7 +500,7 @@ protected:
         uint32_t picWidthInSbAlloced = reallocParam->dwPicWidthAlloced;
         uint32_t picHeightInSbAlloced = reallocParam->dwPicHeightAlloced;
 
-        switch (BufferType)
+        switch (bufferType)
         {
         case MHW_VDBOX_HCP_INTERNAL_BUFFER_META_LINE:
         case MHW_VDBOX_HCP_INTERNAL_BUFFER_META_TILE_LINE:
@@ -604,16 +604,16 @@ protected:
 
             for (uint8_t sizeId = 0; sizeId < 4; sizeId++)            // 4x4, 8x8, 16x16, 32x32
             {
-                for (uint8_t ucPredType = 0; ucPredType < 2; ucPredType++)  // Intra, Inter
+                for (uint8_t predType = 0; predType < 2; predType++)  // Intra, Inter
                 {
-                    for (uint8_t ucColor = 0; ucColor < 3; ucColor++)       // Y, Cb, Cr
+                    for (uint8_t color = 0; color < 3; color++)       // Y, Cb, Cr
                     {
-                        if ((sizeId == 3) && (ucColor != 0))
+                        if ((sizeId == 3) && (color != 0))
                             break;
 
                         cmd.DW1.Sizeid = sizeId;
-                        cmd.DW1.PredictionType = ucPredType;
-                        cmd.DW1.ColorComponent = ucColor;
+                        cmd.DW1.PredictionType = predType;
+                        cmd.DW1.ColorComponent = color;
                         switch (sizeId)
                         {
                         case HEVC_QM_4x4:
@@ -622,15 +622,12 @@ protected:
                             cmd.DW1.DcCoefficient = 0;
                             break;
                         case HEVC_QM_16x16:
-                            cmd.DW1.DcCoefficient = params->pHevcIqMatrix->ListDC16x16[3 * ucPredType + ucColor];
+                            cmd.DW1.DcCoefficient = params->pHevcIqMatrix->ListDC16x16[3 * predType + color];
                             break;
                         case HEVC_QM_32x32:
-                            cmd.DW1.DcCoefficient = params->pHevcIqMatrix->ListDC32x32[ucPredType];
+                            cmd.DW1.DcCoefficient = params->pHevcIqMatrix->ListDC32x32[predType];
                             break;
                         }
-
-                        // Enable the transquant clampping for Allegro RND clips for SKL only.
-                        cmd.DW1.ChickenBitTransquantBypassClampDisable = 0;
 
                         if (sizeId == HEVC_QM_4x4)
                         {
@@ -638,7 +635,7 @@ protected:
                             {
                                 for (uint8_t ii = 0; ii < 4; ii++)
                                 {
-                                    qMatrix[4 * i + ii] = params->pHevcIqMatrix->List4x4[3 * ucPredType + ucColor][4 * i + ii];
+                                    qMatrix[4 * i + ii] = params->pHevcIqMatrix->List4x4[3 * predType + color][4 * i + ii];
                                 }
                             }
                         }
@@ -648,7 +645,7 @@ protected:
                             {
                                 for (uint8_t ii = 0; ii < 8; ii++)
                                 {
-                                    qMatrix[8 * i + ii] = params->pHevcIqMatrix->List8x8[3 * ucPredType + ucColor][8 * i + ii];
+                                    qMatrix[8 * i + ii] = params->pHevcIqMatrix->List8x8[3 * predType + color][8 * i + ii];
                                 }
                             }
                         }
@@ -658,7 +655,7 @@ protected:
                             {
                                 for (uint8_t ii = 0; ii < 8; ii++)
                                 {
-                                    qMatrix[8 * i + ii] = params->pHevcIqMatrix->List16x16[3 * ucPredType + ucColor][8 * i + ii];
+                                    qMatrix[8 * i + ii] = params->pHevcIqMatrix->List16x16[3 * predType + color][8 * i + ii];
                                 }
                             }
                         }
@@ -668,7 +665,7 @@ protected:
                             {
                                 for (uint8_t ii = 0; ii < 8; ii++)
                                 {
-                                    qMatrix[8 * i + ii] = params->pHevcIqMatrix->List32x32[ucPredType][8 * i + ii];
+                                    qMatrix[8 * i + ii] = params->pHevcIqMatrix->List32x32[predType][8 * i + ii];
                                 }
                             }
                         }
@@ -959,20 +956,20 @@ protected:
         {
             if (params->presReferences[i] != nullptr)
             {
-                MOS_SURFACE  resDetails;
-                MOS_ZeroMemory(&resDetails, sizeof(resDetails));
-                resDetails.Format = Format_Invalid;
-                MHW_MI_CHK_STATUS(this->m_osInterface->pfnGetResourceInfo(this->m_osInterface, params->presReferences[i], &resDetails));
+                MOS_SURFACE  details;
+                MOS_ZeroMemory(&details, sizeof(details));
+                details.Format = Format_Invalid;
+                MHW_MI_CHK_STATUS(this->m_osInterface->pfnGetResourceInfo(this->m_osInterface, params->presReferences[i], &details));
 
                 if (firstRefPic)
                 {
-                    cmd.DW53.Tiledresourcemode = Mhw_ConvertToTRMode(resDetails.TileType);
+                    cmd.DW53.Tiledresourcemode = Mhw_ConvertToTRMode(details.TileType);
                     firstRefPic = false;
                 }
 
                 resourceParams.presResource = params->presReferences[i];
                 resourceParams.pdwCmd = (cmd.ReferencePictureBaseAddressRefaddr07[i].DW0_1.Value);
-                resourceParams.dwOffset = resDetails.RenderOffset.YUV.Y.BaseOffset;
+                resourceParams.dwOffset = details.RenderOffset.YUV.Y.BaseOffset;
                 resourceParams.dwLocationInCmd = (i * 2) + 37; // * 2 to account for QW rather than DW
                 resourceParams.bIsWritable = false;
 
@@ -1299,16 +1296,16 @@ protected:
             {
                 cmd.Quantizermatrix[i] = 0;
             }
-            for (uint8_t ucIntraInter = 0; ucIntraInter <= 1; ucIntraInter++)
+            for (uint8_t intraInter = 0; intraInter <= 1; intraInter++)
             {
-                cmd.DW1.IntraInter = ucIntraInter;
+                cmd.DW1.IntraInter = intraInter;
                 cmd.DW1.Sizeid = 0;
                 cmd.DW1.ColorComponent = 0;
 
                 for (uint8_t i = 0; i < 16; i++)
                 {
                     fqMatrix[i] =
-                        GetReciprocalScalingValue(iqMatrix->List4x4[3 * ucIntraInter][i]);
+                        GetReciprocalScalingValue(iqMatrix->List4x4[3 * intraInter][i]);
                 }
 
                 MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
@@ -1319,16 +1316,16 @@ protected:
             {
                 cmd.Quantizermatrix[i] = 0;
             }
-            for (uint8_t ucIntraInter = 0; ucIntraInter <= 1; ucIntraInter++)
+            for (uint8_t intraInter = 0; intraInter <= 1; intraInter++)
             {
-                cmd.DW1.IntraInter = ucIntraInter;
+                cmd.DW1.IntraInter = intraInter;
                 cmd.DW1.Sizeid = 1;
                 cmd.DW1.ColorComponent = 0;
 
                 for (uint8_t i = 0; i < 64; i++)
                 {
                     fqMatrix[i] =
-                        GetReciprocalScalingValue(iqMatrix->List8x8[3 * ucIntraInter][i]);
+                        GetReciprocalScalingValue(iqMatrix->List8x8[3 * intraInter][i]);
                 }
 
                 MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
@@ -1339,17 +1336,17 @@ protected:
             {
                 cmd.Quantizermatrix[i] = 0;
             }
-            for (uint8_t ucIntraInter = 0; ucIntraInter <= 1; ucIntraInter++)
+            for (uint8_t intraInter = 0; intraInter <= 1; intraInter++)
             {
-                cmd.DW1.IntraInter = ucIntraInter;
+                cmd.DW1.IntraInter = intraInter;
                 cmd.DW1.Sizeid = 2;
                 cmd.DW1.ColorComponent = 0;
-                cmd.DW1.FqmDcValue1Dc = GetReciprocalScalingValue(iqMatrix->ListDC16x16[3 * ucIntraInter]);
+                cmd.DW1.FqmDcValue1Dc = GetReciprocalScalingValue(iqMatrix->ListDC16x16[3 * intraInter]);
 
                 for (uint8_t i = 0; i < 64; i++)
                 {
                     fqMatrix[i] =
-                        GetReciprocalScalingValue(iqMatrix->List16x16[3 * ucIntraInter][i]);
+                        GetReciprocalScalingValue(iqMatrix->List16x16[3 * intraInter][i]);
                 }
 
                 MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
@@ -1360,17 +1357,17 @@ protected:
             {
                 cmd.Quantizermatrix[i] = 0;
             }
-            for (uint8_t ucIntraInter = 0; ucIntraInter <= 1; ucIntraInter++)
+            for (uint8_t intraInter = 0; intraInter <= 1; intraInter++)
             {
-                cmd.DW1.IntraInter = ucIntraInter;
+                cmd.DW1.IntraInter = intraInter;
                 cmd.DW1.Sizeid = 3;
                 cmd.DW1.ColorComponent = 0;
-                cmd.DW1.FqmDcValue1Dc = GetReciprocalScalingValue(iqMatrix->ListDC32x32[ucIntraInter]);
+                cmd.DW1.FqmDcValue1Dc = GetReciprocalScalingValue(iqMatrix->ListDC32x32[intraInter]);
 
                 for (uint8_t i = 0; i < 64; i++)
                 {
                     fqMatrix[i] =
-                        GetReciprocalScalingValue(iqMatrix->List32x32[ucIntraInter][i]);
+                        GetReciprocalScalingValue(iqMatrix->List32x32[intraInter][i]);
                 }
 
                 MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
@@ -1673,7 +1670,7 @@ protected:
         MHW_MI_CHK_NULL(params);
 
         typename THcpCmds::HCP_VP9_SEGMENT_STATE_CMD  cmd;
-        void*  pSegData = nullptr;
+        void*  segData = nullptr;
     
         cmd.DW1.SegmentId = params->ucCurrentSegmentId;
     
@@ -1685,7 +1682,7 @@ protected:
     
             if (params->pbSegStateBufferPtr)   // Use the seg data from this buffer (output of BRC)
             {
-                pSegData = params->pbSegStateBufferPtr;
+                segData = params->pbSegStateBufferPtr;
             }
             else    // Prepare the seg data
             {
@@ -1693,7 +1690,7 @@ protected:
                 cmd.DW2.SegmentReference        = vp9SegData.SegmentFlags.fields.SegmentReference;
                 cmd.DW2.SegmentReferenceEnabled = vp9SegData.SegmentFlags.fields.SegmentReferenceEnabled;
     
-                pSegData = &cmd;
+                segData = &cmd;
             }
         }
         else
@@ -1721,33 +1718,33 @@ protected:
             cmd.DW6.ChromaDcQuantScaleDecodeModeOnly = vp9SegData.ChromaDCQuantScale;
             cmd.DW6.ChromaAcQuantScaleDecodeModeOnly = vp9SegData.ChromaACQuantScale;
     
-            pSegData = &cmd;
+            segData = &cmd;
         }
     
-        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, pSegData, cmd.byteSize));
+        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, segData, cmd.byteSize));
     
         return eStatus;
     }
 
     MOS_STATUS AddHcpHevcPicBrcBuffer(
-        PMOS_RESOURCE                   presHcpImgStates,
-        MHW_VDBOX_HEVC_PIC_STATE        HevcPicState)
+        PMOS_RESOURCE                   hcpImgStates,
+        MHW_VDBOX_HEVC_PIC_STATE        hevcPicState)
     {
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
     
         MHW_FUNCTION_ENTER;
     
-        MHW_MI_CHK_NULL(presHcpImgStates);
+        MHW_MI_CHK_NULL(hcpImgStates);
 
         MOS_COMMAND_BUFFER constructedCmdBuf;
         typename THcpCmds::HCP_PIC_STATE_CMD  cmd;
         uint32_t* insertion = nullptr;
         MOS_LOCK_PARAMS lockFlags;
-        this->m_brcNumPakPasses = HevcPicState.brcNumPakPasses;
+        this->m_brcNumPakPasses = hevcPicState.brcNumPakPasses;
     
         MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
         lockFlags.WriteOnly = 1;
-        uint8_t *data = (uint8_t*)this->m_osInterface->pfnLockResource(this->m_osInterface, presHcpImgStates, &lockFlags);
+        uint8_t *data = (uint8_t*)this->m_osInterface->pfnLockResource(this->m_osInterface, hcpImgStates, &lockFlags);
         MHW_MI_CHK_NULL(data);
     
         constructedCmdBuf.pCmdBase      = (uint32_t *)data;
@@ -1755,7 +1752,7 @@ protected:
         constructedCmdBuf.iOffset       = 0;
         constructedCmdBuf.iRemaining    = BRC_IMG_STATE_SIZE_PER_PASS * (this->m_brcNumPakPasses);
     
-        MHW_MI_CHK_STATUS(this->AddHcpPicStateCmd(&constructedCmdBuf, &HevcPicState));
+        MHW_MI_CHK_STATUS(this->AddHcpPicStateCmd(&constructedCmdBuf, &hevcPicState));
     
         cmd = *(typename THcpCmds::HCP_PIC_STATE_CMD *)data;
     
@@ -1784,43 +1781,43 @@ protected:
             data += BRC_IMG_STATE_SIZE_PER_PASS;
         }
     
-        this->m_osInterface->pfnUnlockResource(this->m_osInterface, presHcpImgStates);
+        this->m_osInterface->pfnUnlockResource(this->m_osInterface, hcpImgStates);
     
         return eStatus;
     }
 
     MOS_STATUS GetOsResLaceOrAceOrRgbHistogramBufferSize(
-        uint32_t                        dwWidth,
-        uint32_t                        dwHeight,
-        uint32_t                       *pSize)
+        uint32_t                        width,
+        uint32_t                        height,
+        uint32_t                       *size)
     {
         MOS_STATUS                      eStatus = MOS_STATUS_SUCCESS;
 
-        *pSize = this->m_veboxRgbHistogramSize;
+        *size = this->m_veboxRgbHistogramSize;
 
-        uint32_t dwSizeLace = MOS_ROUNDUP_DIVIDE(dwHeight, 64) *
-            MOS_ROUNDUP_DIVIDE(dwWidth, 64)  *
+        uint32_t sizeLace = MOS_ROUNDUP_DIVIDE(height, 64) *
+            MOS_ROUNDUP_DIVIDE(width, 64)  *
             this->m_veboxLaceHistogram256BinPerBlock;
 
-        uint32_t dwSizeNoLace = m_veboxAceHistogramSizePerFramePerSlice *
+        uint32_t sizeNoLace = m_veboxAceHistogramSizePerFramePerSlice *
             this->m_veboxNumFramePreviousCurrent                   *
             this->m_veboxMaxSlices;
 
-        *pSize += MOS_MAX(dwSizeLace, dwSizeNoLace);
+        *size += MOS_MAX(sizeLace, sizeNoLace);
 
         return eStatus;
     }
 
     MOS_STATUS GetOsResStatisticsOutputBufferSize(
-        uint32_t                        dwWidth,
-        uint32_t                        dwHeight,
-        uint32_t                       *pSize)
+        uint32_t                        width,
+        uint32_t                        height,
+        uint32_t                       *size)
     {
         MOS_STATUS                      eStatus = MOS_STATUS_SUCCESS;
 
-        dwWidth  = MOS_ALIGN_CEIL(dwWidth, 64);
-        dwHeight = MOS_ROUNDUP_DIVIDE(dwHeight, 4) + MOS_ROUNDUP_DIVIDE(this->m_veboxStatisticsSize * sizeof(uint32_t), dwWidth);
-        *pSize   = dwWidth * dwHeight;
+        width  = MOS_ALIGN_CEIL(width, 64);
+        height = MOS_ROUNDUP_DIVIDE(height, 4) + MOS_ROUNDUP_DIVIDE(this->m_veboxStatisticsSize * sizeof(uint32_t), width);
+        *size   = width * height;
 
         return eStatus;
     }

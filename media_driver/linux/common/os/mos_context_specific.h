@@ -60,7 +60,7 @@ class OsContextSpecific : public OsContext
     //!
     //! \brief Initial share memory handle
     //!
-    constexpr static void* MOS_LINUX_SHM_INVALID       = (void *)nullptr;
+    constexpr static void* MOS_LINUX_SHM_INVALID      = (void *)nullptr;
 
     //!
     //! \brief Initial share memory ID
@@ -134,8 +134,8 @@ public:
     int32_t GetSemId(){return m_semId;};
 
     //!
-    //! \brief  Return the shm ID for the gPC
-    //! \return shm gd
+    //! \brief  Return the shm ID for the IPC
+    //! \return shm id
     int32_t GetShmId(){return m_shmId;};
 
     //!

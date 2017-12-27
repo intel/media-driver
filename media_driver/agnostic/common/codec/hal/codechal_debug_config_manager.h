@@ -32,7 +32,7 @@
 #include <map>
 #include <vector>
 #include "mos_defs.h"
-#include "codechal_common.h"
+#include "codechal_hw.h"
 
 namespace CodechalDbgAttr
 {
@@ -74,8 +74,7 @@ static const char *attrOverwriteCommands     = "OverwriteCommands";
 static const char *attrHuffmanTbl            = "HuffmanTbl";
 static const char *attrScanParams            = "ScanParams";
 static const char *attrDriverUltDump         = "DriverUltDump";
-static const char *attrDumpDataInBinary      = "DumpDataInBinary";
-static const char *attrDumpBitstreamInBinary = "DumpBitstreamInBinary";
+static const char *attrDumpBufferInBinary    = "DumpBufferInBinary";
 static const char *attrDumpToThreadFolder    = "DumpToThreadFolder";
 static const char *attrDumpCmdBufInBinary    = "DumpCmdBufInBinary";
 static const char *attrDumpEncodePar         = "DumpEncodePar";
@@ -88,6 +87,8 @@ static const char *attrImageState            = "ImageState";
 static const char *attrSliceSizeStreamout    = "SliceSizeStreamout";
 static const char *attrCoeffProb             = "PakHwCoeffProbs";
 static const char *attrStatusReport          = "StatusReport";
+static const char *attrPakObjStreamout       = "PakObjStreamOut";
+
 // MD5 attributes
 static const char *attrMD5HashEnable    = "MD5HasEnable";
 static const char *attrMD5FlushInterval = "MD5FlushInterval";
@@ -266,6 +267,7 @@ public:
     bool AttrIsEnabled(CODECHAL_MEDIA_STATE_TYPE mediaState, std::string attrib);
 
 protected:
+    void GenerateDefaultConfig();
     uint32_t GetFrameConfig(uint32_t frameIdx);
     void StoreDebugAttribs(std::string line, CodechalDbgCfg *dbgCfg);
     void ParseKernelAttribs(std::string line, CodechalDbgCfg *dbgCfg);

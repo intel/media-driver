@@ -36,7 +36,7 @@ typedef struct _MHW_BATCH_BUFFER MHW_BATCH_BUFFER, *PMHW_BATCH_BUFFER;
 #define MHW_CACHELINE_SIZE      64
 #define MHW_PAGE_SIZE           0x1000
 
-#define MHW_TIMEOUT_MS_DEFAULT  100
+#define MHW_TIMEOUT_MS_DEFAULT  1000
 #define MHW_EVENT_TIMEOUT_MS    5
 
 #define MHW_WIDTH_IN_DW(w)  ((w + 0x3) >> 2)

@@ -156,8 +156,7 @@ CM_RETURN_CODE CMRTKernelI32x32UMD::AllocateSurfaces(void *params)
     CM_CHK_STATUS_RETURN(m_cmSurface2D[3]->GetIndex(m_surfIndex[6]));
     CM_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D((MOS_RESOURCE *)I32x32Params->m_cmBRCConstSurf, m_cmSurface2D[4]));
     CM_CHK_STATUS_RETURN(m_cmSurface2D[4]->GetIndex(m_surfIndex[7]));
-    CM_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D((MOS_RESOURCE *)I32x32Params->m_cmSurfStats, m_cmSurface2D[5]));
-    CM_CHK_STATUS_RETURN(m_cmSurface2D[5]->GetIndex(m_surfIndex[8]));
+    m_surfIndex[8] = (SurfaceIndex *)CM_NULL_SURFACE;
     m_surfIndex[9] = (SurfaceIndex *)CM_NULL_SURFACE;
 
     return CM_SUCCESS;

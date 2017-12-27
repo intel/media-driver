@@ -68,7 +68,7 @@
 #define CODECHAL_DECODE_MPEG2_MB_MOTION_BACKWARD        4   //!< Bit 2
 
 //!
-//! \enum CODECHAL_MPEG2_IMT_TYPE
+//! \enum _CODECHAL_MPEG2_IMT_TYPE
 //! Intel Motion Type
 //!
 typedef enum _CODECHAL_MPEG2_IMT_TYPE

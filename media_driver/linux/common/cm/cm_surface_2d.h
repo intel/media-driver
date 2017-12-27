@@ -305,8 +305,37 @@ public:
 
 // Pay Attention: below APIs only used in UMD. If you add an API exposed to application, please add it BEFORE this line.
 public:
+    //!
+    //! \brief Sets the surface's read sync flag for synchronization between engines.
+    //! \details If the surface is shared between render engine and another engine, 
+    //!          the read sync flag is to tell whether the next engine should wait till
+    //!          the kernel execution ends in render engine. If the read sync flag is set,
+    //!          then it means the render engine only read this surface and the next engine 
+    //!          can also access it simultaneously. If the read sync flag
+    //!          is not set (or set to false), then the next engine should assume the 
+    //!          render engine is writing to this surface and wait till the kernel execution
+    //!          ends.
+    //! \param [in] bReadSync
+    //!        value of read sync flag to be set to the surface
+    //! \retval CM_INVALID_ARG_VALUE if any parameter is invalid.
+    //! \retval CM_SUCCESS if successful.
+    //!
     CMRT_UMD_API virtual int32_t SetReadSyncFlag(bool bReadSync) = 0;
 
+    //!
+    //! \brief Set the UMD Resource and MOS Resource in the CmSurface2D
+    //! \details A callback function which allows CM callers to change the UMD Resource and 
+    //!          MOS Resource embedded in the CmSurface2D.
+    //! \param [in] umdResource
+    //!        the UMD Resource set to the CmSurface2D
+    //! \param [in] updateMosResource
+    //!        a flag indicating whether MOS resource needs updating. 0 mean keeping it
+    //!        unchanged. Otherwise, set the MOS resource to parameter pMosResource. Default
+    //!        is 0.
+    //! \param [in] pMosResource
+    //!        the MOS Resource set to the CmSurface2D
+    //! \retval CM_SUCCESS always.
+    //!
     CMRT_UMD_API virtual int32_t
     NotifyUmdResourceChanged(UMD_RESOURCE umdResource,
                              int updateMosResource = 0,

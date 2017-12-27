@@ -154,6 +154,10 @@ public:
         }
     }
 
+
+    MOS_STATUS GetExpectedGtSystemConfig(
+        PCM_EXPECTED_GT_SYSTEM_INFO pExpectedConfig);
+
 private:
     MOS_STATUS RegisterSampler8x8AVSTable(
                        PCM_HAL_SAMPLER_8X8_TABLE  pSampler8x8AVSTable,

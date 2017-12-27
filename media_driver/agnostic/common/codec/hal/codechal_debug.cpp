@@ -28,8 +28,6 @@
 #if USE_CODECHAL_DEBUG_TOOL
 #include "codechal_debug_config_manager.h"
 #include "codechal_hw.h"
-#include "codechal_common.h"
-#include "codechal_common_vp9.h"
 #include <fstream>
 #include <sstream>
 #include <iomanip>
@@ -93,6 +91,14 @@ MOS_STATUS CodechalDebugInterface::Initialize(
     m_configMgr = MOS_New(CodechalDebugConfigMgr, this, codecFunction, m_outputFilePath);
     CODECHAL_DEBUG_CHK_NULL(m_configMgr);
     CODECHAL_DEBUG_CHK_STATUS(m_configMgr->ParseConfig());
+
+    // Create thread specified sub folder as dump folder.
+    if (m_configMgr->AttrIsEnabled(CodechalDbgAttr::attrDumpToThreadFolder))
+    {
+        std::string  ThreadSubFolder = "T" + std::to_string(MOS_GetCurrentThreadId()) + MOS_DIRECTORY_DELIMITER;
+        m_outputFilePath = m_outputFilePath + ThreadSubFolder;
+        MOS_CreateDirectory(const_cast<char*>(m_outputFilePath.c_str()));
+    }
 
     m_ddiFileName = m_outputFilePath + "ddi.par";
     std::ofstream ofs(m_ddiFileName, std::ios::out);
@@ -167,7 +173,7 @@ const char *CodechalDebugInterface::CreateFileName(
     }
 
     // Sets the Postfix label
-    if (m_configMgr->AttrIsEnabled(CodechalDbgAttr::attrDumpDataInBinary) &&
+    if (m_configMgr->AttrIsEnabled(CodechalDbgAttr::attrDumpBufferInBinary) &&
         strcmp(extType, CodechalDbgExtType::txt) == 0)
     {
         extType = CodechalDbgExtType::dat;
@@ -326,6 +332,8 @@ MOS_STATUS CodechalDebugInterface::DumpCurbe(
     }
 
     std::string funcName = m_configMgr->GetMediaStateStr(mediaState);
+    bool binaryDump = m_configMgr->AttrIsEnabled(CodechalDbgAttr::attrDumpBufferInBinary);
+
     const char *fileName = CreateFileName(
         funcName.c_str(),
         CodechalDbgBufferType::bufCurbe,
@@ -334,7 +342,8 @@ MOS_STATUS CodechalDebugInterface::DumpCurbe(
     return kernelState->m_dshRegion.Dump(
         fileName,
         kernelState->dwCurbeOffset,
-        kernelState->KernelParams.iCurbeLength);
+        kernelState->KernelParams.iCurbeLength,
+        binaryDump);
 }
 
 MOS_STATUS CodechalDebugInterface::DumpKernelRegion(
@@ -387,9 +396,11 @@ MOS_STATUS CodechalDebugInterface::DumpKernelRegion(
         bufferType,
         CodechalDbgExtType::txt);
 
+    bool binaryDump = m_configMgr->AttrIsEnabled(CodechalDbgAttr::attrDumpBufferInBinary);
+
     if (regionBlock)
     {
-        return regionBlock->Dump(fileName);
+        return regionBlock->Dump(fileName, 0, 0, binaryDump);
     }
     else
     {
@@ -422,7 +433,7 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
     switch (surface->Format)
     {
     case Format_YUY2:
-    case Format_P010:
+    case Format_P010: 
     case Format_P016:
         width = width << 1;
         break;
@@ -472,7 +483,9 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
     switch (surface->Format)
     {
     case Format_NV12:
-        height >>= 1;
+    case Format_P010:
+    case Format_P016:
+        height >>= 1; 
         break;
     case  Format_Y416:
     case  Format_AYUV:
@@ -557,7 +570,7 @@ MOS_STATUS CodechalDebugInterface::DumpBuffer(
     data += offset;
 
     const char *fileName;
-    bool binaryDump = m_configMgr->AttrIsEnabled(CodechalDbgAttr::attrDumpBitstreamInBinary);
+    bool binaryDump = m_configMgr->AttrIsEnabled(CodechalDbgAttr::attrDumpBufferInBinary);
     const char* extType = binaryDump ? CodechalDbgExtType::dat : CodechalDbgExtType::txt;
     
     if (mediaState == CODECHAL_NUM_MEDIA_STATES)
@@ -616,7 +629,7 @@ MOS_STATUS CodechalDebugInterface::DumpSurface(
         return MOS_STATUS_SUCCESS;
     }
 
-    bool binaryDump = m_configMgr->AttrIsEnabled(CodechalDbgAttr::attrDumpBitstreamInBinary);
+    bool binaryDump = m_configMgr->AttrIsEnabled(CodechalDbgAttr::attrDumpBufferInBinary);
     const char* extType = binaryDump ? CodechalDbgExtType::dat : CodechalDbgExtType::txt;
 
     MOS_LOCK_PARAMS lockFlags;
@@ -671,7 +684,7 @@ MOS_STATUS CodechalDebugInterface::DumpData(
         return MOS_STATUS_SUCCESS;
     }
 
-    bool binaryDump = m_configMgr->AttrIsEnabled(CodechalDbgAttr::attrDumpDataInBinary);
+    bool binaryDump = m_configMgr->AttrIsEnabled(CodechalDbgAttr::attrDumpBufferInBinary);
     const char *fileName = CreateFileName(bufferName, nullptr,
                                           binaryDump ? CodechalDbgExtType::dat : CodechalDbgExtType::txt);
 
@@ -709,15 +722,15 @@ MOS_STATUS CodechalDebugInterface::DumpHucDmem(
     std::string funcName = "";
     if (CodecFunction == CODECHAL_FUNCTION_DECODE)
     {
-        funcName = "_DEC_";
+        funcName = "DEC_";
     }
     else if (CodecFunction == CODECHAL_FUNCTION_CENC_DECODE)
     {
-        funcName = "_DEC_Cenc_";
+        funcName = "DEC_Cenc_";
     }
     else
     {
-        funcName = "_ENC_";
+        funcName = "ENC_";
     }
 
     std::string dmemName = CodechalDbgBufferType::bufHucDmem;
@@ -725,25 +738,25 @@ MOS_STATUS CodechalDebugInterface::DumpHucDmem(
     switch (dumpType)
     {
     case hucRegionDumpInit:
-        funcName = funcName + dmemName + "_InitPass_" + passName;
+        funcName = funcName + dmemName + "_InitPass" + passName;
         break;
     case hucRegionDumpUpdate:
-        funcName = funcName + dmemName + "_UpdatePass_" + passName;
+        funcName = funcName + dmemName + "_UpdatePass" + passName;
         break;
     case hucRegionDumpRegionLocked:
-        funcName = funcName + dmemName + "_RegionLocked_" + passName;
+        funcName = funcName + dmemName + "_RegionLocked" + passName;
         break;
     case hucRegionDumpCmdInitializer:
-        funcName = funcName + dmemName + "_CmdInitializerPass_" + passName;
+        funcName = funcName + dmemName + "_CmdInitializerPass" + passName;
         break;
     case hucRegionDumpPakIntegrate:
-        funcName = funcName + dmemName + "_PakIntPass_" + passName;
+        funcName = funcName + dmemName + "_PakIntPass" + passName;
         break;
     case hucRegionDumpHpu:
-        funcName = funcName + dmemName + "_HpuPass_" + passName;
+        funcName = funcName + dmemName + "_HpuPass" + passName;
         break;
     default:
-        funcName = funcName + dmemName + "_Pass_" + passName;
+        funcName = funcName + dmemName + "_Pass" + passName;
         break;
     }
 
@@ -777,19 +790,19 @@ MOS_STATUS CodechalDebugInterface::DumpHucRegion(
     std::string funcName = "";
     if (CodecFunction == CODECHAL_FUNCTION_DECODE)
     {
-        funcName = "_DEC_";
+        funcName = "DEC_";
     }
     else if (CodecFunction == CODECHAL_FUNCTION_CENC_DECODE)
     {
-        funcName = "_DEC_Cenc_";
+        funcName = "DEC_Cenc_";
     }
     else
     {
-        funcName = "_ENC_";
+        funcName = "ENC_";
     }
 
     std::string bufName       = CodechalDbgBufferType::bufHucRegion;
-    std::string inputName     = (inputBuffer) ? "_Input" : "_Output";
+    std::string inputName     = (inputBuffer) ? "Input_" : "Output_";
     std::string regionNumName = std::to_string(regionNum);
     std::string passName      = std::to_string(hucPassNum);
     switch (dumpType)
@@ -924,7 +937,7 @@ MOS_STATUS CodechalDebugInterface::DumpVp9EncodePicParams(
     oss << "CurrOriginalPic = " << std::dec << +picParams->CurrOriginalPic.FrameIdx << std::endl;
     oss << "CurrReconstructedPic = " << std::dec << +picParams->CurrReconstructedPic.FrameIdx << std::endl;
 
-    for (uint16_t i = 0; i < CODECHAL_VP9_NUM_REF_FRAMES; ++i)
+    for (uint16_t i = 0; i < CODEC_VP9_NUM_REF_FRAMES; ++i)
     {
         oss << "RefFrameList[" << +i << "] = " << std::dec << +picParams->RefFrameList[i].FrameIdx << std::endl;
     }

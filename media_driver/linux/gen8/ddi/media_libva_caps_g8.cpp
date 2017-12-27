@@ -146,6 +146,95 @@ VAStatus MediaLibvaCapsG8::QueryAVCROIMaxNum(uint32_t rcMode, int32_t *maxNum, b
     return VA_STATUS_SUCCESS;
 }
 
+VAStatus MediaLibvaCapsG8::GetMbProcessingRateEnc(
+        MEDIA_FEATURE_TABLE *skuTable,
+        uint32_t tuIdx,
+        uint32_t codecMode,
+        bool vdencActive,
+        uint32_t *mbProcessingRatePerSec)
+{
+    DDI_CHK_NULL(skuTable, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(mbProcessingRatePerSec, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    uint32_t gtIdx = 0;
+
+    if (MEDIA_IS_SKU(skuTable, FtrGT1))
+    {
+        gtIdx = 3;
+    }
+    else if (MEDIA_IS_SKU(skuTable, FtrGT1_5))
+    {
+        gtIdx = 2;
+    }
+    else if (MEDIA_IS_SKU(skuTable, FtrGT2))
+    {
+        gtIdx = 1;
+    }
+    else if (MEDIA_IS_SKU(skuTable, FtrGT3))
+    {
+        gtIdx = 0;
+    }
+    else
+    {
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
+
+    if (MEDIA_IS_SKU(skuTable, FtrULX))
+    {
+        const uint32_t mbRate[7][4] =
+        {
+            // GT3 |  GT2   | GT1.5  |  GT1 
+            { 0, 750000, 750000, 676280 },
+            { 0, 750000, 750000, 661800 },
+            { 0, 750000, 750000, 640000 },
+            { 0, 750000, 750000, 640000 },
+            { 0, 750000, 750000, 640000 },
+            { 0, 416051, 416051, 317980 },
+            { 0, 214438, 214438, 180655 }
+        };
+
+        if (gtIdx == 0)
+        {
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
+        *mbProcessingRatePerSec = mbRate[tuIdx][gtIdx];
+    }
+    else if (MEDIA_IS_SKU(skuTable, FtrULT))
+    {
+        const uint32_t mbRate[7][4] =
+        {
+            // GT3   |  GT2   | GT1.5  |  GT1 
+            { 1544090, 1544090, 1029393, 676280 },
+            { 1462540, 1462540, 975027, 661800 },
+            { 1165381, 1165381, 776921, 640000 },
+            { 1165381, 1165381, 776921, 640000 },
+            { 1165381, 1165381, 776921, 640000 },
+            { 624076, 624076, 416051, 317980 },
+            { 321657, 321657, 214438, 180655 }
+        };
+
+        *mbProcessingRatePerSec = mbRate[tuIdx][gtIdx];
+    }
+    else
+    {
+        const uint32_t mbRate[7][4] =
+        {
+            // GT3   |   GT2  | GT1.5  |  GT1
+            { 1544090, 1544090, 1029393, 676280 },
+            { 1462540, 1462540, 975027, 661800 },
+            { 1165381, 1165381, 776921, 640000 },
+            { 1165381, 1165381, 776921, 640000 },
+            { 1165381, 1165381, 776921, 640000 },
+            { 624076, 624076, 416051, 317980 },
+            { 321657, 321657, 214438, 180655 }
+        };
+
+        *mbProcessingRatePerSec = mbRate[tuIdx][gtIdx];
+    }
+
+    return VA_STATUS_SUCCESS;
+}
+
 extern template class MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>;
 
 static bool bdwRegistered = MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>::

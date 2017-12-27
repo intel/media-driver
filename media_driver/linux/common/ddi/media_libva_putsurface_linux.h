@@ -39,18 +39,29 @@ typedef union dri_buffer *(*dri_get_rendering_buffer_func)(
 typedef void (*dri_swap_buffer_func)(
     VADriverContextP ctx, struct dri_drawable *d);
 
+//!
+//! \struct dri_vtable
+//! \brief  VA api driver table
+//!
 struct dri_vtable {
     dri_get_drawable_func               get_drawable;
     dri_get_rendering_buffer_func       get_rendering_buffer;
     dri_swap_buffer_func                swap_buffer;
 };
 
+//!
+//! \struct va_dri_output
+//! \brief  VA driver output
+//!
 struct va_dri_output {
     struct dso_handle  *handle;
     struct dri_vtable   vtable;
 };
 
-/** Symbol lookup table. */
+//!
+//! \struct dso_symbol
+//! \brief  Symbol lookup table
+//!
 struct dso_symbol {
     /** Symbol name */
     const char  *name;
@@ -63,13 +74,46 @@ struct dso_symbol {
 /** Generic pointer to function. */
 typedef void (*dso_generic_func)(void);
 
+//!
+//! \struct dso_handle
+//! \brief  Dso handle
+//!
 struct dso_handle {
     void       *handle;
 };
 
+//!
+//! \brief  Output driver initialization
+//!
+//! \param  [in] ctx
+//!     Pointer to VA driver context
+//!
+//! \return bool
+//!     true if call success, else false
+//!
 bool output_dri_init(VADriverContextP ctx);
+//!
+//! \brief  Closes and disposed any allocated data
+//!
+//! \param  [in] h
+//!     Dso handle
+//!
 void dso_close(struct dso_handle *h);
 
+//!
+//! \brief  Rectangle initialization
+//!
+//! \param  [in] Rect
+//!     Rectangle
+//! \param  [in] destx
+//!     Destination X
+//! \param  [in] desty
+//!     Destination Y
+//! \param  [in] destw
+//!     Destination W
+//! \param  [in] desth
+//!     Destination H
+//!
 void Rect_init(
     RECT            *Rect,
     int16_t          destx,
@@ -87,6 +131,40 @@ typedef int32_t (*TypeXDestroyImage)(XImage*);
 typedef int32_t (*TypeXPutImage)(Display*, Drawable, GC, XImage*, int32_t, int32_t, int32_t, int32_t,
                              uint32_t, uint32_t);
 
+//! \brief  Ddi codec put surface linux vphal ext
+//!
+//! \param  ctx
+//!     Pointer to VA driver context
+//! \param  surface
+//!     VA surface ID
+//! \param  draw
+//!     Drawable of window system
+//! \param  srcx
+//!     Source X of the region
+//! \param  srcy
+//!     Source Y of the region
+//! \param  srcw
+//!     Source W of the region
+//! \param  srch
+//!     Source H of the region
+//! \param  destx
+//!     Destination X
+//! \param  desty
+//!     Destination Y
+//! \param  destw
+//!     Destination W
+//! \param  desth
+//!     Destination H
+//! \param  cliprects
+//!     Client-supplied clip list
+//! \param  number_cliprects
+//!     Number of clip rects in the clip list
+//! \param  flags
+//!     De-interlacing flags
+//!
+//! \return     VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
 VAStatus DdiCodec_PutSurfaceLinuxVphalExt(
     VADriverContextP ctx,
     VASurfaceID      surface,
@@ -104,6 +182,40 @@ VAStatus DdiCodec_PutSurfaceLinuxVphalExt(
     uint32_t         flags             /* de-interlacing flags */
 );
 
+//! \brief  Ddi codec put surface linux hardware
+//!
+//! \param  ctx
+//!     Pointer to VA driver context
+//! \param  surface
+//!     VA surface ID
+//! \param  draw
+//!     Drawable of window system
+//! \param  srcx
+//!     Source X of the region
+//! \param  srcy
+//!     Source Y of the region
+//! \param  srcw
+//!     Source W of the region
+//! \param  srch
+//!     Source H of the region
+//! \param  destx
+//!     Destination X
+//! \param  desty
+//!     Destination Y
+//! \param  destw
+//!     Destination W
+//! \param  desth
+//!     Destination H
+//! \param  cliprects
+//!     Client-supplied clip list
+//! \param  number_cliprects
+//!     Number of clip rects in the clip list
+//! \param  flags
+//!     De-interlacing flags
+//!
+//! \return     VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
 VAStatus DdiCodec_PutSurfaceLinuxHW(
     VADriverContextP ctx,
     VASurfaceID      surface,
@@ -120,6 +232,110 @@ VAStatus DdiCodec_PutSurfaceLinuxHW(
     uint32_t         number_cliprects, /* number of clip rects in the clip list */
     uint32_t         flags             /* de-interlacing flags */
 );
+
+#ifndef ANDROID
+//! \brief  Ddi codec put surface linux software
+//!
+//! \param  ctx
+//!     Pointer to VA driver context
+//! \param  surface
+//!     VA surface ID
+//! \param  draw
+//!     Drawable of window system
+//! \param  srcx
+//!     Source X of the region
+//! \param  srcy
+//!     Source Y of the region
+//! \param  srcw
+//!     Source W of the region
+//! \param  srch
+//!     Source H of the region
+//! \param  destx
+//!     Destination X
+//! \param  desty
+//!     Destination Y
+//! \param  destw
+//!     Destination W
+//! \param  desth
+//!     Destination H
+//! \param  cliprects
+//!     Client-supplied clip list
+//! \param  number_cliprects
+//!     Number of clip rects in the clip list
+//! \param  flags
+//!     De-interlacing flags
+//!
+//! \return     VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
+VAStatus DdiMedia_PutSurfaceLinuxSW(
+    VADriverContextP ctx,
+    VASurfaceID      surface,
+    void*            draw,             /* Drawable of window system */
+    int16_t          srcx,
+    int16_t          srcy,
+    uint16_t         srcw,
+    uint16_t         srch,
+    int16_t          destx,
+    int16_t          desty,
+    uint16_t         destw,
+    uint16_t         desth,
+    VARectangle     *cliprects,        /* client supplied clip list */
+    uint32_t         number_cliprects, /* number of clip rects in the clip list */
+    uint32_t         flags             /* de-interlacing flags */
+);
+
+//! \brief  Ddi codec put surface dummy
+//!
+//! \param  ctx
+//!     Pointer to VA driver context
+//! \param  surface
+//!     VA surface ID
+//! \param  draw
+//!     Drawable of window system
+//! \param  srcx
+//!     Source X of the region
+//! \param  srcy
+//!     Source Y of the region
+//! \param  srcw
+//!     Source W of the region
+//! \param  srch
+//!     Source H of the region
+//! \param  destx
+//!     Destination X
+//! \param  desty
+//!     Destination Y
+//! \param  destw
+//!     Destination W
+//! \param  desth
+//!     Destination H
+//! \param  cliprects
+//!     Client-supplied clip list
+//! \param  number_cliprects
+//!     Number of clip rects in the clip list
+//! \param  flags
+//!     De-interlacing flags
+//!
+//! \return     VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
+VAStatus DdiMedia_PutSurfaceDummy(
+    VADriverContextP ctx,
+    VASurfaceID      surface,
+    void            *draw,             /* Drawable of window system */
+    int16_t          srcx,
+    int16_t          srcy,
+    uint16_t         srcw,
+    uint16_t         srch,
+    int16_t          destx,
+    int16_t          desty,
+    uint16_t         destw,
+    uint16_t         desth,
+    VARectangle     *cliprects,        /* client supplied clip list */
+    uint32_t         number_cliprects, /* number of clip rects in the clip list */
+    uint32_t         flags             /* de-interlacing flags */
+);
+#endif
 
 #endif
 

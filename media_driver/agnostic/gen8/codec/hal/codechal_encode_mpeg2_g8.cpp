@@ -1613,7 +1613,7 @@ CodechalEncodeMpeg2G8::CodechalEncodeMpeg2G8(
     pfnGetKernelHeaderAndSize = GetKernelHeaderAndSize;
     m_rawSurfAlignment = MHW_VDBOX_MFX_UV_PLANE_ALIGNMENT_LEGACY;  // on Gen8 raw surface has to be 16-aligned
 
-    MOS_STATUS eStatus = CodecHal_GetKernelBinaryAndSize(
+    MOS_STATUS eStatus = CodecHalGetKernelBinaryAndSize(
         (uint8_t *)IGCODECKRN_G8,
         m_kuid,
         &m_kernelBinary,
@@ -1745,7 +1745,7 @@ MOS_STATUS CodechalEncodeMpeg2G8::InitKernelStateMe()
             &kernelStatePtr->dwSshSize,
             &kernelStatePtr->dwBindingTableSize));
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_MhwInitISH(m_stateHeapInterface, kernelStatePtr));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->MhwInitISH(m_stateHeapInterface, kernelStatePtr));
     }
 
     // Until a better way can be found, maintain old binding table structures
@@ -1807,7 +1807,7 @@ MOS_STATUS CodechalEncodeMpeg2G8::InitKernelStateMbEnc()
             &kernelStatePtr->dwSshSize,
             &kernelStatePtr->dwBindingTableSize));
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_MhwInitISH(m_stateHeapInterface, kernelStatePtr));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->MhwInitISH(m_stateHeapInterface, kernelStatePtr));
     }
 
     m_mbEncBindingTable.m_mbEncPakObj                     = mbEncPakObj;
@@ -1938,7 +1938,7 @@ MOS_STATUS CodechalEncodeMpeg2G8::SendMeSurfaces(
     surfaceParams.dwBindingTableOffset = meBindingTable->dwMEMVDataSurface;
     surfaceParams.bIsWritable = true;
     surfaceParams.bRenderTarget = true;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         cmdBuffer,
         &surfaceParams,
@@ -1955,7 +1955,7 @@ MOS_STATUS CodechalEncodeMpeg2G8::SendMeSurfaces(
         m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_BRC_ME_DISTORTION_ENCODE].Value;
     surfaceParams.bIsWritable = true;
     surfaceParams.bRenderTarget = true;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         cmdBuffer,
         &surfaceParams,
@@ -1971,7 +1971,7 @@ MOS_STATUS CodechalEncodeMpeg2G8::SendMeSurfaces(
         m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ME_DISTORTION_ENCODE].Value;
     surfaceParams.bIsWritable = true;
     surfaceParams.bRenderTarget = true;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         cmdBuffer,
         &surfaceParams,
@@ -2004,7 +2004,7 @@ MOS_STATUS CodechalEncodeMpeg2G8::SendMeSurfaces(
             m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_CURR_ENCODE].Value;
         surfaceParams.dwBindingTableOffset = meBindingTable->dwMECurrForFwdRef;
         surfaceParams.ucVDirection = currVDirection;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
             m_hwInterface,
             cmdBuffer,
             &surfaceParams,
@@ -2027,7 +2027,7 @@ MOS_STATUS CodechalEncodeMpeg2G8::SendMeSurfaces(
         surfaceParams.dwBindingTableOffset = meBindingTable->dwMEFwdRefPicIdx[0];
         surfaceParams.ucVDirection = !currFieldPicture ? CODECHAL_VDIRECTION_FRAME :
             ((refBottomField) ? CODECHAL_VDIRECTION_BOT_FIELD : CODECHAL_VDIRECTION_TOP_FIELD);
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
             m_hwInterface,
             cmdBuffer,
             &surfaceParams,
@@ -2053,7 +2053,7 @@ MOS_STATUS CodechalEncodeMpeg2G8::SendMeSurfaces(
             m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_CURR_ENCODE].Value;
         surfaceParams.dwBindingTableOffset = meBindingTable->dwMECurrForBwdRef;
         surfaceParams.ucVDirection = currVDirection;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
             m_hwInterface,
             cmdBuffer,
             &surfaceParams,
@@ -2077,7 +2077,7 @@ MOS_STATUS CodechalEncodeMpeg2G8::SendMeSurfaces(
         surfaceParams.dwBindingTableOffset = meBindingTable->dwMEBwdRefPicIdx[0];
         surfaceParams.ucVDirection = (!currFieldPicture) ? CODECHAL_VDIRECTION_FRAME :
             ((refBottomField) ? CODECHAL_VDIRECTION_BOT_FIELD : CODECHAL_VDIRECTION_TOP_FIELD);
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
             m_hwInterface,
             cmdBuffer,
             &surfaceParams,

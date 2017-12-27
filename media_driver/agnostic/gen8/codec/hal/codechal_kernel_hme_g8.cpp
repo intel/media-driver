@@ -148,7 +148,7 @@ MOS_STATUS CodechalKernelHmeG8::SetCurbe(MHW_KERNEL_STATE *kernelState)
     }
 
     uint8_t tableIndex = (m_pictureCodingType == B_TYPE) ? 1 : 0;
-    memcpy(&curbe.m_data.SpDelta, codechalEncodeSearchPath[tableIndex][methodIndex], 14 * sizeof(uint32_t));
+    memcpy_s(&curbe.m_data.SpDelta, 14 * sizeof(uint32_t), codechalEncodeSearchPath[tableIndex][methodIndex], 14 * sizeof(uint32_t));
 
     //r5
     curbe.m_data.DW32._4xMeMvOutputDataSurfIndex      = BindingTableOffset::meOutputMvDataSurface;

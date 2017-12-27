@@ -26,6 +26,7 @@
 
 #include "cm_queue_rt.h"
 
+#include "cm_mem.h"
 #include "cm_device_rt.h"
 #include "cm_event_rt.h"
 #include "cm_task_rt.h"
@@ -35,7 +36,6 @@
 #include "cm_kernel_data.h"
 #include "cm_buffer_rt.h"
 #include "cm_group_space.h"
-#include "cm_hal.h"
 #include "cm_vebox_data.h"
 #include "cm_surface_manager.h"
 #include "cm_surface_2d_rt.h"
@@ -58,6 +58,8 @@
 #define GPUCOPY_KERNEL_LOCK(a) ((a)->bLocked = true)
 #define GPUCOPY_KERNEL_UNLOCK(a) ((a)->bLocked = false)
 
+namespace CMRT_UMD
+{
 //*-----------------------------------------------------------------------------
 //| Purpose:    Create Queue
 //| Returns:    Result of the operation.
@@ -429,7 +431,6 @@ int32_t CmQueueRT::Enqueue_RT(CmKernelRT* pKernelArray[],
                         CmEventRT* & pEvent,
                         const CmThreadGroupSpace* pTGS,
                         uint64_t    uiSyncBitmap,
-                        CM_PREEMPTION_MODE preemptionMode,
                         PCM_POWER_OPTION pPowerOption,
                         PCM_TASK_CONFIG  pTaskConfig)
 {
@@ -454,8 +455,6 @@ int32_t CmQueueRT::Enqueue_RT(CmKernelRT* pKernelArray[],
         CM_ASSERTMESSAGE("Error: Create CmTaskInternal failure.");
         return result;
     }
-
-    pTask->SetPreemptionMode(preemptionMode);
 
     LARGE_INTEGER nEnqueueTime;
     if ( !(MOS_QueryPerformanceCounter( (uint64_t*)&nEnqueueTime.QuadPart )))
@@ -673,7 +672,6 @@ CM_RT_API int32_t CmQueueRT::EnqueueWithGroup( CmTask* pTask, CmEvent* & pEvent,
     CmEventRT *pEventRT = static_cast<CmEventRT *>(pEvent);
     result = Enqueue_RT( pTmp, count, totalThreadNumber, pEventRT,
                          pThreadGroupSpace, pTaskRT->GetSyncBitmap(),
-                         pTaskRT->GetPreemptionMode(),
                          pTaskRT->GetPowerOption(),
                          pTaskRT->GetTaskConfig());
 
@@ -1525,8 +1523,8 @@ int32_t CmQueueRT::EnqueueCopyInternal_2Planes(CmSurface2DRT* pSurface,
     //Configure memory object control for the two BufferUP to solve the same cache-line coherency issue.
     if (pCmHalState->pCmHalInterface->IsGPUCopySurfaceNoCacheWARequired())
     {
-        CMCHK_HR(pCMBufferUP_Y->SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL_SKL_NO_CACHE));
-        CMCHK_HR(pCMBufferUP_UV->SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL_SKL_NO_CACHE));
+        CMCHK_HR(pCMBufferUP_Y->SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL_SKL_NO_LLC_L3));
+        CMCHK_HR(pCMBufferUP_UV->SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL_SKL_NO_LLC_L3));
     }
     else
     {
@@ -2550,7 +2548,6 @@ int32_t CmQueueRT::FlushGroupTask(CmTaskInternal* pTask)
     param.piKernelCurbeOffset = MOS_NewArray(uint32_t, count);
     param.queueOption = m_queueOption;
 
-    param.iPreemptionMode = pTask->GetPreemptionMode();
     CmSafeMemCopy(&param.taskConfig, pTask->GetTaskConfig(), sizeof(param.taskConfig));
     CMCHK_NULL(param.pKernels);
     CMCHK_NULL(param.piKernelSizes);
@@ -3004,7 +3001,7 @@ int32_t CmQueueRT::CreateEvent(CmTaskInternal *pTask, bool bIsVisible, int32_t &
 //|             widthStride   [in]  Width stride in bytes for system memory (to calculate start of next line)
 //|             heightStride  [in]  Width stride in row for system memory (to calculate start of next plane)
 //|             option        [in]  Option passed from user, blocking copy, non-blocking copy or disable turbo boost
-//|             pEvent        [in/out]  Reference to the pointer to Event
+//|             pEvent        [in,out]  Reference to the pointer to Event
 //| Returns:    Result of the operation.
 //|
 //| Restrictions & Notes:
@@ -3037,7 +3034,7 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyCPUToGPUFullStride( CmSurface2D* pSurfac
 //|             widthStride   [in]  Width stride in bytes for system memory (to calculate start of next line)
 //|             heightStride  [in]  Width stride in row for system memory (to calculate start of next plane)
 //|             option        [in]  Option passed from user, blocking copy,non-blocking copy or disable turbo boost
-//|             pEvent        [in/out]  Reference to the pointer to Event
+//|             pEvent        [in,out]  Reference to the pointer to Event
 //| Returns:    Result of the operation.
 //|
 //| Restrictions & Notes:
@@ -3371,4 +3368,5 @@ int32_t CmQueueRT::AllocateGPUCopyKernel( uint32_t WidthInByte, uint32_t height,
 
 finish:
     return hr;
+}
 }

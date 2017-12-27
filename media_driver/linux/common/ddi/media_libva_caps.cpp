@@ -21,7 +21,7 @@
 */
 //!
 //! \file     media_libva_caps.cpp
-//! \brief    This file implements the base C++ class/interface for media capbilities. 
+//! \brief    This file implements the base C++ class/interface for media capbilities.
 //!
 
 #include "hwinfo_linux.h"
@@ -59,12 +59,12 @@ const uint32_t MediaLibvaCaps::m_decProcessMode[2] =
 };
 
 const uint32_t MediaLibvaCaps::m_encRcMode[7] =
-{ 
-    VA_RC_CQP, VA_RC_CBR, VA_RC_VBR, 
+{
+    VA_RC_CQP, VA_RC_CBR, VA_RC_VBR,
     VA_RC_CBR | VA_RC_MB, VA_RC_VBR | VA_RC_MB,
     VA_RC_ICQ, VA_RC_VCM
 };
- 
+
 const uint32_t MediaLibvaCaps::m_vpSurfaceAttr[m_numVpSurfaceAttr] =
 {
     VA_FOURCC('I', '4', '2', '0'),
@@ -123,7 +123,7 @@ MediaLibvaCaps::MediaLibvaCaps(DDI_MEDIA_CONTEXT *mediaCtx)
     m_mediaCtx = mediaCtx;
 
     m_isEntryptSupported = MediaLibvaCapsCp::IsDecEncryptionSupported(m_mediaCtx);
-};
+}
 
 MediaLibvaCaps::~MediaLibvaCaps()
 {
@@ -336,6 +336,56 @@ VAStatus MediaLibvaCaps::FreeAttributeList()
     return VA_STATUS_SUCCESS;
 }
 
+VAStatus MediaLibvaCaps::CheckEncRTFormat(
+        VAProfile profile,
+        VAEntrypoint entrypoint,
+        VAConfigAttrib* attrib)
+{
+    DDI_CHK_NULL(attrib, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    attrib->type = VAConfigAttribRTFormat;
+    if (profile == VAProfileJPEGBaseline)
+    {
+        // at present, latest libva have not support RGB24.
+        attrib->value = VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV444 | VA_RT_FORMAT_YUV400 | VA_RT_FORMAT_YUV411 | VA_RT_FORMAT_RGB16 | VA_RT_FORMAT_RGB32;
+    }
+    else
+    {
+        attrib->value = VA_RT_FORMAT_YUV420;
+    }    
+    
+#ifdef _FULL_OPEN_SOURCE
+    EncodeFormat format = Others;
+    EncodeType type = entrypoint == VAEntrypointEncSliceLP ? Vdenc : DualPipe;
+    struct EncodeFormatTable* encodeFormatTable = m_encodeFormatTable;
+    
+    if(IsAvcProfile(profile))
+    {
+        format = AVC;
+    }
+    else if(IsHevcProfile(profile))
+    {
+        format = HEVC;
+    }
+    else if(IsVp9Profile(profile))
+    {
+        format = VP9;
+    }
+    
+    for(uint32_t i = 0; i < m_encodeFormatCount && encodeFormatTable != nullptr; encodeFormatTable++, i++)
+    {
+        if(encodeFormatTable->encodeFormat == format 
+        && encodeFormatTable->encodeType == type)
+        {
+            attrib->value = encodeFormatTable->colorFormat;
+            break;
+        }
+    }
+#endif    
+    
+    return VA_STATUS_SUCCESS;
+}
+
 VAStatus MediaLibvaCaps::CreateEncAttributes(
         VAProfile profile,
         VAEntrypoint entrypoint,
@@ -351,15 +401,8 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
 
     VAConfigAttrib attrib;
     attrib.type = VAConfigAttribRTFormat;
-    if (profile == VAProfileJPEGBaseline)
-    {
-        // at present, latest libva have not support RGB24.
-        attrib.value = VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV444 | VA_RT_FORMAT_YUV400 | VA_RT_FORMAT_YUV411 | VA_RT_FORMAT_RGB16 | VA_RT_FORMAT_RGB32;
-    }
-    else
-    {
-        attrib.value = VA_RT_FORMAT_YUV420;
-    }
+    status = CheckEncRTFormat(profile, entrypoint, &attrib);
+    DDI_CHK_RET(status, "Failed to Check Encode RT Format!");
     (*attribList)[attrib.type] = attrib.value;
 
     attrib.type = VAConfigAttribRateControl;
@@ -472,26 +515,26 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     (*attribList)[attrib.type] = attrib.value;
 
     attrib.type = VAConfigAttribMaxPictureWidth;
-    attrib.value = ENCODE_MAX_PIC_WIDTH;
+    attrib.value = CODEC_MAX_PIC_WIDTH;
     if(profile == VAProfileJPEGBaseline)
     {
         attrib.value = ENCODE_JPEG_MAX_PIC_WIDTH;
     }
     if(IsAvcProfile(profile)||IsHevcProfile(profile))
     {
-        attrib.value = ENCODE_4K_MAX_PIC_WIDTH;
+        attrib.value = CODEC_4K_MAX_PIC_WIDTH;
     }
     (*attribList)[attrib.type] = attrib.value;
 
     attrib.type = VAConfigAttribMaxPictureHeight;
-    attrib.value = ENCODE_MAX_PIC_HEIGHT;
+    attrib.value = CODEC_MAX_PIC_HEIGHT;
     if(profile == VAProfileJPEGBaseline)
     {
         attrib.value = ENCODE_JPEG_MAX_PIC_HEIGHT;
     }
     if(IsAvcProfile(profile)||IsHevcProfile(profile))
     {
-        attrib.value = ENCODE_4K_MAX_PIC_HEIGHT;
+        attrib.value = CODEC_4K_MAX_PIC_HEIGHT;
     }
     (*attribList)[attrib.type] = attrib.value;
 
@@ -667,22 +710,22 @@ VAStatus MediaLibvaCaps::CreateDecAttributes(
     }
     else if (IsHevcProfile(profile))
     {
-        bool  bHEVCMainProfileSupported = false;
+        bool  hevcmainProfileSupported = false;
         attrib.value = 0;
         if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelHEVCVLDMainDecoding)
                 || MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelHEVCVLDMain10Decoding))
         {
             attrib.value |= VA_DEC_SLICE_MODE_NORMAL;
-            bHEVCMainProfileSupported = true;
+            hevcmainProfileSupported = true;
         }
         if ((MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrHEVCVLDMainShortDecoding) ||
                     MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrHEVCVLDMain10ShortDecoding))
                 && MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels))
         {
             attrib.value |= VA_DEC_SLICE_MODE_BASE;
-            bHEVCMainProfileSupported = true;
+            hevcmainProfileSupported = true;
         }
-        if (!bHEVCMainProfileSupported)
+        if (!hevcmainProfileSupported)
         {
             attrib.value = VA_ATTRIB_NOT_SUPPORTED;
         }
@@ -720,26 +763,26 @@ VAStatus MediaLibvaCaps::CreateDecAttributes(
     (*attribList)[attrib.type] = attrib.value;
 
     attrib.type = VAConfigAttribMaxPictureWidth;
-    attrib.value = ENCODE_MAX_PIC_WIDTH;
+    attrib.value = CODEC_MAX_PIC_WIDTH;
     if(profile == VAProfileJPEGBaseline)
     {
         attrib.value = ENCODE_JPEG_MAX_PIC_WIDTH;
     }
     if(IsAvcProfile(profile)||IsHevcProfile(profile))
     {
-        attrib.value = ENCODE_4K_MAX_PIC_WIDTH;
+        attrib.value = CODEC_4K_MAX_PIC_WIDTH;
     }
     (*attribList)[attrib.type] = attrib.value;
 
     attrib.type = VAConfigAttribMaxPictureHeight;
-    attrib.value = ENCODE_MAX_PIC_HEIGHT;
+    attrib.value = CODEC_MAX_PIC_HEIGHT;
     if(profile == VAProfileJPEGBaseline)
     {
         attrib.value = ENCODE_JPEG_MAX_PIC_HEIGHT;
     }
     if(IsAvcProfile(profile)||IsHevcProfile(profile))
     {
-        attrib.value = ENCODE_4K_MAX_PIC_HEIGHT;
+        attrib.value = CODEC_4K_MAX_PIC_HEIGHT;
     }
     (*attribList)[attrib.type] = attrib.value;
 
@@ -908,9 +951,15 @@ VAStatus MediaLibvaCaps::LoadAvcEncLpProfileEntrypoints()
         for (int32_t i = 0; i < 3; i++)
         {
             uint32_t configStartIdx = m_encConfigs.size();
-            for (int32_t j = 0; j < 5; j++)
+            AddEncConfig(VA_RC_CQP);
+
+            if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels))
             {
-                AddEncConfig(m_encRcMode[j]);
+                /* m_encRcMode[0] is VA_RC_CQP and it is already added */
+                for (int32_t j = 1; j < 5; j++)
+                {
+                    AddEncConfig(m_encRcMode[j]);
+                }
             }
             AddProfileEntry(profile[i], VAEntrypointEncSliceLP, attributeList,
                     configStartIdx, m_encConfigs.size() - configStartIdx);
@@ -1530,6 +1579,36 @@ VAStatus MediaLibvaCaps::CheckEncodeResolution(
     return VA_STATUS_SUCCESS;
 }
 
+VAStatus MediaLibvaCaps::CheckProfile(VAProfile profile)
+{
+    VAStatus status = VA_STATUS_SUCCESS;
+    if (IsVc1Profile(profile))
+    {
+        MOS_USER_FEATURE       userFeature;
+        MOS_USER_FEATURE_VALUE userFeatureValue;
+        MOS_ZeroMemory(&userFeatureValue, sizeof(userFeatureValue));
+        userFeatureValue.u32Data    = true;
+        userFeature.Type            = MOS_USER_FEATURE_TYPE_USER;
+        userFeature.pValues         = &userFeatureValue;
+        userFeature.uiNumValues     = 1;
+        MOS_UserFeature_ReadValue(
+            nullptr,
+            &userFeature,
+            "VC1Enabled",
+            MOS_USER_FEATURE_VALUE_TYPE_INT32);
+
+        if (!userFeatureValue.u32Data)
+        {
+            status = VA_STATUS_ERROR_UNSUPPORTED_PROFILE;
+        }
+
+#ifdef ANDROID
+        status = VA_STATUS_ERROR_UNSUPPORTED_PROFILE;
+#endif
+    }
+    return status;
+}
+
 VAStatus MediaLibvaCaps::CreateConfig(
         VAProfile profile,
         VAEntrypoint entrypoint,
@@ -1540,10 +1619,8 @@ VAStatus MediaLibvaCaps::CreateConfig(
 
     DDI_CHK_NULL(configId, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER); 
 
-    if( !m_mediaCtx->bVC1Enabled && IsVc1Profile(profile))
-    {
-        return VA_STATUS_ERROR_UNSUPPORTED_PROFILE;
-    }
+    DDI_CHK_RET(CheckProfile(profile),"Failed to check config!");
+    
     int32_t i = GetProfileTableIdx(profile, entrypoint);
 
     if (i < 0)
@@ -1838,9 +1915,8 @@ VAStatus MediaLibvaCaps::QueryProcessingRate(
             encodeMode = CODECHAL_ENCODE_MODE_VP9;
         }
 
-        res = GetMbProcessingRateEnc(platform,
+        res = GetMbProcessingRateEnc(
                 &skuTable,
-                m_mediaCtx->pGtSystemInfo,
                 tuIdx,
                 encodeMode,
                 (entrypoint == VAEntrypointEncSliceLP),
@@ -1851,7 +1927,7 @@ VAStatus MediaLibvaCaps::QueryProcessingRate(
         // Get VAProcessingBufferEnc
         processingRateBuffDec = & procBuf->proc_buf_dec;
 
-        res = GetMbProcessingRateDec(platform,
+        res = GetMbProcessingRateDec(
                 &skuTable,
                 processingRate);
     }
@@ -2327,6 +2403,130 @@ VAStatus MediaLibvaCaps::DestroyConfig(VAConfigID configId)
     }
 
     return VA_STATUS_ERROR_INVALID_CONFIG;
+}
+
+VAStatus MediaLibvaCaps::GetMbProcessingRateDec(
+        MEDIA_FEATURE_TABLE *skuTable,
+        uint32_t *mbProcessingRatePerSec)
+{
+    uint32_t idx = 0;
+
+    DDI_CHK_NULL(skuTable, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(mbProcessingRatePerSec, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    const uint32_t mb_rate[2] =
+    {
+        // non-ULX, ULX/Atom
+        4800000, 3600000
+    };
+
+    if (MEDIA_IS_SKU(skuTable, FtrLCIA) || //Atom
+            MEDIA_IS_SKU(skuTable, FtrULX)) // ULX
+    {
+        idx = 1;
+    }
+    else
+    {
+        // Default is non-ULX
+        idx = 0;
+    }
+
+    *mbProcessingRatePerSec = mb_rate[idx];
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus MediaLibvaCaps::GetMbProcessingRateEnc(
+        MEDIA_FEATURE_TABLE *skuTable,
+        uint32_t tuIdx,
+        uint32_t codecMode,
+        bool vdencActive,
+        uint32_t *mbProcessingRatePerSec)
+{
+    DDI_CHK_NULL(skuTable, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(mbProcessingRatePerSec, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    uint32_t gtIdx = 0;
+
+    // Calculate the GT index based on GT type
+    if (MEDIA_IS_SKU(skuTable, FtrGT1))
+    {
+        gtIdx = 4;
+    }
+    else if (MEDIA_IS_SKU(skuTable, FtrGT1_5))
+    {
+        gtIdx = 3;
+    }
+    else if (MEDIA_IS_SKU(skuTable, FtrGT2))
+    {
+        gtIdx = 2;
+    }
+    else if (MEDIA_IS_SKU(skuTable, FtrGT3))
+    {
+        gtIdx = 1;
+    }
+    else if (MEDIA_IS_SKU(skuTable, FtrGT4))
+    {
+        gtIdx = 0;
+    }
+    else
+    {
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
+
+    if (MEDIA_IS_SKU(skuTable, FtrULX))
+    {
+        static const uint32_t mbRate[7][5] =
+        {
+            // GT4 | GT3 |  GT2   | GT1.5  |  GT1 
+            { 0, 0, 1029393, 1029393, 676280 },
+            { 0, 0, 975027, 975027, 661800 },
+            { 0, 0, 776921, 776921, 640000 },
+            { 0, 0, 776921, 776921, 640000 },
+            { 0, 0, 776921, 776921, 640000 },
+            { 0, 0, 416051, 416051, 317980 },
+            { 0, 0, 214438, 214438, 180655 }
+        };
+
+        if (gtIdx == 0 || gtIdx == 1)
+        {
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
+        *mbProcessingRatePerSec = mbRate[tuIdx][gtIdx];
+    }
+    else if (MEDIA_IS_SKU(skuTable, FtrULT))
+    {
+        static const uint32_t defaultult_mb_rate[7][5] =
+        {
+            // GT4    | GT3   |  GT2   | GT1.5   |  GT1 
+            { 1544090, 1544090, 1544090, 1029393, 676280 },
+            { 1462540, 1462540, 1462540, 975027, 661800 },
+            { 1165381, 1165381, 1165381, 776921, 640000 },
+            { 1165381, 1165381, 1165381, 776921, 640000 },
+            { 1165381, 1165381, 1165381, 776921, 640000 },
+            { 624076, 624076, 624076, 416051, 317980 },
+            { 321657, 321657, 321657, 214438, 180655 }
+        };
+
+        *mbProcessingRatePerSec = defaultult_mb_rate[tuIdx][gtIdx];
+    }
+    else
+    {
+        // regular
+        const uint32_t default_mb_rate[7][5] =
+        {
+            // GT4    | GT3   |   GT2  | GT1.5  |  GT1
+            { 1544090, 1544090, 1544090, 1029393, 676280 },
+            { 1462540, 1462540, 1462540, 975027, 661800 },
+            { 1165381, 1165381, 1165381, 776921, 640000 },
+            { 1165381, 1165381, 1165381, 776921, 640000 },
+            { 1165381, 1165381, 1165381, 776921, 640000 },
+            { 624076, 624076, 624076, 416051, 317980 },
+            { 321657, 321657, 321657, 214438, 180655 }
+        };
+
+        *mbProcessingRatePerSec = default_mb_rate[tuIdx][gtIdx];
+    }
+    return VA_STATUS_SUCCESS;
 }
 
 MediaLibvaCaps * MediaLibvaCaps::CreateMediaLibvaCaps(DDI_MEDIA_CONTEXT *mediaCtx)

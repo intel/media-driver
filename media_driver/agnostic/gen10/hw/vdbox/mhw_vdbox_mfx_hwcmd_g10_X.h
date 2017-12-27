@@ -356,9 +356,7 @@ public:
                 uint32_t                 VdsIldbCalculation                               : __CODEGEN_BITFIELD( 3,  3)    ; //!< VDS_ILDB_CALCULATION
                 uint32_t                 Reserved68                                       : __CODEGEN_BITFIELD( 4,  5)    ; //!< Reserved
                 uint32_t                 ClockGateEnableAtSliceLevel                      : __CODEGEN_BITFIELD( 6,  6)    ; //!< CLOCK_GATE_ENABLE_AT_SLICE_LEVEL
-                uint32_t                 Reserved71                                       : __CODEGEN_BITFIELD( 7,  7)    ; //!< Reserved
-                uint32_t                 VmxGoogleDashChickenBItDisable                   : __CODEGEN_BITFIELD( 8,  8)    ; //!< VMX Google Dash Chicken B it Disable
-                uint32_t                 Reserved73                                       : __CODEGEN_BITFIELD( 9,  9)    ; //!< Reserved
+                uint32_t                 Reserved71                                       : __CODEGEN_BITFIELD( 7,  9)    ; //!< Reserved
                 uint32_t                 MpcPref08X8DisableFlagDefault0                   : __CODEGEN_BITFIELD(10, 10)    ; //!< MPC_PREF08X8_DISABLE_FLAG_DEFAULT_0
                 uint32_t                 Reserved75                                       : __CODEGEN_BITFIELD(11, 13)    ; //!< Reserved
                 uint32_t                 Vlf720IOddHeightInVc1Mode                        : __CODEGEN_BITFIELD(14, 14)    ; //!< VLF_720I_ODD_HEIGHT_IN_VC1_MODE_
@@ -1945,13 +1943,9 @@ public:
             //!< DWORD 12
             struct
             {
-                uint32_t                 Reserved384                                      : __CODEGEN_BITFIELD( 0, 15)    ; //!< Reserved
-                uint32_t                 Mpeg2OldbModeSelect                              : __CODEGEN_BITFIELD(16, 16)    ; //!< MPEG2_OLDB_MODE_SELECT_
-                uint32_t                 Reserved401                                      : __CODEGEN_BITFIELD(17, 17)    ; //!< Reserved
+                uint32_t                 Reserved384                                      : __CODEGEN_BITFIELD( 0, 17)    ; //!< Reserved
                 uint32_t                 VadErrorLogic                                    : __CODEGEN_BITFIELD(18, 18)    ; //!< VAD_ERROR_LOGIC
-                uint32_t                 Reserved403                                      : __CODEGEN_BITFIELD(19, 19)    ; //!< Reserved
-                uint32_t                 VmdErrorLogic                                    : __CODEGEN_BITFIELD(20, 20)    ; //!< VMD_ERROR_LOGIC
-                uint32_t                 Reserved405                                      : __CODEGEN_BITFIELD(21, 31)    ; //!< Reserved
+                uint32_t                 Reserved403                                      : __CODEGEN_BITFIELD(19, 31)    ; //!< Reserved
             };
             uint32_t                     Value;
         } DW12;
@@ -2442,8 +2436,7 @@ public:
 
         //! \brief BSP_ENCODER_ECO_ENABLE
         //! \details
-        //!     <p>This is chicken bit to Enable AVC Encoder BSP Bit Outstanding ECO
-        //!     fix.</p>
+        //!     <p>This is to Enable AVC Encoder BSP Bit Outstanding ECO fix.</p>
         //!     <p>This bit must be same as bit9 of Dword2 of MFX_PIPE_MODE_SELECT</p>
         enum BSP_ENCODER_ECO_ENABLE
         {
@@ -2497,23 +2490,11 @@ public:
         {
             FRAMEBITRATEMAXDELTA_UNNAMED0                                    = 0, //!< No additional details
         };
-
-        enum MPEG2_OLDB_MODE_SELECT_
-        {
-            MPEG2_OLDB_MODE_SELECT_DISABLE                                   = 0, //!< Set to Original OLDB Determination
-            MPEG2_OLDB_MODE_SELECT_ENABLE                                    = 1, //!< Consider all MB as INTRA MB for OLDB Determination
-        };
-
+        
         enum VAD_ERROR_LOGIC
         {
             VAD_ERROR_LOGIC_ENABLE                                           = 0, //!< Error reporting ON in case of premature Slice done
             VAD_ERROR_LOGIC_DISABLE                                          = 1, //!< CABAC Engine will auto decode the bitstream in case of premature slice done.
-        };
-
-        enum VMD_ERROR_LOGIC
-        {
-            VMD_ERROR_LOGIC_DISABLE                                          = 0, //!< No additional details
-            VMD_ERROR_LOGIC_ENABLE                                           = 1, //!< Error Handling
         };
 
         //! \brief INTER_VIEW_ORDER_DISABLE
@@ -3370,8 +3351,7 @@ public:
             {
                 uint32_t                 DriverProvidedNalTypeValue                       : __CODEGEN_BITFIELD( 0,  7)    ; //!< Driver Provided NAL Type Value
                 uint32_t                 AvcNalTypeFirstByteOverrideBit                   : __CODEGEN_BITFIELD( 8,  8)    ; //!< AVC_NAL_TYPE_FIRST_BYTE_OVERRIDE_BIT
-                uint32_t                 AesAlignmentByte                                 : __CODEGEN_BITFIELD( 9, 12)    ; //!< AES Alignment Byte
-                uint32_t                 Reserved109                                      : __CODEGEN_BITFIELD(13, 31)    ; //!< Reserved
+                uint32_t                 Reserved105                                      : __CODEGEN_BITFIELD(9, 31)    ; //!< Reserved
             };
             uint32_t                     Value;
         } DW3;
@@ -3550,8 +3530,7 @@ public:
             {
                 uint32_t                 DriverProvidedNalTypeValue                       : __CODEGEN_BITFIELD( 0,  7)    ; //!< Driver Provided Nal Type Value
                 uint32_t                 AvcNalTypeFirstByteOverrideBit                   : __CODEGEN_BITFIELD( 8,  8)    ; //!< AVC_NAL_TYPE_FIRST_BYTE_OVERRIDE_BIT
-                uint32_t                 AesAlignmentByte                                 : __CODEGEN_BITFIELD( 9, 12)    ; //!< AES Alignment Byte
-                uint32_t                 Reserved205                                      : __CODEGEN_BITFIELD(13, 31)    ; //!< Reserved
+                uint32_t                 Reserved2051                                      : __CODEGEN_BITFIELD(9, 31)    ; //!< Reserved
             };
             uint32_t                     Value;
         } DW6;
@@ -4241,13 +4220,7 @@ public:
             //!< DWORD 12
             struct
             {
-                uint32_t                 Reserved384                                      : __CODEGEN_BITFIELD( 0, 15)    ; //!< Reserved
-                uint32_t                 VmdOldbControlSignalDetermination                : __CODEGEN_BITFIELD(16, 16)    ; //!< VMD_OLDB_CONTROL_SIGNAL_DETERMINATION
-                uint32_t                 Reserved401                                      : __CODEGEN_BITFIELD(17, 17)    ; //!< Reserved
-                uint32_t                 VadErrorLogic                                    : __CODEGEN_BITFIELD(18, 18)    ; //!< VAD_ERROR_LOGIC
-                uint32_t                 Reserved403                                      : __CODEGEN_BITFIELD(19, 19)    ; //!< Reserved
-                uint32_t                 VmdErrorLogic                                    : __CODEGEN_BITFIELD(20, 20)    ; //!< VMD_ERROR_LOGIC
-                uint32_t                 Reserved405                                      : __CODEGEN_BITFIELD(21, 31)    ; //!< Reserved
+                uint32_t                 Reserved384                                      : __CODEGEN_BITFIELD( 0, 31)    ; //!< Reserved
             };
             uint32_t                     Value;
         } DW12;
@@ -4583,24 +4556,6 @@ public:
         enum FRAMEBITRATEMAXDELTA
         {
             FRAMEBITRATEMAXDELTA_UNNAMED0                                    = 0, //!< No additional details
-        };
-
-        enum VMD_OLDB_CONTROL_SIGNAL_DETERMINATION
-        {
-            VMD_OLDB_CONTROL_SIGNAL_DETERMINATION_DISABLE                    = 0, //!< Set to original OLDB determination.
-            VMD_OLDB_CONTROL_SIGNAL_DETERMINATION_ENABLE                     = 1, //!< Set all MBs as intra MB while calculating OLDB Control Signal.
-        };
-
-        enum VAD_ERROR_LOGIC
-        {
-            VAD_ERROR_LOGIC_ENABLE                                           = 0, //!< Error reporting ON in case of premature Slice done
-            VAD_ERROR_LOGIC_DISABLE                                          = 1, //!< CABAC Engine will auto decode the bitstream in case of premature slice done.
-        };
-
-        enum VMD_ERROR_LOGIC
-        {
-            VMD_ERROR_LOGIC_DISABLE                                          = 0, //!< No additional details
-            VMD_ERROR_LOGIC_ENABLE                                           = 1, //!< Error Handling
         };
 
         //! \name Initializations

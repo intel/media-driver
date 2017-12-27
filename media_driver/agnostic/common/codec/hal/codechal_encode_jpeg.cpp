@@ -69,8 +69,7 @@ MOS_STATUS CodechalEncodeJpegState::AllocateResources()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncoderState::AllocateResources());
 
     // Allocate Ref Lists
-    CodecHal_AllocateDataList(
-        CODEC_REF_LIST,
+    CodecHalAllocateDataList(
         m_refList,
         CODECHAL_NUM_UNCOMPRESSED_SURFACE_JPEG);
 
@@ -84,7 +83,7 @@ void CodechalEncodeJpegState::FreeResources()
     CodechalEncoderState::FreeResources();
 
     // Release Ref Lists
-    CodecHal_FreeDataList(m_refList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_JPEG);
+    CodecHalFreeDataList(m_refList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_JPEG);
 }
 
 MOS_STATUS CodechalEncodeJpegState::InitializePicture(const EncoderParams& params)
@@ -146,6 +145,11 @@ MOS_STATUS CodechalEncodeJpegState::InitializePicture(const EncoderParams& param
     )
 
     return eStatus;
+}
+
+MOS_STATUS CodechalEncodeJpegState::CheckResChangeAndCsc()
+{
+    return MOS_STATUS_SUCCESS;
 }
 
 // Implemented based on table K.5 in JPEG spec

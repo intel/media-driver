@@ -47,17 +47,11 @@ mhw_vdbox_hcp_g10_X::HCP_PIPE_MODE_SELECT_CMD::HCP_PIPE_MODE_SELECT_CMD()
     DW2.Value                                        = 0;        
     DW2.MediaSoftResetCounterPer1000Clocks           = MEDIA_SOFT_RESET_COUNTER_PER_1000_CLOCKS_DISABLE;
 
-    DW3.Value                                        = 0;        
+    DW3.Value                                        = 0;
     DW3.PicStatusErrorReportId                       = PIC_STATUSERROR_REPORT_ID_32_BITUNSIGNED;
 
-    DW4.Value                                        = 0;        
-    DW4.Vp9FlushHandling                             = VP9_FLUSH_HANDLING_FLUSHUSINGUNITDONE;
-    DW4.HevcEncoderHlcEmulationPreventionChickenBitDisable = HEVC_ENCODER_HLC_EMULATION_PREVENTION_CHICKEN_BIT_DISABLE_DISABLE;
-    DW4.TileRowXPropagationFixChickenBitDisable      = TILE_ROW_X_PROPAGATION_FIX_CHICKEN_BIT_DISABLE_ENABLE;
-    DW4.HvdNoaSelection                              = HVD_NOA_SELECTION_DEFAULT;
-    DW4.BitstreamDecoderErrorHandlingMode            = BITSTREAM_DECODER_ERROR_HANDLING_MODE_TRUSTBYTELENGTH;
-
-    DW5.Value                                        = 0;        
+    DW4.Value                                        = 0;
+    DW5.Value                                        = 0;
 
 }
 
@@ -601,9 +595,7 @@ mhw_vdbox_hcp_g10_X::HCP_VP9_PIC_STATE_CMD::HCP_VP9_PIC_STATE_CMD()
     DW10.Value                                       = 0;        
 
     DW11.Value                                       = 0;        
-    DW11.MotionCompScalingChickenBit                 = MOTION_COMP_SCALING_CHICKEN_BIT_POST_DEC13VERSION;
-    DW11.MvClampDisable                              = MV_CLAMP_DISABLE_ENABLE;
-    DW11.ChromaFractionalCalculationModified         = CHROMA_FRACTIONAL_CALCULATION_MODIFIED_CURRENT;
+    DW11.MotionCompScaling                           = MOTION_COMP_SCALING_POST_DEC13VERSION;
 
     DW12.Value                                       = 0;        
 

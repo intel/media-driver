@@ -28,7 +28,7 @@
 #include "codechal_decode_sfc.h"
 #include "codechal_decoder.h"
 
-MOS_STATUS CODECHAL_SFC_STATE::AllocateResources()
+MOS_STATUS CodechalSfcState::AllocateResources()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -107,7 +107,7 @@ MOS_STATUS CODECHAL_SFC_STATE::AllocateResources()
     return eStatus;
 }
 
-CODECHAL_SFC_STATE::~CODECHAL_SFC_STATE()
+CodechalSfcState::~CodechalSfcState()
 {
     CODECHAL_HW_FUNCTION_ENTER;
 
@@ -128,7 +128,7 @@ CODECHAL_SFC_STATE::~CODECHAL_SFC_STATE()
     AvsParams.piYCoefsX = nullptr;
 }
 
-MOS_STATUS CODECHAL_SFC_STATE::SetVeboxStateParams(
+MOS_STATUS CodechalSfcState::SetVeboxStateParams(
     PMHW_VEBOX_STATE_CMD_PARAMS  veboxCmdParams)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
@@ -164,7 +164,7 @@ MOS_STATUS CODECHAL_SFC_STATE::SetVeboxStateParams(
     return eStatus;
 }
 
-MOS_STATUS CODECHAL_SFC_STATE::SetVeboxSurfaceStateParams(
+MOS_STATUS CodechalSfcState::SetVeboxSurfaceStateParams(
     PMHW_VEBOX_SURFACE_STATE_CMD_PARAMS  veboxSurfParams)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
@@ -194,7 +194,7 @@ MOS_STATUS CODECHAL_SFC_STATE::SetVeboxSurfaceStateParams(
     return eStatus;
 }
 
-MOS_STATUS CODECHAL_SFC_STATE::SetVeboxDiIecpParams(
+MOS_STATUS CodechalSfcState::SetVeboxDiIecpParams(
     PMHW_VEBOX_DI_IECP_CMD_PARAMS  veboxDiIecpParams)
 {
     uint32_t       size = 0;
@@ -211,7 +211,7 @@ MOS_STATUS CODECHAL_SFC_STATE::SetVeboxDiIecpParams(
     veboxDiIecpParams->pOsResCurrInput         = &pInputSurface->OsResource;
     veboxDiIecpParams->CurrInputSurfCtrl.Value = 0;  //Keep it here untill VPHAL moving to new CMD definition and remove this parameter definition.
 
-    CodecHal_GetResourceInfo(
+    CodecHalGetResourceInfo(
         pOsInterface,
         pInputSurface);
 
@@ -268,7 +268,7 @@ MOS_STATUS CODECHAL_SFC_STATE::SetVeboxDiIecpParams(
     return eStatus;
 }
 
-MOS_STATUS CODECHAL_SFC_STATE::SetSfcStateParams(
+MOS_STATUS CodechalSfcState::SetSfcStateParams(
     PMHW_SFC_STATE_PARAMS          sfcStateParams,
     PMHW_SFC_OUT_SURFACE_PARAMS    outSurfaceParams)
 {
@@ -370,7 +370,7 @@ MOS_STATUS CODECHAL_SFC_STATE::SetSfcStateParams(
     return eStatus;
 }
 
-MOS_STATUS CODECHAL_SFC_STATE::SetSfcAvsStateParams()
+MOS_STATUS CodechalSfcState::SetSfcAvsStateParams()
 {
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
 
@@ -408,7 +408,7 @@ MOS_STATUS CODECHAL_SFC_STATE::SetSfcAvsStateParams()
     return eStatus;
 }
 
-MOS_STATUS CODECHAL_SFC_STATE::SetSfcIefStateParams(
+MOS_STATUS CodechalSfcState::SetSfcIefStateParams(
     PMHW_SFC_IEF_STATE_PARAMS  iefStateParams)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
@@ -428,7 +428,7 @@ MOS_STATUS CODECHAL_SFC_STATE::SetSfcIefStateParams(
     return eStatus;
 }
 
-MOS_STATUS CODECHAL_SFC_STATE::Initialize(
+MOS_STATUS CodechalSfcState::Initialize(
     PCODECHAL_DECODE_PROCESSING_PARAMS  decodeProcParams,
     uint8_t                             sfcPipeMode)
 {
@@ -577,7 +577,7 @@ MOS_STATUS CODECHAL_SFC_STATE::Initialize(
     return eStatus;
 }
 
-MOS_STATUS CODECHAL_SFC_STATE::AddSfcCommands(
+MOS_STATUS CodechalSfcState::AddSfcCommands(
     PMOS_COMMAND_BUFFER             cmdBuffer)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
@@ -627,7 +627,7 @@ MOS_STATUS CODECHAL_SFC_STATE::AddSfcCommands(
     return eStatus;
 }
 
-MOS_STATUS CODECHAL_SFC_STATE::RenderStart()
+MOS_STATUS CodechalSfcState::RenderStart()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -654,7 +654,7 @@ MOS_STATUS CODECHAL_SFC_STATE::RenderStart()
     MOS_COMMAND_BUFFER cmdBuffer;
     MOS_ZeroMemory(&cmdBuffer, sizeof(MOS_COMMAND_BUFFER));
     CODECHAL_HW_CHK_STATUS_RETURN(pOsInterface->pfnGetCommandBuffer(pOsInterface, &cmdBuffer, 0));
-    CODECHAL_HW_CHK_STATUS_RETURN(pDecoder->SendPrologWithFrameTracking(&cmdBuffer));
+    CODECHAL_HW_CHK_STATUS_RETURN(pDecoder->SendPrologWithFrameTracking(&cmdBuffer, true));
 
     // Setup cmd prameters
     MHW_VEBOX_STATE_CMD_PARAMS veboxStateCmdParams;
@@ -678,6 +678,9 @@ MOS_STATUS CODECHAL_SFC_STATE::RenderStart()
 
     CODECHAL_HW_CHK_STATUS_RETURN(pVeboxInterface->AddVeboxDiIecp(&cmdBuffer, &veboxDiIecpCmdParams));
 
+    CODECHAL_DECODE_CHK_STATUS_RETURN(pHwInterface->GetMiInterface()->AddWatchdogTimerStopCmd(
+        &cmdBuffer));
+
     CODECHAL_DECODE_CHK_STATUS_RETURN(pHwInterface->GetMiInterface()->AddMiBatchBufferEnd(
         &cmdBuffer,
         nullptr));
@@ -695,7 +698,7 @@ MOS_STATUS CODECHAL_SFC_STATE::RenderStart()
     return eStatus;
 }
 
-bool CODECHAL_SFC_STATE::IsSfcFormatSupported(
+bool CodechalSfcState::IsSfcFormatSupported(
     MOS_FORMAT                  inputFormat,
     MOS_FORMAT                  outputFormat)
 {
@@ -722,7 +725,7 @@ bool CODECHAL_SFC_STATE::IsSfcFormatSupported(
     return true;
 }
 
-bool CODECHAL_SFC_STATE::IsSfcOutputSupported(
+bool CodechalSfcState::IsSfcOutputSupported(
     PCODECHAL_DECODE_PROCESSING_PARAMS  decodeProcParams,
     uint8_t                             sfcPipeMode)
 {
@@ -841,7 +844,7 @@ bool CODECHAL_SFC_STATE::IsSfcOutputSupported(
     return true;
 }
 
-MOS_STATUS CODECHAL_SFC_STATE::InitializeSfcState(
+MOS_STATUS CodechalSfcState::InitializeSfcState(
     CodechalDecode *inDecoder,
     CodechalHwInterface   *hwInterface,
     PMOS_INTERFACE osInterface)

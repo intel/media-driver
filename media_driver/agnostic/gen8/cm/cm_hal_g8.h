@@ -426,6 +426,9 @@ public:
                         PCM_PLATFORM_INFO platformInfo,
                         bool              bEUSaturation);
 
+    MOS_STATUS GetExpectedGtSystemConfig(
+                        PCM_EXPECTED_GT_SYSTEM_INFO pExpectedConfig);
+
     uint32_t   GetMediaWalkerMaxThreadWidth();
     uint32_t   GetMediaWalkerMaxThreadHeight();
 

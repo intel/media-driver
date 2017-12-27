@@ -257,15 +257,9 @@ MOS_STATUS CodechalDecodeMpeg2::CopyDataSurface(
         &cmdBuffer,
         0));
 
-    // Send command buffer header at the beginning (OS dependent)
-    MHW_GENERIC_PROLOG_PARAMS genericPrologParams;
-    MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
-    genericPrologParams.pOsInterface            = m_osInterface;
-    genericPrologParams.pvMiInterface           = m_miInterface;
-    genericPrologParams.bMmcEnabled             = CodecHalMmcState::IsMmcEnabled();
-    CODECHAL_DECODE_CHK_STATUS_RETURN(Mhw_SendGenericPrologCmd(
+    CODECHAL_DECODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(
         &cmdBuffer,
-        &genericPrologParams));
+        false));
 
     // Use huc stream out to do the copy
     CODECHAL_DECODE_CHK_STATUS_RETURN(HucCopy(
@@ -281,6 +275,9 @@ MOS_STATUS CodechalDecodeMpeg2::CopyDataSurface(
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(
         &cmdBuffer,
         &flushDwParams));
+
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(
+        &cmdBuffer));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(
         &cmdBuffer,
@@ -361,8 +358,7 @@ MOS_STATUS CodechalDecodeMpeg2::AllocateResources ()
         m_osInterface,
         &resSyncObjectVideoContextInUse));
 
-    CodecHal_AllocateDataList(
-        CODEC_REF_LIST,
+    CodecHalAllocateDataList(
         pMpeg2RefList,
         CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2);
 
@@ -459,7 +455,7 @@ CodechalDecodeMpeg2::~CodechalDecodeMpeg2 ()
     m_osInterface->pfnDestroySyncResource(m_osInterface, &resSyncObjectWaContextInUse);
     m_osInterface->pfnDestroySyncResource(m_osInterface, &resSyncObjectVideoContextInUse);
 
-    CodecHal_FreeDataList(pMpeg2RefList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2);
+    CodecHalFreeDataList(pMpeg2RefList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2);
 
     MOS_FreeMemory(pVldSliceRecord);
 
@@ -510,9 +506,8 @@ MOS_STATUS CodechalDecodeMpeg2::SetFrameStates ()
     picParams               = (CodecDecodeMpeg2PicParams *)m_decodeParams.m_picParams;
     sliceParams             = (CodecDecodeMpeg2SliceParams *)m_decodeParams.m_sliceParams;
     iqMatrixBuffer          = (CodecMpeg2IqMatrix *)m_decodeParams.m_iqMatrixBuffer;
-    sDestSurface            = *(m_decodeParams.m_destSurface);
-    resDataBuffer           = *(m_decodeParams.m_dataBuffer);
-    bDeblockingEnabled      = m_decodeParams.m_deblockingEnabled ? true : false;
+    sDestSurface            = *m_decodeParams.m_destSurface;
+    resDataBuffer           = *m_decodeParams.m_dataBuffer;
     u32NumMacroblocks       = m_decodeParams.m_numMacroblocks;
     mbParams                = (CodecDecodeMpeg2MbParmas *)m_decodeParams.m_macroblockParams;
     u32MPEG2ISliceConcealmentMode           = m_decodeParams.m_mpeg2ISliceConcealmentMode;
@@ -822,7 +817,7 @@ MOS_STATUS CodechalDecodeMpeg2::DecodeStateLevel()
                 MOS_ZeroMemory(&dstSurface, sizeof(MOS_SURFACE));
                 dstSurface.Format     = Format_NV12;
                 dstSurface.OsResource = *(pipeBufAddrParams.presReferences[i]);
-                CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHal_GetResourceInfo(
+                CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(
                     m_osInterface,
                     &dstSurface));
 
@@ -872,7 +867,7 @@ MOS_STATUS CodechalDecodeMpeg2::DecodeStateLevel()
     qmParams.pMpeg2IqMatrix                 = iqMatrixBuffer;
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(
-        &cmdBuffer));
+        &cmdBuffer, true));
 
     if (m_statusQueryReportingEnabled)
     {
@@ -1132,6 +1127,9 @@ MOS_STATUS CodechalDecodeMpeg2::SliceLevel()
                 decodeStatusReport,
                 &cmdBuffer));
         }
+
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(
+            &cmdBuffer));
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(
             &cmdBuffer,
@@ -1570,6 +1568,9 @@ MOS_STATUS CodechalDecodeMpeg2::MacroblockLevel()
                 decodeStatusReport,
                 &cmdBuffer));
         }
+
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(
+            &cmdBuffer));
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(
             &cmdBuffer,

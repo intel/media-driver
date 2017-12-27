@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      media_libva_util.cpp 
-//! \brief     libva(and its extension) utility  
+//! \file      media_libva_util.cpp
+//! \brief     libva(and its extension) utility
 //!
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,27 +41,17 @@
 #endif
 
 #include "media_libva_util.h"
-#include "mos_utilities.h" 
+#include "mos_utilities.h"
 #include "mos_os.h"
 #include "hwinfo_linux.h"
 
-#ifdef ANDROID
-#define NV12_DUMP_FILE_NAME "/mnt/sdcard/nv12.yuv"
-#else
-#define NV12_DUMP_FILE_NAME "./nv12.yuv"
-#endif
-
-#define DDI_UTIL_CHK_NULL(p) (p == nullptr )
-
 #ifdef DEBUG
-static int32_t         g_iFrameCountFps   = -1;
-static struct timeval  g_Tv1;
-static pthread_mutex_t g_FpsMutex         = PTHREAD_MUTEX_INITIALIZER;
-static int32_t         g_iVAFpsSampleSize = 100;
+static int32_t         frameCountFps   = -1;
+static struct timeval  tv1;
+static pthread_mutex_t fpsMutex        = PTHREAD_MUTEX_INITIALIZER;
+static int32_t         vaFpsSampleSize = 100;
 
 #define LENGTH_OF_FPS_FILE_NAME 128
-
-static int32_t g_iCount = 0;
 
 #ifdef ANDROID
 #define FPS_FILE_NAME   "/mnt/sdcard/fps.txt"
@@ -69,146 +59,49 @@ static int32_t g_iCount = 0;
 #define FPS_FILE_NAME   "./fps.txt"
 #endif
 #endif
-
-/*----------------------------------------------------------------------------
-| Name      : DdiMediaUtil_MediaDumpNV12
-|
-| Purpose   : Dump out the NV12 surface and save in file
-|
-| Arguments : [in] pSrcY        - Pointer to Luminance
-|             [in] pSrcUV       - Pointer to interleaved chrominance
-|             [in] iWidth       - Frame width
-|             [in] iHeight      - Frame height
-|             [in] iPitch       - Pitch for the frame store
-|             [in] iFrameNum    - The number of frames to be dumped out
-|
-| Returns   : 
-| 
-| Comments  : The dumped out yuv is in YV12 format, can be opened by yuv viewer
-\---------------------------------------------------------------------------*/
 #ifdef DEBUG
-void DdiMediaUtil_MediaDumpNV12(
-    uint8_t *pSrcY, 
-    uint8_t *pSrcUV, 
-    int32_t  iWidth, 
-    int32_t  iHeight, 
-    int32_t  iPitch, 
-    int32_t  iFrameNum)
-{
-    FILE    *fp;
-    uint8_t *pUV, *pY;
-    int32_t  i;
-
-    if(g_iCount >= iFrameNum)
-    {
-        return;
-    }
-
-    if(0 == g_iCount)
-        fp = fopen(NV12_DUMP_FILE_NAME,"wb");
-    else
-        fp = fopen(NV12_DUMP_FILE_NAME,"ab");
-
-    if(fp == nullptr)
-    {
-        return;
-    }
-
-    // Y
-    pY = pSrcY;
-    for(i = 0; i < iHeight; i++, pY += iPitch)
-    {
-        fwrite(pY, 1, iWidth, fp);
-    }
-
-    // U
-    pUV = pSrcUV;
-    for(i = 0; i < (iHeight/2); i++, pUV += iPitch)
-    {
-        int32_t j;
-        for(j = 0; j < (iWidth/2); j++)
-        {
-            fwrite(&pUV[2*j+0], 1, sizeof(pUV[0]), fp);
-        }
-    }
-
-    // V
-    pUV = pSrcUV;
-    for(i = 0; i < (iHeight/2); i++, pUV += iPitch)
-    {
-        int32_t j;
-        for(j = 0; j < (iWidth/2); j++)
-        {
-            fwrite(&pUV[2*j+1], 1, sizeof(pUV[0]), fp);
-        }
-    }
-
-    g_iCount++;
-    fclose(fp);
-}
-
 void DdiMediaUtil_MediaPrintFps()
 {
-    struct timeval Tv2;
-    int64_t        i64Diff;
-    float          fFps;
+    struct timeval tv2;
 
-    if (0 == g_iVAFpsSampleSize) 
+    if (0 == vaFpsSampleSize) 
     {
         return;
     }
-    gettimeofday(&Tv2, 0);
+    gettimeofday(&tv2, 0);
 
-    pthread_mutex_lock(&g_FpsMutex);
-    if (-1 == g_iFrameCountFps) 
+    pthread_mutex_lock(&fpsMutex);
+    if (-1 == frameCountFps) 
     {
-        gettimeofday(&g_Tv1, 0);
+        gettimeofday(&tv1, 0);
     }
 
-    if (++g_iFrameCountFps >= g_iVAFpsSampleSize) 
+    if (++frameCountFps >= vaFpsSampleSize) 
     {
-        char   cFpsFileName[LENGTH_OF_FPS_FILE_NAME];
-        FILE   *fp;
-        char   cTemp[LENGTH_OF_FPS_FILE_NAME];
+        char   fpsFileName[LENGTH_OF_FPS_FILE_NAME];
+        FILE   *fp = nullptr;
+        char   temp[LENGTH_OF_FPS_FILE_NAME];
 
-        fp      = nullptr;
-        i64Diff = (Tv2.tv_sec - g_Tv1.tv_sec)*1000000 + Tv2.tv_usec - g_Tv1.tv_usec;
-        fFps    = g_iFrameCountFps / (i64Diff / 1000000.0);
-        DDI_NORMALMESSAGE("FPS:%6.4f, Interval:%11lu.", fFps,((uint64_t)Tv2.tv_sec)*1000 + (Tv2.tv_usec/1000));
-        sprintf(cTemp,"FPS:%6.4f, Interval:%11lu\n", fFps,((uint64_t)Tv2.tv_sec)*1000 + (Tv2.tv_usec/1000));
+        int64_t diff  = (tv2.tv_sec - tv1.tv_sec)*1000000 + tv2.tv_usec - tv1.tv_usec;
+        float fps     = frameCountFps / (diff / 1000000.0);
+        DDI_NORMALMESSAGE("FPS:%6.4f, Interval:%11lu.", fps,((uint64_t)tv2.tv_sec)*1000 + (tv2.tv_usec/1000));
+        sprintf(temp,"FPS:%6.4f, Interval:%11lu\n", fps,((uint64_t)tv2.tv_sec)*1000 + (tv2.tv_usec/1000));
 
-        MOS_ZeroMemory(cFpsFileName,LENGTH_OF_FPS_FILE_NAME);
-        sprintf(cFpsFileName, FPS_FILE_NAME);
-        if ((fp = fopen(cFpsFileName, "wb")) == nullptr) 
+        MOS_ZeroMemory(fpsFileName,LENGTH_OF_FPS_FILE_NAME);
+        sprintf(fpsFileName, FPS_FILE_NAME);
+        if ((fp = fopen(fpsFileName, "wb")) == nullptr) 
         {
-            pthread_mutex_unlock(&g_FpsMutex);
+            pthread_mutex_unlock(&fpsMutex);
             DDI_ASSERTMESSAGE("Unable to open fps file.");
         }
 
-        fwrite(cTemp, 1, strlen(cTemp), fp);
+        fwrite(temp, 1, strlen(temp), fp);
         fclose(fp);
-        g_iFrameCountFps = -1;
+        frameCountFps = -1;
     }
-    pthread_mutex_unlock(&g_FpsMutex);
+    pthread_mutex_unlock(&fpsMutex);
 }
 #else
-void DdiMediaUtil_MediaDumpNV12(
-    uint8_t *pSrcY, 
-    uint8_t *pSrcUV, 
-    int32_t  iWidth, 
-    int32_t  iHeight, 
-    int32_t  iPitch, 
-    int32_t  iFrameNum)
-{
-    DDI_UNUSED(pSrcY);
-    DDI_UNUSED(pSrcUV);
-    DDI_UNUSED(iWidth);
-    DDI_UNUSED(iHeight);
-    DDI_UNUSED(iPitch);
-    DDI_UNUSED(iFrameNum);
-    return;
-}
-
 void DdiMediaUtil_MediaPrintFps()
 {
     return;
@@ -225,11 +118,9 @@ static __inline int32_t SwizzleOffset(
     // Swizzling Parameters:
     int32_t             Pitch,          // Row-to-row byte stride.
     uint32_t            TileFormat,     // Either 'x' or 'y'--for X-Major or Y-Major tiling, respectively.
-    int32_t             CsxSwizzle)     // (Boolean) Additionally perform Channel Select XOR swizzling.
+    int32_t             CsxSwizzle)     // (boolean) Additionally perform Channel Select XOR swizzling.
 {
-    int32_t Row, Line, Col, x; // Linear Offset Components
     int32_t LBits, LPos; // Size and swizzled position of the Line component.
-    int32_t SwizzledOffset;
     if (TileFormat == I915_TILING_NONE)
     {
         return(OffsetY * Pitch + OffsetX);
@@ -246,13 +137,13 @@ static __inline int32_t SwizzleOffset(
         LPos = 9;  // Log2(TileX.Width = 512)
     }
 
-    Row =   OffsetY >> LBits;               // OffsetY / LinesPerTile
-    Line =  OffsetY & ((1 << LBits) - 1);   // OffsetY % LinesPerTile
-    Col =   OffsetX >> LPos;                // OffsetX / BytesPerLine
-    x =     OffsetX & ((1 << LPos) - 1);    // OffsetX % BytesPerLine
+    int32_t row  =  OffsetY >> LBits;               // OffsetY / LinesPerTile
+    int32_t line =  OffsetY & ((1 << LBits) - 1);   // OffsetY % LinesPerTile
+    int32_t col  =  OffsetX >> LPos;                // OffsetX / BytesPerLine
+    int32_t x    =  OffsetX & ((1 << LPos) - 1);    // OffsetX % BytesPerLine
 
-    SwizzledOffset =
-        (((((Row * (Pitch >> LPos)) + Col) << LBits) + Line) << LPos) + x;
+    int32_t swizzledOffset =
+        (((((row * (Pitch >> LPos)) + col) << LBits) + line) << LPos) + x;
     //                V                V                 V
     //                / BytesPerLine   * LinesPerTile    * BytesPerLine
 
@@ -261,62 +152,58 @@ static __inline int32_t SwizzleOffset(
     {
         if (TileFormat == I915_TILING_Y) // A6 = A6 ^ A9
         {
-            SwizzledOffset ^= ((SwizzledOffset >> (9 - 6)) & 0x40);
+            swizzledOffset ^= ((swizzledOffset >> (9 - 6)) & 0x40);
         }
         else //if (TileFormat == I915_TILING_X) // A6 = A6 ^ A9 ^ A10
         {
-            SwizzledOffset ^= (((SwizzledOffset >> (9 - 6)) ^ (SwizzledOffset >> (10 - 6))) & 0x40);
+            swizzledOffset ^= (((swizzledOffset >> (9 - 6)) ^ (swizzledOffset >> (10 - 6))) & 0x40);
         }
     }
 
-    return(SwizzledOffset);
+    return(swizzledOffset);
 }
 
 static void SwizzleData(
-    uint8_t  *pSrc,
-    uint8_t  *pDst,
-    uint32_t  SrcTiling,
-    uint32_t  DstTiling,
-    int32_t   iHeight,
-    int32_t   iPitch)
+    uint8_t  *src,
+    uint8_t  *dst,
+    uint32_t  srcTiling,
+    uint32_t  dstTiling,
+    int32_t   height,
+    int32_t   pitch)
 {
 #define IS_TILED(_a)                ((_a) != I915_TILING_NONE)
 #define IS_TILED_TO_LINEAR(_a, _b)  (IS_TILED(_a) && !IS_TILED(_b))
 #define IS_LINEAR_TO_TILED(_a, _b)  (!IS_TILED(_a) && IS_TILED(_b))
 
-    int32_t LinearOffset;
-    int32_t TileOffset;
-    int32_t x;
-    int32_t y;
-
+    int32_t y,linearOffset,tileOffset;
     // Translate from one format to another
-    for (y = 0, LinearOffset = 0, TileOffset = 0; y < iHeight; y++)
+    for (y = 0, linearOffset = 0, tileOffset = 0; y < height; y++)
     {
-        for (x = 0; x < iPitch; x++, LinearOffset++)
+        for (int32_t x = 0; x < pitch; x++, linearOffset++)
         {
             // x or y --> linear
-            if (IS_TILED_TO_LINEAR(SrcTiling, DstTiling))
+            if (IS_TILED_TO_LINEAR(srcTiling, dstTiling))
             {
-                TileOffset = SwizzleOffset(
+                tileOffset = SwizzleOffset(
                     x,
                     y,
-                    iPitch,
-                    SrcTiling,
+                    pitch,
+                    srcTiling,
                     false);
 
-                *(pDst + LinearOffset) = *(pSrc + TileOffset);
+                *(dst + linearOffset) = *(src + tileOffset);
             }
             // linear --> x or y
-            else if (IS_LINEAR_TO_TILED(SrcTiling, DstTiling))
+            else if (IS_LINEAR_TO_TILED(srcTiling, dstTiling))
             {
-                TileOffset = SwizzleOffset(
+                tileOffset = SwizzleOffset(
                     x,
                     y,
-                    iPitch,
-                    DstTiling,
+                    pitch,
+                    dstTiling,
                     false);
 
-                *(pDst + TileOffset) = *(pSrc + LinearOffset);
+                *(dst + tileOffset) = *(src + linearOffset);
             }
             else
             {
@@ -326,38 +213,34 @@ static void SwizzleData(
     }
 }
 
-static bool NeedSwizzleData(PDDI_MEDIA_SURFACE pSurface, bool bLock)
+static bool NeedSwizzleData(PDDI_MEDIA_SURFACE surface, bool lock)
 {
-    uint32_t            iSize, iPitch;
-    uint8_t            *pResourceBase;
-    GMM_RESOURCE_FLAG   GmmFlags;
-	DDI_CHK_NULL(pSurface, "nullptr pSurface", false);
-	DDI_CHK_NULL(pSurface->pGmmResourceInfo, "nullptr pGmmResourceInfo", false);
-    iPitch = (uint32_t)pSurface->pGmmResourceInfo->GetRenderPitch();
-    iSize  = GmmResGetRenderSize(pSurface->pGmmResourceInfo);
-    GmmFlags = pSurface->pGmmResourceInfo->GetResFlags();
+    DDI_CHK_NULL(surface, "nullptr surface", false);
+    DDI_CHK_NULL(surface->pGmmResourceInfo, "nullptr pGmmResourceInfo", false);
+    uint32_t pitch = (uint32_t)surface->pGmmResourceInfo->GetRenderPitch();
+    uint32_t size  = GmmResGetRenderSize(surface->pGmmResourceInfo);
+    GMM_RESOURCE_FLAG gmmFlags = surface->pGmmResourceInfo->GetResFlags();
 
-    if (GmmFlags.Gpu.RenderTarget      &&
-        GmmFlags.Gpu.UnifiedAuxSurface &&
-        GmmFlags.Gpu.CCS)
+    if (gmmFlags.Gpu.RenderTarget      &&
+        gmmFlags.Gpu.UnifiedAuxSurface &&
+        gmmFlags.Gpu.CCS)
     {
-        iSize = iSize - (uint32_t)(pSurface->pGmmResourceInfo->GetSizeAuxSurface(GMM_AUX_SURF));
+        size = size - (uint32_t)(surface->pGmmResourceInfo->GetSizeAuxSurface(GMM_AUX_SURF));
     }
 
-    pResourceBase = (uint8_t*)MOS_AllocAndZeroMemory(iSize);
-    if(DDI_UTIL_CHK_NULL(pResourceBase))
-       return false;
+    uint8_t *resourceBase = (uint8_t*)MOS_AllocAndZeroMemory(size);
+    DDI_CHK_NULL(resourceBase, "nullptr resourceBase", false);
 
-    if (bLock)
+    if (lock)
     {
-        SwizzleData((uint8_t*) pSurface->bo->virt, pResourceBase, pSurface->TileType, I915_TILING_NONE, iSize / iPitch, iPitch);
+        SwizzleData((uint8_t*) surface->bo->virt, resourceBase, surface->TileType, I915_TILING_NONE, size / pitch, pitch);
     }
     else
     {
-        SwizzleData((uint8_t*) pSurface->bo->virt, pResourceBase, I915_TILING_NONE, pSurface->TileType, iSize / iPitch, iPitch);
+        SwizzleData((uint8_t*) surface->bo->virt, resourceBase, I915_TILING_NONE, surface->TileType, size / pitch, pitch);
     }
-    MOS_SecureMemcpy((uint8_t*) pSurface->bo->virt, iSize, pResourceBase, iSize);
-    MOS_FreeMemory(pResourceBase);
+    MOS_SecureMemcpy((uint8_t*) surface->bo->virt, size, resourceBase, size);
+    MOS_FreeMemory(resourceBase);
 
     return true;
 }
@@ -365,16 +248,16 @@ static bool NeedSwizzleData(PDDI_MEDIA_SURFACE pSurface, bool bLock)
 /*
  * DdiMediaUtil_IsExternalSurface
  *    Descripion: if the bo of media surface was allocated from App,
- *                should return true, otherwise, false. In current implemeation 
+ *                should return true, otherwise, false. In current implemeation
  *                external buffer passed with pSurfDesc.
 */
-bool DdiMediaUtil_IsExternalSurface(PDDI_MEDIA_SURFACE pSurface)
+bool DdiMediaUtil_IsExternalSurface(PDDI_MEDIA_SURFACE surface)
 {
-    if ( nullptr == pSurface )
+    if ( nullptr == surface )
     {
         return false;
     }
-    else if ( pSurface->pSurfDesc == nullptr )
+    else if ( surface->pSurfDesc == nullptr )
     {
         return false;
     }
@@ -418,40 +301,45 @@ static GMM_RESOURCE_FORMAT DdiMediaUtil_ConvertMediaFmtToGmmFmt(
     }
 }
 
+//!
+//! \brief  Allocate surface
+//! 
+//! \param  [in] format
+//!         Ddi media format
+//! \param  [in] width
+//!         Width of the region
+//! \param  [in] height
+//!         Height of the region
+//! \param  [out] mediaSurface
+//!         Pointer to ddi media surface
+//! \param  [in] mediaDrvCtx
+//!         Pointer to ddi media context
+//!         
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
 VAStatus DdiMediaUtil_AllocateSurface(
-    DDI_MEDIA_FORMAT            Format,
-    int32_t                     iWidth,
-    int32_t                     iHeight,
-    PDDI_MEDIA_SURFACE          pMediaSurface,
-    PDDI_MEDIA_CONTEXT          pMediaDrvCtx)
+    DDI_MEDIA_FORMAT            format,
+    int32_t                     width,
+    int32_t                     height,
+    PDDI_MEDIA_SURFACE          mediaSurface,
+    PDDI_MEDIA_CONTEXT          mediaDrvCtx)
 {
-    int32_t                     iSize;
-    int32_t                     iAlignedHeight;
-    unsigned long               ulPitch;
-    int32_t                     iPitch = 0;
-    VAStatus                    hRes;
+    int32_t                     pitch = 0;
     MOS_LINUX_BO               *bo = nullptr;
-    uint32_t                    tileformat;
-    uint32_t                    gmmPitch;
-    uint32_t                    gmmSize;
-    uint32_t                    gmmHeight;
-    uint32_t                    swizzle;
-    GMM_RESCREATE_PARAMS        GmmParams;
-    GMM_RESOURCE_INFO          *pGmmResourceInfo;
-    bool                        bGrallocAllocation;
-    __GMM_BUFFER_TYPE           gmmRestrictions = {0};
-    unsigned long               ulPitchAlign;
-    unsigned long               ulSizeAlign;
+    GMM_RESCREATE_PARAMS        gmmParams;
+    GMM_RESOURCE_INFO          *gmmResourceInfo;
+    bool                        grallocAllocation;
 
-    DDI_CHK_NULL(pMediaSurface, "pMediaSurface is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
-    DDI_CHK_NULL(pMediaDrvCtx, "pMediaDrvCtx is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
+    DDI_CHK_NULL(mediaSurface, "mediaSurface is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
+    DDI_CHK_NULL(mediaDrvCtx, "mediaDrvCtx is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
 
-    iSize          = 0;
-    tileformat     = I915_TILING_NONE;
-    hRes           = VA_STATUS_SUCCESS;
-    iAlignedHeight = iHeight;
+    int32_t size          = 0;
+    uint32_t tileformat   = I915_TILING_NONE;
+    VAStatus hRes         = VA_STATUS_SUCCESS;
+    int32_t alignedHeight = height;
 
-    switch (Format)
+    switch (format)
     {
         case Media_Format_X8R8G8B8:
         case Media_Format_X8B8G8R8:
@@ -460,7 +348,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case Media_Format_R8G8B8:
         case Media_Format_R10G10B10A2:
         case Media_Format_B10G10R10A2: 
-            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != pMediaSurface->surfaceUsageHint)
+            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint)
             {
                  tileformat = I915_TILING_NONE;
                  break;
@@ -469,7 +357,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case Media_Format_YV12:
         case Media_Format_I420:
         case Media_Format_IYUV:
-            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != pMediaSurface->surfaceUsageHint)
+            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint)
             {
                  tileformat = I915_TILING_NONE;
                  break;
@@ -477,8 +365,8 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case Media_Format_YUY2:
         case Media_Format_UYVY:
         case Media_Format_A8R8G8B8:
-            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != pMediaSurface->surfaceUsageHint &&
-                !(pMediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_DECODER))
+            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint &&
+                !(mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_DECODER))
             {
                  tileformat = I915_TILING_NONE;
                  break;
@@ -491,14 +379,14 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case Media_Format_IMC3:
         case Media_Format_400P:
         case Media_Format_P010:
-            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != pMediaSurface->surfaceUsageHint)
+            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint)
             {
 #if UFO_GRALLOC_NEW_FORMAT
                  //Planar type surface align 64 to improve performance.
-                iAlignedHeight = MOS_ALIGN_CEIL(iHeight, 64);
+                alignedHeight = MOS_ALIGN_CEIL(height, 64);
 #else
                 //Planar type surface align 32 to improve performance.
-                iAlignedHeight = MOS_ALIGN_CEIL(iHeight, 32);
+                alignedHeight = MOS_ALIGN_CEIL(height, 32);
 #endif
             }
             tileformat  = I915_TILING_Y;
@@ -512,40 +400,40 @@ VAStatus DdiMediaUtil_AllocateSurface(
             goto finish;
     }
 
-    if( DdiMediaUtil_IsExternalSurface(pMediaSurface) )
+    if( DdiMediaUtil_IsExternalSurface(mediaSurface) )
     { 
         // DRM buffer allocated by Application, No need to re-allocate new DRM buffer
-         if( (pMediaSurface->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM)
-             || (pMediaSurface->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)
+         if( (mediaSurface->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM)
+             || (mediaSurface->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)
 #ifdef ANDROID
-             ||(pMediaSurface->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_ANDROID_GRALLOC)
+             ||(mediaSurface->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_ANDROID_GRALLOC)
 #endif 
            )
         {
-            if (pMediaSurface->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM)
+            if (mediaSurface->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM)
             {
-                bo = mos_bo_gem_create_from_name(pMediaDrvCtx->pDrmBufMgr, "MEDIA", pMediaSurface->pSurfDesc->ulBuffer);
+                bo = mos_bo_gem_create_from_name(mediaDrvCtx->pDrmBufMgr, "MEDIA", mediaSurface->pSurfDesc->ulBuffer);
             }
 #ifdef ANDROID
-            else if (pMediaSurface->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_ANDROID_GRALLOC)
+            else if (mediaSurface->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_ANDROID_GRALLOC)
             {
 #if INTEL_UFO_GRALLOC_HAVE_PRIME
-                bo = mos_bo_gem_create_from_prime(pMediaDrvCtx->pDrmBufMgr, pMediaSurface->pSurfDesc->ulBuffer, pMediaSurface->pSurfDesc->uiSize);
+                bo = mos_bo_gem_create_from_prime(mediaDrvCtx->pDrmBufMgr, mediaSurface->pSurfDesc->ulBuffer, mediaSurface->pSurfDesc->uiSize);
 #else
-                bo = mos_bo_gem_create_from_name(pMediaDrvCtx->pDrmBufMgr, "MEDIA", pMediaSurface->pSurfDesc->ulBuffer);
+                bo = mos_bo_gem_create_from_name(mediaDrvCtx->pDrmBufMgr, "MEDIA", mediaSurface->pSurfDesc->ulBuffer);
 #endif
             }
 #endif
             else
             {
-                bo = mos_bo_gem_create_from_prime(pMediaDrvCtx->pDrmBufMgr, pMediaSurface->pSurfDesc->ulBuffer, pMediaSurface->pSurfDesc->uiSize);
+                bo = mos_bo_gem_create_from_prime(mediaDrvCtx->pDrmBufMgr, mediaSurface->pSurfDesc->ulBuffer, mediaSurface->pSurfDesc->uiSize);
             }
 
             if( bo != nullptr )
             {
                 uint32_t swizzle_mode;
 
-                iPitch = pMediaSurface->pSurfDesc->uiPitches[0];
+                pitch = mediaSurface->pSurfDesc->uiPitches[0];
 
                 //Overwirte the tileformat matches with the right buffer
                 mos_bo_get_tiling(bo, &tileformat, &swizzle_mode);
@@ -556,28 +444,28 @@ VAStatus DdiMediaUtil_AllocateSurface(
                 return VA_STATUS_ERROR_ALLOCATION_FAILED;
             }
         }
-        else if( pMediaSurface->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR )
+        else if( mediaSurface->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR )
         {
 
-            iPitch    = pMediaSurface->pSurfDesc->uiPitches[0];
+            pitch    = mediaSurface->pSurfDesc->uiPitches[0];
 
 #ifdef ANDROID
 #ifdef DRM_IOCTL_I915_GEM_USERPTR
-            bo = mos_bo_alloc_userptr( pMediaDrvCtx->pDrmBufMgr,
+            bo = mos_bo_alloc_userptr( mediaDrvCtx->pDrmBufMgr,
                                           "SysSurface",
-                                          (void *)pMediaSurface->pSurfDesc->ulBuffer,
-                                          pMediaSurface->pSurfDesc->uiTile,
-                                          iPitch,
-                                          pMediaSurface->pSurfDesc->uiBuffserSize,
+                                          (void *)mediaSurface->pSurfDesc->ulBuffer,
+                                          mediaSurface->pSurfDesc->uiTile,
+                                          pitch,
+                                          mediaSurface->pSurfDesc->uiBuffserSize,
                                           I915_USERPTR_UNSYNCHRONIZED
                                          );
 #else
-            bo = mos_bo_alloc_vmap( pMediaDrvCtx->pDrmBufMgr,
+            bo = mos_bo_alloc_vmap( mediaDrvCtx->pDrmBufMgr,
                                           "SysSurface",
-                                          (void *)pMediaSurface->pSurfDesc->ulBuffer,
-                                          pMediaSurface->pSurfDesc->uiTile,
-                                          iPitch,
-                                          pMediaSurface->pSurfDesc->uiBuffserSize,
+                                          (void *)mediaSurface->pSurfDesc->ulBuffer,
+                                          mediaSurface->pSurfDesc->uiTile,
+                                          pitch,
+                                          mediaSurface->pSurfDesc->uiBuffserSize,
                                           0
                                          );
 #endif
@@ -600,41 +488,41 @@ VAStatus DdiMediaUtil_AllocateSurface(
         }
         else
         {
-            DDI_ASSERTMESSAGE("Input buffer descriptor (%d) is not supported by current driver.", pMediaSurface->pSurfDesc->uiFlags);
+            DDI_ASSERTMESSAGE("Input buffer descriptor (%d) is not supported by current driver.", mediaSurface->pSurfDesc->uiFlags);
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
     }
 
-    bGrallocAllocation = false;
-    if( DdiMediaUtil_IsExternalSurface(pMediaSurface) )
+    grallocAllocation = false;
+    if( DdiMediaUtil_IsExternalSurface(mediaSurface) )
     {        
-        bGrallocAllocation = pMediaSurface->pSurfDesc->bIsGralloc;
+        grallocAllocation = mediaSurface->pSurfDesc->bIsGralloc;
     }
     
-    if( bGrallocAllocation )    
+    if( grallocAllocation )    
     {
-        GmmParams = pMediaSurface->pSurfDesc->GmmParam;
+        gmmParams = mediaSurface->pSurfDesc->GmmParam;
     }    
     else    
     {  
         // Create GmmResourceInfo
-        MOS_ZeroMemory(&GmmParams, sizeof(GmmParams));
-        if (DdiMediaUtil_IsExternalSurface(pMediaSurface))
+        MOS_ZeroMemory(&gmmParams, sizeof(gmmParams));
+        if (DdiMediaUtil_IsExternalSurface(mediaSurface))
         {
-            GmmParams.BaseWidth         = pMediaSurface->iWidth;
-            GmmParams.BaseHeight        = pMediaSurface->iHeight;
+            gmmParams.BaseWidth         = mediaSurface->iWidth;
+            gmmParams.BaseHeight        = mediaSurface->iHeight;
         }
         else
         {
-            GmmParams.BaseWidth             = iWidth;
-            GmmParams.BaseHeight            = iAlignedHeight;
+            gmmParams.BaseWidth         = width;
+            gmmParams.BaseHeight        = alignedHeight;
         }
         
-        GmmParams.ArraySize             = 1;
-        GmmParams.Type                  = RESOURCE_2D;
-        GmmParams.Format                = DdiMediaUtil_ConvertMediaFmtToGmmFmt(Format);
+        gmmParams.ArraySize             = 1;
+        gmmParams.Type                  = RESOURCE_2D;
+        gmmParams.Format                = DdiMediaUtil_ConvertMediaFmtToGmmFmt(format);
         
-        DDI_CHK_CONDITION(GmmParams.Format == GMM_FORMAT_INVALID, 
+        DDI_CHK_CONDITION(gmmParams.Format == GMM_FORMAT_INVALID, 
                              "Unsupported format", 
                              VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT);
     }
@@ -642,36 +530,38 @@ VAStatus DdiMediaUtil_AllocateSurface(
     switch (tileformat)
     {
         case I915_TILING_Y:
-            GmmParams.Flags.Info.TiledY    = true;
+            gmmParams.Flags.Info.TiledY    = true;
 
             // For surface allocated by Gralloc, we use intel_ufo_bo_type_t to store mmc state.
-            if (!bGrallocAllocation)
+            if (!grallocAllocation)
             {
                 // Disable MMC for application required surfaces, because some cases' output streams have corruption.
-                GmmParams.Flags.Gpu.MMC    = false;
+                gmmParams.Flags.Gpu.MMC    = false;
             }
             break;
         case I915_TILING_X:
-            GmmParams.Flags.Info.TiledX    = true;
+            gmmParams.Flags.Info.TiledX    = true;
             break;
         default:
-            GmmParams.Flags.Info.Linear    = true;
+            gmmParams.Flags.Info.Linear    = true;
     }
        
-    GmmParams.Flags.Gpu.Video = true;
+    gmmParams.Flags.Gpu.Video = true;
 
-    pMediaSurface->pGmmResourceInfo = pGmmResourceInfo = GmmResCreate(&GmmParams);
+    mediaSurface->pGmmResourceInfo = gmmResourceInfo = GmmResCreate(&gmmParams);
 
-    if(nullptr == pGmmResourceInfo)
+    if(nullptr == gmmResourceInfo)
     {
         DDI_ASSERTMESSAGE("Gmm Create Resource Failed.");
         hRes = VA_STATUS_ERROR_ALLOCATION_FAILED;
         goto finish;
     }
-
-    gmmPitch    = (uint32_t)pGmmResourceInfo->GetRenderPitch();
-    gmmSize     = GmmResGetRenderSize(pGmmResourceInfo);
-    gmmHeight   = pGmmResourceInfo->GetBaseHeight();
+    uint32_t    gmmPitch;
+    uint32_t    gmmSize;
+    uint32_t    gmmHeight;
+    gmmPitch    = (uint32_t)gmmResourceInfo->GetRenderPitch();
+    gmmSize     = GmmResGetRenderSize(gmmResourceInfo);
+    gmmHeight   = gmmResourceInfo->GetBaseHeight();
 
     if ( 0 == gmmPitch || 0 == gmmSize || 0 == gmmHeight)
     {
@@ -680,104 +570,107 @@ VAStatus DdiMediaUtil_AllocateSurface(
         goto finish;
     }
 
-    if (!DdiMediaUtil_IsExternalSurface(pMediaSurface))
+    if (!DdiMediaUtil_IsExternalSurface(mediaSurface))
     {
+        unsigned long  ulPitch;
 #if defined(I915_PARAM_CREATE_VERSION)
-        int32_t value ;
-        int32_t ret;
-        value = 0;
-        ret = -1;
+        int32_t value = 0;
+        int32_t ret = -1;
         drm_i915_getparam_t gp;
         memset( &gp, 0, sizeof(gp) );
         gp.value = &value;
         gp.param = I915_PARAM_CREATE_VERSION;
-        ret = drmIoctl(pMediaDrvCtx->fd, DRM_IOCTL_I915_GETPARAM, &gp);
+        ret = drmIoctl(mediaDrvCtx->fd, DRM_IOCTL_I915_GETPARAM, &gp);
         if ((0 == ret) && (tileformat != I915_TILING_NONE))
         {
-            bo = mos_bo_alloc_tiled(pMediaDrvCtx->pDrmBufMgr, "MEDIA", gmmPitch, gmmSize/gmmPitch, 1, &tileformat, (unsigned long *)&ulPitch, BO_ALLOC_STOLEN);
+            bo = mos_bo_alloc_tiled(mediaDrvCtx->pDrmBufMgr, "MEDIA", gmmPitch, gmmSize/gmmPitch, 1, &tileformat, (unsigned long *)&ulPitch, BO_ALLOC_STOLEN);
             if (nullptr == bo)
             {
-                bo = mos_bo_alloc_tiled(pMediaDrvCtx->pDrmBufMgr, "MEDIA", gmmPitch, gmmSize/gmmPitch, 1, &tileformat, (unsigned long *)&ulPitch, 0);
+                bo = mos_bo_alloc_tiled(mediaDrvCtx->pDrmBufMgr, "MEDIA", gmmPitch, gmmSize/gmmPitch, 1, &tileformat, (unsigned long *)&ulPitch, 0);
             }
             else
             {
                 DDI_VERBOSEMESSAGE("Stolen memory is created sucessfully on AllocateSurface");
             }
-            iPitch = (int32_t)ulPitch;
+            pitch = (int32_t)ulPitch;
         }
         else
 #endif  
         {
             if ( tileformat == I915_TILING_NONE )
             {
-                bo = mos_bo_alloc(pMediaDrvCtx->pDrmBufMgr, "MEDIA", gmmSize, 4096);
-                iPitch = gmmPitch;
+                bo = mos_bo_alloc(mediaDrvCtx->pDrmBufMgr, "MEDIA", gmmSize, 4096);
+                pitch = gmmPitch;
             }
             else
             {
-                bo = mos_bo_alloc_tiled(pMediaDrvCtx->pDrmBufMgr, "MEDIA", gmmPitch, gmmSize/gmmPitch, 1, &tileformat, (unsigned long *)&ulPitch, 0);
-                iPitch = (int32_t)ulPitch;
+                bo = mos_bo_alloc_tiled(mediaDrvCtx->pDrmBufMgr, "MEDIA", gmmPitch, gmmSize/gmmPitch, 1, &tileformat, (unsigned long *)&ulPitch, 0);
+                pitch = (int32_t)ulPitch;
             }
         }
     }
     else
     {
         // Check Pitch and Size
-        if (gmmPitch > iPitch || gmmSize > bo->size)
+#ifdef ANDROID
+        if (gmmPitch > pitch)
+#else
+        if (gmmPitch > pitch || gmmSize > bo->size)
+#endif
         {
             DDI_ASSERTMESSAGE("External Surface doesn't meet the reqirements of Media driver.");
-            DdiMediaUtil_FreeSurface(pMediaSurface);
+            DdiMediaUtil_FreeSurface(mediaSurface);
             hRes = VA_STATUS_ERROR_ALLOCATION_FAILED;
 
             goto finish;
         }
         
         // Check Alignment
-        pGmmResourceInfo->GetRestrictions(gmmRestrictions);
-        ulPitchAlign  = gmmRestrictions.RenderPitchAlignment;
-        ulSizeAlign   = gmmRestrictions.Alignment;
-
-        if (!MOS_IS_ALIGNED(iPitch, ulPitchAlign) ||
-            !MOS_IS_ALIGNED(bo->size, ulSizeAlign))
+         __GMM_BUFFER_TYPE   gmmRestrictions = {0};
+        gmmResourceInfo->GetRestrictions(gmmRestrictions);
+        unsigned long pitchAlign  = gmmRestrictions.RenderPitchAlignment;
+        unsigned long sizeAlign   = gmmRestrictions.Alignment;
+    
+        if (!MOS_IS_ALIGNED(pitch, pitchAlign))
         {
             DDI_ASSERTMESSAGE("External Surface doesn't meet the reqirements of Media driver.");
-            DdiMediaUtil_FreeSurface(pMediaSurface);
+            DdiMediaUtil_FreeSurface(mediaSurface);
             hRes = VA_STATUS_ERROR_ALLOCATION_FAILED;
 
             goto finish;
         }
     }
 
-    pMediaSurface->bMapped = false;
+    mediaSurface->bMapped = false;
     if (bo)
     {
 #ifdef ANDROID
-        if (!bGrallocAllocation)
+        if (!grallocAllocation)
         {
             intel_ufo_bo_datatype_t datatype;
             
             mos_bo_get_datatype(bo, &datatype.value);
-            datatype.is_mmc_capable   = (uint32_t)GmmParams.Flags.Gpu.MMC;
+            datatype.is_mmc_capable   = (uint32_t)gmmParams.Flags.Gpu.MMC;
             datatype.compression_hint = INTEL_UFO_BUFFER_HINT_MMC_COMPRESSED;
             mos_bo_set_datatype(bo, datatype.value);
         }
 #endif
 
-        pMediaSurface->format      = Format;
-        pMediaSurface->iWidth      = iWidth;
-        pMediaSurface->iHeight     = gmmHeight;
-        pMediaSurface->iRealHeight = iHeight;
-        pMediaSurface->iPitch      = iPitch;
-        pMediaSurface->iRefCount   = 0;
-        pMediaSurface->bo          = bo;
-        pMediaSurface->TileType    = tileformat;
-        pMediaSurface->isTiled     = (tileformat != I915_TILING_NONE) ? 1 : 0;
-        pMediaSurface->pData       = (uint8_t*) bo->virt;
-        DDI_VERBOSEMESSAGE("Alloc %7d bytes (%d x %d resource).",gmmSize, iWidth, iHeight);
+        mediaSurface->format      = format;
+        mediaSurface->iWidth      = width;
+        mediaSurface->iHeight     = gmmHeight;
+        mediaSurface->iRealHeight = height;
+        mediaSurface->iPitch      = pitch;
+        mediaSurface->iRefCount   = 0;
+        mediaSurface->bo          = bo;
+        mediaSurface->TileType    = tileformat;
+        mediaSurface->isTiled     = (tileformat != I915_TILING_NONE) ? 1 : 0;
+        mediaSurface->pData       = (uint8_t*) bo->virt;
+        DDI_VERBOSEMESSAGE("Alloc %7d bytes (%d x %d resource).",gmmSize, width, height);
     }
     else
     {
-        DDI_ASSERTMESSAGE("Fail to Alloc %7d bytes (%d x %d resource).",gmmSize, iWidth, iHeight);
+        DDI_ASSERTMESSAGE("Fail to Alloc %7d bytes (%d x %d resource).",gmmSize, width, height);
         hRes = VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
 
@@ -785,133 +678,152 @@ finish:
     return hRes;
 }
 
+//!
+//! \brief  Allocate buffer
+//! 
+//! \param  [in] format
+//!         Ddi media format
+//! \param  [in] size
+//!         Size of the region
+//! \param  [out] mediaBuffer
+//!         Pointer to ddi media buffer
+//! \param  [in] bufmgr
+//!         Mos buffer manager
+//!         
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
 VAStatus DdiMediaUtil_AllocateBuffer(
-    DDI_MEDIA_FORMAT            Format,
-    int32_t                     iSize,
-    PDDI_MEDIA_BUFFER           pMediaBuffer,
-    MOS_BUFMGR                 *pBufmgr)
+    DDI_MEDIA_FORMAT            format,
+    int32_t                     size,
+    PDDI_MEDIA_BUFFER           mediaBuffer,
+    MOS_BUFMGR                 *bufmgr)
 {
-    VAStatus                hRes;
-    MOS_LINUX_BO           *bo;
-    GMM_RESCREATE_PARAMS    GmmParams;
 
-    DDI_CHK_NULL(pMediaBuffer, "pMediaBuffer is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
-    if(Format >= Media_Format_Count)
+    DDI_CHK_NULL(mediaBuffer, "mediaBuffer is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
+    if(format >= Media_Format_Count)
        return VA_STATUS_ERROR_INVALID_PARAMETER;
 
-    hRes       = VA_STATUS_SUCCESS;
+    VAStatus     hRes = VA_STATUS_SUCCESS;
+    MOS_LINUX_BO *bo  = mos_bo_alloc(bufmgr, "Media Buffer", size, 4096);
 
-    bo = mos_bo_alloc(pBufmgr, "Media Buffer", iSize, 4096);
-
-    pMediaBuffer->bMapped = false;
+    mediaBuffer->bMapped = false;
     if (bo)
     {
-        pMediaBuffer->format     = Format;
-        pMediaBuffer->iSize      = iSize;
-        pMediaBuffer->iRefCount  = 0;
-        pMediaBuffer->bo         = bo;
-        pMediaBuffer->pData      = (uint8_t*) bo->virt;
+        mediaBuffer->format     = format;
+        mediaBuffer->iSize      = size;
+        mediaBuffer->iRefCount  = 0;
+        mediaBuffer->bo         = bo;
+        mediaBuffer->pData      = (uint8_t*) bo->virt;
 
-        DDI_VERBOSEMESSAGE("Alloc %7d bytes resource.",iSize);
+        DDI_VERBOSEMESSAGE("Alloc %7d bytes resource.",size);
     }
     else
     {
-        DDI_ASSERTMESSAGE("Fail to Alloc %7d bytes resource.",iSize);
+        DDI_ASSERTMESSAGE("Fail to Alloc %7d bytes resource.",size);
         hRes = VA_STATUS_ERROR_ALLOCATION_FAILED;
         goto finish;
     }
 
     // create fake GmmResourceInfo
-    MOS_ZeroMemory(&GmmParams, sizeof(GmmParams));
-    GmmParams.BaseWidth             = 1;
-    GmmParams.BaseHeight            = 1;
-    GmmParams.ArraySize             = 0;
-    GmmParams.Type                  = RESOURCE_1D;
-    GmmParams.Format                = GMM_FORMAT_GENERIC_8BIT;
-    GmmParams.Flags.Gpu.Video       = true;
-    GmmParams.Flags.Info.Linear     = true;
+    GMM_RESCREATE_PARAMS    gmmParams;
+    MOS_ZeroMemory(&gmmParams, sizeof(gmmParams));
+    gmmParams.BaseWidth             = 1;
+    gmmParams.BaseHeight            = 1;
+    gmmParams.ArraySize             = 0;
+    gmmParams.Type                  = RESOURCE_1D;
+    gmmParams.Format                = GMM_FORMAT_GENERIC_8BIT;
+    gmmParams.Flags.Gpu.Video       = true;
+    gmmParams.Flags.Info.Linear     = true;
 
-    pMediaBuffer->pGmmResourceInfo = GmmResCreate(&GmmParams);
+    mediaBuffer->pGmmResourceInfo = GmmResCreate(&gmmParams);
 
-    DDI_CHK_NULL(pMediaBuffer->pGmmResourceInfo, "pGmmResourceInfo is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
-    GmmResOverrideAllocationSize(pMediaBuffer->pGmmResourceInfo, pMediaBuffer->iSize);
-    GmmResOverrideAllocationBaseWidth(pMediaBuffer->pGmmResourceInfo, pMediaBuffer->iSize);
-    GmmResOverrideAllocationPitch(pMediaBuffer->pGmmResourceInfo, pMediaBuffer->iSize);
+    DDI_CHK_NULL(mediaBuffer->pGmmResourceInfo, "pGmmResourceInfo is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
+    GmmResOverrideAllocationSize(mediaBuffer->pGmmResourceInfo, mediaBuffer->iSize);
+    GmmResOverrideAllocationBaseWidth(mediaBuffer->pGmmResourceInfo, mediaBuffer->iSize);
+    GmmResOverrideAllocationPitch(mediaBuffer->pGmmResourceInfo, mediaBuffer->iSize);
 finish:
     return hRes;
 }
 
+//!
+//! \brief  Allocate 2D buffer
+//! 
+//! \param  [in] height
+//!         Height of the region
+//! \param  [in] width
+//!         Width of the region
+//! \param  [out] mediaBuffer
+//!         Pointer to ddi media buffer
+//! \param  [in] bufmgr
+//!         Mos buffer manager
+//!         
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
 VAStatus DdiMediaUtil_Allocate2DBuffer(
-    int32_t                     iHeight,
-    int32_t                     iWidth,
-    PDDI_MEDIA_BUFFER           pMediaBuffer,
-    MOS_BUFMGR                 *pBufmgr)
+    int32_t                     height,
+    int32_t                     width,
+    PDDI_MEDIA_BUFFER           mediaBuffer,
+    MOS_BUFMGR                 *bufmgr)
 {
-    int32_t                     iSize;
-    VAStatus                    hRes;
-    MOS_LINUX_BO	           *bo;
-    uint32_t                    tileformat;
-    uint32_t                    gmmPitch;
-    uint32_t                    gmmSize;
-    uint32_t                    gmmHeight;
-    GMM_RESCREATE_PARAMS        GmmParams;
-    GMM_RESOURCE_INFO          *pGmmResourceInfo;
+    DDI_CHK_NULL(mediaBuffer, "mediaBuffer is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
 
-    DDI_CHK_NULL(pMediaBuffer, "pMediaBuffer is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
-
-    iSize          = 0;
-    tileformat     = I915_TILING_NONE;
-    hRes           = VA_STATUS_SUCCESS;
-    
-   
+    int32_t  size           = 0;
+    uint32_t tileformat     = I915_TILING_NONE;
+    VAStatus hRes           = VA_STATUS_SUCCESS;
+     
     // Create GmmResourceInfo
-    MOS_ZeroMemory(&GmmParams, sizeof(GmmParams));
-    GmmParams.BaseWidth             = iWidth;
-    GmmParams.BaseHeight            = iHeight;
-    GmmParams.ArraySize             = 1;
-    GmmParams.Type                  = RESOURCE_2D;
-    GmmParams.Format                = GMM_FORMAT_GENERIC_8BIT;
+    GMM_RESCREATE_PARAMS        gmmParams;
+    MOS_ZeroMemory(&gmmParams, sizeof(gmmParams));
+    gmmParams.BaseWidth             = width;
+    gmmParams.BaseHeight            = height;
+    gmmParams.ArraySize             = 1;
+    gmmParams.Type                  = RESOURCE_2D;
+    gmmParams.Format                = GMM_FORMAT_GENERIC_8BIT;
 
-    DDI_CHK_CONDITION(GmmParams.Format == GMM_FORMAT_INVALID, 
+    DDI_CHK_CONDITION(gmmParams.Format == GMM_FORMAT_INVALID, 
                          "Unsupported format", 
                          VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT);
 
-    GmmParams.Flags.Info.Linear = true;
-    GmmParams.Flags.Gpu.Video   = true;
+    gmmParams.Flags.Info.Linear = true;
+    gmmParams.Flags.Gpu.Video   = true;
+    GMM_RESOURCE_INFO          *gmmResourceInfo;
+    mediaBuffer->pGmmResourceInfo = gmmResourceInfo = GmmResCreate(&gmmParams);
 
-    pMediaBuffer->pGmmResourceInfo = pGmmResourceInfo = GmmResCreate(&GmmParams);
-
-    if(nullptr == pGmmResourceInfo)
+    if(nullptr == gmmResourceInfo)
     {
         DDI_VERBOSEMESSAGE("Gmm Create Resource Failed.");
         hRes = VA_STATUS_ERROR_ALLOCATION_FAILED;
         goto finish;
     }
+    uint32_t    gmmPitch;
+    uint32_t    gmmSize;
+    uint32_t    gmmHeight;
+    gmmPitch    = (uint32_t)gmmResourceInfo->GetRenderPitch();
+    gmmSize     = GmmResGetRenderSize(gmmResourceInfo);
+    gmmHeight   = gmmResourceInfo->GetBaseHeight();
 
-    gmmPitch    = (uint32_t)pGmmResourceInfo->GetRenderPitch();
-    gmmSize     = GmmResGetRenderSize(pGmmResourceInfo);
-    gmmHeight   = pGmmResourceInfo->GetBaseHeight();
+    MOS_LINUX_BO  *bo;
+    bo = mos_bo_alloc(bufmgr, "Media 2D Buffer", gmmSize, 4096); 
 
-   
-    bo = mos_bo_alloc(pBufmgr, "Media 2D Buffer", gmmSize, 4096); 
-
-    pMediaBuffer->bMapped = false;
+    mediaBuffer->bMapped = false;
     if (bo)
     {
-        pMediaBuffer->format     = Media_Format_2DBuffer;
-        pMediaBuffer->iWidth     = iWidth;
-        pMediaBuffer->iHeight    = gmmHeight;
-        pMediaBuffer->iPitch     = gmmPitch;
-        pMediaBuffer->iSize      = gmmSize;
-        pMediaBuffer->iRefCount  = 0;
-        pMediaBuffer->bo         = bo;
-        pMediaBuffer->TileType   = tileformat;
-        pMediaBuffer->pData      = (uint8_t*) bo->virt; 
-        DDI_VERBOSEMESSAGE("Alloc %7d bytes (%d x %d resource)\n",iSize, iWidth, iHeight);
+        mediaBuffer->format     = Media_Format_2DBuffer;
+        mediaBuffer->iWidth     = width;
+        mediaBuffer->iHeight    = gmmHeight;
+        mediaBuffer->iPitch     = gmmPitch;
+        mediaBuffer->iSize      = gmmSize;
+        mediaBuffer->iRefCount  = 0;
+        mediaBuffer->bo         = bo;
+        mediaBuffer->TileType   = tileformat;
+        mediaBuffer->pData      = (uint8_t*) bo->virt; 
+        DDI_VERBOSEMESSAGE("Alloc %7d bytes (%d x %d resource)\n",size, width, height);
     }
     else
     {
-        DDI_VERBOSEMESSAGE("Fail to Alloc %7d bytes (%d x %d resource)\n",iSize, iWidth, iHeight);
+        DDI_VERBOSEMESSAGE("Fail to Alloc %7d bytes (%d x %d resource)\n", size, width, height);
         hRes = VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
 
@@ -919,380 +831,327 @@ finish:
     return hRes;
 }
 
-VAStatus DdiMediaUtil_CreateSurface(DDI_MEDIA_SURFACE  *pSurface, PDDI_MEDIA_CONTEXT pMediaDrvCtx)
+VAStatus DdiMediaUtil_CreateSurface(DDI_MEDIA_SURFACE  *surface, PDDI_MEDIA_CONTEXT mediaDrvCtx)
 {
-    VAStatus  hr;
+    VAStatus hr = VA_STATUS_SUCCESS;
 
-    hr = VA_STATUS_SUCCESS;
-
-    DDI_CHK_NULL(pSurface, "nullptr pSurface", VA_STATUS_ERROR_INVALID_BUFFER);
+    DDI_CHK_NULL(surface, "nullptr surface", VA_STATUS_ERROR_INVALID_BUFFER);
 
     // better to differentiate 1D and 2D type
-    hr = DdiMediaUtil_AllocateSurface(pSurface->format, 
-                         pSurface->iWidth, 
-                         pSurface->iHeight, 
-                         pSurface, 
-                         pMediaDrvCtx);
-    if (VA_STATUS_SUCCESS == hr && nullptr != pSurface->bo)
-        pSurface->base = pSurface->name;
+    hr = DdiMediaUtil_AllocateSurface(surface->format, 
+                         surface->iWidth, 
+                         surface->iHeight, 
+                         surface, 
+                         mediaDrvCtx);
+    if (VA_STATUS_SUCCESS == hr && nullptr != surface->bo)
+        surface->base = surface->name;
 
     return hr;
 }
 
-VAStatus DdiMediaUtil_CreateBuffer(DDI_MEDIA_BUFFER *pBuffer, MOS_BUFMGR *pBufmgr)
+VAStatus DdiMediaUtil_CreateBuffer(DDI_MEDIA_BUFFER *buffer, MOS_BUFMGR *bufmgr)
 {
-    VAStatus  hr;
+    VAStatus hr = VA_STATUS_SUCCESS;
 
-    hr = VA_STATUS_SUCCESS;
+    DDI_CHK_NULL(buffer, "nullptr buffer", VA_STATUS_ERROR_INVALID_BUFFER);
 
-    DDI_CHK_NULL(pBuffer, "nullptr pBuffer", VA_STATUS_ERROR_INVALID_BUFFER);
+    DDI_CHK_LESS(buffer->format, Media_Format_Count, "Invalid buffer->format", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    DDI_CHK_LESS(pBuffer->format, Media_Format_Count, "Invalid pBuffer->format", VA_STATUS_ERROR_INVALID_PARAMETER);
-
-    if (pBuffer->format == Media_Format_CPU)
+    if (buffer->format == Media_Format_CPU)
     {
-        pBuffer->pData= (uint8_t*)MOS_AllocAndZeroMemory(pBuffer->iSize);
-        if (nullptr == pBuffer->pData)
+        buffer->pData= (uint8_t*)MOS_AllocAndZeroMemory(buffer->iSize);
+        if (nullptr == buffer->pData)
             hr = VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
 
     else
     {
-        if (Media_Format_2DBuffer == pBuffer->format)
+        if (Media_Format_2DBuffer == buffer->format)
         {
-            hr = DdiMediaUtil_Allocate2DBuffer(pBuffer->iHeight,
-                                  pBuffer->iWidth,
-                                  pBuffer,
-                                  pBufmgr);
+            hr = DdiMediaUtil_Allocate2DBuffer(buffer->iHeight,
+                                  buffer->iWidth,
+                                  buffer,
+                                  bufmgr);
          }
          else
          {
-             hr = DdiMediaUtil_AllocateBuffer(pBuffer->format, 
-                                 pBuffer->iSize,
-                                 pBuffer,
-                                 pBufmgr);
+             hr = DdiMediaUtil_AllocateBuffer(buffer->format, 
+                                 buffer->iSize,
+                                 buffer,
+                                 bufmgr);
          }
     }
 
-    pBuffer->uiLockedBufID   = VA_INVALID_ID;
-    pBuffer->uiLockedImageID = VA_INVALID_ID;
-    pBuffer->iRefCount       = 0;
-
+    buffer->uiLockedBufID   = VA_INVALID_ID;
+    buffer->uiLockedImageID = VA_INVALID_ID;
+    buffer->iRefCount       = 0;
 
     return hr;
 }
 
 // add thread protection for multiple thread?
-void* DdiMediaUtil_LockSurface(DDI_MEDIA_SURFACE  *pSurface, uint32_t flag)
+void* DdiMediaUtil_LockSurface(DDI_MEDIA_SURFACE  *surface, uint32_t flag)
 {
-    if(DDI_UTIL_CHK_NULL(pSurface))
-        return nullptr;
-
-    if(DDI_UTIL_CHK_NULL(pSurface->bo))
-        return nullptr;
-
-    if((false == pSurface->bMapped) && (0 == pSurface->iRefCount))
+    DDI_CHK_NULL(surface, "nullptr surface", nullptr);
+    DDI_CHK_NULL(surface->bo, "nullptr surface->bo", nullptr);
+    if((false == surface->bMapped) && (0 == surface->iRefCount))
     {
-        if (pSurface->pMediaCtx->bIsAtomSOC)
+        if (surface->pMediaCtx->bIsAtomSOC)
         {
 #ifdef ANDROID
-            if (pSurface->iWidth * pSurface->iHeight * 3 <= GTT_SIZE_THRESHOLD)
+            if (surface->iWidth * surface->iHeight * 3 <= GTT_SIZE_THRESHOLD)
             {
-                mos_gem_bo_map_gtt(pSurface->bo);
+                mos_gem_bo_map_gtt(surface->bo);
             }
             else
             {
-                mos_bo_map(pSurface->bo, (MOS_LOCKFLAG_READONLY | MOS_LOCKFLAG_WRITEONLY));
-                if (pSurface->TileType != I915_TILING_NONE)
+                mos_bo_map(surface->bo, (MOS_LOCKFLAG_READONLY | MOS_LOCKFLAG_WRITEONLY));
+                if (surface->TileType != I915_TILING_NONE)
                 {
-                    if (NeedSwizzleData(pSurface, true) == false)
+                    if (NeedSwizzleData(surface, true) == false)
                         return nullptr;
                 }
             }
 #else
-            mos_gem_bo_map_gtt(pSurface->bo);
+            mos_gem_bo_map_gtt(surface->bo);
 #endif
         }
         else
         {
-            if (pSurface->TileType == I915_TILING_NONE)
+            if (surface->TileType == I915_TILING_NONE)
             {
-                mos_bo_map(pSurface->bo, flag & MOS_LOCKFLAG_WRITEONLY);
+                mos_bo_map(surface->bo, flag & MOS_LOCKFLAG_WRITEONLY);
             }
             else if (flag & MOS_LOCKFLAG_WRITEONLY)
             {
-                mos_gem_bo_map_gtt(pSurface->bo);
+                mos_gem_bo_map_gtt(surface->bo);
             }
             else 
             {
-                mos_gem_bo_map_unsynchronized(pSurface->bo);     // only call mmap_gtt ioctl
-                mos_gem_bo_start_gtt_access(pSurface->bo, 0);    // set to GTT domain,0 means readonly
+                mos_gem_bo_map_unsynchronized(surface->bo);     // only call mmap_gtt ioctl
+                mos_gem_bo_start_gtt_access(surface->bo, 0);    // set to GTT domain,0 means readonly
             }
         }
-        pSurface->pData   = (uint8_t*) pSurface->bo->virt;
-        pSurface->bMapped = true;
+        surface->pData   = (uint8_t*) surface->bo->virt;
+        surface->bMapped = true;
     }
     else
     {
         // do nothing here
     }
-    pSurface->iRefCount++;
+    surface->iRefCount++;
 
-    return pSurface->pData;
+    return surface->pData;
 }
 
-void DdiMediaUtil_UnlockSurface(DDI_MEDIA_SURFACE  *pSurface)
+void DdiMediaUtil_UnlockSurface(DDI_MEDIA_SURFACE  *surface)
 {
-    if(DDI_UTIL_CHK_NULL(pSurface))
+    DDI_CHK_NULL(surface, "nullptr surface", );
+    DDI_CHK_NULL(surface->bo, "nullptr surface->bo", );
+    if (0 == surface->iRefCount)
         return;
 
-    if(DDI_UTIL_CHK_NULL(pSurface->bo))
-        return;
-
-    if (0 == pSurface->iRefCount)
-        return;
-
-    if((true == pSurface->bMapped) && (1 == pSurface->iRefCount))
+    if((true == surface->bMapped) && (1 == surface->iRefCount))
     {
-        if (pSurface->pMediaCtx->bIsAtomSOC)
+        if (surface->pMediaCtx->bIsAtomSOC)
         {
 #ifdef ANDROID
-            if (pSurface->iWidth * pSurface->iHeight * 3 <= GTT_SIZE_THRESHOLD)
+            if (surface->iWidth * surface->iHeight * 3 <= GTT_SIZE_THRESHOLD)
             {
-                mos_gem_bo_unmap_gtt(pSurface->bo);
+                mos_gem_bo_unmap_gtt(surface->bo);
             }
             else
             {
-                if (pSurface->TileType != I915_TILING_NONE)
-                    NeedSwizzleData(pSurface, false);
+                if (surface->TileType != I915_TILING_NONE)
+                    NeedSwizzleData(surface, false);
 
-                mos_bo_unmap(pSurface->bo);
+                mos_bo_unmap(surface->bo);
             }
 #else
-            mos_gem_bo_unmap_gtt(pSurface->bo);
+            mos_gem_bo_unmap_gtt(surface->bo);
 #endif
         }
         else
         {
-            if (pSurface->TileType == I915_TILING_NONE)
+            if (surface->TileType == I915_TILING_NONE)
             {
-               mos_bo_unmap(pSurface->bo);
+               mos_bo_unmap(surface->bo);
             }
             else
             {
-               mos_gem_bo_unmap_gtt(pSurface->bo);
+               mos_gem_bo_unmap_gtt(surface->bo);
             }
         }
-        pSurface->pData       = nullptr;
-        pSurface->bo->virt    = nullptr;
-        pSurface->bMapped     = false;
+        surface->pData       = nullptr;
+        surface->bo->virt    = nullptr;
+        surface->bMapped     = false;
     }
     else
     {
         // do nothing here
     }
 
-    pSurface->iRefCount--;
+    surface->iRefCount--;
 
     return;
 }
 
 // add thread protection for multiple thread?
 // MapBuffer?
-void* DdiMediaUtil_LockBuffer(DDI_MEDIA_BUFFER *pBuf, uint32_t flag)
+void* DdiMediaUtil_LockBuffer(DDI_MEDIA_BUFFER *buf, uint32_t flag)
 {
-    if(DDI_UTIL_CHK_NULL(pBuf))
-        return nullptr;
-
-    if((Media_Format_CPU != pBuf->format) && (false == pBuf->bMapped))
+    DDI_CHK_NULL(buf, "nullptr buf", nullptr);
+    if((Media_Format_CPU != buf->format) && (false == buf->bMapped))
     {
-        if (nullptr != pBuf->pSurface)
+        if (nullptr != buf->pSurface)
         {
-            DdiMediaUtil_LockSurface(pBuf->pSurface, flag);
-            pBuf->pData = pBuf->pSurface->pData;
+            DdiMediaUtil_LockSurface(buf->pSurface, flag);
+            buf->pData = buf->pSurface->pData;
         }
         else
         {
-            if (pBuf->pMediaCtx->bIsAtomSOC)
+            if (buf->pMediaCtx->bIsAtomSOC)
             {
-                mos_gem_bo_map_gtt(pBuf->bo);
+                mos_gem_bo_map_gtt(buf->bo);
             }
             else
             {
-                if (pBuf->TileType == I915_TILING_NONE)
+                if (buf->TileType == I915_TILING_NONE)
                 {
-                    mos_bo_map(pBuf->bo, ((MOS_LOCKFLAG_READONLY | MOS_LOCKFLAG_WRITEONLY) & flag));
+                    mos_bo_map(buf->bo, ((MOS_LOCKFLAG_READONLY | MOS_LOCKFLAG_WRITEONLY) & flag));
                 }
                 else
                 {
-                    mos_gem_bo_map_gtt(pBuf->bo);
+                    mos_gem_bo_map_gtt(buf->bo);
                 }
              }
 
-            pBuf->pData = (uint8_t*)(pBuf->bo->virt);
+            buf->pData = (uint8_t*)(buf->bo->virt);
         }
 
-        pBuf->bMapped = true;
-        pBuf->iRefCount++;
+        buf->bMapped = true;
+        buf->iRefCount++;
     }
-    else if ((Media_Format_CPU == pBuf->format) && (false == pBuf->bMapped))
+    else if ((Media_Format_CPU == buf->format) && (false == buf->bMapped))
     {
-        pBuf->bMapped = true;
-        pBuf->iRefCount++;
+        buf->bMapped = true;
+        buf->iRefCount++;
     }
     else 
     {
-        pBuf->iRefCount++;
+        buf->iRefCount++;
     }
 
-    return pBuf->pData;
+    return buf->pData;
 }
 
-void DdiMediaUtil_UnlockBuffer(DDI_MEDIA_BUFFER *pBuf)
+void DdiMediaUtil_UnlockBuffer(DDI_MEDIA_BUFFER *buf)
 {
-    if(DDI_UTIL_CHK_NULL(pBuf))
+    DDI_CHK_NULL(buf, "nullptr buf", );
+    if (0 == buf->iRefCount)
         return;
-
-    if (0 == pBuf->iRefCount)
-        return;
-    if((true == pBuf->bMapped) && (Media_Format_CPU != pBuf->format) && (1 == pBuf->iRefCount))
+    if((true == buf->bMapped) && (Media_Format_CPU != buf->format) && (1 == buf->iRefCount))
     {
-        if (nullptr != pBuf->pSurface)
+        if (nullptr != buf->pSurface)
         {
-            DdiMediaUtil_UnlockSurface(pBuf->pSurface);
+            DdiMediaUtil_UnlockSurface(buf->pSurface);
         }
         else
         {
-             if (pBuf->pMediaCtx->bIsAtomSOC)
+             if (buf->pMediaCtx->bIsAtomSOC)
              {
-                 mos_gem_bo_unmap_gtt(pBuf->bo);
+                 mos_gem_bo_unmap_gtt(buf->bo);
              }
              else
              {
-                 if (pBuf->TileType == I915_TILING_NONE)
+                 if (buf->TileType == I915_TILING_NONE)
                  {
-                     mos_bo_unmap(pBuf->bo);
+                     mos_bo_unmap(buf->bo);
                  }
                  else
                  {
-                     mos_gem_bo_unmap_gtt(pBuf->bo);
+                     mos_gem_bo_unmap_gtt(buf->bo);
                  }
             }
-            pBuf->bo->virt = nullptr;
+            buf->bo->virt = nullptr;
         }
 
-        pBuf->pData       = nullptr;
+        buf->pData       = nullptr;
 
-        pBuf->bMapped     = false;
+        buf->bMapped     = false;
     }
-    else if ((true == pBuf->bMapped) && (Media_Format_CPU == pBuf->format) && (1 == pBuf->iRefCount))
+    else if ((true == buf->bMapped) && (Media_Format_CPU == buf->format) && (1 == buf->iRefCount))
     {
-        pBuf->bMapped     = false;
+        buf->bMapped     = false;
     }
     else 
     {
         // do nothing here
     }
-    pBuf->iRefCount--;
+    buf->iRefCount--;
     return;
 }
 
 // should ref_count added for bo?
-void DdiMediaUtil_FreeSurface(DDI_MEDIA_SURFACE *pSurface)
+void DdiMediaUtil_FreeSurface(DDI_MEDIA_SURFACE *surface)
 { 
-    if(DDI_UTIL_CHK_NULL(pSurface))
-        return;
-
-    if(DDI_UTIL_CHK_NULL(pSurface->bo))
-        return;
-
+    DDI_CHK_NULL(surface, "nullptr surface", );
+    DDI_CHK_NULL(surface->bo, "nullptr surface->bo", );
     // For External Buffer, only needs to destory SurfaceDescriptor
-    if ( DdiMediaUtil_IsExternalSurface(pSurface) )
+    if ( DdiMediaUtil_IsExternalSurface(surface) )
     {
         // In DdiMediaUtil_AllocateSurface call, driver will increase the surface reference count by calling drm_intel_bo_gem_create_from_name
         // Thus, when freeing the surface, the drm_intel_bo_unreference function should be called to avoid memory leak
-        mos_bo_unreference(pSurface->bo);
-        MOS_FreeMemory(pSurface->pSurfDesc);
-        pSurface->pSurfDesc = nullptr;
+        mos_bo_unreference(surface->bo);
+        MOS_FreeMemory(surface->pSurfDesc);
+        surface->pSurfDesc = nullptr;
     }
     else
     {
         // calling sequence checking
-        if (pSurface->bMapped)
+        if (surface->bMapped)
         {
-            DdiMediaUtil_UnlockSurface(pSurface);
+            DdiMediaUtil_UnlockSurface(surface);
             DDI_VERBOSEMESSAGE("DDI: try to free a locked surface.");
         }
-        mos_bo_unreference(pSurface->bo);
-        pSurface->bo = nullptr;
+        mos_bo_unreference(surface->bo);
+        surface->bo = nullptr;
     }
 
-    if (nullptr != pSurface->pGmmResourceInfo)
+    if (nullptr != surface->pGmmResourceInfo)
     {
-        GmmResFree(pSurface->pGmmResourceInfo);
-        pSurface->pGmmResourceInfo = nullptr;
+        GmmResFree(surface->pGmmResourceInfo);
+        surface->pGmmResourceInfo = nullptr;
     }
 }
 
 
 // should ref_count added for bo?
-void DdiMediaUtil_FreeBuffer(DDI_MEDIA_BUFFER  *pBuf)
+void DdiMediaUtil_FreeBuffer(DDI_MEDIA_BUFFER  *buf)
 {
-    if(DDI_UTIL_CHK_NULL(pBuf))
-        return;
-
+    DDI_CHK_NULL(buf, "nullptr", );
     // calling sequence checking
-    if (pBuf->bMapped)
+    if (buf->bMapped)
     {
-        DdiMediaUtil_UnlockBuffer(pBuf);
+        DdiMediaUtil_UnlockBuffer(buf);
         DDI_VERBOSEMESSAGE("DDI: try to free a locked buffer.");
     }
-    if (pBuf->format == Media_Format_CPU)
+    if (buf->format == Media_Format_CPU)
     {
-        MOS_FreeMemory(pBuf->pData);
-        pBuf->pData = nullptr;
+        MOS_FreeMemory(buf->pData);
+        buf->pData = nullptr;
     }
     else
     {
-        mos_bo_unreference(pBuf->bo);
-        pBuf->bo = nullptr;
+        mos_bo_unreference(buf->bo);
+        buf->bo = nullptr;
     }
 
-    if (nullptr != pBuf->pGmmResourceInfo)
+    if (nullptr != buf->pGmmResourceInfo)
     {
-        GmmResFree(pBuf->pGmmResourceInfo);
-        pBuf->pGmmResourceInfo = nullptr;
+        GmmResFree(buf->pGmmResourceInfo);
+        buf->pGmmResourceInfo = nullptr;
     }
-}
-
-/////////////////////////////////////////////////////////////////////////////////////
-// Purpose:      combine a DDI_MEDIA_BUFFER and a VaImage to a DDI_MEDIA_SURFACE structure
-// pBuf[in]:     pointer to input buffer
-// pImage[in]:   pointer to input image
-// pSurface[in]: pointer to combined surface
-/////////////////////////////////////////////////////////////////////////////////////
-VAStatus DdiMediaUtil_ConvertBufImageToSurface(DDI_MEDIA_BUFFER *pBuf, VAImage *pImage, DDI_MEDIA_SURFACE *pSurface)
-{
-    DDI_CHK_NULL(pBuf,    "Invalid buffer.", VA_STATUS_ERROR_INVALID_PARAMETER);
-    DDI_CHK_NULL(pImage,  "Invalid image.",  VA_STATUS_ERROR_INVALID_PARAMETER);
-    DDI_CHK_NULL(pSurface,"Invalid surface.",VA_STATUS_ERROR_INVALID_PARAMETER);
-
-    pSurface->bo              = pBuf->bo;
-    pSurface->bMapped         = pBuf->bMapped;
-    pSurface->format          = pBuf->format;
-    pSurface->iRefCount       = pBuf->iRefCount;
-    pSurface->iHeight         = pImage->height;
-    pSurface->iWidth          = pImage->width;
-    pSurface->iPitch          = pImage->pitches[0];
-    pSurface->TileType        = pBuf->TileType;
-    pSurface->uiLockedBufID   = pBuf->uiLockedBufID;
-    pSurface->uiLockedImageID = pBuf->uiLockedImageID;
-    pSurface->pData           = pBuf->pData;
-    pSurface->uiOffset        = 0;
-    pSurface->name            = pBuf->name;
-    pSurface->base            = pSurface->name;
-
-    return VA_STATUS_SUCCESS;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1315,76 +1174,64 @@ VAStatus DdiMediaUtil_FillPositionToRect(RECT *rect, int16_t offset_x, int16_t o
     return VA_STATUS_SUCCESS;
 }
 
-void DdiMediaUtil_InitMutex(PMEDIA_MUTEX_T  pMutex)
+void DdiMediaUtil_InitMutex(PMEDIA_MUTEX_T  mutex)
 {
-    pthread_mutex_init(pMutex, nullptr);
+    pthread_mutex_init(mutex, nullptr);
 }
-void DdiMediaUtil_DestroyMutex(PMEDIA_MUTEX_T  pMutex)
+
+void DdiMediaUtil_DestroyMutex(PMEDIA_MUTEX_T  mutex)
 {
-    int32_t ret = 0;
-    ret = pthread_mutex_destroy(pMutex);
+    int32_t ret = pthread_mutex_destroy(mutex);
     if(ret != 0)
     {
         DDI_NORMALMESSAGE("can't destroy the mutex!\n");
     }
 }
-void DdiMediaUtil_LockMutex(PMEDIA_MUTEX_T  pMutex)
+
+void DdiMediaUtil_LockMutex(PMEDIA_MUTEX_T  mutex)
 {
-    int32_t ret = 0;
-    ret = pthread_mutex_lock(pMutex);
+    int32_t ret = pthread_mutex_lock(mutex);
     if(ret != 0)
     {
         DDI_NORMALMESSAGE("can't lock the mutex!\n");
     }
 }
-void DdiMediaUtil_UnLockMutex(PMEDIA_MUTEX_T  pMutex)
+
+void DdiMediaUtil_UnLockMutex(PMEDIA_MUTEX_T  mutex)
 {
-    int32_t ret = 0;
-    ret = pthread_mutex_unlock(pMutex);
+    int32_t ret = pthread_mutex_unlock(mutex);
     if(ret != 0)
     {
         DDI_NORMALMESSAGE("can't unlock the mutex!\n");
     }
 }
 
-void DdiMediaUtil_InitSemaphore(PMEDIA_SEM_T  pSem, uint32_t uiInitCount)
+void DdiMediaUtil_DestroySemaphore(PMEDIA_SEM_T  sem)
 {
-    int32_t ret = 0;
-    ret = sem_init(pSem, 0, uiInitCount);
-    if(ret != 0)
-    {
-        DDI_NORMALMESSAGE("can't initialize the semaphore!\n");
-    }
-}
-
-void DdiMediaUtil_DestroySemaphore(PMEDIA_SEM_T  pSem)
-{
-    int32_t ret = 0;
-    ret = sem_destroy(pSem);
+    int32_t ret = sem_destroy(sem);
     if(ret != 0)
     {
         DDI_NORMALMESSAGE("can't destroy the semaphore!\n");
     }
 }
-void DdiMediaUtil_WaitSemaphore(PMEDIA_SEM_T  pSem)
+
+void DdiMediaUtil_WaitSemaphore(PMEDIA_SEM_T  sem)
 {
-    int32_t ret = 0;
-    ret = sem_wait(pSem);
+    int32_t ret = sem_wait(sem);
     if(ret != 0)
     {
         DDI_NORMALMESSAGE("wait semaphore error!\n");
     }
 }
 
-int32_t DdiMediaUtil_TryWaitSemaphore(PMEDIA_SEM_T  pSem)
+int32_t DdiMediaUtil_TryWaitSemaphore(PMEDIA_SEM_T  sem)
 {
-    return sem_trywait(pSem);
+    return sem_trywait(sem);
 }
 
-void DdiMediaUtil_PostSemaphore(PMEDIA_SEM_T  pSem)
+void DdiMediaUtil_PostSemaphore(PMEDIA_SEM_T  sem)
 {
-    int32_t ret = 0;
-    ret = sem_post(pSem);
+    int32_t ret = sem_post(sem);
     if(ret != 0)
     {
         DDI_NORMALMESSAGE("post semaphore error!\n");
@@ -1392,269 +1239,215 @@ void DdiMediaUtil_PostSemaphore(PMEDIA_SEM_T  pSem)
 }
 
 // heap related
-PDDI_MEDIA_SURFACE_HEAP_ELEMENT DdiMediaUtil_AllocPMediaSurfaceFromHeap(PDDI_MEDIA_HEAP pSurfaceHeap)
+PDDI_MEDIA_SURFACE_HEAP_ELEMENT DdiMediaUtil_AllocPMediaSurfaceFromHeap(PDDI_MEDIA_HEAP surfaceHeap)
 {
-    PDDI_MEDIA_SURFACE_HEAP_ELEMENT  pSurfaceHeapBase;
-    PDDI_MEDIA_SURFACE_HEAP_ELEMENT  pMediaSurfaceHeapElmt;
-    void                            *pNewHeapBase;
-    int32_t                          i;
+    PDDI_MEDIA_SURFACE_HEAP_ELEMENT  mediaSurfaceHeapElmt;
 
-    if (nullptr == pSurfaceHeap->pFirstFreeHeapElement)
+    if (nullptr == surfaceHeap->pFirstFreeHeapElement)
     {
-        pNewHeapBase = realloc(pSurfaceHeap->pHeapBase, (pSurfaceHeap->uiAllocatedHeapElements + DDI_MEDIA_HEAP_INCREMENTAL_SIZE) * sizeof(DDI_MEDIA_SURFACE_HEAP_ELEMENT));
+        void *newHeapBase = realloc(surfaceHeap->pHeapBase, (surfaceHeap->uiAllocatedHeapElements + DDI_MEDIA_HEAP_INCREMENTAL_SIZE) * sizeof(DDI_MEDIA_SURFACE_HEAP_ELEMENT));
 
-        if (nullptr == pNewHeapBase)
+        if (nullptr == newHeapBase)
         {
             DDI_ASSERTMESSAGE("DDI: realloc failed.");
             return nullptr;
         }
-        pSurfaceHeap->pHeapBase                    = pNewHeapBase;
-        pSurfaceHeapBase                           = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)pSurfaceHeap->pHeapBase;
-        pSurfaceHeap->pFirstFreeHeapElement        = (void*)(&pSurfaceHeapBase[pSurfaceHeap->uiAllocatedHeapElements]);
-        for (i = 0; i < (DDI_MEDIA_HEAP_INCREMENTAL_SIZE); i++)
+        surfaceHeap->pHeapBase                    = newHeapBase;
+        PDDI_MEDIA_SURFACE_HEAP_ELEMENT surfaceHeapBase  = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)surfaceHeap->pHeapBase;
+        surfaceHeap->pFirstFreeHeapElement        = (void*)(&surfaceHeapBase[surfaceHeap->uiAllocatedHeapElements]);
+        for (int32_t i = 0; i < (DDI_MEDIA_HEAP_INCREMENTAL_SIZE); i++)
         {
-            pMediaSurfaceHeapElmt                  = &pSurfaceHeapBase[pSurfaceHeap->uiAllocatedHeapElements + i];
-            pMediaSurfaceHeapElmt->pNextFree       = (i == (DDI_MEDIA_HEAP_INCREMENTAL_SIZE - 1))? nullptr : &pSurfaceHeapBase[pSurfaceHeap->uiAllocatedHeapElements + i + 1];
-            pMediaSurfaceHeapElmt->uiVaSurfaceID   = pSurfaceHeap->uiAllocatedHeapElements + i;
+            mediaSurfaceHeapElmt                  = &surfaceHeapBase[surfaceHeap->uiAllocatedHeapElements + i];
+            mediaSurfaceHeapElmt->pNextFree       = (i == (DDI_MEDIA_HEAP_INCREMENTAL_SIZE - 1))? nullptr : &surfaceHeapBase[surfaceHeap->uiAllocatedHeapElements + i + 1];
+            mediaSurfaceHeapElmt->uiVaSurfaceID   = surfaceHeap->uiAllocatedHeapElements + i;
         }
-        pSurfaceHeap->uiAllocatedHeapElements     += DDI_MEDIA_HEAP_INCREMENTAL_SIZE;
+        surfaceHeap->uiAllocatedHeapElements     += DDI_MEDIA_HEAP_INCREMENTAL_SIZE;
     }
 
-    pMediaSurfaceHeapElmt                          = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)pSurfaceHeap->pFirstFreeHeapElement;
-    pSurfaceHeap->pFirstFreeHeapElement            = pMediaSurfaceHeapElmt->pNextFree;
+    mediaSurfaceHeapElmt                          = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)surfaceHeap->pFirstFreeHeapElement;
+    surfaceHeap->pFirstFreeHeapElement            = mediaSurfaceHeapElmt->pNextFree;
 
-    return pMediaSurfaceHeapElmt;
+    return mediaSurfaceHeapElmt;
 }
 
 
-void DdiMediaUtil_ReleasePMediaSurfaceFromHeap(PDDI_MEDIA_HEAP pSurfaceHeap, uint32_t uiVaSurfaceID)
+void DdiMediaUtil_ReleasePMediaSurfaceFromHeap(PDDI_MEDIA_HEAP surfaceHeap, uint32_t vaSurfaceID)
 {
-    PDDI_MEDIA_SURFACE_HEAP_ELEMENT  pMediaSurfaceHeapElmt;
-    PDDI_MEDIA_SURFACE_HEAP_ELEMENT  pMediaSurfaceHeapBase;
-    void                            *pFirstFree;
-
-    DDI_CHK_LESS(uiVaSurfaceID, pSurfaceHeap->uiAllocatedHeapElements, "invalid surface id", );
-    pMediaSurfaceHeapBase                   = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)pSurfaceHeap->pHeapBase;
-    pMediaSurfaceHeapElmt                   = &pMediaSurfaceHeapBase[uiVaSurfaceID];
-    DDI_CHK_NULL(pMediaSurfaceHeapElmt->pSurface, "surface is already released", );
-    pFirstFree                              = pSurfaceHeap->pFirstFreeHeapElement;
-    pSurfaceHeap->pFirstFreeHeapElement     = (void*)pMediaSurfaceHeapElmt;
-    pMediaSurfaceHeapElmt->pNextFree        = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)pFirstFree;
-    pMediaSurfaceHeapElmt->pSurface         = nullptr;
+    DDI_CHK_LESS(vaSurfaceID, surfaceHeap->uiAllocatedHeapElements, "invalid surface id", );
+    PDDI_MEDIA_SURFACE_HEAP_ELEMENT mediaSurfaceHeapBase                   = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)surfaceHeap->pHeapBase;
+    PDDI_MEDIA_SURFACE_HEAP_ELEMENT mediaSurfaceHeapElmt                   = &mediaSurfaceHeapBase[vaSurfaceID];
+    DDI_CHK_NULL(mediaSurfaceHeapElmt->pSurface, "surface is already released", );
+    void *firstFree                         = surfaceHeap->pFirstFreeHeapElement;
+    surfaceHeap->pFirstFreeHeapElement     = (void*)mediaSurfaceHeapElmt;
+    mediaSurfaceHeapElmt->pNextFree        = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)firstFree;
+    mediaSurfaceHeapElmt->pSurface         = nullptr;
 }
 
 
-PDDI_MEDIA_BUFFER_HEAP_ELEMENT DdiMediaUtil_AllocPMediaBufferFromHeap(PDDI_MEDIA_HEAP pBufferHeap)
+PDDI_MEDIA_BUFFER_HEAP_ELEMENT DdiMediaUtil_AllocPMediaBufferFromHeap(PDDI_MEDIA_HEAP bufferHeap)
 {
-    PDDI_MEDIA_BUFFER_HEAP_ELEMENT  pMediaBufferHeapBase;
-    PDDI_MEDIA_BUFFER_HEAP_ELEMENT  pMediaBufferHeapElmt;
-    void                           *pNewHeapBase;
-    int32_t                         i;
-
-    if (nullptr == pBufferHeap->pFirstFreeHeapElement)
+    PDDI_MEDIA_BUFFER_HEAP_ELEMENT  mediaBufferHeapElmt;
+    if (nullptr == bufferHeap->pFirstFreeHeapElement)
     {
-        pNewHeapBase = realloc(pBufferHeap->pHeapBase, (pBufferHeap->uiAllocatedHeapElements + DDI_MEDIA_HEAP_INCREMENTAL_SIZE) * sizeof(DDI_MEDIA_BUFFER_HEAP_ELEMENT));
-        if (nullptr == pNewHeapBase)
+        void *newHeapBase = realloc(bufferHeap->pHeapBase, (bufferHeap->uiAllocatedHeapElements + DDI_MEDIA_HEAP_INCREMENTAL_SIZE) * sizeof(DDI_MEDIA_BUFFER_HEAP_ELEMENT));
+        if (nullptr == newHeapBase)
         {
             DDI_ASSERTMESSAGE("DDI: realloc failed.");
             return nullptr;
         }
-        pBufferHeap->pHeapBase                 = pNewHeapBase;
-        pMediaBufferHeapBase                   = (PDDI_MEDIA_BUFFER_HEAP_ELEMENT)pBufferHeap->pHeapBase;
-        pBufferHeap->pFirstFreeHeapElement     = (void*)(&pMediaBufferHeapBase[pBufferHeap->uiAllocatedHeapElements]);
-        for (i = 0; i < (DDI_MEDIA_HEAP_INCREMENTAL_SIZE); i++)
+        bufferHeap->pHeapBase                                 = newHeapBase;
+        PDDI_MEDIA_BUFFER_HEAP_ELEMENT mediaBufferHeapBase    = (PDDI_MEDIA_BUFFER_HEAP_ELEMENT)bufferHeap->pHeapBase;
+        bufferHeap->pFirstFreeHeapElement     = (void*)(&mediaBufferHeapBase[bufferHeap->uiAllocatedHeapElements]);
+        for (int32_t i = 0; i < (DDI_MEDIA_HEAP_INCREMENTAL_SIZE); i++)
         {
-            pMediaBufferHeapElmt               = &pMediaBufferHeapBase[pBufferHeap->uiAllocatedHeapElements + i];
-            pMediaBufferHeapElmt->pNextFree    = (i == (DDI_MEDIA_HEAP_INCREMENTAL_SIZE - 1))? nullptr : &pMediaBufferHeapBase[pBufferHeap->uiAllocatedHeapElements + i + 1];
-            pMediaBufferHeapElmt->uiVaBufferID = pBufferHeap->uiAllocatedHeapElements + i;
+            mediaBufferHeapElmt               = &mediaBufferHeapBase[bufferHeap->uiAllocatedHeapElements + i];
+            mediaBufferHeapElmt->pNextFree    = (i == (DDI_MEDIA_HEAP_INCREMENTAL_SIZE - 1))? nullptr : &mediaBufferHeapBase[bufferHeap->uiAllocatedHeapElements + i + 1];
+            mediaBufferHeapElmt->uiVaBufferID = bufferHeap->uiAllocatedHeapElements + i;
         }
-        pBufferHeap->uiAllocatedHeapElements  += DDI_MEDIA_HEAP_INCREMENTAL_SIZE;
+        bufferHeap->uiAllocatedHeapElements  += DDI_MEDIA_HEAP_INCREMENTAL_SIZE;
     }
 
-    pMediaBufferHeapElmt                       = (PDDI_MEDIA_BUFFER_HEAP_ELEMENT)pBufferHeap->pFirstFreeHeapElement;
-    pBufferHeap->pFirstFreeHeapElement         = pMediaBufferHeapElmt->pNextFree;
-    return pMediaBufferHeapElmt;
+    mediaBufferHeapElmt                       = (PDDI_MEDIA_BUFFER_HEAP_ELEMENT)bufferHeap->pFirstFreeHeapElement;
+    bufferHeap->pFirstFreeHeapElement         = mediaBufferHeapElmt->pNextFree;
+    return mediaBufferHeapElmt;
 }
 
 
-void DdiMediaUtil_ReleasePMediaBufferFromHeap(PDDI_MEDIA_HEAP pBufferHeap, uint32_t uiVaBufferID)
+void DdiMediaUtil_ReleasePMediaBufferFromHeap(PDDI_MEDIA_HEAP bufferHeap, uint32_t vaBufferID)
 {
-    PDDI_MEDIA_BUFFER_HEAP_ELEMENT   pMediaBufferHeapBase;
-    PDDI_MEDIA_BUFFER_HEAP_ELEMENT   pMediaBufferHeapElmt;
-    void                            *pFirstFree;
-
-    DDI_CHK_LESS(uiVaBufferID, pBufferHeap->uiAllocatedHeapElements, "invalid buffer id", );
-    pMediaBufferHeapBase                    = (PDDI_MEDIA_BUFFER_HEAP_ELEMENT)pBufferHeap->pHeapBase;
-    pMediaBufferHeapElmt                    = &pMediaBufferHeapBase[uiVaBufferID];
-    DDI_CHK_NULL(pMediaBufferHeapElmt->pBuffer, "buffer is already released", );
-    pFirstFree                              = pBufferHeap->pFirstFreeHeapElement;
-    pBufferHeap->pFirstFreeHeapElement      = (void*)pMediaBufferHeapElmt;
-    pMediaBufferHeapElmt->pNextFree         = (PDDI_MEDIA_BUFFER_HEAP_ELEMENT)pFirstFree;
-    pMediaBufferHeapElmt->pBuffer           = nullptr;
+    DDI_CHK_LESS(vaBufferID, bufferHeap->uiAllocatedHeapElements, "invalid buffer id", );
+    PDDI_MEDIA_BUFFER_HEAP_ELEMENT mediaBufferHeapBase                    = (PDDI_MEDIA_BUFFER_HEAP_ELEMENT)bufferHeap->pHeapBase;
+    PDDI_MEDIA_BUFFER_HEAP_ELEMENT mediaBufferHeapElmt                    = &mediaBufferHeapBase[vaBufferID];
+    DDI_CHK_NULL(mediaBufferHeapElmt->pBuffer, "buffer is already released", );
+    void *firstFree                        = bufferHeap->pFirstFreeHeapElement;
+    bufferHeap->pFirstFreeHeapElement      = (void*)mediaBufferHeapElmt;
+    mediaBufferHeapElmt->pNextFree         = (PDDI_MEDIA_BUFFER_HEAP_ELEMENT)firstFree;
+    mediaBufferHeapElmt->pBuffer           = nullptr;
 }
 
-PDDI_MEDIA_IMAGE_HEAP_ELEMENT DdiMediaUtil_AllocPVAImageFromHeap(PDDI_MEDIA_HEAP pImageHeap)
+PDDI_MEDIA_IMAGE_HEAP_ELEMENT DdiMediaUtil_AllocPVAImageFromHeap(PDDI_MEDIA_HEAP imageHeap)
 {
-    PDDI_MEDIA_IMAGE_HEAP_ELEMENT   pVAImageHeapBase;
-    PDDI_MEDIA_IMAGE_HEAP_ELEMENT   pVAImageHeapElmt;
-    void                           *pNewHeapBase;
-    int32_t                         i;
+    PDDI_MEDIA_IMAGE_HEAP_ELEMENT   vaimageHeapElmt;
 
-    if (nullptr == pImageHeap->pFirstFreeHeapElement)
+    if (nullptr == imageHeap->pFirstFreeHeapElement)
     {
-        pNewHeapBase = realloc(pImageHeap->pHeapBase, (pImageHeap->uiAllocatedHeapElements + DDI_MEDIA_HEAP_INCREMENTAL_SIZE) * sizeof(DDI_MEDIA_IMAGE_HEAP_ELEMENT));
+        void *newHeapBase = realloc(imageHeap->pHeapBase, (imageHeap->uiAllocatedHeapElements + DDI_MEDIA_HEAP_INCREMENTAL_SIZE) * sizeof(DDI_MEDIA_IMAGE_HEAP_ELEMENT));
 
-        if (nullptr == pNewHeapBase)
+        if (nullptr == newHeapBase)
         {
             DDI_ASSERTMESSAGE("DDI: realloc failed.");
             return nullptr;
         }
-        pImageHeap->pHeapBase                  = pNewHeapBase;
-        pVAImageHeapBase                       = (PDDI_MEDIA_IMAGE_HEAP_ELEMENT)pImageHeap->pHeapBase;
-        pImageHeap->pFirstFreeHeapElement      = (void*)(&pVAImageHeapBase[pImageHeap->uiAllocatedHeapElements]);
-        for (i = 0; i < (DDI_MEDIA_HEAP_INCREMENTAL_SIZE); i++)
+        imageHeap->pHeapBase                           = newHeapBase;
+        PDDI_MEDIA_IMAGE_HEAP_ELEMENT vaimageHeapBase  = (PDDI_MEDIA_IMAGE_HEAP_ELEMENT)imageHeap->pHeapBase;
+        imageHeap->pFirstFreeHeapElement               = (void*)(&vaimageHeapBase[imageHeap->uiAllocatedHeapElements]);
+        for (int32_t i = 0; i < (DDI_MEDIA_HEAP_INCREMENTAL_SIZE); i++)
         {
-            pVAImageHeapElmt                   = &pVAImageHeapBase[pImageHeap->uiAllocatedHeapElements + i];
-            pVAImageHeapElmt->pNextFree        = (i == (DDI_MEDIA_HEAP_INCREMENTAL_SIZE - 1))? nullptr : &pVAImageHeapBase[pImageHeap->uiAllocatedHeapElements + i + 1];
-            pVAImageHeapElmt->uiVaImageID      = pImageHeap->uiAllocatedHeapElements + i;
+            vaimageHeapElmt                   = &vaimageHeapBase[imageHeap->uiAllocatedHeapElements + i];
+            vaimageHeapElmt->pNextFree        = (i == (DDI_MEDIA_HEAP_INCREMENTAL_SIZE - 1))? nullptr : &vaimageHeapBase[imageHeap->uiAllocatedHeapElements + i + 1];
+            vaimageHeapElmt->uiVaImageID      = imageHeap->uiAllocatedHeapElements + i;
         }
-        pImageHeap->uiAllocatedHeapElements   += DDI_MEDIA_HEAP_INCREMENTAL_SIZE;
+        imageHeap->uiAllocatedHeapElements   += DDI_MEDIA_HEAP_INCREMENTAL_SIZE;
 
     }
 
-    pVAImageHeapElmt                           = (PDDI_MEDIA_IMAGE_HEAP_ELEMENT)pImageHeap->pFirstFreeHeapElement;
-    pImageHeap->pFirstFreeHeapElement          = pVAImageHeapElmt->pNextFree;
-    return pVAImageHeapElmt;
+    vaimageHeapElmt                           = (PDDI_MEDIA_IMAGE_HEAP_ELEMENT)imageHeap->pFirstFreeHeapElement;
+    imageHeap->pFirstFreeHeapElement          = vaimageHeapElmt->pNextFree;
+    return vaimageHeapElmt;
 }
 
 
-void DdiMediaUtil_ReleasePVAImageFromHeap(PDDI_MEDIA_HEAP pImageHeap, uint32_t uiVAImageID)
+void DdiMediaUtil_ReleasePVAImageFromHeap(PDDI_MEDIA_HEAP imageHeap, uint32_t vaImageID)
 {
-    PDDI_MEDIA_IMAGE_HEAP_ELEMENT    pVAImageHeapBase;
-    PDDI_MEDIA_IMAGE_HEAP_ELEMENT    pVAImageHeapElmt;
-    void                            *pFirstFree;
+    PDDI_MEDIA_IMAGE_HEAP_ELEMENT    vaImageHeapBase;
+    PDDI_MEDIA_IMAGE_HEAP_ELEMENT    vaImageHeapElmt;
+    void                            *firstFree;
 
-    DDI_CHK_LESS(uiVAImageID, pImageHeap->uiAllocatedHeapElements, "invalid image id", );
-    pVAImageHeapBase                    = (PDDI_MEDIA_IMAGE_HEAP_ELEMENT)pImageHeap->pHeapBase;
-    pVAImageHeapElmt                    = &pVAImageHeapBase[uiVAImageID];
-    DDI_CHK_NULL(pVAImageHeapElmt->pImage, "image is already released", );
-    pFirstFree                          = pImageHeap->pFirstFreeHeapElement;
-    pImageHeap->pFirstFreeHeapElement   = (void*)pVAImageHeapElmt;
-    pVAImageHeapElmt->pNextFree         = (PDDI_MEDIA_IMAGE_HEAP_ELEMENT)pFirstFree;
-    pVAImageHeapElmt->pImage            = nullptr;
+    DDI_CHK_LESS(vaImageID, imageHeap->uiAllocatedHeapElements, "invalid image id", );
+    vaImageHeapBase                    = (PDDI_MEDIA_IMAGE_HEAP_ELEMENT)imageHeap->pHeapBase;
+    vaImageHeapElmt                    = &vaImageHeapBase[vaImageID];
+    DDI_CHK_NULL(vaImageHeapElmt->pImage, "image is already released", );
+    firstFree                          = imageHeap->pFirstFreeHeapElement;
+    imageHeap->pFirstFreeHeapElement   = (void*)vaImageHeapElmt;
+    vaImageHeapElmt->pNextFree         = (PDDI_MEDIA_IMAGE_HEAP_ELEMENT)firstFree;
+    vaImageHeapElmt->pImage            = nullptr;
 }
 
-PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT DdiMediaUtil_AllocPVAContextFromHeap(PDDI_MEDIA_HEAP pVaContextHeap)
+PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT DdiMediaUtil_AllocPVAContextFromHeap(PDDI_MEDIA_HEAP vaContextHeap)
 {
-    PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT   pVAContextHeapBase;
-    PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT   pVAContextHeapElmt;
-    void                               *pNewHeapBase;
-    int32_t                                 i;
-
-    if (nullptr == pVaContextHeap->pFirstFreeHeapElement)
+    PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT   vacontextHeapElmt;
+    if (nullptr == vaContextHeap->pFirstFreeHeapElement)
     {
-        pNewHeapBase = realloc(pVaContextHeap->pHeapBase, (pVaContextHeap->uiAllocatedHeapElements + DDI_MEDIA_HEAP_INCREMENTAL_SIZE) * sizeof(DDI_MEDIA_VACONTEXT_HEAP_ELEMENT));
+        void *newHeapBase = realloc(vaContextHeap->pHeapBase, (vaContextHeap->uiAllocatedHeapElements + DDI_MEDIA_HEAP_INCREMENTAL_SIZE) * sizeof(DDI_MEDIA_VACONTEXT_HEAP_ELEMENT));
 
-        if (nullptr == pNewHeapBase)
+        if (nullptr == newHeapBase)
         {
             DDI_ASSERTMESSAGE("DDI: realloc failed.");
             return nullptr;
         }
-        pVaContextHeap->pHeapBase                    = pNewHeapBase;
-        pVAContextHeapBase                           = (PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT)pVaContextHeap->pHeapBase;
-        pVaContextHeap->pFirstFreeHeapElement        = (void*)(&(pVAContextHeapBase[pVaContextHeap->uiAllocatedHeapElements]));
-        for (i = 0; i < (DDI_MEDIA_HEAP_INCREMENTAL_SIZE); i++)
+        vaContextHeap->pHeapBase                            = newHeapBase;
+        PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT vacontextHeapBase = (PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT)vaContextHeap->pHeapBase;
+        vaContextHeap->pFirstFreeHeapElement        = (void*)(&(vacontextHeapBase[vaContextHeap->uiAllocatedHeapElements]));
+        for (int32_t i = 0; i < (DDI_MEDIA_HEAP_INCREMENTAL_SIZE); i++)
         {
-            pVAContextHeapElmt                       = &pVAContextHeapBase[pVaContextHeap->uiAllocatedHeapElements + i];
-            pVAContextHeapElmt->pNextFree            = (i == (DDI_MEDIA_HEAP_INCREMENTAL_SIZE - 1))? nullptr : &pVAContextHeapBase[pVaContextHeap->uiAllocatedHeapElements + i + 1];
-            pVAContextHeapElmt->uiVaContextID        = pVaContextHeap->uiAllocatedHeapElements + i;
-            pVAContextHeapElmt->pVaContext           = nullptr;
+            vacontextHeapElmt                       = &vacontextHeapBase[vaContextHeap->uiAllocatedHeapElements + i];
+            vacontextHeapElmt->pNextFree            = (i == (DDI_MEDIA_HEAP_INCREMENTAL_SIZE - 1))? nullptr : &vacontextHeapBase[vaContextHeap->uiAllocatedHeapElements + i + 1];
+            vacontextHeapElmt->uiVaContextID        = vaContextHeap->uiAllocatedHeapElements + i;
+            vacontextHeapElmt->pVaContext           = nullptr;
         }
-        pVaContextHeap->uiAllocatedHeapElements     += DDI_MEDIA_HEAP_INCREMENTAL_SIZE;
+        vaContextHeap->uiAllocatedHeapElements     += DDI_MEDIA_HEAP_INCREMENTAL_SIZE;
     }
 
-    pVAContextHeapElmt                               = (PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT)pVaContextHeap->pFirstFreeHeapElement;
-    pVaContextHeap->pFirstFreeHeapElement            = pVAContextHeapElmt->pNextFree;
-    return pVAContextHeapElmt;
+    vacontextHeapElmt                               = (PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT)vaContextHeap->pFirstFreeHeapElement;
+    vaContextHeap->pFirstFreeHeapElement            = vacontextHeapElmt->pNextFree;
+    return vacontextHeapElmt;
 }
 
 
-void DdiMediaUtil_ReleasePVAContextFromHeap(PDDI_MEDIA_HEAP pVaContextHeap, uint32_t uiVAContextID)
+void DdiMediaUtil_ReleasePVAContextFromHeap(PDDI_MEDIA_HEAP vaContextHeap, uint32_t vaContextID)
 {
-    PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT    pVAContextHeapElmt;
-    PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT    pVAContextHeapBase;
-    void                                *pFirstFree;
-
-    DDI_CHK_LESS(uiVAContextID, pVaContextHeap->uiAllocatedHeapElements, "invalid context id", );
-    pVAContextHeapBase                      = (PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT)pVaContextHeap->pHeapBase;
-    pVAContextHeapElmt                      = &pVAContextHeapBase[uiVAContextID];
-    DDI_CHK_NULL(pVAContextHeapElmt->pVaContext, "context is already released", );
-    pFirstFree                              = pVaContextHeap->pFirstFreeHeapElement;
-    pVaContextHeap->pFirstFreeHeapElement   = (void*)pVAContextHeapElmt;
-    pVAContextHeapElmt->pNextFree           = (PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT)pFirstFree;
-    pVAContextHeapElmt->pVaContext          = nullptr;
+    DDI_CHK_LESS(vaContextID, vaContextHeap->uiAllocatedHeapElements, "invalid context id", );
+    PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT vaContextHeapBase = (PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT)vaContextHeap->pHeapBase;
+    PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT vaContextHeapElmt = &vaContextHeapBase[vaContextID];
+    DDI_CHK_NULL(vaContextHeapElmt->pVaContext, "context is already released", );
+    void *firstFree                        = vaContextHeap->pFirstFreeHeapElement;
+    vaContextHeap->pFirstFreeHeapElement   = (void*)vaContextHeapElmt;
+    vaContextHeapElmt->pNextFree           = (PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT)firstFree;
+    vaContextHeapElmt->pVaContext          = nullptr;
 }
 
-void DdiMediaUtil_UnRefBufObjInMediaBuffer(PDDI_MEDIA_BUFFER pBuf)
+void DdiMediaUtil_UnRefBufObjInMediaBuffer(PDDI_MEDIA_BUFFER buf)
 {
-    mos_bo_unreference(pBuf->bo);
-}
-
-void DdiMediaUtil_GetEnabledFeature(PDDI_MEDIA_CONTEXT pMediaCtx)
-{
-    MOS_USER_FEATURE       UserFeature;
-    MOS_USER_FEATURE_VALUE UserFeatureValue;
-
-    DDI_CHK_NULL(pMediaCtx, "Pointer is nullptr", );
-    // Reads and stores the user feature which enables binary instead of text dumps
-    MOS_ZeroMemory(&UserFeatureValue, sizeof(UserFeatureValue));
-    UserFeatureValue.u32Data    = true;
-    UserFeature.Type            = MOS_USER_FEATURE_TYPE_USER;
-    UserFeature.pValues         = &UserFeatureValue;
-    UserFeature.uiNumValues     = 1;
-    MOS_UserFeature_ReadValue(
-        nullptr,
-        &UserFeature,
-        "VC1Enabled",
-        MOS_USER_FEATURE_VALUE_TYPE_INT32);
-
-    pMediaCtx->bVC1Enabled = (UserFeatureValue.u32Data == 1) ? true : false;
-
-#ifdef ANDROID
-    pMediaCtx->bVC1Enabled = false;
-#endif
+    mos_bo_unreference(buf->bo);
 }
 
 // Open Intel's Graphics Device to get the file descriptor
-int32_t DdiMediaUtil_OpenGraphicsAdaptor(char *pDevName)
+int32_t DdiMediaUtil_OpenGraphicsAdaptor(char *devName)
 {
     struct stat st;
-    int32_t         hDevice;
-
-    hDevice = -1;
-
-    if(nullptr == pDevName)
+    int32_t    hDevice = -1;
+    if(nullptr == devName)
     {
         DDI_ASSERTMESSAGE("Invalid Graphics Node");
         return -1;
     }
 
-    if (-1 == stat (pDevName, &st))
+    if (-1 == stat (devName, &st))
     {
-        DDI_ASSERTMESSAGE("Cannot identify '%s': %d, %s.", pDevName, errno, strerror (errno));
+        DDI_ASSERTMESSAGE("Cannot identify '%s': %d, %s.", devName, errno, strerror (errno));
         return -1;
     }
 
     if (!S_ISCHR (st.st_mode))
     {
-        DDI_ASSERTMESSAGE("%s is no device.", pDevName);
+        DDI_ASSERTMESSAGE("%s is no device.", devName);
         return -1;
     }
 
-    hDevice = open (pDevName, O_RDWR);
+    hDevice = open (devName, O_RDWR);
     if (-1 == hDevice)
     {
-        DDI_ASSERTMESSAGE("Cannot open '%s': %d, %s.", pDevName, errno, strerror (errno));
+        DDI_ASSERTMESSAGE("Cannot open '%s': %d, %s.", devName, errno, strerror (errno));
         return -1;
     }
 

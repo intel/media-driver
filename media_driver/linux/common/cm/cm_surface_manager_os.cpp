@@ -97,7 +97,7 @@
     }
 
     m_surfaceArray[ index ] = surface;
-    UpdateProfileFor2DSurface(index, width, height, format, false);
+    UpdateProfileFor2DSurface(index, width, height, format);
     
     return CM_SUCCESS;
  }
@@ -210,13 +210,13 @@ int32_t CmSurfaceManager::Surface2DSanityCheck(uint32_t width, uint32_t height, 
 //! \details  This function calls mos interface pfnGetResourceInfo to get details of surface.
 //! \param    [in] mosResource
 //!           pointer to mos resource
-//! \param    [in/out] width
+//! \param    [in,out] width
 //!           reference to surface's width
-//! \param    [in/out] height
+//! \param    [in,out] height
 //!           reference to surface's height
-//! \param    [in/out] pitch
+//! \param    [in,out] pitch
 //!           reference to surface's lock pitch
-//! \param    [in/out] format
+//! \param    [in,out] format
 //!           reference to surface's format
 //! \return   MOS_STATUS
 //!

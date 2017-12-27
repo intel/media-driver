@@ -28,6 +28,7 @@
 #define MEDIADRIVER_AGNOSTIC_COMMON_CM_CMSTATEBUFFER_H_
 
 #include "cm_buffer_rt.h"
+#include "cm_hal.h"
 
 namespace CMRT_UMD
 {

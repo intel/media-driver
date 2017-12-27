@@ -30,6 +30,10 @@
 #include "cm_device.h"
 
 #include "cm_array.h"
+#include "cm_csync.h"
+#include "cm_hal.h"
+#include "cm_log.h"
+#include "cm_program.h"
 
 #if USE_EXTENSION_CODE
 #include "cm_gtpin.h"
@@ -170,7 +174,7 @@ public:
 
     CM_RT_API int32_t DestroyThreadGroupSpace(CmThreadGroupSpace* &pTGS);
 
-    CM_RT_API int32_t SetL3Config(L3ConfigRegisterValues *l3_c);
+    CM_RT_API int32_t SetL3Config(const L3ConfigRegisterValues *l3_c);
 
     CM_RT_API int32_t SetSuggestedL3Config(L3_SUGGEST_CONFIG l3_s_c);
 
@@ -351,13 +355,6 @@ public:
                                    CmProgram* &pProgram, 
                                    const char *options = nullptr);
 
-    int32_t GetSurface2DInPool(uint32_t width,
-                               uint32_t height,
-                               CM_SURFACE_FORMAT format,
-                               CmSurface2D* &pSurface);
-
-    int32_t GetSurfaceIDInPool(int32_t iIndex);
-
     int32_t DestroySurfaceInPool(uint32_t &freeSurfNum);
 
     int32_t CreateSurface2D(PMOS_RESOURCE pMosResource,
@@ -371,8 +368,6 @@ public:
     int32_t GetVaCtxID(uint32_t &vaCtxID);
 
     bool IsScratchSpaceDisabled();
-
-    bool IsSurfaceReuseEnabled();
 
     int32_t SetSurfaceArraySizeForAlias();
 

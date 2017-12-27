@@ -728,7 +728,7 @@ private:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS Encode32x32_B_IntraCheckKernel();
+    virtual MOS_STATUS Encode32X32BIntraCheckKernel();
 
     //!
     //! \brief    Invoke 8x8 B Pak kernel

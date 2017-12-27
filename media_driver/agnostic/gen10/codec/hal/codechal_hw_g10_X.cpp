@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2017, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -108,6 +108,7 @@ CodechalHwInterfaceG10::CodechalHwInterfaceG10(
 
     m_isVdencSuperSliceEnabled = true;
 
+   
     m_ssEuTable = m_defaultSsEuLutG10;
 
     // Set platform dependent parameters

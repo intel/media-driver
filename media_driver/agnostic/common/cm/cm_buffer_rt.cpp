@@ -29,9 +29,11 @@
 #include "cm_surface_manager.h"
 #include "cm_event_rt.h"
 #include "cm_device_rt.h"
+#include "cm_log.h"
 #include "cm_mem.h"
 #include "cm_hal.h"
-
+namespace CMRT_UMD
+{
 //*-----------------------------------------------------------------------------
 //| Purpose:    Create CM Buffer 
 //| Returns:    Result of the operation
@@ -490,4 +492,5 @@ void CmBuffer_RT::DumpContent(uint32_t kernelNumber, int32_t taskId, uint32_t ar
     outputFileStream.close();
     bufferDumpNumber++;
 #endif
+}
 }

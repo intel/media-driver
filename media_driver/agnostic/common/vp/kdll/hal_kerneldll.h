@@ -638,6 +638,10 @@ typedef struct tagKdll_State
     bool                 (* pfnSetupCSC)     (PKdll_State       pState,
                                               PKdll_SearchState pSearchState);
 
+    // Update patched CSC Coeff
+    bool                 (* pfnUpdatePatchedCSC) (PKdll_State       pState,
+                                                  Kdll_CacheEntry  *pKernelEntry);
+
     // Find rule that matches the current search state
     bool                 (* pfnFindRule)     (PKdll_State       pState,
                                               PKdll_SearchState pSearchState);

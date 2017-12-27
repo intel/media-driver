@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      media_libva_util.h 
-//! \brief     libva(and its extension) utility head file  
+//! \file      media_libva_util.h
+//! \brief     libva(and its extension) utility head file
 //!
 #ifndef __MEDIA_LIBVA_UTIL_H__
 #define __MEDIA_LIBVA_UTIL_H__
@@ -32,50 +32,295 @@
 
 #define DEVICE_NAME "/dev/dri/renderD128"   // For Gen, it is always /dev/dri/renderD128 node
 
-void     DdiMediaUtil_MediaDumpNV12(uint8_t *pSrcY, uint8_t *pSrcUV, int32_t iWidth, int32_t iHeight, int32_t iPitch, int32_t iFrameNum);
+//!
+//! \brief  Media print frame per second
+//!
 void     DdiMediaUtil_MediaPrintFps();
-VAStatus DdiMediaUtil_CreateSurface(DDI_MEDIA_SURFACE  *pSurface, PDDI_MEDIA_CONTEXT pMediaDrvCtx);
-VAStatus DdiMediaUtil_CreateBuffer(DDI_MEDIA_BUFFER *pBuffer, mos_bufmgr *pBufmgr);
 
-void*    DdiMediaUtil_LockSurface(DDI_MEDIA_SURFACE  *pSurface, uint32_t flag);
-void     DdiMediaUtil_UnlockSurface(DDI_MEDIA_SURFACE  *pSurface);
+//!
+//! \brief  Create surface
+//! 
+//! \param  [in] surface
+//!         Ddi media surface
+//! \param  [in] mediaDrvCtx
+//!         Pointer to ddi media context
+//!         
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
+VAStatus DdiMediaUtil_CreateSurface(DDI_MEDIA_SURFACE  *surface, PDDI_MEDIA_CONTEXT mediaDrvCtx);
 
-void*    DdiMediaUtil_LockBuffer(DDI_MEDIA_BUFFER *pBuf, uint32_t flag);
-void     DdiMediaUtil_UnlockBuffer(DDI_MEDIA_BUFFER *pBuf);
+//!
+//! \brief  Create buffer
+//! 
+//! \param  [out] buffer
+//!         Ddi media buffer
+//! \param  [in] bufmgr
+//!         Mos buffer manager
+//!         
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
+VAStatus DdiMediaUtil_CreateBuffer(DDI_MEDIA_BUFFER *buffer, mos_bufmgr *bufmgr);
 
-void     DdiMediaUtil_FreeSurface(DDI_MEDIA_SURFACE *pSurface);
-void     DdiMediaUtil_FreeBuffer(DDI_MEDIA_BUFFER  *pBuf);
+//!
+//! \brief  Lock surface
+//! 
+//! \param  [in] surface
+//!         Ddi media surface
+//! \param  [in] flag
+//!         Flag
+//!
+//! \return void*
+//!     Pointer to lock surface data
+//!
+void*    DdiMediaUtil_LockSurface(DDI_MEDIA_SURFACE  *surface, uint32_t flag);
 
-void     DdiMediaUtil_InitMutex(PMEDIA_MUTEX_T  pMutex);
-void     DdiMediaUtil_DestroyMutex(PMEDIA_MUTEX_T  pMutex);
-void     DdiMediaUtil_LockMutex(PMEDIA_MUTEX_T  pMutex);
-void     DdiMediaUtil_UnLockMutex(PMEDIA_MUTEX_T  pMutex);
-void     DdiMediaUtil_InitSemaphore(PMEDIA_SEM_T  pSem, uint32_t uiInitCount);
-void     DdiMediaUtil_DestroySemaphore(PMEDIA_SEM_T  pSem);
-void     DdiMediaUtil_WaitSemaphore(PMEDIA_SEM_T  pSem);
-int32_t  DdiMediaUtil_TryWaitSemaphore(PMEDIA_SEM_T  pSem);
-void     DdiMediaUtil_PostSemaphore(PMEDIA_SEM_T  pSem);
+//!
+//! \brief  Unlock surface
+//! 
+//! \param  [in] surface
+//!         Ddi media surface
+//!
+void     DdiMediaUtil_UnlockSurface(DDI_MEDIA_SURFACE  *surface);
 
-VAStatus DdiMediaUtil_ConvertBufImageToSurface(DDI_MEDIA_BUFFER *pBuf, VAImage *pImage, DDI_MEDIA_SURFACE *pSurface);
+//!
+//! \brief  Lock buffer
+//! 
+//! \param  [in] buf
+//!         Ddi media buffer
+//! \param  [in] flag
+//!         Flag
+//!         
+//! \return void*
+//!     Pointer to lock buffer data
+//!
+void*    DdiMediaUtil_LockBuffer(DDI_MEDIA_BUFFER *buf, uint32_t flag);
+
+//!
+//! \brief  Unlock buffer
+//! 
+//! \param  [in] buf
+//!         Ddi media buffer
+//!
+void     DdiMediaUtil_UnlockBuffer(DDI_MEDIA_BUFFER *buf);
+
+//!
+//! \brief  Free surface
+//! 
+//! \param  [in] surface
+//!         Ddi media surface
+//!
+void     DdiMediaUtil_FreeSurface(DDI_MEDIA_SURFACE *surface);
+
+//!
+//! \brief  Free buffer
+//! 
+//! \param  [in] buf
+//!         Ddi media buffer
+//!
+void     DdiMediaUtil_FreeBuffer(DDI_MEDIA_BUFFER  *buf);
+
+//!
+//! \brief  Init mutex
+//! 
+//! \param  [in] mutex
+//!         Pointer to media mutex thread
+//!
+void     DdiMediaUtil_InitMutex(PMEDIA_MUTEX_T  mutex);
+
+//!
+//! \brief  Destroy mutex
+//! 
+//! \param  [in] mutex
+//!         Pointer to media mutex thread
+//!
+void     DdiMediaUtil_DestroyMutex(PMEDIA_MUTEX_T  mutex);
+//!
+//! \brief  Lock mutex
+//! 
+//! \param  [in] mutex
+//!         Pointer to media mutex thread
+//!
+void     DdiMediaUtil_LockMutex(PMEDIA_MUTEX_T  mutex);
+
+//!
+//! \brief  Unlock mutex
+//! 
+//! \param  [in] mutex
+//!         Pointer to media mutex thread
+//!
+void     DdiMediaUtil_UnLockMutex(PMEDIA_MUTEX_T  mutex);
+
+//!
+//! \brief  Destroy semaphore
+//! 
+//! \param  [in] sem
+//!         Pointer to media semaphore thread
+//!
+void     DdiMediaUtil_DestroySemaphore(PMEDIA_SEM_T  sem);
+
+//!
+//! \brief  Wait semaphore
+//! 
+//! \param  [in] sem
+//!         Pointer to media semaphore thread
+//!
+void     DdiMediaUtil_WaitSemaphore(PMEDIA_SEM_T  sem);
+//!
+//! \brief  Try wait semaphore
+//! 
+//! \param  [in] sem
+//!         Pointer to media semaphore thread
+//!
+//! \return int32_t 
+//!     Try wait for semaphore. Return 0 if success, else -1 if fail        
+//!
+int32_t  DdiMediaUtil_TryWaitSemaphore(PMEDIA_SEM_T  sem);
+
+//!
+//! \brief  Post semaphore
+//! 
+//! \param  [in] sem
+//!         Pointer to media semaphore thread
+//!
+void     DdiMediaUtil_PostSemaphore(PMEDIA_SEM_T  sem);
+
+//!
+//! \brief  Fill a rect structure with the regsion specified by parameters
+//! 
+//! \param  [in] rect
+//!         Input pointer to the rect
+//! \param  [in] offset_x
+//!         X offset of the region
+//! \param  [in] offset_y
+//!         Y offset of the region
+//! \param  [in] width
+//!         Width of the region
+//! \param  [in] height
+//!         Height of the region
+//!         
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
 VAStatus DdiMediaUtil_FillPositionToRect(RECT *rect, int16_t offset_x, int16_t offset_y, int16_t width, int16_t height);
-bool     DdiMediaUtil_IsExternalSurface(PDDI_MEDIA_SURFACE pSurface);
 
-PDDI_MEDIA_SURFACE_HEAP_ELEMENT DdiMediaUtil_AllocPMediaSurfaceFromHeap(PDDI_MEDIA_HEAP pSurfaceHeap);
-void     DdiMediaUtil_ReleasePMediaSurfaceFromHeap(PDDI_MEDIA_HEAP pSurfaceHeap, uint32_t uiVaSurfaceID);
+//!
+//! \brief  Is external surface
+//! \details    If the bo of media surface was allocated from App,
+//!     should return true, otherwise, false. In current implemeation
+//!     external buffer passed with pSurfDesc.
+//! 
+//! \param  [in] surface
+//!         Pointer to ddi media surface
+//!         
+//! \return bool
+//!     true if surface is external, else false
+//!
+bool     DdiMediaUtil_IsExternalSurface(PDDI_MEDIA_SURFACE surface);
 
-PDDI_MEDIA_BUFFER_HEAP_ELEMENT  DdiMediaUtil_AllocPMediaBufferFromHeap(PDDI_MEDIA_HEAP pBufferHeap);
-void     DdiMediaUtil_ReleasePMediaBufferFromHeap(PDDI_MEDIA_HEAP pBufferHeap, uint32_t uiVaBufferID);
+//!
+//! \brief  Allocate pmedia surface from heap
+//! 
+//! \param  [in] surfaceHeap
+//!         Pointer to ddi media heap
+//!         
+//! \return PDDI_MEDIA_SURFACE_HEAP_ELEMENT
+//!     Pointer to ddi media surface heap element
+//!
+PDDI_MEDIA_SURFACE_HEAP_ELEMENT DdiMediaUtil_AllocPMediaSurfaceFromHeap(PDDI_MEDIA_HEAP surfaceHeap);
 
-PDDI_MEDIA_IMAGE_HEAP_ELEMENT  DdiMediaUtil_AllocPVAImageFromHeap(PDDI_MEDIA_HEAP pImageHeap);
-void     DdiMediaUtil_ReleasePVAImageFromHeap(PDDI_MEDIA_HEAP pImageHeap, uint32_t uiVAImageID);
+//!
+//! \brief  Release pmedia surface from heap
+//! 
+//! \param  [in] surfaceHeap
+//!         Pointer to ddi media heap
+//! \param  [in] vaSurfaceID
+//!         VA surface ID
+//!
+void     DdiMediaUtil_ReleasePMediaSurfaceFromHeap(PDDI_MEDIA_HEAP surfaceHeap, uint32_t vaSurfaceID);
 
-PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT DdiMediaUtil_AllocPVAContextFromHeap(PDDI_MEDIA_HEAP pVaContextHeap);
-void     DdiMediaUtil_ReleasePVAContextFromHeap(PDDI_MEDIA_HEAP pVaContextHeap, uint32_t uiVAContextID);
+//!
+//! \brief  Allocate pmedia buffer from heap
+//! 
+//! \param  [in] bufferHeap
+//!         Pointer to ddi media heap
+//!         
+//! \return PDDI_MEDIA_BUFFER_HEAP_ELEMENT
+//!     Pointer to ddi media buffer heap element
+//!
+PDDI_MEDIA_BUFFER_HEAP_ELEMENT  DdiMediaUtil_AllocPMediaBufferFromHeap(PDDI_MEDIA_HEAP bufferHeap);
 
+//!
+//! \brief  Release pmedia buffer from heap
+//! 
+//! \param  [in] bufferHeap
+//!         Pointer to ddi media heap
+//! \param  [in] vaBufferID
+//!         VA buffer ID
+//!
+void     DdiMediaUtil_ReleasePMediaBufferFromHeap(PDDI_MEDIA_HEAP bufferHeap, uint32_t vaBufferID);
 
-void     DdiMediaUtil_UnRefBufObjInMediaBuffer(PDDI_MEDIA_BUFFER pBuf);
-void     DdiMediaUtil_GetEnabledFeature(PDDI_MEDIA_CONTEXT pMediaDrvCtx);
-int32_t  DdiMediaUtil_OpenGraphicsAdaptor(char *pDevName);
+//!
+//! \brief  Allocate PVA image from heap
+//! 
+//! \param  [in] imageHeap
+//!         Pointer to ddi media heap
+//!         
+//! \return PDDI_MEDIA_IMAGE_HEAP_ELEMENT
+//!     Pointer to ddi media image heap element
+//!
+PDDI_MEDIA_IMAGE_HEAP_ELEMENT  DdiMediaUtil_AllocPVAImageFromHeap(PDDI_MEDIA_HEAP imageHeap);
+
+//!
+//! \brief  Release PVA image from heap
+//! 
+//! \param  [in] imageHeap
+//!         Pointer to ddi media heap
+//! \param  [in] vaImageID
+//!         VA image ID
+//!
+void     DdiMediaUtil_ReleasePVAImageFromHeap(PDDI_MEDIA_HEAP imageHeap, uint32_t vaImageID);
+
+//!
+//! \brief  Allocate PVA context from heap
+//! 
+//! \param  [in] vaContextHeap
+//!         Pointer to ddi media heap
+//!         
+//! \return PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT
+//!     Pointer to ddi media vacontext heap element
+//!
+PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT DdiMediaUtil_AllocPVAContextFromHeap(PDDI_MEDIA_HEAP vaContextHeap);
+
+//!
+//! \brief  Release PVA context from heap
+//! 
+//! \param  [in] vaContextHeap
+//!         Pointer to ddi media heap
+//! \param  [in] vaContextID
+//!         VA context ID
+//!
+void     DdiMediaUtil_ReleasePVAContextFromHeap(PDDI_MEDIA_HEAP vaContextHeap, uint32_t vaContextID);
+
+//!
+//! \brief  Unreference buf object media buffer
+//! 
+//! \param  [in] buf
+//!         Pointer to ddi media buffer
+//!
+void     DdiMediaUtil_UnRefBufObjInMediaBuffer(PDDI_MEDIA_BUFFER buf);
+
+//!
+//! \brief  Open Intel's Graphics Device to get the file descriptor
+//! 
+//! \param  [in] devName
+//!         Device name
+//!         
+//! \return int32_t 
+//!     Device name header. Return 0 if success, else -1 if fail.
+//!
+int32_t  DdiMediaUtil_OpenGraphicsAdaptor(char *devName);
 
 //------------------------------------------------------------------------------
 // Macros for debug messages, Assert, Null check and condition check within ddi files
@@ -110,7 +355,7 @@ int32_t  DdiMediaUtil_OpenGraphicsAdaptor(char *pDevName);
 
 #define DDI_CHK_LARGER(p, bottom, str, ret)                                 \
     DDI_CHK_CONDITION((p <= bottom),str,ret)
-    
+
 #define DDI_CHK_LESS(p, upper, str, ret)                                    \
     DDI_CHK_CONDITION((p >= upper),str,ret)
 
@@ -137,7 +382,7 @@ int32_t  DdiMediaUtil_OpenGraphicsAdaptor(char *pDevName);
     }                                                                         \
 }
 
-// Check the condition, if true, print the error message 
+// Check the condition, if true, print the error message
 // and return the specified value, do nothing otherwise.
 #define DDI_CHK_CONDITION(condition, _str, _ret)                            \
     if (condition) {                                                          \

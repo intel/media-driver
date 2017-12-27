@@ -27,11 +27,14 @@
 #include "cm_task_rt.h"
 
 #include "cm_kernel_rt.h"
+#include "cm_mem.h"
 #include "cm_thread_space_rt.h"
 #include "cm_device_rt.h"
 #include "cm_surface_manager.h"
 #include "cm_buffer_rt.h"
 
+namespace CMRT_UMD
+{
 //*-----------------------------------------------------------------------------
 //| Purpose:    Create CmTask
 //| Returns:    Result of the operation.
@@ -91,7 +94,6 @@ CmTaskRT::CmTaskRT(CmDeviceRT *pCmDevice,
 {
     CmSafeMemSet( &m_PowerOption, 0, sizeof( m_PowerOption ) );
     CmSafeMemSet(&m_ConditionalEndInfo, 0, sizeof(m_ConditionalEndInfo));
-    m_PreemptionMode = MIDDLE_THREAD_MODE;
     CmSafeMemSet(&m_TaskConfig, 0, sizeof(m_TaskConfig));
     m_TaskConfig.turboBoostFlag = CM_TURBO_BOOST_DEFAULT;
 }
@@ -415,20 +417,6 @@ PCM_POWER_OPTION CmTaskRT::GetPowerOption()
     return &m_PowerOption;   
 }
 
-int32_t CmTaskRT::SetPreemptionMode(CM_PREEMPTION_MODE mode)
-{
-    INSERT_API_CALL_LOG();
-
-    m_PreemptionMode = mode;
-    
-    return CM_SUCCESS;
-}
-
-CM_RT_API CM_PREEMPTION_MODE CmTaskRT::GetPreemptionMode()
-{
-    return m_PreemptionMode;
-}
-
 #if CM_LOG_ON
 std::string CmTaskRT::Log()
 {
@@ -473,4 +461,5 @@ CM_RT_API int32_t CmTaskRT::AddConditionalEnd(
     hr = SetConditionalEndInfo(pConditionalSurface, offset, pCondParam);
 
     return hr;
+}
 }

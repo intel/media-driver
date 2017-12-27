@@ -107,10 +107,10 @@ bool MosCpInterface::IsTearDownHappen()
 
 MOS_STATUS MosCpInterface::SetResourceEncryption(
     void          *pvResource,
-    bool          bEncrypted)
+    bool          bEncryption)
 {
     MOS_UNUSED(pvResource);
-    MOS_UNUSED(bEncrypted);
+    MOS_UNUSED(bEncryption);
 
     OsStubMessage();
     return MOS_STATUS_UNIMPLEMENTED;

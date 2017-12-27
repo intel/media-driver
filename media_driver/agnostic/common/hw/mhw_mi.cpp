@@ -60,6 +60,23 @@ MhwMiInterface::MhwMiInterface(
     UseGlobalGtt.m_vecs = MEDIA_IS_WA(m_osInterface->pfnGetWaTable(m_osInterface), WaForceGlobalGTT) || 
                          !MEDIA_IS_SKU(m_osInterface->pfnGetSkuTable(m_osInterface), FtrPPGTT);
 
+    MediaResetParam.watchdogCountThreshold = MHW_MI_DEFAULT_WATCHDOG_THRESHOLD_IN_MS;
+
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // User feature config of watchdog timer threshold
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_MEDIA_RESET_TH_ID,
+        &userFeatureData);
+    if (userFeatureData.u32Data != 0)
+    {
+        MediaResetParam.watchdogCountThreshold = userFeatureData.u32Data;
+    }
+#endif
+
     if (m_osInterface->bUsesGfxAddress)
     {
         AddResourceToCmd = Mhw_AddResourceToCmd_GfxAddress;

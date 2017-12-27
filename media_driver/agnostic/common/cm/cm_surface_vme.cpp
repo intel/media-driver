@@ -28,8 +28,8 @@
 #include "cm_mem.h"
 #include "cm_hal.h"
 
-using namespace CMRT_UMD;
-
+namespace CMRT_UMD
+{
 int32_t CmSurfaceVme::Create( 
     uint32_t index, 
     uint32_t indexFor2DCurrent,
@@ -288,5 +288,5 @@ int32_t CmSurfaceVme::GetVmeCmArgSize()
 {
     return sizeof(CM_HAL_VME_ARG_VALUE) + (m_SurfaceFCount + m_SurfaceBCount) * sizeof(uint32_t);
 }
-
+}
 

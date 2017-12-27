@@ -33,7 +33,7 @@
 //extern template class DeviceInfoFactory<GfxDeviceInfo>;
 typedef DeviceInfoFactory<GfxDeviceInfo> base_fact;
 
-#define GEN10_THREADS_PER_EU        8
+#define GEN10_THREADS_PER_EU        7
 #define GEN10_VDBOX2_SUBSLICE_COUNT 3
 #define GEN10_VEBOX2_SUBSLICE_COUNT 6
 

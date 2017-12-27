@@ -28,12 +28,84 @@
 #define MEDIADRIVER_AGNOSTIC_COMMON_CM_CMKERNELRT_H_
 
 #include "cm_kernel.h"
+#include "cm_hal.h"
+#include "cm_log.h"
 
 #if USE_EXTENSION_CODE
 struct InstructionDistanceConfig;
 #else
 typedef int InstructionDistanceConfig;
 #endif
+
+enum SURFACE_KIND
+{
+    DATA_PORT_SURF,
+    SAMPLER_SURF,
+};
+
+struct SURFACE_ARRAY_ARG
+{
+    uint16_t argKindForArray;  // record each arg kind in array, used for surface array
+    uint32_t addressModeForArray;  // record each arg address control mode for media sampler in surface array
+};
+
+struct CM_ARG
+{
+    uint16_t unitKind; // value is of type CM_ARG_KIND
+    uint16_t unitKindOrig; // used to restore unitKind when reset
+
+    uint16_t index;
+    SURFACE_KIND s_k;
+    
+    uint32_t unitCount; // 1 for for per kernel arg ; thread # for per thread arg
+
+    uint16_t unitSize; // size of arg in byte
+    uint16_t unitSizeOrig; // used to restore unitSize when reset
+
+    uint16_t unitOffsetInPayload; // offset relative to R0 in payload
+    uint16_t unitOffsetInPayloadOrig; // used to restore unitOffsetInPayload in adding move instruction for CURBE
+    bool bIsDirty;      // used to indicate if its value be changed
+    bool bIsSet;        // used to indicate if this argument is set correctly
+    uint32_t nCustomValue;  // CM defined value for special argument kind
+
+    uint32_t aliasIndex;    // CmSurface2D alias index
+    bool bAliasCreated; // whether or not alias was created for this argument
+
+    bool bIsNull;       // used to indicate if this is a null surface
+
+    uint32_t unitVmeArraySize; // number of Vme surfaces in surface array 
+
+    // pointer to the arg values. the size is unitCount * unitSize
+    union
+    {
+        uint8_t *pValue; 
+        int32_t *pIValue;
+        uint32_t *pUIValue;
+        float  *pFValue; 
+    };
+
+    uint16_t *surfIndex;
+    SURFACE_ARRAY_ARG *pSurfArrayArg; // record each arg kind and address control mode for media sampler in surface array
+    CM_ARG()
+    {
+        unitKind = 0;
+        unitCount = 0;
+        unitSize = 0;
+        unitOffsetInPayload = 0;
+        pValue = nullptr;
+        bIsDirty = false;
+        bIsNull = false;
+        unitVmeArraySize = 0;
+    }
+};
+
+enum CM_KERNEL_INTERNAL_ARG_TYPE
+{
+    CM_KERNEL_INTERNEL_ARG_PERKERNEL = 0,
+    CM_KERNEL_INTERNEL_ARG_PERTHREAD = 1
+};
+
+struct CM_KERNEL_INFO;
 
 namespace CMRT_UMD
 {
@@ -126,7 +198,7 @@ public:
                              uint32_t &kernelDataSize,
                              const CmThreadGroupSpace *pTGS);
 
-    char *GetName() { return (char*)m_pKernelInfo->kernelName; }
+    char *GetName();
 
     int32_t SetIndexInTask(uint32_t index);
 

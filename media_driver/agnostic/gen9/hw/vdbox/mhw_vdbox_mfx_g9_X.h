@@ -88,10 +88,10 @@ protected:
     //!
     MhwVdboxMfxInterfaceG9<TMfxCmds>(
         PMOS_INTERFACE osInterface,
-        MhwMiInterface *pMiInterface,
+        MhwMiInterface *miInterface,
         MhwCpInterface *cpInterface,
         bool decodeInUse) 
-        : MhwVdboxMfxInterfaceGeneric<TMfxCmds, mhw_mi_g9_X>(osInterface, pMiInterface, cpInterface, decodeInUse)
+        : MhwVdboxMfxInterfaceGeneric<TMfxCmds, mhw_mi_g9_X>(osInterface, miInterface, cpInterface, decodeInUse)
     {
         MHW_FUNCTION_ENTER;
 
@@ -287,7 +287,7 @@ protected:
             }
         }
 
-        if (!rowstoreParams->bVdenc && this->m_bsdMpcRowstoreCache.bSupported && rowstoreParams->dwPicWidth < MHW_VDBOX_PICWIDTH_4K)         // mbaff and non mbaff mode for all resolutions
+        if (this->m_bsdMpcRowstoreCache.bSupported && rowstoreParams->dwPicWidth < MHW_VDBOX_PICWIDTH_4K)         // mbaff and non mbaff mode for all resolutions
         {
             this->m_bsdMpcRowstoreCache.bEnabled = true;
             this->m_bsdMpcRowstoreCache.dwAddress = BSDMPCROWSTORE_BASEADDRESS;
@@ -1486,7 +1486,7 @@ protected:
             cmd.DW2.IndirectBsdDataStartAddress = sliceParams->slice_data_offset + avcSliceState->dwOffset;
             cmd.DW4.FirstMacroblockMbBitOffset = sliceParams->slice_data_bit_offset;
 
-            if (!avcSliceState->bIntelProprietaryFormatInUse)
+            if (!avcSliceState->bIntelEntrypointInUse)
             {
                 // NAL Header Unit must be passed to HW in the compressed bitstream buffer
                 avcSliceState->dwOffset -= (this->m_osInterface->dwNumNalUnitBytesIncluded - 1);
@@ -1865,183 +1865,183 @@ protected:
         MHW_MI_CHK_NULL(params);
 
         typename TMfxCmds::MFX_VP8_PIC_STATE_CMD cmd;
-        auto pVp8PicParams = params->pVp8PicParams;
-        auto pVp8IqMatrixParams = params->pVp8IqMatrixParams;
+        auto vp8PicParams = params->pVp8PicParams;
+        auto vp8IqMatrixParams = params->pVp8IqMatrixParams;
 
-        cmd.DW1.FrameWidthMinus1 = pVp8PicParams->wFrameWidthInMbsMinus1;
-        cmd.DW1.FrameHeightMinus1 = pVp8PicParams->wFrameHeightInMbsMinus1;
-        cmd.DW2.McFilterSelect = (pVp8PicParams->version != 0);
-        cmd.DW2.ChromaFullPixelMcFilterMode = (pVp8PicParams->version == 3);
-        cmd.DW2.Dblkfiltertype = pVp8PicParams->filter_type;
-        cmd.DW2.Skeyframeflag = pVp8PicParams->key_frame;
+        cmd.DW1.FrameWidthMinus1 = vp8PicParams->wFrameWidthInMbsMinus1;
+        cmd.DW1.FrameHeightMinus1 = vp8PicParams->wFrameHeightInMbsMinus1;
+        cmd.DW2.McFilterSelect = (vp8PicParams->version != 0);
+        cmd.DW2.ChromaFullPixelMcFilterMode = (vp8PicParams->version == 3);
+        cmd.DW2.Dblkfiltertype = vp8PicParams->filter_type;
+        cmd.DW2.Skeyframeflag = vp8PicParams->key_frame;
         cmd.DW2.SegmentationIdStreamoutEnable =
-            (pVp8PicParams->segmentation_enabled) && (pVp8PicParams->update_mb_segmentation_map);
+            (vp8PicParams->segmentation_enabled) && (vp8PicParams->update_mb_segmentation_map);
         cmd.DW2.SegmentationIdStreaminEnable =
-            (pVp8PicParams->segmentation_enabled) && !(pVp8PicParams->update_mb_segmentation_map);
-        cmd.DW2.SegmentEnableFlag = pVp8PicParams->segmentation_enabled;
+            (vp8PicParams->segmentation_enabled) && !(vp8PicParams->update_mb_segmentation_map);
+        cmd.DW2.SegmentEnableFlag = vp8PicParams->segmentation_enabled;
         cmd.DW2.UpdateMbsegmentMapFlag =
-            (pVp8PicParams->segmentation_enabled) ? pVp8PicParams->update_mb_segmentation_map : 0;
-        cmd.DW2.MbNocoeffSkipflag = pVp8PicParams->mb_no_coeff_skip;
-        cmd.DW2.ModeReferenceLoopFilterDeltaEnabled = pVp8PicParams->loop_filter_adj_enable;
-        cmd.DW2.GoldenRefPictureMvSignbiasFlag = pVp8PicParams->sign_bias_golden;
-        cmd.DW2.AlternateRefPicMvSignbiasFlag = pVp8PicParams->sign_bias_alternate;
-        cmd.DW2.DeblockSharpnessLevel = pVp8PicParams->ucSharpnessLevel;
-        cmd.DW3.DblkfilterlevelForSegment3 = pVp8PicParams->ucLoopFilterLevel[3];
-        cmd.DW3.DblkfilterlevelForSegment2 = pVp8PicParams->ucLoopFilterLevel[2];
-        cmd.DW3.DblkfilterlevelForSegment1 = pVp8PicParams->ucLoopFilterLevel[1];
-        cmd.DW3.DblkfilterlevelForSegment0 = pVp8PicParams->ucLoopFilterLevel[0];
+            (vp8PicParams->segmentation_enabled) ? vp8PicParams->update_mb_segmentation_map : 0;
+        cmd.DW2.MbNocoeffSkipflag = vp8PicParams->mb_no_coeff_skip;
+        cmd.DW2.ModeReferenceLoopFilterDeltaEnabled = vp8PicParams->loop_filter_adj_enable;
+        cmd.DW2.GoldenRefPictureMvSignbiasFlag = vp8PicParams->sign_bias_golden;
+        cmd.DW2.AlternateRefPicMvSignbiasFlag = vp8PicParams->sign_bias_alternate;
+        cmd.DW2.DeblockSharpnessLevel = vp8PicParams->ucSharpnessLevel;
+        cmd.DW3.DblkfilterlevelForSegment3 = vp8PicParams->ucLoopFilterLevel[3];
+        cmd.DW3.DblkfilterlevelForSegment2 = vp8PicParams->ucLoopFilterLevel[2];
+        cmd.DW3.DblkfilterlevelForSegment1 = vp8PicParams->ucLoopFilterLevel[1];
+        cmd.DW3.DblkfilterlevelForSegment0 = vp8PicParams->ucLoopFilterLevel[0];
 
         uint32_t i = 0;
         uint32_t j = 0;
-        cmd.DW4.dec.QuantizerValue0Blocktype0Y1Dc = pVp8IqMatrixParams->quantization_values[i][j];
-        cmd.DW4.dec.QuantizerValue0Blocktype1Y1Ac = pVp8IqMatrixParams->quantization_values[i][j + 1];
+        cmd.DW4.dec.QuantizerValue0Blocktype0Y1Dc = vp8IqMatrixParams->quantization_values[i][j];
+        cmd.DW4.dec.QuantizerValue0Blocktype1Y1Ac = vp8IqMatrixParams->quantization_values[i][j + 1];
 
         i = 0;
         j = 2;
-        cmd.DW5.dec.QuantizerValue0Blocktype2Uvdc = pVp8IqMatrixParams->quantization_values[i][j];
-        cmd.DW5.dec.QuantizerValue0Blocktype3Uvac = pVp8IqMatrixParams->quantization_values[i][j + 1];
+        cmd.DW5.dec.QuantizerValue0Blocktype2Uvdc = vp8IqMatrixParams->quantization_values[i][j];
+        cmd.DW5.dec.QuantizerValue0Blocktype3Uvac = vp8IqMatrixParams->quantization_values[i][j + 1];
 
         i = 0;
         j = 4;
-        cmd.DW6.dec.QuantizerValue0Blocktype4Y2Dc = pVp8IqMatrixParams->quantization_values[i][j];
-        cmd.DW6.dec.QuantizerValue0Blocktype5Y2Ac = pVp8IqMatrixParams->quantization_values[i][j + 1];
+        cmd.DW6.dec.QuantizerValue0Blocktype4Y2Dc = vp8IqMatrixParams->quantization_values[i][j];
+        cmd.DW6.dec.QuantizerValue0Blocktype5Y2Ac = vp8IqMatrixParams->quantization_values[i][j + 1];
 
         i = 1;
         j = 0;
-        cmd.DW7.dec.QuantizerValue1Blocktype0Y1Dc = pVp8IqMatrixParams->quantization_values[i][j];
-        cmd.DW7.dec.QuantizerValue1Blocktype1Y1Ac = pVp8IqMatrixParams->quantization_values[i][j + 1];
+        cmd.DW7.dec.QuantizerValue1Blocktype0Y1Dc = vp8IqMatrixParams->quantization_values[i][j];
+        cmd.DW7.dec.QuantizerValue1Blocktype1Y1Ac = vp8IqMatrixParams->quantization_values[i][j + 1];
 
         i = 1;
         j = 2;
-        cmd.DW8.QuantizerValue1Blocktype2Uvdc = pVp8IqMatrixParams->quantization_values[i][j];
-        cmd.DW8.QuantizerValue1Blocktype3Uvac = pVp8IqMatrixParams->quantization_values[i][j + 1];
+        cmd.DW8.QuantizerValue1Blocktype2Uvdc = vp8IqMatrixParams->quantization_values[i][j];
+        cmd.DW8.QuantizerValue1Blocktype3Uvac = vp8IqMatrixParams->quantization_values[i][j + 1];
 
         i = 1;
         j = 4;
-        cmd.DW9.QuantizerValue1Blocktype4Y2Dc = pVp8IqMatrixParams->quantization_values[i][j];
-        cmd.DW9.QuantizerValue1Blocktype5Y2Ac = pVp8IqMatrixParams->quantization_values[i][j + 1];
+        cmd.DW9.QuantizerValue1Blocktype4Y2Dc = vp8IqMatrixParams->quantization_values[i][j];
+        cmd.DW9.QuantizerValue1Blocktype5Y2Ac = vp8IqMatrixParams->quantization_values[i][j + 1];
 
         i = 2;
         j = 0;
-        cmd.DW10.QuantizerValue2Blocktype0Y1Dc = pVp8IqMatrixParams->quantization_values[i][j];
-        cmd.DW10.QuantizerValue2Blocktype1Y1Ac = pVp8IqMatrixParams->quantization_values[i][j + 1];
+        cmd.DW10.QuantizerValue2Blocktype0Y1Dc = vp8IqMatrixParams->quantization_values[i][j];
+        cmd.DW10.QuantizerValue2Blocktype1Y1Ac = vp8IqMatrixParams->quantization_values[i][j + 1];
 
         i = 2;
         j = 2;
-        cmd.DW11.QuantizerValue2Blocktype2Uvdc = pVp8IqMatrixParams->quantization_values[i][j];
-        cmd.DW11.QuantizerValue2Blocktype3Uvac = pVp8IqMatrixParams->quantization_values[i][j + 1];
+        cmd.DW11.QuantizerValue2Blocktype2Uvdc = vp8IqMatrixParams->quantization_values[i][j];
+        cmd.DW11.QuantizerValue2Blocktype3Uvac = vp8IqMatrixParams->quantization_values[i][j + 1];
 
         i = 2;
         j = 4;
-        cmd.DW12.QuantizerValue2Blocktype4Y2Dc = pVp8IqMatrixParams->quantization_values[i][j];
-        cmd.DW12.QuantizerValue2Blocktype5Y2Ac = pVp8IqMatrixParams->quantization_values[i][j + 1];
+        cmd.DW12.QuantizerValue2Blocktype4Y2Dc = vp8IqMatrixParams->quantization_values[i][j];
+        cmd.DW12.QuantizerValue2Blocktype5Y2Ac = vp8IqMatrixParams->quantization_values[i][j + 1];
 
         i = 3;
         j = 0;
-        cmd.DW13.QuantizerValue3Blocktype0Y1Dc = pVp8IqMatrixParams->quantization_values[i][j];
-        cmd.DW13.QuantizerValue3Blocktype1Y1Ac = pVp8IqMatrixParams->quantization_values[i][j + 1];
+        cmd.DW13.QuantizerValue3Blocktype0Y1Dc = vp8IqMatrixParams->quantization_values[i][j];
+        cmd.DW13.QuantizerValue3Blocktype1Y1Ac = vp8IqMatrixParams->quantization_values[i][j + 1];
 
         i = 3;
         j = 2;
-        cmd.DW14.QuantizerValue3Blocktype2Uvdc = pVp8IqMatrixParams->quantization_values[i][j];
-        cmd.DW14.QuantizerValue3Blocktype3Uvac = pVp8IqMatrixParams->quantization_values[i][j + 1];
+        cmd.DW14.QuantizerValue3Blocktype2Uvdc = vp8IqMatrixParams->quantization_values[i][j];
+        cmd.DW14.QuantizerValue3Blocktype3Uvac = vp8IqMatrixParams->quantization_values[i][j + 1];
 
         i = 3;
         j = 4;
-        cmd.DW15.QuantizerValue3Blocktype4Y2Dc = pVp8IqMatrixParams->quantization_values[i][j];
-        cmd.DW15.QuantizerValue3Blocktype5Y2Ac = pVp8IqMatrixParams->quantization_values[i][j + 1];
+        cmd.DW15.QuantizerValue3Blocktype4Y2Dc = vp8IqMatrixParams->quantization_values[i][j];
+        cmd.DW15.QuantizerValue3Blocktype5Y2Ac = vp8IqMatrixParams->quantization_values[i][j + 1];
 
-        cmd.DW19.Mbsegmentidtreeprobs2 = pVp8PicParams->cMbSegmentTreeProbs[2];
-        cmd.DW19.Mbsegmentidtreeprobs1 = pVp8PicParams->cMbSegmentTreeProbs[1];
-        cmd.DW19.Mbsegmentidtreeprobs0 = pVp8PicParams->cMbSegmentTreeProbs[0];
-        cmd.DW20.Mbnocoeffskipfalseprob = pVp8PicParams->ucProbSkipFalse;
-        cmd.DW20.Intrambprob = pVp8PicParams->ucProbIntra;
-        cmd.DW20.Interpredfromlastrefprob = pVp8PicParams->ucProbLast;
-        cmd.DW20.Interpredfromgrefrefprob = pVp8PicParams->ucProbGolden;
-        cmd.DW21.Ymodeprob3 = pVp8PicParams->ucYModeProbs[3];
-        cmd.DW21.Ymodeprob2 = pVp8PicParams->ucYModeProbs[2];
-        cmd.DW21.Ymodeprob1 = pVp8PicParams->ucYModeProbs[1];
-        cmd.DW21.Ymodeprob0 = pVp8PicParams->ucYModeProbs[0];
-        cmd.DW22.Uvmodeprob2 = pVp8PicParams->ucUvModeProbs[2];
-        cmd.DW22.Uvmodeprob1 = pVp8PicParams->ucUvModeProbs[1];
-        cmd.DW22.Uvmodeprob0 = pVp8PicParams->ucUvModeProbs[0];
+        cmd.DW19.Mbsegmentidtreeprobs2 = vp8PicParams->cMbSegmentTreeProbs[2];
+        cmd.DW19.Mbsegmentidtreeprobs1 = vp8PicParams->cMbSegmentTreeProbs[1];
+        cmd.DW19.Mbsegmentidtreeprobs0 = vp8PicParams->cMbSegmentTreeProbs[0];
+        cmd.DW20.Mbnocoeffskipfalseprob = vp8PicParams->ucProbSkipFalse;
+        cmd.DW20.Intrambprob = vp8PicParams->ucProbIntra;
+        cmd.DW20.Interpredfromlastrefprob = vp8PicParams->ucProbLast;
+        cmd.DW20.Interpredfromgrefrefprob = vp8PicParams->ucProbGolden;
+        cmd.DW21.Ymodeprob3 = vp8PicParams->ucYModeProbs[3];
+        cmd.DW21.Ymodeprob2 = vp8PicParams->ucYModeProbs[2];
+        cmd.DW21.Ymodeprob1 = vp8PicParams->ucYModeProbs[1];
+        cmd.DW21.Ymodeprob0 = vp8PicParams->ucYModeProbs[0];
+        cmd.DW22.Uvmodeprob2 = vp8PicParams->ucUvModeProbs[2];
+        cmd.DW22.Uvmodeprob1 = vp8PicParams->ucUvModeProbs[1];
+        cmd.DW22.Uvmodeprob0 = vp8PicParams->ucUvModeProbs[0];
 
         i = 0;
         j = 0;
-        cmd.DW23.Mvupdateprobs00 = pVp8PicParams->ucMvUpdateProb[i][j];
-        cmd.DW23.Mvupdateprobs01 = pVp8PicParams->ucMvUpdateProb[i][j + 1];
-        cmd.DW23.Mvupdateprobs02 = pVp8PicParams->ucMvUpdateProb[i][j + 2];
-        cmd.DW23.Mvupdateprobs03 = pVp8PicParams->ucMvUpdateProb[i][j + 3];
+        cmd.DW23.Mvupdateprobs00 = vp8PicParams->ucMvUpdateProb[i][j];
+        cmd.DW23.Mvupdateprobs01 = vp8PicParams->ucMvUpdateProb[i][j + 1];
+        cmd.DW23.Mvupdateprobs02 = vp8PicParams->ucMvUpdateProb[i][j + 2];
+        cmd.DW23.Mvupdateprobs03 = vp8PicParams->ucMvUpdateProb[i][j + 3];
 
         i = 0;
         j = 4;
-        cmd.DW24.Mvupdateprobs04 = pVp8PicParams->ucMvUpdateProb[i][j];
-        cmd.DW24.Mvupdateprobs05 = pVp8PicParams->ucMvUpdateProb[i][j + 1];
-        cmd.DW24.Mvupdateprobs06 = pVp8PicParams->ucMvUpdateProb[i][j + 2];
-        cmd.DW24.Mvupdateprobs07 = pVp8PicParams->ucMvUpdateProb[i][j + 3];
+        cmd.DW24.Mvupdateprobs04 = vp8PicParams->ucMvUpdateProb[i][j];
+        cmd.DW24.Mvupdateprobs05 = vp8PicParams->ucMvUpdateProb[i][j + 1];
+        cmd.DW24.Mvupdateprobs06 = vp8PicParams->ucMvUpdateProb[i][j + 2];
+        cmd.DW24.Mvupdateprobs07 = vp8PicParams->ucMvUpdateProb[i][j + 3];
 
         i = 0;
         j = 8;
-        cmd.DW25.Mvupdateprobs08 = pVp8PicParams->ucMvUpdateProb[i][j];
-        cmd.DW25.Mvupdateprobs09 = pVp8PicParams->ucMvUpdateProb[i][j + 1];
-        cmd.DW25.Mvupdateprobs010 = pVp8PicParams->ucMvUpdateProb[i][j + 2];
-        cmd.DW25.Mvupdateprobs011 = pVp8PicParams->ucMvUpdateProb[i][j + 3];
+        cmd.DW25.Mvupdateprobs08 = vp8PicParams->ucMvUpdateProb[i][j];
+        cmd.DW25.Mvupdateprobs09 = vp8PicParams->ucMvUpdateProb[i][j + 1];
+        cmd.DW25.Mvupdateprobs010 = vp8PicParams->ucMvUpdateProb[i][j + 2];
+        cmd.DW25.Mvupdateprobs011 = vp8PicParams->ucMvUpdateProb[i][j + 3];
 
         i = 0;
         j = 12;
-        cmd.DW26.Mvupdateprobs012 = pVp8PicParams->ucMvUpdateProb[i][j];
-        cmd.DW26.Mvupdateprobs013 = pVp8PicParams->ucMvUpdateProb[i][j + 1];
-        cmd.DW26.Mvupdateprobs014 = pVp8PicParams->ucMvUpdateProb[i][j + 2];
-        cmd.DW26.Mvupdateprobs015 = pVp8PicParams->ucMvUpdateProb[i][j + 3];
+        cmd.DW26.Mvupdateprobs012 = vp8PicParams->ucMvUpdateProb[i][j];
+        cmd.DW26.Mvupdateprobs013 = vp8PicParams->ucMvUpdateProb[i][j + 1];
+        cmd.DW26.Mvupdateprobs014 = vp8PicParams->ucMvUpdateProb[i][j + 2];
+        cmd.DW26.Mvupdateprobs015 = vp8PicParams->ucMvUpdateProb[i][j + 3];
 
         i = 0;
         j = 16;
-        cmd.DW27.Mvupdateprobs016 = pVp8PicParams->ucMvUpdateProb[i][j];
-        cmd.DW27.Mvupdateprobs017 = pVp8PicParams->ucMvUpdateProb[i][j + 1];
-        cmd.DW27.Mvupdateprobs018 = pVp8PicParams->ucMvUpdateProb[i][j + 2];
+        cmd.DW27.Mvupdateprobs016 = vp8PicParams->ucMvUpdateProb[i][j];
+        cmd.DW27.Mvupdateprobs017 = vp8PicParams->ucMvUpdateProb[i][j + 1];
+        cmd.DW27.Mvupdateprobs018 = vp8PicParams->ucMvUpdateProb[i][j + 2];
 
         i = 1;
         j = 0;
-        cmd.DW28.Mvupdateprobs10 = pVp8PicParams->ucMvUpdateProb[i][j];
-        cmd.DW28.Mvupdateprobs11 = pVp8PicParams->ucMvUpdateProb[i][j + 1];
-        cmd.DW28.Mvupdateprobs12 = pVp8PicParams->ucMvUpdateProb[i][j + 2];
-        cmd.DW28.Mvupdateprobs13 = pVp8PicParams->ucMvUpdateProb[i][j + 3];
+        cmd.DW28.Mvupdateprobs10 = vp8PicParams->ucMvUpdateProb[i][j];
+        cmd.DW28.Mvupdateprobs11 = vp8PicParams->ucMvUpdateProb[i][j + 1];
+        cmd.DW28.Mvupdateprobs12 = vp8PicParams->ucMvUpdateProb[i][j + 2];
+        cmd.DW28.Mvupdateprobs13 = vp8PicParams->ucMvUpdateProb[i][j + 3];
 
         i = 1;
         j = 4;
-        cmd.DW29.Mvupdateprobs14 = pVp8PicParams->ucMvUpdateProb[i][j];
-        cmd.DW29.Mvupdateprobs15 = pVp8PicParams->ucMvUpdateProb[i][j + 1];
-        cmd.DW29.Mvupdateprobs16 = pVp8PicParams->ucMvUpdateProb[i][j + 2];
-        cmd.DW29.Mvupdateprobs17 = pVp8PicParams->ucMvUpdateProb[i][j + 3];
+        cmd.DW29.Mvupdateprobs14 = vp8PicParams->ucMvUpdateProb[i][j];
+        cmd.DW29.Mvupdateprobs15 = vp8PicParams->ucMvUpdateProb[i][j + 1];
+        cmd.DW29.Mvupdateprobs16 = vp8PicParams->ucMvUpdateProb[i][j + 2];
+        cmd.DW29.Mvupdateprobs17 = vp8PicParams->ucMvUpdateProb[i][j + 3];
 
         i = 1;
         j = 8;
-        cmd.DW30.Mvupdateprobs18 = pVp8PicParams->ucMvUpdateProb[i][j];
-        cmd.DW30.Mvupdateprobs19 = pVp8PicParams->ucMvUpdateProb[i][j + 1];
-        cmd.DW30.Mvupdateprobs110 = pVp8PicParams->ucMvUpdateProb[i][j + 2];
-        cmd.DW30.Mvupdateprobs111 = pVp8PicParams->ucMvUpdateProb[i][j + 3];
+        cmd.DW30.Mvupdateprobs18 = vp8PicParams->ucMvUpdateProb[i][j];
+        cmd.DW30.Mvupdateprobs19 = vp8PicParams->ucMvUpdateProb[i][j + 1];
+        cmd.DW30.Mvupdateprobs110 = vp8PicParams->ucMvUpdateProb[i][j + 2];
+        cmd.DW30.Mvupdateprobs111 = vp8PicParams->ucMvUpdateProb[i][j + 3];
 
         i = 1;
         j = 12;
-        cmd.DW31.Mvupdateprobs112 = pVp8PicParams->ucMvUpdateProb[i][j];
-        cmd.DW31.Mvupdateprobs113 = pVp8PicParams->ucMvUpdateProb[i][j + 1];
-        cmd.DW31.Mvupdateprobs114 = pVp8PicParams->ucMvUpdateProb[i][j + 2];
-        cmd.DW31.Mvupdateprobs115 = pVp8PicParams->ucMvUpdateProb[i][j + 3];
+        cmd.DW31.Mvupdateprobs112 = vp8PicParams->ucMvUpdateProb[i][j];
+        cmd.DW31.Mvupdateprobs113 = vp8PicParams->ucMvUpdateProb[i][j + 1];
+        cmd.DW31.Mvupdateprobs114 = vp8PicParams->ucMvUpdateProb[i][j + 2];
+        cmd.DW31.Mvupdateprobs115 = vp8PicParams->ucMvUpdateProb[i][j + 3];
 
         i = 1;
         j = 16;
-        cmd.DW32.Mvupdateprobs116 = pVp8PicParams->ucMvUpdateProb[i][j];
-        cmd.DW32.Mvupdateprobs117 = pVp8PicParams->ucMvUpdateProb[i][j + 1];
-        cmd.DW32.Mvupdateprobs118 = pVp8PicParams->ucMvUpdateProb[i][j + 2];
+        cmd.DW32.Mvupdateprobs116 = vp8PicParams->ucMvUpdateProb[i][j];
+        cmd.DW32.Mvupdateprobs117 = vp8PicParams->ucMvUpdateProb[i][j + 1];
+        cmd.DW32.Mvupdateprobs118 = vp8PicParams->ucMvUpdateProb[i][j + 2];
 
-        cmd.DW33.Reflfdelta0ForIntraFrame = pVp8PicParams->cRefLfDelta[0];
-        cmd.DW33.Reflfdelta1ForLastFrame = pVp8PicParams->cRefLfDelta[1];
-        cmd.DW33.Reflfdelta2ForGoldenFrame = pVp8PicParams->cRefLfDelta[2];
-        cmd.DW33.Reflfdelta3ForAltrefFrame = pVp8PicParams->cRefLfDelta[3];
-        cmd.DW34.Modelfdelta0ForBPredMode = pVp8PicParams->cModeLfDelta[0];
-        cmd.DW34.Modelfdelta1ForZeromvMode = pVp8PicParams->cModeLfDelta[1];
-        cmd.DW34.Modelfdelta2ForNearestNearAndNewMode = pVp8PicParams->cModeLfDelta[2];
-        cmd.DW34.Modelfdelta3ForSplitmvMode = pVp8PicParams->cModeLfDelta[3];
+        cmd.DW33.Reflfdelta0ForIntraFrame = vp8PicParams->cRefLfDelta[0];
+        cmd.DW33.Reflfdelta1ForLastFrame = vp8PicParams->cRefLfDelta[1];
+        cmd.DW33.Reflfdelta2ForGoldenFrame = vp8PicParams->cRefLfDelta[2];
+        cmd.DW33.Reflfdelta3ForAltrefFrame = vp8PicParams->cRefLfDelta[3];
+        cmd.DW34.Modelfdelta0ForBPredMode = vp8PicParams->cModeLfDelta[0];
+        cmd.DW34.Modelfdelta1ForZeromvMode = vp8PicParams->cModeLfDelta[1];
+        cmd.DW34.Modelfdelta2ForNearestNearAndNewMode = vp8PicParams->cModeLfDelta[2];
+        cmd.DW34.Modelfdelta3ForSplitmvMode = vp8PicParams->cModeLfDelta[3];
 
         MHW_RESOURCE_PARAMS resourceParams;
         MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
@@ -2059,7 +2059,7 @@ protected:
             cmdBuffer,
             &resourceParams));
 
-        if (pVp8PicParams->segmentation_enabled)
+        if (vp8PicParams->segmentation_enabled)
         {
             resourceParams.presResource = params->presSegmentationIdStreamBuffer;
             resourceParams.dwOffset = 0;
@@ -2093,52 +2093,52 @@ protected:
         MHW_MI_CHK_NULL(params->pEncodeVP8QuantData);
 
         typename TMfxCmds::MFX_VP8_PIC_STATE_CMD cmd;
-        auto pVp8SeqParams = params->pEncodeVP8SeqParams;
-        auto pVp8PicParams = params->pEncodeVP8PicParams;
-        auto pVp8QuantData = params->pEncodeVP8QuantData;
+        auto vp8SeqParams = params->pEncodeVP8SeqParams;
+        auto vp8PicParams = params->pEncodeVP8PicParams;
+        auto vp8QuantData = params->pEncodeVP8QuantData;
 
         cmd.DW1.FrameWidthMinus1 = params->wPicWidthInMb - 1;
         cmd.DW1.FrameHeightMinus1 = params->wPicHeightInMb - 1;
 
-        cmd.DW2.McFilterSelect = (pVp8PicParams->version != 0);
-        cmd.DW2.ChromaFullPixelMcFilterMode = (pVp8PicParams->version == 3);
-        cmd.DW2.Dblkfiltertype = pVp8PicParams->filter_type;
-        cmd.DW2.Skeyframeflag = !pVp8PicParams->frame_type;
-        cmd.DW2.SegmentEnableFlag = pVp8PicParams->segmentation_enabled;
+        cmd.DW2.McFilterSelect = (vp8PicParams->version != 0);
+        cmd.DW2.ChromaFullPixelMcFilterMode = (vp8PicParams->version == 3);
+        cmd.DW2.Dblkfiltertype = vp8PicParams->filter_type;
+        cmd.DW2.Skeyframeflag = !vp8PicParams->frame_type;
+        cmd.DW2.SegmentEnableFlag = vp8PicParams->segmentation_enabled;
         cmd.DW2.UpdateMbsegmentMapFlag =
-            (pVp8PicParams->segmentation_enabled) ? pVp8PicParams->update_mb_segmentation_map : 0;
-        cmd.DW2.MbNocoeffSkipflag = pVp8PicParams->mb_no_coeff_skip;
-        cmd.DW2.ModeReferenceLoopFilterDeltaEnabled = pVp8PicParams->loop_filter_adj_enable;
-        cmd.DW2.GoldenRefPictureMvSignbiasFlag = pVp8PicParams->sign_bias_golden;
-        cmd.DW2.AlternateRefPicMvSignbiasFlag = pVp8PicParams->sign_bias_alternate;
-        cmd.DW2.DeblockSharpnessLevel = pVp8PicParams->sharpness_level;
-        cmd.DW2.Log2NumOfPartition = pVp8PicParams->CodedCoeffTokenPartition;
+            (vp8PicParams->segmentation_enabled) ? vp8PicParams->update_mb_segmentation_map : 0;
+        cmd.DW2.MbNocoeffSkipflag = vp8PicParams->mb_no_coeff_skip;
+        cmd.DW2.ModeReferenceLoopFilterDeltaEnabled = vp8PicParams->loop_filter_adj_enable;
+        cmd.DW2.GoldenRefPictureMvSignbiasFlag = vp8PicParams->sign_bias_golden;
+        cmd.DW2.AlternateRefPicMvSignbiasFlag = vp8PicParams->sign_bias_alternate;
+        cmd.DW2.DeblockSharpnessLevel = vp8PicParams->sharpness_level;
+        cmd.DW2.Log2NumOfPartition = vp8PicParams->CodedCoeffTokenPartition;
 
-        cmd.DW3.DblkfilterlevelForSegment3 = pVp8PicParams->loop_filter_level[3];
-        cmd.DW3.DblkfilterlevelForSegment2 = pVp8PicParams->loop_filter_level[2];
-        cmd.DW3.DblkfilterlevelForSegment1 = pVp8PicParams->loop_filter_level[1];
-        cmd.DW3.DblkfilterlevelForSegment0 = pVp8PicParams->loop_filter_level[0];
+        cmd.DW3.DblkfilterlevelForSegment3 = vp8PicParams->loop_filter_level[3];
+        cmd.DW3.DblkfilterlevelForSegment2 = vp8PicParams->loop_filter_level[2];
+        cmd.DW3.DblkfilterlevelForSegment1 = vp8PicParams->loop_filter_level[1];
+        cmd.DW3.DblkfilterlevelForSegment0 = vp8PicParams->loop_filter_level[0];
 
         //Y1 AC is the reference.
-        cmd.DW4.enc.Seg0Qindex = pVp8QuantData->QIndex[0];
-        cmd.DW4.enc.Seg1Qindex = pVp8QuantData->QIndex[1];
-        cmd.DW4.enc.Seg2Qindex = pVp8QuantData->QIndex[2];
-        cmd.DW4.enc.Seg3Qindex = pVp8QuantData->QIndex[3];
+        cmd.DW4.enc.Seg0Qindex = vp8QuantData->QIndex[0];
+        cmd.DW4.enc.Seg1Qindex = vp8QuantData->QIndex[1];
+        cmd.DW4.enc.Seg2Qindex = vp8QuantData->QIndex[2];
+        cmd.DW4.enc.Seg3Qindex = vp8QuantData->QIndex[3];
 
-        cmd.DW5.enc.Y2DcQindexDelta = pVp8QuantData->QIndexDelta[VP8_QINDEX_Y2_DC];
-        cmd.DW5.enc.Y2AcQindexDeltaSign = (pVp8QuantData->QIndexDelta[VP8_QINDEX_Y2_DC] < 0) ? 1 : 0;
-        cmd.DW5.enc.Y2AcQindexDelta = pVp8QuantData->QIndexDelta[VP8_QINDEX_Y2_AC];
-        cmd.DW5.enc.Y2AcQindexSign = (pVp8QuantData->QIndexDelta[VP8_QINDEX_Y2_AC] < 0) ? 1 : 0;
-        cmd.DW5.enc.UvdcQindexDelta = pVp8QuantData->QIndexDelta[VP8_QINDEX_UV_DC];
-        cmd.DW5.enc.UvdcQindexDeltaSign = (pVp8QuantData->QIndexDelta[VP8_QINDEX_UV_DC] < 0) ? 1 : 0;
-        cmd.DW5.enc.UvacQindexdelta = pVp8QuantData->QIndexDelta[VP8_QINDEX_UV_AC];
-        cmd.DW5.enc.UvacQindexDeltaSign = (pVp8QuantData->QIndexDelta[VP8_QINDEX_UV_AC] < 0) ? 1 : 0;
+        cmd.DW5.enc.Y2DcQindexDelta = vp8QuantData->QIndexDelta[VP8_QINDEX_Y2_DC];
+        cmd.DW5.enc.Y2AcQindexDeltaSign = (vp8QuantData->QIndexDelta[VP8_QINDEX_Y2_DC] < 0) ? 1 : 0;
+        cmd.DW5.enc.Y2AcQindexDelta = vp8QuantData->QIndexDelta[VP8_QINDEX_Y2_AC];
+        cmd.DW5.enc.Y2AcQindexSign = (vp8QuantData->QIndexDelta[VP8_QINDEX_Y2_AC] < 0) ? 1 : 0;
+        cmd.DW5.enc.UvdcQindexDelta = vp8QuantData->QIndexDelta[VP8_QINDEX_UV_DC];
+        cmd.DW5.enc.UvdcQindexDeltaSign = (vp8QuantData->QIndexDelta[VP8_QINDEX_UV_DC] < 0) ? 1 : 0;
+        cmd.DW5.enc.UvacQindexdelta = vp8QuantData->QIndexDelta[VP8_QINDEX_UV_AC];
+        cmd.DW5.enc.UvacQindexDeltaSign = (vp8QuantData->QIndexDelta[VP8_QINDEX_UV_AC] < 0) ? 1 : 0;
 
-        cmd.DW6.enc.Y1DcQindexDelta = pVp8QuantData->QIndexDelta[VP8_QINDEX_Y1_DC];
-        cmd.DW6.enc.Y1DcQindexDeltaSign = (pVp8QuantData->QIndexDelta[VP8_QINDEX_Y1_DC] < 0) ? 1 : 0;
+        cmd.DW6.enc.Y1DcQindexDelta = vp8QuantData->QIndexDelta[VP8_QINDEX_Y1_DC];
+        cmd.DW6.enc.Y1DcQindexDeltaSign = (vp8QuantData->QIndexDelta[VP8_QINDEX_Y1_DC] < 0) ? 1 : 0;
 
-        cmd.DW7.enc.ClampQindexLow = pVp8PicParams->ClampQindexLow;
-        cmd.DW7.enc.ClampQindexHigh = pVp8PicParams->ClampQindexHigh;
+        cmd.DW7.enc.ClampQindexLow = vp8PicParams->ClampQindexLow;
+        cmd.DW7.enc.ClampQindexHigh = vp8PicParams->ClampQindexHigh;
 
         MHW_RESOURCE_PARAMS resourceParams;
         MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
@@ -2232,15 +2232,15 @@ protected:
         cmd.DW32.Mvupdateprobs117 = DefaultMvContext[i][j + 1];
         cmd.DW32.Mvupdateprobs118 = DefaultMvContext[i][j + 2];
 
-        cmd.DW33.Reflfdelta0ForIntraFrame = pVp8PicParams->ref_lf_delta[0];
-        cmd.DW33.Reflfdelta1ForLastFrame = pVp8PicParams->ref_lf_delta[1];
-        cmd.DW33.Reflfdelta2ForGoldenFrame = pVp8PicParams->ref_lf_delta[2];
-        cmd.DW33.Reflfdelta3ForAltrefFrame = pVp8PicParams->ref_lf_delta[3];
+        cmd.DW33.Reflfdelta0ForIntraFrame = vp8PicParams->ref_lf_delta[0];
+        cmd.DW33.Reflfdelta1ForLastFrame = vp8PicParams->ref_lf_delta[1];
+        cmd.DW33.Reflfdelta2ForGoldenFrame = vp8PicParams->ref_lf_delta[2];
+        cmd.DW33.Reflfdelta3ForAltrefFrame = vp8PicParams->ref_lf_delta[3];
 
-        cmd.DW34.Modelfdelta0ForBPredMode = pVp8PicParams->mode_lf_delta[0];
-        cmd.DW34.Modelfdelta1ForZeromvMode = pVp8PicParams->mode_lf_delta[1];
-        cmd.DW34.Modelfdelta2ForNearestNearAndNewMode = pVp8PicParams->mode_lf_delta[2];
-        cmd.DW34.Modelfdelta3ForSplitmvMode = pVp8PicParams->mode_lf_delta[3];
+        cmd.DW34.Modelfdelta0ForBPredMode = vp8PicParams->mode_lf_delta[0];
+        cmd.DW34.Modelfdelta1ForZeromvMode = vp8PicParams->mode_lf_delta[1];
+        cmd.DW34.Modelfdelta2ForNearestNearAndNewMode = vp8PicParams->mode_lf_delta[2];
+        cmd.DW34.Modelfdelta3ForSplitmvMode = vp8PicParams->mode_lf_delta[3];
 
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
@@ -2283,9 +2283,9 @@ protected:
         MHW_MI_CHK_NULL(params->pEncodeVP8SeqParams);
         MHW_MI_CHK_NULL(params->pEncodeVP8QuantData);
 
-        auto pPicParams = params->pEncodeVP8PicParams;
-        auto pSeqParams = params->pEncodeVP8SeqParams;
-        auto pQuantData = params->pEncodeVP8QuantData;
+        auto picParams = params->pEncodeVP8PicParams;
+        auto seqParams = params->pEncodeVP8SeqParams;
+        auto quantData = params->pEncodeVP8QuantData;
 
         MOS_LOCK_PARAMS lockFlags;
         MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
@@ -2338,7 +2338,7 @@ protected:
         cmd->DW1.PerSegmentDeltaQindexLoopfilterDisable = (params->bFirstPass || !params->bBRCEnabled);
         cmd->DW1.TokenStatisticsOutputEnable = 1;
 
-        if (pPicParams->segmentation_enabled)
+        if (picParams->segmentation_enabled)
         {
             cmd->DW1.UpdateSegmentFeatureDataFlag = 1;
         }
@@ -2350,11 +2350,11 @@ protected:
             cmd->DW2.MinFrameBitCountRateControlEnableMask = 1;
         }
 
-        cmd->DW22.ShowFrame = pPicParams->show_frame;
-        cmd->DW22.BitstreamFormatVersion = pPicParams->version;
+        cmd->DW22.ShowFrame = picParams->show_frame;
+        cmd->DW22.BitstreamFormatVersion = picParams->version;
 
-        cmd->DW23.HorizontalSizeCode = ((pSeqParams->FrameWidthScale << 14) | pSeqParams->FrameWidth);
-        cmd->DW23.VerticalSizeCode = ((pSeqParams->FrameHeightScale << 14) | pSeqParams->FrameHeight);
+        cmd->DW23.HorizontalSizeCode = ((seqParams->FrameWidthScale << 14) | seqParams->FrameWidth);
+        cmd->DW23.VerticalSizeCode = ((seqParams->FrameHeightScale << 14) | seqParams->FrameHeight);
 
         //Add batch buffer end command
         data += sizeof(*cmd);

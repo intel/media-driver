@@ -27,7 +27,7 @@
 
 #include "codechal_decode_sfc_jpeg.h"
 
-MOS_STATUS CODECHAL_JPEG_SFC_STATE::CheckAndInitialize(
+MOS_STATUS CodechalJpegSfcState::CheckAndInitialize(
         PMOS_SURFACE            destSurface,
         CodecDecodeJpegPicParams*  picParams)
 {
@@ -118,7 +118,7 @@ MOS_STATUS CODECHAL_JPEG_SFC_STATE::CheckAndInitialize(
     return eStatus;
 }
 
-MOS_STATUS CODECHAL_JPEG_SFC_STATE::UpdateInputInfo(
+MOS_STATUS CodechalJpegSfcState::UpdateInputInfo(
     PMHW_SFC_STATE_PARAMS   sfcStateParams)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;

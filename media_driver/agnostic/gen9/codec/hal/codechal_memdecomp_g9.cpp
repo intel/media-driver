@@ -35,3 +35,53 @@ MediaMemDecompStateG9::MediaMemDecompStateG9():
      m_kernelBase = (uint8_t *)IGCODECKRN_G9;
 }
 
+MOS_STATUS MediaMemDecompStateG9::InitKernelState(
+    uint32_t                 kernelStateIdx)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    MHW_FUNCTION_ENTER;
+
+    if (kernelStateIdx >= decompKernelStateMax)
+    {
+        eStatus = MOS_STATUS_INVALID_PARAMETER;
+        return eStatus;
+    }
+
+    uint8_t *kernelBase = nullptr;
+    uint32_t kernelSize = 0;
+    if ((kernelStateIdx == decompKernelStatePl2)&&
+        m_osInterface->osCpInterface->IsSMEnabled())
+    {        
+        m_osInterface->osCpInterface->GetTK(
+            (uint32_t **)&kernelBase,
+            &kernelSize,
+            nullptr);
+        if (nullptr == kernelBase ||
+            0 == kernelSize)
+        {
+            MHW_ASSERT("Could not get TK for MMC!");
+            eStatus = MOS_STATUS_INVALID_PARAMETER;
+            return eStatus;
+        }
+    }
+    else
+    {
+        MHW_CHK_STATUS_RETURN(GetKernelBinaryAndSize(
+            m_kernelBase,
+            m_krnUniId[kernelStateIdx],
+            &kernelBase,
+            &kernelSize));
+    }
+
+    m_kernelBinary[kernelStateIdx] = kernelBase;
+    m_kernelSize[kernelStateIdx]   = kernelSize;
+
+    m_stateHeapSettings.dwIshSize +=
+        MOS_ALIGN_CEIL(kernelSize, (1 << MHW_KERNEL_OFFSET_SHIFT));
+    m_stateHeapSettings.dwDshSize += MHW_CACHELINE_SIZE* m_numMemDecompSyncTags;
+    m_stateHeapSettings.dwNumSyncTags += m_numMemDecompSyncTags;
+
+    return eStatus;
+}
+

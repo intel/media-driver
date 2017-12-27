@@ -18,15 +18,6 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-set(TMP_1_SOURCES_
-    ${CMAKE_CURRENT_LIST_DIR}/codec_ddi.c
-)
-
-set(TMP_1_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/codec_ddi.h
-)
-
-
 # shared
 set(TMP_2_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_common.h
@@ -53,18 +44,11 @@ set(TMP_2_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_encode_vp8.h
 )
 
-set(SOURCES_
-    ${SOURCES_}
-    ${TMP_1_SOURCES_}
- )
-
 set(HEADERS_
     ${HEADERS_}
-    ${TMP_1_HEADERS_}
     ${TMP_2_HEADERS_}
 )
 
 source_group( "Codec\\Shared" FILES ${TMP_2_HEADERS_} )
-
 
 media_add_curr_to_include_path()

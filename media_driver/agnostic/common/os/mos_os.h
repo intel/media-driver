@@ -273,7 +273,7 @@ typedef struct _MOS_INTERFACE
     //!< An internal handle that indexes into the list of GPU Context object
     uint32_t                        CurrentGpuContextHandle;
     //!< A handle to the graphics context device that can be used to calls back
-    //!< into the Microsoft DirectX graphics kernel subsystem
+    //!< into the kernel subsystem
     HANDLE                          CurrentGpuContextRuntimeHandle;
 
     // OS dependent settings, flags, limits
@@ -315,12 +315,14 @@ typedef struct _MOS_INTERFACE
     MOS_NULL_RENDERING_FLAGS        NullHWAccelerationEnable;                    //!< To indicate which components to enable Null HW support
 
     // for MODS Wrapper
-    int32_t                         bModsEnabled;
+    int32_t                         modulizedMosEnabled;
     OsContext*                      osContextPtr;
 
     // used for media reset enabling/disabling in UMD
     // pls remove it after hw scheduling
     int32_t                         bMediaReset;
+
+    bool                            umdMediaResetEnable;
 
 #if MOS_MEDIASOLO_SUPPORTED
     // MediaSolo related
@@ -794,6 +796,15 @@ typedef struct _MOS_INTERFACE
     void (*pfnSetSliceCount)(
         PMOS_INTERFACE              pOsInterface,
         uint32_t *pSliceCount);
+
+    //!
+    //! \brief  Get resource index
+    //! \param  [in] osResource
+    //!         pointer to the resource
+    //! \return uint32_t 
+    //!         return resource index
+    uint32_t(*pfnGetResourceIndex)(
+        PMOS_RESOURCE           osResource);
 
     //!< os interface extension
     void                            *pOsExt;                                      

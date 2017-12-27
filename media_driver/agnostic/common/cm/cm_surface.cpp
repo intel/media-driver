@@ -29,9 +29,12 @@
 #include "cm_device_rt.h"
 #include "cm_event_rt.h"
 #include "cm_hal.h"
+#include "cm_mem.h"
 #include "cm_queue_rt.h"
 #include "cm_surface_manager.h"
 
+namespace CMRT_UMD
+{
 //*-----------------------------------------------------------------------------
 //| Purpose:    Destory CmSurface
 //| Returns:    Result of the operation.
@@ -274,4 +277,5 @@ std::string CmSurface::GetFormatString(CM_SURFACE_FORMAT format)
         case CM_SURFACE_FORMAT_BUFFER_2D:          return "buffer2d";
         default:                                   return "Invalid";
     }
+}
 }

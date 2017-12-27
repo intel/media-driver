@@ -45,7 +45,7 @@ CodechalMmcDecodeHevc::CodechalMmcDecodeHevc(
         userFeatureData.i32Data = m_mmcEnabled;
         userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
 
-        CodecHal_UserFeature_ReadValue(
+        MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_DECODE_MMC_ENABLE_ID,
             &userFeatureData);
@@ -55,7 +55,7 @@ CodechalMmcDecodeHevc::CodechalMmcDecodeHevc(
         MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
         userFeatureWriteData.Value.i32Data = m_mmcEnabled;
         userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_DECODE_MMC_IN_USE_ID;
-        CodecHal_UserFeature_WriteValue(nullptr, &userFeatureWriteData);
+        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
     }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -72,6 +72,8 @@ MOS_STATUS CodechalMmcDecodeHevc::SetPipeBufAddr(
     
     CODECHAL_DECODE_FUNCTION_ENTER;
 
+    pipeBufAddrParams->PreDeblockSurfMmcState = MOS_MEMCOMP_DISABLED;
+
     if (m_mmcEnabled && 
         m_hcpMmcEnabled &&
         m_hevcState->sDestSurface.bCompressible)
@@ -82,10 +84,6 @@ MOS_STATUS CodechalMmcDecodeHevc::SetPipeBufAddr(
         {
             pipeBufAddrParams->PreDeblockSurfMmcState = MOS_MEMCOMP_HORIZONTAL;
         }
-    }
-    else
-    {
-        pipeBufAddrParams->PreDeblockSurfMmcState = MOS_MEMCOMP_DISABLED;
     }
 
     CODECHAL_DEBUG_TOOL(

@@ -29,7 +29,8 @@
 #include "codechal_secure_decode.h"
 #include "codechal_cenc_decode.h"
 #include "mos_solo_generic.h"
-# include "codechal_debug.h"
+#include "codechal_debug.h"
+#include "codechal_decode_histogram.h"
 
 #ifdef _HEVC_DECODE_SUPPORTED
 #include "codechal_decode_hevc.h"
@@ -145,7 +146,7 @@ MOS_STATUS CodechalDecode::AllocateSurface(
         &surface->OsResource),
         "Failed to allocate %s.", name);
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHal_GetResourceInfo(
+    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(
         m_osInterface,
         surface));
 
@@ -337,7 +338,7 @@ MOS_STATUS CodechalDecode::Allocate (PCODECHAL_SETTINGS codecHalSettings)
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
         userFeatureData.u32Data = MOS_STATUS_REPORT_DEFAULT;
         userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
-        CodecHal_UserFeature_ReadValue(
+        MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_STATUS_REPORTING_ENABLE_ID,
             &userFeatureData);
@@ -347,7 +348,7 @@ MOS_STATUS CodechalDecode::Allocate (PCODECHAL_SETTINGS codecHalSettings)
         if (m_statusQueryReportingEnabled)
         {
             MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-            CodecHal_UserFeature_ReadValue(
+            MOS_UserFeature_ReadValue_ID(
                 nullptr,
                 __MEDIA_USER_FEATURE_VALUE_STREAM_OUT_ENABLE_ID,
                 &userFeatureData);
@@ -603,7 +604,14 @@ CodechalDecode::~CodechalDecode()
         MOS_Delete(m_mmc);
         m_mmc = nullptr;
     }
-    
+
+    // Destroy decode histogram
+    if (m_decodeHistogram != nullptr)
+    {
+        MOS_Delete(m_decodeHistogram);
+        m_decodeHistogram = nullptr;
+    }
+
     if (MEDIA_IS_SKU(m_skuTable, FtrVcs2) && (m_videoGpuNode < MOS_GPU_NODE_MAX))
     {
         // Destroy decode video node association
@@ -765,6 +773,93 @@ MOS_STATUS CodechalDecode::EndFrame ()
                     m_decodeStatusBuf.m_decodeStatus, index, CODECHAL_STATUS_QUERY_START_FLAG));
             }
  
+            auto tempFrameNum   = m_debugInterface->dwBufferDumpFrameNum;
+            auto tempPic        = m_debugInterface->CurrPic;
+            auto tempFrameType  = m_debugInterface->wFrameType;
+            m_debugInterface->dwBufferDumpFrameNum  = m_debugInterface->dwDecodeSurfDumpFrameNum;
+            m_debugInterface->CurrPic               = decodeStatusReport->m_currDecodedPic;
+            m_debugInterface->wFrameType            = decodeStatusReport->m_frameType;
+            bool olpDump = false;
+
+            MOS_SURFACE dstSurface;
+            if (CodecHal_PictureIsFrame(decodeStatusReport->m_currDecodedPic) ||
+                CodecHal_PictureIsInterlacedFrame(decodeStatusReport->m_currDecodedPic) ||
+                CodecHal_PictureIsField(decodeStatusReport->m_currDecodedPic))
+            {
+                MOS_ZeroMemory(&dstSurface, sizeof(dstSurface));
+                dstSurface.Format       = Format_NV12;
+                dstSurface.OsResource   = decodeStatusReport->m_currDecodedPicRes;
+                CODECHAL_DECODE_CHK_STATUS_BREAK(CodecHalGetResourceInfo(
+                    m_osInterface,
+                    &dstSurface));
+
+                CODECHAL_DECODE_CHK_STATUS_BREAK(m_debugInterface->DumpYUVSurface(
+                    &dstSurface,
+                    CodechalDbgAttr::attrDecodeOutputSurface,
+                    "DstSurf"));
+
+                if (m_streamOutEnabled)
+                {
+                    //dump streamout buffer
+                    CODECHAL_DECODE_CHK_STATUS_BREAK(m_debugInterface->DumpBuffer(
+                        decodeStatusReport->m_streamOutBuf,
+                        CodechalDbgAttr::attrStreamOut,
+                        "StreamOut",
+                        dstSurface.dwWidth));
+                    // reset the capture status of the streamout buffer
+                    m_streamOutCurrStatusIdx[decodeStatusReport->m_streamoutIdx] = CODECHAL_DECODE_STATUS_NUM;
+                }
+
+                olpDump = true;
+            }
+
+            if (m_standard == CODECHAL_VC1      &&
+                decodeStatusReport->m_olpNeeded &&
+                olpDump)
+            {
+                MOS_ZeroMemory(&dstSurface, sizeof(dstSurface));
+                dstSurface.Format     = Format_NV12;
+                dstSurface.OsResource = decodeStatusReport->m_deblockedPicResOlp;
+
+                CODECHAL_DECODE_CHK_STATUS_BREAK(CodecHalGetResourceInfo(
+                    m_osInterface,
+                    &dstSurface));
+
+                CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
+                    &dstSurface,
+                    CodechalDbgAttr::attrDecodeOutputSurface,
+                    "OLP_DstSurf"));
+            }
+
+            if ((m_standard == CODECHAL_HEVC || m_standard == CODECHAL_VP9) &&
+                (decodeStatusReport->m_currSfcOutputPicRes != nullptr))
+            {
+                MOS_ZeroMemory(&dstSurface, sizeof(dstSurface));
+                dstSurface.Format     = Format_NV12;
+                dstSurface.OsResource = *decodeStatusReport->m_currSfcOutputPicRes;
+
+            CODECHAL_DECODE_CHK_STATUS_BREAK(CodecHalGetResourceInfo(
+                m_osInterface,
+                &dstSurface));
+
+            CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
+                &dstSurface,
+                CodechalDbgAttr::attrSfcOutputSurface,
+                "SfcDstSurf"));
+            }
+
+            if (CodecHal_PictureIsFrame(decodeStatusReport->m_currDecodedPic) ||
+                CodecHal_PictureIsInterlacedFrame(decodeStatusReport->m_currDecodedPic) ||
+                CodecHal_PictureIsField(decodeStatusReport->m_currDecodedPic))
+            {
+                CODECHAL_DECODE_CHK_STATUS_BREAK(m_debugInterface->DeleteCfgLinkNode(m_debugInterface->dwDecodeSurfDumpFrameNum));
+                m_debugInterface->dwDecodeSurfDumpFrameNum = tempSurfNum;
+                    
+            }
+            m_debugInterface->dwBufferDumpFrameNum  = tempFrameNum;
+            m_debugInterface->CurrPic               = tempPic;
+            m_debugInterface->wFrameType            = tempFrameType;
+
             if (m_decodeStatusBuf.m_decodeStatus[index].m_hwStoredData == CODECHAL_STATUS_QUERY_END_FLAG)
             {
                 // report the CS Engine ID to user feature
@@ -781,94 +876,6 @@ MOS_STATUS CodechalDecode::EndFrame ()
                         CODECHAL_UPDATE_USED_VDBOX_ID_USER_FEATURE(csEngineIdValue.fields.InstanceId);
                     }
                 }
-
-                auto tempFrameNum   = m_debugInterface->dwBufferDumpFrameNum;
-                auto tempPic        = m_debugInterface->CurrPic;
-                auto tempFrameType  = m_debugInterface->wFrameType;
-                m_debugInterface->dwBufferDumpFrameNum  = m_debugInterface->dwDecodeSurfDumpFrameNum;
-                m_debugInterface->CurrPic               = decodeStatusReport->m_currDecodedPic;
-                m_debugInterface->wFrameType            = decodeStatusReport->m_frameType;
-                bool olpDump = false;
-
-                MOS_SURFACE dstSurface;
-                if (CodecHal_PictureIsFrame(decodeStatusReport->m_currDecodedPic) ||
-                    CodecHal_PictureIsInterlacedFrame(decodeStatusReport->m_currDecodedPic) ||
-                    decodeStatusReport->m_secondField)
-                {
-                    MOS_ZeroMemory(&dstSurface, sizeof(dstSurface));
-                    dstSurface.Format       = Format_NV12;
-                    dstSurface.OsResource   = decodeStatusReport->m_currDecodedPicRes;
-                    CODECHAL_DECODE_CHK_STATUS_BREAK(CodecHal_GetResourceInfo(
-                        m_osInterface,
-                        &dstSurface));
-
-                    CODECHAL_DECODE_CHK_STATUS_BREAK(m_debugInterface->DumpYUVSurface(
-                        &dstSurface,
-                        CodechalDbgAttr::attrDecodeOutputSurface,
-                        "DstSurf"));
-
-                    if (m_streamOutEnabled)
-                    {
-                        //dump streamout buffer
-                        CODECHAL_DECODE_CHK_STATUS_BREAK(m_debugInterface->DumpBuffer(
-                            decodeStatusReport->m_streamOutBuf,
-                            CodechalDbgAttr::attrStreamOut,
-                            "StreamOut",
-                            dstSurface.dwWidth));
-                        // reset the capture status of the streamout buffer
-                        m_streamOutCurrStatusIdx[decodeStatusReport->m_streamoutIdx] = CODECHAL_DECODE_STATUS_NUM;
-                    }
-
-                    olpDump = true;
-                }
-
-                if (m_standard == CODECHAL_VC1      &&
-                    decodeStatusReport->m_olpNeeded &&
-                    olpDump)
-                {
-                    MOS_ZeroMemory(&dstSurface, sizeof(dstSurface));
-                    dstSurface.Format     = Format_NV12;
-                    dstSurface.OsResource = decodeStatusReport->m_deblockedPicResOlp;
-
-                    CODECHAL_DECODE_CHK_STATUS_BREAK(CodecHal_GetResourceInfo(
-                        m_osInterface,
-                        &dstSurface));
-
-                    CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
-                        &dstSurface,
-                        CodechalDbgAttr::attrDecodeOutputSurface,
-                        "OLP_DstSurf"));
-                }
-
-                if (m_standard == CODECHAL_HEVC &&
-                    (decodeStatusReport->m_currSfcOutputPicRes != nullptr))
-                {
-                    MOS_ZeroMemory(&dstSurface, sizeof(dstSurface));
-                    dstSurface.Format     = Format_NV12;
-                    dstSurface.OsResource = *decodeStatusReport->m_currSfcOutputPicRes;
-
-                    CODECHAL_DECODE_CHK_STATUS_BREAK(CodecHal_GetResourceInfo(
-                        m_osInterface,
-                        &dstSurface));
-
-                    CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
-                        &dstSurface,
-                        CodechalDbgAttr::attrSfcOutputSurface,
-                        "SfcDstSurf"));
-                }
-
-                if (CodecHal_PictureIsFrame(decodeStatusReport->m_currDecodedPic) ||
-                    CodecHal_PictureIsInterlacedFrame(decodeStatusReport->m_currDecodedPic) ||
-                    decodeStatusReport->m_secondField)
-                {
-                    CODECHAL_DECODE_CHK_STATUS_BREAK(m_debugInterface->DeleteCfgLinkNode(m_debugInterface->dwDecodeSurfDumpFrameNum));
-                    m_debugInterface->dwDecodeSurfDumpFrameNum = tempSurfNum;
-                    
-                }
-                m_debugInterface->dwBufferDumpFrameNum  = tempFrameNum;
-                m_debugInterface->CurrPic               = tempPic;
-                m_debugInterface->wFrameType            = tempFrameType;
-
                 preIndex = index + 1;
             }
         }
@@ -943,7 +950,7 @@ MOS_STATUS CodechalDecode::Execute(void *params)
         CODECHAL_DECODE_CHK_NULL_RETURN(decodeParams->m_procParams);
 
         procParams = (PCODECHAL_DECODE_PROCESSING_PARAMS)decodeParams->m_procParams;
-        CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHal_GetResourceInfo(
+        CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(
             m_osInterface,
             procParams->pOutputSurface));
 
@@ -954,7 +961,7 @@ MOS_STATUS CodechalDecode::Execute(void *params)
             frameIdx = 0;
 
             m_refSurfaces = procParams->pInputSurface;
-            CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHal_GetResourceInfo(
+            CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(
                 m_osInterface,
                 m_refSurfaces));
 
@@ -993,7 +1000,7 @@ MOS_STATUS CodechalDecode::Execute(void *params)
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_cpInterface->UpdateParams(true));
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHal_GetResourceInfo(
+    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(
         m_osInterface,
         decodeParams->m_destSurface));
 
@@ -1079,6 +1086,11 @@ MOS_STATUS CodechalDecode::Execute(void *params)
     }
 
     *decodeParams = m_decodeParams;
+
+    if (m_decodeHistogram != nullptr)
+    {
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_decodeHistogram->RenderHistogram(this, m_decodeParams.m_destSurface));
+    }
 
 //#if (_DEBUG || _RELEASE_INTERNAL)
 //#ifdef _MD5_DEBUG_SUPPORTED
@@ -1281,16 +1293,12 @@ MOS_STATUS CodechalDecode::ResetStatusReport(
         // initialize command buffer attributes
         cmdBuffer.Attributes.bTurboMode     = m_hwInterface->m_turboMode;
 
-        MHW_GENERIC_PROLOG_PARAMS genericPrologParams;
-        MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
-        genericPrologParams.pOsInterface            = m_osInterface;
-        genericPrologParams.pvMiInterface           = m_miInterface;
-        genericPrologParams.bMmcEnabled             = CodecHalMmcState::IsMmcEnabled();
-        genericPrologParams.presStoreData           = &m_decodeStatusBuf.m_statusBuffer;
-        genericPrologParams.dwStoreDataValue        = m_decodeStatusBuf.m_swStoreData;
-        CODECHAL_DECODE_CHK_STATUS_RETURN(Mhw_SendGenericPrologCmd(
+        CODECHAL_DECODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(
             &cmdBuffer,
-            &genericPrologParams));
+            false));
+
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(
+            &cmdBuffer));
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(
             &cmdBuffer,
@@ -1496,7 +1504,8 @@ MOS_STATUS CodechalDecode::GetStatusReport(
 }
 
 MOS_STATUS CodechalDecode::SendPrologWithFrameTracking(
-    PMOS_COMMAND_BUFFER             cmdBuffer)
+    PMOS_COMMAND_BUFFER             cmdBuffer,
+    bool                            frameTrackingRequested)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -1506,15 +1515,22 @@ MOS_STATUS CodechalDecode::SendPrologWithFrameTracking(
 
     MOS_GPU_CONTEXT gpuContext = m_osInterface->pfnGetGpuContext(m_osInterface);
 
-    // initialize command buffer attributes
-    cmdBuffer->Attributes.bTurboMode                    = m_hwInterface->m_turboMode;
-    cmdBuffer->Attributes.bMediaPreemptionEnabled       = MOS_RCS_ENGINE_USED(gpuContext) ?
-        m_hwInterface->GetRenderInterface()->IsPreemptionEnabled() : 0;
-    cmdBuffer->Attributes.bEnableMediaFrameTracking     = true;
-    cmdBuffer->Attributes.resMediaFrameTrackingSurface  = m_decodeStatusBuf.m_statusBuffer;
-    cmdBuffer->Attributes.dwMediaFrameTrackingTag       = m_decodeStatusBuf.m_swStoreData;
-    // Set media frame tracking address offset(the offset from the decoder status buffer page, refer to CodecHalDecode_Initialize)
-    cmdBuffer->Attributes.dwMediaFrameTrackingAddrOffset = 0;
+    if (frameTrackingRequested)
+    {
+        // initialize command buffer attributes
+        cmdBuffer->Attributes.bTurboMode = m_hwInterface->m_turboMode;
+        cmdBuffer->Attributes.bMediaPreemptionEnabled = MOS_RCS_ENGINE_USED(gpuContext) ?
+            m_hwInterface->GetRenderInterface()->IsPreemptionEnabled() : 0;
+        cmdBuffer->Attributes.bEnableMediaFrameTracking = true;
+        cmdBuffer->Attributes.resMediaFrameTrackingSurface = m_decodeStatusBuf.m_statusBuffer;
+        cmdBuffer->Attributes.dwMediaFrameTrackingTag = m_decodeStatusBuf.m_swStoreData;
+        // Set media frame tracking address offset(the offset from the decoder status buffer page, refer to CodecHalDecode_Initialize)
+        cmdBuffer->Attributes.dwMediaFrameTrackingAddrOffset = 0;
+    }
+
+#ifdef _MMC_SUPPORTED
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SendPrologCmd(m_miInterface, cmdBuffer, MOS_RCS_ENGINE_USED(gpuContext)));
+#endif
 
     MHW_GENERIC_PROLOG_PARAMS genericPrologParams;
     MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));

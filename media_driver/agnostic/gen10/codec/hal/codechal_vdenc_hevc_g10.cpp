@@ -25,10 +25,31 @@
 //!
 
 #include "codechal_vdenc_hevc_g10.h"
-#include "codechal_encoder_g10.h"
 #include "codeckrnheader.h"
 #include "igcodeckrn_g10.h"
 #include "codechal_huc_cmd_initializer.h"
+
+struct CODECHAL_HEVC_VP9_VDENC_KERNEL_HEADER_G10
+{
+    int nKernelCount;
+
+    union
+    {
+        struct
+        {
+            CODECHAL_KERNEL_HEADER Gen10_HEVC_VP9_VDEnc_DS4X_Frame;
+            CODECHAL_KERNEL_HEADER Gen10_HEVC_VP9_VDEnc_DS4X_Field;
+            CODECHAL_KERNEL_HEADER Gen10_HEVC_VP9_VDEnc_DS2X_Frame;
+            CODECHAL_KERNEL_HEADER Gen10_HEVC_VP9_VDEnc_DS2X_Field;
+            CODECHAL_KERNEL_HEADER Gen10_HEVC_VP9_VDEnc_HME_P;
+            CODECHAL_KERNEL_HEADER Gen10_HEVC_VP9_VDEnc_HME_B;
+            CODECHAL_KERNEL_HEADER Gen10_HEVC_VP9_VDEnc_HME_Streamin;
+            CODECHAL_KERNEL_HEADER Gen10_HEVC_VP9_VDEnc_HME_HEVC_Streamin;
+            CODECHAL_KERNEL_HEADER Gen10_HEVC_VP9_VDEnc_HMEDetection;
+        };
+    };
+
+};
 
 struct CODECHAL_VDENC_HEVC_HUC_BRC_INIT_DMEM_G10
 {
@@ -98,7 +119,10 @@ struct CODECHAL_VDENC_HEVC_HUC_BRC_INIT_DMEM_G10
     uint8_t     RESERVED;
     uint32_t    ACQP_U32;                           // 1
     uint32_t    SlidingWindow_Size_U32;             // 30
-    uint32_t    RSVD1[9];                           // 64 bytes aligned
+    int8_t      CbQPOffset;                         // -1
+    int8_t      CrQPOffset;                         // -1
+    int8_t      RSVD2[2];
+    uint32_t    RSVD1[8];
 };
 C_ASSERT(192 == sizeof(CODECHAL_VDENC_HEVC_HUC_BRC_INIT_DMEM_G10));
 
@@ -417,7 +441,7 @@ MOS_STATUS CodechalVdencHevcStateG10::GetKernelHeaderAndSize(
     CODECHAL_ENCODE_CHK_NULL_RETURN(krnHeader);
     CODECHAL_ENCODE_CHK_NULL_RETURN(krnSize);
 
-    PCODECHAL_HEVC_VP9_VDENC_KERNEL_HEADER_G10 kernelHeaderTable = (PCODECHAL_HEVC_VP9_VDENC_KERNEL_HEADER_G10)binary;
+    CODECHAL_HEVC_VP9_VDENC_KERNEL_HEADER_G10* kernelHeaderTable = (CODECHAL_HEVC_VP9_VDENC_KERNEL_HEADER_G10*)binary;
     PCODECHAL_KERNEL_HEADER currKrnHeader = nullptr;
 
     switch (operation)
@@ -585,7 +609,7 @@ MOS_STATUS CodechalVdencHevcStateG10::InitKernelStateMe()
         &kernelStatePtr->dwSshSize,
         &kernelStatePtr->dwBindingTableSize));
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_MhwInitISH(m_stateHeapInterface, kernelStatePtr));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->MhwInitISH(m_stateHeapInterface, kernelStatePtr));
 
     return eStatus;
 }
@@ -624,7 +648,7 @@ MOS_STATUS CodechalVdencHevcStateG10::InitKernelStateStreamIn()
         &kernelStatePtr->dwSshSize,
         &kernelStatePtr->dwBindingTableSize));
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_MhwInitISH(m_stateHeapInterface, kernelStatePtr));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->MhwInitISH(m_stateHeapInterface, kernelStatePtr));
 
     return eStatus;
 }
@@ -635,8 +659,10 @@ MOS_STATUS CodechalVdencHevcStateG10::InitKernelState()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
+#ifndef _FULL_OPEN_SOURCE
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateMe());
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateStreamIn());
+#endif
 
     return eStatus;
 }
@@ -644,18 +670,23 @@ MOS_STATUS CodechalVdencHevcStateG10::InitKernelState()
 uint32_t CodechalVdencHevcStateG10::GetMaxBtCount()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
+    
+    uint32_t maxBtCount = 0;
 
+#ifndef _FULL_OPEN_SOURCE
     auto btIdxAlignment = m_stateHeapInterface->pStateHeapInterface->GetBtIdxAlignment();
 
     // 4x, 16x DS, 4x ME, 16x ME
     uint32_t maxBtCount1 = 2 * (MOS_ALIGN_CEIL(m_scaling4xKernelStates->KernelParams.iBTCount, btIdxAlignment) +
         MOS_ALIGN_CEIL(m_vdencStreaminKernelState.KernelParams.iBTCount, btIdxAlignment) +
         MOS_ALIGN_CEIL(m_vdencMeKernelState.KernelParams.iBTCount, btIdxAlignment));
-
+    
      // CSC DsCopy Kernel
     uint32_t maxBtCount2 = 2 * (MOS_ALIGN_CEIL(m_cscDsState->GetBTCount(), btIdxAlignment));
 
-    uint32_t maxBtCount  = MOS_MAX(maxBtCount1, maxBtCount2);
+    maxBtCount  = MOS_MAX(maxBtCount1, maxBtCount2);
+#endif
+
     return maxBtCount;
 }
 
@@ -818,7 +849,7 @@ MOS_STATUS CodechalVdencHevcStateG10::InitializePicture(const EncoderParams& par
     // 2. If SAO and SSC are both asked by app, driver needs to set SAO off and send slice header offsets to HuC. 
     //    Driver does not need to return error. 
     // 3. TU7 (or performance mode in VDEnc) does not mean HuC cannot be enabled. 
-    //    If there is no SSC, but only CQP, we don’t enable HuC. 
+    //    If there is no SSC, but only CQP, we don't enable HuC. 
     //    But if SSC is on, we do enable.
 
     // On Gen10, SSC and SAO cannot be enabled at the same time
@@ -879,6 +910,13 @@ MOS_STATUS CodechalVdencHevcStateG10::SetMeCurbe(bool using4xMe)
     uint32_t scaleFactor = using4xMe ? SCALE_FACTOR_4x : SCALE_FACTOR_16x;
    
     curbe.DW3.SubPelMode = 3;
+	if (m_fieldScalingOutputInterleaved)
+	{
+		curbe.DW3.SrcAccess =
+			curbe.DW3.RefAccess = CodecHal_PictureIsField(m_currOriginalPic) ? 1 : 0;
+		curbe.DW7.SrcFieldPolarity = CodecHal_PictureIsBottomField(m_currOriginalPic) ? 1 : 0;
+	}
+
     curbe.DW4.PictureHeightMinus1 = CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(m_frameFieldHeight / scaleFactor) - 1;
     curbe.DW4.PictureWidth = CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(m_frameWidth / scaleFactor);
     curbe.DW5.QpPrimeY = pHevcPicParams->QpY + pHevcSliceParams->slice_qp_delta;
@@ -900,8 +938,9 @@ MOS_STATUS CodechalVdencHevcStateG10::SetMeCurbe(bool using4xMe)
         curbe.DW13.NumRefIdxL0MinusOne = pHevcSliceParams->num_ref_idx_l0_active_minus1;
     }
 
-    curbe.DW30.ActualMBHeight = (MOS_ALIGN_CEIL(m_frameHeight, 32) / 32);
-    curbe.DW30.ActualMBWidth = (MOS_ALIGN_CEIL(m_frameWidth, 32) / 32);
+
+    curbe.DW30.ActualMBHeight = (MOS_ALIGN_CEIL(m_frameHeight, CODEC_HEVC_VDENC_LCU_HEIGHT) / 32);
+    curbe.DW30.ActualMBWidth = (MOS_ALIGN_CEIL(m_frameWidth, CODEC_HEVC_VDENC_LCU_WIDTH) / 32);
     curbe.DW13.RefStreaminCost = 0;
     // This flag is to indicate the ROI source type instead of indicating ROI is enabled or not
     curbe.DW13.ROIEnable = 0;
@@ -989,7 +1028,7 @@ MOS_STATUS CodechalVdencHevcStateG10::SendMeSurfaces(bool using4xMe, PMOS_COMMAN
     surfaceCodecParams.dwBindingTableOffset = bindingTable->dwBindingTableEntries[CODECHAL_VDENC_HME_MV_DATA_SURFACE_CM_G10];
     surfaceCodecParams.bIsWritable = true;
     surfaceCodecParams.bRenderTarget = true;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         cmdBuffer,
         &surfaceCodecParams,
@@ -1005,7 +1044,7 @@ MOS_STATUS CodechalVdencHevcStateG10::SendMeSurfaces(bool using4xMe, PMOS_COMMAN
         surfaceCodecParams.dwOffset = 0;
         surfaceCodecParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_MV_DATA_ENCODE].Value;
         surfaceCodecParams.dwBindingTableOffset = bindingTable->dwBindingTableEntries[CODECHAL_VDENC_16xME_MV_DATA_SURFACE_CM_G10];
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
             m_hwInterface,
             cmdBuffer,
             &surfaceCodecParams,
@@ -1020,7 +1059,7 @@ MOS_STATUS CodechalVdencHevcStateG10::SendMeSurfaces(bool using4xMe, PMOS_COMMAN
         surfaceCodecParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ME_DISTORTION_ENCODE].Value;
         surfaceCodecParams.bIsWritable = true;
         surfaceCodecParams.bRenderTarget = true;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
             m_hwInterface,
             cmdBuffer,
             &surfaceCodecParams,
@@ -1056,7 +1095,7 @@ MOS_STATUS CodechalVdencHevcStateG10::SendMeSurfaces(bool using4xMe, PMOS_COMMAN
                 surfaceCodecParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_CURR_ENCODE].Value;
                 surfaceCodecParams.dwBindingTableOffset = bindingTable->dwBindingTableEntries[CODECHAL_VDENC_HME_CURR_FOR_FWD_REF_CM_G10];
                 surfaceCodecParams.ucVDirection = currVDirection;
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
                     m_hwInterface,
                     cmdBuffer,
                     &surfaceCodecParams,
@@ -1086,7 +1125,7 @@ MOS_STATUS CodechalVdencHevcStateG10::SendMeSurfaces(bool using4xMe, PMOS_COMMAN
             surfaceCodecParams.dwBindingTableOffset = bindingTable->dwBindingTableEntries[CODECHAL_VDENC_HME_FWD_REF_IDX0_CM_G10 + (refIdx * 2)];
             surfaceCodecParams.ucVDirection = !currFieldPicture ? CODECHAL_VDIRECTION_FRAME :
                 ((refBottomField) ? CODECHAL_VDIRECTION_BOT_FIELD : CODECHAL_VDIRECTION_TOP_FIELD);
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
                 m_hwInterface,
                 cmdBuffer,
                 &surfaceCodecParams,
@@ -1111,7 +1150,7 @@ MOS_STATUS CodechalVdencHevcStateG10::SendMeSurfaces(bool using4xMe, PMOS_COMMAN
                 surfaceCodecParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_CURR_ENCODE].Value;
                 surfaceCodecParams.dwBindingTableOffset = bindingTable->dwBindingTableEntries[CODECHAL_VDENC_HME_CURR_FOR_BWD_REF_CM_G10];
                 surfaceCodecParams.ucVDirection = currVDirection;
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
                     m_hwInterface,
                     cmdBuffer,
                     &surfaceCodecParams,
@@ -1142,7 +1181,7 @@ MOS_STATUS CodechalVdencHevcStateG10::SendMeSurfaces(bool using4xMe, PMOS_COMMAN
             surfaceCodecParams.dwBindingTableOffset = bindingTable->dwBindingTableEntries[CODECHAL_VDENC_HME_BWD_REF_IDX0_CM_G10 + (refIdx * 2)];
             surfaceCodecParams.ucVDirection = !currFieldPicture ? CODECHAL_VDIRECTION_FRAME :
                 ((refBottomField) ? CODECHAL_VDIRECTION_BOT_FIELD : CODECHAL_VDIRECTION_TOP_FIELD);
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
                 m_hwInterface,
                 cmdBuffer,
                 &surfaceCodecParams,
@@ -1172,14 +1211,14 @@ MOS_STATUS CodechalVdencHevcStateG10::SendMeSurfaces(bool using4xMe, PMOS_COMMAN
             &m_resVdencStreamInBuffer[m_currRecycledBufIdx]);
 
         MOS_ZeroMemory(&surfaceCodecParams, sizeof(surfaceCodecParams));
-        surfaceCodecParams.dwSize = MOS_BYTES_TO_DWORDS(m_picHeightInMb * m_picWidthInMb * 32);
+		surfaceCodecParams.dwSize = MOS_BYTES_TO_DWORDS((MOS_ALIGN_CEIL(m_frameWidth, CODEC_HEVC_VDENC_LCU_WIDTH) / 32) * (MOS_ALIGN_CEIL(m_frameHeight, CODEC_HEVC_VDENC_LCU_HEIGHT) / 32) * CODECHAL_CACHELINE_SIZE);
         surfaceCodecParams.bIs2DSurface = false;
         surfaceCodecParams.presBuffer = &m_resVdencStreamInBuffer[m_currRecycledBufIdx];
         surfaceCodecParams.dwBindingTableOffset = bindingTable->dwBindingTableEntries[CODECHAL_VDENC_HME_VDENC_STREAMIN_OUTPUT_CM_G10];
         surfaceCodecParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_BRC_ME_DISTORTION_ENCODE].Value;
         surfaceCodecParams.bIsWritable = true;
         surfaceCodecParams.bRenderTarget = true;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
             m_hwInterface,
             cmdBuffer,
             &surfaceCodecParams,
@@ -1219,7 +1258,7 @@ MOS_STATUS CodechalVdencHevcStateG10::EncodeMeKernel(bool using4xMe)
     }
 
     // Set up the DSH/SSH as normal
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_AssignDshAndSshSpace(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AssignDshAndSshSpace(
         m_stateHeapInterface,
         kernelState,
         false,
@@ -1290,7 +1329,7 @@ MOS_STATUS CodechalVdencHevcStateG10::EncodeMeKernel(bool using4xMe)
     walkerCodecParams.ucGroupId = m_groupId;
 
     MHW_WALKER_PARAMS walkerParams;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_InitMediaObjectWalkerParams(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalInitMediaObjectWalkerParams(
         m_hwInterface,
         &walkerParams,
         &walkerCodecParams));
@@ -1340,6 +1379,7 @@ MOS_STATUS CodechalVdencHevcStateG10::EncodeKernelFunctions()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
+#ifndef _FULL_OPEN_SOURCE
     if (m_cscDsState->RequireCsc())
     {
         CODECHAL_ENCODE_CHK_NULL_RETURN(m_cscDsState);
@@ -1461,7 +1501,7 @@ MOS_STATUS CodechalVdencHevcStateG10::EncodeKernelFunctions()
             }
         }
     )
-
+#endif
     return eStatus;
 }
 
@@ -1476,7 +1516,7 @@ MOS_STATUS CodechalVdencHevcStateG10::SetDmemHuCBrcInitReset()
     lockFlagsWriteOnly.WriteOnly = true;
 
     PCODECHAL_VDENC_HEVC_HUC_BRC_INIT_DMEM_G10 hucVdencBrcInitDmem = (PCODECHAL_VDENC_HEVC_HUC_BRC_INIT_DMEM_G10)m_osInterface->pfnLockResource(
-        m_osInterface, &m_vdencBrcInitDmemBuffer, &lockFlagsWriteOnly);
+        m_osInterface, &m_vdencBrcInitDmemBuffer[m_currRecycledBufIdx], &lockFlagsWriteOnly);
     CODECHAL_ENCODE_CHK_NULL_RETURN(hucVdencBrcInitDmem);
 
     hucVdencBrcInitDmem->BRCFunc_U32 = 0;  // 0: Init, 1: Reset
@@ -1557,9 +1597,13 @@ MOS_STATUS CodechalVdencHevcStateG10::SetDmemHuCBrcInitReset()
     // In VDENC mode, this field "Cu_Qp_Delta_Enabled_Flag" should always be set to 1.
     
 	if (pHevcSeqParams->QpAdjustment)
+	{
 		hucVdencBrcInitDmem->CuQpCtrl_U8 = 3;  // wPictureCodingType I:0, P:1, B:2
+	}
 	else
+	{
 		hucVdencBrcInitDmem->CuQpCtrl_U8 = 0;  // wPictureCodingType I:0, P:1, B:2
+	}
 
     if (hucVdencBrcInitDmem->LowDelayMode_U8 = (pHevcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_EXTREMELY_LOW))  // Low Delay BRC
     {
@@ -1615,7 +1659,7 @@ MOS_STATUS CodechalVdencHevcStateG10::SetDmemHuCBrcInitReset()
     hucVdencBrcInitDmem->SlidingWindow_Size_U32 = 30;
     hucVdencBrcInitDmem->SlidingWindow_MaxRateRatio_U8 = 120;
 
-    m_osInterface->pfnUnlockResource(m_osInterface, &m_vdencBrcInitDmemBuffer);
+    m_osInterface->pfnUnlockResource(m_osInterface, &m_vdencBrcInitDmemBuffer[m_currRecycledBufIdx]);
 
     return eStatus;
 }
@@ -1631,7 +1675,7 @@ MOS_STATUS CodechalVdencHevcStateG10::SetConstDataHuCBrcUpdate()
     lockFlagsWriteOnly.WriteOnly = true;
 
     PCODECHAL_VDENC_HEVC_HUC_BRC_CONSTANT_DATA_G10 hucConstData =
-        (PCODECHAL_VDENC_HEVC_HUC_BRC_CONSTANT_DATA_G10)m_osInterface->pfnLockResource(m_osInterface, &m_vdencBrcConstDataBuffer, &lockFlagsWriteOnly);
+        (PCODECHAL_VDENC_HEVC_HUC_BRC_CONSTANT_DATA_G10)m_osInterface->pfnLockResource(m_osInterface, &m_vdencBrcConstDataBuffer[m_currRecycledBufIdx], &lockFlagsWriteOnly);
     CODECHAL_ENCODE_CHK_NULL_RETURN(hucConstData);
     MOS_SecureMemcpy(hucConstData, sizeof(m_hucConstantData), m_hucConstantData, sizeof(m_hucConstantData));
 
@@ -1732,7 +1776,7 @@ MOS_STATUS CodechalVdencHevcStateG10::SetConstDataHuCBrcUpdate()
         currentLocation = baseLocation;
     }
 
-    m_osInterface->pfnUnlockResource(m_osInterface, &m_vdencBrcConstDataBuffer);
+    m_osInterface->pfnUnlockResource(m_osInterface, &m_vdencBrcConstDataBuffer[m_currRecycledBufIdx]);
 
     return eStatus;
 }
@@ -1749,7 +1793,7 @@ MOS_STATUS CodechalVdencHevcStateG10::SetDmemHuCBrcUpdate()
 
     // Program update DMEM
     PCODECHAL_VDENC_HEVC_HUC_BRC_UPDATE_DMEM_G10 hucVdencBrcUpdateDmem = (PCODECHAL_VDENC_HEVC_HUC_BRC_UPDATE_DMEM_G10)m_osInterface->pfnLockResource(
-        m_osInterface, &m_vdencBrcUpdateDmemBuffer[GetCurrentPass()], &lockFlagsWriteOnly);
+        m_osInterface, &m_vdencBrcUpdateDmemBuffer[m_currRecycledBufIdx][GetCurrentPass()], &lockFlagsWriteOnly);
     CODECHAL_ENCODE_CHK_NULL_RETURN(hucVdencBrcUpdateDmem);
 
     hucVdencBrcUpdateDmem->TARGETSIZE_U32 = MOS_MIN(pHevcSeqParams->InitVBVBufferFullnessInBit, pHevcSeqParams->VBVBufferSizeInBit);
@@ -1794,7 +1838,14 @@ MOS_STATUS CodechalVdencHevcStateG10::SetDmemHuCBrcUpdate()
     // CQP_QPValue_U8 setting is needed since ACQP is also part of ICQ
     hucVdencBrcUpdateDmem->CQP_QPValue_U8 = pHevcPicParams->QpY + pHevcSliceParams->slice_qp_delta;
     hucVdencBrcUpdateDmem->CQP_FracQP_U8 = 0;
-    hucVdencBrcUpdateDmem->MaxNumPass_U8 = CODECHAL_VDENC_BRC_NUM_OF_PASSES;
+    if (pHevcPicParams->BRCPrecision == 1)
+    {
+        hucVdencBrcUpdateDmem->MaxNumPass_U8 = 1;
+    }
+    else
+    {
+        hucVdencBrcUpdateDmem->MaxNumPass_U8 = CODECHAL_VDENC_BRC_NUM_OF_PASSES;
+    }
 
     MOS_SecureMemcpy(hucVdencBrcUpdateDmem->gRateRatioThreshold_U8, 7 * sizeof(uint8_t), (void*)m_rateRatioThreshold, 7 * sizeof(uint8_t));
     MOS_SecureMemcpy(hucVdencBrcUpdateDmem->startGAdjMult_U8, 5 * sizeof(uint8_t), (void*)m_startGAdjMult, 5 * sizeof(uint8_t));
@@ -1849,7 +1900,7 @@ MOS_STATUS CodechalVdencHevcStateG10::SetDmemHuCBrcUpdate()
     m_numSkipFrames = 0;
     m_sizeSkipFrames = 0;
 
-    m_osInterface->pfnUnlockResource(m_osInterface, &(m_vdencBrcUpdateDmemBuffer[GetCurrentPass()]));
+    m_osInterface->pfnUnlockResource(m_osInterface, &(m_vdencBrcUpdateDmemBuffer[m_currRecycledBufIdx][GetCurrentPass()]));
 
     return eStatus;
 }
@@ -1896,7 +1947,7 @@ MOS_STATUS CodechalVdencHevcStateG10::ConstructBatchBufferHuCCQP(PMOS_RESOURCE b
         m_osInterface->pfnUnlockResource(m_osInterface, batchBuffer);
     }
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(hucCmdInitializer->CmdInitializerExecute(false, batchBuffer));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucCmdInitializer->CmdInitializerExecute(false, batchBuffer));
 
     return eStatus;
 }
@@ -2237,72 +2288,10 @@ MOS_STATUS CodechalVdencHevcStateG10::GetStatusReport(
     // common initilization 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalVdencHevcState::GetStatusReport(encodeStatus, encodeStatusReport));
 
-    MOS_LOCK_PARAMS lockFlags;
-    MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
-    lockFlags.ReadOnly = true;
-
-    //Read Number of Slices from the buffer
-    uint8_t *data = (uint8_t *)m_osInterface->pfnLockResource(
-        m_osInterface,
-        m_resSliceCountBuffer,
-        &lockFlags);
-
-    CODECHAL_ENCODE_CHK_NULL_RETURN(data);
-    uint32_t* pointer = (uint32_t*)data;
-
-    encodeStatusReport->NumberSlices = (uint8_t)pointer[0];
-
-    m_osInterface->pfnUnlockResource(
-        m_osInterface,
-        m_resSliceCountBuffer);
-
-    if (pHevcSeqParams->SliceSizeControl == 1)
-    {
-        //Read slice size for each of the slice from the buffer if SSC enabled
-        data = (uint8_t *)m_osInterface->pfnLockResource(
-            m_osInterface,
-            &resLcuBaseAddressBuffer,
-            &lockFlags);
-        CODECHAL_ENCODE_CHK_NULL_RETURN(data);
-
-        pointer = (uint32_t*)data;
-
-        encodeStatusReport->SizeOfSliceSizesBuffer = sizeof(uint16_t)* encodeStatusReport->NumberSlices;
-        encodeStatusReport->pSliceSizes = (uint16_t*)MOS_AllocAndZeroMemory(encodeStatusReport->SizeOfSliceSizesBuffer);
-        CODECHAL_ENCODE_CHK_NULL_RETURN(encodeStatusReport->pSliceSizes);
-
-        for (auto sliceCount = 0, loopCounter = 0; sliceCount < encodeStatusReport->NumberSlices; sliceCount++)
-        {
-            encodeStatusReport->pSliceSizes[sliceCount] = (uint16_t)pointer[loopCounter];
-            loopCounter += 16; // Every 16th dword gives SliceSize
-        }
-
-        //convert cummulative slice size to individual, first slice may have PPS/SPS,
-        for (auto sliceCount = encodeStatusReport->NumberSlices - 1; sliceCount > 0; sliceCount--)
-        {
-            encodeStatusReport->pSliceSizes[sliceCount] -= encodeStatusReport->pSliceSizes[sliceCount - 1];
-        }
-
-        m_osInterface->pfnUnlockResource(
-            m_osInterface,
-            &resLcuBaseAddressBuffer);
-
-        //Get Slice size overflow bit
-        data = (uint8_t *)m_osInterface->pfnLockResource(
-            m_osInterface,
-            &resFrameStatStreamOutBuffer,
-            &lockFlags);
-        CODECHAL_ENCODE_CHK_NULL_RETURN(data);
-
-        pointer = (uint32_t*)data;
-        pointer[0] = pointer[0] >> 16;// PAK Frame Statistics 0 Dword 16 bit
-
-        encodeStatusReport->SliceSizeOverflow = (uint32_t)pointer[0] & 1;
-
-        m_osInterface->pfnUnlockResource(
-            m_osInterface,
-            &resFrameStatStreamOutBuffer);
-    }
+    encodeStatusReport->NumberSlices      = encodeStatus->sliceReport.NumberSlices;
+    encodeStatusReport->SizeOfSliceSizesBuffer = encodeStatus->sliceReport.SizeOfSliceSizesBuffer;
+    encodeStatusReport->pSliceSizes       = encodeStatus->sliceReport.pSliceSize;
+    encodeStatusReport->SliceSizeOverflow = encodeStatus->sliceReport.SliceSizeOverflow;
 
     return eStatus;
 }
@@ -2314,23 +2303,23 @@ MOS_STATUS CodechalVdencHevcStateG10::Initialize(PCODECHAL_SETTINGS settings)
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     auto cmdInitializer = MOS_New(CodechalCmdInitializer, this);
-    hucCmdInitializer = cmdInitializer;
+    m_hucCmdInitializer = cmdInitializer;
 
-    m_cmdInitializerHucUsed = true;
+    m_hucCmdInitializerUsed = true;
 
     // common initilization 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalVdencHevcState::Initialize(settings));
 
     MOS_USER_FEATURE_VALUE_DATA userFeatureData;
 
-	m_hevcVdencAcqpEnabled = true;
+    m_hevcVdencAcqpEnabled = true;
 
-	/*	MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-	CodecHal_UserFeature_ReadValue(
-		nullptr,
-		__MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_ACQP_ENABLE_ID,
-		&userFeatureData);
-	m_hevcVdencAcqpEnabled = (userFeatureData.i32Data) ? true : false;*/
+    /*	MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_ACQP_ENABLE_ID,
+        &userFeatureData);
+    m_hevcVdencAcqpEnabled = (userFeatureData.i32Data) ? true : false;*/
 
     // Overriding the defaults here with 32 aligned dimensions
     // HME Scaling WxH
@@ -2356,13 +2345,6 @@ MOS_STATUS CodechalVdencHevcStateG10::Initialize(PCODECHAL_SETTINGS settings)
     {
         m_minScaledDimension = m_minScaledSurfaceSize;
         m_minScaledDimensionInMb = (m_minScaledSurfaceSize + 15) >> 4;
-
-        // temporary till C model is fixed
-        if (m_frameWidth < 1024 || m_frameHeight < 1024)
-        {
-            m_16xMeSupported = false;
-            m_32xMeSupported = false;
-        }
     }
 
     return eStatus;
@@ -2431,7 +2413,7 @@ CodechalVdencHevcStateG10::CodechalVdencHevcStateG10(
     m_hwInterface->GetStateHeapSettings()->dwDshSize = CODECHAL_INIT_DSH_SIZE_HEVC_ENC;
 
     m_kuid = IDR_CODEC_VDENC_HME;
-    MOS_STATUS eStatus = CodecHal_GetKernelBinaryAndSize(
+    MOS_STATUS eStatus = CodecHalGetKernelBinaryAndSize(
         (uint8_t*)IGCODECKRN_G10,
         m_kuid,
         &m_kernelBinary,

@@ -1553,27 +1553,13 @@ public:
         //!                 <td>VD/VE Input Ordering Mode</td>
         //!             </tr>
         //!             <tr>
-        //!                 <td>MPEG2 w/o OLDB</td>
+        //!                 <td>VC1 w/o LF and w/o OS Note: VC1 LF applies for ILDB</td>
         //!                 <td>420 (NV12)</td>
         //!                 <td>1</td>
         //!                 <td>0</td>
         //!             </tr>
         //!             <tr>
-        //!                 <td>MPEG2 w/ OLDB</td>
-        //!                 <td></td>
-        //!                 <td>INVALID with SFC</td>
-        //!                 <td>INVALID with SFC</td>
-        //!             </tr>
-        //!             <tr>
-        //!                 <td>VC1 w/o LF and w/o OS Note: VC1 LF applies for either
-        //!     OLDB or ILDB</td>
-        //!                 <td>420 (NV12)</td>
-        //!                 <td>1</td>
-        //!                 <td>0</td>
-        //!             </tr>
-        //!             <tr>
-        //!                 <td>VC1 w/ LF or w/ OS or w/ both Note: VC1 LF applies for
-        //!     either OLDB or ILDB</td>
+        //!                 <td>VC1 w/ LF or w/ OS or w/ both Note: VC1 LF applies for ILDB</td>
         //!                 <td></td>
         //!                 <td>INVALID with SFC</td>
         //!                 <td>INVALID with SFC</td>
@@ -1597,7 +1583,7 @@ public:
         //!                 <td>1</td>
         //!             </tr>
         //!             <tr>
-        //!                 <td>AVC/VP8 with LF (VP8 have no OLDB support)</td>
+        //!                 <td>AVC/VP8 with LF</td>
         //!                 <td>420 (NV12)</td>
         //!                 <td>1</td>
         //!                 <td>1</td>

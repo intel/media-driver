@@ -333,7 +333,3 @@ VAStatus MediaLibvaCapsG10::QueryAVCROIMaxNum(uint32_t rcMode, int32_t *maxNum, 
     *isRoiInDeltaQP = true;
     return VA_STATUS_SUCCESS;
 }
-extern template class MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>;
-
-static bool cnlRegistered = MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>::
-    RegisterCaps<MediaLibvaCapsG10>((uint32_t)IGFX_CANNONLAKE); 

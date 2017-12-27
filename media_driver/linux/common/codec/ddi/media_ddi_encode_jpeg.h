@@ -57,6 +57,10 @@ static const uint32_t defaultChromaQuant[64] =  //!< Default Quantization Matrix
     99, 99, 99, 99, 99, 99, 99, 99
 };
 
+//!
+//! \enum   DDI_ENCODE_JPEG_INPUTSURFACEFORMATS
+//! \brief  Ddi encode JPEG input surface formats
+//!
 enum DDI_ENCODE_JPEG_INPUTSURFACEFORMATS  //!< Jpeg input surface formats.
 {
     DDI_ENCODE_JPEG_INPUTFORMAT_RESERVED = 0,
@@ -67,6 +71,10 @@ enum DDI_ENCODE_JPEG_INPUTSURFACEFORMATS  //!< Jpeg input surface formats.
     DDI_ENCODE_JPEG_INPUTFORMAT_RGB      = 5
 };
 
+//!
+//! \class  DdiEncodeJpeg
+//! \brief  Ddi encode JPEG
+//!
 class DdiEncodeJpeg : public DdiEncodeBase
 {
 public:
@@ -231,5 +239,10 @@ private:
     //!           Input surface format
     //!
     uint32_t ConvertMediaFormatToInputSurfaceFormat(DDI_MEDIA_FORMAT format);
+
+    CodecEncodeJpegHuffmanDataArray    *m_huffmanTable = nullptr;    //!< Huffman table.
+    void                               *m_appData      = nullptr;    //!< Application data.
+    bool                               m_quantSupplied = false;      //!< whether Quant table is supplied by the app for JPEG encoder.
+    uint32_t                           m_appDataSize   = 0;          //!< Size of application size.
 };
 #endif /* __MEDIA_LIBVA_ENCODER_JPEG_H__ */

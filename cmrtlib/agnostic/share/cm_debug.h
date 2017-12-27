@@ -103,7 +103,6 @@ inline void CmAssertMessage(const char *message) {
 typedef void* Handle;
 typedef Handle CmDeviceHandle;
 typedef Handle CmUmdDeviceHandle;
-typedef unsigned int UINT;
 
 
 int NotifyNewDevice(CmDeviceHandle dh, CmUmdDeviceHandle dxh_, uint32_t driverStoreEnabled);

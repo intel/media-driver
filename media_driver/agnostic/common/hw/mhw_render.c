@@ -113,7 +113,7 @@ void MhwRenderInterface::InitPreemption()
 
     if (MEDIA_IS_SKU(m_skuTable, FtrPerCtxtPreemptionGranularityControl))
     {
-        m_preemptionCntlRegisterOffset = MHW_RENDER_ENGINE_CS_CHICKEN1_PREEMPTION_CONTROL_OFFSET;
+        m_preemptionCntlRegisterOffset = MHW_RENDER_ENGINE_PREEMPTION_CONTROL_OFFSET;
 
         if (MEDIA_IS_SKU(m_skuTable, FtrMediaMidThreadLevelPreempt))
         {
@@ -129,7 +129,7 @@ void MhwRenderInterface::InitPreemption()
         }
 
         // Set it to Mid Batch Pre-emption level (command level) to avoid render engine hang after preemption is turned on in ring buffer
-        if (MEDIA_IS_WA(waTable, WaChickenBitsMidBatchPreemption))
+        if (MEDIA_IS_WA(waTable, WaMidBatchPreemption))
         {
             m_preemptionCntlRegisterValue = MHW_RENDER_ENGINE_MID_BATCH_PREEMPT_VALUE;
         }

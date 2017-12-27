@@ -232,7 +232,7 @@ public:
     //! \brief    Set Power Option Status
     //! \param    [in] pRenderHal
     //!           Pointer to Hardware Interface
-    //! \param    [in/out] pCmdBuffer
+    //! \param    [in,out] pCmdBuffer
     //!           Pointer to Command Buffer
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
@@ -240,6 +240,22 @@ public:
     virtual MOS_STATUS SetPowerOptionStatus(
         PRENDERHAL_INTERFACE         pRenderHal,
         PMOS_COMMAND_BUFFER          pCmdBuffer) = 0;
+
+    //!
+    //! \brief    Set Composite Prolog CMD
+    //! \param    [in] pRenderHal
+    //!           Pointer to Hardware Interface
+    //! \param    [in,out] pCmdBuffer
+    //!           Pointer to Command Buffer
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SetCompositePrologCmd(
+        PRENDERHAL_INTERFACE         pRenderHal,
+        PMOS_COMMAND_BUFFER          pCmdBuffer)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
 
     //!
     //! \brief    Check if Override is needed or not

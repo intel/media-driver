@@ -24,7 +24,6 @@
 //! \brief    This file implements the Csc+Ds feature for all codecs on Gen9 platform
 //!
 
-#include "codechal_encoder.h"
 #include "codechal_encoder_base.h"
 #include "codechal_encode_csc_ds_g9.h"
 #include "codeckrnheader.h"
@@ -39,100 +38,100 @@ MOS_STATUS CodechalEncodeCscDsG9::SetCurbeCsc()
 
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
-    CscKernelCurbeData Curbe;
+    CscKernelCurbeData curbe;
 
-    Curbe.DW0_InputPictureWidth = m_curbeParams.dwInputPictureWidth;
-    Curbe.DW0_InputPictureHeight = m_curbeParams.dwInputPictureHeight;
+    curbe.DW0_InputPictureWidth = m_curbeParams.dwInputPictureWidth;
+    curbe.DW0_InputPictureHeight = m_curbeParams.dwInputPictureHeight;
 
     if (m_curbeParams.bCscOrCopyOnly)
     {
-        Curbe.DW1_CscDsCopyOpCode = 0;    // Copy only
+        curbe.DW1_CscDsCopyOpCode = 0;    // Copy only
     }
     else
     {
         // Enable DS kernel (0  disable, 1  enable)
-        Curbe.DW1_CscDsCopyOpCode = 1;    // 0x01 to 0x7F: DS + Copy
+        curbe.DW1_CscDsCopyOpCode = 1;    // 0x01 to 0x7F: DS + Copy
     }
 
     if (cscColorNv12TileY == m_colorRawSurface ||
         cscColorNv12Linear == m_colorRawSurface)
     {
-        Curbe.DW1_InputColorFormat = 0;
+        curbe.DW1_InputColorFormat = 0;
     }
     else if (cscColorYUY2 == m_colorRawSurface)
     {
-        Curbe.DW1_InputColorFormat = 1;
+        curbe.DW1_InputColorFormat = 1;
     }
     else if ((cscColorARGB == m_colorRawSurface) || (cscColorABGR == m_colorRawSurface))
     {
-        Curbe.DW1_InputColorFormat = 2;
+        curbe.DW1_InputColorFormat = 2;
     }
 
     if (m_curbeParams.bFlatnessCheckEnabled ||
         m_curbeParams.bMBVarianceOutputEnabled ||
         m_curbeParams.bMBPixelAverageOutputEnabled)
     {
-        Curbe.DW2_FlatnessThreshold = 128;
-        Curbe.DW3_EnableMBStatSurface = true;
+        curbe.DW2_FlatnessThreshold = 128;
+        curbe.DW3_EnableMBStatSurface = true;
     }
     else
     {
-        Curbe.DW3_EnableMBStatSurface = false;
+        curbe.DW3_EnableMBStatSurface = false;
     }
     
     // RGB->YUV CSC coefficients
     if (m_curbeParams.inputColorSpace == ECOLORSPACE_P709)
     {
-        Curbe.DW4_CscCoefficientC0 = 0xFFCD;
-        Curbe.DW5_CscCoefficientC3 = 0x0080;
-        Curbe.DW6_CscCoefficientC4 = 0x004F;
-        Curbe.DW7_CscCoefficientC7 = 0x0010;
-        Curbe.DW8_CscCoefficientC8 = 0xFFD5;
-        Curbe.DW9_CscCoefficientC11 = 0x0080;
+        curbe.DW4_CscCoefficientC0 = 0xFFCD;
+        curbe.DW5_CscCoefficientC3 = 0x0080;
+        curbe.DW6_CscCoefficientC4 = 0x004F;
+        curbe.DW7_CscCoefficientC7 = 0x0010;
+        curbe.DW8_CscCoefficientC8 = 0xFFD5;
+        curbe.DW9_CscCoefficientC11 = 0x0080;
         if (cscColorARGB == m_colorRawSurface)
         {
-            Curbe.DW4_CscCoefficientC1 = 0xFFFB;
-            Curbe.DW5_CscCoefficientC2 = 0x0038;
-            Curbe.DW6_CscCoefficientC5 = 0x0008;
-            Curbe.DW7_CscCoefficientC6 = 0x0017;
-            Curbe.DW8_CscCoefficientC9 = 0x0038;
-            Curbe.DW9_CscCoefficientC10 = 0xFFF3;
+            curbe.DW4_CscCoefficientC1 = 0xFFFB;
+            curbe.DW5_CscCoefficientC2 = 0x0038;
+            curbe.DW6_CscCoefficientC5 = 0x0008;
+            curbe.DW7_CscCoefficientC6 = 0x0017;
+            curbe.DW8_CscCoefficientC9 = 0x0038;
+            curbe.DW9_CscCoefficientC10 = 0xFFF3;
         }
         else // cscColorABGR == m_colorRawSurface
         {
-            Curbe.DW4_CscCoefficientC1 = 0x0038;
-            Curbe.DW5_CscCoefficientC2 = 0xFFFB;
-            Curbe.DW6_CscCoefficientC5 = 0x0017;
-            Curbe.DW7_CscCoefficientC6 = 0x0008;
-            Curbe.DW8_CscCoefficientC9 = 0xFFF3;
-            Curbe.DW9_CscCoefficientC10 = 0x0038;
+            curbe.DW4_CscCoefficientC1 = 0x0038;
+            curbe.DW5_CscCoefficientC2 = 0xFFFB;
+            curbe.DW6_CscCoefficientC5 = 0x0017;
+            curbe.DW7_CscCoefficientC6 = 0x0008;
+            curbe.DW8_CscCoefficientC9 = 0xFFF3;
+            curbe.DW9_CscCoefficientC10 = 0x0038;
         }
     }
     else if (m_curbeParams.inputColorSpace == ECOLORSPACE_P601)
     {
-        Curbe.DW4_CscCoefficientC0 = 0xFFD1;
-        Curbe.DW5_CscCoefficientC3 = 0x0080;
-        Curbe.DW6_CscCoefficientC4 = 0x0041;
-        Curbe.DW7_CscCoefficientC7 = 0x0010;
-        Curbe.DW8_CscCoefficientC8 = 0xFFDB;
-        Curbe.DW9_CscCoefficientC11 = 0x0080;
+        curbe.DW4_CscCoefficientC0 = 0xFFD1;
+        curbe.DW5_CscCoefficientC3 = 0x0080;
+        curbe.DW6_CscCoefficientC4 = 0x0041;
+        curbe.DW7_CscCoefficientC7 = 0x0010;
+        curbe.DW8_CscCoefficientC8 = 0xFFDB;
+        curbe.DW9_CscCoefficientC11 = 0x0080;
         if (cscColorARGB == m_colorRawSurface)
         {
-            Curbe.DW4_CscCoefficientC1 = 0xFFF7;
-            Curbe.DW5_CscCoefficientC2 = 0x0038;
-            Curbe.DW6_CscCoefficientC5 = 0x000D;
-            Curbe.DW7_CscCoefficientC6 = 0x0021;
-            Curbe.DW8_CscCoefficientC9 = 0x0038;
-            Curbe.DW9_CscCoefficientC10 = 0xFFED;
+            curbe.DW4_CscCoefficientC1 = 0xFFF7;
+            curbe.DW5_CscCoefficientC2 = 0x0038;
+            curbe.DW6_CscCoefficientC5 = 0x000D;
+            curbe.DW7_CscCoefficientC6 = 0x0021;
+            curbe.DW8_CscCoefficientC9 = 0x0038;
+            curbe.DW9_CscCoefficientC10 = 0xFFED;
         }
         else // cscColorABGR == m_colorRawSurface
         {
-            Curbe.DW4_CscCoefficientC1 = 0x0038;
-            Curbe.DW5_CscCoefficientC2 = 0xFFF7;
-            Curbe.DW6_CscCoefficientC5 = 0x0021;
-            Curbe.DW7_CscCoefficientC6 = 0x000D;
-            Curbe.DW8_CscCoefficientC9 = 0xFFED;
-            Curbe.DW9_CscCoefficientC10 = 0x0038;
+            curbe.DW4_CscCoefficientC1 = 0x0038;
+            curbe.DW5_CscCoefficientC2 = 0xFFF7;
+            curbe.DW6_CscCoefficientC5 = 0x0021;
+            curbe.DW7_CscCoefficientC6 = 0x000D;
+            curbe.DW8_CscCoefficientC9 = 0xFFED;
+            curbe.DW9_CscCoefficientC10 = 0x0038;
         }
     }
     else 
@@ -141,16 +140,16 @@ MOS_STATUS CodechalEncodeCscDsG9::SetCurbeCsc()
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
-    Curbe.DW16_SrcNV12SurfYIndex = cscSrcYPlane;
-    Curbe.DW17_DstYSurfIndex = cscDstDsYPlane;
-    Curbe.DW18_MbStatDstSurfIndex = cscDstFlatOrMbStats;
-    Curbe.DW19_CopyDstNV12SurfIndex = cscDstCopyYPlane;
-    Curbe.DW20_SrcNV12SurfUVIndex = cscSrcUVPlane;
+    curbe.DW16_SrcNV12SurfYIndex = cscSrcYPlane;
+    curbe.DW17_DstYSurfIndex = cscDstDsYPlane;
+    curbe.DW18_MbStatDstSurfIndex = cscDstFlatOrMbStats;
+    curbe.DW19_CopyDstNV12SurfIndex = cscDstCopyYPlane;
+    curbe.DW20_SrcNV12SurfUVIndex = cscSrcUVPlane;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscKernelState->m_dshRegion.AddData(
-        &Curbe,
+        &curbe,
         m_cscKernelState->dwCurbeOffset,
-        sizeof(Curbe)));
+        sizeof(curbe)));
 
     return eStatus;
 }
@@ -187,62 +186,53 @@ MOS_STATUS CodechalEncodeCscDsG9::SetCurbeDS4x()
         return CodechalEncodeCscDs::SetCurbeDS4x();
     }
 
-    Ds4xKernelCurbeData Curbe;
+    Ds4xKernelCurbeData curbe;
 
-    Curbe.DW0_InputPictureWidth = m_curbeParams.dwInputPictureWidth;
-    Curbe.DW0_InputPictureHeight = m_curbeParams.dwInputPictureHeight;
+    curbe.DW0_InputPictureWidth = m_curbeParams.dwInputPictureWidth;
+    curbe.DW0_InputPictureHeight = m_curbeParams.dwInputPictureHeight;
 
-    Curbe.DW1_InputYBTIFrame = ds4xSrcYPlane;
-    Curbe.DW2_OutputYBTIFrame = ds4xDstYPlane;
+    curbe.DW1_InputYBTIFrame = ds4xSrcYPlane;
+    curbe.DW2_OutputYBTIFrame = ds4xDstYPlane;
 
     if (m_curbeParams.bFieldPicture)
     {
-        Curbe.DW3_InputYBTIBottomField = ds4xSrcYPlaneBtmField;
-        Curbe.DW4_OutputYBTIBottomField = ds4xDstYPlaneBtmField;
+        curbe.DW3_InputYBTIBottomField = ds4xSrcYPlaneBtmField;
+        curbe.DW4_OutputYBTIBottomField = ds4xDstYPlaneBtmField;
     }
 
-    if (Curbe.DW6_EnableMBFlatnessCheck = m_curbeParams.bFlatnessCheckEnabled)
+    if (curbe.DW6_EnableMBFlatnessCheck = m_curbeParams.bFlatnessCheckEnabled)
     {
-        Curbe.DW5_FlatnessThreshold = 128;
+        curbe.DW5_FlatnessThreshold = 128;
     }
 
     // For gen10 DS kernel, If Flatness Check enabled, need enable MBVariance as well. Otherwise will not output MbIsFlat.
-    Curbe.DW6_EnableMBVarianceOutput = m_curbeParams.bFlatnessCheckEnabled || m_curbeParams.bMBVarianceOutputEnabled;
-    Curbe.DW6_EnableMBPixelAverageOutput = m_curbeParams.bMBPixelAverageOutputEnabled;
-    Curbe.DW6_EnableBlock8x8StatisticsOutput = m_curbeParams.bBlock8x8StatisticsEnabled;
+    curbe.DW6_EnableMBVarianceOutput = m_curbeParams.bFlatnessCheckEnabled || m_curbeParams.bMBVarianceOutputEnabled;
+    curbe.DW6_EnableMBPixelAverageOutput = m_curbeParams.bMBPixelAverageOutputEnabled;
+    curbe.DW6_EnableBlock8x8StatisticsOutput = m_curbeParams.bBlock8x8StatisticsEnabled;
 
-    if (Curbe.DW6_EnableMBVarianceOutput || Curbe.DW6_EnableMBPixelAverageOutput)
+    if (curbe.DW6_EnableMBVarianceOutput || curbe.DW6_EnableMBPixelAverageOutput)
     {
-        Curbe.DW8_MBVProcStatsBTIFrame = ds4xDstMbVProc;
+        curbe.DW8_MBVProcStatsBTIFrame = ds4xDstMbVProc;
 
         if (m_curbeParams.bFieldPicture)
         {
-            Curbe.DW9_MBVProcStatsBTIBottomField = ds4xDstMbVProcBtmField;
+            curbe.DW9_MBVProcStatsBTIBottomField = ds4xDstMbVProcBtmField;
         }
     }
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_dsKernelState->m_dshRegion.AddData(
-        &Curbe,
+        &curbe,
         m_dsKernelState->dwCurbeOffset,
-        sizeof(Curbe)));
+        sizeof(curbe)));
 
     CODECHAL_DEBUG_TOOL(
         if (m_encoder->m_encodeParState)
         {
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_encodeParState->PopulateDsParam(&Curbe));
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_encodeParState->PopulateDsParam(&curbe));
         }
     )
 
     return MOS_STATUS_SUCCESS;
-}
-
-CodechalEncodeCscDsG9::CodechalEncodeCscDsG9(PCODECHAL_ENCODER pEncoder)
-    : CodechalEncodeCscDs(pEncoder)
-{
-    m_cscKernelUID = IDR_CODEC_Downscale_Copy;
-    m_cscCurbeLength = sizeof(CscKernelCurbeData);
-    m_kernelBase = (uint8_t*)IGCODECKRN_G9;
-    Initialize();
 }
 
 CodechalEncodeCscDsG9::CodechalEncodeCscDsG9(CodechalEncoderState* encoder)

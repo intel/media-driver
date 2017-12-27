@@ -57,7 +57,7 @@ CodechalVdencAvcStateG9::~CodechalVdencAvcStateG9()
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     CODECHAL_DEBUG_TOOL(
-        MOS_Delete(m_encodeParState);
         DestroyAvcPar();
+        MOS_Delete(m_encodeParState);
     )
 }

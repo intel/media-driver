@@ -307,7 +307,9 @@ typedef enum _CM_STATUS
     CM_STATUS_QUEUED         = 0,
     CM_STATUS_FLUSHED        = 1,
     CM_STATUS_FINISHED       = 2,
-    CM_STATUS_STARTED        = 3
+    CM_STATUS_STARTED        = 3,
+    CM_STATUS_RESET          = 4
+
 } CM_STATUS;
 
 typedef enum _CM_PIXEL_TYPE
@@ -1212,9 +1214,8 @@ struct CM_CONDITIONAL_END_PARAM {
 const CM_QUEUE_CREATE_OPTION CM_DEFAULT_QUEUE_CREATE_OPTION = { CM_QUEUE_TYPE_RENDER, false, 0x0, 0x0, 0x0 };
 
 //**********************************************************************
-// Classes
+// Classes forward declarations
 //**********************************************************************
-// forward declarations
 class CmSampler8x8;
 class CmEvent;
 class CmThreadGroupSpace;
@@ -1233,8 +1234,15 @@ class CmVebox;
 class CmQueue;
 class SurfaceIndex;
 class SamplerIndex;
-class VmeIndex; // will be removed in API refreshment
 
+//**********************************************************************
+// Embargoed definitions if any
+//**********************************************************************
+#include "cm_rt_embargoed.h"
+
+//**********************************************************************
+// Classes
+//**********************************************************************
 class CmSampler8x8
 {
 public:
@@ -1391,6 +1399,9 @@ public:
     CM_RT_API virtual INT EnqueueCopyCPUToGPUFullStride( CmSurface2D* pSurface, const unsigned char* pSysMem, const UINT widthStride, const UINT heightStride, const UINT option, CmEvent* & pEvent ) = 0;
     CM_RT_API virtual INT EnqueueCopyGPUToCPUFullStride( CmSurface2D* pSurface, unsigned char* pSysMem, const UINT widthStride, const UINT heightStride, const UINT option, CmEvent* & pEvent ) = 0;
 
+    CM_RT_API virtual INT EnqueueCopyCPUToGPUFullStrideDup( CmSurface2D* pSurface, const unsigned char* pSysMem, const UINT widthStride, const UINT heightStride, const UINT option, CmEvent* & pEvent ) = 0;
+    CM_RT_API virtual INT EnqueueCopyGPUToCPUFullStrideDup( CmSurface2D* pSurface, unsigned char* pSysMem, const UINT widthStride, const UINT heightStride, const UINT option, CmEvent* & pEvent ) = 0;
+    
     CM_RT_API virtual INT EnqueueWithHints( CmTask* pTask, CmEvent* & pEvent, UINT hints = 0) = 0;
     CM_RT_API virtual INT EnqueueVebox( CmVebox* pVebox, CmEvent* & pEvent ) = 0;
 };
@@ -1409,24 +1420,8 @@ typedef void (*IMG_WALKER_FUNTYPE)(void* img, void* arg);
 //**********************************************************************
 // Functions declaration
 //**********************************************************************
-EXTERN_C CM_RT_API INT CMRT_GetSurfaceDetails(CmEvent* pEvent, UINT kernIndex, UINT surfBTI, CM_SURFACE_DETAILS& outDetails);
-EXTERN_C CM_RT_API void CMRT_PrepareGTPinBuffers(void* ptr0, int size0InBytes, void* ptr1, int size1InBytes, void* ptr2, int size2InBytes);
-EXTERN_C CM_RT_API void CMRT_SetGTPinArguments(char* commandLine, void* gtpinInvokeStruct);
-EXTERN_C CM_RT_API void CMRT_EnableGTPinMarkers(void);
 EXTERN_C CM_RT_API INT DestroyCmDevice(CmDevice* &device);
-
-EXTERN_C CM_RT_API UINT CMRT_GetKernelCount(CmEvent *pEvent);
-EXTERN_C CM_RT_API INT CMRT_GetKernelName(CmEvent *pEvent, UINT index, char** KernelName);
-EXTERN_C CM_RT_API INT CMRT_GetKernelThreadSpace(CmEvent *pEvent, UINT index, UINT* localWidth, UINT* localHeight, UINT* globalWidth, UINT* globalHeight);
-EXTERN_C CM_RT_API INT CMRT_GetSubmitTime(CmEvent *pEvent, LARGE_INTEGER* time);
-EXTERN_C CM_RT_API INT CMRT_GetHWStartTime(CmEvent *pEvent, LARGE_INTEGER* time);
-EXTERN_C CM_RT_API INT CMRT_GetHWEndTime(CmEvent *pEvent, LARGE_INTEGER* time);
-EXTERN_C CM_RT_API INT CMRT_GetCompleteTime(CmEvent *pEvent, LARGE_INTEGER* time);
-EXTERN_C CM_RT_API INT CMRT_SetEventCallback(CmEvent* pEvent, callback_function function, void* user_data);
 EXTERN_C CM_RT_API INT CMRT_Enqueue(CmQueue* queue, CmTask* task, CmEvent** event, const CmThreadSpace* threadSpace = nullptr);
-
-EXTERN_C CM_RT_API INT CMRT_GetEnqueueTime( CmEvent *pEvent, LARGE_INTEGER* time );
-
 EXTERN_C CM_RT_API const char* GetCmErrorString(int errCode);
 
 //**********************************************************************
@@ -1435,10 +1430,5 @@ EXTERN_C CM_RT_API const char* GetCmErrorString(int errCode);
 #include "cm_rt_g8.h"
 #include "cm_rt_g9.h"
 #include "cm_rt_g10.h"
-
-//**********************************************************************
-// Embargoed definitions if any
-//**********************************************************************
-#include "cm_rt_embargoed.h"
 
 #endif //__CM_RT_H__

@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      media_libva_putsurface_linux.cpp 
-//! \brief     libva(and its extension) putsurface linux implementaion  
+//! \file      media_libva_putsurface_linux.cpp
+//! \brief     libva(and its extension) putsurface linux implementaion
 //!
 
 #include <stdio.h>
@@ -75,7 +75,7 @@ struct dso_handle * dso_open(const char *path)
     h = (dso_handle*) calloc(1, sizeof(*h));
     if (!h){
         return nullptr;
-    	}
+    }
 
     if (path) {
         h->handle = dlopen(path, RTLD_LAZY|RTLD_LOCAL);
@@ -84,7 +84,7 @@ struct dso_handle * dso_open(const char *path)
     }
     else{
         h->handle = RTLD_DEFAULT;
-    	}
+    }
     return h;
 
 error:
@@ -95,7 +95,7 @@ error:
 /* Load function name from one dynamic lib */
 static bool get_symbol(struct dso_handle *h, void *func_vptr, const char *name)
 {
-    dso_generic_func func; 
+    dso_generic_func func;
     dso_generic_func * const func_ptr = (dso_generic_func*) func_vptr;
     const char *error;
 
@@ -110,7 +110,21 @@ static bool get_symbol(struct dso_handle *h, void *func_vptr, const char *name)
     return true;
 }
 
-/* Loads function name from vtable */
+//!
+//! \brief  Loads function name from vtable
+//!
+//! \param  [in] h
+//!     Dso handle
+//! \param  [in] vtable
+//!     VA api table
+//! \param  [in] vtable_length
+//!     Length of VA api table
+//! \param  [in] symbols
+//!     Dso symbol
+//!
+//! \return     bool 
+//!     true if call success, else false
+//!
 bool
 dso_get_symbols(
     struct dso_handle          *h,
@@ -120,7 +134,7 @@ dso_get_symbols(
 )
 {
     const struct dso_symbol *s;
-    if (nullptr == symbols) 
+    if (nullptr == symbols)
     {
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
@@ -135,13 +149,13 @@ dso_get_symbols(
 
 bool output_dri_init(VADriverContextP ctx)
 {
-    PDDI_MEDIA_CONTEXT pMediaDrvCtx;
-    pMediaDrvCtx = DdiMedia_GetMediaContext(ctx);
+    PDDI_MEDIA_CONTEXT mediaDrvCtx;
+    mediaDrvCtx = DdiMedia_GetMediaContext(ctx);
 
     struct dso_handle *dso_handle;
     struct dri_vtable *dri_vtable;
 
-    pMediaDrvCtx->dri_output = nullptr;
+    mediaDrvCtx->dri_output = nullptr;
 
     static const struct dso_symbol symbols[] = {
         { "dri_get_drawable",
@@ -153,24 +167,24 @@ bool output_dri_init(VADriverContextP ctx)
         { nullptr, }
     };
 
-    pMediaDrvCtx->dri_output = (va_dri_output*) calloc(1, sizeof(struct va_dri_output));
-    if (!pMediaDrvCtx->dri_output){
+    mediaDrvCtx->dri_output = (va_dri_output*) calloc(1, sizeof(struct va_dri_output));
+    if (!mediaDrvCtx->dri_output){
         goto error;
     }
 
-    pMediaDrvCtx->dri_output->handle = dso_open(LIBVA_X11_NAME);
-    if (!pMediaDrvCtx->dri_output->handle){
-        free(pMediaDrvCtx->dri_output);
-        pMediaDrvCtx->dri_output = nullptr;
+    mediaDrvCtx->dri_output->handle = dso_open(LIBVA_X11_NAME);
+    if (!mediaDrvCtx->dri_output->handle){
+        free(mediaDrvCtx->dri_output);
+        mediaDrvCtx->dri_output = nullptr;
         goto error;
     }
 
-    dso_handle = pMediaDrvCtx->dri_output->handle;
-    dri_vtable = &pMediaDrvCtx->dri_output->vtable;
+    dso_handle = mediaDrvCtx->dri_output->handle;
+    dri_vtable = &mediaDrvCtx->dri_output->vtable;
     if (!dso_get_symbols(dso_handle, dri_vtable, sizeof(*dri_vtable), symbols)){
-        dso_close(pMediaDrvCtx->dri_output->handle);
-        free(pMediaDrvCtx->dri_output);
-        pMediaDrvCtx->dri_output = nullptr;
+        dso_close(mediaDrvCtx->dri_output->handle);
+        free(mediaDrvCtx->dri_output);
+        mediaDrvCtx->dri_output = nullptr;
         goto error;
     }
     return true;
@@ -181,21 +195,21 @@ error:
 
 void
 inline Rect_init(
-    RECT            *Rect,
+    RECT            *rect,
     int16_t          destx,
     int16_t          desty,
     uint16_t         destw,
     uint16_t         desth
 )
 {
-	if (nullptr == Rect) 
+    if (nullptr == rect)
     {
         return;
     }
-    Rect->left                    = destx;
-    Rect->top                     = desty;
-    Rect->right                   = destw;
-    Rect->bottom                  = desth;
+    rect->left                    = destx;
+    rect->top                     = desty;
+    rect->right                   = destw;
+    rect->bottom                  = desth;
 }
 
 VAStatus DdiCodec_PutSurfaceLinuxVphalExt(
@@ -218,11 +232,11 @@ VAStatus DdiCodec_PutSurfaceLinuxVphalExt(
     GC                        gc;
     int32_t                   depth;
     Visual*                   visual;
-    XImage*                   pXimg;
+    XImage*                   ximg;
     int32_t                   surf_width;
     int32_t                   surf_height;
-    PDDI_MEDIA_CONTEXT        pMediaDrvCtx;
-    PDDI_MEDIA_SURFACE        pDstSurfBuffObj;
+    PDDI_MEDIA_CONTEXT        mediaDrvCtx;
+    PDDI_MEDIA_SURFACE        dstSurfBuffObj;
 
     TypeXCreateGC             pfn_XCreateGC = nullptr;
     TypeXFreeGC               pfn_XFreeGC = nullptr;
@@ -237,33 +251,33 @@ VAStatus DdiCodec_PutSurfaceLinuxVphalExt(
     }
 
     visual                    = nullptr;
-    pXimg                     = nullptr;
-    pMediaDrvCtx              = DdiMedia_GetMediaContext(ctx);
-    pDstSurfBuffObj           = DdiMedia_GetSurfaceFromVASurfaceID(pMediaDrvCtx, surface);
+    ximg                     = nullptr;
+    mediaDrvCtx              = DdiMedia_GetMediaContext(ctx);
+    dstSurfBuffObj           = DdiMedia_GetSurfaceFromVASurfaceID(mediaDrvCtx, surface);
 
-    if (nullptr == pDstSurfBuffObj)
+    if (nullptr == dstSurfBuffObj)
     {
         return VA_STATUS_ERROR_UNKNOWN;
     }
 
-    if (nullptr == pMediaDrvCtx->X11FuncTable                   ||
-        nullptr == pMediaDrvCtx->X11FuncTable->pfnXCreateGC     ||
-        nullptr == pMediaDrvCtx->X11FuncTable->pfnXFreeGC       ||
-        nullptr == pMediaDrvCtx->X11FuncTable->pfnXCreateImage  ||
-        nullptr == pMediaDrvCtx->X11FuncTable->pfnXDestroyImage ||
-        nullptr == pMediaDrvCtx->X11FuncTable->pfnXPutImage)
+    if (nullptr == mediaDrvCtx->X11FuncTable                   ||
+        nullptr == mediaDrvCtx->X11FuncTable->pfnXCreateGC     ||
+        nullptr == mediaDrvCtx->X11FuncTable->pfnXFreeGC       ||
+        nullptr == mediaDrvCtx->X11FuncTable->pfnXCreateImage  ||
+        nullptr == mediaDrvCtx->X11FuncTable->pfnXDestroyImage ||
+        nullptr == mediaDrvCtx->X11FuncTable->pfnXPutImage)
     {
         return VA_STATUS_ERROR_UNKNOWN;
     }
 
-    pfn_XCreateGC     = (TypeXCreateGC)(pMediaDrvCtx->X11FuncTable->pfnXCreateGC);
-    pfn_XFreeGC       = (TypeXFreeGC)(pMediaDrvCtx->X11FuncTable->pfnXFreeGC);
-    pfn_XCreateImage  = (TypeXCreateImage)(pMediaDrvCtx->X11FuncTable->pfnXCreateImage);
-    pfn_XDestroyImage = (TypeXDestroyImage)(pMediaDrvCtx->X11FuncTable->pfnXDestroyImage);
-    pfn_XPutImage     = (TypeXPutImage)(pMediaDrvCtx->X11FuncTable->pfnXPutImage);
+    pfn_XCreateGC     = (TypeXCreateGC)(mediaDrvCtx->X11FuncTable->pfnXCreateGC);
+    pfn_XFreeGC       = (TypeXFreeGC)(mediaDrvCtx->X11FuncTable->pfnXFreeGC);
+    pfn_XCreateImage  = (TypeXCreateImage)(mediaDrvCtx->X11FuncTable->pfnXCreateImage);
+    pfn_XDestroyImage = (TypeXDestroyImage)(mediaDrvCtx->X11FuncTable->pfnXDestroyImage);
+    pfn_XPutImage     = (TypeXPutImage)(mediaDrvCtx->X11FuncTable->pfnXPutImage);
 
-    surf_width  = pDstSurfBuffObj->iWidth;
-    surf_height = pDstSurfBuffObj->iHeight;
+    surf_width  = dstSurfBuffObj->iWidth;
+    surf_height = dstSurfBuffObj->iHeight;
 
     visual = DefaultVisual(ctx->native_dpy, ctx->x11_screen);
     gc     = (*pfn_XCreateGC)((Display*)ctx->native_dpy, (Drawable)draw, 0, nullptr);
@@ -276,39 +290,39 @@ VAStatus DdiCodec_PutSurfaceLinuxVphalExt(
         return VA_STATUS_ERROR_UNKNOWN;
     }
 
-    pXimg = (*pfn_XCreateImage)((Display*)ctx->native_dpy, visual, depth, ZPixmap, 0, nullptr,surf_width, surf_height, 32, 0 );
+    ximg = (*pfn_XCreateImage)((Display*)ctx->native_dpy, visual, depth, ZPixmap, 0, nullptr,surf_width, surf_height, 32, 0 );
 
-    if (nullptr == pXimg) 
+    if (nullptr == ximg) 
     {
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
 
-    if (pXimg->bits_per_pixel != 32) 
+    if (ximg->bits_per_pixel != 32) 
     {
-        DDI_ASSERTMESSAGE("Display uses %d bits/pixel this not supported.",pXimg->bits_per_pixel);
-        (*pfn_XDestroyImage)(pXimg);
+        DDI_ASSERTMESSAGE("Display uses %d bits/pixel this not supported.",ximg->bits_per_pixel);
+        (*pfn_XDestroyImage)(ximg);
         (*pfn_XFreeGC)((Display*)ctx->native_dpy, gc);
         return VA_STATUS_ERROR_UNKNOWN;
     }
 
-    pXimg->data = (char *)DdiMediaUtil_LockSurface(pDstSurfBuffObj, (MOS_LOCKFLAG_READONLY | MOS_LOCKFLAG_WRITEONLY));
+    ximg->data = (char *)DdiMediaUtil_LockSurface(dstSurfBuffObj, (MOS_LOCKFLAG_READONLY | MOS_LOCKFLAG_WRITEONLY));
 
-    if (nullptr == pXimg->data) 
+    if (nullptr == ximg->data) 
     {
-        DdiMediaUtil_UnlockSurface(pDstSurfBuffObj);
-        (*pfn_XDestroyImage)(pXimg);
+        DdiMediaUtil_UnlockSurface(dstSurfBuffObj);
+        (*pfn_XDestroyImage)(ximg);
         (*pfn_XFreeGC)((Display*)ctx->native_dpy, gc);
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
 
-    (*pfn_XPutImage)((Display*)ctx->native_dpy, (Drawable)draw, gc, pXimg, 0, 0, destx, desty, surf_width, surf_height);
+    (*pfn_XPutImage)((Display*)ctx->native_dpy, (Drawable)draw, gc, ximg, 0, 0, destx, desty, surf_width, surf_height);
 
-    DdiMediaUtil_UnlockSurface(pDstSurfBuffObj);
-    pXimg->data = nullptr;
+    DdiMediaUtil_UnlockSurface(dstSurfBuffObj);
+    ximg->data = nullptr;
 
-    if (nullptr != pXimg)
+    if (nullptr != ximg)
     {
-        (*pfn_XDestroyImage)(pXimg);
+        (*pfn_XDestroyImage)(ximg);
     }
 
     (*pfn_XFreeGC)((Display*)ctx->native_dpy, gc);
@@ -333,55 +347,55 @@ VAStatus DdiCodec_PutSurfaceLinuxHW(
     uint32_t         flags             /* de-interlacing flags */
 )
 {
-    VphalState             *pVpHal = nullptr;
-    int32_t                 OvRenderIndex = 0;
+    VphalState             *vpHal = nullptr;
+    int32_t                 ovRenderIndex = 0;
     static VPHAL_SURFACE    Surf;
-    VPHAL_SURFACE           Target;
-    VPHAL_RENDER_PARAMS     RenderParams;
+    VPHAL_SURFACE           target;
+    VPHAL_RENDER_PARAMS     renderParams;
 
     MOS_STATUS              eStatus = MOS_STATUS_INVALID_PARAMETER;
-    RECT                    Rect = { 0, 0, 180, 120 };
-    RECT                    DstRect = { 0, 0, 180, 120 };
-    PDDI_MEDIA_CONTEXT      pMediaCtx;
-    PDDI_MEDIA_SURFACE      pBufferObject;
+    RECT                    rect = { 0, 0, 180, 120 };
+    RECT                    dstRect = { 0, 0, 180, 120 };
+    PDDI_MEDIA_CONTEXT      mediaCtx;
+    PDDI_MEDIA_SURFACE      bufferObject;
     uint32_t                width,height,pitch;
     uint32_t                drawable_tiling_mode;
     uint32_t                drawable_swizzle_mode;
-    MOS_ALLOC_GFXRES_PARAMS AllocParams;
+    MOS_ALLOC_GFXRES_PARAMS allocParams;
     MOS_TILE_TYPE           tileType;
 
-    uint32_t                uiCtxType;
-    PDDI_VP_CONTEXT         pVpCtx;
+    uint32_t                ctxType;
+    PDDI_VP_CONTEXT         vpCtx;
     struct dri_drawable*    dri_drawable;
     union dri_buffer*       buffer;
 
 
-    GMM_RESCREATE_PARAMS    GmmParams;
+    GMM_RESCREATE_PARAMS    gmmParams;
 
-    pMediaCtx     = DdiMedia_GetMediaContext(ctx);
-    DDI_CHK_NULL(pMediaCtx, "Null pMediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(pMediaCtx->dri_output, "Null pMediaDrvCtx->dri_output", VA_STATUS_ERROR_INVALID_PARAMETER);
-	DDI_CHK_NULL(pMediaCtx->pSurfaceHeap, "Null pMediaDrvCtx->pSurfaceHeap", VA_STATUS_ERROR_INVALID_PARAMETER);
-    DDI_CHK_LESS((uint32_t)surface, pMediaCtx->pSurfaceHeap->uiAllocatedHeapElements, "Invalid surfaceId", VA_STATUS_ERROR_INVALID_SURFACE);
+    mediaCtx     = DdiMedia_GetMediaContext(ctx);
+    DDI_CHK_NULL(mediaCtx, "Null mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(mediaCtx->dri_output, "Null mediaDrvCtx->dri_output", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(mediaCtx->pSurfaceHeap, "Null mediaDrvCtx->pSurfaceHeap", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_LESS((uint32_t)surface, mediaCtx->pSurfaceHeap->uiAllocatedHeapElements, "Invalid surfaceId", VA_STATUS_ERROR_INVALID_SURFACE);
 
-	struct dri_vtable * const dri_vtable = &pMediaCtx->dri_output->vtable;
+    struct dri_vtable * const dri_vtable = &mediaCtx->dri_output->vtable;
     dri_drawable = dri_vtable->get_drawable(ctx, (Drawable)draw);
     assert(dri_drawable);
     buffer = dri_vtable->get_rendering_buffer(ctx, dri_drawable);
     assert(buffer);
 
-    pBufferObject = DdiMedia_GetSurfaceFromVASurfaceID(pMediaCtx, surface);
-    DDI_CHK_NULL(pBufferObject, "Null pBufferObject", VA_STATUS_ERROR_INVALID_SURFACE);
+    bufferObject = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, surface);
+    DDI_CHK_NULL(bufferObject, "Null bufferObject", VA_STATUS_ERROR_INVALID_SURFACE);
     DdiMediaUtil_MediaPrintFps();
-    pitch = pBufferObject->iPitch;
+    pitch = bufferObject->iPitch;
    
-    pVpCtx         = nullptr;
-    if (nullptr != pMediaCtx->pVpCtxHeap->pHeapBase)
+    vpCtx         = nullptr;
+    if (nullptr != mediaCtx->pVpCtxHeap->pHeapBase)
     {
-        pVpCtx = (PDDI_VP_CONTEXT)DdiMedia_GetContextFromContextID(ctx, (VAContextID)(0 + DDI_MEDIA_VACONTEXTID_OFFSET_VP), &uiCtxType);
-        DDI_CHK_NULL(pVpCtx, "Null pVpCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
-        pVpHal = pVpCtx->pVpHal;
-        DDI_CHK_NULL(pVpHal, "Null pVpHal", VA_STATUS_ERROR_INVALID_PARAMETER);
+        vpCtx = (PDDI_VP_CONTEXT)DdiMedia_GetContextFromContextID(ctx, (VAContextID)(0 + DDI_MEDIA_VACONTEXTID_OFFSET_VP), &ctxType);
+        DDI_CHK_NULL(vpCtx, "Null vpCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
+        vpHal = vpCtx->pVpHal;
+        DDI_CHK_NULL(vpHal, "Null vpHal", VA_STATUS_ERROR_INVALID_PARAMETER);
     }
     else
     {
@@ -390,38 +404,38 @@ VAStatus DdiCodec_PutSurfaceLinuxHW(
 
     // Zero memory
     MOS_ZeroMemory(&Surf,    sizeof(Surf));
-    MOS_ZeroMemory(&Target, sizeof(Target));
-    MOS_ZeroMemory(&RenderParams, sizeof(RenderParams));
-    MOS_ZeroMemory(&GmmParams, sizeof(GmmParams));
+    MOS_ZeroMemory(&target, sizeof(target));
+    MOS_ZeroMemory(&renderParams, sizeof(renderParams));
+    MOS_ZeroMemory(&gmmParams, sizeof(gmmParams));
 
-    RenderParams.Component = COMPONENT_LibVA;
+    renderParams.Component = COMPONENT_LibVA;
 
    //Init source rectagle
-    Rect_init(&Rect, 0, 0, srcw, srch);
-    Rect_init(&DstRect, dri_drawable->x, dri_drawable->y, dri_drawable->width, dri_drawable->height);
+    Rect_init(&rect, 0, 0, srcw, srch);
+    Rect_init(&dstRect, dri_drawable->x, dri_drawable->y, dri_drawable->width, dri_drawable->height);
     
     // Source Surface Information
-    Surf.Format               = VpGetFormatFromMediaFormat(pBufferObject->format);           // Surface format
+    Surf.Format               = VpGetFormatFromMediaFormat(bufferObject->format);           // Surface format
     Surf.SurfType             = SURF_IN_PRIMARY;       // Surface type (context)
     Surf.SampleType           = SAMPLE_PROGRESSIVE;
     Surf.ScalingMode          = VPHAL_SCALING_AVS;
 
-    Surf.OsResource.Format      = VpGetFormatFromMediaFormat(pBufferObject->format);
-    Surf.OsResource.iWidth      = pBufferObject->iWidth;
-    Surf.OsResource.iHeight     = pBufferObject->iHeight;
-    Surf.OsResource.iPitch      = pBufferObject->iPitch;
+    Surf.OsResource.Format      = VpGetFormatFromMediaFormat(bufferObject->format);
+    Surf.OsResource.iWidth      = bufferObject->iWidth;
+    Surf.OsResource.iHeight     = bufferObject->iHeight;
+    Surf.OsResource.iPitch      = bufferObject->iPitch;
     Surf.OsResource.iCount      = 0;
-    Surf.OsResource.TileType    = VpGetTileTypeFromMediaTileType(pBufferObject->TileType);
-    Surf.OsResource.bMapped     = pBufferObject->bMapped;
-    Surf.OsResource.bo          = pBufferObject->bo;
-    Surf.OsResource.pGmmResInfo = pBufferObject->pGmmResourceInfo;
+    Surf.OsResource.TileType    = VpGetTileTypeFromMediaTileType(bufferObject->TileType);
+    Surf.OsResource.bMapped     = bufferObject->bMapped;
+    Surf.OsResource.bo          = bufferObject->bo;
+    Surf.OsResource.pGmmResInfo = bufferObject->pGmmResourceInfo;
 
-    Surf.ColorSpace            = DdiVp_GetColorSpaceFromMediaFormat(pBufferObject->format);
+    Surf.ColorSpace            = DdiVp_GetColorSpaceFromMediaFormat(bufferObject->format);
     Surf.ExtendedGamut         = false;
-    Surf.rcSrc                 = Rect;
-    Surf.rcDst                 = DstRect;
+    Surf.rcSrc                 = rect;
+    Surf.rcDst                 = dstRect;
 
-    MOS_LINUX_BO* drawable_bo = mos_bo_gem_create_from_name(pMediaCtx->pDrmBufMgr, "rendering buffer", buffer->dri2.name);
+    MOS_LINUX_BO* drawable_bo = mos_bo_gem_create_from_name(mediaCtx->pDrmBufMgr, "rendering buffer", buffer->dri2.name);
     if  (nullptr == drawable_bo)
     {
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
@@ -433,93 +447,520 @@ VAStatus DdiCodec_PutSurfaceLinuxHW(
         {
         case I915_TILING_Y:
            tileType = MOS_TILE_Y;
-           GmmParams.Flags.Info.TiledY    = true; 
-		   break;
+           gmmParams.Flags.Info.TiledY    = true; 
+           break;
         case I915_TILING_X:
            tileType = MOS_TILE_X;
-           GmmParams.Flags.Info.TiledX    = true;
-		   break;
+           gmmParams.Flags.Info.TiledX    = true;
+           break;
         case I915_TILING_NONE:
            tileType = MOS_TILE_LINEAR;
-           GmmParams.Flags.Info.Linear    = true;
+           gmmParams.Flags.Info.Linear    = true;
            break;
         default:
            drawable_tiling_mode = I915_TILING_NONE;
            tileType = MOS_TILE_LINEAR;
-           GmmParams.Flags.Info.Linear    = true;
+           gmmParams.Flags.Info.Linear    = true;
            break;
-        Target.OsResource.TileType = (MOS_TILE_TYPE)drawable_tiling_mode;
+        target.OsResource.TileType = (MOS_TILE_TYPE)drawable_tiling_mode;
         }
     }
     else
     {
-        Target.OsResource.TileType = (MOS_TILE_TYPE)I915_TILING_NONE;
+        target.OsResource.TileType = (MOS_TILE_TYPE)I915_TILING_NONE;
         tileType = MOS_TILE_LINEAR;
-        GmmParams.Flags.Info.Linear    = true;
+        gmmParams.Flags.Info.Linear    = true;
     }
 
-    Target.Format                = Format_A8R8G8B8;
-    Target.SurfType              = SURF_OUT_RENDERTARGET;
+    target.Format                = Format_A8R8G8B8;
+    target.SurfType              = SURF_OUT_RENDERTARGET;
 
     //init target retangle
-    Rect_init(&Rect, 0, 0, dri_drawable->width, dri_drawable->height);
-    Rect_init(&DstRect, dri_drawable->x, dri_drawable->y, dri_drawable->width, dri_drawable->height);
+    Rect_init(&rect, 0, 0, dri_drawable->width, dri_drawable->height);
+    Rect_init(&dstRect, dri_drawable->x, dri_drawable->y, dri_drawable->width, dri_drawable->height);
 
     // Create GmmResourceInfo
-    GmmParams.Flags.Gpu.Video       = true;
-    GmmParams.BaseWidth             = dri_drawable->width;
-    GmmParams.BaseHeight            = dri_drawable->height;
-    GmmParams.ArraySize             = 1;
-    GmmParams.Type                  = RESOURCE_2D;
-    GmmParams.Format                = GMM_FORMAT_R8G8B8A8_UNORM_TYPE;
-    //GmmParams.Format                = GMM_FORMAT_B8G8R8A8_UNORM_TYPE;
-    Target.OsResource.pGmmResInfo   = GmmResCreate(&GmmParams);
-    if (nullptr == Target.OsResource.pGmmResInfo)
+    gmmParams.Flags.Gpu.Video       = true;
+    gmmParams.BaseWidth             = dri_drawable->width;
+    gmmParams.BaseHeight            = dri_drawable->height;
+    gmmParams.ArraySize             = 1;
+    gmmParams.Type                  = RESOURCE_2D;
+    gmmParams.Format                = GMM_FORMAT_R8G8B8A8_UNORM_TYPE;
+    //gmmParams.Format                = GMM_FORMAT_B8G8R8A8_UNORM_TYPE;
+    target.OsResource.pGmmResInfo   = GmmResCreate(&gmmParams);
+    if (nullptr == target.OsResource.pGmmResInfo)
     {
         mos_bo_unreference(drawable_bo);
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
 
-    Target.OsResource.iWidth     = dri_drawable->width;
-    Target.OsResource.iHeight    = dri_drawable->height;
-    Target.OsResource.iPitch     = buffer->dri2.pitch;
-    Target.OsResource.Format     = Format_A8R8G8B8;
-    Target.OsResource.iCount     = 0;
-    Target.OsResource.bo         = drawable_bo;
-    Target.OsResource.pData      = (uint8_t *)drawable_bo->virt;
-    Target.OsResource.TileType   = tileType;
-    Target.dwWidth               = dri_drawable->width;
-    Target.dwHeight              = dri_drawable->height;
-    Target.dwPitch               = Target.OsResource.iPitch;
-    Target.ColorSpace            = CSpace_sRGB;
-    Target.ExtendedGamut         = false;
-    Target.rcSrc                 = Rect;
-    Target.rcDst                 = DstRect;
+    target.OsResource.iWidth     = dri_drawable->width;
+    target.OsResource.iHeight    = dri_drawable->height;
+    target.OsResource.iPitch     = buffer->dri2.pitch;
+    target.OsResource.Format     = Format_A8R8G8B8;
+    target.OsResource.iCount     = 0;
+    target.OsResource.bo         = drawable_bo;
+    target.OsResource.pData      = (uint8_t *)drawable_bo->virt;
+    target.OsResource.TileType   = tileType;
+    target.dwWidth               = dri_drawable->width;
+    target.dwHeight              = dri_drawable->height;
+    target.dwPitch               = target.OsResource.iPitch;
+    target.ColorSpace            = CSpace_sRGB;
+    target.ExtendedGamut         = false;
+    target.rcSrc                 = rect;
+    target.rcDst                 = dstRect;
 
-    RenderParams.uSrcCount          = 1;
-    RenderParams.uDstCount          = 1;
-    RenderParams.pSrc[0]            = &Surf;
-    RenderParams.pTarget[0]         = &Target;
+    renderParams.uSrcCount          = 1;
+    renderParams.uDstCount          = 1;
+    renderParams.pSrc[0]            = &Surf;
+    renderParams.pTarget[0]         = &target;
 
-    DdiMediaUtil_LockMutex(&pMediaCtx->PutSurfaceRenderMutex);
-    eStatus = pVpHal->Render(&RenderParams);
+    DdiMediaUtil_LockMutex(&mediaCtx->PutSurfaceRenderMutex);
+    eStatus = vpHal->Render(&renderParams);
     if (MOS_FAILED(eStatus))
     {
-        DdiMediaUtil_UnLockMutex(&pMediaCtx->PutSurfaceRenderMutex);
+        DdiMediaUtil_UnLockMutex(&mediaCtx->PutSurfaceRenderMutex);
         mos_bo_unreference(drawable_bo);
         return VA_STATUS_ERROR_OPERATION_FAILED;
     }
 
-    DdiMediaUtil_UnLockMutex(&pMediaCtx->PutSurfaceRenderMutex);
+    DdiMediaUtil_UnLockMutex(&mediaCtx->PutSurfaceRenderMutex);
     mos_bo_unreference(drawable_bo);
-    Target.OsResource.bo         = nullptr;
-    DdiMediaUtil_LockMutex(&pMediaCtx->PutSurfaceSwapBufferMutex);
+    target.OsResource.bo         = nullptr;
+    DdiMediaUtil_LockMutex(&mediaCtx->PutSurfaceSwapBufferMutex);
     dri_vtable->swap_buffer(ctx, dri_drawable);
-    DdiMediaUtil_UnLockMutex(&pMediaCtx->PutSurfaceSwapBufferMutex);
+    DdiMediaUtil_UnLockMutex(&mediaCtx->PutSurfaceSwapBufferMutex);
 
-    GmmResFree(Target.OsResource.pGmmResInfo);
-    Target.OsResource.pGmmResInfo = nullptr;
-    
+    GmmResFree(target.OsResource.pGmmResInfo);
+    target.OsResource.pGmmResInfo = nullptr;
+
     return VA_STATUS_SUCCESS;
 }
 
+#ifndef ANDROID
+// move from media_libva_putsurface_linux.c
+static unsigned long DdiMedia_mask2shift(unsigned long mask)
+{
+    unsigned long shift = 0;
+    while((mask & 0x1) == 0)
+    {
+        mask = mask >> 1;
+        shift++;
+    }
+    return shift;
+}
+static void DdiMedia_yuv2pixel(uint32_t *pixel, int32_t y, int32_t u, int32_t v,
+                               unsigned long rshift, unsigned long rmask,
+                               unsigned long gshift, unsigned long gmask,
+                               unsigned long bshift, unsigned long bmask)
+{
+    /* Warning, magic values ahead */
+    int32_t r = y + ((351 * (v-128)) >> 8);
+    int32_t g = y - (((179 * (v-128)) + (86 * (u-128))) >> 8);
+    int32_t b = y + ((444 * (u-128)) >> 8);
+
+    if (r > 255) r = 255;
+    if (g > 255) g = 255;
+    if (b > 255) b = 255;
+    if (r < 0)   r = 0;
+    if (g < 0)   g = 0;
+    if (b < 0)   b = 0;
+
+    *pixel = (uint32_t)(((r << rshift) & rmask) | ((g << gshift) & gmask) |((b << bshift) & bmask));
+}
+
+
+#define YUV_444P_TO_ARGB() \
+    srcY = umdContextY + pitch * srcy;\
+    srcU = srcY + pitch * ((mediaSurface->iHeight));\
+    srcV = srcU + pitch * ((mediaSurface->iHeight));\
+     \
+    for(y = srcy; y < (srcy + height); y += 1) \
+    {\
+        for(x = srcx; x < (srcx + width); x += 1) \
+        {\
+            y1 = *(srcY + x); \
+            u1 = *(srcU + x);\
+            v1 = *(srcV + x);\
+            \
+            pixel = (uint32_t *)(ximg->data + (y * ximg->bytes_per_line) + (x * (ximg->bits_per_pixel >> 3)));\
+            DdiMedia_yuv2pixel(pixel, y1, u1, v1, rshift, rmask, gshift, gmask, bshift, bmask);\
+           \
+        }\
+        srcY += pitch;\
+        srcU += pitch;\
+        srcV += pitch;\
+    }
+
+#define YUV_422H_TO_ARGB()\
+    srcY = umdContextY + pitch * srcy;\
+    srcU = srcY + pitch * mediaSurface->iHeight;\
+    srcV = srcU + pitch * mediaSurface->iHeight;\
+    \
+    for(y = srcy; y < (srcy + height); y += 1)\
+    {\
+        for(x = srcx; x < (srcx + width); x += 2)\
+        {\
+            y1 = *(srcY + x);\
+            y2 = *(srcY + x + 1);\
+            u1 = *(srcU + x / 2);\
+            v1 = *(srcV + x / 2);\
+            \
+            pixel = (uint32_t *)(ximg->data + (y * ximg->bytes_per_line) + (x * (ximg->bits_per_pixel >> 3)));\
+            DdiMedia_yuv2pixel(pixel, y1, u1, v1, rshift, rmask, gshift, gmask, bshift, bmask);\
+            pixel = (uint32_t *)(ximg->data + (y * ximg->bytes_per_line) + ((x + 1) * (ximg->bits_per_pixel >> 3)));\
+            DdiMedia_yuv2pixel(pixel, y2, u1, v1, rshift, rmask, gshift, gmask, bshift, bmask);\
+        }\
+        srcY += pitch;\
+        srcU += pitch;\
+        srcV += pitch;\
+    }
+
+#define YUV_422V_TO_ARGB() \
+    srcY = umdContextY + pitch * srcy;\
+    srcU = srcY + pitch * mediaSurface->iHeight;\
+    srcV = srcU + pitch * mediaSurface->iHeight / 2;\
+    \
+    for(y = srcy; y < (srcy + width); y += 1)\
+    {\
+        for(x = srcx; x < (srcx + height); x += 2)\
+        {\
+            y1 = *(srcY + x * pitch);\
+            y2 = *(srcY + (x + 1) * pitch);\
+            u1 = *(srcU + (x / 2) * pitch);\
+            v1 = *(srcV + (x / 2) * pitch);\
+            \
+            pixel = (uint32_t *)(ximg->data + (x * ximg->bytes_per_line) + (y * (ximg->bits_per_pixel >> 3)));\
+            DdiMedia_yuv2pixel(pixel, y1, u1, v1, rshift, rmask, gshift, gmask, bshift, bmask);\
+            pixel = (uint32_t *)(ximg->data + (x* ximg->bytes_per_line) + ((y + 1) * (ximg->bits_per_pixel >> 3)));\
+            DdiMedia_yuv2pixel(pixel, y2, u1, v1, rshift, rmask, gshift, gmask, bshift, bmask);\
+            \
+        }\
+        \
+        srcY += 1;\
+        srcU += 1;\
+        srcV += 1;\
+    }
+
+#define YUV_IMC3_TO_ARGB() \
+    srcY = umdContextY + pitch * srcy;\
+    srcU = srcY + pitch * mediaSurface->iHeight;\
+    srcV = srcU + pitch * mediaSurface->iHeight / 2;\
+    \
+    for(y = srcy; y < (srcy + height); y += 2) \
+    {\
+        for(x = srcx; x < (srcx + width); x += 2) \
+        {\
+            y1 = *(srcY + x);\
+            y2 = *(srcY + x + 1);\
+            y3 = *(srcY + x + pitch);\
+            y4 = *(srcY + x + pitch + 1);\
+            \
+            u1 = *(srcU + x / 2);\
+            v1 = *(srcV + x / 2);\
+            \
+            pixel = (uint32_t *)(ximg->data + (y * ximg->bytes_per_line) + (x * (ximg->bits_per_pixel >> 3)));\
+            DdiMedia_yuv2pixel(pixel, y1, u1, v1, rshift, rmask, gshift, gmask, bshift, bmask);\
+            pixel = (uint32_t *)(ximg->data + (y * ximg->bytes_per_line) + ((x + 1) * (ximg->bits_per_pixel >> 3)));\
+            DdiMedia_yuv2pixel(pixel, y2, u1, v1, rshift, rmask, gshift, gmask, bshift, bmask);\
+            pixel = (uint32_t *)(ximg->data + ((y + 1) * ximg->bytes_per_line) + (x * (ximg->bits_per_pixel >> 3)));\
+            DdiMedia_yuv2pixel(pixel, y3, u1, v1, rshift, rmask, gshift, gmask, bshift, bmask);\
+            pixel = (uint32_t *)(ximg->data + ((y + 1) * ximg->bytes_per_line) + ((x + 1) * (ximg->bits_per_pixel >> 3)));\
+            DdiMedia_yuv2pixel(pixel, y4, u1, v1, rshift, rmask, gshift, gmask, bshift, bmask); \
+        }\
+        srcY += pitch * 2;\
+        srcU += pitch;\
+        srcV += pitch;\
+    }
+
+#define YUV_411P_TO_ARGB() \
+    srcY = umdContextY + pitch * srcy;\
+    srcU = srcY + pitch * mediaSurface->iHeight;\
+    srcV = srcU + pitch * mediaSurface->iHeight;\
+    \
+    for(y = srcy; y < (srcy + height); y += 1)\
+    {\
+        for(x = srcx; x < (srcx + width); x += 4)\
+        {\
+            y1 = *(srcY + x);\
+            y2 = *(srcY + x + 1);\
+            y3 = *(srcY + x + 2);\
+            y4 = *(srcY + x + 3);\
+            \
+            u1 = *(srcU + x / 4);\
+            v1 = *(srcV + x / 4);\
+            \
+            pixel = (uint32_t *)(ximg->data + (y * ximg->bytes_per_line) + (x * (ximg->bits_per_pixel >> 3)));\
+            DdiMedia_yuv2pixel(pixel, y1, u1, v1, rshift, rmask, gshift, gmask, bshift, bmask);\
+            pixel = (uint32_t *)(ximg->data + (y * ximg->bytes_per_line) + ((x + 1) * (ximg->bits_per_pixel >> 3)));\
+            DdiMedia_yuv2pixel(pixel, y2, u1, v1, rshift, rmask, gshift, gmask, bshift, bmask);\
+            pixel = (uint32_t *)(ximg->data + ((y ) * ximg->bytes_per_line) + ((x+2) * (ximg->bits_per_pixel >> 3)));\
+            DdiMedia_yuv2pixel(pixel, y3, u1, v1, rshift, rmask, gshift, gmask, bshift, bmask);\
+            pixel = (uint32_t *)(ximg->data + ((y) * ximg->bytes_per_line) + ((x + 3) * (ximg->bits_per_pixel >> 3)));\
+            DdiMedia_yuv2pixel(pixel, y4, u1, v1, rshift, rmask, gshift, gmask, bshift, bmask);\
+        }\
+        srcY  += pitch;\
+        srcU  += pitch;\
+        srcV  += pitch;\
+    }
+
+#define YUV_400P_TO_ARGB()\
+    srcY = umdContextY + pitch * srcy;\
+    srcU = srcY;\
+    srcV = srcY;\
+    \
+    for(y = srcy; y < (srcy + height); y += 2)\
+    {\
+        for(x = srcx; x < (srcx + width); x += 2)\
+        {\
+            y1 = *(srcY + x);\
+            y2 = *(srcY + x + 1);\
+            y3 = *(srcY + x + pitch);\
+            y4 = *(srcY + x + pitch + 1);\
+            \
+            u1 = 128;\
+            v1 = 128;\
+            pixel = (uint32_t *)(ximg->data + (y * ximg->bytes_per_line) + (x * (ximg->bits_per_pixel >> 3)));\
+            DdiMedia_yuv2pixel(pixel, y1, u1, v1, rshift, rmask, gshift, gmask, bshift, bmask);\
+            pixel = (uint32_t *)(ximg->data + (y * ximg->bytes_per_line) + ((x + 1) * (ximg->bits_per_pixel >> 3)));\
+            DdiMedia_yuv2pixel(pixel, y2, u1, v1, rshift, rmask, gshift, gmask, bshift, bmask);\
+            pixel = (uint32_t *)(ximg->data + ((y + 1) * ximg->bytes_per_line) + (x * (ximg->bits_per_pixel >> 3)));\
+            DdiMedia_yuv2pixel(pixel, y3, u1, v1, rshift, rmask, gshift, gmask, bshift, bmask);\
+            pixel = (uint32_t *)(ximg->data + ((y + 1) * ximg->bytes_per_line) + ((x + 1) * (ximg->bits_per_pixel >> 3)));\
+            DdiMedia_yuv2pixel(pixel, y4, u1, v1, rshift, rmask, gshift, gmask, bshift, bmask);\
+        }\
+        srcY += pitch * 2;\
+        srcU += pitch;\
+        srcV += pitch;\
+    }
+
+#define YUV_NV12_TO_ARGB()\
+    srcY = umdContextY + pitch * srcy;\
+    srcU = srcY + pitch * mediaSurface->iHeight;\
+    srcV = srcU + 1;\
+    \
+    for(y = srcy; y < (srcy + height); y += 2)\
+    {\
+        for(x = srcx; x < (srcx + width); x += 2)\
+        {\
+            y1 = *(srcY + x);\
+            y2 = *(srcY + x + 1);\
+            y3 = *(srcY + x + pitch);\
+            y4 = *(srcY + x + pitch + 1);\
+            \
+            u1 = *(srcU + x);\
+            v1 = *(srcU + x +1);\
+            pixel = (uint32_t *)(ximg->data + (y * ximg->bytes_per_line) + (x * (ximg->bits_per_pixel >> 3)));\
+            DdiMedia_yuv2pixel(pixel, y1, u1, v1, rshift, rmask, gshift, gmask, bshift, bmask);\
+            pixel = (uint32_t *)(ximg->data + (y * ximg->bytes_per_line) + ((x + 1) * (ximg->bits_per_pixel >> 3)));\
+            DdiMedia_yuv2pixel(pixel, y2, u1, v1, rshift, rmask, gshift, gmask, bshift, bmask);\
+            pixel = (uint32_t *)(ximg->data + ((y + 1) * ximg->bytes_per_line) + (x * (ximg->bits_per_pixel >> 3)));\
+            DdiMedia_yuv2pixel(pixel, y3, u1, v1, rshift, rmask, gshift, gmask, bshift, bmask);\
+            pixel = (uint32_t *)(ximg->data + ((y + 1) * ximg->bytes_per_line) + ((x + 1) * (ximg->bits_per_pixel >> 3)));\
+            DdiMedia_yuv2pixel(pixel, y4, u1, v1, rshift, rmask, gshift, gmask, bshift, bmask);\
+        }\
+        srcY += pitch * 2;\
+        srcU += pitch;\
+    }
+
+VAStatus DdiMedia_PutSurfaceLinuxSW(
+    VADriverContextP ctx,
+    VASurfaceID      surface,
+    void*            draw,             /* Drawable of window system */
+    int16_t          srcx,
+    int16_t          srcy,
+    uint16_t         srcw,
+    uint16_t         srch,
+    int16_t          destx,
+    int16_t          desty,
+    uint16_t         destw,
+    uint16_t         desth,
+    VARectangle     *cliprects,        /* client supplied clip list */
+    uint32_t         number_cliprects, /* number of clip rects in the clip list */
+    uint32_t         flags             /* de-interlacing flags */
+)
+{
+    PDDI_MEDIA_CONTEXT mediaCtx         = DdiMedia_GetMediaContext(ctx);
+    DDI_CHK_NULL(mediaCtx, "nullptr mediaCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    DDI_CHK_NULL(mediaCtx->X11FuncTable, "nullptr X11FuncTable", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(mediaCtx->X11FuncTable->pfnXCreateGC, "nullptr pfnXCreateGC", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(mediaCtx->X11FuncTable->pfnXFreeGC, "nullptr pfnXFreeGC", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(mediaCtx->X11FuncTable->pfnXCreateImage, "nullptr pfnXCreateImage", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(mediaCtx->X11FuncTable->pfnXDestroyImage, "nullptr pfnXDestroyImage", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(mediaCtx->X11FuncTable->pfnXPutImage, "nullptr pfnXPutImage", VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    TypeXCreateGC     pfn_XCreateGC     = (TypeXCreateGC)(mediaCtx->X11FuncTable->pfnXCreateGC);
+    TypeXFreeGC       pfn_XFreeGC       = (TypeXFreeGC)(mediaCtx->X11FuncTable->pfnXFreeGC);
+    TypeXCreateImage  pfn_XCreateImage  = (TypeXCreateImage)(mediaCtx->X11FuncTable->pfnXCreateImage);
+    TypeXDestroyImage pfn_XDestroyImage = (TypeXDestroyImage)(mediaCtx->X11FuncTable->pfnXDestroyImage);
+    TypeXPutImage     pfn_XPutImage     = (TypeXPutImage)(mediaCtx->X11FuncTable->pfnXPutImage);
+
+    DDI_MEDIA_SURFACE *mediaSurface     = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, surface);
+    DDI_CHK_NULL(mediaSurface, "nullptr mediaSurface.", VA_STATUS_ERROR_INVALID_SURFACE);
+
+    uint16_t width  = 0;
+    if (srcw <= destw)
+        width = srcw;
+    else
+        width = destw;
+
+    uint16_t height = 0;
+    if (srch <= desth)
+        height = srch;
+    else
+        height = desth;
+
+    int32_t  pitch   = mediaSurface->iPitch;
+    uint32_t adjustU = 1;
+    uint32_t adjustD = 1;
+    switch(mediaSurface->format)
+    {
+        case Media_Format_422H:
+        case Media_Format_444P:
+        case Media_Format_411P:
+            adjustU = 3;
+            adjustD = 1;
+            break;
+        case Media_Format_400P:
+            adjustU = 1;
+            adjustD = 1;
+            break;
+        case Media_Format_422V:
+        case Media_Format_IMC3:
+            adjustU = 2;
+            adjustD = 1;
+            break;
+        case Media_Format_NV12:
+            adjustU = 3;
+            adjustD = 2;
+            break;
+        default:
+            DDI_ASSERTMESSAGE("Color Format is not supported: %d",mediaSurface->format);
+            return VA_STATUS_ERROR_INVALID_VALUE;
+    }
+
+    uint32_t surfaceSize          = pitch * mediaSurface->iHeight * adjustU / adjustD;
+    uint8_t  *dispTempBuffer      = (uint8_t *)malloc(surfaceSize);
+    if (dispTempBuffer == nullptr)
+    {
+        DdiMediaUtil_UnlockSurface(mediaSurface);
+        return VA_STATUS_ERROR_ALLOCATION_FAILED;
+    }
+
+    uint8_t *umdContextY = dispTempBuffer;
+    uint8_t *ptr         = (uint8_t*)DdiMediaUtil_LockSurface(mediaSurface, (MOS_LOCKFLAG_READONLY | MOS_LOCKFLAG_WRITEONLY));
+    MOS_STATUS eStatus   = MOS_SecureMemcpy(umdContextY, surfaceSize, ptr, surfaceSize);
+    DDI_CHK_CONDITION((eStatus != MOS_STATUS_SUCCESS), "DDI:Failed to copy surface buffer data!", VA_STATUS_ERROR_OPERATION_FAILED);
+
+    Visual *visual       = DefaultVisual(ctx->native_dpy, ctx->x11_screen);
+    GC     gc            = (*pfn_XCreateGC)((Display*)ctx->native_dpy, (Drawable)draw, 0, nullptr);
+
+    if (TrueColor != visual->c_class)
+    {
+        (*pfn_XFreeGC)((Display*)ctx->native_dpy, gc);
+        MOS_FreeMemory(dispTempBuffer);
+        return VA_STATUS_ERROR_UNKNOWN;
+    }
+
+    unsigned long rmask  = visual->red_mask;
+    unsigned long gmask  = visual->green_mask;
+    unsigned long bmask  = visual->blue_mask;
+
+    unsigned long rshift = DdiMedia_mask2shift(rmask);
+    unsigned long gshift = DdiMedia_mask2shift(gmask);
+    unsigned long bshift = DdiMedia_mask2shift(bmask);
+
+    int32_t depth        = DefaultDepth(ctx->native_dpy, ctx->x11_screen);
+    XImage   *ximg  = (*pfn_XCreateImage)((Display*)ctx->native_dpy, visual, depth, ZPixmap, 0, nullptr,width, height, 32, 0 );
+    if (ximg == nullptr)
+    {
+        MOS_FreeMemory(dispTempBuffer);
+        return VA_STATUS_ERROR_ALLOCATION_FAILED;
+    }
+
+    if (ximg->bits_per_pixel != 32)
+    {
+         (*pfn_XDestroyImage)(ximg);
+         (*pfn_XFreeGC)((Display*)ctx->native_dpy, gc);
+         MOS_FreeMemory(dispTempBuffer);
+         return VA_STATUS_ERROR_UNKNOWN;
+    }
+
+    ximg->data = (char *) malloc(ximg->bytes_per_line * MOS_ALIGN_CEIL(height, 2)); // If height is odd, need to add it by one for we process two lines per iteration
+    if (nullptr == ximg->data)
+    {
+        (*pfn_XDestroyImage)(ximg);
+        (*pfn_XFreeGC)((Display*)ctx->native_dpy, gc);
+        MOS_FreeMemory(dispTempBuffer);
+        return VA_STATUS_ERROR_ALLOCATION_FAILED;
+    }
+
+    int32_t  x = 0;
+    int32_t  y = 0;
+    uint8_t  *srcY = nullptr;
+    uint8_t  *srcU = nullptr;
+    uint8_t  *srcV = nullptr;
+    uint32_t *pixel = nullptr;
+    int32_t  y1 = 0, y2 = 0, y3 = 0, y4 = 0, u1 = 0, v1 = 0;
+     switch(mediaSurface->format)
+    {
+        case Media_Format_444P:
+            YUV_444P_TO_ARGB();
+            break;
+        case Media_Format_422H:
+            YUV_422H_TO_ARGB();
+            break;
+        case Media_Format_422V:
+            YUV_422V_TO_ARGB();
+            break;
+        case Media_Format_IMC3:
+            YUV_IMC3_TO_ARGB();
+            break;
+        case Media_Format_411P:
+            YUV_411P_TO_ARGB();
+            break;
+        case Media_Format_400P:
+            YUV_400P_TO_ARGB();
+            break;
+        case Media_Format_NV12:
+            YUV_NV12_TO_ARGB();
+            break;
+        default:
+            DDI_ASSERTMESSAGE("Color Format is not supported: %d", mediaSurface->format);
+    }
+
+    DdiMediaUtil_UnlockSurface(mediaSurface);
+
+    (*pfn_XPutImage)((Display*)ctx->native_dpy,(Drawable)draw, gc, ximg, 0, 0, destx, desty, destw, desth);
+
+    if (ximg != nullptr)
+    {
+        (*pfn_XDestroyImage)(ximg);
+    }
+    (*pfn_XFreeGC)((Display*)ctx->native_dpy, gc);
+    MOS_FreeMemory(dispTempBuffer);
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiMedia_PutSurfaceDummy(
+    VADriverContextP ctx,
+    VASurfaceID      surface,
+    void            *draw,             /* Drawable of window system */
+    int16_t          srcx,
+    int16_t          srcy,
+    uint16_t         srcw,
+    uint16_t         srch,
+    int16_t          destx,
+    int16_t          desty,
+    uint16_t         destw,
+    uint16_t         desth,
+    VARectangle     *cliprects,        /* client supplied clip list */
+    uint32_t         number_cliprects, /* number of clip rects in the clip list */
+    uint32_t         flags             /* de-interlacing flags */
+)
+{
+    return VA_STATUS_ERROR_UNIMPLEMENTED;
+}
+
+#endif

@@ -33,10 +33,11 @@
 #include "cm_kernel_rt.h"
 #include "cm_thread_space_rt.h"
 #include "cm_group_space.h"
-#include "cm_hal.h"
 #include "cm_surface_manager.h"
 #include "cm_task_internal.h"
 
+namespace CMRT_UMD
+{
 //*-----------------------------------------------------------------------------
 //| Purpose:    Create Cm Event 
 //| Returns:    Result of the operation.
@@ -800,4 +801,5 @@ int32_t CmEventRT:: SetCallBack(EventCallBackFunction function, void  *user_data
     m_CallbackFunction = function;
     m_CallbackUserData = user_data;
     return CM_SUCCESS;
+}
 }

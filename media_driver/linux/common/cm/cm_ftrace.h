@@ -20,19 +20,23 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_ftrace.h  
-//! \brief     Contains Class Cm Ftrace definitions  
+//! \file      cm_ftrace.h
+//! \brief     Contains Class Cm Ftrace definitions
 //!
 
-#pragma once
+#ifndef MEDIADRIVER_LINUX_COMMON_CM_CMFTRACE_H_
+#define MEDIADRIVER_LINUX_COMMON_CM_CMFTRACE_H_
+
 #include "cm_common.h"
+
+struct CM_PROFILING_INFO;
 
 class CmFtrace
 {
 public:
     static CmFtrace* GetInstance();
-    void   WriteTaskProfilingInfo(PCM_PROFILING_INFO  pTaskInfo);
-    
+    void   WriteTaskProfilingInfo(CM_PROFILING_INFO *pTaskInfo);
+
 private:
 
     static CmFtrace* m_ftrace; // static instance
@@ -40,8 +44,9 @@ private:
 
     CmFtrace( const CmFtrace& ); // disable operator and constructor
     void operator=( const CmFtrace& );
-    
+
     CmFtrace();
     ~CmFtrace();
 };
 
+#endif  // #ifndef MEDIADRIVER_LINUX_COMMON_CM_CMFTRACE_H_

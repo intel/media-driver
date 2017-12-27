@@ -23,13 +23,17 @@
 //! \file      cm_mov_inst.h  
 //! \brief     Contains Class MovInst_RT definitions  
 //!
-#pragma once
+
+#ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMMOVINST_H_
+#define MEDIADRIVER_AGNOSTIC_COMMON_CM_CMMOVINST_H_
+
 #include "cm_array.h"
+#include "cm_mem.h"
+
 // A simple implementation that encodes a mov instruction in align1 mode.
 // Both operands must be direct GRF with no modifiers.
 // predication is disabled, and all instruction control fields have default value.
 // The format of the mov instruction should be identical for SNB/IVB/HSW
-
 class MovInst_RT 
 {
 
@@ -145,7 +149,7 @@ public:
     // to the <movInsts> vector starting at the given <index>.  The 
     // function returns the total number of move instructions created 
     static uint32_t CreateMoves( uint32_t dstOffset, uint32_t srcOffset, uint32_t size, 
-        CmDynamicArray &movInsts, uint32_t index, bool is_BDW, bool is_hwdebug ) { 
+        CMRT_UMD::CmDynamicArray &movInsts, uint32_t index, bool is_BDW, bool is_hwdebug ) {
 
             uint32_t dstEnd = dstOffset + size;
             uint32_t moveSize = GENX_GRF_BYTE_SIZE;
@@ -596,3 +600,5 @@ public:
             GetSrcRegNum(), srcSubregNum, srcVStride, srcWidth, srcHStride, srcType ); 
     }
 };
+
+#endif  // #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMMOVINST_H_

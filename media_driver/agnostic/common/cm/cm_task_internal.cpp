@@ -26,8 +26,8 @@
 
 #include "cm_task_internal.h"
 
-#include "cm_hal.h"
 #include "cm_kernel_rt.h"
+#include "cm_mem.h"
 #include "cm_event_rt.h"
 #include "cm_device_rt.h"
 #include "cm_kernel_data.h"
@@ -37,13 +37,14 @@
 #include "cm_vebox_data.h"
 #include "cm_queue_rt.h"
 #include "cm_surface_manager.h"
-#include "cm_log.h"
 #include "cm_surface_2d_rt.h"
 
 #if USE_EXTENSION_CODE
 #include "cm_thread_space_ext.h"
 #endif
 
+namespace CMRT_UMD
+{
 //*-----------------------------------------------------------------------------
 //| Purpose:    Create Task internal 
 //| Returns:    Result of the operation.
@@ -371,6 +372,16 @@ int32_t CmTaskInternal::Initialize(const CmThreadSpaceRT* pTS, bool isWithHints)
             }
         }
 #if USE_EXTENSION_CODE
+        if (pTS == nullptr)
+        {
+            CmThreadSpaceRT* pKTS = nullptr;
+            pKernel->GetThreadSpace(pKTS);
+            if (pKTS && pKTS->threadSpaceExt)
+            {
+                pKTS->threadSpaceExt->SetPrivateArgToKernel(pKernel);
+            }
+        }
+
         if (pTS != nullptr && pTS->threadSpaceExt != nullptr)
         {
             pTS->threadSpaceExt->SetPrivateArgToKernel(pKernel);
@@ -403,7 +414,7 @@ int32_t CmTaskInternal::Initialize(const CmThreadSpaceRT* pTS, bool isWithHints)
         m_KernelData.SetElement( i, pKernelData );
 
         totalKernelBinarySize += pKernel->GetKernelGenxBinarySize();
-        totalKernelBinarySize += CM_KERNEL_BINARY_PADDING_SIZE;  //Padding is necessary after kernel binary to work around page fault issue
+        totalKernelBinarySize += CM_KERNEL_BINARY_PADDING_SIZE;  //Padding is necessary after kernel binary to avoid page fault issue
 
         bool *surfArray = nullptr;
         pKernel->GetKernelSurfaces(surfArray);
@@ -1712,18 +1723,6 @@ int32_t CmTaskInternal::DisplayThreadSpaceData(uint32_t width, uint32_t height)
 }
 #endif
 
-int32_t CmTaskInternal::SetPreemptionMode(CM_PREEMPTION_MODE mode)
-{
-    m_PreemptionMode = mode;
-    
-    return CM_SUCCESS;   
-}
-
-CM_PREEMPTION_MODE CmTaskInternal::GetPreemptionMode()
-{
-    return m_PreemptionMode;   
-}
-
 int32_t CmTaskInternal::GetMediaWalkerGroupSelect(CM_MW_GROUP_SELECT& groupSelect)
 {
     groupSelect = m_MediaWalkerGroupSelect;
@@ -1918,4 +1917,5 @@ PCM_TASK_CONFIG CmTaskInternal::GetTaskConfig()
 void  *CMRT_UMD::CmTaskInternal::GetMediaStatePtr()
 {
     return m_media_state_ptr;
+}
 }

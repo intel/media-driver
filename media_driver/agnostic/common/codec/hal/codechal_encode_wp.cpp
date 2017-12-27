@@ -24,7 +24,6 @@
 //! \brief    Defines base class for weighted prediction kernel
 //!
 
-#include "codechal_encoder.h" // to remove after transition to encode base class
 #include "codechal_encoder_base.h"
 #include "codechal_encode_wp.h"
 
@@ -52,7 +51,7 @@ MOS_STATUS CodechalEncodeWP::AllocateResources()
             &m_surfaceParams.weightedPredOutputPicList[m_surfaceParams.wpOutListIdx].OsResource),
             "Failed to allocate WP Scaled output Buffer.");
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_GetResourceInfo(m_osInterface,
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface,
             &m_surfaceParams.weightedPredOutputPicList[m_surfaceParams.wpOutListIdx]));
     }
 
@@ -89,7 +88,7 @@ MOS_STATUS CodechalEncodeWP::InitKernelState()
     }
 
     uint8_t* binary;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_GetKernelBinaryAndSize(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetKernelBinaryAndSize(
         m_kernelBase,
         m_kernelUID,
         &binary,
@@ -121,7 +120,7 @@ MOS_STATUS CodechalEncodeWP::InitKernelState()
         &m_kernelState->dwBindingTableSize));
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_renderInterface->m_stateHeapInterface);
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_MhwInitISH(m_renderInterface->m_stateHeapInterface, m_kernelState));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->MhwInitISH(m_renderInterface->m_stateHeapInterface, m_kernelState));
 
     return eStatus;
 }
@@ -204,7 +203,7 @@ MOS_STATUS CodechalEncodeWP::SendSurface(PMOS_COMMAND_BUFFER cmdBuffer)
     surfaceCodecParams.dwVerticalLineStride       = refVerticalLineStride;
     surfaceCodecParams.dwVerticalLineStrideOffset = refVerticalLineStrideOffset;
     surfaceCodecParams.ucVDirection               = refVDirection;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         cmdBuffer,
         &surfaceCodecParams,
@@ -221,7 +220,7 @@ MOS_STATUS CodechalEncodeWP::SendSurface(PMOS_COMMAND_BUFFER cmdBuffer)
     surfaceCodecParams.dwVerticalLineStride       = refVerticalLineStride;
     surfaceCodecParams.dwVerticalLineStrideOffset = refVerticalLineStrideOffset;
     surfaceCodecParams.ucVDirection               = refVDirection;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_SetRcsSurfaceState(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         cmdBuffer,
         &surfaceCodecParams,
@@ -279,7 +278,7 @@ MOS_STATUS CodechalEncodeWP::Execute(KernelParams *params)
     // setup DSH and Interface Descriptor
     auto stateHeapInterface = m_renderInterface->m_stateHeapInterface;
     CODECHAL_ENCODE_CHK_NULL_RETURN(stateHeapInterface);
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_AssignDshAndSshSpace(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AssignDshAndSshSpace(
         stateHeapInterface,
         m_kernelState,
         false,
@@ -325,7 +324,7 @@ MOS_STATUS CodechalEncodeWP::Execute(KernelParams *params)
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_stateHeapInterface->SetBindingTable(m_kernelState));
 
     (params->useRefPicList1) ? (*params->useWeightedSurfaceForL1 = true) : (*params->useWeightedSurfaceForL0 = true);
-    CodecHal_GetResourceInfo(m_osInterface, params->refFrameInput);
+    CodecHalGetResourceInfo(m_osInterface, params->refFrameInput);
 
     //Set Surface States
     m_surfaceParams.refFrameInput    = params->refFrameInput;
@@ -356,7 +355,7 @@ MOS_STATUS CodechalEncodeWP::Execute(KernelParams *params)
         walkerCodecParams.bNoDependency           = true;
 
         MHW_WALKER_PARAMS walkerParams;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_InitMediaObjectWalkerParams(m_hwInterface, &walkerParams, &walkerCodecParams));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalInitMediaObjectWalkerParams(m_hwInterface, &walkerParams, &walkerCodecParams));
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_renderInterface->AddMediaObjectWalkerCmd(&cmdBuffer, &walkerParams));
     }
@@ -387,39 +386,6 @@ MOS_STATUS CodechalEncodeWP::Execute(KernelParams *params)
     }
 
     return eStatus;
-}
-
-CodechalEncodeWP::CodechalEncodeWP(PCODECHAL_ENCODER encoder)
-    : m_useHwScoreboard(encoder->bUseHwScoreboard),
-    m_renderContextUsesNullHw(encoder->bRenderContextUsesNullHw),
-    m_groupIdSelectSupported(encoder->bGroupIdSelectSupported),
-    m_singleTaskPhaseSupported(encoder->bSingleTaskPhaseSupported),
-    m_firstTaskInPhase(encoder->bFirstTaskInPhase),
-    m_lastTaskInPhase(encoder->bLastTaskInPhase),
-    m_hwWalker(encoder->bHWWalker),
-    m_groupId(encoder->ucGroupId),
-    m_pictureCodingType(encoder->wPictureCodingType),
-    m_mode(encoder->Mode),
-    m_verticalLineStride(encoder->dwVerticalLineStride),
-    m_maxBtCount(encoder->dwMaxBtCount),
-    m_vmeStatesSize(encoder->dwVMEStatesSize),
-    m_storeData(encoder->dwStoreData),
-    m_frameWidth(encoder->dwFrameWidth),
-    m_frameHeight(encoder->dwFrameHeight),
-    m_frameFieldHeight(encoder->dwFrameFieldHeight),
-    m_currOriginalPic(encoder->CurrOriginalPic),
-    m_walkerMode(encoder->WalkerMode)
-{
-    CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(encoder);
-
-    // Initilize interface pointers
-    m_osInterface        = encoder->pOsInterface;
-    m_hwInterface        = encoder->pHwInterface;
-    m_debugInterface     = encoder->pDebugInterface;
-    m_miInterface        = m_hwInterface->GetMiInterface();
-    m_renderInterface    = m_hwInterface->GetRenderInterface();
-    m_stateHeapInterface = m_renderInterface->m_stateHeapInterface->pStateHeapInterface;
-    m_curbeLength        = sizeof(CurbeData);
 }
 
 CodechalEncodeWP::CodechalEncodeWP(CodechalEncoderState *encoder)

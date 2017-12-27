@@ -35,7 +35,7 @@
 #include "codechal_debug.h"
 #endif
 
-void VP8_ENTROPY_STATE::DecodeFill()
+void Vp8EntropyState::DecodeFill()
 {
     int32_t        shift       = BD_VALUE_SIZE - 8 - (iCount + 8);
     uint32_t       bytesLeft  = (uint32_t)(pBufferEnd - pBuffer);
@@ -61,7 +61,7 @@ void VP8_ENTROPY_STATE::DecodeFill()
     }
 }
 
-uint32_t VP8_ENTROPY_STATE::DecodeBool(int32_t probability)
+uint32_t Vp8EntropyState::DecodeBool(int32_t probability)
 {
     uint32_t split    = 1 + (((uiRange - 1) * probability) >> 8);
     uint32_t bigSplit = (uint32_t)split << (BD_VALUE_SIZE - 8);
@@ -89,7 +89,7 @@ uint32_t VP8_ENTROPY_STATE::DecodeBool(int32_t probability)
     return bit;
 }
 
-int32_t VP8_ENTROPY_STATE::DecodeValue(int32_t bits)
+int32_t Vp8EntropyState::DecodeValue(int32_t bits)
 {
     int32_t retValue = 0;
 
@@ -101,7 +101,7 @@ int32_t VP8_ENTROPY_STATE::DecodeValue(int32_t bits)
     return retValue;
 }
 
-void VP8_ENTROPY_STATE::ParseFrameHeadInit()
+void Vp8EntropyState::ParseFrameHeadInit()
 {
     if (pFrameHead->iFrameType == KEY_FRAME)
     {
@@ -135,7 +135,7 @@ void VP8_ENTROPY_STATE::ParseFrameHeadInit()
     }
 }
 
-int32_t VP8_ENTROPY_STATE::StartEntropyDecode()
+int32_t Vp8EntropyState::StartEntropyDecode()
 {
     pBufferEnd = pDataBufferEnd;
     pBuffer    = pDataBuffer;
@@ -153,7 +153,7 @@ int32_t VP8_ENTROPY_STATE::StartEntropyDecode()
     return 0;
 }
 
-void VP8_ENTROPY_STATE::SegmentationEnabled()
+void Vp8EntropyState::SegmentationEnabled()
 {
     pFrameHead->u8SegmentationEnabled = (uint8_t)DecodeBool(PROB_HALF);
 
@@ -209,7 +209,7 @@ void VP8_ENTROPY_STATE::SegmentationEnabled()
     }
 }
 
-void VP8_ENTROPY_STATE::LoopFilterInit(int32_t defaultFilterLvl)
+void Vp8EntropyState::LoopFilterInit(int32_t defaultFilterLvl)
 {
     for (int32_t segmentNum = 0; segmentNum < VP8_MAX_MB_SEGMENTS; segmentNum++)
     {
@@ -230,7 +230,7 @@ void VP8_ENTROPY_STATE::LoopFilterInit(int32_t defaultFilterLvl)
     }
 }
 
-void VP8_ENTROPY_STATE::LoopFilterEnabled()
+void Vp8EntropyState::LoopFilterEnabled()
 {
     pFrameHead->FilterType       = (VP8_LF_TYPE)DecodeBool(PROB_HALF);
     pFrameHead->iFilterLevel     = DecodeValue(6);
@@ -279,7 +279,7 @@ void VP8_ENTROPY_STATE::LoopFilterEnabled()
     }
 }
 
-int32_t VP8_ENTROPY_STATE::GetDeltaQ(int32_t prevVal, int32_t *qupdate)
+int32_t Vp8EntropyState::GetDeltaQ(int32_t prevVal, int32_t *qupdate)
 {
     int32_t retVal = 0;
 
@@ -301,7 +301,7 @@ int32_t VP8_ENTROPY_STATE::GetDeltaQ(int32_t prevVal, int32_t *qupdate)
     return retVal;
 }
 
-int32_t VP8_ENTROPY_STATE::DcQuant(int32_t qindex, int32_t delta)
+int32_t Vp8EntropyState::DcQuant(int32_t qindex, int32_t delta)
 {
     int32_t retVal;
 
@@ -320,7 +320,7 @@ int32_t VP8_ENTROPY_STATE::DcQuant(int32_t qindex, int32_t delta)
     return retVal;
 }
 
-int32_t VP8_ENTROPY_STATE::Dc2Quant(int32_t qindex, int32_t delta)
+int32_t Vp8EntropyState::Dc2Quant(int32_t qindex, int32_t delta)
 {
     int32_t retVal;
 
@@ -339,7 +339,7 @@ int32_t VP8_ENTROPY_STATE::Dc2Quant(int32_t qindex, int32_t delta)
     return retVal;
 }
 
-int32_t VP8_ENTROPY_STATE::DcUVQuant(int32_t qindex, int32_t delta)
+int32_t Vp8EntropyState::DcUVQuant(int32_t qindex, int32_t delta)
 {
     int32_t retVal;
 
@@ -364,7 +364,7 @@ int32_t VP8_ENTROPY_STATE::DcUVQuant(int32_t qindex, int32_t delta)
     return retVal;
 }
 
-int32_t VP8_ENTROPY_STATE::AcYQuant(int32_t qindex)
+int32_t Vp8EntropyState::AcYQuant(int32_t qindex)
 {
     int32_t retVal;
 
@@ -381,7 +381,7 @@ int32_t VP8_ENTROPY_STATE::AcYQuant(int32_t qindex)
     return retVal;
 }
 
-int32_t VP8_ENTROPY_STATE::Ac2Quant(int32_t qindex, int32_t delta)
+int32_t Vp8EntropyState::Ac2Quant(int32_t qindex, int32_t delta)
 {
     int32_t retVal;
 
@@ -405,7 +405,7 @@ int32_t VP8_ENTROPY_STATE::Ac2Quant(int32_t qindex, int32_t delta)
 
     return retVal;
 }
-int32_t VP8_ENTROPY_STATE::AcUVQuant(int32_t qindex, int32_t delta)
+int32_t Vp8EntropyState::AcUVQuant(int32_t qindex, int32_t delta)
 {
     int32_t retVal;
 
@@ -424,7 +424,7 @@ int32_t VP8_ENTROPY_STATE::AcUVQuant(int32_t qindex, int32_t delta)
     return retVal;
 }
 
-void VP8_ENTROPY_STATE::QuantInit()
+void Vp8EntropyState::QuantInit()
 {
     for (int32_t i = 0; i < VP8_Q_INDEX_RANGE; i++)
     {
@@ -438,7 +438,7 @@ void VP8_ENTROPY_STATE::QuantInit()
     }
 }
 
-void VP8_ENTROPY_STATE::QuantSetup()
+void Vp8EntropyState::QuantSetup()
 {
     int32_t qupdate = 0;
 
@@ -455,7 +455,7 @@ void VP8_ENTROPY_STATE::QuantSetup()
     }
 }
 
-void VP8_ENTROPY_STATE::ReadMvContexts(MV_CONTEXT *mvContext)
+void Vp8EntropyState::ReadMvContexts(MV_CONTEXT *mvContext)
 {
     int32_t i = 0;
 
@@ -478,7 +478,7 @@ void VP8_ENTROPY_STATE::ReadMvContexts(MV_CONTEXT *mvContext)
     } while (++i < 2);
 }
 
-MOS_STATUS VP8_ENTROPY_STATE::ParseFrameHead(PCODEC_VP8_PIC_PARAMS vp8PicParams)
+MOS_STATUS Vp8EntropyState::ParseFrameHead(PCODEC_VP8_PIC_PARAMS vp8PicParams)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -648,7 +648,7 @@ MOS_STATUS VP8_ENTROPY_STATE::ParseFrameHead(PCODEC_VP8_PIC_PARAMS vp8PicParams)
     return eStatus;
 }
 
-void VP8_ENTROPY_STATE::FrameHeadQuantUpdate(
+void Vp8EntropyState::FrameHeadQuantUpdate(
     PCODEC_VP8_PIC_PARAMS vp8PicParams)
 {
     for (int32_t i = 0; i < VP8_Q_INDEX_RANGE; i++)
@@ -663,7 +663,7 @@ void VP8_ENTROPY_STATE::FrameHeadQuantUpdate(
     }
 }
 
-void VP8_ENTROPY_STATE::Initialize(
+void Vp8EntropyState::Initialize(
     PCODECHAL_DECODE_VP8_FRAME_HEAD vp8FrameHeadIn,
     uint8_t*        bitstreamBufferIn,
     uint32_t        bitstreamBufferSizeIn)
@@ -838,12 +838,7 @@ MOS_STATUS CodechalDecodeVp8::CopyBitstreamBuffer(
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
 
     // Send command buffer header at the beginning (OS dependent)
-    MHW_GENERIC_PROLOG_PARAMS genericPrologParams;
-    MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
-    genericPrologParams.pOsInterface        = m_osInterface;
-    genericPrologParams.pvMiInterface = m_miInterface;
-    genericPrologParams.bMmcEnabled         = CodecHalMmcState::IsMmcEnabled();
-    CODECHAL_DECODE_CHK_STATUS_RETURN(Mhw_SendGenericPrologCmd(&cmdBuffer, &genericPrologParams));
+    CODECHAL_DECODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(&cmdBuffer, false));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(HucCopy(
         &cmdBuffer,                     // pCmdBuffer
@@ -858,6 +853,8 @@ MOS_STATUS CodechalDecodeVp8::CopyBitstreamBuffer(
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(
         &cmdBuffer,
         &flushDwParams));
+
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(&cmdBuffer));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(
         &cmdBuffer,
@@ -891,7 +888,7 @@ MOS_STATUS CodechalDecodeVp8::CopyBitstreamBuffer(
     return eStatus;
 }
 
-MOS_STATUS CodechalDecodeVp8::AllocateResources_FixedSizes()
+MOS_STATUS CodechalDecodeVp8::AllocateResourcesFixedSizes()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -899,8 +896,7 @@ MOS_STATUS CodechalDecodeVp8::AllocateResources_FixedSizes()
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateSyncResource(m_osInterface, &resSyncObject));
 
-    CodecHal_AllocateDataList(
-        CODEC_REF_LIST,
+    CodecHalAllocateDataList(
         pVp8RefList,
         CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8);
 
@@ -915,7 +911,7 @@ MOS_STATUS CodechalDecodeVp8::AllocateResources_FixedSizes()
     return eStatus;
 }
 
-MOS_STATUS CodechalDecodeVp8::AllocateResources_VariableSizes()
+MOS_STATUS CodechalDecodeVp8::AllocateResourcesVariableSizes()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -1074,7 +1070,7 @@ CodechalDecodeVp8::~CodechalDecodeVp8()
 
     m_osInterface->pfnDestroySyncResource(m_osInterface, &resSyncObject);
 
-    CodecHal_FreeDataList(pVp8RefList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8);
+    CodecHalFreeDataList(pVp8RefList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8);
 
     // indicate resCoefProbBuffer is allocated internal, not from m_decodeParams.m_coefProbBuffer
     if (Vp8FrameHead.bNotFirstCall == true)
@@ -1159,7 +1155,7 @@ MOS_STATUS CodechalDecodeVp8::SetFrameStates()
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_hwInterface->SetRowstoreCachingOffsets(&rowstoreParams));
     }
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(AllocateResources_VariableSizes());
+    CODECHAL_DECODE_CHK_STATUS_RETURN(AllocateResourcesVariableSizes());
 
     if (m_decodeParams.m_bitstreamLockingInUse)
     {
@@ -1318,7 +1314,7 @@ MOS_STATUS CodechalDecodeVp8::DecodeStateLevel()
     vp8PicState.presCoefProbBuffer = &resCoefProbBuffer;
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(
-        &cmdBuffer));
+        &cmdBuffer, true));
 
     if (m_statusQueryReportingEnabled)
     {
@@ -1398,6 +1394,8 @@ MOS_STATUS CodechalDecodeVp8::DecodePrimitiveLevel()
         )
             CODECHAL_DECODE_CHK_STATUS_RETURN(EndStatusReport(decodeStatusReport, &cmdBuffer));
     }
+
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(&cmdBuffer));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
 
@@ -1487,7 +1485,7 @@ MOS_STATUS CodechalDecodeVp8::AllocateStandard(
         &m_standardDecodePatchListSizeNeeded,
         bShortFormatInUse);
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(AllocateResources_FixedSizes());
+    CODECHAL_DECODE_CHK_STATUS_RETURN(AllocateResourcesFixedSizes());
 
     return eStatus;
 }

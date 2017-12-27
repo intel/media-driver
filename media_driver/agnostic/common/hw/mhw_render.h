@@ -45,8 +45,7 @@
 
 #define MHW_MAX_DEPENDENCY_COUNT                    8
 
-#define MHW_RENDER_ENGINE_CS_CHICKEN1_PREEMPTION_CONTROL_OFFSET     0x2580
-#define MHW_RENDER_ENGINE_FF_SLICE_CS_CHICKEN2                      0x20E4
+#define MHW_RENDER_ENGINE_PREEMPTION_CONTROL_OFFSET                 0x2580
 #define MHW_RENDER_ENGINE_MID_THREAD_PREEMPT_VALUE                  0x00060000
 #define MHW_RENDER_ENGINE_THREAD_GROUP_PREEMPT_VALUE                0x00060002
 #define MHW_RENDER_ENGINE_MID_BATCH_PREEMPT_VALUE                   0x00060004
@@ -136,6 +135,7 @@ typedef struct _MHW_STATE_BASE_ADDR_PARAMS
     uint32_t                dwIndirectObjectBufferSize;
     PMOS_RESOURCE           presInstructionBuffer;
     uint32_t                dwInstructionBufferSize;
+    uint32_t                mocs4InstructionCache;
 } MHW_STATE_BASE_ADDR_PARAMS, *PMHW_STATE_BASE_ADDR_PARAMS;
 
 typedef struct _MHW_VFE_SCOREBOARD_DELTA
@@ -177,7 +177,6 @@ struct MHW_VFE_PARAMS
     MHW_VFE_SLICE_DISABLE           eVfeSliceDisable;
     MHW_VFE_SCOREBOARD              Scoreboard;
     PMHW_KERNEL_STATE               pKernelState;
-    bool                            bGpGpuWalkerMode;
 };
 typedef MHW_VFE_PARAMS *PMHW_VFE_PARAMS;
 

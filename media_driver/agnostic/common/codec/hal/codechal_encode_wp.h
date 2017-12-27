@@ -32,17 +32,22 @@
 #include "codechal_encoder_base.h"
 
 //!
-//! Weighted prediction kernel base class
+//! \class    CodechalEncodeWP
+//! \brief    Weighted prediction kernel base class
 //! \details  Entry point to create weighted prediction class instance 
 //!          
-//! This class defines the base class for weighted prediction feature, it includes
-//! common member fields, functions, interfaces etc shared by all Gens.
+//!         This class defines the base class for weighted prediction feature, it includes
+//!         common member fields, functions, interfaces etc shared by all Gens.
 //!
-//! To create an instance, client needs to call #CodechalEncodeWP::CreateWPState()
+//!         To create an instance, client needs to call #CodechalEncodeWP::CreateWPState()
 //!  
 class CodechalEncodeWP
 {
 public:
+    //!
+    //! \struct      SliceParams
+    //! \brief       Slice parameters
+    //!
     struct SliceParams
     {
         /*! \brief Specifies the weights and offsets used for explicit mode weighted prediction.
@@ -58,7 +63,8 @@ public:
     };
 
     //!
-    //! \brief    Curbe params for WP kernel
+    //! \struct      CurbeParams
+    //! \brief     Curbe params for WP kernel
     //!
     struct CurbeParams
     {
@@ -68,7 +74,8 @@ public:
     };
 
     //!
-    //! \brief    Surface params for WP kernel
+    //! \struct      SurfaceParams
+    //! \brief       Surface params for WP kernel
     //!
     struct SurfaceParams
     {
@@ -79,9 +86,10 @@ public:
     };
 
     //!
-    //! \brief    Kernel params for WP kernel
+    //! \struct      KernelParams
+    //! \brief       Kernel params for WP kernel
     //!
-	struct KernelParams
+    struct KernelParams
     {
         bool                             useRefPicList1 = false;
         uint32_t                         wpIndex = 0;
@@ -93,7 +101,8 @@ public:
     };
 
     //!
-    //! \brief    Weighted prediction kernel binding table
+    //! \enum      KernelBTI
+    //! \brief     Weighted prediction kernel binding table
     //!
     enum KernelBTI
     {
@@ -102,7 +111,23 @@ public:
         wpNumSurfaces = 2,
     };
 
+    //!
+    //! \brief    Set kernel base
+    //!
+    //! \param    [in] kernelBase
+    //!           Kernel base
+    //!
     void SetKernelBase(uint8_t *kernelBase) { m_kernelBase = kernelBase; }
+
+    //!
+    //! \brief    Get WP output picture list
+    //!
+    //! \param    [in] index
+    //!           Index
+    //!
+    //! \return   PMOS_SURFACE
+    //!           Pointer to MOS surface
+    //!    
     PMOS_SURFACE GetWPOutputPicList(uint8_t index) { return &m_surfaceParams.weightedPredOutputPicList[index]; }
 
     //!
@@ -896,8 +921,6 @@ protected:
     //!
     //! \brief    Constructor
     //!            
-    CodechalEncodeWP(PCODECHAL_ENCODER encoder); // to remove after transition to encode base class
-
     CodechalEncodeWP(CodechalEncoderState* encoder);
 
     CodechalEncoderState*       m_encoder = nullptr;                         //!< Pointer to ENCODER base class

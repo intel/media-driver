@@ -23,9 +23,18 @@
 //! \file      cm_surface_sampler.h  
 //! \brief     Contains Class CmSurfaceSampler8x8  definitions  
 //!
-#pragma once
+
+#ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMSURFACESAMPLER_H_
+#define MEDIADRIVER_AGNOSTIC_COMMON_CM_CMSURFACESAMPLER_H_
 
 #include "cm_surface.h"
+
+enum SAMPLER_SURFACE_TYPE
+{
+    SAMPLER_SURFACE_TYPE_2D,
+    SAMPLER_SURFACE_TYPE_2DUP,
+    SAMPLER_SURFACE_TYPE_3D
+};
 
 namespace CMRT_UMD
 {
@@ -55,4 +64,4 @@ protected:
 };
 };//namespace
 
-
+#endif  // #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMSURFACESAMPLER_H_

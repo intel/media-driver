@@ -46,6 +46,18 @@ public:
     //! \brief    Destructor
     //!
     ~MediaMemDecompStateG9(){};
+protected:
+    
+    //!
+    //! \brief    Initialize kernel state
+    //! \details  Initialize kernel state
+    //! \param    uint32_t kernelStateIdx
+    //!           [in] Kernel state index
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!  
+    MOS_STATUS InitKernelState(uint32_t kernelStateIdx); 
 };
 
 #endif  //__CODECHAL_MEDIAMEMCOMP_G9_H__

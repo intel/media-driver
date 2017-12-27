@@ -41,8 +41,6 @@
 #include "cm_surface_sampler8x8.h"
 #include "cm_surface_sampler.h"
 #include "cm_group_space.h"
-#include "cm_hal.h"
-#include "cm_log.h"
 #include "cm_surface_2d_rt.h"
 #include "cm_sampler8x8_state_rt.h"
 #include "cm_visa.h"
@@ -86,6 +84,15 @@
     VmeCmIndexArrayPosition ++;
 
 typedef CM_ARG* PCM_ARG;
+
+#define CM_KERNEL_DATA_CLEAN                   0         // kernel data clean
+#define CM_KERNEL_DATA_KERNEL_ARG_DIRTY        1         // per kernel arg dirty
+#define CM_KERNEL_DATA_THREAD_ARG_DIRTY        (1 << 1)  // per thread arg dirty
+#define CM_KERNEL_DATA_PAYLOAD_DATA_DIRTY      (1 << 2)  // indirect payload data dirty
+#define CM_KERNEL_DATA_PAYLOAD_DATA_SIZE_DIRTY (1 << 3)  // indirect payload data size changes
+#define CM_KERNEL_DATA_GLOBAL_SURFACE_DIRTY    (1 << 4)  // global surface dirty
+#define CM_KERNEL_DATA_THREAD_COUNT_DIRTY      (1 << 5)  // thread count dirty, reset() be called
+#define CM_KERNEL_DATA_SAMPLER_BTI_DIRTY       (1 << 6)  // sampler bti dirty
 
 int32_t Partition( PCM_ARG* ppArg, int32_t p, int32_t r )
 {
@@ -146,6 +153,8 @@ void QuickSort( PCM_ARG* ppArg, int32_t p, int32_t r )
     }
 }
 
+namespace CMRT_UMD
+{
 //*-----------------------------------------------------------------------------
 //| Purpose:     Create CM Kernel
 //| Arguments :
@@ -240,6 +249,12 @@ int32_t CmKernelRT::SafeRelease( void)
     --m_refcount;
     if (m_refcount == 0)
     {
+        PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)m_pCmDev->GetAccelData();
+        PCM_HAL_STATE pState = pCmData->pCmHalState;
+        if (pState->bDynamicStateHeap)
+        {
+            pState->pfnDSHUnregisterKernel(pState, m_Id);
+        }
         delete this;
         return 0;
     }
@@ -952,36 +967,49 @@ int32_t CmKernelRT::SetArgsVme(CM_KERNEL_INTERNAL_ARG_TYPE nArgType, uint32_t Ar
         }
     }
 
-    // Allocate and Zero Memory for pVmeArgValueArray
-    // pVmeArgValueArray : fill into arg.pValue, points to a CM_HAL_VME_ARG_VALUE structure followed by an array of reference surfaces
-    // pVmeCmIndexArray : an array listing all the Cm surface indexes, in the order of current, fw surfaces, bw surfaces
+    // Allocate and Zero Memory for arg.pValue and arg.surfIndex
+    // arg.pValue    : an array of CM_HAL_VME_ARG_VALUE structure followed by an array of reference surfaces
+    // arg.surfIndex : an array listing all the Cm surface indexes, in the order of current, fw surfaces, bw surfaces
 
-    pVmeArgValueArray = MOS_NewArray(uint8_t, TotalVmeArgValueSize);
-    pVmeCmIndexArray = MOS_NewArray(uint16_t, TotalSurfacesInVme);
-    CMCHK_NULL(pVmeArgValueArray);
-    CmSafeMemSet(pVmeArgValueArray, 0, TotalVmeArgValueSize);
-    CMCHK_NULL(pVmeCmIndexArray);
-    CmSafeMemSet(pVmeCmIndexArray, 0, TotalSurfacesInVme * sizeof(uint16_t));
+    if (arg.unitSize < TotalVmeArgValueSize) // need to re-allocate larger area)
+    {
+        if (arg.pValue) 
+        {
+            MosSafeDeleteArray(arg.pValue);
+        }
+        arg.pValue = MOS_NewArray(uint8_t, TotalVmeArgValueSize);
+        
+        if (arg.surfIndex) 
+        {
+            MosSafeDeleteArray(arg.surfIndex);
+        }
+        arg.surfIndex = MOS_NewArray(uint16_t, TotalSurfacesInVme);
+    }
+    
+    CMCHK_NULL(arg.pValue);
+    CmSafeMemSet(arg.pValue, 0, TotalVmeArgValueSize);
+    CMCHK_NULL(arg.surfIndex);
+    CmSafeMemSet(arg.surfIndex, 0, TotalSurfacesInVme * sizeof(uint16_t));
 
     //Set each Vme Surface
     for (uint32_t i = 0; i< NumofElements; i++)
     {
         if (((SurfaceIndex*)(pValue)+i)->get_data() == 0 || ((SurfaceIndex*)(pValue)+i)->get_data() == CM_NULL_SURFACE)
         {
-            PCM_HAL_VME_ARG_VALUE pVmeArg = (PCM_HAL_VME_ARG_VALUE)(pVmeArgValueArray + VmeArgValueOffset);
+            PCM_HAL_VME_ARG_VALUE pVmeArg = (PCM_HAL_VME_ARG_VALUE)(arg.pValue + VmeArgValueOffset);
             pVmeArg->fwRefNum = 0;
             pVmeArg->bwRefNum = 0;
             pVmeArg->curSurface = CM_NULL_SURFACE;
             TempVmeArgValueSize = sizeof(CM_HAL_VME_ARG_VALUE);
             VmeArgValueOffset += TempVmeArgValueSize;
-            pVmeCmIndexArray[LastVmeSurfCount] = CM_NULL_SURFACE;
+            arg.surfIndex[LastVmeSurfCount] = CM_NULL_SURFACE;
             LastVmeSurfCount++;
         }
         else
         {
             pSurfVme = static_cast<CmSurfaceVme*>(GetSurfaceFromSurfaceArray((SurfaceIndex*)pValue, i));
             CMCHK_NULL(pSurfVme);
-            SetArgsSingleVme(pSurfVme, pVmeArgValueArray + VmeArgValueOffset, pVmeCmIndexArray + LastVmeSurfCount);
+            SetArgsSingleVme(pSurfVme, arg.pValue + VmeArgValueOffset, arg.surfIndex + LastVmeSurfCount);
             TempVmeArgValueSize = pSurfVme->GetVmeCmArgSize();
             VmeArgValueOffset += TempVmeArgValueSize;
             LastVmeSurfCount += pSurfVme->GetTotalSurfacesCount();
@@ -995,11 +1023,6 @@ int32_t CmKernelRT::SetArgsVme(CM_KERNEL_INTERNAL_ARG_TYPE nArgType, uint32_t Ar
         {   // Increment size kernel arguments will take up in CURBE
             m_SizeInCurbe += CM_ARGUMENT_SURFACE_SIZE * NumofElements;
         }
-        else if (arg.unitSize < TotalVmeArgValueSize) // need to allocate larger area
-        {
-            MosSafeDeleteArray(arg.pValue);
-            MosSafeDeleteArray(arg.surfIndex);
-        }
 
         arg.unitCount = 1;
         arg.bIsDirty  = true;
@@ -1007,10 +1030,6 @@ int32_t CmKernelRT::SetArgsVme(CM_KERNEL_INTERNAL_ARG_TYPE nArgType, uint32_t Ar
         arg.unitKind  = ARG_KIND_SURFACE_VME;
         arg.unitSize = (uint16_t)TotalVmeArgValueSize; // the unitSize can't represent surfaces count here
         arg.unitVmeArraySize = NumofElements;
-
-        //Assign  pValue surfIndex
-        arg.pValue = pVmeArgValueArray;
-        arg.surfIndex = pVmeCmIndexArray;
 
         m_Dirty |= CM_KERNEL_DATA_KERNEL_ARG_DIRTY;
         m_blPerKernelArgExists = true;
@@ -1025,27 +1044,8 @@ int32_t CmKernelRT::SetArgsVme(CM_KERNEL_INTERNAL_ARG_TYPE nArgType, uint32_t Ar
 finish:
     if(hr != CM_SUCCESS)
     {
-        if (arg.pValue == pVmeArgValueArray)
-        {
-            MosSafeDeleteArray(arg.pValue);
-            pVmeArgValueArray = nullptr;
-        }
-        else
-        {
-            MosSafeDeleteArray(pVmeArgValueArray);
-            MosSafeDeleteArray(arg.pValue);
-        }
-
-        if (arg.surfIndex == pVmeCmIndexArray)
-        {
-            MosSafeDeleteArray(arg.surfIndex);
-            pVmeCmIndexArray = nullptr;
-        }
-        else
-        {
-            MosSafeDeleteArray(pVmeCmIndexArray);
-            MosSafeDeleteArray(arg.surfIndex);
-        }
+        MosSafeDeleteArray(arg.pValue);
+        MosSafeDeleteArray(arg.surfIndex);
     }
     return hr;
 
@@ -3454,6 +3454,7 @@ finish:
     return hr;
 }
 
+char* CmKernelRT::GetName() { return (char*)m_pKernelInfo->kernelName; }
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Create Kernel Data
@@ -6018,4 +6019,5 @@ int CmKernelRT::UpdateSamplerHeap(CmKernelData *pCmKernelData)
     }
 
     return CM_SUCCESS;
+}
 }

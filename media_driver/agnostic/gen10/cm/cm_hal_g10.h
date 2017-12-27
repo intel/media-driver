@@ -145,6 +145,10 @@ public:
             PMHW_SAMPLER_STATE_PARAM sampler_param_ptr,
             SamplerParam  &sampler_param);
 
+
+    MOS_STATUS GetExpectedGtSystemConfig(
+        PCM_EXPECTED_GT_SYSTEM_INFO pExpectedConfig);
+
 private:
     MOS_STATUS UpdatePlatformInfoFromPower(
                         PCM_PLATFORM_INFO platformInfo,

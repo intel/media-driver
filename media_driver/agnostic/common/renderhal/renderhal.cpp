@@ -3385,7 +3385,7 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
                 break;
 
             case Format_X8R8G8B8:
-                // h/w doesn't support XRGB RT - B-Spec Shared Functions doc - Surface Formats Table
+                // h/w doesn't support XRGB render target
                 PlaneDefinition = 
                     (pParams->bRenderTarget) ? RENDERHAL_PLANES_ARGB : RENDERHAL_PLANES_XRGB;
                 break;
@@ -3395,7 +3395,7 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
                 break;
 
             case Format_X8B8G8R8:
-                // h/w doesn't support XBGR RT - B-Spec Shared Functions doc - Surface Formats Table
+                // h/w doesn't support XBGR render target
                 PlaneDefinition = 
                     (pParams->bRenderTarget) ? RENDERHAL_PLANES_ABGR : RENDERHAL_PLANES_XBGR;
                 break;
@@ -4381,12 +4381,18 @@ MOS_STATUS RenderHal_InitCommandBuffer(
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwMiInterface);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwRenderInterface);
+    MHW_RENDERHAL_CHK_NULL(pRenderHal->pRenderHalPltInterface);
     //---------------------------------------------
 
     eStatus         = MOS_STATUS_SUCCESS;
     pOsInterface    = pRenderHal->pOsInterface;
     pGtSystemInfo   = pOsInterface->pfnGetGtSystemInfo(pOsInterface);
     MHW_RENDERHAL_CHK_NULL(pGtSystemInfo);
+    
+    // Init Cmd Buffer
+#ifdef _MMC_SUPPORTED
+    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->SetCompositePrologCmd(pRenderHal, pCmdBuffer));
+#endif // _MMC_SUPPORTED
 
     // Set indirect heap size - limits the size of the command buffer available for rendering
     MHW_RENDERHAL_CHK_STATUS(pOsInterface->pfnSetIndirectStateSize(pOsInterface, pRenderHal->dwIndirectHeapSize));
@@ -4742,7 +4748,6 @@ MOS_STATUS RenderHal_SendMediaStates(
 
     // Send VFE State
     pVfeStateParams = pRenderHal->pRenderHalPltInterface->GetVfeStateParameters();
-    pVfeStateParams->bGpGpuWalkerMode = pGpGpuWalkerParams ? true : false;
     MHW_RENDERHAL_CHK_STATUS(pMhwRender->AddMediaVfeCmd(pCmdBuffer, pVfeStateParams));
 
 
@@ -4761,19 +4766,9 @@ MOS_STATUS RenderHal_SendMediaStates(
     // Send Media object walker
     if(pWalkerParams)
     {
-        if ((pWalkerParams->WalkerMode == MHW_WALKER_MODE_QUAD) &&
-            (MEDIA_IS_SKU(pRenderHal->pSkuTable, FtrSliceShutdown) || pWalkerParams->bRequestSingleSlice))
-        {
-            MHW_RENDERHAL_CHK_STATUS(pMhwRender->AddMediaObjectWalkerCmd(
-                pCmdBuffer, 
-                pWalkerParams));
-        }
-        else
-        {
-            MHW_RENDERHAL_CHK_STATUS(pMhwRender->AddMediaObjectWalkerCmd(
-                pCmdBuffer, 
-                pWalkerParams));
-        }
+        MHW_RENDERHAL_CHK_STATUS(pMhwRender->AddMediaObjectWalkerCmd(
+            pCmdBuffer,
+            pWalkerParams));
     }
     else if (pGpGpuWalkerParams)
     {
@@ -5078,44 +5073,6 @@ bool RenderHal_GetMediaWalkerStatus(
 
 
 //!
-//! \brief      Select a media walker mode
-//! \details    Select a media walker mode according to the GT type
-//! \param      PRENDERHAL_INTERFACE pRenderHal
-//!             [in]    Pointer to RenderHal Interface
-//! \return     MHW_MEDIA_WALKER_MODE
-//!
-MHW_WALKER_MODE RenderHal_SelectWalkerStateMode(
-    PRENDERHAL_INTERFACE pRenderHal)
-{
-    MHW_WALKER_MODE      Mode;
-
-    Mode = pRenderHal->MediaWalkerMode;
-
-    if (MEDIA_IS_SKU(pRenderHal->pSkuTable, FtrGT1))
-    {
-        Mode = MHW_WALKER_MODE_SINGLE;
-    }
-    else if (MEDIA_IS_SKU(pRenderHal->pSkuTable, FtrGT1_5) || MEDIA_IS_SKU(pRenderHal->pSkuTable, FtrGT2))
-    {
-        if (pRenderHal->MediaWalkerMode != MHW_WALKER_MODE_SINGLE)
-        {
-            Mode = MHW_WALKER_MODE_DUAL;
-        }
-    }
-    else if (MEDIA_IS_SKU(pRenderHal->pSkuTable, FtrGT3) || MEDIA_IS_SKU(pRenderHal->pSkuTable, FtrGT4))
-    {
-        if ((pRenderHal->MediaWalkerMode != MHW_WALKER_MODE_SINGLE) && 
-            (pRenderHal->MediaWalkerMode != MHW_WALKER_MODE_DUAL))
-        {
-            Mode = MHW_WALKER_MODE_QUAD;
-        }
-    }
-
-    return Mode;
-}
-
-
-//!
 //! \brief      Get surface memory object control \
 //! \details    Returns surface memory object control
 //! \param      PRENDERHAL_INTERFACE pRenderHal
@@ -5304,8 +5261,6 @@ MOS_STATUS RenderHal_SendSurfaces_PatchList(
 //!           [in] URB Entry Allocation Size
 //! \param    PRENDERHAL_SCOREBOARD_PARAMS pScoreboardParams
 //!           [in] Pointer to Scoreboard Params
-//! \param    bool bGpGpuWalkerMode
-//!           [in] true if using GpGpu Walker, false otherwise
 //! \return   MOS_STATUS
 //!
 MOS_STATUS RenderHal_SetVfeStateParams(
@@ -5314,8 +5269,7 @@ MOS_STATUS RenderHal_SetVfeStateParams(
     uint32_t                dwMaximumNumberofThreads,
     uint32_t                dwCURBEAllocationSize,
     uint32_t                dwURBEntryAllocationSize,
-    PMHW_VFE_SCOREBOARD     pScoreboardParams,
-    bool                    bGpGpuWalkerMode)
+    PMHW_VFE_SCOREBOARD     pScoreboardParams)
 {
     PMHW_VFE_PARAMS                 pVfeParams;
     PRENDERHAL_STATE_HEAP           pStateHeap;
@@ -5345,7 +5299,6 @@ MOS_STATUS RenderHal_SetVfeStateParams(
 
     pVfeParams->pKernelState             = nullptr;
     pVfeParams->eVfeSliceDisable         = MHW_VFE_SLICE_ALL;
-    pVfeParams->bGpGpuWalkerMode         = bGpGpuWalkerMode;
 
     //-------------------------------------------------------------------------
     // --Gen6 GT1--
@@ -6229,7 +6182,6 @@ MOS_STATUS RenderHal_InitInterface(
 
     // Media Walker
     pRenderHal->pfnGetMediaWalkerStatus       = RenderHal_GetMediaWalkerStatus;
-    pRenderHal->pfnSelectWalkerStateMode      = RenderHal_SelectWalkerStateMode;
 
     //Surface Memory Object Control
     pRenderHal->pfnGetSurfaceMemoryObjectControl
@@ -6241,9 +6193,7 @@ MOS_STATUS RenderHal_InitInterface(
     pRenderHal->pfnSetVfeStateParams          = RenderHal_SetVfeStateParams;
     pRenderHal->pfnSetSamplerStates           = RenderHal_SetSamplerStates;
 
-    // Work Around Function
     pRenderHal->pfnIs2PlaneNV12Needed         = RenderHal_Is2PlaneNV12Needed;
-    
     
     // Initialize hardware resources for the current Os/Platform
     pRenderHal->pRenderHalPltInterface = RenderHalDevice::CreateFactory(pOsInterface);
@@ -6291,7 +6241,6 @@ MOS_STATUS RenderHal_InitInterface(
     // CM specific function
     pRenderHal->pfnConvertToNanoSeconds       = RenderHal_ConvertToNanoSeconds;
 
-    // Work Around Function
     pRenderHal->pfnPerThreadScratchSpaceStart2K = RenderHal_PerThreadScratchSpaceStart2K;
 
     // Special functions

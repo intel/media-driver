@@ -29,6 +29,8 @@
 #include "cm_surface.h"
 #include "cm_surface_2d.h"
 
+#include "cm_hal.h"
+
 namespace CMRT_UMD
 {
 class CmSurfaceManager;

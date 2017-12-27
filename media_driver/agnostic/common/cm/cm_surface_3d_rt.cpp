@@ -32,6 +32,8 @@
 #include "cm_surface_manager.h"
 #include "cm_hal.h"
 
+namespace CMRT_UMD
+{
 int32_t CmSurface3DRT::Create( uint32_t index, uint32_t handle,
                             uint32_t width, uint32_t height, uint32_t depth,
                             CM_SURFACE_FORMAT format,
@@ -412,9 +414,9 @@ CM_RT_API int32_t CmSurface3DRT::InitSurface(const uint32_t initValue, CmEvent* 
     CM_ASSERT( pCmDev );
     PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)pCmDev->GetAccelData();
 
-	uint32_t sizePerPixel = 0;
-	uint32_t updatedHeight = 0;
-	CMCHK_HR(m_SurfaceMgr->GetPixelBytesAndHeight(m_Width, m_Height, m_Format, sizePerPixel, updatedHeight));
+    uint32_t sizePerPixel = 0;
+    uint32_t updatedHeight = 0;
+    CMCHK_HR(m_SurfaceMgr->GetPixelBytesAndHeight(m_Width, m_Height, m_Format, sizePerPixel, updatedHeight));
 
     inParam.dwHandle = m_Handle;
     inParam.pData = (void*)0x44; //Any non-nullptr value will work
@@ -426,52 +428,52 @@ CM_RT_API int32_t CmSurface3DRT::InitSurface(const uint32_t initValue, CmEvent* 
     CHK_MOSSTATUS_RETURN_CMERROR(pCmData->pCmHalState->pfnLock3DResource(pCmData->pCmHalState, &inParam));
     CMCHK_NULL(inParam.pData);
 
-	uSizeInBytes = inParam.iWidth * inParam.iHeight * inParam.iDepth * sizePerPixel;
-	uWidthInBytes = inParam.iWidth * sizePerPixel;
+    uSizeInBytes = inParam.iWidth * inParam.iHeight * inParam.iDepth * sizePerPixel;
+    uWidthInBytes = inParam.iWidth * sizePerPixel;
 
     //Copy Resource
-	pTempDst = (uint8_t*)inParam.pData;
-	pRPlane  = (uint8_t*)inParam.pData;
+    pTempDst = (uint8_t*)inParam.pData;
+    pRPlane  = (uint8_t*)inParam.pData;
 
     // Only use Qpitch when Qpitch is supported by HW
     if (inParam.bQPitchEnable)
-	{
-		if (inParam.pPitch == uWidthInBytes && inParam.dwQPitch == inParam.iHeight)
-		{
-			CmDwordMemSet(pTempDst, initValue, uWidthInBytes);
-		}
-		else
-		{
-			for (uint32_t uZ = 0; uZ < inParam.iDepth; uZ++)
-			{
-				pTempDst = pRPlane;
-				for (uint32_t uY = 0; uY < inParam.iHeight; uY++)
-				{
-					CmDwordMemSet(pTempDst, initValue, uWidthInBytes);
-					pTempDst += inParam.pPitch;
-				}
-				pRPlane += inParam.dwQPitch * inParam.pPitch;
-			}
-		}
-	}
-	else
-	{
-		if (inParam.pPitch == uWidthInBytes)
-		{
-			CmDwordMemSet(pTempDst, initValue, uSizeInBytes);
-		}
-		else
-		{
-			for (uint32_t uZ = 0; uZ < inParam.iDepth; uZ++)
-			{
-				for (uint32_t uY = 0; uY < inParam.iHeight; uY++)
-				{
-					CmDwordMemSet(pTempDst, initValue, uWidthInBytes);
-					pTempDst += inParam.pPitch;
-				}
-			}
-		}
-	}
+    {
+        if (inParam.pPitch == uWidthInBytes && inParam.dwQPitch == inParam.iHeight)
+        {
+            CmDwordMemSet(pTempDst, initValue, uSizeInBytes);
+        }
+        else
+        {
+            for (uint32_t uZ = 0; uZ < inParam.iDepth; uZ++)
+            {
+                pTempDst = pRPlane;
+                for (uint32_t uY = 0; uY < inParam.iHeight; uY++)
+                {
+                    CmDwordMemSet(pTempDst, initValue, uWidthInBytes);
+                    pTempDst += inParam.pPitch;
+                }
+                pRPlane += inParam.dwQPitch * inParam.pPitch;
+            }
+        }
+    }
+    else
+    {
+        if (inParam.pPitch == uWidthInBytes)
+        {
+            CmDwordMemSet(pTempDst, initValue, uSizeInBytes);
+        }
+        else
+        {
+            for (uint32_t uZ = 0; uZ < inParam.iDepth; uZ++)
+            {
+                for (uint32_t uY = 0; uY < inParam.iHeight; uY++)
+                {
+                    CmDwordMemSet(pTempDst, initValue, uWidthInBytes);
+                    pTempDst += inParam.pPitch;
+                }
+            }
+        }
+    }
 
     // unlock
     inParam.pData = nullptr;
@@ -623,4 +625,5 @@ void CmSurface3DRT::DumpContent(uint32_t kernelNumber, int32_t taskId, uint32_t 
     outputFileStream.close();
     surface3DDumpNumber++;
 #endif
+}
 }

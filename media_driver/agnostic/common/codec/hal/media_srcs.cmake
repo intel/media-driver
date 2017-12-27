@@ -21,25 +21,23 @@
 # common
 set(TMP_1_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/codechal.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/codechal_common.c
-    ${CMAKE_CURRENT_LIST_DIR}/codechal_common_avc.c
-    ${CMAKE_CURRENT_LIST_DIR}/codechal_common_vp9.c
     ${CMAKE_CURRENT_LIST_DIR}/codechal_hw.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/codechal_utilities.cpp
     ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc.cpp
     ${CMAKE_CURRENT_LIST_DIR}/codechal_debug_config_manager.cpp
     ${CMAKE_CURRENT_LIST_DIR}/codechal_debug.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/codechal_allocator.cpp
 )
 
 set(TMP_1_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/BRCIF.h 
     ${CMAKE_CURRENT_LIST_DIR}/codechal.h
-    ${CMAKE_CURRENT_LIST_DIR}/codechal_common.h
-    ${CMAKE_CURRENT_LIST_DIR}/codechal_common_avc.h
-    ${CMAKE_CURRENT_LIST_DIR}/codechal_common_vp9.h
     ${CMAKE_CURRENT_LIST_DIR}/codechal_hw.h
+    ${CMAKE_CURRENT_LIST_DIR}/codechal_utilities.h
     ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc.h
     ${CMAKE_CURRENT_LIST_DIR}/codechal_debug_config_manager.h
     ${CMAKE_CURRENT_LIST_DIR}/codechal_debug.h
+    ${CMAKE_CURRENT_LIST_DIR}/codechal_allocator.h
 )
 
 if(${MMC_Supported} STREQUAL "yes")
@@ -57,11 +55,15 @@ endif()
 set(TMP_2_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_nv12top010.cpp
     ${CMAKE_CURRENT_LIST_DIR}/codechal_decoder.cpp
+	${CMAKE_CURRENT_LIST_DIR}/codechal_decode_histogram.cpp
+	${CMAKE_CURRENT_LIST_DIR}/codechal_decode_histogram_vebox.cpp
 )
 
 set(TMP_2_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_nv12top010.h
     ${CMAKE_CURRENT_LIST_DIR}/codechal_decoder.h
+	${CMAKE_CURRENT_LIST_DIR}/codechal_decode_histogram.h
+	${CMAKE_CURRENT_LIST_DIR}/codechal_decode_histogram_vebox.h
 )
 if(${Decode_Processing_Supported} STREQUAL "yes")
     set(TMP_2_SOURCES_
@@ -275,20 +277,23 @@ if(${Common_Encode_Supported} STREQUAL "yes")
         ${CMAKE_CURRENT_LIST_DIR}/codechal_kernel_intra_dist.cpp
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_wp.cpp
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encoder_base.cpp
+		${CMAKE_CURRENT_LIST_DIR}/codechal_encode_tracked_buffer.cpp
         ${CMAKE_CURRENT_LIST_DIR}/codechal_huc_cmd_initializer.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_allocator.cpp
     )
 
     set(TMP_3_HEADERS_
         ${CMAKE_CURRENT_LIST_DIR}/codechal_debug_encode_par.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_csc_ds.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_sfc.h
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_encoder.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_kernel_base.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_kernel_hme.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_kernel_intra_dist.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_wp.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encoder_base.h
+		${CMAKE_CURRENT_LIST_DIR}/codechal_encode_tracked_buffer.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_huc_cmd_initializer.h
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_allocator.h
     )
 endif()
 
@@ -324,12 +329,14 @@ if(${HEVC_Encode_Supported} STREQUAL "yes")
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_hevc.cpp
         ${CMAKE_CURRENT_LIST_DIR}/codechal_vdenc_hevc.cpp
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_hevc_base.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_tracked_buffer_hevc.cpp
     )
     set(TMP_3_HEADERS_
         ${TMP_3_HEADERS_}
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_hevc.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_vdenc_hevc.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_hevc_base.h
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_tracked_buffer_hevc.h
     )
 
     if(${MMC_Supported} STREQUAL "yes")
@@ -356,6 +363,29 @@ if(${VP9_Encode_Supported} STREQUAL "yes")
         ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_encode_vp9.h
     )
 endif()
+
+if(${VP8_Encode_Supported} STREQUAL "yes")
+    set(TMP_3_SOURCES_
+        ${TMP_3_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_vp8.cpp
+    )
+    set(TMP_3_HEADERS_
+        ${TMP_3_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_vp8.h
+    )
+
+    if(${MMC_Supported} STREQUAL "yes")
+        set(TMP_3_SOURCES_
+            ${TMP_3_SOURCES_}
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_encode_vp8.cpp
+        )
+        set(TMP_3_HEADERS_
+            ${TMP_3_HEADERS_}
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_encode_vp8.h
+        )
+    endif()
+endif()
+
 
 if(${JPEG_Encode_Supported} STREQUAL "yes")
     set(TMP_3_SOURCES_

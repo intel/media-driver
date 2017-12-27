@@ -122,7 +122,7 @@ PRENDERHAL_OFFSET_OVERRIDE CompositeStateG8::GetPlaneOffsetOverrideParam(
     {
         uint32_t uiOld_YplaneHeight   = pSurface->dwHeight;
         tempRect                      = pRenderHalSurface->rcDst;
-        // Backup Original Surface Pitch for surface offset tuning WA later
+        // Backup Original Surface Pitch for surface offset tuning solution later
         uSurfPitch                    = pSurface->dwPitch;
 
         pSurface->YPlaneOffset.iXOffset = tempRect.left;
@@ -250,7 +250,7 @@ int32_t CompositeStateG8::GetThreadCountForVfeState(
     PVPHAL_RENDERING_DATA_COMPOSITE     pRenderingData,
     PVPHAL_SURFACE                      pTarget)
 {
-    // WA for BDW GT2 IEF performance issue
+    // Solution for BDW GT2 IEF performance issue
     if (!m_pPerfData->CompMaxThreads.bEnabled           &&
         MEDIA_IS_SKU(m_pRenderHal->pSkuTable, FtrGT2)                &&
         pRenderingData->pLayers[0]                      &&

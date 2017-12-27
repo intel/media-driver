@@ -30,8 +30,8 @@
 #include "cm_device_rt.h"
 #include "cm_hal.h"
 
-using namespace CMRT_UMD;
-
+namespace CMRT_UMD
+{
 int32_t CmSurfaceSampler::Create( 
     uint32_t index,                //SurfaceSampler's index in surface array
     uint32_t handleFor2D3D,        //indexing resource array of HalCm
@@ -149,4 +149,4 @@ int32_t CmSurfaceSampler::SetMemoryObjectControl( MEMORY_OBJECT_CONTROL mem_ctrl
 finish:
     return hr;
 }
-
+}

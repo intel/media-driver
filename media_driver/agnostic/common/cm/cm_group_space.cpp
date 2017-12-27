@@ -25,11 +25,12 @@
 //!
 
 #include "cm_group_space.h"
-
 #include "cm_device_rt.h"
 #include "cm_kernel.h"
-#include "cm_log.h"
+#include "cm_mem.h"
 
+namespace CMRT_UMD
+{
 int32_t CmThreadGroupSpace::Create(CmDeviceRT* pDevice, uint32_t index, uint32_t thrdSpaceWidth, uint32_t thrdSpaceHeight, uint32_t thrdSpaceDepth,  uint32_t grpSpaceWidth, uint32_t grpSpaceHeight, uint32_t grpSpaceDepth, CmThreadGroupSpace* & pTGS)
 {
     CM_HAL_MAX_VALUES* pHalMaxValues = nullptr;
@@ -153,3 +154,4 @@ std::string CmThreadGroupSpace::Log()
 
 }
 #endif
+}

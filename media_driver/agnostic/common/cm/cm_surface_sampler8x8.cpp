@@ -31,8 +31,8 @@
 #include "cm_device_rt.h"
 #include "cm_hal.h"
 
-using namespace CMRT_UMD;
-
+namespace CMRT_UMD
+{
 //*-----------------------------------------------------------------------------
 //| Purpose:    Create CmSurfaceSampler8x8
 //| Returns:    Result of the operation.
@@ -175,4 +175,4 @@ int32_t CmSurfaceSampler8x8::SetMemoryObjectControl(MEMORY_OBJECT_CONTROL mem_ct
 finish:
     return hr;
 }
-
+}

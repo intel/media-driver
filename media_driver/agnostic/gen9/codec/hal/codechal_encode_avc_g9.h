@@ -47,10 +47,6 @@
 #define CODECHAL_ENCODE_AVC_MB_TEXTURE_THRESHOLD_G9                     1024
 #define CODECHAL_ENCODE_AVC_SFD_COST_TABLE_BUFFER_SIZE_G9               52
 
-// VDENC BRC related buffer size
-#define CODECHAL_VDENC_AVC_BRC_STATS_BUF_SIZE_G9                        80
-#define CODECHAL_VDENC_AVC_BRC_PAK_STATS_BUF_SIZE_G9                    204
-
 // Unified curbe size for both legacy and fei.
 #define CODECHAL_ENCODE_AVC_MBENC_CURBE_SIZE_IN_DWORD_G9                104
 
@@ -5225,7 +5221,7 @@ typedef struct _CODECHAL_ENCODE_AVC_KERNEL_HEADER_FEI_G9 {
     CODECHAL_KERNEL_HEADER AVCMBEnc_Fei_B;
     // PreProc
     CODECHAL_KERNEL_HEADER AVC_Fei_ProProc;
-    // HME 
+    // HME
     CODECHAL_KERNEL_HEADER AVC_ME_P;
     CODECHAL_KERNEL_HEADER AVC_ME_B;
     // DownScaling
@@ -5622,48 +5618,48 @@ public:
     virtual MOS_STATUS InitializeState();
 
     virtual MOS_STATUS InitMbBrcConstantDataBuffer(
-        PCODECHAL_ENCODE_AVC_INIT_MBBRC_CONSTANT_DATA_BUFFER_PARAMS pParams);
+        PCODECHAL_ENCODE_AVC_INIT_MBBRC_CONSTANT_DATA_BUFFER_PARAMS params);
 
     virtual MOS_STATUS InitKernelStateWP();
 
     virtual MOS_STATUS GetMbEncKernelStateIdx(
-        PCODECHAL_ENCODE_ID_OFFSET_PARAMS   pParams,
-        uint32_t*                              pdwKernelOffset);
+        CodechalEncodeIdOffsetParams*          params,
+        uint32_t*                              kernelOffset);
 
     virtual MOS_STATUS SetCurbeAvcWP(
-        PCODECHAL_ENCODE_AVC_WP_CURBE_PARAMS pParams);
+        PCODECHAL_ENCODE_AVC_WP_CURBE_PARAMS params);
 
     virtual MOS_STATUS SetCurbeAvcBrcInitReset(
-        PCODECHAL_ENCODE_AVC_BRC_INIT_RESET_CURBE_PARAMS pParams);
+        PCODECHAL_ENCODE_AVC_BRC_INIT_RESET_CURBE_PARAMS params);
 
     virtual MOS_STATUS SetCurbeAvcFrameBrcUpdate(
-        PCODECHAL_ENCODE_AVC_BRC_UPDATE_CURBE_PARAMS pParams);
+        PCODECHAL_ENCODE_AVC_BRC_UPDATE_CURBE_PARAMS params);
 
     virtual MOS_STATUS SetCurbeAvcMbBrcUpdate(
-        PCODECHAL_ENCODE_AVC_BRC_UPDATE_CURBE_PARAMS pParams);
+        PCODECHAL_ENCODE_AVC_BRC_UPDATE_CURBE_PARAMS params);
 
     virtual MOS_STATUS SetCurbeAvcBrcBlockCopy(
-        PCODECHAL_ENCODE_AVC_BRC_BLOCK_COPY_CURBE_PARAMS pParams);
+        PCODECHAL_ENCODE_AVC_BRC_BLOCK_COPY_CURBE_PARAMS params);
 
     virtual MOS_STATUS SendAvcMbEncSurfaces(
-        PMOS_COMMAND_BUFFER pCmdBuffer,
-        PCODECHAL_ENCODE_AVC_MBENC_SURFACE_PARAMS pParams);
+        PMOS_COMMAND_BUFFER cmdBuffer,
+        PCODECHAL_ENCODE_AVC_MBENC_SURFACE_PARAMS params);
 
     virtual MOS_STATUS SendAvcWPSurfaces(
-        PMOS_COMMAND_BUFFER pCmdBuffer,
-        PCODECHAL_ENCODE_AVC_WP_SURFACE_PARAMS pParams);
+        PMOS_COMMAND_BUFFER cmdBuffer,
+        PCODECHAL_ENCODE_AVC_WP_SURFACE_PARAMS params);
 
     virtual MOS_STATUS SendAvcBrcFrameUpdateSurfaces(
-        PMOS_COMMAND_BUFFER pCmdBuffer,
-        PCODECHAL_ENCODE_AVC_BRC_UPDATE_SURFACE_PARAMS pParams);
+        PMOS_COMMAND_BUFFER cmdBuffer,
+        PCODECHAL_ENCODE_AVC_BRC_UPDATE_SURFACE_PARAMS params);
 
     virtual MOS_STATUS SendAvcBrcMbUpdateSurfaces(
-        PMOS_COMMAND_BUFFER pCmdBuffer,
-        PCODECHAL_ENCODE_AVC_BRC_UPDATE_SURFACE_PARAMS pParams);
+        PMOS_COMMAND_BUFFER cmdBuffer,
+        PCODECHAL_ENCODE_AVC_BRC_UPDATE_SURFACE_PARAMS params);
 
     virtual MOS_STATUS SetupROISurface();
 
-    virtual bool IsMfeMbEncEnabled(bool bMbEncIFrameDistInUse = false);
+    virtual bool IsMfeMbEncEnabled(bool mbEncIFrameDistInUse = false);
 
     MOS_STATUS GetStatusReport(
         void *status,

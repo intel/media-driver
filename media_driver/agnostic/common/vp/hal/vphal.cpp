@@ -433,7 +433,7 @@ MOS_STATUS VphalState::GetStatusReportEntryLength(
     uint32_t*                      puiLength)
 {
     MOS_STATUS                     eStatus = MOS_STATUS_SUCCESS;
-#if LINUX // this function is only for Linux now
+#if __linux__  // this function is only for Linux now
     PVPHAL_STATUS_TABLE            pStatusTable;
 
     VPHAL_PUBLIC_CHK_NULL(m_renderer);

@@ -671,6 +671,10 @@ enum
     CODECHAL_HEVC_FEI_NUM_SURFACES = CODECHAL_HEVC_FEI_P_MBENC_END
 };
 
+//!
+//! \enum     HEVC_BRC_FRAME_TYPE
+//! \brief    HEVC BRC frame type
+//!
 enum HEVC_BRC_FRAME_TYPE
 {
     HEVC_BRC_FRAME_TYPE_P_OR_LB = 0,
@@ -680,6 +684,10 @@ enum HEVC_BRC_FRAME_TYPE
     HEVC_BRC_FRAME_TYPE_B2 = 4
 };
 
+//!
+//! \enum     HEVC_ME_DIST_TYPE
+//! \brief    HEVC me dist type
+//!
 enum HEVC_ME_DIST_TYPE
 {
     HEVC_ME_DIST_TYPE_INTRA = 0,
@@ -687,12 +695,20 @@ enum HEVC_ME_DIST_TYPE
     HEVC_ME_DIST_TYPE_INTER_BRC_DIST
 };
 
+//!
+//! \enum     CODECHAL_ENCODE_HEVC_MULTIPRED
+//! \brief    Codechal encode HEVC multipred
+//!
 enum CODECHAL_ENCODE_HEVC_MULTIPRED
 {
     CODECHAL_ENCODE_HEVC_MULTIPRED_ENABLE = 0x01,
     CODECHAL_ENCODE_HEVC_MULTIPRED_DISABLE = 0x80
 } ;
 
+//!
+//! \struct   CODECHAL_ENCODE_HEVC_SLICE_MAP
+//! \brief    Codechal encode HEVC slice map
+//!
 struct CODECHAL_ENCODE_HEVC_SLICE_MAP
 {
     uint8_t   ucSliceID;
@@ -700,6 +716,10 @@ struct CODECHAL_ENCODE_HEVC_SLICE_MAP
 };
 using PCODECHAL_ENCODE_HEVC_SLICE_MAP = CODECHAL_ENCODE_HEVC_SLICE_MAP*;
 
+//!
+//! \struct   CODECHAL_ENCODE_HEVC_WALKING_CONTROL_REGION
+//! \brief    Codechal encode HEVC walking control region
+//!
 struct CODECHAL_ENCODE_HEVC_WALKING_CONTROL_REGION
 {
     uint16_t  Reserve0[2];
@@ -713,6 +733,10 @@ struct CODECHAL_ENCODE_HEVC_WALKING_CONTROL_REGION
 };
 using PCODECHAL_ENCODE_HEVC_WALKING_CONTROL_REGION = CODECHAL_ENCODE_HEVC_WALKING_CONTROL_REGION*;
 
+//!
+//! \struct   CODECHAL_ENCODE_HEVC_REFFRAME_SYNC_OBJ
+//! \brief    Codechal encode HEVC reference frame sync object
+//!
 struct CODECHAL_ENCODE_HEVC_REFFRAME_SYNC_OBJ
 {
     uint32_t                uiSemaphoreObjCount;
@@ -724,6 +748,10 @@ using PCODECHAL_ENCODE_HEVC_REFFRAME_SYNC_OBJ = CODECHAL_ENCODE_HEVC_REFFRAME_SY
 
 C_ASSERT((sizeof(CODECHAL_ENCODE_HEVC_WALKING_CONTROL_REGION)) == 64);
 
+//!
+//! \struct   CODECHAL_ENCODE_HEVC_WALKINGPATTERN_PARAM
+//! \brief    Codechal encode HEVC walking pattern parameter
+//!
 struct CODECHAL_ENCODE_HEVC_WALKINGPATTERN_PARAM
 {
     // Media Walker setting
@@ -738,6 +766,10 @@ struct CODECHAL_ENCODE_HEVC_WALKINGPATTERN_PARAM
 };
 using PCODECHAL_ENCODE_HEVC_WALKINGPATTERN_PARAM = CODECHAL_ENCODE_HEVC_WALKINGPATTERN_PARAM*;
 
+//!
+//! \struct   HEVC_TILE_STATS_INFO
+//! \brief    HEVC tiles states info
+//!
 struct HEVC_TILE_STATS_INFO
 {
     uint32_t uiTileSizeRecord;
@@ -747,257 +779,10 @@ struct HEVC_TILE_STATS_INFO
 };
 using PHEVC_TILE_STATS_INFO = HEVC_TILE_STATS_INFO*;
 
-struct _CODECHAL_ENCODE_HEVC_STATE
-{
-    PCODECHAL_ENCODE_BINDING_TABLE_GENERIC      pScalingAndConversionKernelBindingTable;
-    PMHW_KERNEL_STATE                           pScalingAndConversionKernelState;
-
-    PCODECHAL_ENCODE_BINDING_TABLE_GENERIC      pMeKernelBindingTable;
-    PMHW_KERNEL_STATE                           pMeKernelState;
-
-    PCODECHAL_ENCODE_BINDING_TABLE_GENERIC      pMbEncKernelBindingTable;
-    uint32_t                                    dwNumMbEncEncKrnStates;
-    PMHW_KERNEL_STATE                           pMbEncKernelStates;
-
-    PCODECHAL_ENCODE_BINDING_TABLE_GENERIC      pBrcKernelBindingTable;
-    uint32_t                                    dwNumBrcKrnStates;
-    PMHW_KERNEL_STATE                           pBrcKernelStates;
-    PCODECHAL_SURFACE_CODEC_PARAMS              pSurfaceParams;
-
-    // External components
-    PMOS_INTERFACE                              pOsInterface;                               // Os Inteface
-    CodechalHwInterface                        *pHwInterface;                               // Hw Interface
-    MEDIA_WA_TABLE                              *pWaTable;                                  // WA table
-
-                                                                                            // Parameters passed by application
-    PCODEC_HEVC_ENCODE_PICTURE_PARAMS           pHevcPicParams;
-    PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS          pHevcSeqParams;
-    PCODEC_HEVC_ENCODE_SLICE_PARAMS             pHevcSliceParams;
-    PCODECHAL_HEVC_IQ_MATRIX_PARAMS             pHevcIqMatrixParams;
-
-    // Internally maintained
-    MOS_RESOURCE                                resDeblockingFilterRowStoreScratchBuffer;       // Handle of Deblocking Filter Row Store Scratch data surface
-    MOS_RESOURCE                                resDeblockingFilterTileRowStoreScratchBuffer;   // Handle of Deblocking Filter Tile Row Store Scratch data surface
-    MOS_RESOURCE                                resDeblockingFilterColumnRowStoreScratchBuffer; // Handle of Deblocking Filter Column Row Store Scratch data surface
-    MOS_RESOURCE                                resMetadataLineBuffer;                          // Handle of Metadata Line data buffer
-    MOS_RESOURCE                                resMetadataTileLineBuffer;                      // Handle of Metadata Tile Line data buffer
-    MOS_RESOURCE                                resMetadataTileColumnBuffer;                    // Handle of Metadata Tile Column data buffer
-    MOS_RESOURCE                                resSaoLineBuffer;                               // Handle of SAO Line data buffer
-    MOS_RESOURCE                                resSaoTileLineBuffer;                           // Handle of SAO Tile Line data buffer
-    MOS_RESOURCE                                resSaoTileColumnBuffer;                         // Handle of SAO Tile Column data buffer
-    MOS_RESOURCE                                resMvTemporalBuffer[CODEC_NUM_TRACKED_BUFFERS]; // Handles of MV Temporal data buffer
-    MOS_RESOURCE                                resLcuBaseAddressBuffer;
-    MOS_RESOURCE                                resLcuILDBStreamOutBuffer;
-    MOS_RESOURCE                                resSaoStreamOutBuffer;
-    MOS_RESOURCE                                resFrameStatStreamOutBuffer;                    // PAK Statistics = HEVC Frame Statistics, should not confuse with MFX_PAK_FRAME_STATISTICS
-    MOS_RESOURCE                                resSseSrcPixelRowStoreBuffer;
-    CODECHAL_ENCODE_HEVC_REFFRAME_SYNC_OBJ      sRefSync[CODEC_NUM_TRACKED_BUFFERS];
-    PCODECHAL_ENCODE_HEVC_REFFRAME_SYNC_OBJ     pCurrRefSync;
-    uint8_t                                     ucLastMbCodeIndex;                              // Used in the non-parallel BRC to check if the previous PAK is ready
-    uint8_t                                     ucCurrMinus2MbCodeIndex;                        // Used in the parallel BRC to check if the (N-2)th PAK is ready, where N is the frame number
-
-    int8_t                                      RefIdxMapping[CODEC_MAX_NUM_REF_FRAME_HEVC];
-    uint8_t                                     ModeCost[14];
-    uint8_t                                     ModeCostRDE[42];
-    uint8_t                                     ModeCostCRE[16];
-    uint8_t                                     ModeCostSp;
-    uint8_t                                     MvCost[8];
-    uint32_t                                    SimplestIntra_Inter_threshold;
-    uint16_t                                    lambda_md;
-    uint32_t                                    lambda_rd;
-    uint32_t                                    TuSADThreshold;
-    bool                                        bHmeEnabled;
-    bool                                        b16xMeEnabled;
-    bool                                        b32xMeEnabled;
-    bool                                        bLowDelay;
-    bool                                        bSameRefList;
-    bool                                        bIsMaxLcu64;
-    PCODECHAL_ENCODE_HEVC_SLICE_MAP             pSliceMap;
-    uint32_t                                    dwSizeOfMvTemporalBuffer;
-    uint32_t                                    dwNumRegionsInSlice;
-    uint32_t                                    dwLcuInRow;
-    uint32_t                                    dwLcu2MbRatio;
-    uint32_t                                    dwLastNumSlices;
-    uint8_t                                     ucNumMbBKernelSplit;
-    uint8_t                                     ucNumMb8x8IntraKernelSplit;
-    bool                                        bEncode4KSequence;
-    bool                                        bHevcRdoqEnabled;
-    bool                                        bHevcRdoqAdaptationEnabled;
-    bool                                        bHevcVdencAcqpEnabled;
-    bool                                        bVdencHucUsed;
-    bool                                        bHevcVdencRoundingEnabled;
-    bool                                        bHevcVdencWeightedPredEnabled;
-    bool                                        bVdencHuCConditional2ndPass;
-    bool                                        bVdencROIStreamInEnabled;
-    bool                                        bVdencStreamInEnabled;
-    bool                                        bVdencPakObjCmdStreamOutEnabled;
-
-    bool                                        bPowerSavingEnabled;
-
-    // ENC internal use
-    MOS_SURFACE                                 sMinDistortion;
-    CODECHAL_ENCODE_BUFFER                      resVMESavedUniSic;
-    CODECHAL_ENCODE_BUFFER                      resMvIndex;
-    CODECHAL_ENCODE_BUFFER                      resMVPIndex;
-    bool                                        bIs10bitHEVC;
-    uint8_t                                     ucChromaFormat;
-    uint8_t                                     ucBitDepth;
-
-    // ME
-    MOS_SURFACE                                 s4xMeMvDataBuffer;
-    MOS_SURFACE                                 s16xMeMvDataBuffer;
-    MOS_SURFACE                                 s32xMeMvDataBuffer;
-    MOS_SURFACE                                 s4xMeDistortionBuffer;
-    bool                                        bBrcDistortionBufferSupported;
-    bool                                        b4xMeDistortionBufferSupported;
-    uint8_t*                                    pBMEMethodTable;
-
-    // BRC
-    PMOS_SURFACE                                psBrcDistortion;
-    MOS_SURFACE                                 sBrcIntraDistortionBuffer;
-    CODECHAL_ENCODE_BUFFER                      resBrcInputForEnckernels;
-    uint16_t                                    usAVBRAccuracy;
-    uint16_t                                    usAVBRConvergence;
-    double                                      dBrcInitCurrentTargetBufFullInBits;
-    double                                      dBrcInitResetInputBitsPerFrame;
-    uint32_t                                    dwBrcInitResetBufSizeInBits;
-    uint32_t                                    dwHevcBrcHistoryBufferSize;
-    uint32_t                                    dwHevcBrcPakStatisticsSize;
-    uint32_t                                    dwHevcBrcHcpPicStateSize;
-    uint32_t                                    dwHevcBrcConstantSurfaceWidth;
-    uint32_t                                    dwHevcBrcConstantSurfaceHeight;
-    uint32_t                                    dwHevcBrcLCUConstDataBufferSize;
-    MHW_BATCH_BUFFER                            BatchBufferForPakSlices[CODECHAL_HEVC_NUM_PAK_SLICE_BATCH_BUFFERS];
-    uint32_t                                    ucCurrPakSliceIdx;
-    bool                                        bBrcEnabled;
-    bool                                        bLcuBrcEnabled;
-    bool                                        bBrcInit;
-    bool                                        bBrcReset;
-    bool                                        bROIValueInDeltaQP;
-
-    //Resources for the render engine
-    MOS_SURFACE                                 sScaled2xSurface;   // Handle of the 2x scaled surfaces
-    MOS_SURFACE                                 sSliceMapSurface;
-
-    //Resources for VDEnc
-    MOS_RESOURCE                                resVdencIntraRowStoreScratchBuffer;
-    MOS_RESOURCE                                resVdencTileRowStoreBuffer;
-    MOS_RESOURCE                                resPakStatsBuffer;
-    MOS_RESOURCE                                resVdencStatsBuffer;
-    MOS_RESOURCE                                resPakInfoBuffer;
-    MOS_RESOURCE                                resSliceCountBuffer;
-    MOS_RESOURCE                                resVdencModeTimerBuffer;
-    MOS_RESOURCE                                resWeightHistBuffer[CODEC_NUM_REF_FRAME_HEVC_WP];   // Weight Histogram (part of VDEnc statistic)
-    MOS_RESOURCE                                resDataFromPicsBuffer;                              // Weighted Prediction
-    MOS_RESOURCE                                resVdencDeltaQpBuffer;
-    MOS_RESOURCE                                resVdencInputROIStreaminBuffer;
-    MOS_RESOURCE                                resVdencOutputROIStreaminBuffer;
-    MOS_RESOURCE                                resVdencRecNotFilteredBuffer;
-    MOS_RESOURCE                                resVdencPaletteModeStreamOutBuffer;
-
-    // Batch Buffer for VDEnc
-    MHW_BATCH_BUFFER                            Vdenc2ndLevelBatchBuffer;
-    uint32_t                                    dwVdencBatchBufferPerSliceVarSize[ENCODE_HEVC_VDENC_NUM_MAX_SLICES];
-    uint32_t                                    dw1stPakInsertObjectCmdSize;
-    uint32_t                                    dwHcpWeightOffsetStateCmdSize;
-    uint32_t                                    dwHcpSliceStateCmdSize;
-    uint32_t                                    dwVdencWeightOffsetStateCmdSize;
-    uint32_t                                    dwMiBatchBufferEndCmdSize;
-    uint32_t                                    dwPicStateCmdStartInBytes;
-    uint32_t                                    dwImgStateCmdStartInBytes;
-
-    // VDENC BRC Buffers: these buffers also need to be used for advanced CQP with HEVC VDENC
-    MOS_RESOURCE                                resVdencBrcUpdateDmemBuffer[CODECHAL_VDENC_BRC_NUM_OF_PASSES];
-    MOS_RESOURCE                                resVdencBrcInitDmemBuffer;
-    MOS_RESOURCE                                resVdencBrcConstDataBuffer;
-    MOS_RESOURCE                                resVdencBrcHistoryBuffer;
-    MOS_RESOURCE                                resVdencReadBatchBuffer[CODECHAL_VDENC_BRC_NUM_OF_PASSES];
-    MOS_RESOURCE                                resVdencBrcPakStatsBuffer[CODECHAL_VDENC_BRC_NUM_OF_PASSES];
-    MOS_RESOURCE                                resVdencBrcDbgBuffer;
-
-    uint32_t                                    dwVdencBrcUpdateDmemBufferSize;
-    uint32_t                                    dwVdencBrcInitDmemBufferSize;
-    uint32_t                                    dwVdencBrcConstDataBufferSize;
-    uint32_t                                    dwDefaultPictureStatesSize;
-    uint32_t                                    dwDefaultPicturePatchListSize;
-    uint32_t                                    dwDefaultSliceStatesSize;
-    uint32_t                                    dwDefaultSlicePatchListSize;
-
-    // Used by Gen 10 kernels
-    CODECHAL_ENCODE_BUFFER                      resKernelDebug;
-    MOS_SURFACE                                 sIntermediateCuRecordSurfaceLcu32;
-    MOS_SURFACE                                 sSecondIntermediateCuRecordSurfaceLcu32;
-    MOS_SURFACE                                 sIntermediateCuRecordSurfaceLcu64B;
-    MOS_SURFACE                                 s16x16QpInputData;
-    CODECHAL_ENCODE_BUFFER                      resEncConstantTableForI;
-    CODECHAL_ENCODE_BUFFER                      resEncConstantTableForB;
-    CODECHAL_ENCODE_BUFFER                      resEncConstantTableForLcu64B;
-    CODECHAL_ENCODE_BUFFER                      resLcuLevelInputData;
-    CODECHAL_ENCODE_BUFFER                      resLcuEncodingScratchSurface;
-    CODECHAL_ENCODE_BUFFER                      resLcuEncodingScratchSurfaceLcu64B;
-    CODECHAL_ENCODE_BUFFER                      res64x64DistortionSurface;
-    MOS_SURFACE                                 sScratchSurface;
-    CODECHAL_ENCODE_BUFFER                      resConcurrentThreadGroupData;
-    CODECHAL_ENCODE_BUFFER                      resJobQueueHeaderSurfaceForB;       // when used by LCU64 kernel, it is the 1D header surface with smaller size
-    CODECHAL_ENCODE_BUFFER                      resJobQueueHeaderSurfaceForBLcu64;
-    MOS_SURFACE                                 sJobQueueDataSurfaceForBLcu64Cu32;
-    MOS_SURFACE                                 sJobQueueDataSurfaceForBLcu64;
-    MOS_SURFACE                                 sCuSplitSurface;
-    MOS_SURFACE                                 sMbStatisticsSurface;
-    MOS_SURFACE                                 sMbSplitSurface;
-    MOS_SURFACE                                 sResidualDataScratchSurfaceForBLcu32;
-    MOS_SURFACE                                 sResidualDataScratchSurfaceForBLcu64;
-    CODECHAL_ENCODE_BUFFER                      resMvAndDistortionSumSurface;
-    uint16_t                                    usTotalNumThreadsPerLcu;
-    bool                                        bSAOFiltering_Enable_Flag;
-    uint8_t                                     uc2ndSAOPass;
-    bool                                        b2ndSAOPassNeeded;
-    bool                                        bPakOnlyPass;   // VDEnc+PAK vs. PAK only
-
-    MOS_SURFACE                                 sCurrPicWithReconBoundaryPix;
-    MOS_SURFACE                                 sLcuLevelInputDataSurface;
-    CODECHAL_ENCODE_BUFFER                      resDebugSurface;
-    MOS_SURFACE                                 sEncoderHistoryInputBuffer;
-    MOS_SURFACE                                 sEncoderHistoryOutputBuffer;
-
-    bool                                        bCurrUsedRefPic[CODEC_MAX_NUM_REF_FRAME_HEVC];
-    CODEC_PIC_ID                                PicIdx[CODEC_MAX_NUM_REF_FRAME_HEVC];
-    PCODEC_REF_LIST                             pRefList[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC];
-    PCODECHAL_NAL_UNIT_PARAMS                   *ppNALUnitParams;
-    uint32_t                                    dwWidthAlignedMaxLCU;
-    uint32_t                                    dwHeightAlignedMaxLCU;
-    uint32_t                                    dwWidthAlignedLcu32;
-    uint32_t                                    dwHeightAlignedLcu32;
-    double                                      qp_lambda_md[3][52];
-    double                                      qp_lambda_me[3][52];
-    uint32_t                                    dwFixedPointLambda;
-    uint32_t                                    dwFixedPointLambdaForLuma;
-    uint32_t                                    dwFixedPointLambdaForChroma;
-    bool                                        bPakOnlyTest;
-    char                                        cPakOnlyDataFolder[MOS_USER_CONTROL_MAX_DATA_SIZE];
-    bool                                        bEnable26WalkingPattern;
-    CODECHAL_ENCODE_HEVC_WALKINGPATTERN_PARAM   sWalkingPatternParam;
-
-    uint8_t                                     ucNumPipe;
-    uint8_t                                     ucNumPassesInOnePipe;
-    uint32_t                                    uiNumTiles;
-    CODECHAL_ENCODE_BUFFER                      resHcpScalabilitySyncBuffer;
-    CODECHAL_ENCODE_BUFFER                      resPAKCULevelStreamoutData;
-    CODECHAL_ENCODE_BUFFER                      resPAKSliceLevelStreamutData;
-    CODECHAL_ENCODE_BUFFER                      resHcpTileSizeStreamoutBuffer[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC];
-    uint32_t                                    dwSizeOfSseSrcPixelRowStoreBufferPerLCU;
-    uint32_t                                    dwSizeOfSaoStreamOutBuffer;
-    uint32_t                                    dwRDOQIntraTUThreshold;
-    bool                                        bEnableTileStitchByHW;
-    bool                                        bEnableHWSemaphore;
-    bool                                        bEnableVdBoxHWSemaphore;
-    MOS_SURFACE                                 resEncRawSurface;
-    uint32_t                                    dwMaxNumSlicesSupported;
-    uint8_t                                     ucSlotForRecNotFiltered;
-};
-
-typedef struct _CODECHAL_ENCODE_HEVC_STATE CODECHAL_ENCODE_HEVC_STATE, *PCODECHAL_ENCODE_HEVC_STATE;
-
+//!
+//! \struct   CODECHAL_ENCODE_HEVC_PAK_STATS_BUFFER
+//! \brief    Codechal encode HEVC PAK States buffer
+//!
 struct CODECHAL_ENCODE_HEVC_PAK_STATS_BUFFER
 {
     uint32_t HCP_BITSTREAM_BYTECOUNT_FRAME;
@@ -1008,6 +793,10 @@ struct CODECHAL_ENCODE_HEVC_PAK_STATS_BUFFER
     uint32_t Reserved1[3];
 };
 
+//!
+//! \enum     CODECHAL_HEVC_MBENC_KRNIDX
+//! \brief    Codechal HEVC MBENC KRNIDX
+//!
 enum CODECHAL_HEVC_MBENC_KRNIDX
 {
     CODECHAL_HEVC_MBENC_2xSCALING = 0,
@@ -1028,6 +817,10 @@ enum CODECHAL_HEVC_MBENC_KRNIDX
     CODECHAL_HEVC_MBENC_NUM_BXT_SKL //Only BXT and SKL support HEVC P frame
 };
 
+//!
+//! \enum     CODECHAL_HEVC_FEI_MBENC_KRNIDX
+//! \brief    Codechal HEVC FEI MBENC KRNIDX
+//!
 enum CODECHAL_HEVC_FEI_MBENC_KRNIDX
 {
     CODECHAL_HEVC_FEI_MBENC_BENC = CODECHAL_HEVC_MBENC_BENC,
@@ -1039,6 +832,10 @@ enum CODECHAL_HEVC_FEI_MBENC_KRNIDX
     CODECHAL_HEVC_FEI_MBENC_NUM_BXT_SKL //Only BXT and SKL support HEVC P frame
 } ;
 
+//!
+//! \enum     CODECHAL_HEVC_BRC_KRNIDX
+//! \brief    Codechal HEVC BRC KRNIDX
+//!
 enum CODECHAL_HEVC_BRC_KRNIDX
 {
     CODECHAL_HEVC_BRC_COARSE_INTRA = 0,
@@ -1049,13 +846,13 @@ enum CODECHAL_HEVC_BRC_KRNIDX
     CODECHAL_HEVC_BRC_NUM
 };
 
-//!  HEVC encoder base class
-/*!
-This class defines the base class for HEVC encoder, it includes
-common member fields, functions, interfaces etc shared by both dual-pipe and VDEnc for all Gens.
-
-To create a HEVC encoder instance, client needs to call #CodechalEncodeHevcBase::CreateHevcState()
-*/
+//! \class    CodechalEncodeHevcBase
+//! \brief    HEVC encoder base class
+//! \details  This class defines the base class for HEVC encoder, it includes
+//!           common member fields, functions, interfaces etc shared by both dual-pipe and VDEnc for all Gens.
+//!
+//!           To create a HEVC encoder instance, client needs to call CodechalEncodeHevcBase::CreateHevcState()
+//!
 class CodechalEncodeHevcBase : public CodechalEncoderState
 {
 public:
@@ -1097,7 +894,6 @@ public:
     MOS_RESOURCE                                resSaoLineBuffer;                               //!< SAO line data buffer
     MOS_RESOURCE                                resSaoTileLineBuffer;                           //!< SAO tile line data buffer
     MOS_RESOURCE                                resSaoTileColumnBuffer;                         //!< SAO tile column data buffer
-    MOS_RESOURCE                                resMvTemporalBuffer[CODEC_NUM_TRACKED_BUFFERS]; //!< MV temporal data buffer
     MOS_RESOURCE                                resLcuBaseAddressBuffer;                        //!< LCU base address buffer
     MOS_RESOURCE                                resLcuILDBStreamOutBuffer;                      //!< LCU ILDB streamout buffer
     MOS_RESOURCE                                resSaoStreamOutBuffer;                          //!< SAO streamout buffer
@@ -1316,7 +1112,7 @@ public:
     //!
     //! \param    [in] cmdBuffer
     //!           Pointer to command buffer
-    //! \param    [in] bFrameTrackingRequested
+    //! \param    [in] frameTrackingRequested
     //!           True if frame tracking info is needed, false otherwise
     //!
     //! \return   MOS_STATUS
@@ -1324,7 +1120,7 @@ public:
     //!
     virtual MOS_STATUS SendPrologWithFrameTracking(
         PMOS_COMMAND_BUFFER cmdBuffer, 
-        bool bFrameTrackingRequested);
+        bool frameTrackingRequested);
 
     //!
     //! \brief    Wait for dependent VDBOX to get ready
@@ -1356,6 +1152,8 @@ public:
         uint32_t semValue);
 
     //!
+    //! \brief      Send watchdog timer start command
+    //!
     //! \param    [in] cmdBuffer
     //!           Pointer to command buffer
     //!
@@ -1366,11 +1164,13 @@ public:
         PMOS_COMMAND_BUFFER cmdBuffer);
 
     //!
-    //! \param    [in] presSemaMem
+    //! \brief      Send MI atomic command
+    //!
+    //! \param    [in] semaMem
     //!           Pointer to semaphore resource
     //! \param    [in] ImmData
     //!           immediate data for atomic operation
-    //! \param    [in] OpCode
+    //! \param    [in] opCode
     //!           enum value of MHW_COMMON_MI_ATOMIC_OPCODE
     //! \param    [in] cmdBuffer
     //!           Pointer to command buffer
@@ -1379,9 +1179,9 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS SendMIAtomicCmd(
-        PMOS_RESOURCE               presSemaMem,
+        PMOS_RESOURCE               semaMem,
         uint32_t                    ImmData,
-        MHW_COMMON_MI_ATOMIC_OPCODE OpCode,
+        MHW_COMMON_MI_ATOMIC_OPCODE opCode,
         PMOS_COMMAND_BUFFER         cmdBuffer);
 
     //!
@@ -1483,16 +1283,6 @@ public:
         uint32_t width,
         uint32_t height,
         const char* name);
-
-    //!
-    //! \brief    Allocate the MV Temporal buffer
-    //! \param    [in] bufIndex
-    //!           Buffer index
-    //!
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS AllocateMvTemporalBuffer(uint8_t bufIndex);
 
     //!
     //! \brief    Help function to allocate PAK slice level batch buffers 
@@ -1735,7 +1525,7 @@ public:
     //!
     virtual MOS_STATUS ReadBrcPakStatistics(
         PMOS_COMMAND_BUFFER cmdBuffer,
-        PCODECHAL_ENCODE_READ_BRC_PAK_STATS_PARAMS params);
+        EncodeReadBrcPakStatsParams* params);
 
     //!
     //! \brief    Get encoder status report
@@ -2207,6 +1997,20 @@ public:
 #endif
 };
 
+//!
+//! \brief    Get bitstream buffer size
+//!
+//! \param    [in] frameWidth
+//!           The width of frame
+//! \param    [in] frameHeight
+//!           The height of frame
+//! \param    [in] chromaFormat
+//!           Chroma format
+//! \param    [in] is10Bits
+//!           Check if is 10bits
+//! \return   uint32_t
+//!           Bitstream buffer size
+//!
 uint32_t CodecHalHevcEncode_GetBitstreamBufferSize(
     uint32_t frameWidth,
     uint32_t frameHeight,

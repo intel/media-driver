@@ -28,14 +28,16 @@
 
 CodechalMmcEncodeVp9::CodechalMmcEncodeVp9(
     CodechalHwInterface    *hwInterface, 
-    PMOS_SURFACE  reconSurface):
+    void *standardState):
     CodecHalMmcState(hwInterface)
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    m_reconSurf = reconSurface;
-    CODECHAL_HW_ASSERT(hwInterface);
-    CODECHAL_HW_ASSERT(hwInterface->GetSkuTable());
+    m_vp9State = (CodechalVdencVp9State *)standardState;
+    CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(m_vp9State);
+
+    CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(hwInterface);
+    CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(hwInterface->GetSkuTable());
     if (MEDIA_IS_SKU(hwInterface->GetSkuTable(), FtrMemoryCompression))
     {
         MOS_USER_FEATURE_VALUE_DATA userFeatureData;
@@ -43,7 +45,7 @@ CodechalMmcEncodeVp9::CodechalMmcEncodeVp9(
         userFeatureData.i32Data = m_mmcEnabled;
         userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
 
-        CodecHal_UserFeature_ReadValue(
+        MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_ENCODE_MMC_ENABLE_ID,
             &userFeatureData);
@@ -53,7 +55,7 @@ CodechalMmcEncodeVp9::CodechalMmcEncodeVp9(
         MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
         userFeatureWriteData.Value.i32Data = m_mmcEnabled;
         userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_ENCODE_MMC_IN_USE_ID;
-        CodecHal_UserFeature_WriteValue(nullptr, &userFeatureWriteData);
+        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
     }
 #if (_DEBUG || _RELEASE_INTERNAL)
     m_compressibleId  = __MEDIA_USER_FEATURE_VALUE_MMC_ENC_RECON_COMPRESSIBLE_ID;
@@ -65,20 +67,23 @@ MOS_STATUS CodechalMmcEncodeVp9::SetPipeBufAddr(
     PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams,
     PMOS_COMMAND_BUFFER cmdBuffer)
 {
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    if (m_mmcEnabled && m_reconSurf->bCompressible)
+    if (m_mmcEnabled && m_vp9State->m_reconSurface.bCompressible)
     {
+        pipeBufAddrParams->PostDeblockSurfMmcState = 
         pipeBufAddrParams->PreDeblockSurfMmcState = MOS_MEMCOMP_HORIZONTAL;
-        pipeBufAddrParams->PostDeblockSurfMmcState = pipeBufAddrParams->PreDeblockSurfMmcState;
+    }
+    else
+    {
+        pipeBufAddrParams->PostDeblockSurfMmcState =
+        pipeBufAddrParams->PreDeblockSurfMmcState = MOS_MEMCOMP_DISABLED;
     }
 
     CODECHAL_DEBUG_TOOL(
-        m_reconSurf->MmcState = pipeBufAddrParams->PreDeblockSurfMmcState;
+        m_vp9State->m_reconSurface.MmcState = pipeBufAddrParams->PreDeblockSurfMmcState;
     )
 
-    return eStatus;
+    return MOS_STATUS_SUCCESS;
 }
 

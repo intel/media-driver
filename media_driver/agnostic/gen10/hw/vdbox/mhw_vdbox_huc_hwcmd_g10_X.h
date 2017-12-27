@@ -25,6 +25,9 @@
 //! \details  This file may not be included outside of g10_X as other components
 //!           should use MHW interface to interact with MHW commands and states.
 //!
+
+// DO NOT EDIT
+
 #ifndef __MHW_VDBOX_HUC_HWCMD_G10_X_H__
 #define __MHW_VDBOX_HUC_HWCMD_G10_X_H__
 
@@ -41,9 +44,137 @@ public:
     #define __CODEGEN_MAX(_a, _b) (((_a) > (_b)) ? (_a) : (_b))
     #define __CODEGEN_BITFIELD(l, h) (h) - (l) + 1
     #define __CODEGEN_OP_LENGTH_BIAS 2
-    #define __CODEGEN_OP_LENGTH( x ) (uint32_t)((__CODEGEN_MAX(x, __CODEGEN_OP_LENGTH_BIAS)) - __CODEGEN_OP_LENGTH_BIAS)
+    #define __CODEGEN_OP_LENGTH(x) (uint32_t)((__CODEGEN_MAX(x, __CODEGEN_OP_LENGTH_BIAS)) - __CODEGEN_OP_LENGTH_BIAS)
 
     static uint32_t GetOpLength(uint32_t uiLength) { return __CODEGEN_OP_LENGTH(uiLength); }
+
+    //!
+    //! \brief MEMORYADDRESSATTRIBUTES
+    //! \details
+    //!     This field controls the priority of arbitration used in the GAC/GAM
+    //!     pipeline for this surface. It defines the CHV/SKL+ 32-bit memory address
+    //!     attributes for the third DWord of the HCP command buffer address.
+    //!     
+    struct MEMORYADDRESSATTRIBUTES_CMD
+    {
+        union
+        {
+            struct
+            {
+                uint32_t                 Reserved0                                        : __CODEGEN_BITFIELD( 0,  0)    ; //!< Reserved
+                uint32_t                 BaseAddressIndexToMemoryObjectControlStateMocsTables : __CODEGEN_BITFIELD( 1,  6)    ; //!< Base Address - Index to Memory Object Control State (MOCS) Tables
+                uint32_t                 BaseAddressArbitrationPriorityControl            : __CODEGEN_BITFIELD( 7,  8)    ; //!< Base Address - Arbitration Priority Control
+                uint32_t                 BaseAddressMemoryCompressionEnable               : __CODEGEN_BITFIELD( 9,  9)    ; //!< Base Address - Memory Compression Enable
+                uint32_t                 BaseAddressMemoryCompressionMode                 : __CODEGEN_BITFIELD(10, 10)    ; //!< BASE_ADDRESS_MEMORY_COMPRESSION_MODE
+                uint32_t                 Reserved11                                       : __CODEGEN_BITFIELD(11, 11)    ; //!< Reserved
+                uint32_t                 BaseAddressRowStoreScratchBufferCacheSelect      : __CODEGEN_BITFIELD(12, 12)    ; //!< BASE_ADDRESS_ROW_STORE_SCRATCH_BUFFER_CACHE_SELECT
+                uint32_t                 BaseAddressTiledResourceMode                     : __CODEGEN_BITFIELD(13, 14)    ; //!< BASE_ADDRESS_TILED_RESOURCE_MODE
+                uint32_t                 Reserved15                                       : __CODEGEN_BITFIELD(15, 31)    ; //!< Reserved
+            };
+            uint32_t                     Value;
+        } DW0;
+
+        //! \name Local enumerations
+
+        //! \brief BASE_ADDRESS_MEMORY_COMPRESSION_MODE
+        //! \details
+        //!     Distinguishes vertical from horizontal compression. Please refer to
+        //!     vol1a <b>Memory Data Formats chapter - section</b> media Memory
+        //!     Compression for more details.
+        enum BASE_ADDRESS_MEMORY_COMPRESSION_MODE
+        {
+            BASE_ADDRESS_MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE   = 0, //!< No additional details
+        };
+
+        //! \brief BASE_ADDRESS_ROW_STORE_SCRATCH_BUFFER_CACHE_SELECT
+        //! \details
+        //!     This field controls if the Row Store is going to store inside Media
+        //!     Cache (rowstore cache) or to LLC.
+        enum BASE_ADDRESS_ROW_STORE_SCRATCH_BUFFER_CACHE_SELECT
+        {
+            BASE_ADDRESS_ROW_STORE_SCRATCH_BUFFER_CACHE_SELECT_UNNAMED0      = 0, //!< Buffer going to LLC.
+            BASE_ADDRESS_ROW_STORE_SCRATCH_BUFFER_CACHE_SELECT_UNNAMED1      = 1, //!< Buffer going to Internal Media Storage.
+        };
+
+        //! \brief BASE_ADDRESS_TILED_RESOURCE_MODE
+        //! \details
+        //!     <b>For Media Surfaces:</b> This field specifies the tiled resource mode.
+        enum BASE_ADDRESS_TILED_RESOURCE_MODE
+        {
+            BASE_ADDRESS_TILED_RESOURCE_MODE_TRMODENONE                      = 0, //!< TileY resources
+            BASE_ADDRESS_TILED_RESOURCE_MODE_TRMODETILEYF                    = 1, //!< 4KB tiled resources
+            BASE_ADDRESS_TILED_RESOURCE_MODE_TRMODETILEYS                    = 2, //!< 64KB tiled resources
+        };
+
+        //! \name Initializations
+
+        //! \brief Explicit member initialization function
+        MEMORYADDRESSATTRIBUTES_CMD();
+
+        static const size_t dwSize = 1;
+        static const size_t byteSize = 4;
+    };
+
+    //!
+    //! \brief SPLITBASEADDRESS64BYTEALIGNED
+    //! \details
+    //!     Specifies a 64-bit (48-bit canonical) 64-byte aligned memory base
+    //!     address.
+    //!     
+    struct SPLITBASEADDRESS64BYTEALIGNED_CMD
+    {
+        union
+        {
+            struct
+            {
+                uint64_t                 Reserved0                                        : __CODEGEN_BITFIELD( 0,  5)    ; //!< Reserved
+                uint64_t                 Graphicsaddress476                               : __CODEGEN_BITFIELD( 6, 47)    ; //!< GraphicsAddress47-6
+                uint64_t                 Reserved48                                       : __CODEGEN_BITFIELD(48, 63)    ; //!< Reserved
+            };
+            uint32_t                     Value[2];
+        } DW0_1;
+
+        //! \name Local enumerations
+
+        //! \name Initializations
+
+        //! \brief Explicit member initialization function
+        SPLITBASEADDRESS64BYTEALIGNED_CMD();
+
+        static const size_t dwSize = 2;
+        static const size_t byteSize = 8;
+    };
+
+    //!
+    //! \brief SPLITBASEADDRESS4KBYTEALIGNED
+    //! \details
+    //!     Specifies a 64-bit (48-bit canonical) 4K-byte aligned memory base
+    //!     address. GraphicsAddress is a 64-bit value [63:0], but only a portion of
+    //!     it is used by hardware. The upper reserved bits are ignored and MBZ.
+    //!     
+    struct SPLITBASEADDRESS4KBYTEALIGNED_CMD
+    {
+        union
+        {
+            struct
+            {
+                uint64_t                 Reserved0                                        : __CODEGEN_BITFIELD( 0, 11)    ; //!< Reserved
+                uint64_t                 Graphicsaddress4712                              : __CODEGEN_BITFIELD(12, 47)    ; //!< GraphicsAddress47-12
+                uint64_t                 Reserved48                                       : __CODEGEN_BITFIELD(48, 63)    ; //!< Reserved
+            };
+            uint32_t                     Value[2];
+        } DW0_1;
+
+        //! \name Local enumerations
+
+        //! \name Initializations
+
+        //! \brief Explicit member initialization function
+        SPLITBASEADDRESS4KBYTEALIGNED_CMD();
+
+        static const size_t dwSize = 2;
+        static const size_t byteSize = 8;
+    };
 
     //!
     //! \brief HUC_PIPE_MODE_SELECT
@@ -60,7 +191,6 @@ public:
     {
         union
         {
-            //!< DWORD 0
             struct
             {
                 uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0, 11)    ; //!< DWORD_LENGTH
@@ -74,7 +204,6 @@ public:
         } DW0;
         union
         {
-            //!< DWORD 1
             struct
             {
                 uint32_t                 Reserved32                                       : __CODEGEN_BITFIELD( 0,  3)    ; //!< Reserved
@@ -87,7 +216,6 @@ public:
         } DW1;
         union
         {
-            //!< DWORD 2
             struct
             {
                 uint32_t                 MediaSoftResetCounterPer1000Clocks                                               ; //!< MEDIA_SOFT_RESET_COUNTER_PER_1000_CLOCKS
@@ -123,8 +251,8 @@ public:
         //! \brief INDIRECT_STREAM_OUT_ENABLE
         //! \details
         //!     Enables the bitstream to be written out to memory immediately following
-        //!     the output of the bit stream.  The memory buffer is addressed
-        //!     through the HuC Indirect Stream Out ObjectBase Address.
+        //!     the output of the bit stream.  The memory buffer is addressed through
+        //!     the HuC Indirect Stream Out ObjectBase Address.
         enum INDIRECT_STREAM_OUT_ENABLE
         {
             INDIRECT_STREAM_OUT_ENABLE_DISABLEINDIRECTSTREAMOUT              = 0, //!< No additional details
@@ -156,39 +284,6 @@ public:
     };
 
     //!
-    //! \brief GRAPHICSADDRESS63_6
-    //! \details
-    //!     This structure is intended to define the upper bits of the
-    //!     GraphicsAddress, when bits 5:0 are already defined in the referring
-    //!     register. So bit 0 of this structure should correspond to bit 6 of the
-    //!     full GraphicsAddress.
-    //!     
-    struct GRAPHICSADDRESS63_6_CMD
-    {
-        union
-        {
-            //!< DWORD 0..1
-            struct
-            {
-                uint64_t                 Reserved0                                        : __CODEGEN_BITFIELD( 0,  5)    ; //!< Reserved
-                uint64_t                 Graphicsaddress476                               : __CODEGEN_BITFIELD( 6, 47)    ; //!< GraphicsAddress47-6
-                uint64_t                 Reserved48                                       : __CODEGEN_BITFIELD(48, 63)    ; //!< Reserved
-            };
-            uint32_t                     Value[2];
-        } DW0_1;
-
-        //! \name Local enumerations
-
-        //! \name Initializations
-
-        //! \brief Explicit member initialization function
-        GRAPHICSADDRESS63_6_CMD();
-
-        static const size_t dwSize = 2;
-        static const size_t byteSize = 8;
-    };
-
-    //!
     //! \brief HUC_IMEM_STATE
     //! \details
     //!     The HUC is selected with the Media Instruction Opcode "Bh" for all HUC
@@ -215,7 +310,6 @@ public:
     {
         union
         {
-            //!< DWORD 0
             struct
             {
                 uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0, 11)    ; //!< DWORD_LENGTH
@@ -229,7 +323,6 @@ public:
         } DW0;
         union
         {
-            //!< DWORD 1
             struct
             {
                 uint32_t                 Reserved32                                                                       ; //!< Reserved
@@ -238,7 +331,6 @@ public:
         } DW1;
         union
         {
-            //!< DWORD 2
             struct
             {
                 uint32_t                 Reserved64                                                                       ; //!< Reserved
@@ -247,23 +339,14 @@ public:
         } DW2;
         union
         {
-            //!< DWORD 3
             struct
             {
-                uint32_t                 MemoryObjectControlState                         : __CODEGEN_BITFIELD( 0,  6)    ; //!< Memory Object Control State
-                uint32_t                 ArbitrationPriorityControl                       : __CODEGEN_BITFIELD( 7,  8)    ; //!< ARBITRATION_PRIORITY_CONTROL
-                uint32_t                 Memorycompressionenable                          : __CODEGEN_BITFIELD( 9,  9)    ; //!< MemoryCompressionEnable
-                uint32_t                 Memorycompressionmode                            : __CODEGEN_BITFIELD(10, 10)    ; //!< MemoryCompressionMode
-                uint32_t                 Reserved107                                      : __CODEGEN_BITFIELD(11, 11)    ; //!< Reserved
-                uint32_t                 Rowstorescratchbuffercacheselect                 : __CODEGEN_BITFIELD(12, 12)    ; //!< RowStoreScratchBufferCacheSelect
-                uint32_t                 Tiledresourcemode                                : __CODEGEN_BITFIELD(13, 14)    ; //!< TiledResourceMode
-                uint32_t                 Reserved111                                      : __CODEGEN_BITFIELD(15, 31)    ; //!< Reserved
+                uint32_t                 Reserved96                                                                       ; //!< Reserved
             };
             uint32_t                     Value;
         } DW3;
         union
         {
-            //!< DWORD 4
             struct
             {
                 uint32_t                 HucFirmwareDescriptor                            : __CODEGEN_BITFIELD( 0,  7)    ; //!< HUC_FIRMWARE_DESCRIPTOR
@@ -295,18 +378,6 @@ public:
         enum COMMAND_TYPE
         {
             COMMAND_TYPE_PARALLELVIDEOPIPE                                   = 3, //!< No additional details
-        };
-
-        //! \brief ARBITRATION_PRIORITY_CONTROL
-        //! \details
-        //!     This field controls the priority of arbitration used in the GAC/GAM
-        //!     pipeline for this surface.
-        enum ARBITRATION_PRIORITY_CONTROL
-        {
-            ARBITRATION_PRIORITY_CONTROL_HIGHESTPRIORITY                     = 0, //!< No additional details
-            ARBITRATION_PRIORITY_CONTROL_SECONDHIGHESTPRIORITY               = 1, //!< No additional details
-            ARBITRATION_PRIORITY_CONTROL_THIRDHIGHESTPRIORITY                = 2, //!< No additional details
-            ARBITRATION_PRIORITY_CONTROL_LOWESTPRIORITY                      = 3, //!< No additional details
         };
 
         //! \brief HUC_FIRMWARE_DESCRIPTOR
@@ -350,7 +421,6 @@ public:
     {
         union
         {
-            //!< DWORD 0
             struct
             {
                 uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0, 11)    ; //!< DWORD_LENGTH
@@ -362,21 +432,10 @@ public:
             };
             uint32_t                     Value;
         } DW0;
-
-        mhw_vdbox_huc_g10_X::GRAPHICSADDRESS63_6_CMD          HucDataSourceBaseAddress[1];                                //!< HUC Data Source Base Address
-
+        SPLITBASEADDRESS64BYTEALIGNED_CMD        HucDataSourceBaseAddress;                                                //!< HUC Data Source - Base Address
+        MEMORYADDRESSATTRIBUTES_CMD              HucDataSourceAttributes;                                                 //!< HUC Data Source - Attributes
         union
         {
-            //!< DWORD 3
-            struct
-            {
-                uint32_t                 HucDataSource                                                                    ; //!< HUC Data Source
-            };
-            uint32_t                     Value;
-        } DW3;
-        union
-        {
-            //!< DWORD 4
             struct
             {
                 uint32_t                 Reserved128                                      : __CODEGEN_BITFIELD( 0,  5)    ; //!< Reserved
@@ -387,7 +446,6 @@ public:
         } DW4;
         union
         {
-            //!< DWORD 5
             struct
             {
                 uint32_t                 Reserved160                                      : __CODEGEN_BITFIELD( 0,  5)    ; //!< Reserved
@@ -448,7 +506,6 @@ public:
     {
         union
         {
-            //!< DWORD 0
             struct
             {
                 uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0, 11)    ; //!< DWORD_LENGTH
@@ -462,7 +519,6 @@ public:
         } DW0;
         union
         {
-            //!< DWORD 1
             struct
             {
                 uint32_t                 P24CMinuteia                                     : __CODEGEN_BITFIELD( 0,  0)    ; //!< P24C_MINUTEIA
@@ -518,30 +574,10 @@ public:
     //!     
     struct HUC_VIRTUAL_ADDR_REGION_CMD
     {
-
-        mhw_vdbox_huc_g10_X::GRAPHICSADDRESS63_6_CMD          HucSurfaceBaseAddressVirtualaddrregion015[1];               //!< HUC Surface Base Address (VirtualAddrRegion[0-15])
-
-        union
-        {
-            //!< DWORD 2
-            struct
-            {
-                uint32_t                 MemoryObjectControlState                         : __CODEGEN_BITFIELD( 0,  6)    ; //!< Memory Object Control State
-                uint32_t                 ArbitrationPriorityControl                       : __CODEGEN_BITFIELD( 7,  8)    ; //!< ARBITRATION_PRIORITY_CONTROL
-                uint32_t                 Reserved73                                       : __CODEGEN_BITFIELD( 9, 31)    ; //!< Reserved
-            };
-            uint32_t                     Value;
-        } DW2;
+        SPLITBASEADDRESS4KBYTEALIGNED_CMD        HucSurfaceBaseAddressVirtualaddrregion015;                               //!< HUC Surface Base Address (VirtualAddrRegion[0-15])
+        MEMORYADDRESSATTRIBUTES_CMD              HucSurfaceVirtualaddrregion015;                                          //!< HUC Surface (VirtualAddrRegion[0-15])
 
         //! \name Local enumerations
-
-        enum ARBITRATION_PRIORITY_CONTROL
-        {
-            ARBITRATION_PRIORITY_CONTROL_HIGHESTPRIORITY                     = 0, //!< No additional details
-            ARBITRATION_PRIORITY_CONTROL_SECONDHIGHESTPRIORITY               = 1, //!< No additional details
-            ARBITRATION_PRIORITY_CONTROL_THIRDHIGHESTPRIORITY                = 2, //!< No additional details
-            ARBITRATION_PRIORITY_CONTROL_LOWESTPRIORITY                      = 3, //!< No additional details
-        };
 
         //! \name Initializations
 
@@ -566,7 +602,6 @@ public:
     {
         union
         {
-            //!< DWORD 0
             struct
             {
                 uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0, 11)    ; //!< DWORD_LENGTH
@@ -578,9 +613,7 @@ public:
             };
             uint32_t                     Value;
         } DW0;
-
-        mhw_vdbox_huc_g10_X::HUC_VIRTUAL_ADDR_REGION_CMD      HucVirtualAddressRegion[16];                               //!< Huc_Virtual_Address_Region
-
+        HUC_VIRTUAL_ADDR_REGION_CMD              HucVirtualAddressRegion[16];                                             //!< Huc Virtual Address Region
 
         //! \name Local enumerations
 
@@ -631,7 +664,6 @@ public:
     {
         union
         {
-            //!< DWORD 0
             struct
             {
                 uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0, 11)    ; //!< DWORD_LENGTH
@@ -643,60 +675,12 @@ public:
             };
             uint32_t                     Value;
         } DW0;
-        union
-        {
-            //!< DWORD 1..2
-            struct
-            {
-                uint64_t                 HucIndirectStreamInObjectbaseAddress                                             ; //!< HUC Indirect Stream In ObjectBase Address
-            };
-            uint32_t                     Value[2];
-        } DW1_2;
-        union
-        {
-            //!< DWORD 3
-            struct
-            {
-                uint32_t                 HucIndirectStreamInObjectbaseAttributes                                          ; //!< HUC Indirect Stream In ObjectBase Attributes
-            };
-            uint32_t                     Value;
-        } DW3;
-        union
-        {
-            //!< DWORD 4..5
-            struct
-            {
-                uint64_t                 HucIndirectStreamInObjectaccessUpperBound                                        ; //!< HUC Indirect Stream In ObjectAccess Upper Bound
-            };
-            uint32_t                     Value[2];
-        } DW4_5;
-        union
-        {
-            //!< DWORD 6..7
-            struct
-            {
-                uint64_t                 HucIndirectStreamOutObjectbaseAddress                                            ; //!< HUC Indirect Stream Out ObjectBase Address
-            };
-            uint32_t                     Value[2];
-        } DW6_7;
-        union
-        {
-            //!< DWORD 8
-            struct
-            {
-                uint32_t                 HucIndirectStreamOutObjectbaseAttributes                                         ; //!< HUC Indirect Stream Out ObjectBase Attributes
-            };
-            uint32_t                     Value;
-        } DW8;
-        union
-        {
-            //!< DWORD 9..10
-            struct
-            {
-                uint64_t                 HucIndirectStreamOutObjectaccessUpperBound                                       ; //!< HUC Indirect Stream Out ObjectAccess Upper Bound
-            };
-            uint32_t                     Value[2];
-        } DW9_10;
+        SPLITBASEADDRESS4KBYTEALIGNED_CMD        HucIndirectStreamInObjectbaseAddress;                                    //!< HUC Indirect Stream In ObjectBase Address
+        MEMORYADDRESSATTRIBUTES_CMD              HucIndirectStreamInObjectbaseAttributes;                                 //!< HUC Indirect Stream In ObjectBase Attributes
+        SPLITBASEADDRESS4KBYTEALIGNED_CMD        HucIndirectStreamInObjectaccessUpperBound;                               //!< HUC Indirect Stream In ObjectAccess Upper Bound
+        SPLITBASEADDRESS4KBYTEALIGNED_CMD        HucIndirectStreamOutObjectbaseAddress;                                   //!< HUC Indirect Stream Out ObjectBase Address
+        MEMORYADDRESSATTRIBUTES_CMD              HucIndirectStreamOutObjectbaseAttributes;                                //!< HUC Indirect Stream Out ObjectBase Attributes
+        SPLITBASEADDRESS4KBYTEALIGNED_CMD        HucIndirectStreamOutObjectaccessUpperBound;                              //!< HUC Indirect Stream Out ObjectAccess Upper Bound
 
         //! \name Local enumerations
 
@@ -748,7 +732,6 @@ public:
     {
         union
         {
-            //!< DWORD 0
             struct
             {
                 uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0, 11)    ; //!< DWORD_LENGTH
@@ -762,7 +745,6 @@ public:
         } DW0;
         union
         {
-            //!< DWORD 1
             struct
             {
                 uint32_t                 IndirectStreamInDataLength                                                       ; //!< Indirect Stream In Data Length
@@ -771,7 +753,6 @@ public:
         } DW1;
         union
         {
-            //!< DWORD 2
             struct
             {
                 uint32_t                 IndirectStreamInStartAddress                     : __CODEGEN_BITFIELD( 0, 28)    ; //!< Indirect Stream In Start Address
@@ -782,7 +763,6 @@ public:
         } DW2;
         union
         {
-            //!< DWORD 3
             struct
             {
                 uint32_t                 IndirectStreamOutStartAddress                    : __CODEGEN_BITFIELD( 0, 28)    ; //!< Indirect Stream Out Start Address
@@ -792,7 +772,6 @@ public:
         } DW3;
         union
         {
-            //!< DWORD 4
             struct
             {
                 uint32_t                 StartCodeByte0                                   : __CODEGEN_BITFIELD( 0,  7)    ; //!< Start Code Byte [0]
@@ -900,7 +879,6 @@ public:
     {
         union
         {
-            //!< DWORD 0
             struct
             {
                 uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0, 11)    ; //!< DWORD_LENGTH
@@ -914,7 +892,6 @@ public:
         } DW0;
         union
         {
-            //!< DWORD 1
             struct
             {
                 uint32_t                 Laststreamobject                                 : __CODEGEN_BITFIELD( 0,  0)    ; //!< LASTSTREAMOBJECT

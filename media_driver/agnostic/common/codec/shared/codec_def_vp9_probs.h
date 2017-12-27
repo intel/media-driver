@@ -46,7 +46,18 @@
 
 #include "stdint.h"
 
-struct CODECHAL_VP9_TX_PROBS {
+#define CODEC_VP9_PROB_MAX_NUM_ELEM           2048
+#define CODEC_VP9_SEG_PROB_OFFSET             2010
+#define CODEC_VP9_INTER_PROB_OFFSET           1667
+#define CODECHAL_VP9_INTER_PROB_SIZE             (CODEC_VP9_SEG_PROB_OFFSET - CODEC_VP9_INTER_PROB_OFFSET)
+#define CODEC_VP9_MAX_PROB                    255
+#define CODEC_VP9_TX_SIZE_CONTEXTS            2 //default probs copied from libvpx
+
+//!
+//! \struct    CODEC_VP9_TX_PROBS
+//! \brief     Codec VP9 tx probs
+//!
+struct CODEC_VP9_TX_PROBS {
     uint8_t p32x32[2][3];
     uint8_t p16x16[2][2];
     uint8_t p8x8[2][1];
@@ -61,16 +72,16 @@ typedef struct {
     uint8_t fp[3];
     uint8_t class0_hp;
     uint8_t hp;
-} CODECHAL_VP9_NMV_COMPONENT;
+} CODEC_VP9_NMV_COMPONENT;
 
 typedef struct {
     uint8_t joints[3];
-    CODECHAL_VP9_NMV_COMPONENT comps[2];
-} CODECHAL_VP9_NMV_CONTEXT;
+    CODEC_VP9_NMV_COMPONENT comps[2];
+} CODEC_VP9_NMV_CONTEXT;
 
-typedef uint8_t CODECHAL_VP9_COEFF_PROBS_MODEL[2][6][6][3];
+typedef uint8_t CODEC_VP9_COEFF_PROBS_MODEL[2][6][6][3];
 
-const struct CODECHAL_VP9_TX_PROBS DefaultTxProbs = {
+const struct CODEC_VP9_TX_PROBS DefaultTxProbs = {
     { { 3, 136, 37 },
     { 5, 52, 13 } },
 
@@ -148,7 +159,7 @@ const uint8_t DefaultIFUVProbs[10][9] = {
     { 101, 21, 107, 181, 192, 103, 19, 67, 125 }   // y = tm
 };
 
-const CODECHAL_VP9_COEFF_PROBS_MODEL DefaultCoefProbs4x4[2] =
+const CODEC_VP9_COEFF_PROBS_MODEL DefaultCoefProbs4x4[2] =
 {
     {  // Y plane
         {  // Intra
@@ -251,7 +262,7 @@ const CODECHAL_VP9_COEFF_PROBS_MODEL DefaultCoefProbs4x4[2] =
     }
 };
 
-const CODECHAL_VP9_COEFF_PROBS_MODEL DefaultCoefPprobs8x8[2] =
+const CODEC_VP9_COEFF_PROBS_MODEL DefaultCoefPprobs8x8[2] =
 {
     {  // Y plane
         {  // Intra
@@ -359,7 +370,7 @@ const CODECHAL_VP9_COEFF_PROBS_MODEL DefaultCoefPprobs8x8[2] =
     }
 };
 
-const CODECHAL_VP9_COEFF_PROBS_MODEL DefaultCoefProbs16x16[2] =
+const CODEC_VP9_COEFF_PROBS_MODEL DefaultCoefProbs16x16[2] =
 {
     {  // Y plane
         {  // Intra
@@ -467,7 +478,7 @@ const CODECHAL_VP9_COEFF_PROBS_MODEL DefaultCoefProbs16x16[2] =
     }
 };
 
-const CODECHAL_VP9_COEFF_PROBS_MODEL DefaultCoefProbs32x32[2] =
+const CODEC_VP9_COEFF_PROBS_MODEL DefaultCoefProbs32x32[2] =
 {
     {  // Y plane
         {  // Intra
@@ -628,7 +639,7 @@ const uint8_t DefaultPartitionProb[16][3] = {
     { 10, 7, 6 },  // a/l both split
 };
 
-const CODECHAL_VP9_NMV_CONTEXT DefaultNmvContext = {
+const CODEC_VP9_NMV_CONTEXT DefaultNmvContext = {
     { 32, 64, 96 },
     { // NOLINT
         { /* vert component */ // NOLINT

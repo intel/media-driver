@@ -45,7 +45,7 @@ CodechalMmcDecodeVp9::CodechalMmcDecodeVp9(
         userFeatureData.i32Data = m_mmcEnabled;
         userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
 
-        CodecHal_UserFeature_ReadValue(
+        MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_DECODE_MMC_ENABLE_ID,
             &userFeatureData);
@@ -55,7 +55,7 @@ CodechalMmcDecodeVp9::CodechalMmcDecodeVp9(
         MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
         userFeatureWriteData.Value.i32Data = m_mmcEnabled;
         userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_DECODE_MMC_IN_USE_ID;
-        CodecHal_UserFeature_WriteValue(nullptr, &userFeatureWriteData);
+        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
     }
 #if (_DEBUG || _RELEASE_INTERNAL)
     m_compressibleId  = __MEDIA_USER_FEATURE_VALUE_MMC_DEC_RT_COMPRESSIBLE_ID;
@@ -159,7 +159,7 @@ MOS_STATUS CodechalMmcDecodeVp9::CheckReferenceList(
     // Disable MMC if self-reference is dectected for P/B frames (mainly for error concealment)
     if (((pipeBufAddrParams->PostDeblockSurfMmcState != MOS_MEMCOMP_DISABLED) || 
         (pipeBufAddrParams->PreDeblockSurfMmcState != MOS_MEMCOMP_DISABLED)) &&
-        (picParams->PicFlags.fields.frame_type != CODECHAL_VP9_KEY_FRAME && 
+        (picParams->PicFlags.fields.frame_type != CODEC_VP9_KEY_FRAME && 
         !picParams->PicFlags.fields.intra_only))
     {
         bool selfReference = false;

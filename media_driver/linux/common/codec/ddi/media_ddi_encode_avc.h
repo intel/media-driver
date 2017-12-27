@@ -29,6 +29,10 @@
 
 #include "media_ddi_encode_base.h"
 
+//!
+//! \class  DdiEncodeAvc
+//! \brief  Ddi encode AVC
+//!
 class DdiEncodeAvc : public DdiEncodeBase
 {
 public:
@@ -78,8 +82,14 @@ public:
     //! \brief    Parse slice parameters
     //! \details  Parse slice parameters which called by RenderPicture
     //!
+    //! \param    [in] mediaCtx
+    //!           Ddi media context
+    //!
     //! \param    [in] ptr
     //!           Pointer to buffer VAEncSliceParameterBufferH264
+    //!
+    //! \param    [in] numSlices
+    //!           Number of slices
     //!
     //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if successful, else fail reason
@@ -177,12 +187,12 @@ protected:
     //! \brief    Get profile from va profile
     //! \details  Get profile from va profile
     //!
-    //! \return   CODECHAL_AVC_PROFILE_IDC
-    //!           CODECHAL_AVC_BASE_PROFILE, CODECHAL_AVC_MAIN_PROFILE
-    //!           or CODECHAL_AVC_HIGH_PROFILE, default is
-    //!           CODECHAL_AVC_MAIN_PROFILE
+    //! \return   CODEC_AVC_PROFILE_IDC
+    //!           CODEC_AVC_BASE_PROFILE, CODEC_AVC_MAIN_PROFILE
+    //!           or CODEC_AVC_HIGH_PROFILE, default is
+    //!           CODEC_AVC_MAIN_PROFILE
     //!
-    CODECHAL_AVC_PROFILE_IDC GetAVCProfileFromVAProfile();
+    CODEC_AVC_PROFILE_IDC GetAVCProfileFromVAProfile();
 
     //!
     //! \brief    Parse DirtyROI params
@@ -401,9 +411,14 @@ protected:
         bool                                picReference,
         bool                                sliceReference);
 
+    CODECHAL_ENCODE_AVC_QUALITY_CTRL_PARAMS *m_qcParams = nullptr;       //!< Quality control parameters.
+    CODECHAL_ENCODE_AVC_ROUNDING_PARAMS     *m_roundingParams = nullptr; //!< Rounding parameters.
+    uint8_t                                 m_weightScale4x4[6][16];     //!< Inverse quantization weight scale 4x4.
+    uint8_t                                 m_weightScale8x8[2][64];     //!< Inverse quantization weight scale 8x8.
+
 private:
     //! \brief H.264 Inverse Quantization Matrix Buffer.
-    PCODECHAL_AVC_IQ_MATRIX_PARAMS iqMatrixParams = nullptr;
+    PCODEC_AVC_IQ_MATRIX_PARAMS iqMatrixParams = nullptr;
 
     //! \brief H.264 Inverse Quantization Weight Scale.
     PCODEC_AVC_ENCODE_IQ_WEIGTHSCALE_LISTS iqWeightScaleLists = nullptr;

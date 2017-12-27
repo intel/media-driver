@@ -60,19 +60,11 @@ public:
     //!
     //! \brief    Free encoder resources
     //! \details  It is invoked when destorying encoder instance and it would call #FreeEncResources(), #FreeBrcResources()
-    //!           and #FreePakResources()
+    //!           and FreePakResources()
     //!
     //! \return   void
     //!
     void FreeResources();
-
-    //!
-    //! \brief    Resize buffers due to resoluton change.
-    //! \details  Resize buffers due to resoluton change.
-    //!
-    //! \return   void
-    //!
-    virtual void ResizeBuffer();
 
     //!
     //! \brief    Initialize encoder at picture level
@@ -456,21 +448,6 @@ protected:
     MOS_STATUS EncodeBrcInitResetKernel();
 
     //!
-    //! \brief    Send media objets to batch buffer
-    //!
-    //! \param    [in]  batchBuffer
-    //!           Pointer to batch buffer
-    //! \param    [in]  mbEncIFrameDistEnabled
-    //!           Indicate if MbEnc I-Frame distortion is enabled
-    //!
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS SendMediaObjectsBB(
-        PMHW_BATCH_BUFFER  batchBuffer,
-        bool mbEncIFrameDistEnabled);
-
-    //!
     //! \brief    Top level function for invoking MBenc kernel
     //!
     //! \param    [in]  mbEncIFrameDistEnabled
@@ -743,6 +720,16 @@ protected:
     uint32_t                               m_memvBottomFieldOffset = 0;                         //!< MEMV bottom filed offset
     MOS_SURFACE                            m_4xMEDistortionBuffer;                              //!< MOS_SURFACE of ME distortion surface
     uint32_t                               m_meDistortionBottomFieldOffset = 0;                 //!< ME distortion bottom filed offset
+
+private:
+    //!
+    //! \brief    Walker function
+    //!
+    void MBWalker(uint16_t, uint16_t, uint16_t*);
+    void MBWalker45Degree(uint16_t, uint16_t, uint16_t*);
+    void MBWalkerMBAFF(uint16_t, uint16_t, uint16_t*);
+    void MBWalkerRasterScan(uint16_t, uint16_t, uint16_t*);
+    void MBWalkerVerticalScan(uint16_t, uint16_t, uint16_t*);
 };
 
 #endif  // __CODECHAL_ENCODE_MPEG2_H__

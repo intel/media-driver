@@ -889,6 +889,7 @@ MOS_STATUS VpHal_RndrCommonInitRenderHalSurface(
     pRenderHalSurface->OsSurface.CompressionMode    = pVpSurface->CompressionMode;
 	pRenderHalSurface->OsSurface.dwDepth            = pVpSurface->dwDepth;
 	pRenderHalSurface->OsSurface.dwQPitch           = pVpSurface->dwHeight;
+    pRenderHalSurface->OsSurface.MmcState           = (MOS_MEMCOMP_STATE)pVpSurface->CompressionMode;
 
     VpHal_RndrInitPlaneOffset(
         &pRenderHalSurface->OsSurface.YPlaneOffset,
@@ -1308,7 +1309,7 @@ finish:
 //! \param      [in] GpuContext
 //!             GpuContext to indicate Render/Vebox
 //! \return     bool
-//!             true - Work around is needed; false - Work around is not needed
+//!             true - Solution is needed; false - Solution is not needed
 //!
 bool VpHal_RndrCommonIsAlignmentWANeeded(
     PVPHAL_SURFACE             pSurface,

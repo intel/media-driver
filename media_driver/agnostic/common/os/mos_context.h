@@ -101,7 +101,7 @@ public:
 
     //!
     //! \brief  Get the waTable
-    //! \return The active work around table
+    //! \return The active WA table
     //!
     MEDIA_WA_TABLE *GetWaTable() { return &m_waTable; };
 

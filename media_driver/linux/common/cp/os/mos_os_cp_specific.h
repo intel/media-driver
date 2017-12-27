@@ -65,7 +65,7 @@ public:
 
     MOS_STATUS SetResourceEncryption(
         void        *pResource,
-        bool        bEncrypted);
+        bool        bEncryption);
 
     bool IsHardwareProtectionRequired(
         void        *ppvOsResource[],

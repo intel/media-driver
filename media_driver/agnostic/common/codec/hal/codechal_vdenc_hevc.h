@@ -31,6 +31,10 @@
 #include "codechal_mmc_encode_hevc.h"
 #include "codechal_huc_cmd_initializer.h"
 
+//!
+//! \struct    CodechalVdencHevcPakInfo
+//! \brief     Codechal Vdenc HEVC Pak info
+//!
 struct CodechalVdencHevcPakInfo
 {
     uint32_t  FrameByteCount;
@@ -39,10 +43,11 @@ struct CodechalVdencHevcPakInfo
 
 using pCodechalVdencHevcPakInfo = CodechalVdencHevcPakInfo*;
 
-//! This struct is defined for BRC Update HUC kernel
-/*!
-region 10 - Delta Qp for ROI Buffer
-*/
+//!
+//! \struct    DeltaQpForROI
+//! \brief     This struct is defined for BRC Update HUC kernel
+//!            region 10 - Delta Qp for ROI Buffer
+//!
 struct DeltaQpForROI
 {
     int8_t    iDeltaQp;
@@ -50,15 +55,20 @@ struct DeltaQpForROI
 
 using PDeltaQpForROI = DeltaQpForROI*;
 
-//!  HEVC VDEnc encoder base class 
-/*!
-This class defines the base class for HEVC VDEnc encoder, it includes 
-common member fields, functions, interfaces etc shared by all GENs.
-Gen specific definitions, features should be put into their corresponding classes.
-*/
+//!
+//! \class    CodechalVdencHevcState
+//! \brief    HEVC VDEnc encoder base class 
+//! \details    This class defines the base class for HEVC VDEnc encoder, it includes 
+//!        common member fields, functions, interfaces etc shared by all GENs.
+//!        Gen specific definitions, features should be put into their corresponding classes.
+//!
 class CodechalVdencHevcState : public CodechalEncodeHevcBase
 {
 public:
+    //!
+    //! \struct    HevcVdencBrcBuffers
+    //! \brief     Hevc Vdenc brc buffers
+    //!
     struct HevcVdencBrcBuffers
     {
         MOS_RESOURCE                        resBrcPakStatisticBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];
@@ -112,16 +122,12 @@ public:
     bool                                    m_vdencNativeROIEnabled = false;                   //!< Native ROI enable flag
     bool                                    m_vdencStreamInEnabled = false;                    //!< Stream in enable flag
     bool                                    m_pakOnlyPass = false;                             //!< flag to signal VDEnc+PAK vs. PAK only 
-    bool                                    m_cmdInitializerHucUsed = false;                   //!< Command initializer HuC used flag
+    bool                                    m_hucCmdInitializerUsed = false;                   //!< Command initializer HuC used flag
 
     // VDENC Display interface related
     bool                                    m_enableTileReplay = false;                        //!< TileReplay Enable               
 
     //Resources for VDEnc
-    MOS_RESOURCE                            m_vdencIntraRowStoreScratchBuffer;                 //!< VDEnc intra row store scratch buffer
-    MOS_RESOURCE                            m_pakStatsBuffer;                                  //!< Pak statistic buffer
-    MOS_RESOURCE                            m_vdencStatsBuffer;                                //!< VDEnc statistic buffer
-    MOS_RESOURCE                            m_pakInfoBuffer;                                   //!< Pak info buffer
     MOS_RESOURCE                            m_sliceCountBuffer;                                //!< Slice count buffer
     MOS_RESOURCE                            m_vdencModeTimerBuffer;                            //!< VDEnc mode timer buffer
     uint8_t                                 m_maxNumROI = CODECHAL_ENCODE_HEVC_MAX_NUM_ROI;    //!< VDEnc maximum number of ROI supported
@@ -131,14 +137,13 @@ public:
     // BRC
     HevcVdencBrcBuffers                     m_vdencBrcBuffers;                                 //!< VDEnc Brc buffers
     MOS_RESOURCE                            m_dataFromPicsBuffer;                              //!< Data Buffer of Current and Reference Pictures for Weighted Prediction
-    MOS_RESOURCE                            m_vdencDeltaQpBuffer;                              //!< VDEnc delta QP buffer
-    MOS_RESOURCE                            m_vdencInputROIStreaminBuffer;                     //!< VDEnc Input ROI Streamin Buffer
+    MOS_RESOURCE                            m_vdencDeltaQpBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];                              //!< VDEnc delta QP buffer
     MOS_RESOURCE                            m_vdencOutputROIStreaminBuffer;                    //!< VDEnc Output ROI Streamin Buffer
-    MOS_RESOURCE                            m_vdencBrcUpdateDmemBuffer[CODECHAL_VDENC_BRC_NUM_OF_PASSES];  //!< VDEnc BrcUpdate DMEM buffer
-    MOS_RESOURCE                            m_vdencBrcInitDmemBuffer;                          //!< VDEnc BrcInit DMEM buffer
-    MOS_RESOURCE                            m_vdencBrcConstDataBuffer;                         //!< VDEnc brc constant data buffer
+    MOS_RESOURCE                            m_vdencBrcUpdateDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_VDENC_BRC_NUM_OF_PASSES];  //!< VDEnc BrcUpdate DMEM buffer
+    MOS_RESOURCE                            m_vdencBrcInitDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];                          //!< VDEnc BrcInit DMEM buffer
+    MOS_RESOURCE                            m_vdencBrcConstDataBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];                         //!< VDEnc brc constant data buffer
     MOS_RESOURCE                            m_vdencBrcHistoryBuffer;                           //!< VDEnc brc history buffer
-    MOS_RESOURCE                            m_vdencReadBatchBuffer[CODECHAL_VDENC_BRC_NUM_OF_PASSES];  //!< VDEnc read batch buffer
+    MOS_RESOURCE                            m_vdencReadBatchBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_VDENC_BRC_NUM_OF_PASSES];  //!< VDEnc read batch buffer
     MOS_RESOURCE                            m_vdencBrcDbgBuffer;                               //!< VDEnc brc debug buffer
     uint32_t                                m_deltaQpRoiBufferSize;                            //!< VDEnc DeltaQp for ROI buffer size
     uint32_t                                m_brcRoiBufferSize;                                //!< BRC ROI input buffer size
@@ -161,7 +166,7 @@ public:
     // Tile related
     uint32_t                                m_maxTileNumber = 1;                               //!< max tile number, equal to 1 for Gen10
 
-    PCODECHAL_CMD_INITIALIZER               hucCmdInitializer = nullptr;
+    PCODECHAL_CMD_INITIALIZER               m_hucCmdInitializer = nullptr;
 
 protected:
     //!
@@ -182,7 +187,7 @@ public:
     //!
     //! \param    [in,out] streamIn
     //!           Pointer to ROI stream-in resource
-    //!           [in,out] deltaQpBuffer
+    //! \param    [in,out] deltaQpBuffer
     //!           Pointer to ROI DeltaQp buffer
     //!
     //! \return   MOS_STATUS
@@ -213,12 +218,58 @@ public:
     virtual MOS_STATUS SetupDirtyRectStreamIn(PMOS_RESOURCE streamIn);
 
     //!
+    //! \brief    Prepare VDEnc stream-in data
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS PrepareVDEncStreamInData();
+
+    //!
+    //! \brief    Setup stream-in data per region 
+    //!
+    //! \param    [in] streamInWidth, top, bottom, left, right, streaminParams
+    //!                streamInWidth, region corner locations, streamInParams  
+    //!           [out] streaminData
+    //!                 pointer to streaminData
+    //!
+    //! \return   void
+    //!
+    virtual void SetStreaminDataPerRegion(
+        uint32_t streamInWidth,
+        uint32_t top,
+        uint32_t bottom,
+        uint32_t left,
+        uint32_t right,
+        PMHW_VDBOX_VDENC_STREAMIN_STATE_PARAMS streaminParams,
+        void* streaminData);
+
+    //!
+    //! \brief    Setup stream-in data per region 
+    //!
+    //! \param    [in] streamInWidth, top, bottom, left, right, regionId, streaminParams
+    //!                streamInWidth, region corner locations, regionId, streamInParams  
+    //!           [out] streaminData
+    //!                 pointer to streaminData
+    //!
+    //! \return   void
+    //!
+    virtual void SetBrcRoiDeltaQpMap(
+        uint32_t streamInWidth,
+        uint32_t top,
+        uint32_t bottom,
+        uint32_t left,
+        uint32_t right,
+        uint8_t regionId,
+        PDeltaQpForROI deltaQpMap);
+
+    //!
     //! \brief    Setup stream-in surface for a dirty rectangle
     //!
     //! \param    [in] streamInWidth, top, bottom, left, right, maxcu
-    //!                streamInWidth, dirtyRect corner locations, maxCuSize
-    //!           [out] streaminData
-    //!                 pointer to streaminData
+    //!           StreamInWidth, dirtyRect corner locations, maxCuSize
+    //! \param    [out] streaminData
+    //!           Pointer to streaminData
     //!
     //! \return   void
     //!
@@ -234,10 +285,16 @@ public:
     //!
     //! \brief    Calculate X/Y offsets for zigzag scan within 64 LCU
     //!
-    //! \param    [in] streamInWidth, x, y
-    //!                streamInWidth, location of top left corner
-    //!           [out] offset, xyoffset
-    //!                 offsets into the stream-in surface
+    //! \param    [in] streamInWidth
+    //!           StreamInWidth, location of top left corner
+    //! \param    [in] x
+    //!           Position X
+    //! \param    [in] y
+    //!           Position Y
+    //! \param    [out] offset
+    //!           Offsets into the stream-in surface
+    //! \param    [out] xyOffset
+    //!           XY Offsets into the stream-in surface
     //!
     //! \return   void
     //!
@@ -252,9 +309,9 @@ public:
     //! \brief    Setup stream-in for border of non-64 aligned region
     //!
     //! \param    [in] streamInWidth, top, bottom, left, right
-    //!                streamInWidth, dirtyRect corner locations
-    //!           [out] streaminData
-    //!                 pointer to streaminData
+    //!           StreamInWidth, dirtyRect corner locations
+    //! \param    [out] streaminData
+    //!           Pointer to streaminData
     //!
     //! \return   void
     //!
@@ -270,9 +327,9 @@ public:
     //! \brief    Write out stream-in data for each LCU
     //!
     //! \param    [in] streaminParams
-    //!                params to write into stream in surface
-    //!           [out] streaminData
-    //!                 pointer to streaminData
+    //!           Params to write into stream in surface
+    //! \param    [out] streaminData
+    //!           Pointer to streaminData
     //!
     //! \return   void
     //!
@@ -457,6 +514,14 @@ public:
     virtual MOS_STATUS ReadBrcPakStats(PMOS_COMMAND_BUFFER cmdBuffer);
 
     //!
+    //! \brief    Read slice size info from PAK
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS ReadSliceSize();
+
+    //!
     //! \brief    Get maximal number of slices allowed for specific LevelId
     //!          
     //! \param    [in] levelIdc
@@ -572,6 +637,7 @@ public:
 #if USE_CODECHAL_DEBUG_TOOL
     virtual MOS_STATUS DumpHucBrcInit();
     virtual MOS_STATUS DumpHucBrcUpdate(bool isInput);
+    virtual MOS_STATUS DumpVdencOutputs();
 #endif
 
 };

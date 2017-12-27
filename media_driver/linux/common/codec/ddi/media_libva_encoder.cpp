@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      media_libva_encoder.cpp 
-//! \brief     libva(and its extension) encoder implementation  
+//! \file      media_libva_encoder.cpp
+//! \brief     libva(and its extension) encoder implementation
 //!
 #include <unistd.h>
 #include "media_libva_encoder.h"
@@ -36,162 +36,158 @@
 #include "media_interfaces_codechal.h"
 #include "media_interfaces_mmd.h"
 
-// encoder capability
-#define DDI_ENCODE_ENCODE_PIC_WIDTH_MIN 32
-#define DDI_ENCODE_ENCODE_PIC_HEIGHT_MIN 32
-
-#define DDI_ENCODE_ENCODE_JPEG_PIC_WIDTH_MIN 16
-#define DDI_ENCODE_ENCODE_JPEG_PIC_HEIGHT_MIN 16
-
-extern int32_t MosMemAllocCounter;
-extern int32_t MosMemAllocCounterGfx;
-
 typedef MediaDdiFactoryNoArg<DdiEncodeBase> DdiEncodeFactory;
 
 PDDI_ENCODE_CONTEXT DdiEncode_GetEncContextFromContextID(VADriverContextP ctx, VAContextID vaCtxID)
 {
-    uint32_t  uiCtxType;
-    return (PDDI_ENCODE_CONTEXT)DdiMedia_GetContextFromContextID(ctx, vaCtxID, &uiCtxType);
+    uint32_t  ctxType;
+    return (PDDI_ENCODE_CONTEXT)DdiMedia_GetContextFromContextID(ctx, vaCtxID, &ctxType);
 }
 
 VAStatus DdiEncode_RemoveFromStatusReportQueue(
-    PDDI_ENCODE_CONTEXT pEncCtx,
-    PDDI_MEDIA_BUFFER   pBuf)
+    PDDI_ENCODE_CONTEXT encCtx,
+    PDDI_MEDIA_BUFFER   buf)
 
 {
-    DDI_CHK_NULL(pEncCtx, "Null pEncCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(pEncCtx->m_encode, "pEncCtx->m_encode", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(pBuf, "Null pbuf", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(encCtx, "nullptr encCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(encCtx->m_encode, "nullptr encCtx->m_encode", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(buf, "nullptr buf", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    VAStatus vaStatus = pEncCtx->m_encode->RemoveFromStatusReportQueue(pBuf);
+    VAStatus vaStatus = encCtx->m_encode->RemoveFromStatusReportQueue(buf);
 
     return vaStatus;
 }
 
 VAStatus DdiEncode_RemoveFromEncStatusReportQueue(
-    PDDI_ENCODE_CONTEXT            pEncCtx,
-    PDDI_MEDIA_BUFFER              pBuf,
-    DDI_ENCODE_FEI_ENC_BUFFER_TYPE TypeIdx)
+    PDDI_ENCODE_CONTEXT            encCtx,
+    PDDI_MEDIA_BUFFER              buf,
+    DDI_ENCODE_FEI_ENC_BUFFER_TYPE typeIdx)
 {
-    DDI_CHK_NULL(pEncCtx, "Null pEncCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(pEncCtx->m_encode, "pEncCtx->m_encode", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(pBuf, "Null pbuf", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(encCtx, "nullptr encCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(encCtx->m_encode, "nullptr encCtx->m_encode", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(buf, "nullptr buf", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    VAStatus vaStatus = pEncCtx->m_encode->RemoveFromEncStatusReportQueue(pBuf, TypeIdx);
+    VAStatus vaStatus = encCtx->m_encode->RemoveFromEncStatusReportQueue(buf, typeIdx);
 
     return vaStatus;
 }
 
 VAStatus DdiEncode_RemoveFromPreEncStatusReportQueue(
-    PDDI_ENCODE_CONTEXT            pEncCtx,
-    PDDI_MEDIA_BUFFER              pBuf,
-    DDI_ENCODE_PRE_ENC_BUFFER_TYPE TypeIdx)
+    PDDI_ENCODE_CONTEXT            encCtx,
+    PDDI_MEDIA_BUFFER              buf,
+    DDI_ENCODE_PRE_ENC_BUFFER_TYPE typeIdx)
 {
-    DDI_CHK_NULL(pEncCtx, "Null pEncCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(pEncCtx->m_encode, "pEncCtx->m_encode", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(pBuf, "Null pbuf", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(encCtx, "nullptr encCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(encCtx->m_encode, "nullptr encCtx->m_encode", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(buf, "nullptr buf", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    VAStatus vaStatus = pEncCtx->m_encode->RemoveFromPreEncStatusReportQueue(pBuf, TypeIdx);
+    VAStatus vaStatus = encCtx->m_encode->RemoveFromPreEncStatusReportQueue(buf, typeIdx);
 
     return vaStatus;
 }
 
 bool DdiEncode_CodedBufferExistInStatusReport(
-    PDDI_ENCODE_CONTEXT pEncCtx,
-    PDDI_MEDIA_BUFFER   pBuf)
+    PDDI_ENCODE_CONTEXT encCtx,
+    PDDI_MEDIA_BUFFER   buf)
 {
-    DDI_CHK_NULL(pEncCtx, "Null pEncCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(pEncCtx->m_encode, "pEncCtx->m_encode", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(pBuf, "Null pbuf", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(encCtx, "nullptr encCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(encCtx->m_encode, "nullptr encCtx->m_encode", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(buf, "nullptr buf", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    return pEncCtx->m_encode->CodedBufferExistInStatusReport(pBuf);
+    return encCtx->m_encode->CodedBufferExistInStatusReport(buf);
 }
 
 bool DdiEncode_EncBufferExistInStatusReport(
-    PDDI_ENCODE_CONTEXT            pEncCtx,
-    PDDI_MEDIA_BUFFER              pBuf,
-    DDI_ENCODE_FEI_ENC_BUFFER_TYPE TypeIdx)
+    PDDI_ENCODE_CONTEXT            encCtx,
+    PDDI_MEDIA_BUFFER              buf,
+    DDI_ENCODE_FEI_ENC_BUFFER_TYPE typeIdx)
 {
-    DDI_CHK_NULL(pEncCtx, "Null pEncCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(pEncCtx->m_encode, "pEncCtx->m_encode", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(pBuf, "Null pbuf", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(encCtx, "nullptr encCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(encCtx->m_encode, "nullptr encCtx->m_encode", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(buf, "nullptr buf", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    return pEncCtx->m_encode->EncBufferExistInStatusReport(pBuf, TypeIdx);
+    return encCtx->m_encode->EncBufferExistInStatusReport(buf, typeIdx);
 }
 
 bool DdiEncode_PreEncBufferExistInStatusReport(
-    PDDI_ENCODE_CONTEXT            pEncCtx,
-    PDDI_MEDIA_BUFFER              pBuf,
-    DDI_ENCODE_PRE_ENC_BUFFER_TYPE TypeIdx)
+    PDDI_ENCODE_CONTEXT            encCtx,
+    PDDI_MEDIA_BUFFER              buf,
+    DDI_ENCODE_PRE_ENC_BUFFER_TYPE typeIdx)
 {
-    DDI_CHK_NULL(pEncCtx, "Null pEncCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(pEncCtx->m_encode, "pEncCtx->m_encode", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(pBuf, "Null pbuf", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(encCtx, "nullptr encCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(encCtx->m_encode, "nullptr encCtx->m_encode", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(buf, "nullptr buf", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    return pEncCtx->m_encode->PreEncBufferExistInStatusReport(pBuf, TypeIdx);
+    return encCtx->m_encode->PreEncBufferExistInStatusReport(buf, typeIdx);
 }
 
 VAStatus DdiEncode_EncStatusReport(
-    PDDI_ENCODE_CONTEXT pEncCtx,
-    DDI_MEDIA_BUFFER *  pMediaBuf,
-    void **             pbuf)
+    PDDI_ENCODE_CONTEXT encCtx,
+    DDI_MEDIA_BUFFER    *mediaBuf,
+    void                **buf)
 {
-    DDI_CHK_NULL(pEncCtx, "Null pEncCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(pEncCtx->m_encode, "pEncCtx->m_encode", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(pMediaBuf, "Null pMediaBuf", VA_STATUS_ERROR_INVALID_PARAMETER);
-    DDI_CHK_NULL(pbuf, "Null pbuf", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(encCtx, "nullptr encCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(encCtx->m_encode, "nullptr encCtx->m_encode", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(mediaBuf, "nullptr mediaBuf", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(buf, "nullptr buf", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    VAStatus vaStatus = pEncCtx->m_encode->EncStatusReport(pMediaBuf, pbuf);
+    VAStatus vaStatus = encCtx->m_encode->EncStatusReport(mediaBuf, buf);
 
     return vaStatus;
 }
 
 VAStatus DdiEncode_PreEncStatusReport(
-    PDDI_ENCODE_CONTEXT pEncCtx,
-    DDI_MEDIA_BUFFER *  pMediaBuf,
-    void **             pbuf)
+    PDDI_ENCODE_CONTEXT encCtx,
+    DDI_MEDIA_BUFFER    *mediaBuf,
+    void                **buf)
 {
-    DDI_CHK_NULL(pEncCtx, "Null pEncCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(pEncCtx->m_encode, "pEncCtx->m_encode", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(pMediaBuf, "Null pMediaBuf", VA_STATUS_ERROR_INVALID_PARAMETER);
-    DDI_CHK_NULL(pbuf, "Null pbuf", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(encCtx, "nullptr encCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(encCtx->m_encode, "nullptr encCtx->m_encode", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(mediaBuf, "nullptr mediaBuf", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(buf, "nullptr buf", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    VAStatus vaStatus = pEncCtx->m_encode->PreEncStatusReport(pMediaBuf, pbuf);
+    VAStatus vaStatus = encCtx->m_encode->PreEncStatusReport(mediaBuf, buf);
 
     return vaStatus;
 }
 
 VAStatus DdiEncode_StatusReport(
-    PDDI_ENCODE_CONTEXT pEncCtx,
-    DDI_MEDIA_BUFFER *  pMediaBuf,
-    void **             pbuf)
+    PDDI_ENCODE_CONTEXT encCtx,
+    DDI_MEDIA_BUFFER    *mediaBuf,
+    void                **buf)
 {
-    DDI_CHK_NULL(pEncCtx, "Null pEncCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(pEncCtx->m_encode, "pEncCtx->m_encode", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(pMediaBuf, "Null pMediaBuf", VA_STATUS_ERROR_INVALID_PARAMETER);
-    DDI_CHK_NULL(pbuf, "Null pbuf", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(encCtx, "nullptr encCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(encCtx->m_encode, "nullptr encCtx->m_encode", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(mediaBuf, "nullptr mediaBuf", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(buf, "nullptr buf", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    VAStatus vaStatus = pEncCtx->m_encode->StatusReport(pMediaBuf, pbuf);
+    VAStatus vaStatus = encCtx->m_encode->StatusReport(mediaBuf, buf);
 
     return vaStatus;
 }
 
-void DdiEncodeCleanUp(PDDI_ENCODE_CONTEXT pEncCtx)
+//!
+//! \brief  Clean and free encode context structure
+//!
+//! \param  [in] encCtx
+//!     Pointer to ddi encode context
+//!
+void DdiEncodeCleanUp(PDDI_ENCODE_CONTEXT encCtx)
 {
-    if (pEncCtx->m_encode)
+    if (encCtx->m_encode)
     {
-        MOS_Delete(pEncCtx->m_encode);
-        pEncCtx->m_encode = nullptr;
+        MOS_Delete(encCtx->m_encode);
+        encCtx->m_encode = nullptr;
     }
 
-    if (pEncCtx->pCpDdiInterface)
+    if (encCtx->pCpDdiInterface)
     {
-        MOS_Delete(pEncCtx->pCpDdiInterface);
-        pEncCtx->pCpDdiInterface = nullptr;
+        MOS_Delete(encCtx->pCpDdiInterface);
+        encCtx->pCpDdiInterface = nullptr;
     }
 
-    MOS_FreeMemory(pEncCtx);
-    pEncCtx = nullptr;
+    MOS_FreeMemory(encCtx);
+    encCtx = nullptr;
 
     return;
 }
@@ -218,26 +214,23 @@ VAStatus DdiEncode_CreateContext(
     int32_t          num_render_targets,
     VAContextID     *context)
 {
-    if (ctx == nullptr || ctx->pDriverData == nullptr)
-    {
-        return VA_STATUS_ERROR_INVALID_CONTEXT;
-    }
+    DDI_CHK_NULL(ctx, "nullptr ctx", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(ctx->pDriverData, "nullptr ctx->pDriverData", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    PDDI_MEDIA_CONTEXT pMediaDrvCtx = DdiMedia_GetMediaContext(ctx);
-    uint32_t           dwMaxWidth   = ENCODE_MAX_PIC_WIDTH;
-    uint32_t           dwMaxHeight  = ENCODE_MAX_PIC_HEIGHT;
-    DDI_CHK_NULL(pMediaDrvCtx->m_caps, "Null m_caps", VA_STATUS_ERROR_INVALID_CONTEXT);
+    PDDI_MEDIA_CONTEXT mediaDrvCtx = DdiMedia_GetMediaContext(ctx);
+    DDI_CHK_NULL(mediaDrvCtx->m_caps, "nullptr m_caps", VA_STATUS_ERROR_INVALID_CONTEXT);
+
     VAProfile profile;
     VAEntrypoint entrypoint;
-    uint32_t rcMode;
-    VAStatus vaStatus = pMediaDrvCtx->m_caps->GetEncConfigAttr(
-		    config_id + DDI_CODEC_GEN_CONFIG_ATTRIBUTES_ENC_BASE, 
-		    &profile,
-		    &entrypoint,
-		    &rcMode);
+    uint32_t rcMode = 0;
+    VAStatus vaStatus = mediaDrvCtx->m_caps->GetEncConfigAttr(
+            config_id + DDI_CODEC_GEN_CONFIG_ATTRIBUTES_ENC_BASE,
+            &profile,
+            &entrypoint,
+            &rcMode);
     DDI_CHK_RET(vaStatus, "Invalide config_id!");
 
-    vaStatus = pMediaDrvCtx->m_caps->CheckEncodeResolution(
+    vaStatus = mediaDrvCtx->m_caps->CheckEncodeResolution(
             profile,
             picture_width,
             picture_height);
@@ -250,141 +243,135 @@ VAStatus DdiEncode_CreateContext(
     {
         return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
     }
-    
-    std::string    encodeKey = pMediaDrvCtx->m_caps->GetEncodeCodecKey(profile, entrypoint);
+
+    std::string    encodeKey = mediaDrvCtx->m_caps->GetEncodeCodecKey(profile, entrypoint);
     DdiEncodeBase *ddiEncode = DdiEncodeFactory::CreateCodec(encodeKey);
     DDI_CHK_NULL(ddiEncode, "nullptr ddiEncode", VA_STATUS_ERROR_UNIMPLEMENTED);
-    
+
     // first create encoder context
     ddiEncode->m_encodeCtx = (PDDI_ENCODE_CONTEXT)MOS_AllocAndZeroMemory(sizeof(DDI_ENCODE_CONTEXT));
     DDI_CHK_NULL(ddiEncode->m_encodeCtx, "nullptr ddiEncode->m_encodeCtx", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
-    PDDI_ENCODE_CONTEXT pEncCtx = ddiEncode->m_encodeCtx;
-    pEncCtx->m_encode           = ddiEncode;
+    PDDI_ENCODE_CONTEXT encCtx = ddiEncode->m_encodeCtx;
+    encCtx->m_encode           = ddiEncode;
 
     //initialize DDI level cp interface
-    MOS_CONTEXT MosCtx;
-    pEncCtx->pCpDdiInterface = MOS_New(DdiCpInterface, MosCtx);
-    if (nullptr == pEncCtx->pCpDdiInterface)
+    MOS_CONTEXT mosCtx;
+    encCtx->pCpDdiInterface = MOS_New(DdiCpInterface, mosCtx);
+    if (nullptr == encCtx->pCpDdiInterface)
     {
         vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
-        DdiEncodeCleanUp(pEncCtx);
+        DdiEncodeCleanUp(encCtx);
         return vaStatus;
     }
 
     // Get the buf manager for codechal create
-    MosCtx.bufmgr       = pMediaDrvCtx->pDrmBufMgr;
-    MosCtx.fd           = pMediaDrvCtx->fd;
-    MosCtx.iDeviceId    = pMediaDrvCtx->iDeviceId;
-    MosCtx.SkuTable     = pMediaDrvCtx->SkuTable;
-    MosCtx.WaTable      = pMediaDrvCtx->WaTable;
-    MosCtx.gtSystemInfo = *pMediaDrvCtx->pGtSystemInfo;
-    MosCtx.platform     = pMediaDrvCtx->platform;
+    mosCtx.bufmgr       = mediaDrvCtx->pDrmBufMgr;
+    mosCtx.fd           = mediaDrvCtx->fd;
+    mosCtx.iDeviceId    = mediaDrvCtx->iDeviceId;
+    mosCtx.SkuTable     = mediaDrvCtx->SkuTable;
+    mosCtx.WaTable      = mediaDrvCtx->WaTable;
+    mosCtx.gtSystemInfo = *mediaDrvCtx->pGtSystemInfo;
+    mosCtx.platform     = mediaDrvCtx->platform;
 
-    MosCtx.ppMediaMemDecompState = &pMediaDrvCtx->pMediaMemDecompState;
-    MosCtx.pfnMemoryDecompress   = pMediaDrvCtx->pfnMemoryDecompress;
-    MosCtx.pPerfData             = (PERF_DATA *)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
-    MosCtx.gtSystemInfo          = *pMediaDrvCtx->pGtSystemInfo;
+    mosCtx.ppMediaMemDecompState = &mediaDrvCtx->pMediaMemDecompState;
+    mosCtx.pfnMemoryDecompress   = mediaDrvCtx->pfnMemoryDecompress;
+    mosCtx.pPerfData             = (PERF_DATA *)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
+    mosCtx.gtSystemInfo          = *mediaDrvCtx->pGtSystemInfo;
 
-    if (nullptr == MosCtx.pPerfData)
+    if (nullptr == mosCtx.pPerfData)
     {
         vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
-        DdiEncodeCleanUp(pEncCtx);
+        DdiEncodeCleanUp(encCtx);
         return vaStatus;
     }
 
-    pEncCtx->vaProfile  = profile;
-    pEncCtx->uiRCMethod = rcMode;
-    pEncCtx->wModeType = pMediaDrvCtx->m_caps->GetEncodeCodecMode(profile, entrypoint);
-    pEncCtx->codecFunction = pMediaDrvCtx->m_caps->GetEncodeCodecFunction(profile, entrypoint);
+    encCtx->vaProfile  = profile;
+    encCtx->uiRCMethod = rcMode;
+    encCtx->wModeType = mediaDrvCtx->m_caps->GetEncodeCodecMode(profile, entrypoint);
+    encCtx->codecFunction = mediaDrvCtx->m_caps->GetEncodeCodecFunction(profile, entrypoint);
 
     if (entrypoint == VAEntrypointEncSliceLP)
     {
-        pEncCtx->bVdencActive  = true;
+        encCtx->bVdencActive  = true;
     }
 
     //Both dual pipe and LP pipe should support 10bit for HEVCMain10 profile
     if (profile == VAProfileHEVCMain10)
     {
-        pEncCtx->bIs10Bit = true;
+        encCtx->m_encode->m_is10Bit = true;
     }
 
-    CODECHAL_STANDARD_INFO StandardInfo;
-    MOS_ZeroMemory(&StandardInfo, sizeof(CODECHAL_STANDARD_INFO));
-    StandardInfo.CodecFunction = pEncCtx->codecFunction;
-    StandardInfo.Mode          = pEncCtx->wModeType;
+    CODECHAL_STANDARD_INFO standardInfo;
+    MOS_ZeroMemory(&standardInfo, sizeof(CODECHAL_STANDARD_INFO));
+    standardInfo.CodecFunction = encCtx->codecFunction;
+    standardInfo.Mode          = encCtx->wModeType;
     Codechal *pCodecHal = CodechalDevice::CreateFactory(
         nullptr,
-        &MosCtx,
-        &StandardInfo,
+        &mosCtx,
+        &standardInfo,
         nullptr);
     if (pCodecHal == nullptr)
     {
         // add anything necessary here to free the resource
         vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
-        DdiEncodeCleanUp(pEncCtx);
+        DdiEncodeCleanUp(encCtx);
         return vaStatus;
     }
 
-    pEncCtx->pCodecHal = pCodecHal;
+    encCtx->pCodecHal = pCodecHal;
 
     // Setup some initial data
-    pEncCtx->dwFrameWidth      = picture_width;
-    pEncCtx->dwFrameHeight     = picture_height;
-    pEncCtx->bMultiCallsPerPic = 0;  // bit 31 for multi call indication
-    pEncCtx->usNumCallsPerPic  = 1;  // bit 0-15 indicate number of calls.
-    pEncCtx->wPicWidthInMB     = (uint16_t)(DDI_CODEC_NUM_MACROBLOCKS_WIDTH(picture_width));
-    pEncCtx->wPicHeightInMB    = (uint16_t)(DDI_CODEC_NUM_MACROBLOCKS_HEIGHT(picture_height));
+    encCtx->dwFrameWidth      = picture_width;
+    encCtx->dwFrameHeight     = picture_height;
+    encCtx->wPicWidthInMB     = (uint16_t)(DDI_CODEC_NUM_MACROBLOCKS_WIDTH(picture_width));
+    encCtx->wPicHeightInMB    = (uint16_t)(DDI_CODEC_NUM_MACROBLOCKS_HEIGHT(picture_height));
     //recoder old resolution for dynamic resolution  change
-    pEncCtx->wContextPicWidthInMB  = pEncCtx->wPicWidthInMB;
-    pEncCtx->wContextPicHeightInMB = pEncCtx->wPicHeightInMB;
-    pEncCtx->wOriPicWidthInMB      = pEncCtx->wPicWidthInMB;
-    pEncCtx->wOriPicHeightInMB     = pEncCtx->wPicHeightInMB;
-    pEncCtx->ucCurrPAKSet          = 0;
-    pEncCtx->ucCurrENCSet          = 0;
-    pEncCtx->dwStoreData           = 1;
-    pEncCtx->bFirstFrame           = 1;
+    encCtx->wContextPicWidthInMB  = encCtx->wPicWidthInMB;
+    encCtx->wContextPicHeightInMB = encCtx->wPicHeightInMB;
+    encCtx->wOriPicWidthInMB      = encCtx->wPicWidthInMB;
+    encCtx->wOriPicHeightInMB     = encCtx->wPicHeightInMB;
     // Attach PMEDIDA_DRIVER_CONTEXT
-    pEncCtx->pMediaCtx = pMediaDrvCtx;
+    encCtx->pMediaCtx = mediaDrvCtx;
 
-    pEncCtx->pCpDdiInterface->SetHdcp2Enabled(flag);
+    encCtx->pCpDdiInterface->SetHdcp2Enabled(flag);
 
-    CODECHAL_SETTINGS CodecHalSettings;
-    MOS_ZeroMemory(&CodecHalSettings, sizeof(CodecHalSettings));
+    CODECHAL_SETTINGS codecHalSettings;
+    MOS_ZeroMemory(&codecHalSettings, sizeof(codecHalSettings));
 
-    vaStatus = pEncCtx->m_encode->ContextInitialize(&CodecHalSettings);
+    vaStatus = encCtx->m_encode->ContextInitialize(&codecHalSettings);
 
     if (vaStatus != VA_STATUS_SUCCESS)
     {
-        DdiEncodeCleanUp(pEncCtx);
+        DdiEncodeCleanUp(encCtx);
         return vaStatus;
     }
 
-    MOS_STATUS eStatus = pCodecHal->Allocate(&CodecHalSettings);
+    MOS_STATUS eStatus = pCodecHal->Allocate(&codecHalSettings);
 
 #ifdef _MMC_SUPPORTED
     PMOS_INTERFACE osInterface = pCodecHal->GetOsInterface();
     if (osInterface != nullptr &&
         MEDIA_IS_SKU(osInterface->pfnGetSkuTable(osInterface), FtrMemoryCompression) &&
-        !pMediaDrvCtx->pMediaMemDecompState)
+        !mediaDrvCtx->pMediaMemDecompState)
     {
-        pMediaDrvCtx->pMediaMemDecompState =
-            static_cast<MediaMemDecompState*>(MmdDevice::CreateFactory(&MosCtx));
+        mediaDrvCtx->pMediaMemDecompState =
+            static_cast<MediaMemDecompState*>(MmdDevice::CreateFactory(&mosCtx));
     }
 #endif
 
     if (eStatus != MOS_STATUS_SUCCESS)
     {
         vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
-        DdiEncodeCleanUp(pEncCtx);
+        DdiEncodeCleanUp(encCtx);
         return vaStatus;
     }
 
-    vaStatus = pEncCtx->m_encode->InitCompBuffer();
+    vaStatus = encCtx->m_encode->InitCompBuffer();
     if (vaStatus != VA_STATUS_SUCCESS)
     {
         vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
-        DdiEncodeCleanUp(pEncCtx);
+        DdiEncodeCleanUp(encCtx);
         return vaStatus;
     }
 
@@ -392,35 +379,35 @@ VAStatus DdiEncode_CreateContext(
     // This is a must as driver has the constraint, 127 surfaces per context
     for (int32_t i = 0; i < num_render_targets; i++)
     {
-        DDI_MEDIA_SURFACE *pSurface;
+        DDI_MEDIA_SURFACE *surface;
 
-        pSurface = DdiMedia_GetSurfaceFromVASurfaceID(pMediaDrvCtx, render_targets[i]);
-        if (nullptr == pSurface)
+        surface = DdiMedia_GetSurfaceFromVASurfaceID(mediaDrvCtx, render_targets[i]);
+        if (nullptr == surface)
         {
             DDI_ASSERTMESSAGE("DDI: invalid render target %d in vpgEncodeCreateContext.", i);
             vaStatus = VA_STATUS_ERROR_INVALID_SURFACE;
-            DdiEncodeCleanUp(pEncCtx);
+            DdiEncodeCleanUp(encCtx);
             return vaStatus;
         }
-        pEncCtx->RTtbl.pRT[i] = pSurface;
-        pEncCtx->RTtbl.iNumRenderTargets++;
+        encCtx->RTtbl.pRT[i] = surface;
+        encCtx->RTtbl.iNumRenderTargets++;
     }
 
     // convert PDDI_ENCODE_CONTEXT to VAContextID
-    DdiMediaUtil_LockMutex(&pMediaDrvCtx->EncoderMutex);
-    PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT pVaContextHeapElmt = DdiMediaUtil_AllocPVAContextFromHeap(pMediaDrvCtx->pEncoderCtxHeap);
-    if (nullptr == pVaContextHeapElmt)
+    DdiMediaUtil_LockMutex(&mediaDrvCtx->EncoderMutex);
+    PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT vaContextHeapElmt = DdiMediaUtil_AllocPVAContextFromHeap(mediaDrvCtx->pEncoderCtxHeap);
+    if (nullptr == vaContextHeapElmt)
     {
-        DdiMediaUtil_UnLockMutex(&pMediaDrvCtx->EncoderMutex);
+        DdiMediaUtil_UnLockMutex(&mediaDrvCtx->EncoderMutex);
         vaStatus = VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
-        DdiEncodeCleanUp(pEncCtx);
+        DdiEncodeCleanUp(encCtx);
         return vaStatus;
     }
 
-    pVaContextHeapElmt->pVaContext = (void*)pEncCtx;
-    pMediaDrvCtx->uiNumEncoders++;
-    *context = (VAContextID)(pVaContextHeapElmt->uiVaContextID + DDI_MEDIA_VACONTEXTID_OFFSET_ENCODER);
-    DdiMediaUtil_UnLockMutex(&pMediaDrvCtx->EncoderMutex);
+    vaContextHeapElmt->pVaContext = (void*)encCtx;
+    mediaDrvCtx->uiNumEncoders++;
+    *context = (VAContextID)(vaContextHeapElmt->uiVaContextID + DDI_MEDIA_VACONTEXTID_OFFSET_ENCODER);
+    DdiMediaUtil_UnLockMutex(&mediaDrvCtx->EncoderMutex);
 
     return vaStatus;
 }
@@ -432,79 +419,53 @@ VAStatus DdiEncode_CreateContext(
  */
 VAStatus DdiEncode_DestroyContext(VADriverContextP ctx, VAContextID context)
 {
-    PDDI_MEDIA_CONTEXT                pMediaCtx;
-    PDDI_ENCODE_CONTEXT               pEncCtx;
-    Codechal                          *pCodecHal;
-    uint32_t                          uiEncIndex;
-    uint32_t                          MemoryCounter = 0;
-    MOS_USER_FEATURE_VALUE_DATA       UserFeatureData;
-    MOS_USER_FEATURE_VALUE_WRITE_DATA UserFeatureWriteData;
+    DDI_CHK_NULL(ctx, "nullptr ctx", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(ctx->pDriverData, "nullptr ctx->pDriverData", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    pMediaCtx = DdiMedia_GetMediaContext(ctx);
-    DDI_CHK_NULL(pMediaCtx, "Null pMediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+    PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);
+    DDI_CHK_NULL(mediaCtx, "nullptr mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+
     // assume the VAContextID is encoder ID
-    pEncCtx = DdiEncode_GetEncContextFromContextID(ctx, context);
-    DDI_CHK_NULL(pEncCtx, "Null pEncCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(pEncCtx->pCodecHal, "Null pEncCtx->pCodecHal", VA_STATUS_ERROR_INVALID_CONTEXT);
+    PDDI_ENCODE_CONTEXT encCtx  = DdiEncode_GetEncContextFromContextID(ctx, context);
+    DDI_CHK_NULL(encCtx, "nullptr encCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(encCtx->pCodecHal, "nullptr encCtx->pCodecHal", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    pCodecHal = pEncCtx->pCodecHal;
+    Codechal *codecHal = encCtx->pCodecHal;
 
-    if (nullptr != pEncCtx->m_encode)
+    if (nullptr != encCtx->m_encode)
     {
-        pEncCtx->m_encode->FreeCompBuffer();
+        encCtx->m_encode->FreeCompBuffer();
     }
 
-    MOS_FreeMemory(pCodecHal->GetOsInterface()->pOsContext->pPerfData);
-    pCodecHal->GetOsInterface()->pOsContext->pPerfData = nullptr;
+    MOS_FreeMemory(codecHal->GetOsInterface()->pOsContext->pPerfData);
+    codecHal->GetOsInterface()->pOsContext->pPerfData = nullptr;
 
     // destroy codechal
-    pCodecHal->Destroy();
-    MOS_Delete(pCodecHal);
+    codecHal->Destroy();
+    MOS_Delete(codecHal);
 
-    if (pEncCtx->pCpDdiInterface)
+    if (encCtx->pCpDdiInterface)
     {
-        MOS_Delete(pEncCtx->pCpDdiInterface);
-        pEncCtx->pCpDdiInterface = nullptr;
+        MOS_Delete(encCtx->pCpDdiInterface);
+        encCtx->pCpDdiInterface = nullptr;
     }
 
-    if (nullptr != pEncCtx->m_encode)
+    if (nullptr != encCtx->m_encode)
     {
-        MOS_Delete(pEncCtx->m_encode);
-        pEncCtx->m_encode = nullptr;
+        MOS_Delete(encCtx->m_encode);
+        encCtx->m_encode = nullptr;
     }
 
-    MOS_FreeMemory(pEncCtx);
-    pEncCtx = nullptr;
+    MOS_FreeMemory(encCtx);
+    encCtx = nullptr;
 
-    uiEncIndex = (uint32_t)context;
-    uiEncIndex &= DDI_MEDIA_MASK_VACONTEXTID;
+    uint32_t encIndex = (uint32_t)context;
+    encIndex &= DDI_MEDIA_MASK_VACONTEXTID;
 
-    DdiMediaUtil_LockMutex(&pMediaCtx->EncoderMutex);
-    DdiMediaUtil_ReleasePVAContextFromHeap(pMediaCtx->pEncoderCtxHeap, uiEncIndex);
-    pMediaCtx->uiNumEncoders--;
-    DdiMediaUtil_UnLockMutex(&pMediaCtx->EncoderMutex);
-
-    /***********************************************************************************
-    MemNinja Release feature allows test applications to detect memory leak based on
-    driver counter value, sum of the global variables MosMemAllocCounter and MosMemAllocCounterGfx
-    which increment by 1 whenever system memory/graphics memory is allocated and decrement by 1
-    when the system memory/graphics memory is freed.
-    
-    MemNinja Release feature is described below.
-    1. MemNinja Counter - Driver repots the internal counter MosMemAllocCounter value
-    when test completes. Test application checks this value.
-    If MemNinjaCounter != 0, test app can flag test as fail.
-    **************************************************************************************/
-
-    //MemNinja Counter intialization
-    MosMemAllocCounter    = 0;
-    MosMemAllocCounterGfx = 0;
-    MemoryCounter         = MosMemAllocCounter + MosMemAllocCounterGfx;
-
-    UserFeatureWriteData               = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
-    UserFeatureWriteData.Value.i32Data = MemoryCounter;
-    UserFeatureWriteData.ValueID       = __MEDIA_USER_FEATURE_VALUE_MEMNINJA_COUNTER_ID;
-    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);
+    DdiMediaUtil_LockMutex(&mediaCtx->EncoderMutex);
+    DdiMediaUtil_ReleasePVAContextFromHeap(mediaCtx->pEncoderCtxHeap, encIndex);
+    mediaCtx->uiNumEncoders--;
+    DdiMediaUtil_UnLockMutex(&mediaCtx->EncoderMutex);
 
     return VA_STATUS_SUCCESS;
 }
@@ -535,11 +496,11 @@ VAStatus DdiEncode_CreateBuffer(
 {
     DDI_CHK_NULL(ctx, "nullptr context!", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    DDI_ENCODE_CONTEXT *pEncCtx = DdiEncode_GetEncContextFromContextID(ctx, context);
-    DDI_CHK_NULL(pEncCtx, "Null pEncCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(pEncCtx->m_encode, "Null pEncCtx->m_encode", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_ENCODE_CONTEXT *encCtx = DdiEncode_GetEncContextFromContextID(ctx, context);
+    DDI_CHK_NULL(encCtx, "nullptr encCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(encCtx->m_encode, "nullptr encCtx->m_encode", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    VAStatus vaStatus = pEncCtx->m_encode->CreateBuffer(ctx, type, size, num_elements, data, buf_id);
+    VAStatus vaStatus = encCtx->m_encode->CreateBuffer(ctx, type, size, num_elements, data, buf_id);
 
     return vaStatus;
 }
@@ -557,11 +518,11 @@ VAStatus DdiEncode_BeginPicture(
     DDI_CHK_NULL(ctx, "nullptr context in vpgEncodeBeginPicture!", VA_STATUS_ERROR_INVALID_CONTEXT);
 
     // assume the VAContextID is encoder ID
-    PDDI_ENCODE_CONTEXT pEncCtx = DdiEncode_GetEncContextFromContextID(ctx, context);
-    DDI_CHK_NULL(pEncCtx, "Null pEncCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(pEncCtx->m_encode, "Null pEncCtx->m_encode", VA_STATUS_ERROR_INVALID_CONTEXT);
+    PDDI_ENCODE_CONTEXT encCtx = DdiEncode_GetEncContextFromContextID(ctx, context);
+    DDI_CHK_NULL(encCtx, "nullptr encCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(encCtx->m_encode, "nullptr encCtx->m_encode", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    VAStatus vaStatus = pEncCtx->m_encode->BeginPicture(ctx, context, render_target);
+    VAStatus vaStatus = encCtx->m_encode->BeginPicture(ctx, context, render_target);
     DDI_FUNCTION_EXIT(vaStatus);
     return vaStatus;
 }
@@ -581,11 +542,11 @@ VAStatus DdiEncode_RenderPicture(
     DDI_CHK_NULL(ctx, "nullptr context in vpgEncodeRenderPicture!", VA_STATUS_ERROR_INVALID_CONTEXT);
 
     // assume the VAContextID is encoder ID
-    PDDI_ENCODE_CONTEXT pEncCtx = DdiEncode_GetEncContextFromContextID(ctx, context);
-    DDI_CHK_NULL(pEncCtx, "Null pEncCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(pEncCtx->m_encode, "Null pEncCtx->m_encode", VA_STATUS_ERROR_INVALID_CONTEXT);
+    PDDI_ENCODE_CONTEXT encCtx = DdiEncode_GetEncContextFromContextID(ctx, context);
+    DDI_CHK_NULL(encCtx, "nullptr encCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(encCtx->m_encode, "nullptr encCtx->m_encode", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    VAStatus vaStatus = pEncCtx->m_encode->RenderPicture(ctx, context, buffers, num_buffers);
+    VAStatus vaStatus = encCtx->m_encode->RenderPicture(ctx, context, buffers, num_buffers);
     DDI_FUNCTION_EXIT(vaStatus);
     return vaStatus;
 }
@@ -597,11 +558,11 @@ VAStatus DdiEncode_EndPicture(VADriverContextP ctx, VAContextID context)
     DDI_CHK_NULL(ctx, "nullptr context in vpgEncodeEndPicture!", VA_STATUS_ERROR_INVALID_CONTEXT);
 
     // assume the VAContextID is encoder ID
-    PDDI_ENCODE_CONTEXT pEncCtx = DdiEncode_GetEncContextFromContextID(ctx, context);
-    DDI_CHK_NULL(pEncCtx, "Null pEncCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(pEncCtx->m_encode, "Null pEncCtx->m_encode", VA_STATUS_ERROR_INVALID_CONTEXT);
+    PDDI_ENCODE_CONTEXT encCtx = DdiEncode_GetEncContextFromContextID(ctx, context);
+    DDI_CHK_NULL(encCtx, "nullptr encCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(encCtx->m_encode, "nullptr encCtx->m_encode", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    VAStatus vaStatus = pEncCtx->m_encode->EndPicture(ctx, context);
+    VAStatus vaStatus = encCtx->m_encode->EndPicture(ctx, context);
     DDI_FUNCTION_EXIT(vaStatus);
     return vaStatus;
 }
@@ -614,44 +575,39 @@ VAStatus DdiEncode_MfeSubmit(
     int32_t             num_contexts
 )
 {
-    PDDI_MEDIA_CONTEXT                  pMediaCtx;
-    PDDI_ENCODE_MFE_CONTEXT             pEncodeMfeContext;
-    PDDI_ENCODE_CONTEXT                 pEncodeContext;
-    CodechalEncoderState                *encoder;
-    uint32_t                            uiCtxType = DDI_MEDIA_CONTEXT_TYPE_NONE;
-    int32_t                             i;
-    std::vector<PDDI_ENCODE_CONTEXT>    pEncodeContexts;
-    EncoderParams                       *pEncodeParams;
-    MOS_STATUS                          status ;
-    int32_t                             validContextNumber = 0;
+    PDDI_MEDIA_CONTEXT mediaCtx               = DdiMedia_GetMediaContext(ctx);
+    DDI_CHK_NULL(mediaCtx, "nullptr mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    pMediaCtx   = DdiMedia_GetMediaContext(ctx);
-    DDI_CHK_NULL(pMediaCtx, "Null pMediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
-    pEncodeMfeContext  = (PDDI_ENCODE_MFE_CONTEXT)DdiMedia_GetContextFromContextID(ctx, mfe_context, &uiCtxType);
-    DDI_CHK_NULL(pEncodeMfeContext, "Null pEncodeMfeContext", VA_STATUS_ERROR_INVALID_CONTEXT);
+    uint32_t ctxType                          = DDI_MEDIA_CONTEXT_TYPE_NONE;
+    PDDI_ENCODE_MFE_CONTEXT encodeMfeContext  = (PDDI_ENCODE_MFE_CONTEXT)DdiMedia_GetContextFromContextID(ctx, mfe_context, &ctxType);
+    DDI_CHK_NULL(encodeMfeContext, "nullptr encodeMfeContext", VA_STATUS_ERROR_INVALID_CONTEXT);
 
+    std::vector<PDDI_ENCODE_CONTEXT>    encodeContexts;
+    PDDI_ENCODE_CONTEXT encodeContext = nullptr;
+    int32_t validContextNumber        = 0;
     // Set mfe encoder params for this submission
-    for (i = 0; i < num_contexts; i++)
+    for (int32_t i = 0; i < num_contexts; i++)
     {
-        pEncodeContext  = DdiEncode_GetEncContextFromContextID(ctx, contexts[i]);
-        DDI_CHK_NULL(pEncodeContext, "Null pEncodeContext", VA_STATUS_ERROR_INVALID_CONTEXT);
-        encoder = dynamic_cast<CodechalEncoderState *>(pEncodeContext->pCodecHal);
-        DDI_CHK_NULL(encoder, "Null codechal encoder", VA_STATUS_ERROR_INVALID_CONTEXT);
+        encodeContext                 = DdiEncode_GetEncContextFromContextID(ctx, contexts[i]);
+        DDI_CHK_NULL(encodeContext, "nullptr encodeContext", VA_STATUS_ERROR_INVALID_CONTEXT);
+        CodechalEncoderState *encoder = dynamic_cast<CodechalEncoderState *>(encodeContext->pCodecHal);
+        DDI_CHK_NULL(encoder, "nullptr codechal encoder", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-        encoder->m_mfeEncodeParams.submitIndex = i;
+        encoder->m_mfeEncodeParams.submitIndex  = i;
         encoder->m_mfeEncodeParams.submitNumber = num_contexts;
-        pEncodeContexts.push_back(pEncodeContext);
+        encodeContexts.push_back(encodeContext);
         validContextNumber++;
     }
 
-    MOS_ZeroMemory(pEncodeMfeContext->mfeEncodeSharedState, sizeof(MfeSharedState));
+    MOS_ZeroMemory(encodeMfeContext->mfeEncodeSharedState, sizeof(MfeSharedState));
 
     // Call Enc functions for all the sub contexts
-    for (i = 0; i < validContextNumber; i++)
+    MOS_STATUS status = MOS_STATUS_SUCCESS;
+    for (int32_t i = 0; i < validContextNumber; i++)
     {
-        pEncodeContext  = pEncodeContexts[i];
-        pEncodeContext->EncodeParams.ExecCodecFunction = CODECHAL_FUNCTION_ENC;
-        status = pEncodeContext->pCodecHal->Execute(&pEncodeContext->EncodeParams);
+        encodeContext  = encodeContexts[i];
+        encodeContext->EncodeParams.ExecCodecFunction = CODECHAL_FUNCTION_ENC;
+        status = encodeContext->pCodecHal->Execute(&encodeContext->EncodeParams);
         if (MOS_STATUS_SUCCESS != status)
         {
             DDI_ASSERTMESSAGE("DDI:Failed in Execute Enc!");
@@ -660,11 +616,11 @@ VAStatus DdiEncode_MfeSubmit(
     }
 
     // Call Pak functions for all the sub contexts
-    for (i = 0; i < validContextNumber; i++)
+    for (int32_t i = 0; i < validContextNumber; i++)
     {
-        pEncodeContext  = pEncodeContexts[i];
-        pEncodeContext->EncodeParams.ExecCodecFunction = CODECHAL_FUNCTION_PAK;
-        status = pEncodeContext->pCodecHal->Execute(&pEncodeContext->EncodeParams);
+        encodeContext  = encodeContexts[i];
+        encodeContext->EncodeParams.ExecCodecFunction = CODECHAL_FUNCTION_PAK;
+        status = encodeContext->pCodecHal->Execute(&encodeContext->EncodeParams);
         if (MOS_STATUS_SUCCESS != status)
         {
             DDI_ASSERTMESSAGE("DDI:Failed in Execute Pak!");

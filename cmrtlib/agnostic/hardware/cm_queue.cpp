@@ -405,6 +405,81 @@ CM_RT_API int32_t CmQueue_RT::EnqueueCopyGPUToCPUFullStride(CmSurface2D *pSurfac
                        pEvent);
 }
 
+//!
+//! Enqueue an task, which contains one pre-defined kernel to
+//! copy from linear system memory to tiled video memory
+//! This API supports both blocking/non-blocking copy, if user pass CM_GPUCOPY_OPTION_BLOCKING as option,
+//! this API only return till copy operation is done. otherwise, this API will return immediately no waiting for copy in GPU.
+//! A CmEvent is generated each time a task is enqueued. The CmEvent can
+//! be used to check if the task finishs.
+//! INPUT:
+//!     1) Pointer to the CmSurface2D as copy destination
+//!     2) Pointer to the host memory as copy resource
+//!     3) width stride in bytes for system memory
+//!     4) height stride in rows for system memory
+//!     5) option: CM_FASTCOPY_OPTION_NONBLOCKING,CM_FASTCOPY_OPTION_BLOCKING or CM_FASTCOPY_OPTION_DISABLE_TURBO_BOOST
+//!     6) Reference to the pointer to CMEvent
+//!
+//! RETURNS:
+//!     CM_SUCCESS if the task is successfully enqueued and the CmEvent is generated;
+//!     CM_OUT_OF_HOST_MEMORY if out of host memery;
+//!     CM_FAILURE otherwise.
+//!
+CM_RT_API int32_t
+CmQueue_RT::EnqueueCopyCPUToGPUFullStrideDup(CmSurface2D *pSurface,
+                                          const unsigned char *pSysMem,
+                                          const uint32_t widthStride,
+                                          const uint32_t heightStride,
+                                          const uint32_t option,
+                                          CmEvent *&pEvent)
+{
+    INSERT_PROFILER_RECORD();
+    return EnqueueCopy(pSurface,
+                       pSysMem,
+                       widthStride,
+                       heightStride,
+                       CM_FASTCOPY_CPU2GPU,
+                       option,
+                       pEvent);
+}
+
+//!
+//! Enqueue an task, which contains one pre-defined kernel to
+//! copy from tiled video memory to linear system memory
+//! This API supports both blocking/non-blocking copy, if user pass CM_FASTCOPY_OPTION_BLOCKING as option,
+//! this API only return till copy operation is done. otherwise, this API will return immediately no waiting for copy in GPU.
+//! A CmEvent is generated each time a task is enqueued. The CmEvent can
+//! be used to check if the task finishs.
+//! INPUT:
+//!     1) Pointer to the CmSurface2D as copy resource
+//!     2) Pointer to the host memory as copy destination
+//!     3) width stride in bytes for system memory
+//!     4) height stride in rows for system memory
+//!     5) option: CM_FASTCOPY_OPTION_NONBLOCKING or CM_FASTCOPY_OPTION_BLOCKING
+//!     6) Reference to the pointer to CMEvent
+//!
+//! RETURNS:
+//!     CM_SUCCESS if the task is successfully enqueued and the CmEvent is generated;
+//!     CM_OUT_OF_HOST_MEMORY if out of host memery;
+//!     CM_FAILURE otherwise.
+//!
+CM_RT_API int32_t CmQueue_RT::EnqueueCopyGPUToCPUFullStrideDup(CmSurface2D *pSurface,
+                                                        unsigned char *pSysMem,
+                                                        const uint32_t widthStride,
+                                                        const uint32_t heightStride,
+                                                        const uint32_t option,
+                                                        CmEvent *&pEvent)
+{
+    INSERT_PROFILER_RECORD();
+    return EnqueueCopy(pSurface,
+                       pSysMem,
+                       widthStride,
+                       heightStride,
+                       CM_FASTCOPY_GPU2CPU,
+                       option,
+                       pEvent);
+}
+
 CM_RT_API int32_t CmQueue_RT::DestroyEvent(CmEvent *&pEvent)
 {
     INSERT_PROFILER_RECORD();

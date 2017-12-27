@@ -29,6 +29,28 @@
 
 #include "cm_def.h"
 
+enum CM_STATUS
+{
+    CM_STATUS_QUEUED         = 0,
+    CM_STATUS_FLUSHED        = 1,
+    CM_STATUS_FINISHED       = 2,
+    CM_STATUS_STARTED        = 3,
+    CM_STATUS_RESET          = 4
+};
+
+enum CM_EVENT_PROFILING_INFO
+{
+    CM_EVENT_PROFILING_HWSTART,
+    CM_EVENT_PROFILING_HWEND,
+    CM_EVENT_PROFILING_SUBMIT,
+    CM_EVENT_PROFILING_COMPLETE,
+    CM_EVENT_PROFILING_ENQUEUE,
+    CM_EVENT_PROFILING_KERNELCOUNT,
+    CM_EVENT_PROFILING_KERNELNAMES,
+    CM_EVENT_PROFILING_THREADSPACE,
+    CM_EVENT_PROFILING_CALLBACK
+};
+
 namespace CMRT_UMD
 {
 //! \brief   A CmEvent object is genereated after a task is enqueued.
@@ -121,7 +143,7 @@ public:
     
     //!
     //! \brief      This function can be used to get more profiling 
-	//!             information for vTune.
+    //!             information for vTune.
     //! \details    It can provided 9 profiling values, for profiling 
     //!             information,including  
     //!             CM_EVENT_PROFILING_HWSTART,CM_EVENT_PROFILING_HWEND,

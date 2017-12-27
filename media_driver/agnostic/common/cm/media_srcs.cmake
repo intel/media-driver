@@ -53,7 +53,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/cm_vebox_data.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_visa.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_wrapper.cpp
-)
+    ${CMAKE_CURRENT_LIST_DIR}/cm_global_api.cpp)
 
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/cm_array.h
@@ -102,7 +102,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/cm_vebox_data.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_visa.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_wrapper.h
-    ${CMAKE_CURRENT_LIST_DIR}/cm_rt.h)
+    ${CMAKE_CURRENT_LIST_DIR}/cm_rt_umd.h)
 
 set(SOURCES_
     ${SOURCES_}

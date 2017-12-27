@@ -45,10 +45,106 @@ CodechalCmdInitializer::CodechalCmdInitializer(
     m_encoder = encoder;
 }
 
+MOS_STATUS CodechalCmdInitializer::CmdInitializerAllocateResources(
+    CodechalHwInterface*                        hwInterface)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    m_hwInterface = hwInterface;
+    m_osInterface = m_hwInterface->GetOsInterface();
+    m_miInterface = m_hwInterface->GetMiInterface();
+    MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferLinear;
+    MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+    allocParamsForBufferLinear.Type = MOS_GFXRES_BUFFER;
+    allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
+    allocParamsForBufferLinear.Format = Format_Buffer;
+
+    //Allocate buffers for every pass.
+    for (int i = 0; i < 3; i++)
+    {
+        // Cmd Initializer DMEM
+        allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(sizeof(HucComDmem), CODECHAL_CACHELINE_SIZE);
+        allocParamsForBufferLinear.pBufName = "VDEnc CmdInitializer Dmem Buffer";
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(
+            m_osInterface->pfnAllocateResource(
+                m_osInterface,
+                &allocParamsForBufferLinear,
+                &m_cmdInitializerDmemBuffer[i]));
+
+        // Cmd Initializer Data buffer
+        allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(sizeof(HucComData), CODECHAL_PAGE_SIZE);
+        allocParamsForBufferLinear.pBufName = "VDEnc CmdInitializer Data Buffer";
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(
+            m_osInterface->pfnAllocateResource(
+                m_osInterface,
+                &allocParamsForBufferLinear,
+                &m_cmdInitializerDataBuffer[i]));
+
+        MOS_LOCK_PARAMS lockFlagsWriteOnly;
+        MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
+        lockFlagsWriteOnly.WriteOnly = 1;
+
+        uint8_t* pData = (uint8_t*)m_osInterface->pfnLockResource(
+            m_osInterface,
+            &m_cmdInitializerDataBuffer[i],
+            &lockFlagsWriteOnly);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(pData);
+        MOS_ZeroMemory(pData, allocParamsForBufferLinear.dwBytes);
+        m_osInterface->pfnUnlockResource(m_osInterface, &m_cmdInitializerDataBuffer[i]);
+    }
+
+    //Allocate extra buffers for dynamic scaling 
+    // Cmd Initializer DMEM
+    allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(sizeof(HucComDmem), CODECHAL_CACHELINE_SIZE);
+    allocParamsForBufferLinear.pBufName = "VDEnc Dynamic Sclaing CmdInitializer Dmem Buffer";
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(
+        m_osInterface->pfnAllocateResource(
+            m_osInterface,
+            &allocParamsForBufferLinear,
+            &m_cmdInitializerDysScalingDmemBuffer));
+
+    // Cmd Initializer Data buffer
+    allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(sizeof(HucComData), CODECHAL_PAGE_SIZE);
+    allocParamsForBufferLinear.pBufName = "VDEnc Dynamic Sclaing CmdInitializer Data Buffer";
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(
+        m_osInterface->pfnAllocateResource(
+            m_osInterface,
+            &allocParamsForBufferLinear,
+            &m_cmdInitializerDysScalingDataBuffer));
+
+    MOS_LOCK_PARAMS lockFlagsWriteOnly;
+    MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
+    lockFlagsWriteOnly.WriteOnly = 1;
+
+    uint8_t* pData = (uint8_t*)m_osInterface->pfnLockResource(
+        m_osInterface,
+        &m_cmdInitializerDysScalingDataBuffer,
+        &lockFlagsWriteOnly);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(pData);
+    MOS_ZeroMemory(pData, allocParamsForBufferLinear.dwBytes);
+    m_osInterface->pfnUnlockResource(m_osInterface, &m_cmdInitializerDysScalingDataBuffer);
+
+    return eStatus;
+}
+
+void CodechalCmdInitializer::CmdInitializerFreeResources()
+{
+    for (int i = 0; i < 3; i++)
+    {
+        m_osInterface->pfnFreeResource(m_osInterface, &m_cmdInitializerDmemBuffer[i]);
+        m_osInterface->pfnFreeResource(m_osInterface, &m_cmdInitializerDataBuffer[i]);
+    }
+    m_osInterface->pfnFreeResource(m_osInterface, &m_cmdInitializerDysScalingDmemBuffer);
+    m_osInterface->pfnFreeResource(m_osInterface, &m_cmdInitializerDysScalingDataBuffer);
+
+}
+
 #ifdef _HEVC_ENCODE_SUPPORTED
 MOS_STATUS CodechalCmdInitializer::CmdInitializerSetDmem(bool brcEnabled)
 {
-    PHUC_COM_DMEM           hucCmdInitializerDmem;
+    HucComDmem*             hucCmdInitializerDmem;
     MOS_LOCK_PARAMS         lockFlagsWriteOnly;
     uint16_t                offset = 0;
     MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
@@ -61,10 +157,10 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerSetDmem(bool brcEnabled)
     lockFlagsWriteOnly.WriteOnly = 1;
 
     // Setup CmdInitializer DMEM
-    hucCmdInitializerDmem = (PHUC_COM_DMEM)m_osInterface->pfnLockResource(
-        m_osInterface, &m_encoder->m_resVdencCmdInitializerDmemBuffer, &lockFlagsWriteOnly);
+    hucCmdInitializerDmem = (HucComDmem*)m_osInterface->pfnLockResource(
+        m_osInterface, &m_cmdInitializerDmemBuffer[m_currentPass], &lockFlagsWriteOnly);
 
-    MOS_ZeroMemory(hucCmdInitializerDmem, sizeof(HUC_COM_DMEM));
+    MOS_ZeroMemory(hucCmdInitializerDmem, sizeof(HucComDmem));
 
     hucCmdInitializerDmem->TotalOutputCommands = 2;
 
@@ -112,7 +208,7 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerSetDmem(bool brcEnabled)
 
     hucCmdInitializerDmem->OutputSize = offset;
 
-    m_osInterface->pfnUnlockResource(m_osInterface, &m_encoder->m_resVdencCmdInitializerDmemBuffer);
+    m_osInterface->pfnUnlockResource(m_osInterface, &m_cmdInitializerDmemBuffer[m_currentPass]);
 
     return eStatus;
 }
@@ -135,7 +231,7 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerSetConstData(
     int32_t                                     currentPass
     )
 {
-    PHUC_COM_DATA                                   hucConstData;
+    HucComData*                                     hucConstData;
     MOS_LOCK_PARAMS                                 lockFlagsWriteOnly;
     MOS_STATUS                                      eStatus = MOS_STATUS_SUCCESS;
 
@@ -172,9 +268,9 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerSetConstData(
     MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
     lockFlagsWriteOnly.WriteOnly = 1;
 
-    hucConstData = (PHUC_COM_DATA)m_osInterface->pfnLockResource(m_osInterface, &m_encoder->m_resVdencCmdInitializerDataBuffer[currentPass], &lockFlagsWriteOnly);
+    hucConstData = (HucComData*)m_osInterface->pfnLockResource(m_osInterface, &m_cmdInitializerDataBuffer[currentPass], &lockFlagsWriteOnly);
 
-    MOS_ZeroMemory(hucConstData, sizeof(HUC_COM_DATA));
+    MOS_ZeroMemory(hucConstData, sizeof(HucComData));
     hucConstData->TotalCommands = 2;
 
     // Command ID 2
@@ -193,7 +289,7 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerSetConstData(
     hucConstData->InputCOM[1].ID = 1;
     hucConstData->InputCOM[1].SizeOfData = 0x14;
 
-    HUC_INPUT_CMD1  hucInputCmd1;
+    HucInputCmd1  hucInputCmd1;
     // Shared HEVC/VP9
     hucInputCmd1.FrameWidthInMinCbMinus1  = seqParams->wFrameWidthInMinCbMinus1;
     hucInputCmd1.FrameHeightInMinCbMinus1 = seqParams->wFrameHeightInMinCbMinus1;
@@ -258,9 +354,9 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerSetConstData(
     hucInputCmd1.QpY                    = picParams->QpY + sliceParams->slice_qp_delta;
     hucInputCmd1.RoundingEnabled        = (uint8_t)m_roundingEnabled;
 
-    MOS_SecureMemcpy(hucConstData->InputCOM[1].data, sizeof(HUC_INPUT_CMD1), &hucInputCmd1, sizeof(HUC_INPUT_CMD1));
+    MOS_SecureMemcpy(hucConstData->InputCOM[1].data, sizeof(HucInputCmd1), &hucInputCmd1, sizeof(HucInputCmd1));
 
-    m_osInterface->pfnUnlockResource(m_osInterface, &m_encoder->m_resVdencCmdInitializerDataBuffer[currentPass]);
+    m_osInterface->pfnUnlockResource(m_osInterface, &m_cmdInitializerDataBuffer[currentPass]);
 
     return eStatus;
 }
@@ -313,13 +409,13 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerExecute(bool brcEnabled, PMOS_R
 
     // set HuC DMEM param
     MOS_ZeroMemory(&dmemParams, sizeof(dmemParams));
-    dmemParams.presHucDataSource = &m_encoder->m_resVdencCmdInitializerDmemBuffer;
-    dmemParams.dwDataLength = MOS_ALIGN_CEIL(sizeof(HUC_COM_DMEM), CODECHAL_CACHELINE_SIZE);
+    dmemParams.presHucDataSource = &m_cmdInitializerDmemBuffer[m_currentPass];
+    dmemParams.dwDataLength = MOS_ALIGN_CEIL(sizeof(HucComDmem), CODECHAL_CACHELINE_SIZE);
     dmemParams.dwDmemOffset = HUC_DMEM_OFFSET_RTOS_GEMS;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->GetHwInterface()->GetHucInterface()->AddHucDmemStateCmd(&cmdBuffer, &dmemParams));
 
     MOS_ZeroMemory(&virtualAddrParams, sizeof(virtualAddrParams));
-    virtualAddrParams.regionParams[0].presRegion = &m_encoder->m_resVdencCmdInitializerDataBuffer[m_currentPass];
+    virtualAddrParams.regionParams[0].presRegion = &m_cmdInitializerDataBuffer[m_currentPass];
 
     virtualAddrParams.regionParams[1].presRegion = secondlevelBB;
    
@@ -365,7 +461,7 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerExecute(bool brcEnabled, PMOS_R
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, renderingFlags));
 
     }
-
+    CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(DumpHucCmdInit(secondlevelBB)));
     return eStatus;
 }
 #endif
@@ -373,122 +469,9 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerExecute(bool brcEnabled, PMOS_R
 #ifdef _VP9_ENCODE_SUPPORTED
 //VP9 Specific functions
 
-//!
-//! \brief    Allocate all buffers for VP9
-//! \details  Buffer allocation for VP9
-//! \return   MOS_STATUS
-//!           MOS_STATUS_SUCCESS if success, else fail reason
-//!
-MOS_STATUS CodechalCmdInitializer::CmdInitializerVp9AllocateResources(
-    CodechalVdencVp9State *state)
-{
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
-    CODECHAL_ENCODE_FUNCTION_ENTER;
-
-    m_hwInterface = state->GetHwInterface();
-    m_osInterface = m_hwInterface->GetOsInterface();
-    m_miInterface = m_hwInterface->GetMiInterface();
-    m_vp9Params.currentPass = state->GetCurrentPass();
-    MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferLinear;
-    MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
-    allocParamsForBufferLinear.Type = MOS_GFXRES_BUFFER;
-    allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
-    allocParamsForBufferLinear.Format = Format_Buffer;
-
-    //Allocate buffers for every pass.
-    for (int i = 0; i < 3; i++)
-    {
-        // Cmd Initializer DMEM
-        allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(sizeof(HUC_COM_DMEM), CODECHAL_CACHELINE_SIZE);
-        allocParamsForBufferLinear.pBufName = "VDEnc CmdInitializer Dmem Buffer";
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(
-            m_osInterface->pfnAllocateResource(
-                m_osInterface,
-                &allocParamsForBufferLinear,
-                &m_cmdInitializerDmemBuffer[i]));
-
-        // Cmd Initializer Data buffer
-        allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(sizeof(HUC_COM_DATA), CODECHAL_PAGE_SIZE);
-        allocParamsForBufferLinear.pBufName = "VDEnc CmdInitializer Data Buffer";
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(
-            m_osInterface->pfnAllocateResource(
-                m_osInterface,
-                &allocParamsForBufferLinear,
-                &m_cmdInitializerDataBuffer[i]));
-
-        MOS_LOCK_PARAMS lockFlagsWriteOnly;
-        MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
-        lockFlagsWriteOnly.WriteOnly = 1;
-
-        uint8_t* pData = (uint8_t*)m_osInterface->pfnLockResource(
-            m_osInterface,
-            &m_cmdInitializerDataBuffer[i],
-            &lockFlagsWriteOnly);
-        CODECHAL_ENCODE_CHK_NULL_RETURN(pData);
-        MOS_ZeroMemory(pData, allocParamsForBufferLinear.dwBytes);
-        m_osInterface->pfnUnlockResource(m_osInterface, &m_cmdInitializerDataBuffer[i]);
-
-        // CmdInitializer HuC FW output: second level batch buffer
-        MOS_ZeroMemory(
-            &m_cmdInitializer2ndLevelBatchBuffer[i],
-            sizeof(m_cmdInitializer2ndLevelBatchBuffer[i]));
-        m_cmdInitializer2ndLevelBatchBuffer[i].bSecondLevel = true;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(Mhw_AllocateBb(
-            m_osInterface,
-            &m_cmdInitializer2ndLevelBatchBuffer[i],
-            nullptr,
-            CODECHAL_PAGE_SIZE));
-    }
-
-    //Allocate extra buffers for dynamic scaling 
-    // Cmd Initializer DMEM
-    allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(sizeof(HUC_COM_DMEM), CODECHAL_CACHELINE_SIZE);
-    allocParamsForBufferLinear.pBufName = "VDEnc Dynamic Sclaing CmdInitializer Dmem Buffer";
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(
-        m_osInterface->pfnAllocateResource(
-            m_osInterface,
-            &allocParamsForBufferLinear,
-            &m_cmdInitializerDysScalingDmemBuffer));
-
-    // Cmd Initializer Data buffer
-    allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(sizeof(HUC_COM_DATA), CODECHAL_PAGE_SIZE);
-    allocParamsForBufferLinear.pBufName = "VDEnc Dynamic Sclaing CmdInitializer Data Buffer";
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(
-        m_osInterface->pfnAllocateResource(
-            m_osInterface,
-            &allocParamsForBufferLinear,
-            &m_cmdInitializerDysScalingDataBuffer));
-
-    MOS_LOCK_PARAMS lockFlagsWriteOnly;
-    MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
-    lockFlagsWriteOnly.WriteOnly = 1;
-
-    uint8_t* pData = (uint8_t*)m_osInterface->pfnLockResource(
-        m_osInterface,
-        &m_cmdInitializerDysScalingDataBuffer,
-        &lockFlagsWriteOnly);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(pData);
-    MOS_ZeroMemory(pData, allocParamsForBufferLinear.dwBytes);
-    m_osInterface->pfnUnlockResource(m_osInterface, &m_cmdInitializerDysScalingDataBuffer);
-
-    // CmdInitializer HuC FW output: second level batch buffer
-    MOS_ZeroMemory(
-        &m_cmdInitializerDysScaling2ndLevelBatchBuffer,
-        sizeof(m_cmdInitializerDysScaling2ndLevelBatchBuffer));
-    m_cmdInitializerDysScaling2ndLevelBatchBuffer.bSecondLevel = true;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(Mhw_AllocateBb(
-        m_osInterface,
-        &m_cmdInitializerDysScaling2ndLevelBatchBuffer,
-        nullptr,
-        CODECHAL_PAGE_SIZE));
-
-    return eStatus;
-}
-
 MOS_STATUS CodechalCmdInitializer::CommandInitializerSetVp9Params(CodechalVdencVp9State *state)
 {
-    PHUC_COM_DATA                                   hucConstData;
+    HucComData*                                     hucConstData;
     MOS_LOCK_PARAMS                                 lockFlagsWriteOnly;
     MOS_STATUS                                      eStatus = MOS_STATUS_SUCCESS;
 
@@ -557,7 +540,7 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerVp9Execute(PMOS_COMMAND_BUFFER 
     {
         dmemParams.presHucDataSource = &m_cmdInitializerDmemBuffer[m_vp9Params.currentPass];
     }
-    dmemParams.dwDataLength = MOS_ALIGN_CEIL(sizeof(HUC_COM_DMEM), CODECHAL_CACHELINE_SIZE);
+    dmemParams.dwDataLength = MOS_ALIGN_CEIL(sizeof(HucComDmem), CODECHAL_CACHELINE_SIZE);
     dmemParams.dwDmemOffset = HUC_DMEM_OFFSET_RTOS_GEMS;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetHucInterface()->AddHucDmemStateCmd(cmdBuffer, &dmemParams));
 
@@ -609,23 +592,9 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerVp9Execute(PMOS_COMMAND_BUFFER 
     return eStatus;
 }
 
-void CodechalCmdInitializer::CmdInitializerVp9FreeResources()
-{
-    for (int i = 0; i < 3; i++)
-    {
-        Mhw_FreeBb(m_osInterface, &m_cmdInitializer2ndLevelBatchBuffer[i], nullptr);
-        m_osInterface->pfnFreeResource(m_osInterface, &m_cmdInitializerDmemBuffer[i]);
-        m_osInterface->pfnFreeResource(m_osInterface, &m_cmdInitializerDataBuffer[i]);
-    }
-    Mhw_FreeBb(m_osInterface, &m_cmdInitializerDysScaling2ndLevelBatchBuffer, nullptr);
-    m_osInterface->pfnFreeResource(m_osInterface, &m_cmdInitializerDysScalingDmemBuffer);
-    m_osInterface->pfnFreeResource(m_osInterface, &m_cmdInitializerDysScalingDataBuffer);
-
-}
-
 MOS_STATUS CodechalCmdInitializer::CmdInitializerVp9SetDmem()
 {
-    PHUC_COM_DMEM           hucCmdInitializerDmem;
+    HucComDmem*             hucCmdInitializerDmem;
     MOS_LOCK_PARAMS         lockFlagsWriteOnly;
     uint16_t                offset = 0;
     MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
@@ -635,18 +604,18 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerVp9SetDmem()
     MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
     lockFlagsWriteOnly.WriteOnly = 1;
 
-    PHUC_COM_DATA hucConstData;
+    HucComData* hucConstData;
     if (m_vp9Params.dynamicScalingEnabled)
     {
-        hucConstData = (PHUC_COM_DATA)m_osInterface->pfnLockResource(m_osInterface, &m_cmdInitializerDysScalingDataBuffer, &lockFlagsWriteOnly);
+        hucConstData = (HucComData*)m_osInterface->pfnLockResource(m_osInterface, &m_cmdInitializerDysScalingDataBuffer, &lockFlagsWriteOnly);
     }
     else
     {
 
-        hucConstData = (PHUC_COM_DATA)m_osInterface->pfnLockResource(m_osInterface, &m_cmdInitializerDataBuffer[m_vp9Params.currentPass], &lockFlagsWriteOnly);
+        hucConstData = (HucComData*)m_osInterface->pfnLockResource(m_osInterface, &m_cmdInitializerDataBuffer[m_vp9Params.currentPass], &lockFlagsWriteOnly);
     }
 
-    MOS_ZeroMemory(hucConstData, sizeof(HUC_COM_DATA));
+    MOS_ZeroMemory(hucConstData, sizeof(HucComData));
     
     hucConstData->TotalCommands = 2;
 
@@ -666,7 +635,7 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerVp9SetDmem()
     hucConstData->InputCOM[1].ID = 1;
     hucConstData->InputCOM[1].SizeOfData = 0x14;
 
-    HUC_INPUT_CMD1  hucInputCmd1;
+    HucInputCmd1  hucInputCmd1;
     MOS_ZeroMemory(&hucInputCmd1, sizeof(hucInputCmd1));
     hucInputCmd1.VdencStreamInEnabled = m_vp9Params.segmentMapProvided || m_vp9Params.hmeEnabled;
     hucInputCmd1.SegMapStreamInEnabled = m_vp9Params.segmentMapProvided || m_vp9Params.hmeEnabled;
@@ -691,7 +660,7 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerVp9SetDmem()
         }
     }
 
-    MOS_SecureMemcpy(hucConstData->InputCOM[1].data, sizeof(HUC_INPUT_CMD1), &hucInputCmd1, sizeof(HUC_INPUT_CMD1));
+    MOS_SecureMemcpy(hucConstData->InputCOM[1].data, sizeof(HucInputCmd1), &hucInputCmd1, sizeof(HucInputCmd1));
     if (m_vp9Params.dynamicScalingEnabled)
     {
         m_osInterface->pfnUnlockResource(m_osInterface, &m_cmdInitializerDysScalingDataBuffer);
@@ -706,15 +675,15 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerVp9SetDmem()
     // Setup CmdInitializer DMEM
     if (m_vp9Params.dynamicScalingEnabled)
     {
-        hucCmdInitializerDmem = (PHUC_COM_DMEM)m_osInterface->pfnLockResource(
+        hucCmdInitializerDmem = (HucComDmem*)m_osInterface->pfnLockResource(
             m_osInterface, &m_cmdInitializerDysScalingDmemBuffer, &lockFlagsWriteOnly);
     }
     else
     {
-        hucCmdInitializerDmem = (PHUC_COM_DMEM)m_osInterface->pfnLockResource(
+        hucCmdInitializerDmem = (HucComDmem*)m_osInterface->pfnLockResource(
             m_osInterface, &m_cmdInitializerDmemBuffer[m_vp9Params.currentPass], &lockFlagsWriteOnly);
     }
-    MOS_ZeroMemory(hucCmdInitializerDmem, sizeof(HUC_COM_DMEM));
+    MOS_ZeroMemory(hucCmdInitializerDmem, sizeof(HucComDmem));
 
     hucCmdInitializerDmem->TotalOutputCommands = 2;
 
@@ -744,4 +713,40 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerVp9SetDmem()
 
     return eStatus;
 }
+#if USE_CODECHAL_DEBUG_TOOL
+MOS_STATUS CodechalCmdInitializer::DumpHucCmdInit(PMOS_RESOURCE secondlevelBB)
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+    // Dump DMEM
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->GetDebugInterface()->DumpHucDmem(
+        &m_cmdInitializerDmemBuffer[m_currentPass],
+        sizeof(HucComDmem),
+        m_currentPass,
+        hucRegionDumpCmdInitializer));
+ 
+    // Region 0 - input data buffer
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->GetDebugInterface()->DumpHucRegion(
+        &m_cmdInitializerDataBuffer[m_currentPass],
+        0,
+        sizeof(HucComDmem),
+        0,
+        "",
+        true,
+        m_currentPass,
+        hucRegionDumpCmdInitializer));
+ 
+    // Region 1 - output cmd
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->GetDebugInterface()->DumpHucRegion(
+        secondlevelBB,
+        0,
+        sizeof(HucComDmem),
+        1,
+        "",
+        false,
+        m_currentPass,
+        hucRegionDumpCmdInitializer));
+ 
+    return MOS_STATUS_SUCCESS;
+}
+#endif
 #endif

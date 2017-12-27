@@ -584,7 +584,7 @@ MOS_STATUS Mos_InitInterface(
     pOsInterface->pfnWaitOnResource     = Mos_OsWaitOnResource;
     pOsInterface->pfnGetBitsPerPixel    = Mos_OsGetBitsPerPixel;
     pOsInterface->Component             = component;
-    pOsInterface->bModsEnabled          = true;
+    pOsInterface->modulizedMosEnabled   = true;
     pOsInterface->osContextPtr          = nullptr;
 
     eStatus = Mos_Specific_InitInterface(pOsInterface, pOsDriverContext);
@@ -631,7 +631,6 @@ MEMORY_OBJECT_CONTROL_STATE Mos_CachePolicyGetMemoryObject(
         GMM_RESOURCE_USAGE_BSDMPC_ROWSTORE_SCRATCH_BUFFER_CODEC,
         GMM_RESOURCE_USAGE_MPR_ROWSTORE_SCRATCH_BUFFER_CODEC,
         GMM_RESOURCE_USAGE_BITPLANE_READ_CODEC,
-        GMM_RESOURCE_USAGE_AACSBIT_VECTOR_CODEC,
         GMM_RESOURCE_USAGE_DIRECTMV_BUFFER_CODEC,
         GMM_RESOURCE_USAGE_SURFACE_CURR_ENCODE,
         GMM_RESOURCE_USAGE_SURFACE_REF_ENCODE,
@@ -747,7 +746,7 @@ MEMORY_OBJECT_CONTROL_STATE Mos_CachePolicyGetMemoryObject(
 
         // MHW - SFC
         MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface,                                //!< SFC output surface
-        MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface_PartialEncSurface,              //!< SFC output surface for partial encrypted surfaces
+        MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface_PartialEncSurface,              //!< SFC output surface for partial secure surfaces
         MHW_RESOURCE_USAGE_Sfc_AvsLineBufferSurface,                                //!< SFC AVS Line buffer Surface
         MHW_RESOURCE_USAGE_Sfc_IefLineBufferSurface,                                //!< SFC IEF Line buffer Surface
 

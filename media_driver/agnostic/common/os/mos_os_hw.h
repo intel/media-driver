@@ -40,7 +40,7 @@ typedef enum _MOS_HW_RESOURCE_DEF
     // CODEC USAGES
     MOS_CODEC_RESOURCE_USAGE_BEGIN_CODEC,
     MOS_CODEC_RESOURCE_USAGE_PRE_DEBLOCKING_CODEC,
-    MOS_CODEC_RESOURCE_USAGE_PRE_DEBLOCKING_CODEC_PARTIALENCSURFACE,              //!< Pre-Deblocking codec surface for partial encrypted surfaces,
+    MOS_CODEC_RESOURCE_USAGE_PRE_DEBLOCKING_CODEC_PARTIALENCSURFACE,              //!< Pre-Deblocking codec surface for partial secure surfaces,
     MOS_CODEC_RESOURCE_USAGE_POST_DEBLOCKING_CODEC,
     MOS_CODEC_RESOURCE_USAGE_ORIGINAL_UNCOMPRESSED_PICTURE_ENCODE,
     MOS_CODEC_RESOURCE_USAGE_ORIGINAL_UNCOMPRESSED_PICTURE_DECODE,
@@ -56,7 +56,6 @@ typedef enum _MOS_HW_RESOURCE_DEF
     MOS_CODEC_RESOURCE_USAGE_BSDMPC_ROWSTORE_SCRATCH_BUFFER_CODEC,
     MOS_CODEC_RESOURCE_USAGE_MPR_ROWSTORE_SCRATCH_BUFFER_CODEC,
     MOS_CODEC_RESOURCE_USAGE_BITPLANE_READ_CODEC,
-    MOS_CODEC_RESOURCE_USAGE_AACSBIT_VECTOR_CODEC,
     MOS_CODEC_RESOURCE_USAGE_DIRECTMV_BUFFER_CODEC,
     MOS_CODEC_RESOURCE_USAGE_SURFACE_CURR_ENCODE,
     MOS_CODEC_RESOURCE_USAGE_SURFACE_REF_ENCODE,
@@ -168,14 +167,14 @@ typedef enum _MOS_HW_RESOURCE_DEF
 
     // MHW - SFC
     MOS_MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface,                                //!< SFC Output Surface
-    MOS_MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface_PartialEncSurface,              //!< SFC Output Surface for partial encrypted surfaces
+    MOS_MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface_PartialEncSurface,              //!< SFC Output Surface for partial secure surfaces
     MOS_MHW_RESOURCE_USAGE_Sfc_AvsLineBufferSurface,                                //!< SFC AVS Line buffer Surface
     MOS_MHW_RESOURCE_USAGE_Sfc_IefLineBufferSurface,                                //!< SFC IEF Line buffer Surface
 
     // always last one
     MOS_HW_RESOURCE_DEF_MAX
 } MOS_HW_RESOURCE_DEF;
-C_ASSERT(MOS_HW_RESOURCE_DEF_MAX == 127); //!< update this and Mos_CachePolicyGetMemoryObject_XXX()
+C_ASSERT(MOS_HW_RESOURCE_DEF_MAX == 126); //!< update this and Mos_CachePolicyGetMemoryObject_XXX()
 
 //!
 //! \brief Enum allow callers to specify a command streamer.
@@ -237,7 +236,7 @@ typedef enum MOS_HW_COMMAND_ENUM
     MOS_VEBOX_TILING_CONVERT,
     MOS_SFC_STATE,
     MOS_MI_ATOMIC,
-    MOS_MFX_CRYPTO_COPY_BASE_ADDR_STATE // forced encryption
+    MOS_MFX_CC_BASE_ADDR_STATE
 } MOS_HW_COMMAND;
 C_ASSERT(MOS_HW_COMMANDS == 16); //!< update this and Mos_GetUseGlobalGtt_XXX()
 

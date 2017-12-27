@@ -164,7 +164,7 @@ CM_RETURN_CODE CMRTKernelPB8x8MbEnc::CreateAndDispatchKernel(CmEvent *&cmEvent, 
             printf("CM Create ThreadSpace error : %d", result);
             return (CM_RETURN_CODE)result;
         }
-        Setup_MW_Scoreboard_26(mbEncWalkParams.m_walkParams, mbEncWalkParams.m_scoreboardParams, threadSpaceWidth, threadSpaceHeight, splitCount, colorCount);
+        SetupMwScoreboard26(mbEncWalkParams.m_walkParams, mbEncWalkParams.m_scoreboardParams, threadSpaceWidth, threadSpaceHeight, splitCount, colorCount);
     }
     else if ((curbe[189]&0x0F) == 0)
     {
@@ -172,18 +172,8 @@ CM_RETURN_CODE CMRTKernelPB8x8MbEnc::CreateAndDispatchKernel(CmEvent *&cmEvent, 
         CM_CHK_STATUS_RETURN(m_cmKernel->SetThreadCount(((threadSpaceWidth + 3) & 0xFFFC) * 2 * tempHeight * colorCount));
         //create Thread Space
         result = m_cmDev->CreateThreadSpace(((threadSpaceWidth + 3) & 0xFFFC) >> 1, 4 * tempHeight, m_cmThreadSpace);
-        Setup_MW_Scoreboard_26Zig(mbEncWalkParams.m_walkParams, mbEncWalkParams.m_scoreboardParams, threadSpaceWidth, threadSpaceHeight, splitCount, colorCount);
+        SetupMwScoreboard26Zig(mbEncWalkParams.m_walkParams, mbEncWalkParams.m_scoreboardParams, threadSpaceWidth, threadSpaceHeight, splitCount, colorCount);
     }
-
-    mbEncWalkParams.m_totalPhase = 1;
-
-    mbEncWalkParams.m_totalLocalOuterLoopExecCount = (mbEncWalkParams.m_walkParams.Value[2] & 0xFFF) + 1;
-    mbEncWalkParams.m_deltaLocalOuterLoopExecCount = (((mbEncWalkParams.m_totalLocalOuterLoopExecCount +
-                                                       mbEncWalkParams.m_totalPhase - 1) / mbEncWalkParams.m_totalPhase) + 1) & 0xFFFE;
-    mbEncWalkParams.m_currentLocalOuterLoopExecCount = (mbEncWalkParams.m_totalLocalOuterLoopExecCount > mbEncWalkParams.m_deltaLocalOuterLoopExecCount)?
-                                                      (mbEncWalkParams.m_deltaLocalOuterLoopExecCount - 1) : (mbEncWalkParams.m_totalLocalOuterLoopExecCount - 1);
-    mbEncWalkParams.m_walkParams.Value[2] = (mbEncWalkParams.m_walkParams.Value[2] & 0xFFFFF000) +
-                                           (mbEncWalkParams.m_currentLocalOuterLoopExecCount & 0xFFF);
 
     if (m_cmThreadSpace != nullptr)
     {
@@ -196,7 +186,7 @@ CM_RETURN_CODE CMRTKernelPB8x8MbEnc::CreateAndDispatchKernel(CmEvent *&cmEvent, 
     return r;
 }
 
-void CMRTKernelPB8x8MbEnc::Setup_MW_Scoreboard_26(CM_WALKING_PARAMETERS& walkParams, CM_DEPENDENCY& scoreboardParams, uint32_t width, uint32_t height, uint32_t splitCount, uint32_t colorCount)
+void CMRTKernelPB8x8MbEnc::SetupMwScoreboard26(CM_WALKING_PARAMETERS& walkParams, CM_DEPENDENCY& scoreboardParams, uint32_t width, uint32_t height, uint32_t splitCount, uint32_t colorCount)
 {
     uint8_t n = 0;
     uint32_t *pDW5 = &walkParams.Value[n++];
@@ -294,7 +284,7 @@ void CMRTKernelPB8x8MbEnc::Setup_MW_Scoreboard_26(CM_WALKING_PARAMETERS& walkPar
     scoreboardParams.deltaY[3] = -1;
 }
 
-void CMRTKernelPB8x8MbEnc::Setup_MW_Scoreboard_26Zig(CM_WALKING_PARAMETERS& walkParams, CM_DEPENDENCY& scoreboardParams, uint32_t width, uint32_t height, uint32_t splitCount, uint32_t colorCount)
+void CMRTKernelPB8x8MbEnc::SetupMwScoreboard26Zig(CM_WALKING_PARAMETERS& walkParams, CM_DEPENDENCY& scoreboardParams, uint32_t width, uint32_t height, uint32_t splitCount, uint32_t colorCount)
 {
     uint8_t n = 0;
     uint32_t *pDW5 = &walkParams.Value[n++];
@@ -335,7 +325,6 @@ void CMRTKernelPB8x8MbEnc::Setup_MW_Scoreboard_26Zig(CM_WALKING_PARAMETERS& walk
     int32_t globalOuterLoopExecCount;
     int32_t localOuterLoopExecCount;
     int32_t ts_width = ((width + 3) & 0xFFFC) >> 1;
-    int32_t ts_height = ((height + 3) & 0xFFFC) >> 1;
     int32_t LCU_width = (width + 1) >> 1;
     int32_t LCU_height = (height + 1) >> 1;
 
@@ -487,12 +476,9 @@ CM_RETURN_CODE CMRTKernelPB8x8MbEncUMD::AllocateSurfaces(void *params)
     CM_CHK_STATUS_RETURN(m_cmBuffer[5]->GetIndex(m_surfIndex[18]));
     CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfMVPred, m_cmBuffer[6]));
     CM_CHK_STATUS_RETURN(m_cmBuffer[6]->GetIndex(m_surfIndex[19]));
-    CM_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfHaarDist, m_cmSurface2D[9]));
-    CM_CHK_STATUS_RETURN(m_cmSurface2D[9]->GetIndex(m_surfIndex[20]));
-    CM_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfStats, m_cmSurface2D[10]));
-    CM_CHK_STATUS_RETURN(m_cmSurface2D[10]->GetIndex(m_surfIndex[21]));
-    CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfFrameStats, m_cmBuffer[7]));
-    CM_CHK_STATUS_RETURN(m_cmBuffer[7]->GetIndex(m_surfIndex[22]));
+    m_surfIndex[20] = (SurfaceIndex *)CM_NULL_SURFACE;
+    m_surfIndex[21] = (SurfaceIndex *)CM_NULL_SURFACE;
+    m_surfIndex[22] = (SurfaceIndex *)CM_NULL_SURFACE;
     if (PB8x8MbEncParams->m_cmSurfMVPredictor == nullptr)
     {
         m_surfIndex[23] = (SurfaceIndex *)CM_NULL_SURFACE;

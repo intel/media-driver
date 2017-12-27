@@ -1882,8 +1882,8 @@ MOS_STATUS VPHAL_VEBOX_STATE_G9_BASE::SetupSurfaceStatesForDenoise()
     // Treat the 1D buffer as 2D surface
     // VEBox State Surface
     pVeboxState->VeboxHeapResource.Format   = Format_L8;
-    pVeboxState->VeboxHeapResource.dwWidth  = SECURE_BLOCK_COPY_KERNEL_SURF_WIDTH; // Hard code for Crypto Block Copy kernel
-    pVeboxState->VeboxHeapResource.dwPitch  = SECURE_BLOCK_COPY_KERNEL_SURF_WIDTH; // Hard code for Crypto Block Copy kernel
+    pVeboxState->VeboxHeapResource.dwWidth  = SECURE_BLOCK_COPY_KERNEL_SURF_WIDTH; // Hard code for secure Block Copy kernel
+    pVeboxState->VeboxHeapResource.dwPitch  = SECURE_BLOCK_COPY_KERNEL_SURF_WIDTH; // Hard code for secure Block Copy kernel
     pVeboxState->VeboxHeapResource.dwHeight =
         MOS_ROUNDUP_DIVIDE(pVeboxHeap->uiInstanceSize, SECURE_BLOCK_COPY_KERNEL_SURF_WIDTH);
     pVeboxState->VeboxHeapResource.dwOffset =
@@ -1896,8 +1896,8 @@ MOS_STATUS VPHAL_VEBOX_STATE_G9_BASE::SetupSurfaceStatesForDenoise()
 
     // Temp Surface: for Noise Level History
     pVeboxState->tmpResource.Format = Format_L8;
-    pVeboxState->tmpResource.dwWidth = SECURE_BLOCK_COPY_KERNEL_SURF_WIDTH; // Hard code for Crypto Block Copy kernel
-    pVeboxState->tmpResource.dwPitch = SECURE_BLOCK_COPY_KERNEL_SURF_WIDTH; // Hard code for Crypto Block Copy kernel
+    pVeboxState->tmpResource.dwWidth = SECURE_BLOCK_COPY_KERNEL_SURF_WIDTH; // Hard code for secure Block Copy kernel
+    pVeboxState->tmpResource.dwPitch = SECURE_BLOCK_COPY_KERNEL_SURF_WIDTH; // Hard code for secure Block Copy kernel
     pVeboxState->tmpResource.dwHeight =
         MOS_ROUNDUP_DIVIDE(MHW_PAGE_SIZE, SECURE_BLOCK_COPY_KERNEL_SURF_WIDTH);
     pVeboxState->tmpResource.dwOffset = 0;
@@ -1948,8 +1948,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G9_BASE::SetupSurfaceStatesForDenoise()
     SurfaceParams.Boundary          = RENDERHAL_SS_BOUNDARY_ORIGINAL;
     SurfaceParams.bWidth16Align     = false;
 
-    // The first temp frame is clear and all-zero. To avoid GPU decrypts the clear frame on heavy mode.
-    // we set bRenderTarget=false so PermeatePatchForHM() won't patch the decryption bit for the first temp frame.
+    // set bRenderTarget=false to skip first frame for PermeatePatchForHM().
     if (pVeboxState->bFirstFrame && pOsInterface->osCpInterface->IsHMEnabled())
     {
         SurfaceParams.bRenderTarget = false;

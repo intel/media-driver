@@ -608,7 +608,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::GetVp9BufferSize(
 }
 
 MOS_STATUS MhwVdboxHcpInterfaceG10::IsHevcBufferReallocNeeded(
-    MHW_VDBOX_HCP_INTERNAL_BUFFER_TYPE   BufferType,
+    MHW_VDBOX_HCP_INTERNAL_BUFFER_TYPE   bufferType,
     PMHW_VDBOX_HCP_BUFFER_REALLOC_PARAMS reallocParam)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
@@ -623,7 +623,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::IsHevcBufferReallocNeeded(
     uint32_t picWidthAlloced = reallocParam->dwPicWidthAlloced;
     uint32_t picHeightAlloced = reallocParam->dwPicHeightAlloced;
 
-    switch (BufferType)
+    switch (bufferType)
     {
     case MHW_VDBOX_HCP_INTERNAL_BUFFER_DBLK_LINE:
     case MHW_VDBOX_HCP_INTERNAL_BUFFER_DBLK_TILE_LINE:
@@ -651,7 +651,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::IsHevcBufferReallocNeeded(
 }
 
 MOS_STATUS MhwVdboxHcpInterfaceG10::IsVp9BufferReallocNeeded(
-    MHW_VDBOX_HCP_INTERNAL_BUFFER_TYPE   BufferType,
+    MHW_VDBOX_HCP_INTERNAL_BUFFER_TYPE   bufferType,
     PMHW_VDBOX_HCP_BUFFER_REALLOC_PARAMS reallocParam)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
@@ -666,7 +666,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::IsVp9BufferReallocNeeded(
     uint32_t picWidthInSbAlloced = reallocParam->dwPicWidthAlloced;
     uint32_t picHeightInSbAlloced = reallocParam->dwPicHeightAlloced;
 
-    switch (BufferType)
+    switch (bufferType)
     {
     case MHW_VDBOX_HCP_INTERNAL_BUFFER_META_LINE:
     case MHW_VDBOX_HCP_INTERNAL_BUFFER_META_TILE_LINE:
@@ -719,7 +719,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpPipeModeSelectCmd(
     cmd.DW1.AdvancedRateControlEnable    = params->bAdvancedRateControlEnable;
     cmd.DW1.SaoFirstPass                 = params->bSaoFirstPass;
     cmd.DW1.CodecStandardSelect          = CodecHal_GetStandardFromMode(params->Mode) - CODECHAL_HCP_BASE;
-    cmd.DW1.PakPipelineStreamoutEnable   = params->bStreamOutEnabled;
+    cmd.DW1.PakPipelineStreamoutEnable   = params->bVdencEnabled && params->bStreamOutEnabled;
     cmd.DW1.DeblockerStreamoutEnable     = params->bDeblockerStreamOutEnable;
     cmd.DW1.VdencMode                    = params->bVdencEnabled;
     cmd.DW1.RdoqEnabledFlag              = params->bRdoqEnable;
@@ -808,7 +808,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpPipeBufAddrCmd(
     MHW_MI_CHK_NULL(params);
 
     MHW_RESOURCE_PARAMS                              resourceParams;
-    MOS_SURFACE                                      resDetails;
+    MOS_SURFACE                                      details;
     mhw_vdbox_hcp_g10_X::HCP_PIPE_BUF_ADDR_STATE_CMD cmd;
 
     MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
@@ -1059,7 +1059,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpPipeBufAddrCmd(
         m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC].Value;
 
     bool              firstRefPic = true;
-    MOS_MEMCOMP_STATE resMmcMode = MOS_MEMCOMP_DISABLED;
+    MOS_MEMCOMP_STATE mmcMode = MOS_MEMCOMP_DISABLED;
 
     // NOTE: for both HEVC and VP9, set all the 8 ref pic addresses in HCP_PIPE_BUF_ADDR_STATE command to valid addresses for error concealment purpose
     for (uint32_t i = 0; i < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC; i++)
@@ -1067,21 +1067,21 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpPipeBufAddrCmd(
         // Reference Picture Buffer
         if (params->presReferences[i] != nullptr)
         {
-            MOS_ZeroMemory(&resDetails, sizeof(resDetails));
-            resDetails.Format = Format_Invalid;
-            MHW_MI_CHK_STATUS(m_osInterface->pfnGetResourceInfo(m_osInterface, params->presReferences[i], &resDetails));
+            MOS_ZeroMemory(&details, sizeof(details));
+            details.Format = Format_Invalid;
+            MHW_MI_CHK_STATUS(m_osInterface->pfnGetResourceInfo(m_osInterface, params->presReferences[i], &details));
 
             if (firstRefPic)
             {
-                MHW_MI_CHK_STATUS(m_osInterface->pfnGetMemoryCompressionMode(m_osInterface, params->presReferences[i], &resMmcMode));
+                MHW_MI_CHK_STATUS(m_osInterface->pfnGetMemoryCompressionMode(m_osInterface, params->presReferences[i], &mmcMode));
 
-                cmd.DW53.Tiledresourcemode = Mhw_ConvertToTRMode(resDetails.TileType);
+                cmd.DW53.Tiledresourcemode = Mhw_ConvertToTRMode(details.TileType);
                 firstRefPic = false;
             }
 
             resourceParams.presResource = params->presReferences[i];
             resourceParams.pdwCmd = cmd.ReferencePictureBaseAddressRefaddr07[i].DW0_1.Value;
-            resourceParams.dwOffset = resDetails.RenderOffset.YUV.Y.BaseOffset;
+            resourceParams.dwOffset = details.RenderOffset.YUV.Y.BaseOffset;
             resourceParams.dwLocationInCmd = (i * 2) + 37; // * 2 to account for QW rather than DW
             resourceParams.bIsWritable = false;
 
@@ -1095,9 +1095,9 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpPipeBufAddrCmd(
     }
 
     cmd.DW53.Memorycompressionenable =
-        (resMmcMode != MOS_MEMCOMP_DISABLED) ? MHW_MEDIA_MEMCOMP_ENABLED : MHW_MEDIA_MEMCOMP_DISABLED;
+        (mmcMode != MOS_MEMCOMP_DISABLED) ? MHW_MEDIA_MEMCOMP_ENABLED : MHW_MEDIA_MEMCOMP_DISABLED;
     cmd.DW53.Memorycompressionmode =
-        (resMmcMode == MOS_MEMCOMP_HORIZONTAL) ? MHW_MEDIA_MEMCOMP_MODE_HORIZONTAL : MHW_MEDIA_MEMCOMP_MODE_VERTICAL;
+        (mmcMode == MOS_MEMCOMP_HORIZONTAL) ? MHW_MEDIA_MEMCOMP_MODE_HORIZONTAL : MHW_MEDIA_MEMCOMP_MODE_VERTICAL;
 
     // Reset dwSharedMocsOffset
     resourceParams.dwSharedMocsOffset = 0;
@@ -1116,10 +1116,10 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpPipeBufAddrCmd(
         }
         else
         {
-            MHW_MI_CHK_STATUS(m_osInterface->pfnGetMemoryCompressionMode(m_osInterface, &params->psRawSurface->OsResource, &resMmcMode));
+            MHW_MI_CHK_STATUS(m_osInterface->pfnGetMemoryCompressionMode(m_osInterface, &params->psRawSurface->OsResource, &mmcMode));
 
-            cmd.DW56.Memorycompressionenable = (resMmcMode != MOS_MEMCOMP_DISABLED) ? MHW_MEDIA_MEMCOMP_ENABLED : MHW_MEDIA_MEMCOMP_DISABLED;
-            cmd.DW56.Memorycompressionmode = (resMmcMode == MOS_MEMCOMP_HORIZONTAL) ? MHW_MEDIA_MEMCOMP_MODE_HORIZONTAL : MHW_MEDIA_MEMCOMP_MODE_VERTICAL;
+            cmd.DW56.Memorycompressionenable = (mmcMode != MOS_MEMCOMP_DISABLED) ? MHW_MEDIA_MEMCOMP_ENABLED : MHW_MEDIA_MEMCOMP_DISABLED;
+            cmd.DW56.Memorycompressionmode = (mmcMode == MOS_MEMCOMP_HORIZONTAL) ? MHW_MEDIA_MEMCOMP_MODE_HORIZONTAL : MHW_MEDIA_MEMCOMP_MODE_VERTICAL;
         }
 
         cmd.DW56.Tiledresourcemode = Mhw_ConvertToTRMode(params->psRawSurface->TileType);
@@ -1685,16 +1685,16 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpFqmStateCmd(
         {
             cmd.Quantizermatrix[i] = 0;
         }
-        for (uint8_t ucIntraInter = 0; ucIntraInter <= 1; ucIntraInter++)
+        for (uint8_t intraInter = 0; intraInter <= 1; intraInter++)
         {
-            cmd.DW1.IntraInter = ucIntraInter;
+            cmd.DW1.IntraInter = intraInter;
             cmd.DW1.Sizeid = 0;
             cmd.DW1.ColorComponent = 0;
 
             for (uint8_t i = 0; i < 16; i++)
             {
                 fqMatrix[i] =
-                    GetReciprocalScalingValue(iqMatrix->List4x4[3 * ucIntraInter][i]);
+                    GetReciprocalScalingValue(iqMatrix->List4x4[3 * intraInter][i]);
             }
 
             MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
@@ -1705,16 +1705,16 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpFqmStateCmd(
         {
             cmd.Quantizermatrix[i] = 0;
         }
-        for (uint8_t ucIntraInter = 0; ucIntraInter <= 1; ucIntraInter++)
+        for (uint8_t intraInter = 0; intraInter <= 1; intraInter++)
         {
-            cmd.DW1.IntraInter = ucIntraInter;
+            cmd.DW1.IntraInter = intraInter;
             cmd.DW1.Sizeid = 1;
             cmd.DW1.ColorComponent = 0;
 
             for (uint8_t i = 0; i < 64; i++)
             {
                 fqMatrix[i] =
-                    GetReciprocalScalingValue(iqMatrix->List8x8[3 * ucIntraInter][i]);
+                    GetReciprocalScalingValue(iqMatrix->List8x8[3 * intraInter][i]);
             }
 
             MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
@@ -1725,17 +1725,17 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpFqmStateCmd(
         {
             cmd.Quantizermatrix[i] = 0;
         }
-        for (uint8_t ucIntraInter = 0; ucIntraInter <= 1; ucIntraInter++)
+        for (uint8_t intraInter = 0; intraInter <= 1; intraInter++)
         {
-            cmd.DW1.IntraInter = ucIntraInter;
+            cmd.DW1.IntraInter = intraInter;
             cmd.DW1.Sizeid = 2;
             cmd.DW1.ColorComponent = 0;
-            cmd.DW1.FqmDcValue1Dc = GetReciprocalScalingValue(iqMatrix->ListDC16x16[3 * ucIntraInter]);
+            cmd.DW1.FqmDcValue1Dc = GetReciprocalScalingValue(iqMatrix->ListDC16x16[3 * intraInter]);
 
             for (uint8_t i = 0; i < 64; i++)
             {
                 fqMatrix[i] =
-                    GetReciprocalScalingValue(iqMatrix->List16x16[3 * ucIntraInter][i]);
+                    GetReciprocalScalingValue(iqMatrix->List16x16[3 * intraInter][i]);
             }
 
             MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
@@ -1746,17 +1746,17 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpFqmStateCmd(
         {
             cmd.Quantizermatrix[i] = 0;
         }
-        for (uint8_t ucIntraInter = 0; ucIntraInter <= 1; ucIntraInter++)
+        for (uint8_t intraInter = 0; intraInter <= 1; intraInter++)
         {
-            cmd.DW1.IntraInter = ucIntraInter;
+            cmd.DW1.IntraInter = intraInter;
             cmd.DW1.Sizeid = 3;
             cmd.DW1.ColorComponent = 0;
-            cmd.DW1.FqmDcValue1Dc = GetReciprocalScalingValue(iqMatrix->ListDC32x32[ucIntraInter]);
+            cmd.DW1.FqmDcValue1Dc = GetReciprocalScalingValue(iqMatrix->ListDC32x32[intraInter]);
 
             for (uint8_t i = 0; i < 64; i++)
             {
                 fqMatrix[i] =
-                    GetReciprocalScalingValue(iqMatrix->List32x32[ucIntraInter][i]);
+                    GetReciprocalScalingValue(iqMatrix->List32x32[intraInter][i]);
             }
 
             MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
@@ -1790,9 +1790,9 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpDecodeSliceStateCmd(
 
     MHW_MI_CHK_STATUS(MhwVdboxHcpInterfaceGeneric<mhw_vdbox_hcp_g10_X>::AddHcpDecodeSliceStateCmd(cmdBuffer, hevcSliceState));
 
-    int32_t iSliceQP = hevcSliceParams->slice_qp_delta + hevcPicParams->init_qp_minus26 + 26;
-    cmd->DW3.SliceqpSignFlag = (iSliceQP >= 0) ? 0 : 1;
-    cmd->DW3.Sliceqp = ABS(iSliceQP);
+    int32_t sliceQP = hevcSliceParams->slice_qp_delta + hevcPicParams->init_qp_minus26 + 26;
+    cmd->DW3.SliceqpSignFlag = (sliceQP >= 0) ? 0 : 1;
+    cmd->DW3.Sliceqp = ABS(sliceQP);
 
     return eStatus;
 }
@@ -2045,8 +2045,8 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpVp9PicStateCmd(
     uint32_t curFrameWidth               = vp9PicParams->FrameWidthMinus1 + 1;
     uint32_t curFrameHeight              = vp9PicParams->FrameHeightMinus1 + 1;
 
-    cmd.DW1.FrameWidthInPixelsMinus1     = MOS_ALIGN_CEIL(curFrameWidth, CODECHAL_VP9_MIN_BLOCK_WIDTH) - 1;
-    cmd.DW1.FrameHeightInPixelsMinus1    = MOS_ALIGN_CEIL(curFrameHeight, CODECHAL_VP9_MIN_BLOCK_WIDTH) - 1;
+    cmd.DW1.FrameWidthInPixelsMinus1     = MOS_ALIGN_CEIL(curFrameWidth, CODEC_VP9_MIN_BLOCK_WIDTH) - 1;
+    cmd.DW1.FrameHeightInPixelsMinus1    = MOS_ALIGN_CEIL(curFrameHeight, CODEC_VP9_MIN_BLOCK_WIDTH) - 1;
 
     cmd.DW2.FrameType                    = vp9PicParams->PicFlags.fields.frame_type;
     cmd.DW2.AdaptProbabilitiesFlag       = !vp9PicParams->PicFlags.fields.error_resilient_mode && !vp9PicParams->PicFlags.fields.frame_parallel_decoding_mode;
@@ -2083,9 +2083,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpVp9PicStateCmd(
     
     cmd.DW10.UncompressedHeaderLengthInBytes70  = vp9PicParams->UncompressedHeaderLengthInBytes;
     cmd.DW10.FirstPartitionSizeInBytes150       = vp9PicParams->FirstPartitionSize;
-
-    cmd.DW11.MotionCompScalingChickenBit        = 1;    // Must be 1 for Google Ref Decoder Dec 13 2013 version onwards.
-
+    
     if (vp9PicParams->PicFlags.fields.frame_type && !vp9PicParams->PicFlags.fields.intra_only)
     {
         PCODEC_PICTURE refFrameList     = &(vp9PicParams->RefFrameList[0]);
@@ -2166,8 +2164,8 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpVp9PicStateEncCmd(
     auto vp9PicParams = params->pVp9PicParams;
     auto vp9RefList  = params->ppVp9RefList;
 
-    cmd.DW1.FrameWidthInPixelsMinus1        = MOS_ALIGN_CEIL(vp9PicParams->DstFrameWidthMinus1 , CODECHAL_VP9_MIN_BLOCK_WIDTH) - 1;
-    cmd.DW1.FrameHeightInPixelsMinus1       = MOS_ALIGN_CEIL(vp9PicParams->DstFrameHeightMinus1, CODECHAL_VP9_MIN_BLOCK_WIDTH) - 1;
+    cmd.DW1.FrameWidthInPixelsMinus1        = MOS_ALIGN_CEIL(vp9PicParams->DstFrameWidthMinus1 , CODEC_VP9_MIN_BLOCK_WIDTH) - 1;
+    cmd.DW1.FrameHeightInPixelsMinus1       = MOS_ALIGN_CEIL(vp9PicParams->DstFrameHeightMinus1, CODEC_VP9_MIN_BLOCK_WIDTH) - 1;
 
     cmd.DW2.FrameType                       = vp9PicParams->PicFlags.fields.frame_type;
     cmd.DW2.AdaptProbabilitiesFlag          = !vp9PicParams->PicFlags.fields.error_resilient_mode && !vp9PicParams->PicFlags.fields.frame_parallel_decoding_mode;
@@ -2404,48 +2402,48 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpHevcVp9RdoqStateCmd(
 
     //Intra lambda
     qpFactor = 0.25*lambdaScale;
-    for (uint8_t iQp = 0; iQp < 52 + bitdepthLumaQpScaleLuma; iQp++)
+    for (uint8_t qp = 0; qp < 52 + bitdepthLumaQpScaleLuma; qp++)
     {
-        qpTemp = (double)iQp - bitdepthLumaQpScaleLuma - shiftQP;
+        qpTemp = (double)qp - bitdepthLumaQpScaleLuma - shiftQP;
         lambdaDouble = qpFactor*pow(2.0, qpTemp / 3.0);
         lambdaDouble = lambdaDouble * 16 + 0.5;
         lambdaDouble = (lambdaDouble > 65535) ? 65535 : lambdaDouble;
         lambda = (uint32_t)floor(lambdaDouble);
-        lambdaTab[0][0][iQp] = (uint16_t)lambda;
+        lambdaTab[0][0][qp] = (uint16_t)lambda;
     }
-    for (uint8_t iQp = 0; iQp < 52 + bitdepthLumaQpScaleChroma; iQp++)
+    for (uint8_t qp = 0; qp < 52 + bitdepthLumaQpScaleChroma; qp++)
     {
-        qpTemp = (double)iQp - bitdepthLumaQpScaleChroma - shiftQP;
+        qpTemp = (double)qp - bitdepthLumaQpScaleChroma - shiftQP;
         lambdaDouble = qpFactor*pow(2.0, qpTemp / 3.0);
         lambdaDouble = lambdaDouble * 16 + 0.5;
         lambdaDouble = (lambdaDouble > 65535) ? 65535 : lambdaDouble;
         lambda = (uint32_t)floor(lambdaDouble);
-        lambdaTab[0][1][iQp] = (uint16_t)lambda;
+        lambdaTab[0][1][qp] = (uint16_t)lambda;
     }
 
     ////Inter lambda
     qpFactor = 0.55;
-    for (uint8_t iQp = 0; iQp < 52 + bitdepthLumaQpScaleLuma; iQp++)
+    for (uint8_t qp = 0; qp < 52 + bitdepthLumaQpScaleLuma; qp++)
     {
-        qpTemp = (double)iQp - bitdepthLumaQpScaleLuma - shiftQP;
+        qpTemp = (double)qp - bitdepthLumaQpScaleLuma - shiftQP;
         lambdaDouble = qpFactor*pow(2.0, qpTemp / 3.0);
         lambdaDouble *= MOS_MAX(1.00, MOS_MIN(1.6, 1.0 + 0.6 / 12.0*(qpTemp - 10.0)));
         lambdaDouble = lambdaDouble * 16 + 0.5;
         lambda        = (uint32_t)floor(lambdaDouble);
         lambdaDouble = (lambdaDouble > 65535) ? 65535 : lambdaDouble;
         lambda        = CodecHal_Clip3(0, 0xffff, lambda);
-        lambdaTab[1][0][iQp] = (uint16_t)lambda;
+        lambdaTab[1][0][qp] = (uint16_t)lambda;
     }
-    for (uint8_t iQp = 0; iQp < 52 + bitdepthLumaQpScaleChroma; iQp++)
+    for (uint8_t qp = 0; qp < 52 + bitdepthLumaQpScaleChroma; qp++)
     {
-        qpTemp = (double)iQp - bitdepthLumaQpScaleChroma - shiftQP;
+        qpTemp = (double)qp - bitdepthLumaQpScaleChroma - shiftQP;
         lambdaDouble = qpFactor*pow(2.0, qpTemp / 3.0);
         lambdaDouble *= MOS_MAX(0.95, MOS_MIN(1.20, 0.25 / 12.0*(qpTemp - 10.0) + 0.95));
         lambdaDouble  = lambdaDouble * 16 + 0.5;
         lambda         = (uint32_t)floor(lambdaDouble);
         lambdaDouble  = (lambdaDouble > 65535) ? 65535 : lambdaDouble;
         lambda         = CodecHal_Clip3(0, 0xffff, lambda);
-        lambdaTab[1][1][iQp] = (uint16_t)lambda;
+        lambdaTab[1][1][qp] = (uint16_t)lambda;
     }
 
     for (uint8_t i = 0; i < 32; i++)
@@ -2469,14 +2467,14 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpHevcVp9RdoqStateCmd(
 }
 
 MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpHevcPicBrcBuffer(
-    PMOS_RESOURCE                   presHcpImgStates,
+    PMOS_RESOURCE                   hcpImgStates,
     MHW_VDBOX_HEVC_PIC_STATE        hevcPicState)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     MHW_FUNCTION_ENTER;
 
-    MHW_MI_CHK_NULL(presHcpImgStates);
+    MHW_MI_CHK_NULL(hcpImgStates);
 
     MOS_COMMAND_BUFFER                     constructedCmdBuf;
     mhw_vdbox_hcp_g10_X::HCP_PIC_STATE_CMD cmd;
@@ -2486,7 +2484,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpHevcPicBrcBuffer(
 
     MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
     lockFlags.WriteOnly = 1;
-    uint8_t *data = (uint8_t*)m_osInterface->pfnLockResource(m_osInterface, presHcpImgStates, &lockFlags);
+    uint8_t *data = (uint8_t*)m_osInterface->pfnLockResource(m_osInterface, hcpImgStates, &lockFlags);
     MHW_MI_CHK_NULL(data);
 
     constructedCmdBuf.pCmdBase      = (uint32_t *)data;
@@ -2522,43 +2520,43 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpHevcPicBrcBuffer(
         data += BRC_IMG_STATE_SIZE_PER_PASS_G10;
     }
 
-    m_osInterface->pfnUnlockResource(m_osInterface, presHcpImgStates);
+    m_osInterface->pfnUnlockResource(m_osInterface, hcpImgStates);
 
     return eStatus;
 }
 
 MOS_STATUS MhwVdboxHcpInterfaceG10::GetOsResLaceOrAceOrRgbHistogramBufferSize(
-    uint32_t                        dwWidth,
-    uint32_t                        dwHeight,
-    uint32_t                       *pSize)
+    uint32_t                        width,
+    uint32_t                        height,
+    uint32_t                       *size)
 {
     MOS_STATUS                      eStatus = MOS_STATUS_SUCCESS;
 
-    *pSize = m_veboxRgbHistogramSize;
+    *size = m_veboxRgbHistogramSize;
 
-    uint32_t dwSizeLace = MOS_ROUNDUP_DIVIDE(dwHeight, 64) *
-        MOS_ROUNDUP_DIVIDE(dwWidth, 64)  *
+    uint32_t dwSizeLace = MOS_ROUNDUP_DIVIDE(height, 64) *
+        MOS_ROUNDUP_DIVIDE(width, 64)  *
         m_veboxLaceHistogram256BinPerBlock;
 
     uint32_t dwSizeNoLace = m_veboxAceHistogramSizePerFramePerSlice *
         m_veboxNumFramePreviousCurrent                   *
         m_veboxMaxSlices;
 
-    *pSize += MOS_MAX(dwSizeLace, dwSizeNoLace);
+    *size += MOS_MAX(dwSizeLace, dwSizeNoLace);
 
     return eStatus;
 }
 
 MOS_STATUS MhwVdboxHcpInterfaceG10::GetOsResStatisticsOutputBufferSize(
-    uint32_t                        dwWidth,
-    uint32_t                        dwHeight,
-    uint32_t                       *pSize)
+    uint32_t                        width,
+    uint32_t                        height,
+    uint32_t                       *size)
 {
     MOS_STATUS                      eStatus = MOS_STATUS_SUCCESS;
 
-    dwWidth  = MOS_ALIGN_CEIL(dwWidth, 64);
-    dwHeight = MOS_ROUNDUP_DIVIDE(dwHeight, 4) + MOS_ROUNDUP_DIVIDE(m_veboxStatisticsSize * sizeof(uint32_t), dwWidth);
-    *pSize   = dwWidth * dwHeight;
+    width  = MOS_ALIGN_CEIL(width, 64);
+    height = MOS_ROUNDUP_DIVIDE(height, 4) + MOS_ROUNDUP_DIVIDE(m_veboxStatisticsSize * sizeof(uint32_t), width);
+    *size   = width * height;
 
     return eStatus;
 }

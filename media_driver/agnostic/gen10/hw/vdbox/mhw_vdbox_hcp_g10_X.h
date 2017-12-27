@@ -223,29 +223,29 @@ public:
         PMHW_VDBOX_HCP_BUFFER_SIZE_PARAMS   hcpBufSizeParam);
 
     MOS_STATUS IsHevcBufferReallocNeeded(
-        MHW_VDBOX_HCP_INTERNAL_BUFFER_TYPE   BufferType,
+        MHW_VDBOX_HCP_INTERNAL_BUFFER_TYPE   bufferType,
         PMHW_VDBOX_HCP_BUFFER_REALLOC_PARAMS reallocParam);
 
     MOS_STATUS IsVp9BufferReallocNeeded(
-        MHW_VDBOX_HCP_INTERNAL_BUFFER_TYPE   BufferType,
+        MHW_VDBOX_HCP_INTERNAL_BUFFER_TYPE   bufferType,
         PMHW_VDBOX_HCP_BUFFER_REALLOC_PARAMS reallocParam);
 
     MOS_STATUS AddHcpPipeModeSelectCmd(
         PMOS_COMMAND_BUFFER                  cmdBuffer,
         PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS   params);
-    
+
     MOS_STATUS AddHcpDecodeSurfaceStateCmd(
         PMOS_COMMAND_BUFFER              cmdBuffer,
         PMHW_VDBOX_SURFACE_PARAMS        params);
-    
+
     MOS_STATUS AddHcpEncodeSurfaceStateCmd(
         PMOS_COMMAND_BUFFER              cmdBuffer,
         PMHW_VDBOX_SURFACE_PARAMS        params);
-    
+
     MOS_STATUS AddHcpPipeBufAddrCmd(
         PMOS_COMMAND_BUFFER              cmdBuffer,
         PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS  params);
-    
+
     MOS_STATUS AddHcpIndObjBaseAddrCmd(
         PMOS_COMMAND_BUFFER                  cmdBuffer,
         PMHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS  params);
@@ -253,27 +253,27 @@ public:
     MOS_STATUS AddHcpDecodePicStateCmd(
         PMOS_COMMAND_BUFFER              cmdBuffer,
         PMHW_VDBOX_HEVC_PIC_STATE        params);
-    
+
     MOS_STATUS AddHcpEncodePicStateCmd(
         PMOS_COMMAND_BUFFER             cmdBuffer,
         PMHW_VDBOX_HEVC_PIC_STATE       params);
-    
+
     MOS_STATUS AddHcpFqmStateCmd(
         PMOS_COMMAND_BUFFER              cmdBuffer,
         PMHW_VDBOX_QM_PARAMS             params);
-    
+
     MOS_STATUS AddHcpDecodeSliceStateCmd(
         PMOS_COMMAND_BUFFER             cmdBuffer,
         PMHW_VDBOX_HEVC_SLICE_STATE     hevcSliceState);
-    
+
     MOS_STATUS AddHcpEncodeSliceStateCmd(
         PMOS_COMMAND_BUFFER             cmdBuffer,
         PMHW_VDBOX_HEVC_SLICE_STATE     hevcSliceState);
-    
+
     MOS_STATUS AddHcpPakInsertObject(
         PMOS_COMMAND_BUFFER              cmdBuffer,
         PMHW_VDBOX_PAK_INSERT_PARAMS     params);
-    
+
     MOS_STATUS AddHcpVp9PicStateCmd(
         PMOS_COMMAND_BUFFER              cmdBuffer,
         PMHW_BATCH_BUFFER                batchBuffer,
@@ -283,29 +283,29 @@ public:
         PMOS_COMMAND_BUFFER             cmdBuffer,
         PMHW_BATCH_BUFFER               batchBuffer,
         PMHW_VDBOX_VP9_ENCODE_PIC_STATE params);
-    
+
     MOS_STATUS AddHcpVp9SegmentStateCmd(
         PMOS_COMMAND_BUFFER              cmdBuffer,
         PMHW_BATCH_BUFFER                batchBuffer,
         PMHW_VDBOX_VP9_SEGMENT_STATE     params);
-    
+
     MOS_STATUS AddHcpHevcVp9RdoqStateCmd(
         PMOS_COMMAND_BUFFER              cmdBuffer,
         PMHW_VDBOX_HEVC_PIC_STATE        params);
-    
+
     MOS_STATUS AddHcpHevcPicBrcBuffer(
-        PMOS_RESOURCE                   presHcpImgStates,
+        PMOS_RESOURCE                   hcpImgStates,
         MHW_VDBOX_HEVC_PIC_STATE        hevcPicState);
 
     MOS_STATUS GetOsResLaceOrAceOrRgbHistogramBufferSize(
-        uint32_t                        dwWidth,
-        uint32_t                        dwHeight,
-        uint32_t                       *pSize);
+        uint32_t                        width,
+        uint32_t                        height,
+        uint32_t                       *size);
 
     MOS_STATUS GetOsResStatisticsOutputBufferSize(
-        uint32_t                        dwWidth,
-        uint32_t                        dwHeight,
-        uint32_t                       *pSize);
+        uint32_t                        width,
+        uint32_t                        height,
+        uint32_t                       *size);
 };
 
 #endif

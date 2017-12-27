@@ -26,7 +26,8 @@
 
 #include "cm_array.h"
 #include "cm_mem.h"
-using namespace CMRT_UMD;
+namespace CMRT_UMD
+{
 /*****************************************************************************\
 
 Function:
@@ -120,7 +121,7 @@ void* CmDynamicArray::GetElement( const uint32_t index )
     }
     else
     {
-        CM_ASSERTMESSAGE("Error: Failed to get the element at the index in the array.");
+        CM_NORMALMESSAGE("Warning: Failed to get the element at the index in the array.");
         CmSafeMemSet( &element, 0, sizeof(void*) );
     }
     return element;
@@ -437,4 +438,5 @@ bool  CmDynamicArray::SetElementIntoFreeSlot(const void* element)
     uint32_t index = GetFirstFreeIndex();
 
     return SetElement(index, element);
+}
 }

@@ -31,6 +31,10 @@
 #include <va/va.h>
 #include "media_ddi_decode_base.h"
 
+//!
+//! \class  DdiDecodeMPEG2
+//! \brief  Ddi decode MPEG2
+//!
 class DdiDecodeMPEG2 : public DdiMediaDecode
 {
 public:
@@ -54,9 +58,7 @@ public:
         VABufferID       *buffers,
         int32_t          num_buffers) override;
 
-    virtual VAStatus EndPicture(
-        VADriverContextP ctx,
-        VAContextID      context) override;
+    virtual VAStatus SetDecodeParams() override;
 
     virtual void ContextInit(
         int32_t picWidth,
@@ -65,6 +67,12 @@ public:
     virtual VAStatus CodecHalInit(
         DDI_MEDIA_CONTEXT *mediaCtx,
         void              *ptr) override;
+
+    virtual VAStatus AllocSliceControlBuffer(
+        DDI_MEDIA_BUFFER       *buf) override;
+
+    virtual uint8_t* GetPicParamBuf( 
+        DDI_CODEC_COM_BUFFER_MGR     *bufMgr) override;
 
 private:
     //!

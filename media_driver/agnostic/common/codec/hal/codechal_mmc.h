@@ -26,15 +26,15 @@
 #ifndef __CODECHAL_MMC_H__
 #define __CODECHAL_MMC_H__
 
-#include "codechal_common.h"
 #include "codechal.h"
+#include "codechal_utilities.h"
 
 //!
 //! \brief Forward declarations
 //!
 typedef struct _MHW_PIPE_CONTROL_PARAMS        *PMHW_PIPE_CONTROL_PARAMS;
 typedef struct _MHW_VDBOX_PIPE_BUF_ADDR_PARAMS *PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS;
-
+typedef struct _MHW_VDBOX_SURFACE_PARAMS       *PMHW_VDBOX_SURFACE_PARAMS;
 
 
 //! \class CodecHalMmcState
@@ -112,7 +112,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS SetSurfaceParams(
+    virtual MOS_STATUS SetSurfaceParams(
         PCODECHAL_SURFACE_CODEC_PARAMS surfaceParams);
       
     //!
@@ -121,6 +121,8 @@ public:
     //!          
     //! \param    [in,out] pipeBufAddrParams
     //!           Pointer to PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS
+    //! \param    [in] cmdBuffer
+    //!           Pointer to MOS command buffer
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
@@ -131,6 +133,46 @@ public:
     {
         return MOS_STATUS_SUCCESS;
     };
+
+    //!
+    //! \brief    Set Surface State MMC state parameter
+    //! \details  Set MMC state for speficied SurfaceState cmd parameters
+    //!          
+    //! \param    [in,out] surfaceStateParams
+    //!           Pointer to PMHW_VDBOX_SURFACE_PARAMS
+    //! \param    [in] cmdBuffer
+    //!           Pointer to MOS command buffer
+    //!          
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SetSurfaceState(
+        PMHW_VDBOX_SURFACE_PARAMS surfaceStateParams,
+        PMOS_COMMAND_BUFFER cmdBuffer = nullptr)
+    {
+        return MOS_STATUS_SUCCESS;
+    };
+
+    //!
+    //! \brief    Send prolog MI cmds used to control MMC state
+    //! \details  Send H/W MMIO cmds used to initialze MMC related states
+    //!
+    //! \param    [in] miInterface
+    //!           Pointer to MhwMiInterface
+    //! \param    [in] cmdBuffer
+    //!           Command buffer pointer
+    //! \param    [in] isRcs
+    //!           if the cmd buffer is for render pipe
+    //!
+    //! \return   MOS_STATUS
+    //!           Return status of sending register MMIOs
+    virtual MOS_STATUS SendPrologCmd(
+        MhwMiInterface      *miInterface,
+        MOS_COMMAND_BUFFER  *cmdBuffer,
+        bool                isRcs = false)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
 
     //!
     //! \brief    Set reference sync
@@ -168,6 +210,24 @@ public:
     {
         return MOS_STATUS_SUCCESS;
     };
+
+    //!
+    //! \brief  Check MMC Status for raw surface
+    //! \param  [in] cmdBuffer
+    //!         Pointer to current command buffer
+    //! \param  [in] pipeBufAddrParams
+    //!         Pointer to PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS CheckMmcStatusForRaw(
+        PMOS_COMMAND_BUFFER cmdBuffer,
+        PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams)
+    {
+        MHW_FUNCTION_ENTER;
+
+        return MOS_STATUS_SUCCESS;
+    }
     
 #if (_DEBUG || _RELEASE_INTERNAL)
     //!

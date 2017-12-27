@@ -26,6 +26,8 @@
 
 #include "cm_task_rt.h"
 
+namespace CMRT_UMD
+{
 //*-----------------------------------------------------------------------------
 //| Purpose:    Insert batch buffer conditional end before next kernel
 //| Returns:    Result of the operation.
@@ -33,5 +35,6 @@
 CM_RT_API int32_t CmTaskRT::SetPowerOption(PCM_POWER_OPTION pPowerOption)
 {
     UNUSED(pPowerOption);
-    return CM_NOT_IMPLEMENTED;   
+    return CM_NOT_IMPLEMENTED;
 }
+}  // namespace

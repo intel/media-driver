@@ -20,8 +20,9 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_wrapper_os.cpp  
-//! \brief     Contains CM Device creation/destroy definitions and function tables for CM Ults  
+//! \file      cm_wrapper_os.cpp
+//! \brief     Contains implementations of Linux-dependent functions for executing
+//!            commands from cmrtlib.
 //!
 
 #include "cm_wrapper.h"
@@ -42,111 +43,23 @@ extern MOS_FORMAT Mos_Specific_FmtOsToMos(
 extern MOS_OS_FORMAT Mos_Specific_FmtMosToOs(
     MOS_FORMAT     format);
 
-//!
-//! \brief    Creates a CmDevice from a MOS context.
-//! \details  If an existing CmDevice has already associated to the MOS context,
-//!           the existing CmDevice will be returned. Otherwise, a new CmDevice
-//!           instance will be created and associatied with that MOS context.
-//! \param    pMosContext
-//!           [in] pointer to MOS conetext.
-//! \param    pDevice
-//!           [in/out] reference to the pointer to the CmDevice.
-//! \param    devCreateOption
-//!           [in] option to customize CmDevice.
-//! \retval   CM_SUCCESS if the CmDevice is successfully created.
-//! \retval   CM_NULL_POINTER if pMosContext is null.
-//! \retval   CM_FAILURE otherwise.
-//!
-CM_RT_API int32_t CreateCmDevice(MOS_CONTEXT *pMosContext, CmDevice* &pDevice, uint32_t devCreateOption)
-{
-    if (pMosContext == nullptr)
-    {
-        return CM_NULL_POINTER;
-    }
-    CmDeviceRT* pDeviceRT = nullptr;
-    //Check reference count
-    if(pMosContext->cmDevRefCount > 0)
-    {
-        pDevice = (CmDevice *)pMosContext->pCmDev;
-        if (pDevice == nullptr)
-        {
-            return CM_NULL_POINTER;
-        }
-        pMosContext->cmDevRefCount ++;
-        pDeviceRT = static_cast<CmDeviceRT*>(pDevice);
-        return pDeviceRT->RegisterSyncEvent(nullptr);
-    }
-
-    int32_t ret = CmDeviceRT::Create(pMosContext, pDeviceRT, devCreateOption);
-    if(ret == CM_SUCCESS)
-    {
-        pDevice = pDeviceRT;
-        pMosContext->pCmDev = pDeviceRT;
-        pMosContext->cmDevRefCount ++;
-        return pDeviceRT->RegisterSyncEvent(nullptr);
-    }
-
-    return CM_FAILURE;
-}
-
-//!
-//! \brief    Destroys the CmDevice associated with MOS context. 
-//! \details  This function also destroys surfaces, kernels, programs, samplers,
-//!           threadspaces, tasks and the queues that were created using this
-//!           device instance but haven't explicitly been destroyed by calling
-//!           respective destroy functions. 
-//! \param    pMosContext
-//!           [in] pointer to MOS conetext.
-//! \retval   CM_SUCCESS if CmDevice is successfully destroyed.
-//! \retval   CM_NULL_POINTER if MOS context is null.
-//! \retval   CM_FAILURE otherwise.
-//!
-CM_RT_API int32_t DestroyCmDevice(MOS_CONTEXT *pMosContext)
-{
-    if (pMosContext == nullptr)
-    {
-        return CM_NULL_POINTER;
-    }
-
-    if(pMosContext->cmDevRefCount > 1)
-    {
-       pMosContext->cmDevRefCount --;
-       return CM_SUCCESS;
-    }
-    
-    pMosContext->cmDevRefCount -- ;
-   
-    pMosContext->SkuTable.reset();
-    pMosContext->WaTable.reset();
- 
-    CmDevice *pDevice =  (CmDevice *)(pMosContext->pCmDev);
-    CmDeviceRT* pDeviceRT = static_cast<CmDeviceRT*>(pDevice);
-    int32_t ret = CmDeviceRT::Destroy(pDeviceRT);
-    if (ret != CM_SUCCESS)
-    {
-        return ret;
-    }
-
-    pMosContext->pCmDev = nullptr;
-    
-    return CM_SUCCESS;
-}
-
 
 //!
 //! \brief    Create Cm Device from VA Driver Context.
-//! \details  Create a CmCtx and a associated MOS_CONTEXT. Put the CmCtx into 
+//! \details  Create a CmCtx and a associated MOS_CONTEXT. Put the CmCtx into
 //!           the heap of VA Context.
 //! \param    pVaDrvCtx
 //!           [in] pointer to va drv conetext.
 //! \param    pCmDev
-//!           [in/out] reference to cm device pointer.
+//!           [in,out] reference to cm device pointer.
 //! \param    DevOption
 //!           [in] cm device creation option.
 //! \return   int32_t
 //!           CM_SUCCESS if success, else fail reason.
 //!
-int32_t CmCreateDevice(VADriverContextP pVaDrvCtx, CmDevice* &pCmDev, uint32_t DevOption)
+int32_t CreateCmDeviceFromVA(VADriverContextP pVaDrvCtx,
+                             CmDevice* &pCmDev,
+                             uint32_t DevOption)
 {
     int32_t                           hRes = CM_SUCCESS;
     PDDI_MEDIA_CONTEXT                pMediaCtx;
@@ -184,7 +97,7 @@ int32_t CmCreateDevice(VADriverContextP pVaDrvCtx, CmDevice* &pCmDev, uint32_t D
 
     // get Free Cm context index
     pVaCtxHeapElmt = DdiMediaUtil_AllocPVAContextFromHeap(pMediaCtx->pCmCtxHeap);
-    if (nullptr == pVaCtxHeapElmt) 
+    if (nullptr == pVaCtxHeapElmt)
     {
         CmDeviceRT::Destroy(pCmDevRT); // destroy cm device
         pCmDev = nullptr;
@@ -218,7 +131,7 @@ int32_t CmCreateDevice(VADriverContextP pVaDrvCtx, CmDevice* &pCmDev, uint32_t D
 //! \return   int32_t
 //!           CM_SUCCESS if success, else fail reason.
 //!
-int32_t CmDestroyDevice(VADriverContextP pVaDrvCtx, CmDevice *pCmDev)
+int32_t DestroyCmDeviceFromVA(VADriverContextP pVaDrvCtx, CmDevice *pCmDev)
 {
     int32_t               hr          = CM_SUCCESS;
     uint32_t              index;
@@ -239,7 +152,7 @@ int32_t CmDestroyDevice(VADriverContextP pVaDrvCtx, CmDevice *pCmDev)
     CmDeviceRT* pCmDevRT = static_cast<CmDeviceRT*>(pCmDev);
     //Get VaCtx ID in MediaCtx
     pCmDevRT->GetVaCtxID(VaContextID);
-    
+
     // Get Cm context index
     index = VaContextID & DDI_MEDIA_MASK_VACONTEXTID;
 
@@ -251,14 +164,14 @@ int32_t CmDestroyDevice(VADriverContextP pVaDrvCtx, CmDevice *pCmDev)
 
     // remove from context array
     DdiMediaUtil_LockMutex(&pMediaCtx->CmMutex);
-    
+
     // destroy Cm context
     MOS_FreeMemAndSetNull(pCmCtx);
-    
+
     DdiMediaUtil_ReleasePVAContextFromHeap(pMediaCtx->pCmCtxHeap, index);
-        
+
     pMediaCtx->uiNumCMs--;
-    
+
     DdiMediaUtil_UnLockMutex(&pMediaCtx->CmMutex);
 
 finish:
@@ -344,31 +257,20 @@ CM_OSAL_SURFACE_FORMAT  CmMosFmtToOSFmt(MOS_FORMAT format)
     {
         case Format_R8U:   return CM_SURFACE_FORMAT_R8U;
         case Format_R16U:  return CM_SURFACE_FORMAT_R16U;
-        default:           
+        default:
            return Mos_Specific_FmtMosToOs(format);
     }
 }
-
-
-
-extern int32_t CmThinExecuteEx(
-            CmDevice                     *pDevice,
-            CM_FUNCTION_ID               cmFunctionID,
-            void                         *pInputData,
-            uint32_t                     inputDataLen
-);
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    CMRT thin layer library supported function execution
 //| Return:     CM_SUCCESS if successful
 //*-----------------------------------------------------------------------------
-int32_t CmThinExecute(
-    VADriverContextP    pVaDrvCtx,
-    void                *pCmDeviceHandle,
-    uint32_t            inputFunctionId,
-    void                *inputData, 
-    uint32_t            inputDataLen 
-)
+int32_t CmThinExecute(VADriverContextP pVaDrvCtx,
+                      void *pCmDeviceHandle,
+                      uint32_t inputFunctionId,
+                      void *inputData,
+                      uint32_t inputDataLen)
 {
     CmDevice             *pDevice           = nullptr;
     CmDeviceRT           *pDeviceRT         = nullptr;
@@ -380,7 +282,7 @@ int32_t CmThinExecute(
     CM_FUNCTION_ID       CmFunctionID;
     int32_t              hr                  = CM_SUCCESS;
     int32_t              cmRet               = CM_INVALID_PRIVATE_DATA;
-    
+
     hUMDevice               = pVaDrvCtx;
     pCmPrivateInputData     = inputData;
     CmPrivateInputDataSize  = inputDataLen;
@@ -393,7 +295,7 @@ int32_t CmThinExecute(
             PCM_CREATECMDEVICE_PARAM pCmDeviceParam;
             pCmDeviceParam = (PCM_CREATECMDEVICE_PARAM)(pCmPrivateInputData);
             //Create Cm Device
-            cmRet = CmCreateDevice(pVaDrvCtx, pDevice, pCmDeviceParam->DevCreateOption);
+            cmRet = CreateCmDeviceFromVA(pVaDrvCtx, pDevice, pCmDeviceParam->DevCreateOption);
             if ( cmRet == CM_SUCCESS)
             {
                 CM_DDI_CHK_NULL(pDevice, "Null pDevice.", VA_STATUS_ERROR_INVALID_CONTEXT);
@@ -406,48 +308,48 @@ int32_t CmThinExecute(
             pCmDeviceParam->iReturnValue    = cmRet;
             pCmDeviceParam->iVersion        = CM_VERSION;
             break;
-    
+
         case CM_FN_DESTROYCMDEVICE:
             PCM_DESTROYCMDEVICE_PARAM pCmDevDestroyParam;
             pCmDevDestroyParam = (PCM_DESTROYCMDEVICE_PARAM)(pCmPrivateInputData);
             pDevice            = (CmDevice *)(pCmDevDestroyParam->pCmDeviceHandle);
-            cmRet = CmDestroyDevice(pVaDrvCtx,pDevice);
+            cmRet = DestroyCmDeviceFromVA(pVaDrvCtx,pDevice);
             //Fill the output message
             pCmDevDestroyParam->pCmDeviceHandle = nullptr;
             pCmDevDestroyParam->iReturnValue    = cmRet;
             break;
-            
+
         case CM_FN_CMDEVICE_CREATESURFACE2D:
             PCM_CREATESURFACE2D_PARAM   pCmCreate2DParam;
             MOS_RESOURCE                MosResource ;
             MOS_ZeroMemory(&MosResource, sizeof(MOS_RESOURCE));
             pCmCreate2DParam    = (PCM_CREATESURFACE2D_PARAM)(pCmPrivateInputData);
             if ( pCmCreate2DParam->bIsLibvaCreated )
-            { 
+            {
                 //LibVA-created Surface2D
                 cmRet = CmFillMosResource(pCmCreate2DParam->uiVASurfaceID,
                                        pVaDrvCtx,
                                        &MosResource);
-    
+
                 if( cmRet != CM_SUCCESS)
                 {
                     CM_ASSERTMESSAGE("Error: Failed to fill MOS resource.");
                     pCmCreate2DParam->iReturnValue          = cmRet;
                     return cmRet;
                 }
-    
+
                 cmRet = pDeviceRT->CreateSurface2D(&MosResource, pCmCreate2DParam->bIsCmCreated ,pCmSurface2d);
                 if( cmRet != CM_SUCCESS)
                 {
                     CM_ASSERTMESSAGE("Error: Failed to create surface 2D from MOS resource.");
                     pCmCreate2DParam->iReturnValue          = cmRet;
                     return cmRet;
-                }            
+                }
 
                 CmSurface2DRT *pCmSurface2dRT = static_cast<CmSurface2DRT *>(pCmSurface2d);
                 pCmSurface2dRT->SetVaSurfaceID(pCmCreate2DParam->uiVASurfaceID, pCmCreate2DParam->pVaDpy);
-            } 
-            else 
+            }
+            else
             {
                 // CM Created Surface2D
                 cmRet = pDevice->CreateSurface2D(
@@ -461,7 +363,7 @@ int32_t CmThinExecute(
             {
                 pCmCreate2DParam->pCmSurface2DHandle    = pCmSurface2d;
             }
-    
+
             //Fill output message
             pCmCreate2DParam->iReturnValue          = cmRet;
             break;
@@ -474,9 +376,9 @@ int32_t CmThinExecute(
             MOS_CONTEXT                       mosCtx;
 
             pMediaCtx = DdiMedia_GetMediaContext(pVaDrvCtx);
-        
+
             MOS_ZeroMemory(&mosCtx, sizeof(MOS_CONTEXT));
-        
+
             // init pCmCtx
             mosCtx.bufmgr    = pMediaCtx->pDrmBufMgr;
             mosCtx.fd        = pMediaCtx->fd;
@@ -485,18 +387,16 @@ int32_t CmThinExecute(
             mosCtx.SkuTable  = pMediaCtx->SkuTable;
             mosCtx.WaTable   = pMediaCtx->WaTable;
             mosCtx.gtSystemInfo = *(pMediaCtx->pGtSystemInfo);
-            mosCtx.platform   = pMediaCtx->platform; 
+            mosCtx.platform   = pMediaCtx->platform;
             hr = CmThinExecuteUlt(&mosCtx, pCmPrivateInputData);
             break;
         }
 #endif
 #endif
-           
+
         default:
             hr = CmThinExecuteEx(pDevice, CmFunctionID, pCmPrivateInputData, CmPrivateInputDataSize);
     }
 
     return hr;
 }
-
-

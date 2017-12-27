@@ -1407,7 +1407,7 @@ struct MEDIA_OBJECT_KA2_STATIC_DATA
 
         struct
         {
-            float       ChromasitingVOffset;                // Param for 3D Sampler use case
+            float       ChromasitingVOffset;                // Param only for 3D Sampler use case
         };
 
         uint32_t       Value;
@@ -2614,7 +2614,7 @@ MOS_STATUS VpHal_RndrSubmitCommands(
 //! \param      [in] GpuContext
 //!             GpuContext to indicate Render/Vebox
 //! \return     bool
-//!             true - Work around is needed; false - Work around is not needed
+//!             true - Solution is needed; false - Solution is not needed
 //!
 bool VpHal_RndrCommonIsAlignmentWANeeded(
     PVPHAL_SURFACE             pSurface,

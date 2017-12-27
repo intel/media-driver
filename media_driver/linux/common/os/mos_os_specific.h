@@ -493,7 +493,6 @@ struct _MOS_OS_CONTEXT
                                                   //!< 1: Disable kmd watchdog, that is to say, DO NOT pass I915_EXEC_ENABLE_WATCHDOG flag to KMD;
     PERF_DATA           *pPerfData;               //!< Add Perf Data for KMD to capture perf tag
 
-    int32_t             *pbHybridDecMultiThreadEnabled;  //!< Hybrid Decoder Multi-Threading Enable Flag
     int32_t             bHybridDecoderRunningFlag;      //!< Flag to indicate if hybrid decoder is running
 
     int                 iDeviceId;
@@ -754,6 +753,17 @@ MOS_STATUS Mos_Specific_GetResourceInfo(
     PMOS_INTERFACE              pOsInterface,
     PMOS_RESOURCE               pOsResource,
     PMOS_SURFACE                pResDetails);
+
+//!
+//! \brief    Get resource index
+//! \details  Get resource index of MOS_RESOURCE
+//! \param    PMOS_RESOURCE osResource
+//!           [in] Pointer to OS resource
+//! \return   uint32_t
+//!           Resource index
+//!
+uint32_t Mos_Specific_GetResourceIndex(
+    PMOS_RESOURCE               osResource);
 
 uint32_t Mos_Specific_GetResourcePitch(
     PMOS_RESOURCE               pOsResource);

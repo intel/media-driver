@@ -80,6 +80,10 @@ public:
     //!           Pointer to decode processing paramters #CODECHAL_DECODE_PROCESSING_PARAMS
     //! \param    [in] renderContext
     //!           The render context using for decode
+    //! \param    [in] disableDecodeSyncLock
+    //!           Disable decode sync lock
+    //! \param    [in] disableLockForTranscode
+    //!           Disable lock for transcode
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
@@ -95,6 +99,10 @@ protected:
     //!    
     FieldScalingInterface(CodechalHwInterface *hwInterface);
 
+    //!
+    //! \enum     FieldScalingKernelStateIdx
+    //! \brief    Field scaling kernel state index
+    //!
     enum FieldScalingKernelStateIdx
     {
         stateNv12     = 0,                                                                              //!< Field scaling kernel index for NV12
