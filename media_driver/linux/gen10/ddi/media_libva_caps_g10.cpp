@@ -165,13 +165,16 @@ VAStatus MediaLibvaCapsG10::LoadVp9EncProfileEntrypoints()
 
 #ifdef _VP9_ENCODE_SUPPORTED
     AttribMap *attributeList;
-    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeVP9Vdenc))
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeVP9Vdenc) &&
+        MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels))
     {
         status = CreateEncAttributes(VAProfileVP9Profile0, VAEntrypointEncSliceLP, &attributeList);
         DDI_CHK_RET(status, "Failed to initialize Caps!");
 
         uint32_t configStartIdx = m_encConfigs.size();
         AddEncConfig(VA_RC_CQP);
+        AddEncConfig(VA_RC_CBR);
+        AddEncConfig(VA_RC_VBR);
         AddProfileEntry(VAProfileVP9Profile0, VAEntrypointEncSliceLP, attributeList,
                 configStartIdx, m_encConfigs.size() - configStartIdx);
     }
@@ -246,6 +249,17 @@ VAStatus MediaLibvaCapsG10::CheckEncodeResolution(
                 return VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED;
             }
             break;
+        case VAProfileVP9Profile0:
+            if ((width > m_encMax4kWidth) ||
+                (width < m_encMinWidth) ||
+                (height > m_encMax4kHeight) ||
+                (height < m_encMinHeight) ||
+                (width % 8) ||
+                (height % 8))
+            {
+                return VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED;
+            }
+            break;
         default:
             if (width > m_encMax4kWidth 
                     || width < m_encMinWidth
@@ -260,6 +274,7 @@ VAStatus MediaLibvaCapsG10::CheckEncodeResolution(
     }
 	return VA_STATUS_SUCCESS;
 }
+
 VAStatus MediaLibvaCapsG10::CheckDecodeResolution(
         int32_t codecMode,
         VAProfile profile,

@@ -221,9 +221,10 @@ private:
     //! \param    [in] data
     //!           Pointer to Misc Param Buffer Quality Level
     //!
-    //! return    void
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success, else fail reason
     //!
-    void ParseBufferQualityLevel(
+    VAStatus ParseMiscParamQualityLevel(
         void *data);
 
     //!
@@ -232,42 +233,46 @@ private:
     //! \param    [in] data
     //!           Pointer to Misc Param VBV Data buffer
     //!
-    //! return    void
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success, else fail reason
     //!
-    void ParseMiscParamVBV(
+    VAStatus ParseMiscParamVBV(
         void *data);
 
     //!
-    //! \brief    Parse Misc Param FR Data buffer to Encode Context
+    //! \brief    Parse Misc Param FrameRate Data buffer to Encode Context
     //!
     //! \param    [in] data
     //!           Pointer to Misc Param FR Data buffer
     //!
-    //! return    void
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success, else fail reason
     //!
-    void ParseMiscParamFR(
+    VAStatus ParseMiscParamFR(
         void *data);
 
     //!
-    //! \brief    Parse Misc Param RC Data buffer to Encode Context
+    //! \brief    Parse Misc Param RateControl Data buffer to Encode Context
     //!
     //! \param    [in] data
     //!           Pointer to Misc Param RC Data buffer
     //!
-    //! return    void
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success, else fail reason
     //!
-    void ParseMiscParamRC(
+    VAStatus ParseMiscParamRC(
         void *data);
 
     //!
-    //! \brief    Parse Misc Param Private Data buffer to Encode Context
+    //! \brief    Parse Misc Param Enc Quality to Encode Context
     //!
     //! \param    [in] data
     //!           Pointer to Misc Param Private Data buffer
     //!
-    //! return    void
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success, else fail reason
     //!
-    void ParseMiscParamEncQuality(
+    VAStatus ParseMiscParamEncQuality(
         void *data);
 
     //!
@@ -276,22 +281,28 @@ private:
     //! \param    [in] data
     //!           Pointer to Misc Parameter Temporal Layer Params buffer
     //!
-    //! return    void
-    //!
-    void ParseMiscParameterTemporalLayerParams(
-        void *data);
-
-    //!
-    //! \brief    Parse Frame Rate
-    //!
-    //! \param    [in] ptr
-    //!           Pointer to void
-    //!
     //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success, else fail reason
     //!
-    VAStatus ParseFrameRate(
-        void *ptr);
+    VAStatus ParseMiscParameterTemporalLayerParams(
+        void *data);
 
     CODEC_VP9_ENCODE_SEGMENT_PARAMS *m_segParams = nullptr; //!< Segment parameters.
+
+private:
+    uint32_t savedTargetBit = 0;
+
+    uint32_t savedFrameRate = 0;
+
+    uint32_t savedGopSize = 0;
+
+    uint32_t savedHrdSize = 0;
+
+    uint32_t savedHrdBufFullness = 0;
+
+    bool headerInsertFlag = 0;
+
+    uint32_t lastPackedHeaderType = 0;
+
+    uint8_t vp9TargetUsage;
 };

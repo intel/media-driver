@@ -184,10 +184,11 @@ if(${VP9_Encode_Supported} STREQUAL "yes")
     set(TMP_3_SOURCES_
         ${TMP_3_SOURCES_}
         ${CMAKE_CURRENT_LIST_DIR}/media_ddi_encode_vp9.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/media_libvpx_vp9.cpp
     )
     set(TMP_3_HEADERS_
         ${TMP_3_HEADERS_}
-        ${CMAKE_CURRENT_LIST_DIR}/media_ddi_encode_vp9.h
+        ${CMAKE_CURRENT_LIST_DIR}/media_libvpx_vp9.h
     )
 endif()
 

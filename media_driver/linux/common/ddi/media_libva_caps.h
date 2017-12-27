@@ -42,6 +42,8 @@ typedef std::map<VAConfigAttribType, uint32_t> AttribMap;
 //!
 class MediaLibvaCaps
 {
+protected:
+    MediaLibvaCaps(DDI_MEDIA_CONTEXT *mediaCtx);
 public:
     //!
     //! \brief    Constructor
@@ -49,7 +51,6 @@ public:
     //! \param    [in] mediaCtx 
     //!           Pointer to DDI_MEDIA_CONTEXT 
     //! 
-    MediaLibvaCaps(DDI_MEDIA_CONTEXT *mediaCtx);
 
     //!
     //! \brief    Destructor
@@ -672,7 +673,7 @@ protected:
     };
 
     static const uint16_t m_maxProfiles = 17; //!< Maximum number of supported profiles
-    static const uint16_t m_maxProfileEntries = 34; //!< Maximum number of supported profile & entrypoint combinations
+    static const uint16_t m_maxProfileEntries = 64; //!< Maximum number of supported profile & entrypoint combinations
     static const uint32_t m_numVpSurfaceAttr = 10; //!< Number of VP surface attributes
     static const uint32_t m_numJpegSurfaceAttr = 7; //!< Number of JPEG surface attributes
     static const uint16_t m_maxEntrypoints = 7; //!<  Maximum number of supported entrypoints
