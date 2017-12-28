@@ -1434,8 +1434,8 @@ protected:
     
         cmd.DW5.PicCbQpOffset                                           = hevcPicParams->pps_cb_qp_offset & 0x1f;
         cmd.DW5.PicCrQpOffset                                           = hevcPicParams->pps_cr_qp_offset & 0x1f;
-        cmd.DW5.MaxTransformHierarchyDepthIntraOrNamedAsTuMaxDepthIntra = 2;
-        cmd.DW5.MaxTransformHierarchyDepthInterOrNamedAsTuMaxDepthInter = 2;
+        cmd.DW5.MaxTransformHierarchyDepthIntraOrNamedAsTuMaxDepthIntra = hevcSeqParams->max_transform_hierarchy_depth_intra;
+        cmd.DW5.MaxTransformHierarchyDepthInterOrNamedAsTuMaxDepthInter = hevcSeqParams->max_transform_hierarchy_depth_inter;
         cmd.DW5.PcmSampleBitDepthChromaMinus1   = 7;
         cmd.DW5.PcmSampleBitDepthLumaMinus1     = 7;
     
