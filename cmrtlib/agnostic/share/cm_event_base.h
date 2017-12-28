@@ -55,18 +55,18 @@ enum CM_STATUS
 //|GT-PIN
 struct CM_SURFACE_DETAILS
 {
-    uint32_t dwWidth;            //width of surface
-    uint32_t dwHeight;           //height of surface, 0 if surface is CmBuffer
-    uint32_t dwDepth;            //depth of surface, 0 if surface is CmBuffer or CmSurface2D
-    CM_SURFACE_FORMAT dwFormat;  //format of surface, if surface is CmBuffer 
-    uint32_t dwPlaneIndex;       //plane Index for this BTI, 0 if surface is not planar surface
-    uint32_t dwPitch;            //pitch of surface, 0 if surface is CmBuffer
-    uint32_t dwSlicePitch;       // pitch of a slice in CmSurface3D, 0 if surface is CmBuffer or CmSurface2D
-    uint32_t dwSurfaceBaseAddress;
-    uint8_t bTiledSurface;
-    uint8_t bTileWalk;
-    uint32_t dwXOffset;
-    uint32_t dwYOffset;
+    uint32_t width;            //width of surface
+    uint32_t height;           //height of surface, 0 if surface is CmBuffer
+    uint32_t depth;            //depth of surface, 0 if surface is CmBuffer or CmSurface2D
+    CM_SURFACE_FORMAT format;  //format of surface, if surface is CmBuffer 
+    uint32_t planeIndex;       //plane Index for this BTI, 0 if surface is not planar surface
+    uint32_t pitch;            //pitch of surface, 0 if surface is CmBuffer
+    uint32_t slicePitch;       // pitch of a slice in CmSurface3D, 0 if surface is CmBuffer or CmSurface2D
+    uint32_t surfaceBaseAddress;
+    uint8_t tiledSurface;
+    uint8_t tileWalk;
+    uint32_t xOffset;
+    uint32_t yOffset;
 };
 
 //! \brief   A CmEvent object is genereated after a task is enqueued.
@@ -122,7 +122,7 @@ public:
     //!             notification from OS until task finishes. We recommend use 
     //!	            this API followed by CmEvent::GetExecutionTime when you try 
     //!             to get GPU HW execution time.
-    //! \param      [in] dwTimeOutMs
+    //! \param      [in] timeOutMs
     //!             Timeout in milliseconds for the waiting, 2000 milliseconds 
     //!             by-default.
     //! \retval     CM_SUCCESS if successfully wait and get notification from 
@@ -134,7 +134,7 @@ public:
     //!             event-driven synchronization optimization inside 
     //!             ReadSurface if the dependent event is given.
     //!
-    CM_RT_API virtual int32_t WaitForTaskFinished(uint32_t dwTimeOutMs = CM_MAX_TIMEOUT_MS) = 0;
+    CM_RT_API virtual int32_t WaitForTaskFinished(uint32_t timeOutMs = CM_MAX_TIMEOUT_MS) = 0;
 
     //!
     //! \brief      Gets surface details for GT-Pin.
@@ -169,16 +169,16 @@ public:
     //!             information to get.
     //! \param      [in] paramSize
     //!             Size of the parameter.
-    //! \param      [in] pInputValue
+    //! \param      [in] inputValue
     //!             Pointer pointing to memory where to get kernel index or 
     //!             callback function.
-    //! \param      [out] pValue
+    //! \param      [out] value
     //!             Pointer pointing to memory where the cap information should 
     //!             be returned.
     //! \retval     CM_SUCCESS if get information successfully.
     //! \retval     CM_FAILURE otherwise.
     //!
-    CM_RT_API virtual int32_t GetProfilingInfo(CM_EVENT_PROFILING_INFO infoType, size_t paramSize, void  *pInputValue, void  *pValue) = 0;
+    CM_RT_API virtual int32_t GetProfilingInfo(CM_EVENT_PROFILING_INFO infoType, size_t paramSize, void  *inputValue, void  *value) = 0;
     
     //!
     //! \brief      Query the raw tick time of a task(one kernel or multiples 

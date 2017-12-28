@@ -187,13 +187,13 @@ typedef enum _REGISTRATION_OP
 class CSync
 {
 public:
-    CSync() { pthread_mutex_init(&m_CriticalSection, nullptr); }
-    ~CSync() { pthread_mutex_destroy(&m_CriticalSection); }
-    void Acquire() {  pthread_mutex_lock(&m_CriticalSection); }
-    void Release() {pthread_mutex_unlock(&m_CriticalSection); }
+    CSync() { pthread_mutex_init(&m_criticalSection, nullptr); }
+    ~CSync() { pthread_mutex_destroy(&m_criticalSection); }
+    void Acquire() {  pthread_mutex_lock(&m_criticalSection); }
+    void Release() {pthread_mutex_unlock(&m_criticalSection); }
 
 private:
-    pthread_mutex_t m_CriticalSection;
+    pthread_mutex_t m_criticalSection;
 };
 
 //The communication function for CM to call into UMD,  get function pointer by libVA::vaGetLibFunc()
@@ -203,20 +203,20 @@ typedef VAStatus (__cdecl *pvaCmExtSendReqMsg)(VADisplay dpy, void *moduleType,
 
 typedef struct _CM_CREATESURFACE2D_PARAM
 {
-    uint32_t    iWidth;                     // [in] width of 2D texture in pixel
-    uint32_t    iHeight;                    // [in] height of 2D texture in pixel
-    CM_SURFACE_FORMAT   Format;             // [in] DXGI format of 2D texture
+    uint32_t    width;                     // [in] width of 2D texture in pixel
+    uint32_t    height;                    // [in] height of 2D texture in pixel
+    CM_SURFACE_FORMAT   format;             // [in] DXGI format of 2D texture
     union
     {
         uint32_t index2DinLookupTable;       // [in] surface 2d's index in look up table.
-        uint32_t uiVASurfaceID;              // [in] libva-surface 2d's index in media driver 
+        uint32_t vaSurfaceID;              // [in] libva-surface 2d's index in media driver 
     };
     VASurfaceID *vaSurface;                  // [in] Pointer to a Libva Surface.
-    void        *pCmSurface2DHandle;         // [out] pointer of CmSurface2D used in driver
-    bool        bIsCmCreated;
-    int32_t     iReturnValue;               // [out] the return value from driver
-    bool        bIsLibvaCreated;            // [in] if the surface created via libva
-    void        *pVaDpy;                     // [in] VaDisplay used to free va sruface
+    void        *cmSurface2DHandle;         // [out] pointer of CmSurface2D used in driver
+    bool        isCmCreated;
+    int32_t     returnValue;               // [out] the return value from driver
+    bool        isLibvaCreated;            // [in] if the surface created via libva
+    void        *vaDpy;                     // [in] VaDisplay used to free va sruface
 }CM_CREATESURFACE2D_PARAM, *PCM_CREATESURFACE2D_PARAM;
 
 //The communication function for CM to call into UMD,  get function pointer by libVA::vaGetLibFunc()

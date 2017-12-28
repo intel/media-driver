@@ -85,7 +85,7 @@ public:
     CM_RT_API int32_t CreateThreadGroupSpace( uint32_t threadSpaceWidth, uint32_t threadSpaceHeight, uint32_t groupSpaceWidth, uint32_t groupSpaceHeight, CmThreadGroupSpace* &threadGroupSpace);
     CM_RT_API int32_t DestroyThreadGroupSpace(CmThreadGroupSpace* &threadGroupSpace);
 
-    CM_RT_API int32_t SetL3Config(const L3ConfigRegisterValues *register_values);
+    CM_RT_API int32_t SetL3Config(const L3ConfigRegisterValues *registerValues);
     CM_RT_API int32_t SetSuggestedL3Config( L3_SUGGEST_CONFIG configIndex);
 
     CM_RT_API int32_t SetCaps(CM_DEVICE_CAP_NAME capName, size_t capValueSize, void* capValue );  
@@ -116,7 +116,7 @@ public:
 
     CM_RT_API int32_t CreateHevcVmeSurfaceG10(CmSurface2D* currentSurface, CmSurface2D** forwardSurfaceArray, CmSurface2D** backwardSurfaceArray, const uint32_t surfaceCountForward, const uint32_t surfaceCountBackward, SurfaceIndex* & vmeSurfaceIndex);
     CM_RT_API int32_t DestroyHevcVmeSurfaceG10(SurfaceIndex* & vmeSurfaceIndex);
-    CM_RT_API int32_t CreateSamplerEx( const CM_SAMPLER_STATE_EX & samplerState, CmSampler* & pSampler ) ;
+    CM_RT_API int32_t CreateSamplerEx( const CM_SAMPLER_STATE_EX & samplerState, CmSampler* & sampler ) ;
 
     CM_RT_API int32_t FlushPrintBufferIntoFile(const char *filename);
     CM_RT_API int32_t CreateThreadGroupSpaceEx(uint32_t threadSpaceWidth, uint32_t threadSpaceHeight, uint32_t threadSpaceDepth, uint32_t groupSpaceWidth, uint32_t groupSpaceHeight, uint32_t groupSpaceDepth, CmThreadGroupSpace* &threadGroupSpace);
@@ -125,7 +125,7 @@ public:
     CM_RT_API int32_t CreateBufferAlias(CmBuffer *originalBuffer, SurfaceIndex* &aliasIndex);
 
     CM_RT_API int32_t GetVISAVersion(uint32_t& majorVersion, uint32_t& minorVersion);
-    CM_RT_API int32_t CreateQueueEx(CmQueue *&pQueue, CM_QUEUE_CREATE_OPTION QueueCreateOption = CM_DEFAULT_QUEUE_CREATE_OPTION);
+    CM_RT_API int32_t CreateQueueEx(CmQueue *&queue, CM_QUEUE_CREATE_OPTION queueCreateOption = CM_DEFAULT_QUEUE_CREATE_OPTION);
     int32_t Surface2DSanityCheck(uint32_t width, uint32_t height, CM_SURFACE_FORMAT format);
     int32_t GetBytesPerPixel(CM_SURFACE_FORMAT format);
 
@@ -158,8 +158,6 @@ protected:
 
     int32_t FlushPrintBufferInternal(const char *filename);
 
-    //RT DLL version
-    static CM_DLL_FILE_VERSION m_RTDllVersion;
     CmQueue_RT*                m_queue;
     CmSurfaceManager *         m_surfaceManager;
 

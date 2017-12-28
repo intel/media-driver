@@ -47,119 +47,119 @@ typedef enum _CM_FASTCOPY_OPTION
 //CM_ENQUEUE_GPUCOPY_PARAM version 2: two new fields are added
 typedef struct _CM_ENQUEUE_GPUCOPY_PARAM
 {
-    void  *pCmQueueHandle;  // [in] CmQueue pointer in CMRT@UMD
+    void  *cmQueueHandle;  // [in] CmQueue pointer in CMRT@UMD
 
-    void  *pCmSurface2d;    // [in] CmSurface2d pointer in CMRT@UMD
+    void  *cmSurface2d;    // [in] CmSurface2d pointer in CMRT@UMD
 
-    void  *pSysMem;         // [in] pointer of system memory
+    void  *sysMem;         // [in] pointer of system memory
 
-    CM_FASTCOPY_DIRECTION iCopyDir;  // [in] direction for GPUCopy: CM_FASTCOPY_GPU2CPU (0) or CM_FASTCOPY_CPU2GPU(1)
+    CM_FASTCOPY_DIRECTION copyDir;  // [in] direction for GPUCopy: CM_FASTCOPY_GPU2CPU (0) or CM_FASTCOPY_CPU2GPU(1)
 
-    uint32_t iWidthStride;  // [in] width stride in byte for system memory, ZERO means no setting
+    uint32_t widthStride;  // [in] width stride in byte for system memory, ZERO means no setting
 
-    uint32_t iHeightStride;  // [in] height stride in row for system memory, ZERO means no setting
+    uint32_t heightStride;  // [in] height stride in row for system memory, ZERO means no setting
 
-    uint32_t iOption;  // [in] option passed by user, only support CM_FASTCOPY_OPTION_NONBLOCKING(0) and CM_FASTCOPY_OPTION_BLOCKING(1)
+    uint32_t option;  // [in] option passed by user, only support CM_FASTCOPY_OPTION_NONBLOCKING(0) and CM_FASTCOPY_OPTION_BLOCKING(1)
 
-    void  *pCmEventHandle;  // [in/out] return CmDevice pointer in CMRT@UMD, nullptr if the input is CM_NO_EVENT
+    void  *cmEventHandle;  // [in/out] return CmDevice pointer in CMRT@UMD, nullptr if the input is CM_NO_EVENT
 
-    uint32_t iEventIndex;     // [out] index of Event in m_EventArray
+    uint32_t eventIndex;     // [out] index of Event in m_EventArray
 
-    int32_t iReturnValue;    // [out] return value from CMRT@UMD
+    int32_t returnValue;    // [out] return value from CMRT@UMD
 } CM_ENQUEUE_GPUCOPY_PARAM, *PCM_ENQUEUE_GPUCOPY_PARAM;
 
 class CmQueue_RT : public CmQueue
 {
 public:
-    static int32_t Create(CmDevice_RT *pDevice, CmQueue_RT *&pQueue, CM_QUEUE_CREATE_OPTION QueueCreateOption);
-    static int32_t Destroy(CmQueue_RT *&pQueue);
+    static int32_t Create(CmDevice_RT *device, CmQueue_RT *&queue, CM_QUEUE_CREATE_OPTION queueCreateOption);
+    static int32_t Destroy(CmQueue_RT *&queue);
 
-    CM_RT_API int32_t Enqueue(CmTask *pTask,
-                          CmEvent *&pEvent,
-                          const CmThreadSpace *pThreadSpace = nullptr);
+    CM_RT_API int32_t Enqueue(CmTask *task,
+                          CmEvent *&event,
+                          const CmThreadSpace *threadSpace = nullptr);
 
-    CM_RT_API int32_t EnqueueCopyCPUToGPU(CmSurface2D *pSurface,
-                                      const unsigned char *pSysMem,
-                                      CmEvent *&pEvent);
+    CM_RT_API int32_t EnqueueCopyCPUToGPU(CmSurface2D *surface,
+                                      const unsigned char *sysMem,
+                                      CmEvent *&event);
 
-    CM_RT_API int32_t EnqueueCopyGPUToCPU(CmSurface2D *pSurface,
-                                      unsigned char *pSysMem,
-                                      CmEvent *&pEvent);
+    CM_RT_API int32_t EnqueueCopyGPUToCPU(CmSurface2D *surface,
+                                      unsigned char *sysMem,
+                                      CmEvent *&event);
 
-    CM_RT_API int32_t EnqueueInitSurface2D(CmSurface2D *pSurface,
+    CM_RT_API int32_t EnqueueInitSurface2D(CmSurface2D *surface,
                                        const uint32_t initValue,
-                                       CmEvent *&pEvent);
+                                       CmEvent *&event);
 
-    CM_RT_API int32_t EnqueueCopyGPUToGPU(CmSurface2D *pOutputSurface,
-                                      CmSurface2D *pInputSurface,
+    CM_RT_API int32_t EnqueueCopyGPUToGPU(CmSurface2D *outputSurface,
+                                      CmSurface2D *inputSurface,
                                       uint32_t option,
-                                      CmEvent *&pEvent);
+                                      CmEvent *&event);
 
-    CM_RT_API int32_t EnqueueCopyCPUToCPU(unsigned char *pDstSysMem,
-                                      unsigned char *pSrcSysMem,
+    CM_RT_API int32_t EnqueueCopyCPUToCPU(unsigned char *dstSysMem,
+                                      unsigned char *srcSysMem,
                                       uint32_t size,
                                       uint32_t option,
-                                      CmEvent *&pEvent);
+                                      CmEvent *&event);
 
-    CM_RT_API int32_t EnqueueCopyCPUToGPUFullStride(CmSurface2D *pSurface,
-                                                const unsigned char *pSysMem,
+    CM_RT_API int32_t EnqueueCopyCPUToGPUFullStride(CmSurface2D *surface,
+                                                const unsigned char *sysMem,
                                                 const uint32_t widthStride,
                                                 const uint32_t heightStride,
                                                 const uint32_t option,
-                                                CmEvent *&pEvent);
+                                                CmEvent *&event);
 
-    CM_RT_API int32_t EnqueueCopyGPUToCPUFullStride(CmSurface2D *pSurface,
-                                                unsigned char *pSysMem,
+    CM_RT_API int32_t EnqueueCopyGPUToCPUFullStride(CmSurface2D *surface,
+                                                unsigned char *sysMem,
                                                 const uint32_t widthStride,
                                                 const uint32_t heightStride,
                                                 const uint32_t option,
-                                                CmEvent *&pEvent);
+                                                CmEvent *&event);
 
-    CM_RT_API int32_t DestroyEvent(CmEvent *&pEvent);
+    CM_RT_API int32_t DestroyEvent(CmEvent *&event);
 
     CM_RT_API int32_t
-    EnqueueWithGroup(CmTask *pTask,
-                     CmEvent *&pEvent,
-                     const CmThreadGroupSpace *pThreadGroupSpace = nullptr);
+    EnqueueWithGroup(CmTask *task,
+                     CmEvent *&event,
+                     const CmThreadGroupSpace *threadGroupSpace = nullptr);
                      
-    CM_RT_API int32_t EnqueueCopyCPUToGPUFullStrideDup(CmSurface2D *pSurface,
-                                                const unsigned char *pSysMem,
+    CM_RT_API int32_t EnqueueCopyCPUToGPUFullStrideDup(CmSurface2D *surface,
+                                                const unsigned char *sysMem,
                                                 const uint32_t widthStride,
                                                 const uint32_t heightStride,
                                                 const uint32_t option,
-                                                CmEvent *&pEvent);
+                                                CmEvent *&event);
 
-    CM_RT_API int32_t EnqueueCopyGPUToCPUFullStrideDup(CmSurface2D *pSurface,
-                                                unsigned char *pSysMem,
+    CM_RT_API int32_t EnqueueCopyGPUToCPUFullStrideDup(CmSurface2D *surface,
+                                                unsigned char *sysMem,
                                                 const uint32_t widthStride,
                                                 const uint32_t heightStride,
                                                 const uint32_t option,
-                                                CmEvent *&pEvent);
+                                                CmEvent *&event);
 
-    CM_RT_API int32_t EnqueueWithHints(CmTask *pTask,
-                                   CmEvent *&pEvent,
+    CM_RT_API int32_t EnqueueWithHints(CmTask *task,
+                                   CmEvent *&event,
                                    uint32_t hints = 0);
 
-    CM_RT_API int32_t EnqueueVebox(CmVebox *pVebox, CmEvent *&pEvent);
+    CM_RT_API int32_t EnqueueVebox(CmVebox *vebox, CmEvent *&event);
 
 protected:
-    CmQueue_RT(CmDevice_RT *pDevice);
+    CmQueue_RT(CmDevice_RT *device);
 
     ~CmQueue_RT();
 
-    int32_t Initialize(CM_QUEUE_CREATE_OPTION QueueCreateOption);
+    int32_t Initialize(CM_QUEUE_CREATE_OPTION queueCreateOption);
 
-    int32_t EnqueueCopy(CmSurface2D *pSurface,
-                    const unsigned char *pSysMem,
+    int32_t EnqueueCopy(CmSurface2D *surface,
+                    const unsigned char *sysMem,
                     const uint32_t widthStride,
                     const uint32_t heightStride,
                     CM_FASTCOPY_DIRECTION direction,
                     const uint32_t option,
-                    CmEvent *&pEvent);
+                    CmEvent *&event);
 
-    CmDevice_RT *m_pCmDev;
+    CmDevice_RT *m_cmDev;
 
-    void  *m_pCmQueueHandle;  //pointer used in driver
+    void  *m_cmQueueHandle;  //pointer used in driver
 
     CSync m_criticalSection;
 };

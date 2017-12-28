@@ -36,8 +36,6 @@ class CmBuffer;
 class CmBufferUP;
 class CmBufferSVM;
 
-CM_DLL_FILE_VERSION CmDevice_RT::m_RTDllVersion = { 6, 0, 0, 9010 };
-
 #if MDF_PROFILER_ENABLED
 CmPerfStatistics gCmPerfStatistics;  // global instance to record API's perf
 #endif
@@ -116,17 +114,17 @@ CM_RT_API int32_t CmDevice_RT::GetSurface2DInfo( uint32_t width, uint32_t height
 
     CM_GETSURFACE2DINFO_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_GETSURFACE2DINFO_PARAM ) );
-    inParam.iWidth = width;
-    inParam.iHeight = height;
+    inParam.width = width;
+    inParam.height = height;
     inParam.format = format;
 
     int32_t hr = OSALExtensionExecute(CM_FN_CMDEVICE_GETSURFACE2DINFO,
                                       &inParam, sizeof(inParam));
     CHK_FAILURE_RETURN(hr);
-    CHK_FAILURE_RETURN(inParam.iReturnValue);
+    CHK_FAILURE_RETURN(inParam.returnValue);
 
-    pitch = inParam.iPitch;
-    physicalSize = inParam.iPhysicalSize;
+    pitch = inParam.pitch;
+    physicalSize = inParam.physicalSize;
     return CM_SUCCESS;
 }
 
@@ -171,17 +169,17 @@ int32_t CmDevice_RT::CreateProgram(void* commonISACode,
 {
     CM_LOADPROGRAM_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_LOADPROGRAM_PARAM ) );
-    inParam.pCISACode = commonISACode;
-    inParam.uiCISACodeSize = size;
+    inParam.cisaCode = commonISACode;
+    inParam.cisaCodeSize = size;
     inParam.options = (char *)options;
 
     int32_t hr = OSALExtensionExecute(CM_FN_CMDEVICE_LOADPROGRAM,
                                       &inParam, sizeof(inParam));
 
     CHK_FAILURE_RETURN(hr);
-    CHK_FAILURE_RETURN(inParam.iReturnValue);
+    CHK_FAILURE_RETURN(inParam.returnValue);
 
-    program = (CmProgram *)inParam.pCmProgramHandle;
+    program = (CmProgram *)inParam.cmProgramHandle;
 
     return CM_SUCCESS;
 }
@@ -197,13 +195,13 @@ CM_RT_API int32_t CmDevice_RT::DestroyProgram(CmProgram* & program )
 
     CM_DESTROYPROGRAM_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_DESTROYPROGRAM_PARAM ) );
-    inParam.pCmProgramHandle = program;
+    inParam.cmProgramHandle = program;
 
     int32_t hr = OSALExtensionExecute(CM_FN_CMDEVICE_DESTROYPROGRAM,
                                       &inParam, sizeof(inParam));
 
     CHK_FAILURE_RETURN(hr);
-    CHK_FAILURE_RETURN(inParam.iReturnValue);
+    CHK_FAILURE_RETURN(inParam.returnValue);
 
     program = nullptr;
 
@@ -239,16 +237,16 @@ CM_RT_API int32_t CmDevice_RT::CreateKernel( CmProgram* program, const char* ker
 
     CM_CREATEKERNEL_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_CREATEKERNEL_PARAM ) );
-    inParam.pCmProgramHandle = program;
-    inParam.pKernelName = (char*)kernelName;
-    inParam.pOptions = (char *)options;
+    inParam.cmProgramHandle = program;
+    inParam.kernelName = (char*)kernelName;
+    inParam.options = (char *)options;
 
     int32_t hr = OSALExtensionExecute(CM_FN_CMDEVICE_CREATEKERNEL,
                                       &inParam, sizeof(inParam));
 
     CHK_FAILURE_RETURN(hr);
-    CHK_FAILURE_RETURN(inParam.iReturnValue);
-    kernel = (CmKernel *)inParam.pCmKernelHandle; // Got Object from CMRT@UMD directly.
+    CHK_FAILURE_RETURN(inParam.returnValue);
+    kernel = (CmKernel *)inParam.cmKernelHandle; // Got Object from CMRT@UMD directly.
 
     return CM_SUCCESS;
 }
@@ -259,13 +257,13 @@ CM_RT_API int32_t CmDevice_RT::DestroyKernel( CmKernel*& kernel)
 
     CM_DESTROYKERNEL_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_DESTROYKERNEL_PARAM ) );
-    inParam.pCmKernelHandle = kernel;
+    inParam.cmKernelHandle = kernel;
 
     int32_t hr = OSALExtensionExecute(CM_FN_CMDEVICE_DESTROYKERNEL,
                                       &inParam, sizeof(inParam));
 
     CHK_FAILURE_RETURN(hr);
-    CHK_FAILURE_RETURN(inParam.iReturnValue);
+    CHK_FAILURE_RETURN(inParam.returnValue);
     kernel = nullptr;
     return CM_SUCCESS;
 }
@@ -282,8 +280,8 @@ CM_RT_API int32_t CmDevice_RT::CreateTask(CmTask *& task)
                                       &inParam, sizeof(inParam));
 
     CHK_FAILURE_RETURN(hr);
-    CHK_FAILURE_RETURN(inParam.iReturnValue);
-    task = (CmTask *)inParam.pCmTaskHandle;
+    CHK_FAILURE_RETURN(inParam.returnValue);
+    task = (CmTask *)inParam.cmTaskHandle;
 
 #if USE_EXTENSION_CODE
     GTPIN_MAKER_FUNCTION(CmrtCodeMarkerForGTPin_CreateTask(this, task));
@@ -301,13 +299,13 @@ CM_RT_API int32_t CmDevice_RT::DestroyTask( CmTask*& task)
 
     CM_DESTROYTASK_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_DESTROYTASK_PARAM ) );
-    inParam.pCmTaskHandle = task;
+    inParam.cmTaskHandle = task;
 
     int32_t hr = OSALExtensionExecute(CM_FN_CMDEVICE_DESTROYTASK,
                                       &inParam, sizeof(inParam));
 
     CHK_FAILURE_RETURN(hr);
-    CHK_FAILURE_RETURN(inParam.iReturnValue);
+    CHK_FAILURE_RETURN(inParam.returnValue);
     task = nullptr;
 
     return CM_SUCCESS;
@@ -338,12 +336,12 @@ CM_RT_API int32_t CmDevice_RT::CreateQueue( CmQueue* & queue )
     return CM_SUCCESS;
 }
 
-CM_RT_API int32_t CmDevice_RT::CreateQueueEx(CmQueue *&pQueue, CM_QUEUE_CREATE_OPTION QueueCreateOption)
+CM_RT_API int32_t CmDevice_RT::CreateQueueEx(CmQueue *&queue, CM_QUEUE_CREATE_OPTION queueCreateOption)
 {
     INSERT_PROFILER_RECORD();
 
-    CmQueue_RT *pQueue_RT = nullptr;
-    int32_t result = CmQueue_RT::Create(this, pQueue_RT, QueueCreateOption);
+    CmQueue_RT *queueRT = nullptr;
+    int32_t result = CmQueue_RT::Create(this, queueRT, queueCreateOption);
     if (result != CM_SUCCESS)
     {
         CmAssert(0);
@@ -351,9 +349,9 @@ CM_RT_API int32_t CmDevice_RT::CreateQueueEx(CmQueue *&pQueue, CM_QUEUE_CREATE_O
         return result;
     }
 
-    if (pQueue_RT != nullptr)
+    if (queueRT != nullptr)
     {
-        pQueue = static_cast< CmQueue* >(pQueue_RT);
+        queue = static_cast< CmQueue* >(queueRT);
     }
     return result;
 }
@@ -384,15 +382,15 @@ CM_RT_API int32_t CmDevice_RT::CreateThreadSpace( uint32_t width, uint32_t heigh
 
     CM_CREATETHREADSPACE_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_CREATETHREADSPACE_PARAM ) );
-    inParam.TsWidth  = width;
-    inParam.TsHeight = height;
+    inParam.tsWidth  = width;
+    inParam.tsHeight = height;
 
     int32_t hr = OSALExtensionExecute(CM_FN_CMDEVICE_CREATETHREADSPACE,
                                       &inParam, sizeof(inParam));
 
     CHK_FAILURE_RETURN(hr);
-    CHK_FAILURE_RETURN(inParam.iReturnValue);
-    threadSpace = (CmThreadSpace *)inParam.pCmTsHandle;
+    CHK_FAILURE_RETURN(inParam.returnValue);
+    threadSpace = (CmThreadSpace *)inParam.cmTsHandle;
 
     return CM_SUCCESS;
 }
@@ -403,13 +401,13 @@ CM_RT_API int32_t CmDevice_RT::DestroyThreadSpace( CmThreadSpace* &threadSpace)
 
     CM_DESTROYTHREADSPACE_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_DESTROYTHREADSPACE_PARAM ) );
-    inParam.pCmTsHandle = threadSpace;
+    inParam.cmTsHandle = threadSpace;
 
     int32_t hr = OSALExtensionExecute(CM_FN_CMDEVICE_DESTROYTHREADSPACE,
                                       &inParam, sizeof(inParam));
 
     CHK_FAILURE_RETURN(hr);
-    CHK_FAILURE_RETURN(inParam.iReturnValue);
+    CHK_FAILURE_RETURN(inParam.returnValue);
     threadSpace = nullptr;
     return CM_SUCCESS;
 }
@@ -434,11 +432,11 @@ CM_RT_API int32_t CmDevice_RT::DestroyVmeSurfaceG7_5( SurfaceIndex* & vmeSurface
     return DestroyVmeSurface( vmeSurfaceIndex );
 }
 
-CM_RT_API int32_t CmDevice_RT::SetVmeSurfaceStateParam(SurfaceIndex* pVmeIndex, CM_VME_SURFACE_STATE_PARAM *pSSParam)
+CM_RT_API int32_t CmDevice_RT::SetVmeSurfaceStateParam(SurfaceIndex* vmeIndex, CM_VME_SURFACE_STATE_PARAM *surfStateParam)
 {
     INSERT_PROFILER_RECORD();
 
-    if(pVmeIndex == nullptr || pSSParam == nullptr)
+    if(vmeIndex == nullptr || surfStateParam == nullptr)
     {
         CmAssert( 0 );
         return CM_INVALID_ARG_VALUE;
@@ -446,8 +444,8 @@ CM_RT_API int32_t CmDevice_RT::SetVmeSurfaceStateParam(SurfaceIndex* pVmeIndex, 
 
     CM_CONFIGVMESURFACEDIMENSION_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_CONFIGVMESURFACEDIMENSION_PARAM ) );
-    inParam.pCmVmeSurfHandle = (void *)pVmeIndex;
-    inParam.pSurfDimPara = pSSParam;
+    inParam.cmVmeSurfHandle = (void *)vmeIndex;
+    inParam.surfDimPara = surfStateParam;
 
     int32_t result
         = OSALExtensionExecute(CM_FN_CMDEVICE_CONFIGVMESURFACEDIMENSION,
@@ -455,7 +453,7 @@ CM_RT_API int32_t CmDevice_RT::SetVmeSurfaceStateParam(SurfaceIndex* pVmeIndex, 
 
     CHK_FAILURE_RETURN(result);
 
-    return inParam.iReturnValue;
+    return inParam.returnValue;
 }
 
 
@@ -465,14 +463,14 @@ CM_RT_API int32_t CmDevice_RT::CreateSampler( const CM_SAMPLER_STATE& samplerSta
 
     CM_CREATESAMPLER_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_CREATESAMPLER_PARAM ) );
-    inParam.SampleState = samplerState;
+    inParam.samplerState = samplerState;
 
     int32_t result = OSALExtensionExecute(CM_FN_CMDEVICE_CREATESAMPLER,
                                           &inParam, sizeof(inParam));
 
     CHK_FAILURE_RETURN(result);
-    CHK_FAILURE_RETURN(inParam.iReturnValue);
-    sampler = (CmSampler *)inParam.pCmSamplerHandle;
+    CHK_FAILURE_RETURN(inParam.returnValue);
+    sampler = (CmSampler *)inParam.cmSamplerHandle;
 
     return CM_SUCCESS;
 }
@@ -483,14 +481,14 @@ CM_RT_API int32_t CmDevice_RT::CreateSamplerEx( const CM_SAMPLER_STATE_EX& sampl
 
     CM_CREATESAMPLER_PARAM_EX inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_CREATESAMPLER_PARAM_EX ) );
-    inParam.SampleState = samplerState;
+    inParam.samplerState = samplerState;
 
     int32_t result = OSALExtensionExecute(CM_FN_CMDEVICE_CREATESAMPLER_EX,
                                           &inParam, sizeof(inParam));
 
     CHK_FAILURE_RETURN(result);
-    CHK_FAILURE_RETURN(inParam.iReturnValue);
-    sampler = (CmSampler *)inParam.pCmSamplerHandle;
+    CHK_FAILURE_RETURN(inParam.returnValue);
+    sampler = (CmSampler *)inParam.cmSamplerHandle;
 
     return CM_SUCCESS;
 }
@@ -501,13 +499,13 @@ CM_RT_API int32_t CmDevice_RT::DestroySampler( CmSampler* &sampler )
 
     CM_DESTROYSAMPLER_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_DESTROYSAMPLER_PARAM ) );
-    inParam.pCmSamplerHandle = sampler;
+    inParam.cmSamplerHandle = sampler;
 
     int32_t result = OSALExtensionExecute(CM_FN_CMDEVICE_DESTROYSAMPLER,
                                           &inParam, sizeof(inParam));
 
     CHK_FAILURE_RETURN(result);
-    CHK_FAILURE_RETURN(inParam.iReturnValue);
+    CHK_FAILURE_RETURN(inParam.returnValue);
     sampler = nullptr;
 
     return CM_SUCCESS;
@@ -530,8 +528,8 @@ CM_RT_API int32_t CmDevice_RT::CreateThreadGroupSpace( uint32_t threadSpaceWidth
                                       &inParam, sizeof(inParam));
 
     CHK_FAILURE_RETURN(hr);
-    CHK_FAILURE_RETURN(inParam.iReturnValue);
-    threadGroupSpace = (CmThreadGroupSpace *)inParam.pCmGrpSpaceHandle;
+    CHK_FAILURE_RETURN(inParam.returnValue);
+    threadGroupSpace = (CmThreadGroupSpace *)inParam.cmGrpSpaceHandle;
 
     return CM_SUCCESS;
 }
@@ -554,8 +552,8 @@ CM_RT_API int32_t CmDevice_RT::CreateThreadGroupSpaceEx(uint32_t threadSpaceWidt
                                       &inParam, sizeof(inParam));
 
     CHK_FAILURE_RETURN(hr);
-    CHK_FAILURE_RETURN(inParam.iReturnValue);
-    threadGroupSpace = (CmThreadGroupSpace *)inParam.pCmGrpSpaceHandle;
+    CHK_FAILURE_RETURN(inParam.returnValue);
+    threadGroupSpace = (CmThreadGroupSpace *)inParam.cmGrpSpaceHandle;
 
     return CM_SUCCESS;
 }
@@ -567,13 +565,13 @@ CM_RT_API int32_t CmDevice_RT::DestroyThreadGroupSpace(CmThreadGroupSpace* &thre
 
     CM_DESTROYTGROPUSPACE_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_DESTROYTGROPUSPACE_PARAM ) );
-    inParam.pCmGrpSpaceHandle = threadGroupSpace;
+    inParam.cmGrpSpaceHandle = threadGroupSpace;
 
     int32_t hr = OSALExtensionExecute(CM_FN_CMDEVICE_DESTROYTHREADGROUPSPACE,
                                       &inParam, sizeof(inParam));
 
     CHK_FAILURE_RETURN(hr);
-    CHK_FAILURE_RETURN(inParam.iReturnValue);
+    CHK_FAILURE_RETURN(inParam.returnValue);
     threadGroupSpace = nullptr;
     return CM_SUCCESS;
 }
@@ -586,13 +584,13 @@ CM_RT_API int32_t CmDevice_RT::GetCaps(CM_DEVICE_CAP_NAME capName, size_t& capVa
     CmSafeMemSet( &inParam, 0, sizeof( CM_GETCAPS_PARAM ) );
     inParam.capName         = capName;
     inParam.capValueSize    = (uint32_t)capValueSize;
-    inParam.pCapValue       = capValue;
+    inParam.capValue        = capValue;
 
     int32_t result = OSALExtensionExecute(CM_FN_CMDEVICE_GETCAPS,
                                           &inParam, sizeof(inParam));
 
     CHK_FAILURE_RETURN(result);
-    CHK_FAILURE_RETURN(inParam.iReturnValue);
+    CHK_FAILURE_RETURN(inParam.returnValue);
     return CM_SUCCESS;
 }
 
@@ -621,14 +619,14 @@ CM_RT_API int32_t CmDevice_RT::CreateSampler8x8(const CM_SAMPLER_8X8_DESCR  &sam
 
     CM_CREATESAMPLER8x8_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_CREATESAMPLER8x8_PARAM ) );
-    inParam.Sample8x8Desc = samplerDescriptor;
+    inParam.sampler8x8Desc = samplerDescriptor;
 
     int32_t result = OSALExtensionExecute(CM_FN_CMDEVICE_CREATESAMPLER8X8,
                                           &inParam, sizeof(inParam));
 
     CHK_FAILURE_RETURN(result);
-    CHK_FAILURE_RETURN(inParam.iReturnValue);
-    sampler = (CmSampler8x8 *)inParam.pCmSampler8x8Handle;
+    CHK_FAILURE_RETURN(inParam.returnValue);
+    sampler = (CmSampler8x8 *)inParam.cmSampler8x8Handle;
 
     return CM_SUCCESS;
 }
@@ -640,13 +638,13 @@ CM_RT_API int32_t CmDevice_RT::DestroySampler8x8( CmSampler8x8 *& sampler8x8 )
     CM_DESTROYSAMPLER8x8_PARAM inParam;
 
     CmSafeMemSet( &inParam, 0, sizeof( CM_DESTROYSAMPLER8x8_PARAM ) );
-    inParam.pCmSampler8x8Handle = sampler8x8;
+    inParam.cmSampler8x8Handle = sampler8x8;
 
     int32_t result = OSALExtensionExecute(CM_FN_CMDEVICE_DESTROYSAMPLER8X8,
                                           &inParam, sizeof(inParam));
 
     CHK_FAILURE_RETURN(result);
-    CHK_FAILURE_RETURN(inParam.iReturnValue);
+    CHK_FAILURE_RETURN(inParam.returnValue);
     sampler8x8 = nullptr;
 
     return CM_SUCCESS;
@@ -656,25 +654,25 @@ CM_RT_API int32_t CmDevice_RT::DestroySampler8x8( CmSampler8x8 *& sampler8x8 )
  {
      INSERT_PROFILER_RECORD();
 
-    CmSurface2D* pCurrentRT = static_cast< CmSurface2D* >( surface2d );
-    if( ! pCurrentRT )  {
+    CmSurface2D* currentRT = static_cast< CmSurface2D* >( surface2d );
+    if( ! currentRT )  {
         CmAssert( 0 );
         return CM_FAILURE;
     }
 
     CM_CREATESAMPLER8x8SURF_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_CREATESAMPLER8x8SURF_PARAM ) );
-    inParam.pCmSurf2DHandle = pCurrentRT;
-    inParam.CmSampler8x8Type = surfaceType;
-    inParam.Sampler8x8Mode   = addressControl;
+    inParam.cmSurf2DHandle   = currentRT;
+    inParam.cmSampler8x8Type = surfaceType;
+    inParam.sampler8x8Mode   = addressControl;
 
     int32_t result
         = OSALExtensionExecute(CM_FN_CMDEVICE_CREATESAMPLER8X8SURFACE,
                                &inParam, sizeof(inParam));
 
     CHK_FAILURE_RETURN(result);
-    CHK_FAILURE_RETURN(inParam.iReturnValue);
-    sampler8x8SurfaceIndex = inParam.pCmSurfIndexHandle;
+    CHK_FAILURE_RETURN(inParam.returnValue);
+    sampler8x8SurfaceIndex = inParam.cmSurfIndexHandle;
 
     return CM_SUCCESS;
  }
@@ -683,26 +681,26 @@ CM_RT_API int32_t CmDevice_RT::DestroySampler8x8( CmSampler8x8 *& sampler8x8 )
  {
      INSERT_PROFILER_RECORD();
 
-     CmSurface2D* pCurrentRT = static_cast< CmSurface2D* >(surface2d);
-     if (!pCurrentRT)  {
+     CmSurface2D* currentRT = static_cast< CmSurface2D* >(surface2d);
+     if (!currentRT)  {
          CmAssert(0);
          return CM_FAILURE;
      }
 
      CM_CREATESAMPLER8x8SURFEX_PARAM inParam;
      CmSafeMemSet(&inParam, 0, sizeof(inParam));
-     inParam.pCmSurf2DHandle = pCurrentRT;
-     inParam.CmSampler8x8Type = surfaceType;
-     inParam.Sampler8x8Mode = addressControl;
-     inParam.pFlag = flag;
+     inParam.cmSurf2DHandle = currentRT;
+     inParam.cmSampler8x8Type = surfaceType;
+     inParam.sampler8x8Mode = addressControl;
+     inParam.flag = flag;
 
      int32_t result
          = OSALExtensionExecute(CM_FN_CMDEVICE_CREATESAMPLER8X8SURFACE_EX,
                                 &inParam, sizeof(inParam));
 
      CHK_FAILURE_RETURN(result);
-     CHK_FAILURE_RETURN(inParam.iReturnValue);
-     sampler8x8SurfaceIndex = inParam.pCmSurfIndexHandle;
+     CHK_FAILURE_RETURN(inParam.returnValue);
+     sampler8x8SurfaceIndex = inParam.cmSurfIndexHandle;
 
      return CM_SUCCESS;
  }
@@ -711,24 +709,24 @@ CM_RT_API int32_t CmDevice_RT::DestroySampler8x8( CmSampler8x8 *& sampler8x8 )
  {
      INSERT_PROFILER_RECORD();
 
-     CmSurface2D* p2DSurface_RT = static_cast< CmSurface2D* >(surface2d);
-     if (!p2DSurface_RT)  {
+     CmSurface2D* surface2dRT = static_cast< CmSurface2D* >(surface2d);
+     if (!surface2dRT)  {
          CmAssert(0);
          return CM_INVALID_ARG_VALUE;
      }
 
      CM_CREATESAMPLER2DEX_PARAM inParam;
      CmSafeMemSet(&inParam, 0, sizeof(inParam));
-     inParam.pCmSurface2DHandle = p2DSurface_RT;
-     inParam.pFlag = flag;
+     inParam.cmSurface2DHandle = surface2dRT;
+     inParam.flag = flag;
 
      int32_t result
          = OSALExtensionExecute(CM_FN_CMDEVICE_CREATESAMPLERSURFACE2D_EX,
                                 &inParam, sizeof(inParam));
 
      CHK_FAILURE_RETURN(result);
-     CHK_FAILURE_RETURN(inParam.iReturnValue);
-     samplerSurface2dIndex = (SurfaceIndex*)inParam.pSamplerSurfIndexHandle;
+     CHK_FAILURE_RETURN(inParam.returnValue);
+     samplerSurface2dIndex = (SurfaceIndex*)inParam.samplerSurfIndexHandle;
      return CM_SUCCESS;
  }
 
@@ -739,26 +737,26 @@ CM_RT_API int32_t CmDevice_RT::DestroySampler8x8Surface(SurfaceIndex* &sampler8x
 
     CM_DESTROYSAMPLER8x8SURF_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_DESTROYSAMPLER8x8SURF_PARAM ) );
-    inParam.pCmSurfIndexHandle = sampler8x8SurfaceIndex;
+    inParam.cmSurfIndexHandle = sampler8x8SurfaceIndex;
 
     int32_t result
         = OSALExtensionExecute(CM_FN_CMDEVICE_DESTROYSAMPLER8X8SURFACE,
                                &inParam, sizeof(inParam));
 
     CHK_FAILURE_RETURN(result);
-    CHK_FAILURE_RETURN(inParam.iReturnValue);
+    CHK_FAILURE_RETURN(inParam.returnValue);
     sampler8x8SurfaceIndex = nullptr;
 
     return CM_SUCCESS;
 }
 
-CM_RT_API int32_t CmDevice_RT::SetL3Config(const L3ConfigRegisterValues *register_values)
+CM_RT_API int32_t CmDevice_RT::SetL3Config(const L3ConfigRegisterValues *registerValues)
 {
     INSERT_PROFILER_RECORD();
 
     uint32_t platform = 0;
 
-    m_l3Config = *register_values;
+    m_l3Config = *registerValues;
 
     SetCapsInternal(CAP_L3_CONFIG, sizeof(L3ConfigRegisterValues), &m_l3Config);
 
@@ -770,16 +768,16 @@ CM_RT_API int32_t CmDevice_RT::SetSuggestedL3Config( L3_SUGGEST_CONFIG configInd
     INSERT_PROFILER_RECORD();
 
     //Call into UMD
-    CM_DEVICE_SETSUGGESTEDL3_PARAM SetL3IndexParam;
-    CmSafeMemSet(&SetL3IndexParam, 0 , sizeof(CM_DEVICE_SETSUGGESTEDL3_PARAM));
-    SetL3IndexParam.l3_s_c = configIndex;
+    CM_DEVICE_SETSUGGESTEDL3_PARAM setL3IndexParam;
+    CmSafeMemSet(&setL3IndexParam, 0 , sizeof(CM_DEVICE_SETSUGGESTEDL3_PARAM));
+    setL3IndexParam.l3SuggestConfig = configIndex;
 
     int32_t result = OSALExtensionExecute(CM_FN_CMDEVICE_SETSUGGESTEDL3CONFIG,
-                                          &SetL3IndexParam,
-                                          sizeof(SetL3IndexParam));
+                                          &setL3IndexParam,
+                                          sizeof(setL3IndexParam));
 
     CHK_FAILURE_RETURN(result);
-    CHK_FAILURE_RETURN(SetL3IndexParam.iReturnValue);
+    CHK_FAILURE_RETURN(setL3IndexParam.returnValue);
     return CM_SUCCESS;
 }
 
@@ -801,17 +799,17 @@ int32_t CmDevice_RT::SetCapsInternal(CM_DEVICE_CAP_NAME capName, size_t capValue
 {
 
     //Call into UMD
-    CM_DEVICE_SETCAP_PARAM SetCapParam;
-    CmSafeMemSet(&SetCapParam, 0 , sizeof(SetCapParam));
-    SetCapParam.capName = capName;
-    SetCapParam.capValueSize = capValueSize;
-    SetCapParam.pCapValue = capValue;
+    CM_DEVICE_SETCAP_PARAM setCapParam;
+    CmSafeMemSet(&setCapParam, 0 , sizeof(setCapParam));
+    setCapParam.capName = capName;
+    setCapParam.capValueSize = capValueSize;
+    setCapParam.capValue = capValue;
 
     int32_t result = OSALExtensionExecute(CM_FN_CMDEVICE_SETCAPS,
-                                          &SetCapParam, sizeof(SetCapParam));
+                                          &setCapParam, sizeof(setCapParam));
 
     CHK_FAILURE_RETURN(result);
-    CHK_FAILURE_RETURN(SetCapParam.iReturnValue);
+    CHK_FAILURE_RETURN(setCapParam.returnValue);
     return CM_SUCCESS;
 }
 
@@ -819,23 +817,23 @@ CM_RT_API int32_t CmDevice_RT::CreateSamplerSurface2D(CmSurface2D* surface2d, Su
 {
     INSERT_PROFILER_RECORD();
 
-    CmSurface2D* p2DSurface_RT = static_cast< CmSurface2D* >( surface2d );
-    if( ! p2DSurface_RT )  {
+    CmSurface2D* surface2dRT = static_cast< CmSurface2D* >( surface2d );
+    if( ! surface2dRT )  {
         CmAssert( 0 );
         return CM_FAILURE;
     }
 
     CM_CREATESAMPLER2D_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_CREATESAMPLER2D_PARAM ) );
-    inParam.pCmSurface2DHandle  = p2DSurface_RT;
+    inParam.cmSurface2DHandle  = surface2dRT;
 
     int32_t result
         = OSALExtensionExecute(CM_FN_CMDEVICE_CREATESAMPLERSURFACE2D,
                                &inParam, sizeof(inParam));
 
     CHK_FAILURE_RETURN(result);
-    CHK_FAILURE_RETURN(inParam.iReturnValue);
-    samplerSurface2dIndex = (SurfaceIndex* )inParam.pSamplerSurfIndexHandle;
+    CHK_FAILURE_RETURN(inParam.returnValue);
+    samplerSurface2dIndex = (SurfaceIndex* )inParam.samplerSurfIndexHandle;
     return CM_SUCCESS;
 }
 
@@ -845,15 +843,15 @@ CM_RT_API int32_t CmDevice_RT::CreateSamplerSurface2DUP(CmSurface2DUP* surface2d
 
     CM_CREATESAMPLER2DUP_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_CREATESAMPLER2DUP_PARAM ) );
-    inParam.pCmSurface2DHandle = surface2dUP;
+    inParam.cmSurface2DHandle = surface2dUP;
 
     int32_t result
         = OSALExtensionExecute(CM_FN_CMDEVICE_CREATESAMPLERSURFACE2DUP,
                                &inParam, sizeof(inParam));
 
     CHK_FAILURE_RETURN(result);
-    CHK_FAILURE_RETURN(inParam.iReturnValue);
-    samplerSurface2dUPIndex = (SurfaceIndex* )inParam.pSamplerSurfIndexHandle;
+    CHK_FAILURE_RETURN(inParam.returnValue);
+    samplerSurface2dUPIndex = (SurfaceIndex* )inParam.samplerSurfIndexHandle;
     return CM_SUCCESS;
 }
 
@@ -863,15 +861,15 @@ CM_RT_API int32_t CmDevice_RT::CreateSamplerSurface3D(CmSurface3D* surface3d, Su
 
     CM_CREATESAMPLER3D_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_CREATESAMPLER3D_PARAM ) );
-    inParam.pCmSurface3DHandle  = surface3d;
+    inParam.cmSurface3DHandle  = surface3d;
 
     int32_t result
         = OSALExtensionExecute(CM_FN_CMDEVICE_CREATESAMPLERSURFACE3D,
                                &inParam, sizeof(inParam));
 
     CHK_FAILURE_RETURN(result);
-    CHK_FAILURE_RETURN(inParam.iReturnValue);
-    samplerSurface3dIndex = (SurfaceIndex* )inParam.pSamplerSurfIndexHandle;
+    CHK_FAILURE_RETURN(inParam.returnValue);
+    samplerSurface3dIndex = (SurfaceIndex* )inParam.samplerSurfIndexHandle;
     return CM_SUCCESS;
 }
 
@@ -881,13 +879,13 @@ CM_RT_API int32_t CmDevice_RT::DestroySamplerSurface(SurfaceIndex* & samplerSurf
 
     CM_DESTROYSAMPLERSURF_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_DESTROYSAMPLERSURF_PARAM ) );
-    inParam.pSamplerSurfIndexHandle = samplerSurfaceIndex;
+    inParam.samplerSurfIndexHandle = samplerSurfaceIndex;
 
     int32_t result = OSALExtensionExecute(CM_FN_CMDEVICE_DESTROYSAMPLERSURFACE,
                                           &inParam, sizeof(inParam));
 
     CHK_FAILURE_RETURN(result);
-    CHK_FAILURE_RETURN(inParam.iReturnValue);
+    CHK_FAILURE_RETURN(inParam.returnValue);
 
     return CM_SUCCESS;
 }
@@ -915,18 +913,18 @@ CM_RT_API int32_t CmDevice_RT::InitPrintBuffer(size_t size)
 {
     INSERT_PROFILER_RECORD();
 
-    CM_DEVICE_INIT_PRINT_BUFFER_PARAM InitPrintBufferParam;
-    CmSafeMemSet(&InitPrintBufferParam, 0, sizeof(CM_DEVICE_INIT_PRINT_BUFFER_PARAM));
-    InitPrintBufferParam.dwPrintBufferSize = (uint32_t)size;
+    CM_DEVICE_INIT_PRINT_BUFFER_PARAM initPrintBufferParam;
+    CmSafeMemSet(&initPrintBufferParam, 0, sizeof(CM_DEVICE_INIT_PRINT_BUFFER_PARAM));
+    initPrintBufferParam.printBufferSize = (uint32_t)size;
 
     int32_t hr = OSALExtensionExecute(CM_FN_CMDEVICE_INIT_PRINT_BUFFER,
-                                      &InitPrintBufferParam,
-                                      sizeof(InitPrintBufferParam));
+                                      &initPrintBufferParam,
+                                      sizeof(initPrintBufferParam));
 
     CHK_FAILURE_RETURN(hr);
-    CHK_FAILURE_RETURN(InitPrintBufferParam.iReturnValue);
+    CHK_FAILURE_RETURN(initPrintBufferParam.returnValue);
 
-    m_printBuffer = (unsigned char *)InitPrintBufferParam.pPrintBufferMem;
+    m_printBuffer = (unsigned char *)initPrintBufferParam.printBufferMem;
     m_printEnabled   = true;
     m_printBufferSize = size;
 
@@ -1016,8 +1014,8 @@ CM_RT_API int32_t CmDevice_RT::CreateVebox( CmVebox* & vebox )
                                       &inParam, sizeof(inParam));
 
     CHK_FAILURE_RETURN(hr);
-    CHK_FAILURE_RETURN(inParam.iReturnValue);
-    vebox = (CmVebox *)inParam.pCmVeboxHandle;
+    CHK_FAILURE_RETURN(inParam.returnValue);
+    vebox = (CmVebox *)inParam.cmVeboxHandle;
     return CM_SUCCESS;
 }
 
@@ -1029,13 +1027,13 @@ CM_RT_API int32_t CmDevice_RT::DestroyVebox( CmVebox* & vebox )
 
     CM_DESTROYVEBOX_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( inParam ) );
-    inParam.pCmVeboxHandle = vebox;
+    inParam.cmVeboxHandle = vebox;
 
     int32_t hr = OSALExtensionExecute(CM_FN_CMDEVICE_DESTROYVEBOX,
                                       &inParam, sizeof(inParam));
 
     CHK_FAILURE_RETURN(hr);
-    CHK_FAILURE_RETURN(inParam.iReturnValue);
+    CHK_FAILURE_RETURN(inParam.returnValue);
     vebox = nullptr;
     return CM_SUCCESS;
 }
@@ -1061,15 +1059,15 @@ CM_RT_API int32_t CmDevice_RT::CreateSurface2DAlias(CmSurface2D* originalSurface
     CM_DEVICE_CREATE_SURF2D_ALIAS_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof(inParam) );
 
-    inParam.pCmSurface2DHandle  = originalSurface;
-    inParam.pSurfaceIndexHandle = aliasIndex;
+    inParam.cmSurface2DHandle  = originalSurface;
+    inParam.surfaceIndexHandle = aliasIndex;
 
     int32_t hr = OSALExtensionExecute(CM_FN_CMDEVICE_CREATESURFACE2D_ALIAS,
                                       &inParam, sizeof(inParam));
 
     CHK_FAILURE_RETURN(hr);
-    CHK_FAILURE_RETURN(inParam.iReturnValue);
-    aliasIndex = (SurfaceIndex*)inParam.pSurfaceIndexHandle;
+    CHK_FAILURE_RETURN(inParam.returnValue);
+    aliasIndex = (SurfaceIndex*)inParam.surfaceIndexHandle;
 
     return CM_SUCCESS;
 }
@@ -1081,15 +1079,15 @@ CM_RT_API int32_t CmDevice_RT::CreateBufferAlias(CmBuffer *originalBuffer, Surfa
     CM_DEVICE_CREATE_BUFFER_ALIAS_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof(inParam) );
 
-    inParam.pCmBufferHandle = originalBuffer;
-    inParam.pSurfaceIndexHandle = aliasIndex;
+    inParam.cmBufferHandle = originalBuffer;
+    inParam.surfaceIndexHandle = aliasIndex;
 
     int32_t hr = OSALExtensionExecute(CM_FN_CMDEVICE_CREATEBUFFER_ALIAS,
                                       &inParam, sizeof(inParam));
 
     CHK_FAILURE_RETURN(hr);
-    CHK_FAILURE_RETURN(inParam.iReturnValue);
-    aliasIndex = (SurfaceIndex*)inParam.pSurfaceIndexHandle;
+    CHK_FAILURE_RETURN(inParam.returnValue);
+    aliasIndex = (SurfaceIndex*)inParam.surfaceIndexHandle;
 
     return CM_SUCCESS;
 }
@@ -1109,15 +1107,15 @@ CM_RT_API int32_t CmDevice_RT::CloneKernel( CmKernel * &destKernel, CmKernel *sr
 
     CM_CLONE_KERNEL_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_CLONE_KERNEL_PARAM ) );
-    inParam.pCmKernelHandleSrc  = srcKernel;
-    inParam.pCmKernelHandleDest = destKernel;
+    inParam.cmKernelHandleSrc  = srcKernel;
+    inParam.cmKernelHandleDest = destKernel;
 
     int32_t hr = OSALExtensionExecute(CM_FN_CMDEVICE_CLONEKERNEL,
                                       &inParam, sizeof(inParam));
 
     CHK_FAILURE_RETURN(hr);
-    CHK_FAILURE_RETURN(inParam.iReturnValue);
-    destKernel = (CmKernel *)inParam.pCmKernelHandleDest;
+    CHK_FAILURE_RETURN(inParam.returnValue);
+    destKernel = (CmKernel *)inParam.cmKernelHandleDest;
 
     return CM_SUCCESS;
 }
@@ -1146,19 +1144,19 @@ int32_t CmDevice_RT::CreateVmeSurface( CmSurface2D* currentSurface, CmSurface2D*
 
     CM_CREATEVMESURFACE_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_CREATEVMESURFACE_PARAM ) );
-    inParam.pCmCurSurfHandle = currentSurface;
-    inParam.pCmForwardSurfArray = forwardSurfaceArray;
-    inParam.pCmBackwardSurfArray = backwardSurfaceArray;
-    inParam.iForwardSurfCount = surfaceCountForward;
-    inParam.iBackwardSurfCount = surfaceCountBackward;
+    inParam.cmCurSurfHandle = currentSurface;
+    inParam.cmForwardSurfArray = forwardSurfaceArray;
+    inParam.cmBackwardSurfArray = backwardSurfaceArray;
+    inParam.forwardSurfCount = surfaceCountForward;
+    inParam.backwardSurfCount = surfaceCountBackward;
 
     int32_t result = OSALExtensionExecute(functionName,
                                           &inParam, sizeof(inParam));
 
     CHK_FAILURE_RETURN(result);
-    CHK_FAILURE_RETURN(inParam.iReturnValue);
+    CHK_FAILURE_RETURN(inParam.returnValue);
 
-    vmeSurfaceIndex = ( SurfaceIndex* )inParam.pCmVmeSurfIndexHandle;
+    vmeSurfaceIndex = ( SurfaceIndex* )inParam.cmVmeSurfIndexHandle;
 
     return CM_SUCCESS;
 }
@@ -1168,13 +1166,13 @@ int32_t CmDevice_RT::DestroyVmeSurface( SurfaceIndex* & vmeSurfaceIndex )
     //Call into driver
     CM_DESTROYVMESURFACE_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_DESTROYVMESURFACE_PARAM ) );
-    inParam.pCmVmeSurfIndexHandle = ( void  *)vmeSurfaceIndex;
+    inParam.cmVmeSurfIndexHandle = ( void  *)vmeSurfaceIndex;
 
     int32_t hr = OSALExtensionExecute(CM_FN_CMDEVICE_DESTROYVMESURFACE,
                                       &inParam, sizeof(inParam));
 
     CHK_FAILURE_RETURN(hr);
-    CHK_FAILURE_RETURN(inParam.iReturnValue);
+    CHK_FAILURE_RETURN(inParam.returnValue);
     vmeSurfaceIndex = nullptr;
 
     return CM_SUCCESS;
@@ -1191,8 +1189,8 @@ CM_RT_API int32_t CmDevice_RT::GetVISAVersion(uint32_t& majorVersion, uint32_t& 
                                       &inParam, sizeof(inParam));
 
     CHK_FAILURE_RETURN(hr);
-    CHK_FAILURE_RETURN(inParam.iReturnValue);
-    majorVersion = inParam.iMajorVersion;
-    minorVersion = inParam.iMinorVersion;
+    CHK_FAILURE_RETURN(inParam.returnValue);
+    majorVersion = inParam.majorVersion;
+    minorVersion = inParam.minorVersion;
     return CM_SUCCESS;
 }

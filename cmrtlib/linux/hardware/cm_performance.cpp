@@ -26,46 +26,46 @@
 #include <ctime>
 #include "cm_include.h"
 
-extern "C" int32_t QueryPerformanceFrequency(LARGE_INTEGER *lpFrequency)
+extern "C" int32_t QueryPerformanceFrequency(LARGE_INTEGER *frequency)
 {
-    struct timespec  Res;
-    int32_t          iRet;
+    struct timespec  res;
+    int32_t          ret;
 
-    if ( (iRet = clock_getres(CLOCK_MONOTONIC, &Res)) != 0 )
+    if ( (ret = clock_getres(CLOCK_MONOTONIC, &res)) != 0 )
     {
         return -1;
     }
 
     // resolution (precision) can't be in seconds for current machine and OS
-    if (Res.tv_sec != 0)
+    if (res.tv_sec != 0)
     {
         return -1;
     }
-    lpFrequency->QuadPart = (1000000000LL) / Res.tv_nsec;
+    frequency->quadPart = (1000000000LL) / res.tv_nsec;
 
     return 0;
 }
 
-extern "C" int32_t QueryPerformanceCounter(LARGE_INTEGER *lpPerformanceCount)
+extern "C" int32_t QueryPerformanceCounter(LARGE_INTEGER *performanceCount)
 {
-    struct timespec     Res;
+    struct timespec     res;
     struct timespec     t;
-    int32_t             iRet;
+    int32_t             ret;
 
-    if ( (iRet = clock_getres (CLOCK_MONOTONIC, &Res)) != 0 )
+    if ( (ret = clock_getres (CLOCK_MONOTONIC, &res)) != 0 )
     {
         return -1;
     }
-    if (Res.tv_sec != 0)
+    if (res.tv_sec != 0)
     { // resolution (precision) can't be in seconds for current machine and OS
         return -1;
     }
-    if( (iRet = clock_gettime(CLOCK_MONOTONIC, &t)) != 0)
+    if( (ret = clock_gettime(CLOCK_MONOTONIC, &t)) != 0)
     {
         return -1;
     }
-    lpPerformanceCount->QuadPart = (1000000000LL * t.tv_sec +
-        t.tv_nsec) / Res.tv_nsec;
+    performanceCount->quadPart = (1000000000LL * t.tv_sec +
+        t.tv_nsec) / res.tv_nsec;
 
     return 0;
 }

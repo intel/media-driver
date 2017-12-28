@@ -105,7 +105,7 @@ typedef Handle CmDeviceHandle;
 typedef Handle CmUmdDeviceHandle;
 
 
-int NotifyNewDevice(CmDeviceHandle dh, CmUmdDeviceHandle dxh_, uint32_t driverStoreEnabled);
-int NotifyDeviceDestruction(CmDeviceHandle dh, uint32_t driverStoreEnabled);
+int NotifyNewDevice(CmDeviceHandle deviceHandle, CmUmdDeviceHandle umdHandle, uint32_t driverStoreEnabled);
+int NotifyDeviceDestruction(CmDeviceHandle deviceHandle, uint32_t driverStoreEnabled);
 
 #endif  // #ifndef CMRTLIB_AGNOSTIC_SHARE_CMDEBUG_H_

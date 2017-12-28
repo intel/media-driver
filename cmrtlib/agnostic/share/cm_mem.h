@@ -81,8 +81,8 @@ inline void CmSafeMemSet( void* dst, const int data, const size_t bytes )
 inline void CmDwordMemSet( void* dst, const uint32_t data, const size_t bytes )
 {
     uint32_t *ptr = reinterpret_cast<uint32_t*>( dst );
-    uint32_t size_in_dwords = (uint32_t)(bytes >> 2); // divide by 4 byte to dword
-    uint32_t *maxPtr = ptr + size_in_dwords;
+    uint32_t size = (uint32_t)(bytes >> 2); // divide by 4 byte to dword
+    uint32_t *maxPtr = ptr + size;
     while(ptr < maxPtr)
         *ptr++ = data;
 }

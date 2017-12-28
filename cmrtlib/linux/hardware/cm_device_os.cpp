@@ -46,10 +46,10 @@ pfVAGetDisplayDRM CmDevice_RT::m_vaGetDisplayDrm    = nullptr ;
 #endif
 // current binary version, query by command "strings", 
 //       e.g. "strings  -a igfxcmrt64.so | grep current_version " 
-volatile static char cmrt_current_version[] = "cmrt_current_version: " \
+volatile static char cmrtCurrentVersion[] = "cmrt_current_version: " \
                           "6.0.0.9010\0";
 
-CSync g_deviceCreationCriticalSection;
+CSync gDeviceCreationCriticalSection;
 
 int32_t CmDevice_RT::Create( CmDevice_RT* &device, uint32_t createOption )
 {
@@ -112,20 +112,20 @@ int32_t CmDevice_RT::Destroy( CmDevice_RT* &device )
     device->FreeResources();
 
     //Destroy the Device at CMRT@UMD
-    CM_DESTROYCMDEVICE_PARAM DestroyCmDevice_param;
-    CmSafeMemSet(&DestroyCmDevice_param, 0, sizeof(CM_DESTROYCMDEVICE_PARAM));
-    DestroyCmDevice_param.pCmDeviceHandle = device->m_deviceInUmd;
-    uint32_t iInputDataLen = sizeof(CM_DESTROYCMDEVICE_PARAM);
+    CM_DESTROYCMDEVICE_PARAM destroyCmDeviceParam;
+    CmSafeMemSet(&destroyCmDeviceParam, 0, sizeof(CM_DESTROYCMDEVICE_PARAM));
+    destroyCmDeviceParam.cmDeviceHandle = device->m_deviceInUmd;
+    uint32_t inputDataLen = sizeof(CM_DESTROYCMDEVICE_PARAM);
 
     int32_t result = device->OSALExtensionExecute(CM_FN_DESTROYCMDEVICE,
-                                                  &DestroyCmDevice_param,
-                                                  iInputDataLen);
+                                                  &destroyCmDeviceParam,
+                                                  inputDataLen);
 
     CmSafeRelease( device );
     CHK_FAILURE_RETURN(result);
 
     // leave critical section
-    return DestroyCmDevice_param.iReturnValue;
+    return destroyCmDeviceParam.returnValue;
 }
 
 CmDevice_RT::CmDevice_RT(     
@@ -162,7 +162,7 @@ CmDevice_RT::~CmDevice_RT( void )
 {
     if( m_cmCreated ) 
     {
-        VAStatus va_status = vaTerminate(m_vaDisplay);
+        VAStatus vaStatus = vaTerminate(m_vaDisplay);
 #ifndef ANDROID
         FreeLibvaDrm();
 #else
@@ -202,11 +202,11 @@ int32_t CmDevice_RT::FreeResources()
 
 static int32_t CmrtVaSurfaceRelease(void *vaDisplay, void *vaSurface)
 {
-    VAStatus   va_status       = VA_STATUS_SUCCESS;
-    VADisplay  *pDisplay       = (VADisplay *)(vaDisplay);
+    VAStatus   vaStatus       = VA_STATUS_SUCCESS;
+    VADisplay  *display       = (VADisplay *)(vaDisplay);
 
     //Destroy VaSurface
-    va_status = vaDestroySurfaces(*pDisplay, (VASurfaceID *)vaSurface, 1);
+    vaStatus = vaDestroySurfaces(*display, (VASurfaceID *)vaSurface, 1);
     
     return CM_SUCCESS;
 }
@@ -217,7 +217,7 @@ int32_t CmDevice_RT::Initialize( bool isCmCreated )
 
     m_cmCreated = isCmCreated;
 
-    CLock locker(g_deviceCreationCriticalSection);
+    CLock locker(gDeviceCreationCriticalSection);
 
     CHK_RET(InitializeLibvaDisplay());
 
@@ -245,22 +245,22 @@ finish:
 
 int32_t CmDevice_RT::CreateDeviceInUmd()
 {
-    CmDeviceCreationParam CreateCmDevice_param;
-    CmSafeMemSet(&CreateCmDevice_param, 0, sizeof(CreateCmDevice_param));
-    CreateCmDevice_param.returnValue        = CM_FAILURE;
-    CreateCmDevice_param.createOption     = m_createOption;
-    CreateCmDevice_param.ReleaseSurfaceFunc  = &CmrtVaSurfaceRelease;
-    uint32_t iInputDataLen = sizeof(CreateCmDevice_param);
+    CmDeviceCreationParam createCmDeviceParam;
+    CmSafeMemSet(&createCmDeviceParam, 0, sizeof(createCmDeviceParam));
+    createCmDeviceParam.returnValue        = CM_FAILURE;
+    createCmDeviceParam.createOption       = m_createOption;
+    createCmDeviceParam.releaseSurfaceFunc = &CmrtVaSurfaceRelease;
+    uint32_t inputDataLen = sizeof(createCmDeviceParam);
 
     int32_t result = OSALExtensionExecute(CM_FN_CREATECMDEVICE,
-                                          &CreateCmDevice_param, iInputDataLen);
+                                          &createCmDeviceParam, inputDataLen);
 
     CHK_FAILURE_RETURN(result);
-    CHK_FAILURE_RETURN(CreateCmDevice_param.returnValue);
+    CHK_FAILURE_RETURN(createCmDeviceParam.returnValue);
 
-    m_cmVersion = CreateCmDevice_param.version;
-    m_deviceInUmd = CreateCmDevice_param.deviceHandleInUmd;
-    m_driverStoreEnabled = CreateCmDevice_param.driverStoreEnabled;
+    m_cmVersion = createCmDeviceParam.version;
+    m_deviceInUmd = createCmDeviceParam.deviceHandleInUmd;
+    m_driverStoreEnabled = createCmDeviceParam.driverStoreEnabled;
     return CM_SUCCESS;
 }
 
@@ -349,14 +349,14 @@ int32_t CmDevice_RT::InitializeLibvaDisplay()
 {
     if ( m_cmCreated )
     {
-        VAStatus va_status = VA_STATUS_SUCCESS;
-        int va_major_version, va_minor_version;
+        VAStatus vaStatus = VA_STATUS_SUCCESS;
+        int vaMajorVersion, vaMinorVersion;
 
 #ifndef ANDROID
 #ifndef USE_LIBVA_DRM
-    pfVAOpenDisplayX11 pVAOpenDisplayX11 = nullptr;
-    pfVAGetDisplayX11 pVAGetDisplayX11 = nullptr;
-    char *dlsym_err = nullptr;
+    pfVAOpenDisplayX11 vaOpenDisplayX11 = nullptr;
+    pfVAGetDisplayX11 vaGetDisplayX11 = nullptr;
+    char *dlSymErr = nullptr;
 
     dlerror();
     m_hLibVaX11 = dlopen( "libva-x11.so", RTLD_LAZY );
@@ -368,34 +368,34 @@ int32_t CmDevice_RT::InitializeLibvaDisplay()
 
     //dynamically load function XOpenDisplay from libva-x11.so
     dlerror();
-    pVAOpenDisplayX11 = (pfVAOpenDisplayX11)dlsym(m_hLibVaX11, "XOpenDisplay");
-    if ((dlsym_err= dlerror()) != nullptr)  {
-        fprintf(stderr, "%s\n", dlsym_err);
+    vaOpenDisplayX11 = (pfVAOpenDisplayX11)dlsym(m_hLibVaX11, "XOpenDisplay");
+    if ((dlSymErr= dlerror()) != nullptr)  {
+        fprintf(stderr, "%s\n", dlSymErr);
         return CM_INVALID_LIBVA_INITIALIZE;
     }
     
     dlerror();
     m_pCloseDisplayX11 = (pfCloseDisplayX11)dlsym(m_hLibVaX11, "XCloseDisplay");
-    if ((dlsym_err= dlerror()) != nullptr)  {
-        fprintf(stderr, "%s\n", dlsym_err);
+    if ((dlSymErr= dlerror()) != nullptr)  {
+        fprintf(stderr, "%s\n", dlSymErr);
         return CM_INVALID_LIBVA_INITIALIZE;
     }
 
-    if (pVAOpenDisplayX11)
+    if (vaOpenDisplayX11)
     {
-        m_display = pVAOpenDisplayX11();
+        m_display = vaOpenDisplayX11();
     }
     
     dlerror();
-    pVAGetDisplayX11 = (pfVAGetDisplayX11)dlsym(m_hLibVaX11, "vaGetDisplay");
-    if ((dlsym_err= dlerror()) != nullptr)  {
-        fprintf(stderr, "%s\n", dlsym_err);
+    vaGetDisplayX11 = (pfVAGetDisplayX11)dlsym(m_hLibVaX11, "vaGetDisplay");
+    if ((dlSymErr= dlerror()) != nullptr)  {
+        fprintf(stderr, "%s\n", dlSymErr);
         return CM_INVALID_LIBVA_INITIALIZE;
     }
 
-    if (pVAGetDisplayX11)
+    if (vaGetDisplayX11)
     {
-        m_vaDisplay = pVAGetDisplayX11(m_display);
+        m_vaDisplay = vaGetDisplayX11(m_display);
     }
 
     if (!m_vaDisplay)
@@ -425,8 +425,8 @@ int32_t CmDevice_RT::InitializeLibvaDisplay()
         }
 #endif  //ANDROID
 
-        va_status = vaInitialize(m_vaDisplay, &va_major_version, &va_minor_version);
-        if ( VA_STATUS_SUCCESS != va_status ) {
+        vaStatus = vaInitialize(m_vaDisplay, &vaMajorVersion, &vaMinorVersion);
+        if ( VA_STATUS_SUCCESS != vaStatus ) {
             return CM_INVALID_LIBVA_INITIALIZE;
         }
     }
@@ -443,27 +443,27 @@ int32_t CmDevice_RT::InitializeLibvaDisplay()
     }
 }
 
-CM_RT_API int32_t CmDevice_RT::GetVaDpy(VADisplay* & pva_dpy)
+CM_RT_API int32_t CmDevice_RT::GetVaDpy(VADisplay* & vaDpy)
 {
     INSERT_PROFILER_RECORD();
     
-    pva_dpy = &m_vaDisplay;
+    vaDpy = &m_vaDisplay;
     return CM_SUCCESS;
 }
 
 #ifndef ANDROID
 int32_t CmDevice_RT::GetLibvaDisplayDrm(VADisplay & vaDisplay)
 {
-    pfVAGetDisplayDRM pVAGetDisplayDRM = nullptr;
-    char *dlsym_err = nullptr;
+    pfVAGetDisplayDRM vaGetDisplayDRM = nullptr;
+    char *dlSymErr = nullptr;
     void *hLibVaDRM = nullptr;
-    int32_t dri_fd    = -1;
+    int32_t driFd    = -1;
 
     CLock locker(m_vaReferenceCountCriticalSection);
 
     if(m_vaReferenceCount > 0)
     {
-        pVAGetDisplayDRM    = m_vaGetDisplayDrm;
+        vaGetDisplayDRM    = m_vaGetDisplayDrm;
         m_vaReferenceCount ++;
     }
     else
@@ -474,25 +474,25 @@ int32_t CmDevice_RT::GetLibvaDisplayDrm(VADisplay & vaDisplay)
 
         if (!hLibVaDRM) 
         {
-            if ((dlsym_err = dlerror()) != nullptr)
+            if ((dlSymErr = dlerror()) != nullptr)
             {
-                fprintf(stderr, "%s\n", dlsym_err);
+                fprintf(stderr, "%s\n", dlSymErr);
             }
             return CM_INVALID_LIBVA_INITIALIZE;
         }
 
         //dynamically load function vaGetDisplayDRM from libva-drm.so
         dlerror();
-        pVAGetDisplayDRM = (pfVAGetDisplayDRM)dlsym(hLibVaDRM, "vaGetDisplayDRM");
-        if ((dlsym_err= dlerror()) != nullptr)  {
-            fprintf(stderr, "%s\n", dlsym_err);
+        vaGetDisplayDRM = (pfVAGetDisplayDRM)dlsym(hLibVaDRM, "vaGetDisplayDRM");
+        if ((dlSymErr= dlerror()) != nullptr)  {
+            fprintf(stderr, "%s\n", dlSymErr);
             return CM_INVALID_LIBVA_INITIALIZE;
         }
 
         
         m_vaReferenceCount ++;
         m_vaDrm        = hLibVaDRM;
-        m_vaGetDisplayDrm = pVAGetDisplayDRM;
+        m_vaGetDisplayDrm = vaGetDisplayDRM;
     }
 
     // open the GPU device
@@ -510,12 +510,12 @@ int32_t CmDevice_RT::GetLibvaDisplayDrm(VADisplay & vaDisplay)
     }
 
     // get the display handle.
-    if (pVAGetDisplayDRM == nullptr)
+    if (vaGetDisplayDRM == nullptr)
     {
-        fprintf(stderr, "pVAGetDisplayDRM should not be nullptr.\n");
+        fprintf(stderr, "vaGetDisplayDRM should not be nullptr.\n");
         return CM_INVALID_LIBVA_INITIALIZE;
     }
-    vaDisplay            = pVAGetDisplayDRM(m_driFileDescriptor);
+    vaDisplay            = vaGetDisplayDRM(m_driFileDescriptor);
 
     return CM_SUCCESS;
  }

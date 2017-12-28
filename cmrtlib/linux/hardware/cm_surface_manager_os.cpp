@@ -206,17 +206,17 @@ int32_t CmSurfaceManager::CreateSurface2D(VASurfaceID *vaSurfaceArray,
                                       CmSurface2D **surfaceArray)
 {
     int32_t result = CM_FAILURE;
-    uint32_t SurfIndex = 0;
-    for (SurfIndex = 0; SurfIndex < surfaceCount; SurfIndex++)
+    uint32_t surfIndex = 0;
+    for (surfIndex = 0; surfIndex < surfaceCount; surfIndex++)
     {
-        CHK_RET(CreateSurface2D(vaSurfaceArray[SurfIndex], surfaceArray[SurfIndex]));
-        CHK_NULL(surfaceArray[SurfIndex]);
+        CHK_RET(CreateSurface2D(vaSurfaceArray[surfIndex], surfaceArray[surfIndex]));
+        CHK_NULL(surfaceArray[surfIndex]);
     }
 
 finish:
     if (result != CM_SUCCESS)
     {
-        for (uint32_t j = 0; j < SurfIndex; j++)
+        for (uint32_t j = 0; j < surfIndex; j++)
         {
             DestroySurface(surfaceArray[j]);
         }
@@ -231,16 +231,16 @@ int32_t CmSurfaceManager::CreateVaSurface2D(uint32_t width,
                                         CmSurface2D *&surface)
 {
     int32_t hr = CM_SUCCESS;
-    VAStatus va_status = VA_STATUS_SUCCESS;
-    VASurfaceID va_surface_id = 0;
-    VADisplay *pdpy = nullptr;
-    uint32_t VaFormat = 0;
+    VAStatus vaStatus = VA_STATUS_SUCCESS;
+    VASurfaceID vaSurfaceId = 0;
+    VADisplay *dpy = nullptr;
+    uint32_t vaFormat = 0;
 
-    VaFormat = ConvertToLibvaFormat(format);
+    vaFormat = ConvertToLibvaFormat(format);
 
     //Create Va Surface
-    m_device->GetVaDpy(pdpy);
-    if(pdpy == nullptr)
+    m_device->GetVaDpy(dpy);
+    if(dpy == nullptr)
     {
         CmAssert(0);
         return CM_INVALID_LIBVA_INITIALIZE;
@@ -251,14 +251,14 @@ int32_t CmSurfaceManager::CreateVaSurface2D(uint32_t width,
     surfaceAttrib.type = VASurfaceAttribPixelFormat;
     surfaceAttrib.value.type = VAGenericValueTypeInteger;
     surfaceAttrib.flags = VA_SURFACE_ATTRIB_SETTABLE;
-    surfaceAttrib.value.value.i = VaFormat;
+    surfaceAttrib.value.value.i = vaFormat;
 
     // since no 10-bit format is supported in MDF, 
     // the VA_RT_FORMAT_YUV420 will be overwritten
     // by the format in attribute
-    va_status = vaCreateSurfaces(*pdpy, VA_RT_FORMAT_YUV420, width, height, &vaSurface, 1,
+    vaStatus = vaCreateSurfaces(*dpy, VA_RT_FORMAT_YUV420, width, height, &vaSurface, 1,
                                  &surfaceAttrib, 1);
-    if (va_status != VA_STATUS_SUCCESS)
+    if (vaStatus != VA_STATUS_SUCCESS)
     {
         CmAssert(0);
         return CM_VA_SURFACE_NOT_SUPPORTED;
@@ -269,7 +269,7 @@ int32_t CmSurfaceManager::CreateVaSurface2D(uint32_t width,
     if (hr != CM_SUCCESS)
     {
         CmAssert(0);
-        va_status = vaDestroySurfaces(*pdpy, &vaSurface, 1);
+        vaStatus = vaDestroySurfaces(*dpy, &vaSurface, 1);
         return hr;
     }
 
@@ -293,18 +293,18 @@ finish:
 
 int32_t CmSurfaceManager::ConvertToLibvaFormat(int32_t format)
 {
-    int32_t VAFmt = format;
+    int32_t vaFmt = format;
     switch (format)
     {
     case VA_CM_FMT_A8R8G8B8:
-        VAFmt = VA_FOURCC_ARGB;
+        vaFmt = VA_FOURCC_ARGB;
         break;
 
     default:
-        VAFmt = format;
+        vaFmt = format;
         break;
     }
-    return VAFmt;
+    return vaFmt;
 }
 
 int32_t CmSurfaceManager::AllocateSurface2DInUmd(uint32_t width,
@@ -315,25 +315,25 @@ int32_t CmSurfaceManager::AllocateSurface2DInUmd(uint32_t width,
                                            VASurfaceID vaSurface,
                                            CmSurface2D *&surface)
 {
-    VADisplay *pDisplay = nullptr;
-    m_device->GetVaDpy(pDisplay);
+    VADisplay *display = nullptr;
+    m_device->GetVaDpy(display);
 
     CM_CREATESURFACE2D_PARAM inParam;
     CmSafeMemSet(&inParam, 0, sizeof(CM_CREATESURFACE2D_PARAM));
-    inParam.iWidth = width;
-    inParam.iHeight = height;
-    inParam.Format = format;
-    inParam.bIsCmCreated = cmCreated;
-    inParam.bIsLibvaCreated = createdbyLibva;
-    inParam.uiVASurfaceID = vaSurface;
-    inParam.pVaDpy = pDisplay;
+    inParam.width = width;
+    inParam.height = height;
+    inParam.format = format;
+    inParam.isCmCreated = cmCreated;
+    inParam.isLibvaCreated = createdbyLibva;
+    inParam.vaSurfaceID = vaSurface;
+    inParam.vaDpy = display;
 
     int32_t hr = m_device->OSALExtensionExecute(CM_FN_CMDEVICE_CREATESURFACE2D,
                                                 &inParam, sizeof(inParam),
                                                 nullptr, 0);
     CHK_FAILURE_RETURN(hr);
-    CHK_FAILURE_RETURN(inParam.iReturnValue);
-    surface = (CmSurface2D *)inParam.pCmSurface2DHandle;
+    CHK_FAILURE_RETURN(inParam.returnValue);
+    surface = (CmSurface2D *)inParam.cmSurface2DHandle;
 
     return hr;
 }

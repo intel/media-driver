@@ -27,17 +27,17 @@
 
 //!
 //! \brief      Returns the corresponding CM_RETURN_CODE error string
-//! \param      [in] Code
+//! \param      [in] code
 //!             CM error code
-//! \return     Corresponding error string if valid Code \n
+//! \return     Corresponding error string if valid code \n
 //!             "Internal Error" if invalid
 //!
-extern "C" CM_RT_API const char* GetCmErrorString(int Code)
+extern "C" CM_RT_API const char* GetCmErrorString(int code)
 {
-    if (Code == CM_SUCCESS)
+    if (code == CM_SUCCESS)
         return nullptr;
 
-    static const char *ErrorStrings[] = {
+    static const char *errorStrings[] = {
 #define ENUM_STRING(e)  #e
         ENUM_STRING(CM_SUCCESS),
         ENUM_STRING(CM_FAILURE),
@@ -144,12 +144,12 @@ extern "C" CM_RT_API const char* GetCmErrorString(int Code)
 #undef ENUM_STRING
     };
 
-    const char *ErrorString = "Internal Error";
-    if (Code > CM_INTERNAL_ERROR_CODE_OFFSET && Code >= CM_INVALID_CAP_NAME && Code <= CM_SUCCESS)
+    const char *errorString = "Internal Error";
+    if (code > CM_INTERNAL_ERROR_CODE_OFFSET && code >= CM_INVALID_CAP_NAME && code <= CM_SUCCESS)
     {
-        ErrorString = ErrorStrings[-Code];
+        errorString = errorStrings[-code];
     }
 
-    return ErrorString;
+    return errorString;
 
 }

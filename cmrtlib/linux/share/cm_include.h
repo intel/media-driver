@@ -75,15 +75,15 @@ typedef union _LARGE_INTEGER
 {
     struct
     {
-        uint32_t LowPart;
-        int32_t HighPart;
+        uint32_t lowPart;
+        int32_t highPart;
     } u;
-    int64_t QuadPart;
+    int64_t quadPart;
 } LARGE_INTEGER;
 
 typedef int HANDLE;
 
-extern "C" int32_t QueryPerformanceFrequency(LARGE_INTEGER *pFrequency);
-extern "C" int32_t QueryPerformanceCounter(LARGE_INTEGER *pPerformanceCount);
+extern "C" int32_t QueryPerformanceFrequency(LARGE_INTEGER *frequency);
+extern "C" int32_t QueryPerformanceCounter(LARGE_INTEGER *performanceCount);
 
 #endif  // #ifndef CMRTLIB_LINUX_SHARE_CM_INCLUDE_H_

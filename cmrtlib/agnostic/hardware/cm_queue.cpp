@@ -28,102 +28,102 @@
 
 struct CM_CREATEQUEUE_PARAM
 {
-    unsigned int iCmQueueType;   // [in]
-    bool bCmRunAloneMode;        // [in]
-    unsigned int iCmGPUContext;  // [in]
-    void *pCmQueueHandle;        // [out]
-    int32_t iReturnValue;        // [out]
+    unsigned int cmQueueType;   // [in]
+    bool cmRunAloneMode;        // [in]
+    unsigned int cmGPUContext;  // [in]
+    void *cmQueueHandle;        // [out]
+    int32_t returnValue;        // [out]
 };
 
 struct CM_ENQUEUE_PARAM
 {
-    void *pCmQueueHandle;        // [in]
-    void *pCmTaskHandle;         // [in]
-    void *pCmThreadSpaceHandle;  // [in]
-    void *pCmEventHandle;        // [out]
-    uint32_t iEventIndex;        // [out] index of Event in m_EventArray
-    int32_t iReturnValue;        // [out]
+    void *cmQueueHandle;        // [in]
+    void *cmTaskHandle;         // [in]
+    void *cmThreadSpaceHandle;  // [in]
+    void *cmEventHandle;        // [out]
+    uint32_t eventIndex;        // [out] index of Event in m_EventArray
+    int32_t returnValue;        // [out]
 };
 
 struct CM_ENQUEUEGROUP_PARAM
 {
-    void *pCmQueueHandle;      // [in]
-    void *pCmTaskHandle;       // [in]
-    void *pCmTGrpSpaceHandle;  // [in]
-    void *pCmEventHandle;      // [out]
-    uint32_t iEventIndex;      // [out] index of Event in m_EventArray
-    int32_t iReturnValue;      // [out]
+    void *cmQueueHandle;      // [in]
+    void *cmTaskHandle;       // [in]
+    void *cmTGrpSpaceHandle;  // [in]
+    void *cmEventHandle;      // [out]
+    uint32_t eventIndex;      // [out] index of Event in m_EventArray
+    int32_t returnValue;      // [out]
 };
 
 struct CM_ENQUEUEHINTS_PARAM
 {
-    void *pCmQueueHandle;  // [in]
-    void *pCmTaskHandle;   // [in]
-    void *pCmEventHandle;  // [in]
-    uint32_t uiHints;      // [in]
-    uint32_t iEventIndex;  // [out] index of Event in m_EventArray
-    int32_t iReturnValue;  // [out]
+    void *cmQueueHandle;  // [in]
+    void *cmTaskHandle;   // [in]
+    void *cmEventHandle;  // [in]
+    uint32_t hints;      // [in]
+    uint32_t eventIndex;  // [out] index of Event in m_EventArray
+    int32_t returnValue;  // [out]
 };
 
 struct CM_DESTROYEVENT_PARAM
 {
-    void *pCmQueueHandle;  // [in]
-    void *pCmEventHandle;  // [in]
-    int32_t iReturnValue;  // [out]
+    void *cmQueueHandle;  // [in]
+    void *cmEventHandle;  // [in]
+    int32_t returnValue;  // [out]
 };
 
 struct CM_ENQUEUE_GPUCOPY_V2V_PARAM
 {
-    void *pCmQueueHandle;   // [in]
-    void *pCmSrcSurface2d;  // [in]
-    void *pCmDstSurface2d;  // [in]
-    uint32_t iOption;       // [in]
-    void *pCmEventHandle;   // [out]
-    uint32_t iEventIndex;   // [out] index of Event in m_EventArray
-    int32_t iReturnValue;   // [out]
+    void *cmQueueHandle;   // [in]
+    void *cmSrcSurface2d;  // [in]
+    void *cmDstSurface2d;  // [in]
+    uint32_t option;       // [in]
+    void *cmEventHandle;   // [out]
+    uint32_t eventIndex;   // [out] index of Event in m_EventArray
+    int32_t returnValue;   // [out]
 };
 
 struct CM_ENQUEUE_GPUCOPY_L2L_PARAM
 {
-    void *pCmQueueHandle;  // [in]
-    void *pSrcSysMem;      // [in]
-    void *pDstSysMem;      // [in]
-    uint32_t CopySize;     // [in]
-    uint32_t iOption;      // [in]
-    void *pCmEventHandle;  // [out]
-    uint32_t iEventIndex;  // [out] index of Event in m_EventArray
-    int32_t iReturnValue;  // [out]
+    void *cmQueueHandle;  // [in]
+    void *srcSysMem;      // [in]
+    void *dstSysMem;      // [in]
+    uint32_t copySize;     // [in]
+    uint32_t option;      // [in]
+    void *cmEventHandle;  // [out]
+    uint32_t eventIndex;  // [out] index of Event in m_EventArray
+    int32_t returnValue;  // [out]
 };
 
 struct CM_ENQUEUE_2DInit_PARAM
 {
-    void *pCmQueueHandle;  // [in]
-    void *pCmSurface2d;    // [in]
-    uint32_t dwInitValue;  // [in]
-    void *pCmEventHandle;  // [out]
-    uint32_t iEventIndex;  // [out] index of Event in m_EventArray
-    int32_t iReturnValue;  // [out]
+    void *cmQueueHandle;  // [in]
+    void *cmSurface2d;    // [in]
+    uint32_t initValue;  // [in]
+    void *cmEventHandle;  // [out]
+    uint32_t eventIndex;  // [out] index of Event in m_EventArray
+    int32_t returnValue;  // [out]
 };
 
 struct CM_ENQUEUE_VEBOX_PARAM
 {
-    void *pCmQueueHandle;  // [IN]
-    void *pCmVeboxHandle;  // [IN] CmVeboxG75's handle
-    void *pCmEventHandle;  // [out] event's handle
-    uint32_t iEventIndex;  // [out] event's index in  m_EventArray CMRT@UMD
-    int32_t iReturnValue;  // [out] return value
+    void *cmQueueHandle;  // [IN]
+    void *cmVeboxHandle;  // [IN] CmVeboxG75's handle
+    void *cmEventHandle;  // [out] event's handle
+    uint32_t eventIndex;  // [out] event's index in  m_EventArray CMRT@UMD
+    int32_t returnValue;  // [out] return value
 };
 
-int32_t CmQueue_RT::Create(CmDevice_RT *pDevice, CmQueue_RT *&pQueue, CM_QUEUE_CREATE_OPTION QueueCreateOption)
+int32_t CmQueue_RT::Create(CmDevice_RT *device, CmQueue_RT *&queue, CM_QUEUE_CREATE_OPTION queueCreateOption)
 {
     int32_t result = CM_SUCCESS;
-    pQueue = new(std::nothrow) CmQueue_RT(pDevice);
-    if (pQueue)
+    queue = new(std::nothrow) CmQueue_RT(device);
+    if (queue)
     {
-        result = pQueue->Initialize(QueueCreateOption);
+        result = queue->Initialize(queueCreateOption);
         if (result != CM_SUCCESS)
         {
-            CmQueue_RT::Destroy(pQueue);
+            CmQueue_RT::Destroy(queue);
         }
     }
     else
@@ -134,31 +134,31 @@ int32_t CmQueue_RT::Create(CmDevice_RT *pDevice, CmQueue_RT *&pQueue, CM_QUEUE_C
     return result;
 }
 
-int32_t CmQueue_RT::Destroy(CmQueue_RT *&pQueue)
+int32_t CmQueue_RT::Destroy(CmQueue_RT *&queue)
 {
-    CmSafeRelease(pQueue);
+    CmSafeRelease(queue);
     return CM_SUCCESS;
 }
 
-CmQueue_RT::CmQueue_RT(CmDevice_RT *pDevice):
-    m_pCmDev(pDevice),
-    m_pCmQueueHandle(nullptr) {}
+CmQueue_RT::CmQueue_RT(CmDevice_RT *device):
+    m_cmDev(device),
+    m_cmQueueHandle(nullptr) {}
 
 CmQueue_RT::~CmQueue_RT() {}
 
-int32_t CmQueue_RT::Initialize(CM_QUEUE_CREATE_OPTION QueueCreateOption)
+int32_t CmQueue_RT::Initialize(CM_QUEUE_CREATE_OPTION queueCreateOption)
 {
     CM_CREATEQUEUE_PARAM inParam;
     CmSafeMemSet(&inParam, 0, sizeof(inParam));
-    inParam.iCmQueueType = QueueCreateOption.QueueType;
-    inParam.bCmRunAloneMode = QueueCreateOption.RunAloneMode;
-    inParam.iCmGPUContext = CM_DEFAULT_QUEUE_CREATE_OPTION.Reserved1;
+    inParam.cmQueueType = queueCreateOption.QueueType;
+    inParam.cmRunAloneMode = queueCreateOption.RunAloneMode;
+    inParam.cmGPUContext = CM_DEFAULT_QUEUE_CREATE_OPTION.Reserved1;
 
-    int32_t hr = m_pCmDev->OSALExtensionExecute(CM_FN_CMDEVICE_CREATEQUEUE,
+    int32_t hr = m_cmDev->OSALExtensionExecute(CM_FN_CMDEVICE_CREATEQUEUE,
                                                 &inParam, sizeof(inParam));
     CHK_FAILURE_RETURN(hr);
-    CHK_FAILURE_RETURN(inParam.iReturnValue);
-    m_pCmQueueHandle = inParam.pCmQueueHandle;
+    CHK_FAILURE_RETURN(inParam.returnValue);
+    m_cmQueueHandle = inParam.cmQueueHandle;
     return CM_SUCCESS;
 }
 
@@ -186,12 +186,12 @@ int32_t CmQueue_RT::Initialize(CM_QUEUE_CREATE_OPTION QueueCreateOption)
 //!     CM_FAILURE otherwise.
 //!     More error code is coming.
 //!
-CM_RT_API int32_t CmQueue_RT::Enqueue(CmTask *pTask,
-                                  CmEvent *&pEvent,
-                                  const CmThreadSpace *pThreadSpace)
+CM_RT_API int32_t CmQueue_RT::Enqueue(CmTask *task,
+                                  CmEvent *&event,
+                                  const CmThreadSpace *threadSpace)
 {
     INSERT_PROFILER_RECORD();
-    if (pTask == nullptr)
+    if (task == nullptr)
     {
         CmAssert(0);
         CmDebugMessage(("Kernel array is NULL."));
@@ -201,12 +201,12 @@ CM_RT_API int32_t CmQueue_RT::Enqueue(CmTask *pTask,
 
     CM_ENQUEUE_PARAM inParam;
     CmSafeMemSet(&inParam, 0, sizeof(inParam));
-    inParam.pCmTaskHandle = pTask;
-    inParam.pCmQueueHandle = m_pCmQueueHandle;
-    inParam.pCmThreadSpaceHandle = (void *)pThreadSpace;
-    inParam.pCmEventHandle = pEvent;  // to support invisiable event, this field is used for input/output.
+    inParam.cmTaskHandle = task;
+    inParam.cmQueueHandle = m_cmQueueHandle;
+    inParam.cmThreadSpaceHandle = (void *)threadSpace;
+    inParam.cmEventHandle = event;  // to support invisiable event, this field is used for input/output.
 
-    int32_t hr = m_pCmDev->OSALExtensionExecute(CM_FN_CMQUEUE_ENQUEUE,
+    int32_t hr = m_cmDev->OSALExtensionExecute(CM_FN_CMQUEUE_ENQUEUE,
                                                 &inParam, sizeof(inParam));
     if (FAILED(hr))
     {
@@ -214,23 +214,23 @@ CM_RT_API int32_t CmQueue_RT::Enqueue(CmTask *pTask,
         m_criticalSection.Release();
         return hr;
     }
-    if (inParam.iReturnValue != CM_SUCCESS)
+    if (inParam.returnValue != CM_SUCCESS)
     {
         m_criticalSection.Release();
-        return inParam.iReturnValue;
+        return inParam.returnValue;
     }
 
-    pEvent = static_cast<CmEvent *>(inParam.pCmEventHandle);
+    event = static_cast<CmEvent *>(inParam.cmEventHandle);
     m_criticalSection.Release();
     return CM_SUCCESS;
 }
 
-CM_RT_API int32_t CmQueue_RT::EnqueueWithHints(CmTask *pTask,
-                                           CmEvent *&pEvent,
+CM_RT_API int32_t CmQueue_RT::EnqueueWithHints(CmTask *task,
+                                           CmEvent *&event,
                                            uint32_t hints)
 {
     INSERT_PROFILER_RECORD();
-    if (pTask == nullptr)
+    if (task == nullptr)
     {
         CmAssert(0);
         CmDebugMessage(("Kernel array is NULL."));
@@ -240,12 +240,12 @@ CM_RT_API int32_t CmQueue_RT::EnqueueWithHints(CmTask *pTask,
 
     CM_ENQUEUEHINTS_PARAM inParam;
     CmSafeMemSet(&inParam, 0, sizeof(inParam));
-    inParam.pCmTaskHandle = pTask;
-    inParam.pCmQueueHandle = m_pCmQueueHandle;
-    inParam.uiHints = hints;
-    inParam.pCmEventHandle = pEvent;  // to support invisable event, this field is used for input/output
+    inParam.cmTaskHandle = task;
+    inParam.cmQueueHandle = m_cmQueueHandle;
+    inParam.hints = hints;
+    inParam.cmEventHandle = event;  // to support invisable event, this field is used for input/output
     int32_t hr =
-        m_pCmDev->OSALExtensionExecute(CM_FN_CMQUEUE_ENQUEUEWITHHINTS,
+        m_cmDev->OSALExtensionExecute(CM_FN_CMQUEUE_ENQUEUEWITHHINTS,
                                        &inParam, sizeof(inParam));
     if (FAILED(hr))
     {
@@ -253,13 +253,13 @@ CM_RT_API int32_t CmQueue_RT::EnqueueWithHints(CmTask *pTask,
         m_criticalSection.Release();
         return hr;
     }
-    if (inParam.iReturnValue != CM_SUCCESS)
+    if (inParam.returnValue != CM_SUCCESS)
     {
         m_criticalSection.Release();
-        return inParam.iReturnValue;
+        return inParam.returnValue;
     }
 
-    pEvent = static_cast<CmEvent *>(inParam.pCmEventHandle);
+    event = static_cast<CmEvent *>(inParam.cmEventHandle);
     m_criticalSection.Release();
     return CM_SUCCESS;
 }
@@ -283,18 +283,18 @@ CM_RT_API int32_t CmQueue_RT::EnqueueWithHints(CmTask *pTask,
 //!     CM_FAILURE otherwise.
 //!     More error code is coming.
 //!
-int32_t CmQueue_RT::EnqueueCopyCPUToGPU(CmSurface2D *pSurface,
-                                    const unsigned char *pSysMem,
-                                    CmEvent *&pEvent)
+int32_t CmQueue_RT::EnqueueCopyCPUToGPU(CmSurface2D *surface,
+                                    const unsigned char *sysMem,
+                                    CmEvent *&event)
 {
     INSERT_PROFILER_RECORD();
-    return EnqueueCopy(pSurface,
-                       pSysMem,
+    return EnqueueCopy(surface,
+                       sysMem,
                        0,
                        0,
                        CM_FASTCOPY_CPU2GPU,
                        CM_FASTCOPY_OPTION_NONBLOCKING,
-                       pEvent);
+                       event);
 }
 
 //!
@@ -316,18 +316,18 @@ int32_t CmQueue_RT::EnqueueCopyCPUToGPU(CmSurface2D *pSurface,
 //!     CM_FAILURE otherwise.
 //!     More error code is coming.
 //!
-CM_RT_API int32_t CmQueue_RT::EnqueueCopyGPUToCPU(CmSurface2D *pSurface,
-                                              unsigned char *pSysMem,
-                                              CmEvent *&pEvent)
+CM_RT_API int32_t CmQueue_RT::EnqueueCopyGPUToCPU(CmSurface2D *surface,
+                                              unsigned char *sysMem,
+                                              CmEvent *&event)
 {
     INSERT_PROFILER_RECORD();
-    return EnqueueCopy(pSurface,
-                       pSysMem,
+    return EnqueueCopy(surface,
+                       sysMem,
                        0,
                        0,
                        CM_FASTCOPY_GPU2CPU,
                        CM_FASTCOPY_OPTION_NONBLOCKING,
-                       pEvent);
+                       event);
 }
 
 //!
@@ -351,21 +351,21 @@ CM_RT_API int32_t CmQueue_RT::EnqueueCopyGPUToCPU(CmSurface2D *pSurface,
 //!     CM_FAILURE otherwise.
 //!
 CM_RT_API int32_t
-CmQueue_RT::EnqueueCopyCPUToGPUFullStride(CmSurface2D *pSurface,
-                                          const unsigned char *pSysMem,
+CmQueue_RT::EnqueueCopyCPUToGPUFullStride(CmSurface2D *surface,
+                                          const unsigned char *sysMem,
                                           const uint32_t widthStride,
                                           const uint32_t heightStride,
                                           const uint32_t option,
-                                          CmEvent *&pEvent)
+                                          CmEvent *&event)
 {
     INSERT_PROFILER_RECORD();
-    return EnqueueCopy(pSurface,
-                       pSysMem,
+    return EnqueueCopy(surface,
+                       sysMem,
                        widthStride,
                        heightStride,
                        CM_FASTCOPY_CPU2GPU,
                        option,
-                       pEvent);
+                       event);
 }
 
 //!
@@ -388,21 +388,21 @@ CmQueue_RT::EnqueueCopyCPUToGPUFullStride(CmSurface2D *pSurface,
 //!     CM_OUT_OF_HOST_MEMORY if out of host memery;
 //!     CM_FAILURE otherwise.
 //!
-CM_RT_API int32_t CmQueue_RT::EnqueueCopyGPUToCPUFullStride(CmSurface2D *pSurface,
-                                                        unsigned char *pSysMem,
+CM_RT_API int32_t CmQueue_RT::EnqueueCopyGPUToCPUFullStride(CmSurface2D *surface,
+                                                        unsigned char *sysMem,
                                                         const uint32_t widthStride,
                                                         const uint32_t heightStride,
                                                         const uint32_t option,
-                                                        CmEvent *&pEvent)
+                                                        CmEvent *&event)
 {
     INSERT_PROFILER_RECORD();
-    return EnqueueCopy(pSurface,
-                       pSysMem,
+    return EnqueueCopy(surface,
+                       sysMem,
                        widthStride,
                        heightStride,
                        CM_FASTCOPY_GPU2CPU,
                        option,
-                       pEvent);
+                       event);
 }
 
 //!
@@ -426,21 +426,21 @@ CM_RT_API int32_t CmQueue_RT::EnqueueCopyGPUToCPUFullStride(CmSurface2D *pSurfac
 //!     CM_FAILURE otherwise.
 //!
 CM_RT_API int32_t
-CmQueue_RT::EnqueueCopyCPUToGPUFullStrideDup(CmSurface2D *pSurface,
-                                          const unsigned char *pSysMem,
+CmQueue_RT::EnqueueCopyCPUToGPUFullStrideDup(CmSurface2D *surface,
+                                          const unsigned char *sysMem,
                                           const uint32_t widthStride,
                                           const uint32_t heightStride,
                                           const uint32_t option,
-                                          CmEvent *&pEvent)
+                                          CmEvent *&event)
 {
     INSERT_PROFILER_RECORD();
-    return EnqueueCopy(pSurface,
-                       pSysMem,
+    return EnqueueCopy(surface,
+                       sysMem,
                        widthStride,
                        heightStride,
                        CM_FASTCOPY_CPU2GPU,
                        option,
-                       pEvent);
+                       event);
 }
 
 //!
@@ -463,41 +463,41 @@ CmQueue_RT::EnqueueCopyCPUToGPUFullStrideDup(CmSurface2D *pSurface,
 //!     CM_OUT_OF_HOST_MEMORY if out of host memery;
 //!     CM_FAILURE otherwise.
 //!
-CM_RT_API int32_t CmQueue_RT::EnqueueCopyGPUToCPUFullStrideDup(CmSurface2D *pSurface,
-                                                        unsigned char *pSysMem,
+CM_RT_API int32_t CmQueue_RT::EnqueueCopyGPUToCPUFullStrideDup(CmSurface2D *surface,
+                                                        unsigned char *sysMem,
                                                         const uint32_t widthStride,
                                                         const uint32_t heightStride,
                                                         const uint32_t option,
-                                                        CmEvent *&pEvent)
+                                                        CmEvent *&event)
 {
     INSERT_PROFILER_RECORD();
-    return EnqueueCopy(pSurface,
-                       pSysMem,
+    return EnqueueCopy(surface,
+                       sysMem,
                        widthStride,
                        heightStride,
                        CM_FASTCOPY_GPU2CPU,
                        option,
-                       pEvent);
+                       event);
 }
 
-CM_RT_API int32_t CmQueue_RT::DestroyEvent(CmEvent *&pEvent)
+CM_RT_API int32_t CmQueue_RT::DestroyEvent(CmEvent *&event)
 {
     INSERT_PROFILER_RECORD();
-    if (pEvent == nullptr)
+    if (event == nullptr)
     {
         return CM_FAILURE;
     }
 
     CM_DESTROYEVENT_PARAM inParam;
     CmSafeMemSet(&inParam, 0, sizeof(inParam));
-    inParam.pCmQueueHandle = m_pCmQueueHandle;
-    inParam.pCmEventHandle = pEvent;
+    inParam.cmQueueHandle = m_cmQueueHandle;
+    inParam.cmEventHandle = event;
 
-    int32_t hr = m_pCmDev->OSALExtensionExecute(CM_FN_CMQUEUE_DESTROYEVENT,
+    int32_t hr = m_cmDev->OSALExtensionExecute(CM_FN_CMQUEUE_DESTROYEVENT,
                                                 &inParam, sizeof(inParam));
     CHK_FAILURE_RETURN(hr);
-    CHK_FAILURE_RETURN(inParam.iReturnValue);
-    pEvent = nullptr;
+    CHK_FAILURE_RETURN(inParam.returnValue);
+    event = nullptr;
     return CM_SUCCESS;
 }
 
@@ -515,12 +515,12 @@ CM_RT_API int32_t CmQueue_RT::DestroyEvent(CmEvent *&pEvent)
 //!     If the kernel has per thread arg, GPGPU object is to be used.
 //!     If the kernel has no per thread  arg. GPGPU walker is used.
 CM_RT_API int32_t
-CmQueue_RT::EnqueueWithGroup(CmTask *pTask,
-                             CmEvent *&pEvent,
-                             const CmThreadGroupSpace *pThreadGroupSpace)
+CmQueue_RT::EnqueueWithGroup(CmTask *task,
+                             CmEvent *&event,
+                             const CmThreadGroupSpace *threadGroupSpace)
 {
     INSERT_PROFILER_RECORD();
-    if (pTask == nullptr)
+    if (task == nullptr)
     {
         CmAssert(0);
         CmDebugMessage(("Kernel array is NULL."));
@@ -530,13 +530,13 @@ CmQueue_RT::EnqueueWithGroup(CmTask *pTask,
 
     CM_ENQUEUEGROUP_PARAM inParam;
     CmSafeMemSet(&inParam, 0, sizeof(inParam));
-    inParam.pCmTaskHandle = pTask;
-    inParam.pCmQueueHandle = m_pCmQueueHandle;
-    inParam.pCmTGrpSpaceHandle = (void *)pThreadGroupSpace;
-    inParam.pCmEventHandle = pEvent;  // to support invisiable event, this field is used for input/output.
+    inParam.cmTaskHandle = task;
+    inParam.cmQueueHandle = m_cmQueueHandle;
+    inParam.cmTGrpSpaceHandle = (void *)threadGroupSpace;
+    inParam.cmEventHandle = event;  // to support invisiable event, this field is used for input/output.
 
     int32_t hr =
-        m_pCmDev->OSALExtensionExecute(CM_FN_CMQUEUE_ENQUEUEWITHGROUP,
+        m_cmDev->OSALExtensionExecute(CM_FN_CMQUEUE_ENQUEUEWITHGROUP,
                                        &inParam, sizeof(inParam));
     if (FAILED(hr))
     {
@@ -544,40 +544,40 @@ CmQueue_RT::EnqueueWithGroup(CmTask *pTask,
         m_criticalSection.Release();
         return hr;
     }
-    if (inParam.iReturnValue != CM_SUCCESS)
+    if (inParam.returnValue != CM_SUCCESS)
     {
         m_criticalSection.Release();
-        return inParam.iReturnValue;
+        return inParam.returnValue;
     }
 
-    pEvent = static_cast<CmEvent *>(inParam.pCmEventHandle);
+    event = static_cast<CmEvent *>(inParam.cmEventHandle);
     m_criticalSection.Release();
     return CM_SUCCESS;
 }
 
-int32_t CmQueue_RT::EnqueueCopy(CmSurface2D *pSurface,
-                            const unsigned char *pSysMem,
+int32_t CmQueue_RT::EnqueueCopy(CmSurface2D *surface,
+                            const unsigned char *sysMem,
                             const uint32_t widthStride,
                             const uint32_t heightStride,
                             CM_FASTCOPY_DIRECTION direction,
                             const uint32_t option,
-                            CmEvent *&pEvent)
+                            CmEvent *&event)
 {
     CM_ENQUEUE_GPUCOPY_PARAM inParam;
     CmSafeMemSet(&inParam, 0, sizeof(inParam));
-    inParam.pCmQueueHandle = m_pCmQueueHandle;
+    inParam.cmQueueHandle = m_cmQueueHandle;
 
-    inParam.pCmSurface2d = pSurface;
-    inParam.pSysMem = (void *)pSysMem;
-    inParam.iCopyDir = direction;
-    inParam.iWidthStride = widthStride;
-    inParam.iHeightStride = heightStride;
-    inParam.iOption = option;
-    inParam.pCmEventHandle = pEvent;
+    inParam.cmSurface2d = surface;
+    inParam.sysMem = (void *)sysMem;
+    inParam.copyDir = direction;
+    inParam.widthStride = widthStride;
+    inParam.heightStride = heightStride;
+    inParam.option = option;
+    inParam.cmEventHandle = event;
 
     m_criticalSection.Acquire();
 
-    int32_t hr = m_pCmDev->OSALExtensionExecute(CM_FN_CMQUEUE_ENQUEUECOPY,
+    int32_t hr = m_cmDev->OSALExtensionExecute(CM_FN_CMQUEUE_ENQUEUECOPY,
                                                 &inParam, sizeof(inParam),
                                                 nullptr, 0);
     if (FAILED(hr))
@@ -586,32 +586,32 @@ int32_t CmQueue_RT::EnqueueCopy(CmSurface2D *pSurface,
         m_criticalSection.Release();
         return hr;
     }
-    if (inParam.iReturnValue != CM_SUCCESS)
+    if (inParam.returnValue != CM_SUCCESS)
     {
         m_criticalSection.Release();
-        return inParam.iReturnValue;
+        return inParam.returnValue;
     }
 
-    pEvent = static_cast<CmEvent *>(inParam.pCmEventHandle);
+    event = static_cast<CmEvent *>(inParam.cmEventHandle);
     m_criticalSection.Release();
     return hr;
 }
 
-CM_RT_API int32_t CmQueue_RT::EnqueueInitSurface2D(CmSurface2D *pSurface,
+CM_RT_API int32_t CmQueue_RT::EnqueueInitSurface2D(CmSurface2D *surface,
                                                const uint32_t initValue,
-                                               CmEvent *&pEvent)
+                                               CmEvent *&event)
 {
     INSERT_PROFILER_RECORD();
 
     CM_ENQUEUE_2DInit_PARAM inParam;
     CmSafeMemSet(&inParam, 0, sizeof(inParam));
-    inParam.pCmQueueHandle = m_pCmQueueHandle;
-    inParam.pCmEventHandle = pEvent;
-    inParam.pCmSurface2d = pSurface;
-    inParam.dwInitValue  = initValue;
+    inParam.cmQueueHandle = m_cmQueueHandle;
+    inParam.cmEventHandle = event;
+    inParam.cmSurface2d = surface;
+    inParam.initValue  = initValue;
     m_criticalSection.Acquire();
 
-    int32_t hr = m_pCmDev->OSALExtensionExecute(CM_FN_CMQUEUE_ENQUEUESURF2DINIT,
+    int32_t hr = m_cmDev->OSALExtensionExecute(CM_FN_CMQUEUE_ENQUEUESURF2DINIT,
                                                 &inParam, sizeof(inParam));
     if (FAILED(hr))
     {
@@ -619,35 +619,35 @@ CM_RT_API int32_t CmQueue_RT::EnqueueInitSurface2D(CmSurface2D *pSurface,
         m_criticalSection.Release();
         return hr;
     }
-    if (inParam.iReturnValue != CM_SUCCESS)
+    if (inParam.returnValue != CM_SUCCESS)
     {
         m_criticalSection.Release();
-        return inParam.iReturnValue;
+        return inParam.returnValue;
     }
 
-    pEvent = static_cast<CmEvent *>(inParam.pCmEventHandle);
+    event = static_cast<CmEvent *>(inParam.cmEventHandle);
     m_criticalSection.Release();
     return hr;
 }
 
-CM_RT_API int32_t CmQueue_RT::EnqueueCopyGPUToGPU(CmSurface2D *pOutputSurface,
-                                              CmSurface2D *pInputSurface,
+CM_RT_API int32_t CmQueue_RT::EnqueueCopyGPUToGPU(CmSurface2D *outputSurface,
+                                              CmSurface2D *inputSurface,
                                               uint32_t option,
-                                              CmEvent *&pEvent)
+                                              CmEvent *&event)
 {
     INSERT_PROFILER_RECORD();
 
     CM_ENQUEUE_GPUCOPY_V2V_PARAM inParam;
     CmSafeMemSet(&inParam, 0, sizeof(inParam));
-    inParam.pCmQueueHandle = m_pCmQueueHandle;
-    inParam.iOption        = option;
-    inParam.pCmEventHandle = pEvent;
-    inParam.pCmDstSurface2d = pOutputSurface;
-    inParam.pCmSrcSurface2d = pInputSurface;
+    inParam.cmQueueHandle = m_cmQueueHandle;
+    inParam.option        = option;
+    inParam.cmEventHandle = event;
+    inParam.cmDstSurface2d = outputSurface;
+    inParam.cmSrcSurface2d = inputSurface;
 
     m_criticalSection.Acquire();
 
-    int32_t hr = m_pCmDev->OSALExtensionExecute(CM_FN_CMQUEUE_ENQUEUECOPY_V2V,
+    int32_t hr = m_cmDev->OSALExtensionExecute(CM_FN_CMQUEUE_ENQUEUECOPY_V2V,
                                                 &inParam, sizeof(inParam));
     if (FAILED(hr))
     {
@@ -655,37 +655,37 @@ CM_RT_API int32_t CmQueue_RT::EnqueueCopyGPUToGPU(CmSurface2D *pOutputSurface,
         m_criticalSection.Release();
         return hr;
     }
-    if (inParam.iReturnValue != CM_SUCCESS)
+    if (inParam.returnValue != CM_SUCCESS)
     {
         m_criticalSection.Release();
-        return inParam.iReturnValue;
+        return inParam.returnValue;
     }
 
-    pEvent = static_cast<CmEvent *>(inParam.pCmEventHandle);
+    event = static_cast<CmEvent *>(inParam.cmEventHandle);
     m_criticalSection.Release();
     return hr;
 }
 
-CM_RT_API int32_t CmQueue_RT::EnqueueCopyCPUToCPU(unsigned char *pDstSysMem,
-                                              unsigned char *pSrcSysMem,
+CM_RT_API int32_t CmQueue_RT::EnqueueCopyCPUToCPU(unsigned char *dstSysMem,
+                                              unsigned char *srcSysMem,
                                               uint32_t size,
                                               uint32_t option,
-                                              CmEvent *&pEvent)
+                                              CmEvent *&event)
 {
     INSERT_PROFILER_RECORD();
 
     CM_ENQUEUE_GPUCOPY_L2L_PARAM inParam;
     CmSafeMemSet(&inParam, 0, sizeof(inParam));
-    inParam.pCmQueueHandle = m_pCmQueueHandle;
-    inParam.pSrcSysMem     = pSrcSysMem;
-    inParam.pDstSysMem     = pDstSysMem;
-    inParam.CopySize       = size;
-    inParam.iOption        = option;
-    inParam.pCmEventHandle = pEvent;
+    inParam.cmQueueHandle = m_cmQueueHandle;
+    inParam.srcSysMem     = srcSysMem;
+    inParam.dstSysMem     = dstSysMem;
+    inParam.copySize       = size;
+    inParam.option        = option;
+    inParam.cmEventHandle = event;
 
     m_criticalSection.Acquire();
 
-    int32_t hr = m_pCmDev->OSALExtensionExecute(CM_FN_CMQUEUE_ENQUEUECOPY_L2L,
+    int32_t hr = m_cmDev->OSALExtensionExecute(CM_FN_CMQUEUE_ENQUEUECOPY_L2L,
                                                 &inParam, sizeof(inParam));
 
     if (FAILED(hr))
@@ -694,30 +694,30 @@ CM_RT_API int32_t CmQueue_RT::EnqueueCopyCPUToCPU(unsigned char *pDstSysMem,
         m_criticalSection.Release();
         return hr;
     }
-    if (inParam.iReturnValue != CM_SUCCESS)
+    if (inParam.returnValue != CM_SUCCESS)
     {
         m_criticalSection.Release();
-        return inParam.iReturnValue;
+        return inParam.returnValue;
     }
 
-    pEvent = static_cast<CmEvent *>(inParam.pCmEventHandle);
+    event = static_cast<CmEvent *>(inParam.cmEventHandle);
     m_criticalSection.Release();
     return hr;
 }
 
-CM_RT_API int32_t CmQueue_RT::EnqueueVebox(CmVebox *pVebox, CmEvent *&pEvent)
+CM_RT_API int32_t CmQueue_RT::EnqueueVebox(CmVebox *vebox, CmEvent *&event)
 {
     INSERT_PROFILER_RECORD();
 
     CM_ENQUEUE_VEBOX_PARAM inParam;
     CmSafeMemSet(&inParam, 0, sizeof(inParam));
-    inParam.pCmQueueHandle = m_pCmQueueHandle;
-    inParam.pCmVeboxHandle = pVebox;
-    inParam.pCmEventHandle = pEvent;
+    inParam.cmQueueHandle = m_cmQueueHandle;
+    inParam.cmVeboxHandle = vebox;
+    inParam.cmEventHandle = event;
 
     m_criticalSection.Acquire();
 
-    int32_t hr = m_pCmDev->OSALExtensionExecute(CM_FN_CMQUEUE_ENQUEUEVEBOX,
+    int32_t hr = m_cmDev->OSALExtensionExecute(CM_FN_CMQUEUE_ENQUEUEVEBOX,
                                                 &inParam, sizeof(inParam));
 
     if (FAILED(hr))
@@ -726,13 +726,13 @@ CM_RT_API int32_t CmQueue_RT::EnqueueVebox(CmVebox *pVebox, CmEvent *&pEvent)
         m_criticalSection.Release();
         return hr;
     }
-    if (inParam.iReturnValue != CM_SUCCESS)
+    if (inParam.returnValue != CM_SUCCESS)
     {
         m_criticalSection.Release();
-        return inParam.iReturnValue;
+        return inParam.returnValue;
     }
 
-    pEvent = static_cast<CmEvent *>(inParam.pCmEventHandle);
+    event = static_cast<CmEvent *>(inParam.cmEventHandle);
     m_criticalSection.Release();
     return hr;
 }

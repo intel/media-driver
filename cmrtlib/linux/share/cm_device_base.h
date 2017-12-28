@@ -1227,13 +1227,13 @@ public:
 
     //! \brief      This function destroys a VEBOX object.
     //! \details    Caller provides a reference of CmVebox pointer to destroy.
-    //! \param      [in, out] pVebox
+    //! \param      [in, out] vebox
     //!             The VEBOX object to be destroyed. It will be assigned to 
     //!             nullptr once destroy is done.
     //! \retval     CM_SUCCESS if creation is successfully.
     //! \retval     CM_NULL_POINTER if the pVebox pointer is nullptr.
     //! \retval     CM_FAILURE otherwise.
-    CM_RT_API virtual int32_t DestroyVebox(CmVebox* & pVebox) = 0;
+    CM_RT_API virtual int32_t DestroyVebox(CmVebox* & vebox) = 0;
 
     //! \brief      This function get the pointer to VADisplay.
     //! \details    Caller provides a reference of pointer to VADisplay.
@@ -1668,9 +1668,9 @@ public:
                                             SurfaceIndex* &aliasIndex) = 0;
 
     //! \brief      Set the width and height values in the VME surface state.       
-    //! \param      [in] pVmeIndex
+    //! \param      [in] vmeIndex
     //!             Pointer to VME surface index.
-    //! \param      [in] pSSParam
+    //! \param      [in] surfStateParam
     //!             Pointer to CM_VME_SURFACE_STATE_PARAM to set width and
     //!             height of this surface
     //! \retval     CM_SUCCESS if setting VME surface state values successfully.
@@ -1678,8 +1678,8 @@ public:
     //! \note       This API will work on HW and SIM modes.
     //!
     CM_RT_API virtual int32_t
-    SetVmeSurfaceStateParam(SurfaceIndex* pVmeIndex,
-                                 CM_VME_SURFACE_STATE_PARAM *pSSParam) = 0;
+    SetVmeSurfaceStateParam(SurfaceIndex* vmeIndex,
+                                 CM_VME_SURFACE_STATE_PARAM *surfStateParam) = 0;
 
     //!
     //! \brief      Gets the VISA version up-to which IGC supports.
@@ -1697,9 +1697,9 @@ public:
 
     //!
     //! \brief      Creates a CmQueue object with option.
-    //! \param      [out] pQueue
+    //! \param      [out] queue
     //!             Pointer to the CmQueue object created.
-    //! \param      [in] QueueCreateOption
+    //! \param      [in] queueCreateOption
     //!             The option to create a queue. The sturcture of the 
     //!             <b>QueueCreateOption</b> is:\n
     //!             \code
@@ -1733,8 +1733,8 @@ public:
     //!             implemented at this moment.
     //!
     CM_RT_API virtual int32_t
-    CreateQueueEx(CmQueue *&pQueue, 
-                  CM_QUEUE_CREATE_OPTION QueueCreateOption = 
+    CreateQueueEx(CmQueue *&queue, 
+                  CM_QUEUE_CREATE_OPTION queueCreateOption = 
                   CM_DEFAULT_QUEUE_CREATE_OPTION) = 0;
 };
 

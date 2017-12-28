@@ -65,15 +65,6 @@ typedef enum _CM_DEVICE_CAP_NAME {
   CAP_MAX_BUFFER_SIZE
 } CM_DEVICE_CAP_NAME;
 
-// CM RT DLL File Version
-typedef struct _CM_DLL_FILE_VERSION {
-  uint16_t wMANVERSION;
-  uint16_t wMANREVISION;
-  uint16_t wSUBREVISION;
-  uint16_t wBUILD_NUMBER; 
-  //Version constructed as : "wMANVERSION.wMANREVISION.wSUBREVISION.wBUILD_NUMBER"
-} CM_DLL_FILE_VERSION, *PCM_DLL_FILE_VERSION;
-
 // parameters used to set the surface state of the CmSurface
 struct CM_VME_SURFACE_STATE_PARAM {
   uint32_t width;
@@ -132,7 +123,7 @@ typedef int32_t  (__cdecl *ReleaseSurfaceCallback)(void *cmDevice, void *surface
 struct CmDeviceCreationParam
 {
     uint32_t createOption;        // [in]  Dev create option
-    ReleaseSurfaceCallback ReleaseSurfaceFunc;  // [in]  Function Pointer to free surface
+    ReleaseSurfaceCallback releaseSurfaceFunc;  // [in]  Function Pointer to free surface
     void *deviceHandleInUmd;      // [out] pointer to handle in driver
     uint32_t version;             // [out] the Cm version
     uint32_t driverStoreEnabled;  // [out] DriverStoreEnable flag
@@ -181,23 +172,23 @@ enum CM_QUERY_TYPE
 
 struct CM_QUERY_CAPS
 {
-    CM_QUERY_TYPE Type;
+    CM_QUERY_TYPE type;
     union
     {
-        int32_t iVersion;
+        int32_t version;
         HANDLE hRegistration;
-        CM_HAL_MAX_VALUES MaxValues;
-        CM_HAL_MAX_VALUES_EX MaxValuesEx;
-        uint32_t MaxVmeTableSize;
+        CM_HAL_MAX_VALUES maxValues;
+        CM_HAL_MAX_VALUES_EX maxValuesEx;
+        uint32_t maxVmeTableSize;
         uint32_t genCore;
         uint32_t genGT;
-        uint32_t MinRenderFreq;
-        uint32_t MaxRenderFreq;
+        uint32_t minRenderFreq;
+        uint32_t maxRenderFreq;
         uint32_t genStepId;
-        uint32_t GPUCurrentFreq;
-        uint32_t Surf2DCount;
-        uint32_t *pSurf2DFormats;
-        CM_PLATFORM_INFO PlatformInfo;
+        uint32_t gpuCurrentFreq;
+        uint32_t surf2DCount;
+        uint32_t *surf2DFormats;
+        CM_PLATFORM_INFO platformInfo;
     };
 };
 

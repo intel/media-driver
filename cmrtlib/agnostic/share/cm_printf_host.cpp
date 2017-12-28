@@ -38,182 +38,182 @@
 
 void PFParser::getToken(void)
 {
-    mPrevToken = mCurrToken;
-    mCurrToken = Token();
+    m_prevToken = m_currToken;
+    m_currToken = Token();
 
     // This is a lexer that has 2 modes
     // Inside a conversion specification and outside
-    while (*mCurrLoc != '\0')
+    while (*m_currLoc != '\0')
     {
-        if (!mInSpec)
+        if (!m_inSpec)
         {
             // We're just picking off characters until we see a %
-            mCurrToken.mTokenType = Token::String;
+            m_currToken.tokenType = Token::String;
 
-            while (*mCurrLoc != '\0')
+            while (*m_currLoc != '\0')
             {
-                if (*mCurrLoc == '%')
+                if (*m_currLoc == '%')
                 {
                     // Peek to check for %%
-                    if (*(mCurrLoc+1) != '\0' && *(mCurrLoc+1) != '%')
+                    if (*(m_currLoc+1) != '\0' && *(m_currLoc+1) != '%')
                     {
                         // This is definitely a directive, not a %%
                         break;
                     }
                     // This IS %% so take another character off the input
-                    mCurrToken.mTokenString += *mCurrLoc++;
+                    m_currToken.tokenString += *m_currLoc++;
                 }
-                mCurrToken.mTokenString += *mCurrLoc++;
+                m_currToken.tokenString += *m_currLoc++;
             }
 
-            if (*mCurrLoc == '%')
-                mInSpec = true;
+            if (*m_currLoc == '%')
+                m_inSpec = true;
 
-            if (mCurrToken.mTokenString.length() > 0)
+            if (m_currToken.tokenString.length() > 0)
                 return;
         }
 
-        if (mInSpec)
+        if (m_inSpec)
         {
-            char currChar = *mCurrLoc++;
+            char currChar = *m_currLoc++;
             switch(currChar)
             {
             default:
                 // We've had an unexpected character
-                mCurrToken.mTokenType = Token::Error;
-                mCurrToken.mTokenString += currChar; // Preserve the error char
-                mInSpec = false; // End of the format spec
+                m_currToken.tokenType = Token::Error;
+                m_currToken.tokenString += currChar; // Preserve the error char
+                m_inSpec = false; // End of the format spec
                 return;
             case '%':
-                mCurrToken.mTokenType = Token::Percent;
+                m_currToken.tokenType = Token::Percent;
                 return;
             case '-':
-                mCurrToken.mTokenType = Token::Minus;
+                m_currToken.tokenType = Token::Minus;
                 return;
             case '+':
-                mCurrToken.mTokenType = Token::Plus;
+                m_currToken.tokenType = Token::Plus;
                 return;
             case ' ':
-                mCurrToken.mTokenType = Token::Space;
+                m_currToken.tokenType = Token::Space;
                 return;
             case '.':
-                mCurrToken.mTokenType = Token::Period;
+                m_currToken.tokenType = Token::Period;
                 return;
             case '#':
-                mCurrToken.mTokenType = Token::Hash;
+                m_currToken.tokenType = Token::Hash;
                 return;
             case '*':
-                mCurrToken.mTokenType = Token::Star;
+                m_currToken.tokenType = Token::Star;
                 return;
             case 'h':
                 // Have to deal with 'hh'
-                if (*mCurrLoc == 'h')
+                if (*m_currLoc == 'h')
                 {
-                    mCurrLoc++;
-                    mCurrToken.mTokenType = Token::hh_Mod;
+                    m_currLoc++;
+                    m_currToken.tokenType = Token::hh_Mod;
                     return;
                 }
-                mCurrToken.mTokenType = Token::h_Mod;
+                m_currToken.tokenType = Token::h_Mod;
                 return;
             case 'l':
                 // Have to deal with 'll'
-                if (*mCurrLoc == 'l')
+                if (*m_currLoc == 'l')
                 {
-                    mCurrLoc++;
-                    mCurrToken.mTokenType = Token::ll_Mod;
+                    m_currLoc++;
+                    m_currToken.tokenType = Token::ll_Mod;
                     return;
                 }
-                mCurrToken.mTokenType = Token::l_Mod;
+                m_currToken.tokenType = Token::l_Mod;
                 return;
             case 'j':
-                mCurrToken.mTokenType = Token::j_Mod;
+                m_currToken.tokenType = Token::j_Mod;
                 return;
             case 'z':
-                mCurrToken.mTokenType = Token::z_Mod;
+                m_currToken.tokenType = Token::z_Mod;
                 return;
             case 't':
-                mCurrToken.mTokenType = Token::t_Mod;
+                m_currToken.tokenType = Token::t_Mod;
                 return;
             case 'L':
-                mCurrToken.mTokenType = Token::L_Mod;
+                m_currToken.tokenType = Token::L_Mod;
                 return;
             case 'c':
-                mCurrToken.mTokenType = Token::c_Conv;
-                mInSpec = false; // End of the format spec
+                m_currToken.tokenType = Token::c_Conv;
+                m_inSpec = false; // End of the format spec
                 return;
             case 's':
-                mCurrToken.mTokenType = Token::s_Conv;
-                mInSpec = false; // End of the format spec
+                m_currToken.tokenType = Token::s_Conv;
+                m_inSpec = false; // End of the format spec
                 return;
             case 'd':
-                mCurrToken.mTokenType = Token::d_Conv;
-                mInSpec = false; // End of the format spec
+                m_currToken.tokenType = Token::d_Conv;
+                m_inSpec = false; // End of the format spec
                 return;
             case 'i':
-                mCurrToken.mTokenType = Token::i_Conv;
-                mInSpec = false; // End of the format spec
+                m_currToken.tokenType = Token::i_Conv;
+                m_inSpec = false; // End of the format spec
                 return;
             case 'o':
-                mCurrToken.mTokenType = Token::o_Conv;
-                mInSpec = false; // End of the format spec
+                m_currToken.tokenType = Token::o_Conv;
+                m_inSpec = false; // End of the format spec
                 return;
             case 'x':
-                mCurrToken.mTokenType = Token::x_Conv;
-                mInSpec = false; // End of the format spec
+                m_currToken.tokenType = Token::x_Conv;
+                m_inSpec = false; // End of the format spec
                 return;
             case 'X':
-                mCurrToken.mTokenType = Token::X_Conv;
-                mInSpec = false; // End of the format spec
+                m_currToken.tokenType = Token::X_Conv;
+                m_inSpec = false; // End of the format spec
                 return;
             case 'u':
-                mCurrToken.mTokenType = Token::u_Conv;
-                mInSpec = false; // End of the format spec
+                m_currToken.tokenType = Token::u_Conv;
+                m_inSpec = false; // End of the format spec
                 return;
             case 'f':
-                mCurrToken.mTokenType = Token::f_Conv;
-                mInSpec = false; // End of the format spec
+                m_currToken.tokenType = Token::f_Conv;
+                m_inSpec = false; // End of the format spec
                 return;
             case 'F':
-                mCurrToken.mTokenType = Token::F_Conv;
-                mInSpec = false; // End of the format spec
+                m_currToken.tokenType = Token::F_Conv;
+                m_inSpec = false; // End of the format spec
                 return;
             case 'e':
-                mCurrToken.mTokenType = Token::e_Conv;
-                mInSpec = false; // End of the format spec
+                m_currToken.tokenType = Token::e_Conv;
+                m_inSpec = false; // End of the format spec
                 return;
             case 'E':
-                mCurrToken.mTokenType = Token::E_Conv;
-                mInSpec = false; // End of the format spec
+                m_currToken.tokenType = Token::E_Conv;
+                m_inSpec = false; // End of the format spec
                 return;
             case 'a':
-                mCurrToken.mTokenType = Token::a_Conv;
-                mInSpec = false; // End of the format spec
+                m_currToken.tokenType = Token::a_Conv;
+                m_inSpec = false; // End of the format spec
                 return;
             case 'A':
-                mCurrToken.mTokenType = Token::A_Conv;
-                mInSpec = false; // End of the format spec
+                m_currToken.tokenType = Token::A_Conv;
+                m_inSpec = false; // End of the format spec
                 return;
             case 'g':
-                mCurrToken.mTokenType = Token::g_Conv;
-                mInSpec = false; // End of the format spec
+                m_currToken.tokenType = Token::g_Conv;
+                m_inSpec = false; // End of the format spec
                 return;
             case 'G':
-                mCurrToken.mTokenType = Token::G_Conv;
-                mInSpec = false; // End of the format spec
+                m_currToken.tokenType = Token::G_Conv;
+                m_inSpec = false; // End of the format spec
                 return;
             case 'n':
-                mCurrToken.mTokenType = Token::n_Conv;
-                mInSpec = false; // End of the format spec
+                m_currToken.tokenType = Token::n_Conv;
+                m_inSpec = false; // End of the format spec
                 return;
             case 'p':
-                mCurrToken.mTokenType = Token::p_Conv;
-                mInSpec = false; // End of the format spec
+                m_currToken.tokenType = Token::p_Conv;
+                m_inSpec = false; // End of the format spec
                 return;
             case '0':
-                if (*mCurrLoc < '1' || *mCurrLoc > '9')
+                if (*m_currLoc < '1' || *m_currLoc > '9')
                 {
                     // Next character not part of a larger integer
-                    mCurrToken.mTokenType = Token::Zero;
+                    m_currToken.tokenType = Token::Zero;
                     return;
                 }
                 // Deliberately drop through
@@ -226,27 +226,27 @@ void PFParser::getToken(void)
             case '7':
             case '8':
             case '9':
-                mCurrToken.mTokenString += currChar;
-                while (*mCurrLoc >= '0' && *mCurrLoc <= '9')
+                m_currToken.tokenString += currChar;
+                while (*m_currLoc >= '0' && *m_currLoc <= '9')
                 {
-                    mCurrToken.mTokenString += *mCurrLoc++;
+                    m_currToken.tokenString += *m_currLoc++;
                 }
                 // Create integer
                 // Since we've created this integer string and we know it is simple we can use
                 // atoi knowing that it won't throw an error
-                mCurrToken.mTokenInt = atoi(mCurrToken.mTokenString.c_str());
-                mCurrToken.mTokenType = Token::Integer;
+                m_currToken.tokenString = atoi(m_currToken.tokenString.c_str());
+                m_currToken.tokenType = Token::Integer;
                 return;
             }
         }
     }
 
-    mCurrToken.mTokenType = Token::End;
+    m_currToken.tokenType = Token::End;
 }
 
 bool PFParser::accept(PFParser::Token::TokenType s)
 {
-    if (mCurrToken == s)
+    if (m_currToken == s)
     {
         getToken();
         return true;
@@ -265,11 +265,11 @@ bool PFParser::expect(Token::TokenType s)
 
 int PFParser::format(void)
 {
-    if (mCurrToken == Token::_None_)
+    if (m_currToken == Token::_None_)
     {
         getToken();
     }
-    while(mCurrToken != Token::End && mCurrToken != Token::Error)
+    while(m_currToken != Token::End && m_currToken != Token::Error)
     {
         if (accept(Token::String))
         {
@@ -284,25 +284,25 @@ int PFParser::format(void)
 
 int PFParser::directive(void)
 {
-    int num_args = 0;
+    int numArgs = 0;
     flags();
-    num_args += width();
-    num_args += precision();
+    numArgs += width();
+    numArgs += precision();
     length_modifier();
     
-    int num_conv_args = conversion();
-    if (num_conv_args == 0)
+    int numConvArgs = conversion();
+    if (numConvArgs == 0)
     {
         // Not expecting ANY arguments
         // Ignore any previous directives (width, precision etc.)
-        num_args = 0;
+        numArgs = 0;
     }
     else
     {
-        num_args += num_conv_args;
+        numArgs += numConvArgs;
     }
 
-    return num_args;
+    return numArgs;
 }
 
 void PFParser::flags(void)
@@ -374,15 +374,15 @@ void PFParser::length_modifier(void)
     }
     else if (accept(Token::j_Mod))
     {
-        mUnsupported = true;
+        m_unsupported = true;
     }
     else if (accept(Token::t_Mod))
     {
-        mUnsupported = true;
+        m_unsupported = true;
     }
     else if (accept(Token::z_Mod))
     {
-        mUnsupported = true;
+        m_unsupported = true;
     }
     else if (accept(Token::L_Mod))
     {
@@ -391,10 +391,10 @@ void PFParser::length_modifier(void)
 
 int PFParser::conversion(void)
 {
-    int num_args = 1;
+    int numArgs = 1;
     if (accept(Token::Percent))
     {
-        num_args = 0;
+        numArgs = 0;
     }
     else if (accept(Token::c_Conv))
     {
@@ -446,7 +446,7 @@ int PFParser::conversion(void)
     }
     else if (accept(Token::n_Conv))
     {
-        mUnsupported = true;
+        m_unsupported = true;
     }
     else if (expect(Token::p_Conv))
     {
@@ -454,9 +454,9 @@ int PFParser::conversion(void)
     else
     {
         // Expect must have failed
-        num_args = 0;
+        numArgs = 0;
     }
-    return num_args;
+    return numArgs;
 }
 
 
@@ -464,10 +464,10 @@ int CalcSizeFromHeader(unsigned char * memory)
 {
     PCM_PRINT_HEADER header = (PCM_PRINT_HEADER)memory;
 
-    if((header->object_type == CM_PRINT_OBJECT_TYPE_MATRIX) ||
-       (header->object_type == CM_PRINT_OBJECT_TYPE_VECTOR))
+    if((header->objectType == CM_PRINT_OBJECT_TYPE_MATRIX) ||
+       (header->objectType == CM_PRINT_OBJECT_TYPE_VECTOR))
     {
-        switch (header->data_type) 
+        switch (header->dataType) 
         {
             case CM_PRINT_DATA_TYPE_CHAR   : 
                 return CM_PRINT_SIZE_WITH_PAYLOAD(header->height*header->width*sizeof(char           ));
@@ -504,23 +504,23 @@ int CalcSizeFromHeader(unsigned char * memory)
         }
         return PRINT_HEADER_SIZE;
     }
-    else if(header->object_type == CM_PRINT_OBJECT_TYPE_STRING || 
-            header->object_type == CM_PRINT_OBJECT_TYPE_FORMAT)
+    else if(header->objectType == CM_PRINT_OBJECT_TYPE_STRING || 
+            header->objectType == CM_PRINT_OBJECT_TYPE_FORMAT)
     {
         return PRINT_HEADER_SIZE + PRINT_FORMAT_STRING_SIZE;
     }
-    else if(header->object_type == CM_PRINT_OBJECT_TYPE_SCALAR)
+    else if(header->objectType == CM_PRINT_OBJECT_TYPE_SCALAR)
     {
-        if(!((header->data_type == CM_PRINT_DATA_TYPE_CHAR)   ||
-             (header->data_type == CM_PRINT_DATA_TYPE_UCHAR)  ||
-             (header->data_type == CM_PRINT_DATA_TYPE_UINT)   ||
-             (header->data_type == CM_PRINT_DATA_TYPE_INT)    ||
-             (header->data_type == CM_PRINT_DATA_TYPE_USHORT) ||
-             (header->data_type == CM_PRINT_DATA_TYPE_SHORT)  ||
-             (header->data_type == CM_PRINT_DATA_TYPE_DOUBLE) ||
-             (header->data_type == CM_PRINT_DATA_TYPE_QWORD)  ||
-             (header->data_type == CM_PRINT_DATA_TYPE_UQWORD) ||
-             (header->data_type == CM_PRINT_DATA_TYPE_FLOAT)))
+        if(!((header->dataType == CM_PRINT_DATA_TYPE_CHAR)   ||
+             (header->dataType == CM_PRINT_DATA_TYPE_UCHAR)  ||
+             (header->dataType == CM_PRINT_DATA_TYPE_UINT)   ||
+             (header->dataType == CM_PRINT_DATA_TYPE_INT)    ||
+             (header->dataType == CM_PRINT_DATA_TYPE_USHORT) ||
+             (header->dataType == CM_PRINT_DATA_TYPE_SHORT)  ||
+             (header->dataType == CM_PRINT_DATA_TYPE_DOUBLE) ||
+             (header->dataType == CM_PRINT_DATA_TYPE_QWORD)  ||
+             (header->dataType == CM_PRINT_DATA_TYPE_UQWORD) ||
+             (header->dataType == CM_PRINT_DATA_TYPE_FLOAT)))
         {
             CmAssert(0);
         }
@@ -533,36 +533,36 @@ int CalcSizeFromHeader(unsigned char * memory)
     }
 }
 
-void PFParser::flush(void)
+void PFParser::Flush(void)
 {
-    if (mInputStart && mCurrLoc)
+    if (m_inputStart && m_currLoc)
     {
-        if (mCurrToken != Token::End &&
-            mCurrToken != Token::_None_)
+        if (m_currToken != Token::End &&
+            m_currToken != Token::_None_)
         {
             // Tidy up any remaining characters
             // Any characters that remain to be flushed need to be check for illegal directives (e.g. %n
             // will cause an exception if attempted to be printed with no argument)
-            int num_args = format();
-            if (mUnsupported)
+            int numArgs = format();
+            if (m_unsupported)
             {
-                CM_PRINTF(mStreamOut,"Unsupported (but valid C++11) format string used : %s", mInputStart);
+                CM_PRINTF(m_streamOut,"Unsupported (but valid C++11) format string used : %s", m_inputStart);
                 reset();
             }
-            else if (mError)
+            else if (m_error)
             {
-                CM_PRINTF(mStreamOut,"Error in printf format string : %s", mInputStart);
+                CM_PRINTF(m_streamOut,"Error in printf format string : %s", m_inputStart);
                 reset();
             }
-            else if (num_args > 0) 
+            else if (numArgs > 0) 
             {
                 // Not enough arguments provided for remaining directives
-                CM_PRINTF(mStreamOut,"Not enough (no) arguments supplied for format string : %s", mInputStart);
+                CM_PRINTF(m_streamOut,"Not enough (no) arguments supplied for format string : %s", m_inputStart);
                 reset();
             }
             else
             {
-                CM_PRINTF(mStreamOut,"%s", mInputStart);
+                CM_PRINTF(m_streamOut,"%s", m_inputStart);
             }
         }
         reset();
@@ -573,15 +573,15 @@ PRINT_FMT_STATUS PFParser::GetNextFmtToken(char* tkn, size_t size)
 {
     memset(tkn, 0, size);
 
-    if (mNumMultArg)
+    if (m_numMultArg)
     {
-        if (!mArgsExpected)
+        if (!m_argsExpected)
         {
             // Copy the whole of the format string into the token
-            if ((size_t)(mCurrLoc - mInputStart) <= size)
+            if ((size_t)(m_currLoc - m_inputStart) <= size)
             {
-                CmSafeMemCopy(tkn, mInputStart, mCurrLoc - mInputStart);
-                tkn[mCurrLoc - mInputStart] = '\0';
+                CmSafeMemCopy(tkn, m_inputStart, m_currLoc - m_inputStart);
+                tkn[m_currLoc - m_inputStart] = '\0';
                 return PF_SUCCESS;
             }
             return PF_FAIL;
@@ -590,63 +590,63 @@ PRINT_FMT_STATUS PFParser::GetNextFmtToken(char* tkn, size_t size)
         return PF_SUCCESS;
     }
 
-    int num_args = format();
-    switch (num_args)
+    int numArgs = format();
+    switch (numArgs)
     {
     default:
         return PF_FAIL; // Something has gone wrong
     case 0:
     case 1:
         // Copy the whole of the format string into the token
-        if ((size_t)(mCurrLoc - mInputStart) <= size)
+        if ((size_t)(m_currLoc - m_inputStart) <= size)
         {
-            CmSafeMemCopy(tkn, mInputStart, mCurrLoc - mInputStart);
-            tkn[mCurrLoc - mInputStart] = '\0';
+            CmSafeMemCopy(tkn, m_inputStart, m_currLoc - m_inputStart);
+            tkn[m_currLoc - m_inputStart] = '\0';
             return PF_SUCCESS;
         }
         return PF_FAIL;
     case 2:
     case 3:
-        mNumMultArg = num_args - 1;
-        mArgsExpected = num_args - 1;
+        m_numMultArg = numArgs - 1;
+        m_argsExpected = numArgs - 1;
         return PF_SUCCESS;
     }
 }
 
 bool PFParser::outputToken(const char *tkn, PCM_PRINT_HEADER header)
 {
-    if (mNumMultArg && mArgsExpected)
+    if (m_numMultArg && m_argsExpected)
     {
         // Processing items for multi-arg directives
-        if (header->object_type == CM_PRINT_OBJECT_TYPE_SCALAR &&
-            header->data_type != CM_PRINT_DATA_TYPE_FLOAT &&
-            header->data_type != CM_PRINT_DATA_TYPE_DOUBLE &&
-            header->data_type != CM_PRINT_DATA_TYPE_QWORD &&
-            header->data_type != CM_PRINT_DATA_TYPE_UQWORD)
+        if (header->objectType == CM_PRINT_OBJECT_TYPE_SCALAR &&
+            header->dataType != CM_PRINT_DATA_TYPE_FLOAT &&
+            header->dataType != CM_PRINT_DATA_TYPE_DOUBLE &&
+            header->dataType != CM_PRINT_DATA_TYPE_QWORD &&
+            header->dataType != CM_PRINT_DATA_TYPE_UQWORD)
         {
             // Received an int type argument as expected
-            switch (header->data_type)
+            switch (header->dataType)
             {
                 case CM_PRINT_DATA_TYPE_INT    : 
-                    mArgs[mNumMultArg - mArgsExpected] = *((int*            )&(header->scalar_low32)); 
+                    m_args[m_numMultArg - m_argsExpected] = *((int*            )&(header->scalarLow32)); 
                     break;
                 case CM_PRINT_DATA_TYPE_UINT   :
-                    mArgs[mNumMultArg - mArgsExpected] = *((unsigned int*   )&(header->scalar_low32)); 
+                    m_args[m_numMultArg - m_argsExpected] = *((unsigned int*   )&(header->scalarLow32)); 
                     break;
                 case CM_PRINT_DATA_TYPE_CHAR   : 
-                    mArgs[mNumMultArg - mArgsExpected] = *((char*           )&(header->scalar_low32)); 
+                    m_args[m_numMultArg - m_argsExpected] = *((char*           )&(header->scalarLow32)); 
                     break;
                 case CM_PRINT_DATA_TYPE_UCHAR  : 
-                    mArgs[mNumMultArg - mArgsExpected] = *((unsigned char*  )&(header->scalar_low32)); 
+                    m_args[m_numMultArg - m_argsExpected] = *((unsigned char*  )&(header->scalarLow32)); 
                     break;
                 case CM_PRINT_DATA_TYPE_SHORT  : 
-                    mArgs[mNumMultArg - mArgsExpected] = *((short*         )&(header->scalar_low32)); 
+                    m_args[m_numMultArg - m_argsExpected] = *((short*         )&(header->scalarLow32)); 
                     break;
                 case CM_PRINT_DATA_TYPE_USHORT : 
-                    mArgs[mNumMultArg - mArgsExpected] = *((unsigned short*)&(header->scalar_low32)); 
+                    m_args[m_numMultArg - m_argsExpected] = *((unsigned short*)&(header->scalarLow32)); 
                     break;
             }
-            mArgsExpected -= 1;
+            m_argsExpected -= 1;
             return true;
         }
         else
@@ -659,153 +659,153 @@ bool PFParser::outputToken(const char *tkn, PCM_PRINT_HEADER header)
 
     // Inform the user that they've used an unsupported format string if that is the case
     // (e.g. %jd, %td etc.)
-    if (mUnsupported)
+    if (m_unsupported)
     {
-        CM_PRINTF(mStreamOut,"Unsupported (but valid C++11) printf format string : %s", tkn);
+        CM_PRINTF(m_streamOut,"Unsupported (but valid C++11) printf format string : %s", tkn);
         reset();
         return true;
     }
     // Inform the user that they've got an error (illegal format string)
-    if (mError)
+    if (m_error)
     {
-        CM_PRINTF(mStreamOut, "Error in printf format string : %s", tkn);
+        CM_PRINTF(m_streamOut, "Error in printf format string : %s", tkn);
         reset();
         return true;
     }
 
     // Output as appropriate
-    if (!mNumMultArg)
+    if (!m_numMultArg)
     {
-        switch (header->data_type)
+        switch (header->dataType)
         {
         case CM_PRINT_DATA_TYPE_INT    : 
-            CM_PRINTF(mStreamOut, tkn, *((int*)&(header->scalar_low32)));
+            CM_PRINTF(m_streamOut, tkn, *((int*)&(header->scalarLow32)));
             break;
         
         case CM_PRINT_DATA_TYPE_UINT   :
-            CM_PRINTF(mStreamOut, tkn, *((unsigned int*)&(header->scalar_low32)));
+            CM_PRINTF(m_streamOut, tkn, *((unsigned int*)&(header->scalarLow32)));
             break;
             
         case CM_PRINT_DATA_TYPE_CHAR   : 
-            CM_PRINTF(mStreamOut, tkn, *((char*)&(header->scalar_low32)));
+            CM_PRINTF(m_streamOut, tkn, *((char*)&(header->scalarLow32)));
             break;
 
         case CM_PRINT_DATA_TYPE_UCHAR  : 
-            CM_PRINTF(mStreamOut, tkn, *((unsigned char*)&(header->scalar_low32)));
+            CM_PRINTF(m_streamOut, tkn, *((unsigned char*)&(header->scalarLow32)));
             break;
             
         case CM_PRINT_DATA_TYPE_FLOAT  : 
-            CM_PRINTF(mStreamOut, tkn, *((float*)&(header->scalar_low32)));
+            CM_PRINTF(m_streamOut, tkn, *((float*)&(header->scalarLow32)));
             break;
 
         case CM_PRINT_DATA_TYPE_SHORT  : 
-            CM_PRINTF(mStreamOut, tkn, *((short*)&(header->scalar_low32)));
+            CM_PRINTF(m_streamOut, tkn, *((short*)&(header->scalarLow32)));
             break;
 
         case CM_PRINT_DATA_TYPE_USHORT : 
-            CM_PRINTF(mStreamOut, tkn, *((unsigned short*)&(header->scalar_low32)));
+            CM_PRINTF(m_streamOut, tkn, *((unsigned short*)&(header->scalarLow32)));
             break;
 
         case CM_PRINT_DATA_TYPE_DOUBLE : 
-            CM_PRINTF(mStreamOut, tkn, *((double*)&(header->scalar_low32)));
+            CM_PRINTF(m_streamOut, tkn, *((double*)&(header->scalarLow32)));
             break;
 
         case CM_PRINT_DATA_TYPE_QWORD  : 
-            CM_PRINTF(mStreamOut, tkn, *((long long*)&(header->scalar_low32)));
+            CM_PRINTF(m_streamOut, tkn, *((long long*)&(header->scalarLow32)));
             break;
 
         case CM_PRINT_DATA_TYPE_UQWORD : 
-            CM_PRINTF(mStreamOut, tkn, *((unsigned long long*)&(header->scalar_low32)));
+            CM_PRINTF(m_streamOut, tkn, *((unsigned long long*)&(header->scalarLow32)));
             break;
         }
     }
-    else if (mNumMultArg == 1)
+    else if (m_numMultArg == 1)
     {
-        switch (header->data_type)
+        switch (header->dataType)
         {
         case CM_PRINT_DATA_TYPE_INT    : 
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], *((int*            )&(header->scalar_low32))); 
+            CM_PRINTF(m_streamOut,tkn, m_args[0], *((int*            )&(header->scalarLow32))); 
             break;
         
         case CM_PRINT_DATA_TYPE_UINT   :
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], *((unsigned int*   )&(header->scalar_low32))); 
+            CM_PRINTF(m_streamOut,tkn, m_args[0], *((unsigned int*   )&(header->scalarLow32))); 
             break;
             
         case CM_PRINT_DATA_TYPE_CHAR   : 
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], *((char*           )&(header->scalar_low32))); 
+            CM_PRINTF(m_streamOut,tkn, m_args[0], *((char*           )&(header->scalarLow32))); 
             break;
 
         case CM_PRINT_DATA_TYPE_UCHAR  : 
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], *((unsigned char*  )&(header->scalar_low32))); 
+            CM_PRINTF(m_streamOut,tkn, m_args[0], *((unsigned char*  )&(header->scalarLow32))); 
             break;
             
         case CM_PRINT_DATA_TYPE_FLOAT  : 
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], *((float*          )&(header->scalar_low32))); 
+            CM_PRINTF(m_streamOut,tkn, m_args[0], *((float*          )&(header->scalarLow32))); 
             break;
 
         case CM_PRINT_DATA_TYPE_SHORT  : 
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], *((short*          )&(header->scalar_low32))); 
+            CM_PRINTF(m_streamOut,tkn, m_args[0], *((short*          )&(header->scalarLow32))); 
             break;
 
         case CM_PRINT_DATA_TYPE_USHORT : 
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], *((unsigned short* )&(header->scalar_low32))); 
+            CM_PRINTF(m_streamOut,tkn, m_args[0], *((unsigned short* )&(header->scalarLow32))); 
             break;
 
         case CM_PRINT_DATA_TYPE_DOUBLE : 
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], *((double*         )&(header->scalar_low32))); 
+            CM_PRINTF(m_streamOut,tkn, m_args[0], *((double*         )&(header->scalarLow32))); 
             break;
 
         case CM_PRINT_DATA_TYPE_QWORD  : 
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], *((long long*          )&(header->scalar_low32))); 
+            CM_PRINTF(m_streamOut,tkn, m_args[0], *((long long*          )&(header->scalarLow32))); 
             break;
 
         case CM_PRINT_DATA_TYPE_UQWORD : 
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], *((unsigned long long* )&(header->scalar_low32)));
+            CM_PRINTF(m_streamOut,tkn, m_args[0], *((unsigned long long* )&(header->scalarLow32)));
             break;
         }        
     }
-    else if (mNumMultArg == 2)
+    else if (m_numMultArg == 2)
     {
-        switch (header->data_type)
+        switch (header->dataType)
         {
         case CM_PRINT_DATA_TYPE_INT    : 
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], mArgs[1], *((int*            )&(header->scalar_low32))); 
+            CM_PRINTF(m_streamOut,tkn, m_args[0], m_args[1], *((int*            )&(header->scalarLow32))); 
             break;
         
         case CM_PRINT_DATA_TYPE_UINT   :
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], mArgs[1], *((unsigned int*   )&(header->scalar_low32))); 
+            CM_PRINTF(m_streamOut,tkn, m_args[0], m_args[1], *((unsigned int*   )&(header->scalarLow32))); 
             break;
             
         case CM_PRINT_DATA_TYPE_CHAR   : 
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], mArgs[1], *((char*           )&(header->scalar_low32))); 
+            CM_PRINTF(m_streamOut,tkn, m_args[0], m_args[1], *((char*           )&(header->scalarLow32))); 
             break;
 
         case CM_PRINT_DATA_TYPE_UCHAR  : 
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], mArgs[1], *((unsigned char*  )&(header->scalar_low32))); 
+            CM_PRINTF(m_streamOut,tkn, m_args[0], m_args[1], *((unsigned char*  )&(header->scalarLow32))); 
             break;
             
         case CM_PRINT_DATA_TYPE_FLOAT  : 
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], mArgs[1], *((float*          )&(header->scalar_low32))); 
+            CM_PRINTF(m_streamOut,tkn, m_args[0], m_args[1], *((float*          )&(header->scalarLow32))); 
             break;
 
         case CM_PRINT_DATA_TYPE_SHORT  : 
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], mArgs[1], *((short*          )&(header->scalar_low32))); 
+            CM_PRINTF(m_streamOut,tkn, m_args[0], m_args[1], *((short*          )&(header->scalarLow32))); 
             break;
 
         case CM_PRINT_DATA_TYPE_USHORT : 
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], mArgs[1], *((unsigned short* )&(header->scalar_low32))); 
+            CM_PRINTF(m_streamOut,tkn, m_args[0], m_args[1], *((unsigned short* )&(header->scalarLow32))); 
             break;
 
         case CM_PRINT_DATA_TYPE_DOUBLE : 
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], mArgs[1], *((double*         )&(header->scalar_low32))); 
+            CM_PRINTF(m_streamOut,tkn, m_args[0], m_args[1], *((double*         )&(header->scalarLow32))); 
             break;
 
         case CM_PRINT_DATA_TYPE_QWORD  : 
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], mArgs[1], *((long long*          )&(header->scalar_low32))); 
+            CM_PRINTF(m_streamOut,tkn, m_args[0], m_args[1], *((long long*          )&(header->scalarLow32))); 
             break;
 
         case CM_PRINT_DATA_TYPE_UQWORD : 
-            CM_PRINTF(mStreamOut,tkn, mArgs[0], mArgs[1], *((unsigned long long* )&(header->scalar_low32)));
+            CM_PRINTF(m_streamOut,tkn, m_args[0], m_args[1], *((unsigned long long* )&(header->scalarLow32)));
             break;
         }
     }
@@ -819,21 +819,21 @@ void PFParser::DumpMemory(unsigned char * memory)
     memory += PRINT_HEADER_SIZE;
     int threadid = header->tid;
 
-    if(!mNumMultArg && header->object_type == CM_PRINT_OBJECT_TYPE_MATRIX )
+    if(!m_numMultArg && header->objectType == CM_PRINT_OBJECT_TYPE_MATRIX )
     {
-        CM_PRINTF(mStreamOut,"\n Thread id %d, Matrix , Width %d, Height %d \n", threadid, header->width, header->height);
+        CM_PRINTF(m_streamOut,"\n Thread id %d, Matrix , Width %d, Height %d \n", threadid, header->width, header->height);
     }
-    else if(!mNumMultArg && header->object_type == CM_PRINT_OBJECT_TYPE_VECTOR)
+    else if(!m_numMultArg && header->objectType == CM_PRINT_OBJECT_TYPE_VECTOR)
     {
-        CM_PRINTF(mStreamOut, " \n Thread id %d, Vector , Width %d\n", threadid, header->width);
+        CM_PRINTF(m_streamOut, " \n Thread id %d, Vector , Width %d\n", threadid, header->width);
     }
-    else if(!mNumMultArg && header->object_type == CM_PRINT_OBJECT_TYPE_FORMAT)
+    else if(!m_numMultArg && header->objectType == CM_PRINT_OBJECT_TYPE_FORMAT)
     {
         // Flush any remaining characters from existing format string (if any)
-        flush();
-        setStart((char *)memory);
+        Flush();
+        SetStart((char *)memory);
     }
-    else if(!mNumMultArg && header->object_type == CM_PRINT_OBJECT_TYPE_STRING)
+    else if(!m_numMultArg && header->objectType == CM_PRINT_OBJECT_TYPE_STRING)
     {
         char tkn[PRINT_FORMAT_STRING_SIZE];
         PRINT_FMT_STATUS status = GetNextFmtToken(tkn, PRINT_FORMAT_STRING_SIZE);
@@ -841,29 +841,29 @@ void PFParser::DumpMemory(unsigned char * memory)
         {
             // Inform the user that they've used an unsupported format string if that is the case
             // (e.g. %jd, %td etc.)
-            if (mUnsupported)
+            if (m_unsupported)
             {
-                CM_PRINTF(mStreamOut, "Unsupported (but valid C++11) format string used : %s", tkn);
+                CM_PRINTF(m_streamOut, "Unsupported (but valid C++11) format string used : %s", tkn);
             }
             // Inform the user that they've got an error (illegal format string)
-            if (mError)
+            if (m_error)
             {
-                CM_PRINTF(mStreamOut, "Error in printf format string : %s", tkn);
+                CM_PRINTF(m_streamOut, "Error in printf format string : %s", tkn);
             }
             
-            if (mUnsupported || mError)
+            if (m_unsupported || m_error)
             {
                 reset();
                 return;
             }
             
-            CM_PRINTF(mStreamOut, tkn, (char*)memory);
+            CM_PRINTF(m_streamOut, tkn, (char*)memory);
             reset();
         }
 
         return;
     }
-    else if(header->object_type == CM_PRINT_OBJECT_TYPE_SCALAR)
+    else if(header->objectType == CM_PRINT_OBJECT_TYPE_SCALAR)
     {
         char tkn[PRINT_FORMAT_STRING_SIZE];
         PRINT_FMT_STATUS status = GetNextFmtToken(tkn, PRINT_FORMAT_STRING_SIZE);
@@ -873,55 +873,55 @@ void PFParser::DumpMemory(unsigned char * memory)
             {
                 // Something has gone wrong
                 // Reset multi-arg at least
-                CM_PRINTF(mStreamOut, "Problem outputting with format string %s\n", tkn);
-                mNumMultArg = mArgsExpected = 0;
+                CM_PRINTF(m_streamOut, "Problem outputting with format string %s\n", tkn);
+                m_numMultArg = m_argsExpected = 0;
             }
         }
         return;
     }
     else
     {
-        if (mNumMultArg)
+        if (m_numMultArg)
         {
             // Something has gone wrong in multi-arg so reset
-            CM_PRINTF(mStreamOut, "Error in multi-arg directive\n");
-            mNumMultArg = 0;
-            mArgsExpected = 0;
+            CM_PRINTF(m_streamOut, "Error in multi-arg directive\n");
+            m_numMultArg = 0;
+            m_argsExpected = 0;
         }
         else
         {
-            CM_PRINTF(mStreamOut, "Unknown TYPE\n");
+            CM_PRINTF(m_streamOut, "Unknown TYPE\n");
         }
         return;
     }
 }
 
-void DumpAllThreadOutput(FILE *streamout, unsigned char * DumpMem, size_t buffersize)
+void DumpAllThreadOutput(FILE *streamOut, unsigned char * dumpMem, size_t buffersize)
 {
 
 
-    unsigned int offset_from_header =   0;
-    unsigned int off                =   PRINT_BUFFER_HEADER_SIZE;
-    PFParser     pState(streamout);
+    unsigned int offsetFromHeader =   0;
+    unsigned int off              =   PRINT_BUFFER_HEADER_SIZE;
+    PFParser     pState(streamOut);
 
     while(1)
     {
         if((off + PRINT_HEADER_SIZE) >= buffersize)
             break;
         
-        if(off >= (*(unsigned int *)DumpMem))
+        if(off >= (*(unsigned int *)dumpMem))
             break;
 
-        offset_from_header = CalcSizeFromHeader(DumpMem + off);
-        if( (off + offset_from_header) >= buffersize )
+        offsetFromHeader = CalcSizeFromHeader(dumpMem + off);
+        if( (off + offsetFromHeader) >= buffersize )
             break;
 
-        pState.DumpMemory(DumpMem + off);
+        pState.DumpMemory(dumpMem + off);
 
-        off += offset_from_header;
+        off += offsetFromHeader;
     }
 
     // Flush any remaining characters in the format buffer
-    pState.flush();
+    pState.Flush();
 
 }
