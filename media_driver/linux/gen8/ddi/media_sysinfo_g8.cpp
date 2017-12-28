@@ -40,12 +40,18 @@ static bool InitBdwMediaSysInfo(struct GfxDeviceInfo *devInfo, MEDIA_GT_SYSTEM_I
         return false;
     }
 
-    if (!sysInfo->SliceCount ||
-        !sysInfo->SubSliceCount ||
-        !sysInfo->EUCount)
+    if (!sysInfo->SliceCount)
     {
         sysInfo->SliceCount    = devInfo->SliceCount;
+    }
+
+    if (!sysInfo->SubSliceCount)
+    {
         sysInfo->SubSliceCount = devInfo->SubSliceCount;
+    }
+
+    if (!sysInfo->EUCount)
+    {
         sysInfo->EUCount       = devInfo->EUCount;
     }
 

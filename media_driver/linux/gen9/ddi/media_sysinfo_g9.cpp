@@ -43,12 +43,18 @@ static bool InitGen9MediaSysInfo(struct GfxDeviceInfo *devInfo, MEDIA_GT_SYSTEM_
         return false;
     }
 
-    if (!sysInfo->SliceCount ||
-        !sysInfo->SubSliceCount ||
-        !sysInfo->EUCount)
+    if (!sysInfo->SliceCount)
     {
         sysInfo->SliceCount    = devInfo->SliceCount;
+    }
+
+    if (!sysInfo->SubSliceCount)
+    {
         sysInfo->SubSliceCount = devInfo->SubSliceCount;
+    }
+
+    if (!sysInfo->EUCount)
+    {
         sysInfo->EUCount       = devInfo->EUCount;
     }
 
@@ -177,12 +183,18 @@ static bool InitLCIAMediaSysInfo(struct GfxDeviceInfo *devInfo, MEDIA_GT_SYSTEM_
         return false;
     }
 
-    if (!sysInfo->SliceCount ||
-        !sysInfo->SubSliceCount ||
-        !sysInfo->EUCount)
+    if (!sysInfo->SliceCount)
     {
         sysInfo->SliceCount    = devInfo->SliceCount;
+    }
+
+    if (!sysInfo->SubSliceCount)
+    {
         sysInfo->SubSliceCount = devInfo->SubSliceCount;
+    }
+
+    if (!sysInfo->EUCount)
+    {
         sysInfo->EUCount       = devInfo->EUCount;
     }
 
