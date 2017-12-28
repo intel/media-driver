@@ -55,12 +55,5 @@ extern MOS_STATUS HWInfo_GetGmmInfo(int               fd,
                           SHADOW_MEDIA_WA_TABLE       *shadowWaTable,
                           MEDIA_SYSTEM_INFO           *systemInfo);
 
-extern MOS_STATUS HWInfo_GetGfxInfo(unsigned int devId,
-                          LinuxDriverInfo        *drvInfo,
-                          PLATFORM               *gfxPlatform,
-                          MEDIA_FEATURE_TABLE    *skuTable,
-                          MEDIA_WA_TABLE         *waTable,
-                          MEDIA_SYSTEM_INFO      *systemInfo);
-
 #endif
 
