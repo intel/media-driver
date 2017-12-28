@@ -102,6 +102,8 @@ BDW (Broadwell)
 
 SKL (Skylake)
 
+BXT (Broxton) / APL (Apollolake)
+
 CNL (Cannonlake)
 
 ## Supported Codecs
@@ -109,28 +111,33 @@ CNL (Cannonlake)
 | CODEC      | D/E | Platform(s) |
 |------------|-----|-------------|
 | H.264      |  D  | BDW/SKL/CNL |
-| H.264      |  E  | BDW/SKL     |
+| H.264      |  E  | BDW/SKL/CNL |
 | MPEG-2     |  D  | BDW/SKL/CNL |
-| MPEG-2     |  E  | BDW/SKL     |
+| MPEG-2     |  E  | BDW/SKL/CNL |
 | VC-1       |  D  | BDW/SKL/CNL |
 | JPEG       |  D  | BDW/SKL/CNL |
-| JPEG       |  E  | SKL         |
+| JPEG       |  E  | SKL/CNL     |
 | VP8        |  D  | BDW/SKL/CNL |
+| VP8        |  E  | CNL         |
 | HEVC       |  D  | SKL/CNL     |
-| HEVC       |  E  | SKL         |
+| HEVC       |  E  | SKL/CNL     |
 | HEVC 10bit |  D  | CNL         |
+| HEVC 10bit |  E  | CNL         |
 | VP9        |  D  | CNL         |
+| VP9        |  E  | CNL         |
 | VP9 10bit  |  D  | CNL         |
 
 
 ## Known Issues and Limitations
 
-1. CNL: Hardware accelerated encoding is not supported in the first release.
-
-2. SKL: Green or other incorrect color will be observed in output frames when using
+1. SKL: Green or other incorrect color will be observed in output frames when using
 YV12/I420 as input format for csc/scaling/blending/rotation, etc. on Ubuntu 16.04 stock
 (with kernel 4.10). The issue can be addressed with the kernel patch:
-WaEnableYV12BugFixInHalfSliceChicken7 [commit 0b71cea29fc29bbd8e9dd9c641fee6bd75f6827](https://cgit.freedesktop.org/drm-tip/commit/?id=0b71cea29fc29bbd8e9dd9c641fee6bd75f68274%20)
+WaEnableYV12BugFixInHalfSliceChicken7 [commit 0b71cea29fc29bbd8e9dd9c641fee6bd75f6827](https://cgit.freedesktop.org/drm-tip/commit/?id=0b71cea29fc29bbd8e9dd9c641fee6bd75f68274)
+
+2. CNL: Functionalities requiring HuC including AVC BRC for low power encoding, HEVC low power encoding, and VP9 low power encoding are pending on the kernel patch for GuC support which is expected in Q1’2018.
+
+3. BXT/APL: Limited validation was performed; product quality expected in Q1’2018.
 
 ##### (*) Other names and brands may be claimed as property of others.
 
