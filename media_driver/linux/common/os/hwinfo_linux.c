@@ -62,14 +62,16 @@ static bool MediaGetParam(int fd, int32_t param, uint32_t *retValue)
 
 /*****************************************************************************\
 Description:
-    Get Sku/Wa tables and platform information according to input device ID
+    Get Sku/Wa tables and platform information according to input device FD
 
 Input:
-    fd         - file descriptor to the /dev/dri/card0
+    fd         - file descriptor to the /dev/dri/cardX
 Output:
-    pGfxPlatform - structure describing current GFX device.
-    pSkuInitParam - Sku/Wa structure
-    pPlatformType - is it mobile, desk, server? Sku/Wa must know.
+    gfxPlatform  - describing current platform. is it mobile, desk,
+                   server? Sku/Wa must know.
+    skuTable     - describing SKU
+    waTable      - the constraints list
+    gtSystemInfo - describing current system information
 \*****************************************************************************/
 MOS_STATUS HWInfo_GetGfxInfo(int32_t           fd,
                           PLATFORM             *gfxPlatform,
@@ -77,7 +79,7 @@ MOS_STATUS HWInfo_GetGfxInfo(int32_t           fd,
                           MEDIA_WA_TABLE       *waTable,
                           MEDIA_SYSTEM_INFO    *gtSystemInfo)
 {
-    if ((fd == 0) ||
+    if ((fd < 0) ||
         (gfxPlatform == nullptr) ||
         (skuTable == nullptr) ||
         (waTable == nullptr) ||
@@ -213,7 +215,7 @@ MOS_STATUS HWInfo_GetGfxInfo(int32_t           fd,
 
 MOS_STATUS HWInfoGetLinuxDrvInfo(int fd, struct LinuxDriverInfo *drvInfo)
 {
-    if ((fd == 0) || (drvInfo == nullptr))
+    if ((fd < 0) || (drvInfo == nullptr))
     {
         return MOS_STATUS_INVALID_HANDLE;
     }
@@ -293,7 +295,7 @@ Description:
     Get the required Sku/Wa tables for GMM and platform information  based on device Fd
 
 Input:
-    fd         - file descriptor to the /dev/dri/card0
+    fd         - file descriptor to the /dev/dri/cardX
 Output:
      SHADOW_MEDIA_FEATURE_TABLE  *shadowSkuTable
      SHADOW_MEDIA_WA_TABLE      *shadowWaTable,
@@ -304,7 +306,7 @@ MOS_STATUS HWInfo_GetGmmInfo(int32_t                 fd,
                           SHADOW_MEDIA_WA_TABLE      *shadowWaTable,
                           MEDIA_SYSTEM_INFO          *systemInfo)
 {
-    if ((fd == 0) ||
+    if ((fd < 0) ||
         (shadowSkuTable == nullptr) ||
         (shadowWaTable == nullptr) ||
         (systemInfo == nullptr))
