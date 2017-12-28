@@ -64,18 +64,11 @@ else()
     if(NOT LIBVA_FOUND)
         pkg_check_modules(LIBVA REQUIRED libva>=1.0.0)
     endif()
-    if(NOT LIBVA_X11_FOUND)
-        pkg_check_modules(LIBVA_X11 REQUIRED libva-x11>=1.0.0)
-    endif()
-    if(LIBVA_FOUND AND LIBVA_X11_FOUND)
+    if(LIBVA_FOUND)
         include_directories(BEFORE ${LIBVA_INCLUDE_DIRS})
-        include_directories(BEFORE ${LIBVA_X11_INCLUDE_DIRS})
+        link_directories(${LIBVA_LIBRARY_DIRS})
     endif()
 endif()
-
-
-include_directories(${MDF_OPTION__LIBVA_INCLUDE_DIR})
-link_directories(${MDF_OPTION__LIBVA_LIB_DIR})
 
 # Set up the source files
 set(CMRT_SOURCES "")
