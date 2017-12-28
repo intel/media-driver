@@ -2068,6 +2068,61 @@ VAStatus MediaLibvaCaps::QuerySurfaceAttributes(
             attribs[i].value.value.i = VA_FOURCC('N', 'V', '1', '2');
             i++;
         }
+
+        auto maxWidth = m_decDefaultMaxWidth;
+        auto maxHeight = m_decDefaultMaxHeight;
+        if(IsMpeg2Profile(profile))
+        {
+            maxWidth = m_decMpeg2MaxWidth;
+            maxHeight = m_decMpeg2MaxHeight;
+        }
+        else if(IsHevcProfile(profile))
+        {
+            maxWidth = m_decHevcMaxWidth;
+            maxHeight = m_decHevcMaxHeight;
+        }
+        else if(IsVc1Profile(profile))
+        {
+            maxWidth = m_decVc1MaxWidth;
+            maxHeight = m_decVc1MaxHeight;
+        }
+        else if(IsJpegProfile(profile))
+        {
+            maxWidth = m_decJpegMaxWidth;
+            maxHeight = m_decJpegMaxHeight;
+        }
+
+        attribs[i].type = VASurfaceAttribMaxWidth;
+        attribs[i].value.type = VAGenericValueTypeInteger;
+        attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE;
+        attribs[i].value.value.i = maxWidth;
+        i++;
+
+        attribs[i].type = VASurfaceAttribMaxHeight;
+        attribs[i].value.type = VAGenericValueTypeInteger;
+        attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE;
+        attribs[i].value.value.i = maxHeight;
+        i++;
+
+        attribs[i].type = VASurfaceAttribMinWidth;
+        attribs[i].value.type = VAGenericValueTypeInteger;
+        attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE;
+        attribs[i].value.value.i = m_encMinWidth;
+        if(profile == VAProfileJPEGBaseline)
+        {
+            attribs[i].value.value.i = m_encJpegMinWidth;
+        }
+        i++;
+
+        attribs[i].type = VASurfaceAttribMinHeight;
+        attribs[i].value.type = VAGenericValueTypeInteger;
+        attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE;
+        attribs[i].value.value.i = m_encMinHeight;
+        if(profile == VAProfileJPEGBaseline)
+        {
+            attribs[i].value.value.i = m_encJpegMinHeight;
+        }
+        i++;
     }
     else if(entrypoint == VAEntrypointEncSlice)
     {
