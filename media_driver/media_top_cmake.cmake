@@ -20,6 +20,8 @@
 
 project( media )
 
+ADD_SUBDIRECTORY(${CMAKE_CURRENT_LIST_DIR}/linux/ult)
+
 bs_set_if_undefined(LIB_NAME iHD_drv_video)
 
 include(${MEDIA_DRIVER_CMAKE}/media_gen_flags.cmake)
