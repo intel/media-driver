@@ -563,6 +563,7 @@ protected:
     uint32_t                    m_combinedKernelSize = 0;                                   //!< Combined kernel size
     uint8_t*                    m_kernelBase = nullptr;                                     //!< kernel binary base address
     uint8_t*                    m_dsKernelBase = nullptr;                                   //!< kernel binary base address for DS kernel
+    bool                        m_allocNv12For422 = false;                                  //!< use NV12 for 422 converted surface
     CscColor                    m_colorRawSurface = cscColorNv12TileY;                      //!< Raw surface color format
     CurbeParams                 m_curbeParams;                                              //!< Curbe param (shared by CSC and DS kernel)
     SurfaceParamsCsc            m_surfaceParamsCsc;                                         //!< CSC surface param

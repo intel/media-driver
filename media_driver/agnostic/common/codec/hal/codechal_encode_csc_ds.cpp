@@ -69,7 +69,15 @@ MOS_STATUS CodechalEncodeCscDs::AllocateSurfaceCsc()
         surfaceHeight = MOS_ALIGN_CEIL(m_oriFrameHeight, m_rawSurfAlignment);
     }
 
-    if (cscColorY210 == m_colorRawSurface)
+    if (cscColorYUY2 == m_colorRawSurface &&
+        (uint8_t)HCP_CHROMA_FORMAT_YUV422 == m_outputChromaFormat &&
+        !m_allocNv12For422)
+    {
+        allocParamsNV12.Format = Format_YUY2;
+        allocParamsNV12.dwWidth = surfaceWidth >> 1;
+        allocParamsNV12.dwHeight = surfaceHeight << 1;
+    }
+    else if (cscColorY210 == m_colorRawSurface)
     {
         allocParamsNV12.Format = Format_YUY2;
         allocParamsNV12.dwWidth = surfaceWidth;

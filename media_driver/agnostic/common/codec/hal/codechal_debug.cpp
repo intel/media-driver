@@ -433,6 +433,7 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
     switch (surface->Format)
     {
     case Format_YUY2:
+    case Format_Y216V:
     case Format_P010: 
     case Format_P016:
         width = width << 1;
@@ -495,6 +496,8 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
         break;
     case  Format_YUY2:
     case  Format_YUYV:
+    case  Format_YUY2V:
+    case  Format_Y216V:
     case  Format_YVYU:
     case  Format_UYVY:
     case  Format_VYUY:
