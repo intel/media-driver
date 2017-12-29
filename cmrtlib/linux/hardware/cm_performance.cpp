@@ -41,7 +41,7 @@ extern "C" int32_t QueryPerformanceFrequency(LARGE_INTEGER *frequency)
     {
         return -1;
     }
-    frequency->quadPart = (1000000000LL) / res.tv_nsec;
+    frequency->QuadPart = (1000000000LL) / res.tv_nsec;
 
     return 0;
 }
@@ -64,7 +64,7 @@ extern "C" int32_t QueryPerformanceCounter(LARGE_INTEGER *performanceCount)
     {
         return -1;
     }
-    performanceCount->quadPart = (1000000000LL * t.tv_sec +
+    performanceCount->QuadPart = (1000000000LL * t.tv_sec +
         t.tv_nsec) / res.tv_nsec;
 
     return 0;
