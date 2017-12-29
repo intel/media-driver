@@ -908,7 +908,7 @@ struct CodechalTileInfo
     uint32_t    TileSizeInBytes;
 
     uint32_t    reserved;
-    uint32_t    HWCounterValue;
+    HwCounter   HWCounterValue;
 };
 
 //!
