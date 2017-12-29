@@ -1074,6 +1074,7 @@ protected:
     //!
     VAStatus CreateEncConfig(
         int32_t profileTableIdx,
+        VAEntrypoint entrypoint,
         VAConfigAttrib *attribList,
         int32_t numAttribs,
         VAConfigID *configId);
