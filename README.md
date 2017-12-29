@@ -108,24 +108,24 @@ CNL (Cannonlake)
 
 ## Supported Codecs
 
-| CODEC      | D/E | Platform(s) |
-|------------|-----|-------------|
-| H.264      |  D  | BDW/SKL/CNL |
-| H.264      |  E  | BDW/SKL/CNL |
-| MPEG-2     |  D  | BDW/SKL/CNL |
-| MPEG-2     |  E  | BDW/SKL/CNL |
-| VC-1       |  D  | BDW/SKL/CNL |
-| JPEG       |  D  | BDW/SKL/CNL |
-| JPEG       |  E  | SKL/CNL     |
-| VP8        |  D  | BDW/SKL/CNL |
-| VP8        |  E  | CNL         |
-| HEVC       |  D  | SKL/CNL     |
-| HEVC       |  E  | SKL/CNL     |
-| HEVC 10bit |  D  | CNL         |
-| HEVC 10bit |  E  | CNL         |
-| VP9        |  D  | CNL         |
-| VP9        |  E  | CNL         |
-| VP9 10bit  |  D  | CNL         |
+| CODEC      | D/E | Platform(s)         |
+|------------|-----|---------------------|
+| H.264      |  D  | BDW/SKL/BXT/APL/CNL |
+| H.264      |  E  | BDW/SKL/BXT/APL/CNL |
+| MPEG-2     |  D  | BDW/SKL/BXT/APL/CNL |
+| MPEG-2     |  E  | BDW/SKL/CNL         |
+| VC-1       |  D  | BDW/SKL/BXT/APL/CNL |
+| JPEG       |  D  | BDW/SKL/BXT/APL/CNL |
+| JPEG       |  E  | SKL/BXT/APL/CNL     |
+| VP8        |  D  | BDW/SKL/BXT/APL/CNL |
+| VP8        |  E  | CNL                 |
+| HEVC       |  D  | SKL/BXT/APL/CNL     |
+| HEVC       |  E  | SKL/BXT/APL/CNL     |
+| HEVC 10bit |  D  | BXT/APL/CNL         |
+| HEVC 10bit |  E  | CNL                 |
+| VP9        |  D  | BXT/APL/CNL         |
+| VP9        |  E  | CNL                 |
+| VP9 10bit  |  D  | CNL                 |
 
 
 ## Known Issues and Limitations
