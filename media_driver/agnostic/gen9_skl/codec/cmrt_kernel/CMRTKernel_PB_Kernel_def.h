@@ -64,6 +64,7 @@ typedef struct
     void     *m_cmSurfMVPredictor;
     void     *m_cmSurfRef0[8];
     void     *m_cmSurfRef1[8];
+    void     *m_cmSurfPerCTBInput;
     uint8_t   m_ucRefNum0;
     uint8_t   m_ucRefNum1;
     uint32_t  m_width;

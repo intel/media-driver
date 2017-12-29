@@ -34,7 +34,7 @@ CMRTKernelPB8x8MbEnc::CMRTKernelPB8x8MbEnc()
     m_kernelName        = HEVCENCKERNELNAME_PB_MB;
 
     m_cmSurface2DCount   = 17;
-    m_cmBufferCount      = 9;
+    m_cmBufferCount      = 10;
     m_cmVmeSurfCount     = 2;
     m_cmSurfaceRef0Count = 8;
     m_cmSurfaceRef1Count = 8;
@@ -488,7 +488,16 @@ CM_RETURN_CODE CMRTKernelPB8x8MbEncUMD::AllocateSurfaces(void *params)
         CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfMVPredictor, m_cmBuffer[8]));
         CM_CHK_STATUS_RETURN(m_cmBuffer[8]->GetIndex(m_surfIndex[23]));
     }
-    m_surfIndex[24] = (SurfaceIndex *)CM_NULL_SURFACE;
+    if (PB8x8MbEncParams->m_cmSurfPerCTBInput == nullptr)
+    {
+        m_surfIndex[24] = (SurfaceIndex *)CM_NULL_SURFACE;
+    }
+    else
+    {
+        CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE*)PB8x8MbEncParams->m_cmSurfPerCTBInput, m_cmBuffer[9]));
+        CM_CHK_STATUS_RETURN(m_cmBuffer[9]->GetIndex(m_surfIndex[24]));
+    }
+
     m_surfIndex[25] = (SurfaceIndex *)CM_NULL_SURFACE;
     m_surfIndex[26] = (SurfaceIndex *)CM_NULL_SURFACE;
 

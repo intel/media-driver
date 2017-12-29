@@ -4378,7 +4378,19 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PBMbEncKernel()
         startBTI++;
     }
 
-    startBTI += 2;
+    if (pFeiPicParams->bPerCTBInput)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetSurfacesState(
+                    kernelState,
+                    &cmdBuffer,
+                    SURFACE_FEI_PER_CTB_CTRL,
+                    &bindingTable->dwBindingTableEntries[startBTI++]));
+    }
+    else
+    {
+        startBTI ++;
+    }
+    startBTI += 1;
 
     if (!m_hwWalker)
     {
@@ -5481,6 +5493,15 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PBMbEncKernel()
     else
     {
         PB8x8MbEncParams.m_cmSurfMVPredictor = nullptr;
+    }
+
+    if (pFeiPicParams->bPerCTBInput)
+    {
+        PB8x8MbEncParams.m_cmSurfPerCTBInput = &pFeiPicParams->resCTBCtrl;
+    }
+    else
+    {
+        PB8x8MbEncParams.m_cmSurfPerCTBInput = nullptr;
     }
 
     if (m_cmKernelMap.count("PB_8x8_MBENC") == 0)
@@ -6612,8 +6633,8 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::InitSurfaceInfoTable()
     param = &m_surfaceParams[SURFACE_FEI_PER_CTB_CTRL];
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParams1D(
         param,
-        &pFeiPicParams->resCTBCmd,
-        pFeiPicParams->resCTBCmd.iSize,
+        &pFeiPicParams->resCTBCtrl,
+        pFeiPicParams->resCTBCtrl.iSize,
         0,
         m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_MV_DATA_ENCODE].Value,
         0,
