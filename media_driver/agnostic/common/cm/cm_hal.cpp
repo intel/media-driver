@@ -7608,7 +7608,7 @@ MOS_STATUS HalCm_Allocate(
     pState->bNullHwRenderCm          = NullHWAccelerationEnable.Cm || NullHWAccelerationEnable.VPGobal;
 
     //during initialization stage to allocate sip resource and Get sip binary.
-    if (pState->Platform.eRenderCoreFamily < IGFX_GEN10_CORE)
+    if (pState->Platform.eRenderCoreFamily <= IGFX_GEN10_CORE)
     {
         if ((pState->bDisabledMidThreadPreemption == false)
             || (pState->bEnabledKernelDebug == true))

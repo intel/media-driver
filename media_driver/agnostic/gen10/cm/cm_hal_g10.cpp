@@ -163,7 +163,10 @@ MOS_STATUS CM_HAL_G10_X::SubmitCommands(
         {
             if (MEDIA_IS_SKU(pState->pSkuTable, FtrGpGpuMidThreadLevelPreempt))
             {
-                loadRegImm.dwData = MHW_RENDER_ENGINE_MID_THREAD_PREEMPT_VALUE;
+                if (csr_enable)
+                    loadRegImm.dwData = MHW_RENDER_ENGINE_MID_THREAD_PREEMPT_VALUE;
+                else
+                    loadRegImm.dwData = MHW_RENDER_ENGINE_THREAD_GROUP_PREEMPT_VALUE;
             }
             else if (MEDIA_IS_SKU(pState->pSkuTable, FtrGpGpuThreadGroupLevelPreempt))
             {
