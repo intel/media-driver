@@ -34,10 +34,9 @@
 
 CodechalDebugInterface::CodechalDebugInterface()
 {
-    memset(&CurrPic, 0, sizeof(CODEC_PICTURE));
-    memset(sFileName, 0, sizeof(sFileName));
-    memset(sPath, 0, sizeof(sPath));
-    memset(sDdiFileName, 0, sizeof(sDdiFileName));
+    memset(&m_currPic, 0, sizeof(CODEC_PICTURE));
+    memset(m_fileName, 0, sizeof(m_fileName));
+    memset(m_path, 0, sizeof(m_path));
 }
 CodechalDebugInterface::~CodechalDebugInterface()
 {
@@ -58,8 +57,8 @@ MOS_STATUS CodechalDebugInterface::Initialize(
 
     CODECHAL_DEBUG_CHK_NULL(hwInterface);
 
-    pHwInterface  = hwInterface;
-    pOsInterface  = pHwInterface->GetOsInterface();
+    m_hwInterface = hwInterface;
+    m_osInterface = m_hwInterface->GetOsInterface();
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     userFeatureData.StringData.pStringData = stringData;
@@ -87,7 +86,7 @@ MOS_STATUS CodechalDebugInterface::Initialize(
     {
         m_outputFilePath = MOS_DEBUG_DEFAULT_OUTPUT_LOCATION;
     }
-    CodecFunction = codecFunction;
+    m_codecFunction = codecFunction;
     m_configMgr = MOS_New(CodechalDebugConfigMgr, this, codecFunction, m_outputFilePath);
     CODECHAL_DEBUG_CHK_NULL(m_configMgr);
     CODECHAL_DEBUG_CHK_STATUS(m_configMgr->ParseConfig());
@@ -103,7 +102,7 @@ MOS_STATUS CodechalDebugInterface::Initialize(
     m_ddiFileName = m_outputFilePath + "ddi.par";
     std::ofstream ofs(m_ddiFileName, std::ios::out);
     ofs << "ParamFilePath"
-        << " = \"" << sFileName << "\"" << std::endl;
+        << " = \"" << m_fileName << "\"" << std::endl;
     ofs.close();
 
     return MOS_STATUS_SUCCESS;
@@ -140,30 +139,30 @@ const char *CodechalDebugInterface::CreateFileName(
 
     char frameType = 'X';
     // Sets the frameType label
-    if (wFrameType == I_TYPE)
+    if (m_frameType == I_TYPE)
     {
         frameType = 'I';
     }
-    else if (wFrameType == P_TYPE)
+    else if (m_frameType == P_TYPE)
     {
         frameType = 'P';
     }
-    else if (wFrameType == B_TYPE)
+    else if (m_frameType == B_TYPE)
     {
         frameType = 'B';
     }
-    else if (wFrameType == MIXED_TYPE)
+    else if (m_frameType == MIXED_TYPE)
     {
         frameType = 'M';
     }
 
     const char *fieldOrder;
     // Sets the Field Order label
-    if (CodecHal_PictureIsTopField(CurrPic))
+    if (CodecHal_PictureIsTopField(m_currPic))
     {
         fieldOrder = CodechalDbgFieldType::topField;
     }
-    else if (CodecHal_PictureIsBottomField(CurrPic))
+    else if (CodecHal_PictureIsBottomField(m_currPic))
     {
         fieldOrder = CodechalDbgFieldType::botField;
     }
@@ -183,13 +182,11 @@ const char *CodechalDebugInterface::CreateFileName(
         !strncmp(bufType, CodechalDbgBufferType::bufSlcParams, sizeof(CodechalDbgBufferType::bufSlcParams) - 1)
         && !strncmp(funcName, "_DDIEnc", sizeof("_DDIEnc") - 1))
     {
-
         m_outputFileName = m_outputFilePath +
-                   std::to_string(dwBufferDumpFrameNum) + '-' +
-                   std::to_string(dwStreamId) + '_' +
-                   std::to_string(slice_id + 1) + 
-                   funcName + '_' + bufType + '_' + frameType + fieldOrder + extType;
-
+                           std::to_string(m_bufferDumpFrameNum) + '-' +
+                           std::to_string(m_streamId) + '_' +
+                           std::to_string(m_sliceId + 1) +
+                           funcName + '_' + bufType + '_' + frameType + fieldOrder + extType;
     }
     else if (bufType != nullptr &&
         !strncmp(bufType, CodechalDbgBufferType::bufEncodePar, sizeof(CodechalDbgBufferType::bufEncodePar) - 1))
@@ -197,15 +194,15 @@ const char *CodechalDebugInterface::CreateFileName(
         if (!strncmp(funcName, "EncodeSequence", sizeof("EncodeSequence") - 1))
         {
             m_outputFileName = m_outputFilePath +
-                std::to_string(dwStreamId) + '_' +
-                funcName + extType;
+                               std::to_string(m_streamId) + '_' +
+                               funcName + extType;
         }
         else
         {
             m_outputFileName = m_outputFilePath +
-                std::to_string(dwBufferDumpFrameNum) + '-' +
-                std::to_string(dwStreamId) + '_' +
-                funcName + frameType + fieldOrder + extType;
+                               std::to_string(m_bufferDumpFrameNum) + '-' +
+                               std::to_string(m_streamId) + '_' +
+                               funcName + frameType + fieldOrder + extType;
         }
     }
     else
@@ -215,18 +212,17 @@ const char *CodechalDebugInterface::CreateFileName(
 
         if (bufType != nullptr)
         {
-
             m_outputFileName = m_outputFilePath +
-                       std::to_string(dwBufferDumpFrameNum) + '-' +
-                       std::to_string(dwStreamId) + '_' +
-                       funcName + '_' + bufType + '_' +frameType + fieldOrder + extType;
+                               std::to_string(m_bufferDumpFrameNum) + '-' +
+                               std::to_string(m_streamId) + '_' +
+                               funcName + '_' + bufType + '_' + frameType + fieldOrder + extType;
         }
         else
         {
             m_outputFileName = m_outputFilePath +
-                       std::to_string(dwBufferDumpFrameNum) + '-' +
-                       std::to_string(dwStreamId) + '_'+
-                       funcName + '_' + frameType + fieldOrder + extType;
+                               std::to_string(m_bufferDumpFrameNum) + '-' +
+                               std::to_string(m_streamId) + '_' +
+                               funcName + '_' + frameType + fieldOrder + extType;
         }
     }
 
@@ -291,14 +287,14 @@ MOS_STATUS CodechalDebugInterface::Dump2ndLvlBatch(
         return MOS_STATUS_SUCCESS;
     }
 
-    CODECHAL_DEBUG_CHK_NULL(pHwInterface);
+    CODECHAL_DEBUG_CHK_NULL(m_hwInterface);
 
     bool        batchLockedForDebug = !batchBuffer->bLocked;
     std::string funcName            = batchName ? batchName : m_configMgr->GetMediaStateStr(mediaState);
 
     if (batchLockedForDebug)
     {
-        (Mhw_LockBb(pOsInterface, batchBuffer));
+        (Mhw_LockBb(m_osInterface, batchBuffer));
     }
 
     const char *fileName = CreateFileName(
@@ -313,7 +309,7 @@ MOS_STATUS CodechalDebugInterface::Dump2ndLvlBatch(
 
     if (batchLockedForDebug)
     {
-        (Mhw_UnlockBb(pOsInterface, batchBuffer, false));
+        (Mhw_UnlockBb(m_osInterface, batchBuffer, false));
     }
 
     return MOS_STATUS_SUCCESS;
@@ -376,9 +372,9 @@ MOS_STATUS CodechalDebugInterface::DumpKernelRegion(
         attrEnabled = m_configMgr->AttrIsEnabled(mediaState, CodechalDbgAttr::attrSsh);
         bufferType  = CodechalDbgBufferType::bufSSH;
 
-        CODECHAL_DEBUG_CHK_NULL(pOsInterface);
-        CODECHAL_DEBUG_CHK_STATUS(pOsInterface->pfnGetIndirectStatePointer(
-            pOsInterface,
+        CODECHAL_DEBUG_CHK_NULL(m_osInterface);
+        CODECHAL_DEBUG_CHK_STATUS(m_osInterface->pfnGetIndirectStatePointer(
+            m_osInterface,
             &sshData));
         sshData += kernelState->dwSshOffset;
         sshSize = kernelState->dwSshSize;
@@ -423,7 +419,7 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
     MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
     lockFlags.ReadOnly = 1;
 
-    uint8_t *surfBaseAddr = (uint8_t *)pOsInterface->pfnLockResource(pOsInterface, &surface->OsResource, &lockFlags);
+    uint8_t *surfBaseAddr = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &surface->OsResource, &lockFlags);
 
     surfBaseAddr += surface->dwOffset + surface->YPlaneOffset.iYOffset * surface->dwPitch;
     uint8_t *data   = surfBaseAddr;
@@ -452,18 +448,18 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
     if (surface->Format == Format_UYVY)
         pitch = width;
 
-    if (CodecHal_PictureIsBottomField(CurrPic))
+    if (CodecHal_PictureIsBottomField(m_currPic))
     {
         data += pitch;
     }
 
-    if (CodecHal_PictureIsField(CurrPic))
+    if (CodecHal_PictureIsField(m_currPic))
     {
         pitch *= 2;
         height /= 2;
     }
 
-    const char *funcName = CodecFunction == CODECHAL_FUNCTION_DECODE ? "_DEC" : "_ENC";
+    const char *funcName = m_codecFunction == CODECHAL_FUNCTION_DECODE ? "_DEC" : "_ENC";
     std::string bufName  = std::string(surfName) + "_w[" + std::to_string(width) + "]_h[" + std::to_string(height) + "]_p[" + std::to_string(pitch) + "]";
 
     const char *filePath = CreateFileName(funcName, bufName.c_str(), CodechalDbgExtType::yuv);
@@ -522,7 +518,7 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
 
     if (surfBaseAddr)
     {
-        pOsInterface->pfnUnlockResource(pOsInterface, &surface->OsResource);
+        m_osInterface->pfnUnlockResource(m_osInterface, &surface->OsResource);
     }
 
     return MOS_STATUS_SUCCESS;
@@ -568,7 +564,7 @@ MOS_STATUS CodechalDebugInterface::DumpBuffer(
     MOS_LOCK_PARAMS lockFlags;
     MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
     lockFlags.ReadOnly = 1;
-    uint8_t *data      = (uint8_t *)pOsInterface->pfnLockResource(pOsInterface, resource, &lockFlags);
+    uint8_t *data      = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, resource, &lockFlags);
     CODECHAL_DEBUG_CHK_NULL(data);
     data += offset;
 
@@ -598,7 +594,7 @@ MOS_STATUS CodechalDebugInterface::DumpBuffer(
 
     if (data)
     {
-        pOsInterface->pfnUnlockResource(pOsInterface, resource);
+        m_osInterface->pfnUnlockResource(m_osInterface, resource);
     }
 
     return status;
@@ -638,7 +634,7 @@ MOS_STATUS CodechalDebugInterface::DumpSurface(
     MOS_LOCK_PARAMS lockFlags;
     MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
     lockFlags.ReadOnly = 1;
-    uint8_t *data      = (uint8_t *)pOsInterface->pfnLockResource(pOsInterface, &surface->OsResource, &lockFlags);
+    uint8_t *data      = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &surface->OsResource, &lockFlags);
     CODECHAL_DEBUG_CHK_NULL(data);
 
     const char *fileName;
@@ -664,7 +660,7 @@ MOS_STATUS CodechalDebugInterface::DumpSurface(
 
     if (data)
     {
-        pOsInterface->pfnUnlockResource(pOsInterface, &surface->OsResource);
+        m_osInterface->pfnUnlockResource(m_osInterface, &surface->OsResource);
     }
 
     return status;
@@ -723,11 +719,11 @@ MOS_STATUS CodechalDebugInterface::DumpHucDmem(
     }
 
     std::string funcName = "";
-    if (CodecFunction == CODECHAL_FUNCTION_DECODE)
+    if (m_codecFunction == CODECHAL_FUNCTION_DECODE)
     {
         funcName = "DEC_";
     }
-    else if (CodecFunction == CODECHAL_FUNCTION_CENC_DECODE)
+    else if (m_codecFunction == CODECHAL_FUNCTION_CENC_DECODE)
     {
         funcName = "DEC_Cenc_";
     }
@@ -791,11 +787,11 @@ MOS_STATUS CodechalDebugInterface::DumpHucRegion(
     }
 
     std::string funcName = "";
-    if (CodecFunction == CODECHAL_FUNCTION_DECODE)
+    if (m_codecFunction == CODECHAL_FUNCTION_DECODE)
     {
         funcName = "DEC_";
     }
-    else if (CodecFunction == CODECHAL_FUNCTION_CENC_DECODE)
+    else if (m_codecFunction == CODECHAL_FUNCTION_CENC_DECODE)
     {
         funcName = "DEC_Cenc_";
     }
@@ -909,7 +905,7 @@ MOS_STATUS CodechalDebugInterface::DumpVp9EncodeSeqParams(
         {
             std::ofstream ofs(m_ddiFileName, std::ios::app);
             ofs << "SeqParamFile"
-                << " = \"" << sFileName << "\"" << std::endl;
+                << " = \"" << m_fileName << "\"" << std::endl;
             ofs.close();
         }
     }
@@ -1018,9 +1014,9 @@ MOS_STATUS CodechalDebugInterface::DumpVp9EncodePicParams(
         {
             std::ofstream ofs(m_ddiFileName, std::ios::app);
             ofs << "PicNum"
-                << " = " << dwBufferDumpFrameNum << std::endl;
+                << " = " << m_bufferDumpFrameNum << std::endl;
             ofs << "PicParamFile"
-                << " = \"" << sFileName << "\"" << std::endl;
+                << " = \"" << m_fileName << "\"" << std::endl;
             ofs.close();
         }
     }
@@ -1058,7 +1054,7 @@ MOS_STATUS CodechalDebugInterface::DumpVp9EncodeSegmentParams(
         {
             std::ofstream ofs(m_ddiFileName, std::ios::app);
             ofs << "SegmentParamFileParamFile"
-                << " = \"" << sFileName << "\"" << std::endl;
+                << " = \"" << m_fileName << "\"" << std::endl;
             ofs.close();
         }
     }

@@ -284,8 +284,8 @@ CodechalVdencAvcStateG9Skl::CodechalVdencAvcStateG9Skl(
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     this->pfnGetKernelHeaderAndSize = this->EncodeGetKernelHeaderAndSize;
-    dwVdencBrcInitDmemBufferSize = sizeof(CODECHAL_VDENC_AVC_BRC_INIT_DMEM_G9_SKL);
-    dwVdencBrcUpdateDmemBufferSize = sizeof(CODECHAL_VDENC_AVC_BRC_UPDATE_DMEM_G9_SKL);
+    m_vdencBrcInitDmemBufferSize    = sizeof(CODECHAL_VDENC_AVC_BRC_INIT_DMEM_G9_SKL);
+    m_vdencBrcUpdateDmemBufferSize  = sizeof(CODECHAL_VDENC_AVC_BRC_UPDATE_DMEM_G9_SKL);
 }
 
 CodechalVdencAvcStateG9Skl::~CodechalVdencAvcStateG9Skl()
@@ -373,8 +373,8 @@ MOS_STATUS CodechalVdencAvcStateG9Skl::SetDmemHuCBrcInitReset()
     MOS_LOCK_PARAMS LockFlagsWriteOnly;
     MOS_ZeroMemory(&LockFlagsWriteOnly, sizeof(LockFlagsWriteOnly));
     LockFlagsWriteOnly.WriteOnly = 1;
-    auto pHucVDEncBrcInitDmem = (PCODECHAL_VDENC_AVC_BRC_INIT_DMEM_G9_SKL)m_osInterface->pfnLockResource(
-        m_osInterface, &resVdencBrcInitDmemBuffer[m_currRecycledBufIdx], &LockFlagsWriteOnly);
+    auto pHucVDEncBrcInitDmem    = (PCODECHAL_VDENC_AVC_BRC_INIT_DMEM_G9_SKL)m_osInterface->pfnLockResource(
+        m_osInterface, &m_resVdencBrcInitDmemBuffer[m_currRecycledBufIdx], &LockFlagsWriteOnly);
     CODECHAL_ENCODE_CHK_NULL_RETURN(pHucVDEncBrcInitDmem);
     SetDmemHuCBrcInitResetImpl<CODECHAL_VDENC_AVC_BRC_INIT_DMEM_G9_SKL>(pHucVDEncBrcInitDmem);
 
@@ -383,7 +383,7 @@ MOS_STATUS CodechalVdencAvcStateG9Skl::SetDmemHuCBrcInitReset()
             pHucVDEncBrcInitDmem));
     )
 
-    m_osInterface->pfnUnlockResource(m_osInterface, &resVdencBrcInitDmemBuffer[m_currRecycledBufIdx]);
+    m_osInterface->pfnUnlockResource(m_osInterface, &m_resVdencBrcInitDmemBuffer[m_currRecycledBufIdx]);
 
     return eStatus;
 }
@@ -399,7 +399,7 @@ MOS_STATUS CodechalVdencAvcStateG9Skl::SetDmemHuCBrcUpdate()
     MOS_ZeroMemory(&LockFlags, sizeof(MOS_LOCK_PARAMS));
     LockFlags.WriteOnly = 1;
     auto pHucVDEncBrcDmem = (PCODECHAL_VDENC_AVC_BRC_UPDATE_DMEM_G9_SKL)m_osInterface->pfnLockResource(
-        m_osInterface, &resVdencBrcUpdateDmemBuffer[m_currRecycledBufIdx][m_currPass], &LockFlags);
+        m_osInterface, &m_resVdencBrcUpdateDmemBuffer[m_currRecycledBufIdx][m_currPass], &LockFlags);
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(pHucVDEncBrcDmem);
     SetDmemHuCBrcUpdateImpl<CODECHAL_VDENC_AVC_BRC_UPDATE_DMEM_G9_SKL>(pHucVDEncBrcDmem);
@@ -429,7 +429,7 @@ MOS_STATUS CodechalVdencAvcStateG9Skl::SetDmemHuCBrcUpdate()
             pHucVDEncBrcDmem));
     )
 
-    m_osInterface->pfnUnlockResource(m_osInterface, &(resVdencBrcUpdateDmemBuffer[m_currRecycledBufIdx][m_currPass]));
+    m_osInterface->pfnUnlockResource(m_osInterface, &(m_resVdencBrcUpdateDmemBuffer[m_currRecycledBufIdx][m_currPass]));
 
     return eStatus;
 }
@@ -440,14 +440,14 @@ MOS_STATUS CodechalVdencAvcStateG9Skl::LoadMvCost(uint8_t QP)
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    VDEncMvCost[0] = Map44LutValue((uint32_t)(MV_Cost_SkipBias_QPel[0]), 0x6f);
-    VDEncMvCost[1] = Map44LutValue((uint32_t)(MV_Cost_SkipBias_QPel[1]), 0x6f);
-    VDEncMvCost[2] = Map44LutValue((uint32_t)(MV_Cost_SkipBias_QPel[2]), 0x6f);
-    VDEncMvCost[3] = Map44LutValue((uint32_t)(MV_Cost_SkipBias_QPel[3]), 0x6f);
-    VDEncMvCost[4] = Map44LutValue((uint32_t)(MV_Cost_SkipBias_QPel[4]), 0x6f);
-    VDEncMvCost[5] = Map44LutValue((uint32_t)(MV_Cost_SkipBias_QPel[5]), 0x6f);
-    VDEncMvCost[6] = Map44LutValue((uint32_t)(MV_Cost_SkipBias_QPel[6]), 0x6f);
-    VDEncMvCost[7] = Map44LutValue((uint32_t)(MV_Cost_SkipBias_QPel[7]), 0x6f);
+    m_vdEncMvCost[0] = Map44LutValue((uint32_t)(MV_Cost_SkipBias_QPel[0]), 0x6f);
+    m_vdEncMvCost[1] = Map44LutValue((uint32_t)(MV_Cost_SkipBias_QPel[1]), 0x6f);
+    m_vdEncMvCost[2] = Map44LutValue((uint32_t)(MV_Cost_SkipBias_QPel[2]), 0x6f);
+    m_vdEncMvCost[3] = Map44LutValue((uint32_t)(MV_Cost_SkipBias_QPel[3]), 0x6f);
+    m_vdEncMvCost[4] = Map44LutValue((uint32_t)(MV_Cost_SkipBias_QPel[4]), 0x6f);
+    m_vdEncMvCost[5] = Map44LutValue((uint32_t)(MV_Cost_SkipBias_QPel[5]), 0x6f);
+    m_vdEncMvCost[6] = Map44LutValue((uint32_t)(MV_Cost_SkipBias_QPel[6]), 0x6f);
+    m_vdEncMvCost[7] = Map44LutValue((uint32_t)(MV_Cost_SkipBias_QPel[7]), 0x6f);
 
     return eStatus;
 }
@@ -458,14 +458,14 @@ MOS_STATUS CodechalVdencAvcStateG9Skl::LoadHmeMvCost(uint8_t QP)
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    VDEncHmeMvCost[0] = Map44LutValue(*(HmeCost[0] + QP), 0x6f);
-    VDEncHmeMvCost[1] = Map44LutValue(*(HmeCost[1] + QP), 0x6f);
-    VDEncHmeMvCost[2] = Map44LutValue(*(HmeCost[2] + QP), 0x6f);
-    VDEncHmeMvCost[3] = Map44LutValue(*(HmeCost[3] + QP), 0x6f);
-    VDEncHmeMvCost[4] = Map44LutValue(*(HmeCost[4] + QP), 0x6f);
-    VDEncHmeMvCost[5] = Map44LutValue(*(HmeCost[5] + QP), 0x6f);
-    VDEncHmeMvCost[6] = Map44LutValue(*(HmeCost[6] + QP), 0x6f);
-    VDEncHmeMvCost[7] = Map44LutValue(*(HmeCost[7] + QP), 0x6f);
+    m_vdEncHmeMvCost[0] = Map44LutValue(*(HmeCost[0] + QP), 0x6f);
+    m_vdEncHmeMvCost[1] = Map44LutValue(*(HmeCost[1] + QP), 0x6f);
+    m_vdEncHmeMvCost[2] = Map44LutValue(*(HmeCost[2] + QP), 0x6f);
+    m_vdEncHmeMvCost[3] = Map44LutValue(*(HmeCost[3] + QP), 0x6f);
+    m_vdEncHmeMvCost[4] = Map44LutValue(*(HmeCost[4] + QP), 0x6f);
+    m_vdEncHmeMvCost[5] = Map44LutValue(*(HmeCost[5] + QP), 0x6f);
+    m_vdEncHmeMvCost[6] = Map44LutValue(*(HmeCost[6] + QP), 0x6f);
+    m_vdEncHmeMvCost[7] = Map44LutValue(*(HmeCost[7] + QP), 0x6f);
 
     return eStatus;
 }
@@ -507,29 +507,31 @@ MOS_STATUS CodechalVdencAvcStateG9Skl::PopulateBrcInitParam(
 
     if (m_pictureCodingType == I_TYPE)
     {
-        avcPar->MBBRCEnable                    = bMbBrcEnabled;
-        avcPar->MBRC                           = bMbBrcEnabled;
-        avcPar->BitRate                        = dmem->INIT_TargetBitrate_U32;
-        avcPar->InitVbvFullnessInBit           = dmem->INIT_InitBufFull_U32;
-        avcPar->MaxBitRate                     = dmem->INIT_MaxRate_U32;
-        avcPar->VbvSzInBit                     = dmem->INIT_BufSize_U32;
-        avcPar->UserMaxFrame                   = dmem->INIT_ProfileLevelMaxFrame_U32;
-        avcPar->SlidingWindowEnable            = dmem->INIT_SlidingWidowRCEnable_U8;
-        avcPar->SlidingWindowSize              = dmem->INIT_SlidingWindowSize_U8;
-        avcPar->SlidingWindowMaxRateRatio      = dmem->INIT_SlidingWindowMaxRateRatio_U8;
-        avcPar->LowDelayGoldenFrameBoost       = dmem->INIT_LowDelayGoldenFrameBoost_U8;
-        avcPar->TopQPDeltaThrforAdaptive2Pass  = dmem->INIT_TopQPDeltaThrForAdapt2Pass_U8;
-        avcPar->BotQPDeltaThrforAdaptive2Pass  = dmem->INIT_BotQPDeltaThrForAdapt2Pass_U8;
-        avcPar->TopFrmSzPctThrforAdaptive2Pass = dmem->INIT_TopFrmSzThrForAdapt2Pass_U8;
-        avcPar->BotFrmSzPctThrforAdaptive2Pass = dmem->INIT_BotFrmSzThrForAdapt2Pass_U8;
-        avcPar->MBHeaderCompensation           = dmem->INIT_MBHeaderCompensation_U8;
-        avcPar->QPSelectMethodforFirstPass     = dmem->INIT_QPSelectForFirstPass_U8;
-        avcPar->MBQpCtrl                       = (dmem->INIT_MbQpCtrl_U8 > 0) ? true : false;
-        avcPar->QPMax                          = dmem->INIT_MaxQP_U16;
-        avcPar->QPMin                          = dmem->INIT_MinQP_U16;
-        avcPar->HrdConformanceCheckDisable     = (dmem->INIT_HRDConformanceCheckDisable_U8 > 0) ? true : false;
-        avcPar->StreamInStaticRegion           = dmem->INIT_StaticRegionStreamIn_U8;;
-        avcPar->ScenarioInfo                   = dmem->INIT_ScenarioInfo_U8;;
+        m_avcPar->MBBRCEnable                    = m_mbBrcEnabled;
+        m_avcPar->MBRC                           = m_mbBrcEnabled;
+        m_avcPar->BitRate                        = dmem->INIT_TargetBitrate_U32;
+        m_avcPar->InitVbvFullnessInBit           = dmem->INIT_InitBufFull_U32;
+        m_avcPar->MaxBitRate                     = dmem->INIT_MaxRate_U32;
+        m_avcPar->VbvSzInBit                     = dmem->INIT_BufSize_U32;
+        m_avcPar->UserMaxFrame                   = dmem->INIT_ProfileLevelMaxFrame_U32;
+        m_avcPar->SlidingWindowEnable            = dmem->INIT_SlidingWidowRCEnable_U8;
+        m_avcPar->SlidingWindowSize              = dmem->INIT_SlidingWindowSize_U8;
+        m_avcPar->SlidingWindowMaxRateRatio      = dmem->INIT_SlidingWindowMaxRateRatio_U8;
+        m_avcPar->LowDelayGoldenFrameBoost       = dmem->INIT_LowDelayGoldenFrameBoost_U8;
+        m_avcPar->TopQPDeltaThrforAdaptive2Pass  = dmem->INIT_TopQPDeltaThrForAdapt2Pass_U8;
+        m_avcPar->BotQPDeltaThrforAdaptive2Pass  = dmem->INIT_BotQPDeltaThrForAdapt2Pass_U8;
+        m_avcPar->TopFrmSzPctThrforAdaptive2Pass = dmem->INIT_TopFrmSzThrForAdapt2Pass_U8;
+        m_avcPar->BotFrmSzPctThrforAdaptive2Pass = dmem->INIT_BotFrmSzThrForAdapt2Pass_U8;
+        m_avcPar->MBHeaderCompensation           = dmem->INIT_MBHeaderCompensation_U8;
+        m_avcPar->QPSelectMethodforFirstPass     = dmem->INIT_QPSelectForFirstPass_U8;
+        m_avcPar->MBQpCtrl                       = (dmem->INIT_MbQpCtrl_U8 > 0) ? true : false;
+        m_avcPar->QPMax                          = dmem->INIT_MaxQP_U16;
+        m_avcPar->QPMin                          = dmem->INIT_MinQP_U16;
+        m_avcPar->HrdConformanceCheckDisable     = (dmem->INIT_HRDConformanceCheckDisable_U8 > 0) ? true : false;
+        m_avcPar->StreamInStaticRegion           = dmem->INIT_StaticRegionStreamIn_U8;
+        ;
+        m_avcPar->ScenarioInfo = dmem->INIT_ScenarioInfo_U8;
+        ;
     }
 
     return MOS_STATUS_SUCCESS;
@@ -551,19 +553,19 @@ MOS_STATUS CodechalVdencAvcStateG9Skl::PopulateBrcUpdateParam(
 
     if (m_pictureCodingType == I_TYPE)
     {
-        avcPar->EnableMultipass            = (dmem->UPD_MaxNumPass_U8 > 0) ? true : false;
-        avcPar->MaxNumPakPasses            = dmem->UPD_MaxNumPass_U8;
-        avcPar->SceneChgDetectEn           = (dmem->UPD_SceneChgDetectEn_U8 > 0) ? true : false;
-        avcPar->SceneChgPrevIntraPctThresh = dmem->UPD_SceneChgPrevIntraPctThreshold_U8;
-        avcPar->SceneChgCurIntraPctThresh  = dmem->UPD_SceneChgCurIntraPctThreshold_U8;
-        avcPar->SceneChgWidth0             = dmem->UPD_SceneChgWidth_U8[0];
-        avcPar->SceneChgWidth1             = dmem->UPD_SceneChgWidth_U8[1];
-        avcPar->SliceSizeThr               = dmem->UPD_SLCSZ_TARGETSLCSZ_U16;
-        avcPar->SliceMaxSize               = dmem->UPD_TargetSliceSize_U16;
+        m_avcPar->EnableMultipass            = (dmem->UPD_MaxNumPass_U8 > 0) ? true : false;
+        m_avcPar->MaxNumPakPasses            = dmem->UPD_MaxNumPass_U8;
+        m_avcPar->SceneChgDetectEn           = (dmem->UPD_SceneChgDetectEn_U8 > 0) ? true : false;
+        m_avcPar->SceneChgPrevIntraPctThresh = dmem->UPD_SceneChgPrevIntraPctThreshold_U8;
+        m_avcPar->SceneChgCurIntraPctThresh  = dmem->UPD_SceneChgCurIntraPctThreshold_U8;
+        m_avcPar->SceneChgWidth0             = dmem->UPD_SceneChgWidth_U8[0];
+        m_avcPar->SceneChgWidth1             = dmem->UPD_SceneChgWidth_U8[1];
+        m_avcPar->SliceSizeThr               = dmem->UPD_SLCSZ_TARGETSLCSZ_U16;
+        m_avcPar->SliceMaxSize               = dmem->UPD_TargetSliceSize_U16;
     }
     else if (m_pictureCodingType == P_TYPE)
     {
-        avcPar->Transform8x8PDisable       = (dmem->UPD_DisablePFrame8x8Transform_U8 > 0) ? true : false;
+        m_avcPar->Transform8x8PDisable = (dmem->UPD_DisablePFrame8x8Transform_U8 > 0) ? true : false;
     }
 
     return MOS_STATUS_SUCCESS;
@@ -590,7 +592,7 @@ MOS_STATUS CodechalVdencAvcStateG9Skl::PopulateEncParam(
     if (m_vdencBrcEnabled)
     {
         // BRC case: VDENC IMG STATE is updated by HuC FW
-        data = (uint8_t*)m_osInterface->pfnLockResource(m_osInterface, &resVdencBrcImageStatesReadBuffer[m_currRecycledBufIdx], &lockFlags);
+        data = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &m_resVdencBrcImageStatesReadBuffer[m_currRecycledBufIdx], &lockFlags);
         data = data + mhw_vdbox_mfx_g9_skl::MFX_AVC_IMG_STATE_CMD::byteSize;
     }
     else
@@ -603,7 +605,7 @@ MOS_STATUS CodechalVdencAvcStateG9Skl::PopulateEncParam(
         }
         else
         {
-            data = (uint8_t*)m_osInterface->pfnLockResource(m_osInterface, &resVdencSFDImageStateReadBuffer, &lockFlags);
+            data = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &m_resVdencSfdImageStateReadBuffer, &lockFlags);
         }
     }
 
@@ -614,17 +616,17 @@ MOS_STATUS CodechalVdencAvcStateG9Skl::PopulateEncParam(
 
     if (m_pictureCodingType == I_TYPE)
     {
-        avcPar->BlockBasedSkip        = vdencCmd.DW4.BlockBasedSkipEnabled;
+        m_avcPar->BlockBasedSkip = vdencCmd.DW4.BlockBasedSkipEnabled;
     }
     else if (m_pictureCodingType == P_TYPE)
     {
-        avcPar->SubPelMode            = vdencCmd.DW4.SubPelMode;
-        avcPar->FTQBasedSkip          = vdencCmd.DW4.ForwardTransformSkipCheckEnable;
-        avcPar->BiMixDisable          = vdencCmd.DW1.BidirectionalMixDisable;
-        avcPar->SurvivedSkipCost      = (vdencCmd.DW8.NonSkipZeroMvCostAdded << 1) + vdencCmd.DW8.NonSkipMbModeCostAdded;
-        avcPar->UniMixDisable         = vdencCmd.DW2.UnidirectionalMixDisable;
-        avcPar->VdencExtPakObjDisable = !vdencCmd.DW1.VdencExtendedPakObjCmdEnable;
-        avcPar->PPMVDisable           = vdencCmd.DW34.PpmvDisable;
+        m_avcPar->SubPelMode            = vdencCmd.DW4.SubPelMode;
+        m_avcPar->FTQBasedSkip          = vdencCmd.DW4.ForwardTransformSkipCheckEnable;
+        m_avcPar->BiMixDisable          = vdencCmd.DW1.BidirectionalMixDisable;
+        m_avcPar->SurvivedSkipCost      = (vdencCmd.DW8.NonSkipZeroMvCostAdded << 1) + vdencCmd.DW8.NonSkipMbModeCostAdded;
+        m_avcPar->UniMixDisable         = vdencCmd.DW2.UnidirectionalMixDisable;
+        m_avcPar->VdencExtPakObjDisable = !vdencCmd.DW1.VdencExtendedPakObjCmdEnable;
+        m_avcPar->PPMVDisable           = vdencCmd.DW34.PpmvDisable;
     }
 
     if (data)
@@ -633,7 +635,7 @@ MOS_STATUS CodechalVdencAvcStateG9Skl::PopulateEncParam(
         {
             m_osInterface->pfnUnlockResource(
                 m_osInterface,
-                &resVdencBrcImageStatesReadBuffer[m_currRecycledBufIdx]);
+                &m_resVdencBrcImageStatesReadBuffer[m_currRecycledBufIdx]);
         }
         else
         {
@@ -641,7 +643,7 @@ MOS_STATUS CodechalVdencAvcStateG9Skl::PopulateEncParam(
             {
                 m_osInterface->pfnUnlockResource(
                     m_osInterface,
-                    &resVdencSFDImageStateReadBuffer);
+                    &m_resVdencSfdImageStateReadBuffer);
             }
         }
     }
@@ -677,7 +679,7 @@ MOS_STATUS CodechalVdencAvcStateG9Skl::PopulatePakParam(
     }
     else
     {
-        data = (uint8_t*)m_osInterface->pfnLockResource(m_osInterface, &resVdencBrcImageStatesReadBuffer[m_currRecycledBufIdx], &lockFlags);
+        data = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &m_resVdencBrcImageStatesReadBuffer[m_currRecycledBufIdx], &lockFlags);
     }
 
     CODECHAL_DEBUG_CHK_NULL(data);
@@ -687,18 +689,18 @@ MOS_STATUS CodechalVdencAvcStateG9Skl::PopulatePakParam(
 
     if (m_pictureCodingType == I_TYPE)
     {
-        avcPar->TrellisQuantizationEnable         = mfxCmd.DW5.TrellisQuantizationEnabledTqenb;
-        avcPar->EnableAdaptiveTrellisQuantization = mfxCmd.DW5.TrellisQuantizationEnabledTqenb;
-        avcPar->TrellisQuantizationRounding       = mfxCmd.DW5.TrellisQuantizationRoundingTqr;
-        avcPar->TrellisQuantizationChromaDisable  = mfxCmd.DW5.TrellisQuantizationChromaDisableTqchromadisable;
-        avcPar->ExtendedRhoDomainEn               = mfxCmd.DW16_17.ExtendedRhodomainStatisticsEnable;
+        m_avcPar->TrellisQuantizationEnable         = mfxCmd.DW5.TrellisQuantizationEnabledTqenb;
+        m_avcPar->EnableAdaptiveTrellisQuantization = mfxCmd.DW5.TrellisQuantizationEnabledTqenb;
+        m_avcPar->TrellisQuantizationRounding       = mfxCmd.DW5.TrellisQuantizationRoundingTqr;
+        m_avcPar->TrellisQuantizationChromaDisable  = mfxCmd.DW5.TrellisQuantizationChromaDisableTqchromadisable;
+        m_avcPar->ExtendedRhoDomainEn               = mfxCmd.DW16_17.ExtendedRhodomainStatisticsEnable;
     }
 
     if (data && (cmdBuffer == nullptr) && (secondLevelBatchBuffer == nullptr))
     {
         m_osInterface->pfnUnlockResource(
             m_osInterface,
-            &resVdencBrcImageStatesReadBuffer[m_currRecycledBufIdx]);
+            &m_resVdencBrcImageStatesReadBuffer[m_currRecycledBufIdx]);
     }
 
     return MOS_STATUS_SUCCESS;

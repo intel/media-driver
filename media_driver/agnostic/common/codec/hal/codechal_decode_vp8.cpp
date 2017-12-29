@@ -37,15 +37,15 @@
 
 void Vp8EntropyState::DecodeFill()
 {
-    int32_t        shift       = BD_VALUE_SIZE - 8 - (iCount + 8);
-    uint32_t       bytesLeft  = (uint32_t)(pBufferEnd - pBuffer);
+    int32_t        shift       = m_bdValueSize - 8 - (m_count + 8);
+    uint32_t       bytesLeft   = (uint32_t)(m_bufferEnd - m_buffer);
     uint32_t       bitsLeft   = bytesLeft * CHAR_BIT;
     int32_t        num         = (int32_t)(shift + CHAR_BIT - bitsLeft);
     int32_t        loopEnd     = 0;
 
     if (num >= 0)
     {
-        iCount += LOTS_OF_BITS;
+        m_count += m_lotsOfBits;
         loopEnd = num;
     }
 
@@ -53,9 +53,9 @@ void Vp8EntropyState::DecodeFill()
     {
         while (shift >= loopEnd)
         {
-            iCount += CHAR_BIT;
-            uiValue |= (uint32_t)*pBuffer << shift;
-            ++pBuffer;
+            m_count += CHAR_BIT;
+            m_value |= (uint32_t)*m_buffer << shift;
+            ++m_buffer;
             shift -= CHAR_BIT;
         }
     }
@@ -63,25 +63,25 @@ void Vp8EntropyState::DecodeFill()
 
 uint32_t Vp8EntropyState::DecodeBool(int32_t probability)
 {
-    uint32_t split    = 1 + (((uiRange - 1) * probability) >> 8);
-    uint32_t bigSplit = (uint32_t)split << (BD_VALUE_SIZE - 8);
-    uint32_t origRange = uiRange;
-    uiRange = split;
+    uint32_t split     = 1 + (((m_range - 1) * probability) >> 8);
+    uint32_t bigSplit  = (uint32_t)split << (m_bdValueSize - 8);
+    uint32_t origRange = m_range;
+    m_range            = split;
 
     uint32_t bit = 0;
-    if (uiValue >= bigSplit)
+    if (m_value >= bigSplit)
     {
-        uiRange = origRange - split;
-        uiValue = uiValue - bigSplit;
+        m_range = origRange - split;
+        m_value = m_value - bigSplit;
         bit = 1;
     }
 
-    int32_t shift = Norm[uiRange];
-    uiRange <<= shift;
-    uiValue <<= shift;
-    iCount -= shift;
+    int32_t shift = Norm[m_range];
+    m_range <<= shift;
+    m_value <<= shift;
+    m_count -= shift;
 
-    if (iCount < 0)
+    if (m_count < 0)
     {
         DecodeFill();
     }
@@ -103,47 +103,47 @@ int32_t Vp8EntropyState::DecodeValue(int32_t bits)
 
 void Vp8EntropyState::ParseFrameHeadInit()
 {
-    if (pFrameHead->iFrameType == KEY_FRAME)
+    if (m_frameHead->iFrameType == m_keyFrame)
     {
-        MOS_SecureMemcpy(pFrameHead->FrameContext.MvContext, sizeof(DefaultMvContext), DefaultMvContext, sizeof(DefaultMvContext));
-        MOS_SecureMemcpy(pFrameHead->FrameContext.YModeProb, sizeof(KfYModeProb), KfYModeProb, sizeof(KfYModeProb));
-        MOS_SecureMemcpy(pFrameHead->FrameContext.UVModeProb, sizeof(KfUVModeProb), KfUVModeProb, sizeof(KfUVModeProb));
-        MOS_SecureMemcpy(pFrameHead->FrameContext.CoefProbs, sizeof(DefaultCoefProbs), DefaultCoefProbs, sizeof(DefaultCoefProbs));
+        MOS_SecureMemcpy(m_frameHead->FrameContext.MvContext, sizeof(DefaultMvContext), DefaultMvContext, sizeof(DefaultMvContext));
+        MOS_SecureMemcpy(m_frameHead->FrameContext.YModeProb, sizeof(KfYModeProb), KfYModeProb, sizeof(KfYModeProb));
+        MOS_SecureMemcpy(m_frameHead->FrameContext.UVModeProb, sizeof(KfUVModeProb), KfUVModeProb, sizeof(KfUVModeProb));
+        MOS_SecureMemcpy(m_frameHead->FrameContext.CoefProbs, sizeof(DefaultCoefProbs), DefaultCoefProbs, sizeof(DefaultCoefProbs));
 
-        MOS_SecureMemcpy(pFrameHead->YModeProbs, sizeof(KfYModeProb), KfYModeProb, sizeof(KfYModeProb));
-        MOS_SecureMemcpy(pFrameHead->UVModeProbs, sizeof(KfUVModeProb), KfUVModeProb, sizeof(KfUVModeProb));
-        MOS_SecureMemcpy(pFrameHead->YModeProbs, sizeof(YModeProb), YModeProb, sizeof(YModeProb));
-        MOS_SecureMemcpy(pFrameHead->UVModeProbs, sizeof(UVModeProb), UVModeProb, sizeof(UVModeProb));
+        MOS_SecureMemcpy(m_frameHead->YModeProbs, sizeof(KfYModeProb), KfYModeProb, sizeof(KfYModeProb));
+        MOS_SecureMemcpy(m_frameHead->UVModeProbs, sizeof(KfUVModeProb), KfUVModeProb, sizeof(KfUVModeProb));
+        MOS_SecureMemcpy(m_frameHead->YModeProbs, sizeof(YModeProb), YModeProb, sizeof(YModeProb));
+        MOS_SecureMemcpy(m_frameHead->UVModeProbs, sizeof(UVModeProb), UVModeProb, sizeof(UVModeProb));
 
-        memset(pFrameHead->SegmentFeatureData, 0, sizeof(pFrameHead->SegmentFeatureData));
-        pFrameHead->u8MbSegementAbsDelta = 0;
+        memset(m_frameHead->SegmentFeatureData, 0, sizeof(m_frameHead->SegmentFeatureData));
+        m_frameHead->u8MbSegementAbsDelta = 0;
 
-        memset(pFrameHead->RefLFDeltas, 0, sizeof(pFrameHead->RefLFDeltas));
-        memset(pFrameHead->ModeLFDeltas, 0, sizeof(pFrameHead->ModeLFDeltas));
+        memset(m_frameHead->RefLFDeltas, 0, sizeof(m_frameHead->RefLFDeltas));
+        memset(m_frameHead->ModeLFDeltas, 0, sizeof(m_frameHead->ModeLFDeltas));
 
-        pFrameHead->iRefreshGoldenFrame  = 1;
-        pFrameHead->iRefreshAltFrame     = 1;
-        pFrameHead->iCopyBufferToGolden  = 0;
-        pFrameHead->iCopyBufferToAlt     = 0;
+        m_frameHead->iRefreshGoldenFrame = 1;
+        m_frameHead->iRefreshAltFrame    = 1;
+        m_frameHead->iCopyBufferToGolden = 0;
+        m_frameHead->iCopyBufferToAlt    = 0;
 
-        pFrameHead->iLastFrameBufferCurrIdx   = pFrameHead->iNewFrameBufferIdx;
-        pFrameHead->iGoldenFrameBufferCurrIdx = pFrameHead->iNewFrameBufferIdx;
-        pFrameHead->iAltFrameBufferCurrIdx    = pFrameHead->iNewFrameBufferIdx;
+        m_frameHead->iLastFrameBufferCurrIdx   = m_frameHead->iNewFrameBufferIdx;
+        m_frameHead->iGoldenFrameBufferCurrIdx = m_frameHead->iNewFrameBufferIdx;
+        m_frameHead->iAltFrameBufferCurrIdx    = m_frameHead->iNewFrameBufferIdx;
 
-        pFrameHead->RefFrameSignBias[VP8_GOLDEN_FRAME] = 0;
-        pFrameHead->RefFrameSignBias[VP8_ALTREF_FRAME] = 0;
+        m_frameHead->RefFrameSignBias[VP8_GOLDEN_FRAME] = 0;
+        m_frameHead->RefFrameSignBias[VP8_ALTREF_FRAME] = 0;
     }
 }
 
 int32_t Vp8EntropyState::StartEntropyDecode()
 {
-    pBufferEnd = pDataBufferEnd;
-    pBuffer    = pDataBuffer;
-    uiValue    = 0;
-    iCount     = -8;
-    uiRange    = 255;
+    m_bufferEnd = m_dataBufferEnd;
+    m_buffer    = m_dataBuffer;
+    m_value     = 0;
+    m_count     = -8;
+    m_range     = 255;
 
-    if ((pBufferEnd - pBuffer) > 0 && pBuffer == nullptr)
+    if ((m_bufferEnd - m_buffer) > 0 && m_buffer == nullptr)
     {
         return 1;
     }
@@ -155,57 +155,57 @@ int32_t Vp8EntropyState::StartEntropyDecode()
 
 void Vp8EntropyState::SegmentationEnabled()
 {
-    pFrameHead->u8SegmentationEnabled = (uint8_t)DecodeBool(PROB_HALF);
+    m_frameHead->u8SegmentationEnabled = (uint8_t)DecodeBool(m_probHalf);
 
-    if (pFrameHead->u8SegmentationEnabled)
+    if (m_frameHead->u8SegmentationEnabled)
     {
-        pFrameHead->u8UpdateMbSegmentationMap = (uint8_t)DecodeBool(PROB_HALF);
-        pFrameHead->u8UpdateMbSegmentationData = (uint8_t)DecodeBool(PROB_HALF);
+        m_frameHead->u8UpdateMbSegmentationMap  = (uint8_t)DecodeBool(m_probHalf);
+        m_frameHead->u8UpdateMbSegmentationData = (uint8_t)DecodeBool(m_probHalf);
 
-        if (pFrameHead->u8UpdateMbSegmentationData)
+        if (m_frameHead->u8UpdateMbSegmentationData)
         {
-            pFrameHead->u8MbSegementAbsDelta = (uint8_t)DecodeBool(PROB_HALF);
+            m_frameHead->u8MbSegementAbsDelta = (uint8_t)DecodeBool(m_probHalf);
 
-            memset(pFrameHead->SegmentFeatureData, 0, sizeof(pFrameHead->SegmentFeatureData));
+            memset(m_frameHead->SegmentFeatureData, 0, sizeof(m_frameHead->SegmentFeatureData));
 
             for (int32_t i = 0; i < VP8_MB_LVL_MAX; i++)
             {
                 for (int32_t j = 0; j < VP8_MAX_MB_SEGMENTS; j++)
                 {
-                    if (DecodeBool(PROB_HALF))
+                    if (DecodeBool(m_probHalf))
                     {
-                        pFrameHead->SegmentFeatureData[i][j] = (int8_t)DecodeValue(MbFeatureDataBits[i]);
+                        m_frameHead->SegmentFeatureData[i][j] = (int8_t)DecodeValue(MbFeatureDataBits[i]);
 
-                        if (DecodeBool(PROB_HALF))
+                        if (DecodeBool(m_probHalf))
                         {
-                            pFrameHead->SegmentFeatureData[i][j] = -pFrameHead->SegmentFeatureData[i][j];
+                            m_frameHead->SegmentFeatureData[i][j] = -m_frameHead->SegmentFeatureData[i][j];
                         }
                     }
                     else
                     {
-                        pFrameHead->SegmentFeatureData[i][j] = 0;
+                        m_frameHead->SegmentFeatureData[i][j] = 0;
                     }
                 }
             }
         }
 
-        if (pFrameHead->u8UpdateMbSegmentationMap)
+        if (m_frameHead->u8UpdateMbSegmentationMap)
         {
-            memset(pFrameHead->MbSegmentTreeProbs, 255, sizeof(pFrameHead->MbSegmentTreeProbs));
+            memset(m_frameHead->MbSegmentTreeProbs, 255, sizeof(m_frameHead->MbSegmentTreeProbs));
 
             for (int32_t i = 0; i < VP8_MB_SEGMENT_TREE_PROBS; i++)
             {
-                if (DecodeBool(PROB_HALF))
+                if (DecodeBool(m_probHalf))
                 {
-                    pFrameHead->MbSegmentTreeProbs[i] = (uint8_t)DecodeValue(8);
+                    m_frameHead->MbSegmentTreeProbs[i] = (uint8_t)DecodeValue(8);
                 }
             }
         }
     }
     else
     {
-        pFrameHead->u8UpdateMbSegmentationMap = 0;
-        pFrameHead->u8UpdateMbSegmentationData = 0;
+        m_frameHead->u8UpdateMbSegmentationMap  = 0;
+        m_frameHead->u8UpdateMbSegmentationData = 0;
     }
 }
 
@@ -215,16 +215,16 @@ void Vp8EntropyState::LoopFilterInit(int32_t defaultFilterLvl)
     {
         int32_t segmentLvl = defaultFilterLvl;
 
-        if (pFrameHead->u8SegmentationEnabled)
+        if (m_frameHead->u8SegmentationEnabled)
         {
-            if (pFrameHead->u8MbSegementAbsDelta == 1)
+            if (m_frameHead->u8MbSegementAbsDelta == 1)
             {
-                pFrameHead->LoopFilterLevel[segmentNum] = segmentLvl = pFrameHead->SegmentFeatureData[VP8_MB_LVL_ALT_LF][segmentNum];
+                m_frameHead->LoopFilterLevel[segmentNum] = segmentLvl = m_frameHead->SegmentFeatureData[VP8_MB_LVL_ALT_LF][segmentNum];
             }
             else
             {
-                segmentLvl += pFrameHead->SegmentFeatureData[VP8_MB_LVL_ALT_LF][segmentNum];
-                pFrameHead->LoopFilterLevel[segmentNum] = segmentLvl = (segmentLvl > 0) ? ((segmentLvl > 63) ? 63 : segmentLvl) : 0;
+                segmentLvl += m_frameHead->SegmentFeatureData[VP8_MB_LVL_ALT_LF][segmentNum];
+                m_frameHead->LoopFilterLevel[segmentNum] = segmentLvl = (segmentLvl > 0) ? ((segmentLvl > 63) ? 63 : segmentLvl) : 0;
             }
         }
     }
@@ -232,50 +232,50 @@ void Vp8EntropyState::LoopFilterInit(int32_t defaultFilterLvl)
 
 void Vp8EntropyState::LoopFilterEnabled()
 {
-    pFrameHead->FilterType       = (VP8_LF_TYPE)DecodeBool(PROB_HALF);
-    pFrameHead->iFilterLevel     = DecodeValue(6);
-    pFrameHead->iSharpnessLevel  = DecodeValue(3);
+    m_frameHead->FilterType      = (VP8_LF_TYPE)DecodeBool(m_probHalf);
+    m_frameHead->iFilterLevel    = DecodeValue(6);
+    m_frameHead->iSharpnessLevel = DecodeValue(3);
 
-    pFrameHead->u8ModeRefLfDeltaUpdate  = 0;
-    pFrameHead->u8ModeRefLfDeltaEnabled = (uint8_t)DecodeBool(PROB_HALF);
+    m_frameHead->u8ModeRefLfDeltaUpdate  = 0;
+    m_frameHead->u8ModeRefLfDeltaEnabled = (uint8_t)DecodeBool(m_probHalf);
 
-    if (pFrameHead->u8ModeRefLfDeltaEnabled)
+    if (m_frameHead->u8ModeRefLfDeltaEnabled)
     {
-        pFrameHead->u8ModeRefLfDeltaUpdate = (uint8_t)DecodeBool(PROB_HALF);
+        m_frameHead->u8ModeRefLfDeltaUpdate = (uint8_t)DecodeBool(m_probHalf);
 
-        if (pFrameHead->u8ModeRefLfDeltaUpdate)
+        if (m_frameHead->u8ModeRefLfDeltaUpdate)
         {
             for (int32_t i = 0; i < VP8_MAX_REF_LF_DELTAS; i++)
             {
-                if (DecodeBool(PROB_HALF))
+                if (DecodeBool(m_probHalf))
                 {
-                    pFrameHead->RefLFDeltas[i] = (int8_t)DecodeValue(6);
+                    m_frameHead->RefLFDeltas[i] = (int8_t)DecodeValue(6);
 
-                    if (DecodeBool(PROB_HALF))
+                    if (DecodeBool(m_probHalf))
                     {
-                        pFrameHead->RefLFDeltas[i] = pFrameHead->RefLFDeltas[i] * (-1);
+                        m_frameHead->RefLFDeltas[i] = m_frameHead->RefLFDeltas[i] * (-1);
                     }
                 }
             }
 
             for (int32_t i = 0; i < VP8_MAX_MODE_LF_DELTAS; i++)
             {
-                if (DecodeBool(PROB_HALF))
+                if (DecodeBool(m_probHalf))
                 {
-                    pFrameHead->ModeLFDeltas[i] = (int8_t)DecodeValue(6);
+                    m_frameHead->ModeLFDeltas[i] = (int8_t)DecodeValue(6);
 
-                    if (DecodeBool(PROB_HALF))
+                    if (DecodeBool(m_probHalf))
                     {
-                        pFrameHead->ModeLFDeltas[i] = pFrameHead->ModeLFDeltas[i] * (-1);
+                        m_frameHead->ModeLFDeltas[i] = m_frameHead->ModeLFDeltas[i] * (-1);
                     }
                 }
             }
         }
     }
 
-    if (pFrameHead->iFilterLevel)
+    if (m_frameHead->iFilterLevel)
     {
-        LoopFilterInit(pFrameHead->iFilterLevel);
+        LoopFilterInit(m_frameHead->iFilterLevel);
     }
 }
 
@@ -283,11 +283,11 @@ int32_t Vp8EntropyState::GetDeltaQ(int32_t prevVal, int32_t *qupdate)
 {
     int32_t retVal = 0;
 
-    if (DecodeBool(PROB_HALF))
+    if (DecodeBool(m_probHalf))
     {
         retVal = DecodeValue(4);
 
-        if (DecodeBool(PROB_HALF))
+        if (DecodeBool(m_probHalf))
         {
             retVal = -retVal;
         }
@@ -428,13 +428,13 @@ void Vp8EntropyState::QuantInit()
 {
     for (int32_t i = 0; i < VP8_Q_INDEX_RANGE; i++)
     {
-        pFrameHead->Y1DeQuant[i][0] = (int16_t)DcQuant(i, pFrameHead->iY1DcDeltaQ);
-        pFrameHead->Y2DeQuant[i][0] = (int16_t)Dc2Quant(i, pFrameHead->iY2DcDeltaQ);
-        pFrameHead->UVDeQuant[i][0] = (int16_t)DcUVQuant(i, pFrameHead->iUVDcDeltaQ);
+        m_frameHead->Y1DeQuant[i][0] = (int16_t)DcQuant(i, m_frameHead->iY1DcDeltaQ);
+        m_frameHead->Y2DeQuant[i][0] = (int16_t)Dc2Quant(i, m_frameHead->iY2DcDeltaQ);
+        m_frameHead->UVDeQuant[i][0] = (int16_t)DcUVQuant(i, m_frameHead->iUVDcDeltaQ);
 
-        pFrameHead->Y1DeQuant[i][1] = (int16_t)AcYQuant(i);
-        pFrameHead->Y2DeQuant[i][1] = (int16_t)Ac2Quant(i, pFrameHead->iY2AcDeltaQ);
-        pFrameHead->UVDeQuant[i][1] = (int16_t)AcUVQuant(i, pFrameHead->iUVAcDeltaQ);
+        m_frameHead->Y1DeQuant[i][1] = (int16_t)AcYQuant(i);
+        m_frameHead->Y2DeQuant[i][1] = (int16_t)Ac2Quant(i, m_frameHead->iY2AcDeltaQ);
+        m_frameHead->UVDeQuant[i][1] = (int16_t)AcUVQuant(i, m_frameHead->iUVAcDeltaQ);
     }
 }
 
@@ -442,12 +442,12 @@ void Vp8EntropyState::QuantSetup()
 {
     int32_t qupdate = 0;
 
-    pFrameHead->iBaseQIndex = DecodeValue(7);
-    pFrameHead->iY1DcDeltaQ = GetDeltaQ(pFrameHead->iY1DcDeltaQ, &qupdate);
-    pFrameHead->iY2DcDeltaQ = GetDeltaQ(pFrameHead->iY2DcDeltaQ, &qupdate);
-    pFrameHead->iY2AcDeltaQ = GetDeltaQ(pFrameHead->iY2AcDeltaQ, &qupdate);
-    pFrameHead->iUVDcDeltaQ = GetDeltaQ(pFrameHead->iUVDcDeltaQ, &qupdate);
-    pFrameHead->iUVAcDeltaQ = GetDeltaQ(pFrameHead->iUVAcDeltaQ, &qupdate);
+    m_frameHead->iBaseQIndex = DecodeValue(7);
+    m_frameHead->iY1DcDeltaQ = GetDeltaQ(m_frameHead->iY1DcDeltaQ, &qupdate);
+    m_frameHead->iY2DcDeltaQ = GetDeltaQ(m_frameHead->iY2DcDeltaQ, &qupdate);
+    m_frameHead->iY2AcDeltaQ = GetDeltaQ(m_frameHead->iY2AcDeltaQ, &qupdate);
+    m_frameHead->iUVDcDeltaQ = GetDeltaQ(m_frameHead->iUVDcDeltaQ, &qupdate);
+    m_frameHead->iUVAcDeltaQ = GetDeltaQ(m_frameHead->iUVAcDeltaQ, &qupdate);
 
     if (qupdate)
     {
@@ -488,68 +488,68 @@ MOS_STATUS Vp8EntropyState::ParseFrameHead(PCODEC_VP8_PIC_PARAMS vp8PicParams)
 
     StartEntropyDecode();
 
-    if (pFrameHead->iFrameType == KEY_FRAME)
+    if (m_frameHead->iFrameType == m_keyFrame)
     {
-        DecodeBool(PROB_HALF);    // Color Space
-        DecodeBool(PROB_HALF);    // Clamp Type
+        DecodeBool(m_probHalf);  // Color Space
+        DecodeBool(m_probHalf);  // Clamp Type
     }
 
     SegmentationEnabled();
 
     LoopFilterEnabled();
 
-    pFrameHead->MultiTokenPartition = (VP8_TOKEN_PARTITION)DecodeValue(2);
+    m_frameHead->MultiTokenPartition = (VP8_TOKEN_PARTITION)DecodeValue(2);
 
-    if (!pFrameHead->bNotFirstCall)
+    if (!m_frameHead->bNotFirstCall)
     {
         QuantInit();
     }
 
     QuantSetup();
 
-    if (pFrameHead->iFrameType != KEY_FRAME)
+    if (m_frameHead->iFrameType != m_keyFrame)
     {
-        pFrameHead->iRefreshGoldenFrame = DecodeBool(PROB_HALF);
+        m_frameHead->iRefreshGoldenFrame = DecodeBool(m_probHalf);
 
-        pFrameHead->iRefreshAltFrame = DecodeBool(PROB_HALF);
+        m_frameHead->iRefreshAltFrame = DecodeBool(m_probHalf);
 
-        pFrameHead->iCopyBufferToGolden = 0;
+        m_frameHead->iCopyBufferToGolden = 0;
 
-        if (!pFrameHead->iRefreshGoldenFrame)
+        if (!m_frameHead->iRefreshGoldenFrame)
         {
-            pFrameHead->iCopyBufferToGolden = DecodeValue(2);
+            m_frameHead->iCopyBufferToGolden = DecodeValue(2);
         }
 
-        pFrameHead->iCopyBufferToAlt = 0;
+        m_frameHead->iCopyBufferToAlt = 0;
 
-        if (!pFrameHead->iRefreshAltFrame)
+        if (!m_frameHead->iRefreshAltFrame)
         {
-            pFrameHead->iCopyBufferToAlt = DecodeValue(2);
+            m_frameHead->iCopyBufferToAlt = DecodeValue(2);
         }
 
-        pFrameHead->RefFrameSignBias[VP8_GOLDEN_FRAME] = DecodeBool(PROB_HALF);
-        pFrameHead->RefFrameSignBias[VP8_ALTREF_FRAME] = DecodeBool(PROB_HALF);
+        m_frameHead->RefFrameSignBias[VP8_GOLDEN_FRAME] = DecodeBool(m_probHalf);
+        m_frameHead->RefFrameSignBias[VP8_ALTREF_FRAME] = DecodeBool(m_probHalf);
     }
 
-    if (pFrameHead->bNotFirstCall && pFrameHead->iRefreshEntropyProbs == 0)
+    if (m_frameHead->bNotFirstCall && m_frameHead->iRefreshEntropyProbs == 0)
     {
-        MOS_SecureMemcpy(&pFrameHead->FrameContext, sizeof(pFrameHead->FrameContext), &pFrameHead->LastFrameContext, sizeof(pFrameHead->LastFrameContext));
+        MOS_SecureMemcpy(&m_frameHead->FrameContext, sizeof(m_frameHead->FrameContext), &m_frameHead->LastFrameContext, sizeof(m_frameHead->LastFrameContext));
     }
 
-    pFrameHead->iRefreshEntropyProbs = DecodeBool(PROB_HALF);
+    m_frameHead->iRefreshEntropyProbs = DecodeBool(m_probHalf);
 
-    if (pFrameHead->iRefreshEntropyProbs == 0)
+    if (m_frameHead->iRefreshEntropyProbs == 0)
     {
-        MOS_SecureMemcpy(&pFrameHead->LastFrameContext, sizeof(pFrameHead->LastFrameContext), &pFrameHead->FrameContext, sizeof(pFrameHead->FrameContext));
+        MOS_SecureMemcpy(&m_frameHead->LastFrameContext, sizeof(m_frameHead->LastFrameContext), &m_frameHead->FrameContext, sizeof(m_frameHead->FrameContext));
     }
 
-    if (pFrameHead->iFrameType == KEY_FRAME || DecodeBool(PROB_HALF))
+    if (m_frameHead->iFrameType == m_keyFrame || DecodeBool(m_probHalf))
     {
-        pFrameHead->iRefreshLastFrame = true;
+        m_frameHead->iRefreshLastFrame = true;
     }
     else
     {
-        pFrameHead->iRefreshLastFrame = false;
+        m_frameHead->iRefreshLastFrame = false;
     }
 
     for (int32_t i = 0; i < VP8_BLOCK_TYPES; i++)
@@ -557,7 +557,7 @@ MOS_STATUS Vp8EntropyState::ParseFrameHead(PCODEC_VP8_PIC_PARAMS vp8PicParams)
             for (int32_t k = 0; k < VP8_PREV_COEF_CONTEXTS; k++)
                 for (int32_t l = 0; l < VP8_ENTROPY_NODES; l++)
                 {
-                    uint8_t *const p = pFrameHead->FrameContext.CoefProbs[i][j][k] + l;
+                    uint8_t *const p = m_frameHead->FrameContext.CoefProbs[i][j][k] + l;
 
                     if (DecodeBool(CoefUpdateProbs[i][j][k][l]))
                     {
@@ -565,37 +565,37 @@ MOS_STATUS Vp8EntropyState::ParseFrameHead(PCODEC_VP8_PIC_PARAMS vp8PicParams)
                     }
                 }
 
-    pFrameHead->iMbNoCoeffSkip = (int32_t)DecodeBool(PROB_HALF);
-    pFrameHead->iProbSkipFalse = 0;
-    if (pFrameHead->iMbNoCoeffSkip)
+    m_frameHead->iMbNoCoeffSkip = (int32_t)DecodeBool(m_probHalf);
+    m_frameHead->iProbSkipFalse = 0;
+    if (m_frameHead->iMbNoCoeffSkip)
     {
-        pFrameHead->iProbSkipFalse = (uint8_t)DecodeValue(8);
+        m_frameHead->iProbSkipFalse = (uint8_t)DecodeValue(8);
     }
 
-    if (pFrameHead->iFrameType != KEY_FRAME)
+    if (m_frameHead->iFrameType != m_keyFrame)
     {
-        pFrameHead->ProbIntra = (uint8_t)DecodeValue(8);
-        pFrameHead->ProbLast = (uint8_t)DecodeValue(8);
-        pFrameHead->ProbGf = (uint8_t)DecodeValue(8);
+        m_frameHead->ProbIntra = (uint8_t)DecodeValue(8);
+        m_frameHead->ProbLast  = (uint8_t)DecodeValue(8);
+        m_frameHead->ProbGf    = (uint8_t)DecodeValue(8);
 
-        if (DecodeBool(PROB_HALF))
+        if (DecodeBool(m_probHalf))
         {
             int32_t i = 0;
 
             do
             {
-                pFrameHead->YModeProbs[i] = pFrameHead->FrameContext.YModeProb[i] =
+                m_frameHead->YModeProbs[i] = m_frameHead->FrameContext.YModeProb[i] =
                     (uint8_t)DecodeValue(8);
             } while (++i < 4);
         }
 
-        if (DecodeBool(PROB_HALF))
+        if (DecodeBool(m_probHalf))
         {
             int32_t i = 0;
 
             do
             {
-                pFrameHead->UVModeProbs[i] = pFrameHead->FrameContext.UVModeProb[i] =
+                m_frameHead->UVModeProbs[i] = m_frameHead->FrameContext.UVModeProb[i] =
                     (uint8_t)DecodeValue(8);
             } while (++i < 3);
         }
@@ -612,12 +612,12 @@ MOS_STATUS Vp8EntropyState::ParseFrameHead(PCODEC_VP8_PIC_PARAMS vp8PicParams)
         ReadMvContexts(MVContext);
     }
 
-    vp8PicParams->ucP0EntropyCount = 8 - (iCount & 0x07);
-    vp8PicParams->ucP0EntropyValue = (uint8_t)(uiValue >> 24);
-    vp8PicParams->uiP0EntropyRange = uiRange;
+    vp8PicParams->ucP0EntropyCount = 8 - (m_count & 0x07);
+    vp8PicParams->ucP0EntropyValue = (uint8_t)(m_value >> 24);
+    vp8PicParams->uiP0EntropyRange = m_range;
 
     uint32_t firstPartitionAndUncompSize;
-    if (pFrameHead->iFrameType == KEY_FRAME)
+    if (m_frameHead->iFrameType == m_keyFrame)
     {
         firstPartitionAndUncompSize = vp8PicParams->uiFirstPartitionSize + 10;
     }
@@ -627,23 +627,23 @@ MOS_STATUS Vp8EntropyState::ParseFrameHead(PCODEC_VP8_PIC_PARAMS vp8PicParams)
     }
 
     // Partition Size
-    uint32_t partitionNum = 1 << pFrameHead->MultiTokenPartition;
+    uint32_t partitionNum     = 1 << m_frameHead->MultiTokenPartition;
     uint32_t partitionSizeSum = 0;
-    pDataBuffer = pBitstreamBuffer + firstPartitionAndUncompSize;
+    m_dataBuffer              = m_bitstreamBuffer + firstPartitionAndUncompSize;
     if (partitionNum > 1)
     {
         for (int32_t i = 1; i < (int32_t)partitionNum; i++)
         {
-            vp8PicParams->uiPartitionSize[i] = pDataBuffer[0] + (pDataBuffer[1] << 8) + (pDataBuffer[2] << 16);
-            pDataBuffer += 3;
+            vp8PicParams->uiPartitionSize[i] = m_dataBuffer[0] + (m_dataBuffer[1] << 8) + (m_dataBuffer[2] << 16);
+            m_dataBuffer += 3;
             partitionSizeSum += vp8PicParams->uiPartitionSize[i];
         }
     }
 
-    uint32_t offsetCounter = ((iCount & 0x18) >> 3) + (((iCount & 0x07) != 0) ? 1 : 0);
-    vp8PicParams->uiFirstMbByteOffset = (uint32_t)(pBuffer - pBitstreamBuffer) - offsetCounter;
-    vp8PicParams->uiPartitionSize[0] = firstPartitionAndUncompSize - (uint32_t)(pBuffer - pBitstreamBuffer) + offsetCounter;
-    vp8PicParams->uiPartitionSize[partitionNum] = u32BitstreamBufferSize - firstPartitionAndUncompSize - (partitionNum - 1) * 3 - partitionSizeSum;
+    uint32_t offsetCounter                      = ((m_count & 0x18) >> 3) + (((m_count & 0x07) != 0) ? 1 : 0);
+    vp8PicParams->uiFirstMbByteOffset           = (uint32_t)(m_buffer - m_bitstreamBuffer) - offsetCounter;
+    vp8PicParams->uiPartitionSize[0]            = firstPartitionAndUncompSize - (uint32_t)(m_buffer - m_bitstreamBuffer) + offsetCounter;
+    vp8PicParams->uiPartitionSize[partitionNum] = m_bitstreamBufferSize - firstPartitionAndUncompSize - (partitionNum - 1) * 3 - partitionSizeSum;
 
     return eStatus;
 }
@@ -653,13 +653,13 @@ void Vp8EntropyState::FrameHeadQuantUpdate(
 {
     for (int32_t i = 0; i < VP8_Q_INDEX_RANGE; i++)
     {
-        pFrameHead->Y1DeQuant[i][0] = (int16_t)DcQuant(i, vp8PicParams->cY1DcDeltaQ);
-        pFrameHead->Y2DeQuant[i][0] = (int16_t)Dc2Quant(i, vp8PicParams->cY2DcDeltaQ);
-        pFrameHead->UVDeQuant[i][0] = (int16_t)DcUVQuant(i, vp8PicParams->cUVDcDeltaQ);
+        m_frameHead->Y1DeQuant[i][0] = (int16_t)DcQuant(i, vp8PicParams->cY1DcDeltaQ);
+        m_frameHead->Y2DeQuant[i][0] = (int16_t)Dc2Quant(i, vp8PicParams->cY2DcDeltaQ);
+        m_frameHead->UVDeQuant[i][0] = (int16_t)DcUVQuant(i, vp8PicParams->cUVDcDeltaQ);
 
-        pFrameHead->Y1DeQuant[i][1] = (int16_t)AcYQuant(i);
-        pFrameHead->Y2DeQuant[i][1] = (int16_t)Ac2Quant(i, vp8PicParams->cY2AcDeltaQ);
-        pFrameHead->UVDeQuant[i][1] = (int16_t)AcUVQuant(i, vp8PicParams->cUVAcDeltaQ);
+        m_frameHead->Y1DeQuant[i][1] = (int16_t)AcYQuant(i);
+        m_frameHead->Y2DeQuant[i][1] = (int16_t)Ac2Quant(i, vp8PicParams->cY2AcDeltaQ);
+        m_frameHead->UVDeQuant[i][1] = (int16_t)AcUVQuant(i, vp8PicParams->cUVAcDeltaQ);
     }
 }
 
@@ -668,22 +668,22 @@ void Vp8EntropyState::Initialize(
     uint8_t*        bitstreamBufferIn,
     uint32_t        bitstreamBufferSizeIn)
 {
-    pFrameHead = vp8FrameHeadIn;
-    pDataBuffer = bitstreamBufferIn;
-    pDataBufferEnd = bitstreamBufferIn + bitstreamBufferSizeIn;
-    pBitstreamBuffer = bitstreamBufferIn;
-    u32BitstreamBufferSize = bitstreamBufferSizeIn;
+    m_frameHead           = vp8FrameHeadIn;
+    m_dataBuffer          = bitstreamBufferIn;
+    m_dataBufferEnd       = bitstreamBufferIn + bitstreamBufferSizeIn;
+    m_bitstreamBuffer     = bitstreamBufferIn;
+    m_bitstreamBufferSize = bitstreamBufferSizeIn;
 
-    pFrameHead->iFrameType   = pDataBuffer[0] & 1;
-    pFrameHead->iVersion     = (pDataBuffer[0] >> 1) & 7;
-    pFrameHead->iShowframe   = (pDataBuffer[0] >> 4) & 1;
-    pFrameHead->uiFirstPartitionLengthInBytes = (pDataBuffer[0] | (pDataBuffer[1] << 8) | (pDataBuffer[2] << 16)) >> 5;
+    m_frameHead->iFrameType                    = m_dataBuffer[0] & 1;
+    m_frameHead->iVersion                      = (m_dataBuffer[0] >> 1) & 7;
+    m_frameHead->iShowframe                    = (m_dataBuffer[0] >> 4) & 1;
+    m_frameHead->uiFirstPartitionLengthInBytes = (m_dataBuffer[0] | (m_dataBuffer[1] << 8) | (m_dataBuffer[2] << 16)) >> 5;
 
-    pDataBuffer += 3;
+    m_dataBuffer += 3;
 
-    if (pFrameHead->iFrameType == KEY_FRAME)
+    if (m_frameHead->iFrameType == m_keyFrame)
     {
-        pDataBuffer += 7;
+        m_dataBuffer += 7;
     }
 }
 
@@ -695,9 +695,9 @@ MOS_STATUS CodechalDecodeVp8::ParseFrameHead(uint8_t* bitstreamBuffer, uint32_t 
 
     CODECHAL_DECODE_CHK_NULL_RETURN(bitstreamBuffer);
 
-    vp8EntropyState.Initialize(&Vp8FrameHead, bitstreamBuffer, bitstreamBufferSize);
+    m_vp8EntropyState.Initialize(&m_vp8FrameHead, bitstreamBuffer, bitstreamBufferSize);
 
-    eStatus = vp8EntropyState.ParseFrameHead(pVp8PicParams);
+    eStatus = m_vp8EntropyState.ParseFrameHead(m_vp8PicParams);
 
     if (eStatus != MOS_STATUS_SUCCESS)
     {
@@ -710,70 +710,70 @@ MOS_STATUS CodechalDecodeVp8::ParseFrameHead(uint8_t* bitstreamBuffer, uint32_t 
     // Loop Filter
     for (int32_t i = 0; i < VP8_MAX_MB_SEGMENTS; i++)
     {
-        int32_t segmentLvl = pVp8PicParams->ucFilterLevel;
+        int32_t segmentLvl = m_vp8PicParams->ucFilterLevel;
 
-        if (pVp8PicParams->segmentation_enabled)
+        if (m_vp8PicParams->segmentation_enabled)
         {
-            if (pVp8PicParams->mb_segement_abs_delta == 1)
+            if (m_vp8PicParams->mb_segement_abs_delta == 1)
             {
-                pVp8PicParams->ucLoopFilterLevel[i] = segmentLvl = pVp8PicParams->cSegmentFeatureData[VP8_MB_LVL_ALT_LF][i];
+                m_vp8PicParams->ucLoopFilterLevel[i] = segmentLvl = m_vp8PicParams->cSegmentFeatureData[VP8_MB_LVL_ALT_LF][i];
             }
             else
             {
-                segmentLvl += pVp8PicParams->cSegmentFeatureData[VP8_MB_LVL_ALT_LF][i];
-                pVp8PicParams->ucLoopFilterLevel[i] = segmentLvl = (segmentLvl > 0) ? ((segmentLvl > 63) ? 63 : segmentLvl) : 0;
+                segmentLvl += m_vp8PicParams->cSegmentFeatureData[VP8_MB_LVL_ALT_LF][i];
+                m_vp8PicParams->ucLoopFilterLevel[i] = segmentLvl = (segmentLvl > 0) ? ((segmentLvl > 63) ? 63 : segmentLvl) : 0;
             }
         }
         else
         {
-            pVp8PicParams->ucLoopFilterLevel[i] = pVp8PicParams->ucFilterLevel;
+            m_vp8PicParams->ucLoopFilterLevel[i] = m_vp8PicParams->ucFilterLevel;
         }
     }
 
     // Quant Matrix
     int32_t vp8QIndex[VP8_MAX_MB_SEGMENTS];
-    if (pVp8PicParams->segmentation_enabled)
+    if (m_vp8PicParams->segmentation_enabled)
     {
         for (int32_t i = 0; i < 4; i++)
         {
-            if (pVp8PicParams->mb_segement_abs_delta == 1)
+            if (m_vp8PicParams->mb_segement_abs_delta == 1)
             {
-                vp8QIndex[i] = (int32_t)pVp8PicParams->cSegmentFeatureData[VP8_MB_LVL_ALT_Q][i];
+                vp8QIndex[i] = (int32_t)m_vp8PicParams->cSegmentFeatureData[VP8_MB_LVL_ALT_Q][i];
             }
             else
             {
-                vp8QIndex[i] = (int32_t)pVp8PicParams->ucBaseQIndex + (int32_t)pVp8PicParams->cSegmentFeatureData[VP8_MB_LVL_ALT_Q][i];
+                vp8QIndex[i] = (int32_t)m_vp8PicParams->ucBaseQIndex + (int32_t)m_vp8PicParams->cSegmentFeatureData[VP8_MB_LVL_ALT_Q][i];
                 vp8QIndex[i] = (vp8QIndex[i] >= 0) ? ((vp8QIndex[i] <= VP8_MAX_Q) ? vp8QIndex[i] : VP8_MAX_Q) : 0;    // Clamp to valid range
             }
         }
     }
     else
     {
-        vp8QIndex[0] = (int32_t)pVp8PicParams->ucBaseQIndex;
+        vp8QIndex[0] = (int32_t)m_vp8PicParams->ucBaseQIndex;
         vp8QIndex[1] = 0;
         vp8QIndex[2] = 0;
         vp8QIndex[3] = 0;
     }
 
-    vp8EntropyState.FrameHeadQuantUpdate(pVp8PicParams);
+    m_vp8EntropyState.FrameHeadQuantUpdate(m_vp8PicParams);
 
-    pVp8IqMatrixParams->quantization_values[0][0] = Vp8FrameHead.Y1DeQuant[vp8QIndex[0]][0];
-    pVp8IqMatrixParams->quantization_values[0][1] = Vp8FrameHead.Y1DeQuant[vp8QIndex[0]][1];
-    pVp8IqMatrixParams->quantization_values[0][2] = Vp8FrameHead.UVDeQuant[vp8QIndex[0]][0];
-    pVp8IqMatrixParams->quantization_values[0][3] = Vp8FrameHead.UVDeQuant[vp8QIndex[0]][1];
-    pVp8IqMatrixParams->quantization_values[0][4] = Vp8FrameHead.Y2DeQuant[vp8QIndex[0]][0];
-    pVp8IqMatrixParams->quantization_values[0][5] = Vp8FrameHead.Y2DeQuant[vp8QIndex[0]][1];
+    m_vp8IqMatrixParams->quantization_values[0][0] = m_vp8FrameHead.Y1DeQuant[vp8QIndex[0]][0];
+    m_vp8IqMatrixParams->quantization_values[0][1] = m_vp8FrameHead.Y1DeQuant[vp8QIndex[0]][1];
+    m_vp8IqMatrixParams->quantization_values[0][2] = m_vp8FrameHead.UVDeQuant[vp8QIndex[0]][0];
+    m_vp8IqMatrixParams->quantization_values[0][3] = m_vp8FrameHead.UVDeQuant[vp8QIndex[0]][1];
+    m_vp8IqMatrixParams->quantization_values[0][4] = m_vp8FrameHead.Y2DeQuant[vp8QIndex[0]][0];
+    m_vp8IqMatrixParams->quantization_values[0][5] = m_vp8FrameHead.Y2DeQuant[vp8QIndex[0]][1];
 
-    if (Vp8FrameHead.u8SegmentationEnabled)
+    if (m_vp8FrameHead.u8SegmentationEnabled)
     {
         for (int32_t i = 1; i < 4; i++)
         {
-            pVp8IqMatrixParams->quantization_values[i][0] = Vp8FrameHead.Y1DeQuant[vp8QIndex[i]][0];
-            pVp8IqMatrixParams->quantization_values[i][1] = Vp8FrameHead.Y1DeQuant[vp8QIndex[i]][1];
-            pVp8IqMatrixParams->quantization_values[i][2] = Vp8FrameHead.UVDeQuant[vp8QIndex[i]][0];
-            pVp8IqMatrixParams->quantization_values[i][3] = Vp8FrameHead.UVDeQuant[vp8QIndex[i]][1];
-            pVp8IqMatrixParams->quantization_values[i][4] = Vp8FrameHead.Y2DeQuant[vp8QIndex[i]][0];
-            pVp8IqMatrixParams->quantization_values[i][5] = Vp8FrameHead.Y2DeQuant[vp8QIndex[i]][1];
+            m_vp8IqMatrixParams->quantization_values[i][0] = m_vp8FrameHead.Y1DeQuant[vp8QIndex[i]][0];
+            m_vp8IqMatrixParams->quantization_values[i][1] = m_vp8FrameHead.Y1DeQuant[vp8QIndex[i]][1];
+            m_vp8IqMatrixParams->quantization_values[i][2] = m_vp8FrameHead.UVDeQuant[vp8QIndex[i]][0];
+            m_vp8IqMatrixParams->quantization_values[i][3] = m_vp8FrameHead.UVDeQuant[vp8QIndex[i]][1];
+            m_vp8IqMatrixParams->quantization_values[i][4] = m_vp8FrameHead.Y2DeQuant[vp8QIndex[i]][0];
+            m_vp8IqMatrixParams->quantization_values[i][5] = m_vp8FrameHead.Y2DeQuant[vp8QIndex[i]][1];
         }
     }
     else
@@ -782,35 +782,35 @@ MOS_STATUS CodechalDecodeVp8::ParseFrameHead(uint8_t* bitstreamBuffer, uint32_t 
         {
             for (int32_t j = 0; j < 6; j++)
             {
-                pVp8IqMatrixParams->quantization_values[i][j] = 0;
+                m_vp8IqMatrixParams->quantization_values[i][j] = 0;
             }
         }
     }
 
     // Coef Prob
-    if (!Mos_ResourceIsNull(&resCoefProbBuffer))
+    if (!Mos_ResourceIsNull(&m_resCoefProbBuffer))
     {
         m_osInterface->pfnFreeResource(
             m_osInterface,
-            &resCoefProbBuffer);
+            &m_resCoefProbBuffer);
     }
 
     CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(AllocateBuffer(
-        &resCoefProbBuffer,
-        sizeof(Vp8FrameHead.FrameContext.CoefProbs),
-        "VP8_Coef_Prob"),
+                                                  &m_resCoefProbBuffer,
+                                                  sizeof(m_vp8FrameHead.FrameContext.CoefProbs),
+                                                  "VP8_Coef_Prob"),
         "Failed to allocate VP8 CoefProb Buffer.");
 
-    CodechalResLock ResourceLock(m_osInterface, &resCoefProbBuffer);
+    CodechalResLock ResourceLock(m_osInterface, &m_resCoefProbBuffer);
     auto data = (uint8_t*)ResourceLock.Lock(CodechalResLock::writeOnly);
 
     MOS_SecureMemcpy(
         data,
-        sizeof(Vp8FrameHead.FrameContext.CoefProbs),
-        (void*)&(Vp8FrameHead.FrameContext.CoefProbs),
-        sizeof(Vp8FrameHead.FrameContext.CoefProbs));
+        sizeof(m_vp8FrameHead.FrameContext.CoefProbs),
+        (void *)&(m_vp8FrameHead.FrameContext.CoefProbs),
+        sizeof(m_vp8FrameHead.FrameContext.CoefProbs));
 
-    Vp8FrameHead.bNotFirstCall = true;
+    m_vp8FrameHead.bNotFirstCall = true;
 
     return eStatus;
 }
@@ -862,19 +862,19 @@ MOS_STATUS CodechalDecodeVp8::CopyBitstreamBuffer(
 
     m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBuffer, 0);
 
-    bHuCCopyInUse = true;
+    m_huCCopyInUse = true;
 
     MOS_SYNC_PARAMS syncParams;
 
     syncParams = g_cInitSyncParams;
     syncParams.GpuContext = m_videoContext;
-    syncParams.presSyncResource = &resSyncObjectVideoContextInUse;
+    syncParams.presSyncResource = &m_resSyncObjectVideoContextInUse;
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnEngineSignal(m_osInterface, &syncParams));
 
     syncParams = g_cInitSyncParams;
     syncParams.GpuContext = m_videoContextForWa;
-    syncParams.presSyncResource = &resSyncObjectVideoContextInUse;
+    syncParams.presSyncResource = &m_resSyncObjectVideoContextInUse;
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnEngineWait(m_osInterface, &syncParams));
 
@@ -894,19 +894,19 @@ MOS_STATUS CodechalDecodeVp8::AllocateResourcesFixedSizes()
 
     CODECHAL_DECODE_FUNCTION_ENTER;
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateSyncResource(m_osInterface, &resSyncObject));
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateSyncResource(m_osInterface, &m_resSyncObject));
 
     CodecHalAllocateDataList(
-        pVp8RefList,
+        m_vp8RefList,
         CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8);
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateSyncResource(
         m_osInterface,
-        &resSyncObjectWaContextInUse));
+        &m_resSyncObjectWaContextInUse));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateSyncResource(
         m_osInterface,
-        &resSyncObjectVideoContextInUse));
+        &m_resSyncObjectVideoContextInUse));
 
     return eStatus;
 }
@@ -919,22 +919,22 @@ MOS_STATUS CodechalDecodeVp8::AllocateResourcesVariableSizes()
 
     if (m_decodeParams.m_bitstreamLockingInUse && (!m_decodeParams.m_bitstreamLockable))
     {
-        if (!Mos_ResourceIsNull(&resTmpBitstreamBuffer))
+        if (!Mos_ResourceIsNull(&m_resTmpBitstreamBuffer))
         {
             m_osInterface->pfnFreeResource(
                 m_osInterface,
-                &resTmpBitstreamBuffer);
+                &m_resTmpBitstreamBuffer);
         }
 
         CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(AllocateBuffer(
-            &resTmpBitstreamBuffer,
-            u32DataSize,
-            "VP8_BitStream"),
+                                                      &m_resTmpBitstreamBuffer,
+                                                      m_dataSize,
+                                                      "VP8_BitStream"),
             "Failed to allocate Bitstream Buffer.");
     }
 
-    uint16_t picWidthInMB    = MOS_MAX(u16PicWidthInMbLastMaxAlloced, (pVp8PicParams->wFrameWidthInMbsMinus1 + 1));
-    uint16_t picHeightInMB   = MOS_MAX(u16PicHeightInMbLastMaxAlloced, (pVp8PicParams->wFrameHeightInMbsMinus1 + 1));
+    uint16_t picWidthInMB    = MOS_MAX(m_picWidthInMbLastMaxAlloced, (m_vp8PicParams->wFrameWidthInMbsMinus1 + 1));
+    uint16_t picHeightInMB   = MOS_MAX(m_picHeightInMbLastMaxAlloced, (m_vp8PicParams->wFrameHeightInMbsMinus1 + 1));
     uint32_t maxWidth        = picWidthInMB * CODECHAL_MACROBLOCK_WIDTH;
     uint32_t maxHeight       = picHeightInMB * CODECHAL_MACROBLOCK_HEIGHT;
     uint32_t numMacroblocks  = picWidthInMB * picHeightInMB;
@@ -942,124 +942,124 @@ MOS_STATUS CodechalDecodeVp8::AllocateResourcesVariableSizes()
     if (m_mfxInterface->IsDeblockingFilterRowstoreCacheEnabled() == false)
     {
         uint16_t maxMfdDFRowStoreScratchBufferPicWidthInMB;
-        maxMfdDFRowStoreScratchBufferPicWidthInMB = MOS_MAX(u16MfdDeblockingFilterRowStoreScratchBufferPicWidthInMb,
-            (pVp8PicParams->wFrameWidthInMbsMinus1 + 1));
+        maxMfdDFRowStoreScratchBufferPicWidthInMB = MOS_MAX(m_mfdDeblockingFilterRowStoreScratchBufferPicWidthInMb,
+            (m_vp8PicParams->wFrameWidthInMbsMinus1 + 1));
 
-        if ((maxMfdDFRowStoreScratchBufferPicWidthInMB > u16MfdDeblockingFilterRowStoreScratchBufferPicWidthInMb) ||
-            Mos_ResourceIsNull(&resMfdDeblockingFilterRowStoreScratchBuffer))
+        if ((maxMfdDFRowStoreScratchBufferPicWidthInMB > m_mfdDeblockingFilterRowStoreScratchBufferPicWidthInMb) ||
+            Mos_ResourceIsNull(&m_resMfdDeblockingFilterRowStoreScratchBuffer))
         {
-            if (!Mos_ResourceIsNull(&resMfdDeblockingFilterRowStoreScratchBuffer))
+            if (!Mos_ResourceIsNull(&m_resMfdDeblockingFilterRowStoreScratchBuffer))
             {
                 m_osInterface->pfnFreeResource(
                     m_osInterface,
-                    &resMfdDeblockingFilterRowStoreScratchBuffer);
+                    &m_resMfdDeblockingFilterRowStoreScratchBuffer);
             }
             // Deblocking Filter Row Store Scratch buffer
             //(Num MacroBlock Width) * (Num Cachlines) * (Cachline size)
             CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(AllocateBuffer(
-                &resMfdDeblockingFilterRowStoreScratchBuffer,
-                maxMfdDFRowStoreScratchBufferPicWidthInMB * 2 * CODECHAL_CACHELINE_SIZE,
-                "DeblockingScratchBuffer"),
+                                                          &m_resMfdDeblockingFilterRowStoreScratchBuffer,
+                                                          maxMfdDFRowStoreScratchBufferPicWidthInMB * 2 * CODECHAL_CACHELINE_SIZE,
+                                                          "DeblockingScratchBuffer"),
                 "Failed to allocate Deblocking Filter Row Store Scratch Buffer.");
         }
 
         //record the width and height used for allocation internal resources.
-        u16MfdDeblockingFilterRowStoreScratchBufferPicWidthInMb = maxMfdDFRowStoreScratchBufferPicWidthInMB;
+        m_mfdDeblockingFilterRowStoreScratchBufferPicWidthInMb = maxMfdDFRowStoreScratchBufferPicWidthInMB;
     }
 
     if (m_mfxInterface->IsIntraRowstoreCacheEnabled() == false)
     {
         uint16_t maxMfdIntraRowStoreScratchBufferPicWidthInMB;
-        maxMfdIntraRowStoreScratchBufferPicWidthInMB = MOS_MAX(u16MfdIntraRowStoreScratchBufferPicWidthInMb, (pVp8PicParams->wFrameWidthInMbsMinus1 + 1));
+        maxMfdIntraRowStoreScratchBufferPicWidthInMB = MOS_MAX(m_mfdIntraRowStoreScratchBufferPicWidthInMb, (m_vp8PicParams->wFrameWidthInMbsMinus1 + 1));
 
-        if ((maxMfdIntraRowStoreScratchBufferPicWidthInMB > u16MfdIntraRowStoreScratchBufferPicWidthInMb) ||
-            Mos_ResourceIsNull(&resMfdIntraRowStoreScratchBuffer))
+        if ((maxMfdIntraRowStoreScratchBufferPicWidthInMB > m_mfdIntraRowStoreScratchBufferPicWidthInMb) ||
+            Mos_ResourceIsNull(&m_resMfdIntraRowStoreScratchBuffer))
         {
-            if (!Mos_ResourceIsNull(&resMfdIntraRowStoreScratchBuffer))
+            if (!Mos_ResourceIsNull(&m_resMfdIntraRowStoreScratchBuffer))
             {
                 m_osInterface->pfnFreeResource(
                     m_osInterface,
-                    &resMfdIntraRowStoreScratchBuffer);
+                    &m_resMfdIntraRowStoreScratchBuffer);
             }
 
             // Intra Row Store Scratch buffer
             // (FrameWidth in MB) * (CacheLine size per MB)
             CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(AllocateBuffer(
-                &resMfdIntraRowStoreScratchBuffer,
-                maxMfdIntraRowStoreScratchBufferPicWidthInMB * CODECHAL_CACHELINE_SIZE,
-                "IntraScratchBuffer"),
+                                                          &m_resMfdIntraRowStoreScratchBuffer,
+                                                          maxMfdIntraRowStoreScratchBufferPicWidthInMB * CODECHAL_CACHELINE_SIZE,
+                                                          "IntraScratchBuffer"),
                 "Failed to allocate VP8 BSD Intra Row Store Scratch Buffer.");
         }
 
         //record the width and height used for allocation internal resources.
-        u16MfdIntraRowStoreScratchBufferPicWidthInMb = maxMfdIntraRowStoreScratchBufferPicWidthInMB;
+        m_mfdIntraRowStoreScratchBufferPicWidthInMb = maxMfdIntraRowStoreScratchBufferPicWidthInMB;
     }
 
     if (m_mfxInterface->IsBsdMpcRowstoreCacheEnabled() == false)
     {
         uint16_t maxBsdMpcRowStoreScratchBufferPicWidthInMB;
-        maxBsdMpcRowStoreScratchBufferPicWidthInMB = MOS_MAX(u16BsdMpcRowStoreScratchBufferPicWidthInMb, (pVp8PicParams->wFrameWidthInMbsMinus1 + 1));
+        maxBsdMpcRowStoreScratchBufferPicWidthInMB = MOS_MAX(m_bsdMpcRowStoreScratchBufferPicWidthInMb, (m_vp8PicParams->wFrameWidthInMbsMinus1 + 1));
 
-        if ((maxBsdMpcRowStoreScratchBufferPicWidthInMB > u16BsdMpcRowStoreScratchBufferPicWidthInMb) ||
-            Mos_ResourceIsNull(&resBsdMpcRowStoreScratchBuffer))
+        if ((maxBsdMpcRowStoreScratchBufferPicWidthInMB > m_bsdMpcRowStoreScratchBufferPicWidthInMb) ||
+            Mos_ResourceIsNull(&m_resBsdMpcRowStoreScratchBuffer))
         {
-            if (!Mos_ResourceIsNull(&resBsdMpcRowStoreScratchBuffer))
+            if (!Mos_ResourceIsNull(&m_resBsdMpcRowStoreScratchBuffer))
             {
                 m_osInterface->pfnFreeResource(
                     m_osInterface,
-                    &resBsdMpcRowStoreScratchBuffer);
+                    &m_resBsdMpcRowStoreScratchBuffer);
             }
             // BSD/MPC Row Store Scratch buffer
             // (FrameWidth in MB) * (2) * (CacheLine size per MB)
             CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(AllocateBuffer(
-                &resBsdMpcRowStoreScratchBuffer,
-                maxBsdMpcRowStoreScratchBufferPicWidthInMB * CODECHAL_CACHELINE_SIZE * 2,
-                "MpcScratchBuffer"),
+                                                          &m_resBsdMpcRowStoreScratchBuffer,
+                                                          maxBsdMpcRowStoreScratchBufferPicWidthInMB * CODECHAL_CACHELINE_SIZE * 2,
+                                                          "MpcScratchBuffer"),
                 "Failed to allocate BSD/MPC Row Store Scratch Buffer.");
         }
 
         //record the width and height used for allocation internal resources.
-        u16BsdMpcRowStoreScratchBufferPicWidthInMb = maxBsdMpcRowStoreScratchBufferPicWidthInMB;
+        m_bsdMpcRowStoreScratchBufferPicWidthInMb = maxBsdMpcRowStoreScratchBufferPicWidthInMB;
     }
 
-    if ((picWidthInMB > u16PicWidthInMbLastMaxAlloced) ||
-        Mos_ResourceIsNull(&resMprRowStoreScratchBuffer))
+    if ((picWidthInMB > m_picWidthInMbLastMaxAlloced) ||
+        Mos_ResourceIsNull(&m_resMprRowStoreScratchBuffer))
     {
-        if (!Mos_ResourceIsNull(&resMprRowStoreScratchBuffer))
+        if (!Mos_ResourceIsNull(&m_resMprRowStoreScratchBuffer))
         {
             m_osInterface->pfnFreeResource(
                 m_osInterface,
-                &resMprRowStoreScratchBuffer);
+                &m_resMprRowStoreScratchBuffer);
         }
         // MPR Row Store Scratch buffer
         // (FrameWidth in MB) * (2) * (CacheLine size per MB)
         CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(AllocateBuffer(
-            &resMprRowStoreScratchBuffer,
-            picWidthInMB * CODECHAL_CACHELINE_SIZE * 22,
-            "MprScratchBuffer"),
+                                                      &m_resMprRowStoreScratchBuffer,
+                                                      picWidthInMB * CODECHAL_CACHELINE_SIZE * 22,
+                                                      "MprScratchBuffer"),
             "Failed to allocate MPR Row Store Scratch Buffer.");
     }
 
-    if ((numMacroblocks > (uint32_t)u16PicWidthInMbLastMaxAlloced * u16PicHeightInMbLastMaxAlloced) ||
-        Mos_ResourceIsNull(&resSegmentationIdStreamBuffer))
+    if ((numMacroblocks > (uint32_t)m_picWidthInMbLastMaxAlloced * m_picHeightInMbLastMaxAlloced) ||
+        Mos_ResourceIsNull(&m_resSegmentationIdStreamBuffer))
     {
-        if (!Mos_ResourceIsNull(&resSegmentationIdStreamBuffer))
+        if (!Mos_ResourceIsNull(&m_resSegmentationIdStreamBuffer))
         {
             m_osInterface->pfnFreeResource(
                 m_osInterface,
-                &resSegmentationIdStreamBuffer);
+                &m_resSegmentationIdStreamBuffer);
         }
         // Segmentation ID Stream buffer
         //(Num MacroBlocks) * (Cachline size) * (2 bit)
         CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(AllocateBuffer(
-            &resSegmentationIdStreamBuffer,
-            MOS_MAX(numMacroblocks * CODECHAL_CACHELINE_SIZE * 2 / 8, 64),
-            "SegmentationIdStreamBuffer"),
+                                                      &m_resSegmentationIdStreamBuffer,
+                                                      MOS_MAX(numMacroblocks * CODECHAL_CACHELINE_SIZE * 2 / 8, 64),
+                                                      "SegmentationIdStreamBuffer"),
             "Failed to allocate Segmentation ID Stream Buffer.");
     }
 
-    u16PicWidthInMbLastMaxAlloced = picWidthInMB;
-    u16PicHeightInMbLastMaxAlloced = picHeightInMB;
+    m_picWidthInMbLastMaxAlloced  = picWidthInMB;
+    m_picHeightInMbLastMaxAlloced = picHeightInMB;
 
     return eStatus;
 }
@@ -1068,50 +1068,49 @@ CodechalDecodeVp8::~CodechalDecodeVp8()
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
 
-    m_osInterface->pfnDestroySyncResource(m_osInterface, &resSyncObject);
+    m_osInterface->pfnDestroySyncResource(m_osInterface, &m_resSyncObject);
 
-    CodecHalFreeDataList(pVp8RefList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8);
+    CodecHalFreeDataList(m_vp8RefList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8);
 
     // indicate resCoefProbBuffer is allocated internal, not from m_decodeParams.m_coefProbBuffer
-    if (Vp8FrameHead.bNotFirstCall == true)
+    if (m_vp8FrameHead.bNotFirstCall == true)
     {
         m_osInterface->pfnFreeResource(
             m_osInterface,
-            &resCoefProbBuffer);
+            &m_resCoefProbBuffer);
     }
 
     m_osInterface->pfnFreeResource(
         m_osInterface,
-        &resTmpBitstreamBuffer);
+        &m_resTmpBitstreamBuffer);
 
     m_osInterface->pfnFreeResource(
         m_osInterface,
-        &resMfdDeblockingFilterRowStoreScratchBuffer);
+        &m_resMfdDeblockingFilterRowStoreScratchBuffer);
 
     m_osInterface->pfnFreeResource(
         m_osInterface,
-        &resMfdIntraRowStoreScratchBuffer);
+        &m_resMfdIntraRowStoreScratchBuffer);
 
     m_osInterface->pfnFreeResource(
         m_osInterface,
-        &resBsdMpcRowStoreScratchBuffer);
+        &m_resBsdMpcRowStoreScratchBuffer);
 
     m_osInterface->pfnFreeResource(
         m_osInterface,
-        &resMprRowStoreScratchBuffer);
+        &m_resMprRowStoreScratchBuffer);
 
     m_osInterface->pfnFreeResource(
         m_osInterface,
-        &resSegmentationIdStreamBuffer);
-
+        &m_resSegmentationIdStreamBuffer);
 
     m_osInterface->pfnDestroySyncResource(
         m_osInterface,
-        &resSyncObjectWaContextInUse);
+        &m_resSyncObjectWaContextInUse);
 
     m_osInterface->pfnDestroySyncResource(
         m_osInterface,
-        &resSyncObjectVideoContextInUse);
+        &m_resSyncObjectVideoContextInUse);
 
     return;
 }
@@ -1125,25 +1124,25 @@ MOS_STATUS CodechalDecodeVp8::SetFrameStates()
     CODECHAL_DECODE_CHK_NULL_RETURN(m_decodeParams.m_destSurface);
     CODECHAL_DECODE_CHK_NULL_RETURN(m_decodeParams.m_dataBuffer);
 
-    u32DataSize   = m_decodeParams.m_dataSize;
-    u32DataOffset = m_decodeParams.m_dataOffset;
-    sDestSurface  = *(m_decodeParams.m_destSurface);
-    resDataBuffer = *(m_decodeParams.m_dataBuffer);
-    pVp8PicParams = (PCODEC_VP8_PIC_PARAMS)m_decodeParams.m_picParams;
-    pVp8IqMatrixParams = (PCODEC_VP8_IQ_MATRIX_PARAMS)m_decodeParams.m_iqMatrixBuffer;
+    m_dataSize          = m_decodeParams.m_dataSize;
+    m_dataOffset        = m_decodeParams.m_dataOffset;
+    m_destSurface       = *(m_decodeParams.m_destSurface);
+    m_resDataBuffer     = *(m_decodeParams.m_dataBuffer);
+    m_vp8PicParams      = (PCODEC_VP8_PIC_PARAMS)m_decodeParams.m_picParams;
+    m_vp8IqMatrixParams = (PCODEC_VP8_IQ_MATRIX_PARAMS)m_decodeParams.m_iqMatrixBuffer;
 
-    CODECHAL_DECODE_CHK_NULL_RETURN(pVp8PicParams);
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_vp8PicParams);
 
-    PCODEC_REF_LIST destEntry = pVp8RefList[pVp8PicParams->CurrPic.FrameIdx];
-    CODEC_PICTURE currPic = pVp8PicParams->CurrPic;
+    PCODEC_REF_LIST destEntry = m_vp8RefList[m_vp8PicParams->CurrPic.FrameIdx];
+    CODEC_PICTURE   currPic   = m_vp8PicParams->CurrPic;
 
     MOS_ZeroMemory(destEntry, sizeof(CODEC_REF_LIST));
     destEntry->RefPic = currPic;
-    destEntry->resRefPic = sDestSurface.OsResource;
+    destEntry->resRefPic = m_destSurface.OsResource;
 
-    m_statusReportFeedbackNumber = pVp8PicParams->uiStatusReportFeedbackNumber;
+    m_statusReportFeedbackNumber = m_vp8PicParams->uiStatusReportFeedbackNumber;
 
-    bDeblockingEnabled = !pVp8PicParams->LoopFilterDisable ? true : false;
+    m_deblockingEnabled = !m_vp8PicParams->LoopFilterDisable ? true : false;
 
     if (m_mfxInterface->IsRowStoreCachingSupported())
     {
@@ -1161,67 +1160,64 @@ MOS_STATUS CodechalDecodeVp8::SetFrameStates()
     {
         if (m_decodeParams.m_bitstreamLockable)
         {
-            CodechalResLock ResourceLock(m_osInterface, &resDataBuffer);
+            CodechalResLock ResourceLock(m_osInterface, &m_resDataBuffer);
             auto bitstreamBuffer = (uint8_t*)ResourceLock.Lock(CodechalResLock::readOnly);
 
-            CODECHAL_DECODE_CHK_STATUS_RETURN(ParseFrameHead(bitstreamBuffer + u32DataOffset, u32DataSize));
+            CODECHAL_DECODE_CHK_STATUS_RETURN(ParseFrameHead(bitstreamBuffer + m_dataOffset, m_dataSize));
         }
         else
         {
-            CODECHAL_DECODE_CHK_STATUS_RETURN(CopyBitstreamBuffer(resDataBuffer, &resTmpBitstreamBuffer, u32DataSize));
+            CODECHAL_DECODE_CHK_STATUS_RETURN(CopyBitstreamBuffer(m_resDataBuffer, &m_resTmpBitstreamBuffer, m_dataSize));
 
-            CodechalResLock ResourceLock(m_osInterface, &resTmpBitstreamBuffer);
+            CodechalResLock ResourceLock(m_osInterface, &m_resTmpBitstreamBuffer);
             auto bitstreamBuffer = (uint8_t*)ResourceLock.Lock(CodechalResLock::readOnly);
 
-            CODECHAL_DECODE_CHK_STATUS_RETURN(ParseFrameHead(bitstreamBuffer, u32DataSize));
+            CODECHAL_DECODE_CHK_STATUS_RETURN(ParseFrameHead(bitstreamBuffer, m_dataSize));
         }
 
-        m_decodeParams.m_coefProbSize = sizeof(Vp8FrameHead.FrameContext.CoefProbs);
+        m_decodeParams.m_coefProbSize = sizeof(m_vp8FrameHead.FrameContext.CoefProbs);
     }
     else
     {
-        resCoefProbBuffer = *(m_decodeParams.m_coefProbBuffer);
+        m_resCoefProbBuffer = *(m_decodeParams.m_coefProbBuffer);
     }
 
-    m_width = (pVp8PicParams->wFrameWidthInMbsMinus1 + 1) * CODECHAL_MACROBLOCK_WIDTH;
-    m_height = (pVp8PicParams->wFrameHeightInMbsMinus1 + 1) * CODECHAL_MACROBLOCK_HEIGHT;
+    m_width  = (m_vp8PicParams->wFrameWidthInMbsMinus1 + 1) * CODECHAL_MACROBLOCK_WIDTH;
+    m_height = (m_vp8PicParams->wFrameHeightInMbsMinus1 + 1) * CODECHAL_MACROBLOCK_HEIGHT;
 
     // Overwrite the actual surface height with the coded height and width of the frame
     // for VP8 since it's possible for a VP8 frame to change size during playback
-    sDestSurface.dwWidth = m_width;
-    sDestSurface.dwHeight = m_height;
+    m_destSurface.dwWidth  = m_width;
+    m_destSurface.dwHeight = m_height;
 
-    m_perfType = pVp8PicParams->key_frame ? I_TYPE : P_TYPE;
+    m_perfType = m_vp8PicParams->key_frame ? I_TYPE : P_TYPE;
 
-    m_crrPic = pVp8PicParams->CurrPic;
+    m_crrPic = m_vp8PicParams->CurrPic;
 
     CODECHAL_DEBUG_TOOL(
         CODECHAL_DECODE_CHK_NULL_RETURN(m_debugInterface);
-    pVp8PicParams->CurrPic.PicFlags = PICTURE_FRAME;
-    m_debugInterface->CurrPic = m_crrPic;
-    m_debugInterface->wFrameType = m_perfType;
+        m_vp8PicParams->CurrPic.PicFlags = PICTURE_FRAME;
+        m_debugInterface->m_currPic      = m_crrPic;
+        m_debugInterface->m_frameType    = m_perfType;
 
-    if (pVp8PicParams)
-    {
-        CODECHAL_DECODE_CHK_STATUS_RETURN(DumpPicParams(
-            pVp8PicParams));
-    }
+        if (m_vp8PicParams) {
+            CODECHAL_DECODE_CHK_STATUS_RETURN(DumpPicParams(
+                m_vp8PicParams));
+        }
 
-    if (pVp8IqMatrixParams)
-    {
-        CODECHAL_DECODE_CHK_STATUS_RETURN(DumpIQParams(
-            pVp8IqMatrixParams));
-    }
+        if (m_vp8IqMatrixParams) {
+            CODECHAL_DECODE_CHK_STATUS_RETURN(DumpIQParams(
+                m_vp8IqMatrixParams));
+        }
 
-    // Dump Vp8CoefProb
-    CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-        &(resCoefProbBuffer),
-        CodechalDbgAttr::attrCoeffProb,
-        "_DEC",
-        m_decodeParams.m_coefProbSize));
-    )
+        // Dump Vp8CoefProb
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+            &(m_resCoefProbBuffer),
+            CodechalDbgAttr::attrCoeffProb,
+            "_DEC",
+            m_decodeParams.m_coefProbSize));)
 
-        return eStatus;
+    return eStatus;
 }
 
 MOS_STATUS CodechalDecodeVp8::DecodeStateLevel()
@@ -1230,17 +1226,17 @@ MOS_STATUS CodechalDecodeVp8::DecodeStateLevel()
 
     CODECHAL_DECODE_FUNCTION_ENTER;
 
-    if (pVp8PicParams->key_frame)  // reference surface should be nullptr when key_frame == true
+    if (m_vp8PicParams->key_frame)  // reference surface should be nullptr when key_frame == true
     {
-        presLastRefSurface = nullptr;
-        presGoldenRefSurface = nullptr;
-        presAltRefSurface = nullptr;
+        m_presLastRefSurface   = nullptr;
+        m_presGoldenRefSurface = nullptr;
+        m_presAltRefSurface    = nullptr;
     }
     else
     {
-        presLastRefSurface = &(pVp8RefList[pVp8PicParams->ucLastRefPicIndex]->resRefPic);
-        presGoldenRefSurface = &(pVp8RefList[pVp8PicParams->ucGoldenRefPicIndex]->resRefPic);
-        presAltRefSurface = &(pVp8RefList[pVp8PicParams->ucAltRefPicIndex]->resRefPic);
+        m_presLastRefSurface   = &(m_vp8RefList[m_vp8PicParams->ucLastRefPicIndex]->resRefPic);
+        m_presGoldenRefSurface = &(m_vp8RefList[m_vp8PicParams->ucGoldenRefPicIndex]->resRefPic);
+        m_presAltRefSurface    = &(m_vp8RefList[m_vp8PicParams->ucAltRefPicIndex]->resRefPic);
     }
 
 
@@ -1251,38 +1247,38 @@ MOS_STATUS CodechalDecodeVp8::DecodeStateLevel()
     MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode               = m_mode;
     pipeModeSelectParams.bStreamOutEnabled  = m_streamOutEnabled;
-    pipeModeSelectParams.bPostDeblockOutEnable  = bDeblockingEnabled;
-    pipeModeSelectParams.bPreDeblockOutEnable   = !bDeblockingEnabled;
-    pipeModeSelectParams.bShortFormatInUse      = bShortFormatInUse;
+    pipeModeSelectParams.bPostDeblockOutEnable = m_deblockingEnabled;
+    pipeModeSelectParams.bPreDeblockOutEnable  = !m_deblockingEnabled;
+    pipeModeSelectParams.bShortFormatInUse     = m_shortFormatInUse;
 
     MHW_VDBOX_SURFACE_PARAMS surfaceParams;
     MOS_ZeroMemory(&surfaceParams, sizeof(surfaceParams));
     surfaceParams.Mode = m_mode;
-    surfaceParams.psSurface = &sDestSurface;
+    surfaceParams.psSurface = &m_destSurface;
 
     MHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams;
     MOS_ZeroMemory(&pipeBufAddrParams, sizeof(pipeBufAddrParams));
     pipeBufAddrParams.Mode = m_mode;
 
-    if (bDeblockingEnabled)
+    if (m_deblockingEnabled)
     {
-        pipeBufAddrParams.psPostDeblockSurface = &sDestSurface;        
+        pipeBufAddrParams.psPostDeblockSurface = &m_destSurface;
     }
     else
     {
-        pipeBufAddrParams.psPreDeblockSurface = &sDestSurface;        
+        pipeBufAddrParams.psPreDeblockSurface = &m_destSurface;
     }
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetPipeBufAddr(&pipeBufAddrParams));
 
     // when there is no last, golden and alternate reference,
     // the index is set to the destination frame index
-    pipeBufAddrParams.presReferences[CodechalDecodeLastRef]         = presLastRefSurface;
-    pipeBufAddrParams.presReferences[CodechalDecodeGoldenRef]       = presGoldenRefSurface;
-    pipeBufAddrParams.presReferences[CodechalDecodeAlternateRef]    = presAltRefSurface;
+    pipeBufAddrParams.presReferences[CodechalDecodeLastRef]      = m_presLastRefSurface;
+    pipeBufAddrParams.presReferences[CodechalDecodeGoldenRef]    = m_presGoldenRefSurface;
+    pipeBufAddrParams.presReferences[CodechalDecodeAlternateRef] = m_presAltRefSurface;
 
-    pipeBufAddrParams.presMfdIntraRowStoreScratchBuffer = &resMfdIntraRowStoreScratchBuffer;
-    pipeBufAddrParams.presMfdDeblockingFilterRowStoreScratchBuffer = &resMfdDeblockingFilterRowStoreScratchBuffer;
+    pipeBufAddrParams.presMfdIntraRowStoreScratchBuffer            = &m_resMfdIntraRowStoreScratchBuffer;
+    pipeBufAddrParams.presMfdDeblockingFilterRowStoreScratchBuffer = &m_resMfdDeblockingFilterRowStoreScratchBuffer;
     if (m_streamOutEnabled)
     {
         pipeBufAddrParams.presStreamOutBuffer =
@@ -1297,21 +1293,21 @@ MOS_STATUS CodechalDecodeVp8::DecodeStateLevel()
     MOS_ZeroMemory(&indObjBaseAddrParams, sizeof(indObjBaseAddrParams));
     indObjBaseAddrParams.Mode = m_mode;
 
-    indObjBaseAddrParams.dwDataSize = u32DataSize;
-    indObjBaseAddrParams.dwDataOffset = u32DataOffset;
-    indObjBaseAddrParams.presDataBuffer = &resDataBuffer;
+    indObjBaseAddrParams.dwDataSize     = m_dataSize;
+    indObjBaseAddrParams.dwDataOffset   = m_dataOffset;
+    indObjBaseAddrParams.presDataBuffer = &m_resDataBuffer;
 
     MHW_VDBOX_BSP_BUF_BASE_ADDR_PARAMS bspBufBaseAddrParams;
     MOS_ZeroMemory(&bspBufBaseAddrParams, sizeof(bspBufBaseAddrParams));
-    bspBufBaseAddrParams.presBsdMpcRowStoreScratchBuffer = &resBsdMpcRowStoreScratchBuffer;
-    bspBufBaseAddrParams.presMprRowStoreScratchBuffer = &resMprRowStoreScratchBuffer;
+    bspBufBaseAddrParams.presBsdMpcRowStoreScratchBuffer = &m_resBsdMpcRowStoreScratchBuffer;
+    bspBufBaseAddrParams.presMprRowStoreScratchBuffer    = &m_resMprRowStoreScratchBuffer;
 
     MHW_VDBOX_VP8_PIC_STATE vp8PicState;
-    vp8PicState.pVp8PicParams = pVp8PicParams;
-    vp8PicState.pVp8IqMatrixParams = pVp8IqMatrixParams;
-    vp8PicState.presSegmentationIdStreamBuffer = &resSegmentationIdStreamBuffer;
+    vp8PicState.pVp8PicParams                  = m_vp8PicParams;
+    vp8PicState.pVp8IqMatrixParams             = m_vp8IqMatrixParams;
+    vp8PicState.presSegmentationIdStreamBuffer = &m_resSegmentationIdStreamBuffer;
     vp8PicState.dwCoefProbTableOffset = 0;
-    vp8PicState.presCoefProbBuffer = &resCoefProbBuffer;
+    vp8PicState.presCoefProbBuffer             = &m_resCoefProbBuffer;
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(
         &cmdBuffer, true));
@@ -1349,7 +1345,7 @@ MOS_STATUS CodechalDecodeVp8::DecodePrimitiveLevel()
 
     // Fill BSD Object Commands
     MHW_VDBOX_VP8_BSD_PARAMS vp8BsdParams;
-    vp8BsdParams.pVp8PicParams = pVp8PicParams;
+    vp8BsdParams.pVp8PicParams = m_vp8PicParams;
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfdVp8BsdObjectCmd(&cmdBuffer, &vp8BsdParams));
 
@@ -1357,7 +1353,7 @@ MOS_STATUS CodechalDecodeVp8::DecodePrimitiveLevel()
     MOS_SYNC_PARAMS syncParams;
     syncParams = g_cInitSyncParams;
     syncParams.GpuContext = m_videoContext;
-    syncParams.presSyncResource = &sDestSurface.OsResource;
+    syncParams.presSyncResource         = &m_destSurface.OsResource;
     syncParams.bReadOnly = false;
     syncParams.bDisableDecodeSyncLock = m_disableDecodeSyncLock;
     syncParams.bDisableLockForTranscode = m_disableLockForTranscode;
@@ -1384,15 +1380,14 @@ MOS_STATUS CodechalDecodeVp8::DecodePrimitiveLevel()
         CodechalDecodeStatusReport decodeStatusReport;
 
         decodeStatusReport.m_statusReportNumber = m_statusReportFeedbackNumber;
-        decodeStatusReport.m_currDecodedPic     = pVp8PicParams->CurrPic;
-        decodeStatusReport.m_currDeblockedPic   = pVp8PicParams->CurrPic;
+        decodeStatusReport.m_currDecodedPic     = m_vp8PicParams->CurrPic;
+        decodeStatusReport.m_currDeblockedPic   = m_vp8PicParams->CurrPic;
         decodeStatusReport.m_codecStatus        = CODECHAL_STATUS_UNAVAILABLE;
-        decodeStatusReport.m_currDecodedPicRes  = pVp8RefList[pVp8PicParams->CurrPic.FrameIdx]->resRefPic;
+        decodeStatusReport.m_currDecodedPicRes  = m_vp8RefList[m_vp8PicParams->CurrPic.FrameIdx]->resRefPic;
         CODECHAL_DEBUG_TOOL(
-            decodeStatusReport.m_secondField = CodecHal_PictureIsBottomField(pVp8PicParams->CurrPic);
-            decodeStatusReport.m_frameType = m_perfType;
-        )
-            CODECHAL_DECODE_CHK_STATUS_RETURN(EndStatusReport(decodeStatusReport, &cmdBuffer));
+            decodeStatusReport.m_secondField = CodecHal_PictureIsBottomField(m_vp8PicParams->CurrPic);
+            decodeStatusReport.m_frameType   = m_perfType;)
+        CODECHAL_DECODE_CHK_STATUS_RETURN(EndStatusReport(decodeStatusReport, &cmdBuffer));
     }
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(&cmdBuffer));
@@ -1408,42 +1403,41 @@ MOS_STATUS CodechalDecodeVp8::DecodePrimitiveLevel()
             nullptr));
     )
 
-    if (bHuCCopyInUse)
+    if (m_huCCopyInUse)
     {
         syncParams = g_cInitSyncParams;
         syncParams.GpuContext = m_videoContextForWa;
-        syncParams.presSyncResource = &resSyncObjectWaContextInUse;
+        syncParams.presSyncResource = &m_resSyncObjectWaContextInUse;
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnEngineSignal(m_osInterface, &syncParams));
 
         syncParams = g_cInitSyncParams;
         syncParams.GpuContext = m_videoContext;
-        syncParams.presSyncResource = &resSyncObjectWaContextInUse;
+        syncParams.presSyncResource = &m_resSyncObjectWaContextInUse;
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnEngineWait(m_osInterface, &syncParams));
 
-        bHuCCopyInUse = false;
+        m_huCCopyInUse = false;
     }
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_videoContextUsesNullHw));
 
     CODECHAL_DEBUG_TOOL(
-        m_mmc->UpdateUserFeatureKey(&sDestSurface);
-    )
+        m_mmc->UpdateUserFeatureKey(&m_destSurface);)
 
-        if (m_statusQueryReportingEnabled)
-        {
-            CODECHAL_DECODE_CHK_STATUS_RETURN(ResetStatusReport(m_videoContextUsesNullHw));
+    if (m_statusQueryReportingEnabled)
+    {
+        CODECHAL_DECODE_CHK_STATUS_RETURN(ResetStatusReport(m_videoContextUsesNullHw));
         }
 
     // Needs to be re-set for Linux buffer re-use scenarios
-    pVp8RefList[pVp8PicParams->ucCurrPicIndex]->resRefPic =
-        sDestSurface.OsResource;
+        m_vp8RefList[m_vp8PicParams->ucCurrPicIndex]->resRefPic =
+            m_destSurface.OsResource;
 
-    // Send the signal to indicate decode completion, in case On-Demand Sync is not present
-    CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnResourceSignal(m_osInterface, &syncParams));
+        // Send the signal to indicate decode completion, in case On-Demand Sync is not present
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnResourceSignal(m_osInterface, &syncParams));
 
-    return eStatus;
+        return eStatus;
 }
 
 MOS_STATUS CodechalDecodeVp8::InitMmcState()
@@ -1468,22 +1462,22 @@ MOS_STATUS CodechalDecodeVp8::AllocateStandard(
 
     m_width         = settings->dwWidth;
     m_height        = settings->dwHeight;
-    bShortFormatInUse = settings->bShortFormatInUse ? true : false;
-    bHuCCopyInUse   = false;
+    m_shortFormatInUse = settings->bShortFormatInUse ? true : false;
+    m_huCCopyInUse     = false;
 
     // Picture Level Commands
     m_hwInterface->GetMfxStateCommandsDataSize(
         m_mode,
         &m_commandBufferSizeNeeded,
         &m_commandPatchListSizeNeeded,
-        bShortFormatInUse);
+        m_shortFormatInUse);
 
     // Primitive Level Commands
     m_hwInterface->GetMfxPrimitiveCommandsDataSize(
         m_mode,
         &m_standardDecodeSizeNeeded,
         &m_standardDecodePatchListSizeNeeded,
-        bShortFormatInUse);
+        m_shortFormatInUse);
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(AllocateResourcesFixedSizes());
 
@@ -1491,43 +1485,42 @@ MOS_STATUS CodechalDecodeVp8::AllocateStandard(
 }
 
 CodechalDecodeVp8::CodechalDecodeVp8(
-    CodechalHwInterface   *hwInterface,
-    CodechalDebugInterface* debugInterface,
-    PCODECHAL_STANDARD_INFO standardInfo) :
-    CodechalDecode(hwInterface, debugInterface, standardInfo),
-    u16PicWidthInMbLastMaxAlloced(0),
-    u16PicHeightInMbLastMaxAlloced(0),
-    bShortFormatInUse(false),
-    u32DataSize(0),
-    pVp8PicParams(nullptr),
-    pVp8IqMatrixParams(nullptr),
-    presLastRefSurface(nullptr),
-    presGoldenRefSurface(nullptr),
-    presAltRefSurface(nullptr),
-    u16MfdDeblockingFilterRowStoreScratchBufferPicWidthInMb(0),
-    u16MfdIntraRowStoreScratchBufferPicWidthInMb(0),
-    u16BsdMpcRowStoreScratchBufferPicWidthInMb(0),
-    u32PrivateInputBufferSize(0),
-    u32CoeffProbTableOffset(0),
-    bDeblockingEnabled(false),
-    bHuCCopyInUse(false)
+    CodechalHwInterface *   hwInterface,
+    CodechalDebugInterface *debugInterface,
+    PCODECHAL_STANDARD_INFO standardInfo) : CodechalDecode(hwInterface, debugInterface, standardInfo),
+                                            m_picWidthInMbLastMaxAlloced(0),
+                                            m_picHeightInMbLastMaxAlloced(0),
+                                            m_shortFormatInUse(false),
+                                            m_dataSize(0),
+                                            m_vp8PicParams(nullptr),
+                                            m_vp8IqMatrixParams(nullptr),
+                                            m_presLastRefSurface(nullptr),
+                                            m_presGoldenRefSurface(nullptr),
+                                            m_presAltRefSurface(nullptr),
+                                            m_mfdDeblockingFilterRowStoreScratchBufferPicWidthInMb(0),
+                                            m_mfdIntraRowStoreScratchBufferPicWidthInMb(0),
+                                            m_bsdMpcRowStoreScratchBufferPicWidthInMb(0),
+                                            m_privateInputBufferSize(0),
+                                            m_coeffProbTableOffset(0),
+                                            m_deblockingEnabled(false),
+                                            m_huCCopyInUse(false)
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
 
-    MOS_ZeroMemory(&sDestSurface,                                   sizeof(sDestSurface));
-    MOS_ZeroMemory(&resDataBuffer,                                  sizeof(resDataBuffer));
-    MOS_ZeroMemory(&resCoefProbBuffer,                              sizeof(resCoefProbBuffer));
-    MOS_ZeroMemory(&resTmpBitstreamBuffer,                          sizeof(resTmpBitstreamBuffer));
-    MOS_ZeroMemory(&resMfdIntraRowStoreScratchBuffer,               sizeof(resMfdIntraRowStoreScratchBuffer));
-    MOS_ZeroMemory(&resMfdDeblockingFilterRowStoreScratchBuffer,    sizeof(resMfdDeblockingFilterRowStoreScratchBuffer));
-    MOS_ZeroMemory(&resBsdMpcRowStoreScratchBuffer,                 sizeof(resBsdMpcRowStoreScratchBuffer));
-    MOS_ZeroMemory(&resMprRowStoreScratchBuffer,                    sizeof(resMprRowStoreScratchBuffer));
-    MOS_ZeroMemory(&resSegmentationIdStreamBuffer,                  sizeof(resSegmentationIdStreamBuffer));
-    MOS_ZeroMemory(&resSyncObject,                                  sizeof(resSyncObject));
-    MOS_ZeroMemory(&resPrivateInputBuffer,                          sizeof(resPrivateInputBuffer));
-    MOS_ZeroMemory(&resSyncObjectWaContextInUse,                    sizeof(resSyncObjectWaContextInUse));
-    MOS_ZeroMemory(&resSyncObjectVideoContextInUse,                 sizeof(resSyncObjectVideoContextInUse));
-    MOS_ZeroMemory(&Vp8FrameHead,                                   sizeof(Vp8FrameHead));
+    MOS_ZeroMemory(&m_destSurface, sizeof(m_destSurface));
+    MOS_ZeroMemory(&m_resDataBuffer, sizeof(m_resDataBuffer));
+    MOS_ZeroMemory(&m_resCoefProbBuffer, sizeof(m_resCoefProbBuffer));
+    MOS_ZeroMemory(&m_resTmpBitstreamBuffer, sizeof(m_resTmpBitstreamBuffer));
+    MOS_ZeroMemory(&m_resMfdIntraRowStoreScratchBuffer, sizeof(m_resMfdIntraRowStoreScratchBuffer));
+    MOS_ZeroMemory(&m_resMfdDeblockingFilterRowStoreScratchBuffer, sizeof(m_resMfdDeblockingFilterRowStoreScratchBuffer));
+    MOS_ZeroMemory(&m_resBsdMpcRowStoreScratchBuffer, sizeof(m_resBsdMpcRowStoreScratchBuffer));
+    MOS_ZeroMemory(&m_resMprRowStoreScratchBuffer, sizeof(m_resMprRowStoreScratchBuffer));
+    MOS_ZeroMemory(&m_resSegmentationIdStreamBuffer, sizeof(m_resSegmentationIdStreamBuffer));
+    MOS_ZeroMemory(&m_resSyncObject, sizeof(m_resSyncObject));
+    MOS_ZeroMemory(&m_resPrivateInputBuffer, sizeof(m_resPrivateInputBuffer));
+    MOS_ZeroMemory(&m_resSyncObjectWaContextInUse, sizeof(m_resSyncObjectWaContextInUse));
+    MOS_ZeroMemory(&m_resSyncObjectVideoContextInUse, sizeof(m_resSyncObjectVideoContextInUse));
+    MOS_ZeroMemory(&m_vp8FrameHead, sizeof(m_vp8FrameHead));
 }
 
 #if USE_CODECHAL_DEBUG_TOOL

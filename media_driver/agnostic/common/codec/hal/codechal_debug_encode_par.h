@@ -95,10 +95,10 @@ public:
         uint8_t meMethod,
         void    *curbe) { return MOS_STATUS_SUCCESS; }
 
-    EncodeCommonPar             *commonPar = nullptr;                         //!< Pointer to common PAR;
+    EncodeCommonPar *m_commonPar = nullptr;  //!< Pointer to common PAR;
 
     // Control flags
-    bool                        isConstDumped = false;                        //!< Is const data dumped;
+    bool m_isConstDumped = false;  //!< Is const data dumped;
 
 protected:
     //!

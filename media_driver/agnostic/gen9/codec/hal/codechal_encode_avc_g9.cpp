@@ -2738,15 +2738,15 @@ MOS_STATUS CodechalEncodeAvcEncG9::GetStatusReport(
 #endif
         )
     {
-        if (pCmEvent[nCmEventCheckIdx] != nullptr)
+        if (m_cmEvent[m_cmEventCheckIdx] != nullptr)
         {
-            pCmEvent[nCmEventCheckIdx]->WaitForTaskFinished();
+            m_cmEvent[m_cmEventCheckIdx]->WaitForTaskFinished();
             if (!m_mfeEnabled)
             {
-                pCmQueue->DestroyEvent(pCmEvent[nCmEventCheckIdx]);
+                m_cmQueue->DestroyEvent(m_cmEvent[m_cmEventCheckIdx]);
             }
-            pCmEvent[nCmEventCheckIdx] = nullptr;
-            nCmEventCheckIdx = (nCmEventCheckIdx + 1 ) % CM_EVENT_NUM;
+            m_cmEvent[m_cmEventCheckIdx] = nullptr;
+            m_cmEventCheckIdx            = (m_cmEventCheckIdx + 1) % CM_EVENT_NUM;
             codecStatus[0].CodecStatus = CODECHAL_STATUS_SUCCESSFUL;
 
             return MOS_STATUS_SUCCESS;                    
@@ -2778,15 +2778,15 @@ MOS_STATUS CodechalEncodeAvcEncG9::PopulateBrcInitParam(
 
     if (m_pictureCodingType == I_TYPE)
     {
-        avcPar->MBBRCEnable          = bMbBrcEnabled;
-        avcPar->MBRC                 = bMbBrcEnabled;
-        avcPar->BitRate              = curbe->DW3.AverageBitRate;
-        avcPar->InitVbvFullnessInBit = curbe->DW1.InitBufFullInBits;
-        avcPar->MaxBitRate           = curbe->DW4.MaxBitRate;
-        avcPar->VbvSzInBit           = curbe->DW2.BufSizeInBits;
-        avcPar->AvbrAccuracy         = curbe->DW10.AVBRAccuracy;
-        avcPar->AvbrConvergence      = curbe->DW11.AVBRConvergence;
-        avcPar->SlidingWindowSize    = curbe->DW22.SlidingWindowSize;
+        m_avcPar->MBBRCEnable          = bMbBrcEnabled;
+        m_avcPar->MBRC                 = bMbBrcEnabled;
+        m_avcPar->BitRate              = curbe->DW3.AverageBitRate;
+        m_avcPar->InitVbvFullnessInBit = curbe->DW1.InitBufFullInBits;
+        m_avcPar->MaxBitRate           = curbe->DW4.MaxBitRate;
+        m_avcPar->VbvSzInBit           = curbe->DW2.BufSizeInBits;
+        m_avcPar->AvbrAccuracy         = curbe->DW10.AVBRAccuracy;
+        m_avcPar->AvbrConvergence      = curbe->DW11.AVBRConvergence;
+        m_avcPar->SlidingWindowSize    = curbe->DW22.SlidingWindowSize;
     }
 
     return MOS_STATUS_SUCCESS;
@@ -2808,15 +2808,15 @@ MOS_STATUS CodechalEncodeAvcEncG9::PopulateBrcUpdateParam(
 
     if (m_pictureCodingType == I_TYPE)
     {
-        avcPar->EnableMultipass     = (curbe->DW5.MaxNumPAKs > 0) ? 1 : 0;
-        avcPar->MaxNumPakPasses     = curbe->DW5.MaxNumPAKs;
-        avcPar->SlidingWindowEnable = curbe->DW6.EnableSlidingWindow;
-        avcPar->FrameSkipEnable     = curbe->DW6.EnableForceToSkip;
-        avcPar->UserMaxFrame        = curbe->DW19.UserMaxFrame;
+        m_avcPar->EnableMultipass     = (curbe->DW5.MaxNumPAKs > 0) ? 1 : 0;
+        m_avcPar->MaxNumPakPasses     = curbe->DW5.MaxNumPAKs;
+        m_avcPar->SlidingWindowEnable = curbe->DW6.EnableSlidingWindow;
+        m_avcPar->FrameSkipEnable     = curbe->DW6.EnableForceToSkip;
+        m_avcPar->UserMaxFrame        = curbe->DW19.UserMaxFrame;
     }
     else
     {
-        avcPar->UserMaxFrameP       = curbe->DW19.UserMaxFrame;
+        m_avcPar->UserMaxFrameP = curbe->DW19.UserMaxFrame;
     }
 
     return MOS_STATUS_SUCCESS;
@@ -2839,55 +2839,55 @@ MOS_STATUS CodechalEncodeAvcEncG9::PopulateEncParam(
 
     if (m_pictureCodingType == I_TYPE)
     {
-        avcPar->MRDisableQPCheck                    = MRDisableQPCheck[m_targetUsage];
-        avcPar->AllFractional = 
+        m_avcPar->MRDisableQPCheck = MRDisableQPCheck[m_targetUsage];
+        m_avcPar->AllFractional =
             CODECHAL_ENCODE_AVC_AllFractional_Common[m_targetUsage & 0x7];
-        avcPar->DisableAllFractionalCheckForHighRes = 
+        m_avcPar->DisableAllFractionalCheckForHighRes =
             CODECHAL_ENCODE_AVC_DisableAllFractionalCheckForHighRes_Common[m_targetUsage & 0x7];
-        avcPar->EnableAdaptiveSearch                = curbe->common.DW37.AdaptiveEn;
-        avcPar->EnableFBRBypass                     = curbe->common.DW4.EnableFBRBypass;
-        avcPar->BlockBasedSkip                      = curbe->common.DW3.BlockBasedSkipEnable;
-        avcPar->MADEnableFlag                       = curbe->common.DW34.MADEnableFlag;
-        avcPar->MBTextureThreshold                  = curbe->common.DW58.MBTextureThreshold;
-        avcPar->EnableMBFlatnessCheckOptimization   = curbe->common.DW34.EnableMBFlatnessChkOptimization;
-        avcPar->EnableArbitrarySliceSize            = curbe->common.DW34.ArbitraryNumMbsPerSlice;
-        avcPar->RefThresh                           = curbe->common.DW38.RefThreshold;
-        avcPar->EnableWavefrontOptimization         = curbe->common.DW4.EnableWavefrontOptimization;
-        avcPar->MaxLenSP                            = curbe->common.DW2.LenSP;
+        m_avcPar->EnableAdaptiveSearch              = curbe->common.DW37.AdaptiveEn;
+        m_avcPar->EnableFBRBypass                   = curbe->common.DW4.EnableFBRBypass;
+        m_avcPar->BlockBasedSkip                    = curbe->common.DW3.BlockBasedSkipEnable;
+        m_avcPar->MADEnableFlag                     = curbe->common.DW34.MADEnableFlag;
+        m_avcPar->MBTextureThreshold                = curbe->common.DW58.MBTextureThreshold;
+        m_avcPar->EnableMBFlatnessCheckOptimization = curbe->common.DW34.EnableMBFlatnessChkOptimization;
+        m_avcPar->EnableArbitrarySliceSize          = curbe->common.DW34.ArbitraryNumMbsPerSlice;
+        m_avcPar->RefThresh                         = curbe->common.DW38.RefThreshold;
+        m_avcPar->EnableWavefrontOptimization       = curbe->common.DW4.EnableWavefrontOptimization;
+        m_avcPar->MaxLenSP                          = curbe->common.DW2.LenSP;
     }
     else if (m_pictureCodingType == P_TYPE)
     {
-        avcPar->MEMethod                            = meMethod;
-        avcPar->HMECombineLen                       = HMECombineLen[m_targetUsage];
-        avcPar->FTQBasedSkip                        = FTQBasedSkip[m_targetUsage];
-        avcPar->MultiplePred                        = MultiPred[m_targetUsage];
-        avcPar->EnableAdaptiveIntraScaling          = bAdaptiveIntraScalingEnable;
-        avcPar->StaticFrameIntraCostScalingRatioP   = 240;
-        avcPar->SubPelMode                          = curbe->common.DW3.SubPelMode;
-        avcPar->HMECombineOverlap                   = curbe->common.DW36.HMECombineOverlap;
-        avcPar->SearchX                             = curbe->common.DW5.RefWidth;
-        avcPar->SearchY                             = curbe->common.DW5.RefHeight;
-        avcPar->SearchControl                       = curbe->common.DW3.SearchCtrl;
-        avcPar->EnableAdaptiveTxDecision            = curbe->common.DW34.EnableAdaptiveTxDecision;
-        avcPar->TxDecisionThr                       = curbe->common.DW58.TxDecisonThreshold;
-        avcPar->EnablePerMBStaticCheck              = curbe->common.DW34.EnablePerMBStaticCheck;
-        avcPar->EnableAdaptiveSearchWindowSize      = curbe->common.DW34.EnableAdaptiveSearchWindowSize;
-        avcPar->EnableIntraCostScalingForStaticFrame = curbe->common.DW4.EnableIntraCostScalingForStaticFrame;
-        avcPar->BiMixDisable                        = curbe->common.DW0.BiMixDis;
-        avcPar->SurvivedSkipCost                    = (curbe->common.DW7.NonSkipZMvAdded << 1) + curbe->common.DW7.NonSkipModeAdded;
-        avcPar->UniMixDisable                       = curbe->common.DW1.UniMixDisable;
+        m_avcPar->MEMethod                             = meMethod;
+        m_avcPar->HMECombineLen                        = HMECombineLen[m_targetUsage];
+        m_avcPar->FTQBasedSkip                         = FTQBasedSkip[m_targetUsage];
+        m_avcPar->MultiplePred                         = MultiPred[m_targetUsage];
+        m_avcPar->EnableAdaptiveIntraScaling           = bAdaptiveIntraScalingEnable;
+        m_avcPar->StaticFrameIntraCostScalingRatioP    = 240;
+        m_avcPar->SubPelMode                           = curbe->common.DW3.SubPelMode;
+        m_avcPar->HMECombineOverlap                    = curbe->common.DW36.HMECombineOverlap;
+        m_avcPar->SearchX                              = curbe->common.DW5.RefWidth;
+        m_avcPar->SearchY                              = curbe->common.DW5.RefHeight;
+        m_avcPar->SearchControl                        = curbe->common.DW3.SearchCtrl;
+        m_avcPar->EnableAdaptiveTxDecision             = curbe->common.DW34.EnableAdaptiveTxDecision;
+        m_avcPar->TxDecisionThr                        = curbe->common.DW58.TxDecisonThreshold;
+        m_avcPar->EnablePerMBStaticCheck               = curbe->common.DW34.EnablePerMBStaticCheck;
+        m_avcPar->EnableAdaptiveSearchWindowSize       = curbe->common.DW34.EnableAdaptiveSearchWindowSize;
+        m_avcPar->EnableIntraCostScalingForStaticFrame = curbe->common.DW4.EnableIntraCostScalingForStaticFrame;
+        m_avcPar->BiMixDisable                         = curbe->common.DW0.BiMixDis;
+        m_avcPar->SurvivedSkipCost                     = (curbe->common.DW7.NonSkipZMvAdded << 1) + curbe->common.DW7.NonSkipModeAdded;
+        m_avcPar->UniMixDisable                        = curbe->common.DW1.UniMixDisable;
     }
     else if (m_pictureCodingType == B_TYPE)
     {
-        avcPar->BMEMethod                           = meMethod;
-        avcPar->HMEBCombineLen                      = HMEBCombineLen[m_targetUsage];
-        avcPar->StaticFrameIntraCostScalingRatioB   = 200;
-        avcPar->BSearchX                            = curbe->common.DW5.RefWidth;
-        avcPar->BSearchY                            = curbe->common.DW5.RefHeight;
-        avcPar->BSearchControl                      = curbe->common.DW3.SearchCtrl;
-        avcPar->BSkipType                           = curbe->common.DW3.SkipType;
-        avcPar->DirectMode                          = curbe->common.DW34.bDirectMode;
-        avcPar->BiWeight                            = curbe->common.DW1.BiWeight;
+        m_avcPar->BMEMethod                         = meMethod;
+        m_avcPar->HMEBCombineLen                    = HMEBCombineLen[m_targetUsage];
+        m_avcPar->StaticFrameIntraCostScalingRatioB = 200;
+        m_avcPar->BSearchX                          = curbe->common.DW5.RefWidth;
+        m_avcPar->BSearchY                          = curbe->common.DW5.RefHeight;
+        m_avcPar->BSearchControl                    = curbe->common.DW3.SearchCtrl;
+        m_avcPar->BSkipType                         = curbe->common.DW3.SkipType;
+        m_avcPar->DirectMode                        = curbe->common.DW34.bDirectMode;
+        m_avcPar->BiWeight                          = curbe->common.DW1.BiWeight;
     }
 
     return MOS_STATUS_SUCCESS;

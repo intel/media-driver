@@ -1207,7 +1207,7 @@ MOS_STATUS CodechalEncodeMpeg2::Initialize(PCODECHAL_SETTINGS codecHalSettings)
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_miInterface);
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_stateHeapInterface);
 
-    m_bFrameNum = 0;
+    m_frameNumB = 0;
 
     // Offset + Size of MB + size of MV
     m_mbCodeStrideInDW = 16;
@@ -2656,11 +2656,11 @@ MOS_STATUS CodechalEncodeMpeg2::InitializePicture(const EncoderParams& params)
 
     if (m_pictureCodingType == B_TYPE)
     {
-        m_bFrameNum += 1;
+        m_frameNumB += 1;
     }
     else
     {
-        m_bFrameNum = 0;
+        m_frameNumB = 0;
     }
 
     if (m_pakEnabled)
@@ -2694,9 +2694,9 @@ MOS_STATUS CodechalEncodeMpeg2::InitializePicture(const EncoderParams& params)
     }
 
     CODECHAL_DEBUG_TOOL(
-        m_debugInterface->CurrPic = m_picParams->m_currOriginalPic;
-        m_debugInterface->dwBufferDumpFrameNum = m_storeData;
-        m_debugInterface->wFrameType = m_pictureCodingType;
+        m_debugInterface->m_currPic            = m_picParams->m_currOriginalPic;
+        m_debugInterface->m_bufferDumpFrameNum = m_storeData;
+        m_debugInterface->m_frameType          = m_pictureCodingType;
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(DumpVuiParams(
             m_vuiParams));
@@ -2708,8 +2708,7 @@ MOS_STATUS CodechalEncodeMpeg2::InitializePicture(const EncoderParams& params)
             m_seqParams));
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(DumpSliceParams(
-            m_sliceParams));
-    )
+            m_sliceParams));)
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetStatusReportParams(
         m_refList[m_currReconstructedPic.FrameIdx]));
@@ -3707,7 +3706,7 @@ MOS_STATUS CodechalEncodeMpeg2::SetCurbeBrcUpdate()
     if (m_seqParams->m_forcePanicModeControl == 1) {
         cmd.m_curbeData.DW14.m_forceToSkip = m_seqParams->m_panicModeDisable ? 0 : 1;
     } else {
-        cmd.m_curbeData.DW14.m_forceToSkip = m_rcPanicEnable ? 1 : 0;
+        cmd.m_curbeData.DW14.m_forceToSkip = m_panicEnable ? 1 : 0;
     }
     auto kernelState = &m_brcKernelStates[CODECHAL_ENCODE_BRC_IDX_FrameBRC_UPDATE];
     CODECHAL_ENCODE_CHK_STATUS_RETURN(kernelState->m_dshRegion.AddData(
@@ -4323,7 +4322,7 @@ MOS_STATUS CodechalEncodeMpeg2::ExecutePictureLevel()
 
             CODECHAL_DEBUG_TOOL(
                 CODECHAL_ENCODE_CHK_NULL_RETURN(m_debugInterface);
-            
+
                 MOS_SURFACE refSurface;
                 MOS_ZeroMemory(&refSurface, sizeof(refSurface));
                 refSurface.Format     = Format_NV12;
@@ -4332,13 +4331,12 @@ MOS_STATUS CodechalEncodeMpeg2::ExecutePictureLevel()
                     m_osInterface,
                     &refSurface));
 
-                m_debugInterface->wRefIndex = (uint16_t)i;
-                std::string refSurfName = "RefSurf[" + std::to_string(static_cast<uint32_t>(m_debugInterface->wRefIndex))+"]";
+                m_debugInterface->m_refIndex = (uint16_t)i;
+                std::string refSurfName      = "RefSurf[" + std::to_string(static_cast<uint32_t>(m_debugInterface->m_refIndex)) + "]";
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
                     &refSurface,
                     CodechalDbgAttr::attrReferenceSurfaces,
-                    refSurfName.c_str()));
-            )
+                    refSurfName.c_str()));)
         }
     }
 
@@ -4586,7 +4584,7 @@ MOS_STATUS CodechalEncodeMpeg2::ExecuteSliceLevel()
     if (m_seqParams->m_forcePanicModeControl == 1) {
         sliceState.bRCPanicEnable               = !m_seqParams->m_panicModeDisable;
     } else {
-        sliceState.bRCPanicEnable               = m_rcPanicEnable;
+        sliceState.bRCPanicEnable = m_panicEnable;
     }
     sliceState.presPicHeaderBBSurf          = &m_brcBuffers.resBrcPicHeaderOutputBuffer;
 

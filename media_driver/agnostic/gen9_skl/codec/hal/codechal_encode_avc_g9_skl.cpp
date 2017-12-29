@@ -1811,8 +1811,7 @@ MOS_STATUS CodechalEncodeAvcEncG9Skl::InitMfe()
         MOS_ZeroMemory(pData, size);
         m_osInterface->pfnUnlockResource(m_osInterface, &BrcBuffers.resMbEncBrcBuffer);
         CODECHAL_DEBUG_TOOL(
-            m_debugInterface->dwStreamId = m_mfeEncodeParams.streamId;
-        )
+            m_debugInterface->m_streamId = m_mfeEncodeParams.streamId;)
 
         // bookkeeping the orignal interfaces, which are changed during mfe mbenc kernel
         m_origHwInterface           = m_hwInterface;
@@ -1978,9 +1977,7 @@ MOS_STATUS CodechalEncodeAvcEncG9Skl::SetCurbeAvcMbEnc(PCODECHAL_ENCODE_AVC_MBEN
     CODECHAL_ENCODE_ASSERT(pSeqParams->TargetUsage < NUM_TARGET_USAGE_MODES);
 
     uint8_t ucMeMethod =
-        (m_pictureCodingType == B_TYPE) ?
-        m_BMeMethodGeneric[pSeqParams->TargetUsage] :
-        m_MeMethodGeneric[pSeqParams->TargetUsage];
+        (m_pictureCodingType == B_TYPE) ? m_bMeMethodGeneric[pSeqParams->TargetUsage] : m_meMethodGeneric[pSeqParams->TargetUsage];
     // set SliceQP to MAX_SLICE_QP for MbEnc Adv kernel, we can use it to verify whether QP is changed or not
     uint8_t SliceQP = (pParams->bUseMbEncAdvKernel && pParams->bBrcEnabled) ? CODECHAL_ENCODE_AVC_MAX_SLICE_QP : pPicParams->pic_init_qp_minus26 + 26 + pSlcParams->slice_qp_delta;
     bool bFramePicture = CodecHal_PictureIsFrame(pPicParams->CurrOriginalPic);
@@ -2264,7 +2261,7 @@ MOS_STATUS CodechalEncodeAvcEncG9Skl::SetCurbeAvcMbEnc(PCODECHAL_ENCODE_AVC_MBEN
         }
     }
     Cmd.common.DW34.RemoveIntraRefreshOverlap = pPicParams->bDisableRollingIntraRefreshOverlap;
-    if (bAdaptiveTransformDecisionEnabled)
+    if (m_adaptiveTransformDecisionEnabled)
     {
         if (m_pictureCodingType != I_TYPE)
         {
@@ -2274,7 +2271,7 @@ MOS_STATUS CodechalEncodeAvcEncG9Skl::SetCurbeAvcMbEnc(PCODECHAL_ENCODE_AVC_MBEN
         Cmd.common.DW58.TxDecisonThreshold = CODECHAL_ENCODE_AVC_ADAPTIVE_TX_DECISION_THRESHOLD_G9;
     }
 
-    if (bAdaptiveTransformDecisionEnabled || m_flatnessCheckEnabled)
+    if (m_adaptiveTransformDecisionEnabled || m_flatnessCheckEnabled)
     {
         Cmd.common.DW58.MBTextureThreshold = CODECHAL_ENCODE_AVC_MB_TEXTURE_THRESHOLD_G9;
     }
@@ -2289,7 +2286,7 @@ MOS_STATUS CodechalEncodeAvcEncG9Skl::SetCurbeAvcMbEnc(PCODECHAL_ENCODE_AVC_MBEN
         ((m_firstField && (bBottomField)) || (!m_firstField && (!bBottomField)));
     Cmd.common.DW34.EnableMBFlatnessChkOptimization = m_flatnessCheckEnabled;
     Cmd.common.DW34.ROIEnableFlag = pParams->bRoiEnabled;
-    Cmd.common.DW34.MADEnableFlag = m_bMadEnabled;
+    Cmd.common.DW34.MADEnableFlag                   = m_madEnabled;
     Cmd.common.DW34.MBBrcEnable = bMbBrcEnabled || bMbQpDataEnabled;
     Cmd.common.DW34.ArbitraryNumMbsPerSlice = m_arbitraryNumMbsInSlice;
     Cmd.common.DW34.ForceNonSkipMbEnable = pParams->bMbDisableSkipMapEnabled;
@@ -3227,11 +3224,11 @@ MOS_STATUS CodechalEncodeAvcEncG9Skl::PopulatePakParam(
 
     if (m_pictureCodingType == I_TYPE)
     {
-        avcPar->TrellisQuantizationEnable         = mfxCmd.DW5.TrellisQuantizationEnabledTqenb;
-        avcPar->EnableAdaptiveTrellisQuantization = mfxCmd.DW5.TrellisQuantizationEnabledTqenb;
-        avcPar->TrellisQuantizationRounding       = mfxCmd.DW5.TrellisQuantizationRoundingTqr;
-        avcPar->TrellisQuantizationChromaDisable  = mfxCmd.DW5.TrellisQuantizationChromaDisableTqchromadisable;
-        avcPar->ExtendedRhoDomainEn               = mfxCmd.DW16_17.ExtendedRhodomainStatisticsEnable;
+        m_avcPar->TrellisQuantizationEnable         = mfxCmd.DW5.TrellisQuantizationEnabledTqenb;
+        m_avcPar->EnableAdaptiveTrellisQuantization = mfxCmd.DW5.TrellisQuantizationEnabledTqenb;
+        m_avcPar->TrellisQuantizationRounding       = mfxCmd.DW5.TrellisQuantizationRoundingTqr;
+        m_avcPar->TrellisQuantizationChromaDisable  = mfxCmd.DW5.TrellisQuantizationChromaDisableTqchromadisable;
+        m_avcPar->ExtendedRhoDomainEn               = mfxCmd.DW16_17.ExtendedRhodomainStatisticsEnable;
     }
 
     if (data && (cmdBuffer == nullptr) && (secondLevelBatchBuffer == nullptr))

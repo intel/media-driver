@@ -33,7 +33,7 @@ CodechalDecodeHistogram::CodechalDecodeHistogram(
     m_hwInterface = hwInterface;
     m_osInterface = osInterface;
     MOS_ZeroMemory(&m_resHistogram, sizeof(m_resHistogram));
-    MOS_ZeroMemory(m_sInputHistogramSurfaces, sizeof(m_sInputHistogramSurfaces));
+    MOS_ZeroMemory(m_inputHistogramSurfaces, sizeof(m_inputHistogramSurfaces));
 }
 
 CodechalDecodeHistogram::~CodechalDecodeHistogram()
@@ -51,7 +51,7 @@ void CodechalDecodeHistogram::setHistogramComponent(uint8_t component)
 
 PMOS_SURFACE CodechalDecodeHistogram::GetHistogramSurface()
 {
-    return &m_sInputHistogramSurfaces[m_histogramComponent];
+    return &m_inputHistogramSurfaces[m_histogramComponent];
 }
 
 MOS_STATUS CodechalDecodeHistogram::RenderHistogram(

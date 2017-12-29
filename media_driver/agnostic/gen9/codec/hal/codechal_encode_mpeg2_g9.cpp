@@ -1878,9 +1878,7 @@ MOS_STATUS CodechalEncodeMpeg2G9::SetCurbeMe()
     }
 
     // r3 & r4
-    uint8_t meMethod = (m_pictureCodingType == B_TYPE) ?
-        m_BMeMethodGeneric[m_seqParams->m_targetUsage] :
-        m_MeMethodGeneric[m_seqParams->m_targetUsage];
+    uint8_t meMethod = (m_pictureCodingType == B_TYPE) ? m_bMeMethodGeneric[m_seqParams->m_targetUsage] : m_meMethodGeneric[m_seqParams->m_targetUsage];
     uint8_t tableIdx = (m_pictureCodingType == B_TYPE) ? 1 : 0;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(
         &(cmd.m_curbeData.SpDelta), 14 * sizeof(uint32_t),
@@ -2233,10 +2231,10 @@ MOS_STATUS CodechalEncodeMpeg2G9::SetCurbeMbEnc(
         switch (m_picParams->m_gopRefDist)
         {
         case 3:
-            cmd.m_curbeData.DW12.m_distScaleFactor = (m_bFrameNum > 1) ? 43 : 21;
+            cmd.m_curbeData.DW12.m_distScaleFactor = (m_frameNumB > 1) ? 43 : 21;
             break;
         case 4:
-            cmd.m_curbeData.DW12.m_distScaleFactor = (m_bFrameNum << 4);
+            cmd.m_curbeData.DW12.m_distScaleFactor = (m_frameNumB << 4);
             break;
         default:
             cmd.m_curbeData.DW12.m_distScaleFactor = 32;

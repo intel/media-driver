@@ -124,24 +124,23 @@ MOS_STATUS CodechalDecodeVc1G8::SetCurbeOlp()
 
     CODECHAL_DECODE_VC1_OLP_STATIC_DATA_G8 cmd = g_cInit_CODECHAL_DECODE_VC1_OLP_STATIC_DATA_G8;
 
-    cmd.DW2.InterlaceFieldFlag      = CodecHal_PictureIsField(pVc1PicParams->CurrPic);
-    cmd.DW2.PictureUpsamplingFlag   = pVc1PicParams->UpsamplingFlag;
-    cmd.DW2.RangeExpansionFlag      = (pVc1PicParams->range_mapping_fields.range_mapping_enabled != 0);
-    cmd.DW2.Profile                 = pVc1PicParams->sequence_fields.AdvancedProfileFlag;
+    cmd.DW2.InterlaceFieldFlag    = CodecHal_PictureIsField(m_vc1PicParams->CurrPic);
+    cmd.DW2.PictureUpsamplingFlag = m_vc1PicParams->UpsamplingFlag;
+    cmd.DW2.RangeExpansionFlag    = (m_vc1PicParams->range_mapping_fields.range_mapping_enabled != 0);
+    cmd.DW2.Profile               = m_vc1PicParams->sequence_fields.AdvancedProfileFlag;
 
-    if (pVc1PicParams->sequence_fields.AdvancedProfileFlag)
+    if (m_vc1PicParams->sequence_fields.AdvancedProfileFlag)
     {
-        cmd.DW2.RangeMapUV          = pVc1PicParams->range_mapping_fields.chroma;
-        cmd.DW2.RangeMapUVFlag      = pVc1PicParams->range_mapping_fields.chroma_flag;
-        cmd.DW2.RangeMapY           = pVc1PicParams->range_mapping_fields.luma;
-        cmd.DW2.RangeMapYFlag       = pVc1PicParams->range_mapping_fields.luma_flag;
+        cmd.DW2.RangeMapUV     = m_vc1PicParams->range_mapping_fields.chroma;
+        cmd.DW2.RangeMapUVFlag = m_vc1PicParams->range_mapping_fields.chroma_flag;
+        cmd.DW2.RangeMapY      = m_vc1PicParams->range_mapping_fields.luma;
+        cmd.DW2.RangeMapYFlag  = m_vc1PicParams->range_mapping_fields.luma_flag;
     }
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(OlpKernelState.m_dshRegion.AddData(
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_olpKernelState.m_dshRegion.AddData(
         &cmd,
-        OlpKernelState.dwCurbeOffset,
+        m_olpKernelState.dwCurbeOffset,
         sizeof(cmd)));
-
 
     return eStatus;
 }
@@ -155,14 +154,14 @@ MOS_STATUS CodechalDecodeVc1G8::AddVc1OlpMediaObjectsBB(
 
     CODECHAL_DECODE_CHK_NULL_RETURN(m_hwInterface->GetRenderInterface());
 
-    uint16_t surfaceWidthInBlock = u16OlpPicWidthInMb;
-    uint16_t surfaceHeightInBlock = u16OlpPicHeightInMb;
+    uint16_t surfaceWidthInBlock  = m_olpPicWidthInMb;
+    uint16_t surfaceHeightInBlock = m_olpPicHeightInMb;
 
     CODECHAL_DECODE_VC1_OLP_INLINE_DATA_G8 inlineData = g_cInit_CODECHAL_DECODE_VC1_OLP_INLINE_DATA_G8;
 
     MHW_MEDIA_OBJECT_PARAMS                mediaObjectParams;
     MOS_ZeroMemory(&mediaObjectParams, sizeof(mediaObjectParams));
-    mediaObjectParams.dwInterfaceDescriptorOffset = OlpKernelState.dwIdOffset;
+    mediaObjectParams.dwInterfaceDescriptorOffset = m_olpKernelState.dwIdOffset;
     mediaObjectParams.dwInlineDataSize = sizeof(CODECHAL_DECODE_VC1_OLP_INLINE_DATA_G8);
     mediaObjectParams.pInlineData = &inlineData;
 
@@ -183,7 +182,7 @@ MOS_STATUS CodechalDecodeVc1G8::AddVc1OlpMediaObjectsBB(
         }
     }
 
-    surfaceHeightInBlock = MOS_ALIGN_CEIL(u16OlpPicHeightInMb, 2) / 2;
+    surfaceHeightInBlock                  = MOS_ALIGN_CEIL(m_olpPicHeightInMb, 2) / 2;
     inlineData.DW1.ComponentFlag = 1;
     inlineData.DW2.DestDataBindingIndex = 4;
     inlineData.DW2.SourceDataBindingIndex = 1;
@@ -211,16 +210,16 @@ MOS_STATUS CodechalDecodeVc1G8::UpdateVc1KernelState()
 
     PMHW_STATE_HEAP_INTERFACE stateHeapInterface = m_hwInterface->GetRenderInterface()->m_stateHeapInterface;
     PCODECHAL_DECODE_VC1_KERNEL_HEADER decodeKernel;
-    PMHW_KERNEL_STATE kernelState = &OlpKernelState;
+    PMHW_KERNEL_STATE                  kernelState = &m_olpKernelState;
 
     decodeKernel = (PCODECHAL_DECODE_VC1_KERNEL_HEADER)kernelState->KernelParams.pBinary;
     kernelState->dwKernelBinaryOffset =
         decodeKernel->OLP.KernelStartPointer << MHW_KERNEL_OFFSET_SHIFT;
     kernelState->KernelParams.iInlineDataLength = sizeof(CODECHAL_DECODE_VC1_OLP_INLINE_DATA_G8);
 
-    u32OlpDshSize =
+    m_olpDshSize =
         stateHeapInterface->pStateHeapInterface->GetSizeofCmdInterfaceDescriptorData() +
-        MOS_ALIGN_CEIL(u32OlpCurbeStaticDataLength, stateHeapInterface->pStateHeapInterface->GetCurbeAlignment());
+        MOS_ALIGN_CEIL(m_olpCurbeStaticDataLength, stateHeapInterface->pStateHeapInterface->GetCurbeAlignment());
 
     return eStatus;
 }
@@ -235,16 +234,16 @@ MOS_STATUS CodechalDecodeVc1G8::AllocateResources()
 
     // Second level batch buffer for OLP
     {
-        MOS_ZeroMemory(&OlpBatchBuffer, sizeof(OlpBatchBuffer));
+        MOS_ZeroMemory(&m_olpBatchBuffer, sizeof(m_olpBatchBuffer));
         uint32_t u32Size = m_hwInterface->GetMediaObjectBufferSize(
-            (u32NumMacroblocks + u32NumMacroblocksUV),
+            (m_numMacroblocks + m_numMacroblocksUv),
             sizeof(CODECHAL_DECODE_VC1_OLP_INLINE_DATA_G8));
         CODECHAL_DECODE_CHK_STATUS_RETURN(Mhw_AllocateBb(
             m_osInterface,
-            &OlpBatchBuffer,
+            &m_olpBatchBuffer,
             nullptr,
             u32Size));
-        OlpBatchBuffer.bSecondLevel = true;
+        m_olpBatchBuffer.bSecondLevel = true;
     }
 
     return eStatus;
@@ -257,32 +256,31 @@ MOS_STATUS CodechalDecodeVc1G8::AddVc1OlpCmd(
 
     CODECHAL_DECODE_FUNCTION_ENTER;
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(vc1OlpParams->pCmdBuffer, &OlpBatchBuffer));
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(vc1OlpParams->pCmdBuffer, &m_olpBatchBuffer));
 
     // check if we need to reset the batch buffer
-    if ((u16PicWidthInMb - u16OlpPicWidthInMb) ||
-        (u16PicHeightInMb - u16OlpPicHeightInMb))
+    if ((m_picWidthInMb - m_olpPicWidthInMb) ||
+        (m_picHeightInMb - m_olpPicHeightInMb))
     {
-        CODECHAL_DECODE_CHK_STATUS_RETURN(Mhw_LockBb(m_osInterface, &OlpBatchBuffer));
-        u16OlpPicWidthInMb = u16PicWidthInMb;
-        u16OlpPicHeightInMb = u16PicHeightInMb;
+        CODECHAL_DECODE_CHK_STATUS_RETURN(Mhw_LockBb(m_osInterface, &m_olpBatchBuffer));
+        m_olpPicWidthInMb  = m_picWidthInMb;
+        m_olpPicHeightInMb = m_picHeightInMb;
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(AddVc1OlpMediaObjectsBB(
-            &OlpBatchBuffer));
+            &m_olpBatchBuffer));
 
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(nullptr, &OlpBatchBuffer));
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(nullptr, &m_olpBatchBuffer));
 
-        CODECHAL_DECODE_CHK_STATUS_RETURN(Mhw_UnlockBb(m_osInterface, &OlpBatchBuffer, true));
+        CODECHAL_DECODE_CHK_STATUS_RETURN(Mhw_UnlockBb(m_osInterface, &m_olpBatchBuffer, true));
     }
 
     CODECHAL_DEBUG_TOOL(
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->Dump2ndLvlBatch(
-            &OlpBatchBuffer,
+            &m_olpBatchBuffer,
             CODECHAL_MEDIA_STATE_OLP,
-            "_DEC"));
-    )
+            "_DEC"));)
 
-        return eStatus;
+    return eStatus;
 }
 
 CodechalDecodeVc1G8::CodechalDecodeVc1G8(
@@ -293,25 +291,25 @@ CodechalDecodeVc1G8::CodechalDecodeVc1G8(
 {
     CODECHAL_DECODE_CHK_NULL_NO_STATUS_RETURN(hwInterface);
 
-    u32OlpCurbeStaticDataLength = CODECHAL_DECODE_VC1_CURBE_SIZE_OLP_G8;
+    m_olpCurbeStaticDataLength = CODECHAL_DECODE_VC1_CURBE_SIZE_OLP_G8;
 
-    MOS_ZeroMemory(&OlpBatchBuffer, sizeof(OlpBatchBuffer));
+    MOS_ZeroMemory(&m_olpBatchBuffer, sizeof(m_olpBatchBuffer));
 
     MOS_STATUS eStatus = CodecHalGetKernelBinaryAndSize(
-        (uint8_t*)IGCODECKRN_G8,
+        (uint8_t *)IGCODECKRN_G8,
         IDR_CODEC_AllVC1_NV12,
-        &OlpKernelBase,
-        &OlpKernelSize);
+        &m_olpKernelBase,
+        &m_olpKernelSize);
 
     CODECHAL_DECODE_ASSERT(eStatus == MOS_STATUS_SUCCESS);
 
     hwInterface->GetStateHeapSettings()->dwNumSyncTags = CODECHAL_DECODE_VC1_NUM_SYNC_TAGS;
     hwInterface->GetStateHeapSettings()->dwIshSize =
-        MOS_ALIGN_CEIL(OlpKernelSize, (1 << MHW_KERNEL_OFFSET_SHIFT));
+        MOS_ALIGN_CEIL(m_olpKernelSize, (1 << MHW_KERNEL_OFFSET_SHIFT));
     hwInterface->GetStateHeapSettings()->dwDshSize = CODECHAL_DECODE_VC1_INITIAL_DSH_SIZE;
 }
 
 CodechalDecodeVc1G8::~CodechalDecodeVc1G8()
 {
-    Mhw_FreeBb(m_osInterface, &OlpBatchBuffer, nullptr);
+    Mhw_FreeBb(m_osInterface, &m_olpBatchBuffer, nullptr);
 };

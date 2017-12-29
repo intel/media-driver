@@ -72,20 +72,18 @@ MOS_STATUS CodechalMmcDecodeMpeg2::SetPipeBufAddr(
     
     CODECHAL_DECODE_FUNCTION_ENTER;
 
-    CODECHAL_DECODE_CHK_NULL_RETURN(m_mpeg2State->picParams);
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_mpeg2State->m_picParams);
 
     if (m_mmcEnabled &&
-        !m_mpeg2State->bDeblockingEnabled &&
-        m_mpeg2State->sDestSurface.bCompressible &&
-        (m_mpeg2State->picParams->m_currPic.PicFlags == PICTURE_FRAME))
+        !m_mpeg2State->m_deblockingEnabled &&
+        m_mpeg2State->m_destSurface.bCompressible &&
+        (m_mpeg2State->m_picParams->m_currPic.PicFlags == PICTURE_FRAME))
     {
         pipeBufAddrParams->PreDeblockSurfMmcState = MOS_MEMCOMP_VERTICAL;
     }
 
     CODECHAL_DEBUG_TOOL(
-        m_mpeg2State->sDestSurface.MmcState = m_mpeg2State->bDeblockingEnabled ? 
-            pipeBufAddrParams->PostDeblockSurfMmcState : pipeBufAddrParams->PreDeblockSurfMmcState;
-    )
+        m_mpeg2State->m_destSurface.MmcState = m_mpeg2State->m_deblockingEnabled ? pipeBufAddrParams->PostDeblockSurfMmcState : pipeBufAddrParams->PreDeblockSurfMmcState;)
 
     return eStatus;
 }
@@ -98,12 +96,12 @@ MOS_STATUS CodechalMmcDecodeMpeg2::SetRefrenceSync(
     
     CODECHAL_DECODE_FUNCTION_ENTER;
 
-    CODECHAL_DECODE_CHK_NULL_RETURN(m_mpeg2State->picParams);
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_mpeg2State->m_picParams);
 
     // Check if reference surface needs to be synchronized in MMC case
-    if (m_mmcEnabled&&
-        (!CodecHal_PictureIsField(m_mpeg2State->picParams->m_currPic) ||
-         !m_mpeg2State->picParams->m_secondField))
+    if (m_mmcEnabled &&
+        (!CodecHal_PictureIsField(m_mpeg2State->m_picParams->m_currPic) ||
+            !m_mpeg2State->m_picParams->m_secondField))
     {
         MOS_SYNC_PARAMS syncParams          = g_cInitSyncParams;
         syncParams.GpuContext               = m_mpeg2State->GetVideoContext();
@@ -112,9 +110,9 @@ MOS_STATUS CodechalMmcDecodeMpeg2::SetRefrenceSync(
 
         for (uint32_t i = 0; i < CODEC_MAX_NUM_REF_FRAME_NON_AVC; i++)
         {
-            if (m_mpeg2State->presReferences[i])
+            if (m_mpeg2State->m_presReferences[i])
             {
-                syncParams.presSyncResource = m_mpeg2State->presReferences[i];
+                syncParams.presSyncResource = m_mpeg2State->m_presReferences[i];
                 syncParams.bReadOnly = true;
 
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnPerformOverlaySync(
@@ -139,16 +137,16 @@ MOS_STATUS CodechalMmcDecodeMpeg2::CheckReferenceList(
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     CODECHAL_DECODE_CHK_NULL_RETURN(pipeBufAddrParams);
-    CODECHAL_DECODE_CHK_NULL_RETURN(m_mpeg2State->picParams);
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_mpeg2State->m_picParams);
 
     // Disable MMC if self-reference is dectected for P/B frames (mainly for error concealment)
     if (((pipeBufAddrParams->PostDeblockSurfMmcState != MOS_MEMCOMP_DISABLED) ||
-         (pipeBufAddrParams->PreDeblockSurfMmcState != MOS_MEMCOMP_DISABLED)) &&
-        (m_mpeg2State->picParams->m_pictureCodingType != I_TYPE))
+            (pipeBufAddrParams->PreDeblockSurfMmcState != MOS_MEMCOMP_DISABLED)) &&
+        (m_mpeg2State->m_picParams->m_pictureCodingType != I_TYPE))
     {
         bool selfReference = false;
-        if ((m_mpeg2State->picParams->m_currPic.FrameIdx == m_mpeg2State->picParams->m_forwardRefIdx) ||
-            (m_mpeg2State->picParams->m_currPic.FrameIdx == m_mpeg2State->picParams->m_backwardRefIdx))
+        if ((m_mpeg2State->m_picParams->m_currPic.FrameIdx == m_mpeg2State->m_picParams->m_forwardRefIdx) ||
+            (m_mpeg2State->m_picParams->m_currPic.FrameIdx == m_mpeg2State->m_picParams->m_backwardRefIdx))
         {
             selfReference = true;
         }
@@ -163,13 +161,13 @@ MOS_STATUS CodechalMmcDecodeMpeg2::CheckReferenceList(
             MOS_MEMCOMP_STATE mmcMode;
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetMemoryCompressionMode(
                 m_osInterface,
-                &m_mpeg2State->sDestSurface.OsResource,
+                &m_mpeg2State->m_destSurface.OsResource,
                 &mmcMode));
             if (mmcMode != MOS_MEMCOMP_DISABLED)
             {
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnDecompResource(
                     m_osInterface,
-                    &m_mpeg2State->sDestSurface.OsResource));
+                    &m_mpeg2State->m_destSurface.OsResource));
             }
         }
     }

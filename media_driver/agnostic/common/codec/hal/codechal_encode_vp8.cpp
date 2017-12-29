@@ -231,27 +231,27 @@ CodechalEncodeVp8::CodechalEncodeVp8(
     CODECHAL_ENCODE_ASSERT(m_hwInterface->GetRenderInterface()->m_stateHeapInterface);
     m_stateHeapInterface = m_hwInterface->GetRenderInterface()->m_stateHeapInterface;
 
-    bVMEKernelDump = 1;
+    m_vmeKernelDump = 1;
 
-    TpuKernelState = MHW_KERNEL_STATE();
-    MpuKernelState = MHW_KERNEL_STATE();
-    MeKernelState = MHW_KERNEL_STATE();
+    m_tpuKernelState = MHW_KERNEL_STATE();
+    m_mpuKernelState = MHW_KERNEL_STATE();
+    m_meKernelState  = MHW_KERNEL_STATE();
 
     for (uint8_t i = 0; i < CODECHAL_ENCODE_VP8_MBENC_IDX_NUM; i++)
     {
-        MbEncKernelStates[i] = MHW_KERNEL_STATE();
+        m_mbEncKernelStates[i] = MHW_KERNEL_STATE();
     }
     for (uint8_t i = 0; i < CODECHAL_ENCODE_VP8_BRC_IDX_NUM; i++)
     {
-        BrcKernelStates[i] = MHW_KERNEL_STATE();
+        m_brcKernelStates[i] = MHW_KERNEL_STATE();
     }
 
-    MOS_ZeroMemory(&PicIdx, sizeof(PicIdx));
-    MOS_ZeroMemory(&pRefList, sizeof(pRefList));
-    MOS_ZeroMemory(&s4xMEMVDataBuffer, sizeof(s4xMEMVDataBuffer));
-    MOS_ZeroMemory(&MbEncBindingTable, sizeof(MbEncBindingTable));
-    MOS_ZeroMemory(&s4xMEDistortionBuffer, sizeof(s4xMEDistortionBuffer));
-    MOS_ZeroMemory(&BrcBuffers, sizeof(BrcBuffers));
+    MOS_ZeroMemory(&m_picIdx, sizeof(m_picIdx));
+    MOS_ZeroMemory(&m_refList, sizeof(m_refList));
+    MOS_ZeroMemory(&m_s4XMemvDataBuffer, sizeof(m_s4XMemvDataBuffer));
+    MOS_ZeroMemory(&m_mbEncBindingTable, sizeof(m_mbEncBindingTable));
+    MOS_ZeroMemory(&m_s4XMeDistortionBuffer, sizeof(m_s4XMeDistortionBuffer));
+    MOS_ZeroMemory(&m_brcBuffers, sizeof(m_brcBuffers));
 
     /* VP8 uses a CM based down scale kernel */
     m_useCmScalingKernel = true;
@@ -335,17 +335,17 @@ MOS_STATUS CodechalEncodeVp8::Initialize(PCODECHAL_SETTINGS codecHalSettings)
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_VP8_ENCODE_REPAK_ENABLE_ID,
             &UserFeatureData);
-        m_bRepakSupported = (UserFeatureData.i32Data) ? true : false;
+        m_repakSupported = (UserFeatureData.i32Data) ? true : false;
 
         // Adaptive RePAK enabled by default
-        bAdaptiveRepakSupported = true;
+        m_adaptiveRepakSupported = true;
 #if (_DEBUG || _RELEASE_INTERNAL)
         MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_VP8_ENCODE_ADAPTIVE_REPAK_ENABLE_ID,
             &UserFeatureData);
-        bAdaptiveRepakSupported = (UserFeatureData.i32Data) ? true : false;
+        m_adaptiveRepakSupported = (UserFeatureData.i32Data) ? true : false;
 #endif // _DEBUG || _RELEASE_INTERNAL
 
         MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
@@ -356,7 +356,7 @@ MOS_STATUS CodechalEncodeVp8::Initialize(PCODECHAL_SETTINGS codecHalSettings)
         m_multipassBrcSupported = (UserFeatureData.i32Data) ? true : false;
     }
 
-    bBrcInit = true;
+    m_brcInit = true;
 
     MotionEstimationDisableCheck();
     
@@ -399,14 +399,14 @@ uint32_t CodechalEncodeVp8::GetMaxBtCount()
         m_meKernelStates[0].KernelParams.iBTCount,
         btIdxAlignment);
     uint32_t mbEncBtCount = MOS_ALIGN_CEIL(
-        MbEncKernelStates[0].KernelParams.iBTCount,
+        m_mbEncKernelStates[0].KernelParams.iBTCount,
         btIdxAlignment);
 
     uint32_t brcBtCount = 0;
     for (uint32_t i = 0; i < CODECHAL_ENCODE_VP8_BRC_IDX_NUM; i++)
     {
         brcBtCount += MOS_ALIGN_CEIL(
-            BrcKernelStates[i].KernelParams.iBTCount,
+            m_brcKernelStates[i].KernelParams.iBTCount,
             btIdxAlignment);
     }
 
@@ -560,54 +560,54 @@ MOS_STATUS CodechalEncodeVp8::AllocateResources()
 
      // Allocate Ref Lists
     CodecHalAllocateDataList(
-        pRefList,
+        m_refList,
         CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8);
 
-    //Reference Frame MB count surface  32 bytes, 
+    //Reference Frame MB count surface  32 bytes,
     CODECHAL_ENCODE_CHK_STATUS_RETURN(
-        AllocateBuffer(&resRefMbCountSurface, 
-                        32, 
-                        "Reference Frame MB count surface"));
+        AllocateBuffer(&m_resRefMbCountSurface,
+            32,
+            "Reference Frame MB count surface"));
 
     // MB Mode Cost Luma Buffer,  10 words
     CODECHAL_ENCODE_CHK_STATUS_RETURN(
-        AllocateBuffer2D(&sMBModeCostLumaBuffer, 
-                        MOS_ALIGN_CEIL((sizeof(uint16_t) * 10), 64), 
-                        1,
-                        "MBMode Cost Luma Buffer"));
+        AllocateBuffer2D(&m_mbModeCostLumaBuffer,
+            MOS_ALIGN_CEIL((sizeof(uint16_t) * 10), 64),
+            1,
+            "MBMode Cost Luma Buffer"));
 
     // Block Mode Cost Luma Buffer, 10*10*10 words
     CODECHAL_ENCODE_CHK_STATUS_RETURN(
-        AllocateBuffer2D(&sBlockModeCostBuffer,
-                        MOS_ALIGN_CEIL((sizeof(uint16_t)) * 10 * 10 * 10, 64), 
-                        1, 
-                        "BlockMode Cost Buffer"));
+        AllocateBuffer2D(&m_blockModeCostBuffer,
+            MOS_ALIGN_CEIL((sizeof(uint16_t)) * 10 * 10 * 10, 64),
+            1,
+            "BlockMode Cost Buffer"));
 
     // Chroma Recon Buffer, 64 bytes per MB
     CODECHAL_ENCODE_CHK_STATUS_RETURN(
-        AllocateBuffer(&sChromaReconBuffer, 
-                        64 * m_picWidthInMb * m_picHeightInMb, 
-                        "Chroma Recon Buffer"));
+        AllocateBuffer(&m_chromaReconBuffer,
+            64 * m_picWidthInMb * m_picHeightInMb,
+            "Chroma Recon Buffer"));
 
     // Per-MB Quant data, 1 Dword per MB
     CODECHAL_ENCODE_CHK_STATUS_RETURN(
-        AllocateBuffer2D(&sPerMBQuantDataBuffer, 
-                        MOS_ALIGN_CEIL((m_picWidthInMb * 4), 64), 
-                        m_picHeightInMb, 
-                        "Per MB Quant Data Buffer"));
+        AllocateBuffer2D(&m_perMbQuantDataBuffer,
+            MOS_ALIGN_CEIL((m_picWidthInMb * 4), 64),
+            m_picHeightInMb,
+            "Per MB Quant Data Buffer"));
 
     ///pred mv data surface
     CODECHAL_ENCODE_CHK_STATUS_RETURN(
-        AllocateBuffer(&resPredMvDataSurface, 
-                        4 * m_picWidthInMb * m_picHeightInMb * sizeof(uint32_t), 
-                        "Per MV data surface"));
+        AllocateBuffer(&m_resPredMvDataSurface,
+            4 * m_picWidthInMb * m_picHeightInMb * sizeof(uint32_t),
+            "Per MV data surface"));
 
     //ModeCostUpdate Surface used by P-kernel and MPU kernel
     CODECHAL_ENCODE_CHK_STATUS_RETURN(
-        AllocateBuffer(&resModeCostUpdateSurface, 
-                        16 * sizeof(uint32_t), 
-                        "Mode Cost Update Surface"));
-    
+        AllocateBuffer(&m_resModeCostUpdateSurface,
+            16 * sizeof(uint32_t),
+            "Mode Cost Update Surface"));
+
     if (m_encEnabled)
     {
         MOS_ZeroMemory(&allocateResBrcParams, sizeof(struct CodechalResourcesBrcParams));
@@ -619,42 +619,42 @@ MOS_STATUS CodechalEncodeVp8::AllocateResources()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateBrcResources(&allocateResBrcParams));
 
         // allocate VME Kernel Dump buffer
-        if (bVMEKernelDump)
+        if (m_vmeKernelDump)
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(
-                AllocateBuffer(&resVmeKernelDumpBuffer, 
-                                VP8_KERNEL_DUMP_SIZE, 
-                                "VME Kernel Dump Buffer"));
+                AllocateBuffer(&m_resVmeKernelDumpBuffer,
+                    VP8_KERNEL_DUMP_SIZE,
+                    "VME Kernel Dump Buffer"));
         }
 
         if (m_hmeSupported)
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(
-                AllocateBuffer2D(&s4xMEMVDataBuffer,  
-                                m_downscaledWidthInMb4x * 32, 
-                                m_downscaledHeightInMb4x * 4 * 4, 
-                                "4xME MV Data Buffer"));
+                AllocateBuffer2D(&m_s4XMemvDataBuffer,
+                    m_downscaledWidthInMb4x * 32,
+                    m_downscaledHeightInMb4x * 4 * 4,
+                    "4xME MV Data Buffer"));
 
             CODECHAL_ENCODE_CHK_STATUS_RETURN(
-                AllocateBuffer2D(&s4xMEDistortionBuffer,  
-                                m_downscaledWidthInMb4x * 8,
-                                m_downscaledHeightInMb4x * 4 * 4, 
-                                "4xME Distortion Buffer"));
+                AllocateBuffer2D(&m_s4XMeDistortionBuffer,
+                    m_downscaledWidthInMb4x * 8,
+                    m_downscaledHeightInMb4x * 4 * 4,
+                    "4xME Distortion Buffer"));
         }
 
         if (m_16xMeSupported)
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(
-                AllocateBuffer2D(&s16xMEMVDataBuffer,  
-                                MOS_ALIGN_CEIL(m_downscaledWidthInMb16x * 32, 64), 
-                                m_downscaledHeightInMb16x * 4 * CODECHAL_VP8_ME_ME_DATA_SIZE_MULTIPLIER, 
-                                "16xME MV Data Buffer"));           
+                AllocateBuffer2D(&m_s16XMemvDataBuffer,
+                    MOS_ALIGN_CEIL(m_downscaledWidthInMb16x * 32, 64),
+                    m_downscaledHeightInMb16x * 4 * CODECHAL_VP8_ME_ME_DATA_SIZE_MULTIPLIER,
+                    "16xME MV Data Buffer"));
         }
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(
-            AllocateBuffer(&resHistogram, 
-                            HISTOGRAM_SIZE, 
-                            "Histogram"));
+            AllocateBuffer(&m_resHistogram,
+                HISTOGRAM_SIZE,
+                "Histogram"));
     }
 
     if (m_pakEnabled)
@@ -662,100 +662,99 @@ MOS_STATUS CodechalEncodeVp8::AllocateResources()
         // Intra Row Store Scratch buffer
         // 1 cacheline per MB
         CODECHAL_ENCODE_CHK_STATUS_RETURN(
-            AllocateBuffer(&resIntraRowStoreScratchBuffer, 
-                            m_picWidthInMb * CODECHAL_CACHELINE_SIZE, 
-                            "Intra Row Store Scratch Buffer"));     
+            AllocateBuffer(&m_resIntraRowStoreScratchBuffer,
+                m_picWidthInMb * CODECHAL_CACHELINE_SIZE,
+                "Intra Row Store Scratch Buffer"));
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(
-            AllocateBuffer(&resFrameHeader, 
-                            CODECHAL_VP8_FRAME_HEADER_SIZE, 
-                            "Frame Header buffer"));        
+            AllocateBuffer(&m_resFrameHeader,
+                CODECHAL_VP8_FRAME_HEADER_SIZE,
+                "Frame Header buffer"));
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(
-            AllocateBuffer(&MpuTpuBuffers.resModeProbs, 
-                            MODE_PROPABILITIES_SIZE, 
-                            "Mode Probs buffer"));      
+            AllocateBuffer(&m_mpuTpuBuffers.resModeProbs,
+                MODE_PROPABILITIES_SIZE,
+                "Mode Probs buffer"));
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(
-            AllocateBuffer(&MpuTpuBuffers.resRefModeProbs, 
-                            MODE_PROPABILITIES_SIZE, 
-                            "Ref Mode Probs buffer"));      
+            AllocateBuffer(&m_mpuTpuBuffers.resRefModeProbs,
+                MODE_PROPABILITIES_SIZE,
+                "Ref Mode Probs buffer"));
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(
-            AllocateBuffer(&MpuTpuBuffers.resCoeffProbs, 
-                            COEFFS_PROPABILITIES_SIZE, 
-                            "Coeff Probs buffer"));     
+            AllocateBuffer(&m_mpuTpuBuffers.resCoeffProbs,
+                COEFFS_PROPABILITIES_SIZE,
+                "Coeff Probs buffer"));
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(
-            AllocateBuffer(&MpuTpuBuffers.resRefCoeffProbs, 
-                            COEFFS_PROPABILITIES_SIZE, 
-                            "Ref Coeff Probs buffer"));     
+            AllocateBuffer(&m_mpuTpuBuffers.resRefCoeffProbs,
+                COEFFS_PROPABILITIES_SIZE,
+                "Ref Coeff Probs buffer"));
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(
-            AllocateBuffer(&MpuTpuBuffers.resTokenBitsData, 
-                            TOKEN_BITS_DATA_SIZE, 
-                            "Token bits data"));        
+            AllocateBuffer(&m_mpuTpuBuffers.resTokenBitsData,
+                TOKEN_BITS_DATA_SIZE,
+                "Token bits data"));
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(
-            AllocateBuffer(&MpuTpuBuffers.resPictureState, 
-                            PICTURE_STATE_SIZE, 
-                            "Picture state buffer"));       
+            AllocateBuffer(&m_mpuTpuBuffers.resPictureState,
+                PICTURE_STATE_SIZE,
+                "Picture state buffer"));
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(
-            AllocateBuffer(&MpuTpuBuffers.resMpuBitstream, 
-                            MPU_BITSTREAM_SIZE, 
-                            "Mpu bitstream buffer"));       
+            AllocateBuffer(&m_mpuTpuBuffers.resMpuBitstream,
+                MPU_BITSTREAM_SIZE,
+                "Mpu bitstream buffer"));
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(
-            AllocateBuffer(&MpuTpuBuffers.resTpuBitstream, 
-                            TPU_BITSTREAM_SIZE, 
-                            "Tpu bitstream buffer"));       
+            AllocateBuffer(&m_mpuTpuBuffers.resTpuBitstream,
+                TPU_BITSTREAM_SIZE,
+                "Tpu bitstream buffer"));
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(
-            AllocateBuffer(&MpuTpuBuffers.resEntropyCostTable, 
-                            ENTROPY_COST_TABLE_SIZE, 
-                            "Entropy cost table"));     
+            AllocateBuffer(&m_mpuTpuBuffers.resEntropyCostTable,
+                ENTROPY_COST_TABLE_SIZE,
+                "Entropy cost table"));
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(
-            AllocateBuffer(&MpuTpuBuffers.resPakTokenStatistics, 
-                            TOKEN_STATISTICS_SIZE, 
-                            "Pak Token statistics"));   
+            AllocateBuffer(&m_mpuTpuBuffers.resPakTokenStatistics,
+                TOKEN_STATISTICS_SIZE,
+                "Pak Token statistics"));
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(
-            AllocateBuffer(&MpuTpuBuffers.resPakTokenUpdateFlags, 
-                            COEFFS_PROPABILITIES_SIZE, 
-                            "Pak Token update flags"));  
+            AllocateBuffer(&m_mpuTpuBuffers.resPakTokenUpdateFlags,
+                COEFFS_PROPABILITIES_SIZE,
+                "Pak Token update flags"));
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(
-            AllocateBuffer(&MpuTpuBuffers.resDefaultTokenProbability, 
-                            COEFFS_PROPABILITIES_SIZE, 
-                            "Default Token Probability"));    
-
-
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(
-            AllocateBuffer(&MpuTpuBuffers.resKeyFrameTokenProbability, 
-                            COEFFS_PROPABILITIES_SIZE, 
-                            "Key frame token probability"));      
+            AllocateBuffer(&m_mpuTpuBuffers.resDefaultTokenProbability,
+                COEFFS_PROPABILITIES_SIZE,
+                "Default Token Probability"));
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(
-        AllocateBuffer(&MpuTpuBuffers.resUpdatedTokenProbability, 
-                        COEFFS_PROPABILITIES_SIZE, 
-                        "Updated token probability"));    
+            AllocateBuffer(&m_mpuTpuBuffers.resKeyFrameTokenProbability,
+                COEFFS_PROPABILITIES_SIZE,
+                "Key frame token probability"));
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(
-        AllocateBuffer(&MpuTpuBuffers.resHwTokenProbabilityPass2, 
-                        COEFFS_PROPABILITIES_SIZE, 
-                        "Hw token probability pak Pass 2"));      
+            AllocateBuffer(&m_mpuTpuBuffers.resUpdatedTokenProbability,
+                COEFFS_PROPABILITIES_SIZE,
+                "Updated token probability"));
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(
-        AllocateBuffer(&resPakIntermediateBuffer, 
-                         (m_frameWidth  * m_frameHeight  * 2) + ((m_frameWidth * m_frameHeight) / 4) + INTERMEDIATE_PARTITION0_SIZE , 
-                        "Intermediate buffer"));     
+            AllocateBuffer(&m_mpuTpuBuffers.resHwTokenProbabilityPass2,
+                COEFFS_PROPABILITIES_SIZE,
+                "Hw token probability pak Pass 2"));
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(
-        AllocateBuffer(&MpuTpuBuffers.resRepakDecisionSurface, 
-                        REPAK_DECISION_BUF_SIZE, 
-                        "Tpu Repak Decision buffer"));    
+            AllocateBuffer(&m_resPakIntermediateBuffer,
+                (m_frameWidth * m_frameHeight * 2) + ((m_frameWidth * m_frameHeight) / 4) + INTERMEDIATE_PARTITION0_SIZE,
+                "Intermediate buffer"));
+
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(
+            AllocateBuffer(&m_mpuTpuBuffers.resRepakDecisionSurface,
+                REPAK_DECISION_BUF_SIZE,
+                "Tpu Repak Decision buffer"));
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(InitMpuTpuBuffer());
     }
@@ -789,77 +788,77 @@ MOS_STATUS CodechalEncodeVp8::AllocateBrcResources(struct CodechalResourcesBrcPa
 
     // BRC history buffer
     CODECHAL_ENCODE_CHK_STATUS_RETURN(
-    AllocateBuffer(&BrcBuffers.resBrcHistoryBuffer, 
-                    ENCODE_VP8_BRC_HISTORY_BUFFER_SIZE, 
-                    "BRC History Buffer"));   
+        AllocateBuffer(&m_brcBuffers.resBrcHistoryBuffer,
+            ENCODE_VP8_BRC_HISTORY_BUFFER_SIZE,
+            "BRC History Buffer"));
 
     // internal segment map is provided from BRC update kernel
     CODECHAL_ENCODE_CHK_STATUS_RETURN(
-    AllocateBuffer2D(&sInSegmentMapSurface, 
-                    MOS_ALIGN_CEIL(m_picWidthInMb, 4), 
-                    m_picHeightInMb, 
-                    "BRC Segment Map Surface"));      
+        AllocateBuffer2D(&m_inSegmentMapSurface,
+            MOS_ALIGN_CEIL(m_picWidthInMb, 4),
+            m_picHeightInMb,
+            "BRC Segment Map Surface"));
 
-    if (bBrcDistortionBufferSupported)
+    if (m_brcDistortionBufferSupported)
     {
         // BRC Distortion Surface
         CODECHAL_ENCODE_CHK_STATUS_RETURN(
-            AllocateBuffer2D(&BrcBuffers.sMeBrcDistortionBuffer, 
-                        MOS_ALIGN_CEIL((params->dwDownscaledWidthInMB4x * 8), 64), 
-                        2 * MOS_ALIGN_CEIL((params->dwDownscaledHeightInMB4x * 4), 8), 
-                        "BRC Distortion Surface Buffer"));    
+            AllocateBuffer2D(&m_brcBuffers.sMeBrcDistortionBuffer,
+                MOS_ALIGN_CEIL((params->dwDownscaledWidthInMB4x * 8), 64),
+                2 * MOS_ALIGN_CEIL((params->dwDownscaledHeightInMB4x * 4), 8),
+                "BRC Distortion Surface Buffer"));
     }
 
     // PAK Statistics buffer
     CODECHAL_ENCODE_CHK_STATUS_RETURN(
-    AllocateBuffer(&BrcBuffers.resBrcPakStatisticBuffer[0], 
-                    m_brcPakStatisticsSize,
-                    "BRC PAK Statistics Buffer"));    
+        AllocateBuffer(&m_brcBuffers.resBrcPakStatisticBuffer[0],
+            m_brcPakStatisticsSize,
+            "BRC PAK Statistics Buffer"));
 
     // Encoder CFG State Cmd
     // Use BRC_MAXIMUM_NUM_PASSES here since actual number of passes is 
     // determined later using PicParams.BRCPrecision
     CODECHAL_ENCODE_CHK_STATUS_RETURN(
-    AllocateBuffer(&BrcBuffers.resEncoderCfgCommandReadBuffer, 
-                    BRC_IMG_STATE_SIZE_PER_PASS * CODECHAL_ENCODE_BRC_MAXIMUM_NUM_PASSES,
-                    "Encoder CFG State Read Buffer"));    
+        AllocateBuffer(&m_brcBuffers.resEncoderCfgCommandReadBuffer,
+            BRC_IMG_STATE_SIZE_PER_PASS * CODECHAL_ENCODE_BRC_MAXIMUM_NUM_PASSES,
+            "Encoder CFG State Read Buffer"));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(
-    AllocateBuffer(&BrcBuffers.resEncoderCfgCommandWriteBuffer, 
-                    BRC_IMG_STATE_SIZE_PER_PASS * CODECHAL_ENCODE_BRC_MAXIMUM_NUM_PASSES,
-                    "Encoder CFG State Write Buffer"));   
+        AllocateBuffer(&m_brcBuffers.resEncoderCfgCommandWriteBuffer,
+            BRC_IMG_STATE_SIZE_PER_PASS * CODECHAL_ENCODE_BRC_MAXIMUM_NUM_PASSES,
+            "Encoder CFG State Write Buffer"));
 
     // Check if the constant data surface is present
-    if (bBrcConstantBufferSupported)
+    if (m_brcConstantBufferSupported)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(
-            AllocateBuffer(&BrcBuffers.resBrcConstantDataBuffer, 
-                        BRC_CONSTANTSURFACE_VP8,
-                        "BRC Constant Data Buffer"));     
-    
+            AllocateBuffer(&m_brcBuffers.resBrcConstantDataBuffer,
+                BRC_CONSTANTSURFACE_VP8,
+                "BRC Constant Data Buffer"));
+
         for (i = 0; i < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; i++)
         {
             //BRC Constant Data Surfaces
             CODECHAL_ENCODE_CHK_STATUS_RETURN(
-                AllocateBuffer2D(&BrcBuffers.sBrcConstantDataBuffer[i], 
-                            MOS_ALIGN_CEIL(dwBrcConstantSurfaceWidth, 64), 
-                            dwBrcConstantSurfaceHeight, 
-                            "BRC Constant Data Buffer"));     
+                AllocateBuffer2D(&m_brcBuffers.sBrcConstantDataBuffer[i],
+                    MOS_ALIGN_CEIL(m_brcConstantSurfaceWidth, 64),
+                    m_brcConstantSurfaceHeight,
+                    "BRC Constant Data Buffer"));
         }
     }
 
     // PAK Statistics Dump buffer that stores stats per pak pass. useful for debugging
     // 12: 10 data buffers + 2 extra buffers for empty spaces (easier to read dumps)
     CODECHAL_ENCODE_CHK_STATUS_RETURN(
-    AllocateBuffer(&BrcBuffers.resBrcPakStatsBeforeDumpBuffer, 
-                    m_hwInterface->GetMfxInterface()->GetBrcNumPakPasses() * sizeof(uint32_t) * 12,
-                    "BRC PAK Statistics Dump Buffer"));   
+        AllocateBuffer(&m_brcBuffers.resBrcPakStatsBeforeDumpBuffer,
+            m_hwInterface->GetMfxInterface()->GetBrcNumPakPasses() * sizeof(uint32_t) * 12,
+            "BRC PAK Statistics Dump Buffer"));
 
     // PAK Statistics Dump buffer that stores stats per pak pass. useful for debugging
     CODECHAL_ENCODE_CHK_STATUS_RETURN(
-    AllocateBuffer(&BrcBuffers.resBrcPakStatsAfterDumpBuffer, 
-                    m_hwInterface->GetMfxInterface()->GetBrcNumPakPasses() * sizeof(uint32_t) * 12,
-                    "BRC PAK Statistics Init Dump Buffer"));      
+        AllocateBuffer(&m_brcBuffers.resBrcPakStatsAfterDumpBuffer,
+            m_hwInterface->GetMfxInterface()->GetBrcNumPakPasses() * sizeof(uint32_t) * 12,
+            "BRC PAK Statistics Init Dump Buffer"));
 
     return status;
 }
@@ -871,45 +870,45 @@ void CodechalEncodeVp8::FreeResources()
     CodechalEncoderState::FreeResources();
 
     // Release Ref Lists
-    CodecHalFreeDataList(pRefList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8);
+    CodecHalFreeDataList(m_refList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8);
 
     m_osInterface->pfnFreeResource(
         m_osInterface,
-        &resRefMbCountSurface);
+        &m_resRefMbCountSurface);
 
     m_osInterface->pfnFreeResource(
         m_osInterface,
-        &sMBModeCostLumaBuffer.OsResource);
+        &m_mbModeCostLumaBuffer.OsResource);
 
     m_osInterface->pfnFreeResource(
         m_osInterface,
-        &sBlockModeCostBuffer.OsResource);
+        &m_blockModeCostBuffer.OsResource);
 
     m_osInterface->pfnFreeResource(
         m_osInterface,
-        &sChromaReconBuffer);
+        &m_chromaReconBuffer);
 
     m_osInterface->pfnFreeResource(
         m_osInterface,
-        &sPerMBQuantDataBuffer.OsResource);
+        &m_perMbQuantDataBuffer.OsResource);
 
     m_osInterface->pfnFreeResource(
         m_osInterface,
-        &resModeCostUpdateSurface);
+        &m_resModeCostUpdateSurface);
 
     m_osInterface->pfnFreeResource(
         m_osInterface,
-        &resPredMvDataSurface);
+        &m_resPredMvDataSurface);
 
     FreeBrcResources();
 
     if (m_encEnabled)
     {
-        if (bVMEKernelDump)
+        if (m_vmeKernelDump)
         {
             m_osInterface->pfnFreeResource(
                 m_osInterface,
-                &resVmeKernelDumpBuffer);
+                &m_resVmeKernelDumpBuffer);
         }
 
         if (m_hmeSupported)
@@ -917,12 +916,12 @@ void CodechalEncodeVp8::FreeResources()
             // 4xME ME MV data buffer
             m_osInterface->pfnFreeResource(
                 m_osInterface,
-                &s4xMEMVDataBuffer.OsResource);
+                &m_s4XMemvDataBuffer.OsResource);
 
             // 4xME distortion buffer
             m_osInterface->pfnFreeResource(
                 m_osInterface,
-                &s4xMEDistortionBuffer.OsResource);
+                &m_s4XMeDistortionBuffer.OsResource);
         }
 
         // 16xME MV data buffer
@@ -930,99 +929,98 @@ void CodechalEncodeVp8::FreeResources()
         {
             m_osInterface->pfnFreeResource(
                 m_osInterface,
-                &s16xMEMVDataBuffer.OsResource);
+                &m_s16XMemvDataBuffer.OsResource);
         }
 
         m_osInterface->pfnFreeResource(
             m_osInterface,
-            &resHistogram);
+            &m_resHistogram);
     }
 
     if (m_encEnabled)
     {
         m_osInterface->pfnFreeResource(
             m_osInterface,
-            &sInSegmentMapSurface.OsResource);
+            &m_inSegmentMapSurface.OsResource);
     }
 
     if (m_pakEnabled)
     {
         m_osInterface->pfnFreeResource(
             m_osInterface,
-            &resFrameHeader);
+            &m_resFrameHeader);
 
         m_osInterface->pfnFreeResource(
             m_osInterface,
-            &MpuTpuBuffers.resModeProbs);
+            &m_mpuTpuBuffers.resModeProbs);
 
         m_osInterface->pfnFreeResource(
             m_osInterface,
-            &MpuTpuBuffers.resRefModeProbs);
+            &m_mpuTpuBuffers.resRefModeProbs);
 
         m_osInterface->pfnFreeResource(
             m_osInterface,
-            &MpuTpuBuffers.resCoeffProbs);
+            &m_mpuTpuBuffers.resCoeffProbs);
 
         m_osInterface->pfnFreeResource(
             m_osInterface,
-            &MpuTpuBuffers.resRefCoeffProbs);
+            &m_mpuTpuBuffers.resRefCoeffProbs);
 
         m_osInterface->pfnFreeResource(
             m_osInterface,
-            &MpuTpuBuffers.resTokenBitsData);
+            &m_mpuTpuBuffers.resTokenBitsData);
 
         m_osInterface->pfnFreeResource(
             m_osInterface,
-            &MpuTpuBuffers.resPictureState);
+            &m_mpuTpuBuffers.resPictureState);
 
         m_osInterface->pfnFreeResource(
             m_osInterface,
-            &MpuTpuBuffers.resMpuBitstream);
+            &m_mpuTpuBuffers.resMpuBitstream);
 
         m_osInterface->pfnFreeResource(
             m_osInterface,
-            &MpuTpuBuffers.resTpuBitstream);
+            &m_mpuTpuBuffers.resTpuBitstream);
 
         m_osInterface->pfnFreeResource(
             m_osInterface,
-            &MpuTpuBuffers.resEntropyCostTable);
+            &m_mpuTpuBuffers.resEntropyCostTable);
 
         m_osInterface->pfnFreeResource(
             m_osInterface,
-            &MpuTpuBuffers.resPakTokenStatistics);
+            &m_mpuTpuBuffers.resPakTokenStatistics);
 
         m_osInterface->pfnFreeResource(
             m_osInterface,
-            &MpuTpuBuffers.resPakTokenUpdateFlags);
+            &m_mpuTpuBuffers.resPakTokenUpdateFlags);
 
         m_osInterface->pfnFreeResource(
             m_osInterface,
-            &MpuTpuBuffers.resDefaultTokenProbability);
+            &m_mpuTpuBuffers.resDefaultTokenProbability);
 
         m_osInterface->pfnFreeResource(
             m_osInterface,
-            &MpuTpuBuffers.resKeyFrameTokenProbability);
+            &m_mpuTpuBuffers.resKeyFrameTokenProbability);
 
         m_osInterface->pfnFreeResource(
             m_osInterface,
-            &MpuTpuBuffers.resUpdatedTokenProbability);
+            &m_mpuTpuBuffers.resUpdatedTokenProbability);
 
         m_osInterface->pfnFreeResource(
             m_osInterface,
-            &MpuTpuBuffers.resHwTokenProbabilityPass2);
+            &m_mpuTpuBuffers.resHwTokenProbabilityPass2);
 
         m_osInterface->pfnFreeResource(
             m_osInterface,
-            &resPakIntermediateBuffer);
+            &m_resPakIntermediateBuffer);
 
         m_osInterface->pfnFreeResource(
             m_osInterface,
-            &resIntraRowStoreScratchBuffer);
+            &m_resIntraRowStoreScratchBuffer);
 
         m_osInterface->pfnFreeResource(
             m_osInterface,
-            &MpuTpuBuffers.resRepakDecisionSurface);
-
+            &m_mpuTpuBuffers.resRepakDecisionSurface);
     }
 
     return;
@@ -1036,44 +1034,44 @@ void CodechalEncodeVp8::FreeBrcResources()
     {
         m_osInterface->pfnFreeResource(
             m_osInterface,
-            &BrcBuffers.sBrcConstantDataBuffer[i].OsResource);
+            &m_brcBuffers.sBrcConstantDataBuffer[i].OsResource);
     }
 
     m_osInterface->pfnFreeResource(
         m_osInterface,
-        &BrcBuffers.resBrcPakStatisticBuffer[0]);
+        &m_brcBuffers.resBrcPakStatisticBuffer[0]);
 
     m_osInterface->pfnFreeResource(
         m_osInterface,
-        &BrcBuffers.sMeBrcDistortionBuffer.OsResource);
+        &m_brcBuffers.sMeBrcDistortionBuffer.OsResource);
 
     m_osInterface->pfnFreeResource(
         m_osInterface,
-        &BrcBuffers.resBrcHistoryBuffer);
+        &m_brcBuffers.resBrcHistoryBuffer);
 
     m_osInterface->pfnFreeResource(
         m_osInterface,
-        &BrcBuffers.resBrcConstantDataBuffer);
+        &m_brcBuffers.resBrcConstantDataBuffer);
 
     m_osInterface->pfnFreeResource(
         m_osInterface,
-        &BrcBuffers.resBrcPakStatsBeforeDumpBuffer);
+        &m_brcBuffers.resBrcPakStatsBeforeDumpBuffer);
 
     m_osInterface->pfnFreeResource(
         m_osInterface,
-        &BrcBuffers.resBrcPakStatsAfterDumpBuffer);
+        &m_brcBuffers.resBrcPakStatsAfterDumpBuffer);
 
     m_osInterface->pfnFreeResource(
         m_osInterface,
-        &BrcBuffers.resEncoderCfgCommandReadBuffer);
+        &m_brcBuffers.resEncoderCfgCommandReadBuffer);
 
     m_osInterface->pfnFreeResource(
         m_osInterface,
-        &BrcBuffers.resEncoderCfgCommandWriteBuffer);
+        &m_brcBuffers.resEncoderCfgCommandWriteBuffer);
 
     m_osInterface->pfnFreeResource(
         m_osInterface,
-        &BrcBuffers.resPakQPInputTable);
+        &m_brcBuffers.resPakQPInputTable);
 
     return;
 }
@@ -1096,24 +1094,24 @@ MOS_STATUS CodechalEncodeVp8::InitializePicture(const EncoderParams& params)
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     m_bitstreamUpperBound = params.dwBitstreamSize;
-    sMbSegmentMapSurface = *(params.psMbSegmentMapSurface);
+    m_mbSegmentMapSurface = *(params.psMbSegmentMapSurface);
 
-    pVp8SeqParams = (PCODEC_VP8_ENCODE_SEQUENCE_PARAMS)(params.pSeqParams);
-    pVp8PicParams = (PCODEC_VP8_ENCODE_PIC_PARAMS)(params.pPicParams);
-    pVp8QuantData = (PCODEC_VP8_ENCODE_QUANT_DATA)(params.pQuantData);
+    m_vp8SeqParams = (PCODEC_VP8_ENCODE_SEQUENCE_PARAMS)(params.pSeqParams);
+    m_vp8PicParams = (PCODEC_VP8_ENCODE_PIC_PARAMS)(params.pPicParams);
+    m_vp8QuantData = (PCODEC_VP8_ENCODE_QUANT_DATA)(params.pQuantData);
 
-    CODECHAL_ENCODE_CHK_NULL_RETURN(pVp8SeqParams);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(pVp8PicParams);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(pVp8QuantData);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_vp8SeqParams);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_vp8PicParams);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_vp8QuantData);
 
     // reset for next frame
-    if (b16xMeEnabled)
+    if (m_b16XMeEnabled)
     {
-        b16xMeDone = false;
+        m_b16XMeDone = false;
     }
-    if (bHmeEnabled)
+    if (m_hmeEnabled)
     {
-        bHmeDone = false;
+        m_hmeDone = false;
     }
 
     if (m_newSeq)
@@ -1124,25 +1122,23 @@ MOS_STATUS CodechalEncodeVp8::InitializePicture(const EncoderParams& params)
 
     // Scaling occurs when HME is enabled
     m_scalingEnabled = m_hmeSupported;
-    m_useRawForRef = pVp8SeqParams->UseRawReconRef;
+    m_useRawForRef   = m_vp8SeqParams->UseRawReconRef;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(
-        SetStatusReportParams(pRefList[m_currReconstructedPic.FrameIdx]));
+        SetStatusReportParams(m_refList[m_currReconstructedPic.FrameIdx]));
 
     CODECHAL_DEBUG_TOOL(
-        m_debugInterface->CurrPic = pVp8PicParams->CurrOriginalPic;
-        m_debugInterface->dwBufferDumpFrameNum = m_storeData;
-        m_debugInterface->wFrameType = m_pictureCodingType;
+        m_debugInterface->m_currPic            = m_vp8PicParams->CurrOriginalPic;
+        m_debugInterface->m_bufferDumpFrameNum = m_storeData;
+        m_debugInterface->m_frameType          = m_pictureCodingType;
 
-        if (m_newSeq)
-        {
+        if (m_newSeq) {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(
-                DumpVp8EncodeSeqParams(pVp8SeqParams));
+                DumpVp8EncodeSeqParams(m_vp8SeqParams));
         }
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(
-            DumpVp8EncodePicParams(pVp8PicParams));
-    )
+            DumpVp8EncodePicParams(m_vp8PicParams));)
 
     return status;
 }
@@ -1154,8 +1150,8 @@ MOS_STATUS CodechalEncodeVp8::SetSequenceStructs()
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     // setup internal parameters
-    m_oriFrameWidth = pVp8SeqParams->FrameWidth;
-    m_oriFrameHeight = pVp8SeqParams->FrameHeight;
+    m_oriFrameWidth  = m_vp8SeqParams->FrameWidth;
+    m_oriFrameHeight = m_vp8SeqParams->FrameHeight;
     m_picWidthInMb = (uint16_t)CODECHAL_GET_WIDTH_IN_MACROBLOCKS(m_oriFrameWidth);
     m_picHeightInMb = (uint16_t)CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(m_oriFrameHeight);
     m_frameWidth = m_picWidthInMb * CODECHAL_MACROBLOCK_WIDTH;
@@ -1183,7 +1179,7 @@ MOS_STATUS CodechalEncodeVp8::SetSequenceStructs()
 
     MotionEstimationDisableCheck();
 
-    m_kernelMode = CodecHal_TargetUsageToMode_VP8[pVp8SeqParams->TargetUsage & 0x7];
+    m_kernelMode = CodecHal_TargetUsageToMode_VP8[m_vp8SeqParams->TargetUsage & 0x7];
 
     // Disable 16xMe in performance mode
     if (m_16xMeSupported && (m_kernelMode == encodePerformanceMode))
@@ -1194,23 +1190,23 @@ MOS_STATUS CodechalEncodeVp8::SetSequenceStructs()
     // All Rate control parameters currently not required for BDW and hence
     // not being read from Sequence params
     m_numPasses = 0;
-    usMinPakPasses = 1;
+    m_usMinPakPasses = 1;
 
-    bRefCtrlOptimizationDone = false;
+    m_refCtrlOptimizationDone = false;
 
     if (m_firstFrame)
     {
-        m_oriFrameHeight = pVp8SeqParams->FrameHeight;
-        m_oriFrameWidth = pVp8SeqParams->FrameWidth;
+        m_oriFrameHeight = m_vp8SeqParams->FrameHeight;
+        m_oriFrameWidth  = m_vp8SeqParams->FrameWidth;
     }
 
     // check if there is a dynamic resolution change
-    if ((m_oriFrameHeight && (m_oriFrameHeight != pVp8SeqParams->FrameHeight)) ||
-        (m_oriFrameWidth && (m_oriFrameWidth != pVp8SeqParams->FrameWidth)))
+    if ((m_oriFrameHeight && (m_oriFrameHeight != m_vp8SeqParams->FrameHeight)) ||
+        (m_oriFrameWidth && (m_oriFrameWidth != m_vp8SeqParams->FrameWidth)))
     {
         m_resolutionChanged = true;
-        m_oriFrameHeight = pVp8SeqParams->FrameHeight;
-        m_oriFrameWidth = pVp8SeqParams->FrameWidth;
+        m_oriFrameHeight    = m_vp8SeqParams->FrameHeight;
+        m_oriFrameWidth     = m_vp8SeqParams->FrameWidth;
     }
     else
     {
@@ -1218,7 +1214,7 @@ MOS_STATUS CodechalEncodeVp8::SetSequenceStructs()
     }
 
     // if GOP structure is I-frame only, we use 3 non-ref slots for tracked buffer
-    m_gopIsIdrFrameOnly = (pVp8SeqParams->GopPicSize == 1);
+    m_gopIsIdrFrameOnly = (m_vp8SeqParams->GopPicSize == 1);
 
     return status;
 }
@@ -1257,55 +1253,55 @@ MOS_STATUS CodechalEncodeVp8::SetPictureStructs()
         m_signalEnc = false;
     }
 
-    currRefIdx = pVp8PicParams->CurrReconstructedPic.FrameIdx;
+    currRefIdx = m_vp8PicParams->CurrReconstructedPic.FrameIdx;
 
-    if (pVp8PicParams->segmentation_enabled)
+    if (m_vp8PicParams->segmentation_enabled)
     {
         for (uint8_t i = 0; i < CODECHAL_VP8_MAX_SEGMENTS; i++)
         {
-            averageQp += CodecHal_Clip3(0, CODECHAL_VP8_QP_MAX, pVp8QuantData->QIndex[i] + pVp8QuantData->QIndexDelta[0]);
+            averageQp += CodecHal_Clip3(0, CODECHAL_VP8_QP_MAX, m_vp8QuantData->QIndex[i] + m_vp8QuantData->QIndexDelta[0]);
         }
         averageQp = averageQp / 4;
     }
     else
     {
-        averageQp = CodecHal_Clip3(0, CODECHAL_VP8_QP_MAX, pVp8QuantData->QIndex[0] + pVp8QuantData->QIndexDelta[0]);
+        averageQp = CodecHal_Clip3(0, CODECHAL_VP8_QP_MAX, m_vp8QuantData->QIndex[0] + m_vp8QuantData->QIndexDelta[0]);
     }
 
-    m_pictureCodingType = pVp8PicParams->frame_type ? P_TYPE : I_TYPE;
+    m_pictureCodingType = m_vp8PicParams->frame_type ? P_TYPE : I_TYPE;
 
     if (m_pictureCodingType == I_TYPE)
     {
-        dwAverageKeyFrameQp = averageQp;
-        dwPFramePositionInGOP = 0;
+        m_averageKeyFrameQp   = averageQp;
+        m_pFramePositionInGop = 0;
     }
     else
     {
-        dwAveragePFrameQp = averageQp;
-        dwPFramePositionInGOP = (m_storeData - 1) % pVp8SeqParams->GopPicSize;
+        m_averagePFrameQp     = averageQp;
+        m_pFramePositionInGop = (m_storeData - 1) % m_vp8SeqParams->GopPicSize;
     }
 
     numRef = 0;
     if (!CodecHal_PictureIsInvalid(m_currOriginalPic))
     {
-        if (!CodecHal_PictureIsInvalid(pVp8PicParams->LastRefPic))
+        if (!CodecHal_PictureIsInvalid(m_vp8PicParams->LastRefPic))
         {
-            pRefList[currRefIdx]->RefList[numRef++] = pVp8PicParams->LastRefPic;
+            m_refList[currRefIdx]->RefList[numRef++] = m_vp8PicParams->LastRefPic;
         }
 
-        if (!CodecHal_PictureIsInvalid(pVp8PicParams->GoldenRefPic))
+        if (!CodecHal_PictureIsInvalid(m_vp8PicParams->GoldenRefPic))
         {
-            pRefList[currRefIdx]->RefList[numRef++] = pVp8PicParams->GoldenRefPic;
+            m_refList[currRefIdx]->RefList[numRef++] = m_vp8PicParams->GoldenRefPic;
         }
 
-        if (!CodecHal_PictureIsInvalid(pVp8PicParams->AltRefPic))
+        if (!CodecHal_PictureIsInvalid(m_vp8PicParams->AltRefPic))
         {
-            pRefList[currRefIdx]->RefList[numRef++] = pVp8PicParams->AltRefPic;
+            m_refList[currRefIdx]->RefList[numRef++] = m_vp8PicParams->AltRefPic;
         }
     }
-    pRefList[currRefIdx]->ucNumRef = numRef;
-    pRefList[currRefIdx]->bUsedAsRef = true; /* VP8 has no non reference pictures */
-    m_currRefList = pRefList[currRefIdx];
+    m_refList[currRefIdx]->ucNumRef   = numRef;
+    m_refList[currRefIdx]->bUsedAsRef = true; /* VP8 has no non reference pictures */
+    m_currRefList                     = m_refList[currRefIdx];
 
     if (m_codecFunction == CODECHAL_FUNCTION_ENC_PAK)
     {
@@ -1316,16 +1312,16 @@ MOS_STATUS CodechalEncodeVp8::SetPictureStructs()
     {
         CODECHAL_ENCODE_CHK_NULL_RETURN(m_encodeParams.presMbCodeSurface);
         m_resMbCodeSurface = *m_encodeParams.presMbCodeSurface;
-        pRefList[currRefIdx]->resRefMbCodeBuffer = m_resMbCodeSurface;
+        m_refList[currRefIdx]->resRefMbCodeBuffer = m_resMbCodeSurface;
     }
 
-    pRefList[currRefIdx]->sRefReconBuffer = m_reconSurface;
-    pRefList[currRefIdx]->sRefRawBuffer = m_rawSurface;
-    pRefList[currRefIdx]->RefPic = pVp8PicParams->CurrOriginalPic;
-    pRefList[currRefIdx]->resBitstreamBuffer = m_resBitstreamBuffer;
+    m_refList[currRefIdx]->sRefReconBuffer    = m_reconSurface;
+    m_refList[currRefIdx]->sRefRawBuffer      = m_rawSurface;
+    m_refList[currRefIdx]->RefPic             = m_vp8PicParams->CurrOriginalPic;
+    m_refList[currRefIdx]->resBitstreamBuffer = m_resBitstreamBuffer;
 
-    m_currOriginalPic = pVp8PicParams->CurrOriginalPic;
-    m_currReconstructedPic = pVp8PicParams->CurrReconstructedPic;
+    m_currOriginalPic                   = m_vp8PicParams->CurrOriginalPic;
+    m_currReconstructedPic              = m_vp8PicParams->CurrReconstructedPic;
     m_frameFieldHeight = m_frameHeight;
     m_frameFieldHeightInMb = m_picHeightInMb;
     m_downscaledFrameFieldHeightInMb4x = m_downscaledHeightInMb4x;
@@ -1333,15 +1329,15 @@ MOS_STATUS CodechalEncodeVp8::SetPictureStructs()
     m_currEncBbSet = MB_ENC_Frame_BB;
     m_waitForPak = false;
 
-    m_statusReportFeedbackNumber = pVp8PicParams->StatusReportFeedbackNumber;
+    m_statusReportFeedbackNumber = m_vp8PicParams->StatusReportFeedbackNumber;
 
-    bHmeEnabled = m_hmeSupported && m_pictureCodingType != I_TYPE && (pVp8PicParams->ref_frame_ctrl != 0);
-    b16xMeEnabled = m_16xMeSupported && m_pictureCodingType != I_TYPE;
-    bMbEncIFrameDistEnabled =
-        bBrcDistortionBufferSupported &&
+    m_hmeEnabled    = m_hmeSupported && m_pictureCodingType != I_TYPE && (m_vp8PicParams->ref_frame_ctrl != 0);
+    m_b16XMeEnabled = m_16xMeSupported && m_pictureCodingType != I_TYPE;
+    m_mbEncIFrameDistEnabled =
+        m_brcDistortionBufferSupported &&
         (m_pictureCodingType == I_TYPE);
 
-    bBrcEnabled = (pVp8SeqParams->RateControlMethod == RATECONTROL_CBR || pVp8SeqParams->RateControlMethod == RATECONTROL_VBR);
+    m_brcEnabled = (m_vp8SeqParams->RateControlMethod == RATECONTROL_CBR || m_vp8SeqParams->RateControlMethod == RATECONTROL_VBR);
 
     // Multi-Pass BRC
     // brcPrecision = 2, GetNumBrcPakPasses(2) = BRC_DEFAULT_NUM_PASSES = 4
@@ -1350,23 +1346,23 @@ MOS_STATUS CodechalEncodeVp8::SetPictureStructs()
     // should be based on BRC precision but currenlty VP8 Encode DDI does not have anything for precision.
     brcPrecision = 1;
     m_hwInterface->GetMfxInterface()->SetBrcNumPakPasses(
-        (bBrcEnabled && m_multipassBrcSupported) ? GetNumBrcPakPasses(brcPrecision) : 1);
+        (m_brcEnabled && m_multipassBrcSupported) ? GetNumBrcPakPasses(brcPrecision) : 1);
 
     // Init Distortion buffer flag
-    bInitBrcDistortionBuffer = false;
+    m_initBrcDistortionBuffer = false;
 
-    if (bBrcEnabled)
+    if (m_brcEnabled)
     {
         if (m_pictureCodingType == I_TYPE)
         {
-            bInitBrcDistortionBuffer = true;
+            m_initBrcDistortionBuffer = true;
         }
         else
         {
             //For P frame following I frame
-            if (dwPFramePositionInGOP == 1)
+            if (m_pFramePositionInGop == 1)
             {
-                bInitBrcDistortionBuffer = true;
+                m_initBrcDistortionBuffer = true;
             }
         }
     }
@@ -1374,9 +1370,9 @@ MOS_STATUS CodechalEncodeVp8::SetPictureStructs()
 
     //decide number of pak passes
     m_numPasses = 0;
-    usMinPakPasses = 1;
+    m_usMinPakPasses     = 1;
     m_waitForPak = false;
-    usRepakPassIterVal = 0;
+    m_usRepakPassIterVal = 0;
 
     // RePak = 0: m_numPasses = 0, usMinPakPasses = 1
     // RePak = 1: m_numPasses = 1, usMinPakPasses = 2
@@ -1384,9 +1380,9 @@ MOS_STATUS CodechalEncodeVp8::SetPictureStructs()
     {
     case encodeQualityMode:
         m_numPasses = 1;
-        usMinPakPasses = 2;
+        m_usMinPakPasses = 2;
 
-        if (dwPFramePositionInGOP >= 1 && m_bRepakSupported)
+        if (m_pFramePositionInGop >= 1 && m_repakSupported)
         {
             m_waitForPak = true;
         }
@@ -1394,32 +1390,32 @@ MOS_STATUS CodechalEncodeVp8::SetPictureStructs()
     case encodeNormalMode:
         // with adaptive RePAK, RePAK is enabled by default both with I & P frames
         m_numPasses = 1;
-        usMinPakPasses = 2;
+        m_usMinPakPasses = 2;
 
         // needs to wait for PAK execution except 1st frame
-        if (m_bRepakSupported && m_storeData > 1)
+        if (m_repakSupported && m_storeData > 1)
         {
             m_waitForPak = true;
         }
         break;
     case encodePerformanceMode:
         m_numPasses = 0;
-        usMinPakPasses = 1;
+        m_usMinPakPasses = 1;
         break;
     default:
         m_numPasses = 0;
-        usMinPakPasses = 1;
+        m_usMinPakPasses = 1;
     }
 
     //this will always override above decision on numpasses and minpakpasse, bRepakSupported is controlled through reg key
-    if (!m_bRepakSupported)
+    if (!m_repakSupported)
     {
         m_numPasses = 0;
-        usMinPakPasses = 1;
+        m_usMinPakPasses = 1;
     }
 
     // Keep the code below for MultiPass BRC to be enabled in future
-    if (bBrcEnabled)
+    if (m_brcEnabled)
     {
         if (m_multipassBrcSupported)   // Multi-Pass BRC
         {
@@ -1427,13 +1423,13 @@ MOS_STATUS CodechalEncodeVp8::SetPictureStructs()
         }
     }
 
-    if (m_bRepakSupported && usMinPakPasses > 1)  // Repak enabled by default for VP8
+    if (m_repakSupported && m_usMinPakPasses > 1)  // Repak enabled by default for VP8
     {
         // Single-Pass BRC: ucNumPasses = 0 or 1
 
         // Multi-Pass BRC:  ucNumPasses = 3, Repak will always be 5th pass no matter how many PAK passes are executed
         // example) even if 2 passes are executed, there are PAK commands for 4 passes and cmds for remaining 2 passes are skipped
-        usRepakPassIterVal = m_numPasses;
+        m_usRepakPassIterVal = m_numPasses;
     }
 
     return status;
@@ -1467,10 +1463,10 @@ MOS_STATUS CodechalEncodeVp8::ExecuteKernelFunctions()
     }
 
     // BRC init/reset needs to be called before HME since it will reset the Brc Distortion surface
-    if (bBrcEnabled)
+    if (m_brcEnabled)
     {
-        bBrcReset = pVp8SeqParams->ResetBRC;
-        if (bBrcInit || bBrcReset)
+        m_brcReset = m_vp8SeqParams->ResetBRC;
+        if (m_brcInit || m_brcReset)
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(BrcInitResetKernel());
         }
@@ -1481,9 +1477,9 @@ MOS_STATUS CodechalEncodeVp8::ExecuteKernelFunctions()
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->KernelFunctions(&cscScalingKernelParams));
 
-    if (bHmeEnabled)
+    if (m_hmeEnabled)
     {
-        if (b16xMeEnabled)
+        if (m_b16XMeEnabled)
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(MeKernel());
         }
@@ -1491,13 +1487,12 @@ MOS_STATUS CodechalEncodeVp8::ExecuteKernelFunctions()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(MeKernel());
 
         CODECHAL_DEBUG_TOOL(
-            if (bHmeEnabled)
-            {
+            if (m_hmeEnabled) {
                 CODECHAL_ME_OUTPUT_PARAMS meOutputParams;
                 MOS_ZeroMemory(&meOutputParams, sizeof(CODECHAL_ME_OUTPUT_PARAMS));
-                meOutputParams.psMeMvBuffer = &s4xMEMVDataBuffer;
-                meOutputParams.psMeBrcDistortionBuffer = bBrcEnabled ? &BrcBuffers.sMeBrcDistortionBuffer : nullptr;
-                meOutputParams.psMeDistortionBuffer = &s4xMEDistortionBuffer;
+                meOutputParams.psMeMvBuffer            = &m_s4XMemvDataBuffer;
+                meOutputParams.psMeBrcDistortionBuffer = m_brcEnabled ? &m_brcBuffers.sMeBrcDistortionBuffer : nullptr;
+                meOutputParams.psMeDistortionBuffer    = &m_s4XMeDistortionBuffer;
                 meOutputParams.b16xMeInUse = false;
                 
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
@@ -1507,8 +1502,8 @@ MOS_STATUS CodechalEncodeVp8::ExecuteKernelFunctions()
                     meOutputParams.psMeMvBuffer->dwHeight * meOutputParams.psMeMvBuffer->dwPitch,
                     CodecHal_PictureIsBottomField(m_currOriginalPic) ? MOS_ALIGN_CEIL((m_downscaledWidthInMb4x * 32), 64) * (m_downscaledFrameFieldHeightInMb4x * 4) : 0,
                     CODECHAL_MEDIA_STATE_4X_ME));
-                    
-                if(bBrcEnabled)
+
+                if (m_brcEnabled)
                 {
                     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
                         &meOutputParams.psMeBrcDistortionBuffer->OsResource,
@@ -1526,10 +1521,10 @@ MOS_STATUS CodechalEncodeVp8::ExecuteKernelFunctions()
                     meOutputParams.psMeDistortionBuffer->dwHeight * meOutputParams.psMeDistortionBuffer->dwPitch,
                     CodecHal_PictureIsBottomField(m_currOriginalPic) ? MOS_ALIGN_CEIL((m_downscaledWidthInMb4x * 8), 64) * MOS_ALIGN_CEIL((m_downscaledFrameFieldHeightInMb4x * 4 * 10), 8) : 0,
                     CODECHAL_MEDIA_STATE_4X_ME));
-                    
-                if (b16xMeEnabled)
+
+                if (m_b16XMeEnabled)
                 {
-                    meOutputParams.psMeMvBuffer = &s16xMEMVDataBuffer;
+                    meOutputParams.psMeMvBuffer            = &m_s16XMemvDataBuffer;
                     meOutputParams.psMeBrcDistortionBuffer = nullptr;
                     meOutputParams.psMeDistortionBuffer = nullptr;
                     meOutputParams.b16xMeInUse = true;
@@ -1542,15 +1537,14 @@ MOS_STATUS CodechalEncodeVp8::ExecuteKernelFunctions()
                         CodecHal_PictureIsBottomField(m_currOriginalPic) ? MOS_ALIGN_CEIL((m_downscaledWidthInMb16x * 32), 64) * (m_downscaledFrameFieldHeightInMb16x * 4) : 0,
                         CODECHAL_MEDIA_STATE_16X_ME));
                 }
-            }
-        )
+            })
     }
 
     // Call Idistortion and BRCUpdate kernels
-    if (bBrcEnabled)
+    if (m_brcEnabled)
     {
         // Intra Distortion kernel
-        if (bMbEncIFrameDistEnabled)
+        if (m_mbEncIFrameDistEnabled)
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(MbEncKernel(false, false, true));
         }
@@ -1561,7 +1555,7 @@ MOS_STATUS CodechalEncodeVp8::ExecuteKernelFunctions()
 
 
     // Reset after BRC Init has been processed
-    bBrcInit = false;
+    m_brcInit = false;
 
     // skip Phase 1 for I frame with performance mode
     if ((m_pictureCodingType == I_TYPE) && (m_kernelMode == encodePerformanceMode))
@@ -1596,10 +1590,10 @@ MOS_STATUS CodechalEncodeVp8::ExecuteKernelFunctions()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnEngineSignal(m_osInterface, &syncParams));
     }
 
-    if (bBrcEnabled)
+    if (m_brcEnabled)
     {
-        bMbEncCurbeSetInBrcUpdate = false;
-        bMbPakCurbeSetInBrcUpdate = false;
+        m_mbEncCurbeSetInBrcUpdate = false;
+        m_mbPakCurbeSetInBrcUpdate = false;
     }
 
     m_frameNum += 1;
@@ -1637,9 +1631,7 @@ MOS_STATUS CodechalEncodeVp8::BrcInitResetKernel()
 
     encFunctionType = CODECHAL_MEDIA_STATE_BRC_INIT_RESET;
 
-    kernelState = bBrcInit ?
-        &BrcKernelStates[CODECHAL_ENCODE_VP8_BRC_IDX_INIT] :
-        &BrcKernelStates[CODECHAL_ENCODE_VP8_BRC_IDX_RESET];
+    kernelState = m_brcInit ? &m_brcKernelStates[CODECHAL_ENCODE_VP8_BRC_IDX_INIT] : &m_brcKernelStates[CODECHAL_ENCODE_VP8_BRC_IDX_RESET];
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(stateHeapInterface->pfnRequestSshSpaceForCmdBuf(
         stateHeapInterface,
@@ -1665,21 +1657,21 @@ MOS_STATUS CodechalEncodeVp8::BrcInitResetKernel()
 
     MOS_ZeroMemory(&brcInitResetCurbeParams, sizeof(brcInitResetCurbeParams));
     brcInitResetCurbeParams.CurrPic = m_currOriginalPic;
-    brcInitResetCurbeParams.pPicParams = pVp8PicParams;
-    brcInitResetCurbeParams.pSeqParams = pVp8SeqParams;
+    brcInitResetCurbeParams.pPicParams        = m_vp8PicParams;
+    brcInitResetCurbeParams.pSeqParams        = m_vp8SeqParams;
     brcInitResetCurbeParams.dwFrameWidth = m_frameWidth;
     brcInitResetCurbeParams.dwFrameHeight = m_frameHeight;
-    brcInitResetCurbeParams.dwAVBRAccuracy = usAVBRAccuracy;
-    brcInitResetCurbeParams.dwAVBRConvergence = usAVBRConvergence;
-    brcInitResetCurbeParams.bInitBrc = bBrcInit;
-    brcInitResetCurbeParams.bMbBrcEnabled = bMbBrcEnabled;
+    brcInitResetCurbeParams.dwAVBRAccuracy    = m_usAvbrAccuracy;
+    brcInitResetCurbeParams.dwAVBRConvergence = m_usAvbrConvergence;
+    brcInitResetCurbeParams.bInitBrc          = m_brcInit;
+    brcInitResetCurbeParams.bMbBrcEnabled     = m_mbBrcEnabled;
     brcInitResetCurbeParams.pdBrcInitCurrentTargetBufFullInBits =
-        &dBrcInitCurrentTargetBufFullInBits;
+        &m_dBrcInitCurrentTargetBufFullInBits;
     brcInitResetCurbeParams.pdwBrcInitResetBufSizeInBits =
-        &dwBrcInitResetBufSizeInBits;
+        &m_brcInitResetBufSizeInBits;
     brcInitResetCurbeParams.pdBrcInitResetInputBitsPerFrame =
-        &dBrcInitResetInputBitsPerFrame;
-    brcInitResetCurbeParams.dwFramerate = uiFrameRate;
+        &m_dBrcInitResetInputBitsPerFrame;
+    brcInitResetCurbeParams.dwFramerate  = m_frameRate;
     brcInitResetCurbeParams.pKernelState = kernelState;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetBrcInitResetCurbe(&brcInitResetCurbeParams));
 
@@ -1702,7 +1694,7 @@ MOS_STATUS CodechalEncodeVp8::BrcInitResetKernel()
 
     sendKernelCmdsParams = SendKernelCmdsParams();
     sendKernelCmdsParams.EncFunctionType = encFunctionType;
-    sendKernelCmdsParams.bBrcResetRequested = bBrcReset ? true : false;
+    sendKernelCmdsParams.bBrcResetRequested = m_brcReset ? true : false;
     sendKernelCmdsParams.pKernelState = kernelState;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SendGenericKernelCmds(&cmdBuffer, &sendKernelCmdsParams));
@@ -1715,11 +1707,11 @@ MOS_STATUS CodechalEncodeVp8::BrcInitResetKernel()
     //Add surface states
     MOS_ZeroMemory(&brcInitResetSurfaceParams, sizeof(brcInitResetSurfaceParams));
     brcInitResetSurfaceParams.presBrcHistoryBuffer =
-        &BrcBuffers.resBrcHistoryBuffer;
+        &m_brcBuffers.resBrcHistoryBuffer;
     brcInitResetSurfaceParams.psMeBrcDistortionBuffer =
-        &BrcBuffers.sMeBrcDistortionBuffer;
+        &m_brcBuffers.sMeBrcDistortionBuffer;
     brcInitResetSurfaceParams.dwMeBrcDistortionBottomFieldOffset =
-        BrcBuffers.dwMeBrcDistortionBottomFieldOffset;
+        m_brcBuffers.dwMeBrcDistortionBottomFieldOffset;
     brcInitResetSurfaceParams.dwDownscaledWidthInMb4x = m_downscaledWidthInMb4x;
     brcInitResetSurfaceParams.dwDownscaledFrameHeightInMb4x =
         m_downscaledHeightInMb4x;
@@ -1807,20 +1799,20 @@ MOS_STATUS CodechalEncodeVp8::BrcUpdateKernel()
     perfTag.PictureCodingType = m_pictureCodingType;
     m_osInterface->pfnSetPerfTag(m_osInterface, perfTag.Value);
 
-    kernelState = &BrcKernelStates[CODECHAL_ENCODE_VP8_BRC_IDX_UPDATE];
+    kernelState            = &m_brcKernelStates[CODECHAL_ENCODE_VP8_BRC_IDX_UPDATE];
     mbEncKernelState = nullptr;
     mbEncChromaKernelState = nullptr;
     if (m_pictureCodingType == I_TYPE)
     {
-        mbEncKernelState = &MbEncKernelStates[CODECHAL_ENCODE_VP8_MBENC_IDX_I_LUMA];
-        mbEncChromaKernelState = &MbEncKernelStates[CODECHAL_ENCODE_VP8_MBENC_IDX_I_CHROMA];
+        mbEncKernelState       = &m_mbEncKernelStates[CODECHAL_ENCODE_VP8_MBENC_IDX_I_LUMA];
+        mbEncChromaKernelState = &m_mbEncKernelStates[CODECHAL_ENCODE_VP8_MBENC_IDX_I_CHROMA];
     }
     else
     {
-        mbEncKernelState = &MbEncKernelStates[CODECHAL_ENCODE_VP8_MBENC_IDX_P];
+        mbEncKernelState       = &m_mbEncKernelStates[CODECHAL_ENCODE_VP8_MBENC_IDX_P];
         mbEncChromaKernelState = nullptr;
     }
-    BrcBuffers.pMbEncKernelStateInUse = mbEncKernelState;
+    m_brcBuffers.pMbEncKernelStateInUse = mbEncKernelState;
 
     encFunctionType = CODECHAL_MEDIA_STATE_BRC_UPDATE;
     mbPakFunctionType = CODECHAL_MEDIA_STATE_HYBRID_PAK_P1;
@@ -1838,7 +1830,7 @@ MOS_STATUS CodechalEncodeVp8::BrcUpdateKernel()
         stateHeapInterface,
         mbEncKernelState,
         false,
-        mbEncChromaKernelState ? dwMbEncIFrameDshSize : 0,
+        mbEncChromaKernelState ? m_mbEncIFrameDshSize : 0,
         true,
         m_storeData));
 
@@ -1861,23 +1853,23 @@ MOS_STATUS CodechalEncodeVp8::BrcUpdateKernel()
     }
 
     MOS_ZeroMemory(&mbEncCurbeParams, sizeof(struct CodechalVp8MbencCurbeParams));
-    mbEncCurbeParams.pPicParams = pVp8PicParams;
-    mbEncCurbeParams.pSeqParams = pVp8SeqParams;
-    mbEncCurbeParams.pVp8QuantData = pVp8QuantData;
-    mbEncCurbeParams.pVp8SliceParams = pVp8SliceParams;
-    mbEncCurbeParams.ppRefList = &(pRefList[0]);
+    mbEncCurbeParams.pPicParams            = m_vp8PicParams;
+    mbEncCurbeParams.pSeqParams            = m_vp8SeqParams;
+    mbEncCurbeParams.pVp8QuantData         = m_vp8QuantData;
+    mbEncCurbeParams.pVp8SliceParams       = m_vp8SliceParams;
+    mbEncCurbeParams.ppRefList             = &(m_refList[0]);
     mbEncCurbeParams.wPicWidthInMb = m_picWidthInMb;
     mbEncCurbeParams.wFieldFrameHeightInMb = m_frameFieldHeightInMb;
     mbEncCurbeParams.ucKernelMode = m_kernelMode;
-    mbEncCurbeParams.bHmeEnabled = bHmeEnabled;
-    mbEncCurbeParams.bVmeKernelDump = bVMEKernelDump;
+    mbEncCurbeParams.bHmeEnabled           = m_hmeEnabled;
+    mbEncCurbeParams.bVmeKernelDump        = m_vmeKernelDump;
     mbEncCurbeParams.wPictureCodingType = m_pictureCodingType;
     mbEncCurbeParams.bMbEncIFrameDistInUse = false;
-    mbEncCurbeParams.bBrcEnabled = bBrcEnabled;
+    mbEncCurbeParams.bBrcEnabled           = m_brcEnabled;
     mbEncCurbeParams.pCurrOriginalPic = &m_currOriginalPic;
-    mbEncCurbeParams.pLastRefPic = &pVp8PicParams->LastRefPic;
-    mbEncCurbeParams.pGoldenRefPic = &pVp8PicParams->GoldenRefPic;
-    mbEncCurbeParams.pAlternateRefPic = &pVp8PicParams->AltRefPic;
+    mbEncCurbeParams.pLastRefPic           = &m_vp8PicParams->LastRefPic;
+    mbEncCurbeParams.pGoldenRefPic         = &m_vp8PicParams->GoldenRefPic;
+    mbEncCurbeParams.pAlternateRefPic      = &m_vp8PicParams->AltRefPic;
     mbEncCurbeParams.bBrcEnabled = true;
     mbEncCurbeParams.pKernelState = mbEncKernelState;
 
@@ -1886,15 +1878,15 @@ MOS_STATUS CodechalEncodeVp8::BrcUpdateKernel()
     if (m_pictureCodingType == P_TYPE)
     {
         refFrameFlag = 0x07;
-        if (pVp8PicParams->LastRefPic.FrameIdx == pVp8PicParams->GoldenRefPic.FrameIdx)
+        if (m_vp8PicParams->LastRefPic.FrameIdx == m_vp8PicParams->GoldenRefPic.FrameIdx)
         {
             refFrameFlag &= ~VP8_GOLDEN_REF_FLAG;
         }
-        if (pVp8PicParams->LastRefPic.FrameIdx == pVp8PicParams->AltRefPic.FrameIdx)
+        if (m_vp8PicParams->LastRefPic.FrameIdx == m_vp8PicParams->AltRefPic.FrameIdx)
         {
             refFrameFlag &= ~VP8_ALT_REF_FLAG;
         }
-        if (pVp8PicParams->GoldenRefPic.FrameIdx == pVp8PicParams->AltRefPic.FrameIdx)
+        if (m_vp8PicParams->GoldenRefPic.FrameIdx == m_vp8PicParams->AltRefPic.FrameIdx)
         {
             refFrameFlag &= ~VP8_ALT_REF_FLAG;
         }
@@ -1905,7 +1897,7 @@ MOS_STATUS CodechalEncodeVp8::BrcUpdateKernel()
     }
 
     finalRefFrameFlag = 0;
-    switch (pVp8PicParams->ref_frame_ctrl)
+    switch (m_vp8PicParams->ref_frame_ctrl)
     {
     case 0:
         finalRefFrameFlag = 0;
@@ -1923,23 +1915,23 @@ MOS_STATUS CodechalEncodeVp8::BrcUpdateKernel()
         finalRefFrameFlag = refFrameFlag;
     }
 
-    pVp8PicParams->ref_frame_ctrl = finalRefFrameFlag;
+    m_vp8PicParams->ref_frame_ctrl = finalRefFrameFlag;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetMbEncCurbe(&mbEncCurbeParams));
 
-    bMbEncCurbeSetInBrcUpdate = true;
+    m_mbEncCurbeSetInBrcUpdate = true;
 
     // Request space for MPU DSH, no SSH space requested as single task phase not supported for VP8
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AssignDshAndSshSpace(
         stateHeapInterface,
-        &MpuKernelState,
+        &m_mpuKernelState,
         false,
         0,
         true,
         m_storeData));
 
     MOS_ZeroMemory(&idParams, sizeof(idParams));
-    idParams.pKernelState = &MpuKernelState;
+    idParams.pKernelState = &m_mpuKernelState;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(stateHeapInterface->pfnSetInterfaceDescriptor(
         stateHeapInterface,
         1,
@@ -1947,29 +1939,29 @@ MOS_STATUS CodechalEncodeVp8::BrcUpdateKernel()
 
     // Setup MPU Curbe
     MOS_ZeroMemory(&mpuCurbeParams, sizeof(struct CodechalVp8MpuCurbeParams));
-    mpuCurbeParams.pPicParams = pVp8PicParams;
-    mpuCurbeParams.pSeqParams = pVp8SeqParams;
-    mpuCurbeParams.pVp8QuantData = pVp8QuantData;
+    mpuCurbeParams.pPicParams         = m_vp8PicParams;
+    mpuCurbeParams.pSeqParams         = m_vp8SeqParams;
+    mpuCurbeParams.pVp8QuantData      = m_vp8QuantData;
     mpuCurbeParams.ucKernelMode = m_kernelMode;
-    mpuCurbeParams.bVmeKernelDump = bVMEKernelDump;
+    mpuCurbeParams.bVmeKernelDump     = m_vmeKernelDump;
     mpuCurbeParams.wPictureCodingType = m_pictureCodingType;
     mpuCurbeParams.EncFunctionType = encFunctionType;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetMpuCurbe(&mpuCurbeParams));
 
-    bMpuCurbeSetInBrcUpdate = true;
+    m_mpuCurbeSetInBrcUpdate = true;
 
     // Request space for TPU DSH, no SSH space requested as single task phase not supported for VP8
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AssignDshAndSshSpace(
         stateHeapInterface,
-        &TpuKernelState,
+        &m_tpuKernelState,
         false,
         0,
         true,
         m_storeData));
 
     MOS_ZeroMemory(&idParams, sizeof(idParams));
-    idParams.pKernelState = &TpuKernelState;
+    idParams.pKernelState = &m_tpuKernelState;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(stateHeapInterface->pfnSetInterfaceDescriptor(
         stateHeapInterface,
         1,
@@ -1977,22 +1969,22 @@ MOS_STATUS CodechalEncodeVp8::BrcUpdateKernel()
 
     // Setup TPU Curbe for BRC
     MOS_ZeroMemory(&tpuCurbeParams, sizeof(struct CodechalVp8TpuCurbeParams));
-    tpuCurbeParams.pPicParams = pVp8PicParams;
-    tpuCurbeParams.pSeqParams = pVp8SeqParams;
-    tpuCurbeParams.pVp8QuantData = pVp8QuantData;
+    tpuCurbeParams.pPicParams              = m_vp8PicParams;
+    tpuCurbeParams.pSeqParams              = m_vp8SeqParams;
+    tpuCurbeParams.pVp8QuantData           = m_vp8QuantData;
     tpuCurbeParams.ucKernelMode = m_kernelMode;
-    tpuCurbeParams.bVmeKernelDump = bVMEKernelDump;
+    tpuCurbeParams.bVmeKernelDump          = m_vmeKernelDump;
     tpuCurbeParams.wPictureCodingType = m_pictureCodingType;
     tpuCurbeParams.EncFunctionType = encFunctionType;
     tpuCurbeParams.wPicWidthInMb = m_picWidthInMb;
     tpuCurbeParams.wFieldFrameHeightInMb = m_frameFieldHeightInMb;
-    tpuCurbeParams.bRebinarizationFrameHdr = usRepakPassIterVal > 0 ? true : false;
+    tpuCurbeParams.bRebinarizationFrameHdr = m_usRepakPassIterVal > 0 ? true : false;
     // Adaptive RePak can be enabled only when RePak is enabled
-    tpuCurbeParams.bAdaptiveRePak = usRepakPassIterVal > 0 ? bAdaptiveRepakSupported : 0;
+    tpuCurbeParams.bAdaptiveRePak = m_usRepakPassIterVal > 0 ? m_adaptiveRepakSupported : 0;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetTpuCurbe(&tpuCurbeParams));
 
-    bTpuCurbeSetInBrcUpdate = true;
+    m_tpuCurbeSetInBrcUpdate = true;
 
     // Request space for BRC DSH and SSH
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AssignDshAndSshSpace(
@@ -2013,25 +2005,25 @@ MOS_STATUS CodechalEncodeVp8::BrcUpdateKernel()
     // Setup BRC Update Curbe
     MOS_ZeroMemory(&brcUpdateCurbeParams, sizeof(struct CodechalVp8BrcUpdateCurbeParams));
     brcUpdateCurbeParams.CurrPic = m_currOriginalPic;
-    brcUpdateCurbeParams.pPicParams = pVp8PicParams;
-    brcUpdateCurbeParams.pSeqParams = pVp8SeqParams;
-    brcUpdateCurbeParams.pSliceParams = pVp8SliceParams;
-    brcUpdateCurbeParams.pVp8QuantData = pVp8QuantData;
-    brcUpdateCurbeParams.dwAVBRAccuracy = usAVBRAccuracy;
-    brcUpdateCurbeParams.dwAVBRConvergence = usAVBRConvergence;
+    brcUpdateCurbeParams.pPicParams                          = m_vp8PicParams;
+    brcUpdateCurbeParams.pSeqParams                          = m_vp8SeqParams;
+    brcUpdateCurbeParams.pSliceParams                        = m_vp8SliceParams;
+    brcUpdateCurbeParams.pVp8QuantData                       = m_vp8QuantData;
+    brcUpdateCurbeParams.dwAVBRAccuracy                      = m_usAvbrAccuracy;
+    brcUpdateCurbeParams.dwAVBRConvergence                   = m_usAvbrConvergence;
     brcUpdateCurbeParams.wPictureCodingType = m_pictureCodingType;
     brcUpdateCurbeParams.dwFrameWidthInMB = m_picWidthInMb;
     brcUpdateCurbeParams.dwFrameHeightInMB = m_picHeightInMb;
-    brcUpdateCurbeParams.bHmeEnabled = bHmeEnabled;
-    brcUpdateCurbeParams.bInitBrc = bBrcInit;
-    brcUpdateCurbeParams.bUsedAsRef = pRefList[m_currReconstructedPic.FrameIdx]->bUsedAsRef;
+    brcUpdateCurbeParams.bHmeEnabled                         = m_hmeEnabled;
+    brcUpdateCurbeParams.bInitBrc                            = m_brcInit;
+    brcUpdateCurbeParams.bUsedAsRef                          = m_refList[m_currReconstructedPic.FrameIdx]->bUsedAsRef;
     brcUpdateCurbeParams.ucKernelMode = m_kernelMode;
     brcUpdateCurbeParams.dwVp8BrcNumPakPasses = m_hwInterface->GetMfxInterface()->GetBrcNumPakPasses();
     brcUpdateCurbeParams.dwHeaderBytesInserted = m_headerBytesInserted;
     brcUpdateCurbeParams.wFrameNumber = m_frameNum;
-    brcUpdateCurbeParams.dwBrcInitResetBufSizeInBits = dwBrcInitResetBufSizeInBits;
-    brcUpdateCurbeParams.dBrcInitResetInputBitsPerFrame = dBrcInitResetInputBitsPerFrame;
-    brcUpdateCurbeParams.pdBrcInitCurrentTargetBufFullInBits = &dBrcInitCurrentTargetBufFullInBits;
+    brcUpdateCurbeParams.dwBrcInitResetBufSizeInBits         = m_brcInitResetBufSizeInBits;
+    brcUpdateCurbeParams.dBrcInitResetInputBitsPerFrame      = m_dBrcInitResetInputBitsPerFrame;
+    brcUpdateCurbeParams.pdBrcInitCurrentTargetBufFullInBits = &m_dBrcInitCurrentTargetBufFullInBits;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetBrcUpdateCurbe(
         &brcUpdateCurbeParams));
 
@@ -2059,14 +2051,14 @@ MOS_STATUS CodechalEncodeVp8::BrcUpdateKernel()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SendGenericKernelCmds(&cmdBuffer, &sendKernelCmdsParams));
 
     // Check if the constant data surface is present
-    if (bBrcConstantBufferSupported)
+    if (m_brcConstantBufferSupported)
     {
         MOS_ZeroMemory(&initBrcConstantBufferParams, sizeof(initBrcConstantBufferParams));
         initBrcConstantBufferParams.pOsInterface = m_osInterface;
-        initBrcConstantBufferParams.pVp8PicIdx = &PicIdx[0];
+        initBrcConstantBufferParams.pVp8PicIdx   = &m_picIdx[0];
         initBrcConstantBufferParams.resBrcConstantDataBuffer =
-            BrcBuffers.resBrcConstantDataBuffer;
-        initBrcConstantBufferParams.pPicParams = pVp8PicParams;
+            m_brcBuffers.resBrcConstantDataBuffer;
+        initBrcConstantBufferParams.pPicParams         = m_vp8PicParams;
         initBrcConstantBufferParams.wPictureCodingType = m_pictureCodingType;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(InitBrcConstantBuffer(&initBrcConstantBufferParams));
     }
@@ -2074,50 +2066,50 @@ MOS_STATUS CodechalEncodeVp8::BrcUpdateKernel()
     //Set MFX_VP8_ENCODER_CFG command
     MOS_ZeroMemory(&encoderCfgParams, sizeof(encoderCfgParams));
     encoderCfgParams.bFirstPass = !(m_currPass);
-    encoderCfgParams.bBRCEnabled = bBrcEnabled ? true : false;
+    encoderCfgParams.bBRCEnabled         = m_brcEnabled ? true : false;
     encoderCfgParams.dwCfgBufferSize = HEADER_METADATA_SIZE;
-    encoderCfgParams.pEncodeVP8SeqParams = pVp8SeqParams;
-    encoderCfgParams.pEncodeVP8PicParams = pVp8PicParams;
-    encoderCfgParams.pEncodeVP8QuantData = pVp8QuantData;
+    encoderCfgParams.pEncodeVP8SeqParams = m_vp8SeqParams;
+    encoderCfgParams.pEncodeVP8PicParams = m_vp8PicParams;
+    encoderCfgParams.pEncodeVP8QuantData = m_vp8QuantData;
 
     for (int i = 0; i < CODECHAL_ENCODE_BRC_MAXIMUM_NUM_PASSES; i++)
     {
         encoderCfgParams.dwCfgCmdOffset = i * HEADER_METADATA_SIZE;
         encoderCfgParams.bFirstPass = !i;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetMfxInterface()->InitMfxVp8EncoderCfgCmd(&BrcBuffers.resEncoderCfgCommandWriteBuffer, &encoderCfgParams));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetMfxInterface()->InitMfxVp8EncoderCfgCmd(&m_brcBuffers.resEncoderCfgCommandWriteBuffer, &encoderCfgParams));
     }
 
-    bMfxEncoderConfigCommandInitialized = true;
+    m_mfxEncoderConfigCommandInitialized = true;
 
     // Add binding table
     CODECHAL_ENCODE_CHK_STATUS_RETURN(stateHeapInterface->pfnSetBindingTable(
         stateHeapInterface,
         kernelState));
 
-    if (pVp8PicParams->segmentation_enabled)
+    if (m_vp8PicParams->segmentation_enabled)
     {
-        CodecHalGetResourceInfo(m_osInterface, &sMbSegmentMapSurface);
+        CodecHalGetResourceInfo(m_osInterface, &m_mbSegmentMapSurface);
     }
 
     //Add surface states
     MOS_ZeroMemory(&brcUpdateSurfaceParams, sizeof(struct CodechalVp8BrcUpdateSurfaceParams));
     brcUpdateSurfaceParams.pMbEncKernelState = mbEncKernelState;
-    brcUpdateSurfaceParams.presBrcHistoryBuffer = &BrcBuffers.resBrcHistoryBuffer;
-    brcUpdateSurfaceParams.presBrcPakStatisticBuffer = &BrcBuffers.resBrcPakStatisticBuffer[0];
-    brcUpdateSurfaceParams.presVp8PakQPInputTable = &BrcBuffers.resPakQPInputTable;
-    brcUpdateSurfaceParams.presVp8EncoderCfgCommandReadBuffer = &BrcBuffers.resEncoderCfgCommandReadBuffer;
-    brcUpdateSurfaceParams.presVp8EncoderCfgCommandWriteBuffer = &BrcBuffers.resEncoderCfgCommandWriteBuffer;
+    brcUpdateSurfaceParams.presBrcHistoryBuffer                = &m_brcBuffers.resBrcHistoryBuffer;
+    brcUpdateSurfaceParams.presBrcPakStatisticBuffer           = &m_brcBuffers.resBrcPakStatisticBuffer[0];
+    brcUpdateSurfaceParams.presVp8PakQPInputTable              = &m_brcBuffers.resPakQPInputTable;
+    brcUpdateSurfaceParams.presVp8EncoderCfgCommandReadBuffer  = &m_brcBuffers.resEncoderCfgCommandReadBuffer;
+    brcUpdateSurfaceParams.presVp8EncoderCfgCommandWriteBuffer = &m_brcBuffers.resEncoderCfgCommandWriteBuffer;
     brcUpdateSurfaceParams.wPictureCodingType = m_pictureCodingType;
-    brcUpdateSurfaceParams.ps4xMeDistortionBuffer = &s4xMEDistortionBuffer;
-    brcUpdateSurfaceParams.psMeBrcDistortionBuffer = &BrcBuffers.sMeBrcDistortionBuffer;
-    brcUpdateSurfaceParams.presVp8BrcConstantDataBuffer = &BrcBuffers.resBrcConstantDataBuffer;
+    brcUpdateSurfaceParams.ps4xMeDistortionBuffer              = &m_s4XMeDistortionBuffer;
+    brcUpdateSurfaceParams.psMeBrcDistortionBuffer             = &m_brcBuffers.sMeBrcDistortionBuffer;
+    brcUpdateSurfaceParams.presVp8BrcConstantDataBuffer        = &m_brcBuffers.resBrcConstantDataBuffer;
     brcUpdateSurfaceParams.dwDownscaledWidthInMb4x = m_downscaledWidthInMb4x;
     brcUpdateSurfaceParams.dwDownscaledFrameFieldHeightInMb4x = m_downscaledFrameFieldHeightInMb4x;
-    brcUpdateSurfaceParams.bMbBrcEnabled = bMbBrcEnabled;
+    brcUpdateSurfaceParams.bMbBrcEnabled                       = m_mbBrcEnabled;
     brcUpdateSurfaceParams.dwBrcPakStatisticsSize = m_brcPakStatisticsSize;
     // Brc update kernel will always update internal segment map (sInSegmentMapSurface) regardless of MBRC = 0 or 1
     // However, MbEnc kernel will ignore internal segment map when MBRC = 0
-    brcUpdateSurfaceParams.psSegmentationMap = &sInSegmentMapSurface;
+    brcUpdateSurfaceParams.psSegmentationMap = &m_inSegmentMapSurface;
     brcUpdateSurfaceParams.presMbCodeBuffer = &m_resMbCodeSurface;
     brcUpdateSurfaceParams.pKernelState = kernelState;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SendBrcUpdateSurfaces(
@@ -2193,8 +2185,8 @@ MOS_STATUS CodechalEncodeVp8::MbEncKernel(bool isEncPhase1NotRun, bool isEncPhas
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_hwInterface->GetMiInterface());
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_hwInterface->GetRenderInterface());
-    CODECHAL_ENCODE_CHK_NULL_RETURN(pRefList);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(pVp8PicParams);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_refList);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_vp8PicParams);
 
     stateHeapInterface = m_hwInterface->GetRenderInterface()->m_stateHeapInterface;
     CODECHAL_ENCODE_CHK_NULL_RETURN(stateHeapInterface);
@@ -2220,18 +2212,18 @@ MOS_STATUS CodechalEncodeVp8::MbEncKernel(bool isEncPhase1NotRun, bool isEncPhas
 
     if (m_pictureCodingType == I_TYPE)
     {
-        kernelState = &MbEncKernelStates[CODECHAL_ENCODE_VP8_MBENC_IDX_I_LUMA];
-        chromaKernelState = &MbEncKernelStates[CODECHAL_ENCODE_VP8_MBENC_IDX_I_CHROMA];
+        kernelState       = &m_mbEncKernelStates[CODECHAL_ENCODE_VP8_MBENC_IDX_I_LUMA];
+        chromaKernelState = &m_mbEncKernelStates[CODECHAL_ENCODE_VP8_MBENC_IDX_I_CHROMA];
     }
     else
     {
-        kernelState = &MbEncKernelStates[CODECHAL_ENCODE_VP8_MBENC_IDX_P];
+        kernelState = &m_mbEncKernelStates[CODECHAL_ENCODE_VP8_MBENC_IDX_P];
     }
 
     if (mbEncIFrameDistInUse)
     {
         encFunctionType = CODECHAL_MEDIA_STATE_ENC_I_FRAME_DIST;
-        kernelState = &BrcKernelStates[CODECHAL_ENCODE_VP8_BRC_IDX_IFRAMEDIST];
+        kernelState       = &m_brcKernelStates[CODECHAL_ENCODE_VP8_BRC_IDX_IFRAMEDIST];
         chromaKernelState = nullptr;
     }
     else if (m_kernelMode == encodeNormalMode)
@@ -2251,10 +2243,10 @@ MOS_STATUS CodechalEncodeVp8::MbEncKernel(bool isEncPhase1NotRun, bool isEncPhas
         !mbEncIFrameDistInUse) // MB ENC I Chroma
     {
         encFunctionType = CODECHAL_MEDIA_STATE_ENC_I_FRAME_CHROMA;
-        kernelState = &MbEncKernelStates[CODECHAL_ENCODE_VP8_MBENC_IDX_I_CHROMA];
+        kernelState     = &m_mbEncKernelStates[CODECHAL_ENCODE_VP8_MBENC_IDX_I_CHROMA];
     }
 
-    bindingTable = MbEncBindingTable;
+    bindingTable = m_mbEncBindingTable;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(stateHeapInterface->pfnRequestSshSpaceForCmdBuf(
         stateHeapInterface,
@@ -2269,7 +2261,7 @@ MOS_STATUS CodechalEncodeVp8::MbEncKernel(bool isEncPhase1NotRun, bool isEncPhas
     for Phase 1 & 2, so the setup of surface states in each command buffer is necessary */
     if ((isEncPhase2 == false) || (isEncPhase2 == true && isEncPhase1NotRun == true))    // Phase 1  OR  Phase 2 (when Phase 1 not executed) // MB ENC I2
     {
-        if (bMbEncCurbeSetInBrcUpdate && !mbEncIFrameDistInUse)
+        if (m_mbEncCurbeSetInBrcUpdate && !mbEncIFrameDistInUse)
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AssignDshAndSshSpace(
                 stateHeapInterface,
@@ -2285,7 +2277,7 @@ MOS_STATUS CodechalEncodeVp8::MbEncKernel(bool isEncPhase1NotRun, bool isEncPhas
                 stateHeapInterface,
                 kernelState,
                 false,
-                chromaKernelState ? dwMbEncIFrameDshSize : 0,
+                chromaKernelState ? m_mbEncIFrameDshSize : 0,
                 false,
                 m_storeData));
 
@@ -2309,25 +2301,25 @@ MOS_STATUS CodechalEncodeVp8::MbEncKernel(bool isEncPhase1NotRun, bool isEncPhas
 
             // Setup VP8 Curbe
             MOS_ZeroMemory(&mbEncCurbeParams, sizeof(struct CodechalVp8MbencCurbeParams));
-            mbEncCurbeParams.pPicParams = pVp8PicParams;
-            mbEncCurbeParams.pSeqParams = pVp8SeqParams;
-            mbEncCurbeParams.pVp8SliceParams = pVp8SliceParams;
-            mbEncCurbeParams.pVp8QuantData = pVp8QuantData;
-            mbEncCurbeParams.ppRefList = &(pRefList[0]);
+            mbEncCurbeParams.pPicParams            = m_vp8PicParams;
+            mbEncCurbeParams.pSeqParams            = m_vp8SeqParams;
+            mbEncCurbeParams.pVp8SliceParams       = m_vp8SliceParams;
+            mbEncCurbeParams.pVp8QuantData         = m_vp8QuantData;
+            mbEncCurbeParams.ppRefList             = &(m_refList[0]);
             mbEncCurbeParams.wPicWidthInMb = m_picWidthInMb;
             mbEncCurbeParams.wFieldFrameHeightInMb = m_frameFieldHeightInMb;
             mbEncCurbeParams.ucKernelMode = m_kernelMode;
-            mbEncCurbeParams.bHmeEnabled = bHmeEnabled;
-            mbEncCurbeParams.bVmeKernelDump = bVMEKernelDump;
+            mbEncCurbeParams.bHmeEnabled           = m_hmeEnabled;
+            mbEncCurbeParams.bVmeKernelDump        = m_vmeKernelDump;
             mbEncCurbeParams.wPictureCodingType = m_pictureCodingType;
             mbEncCurbeParams.bMbEncIFrameDistInUse = mbEncIFrameDistInUse;
             mbEncCurbeParams.pCurrOriginalPic = &m_currOriginalPic;
-            mbEncCurbeParams.pLastRefPic = &pVp8PicParams->LastRefPic;
-            mbEncCurbeParams.pGoldenRefPic = &pVp8PicParams->GoldenRefPic;
-            mbEncCurbeParams.pAlternateRefPic = &pVp8PicParams->AltRefPic;
+            mbEncCurbeParams.pLastRefPic           = &m_vp8PicParams->LastRefPic;
+            mbEncCurbeParams.pGoldenRefPic         = &m_vp8PicParams->GoldenRefPic;
+            mbEncCurbeParams.pAlternateRefPic      = &m_vp8PicParams->AltRefPic;
             mbEncCurbeParams.pKernelState = kernelState;
 
-            if (!bRefCtrlOptimizationDone)
+            if (!m_refCtrlOptimizationDone)
             {
                 // Driver and kernel optimization when multiref is supported. 
                 // With this optimization ref_frame_ctrl value is modified to 1 for first P frame in the GOP
@@ -2336,15 +2328,15 @@ MOS_STATUS CodechalEncodeVp8::MbEncKernel(bool isEncPhase1NotRun, bool isEncPhas
                 if (m_pictureCodingType == P_TYPE)
                 {
                     refFrameFlag = 0x07;
-                    if (pVp8PicParams->LastRefPic.FrameIdx == pVp8PicParams->GoldenRefPic.FrameIdx)
+                    if (m_vp8PicParams->LastRefPic.FrameIdx == m_vp8PicParams->GoldenRefPic.FrameIdx)
                     {
                         refFrameFlag &= ~VP8_GOLDEN_REF_FLAG;
                     }
-                    if (pVp8PicParams->LastRefPic.FrameIdx == pVp8PicParams->AltRefPic.FrameIdx)
+                    if (m_vp8PicParams->LastRefPic.FrameIdx == m_vp8PicParams->AltRefPic.FrameIdx)
                     {
                         refFrameFlag &= ~VP8_ALT_REF_FLAG;
                     }
-                    if (pVp8PicParams->GoldenRefPic.FrameIdx == pVp8PicParams->AltRefPic.FrameIdx)
+                    if (m_vp8PicParams->GoldenRefPic.FrameIdx == m_vp8PicParams->AltRefPic.FrameIdx)
                     {
                         refFrameFlag &= ~VP8_ALT_REF_FLAG;
                     }
@@ -2354,7 +2346,7 @@ MOS_STATUS CodechalEncodeVp8::MbEncKernel(bool isEncPhase1NotRun, bool isEncPhas
                     refFrameFlag = 1;
                 }
 
-                switch (pVp8PicParams->ref_frame_ctrl)
+                switch (m_vp8PicParams->ref_frame_ctrl)
                 {
                 case 0:
                     finalRefFrameFlag = 0;
@@ -2372,7 +2364,7 @@ MOS_STATUS CodechalEncodeVp8::MbEncKernel(bool isEncPhase1NotRun, bool isEncPhas
                     finalRefFrameFlag = refFrameFlag;
                 }
 
-                pVp8PicParams->ref_frame_ctrl = finalRefFrameFlag;
+                m_vp8PicParams->ref_frame_ctrl = finalRefFrameFlag;
             }
 
             CODECHAL_ENCODE_CHK_STATUS_RETURN(SetMbEncCurbe(&mbEncCurbeParams));
@@ -2395,45 +2387,44 @@ MOS_STATUS CodechalEncodeVp8::MbEncKernel(bool isEncPhase1NotRun, bool isEncPhas
 
         if (m_pictureCodingType == P_TYPE)
         {
-            if (!CodecHal_PictureIsInvalid(pVp8PicParams->LastRefPic))
+            if (!CodecHal_PictureIsInvalid(m_vp8PicParams->LastRefPic))
             {
-                index = pVp8PicParams->LastRefPic.FrameIdx;
-                pRefList[index]->sRefBuffer = pVp8SeqParams->UseRawReconRef ?
-                    pRefList[index]->sRefRawBuffer : pRefList[index]->sRefReconBuffer;
-                CodecHalGetResourceInfo(m_osInterface, &pRefList[index]->sRefBuffer);
+                index                        = m_vp8PicParams->LastRefPic.FrameIdx;
+                m_refList[index]->sRefBuffer = m_vp8SeqParams->UseRawReconRef ? m_refList[index]->sRefRawBuffer : m_refList[index]->sRefReconBuffer;
+                CodecHalGetResourceInfo(m_osInterface, &m_refList[index]->sRefBuffer);
             }
 
-            if (!CodecHal_PictureIsInvalid(pVp8PicParams->GoldenRefPic))
+            if (!CodecHal_PictureIsInvalid(m_vp8PicParams->GoldenRefPic))
             {
-                index = pVp8PicParams->GoldenRefPic.FrameIdx;
-                pRefList[index]->sRefBuffer = pRefList[index]->sRefReconBuffer; /* Always Recon buffer for Golden ref pic */
-                CodecHalGetResourceInfo(m_osInterface, &pRefList[index]->sRefBuffer);
+                index                        = m_vp8PicParams->GoldenRefPic.FrameIdx;
+                m_refList[index]->sRefBuffer = m_refList[index]->sRefReconBuffer; /* Always Recon buffer for Golden ref pic */
+                CodecHalGetResourceInfo(m_osInterface, &m_refList[index]->sRefBuffer);
             }
 
-            if (!CodecHal_PictureIsInvalid(pVp8PicParams->AltRefPic))
+            if (!CodecHal_PictureIsInvalid(m_vp8PicParams->AltRefPic))
             {
-                index = pVp8PicParams->AltRefPic.FrameIdx;
-                pRefList[index]->sRefBuffer = pRefList[index]->sRefReconBuffer; /* Always Recon buffer for Alternate ref pic */
-                CodecHalGetResourceInfo(m_osInterface, &pRefList[index]->sRefBuffer);
+                index                        = m_vp8PicParams->AltRefPic.FrameIdx;
+                m_refList[index]->sRefBuffer = m_refList[index]->sRefReconBuffer; /* Always Recon buffer for Alternate ref pic */
+                CodecHalGetResourceInfo(m_osInterface, &m_refList[index]->sRefBuffer);
             }
         }
         else if (m_pictureCodingType == I_TYPE)
         {
             initMBEncConstantBufferParams.pOsInterface = m_osInterface;
-            initMBEncConstantBufferParams.sMBModeCostLumaBuffer = sMBModeCostLumaBuffer;
-            initMBEncConstantBufferParams.sBlockModeCostBuffer = sBlockModeCostBuffer;
-            initMBEncConstantBufferParams.presHistogram = &resHistogram;
+            initMBEncConstantBufferParams.sMBModeCostLumaBuffer = m_mbModeCostLumaBuffer;
+            initMBEncConstantBufferParams.sBlockModeCostBuffer  = m_blockModeCostBuffer;
+            initMBEncConstantBufferParams.presHistogram         = &m_resHistogram;
             CODECHAL_ENCODE_CHK_STATUS_RETURN(InitMBEncConstantBuffer(&initMBEncConstantBufferParams));
         }
-        if (bInitBrcDistortionBuffer && mbEncIFrameDistInUse)
+        if (m_initBrcDistortionBuffer && mbEncIFrameDistInUse)
         {
             InitBrcDistortionBuffer();
         }
     }
 
-    if (pVp8PicParams->segmentation_enabled)
+    if (m_vp8PicParams->segmentation_enabled)
     {
-        CodecHalGetResourceInfo(m_osInterface, &sMbSegmentMapSurface);
+        CodecHalGetResourceInfo(m_osInterface, &m_mbSegmentMapSurface);
     }
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
@@ -2454,9 +2445,9 @@ MOS_STATUS CodechalEncodeVp8::MbEncKernel(bool isEncPhase1NotRun, bool isEncPhas
         /* zero histogram surface only once */
         MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
         lockFlags.WriteOnly = 1;
-        data = (uint8_t*)m_osInterface->pfnLockResource(
+        data                = (uint8_t *)m_osInterface->pfnLockResource(
             m_osInterface,
-            &resHistogram,
+            &m_resHistogram,
             &lockFlags);
         CODECHAL_ENCODE_CHK_NULL_RETURN(data);
 
@@ -2464,32 +2455,32 @@ MOS_STATUS CodechalEncodeVp8::MbEncKernel(bool isEncPhase1NotRun, bool isEncPhas
 
         m_osInterface->pfnUnlockResource(
             m_osInterface,
-            &resHistogram);
+            &m_resHistogram);
     }
 
     //Add surface states
     MOS_ZeroMemory(&mbEncSurfaceParams, sizeof(struct CodechalVp8MbencSurfaceParams));
     mbEncSurfaceParams.MediaStateType = encFunctionType;
-    mbEncSurfaceParams.ppRefList = &pRefList[0];
+    mbEncSurfaceParams.ppRefList             = &m_refList[0];
     mbEncSurfaceParams.wPictureCodingType = m_pictureCodingType;
     mbEncSurfaceParams.pCurrReconstructedPic = &m_currReconstructedPic;
     mbEncSurfaceParams.psCurrPicSurface = m_rawSurfaceToEnc;
 
     if (m_pictureCodingType == P_TYPE)
     {
-        mbEncSurfaceParams.pLastRefPic = &pVp8PicParams->LastRefPic;
-        mbEncSurfaceParams.pGoldenRefPic = &pVp8PicParams->GoldenRefPic;
-        mbEncSurfaceParams.pAlternateRefPic = &pVp8PicParams->AltRefPic;
-        mbEncSurfaceParams.ps4xMeMvDataBuffer = &s4xMEMVDataBuffer;
-        mbEncSurfaceParams.ps4xMeDistortionBuffer = &s4xMEDistortionBuffer;
-        mbEncSurfaceParams.presRefMbCountSurface = &resRefMbCountSurface;
+        mbEncSurfaceParams.pLastRefPic               = &m_vp8PicParams->LastRefPic;
+        mbEncSurfaceParams.pGoldenRefPic             = &m_vp8PicParams->GoldenRefPic;
+        mbEncSurfaceParams.pAlternateRefPic          = &m_vp8PicParams->AltRefPic;
+        mbEncSurfaceParams.ps4xMeMvDataBuffer        = &m_s4XMemvDataBuffer;
+        mbEncSurfaceParams.ps4xMeDistortionBuffer    = &m_s4XMeDistortionBuffer;
+        mbEncSurfaceParams.presRefMbCountSurface     = &m_resRefMbCountSurface;
         mbEncSurfaceParams.dwMvOffset = (uint32_t)m_mvOffset;
-        mbEncSurfaceParams.presModeCostUpdateSurface = &resModeCostUpdateSurface;
+        mbEncSurfaceParams.presModeCostUpdateSurface = &m_resModeCostUpdateSurface;
     }
     else
     {
-        mbEncSurfaceParams.psMBModeCostLumaBuffer = &sMBModeCostLumaBuffer;
-        mbEncSurfaceParams.psBlockModeCostBuffer = &sBlockModeCostBuffer;
+        mbEncSurfaceParams.psMBModeCostLumaBuffer = &m_mbModeCostLumaBuffer;
+        mbEncSurfaceParams.psBlockModeCostBuffer  = &m_blockModeCostBuffer;
     }
 
     mbEncSurfaceParams.dwFrameWidthInMb = (uint32_t)m_picWidthInMb;
@@ -2499,32 +2490,30 @@ MOS_STATUS CodechalEncodeVp8::MbEncKernel(bool isEncPhase1NotRun, bool isEncPhas
     mbEncSurfaceParams.dwVerticalLineStride = m_verticalLineStride;
     mbEncSurfaceParams.dwVerticalLineStrideOffset = m_verticalLineStrideOffset;
     mbEncSurfaceParams.dwHistogramSize = HISTOGRAM_SIZE;
-    mbEncSurfaceParams.bHmeEnabled = bHmeEnabled;
-    mbEncSurfaceParams.bVMEKernelDump = bVMEKernelDump;
-    mbEncSurfaceParams.bSegmentationEnabled = pVp8PicParams->segmentation_enabled;
+    mbEncSurfaceParams.bHmeEnabled                = m_hmeEnabled;
+    mbEncSurfaceParams.bVMEKernelDump             = m_vmeKernelDump;
+    mbEncSurfaceParams.bSegmentationEnabled       = m_vp8PicParams->segmentation_enabled;
     mbEncSurfaceParams.presPerMB_MBCodeOpData = &m_resMbCodeSurface;
-    mbEncSurfaceParams.psPerMBQuantDataBuffer = &sPerMBQuantDataBuffer;
-    mbEncSurfaceParams.presVmeKernelDumpBuffer = &resVmeKernelDumpBuffer;
+    mbEncSurfaceParams.psPerMBQuantDataBuffer     = &m_perMbQuantDataBuffer;
+    mbEncSurfaceParams.presVmeKernelDumpBuffer    = &m_resVmeKernelDumpBuffer;
     // 0: Default, decided internally based on target usage.
     // 1: MB BRC enabled.
     // 2: MB BRC disabled.
     // MBRC = 1: internal segment map (sInSegmentMapSurface) is provided from BRC update kernel
     // MBRC = 0, 2: external segment map (sMbSegmentMapSurface) is provided from the app, ignore internal segment map
-    mbEncSurfaceParams.psSegmentationMap = (pVp8SeqParams->MBBRC == 1) ? &sInSegmentMapSurface : &sMbSegmentMapSurface;
-    mbEncSurfaceParams.presHistogram = &resHistogram;
-    mbEncSurfaceParams.psInterPredictionDistortionSurface = &s4xMEDistortionBuffer;
-    mbEncSurfaceParams.presPerMVDataSurface = &resPredMvDataSurface;
+    mbEncSurfaceParams.psSegmentationMap                  = (m_vp8SeqParams->MBBRC == 1) ? &m_inSegmentMapSurface : &m_mbSegmentMapSurface;
+    mbEncSurfaceParams.presHistogram                      = &m_resHistogram;
+    mbEncSurfaceParams.psInterPredictionDistortionSurface = &m_s4XMeDistortionBuffer;
+    mbEncSurfaceParams.presPerMVDataSurface               = &m_resPredMvDataSurface;
     mbEncSurfaceParams.bMbEncIFrameDistInUse = mbEncIFrameDistInUse;
-    mbEncSurfaceParams.pVp8SliceParams = pVp8SliceParams;
+    mbEncSurfaceParams.pVp8SliceParams                    = m_vp8SliceParams;
     mbEncSurfaceParams.pTrackedBuffer = &m_trackedBuffer[0];
-    mbEncSurfaceParams.psMeBrcDistortionBuffer = mbEncIFrameDistInUse ?
-        &BrcBuffers.sMeBrcDistortionBuffer :
-        &s4xMEDistortionBuffer;
-    mbEncSurfaceParams.uiRefCtrl = pVp8PicParams->ref_frame_ctrl;
+    mbEncSurfaceParams.psMeBrcDistortionBuffer            = mbEncIFrameDistInUse ? &m_brcBuffers.sMeBrcDistortionBuffer : &m_s4XMeDistortionBuffer;
+    mbEncSurfaceParams.uiRefCtrl                          = m_vp8PicParams->ref_frame_ctrl;
     mbEncSurfaceParams.pMbEncBindingTable = &bindingTable;
     mbEncSurfaceParams.pKernelState = kernelState;
 
-    mbEncSurfaceParams.psChromaReconBuffer = &sChromaReconBuffer;
+    mbEncSurfaceParams.psChromaReconBuffer = &m_chromaReconBuffer;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SendMbEncSurfaces(&cmdBuffer, &mbEncSurfaceParams));
 
@@ -2625,7 +2614,7 @@ MOS_STATUS CodechalEncodeVp8::MeKernel()
 
     stateHeapInterface = m_hwInterface->GetRenderInterface()->m_stateHeapInterface;
     CODECHAL_ENCODE_CHK_NULL_RETURN(stateHeapInterface);
-    use16xMe = b16xMeEnabled && !b16xMeDone;
+    use16xMe = m_b16XMeEnabled && !m_b16XMeDone;
 
     perfTag.Value = 0;
     perfTag.Mode = (uint16_t)m_mode >> CODECHAL_ENCODE_MODE_BIT_OFFSET;
@@ -2634,8 +2623,8 @@ MOS_STATUS CodechalEncodeVp8::MeKernel()
     m_osInterface->pfnSetPerfTag(m_osInterface, perfTag.Value);
 
     encFunctionType = (use16xMe) ? CODECHAL_MEDIA_STATE_16X_ME : CODECHAL_MEDIA_STATE_4X_ME;
-    kernelState = &MeKernelState;
-    bindingTable = MeBindingTable;
+    kernelState     = &m_meKernelState;
+    bindingTable    = m_meBindingTable;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(stateHeapInterface->pfnRequestSshSpaceForCmdBuf(
         stateHeapInterface,
@@ -2666,15 +2655,15 @@ MOS_STATUS CodechalEncodeVp8::MeKernel()
     if (m_pictureCodingType == P_TYPE)
     {
         refFrameFlag = 0x07;
-        if (pVp8PicParams->LastRefPic.FrameIdx == pVp8PicParams->GoldenRefPic.FrameIdx)
+        if (m_vp8PicParams->LastRefPic.FrameIdx == m_vp8PicParams->GoldenRefPic.FrameIdx)
         {
             refFrameFlag &= ~VP8_GOLDEN_REF_FLAG;
         }
-        if (pVp8PicParams->LastRefPic.FrameIdx == pVp8PicParams->AltRefPic.FrameIdx)
+        if (m_vp8PicParams->LastRefPic.FrameIdx == m_vp8PicParams->AltRefPic.FrameIdx)
         {
             refFrameFlag &= ~VP8_ALT_REF_FLAG;
         }
-        if (pVp8PicParams->GoldenRefPic.FrameIdx == pVp8PicParams->AltRefPic.FrameIdx)
+        if (m_vp8PicParams->GoldenRefPic.FrameIdx == m_vp8PicParams->AltRefPic.FrameIdx)
         {
             refFrameFlag &= ~VP8_ALT_REF_FLAG;
         }
@@ -2684,7 +2673,7 @@ MOS_STATUS CodechalEncodeVp8::MeKernel()
         refFrameFlag = 1;
     }
 
-    switch (pVp8PicParams->ref_frame_ctrl)
+    switch (m_vp8PicParams->ref_frame_ctrl)
     {
     case 0:
         finalRefFrameFlag = 0;
@@ -2702,23 +2691,23 @@ MOS_STATUS CodechalEncodeVp8::MeKernel()
         finalRefFrameFlag = refFrameFlag;
     }
 
-    pVp8PicParams->ref_frame_ctrl = finalRefFrameFlag;
-    bRefCtrlOptimizationDone = true;
+    m_vp8PicParams->ref_frame_ctrl = finalRefFrameFlag;
+    m_refCtrlOptimizationDone      = true;
 
     // Setup VP8 Curbe
-    meParams.pPicParams = pVp8PicParams;
-    meParams.pSeqParams = pVp8SeqParams;
+    meParams.pPicParams         = m_vp8PicParams;
+    meParams.pSeqParams         = m_vp8SeqParams;
     meParams.dwFrameWidth = m_frameWidth;
     meParams.dwFrameFieldHeight = m_frameFieldHeight;
     meParams.wPictureCodingType = m_pictureCodingType;
     meParams.b16xME = use16xMe;
-    meParams.b16xMeEnabled = b16xMeEnabled;
+    meParams.b16xMeEnabled      = m_b16XMeEnabled;
     meParams.ucKernelMode = m_kernelMode;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetMeCurbe(&meParams));
 
-    refScaledIdx = pRefList[pVp8PicParams->LastRefPic.FrameIdx]->ucScalingIdx;
-    goldScaledIdx = pRefList[pVp8PicParams->GoldenRefPic.FrameIdx]->ucScalingIdx;
-    altrefScaledIdx = pRefList[pVp8PicParams->AltRefPic.FrameIdx]->ucScalingIdx;
+    refScaledIdx    = m_refList[m_vp8PicParams->LastRefPic.FrameIdx]->ucScalingIdx;
+    goldScaledIdx   = m_refList[m_vp8PicParams->GoldenRefPic.FrameIdx]->ucScalingIdx;
+    altrefScaledIdx = m_refList[m_vp8PicParams->AltRefPic.FrameIdx]->ucScalingIdx;
 
     CODECHAL_DEBUG_TOOL(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpKernelRegion(
@@ -2761,24 +2750,22 @@ MOS_STATUS CodechalEncodeVp8::MeKernel()
         stateHeapInterface,
         kernelState));
 
-    if (bInitBrcDistortionBuffer && !use16xMe)
+    if (m_initBrcDistortionBuffer && !use16xMe)
     {
         InitBrcDistortionBuffer();
     }
 
     //Add surface states
     MOS_ZeroMemory(&meSurfaceParams, sizeof(struct CodechalVp8MeSurfaceParams));
-    meSurfaceParams.ppRefList = &pRefList[0];
-    meSurfaceParams.pLastRefPic = &pVp8PicParams->LastRefPic;
-    meSurfaceParams.pGoldenRefPic = &pVp8PicParams->GoldenRefPic;
-    meSurfaceParams.pAlternateRefPic = &pVp8PicParams->AltRefPic;
-    meSurfaceParams.ps4xMeMvDataBuffer = &s4xMEMVDataBuffer;
-    meSurfaceParams.ps16xMeMvDataBuffer = &s16xMEMVDataBuffer;
-    meSurfaceParams.psMeDistortionBuffer = &s4xMEDistortionBuffer;
+    meSurfaceParams.ppRefList = &m_refList[0];
+    meSurfaceParams.pLastRefPic = &m_vp8PicParams->LastRefPic;
+    meSurfaceParams.pGoldenRefPic = &m_vp8PicParams->GoldenRefPic;
+    meSurfaceParams.pAlternateRefPic = &m_vp8PicParams->AltRefPic;
+    meSurfaceParams.ps4xMeMvDataBuffer = &m_s4XMemvDataBuffer;
+    meSurfaceParams.ps16xMeMvDataBuffer = &m_s16XMemvDataBuffer;
+    meSurfaceParams.psMeDistortionBuffer  = &m_s4XMeDistortionBuffer;
     // Me kernel is only for P frame, no need to worry about I frame
-    meSurfaceParams.psMeBrcDistortionBuffer = bBrcEnabled ?
-        &BrcBuffers.sMeBrcDistortionBuffer :
-        &s4xMEDistortionBuffer;
+    meSurfaceParams.psMeBrcDistortionBuffer = m_brcEnabled ? &m_brcBuffers.sMeBrcDistortionBuffer : &m_s4XMeDistortionBuffer;
     meSurfaceParams.dwDownscaledWidthInMb =
         (use16xMe) ? m_downscaledWidthInMb16x : m_downscaledWidthInMb4x;
     meSurfaceParams.dwDownscaledHeightInMb =
@@ -2786,8 +2773,8 @@ MOS_STATUS CodechalEncodeVp8::MeKernel()
     meSurfaceParams.dwVerticalLineStride = m_verticalLineStride;
     meSurfaceParams.dwVerticalLineStrideOffset = m_verticalLineStrideOffset;
     meSurfaceParams.b16xMeInUse = use16xMe;
-    meSurfaceParams.b16xMeEnabled = b16xMeEnabled;
-    meSurfaceParams.RefCtrl = pVp8PicParams->ref_frame_ctrl;
+    meSurfaceParams.b16xMeEnabled              = m_b16XMeEnabled;
+    meSurfaceParams.RefCtrl                    = m_vp8PicParams->ref_frame_ctrl;
     meSurfaceParams.pMeBindingTable = &bindingTable;
     meSurfaceParams.pKernelState = kernelState;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SendMeSurfaces(&cmdBuffer, &meSurfaceParams));
@@ -2840,7 +2827,7 @@ MOS_STATUS CodechalEncodeVp8::MeKernel()
 
     if (use16xMe)
     {
-        b16xMeDone = true;
+        m_b16XMeDone = true;
     }
 
     return status;
@@ -2868,14 +2855,14 @@ MOS_STATUS CodechalEncodeVp8::MpuKernel()
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_hwInterface->GetMiInterface());
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_hwInterface->GetRenderInterface());
-    CODECHAL_ENCODE_CHK_NULL_RETURN(pRefList);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_refList);
 
     stateHeapInterface = m_hwInterface->GetRenderInterface()->m_stateHeapInterface;
     CODECHAL_ENCODE_CHK_NULL_RETURN(stateHeapInterface);
 
     encFunctionType = CODECHAL_MEDIA_STATE_MPU_FHB;
-    kernelState = &MpuKernelState;
-    bindingTable = MpuBindingTable;
+    kernelState     = &m_mpuKernelState;
+    bindingTable    = m_mpuBindingTable;
 
     //Update all the data for the key frames
     if (m_pictureCodingType == I_TYPE)
@@ -2883,28 +2870,28 @@ MOS_STATUS CodechalEncodeVp8::MpuKernel()
         MOS_ZeroMemory(&updateMpuTpuBuffersParams, sizeof(updateMpuTpuBuffersParams));
         updateMpuTpuBuffersParams.pOsInterface = m_osInterface;
         updateMpuTpuBuffersParams.dwCoeffProbsSize = COEFFS_PROPABILITIES_SIZE;
-        updateMpuTpuBuffersParams.presCurrFrameTokenProbability = &MpuTpuBuffers.resCoeffProbs;
-        updateMpuTpuBuffersParams.presHwTokenProbabilityPass1 = &MpuTpuBuffers.resRefCoeffProbs;
-        updateMpuTpuBuffersParams.presKeyFrameTokenProbability = &MpuTpuBuffers.resKeyFrameTokenProbability;
-        updateMpuTpuBuffersParams.presHwTokenProbabilityPass2 = &MpuTpuBuffers.resHwTokenProbabilityPass2;
-        updateMpuTpuBuffersParams.presRepakDecisionSurface = &MpuTpuBuffers.resRepakDecisionSurface;
+        updateMpuTpuBuffersParams.presCurrFrameTokenProbability = &m_mpuTpuBuffers.resCoeffProbs;
+        updateMpuTpuBuffersParams.presHwTokenProbabilityPass1   = &m_mpuTpuBuffers.resRefCoeffProbs;
+        updateMpuTpuBuffersParams.presKeyFrameTokenProbability  = &m_mpuTpuBuffers.resKeyFrameTokenProbability;
+        updateMpuTpuBuffersParams.presHwTokenProbabilityPass2   = &m_mpuTpuBuffers.resHwTokenProbabilityPass2;
+        updateMpuTpuBuffersParams.presRepakDecisionSurface      = &m_mpuTpuBuffers.resRepakDecisionSurface;
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(KeyFrameUpdateMpuTpuBuffer(&updateMpuTpuBuffersParams));
     }
 
-    if (!bMfxEncoderConfigCommandInitialized)
+    if (!m_mfxEncoderConfigCommandInitialized)
     {
         //Set MFX_VP8_ENCODER_CFG
         MOS_ZeroMemory(&encoderCfgParams, sizeof(encoderCfgParams));
         encoderCfgParams.bFirstPass = !(m_currPass);
-        encoderCfgParams.bBRCEnabled = bBrcEnabled ? true : false;
+        encoderCfgParams.bBRCEnabled         = m_brcEnabled ? true : false;
         encoderCfgParams.dwCfgCmdOffset = HEADER_METADATA_OFFSET;
         encoderCfgParams.dwCfgBufferSize = PICTURE_STATE_SIZE;
-        encoderCfgParams.pEncodeVP8SeqParams = pVp8SeqParams;
-        encoderCfgParams.pEncodeVP8PicParams = pVp8PicParams;
-        encoderCfgParams.pEncodeVP8QuantData = pVp8QuantData;
+        encoderCfgParams.pEncodeVP8SeqParams = m_vp8SeqParams;
+        encoderCfgParams.pEncodeVP8PicParams = m_vp8PicParams;
+        encoderCfgParams.pEncodeVP8QuantData = m_vp8QuantData;
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetMfxInterface()->InitMfxVp8EncoderCfgCmd(&MpuTpuBuffers.resPictureState, &encoderCfgParams));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetMfxInterface()->InitMfxVp8EncoderCfgCmd(&m_mpuTpuBuffers.resPictureState, &encoderCfgParams));
     }
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(stateHeapInterface->pfnRequestSshSpaceForCmdBuf(
@@ -2914,7 +2901,7 @@ MOS_STATUS CodechalEncodeVp8::MpuKernel()
         m_hwInterface->GetKernelLoadCommandSize(kernelState->KernelParams.iBTCount);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(VerifySpaceAvailable());
 
-    if (bMpuCurbeSetInBrcUpdate)
+    if (m_mpuCurbeSetInBrcUpdate)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AssignDshAndSshSpace(
             stateHeapInterface,
@@ -2943,11 +2930,11 @@ MOS_STATUS CodechalEncodeVp8::MpuKernel()
 
         // Setup VP8 Curbe
         MOS_ZeroMemory(&mpuCurbeParams, sizeof(mpuCurbeParams));
-        mpuCurbeParams.pPicParams = pVp8PicParams;
-        mpuCurbeParams.pSeqParams = pVp8SeqParams;
-        mpuCurbeParams.pVp8QuantData = pVp8QuantData;
+        mpuCurbeParams.pPicParams         = m_vp8PicParams;
+        mpuCurbeParams.pSeqParams         = m_vp8SeqParams;
+        mpuCurbeParams.pVp8QuantData      = m_vp8QuantData;
         mpuCurbeParams.ucKernelMode = m_kernelMode;
-        mpuCurbeParams.bVmeKernelDump = bVMEKernelDump;
+        mpuCurbeParams.bVmeKernelDump     = m_vmeKernelDump;
         mpuCurbeParams.wPictureCodingType = m_pictureCodingType;
         mpuCurbeParams.EncFunctionType = encFunctionType;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SetMpuCurbe(&mpuCurbeParams));
@@ -2991,26 +2978,24 @@ MOS_STATUS CodechalEncodeVp8::MpuKernel()
     mpuSurfaceParams.dwMpuBitstreamSize = MPU_BITSTREAM_SIZE;
     mpuSurfaceParams.dwTpuBitstreamSize = TPU_BITSTREAM_SIZE;
     mpuSurfaceParams.dwEntropyCostTableSize = ENTROPY_COST_TABLE_SIZE;
-    mpuSurfaceParams.dwHeaderMetaDataOffset = bBrcEnabled ? 0 : HEADER_METADATA_OFFSET;
+    mpuSurfaceParams.dwHeaderMetaDataOffset   = m_brcEnabled ? 0 : HEADER_METADATA_OFFSET;
     mpuSurfaceParams.dwTokenBitsDataSize = TOKEN_BITS_DATA_SIZE;
     mpuSurfaceParams.dwKernelDumpSize = VP8_KERNEL_DUMP_SIZE;
-    mpuSurfaceParams.bVMEKernelDump = bVMEKernelDump;
-    mpuSurfaceParams.presHistogram = &resHistogram;
-    mpuSurfaceParams.presRefModeProbability = &MpuTpuBuffers.resRefModeProbs;
-    mpuSurfaceParams.presModeProbability = &MpuTpuBuffers.resModeProbs;
-    mpuSurfaceParams.presRefTokenProbability = &MpuTpuBuffers.resRefCoeffProbs;
-    mpuSurfaceParams.presTokenProbability = &MpuTpuBuffers.resCoeffProbs;
-    mpuSurfaceParams.presFrameHeader = &resFrameHeader;
-    mpuSurfaceParams.presHeaderMetadata = bBrcEnabled ?
-        &BrcBuffers.resEncoderCfgCommandWriteBuffer :
-        &MpuTpuBuffers.resPictureState;
-    mpuSurfaceParams.presPictureState = &MpuTpuBuffers.resPictureState;
-    mpuSurfaceParams.presMpuBitstream = &MpuTpuBuffers.resMpuBitstream;
-    mpuSurfaceParams.presTpuBitstream = &MpuTpuBuffers.resTpuBitstream;
-    mpuSurfaceParams.presVmeKernelDumpBuffer = &resVmeKernelDumpBuffer;
-    mpuSurfaceParams.presEntropyCostTable = &MpuTpuBuffers.resEntropyCostTable;
-    mpuSurfaceParams.presTokenBitsData = &MpuTpuBuffers.resTokenBitsData;
-    mpuSurfaceParams.presModeCostUpdateBuffer = &resModeCostUpdateSurface;
+    mpuSurfaceParams.bVMEKernelDump           = m_vmeKernelDump;
+    mpuSurfaceParams.presHistogram            = &m_resHistogram;
+    mpuSurfaceParams.presRefModeProbability   = &m_mpuTpuBuffers.resRefModeProbs;
+    mpuSurfaceParams.presModeProbability      = &m_mpuTpuBuffers.resModeProbs;
+    mpuSurfaceParams.presRefTokenProbability  = &m_mpuTpuBuffers.resRefCoeffProbs;
+    mpuSurfaceParams.presTokenProbability     = &m_mpuTpuBuffers.resCoeffProbs;
+    mpuSurfaceParams.presFrameHeader          = &m_resFrameHeader;
+    mpuSurfaceParams.presHeaderMetadata       = m_brcEnabled ? &m_brcBuffers.resEncoderCfgCommandWriteBuffer : &m_mpuTpuBuffers.resPictureState;
+    mpuSurfaceParams.presPictureState         = &m_mpuTpuBuffers.resPictureState;
+    mpuSurfaceParams.presMpuBitstream         = &m_mpuTpuBuffers.resMpuBitstream;
+    mpuSurfaceParams.presTpuBitstream         = &m_mpuTpuBuffers.resTpuBitstream;
+    mpuSurfaceParams.presVmeKernelDumpBuffer  = &m_resVmeKernelDumpBuffer;
+    mpuSurfaceParams.presEntropyCostTable     = &m_mpuTpuBuffers.resEntropyCostTable;
+    mpuSurfaceParams.presTokenBitsData        = &m_mpuTpuBuffers.resTokenBitsData;
+    mpuSurfaceParams.presModeCostUpdateBuffer = &m_resModeCostUpdateSurface;
     mpuSurfaceParams.pKernelState = kernelState;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SendMpuSurfaces(&cmdBuffer, &mpuSurfaceParams));
@@ -3076,14 +3061,14 @@ MOS_STATUS CodechalEncodeVp8::TpuKernel()
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_hwInterface->GetMiInterface());
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_hwInterface->GetRenderInterface());
-    CODECHAL_ENCODE_CHK_NULL_RETURN(pRefList);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_refList);
 
     stateHeapInterface = m_hwInterface->GetRenderInterface()->m_stateHeapInterface;
     CODECHAL_ENCODE_CHK_NULL_RETURN(stateHeapInterface);
 
     encFunctionType = CODECHAL_MEDIA_STATE_TPU_FHB;
-    kernelState = &TpuKernelState;
-    bindingTable = TpuBindingTable;
+    kernelState     = &m_tpuKernelState;
+    bindingTable    = m_tpuBindingTable;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(stateHeapInterface->pfnRequestSshSpaceForCmdBuf(
         stateHeapInterface,
@@ -3092,7 +3077,7 @@ MOS_STATUS CodechalEncodeVp8::TpuKernel()
         m_hwInterface->GetKernelLoadCommandSize(kernelState->KernelParams.iBTCount);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(VerifySpaceAvailable());
 
-    if (bTpuCurbeSetInBrcUpdate)
+    if (m_tpuCurbeSetInBrcUpdate)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AssignDshAndSshSpace(
             stateHeapInterface,
@@ -3121,18 +3106,18 @@ MOS_STATUS CodechalEncodeVp8::TpuKernel()
 
         // Setup VP8 Curbe
         MOS_ZeroMemory(&tpuCurbeParams, sizeof(struct CodechalVp8TpuCurbeParams));
-        tpuCurbeParams.pPicParams = pVp8PicParams;
-        tpuCurbeParams.pSeqParams = pVp8SeqParams;
-        tpuCurbeParams.pVp8QuantData = pVp8QuantData;
+        tpuCurbeParams.pPicParams              = m_vp8PicParams;
+        tpuCurbeParams.pSeqParams              = m_vp8SeqParams;
+        tpuCurbeParams.pVp8QuantData           = m_vp8QuantData;
         tpuCurbeParams.ucKernelMode = m_kernelMode;
-        tpuCurbeParams.bVmeKernelDump = bVMEKernelDump;
+        tpuCurbeParams.bVmeKernelDump          = m_vmeKernelDump;
         tpuCurbeParams.wPictureCodingType = m_pictureCodingType;
         tpuCurbeParams.EncFunctionType = encFunctionType;
         tpuCurbeParams.wPicWidthInMb = m_picWidthInMb;
         tpuCurbeParams.wFieldFrameHeightInMb = m_frameFieldHeightInMb;
-        tpuCurbeParams.bRebinarizationFrameHdr = usRepakPassIterVal > 0 ? true : false;
+        tpuCurbeParams.bRebinarizationFrameHdr = m_usRepakPassIterVal > 0 ? true : false;
         // Adaptive RePak can be enabled only when RePak is enabled
-        tpuCurbeParams.bAdaptiveRePak = usRepakPassIterVal > 0 ? bAdaptiveRepakSupported : 0;
+        tpuCurbeParams.bAdaptiveRePak = m_usRepakPassIterVal > 0 ? m_adaptiveRepakSupported : 0;
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SetTpuCurbe(&tpuCurbeParams));
     }
@@ -3173,27 +3158,25 @@ MOS_STATUS CodechalEncodeVp8::TpuKernel()
     tpuSurfaceParams.dwPictureStateSize = PICTURE_STATE_SIZE;
     tpuSurfaceParams.dwMpuCurbeSize = TOKEN_BITS_DATA_SIZE;
     tpuSurfaceParams.dwHeaderMetadataSize = HEADER_METADATA_SIZE;
-    tpuSurfaceParams.dwHeaderMetaDataOffset = bBrcEnabled ? 0 : HEADER_METADATA_OFFSET;
+    tpuSurfaceParams.dwHeaderMetaDataOffset           = m_brcEnabled ? 0 : HEADER_METADATA_OFFSET;
     tpuSurfaceParams.dwKernelDumpSize = VP8_KERNEL_DUMP_SIZE;
     tpuSurfaceParams.dwRepakDecision = REPAK_DECISION_BUF_SIZE;
-    tpuSurfaceParams.bVMEKernelDump = bVMEKernelDump;
-    tpuSurfaceParams.presPakTokenStatistics = &MpuTpuBuffers.resPakTokenStatistics;
-    tpuSurfaceParams.presPakTokenUpdateFlags = &MpuTpuBuffers.resPakTokenUpdateFlags;
-    tpuSurfaceParams.presEntropyCostTable = &MpuTpuBuffers.resEntropyCostTable;
-    tpuSurfaceParams.presFrameHeader = &resFrameHeader;
-    tpuSurfaceParams.presDefaultTokenProbability = &MpuTpuBuffers.resDefaultTokenProbability;
-    tpuSurfaceParams.presPictureState = &MpuTpuBuffers.resPictureState;
-    tpuSurfaceParams.presMpuCurbeData = &MpuTpuBuffers.resTokenBitsData;
-    tpuSurfaceParams.presHeaderMetadata = bBrcEnabled ?
-        &BrcBuffers.resEncoderCfgCommandWriteBuffer :
-        &MpuTpuBuffers.resPictureState;
-    tpuSurfaceParams.presCurrFrameTokenProbability = &MpuTpuBuffers.resCoeffProbs;
-    tpuSurfaceParams.presHwTokenProbabilityPass1 = &MpuTpuBuffers.resRefCoeffProbs;
-    tpuSurfaceParams.presKeyFrameTokenProbability = &MpuTpuBuffers.resKeyFrameTokenProbability;
-    tpuSurfaceParams.presUpdatedFrameTokenProbability = &MpuTpuBuffers.resUpdatedTokenProbability;
-    tpuSurfaceParams.presHwTokenProbabilityPass2 = &MpuTpuBuffers.resHwTokenProbabilityPass2;
-    tpuSurfaceParams.presVmeKernelDumpBuffer = &resVmeKernelDumpBuffer;
-    tpuSurfaceParams.presRepakDecisionSurface = &MpuTpuBuffers.resRepakDecisionSurface;
+    tpuSurfaceParams.bVMEKernelDump                   = m_vmeKernelDump;
+    tpuSurfaceParams.presPakTokenStatistics           = &m_mpuTpuBuffers.resPakTokenStatistics;
+    tpuSurfaceParams.presPakTokenUpdateFlags          = &m_mpuTpuBuffers.resPakTokenUpdateFlags;
+    tpuSurfaceParams.presEntropyCostTable             = &m_mpuTpuBuffers.resEntropyCostTable;
+    tpuSurfaceParams.presFrameHeader                  = &m_resFrameHeader;
+    tpuSurfaceParams.presDefaultTokenProbability      = &m_mpuTpuBuffers.resDefaultTokenProbability;
+    tpuSurfaceParams.presPictureState                 = &m_mpuTpuBuffers.resPictureState;
+    tpuSurfaceParams.presMpuCurbeData                 = &m_mpuTpuBuffers.resTokenBitsData;
+    tpuSurfaceParams.presHeaderMetadata               = m_brcEnabled ? &m_brcBuffers.resEncoderCfgCommandWriteBuffer : &m_mpuTpuBuffers.resPictureState;
+    tpuSurfaceParams.presCurrFrameTokenProbability    = &m_mpuTpuBuffers.resCoeffProbs;
+    tpuSurfaceParams.presHwTokenProbabilityPass1      = &m_mpuTpuBuffers.resRefCoeffProbs;
+    tpuSurfaceParams.presKeyFrameTokenProbability     = &m_mpuTpuBuffers.resKeyFrameTokenProbability;
+    tpuSurfaceParams.presUpdatedFrameTokenProbability = &m_mpuTpuBuffers.resUpdatedTokenProbability;
+    tpuSurfaceParams.presHwTokenProbabilityPass2      = &m_mpuTpuBuffers.resHwTokenProbabilityPass2;
+    tpuSurfaceParams.presVmeKernelDumpBuffer          = &m_resVmeKernelDumpBuffer;
+    tpuSurfaceParams.presRepakDecisionSurface         = &m_mpuTpuBuffers.resRepakDecisionSurface;
     tpuSurfaceParams.pKernelState = kernelState;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SendTpuSurfaces(&cmdBuffer, &tpuSurfaceParams));
@@ -3271,9 +3254,9 @@ MOS_STATUS CodechalEncodeVp8::ExecutePictureLevel()
     MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode = m_mode;
     pipeModeSelectParams.bStreamOutEnabled = false;
-    deblockingEnable = ((pVp8PicParams->version == 0) || (pVp8PicParams->version == 1)) ? 1 : 0;
+    deblockingEnable                       = ((m_vp8PicParams->version == 0) || (m_vp8PicParams->version == 1)) ? 1 : 0;
     suppressReconPic =
-        ((!pRefList[m_currReconstructedPic.FrameIdx]->bUsedAsRef) && m_suppressReconPicSupported);
+        ((!m_refList[m_currReconstructedPic.FrameIdx]->bUsedAsRef) && m_suppressReconPicSupported);
     pipeModeSelectParams.bPreDeblockOutEnable = !deblockingEnable && !suppressReconPic;
     pipeModeSelectParams.bPostDeblockOutEnable = deblockingEnable && !suppressReconPic;
 
@@ -3285,7 +3268,7 @@ MOS_STATUS CodechalEncodeVp8::ExecutePictureLevel()
     pipeBufAddrParams.psRawSurface = m_rawSurfaceToPak;
     pipeBufAddrParams.presStreamOutBuffer = &m_resStreamOutBuffer[m_currRecycledBufIdx];
     pipeBufAddrParams.presMfdDeblockingFilterRowStoreScratchBuffer = &m_resDeblockingFilterRowStoreScratchBuffer;
-    pipeBufAddrParams.presMfdIntraRowStoreScratchBuffer = &resIntraRowStoreScratchBuffer;
+    pipeBufAddrParams.presMfdIntraRowStoreScratchBuffer            = &m_resIntraRowStoreScratchBuffer;
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetPipeBufAddr(&pipeBufAddrParams));
@@ -3298,33 +3281,33 @@ MOS_STATUS CodechalEncodeVp8::ExecutePictureLevel()
 
     if (m_pictureCodingType == P_TYPE)
     {
-        if (!CodecHal_PictureIsInvalid(pVp8PicParams->LastRefPic))
+        if (!CodecHal_PictureIsInvalid(m_vp8PicParams->LastRefPic))
         {
-            index = pVp8PicParams->LastRefPic.FrameIdx;
-            pipeBufAddrParams.presReferences[0] = &(pRefList[index]->sRefBuffer.OsResource);
+            index                               = m_vp8PicParams->LastRefPic.FrameIdx;
+            pipeBufAddrParams.presReferences[0] = &(m_refList[index]->sRefBuffer.OsResource);
         }
 
-        if (!CodecHal_PictureIsInvalid(pVp8PicParams->GoldenRefPic))
+        if (!CodecHal_PictureIsInvalid(m_vp8PicParams->GoldenRefPic))
         {
-            index = pVp8PicParams->GoldenRefPic.FrameIdx;
-            pipeBufAddrParams.presReferences[1] = &(pRefList[index]->sRefBuffer.OsResource);
+            index                               = m_vp8PicParams->GoldenRefPic.FrameIdx;
+            pipeBufAddrParams.presReferences[1] = &(m_refList[index]->sRefBuffer.OsResource);
         }
 
-        if (!CodecHal_PictureIsInvalid(pVp8PicParams->AltRefPic))
+        if (!CodecHal_PictureIsInvalid(m_vp8PicParams->AltRefPic))
         {
-            index = pVp8PicParams->AltRefPic.FrameIdx;
-            pipeBufAddrParams.presReferences[2] = &(pRefList[index]->sRefBuffer.OsResource);
+            index                               = m_vp8PicParams->AltRefPic.FrameIdx;
+            pipeBufAddrParams.presReferences[2] = &(m_refList[index]->sRefBuffer.OsResource);
         }
     }
     for (i = 0; i < CODEC_MAX_NUM_REF_FRAME_NON_AVC; i++)
     {
-        if (PicIdx[i].bValid)
+        if (m_picIdx[i].bValid)
         {
-            picIdx = PicIdx[i].ucPicIdx;
+            picIdx = m_picIdx[i].ucPicIdx;
             CodecHalGetResourceInfo(
                 m_osInterface,
-                &(pRefList[picIdx]->sRefReconBuffer));
-            pipeBufAddrParams.presReferences[i] = &(pRefList[picIdx]->sRefReconBuffer.OsResource);
+                &(m_refList[picIdx]->sRefReconBuffer));
+            pipeBufAddrParams.presReferences[i] = &(m_refList[picIdx]->sRefReconBuffer.OsResource);
         }
     }
 
@@ -3345,26 +3328,26 @@ MOS_STATUS CodechalEncodeVp8::ExecutePictureLevel()
 
     //set MFX_VP8_BSP_BUF_BASE_ADDR_STATE values
     MOS_ZeroMemory(&vp8BspBufBaseAddrParams, sizeof(vp8BspBufBaseAddrParams));
-    vp8BspBufBaseAddrParams.presFrameHeaderBuffer = &resFrameHeader;
-    vp8BspBufBaseAddrParams.presPakIntermediateBuffer = &resPakIntermediateBuffer;
+    vp8BspBufBaseAddrParams.presFrameHeaderBuffer           = &m_resFrameHeader;
+    vp8BspBufBaseAddrParams.presPakIntermediateBuffer       = &m_resPakIntermediateBuffer;
     vp8BspBufBaseAddrParams.presPakFinalFrameBuffer = &m_resBitstreamBuffer;
-    vp8BspBufBaseAddrParams.presTokenStatisticsBuffer = &MpuTpuBuffers.resPakTokenStatistics;
+    vp8BspBufBaseAddrParams.presTokenStatisticsBuffer       = &m_mpuTpuBuffers.resPakTokenStatistics;
     vp8BspBufBaseAddrParams.presBsdMpcRowStoreScratchBuffer = &m_resMPCRowStoreScratchBuffer;
     vp8BspBufBaseAddrParams.dwPakIntermediatePartition0Size = ((m_frameWidth * m_frameHeight) / 4) + INTERMEDIATE_PARTITION0_SIZE;
     vp8BspBufBaseAddrParams.dwPakIntermediateTokenSize = (m_frameWidth * m_frameHeight * 2);
-    vp8BspBufBaseAddrParams.dwPartitions = 1 << (pVp8PicParams->CodedCoeffTokenPartition);
-    vp8BspBufBaseAddrParams.presCoeffProbsBuffer = &MpuTpuBuffers.resCoeffProbs;
+    vp8BspBufBaseAddrParams.dwPartitions                    = 1 << (m_vp8PicParams->CodedCoeffTokenPartition);
+    vp8BspBufBaseAddrParams.presCoeffProbsBuffer            = &m_mpuTpuBuffers.resCoeffProbs;
 
-    if (usRepakPassIterVal > 0 &&
+    if (m_usRepakPassIterVal > 0 &&
         m_pictureCodingType == I_TYPE &&
-        usRepakPassIterVal == m_currPass)
+        m_usRepakPassIterVal == m_currPass)
     {
         // When repak enabled, for I frames during repak pass assign key frame token prob. required by kernel
-        vp8BspBufBaseAddrParams.presCoeffProbsBuffer = &MpuTpuBuffers.resKeyFrameTokenProbability;
+        vp8BspBufBaseAddrParams.presCoeffProbsBuffer = &m_mpuTpuBuffers.resKeyFrameTokenProbability;
     }
 
-    // Send command buffer header at the beginning 
-    if (!bBrcEnabled)
+    // Send command buffer header at the beginning
+    if (!m_brcEnabled)
     {
         newCommandBufferStarted = true;
     }
@@ -3374,7 +3357,7 @@ MOS_STATUS CodechalEncodeVp8::ExecutePictureLevel()
         {
             newCommandBufferStarted = true;
         }
-        else if (m_currPass == usRepakPassIterVal && usRepakPassIterVal > 0)
+        else if (m_currPass == m_usRepakPassIterVal && m_usRepakPassIterVal > 0)
         {
             newCommandBufferStarted = true;
         }
@@ -3386,9 +3369,9 @@ MOS_STATUS CodechalEncodeVp8::ExecutePictureLevel()
     }
 
     // BRC 2-4th Pass (excludes RePAK)
-    if (bBrcEnabled &&
+    if (m_brcEnabled &&
         m_currPass > 0 &&
-        (m_currPass < usRepakPassIterVal || usRepakPassIterVal == 0))
+        (m_currPass < m_usRepakPassIterVal || m_usRepakPassIterVal == 0))
     {
         // Insert conditional batch buffer end
         MOS_ZeroMemory(
@@ -3407,7 +3390,7 @@ MOS_STATUS CodechalEncodeVp8::ExecutePictureLevel()
     }
 
     // RePAK needed for both CQP and BRC
-    if ((usRepakPassIterVal > 0) && (m_currPass == usRepakPassIterVal))
+    if ((m_usRepakPassIterVal > 0) && (m_currPass == m_usRepakPassIterVal))
     {
         // Execute RePAK based on decision from TPU kernel
         // by using conditional batch buffer end command
@@ -3416,7 +3399,7 @@ MOS_STATUS CodechalEncodeVp8::ExecutePictureLevel()
             sizeof(MHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS));
 
         miConditionalBatchBufferEndParams.presSemaphoreBuffer =
-            &MpuTpuBuffers.resRepakDecisionSurface;
+            &m_mpuTpuBuffers.resRepakDecisionSurface;
         miConditionalBatchBufferEndParams.dwOffset = 0;
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(commonMiInterface->AddMiConditionalBatchBufferEndCmd(
@@ -3470,33 +3453,32 @@ MOS_STATUS CodechalEncodeVp8::ExecutePictureLevel()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(
         SetPakStatsDebugBuffer(
             &cmdBuffer,
-            &BrcBuffers.resBrcPakStatsBeforeDumpBuffer,
+            &m_brcBuffers.resBrcPakStatsBeforeDumpBuffer,
             m_currPass * 48));
 
     // Insert Batch Buffer Start command to MFX_VP8_PIC_STATE and MFX_VP8_ENCODER_CFG and BB end
 
     // Insert Batch Buffer Start command to Pic State command
     MOS_ZeroMemory(&batchBuffer, sizeof(batchBuffer));
-    batchBuffer.OsResource = MpuTpuBuffers.resPictureState;
+    batchBuffer.OsResource   = m_mpuTpuBuffers.resPictureState;
     batchBuffer.bSecondLevel = true;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(commonMiInterface->AddMiBatchBufferStartCmd(
         &cmdBuffer,
         &batchBuffer));
 
-    if (bBrcEnabled)
+    if (m_brcEnabled)
     {
         // Insert Batch Buffer Start command to MFX_VP8_ENCODER_CFG   Config States
         MOS_ZeroMemory(&batchBuffer, sizeof(batchBuffer));
-        batchBuffer.OsResource = BrcBuffers.resEncoderCfgCommandWriteBuffer;
-        if (usRepakPassIterVal == 0)
+        batchBuffer.OsResource = m_brcBuffers.resEncoderCfgCommandWriteBuffer;
+        if (m_usRepakPassIterVal == 0)
         {
             //No repak in this case
             batchBuffer.dwOffset = m_currPass * BRC_IMG_STATE_SIZE_PER_PASS;
         }
         else
         {
-            batchBuffer.dwOffset = usRepakPassIterVal == m_currPass ?
-                0 : m_currPass * BRC_IMG_STATE_SIZE_PER_PASS;
+            batchBuffer.dwOffset = m_usRepakPassIterVal == m_currPass ? 0 : m_currPass * BRC_IMG_STATE_SIZE_PER_PASS;
         }
         batchBuffer.bSecondLevel = true;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(commonMiInterface->AddMiBatchBufferStartCmd(
@@ -3600,9 +3582,9 @@ MOS_STATUS CodechalEncodeVp8::AddBBEndToPicStateCmd()
     //ADD BB End command to PIC_STATE_CMD
     MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
     lockFlagsWriteOnly.WriteOnly = 1;
-    data = (uint32_t *)m_osInterface->pfnLockResource(
+    data                         = (uint32_t *)m_osInterface->pfnLockResource(
         m_osInterface,
-        &(MpuTpuBuffers.resPictureState),
+        &(m_mpuTpuBuffers.resPictureState),
         &lockFlagsWriteOnly);
 
     if (data == nullptr)
@@ -3611,8 +3593,8 @@ MOS_STATUS CodechalEncodeVp8::AddBBEndToPicStateCmd()
         return MOS_STATUS_UNKNOWN;
     }
     data += 38;
-    *data = 0x05000000; // BATCH Buffer End command. 
-    m_osInterface->pfnUnlockResource(m_osInterface, &MpuTpuBuffers.resPictureState);
+    *data = 0x05000000; // BATCH Buffer End command.
+    m_osInterface->pfnUnlockResource(m_osInterface, &m_mpuTpuBuffers.resPictureState);
 
     return status;
 }
@@ -3635,7 +3617,7 @@ MOS_STATUS CodechalEncodeVp8::EncodeSliceLevelBrc(PMOS_COMMAND_BUFFER cmdBuffer)
 
                                                             // Read PaK statistics buffer here for next pass's use
     readBrcPakStatsParams.pHwInterface = m_hwInterface;
-    readBrcPakStatsParams.presBrcPakStatisticBuffer = &BrcBuffers.resBrcPakStatisticBuffer[0];
+    readBrcPakStatsParams.presBrcPakStatisticBuffer  = &m_brcBuffers.resBrcPakStatisticBuffer[0];
     readBrcPakStatsParams.VideoContext = m_videoContext;
     readBrcPakStatsParams.ucPass = m_currPass;
     readBrcPakStatsParams.presStatusBuffer = &m_encodeStatusBuf.resStatusBuffer;
@@ -3646,7 +3628,7 @@ MOS_STATUS CodechalEncodeVp8::EncodeSliceLevelBrc(PMOS_COMMAND_BUFFER cmdBuffer)
     CODECHAL_ENCODE_CHK_STATUS_RETURN(
         SetPakStatsDebugBuffer(
             cmdBuffer,
-            &BrcBuffers.resBrcPakStatsAfterDumpBuffer,
+            &m_brcBuffers.resBrcPakStatsAfterDumpBuffer,
             m_currPass * 48));
 
     // LOAD_REG_MEM & STORE_REG_MEM in BRC flow diagram
@@ -3657,9 +3639,9 @@ MOS_STATUS CodechalEncodeVp8::EncodeSliceLevelBrc(PMOS_COMMAND_BUFFER cmdBuffer)
 
     MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
     lockFlagsWriteOnly.WriteOnly = 1;
-    data = (uint32_t *)m_osInterface->pfnLockResource(
+    data                         = (uint32_t *)m_osInterface->pfnLockResource(
         m_osInterface,
-        &(MpuTpuBuffers.resPictureState),
+        &(m_mpuTpuBuffers.resPictureState),
         &lockFlagsWriteOnly);
 
     if (data == nullptr)
@@ -3669,7 +3651,7 @@ MOS_STATUS CodechalEncodeVp8::EncodeSliceLevelBrc(PMOS_COMMAND_BUFFER cmdBuffer)
     }
     data += 38;
     *data = 0x05000000; // BATCH Buffer End command. Remove me once kernel is fixed.
-    m_osInterface->pfnUnlockResource(m_osInterface, &MpuTpuBuffers.resPictureState);
+    m_osInterface->pfnUnlockResource(m_osInterface, &m_mpuTpuBuffers.resPictureState);
 
     // Write MFC MMIO register values to Tpu curbe (including cumulative QP & cumulative LF)
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetPakStatsInTpuCurbe(cmdBuffer));
@@ -3677,8 +3659,8 @@ MOS_STATUS CodechalEncodeVp8::EncodeSliceLevelBrc(PMOS_COMMAND_BUFFER cmdBuffer)
     CODECHAL_ENCODE_CHK_STATUS_RETURN(EndStatusReport( cmdBuffer, CODECHAL_NUM_MEDIA_STATES));
 
     // 4th BRC PAK pass go inside if statement
-    if (((usRepakPassIterVal > 0 && (m_currPass == m_numPasses - 1))) ||     // Repak enabled,  last PAK pass before Repak
-        (usRepakPassIterVal == 0 && m_currPass == m_numPasses))               // Repak disabled, last PAK pass 
+    if (((m_usRepakPassIterVal > 0 && (m_currPass == m_numPasses - 1))) ||  // Repak enabled,  last PAK pass before Repak
+        (m_usRepakPassIterVal == 0 && m_currPass == m_numPasses))           // Repak disabled, last PAK pass
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetMiInterface()->AddMiBatchBufferEnd(cmdBuffer, nullptr));
 
@@ -3749,11 +3731,11 @@ MOS_STATUS CodechalEncodeVp8::ExecuteSliceLevel()
     if (m_hwInterface->GetMfxInterface()->GetBrcNumPakPasses() == CODECHAL_ENCODE_BRC_SINGLE_PASS)  // Multi-Pass BRC: disabled by default
     {
         // BRC PAK statistics different for each pass
-        if (bBrcEnabled)
+        if (m_brcEnabled)
         {
             // Read PaK statistics buffer here for next frame's use
             readBrcPakStatsParams.pHwInterface = m_hwInterface;
-            readBrcPakStatsParams.presBrcPakStatisticBuffer = &BrcBuffers.resBrcPakStatisticBuffer[0];
+            readBrcPakStatsParams.presBrcPakStatisticBuffer = &m_brcBuffers.resBrcPakStatisticBuffer[0];
             readBrcPakStatsParams.VideoContext = m_videoContext;
 
             CODECHAL_ENCODE_CHK_STATUS_RETURN(ReadBrcPakStatistics(
@@ -3762,9 +3744,9 @@ MOS_STATUS CodechalEncodeVp8::ExecuteSliceLevel()
 
             MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
             lockFlagsWriteOnly.WriteOnly = 1;
-            data = (uint32_t *)m_osInterface->pfnLockResource(
+            data                         = (uint32_t *)m_osInterface->pfnLockResource(
                 m_osInterface,
-                &(MpuTpuBuffers.resPictureState),
+                &(m_mpuTpuBuffers.resPictureState),
                 &lockFlagsWriteOnly);
 
             if (data == nullptr)
@@ -3774,8 +3756,7 @@ MOS_STATUS CodechalEncodeVp8::ExecuteSliceLevel()
             }
             data += 38;
             *data = 0x05000000; // BATCH Buffer End command. Remove me once kernel is fixed.
-            m_osInterface->pfnUnlockResource(m_osInterface, &MpuTpuBuffers.resPictureState);
-
+            m_osInterface->pfnUnlockResource(m_osInterface, &m_mpuTpuBuffers.resPictureState);
         }
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(EndStatusReport( &cmdBuffer, CODECHAL_NUM_MEDIA_STATES));
@@ -3789,10 +3770,10 @@ MOS_STATUS CodechalEncodeVp8::ExecuteSliceLevel()
             Pak_pass.data())));
         m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBuffer, 0);
 
-        if (bBrcEnabled)
+        if (m_brcEnabled)
         {
             // RePAK waits for TPU kernel execution
-            if ((m_currPass == 0 || m_currPass == usRepakPassIterVal) &&
+            if ((m_currPass == 0 || m_currPass == m_usRepakPassIterVal) &&
                 !Mos_ResourceIsNull(&m_resSyncObjectRenderContextInUse))
             {
                 syncParams = g_cInitSyncParams;
@@ -3817,7 +3798,7 @@ MOS_STATUS CodechalEncodeVp8::ExecuteSliceLevel()
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_videoContextUsesNullHw));
 
-        if (bBrcEnabled)
+        if (m_brcEnabled)
         {
             if (m_currPass == (m_numPasses - 1) ||
                 m_currPass == (m_numPasses) &&
@@ -3842,7 +3823,7 @@ MOS_STATUS CodechalEncodeVp8::ExecuteSliceLevel()
             // since next frame render engine will always wait
             if (m_signalEnc &&
                 !Mos_ResourceIsNull(&m_resSyncObjectVideoContextInUse) &&
-                ((m_currPass == 0) || (pVp8SeqParams->GopPicSize >= 1)))
+                ((m_currPass == 0) || (m_vp8SeqParams->GopPicSize >= 1)))
             {
                 // signal semaphore
                 syncParams = g_cInitSyncParams;
@@ -3856,17 +3837,17 @@ MOS_STATUS CodechalEncodeVp8::ExecuteSliceLevel()
     else    // Multi-Pass BRC: enabled
     {
         // PAK Passes except RePak
-        if ((bBrcEnabled) &&
-            ((m_currPass < m_numPasses && usRepakPassIterVal > 0) ||        // Repak enabled
-            (m_currPass <= m_numPasses && usRepakPassIterVal == 0))     // Repak disabled
-            )
+        if ((m_brcEnabled) &&
+            ((m_currPass < m_numPasses && m_usRepakPassIterVal > 0) ||     // Repak enabled
+                (m_currPass <= m_numPasses && m_usRepakPassIterVal == 0))  // Repak disabled
+        )
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(EncodeSliceLevelBrc(&cmdBuffer));
         }
         else  // CQP PAK pass, RePak pass for CQP & BRC
         {
             // RePak pass for BRC
-            if (bBrcEnabled)
+            if (m_brcEnabled)
             {
                 uint32_t   dwOffset;
 
@@ -3877,7 +3858,7 @@ MOS_STATUS CodechalEncodeVp8::ExecuteSliceLevel()
 
                 // Read PaK statistics buffer here for next pass's use
                 readBrcPakStatsParams.pHwInterface = m_hwInterface;
-                readBrcPakStatsParams.presBrcPakStatisticBuffer = &BrcBuffers.resBrcPakStatisticBuffer[0];
+                readBrcPakStatsParams.presBrcPakStatisticBuffer = &m_brcBuffers.resBrcPakStatisticBuffer[0];
                 readBrcPakStatsParams.VideoContext = m_videoContext;
 
                 readBrcPakStatsParams.ucPass = m_currPass;
@@ -3893,9 +3874,9 @@ MOS_STATUS CodechalEncodeVp8::ExecuteSliceLevel()
             //TPU kernel call, CQP Pak pass and Repak pass below
             MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
             lockFlagsWriteOnly.WriteOnly = 1;
-            data = (uint32_t *)m_osInterface->pfnLockResource(
+            data                         = (uint32_t *)m_osInterface->pfnLockResource(
                 m_osInterface,
-                &(MpuTpuBuffers.resPictureState),
+                &(m_mpuTpuBuffers.resPictureState),
                 &lockFlagsWriteOnly);
 
             if (data == nullptr)
@@ -3904,8 +3885,8 @@ MOS_STATUS CodechalEncodeVp8::ExecuteSliceLevel()
                 return MOS_STATUS_UNKNOWN;
             }
             data += 38;
-            *data = 0x05000000; // BATCH Buffer End command. Remove me once kernel is fixed. 
-            m_osInterface->pfnUnlockResource(m_osInterface, &MpuTpuBuffers.resPictureState);
+            *data = 0x05000000; // BATCH Buffer End command. Remove me once kernel is fixed.
+            m_osInterface->pfnUnlockResource(m_osInterface, &m_mpuTpuBuffers.resPictureState);
 
             CODECHAL_ENCODE_CHK_STATUS_RETURN(EndStatusReport( &cmdBuffer, CODECHAL_NUM_MEDIA_STATES));
 
@@ -3946,58 +3927,53 @@ MOS_STATUS CodechalEncodeVp8::ExecuteSliceLevel()
     }
 
     CODECHAL_DEBUG_TOOL(
-        if (!bMmcUserFeatureUpdated)
-        {
+        if (!m_mmcUserFeatureUpdated) {
             CODECHAL_UPDATE_ENCODE_MMC_USER_FEATURE(m_reconSurface);
-            bMmcUserFeatureUpdated = true;
-        }
-    )
+            m_mmcUserFeatureUpdated = true;
+        })
 
-        // Reset parameters for next PAK execution
-        if (m_currPass == m_numPasses)
-        {
-            m_newPpsHeader = 0;
-            m_newSeqHeader = 0;
+    // Reset parameters for next PAK execution
+    if (m_currPass == m_numPasses)
+    {
+        m_newPpsHeader = 0;
+        m_newSeqHeader = 0;
         }
 
     //call the TPU kernel only once
-    if (((m_currPass == m_numPasses - 1) && usRepakPassIterVal > 0) ||   // RePAK enabled:   last PAK pass before RePAK
-        (m_currPass == m_numPasses && usRepakPassIterVal == 0))          // RePAK disabled:  last PAK pass
-    {
-
-        //call the TPU kernel
-        m_osInterface->pfnSetGpuContext(m_osInterface, m_renderContext);
-        m_osInterface->pfnResetOsStates(m_osInterface);
-
-        if (!Mos_ResourceIsNull(&m_resSyncObjectVideoContextInUse))
+        if (((m_currPass == m_numPasses - 1) && m_usRepakPassIterVal > 0) ||  // RePAK enabled:   last PAK pass before RePAK
+            (m_currPass == m_numPasses && m_usRepakPassIterVal == 0))         // RePAK disabled:  last PAK pass
         {
-            // TPU kernel waits for PAK execution
-            syncParams = g_cInitSyncParams;
-            syncParams.GpuContext = m_renderContext;
-            syncParams.presSyncResource = &m_resSyncObjectVideoContextInUse;
+            //call the TPU kernel
+            m_osInterface->pfnSetGpuContext(m_osInterface, m_renderContext);
+            m_osInterface->pfnResetOsStates(m_osInterface);
 
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnEngineWait(m_osInterface, &syncParams));
-        }
+            if (!Mos_ResourceIsNull(&m_resSyncObjectVideoContextInUse))
+            {
+                // TPU kernel waits for PAK execution
+                syncParams                  = g_cInitSyncParams;
+                syncParams.GpuContext       = m_renderContext;
+                syncParams.presSyncResource = &m_resSyncObjectVideoContextInUse;
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(TpuKernel());
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnEngineWait(m_osInterface, &syncParams));
+            }
 
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(TpuKernel());
 
-        // if repak is enabled, then need to signal after TPU kernel execution
-        // m_numPasses >= 1 even when RePak is disabled due to multi-pass BRC
-        // fix needed since P frame RePAK can be disabled sometimes
-        if (!Mos_ResourceIsNull(&m_resSyncObjectRenderContextInUse))
-        {
+            // if repak is enabled, then need to signal after TPU kernel execution
+            // m_numPasses >= 1 even when RePak is disabled due to multi-pass BRC
+            // fix needed since P frame RePAK can be disabled sometimes
+            if (!Mos_ResourceIsNull(&m_resSyncObjectRenderContextInUse))
+            {
+                // TPU kernel signals RePAK after execution
+                syncParams                  = g_cInitSyncParams;
+                syncParams.GpuContext       = m_renderContext;
+                syncParams.presSyncResource = &m_resSyncObjectRenderContextInUse;
 
-            // TPU kernel signals RePAK after execution
-            syncParams = g_cInitSyncParams;
-            syncParams.GpuContext = m_renderContext;
-            syncParams.presSyncResource = &m_resSyncObjectRenderContextInUse;
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnEngineSignal(m_osInterface, &syncParams));
+            }
 
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnEngineSignal(m_osInterface, &syncParams));
-        }
-
-        m_osInterface->pfnSetGpuContext(m_osInterface, m_videoContext);
-        m_osInterface->pfnResetOsStates(m_osInterface);
+            m_osInterface->pfnSetGpuContext(m_osInterface, m_videoContext);
+            m_osInterface->pfnResetOsStates(m_osInterface);
     }
 
     return status;
@@ -4213,7 +4189,7 @@ MOS_STATUS CodechalEncodeVp8::GetStatusReport(
     CODECHAL_ENCODE_CHK_NULL_RETURN(pEncodeStatus);
     CODECHAL_ENCODE_CHK_NULL_RETURN(pEncodeStatusReport);
 
-    pakBuffer = &BrcBuffers.resBrcPakStatisticBuffer[0];
+    pakBuffer = &m_brcBuffers.resBrcPakStatisticBuffer[0];
 
     MOS_ZeroMemory(&lockFlagsReadOnly, sizeof(MOS_LOCK_PARAMS));
     lockFlagsReadOnly.ReadOnly = 1;
@@ -4261,8 +4237,7 @@ MOS_STATUS CodechalEncodeVp8::SendBrcUpdateSurfaces(
     CODECHAL_ENCODE_CHK_NULL_RETURN(params);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pMbEncKernelState);
 
-
-    vp8BrcUpdateBindingTable = &BrcUpdateBindingTable;
+    vp8BrcUpdateBindingTable = &m_brcUpdateBindingTable;
     stateHeapInterface = m_hwInterface->GetRenderInterface()->m_stateHeapInterface;
     kernelState = params->pKernelState;
 
@@ -4390,14 +4365,14 @@ MOS_STATUS CodechalEncodeVp8::SendBrcUpdateSurfaces(
 
     // 9. BRC Mpu CURBE Buffer - read only
     size = MOS_ALIGN_CEIL(
-        MpuKernelState.KernelParams.iCurbeLength,
+        m_mpuKernelState.KernelParams.iCurbeLength,
         stateHeapInterface->pStateHeapInterface->GetCurbeAlignment());
     MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
-    CODECHAL_ENCODE_CHK_NULL_RETURN(dsh = MpuKernelState.m_dshRegion.GetResource());
+    CODECHAL_ENCODE_CHK_NULL_RETURN(dsh = m_mpuKernelState.m_dshRegion.GetResource());
     surfaceCodecParams.presBuffer = dsh;
     surfaceCodecParams.dwOffset =
-        MpuKernelState.m_dshRegion.GetOffset() +
-        MpuKernelState.dwCurbeOffset;
+        m_mpuKernelState.m_dshRegion.GetOffset() +
+        m_mpuKernelState.dwCurbeOffset;
     surfaceCodecParams.dwSize = size;
     surfaceCodecParams.dwBindingTableOffset = vp8BrcUpdateBindingTable->dwBrcMpuCurbeReadBuffer;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
@@ -4409,11 +4384,11 @@ MOS_STATUS CodechalEncodeVp8::SendBrcUpdateSurfaces(
     // 10. BRC Mpu CURBE Buffer - write only
     MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
     memset(&dsh, 0, sizeof(dsh));
-    CODECHAL_ENCODE_CHK_NULL_RETURN(dsh = MpuKernelState.m_dshRegion.GetResource());
+    CODECHAL_ENCODE_CHK_NULL_RETURN(dsh = m_mpuKernelState.m_dshRegion.GetResource());
     surfaceCodecParams.presBuffer = dsh;
     surfaceCodecParams.dwOffset =
-        MpuKernelState.m_dshRegion.GetOffset() +
-        MpuKernelState.dwCurbeOffset;
+        m_mpuKernelState.m_dshRegion.GetOffset() +
+        m_mpuKernelState.dwCurbeOffset;
     surfaceCodecParams.dwSize = size;
     surfaceCodecParams.dwBindingTableOffset = vp8BrcUpdateBindingTable->dwBrcMpuCurbeWriteData;
     surfaceCodecParams.bRenderTarget = true;
@@ -4426,15 +4401,15 @@ MOS_STATUS CodechalEncodeVp8::SendBrcUpdateSurfaces(
 
     // 11. BRC Tpu CURBE Buffer - read only
     size = MOS_ALIGN_CEIL(
-        TpuKernelState.KernelParams.iCurbeLength,
+        m_tpuKernelState.KernelParams.iCurbeLength,
         stateHeapInterface->pStateHeapInterface->GetCurbeAlignment());
     MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
     memset(&dsh, 0, sizeof(dsh));
-    CODECHAL_ENCODE_CHK_NULL_RETURN(dsh = TpuKernelState.m_dshRegion.GetResource());
+    CODECHAL_ENCODE_CHK_NULL_RETURN(dsh = m_tpuKernelState.m_dshRegion.GetResource());
     surfaceCodecParams.presBuffer = dsh;
     surfaceCodecParams.dwOffset =
-        TpuKernelState.m_dshRegion.GetOffset() +
-        TpuKernelState.dwCurbeOffset;
+        m_tpuKernelState.m_dshRegion.GetOffset() +
+        m_tpuKernelState.dwCurbeOffset;
     surfaceCodecParams.dwSize = size;
     surfaceCodecParams.dwBindingTableOffset = vp8BrcUpdateBindingTable->dwBrcTpuCurbeReadBuffer;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
@@ -4446,11 +4421,11 @@ MOS_STATUS CodechalEncodeVp8::SendBrcUpdateSurfaces(
     // 12. BRC Tpu CURBE Buffer - write only
     MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
     memset(&dsh, 0, sizeof(dsh));
-    CODECHAL_ENCODE_CHK_NULL_RETURN(dsh = TpuKernelState.m_dshRegion.GetResource());
+    CODECHAL_ENCODE_CHK_NULL_RETURN(dsh = m_tpuKernelState.m_dshRegion.GetResource());
     surfaceCodecParams.presBuffer = dsh;
     surfaceCodecParams.dwOffset =
-        TpuKernelState.m_dshRegion.GetOffset() +
-        TpuKernelState.dwCurbeOffset;
+        m_tpuKernelState.m_dshRegion.GetOffset() +
+        m_tpuKernelState.dwCurbeOffset;
     surfaceCodecParams.dwSize = size;
     surfaceCodecParams.dwBindingTableOffset = vp8BrcUpdateBindingTable->dwBrcTpuCurbeWriteData;
     surfaceCodecParams.bRenderTarget = true;
@@ -4713,7 +4688,7 @@ MOS_STATUS CodechalEncodeVp8::SendTpuSurfaces(
     CODECHAL_ENCODE_CHK_NULL_RETURN(params);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pKernelState);
 
-    vp8TpuBindingTable = &TpuBindingTable;
+    vp8TpuBindingTable = &m_tpuBindingTable;
 
     kernelState = params->pKernelState;
 
@@ -5440,13 +5415,13 @@ MOS_STATUS CodechalEncodeVp8::SetPakStatsInTpuCurbe(PMOS_COMMAND_BUFFER cmdBuffe
     CODECHAL_ENCODE_CHK_COND_RETURN((m_vdboxIndex > m_hwInterface->GetMfxInterface()->GetMaxVdboxIndex()), "ERROR - vdbox index exceed the maximum");
     mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
 
-    CODECHAL_ENCODE_CHK_NULL_RETURN(dsh = TpuKernelState.m_dshRegion.GetResource());
+    CODECHAL_ENCODE_CHK_NULL_RETURN(dsh = m_tpuKernelState.m_dshRegion.GetResource());
     presTpuCurbeBuffer = dsh;
     CODECHAL_ENCODE_CHK_NULL_RETURN(presTpuCurbeBuffer);
 
     baseOffset =
-        TpuKernelState.m_dshRegion.GetOffset() +
-        TpuKernelState.dwCurbeOffset;
+        m_tpuKernelState.m_dshRegion.GetOffset() +
+        m_tpuKernelState.dwCurbeOffset;
 
     MOS_ZeroMemory(&storeDataParams, sizeof(storeDataParams));
     storeDataParams.pOsResource = presTpuCurbeBuffer;
@@ -5615,7 +5590,7 @@ MOS_STATUS CodechalEncodeVp8::DumpVp8EncodeSeqParams(
         {
             std::ofstream ofs(m_debugInterface->m_ddiFileName, std::ios::app);
             ofs << "SeqParamFile"
-                << " = \"" << m_debugInterface->sFileName << "\"" << std::endl;
+                << " = \"" << m_debugInterface->m_fileName << "\"" << std::endl;
             ofs.close();
         }
     }

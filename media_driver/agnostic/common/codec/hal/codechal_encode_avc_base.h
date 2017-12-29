@@ -1729,27 +1729,17 @@ public:
     bool                                        m_crePrefetchEnable = false;              //!< Enable CRE prefetch flag
     bool                                        m_tlbPrefetchEnable = false;              //!< Enable TLB prefetch flag
 
-    const uint8_t CODECHAL_ENCODE_AVC_SFD_CostTable_P_FRAME[CODEC_AVC_NUM_QP] =
-    {
-        44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 60, 60, 60, 60,
-        73, 73, 73, 76, 76, 76, 88, 89, 89, 91, 92, 93, 104, 104, 106, 107, 108, 109, 120,
-        120, 122, 123, 124, 125, 136, 136, 138, 139, 140, 141, 143, 143
-    };
+    const uint8_t m_codechalEncodeAvcSfdCostTablePFrame[CODEC_AVC_NUM_QP] =
+        {
+            44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 60, 60, 60, 60, 73, 73, 73, 76, 76, 76, 88, 89, 89, 91, 92, 93, 104, 104, 106, 107, 108, 109, 120, 120, 122, 123, 124, 125, 136, 136, 138, 139, 140, 141, 143, 143};
 
-    const uint8_t CODECHAL_ENCODE_AVC_SFD_CostTable_B_FRAME[CODEC_AVC_NUM_QP] =
-    {
-        57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 73, 73, 73, 73,
-        77, 77, 77, 89, 89, 89, 91, 93, 93, 95, 105, 106, 107, 108, 110, 111, 121, 122,
-        123, 124, 125, 127, 137, 138, 139, 140, 142, 143, 143, 143, 143, 143
-    };
+    const uint8_t m_codechalEncodeAvcSfdCostTableBFrame[CODEC_AVC_NUM_QP] =
+        {
+            57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 73, 73, 73, 73, 77, 77, 77, 89, 89, 89, 91, 93, 93, 95, 105, 106, 107, 108, 110, 111, 121, 122, 123, 124, 125, 127, 137, 138, 139, 140, 142, 143, 143, 143, 143, 143};
 
-    const uint8_t CODECHAL_ENCODE_AVC_SFD_CostTable_VDEnc[CODEC_AVC_NUM_QP] =
-    {
-        45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
-        47, 56, 57, 59, 44, 45, 47, 56, 44, 47, 47, 45, 47,
-        47, 47, 47, 45, 47, 47, 56, 47, 47, 47, 47, 47, 47,
-        47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47
-    };
+    const uint8_t m_codechalEncodeAvcSfdCostTableVdEnc[CODEC_AVC_NUM_QP] =
+        {
+            45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 47, 56, 57, 59, 44, 45, 47, 56, 44, 47, 47, 45, 47, 47, 47, 47, 45, 47, 47, 56, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47};
 
 #if USE_CODECHAL_DEBUG_TOOL
 protected:
@@ -1913,7 +1903,7 @@ protected:
         PMOS_COMMAND_BUFFER cmdBuffer,
         PMHW_BATCH_BUFFER   secondLevelBatchBuffer) { return MOS_STATUS_SUCCESS; }
 
-    EncodeAvcPar *avcPar = nullptr;            //!< AVC PAR parameters
+    EncodeAvcPar *m_avcPar = nullptr;  //!< AVC PAR parameters
 #endif
 
     //!

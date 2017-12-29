@@ -436,14 +436,13 @@ public:
     //! \return   bool
     //!           true if Olp needed, else false
     //!
-    bool IsOlpNeeded() { return bOlpNeeded; };
+    bool IsOlpNeeded() { return m_olpNeeded; };
 
-
-    PCODEC_VC1_PIC_PARAMS           pVc1PicParams       = nullptr;              //!< VC1 Picture Params
-    MOS_SURFACE                     sDestSurface;                               //!< Pointer to MOS_SURFACE of render surface
-    PMOS_RESOURCE                   presReferences[CODEC_MAX_NUM_REF_FRAME_NON_AVC];    //!< Reference Resources Handle list
-    bool                            bDeblockingEnabled   = false;               //!< Indicator of deblocking enabling
-    bool                            bUnequalFieldWaInUse = false;               //!< Indicator of Unequal Field WA
+    PCODEC_VC1_PIC_PARAMS m_vc1PicParams = nullptr;                           //!< VC1 Picture Params
+    MOS_SURFACE           m_destSurface;                                      //!< Pointer to MOS_SURFACE of render surface
+    PMOS_RESOURCE         m_presReferences[CODEC_MAX_NUM_REF_FRAME_NON_AVC];  //!< Reference Resources Handle list
+    bool                  m_deblockingEnabled   = false;                      //!< Indicator of deblocking enabling
+    bool                  m_unequalFieldWaInUse = false;                      //!< Indicator of Unequal Field WA
 
 protected:
     //!
@@ -712,63 +711,63 @@ protected:
         int16_t                 *packedChromaMv);
 
     // Parameters passed by application
-    uint16_t                        u16PicWidthInMb         = 0;                    //!< Picture Width in MB width count
-    uint16_t                        u16PicHeightInMb        = 0;                    //!< Picture Height in MB height count
-    bool                            bIntelEntrypointInUse   = false;                //!< Indicator of using a Intel-specific entrypoint.
-    bool                            bShortFormatInUse       = false;                //!< Short format slice data
-    bool                            bVC1OddFrameHeight      = false;                //!< VC1 Odd Frame Height
-    uint32_t                        u32DataSize             = 0;                    //!< Size of the data contained in presDataBuffer
-    uint32_t                        u32DataOffset           = 0;                    //!< Offset of the data contained in presDataBuffer
-    uint32_t                        u32NumSlices            = 0;                    //!< [VLD mode] Number of slices to be decoded
-    uint32_t                        u32NumMacroblocks       = 0;                    //!< [IT mode] Number of MBs to be decoded
-    uint32_t                        u32NumMacroblocksUV     = 0;                    //!< [IT mode] Number of UV MBs to be decoded
-    PCODEC_VC1_SLICE_PARAMS         pVc1SliceParams         = nullptr;              //!< VC1 Slice Params
-    PCODEC_VC1_MB_PARAMS            pVc1MbParams            = nullptr;              //!< VC1 Macro Block Params
-    MOS_SURFACE                     sDeblockSurface;                                //!< Deblock Surface
-    MOS_RESOURCE                    resDataBuffer;                                  //!< Handle of residual difference surface
-    MOS_RESOURCE                    resBitplaneBuffer;                              //!< Handle of Bitplane buffer
-    uint8_t*                        pDeblockDataBuffer      = nullptr;              //!< Pointer to the deblock data
+    uint16_t                m_picWidthInMb         = 0;        //!< Picture Width in MB width count
+    uint16_t                m_picHeightInMb        = 0;        //!< Picture Height in MB height count
+    bool                    m_intelEntrypointInUse = false;    //!< Indicator of using a Intel-specific entrypoint.
+    bool                    m_shortFormatInUse     = false;    //!< Short format slice data
+    bool                    m_vc1OddFrameHeight    = false;    //!< VC1 Odd Frame Height
+    uint32_t                m_dataSize             = 0;        //!< Size of the data contained in presDataBuffer
+    uint32_t                m_dataOffset           = 0;        //!< Offset of the data contained in presDataBuffer
+    uint32_t                m_numSlices            = 0;        //!< [VLD mode] Number of slices to be decoded
+    uint32_t                m_numMacroblocks       = 0;        //!< [IT mode] Number of MBs to be decoded
+    uint32_t                m_numMacroblocksUv     = 0;        //!< [IT mode] Number of UV MBs to be decoded
+    PCODEC_VC1_SLICE_PARAMS m_vc1SliceParams       = nullptr;  //!< VC1 Slice Params
+    PCODEC_VC1_MB_PARAMS    m_vc1MbParams          = nullptr;  //!< VC1 Macro Block Params
+    MOS_SURFACE             m_deblockSurface;                  //!< Deblock Surface
+    MOS_RESOURCE            m_resDataBuffer;                   //!< Handle of residual difference surface
+    MOS_RESOURCE            m_resBitplaneBuffer;               //!< Handle of Bitplane buffer
+    uint8_t *               m_deblockDataBuffer = nullptr;     //!< Pointer to the deblock data
 
-                                                                                    // Internally maintained
-    MOS_RESOURCE                    resMfdDeblockingFilterRowStoreScratchBuffer;    //!< Handle of MFD Deblocking Filter Row Store Scratch data surface
-    MOS_RESOURCE                    resBsdMpcRowStoreScratchBuffer;                 //!< Handle of BSD/MPC Row Store Scratch data surface
-    MOS_RESOURCE                    resVc1BsdMvData[CODECHAL_DECODE_VC1_DMV_MAX];   //!< Handle of VC1 BSD MV Data
-    PCODECHAL_VC1_VLD_SLICE_RECORD  pVldSliceRecord         = nullptr;              //!< [VLD mode] Slice record
-    PCODEC_REF_LIST                 pVc1RefList[CODECHAL_NUM_UNCOMPRESSED_SURFACE_VC1]; //!< VC1 Reference List
-    MOS_RESOURCE                    resSyncObject;                                  //!< Handle of Sync Object
-    MOS_RESOURCE                    resPrivateBistreamBuffer;                       //!< Handle of Private Bistream Buffer
-    uint32_t                        u32PrivateBistreamBufferSize    = 0;            //!< Size of Private Bistream Buffer
-    CODECHAL_DECODE_VC1_BITSTREAM   Bitstream;                                      //!< VC1 Bitstream
+    // Internally maintained
+    MOS_RESOURCE                   m_resMfdDeblockingFilterRowStoreScratchBuffer;        //!< Handle of MFD Deblocking Filter Row Store Scratch data surface
+    MOS_RESOURCE                   m_resBsdMpcRowStoreScratchBuffer;                     //!< Handle of BSD/MPC Row Store Scratch data surface
+    MOS_RESOURCE                   m_resVc1BsdMvData[CODECHAL_DECODE_VC1_DMV_MAX];       //!< Handle of VC1 BSD MV Data
+    PCODECHAL_VC1_VLD_SLICE_RECORD m_vldSliceRecord = nullptr;                           //!< [VLD mode] Slice record
+    PCODEC_REF_LIST                m_vc1RefList[CODECHAL_NUM_UNCOMPRESSED_SURFACE_VC1];  //!< VC1 Reference List
+    MOS_RESOURCE                   m_resSyncObject;                                      //!< Handle of Sync Object
+    MOS_RESOURCE                   m_resPrivateBistreamBuffer;                           //!< Handle of Private Bistream Buffer
+    uint32_t                       m_privateBistreamBufferSize = 0;                      //!< Size of Private Bistream Buffer
+    CODECHAL_DECODE_VC1_BITSTREAM  m_bitstream;                                          //!< VC1 Bitstream
     // PCODECHAL_DECODE_VC1_BITSTREAM  pBitstream;                                     //!< Pointer to Bitstream
 
-    uint16_t                        u16PrevAnchorPictureTFF = 0;                    //!< Previous Anchor Picture Top Field First(TFF)
-    bool                            bPrevEvenAnchorPictureIsP = false;              //!< Indicator of Previous Even Anchor Picture P frame
-    bool                            bPrevOddAnchorPictureIsP = false;               //!< Indicator of Previous Odd Anchor Picture P frame
-    uint16_t                        u16ReferenceDistance    = 0;                    //!< REFDIST.
+    uint16_t m_prevAnchorPictureTff     = 0;      //!< Previous Anchor Picture Top Field First(TFF)
+    bool     m_prevEvenAnchorPictureIsP = false;  //!< Indicator of Previous Even Anchor Picture P frame
+    bool     m_prevOddAnchorPictureIsP  = false;  //!< Indicator of Previous Odd Anchor Picture P frame
+    uint16_t m_referenceDistance        = 0;      //!< REFDIST.
 
-                                                                                    // OLP related
-    MHW_KERNEL_STATE                OlpKernelState;                                 //!< Olp Kernel State
-    uint8_t*                        OlpKernelBase           = nullptr;              //!< Pointer to Kernel Base Address
-    uint32_t                        OlpKernelSize           = 0;                    //!< Olp Kernel Size
-    bool                            bOlpNeeded              = false;                //!< Indicator if Olp Needed
-    uint16_t                        u16OlpPicWidthInMb      = 0;                    //!< Width of Olp Pic in Macro block
-    uint16_t                        u16OlpPicHeightInMb     = 0;                    //!< Height of Olp Pic in Macro block
-    uint32_t                        u32OlpCurbeStaticDataLength = 0;                //!< Olp Curbe Static Data Length
-    uint32_t                        u32OlpDshSize           = 0;                    //!< Olp DSH Size
+    // OLP related
+    MHW_KERNEL_STATE m_olpKernelState;                      //!< Olp Kernel State
+    uint8_t *        m_olpKernelBase            = nullptr;  //!< Pointer to Kernel Base Address
+    uint32_t         m_olpKernelSize            = 0;        //!< Olp Kernel Size
+    bool             m_olpNeeded                = false;    //!< Indicator if Olp Needed
+    uint16_t         m_olpPicWidthInMb          = 0;        //!< Width of Olp Pic in Macro block
+    uint16_t         m_olpPicHeightInMb         = 0;        //!< Height of Olp Pic in Macro block
+    uint32_t         m_olpCurbeStaticDataLength = 0;        //!< Olp Curbe Static Data Length
+    uint32_t         m_olpDshSize               = 0;        //!< Olp DSH Size
 
-                                                                                    // IT mode related
-    MHW_BATCH_BUFFER                ItObjectBatchBuffer;                            //!< IT mode Object Batch Buffer
-    uint8_t                         bFieldPolarity          = 0;                    //!< Field Polarity Offset
+    // IT mode related
+    MHW_BATCH_BUFFER m_itObjectBatchBuffer;  //!< IT mode Object Batch Buffer
+    uint8_t          m_fieldPolarity = 0;    //!< Field Polarity Offset
 
-    MOS_SURFACE                     sUnequalFieldSurface[CODECHAL_DECODE_VC1_UNEQUAL_FIELD_WA_SURFACES];        //!< Handle of Unequal Field Surface
-    uint8_t                         u8UnequalFieldRefListIdx[CODECHAL_DECODE_VC1_UNEQUAL_FIELD_WA_SURFACES];    //!< Reference list of Unequal Field Surface
-    uint8_t                         u8UnequalFieldSurfaceForBType = 0;              //!< Unequal Field Surface Index for B frame
-    uint8_t                         u8CurrUnequalFieldSurface     = 0;              //!< Current Unequal Field Surface Index
+    MOS_SURFACE m_unequalFieldSurface[CODECHAL_DECODE_VC1_UNEQUAL_FIELD_WA_SURFACES];     //!< Handle of Unequal Field Surface
+    uint8_t     m_unequalFieldRefListIdx[CODECHAL_DECODE_VC1_UNEQUAL_FIELD_WA_SURFACES];  //!< Reference list of Unequal Field Surface
+    uint8_t     m_unequalFieldSurfaceForBType = 0;                                        //!< Unequal Field Surface Index for B frame
+    uint8_t     m_currUnequalFieldSurface     = 0;                                        //!< Current Unequal Field Surface Index
 
     // HuC copy related
-    bool                            bHuCCopyInUse;    //!< a sync flag used when huc copy and decoder run in the different VDBOX
-    MOS_RESOURCE                    resSyncObjectWaContextInUse;       //!< signals on the video WA context
-    MOS_RESOURCE                    resSyncObjectVideoContextInUse;    //!< signals on the video context
+    bool         m_huCCopyInUse;                    //!< a sync flag used when huc copy and decoder run in the different VDBOX
+    MOS_RESOURCE m_resSyncObjectWaContextInUse;     //!< signals on the video WA context
+    MOS_RESOURCE m_resSyncObjectVideoContextInUse;  //!< signals on the video context
 
 private:
     //!

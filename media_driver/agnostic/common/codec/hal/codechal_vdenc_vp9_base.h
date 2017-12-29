@@ -1629,12 +1629,12 @@ public:
     static constexpr uint16_t m_cmd2Size = 148;
 
     // Parameters passed from application
-    PCODEC_VP9_ENCODE_SEQUENCE_PARAMS           pVp9SeqParams = nullptr;                        //!< Pointer to sequence parameters
-    PCODEC_VP9_ENCODE_PIC_PARAMS                pVp9PicParams = nullptr;                        //!< Pointer to picture parameters
-    PCODEC_VP9_ENCODE_SEGMENT_PARAMS            pVp9SegmentParams = nullptr;                    //!< Pointer to segment parameters
+    PCODEC_VP9_ENCODE_SEQUENCE_PARAMS m_vp9SeqParams     = nullptr;  //!< Pointer to sequence parameters
+    PCODEC_VP9_ENCODE_PIC_PARAMS      m_vp9PicParams     = nullptr;  //!< Pointer to picture parameters
+    PCODEC_VP9_ENCODE_SEGMENT_PARAMS  m_vp9SegmentParams = nullptr;  //!< Pointer to segment parameters
 
     CODEC_PIC_ID                                m_picIdx[CODEC_VP9_NUM_REF_FRAMES];
-    PCODEC_REF_LIST                             pRefList[m_numUncompressedSurface];
+    PCODEC_REF_LIST                             m_refList[m_numUncompressedSurface];
     PCODECHAL_NAL_UNIT_PARAMS*                  m_nalUnitParams = nullptr;
     uint32_t                                    m_numNalUnit = 0;
 
@@ -1663,45 +1663,45 @@ public:
     uint8_t                                     m_dysCurrFrameFlag = 0;
     uint32_t                                    m_vdencPicStateSecondLevelBatchBufferSize = 0;
 
-    MOS_RESOURCE                                resDeblockingFilterLineBuffer;
-    MOS_RESOURCE                                resDeblockingFilterTileLineBuffer;
-    MOS_RESOURCE                                resDeblockingFilterTileColumnBuffer;
-    MOS_RESOURCE                                resMetadataLineBuffer;
-    MOS_RESOURCE                                resMetadataTileLineBuffer;
-    MOS_RESOURCE                                resMetadataTileColumnBuffer;
-    MOS_RESOURCE                                resProbBuffer[CODEC_VP9_NUM_CONTEXTS];
-    MOS_RESOURCE                                resSegmentIdBuffer;
-    MOS_RESOURCE                                resHvcLineRowstoreBuffer; // Handle of HVC Line Row Store surface
-    MOS_RESOURCE                                resHvcTileRowstoreBuffer; // Handle of HVC Tile Row Store surface
-    MOS_RESOURCE                                resProbabilityDeltaBuffer;
-    MOS_RESOURCE                                resTileRecordStrmOutBuffer;
-    MOS_RESOURCE                                resCuStatsStrmOutBuffer;
-    MOS_RESOURCE                                resCompressedHeaderBuffer;
-    MOS_RESOURCE                                resProbabilityCounterBuffer;
-    MOS_RESOURCE                                resModeDecision[2];
-    MOS_RESOURCE                                resFrameStatStreamOutBuffer;
-    MOS_RESOURCE                                resSseSrcPixelRowStoreBuffer;
+    MOS_RESOURCE m_resDeblockingFilterLineBuffer;
+    MOS_RESOURCE m_resDeblockingFilterTileLineBuffer;
+    MOS_RESOURCE m_resDeblockingFilterTileColumnBuffer;
+    MOS_RESOURCE m_resMetadataLineBuffer;
+    MOS_RESOURCE m_resMetadataTileLineBuffer;
+    MOS_RESOURCE m_resMetadataTileColumnBuffer;
+    MOS_RESOURCE m_resProbBuffer[CODEC_VP9_NUM_CONTEXTS];
+    MOS_RESOURCE m_resSegmentIdBuffer;
+    MOS_RESOURCE m_resHvcLineRowstoreBuffer;  // Handle of HVC Line Row Store surface
+    MOS_RESOURCE m_resHvcTileRowstoreBuffer;  // Handle of HVC Tile Row Store surface
+    MOS_RESOURCE m_resProbabilityDeltaBuffer;
+    MOS_RESOURCE m_resTileRecordStrmOutBuffer;
+    MOS_RESOURCE m_resCuStatsStrmOutBuffer;
+    MOS_RESOURCE m_resCompressedHeaderBuffer;
+    MOS_RESOURCE m_resProbabilityCounterBuffer;
+    MOS_RESOURCE m_resModeDecision[2];
+    MOS_RESOURCE m_resFrameStatStreamOutBuffer;
+    MOS_RESOURCE m_resSseSrcPixelRowStoreBuffer;
 
     bool                                        m_clearAllToKey[CODEC_VP9_NUM_CONTEXTS] = { false };
-    bool                                        m_IsPreCtx0InterProbSaved = false;
+    bool                                        m_isPreCtx0InterProbSaved                             = false;
     uint8_t                                     m_preCtx0InterProbSaved[CODECHAL_VP9_INTER_PROB_SIZE] = { 0 };
 
-    HucPrevFrameInfo                            PrevFrameInfo;
+    HucPrevFrameInfo m_prevFrameInfo;
 
     uint8_t                                     m_contextFrameTypes[CODEC_VP9_NUM_CONTEXTS] = { 0 };
     uint8_t                                     m_currMvTemporalBufferIndex = 0;
 
     bool                                        m_hucEnabled = false;
     bool                                        m_segmentMapAllocated = false;
-    MOS_RESOURCE                                resHucProbDmemBuffer[2];
-    MOS_RESOURCE                                resHucDefaultProbBuffer;
-    MOS_RESOURCE                                resHucProbOutputBuffer;
-    MOS_RESOURCE                                resHucPakInsertUncompressedHeaderReadBuffer;
-    MOS_RESOURCE                                resHucPakInsertUncompressedHeaderWriteBuffer;
-    MOS_RESOURCE                                resHucPakMmioBuffer;
-    MOS_RESOURCE                                resHucDebugOutputBuffer;
-    MOS_SURFACE                                 sMbSegmentMapSurface;
-    MOS_SURFACE                                 sOutput16x16InterModes;
+    MOS_RESOURCE                                m_resHucProbDmemBuffer[2];
+    MOS_RESOURCE                                m_resHucDefaultProbBuffer;
+    MOS_RESOURCE                                m_resHucProbOutputBuffer;
+    MOS_RESOURCE                                m_resHucPakInsertUncompressedHeaderReadBuffer;
+    MOS_RESOURCE                                m_resHucPakInsertUncompressedHeaderWriteBuffer;
+    MOS_RESOURCE                                m_resHucPakMmioBuffer;
+    MOS_RESOURCE                                m_resHucDebugOutputBuffer;
+    MOS_SURFACE                                 m_mbSegmentMapSurface;
+    MOS_SURFACE                                 m_output16X16InterModes;
 
     uint32_t                                    m_rePakThreshold[CODEC_VP9_QINDEX_RANGE] = { 0 };
 
@@ -1751,18 +1751,18 @@ public:
     uint32_t                                    m_defaultHucCmdsSize = 0;
     uint32_t                                    m_defaultHucPatchListSize = 0;
 
-    MOS_RESOURCE                                resVdencIntraRowStoreScratchBuffer; // Handle of intra row store surface
-    MOS_RESOURCE                                resVdencBrcStatsBuffer;
-    MOS_RESOURCE                                resVdencSegmentMapStreamOut;
-    MOS_RESOURCE                                resVdencPictureState2ndLevelBatchBufferRead[CODECHAL_VP9_ENCODE_RECYCLED_BUFFER_NUM];
-    MOS_RESOURCE                                resVdencPictureState2ndLevelBatchBufferWrite[CODECHAL_VP9_ENCODE_RECYCLED_BUFFER_NUM];
+    MOS_RESOURCE                                m_resVdencIntraRowStoreScratchBuffer;  // Handle of intra row store surface
+    MOS_RESOURCE                                m_resVdencBrcStatsBuffer;
+    MOS_RESOURCE                                m_resVdencSegmentMapStreamOut;
+    MOS_RESOURCE                                m_resVdencPictureState2NdLevelBatchBufferRead[CODECHAL_VP9_ENCODE_RECYCLED_BUFFER_NUM];
+    MOS_RESOURCE                                m_resVdencPictureState2NdLevelBatchBufferWrite[CODECHAL_VP9_ENCODE_RECYCLED_BUFFER_NUM];
     uint16_t                                    m_vdencPictureState2ndLevelBBIndex = 0;
-    MOS_RESOURCE                                resVdencDysPictureState2ndLevelBatchBuffer;
-    MOS_RESOURCE                                resVdencBrcInitDmemBuffer;
-    MOS_RESOURCE                                resVdencBrcUpdateDmemBuffer[3];
-    MOS_RESOURCE                                resVdencDataExtensionBuffer;
-    CODECHAL_ENCODE_BUFFER                      resPAKCULevelStreamoutData;
-    CODECHAL_ENCODE_BUFFER                      resPAKSliceLevelStreamutData;
+    MOS_RESOURCE                                m_resVdencDysPictureState2NdLevelBatchBuffer;
+    MOS_RESOURCE                                m_resVdencBrcInitDmemBuffer;
+    MOS_RESOURCE                                m_resVdencBrcUpdateDmemBuffer[3];
+    MOS_RESOURCE                                m_resVdencDataExtensionBuffer;
+    CODECHAL_ENCODE_BUFFER                      m_resPakcuLevelStreamoutData;
+    CODECHAL_ENCODE_BUFFER                      m_resPakSliceLevelStreamutData;
 
     uint32_t                                    m_maxTileNumber = 1;
 

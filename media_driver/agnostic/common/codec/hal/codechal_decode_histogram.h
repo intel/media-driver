@@ -88,10 +88,10 @@ protected:
     CodechalDecode      *m_decoder                      = nullptr;  //!< Pointer of codechal deocder
     MOS_INTERFACE       *m_osInterface                  = nullptr;  //!< Pointer of OS interface
     CodechalHwInterface *m_hwInterface                  = nullptr;  //!< Pointer of hardware interface
-    PMOS_SURFACE        m_sInputSurface                 = nullptr;  //!< Pointer of input surface
-    uint8_t             m_histogramComponent            = 0;        //!< Histogram component
-    MOS_RESOURCE        m_resHistogram;                             //!< Internal histogram resource
-    MOS_SURFACE         m_sInputHistogramSurfaces[4];               //!< Histogram surfaces to hold input buffers
+    PMOS_SURFACE         m_inputSurface                 = nullptr;  //!< Pointer of input surface
+    uint8_t              m_histogramComponent           = 0;        //!< Histogram component
+    MOS_RESOURCE         m_resHistogram;                            //!< Internal histogram resource
+    MOS_SURFACE          m_inputHistogramSurfaces[4];               //!< Histogram surfaces to hold input buffers
 };
 
 #endif

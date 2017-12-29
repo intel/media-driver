@@ -914,7 +914,7 @@ public:
     //!
     virtual MOS_STATUS InitMmcState();
 
-    CODEC_VP8_ENCODE_PIC_PARAMS            *pVp8PicParams = nullptr;        //<! Pointer to CodecVp8EncodePictureParams
+    CODEC_VP8_ENCODE_PIC_PARAMS *m_vp8PicParams = nullptr;  //<! Pointer to CodecVp8EncodePictureParams
 
 protected:
 
@@ -1366,107 +1366,106 @@ protected:
 
     PMOS_INTERFACE                         m_osInterface = nullptr;                             //!< Pointer to OS interface
     CodechalHwInterface                    *m_hwInterface = nullptr;                             //!< Pointer to HW interface
-    MEDIA_FEATURE_TABLE                    *pSkuTable = nullptr;                                  // SKU table
-    MEDIA_WA_TABLE                         *pWaTable = nullptr;                                   // SKU table
+    MEDIA_FEATURE_TABLE *                   m_skuTable    = nullptr;                             // SKU table
+    MEDIA_WA_TABLE *                        m_waTable     = nullptr;                             // SKU table
 
     // Parameters passed by application
-    CODEC_VP8_ENCODE_SEQUENCE_PARAMS       *pVp8SeqParams = nullptr;
-    CODEC_VP8_ENCODE_QUANT_DATA            *pVp8QuantData = nullptr;
-    CODECHAL_VP8_HYBRIDPAK_FRAMEUPDATE     *pVp8SliceParams = nullptr;
+    CODEC_VP8_ENCODE_SEQUENCE_PARAMS *  m_vp8SeqParams   = nullptr;
+    CODEC_VP8_ENCODE_QUANT_DATA *       m_vp8QuantData   = nullptr;
+    CODECHAL_VP8_HYBRIDPAK_FRAMEUPDATE *m_vp8SliceParams = nullptr;
 
     uint8_t*                               m_kernelBinary = nullptr;                            //!< Pointer to the kernel binary 
     uint32_t                               m_combinedKernelSize = 0;                            //!< Combined kernel binary size
 
-    CODEC_PIC_ID                        PicIdx[CODEC_MAX_NUM_REF_FRAME_NON_AVC];
-    PCODEC_REF_LIST                     pRefList[CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8];
+    CODEC_PIC_ID    m_picIdx[CODEC_MAX_NUM_REF_FRAME_NON_AVC];
+    PCODEC_REF_LIST m_refList[CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8];
 
-    bool                                bHmeEnabled;
-    bool                                b16xMeEnabled;
-    bool                                bHmeDone;
-    bool                                b16xMeDone;
-    bool                                bRefCtrlOptimizationDone;
-    bool                                bBrcInit;
-    bool                                bBrcReset;
-    bool                                bBrcEnabled;
-    bool                                bMbBrcEnabled;
-    bool                                bMbEncIFrameDistEnabled;
-    bool                                bBrcDistortionBufferSupported;
-    bool                                bInitBrcDistortionBuffer;
-    bool                                bBrcConstantBufferSupported;
-    bool                                bBrcSegMapSupported;
-    bool                                bMbEncCurbeSetInBrcUpdate;
-    bool                                bMbPakCurbeSetInBrcUpdate;
-    bool                                bMpuCurbeSetInBrcUpdate;
-    bool                                bTpuCurbeSetInBrcUpdate;
-    bool                                bMfxEncoderConfigCommandInitialized;
-    bool                                bAdaptiveRepakSupported;
-    bool                                m_bRepakSupported;
-    uint16_t                            usMinPakPasses;
-    uint16_t                            usRepakPassIterVal;     // n th pass when Repak is executed
+    bool     m_hmeEnabled;
+    bool     m_b16XMeEnabled;
+    bool     m_hmeDone;
+    bool     m_b16XMeDone;
+    bool     m_refCtrlOptimizationDone;
+    bool     m_brcInit;
+    bool     m_brcReset;
+    bool     m_brcEnabled;
+    bool     m_mbBrcEnabled;
+    bool     m_mbEncIFrameDistEnabled;
+    bool     m_brcDistortionBufferSupported;
+    bool     m_initBrcDistortionBuffer;
+    bool     m_brcConstantBufferSupported;
+    bool     m_brcSegMapSupported;
+    bool     m_mbEncCurbeSetInBrcUpdate;
+    bool     m_mbPakCurbeSetInBrcUpdate;
+    bool     m_mpuCurbeSetInBrcUpdate;
+    bool     m_tpuCurbeSetInBrcUpdate;
+    bool     m_mfxEncoderConfigCommandInitialized;
+    bool     m_adaptiveRepakSupported;
+    bool     m_repakSupported;
+    uint16_t m_usMinPakPasses;
+    uint16_t m_usRepakPassIterVal;  // n th pass when Repak is executed
 
     // MB Enc
-    MHW_KERNEL_STATE                    MbEncKernelStates[CODECHAL_ENCODE_VP8_MBENC_IDX_NUM];
-    uint32_t                            dwNumMbEncEncKrnStates;
-    uint32_t                            dwMbEncIFrameDshSize;
-    struct CodechalBindingTableVp8Mbenc MbEncBindingTable;
-    uint32_t                            dwMbEncBlockBasedSkipEn;
-    MOS_RESOURCE                        resRefMbCountSurface;
-    MOS_SURFACE                         sMBModeCostLumaBuffer;
-    MOS_SURFACE                         sBlockModeCostBuffer;
-    MOS_RESOURCE                        sChromaReconBuffer; // for fixed function VP8
-    MOS_SURFACE                         sPerMBQuantDataBuffer;
-    MOS_SURFACE                         s4xMeDistortionBuffer;
-    MOS_RESOURCE                        resPredMvDataSurface;
-    MOS_RESOURCE                        resHistogram;
-    MOS_RESOURCE                        resModeCostUpdateSurface;
+    MHW_KERNEL_STATE                    m_mbEncKernelStates[CODECHAL_ENCODE_VP8_MBENC_IDX_NUM];
+    uint32_t                            m_numMbEncEncKrnStates;
+    uint32_t                            m_mbEncIFrameDshSize;
+    struct CodechalBindingTableVp8Mbenc m_mbEncBindingTable;
+    uint32_t                            m_mbEncBlockBasedSkipEn;
+    MOS_RESOURCE                        m_resRefMbCountSurface;
+    MOS_SURFACE                         m_mbModeCostLumaBuffer;
+    MOS_SURFACE                         m_blockModeCostBuffer;
+    MOS_RESOURCE                        m_chromaReconBuffer;  // for fixed function VP8
+    MOS_SURFACE                         m_perMbQuantDataBuffer;
+    MOS_RESOURCE                        m_resPredMvDataSurface;
+    MOS_RESOURCE                        m_resHistogram;
+    MOS_RESOURCE                        m_resModeCostUpdateSurface;
     // MBRC = 1: internal segment map (sInSegmentMapSurface) is provided from BRC update kernel
     // MBRC = 0: external segment map (sMbSegmentMapSurface) is provided from the app, ignore internal segment map
-    MOS_SURFACE                         sInSegmentMapSurface;
-    MOS_SURFACE                         sMbSegmentMapSurface;   // var of type MOS_SURFACE of Mb segment map surface
+    MOS_SURFACE m_inSegmentMapSurface;
+    MOS_SURFACE m_mbSegmentMapSurface;  // var of type MOS_SURFACE of Mb segment map surface
 
     // MPU & TPU Buffers
-    struct CodechalVp8MpuTpuBuffers     MpuTpuBuffers;
-        
+    struct CodechalVp8MpuTpuBuffers m_mpuTpuBuffers;
+
     // TPU
-    MHW_KERNEL_STATE                    TpuKernelState;
-    struct CodechalBindingTableVp8Tpu   TpuBindingTable;
+    MHW_KERNEL_STATE                  m_tpuKernelState;
+    struct CodechalBindingTableVp8Tpu m_tpuBindingTable;
 
     // MPU
-    MHW_KERNEL_STATE                    MpuKernelState;
-    struct CodechalBindingTableVp8Mpu   MpuBindingTable;
+    MHW_KERNEL_STATE                  m_mpuKernelState;
+    struct CodechalBindingTableVp8Mpu m_mpuBindingTable;
 
     // VME Scratch Buffers
-    MOS_RESOURCE                        resVmeKernelDumpBuffer;
-    bool                                bVMEKernelDump;
+    MOS_RESOURCE m_resVmeKernelDumpBuffer;
+    bool         m_vmeKernelDump;
 
     //HW pak
-    MOS_RESOURCE                        resIntraRowStoreScratchBuffer;
-    MOS_RESOURCE                        resFrameHeader;
-    MOS_RESOURCE                        resPakIntermediateBuffer;
+    MOS_RESOURCE m_resIntraRowStoreScratchBuffer;
+    MOS_RESOURCE m_resFrameHeader;
+    MOS_RESOURCE m_resPakIntermediateBuffer;
 
     // ME
-    MHW_KERNEL_STATE                    MeKernelState;
-    struct CodechalBindingTableVp8Me    MeBindingTable;
-    MOS_SURFACE                         s4xMEMVDataBuffer;
-    MOS_SURFACE                         s16xMEMVDataBuffer;
-    MOS_SURFACE                         s4xMEDistortionBuffer;
+    MHW_KERNEL_STATE                 m_meKernelState;
+    struct CodechalBindingTableVp8Me m_meBindingTable;
+    MOS_SURFACE                      m_s4XMemvDataBuffer;
+    MOS_SURFACE                      m_s16XMemvDataBuffer;
+    MOS_SURFACE                      m_s4XMeDistortionBuffer;
 
-    uint32_t                            dwAverageKeyFrameQp;
-    uint32_t                            dwAveragePFrameQp;
-    uint32_t                            dwPFramePositionInGOP;
+    uint32_t m_averageKeyFrameQp;
+    uint32_t m_averagePFrameQp;
+    uint32_t m_pFramePositionInGop;
     // BRC Params, these parameters not used for BDW
-    MHW_KERNEL_STATE                        BrcKernelStates[CODECHAL_ENCODE_VP8_BRC_IDX_NUM];
-    struct CodechalBindingTableVp8BrcUpdate BrcUpdateBindingTable;
-    EncodeBrcBuffers                        BrcBuffers;
-    uint16_t                                usAVBRAccuracy;
-    uint16_t                                usAVBRConvergence;
-    double                                  dBrcInitCurrentTargetBufFullInBits;
-    double                                  dBrcInitResetInputBitsPerFrame;
-    uint32_t                                dwBrcInitResetBufSizeInBits;
-    uint32_t                                dwBrcConstantSurfaceWidth;
-    uint32_t                                dwBrcConstantSurfaceHeight;
+    MHW_KERNEL_STATE                        m_brcKernelStates[CODECHAL_ENCODE_VP8_BRC_IDX_NUM];
+    struct CodechalBindingTableVp8BrcUpdate m_brcUpdateBindingTable;
+    EncodeBrcBuffers                        m_brcBuffers;
+    uint16_t                                m_usAvbrAccuracy;
+    uint16_t                                m_usAvbrConvergence;
+    double                                  m_dBrcInitCurrentTargetBufFullInBits;
+    double                                  m_dBrcInitResetInputBitsPerFrame;
+    uint32_t                                m_brcInitResetBufSizeInBits;
+    uint32_t                                m_brcConstantSurfaceWidth;
+    uint32_t                                m_brcConstantSurfaceHeight;
 
-    uint32_t                                uiFrameRate;
+    uint32_t m_frameRate;
 };
 
 #endif  // __CODECHAL_ENCODER_VP8_H__

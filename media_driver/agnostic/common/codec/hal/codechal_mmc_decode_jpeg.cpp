@@ -72,27 +72,22 @@ MOS_STATUS CodechalMmcDecodeJpeg::SetPipeBufAddr(
     
     CODECHAL_DECODE_FUNCTION_ENTER;
 
-    CODECHAL_DECODE_CHK_NULL_RETURN(m_jpegState->pJpegPicParams);
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_jpegState->m_jpegPicParams);
 
-    if (m_mmcEnabled && m_jpegState->sDestSurface.bCompressible)
+    if (m_mmcEnabled && m_jpegState->m_destSurface.bCompressible)
     {
-        if (((m_jpegState->pJpegPicParams->m_chromaType == jpegYUV422H2Y)
-            || (m_jpegState->pJpegPicParams->m_chromaType == jpegYUV422H4Y))
-            && ((m_jpegState->sDestSurface.Format == Format_YUY2)
-                || (m_jpegState->sDestSurface.Format == Format_UYVY)))
+        if (((m_jpegState->m_jpegPicParams->m_chromaType == jpegYUV422H2Y) || (m_jpegState->m_jpegPicParams->m_chromaType == jpegYUV422H4Y)) && ((m_jpegState->m_destSurface.Format == Format_YUY2) || (m_jpegState->m_destSurface.Format == Format_UYVY)))
         {
             pipeBufAddrParams->PreDeblockSurfMmcState = MOS_MEMCOMP_HORIZONTAL;
         }
-        else if ((m_jpegState->pJpegPicParams->m_chromaType == jpegYUV420)
-            && (m_jpegState->sDestSurface.Format == Format_NV12))
+        else if ((m_jpegState->m_jpegPicParams->m_chromaType == jpegYUV420) && (m_jpegState->m_destSurface.Format == Format_NV12))
         {
             pipeBufAddrParams->PreDeblockSurfMmcState = MOS_MEMCOMP_VERTICAL;
         }
     }
 
     CODECHAL_DEBUG_TOOL(
-        m_jpegState->sDestSurface.MmcState = pipeBufAddrParams->PreDeblockSurfMmcState;
-    )
+        m_jpegState->m_destSurface.MmcState = pipeBufAddrParams->PreDeblockSurfMmcState;)
 
     return eStatus;
 }

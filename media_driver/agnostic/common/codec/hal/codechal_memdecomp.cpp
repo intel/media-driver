@@ -45,7 +45,7 @@ public:
         {
             uint32_t value;
         };
-    } DW0;
+    } m_dw0;
 
     // DW 1
     union
@@ -58,7 +58,7 @@ public:
         {
             uint32_t value;
         };
-    } DW1;
+    } m_dw1;
 
     // DW 2
     union
@@ -71,7 +71,7 @@ public:
         {
             uint32_t value;
         };
-    } DW2;
+    } m_dw2;
 
     // DW 3
     union
@@ -84,7 +84,7 @@ public:
         {
             uint32_t value;
         };
-    } DW3;
+    } m_dw3;
 
     // DW 4
     union
@@ -97,7 +97,7 @@ public:
         {
             uint32_t value;
         };
-    } DW4;
+    } m_dw4;
 
     // DW 5
     union
@@ -110,7 +110,7 @@ public:
         {
             uint32_t value;
         };
-    } DW5;
+    } m_dw5;
 
     // DW 6
     union
@@ -123,7 +123,7 @@ public:
         {
             uint32_t value;
         };
-    } DW6;
+    } m_dw6;
 
     //!
     //! \brief    Constructor
@@ -778,13 +778,13 @@ MOS_STATUS MediaMemDecompState::SetMediaObjectCopyCurbe(
 
     MediaObjectCopyCurbe cmd;
 
-    cmd.DW0.srcSurface0Index = copySurfaceSrcY;
-    cmd.DW3.dstSurface0Index = copySurfaceDstY;
+    cmd.m_dw0.srcSurface0Index = copySurfaceSrcY;
+    cmd.m_dw3.dstSurface0Index = copySurfaceDstY;
 
     if (kernelStateIdx == decompKernelStatePl2)
     {
-        cmd.DW1.srcSurface1Index = copySurfaceSrcU;
-        cmd.DW4.dstSurface1Index = copySurfaceDstU;
+        cmd.m_dw1.srcSurface1Index = copySurfaceSrcU;
+        cmd.m_dw4.dstSurface1Index = copySurfaceDstU;
     }
 
     MHW_CHK_STATUS_RETURN(m_kernelStates[kernelStateIdx].m_dshRegion.AddData(

@@ -461,7 +461,7 @@ bool CodechalDebugConfigMgr::AttrIsEnabled(std::string attrName)
 
     for (auto it : m_debugFrameConfigs)
     {
-        if (it.frameIndex == m_debugInterface->dwBufferDumpFrameNum)
+        if (it.frameIndex == m_debugInterface->m_bufferDumpFrameNum)
         {
             int attrValue = it.cmdAttribs[attrName];
             return attrValue > 0;
@@ -493,7 +493,7 @@ bool CodechalDebugConfigMgr::AttrIsEnabled(
 
     for (auto it : m_debugFrameConfigs)
     {
-        if (it.frameIndex == m_debugInterface->dwBufferDumpFrameNum)
+        if (it.frameIndex == m_debugInterface->m_bufferDumpFrameNum)
         {
             KernelDumpConfig attrs = it.kernelAttribs[kernelName];
             return KernelAttrEnabled(attrs, attrName);

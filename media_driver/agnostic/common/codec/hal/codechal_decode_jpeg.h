@@ -125,8 +125,8 @@ public:
 
     MOS_STATUS InitMmcState() override;
 
-    MOS_SURFACE                 sDestSurface;                   //!< Pointer to MOS_SURFACE of render surface
-    CodecDecodeJpegPicParams    *pJpegPicParams;                 //!< Picture parameter for JPEG
+    MOS_SURFACE               m_destSurface;    //!< Pointer to MOS_SURFACE of render surface
+    CodecDecodeJpegPicParams *m_jpegPicParams;  //!< Picture parameter for JPEG
 
 #if USE_CODECHAL_DEBUG_TOOL
     MOS_STATUS DumpIQParams(
@@ -208,28 +208,28 @@ private:
     }
 
 protected:
-    uint32_t                                u32DataSize;                    //!< Data size of the bitstream
-    uint32_t                                u32DataOffset;                  //!< Data offset of the bitstream
-    CodecDecodeJpegScanParameter            *pJpegScanParams;                //!< Scan parameter for JPEG
-    CodecJpegQuantMatrix                    *pJpegQMatrix;                  //!< QMatrix for JPEG
-    PCODECHAL_DECODE_JPEG_HUFFMAN_TABLE     pJpegHuffmanTable;              //!< Huffman table for JPEG
+    uint32_t                            m_dataSize;          //!< Data size of the bitstream
+    uint32_t                            m_dataOffset;        //!< Data offset of the bitstream
+    CodecDecodeJpegScanParameter *      m_jpegScanParams;    //!< Scan parameter for JPEG
+    CodecJpegQuantMatrix *              m_jpegQMatrix;       //!< QMatrix for JPEG
+    PCODECHAL_DECODE_JPEG_HUFFMAN_TABLE m_jpegHuffmanTable;  //!< Huffman table for JPEG
 
-    MOS_RESOURCE            resDataBuffer;                                      //!< Handle of bitstream buffer
-    MOS_RESOURCE            resCopiedDataBuffer;                                //!< The internal buffer to store copied data
-    uint32_t                u32CopiedDataBufferSize;                            //!< The max size of the internal copied buffer
-    uint32_t                u32NextCopiedDataOffset;                            //!< The offset of the next bitstream data used for copying
-    uint32_t                u32TotalDataLength;                                 //!< The total data length
-    uint32_t                u32PreNumScans;                                     //!< Record the previous scan number before the new scan comes
-    bool                    bCopiedDataBufferInUse;                             //!< Flag to indicate whether the copy data buffer is used
+    MOS_RESOURCE m_resDataBuffer;          //!< Handle of bitstream buffer
+    MOS_RESOURCE m_resCopiedDataBuffer;    //!< The internal buffer to store copied data
+    uint32_t     m_copiedDataBufferSize;   //!< The max size of the internal copied buffer
+    uint32_t     m_nextCopiedDataOffset;   //!< The offset of the next bitstream data used for copying
+    uint32_t     m_totalDataLength;        //!< The total data length
+    uint32_t     m_preNumScans;            //!< Record the previous scan number before the new scan comes
+    bool         m_copiedDataBufferInUse;  //!< Flag to indicate whether the copy data buffer is used
 
     //! \brief Indicates if current input scan for Jpeg is incomplete
     bool                    m_incompleteJpegScan = false;
 
-    MOS_RESOURCE            resSyncObjectWaContextInUse;                        //!< Signals on the video WA context
-    MOS_RESOURCE            resSyncObjectVideoContextInUse;                     //!< Signals on the video context
+    MOS_RESOURCE m_resSyncObjectWaContextInUse;     //!< Signals on the video WA context
+    MOS_RESOURCE m_resSyncObjectVideoContextInUse;  //!< Signals on the video context
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
-    CodechalJpegSfcState SfcState;                                           //!< SFC state
+    CodechalJpegSfcState m_sfcState;  //!< SFC state
 #endif
 };
 #endif

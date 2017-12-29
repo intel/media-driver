@@ -44,30 +44,28 @@ CodechalDecodeJpeg::~CodechalDecodeJpeg()
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
 
-    m_osInterface->pfnDestroySyncResource(m_osInterface, &resSyncObjectWaContextInUse);
-    m_osInterface->pfnDestroySyncResource(m_osInterface, &resSyncObjectVideoContextInUse);
+    m_osInterface->pfnDestroySyncResource(m_osInterface, &m_resSyncObjectWaContextInUse);
+    m_osInterface->pfnDestroySyncResource(m_osInterface, &m_resSyncObjectVideoContextInUse);
 
-    if (!Mos_ResourceIsNull(&resCopiedDataBuffer))
+    if (!Mos_ResourceIsNull(&m_resCopiedDataBuffer))
     {
         m_osInterface->pfnFreeResource(
             m_osInterface,
-            &resCopiedDataBuffer);
+            &m_resCopiedDataBuffer);
     }
 
     return;
 }
 
-
 CodechalDecodeJpeg::CodechalDecodeJpeg(
-    CodechalHwInterface   *hwInterface,
-    CodechalDebugInterface* debugInterface,
-    PCODECHAL_STANDARD_INFO standardInfo) :
-    CodechalDecode(hwInterface, debugInterface, standardInfo),
-    u32CopiedDataBufferSize(0)
+    CodechalHwInterface *   hwInterface,
+    CodechalDebugInterface *debugInterface,
+    PCODECHAL_STANDARD_INFO standardInfo) : CodechalDecode(hwInterface, debugInterface, standardInfo),
+                                            m_copiedDataBufferSize(0)
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
 
-    MOS_ZeroMemory(&resCopiedDataBuffer, sizeof(resCopiedDataBuffer));
+    MOS_ZeroMemory(&m_resCopiedDataBuffer, sizeof(m_resCopiedDataBuffer));
 }
 
 MOS_STATUS CodechalDecodeJpeg::InitializeBeginFrame()
@@ -76,10 +74,10 @@ MOS_STATUS CodechalDecodeJpeg::InitializeBeginFrame()
 
     m_incompletePicture = false;
     m_incompleteJpegScan = false;
-    bCopiedDataBufferInUse = false;
-    u32NextCopiedDataOffset = 0;
-    u32TotalDataLength = 0;
-    u32PreNumScans = 0;    
+    m_copiedDataBufferInUse = false;
+    m_nextCopiedDataOffset  = 0;
+    m_totalDataLength       = 0;
+    m_preNumScans           = 0;
 
     return MOS_STATUS_SUCCESS;
 }
@@ -92,25 +90,25 @@ MOS_STATUS CodechalDecodeJpeg::CopyDataSurface()
 
     if (m_hwInterface->m_noHuC)
     {
-        uint32_t alignedSize = MOS_ALIGN_CEIL(u32DataSize, 16); // 16 byte aligned
+        uint32_t               alignedSize = MOS_ALIGN_CEIL(m_dataSize, 16);  // 16 byte aligned
         CodechalDataCopyParams dataCopyParams;
         MOS_ZeroMemory(&dataCopyParams, sizeof(CodechalDataCopyParams));
-        dataCopyParams.srcResource = &resDataBuffer;
+        dataCopyParams.srcResource = &m_resDataBuffer;
         dataCopyParams.srcSize = alignedSize;
         dataCopyParams.srcOffset = 0;
-        dataCopyParams.dstResource = &resCopiedDataBuffer;
+        dataCopyParams.dstResource = &m_resCopiedDataBuffer;
         dataCopyParams.dstSize = alignedSize;
-        dataCopyParams.dstOffset = u32NextCopiedDataOffset;
+        dataCopyParams.dstOffset   = m_nextCopiedDataOffset;
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_hwInterface->CopyDataSourceWithDrv(
             &dataCopyParams));
 
-        u32NextCopiedDataOffset += MOS_ALIGN_CEIL(u32DataSize, MHW_CACHELINE_SIZE); // 64-byte aligned
+        m_nextCopiedDataOffset += MOS_ALIGN_CEIL(m_dataSize, MHW_CACHELINE_SIZE);  // 64-byte aligned
         return MOS_STATUS_SUCCESS;
     }
 
     CODECHAL_DECODE_CHK_COND_RETURN(
-        ((u32NextCopiedDataOffset + u32DataSize) > u32CopiedDataBufferSize),
+        ((m_nextCopiedDataOffset + m_dataSize) > m_copiedDataBufferSize),
         "Copied data buffer is not large enough.");
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSetGpuContext(
@@ -136,14 +134,14 @@ MOS_STATUS CodechalDecodeJpeg::CopyDataSurface()
 
     // Use huc stream out to do the copy
     CODECHAL_DECODE_CHK_STATUS_RETURN(HucCopy(
-        &cmdBuffer,                 // pCmdBuffer
-        &resDataBuffer,             // presSrc
-        &resCopiedDataBuffer,       // presDst
-        u32DataSize,                // u32CopyLength
-        0,                          // u32CopyInputOffset
-        u32NextCopiedDataOffset));  // u32CopyOutputOffset
+        &cmdBuffer,                // pCmdBuffer
+        &m_resDataBuffer,          // presSrc
+        &m_resCopiedDataBuffer,    // presDst
+        m_dataSize,                // u32CopyLength
+        0,                         // u32CopyInputOffset
+        m_nextCopiedDataOffset));  // u32CopyOutputOffset
 
-    u32NextCopiedDataOffset += MOS_ALIGN_CEIL(u32DataSize, MHW_CACHELINE_SIZE);
+    m_nextCopiedDataOffset += MOS_ALIGN_CEIL(m_dataSize, MHW_CACHELINE_SIZE);
 
     MHW_MI_FLUSH_DW_PARAMS flushDwParams;
     MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
@@ -165,7 +163,7 @@ MOS_STATUS CodechalDecodeJpeg::CopyDataSurface()
         MOS_SYNC_PARAMS syncParams;
         syncParams = g_cInitSyncParams;
         syncParams.GpuContext = m_videoContext;
-        syncParams.presSyncResource = &resSyncObjectVideoContextInUse;
+        syncParams.presSyncResource = &m_resSyncObjectVideoContextInUse;
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnEngineSignal(
             m_osInterface,
@@ -173,7 +171,7 @@ MOS_STATUS CodechalDecodeJpeg::CopyDataSurface()
 
         syncParams = g_cInitSyncParams;
         syncParams.GpuContext = m_videoContextForWa;
-        syncParams.presSyncResource = &resSyncObjectVideoContextInUse;
+        syncParams.presSyncResource = &m_resSyncObjectVideoContextInUse;
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnEngineWait(
             m_osInterface,
@@ -196,42 +194,42 @@ MOS_STATUS CodechalDecodeJpeg::CheckAndCopyIncompleteBitStream()
 {
     MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
 
-    uint32_t maxBufferSize = 
-        MOS_ALIGN_CEIL(pJpegPicParams->m_frameWidth * pJpegPicParams->m_frameHeight * 3, 64);
+    uint32_t maxBufferSize =
+        MOS_ALIGN_CEIL(m_jpegPicParams->m_frameWidth * m_jpegPicParams->m_frameHeight * 3, 64);
 
-    if (pJpegPicParams->m_totalScans == 1) // Single scan
+    if (m_jpegPicParams->m_totalScans == 1)  // Single scan
     {
         if (!m_incompleteJpegScan) // The first bitstream buffer
         {
-            u32TotalDataLength = 
-                pJpegScanParams->ScanHeader[0].DataOffset + pJpegScanParams->ScanHeader[0].DataLength;
+            m_totalDataLength =
+                m_jpegScanParams->ScanHeader[0].DataOffset + m_jpegScanParams->ScanHeader[0].DataLength;
 
-            if (u32DataSize < u32TotalDataLength)  // if the bitstream data is incomplete
+            if (m_dataSize < m_totalDataLength)  // if the bitstream data is incomplete
             {
                 CODECHAL_DECODE_CHK_COND_RETURN(
-                    u32TotalDataLength > maxBufferSize,
+                    m_totalDataLength > maxBufferSize,
                     "The bitstream size exceeds the copied data buffer size.");
 
                 CODECHAL_DECODE_CHK_COND_RETURN(
-                    u32DataSize & 0x3f,
+                    m_dataSize & 0x3f,
                     "The data size of the incomplete bitstream is not aligned with 64.");
 
                 // Allocate the copy data buffer.
-                if (Mos_ResourceIsNull(&resCopiedDataBuffer))
+                if (Mos_ResourceIsNull(&m_resCopiedDataBuffer))
                 {
                     CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(AllocateBuffer(
-                        &resCopiedDataBuffer,
-                        maxBufferSize,
-                        "CopiedDataBuffer"),
+                                                                  &m_resCopiedDataBuffer,
+                                                                  maxBufferSize,
+                                                                  "CopiedDataBuffer"),
                         "Failed to allocate copied data Buffer.");
                 }
-                u32CopiedDataBufferSize = maxBufferSize;
+                m_copiedDataBufferSize = maxBufferSize;
 
                 // copy the bitstream buffer
-                if (u32DataSize)
+                if (m_dataSize)
                 {
                     CODECHAL_DECODE_CHK_STATUS_RETURN(CopyDataSurface());
-                    bCopiedDataBufferInUse = true;
+                    m_copiedDataBufferInUse = true;
                 }
 
                 m_incompleteJpegScan = true;
@@ -246,20 +244,20 @@ MOS_STATUS CodechalDecodeJpeg::CheckAndCopyIncompleteBitStream()
         else // the next bitstream buffers
         {
             CODECHAL_DECODE_CHK_COND_RETURN(
-                u32NextCopiedDataOffset + u32DataSize > u32CopiedDataBufferSize,
+                m_nextCopiedDataOffset + m_dataSize > m_copiedDataBufferSize,
                 "The bitstream size exceeds the copied data buffer size.")
 
-                CODECHAL_DECODE_CHK_COND_RETURN(
-                (u32NextCopiedDataOffset + u32DataSize < u32TotalDataLength) && (u32DataSize & 0x3f),
-                    "The data size of the incomplete bitstream is not aligned with 64.");
+            CODECHAL_DECODE_CHK_COND_RETURN(
+                (m_nextCopiedDataOffset + m_dataSize < m_totalDataLength) && (m_dataSize & 0x3f),
+                "The data size of the incomplete bitstream is not aligned with 64.");
 
             // copy the bitstream
-            if (u32DataSize)
+            if (m_dataSize)
             {
                 CODECHAL_DECODE_CHK_STATUS_RETURN(CopyDataSurface());
             }
 
-            if (u32NextCopiedDataOffset >= u32TotalDataLength)
+            if (m_nextCopiedDataOffset >= m_totalDataLength)
             {
                 m_incompleteJpegScan = false;
                 m_incompletePicture = false;
@@ -271,46 +269,46 @@ MOS_STATUS CodechalDecodeJpeg::CheckAndCopyIncompleteBitStream()
     {
         if (!m_incompleteJpegScan) // The first bitstream buffer of each scan;
         {
-            for (uint32_t idxScan = u32PreNumScans; idxScan < pJpegScanParams->NumScans; idxScan++)
+            for (uint32_t idxScan = m_preNumScans; idxScan < m_jpegScanParams->NumScans; idxScan++)
             {
-                pJpegScanParams->ScanHeader[idxScan].DataOffset += u32NextCopiedDataOffset; // modify the data offset for the new incoming scan data
+                m_jpegScanParams->ScanHeader[idxScan].DataOffset += m_nextCopiedDataOffset;  // modify the data offset for the new incoming scan data
             }
-            u32TotalDataLength = pJpegScanParams->ScanHeader[pJpegScanParams->NumScans - 1].DataOffset + pJpegScanParams->ScanHeader[pJpegScanParams->NumScans - 1].DataLength;
-            u32PreNumScans = pJpegScanParams->NumScans;
+            m_totalDataLength = m_jpegScanParams->ScanHeader[m_jpegScanParams->NumScans - 1].DataOffset + m_jpegScanParams->ScanHeader[m_jpegScanParams->NumScans - 1].DataLength;
+            m_preNumScans     = m_jpegScanParams->NumScans;
 
             // judge whether the bitstream is complete in the first execute() call
-            if (m_firstExecuteCall && 
-                u32DataSize <= pJpegScanParams->ScanHeader[0].DataOffset + pJpegScanParams->ScanHeader[0].DataLength)
+            if (m_firstExecuteCall &&
+                m_dataSize <= m_jpegScanParams->ScanHeader[0].DataOffset + m_jpegScanParams->ScanHeader[0].DataLength)
             {
                 CODECHAL_DECODE_CHK_COND_RETURN(
-                    (u32NextCopiedDataOffset + u32DataSize < u32TotalDataLength) && (u32DataSize & 0x3f),
+                    (m_nextCopiedDataOffset + m_dataSize < m_totalDataLength) && (m_dataSize & 0x3f),
                     "The buffer size of the incomplete bitstream is not aligned with 64.");
 
                 // Allocate the copy data buffer.
-                if (Mos_ResourceIsNull(&resCopiedDataBuffer))
+                if (Mos_ResourceIsNull(&m_resCopiedDataBuffer))
                 {
                     CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(AllocateBuffer(
-                        &resCopiedDataBuffer,
-                        maxBufferSize,
-                        "CopiedDataBuffer"),
+                                                                  &m_resCopiedDataBuffer,
+                                                                  maxBufferSize,
+                                                                  "CopiedDataBuffer"),
                         "Failed to allocate copied data Buffer.");
                 }
-                u32CopiedDataBufferSize = maxBufferSize;
+                m_copiedDataBufferSize = maxBufferSize;
 
                 // copy the bitstream buffer
-                if (u32DataSize)
+                if (m_dataSize)
                 {
                     CODECHAL_DECODE_CHK_STATUS_RETURN(CopyDataSurface());
-                    bCopiedDataBufferInUse = true;
+                    m_copiedDataBufferInUse = true;
                 }
 
-                m_incompleteJpegScan = u32NextCopiedDataOffset < u32TotalDataLength;
-                m_incompletePicture = m_incompleteJpegScan || pJpegScanParams->NumScans < pJpegPicParams->m_totalScans;
+                m_incompleteJpegScan = m_nextCopiedDataOffset < m_totalDataLength;
+                m_incompletePicture  = m_incompleteJpegScan || m_jpegScanParams->NumScans < m_jpegPicParams->m_totalScans;
             }
             else // the bitstream is complete
             {
                 m_incompleteJpegScan = false;
-                if (pJpegScanParams->NumScans == pJpegPicParams->m_totalScans)
+                if (m_jpegScanParams->NumScans == m_jpegPicParams->m_totalScans)
                 {
                     m_incompletePicture = false;
                 }
@@ -323,23 +321,23 @@ MOS_STATUS CodechalDecodeJpeg::CheckAndCopyIncompleteBitStream()
         else //The next bitstream buffer of each scan
         {
             CODECHAL_DECODE_CHK_COND_RETURN(
-                u32NextCopiedDataOffset + u32DataSize > u32CopiedDataBufferSize,
+                m_nextCopiedDataOffset + m_dataSize > m_copiedDataBufferSize,
                 "The bitstream size exceeds the copied data buffer size.")
 
-                CODECHAL_DECODE_CHK_COND_RETURN(
-                (u32NextCopiedDataOffset + u32DataSize < u32TotalDataLength) && (u32DataSize & 0x3f),
-                    "The data size of the incomplete bitstream is not aligned with 64.");
+            CODECHAL_DECODE_CHK_COND_RETURN(
+                (m_nextCopiedDataOffset + m_dataSize < m_totalDataLength) && (m_dataSize & 0x3f),
+                "The data size of the incomplete bitstream is not aligned with 64.");
 
             // copy the bitstream buffer
-            if (u32DataSize)
+            if (m_dataSize)
             {
                 CODECHAL_DECODE_CHK_STATUS_RETURN(CopyDataSurface());
             }
 
-            if (u32NextCopiedDataOffset >= u32TotalDataLength)
+            if (m_nextCopiedDataOffset >= m_totalDataLength)
             {
                 m_incompleteJpegScan = false;
-                if (pJpegScanParams->NumScans >= pJpegPicParams->m_totalScans)
+                if (m_jpegScanParams->NumScans >= m_jpegPicParams->m_totalScans)
                 {
                     m_incompletePicture = false;
                 }
@@ -362,21 +360,21 @@ MOS_STATUS CodechalDecodeJpeg::CheckSupportedFormat(
     // real output format (ARGB8888) should also be from JPEG PPS; MSDK would handle the details of treating AYUV as ARGB.
     if (*format == Format_420O || *format == Format_AYUV)
     {
-        *format = m_osInterface->pfnFmt_OsToMos((MOS_OS_FORMAT)pJpegPicParams->m_renderTargetFormat);
+        *format = m_osInterface->pfnFmt_OsToMos((MOS_OS_FORMAT)m_jpegPicParams->m_renderTargetFormat);
     }
 
     //No support for RGBP/BGRP channel swap or YUV/RGB conversion!    
     switch (*format)
     {
     case Format_BGRP:
-        if (pJpegPicParams->m_chromaType == jpegRGB ||
-            pJpegPicParams->m_chromaType == jpegYUV444)
+        if (m_jpegPicParams->m_chromaType == jpegRGB ||
+            m_jpegPicParams->m_chromaType == jpegYUV444)
         {
             eStatus = MOS_STATUS_PLATFORM_NOT_SUPPORTED;
         }
         break;
     case Format_RGBP:
-        if (pJpegPicParams->m_chromaType == jpegYUV444)
+        if (m_jpegPicParams->m_chromaType == jpegYUV444)
         {
             eStatus = MOS_STATUS_PLATFORM_NOT_SUPPORTED;
         }
@@ -385,8 +383,8 @@ MOS_STATUS CodechalDecodeJpeg::CheckSupportedFormat(
     case Format_AYUV:
     case Format_AUYV:
     case Format_Y410:
-        if (pJpegPicParams->m_chromaType == jpegRGB ||
-            pJpegPicParams->m_chromaType == jpegBGR)
+        if (m_jpegPicParams->m_chromaType == jpegRGB ||
+            m_jpegPicParams->m_chromaType == jpegBGR)
         {
             eStatus = MOS_STATUS_PLATFORM_NOT_SUPPORTED;
         }
@@ -411,15 +409,15 @@ MOS_STATUS CodechalDecodeJpeg::SetFrameStates()
     //Set wPerfType as I_TYPE so that PerTag can be recognized by performance reportor
     m_perfType = I_TYPE;
 
-    u32DataSize = m_decodeParams.m_dataSize;
-    u32DataOffset = m_decodeParams.m_dataOffset;
-    resDataBuffer = *(m_decodeParams.m_dataBuffer);
-    pJpegPicParams = (CodecDecodeJpegPicParams*)m_decodeParams.m_picParams;
-    pJpegQMatrix = (CodecJpegQuantMatrix*)m_decodeParams.m_iqMatrixBuffer;
-    pJpegHuffmanTable = (PCODECHAL_DECODE_JPEG_HUFFMAN_TABLE)m_decodeParams.m_huffmanTable;
-    pJpegScanParams = (CodecDecodeJpegScanParameter *)m_decodeParams.m_sliceParams;
+    m_dataSize         = m_decodeParams.m_dataSize;
+    m_dataOffset       = m_decodeParams.m_dataOffset;
+    m_resDataBuffer    = *(m_decodeParams.m_dataBuffer);
+    m_jpegPicParams    = (CodecDecodeJpegPicParams *)m_decodeParams.m_picParams;
+    m_jpegQMatrix      = (CodecJpegQuantMatrix *)m_decodeParams.m_iqMatrixBuffer;
+    m_jpegHuffmanTable = (PCODECHAL_DECODE_JPEG_HUFFMAN_TABLE)m_decodeParams.m_huffmanTable;
+    m_jpegScanParams   = (CodecDecodeJpegScanParameter *)m_decodeParams.m_sliceParams;
 
-    CODECHAL_DECODE_CHK_NULL_RETURN(pJpegPicParams);
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_jpegPicParams);
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(CheckSupportedFormat(
         &m_decodeParams.m_destSurface->Format));
@@ -444,50 +442,50 @@ MOS_STATUS CodechalDecodeJpeg::SetFrameStates()
     uint32_t heightAlign = 0;
 
     // Overwriting surface width and height of destination surface, so it comes from Picture Parameters struct
-    if (!pJpegPicParams->m_interleavedData)
+    if (!m_jpegPicParams->m_interleavedData)
     {
-        widthAlign = MOS_ALIGN_CEIL(pJpegPicParams->m_frameWidth, CODECHAL_DECODE_JPEG_BLOCK_ALIGN_SIZE);
-        heightAlign = MOS_ALIGN_CEIL(pJpegPicParams->m_frameHeight, CODECHAL_DECODE_JPEG_BLOCK_ALIGN_SIZE);
+        widthAlign  = MOS_ALIGN_CEIL(m_jpegPicParams->m_frameWidth, CODECHAL_DECODE_JPEG_BLOCK_ALIGN_SIZE);
+        heightAlign = MOS_ALIGN_CEIL(m_jpegPicParams->m_frameHeight, CODECHAL_DECODE_JPEG_BLOCK_ALIGN_SIZE);
     }
     else
     {
-        switch (pJpegPicParams->m_chromaType)
+        switch (m_jpegPicParams->m_chromaType)
         {
         case jpegYUV400:
         case jpegYUV444:
         case jpegRGB:
         case jpegBGR:
-            widthAlign = MOS_ALIGN_CEIL(pJpegPicParams->m_frameWidth, CODECHAL_DECODE_JPEG_BLOCK_ALIGN_SIZE);
-            heightAlign = MOS_ALIGN_CEIL(pJpegPicParams->m_frameHeight, CODECHAL_DECODE_JPEG_BLOCK_ALIGN_SIZE);
+            widthAlign  = MOS_ALIGN_CEIL(m_jpegPicParams->m_frameWidth, CODECHAL_DECODE_JPEG_BLOCK_ALIGN_SIZE);
+            heightAlign = MOS_ALIGN_CEIL(m_jpegPicParams->m_frameHeight, CODECHAL_DECODE_JPEG_BLOCK_ALIGN_SIZE);
             break;
         case jpegYUV422V2Y:
-            widthAlign = MOS_ALIGN_CEIL(pJpegPicParams->m_frameWidth, CODECHAL_DECODE_JPEG_BLOCK_ALIGN_SIZE);
-            heightAlign = MOS_ALIGN_CEIL(pJpegPicParams->m_frameHeight, CODECHAL_DECODE_JPEG_BLOCK_ALIGN_SIZE_X2);
+            widthAlign  = MOS_ALIGN_CEIL(m_jpegPicParams->m_frameWidth, CODECHAL_DECODE_JPEG_BLOCK_ALIGN_SIZE);
+            heightAlign = MOS_ALIGN_CEIL(m_jpegPicParams->m_frameHeight, CODECHAL_DECODE_JPEG_BLOCK_ALIGN_SIZE_X2);
             break;
         case jpegYUV422H2Y:
-            widthAlign = MOS_ALIGN_CEIL(pJpegPicParams->m_frameWidth, CODECHAL_DECODE_JPEG_BLOCK_ALIGN_SIZE_X2);
-            heightAlign = MOS_ALIGN_CEIL(pJpegPicParams->m_frameHeight, CODECHAL_DECODE_JPEG_BLOCK_ALIGN_SIZE);
+            widthAlign  = MOS_ALIGN_CEIL(m_jpegPicParams->m_frameWidth, CODECHAL_DECODE_JPEG_BLOCK_ALIGN_SIZE_X2);
+            heightAlign = MOS_ALIGN_CEIL(m_jpegPicParams->m_frameHeight, CODECHAL_DECODE_JPEG_BLOCK_ALIGN_SIZE);
             break;
         case jpegYUV411:
-            widthAlign = MOS_ALIGN_CEIL(pJpegPicParams->m_frameWidth, CODECHAL_DECODE_JPEG_BLOCK_ALIGN_SIZE_X4);
-            heightAlign = MOS_ALIGN_CEIL(pJpegPicParams->m_frameHeight, CODECHAL_DECODE_JPEG_BLOCK_ALIGN_SIZE);
+            widthAlign  = MOS_ALIGN_CEIL(m_jpegPicParams->m_frameWidth, CODECHAL_DECODE_JPEG_BLOCK_ALIGN_SIZE_X4);
+            heightAlign = MOS_ALIGN_CEIL(m_jpegPicParams->m_frameHeight, CODECHAL_DECODE_JPEG_BLOCK_ALIGN_SIZE);
             break;
         default: // YUV422H_4Y, YUV422V_4Y & YUV420
-            widthAlign = MOS_ALIGN_CEIL(pJpegPicParams->m_frameWidth, CODECHAL_DECODE_JPEG_BLOCK_ALIGN_SIZE_X2);
-            heightAlign = MOS_ALIGN_CEIL(pJpegPicParams->m_frameHeight, CODECHAL_DECODE_JPEG_BLOCK_ALIGN_SIZE_X2);
+            widthAlign  = MOS_ALIGN_CEIL(m_jpegPicParams->m_frameWidth, CODECHAL_DECODE_JPEG_BLOCK_ALIGN_SIZE_X2);
+            heightAlign = MOS_ALIGN_CEIL(m_jpegPicParams->m_frameHeight, CODECHAL_DECODE_JPEG_BLOCK_ALIGN_SIZE_X2);
             break;
         }
     }
 
     //BDW has a limitation:Height should aligned by 16 when input is YUV422H_2Y and output is NV12.
     if (MEDIA_IS_WA(m_waTable, WaJPEGHeightAlignYUV422H2YToNV12) &&
-        pJpegPicParams->m_chromaType == jpegYUV422H2Y &&
+        m_jpegPicParams->m_chromaType == jpegYUV422H2Y &&
         m_decodeParams.m_destSurface->Format == Format_NV12)
     {
-        heightAlign = MOS_ALIGN_CEIL(pJpegPicParams->m_frameHeight, CODECHAL_DECODE_JPEG_BLOCK_ALIGN_SIZE_X2);
+        heightAlign = MOS_ALIGN_CEIL(m_jpegPicParams->m_frameHeight, CODECHAL_DECODE_JPEG_BLOCK_ALIGN_SIZE_X2);
     }
 
-    if ((pJpegPicParams->m_rotation == jpegRotation90) || (pJpegPicParams->m_rotation == jpegRotation270))
+    if ((m_jpegPicParams->m_rotation == jpegRotation90) || (m_jpegPicParams->m_rotation == jpegRotation270))
     {
         // Interchanging picture width and height for 90/270 degree rotation
         m_decodeParams.m_destSurface->dwWidth  = heightAlign;
@@ -499,50 +497,44 @@ MOS_STATUS CodechalDecodeJpeg::SetFrameStates()
         m_decodeParams.m_destSurface->dwHeight = heightAlign;
     }
 
-    sDestSurface = *(m_decodeParams.m_destSurface);
-    if (bCopiedDataBufferInUse)
+    m_destSurface = *(m_decodeParams.m_destSurface);
+    if (m_copiedDataBufferInUse)
     {
-        resDataBuffer = resCopiedDataBuffer;  // set resDataBuffer to copy data buffer
+        m_resDataBuffer = m_resCopiedDataBuffer;  // set resDataBuffer to copy data buffer
     }
 
-    m_statusReportFeedbackNumber = pJpegPicParams->m_statusReportFeedbackNumber;
+    m_statusReportFeedbackNumber = m_jpegPicParams->m_statusReportFeedbackNumber;
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
-    SfcState.CheckAndInitialize(&sDestSurface, pJpegPicParams);
+    m_sfcState.CheckAndInitialize(&m_destSurface, m_jpegPicParams);
 #endif
 
     CODECHAL_DEBUG_TOOL(
-        if (pJpegPicParams)
-        {
-            CODECHAL_DECODE_CHK_STATUS_RETURN(DumpPicParams(pJpegPicParams))
+        if (m_jpegPicParams) {
+            CODECHAL_DECODE_CHK_STATUS_RETURN(DumpPicParams(m_jpegPicParams))
         }
 
-        if (pJpegScanParams)
-        {
-            CODECHAL_DECODE_CHK_STATUS_RETURN(DumpScanParams(pJpegScanParams))
+        if (m_jpegScanParams) {
+            CODECHAL_DECODE_CHK_STATUS_RETURN(DumpScanParams(m_jpegScanParams))
         }
 
-        if (pJpegHuffmanTable)
-        {
-            CODECHAL_DECODE_CHK_STATUS_RETURN(DumpHuffmanTable(pJpegHuffmanTable))
+        if (m_jpegHuffmanTable) {
+            CODECHAL_DECODE_CHK_STATUS_RETURN(DumpHuffmanTable(m_jpegHuffmanTable))
         }
 
-        if (pJpegQMatrix)
-        {
-            CODECHAL_DECODE_CHK_STATUS_RETURN(DumpIQParams(pJpegQMatrix))
+        if (m_jpegQMatrix) {
+            CODECHAL_DECODE_CHK_STATUS_RETURN(DumpIQParams(m_jpegQMatrix))
         }
-        
-        if (&(resDataBuffer))
-        {
+
+        if (&(m_resDataBuffer)) {
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-                &resDataBuffer,
+                &m_resDataBuffer,
                 CodechalDbgAttr::attrBitstream,
                 "_DEC",
-                u32DataSize,
+                m_dataSize,
                 0,
                 CODECHAL_NUM_MEDIA_STATES));
-        }
-    )
+        })
 
     return eStatus;
 }
@@ -555,11 +547,10 @@ MOS_STATUS CodechalDecodeJpeg::AllocateResources()
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateSyncResource(
         m_osInterface,
-        &resSyncObjectWaContextInUse));
+        &m_resSyncObjectWaContextInUse));
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateSyncResource(
         m_osInterface,
-        &resSyncObjectVideoContextInUse));
-    
+        &m_resSyncObjectVideoContextInUse));
 
     return eStatus;
 }
@@ -567,28 +558,27 @@ MOS_STATUS CodechalDecodeJpeg::AllocateResources()
 void CodechalDecodeJpeg::SetOutputSurfaceLayout(
     CodecDecodeJpegImageLayout *outputSurfLayout)
 {
+    uint32_t ucbOffset = MOS_ALIGN_CEIL(m_destSurface.UPlaneOffset.iYOffset, MHW_VDBOX_MFX_UV_PLANE_ALIGNMENT_LEGACY);
+    uint32_t vcrOffset = MOS_ALIGN_CEIL(m_destSurface.VPlaneOffset.iYOffset, MHW_VDBOX_MFX_UV_PLANE_ALIGNMENT_LEGACY);
 
-    uint32_t ucbOffset = MOS_ALIGN_CEIL(sDestSurface.UPlaneOffset.iYOffset, MHW_VDBOX_MFX_UV_PLANE_ALIGNMENT_LEGACY);
-    uint32_t vcrOffset = MOS_ALIGN_CEIL(sDestSurface.VPlaneOffset.iYOffset, MHW_VDBOX_MFX_UV_PLANE_ALIGNMENT_LEGACY);
+    uint32_t ucbOffsetInBytes = ucbOffset * m_destSurface.dwPitch;
+    uint32_t vcrOffsetInBytes = vcrOffset * m_destSurface.dwPitch;
 
-    uint32_t ucbOffsetInBytes = ucbOffset * sDestSurface.dwPitch;
-    uint32_t vcrOffsetInBytes = vcrOffset * sDestSurface.dwPitch;
+    outputSurfLayout->m_pitch = m_destSurface.dwPitch;
 
-    outputSurfLayout->m_pitch = sDestSurface.dwPitch;
-
-    for (uint32_t scanCount = 0; scanCount < pJpegScanParams->NumScans; scanCount++)
+    for (uint32_t scanCount = 0; scanCount < m_jpegScanParams->NumScans; scanCount++)
     {
-        for (uint32_t scanComponent = 0; scanComponent < pJpegScanParams->ScanHeader[scanCount].NumComponents; scanComponent++)
+        for (uint32_t scanComponent = 0; scanComponent < m_jpegScanParams->ScanHeader[scanCount].NumComponents; scanComponent++)
         {
-            if (pJpegScanParams->ScanHeader[scanCount].ComponentSelector[scanComponent] == pJpegPicParams->m_componentIdentifier[jpegComponentY])
+            if (m_jpegScanParams->ScanHeader[scanCount].ComponentSelector[scanComponent] == m_jpegPicParams->m_componentIdentifier[jpegComponentY])
             {
                 outputSurfLayout->m_componentDataOffset[jpegComponentY] = 0;
             }
-            else if (pJpegScanParams->ScanHeader[scanCount].ComponentSelector[scanComponent] == pJpegPicParams->m_componentIdentifier[jpegComponentU])
+            else if (m_jpegScanParams->ScanHeader[scanCount].ComponentSelector[scanComponent] == m_jpegPicParams->m_componentIdentifier[jpegComponentU])
             {
                 outputSurfLayout->m_componentDataOffset[jpegComponentU] = ucbOffsetInBytes;
             }
-            else if (pJpegScanParams->ScanHeader[scanCount].ComponentSelector[scanComponent] == pJpegPicParams->m_componentIdentifier[jpegComponentV])
+            else if (m_jpegScanParams->ScanHeader[scanCount].ComponentSelector[scanComponent] == m_jpegPicParams->m_componentIdentifier[jpegComponentV])
             {
                 outputSurfLayout->m_componentDataOffset[jpegComponentV] = vcrOffsetInBytes;
             }
@@ -606,9 +596,9 @@ MOS_STATUS CodechalDecodeJpeg::DecodeStateLevel()
     jpegPicState.dwOutputFormat = m_decodeParams.m_destSurface->Format;
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
-    if (SfcState.bSfcPipeOut)
+    if (m_sfcState.m_sfcPipeOut)
     {
-        jpegPicState.dwOutputFormat = SfcState.sSfcInSurface.Format;
+        jpegPicState.dwOutputFormat = m_sfcState.m_sfcInSurface.Format;
     }
 #endif
 
@@ -618,13 +608,13 @@ MOS_STATUS CodechalDecodeJpeg::DecodeStateLevel()
         jpegPicState.dwOutputFormat == Format_UYVY)
     {
         //Only interleaved single scan are supported.
-        if (pJpegPicParams->m_totalScans != 1 ||
-            pJpegPicParams->m_interleavedData == 0)
+        if (m_jpegPicParams->m_totalScans != 1 ||
+            m_jpegPicParams->m_interleavedData == 0)
         {
             return MOS_STATUS_UNKNOWN;
         }
 
-        switch (pJpegPicParams->m_chromaType)
+        switch (m_jpegPicParams->m_chromaType)
         {
         case jpegYUV420:
         case jpegYUV422H2Y:
@@ -664,13 +654,13 @@ MOS_STATUS CodechalDecodeJpeg::DecodeStateLevel()
     MHW_VDBOX_SURFACE_PARAMS surfaceParams;
     MOS_ZeroMemory(&surfaceParams, sizeof(surfaceParams));
     surfaceParams.Mode          = CODECHAL_DECODE_MODE_JPEG;
-    surfaceParams.psSurface     = &sDestSurface;
-    surfaceParams.ChromaType    = pJpegPicParams->m_chromaType;
+    surfaceParams.psSurface     = &m_destSurface;
+    surfaceParams.ChromaType    = m_jpegPicParams->m_chromaType;
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
-    if (SfcState.bSfcPipeOut)
+    if (m_sfcState.m_sfcPipeOut)
     {
-        surfaceParams.psSurface = &SfcState.sSfcInSurface;
+        surfaceParams.psSurface = &m_sfcState.m_sfcInSurface;
     }
 #endif
 
@@ -679,28 +669,28 @@ MOS_STATUS CodechalDecodeJpeg::DecodeStateLevel()
     MOS_ZeroMemory(&pipeBufAddrParams, sizeof(pipeBufAddrParams));
     pipeBufAddrParams.Mode = CODECHAL_DECODE_MODE_JPEG;
     // Predeblock surface is the same as destination surface here because there is no deblocking for JPEG
-    pipeBufAddrParams.psPreDeblockSurface = &sDestSurface;
-    
+    pipeBufAddrParams.psPreDeblockSurface = &m_destSurface;
+
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetPipeBufAddr(&pipeBufAddrParams));
 
     // Set MFX_IND_OBJ_BASE_ADDR_STATE_CMD
     MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS indObjBaseAddrParams;
     MOS_ZeroMemory(&indObjBaseAddrParams, sizeof(indObjBaseAddrParams));
     indObjBaseAddrParams.Mode = CODECHAL_DECODE_MODE_JPEG;
-    indObjBaseAddrParams.dwDataSize = bCopiedDataBufferInUse ? u32NextCopiedDataOffset : u32DataSize;
-    indObjBaseAddrParams.presDataBuffer = &resDataBuffer;
+    indObjBaseAddrParams.dwDataSize     = m_copiedDataBufferInUse ? m_nextCopiedDataOffset : m_dataSize;
+    indObjBaseAddrParams.presDataBuffer = &m_resDataBuffer;
 
-    // Set MFX_JPEG_PIC_STATE_CMD 
-    jpegPicState.pJpegPicParams = pJpegPicParams;
-    if ((pJpegPicParams->m_rotation == jpegRotation90) || (pJpegPicParams->m_rotation == jpegRotation270))
+    // Set MFX_JPEG_PIC_STATE_CMD
+    jpegPicState.pJpegPicParams = m_jpegPicParams;
+    if ((m_jpegPicParams->m_rotation == jpegRotation90) || (m_jpegPicParams->m_rotation == jpegRotation270))
     {
-        jpegPicState.dwWidthInBlocks = (sDestSurface.dwHeight / CODECHAL_DECODE_JPEG_BLOCK_SIZE) - 1;
-        jpegPicState.dwHeightInBlocks = (sDestSurface.dwWidth / CODECHAL_DECODE_JPEG_BLOCK_SIZE) - 1;
+        jpegPicState.dwWidthInBlocks  = (m_destSurface.dwHeight / CODECHAL_DECODE_JPEG_BLOCK_SIZE) - 1;
+        jpegPicState.dwHeightInBlocks = (m_destSurface.dwWidth / CODECHAL_DECODE_JPEG_BLOCK_SIZE) - 1;
     }
     else
     {
-        jpegPicState.dwWidthInBlocks = (sDestSurface.dwWidth / CODECHAL_DECODE_JPEG_BLOCK_SIZE) - 1;
-        jpegPicState.dwHeightInBlocks = (sDestSurface.dwHeight / CODECHAL_DECODE_JPEG_BLOCK_SIZE) - 1;
+        jpegPicState.dwWidthInBlocks  = (m_destSurface.dwWidth / CODECHAL_DECODE_JPEG_BLOCK_SIZE) - 1;
+        jpegPicState.dwHeightInBlocks = (m_destSurface.dwHeight / CODECHAL_DECODE_JPEG_BLOCK_SIZE) - 1;
     }
 
 
@@ -725,7 +715,7 @@ MOS_STATUS CodechalDecodeJpeg::DecodeStateLevel()
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     // Output decode result through SFC
-    CODECHAL_DECODE_CHK_STATUS_RETURN(SfcState.AddSfcCommands(&cmdBuffer));
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_sfcState.AddSfcCommands(&cmdBuffer));
 #endif
 
     // CMD_MFX_SURFACE_STATE
@@ -776,11 +766,11 @@ MOS_STATUS CodechalDecodeJpeg::DecodePrimitiveLevel()
     MHW_VDBOX_QM_PARAMS qmParams;
     MOS_ZeroMemory(&qmParams, sizeof(qmParams));
     qmParams.Standard = CODECHAL_JPEG;
-    qmParams.pJpegQuantMatrix = (CodecJpegQuantMatrix *)pJpegQMatrix;
+    qmParams.pJpegQuantMatrix = (CodecJpegQuantMatrix *)m_jpegQMatrix;
 
     // Swapping QM(x,y) to QM(y,x) for 90/270 degree rotation
-    if ((pJpegPicParams->m_rotation == jpegRotation90) ||
-        (pJpegPicParams->m_rotation == jpegRotation270))
+    if ((m_jpegPicParams->m_rotation == jpegRotation90) ||
+        (m_jpegPicParams->m_rotation == jpegRotation270))
     {
         qmParams.bJpegQMRotation = true;
     }
@@ -789,10 +779,10 @@ MOS_STATUS CodechalDecodeJpeg::DecodePrimitiveLevel()
         qmParams.bJpegQMRotation = false;
     }
 
-    for (uint16_t scanCount = 0; scanCount < pJpegPicParams->m_numCompInFrame; scanCount++)
+    for (uint16_t scanCount = 0; scanCount < m_jpegPicParams->m_numCompInFrame; scanCount++)
     {
         // Using scanCount here because the same command is used for JPEG decode and encode
-        uint32_t quantTableSelector = pJpegPicParams->m_quantTableSelector[scanCount];
+        uint32_t quantTableSelector                                      = m_jpegPicParams->m_quantTableSelector[scanCount];
         qmParams.pJpegQuantMatrix->m_jpegQMTableType[quantTableSelector] = scanCount;
         qmParams.JpegQMTableSelector = quantTableSelector;
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxQmCmd(
@@ -803,10 +793,10 @@ MOS_STATUS CodechalDecodeJpeg::DecodePrimitiveLevel()
     uint32_t dcCurHuffTblIndex[2] = { 0xff, 0xff };
     uint32_t acCurHuffTblIndex[2] = { 0xff, 0xff };
 
-    for (uint16_t scanCount = 0; scanCount < pJpegScanParams->NumScans; scanCount++)
+    for (uint16_t scanCount = 0; scanCount < m_jpegScanParams->NumScans; scanCount++)
     {
         // MFX_JPEG_HUFF_TABLE
-        uint16_t numComponents = pJpegScanParams->ScanHeader[scanCount].NumComponents;
+        uint16_t numComponents = m_jpegScanParams->ScanHeader[scanCount].NumComponents;
         for (uint16_t scanComponent = 0; scanComponent < numComponents; scanComponent++)
         {
             // Determine which huffman table we will be writing to
@@ -814,9 +804,9 @@ MOS_STATUS CodechalDecodeJpeg::DecodePrimitiveLevel()
             // and when ComponentSelector[scanComponent] is equal 0, variable huffTableID is set to 1, and wrong Huffman table is used,
             // so it is more reasonable to use componentIdentifier[jpegComponentY] to determine which huffman table we will be writing to.
             uint8_t ComponentSelector =
-                pJpegScanParams->ScanHeader[scanCount].ComponentSelector[scanComponent];
+                m_jpegScanParams->ScanHeader[scanCount].ComponentSelector[scanComponent];
             uint16_t huffTableID = 0;
-            if (ComponentSelector == pJpegPicParams->m_componentIdentifier[jpegComponentY])
+            if (ComponentSelector == m_jpegPicParams->m_componentIdentifier[jpegComponentY])
             {
                 huffTableID = 0;
             }
@@ -826,9 +816,9 @@ MOS_STATUS CodechalDecodeJpeg::DecodePrimitiveLevel()
             }
 
             int32_t AcTableSelector =
-                pJpegScanParams->ScanHeader[scanCount].AcHuffTblSelector[scanComponent];
+                m_jpegScanParams->ScanHeader[scanCount].AcHuffTblSelector[scanComponent];
             int32_t DcTableSelector =
-                pJpegScanParams->ScanHeader[scanCount].DcHuffTblSelector[scanComponent];
+                m_jpegScanParams->ScanHeader[scanCount].DcHuffTblSelector[scanComponent];
 
             // Send the huffman table state command only if the table changed
             if ((DcTableSelector != dcCurHuffTblIndex[huffTableID]) ||
@@ -839,10 +829,10 @@ MOS_STATUS CodechalDecodeJpeg::DecodePrimitiveLevel()
 
                 huffmanTableParams.HuffTableID = huffTableID;
 
-                huffmanTableParams.pACBits = &pJpegHuffmanTable->HuffTable[AcTableSelector].AC_BITS[0];
-                huffmanTableParams.pDCBits = &pJpegHuffmanTable->HuffTable[DcTableSelector].DC_BITS[0];
-                huffmanTableParams.pACValues = &pJpegHuffmanTable->HuffTable[AcTableSelector].AC_HUFFVAL[0];
-                huffmanTableParams.pDCValues = &pJpegHuffmanTable->HuffTable[DcTableSelector].DC_HUFFVAL[0];
+                huffmanTableParams.pACBits   = &m_jpegHuffmanTable->HuffTable[AcTableSelector].AC_BITS[0];
+                huffmanTableParams.pDCBits   = &m_jpegHuffmanTable->HuffTable[DcTableSelector].DC_BITS[0];
+                huffmanTableParams.pACValues = &m_jpegHuffmanTable->HuffTable[AcTableSelector].AC_HUFFVAL[0];
+                huffmanTableParams.pDCValues = &m_jpegHuffmanTable->HuffTable[DcTableSelector].DC_HUFFVAL[0];
 
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxJpegHuffTableCmd(
                     &cmdBuffer,
@@ -858,31 +848,30 @@ MOS_STATUS CodechalDecodeJpeg::DecodePrimitiveLevel()
         MOS_ZeroMemory(&jpegBsdObject, sizeof(jpegBsdObject));
 
         // MFX_JPEG_BSD_OBJECT
-        jpegBsdObject.dwIndirectDataLength = pJpegScanParams->ScanHeader[scanCount].DataLength;
-        jpegBsdObject.dwDataStartAddress = pJpegScanParams->ScanHeader[scanCount].DataOffset;
-        jpegBsdObject.dwScanHorizontalPosition = pJpegScanParams->ScanHeader[scanCount].ScanHoriPosition;
-        jpegBsdObject.dwScanVerticalPosition = pJpegScanParams->ScanHeader[scanCount].ScanVertPosition;
+        jpegBsdObject.dwIndirectDataLength     = m_jpegScanParams->ScanHeader[scanCount].DataLength;
+        jpegBsdObject.dwDataStartAddress       = m_jpegScanParams->ScanHeader[scanCount].DataOffset;
+        jpegBsdObject.dwScanHorizontalPosition = m_jpegScanParams->ScanHeader[scanCount].ScanHoriPosition;
+        jpegBsdObject.dwScanVerticalPosition   = m_jpegScanParams->ScanHeader[scanCount].ScanVertPosition;
         jpegBsdObject.bInterleaved = (numComponents > 1) ? 1 : 0;
-        jpegBsdObject.dwMCUCount = pJpegScanParams->ScanHeader[scanCount].MCUCount;
-        jpegBsdObject.dwRestartInterval = pJpegScanParams->ScanHeader[scanCount].RestartInterval;
-
+        jpegBsdObject.dwMCUCount               = m_jpegScanParams->ScanHeader[scanCount].MCUCount;
+        jpegBsdObject.dwRestartInterval        = m_jpegScanParams->ScanHeader[scanCount].RestartInterval;
 
         uint16_t scanComponentIndex = 0;
 
         for (uint16_t scanComponent = 0; scanComponent < numComponents; scanComponent++)
         {
             uint8_t ComponentSelector =
-                pJpegScanParams->ScanHeader[scanCount].ComponentSelector[scanComponent];
+                m_jpegScanParams->ScanHeader[scanCount].ComponentSelector[scanComponent];
 
-            if (ComponentSelector == pJpegPicParams->m_componentIdentifier[jpegComponentY])
+            if (ComponentSelector == m_jpegPicParams->m_componentIdentifier[jpegComponentY])
             {
                 scanComponentIndex = 0;
             }
-            else if (ComponentSelector == pJpegPicParams->m_componentIdentifier[jpegComponentU])
+            else if (ComponentSelector == m_jpegPicParams->m_componentIdentifier[jpegComponentU])
             {
                 scanComponentIndex = 1;
             }
-            else if (ComponentSelector == pJpegPicParams->m_componentIdentifier[jpegComponentV])
+            else if (ComponentSelector == m_jpegPicParams->m_componentIdentifier[jpegComponentV])
             {
                 scanComponentIndex = 2;
             }
@@ -900,7 +889,7 @@ MOS_STATUS CodechalDecodeJpeg::DecodePrimitiveLevel()
     // Check if destination surface needs to be synchronized
     MOS_SYNC_PARAMS syncParams = g_cInitSyncParams;
     syncParams.GpuContext = m_videoContext;
-    syncParams.presSyncResource = &sDestSurface.OsResource;
+    syncParams.presSyncResource         = &m_destSurface.OsResource;
     syncParams.bReadOnly = false;
     syncParams.bDisableDecodeSyncLock = m_disableDecodeSyncLock;
     syncParams.bDisableLockForTranscode = m_disableLockForTranscode;
@@ -934,7 +923,7 @@ MOS_STATUS CodechalDecodeJpeg::DecodePrimitiveLevel()
         CodechalDecodeStatusReport decodeStatusReport;
         decodeStatusReport.m_statusReportNumber = m_statusReportFeedbackNumber;
         decodeStatusReport.m_codecStatus = CODECHAL_STATUS_UNAVAILABLE;
-        decodeStatusReport.m_currDecodedPicRes = sDestSurface.OsResource;
+        decodeStatusReport.m_currDecodedPicRes  = m_destSurface.OsResource;
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(EndStatusReport(
             decodeStatusReport,
@@ -957,12 +946,12 @@ MOS_STATUS CodechalDecodeJpeg::DecodePrimitiveLevel()
             "_DEC"));
     )
 
-    if (bCopiedDataBufferInUse)
+    if (m_copiedDataBufferInUse)
     {
         //Sync up complete frame
         syncParams = g_cInitSyncParams;
         syncParams.GpuContext = m_videoContextForWa;
-        syncParams.presSyncResource = &resSyncObjectWaContextInUse;
+        syncParams.presSyncResource = &m_resSyncObjectWaContextInUse;
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnEngineSignal(
             m_osInterface,
@@ -970,7 +959,7 @@ MOS_STATUS CodechalDecodeJpeg::DecodePrimitiveLevel()
 
         syncParams = g_cInitSyncParams;
         syncParams.GpuContext = m_videoContext;
-        syncParams.presSyncResource = &resSyncObjectWaContextInUse;
+        syncParams.presSyncResource = &m_resSyncObjectWaContextInUse;
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnEngineWait(
             m_osInterface,
@@ -983,13 +972,12 @@ MOS_STATUS CodechalDecodeJpeg::DecodePrimitiveLevel()
         m_videoContextUsesNullHw));
 
     CODECHAL_DEBUG_TOOL(
-        m_mmc->UpdateUserFeatureKey(&sDestSurface);
-    )
+        m_mmc->UpdateUserFeatureKey(&m_destSurface);)
 
-        if (m_statusQueryReportingEnabled)
-        {
-            CODECHAL_DECODE_CHK_STATUS_RETURN(ResetStatusReport(
-                m_videoContextUsesNullHw));
+    if (m_statusQueryReportingEnabled)
+    {
+        CODECHAL_DECODE_CHK_STATUS_RETURN(ResetStatusReport(
+            m_videoContextUsesNullHw));
         }
 
     // Set output surface layout 
@@ -1002,11 +990,10 @@ MOS_STATUS CodechalDecodeJpeg::DecodePrimitiveLevel()
 
     CODECHAL_DEBUG_TOOL(
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
-            &sDestSurface,
+            &m_destSurface,
             CodechalDbgAttr::attrDecodeOutputSurface,
-            "DstSurf"));
-    )
-        return eStatus;
+            "DstSurf"));)
+    return eStatus;
 }
 
 MOS_STATUS CodechalDecodeJpeg::InitMmcState()
@@ -1032,7 +1019,7 @@ MOS_STATUS CodechalDecodeJpeg::AllocateStandard(
     m_height = settings->dwHeight;
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
-    CODECHAL_DECODE_CHK_STATUS_RETURN(SfcState.InitializeSfcState(
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_sfcState.InitializeSfcState(
         this,
         m_hwInterface,
         m_osInterface));

@@ -707,7 +707,7 @@ protected:
     // MbEnc
     bool                                   m_mbQpDataEnabled = false;                           //!< Mb Qp data flag
     MOS_SURFACE                            m_mbQpDataSurface;                                   //!< MOS_SURFACE of Mb Qp data surface
-    uint32_t                               m_bFrameNum = 0;                                     //!< The num of the successive B frames
+    uint32_t                               m_frameNumB     = 0;                                 //!< The num of the successive B frames
     uint32_t                               m_prevMBCodeIdx = 0;                                 //!< Previous MB Code index                                                                                    // MbEnc
     MHW_KERNEL_STATE                       m_mbEncKernelStates[mbEncKernelIdxNum];              //!< MbEnc kernel state
     BindingTableMbEnc                      m_mbEncBindingTable;                                 //!< MbEnc binding table

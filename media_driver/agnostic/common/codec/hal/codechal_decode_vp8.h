@@ -274,11 +274,11 @@ struct _CODECHAL_DECODE_VP8_FRAME_HEAD
 class Vp8EntropyState
 {
 public:
-    const uint8_t KEY_FRAME = 0;                                //!< VP8 Key Frame Flag
-    const uint8_t INTER_FRAME = 1;                              //!< VP8 Inter Frame Flag
-    const uint32_t BD_VALUE_SIZE = ((uint32_t)sizeof(uint32_t) * CHAR_BIT); // VP8 BD Value Size
-    const uint32_t LOTS_OF_BITS = 0x40000000;                   //!< Offset for parsing frame head
-    const uint8_t PROB_HALF = 128;                              //!< VP8 Half Probability
+    const uint8_t  m_keyFrame    = 0;                                        //!< VP8 Key Frame Flag
+    const uint8_t  m_interFrame  = 1;                                        //!< VP8 Inter Frame Flag
+    const uint32_t m_bdValueSize = ((uint32_t)sizeof(uint32_t) * CHAR_BIT);  // VP8 BD Value Size
+    const uint32_t m_lotsOfBits  = 0x40000000;                               //!< Offset for parsing frame head
+    const uint8_t  m_probHalf    = 128;                                      //!< VP8 Half Probability
 
     //!
     //! \brief    Constructor
@@ -358,11 +358,11 @@ protected:
     //!
     void ReadMvContexts(MV_CONTEXT *mvContext);
 
-    PCODECHAL_DECODE_VP8_FRAME_HEAD pFrameHead = nullptr;               //!< Pointer to VP8 Frame Head
-    uint8_t* pBitstreamBuffer       = nullptr;                          //!< Pointer to Bitstream Buffer
-    uint32_t u32BitstreamBufferSize = 0;                                //!< Size of Bitstream Buffer
-    uint8_t* pDataBuffer            = nullptr;                          //!< Pointer to Data Buffer
-    uint8_t* pDataBufferEnd         = nullptr;                          //<! Pointer to Data Buffer End
+    PCODECHAL_DECODE_VP8_FRAME_HEAD m_frameHead           = nullptr;  //!< Pointer to VP8 Frame Head
+    uint8_t *                       m_bitstreamBuffer     = nullptr;  //!< Pointer to Bitstream Buffer
+    uint32_t                        m_bitstreamBufferSize = 0;        //!< Size of Bitstream Buffer
+    uint8_t *                       m_dataBuffer          = nullptr;  //!< Pointer to Data Buffer
+    uint8_t *                       m_dataBufferEnd       = nullptr;  //<! Pointer to Data Buffer End
 
 private:
     //!
@@ -496,11 +496,11 @@ private:
     //!
     void QuantSetup();
 
-    const uint8_t     *pBufferEnd;              //!< Pointer to Data Buffer End
-    const uint8_t     *pBuffer;                 //!< Pointer to Data Buffer
-    int32_t            iCount;                  //!< Bits Count for Bitstream Buffer
-    uint32_t           uiValue;                 //!< Entropy Value
-    uint32_t           uiRange;                 //!< Entropy Range
+    const uint8_t *m_bufferEnd;  //!< Pointer to Data Buffer End
+    const uint8_t *m_buffer;     //!< Pointer to Data Buffer
+    int32_t        m_count;      //!< Bits Count for Bitstream Buffer
+    uint32_t       m_value;      //!< Entropy Value
+    uint32_t       m_range;      //!< Entropy Range
 };
 
 using PVP8_ENTROPY_STATE = Vp8EntropyState*;
@@ -513,7 +513,7 @@ using PVP8_ENTROPY_STATE = Vp8EntropyState*;
 class CodechalDecodeVp8 : public CodechalDecode
 {
 public:
-    const int32_t CODECHAL_DECODE_VP8_COEFFPROB_TABLE_SIZE = 4 * 8 * 3 * 11;
+    const int32_t m_codechalDecodeVp8CoeffprobTableSize = 4 * 8 * 3 * 11;
 
     //!
     //! \brief  Constructor
@@ -588,48 +588,48 @@ public:
     MOS_STATUS  AllocateResourcesVariableSizes();
 
     // Parameters passed by application
-    uint16_t                        u16PicWidthInMbLastMaxAlloced;              //!< Max Picture Width in MB used for buffer allocation in past frames
-    uint16_t                        u16PicHeightInMbLastMaxAlloced;             //!< Max Picture Height in MB used for buffer allocation in past frames
-    bool                            bShortFormatInUse;                          //!< Short Format Indicator
-    uint32_t                        u32DataSize;                                //!< Data Size in Decode Params
-    uint32_t                        u32DataOffset;                              //!< Data Offset in Decode Params
-    PCODEC_VP8_PIC_PARAMS           pVp8PicParams;                              //!< Pointer to VP8 Pic Params
-    PCODEC_VP8_IQ_MATRIX_PARAMS     pVp8IqMatrixParams;                         //!< Pointer to VP8 IQ Matrix Params
-    MOS_SURFACE                     sDestSurface;                               //!< Pointer to MOS_SURFACE of render surface
-    PMOS_RESOURCE                   presLastRefSurface;                         //!< Pointer to resource of Last Reference Surface
-    PMOS_RESOURCE                   presGoldenRefSurface;                       //!< Pointer to resource of Golden Reference Surface
-    PMOS_RESOURCE                   presAltRefSurface;                          //!< Pointer to resource of Alternate Reference Surface
-    MOS_RESOURCE                    resDataBuffer;                              //!< Graphics resource of bitstream data surface
-    MOS_RESOURCE                    resCoefProbBuffer;                          //!< Graphics resource of Coefficient Probability data surface
+    uint16_t                    m_picWidthInMbLastMaxAlloced;   //!< Max Picture Width in MB used for buffer allocation in past frames
+    uint16_t                    m_picHeightInMbLastMaxAlloced;  //!< Max Picture Height in MB used for buffer allocation in past frames
+    bool                        m_shortFormatInUse;             //!< Short Format Indicator
+    uint32_t                    m_dataSize;                     //!< Data Size in Decode Params
+    uint32_t                    m_dataOffset;                   //!< Data Offset in Decode Params
+    PCODEC_VP8_PIC_PARAMS       m_vp8PicParams;                 //!< Pointer to VP8 Pic Params
+    PCODEC_VP8_IQ_MATRIX_PARAMS m_vp8IqMatrixParams;            //!< Pointer to VP8 IQ Matrix Params
+    MOS_SURFACE                 m_destSurface;                  //!< Pointer to MOS_SURFACE of render surface
+    PMOS_RESOURCE               m_presLastRefSurface;           //!< Pointer to resource of Last Reference Surface
+    PMOS_RESOURCE               m_presGoldenRefSurface;         //!< Pointer to resource of Golden Reference Surface
+    PMOS_RESOURCE               m_presAltRefSurface;            //!< Pointer to resource of Alternate Reference Surface
+    MOS_RESOURCE                m_resDataBuffer;                //!< Graphics resource of bitstream data surface
+    MOS_RESOURCE                m_resCoefProbBuffer;            //!< Graphics resource of Coefficient Probability data surface
 
     // Track for several row store buffer's max picture width in MB used for buffer allocation in past frames
-    uint16_t                        u16MfdDeblockingFilterRowStoreScratchBufferPicWidthInMb;
-    uint16_t                        u16MfdIntraRowStoreScratchBufferPicWidthInMb;
-    uint16_t                        u16BsdMpcRowStoreScratchBufferPicWidthInMb;
+    uint16_t m_mfdDeblockingFilterRowStoreScratchBufferPicWidthInMb;
+    uint16_t m_mfdIntraRowStoreScratchBufferPicWidthInMb;
+    uint16_t m_bsdMpcRowStoreScratchBufferPicWidthInMb;
 
     // Internally maintained
-    MOS_RESOURCE                    resTmpBitstreamBuffer;                          //!< Graphics resource of Bitstream data surface
-    MOS_RESOURCE                    resMfdIntraRowStoreScratchBuffer;               //!< Graphics resource of MFD Intra Row Store Scratch data surface
-    MOS_RESOURCE                    resMfdDeblockingFilterRowStoreScratchBuffer;    //!< Graphics resource of MFD Deblocking Filter Row Store Scratch data surface
-    MOS_RESOURCE                    resBsdMpcRowStoreScratchBuffer;                 //!< Graphics resource of BSD/MPC Row Store Scratch data surface
-    MOS_RESOURCE                    resMprRowStoreScratchBuffer;                    //!< Graphics resource of MPR Row Store Scratch data surface
-    MOS_RESOURCE                    resSegmentationIdStreamBuffer;                  //!< Graphics resource of Segmentation ID Stream data surface
-    PCODEC_REF_LIST                 pVp8RefList[CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8]; //!< VP8 Reference List
-    MOS_RESOURCE                    resSyncObject;                                  //!< Graphics resource of Sync Object
-    MOS_RESOURCE                    resPrivateInputBuffer;                          //!< Graphics resource of private surface for bitstream and coeff prob table
-    uint32_t                        u32PrivateInputBufferSize;                      //!< Size of private surface
-    uint32_t                        u32CoeffProbTableOffset;                        //!< Coefficient Probability Table Offset
+    MOS_RESOURCE    m_resTmpBitstreamBuffer;                              //!< Graphics resource of Bitstream data surface
+    MOS_RESOURCE    m_resMfdIntraRowStoreScratchBuffer;                   //!< Graphics resource of MFD Intra Row Store Scratch data surface
+    MOS_RESOURCE    m_resMfdDeblockingFilterRowStoreScratchBuffer;        //!< Graphics resource of MFD Deblocking Filter Row Store Scratch data surface
+    MOS_RESOURCE    m_resBsdMpcRowStoreScratchBuffer;                     //!< Graphics resource of BSD/MPC Row Store Scratch data surface
+    MOS_RESOURCE    m_resMprRowStoreScratchBuffer;                        //!< Graphics resource of MPR Row Store Scratch data surface
+    MOS_RESOURCE    m_resSegmentationIdStreamBuffer;                      //!< Graphics resource of Segmentation ID Stream data surface
+    PCODEC_REF_LIST m_vp8RefList[CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8];  //!< VP8 Reference List
+    MOS_RESOURCE    m_resSyncObject;                                      //!< Graphics resource of Sync Object
+    MOS_RESOURCE    m_resPrivateInputBuffer;                              //!< Graphics resource of private surface for bitstream and coeff prob table
+    uint32_t        m_privateInputBufferSize;                             //!< Size of private surface
+    uint32_t        m_coeffProbTableOffset;                               //!< Coefficient Probability Table Offset
 
-    bool                            bDeblockingEnabled;                             //!< VP8 Loop Filter Enable Indicator
+    bool m_deblockingEnabled;  //!< VP8 Loop Filter Enable Indicator
 
     // VP8 Frame Head
-    Vp8EntropyState               vp8EntropyState;                                //!< VP8 Entropy State class to parse frame head
-    CODECHAL_DECODE_VP8_FRAME_HEAD  Vp8FrameHead;                                   //!< VP8 Frame Head
+    Vp8EntropyState                m_vp8EntropyState;  //!< VP8 Entropy State class to parse frame head
+    CODECHAL_DECODE_VP8_FRAME_HEAD m_vp8FrameHead;     //!< VP8 Frame Head
 
     // HuC copy related
-    bool                            bHuCCopyInUse;                                  //!< a sync flag used when huc copy and decoder run in the different VDBOX
-    MOS_RESOURCE                    resSyncObjectWaContextInUse;                    //!< signals on the video WA context
-    MOS_RESOURCE                    resSyncObjectVideoContextInUse;                 //!< signals on the video context
+    bool         m_huCCopyInUse;                    //!< a sync flag used when huc copy and decoder run in the different VDBOX
+    MOS_RESOURCE m_resSyncObjectWaContextInUse;     //!< signals on the video WA context
+    MOS_RESOURCE m_resSyncObjectVideoContextInUse;  //!< signals on the video context
 
 protected:
     //!

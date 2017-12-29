@@ -70,7 +70,7 @@ public:
     MOS_STATUS UpdateInputInfo(
         PMHW_SFC_STATE_PARAMS   sfcStateParams);
 
-    MOS_SURFACE             sSfcInSurface;          //!< SFC virtual input surface (as VDBox output surface)
+    MOS_SURFACE m_sfcInSurface;  //!< SFC virtual input surface (as VDBox output surface)
 };
 
 #endif

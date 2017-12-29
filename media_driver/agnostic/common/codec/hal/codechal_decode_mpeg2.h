@@ -253,51 +253,51 @@ public:
         CodecDecodeMpeg2MbParmas *mbParams);
 #endif
     // Parameters passed by application
-    uint16_t                        u16PicWidthInMb     = 0;                    //!< Picture Width in MB width count
-    uint16_t                        u16PicHeightInMb    = 0;                    //!< Picture Height in MB height count
-    uint32_t                        u32DataSize         = 0;                    //!< Size of bitstream
-    uint32_t                        u32DataOffset       = 0;                    //!< Offset of bitstream
-    uint32_t                        u32NumSlices        = 0;                    //!< Number of slices
-    uint32_t                        u32NumMacroblocks   = 0;                    //!< Number of macro blocks
-    CodecDecodeMpeg2PicParams       *picParams     = nullptr;                   //!< Pointer to MPEG2 picture parameter
-    CodecDecodeMpeg2SliceParams     *sliceParams   = nullptr;                   //!< Pointer to MPEG2 slice parameter
-    CodecDecodeMpeg2MbParmas        *mbParams      = nullptr;                   //!< Pointer to MPEG2 macro block parameter
-    CodecMpeg2IqMatrix              *iqMatrixBuffer = nullptr;                  //!< Pointer to MPEG2 IQ matrix parameter
-    MOS_SURFACE                     sDestSurface;                               //!< Handle of render surface
-    PMOS_RESOURCE                   presReferences[CODEC_MAX_NUM_REF_FRAME_NON_AVC]; //!< Pointer to Handle of Reference Frames
-    MOS_RESOURCE                    resDataBuffer;                              //!< Handle of residual difference surface
-    bool                            bDeblockingEnabled  = false;                //!< Indicate Deblocking is enabled
+    uint16_t                     m_picWidthInMb   = 0;                               //!< Picture Width in MB width count
+    uint16_t                     m_picHeightInMb  = 0;                               //!< Picture Height in MB height count
+    uint32_t                     m_dataSize       = 0;                               //!< Size of bitstream
+    uint32_t                     m_dataOffset     = 0;                               //!< Offset of bitstream
+    uint32_t                     m_numSlices      = 0;                               //!< Number of slices
+    uint32_t                     m_numMacroblocks = 0;                               //!< Number of macro blocks
+    CodecDecodeMpeg2PicParams *  m_picParams      = nullptr;                         //!< Pointer to MPEG2 picture parameter
+    CodecDecodeMpeg2SliceParams *m_sliceParams    = nullptr;                         //!< Pointer to MPEG2 slice parameter
+    CodecDecodeMpeg2MbParmas *   m_mbParams       = nullptr;                         //!< Pointer to MPEG2 macro block parameter
+    CodecMpeg2IqMatrix *         m_iqMatrixBuffer = nullptr;                         //!< Pointer to MPEG2 IQ matrix parameter
+    MOS_SURFACE                  m_destSurface;                                      //!< Handle of render surface
+    PMOS_RESOURCE                m_presReferences[CODEC_MAX_NUM_REF_FRAME_NON_AVC];  //!< Pointer to Handle of Reference Frames
+    MOS_RESOURCE                 m_resDataBuffer;                                    //!< Handle of residual difference surface
+    bool                         m_deblockingEnabled = false;                        //!< Indicate Deblocking is enabled
 
-    MOS_RESOURCE                    resMfdDeblockingFilterRowStoreScratchBuffer; //!< Handle of MFD Deblocking Filter Row Store Scratch data surface
-    MOS_RESOURCE                    resBsdMpcRowStoreScratchBuffer;             //!< Handle of MPR Row Store Scratch data surface
-    PCODECHAL_VLD_SLICE_RECORD      pVldSliceRecord     = nullptr;              //!< Pointer to internal record of slices
-    PCODEC_REF_LIST                 pMpeg2RefList[CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2]; //!< Pointer to MPEG2 Ref List
-    MHW_BATCH_BUFFER                MediaObjectBatchBuffer[CODECHAL_DECODE_MPEG2_MAXIMUM_BATCH_BUFFERS]; //!< Handles of second level batch buffer
-    uint16_t                        u16BBInUse          = 0;                    //!< Current index of second level batch buffer in the allocated array
-    uint16_t                        u16BBAllocated      = 0;                    //!< Total number of second level batch buffers allocated
-    uint16_t                        u16BBInUsePerFrame  = 0;                    //!< Current index of second level batch buffers used for a frame
+    MOS_RESOURCE               m_resMfdDeblockingFilterRowStoreScratchBuffer;                          //!< Handle of MFD Deblocking Filter Row Store Scratch data surface
+    MOS_RESOURCE               m_resBsdMpcRowStoreScratchBuffer;                                       //!< Handle of MPR Row Store Scratch data surface
+    PCODECHAL_VLD_SLICE_RECORD m_vldSliceRecord = nullptr;                                             //!< Pointer to internal record of slices
+    PCODEC_REF_LIST            m_mpeg2RefList[CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2];                //!< Pointer to MPEG2 Ref List
+    MHW_BATCH_BUFFER           m_mediaObjectBatchBuffer[CODECHAL_DECODE_MPEG2_MAXIMUM_BATCH_BUFFERS];  //!< Handles of second level batch buffer
+    uint16_t                   m_bbInUse         = 0;                                                  //!< Current index of second level batch buffer in the allocated array
+    uint16_t                   m_bbAllocated     = 0;                                                  //!< Total number of second level batch buffers allocated
+    uint16_t                   m_bbInUsePerFrame = 0;                                                  //!< Current index of second level batch buffers used for a frame
 
     // MPEG2 WAs
-    bool                            bSlicesInvalid                  = false;    //!< Indicate slices are invalid
-    MOS_RESOURCE                    resMpeg2DummyBistream;                      //!< Handle of MPEG2 dummy bitstream buffer
-    MOS_RESOURCE                    resCopiedDataBuffer[CODECHAL_DECODE_MPEG2_COPIED_SURFACES]; //!< Handles of copied bitstream buffer
-    uint32_t                        u32CopiedDataBufferSize         = 0;        //!< Size of copied bitstream buffer
-    uint32_t                        u32CurrCopiedData               = 0;        //!< Index of current copied buffer
-    bool                            bCopiedDataBufferInUse          = false;    //!< Indicate copied bistream is inuse
-    bool                            bDummySliceDataPresent          = false;    //!< Indicate dummy slice is present
-    uint32_t                        u32CopiedDataOffset             = 0;        //!< Offset of copied bitstream
-    uint32_t                        u32NextCopiedDataOffset         = 0;        //!< Offset of next copied bitstream
-    uint32_t                        u32DummySliceDataOffset         = 0;        //!< Offset of dummy slice bitstream
-    uint16_t                        u16LastMBAddress                = 0;        //!< Address of last macro block
-    uint32_t                        u32MPEG2ISliceConcealmentMode   = 0;        //!< Mpeg2 I slice concealment mode
-    uint32_t                        u32MPEG2PBSliceConcealmentMode  = 0;        //!< Mpeg2 P/B slice concealment mode
-    uint32_t                        u32MPEG2PBSlicePredBiDirMVTypeOverride = 0; //!< Mpeg2 P/B Slice Predicted BiDir Motion Type Override
-    uint32_t                        u32MPEG2PBSlicePredMVOverride   = 0;        //!< Mpeg2 P/B Slice Predicted Motion Vector Override
+    bool         m_slicesInvalid = false;                                       //!< Indicate slices are invalid
+    MOS_RESOURCE m_resMpeg2DummyBistream;                                       //!< Handle of MPEG2 dummy bitstream buffer
+    MOS_RESOURCE m_resCopiedDataBuffer[CODECHAL_DECODE_MPEG2_COPIED_SURFACES];  //!< Handles of copied bitstream buffer
+    uint32_t     m_copiedDataBufferSize                = 0;                     //!< Size of copied bitstream buffer
+    uint32_t     m_currCopiedData                      = 0;                     //!< Index of current copied buffer
+    bool         m_copiedDataBufferInUse               = false;                 //!< Indicate copied bistream is inuse
+    bool         m_dummySliceDataPresent               = false;                 //!< Indicate dummy slice is present
+    uint32_t     m_copiedDataOffset                    = 0;                     //!< Offset of copied bitstream
+    uint32_t     m_nextCopiedDataOffset                = 0;                     //!< Offset of next copied bitstream
+    uint32_t     m_dummySliceDataOffset                = 0;                     //!< Offset of dummy slice bitstream
+    uint16_t     m_lastMbAddress                       = 0;                     //!< Address of last macro block
+    uint32_t     m_mpeg2ISliceConcealmentMode          = 0;                     //!< Mpeg2 I slice concealment mode
+    uint32_t     m_mpeg2PbSliceConcealmentMode         = 0;                     //!< Mpeg2 P/B slice concealment mode
+    uint32_t     m_mpeg2PbSlicePredBiDirMvTypeOverride = 0;                     //!< Mpeg2 P/B Slice Predicted BiDir Motion Type Override
+    uint32_t     m_mpeg2PbSlicePredMvOverride          = 0;                     //!< Mpeg2 P/B Slice Predicted Motion Vector Override
 
-    MOS_RESOURCE                    resSyncObjectWaContextInUse;        //!< signals on the video WA context
-    MOS_RESOURCE                    resSyncObjectVideoContextInUse;     //!< signals on the video context
+    MOS_RESOURCE m_resSyncObjectWaContextInUse;     //!< signals on the video WA context
+    MOS_RESOURCE m_resSyncObjectVideoContextInUse;  //!< signals on the video context
 
-    CodecDecodeMpeg2MbParmas        SavedMpeg2MbParam; //!< save last MB parameters to be able to reconstruct MPEG2 IT Object Command for Skipped MBs.
+    CodecDecodeMpeg2MbParmas m_savedMpeg2MbParam;  //!< save last MB parameters to be able to reconstruct MPEG2 IT Object Command for Skipped MBs.
 };
 
 #endif  // __CODECHAL_DECODER_MPEG2_H__

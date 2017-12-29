@@ -73,10 +73,10 @@ MOS_STATUS CodechalMmcDecodeVp8::SetPipeBufAddr(
 
     // MMC is only enabled for frame decoding and no interlaced support in VP8
     // So no need to check frame/field type here.
-        
-    if (m_mmcEnabled && m_vp8State->sDestSurface.bCompressible)
+
+    if (m_mmcEnabled && m_vp8State->m_destSurface.bCompressible)
     {
-        if (m_vp8State->bDeblockingEnabled)
+        if (m_vp8State->m_deblockingEnabled)
         {
             pipeBufAddrParams->PostDeblockSurfMmcState = MOS_MEMCOMP_HORIZONTAL;
         }
@@ -87,9 +87,7 @@ MOS_STATUS CodechalMmcDecodeVp8::SetPipeBufAddr(
     }
 
     CODECHAL_DEBUG_TOOL(
-        m_vp8State->sDestSurface.MmcState =  m_vp8State->bDeblockingEnabled ?
-        pipeBufAddrParams->PostDeblockSurfMmcState : pipeBufAddrParams->PreDeblockSurfMmcState;
-    )
+        m_vp8State->m_destSurface.MmcState = m_vp8State->m_deblockingEnabled ? pipeBufAddrParams->PostDeblockSurfMmcState : pipeBufAddrParams->PreDeblockSurfMmcState;)
 
     return eStatus;
 }
@@ -110,9 +108,9 @@ MOS_STATUS CodechalMmcDecodeVp8::SetRefrenceSync(
         syncParams.bDisableDecodeSyncLock = disableDecodeSyncLock;
         syncParams.bDisableLockForTranscode = disableLockForTranscode;
 
-        if (m_vp8State->presLastRefSurface)
+        if (m_vp8State->m_presLastRefSurface)
         {
-            syncParams.presSyncResource = m_vp8State->presLastRefSurface;
+            syncParams.presSyncResource = m_vp8State->m_presLastRefSurface;
             syncParams.bReadOnly = true;
 
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnPerformOverlaySync(m_osInterface, &syncParams));
@@ -120,9 +118,9 @@ MOS_STATUS CodechalMmcDecodeVp8::SetRefrenceSync(
             m_osInterface->pfnSetResourceSyncTag(m_osInterface, &syncParams);
         }
 
-        if (m_vp8State->presGoldenRefSurface)
+        if (m_vp8State->m_presGoldenRefSurface)
         {
-            syncParams.presSyncResource = m_vp8State->presGoldenRefSurface;
+            syncParams.presSyncResource = m_vp8State->m_presGoldenRefSurface;
             syncParams.bReadOnly = true;
 
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnPerformOverlaySync(m_osInterface, &syncParams));
@@ -130,9 +128,9 @@ MOS_STATUS CodechalMmcDecodeVp8::SetRefrenceSync(
             m_osInterface->pfnSetResourceSyncTag(m_osInterface, &syncParams);
         }
 
-        if (m_vp8State->presAltRefSurface)
+        if (m_vp8State->m_presAltRefSurface)
         {
-            syncParams.presSyncResource = m_vp8State->presAltRefSurface;
+            syncParams.presSyncResource = m_vp8State->m_presAltRefSurface;
             syncParams.bReadOnly = true;
 
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnPerformOverlaySync(m_osInterface, &syncParams));
@@ -152,18 +150,17 @@ MOS_STATUS CodechalMmcDecodeVp8::CheckReferenceList(
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     CODECHAL_DECODE_CHK_NULL_RETURN(pipeBufAddrParams);
-    CODECHAL_DECODE_CHK_NULL_RETURN(m_vp8State->pVp8PicParams);
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_vp8State->m_vp8PicParams);
 
     // Disable MMC if self-reference is dectected for P/B frames (mainly for error concealment)
     if ((pipeBufAddrParams->PostDeblockSurfMmcState != MOS_MEMCOMP_DISABLED ||
-        pipeBufAddrParams->PreDeblockSurfMmcState != MOS_MEMCOMP_DISABLED) &&
-        m_vp8State->pVp8PicParams->key_frame != I_TYPE)
+            pipeBufAddrParams->PreDeblockSurfMmcState != MOS_MEMCOMP_DISABLED) &&
+        m_vp8State->m_vp8PicParams->key_frame != I_TYPE)
     {
         bool selfReference = false;
-        if ((m_vp8State->pVp8PicParams->ucCurrPicIndex == m_vp8State->pVp8PicParams->ucLastRefPicIndex) ||
-            (m_vp8State->pVp8PicParams->ucCurrPicIndex == m_vp8State->pVp8PicParams->ucGoldenRefPicIndex) ||
-            (m_vp8State->pVp8PicParams->ucCurrPicIndex == m_vp8State->pVp8PicParams->ucAltRefPicIndex)
-            )
+        if ((m_vp8State->m_vp8PicParams->ucCurrPicIndex == m_vp8State->m_vp8PicParams->ucLastRefPicIndex) ||
+            (m_vp8State->m_vp8PicParams->ucCurrPicIndex == m_vp8State->m_vp8PicParams->ucGoldenRefPicIndex) ||
+            (m_vp8State->m_vp8PicParams->ucCurrPicIndex == m_vp8State->m_vp8PicParams->ucAltRefPicIndex))
         {
             selfReference = true;
         }
@@ -175,17 +172,17 @@ MOS_STATUS CodechalMmcDecodeVp8::CheckReferenceList(
             CODECHAL_DECODE_ASSERTMESSAGE("Self-reference is detected for P/B frames!");
 
             // Decompress current frame to avoid green corruptions in this error handling case
-            MOS_MEMCOMP_STATE mmcMode;            
+            MOS_MEMCOMP_STATE mmcMode;
             CODECHAL_DECODE_CHK_STATUS_RETURN(
                 m_osInterface->pfnGetMemoryCompressionMode(
-                    m_osInterface, 
-                    &m_vp8State->sDestSurface.OsResource, 
+                    m_osInterface,
+                    &m_vp8State->m_destSurface.OsResource,
                     &mmcMode));
             if (mmcMode != MOS_MEMCOMP_DISABLED)
             {
                 m_osInterface->pfnDecompResource(
                     m_osInterface,
-                    &m_vp8State->sDestSurface.OsResource);
+                    &m_vp8State->m_destSurface.OsResource);
             }
         }
     }

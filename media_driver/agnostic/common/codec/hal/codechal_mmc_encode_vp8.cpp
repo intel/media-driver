@@ -71,13 +71,13 @@ MOS_STATUS CodechalMmcEncodeVp8::SetPipeBufAddr(
     
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    CODECHAL_ENCODE_CHK_NULL_RETURN(m_vp8State->pVp8PicParams);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_vp8State->m_vp8PicParams);
 
     // MMC is only enabled for frame encoding and VP8 doesn't support interlaced encoding.
     if (m_mmcEnabled && m_vp8State->m_reconSurface.bCompressible)
     {    
         // deblocking is enabled
-        if ((m_vp8State->pVp8PicParams->version == 0) || (m_vp8State->pVp8PicParams->version == 1))
+        if ((m_vp8State->m_vp8PicParams->version == 0) || (m_vp8State->m_vp8PicParams->version == 1))
         {
             pipeBufAddrParams->PostDeblockSurfMmcState = MOS_MEMCOMP_HORIZONTAL;
             pipeBufAddrParams->PreDeblockSurfMmcState  = pipeBufAddrParams->PostDeblockSurfMmcState;

@@ -261,30 +261,28 @@ public:
     std::string             m_ddiFileName;
     std::string             m_outputFileName;
 
+    CodechalHwInterface *m_hwInterface            = nullptr;
+    PMOS_INTERFACE       m_osInterface            = nullptr;
+    CODECHAL_FUNCTION    m_codecFunction          = CODECHAL_FUNCTION_INVALID;
+    bool                 m_enableBinaryDebugDumps = false;
+    bool                 m_enableEncodeDdiDump    = false;
+    PCODECHAL_DBG_CFG    m_dbgCfgHead             = nullptr;
+    CODEC_PICTURE        m_currPic;
+    uint32_t             m_scaledBottomFieldOffset = 0;
+    uint16_t             m_frameType               = 0;
+    uint32_t             m_sliceId                 = 0;  // used for constructing debug file name
+    char                 m_fileName[MOS_MAX_PATH_LENGTH + 1];
+    char                 m_path[MOS_MAX_PATH_LENGTH + 1];
+    bool                 m_secondField              = false;
+    bool                 m_hybridPakP1              = false;
+    bool                 m_hybridVp8EncodeBrcEnable = false;
+    bool                 m_hybridVp9EncodeEnable    = false;
+    uint16_t             m_preIndex                 = 0;
+    uint16_t             m_refIndex                 = 0;
+    uint32_t             m_bufferDumpFrameNum       = 0;
+    uint32_t             m_decodeSurfDumpFrameNum   = 0;
 
-    CodechalHwInterface         *pHwInterface = nullptr;
-    PMOS_INTERFACE              pOsInterface = nullptr;
-    CODECHAL_FUNCTION           CodecFunction = CODECHAL_FUNCTION_INVALID;
-    bool                        bEnableBinaryDebugDumps = false;
-    bool                        bEnableEncodeDDIDump = false;
-    PCODECHAL_DBG_CFG           pDbgCfgHead = nullptr;
-    CODEC_PICTURE               CurrPic;
-    uint32_t                    dwScaledBottomFieldOffset = 0;
-    uint16_t                    wFrameType = 0;
-    uint32_t                    slice_id = 0;   // used for constructing debug file name
-    char                        sFileName[MOS_MAX_PATH_LENGTH + 1];
-    char                        sPath[MOS_MAX_PATH_LENGTH + 1];
-    char                        sDdiFileName[MOS_MAX_PATH_LENGTH + 1];
-    bool                        bSecondField = false;
-    bool                        bHybridPakP1 = false;
-    bool                        bHybridVp8EncodeBrcEnable = false;
-    bool                        bHybridVp9EncodeEnable = false;
-    uint16_t                    wPreIndex = 0;
-    uint16_t                    wRefIndex = 0;
-    uint32_t                    dwBufferDumpFrameNum = 0;
-    uint32_t                    dwDecodeSurfDumpFrameNum = 0;
-
-    uint32_t                        dwStreamId = 0;
+    uint32_t             m_streamId = 0;
 
     MOS_STATUS DumpBufferInHexDwords(
         uint8_t *   data,

@@ -5842,10 +5842,10 @@ CodechalEncodeVp8G10::CodechalEncodeVp8G10(
         MOS_ALIGN_CEIL(m_combinedKernelSize, (1 << MHW_KERNEL_OFFSET_SHIFT));
     m_hwInterface->GetStateHeapSettings()->dwDshSize = CODECHAL_INIT_DSH_SIZE_VP8_ENC;
 
-    bBrcDistortionBufferSupported    = true;
-    bBrcConstantBufferSupported      = true;
-    dwBrcConstantSurfaceWidth        = CODECHAL_ENCODE_VP8_BRC_CONSTANTSURFACE_WIDTH;
-    dwBrcConstantSurfaceHeight       = CODECHAL_ENCODE_VP8_BRC_CONSTANTSURFACE_HEIGHT;
+    m_brcDistortionBufferSupported = true;
+    m_brcConstantBufferSupported   = true;
+    m_brcConstantSurfaceWidth      = CODECHAL_ENCODE_VP8_BRC_CONSTANTSURFACE_WIDTH;
+    m_brcConstantSurfaceHeight     = CODECHAL_ENCODE_VP8_BRC_CONSTANTSURFACE_HEIGHT;
 }
 
 MOS_STATUS CodechalEncodeVp8G10::Initialize(PCODECHAL_SETTINGS codecHalSettings)
@@ -6026,8 +6026,8 @@ MOS_STATUS CodechalEncodeVp8G10::InitKernelStateMbEnc()
 
     for (krnStateIdx = 0; krnStateIdx < CODECHAL_ENCODE_VP8_MBENC_IDX_NUM; krnStateIdx++)
     {
-        kernelStatePtr = &MbEncKernelStates[krnStateIdx];
-        
+        kernelStatePtr = &m_mbEncKernelStates[krnStateIdx];
+
         MOS_ZeroMemory(&initKernelStateParams, sizeof(initKernelStateParams));
         initKernelStateParams.pKernelState              = kernelStatePtr;
         initKernelStateParams.pRenderEngineInterface    = renderEngineInterface;
@@ -6070,13 +6070,13 @@ MOS_STATUS CodechalEncodeVp8G10::InitKernelStateMbEnc()
         }
     }
 
-    dwMbEncIFrameDshSize =
+    m_mbEncIFrameDshSize =
         (stateHeapInterface->pStateHeapInterface->GetSizeofCmdInterfaceDescriptorData() * 2) +
-        MOS_ALIGN_CEIL(MbEncKernelStates[CODECHAL_ENCODE_VP8_MBENC_IDX_I_LUMA].KernelParams.iCurbeLength,
-        stateHeapInterface->pStateHeapInterface->GetCurbeAlignment());
+        MOS_ALIGN_CEIL(m_mbEncKernelStates[CODECHAL_ENCODE_VP8_MBENC_IDX_I_LUMA].KernelParams.iCurbeLength,
+            stateHeapInterface->pStateHeapInterface->GetCurbeAlignment());
 
     // Until a better way can be found, maintain old binding table structures
-    bindingTable = &MbEncBindingTable;
+    bindingTable = &m_mbEncBindingTable;
 
     bindingTable->dwVp8MBEncMBOut              = CODECHAL_VP8_MBENC_PER_MB_OUT_G10;
     bindingTable->dwVp8MBEncCurrY              = CODECHAL_VP8_MBENC_CURR_Y_G10;
@@ -6132,8 +6132,8 @@ MOS_STATUS CodechalEncodeVp8G10::InitKernelStateBrc()
 
     for (krnStateIdx = 0; krnStateIdx < CODECHAL_ENCODE_VP8_BRC_IDX_NUM; krnStateIdx++)
     {
-        kernelStatePtr = &BrcKernelStates[krnStateIdx];
-        
+        kernelStatePtr = &m_brcKernelStates[krnStateIdx];
+
         MOS_ZeroMemory(&initKernelStateParams, sizeof(initKernelStateParams));
         initKernelStateParams.pKernelState              = kernelStatePtr;
         initKernelStateParams.pRenderEngineInterface    = renderEngineInterface;
@@ -6148,7 +6148,7 @@ MOS_STATUS CodechalEncodeVp8G10::InitKernelStateBrc()
     }
 
     // Until a better way can be found, maintain old binding table structures
-    bindingTable = &BrcUpdateBindingTable;
+    bindingTable                                   = &m_brcUpdateBindingTable;
     bindingTable->dwBrcHistoryBuffer               = CODECHAL_VP8_BRC_UPDATE_HISTORY_G10;
     bindingTable->dwBrcPakStatisticsOutputBuffer   = CODECHAL_VP8_BRC_UPDATE_PAK_STATISTICS_OUTPUT_G10;
     bindingTable->dwBrcEncoderCfgReadBuffer        = CODECHAL_VP8_BRC_UPDATE_MFX_ENCODER_CFG_READ_G10;
@@ -6188,7 +6188,7 @@ MOS_STATUS CodechalEncodeVp8G10::InitKernelStateMe()
         (uint32_t*)&combinedKernelSize));
 
     MOS_ZeroMemory(&initKernelStateParams, sizeof(initKernelStateParams));
-    initKernelStateParams.pKernelState              = &MeKernelState;
+    initKernelStateParams.pKernelState              = &m_meKernelState;
     initKernelStateParams.pRenderEngineInterface    = renderEngineInterface;
     initKernelStateParams.pui8Binary                = binary;
     initKernelStateParams.Operation                 = ENC_ME;
@@ -6199,8 +6199,8 @@ MOS_STATUS CodechalEncodeVp8G10::InitKernelStateMe()
         &initKernelStateParams));
 
     // Until a better way can be found, maintain old binding table structures
-    bindingTable = &MeBindingTable;
-    
+    bindingTable = &m_meBindingTable;
+
     bindingTable->dwVp8MEMVDataSurface     = CODECHAL_VP8_ME_MV_DATA_G10;
     bindingTable->dwVp816xMEMVDataSurface  = CODECHAL_VP8_16xME_MV_DATA_G10;
     bindingTable->dwVp8MeDist              = CODECHAL_VP8_ME_DISTORTION_G10;
@@ -6235,7 +6235,7 @@ MOS_STATUS CodechalEncodeVp8G10::InitKernelStateMpu()
         (uint32_t*)&combinedKernelSize));
 
     MOS_ZeroMemory(&initKernelStateParams, sizeof(initKernelStateParams));
-    initKernelStateParams.pKernelState              = &MpuKernelState;
+    initKernelStateParams.pKernelState              = &m_mpuKernelState;
     initKernelStateParams.pRenderEngineInterface    = renderEngineInterface;
     initKernelStateParams.pui8Binary                = binary;
     initKernelStateParams.Operation                 = ENC_MPU;
@@ -6246,7 +6246,7 @@ MOS_STATUS CodechalEncodeVp8G10::InitKernelStateMpu()
         &initKernelStateParams));
 
     // Until a better way can be found, maintain old binding table structures
-    bindingTable = &MpuBindingTable;
+    bindingTable = &m_mpuBindingTable;
 
     bindingTable->dwVp8MpuHistogram                 = CODECHAL_VP8_MPU_FHB_HISTOGRAM_G10;
     bindingTable->dwVp8MpuReferenceModeProbability  = CODECHAL_VP8_MPU_FHB_REF_MODE_PROBABILITY_G10;
@@ -6287,7 +6287,7 @@ MOS_STATUS CodechalEncodeVp8G10::InitKernelStateTpu()
         (uint32_t*)&combinedKernelSize));
 
     MOS_ZeroMemory(&initKernelStateParams, sizeof(initKernelStateParams));
-    initKernelStateParams.pKernelState              = &TpuKernelState;
+    initKernelStateParams.pKernelState              = &m_tpuKernelState;
     initKernelStateParams.pRenderEngineInterface    = renderEngineInterface;
     initKernelStateParams.pui8Binary                = binary;
     initKernelStateParams.Operation                 = ENC_TPU;
@@ -6298,7 +6298,7 @@ MOS_STATUS CodechalEncodeVp8G10::InitKernelStateTpu()
         &initKernelStateParams));
 
     // Until a better way can be found, maintain old binding table structures
-    bindingTable = &TpuBindingTable;
+    bindingTable = &m_tpuBindingTable;
 
     bindingTable->dwVp8TpuPakTokenStatistics               = CODECHAL_VP8_TPU_FHB_PAK_TOKEN_STATISTICS_G10;
     bindingTable->dwVp8TpuTokenUpdateFlags                 = CODECHAL_VP8_TPU_FHB_TOKEN_UPDATE_FLAGS_G10;
@@ -6434,9 +6434,9 @@ MOS_STATUS CodechalEncodeVp8G10::InitBrcDistortionBuffer()
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_osInterface);
 
     data = (uint8_t *)m_osInterface->pfnLockResource(
-            m_osInterface,
-            &(BrcBuffers.sMeBrcDistortionBuffer.OsResource),
-            &lockFlagsWriteOnly);
+        m_osInterface,
+        &(m_brcBuffers.sMeBrcDistortionBuffer.OsResource),
+        &lockFlagsWriteOnly);
 
     if (data == nullptr)
     {
@@ -6450,9 +6450,9 @@ MOS_STATUS CodechalEncodeVp8G10::InitBrcDistortionBuffer()
 
     MOS_ZeroMemory(data,size);
     m_osInterface->pfnUnlockResource(
-        m_osInterface,&BrcBuffers.sMeBrcDistortionBuffer.OsResource);
+        m_osInterface, &m_brcBuffers.sMeBrcDistortionBuffer.OsResource);
 
-   return status;
+    return status;
 }
 
 MOS_STATUS CodechalEncodeVp8G10::InitMBEncConstantBuffer(struct CodechalVp8InitMbencConstantBufferParams* params)
@@ -6539,7 +6539,7 @@ MOS_STATUS CodechalEncodeVp8G10::InitMpuTpuBuffer()
     // Last 12 bytes of LFDeltas to be initialized by kernel
     origData = data = (uint8_t *)m_osInterface->pfnLockResource(
         m_osInterface,
-        &MpuTpuBuffers.resModeProbs,
+        &m_mpuTpuBuffers.resModeProbs,
         &lockFlagsWriteOnly);
     CODECHAL_ENCODE_CHK_NULL_RETURN(data);
 
@@ -6547,13 +6547,13 @@ MOS_STATUS CodechalEncodeVp8G10::InitMpuTpuBuffer()
 
     m_osInterface->pfnUnlockResource(
         m_osInterface,
-        &MpuTpuBuffers.resModeProbs);
+        &m_mpuTpuBuffers.resModeProbs);
 
     data = nullptr;
 
     data = (uint8_t *)m_osInterface->pfnLockResource(
         m_osInterface,
-        &MpuTpuBuffers.resRefModeProbs,
+        &m_mpuTpuBuffers.resRefModeProbs,
         &lockFlagsWriteOnly);
     CODECHAL_ENCODE_CHK_NULL_RETURN(data);
 
@@ -6561,14 +6561,14 @@ MOS_STATUS CodechalEncodeVp8G10::InitMpuTpuBuffer()
 
     m_osInterface->pfnUnlockResource(
         m_osInterface,
-        &MpuTpuBuffers.resRefModeProbs);
+        &m_mpuTpuBuffers.resRefModeProbs);
 
     data = nullptr;
 
     // Fill surface with VP8_DEFAULT_COEFF_PROBS_G10 table
     data = (uint8_t *)m_osInterface->pfnLockResource(
         m_osInterface,
-        &MpuTpuBuffers.resRefCoeffProbs,
+        &m_mpuTpuBuffers.resRefCoeffProbs,
         &lockFlagsWriteOnly);
     CODECHAL_ENCODE_CHK_NULL_RETURN(data);
 
@@ -6585,14 +6585,14 @@ MOS_STATUS CodechalEncodeVp8G10::InitMpuTpuBuffer()
 
     m_osInterface->pfnUnlockResource(
         m_osInterface,
-        &MpuTpuBuffers.resRefCoeffProbs);
+        &m_mpuTpuBuffers.resRefCoeffProbs);
 
     data = nullptr;
 
     // Init Entropy cost surface
     data = (uint8_t *)m_osInterface->pfnLockResource(
         m_osInterface,
-        &MpuTpuBuffers.resEntropyCostTable,
+        &m_mpuTpuBuffers.resEntropyCostTable,
         &lockFlagsWriteOnly);
     CODECHAL_ENCODE_CHK_NULL_RETURN(data);
 
@@ -6609,14 +6609,14 @@ MOS_STATUS CodechalEncodeVp8G10::InitMpuTpuBuffer()
 
     m_osInterface->pfnUnlockResource(
         m_osInterface,
-        &MpuTpuBuffers.resEntropyCostTable);
+        &m_mpuTpuBuffers.resEntropyCostTable);
 
     data = nullptr;
 
     // Init Token update flags surface
     data = (uint8_t *)m_osInterface->pfnLockResource(
         m_osInterface,
-        &MpuTpuBuffers.resPakTokenUpdateFlags,
+        &m_mpuTpuBuffers.resPakTokenUpdateFlags,
         &lockFlagsWriteOnly);
     CODECHAL_ENCODE_CHK_NULL_RETURN(data);
 
@@ -6633,14 +6633,14 @@ MOS_STATUS CodechalEncodeVp8G10::InitMpuTpuBuffer()
 
     m_osInterface->pfnUnlockResource(
         m_osInterface,
-        &MpuTpuBuffers.resPakTokenUpdateFlags);
+        &m_mpuTpuBuffers.resPakTokenUpdateFlags);
 
     data = nullptr;
 
     // Init Token update flags surface
     data = (uint8_t *)m_osInterface->pfnLockResource(
         m_osInterface,
-        &MpuTpuBuffers.resDefaultTokenProbability,
+        &m_mpuTpuBuffers.resDefaultTokenProbability,
         &lockFlagsWriteOnly);
     CODECHAL_ENCODE_CHK_NULL_RETURN(data);
 
@@ -6652,14 +6652,14 @@ MOS_STATUS CodechalEncodeVp8G10::InitMpuTpuBuffer()
 
     m_osInterface->pfnUnlockResource(
         m_osInterface,
-        &MpuTpuBuffers.resDefaultTokenProbability);
+        &m_mpuTpuBuffers.resDefaultTokenProbability);
 
     data = nullptr;
 
     // Init key frame prob
     data = (uint8_t *)m_osInterface->pfnLockResource(
         m_osInterface,
-        &MpuTpuBuffers.resKeyFrameTokenProbability,
+        &m_mpuTpuBuffers.resKeyFrameTokenProbability,
         &lockFlagsWriteOnly);
     CODECHAL_ENCODE_CHK_NULL_RETURN(data);
 
@@ -6676,14 +6676,14 @@ MOS_STATUS CodechalEncodeVp8G10::InitMpuTpuBuffer()
 
     m_osInterface->pfnUnlockResource(
         m_osInterface,
-        &MpuTpuBuffers.resKeyFrameTokenProbability);
+        &m_mpuTpuBuffers.resKeyFrameTokenProbability);
 
     data = nullptr;
 
     // Init updated frame token probability
     data = (uint8_t *)m_osInterface->pfnLockResource(
         m_osInterface,
-        &MpuTpuBuffers.resUpdatedTokenProbability,
+        &m_mpuTpuBuffers.resUpdatedTokenProbability,
         &lockFlagsWriteOnly);
     CODECHAL_ENCODE_CHK_NULL_RETURN(data);
 
@@ -6701,7 +6701,7 @@ MOS_STATUS CodechalEncodeVp8G10::InitMpuTpuBuffer()
 
     m_osInterface->pfnUnlockResource(
         m_osInterface,
-        &MpuTpuBuffers.resUpdatedTokenProbability);
+        &m_mpuTpuBuffers.resUpdatedTokenProbability);
 
     data = nullptr;
 
@@ -7219,10 +7219,10 @@ MOS_STATUS CodechalEncodeVp8G10::SetBrcUpdateCurbe(struct CodechalVp8BrcUpdateCu
     cmd.DW34.TpuCurbeWriteBTI = CODECHAL_VP8_BRC_UPDATE_TPU_CURBE_WRITE_G10;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(
-        BrcKernelStates[CODECHAL_ENCODE_VP8_BRC_IDX_UPDATE].m_dshRegion.AddData(
-        &cmd,
-        BrcKernelStates[CODECHAL_ENCODE_VP8_BRC_IDX_UPDATE].dwCurbeOffset,
-        sizeof(cmd)));
+        m_brcKernelStates[CODECHAL_ENCODE_VP8_BRC_IDX_UPDATE].m_dshRegion.AddData(
+            &cmd,
+            m_brcKernelStates[CODECHAL_ENCODE_VP8_BRC_IDX_UPDATE].dwCurbeOffset,
+            sizeof(cmd)));
 
     return status;
 }
@@ -7610,25 +7610,25 @@ MOS_STATUS CodechalEncodeVp8G10::SetMbEncCurbe(struct CodechalVp8MbencCurbeParam
         cmd.DW61.FrameCountProbabilityRefFrameCost_2 = 2407;
         cmd.DW61.FrameCountProbabilityRefFrameCost_3 = 2409;
         //DW62
-        switch (dwPFramePositionInGOP)
+        switch (m_pFramePositionInGop)
         {
             case 1:
-                cmd.DW62.AverageQPOfLastRefFrame  = VP8_QUANT_DC_G10[dwAverageKeyFrameQp];
+                cmd.DW62.AverageQPOfLastRefFrame  = VP8_QUANT_DC_G10[m_averageKeyFrameQp];
                 cmd.DW62.AverageQPOfGoldRefFrame  = cmd.DW62.AverageQPOfLastRefFrame;
                 cmd.DW62.AverageQPOfAltRefFrame   = cmd.DW62.AverageQPOfLastRefFrame;
                 break;
             case 2:
-                cmd.DW62.AverageQPOfLastRefFrame  = VP8_QUANT_DC_G10[dwAveragePFrameQp];
-                cmd.DW62.AverageQPOfGoldRefFrame  = VP8_QUANT_DC_G10[dwAverageKeyFrameQp];
+                cmd.DW62.AverageQPOfLastRefFrame  = VP8_QUANT_DC_G10[m_averagePFrameQp];
+                cmd.DW62.AverageQPOfGoldRefFrame  = VP8_QUANT_DC_G10[m_averageKeyFrameQp];
                 cmd.DW62.AverageQPOfAltRefFrame   = cmd.DW62.AverageQPOfGoldRefFrame;
                 break;
             case 3:
-                cmd.DW62.AverageQPOfLastRefFrame = VP8_QUANT_DC_G10[dwAveragePFrameQp];
-                cmd.DW62.AverageQPOfGoldRefFrame = VP8_QUANT_DC_G10[dwAveragePFrameQp];
-                cmd.DW62.AverageQPOfAltRefFrame  = VP8_QUANT_DC_G10[dwAverageKeyFrameQp];
+                cmd.DW62.AverageQPOfLastRefFrame = VP8_QUANT_DC_G10[m_averagePFrameQp];
+                cmd.DW62.AverageQPOfGoldRefFrame = VP8_QUANT_DC_G10[m_averagePFrameQp];
+                cmd.DW62.AverageQPOfAltRefFrame  = VP8_QUANT_DC_G10[m_averageKeyFrameQp];
                 break;
             default:
-                cmd.DW62.AverageQPOfLastRefFrame  = VP8_QUANT_DC_G10[dwAveragePFrameQp];
+                cmd.DW62.AverageQPOfLastRefFrame  = VP8_QUANT_DC_G10[m_averagePFrameQp];
                 cmd.DW62.AverageQPOfGoldRefFrame  = cmd.DW62.AverageQPOfLastRefFrame;
                 cmd.DW62.AverageQPOfAltRefFrame   = cmd.DW62.AverageQPOfLastRefFrame;
                 break;
@@ -7783,9 +7783,9 @@ MOS_STATUS CodechalEncodeVp8G10::SetMeCurbe(struct CodechalVp8MeCurbeParams* par
     cmd.DW35.VP8MeMinDistBrcBTI   = CODECHAL_VP8_ME_MIN_DIST_BRC_DATA_G10;
     cmd.DW36.ForwardRefBTI        = CODECHAL_VP8_VME_INTER_PRED_G10;
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(MeKernelState.m_dshRegion.AddData(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_meKernelState.m_dshRegion.AddData(
         &cmd,
-        MeKernelState.dwCurbeOffset,
+        m_meKernelState.dwCurbeOffset,
         sizeof(cmd)));
 
     return status;
@@ -7909,9 +7909,9 @@ MOS_STATUS CodechalEncodeVp8G10::SetMpuCurbe(struct CodechalVp8MpuCurbeParams* p
     cmd.DW23.EntropyCostBTI                   = CODECHAL_VP8_MPU_FHB_ENTROPY_COST_TABLE_G10;
     cmd.DW24.ModeCostUpdateBTI                = CODECHAL_VP8_MPU_MODE_COST_UPDATE_G10;
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(MpuKernelState.m_dshRegion.AddData(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mpuKernelState.m_dshRegion.AddData(
         &cmd,
-        MpuKernelState.dwCurbeOffset,
+        m_mpuKernelState.dwCurbeOffset,
         sizeof(cmd)));
 
     return status;
@@ -7934,7 +7934,7 @@ MOS_STATUS CodechalEncodeVp8G10::SendMpuSurfaces(
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pKernelState);
 
     kernelState = params->pKernelState;
-    vp8MpuBindingTable = &MpuBindingTable;
+    vp8MpuBindingTable = &m_mpuBindingTable;
 
     // Histogram
     size = params->dwHistogramSize;
@@ -8204,9 +8204,9 @@ MOS_STATUS CodechalEncodeVp8G10::SetTpuCurbe(struct CodechalVp8TpuCurbeParams* p
     cmd.DW25.KernelDebugDumpBTI                   = CODECHAL_VP8_TPU_FHB_VME_DEBUG_STREAMOUT_G10;
     cmd.DW26.RepakDecisionSurfaceBTI              = CODECHAL_VP8_TPU_FHB_REPAK_DECISION_G10;
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(TpuKernelState.m_dshRegion.AddData(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_tpuKernelState.m_dshRegion.AddData(
         &cmd,
-        TpuKernelState.dwCurbeOffset,
+        m_tpuKernelState.dwCurbeOffset,
         sizeof(cmd)));
 
     return status;

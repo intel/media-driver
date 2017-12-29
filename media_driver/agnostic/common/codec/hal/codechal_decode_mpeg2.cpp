@@ -54,32 +54,32 @@ bool CodechalDecodeMpeg2::DetectSliceError(
     bool                            firstValidSlice)
 {
     bool                        result         = false;
-    CODECHAL_VLD_SLICE_RECORD   currSliceRecord = pVldSliceRecord[slcNum];
+    CODECHAL_VLD_SLICE_RECORD   currSliceRecord = m_vldSliceRecord[slcNum];
 
     if (currSliceRecord.dwLength == 0 || currSliceRecord.dwLength > (1 << (sizeof(uint32_t) * 8 - 1)))
     {
         result = true;
     }
-    else if ((sliceParams[slcNum].m_sliceDataOffset + currSliceRecord.dwLength) >
-             u32DataSize)
+    else if ((m_sliceParams[slcNum].m_sliceDataOffset + currSliceRecord.dwLength) >
+             m_dataSize)
     {
         // error handling for garbage data
         result = true;
     }
-    else if (bSlicesInvalid)
+    else if (m_slicesInvalid)
     {
         // If cp copy failed for this interation due to lack of buffer space, cannot use any
         // slices in this iteration since there is no bitstream data for them
         result = true;
     }
-    else if (prevSliceMbEnd > currSliceRecord.dwSliceStartMbOffset                   ||
-             sliceParams[slcNum].m_sliceVerticalPosition >= u16PicHeightInMb   ||
-             sliceParams[slcNum].m_sliceHorizontalPosition >= u16PicWidthInMb)
+    else if (prevSliceMbEnd > currSliceRecord.dwSliceStartMbOffset ||
+             m_sliceParams[slcNum].m_sliceVerticalPosition >= m_picHeightInMb ||
+             m_sliceParams[slcNum].m_sliceHorizontalPosition >= m_picWidthInMb)
     {
         result = true;
-        bSlicesInvalid = true;
+        m_slicesInvalid = true;
     }
-    else if (!sliceParams[slcNum].m_numMbsForSlice)
+    else if (!m_sliceParams[slcNum].m_numMbsForSlice)
     {
         // For SNB HW will not process BSD objects where the MbCount is 0, and if an invalid
         // slice start position has been detected or the number of MBs in the current slice
@@ -87,22 +87,22 @@ bool CodechalDecodeMpeg2::DetectSliceError(
         // robust error concealment for MPEG2 VLD, skipping these slices prevents HW hangs
 
         result = true;
-        bSlicesInvalid = true;
+        m_slicesInvalid = true;
     }
-    else if (sliceParams[slcNum].m_numMbsForSliceOverflow)
+    else if (m_sliceParams[slcNum].m_numMbsForSliceOverflow)
     {
         // Special case for last slice of an incomplete frame
-        if ((slcNum == u32NumSlices - 1) &&
-            !firstValidSlice               &&
-            ((currSliceRecord.dwSliceStartMbOffset + sliceParams[slcNum].m_numMbsForSlice) <
-             (uint32_t)(u16PicHeightInMb * u16PicWidthInMb)))
+        if ((slcNum == m_numSlices - 1) &&
+            !firstValidSlice &&
+            ((currSliceRecord.dwSliceStartMbOffset + m_sliceParams[slcNum].m_numMbsForSlice) <
+                (uint32_t)(m_picHeightInMb * m_picWidthInMb)))
         {
-            sliceParams[slcNum].m_numMbsForSlice = u16PicWidthInMb;
+            m_sliceParams[slcNum].m_numMbsForSlice = m_picWidthInMb;
         }
         else
         {
             result = true;
-            bSlicesInvalid = true;
+            m_slicesInvalid = true;
         }
     }
 
@@ -120,36 +120,36 @@ MOS_STATUS CodechalDecodeMpeg2::InsertDummySlices(
 
     CODECHAL_DECODE_CHK_NULL_RETURN(batchBuffer);
 
-    //  A copied data buffer must be present 
-    if (u32NextCopiedDataOffset && !bDummySliceDataPresent)
+    //  A copied data buffer must be present
+    if (m_nextCopiedDataOffset && !m_dummySliceDataPresent)
     {
         // slice header uses 4 bytes
         CODECHAL_DECODE_CHK_STATUS_RETURN(CopyDataSurface(
             sizeof(CODECHAL_DECODE_MPEG2_WaDummyBitstream),
-            resMpeg2DummyBistream,
-            &resCopiedDataBuffer[u32CurrCopiedData],
-            &u32DummySliceDataOffset));
+            m_resMpeg2DummyBistream,
+            &m_resCopiedDataBuffer[m_currCopiedData],
+            &m_dummySliceDataOffset));
 
-        bDummySliceDataPresent = true;
+        m_dummySliceDataPresent = true;
     }
 
     m_hwInterface->GetCpInterface()->SetCpForceDisabled(true);
 
-    uint16_t intraVLDFormat                = picParams->W0.m_intraVlcFormat;
-    uint16_t quantizerScaleType            = picParams->W0.m_quantizerScaleType;
+    uint16_t intraVLDFormat                = m_picParams->W0.m_intraVlcFormat;
+    uint16_t quantizerScaleType            = m_picParams->W0.m_quantizerScaleType;
     uint16_t dummySliceIndex               = quantizerScaleType * 2 + intraVLDFormat;
 
     MHW_VDBOX_MPEG2_SLICE_STATE         mpeg2SliceState;
     mpeg2SliceState.presDataBuffer      = nullptr;
-    mpeg2SliceState.wPicWidthInMb       = u16PicWidthInMb;
-    mpeg2SliceState.wPicHeightInMb      = u16PicHeightInMb;
+    mpeg2SliceState.wPicWidthInMb       = m_picWidthInMb;
+    mpeg2SliceState.wPicHeightInMb      = m_picHeightInMb;
     mpeg2SliceState.dwLength            =
         CODECHAL_DECODE_MPEG2_WaDummySliceLengths[dummySliceIndex];
-    mpeg2SliceState.dwOffset            =
-        u32DummySliceDataOffset + CODECHAL_DECODE_MPEG2_WaDummySliceOffsets[dummySliceIndex];
+    mpeg2SliceState.dwOffset =
+        m_dummySliceDataOffset + CODECHAL_DECODE_MPEG2_WaDummySliceOffsets[dummySliceIndex];
 
     bool isLastSlice                   = false;
-    uint16_t expectedEndMB           = u16PicWidthInMb * u16PicHeightInMb;
+    uint16_t expectedEndMB                 = m_picWidthInMb * m_picHeightInMb;
 
     CodecDecodeMpeg2SliceParams slc;
     MOS_ZeroMemory(&slc, sizeof(CodecDecodeMpeg2SliceParams));
@@ -157,8 +157,8 @@ MOS_STATUS CodechalDecodeMpeg2::InsertDummySlices(
     while (startMB < endMB)
     {
         slc.m_macroblockOffset           = 6;
-        slc.m_sliceHorizontalPosition   = startMB % u16PicWidthInMb;
-        slc.m_sliceVerticalPosition     = startMB / u16PicWidthInMb;
+        slc.m_sliceHorizontalPosition     = startMB % m_picWidthInMb;
+        slc.m_sliceVerticalPosition       = startMB / m_picWidthInMb;
         slc.m_quantiserScaleCode        = 10;
         slc.m_numMbsForSlice              = 1;
 
@@ -200,9 +200,9 @@ MOS_STATUS CodechalDecodeMpeg2::CopyDataSurface(
     {
         // Allocate resCopiedDataBuffer if not already allocated.
         CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(AllocateBuffer(
-            copiedSurface,
-            u32CopiedDataBufferSize,
-            "CopiedDataBuffer"),
+                                                      copiedSurface,
+                                                      m_copiedDataBufferSize,
+                                                      "CopiedDataBuffer"),
             "Failed to allocate copied residual data buffer.");
     }
 
@@ -223,21 +223,21 @@ MOS_STATUS CodechalDecodeMpeg2::CopyDataSurface(
         dataCopyParams.srcOffset = 0;
         dataCopyParams.dstResource = copiedSurface;
         dataCopyParams.dstSize = size;
-        dataCopyParams.dstOffset = u32NextCopiedDataOffset;
+        dataCopyParams.dstOffset   = m_nextCopiedDataOffset;
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_hwInterface->CopyDataSourceWithDrv(
             &dataCopyParams));
 
-        *currOffset = u32NextCopiedDataOffset;
-        u32NextCopiedDataOffset += MOS_ALIGN_CEIL(size, MHW_CACHELINE_SIZE); // 64-byte aligned
+        *currOffset = m_nextCopiedDataOffset;
+        m_nextCopiedDataOffset += MOS_ALIGN_CEIL(size, MHW_CACHELINE_SIZE);  // 64-byte aligned
         return MOS_STATUS_SUCCESS;
     }
 
-    if ((u32NextCopiedDataOffset + dataSize) > u32CopiedDataBufferSize)
+    if ((m_nextCopiedDataOffset + dataSize) > m_copiedDataBufferSize)
     {
         CODECHAL_DECODE_ASSERTMESSAGE("Copied data buffer is not large enough.");
 
-        bSlicesInvalid = true;
+        m_slicesInvalid = true;
         return MOS_STATUS_UNKNOWN;
     }
 
@@ -263,12 +263,12 @@ MOS_STATUS CodechalDecodeMpeg2::CopyDataSurface(
 
     // Use huc stream out to do the copy
     CODECHAL_DECODE_CHK_STATUS_RETURN(HucCopy(
-        &cmdBuffer,                 // pCmdBuffer
-        &sourceSurface,             // presSrc
-        copiedSurface,              // presDst
-        size,                       // u32CopyLength
-        0,                          // u32CopyInputOffset
-        u32NextCopiedDataOffset));  // u32CopyOutputOffset
+        &cmdBuffer,                // pCmdBuffer
+        &sourceSurface,            // presSrc
+        copiedSurface,             // presDst
+        size,                      // u32CopyLength
+        0,                         // u32CopyInputOffset
+        m_nextCopiedDataOffset));  // u32CopyOutputOffset
 
     MHW_MI_FLUSH_DW_PARAMS flushDwParams;
     MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
@@ -289,13 +289,13 @@ MOS_STATUS CodechalDecodeMpeg2::CopyDataSurface(
     {
         MOS_SYNC_PARAMS syncParams      = g_cInitSyncParams;
         syncParams.GpuContext           = m_videoContext;
-        syncParams.presSyncResource     = &resSyncObjectVideoContextInUse;
+        syncParams.presSyncResource     = &m_resSyncObjectVideoContextInUse;
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnEngineSignal(m_osInterface, &syncParams));
 
         syncParams                      = g_cInitSyncParams;
         syncParams.GpuContext           = m_videoContextForWa;
-        syncParams.presSyncResource     = &resSyncObjectVideoContextInUse;
+        syncParams.presSyncResource     = &m_resSyncObjectVideoContextInUse;
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnEngineWait(m_osInterface, &syncParams));
     }
@@ -309,8 +309,8 @@ MOS_STATUS CodechalDecodeMpeg2::CopyDataSurface(
         m_osInterface,
         m_videoContext));
 
-    *currOffset = u32NextCopiedDataOffset;
-    u32NextCopiedDataOffset += MOS_ALIGN_CEIL(size, 64); // offsets are 64-byte aligned
+    *currOffset = m_nextCopiedDataOffset;
+    m_nextCopiedDataOffset += MOS_ALIGN_CEIL(size, 64);  // offsets are 64-byte aligned
 
     return eStatus;
 }
@@ -330,17 +330,17 @@ MOS_STATUS CodechalDecodeMpeg2::InitializeBeginFrame()
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     m_incompletePicture  = false;
-    bCopiedDataBufferInUse          = false;
-    u32CopiedDataOffset             = 0;
-    u32NextCopiedDataOffset         = 0;
-    u16LastMBAddress                = 0;
-    bSlicesInvalid                  = false;
+    m_copiedDataBufferInUse = false;
+    m_copiedDataOffset      = 0;
+    m_nextCopiedDataOffset  = 0;
+    m_lastMbAddress         = 0;
+    m_slicesInvalid         = false;
 
-    u32CurrCopiedData               =
-        (u32CurrCopiedData + 1) % CODECHAL_DECODE_MPEG2_COPIED_SURFACES;
-    bDummySliceDataPresent          = false;
-    u32DummySliceDataOffset         = 0;
-    u16BBInUsePerFrame              = 0;
+    m_currCopiedData =
+        (m_currCopiedData + 1) % CODECHAL_DECODE_MPEG2_COPIED_SURFACES;
+    m_dummySliceDataPresent = false;
+    m_dummySliceDataOffset  = 0;
+    m_bbInUsePerFrame       = 0;
 
     return eStatus;
 }
@@ -353,36 +353,36 @@ MOS_STATUS CodechalDecodeMpeg2::AllocateResources ()
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateSyncResource(
         m_osInterface,
-        &resSyncObjectWaContextInUse));
+        &m_resSyncObjectWaContextInUse));
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateSyncResource(
         m_osInterface,
-        &resSyncObjectVideoContextInUse));
+        &m_resSyncObjectVideoContextInUse));
 
     CodecHalAllocateDataList(
-        pMpeg2RefList,
+        m_mpeg2RefList,
         CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2);
 
     for (uint32_t i = 0; i < CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2; i++)
     {
-        pMpeg2RefList[i]->RefPic.PicFlags = PICTURE_INVALID;
+        m_mpeg2RefList[i]->RefPic.PicFlags = PICTURE_INVALID;
     }
 
-    uint32_t numMacroblocks = u16PicWidthInMb * u16PicHeightInMb;
+    uint32_t numMacroblocks = m_picWidthInMb * m_picHeightInMb;
 
     if (m_mode == CODECHAL_DECODE_MODE_MPEG2VLD)
     {
-        pVldSliceRecord =
+        m_vldSliceRecord =
             (PCODECHAL_VLD_SLICE_RECORD)MOS_AllocAndZeroMemory(numMacroblocks * sizeof(CODECHAL_VLD_SLICE_RECORD));
-        CODECHAL_DECODE_CHK_NULL_RETURN(pVldSliceRecord);
+        CODECHAL_DECODE_CHK_NULL_RETURN(m_vldSliceRecord);
     }
 
-    for (uint16_t i = 0; i < u16BBAllocated; i++)
+    for (uint16_t i = 0; i < m_bbAllocated; i++)
     {
-        MOS_ZeroMemory(&MediaObjectBatchBuffer[i], sizeof(MHW_BATCH_BUFFER));
+        MOS_ZeroMemory(&m_mediaObjectBatchBuffer[i], sizeof(MHW_BATCH_BUFFER));
         uint32_t size = (m_standardDecodeSizeNeeded * numMacroblocks) + m_hwInterface->m_sizeOfCmdBatchBufferEnd;
         CODECHAL_DECODE_CHK_STATUS_RETURN(Mhw_AllocateBb(
             m_osInterface,
-            &MediaObjectBatchBuffer[i],
+            &m_mediaObjectBatchBuffer[i],
             nullptr,
             size));
     }
@@ -390,18 +390,18 @@ MOS_STATUS CodechalDecodeMpeg2::AllocateResources ()
     // Deblocking Filter Row Store Scratch buffer
     //(Num MacroBlock Width) * (Num Cachlines) * (Cachline size)
     CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(AllocateBuffer(
-        &resMfdDeblockingFilterRowStoreScratchBuffer,
-        u16PicWidthInMb * 7 * CODECHAL_CACHELINE_SIZE,
-        "DeblockingFilterScratch"),
+                                                  &m_resMfdDeblockingFilterRowStoreScratchBuffer,
+                                                  m_picWidthInMb * 7 * CODECHAL_CACHELINE_SIZE,
+                                                  "DeblockingFilterScratch"),
         "Failed to allocate BSD/MPC Row Store Scratch Buffer.");
 
     // MPR Row Store Scratch buffer
     // (FrameWidth in MB) * (CacheLine size per MB) * 2
     // IVB+ platforms need to have double MPR size for MBAFF
     CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(AllocateBuffer(
-        &resBsdMpcRowStoreScratchBuffer,
-        ((uint32_t)(u16PicWidthInMb * CODECHAL_CACHELINE_SIZE)) * 2,
-        "MprScratchBuffer"),
+                                                  &m_resBsdMpcRowStoreScratchBuffer,
+                                                  ((uint32_t)(m_picWidthInMb * CODECHAL_CACHELINE_SIZE)) * 2,
+                                                  "MprScratchBuffer"),
         "Failed to allocate AVC BSD MPR Row Store Scratch Buffer.");
 
     m_consecutiveMbErrorConcealmentInUse = true;
@@ -411,12 +411,12 @@ MOS_STATUS CodechalDecodeMpeg2::AllocateResources ()
     {
         uint32_t size = MOS_ALIGN_CEIL(sizeof(CODECHAL_DECODE_MPEG2_WaDummyBitstream), 64);
         CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(AllocateBuffer(
-            &resMpeg2DummyBistream,
-            size,
-            "Mpeg2DummyBitstream"),
+                                                      &m_resMpeg2DummyBistream,
+                                                      size,
+                                                      "Mpeg2DummyBitstream"),
             "Failed to allocate MPEG2 bitstream buffer for format switching WA.");
 
-        CodechalResLock DummyBitstreamLock(m_osInterface, &resMpeg2DummyBistream);
+        CodechalResLock DummyBitstreamLock(m_osInterface, &m_resMpeg2DummyBistream);
         auto data = DummyBitstreamLock.Lock(CodechalResLock::writeOnly);
 
         MOS_ZeroMemory(data, size);
@@ -431,14 +431,14 @@ MOS_STATUS CodechalDecodeMpeg2::AllocateResources ()
     if (m_mode == CODECHAL_DECODE_MODE_MPEG2IDCT)
     {
         // The common indirect IT-COEFF data structure is defined as a uint32_t.
-        u32CopiedDataBufferSize = (numMacroblocks + 2) *
-            (CODEC_NUM_BLOCK_PER_MB * CODECHAL_DECODE_MPEG2_IDCTBLOCK_SIZE * sizeof(uint32_t));
+        m_copiedDataBufferSize = (numMacroblocks + 2) *
+                                 (CODEC_NUM_BLOCK_PER_MB * CODECHAL_DECODE_MPEG2_IDCTBLOCK_SIZE * sizeof(uint32_t));
     }
     else
     {
         // Bitstream buffer size = height * width + dummy slice + 512 (for padding)
-        u32CopiedDataBufferSize =
-            (u16PicWidthInMb * u16PicHeightInMb * CODECHAL_DECODE_MPEG2_BYTES_PER_MB) +
+        m_copiedDataBufferSize =
+            (m_picWidthInMb * m_picHeightInMb * CODECHAL_DECODE_MPEG2_BYTES_PER_MB) +
             sizeof(CODECHAL_DECODE_MPEG2_WaDummyBitstream) +
             512;
     }
@@ -452,39 +452,39 @@ CodechalDecodeMpeg2::~CodechalDecodeMpeg2 ()
 
     CODECHAL_DECODE_CHK_NULL_NO_STATUS_RETURN(m_osInterface);
 
-    m_osInterface->pfnDestroySyncResource(m_osInterface, &resSyncObjectWaContextInUse);
-    m_osInterface->pfnDestroySyncResource(m_osInterface, &resSyncObjectVideoContextInUse);
+    m_osInterface->pfnDestroySyncResource(m_osInterface, &m_resSyncObjectWaContextInUse);
+    m_osInterface->pfnDestroySyncResource(m_osInterface, &m_resSyncObjectVideoContextInUse);
 
-    CodecHalFreeDataList(pMpeg2RefList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2);
+    CodecHalFreeDataList(m_mpeg2RefList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2);
 
-    MOS_FreeMemory(pVldSliceRecord);
+    MOS_FreeMemory(m_vldSliceRecord);
 
-    for (uint32_t i = 0; i < u16BBAllocated; i++)
+    for (uint32_t i = 0; i < m_bbAllocated; i++)
     {
-        Mhw_FreeBb(m_osInterface, &MediaObjectBatchBuffer[i], nullptr);
+        Mhw_FreeBb(m_osInterface, &m_mediaObjectBatchBuffer[i], nullptr);
     }
 
     m_osInterface->pfnFreeResource(
         m_osInterface,
-        &resMfdDeblockingFilterRowStoreScratchBuffer);
+        &m_resMfdDeblockingFilterRowStoreScratchBuffer);
 
     m_osInterface->pfnFreeResource(
         m_osInterface,
-        &resBsdMpcRowStoreScratchBuffer);
+        &m_resBsdMpcRowStoreScratchBuffer);
 
     // Dummy slice buffer
-    if (!Mos_ResourceIsNull(&resMpeg2DummyBistream))
+    if (!Mos_ResourceIsNull(&m_resMpeg2DummyBistream))
     {
         m_osInterface->pfnFreeResource(
             m_osInterface,
-            &resMpeg2DummyBistream);
+            &m_resMpeg2DummyBistream);
     }
 
     for (uint32_t i = 0; i < CODECHAL_DECODE_MPEG2_COPIED_SURFACES; i++)
     {
         m_osInterface->pfnFreeResource(
             m_osInterface,
-            &resCopiedDataBuffer[i]);
+            &m_resCopiedDataBuffer[i]);
     }
 }
 
@@ -500,44 +500,43 @@ MOS_STATUS CodechalDecodeMpeg2::SetFrameStates ()
     CODECHAL_DECODE_CHK_NULL_RETURN(m_decodeParams.m_dataBuffer);
     CODECHAL_DECODE_CHK_NULL_RETURN(m_decodeParams.m_picParams);
 
-    u32DataSize             = m_decodeParams.m_dataSize;
-    u32DataOffset           = m_decodeParams.m_dataOffset;
-    u32NumSlices            = m_decodeParams.m_numSlices;
-    picParams               = (CodecDecodeMpeg2PicParams *)m_decodeParams.m_picParams;
-    sliceParams             = (CodecDecodeMpeg2SliceParams *)m_decodeParams.m_sliceParams;
-    iqMatrixBuffer          = (CodecMpeg2IqMatrix *)m_decodeParams.m_iqMatrixBuffer;
-    sDestSurface            = *m_decodeParams.m_destSurface;
-    resDataBuffer           = *m_decodeParams.m_dataBuffer;
-    u32NumMacroblocks       = m_decodeParams.m_numMacroblocks;
-    mbParams                = (CodecDecodeMpeg2MbParmas *)m_decodeParams.m_macroblockParams;
-    u32MPEG2ISliceConcealmentMode           = m_decodeParams.m_mpeg2ISliceConcealmentMode;
-    u32MPEG2PBSliceConcealmentMode          = m_decodeParams.m_mpeg2PBSliceConcealmentMode;
-    u32MPEG2PBSlicePredBiDirMVTypeOverride  = m_decodeParams.m_mpeg2PBSlicePredBiDirMVTypeOverride;
-    u32MPEG2PBSlicePredMVOverride           = m_decodeParams.m_mpeg2PBSlicePredMVOverride; 
+    m_dataSize                            = m_decodeParams.m_dataSize;
+    m_dataOffset                          = m_decodeParams.m_dataOffset;
+    m_numSlices                           = m_decodeParams.m_numSlices;
+    m_picParams                           = (CodecDecodeMpeg2PicParams *)m_decodeParams.m_picParams;
+    m_sliceParams                         = (CodecDecodeMpeg2SliceParams *)m_decodeParams.m_sliceParams;
+    m_iqMatrixBuffer                      = (CodecMpeg2IqMatrix *)m_decodeParams.m_iqMatrixBuffer;
+    m_destSurface                         = *m_decodeParams.m_destSurface;
+    m_resDataBuffer                       = *m_decodeParams.m_dataBuffer;
+    m_numMacroblocks                      = m_decodeParams.m_numMacroblocks;
+    m_mbParams                            = (CodecDecodeMpeg2MbParmas *)m_decodeParams.m_macroblockParams;
+    m_mpeg2ISliceConcealmentMode          = m_decodeParams.m_mpeg2ISliceConcealmentMode;
+    m_mpeg2PbSliceConcealmentMode         = m_decodeParams.m_mpeg2PBSliceConcealmentMode;
+    m_mpeg2PbSlicePredBiDirMvTypeOverride = m_decodeParams.m_mpeg2PBSlicePredBiDirMVTypeOverride;
+    m_mpeg2PbSlicePredMvOverride          = m_decodeParams.m_mpeg2PBSlicePredMVOverride;
 
-    u16PicWidthInMb         = CODECHAL_GET_WIDTH_IN_MACROBLOCKS(picParams->m_horizontalSize);
-    u16PicHeightInMb        = CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(picParams->m_verticalSize);
+    m_picWidthInMb  = CODECHAL_GET_WIDTH_IN_MACROBLOCKS(m_picParams->m_horizontalSize);
+    m_picHeightInMb = CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(m_picParams->m_verticalSize);
 
     // For some corrupted mpeg2 streams, need to use dwHeight or dwWidth because they are updated at decode create time.
     // Horizontal_size or vertical_size may be different and wrong in first pic parameter.
-    totalMBInFrame       = (picParams->m_currPic.PicFlags == PICTURE_FRAME) ?
-        (CODECHAL_GET_WIDTH_IN_MACROBLOCKS(m_width) * CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(m_height))
-        : (CODECHAL_GET_WIDTH_IN_MACROBLOCKS(m_width) * CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(m_height) / 2);
+    totalMBInFrame = (m_picParams->m_currPic.PicFlags == PICTURE_FRAME) ? (CODECHAL_GET_WIDTH_IN_MACROBLOCKS(m_width) * CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(m_height))
+                                                                        : (CODECHAL_GET_WIDTH_IN_MACROBLOCKS(m_width) * CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(m_height) / 2);
 
-    if (u32NumSlices > totalMBInFrame)
+    if (m_numSlices > totalMBInFrame)
     {
         CODECHAL_DECODE_ASSERTMESSAGE("Invalid slice number due to larger than MB number.");
         return MOS_STATUS_INVALID_PARAMETER;
     }
-      
-    PCODEC_REF_LIST destEntry  = pMpeg2RefList[picParams->m_currPic.FrameIdx];
+
+    PCODEC_REF_LIST destEntry = m_mpeg2RefList[m_picParams->m_currPic.FrameIdx];
     MOS_ZeroMemory(destEntry, sizeof(CODEC_REF_LIST));
-    destEntry->RefPic          = picParams->m_currPic;
-    destEntry->resRefPic       = sDestSurface.OsResource;
+    destEntry->RefPic    = m_picParams->m_currPic;
+    destEntry->resRefPic = m_destSurface.OsResource;
 
-    m_statusReportFeedbackNumber = picParams->m_statusReportFeedbackNumber;
+    m_statusReportFeedbackNumber = m_picParams->m_statusReportFeedbackNumber;
 
-    MOS_ZeroMemory(pVldSliceRecord, (u32NumSlices * sizeof(CODECHAL_VLD_SLICE_RECORD)));
+    MOS_ZeroMemory(m_vldSliceRecord, (m_numSlices * sizeof(CODECHAL_VLD_SLICE_RECORD)));
 
     if (m_firstExecuteCall)
     {
@@ -553,28 +552,28 @@ MOS_STATUS CodechalDecodeMpeg2::SetFrameStates ()
     // Determine the number of MBs for MPEG2 VLD
     if (m_mode == CODECHAL_DECODE_MODE_MPEG2VLD)
     {
-        CODECHAL_DECODE_CHK_NULL_RETURN(sliceParams);
+        CODECHAL_DECODE_CHK_NULL_RETURN(m_sliceParams);
 
-        CodecDecodeMpeg2SliceParams *slc = sliceParams;
+        CodecDecodeMpeg2SliceParams *slc = m_sliceParams;
 
-        if (u32NumSlices == 0)
+        if (m_numSlices == 0)
         {
             CODECHAL_DECODE_ASSERTMESSAGE(
                 "MPEG2 VLD slice data invalid, unable to determine final MB address.");
-            numMBs = u16LastMBAddress = 0;
+            numMBs = m_lastMbAddress = 0;
             return MOS_STATUS_INVALID_PARAMETER;
         }
         else
         {
             uint16_t lastSlice       = 0;
-            uint32_t prevSliceMbEnd  = u16LastMBAddress;
+            uint32_t prevSliceMbEnd        = m_lastMbAddress;
             bool firstValidSlice       = m_incompletePicture ? true : false;
 
-            for (uint16_t i = 0; i < u32NumSlices; i++)
+            for (uint16_t i = 0; i < m_numSlices; i++)
             {
                 uint32_t sliceStartMbOffset =
                     slc->m_sliceHorizontalPosition +
-                    (slc->m_sliceVerticalPosition * u16PicWidthInMb);
+                    (slc->m_sliceVerticalPosition * m_picWidthInMb);
 
                 uint32_t slcLength = ((slc->m_sliceDataSize + 0x0007) >> 3);
 
@@ -587,13 +586,13 @@ MOS_STATUS CodechalDecodeMpeg2::SetFrameStates ()
                 uint32_t u32Offset = ((slc ->m_macroblockOffset & 0x0000fff8) >> 3); // #of bytes of header data in bitstream buffer (before video data)
 
                 slcLength                            -= u32Offset;
-                pVldSliceRecord[i].dwLength             = slcLength;
-                pVldSliceRecord[i].dwOffset             = u32Offset;
-                pVldSliceRecord[i].dwSliceStartMbOffset = sliceStartMbOffset;
+                m_vldSliceRecord[i].dwLength             = slcLength;
+                m_vldSliceRecord[i].dwOffset             = u32Offset;
+                m_vldSliceRecord[i].dwSliceStartMbOffset = sliceStartMbOffset;
 
                 if (DetectSliceError(i, prevSliceMbEnd, firstValidSlice))
                 {
-                    pVldSliceRecord[i].dwSkip   = true;
+                    m_vldSliceRecord[i].dwSkip = true;
                     skippedSlicePresent        = true;
                 }
                 else
@@ -603,7 +602,7 @@ MOS_STATUS CodechalDecodeMpeg2::SetFrameStates ()
                         // First MB Address
                         firstMbAddress =
                             slc->m_sliceHorizontalPosition +
-                            (slc->m_sliceVerticalPosition * u16PicWidthInMb);
+                            (slc->m_sliceVerticalPosition * m_picWidthInMb);
                     }
 
                     lastSlice = i;
@@ -612,33 +611,33 @@ MOS_STATUS CodechalDecodeMpeg2::SetFrameStates ()
                 }
 
                 prevSliceMbEnd =
-                    pVldSliceRecord[i].dwSliceStartMbOffset +
+                    m_vldSliceRecord[i].dwSliceStartMbOffset +
                     slc->m_numMbsForSlice;
 
                 slc++;
             }
 
-            slc -= u32NumSlices;
-            pVldSliceRecord[lastSlice].bIsLastSlice = true;
+            slc -= m_numSlices;
+            m_vldSliceRecord[lastSlice].bIsLastSlice = true;
 
             // Last MB Address
             slc += lastSlice;
 
             numMBs =
-                (uint16_t)(pVldSliceRecord[lastSlice].dwSliceStartMbOffset +
-                slc->m_numMbsForSlice);
+                (uint16_t)(m_vldSliceRecord[lastSlice].dwSliceStartMbOffset +
+                           slc->m_numMbsForSlice);
         }
     }
     else if (m_mode == CODECHAL_DECODE_MODE_MPEG2IDCT)
     {
-        CODECHAL_DECODE_CHK_NULL_RETURN(mbParams);
-        numMBs               = u32NumMacroblocks;
+        CODECHAL_DECODE_CHK_NULL_RETURN(m_mbParams);
+        numMBs = m_numMacroblocks;
     }
 
     // It means all slices in the frame are wrong, we just need skip decoding for this frame
     // and don't insert any dummy slices
-    if (m_mode == CODECHAL_DECODE_MODE_MPEG2VLD && 
-        invalidFrame && u32NumSlices && !m_incompletePicture)
+    if (m_mode == CODECHAL_DECODE_MODE_MPEG2VLD &&
+        invalidFrame && m_numSlices && !m_incompletePicture)
     {
         CODECHAL_DECODE_ASSERTMESSAGE("Current frame is invalid.");
         return MOS_STATUS_UNKNOWN;
@@ -647,7 +646,7 @@ MOS_STATUS CodechalDecodeMpeg2::SetFrameStates ()
     // MPEG2 Error Concealment for Gen6+
     // Applicable for both IT and VLD modes
     bool copiedDataNeeded = (m_incompletePicture ||
-        (numMBs != (u16PicWidthInMb * u16PicHeightInMb)));
+                             (numMBs != (m_picWidthInMb * m_picHeightInMb)));
 
     if (m_mode == CODECHAL_DECODE_MODE_MPEG2VLD)
     {
@@ -656,54 +655,50 @@ MOS_STATUS CodechalDecodeMpeg2::SetFrameStates ()
 
     if (copiedDataNeeded)
     {
-        if (u32DataSize)
+        if (m_dataSize)
         {
             CODECHAL_DECODE_CHK_STATUS_RETURN(CopyDataSurface(
-                u32DataSize,
-                resDataBuffer,
-                &resCopiedDataBuffer[u32CurrCopiedData],
-                &u32CopiedDataOffset));
+                m_dataSize,
+                m_resDataBuffer,
+                &m_resCopiedDataBuffer[m_currCopiedData],
+                &m_copiedDataOffset));
         }
 
-        bCopiedDataBufferInUse = true;
+        m_copiedDataBufferInUse = true;
     }
 
-    m_perfType = (uint16_t)picParams->m_pictureCodingType;
-    
-    m_crrPic = picParams->m_currPic;
-    m_secondField = picParams->m_secondField ? true : false;
+    m_perfType = (uint16_t)m_picParams->m_pictureCodingType;
+
+    m_crrPic      = m_picParams->m_currPic;
+    m_secondField = m_picParams->m_secondField ? true : false;
 
     CODECHAL_DEBUG_TOOL(
         CODECHAL_DECODE_CHK_NULL_RETURN(m_debugInterface);
-        m_debugInterface->CurrPic = m_crrPic;
-        m_debugInterface->bSecondField = m_secondField;
-        m_debugInterface->wFrameType = m_perfType;
+        m_debugInterface->m_currPic     = m_crrPic;
+        m_debugInterface->m_secondField = m_secondField;
+        m_debugInterface->m_frameType   = m_perfType;
 
-        if (picParams)
-        {
+        if (m_picParams) {
             CODECHAL_DECODE_CHK_STATUS_RETURN(DumpPicParams(
-                picParams));
-        }
-  
-        if (iqMatrixBuffer)
-        {
-            CODECHAL_DECODE_CHK_STATUS_RETURN(DumpIQParams(
-                iqMatrixBuffer));
-        }
-           
-        if (sliceParams)
-        {
-            CODECHAL_DECODE_CHK_STATUS_RETURN(DumpSliceParams(
-                sliceParams,
-                u32NumSlices));
+                m_picParams));
         }
 
-        if (mbParams)
-        {
-            CODECHAL_DECODE_CHK_STATUS_RETURN(DumpMbParams(
-                mbParams));
+        if (m_iqMatrixBuffer) {
+            CODECHAL_DECODE_CHK_STATUS_RETURN(DumpIQParams(
+                m_iqMatrixBuffer));
         }
-            
+
+        if (m_sliceParams) {
+            CODECHAL_DECODE_CHK_STATUS_RETURN(DumpSliceParams(
+                m_sliceParams,
+                m_numSlices));
+        }
+
+        if (m_mbParams) {
+            CODECHAL_DECODE_CHK_STATUS_RETURN(DumpMbParams(
+                m_mbParams));
+        }
+
     )
 
     return eStatus;
@@ -715,17 +710,17 @@ MOS_STATUS CodechalDecodeMpeg2::DecodeStateLevel()
 
     CODECHAL_DECODE_FUNCTION_ENTER;
 
-    uint8_t fwdRefIdx   = (uint8_t)picParams->m_forwardRefIdx;
-    uint8_t bwdRefIdx   = (uint8_t)picParams->m_backwardRefIdx;
+    uint8_t fwdRefIdx = (uint8_t)m_picParams->m_forwardRefIdx;
+    uint8_t bwdRefIdx = (uint8_t)m_picParams->m_backwardRefIdx;
 
     // Do not use data that has not been initialized
-    if (CodecHal_PictureIsInvalid(pMpeg2RefList[fwdRefIdx]->RefPic))
+    if (CodecHal_PictureIsInvalid(m_mpeg2RefList[fwdRefIdx]->RefPic))
     {
-        fwdRefIdx = picParams->m_currPic.FrameIdx;
+        fwdRefIdx = m_picParams->m_currPic.FrameIdx;
     }
-    if (CodecHal_PictureIsInvalid(pMpeg2RefList[bwdRefIdx]->RefPic))
+    if (CodecHal_PictureIsInvalid(m_mpeg2RefList[bwdRefIdx]->RefPic))
     {
-        bwdRefIdx = picParams->m_currPic.FrameIdx;
+        bwdRefIdx = m_picParams->m_currPic.FrameIdx;
     }
 
     MOS_COMMAND_BUFFER cmdBuffer;
@@ -735,69 +730,69 @@ MOS_STATUS CodechalDecodeMpeg2::DecodeStateLevel()
     MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode                  = m_mode;
     pipeModeSelectParams.bStreamOutEnabled     = m_streamOutEnabled;
-    pipeModeSelectParams.bPostDeblockOutEnable = bDeblockingEnabled;
-    pipeModeSelectParams.bPreDeblockOutEnable  = !bDeblockingEnabled;
+    pipeModeSelectParams.bPostDeblockOutEnable = m_deblockingEnabled;
+    pipeModeSelectParams.bPreDeblockOutEnable  = !m_deblockingEnabled;
 
     MHW_VDBOX_SURFACE_PARAMS surfaceParams;
     MOS_ZeroMemory(&surfaceParams, sizeof(surfaceParams));
     surfaceParams.Mode                      = m_mode;
-    surfaceParams.psSurface                 = &sDestSurface;
+    surfaceParams.psSurface                 = &m_destSurface;
 
     MHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams;
     MOS_ZeroMemory(&pipeBufAddrParams, sizeof(pipeBufAddrParams));
     pipeBufAddrParams.Mode                      = m_mode;
-    if (bDeblockingEnabled)
+    if (m_deblockingEnabled)
     {
-        pipeBufAddrParams.psPostDeblockSurface  = &sDestSurface;
+        pipeBufAddrParams.psPostDeblockSurface = &m_destSurface;
     }
     else
     {
-        pipeBufAddrParams.psPreDeblockSurface   = &sDestSurface;        
+        pipeBufAddrParams.psPreDeblockSurface = &m_destSurface;
     }
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetPipeBufAddr(&pipeBufAddrParams));
 
     // when there is not a forward or backward reference,
     // the index is set to the destination frame index
-    presReferences[CodechalDecodeFwdRefTop]    =
-    presReferences[CodechalDecodeFwdRefBottom] =
-    presReferences[CodechalDecodeBwdRefTop]    =
-    presReferences[CodechalDecodeBwdRefBottom] = &sDestSurface.OsResource;
+    m_presReferences[CodechalDecodeFwdRefTop] =
+        m_presReferences[CodechalDecodeFwdRefBottom] =
+            m_presReferences[CodechalDecodeBwdRefTop] =
+                m_presReferences[CodechalDecodeBwdRefBottom] = &m_destSurface.OsResource;
 
     if (fwdRefIdx < CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2)
     {
-        presReferences[CodechalDecodeFwdRefTop]    =
-        presReferences[CodechalDecodeFwdRefBottom] = &pMpeg2RefList[fwdRefIdx]->resRefPic;
+        m_presReferences[CodechalDecodeFwdRefTop] =
+            m_presReferences[CodechalDecodeFwdRefBottom] = &m_mpeg2RefList[fwdRefIdx]->resRefPic;
     }
     if (bwdRefIdx < CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2)
     {
-        presReferences[CodechalDecodeBwdRefTop]    =
-        presReferences[CodechalDecodeBwdRefBottom] = &pMpeg2RefList[bwdRefIdx]->resRefPic;
+        m_presReferences[CodechalDecodeBwdRefTop] =
+            m_presReferences[CodechalDecodeBwdRefBottom] = &m_mpeg2RefList[bwdRefIdx]->resRefPic;
     }
 
     // special case for second fields
-    if (picParams->m_secondField && picParams->m_pictureCodingType == P_TYPE)
+    if (m_picParams->m_secondField && m_picParams->m_pictureCodingType == P_TYPE)
     {
-        if (picParams->m_topFieldFirst)
+        if (m_picParams->m_topFieldFirst)
         {
-            presReferences[CodechalDecodeFwdRefTop] =
-                &sDestSurface.OsResource;
+            m_presReferences[CodechalDecodeFwdRefTop] =
+                &m_destSurface.OsResource;
         }
         else
         {
-            presReferences[CodechalDecodeFwdRefBottom] =
-                &sDestSurface.OsResource;
+            m_presReferences[CodechalDecodeFwdRefBottom] =
+                &m_destSurface.OsResource;
         }
     }
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(
         pipeBufAddrParams.presReferences,
-        sizeof(PMOS_RESOURCE)*CODEC_MAX_NUM_REF_FRAME_NON_AVC,
-        presReferences,
-        sizeof(PMOS_RESOURCE)*CODEC_MAX_NUM_REF_FRAME_NON_AVC));
+        sizeof(PMOS_RESOURCE) * CODEC_MAX_NUM_REF_FRAME_NON_AVC,
+        m_presReferences,
+        sizeof(PMOS_RESOURCE) * CODEC_MAX_NUM_REF_FRAME_NON_AVC));
 
     pipeBufAddrParams.presMfdDeblockingFilterRowStoreScratchBuffer =
-        &resMfdDeblockingFilterRowStoreScratchBuffer;
+        &m_resMfdDeblockingFilterRowStoreScratchBuffer;
 
     if (m_streamOutEnabled)
     {
@@ -821,8 +816,8 @@ MOS_STATUS CodechalDecodeMpeg2::DecodeStateLevel()
                     m_osInterface,
                     &dstSurface));
 
-                m_debugInterface->wRefIndex = (uint16_t)i;
-                std::string refSurfName = "RefSurf" + std::to_string(static_cast<uint32_t>(m_debugInterface->wRefIndex));
+                m_debugInterface->m_refIndex = (uint16_t)i;
+                std::string refSurfName      = "RefSurf" + std::to_string(static_cast<uint32_t>(m_debugInterface->m_refIndex));
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
                     &dstSurface,
                     CodechalDbgAttr::attrReferenceSurfaces,
@@ -833,38 +828,38 @@ MOS_STATUS CodechalDecodeMpeg2::DecodeStateLevel()
 
     //set correctly indirect BSD object base address.
     PMOS_RESOURCE indObjBase;
-    if (bCopiedDataBufferInUse)
+    if (m_copiedDataBufferInUse)
     {
-        indObjBase = &resCopiedDataBuffer[u32CurrCopiedData];
+        indObjBase = &m_resCopiedDataBuffer[m_currCopiedData];
     }
     else
-    {   
-        indObjBase = &resDataBuffer;
+    {
+        indObjBase = &m_resDataBuffer;
     }
 
     MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS indObjBaseAddrParams;
     MOS_ZeroMemory(&indObjBaseAddrParams, sizeof(indObjBaseAddrParams));
     indObjBaseAddrParams.Mode               = m_mode;
-    indObjBaseAddrParams.dwDataSize         = 
-        bCopiedDataBufferInUse ? u32CopiedDataBufferSize : u32DataSize;
+    indObjBaseAddrParams.dwDataSize =
+        m_copiedDataBufferInUse ? m_copiedDataBufferSize : m_dataSize;
     indObjBaseAddrParams.presDataBuffer     = indObjBase;
 
     MHW_VDBOX_BSP_BUF_BASE_ADDR_PARAMS bspBufBaseAddrParams;
     MOS_ZeroMemory(&bspBufBaseAddrParams, sizeof(bspBufBaseAddrParams));
-    bspBufBaseAddrParams.presBsdMpcRowStoreScratchBuffer    = &resBsdMpcRowStoreScratchBuffer;
+    bspBufBaseAddrParams.presBsdMpcRowStoreScratchBuffer = &m_resBsdMpcRowStoreScratchBuffer;
 
     MHW_VDBOX_MPEG2_PIC_STATE mpeg2PicState;
     mpeg2PicState.Mode                                  = m_mode;
-    mpeg2PicState.pMpeg2PicParams                       = picParams;
-    mpeg2PicState.bDeblockingEnabled                    = bDeblockingEnabled;
-    mpeg2PicState.dwMPEG2ISliceConcealmentMode          = u32MPEG2ISliceConcealmentMode;
-    mpeg2PicState.dwMPEG2PBSliceConcealmentMode         = u32MPEG2PBSliceConcealmentMode;
-    mpeg2PicState.dwMPEG2PBSlicePredBiDirMVTypeOverride = u32MPEG2PBSlicePredBiDirMVTypeOverride;
-    mpeg2PicState.dwMPEG2PBSlicePredMVOverride          = u32MPEG2PBSlicePredMVOverride;
+    mpeg2PicState.pMpeg2PicParams                       = m_picParams;
+    mpeg2PicState.bDeblockingEnabled                    = m_deblockingEnabled;
+    mpeg2PicState.dwMPEG2ISliceConcealmentMode          = m_mpeg2ISliceConcealmentMode;
+    mpeg2PicState.dwMPEG2PBSliceConcealmentMode         = m_mpeg2PbSliceConcealmentMode;
+    mpeg2PicState.dwMPEG2PBSlicePredBiDirMVTypeOverride = m_mpeg2PbSlicePredBiDirMvTypeOverride;
+    mpeg2PicState.dwMPEG2PBSlicePredMVOverride          = m_mpeg2PbSlicePredMvOverride;
 
     MHW_VDBOX_QM_PARAMS qmParams;
     qmParams.Standard                       = CODECHAL_MPEG2;
-    qmParams.pMpeg2IqMatrix                 = iqMatrixBuffer;
+    qmParams.pMpeg2IqMatrix                 = m_iqMatrixBuffer;
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(
         &cmdBuffer, true));
@@ -934,10 +929,10 @@ MOS_STATUS CodechalDecodeMpeg2::SliceLevel()
 
     if ((m_decodePhantomMbs) || (m_incompletePicture))
     {
-        if (u16BBInUsePerFrame >= u16BBAllocated / CODECHAL_DECODE_MPEG2_BATCH_BUFFERS_PER_GROUP)
+        if (m_bbInUsePerFrame >= m_bbAllocated / CODECHAL_DECODE_MPEG2_BATCH_BUFFERS_PER_GROUP)
         {
-            u16BBAllocated += CODECHAL_DECODE_MPEG2_BATCH_BUFFERS_PER_GROUP;
-            if (u16BBAllocated >= CODECHAL_DECODE_MPEG2_MAXIMUM_BATCH_BUFFERS)
+            m_bbAllocated += CODECHAL_DECODE_MPEG2_BATCH_BUFFERS_PER_GROUP;
+            if (m_bbAllocated >= CODECHAL_DECODE_MPEG2_MAXIMUM_BATCH_BUFFERS)
             {
                 CODECHAL_DECODE_ASSERTMESSAGE(
                     "The number of MPEG2 second level batch buffer is not big enough to hold the whole frame.");
@@ -946,18 +941,18 @@ MOS_STATUS CodechalDecodeMpeg2::SliceLevel()
 
             for (uint32_t i = 0; i < CODECHAL_DECODE_MPEG2_BATCH_BUFFERS_PER_GROUP; i++)
             {
-                uint32_t j = u16BBAllocated - i - 1;
-                MOS_ZeroMemory(&MediaObjectBatchBuffer[j], sizeof(MHW_BATCH_BUFFER));
+                uint32_t j = m_bbAllocated - i - 1;
+                MOS_ZeroMemory(&m_mediaObjectBatchBuffer[j], sizeof(MHW_BATCH_BUFFER));
 
                 uint32_t u32Size = m_standardDecodeSizeNeeded * CODECHAL_GET_WIDTH_IN_MACROBLOCKS(m_width) * CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(m_height) +
                     m_hwInterface->m_sizeOfCmdBatchBufferEnd;
 
                 CODECHAL_DECODE_CHK_STATUS_RETURN(Mhw_AllocateBb(
                     m_osInterface,
-                    &MediaObjectBatchBuffer[j],
+                    &m_mediaObjectBatchBuffer[j],
                     nullptr,
                     u32Size));
-                MediaObjectBatchBuffer[j].bSecondLevel = true;
+                m_mediaObjectBatchBuffer[j].bSecondLevel = true;
             }
         }
     }
@@ -968,7 +963,7 @@ MOS_STATUS CodechalDecodeMpeg2::SliceLevel()
         &cmdBuffer,
         0));
 
-    MHW_BATCH_BUFFER batchBuffer = MediaObjectBatchBuffer[u16BBInUse];
+    MHW_BATCH_BUFFER batchBuffer = m_mediaObjectBatchBuffer[m_bbInUse];
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(
         &cmdBuffer,
@@ -982,39 +977,39 @@ MOS_STATUS CodechalDecodeMpeg2::SliceLevel()
     {
         CODECHAL_DECODE_CHK_STATUS_RETURN(InsertDummySlices(
             &batchBuffer,
-            u16LastMBAddress,
-            u16PicWidthInMb * u16PicHeightInMb));
+            m_lastMbAddress,
+            m_picWidthInMb * m_picHeightInMb));
     }
     else
     {
-        CodecDecodeMpeg2SliceParams *slc = sliceParams;
+        CodecDecodeMpeg2SliceParams *slc = m_sliceParams;
 
-        uint16_t prevSliceMBEnd = u16LastMBAddress;
+        uint16_t prevSliceMBEnd = m_lastMbAddress;
 
-        for (uint16_t slcCount = 0; slcCount < u32NumSlices; slcCount++)
+        for (uint16_t slcCount = 0; slcCount < m_numSlices; slcCount++)
         {
-            if (!pVldSliceRecord[slcCount].dwSkip)
+            if (!m_vldSliceRecord[slcCount].dwSkip)
             {
-                if (prevSliceMBEnd != pVldSliceRecord[slcCount].dwSliceStartMbOffset)
+                if (prevSliceMBEnd != m_vldSliceRecord[slcCount].dwSliceStartMbOffset)
                 {
                     CODECHAL_DECODE_CHK_STATUS_RETURN(InsertDummySlices(
                         &batchBuffer,
                         prevSliceMBEnd,
-                        (uint16_t)pVldSliceRecord[slcCount].dwSliceStartMbOffset));
+                        (uint16_t)m_vldSliceRecord[slcCount].dwSliceStartMbOffset));
                 }
 
-                if (pVldSliceRecord[slcCount].bIsLastSlice)
+                if (m_vldSliceRecord[slcCount].bIsLastSlice)
                 {
-                    uint16_t expectedFinalMb = u16PicWidthInMb * u16PicHeightInMb;
+                    uint16_t expectedFinalMb = m_picWidthInMb * m_picHeightInMb;
 
-                    u16LastMBAddress =
-                        (uint16_t)(pVldSliceRecord[slcCount].dwSliceStartMbOffset +
-                        slc->m_numMbsForSlice);
+                    m_lastMbAddress =
+                        (uint16_t)(m_vldSliceRecord[slcCount].dwSliceStartMbOffset +
+                                   slc->m_numMbsForSlice);
 
-                    if (u16LastMBAddress < expectedFinalMb)
+                    if (m_lastMbAddress < expectedFinalMb)
                     {
                         m_incompletePicture              = true;
-                        pVldSliceRecord[slcCount].bIsLastSlice   = false;
+                        m_vldSliceRecord[slcCount].bIsLastSlice = false;
                     }
                     else
                     {
@@ -1025,15 +1020,15 @@ MOS_STATUS CodechalDecodeMpeg2::SliceLevel()
 
                 // static MPEG2 slice parameters
                 MHW_VDBOX_MPEG2_SLICE_STATE mpeg2SliceState;
-                mpeg2SliceState.presDataBuffer          = &resDataBuffer;
-                mpeg2SliceState.wPicWidthInMb           = u16PicWidthInMb;
-                mpeg2SliceState.wPicHeightInMb          = u16PicHeightInMb;
+                mpeg2SliceState.presDataBuffer          = &m_resDataBuffer;
+                mpeg2SliceState.wPicWidthInMb           = m_picWidthInMb;
+                mpeg2SliceState.wPicHeightInMb          = m_picHeightInMb;
                 mpeg2SliceState.pMpeg2SliceParams       = slc;
-                mpeg2SliceState.dwLength                = pVldSliceRecord[slcCount].dwLength;
-                mpeg2SliceState.dwOffset                =
-                    pVldSliceRecord[slcCount].dwOffset + u32CopiedDataOffset;
-                mpeg2SliceState.dwSliceStartMbOffset    = pVldSliceRecord[slcCount].dwSliceStartMbOffset;
-                mpeg2SliceState.bLastSlice              = pVldSliceRecord[slcCount].bIsLastSlice;
+                mpeg2SliceState.dwLength                = m_vldSliceRecord[slcCount].dwLength;
+                mpeg2SliceState.dwOffset =
+                    m_vldSliceRecord[slcCount].dwOffset + m_copiedDataOffset;
+                mpeg2SliceState.dwSliceStartMbOffset = m_vldSliceRecord[slcCount].dwSliceStartMbOffset;
+                mpeg2SliceState.bLastSlice           = m_vldSliceRecord[slcCount].bIsLastSlice;
 
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfdMpeg2BsdObject(
                     nullptr,
@@ -1041,8 +1036,8 @@ MOS_STATUS CodechalDecodeMpeg2::SliceLevel()
                     &mpeg2SliceState));
 
                 prevSliceMBEnd =
-                    (uint16_t)(pVldSliceRecord[slcCount].dwSliceStartMbOffset +
-                    slc->m_numMbsForSlice);
+                    (uint16_t)(m_vldSliceRecord[slcCount].dwSliceStartMbOffset +
+                               slc->m_numMbsForSlice);
             }
 
             slc++;
@@ -1065,21 +1060,21 @@ MOS_STATUS CodechalDecodeMpeg2::SliceLevel()
         &batchBuffer,
         true));
 
-    u16BBInUse = (u16BBInUse + 1) % u16BBAllocated;
-    u16BBInUsePerFrame ++;
+    m_bbInUse = (m_bbInUse + 1) % m_bbAllocated;
+    m_bbInUsePerFrame++;
 
     if (!m_incompletePicture)
     {
         // Check if destination surface needs to be synchronized
         MOS_SYNC_PARAMS syncParams          = g_cInitSyncParams;
         syncParams.GpuContext               = m_videoContext;
-        syncParams.presSyncResource         = &sDestSurface.OsResource;
+        syncParams.presSyncResource         = &m_destSurface.OsResource;
         syncParams.bReadOnly                = false;
         syncParams.bDisableDecodeSyncLock   = m_disableDecodeSyncLock;
         syncParams.bDisableLockForTranscode = m_disableLockForTranscode;
 
-        if (!CodecHal_PictureIsField(picParams->m_currPic) ||
-            !picParams->m_secondField)
+        if (!CodecHal_PictureIsField(m_picParams->m_currPic) ||
+            !m_picParams->m_secondField)
         {
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnPerformOverlaySync(
                 m_osInterface,
@@ -1099,9 +1094,9 @@ MOS_STATUS CodechalDecodeMpeg2::SliceLevel()
             &cmdBuffer,
             &flushDwParams));
 
-        // Update the tag in GPU Sync eStatus buffer (H/W Tag) to match the current S/W tag 
+        // Update the tag in GPU Sync eStatus buffer (H/W Tag) to match the current S/W tag
         if (m_osInterface->bTagResourceSync &&
-            (!CodecHal_PictureIsField(picParams->m_currPic) || picParams->m_secondField))
+            (!CodecHal_PictureIsField(m_picParams->m_currPic) || m_picParams->m_secondField))
         {
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_hwInterface->WriteSyncTagToResource(
                 &cmdBuffer,
@@ -1113,15 +1108,14 @@ MOS_STATUS CodechalDecodeMpeg2::SliceLevel()
             CodechalDecodeStatusReport decodeStatusReport;
 
             decodeStatusReport.m_statusReportNumber = m_statusReportFeedbackNumber;
-            decodeStatusReport.m_currDecodedPic     = picParams->m_currPic;
-            decodeStatusReport.m_currDeblockedPic   = picParams->m_currPic;
+            decodeStatusReport.m_currDecodedPic     = m_picParams->m_currPic;
+            decodeStatusReport.m_currDeblockedPic   = m_picParams->m_currPic;
             decodeStatusReport.m_codecStatus        = CODECHAL_STATUS_UNAVAILABLE;
-            decodeStatusReport.m_currDecodedPicRes  = pMpeg2RefList[picParams->m_currPic.FrameIdx]->resRefPic;
+            decodeStatusReport.m_currDecodedPicRes  = m_mpeg2RefList[m_picParams->m_currPic.FrameIdx]->resRefPic;
 
             CODECHAL_DEBUG_TOOL(
-                decodeStatusReport.m_secondField    = picParams->m_secondField ? true : false;
-                decodeStatusReport.m_frameType      = m_perfType;
-            )
+                decodeStatusReport.m_secondField = m_picParams->m_secondField ? true : false;
+                decodeStatusReport.m_frameType   = m_perfType;)
 
             CODECHAL_DECODE_CHK_STATUS_RETURN(EndStatusReport(
                 decodeStatusReport,
@@ -1151,13 +1145,13 @@ MOS_STATUS CodechalDecodeMpeg2::SliceLevel()
         //Sync up complete frame
         syncParams                      = g_cInitSyncParams;
         syncParams.GpuContext           = m_videoContextForWa;
-        syncParams.presSyncResource     = &resSyncObjectWaContextInUse;
+        syncParams.presSyncResource     = &m_resSyncObjectWaContextInUse;
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnEngineSignal(m_osInterface, &syncParams));
 
         syncParams                      = g_cInitSyncParams;
         syncParams.GpuContext           = m_videoContext;
-        syncParams.presSyncResource     = &resSyncObjectWaContextInUse;
+        syncParams.presSyncResource     = &m_resSyncObjectWaContextInUse;
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnEngineWait(m_osInterface, &syncParams));
 
@@ -1167,8 +1161,7 @@ MOS_STATUS CodechalDecodeMpeg2::SliceLevel()
             m_videoContextUsesNullHw));
 
         CODECHAL_DEBUG_TOOL(
-            m_mmc->UpdateUserFeatureKey(&sDestSurface);
-        )
+            m_mmc->UpdateUserFeatureKey(&m_destSurface);)
 
         if (m_statusQueryReportingEnabled)
         {
@@ -1177,15 +1170,15 @@ MOS_STATUS CodechalDecodeMpeg2::SliceLevel()
         }
 
         // Needs to be re-set for Linux buffer re-use scenarios
-        pMpeg2RefList[picParams->m_currPic.FrameIdx]->resRefPic =
-            sDestSurface.OsResource;
+        m_mpeg2RefList[m_picParams->m_currPic.FrameIdx]->resRefPic =
+            m_destSurface.OsResource;
 
         // Send the signal to indicate decode completion, in case On-Demand Sync is not present
-        if (!CodecHal_PictureIsField(picParams->m_currPic) || picParams->m_secondField)
+        if (!CodecHal_PictureIsField(m_picParams->m_currPic) || m_picParams->m_secondField)
         {
             syncParams                      = g_cInitSyncParams;
             syncParams.GpuContext           = m_videoContext;
-            syncParams.presSyncResource     = &sDestSurface.OsResource;
+            syncParams.presSyncResource     = &m_destSurface.OsResource;
 
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnResourceSignal(m_osInterface, &syncParams));
         }
@@ -1340,10 +1333,10 @@ MOS_STATUS CodechalDecodeMpeg2::MacroblockLevel()
 
     if ((m_decodePhantomMbs) || (m_incompletePicture))
     {
-        if (u16BBInUsePerFrame >= u16BBAllocated / CODECHAL_DECODE_MPEG2_BATCH_BUFFERS_PER_GROUP)
+        if (m_bbInUsePerFrame >= m_bbAllocated / CODECHAL_DECODE_MPEG2_BATCH_BUFFERS_PER_GROUP)
         {
-            u16BBAllocated += CODECHAL_DECODE_MPEG2_BATCH_BUFFERS_PER_GROUP;
-            if (u16BBAllocated >= CODECHAL_DECODE_MPEG2_MAXIMUM_BATCH_BUFFERS)
+            m_bbAllocated += CODECHAL_DECODE_MPEG2_BATCH_BUFFERS_PER_GROUP;
+            if (m_bbAllocated >= CODECHAL_DECODE_MPEG2_MAXIMUM_BATCH_BUFFERS)
             {
                 CODECHAL_DECODE_ASSERTMESSAGE(
                     "The number of MPEG2 second level batch buffer is not big enough to hold the whole frame.");
@@ -1352,18 +1345,18 @@ MOS_STATUS CodechalDecodeMpeg2::MacroblockLevel()
 
             for (uint32_t i = 0; i < CODECHAL_DECODE_MPEG2_BATCH_BUFFERS_PER_GROUP; i++)
             {
-                uint32_t j = u16BBAllocated - i - 1;
-                MOS_ZeroMemory(&MediaObjectBatchBuffer[j], sizeof(MHW_BATCH_BUFFER));
+                uint32_t j = m_bbAllocated - i - 1;
+                MOS_ZeroMemory(&m_mediaObjectBatchBuffer[j], sizeof(MHW_BATCH_BUFFER));
 
-                uint32_t u32Size = m_standardDecodeSizeNeeded * u16PicWidthInMb * u16PicHeightInMb +
-                    m_hwInterface->m_sizeOfCmdBatchBufferEnd;
+                uint32_t u32Size = m_standardDecodeSizeNeeded * m_picWidthInMb * m_picHeightInMb +
+                                   m_hwInterface->m_sizeOfCmdBatchBufferEnd;
 
                 CODECHAL_DECODE_CHK_STATUS_RETURN(Mhw_AllocateBb(
                     m_osInterface,
-                    &MediaObjectBatchBuffer[j],
+                    &m_mediaObjectBatchBuffer[j],
                     nullptr,
                     u32Size));
-                MediaObjectBatchBuffer[j].bSecondLevel = true;
+                m_mediaObjectBatchBuffer[j].bSecondLevel = true;
             }
         }
     }
@@ -1374,7 +1367,7 @@ MOS_STATUS CodechalDecodeMpeg2::MacroblockLevel()
         &cmdBuffer,
         0));
 
-    MHW_BATCH_BUFFER batchBuffer = MediaObjectBatchBuffer[u16BBInUse];
+    MHW_BATCH_BUFFER batchBuffer = m_mediaObjectBatchBuffer[m_bbInUse];
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(
         &cmdBuffer,
@@ -1384,16 +1377,16 @@ MOS_STATUS CodechalDecodeMpeg2::MacroblockLevel()
 
     //static member
     MHW_VDBOX_MPEG2_MB_STATE    mpeg2MbState;
-    mpeg2MbState.wPicWidthInMb  = u16PicWidthInMb;
-    mpeg2MbState.wPicHeightInMb = u16PicHeightInMb;
-    mpeg2MbState.wPicCodingType = (uint16_t)picParams->m_pictureCodingType;
+    mpeg2MbState.wPicWidthInMb  = m_picWidthInMb;
+    mpeg2MbState.wPicHeightInMb = m_picHeightInMb;
+    mpeg2MbState.wPicCodingType = (uint16_t)m_picParams->m_pictureCodingType;
 
     if (m_decodePhantomMbs)
     {
-        uint16_t u16NextMBStart = SavedMpeg2MbParam.m_mbAddr + 1; // = 1 + saved last MB's address in this picture.
+        uint16_t u16NextMBStart = m_savedMpeg2MbParam.m_mbAddr + 1;  // = 1 + saved last MB's address in this picture.
         uint16_t numMBs      = (mpeg2MbState.wPicWidthInMb * mpeg2MbState.wPicHeightInMb) - u16NextMBStart;
 
-        mpeg2MbState.pMBParams = &SavedMpeg2MbParam; //use saved last MB param to insert Skipped MBs.
+        mpeg2MbState.pMBParams = &m_savedMpeg2MbParam;  //use saved last MB param to insert Skipped MBs.
         CODECHAL_DECODE_CHK_STATUS_RETURN(InsertSkippedMacroblocks(
             &batchBuffer,
             &mpeg2MbState,
@@ -1403,18 +1396,18 @@ MOS_STATUS CodechalDecodeMpeg2::MacroblockLevel()
     }
     else
     {
-        uint16_t expectedMBAddress = (m_incompletePicture) ? u16LastMBAddress : 0;
+        uint16_t expectedMBAddress = (m_incompletePicture) ? m_lastMbAddress : 0;
 
-        for (uint16_t mbcount = 0; mbcount < u32NumMacroblocks; mbcount++)
+        for (uint16_t mbcount = 0; mbcount < m_numMacroblocks; mbcount++)
         {
-            if (mbParams[mbcount].m_mbAddr >= expectedMBAddress)
+            if (m_mbParams[mbcount].m_mbAddr >= expectedMBAddress)
             {
-                uint16_t skippedMBs = mbParams[mbcount].m_mbAddr - expectedMBAddress;
+                uint16_t skippedMBs = m_mbParams[mbcount].m_mbAddr - expectedMBAddress;
 
                 if (skippedMBs)
                 {
                     //insert skipped Macroblock, use the first available MB params to insert skipped MBs.
-                    mpeg2MbState.pMBParams = &(mbParams[mbcount]);
+                    mpeg2MbState.pMBParams = &(m_mbParams[mbcount]);
                     CODECHAL_DECODE_CHK_STATUS_RETURN(InsertSkippedMacroblocks(
                         &batchBuffer,
                         &mpeg2MbState,
@@ -1424,15 +1417,14 @@ MOS_STATUS CodechalDecodeMpeg2::MacroblockLevel()
             }
 
             //common field for MBs in I picture and PB picture .
-            mpeg2MbState.pMBParams   = &mbParams[mbcount];
+            mpeg2MbState.pMBParams   = &m_mbParams[mbcount];
             mpeg2MbState.dwDCTLength = 0;
             for (uint32_t i = 0; i < CODEC_NUM_BLOCK_PER_MB; i++)
             {
-                mpeg2MbState.dwDCTLength += mbParams[mbcount].m_numCoeff[i];
+                mpeg2MbState.dwDCTLength += m_mbParams[mbcount].m_numCoeff[i];
             }
 
-            mpeg2MbState.dwITCoffDataAddrOffset = u32CopiedDataOffset 
-                + ( mbParams[mbcount].m_mbDataLoc << 2); // byte offset
+            mpeg2MbState.dwITCoffDataAddrOffset = m_copiedDataOffset + (m_mbParams[mbcount].m_mbDataLoc << 2);  // byte offset
 
             //only for MB in PB picture.
             if (mpeg2MbState.wPicCodingType != I_TYPE)
@@ -1444,7 +1436,7 @@ MOS_STATUS CodechalDecodeMpeg2::MacroblockLevel()
                 if ((!intraMB) && (mpeg2MbState.pMBParams->MBType.m_value & 
                     (CODECHAL_DECODE_MPEG2_MB_MOTION_BACKWARD | CODECHAL_DECODE_MPEG2_MB_MOTION_FORWARD)))
                 {
-                    PackMotionVectors(picParams->m_currPic.PicFlags, &mpeg2MbState);
+                    PackMotionVectors(m_picParams->m_currPic.PicFlags, &mpeg2MbState);
                 }
             }
 
@@ -1454,10 +1446,10 @@ MOS_STATUS CodechalDecodeMpeg2::MacroblockLevel()
                 &batchBuffer,
                 &mpeg2MbState));
 
-            if (mpeg2MbState.wPicCodingType != I_TYPE && mbParams[mbcount].m_mbSkipFollowing)
+            if (mpeg2MbState.wPicCodingType != I_TYPE && m_mbParams[mbcount].m_mbSkipFollowing)
             {
-                uint16_t skippedMBs    = mbParams[mbcount].m_mbSkipFollowing;
-                uint16_t skippedMBSart = mbParams[mbcount].m_mbAddr + 1;
+                uint16_t skippedMBs    = m_mbParams[mbcount].m_mbSkipFollowing;
+                uint16_t skippedMBSart = m_mbParams[mbcount].m_mbAddr + 1;
 
                 // Insert Skipped MBs
                 CODECHAL_DECODE_CHK_STATUS_RETURN(InsertSkippedMacroblocks(
@@ -1466,23 +1458,23 @@ MOS_STATUS CodechalDecodeMpeg2::MacroblockLevel()
                     skippedMBSart,
                     skippedMBs));
 
-                mbParams[mbcount].m_mbAddr += skippedMBs;
+                m_mbParams[mbcount].m_mbAddr += skippedMBs;
             }
 
             //save the last MB's parameters for later use to insert skipped MBs.
-            SavedMpeg2MbParam = mbParams[mbcount];
+            m_savedMpeg2MbParam = m_mbParams[mbcount];
 
-            expectedMBAddress = mbParams[mbcount].m_mbAddr + 1;
+            expectedMBAddress = m_mbParams[mbcount].m_mbAddr + 1;
 
             // insert extra MBs to ensure expected number of MBs sent to HW
-            if (mbcount + 1 == u32NumMacroblocks)
+            if (mbcount + 1 == m_numMacroblocks)
             {
-                uint16_t expectedFinalMB = u16PicWidthInMb* u16PicHeightInMb;
+                uint16_t expectedFinalMB = m_picWidthInMb * m_picHeightInMb;
 
                 if (expectedMBAddress != expectedFinalMB)
                 {
                     m_incompletePicture = true;
-                    u16LastMBAddress  = expectedMBAddress;
+                    m_lastMbAddress     = expectedMBAddress;
                 }
                 else
                 {
@@ -1505,21 +1497,21 @@ MOS_STATUS CodechalDecodeMpeg2::MacroblockLevel()
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(Mhw_UnlockBb(m_osInterface, &batchBuffer, true));
 
-    u16BBInUse = (u16BBInUse + 1) % u16BBAllocated;
-    u16BBInUsePerFrame ++;
+    m_bbInUse = (m_bbInUse + 1) % m_bbAllocated;
+    m_bbInUsePerFrame++;
 
     if (!m_incompletePicture)
     {
         // Check if destination surface needs to be synchronized
         MOS_SYNC_PARAMS syncParams          = g_cInitSyncParams;
         syncParams.GpuContext               = m_videoContext;
-        syncParams.presSyncResource         = &sDestSurface.OsResource;
+        syncParams.presSyncResource         = &m_destSurface.OsResource;
         syncParams.bReadOnly                = false;
         syncParams.bDisableDecodeSyncLock   = m_disableDecodeSyncLock;
         syncParams.bDisableLockForTranscode = m_disableLockForTranscode;
 
-        if (!CodecHal_PictureIsField(picParams->m_currPic) ||
-            !picParams->m_secondField)
+        if (!CodecHal_PictureIsField(m_picParams->m_currPic) ||
+            !m_picParams->m_secondField)
         {
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnPerformOverlaySync(
                 m_osInterface,
@@ -1539,9 +1531,9 @@ MOS_STATUS CodechalDecodeMpeg2::MacroblockLevel()
             &cmdBuffer,
             &flushDwParams));
 
-        // Update the tag in GPU Sync eStatus buffer (H/W Tag) to match the current S/W tag 
+        // Update the tag in GPU Sync eStatus buffer (H/W Tag) to match the current S/W tag
         if (m_osInterface->bTagResourceSync &&
-            (!CodecHal_PictureIsField(picParams->m_currPic) || picParams->m_secondField))
+            (!CodecHal_PictureIsField(m_picParams->m_currPic) || m_picParams->m_secondField))
         {
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_hwInterface->WriteSyncTagToResource(
                 &cmdBuffer,
@@ -1553,16 +1545,15 @@ MOS_STATUS CodechalDecodeMpeg2::MacroblockLevel()
             CodechalDecodeStatusReport decodeStatusReport;
 
             decodeStatusReport.m_statusReportNumber = m_statusReportFeedbackNumber;
-            decodeStatusReport.m_currDecodedPic     = picParams->m_currPic;
-            decodeStatusReport.m_currDeblockedPic   = picParams->m_currPic;
+            decodeStatusReport.m_currDecodedPic     = m_picParams->m_currPic;
+            decodeStatusReport.m_currDeblockedPic   = m_picParams->m_currPic;
             decodeStatusReport.m_codecStatus        = CODECHAL_STATUS_UNAVAILABLE;
-            decodeStatusReport.m_currDecodedPicRes  = 
-                pMpeg2RefList[picParams->m_currPic.FrameIdx]->resRefPic;
+            decodeStatusReport.m_currDecodedPicRes =
+                m_mpeg2RefList[m_picParams->m_currPic.FrameIdx]->resRefPic;
 
             CODECHAL_DEBUG_TOOL(
-                decodeStatusReport.m_secondField    = picParams->m_secondField ? true : false;
-                decodeStatusReport.m_frameType      = m_perfType;
-            )
+                decodeStatusReport.m_secondField = m_picParams->m_secondField ? true : false;
+                decodeStatusReport.m_frameType   = m_perfType;)
 
             CODECHAL_DECODE_CHK_STATUS_RETURN(EndStatusReport(
                 decodeStatusReport,
@@ -1592,13 +1583,13 @@ MOS_STATUS CodechalDecodeMpeg2::MacroblockLevel()
         //Sync up complete frame
         syncParams                      = g_cInitSyncParams;
         syncParams.GpuContext           = m_videoContextForWa;
-        syncParams.presSyncResource     = &resSyncObjectWaContextInUse;
+        syncParams.presSyncResource     = &m_resSyncObjectWaContextInUse;
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnEngineSignal(m_osInterface, &syncParams));
 
         syncParams                      = g_cInitSyncParams;
         syncParams.GpuContext           = m_videoContext;
-        syncParams.presSyncResource     = &resSyncObjectWaContextInUse;
+        syncParams.presSyncResource     = &m_resSyncObjectWaContextInUse;
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnEngineWait(m_osInterface, &syncParams));
 
@@ -1608,8 +1599,7 @@ MOS_STATUS CodechalDecodeMpeg2::MacroblockLevel()
             m_videoContextUsesNullHw));
 
         CODECHAL_DEBUG_TOOL(
-            m_mmc->UpdateUserFeatureKey(&sDestSurface);
-        )
+            m_mmc->UpdateUserFeatureKey(&m_destSurface);)
 
         if (m_statusQueryReportingEnabled)
         {
@@ -1618,14 +1608,14 @@ MOS_STATUS CodechalDecodeMpeg2::MacroblockLevel()
         }
 
         // Needs to be re-set for Linux buffer re-use scenarios
-        pMpeg2RefList[picParams->m_currPic.FrameIdx]->resRefPic = sDestSurface.OsResource;
+        m_mpeg2RefList[m_picParams->m_currPic.FrameIdx]->resRefPic = m_destSurface.OsResource;
 
         // Send the signal to indicate decode completion, in case On-Demand Sync is not present
-        if (!CodecHal_PictureIsField(picParams->m_currPic) || picParams->m_secondField)
+        if (!CodecHal_PictureIsField(m_picParams->m_currPic) || m_picParams->m_secondField)
         {
             syncParams                      = g_cInitSyncParams;
             syncParams.GpuContext           = m_videoContext;
-            syncParams.presSyncResource     = &sDestSurface.OsResource;
+            syncParams.presSyncResource     = &m_destSurface.OsResource;
 
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnResourceSignal(m_osInterface, &syncParams));
         }
@@ -1660,9 +1650,9 @@ MOS_STATUS CodechalDecodeMpeg2::AllocateStandard (
 
     m_width                         = settings->dwWidth;
     m_height                        = settings->dwHeight;
-    u16PicWidthInMb                 = (uint16_t)CODECHAL_GET_WIDTH_IN_MACROBLOCKS(m_width);
-    u16PicHeightInMb                = (uint16_t)CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(m_height);
-    u16BBAllocated                  = CODECHAL_DECODE_MPEG2_BATCH_BUFFERS_PER_GROUP;
+    m_picWidthInMb                  = (uint16_t)CODECHAL_GET_WIDTH_IN_MACROBLOCKS(m_width);
+    m_picHeightInMb                 = (uint16_t)CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(m_height);
+    m_bbAllocated                   = CODECHAL_DECODE_MPEG2_BATCH_BUFFERS_PER_GROUP;
 
     // Picture Level Commands
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_hwInterface->GetMfxStateCommandsDataSize(
@@ -1691,18 +1681,18 @@ CodechalDecodeMpeg2::CodechalDecodeMpeg2 (
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
 
-    MOS_ZeroMemory(&sDestSurface,                                   sizeof(sDestSurface));
-    MOS_ZeroMemory(presReferences,                                  sizeof(presReferences));
-    MOS_ZeroMemory(&resDataBuffer,                                  sizeof(resDataBuffer));
-    MOS_ZeroMemory(&resMfdDeblockingFilterRowStoreScratchBuffer,    sizeof(resMfdDeblockingFilterRowStoreScratchBuffer));
-    MOS_ZeroMemory(&resBsdMpcRowStoreScratchBuffer,                 sizeof(resBsdMpcRowStoreScratchBuffer));
-    MOS_ZeroMemory(pMpeg2RefList,                                   sizeof(pMpeg2RefList));
-    MOS_ZeroMemory(MediaObjectBatchBuffer,                          sizeof(MediaObjectBatchBuffer));
-    MOS_ZeroMemory(&resMpeg2DummyBistream,                          sizeof(resMpeg2DummyBistream));
-    MOS_ZeroMemory(resCopiedDataBuffer,                             sizeof(resCopiedDataBuffer));
-    MOS_ZeroMemory(&resSyncObjectWaContextInUse,                    sizeof(resSyncObjectWaContextInUse));
-    MOS_ZeroMemory(&resSyncObjectVideoContextInUse,                 sizeof(resSyncObjectVideoContextInUse));
-    MOS_ZeroMemory(&SavedMpeg2MbParam,                              sizeof(SavedMpeg2MbParam));
+    MOS_ZeroMemory(&m_destSurface, sizeof(m_destSurface));
+    MOS_ZeroMemory(m_presReferences, sizeof(m_presReferences));
+    MOS_ZeroMemory(&m_resDataBuffer, sizeof(m_resDataBuffer));
+    MOS_ZeroMemory(&m_resMfdDeblockingFilterRowStoreScratchBuffer, sizeof(m_resMfdDeblockingFilterRowStoreScratchBuffer));
+    MOS_ZeroMemory(&m_resBsdMpcRowStoreScratchBuffer, sizeof(m_resBsdMpcRowStoreScratchBuffer));
+    MOS_ZeroMemory(m_mpeg2RefList, sizeof(m_mpeg2RefList));
+    MOS_ZeroMemory(m_mediaObjectBatchBuffer, sizeof(m_mediaObjectBatchBuffer));
+    MOS_ZeroMemory(&m_resMpeg2DummyBistream, sizeof(m_resMpeg2DummyBistream));
+    MOS_ZeroMemory(m_resCopiedDataBuffer, sizeof(m_resCopiedDataBuffer));
+    MOS_ZeroMemory(&m_resSyncObjectWaContextInUse, sizeof(m_resSyncObjectWaContextInUse));
+    MOS_ZeroMemory(&m_resSyncObjectVideoContextInUse, sizeof(m_resSyncObjectVideoContextInUse));
+    MOS_ZeroMemory(&m_savedMpeg2MbParam, sizeof(m_savedMpeg2MbParam));
 }
 
 #if USE_CODECHAL_DEBUG_TOOL

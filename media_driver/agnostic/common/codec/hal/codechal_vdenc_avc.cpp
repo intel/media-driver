@@ -1071,14 +1071,14 @@ CodechalVdencAvcState::CodechalVdencAvcState(
     InitializeDataMember();
 
     // Setup initial data
-    bBrcInit = true;
+    m_brcInit = true;
     // enable codec specific user feature key reporting for AVC
     m_userFeatureKeyReport = true;
 
     m_swBrcMode = nullptr;
 
     m_cmKernelEnable = true;
-    bBrcRoiSupported = true;
+    m_brcRoiSupported = true;
 
     if (m_cmKernelEnable)
     {
@@ -1111,19 +1111,19 @@ CodechalVdencAvcState::~CodechalVdencAvcState()
         Mhw_FreeBb(m_osInterface, &m_batchBufferForVdencImgStat[0], nullptr);
     }
 
-    if (SeiData.pSEIBuffer)
+    if (m_seiData.pSEIBuffer)
     {
-        MOS_FreeMemory(SeiData.pSEIBuffer);
-        SeiData.pSEIBuffer = nullptr;
+        MOS_FreeMemory(m_seiData.pSEIBuffer);
+        m_seiData.pSEIBuffer = nullptr;
     }
 
-    MOS_Delete(pSFDKernelState);
-    pSFDKernelState = nullptr;
+    MOS_Delete(m_sfdKernelState);
+    m_sfdKernelState = nullptr;
 
     if (m_pakEnabled)
     {
         // release skip frame copy buffer
-        m_osInterface->pfnFreeResource(m_osInterface, &resSkipFrameBuffer);
+        m_osInterface->pfnFreeResource(m_osInterface, &m_resSkipFrameBuffer);
     }
 
     // SFD surfaces
@@ -1133,16 +1133,16 @@ CodechalVdencAvcState::~CodechalVdencAvcState()
         {
             m_osInterface->pfnFreeResource(
                 m_osInterface,
-                &resSFDOutputBuffer[i]);
+                &m_resSfdOutputBuffer[i]);
         }
 
         m_osInterface->pfnFreeResource(
             m_osInterface,
-            &resSFDCostTablePFrameBuffer);
+            &m_resSfdCostTablePFrameBuffer);
 
         m_osInterface->pfnFreeResource(
             m_osInterface,
-            &resSFDCostTableBFrameBuffer);
+            &m_resSfdCostTableBFrameBuffer);
     }
 
     if (m_swBrcMode != nullptr)
@@ -1155,16 +1155,16 @@ CodechalVdencAvcState::~CodechalVdencAvcState()
     {
         for (uint32_t j = 0; j < CODECHAL_VDENC_BRC_NUM_OF_PASSES; j++)
         {
-            m_osInterface->pfnFreeResource(m_osInterface, &resVdencBrcUpdateDmemBuffer[i][j]);
+            m_osInterface->pfnFreeResource(m_osInterface, &m_resVdencBrcUpdateDmemBuffer[i][j]);
         }
-        m_osInterface->pfnFreeResource(m_osInterface, &resVdencBrcInitDmemBuffer[i]);
-        m_osInterface->pfnFreeResource(m_osInterface, &resVdencBrcImageStatesReadBuffer[i]);
+        m_osInterface->pfnFreeResource(m_osInterface, &m_resVdencBrcInitDmemBuffer[i]);
+        m_osInterface->pfnFreeResource(m_osInterface, &m_resVdencBrcImageStatesReadBuffer[i]);
     }
 
-    m_osInterface->pfnFreeResource(m_osInterface, &resVdencBrcConstDataBuffer);
-    m_osInterface->pfnFreeResource(m_osInterface, &resVdencBrcHistoryBuffer);
-    m_osInterface->pfnFreeResource(m_osInterface, &resVdencSFDImageStateReadBuffer);
-    m_osInterface->pfnFreeResource(m_osInterface, &resVdencBrcDbgBuffer);
+    m_osInterface->pfnFreeResource(m_osInterface, &m_resVdencBrcConstDataBuffer);
+    m_osInterface->pfnFreeResource(m_osInterface, &m_resVdencBrcHistoryBuffer);
+    m_osInterface->pfnFreeResource(m_osInterface, &m_resVdencSfdImageStateReadBuffer);
+    m_osInterface->pfnFreeResource(m_osInterface, &m_resVdencBrcDbgBuffer);
 }
 
 MOS_STATUS CodechalVdencAvcState::Initialize(PCODECHAL_SETTINGS settings)
@@ -1232,21 +1232,21 @@ MOS_STATUS CodechalVdencAvcState::Initialize(PCODECHAL_SETTINGS settings)
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_STATIC_FRAME_DETECTION_ENABLE_ID,
             &userFeatureData);
-        bStaticFrameDetectionEnable = (userFeatureData.i32Data) ? true : false;
+        m_staticFrameDetectionEnable = (userFeatureData.i32Data) ? true : false;
 
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_AVC_FORCE_TO_SKIP_ENABLE_ID,
             &userFeatureData);
-        bForceToSkipEnable = (userFeatureData.u32Data) ? true : false;
+        m_forceToSkipEnable = (userFeatureData.u32Data) ? true : false;
 
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_AVC_SLIDING_WINDOW_SIZE_ID,
             &userFeatureData);
-        dwSlidingWindowSize = userFeatureData.u32Data;
+        m_slidingWindowSize = userFeatureData.u32Data;
 
         m_groupIdSelectSupported = 0; // Disabled by default for AVC for now
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -1338,7 +1338,7 @@ MOS_STATUS CodechalVdencAvcState::Initialize(PCODECHAL_SETTINGS settings)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateMe());
 
-        if (bStaticFrameDetectionEnable)
+        if (m_staticFrameDetectionEnable)
         {
             // init Static frame detection kernel
             CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateSFD());
@@ -1421,76 +1421,76 @@ void CodechalVdencAvcState::InitializeDataMember()
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     // SEI
-    MOS_ZeroMemory(&SeiData, sizeof(SeiData));
-    dwSEIDataOffset = false;
-    pSeiParamBuffer = nullptr;
+    MOS_ZeroMemory(&m_seiData, sizeof(m_seiData));
+    m_seiDataOffset  = false;
+    m_seiParamBuffer = nullptr;
 
-    bBrcInit = false;
-    bBrcReset = false;
-    bMbBrcEnabled = false;
-    bMbBrcUserFeatureKeyControl = false;
-    dBrcTargetSize = 0.0f;
-    dwTrellis = false;
-    bAcceleratorHeaderPackingCaps = false; //flag set by driver from driver caps
+    m_brcInit                      = false;
+    m_brcReset                     = false;
+    m_mbBrcEnabled                 = false;
+    m_mbBrcUserFeatureKeyControl   = false;
+    m_dBrcTargetSize               = 0.0f;
+    m_trellis                      = false;
+    m_acceleratorHeaderPackingCaps = false;  //flag set by driver from driver caps
 
-    dBrcInitCurrentTargetBufFullInBits = 0;
-    dBrcInitResetInputBitsPerFrame = 0;
-    dwBrcInitResetBufSizeInBits = false;
-    dwBrcInitPreviousTargetBufFullInBits = false;
+    m_dBrcInitCurrentTargetBufFullInBits = 0;
+    m_dBrcInitResetInputBitsPerFrame     = 0;
+    m_brcInitResetBufSizeInBits          = false;
+    m_brcInitPreviousTargetBufFullInBits = false;
     // Below values will be set if qp control params are sent by app
-    bMinMaxQPControlEnabled = false;  // Flag to indicate if min/max QP feature is enabled or not.
-    ucIMinQP = 0;
-    ucIMaxQP = 0;
-    ucPMinQP = 0;
-    ucPMaxQP = 0;
-    bPFrameMinMaxQPControl = false;   // Indicates min/max QP values for P-frames are set separately or not.
+    m_minMaxQpControlEnabled = false;  // Flag to indicate if min/max QP feature is enabled or not.
+    m_iMinQp                 = 0;
+    m_iMaxQp                 = 0;
+    m_pMinQp                 = 0;
+    m_pMaxQp                 = 0;
+    m_pFrameMinMaxQpControl  = false;  // Indicates min/max QP values for P-frames are set separately or not.
 
-    dwSkipFrameBufferSize = false;     // size of skip frame packed data
-    MOS_ZeroMemory(&resSkipFrameBuffer, sizeof(MOS_RESOURCE));        // copy skip frame packed data from DDI
+    m_skipFrameBufferSize = false;                                // size of skip frame packed data
+    MOS_ZeroMemory(&m_resSkipFrameBuffer, sizeof(MOS_RESOURCE));  // copy skip frame packed data from DDI
 
     // VDENC BRC Buffers
-    MOS_ZeroMemory(&resVdencBrcUpdateDmemBuffer, sizeof(MOS_RESOURCE)* CODECHAL_ENCODE_RECYCLED_BUFFER_NUM * CODECHAL_VDENC_BRC_NUM_OF_PASSES);
+    MOS_ZeroMemory(&m_resVdencBrcUpdateDmemBuffer, sizeof(MOS_RESOURCE) * CODECHAL_ENCODE_RECYCLED_BUFFER_NUM * CODECHAL_VDENC_BRC_NUM_OF_PASSES);
 
-    MOS_ZeroMemory(&resVdencBrcInitDmemBuffer, sizeof(MOS_RESOURCE)* CODECHAL_ENCODE_RECYCLED_BUFFER_NUM);
+    MOS_ZeroMemory(&m_resVdencBrcInitDmemBuffer, sizeof(MOS_RESOURCE) * CODECHAL_ENCODE_RECYCLED_BUFFER_NUM);
 
-    MOS_ZeroMemory(&resVdencBrcImageStatesReadBuffer, sizeof(MOS_RESOURCE)* CODECHAL_ENCODE_RECYCLED_BUFFER_NUM);
+    MOS_ZeroMemory(&m_resVdencBrcImageStatesReadBuffer, sizeof(MOS_RESOURCE) * CODECHAL_ENCODE_RECYCLED_BUFFER_NUM);
 
-    MOS_ZeroMemory(&resVdencBrcConstDataBuffer, sizeof(MOS_RESOURCE));
-    MOS_ZeroMemory(&resVdencBrcHistoryBuffer, sizeof(MOS_RESOURCE));
-    MOS_ZeroMemory(&resVdencBrcDbgBuffer, sizeof(MOS_RESOURCE));
+    MOS_ZeroMemory(&m_resVdencBrcConstDataBuffer, sizeof(MOS_RESOURCE));
+    MOS_ZeroMemory(&m_resVdencBrcHistoryBuffer, sizeof(MOS_RESOURCE));
+    MOS_ZeroMemory(&m_resVdencBrcDbgBuffer, sizeof(MOS_RESOURCE));
 
     // Static frame detection
-    bStaticFrameDetectionEnable = false;    // Static frame detection enable
-    MOS_ZeroMemory(&resSFDOutputBuffer, sizeof(MOS_RESOURCE)* CODECHAL_ENCODE_RECYCLED_BUFFER_NUM);
+    m_staticFrameDetectionEnable = false;  // Static frame detection enable
+    MOS_ZeroMemory(&m_resSfdOutputBuffer, sizeof(MOS_RESOURCE) * CODECHAL_ENCODE_RECYCLED_BUFFER_NUM);
 
-    MOS_ZeroMemory(&resSFDCostTablePFrameBuffer, sizeof(MOS_RESOURCE));
-    MOS_ZeroMemory(&resSFDCostTableBFrameBuffer, sizeof(MOS_RESOURCE));
-    MOS_ZeroMemory(&resVdencSFDImageStateReadBuffer, sizeof(MOS_RESOURCE));
-    pSFDKernelState = nullptr;
+    MOS_ZeroMemory(&m_resSfdCostTablePFrameBuffer, sizeof(MOS_RESOURCE));
+    MOS_ZeroMemory(&m_resSfdCostTableBFrameBuffer, sizeof(MOS_RESOURCE));
+    MOS_ZeroMemory(&m_resVdencSfdImageStateReadBuffer, sizeof(MOS_RESOURCE));
+    m_sfdKernelState = nullptr;
 
     // Generation Specific Support Flags & User Feature Key Reads
-    ucMbBrcSupportCaps = 0;
-    bFTQEnable = false;                     // FTQEnable
-    bSkipBiasAdjustmentSupported = false;   // SkipBiasAdjustment support for P frame
-    bSliceLevelReportSupported = false;     // Slice Level Report support
-    bBrcRoiSupported = false;
+    m_mbBrcSupportCaps            = 0;
+    m_ftqEnable                   = false;  // FTQEnable
+    m_skipBiasAdjustmentSupported = false;  // SkipBiasAdjustment support for P frame
+    m_sliceLevelReportSupported   = false;  // Slice Level Report support
+    m_brcRoiSupported             = false;
 
-    bRoundingInterEnable = false;
-    bAdaptiveRoundingInterEnable = false;
-    dwRoundingInterP = false;
+    m_roundingInterEnable         = false;
+    m_adaptiveRoundingInterEnable = false;
+    m_roundingInterP              = false;
 
-    MOS_ZeroMemory(VDEncModeCost, 12 * sizeof(uint8_t));
+    MOS_ZeroMemory(m_vdEncModeCost, 12 * sizeof(uint8_t));
 
-    MOS_ZeroMemory(VDEncMvCost, 8 * sizeof(uint8_t));
+    MOS_ZeroMemory(m_vdEncMvCost, 8 * sizeof(uint8_t));
 
-    MOS_ZeroMemory(VDEncHmeMvCost, 8 * sizeof(uint8_t));
+    MOS_ZeroMemory(m_vdEncHmeMvCost, 8 * sizeof(uint8_t));
 
-    dwSlidingWindowSize = false;
-    bForceToSkipEnable = false;
-    dwVdencBrcInitDmemBufferSize = false;
-    dwVdencBrcUpdateDmemBufferSize = false;
-    bVdencStaticFrame = false;
-    dwVdencStaticRegionPct = false;
+    m_slidingWindowSize            = false;
+    m_forceToSkipEnable            = false;
+    m_vdencBrcInitDmemBufferSize   = false;
+    m_vdencBrcUpdateDmemBufferSize = false;
+    m_vdencStaticFrame             = false;
+    m_vdencStaticRegionPct         = false;
 }
 
 MOS_STATUS CodechalVdencAvcState::InitializeState()
@@ -1517,10 +1517,10 @@ MOS_STATUS CodechalVdencAvcState::InitializeState()
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_AVC_FTQ_ENABLE_ID,
             &userFeatureData);
-        bFTQEnable = (userFeatureData.i32Data) ? true : false;
+        m_ftqEnable = (userFeatureData.i32Data) ? true : false;
 
-        ucMbBrcSupportCaps = 1;
-        if (ucMbBrcSupportCaps)
+        m_mbBrcSupportCaps = 1;
+        if (m_mbBrcSupportCaps)
         {
             // If the MBBRC user feature key does not exist, MBBRC will be set in SPS parsing
             MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
@@ -1530,8 +1530,8 @@ MOS_STATUS CodechalVdencAvcState::InitializeState()
                 &userFeatureData);
             if (userFeatureData.i32Data == 0 || userFeatureData.i32Data == 1)
             {
-                bMbBrcUserFeatureKeyControl = true;
-                bMbBrcEnabled = userFeatureData.i32Data ? true : false;
+                m_mbBrcUserFeatureKeyControl = true;
+                m_mbBrcEnabled               = userFeatureData.i32Data ? true : false;
             }
         }
 
@@ -1558,7 +1558,7 @@ MOS_STATUS CodechalVdencAvcState::InitializeState()
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_AVC_ROUNDING_INTER_ENABLE_ID,
         &userFeatureData);
-    bRoundingInterEnable = (userFeatureData.i32Data) ? true : false;
+    m_roundingInterEnable = (userFeatureData.i32Data) ? true : false;
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     userFeatureData.i32Data = CODECHAL_ENCODE_AVC_INVALID_ROUNDING;
@@ -1567,7 +1567,7 @@ MOS_STATUS CodechalVdencAvcState::InitializeState()
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_AVC_ROUNDING_INTER_P_ID,
         &userFeatureData);
-    dwRoundingInterP = userFeatureData.i32Data;
+    m_roundingInterP = userFeatureData.i32Data;
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     userFeatureData.i32Data = 1;
@@ -1576,14 +1576,14 @@ MOS_STATUS CodechalVdencAvcState::InitializeState()
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_AVC_ADAPTIVE_ROUNDING_INTER_ENABLE_ID,
         &userFeatureData);
-    bAdaptiveRoundingInterEnable = (userFeatureData.i32Data) ? true : false;
+    m_adaptiveRoundingInterEnable = (userFeatureData.i32Data) ? true : false;
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_AVC_SKIP_BIAS_ADJUSTMENT_ENABLE_ID,
         &userFeatureData);
-    bSkipBiasAdjustmentSupported = (userFeatureData.i32Data) ? true : false;
+    m_skipBiasAdjustmentSupported = (userFeatureData.i32Data) ? true : false;
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     userFeatureData.i32Data = CODECHAL_VDENC_AVC_MB_SLICE_TRHESHOLD;
@@ -1694,10 +1694,10 @@ MOS_STATUS CodechalVdencAvcState::GetInterRounding(PMHW_VDBOX_AVC_SLICE_STATE sl
     switch (Slice_Type[avcSliceParams->slice_type])
     {
     case SLICE_P:
-        if (dwRoundingInterP == CODECHAL_ENCODE_AVC_INVALID_ROUNDING)
+        if (m_roundingInterP == CODECHAL_ENCODE_AVC_INVALID_ROUNDING)
         {
             // Adaptive Rounding is only used in CQP case
-            if (bAdaptiveRoundingInterEnable && !m_vdencBrcEnabled)
+            if (m_adaptiveRoundingInterEnable && !m_vdencBrcEnabled)
             {
                 // If IPPP scenario
                 if (avcSeqParams->GopRefDist == 1)
@@ -1716,7 +1716,7 @@ MOS_STATUS CodechalVdencAvcState::GetInterRounding(PMHW_VDBOX_AVC_SLICE_STATE sl
         }
         else
         {
-            sliceState->dwRoundingValue = dwRoundingInterP;
+            sliceState->dwRoundingValue = m_roundingInterP;
         }
         break;
     case SLICE_B:
@@ -1738,8 +1738,7 @@ MOS_STATUS CodechalVdencAvcState::GetSkipBiasAdjustment(uint8_t sliceQP, uint16_
 
     // Determine if SkipBiasAdjustment should be enabled for P picture
     // 1. No B frame 2. Qp >= 22 3. CQP mode
-    *skipBiasAdjustmentEnable = bSkipBiasAdjustmentSupported && (m_pictureCodingType == P_TYPE)
-        && (gopRefDist == 1) && (sliceQP >= CODECHAL_ENCODE_AVC_SKIP_BIAS_ADJUSTMENT_QP_THRESHOLD);
+    *skipBiasAdjustmentEnable = m_skipBiasAdjustmentSupported && (m_pictureCodingType == P_TYPE) && (gopRefDist == 1) && (sliceQP >= CODECHAL_ENCODE_AVC_SKIP_BIAS_ADJUSTMENT_QP_THRESHOLD);
 
     return eStatus;
 }
@@ -1777,8 +1776,8 @@ MOS_STATUS CodechalVdencAvcState::InitKernelStateSFD()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    pSFDKernelState = MOS_New(MHW_KERNEL_STATE);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(pSFDKernelState);
+    m_sfdKernelState = MOS_New(MHW_KERNEL_STATE);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_sfdKernelState);
 
     uint8_t* kernelBinary;
     uint32_t kernelSize;
@@ -1796,7 +1795,7 @@ MOS_STATUS CodechalVdencAvcState::InitKernelStateSFD()
         &currKrnHeader,
         &kernelSize));
 
-    auto kernelStatePtr = pSFDKernelState;
+    auto kernelStatePtr                            = m_sfdKernelState;
     kernelStatePtr->KernelParams.iBTCount = CODECHAL_ENCODE_AVC_SFD_NUM_SURFACES;
     kernelStatePtr->KernelParams.iThreadCount = m_renderEngineInterface->GetHwCaps()->dwMaxThreads;
     kernelStatePtr->KernelParams.iCurbeLength = sizeof(CODECHAL_ENCODE_AVC_SFD_CURBE_COMMON);
@@ -1852,7 +1851,7 @@ MOS_STATUS CodechalVdencAvcState::SetCurbeSFD(PCODECHAL_ENCODE_AVC_SFD_CURBE_PAR
     curbe.DW6.TotalZMVThreshold = totalMb * m_avcPicParam->dwZMvThreshold / 100;
     curbe.DW7.MinDistThreshold = 10;
 
-    CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(MOS_SecureMemcpy(curbe.CostTable, CODEC_AVC_NUM_QP * sizeof(uint8_t), CODECHAL_ENCODE_AVC_SFD_CostTable_VDEnc, CODEC_AVC_NUM_QP * sizeof(uint8_t)),
+    CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(MOS_SecureMemcpy(curbe.CostTable, CODEC_AVC_NUM_QP * sizeof(uint8_t), m_codechalEncodeAvcSfdCostTableVdEnc, CODEC_AVC_NUM_QP * sizeof(uint8_t)),
         "Failed to copy VDEnc SFD cost table");
 
     curbe.DW21.ActualHeightInMB = curbe.DW2.FrameHeightInMBs;
@@ -1922,7 +1921,7 @@ MOS_STATUS CodechalVdencAvcState::SetSequenceStructs()
         m_oriFrameHeight = seqParams->FrameHeight;
         m_oriFrameWidth = seqParams->FrameWidth;
         // Need to call BRCInit instead of BRCReset for dynamic resolution change
-        bBrcInit = true;
+        m_brcInit = true;
     }
     else
     {
@@ -1940,41 +1939,41 @@ MOS_STATUS CodechalVdencAvcState::SetSequenceStructs()
         m_vdencBrcEnabled = MEDIA_IS_SKU(m_hwInterface->GetSkuTable(), FtrEnableMediaKernels);
     }
 
-    if (ucMbBrcSupportCaps && (m_vdencBrcEnabled))
+    if (m_mbBrcSupportCaps && (m_vdencBrcEnabled))
     {
         // control MBBRC if the user feature key does not exist
-        if (!bMbBrcUserFeatureKeyControl)
+        if (!m_mbBrcUserFeatureKeyControl)
         {
             if (seqParams->RateControlMethod == RATECONTROL_ICQ || seqParams->RateControlMethod == RATECONTROL_QVBR)
             {
                 // If the rate control method is ICQ or QVBR then enable MBBRC by default for all TUs and ignore the app input
-                bMbBrcEnabled = true;
+                m_mbBrcEnabled = true;
                 CODECHAL_ENCODE_NORMALMESSAGE("MBBRC enabled with rate control = %d", seqParams->RateControlMethod);
             }
             else if (seqParams->RateControlMethod == RATECONTROL_VCM)
             {
                 // If the rate control method is VCM then disable MBBRC by default for all TUs and ignore the app input
-                bMbBrcEnabled = false;
+                m_mbBrcEnabled = false;
             }
             else
             {
                 switch (seqParams->MBBRC)
                 {
                 case mbBrcInternal:
-                    bMbBrcEnabled = true;
+                    m_mbBrcEnabled = true;
                     break;
                 case mbBrcDisabled:
-                    bMbBrcEnabled = false;
+                    m_mbBrcEnabled = false;
                     break;
                 case mbBrcEnabled:
-                    bMbBrcEnabled = true;
+                    m_mbBrcEnabled = true;
                     break;
                 }
             }
         }
     }
 
-    dwTrellis = seqParams->Trellis;
+    m_trellis = seqParams->Trellis;
 
     // Simple check for BRC parameters; if error, disable BRC and continue encoding
     if ((m_vdencBrcEnabled) &&
@@ -1995,11 +1994,11 @@ MOS_STATUS CodechalVdencAvcState::SetSequenceStructs()
     // BRC Init or Reset
     if (seqParams->bInitBRC)
     {
-        bBrcInit = seqParams->bInitBRC;
+        m_brcInit = seqParams->bInitBRC;
     }
     else
     {
-        bBrcReset = seqParams->bResetBRC;
+        m_brcReset = seqParams->bResetBRC;
     }
 
     if (seqParams->RateControlMethod == RATECONTROL_ICQ)
@@ -2022,9 +2021,9 @@ MOS_STATUS CodechalVdencAvcState::SetSequenceStructs()
     m_gopIsIdrFrameOnly = (seqParams->GopPicSize == 1 && seqParams->GopRefDist == 0);
 
     // Set sliding window size to one second by default, up to 60
-    if (dwSlidingWindowSize == 0)
+    if (m_slidingWindowSize == 0)
     {
-        dwSlidingWindowSize = MOS_MIN((uint32_t)(seqParams->FramesPer100Sec / 100), 60);
+        m_slidingWindowSize = MOS_MIN((uint32_t)(seqParams->FramesPer100Sec / 100), 60);
     }
 
     m_maxNumSlicesAllowed = CodecHalAvcEncode_GetMaxNumSlicesAllowed(
@@ -2283,7 +2282,7 @@ MOS_STATUS CodechalVdencAvcState::SFDKernel()
 
     // set function type and kernel state pointer
     auto encFunctionType = CODECHAL_MEDIA_STATE_STATIC_FRAME_DETECTION;
-    auto kernelState = pSFDKernelState;
+    auto kernelState     = m_sfdKernelState;
 
     // If Single Task Phase is not enabled, use BT count for the kernel state.
     if (m_firstTaskInPhase == true || !m_singleTaskPhaseSupported)
@@ -2376,7 +2375,7 @@ MOS_STATUS CodechalVdencAvcState::SFDKernel()
         imageStateParams->pVDEncMvCost = m_vdencMvCostTbl;
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AddVdencSfdImgBuffer(
-            &resVdencSFDImageStateReadBuffer, imageStateParams));
+            &m_resVdencSfdImageStateReadBuffer, imageStateParams));
         MOS_Delete(imageStateParams);
 
         CODECHAL_DEBUG_TOOL(
@@ -2401,11 +2400,11 @@ MOS_STATUS CodechalVdencAvcState::SFDKernel()
         m_hmeKernel->GetDistortionBottomFieldOffset() : (uint32_t)m_meDistortionBottomFieldOffset;
     sfdsurfaceParams.bVdencActive = true;
     sfdsurfaceParams.bVdencBrcEnabled = m_vdencBrcEnabled;
-    sfdsurfaceParams.presOutputBuffer = &resSFDOutputBuffer[m_currRecycledBufIdx];
+    sfdsurfaceParams.presOutputBuffer = &m_resSfdOutputBuffer[m_currRecycledBufIdx];
     sfdsurfaceParams.pKernelState = kernelState;
     if (!m_vdencBrcEnabled)
     {
-        sfdsurfaceParams.presVDEncImageStateInputBuffer = &resVdencSFDImageStateReadBuffer;
+        sfdsurfaceParams.presVDEncImageStateInputBuffer  = &m_resVdencSfdImageStateReadBuffer;
         sfdsurfaceParams.presVDEncImageStateOutputBuffer = &m_batchBufferForVdencImgStat[m_currRecycledBufIdx].OsResource;
     }
 
@@ -2517,8 +2516,8 @@ MOS_STATUS CodechalVdencAvcState::SetupDirtyROI(PMOS_RESOURCE vdencStreamIn)
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(vdencStreamIn);
 
-    bVdencStaticFrame = false;
-    dwVdencStaticRegionPct = 0;
+    m_vdencStaticFrame     = false;
+    m_vdencStaticRegionPct = 0;
 
     //Dirty ROI feature just for p frame
     if (m_pictureCodingType != P_TYPE)
@@ -2548,11 +2547,11 @@ MOS_STATUS CodechalVdencAvcState::SetupDirtyROI(PMOS_RESOURCE vdencStreamIn)
     }
 
     uint16_t staticRegionPct = (MOS_MAX(0, staticArea * 256)) / (m_picHeightInMb * m_picWidthInMb);
-    bVdencStaticFrame = staticRegionPct > (uint16_t)(CODECHAL_VDENC_AVC_STATIC_FRAME_ZMV_PERCENT * 256 / 100.0);
-    dwVdencStaticRegionPct = staticRegionPct;
+    m_vdencStaticFrame       = staticRegionPct > (uint16_t)(CODECHAL_VDENC_AVC_STATIC_FRAME_ZMV_PERCENT * 256 / 100.0);
+    m_vdencStaticRegionPct   = staticRegionPct;
 
     //BRC + MBQP => streamIn
-    if (m_vdencBrcEnabled && bMbBrcEnabled)
+    if (m_vdencBrcEnabled && m_mbBrcEnabled)
     {
         m_vdencStreamInEnabled = true;
 
@@ -2626,14 +2625,14 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcInitReset()
     // set HuC DMEM param
     MHW_VDBOX_HUC_DMEM_STATE_PARAMS dmemParams;
     MOS_ZeroMemory(&dmemParams, sizeof(dmemParams));
-    dmemParams.presHucDataSource = &resVdencBrcInitDmemBuffer[m_currRecycledBufIdx];
-    dmemParams.dwDataLength = MOS_ALIGN_CEIL(dwVdencBrcInitDmemBufferSize, CODECHAL_CACHELINE_SIZE);
+    dmemParams.presHucDataSource = &m_resVdencBrcInitDmemBuffer[m_currRecycledBufIdx];
+    dmemParams.dwDataLength      = MOS_ALIGN_CEIL(m_vdencBrcInitDmemBufferSize, CODECHAL_CACHELINE_SIZE);
     dmemParams.dwDmemOffset = HUC_DMEM_OFFSET_RTOS_GEMS;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucDmemStateCmd(&cmdBuffer, &dmemParams));
 
     MHW_VDBOX_HUC_VIRTUAL_ADDR_PARAMS virtualAddrParams;
     MOS_ZeroMemory(&virtualAddrParams, sizeof(virtualAddrParams));
-    virtualAddrParams.regionParams[0].presRegion = &resVdencBrcHistoryBuffer;
+    virtualAddrParams.regionParams[0].presRegion = &m_resVdencBrcHistoryBuffer;
     virtualAddrParams.regionParams[0].isWritable = true;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucVirtualAddrStateCmd(&cmdBuffer, &virtualAddrParams));
 
@@ -2692,7 +2691,7 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcUpdate()
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
 
-    if ((!m_singleTaskPhaseSupported) || (m_firstTaskInPhase) && (!bBrcInit))
+    if ((!m_singleTaskPhaseSupported) || (m_firstTaskInPhase) && (!m_brcInit))
     {
         // Send command buffer header at the beginning (OS dependent)
         bool bRequestFrameTracking = m_singleTaskPhaseSupported ?
@@ -2701,7 +2700,7 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcUpdate()
             SendPrologWithFrameTracking(&cmdBuffer, bRequestFrameTracking));
     }
 
-    if (bBrcInit || bBrcReset)
+    if (m_brcInit || m_brcReset)
     {
         // Insert conditional batch buffer end for HuC valid IMEM loaded check
         MHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS miConditionalBatchBufferEndParams;
@@ -2733,7 +2732,7 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcUpdate()
     imageStateParams->bVdencBRCEnabled = 1;
     imageStateParams->bVdencStreamInEnabled = m_vdencStreamInEnabled;
     imageStateParams->bVDEncPerfModeEnabled =
-        m_vdencInterface->IsPerfModeSupported() && PerfModeEnabled[m_avcSeqParam->TargetUsage];
+        m_vdencInterface->IsPerfModeSupported() && m_perfModeEnabled[m_avcSeqParam->TargetUsage];
     imageStateParams->bSliceSizeStreamOutEnabled = m_sliceSizeStreamoutSupported;
     imageStateParams->bCrePrefetchEnable = m_crePrefetchEnable;
     imageStateParams->pVDEncModeCost = m_vdencModeCostTbl;
@@ -2749,7 +2748,7 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcUpdate()
     }
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AddVdencBrcImgBuffer(
-        &resVdencBrcImageStatesReadBuffer[m_currRecycledBufIdx],
+        &m_resVdencBrcImageStatesReadBuffer[m_currRecycledBufIdx],
         imageStateParams));
     MOS_Delete(imageStateParams);
 
@@ -2783,8 +2782,8 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcUpdate()
     MHW_VDBOX_HUC_DMEM_STATE_PARAMS dmemParams;
     MOS_ZeroMemory(&dmemParams, sizeof(dmemParams));
 
-    dmemParams.presHucDataSource = &(resVdencBrcUpdateDmemBuffer[m_currRecycledBufIdx][m_currPass]);
-    dmemParams.dwDataLength = MOS_ALIGN_CEIL(dwVdencBrcUpdateDmemBufferSize, CODECHAL_CACHELINE_SIZE);
+    dmemParams.presHucDataSource = &(m_resVdencBrcUpdateDmemBuffer[m_currRecycledBufIdx][m_currPass]);
+    dmemParams.dwDataLength      = MOS_ALIGN_CEIL(m_vdencBrcUpdateDmemBufferSize, CODECHAL_CACHELINE_SIZE);
     dmemParams.dwDmemOffset = HUC_DMEM_OFFSET_RTOS_GEMS;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucDmemStateCmd(&cmdBuffer, &dmemParams));
@@ -2798,19 +2797,19 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcUpdate()
     // Input regions
     virtualAddrParams.regionParams[1].presRegion = &m_vdencStatsBuffer;
     virtualAddrParams.regionParams[2].presRegion = &m_pakStatsBuffer;
-    virtualAddrParams.regionParams[3].presRegion = &resVdencBrcImageStatesReadBuffer[m_currRecycledBufIdx];
+    virtualAddrParams.regionParams[3].presRegion = &m_resVdencBrcImageStatesReadBuffer[m_currRecycledBufIdx];
     if (m_staticFrameDetectionInUse)
     {
-        virtualAddrParams.regionParams[4].presRegion = &resSFDOutputBuffer[m_currRecycledBufIdx];
+        virtualAddrParams.regionParams[4].presRegion = &m_resSfdOutputBuffer[m_currRecycledBufIdx];
     }
-    virtualAddrParams.regionParams[5].presRegion = &resVdencBrcConstDataBuffer;
+    virtualAddrParams.regionParams[5].presRegion = &m_resVdencBrcConstDataBuffer;
     // Output regions
-    virtualAddrParams.regionParams[0].presRegion = &resVdencBrcHistoryBuffer;
+    virtualAddrParams.regionParams[0].presRegion = &m_resVdencBrcHistoryBuffer;
     virtualAddrParams.regionParams[0].isWritable = true;
     virtualAddrParams.regionParams[6].presRegion = &m_batchBufferForVdencImgStat[0].OsResource;
     virtualAddrParams.regionParams[6].isWritable = true;
     // region 15 always in clear
-    virtualAddrParams.regionParams[15].presRegion = &resVdencBrcDbgBuffer;
+    virtualAddrParams.regionParams[15].presRegion = &m_resVdencBrcDbgBuffer;
 
     if (m_sliceSizeStreamoutSupported)
     {
@@ -2882,30 +2881,30 @@ MOS_STATUS CodechalVdencAvcState::LoadCosts(uint16_t pictureCodingType, uint8_t 
 
     CODECHAL_ENCODE_ASSERT(qp < CODEC_AVC_NUM_QP);
 
-    MOS_ZeroMemory(VDEncModeCost, 12);
-    MOS_ZeroMemory(VDEncMvCost, 8);
-    MOS_ZeroMemory(VDEncHmeMvCost, 8);
+    MOS_ZeroMemory(m_vdEncModeCost, 12);
+    MOS_ZeroMemory(m_vdEncMvCost, 8);
+    MOS_ZeroMemory(m_vdEncHmeMvCost, 8);
 
-    VDEncModeCost[LutMode_INTRA_NONPRED] = Map44LutValue((uint32_t)(AVC_Mode_Cost[pictureCodingType - 1][LutMode_INTRA_NONPRED][qp]), 0x6f);
-    VDEncModeCost[LutMode_INTRA_16x16] = Map44LutValue((uint32_t)(AVC_Mode_Cost[pictureCodingType - 1][LutMode_INTRA_16x16][qp]), 0x8f);
-    VDEncModeCost[LutMode_INTRA_8x8] = Map44LutValue((uint32_t)(AVC_Mode_Cost[pictureCodingType - 1][LutMode_INTRA_8x8][qp]), 0x8f);
-    VDEncModeCost[LutMode_INTRA_4x4] = Map44LutValue((uint32_t)(AVC_Mode_Cost[pictureCodingType - 1][LutMode_INTRA_4x4][qp]), 0x8f);
+    m_vdEncModeCost[LutMode_INTRA_NONPRED] = Map44LutValue((uint32_t)(AVC_Mode_Cost[pictureCodingType - 1][LutMode_INTRA_NONPRED][qp]), 0x6f);
+    m_vdEncModeCost[LutMode_INTRA_16x16]   = Map44LutValue((uint32_t)(AVC_Mode_Cost[pictureCodingType - 1][LutMode_INTRA_16x16][qp]), 0x8f);
+    m_vdEncModeCost[LutMode_INTRA_8x8]     = Map44LutValue((uint32_t)(AVC_Mode_Cost[pictureCodingType - 1][LutMode_INTRA_8x8][qp]), 0x8f);
+    m_vdEncModeCost[LutMode_INTRA_4x4]     = Map44LutValue((uint32_t)(AVC_Mode_Cost[pictureCodingType - 1][LutMode_INTRA_4x4][qp]), 0x8f);
 
     if (pictureCodingType == P_TYPE)
     {
         // adjustment due to dirty ROI
-        if (bVdencStaticFrame)
+        if (m_vdencStaticFrame)
         {
             uint32_t temp = AVC_Mode_Cost[pictureCodingType - 1][LutMode_INTRA_16x16][qp];
             temp = (uint32_t)(temp * CODECHAL_VDENC_AVC_STATIC_FRAME_INTRACOSTSCLRatioP / 100.0 + 0.5);
-            VDEncModeCost[LutMode_INTRA_16x16] = Map44LutValue(temp, 0x8f);
+            m_vdEncModeCost[LutMode_INTRA_16x16] = Map44LutValue(temp, 0x8f);
         }
-        VDEncModeCost[LutMode_INTER_16x16] = Map44LutValue((uint32_t)(AVC_Mode_Cost[pictureCodingType - 1][LutMode_INTER_16x16][qp]), 0x8f);
-        VDEncModeCost[LutMode_INTER_16x8] = Map44LutValue((uint32_t)(AVC_Mode_Cost[pictureCodingType - 1][LutMode_INTER_16x8][qp]), 0x8f);
-        VDEncModeCost[LutMode_INTER_8x8q] = Map44LutValue((uint32_t)(AVC_Mode_Cost[pictureCodingType - 1][LutMode_INTER_8x8q][qp]), 0x6f);
-        VDEncModeCost[LutMode_INTER_8x4q] = Map44LutValue((uint32_t)(AVC_Mode_Cost[pictureCodingType - 1][LutMode_INTER_8x4q][qp]), 0x6f);
-        VDEncModeCost[LutMode_INTER_4x4q] = Map44LutValue((uint32_t)(AVC_Mode_Cost[pictureCodingType - 1][LutMode_INTER_4x4q][qp]), 0x6f);
-        VDEncModeCost[LutMode_REF_ID] = Map44LutValue((uint32_t)(AVC_Mode_Cost[pictureCodingType - 1][LutMode_REF_ID][qp]), 0x6f);
+        m_vdEncModeCost[LutMode_INTER_16x16] = Map44LutValue((uint32_t)(AVC_Mode_Cost[pictureCodingType - 1][LutMode_INTER_16x16][qp]), 0x8f);
+        m_vdEncModeCost[LutMode_INTER_16x8]  = Map44LutValue((uint32_t)(AVC_Mode_Cost[pictureCodingType - 1][LutMode_INTER_16x8][qp]), 0x8f);
+        m_vdEncModeCost[LutMode_INTER_8x8q]  = Map44LutValue((uint32_t)(AVC_Mode_Cost[pictureCodingType - 1][LutMode_INTER_8x8q][qp]), 0x6f);
+        m_vdEncModeCost[LutMode_INTER_8x4q]  = Map44LutValue((uint32_t)(AVC_Mode_Cost[pictureCodingType - 1][LutMode_INTER_8x4q][qp]), 0x6f);
+        m_vdEncModeCost[LutMode_INTER_4x4q]  = Map44LutValue((uint32_t)(AVC_Mode_Cost[pictureCodingType - 1][LutMode_INTER_4x4q][qp]), 0x6f);
+        m_vdEncModeCost[LutMode_REF_ID]      = Map44LutValue((uint32_t)(AVC_Mode_Cost[pictureCodingType - 1][LutMode_REF_ID][qp]), 0x6f);
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(LoadMvCost(qp));
         CODECHAL_ENCODE_CHK_STATUS_RETURN(LoadHmeMvCost(qp));
@@ -2923,7 +2922,7 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcDummyStreamObject(PMOS_COMMAND_BUFFER cm
     // pass dummy buffer by Ind Obj Addr command
     MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS indObjParams;
     MOS_ZeroMemory(&indObjParams, sizeof(indObjParams));
-    indObjParams.presDataBuffer = &resVdencBrcDbgBuffer;
+    indObjParams.presDataBuffer = &m_resVdencBrcDbgBuffer;
     indObjParams.dwDataSize = 1;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucIndObjBaseAddrStateCmd(cmdBuffer, &indObjParams));
 
@@ -2945,10 +2944,10 @@ MOS_STATUS CodechalVdencAvcState::SetConstDataHuCBrcUpdate()
     auto avcSeqParams = m_avcSeqParam;
 
     // Set VDENC BRC constant buffer, data remains the same till BRC Init is called
-    if (bBrcInit)
+    if (m_brcInit)
     {
         MOS_LOCK_PARAMS lockFlagsWriteOnly;
-        auto hucConstData = (PAVCVdencBRCCostantData)m_osInterface->pfnLockResource(m_osInterface, &resVdencBrcConstDataBuffer, &lockFlagsWriteOnly);
+        auto            hucConstData = (PAVCVdencBRCCostantData)m_osInterface->pfnLockResource(m_osInterface, &m_resVdencBrcConstDataBuffer, &lockFlagsWriteOnly);
 
         MOS_SecureMemcpy(hucConstData->UPD_GlobalRateQPAdjTabI_U8, 64 * sizeof(uint8_t), (void*)BRC_UPD_GlobalRateQPAdjTabI_U8, 64 * sizeof(uint8_t));
         if (avcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_LOW) // Sliding Window BRC
@@ -3028,13 +3027,13 @@ MOS_STATUS CodechalVdencAvcState::SetConstDataHuCBrcUpdate()
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(LoadHmeMvCostTable(avcSeqParams, hucConstData->UPD_HMEMVCost));
 
-        m_osInterface->pfnUnlockResource(m_osInterface, &resVdencBrcConstDataBuffer);
+        m_osInterface->pfnUnlockResource(m_osInterface, &m_resVdencBrcConstDataBuffer);
     }
 
-    if (bVdencStaticFrame)
+    if (m_vdencStaticFrame)
     {
         MOS_LOCK_PARAMS lockFlagsWriteOnly;
-        auto hucConstData = (PAVCVdencBRCCostantData)m_osInterface->pfnLockResource(m_osInterface, &resVdencBrcConstDataBuffer, &lockFlagsWriteOnly);
+        auto            hucConstData = (PAVCVdencBRCCostantData)m_osInterface->pfnLockResource(m_osInterface, &m_resVdencBrcConstDataBuffer, &lockFlagsWriteOnly);
 
         // adjustment due to dirty ROI
         for (int j = 0; j < 42; j++)
@@ -3044,7 +3043,7 @@ MOS_STATUS CodechalVdencAvcState::SetConstDataHuCBrcUpdate()
             hucConstData->UPD_P_Intra16x16[j] = Map44LutValue(temp, 0x8f);
         }
 
-        m_osInterface->pfnUnlockResource(m_osInterface, &resVdencBrcConstDataBuffer);
+        m_osInterface->pfnUnlockResource(m_osInterface, &m_resVdencBrcConstDataBuffer);
     }
 
     return eStatus;
@@ -3065,7 +3064,7 @@ MOS_STATUS CodechalVdencAvcState::InitializePicture(const EncoderParams& params)
         return MOS_STATUS_UNKNOWN;
     }
 
-    m_bMadEnabled = params.bMADEnabled;
+    m_madEnabled = params.bMADEnabled;
 
     m_avcSeqParams[spsidx] = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)(params.pSeqParams);
     m_avcPicParams[ppsidx] = (PCODEC_AVC_ENCODE_PIC_PARAMS)(params.pPicParams);
@@ -3086,7 +3085,7 @@ MOS_STATUS CodechalVdencAvcState::InitializePicture(const EncoderParams& params)
     m_skipFrameFlag = m_avcPicParam->SkipFrameFlag;
 
     // Picture and slice header packing flag from DDI caps
-    bAcceleratorHeaderPackingCaps = params.bAcceleratorHeaderPackingCaps;
+    m_acceleratorHeaderPackingCaps = params.bAcceleratorHeaderPackingCaps;
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_avcIQMatrixParams);
 
@@ -3117,28 +3116,28 @@ MOS_STATUS CodechalVdencAvcState::InitializePicture(const EncoderParams& params)
     {
         if (params.pSeiData->dwSEIBufSize > 0) // sei is present
         {
-            if (params.pSeiData->dwSEIBufSize > SeiData.dwSEIBufSize)
+            if (params.pSeiData->dwSEIBufSize > m_seiData.dwSEIBufSize)
             {
                 // Destroy and re-allocate
-                if (SeiData.pSEIBuffer)
+                if (m_seiData.pSEIBuffer)
                 {
-                    MOS_FreeMemory(SeiData.pSEIBuffer);
-                    SeiData.pSEIBuffer = nullptr;
+                    MOS_FreeMemory(m_seiData.pSEIBuffer);
+                    m_seiData.pSEIBuffer = nullptr;
                 }
-                SeiData.dwSEIBufSize = params.pSeiData->dwSEIBufSize;
-                SeiData.pSEIBuffer = (uint8_t *)MOS_AllocAndZeroMemory(SeiData.dwSEIBufSize);
-                CODECHAL_ENCODE_CHK_NULL_RETURN(SeiData.pSEIBuffer);
+                m_seiData.dwSEIBufSize = params.pSeiData->dwSEIBufSize;
+                m_seiData.pSEIBuffer   = (uint8_t *)MOS_AllocAndZeroMemory(m_seiData.dwSEIBufSize);
+                CODECHAL_ENCODE_CHK_NULL_RETURN(m_seiData.pSEIBuffer);
             }
 
-            pSeiParamBuffer = params.pSeiParamBuffer;
-            dwSEIDataOffset = params.dwSEIDataOffset;
-            SeiData.newSEIData = params.pSeiData->newSEIData;
-            SeiData.dwSEIDataSize = params.pSeiData->dwSEIDataSize;
+            m_seiParamBuffer        = params.pSeiParamBuffer;
+            m_seiDataOffset         = params.dwSEIDataOffset;
+            m_seiData.newSEIData    = params.pSeiData->newSEIData;
+            m_seiData.dwSEIDataSize = params.pSeiData->dwSEIDataSize;
 
-            eStatus = MOS_SecureMemcpy(SeiData.pSEIBuffer,
-                SeiData.dwSEIDataSize,
-                (pSeiParamBuffer + dwSEIDataOffset),
-                SeiData.dwSEIDataSize);
+            eStatus = MOS_SecureMemcpy(m_seiData.pSEIBuffer,
+                m_seiData.dwSEIDataSize,
+                (m_seiParamBuffer + m_seiDataOffset),
+                m_seiData.dwSEIDataSize);
             if (eStatus != MOS_STATUS_SUCCESS)
             {
                 CODECHAL_ENCODE_ASSERTMESSAGE("Failed to copy memory.");
@@ -3146,7 +3145,7 @@ MOS_STATUS CodechalVdencAvcState::InitializePicture(const EncoderParams& params)
             }
         }
 
-        m_extraPictureStatesSize = SeiData.dwSEIDataSize;
+        m_extraPictureStatesSize = m_seiData.dwSEIDataSize;
     }
 
     m_deblockingEnabled = 0;
@@ -3171,12 +3170,11 @@ MOS_STATUS CodechalVdencAvcState::InitializePicture(const EncoderParams& params)
     m_useRawForRef = m_userFlags.bUseRawPicForRef;
 
     CODECHAL_DEBUG_TOOL(
-        m_debugInterface->CurrPic = m_avcPicParam->CurrOriginalPic;
-        m_debugInterface->dwBufferDumpFrameNum = m_storeData;
-        m_debugInterface->wFrameType = m_pictureCodingType;
+        m_debugInterface->m_currPic            = m_avcPicParam->CurrOriginalPic;
+        m_debugInterface->m_bufferDumpFrameNum = m_storeData;
+        m_debugInterface->m_frameType          = m_pictureCodingType;
 
-        if (m_newSeq)
-        {
+        if (m_newSeq) {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(DumpSeqParams(
                 m_avcSeqParam,
                 m_avcIQMatrixParams));
@@ -3184,18 +3182,16 @@ MOS_STATUS CodechalVdencAvcState::InitializePicture(const EncoderParams& params)
             CODECHAL_ENCODE_CHK_STATUS_RETURN(PopulateConstParam());
         }
 
-        if (m_newVuiData)
-        {
+        if (m_newVuiData) {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(DumpVuiParams(
                 m_avcVuiParams));
         }
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(DumpPicParams(
             m_avcPicParam,
-            m_avcIQMatrixParams)); 
+            m_avcIQMatrixParams));
 
-        for (uint32_t i = 0; i < m_numSlices; i++)
-        {
+        for (uint32_t i = 0; i < m_numSlices; i++) {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(DumpSliceParams(
                 &m_avcSliceParams[i],
                 m_avcPicParam));
@@ -3204,28 +3200,27 @@ MOS_STATUS CodechalVdencAvcState::InitializePicture(const EncoderParams& params)
                 m_avcSeqParam,
                 m_avcPicParam,
                 &m_avcSliceParams[i]));
-        }
-    )
+        })
 
     // Set min/max QP values in AVC State based on frame type if atleast one of them is non-zero
     if (m_avcPicParam->ucMinimumQP || m_avcPicParam->ucMaximumQP)
     {
-        bMinMaxQPControlEnabled = true;
+        m_minMaxQpControlEnabled = true;
         if (m_avcPicParam->CodingType == I_TYPE)
         {
-            ucIMaxQP = MOS_MIN(MOS_MAX(m_avcPicParam->ucMaximumQP, 1), 51);   // Clamp to the max QP to [1, 51] . Zero is not used by our Kernel.
-            ucIMinQP = MOS_MIN(MOS_MAX(m_avcPicParam->ucMinimumQP, 1), ucIMaxQP);    // Clamp the min QP to [1, maxQP] to make sure minQP <= maxQP
-            if (!bPFrameMinMaxQPControl)
+            m_iMaxQp = MOS_MIN(MOS_MAX(m_avcPicParam->ucMaximumQP, 1), 51);        // Clamp to the max QP to [1, 51] . Zero is not used by our Kernel.
+            m_iMinQp = MOS_MIN(MOS_MAX(m_avcPicParam->ucMinimumQP, 1), m_iMaxQp);  // Clamp the min QP to [1, maxQP] to make sure minQP <= maxQP
+            if (!m_pFrameMinMaxQpControl)
             {
-                ucPMinQP = ucIMinQP;
-                ucPMaxQP = ucIMaxQP;
+                m_pMinQp = m_iMinQp;
+                m_pMaxQp = m_iMaxQp;
             }
         }
         else if (m_avcPicParam->CodingType == P_TYPE)
         {
-            bPFrameMinMaxQPControl = true;
-            ucPMaxQP = MOS_MIN(MOS_MAX(m_avcPicParam->ucMaximumQP, 1), 51);   // Clamp to the max QP to [1, 51]. Zero is not used by our Kernel.
-            ucPMinQP = MOS_MIN(MOS_MAX(m_avcPicParam->ucMinimumQP, 1), ucPMaxQP);    // Clamp the min QP to [1, maxQP] to make sure minQP <= maxQP
+            m_pFrameMinMaxQpControl = true;
+            m_pMaxQp                = MOS_MIN(MOS_MAX(m_avcPicParam->ucMaximumQP, 1), 51);        // Clamp to the max QP to [1, 51]. Zero is not used by our Kernel.
+            m_pMinQp                = MOS_MIN(MOS_MAX(m_avcPicParam->ucMinimumQP, 1), m_pMaxQp);  // Clamp the min QP to [1, maxQP] to make sure minQP <= maxQP
         }
 
         // Zero out the QP values, so we don't update the AVCState settings until new values are sent in MiscParamsRC
@@ -3233,9 +3228,7 @@ MOS_STATUS CodechalVdencAvcState::InitializePicture(const EncoderParams& params)
         m_avcPicParam->ucMaximumQP = 0;
     }
 
-    if (m_codecFunction != CODECHAL_FUNCTION_ENC
-        && !m_userFlags.bDisableAcceleratorHeaderPacking
-        && bAcceleratorHeaderPackingCaps)
+    if (m_codecFunction != CODECHAL_FUNCTION_ENC && !m_userFlags.bDisableAcceleratorHeaderPacking && m_acceleratorHeaderPackingCaps)
     {
         CODECHAL_ENCODE_AVC_PACK_PIC_HEADER_PARAMS packPicHeaderParams;
         packPicHeaderParams.pBsBuffer = &m_bsBuffer;
@@ -3244,7 +3237,7 @@ MOS_STATUS CodechalVdencAvcState::InitializePicture(const EncoderParams& params)
         packPicHeaderParams.pAvcVuiParams = m_avcVuiParams;
         packPicHeaderParams.pAvcIQMatrixParams = m_avcIQMatrixParams;
         packPicHeaderParams.ppNALUnitParams = m_nalUnitParams;
-        packPicHeaderParams.pSeiData = &SeiData;
+        packPicHeaderParams.pSeiData           = &m_seiData;
         packPicHeaderParams.dwFrameHeight = m_frameHeight;
         packPicHeaderParams.dwOriFrameHeight = m_oriFrameHeight;
         packPicHeaderParams.wPictureCodingType = m_avcPicParam->CodingType;
@@ -3266,9 +3259,9 @@ MOS_STATUS CodechalVdencAvcState::InitializePicture(const EncoderParams& params)
     // Determine if Trellis Quantization should be enabled
     MOS_ZeroMemory(&m_trellisQuantParams, sizeof(m_trellisQuantParams));
 
-    if (!(dwTrellis & trellisDisabled))
+    if (!(m_trellis & trellisDisabled))
     {
-        if (dwTrellis == trellisInternal)
+        if (m_trellis == trellisInternal)
         {
             CODECHAL_ENCODE_AVC_TQ_INPUT_PARAMS tqInputParams;
             tqInputParams.ucQP = sliceQP;
@@ -3281,9 +3274,9 @@ MOS_STATUS CodechalVdencAvcState::InitializePicture(const EncoderParams& params)
                 &tqInputParams,
                 &m_trellisQuantParams));
         }
-        else if ((m_pictureCodingType == I_TYPE && (dwTrellis & trellisEnabledI)) ||
-            (m_pictureCodingType == P_TYPE && (dwTrellis & trellisEnabledP)) ||
-            (m_pictureCodingType == B_TYPE && (dwTrellis & trellisEnabledB)))
+        else if ((m_pictureCodingType == I_TYPE && (m_trellis & trellisEnabledI)) ||
+                 (m_pictureCodingType == P_TYPE && (m_trellis & trellisEnabledP)) ||
+                 (m_pictureCodingType == B_TYPE && (m_trellis & trellisEnabledB)))
         {
             m_trellisQuantParams.dwTqEnabled = true;
             m_trellisQuantParams.dwTqRounding = CODECHAL_ENCODE_AVC_DEFAULT_TRELLIS_QUANT_ROUNDING;
@@ -3348,7 +3341,7 @@ MOS_STATUS CodechalVdencAvcState::ExecuteKernelFunctions()
 
     // Static frame detection 
     // no need to call for I-frame
-    m_staticFrameDetectionInUse = bStaticFrameDetectionEnable && m_hmeEnabled;
+    m_staticFrameDetectionInUse = m_staticFrameDetectionEnable && m_hmeEnabled;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(ExecuteMeKernel());
 
@@ -3359,9 +3352,9 @@ MOS_STATUS CodechalVdencAvcState::ExecuteKernelFunctions()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(LoadCosts(m_avcPicParam->CodingType,
             m_avcPicParam->QpY + m_avcSliceParams->slice_qp_delta));
 
-        m_vdencHmeMvCostTbl = VDEncHmeMvCost;
-        m_vdencModeCostTbl = VDEncModeCost;
-        m_vdencMvCostTbl = VDEncMvCost;
+        m_vdencHmeMvCostTbl = m_vdEncHmeMvCost;
+        m_vdencModeCostTbl  = m_vdEncModeCost;
+        m_vdencMvCostTbl    = m_vdEncMvCost;
 
         m_lastTaskInPhase = true;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SFDKernel());
@@ -3370,45 +3363,43 @@ MOS_STATUS CodechalVdencAvcState::ExecuteKernelFunctions()
     CODECHAL_DEBUG_TOOL(
         CODECHAL_ME_OUTPUT_PARAMS meOutputParams;
 
-    MOS_ZeroMemory(&meOutputParams, sizeof(meOutputParams));
-    meOutputParams.psMeMvBuffer = m_hmeKernel ? m_hmeKernel->GetSurface(CodechalKernelHme::SurfaceId::me16xMvDataBuffer) : &m_16xMeMvDataBuffer;
-    meOutputParams.b16xMeInUse = true;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-        &meOutputParams.psMeMvBuffer->OsResource,
-        CodechalDbgAttr::attrOutput,
-        "MvData",
-        meOutputParams.psMeMvBuffer->dwHeight *meOutputParams.psMeMvBuffer->dwPitch,
-        CodecHal_PictureIsBottomField(m_currOriginalPic) ? MOS_ALIGN_CEIL((m_downscaledWidthInMb16x * 32), 64) * (m_downscaledFrameFieldHeightInMb16x * 4) : 0,
-        CODECHAL_MEDIA_STATE_16X_ME));
-
-    meOutputParams.pResVdenStreamInBuffer = &(m_resVdencStreamInBuffer[m_currRecycledBufIdx]);
-    meOutputParams.psMeMvBuffer = m_hmeKernel ? m_hmeKernel->GetSurface(CodechalKernelHme::SurfaceId::me4xMvDataBuffer) : &m_4xMeMvDataBuffer;
-    meOutputParams.psMeDistortionBuffer = m_hmeKernel ? m_hmeKernel->GetSurface(CodechalKernelHme::SurfaceId::me4xDistortionBuffer) : &m_4xMeDistortionBuffer;
-    meOutputParams.b16xMeInUse = false;
-    meOutputParams.bVdencStreamInInUse = true;
-    if (m_vdencStreamInEnabled)
-    {
+        MOS_ZeroMemory(&meOutputParams, sizeof(meOutputParams));
+        meOutputParams.psMeMvBuffer = m_hmeKernel ? m_hmeKernel->GetSurface(CodechalKernelHme::SurfaceId::me16xMvDataBuffer) : &m_16xMeMvDataBuffer;
+        meOutputParams.b16xMeInUse  = true;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-            &m_resVdencStreamInBuffer[m_currRecycledBufIdx],
+            &meOutputParams.psMeMvBuffer->OsResource,
             CodechalDbgAttr::attrOutput,
             "MvData",
-            m_picWidthInMb * m_picHeightInMb* CODECHAL_CACHELINE_SIZE,
-            0,
-            CODECHAL_MEDIA_STATE_ME_VDENC_STREAMIN));
-    }
+            meOutputParams.psMeMvBuffer->dwHeight * meOutputParams.psMeMvBuffer->dwPitch,
+            CodecHal_PictureIsBottomField(m_currOriginalPic) ? MOS_ALIGN_CEIL((m_downscaledWidthInMb16x * 32), 64) * (m_downscaledFrameFieldHeightInMb16x * 4) : 0,
+            CODECHAL_MEDIA_STATE_16X_ME));
 
-    if (m_staticFrameDetectionInUse)
-    {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-            &resSFDOutputBuffer[m_currRecycledBufIdx],
-            CodechalDbgAttr::attrOutput,
-            "Out",
-            SFD_OUTPUT_BUFFER_SIZE,
-            0,
-            CODECHAL_MEDIA_STATE_STATIC_FRAME_DETECTION));
-    }
+        meOutputParams.pResVdenStreamInBuffer = &(m_resVdencStreamInBuffer[m_currRecycledBufIdx]);
+        meOutputParams.psMeMvBuffer           = m_hmeKernel ? m_hmeKernel->GetSurface(CodechalKernelHme::SurfaceId::me4xMvDataBuffer) : &m_4xMeMvDataBuffer;
+        meOutputParams.psMeDistortionBuffer   = m_hmeKernel ? m_hmeKernel->GetSurface(CodechalKernelHme::SurfaceId::me4xDistortionBuffer) : &m_4xMeDistortionBuffer;
+        meOutputParams.b16xMeInUse            = false;
+        meOutputParams.bVdencStreamInInUse    = true;
+        if (m_vdencStreamInEnabled) {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+                &m_resVdencStreamInBuffer[m_currRecycledBufIdx],
+                CodechalDbgAttr::attrOutput,
+                "MvData",
+                m_picWidthInMb * m_picHeightInMb * CODECHAL_CACHELINE_SIZE,
+                0,
+                CODECHAL_MEDIA_STATE_ME_VDENC_STREAMIN));
+        }
 
- );
+        if (m_staticFrameDetectionInUse) {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+                &m_resSfdOutputBuffer[m_currRecycledBufIdx],
+                CodechalDbgAttr::attrOutput,
+                "Out",
+                SFD_OUTPUT_BUFFER_SIZE,
+                0,
+                CODECHAL_MEDIA_STATE_STATIC_FRAME_DETECTION));
+        }
+
+    );
 #endif
 
     return eStatus;
@@ -3450,9 +3441,9 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(LoadCosts(m_avcPicParam->CodingType,
             m_avcPicParam->QpY + m_avcSliceParams->slice_qp_delta));
 
-        m_vdencHmeMvCostTbl = VDEncHmeMvCost;
-        m_vdencModeCostTbl = VDEncModeCost;
-        m_vdencMvCostTbl = VDEncMvCost;
+        m_vdencHmeMvCostTbl = m_vdEncHmeMvCost;
+        m_vdencModeCostTbl  = m_vdEncModeCost;
+        m_vdencMvCostTbl    = m_vdEncMvCost;
     }
 
     // VDEnc HuC BRC
@@ -3471,20 +3462,20 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
         // They are first pass of next frame and next pass of current frame, as the 2nd VDEnc+PAK pass may not be triggered.
         uint32_t nextRecycledBufIdx = (m_currRecycledBufIdx + 1) % CODECHAL_ENCODE_RECYCLED_BUFFER_NUM;
         uint32_t nextPass = (m_currPass + 1) % CODECHAL_VDENC_BRC_NUM_OF_PASSES;
-        m_resVdencBrcUpdateDmemBuffer[0] = &resVdencBrcUpdateDmemBuffer[nextRecycledBufIdx][0];
+        m_resVdencBrcUpdateDmemBufferPtr[0] = &m_resVdencBrcUpdateDmemBuffer[nextRecycledBufIdx][0];
         if (m_lastTaskInPhase)
         {
             // last pass of current frame, no next pass
-            m_resVdencBrcUpdateDmemBuffer[1] = nullptr;
+            m_resVdencBrcUpdateDmemBufferPtr[1] = nullptr;
         }
         else
         {
-            m_resVdencBrcUpdateDmemBuffer[1] =
-                &resVdencBrcUpdateDmemBuffer[m_currRecycledBufIdx][nextPass];
+            m_resVdencBrcUpdateDmemBufferPtr[1] =
+                &m_resVdencBrcUpdateDmemBuffer[m_currRecycledBufIdx][nextPass];
         }
 
         // Invoke BRC init/reset FW
-        if (bBrcInit || bBrcReset)
+        if (m_brcInit || m_brcReset)
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(HuCBrcInitReset());
         }
@@ -3497,7 +3488,7 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
 
         // Invoke BRC update FW
         CODECHAL_ENCODE_CHK_STATUS_RETURN(HuCBrcUpdate());
-        bBrcInit = bBrcReset = false;
+        m_brcInit = m_brcReset = false;
     }
 
     PerfTagSetting perfTag;
@@ -3665,7 +3656,7 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencDsRefSurfaceStateCmd(&cmdBuffer, &dsSurfaceParams, 1));
 
     // PerfMode is enabled only on BXT, KBL+, replace all 4x Ds refs with the 1st L0 ref
-    if (m_vdencInterface->IsPerfModeSupported() && PerfModeEnabled[m_avcSeqParam->TargetUsage] &&
+    if (m_vdencInterface->IsPerfModeSupported() && m_perfModeEnabled[m_avcSeqParam->TargetUsage] &&
         pipeBufAddrParams.dwNumRefIdxL0ActiveMinus1 == 0)
     {
         pipeBufAddrParams.dwNumRefIdxL0ActiveMinus1 = 1;
@@ -3856,7 +3847,7 @@ MOS_STATUS CodechalVdencAvcState::ExecuteSliceLevel()
     sliceState.ppNalUnitParams = m_nalUnitParams;
     sliceState.bBrcEnabled = false;
     // Disable Panic mode when min/max QP control is on. kernel may disable it, but disable in driver also.
-    sliceState.bRCPanicEnable = m_rcPanicEnable && (!bMinMaxQPControlEnabled);
+    sliceState.bRCPanicEnable                = m_panicEnable && (!m_minMaxQpControlEnabled);
     sliceState.bAcceleratorHeaderPackingCaps = m_encodeParams.bAcceleratorHeaderPackingCaps;
     sliceState.wFrameFieldHeightInMB = m_frameFieldHeightInMb;
 
@@ -3866,7 +3857,7 @@ MOS_STATUS CodechalVdencAvcState::ExecuteSliceLevel()
         if (m_currPass == 0)
         {
             packSlcHeaderParams.pAvcSliceParams = &avcSlcParams[slcCount];
-            if (bAcceleratorHeaderPackingCaps)
+            if (m_acceleratorHeaderPackingCaps)
             {
                 slcData[slcCount].SliceOffset = m_bsBuffer.SliceOffset;
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalAvcEncode_PackSliceHeader(&packSlcHeaderParams));
@@ -3922,8 +3913,8 @@ MOS_STATUS CodechalVdencAvcState::ExecuteSliceLevel()
         }
         else
         {
-            sliceState.bRoundingInterEnable         = bRoundingInterEnable;
-			CODECHAL_ENCODE_CHK_STATUS_RETURN(GetInterRounding(&sliceState));
+            sliceState.bRoundingInterEnable = m_roundingInterEnable;
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(GetInterRounding(&sliceState));
         }
 
         sliceState.oneOnOneMapping = m_oneOnOneMapping;
@@ -4166,11 +4157,10 @@ MOS_STATUS CodechalVdencAvcState::ExecuteSliceLevel()
 
     CODECHAL_DEBUG_TOOL(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(PopulateSliceStateParam(
-            bAdaptiveRoundingInterEnable,
+            m_adaptiveRoundingInterEnable,
             &sliceState));
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(DumpFrameParFile());
-    )
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(DumpFrameParFile());)
 
     return eStatus;
 }
@@ -4218,11 +4208,11 @@ MOS_STATUS CodechalVdencAvcState::UserFeatureKeyReport()
     CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_ENCODE_RATECONTROL_METHOD_ID, m_avcSeqParam->RateControlMethod);
 
     // Static frame detection Enable Reporting
-    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_STATIC_FRAME_DETECTION_ENABLE_ID, bStaticFrameDetectionEnable);
+    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_STATIC_FRAME_DETECTION_ENABLE_ID, m_staticFrameDetectionEnable);
 
     // AVC FTQ Reporting
 #if (_DEBUG || _RELEASE_INTERNAL)
-    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_AVC_FTQ_IN_USE_ID, bFTQEnable);
+    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_AVC_FTQ_IN_USE_ID, m_ftqEnable);
 
     // VDENC Reporting
     CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_VDENC_IN_USE_ID, true);
@@ -4240,14 +4230,14 @@ MOS_STATUS CodechalVdencAvcState::AllocateResources()
     CodechalEncodeAvcBase::AllocateResources();
 
     // Allocate SEI buffer
-    SeiData.pSEIBuffer = (uint8_t *)MOS_AllocAndZeroMemory(CODECHAL_ENCODE_AVC_SEI_BUFFER_SIZE);
-    if (SeiData.pSEIBuffer == nullptr)
+    m_seiData.pSEIBuffer = (uint8_t *)MOS_AllocAndZeroMemory(CODECHAL_ENCODE_AVC_SEI_BUFFER_SIZE);
+    if (m_seiData.pSEIBuffer == nullptr)
     {
         CODECHAL_ENCODE_ASSERTMESSAGE("Failed to allocate SEI Buffer.");
         eStatus = MOS_STATUS_UNKNOWN;
         return eStatus;
     }
-    SeiData.dwSEIBufSize = CODECHAL_ENCODE_AVC_SEI_BUFFER_SIZE;
+    m_seiData.dwSEIBufSize = CODECHAL_ENCODE_AVC_SEI_BUFFER_SIZE;
 
     // initiate allocation parameters and lock flags
     MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferLinear;
@@ -4276,16 +4266,17 @@ MOS_STATUS CodechalVdencAvcState::AllocateResources()
     if (m_pakEnabled)
     {
         // Allocate skip frame copy buffer
-        allocParamsForBufferLinear.dwBytes = dwSkipFrameBufferSize = CODECHAL_PAGE_SIZE;
+        allocParamsForBufferLinear.dwBytes = m_skipFrameBufferSize = CODECHAL_PAGE_SIZE;
         allocParamsForBufferLinear.pBufName = "Skip Frame Copy Buffer";
 
         CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
-            m_osInterface,
-            &allocParamsForBufferLinear,
-            &resSkipFrameBuffer), "Failed to allocate Skip Frame Copy Buffer\n");
+                                                      m_osInterface,
+                                                      &allocParamsForBufferLinear,
+                                                      &m_resSkipFrameBuffer),
+            "Failed to allocate Skip Frame Copy Buffer\n");
     }
 
-    if (bStaticFrameDetectionEnable)
+    if (m_staticFrameDetectionEnable)
     {
         // SFD output buffer
         allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(CODECHAL_ENCODE_AVC_SFD_OUTPUT_BUFFER_SIZE, CODECHAL_CACHELINE_SIZE);
@@ -4295,9 +4286,10 @@ MOS_STATUS CodechalVdencAvcState::AllocateResources()
         for (uint32_t i = 0; i < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; i++)
         {
             CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
-                m_osInterface,
-                &allocParamsForBufferLinear,
-                &resSFDOutputBuffer[i]), "Failed to allocate static frame detection output buffer\n");
+                                                          m_osInterface,
+                                                          &allocParamsForBufferLinear,
+                                                          &m_resSfdOutputBuffer[i]),
+                "Failed to allocate static frame detection output buffer\n");
         }
 
         // SFD P-frame cost table buffer
@@ -4305,72 +4297,74 @@ MOS_STATUS CodechalVdencAvcState::AllocateResources()
         allocParamsForBufferLinear.pBufName = "SFD P-frame cost table buffer";
 
         CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
-            m_osInterface,
-            &allocParamsForBufferLinear,
-            &resSFDCostTablePFrameBuffer), "Failed to allocate SFD P-frame cost table buffer\n");
+                                                      m_osInterface,
+                                                      &allocParamsForBufferLinear,
+                                                      &m_resSfdCostTablePFrameBuffer),
+            "Failed to allocate SFD P-frame cost table buffer\n");
 
         CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
-            m_osInterface,
-            &allocParamsForBufferLinear,
-            &resSFDCostTableBFrameBuffer), "Failed to allocate SFD B-frame cost table buffer\n");
+                                                      m_osInterface,
+                                                      &allocParamsForBufferLinear,
+                                                      &m_resSfdCostTableBFrameBuffer),
+            "Failed to allocate SFD B-frame cost table buffer\n");
 
         // copy SFD P-frame cost table
         uint8_t* data;
-        if (nullptr == (data = (uint8_t*)m_osInterface->pfnLockResource(
-            m_osInterface,
-            &resSFDCostTablePFrameBuffer,
-            &lockFlagsWriteOnly)))
+        if (nullptr == (data = (uint8_t *)m_osInterface->pfnLockResource(
+                            m_osInterface,
+                            &m_resSfdCostTablePFrameBuffer,
+                            &lockFlagsWriteOnly)))
         {
             CODECHAL_ENCODE_ASSERTMESSAGE("Failed to Lock SFD P-frame cost table Buffer.");
             eStatus = MOS_STATUS_UNKNOWN;
             return eStatus;
         }
         CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(MOS_SecureMemcpy(data,
-            CODECHAL_ENCODE_AVC_SFD_COST_TABLE_BUFFER_SIZE * sizeof(uint8_t),
-            CODECHAL_ENCODE_AVC_SFD_CostTable_P_FRAME,
-            CODECHAL_ENCODE_AVC_SFD_COST_TABLE_BUFFER_SIZE * sizeof(uint8_t)),
+                                                      CODECHAL_ENCODE_AVC_SFD_COST_TABLE_BUFFER_SIZE * sizeof(uint8_t),
+                                                      m_codechalEncodeAvcSfdCostTablePFrame,
+                                                      CODECHAL_ENCODE_AVC_SFD_COST_TABLE_BUFFER_SIZE * sizeof(uint8_t)),
             "Failed to copy SFD P-frame cost table");
-        m_osInterface->pfnUnlockResource(m_osInterface, &resSFDCostTablePFrameBuffer);
+        m_osInterface->pfnUnlockResource(m_osInterface, &m_resSfdCostTablePFrameBuffer);
 
         // copy SFD B-frame cost table
-        if (nullptr == (data = (uint8_t*)m_osInterface->pfnLockResource(
-            m_osInterface,
-            &resSFDCostTableBFrameBuffer,
-            &lockFlagsWriteOnly)))
+        if (nullptr == (data = (uint8_t *)m_osInterface->pfnLockResource(
+                            m_osInterface,
+                            &m_resSfdCostTableBFrameBuffer,
+                            &lockFlagsWriteOnly)))
         {
             CODECHAL_ENCODE_ASSERTMESSAGE("Failed to Lock SFD B-frame cost table Buffer.");
             eStatus = MOS_STATUS_UNKNOWN;
             return eStatus;
         }
         CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(MOS_SecureMemcpy(data,
-            CODECHAL_ENCODE_AVC_SFD_COST_TABLE_BUFFER_SIZE * sizeof(uint8_t),
-            CODECHAL_ENCODE_AVC_SFD_CostTable_B_FRAME,
-            CODECHAL_ENCODE_AVC_SFD_COST_TABLE_BUFFER_SIZE * sizeof(uint8_t)),
+                                                      CODECHAL_ENCODE_AVC_SFD_COST_TABLE_BUFFER_SIZE * sizeof(uint8_t),
+                                                      m_codechalEncodeAvcSfdCostTableBFrame,
+                                                      CODECHAL_ENCODE_AVC_SFD_COST_TABLE_BUFFER_SIZE * sizeof(uint8_t)),
             "Failed to copy SFD B-frame cost table");
-        m_osInterface->pfnUnlockResource(m_osInterface, &resSFDCostTableBFrameBuffer);
+        m_osInterface->pfnUnlockResource(m_osInterface, &m_resSfdCostTableBFrameBuffer);
     }
 
     // VDENC BRC buffer allocation
     for (uint32_t i = 0; i < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; i++)
     {
         // BRC update DMEM
-        allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(dwVdencBrcUpdateDmemBufferSize, CODECHAL_CACHELINE_SIZE);
+        allocParamsForBufferLinear.dwBytes  = MOS_ALIGN_CEIL(m_vdencBrcUpdateDmemBufferSize, CODECHAL_CACHELINE_SIZE);
         allocParamsForBufferLinear.pBufName = "VDENC BrcUpdate DmemBuffer";
         for (uint32_t j = 0; j < CODECHAL_VDENC_BRC_NUM_OF_PASSES; j++)
         {
             eStatus = (MOS_STATUS)m_osInterface->pfnAllocateResource(
                 m_osInterface,
                 &allocParamsForBufferLinear,
-                &resVdencBrcUpdateDmemBuffer[i][j]);
+                &m_resVdencBrcUpdateDmemBuffer[i][j]);
             if (eStatus != MOS_STATUS_SUCCESS)
             {
                 CODECHAL_ENCODE_ASSERTMESSAGE("%s: Failed to allocate VDENC BRC Update DMEM Buffer\n", __FUNCTION__);
                 return eStatus;
             }
 
-            uint8_t* data = (uint8_t*)m_osInterface->pfnLockResource(
+            uint8_t *data = (uint8_t *)m_osInterface->pfnLockResource(
                 m_osInterface,
-                &(resVdencBrcUpdateDmemBuffer[i][j]),
+                &(m_resVdencBrcUpdateDmemBuffer[i][j]),
                 &lockFlagsWriteOnly);
 
             if (data == nullptr)
@@ -4381,16 +4375,16 @@ MOS_STATUS CodechalVdencAvcState::AllocateResources()
             }
 
             MOS_ZeroMemory(data, allocParamsForBufferLinear.dwBytes);
-            m_osInterface->pfnUnlockResource(m_osInterface, &resVdencBrcUpdateDmemBuffer[i][j]);
+            m_osInterface->pfnUnlockResource(m_osInterface, &m_resVdencBrcUpdateDmemBuffer[i][j]);
         }
 
         // BRC init/reset DMEM
-        allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(dwVdencBrcInitDmemBufferSize, CODECHAL_CACHELINE_SIZE);
+        allocParamsForBufferLinear.dwBytes  = MOS_ALIGN_CEIL(m_vdencBrcInitDmemBufferSize, CODECHAL_CACHELINE_SIZE);
         allocParamsForBufferLinear.pBufName = "VDENC BrcInit DmemBuffer";
-        eStatus = (MOS_STATUS)m_osInterface->pfnAllocateResource(
+        eStatus                             = (MOS_STATUS)m_osInterface->pfnAllocateResource(
             m_osInterface,
             &allocParamsForBufferLinear,
-            &resVdencBrcInitDmemBuffer[i]);
+            &m_resVdencBrcInitDmemBuffer[i]);
         if (eStatus != MOS_STATUS_SUCCESS)
         {
             CODECHAL_ENCODE_ASSERTMESSAGE("%s: Failed to allocate VDENC BRC Init DMEM Buffer\n", __FUNCTION__);
@@ -4404,7 +4398,7 @@ MOS_STATUS CodechalVdencAvcState::AllocateResources()
         eStatus = (MOS_STATUS)m_osInterface->pfnAllocateResource(
             m_osInterface,
             &allocParamsForBufferLinear,
-            &resVdencBrcImageStatesReadBuffer[i]);
+            &m_resVdencBrcImageStatesReadBuffer[i]);
 
         if (eStatus != MOS_STATUS_SUCCESS)
         {
@@ -4420,7 +4414,7 @@ MOS_STATUS CodechalVdencAvcState::AllocateResources()
     eStatus = (MOS_STATUS)m_osInterface->pfnAllocateResource(
         m_osInterface,
         &allocParamsForBufferLinear,
-        &resVdencBrcConstDataBuffer);
+        &m_resVdencBrcConstDataBuffer);
 
     if (eStatus != MOS_STATUS_SUCCESS)
     {
@@ -4428,9 +4422,9 @@ MOS_STATUS CodechalVdencAvcState::AllocateResources()
         return eStatus;
     }
 
-    uint8_t* data = (uint8_t*)m_osInterface->pfnLockResource(
+    uint8_t *data = (uint8_t *)m_osInterface->pfnLockResource(
         m_osInterface,
-        &(resVdencBrcConstDataBuffer),
+        &(m_resVdencBrcConstDataBuffer),
         &lockFlagsWriteOnly);
 
     if (data == nullptr)
@@ -4441,7 +4435,7 @@ MOS_STATUS CodechalVdencAvcState::AllocateResources()
     }
 
     MOS_ZeroMemory(data, allocParamsForBufferLinear.dwBytes);
-    m_osInterface->pfnUnlockResource(m_osInterface, &resVdencBrcConstDataBuffer);
+    m_osInterface->pfnUnlockResource(m_osInterface, &m_resVdencBrcConstDataBuffer);
 
     // BRC history buffer
     allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(CODECHAL_VDENC_AVC_BRC_HISTORY_BUF_SIZE, CODECHAL_PAGE_SIZE);
@@ -4450,7 +4444,7 @@ MOS_STATUS CodechalVdencAvcState::AllocateResources()
     eStatus = (MOS_STATUS)m_osInterface->pfnAllocateResource(
         m_osInterface,
         &allocParamsForBufferLinear,
-        &resVdencBrcHistoryBuffer);
+        &m_resVdencBrcHistoryBuffer);
 
     if (eStatus != MOS_STATUS_SUCCESS)
     {
@@ -4458,7 +4452,7 @@ MOS_STATUS CodechalVdencAvcState::AllocateResources()
         return eStatus;
     }
 
-    if (!m_vdencBrcEnabled && bStaticFrameDetectionEnable)
+    if (!m_vdencBrcEnabled && m_staticFrameDetectionEnable)
     {
         // SFD VDENC IMG STATE input buffer (CQP mode)
         allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(m_hwInterface->m_vdencBrcImgStateBufferSize, CODECHAL_PAGE_SIZE);
@@ -4467,7 +4461,7 @@ MOS_STATUS CodechalVdencAvcState::AllocateResources()
         eStatus = (MOS_STATUS)m_osInterface->pfnAllocateResource(
             m_osInterface,
             &allocParamsForBufferLinear,
-            &resVdencSFDImageStateReadBuffer);
+            &m_resVdencSfdImageStateReadBuffer);
 
         if (eStatus != MOS_STATUS_SUCCESS)
         {
@@ -4483,7 +4477,7 @@ MOS_STATUS CodechalVdencAvcState::AllocateResources()
     eStatus = (MOS_STATUS)m_osInterface->pfnAllocateResource(
         m_osInterface,
         &allocParamsForBufferLinear,
-        &resVdencBrcDbgBuffer);
+        &m_resVdencBrcDbgBuffer);
 
     if (eStatus != MOS_STATUS_SUCCESS)
     {
@@ -4795,8 +4789,9 @@ MOS_STATUS CodechalVdencAvcState::SetCurbeMe(MeCurbeParams* params)
 
     // r3 & r4
     uint8_t tu = m_avcSeqParam->TargetUsage;
-    uint8_t ucMeMethod = m_meMethodTable ? // use the ME table dependent on prototype or codec standard
-            m_meMethodTable[tu] : m_MeMethodGeneric[tu];
+    uint8_t ucMeMethod = m_meMethodTable ?  // use the ME table dependent on prototype or codec standard
+                             m_meMethodTable[tu]
+                                         : m_meMethodGeneric[tu];
     uint8_t tableIdx = 0;
     eStatus = MOS_SecureMemcpy(&(cmd.SPDelta), 14 * sizeof(uint32_t), m_encodeSearchPath[tableIdx][ucMeMethod], 14 * sizeof(uint32_t));
     if (eStatus != MOS_STATUS_SUCCESS)
@@ -5173,7 +5168,7 @@ void CodechalVdencAvcState::SetMfxAvcImgStateParams(MHW_VDBOX_AVC_IMG_PARAMS& pa
     param.pVDEncHmeMvCost = m_vdencHmeMvCostTbl;
     param.pVDEncMvCost = m_vdencMvCostTbl;
     param.bVDEncPerfModeEnabled =
-        m_vdencInterface->IsPerfModeSupported() && PerfModeEnabled[m_avcSeqParam->TargetUsage];
+        m_vdencInterface->IsPerfModeSupported() && m_perfModeEnabled[m_avcSeqParam->TargetUsage];
 }
 
 PMHW_VDBOX_STATE_CMDSIZE_PARAMS CodechalVdencAvcState::CreateMhwVdboxStateCmdsizeParams()
@@ -5264,14 +5259,14 @@ MOS_STATUS CodechalVdencAvcState::DumpHucBrcInit()
     CODECHAL_DEBUG_CHK_NULL(m_debugInterface);
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucDmem(
-        &resVdencBrcInitDmemBuffer[m_currRecycledBufIdx],
-        dwVdencBrcInitDmemBufferSize,
+        &m_resVdencBrcInitDmemBuffer[m_currRecycledBufIdx],
+        m_vdencBrcInitDmemBufferSize,
         m_currPass,
         hucRegionDumpInit));
 
     // History Buffer dump
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucRegion(
-        &resVdencBrcHistoryBuffer,
+        &m_resVdencBrcHistoryBuffer,
         0,
         CODECHAL_VDENC_AVC_BRC_HISTORY_BUF_SIZE,
         0,
@@ -5292,14 +5287,14 @@ MOS_STATUS CodechalVdencAvcState::DumpHucBrcUpdate(bool isInput)
     {
         //HUC DMEM dump
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucDmem(
-            &resVdencBrcUpdateDmemBuffer[m_currRecycledBufIdx][m_currPass],
-            dwVdencBrcUpdateDmemBufferSize,
+            &m_resVdencBrcUpdateDmemBuffer[m_currRecycledBufIdx][m_currPass],
+            m_vdencBrcUpdateDmemBufferSize,
             m_currPass,
             hucRegionDumpUpdate));
 
         // Constant Data Buffer dump
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucRegion(
-            &resVdencBrcConstDataBuffer,
+            &m_resVdencBrcConstDataBuffer,
             0,
             sizeof(AVCVdencBRCCostantData),
             5,
@@ -5332,7 +5327,7 @@ MOS_STATUS CodechalVdencAvcState::DumpHucBrcUpdate(bool isInput)
 
         // VDENC Img State Read Buffer dump
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucRegion(
-            &resVdencBrcImageStatesReadBuffer[m_currRecycledBufIdx],
+            &m_resVdencBrcImageStatesReadBuffer[m_currRecycledBufIdx],
             0,
             m_hwInterface->m_vdencBrcImgStateBufferSize,
             3,
@@ -5345,7 +5340,7 @@ MOS_STATUS CodechalVdencAvcState::DumpHucBrcUpdate(bool isInput)
         if (m_staticFrameDetectionInUse)
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucRegion(
-                &resSFDOutputBuffer[m_currRecycledBufIdx],
+                &m_resSfdOutputBuffer[m_currRecycledBufIdx],
                 0,
                 sizeof(CODECHAL_ENCODE_AVC_SFD_OUTPUT_BUFFER_SIZE_COMMON),
                 4,
@@ -5373,7 +5368,7 @@ MOS_STATUS CodechalVdencAvcState::DumpHucBrcUpdate(bool isInput)
     {
         // History Buffer dump
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucRegion(
-            &resVdencBrcHistoryBuffer,
+            &m_resVdencBrcHistoryBuffer,
             0,
             CODECHAL_VDENC_AVC_BRC_HISTORY_BUF_SIZE,
             0,
@@ -5394,7 +5389,7 @@ MOS_STATUS CodechalVdencAvcState::DumpHucBrcUpdate(bool isInput)
             hucRegionDumpUpdate));
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucRegion(
-            &resVdencBrcDbgBuffer,
+            &m_resVdencBrcDbgBuffer,
             0,
             CODECHAL_VDENC_AVC_BRC_DEBUG_BUF_SIZE,
             15,
@@ -5504,13 +5499,13 @@ MOS_STATUS CodechalVdencAvcState::PopulateHmeParam(
 
     if (m_pictureCodingType == P_TYPE)
     {
-        avcPar->SuperHME             = is16xMeEnabled;
-        avcPar->UltraHME             = is32xMeEnabled;
-        avcPar->SuperCombineDist     = curbe->DW6.SuperCombineDist;
-        avcPar->StreamInEnable       = is16xMeEnabled;
-        avcPar->StreamInL0FromNewRef = is16xMeEnabled ? 7 : 0;
-        avcPar->StreamInL1FromNewRef = 0;
-        avcPar->MEMethod             = meMethod;
+        m_avcPar->SuperHME             = is16xMeEnabled;
+        m_avcPar->UltraHME             = is32xMeEnabled;
+        m_avcPar->SuperCombineDist     = curbe->DW6.SuperCombineDist;
+        m_avcPar->StreamInEnable       = is16xMeEnabled;
+        m_avcPar->StreamInL0FromNewRef = is16xMeEnabled ? 7 : 0;
+        m_avcPar->StreamInL1FromNewRef = 0;
+        m_avcPar->MEMethod             = meMethod;
     }
 
     return MOS_STATUS_SUCCESS;
@@ -5534,107 +5529,107 @@ MOS_STATUS CodechalVdencAvcState::DumpFrameParFile()
     {
         // I Slice Parameters
         // DDI Params
-        oss << "ProfileIDC = " << std::dec << +avcPar->ProfileIDC << std::endl;
-        oss << "LevelIDC = " << std::dec << +avcPar->LevelIDC << std::endl;
-        oss << "DisableVUIHeader = " << std::dec << +avcPar->DisableVUIHeader << std::endl;
-        oss << "ChromaFormatIDC = " << std::dec << +avcPar->ChromaFormatIDC << std::endl;
-        oss << "ChromaQpOffset = " << std::dec << +avcPar->ChromaQpOffset << std::endl;
-        oss << "SecondChromaQpOffset = " << std::dec << +avcPar->SecondChromaQpOffset << std::endl;
-        oss << "PictureCodingType = " << std::dec << +avcPar->PictureCodingType << std::endl;
-        oss << "NumP = " << std::dec << +avcPar->NumP << std::endl;
-        oss << "NumB = " << std::dec << +avcPar->NumB << std::endl;
-        oss << "NumSlices = " << std::dec << +avcPar->NumSlices << std::endl;
-        oss << "ISliceQP = " << std::dec << +avcPar->ISliceQP << std::endl;
-        oss << "FrameRateM = " << std::dec << +avcPar->FrameRateM << std::endl;
-        oss << "FrameRateD = " << std::dec << +avcPar->FrameRateD << std::endl;
-        oss << "BRCMethod = " << std::dec << +avcPar->BRCMethod << std::endl;
-        oss << "BRCType = " << std::dec << +avcPar->BRCType << std::endl;
-        oss << "DeblockingIDC = " << std::dec << +avcPar->DeblockingIDC << std::endl;
-        oss << "DeblockingFilterAlpha = " << std::dec << +avcPar->DeblockingFilterAlpha << std::endl;
-        oss << "DeblockingFilterBeta = " << std::dec << +avcPar->DeblockingFilterBeta << std::endl;
-        oss << "EntropyCodingMode = " << std::dec << +avcPar->EntropyCodingMode << std::endl;
-        oss << "DirectInference = " << std::dec << +avcPar->DirectInference << std::endl;
-        oss << "Transform8x8Mode = " << std::dec << +avcPar->Transform8x8Mode << std::endl;
-        oss << "CRFQualityFactor = " << std::dec << +avcPar->CRFQualityFactor << std::endl;
-        oss << "ConstrainedIntraPred = " << std::dec << +avcPar->ConstrainedIntraPred << std::endl;
-        if (avcPar->NumP == 0) // There's no P frame
+        oss << "ProfileIDC = " << std::dec << +m_avcPar->ProfileIDC << std::endl;
+        oss << "LevelIDC = " << std::dec << +m_avcPar->LevelIDC << std::endl;
+        oss << "DisableVUIHeader = " << std::dec << +m_avcPar->DisableVUIHeader << std::endl;
+        oss << "ChromaFormatIDC = " << std::dec << +m_avcPar->ChromaFormatIDC << std::endl;
+        oss << "ChromaQpOffset = " << std::dec << +m_avcPar->ChromaQpOffset << std::endl;
+        oss << "SecondChromaQpOffset = " << std::dec << +m_avcPar->SecondChromaQpOffset << std::endl;
+        oss << "PictureCodingType = " << std::dec << +m_avcPar->PictureCodingType << std::endl;
+        oss << "NumP = " << std::dec << +m_avcPar->NumP << std::endl;
+        oss << "NumB = " << std::dec << +m_avcPar->NumB << std::endl;
+        oss << "NumSlices = " << std::dec << +m_avcPar->NumSlices << std::endl;
+        oss << "ISliceQP = " << std::dec << +m_avcPar->ISliceQP << std::endl;
+        oss << "FrameRateM = " << std::dec << +m_avcPar->FrameRateM << std::endl;
+        oss << "FrameRateD = " << std::dec << +m_avcPar->FrameRateD << std::endl;
+        oss << "BRCMethod = " << std::dec << +m_avcPar->BRCMethod << std::endl;
+        oss << "BRCType = " << std::dec << +m_avcPar->BRCType << std::endl;
+        oss << "DeblockingIDC = " << std::dec << +m_avcPar->DeblockingIDC << std::endl;
+        oss << "DeblockingFilterAlpha = " << std::dec << +m_avcPar->DeblockingFilterAlpha << std::endl;
+        oss << "DeblockingFilterBeta = " << std::dec << +m_avcPar->DeblockingFilterBeta << std::endl;
+        oss << "EntropyCodingMode = " << std::dec << +m_avcPar->EntropyCodingMode << std::endl;
+        oss << "DirectInference = " << std::dec << +m_avcPar->DirectInference << std::endl;
+        oss << "Transform8x8Mode = " << std::dec << +m_avcPar->Transform8x8Mode << std::endl;
+        oss << "CRFQualityFactor = " << std::dec << +m_avcPar->CRFQualityFactor << std::endl;
+        oss << "ConstrainedIntraPred = " << std::dec << +m_avcPar->ConstrainedIntraPred << std::endl;
+        if (m_avcPar->NumP == 0)  // There's no P frame
         {
-            oss << "MaxRefIdxL0 = " << std::dec << +avcPar->MaxRefIdxL0 << std::endl;
-            oss << "MaxRefIdxL1 = " << std::dec << +avcPar->MaxRefIdxL1 << std::endl;
+            oss << "MaxRefIdxL0 = " << std::dec << +m_avcPar->MaxRefIdxL0 << std::endl;
+            oss << "MaxRefIdxL1 = " << std::dec << +m_avcPar->MaxRefIdxL1 << std::endl;
         }
-        oss << "SliceMode = " << std::dec << +avcPar->SliceMode << std::endl;
-        if (avcPar->SliceMode == 2)
+        oss << "SliceMode = " << std::dec << +m_avcPar->SliceMode << std::endl;
+        if (m_avcPar->SliceMode == 2)
         {
             oss << "MaxNumSlicesCheckEnable = 1" << std::endl;
         }
 
         // DS Params
-        oss << "MBFlatnessThreshold = " << std::dec << +m_encodeParState->commonPar->mbFlatnessThreshold << std::endl;
+        oss << "MBFlatnessThreshold = " << std::dec << +m_encodeParState->m_commonPar->mbFlatnessThreshold << std::endl;
 
         // BRC init Params
-        oss << "MBBRCEnable = " << std::dec << +avcPar->MBBRCEnable << std::endl;
-        oss << "MBRC = " << std::dec << +avcPar->MBRC << std::endl;
-        oss << "BitRate = " << std::dec << +avcPar->BitRate << std::endl;
-        oss << "InitVbvFullnessInBit = " << std::dec << +avcPar->InitVbvFullnessInBit << std::endl;
-        oss << "MaxBitRate = " << std::dec << +avcPar->MaxBitRate << std::endl;
-        oss << "VbvSzInBit = " << std::dec << +avcPar->VbvSzInBit << std::endl;
-        oss << "UserMaxFrame = " << std::dec << +avcPar->UserMaxFrame << std::endl;
-        oss << "SlidingWindowRCEnable = " << std::dec << +avcPar->SlidingWindowEnable << std::endl;
-        oss << "SlidingWindowSize = " << std::dec << +avcPar->SlidingWindowSize << std::endl;
-        oss << "SlidingWindowMaxRateRatio = " << std::dec << +avcPar->SlidingWindowMaxRateRatio << std::endl;
-        oss << "LowDelayGoldenFrameBoost = " << std::dec << +avcPar->LowDelayGoldenFrameBoost << std::endl;
-        oss << "TopQPDeltaThrforAdaptive2Pass = " << std::dec << +avcPar->TopQPDeltaThrforAdaptive2Pass << std::endl;
-        oss << "BotQPDeltaThrforAdaptive2Pass = " << std::dec << +avcPar->BotQPDeltaThrforAdaptive2Pass << std::endl;
-        oss << "TopFrmSzPctThrforAdaptive2Pass = " << std::dec << +avcPar->TopFrmSzPctThrforAdaptive2Pass << std::endl;
-        oss << "BotFrmSzPctThrforAdaptive2Pass = " << std::dec << +avcPar->BotFrmSzPctThrforAdaptive2Pass << std::endl;
-        oss << "MBHeaderCompensation = " << std::dec << +avcPar->MBHeaderCompensation << std::endl;
-        oss << "QPSelectMethodforFirstPass = " << std::dec << +avcPar->QPSelectMethodforFirstPass << std::endl;
-        oss << "MBQpCtrl = " << std::dec << +avcPar->MBQpCtrl << std::endl;
-        oss << "QPMax = " << std::dec << +avcPar->QPMax << std::endl;
-        oss << "QPMin = " << std::dec << +avcPar->QPMin << std::endl;
-        oss << "HrdConformanceCheckDisable = " << std::dec << +avcPar->HrdConformanceCheckDisable << std::endl;
-        oss << "ICQReEncode = " << std::dec << +avcPar->ICQReEncode << std::endl;
-        oss << "AdaptiveCostAdjustEnable = " << std::dec << +avcPar->AdaptiveCostAdjustEnable << std::endl;
-        oss << "AdaptiveHMEExtension = " << std::dec << +avcPar->AdaptiveHMEExtension << std::endl;
-        oss << "StreamInStaticRegion = " << std::dec << +avcPar->StreamInStaticRegion << std::endl;
-        oss << "ScenarioInfo = " << std::dec << +avcPar->ScenarioInfo << std::endl;
-        if (avcPar->SliceMode == 2)
+        oss << "MBBRCEnable = " << std::dec << +m_avcPar->MBBRCEnable << std::endl;
+        oss << "MBRC = " << std::dec << +m_avcPar->MBRC << std::endl;
+        oss << "BitRate = " << std::dec << +m_avcPar->BitRate << std::endl;
+        oss << "InitVbvFullnessInBit = " << std::dec << +m_avcPar->InitVbvFullnessInBit << std::endl;
+        oss << "MaxBitRate = " << std::dec << +m_avcPar->MaxBitRate << std::endl;
+        oss << "VbvSzInBit = " << std::dec << +m_avcPar->VbvSzInBit << std::endl;
+        oss << "UserMaxFrame = " << std::dec << +m_avcPar->UserMaxFrame << std::endl;
+        oss << "SlidingWindowRCEnable = " << std::dec << +m_avcPar->SlidingWindowEnable << std::endl;
+        oss << "SlidingWindowSize = " << std::dec << +m_avcPar->SlidingWindowSize << std::endl;
+        oss << "SlidingWindowMaxRateRatio = " << std::dec << +m_avcPar->SlidingWindowMaxRateRatio << std::endl;
+        oss << "LowDelayGoldenFrameBoost = " << std::dec << +m_avcPar->LowDelayGoldenFrameBoost << std::endl;
+        oss << "TopQPDeltaThrforAdaptive2Pass = " << std::dec << +m_avcPar->TopQPDeltaThrforAdaptive2Pass << std::endl;
+        oss << "BotQPDeltaThrforAdaptive2Pass = " << std::dec << +m_avcPar->BotQPDeltaThrforAdaptive2Pass << std::endl;
+        oss << "TopFrmSzPctThrforAdaptive2Pass = " << std::dec << +m_avcPar->TopFrmSzPctThrforAdaptive2Pass << std::endl;
+        oss << "BotFrmSzPctThrforAdaptive2Pass = " << std::dec << +m_avcPar->BotFrmSzPctThrforAdaptive2Pass << std::endl;
+        oss << "MBHeaderCompensation = " << std::dec << +m_avcPar->MBHeaderCompensation << std::endl;
+        oss << "QPSelectMethodforFirstPass = " << std::dec << +m_avcPar->QPSelectMethodforFirstPass << std::endl;
+        oss << "MBQpCtrl = " << std::dec << +m_avcPar->MBQpCtrl << std::endl;
+        oss << "QPMax = " << std::dec << +m_avcPar->QPMax << std::endl;
+        oss << "QPMin = " << std::dec << +m_avcPar->QPMin << std::endl;
+        oss << "HrdConformanceCheckDisable = " << std::dec << +m_avcPar->HrdConformanceCheckDisable << std::endl;
+        oss << "ICQReEncode = " << std::dec << +m_avcPar->ICQReEncode << std::endl;
+        oss << "AdaptiveCostAdjustEnable = " << std::dec << +m_avcPar->AdaptiveCostAdjustEnable << std::endl;
+        oss << "AdaptiveHMEExtension = " << std::dec << +m_avcPar->AdaptiveHMEExtension << std::endl;
+        oss << "StreamInStaticRegion = " << std::dec << +m_avcPar->StreamInStaticRegion << std::endl;
+        oss << "ScenarioInfo = " << std::dec << +m_avcPar->ScenarioInfo << std::endl;
+        if (m_avcPar->SliceMode == 2)
         {
-            oss << "SliceSizeWA = " << std::dec << +avcPar->SliceSizeWA << std::endl;
+            oss << "SliceSizeWA = " << std::dec << +m_avcPar->SliceSizeWA << std::endl;
             oss << "INumMbsLag = " << std::dec << +m_mbSlcThresholdValue << std::endl;
             oss << "PNumMbsLag = " << std::dec << +m_mbSlcThresholdValue << std::endl;
         }
 
         // BRC frame update Params
-        oss << "EnableMultipass = " << std::dec << +avcPar->EnableMultipass << std::endl;
-        oss << "MaxNumPakPasses = " << std::dec << +avcPar->MaxNumPakPasses << std::endl;
-        oss << "SceneChgDetectEn = " << std::dec << +avcPar->SceneChgDetectEn << std::endl;
-        oss << "SceneChgPrevIntraPctThresh = " << std::dec << +avcPar->SceneChgPrevIntraPctThresh << std::endl;
-        oss << "SceneChgCurIntraPctThresh = " << std::dec << +avcPar->SceneChgCurIntraPctThresh << std::endl;
-        oss << "SceneChgWidth0 = " << std::dec << +avcPar->SceneChgWidth0 << std::endl;
-        oss << "SceneChgWidth1 = " << std::dec << +avcPar->SceneChgWidth1 << std::endl;
-        if (avcPar->SliceMode == 2)
+        oss << "EnableMultipass = " << std::dec << +m_avcPar->EnableMultipass << std::endl;
+        oss << "MaxNumPakPasses = " << std::dec << +m_avcPar->MaxNumPakPasses << std::endl;
+        oss << "SceneChgDetectEn = " << std::dec << +m_avcPar->SceneChgDetectEn << std::endl;
+        oss << "SceneChgPrevIntraPctThresh = " << std::dec << +m_avcPar->SceneChgPrevIntraPctThresh << std::endl;
+        oss << "SceneChgCurIntraPctThresh = " << std::dec << +m_avcPar->SceneChgCurIntraPctThresh << std::endl;
+        oss << "SceneChgWidth0 = " << std::dec << +m_avcPar->SceneChgWidth0 << std::endl;
+        oss << "SceneChgWidth1 = " << std::dec << +m_avcPar->SceneChgWidth1 << std::endl;
+        if (m_avcPar->SliceMode == 2)
         {
-            oss << "SliceSizeThr = " << std::dec << +avcPar->SliceSizeThr << std::endl;
-            oss << "SliceMaxSize = " << std::dec << +avcPar->SliceMaxSize << std::endl;
+            oss << "SliceSizeThr = " << std::dec << +m_avcPar->SliceSizeThr << std::endl;
+            oss << "SliceMaxSize = " << std::dec << +m_avcPar->SliceMaxSize << std::endl;
         }
 
         // Enc Params
-        oss << "BlockBasedSkip = " << std::dec << +avcPar->BlockBasedSkip << std::endl;
-        oss << "VDEncPerfMode = " << std::dec << +avcPar->VDEncPerfMode << std::endl;
+        oss << "BlockBasedSkip = " << std::dec << +m_avcPar->BlockBasedSkip << std::endl;
+        oss << "VDEncPerfMode = " << std::dec << +m_avcPar->VDEncPerfMode << std::endl;
 
         // PAK Params
-        oss << "TrellisQuantizationEnable = " << std::dec << +avcPar->TrellisQuantizationEnable << std::endl;
-        oss << "RoundingIntraEnabled = " << std::dec << +avcPar->RoundingIntraEnabled << std::endl;
-        oss << "RoundingIntra = " << std::dec << +avcPar->RoundingIntra << std::endl;
-        oss << "EnableAdaptiveTrellisQuantization = " << std::dec << +avcPar->EnableAdaptiveTrellisQuantization << std::endl;
-        oss << "TrellisQuantizationRounding = " << std::dec << +avcPar->TrellisQuantizationRounding << std::endl;
-        oss << "TrellisQuantizationChromaDisable = " << std::dec << +avcPar->TrellisQuantizationChromaDisable << std::endl;
-        oss << "ExtendedRhoDomainEn = " << std::dec << +avcPar->ExtendedRhoDomainEn << std::endl;
-        oss << "EnableSEI = " << std::dec << +avcPar->EnableSEI << std::endl;
-        if (avcPar->NumP == 0) // There's no P frame
+        oss << "TrellisQuantizationEnable = " << std::dec << +m_avcPar->TrellisQuantizationEnable << std::endl;
+        oss << "RoundingIntraEnabled = " << std::dec << +m_avcPar->RoundingIntraEnabled << std::endl;
+        oss << "RoundingIntra = " << std::dec << +m_avcPar->RoundingIntra << std::endl;
+        oss << "EnableAdaptiveTrellisQuantization = " << std::dec << +m_avcPar->EnableAdaptiveTrellisQuantization << std::endl;
+        oss << "TrellisQuantizationRounding = " << std::dec << +m_avcPar->TrellisQuantizationRounding << std::endl;
+        oss << "TrellisQuantizationChromaDisable = " << std::dec << +m_avcPar->TrellisQuantizationChromaDisable << std::endl;
+        oss << "ExtendedRhoDomainEn = " << std::dec << +m_avcPar->ExtendedRhoDomainEn << std::endl;
+        oss << "EnableSEI = " << std::dec << +m_avcPar->EnableSEI << std::endl;
+        if (m_avcPar->NumP == 0)  // There's no P frame
         {
-            oss << "FrmHdrEncodingFrequency = " << std::dec << +avcPar->FrmHdrEncodingFrequency << std::endl;
+            oss << "FrmHdrEncodingFrequency = " << std::dec << +m_avcPar->FrmHdrEncodingFrequency << std::endl;
         }
         oss << "VDEncMode = 1" << std::endl;
         oss << "EnableExternalCost = 0" << std::endl;
@@ -5651,54 +5646,54 @@ MOS_STATUS CodechalVdencAvcState::DumpFrameParFile()
     {
         // P Slice Parameters
         // DDI Params
-        oss << "PSliceQP = " << std::dec << +avcPar->PSliceQP << std::endl;
-        oss << "CabacInitIDC = " << std::dec << +avcPar->CabacInitIDC << std::endl;
-        oss << "MaxRefIdxL0 = " << std::dec << +avcPar->MaxRefIdxL0 << std::endl;
-        oss << "MaxRefIdxL1 = " << std::dec << +avcPar->MaxRefIdxL1 << std::endl;
-        if (avcPar->NumB == 0) // There's no B frame
+        oss << "PSliceQP = " << std::dec << +m_avcPar->PSliceQP << std::endl;
+        oss << "CabacInitIDC = " << std::dec << +m_avcPar->CabacInitIDC << std::endl;
+        oss << "MaxRefIdxL0 = " << std::dec << +m_avcPar->MaxRefIdxL0 << std::endl;
+        oss << "MaxRefIdxL1 = " << std::dec << +m_avcPar->MaxRefIdxL1 << std::endl;
+        if (m_avcPar->NumB == 0)  // There's no B frame
         {
-            oss << "EnableWeightPredictionDetection = " << std::dec << +avcPar->EnableWeightPredictionDetection << std::endl;
+            oss << "EnableWeightPredictionDetection = " << std::dec << +m_avcPar->EnableWeightPredictionDetection << std::endl;
         }
-        oss << "WeightedPred = " << std::dec << +avcPar->WeightedPred << std::endl;
-        oss << "UseOrigAsRef = " << std::dec << +avcPar->UseOrigAsRef << std::endl;
-        oss << "BiSubMbPartMask = " << std::dec << +avcPar->BiSubMbPartMask << std::endl;
-        oss << "StaticFrameZMVPercent = " << std::dec << +avcPar->StaticFrameZMVPercent << std::endl;
+        oss << "WeightedPred = " << std::dec << +m_avcPar->WeightedPred << std::endl;
+        oss << "UseOrigAsRef = " << std::dec << +m_avcPar->UseOrigAsRef << std::endl;
+        oss << "BiSubMbPartMask = " << std::dec << +m_avcPar->BiSubMbPartMask << std::endl;
+        oss << "StaticFrameZMVPercent = " << std::dec << +m_avcPar->StaticFrameZMVPercent << std::endl;
 
         // HME Params
-        oss << "SuperHME = " << std::dec << +(m_useCommonKernel ? m_encodeParState->commonPar->superHME : avcPar->SuperHME) << std::endl;
-        oss << "UltraHME = " << std::dec << +(m_useCommonKernel ? m_encodeParState->commonPar->ultraHME : avcPar->UltraHME) << std::endl;
-        oss << "SuperCombineDist = " << std::dec << +(m_useCommonKernel ? m_encodeParState->commonPar->superCombineDist : avcPar->SuperCombineDist) << std::endl;
-        oss << "StreamInEnable = " << std::dec << +(m_useCommonKernel ? m_encodeParState->commonPar->streamInEnable : avcPar->StreamInEnable) << std::endl;
-        oss << "StreamInL0FromNewRef = " << std::dec << +(m_useCommonKernel ? m_encodeParState->commonPar->streamInL0FromNewRef : avcPar->StreamInL0FromNewRef) << std::endl;
-        oss << "StreamInL1FromNewRef = " << std::dec << +(m_useCommonKernel ? m_encodeParState->commonPar->streamInL1FromNewRef : avcPar->StreamInL1FromNewRef) << std::endl;
-        oss << "MEMethod = " << std::dec << +(m_useCommonKernel ? m_encodeParState->commonPar->meMethod : avcPar->MEMethod) << std::endl;
+        oss << "SuperHME = " << std::dec << +(m_useCommonKernel ? m_encodeParState->m_commonPar->superHME : m_avcPar->SuperHME) << std::endl;
+        oss << "UltraHME = " << std::dec << +(m_useCommonKernel ? m_encodeParState->m_commonPar->ultraHME : m_avcPar->UltraHME) << std::endl;
+        oss << "SuperCombineDist = " << std::dec << +(m_useCommonKernel ? m_encodeParState->m_commonPar->superCombineDist : m_avcPar->SuperCombineDist) << std::endl;
+        oss << "StreamInEnable = " << std::dec << +(m_useCommonKernel ? m_encodeParState->m_commonPar->streamInEnable : m_avcPar->StreamInEnable) << std::endl;
+        oss << "StreamInL0FromNewRef = " << std::dec << +(m_useCommonKernel ? m_encodeParState->m_commonPar->streamInL0FromNewRef : m_avcPar->StreamInL0FromNewRef) << std::endl;
+        oss << "StreamInL1FromNewRef = " << std::dec << +(m_useCommonKernel ? m_encodeParState->m_commonPar->streamInL1FromNewRef : m_avcPar->StreamInL1FromNewRef) << std::endl;
+        oss << "MEMethod = " << std::dec << +(m_useCommonKernel ? m_encodeParState->m_commonPar->meMethod : m_avcPar->MEMethod) << std::endl;
 
         // Enc Params
-        oss << "SubPelMode = " << std::dec << +avcPar->SubPelMode << std::endl;
-        oss << "FTQBasedSkip = " << std::dec << +avcPar->FTQBasedSkip << std::endl;
-        oss << "BiMixDisable = " << std::dec << +avcPar->BiMixDisable << std::endl;
-        oss << "SurvivedSkipCost = " << std::dec << +avcPar->SurvivedSkipCost << std::endl;
-        oss << "UniMixDisable = " << std::dec << +avcPar->UniMixDisable << std::endl;
-        oss << "EnableIntraCostScalingForStaticFrame = " << std::dec << +avcPar->EnableIntraCostScalingForStaticFrame << std::endl;
-        if (avcPar->EnableIntraCostScalingForStaticFrame)
+        oss << "SubPelMode = " << std::dec << +m_avcPar->SubPelMode << std::endl;
+        oss << "FTQBasedSkip = " << std::dec << +m_avcPar->FTQBasedSkip << std::endl;
+        oss << "BiMixDisable = " << std::dec << +m_avcPar->BiMixDisable << std::endl;
+        oss << "SurvivedSkipCost = " << std::dec << +m_avcPar->SurvivedSkipCost << std::endl;
+        oss << "UniMixDisable = " << std::dec << +m_avcPar->UniMixDisable << std::endl;
+        oss << "EnableIntraCostScalingForStaticFrame = " << std::dec << +m_avcPar->EnableIntraCostScalingForStaticFrame << std::endl;
+        if (m_avcPar->EnableIntraCostScalingForStaticFrame)
         {
             oss << "IntraCostUpdateMethod = 3" << std::endl;
         }
-        oss << "StaticFrameIntraCostScalingRatioP = " << std::dec << +avcPar->StaticFrameIntraCostScalingRatioP << std::endl;
-        oss << "VdencExtPakObjDisable = " << std::dec << +avcPar->VdencExtPakObjDisable << std::endl;
-        oss << "PPMVDisable = " << std::dec << +avcPar->PPMVDisable << std::endl;
-        oss << "AdaptiveMvStreamIn = " << std::dec << +avcPar->AdaptiveMvStreamIn << std::endl;
-        oss << "LargeMvThresh = " << std::dec << +avcPar->LargeMvThresh << std::endl;
-        oss << "LargeMvPctThreshold = " << std::dec << +avcPar->LargeMvPctThreshold << std::endl;
+        oss << "StaticFrameIntraCostScalingRatioP = " << std::dec << +m_avcPar->StaticFrameIntraCostScalingRatioP << std::endl;
+        oss << "VdencExtPakObjDisable = " << std::dec << +m_avcPar->VdencExtPakObjDisable << std::endl;
+        oss << "PPMVDisable = " << std::dec << +m_avcPar->PPMVDisable << std::endl;
+        oss << "AdaptiveMvStreamIn = " << std::dec << +m_avcPar->AdaptiveMvStreamIn << std::endl;
+        oss << "LargeMvThresh = " << std::dec << +m_avcPar->LargeMvThresh << std::endl;
+        oss << "LargeMvPctThreshold = " << std::dec << +m_avcPar->LargeMvPctThreshold << std::endl;
 
         // BRC Frame Update
-        oss << "Transform8x8PDisable = " << std::dec << +avcPar->Transform8x8PDisable << std::endl;
+        oss << "Transform8x8PDisable = " << std::dec << +m_avcPar->Transform8x8PDisable << std::endl;
 
         // PAK Params
-        oss << "RoundingInterEnabled = " << std::dec << +avcPar->RoundingInterEnabled << std::endl;
-        oss << "RoundingInter = " << std::dec << +avcPar->RoundingInter << std::endl;
-        oss << "FrmHdrEncodingFrequency = " << std::dec << +avcPar->FrmHdrEncodingFrequency << std::endl;
-        oss << "AdaptiveRoundingEnabled = " << std::dec << +avcPar->EnableAdaptiveRounding << std::endl;
+        oss << "RoundingInterEnabled = " << std::dec << +m_avcPar->RoundingInterEnabled << std::endl;
+        oss << "RoundingInter = " << std::dec << +m_avcPar->RoundingInter << std::endl;
+        oss << "FrmHdrEncodingFrequency = " << std::dec << +m_avcPar->FrmHdrEncodingFrequency << std::endl;
+        oss << "AdaptiveRoundingEnabled = " << std::dec << +m_avcPar->EnableAdaptiveRounding << std::endl;
     }
 
     // Dump per frame par file
@@ -5730,107 +5725,107 @@ MOS_STATUS CodechalVdencAvcState::DumpSeqParFile()
 
     // I Slice Parameters
     // DDI Params
-    oss << "ProfileIDC = " << std::dec << +avcPar->ProfileIDC << std::endl;
-    oss << "LevelIDC = " << std::dec << +avcPar->LevelIDC << std::endl;
-    oss << "DisableVUIHeader = " << std::dec << +avcPar->DisableVUIHeader << std::endl;
-    oss << "ChromaFormatIDC = " << std::dec << +avcPar->ChromaFormatIDC << std::endl;
-    oss << "ChromaQpOffset = " << std::dec << +avcPar->ChromaQpOffset << std::endl;
-    oss << "SecondChromaQpOffset = " << std::dec << +avcPar->SecondChromaQpOffset << std::endl;
-    oss << "PictureCodingType = " << std::dec << +avcPar->PictureCodingType << std::endl;
-    oss << "NumP = " << std::dec << +avcPar->NumP << std::endl;
-    oss << "NumB = " << std::dec << +avcPar->NumB << std::endl;
-    oss << "NumSlices = " << std::dec << +avcPar->NumSlices << std::endl;
-    oss << "ISliceQP = " << std::dec << +avcPar->ISliceQP << std::endl;
-    oss << "FrameRateM = " << std::dec << +avcPar->FrameRateM << std::endl;
-    oss << "FrameRateD = " << std::dec << +avcPar->FrameRateD << std::endl;
-    oss << "BRCMethod = " << std::dec << +avcPar->BRCMethod << std::endl;
-    oss << "BRCType = " << std::dec << +avcPar->BRCType << std::endl;
-    oss << "DeblockingIDC = " << std::dec << +avcPar->DeblockingIDC << std::endl;
-    oss << "DeblockingFilterAlpha = " << std::dec << +avcPar->DeblockingFilterAlpha << std::endl;
-    oss << "DeblockingFilterBeta = " << std::dec << +avcPar->DeblockingFilterBeta << std::endl;
-    oss << "EntropyCodingMode = " << std::dec << +avcPar->EntropyCodingMode << std::endl;
-    oss << "DirectInference = " << std::dec << +avcPar->DirectInference << std::endl;
-    oss << "Transform8x8Mode = " << std::dec << +avcPar->Transform8x8Mode << std::endl;
-    oss << "CRFQualityFactor = " << std::dec << +avcPar->CRFQualityFactor << std::endl;
-    oss << "ConstrainedIntraPred = " << std::dec << +avcPar->ConstrainedIntraPred << std::endl;
-    if (avcPar->NumP == 0) // There's no P frame
+    oss << "ProfileIDC = " << std::dec << +m_avcPar->ProfileIDC << std::endl;
+    oss << "LevelIDC = " << std::dec << +m_avcPar->LevelIDC << std::endl;
+    oss << "DisableVUIHeader = " << std::dec << +m_avcPar->DisableVUIHeader << std::endl;
+    oss << "ChromaFormatIDC = " << std::dec << +m_avcPar->ChromaFormatIDC << std::endl;
+    oss << "ChromaQpOffset = " << std::dec << +m_avcPar->ChromaQpOffset << std::endl;
+    oss << "SecondChromaQpOffset = " << std::dec << +m_avcPar->SecondChromaQpOffset << std::endl;
+    oss << "PictureCodingType = " << std::dec << +m_avcPar->PictureCodingType << std::endl;
+    oss << "NumP = " << std::dec << +m_avcPar->NumP << std::endl;
+    oss << "NumB = " << std::dec << +m_avcPar->NumB << std::endl;
+    oss << "NumSlices = " << std::dec << +m_avcPar->NumSlices << std::endl;
+    oss << "ISliceQP = " << std::dec << +m_avcPar->ISliceQP << std::endl;
+    oss << "FrameRateM = " << std::dec << +m_avcPar->FrameRateM << std::endl;
+    oss << "FrameRateD = " << std::dec << +m_avcPar->FrameRateD << std::endl;
+    oss << "BRCMethod = " << std::dec << +m_avcPar->BRCMethod << std::endl;
+    oss << "BRCType = " << std::dec << +m_avcPar->BRCType << std::endl;
+    oss << "DeblockingIDC = " << std::dec << +m_avcPar->DeblockingIDC << std::endl;
+    oss << "DeblockingFilterAlpha = " << std::dec << +m_avcPar->DeblockingFilterAlpha << std::endl;
+    oss << "DeblockingFilterBeta = " << std::dec << +m_avcPar->DeblockingFilterBeta << std::endl;
+    oss << "EntropyCodingMode = " << std::dec << +m_avcPar->EntropyCodingMode << std::endl;
+    oss << "DirectInference = " << std::dec << +m_avcPar->DirectInference << std::endl;
+    oss << "Transform8x8Mode = " << std::dec << +m_avcPar->Transform8x8Mode << std::endl;
+    oss << "CRFQualityFactor = " << std::dec << +m_avcPar->CRFQualityFactor << std::endl;
+    oss << "ConstrainedIntraPred = " << std::dec << +m_avcPar->ConstrainedIntraPred << std::endl;
+    if (m_avcPar->NumP == 0)  // There's no P frame
     {
-        oss << "MaxRefIdxL0 = " << std::dec << +avcPar->MaxRefIdxL0 << std::endl;
-        oss << "MaxRefIdxL1 = " << std::dec << +avcPar->MaxRefIdxL1 << std::endl;
+        oss << "MaxRefIdxL0 = " << std::dec << +m_avcPar->MaxRefIdxL0 << std::endl;
+        oss << "MaxRefIdxL1 = " << std::dec << +m_avcPar->MaxRefIdxL1 << std::endl;
     }
-    oss << "SliceMode = " << std::dec << +avcPar->SliceMode << std::endl;
-    if (avcPar->SliceMode == 2)
+    oss << "SliceMode = " << std::dec << +m_avcPar->SliceMode << std::endl;
+    if (m_avcPar->SliceMode == 2)
     {
         oss << "MaxNumSlicesCheckEnable = 1" << std::endl;
     }
 
     // DS Params
-    oss << "MBFlatnessThreshold = " << std::dec << +m_encodeParState->commonPar->mbFlatnessThreshold << std::endl;
+    oss << "MBFlatnessThreshold = " << std::dec << +m_encodeParState->m_commonPar->mbFlatnessThreshold << std::endl;
 
     // BRC init Params
-    oss << "MBBRCEnable = " << std::dec << +avcPar->MBBRCEnable << std::endl;
-    oss << "MBRC = " << std::dec << +avcPar->MBRC << std::endl;
-    oss << "BitRate = " << std::dec << +avcPar->BitRate << std::endl;
-    oss << "InitVbvFullnessInBit = " << std::dec << +avcPar->InitVbvFullnessInBit << std::endl;
-    oss << "MaxBitRate = " << std::dec << +avcPar->MaxBitRate << std::endl;
-    oss << "VbvSzInBit = " << std::dec << +avcPar->VbvSzInBit << std::endl;
-    oss << "UserMaxFrame = " << std::dec << +avcPar->UserMaxFrame << std::endl;
-    oss << "SlidingWindowRCEnable = " << std::dec << +avcPar->SlidingWindowEnable << std::endl;
-    oss << "SlidingWindowSize = " << std::dec << +avcPar->SlidingWindowSize << std::endl;
-    oss << "SlidingWindowMaxRateRatio = " << std::dec << +avcPar->SlidingWindowMaxRateRatio << std::endl;
-    oss << "LowDelayGoldenFrameBoost = " << std::dec << +avcPar->LowDelayGoldenFrameBoost << std::endl;
-    oss << "TopQPDeltaThrforAdaptive2Pass = " << std::dec << +avcPar->TopQPDeltaThrforAdaptive2Pass << std::endl;
-    oss << "BotQPDeltaThrforAdaptive2Pass = " << std::dec << +avcPar->BotQPDeltaThrforAdaptive2Pass << std::endl;
-    oss << "TopFrmSzPctThrforAdaptive2Pass = " << std::dec << +avcPar->TopFrmSzPctThrforAdaptive2Pass << std::endl;
-    oss << "BotFrmSzPctThrforAdaptive2Pass = " << std::dec << +avcPar->BotFrmSzPctThrforAdaptive2Pass << std::endl;
-    oss << "MBHeaderCompensation = " << std::dec << +avcPar->MBHeaderCompensation << std::endl;
-    oss << "QPSelectMethodforFirstPass = " << std::dec << +avcPar->QPSelectMethodforFirstPass << std::endl;
-    oss << "MBQpCtrl = " << std::dec << +avcPar->MBQpCtrl << std::endl;
-    oss << "QPMax = " << std::dec << +avcPar->QPMax << std::endl;
-    oss << "QPMin = " << std::dec << +avcPar->QPMin << std::endl;
-    oss << "HrdConformanceCheckDisable = " << std::dec << +avcPar->HrdConformanceCheckDisable << std::endl;
-    oss << "ICQReEncode = " << std::dec << +avcPar->ICQReEncode << std::endl;
-    oss << "AdaptiveCostAdjustEnable = " << std::dec << +avcPar->AdaptiveCostAdjustEnable << std::endl;
-    oss << "AdaptiveHMEExtension = " << std::dec << +avcPar->AdaptiveHMEExtension << std::endl;
-    oss << "StreamInStaticRegion = " << std::dec << +avcPar->StreamInStaticRegion << std::endl;
-    oss << "ScenarioInfo = " << std::dec << +avcPar->ScenarioInfo << std::endl;
-    if (avcPar->SliceMode == 2)
+    oss << "MBBRCEnable = " << std::dec << +m_avcPar->MBBRCEnable << std::endl;
+    oss << "MBRC = " << std::dec << +m_avcPar->MBRC << std::endl;
+    oss << "BitRate = " << std::dec << +m_avcPar->BitRate << std::endl;
+    oss << "InitVbvFullnessInBit = " << std::dec << +m_avcPar->InitVbvFullnessInBit << std::endl;
+    oss << "MaxBitRate = " << std::dec << +m_avcPar->MaxBitRate << std::endl;
+    oss << "VbvSzInBit = " << std::dec << +m_avcPar->VbvSzInBit << std::endl;
+    oss << "UserMaxFrame = " << std::dec << +m_avcPar->UserMaxFrame << std::endl;
+    oss << "SlidingWindowRCEnable = " << std::dec << +m_avcPar->SlidingWindowEnable << std::endl;
+    oss << "SlidingWindowSize = " << std::dec << +m_avcPar->SlidingWindowSize << std::endl;
+    oss << "SlidingWindowMaxRateRatio = " << std::dec << +m_avcPar->SlidingWindowMaxRateRatio << std::endl;
+    oss << "LowDelayGoldenFrameBoost = " << std::dec << +m_avcPar->LowDelayGoldenFrameBoost << std::endl;
+    oss << "TopQPDeltaThrforAdaptive2Pass = " << std::dec << +m_avcPar->TopQPDeltaThrforAdaptive2Pass << std::endl;
+    oss << "BotQPDeltaThrforAdaptive2Pass = " << std::dec << +m_avcPar->BotQPDeltaThrforAdaptive2Pass << std::endl;
+    oss << "TopFrmSzPctThrforAdaptive2Pass = " << std::dec << +m_avcPar->TopFrmSzPctThrforAdaptive2Pass << std::endl;
+    oss << "BotFrmSzPctThrforAdaptive2Pass = " << std::dec << +m_avcPar->BotFrmSzPctThrforAdaptive2Pass << std::endl;
+    oss << "MBHeaderCompensation = " << std::dec << +m_avcPar->MBHeaderCompensation << std::endl;
+    oss << "QPSelectMethodforFirstPass = " << std::dec << +m_avcPar->QPSelectMethodforFirstPass << std::endl;
+    oss << "MBQpCtrl = " << std::dec << +m_avcPar->MBQpCtrl << std::endl;
+    oss << "QPMax = " << std::dec << +m_avcPar->QPMax << std::endl;
+    oss << "QPMin = " << std::dec << +m_avcPar->QPMin << std::endl;
+    oss << "HrdConformanceCheckDisable = " << std::dec << +m_avcPar->HrdConformanceCheckDisable << std::endl;
+    oss << "ICQReEncode = " << std::dec << +m_avcPar->ICQReEncode << std::endl;
+    oss << "AdaptiveCostAdjustEnable = " << std::dec << +m_avcPar->AdaptiveCostAdjustEnable << std::endl;
+    oss << "AdaptiveHMEExtension = " << std::dec << +m_avcPar->AdaptiveHMEExtension << std::endl;
+    oss << "StreamInStaticRegion = " << std::dec << +m_avcPar->StreamInStaticRegion << std::endl;
+    oss << "ScenarioInfo = " << std::dec << +m_avcPar->ScenarioInfo << std::endl;
+    if (m_avcPar->SliceMode == 2)
     {
-        oss << "SliceSizeWA = " << std::dec << +avcPar->SliceSizeWA << std::endl;
+        oss << "SliceSizeWA = " << std::dec << +m_avcPar->SliceSizeWA << std::endl;
         oss << "INumMbsLag = " << std::dec << +m_mbSlcThresholdValue << std::endl;
         oss << "PNumMbsLag = " << std::dec << +m_mbSlcThresholdValue << std::endl;
     }
 
     // BRC frame update Params
-    oss << "EnableMultipass = " << std::dec << +avcPar->EnableMultipass << std::endl;
-    oss << "MaxNumPakPasses = " << std::dec << +avcPar->MaxNumPakPasses << std::endl;
-    oss << "SceneChgDetectEn = " << std::dec << +avcPar->SceneChgDetectEn << std::endl;
-    oss << "SceneChgPrevIntraPctThresh = " << std::dec << +avcPar->SceneChgPrevIntraPctThresh << std::endl;
-    oss << "SceneChgCurIntraPctThresh = " << std::dec << +avcPar->SceneChgCurIntraPctThresh << std::endl;
-    oss << "SceneChgWidth0 = " << std::dec << +avcPar->SceneChgWidth0 << std::endl;
-    oss << "SceneChgWidth1 = " << std::dec << +avcPar->SceneChgWidth1 << std::endl;
-    if (avcPar->SliceMode == 2)
+    oss << "EnableMultipass = " << std::dec << +m_avcPar->EnableMultipass << std::endl;
+    oss << "MaxNumPakPasses = " << std::dec << +m_avcPar->MaxNumPakPasses << std::endl;
+    oss << "SceneChgDetectEn = " << std::dec << +m_avcPar->SceneChgDetectEn << std::endl;
+    oss << "SceneChgPrevIntraPctThresh = " << std::dec << +m_avcPar->SceneChgPrevIntraPctThresh << std::endl;
+    oss << "SceneChgCurIntraPctThresh = " << std::dec << +m_avcPar->SceneChgCurIntraPctThresh << std::endl;
+    oss << "SceneChgWidth0 = " << std::dec << +m_avcPar->SceneChgWidth0 << std::endl;
+    oss << "SceneChgWidth1 = " << std::dec << +m_avcPar->SceneChgWidth1 << std::endl;
+    if (m_avcPar->SliceMode == 2)
     {
-        oss << "SliceSizeThr = " << std::dec << +avcPar->SliceSizeThr << std::endl;
-        oss << "SliceMaxSize = " << std::dec << +avcPar->SliceMaxSize << std::endl;
+        oss << "SliceSizeThr = " << std::dec << +m_avcPar->SliceSizeThr << std::endl;
+        oss << "SliceMaxSize = " << std::dec << +m_avcPar->SliceMaxSize << std::endl;
     }
 
     // Enc Params
-    oss << "BlockBasedSkip = " << std::dec << +avcPar->BlockBasedSkip << std::endl;
-    oss << "VDEncPerfMode = " << std::dec << +avcPar->VDEncPerfMode << std::endl;
+    oss << "BlockBasedSkip = " << std::dec << +m_avcPar->BlockBasedSkip << std::endl;
+    oss << "VDEncPerfMode = " << std::dec << +m_avcPar->VDEncPerfMode << std::endl;
 
     // PAK Params
-    oss << "TrellisQuantizationEnable = " << std::dec << +avcPar->TrellisQuantizationEnable << std::endl;
-    oss << "RoundingIntraEnabled = " << std::dec << +avcPar->RoundingIntraEnabled << std::endl;
-    oss << "RoundingIntra = " << std::dec << +avcPar->RoundingIntra << std::endl;
-    oss << "EnableAdaptiveTrellisQuantization = " << std::dec << +avcPar->EnableAdaptiveTrellisQuantization << std::endl;
-    oss << "TrellisQuantizationRounding = " << std::dec << +avcPar->TrellisQuantizationRounding << std::endl;
-    oss << "TrellisQuantizationChromaDisable = " << std::dec << +avcPar->TrellisQuantizationChromaDisable << std::endl;
-    oss << "ExtendedRhoDomainEn = " << std::dec << +avcPar->ExtendedRhoDomainEn << std::endl;
-    oss << "EnableSEI = " << std::dec << +avcPar->EnableSEI << std::endl;
-    if (avcPar->NumP == 0) // There's no P frame
+    oss << "TrellisQuantizationEnable = " << std::dec << +m_avcPar->TrellisQuantizationEnable << std::endl;
+    oss << "RoundingIntraEnabled = " << std::dec << +m_avcPar->RoundingIntraEnabled << std::endl;
+    oss << "RoundingIntra = " << std::dec << +m_avcPar->RoundingIntra << std::endl;
+    oss << "EnableAdaptiveTrellisQuantization = " << std::dec << +m_avcPar->EnableAdaptiveTrellisQuantization << std::endl;
+    oss << "TrellisQuantizationRounding = " << std::dec << +m_avcPar->TrellisQuantizationRounding << std::endl;
+    oss << "TrellisQuantizationChromaDisable = " << std::dec << +m_avcPar->TrellisQuantizationChromaDisable << std::endl;
+    oss << "ExtendedRhoDomainEn = " << std::dec << +m_avcPar->ExtendedRhoDomainEn << std::endl;
+    oss << "EnableSEI = " << std::dec << +m_avcPar->EnableSEI << std::endl;
+    if (m_avcPar->NumP == 0)  // There's no P frame
     {
-        oss << "FrmHdrEncodingFrequency = " << std::dec << +avcPar->FrmHdrEncodingFrequency << std::endl;
+        oss << "FrmHdrEncodingFrequency = " << std::dec << +m_avcPar->FrmHdrEncodingFrequency << std::endl;
     }
     oss << "VDEncMode = 1" << std::endl;
     oss << "EnableExternalCost = 0" << std::endl;
@@ -5843,58 +5838,58 @@ MOS_STATUS CodechalVdencAvcState::DumpSeqParFile()
     oss << "BestIntra8x8QPDelta = 0" << std::endl;
     oss << "BestIntra16x16QPDelta = 0" << std::endl;
 
-    if (avcPar->NumP > 0)
+    if (m_avcPar->NumP > 0)
     {
         // P Slice Parameters
         // DDI Params
-        oss << "PSliceQP = " << std::dec << +avcPar->PSliceQP << std::endl;
-        oss << "CabacInitIDC = " << std::dec << +avcPar->CabacInitIDC << std::endl;
-        oss << "MaxRefIdxL0 = " << std::dec << +avcPar->MaxRefIdxL0 << std::endl;
-        oss << "MaxRefIdxL1 = " << std::dec << +avcPar->MaxRefIdxL1 << std::endl;
-        if (avcPar->NumB == 0) // There's no B frame
+        oss << "PSliceQP = " << std::dec << +m_avcPar->PSliceQP << std::endl;
+        oss << "CabacInitIDC = " << std::dec << +m_avcPar->CabacInitIDC << std::endl;
+        oss << "MaxRefIdxL0 = " << std::dec << +m_avcPar->MaxRefIdxL0 << std::endl;
+        oss << "MaxRefIdxL1 = " << std::dec << +m_avcPar->MaxRefIdxL1 << std::endl;
+        if (m_avcPar->NumB == 0)  // There's no B frame
         {
-            oss << "EnableWeightPredictionDetection = " << std::dec << +avcPar->EnableWeightPredictionDetection << std::endl;
+            oss << "EnableWeightPredictionDetection = " << std::dec << +m_avcPar->EnableWeightPredictionDetection << std::endl;
         }
-        oss << "WeightedPred = " << std::dec << +avcPar->WeightedPred << std::endl;
-        oss << "UseOrigAsRef = " << std::dec << +avcPar->UseOrigAsRef << std::endl;
-        oss << "BiSubMbPartMask = " << std::dec << +avcPar->BiSubMbPartMask << std::endl;
-        oss << "StaticFrameZMVPercent = " << std::dec << +avcPar->StaticFrameZMVPercent << std::endl;
+        oss << "WeightedPred = " << std::dec << +m_avcPar->WeightedPred << std::endl;
+        oss << "UseOrigAsRef = " << std::dec << +m_avcPar->UseOrigAsRef << std::endl;
+        oss << "BiSubMbPartMask = " << std::dec << +m_avcPar->BiSubMbPartMask << std::endl;
+        oss << "StaticFrameZMVPercent = " << std::dec << +m_avcPar->StaticFrameZMVPercent << std::endl;
 
         // HME Params
-        oss << "SuperHME = " << std::dec << +(m_useCommonKernel ? m_encodeParState->commonPar->superHME : avcPar->SuperHME) << std::endl;
-        oss << "UltraHME = " << std::dec << +(m_useCommonKernel ? m_encodeParState->commonPar->ultraHME : avcPar->UltraHME) << std::endl;
-        oss << "SuperCombineDist = " << std::dec << +(m_useCommonKernel ? m_encodeParState->commonPar->superCombineDist : avcPar->SuperCombineDist) << std::endl;
-        oss << "StreamInEnable = " << std::dec << +(m_useCommonKernel ? m_encodeParState->commonPar->streamInEnable : avcPar->StreamInEnable) << std::endl;
-        oss << "StreamInL0FromNewRef = " << std::dec << +(m_useCommonKernel ? m_encodeParState->commonPar->streamInL0FromNewRef : avcPar->StreamInL0FromNewRef) << std::endl;
-        oss << "StreamInL1FromNewRef = " << std::dec << +(m_useCommonKernel ? m_encodeParState->commonPar->streamInL1FromNewRef : avcPar->StreamInL1FromNewRef) << std::endl;
-        oss << "MEMethod = " << std::dec << +(m_useCommonKernel ? m_encodeParState->commonPar->meMethod : avcPar->MEMethod) << std::endl;
+        oss << "SuperHME = " << std::dec << +(m_useCommonKernel ? m_encodeParState->m_commonPar->superHME : m_avcPar->SuperHME) << std::endl;
+        oss << "UltraHME = " << std::dec << +(m_useCommonKernel ? m_encodeParState->m_commonPar->ultraHME : m_avcPar->UltraHME) << std::endl;
+        oss << "SuperCombineDist = " << std::dec << +(m_useCommonKernel ? m_encodeParState->m_commonPar->superCombineDist : m_avcPar->SuperCombineDist) << std::endl;
+        oss << "StreamInEnable = " << std::dec << +(m_useCommonKernel ? m_encodeParState->m_commonPar->streamInEnable : m_avcPar->StreamInEnable) << std::endl;
+        oss << "StreamInL0FromNewRef = " << std::dec << +(m_useCommonKernel ? m_encodeParState->m_commonPar->streamInL0FromNewRef : m_avcPar->StreamInL0FromNewRef) << std::endl;
+        oss << "StreamInL1FromNewRef = " << std::dec << +(m_useCommonKernel ? m_encodeParState->m_commonPar->streamInL1FromNewRef : m_avcPar->StreamInL1FromNewRef) << std::endl;
+        oss << "MEMethod = " << std::dec << +(m_useCommonKernel ? m_encodeParState->m_commonPar->meMethod : m_avcPar->MEMethod) << std::endl;
 
         // Enc Params
-        oss << "SubPelMode = " << std::dec << +avcPar->SubPelMode << std::endl;
-        oss << "FTQBasedSkip = " << std::dec << +avcPar->FTQBasedSkip << std::endl;
-        oss << "BiMixDisable = " << std::dec << +avcPar->BiMixDisable << std::endl;
-        oss << "SurvivedSkipCost = " << std::dec << +avcPar->SurvivedSkipCost << std::endl;
-        oss << "UniMixDisable = " << std::dec << +avcPar->UniMixDisable << std::endl;
-        oss << "EnableIntraCostScalingForStaticFrame = " << std::dec << +avcPar->EnableIntraCostScalingForStaticFrame << std::endl;
-        if (avcPar->EnableIntraCostScalingForStaticFrame)
+        oss << "SubPelMode = " << std::dec << +m_avcPar->SubPelMode << std::endl;
+        oss << "FTQBasedSkip = " << std::dec << +m_avcPar->FTQBasedSkip << std::endl;
+        oss << "BiMixDisable = " << std::dec << +m_avcPar->BiMixDisable << std::endl;
+        oss << "SurvivedSkipCost = " << std::dec << +m_avcPar->SurvivedSkipCost << std::endl;
+        oss << "UniMixDisable = " << std::dec << +m_avcPar->UniMixDisable << std::endl;
+        oss << "EnableIntraCostScalingForStaticFrame = " << std::dec << +m_avcPar->EnableIntraCostScalingForStaticFrame << std::endl;
+        if (m_avcPar->EnableIntraCostScalingForStaticFrame)
         {
             oss << "IntraCostUpdateMethod = 3" << std::endl;
         }
-        oss << "StaticFrameIntraCostScalingRatioP = " << std::dec << +avcPar->StaticFrameIntraCostScalingRatioP << std::endl;
-        oss << "VdencExtPakObjDisable = " << std::dec << +avcPar->VdencExtPakObjDisable << std::endl;
-        oss << "PPMVDisable = " << std::dec << +avcPar->PPMVDisable << std::endl;
-        oss << "AdaptiveMvStreamIn = " << std::dec << +avcPar->AdaptiveMvStreamIn << std::endl;
-        oss << "LargeMvThresh = " << std::dec << +avcPar->LargeMvThresh << std::endl;
-        oss << "LargeMvPctThreshold = " << std::dec << +avcPar->LargeMvPctThreshold << std::endl;
+        oss << "StaticFrameIntraCostScalingRatioP = " << std::dec << +m_avcPar->StaticFrameIntraCostScalingRatioP << std::endl;
+        oss << "VdencExtPakObjDisable = " << std::dec << +m_avcPar->VdencExtPakObjDisable << std::endl;
+        oss << "PPMVDisable = " << std::dec << +m_avcPar->PPMVDisable << std::endl;
+        oss << "AdaptiveMvStreamIn = " << std::dec << +m_avcPar->AdaptiveMvStreamIn << std::endl;
+        oss << "LargeMvThresh = " << std::dec << +m_avcPar->LargeMvThresh << std::endl;
+        oss << "LargeMvPctThreshold = " << std::dec << +m_avcPar->LargeMvPctThreshold << std::endl;
 
         // BRC Frame Update
-        oss << "Transform8x8PDisable = " << std::dec << +avcPar->Transform8x8PDisable << std::endl;
+        oss << "Transform8x8PDisable = " << std::dec << +m_avcPar->Transform8x8PDisable << std::endl;
 
         // PAK Params
-        oss << "RoundingInterEnabled = " << std::dec << +avcPar->RoundingInterEnabled << std::endl;
-        oss << "RoundingInter = " << std::dec << +avcPar->RoundingInter << std::endl;
-        oss << "FrmHdrEncodingFrequency = " << std::dec << +avcPar->FrmHdrEncodingFrequency << std::endl;
-        oss << "AdaptiveRoundingEnabled = " << std::dec << +avcPar->EnableAdaptiveRounding << std::endl;
+        oss << "RoundingInterEnabled = " << std::dec << +m_avcPar->RoundingInterEnabled << std::endl;
+        oss << "RoundingInter = " << std::dec << +m_avcPar->RoundingInter << std::endl;
+        oss << "FrmHdrEncodingFrequency = " << std::dec << +m_avcPar->FrmHdrEncodingFrequency << std::endl;
+        oss << "AdaptiveRoundingEnabled = " << std::dec << +m_avcPar->EnableAdaptiveRounding << std::endl;
     }
 
     const char *fileName = m_debugInterface->CreateFileName(

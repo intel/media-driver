@@ -35,7 +35,7 @@ CodechalDecodeHistogramVebox::CodechalDecodeHistogramVebox(
 {
     MOS_ZeroMemory(&m_resSyncObject, sizeof(m_resSyncObject));
     MOS_ZeroMemory(&m_resStatisticsOutput, sizeof(m_resStatisticsOutput));
-    MOS_ZeroMemory(&m_sOutputSurface, sizeof(m_sOutputSurface));
+    MOS_ZeroMemory(&m_outputSurface, sizeof(m_outputSurface));
     // allocate heap
     m_veboxInterface->CreateHeap();
 
@@ -62,9 +62,9 @@ CodechalDecodeHistogramVebox::~CodechalDecodeHistogramVebox()
     {
         m_osInterface->pfnFreeResource(m_osInterface, &m_resStatisticsOutput);
     }
-    if (!Mos_ResourceIsNull(&m_sOutputSurface.OsResource))
+    if (!Mos_ResourceIsNull(&m_outputSurface.OsResource))
     {
-        m_osInterface->pfnFreeResource(m_osInterface, &m_sOutputSurface.OsResource);
+        m_osInterface->pfnFreeResource(m_osInterface, &m_outputSurface.OsResource);
     }
 }
 
@@ -83,20 +83,20 @@ MOS_STATUS CodechalDecodeHistogramVebox::AllocateResources()
 
     uint32_t size = 0;
     // allocate internal histogram resource
-    if (Mos_ResourceIsNull(&m_resHistogram)             ||
-        m_preWidth  != m_sInputSurface->dwWidth         ||
-        m_preHeight != m_sInputSurface->dwHeight)
+    if (Mos_ResourceIsNull(&m_resHistogram) ||
+        m_preWidth != m_inputSurface->dwWidth ||
+        m_preHeight != m_inputSurface->dwHeight)
     {
         // Need to reallocate
-        if (m_preWidth != m_sInputSurface->dwWidth ||
-            m_preHeight != m_sInputSurface->dwHeight)
+        if (m_preWidth != m_inputSurface->dwWidth ||
+            m_preHeight != m_inputSurface->dwHeight)
         {
             m_osInterface->pfnFreeResource(m_osInterface, &m_resHistogram);
         }
 
         m_hwInterface->GetHcpInterface()->GetOsResLaceOrAceOrRgbHistogramBufferSize(
-            m_sInputSurface->dwWidth,
-            m_sInputSurface->dwHeight,
+            m_inputSurface->dwWidth,
+            m_inputSurface->dwHeight,
             &size);
 
         MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferLinear;
@@ -120,20 +120,20 @@ MOS_STATUS CodechalDecodeHistogramVebox::AllocateResources()
     }
 
     // allocate statistics output resource to avoid Page Fault issue since HW will access it
-    if (Mos_ResourceIsNull(&m_resStatisticsOutput)  ||
-        m_preWidth  != m_sInputSurface->dwWidth     ||
-        m_preHeight != m_sInputSurface->dwHeight)
+    if (Mos_ResourceIsNull(&m_resStatisticsOutput) ||
+        m_preWidth != m_inputSurface->dwWidth ||
+        m_preHeight != m_inputSurface->dwHeight)
     {
         // Need to reallocate
-        if (m_preWidth != m_sInputSurface->dwWidth ||
-            m_preHeight != m_sInputSurface->dwHeight)
+        if (m_preWidth != m_inputSurface->dwWidth ||
+            m_preHeight != m_inputSurface->dwHeight)
         {
             m_osInterface->pfnFreeResource(m_osInterface, &m_resStatisticsOutput);
         }
 
         m_hwInterface->GetHcpInterface()->GetOsResStatisticsOutputBufferSize(
-            m_sInputSurface->dwWidth,
-            m_sInputSurface->dwHeight,
+            m_inputSurface->dwWidth,
+            m_inputSurface->dwHeight,
             &size);
 
         MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferLinear;
@@ -157,27 +157,27 @@ MOS_STATUS CodechalDecodeHistogramVebox::AllocateResources()
     }
 
     // allocate vebox output surface
-    if (Mos_ResourceIsNull(&m_sOutputSurface.OsResource)    ||
-        m_preWidth  != m_sInputSurface->dwWidth             ||
-        m_preHeight != m_sInputSurface->dwHeight)
+    if (Mos_ResourceIsNull(&m_outputSurface.OsResource) ||
+        m_preWidth != m_inputSurface->dwWidth ||
+        m_preHeight != m_inputSurface->dwHeight)
     {
         // Need to reallocate
-        if (m_preWidth != m_sInputSurface->dwWidth ||
-            m_preHeight != m_sInputSurface->dwHeight)
+        if (m_preWidth != m_inputSurface->dwWidth ||
+            m_preHeight != m_inputSurface->dwHeight)
         {
-            m_osInterface->pfnFreeResource(m_osInterface, &m_sOutputSurface.OsResource);
+            m_osInterface->pfnFreeResource(m_osInterface, &m_outputSurface.OsResource);
         }
 
         CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(m_decoder->AllocateSurface(
-            &m_sOutputSurface,
-            m_sInputSurface->dwWidth,
-            m_sInputSurface->dwHeight,
-            "VeboxOutputBuffer"),
+                                                      &m_outputSurface,
+                                                      m_inputSurface->dwWidth,
+                                                      m_inputSurface->dwHeight,
+                                                      "VeboxOutputBuffer"),
             "Failed to allocate vebox output surface buffer.");
     }
 
-    m_preWidth = m_sInputSurface->dwWidth;
-    m_preHeight = m_sInputSurface->dwHeight;
+    m_preWidth  = m_inputSurface->dwWidth;
+    m_preHeight = m_inputSurface->dwHeight;
 
     return eStatus;
 }
@@ -227,22 +227,22 @@ MOS_STATUS CodechalDecodeHistogramVebox::SetVeboxSurfaceStateParams(
 
     // Initialize SurfInput
     veboxSurfParams->SurfInput.bActive          = true;
-    veboxSurfParams->SurfInput.Format           = m_sInputSurface->Format;
-    veboxSurfParams->SurfInput.dwWidth          = m_sInputSurface->dwWidth;
-    veboxSurfParams->SurfInput.dwHeight         = m_sInputSurface->UPlaneOffset.iYOffset;// For Planar formats, pParams->SurfInput.dwHeight will be assigned to VEBOX U.Y offset, which is only used for PLANAR surface formats.
-    veboxSurfParams->SurfInput.dwUYoffset       = m_sInputSurface->UPlaneOffset.iYOffset;
-    veboxSurfParams->SurfInput.dwPitch          = m_sInputSurface->dwPitch;
-    veboxSurfParams->SurfInput.TileType         = m_sInputSurface->TileType;
-    veboxSurfParams->SurfInput.pOsResource      = &m_sInputSurface->OsResource;
+    veboxSurfParams->SurfInput.Format           = m_inputSurface->Format;
+    veboxSurfParams->SurfInput.dwWidth          = m_inputSurface->dwWidth;
+    veboxSurfParams->SurfInput.dwHeight         = m_inputSurface->UPlaneOffset.iYOffset;  // For Planar formats, pParams->SurfInput.dwHeight will be assigned to VEBOX U.Y offset, which is only used for PLANAR surface formats.
+    veboxSurfParams->SurfInput.dwUYoffset       = m_inputSurface->UPlaneOffset.iYOffset;
+    veboxSurfParams->SurfInput.dwPitch          = m_inputSurface->dwPitch;
+    veboxSurfParams->SurfInput.TileType         = m_inputSurface->TileType;
+    veboxSurfParams->SurfInput.pOsResource      = &m_inputSurface->OsResource;
     veboxSurfParams->SurfInput.rcMaxSrc.left    = 0;
     veboxSurfParams->SurfInput.rcMaxSrc.top     = 0;
-    veboxSurfParams->SurfInput.rcMaxSrc.right   = 
-        MOS_ALIGN_CEIL(m_sInputSurface->dwWidth, MHW_SFC_VE_WIDTH_ALIGN);
-    veboxSurfParams->SurfInput.rcMaxSrc.bottom  = 
-        MOS_ALIGN_CEIL(m_sInputSurface->dwHeight, MHW_SFC_VE_HEIGHT_ALIGN);
+    veboxSurfParams->SurfInput.rcMaxSrc.right =
+        MOS_ALIGN_CEIL(m_inputSurface->dwWidth, MHW_SFC_VE_WIDTH_ALIGN);
+    veboxSurfParams->SurfInput.rcMaxSrc.bottom =
+        MOS_ALIGN_CEIL(m_inputSurface->dwHeight, MHW_SFC_VE_HEIGHT_ALIGN);
 
     // Initialize SurfSTMM
-    veboxSurfParams->SurfSTMM.dwPitch           = m_sInputSurface->dwPitch;
+    veboxSurfParams->SurfSTMM.dwPitch = m_inputSurface->dwPitch;
 
     veboxSurfParams->bDIEnable                  = false;
     veboxSurfParams->bOutputValid               = false;
@@ -258,18 +258,18 @@ MOS_STATUS CodechalDecodeHistogramVebox::SetVeboxDiIecpParams(
     CODECHAL_HW_FUNCTION_ENTER;
 
     veboxDiIecpParams->dwStartingX              = 0;
-    veboxDiIecpParams->dwEndingX                = m_sInputSurface->dwWidth - 1;
-    veboxDiIecpParams->dwCurrInputSurfOffset    = m_sInputSurface->dwOffset;
-    veboxDiIecpParams->pOsResCurrInput          = &m_sInputSurface->OsResource;
-    veboxDiIecpParams->pOsResCurrOutput         = &m_sOutputSurface.OsResource;
+    veboxDiIecpParams->dwEndingX                = m_inputSurface->dwWidth - 1;
+    veboxDiIecpParams->dwCurrInputSurfOffset    = m_inputSurface->dwOffset;
+    veboxDiIecpParams->pOsResCurrInput          = &m_inputSurface->OsResource;
+    veboxDiIecpParams->pOsResCurrOutput         = &m_outputSurface.OsResource;
     veboxDiIecpParams->CurrInputSurfCtrl.Value  = 0;
     veboxDiIecpParams->CurrOutputSurfCtrl.Value = 0;
 
-    CodecHalGetResourceInfo(m_osInterface, m_sInputSurface);
-    CodecHalGetResourceInfo(m_osInterface, &m_sOutputSurface);
+    CodecHalGetResourceInfo(m_osInterface, m_inputSurface);
+    CodecHalGetResourceInfo(m_osInterface, &m_outputSurface);
 
-    veboxDiIecpParams->CurInputSurfMMCState             = 
-        (MOS_MEMCOMP_STATE)(m_sInputSurface->CompressionMode);
+    veboxDiIecpParams->CurInputSurfMMCState =
+        (MOS_MEMCOMP_STATE)(m_inputSurface->CompressionMode);
     veboxDiIecpParams->pOsResLaceOrAceOrRgbHistogram    = &m_resHistogram;
     veboxDiIecpParams->pOsResStatisticsOutput           = &m_resStatisticsOutput;
 
@@ -286,7 +286,7 @@ MOS_STATUS CodechalDecodeHistogramVebox::SetVeboxIecpParams(
     veboxIecpParams->ColorPipeParams.bActive    = true;
     veboxIecpParams->ColorPipeParams.bEnableACE = true;
     veboxIecpParams->AceParams.bActive          = true;
-    veboxIecpParams->srcFormat                  = m_sInputSurface->Format;
+    veboxIecpParams->srcFormat                  = m_inputSurface->Format;
     veboxIecpParams->bCSCEnable                 = false;
 
     return eStatus;
@@ -300,13 +300,13 @@ MOS_STATUS CodechalDecodeHistogramVebox::RenderHistogram(
 
     CODECHAL_HW_FUNCTION_ENTER;
 
-    if (Mos_ResourceIsNull(&m_sInputHistogramSurfaces[m_histogramComponent].OsResource))
+    if (Mos_ResourceIsNull(&m_inputHistogramSurfaces[m_histogramComponent].OsResource))
     {
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
     m_decoder       = codechalDecoder;
-    m_sInputSurface = inputSurface;
+    m_inputSurface  = inputSurface;
 
     AllocateResources();
 
@@ -412,10 +412,10 @@ MOS_STATUS CodechalDecodeHistogramVebox::RenderHistogram(
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_decoder->HucCopy(
         &cmdBuffer,
         &m_resHistogram,
-        &m_sInputHistogramSurfaces[m_histogramComponent].OsResource,
+        &m_inputHistogramSurfaces[m_histogramComponent].OsResource,
         HISTOGRAM_BINCOUNT * 4,
         m_veboxHistogramOffset,
-        m_sInputHistogramSurfaces[m_histogramComponent].dwOffset));
+        m_inputHistogramSurfaces[m_histogramComponent].dwOffset));
 
     MHW_MI_FLUSH_DW_PARAMS flushDwParams;
     MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));

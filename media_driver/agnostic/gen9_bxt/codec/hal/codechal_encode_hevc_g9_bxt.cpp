@@ -217,6 +217,6 @@ CodechalEncHevcStateG9Bxt::CodechalEncHevcStateG9Bxt(
     pfnGetKernelHeaderAndSize = GetKernelHeaderAndSize;
     m_noMeKernelForPFrame = false;
 
-    dwNumRegionsInSlice = 2;
+    m_numRegionsInSlice = 2;
 }
 

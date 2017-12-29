@@ -277,6 +277,6 @@ public:
         PCODECHAL_DECODE_VC1_OLP_PARAMS vc1OlpParams);
 
 protected:
-    MHW_BATCH_BUFFER OlpBatchBuffer;        //!< Olp Batch Buffer
+    MHW_BATCH_BUFFER m_olpBatchBuffer;  //!< Olp Batch Buffer
 };
 #endif  // __CODECHAL_DECODER_VC1_G8_H__

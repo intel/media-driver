@@ -159,9 +159,8 @@ MOS_STATUS Codechal::Execute(void *params)
         CODECHAL_PUBLIC_CHK_NULL_RETURN(m_debugInterface);
 
         CODECHAL_PUBLIC_CHK_STATUS_RETURN(Mos_Solo_ForceDumps(
-            m_debugInterface->dwBufferDumpFrameNum,
-            m_osInterface));
-    )
+            m_debugInterface->m_bufferDumpFrameNum,
+            m_osInterface));)
 
     return MOS_STATUS_SUCCESS;
 }

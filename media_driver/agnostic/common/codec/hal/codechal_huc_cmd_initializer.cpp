@@ -478,9 +478,9 @@ MOS_STATUS CodechalCmdInitializer::CommandInitializerSetVp9Params(CodechalVdencV
     CODECHAL_ENCODE_CHK_NULL_RETURN(state);
     MOS_ZeroMemory(&m_vp9Params, sizeof(m_vp9Params));
     m_vp9Params.prevFrameSegEnabled = state->m_prevFrameSegEnabled;
-    m_vp9Params.seqParams = state->pVp9SeqParams;
-    m_vp9Params.picParams = state->pVp9PicParams;
-    m_vp9Params.segmentationEnabled = state->pVp9PicParams->PicFlags.fields.segmentation_enabled;
+    m_vp9Params.seqParams                    = state->m_vp9SeqParams;
+    m_vp9Params.picParams                    = state->m_vp9PicParams;
+    m_vp9Params.segmentationEnabled          = state->m_vp9PicParams->PicFlags.fields.segmentation_enabled;
     m_vp9Params.segmentMapProvided = state->m_segmentMapProvided;
     m_vp9Params.prevFrameSegEnabled = state->m_prevFrameSegEnabled;
     m_vp9Params.numRefFrames = state->m_numRefFrames;
@@ -497,7 +497,7 @@ MOS_STATUS CodechalCmdInitializer::CommandInitializerSetVp9Params(CodechalVdencV
     m_vp9Params.videoContextUsesNullHw = state->m_videoContextUsesNullHw;
     m_vp9Params.debugInterface = state->GetDebugInterface();
     m_vp9Params.dynamicScalingEnabled = (state->m_dysRefFrameFlags != DYS_REF_NONE) ? true : false;
-    m_vp9Params.segmentParams = state->pVp9SegmentParams;
+    m_vp9Params.segmentParams                = state->m_vp9SegmentParams;
     return eStatus;
 }
 

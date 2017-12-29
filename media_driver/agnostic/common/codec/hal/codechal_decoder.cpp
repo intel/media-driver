@@ -745,15 +745,14 @@ MOS_STATUS CodechalDecode::EndFrame ()
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     CODECHAL_DEBUG_TOOL(
-        CodechalDecodeStatusReport *decodeStatusReport;
-        auto        tempSurfNum = m_debugInterface->dwDecodeSurfDumpFrameNum; // to handle BB_END data not written case
-        uint16_t    preIndex    = m_debugInterface->wPreIndex;
-        uint32_t    numReportsAvailable = (m_decodeStatusBuf.m_currIndex - preIndex) & (CODECHAL_DECODE_STATUS_NUM - 1);
+        CodechalDecodeStatusReport * decodeStatusReport;
+        auto     tempSurfNum         = m_debugInterface->m_decodeSurfDumpFrameNum;  // to handle BB_END data not written case
+        uint16_t preIndex            = m_debugInterface->m_preIndex;
+        uint32_t numReportsAvailable = (m_decodeStatusBuf.m_currIndex - preIndex) & (CODECHAL_DECODE_STATUS_NUM - 1);
         CODECHAL_DECODE_VERBOSEMESSAGE("NumReportsAvailable = %d", numReportsAvailable);
 
-        for (uint32_t i = 0; i < numReportsAvailable; i++)
-        {
-            uint16_t index = (m_debugInterface->wPreIndex + i) % CODECHAL_DECODE_STATUS_NUM;
+        for (uint32_t i = 0; i < numReportsAvailable; i++) {
+            uint16_t index = (m_debugInterface->m_preIndex + i) % CODECHAL_DECODE_STATUS_NUM;
             decodeStatusReport = 
                 &(m_decodeStatusBuf.m_decodeStatus[index].m_decodeStatusReport);
 
@@ -772,13 +771,13 @@ MOS_STATUS CodechalDecode::EndFrame ()
                 CODECHAL_DECODE_CHK_STATUS_BREAK(DecodeGetHybridStatus(
                     m_decodeStatusBuf.m_decodeStatus, index, CODECHAL_STATUS_QUERY_START_FLAG));
             }
- 
-            auto tempFrameNum   = m_debugInterface->dwBufferDumpFrameNum;
-            auto tempPic        = m_debugInterface->CurrPic;
-            auto tempFrameType  = m_debugInterface->wFrameType;
-            m_debugInterface->dwBufferDumpFrameNum  = m_debugInterface->dwDecodeSurfDumpFrameNum;
-            m_debugInterface->CurrPic               = decodeStatusReport->m_currDecodedPic;
-            m_debugInterface->wFrameType            = decodeStatusReport->m_frameType;
+
+            auto tempFrameNum                      = m_debugInterface->m_bufferDumpFrameNum;
+            auto tempPic                           = m_debugInterface->m_currPic;
+            auto tempFrameType                     = m_debugInterface->m_frameType;
+            m_debugInterface->m_bufferDumpFrameNum = m_debugInterface->m_decodeSurfDumpFrameNum;
+            m_debugInterface->m_currPic            = decodeStatusReport->m_currDecodedPic;
+            m_debugInterface->m_frameType          = decodeStatusReport->m_frameType;
             bool olpDump = false;
 
             MOS_SURFACE dstSurface;
@@ -838,27 +837,26 @@ MOS_STATUS CodechalDecode::EndFrame ()
                 dstSurface.Format     = Format_NV12;
                 dstSurface.OsResource = *decodeStatusReport->m_currSfcOutputPicRes;
 
-            CODECHAL_DECODE_CHK_STATUS_BREAK(CodecHalGetResourceInfo(
-                m_osInterface,
-                &dstSurface));
+                CODECHAL_DECODE_CHK_STATUS_BREAK(CodecHalGetResourceInfo(
+                    m_osInterface,
+                    &dstSurface));
 
-            CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
-                &dstSurface,
-                CodechalDbgAttr::attrSfcOutputSurface,
-                "SfcDstSurf"));
+                CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
+                    &dstSurface,
+                    CodechalDbgAttr::attrSfcOutputSurface,
+                    "SfcDstSurf"));
             }
 
             if (CodecHal_PictureIsFrame(decodeStatusReport->m_currDecodedPic) ||
                 CodecHal_PictureIsInterlacedFrame(decodeStatusReport->m_currDecodedPic) ||
                 CodecHal_PictureIsField(decodeStatusReport->m_currDecodedPic))
             {
-                CODECHAL_DECODE_CHK_STATUS_BREAK(m_debugInterface->DeleteCfgLinkNode(m_debugInterface->dwDecodeSurfDumpFrameNum));
-                m_debugInterface->dwDecodeSurfDumpFrameNum = tempSurfNum;
-                    
+                CODECHAL_DECODE_CHK_STATUS_BREAK(m_debugInterface->DeleteCfgLinkNode(m_debugInterface->m_decodeSurfDumpFrameNum));
+                m_debugInterface->m_decodeSurfDumpFrameNum = tempSurfNum;
             }
-            m_debugInterface->dwBufferDumpFrameNum  = tempFrameNum;
-            m_debugInterface->CurrPic               = tempPic;
-            m_debugInterface->wFrameType            = tempFrameType;
+            m_debugInterface->m_bufferDumpFrameNum = tempFrameNum;
+            m_debugInterface->m_currPic            = tempPic;
+            m_debugInterface->m_frameType          = tempFrameType;
 
             if (m_decodeStatusBuf.m_decodeStatus[index].m_hwStoredData == CODECHAL_STATUS_QUERY_END_FLAG)
             {
@@ -880,8 +878,7 @@ MOS_STATUS CodechalDecode::EndFrame ()
             }
         }
 
-        m_debugInterface->wPreIndex = preIndex;
-    )
+        m_debugInterface->m_preIndex = preIndex;)
 
     if (m_consecutiveMbErrorConcealmentInUse &&
         m_incompletePicture)
@@ -917,8 +914,7 @@ MOS_STATUS CodechalDecode::Execute(void *params)
     MOS_TraceEvent(EVENT_CODEC_DECODE, EVENT_TYPE_START, &m_standard, sizeof(uint32_t), &m_frameNum, sizeof(uint32_t));
 
     CODECHAL_DEBUG_TOOL(
-        m_debugInterface->dwBufferDumpFrameNum = m_frameNum;
-    )
+        m_debugInterface->m_bufferDumpFrameNum = m_frameNum;)
 
     if (m_cencDecoder != nullptr)
     {
@@ -1117,17 +1113,15 @@ MOS_STATUS CodechalDecode::Execute(void *params)
 //#endif // _DEBUG || _RELEASE_INTERNAL
 
     CODECHAL_DEBUG_TOOL(
-        if (CodecHal_PictureIsFrame(m_debugInterface->CurrPic) ||
-            CodecHal_PictureIsInterlacedFrame(m_debugInterface->CurrPic) ||
-            m_debugInterface->bSecondField)
-        {
+        if (CodecHal_PictureIsFrame(m_debugInterface->m_currPic) ||
+            CodecHal_PictureIsInterlacedFrame(m_debugInterface->m_currPic) ||
+            m_debugInterface->m_secondField) {
             if (!m_statusQueryReportingEnabled)
             {
-                CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DeleteCfgLinkNode(m_debugInterface->dwBufferDumpFrameNum));
+                CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DeleteCfgLinkNode(m_debugInterface->m_bufferDumpFrameNum));
             }
-        }
-    )
-        
+        })
+
     if (CodecHal_PictureIsFrame(m_crrPic) ||
         CodecHal_PictureIsInterlacedFrame(m_crrPic) ||
         m_secondField)

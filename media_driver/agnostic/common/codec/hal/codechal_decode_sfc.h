@@ -178,55 +178,55 @@ public:
         PCODECHAL_DECODE_PROCESSING_PARAMS  decodeProcParams,
         uint8_t                             sfcPipeMode);
 
-    CodechalDecode              *pDecoder           = nullptr;      //!< Decoder
-    PMOS_INTERFACE              pOsInterface        = nullptr;      //!< OS Interface
-    CodechalHwInterface        *pHwInterface        = nullptr;      //!< HW Interface
-    MhwVeboxInterface           *pVeboxInterface    = nullptr;      //!< Vebox Interface
-    PMHW_SFC_INTERFACE          pSfcInterface       = nullptr;      //!< Sfc Interface
+    CodechalDecode *     m_decoder        = nullptr;  //!< Decoder
+    PMOS_INTERFACE       m_osInterface    = nullptr;  //!< OS Interface
+    CodechalHwInterface *m_hwInterface    = nullptr;  //!< HW Interface
+    MhwVeboxInterface *  m_veboxInterface = nullptr;  //!< Vebox Interface
+    PMHW_SFC_INTERFACE   m_sfcInterface   = nullptr;  //!< Sfc Interface
 
-    bool                        bDeblockingEnabled  = false;        //!< Indicate if Deblocking is enabled
-    uint32_t                    dwInputFrameWidth   = 0;            //!< Input Frame Width
-    uint32_t                    dwInputFrameHeight  = 0;            //!< Input Frame Height
-    bool                        bSfcPipeOut         = false;        //!< Indicate Sfc Pipe Out is enabled
-    PMOS_SURFACE                pSfcOutputSurface   = nullptr;      //!< Pointer of Sfc Output Surface
+    bool         m_deblockingEnabled = false;    //!< Indicate if Deblocking is enabled
+    uint32_t     m_inputFrameWidth   = 0;        //!< Input Frame Width
+    uint32_t     m_inputFrameHeight  = 0;        //!< Input Frame Height
+    bool         m_sfcPipeOut        = false;    //!< Indicate Sfc Pipe Out is enabled
+    PMOS_SURFACE m_sfcOutputSurface  = nullptr;  //!< Pointer of Sfc Output Surface
 
-    bool                        bJpegInUse          = false;        //!< Indicate if Jpeg is in use
-    uint8_t                     ucJpegChromaType    = 0;            //!< Jpeg Chroma Type
+    bool         m_jpegInUse      = false;  //!< Indicate if Jpeg is in use
+    uint8_t      m_jpegChromaType = 0;      //!< Jpeg Chroma Type
 
 protected:
     uint8_t                     m_sfcPipeMode       = MhwSfcInterface::SFC_PIPE_MODE_VDBOX; //!< which FE engine pipe used
 
-    PMOS_SURFACE                pInputSurface       = nullptr;      //!< Pointer of Input Surface
-    PMOS_SURFACE                pVeboxOutputSurface = nullptr;      //!< Pointer of Vebox Output Surface
+    PMOS_SURFACE m_inputSurface       = nullptr;  //!< Pointer of Input Surface
+    PMOS_SURFACE m_veboxOutputSurface = nullptr;  //!< Pointer of Vebox Output Surface
 
-    MOS_RESOURCE                resAvsLineBuffer            = { 0 };    //!< Avs Line Buffer MOS Resource
-    MOS_RESOURCE                resLaceOrAceOrRgbHistogram  = { 0 };    //!< Lace/Ace/Rgb Histogram MOS Resource
-    MOS_RESOURCE                resStatisticsOutput         = { 0 };    //!< Statistics Output MOS Resource
+    MOS_RESOURCE m_resAvsLineBuffer           = {0};  //!< Avs Line Buffer MOS Resource
+    MOS_RESOURCE m_resLaceOrAceOrRgbHistogram = {0};  //!< Lace/Ace/Rgb Histogram MOS Resource
+    MOS_RESOURCE m_resStatisticsOutput        = {0};  //!< Statistics Output MOS Resource
 
-    bool                        bScaling            = false;        //!< Indicate if scaling is needed
-    bool                        bColorFill          = false;        //!< Indicate if color fill is needed
-    bool                        bIEF                = false;        //!< Indicate if IEF is needed for Surface
-    bool                        bCSC                = false;        //!< Indicate if YUV->RGB/YUV->YUV CSC is enabled
+    bool         m_scaling   = false;  //!< Indicate if scaling is needed
+    bool         m_colorFill = false;  //!< Indicate if color fill is needed
+    bool         m_ief       = false;  //!< Indicate if IEF is needed for Surface
+    bool         m_csc       = false;  //!< Indicate if YUV->RGB/YUV->YUV CSC is enabled
 
-    float                       fScaleX             = 0;            //!< Horizontal Scaling Ratio
-    float                       fScaleY             = 0;            //!< Vertical Scaling Ratio
+    float        m_scaleX = 0;  //!< Horizontal Scaling Ratio
+    float        m_scaleY = 0;  //!< Vertical Scaling Ratio
 
-    uint32_t                    uiRotationMode      = 0;            //!< Rotation Mode
-    uint32_t                    uiChromaSiting      = 0;            //!< Chroma Siting Type
+    uint32_t     m_rotationMode = 0;  //!< Rotation Mode
+    uint32_t     m_chromaSiting = 0;  //!< Chroma Siting Type
 
-    CODECHAL_RECTANGLE          rcInputSurfaceRegion    = { 0 };    //!< Input Region Resolution and Offset
-    CODECHAL_RECTANGLE          rcOutputSurfaceRegion   = { 0 };    //!< Output Region Resolution and Offset
+    CODECHAL_RECTANGLE m_inputSurfaceRegion  = {0};  //!< Input Region Resolution and Offset
+    CODECHAL_RECTANGLE m_outputSurfaceRegion = {0};  //!< Output Region Resolution and Offset
 
-    float                       fCscCoeff[9]        = { 0 };        //!< Csc Coefficient
-    float                       fCscInOffset[3]     = { 0 };        //!< Csc In Offset
-    float                       fCscOutOffset[3]    = { 0 };        //!< Csc Out Offset
+    float              m_cscCoeff[9]     = {0};  //!< Csc Coefficient
+    float              m_cscInOffset[3]  = {0};  //!< Csc In Offset
+    float              m_cscOutOffset[3] = {0};  //!< Csc Out Offset
 
-    MHW_AVS_PARAMS              AvsParams           = { Format_Any };   //!< Avs Params
-    MHW_SFC_AVS_LUMA_TABLE      LumaTable           = { 0 };            //!< Avs Luma Table
-    MHW_SFC_AVS_CHROMA_TABLE    ChromaTable         = { 0 };            //!< Avs Chroma Table
-    MHW_SFC_AVS_STATE           AvsState            = { 0 };            //<! Avs State
+    MHW_AVS_PARAMS           m_avsParams   = {Format_Any};  //!< Avs Params
+    MHW_SFC_AVS_LUMA_TABLE   m_lumaTable   = {0};           //!< Avs Luma Table
+    MHW_SFC_AVS_CHROMA_TABLE m_chromaTable = {0};           //!< Avs Chroma Table
+    MHW_SFC_AVS_STATE        m_avsState    = {0};           //<! Avs State
 
-    MOS_RESOURCE                resSyncObject       = { 0 };            //!< Sync Object
+    MOS_RESOURCE m_resSyncObject = {0};  //!< Sync Object
 
 protected:
     //!

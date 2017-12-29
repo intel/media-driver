@@ -123,11 +123,9 @@ typedef struct _AVCVdencBRCCostantData
 class CodechalVdencAvcState : public CodechalEncodeAvcBase
 {
 public:
-
-    const bool PerfModeEnabled[NUM_VDENC_TARGET_USAGE_MODES] =
-    {
-        0, 0, 0, 0, 0, 0, 1, 1
-    };
+    const bool m_perfModeEnabled[NUM_VDENC_TARGET_USAGE_MODES] =
+        {
+            0, 0, 0, 0, 0, 0, 1, 1};
 
     // VDEnc BRC Flag in BRC Init Kernel
     typedef enum _BRCFLAG
@@ -742,71 +740,71 @@ protected:
     uint8_t                                     *m_vdencHmeMvCostTbl = nullptr;    //!< Pointer to VDEnc HME MV Cost Table
 
     // SEI
-    CodechalEncodeSeiData               SeiData;                                            //!< Encode SEI data parameter.
-    uint32_t                            dwSEIDataOffset;                                    //!< Encode SEI data offset.
-    uint8_t*                            pSeiParamBuffer;                                    //!< Encode SEI data buffer.
+    CodechalEncodeSeiData m_seiData;         //!< Encode SEI data parameter.
+    uint32_t              m_seiDataOffset;   //!< Encode SEI data offset.
+    uint8_t *             m_seiParamBuffer;  //!< Encode SEI data buffer.
 
-    bool                                bBrcInit;                                           //!< BRC init enable flag.
-    bool                                bBrcReset;                                          //!< BRC reset enable flag.
-    bool                                bMbBrcEnabled;                                      //!< MBBrc enable flag.
-    bool                                bMbBrcUserFeatureKeyControl;                        //!< MBBRC user feature control enable flag.
-    double                              dBrcTargetSize;                                     //!< BRC target size.
-    uint32_t                            dwTrellis;                                          //!< Trellis Number.
-    bool                                bAcceleratorHeaderPackingCaps;                      //!< Flag set by driver from driver caps.
+    bool     m_brcInit;                       //!< BRC init enable flag.
+    bool     m_brcReset;                      //!< BRC reset enable flag.
+    bool     m_mbBrcEnabled;                  //!< MBBrc enable flag.
+    bool     m_mbBrcUserFeatureKeyControl;    //!< MBBRC user feature control enable flag.
+    double   m_dBrcTargetSize;                //!< BRC target size.
+    uint32_t m_trellis;                       //!< Trellis Number.
+    bool     m_acceleratorHeaderPackingCaps;  //!< Flag set by driver from driver caps.
 
-    double                              dBrcInitCurrentTargetBufFullInBits;                 //!< BRC init current target buffer full in bits
-    double                              dBrcInitResetInputBitsPerFrame;                     //!< BrcInitReset Input Bits Per Frame
-    uint32_t                            dwBrcInitResetBufSizeInBits;                        //!< BrcInitReset Buffer Size In Bits
-    uint32_t                            dwBrcInitPreviousTargetBufFullInBits;               //!< BRC Init Previous Target Buffer Full In Bits
+    double   m_dBrcInitCurrentTargetBufFullInBits;  //!< BRC init current target buffer full in bits
+    double   m_dBrcInitResetInputBitsPerFrame;      //!< BrcInitReset Input Bits Per Frame
+    uint32_t m_brcInitResetBufSizeInBits;           //!< BrcInitReset Buffer Size In Bits
+    uint32_t m_brcInitPreviousTargetBufFullInBits;  //!< BRC Init Previous Target Buffer Full In Bits
 
     // Below values will be set if qp control params are sent by app
-    bool                                bMinMaxQPControlEnabled;                            //!< Flag to indicate if min/max QP feature is enabled or not.
-    uint8_t                             ucIMinQP;                                           //!< I frame Minimum QP.
-    uint8_t                             ucIMaxQP;                                           //!< I frame Maximum QP.
-    uint8_t                             ucPMinQP;                                           //!< P frame Minimum QP.
-    uint8_t                             ucPMaxQP;                                           //!< P frame Maximum QP.
-    bool                                bPFrameMinMaxQPControl;                             //!< Indicates min/max QP values for P-frames are set separately or not.
+    bool    m_minMaxQpControlEnabled;  //!< Flag to indicate if min/max QP feature is enabled or not.
+    uint8_t m_iMinQp;                  //!< I frame Minimum QP.
+    uint8_t m_iMaxQp;                  //!< I frame Maximum QP.
+    uint8_t m_pMinQp;                  //!< P frame Minimum QP.
+    uint8_t m_pMaxQp;                  //!< P frame Maximum QP.
+    bool    m_pFrameMinMaxQpControl;   //!< Indicates min/max QP values for P-frames are set separately or not.
 
-    uint32_t                            dwSkipFrameBufferSize;                              //!< size of skip frame packed data.
-    MOS_RESOURCE                        resSkipFrameBuffer;                                 //!< copy skip frame packed data from DDI.
-                                                                                            
+    uint32_t     m_skipFrameBufferSize;  //!< size of skip frame packed data.
+    MOS_RESOURCE m_resSkipFrameBuffer;   //!< copy skip frame packed data from DDI.
+
     // VDENC BRC Buffers
-    MOS_RESOURCE                        resVdencBrcUpdateDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_VDENC_BRC_NUM_OF_PASSES]; //!< Brc Update DMEM Buffer Array.
-    MOS_RESOURCE                        resVdencBrcInitDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];                                     //!< Brc Init DMEM Buffer Array.
-    MOS_RESOURCE                        resVdencBrcImageStatesReadBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];                              //!< Read-only VDENC+PAK IMG STATE buffer.
-    MOS_RESOURCE                        resVdencBrcConstDataBuffer;                                                                         //!< BRC Const Data Buffer.
-    MOS_RESOURCE                        resVdencBrcHistoryBuffer;                                                                           //!< BRC History Buffer.
-    MOS_RESOURCE                        resVdencBrcDbgBuffer;                                                                               //!< BRC Debug Buffer.
+    MOS_RESOURCE m_resVdencBrcUpdateDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_VDENC_BRC_NUM_OF_PASSES];  //!< Brc Update DMEM Buffer Array.
+    MOS_RESOURCE m_resVdencBrcInitDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];                                      //!< Brc Init DMEM Buffer Array.
+    MOS_RESOURCE m_resVdencBrcImageStatesReadBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];                               //!< Read-only VDENC+PAK IMG STATE buffer.
+    MOS_RESOURCE m_resVdencBrcConstDataBuffer;                                                                          //!< BRC Const Data Buffer.
+    MOS_RESOURCE m_resVdencBrcHistoryBuffer;                                                                            //!< BRC History Buffer.
+    MOS_RESOURCE m_resVdencBrcDbgBuffer;                                                                                //!< BRC Debug Buffer.
 
     // Static frame detection
-    bool                                bStaticFrameDetectionEnable;                                    //!< Static frame detection enable.
-    MOS_RESOURCE                        resSFDOutputBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];        //!< Array of SFDOutputBuffer.
-    MOS_RESOURCE                        resSFDCostTablePFrameBuffer;                                    //!< SFD CostTable of P Frame.
-    MOS_RESOURCE                        resSFDCostTableBFrameBuffer;                                    //!< SFD CostTable of B Frame.
-    MOS_RESOURCE                        resVdencSFDImageStateReadBuffer;                                //!< SFD ImageState Read Buffer.
-    PMHW_KERNEL_STATE                   pSFDKernelState;                                                //!< Point to SFD kernel state.
+    bool              m_staticFrameDetectionEnable;                               //!< Static frame detection enable.
+    MOS_RESOURCE      m_resSfdOutputBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];  //!< Array of SFDOutputBuffer.
+    MOS_RESOURCE      m_resSfdCostTablePFrameBuffer;                              //!< SFD CostTable of P Frame.
+    MOS_RESOURCE      m_resSfdCostTableBFrameBuffer;                              //!< SFD CostTable of B Frame.
+    MOS_RESOURCE      m_resVdencSfdImageStateReadBuffer;                          //!< SFD ImageState Read Buffer.
+    PMHW_KERNEL_STATE m_sfdKernelState;                                           //!< Point to SFD kernel state.
 
     // Generation Specific Support Flags & User Feature Key Reads
-    uint8_t                             ucMbBrcSupportCaps;                                             //!< MbBrcSupport Capability.
-    bool                                bFTQEnable;                                                     //!< FTQEnable
-    bool                                bSkipBiasAdjustmentSupported;                                   //!< SkipBiasAdjustment support for P frame
-    bool                                bSliceLevelReportSupported;                                     //!< Slice Level Report support
-    bool                                bBrcRoiSupported;                                               //!< BRC Roi Support Flag.
+    uint8_t m_mbBrcSupportCaps;             //!< MbBrcSupport Capability.
+    bool    m_ftqEnable;                    //!< FTQEnable
+    bool    m_skipBiasAdjustmentSupported;  //!< SkipBiasAdjustment support for P frame
+    bool    m_sliceLevelReportSupported;    //!< Slice Level Report support
+    bool    m_brcRoiSupported;              //!< BRC Roi Support Flag.
 
-    bool                                bRoundingInterEnable;                                           //!< RoundingInter Enable Flag.
-    bool                                bAdaptiveRoundingInterEnable;                                   //!< Adaptive Rounding Inter Enable Flag.
-    uint32_t                            dwRoundingInterP;                                               //!< Rounding Inter for P frame.
+    bool     m_roundingInterEnable;          //!< RoundingInter Enable Flag.
+    bool     m_adaptiveRoundingInterEnable;  //!< Adaptive Rounding Inter Enable Flag.
+    uint32_t m_roundingInterP;               //!< Rounding Inter for P frame.
 
-    uint8_t                             VDEncModeCost[12];                                              //!< VDEnc Mode Cost Table.
-    uint8_t                             VDEncMvCost[8];                                                 //!< VDEnc MV Cost Table.
-    uint8_t                             VDEncHmeMvCost[8];                                              //!< VDEnc HME MV Cost Table.
+    uint8_t m_vdEncModeCost[12];  //!< VDEnc Mode Cost Table.
+    uint8_t m_vdEncMvCost[8];     //!< VDEnc MV Cost Table.
+    uint8_t m_vdEncHmeMvCost[8];  //!< VDEnc HME MV Cost Table.
 
-    uint32_t                            dwSlidingWindowSize;                                            //!< Slideing Window Size.
-    bool                                bForceToSkipEnable;                                             //!< Force to Skip Flag.
-    uint32_t                            dwVdencBrcInitDmemBufferSize;                                   //!< Brc Init-Dmem Buffer Size.
-    uint32_t                            dwVdencBrcUpdateDmemBufferSize;                                 //!< Brc Update-Dmem Buffer Size.
-    bool                                bVdencStaticFrame;                                              //!< Static Frame Indicator.
-    uint32_t                            dwVdencStaticRegionPct;                                         //!< Ratio of Static Region in One Frame.
+    uint32_t                            m_slidingWindowSize;                                            //!< Slideing Window Size.
+    bool                                m_forceToSkipEnable;                                            //!< Force to Skip Flag.
+    uint32_t                            m_vdencBrcInitDmemBufferSize;                                   //!< Brc Init-Dmem Buffer Size.
+    uint32_t                            m_vdencBrcUpdateDmemBufferSize;                                 //!< Brc Update-Dmem Buffer Size.
+    bool                                m_vdencStaticFrame;                                             //!< Static Frame Indicator.
+    uint32_t                            m_vdencStaticRegionPct;                                         //!< Ratio of Static Region in One Frame.
     bool                                m_oneOnOneMapping = false;                                      //!< Indicate if one on one ref index mapping is enabled
 
     static const uint32_t TrellisQuantizationRounding[NUM_VDENC_TARGET_USAGE_MODES];
@@ -930,12 +928,12 @@ MOS_STATUS CodechalVdencAvcState::SetDmemHuCBrcInitResetImpl(CODECHAL_VDENC_AVC_
         avcSeqParams->MaxBitRate = avcSeqParams->TargetBitRate;
     }
 
-    dBrcInitResetInputBitsPerFrame =
+    m_dBrcInitResetInputBitsPerFrame =
         ((double)avcSeqParams->MaxBitRate * 100) / avcSeqParams->FramesPer100Sec;
-    dBrcInitCurrentTargetBufFullInBits = dBrcInitResetInputBitsPerFrame;
-    dBrcTargetSize = avcSeqParams->InitVBVBufferFullnessInBit;
+    m_dBrcInitCurrentTargetBufFullInBits = m_dBrcInitResetInputBitsPerFrame;
+    m_dBrcTargetSize                     = avcSeqParams->InitVBVBufferFullnessInBit;
 
-    hucVDEncBrcInitDmem->BRCFunc_U8 = bBrcInit ? 0 : 2; // 0 for init, 2 for reset
+    hucVDEncBrcInitDmem->BRCFunc_U8 = m_brcInit ? 0 : 2;  // 0 for init, 2 for reset
 
     hucVDEncBrcInitDmem->INIT_FrameWidth_U16 = (uint16_t)m_frameWidth;
     hucVDEncBrcInitDmem->INIT_FrameHeight_U16 = (uint16_t)m_frameHeight;
@@ -1037,7 +1035,7 @@ MOS_STATUS CodechalVdencAvcState::SetDmemHuCBrcInitResetImpl(CODECHAL_VDENC_AVC_
     hucVDEncBrcInitDmem->INIT_InitQPIP = (uint8_t)initQP;
 
     // MBBRC control
-    if (bMbBrcEnabled)
+    if (m_mbBrcEnabled)
     {
         hucVDEncBrcInitDmem->INIT_MbQpCtrl_U8 = 1;
         MOS_SecureMemcpy(hucVDEncBrcInitDmem->INIT_DistQPDelta_I8, 4 * sizeof(int8_t), (void*)BRC_INIT_DistQPDelta_I8, 4 * sizeof(int8_t));
@@ -1117,22 +1115,22 @@ MOS_STATUS CodechalVdencAvcState::SetDmemHuCBrcUpdateImpl(CODECHAL_VDENC_AVC_BRC
 
     hucVDEncBrcDmem->BRCFunc_U8 = 1;   // Update:1
 
-    if (!bBrcInit && (m_currPass == 0))
+    if (!m_brcInit && (m_currPass == 0))
     {
-        dwBrcInitPreviousTargetBufFullInBits =
-            (uint32_t)(dBrcInitCurrentTargetBufFullInBits + dBrcInitResetInputBitsPerFrame * m_numSkipFrames);
-        dBrcInitCurrentTargetBufFullInBits += dBrcInitResetInputBitsPerFrame * (1 + m_numSkipFrames);
-        dBrcTargetSize += dBrcInitResetInputBitsPerFrame * (1 + m_numSkipFrames);
+        m_brcInitPreviousTargetBufFullInBits =
+            (uint32_t)(m_dBrcInitCurrentTargetBufFullInBits + m_dBrcInitResetInputBitsPerFrame * m_numSkipFrames);
+        m_dBrcInitCurrentTargetBufFullInBits += m_dBrcInitResetInputBitsPerFrame * (1 + m_numSkipFrames);
+        m_dBrcTargetSize += m_dBrcInitResetInputBitsPerFrame * (1 + m_numSkipFrames);
     }
 
-    if (dBrcTargetSize > avcSeqParams->VBVBufferSizeInBit)
+    if (m_dBrcTargetSize > avcSeqParams->VBVBufferSizeInBit)
     {
-        dBrcTargetSize -= avcSeqParams->VBVBufferSizeInBit;
+        m_dBrcTargetSize -= avcSeqParams->VBVBufferSizeInBit;
     }
 
     hucVDEncBrcDmem->UPD_FRAMENUM_U32 = m_storeData - 1;    // frame number
-    hucVDEncBrcDmem->UPD_TARGETSIZE_U32 = (uint32_t)(dBrcTargetSize);
-    hucVDEncBrcDmem->UPD_PeakTxBitsPerFrame_U32 = (uint32_t)(dBrcInitCurrentTargetBufFullInBits - dwBrcInitPreviousTargetBufFullInBits);
+    hucVDEncBrcDmem->UPD_TARGETSIZE_U32         = (uint32_t)(m_dBrcTargetSize);
+    hucVDEncBrcDmem->UPD_PeakTxBitsPerFrame_U32 = (uint32_t)(m_dBrcInitCurrentTargetBufFullInBits - m_brcInitPreviousTargetBufFullInBits);
 
     //Dynamic slice size control
     if (avcSeqParams->EnableSliceLevelRateCtrl)
@@ -1246,8 +1244,8 @@ MOS_STATUS CodechalVdencAvcState::SetDmemHuCBrcUpdateImpl(CODECHAL_VDENC_AVC_BRC
 
     if (avcPicParams->NumDirtyROI)
     {
-        hucVDEncBrcDmem->UPD_StaticRegionPct_U16 = (uint16_t)dwVdencStaticRegionPct;
-        if (bMbBrcEnabled)
+        hucVDEncBrcDmem->UPD_StaticRegionPct_U16 = (uint16_t)m_vdencStaticRegionPct;
+        if (m_mbBrcEnabled)
         {
             hucVDEncBrcDmem->UPD_ROISource_U8 = 2;
         }

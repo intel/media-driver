@@ -38,21 +38,21 @@ MOS_STATUS CodechalAvcSfcState::CheckAndInitialize(
 
     CODECHAL_HW_FUNCTION_ENTER;
 
-    bSfcPipeOut = false;
+    m_sfcPipeOut = false;
 
     if (CodecHal_PictureIsFrame(picParams->CurrPic) &&
         !picParams->seq_fields.mb_adaptive_frame_field_flag &&
         IsSfcOutputSupported(decProcessingParams, MhwSfcInterface::SFC_PIPE_MODE_VDBOX))
     {
-        this->bDeblockingEnabled = deblockingEnabled;
-        this->dwInputFrameWidth  = width;
-        this->dwInputFrameHeight = height;
+        this->m_deblockingEnabled = deblockingEnabled;
+        this->m_inputFrameWidth   = width;
+        this->m_inputFrameHeight  = height;
 
         CODECHAL_HW_CHK_STATUS_RETURN(Initialize(
             decProcessingParams,
             MhwSfcInterface::SFC_PIPE_MODE_VDBOX));
 
-        bSfcPipeOut = true;
+        m_sfcPipeOut = true;
     }
 
     return eStatus;
@@ -68,12 +68,11 @@ MOS_STATUS CodechalAvcSfcState::UpdateInputInfo(
     sfcStateParams->sfcPipeMode                = MEDIASTATE_SFC_PIPE_VD_TO_SFC;
     sfcStateParams->dwAVSFilterMode            = MEDIASTATE_SFC_AVS_FILTER_5x5;
 
-    sfcStateParams->dwVDVEInputOrderingMode    = bDeblockingEnabled ?
-                                                  MEDIASTATE_SFC_INPUT_ORDERING_VD_16x16_SHIFT : MEDIASTATE_SFC_INPUT_ORDERING_VD_16x16_NOSHIFT;
+    sfcStateParams->dwVDVEInputOrderingMode    = m_deblockingEnabled ? MEDIASTATE_SFC_INPUT_ORDERING_VD_16x16_SHIFT : MEDIASTATE_SFC_INPUT_ORDERING_VD_16x16_NOSHIFT;
     sfcStateParams->dwInputChromaSubSampling   = MEDIASTATE_SFC_CHROMA_SUBSAMPLING_420;
 
-    sfcStateParams->dwInputFrameWidth          = dwInputFrameWidth;
-    sfcStateParams->dwInputFrameHeight         = dwInputFrameHeight;
+    sfcStateParams->dwInputFrameWidth  = m_inputFrameWidth;
+    sfcStateParams->dwInputFrameHeight = m_inputFrameHeight;
 
     return eStatus;
 }

@@ -3795,7 +3795,7 @@ MOS_STATUS CodechalEncodeAvcEncFeiG8::EncodePreEncInitialize(const EncoderParams
         m_verticalLineStride = CODECHAL_VLINESTRIDE_FIELD;
         m_frameHeight = m_frameFieldHeightInMb * 2 * 16;
         m_picHeightInMb = (uint16_t)(m_frameHeight / 16);
-        dwMBVProcStatsBottomFieldOffset = 0;
+        m_mbvProcStatsBottomFieldOffset = 0;
 
         if (CodecHal_PictureIsBottomField(m_currOriginalPic))
         {
@@ -3852,10 +3852,9 @@ MOS_STATUS CodechalEncodeAvcEncFeiG8::EncodePreEncInitialize(const EncoderParams
         m_refList[m_currOriginalPic.FrameIdx]));
 
     CODECHAL_DEBUG_TOOL(
-        m_debugInterface->CurrPic = m_currOriginalPic;
-        m_debugInterface->dwBufferDumpFrameNum = m_storeData;
-        m_debugInterface->wFrameType = m_pictureCodingType;
-    )
+        m_debugInterface->m_currPic            = m_currOriginalPic;
+        m_debugInterface->m_bufferDumpFrameNum = m_storeData;
+        m_debugInterface->m_frameType          = m_pictureCodingType;)
 
     return eStatus;
 }
@@ -6373,7 +6372,7 @@ MOS_STATUS CodechalEncodeAvcEncFeiG8::PreProcKernel()
     preProcSurfaceParams.dwFrameWidthInMb = (uint32_t)m_picWidthInMb;
     preProcSurfaceParams.dwFrameFieldHeightInMb = (uint32_t)m_frameFieldHeightInMb;
     preProcSurfaceParams.dwMBVProcStatsBottomFieldOffset =
-        CodecHal_PictureIsBottomField(m_currOriginalPic) ? dwMBVProcStatsBottomFieldOffset : 0;
+        CodecHal_PictureIsBottomField(m_currOriginalPic) ? m_mbvProcStatsBottomFieldOffset : 0;
     // Interleaved input surfaces
     preProcSurfaceParams.dwVerticalLineStride = m_verticalLineStride;
     preProcSurfaceParams.dwVerticalLineStrideOffset = m_verticalLineStrideOffset;
@@ -6544,9 +6543,7 @@ MOS_STATUS CodechalEncodeAvcEncFeiG8::SetCurbeMe(MeCurbeParams* params)
     cmd.DW15.PrevMvReadPosFactor = prevMvReadPosFactor;
 
     // r3 & r4
-    uint8_t meMethod = (m_pictureCodingType == B_TYPE) ?
-        m_BMeMethodGeneric[m_targetUsage] :
-        m_MeMethodGeneric[m_targetUsage];
+    uint8_t meMethod = (m_pictureCodingType == B_TYPE) ? m_bMeMethodGeneric[m_targetUsage] : m_meMethodGeneric[m_targetUsage];
     uint8_t tableIdx = (m_pictureCodingType == B_TYPE) ? 1 : 0;
     eStatus = MOS_SecureMemcpy(&(cmd.SPDelta), 14 * sizeof(uint32_t), CodechalEncoderState::m_encodeSearchPath[tableIdx][meMethod], 14 * sizeof(uint32_t));
     if (eStatus != MOS_STATUS_SUCCESS)
@@ -7359,7 +7356,7 @@ MOS_STATUS CodechalEncodeAvcEncFeiG8::SetCurbeAvcMbEnc(PCODECHAL_ENCODE_AVC_MBEN
         ((m_firstField && (bottomField)) || (!m_firstField && (!bottomField)));
     cmd.DW34.EnableMBFlatnessChkOptimization = m_flatnessCheckEnabled;
     cmd.DW34.ROIEnableFlag = params->bRoiEnabled;
-    cmd.DW34.MADEnableFlag = m_bMadEnabled;
+    cmd.DW34.MADEnableFlag                   = m_madEnabled;
     cmd.DW34.MBBrcEnable = 0;
     cmd.DW36.CheckAllFractionalEnable = bCAFEnable;
     cmd.DW38.RefThreshold = m_refThreshold;

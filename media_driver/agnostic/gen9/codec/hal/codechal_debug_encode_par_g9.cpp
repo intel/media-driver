@@ -42,13 +42,13 @@ MOS_STATUS CodechalDebugEncodeParG9::PopulateDsParam(void *cmd)
         return MOS_STATUS_SUCCESS;
     }
 
-    CODECHAL_DEBUG_CHK_NULL(commonPar);
+    CODECHAL_DEBUG_CHK_NULL(m_commonPar);
 
     CodechalEncodeCscDsG9::Ds4xKernelCurbeData *curbe = (CodechalEncodeCscDsG9::Ds4xKernelCurbeData *)cmd;
 
     if ((m_encoder->m_pictureCodingType == I_TYPE) && (curbe->DW6_EnableMBFlatnessCheck))
     {
-        commonPar->mbFlatnessThreshold = curbe->DW5_FlatnessThreshold;
+        m_commonPar->mbFlatnessThreshold = curbe->DW5_FlatnessThreshold;
     }
 
     return MOS_STATUS_SUCCESS;

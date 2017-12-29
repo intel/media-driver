@@ -36,11 +36,11 @@ MOS_STATUS CodechalSfcState::AllocateResources()
 
     if (MhwSfcInterface::SFC_PIPE_MODE_VEBOX == m_sfcPipeMode)
     {
-        CODECHAL_DECODE_CHK_STATUS_RETURN(pOsInterface->pfnCreateSyncResource(pOsInterface, &resSyncObject));
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateSyncResource(m_osInterface, &m_resSyncObject));
     }
 
     // Allocate AVS line buffer
-    if (Mos_ResourceIsNull(&resAvsLineBuffer))
+    if (Mos_ResourceIsNull(&m_resAvsLineBuffer))
     {
         MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferLinear;
         MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
@@ -49,18 +49,18 @@ MOS_STATUS CodechalSfcState::AllocateResources()
         allocParamsForBufferLinear.Format   = Format_Buffer;
         if (MhwSfcInterface::SFC_PIPE_MODE_VEBOX == m_sfcPipeMode)
         {
-            allocParamsForBufferLinear.dwBytes = MOS_ROUNDUP_DIVIDE(pInputSurface->dwHeight, 8) * 5 * MHW_SFC_CACHELINE_SIZE;
+            allocParamsForBufferLinear.dwBytes = MOS_ROUNDUP_DIVIDE(m_inputSurface->dwHeight, 8) * 5 * MHW_SFC_CACHELINE_SIZE;
         }
         else
         {
-            allocParamsForBufferLinear.dwBytes = MOS_ROUNDUP_DIVIDE(pInputSurface->dwWidth, 8) * 3 * MHW_SFC_CACHELINE_SIZE;
+            allocParamsForBufferLinear.dwBytes = MOS_ROUNDUP_DIVIDE(m_inputSurface->dwWidth, 8) * 3 * MHW_SFC_CACHELINE_SIZE;
         }
         allocParamsForBufferLinear.pBufName = "SfcAvsLineBuffer";
 
-        eStatus = (MOS_STATUS)pOsInterface->pfnAllocateResource(
-            pOsInterface,
+        eStatus = (MOS_STATUS)m_osInterface->pfnAllocateResource(
+            m_osInterface,
             &allocParamsForBufferLinear,
-            &resAvsLineBuffer);
+            &m_resAvsLineBuffer);
 
         if (eStatus != MOS_STATUS_SUCCESS)
         {
@@ -72,12 +72,12 @@ MOS_STATUS CodechalSfcState::AllocateResources()
     // Allocate IEF line buffer
 
     //Initialize AVS parameters, try to do once
-    if (bScaling && !AvsParams.piYCoefsX)
+    if (m_scaling && !m_avsParams.piYCoefsX)
     {
-        AvsParams.Format    = Format_None;
-        AvsParams.fScaleX   = 0.0F;
-        AvsParams.fScaleY   = 0.0F;
-        AvsParams.piYCoefsX = nullptr;
+        m_avsParams.Format    = Format_None;
+        m_avsParams.fScaleX   = 0.0F;
+        m_avsParams.fScaleY   = 0.0F;
+        m_avsParams.piYCoefsX = nullptr;
 
         uint32_t ycoeffTableSize  = POLYPHASE_Y_COEFFICIENT_TABLE_SIZE_G9;
         uint32_t uvcoeffTableSize = POLYPHASE_UV_COEFFICIENT_TABLE_SIZE_G9;
@@ -92,16 +92,16 @@ MOS_STATUS CodechalSfcState::AllocateResources()
             return eStatus;
         }
 
-        AvsParams.piYCoefsX  = (int32_t*)ptr; 
+        m_avsParams.piYCoefsX = (int32_t *)ptr;
 
         ptr += ycoeffTableSize;
-        AvsParams.piUVCoefsX = (int32_t*)ptr;
+        m_avsParams.piUVCoefsX = (int32_t *)ptr;
 
         ptr += uvcoeffTableSize;
-        AvsParams.piYCoefsY  = (int32_t*)ptr;
+        m_avsParams.piYCoefsY = (int32_t *)ptr;
 
         ptr += ycoeffTableSize;
-        AvsParams.piUVCoefsY = (int32_t*)ptr;
+        m_avsParams.piUVCoefsY = (int32_t *)ptr;
     }
 
     return eStatus;
@@ -113,19 +113,19 @@ CodechalSfcState::~CodechalSfcState()
 
     if (MhwSfcInterface::SFC_PIPE_MODE_VEBOX == m_sfcPipeMode)
     {
-        pOsInterface->pfnDestroySyncResource(pOsInterface, &resSyncObject);
+        m_osInterface->pfnDestroySyncResource(m_osInterface, &m_resSyncObject);
     }
 
     // Free AVS Line Buffer
-    pOsInterface->pfnFreeResource(pOsInterface, &resAvsLineBuffer);
+    m_osInterface->pfnFreeResource(m_osInterface, &m_resAvsLineBuffer);
     // Free resLaceOrAceOrRgbHistogram
-    pOsInterface->pfnFreeResource(pOsInterface, &resLaceOrAceOrRgbHistogram);
+    m_osInterface->pfnFreeResource(m_osInterface, &m_resLaceOrAceOrRgbHistogram);
     // Free resStatisticsOutput
-    pOsInterface->pfnFreeResource(pOsInterface, &resStatisticsOutput);
+    m_osInterface->pfnFreeResource(m_osInterface, &m_resStatisticsOutput);
 
     // Free buffers in AVS parameters
-    MOS_FreeMemory(AvsParams.piYCoefsX);
-    AvsParams.piYCoefsX = nullptr;
+    MOS_FreeMemory(m_avsParams.piYCoefsX);
+    m_avsParams.piYCoefsX = nullptr;
 }
 
 MOS_STATUS CodechalSfcState::SetVeboxStateParams(
@@ -173,23 +173,23 @@ MOS_STATUS CodechalSfcState::SetVeboxSurfaceStateParams(
 
     // Initialize SurfInput
     veboxSurfParams->SurfInput.bActive                = true;
-    veboxSurfParams->SurfInput.Format                 = pInputSurface->Format;
-    veboxSurfParams->SurfInput.dwWidth                = pInputSurface->dwWidth;
-    veboxSurfParams->SurfInput.dwHeight               = pInputSurface->UPlaneOffset.iYOffset;// For Planar formats, pParams->SurfInput.dwHeight will be assigned to VEBOX U.Y offset, which is only used for PLANAR surface formats.
-    veboxSurfParams->SurfInput.dwUYoffset             = pInputSurface->UPlaneOffset.iYOffset;
-    veboxSurfParams->SurfInput.dwPitch                = pInputSurface->dwPitch;
-    veboxSurfParams->SurfInput.TileType               = pInputSurface->TileType;
-    veboxSurfParams->SurfInput.pOsResource            = &pInputSurface->OsResource;
+    veboxSurfParams->SurfInput.Format                 = m_inputSurface->Format;
+    veboxSurfParams->SurfInput.dwWidth                = m_inputSurface->dwWidth;
+    veboxSurfParams->SurfInput.dwHeight               = m_inputSurface->UPlaneOffset.iYOffset;  // For Planar formats, pParams->SurfInput.dwHeight will be assigned to VEBOX U.Y offset, which is only used for PLANAR surface formats.
+    veboxSurfParams->SurfInput.dwUYoffset             = m_inputSurface->UPlaneOffset.iYOffset;
+    veboxSurfParams->SurfInput.dwPitch                = m_inputSurface->dwPitch;
+    veboxSurfParams->SurfInput.TileType               = m_inputSurface->TileType;
+    veboxSurfParams->SurfInput.pOsResource            = &m_inputSurface->OsResource;
     veboxSurfParams->SurfInput.rcMaxSrc.left          = 0;
     veboxSurfParams->SurfInput.rcMaxSrc.top           = 0;
-    veboxSurfParams->SurfInput.rcMaxSrc.right         = MOS_ALIGN_CEIL(pInputSurface->dwWidth, pSfcInterface->m_veWidthAlignment);
-    veboxSurfParams->SurfInput.rcMaxSrc.bottom        = MOS_ALIGN_CEIL(pInputSurface->dwHeight, pSfcInterface->m_veHeightAlignment);
+    veboxSurfParams->SurfInput.rcMaxSrc.right         = MOS_ALIGN_CEIL(m_inputSurface->dwWidth, m_sfcInterface->m_veWidthAlignment);
+    veboxSurfParams->SurfInput.rcMaxSrc.bottom        = MOS_ALIGN_CEIL(m_inputSurface->dwHeight, m_sfcInterface->m_veHeightAlignment);
 
     // Initialize SurfSTMM
-    veboxSurfParams->SurfSTMM.dwPitch                 = pInputSurface->dwPitch;
+    veboxSurfParams->SurfSTMM.dwPitch = m_inputSurface->dwPitch;
 
     veboxSurfParams->bDIEnable                        = false;
-    veboxSurfParams->bOutputValid                     = (pVeboxOutputSurface != nullptr) ? true : false;
+    veboxSurfParams->bOutputValid                     = (m_veboxOutputSurface != nullptr) ? true : false;
 
     return eStatus;
 }
@@ -202,25 +202,25 @@ MOS_STATUS CodechalSfcState::SetVeboxDiIecpParams(
 
     CODECHAL_HW_FUNCTION_ENTER;
 
-    uint32_t height = pInputSurface->dwHeight;
-    uint32_t width  = pInputSurface->dwWidth;
+    uint32_t height = m_inputSurface->dwHeight;
+    uint32_t width  = m_inputSurface->dwWidth;
 
     veboxDiIecpParams->dwStartingX             = 0;
     veboxDiIecpParams->dwEndingX               = width - 1;
-    veboxDiIecpParams->dwCurrInputSurfOffset   = pInputSurface->dwOffset;
-    veboxDiIecpParams->pOsResCurrInput         = &pInputSurface->OsResource;
+    veboxDiIecpParams->dwCurrInputSurfOffset   = m_inputSurface->dwOffset;
+    veboxDiIecpParams->pOsResCurrInput         = &m_inputSurface->OsResource;
     veboxDiIecpParams->CurrInputSurfCtrl.Value = 0;  //Keep it here untill VPHAL moving to new CMD definition and remove this parameter definition.
 
     CodecHalGetResourceInfo(
-        pOsInterface,
-        pInputSurface);
+        m_osInterface,
+        m_inputSurface);
 
-    veboxDiIecpParams->CurInputSurfMMCState = (MOS_MEMCOMP_STATE)(pInputSurface->CompressionMode);
+    veboxDiIecpParams->CurInputSurfMMCState = (MOS_MEMCOMP_STATE)(m_inputSurface->CompressionMode);
 
     // Allocate Resource to avoid Page Fault issue since HW will access it
-    if (Mos_ResourceIsNull(&resLaceOrAceOrRgbHistogram))
+    if (Mos_ResourceIsNull(&m_resLaceOrAceOrRgbHistogram))
     {
-        pHwInterface->GetHcpInterface()->GetOsResLaceOrAceOrRgbHistogramBufferSize(
+        m_hwInterface->GetHcpInterface()->GetOsResLaceOrAceOrRgbHistogramBufferSize(
             width,
             height,
             &size);
@@ -233,18 +233,18 @@ MOS_STATUS CodechalSfcState::SetVeboxDiIecpParams(
         allocParamsForBufferLinear.dwBytes = size;
         allocParamsForBufferLinear.pBufName = "ResLaceOrAceOrRgbHistogram";
 
-        pOsInterface->pfnAllocateResource(
-            pOsInterface,
+        m_osInterface->pfnAllocateResource(
+            m_osInterface,
             &allocParamsForBufferLinear,
-            &resLaceOrAceOrRgbHistogram);
+            &m_resLaceOrAceOrRgbHistogram);
     }
 
-    veboxDiIecpParams->pOsResLaceOrAceOrRgbHistogram = &resLaceOrAceOrRgbHistogram;
+    veboxDiIecpParams->pOsResLaceOrAceOrRgbHistogram = &m_resLaceOrAceOrRgbHistogram;
 
     // Allocate Resource to avoid Page Fault issue since HW will access it
-    if (Mos_ResourceIsNull(&resStatisticsOutput))
+    if (Mos_ResourceIsNull(&m_resStatisticsOutput))
     {
-        pHwInterface->GetHcpInterface()->GetOsResStatisticsOutputBufferSize(
+        m_hwInterface->GetHcpInterface()->GetOsResStatisticsOutputBufferSize(
             width,
             height,
             &size);
@@ -257,13 +257,13 @@ MOS_STATUS CodechalSfcState::SetVeboxDiIecpParams(
         allocParamsForBufferLinear.dwBytes = size;
         allocParamsForBufferLinear.pBufName = "ResStatisticsOutput";
 
-        pOsInterface->pfnAllocateResource(
-            pOsInterface,
+        m_osInterface->pfnAllocateResource(
+            m_osInterface,
             &allocParamsForBufferLinear,
-            &resStatisticsOutput);
+            &m_resStatisticsOutput);
     }
 
-    veboxDiIecpParams->pOsResStatisticsOutput = &resStatisticsOutput;
+    veboxDiIecpParams->pOsResStatisticsOutput = &m_resStatisticsOutput;
 
     return eStatus;
 }
@@ -282,7 +282,7 @@ MOS_STATUS CodechalSfcState::SetSfcStateParams(
 
     sfcStateParams->sfcPipeMode                    = m_sfcPipeMode;
     sfcStateParams->dwChromaDownSamplingMode       = MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_DISABLED; // IN: NV12
-    sfcStateParams->bAVSChromaUpsamplingEnable     = bScaling;
+    sfcStateParams->bAVSChromaUpsamplingEnable     = m_scaling;
 
     if ((sfcStateParams->fAVSXScalingRatio > 1.0F) || (sfcStateParams->fAVSYScalingRatio > 1.0F))
     {
@@ -301,7 +301,7 @@ MOS_STATUS CodechalSfcState::SetSfcStateParams(
     uint16_t widthAlignUnit  = 1;
     uint16_t heightAlignUnit = 1;
 
-    switch(pSfcOutputSurface->Format)
+    switch (m_sfcOutputSurface->Format)
     {
         case Format_NV12:
         case Format_P010:
@@ -317,46 +317,38 @@ MOS_STATUS CodechalSfcState::SetSfcStateParams(
     }
 
     // Default to Horizontal Left, Vertical Top
-    sfcStateParams->dwChromaDownSamplingHorizontalCoef = (uiChromaSiting & MHW_CHROMA_SITING_HORZ_CENTER) ?
-                                                  MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_4_OVER_8 :
-                                                  ((uiChromaSiting & MHW_CHROMA_SITING_HORZ_RIGHT) ?
-                                                  MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_8_OVER_8 :
-                                                  MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_0_OVER_8);
+    sfcStateParams->dwChromaDownSamplingHorizontalCoef = (m_chromaSiting & MHW_CHROMA_SITING_HORZ_CENTER) ? MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_4_OVER_8 : ((m_chromaSiting & MHW_CHROMA_SITING_HORZ_RIGHT) ? MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_8_OVER_8 : MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_0_OVER_8);
 
-    sfcStateParams->dwChromaDownSamplingVerticalCoef = (uiChromaSiting  & MHW_CHROMA_SITING_VERT_CENTER) ?
-                                                  MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_4_OVER_8 :
-                                                  ((uiChromaSiting & MHW_CHROMA_SITING_VERT_BOTTOM) ?
-                                                  MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_8_OVER_8 :
-                                                  MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_0_OVER_8);
+    sfcStateParams->dwChromaDownSamplingVerticalCoef = (m_chromaSiting & MHW_CHROMA_SITING_VERT_CENTER) ? MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_4_OVER_8 : ((m_chromaSiting & MHW_CHROMA_SITING_VERT_BOTTOM) ? MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_8_OVER_8 : MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_0_OVER_8);
 
-    outSurfaceParams->dwWidth              = pSfcOutputSurface->dwWidth;
-    outSurfaceParams->dwHeight             = pSfcOutputSurface->dwHeight;
-    outSurfaceParams->dwPitch              = pSfcOutputSurface->dwPitch;
-    outSurfaceParams->TileType             = pSfcOutputSurface->TileType;
-    outSurfaceParams->ChromaSiting         = uiChromaSiting;
-    outSurfaceParams->dwUYoffset           = pSfcOutputSurface->UPlaneOffset.iYOffset;
+    outSurfaceParams->dwWidth      = m_sfcOutputSurface->dwWidth;
+    outSurfaceParams->dwHeight     = m_sfcOutputSurface->dwHeight;
+    outSurfaceParams->dwPitch      = m_sfcOutputSurface->dwPitch;
+    outSurfaceParams->TileType     = m_sfcOutputSurface->TileType;
+    outSurfaceParams->ChromaSiting = m_chromaSiting;
+    outSurfaceParams->dwUYoffset   = m_sfcOutputSurface->UPlaneOffset.iYOffset;
 
-    sfcStateParams->dwOutputFrameWidth             = MOS_ALIGN_CEIL(pSfcOutputSurface->dwWidth, widthAlignUnit);
-    sfcStateParams->dwOutputFrameHeight            = MOS_ALIGN_CEIL(pSfcOutputSurface->dwHeight, heightAlignUnit);
-    sfcStateParams->OutputFrameFormat              = pSfcOutputSurface->Format;
-    sfcStateParams->dwOutputSurfaceOffset          = pSfcOutputSurface->dwOffset;
-    sfcStateParams->pOsResOutputSurface            = &pSfcOutputSurface->OsResource;
-    sfcStateParams->pOsResAVSLineBuffer            = &resAvsLineBuffer;
+    sfcStateParams->dwOutputFrameWidth    = MOS_ALIGN_CEIL(m_sfcOutputSurface->dwWidth, widthAlignUnit);
+    sfcStateParams->dwOutputFrameHeight   = MOS_ALIGN_CEIL(m_sfcOutputSurface->dwHeight, heightAlignUnit);
+    sfcStateParams->OutputFrameFormat     = m_sfcOutputSurface->Format;
+    sfcStateParams->dwOutputSurfaceOffset = m_sfcOutputSurface->dwOffset;
+    sfcStateParams->pOsResOutputSurface   = &m_sfcOutputSurface->OsResource;
+    sfcStateParams->pOsResAVSLineBuffer   = &m_resAvsLineBuffer;
 
-    sfcStateParams->dwSourceRegionHeight           = MOS_ALIGN_FLOOR(rcInputSurfaceRegion.Height, heightAlignUnit);
-    sfcStateParams->dwSourceRegionWidth            = MOS_ALIGN_FLOOR(rcInputSurfaceRegion.Width, widthAlignUnit);
-    sfcStateParams->dwSourceRegionVerticalOffset   = MOS_ALIGN_CEIL(rcInputSurfaceRegion.Y, heightAlignUnit);
-    sfcStateParams->dwSourceRegionHorizontalOffset = MOS_ALIGN_CEIL(rcInputSurfaceRegion.X, widthAlignUnit);
-    sfcStateParams->dwScaledRegionHeight           = MOS_ALIGN_CEIL(rcOutputSurfaceRegion.Height, heightAlignUnit);
-    sfcStateParams->dwScaledRegionWidth            = MOS_ALIGN_CEIL(rcOutputSurfaceRegion.Width, widthAlignUnit);
-    sfcStateParams->dwScaledRegionVerticalOffset   = MOS_ALIGN_FLOOR(rcOutputSurfaceRegion.Y, heightAlignUnit);
-    sfcStateParams->dwScaledRegionHorizontalOffset = MOS_ALIGN_FLOOR(rcOutputSurfaceRegion.X, widthAlignUnit);
-    sfcStateParams->fAVSXScalingRatio              = fScaleX;
-    sfcStateParams->fAVSYScalingRatio              = fScaleY;
+    sfcStateParams->dwSourceRegionHeight           = MOS_ALIGN_FLOOR(m_inputSurfaceRegion.Height, heightAlignUnit);
+    sfcStateParams->dwSourceRegionWidth            = MOS_ALIGN_FLOOR(m_inputSurfaceRegion.Width, widthAlignUnit);
+    sfcStateParams->dwSourceRegionVerticalOffset   = MOS_ALIGN_CEIL(m_inputSurfaceRegion.Y, heightAlignUnit);
+    sfcStateParams->dwSourceRegionHorizontalOffset = MOS_ALIGN_CEIL(m_inputSurfaceRegion.X, widthAlignUnit);
+    sfcStateParams->dwScaledRegionHeight           = MOS_ALIGN_CEIL(m_outputSurfaceRegion.Height, heightAlignUnit);
+    sfcStateParams->dwScaledRegionWidth            = MOS_ALIGN_CEIL(m_outputSurfaceRegion.Width, widthAlignUnit);
+    sfcStateParams->dwScaledRegionVerticalOffset   = MOS_ALIGN_FLOOR(m_outputSurfaceRegion.Y, heightAlignUnit);
+    sfcStateParams->dwScaledRegionHorizontalOffset = MOS_ALIGN_FLOOR(m_outputSurfaceRegion.X, widthAlignUnit);
+    sfcStateParams->fAVSXScalingRatio              = m_scaleX;
+    sfcStateParams->fAVSYScalingRatio              = m_scaleY;
 
     sfcStateParams->fAlphaPixel                    = 1.0F;
-    sfcStateParams->bColorFillEnable               = bColorFill;
-    sfcStateParams->bCSCEnable                     = bCSC;
+    sfcStateParams->bColorFillEnable               = m_colorFill;
+    sfcStateParams->bCSCEnable                     = m_csc;
     sfcStateParams->bRGBASwapEnable                = sfcStateParams->bCSCEnable;
 
     // CodecHal does not support SFC rotation
@@ -376,34 +368,30 @@ MOS_STATUS CodechalSfcState::SetSfcAvsStateParams()
 
     CODECHAL_HW_FUNCTION_ENTER;
 
-    PMHW_SFC_AVS_STATE mhwSfcAvsState = &AvsState;
+    PMHW_SFC_AVS_STATE mhwSfcAvsState = &m_avsState;
 
-    if (uiChromaSiting == MHW_CHROMA_SITING_NONE)
+    if (m_chromaSiting == MHW_CHROMA_SITING_NONE)
     {
-        uiChromaSiting = MHW_CHROMA_SITING_HORZ_LEFT | MHW_CHROMA_SITING_VERT_CENTER;
+        m_chromaSiting = MHW_CHROMA_SITING_HORZ_LEFT | MHW_CHROMA_SITING_VERT_CENTER;
     }
 
     mhwSfcAvsState->sfcPipeMode             = m_sfcPipeMode;
-    mhwSfcAvsState->dwInputHorizontalSiting = (uiChromaSiting & MHW_CHROMA_SITING_HORZ_CENTER) ? SFC_AVS_INPUT_SITING_COEF_4_OVER_8 :
-                                               ((uiChromaSiting & MHW_CHROMA_SITING_HORZ_RIGHT) ? SFC_AVS_INPUT_SITING_COEF_8_OVER_8 :
-                                               SFC_AVS_INPUT_SITING_COEF_0_OVER_8);
+    mhwSfcAvsState->dwInputHorizontalSiting = (m_chromaSiting & MHW_CHROMA_SITING_HORZ_CENTER) ? SFC_AVS_INPUT_SITING_COEF_4_OVER_8 : ((m_chromaSiting & MHW_CHROMA_SITING_HORZ_RIGHT) ? SFC_AVS_INPUT_SITING_COEF_8_OVER_8 : SFC_AVS_INPUT_SITING_COEF_0_OVER_8);
 
-    mhwSfcAvsState->dwInputVerticalSitting = (uiChromaSiting  & MHW_CHROMA_SITING_VERT_CENTER) ? SFC_AVS_INPUT_SITING_COEF_4_OVER_8 :
-                                              ((uiChromaSiting & MHW_CHROMA_SITING_VERT_BOTTOM) ? SFC_AVS_INPUT_SITING_COEF_8_OVER_8 :
-                                              SFC_AVS_INPUT_SITING_COEF_0_OVER_8);
+    mhwSfcAvsState->dwInputVerticalSitting = (m_chromaSiting & MHW_CHROMA_SITING_VERT_CENTER) ? SFC_AVS_INPUT_SITING_COEF_4_OVER_8 : ((m_chromaSiting & MHW_CHROMA_SITING_VERT_BOTTOM) ? SFC_AVS_INPUT_SITING_COEF_8_OVER_8 : SFC_AVS_INPUT_SITING_COEF_0_OVER_8);
 
-    CODECHAL_HW_CHK_STATUS_RETURN(pSfcInterface->SetSfcSamplerTable(
-                                    &LumaTable,
-                                    &ChromaTable,
-                                    &AvsParams,
-                                    pInputSurface->Format,
-                                    fScaleX,
-                                    fScaleY,
-                                    uiChromaSiting,
-                                    (m_sfcPipeMode == MhwSfcInterface::SFC_PIPE_MODE_VEBOX)? true: false));
+    CODECHAL_HW_CHK_STATUS_RETURN(m_sfcInterface->SetSfcSamplerTable(
+        &m_lumaTable,
+        &m_chromaTable,
+        &m_avsParams,
+        m_inputSurface->Format,
+        m_scaleX,
+        m_scaleY,
+        m_chromaSiting,
+        (m_sfcPipeMode == MhwSfcInterface::SFC_PIPE_MODE_VEBOX) ? true : false));
 
-    LumaTable.sfcPipeMode   = m_sfcPipeMode;
-    ChromaTable.sfcPipeMode = m_sfcPipeMode;
+    m_lumaTable.sfcPipeMode   = m_sfcPipeMode;
+    m_chromaTable.sfcPipeMode = m_sfcPipeMode;
 
     return eStatus;
 }
@@ -421,9 +409,9 @@ MOS_STATUS CodechalSfcState::SetSfcIefStateParams(
     iefStateParams->bIEFEnable     = false;
     iefStateParams->bCSCEnable     = true;
 
-    iefStateParams->pfCscCoeff     = fCscCoeff;
-    iefStateParams->pfCscInOffset  = fCscInOffset;
-    iefStateParams->pfCscOutOffset = fCscOutOffset;
+    iefStateParams->pfCscCoeff     = m_cscCoeff;
+    iefStateParams->pfCscInOffset  = m_cscInOffset;
+    iefStateParams->pfCscOutOffset = m_cscOutOffset;
 
     return eStatus;
 }
@@ -436,7 +424,7 @@ MOS_STATUS CodechalSfcState::Initialize(
 
     CODECHAL_HW_FUNCTION_ENTER;
 
-    CODECHAL_HW_CHK_NULL_RETURN(pDecoder);
+    CODECHAL_HW_CHK_NULL_RETURN(m_decoder);
 
     CODECHAL_HW_CHK_NULL_RETURN(decodeProcParams);
     CODECHAL_HW_CHK_NULL_RETURN(decodeProcParams->pInputSurface);
@@ -444,15 +432,15 @@ MOS_STATUS CodechalSfcState::Initialize(
 
     m_sfcPipeMode        = sfcPipeMode;
 
-    pInputSurface       = decodeProcParams->pInputSurface;
+    m_inputSurface = decodeProcParams->pInputSurface;
     // Vebox o/p should not be written to memory for SFC, VeboxOutputSurface should be nullptr
-    pVeboxOutputSurface = nullptr;
-    pSfcOutputSurface   = decodeProcParams->pOutputSurface;
+    m_veboxOutputSurface = nullptr;
+    m_sfcOutputSurface   = decodeProcParams->pOutputSurface;
 
     uint16_t widthAlignUnit  = 1;
     uint16_t heightAlignUnit = 1;
 
-    switch(pSfcOutputSurface->Format)
+    switch (m_sfcOutputSurface->Format)
     {
         case Format_NV12:
             widthAlignUnit     = 2;
@@ -472,105 +460,105 @@ MOS_STATUS CodechalSfcState::Initialize(
     uint32_t outputRegionWidth  = MOS_ALIGN_CEIL(decodeProcParams->rcOutputSurfaceRegion.Width, widthAlignUnit);
     uint32_t outputRegionHeight = MOS_ALIGN_CEIL(decodeProcParams->rcOutputSurfaceRegion.Height, heightAlignUnit);
 
-    fScaleX = (float)outputRegionWidth / (float)sourceRegionWidth;
-    fScaleY = (float)outputRegionHeight / (float)sourceRegionHeight;
+    m_scaleX = (float)outputRegionWidth / (float)sourceRegionWidth;
+    m_scaleY = (float)outputRegionHeight / (float)sourceRegionHeight;
 
-    bScaling       = ((fScaleX == 1.0F) && (fScaleY == 1.0F)) ? false : true;
-    bColorFill     = false;
+    m_scaling   = ((m_scaleX == 1.0F) && (m_scaleY == 1.0F)) ? false : true;
+    m_colorFill = false;
 
     if (decodeProcParams->pOutputSurface->Format == Format_A8R8G8B8)
     {
-        bCSC       = true;
+        m_csc = true;
     }
 
-    if (bJpegInUse && ucJpegChromaType == jpegBGR)
+    if (m_jpegInUse && m_jpegChromaType == jpegBGR)
     {
-        bCSC       = false;
+        m_csc = false;
     }
 
-    if (bCSC)
+    if (m_csc)
     {
-        if (bJpegInUse && ucJpegChromaType == jpegRGB)
+        if (m_jpegInUse && m_jpegChromaType == jpegRGB)
         {
-            fCscCoeff[0]     = 1.000000000f;
-            fCscCoeff[1]     = 0.000000000f;
-            fCscCoeff[2]     = 0.000000000f;
-            fCscCoeff[3]     = 0.000000000f;
-            fCscCoeff[4]     = 1.000000000f;
-            fCscCoeff[5]     = 0.000000000f;
-            fCscCoeff[6]     = 0.000000000f;
-            fCscCoeff[7]     = 0.000000000f;
-            fCscCoeff[8]     = 1.000000000f;
+            m_cscCoeff[0] = 1.000000000f;
+            m_cscCoeff[1] = 0.000000000f;
+            m_cscCoeff[2] = 0.000000000f;
+            m_cscCoeff[3] = 0.000000000f;
+            m_cscCoeff[4] = 1.000000000f;
+            m_cscCoeff[5] = 0.000000000f;
+            m_cscCoeff[6] = 0.000000000f;
+            m_cscCoeff[7] = 0.000000000f;
+            m_cscCoeff[8] = 1.000000000f;
 
-            fCscInOffset[0]  = 0.000000000f; // Adjusted to S8.2 to accommodate VPHAL
-            fCscInOffset[1]  = 0.000000000f; // Adjusted to S8.2 to accommodate VPHAL
-            fCscInOffset[2]  = 0.000000000f; // Adjusted to S8.2 to accommodate VPHAL
+            m_cscInOffset[0] = 0.000000000f;  // Adjusted to S8.2 to accommodate VPHAL
+            m_cscInOffset[1] = 0.000000000f;  // Adjusted to S8.2 to accommodate VPHAL
+            m_cscInOffset[2] = 0.000000000f;  // Adjusted to S8.2 to accommodate VPHAL
         }
         else
         {
-            if (pInputSurface->Format != Format_400P)
+            if (m_inputSurface->Format != Format_400P)
             {
-                fCscCoeff[0] = 1.16438353f;
-                fCscCoeff[1] = 0.000000000f;
-                fCscCoeff[2] = 1.59602666f;
-                fCscCoeff[3] = 1.16438353f;
-                fCscCoeff[4] = -0.391761959f;
-                fCscCoeff[5] = -0.812967300f;
-                fCscCoeff[6] = 1.16438353f;
-                fCscCoeff[7] = 2.01723218f;
-                fCscCoeff[8] = 0.000000000f;
+                m_cscCoeff[0] = 1.16438353f;
+                m_cscCoeff[1] = 0.000000000f;
+                m_cscCoeff[2] = 1.59602666f;
+                m_cscCoeff[3] = 1.16438353f;
+                m_cscCoeff[4] = -0.391761959f;
+                m_cscCoeff[5] = -0.812967300f;
+                m_cscCoeff[6] = 1.16438353f;
+                m_cscCoeff[7] = 2.01723218f;
+                m_cscCoeff[8] = 0.000000000f;
             }
             else
             {
-                fCscCoeff[0] = 1.16438353f;
-                fCscCoeff[1] = 0.000000000f;
-                fCscCoeff[2] = 0.000000000f;
-                fCscCoeff[3] = 1.16438353f;
-                fCscCoeff[4] = 0.000000000f;
-                fCscCoeff[5] = 0.000000000f;
-                fCscCoeff[6] = 1.16438353f;
-                fCscCoeff[7] = 0.000000000f;
-                fCscCoeff[8] = 0.000000000f;
+                m_cscCoeff[0] = 1.16438353f;
+                m_cscCoeff[1] = 0.000000000f;
+                m_cscCoeff[2] = 0.000000000f;
+                m_cscCoeff[3] = 1.16438353f;
+                m_cscCoeff[4] = 0.000000000f;
+                m_cscCoeff[5] = 0.000000000f;
+                m_cscCoeff[6] = 1.16438353f;
+                m_cscCoeff[7] = 0.000000000f;
+                m_cscCoeff[8] = 0.000000000f;
             }
 
-            fCscInOffset[0]  = -16.000000f;  // Adjusted to S8.2 to accommodate VPHAL 
-            fCscInOffset[1]  = -128.000000f; // Adjusted to S8.2 to accommodate VPHAL
-            fCscInOffset[2]  = -128.000000f; // Adjusted to S8.2 to accommodate VPHAL
+            m_cscInOffset[0] = -16.000000f;   // Adjusted to S8.2 to accommodate VPHAL
+            m_cscInOffset[1] = -128.000000f;  // Adjusted to S8.2 to accommodate VPHAL
+            m_cscInOffset[2] = -128.000000f;  // Adjusted to S8.2 to accommodate VPHAL
         }
 
-        fCscOutOffset[0]     = 0.000000000f; // Adjusted to S8.2 to accommodate VPHAL
-        fCscOutOffset[1]     = 0.000000000f; // Adjusted to S8.2 to accommodate VPHAL
-        fCscOutOffset[2]     = 0.000000000f; // Adjusted to S8.2 to accommodate VPHAL
+        m_cscOutOffset[0] = 0.000000000f;  // Adjusted to S8.2 to accommodate VPHAL
+        m_cscOutOffset[1] = 0.000000000f;  // Adjusted to S8.2 to accommodate VPHAL
+        m_cscOutOffset[2] = 0.000000000f;  // Adjusted to S8.2 to accommodate VPHAL
     }
 
-    uiChromaSiting = decodeProcParams->uiChromaSitingType;
-    uiRotationMode = decodeProcParams->uiRotationState;
+    m_chromaSiting = decodeProcParams->uiChromaSitingType;
+    m_rotationMode = decodeProcParams->uiRotationState;
 
-    eStatus = MOS_SecureMemcpy(&rcInputSurfaceRegion,
-                               sizeof(rcInputSurfaceRegion),
-                               &decodeProcParams->rcInputSurfaceRegion,
-                               sizeof(decodeProcParams->rcInputSurfaceRegion));
+    eStatus = MOS_SecureMemcpy(&m_inputSurfaceRegion,
+        sizeof(m_inputSurfaceRegion),
+        &decodeProcParams->rcInputSurfaceRegion,
+        sizeof(decodeProcParams->rcInputSurfaceRegion));
 
-    eStatus = MOS_SecureMemcpy(&rcOutputSurfaceRegion,
-                               sizeof(rcOutputSurfaceRegion),
-                               &decodeProcParams->rcOutputSurfaceRegion,
-                               sizeof(decodeProcParams->rcOutputSurfaceRegion));
+    eStatus = MOS_SecureMemcpy(&m_outputSurfaceRegion,
+        sizeof(m_outputSurfaceRegion),
+        &decodeProcParams->rcOutputSurfaceRegion,
+        sizeof(decodeProcParams->rcOutputSurfaceRegion));
 
     CODECHAL_HW_CHK_STATUS_RETURN(AllocateResources());
 
     if (MhwSfcInterface::SFC_PIPE_MODE_VEBOX == sfcPipeMode)
     {
         // Create VEBOX Context
-        CODECHAL_HW_CHK_STATUS_RETURN(pOsInterface->pfnCreateGpuContext(
-            pOsInterface,
+        CODECHAL_HW_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
+            m_osInterface,
             MOS_GPU_CONTEXT_VEBOX,
             MOS_GPU_NODE_VE,
             MOS_GPU_CONTEXT_CREATE_DEFAULT));
 
         // Register Vebox GPU context with the Batch Buffer completion event
         // Ignore if creation fails
-        CODECHAL_HW_CHK_STATUS_RETURN(pOsInterface->pfnRegisterBBCompleteNotifyEvent(
-            pOsInterface,
+        CODECHAL_HW_CHK_STATUS_RETURN(m_osInterface->pfnRegisterBBCompleteNotifyEvent(
+            m_osInterface,
             MOS_GPU_CONTEXT_VEBOX));
     }
 
@@ -586,7 +574,7 @@ MOS_STATUS CodechalSfcState::AddSfcCommands(
 
     CODECHAL_HW_CHK_NULL_RETURN(cmdBuffer);
 
-    if (bSfcPipeOut == false)
+    if (m_sfcPipeOut == false)
     {
         return eStatus;
     }
@@ -595,7 +583,7 @@ MOS_STATUS CodechalSfcState::AddSfcCommands(
     MOS_ZeroMemory(&sfcLockParams, sizeof(sfcLockParams));
 
     sfcLockParams.sfcPipeMode     = m_sfcPipeMode;
-    sfcLockParams.bOutputToMemory = ((MhwSfcInterface::SFC_PIPE_MODE_VEBOX != m_sfcPipeMode) && !bJpegInUse);
+    sfcLockParams.bOutputToMemory = ((MhwSfcInterface::SFC_PIPE_MODE_VEBOX != m_sfcPipeMode) && !m_jpegInUse);
 
     MHW_SFC_STATE_PARAMS sfcStateParams;
     MOS_ZeroMemory(&sfcStateParams, sizeof(sfcStateParams));
@@ -603,26 +591,26 @@ MOS_STATUS CodechalSfcState::AddSfcCommands(
     MOS_ZeroMemory(&sfcOutSurfaceParams, sizeof(sfcOutSurfaceParams));
     CODECHAL_HW_CHK_STATUS_RETURN(SetSfcStateParams(&sfcStateParams, &sfcOutSurfaceParams));
 
-    CODECHAL_HW_CHK_STATUS_RETURN(pSfcInterface->AddSfcLock(cmdBuffer, &sfcLockParams));
-    CODECHAL_HW_CHK_STATUS_RETURN(pSfcInterface->AddSfcState(cmdBuffer, &sfcStateParams, &sfcOutSurfaceParams));
+    CODECHAL_HW_CHK_STATUS_RETURN(m_sfcInterface->AddSfcLock(cmdBuffer, &sfcLockParams));
+    CODECHAL_HW_CHK_STATUS_RETURN(m_sfcInterface->AddSfcState(cmdBuffer, &sfcStateParams, &sfcOutSurfaceParams));
 
-    if (bScaling)
+    if (m_scaling)
     {
         CODECHAL_HW_CHK_STATUS_RETURN(SetSfcAvsStateParams());
-        CODECHAL_HW_CHK_STATUS_RETURN(pSfcInterface->AddSfcAvsState(cmdBuffer, &AvsState));
-        CODECHAL_HW_CHK_STATUS_RETURN(pSfcInterface->AddSfcAvsLumaTable(cmdBuffer, &LumaTable));
-        CODECHAL_HW_CHK_STATUS_RETURN(pSfcInterface->AddSfcAvsChromaTable(cmdBuffer, &ChromaTable));
+        CODECHAL_HW_CHK_STATUS_RETURN(m_sfcInterface->AddSfcAvsState(cmdBuffer, &m_avsState));
+        CODECHAL_HW_CHK_STATUS_RETURN(m_sfcInterface->AddSfcAvsLumaTable(cmdBuffer, &m_lumaTable));
+        CODECHAL_HW_CHK_STATUS_RETURN(m_sfcInterface->AddSfcAvsChromaTable(cmdBuffer, &m_chromaTable));
     }
 
-    if (bCSC)
+    if (m_csc)
     {
         MHW_SFC_IEF_STATE_PARAMS sfcIefStateParams;
         MOS_ZeroMemory(&sfcIefStateParams, sizeof(sfcIefStateParams));
         CODECHAL_HW_CHK_STATUS_RETURN(SetSfcIefStateParams(&sfcIefStateParams));
-        CODECHAL_HW_CHK_STATUS_RETURN(pSfcInterface->AddSfcIefState(cmdBuffer, &sfcIefStateParams));
+        CODECHAL_HW_CHK_STATUS_RETURN(m_sfcInterface->AddSfcIefState(cmdBuffer, &sfcIefStateParams));
     }
 
-    CODECHAL_HW_CHK_STATUS_RETURN(pSfcInterface->AddSfcFrameStart(cmdBuffer, m_sfcPipeMode));
+    CODECHAL_HW_CHK_STATUS_RETURN(m_sfcInterface->AddSfcFrameStart(cmdBuffer, m_sfcPipeMode));
 
     return eStatus;
 }
@@ -634,27 +622,27 @@ MOS_STATUS CodechalSfcState::RenderStart()
     CODECHAL_HW_FUNCTION_ENTER;
 
     MOS_SYNC_PARAMS syncParams = g_cInitSyncParams;
-    syncParams.GpuContext = pDecoder->GetVideoContext();
-    syncParams.presSyncResource = &resSyncObject;
+    syncParams.GpuContext       = m_decoder->GetVideoContext();
+    syncParams.presSyncResource = &m_resSyncObject;
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(pOsInterface->pfnEngineSignal(pOsInterface, &syncParams));
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnEngineSignal(m_osInterface, &syncParams));
 
     syncParams = g_cInitSyncParams;
     syncParams.GpuContext = MOS_GPU_CONTEXT_VEBOX;
-    syncParams.presSyncResource = &resSyncObject;
+    syncParams.presSyncResource = &m_resSyncObject;
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(pOsInterface->pfnEngineWait(pOsInterface, &syncParams));
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnEngineWait(m_osInterface, &syncParams));
 
     // Switch GPU context to VEBOX
-    pOsInterface->pfnSetGpuContext(pOsInterface, MOS_GPU_CONTEXT_VEBOX);
+    m_osInterface->pfnSetGpuContext(m_osInterface, MOS_GPU_CONTEXT_VEBOX);
     // Reset allocation list and house keeping
-    pOsInterface->pfnResetOsStates(pOsInterface);
+    m_osInterface->pfnResetOsStates(m_osInterface);
 
     // Send command buffer header at the beginning
     MOS_COMMAND_BUFFER cmdBuffer;
     MOS_ZeroMemory(&cmdBuffer, sizeof(MOS_COMMAND_BUFFER));
-    CODECHAL_HW_CHK_STATUS_RETURN(pOsInterface->pfnGetCommandBuffer(pOsInterface, &cmdBuffer, 0));
-    CODECHAL_HW_CHK_STATUS_RETURN(pDecoder->SendPrologWithFrameTracking(&cmdBuffer, true));
+    CODECHAL_HW_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
+    CODECHAL_HW_CHK_STATUS_RETURN(m_decoder->SendPrologWithFrameTracking(&cmdBuffer, true));
 
     // Setup cmd prameters
     MHW_VEBOX_STATE_CMD_PARAMS veboxStateCmdParams;
@@ -670,29 +658,29 @@ MOS_STATUS CodechalSfcState::RenderStart()
     CODECHAL_HW_CHK_STATUS_RETURN(SetVeboxDiIecpParams(&veboxDiIecpCmdParams));
 
     // send Vebox and SFC cmds
-    CODECHAL_HW_CHK_STATUS_RETURN(pVeboxInterface->AddVeboxState(&cmdBuffer, &veboxStateCmdParams, 0));
+    CODECHAL_HW_CHK_STATUS_RETURN(m_veboxInterface->AddVeboxState(&cmdBuffer, &veboxStateCmdParams, 0));
 
-    CODECHAL_HW_CHK_STATUS_RETURN(pVeboxInterface->AddVeboxSurfaces(&cmdBuffer, &veboxSurfaceStateCmdParams));
+    CODECHAL_HW_CHK_STATUS_RETURN(m_veboxInterface->AddVeboxSurfaces(&cmdBuffer, &veboxSurfaceStateCmdParams));
 
     CODECHAL_HW_CHK_STATUS_RETURN(AddSfcCommands(&cmdBuffer));
 
-    CODECHAL_HW_CHK_STATUS_RETURN(pVeboxInterface->AddVeboxDiIecp(&cmdBuffer, &veboxDiIecpCmdParams));
+    CODECHAL_HW_CHK_STATUS_RETURN(m_veboxInterface->AddVeboxDiIecp(&cmdBuffer, &veboxDiIecpCmdParams));
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(pHwInterface->GetMiInterface()->AddWatchdogTimerStopCmd(
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_hwInterface->GetMiInterface()->AddWatchdogTimerStopCmd(
         &cmdBuffer));
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(pHwInterface->GetMiInterface()->AddMiBatchBufferEnd(
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_hwInterface->GetMiInterface()->AddMiBatchBufferEnd(
         &cmdBuffer,
         nullptr));
 
-    pOsInterface->pfnReturnCommandBuffer(pOsInterface, &cmdBuffer, 0);
-    CODECHAL_HW_CHK_STATUS_RETURN(pOsInterface->pfnSubmitCommandBuffer(
-        pOsInterface,
+    m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBuffer, 0);
+    CODECHAL_HW_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(
+        m_osInterface,
         &cmdBuffer,
-        pDecoder->GetVideoContextUsesNullHw()));
+        m_decoder->GetVideoContextUsesNullHw()));
 
-    pOsInterface->pfnFreeResource(
-        pOsInterface,
+    m_osInterface->pfnFreeResource(
+        m_osInterface,
         &veboxStateCmdParams.DummyIecpResource);
 
     return eStatus;
@@ -731,7 +719,7 @@ bool CodechalSfcState::IsSfcOutputSupported(
 {
     CODECHAL_HW_FUNCTION_ENTER;
 
-    if (!pSfcInterface || !decodeProcParams || !decodeProcParams->pInputSurface || !decodeProcParams->pOutputSurface)
+    if (!m_sfcInterface || !decodeProcParams || !decodeProcParams->pInputSurface || !decodeProcParams->pOutputSurface)
     {
         CODECHAL_DECODE_ASSERTMESSAGE("Invalid Parameters");
         return false;
@@ -746,16 +734,16 @@ bool CodechalSfcState::IsSfcOutputSupported(
         // Adjust SFC input surface alignment.
         // As VEBOX doesn't do scaling, input size equals to output size
         // For the VEBOX output to SFC, width is multiple of 16 and height is multiple of 4
-        srcSurface->dwWidth  = MOS_ALIGN_CEIL(srcSurface->dwWidth, pSfcInterface->m_veWidthAlignment);
-        srcSurface->dwHeight = MOS_ALIGN_CEIL(srcSurface->dwHeight, pSfcInterface->m_veHeightAlignment);
+        srcSurface->dwWidth  = MOS_ALIGN_CEIL(srcSurface->dwWidth, m_sfcInterface->m_veWidthAlignment);
+        srcSurface->dwHeight = MOS_ALIGN_CEIL(srcSurface->dwHeight, m_sfcInterface->m_veHeightAlignment);
         srcSurfWidth        = srcSurface->dwWidth;
         srcSurfHeight       = srcSurface->dwHeight;
     }
     else
     {
         // Check original input size (for JPEG)
-        if (!MOS_WITHIN_RANGE(srcSurface->dwWidth, pSfcInterface->m_minWidth, pSfcInterface->m_maxWidth)     ||
-            !MOS_WITHIN_RANGE(srcSurface->dwHeight, pSfcInterface->m_minHeight, pSfcInterface->m_maxHeight))
+        if (!MOS_WITHIN_RANGE(srcSurface->dwWidth, m_sfcInterface->m_minWidth, m_sfcInterface->m_maxWidth) ||
+            !MOS_WITHIN_RANGE(srcSurface->dwHeight, m_sfcInterface->m_minHeight, m_sfcInterface->m_maxHeight))
         {
             CODECHAL_DECODE_ASSERTMESSAGE("Unsupported Input Resolution '0x%08x'x'0x%08x' for SFC.", srcSurface->dwWidth, srcSurface->dwHeight);
             return false;
@@ -766,8 +754,8 @@ bool CodechalSfcState::IsSfcOutputSupported(
     }
 
     // Check input size
-    if (!MOS_WITHIN_RANGE(srcSurfWidth, pSfcInterface->m_minWidth, pSfcInterface->m_maxWidth)  || 
-        !MOS_WITHIN_RANGE(srcSurfHeight, pSfcInterface->m_minHeight, pSfcInterface->m_maxHeight))
+    if (!MOS_WITHIN_RANGE(srcSurfWidth, m_sfcInterface->m_minWidth, m_sfcInterface->m_maxWidth) ||
+        !MOS_WITHIN_RANGE(srcSurfHeight, m_sfcInterface->m_minHeight, m_sfcInterface->m_maxHeight))
     {
         CODECHAL_DECODE_ASSERTMESSAGE("Unsupported Input Resolution '0x%08x'x'0x%08x' for SFC.", srcSurfWidth, srcSurfHeight);
         return false;
@@ -811,8 +799,8 @@ bool CodechalSfcState::IsSfcOutputSupported(
     }
 
     // Check output size
-    if (!MOS_WITHIN_RANGE(dstSurfWidth, pSfcInterface->m_minWidth, pSfcInterface->m_maxWidth)     || 
-        !MOS_WITHIN_RANGE(dstSurfHeight, pSfcInterface->m_minHeight, pSfcInterface->m_maxHeight))
+    if (!MOS_WITHIN_RANGE(dstSurfWidth, m_sfcInterface->m_minWidth, m_sfcInterface->m_maxWidth) ||
+        !MOS_WITHIN_RANGE(dstSurfHeight, m_sfcInterface->m_minHeight, m_sfcInterface->m_maxHeight))
     {
         CODECHAL_DECODE_ASSERTMESSAGE("Unsupported Output Resolution '0x%08x'x'0x%08x' for SFC.", dstSurfWidth, dstSurfHeight);
         return false;
@@ -831,11 +819,11 @@ bool CodechalSfcState::IsSfcOutputSupported(
 
     // Check scaling ratio
     // SFC scaling range is [0.125, 8] for both X and Y direction.
-    fScaleX = (float)outputRegionWidth / (float)sourceRegionWidth;
-    fScaleY = (float)outputRegionHeight / (float)sourceRegionHeight;
+    m_scaleX = (float)outputRegionWidth / (float)sourceRegionWidth;
+    m_scaleY = (float)outputRegionHeight / (float)sourceRegionHeight;
 
-    if (!MOS_WITHIN_RANGE(fScaleX, pSfcInterface->m_minScalingRatio, pSfcInterface->m_maxScalingRatio) ||
-        !MOS_WITHIN_RANGE(fScaleY, pSfcInterface->m_minScalingRatio, pSfcInterface->m_maxScalingRatio))
+    if (!MOS_WITHIN_RANGE(m_scaleX, m_sfcInterface->m_minScalingRatio, m_sfcInterface->m_maxScalingRatio) ||
+        !MOS_WITHIN_RANGE(m_scaleY, m_sfcInterface->m_minScalingRatio, m_sfcInterface->m_maxScalingRatio))
     {
         CODECHAL_DECODE_ASSERTMESSAGE("Scaling factor not supported by SFC Pipe.");
         return false;
@@ -858,11 +846,11 @@ MOS_STATUS CodechalSfcState::InitializeSfcState(
     CODECHAL_DECODE_CHK_NULL_RETURN(osInterface);
     CODECHAL_DECODE_CHK_NULL_RETURN(hwInterface->GetVeboxInterface());
 
-    pDecoder = inDecoder;
-    pOsInterface = osInterface;
-    pHwInterface = hwInterface;
-    pVeboxInterface = hwInterface->GetVeboxInterface();
-    pSfcInterface = hwInterface->GetSfcInterface();    // No need to check null for pSfcInterface. It will be checked in IsSfcSupported().
+    m_decoder        = inDecoder;
+    m_osInterface    = osInterface;
+    m_hwInterface    = hwInterface;
+    m_veboxInterface = hwInterface->GetVeboxInterface();
+    m_sfcInterface   = hwInterface->GetSfcInterface();  // No need to check null for pSfcInterface. It will be checked in IsSfcSupported().
 
     return eStatus;
 }

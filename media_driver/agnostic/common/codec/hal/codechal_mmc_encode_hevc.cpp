@@ -72,7 +72,7 @@ MOS_STATUS CodechalMmcEncodeHevc::SetPipeBufAddr(
     
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    CODECHAL_ENCODE_CHK_NULL_RETURN(m_hevcState->pHevcSeqParams);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_hevcState->m_hevcSeqParams);
 
     if (m_mmcEnabled &&
         m_hevcState->m_reconSurface.bCompressible &&
@@ -83,9 +83,9 @@ MOS_STATUS CodechalMmcEncodeHevc::SetPipeBufAddr(
 
         // SAO 1st pass can always be executed as 1st pass even with 3 pass SAO
         // memory compression of reconstructed pixels should be disabled during SAO First Pass
-        if (m_hevcState->pHevcSeqParams->SAO_enabled_flag && 
-            m_hevcState->IsFirstPass() && 
-            m_hevcState->b2ndSAOPassNeeded)
+        if (m_hevcState->m_hevcSeqParams->SAO_enabled_flag &&
+            m_hevcState->IsFirstPass() &&
+            m_hevcState->m_b2NdSaoPassNeeded)
         {
             pipeBufAddrParams->PreDeblockSurfMmcState = MOS_MEMCOMP_DISABLED;
         }

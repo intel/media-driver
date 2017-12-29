@@ -3593,7 +3593,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::InitializeState()
     dwBrcConstantSurfaceWidth = m_brcConstantSurfaceWidth;
     dwBrcConstantSurfaceHeight = m_brcConstantSurfaceHeight;
     bPerMbSFD = false;
-    bForceBrcMbStatsEnabled = false;
+    m_forceBrcMbStatsEnabled     = false;
     return eStatus;
 }
 
@@ -4522,9 +4522,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeAvcMbEnc(
     {
         tableIdx = (m_pictureCodingType == B_TYPE) ? 1 : 0;
         uint8_t meMethod =
-            (m_pictureCodingType == B_TYPE) ?
-            m_BMeMethodGeneric[seqParams->TargetUsage] :
-            m_MeMethodGeneric[seqParams->TargetUsage];
+            (m_pictureCodingType == B_TYPE) ? m_bMeMethodGeneric[seqParams->TargetUsage] : m_meMethodGeneric[seqParams->TargetUsage];
         eStatus = MOS_SecureMemcpy(&(cmd.SPDelta), 16 * sizeof(uint32_t), m_encodeSearchPath[tableIdx][meMethod], 16 * sizeof(uint32_t));
         if (eStatus != MOS_STATUS_SUCCESS)
         {
@@ -4628,7 +4626,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeAvcMbEnc(
         ((m_firstField && (bottomField)) || (!m_firstField && (!bottomField)));
     cmd.DW34.EnableMBFlatnessChkOptimization = m_flatnessCheckEnabled;
     cmd.DW34.ROIEnableFlag             = params->bRoiEnabled;
-    cmd.DW34.MADEnableFlag = m_bMadEnabled;
+    cmd.DW34.MADEnableFlag                   = m_madEnabled;
     cmd.DW34.MBBrcEnable =     bMbBrcEnabled ||     bMbQpDataEnabled;
     cmd.DW34.ArbitraryNumMbsPerSlice = m_arbitraryNumMbsInSlice;
     cmd.DW34.ForceNonSkipMbEnable = params->bMbDisableSkipMapEnabled;
@@ -6471,9 +6469,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeMe(MeCurbeParams* params)
     cmd.DW15.PrevMvReadPosFactor = prevMvReadPosFactor;
 
     // r3 & r4
-    uint8_t meMethod = (m_pictureCodingType == B_TYPE) ?
-        m_BMeMethodGeneric[m_avcSeqParam->TargetUsage] :
-        m_MeMethodGeneric[m_avcSeqParam->TargetUsage];
+    uint8_t meMethod = (m_pictureCodingType == B_TYPE) ? m_bMeMethodGeneric[m_avcSeqParam->TargetUsage] : m_meMethodGeneric[m_avcSeqParam->TargetUsage];
     uint8_t tableIdx = (m_pictureCodingType == B_TYPE) ? 1 : 0;
     eStatus = MOS_SecureMemcpy(&(cmd.SPDelta), 14 * sizeof(uint32_t), m_encodeSearchPath[tableIdx][meMethod], 14 * sizeof(uint32_t));
     if (eStatus != MOS_STATUS_SUCCESS)

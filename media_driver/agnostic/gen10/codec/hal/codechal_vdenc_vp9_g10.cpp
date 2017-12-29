@@ -745,9 +745,9 @@ MOS_STATUS CodechalVdencVp9StateG10::SetupSegmentationStreamIn()
         return eStatus;
     }
 
-    char* data = (char*)m_osInterface->pfnLockResource(
+    char *data = (char *)m_osInterface->pfnLockResource(
         m_osInterface,
-        &sMbSegmentMapSurface.OsResource,
+        &m_mbSegmentMapSurface.OsResource,
         &lockFlagsReadOnly);
     CODECHAL_ENCODE_CHK_NULL_RETURN(data);
 
@@ -760,8 +760,8 @@ MOS_STATUS CodechalVdencVp9StateG10::SetupSegmentationStreamIn()
         uint32_t addrOffset = CalculateBufferOffset(
             m_mapBuffer[i],
             m_frameWidth,
-            pVp9PicParams->PicFlags.fields.seg_id_block_size,
-            sMbSegmentMapSurface.dwPitch);
+            m_vp9PicParams->PicFlags.fields.seg_id_block_size,
+            m_mbSegmentMapSurface.dwPitch);
         uint32_t segId  = *(data + addrOffset);
         streamIn[i].DW7.SegidEnable = 1;
         streamIn[i].DW7.Segid32X32016X1603Vp9Only = segId | (segId << 4) | (segId << 8) | (segId << 12);
@@ -783,7 +783,7 @@ MOS_STATUS CodechalVdencVp9StateG10::SetupSegmentationStreamIn()
 
         streamIn[i].DW0.Numimepredictors = CODECHAL_VDENC_NUMIMEPREDICTORS;
 
-        switch (pVp9SeqParams->TargetUsage)
+        switch (m_vp9SeqParams->TargetUsage)
         {
         case 1:     // Quality mode
         case 4:     // Normal mode
@@ -807,7 +807,7 @@ MOS_STATUS CodechalVdencVp9StateG10::SetupSegmentationStreamIn()
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnUnlockResource(
         m_osInterface,
-        &sMbSegmentMapSurface.OsResource));
+        &m_mbSegmentMapSurface.OsResource));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnUnlockResource(
         m_osInterface,
@@ -924,7 +924,7 @@ MOS_STATUS CodechalVdencVp9StateG10::ExecuteKernelFunctions()
     );
 
     // Check if we need to dynamic scale the source
-    if (pVp9SeqParams->SeqFlags.fields.EnableDynamicScaling)
+    if (m_vp9SeqParams->SeqFlags.fields.EnableDynamicScaling)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(DysSrcFrame());
     }

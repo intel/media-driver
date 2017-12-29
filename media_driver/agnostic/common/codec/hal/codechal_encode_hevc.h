@@ -115,40 +115,40 @@ public:
     static const uint32_t                       m_mbEncFrameStatsSize = 32;
     static constexpr uint32_t                   NUM_FORMAT_CONV_FRAMES = (CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC + 1);  //!< Number of format conversion frames
 
-    uint32_t                                    dwWidthAlignedLcu32 = 0;                        //!< Picture width aligned to LCU32
-    uint32_t                                    dwHeightAlignedLcu32 = 0;                       //!< Picture height aligned to LCU32
+    uint32_t m_widthAlignedLcu32  = 0;  //!< Picture width aligned to LCU32
+    uint32_t m_heightAlignedLcu32 = 0;  //!< Picture height aligned to LCU32
 
-    uint32_t                                    dwNumRegionsInSlice = 1;                        //!< Number of Regions
+    uint32_t m_numRegionsInSlice = 1;  //!< Number of Regions
 
     // Resources for the render engine
-    MOS_SURFACE                                 sFormatConvertedSurface[NUM_FORMAT_CONV_FRAMES];//!< // Handle of the format converted surface
+    MOS_SURFACE m_formatConvertedSurface[NUM_FORMAT_CONV_FRAMES];  //!< // Handle of the format converted surface
 
     // ME
     CodechalKernelHme                           *m_hmeKernel = nullptr;                         //!< ME kernel object
-    PMHW_KERNEL_STATE                           pMeKernelState = nullptr;                       //!< ME kernel state
-    PCODECHAL_ENCODE_BINDING_TABLE_GENERIC      pMeKernelBindingTable = nullptr;                //!< ME kernel binding table
+    PMHW_KERNEL_STATE                            m_meKernelState        = nullptr;                         //!< ME kernel state
+    PCODECHAL_ENCODE_BINDING_TABLE_GENERIC       m_meKernelBindingTable = nullptr;                         //!< ME kernel binding table
 
     // BRC
-    PMHW_KERNEL_STATE                           pBrcKernelStates = nullptr;                     //!< Pointer to BRC kernel state
-    PCODECHAL_ENCODE_BINDING_TABLE_GENERIC      pBrcKernelBindingTable = nullptr;               //!< BRC kernel binding table
-    PMOS_SURFACE                                psBrcDistortion = nullptr;                      //!< Pointer to BRC distortion surface
-    HevcEncBrcBuffers                           BrcBuffers;                                     //!< BRC buffers
-    uint32_t                                    dwNumBrcKrnStates;                              //!< Number of BRC kernel states
+    PMHW_KERNEL_STATE                           m_brcKernelStates       = nullptr;              //!< Pointer to BRC kernel state
+    PCODECHAL_ENCODE_BINDING_TABLE_GENERIC      m_brcKernelBindingTable = nullptr;              //!< BRC kernel binding table
+    PMOS_SURFACE                                m_brcDistortion         = nullptr;              //!< Pointer to BRC distortion surface
+    HevcEncBrcBuffers                           m_brcBuffers;                                   //!< BRC buffers
+    uint32_t                                    m_numBrcKrnStates;                              //!< Number of BRC kernel states
     uint8_t                                     m_slidingWindowSize = 0;                        //!< Sliding window size in number of frames
 
     // MBENC
-    PMHW_KERNEL_STATE                           pMbEncKernelStates = nullptr;                   //!< Pointer to MbEnc kernel state
-    PCODECHAL_ENCODE_BINDING_TABLE_GENERIC      pMbEncKernelBindingTable = nullptr;             //!< MbEnc kernel binding table
-    uint32_t                                    dwNumMbEncEncKrnStates = 0;                     //!< Number of MbEnc kernel states
+    PMHW_KERNEL_STATE                           m_mbEncKernelStates       = nullptr;  //!< Pointer to MbEnc kernel state
+    PCODECHAL_ENCODE_BINDING_TABLE_GENERIC      m_mbEncKernelBindingTable = nullptr;  //!< MbEnc kernel binding table
+    uint32_t                                    m_numMbEncEncKrnStates    = 0;        //!< Number of MbEnc kernel states
     EncStatsBuffers                             m_encStatsBuffers;
 
     // ScalingAndConversion
-    PMHW_KERNEL_STATE                           pScalingAndConversionKernelState = nullptr;         //!< Pointer to ScalingAndConversion kernel state
-    PCODECHAL_ENCODE_BINDING_TABLE_GENERIC      pScalingAndConversionKernelBindingTable = nullptr;  //!< ScalingAndConversion kernel binding table
+    PMHW_KERNEL_STATE                      m_scalingAndConversionKernelState        = nullptr;  //!< Pointer to ScalingAndConversion kernel state
+    PCODECHAL_ENCODE_BINDING_TABLE_GENERIC m_scalingAndConversionKernelBindingTable = nullptr;  //!< ScalingAndConversion kernel binding table
 
-    bool                                        bPakOnlyTest = false;                           //!< PAK only test enable flag
-    char                                        cPakOnlyDataFolder[MOS_USER_CONTROL_MAX_DATA_SIZE] = { 0 }; //!< Pak only test data folder name
-    bool                                        m_CqpEnabled = false;                        //!< CQP Rate Control
+    bool m_pakOnlyTest                                       = false;  //!< PAK only test enable flag
+    char m_pakOnlyDataFolder[MOS_USER_CONTROL_MAX_DATA_SIZE] = {0};    //!< Pak only test data folder name
+    bool m_cqpEnabled                                        = false;  //!< CQP Rate Control
 
 protected:
     //!

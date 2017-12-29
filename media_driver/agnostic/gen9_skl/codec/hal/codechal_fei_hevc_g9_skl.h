@@ -594,7 +594,7 @@ private:
     // Resources for the render engine
     MOS_SURFACE                                 m_lcuQP;                                 //!< input LCU QP surface
 
-    CodecEncodeHevcFeiPicParams                 *pFeiPicParams;
+    CodecEncodeHevcFeiPicParams *m_feiPicParams;
 
     //!
     //! \brief    Get encoder kernel header and kernel size

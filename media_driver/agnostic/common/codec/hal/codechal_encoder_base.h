@@ -1233,9 +1233,9 @@ public:
 
     // this is used for Mpeg2 encoding BRC as well,
     // therefore, the last entry is for Mpeg2
-    const uint8_t m_BMeMethodGeneric[NUM_TARGET_USAGE_MODES + 1] = {0, 4, 4, 6, 6, 6, 6, 4, 7};
+    const uint8_t m_bMeMethodGeneric[NUM_TARGET_USAGE_MODES + 1] = {0, 4, 4, 6, 6, 6, 6, 4, 7};
 
-    const uint8_t m_MeMethodGeneric[NUM_TARGET_USAGE_MODES + 1] ={0, 4, 4, 6, 6, 6, 6, 4, 7};
+    const uint8_t m_meMethodGeneric[NUM_TARGET_USAGE_MODES + 1] = {0, 4, 4, 6, 6, 6, 6, 4, 7};
 
     const uint32_t m_superCombineDistGeneric[NUM_TARGET_USAGE_MODES + 1] ={0, 1, 1, 5, 5, 5, 9, 9, 0};
 
@@ -1442,7 +1442,7 @@ public:
     // Per-frame Application Settings
     EncoderParams                   m_encodeParams;               //!< Encode parameters used in each frame
     uint32_t                        *m_dataHwCount = nullptr;     //!< HW count data
-    MOS_RESOURCE                    resHwCount;                   //!< Resource of HW count
+    MOS_RESOURCE                     m_resHwCount;                //!< Resource of HW count
     MOS_SURFACE                     m_rawSurface;                 //!< Pointer to MOS_SURFACE of raw surface
     MOS_SURFACE                     m_reconSurface;               //!< Pointer to MOS_SURFACE of reconstructed surface
     MOS_RESOURCE                    m_resBitstreamBuffer;         //!< Pointer to MOS_SURFACE of bitstream surface
@@ -1490,10 +1490,10 @@ public:
     // Status Reporting
     bool                            m_codecGetStatusReportDefined = false;          //!< Need to be set to true by any codec/gen that has their own impleementation.
     uint32_t                        m_storeData = 0;                                //!< Stored data
-    bool                            bStatusQueryReportingEnabled = false;           //!< Flag to indicate if we support eStatus query reporting on current Platform
+    bool                            m_statusQueryReportingEnabled = false;                            //!< Flag to indicate if we support eStatus query reporting on current Platform
     EncodeStatusBuffer              m_encodeStatusBuf;                              //!< Stores all the status_query related data for PAK engine
     EncodeStatusBuffer              m_encodeStatusBufRcs;                           //!< Stores all the status_query related data for render ring (RCS)
-    MHW_VDBOX_IMAGE_STATUS_CONTROL  ImgStatusControlBuffer;                         //!< Stores image eStatus control data
+    MHW_VDBOX_IMAGE_STATUS_CONTROL  m_imgStatusControlBuffer;                       //!< Stores image eStatus control data
     uint32_t                        m_statusReportFeedbackNumber = 0;               //!< Status report feed back number
     bool                            m_frameTrackingEnabled = false;                 //!< Flag to indicate if we enable KMD frame tracking
     uint32_t                        m_numberTilesInFrame = 0;                       //!< Track number of tiles per frame
@@ -1508,10 +1508,10 @@ public:
     bool                            m_newSeq = false;                               //!< New sequence flag
     bool                            m_lastPicInSeq = false;                         //!< Flag to indicate if it is last picture in sequence
     bool                            m_lastPicInStream = false;                      //!< Flag to indicate if it is last picture in stream
-    uint8_t                         ucNumRefPair = 0;                               //!< number of reference pair (forward & backward)
+    uint8_t                         m_numRefPair                          = 0;                          //!< number of reference pair (forward & backward)
     uint8_t                         m_numPasses = 0;                                //!< Number passes
     uint8_t                         m_currPass = 0;                                 //!< Current pass
-    bool                            ForceSinglePakPass = false;                     //!< Flag to enable forcing single pak pass
+    bool                            m_forceSinglePakPass                  = false;                             //!< Flag to enable forcing single pak pass
     bool                            m_useCmScalingKernel = false;                   //!< Flag to use cm scaling kernel
     bool                            m_useMwWlkrForAsmScalingKernel = false;         //!< Use media walker for ASM scaling kernel flag
     bool                            m_combinedDownScaleAndDepthConversion = false;   //!< Combied downscale and depth conversion
@@ -1543,7 +1543,7 @@ public:
     bool                            m_suppressReconPicSupported = false;  //!< Suppress reconstructed picture supported flag
     bool                            m_useHwScoreboard = true;             //!< Flag to indicate if HW score board is used
     bool                            m_hwWalker = false;                   //!< HW walker used
-    bool                            m_rcPanicEnable = false;              //!< Rc panic enabled flag
+    bool                            m_panicEnable                = false;                   //!< Rc panic enabled flag
     bool                            m_sliceShutdownEnable = false;        //!< Slice Shutdown Enable
     uint32_t                        m_encodeVfeMaxThreads = 0;            //!< Encode vfe max threads number
     uint32_t                        m_encodeVfeMaxThreadsScaling = 0;     //!< Encode vfe max threads scaling number
@@ -1596,7 +1596,7 @@ public:
     uint32_t                        m_mvBottomFieldOffset = 0;      //!< MV data offset frame/TopField - zero, BottomField - nonzero
     MOS_RESOURCE                    m_resDistortionBuffer;          //!< MBEnc Distortion Buffer
     MOS_RESOURCE                    m_resMadDataBuffer[CODECHAL_ENCODE_MAX_NUM_MAD_BUFFERS]; //!< Buffers to store Mean of Absolute Differences
-    bool                            m_bMadEnabled = false;          //!< Mad enabled flag
+    bool                            m_madEnabled = false;                                    //!< Mad enabled flag
 
     bool                            m_arbitraryNumMbsInSlice = false;                        //!< Flag to indicate if the sliceMapSurface needs to be programmed or not
     MOS_SURFACE                     m_sliceMapSurface[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];  //!< Slice map surface
@@ -1620,7 +1620,7 @@ public:
     MOS_RESOURCE                    m_resPakMmioBuffer;                 //!< Resource of PAK MMIO buffer
     MOS_RESOURCE                    m_resHucStatus2Buffer;              //!< Resource of HuC status 2 buffer
     MOS_RESOURCE                    m_resHucFwBuffer;                   //!< Resource of HuC Fw buffer
-    PMOS_RESOURCE                   m_resVdencBrcUpdateDmemBuffer[2] = {nullptr, nullptr}; //!< One for 1st pass of next frame, and the other for the next pass of current frame.
+    PMOS_RESOURCE                   m_resVdencBrcUpdateDmemBufferPtr[2] = {nullptr, nullptr}; //!< One for 1st pass of next frame, and the other for the next pass of current frame.
 
     // PAK Scratch Buffers
     MOS_RESOURCE                    m_resDeblockingFilterRowStoreScratchBuffer;                 //!< Handle of deblock row store surface
@@ -1664,10 +1664,10 @@ public:
     uint32_t                        m_flatnessCheckBottomFieldOffset = 0;                 //!< Flatness check bottom field offset
     bool                            m_flatnessCheckEnabled = false;                       //!< Flatness check enabled flag
     bool                            m_mbStatsEnabled = false;                             //!< MB status enabled flag
-    bool                            bAdaptiveTransformDecisionEnabled = false;            //!< Adaptive Transform Decision Enabled flag
-    bool                            bForceBrcMbStatsEnabled = false;                      //!< Force Brc Mb statistics Enabled flag
-    uint32_t                        dwMBVProcStatsBottomFieldOffset = 0;                  //!< MB VProc statistics Bottom Field Offset
-    CODECHAL_ENCODE_BUFFER          resMbStatisticsSurface;                               //!< Resource of Mb statistics surface
+    bool                            m_adaptiveTransformDecisionEnabled = false;                             //!< Adaptive Transform Decision Enabled flag
+    bool                            m_forceBrcMbStatsEnabled           = false;                             //!< Force Brc Mb statistics Enabled flag
+    uint32_t                        m_mbvProcStatsBottomFieldOffset    = 0;                                 //!< MB VProc statistics Bottom Field Offset
+    CODECHAL_ENCODE_BUFFER          m_resMbStatisticsSurface;                                               //!< Resource of Mb statistics surface
     bool                            m_mbStatsSupported = false;                           //!< Mb statistics supported flag
     MOS_RESOURCE                    m_resMbStatsBuffer;                                   //!< Resource of Mb statistics buffer
     uint32_t                        m_mbStatsBottomFieldOffset = 0;                       //!< Mb statistics bottom field offset
@@ -1746,26 +1746,26 @@ public:
     MHW_VDBOX_NODE_IND              m_vdboxIndex;               //!< Index of vdbox
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    bool                            bMmcUserFeatureUpdated;     //!< indicate if the user feature is updated with MMC state
+    bool m_mmcUserFeatureUpdated;  //!< indicate if the user feature is updated with MMC state
 #endif
 
-    CmDevice                        *pCmDev = nullptr;
-    CmTask                          *pCmTask = nullptr;
-    CmQueue                         *pCmQueue = nullptr;
-    CmDevice                        *pOrigCmDev = nullptr;
+    CmDevice *m_cmDev     = nullptr;
+    CmTask *  m_cmTask    = nullptr;
+    CmQueue * m_cmQueue   = nullptr;
+    CmDevice *m_origCmDev = nullptr;
 
 #define CM_EVENT_NUM 128
-    CmEvent                          *pCmEvent[CM_EVENT_NUM] = {nullptr};
-    short                            nCmEventIdx;              // current  event idx
-    short                            nCmEventCheckIdx;
-    CmEvent                          *pSharedCmEvent[CM_EVENT_NUM] = {nullptr};
-    short                            nSharedCmEventIdx;
+    CmEvent *m_cmEvent[CM_EVENT_NUM] = {nullptr};
+    short    m_cmEventIdx;  // current  event idx
+    short    m_cmEventCheckIdx;
+    CmEvent *m_sharedCmEvent[CM_EVENT_NUM] = {nullptr};
+    short    m_sharedCmEventIdx;
 
 #ifdef FEI_ENABLE_CMRT
     CodechalEncodeMdfKernelResource resDSKernel;
 #endif
 
-    bool                            bColorbitSupported;
+    bool m_colorbitSupported;
 
 #if USE_CODECHAL_DEBUG_TOOL
     CodechalDebugEncodePar          *m_encodeParState = nullptr;         //!< Encode Par state

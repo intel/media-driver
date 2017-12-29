@@ -73,7 +73,7 @@ private:
     MhwVeboxInterface   *m_veboxInterface             = nullptr;    //!<  Pointer of vebox interface
     MOS_RESOURCE        m_resSyncObject;                            //!<  Sync object MOS resource
     MOS_RESOURCE        m_resStatisticsOutput;                      //!<  Statistics output MOS resource
-    MOS_SURFACE         m_sOutputSurface;                           //!<  Vebox output surface
+    MOS_SURFACE         m_outputSurface;                            //!<  Vebox output surface
     uint32_t            m_preWidth                    = 0;          //!<  Previous width, considering about resolution change
     uint32_t            m_preHeight                   = 0;          //!<  Previous height, considering about resolution change
 
