@@ -117,6 +117,58 @@ void CodechalEncodeTrackedBuffer::Resize()
     return;
 }
 
+void CodechalEncodeTrackedBuffer::ResetUsedForCurrFrame()
+{
+    for (auto i = 0; i < CODEC_NUM_TRACKED_BUFFERS; i++)
+    {
+        m_trackedBuffer[i].bUsedforCurFrame = false;
+    }
+}
+
+uint8_t CodechalEncodeTrackedBuffer::PreencLookUpBufIndex(
+    uint8_t         frameIdx,
+    bool            *inCache)
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    *inCache = false;
+    uint8_t j = frameIdx % CODEC_NUM_TRACKED_BUFFERS;
+    uint8_t emptyEntry = CODEC_NUM_TRACKED_BUFFERS;
+
+    for (auto i = 0; i < CODEC_NUM_TRACKED_BUFFERS; i++)
+    {
+        if (m_trackedBuffer[j].ucSurfIndex7bits == frameIdx)
+        {
+            //this frame is already in cache
+            *inCache = true;
+            m_trackedBuffer[j].bUsedforCurFrame = true;
+
+            return emptyEntry = j;
+        }
+        j = (j + 1) % CODEC_NUM_TRACKED_BUFFERS;
+    }
+
+    j = frameIdx % CODEC_NUM_TRACKED_BUFFERS;
+    for (auto i = 0; i < CODEC_NUM_TRACKED_BUFFERS; i++)
+    {
+        if (!m_trackedBuffer[j].bUsedforCurFrame)
+        {
+            //find the first empty entry
+            emptyEntry = j;
+            break;
+        }
+        j = (j + 1) % CODEC_NUM_TRACKED_BUFFERS;
+    }
+
+    if (emptyEntry < CODEC_NUM_TRACKED_BUFFERS)
+    {
+        m_trackedBuffer[emptyEntry].ucSurfIndex7bits = frameIdx;
+        m_trackedBuffer[emptyEntry].bUsedforCurFrame = true;
+    }
+
+    return emptyEntry;
+}
+
 uint8_t CodechalEncodeTrackedBuffer::LookUpBufIndex(
     PCODEC_PICTURE refList,
     uint8_t        numRefFrame,

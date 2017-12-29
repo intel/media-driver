@@ -3901,15 +3901,17 @@ MOS_STATUS CodechalEncodeAvcEncFeiG8::EncodePreEncKernelFunctions()
 
     UpdateSSDSliceCount();
 
+    m_trackedBuf->ResetUsedForCurrFrame();
+
     bool dsSurfaceInCache;
-    uint8_t scaledIdx = m_currScalingIdx = PreencLookUpBufIndex(this, m_currOriginalPic.FrameIdx, true, &dsSurfaceInCache);
+    uint8_t scaledIdx = m_currScalingIdx = m_trackedBuf->PreencLookUpBufIndex(m_currOriginalPic.FrameIdx, &dsSurfaceInCache);
 
     bool dsPastRefInCache = false;
     bool callDsPastRef = false;
     uint8_t pastRefScaledIdx = 0;
     if (preEncParams->dwNumPastReferences > 0)
     {
-        pastRefScaledIdx = PreencLookUpBufIndex(this, preEncParams->PastRefPicture.FrameIdx, false, &dsPastRefInCache);
+        pastRefScaledIdx = m_trackedBuf->PreencLookUpBufIndex(preEncParams->PastRefPicture.FrameIdx, &dsPastRefInCache);
         if ((!preEncParams->bPastRefUpdated) && dsPastRefInCache)
         {
             CODECHAL_ENCODE_VERBOSEMESSAGE("find PastRef Downscaled Surface in cache, so skip DS");
@@ -3925,7 +3927,7 @@ MOS_STATUS CodechalEncodeAvcEncFeiG8::EncodePreEncKernelFunctions()
     uint8_t futureRefScaledIdx = 0;
     if (preEncParams->dwNumFutureReferences > 0)
     {
-        futureRefScaledIdx = PreencLookUpBufIndex(this, preEncParams->FutureRefPicture.FrameIdx, false, &dsFutureRefInCache);
+        futureRefScaledIdx = m_trackedBuf->PreencLookUpBufIndex(preEncParams->FutureRefPicture.FrameIdx, &dsFutureRefInCache);
         if ((!preEncParams->bFutureRefUpdated) && dsFutureRefInCache)
         {
             CODECHAL_ENCODE_VERBOSEMESSAGE("find FutureRef Downscaled Surface in cache, so skip DS");

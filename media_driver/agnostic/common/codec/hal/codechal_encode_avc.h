@@ -1619,25 +1619,6 @@ struct CodechalEncodeAvcEnc : public CodechalEncodeAvcBase
         PMHW_KERNEL_STATE       kernelState,
         PMOS_RESOURCE           presAdvancedDsh);
 
-    //!
-    //! \brief    Encoder pre enc look up buffer index
-    //! \param    [in] encoder
-    //!           codechal encoder pointer
-    //! \param    [in] frameIdx
-    //!           ucFrame Index
-    //! \param    [in] fristFrameinPreenc
-    //!           Indicate if it's the first frame in Preenc
-    //! \param    [in] inCache
-    //!           Indicate if it's in cache
-    //! \return   uint8_t
-    //!           uiEmptyEntry
-    //!
-    uint8_t PreencLookUpBufIndex(
-        CodechalEncoderState*       encoder,
-        uint8_t                     frameIdx,
-        bool                        fristFrameinPreenc,
-        bool                        *inCache);
-
 #if USE_CODECHAL_DEBUG_TOOL
 protected:
     virtual MOS_STATUS DumpSeqParFile();

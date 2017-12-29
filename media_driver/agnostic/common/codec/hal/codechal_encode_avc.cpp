@@ -1394,67 +1394,6 @@ MOS_STATUS CodechalEncodeAvcEnc::SendBrcBlockCopySurfaces(
 
     return eStatus;
 }
-uint8_t CodechalEncodeAvcEnc::PreencLookUpBufIndex(
-    CodechalEncoderState*       encoder,
-    uint8_t                     frameIdx,
-    bool                        fristFrameinPreenc,
-    bool                        *inCache)
-{
-    uint8_t                     i,j;
-    uint8_t                     emptyEntry = CODEC_NUM_TRACKED_BUFFERS;
-    PCODEC_TRACKED_BUFFER       trackedBuffer;
-    
-    CODECHAL_ENCODE_FUNCTION_ENTER;
-    if(encoder == nullptr){
-        CODECHAL_ENCODE_ASSERTMESSAGE("Invalid (NULL) Pointer.");
-        return emptyEntry;
-    }
-
-    trackedBuffer = &encoder->m_trackedBuffer[0];
-
-    if (fristFrameinPreenc)
-    {
-        for (i = 0; i < CODEC_NUM_TRACKED_BUFFERS; i++)
-        {
-             trackedBuffer[i].bUsedforCurFrame = false;
-        }
-    }
-
-    *inCache = false;
-    j = frameIdx % CODEC_NUM_TRACKED_BUFFERS;
-    for (i = 0; i < CODEC_NUM_TRACKED_BUFFERS; i++)
-    {    
-        if (trackedBuffer[j].ucSurfIndex7bits == frameIdx) 
-        {
-            *inCache = true;
-            emptyEntry = j;
-            trackedBuffer[j].bUsedforCurFrame  = true;
-            //this frame is already in cache
-            return emptyEntry;
-        } 
-        j = ((j + 1) % CODEC_NUM_TRACKED_BUFFERS);
-    }
-
-    j = frameIdx % CODEC_NUM_TRACKED_BUFFERS;
-    for (i = 0; i < CODEC_NUM_TRACKED_BUFFERS; i++)
-    {   
-        if (!trackedBuffer[j].bUsedforCurFrame)
-        {
-            //find the first empty entry
-            emptyEntry = j;
-            break;
-        }
-        j = ((j + 1) % CODEC_NUM_TRACKED_BUFFERS);
-    }
-
-    if (emptyEntry < CODEC_NUM_TRACKED_BUFFERS)
-    {
-        trackedBuffer[emptyEntry].ucSurfIndex7bits  = frameIdx;
-        trackedBuffer[emptyEntry].bUsedforCurFrame  = true;
-    }
-
-    return emptyEntry;
-}
 
 CodechalEncodeAvcEnc::CodechalEncodeAvcEnc(
     CodechalHwInterface *   hwInterface,

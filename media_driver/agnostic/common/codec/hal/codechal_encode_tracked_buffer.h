@@ -150,6 +150,24 @@ public:
     void Resize();
 
     //!
+    //! \brief  Reset used for current frame flag
+    //!
+    void ResetUsedForCurrFrame();
+
+    //!
+    //! \brief    Encoder pre enc look up buffer index
+    //! \param    [in] frameIdx
+    //!           ucFrame Index
+    //!           [in] inCache
+    //!           Indicate if it's in cache
+    //! \return   uint8_t
+    //!           uiEmptyEntry
+    //!
+    uint8_t PreencLookUpBufIndex(
+        uint8_t         frameIdx,
+        bool            *inCache);
+
+    //!
     //! \brief  Allocate Mb Code Resources
     //!
     //! \param  [in] bufIndex
@@ -240,7 +258,7 @@ protected:
 
     CodechalEncoderState*           m_encoder = nullptr;                        //!< Pointer to ENCODER base class
     CodechalEncodeAllocator*        m_allocator = nullptr;                      //!< Pointer to resource allocator
-    CODEC_TRACKED_BUFFER*           m_trackedBuffer;
+    CODEC_TRACKED_BUFFER*           m_trackedBuffer;                            //!< Pointer to tracked buffer struct
 
     MOS_RESOURCE*                   m_trackedBufCurrMbCode = nullptr;           //!< Pointer to current MbCode buffer
     MOS_RESOURCE*                   m_trackedBufCurrMvData = nullptr;           //!< Pointer to current MvData buffer
