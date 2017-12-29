@@ -5394,6 +5394,12 @@ MOS_STATUS CodechalVdencVp9State::SetPictureStructs()
             m_refFrameFlags &= ~0x4;  //skip alt frame
         }
 
+        if (m_refFrameFlags == 7 && !m_16xMeSupported)
+        {
+            // can support max 2 reference frames when SHME disabled, so ignore alt frame
+            m_refFrameFlags &= ~0x4;
+        }
+
         if (m_refFrameFlags == 0)
         {
             CODECHAL_ENCODE_ASSERTMESSAGE("Ref list is empty!.");
