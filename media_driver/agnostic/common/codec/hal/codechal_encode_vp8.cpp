@@ -2183,7 +2183,7 @@ MOS_STATUS CodechalEncodeVp8::MbEncKernel(bool isEncPhase1NotRun, bool isEncPhas
     uint8_t*                                        data;
     PerfTagSetting                                  perfTag;
     bool                                            use45DegreePattern;
-    uint8_t                                         index, currScaledIdx;
+    uint8_t                                         index;
     MOS_LOCK_PARAMS                                 lockFlags;
     uint32_t                                        resolutionX, resolutionY;
     uint32_t                                        refFrameFlag, finalRefFrameFlag;
@@ -2200,7 +2200,6 @@ MOS_STATUS CodechalEncodeVp8::MbEncKernel(bool isEncPhase1NotRun, bool isEncPhas
     CODECHAL_ENCODE_CHK_NULL_RETURN(stateHeapInterface);
     use45DegreePattern = false;
     chromaKernelState = nullptr;
-    currScaledIdx = pRefList[m_currReconstructedPic.FrameIdx]->ucScalingIdx;
 
     perfTag.Value = 0;
     perfTag.Mode = (uint16_t)m_mode & CODECHAL_ENCODE_MODE_BIT_MASK;
@@ -2735,17 +2734,17 @@ MOS_STATUS CodechalEncodeVp8::MeKernel()
         kernelState));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
-        &(m_trackedBuffer[refScaledIdx].sScaled4xSurface),
+        m_trackedBuf->Get4xDsSurface(refScaledIdx),
         CodechalDbgAttr::attrReferenceSurfaces,
         "MeRef4xScaledSurf"))
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
-            &(m_trackedBuffer[goldScaledIdx].sScaled4xSurface),
+            m_trackedBuf->Get4xDsSurface(goldScaledIdx),
             CodechalDbgAttr::attrReferenceSurfaces,
             "GoldenRef4xScaledSurf"))
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
-            &(m_trackedBuffer[altrefScaledIdx].sScaled4xSurface),
+            m_trackedBuf->Get4xDsSurface(altrefScaledIdx),
             CodechalDbgAttr::attrReferenceSurfaces,
             "AltRef4xScaledSurf"))
         )
@@ -2773,10 +2772,8 @@ MOS_STATUS CodechalEncodeVp8::MeKernel()
     meSurfaceParams.pLastRefPic = &pVp8PicParams->LastRefPic;
     meSurfaceParams.pGoldenRefPic = &pVp8PicParams->GoldenRefPic;
     meSurfaceParams.pAlternateRefPic = &pVp8PicParams->AltRefPic;
-    meSurfaceParams.pCurrReconstructedPic = &m_currReconstructedPic;
     meSurfaceParams.ps4xMeMvDataBuffer = &s4xMEMVDataBuffer;
     meSurfaceParams.ps16xMeMvDataBuffer = &s16xMEMVDataBuffer;
-    meSurfaceParams.pTrackedBuffer = &m_trackedBuffer[0];
     meSurfaceParams.psMeDistortionBuffer = &s4xMEDistortionBuffer;
     // Me kernel is only for P frame, no need to worry about I frame
     meSurfaceParams.psMeBrcDistortionBuffer = bBrcEnabled ?
@@ -4484,10 +4481,8 @@ MOS_STATUS CodechalEncodeVp8::SendMeSurfaces(
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(params->pCurrReconstructedPic);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->ps4xMeMvDataBuffer);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->ps16xMeMvDataBuffer);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(params->pTrackedBuffer);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pMeBindingTable);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pKernelState);
 
@@ -4499,7 +4494,6 @@ MOS_STATUS CodechalEncodeVp8::SendMeSurfaces(
     lastRefPicIdx = CODECHAL_ENCODE_VP8_INVALID_PIC_ID;
     goldenRefPicIdx = CODECHAL_ENCODE_VP8_INVALID_PIC_ID;
     alternateRefPicIdx = CODECHAL_ENCODE_VP8_INVALID_PIC_ID;
-    scaledIdx = params->ppRefList[params->pCurrReconstructedPic->FrameIdx]->ucScalingIdx;
 
     if (!CodecHal_PictureIsInvalid(*params->pLastRefPic))
     {
@@ -4518,12 +4512,12 @@ MOS_STATUS CodechalEncodeVp8::SendMeSurfaces(
 
     if (params->b16xMeInUse)
     {
-        scaledSurface = &params->pTrackedBuffer[scaledIdx].sScaled16xSurface;
+        scaledSurface = m_trackedBuf->Get16xDsSurface(CODEC_CURR_TRACKED_BUFFER);
         meMvDataBuffer = params->ps16xMeMvDataBuffer;
     }
     else
     {
-        scaledSurface = &params->pTrackedBuffer[scaledIdx].sScaled4xSurface;
+        scaledSurface = m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER);
         meMvDataBuffer = params->ps4xMeMvDataBuffer;
     }
 
@@ -4614,9 +4608,7 @@ MOS_STATUS CodechalEncodeVp8::SendMeSurfaces(
     scaledIdx = params->ppRefList[lastRefPicIdx]->ucScalingIdx;
     MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
     surfaceCodecParams.bUseAdvState = true;
-    surfaceCodecParams.psSurface = params->b16xMeInUse ?
-        (&params->pTrackedBuffer[scaledIdx].sScaled16xSurface) :
-        (&params->pTrackedBuffer[scaledIdx].sScaled4xSurface);
+    surfaceCodecParams.psSurface = params->b16xMeInUse ? m_trackedBuf->Get16xDsSurface(scaledIdx) : m_trackedBuf->Get4xDsSurface(scaledIdx);
     surfaceCodecParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_CURR_ENCODE].Value;
     surfaceCodecParams.ucVDirection = g_cMhw_VDirection[MHW_FRAME];
 
@@ -4639,9 +4631,7 @@ MOS_STATUS CodechalEncodeVp8::SendMeSurfaces(
     scaledIdx = params->ppRefList[goldenRefPicIdx]->ucScalingIdx;
     MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
     surfaceCodecParams.bUseAdvState = true;
-    surfaceCodecParams.psSurface = params->b16xMeInUse ?
-        (&params->pTrackedBuffer[scaledIdx].sScaled16xSurface) :
-        (&params->pTrackedBuffer[scaledIdx].sScaled4xSurface);
+    surfaceCodecParams.psSurface = params->b16xMeInUse ? m_trackedBuf->Get16xDsSurface(scaledIdx) : m_trackedBuf->Get4xDsSurface(scaledIdx);
     surfaceCodecParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_CURR_ENCODE].Value;
     surfaceCodecParams.ucVDirection = g_cMhw_VDirection[MHW_FRAME];
 
@@ -4671,9 +4661,7 @@ MOS_STATUS CodechalEncodeVp8::SendMeSurfaces(
     scaledIdx = params->ppRefList[alternateRefPicIdx]->ucScalingIdx;
     MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
     surfaceCodecParams.bUseAdvState = true;
-    surfaceCodecParams.psSurface = params->b16xMeInUse ?
-        (&params->pTrackedBuffer[scaledIdx].sScaled16xSurface) :
-        (&params->pTrackedBuffer[scaledIdx].sScaled4xSurface);
+    surfaceCodecParams.psSurface = params->b16xMeInUse ? m_trackedBuf->Get16xDsSurface(scaledIdx) : m_trackedBuf->Get4xDsSurface(scaledIdx);
     surfaceCodecParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_CURR_ENCODE].Value;
     surfaceCodecParams.ucVDirection = g_cMhw_VDirection[MHW_FRAME];
 
@@ -4947,7 +4935,6 @@ MOS_STATUS CodechalEncodeVp8::SendMbEncSurfaces(
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(params->pCurrReconstructedPic);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->psCurrPicSurface);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pMbEncBindingTable);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pKernelState);
@@ -5112,10 +5099,9 @@ MOS_STATUS CodechalEncodeVp8::SendMbEncSurfaces(
                 kernelState));
 
             // Curr Y downscaled (input)
-            scaledIdx = params->ppRefList[params->pCurrReconstructedPic->FrameIdx]->ucScalingIdx;
             MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
             surfaceCodecParams.bIs2DSurface = true;
-            surfaceCodecParams.psSurface = &params->pTrackedBuffer[scaledIdx].sScaled4xSurface;
+            surfaceCodecParams.psSurface = m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER);
             surfaceCodecParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_CURR_ENCODE].Value;
             surfaceCodecParams.dwBindingTableOffset = vp8MbEncBindingTable->dwVp8MbEncCurrYDownscaled;
             surfaceCodecParams.ucVDirection = g_cMhw_VDirection[MHW_FRAME];
@@ -5126,10 +5112,9 @@ MOS_STATUS CodechalEncodeVp8::SendMbEncSurfaces(
                 kernelState));
 
             // VME Coarse Intra downscaled (input)
-            scaledIdx = params->ppRefList[params->pCurrReconstructedPic->FrameIdx]->ucScalingIdx;
             MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
             surfaceCodecParams.bUseAdvState = true;
-            surfaceCodecParams.psSurface = &params->pTrackedBuffer[scaledIdx].sScaled4xSurface;
+            surfaceCodecParams.psSurface = m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER);
             surfaceCodecParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_CURR_ENCODE].Value;
             surfaceCodecParams.dwBindingTableOffset = vp8MbEncBindingTable->dwVp8MBEncVMECoarseIntra;
             surfaceCodecParams.ucVDirection = g_cMhw_VDirection[MHW_FRAME];

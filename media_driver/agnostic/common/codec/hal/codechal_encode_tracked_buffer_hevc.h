@@ -50,7 +50,7 @@ private:
     CodechalEncodeTrackedBufferHevc& operator=(const CodechalEncodeTrackedBufferHevc&) = delete;
 
     void LookUpBufIndexMbCode() override;
-    MOS_STATUS AllocateMvTemporalBuffer(uint8_t bufIndex) override;
+    MOS_STATUS AllocateMvTemporalBuffer() override;
     void ReleaseBufferOnResChange() override;
 
     CodechalEncodeHevcBase*         m_hevcState = nullptr;                      //!< HEVC encoder state

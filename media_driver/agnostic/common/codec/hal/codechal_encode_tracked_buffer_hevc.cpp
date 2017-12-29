@@ -36,11 +36,11 @@ void CodechalEncodeTrackedBufferHevc::LookUpBufIndexMbCode()
     m_mbCodeCurrIdx += CODEC_NUM_REF_BUFFERS;
 }
 
-MOS_STATUS CodechalEncodeTrackedBufferHevc::AllocateMvTemporalBuffer(uint8_t bufIndex)
+MOS_STATUS CodechalEncodeTrackedBufferHevc::AllocateMvTemporalBuffer()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    if (m_trackedBufCurrMvTemporal = (MOS_RESOURCE*)m_allocator->GetResource(m_standard, mvTemporalBuffer, bufIndex))
+    if (m_trackedBufCurrMvTemporal = (MOS_RESOURCE*)m_allocator->GetResource(m_standard, mvTemporalBuffer, m_trackedBufCurrIdx))
     {
         return MOS_STATUS_SUCCESS;
     }
@@ -48,7 +48,7 @@ MOS_STATUS CodechalEncodeTrackedBufferHevc::AllocateMvTemporalBuffer(uint8_t buf
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_hevcState);
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBufCurrMvTemporal = (MOS_RESOURCE*)m_allocator->AllocateResource(
-        m_standard, m_hevcState->dwSizeOfMvTemporalBuffer, 1, mvTemporalBuffer, bufIndex, true));
+        m_standard, m_hevcState->dwSizeOfMvTemporalBuffer, 1, mvTemporalBuffer, m_trackedBufCurrIdx, true));
 
     return MOS_STATUS_SUCCESS;
 }

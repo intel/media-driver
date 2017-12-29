@@ -526,13 +526,11 @@ struct CodechalVp8BrcUpdateSurfaceParams
 struct CodechalVp8MeSurfaceParams
 {
     PCODEC_REF_LIST                     *ppRefList;
-    PCODEC_PICTURE                      pCurrReconstructedPic;
     PCODEC_PICTURE                      pLastRefPic;
     PCODEC_PICTURE                      pGoldenRefPic;
     PCODEC_PICTURE                      pAlternateRefPic;
     PMOS_SURFACE                        ps4xMeMvDataBuffer;
     PMOS_SURFACE                        ps16xMeMvDataBuffer;
-    PCODEC_TRACKED_BUFFER               pTrackedBuffer;
     PMOS_SURFACE                        psMeDistortionBuffer;
     PMOS_SURFACE                        psMeBrcDistortionBuffer;
     uint32_t                            dwDownscaledWidthInMb;

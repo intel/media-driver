@@ -197,10 +197,6 @@ typedef enum tagSLICE_GROUP_MASK
 typedef struct _CODEC_TRACKED_BUFFER
 {
     uint8_t             ucSurfIndex7bits;             // 0xFF means the entry can be re-used
-    MOS_SURFACE         sScaled4xSurface;             // Handle of the 4x scaled surfaces
-    MOS_SURFACE         sScaled2xSurface;             // Handle of the 2x scaled surfaces
-    MOS_SURFACE         sScaled16xSurface;            // Handle of the 16x scaled surfaces
-    MOS_SURFACE         sScaled32xSurface;            // Handle of the 32x scaled surfaces
     MOS_SURFACE         sCopiedSurface;               // Handle of copied surface
     bool                bUsedforCurFrame;             // Used for FEI Preenc to mark whether this enty can be reused in multi-call case
 } CODEC_TRACKED_BUFFER, *PCODEC_TRACKED_BUFFER;

@@ -100,9 +100,12 @@ public:
     {
         if (bufIndex == CODEC_CURR_TRACKED_BUFFER)
         {
-            bufIndex = m_trackedBufCurrIdx;
+            return m_trackedBufCurrDs4x;
         }
-        return &m_trackedBuffer[bufIndex].sScaled4xSurface;
+        else
+        {
+            return  (MOS_SURFACE*)m_allocator->GetResource(m_standard, ds4xSurface, bufIndex);
+        }
     }
 
     //!
@@ -114,9 +117,12 @@ public:
     {
         if (bufIndex == CODEC_CURR_TRACKED_BUFFER)
         {
-            bufIndex = m_trackedBufCurrIdx;
+            return m_trackedBufCurrDs2x;
         }
-        return &m_trackedBuffer[bufIndex].sScaled2xSurface;
+        else
+        {
+            return  (MOS_SURFACE*)m_allocator->GetResource(m_standard, ds2xSurface, bufIndex);
+        }
     }
 
     //!
@@ -128,9 +134,12 @@ public:
     {
         if (bufIndex == CODEC_CURR_TRACKED_BUFFER)
         {
-            bufIndex = m_trackedBufCurrIdx;
+            return m_trackedBufCurrDs16x;
         }
-        return &m_trackedBuffer[bufIndex].sScaled16xSurface;
+        else
+        {
+            return  (MOS_SURFACE*)m_allocator->GetResource(m_standard, ds16xSurface, bufIndex);
+        }
     }
 
     //!
@@ -142,9 +151,12 @@ public:
     {
         if (bufIndex == CODEC_CURR_TRACKED_BUFFER)
         {
-            bufIndex = m_trackedBufCurrIdx;
+            return m_trackedBufCurrDs32x;
         }
-        return &m_trackedBuffer[bufIndex].sScaled32xSurface;
+        else
+        {
+            return  (MOS_SURFACE*)m_allocator->GetResource(m_standard, ds32xSurface, bufIndex);
+        }
     }
 
     //!
@@ -289,17 +301,6 @@ protected:
         bool           usedAsRef);
 
     //!
-    //! \brief  Allocate Ds Recon Surfaces Vdenc
-    //!
-    //! \param  [in] bufIndex
-    //!         buffer index used
-    //!
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS AllocateDsReconSurfacesVdenc(uint8_t bufIndex);
-
-    //!
     //! \brief  Release MbCode buffer
     //!
     //! \param  [in] bufIndex
@@ -379,7 +380,18 @@ private:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS AllocateMvTemporalBuffer(uint8_t bufIndex) { return MOS_STATUS_SUCCESS; }
+    virtual MOS_STATUS AllocateMvTemporalBuffer() { return MOS_STATUS_SUCCESS; }
+
+    //!
+    //! \brief  Allocate Ds Recon Surfaces Vdenc
+    //!
+    //! \param  [in] bufIndex
+    //!         buffer index used
+    //!
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS AllocateDsReconSurfacesVdenc();
 
     //!
     //! \brief  Release buffer used before resolution reset
