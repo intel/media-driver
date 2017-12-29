@@ -719,7 +719,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpPipeModeSelectCmd(
     cmd.DW1.AdvancedRateControlEnable    = params->bAdvancedRateControlEnable;
     cmd.DW1.SaoFirstPass                 = params->bSaoFirstPass;
     cmd.DW1.CodecStandardSelect          = CodecHal_GetStandardFromMode(params->Mode) - CODECHAL_HCP_BASE;
-    cmd.DW1.PakPipelineStreamoutEnable   = params->bVdencEnabled && params->bStreamOutEnabled;
+    cmd.DW1.PakPipelineStreamoutEnable   = params->bStreamOutEnabled;
     cmd.DW1.DeblockerStreamoutEnable     = params->bDeblockerStreamOutEnable;
     cmd.DW1.VdencMode                    = params->bVdencEnabled;
     cmd.DW1.RdoqEnabledFlag              = params->bRdoqEnable;

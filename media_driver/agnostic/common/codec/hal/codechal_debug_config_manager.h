@@ -83,6 +83,7 @@ static const char *attrForceCurbeDumpLvl     = "ForceCurbeDumpLvl";
 static const char *attrVdencOutput           = "VdencOutput";
 static const char *attrDecodeProcParams      = "DecodeProcParams";
 static const char *attrFrameState            = "FrameState";
+static const char *attrCUStreamout           = "CUStreamout";
 static const char *attrImageState            = "ImageState";
 static const char *attrSliceSizeStreamout    = "SliceSizeStreamout";
 static const char *attrCoeffProb             = "PakHwCoeffProbs";

@@ -218,6 +218,7 @@ typedef struct _MHW_VDBOX_PIPE_MODE_SELECT_PARAMS
     bool                        bStreamOutEnabled;
     bool                        bShortFormatInUse;
     bool                        bVC1OddFrameHeight;
+    bool                        SSEEnabled;
 
     bool                        bDeblockerStreamOutEnable;
     bool                        bPostDeblockOutEnable;

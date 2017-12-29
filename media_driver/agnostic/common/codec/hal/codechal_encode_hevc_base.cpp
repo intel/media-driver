@@ -691,6 +691,8 @@ MOS_STATUS CodechalEncodeHevcBase::CalculatePSNR(
         }        
         encodeStatusReport->PSNRx100[i] = (uint16_t) CodecHal_Clip3(0, 10000,
             (uint16_t) (encodeStatus->sumSquareError[i] ? 1000 * log10(squarePeakPixelValue * numPixels / encodeStatus->sumSquareError[i]) : -1));    
+
+        CODECHAL_ENCODE_VERBOSEMESSAGE("PSNRx100[%d]:%d.\n", i, encodeStatusReport->PSNRx100[i]);
     }
 
     return eStatus;
@@ -2179,11 +2181,9 @@ MOS_STATUS CodechalEncodeHevcBase::InitializePicture(const EncoderParams& params
 
 void CodechalEncodeHevcBase::SetHcpPipeModeSelectParams(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS& pipeModeSelectParams)
 {
-    bool buseFramePAKStats = Mos_ResourceIsNull(&m_resFrameStatStreamOutBuffer) ? false : true;
-
     MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode = m_mode;
-    pipeModeSelectParams.bStreamOutEnabled = m_vdencEnabled || buseFramePAKStats;//HEVC DP need SSE statistics dump always for psnr reporting.
+    pipeModeSelectParams.bStreamOutEnabled = m_vdencEnabled;
     pipeModeSelectParams.bVdencEnabled = m_vdencEnabled;
     pipeModeSelectParams.bRdoqEnable                = m_hevcRdoqEnabled;
     pipeModeSelectParams.bAdvancedRateControlEnable = m_vdencBrcEnabled;
