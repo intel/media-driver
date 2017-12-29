@@ -494,6 +494,12 @@ MOS_STATUS CodechalEncoderState::Allocate(PCODECHAL_SETTINGS codecHalSettings)
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
+    if (m_cscDsState)
+    {
+        // call before m_hwInterface->Initialize() to reserve ISH space for CscDs kernel
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->Initialize());
+    }
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(Codechal::Allocate(codecHalSettings));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(Initialize(codecHalSettings));

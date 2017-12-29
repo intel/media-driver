@@ -333,10 +333,10 @@ MOS_STATUS CodechalInterfacesG10Cnl::Initialize(
     }
     else if (CodecHalIsEncode(CodecFunction))
     {
+        CodechalEncoderState *encoder = nullptr;
 #ifdef _AVC_ENCODE_SUPPORTED
         if (info->Mode == CODECHAL_ENCODE_MODE_AVC)
         {
-            CodechalEncoderState *encoder = nullptr;
             if (CodecHalUsesVdencEngine(info->CodecFunction))
             {
                 encoder = MOS_New(Encode::AvcVdenc, hwInterface, debugInterface, info);
@@ -354,21 +354,13 @@ MOS_STATUS CodechalInterfacesG10Cnl::Initialize(
             {
                 m_codechalDevice = encoder;
             }
-#ifndef _FULL_OPEN_SOURCE
-            // Create CSC and Downscaling interface
-            if ((encoder->m_cscDsState = MOS_New(Encode::CscDs, encoder)) == nullptr)
-            {
-                return MOS_STATUS_INVALID_PARAMETER;
-            }
-#endif
         }
         else
 #endif
 #ifdef _VP9_ENCODE_SUPPORTED
         if (info->Mode == CODECHAL_ENCODE_MODE_VP9)
         {
-            CodechalEncoderState *encoder =
-                MOS_New(Encode::Vp9, hwInterface, debugInterface, info);
+            encoder = MOS_New(Encode::Vp9, hwInterface, debugInterface, info);
             if (encoder == nullptr)
             {
                 CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
@@ -378,21 +370,13 @@ MOS_STATUS CodechalInterfacesG10Cnl::Initialize(
             {
                 m_codechalDevice = encoder;
             }
-#ifndef _FULL_OPEN_SOURCE
-            // Create CSC and Downscaling interface
-            if ((encoder->m_cscDsState = MOS_New(Encode::CscDs, encoder)) == nullptr)
-            {
-                return MOS_STATUS_INVALID_PARAMETER;
-            }
-#endif
         }
         else
 #endif
 #ifdef _JPEG_ENCODE_SUPPORTED
         if (info->Mode == CODECHAL_ENCODE_MODE_JPEG)
         {
-            CodechalEncoderState* encoder = 
-                MOS_New(Encode::Jpeg, hwInterface, debugInterface, info);
+            encoder = MOS_New(Encode::Jpeg, hwInterface, debugInterface, info);
             if (encoder == nullptr)
             {
                 CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
@@ -409,8 +393,7 @@ MOS_STATUS CodechalInterfacesG10Cnl::Initialize(
         if (info->Mode == CODECHAL_ENCODE_MODE_MPEG2)
         {
             // Setup encode interface functions
-            CodechalEncoderState* encoder =
-                MOS_New(Encode::Mpeg2, hwInterface, debugInterface, info);
+            encoder = MOS_New(Encode::Mpeg2, hwInterface, debugInterface, info);
             if (encoder == nullptr)
             {
                 CODECHAL_PUBLIC_ASSERTMESSAGE("Encode allocation failed!");
@@ -422,19 +405,12 @@ MOS_STATUS CodechalInterfacesG10Cnl::Initialize(
             }
 
             encoder->m_kernelBase = (uint8_t*)IGCODECKRN_G10;
-
-            // Create CSC and Downscaling interface
-            if ((encoder->m_cscDsState = MOS_New(Encode::CscDs, encoder)) == nullptr)
-            {
-                return MOS_STATUS_INVALID_PARAMETER;
-            }
         }
         else
 #endif
 #ifdef _HEVC_ENCODE_SUPPORTED
         if (info->Mode == CODECHAL_ENCODE_MODE_HEVC)
         {
-            CodechalEncoderState* encoder;
             if (CodecHalUsesVdencEngine(info->CodecFunction))
             {
                 encoder = MOS_New(Encode::HevcVdenc, hwInterface, debugInterface, info);
@@ -455,14 +431,6 @@ MOS_STATUS CodechalInterfacesG10Cnl::Initialize(
             }
 
             encoder->m_kernelBase = (uint8_t*)IGCODECKRN_G10;
-
-#ifndef _FULL_OPEN_SOURCE
-            // Create CSC and Downscaling interface
-            if ((encoder->m_cscDsState = MOS_New(Encode::CscDs, encoder)) == nullptr)
-            {
-                return MOS_STATUS_INVALID_PARAMETER;
-            }
-#endif
         }
         else
 #endif
@@ -470,7 +438,6 @@ MOS_STATUS CodechalInterfacesG10Cnl::Initialize(
         if (info->Mode == CODECHAL_ENCODE_MODE_VP8)
         {
             // Setup encode interface functions
-            CodechalEncoderState* encoder;
             encoder = MOS_New(Encode::Vp8, hwInterface, debugInterface, info);
             if (encoder == nullptr)
             {
@@ -483,12 +450,6 @@ MOS_STATUS CodechalInterfacesG10Cnl::Initialize(
             }
 
             encoder->m_kernelBase = (uint8_t*)IGCODECKRN_G10;
-
-            // Create CSC and Downscaling interface
-            if ((encoder->m_cscDsState = MOS_New(Encode::CscDs, encoder)) == nullptr)
-            {
-                return MOS_STATUS_INVALID_PARAMETER;
-            }
         }
         else
 #endif
@@ -496,6 +457,16 @@ MOS_STATUS CodechalInterfacesG10Cnl::Initialize(
             CODECHAL_PUBLIC_ASSERTMESSAGE("Unsupported encode function requested.");
             return MOS_STATUS_INVALID_PARAMETER;
         }
+#ifndef _FULL_OPEN_SOURCE
+        if (info->Mode != CODECHAL_ENCODE_MODE_JPEG)
+        {
+            // Create CSC and Downscaling interface
+            if ((encoder->m_cscDsState = MOS_New(Encode::CscDs, encoder)) == nullptr)
+            {
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
+        }
+#endif
     }
     else
     {

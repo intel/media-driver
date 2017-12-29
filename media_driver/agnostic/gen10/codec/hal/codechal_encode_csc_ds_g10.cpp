@@ -241,6 +241,4 @@ CodechalEncodeCscDsG10::CodechalEncodeCscDsG10(CodechalEncoderState* encoder)
     m_cscKernelUID = IDR_CODEC_Downscale_Copy;
     m_cscCurbeLength = sizeof(CscKernelCurbeData);
     m_kernelBase = (uint8_t *)IGCODECKRN_G10;
-    Initialize();
 }
-

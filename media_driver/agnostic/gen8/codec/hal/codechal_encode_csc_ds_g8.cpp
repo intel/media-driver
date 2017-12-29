@@ -38,5 +38,4 @@ CodechalEncodeCscDsG8::CodechalEncodeCscDsG8(CodechalEncoderState* encoder)
     m_kernelBase = (uint8_t*)IGCODECKRN_G8;
     // Gen8 use 16x raw surface alignment
     m_encoder->m_rawSurfAlignment = MHW_VDBOX_MFX_UV_PLANE_ALIGNMENT_LEGACY;
-    Initialize();
 }

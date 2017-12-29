@@ -240,12 +240,12 @@ MOS_STATUS CodechalInterfacesG8Bdw::Initialize(
     }
     else if (CodecHalIsEncode(CodecFunction))
     {
+        CodechalEncoderState *encoder = nullptr;
 #ifdef _MPEG2_ENCODE_SUPPORTED
         if (info->Mode == CODECHAL_ENCODE_MODE_MPEG2)
         {
             // Setup encode interface functions
-            CodechalEncoderState* encoder =
-                MOS_New(Encode::Mpeg2, hwInterface, debugInterface, info);
+            encoder = MOS_New(Encode::Mpeg2, hwInterface, debugInterface, info);
             if (encoder == nullptr)
             {
                 CODECHAL_PUBLIC_ASSERTMESSAGE("Encode allocation failed!");
@@ -257,21 +257,13 @@ MOS_STATUS CodechalInterfacesG8Bdw::Initialize(
             }
 
             encoder->m_kernelBase = (uint8_t*)IGCODECKRN_G8;
-
-            // Create CSC and Downscaling interface
-            if ((encoder->m_cscDsState = MOS_New(Encode::CscDs, encoder)) == nullptr)
-            {
-                return MOS_STATUS_INVALID_PARAMETER;
-            }
-
         }
         else
 #endif
 #ifdef _JPEG_ENCODE_SUPPORTED
         if (info->Mode == CODECHAL_ENCODE_MODE_JPEG)
         {
-            CodechalEncoderState* encoder = 
-                MOS_New(Encode::Jpeg, hwInterface, debugInterface, info);
+            encoder = MOS_New(Encode::Jpeg, hwInterface, debugInterface, info);
             if (encoder == nullptr)
             {
                 CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
@@ -288,7 +280,6 @@ MOS_STATUS CodechalInterfacesG8Bdw::Initialize(
 #ifdef _AVC_ENCODE_SUPPORTED
         if (info->Mode == CODECHAL_ENCODE_MODE_AVC)
         {
-            CodechalEncoderState *encoder = nullptr;
             if (CodecHalIsFeiEncode(info->CodecFunction))
             {
                 encoder = MOS_New(Encode::AvcFei, hwInterface, debugInterface, info);
@@ -306,18 +297,21 @@ MOS_STATUS CodechalInterfacesG8Bdw::Initialize(
             {
                 m_codechalDevice = encoder;
             }
-
-            // Create CSC and Downscaling interface
-            if ((encoder->m_cscDsState = MOS_New(Encode::CscDs, encoder)) == nullptr)
-            {
-                return MOS_STATUS_INVALID_PARAMETER;
-            }
         }
         else
 #endif
         {
             CODECHAL_PUBLIC_ASSERTMESSAGE("Unsupported encode function requested.");
             return MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        if (info->Mode != CODECHAL_ENCODE_MODE_JPEG)
+        {
+            // Create CSC and Downscaling interface
+            if ((encoder->m_cscDsState = MOS_New(Encode::CscDs, encoder)) == nullptr)
+            {
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
         }
     }
     else
