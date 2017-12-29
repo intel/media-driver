@@ -976,7 +976,6 @@ protected:
         CodechalDebugInterface* debugInterface,
         PCODECHAL_STANDARD_INFO standardInfo);
 
-    uint8_t*                                    m_kernelBase = nullptr;                 //!< kernel binary base address
     uint8_t*                                    m_kernelBinary = nullptr;               //!< Pointer to the kernel binary
     uint32_t                                    m_combinedKernelSize = 0;               //!< Combined kernel binary size
     PMHW_VDBOX_HEVC_SLICE_STATE                 m_sliceStateParams = nullptr;           //!< Slice state parameters

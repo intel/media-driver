@@ -1687,7 +1687,6 @@ public:
     bool                                        m_hmeEnabled        = false;        //!< Enable HME flag
     bool                                        m_16xMeEnabled      = false;        //!< Enable 16x ME flag
     bool                                        m_32xMeEnabled      = false;        //!< Enable 32x ME flag
-    bool                                        m_vdencStreamInEnabled      = false;//!< Enable VDEnc stream in flag
     bool                                        m_skipBiasAdjustmentEnable  = false;//!< Enable SkipBiasAdjustment flag
     bool                                        m_staticFrameDetectionInUse = false;//!< Enable Static Frame Detection flag
     uint32_t                                    m_sliceStructCaps = 0;              //!< Slice struct

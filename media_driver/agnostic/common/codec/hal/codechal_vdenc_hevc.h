@@ -120,7 +120,6 @@ public:
     bool                                    m_hevcVdencWeightedPredEnabled = false;            //!< Weighted pred enable flag
     bool                                    m_vdencHuCConditional2ndPass = false;              //!< HuC conditional 2nd pass enable flag
     bool                                    m_vdencNativeROIEnabled = false;                   //!< Native ROI enable flag
-    bool                                    m_vdencStreamInEnabled = false;                    //!< Stream in enable flag
     bool                                    m_pakOnlyPass = false;                             //!< flag to signal VDEnc+PAK vs. PAK only 
     bool                                    m_hucCmdInitializerUsed = false;                   //!< Command initializer HuC used flag
 

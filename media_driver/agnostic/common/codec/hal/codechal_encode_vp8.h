@@ -1364,8 +1364,6 @@ protected:
     MOS_STATUS DumpVp8EncodeSeqParams(PCODEC_VP8_ENCODE_SEQUENCE_PARAMS seqParams);
 #endif // USE_CODECHAL_DEBUG_TOOL
 
-    PMOS_INTERFACE                         m_osInterface = nullptr;                             //!< Pointer to OS interface
-    CodechalHwInterface                    *m_hwInterface = nullptr;                             //!< Pointer to HW interface
     MEDIA_FEATURE_TABLE *                   m_skuTable    = nullptr;                             // SKU table
     MEDIA_WA_TABLE *                        m_waTable     = nullptr;                             // SKU table
 

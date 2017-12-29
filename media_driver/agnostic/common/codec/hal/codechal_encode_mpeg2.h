@@ -664,15 +664,6 @@ protected:
     static const uint32_t                  m_vmeSPathB0[16];                                    //!< vme search path table 0 for B frame
     static const uint32_t                  m_vmeSPathB1[16];                                    //!< vme search path table 1 for B frame
 
-    PMOS_INTERFACE                         m_osInterface = nullptr;                             //!< Pointer to OS interface
-    CodechalHwInterface                   *m_hwInterface = nullptr;                             //!< Pointer to HW interface
-    MhwVdboxMfxInterface                   *m_mfxInterface = nullptr;                           //!< Pointer to Mfx Interface
-    MhwVdboxHcpInterface                   *m_hcpInterface = nullptr;                           //!< Pointer to Hcp Interface
-    MhwVdboxHucInterface                   *m_hucInterface = nullptr;                           //!< Pointer to Huc Interface
-    MhwVdboxVdencInterface                 *m_vdencInterface = nullptr;                         //!< Pointer to Vdenc Interface
-    MhwMiInterface                         *m_miInterface = nullptr;                            //!< Pointer to common mi interface
-    PMHW_STATE_HEAP_INTERFACE              m_stateHeapInterface = nullptr;                      //!< Pointer to state heap interface
-
     CodecEncodeMpeg2SequenceParams         *m_seqParams = nullptr;                              //!< Pointer to sequence parameter
     CodecEncodeMpeg2VuiParams              *m_vuiParams = nullptr;                              //!< Pointer to vui parameter
     CodecEncodeMpeg2SliceParmas            *m_sliceParams = nullptr;                            //!< Pointer to slice parameter
