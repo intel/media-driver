@@ -623,7 +623,7 @@ public:
     bool                            bDeblockingEnabled;                             //!< VP8 Loop Filter Enable Indicator
 
     // VP8 Frame Head
-    Vp8EntropyState               Vp8EntropyState;                                //!< VP8 Entropy State class to parse frame head
+    Vp8EntropyState               vp8EntropyState;                                //!< VP8 Entropy State class to parse frame head
     CODECHAL_DECODE_VP8_FRAME_HEAD  Vp8FrameHead;                                   //!< VP8 Frame Head
 
     // HuC copy related

@@ -695,9 +695,9 @@ MOS_STATUS CodechalDecodeVp8::ParseFrameHead(uint8_t* bitstreamBuffer, uint32_t 
 
     CODECHAL_DECODE_CHK_NULL_RETURN(bitstreamBuffer);
 
-    Vp8EntropyState.Initialize(&Vp8FrameHead, bitstreamBuffer, bitstreamBufferSize);
+    vp8EntropyState.Initialize(&Vp8FrameHead, bitstreamBuffer, bitstreamBufferSize);
 
-    eStatus = Vp8EntropyState.ParseFrameHead(pVp8PicParams);
+    eStatus = vp8EntropyState.ParseFrameHead(pVp8PicParams);
 
     if (eStatus != MOS_STATUS_SUCCESS)
     {
@@ -755,7 +755,7 @@ MOS_STATUS CodechalDecodeVp8::ParseFrameHead(uint8_t* bitstreamBuffer, uint32_t 
         vp8QIndex[3] = 0;
     }
 
-    Vp8EntropyState.FrameHeadQuantUpdate(pVp8PicParams);
+    vp8EntropyState.FrameHeadQuantUpdate(pVp8PicParams);
 
     pVp8IqMatrixParams->quantization_values[0][0] = Vp8FrameHead.Y1DeQuant[vp8QIndex[0]][0];
     pVp8IqMatrixParams->quantization_values[0][1] = Vp8FrameHead.Y1DeQuant[vp8QIndex[0]][1];
