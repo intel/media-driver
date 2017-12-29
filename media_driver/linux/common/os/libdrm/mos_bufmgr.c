@@ -143,7 +143,6 @@ struct mos_bufmgr_gem {
 	uint64_t gtt_size;
 	int available_fences;
 	int pci_device;
-	int gen;
 	unsigned int has_bsd : 1;
 	unsigned int has_blt : 1;
 	unsigned int has_relaxed_fencing : 1;
@@ -354,31 +353,8 @@ mos_gem_bo_tile_size(struct mos_bufmgr_gem *bufmgr_gem, unsigned long size,
 		return size;
 
 	/* 965+ just need multiples of page size for tiling */
-	if (bufmgr_gem->gen >= 4)
-		return ROUND_UP_TO(size, 4096);
+	return ROUND_UP_TO(size, 4096);
 
-	/* Older chips need powers of two, of at least 512k or 1M */
-	if (bufmgr_gem->gen == 3) {
-		min_size = 1024*1024;
-		max_size = 128*1024*1024;
-	} else {
-		min_size = 512*1024;
-		max_size = 64*1024*1024;
-	}
-
-	if (size > max_size) {
-		*tiling_mode = I915_TILING_NONE;
-		return size;
-	}
-
-	/* Do we need to allocate every page for the fence? */
-	if (bufmgr_gem->has_relaxed_fencing)
-		return ROUND_UP_TO(size, 4096);
-
-	for (i = min_size; i < size; i <<= 1)
-		;
-
-	return i;
 }
 
 /*
@@ -407,22 +383,7 @@ mos_gem_bo_tile_pitch(struct mos_bufmgr_gem *bufmgr_gem,
 		tile_width = 128;
 
 	/* 965 is flexible */
-	if (bufmgr_gem->gen >= 4)
-		return ROUND_UP_TO(pitch, tile_width);
-
-	/* The older hardware has a maximum pitch of 8192 with tiled
-	 * surfaces, so fallback to untiled if it's too large.
-	 */
-	if (pitch > 8192) {
-		*tiling_mode = I915_TILING_NONE;
-		return ALIGN(pitch, 64);
-	}
-
-	/* Pre-965 needs power of two tile width */
-	for (i = tile_width; i < pitch; i <<= 1)
-		;
-
-	return i;
+	return ROUND_UP_TO(pitch, tile_width);
 }
 
 static struct mos_gem_bo_bucket *
@@ -660,27 +621,6 @@ mos_bo_gem_set_in_aperture_size(struct mos_bufmgr_gem *bufmgr_gem,
 	 * aperture. Optimal packing is for wimps.
 	 */
 	size = bo_gem->bo.size;
-	if (bufmgr_gem->gen < 4 && bo_gem->tiling_mode != I915_TILING_NONE) {
-		unsigned int min_size;
-
-		if (bufmgr_gem->has_relaxed_fencing) {
-			if (bufmgr_gem->gen == 3)
-				min_size = 1024*1024;
-			else
-				min_size = 512*1024;
-
-			while (min_size < size)
-				min_size *= 2;
-		} else
-			min_size = size;
-
-		/* Account for worst-case alignment. */
-#ifndef ANDROID
-		alignment = MAX2(alignment, min_size);
-#else
-		size = 2 * min_size;
-#endif
-	}
 
 #ifndef ANDROID
 	bo_gem->reloc_tree_size = size + alignment;
@@ -1234,9 +1174,7 @@ mos_gem_bo_alloc_tiled(struct mos_bufmgr *bufmgr, const char *name,
 		aligned_y = y;
 		height_alignment = 2;
 
-		if ((bufmgr_gem->gen == 2) && tiling != I915_TILING_NONE)
-			height_alignment = 16;
-		else if (tiling == I915_TILING_X
+		if (tiling == I915_TILING_X
 			|| (IS_915(bufmgr_gem->pci_device)
 			    && tiling == I915_TILING_Y))
 			height_alignment = 8;
@@ -2556,8 +2494,7 @@ do_bo_emit_reloc(struct mos_linux_bo *bo, uint32_t offset,
 	}
 
 	/* We never use HW fences for rendering on 965+ */
-	if (bufmgr_gem->gen >= 4)
-		need_fence = false;
+	need_fence = false;
 
 	fenced_command = need_fence;
 	if (target_bo_gem->tiling_mode == I915_TILING_NONE)
@@ -2634,12 +2571,9 @@ do_bo_emit_reloc2(struct mos_linux_bo *bo, uint32_t offset,
 	}
 
 	/* We never use HW fences for rendering on 965+ */
-	if (bufmgr_gem->gen >= 4)
-		need_fence = false;
+	need_fence = false;
 
 	fenced_command = need_fence;
-	if (target_bo_gem->tiling_mode == I915_TILING_NONE)
-		need_fence = false;
 
 	/* Create a new relocation list if needed */
 	if (bo_gem->relocs == nullptr && mos_setup_reloc_list(bo))
@@ -3085,15 +3019,13 @@ aub_write_trace_block(struct mos_linux_bo *bo, uint32_t type, uint32_t subtype,
 	struct mos_bo_gem *bo_gem = (struct mos_bo_gem *) bo;
 
 	aub_out(bufmgr_gem,
-		CMD_AUB_TRACE_HEADER_BLOCK |
-		((bufmgr_gem->gen >= 8 ? 6 : 5) - 2));
+		CMD_AUB_TRACE_HEADER_BLOCK | 4);
 	aub_out(bufmgr_gem,
 		AUB_TRACE_MEMTYPE_GTT | type | AUB_TRACE_OP_DATA_WRITE);
 	aub_out(bufmgr_gem, subtype);
 	aub_out(bufmgr_gem, bo_gem->aub_offset + offset);
 	aub_out(bufmgr_gem, size);
-	if (bufmgr_gem->gen >= 8)
-		aub_out(bufmgr_gem, 0);
+	aub_out(bufmgr_gem, 0);
 	aub_write_bo_data(bo, offset, size);
 }
 
@@ -3170,28 +3102,21 @@ aub_build_dump_ringbuffer(struct mos_bufmgr_gem *bufmgr_gem,
 
 	/* Make a ring buffer to execute our batchbuffer. */
 	memset(ringbuffer, 0, sizeof(ringbuffer));
-	if (bufmgr_gem->gen >= 8) {
-		ringbuffer[ring_count++] = AUB_MI_BATCH_BUFFER_START | (3 - 2);
-		ringbuffer[ring_count++] = batch_buffer;
-		ringbuffer[ring_count++] = 0;
-	} else {
-		ringbuffer[ring_count++] = AUB_MI_BATCH_BUFFER_START;
-		ringbuffer[ring_count++] = batch_buffer;
-	}
+	ringbuffer[ring_count++] = AUB_MI_BATCH_BUFFER_START | (3 - 2);
+	ringbuffer[ring_count++] = batch_buffer;
+	ringbuffer[ring_count++] = 0;
 
 	/* Write out the ring.  This appears to trigger execution of
 	 * the ring in the simulator.
 	 */
 	aub_out(bufmgr_gem,
-		CMD_AUB_TRACE_HEADER_BLOCK |
-		((bufmgr_gem->gen >= 8 ? 6 : 5) - 2));
+		CMD_AUB_TRACE_HEADER_BLOCK | 4);
 	aub_out(bufmgr_gem,
 		AUB_TRACE_MEMTYPE_GTT | ring | AUB_TRACE_OP_COMMAND_WRITE);
 	aub_out(bufmgr_gem, 0); /* general/surface subtype */
 	aub_out(bufmgr_gem, bufmgr_gem->aub_offset);
 	aub_out(bufmgr_gem, ring_count * 4);
-	if (bufmgr_gem->gen >= 8)
-		aub_out(bufmgr_gem, 0);
+	aub_out(bufmgr_gem, 0);
 
 	aub_out_data(bufmgr_gem, ringbuffer, ring_count * 4);
 
@@ -4649,14 +4574,13 @@ mos_bufmgr_gem_set_aub_dump(struct mos_bufmgr *bufmgr, int enable)
 	aub_out(bufmgr_gem, 0); /* comment len */
 
 	/* Set up the GTT. The max we can handle is 256M */
-	aub_out(bufmgr_gem, CMD_AUB_TRACE_HEADER_BLOCK | ((bufmgr_gem->gen >= 8 ? 6 : 5) - 2));
+	aub_out(bufmgr_gem, CMD_AUB_TRACE_HEADER_BLOCK | 4);
 	/* Need to use GTT_ENTRY type for recent emulator */
 	aub_out(bufmgr_gem, AUB_TRACE_MEMTYPE_GTT_ENTRY | 0 | AUB_TRACE_OP_DATA_WRITE);
 	aub_out(bufmgr_gem, 0); /* subtype */
 	aub_out(bufmgr_gem, 0); /* offset */
 	aub_out(bufmgr_gem, gtt_size); /* size */
-	if (bufmgr_gem->gen >= 8)
-		aub_out(bufmgr_gem, 0);
+	aub_out(bufmgr_gem, 0);
 	for (i = 0x000; i < gtt_size; i += 4, entry += 0x1000) {
 		aub_out(bufmgr_gem, entry);
 	}
@@ -5035,40 +4959,8 @@ mos_bufmgr_gem_init(int fd, int batch_size)
 			(int)bufmgr_gem->gtt_size / 1024);
 	}
 
+	/* support Gen 8+ */
 	bufmgr_gem->pci_device = get_pci_device_id(bufmgr_gem);
-
-	if (IS_GEN2(bufmgr_gem->pci_device))
-		bufmgr_gem->gen = 2;
-	else if (IS_GEN3(bufmgr_gem->pci_device))
-		bufmgr_gem->gen = 3;
-	else if (IS_GEN4(bufmgr_gem->pci_device))
-		bufmgr_gem->gen = 4;
-	else if (IS_GEN5(bufmgr_gem->pci_device))
-		bufmgr_gem->gen = 5;
-	else if (IS_GEN6(bufmgr_gem->pci_device))
-		bufmgr_gem->gen = 6;
-	else if (IS_GEN7(bufmgr_gem->pci_device))
-		bufmgr_gem->gen = 7;
-	else if (IS_GEN8(bufmgr_gem->pci_device))
-		bufmgr_gem->gen = 8;
-	else if (IS_GEN9(bufmgr_gem->pci_device))
-		bufmgr_gem->gen = 9;
-	else if (IS_GEN10(bufmgr_gem->pci_device))
-		bufmgr_gem->gen = 10;
-	else {
-		free(bufmgr_gem);
-		bufmgr_gem = nullptr;
-		goto exit;
-	}
-
-	if (IS_GEN3(bufmgr_gem->pci_device) &&
-	    bufmgr_gem->gtt_size > 256*1024*1024) {
-		/* The unmappable part of gtt on gen 3 (i.e. above 256MB) can't
-		 * be used for tiled blits. To simplify the accounting, just
-		 * substract the unmappable part (fixed to 256MB on all known
-		 * gen3 devices) if the kernel advertises it. */
-		bufmgr_gem->gtt_size -= 256*1024*1024;
-	}
 
 	memclear(gp);
 	gp.value = &tmp;
@@ -5098,14 +4990,7 @@ mos_bufmgr_gem_init(int fd, int batch_size)
 
 	gp.param = I915_PARAM_HAS_LLC;
 	ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GETPARAM, &gp);
-	if (ret != 0) {
-		/* Kernel does not supports HAS_LLC query, fallback to GPU
-		 * generation detection and assume that we have LLC on GEN6/7
-		 */
-		bufmgr_gem->has_llc = (IS_GEN6(bufmgr_gem->pci_device) |
-				IS_GEN7(bufmgr_gem->pci_device));
-	} else
-		bufmgr_gem->has_llc = *gp.value;
+	bufmgr_gem->has_llc = *gp.value;
 
 	gp.param = I915_PARAM_HAS_VEBOX;
 	ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GETPARAM, &gp);
@@ -5120,38 +5005,10 @@ mos_bufmgr_gem_init(int fd, int batch_size)
 	if (ret == 0 && *gp.value > 0)
 		bufmgr_gem->bufmgr.bo_set_softpin_offset = mos_gem_bo_set_softpin_offset;
 
-	if (bufmgr_gem->gen < 4) {
-		gp.param = I915_PARAM_NUM_FENCES_AVAIL;
-		gp.value = &bufmgr_gem->available_fences;
-		ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GETPARAM, &gp);
-		if (ret) {
-			fprintf(stderr, "get fences failed: %d [%d]\n", ret,
-				errno);
-			fprintf(stderr, "param: %d, val: %d\n", gp.param,
-				*gp.value);
-			bufmgr_gem->available_fences = 0;
-		} else {
-			/* XXX The kernel reports the total number of fences,
-			 * including any that may be pinned.
-			 *
-			 * We presume that there will be at least one pinned
-			 * fence for the scanout buffer, but there may be more
-			 * than one scanout and the user may be manually
-			 * pinning buffers. Let's move to execbuffer2 and
-			 * thereby forget the insanity of using fences...
-			 */
-			bufmgr_gem->available_fences -= 2;
-			if (bufmgr_gem->available_fences < 0)
-				bufmgr_gem->available_fences = 0;
-		}
-	}
-
-	if (bufmgr_gem->gen >= 8) {
-		gp.param = I915_PARAM_HAS_ALIASING_PPGTT;
-		ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GETPARAM, &gp);
-		if (ret == 0 && *gp.value == 3)
-			bufmgr_gem->bufmgr.bo_use_48b_address_range = mos_gem_bo_use_48b_address_range;
-	}
+	gp.param = I915_PARAM_HAS_ALIASING_PPGTT;
+	ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GETPARAM, &gp);
+	if (ret == 0 && *gp.value == 3)
+		bufmgr_gem->bufmgr.bo_use_48b_address_range = mos_gem_bo_use_48b_address_range;
 
 	/* Let's go with one relocation per every 2 dwords (but round down a bit
 	 * since a power of two will mean an extra page allocation for the reloc
