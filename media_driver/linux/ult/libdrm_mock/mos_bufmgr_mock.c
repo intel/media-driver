@@ -2344,7 +2344,7 @@ mos_gem_bo_subdata(struct mos_linux_bo *bo, unsigned long offset,
 	if(GetDrmMode())
 	{
 		//As we discard the gem_handle, so we cannot mock it in drmIoctl.If we use a map for gem_handle, then we can mock drmIoctl.
-		memcpy(bo_gem->mem_virtual+offset, data, size);
+		memcpy((unsigned char *)bo_gem->mem_virtual+offset, data, size);
 		return 0;
 	}
 	ret = drmIoctl(bufmgr_gem->fd,

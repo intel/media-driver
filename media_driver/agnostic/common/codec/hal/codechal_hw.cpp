@@ -327,7 +327,7 @@ MOS_STATUS CodechalHwInterface::GetHxxStateCommandSize(
     uint32_t hucCommandsSize = 0;
     uint32_t hucPatchListSize = 0;
 
-    if (m_hucInterface && (standard == CODECHAL_HEVC || standard == CODECHAL_CENC || standard == CODECHAL_VP9))
+    if (m_hucInterface && (standard == CODECHAL_HEVC || standard == CODECHAL_CENC || standard == CODECHAL_VP9 || standard == CODECHAL_AVC))
     {
         CODECHAL_HW_CHK_STATUS_RETURN(m_hucInterface->GetHucStateCommandSize(
             mode, (uint32_t*)&hucCommandsSize, (uint32_t*)&hucPatchListSize, params));

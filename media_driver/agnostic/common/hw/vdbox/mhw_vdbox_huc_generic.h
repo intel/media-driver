@@ -201,6 +201,33 @@ protected:
                 }
             }
         }
+        else if (standard == CODECHAL_AVC)
+        {
+            // size of Huc commands
+            maxSize +=
+                THucCmds::HUC_PIPE_MODE_SELECT_CMD::byteSize +
+                THucCmds::HUC_IMEM_STATE_CMD::byteSize +
+                THucCmds::HUC_DMEM_STATE_CMD::byteSize +
+                THucCmds::HUC_VIRTUAL_ADDR_STATE_CMD::byteSize +
+                THucCmds::HUC_IND_OBJ_BASE_ADDR_STATE_CMD::byteSize +
+                THucCmds::HUC_STREAM_OBJECT_CMD::byteSize +
+                THucCmds::HUC_START_CMD::byteSize +
+                2 * TMiCmds::MI_STORE_DATA_IMM_CMD::byteSize +
+                2 * TMiCmds::MI_STORE_REGISTER_MEM_CMD::byteSize +
+                2 * TMiCmds::MI_CONDITIONAL_BATCH_BUFFER_END_CMD::byteSize;
+
+            patchListMaxSize +=
+                PATCH_LIST_COMMAND(HUC_PIPE_MODE_SELECT_CMD) +
+                PATCH_LIST_COMMAND(HUC_IMEM_STATE_CMD) +
+                PATCH_LIST_COMMAND(HUC_DMEM_STATE_CMD) +
+                PATCH_LIST_COMMAND(HUC_VIRTUAL_ADDR_STATE_CMD) +
+                PATCH_LIST_COMMAND(HUC_IND_OBJ_BASE_ADDR_STATE_CMD) +
+                PATCH_LIST_COMMAND(HUC_STREAM_OBJECT_CMD) +
+                PATCH_LIST_COMMAND(HUC_START_CMD) +
+                2 * PATCH_LIST_COMMAND(MI_STORE_DATA_IMM_CMD) +
+                2 * PATCH_LIST_COMMAND(MI_STORE_REGISTER_MEM_CMD) +
+                2 * PATCH_LIST_COMMAND(MI_CONDITIONAL_BATCH_BUFFER_END_CMD);
+        }
         else
         {
             MHW_ASSERTMESSAGE("Unsupported standard.");

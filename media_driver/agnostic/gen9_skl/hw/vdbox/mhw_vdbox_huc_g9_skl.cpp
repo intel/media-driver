@@ -75,6 +75,12 @@ MOS_STATUS MhwVdboxHucInterfaceG9Skl::GetHucStateCommandSize(
             patchListMaxSize += PATCH_LIST_COMMAND(VD_PIPELINE_FLUSH_CMD);
         }
     }
+    else if (standard == CODECHAL_AVC)
+    {
+        maxSize += mhw_vdbox_vdenc_g9_skl::VD_PIPELINE_FLUSH_CMD::byteSize;
+
+        patchListMaxSize += PATCH_LIST_COMMAND(VD_PIPELINE_FLUSH_CMD);
+    }
     else
     {
         MHW_ASSERTMESSAGE("Unsupported standard.");
