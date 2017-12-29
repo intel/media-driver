@@ -1430,10 +1430,8 @@ MOS_STATUS CodechalEncHevcState::SetMeSurfaceParams(
     surfaceParams.refList                          = &pRefList[0];
     surfaceParams.picIdx                           = &PicIdx[0];
     surfaceParams.currOriginalPic                  = &m_currOriginalPic;
-    surfaceParams.currReconstructedPic             = &m_currReconstructedPic;
     surfaceParams.refL0List                        = &(pHevcSliceParams->RefPicList[LIST_0][0]);
     surfaceParams.refL1List                        = &(pHevcSliceParams->RefPicList[LIST_1][0]);
-    surfaceParams.trackedBuffer                    = &m_trackedBuffer[0];
 
     return MOS_STATUS_SUCCESS;
 }

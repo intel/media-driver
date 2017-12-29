@@ -1066,9 +1066,7 @@ MOS_STATUS CodechalVdencHevcStateG10::SendMeSurfaces(bool using4xMe, PMOS_COMMAN
             kernelState));
     }
 
-    uint8_t scaledIdx = pRefList[m_currReconstructedPic.FrameIdx]->ucScalingIdx;
-    PMOS_SURFACE currScaledSurface = using4xMe ?
-        &m_trackedBuffer[scaledIdx].sScaled4xSurface : &m_trackedBuffer[scaledIdx].sScaled16xSurface;
+    PMOS_SURFACE currScaledSurface = using4xMe ? m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER) : m_trackedBuf->Get16xDsSurface(CODEC_CURR_TRACKED_BUFFER);
     MOS_SURFACE refScaledSurface = *currScaledSurface;
     bool currFieldPicture = CodecHal_PictureIsField(m_currOriginalPic) ? true : false;
     bool currBottomField = CodecHal_PictureIsBottomField(m_currOriginalPic) ? true : false;
@@ -1105,14 +1103,14 @@ MOS_STATUS CodechalVdencHevcStateG10::SendMeSurfaces(bool using4xMe, PMOS_COMMAN
             bool refFieldPicture = CodecHal_PictureIsField(refPic) ? true : false;
             bool refBottomField = (CodecHal_PictureIsBottomField(refPic)) ? true : false;
             uint8_t refPicIdx = PicIdx[refPic.FrameIdx].ucPicIdx;
-            scaledIdx = pRefList[refPicIdx]->ucScalingIdx;
+            uint8_t scaledIdx = pRefList[refPicIdx]->ucScalingIdx;
             if (using4xMe)
             {
-                refScaledSurface.OsResource = m_trackedBuffer[scaledIdx].sScaled4xSurface.OsResource;
+                refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
             }
             else
             {
-                refScaledSurface.OsResource = m_trackedBuffer[scaledIdx].sScaled16xSurface.OsResource;
+                refScaledSurface.OsResource = m_trackedBuf->Get16xDsSurface(scaledIdx)->OsResource;
             }
             uint32_t refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
 
@@ -1160,15 +1158,15 @@ MOS_STATUS CodechalVdencHevcStateG10::SendMeSurfaces(bool using4xMe, PMOS_COMMAN
             bool refFieldPicture = CodecHal_PictureIsField(refPic) ? 1 : 0;
             bool refBottomField = (CodecHal_PictureIsBottomField(refPic)) ? 1 : 0;
             uint8_t refPicIdx = PicIdx[refPic.FrameIdx].ucPicIdx;
-            scaledIdx = pRefList[refPicIdx]->ucScalingIdx;
+            uint8_t scaledIdx = pRefList[refPicIdx]->ucScalingIdx;
 
             if (using4xMe)
             {
-                refScaledSurface.OsResource = m_trackedBuffer[scaledIdx].sScaled4xSurface.OsResource;
+                refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
             }
             else
             {
-                refScaledSurface.OsResource = m_trackedBuffer[scaledIdx].sScaled16xSurface.OsResource;
+                refScaledSurface.OsResource = m_trackedBuf->Get16xDsSurface(scaledIdx)->OsResource;
             }
             uint32_t refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
 

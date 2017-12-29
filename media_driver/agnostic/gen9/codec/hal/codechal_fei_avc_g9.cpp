@@ -2781,7 +2781,7 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::GenericEncodeMeKernel(EncodeBrcBuffers* br
     //for FEI, m_currReconstructedPic = m_currOriginalPic
     //scaledIdx = m_refList[m_currReconstructedPic.FrameIdx]->ucScalingIdx;
     uint8_t scaledIdx = m_refList[m_currOriginalPic.FrameIdx]->ucScalingIdx;
-    PMOS_SURFACE currScaledSurface = &m_trackedBuffer[scaledIdx].sScaled4xSurface;
+    PMOS_SURFACE currScaledSurface = m_trackedBuf->Get4xDsSurface(scaledIdx);
 
     SurfaceIndex                *cmTmpSurfIdx[3];
     CODECHAL_ENCODE_CHK_STATUS_RETURN(pCmDev->CreateSurface2D(&currScaledSurface->OsResource, cmSurf[baseIdx]));
@@ -2797,7 +2797,7 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::GenericEncodeMeKernel(EncodeBrcBuffers* br
             uint8_t refPicIdx = m_picIdx[refPic.FrameIdx].ucPicIdx;
             uint8_t scaledIdx = m_refList[refPicIdx]->ucScalingIdx;
                     
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(pCmDev->CreateSurface2D(&m_trackedBuffer[scaledIdx].sScaled4xSurface.OsResource, cmSurf[baseIdx + 1 + refIdx]));
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(pCmDev->CreateSurface2D(&m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource, cmSurf[baseIdx + 1 + refIdx]));
             CODECHAL_ENCODE_CHK_STATUS_RETURN(cmSurf[baseIdx + 1 + refIdx]->GetIndex(cmTmpSurfIdx[1])); 
          
             surfArray[num_ref] = (CmSurface2D*)cmSurf[baseIdx + 1 + refIdx];
@@ -2818,7 +2818,7 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::GenericEncodeMeKernel(EncodeBrcBuffers* br
             uint8_t refPicIdx = m_picIdx[refPic.FrameIdx].ucPicIdx;
             uint8_t scaledIdx = m_refList[refPicIdx]->ucScalingIdx;
                     
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(pCmDev->CreateSurface2D(&m_trackedBuffer[scaledIdx].sScaled4xSurface.OsResource, cmSurf[baseIdx + 1 + refIdx]));
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(pCmDev->CreateSurface2D(&m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource, cmSurf[baseIdx + 1 + refIdx]));
             CODECHAL_ENCODE_CHK_STATUS_RETURN(cmSurf[baseIdx + 1 + refIdx]->GetIndex(cmTmpSurfIdx[2])); 
                 
             surfArray[num_ref] = (CmSurface2D*)cmSurf[baseIdx + 1 + refIdx];
@@ -3800,9 +3800,7 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::SendMeSurfaces(PMOS_COMMAND_BUFFER cmdBuff
     CODECHAL_ENCODE_CHK_NULL_RETURN(params);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pKernelState);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pCurrOriginalPic);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(params->pCurrReconstructedPic);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->ps4xMeMvDataBuffer);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(params->pTrackedBuffer);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->psMeBrcDistortionBuffer);
 
     // only 4x HME is supported for FEI
@@ -3810,13 +3808,12 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::SendMeSurfaces(PMOS_COMMAND_BUFFER cmdBuff
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pMeBindingTable);
     auto meBindingTable = params->pMeBindingTable;
 
-    uint8_t scaledIdx = params->ppRefList[params->pCurrReconstructedPic->FrameIdx]->ucScalingIdx;
     bool currFieldPicture = CodecHal_PictureIsField(*(params->pCurrOriginalPic)) ? 1 : 0;
     bool currBottomField = CodecHal_PictureIsBottomField(*(params->pCurrOriginalPic)) ? 1 : 0;
     uint8_t currVDirection = (!currFieldPicture) ? CODECHAL_VDIRECTION_FRAME :
         ((currBottomField) ? CODECHAL_VDIRECTION_BOT_FIELD : CODECHAL_VDIRECTION_TOP_FIELD);
 
-    auto currScaledSurface = &params->pTrackedBuffer[scaledIdx].sScaled4xSurface;
+    auto currScaledSurface = m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER);
     auto meMvDataBuffer = params->ps4xMeMvDataBuffer;
     uint32_t meMvBottomFieldOffset = params->dw4xMeMvBottomFieldOffset;
     uint32_t currScaledBottomFieldOffset = params->dw4xScaledBottomFieldOffset;
@@ -3911,9 +3908,9 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::SendMeSurfaces(PMOS_COMMAND_BUFFER cmdBuff
             refFieldPicture = CodecHal_PictureIsField(refPic) ? 1 : 0;
             refBottomField = (CodecHal_PictureIsBottomField(refPic)) ? 1 : 0;
             refPicIdx = params->pPicIdx[refPic.FrameIdx].ucPicIdx;
-            scaledIdx = params->ppRefList[refPicIdx]->ucScalingIdx;
+            uint8_t scaledIdx = params->ppRefList[refPicIdx]->ucScalingIdx;
 
-            refScaledSurface.OsResource = params->pTrackedBuffer[scaledIdx].sScaled4xSurface.OsResource;
+            refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
             refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
 
             // L0 Reference Picture Y - VME
@@ -3972,9 +3969,9 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::SendMeSurfaces(PMOS_COMMAND_BUFFER cmdBuff
             refFieldPicture = CodecHal_PictureIsField(refPic) ? 1 : 0;
             refBottomField = (CodecHal_PictureIsBottomField(refPic)) ? 1 : 0;
             refPicIdx = params->pPicIdx[refPic.FrameIdx].ucPicIdx;
-            scaledIdx = params->ppRefList[refPicIdx]->ucScalingIdx;
+            uint8_t scaledIdx = params->ppRefList[refPicIdx]->ucScalingIdx;
 
-            refScaledSurface.OsResource = params->pTrackedBuffer[scaledIdx].sScaled4xSurface.OsResource;
+            refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
             refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
 
             // L1 Reference Picture Y - VME

@@ -672,14 +672,12 @@ struct MeSurfaceParams
     PCODEC_REF_LIST                 *ppRefList;
     PCODEC_PIC_ID                   pPicIdx;
     PCODEC_PICTURE                  pCurrOriginalPic;
-    PCODEC_PICTURE                  pCurrReconstructedPic;
     PMOS_SURFACE                    ps4xMeMvDataBuffer;
     uint32_t                        dw4xMeMvBottomFieldOffset;
     PMOS_SURFACE                    ps16xMeMvDataBuffer;
     uint32_t                        dw16xMeMvBottomFieldOffset;
     PMOS_SURFACE                    ps32xMeMvDataBuffer;
     uint32_t                        dw32xMeMvBottomFieldOffset;
-    PCODEC_TRACKED_BUFFER           pTrackedBuffer;
     uint32_t                        dw4xScaledBottomFieldOffset;
     uint32_t                        dw16xScaledBottomFieldOffset;
     uint32_t                        dw32xScaledBottomFieldOffset;

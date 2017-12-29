@@ -6022,9 +6022,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendMeSurfaces (
     CODECHAL_ENCODE_CHK_NULL_RETURN(params);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pKernelState);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pCurrOriginalPic);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(params->pCurrReconstructedPic);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->ps4xMeMvDataBuffer);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(params->pTrackedBuffer);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->psMeBrcDistortionBuffer);
     
     CODECHAL_MEDIA_STATE_TYPE encMediaStateType = (params->b32xMeInUse) ? CODECHAL_MEDIA_STATE_32X_ME :
@@ -6042,11 +6040,11 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendMeSurfaces (
     PMOS_SURFACE meMvDataBuffer = nullptr;
     uint32_t meMvBottomFieldOffset;
     uint32_t currScaledBottomFieldOffset;
-    uint8_t scaledIdx = params->ppRefList[params->pCurrReconstructedPic->FrameIdx]->ucScalingIdx;
+
     if (params->b32xMeInUse)
     {
         CODECHAL_ENCODE_CHK_NULL_RETURN(params->ps32xMeMvDataBuffer);
-        currScaledSurface = &params->pTrackedBuffer[scaledIdx].sScaled32xSurface;
+        currScaledSurface = m_trackedBuf->Get32xDsSurface(CODEC_CURR_TRACKED_BUFFER);
         meMvDataBuffer = params->ps32xMeMvDataBuffer;
         meMvBottomFieldOffset = params->dw32xMeMvBottomFieldOffset;
         currScaledBottomFieldOffset = params->dw32xScaledBottomFieldOffset;
@@ -6054,14 +6052,14 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendMeSurfaces (
     else if (params->b16xMeInUse)
     {
         CODECHAL_ENCODE_CHK_NULL_RETURN(params->ps16xMeMvDataBuffer);
-        currScaledSurface = &params->pTrackedBuffer[scaledIdx].sScaled16xSurface;
+        currScaledSurface = m_trackedBuf->Get16xDsSurface(CODEC_CURR_TRACKED_BUFFER);
         meMvDataBuffer = params->ps16xMeMvDataBuffer;
         meMvBottomFieldOffset = params->dw16xMeMvBottomFieldOffset;
         currScaledBottomFieldOffset = params->dw16xScaledBottomFieldOffset;
     }
     else
     {
-        currScaledSurface = &params->pTrackedBuffer[scaledIdx].sScaled4xSurface;
+        currScaledSurface = m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER);
         meMvDataBuffer = params->ps4xMeMvDataBuffer;
         meMvBottomFieldOffset = params->dw4xMeMvBottomFieldOffset;
         currScaledBottomFieldOffset = params->dw4xScaledBottomFieldOffset;
@@ -6194,17 +6192,17 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendMeSurfaces (
         uint8_t scaledIdx = params->ppRefList[refPicIdx]->ucScalingIdx;
         if (params->b32xMeInUse)
         {
-            refScaledSurface.OsResource = params->pTrackedBuffer[scaledIdx].sScaled32xSurface.OsResource;
+            refScaledSurface.OsResource = m_trackedBuf->Get32xDsSurface(scaledIdx)->OsResource;
             refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
         }
         else if (params->b16xMeInUse)
         {
-            refScaledSurface.OsResource = params->pTrackedBuffer[scaledIdx].sScaled16xSurface.OsResource;
+            refScaledSurface.OsResource = m_trackedBuf->Get16xDsSurface(scaledIdx)->OsResource;
             refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
         }
         else
         {
-            refScaledSurface.OsResource = params->pTrackedBuffer[scaledIdx].sScaled4xSurface.OsResource;
+            refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
             refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
         }
     
@@ -6256,17 +6254,17 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendMeSurfaces (
         uint8_t scaledIdx = params->ppRefList[refPicIdx]->ucScalingIdx;
         if (params->b32xMeInUse)
         {
-            refScaledSurface.OsResource = params->pTrackedBuffer[scaledIdx].sScaled32xSurface.OsResource;
+            refScaledSurface.OsResource = m_trackedBuf->Get32xDsSurface(scaledIdx)->OsResource;
             refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
         }
         else if (params->b16xMeInUse)
         {
-            refScaledSurface.OsResource = params->pTrackedBuffer[scaledIdx].sScaled16xSurface.OsResource;
+            refScaledSurface.OsResource = m_trackedBuf->Get16xDsSurface(scaledIdx)->OsResource;
             refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
         }
         else
         {
-            refScaledSurface.OsResource = params->pTrackedBuffer[scaledIdx].sScaled4xSurface.OsResource;
+            refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
             refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
         }
     

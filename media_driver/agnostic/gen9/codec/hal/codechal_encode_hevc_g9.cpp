@@ -4091,30 +4091,27 @@ MOS_STATUS CodechalEncHevcStateG9::SendMeSurfaces(
     CODECHAL_ENCODE_CHK_NULL_RETURN(params);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pKernelState);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pCurrOriginalPic);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(params->pCurrReconstructedPic);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(params->pTrackedBuffer);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->ps4xMeMvDataBuffer);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->psMeDistortionBuffer);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->psMeBrcDistortionBuffer);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pMeBindingTable);
     
-    uint8_t scaledIdx = params->ppRefList[params->pCurrReconstructedPic->FrameIdx]->ucScalingIdx;
     PMOS_SURFACE currScaledSurface = nullptr, meMvDataBuffer = nullptr;
     if (params->b32xMeInUse)
     {
         CODECHAL_ENCODE_CHK_NULL_RETURN(params->ps32xMeMvDataBuffer);
-        currScaledSurface = &params->pTrackedBuffer[scaledIdx].sScaled32xSurface;
+        currScaledSurface = m_trackedBuf->Get32xDsSurface(CODEC_CURR_TRACKED_BUFFER);
         meMvDataBuffer = params->ps32xMeMvDataBuffer;
     }
     else if (params->b16xMeInUse)
     {
         CODECHAL_ENCODE_CHK_NULL_RETURN(params->ps16xMeMvDataBuffer);
-        currScaledSurface = &params->pTrackedBuffer[scaledIdx].sScaled16xSurface;
+        currScaledSurface = m_trackedBuf->Get16xDsSurface(CODEC_CURR_TRACKED_BUFFER);
         meMvDataBuffer = params->ps16xMeMvDataBuffer;
     }
     else
     {
-        currScaledSurface = &params->pTrackedBuffer[scaledIdx].sScaled4xSurface;
+        currScaledSurface = m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER);
         meMvDataBuffer = params->ps4xMeMvDataBuffer;
     }
 
@@ -4239,18 +4236,18 @@ MOS_STATUS CodechalEncHevcStateG9::SendMeSurfaces(
             }
 
             uint8_t refPicIdx = params->pPicIdx[refPic.FrameIdx].ucPicIdx;
-            scaledIdx = params->ppRefList[refPicIdx]->ucScalingIdx;
+            uint8_t scaledIdx = params->ppRefList[refPicIdx]->ucScalingIdx;
             if (params->b32xMeInUse)
             {
-                refScaledSurface.OsResource = params->pTrackedBuffer[scaledIdx].sScaled32xSurface.OsResource;
+                refScaledSurface.OsResource = m_trackedBuf->Get32xDsSurface(scaledIdx)->OsResource;
             }
             else if (params->b16xMeInUse)
             {
-                refScaledSurface.OsResource = params->pTrackedBuffer[scaledIdx].sScaled16xSurface.OsResource;
+                refScaledSurface.OsResource = m_trackedBuf->Get16xDsSurface(scaledIdx)->OsResource;
             }
             else
             {
-                refScaledSurface.OsResource = params->pTrackedBuffer[scaledIdx].sScaled4xSurface.OsResource;
+                refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
             }
 
             // L0 Reference picture Y - VME
@@ -4296,18 +4293,18 @@ MOS_STATUS CodechalEncHevcStateG9::SendMeSurfaces(
             }
 
             uint8_t refPicIdx = params->pPicIdx[refPic.FrameIdx].ucPicIdx;
-            scaledIdx = params->ppRefList[refPicIdx]->ucScalingIdx;
+            uint8_t scaledIdx = params->ppRefList[refPicIdx]->ucScalingIdx;
             if (params->b32xMeInUse)
             {
-                refScaledSurface.OsResource = params->pTrackedBuffer[scaledIdx].sScaled32xSurface.OsResource;
+                refScaledSurface.OsResource = m_trackedBuf->Get32xDsSurface(scaledIdx)->OsResource;
             }
             else if (params->b16xMeInUse)
             {
-                refScaledSurface.OsResource = params->pTrackedBuffer[scaledIdx].sScaled16xSurface.OsResource;
+                refScaledSurface.OsResource = m_trackedBuf->Get16xDsSurface(scaledIdx)->OsResource;
             }
             else
             {
-                refScaledSurface.OsResource = params->pTrackedBuffer[scaledIdx].sScaled4xSurface.OsResource;
+                refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
             }
 
             // L1 Reference picture Y - VME
@@ -5161,7 +5158,7 @@ MOS_STATUS CodechalEncHevcStateG9::InitSurfaceInfoTable()
     param = &m_surfaceParams[SURFACE_Y_4X];
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParams2D(
         param,
-        &m_trackedBuffer[0].sScaled4xSurface,
+        nullptr,
         m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_HME_DOWNSAMPLED_ENCODE].Value,
         0,
         m_verticalLineStride,
@@ -5170,7 +5167,7 @@ MOS_STATUS CodechalEncHevcStateG9::InitSurfaceInfoTable()
     param = &m_surfaceParams[SURFACE_Y_4X_VME];
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParamsVME(
         param,
-        &m_trackedBuffer[0].sScaled4xSurface,
+        nullptr,
         m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_REF_ENCODE].Value,
         0));
 
@@ -5868,7 +5865,7 @@ MOS_STATUS CodechalEncHevcStateG9::EncodeCoarseIntra16x16Kernel()
         &cmdBuffer,
         SURFACE_Y_4X,
         &bindingTable->dwBindingTableEntries[startBTI++],
-        &m_trackedBuffer[m_currScalingIdx].sScaled4xSurface));
+        m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER)));
 
     //1: Intra distortion surface
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetSurfacesState(
@@ -5884,7 +5881,7 @@ MOS_STATUS CodechalEncHevcStateG9::EncodeCoarseIntra16x16Kernel()
         &cmdBuffer,
         SURFACE_Y_4X_VME,
         &bindingTable->dwBindingTableEntries[startBTI++],
-        &m_trackedBuffer[m_currScalingIdx].sScaled4xSurface));
+        m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER)));
         
     CODECHAL_ENCODE_ASSERT(startBTI == bindingTable->dwNumBindingTableEntries);
  
@@ -8972,7 +8969,7 @@ MOS_STATUS CodechalEncHevcStateG9::EncodeDSCombinedKernel(
 
     if (m_scalingEnabled)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->AllocateSurfaceDS());
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_trackedBuf->AllocateSurfaceDS());
     }
 
     PerfTagSetting perfTag;
@@ -9100,7 +9097,7 @@ MOS_STATUS CodechalEncHevcStateG9::EncodeDSCombinedKernel(
         &cmdBuffer,
         SURFACE_Y_4X,
         &bindingTable->dwBindingTableEntries[startBTI],
-        &m_trackedBuffer[m_currScalingIdx].sScaled4xSurface));
+        m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER)));
 
     startBTI++;
 
@@ -9202,7 +9199,7 @@ MOS_STATUS CodechalEncHevcStateG9::EncodeDSKernel()
 
         //Scaled surface
         CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
-            &m_trackedBuffer[m_currScalingIdx].sScaled4xSurface,
+            m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER),
             CodechalDbgAttr::attrEncodeRawInputSurface,
             "SrcSurf")));
 

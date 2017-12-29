@@ -4935,9 +4935,7 @@ MOS_STATUS CodechalEncodeMpeg2::SendMbEncSurfaces(
             &surfaceCodecParams,
             kernelState));
     }
-    auto currScaledIdx = m_refList[m_currReconstructedPic.FrameIdx]->ucScalingIdx;
-    auto currPicSurface = mbEncIFrameDistEnabled ?
-        &m_trackedBuffer[currScaledIdx].sScaled4xSurface : m_rawSurfaceToEnc;
+    auto currPicSurface = mbEncIFrameDistEnabled ? m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER) : m_rawSurfaceToEnc;
 
     // Current Picture Y
     MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));

@@ -2889,14 +2889,12 @@ MOS_STATUS CodechalEncodeAvcBase::EncodeMeKernel(
     meSurfaceParams.ppRefList = &m_refList[0];
     meSurfaceParams.pPicIdx = &m_picIdx[0];
     meSurfaceParams.pCurrOriginalPic = &m_currOriginalPic;
-    meSurfaceParams.pCurrReconstructedPic = &m_currReconstructedPic;
     meSurfaceParams.ps4xMeMvDataBuffer = &m_4xMeMvDataBuffer;
     meSurfaceParams.dw4xMeMvBottomFieldOffset = (uint32_t)m_meMvBottomFieldOffset;
     meSurfaceParams.ps16xMeMvDataBuffer = &m_16xMeMvDataBuffer;
     meSurfaceParams.dw16xMeMvBottomFieldOffset = (uint32_t)m_meMv16xBottomFieldOffset;
     meSurfaceParams.ps32xMeMvDataBuffer = &m_32xMeMvDataBuffer;
     meSurfaceParams.dw32xMeMvBottomFieldOffset = (uint32_t)m_meMv32xBottomFieldOffset;
-    meSurfaceParams.pTrackedBuffer = &m_trackedBuffer[0];
     meSurfaceParams.dw4xScaledBottomFieldOffset = (uint32_t)m_scaledBottomFieldOffset;
     meSurfaceParams.dw16xScaledBottomFieldOffset = (uint32_t)m_scaled16xBottomFieldOffset;
     meSurfaceParams.dw32xScaledBottomFieldOffset = (uint32_t)m_scaled32xBottomFieldOffset;

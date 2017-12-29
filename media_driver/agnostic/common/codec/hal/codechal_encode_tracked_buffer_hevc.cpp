@@ -61,7 +61,7 @@ void CodechalEncodeTrackedBufferHevc::ReleaseBufferOnResChange()
         ReleaseMvData(m_trackedBufAnteIdx);
         ReleaseDsRecon(m_trackedBufAnteIdx);
 #ifndef _FULL_OPEN_SOURCE
-        m_encoder->m_cscDsState->ReleaseSurfaceDS(m_trackedBufAnteIdx);
+        ReleaseSurfaceDS(m_trackedBufAnteIdx);
 #endif
         m_trackedBuffer[m_trackedBufAnteIdx].ucSurfIndex7bits = PICTURE_MAX_7BITS;
         CODECHAL_ENCODE_NORMALMESSAGE("Tracked buffer = %d re-allocated", m_trackedBufAnteIdx);

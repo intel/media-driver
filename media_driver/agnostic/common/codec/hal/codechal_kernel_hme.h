@@ -252,7 +252,6 @@ public:
         PCODEC_REF_LIST *     refList;
         PCODEC_PIC_ID         picIdx;
         PCODEC_PICTURE        currOriginalPic;
-        PCODEC_PICTURE        currReconstructedPic;
         PCODEC_PICTURE        refL0List;
         PCODEC_PICTURE        refL1List;
         PMOS_SURFACE          meBrcDistortionBuffer;

@@ -33,6 +33,7 @@
 
 #include "codechal.h"
 #include "codechal_encode_allocator.h"
+#include "codec_def_common_encode.h"
 
 //!
 //! Tracked buffer 
@@ -88,6 +89,62 @@ public:
     inline MOS_RESOURCE* GetCurrMvTemporalBuffer()
     {
         return m_trackedBufCurrMvTemporal;
+    }
+
+    //!
+    //! \brief  Get the current 4x downscaled surface
+    //!
+    //! \return the current 4x downscaled surface
+    //!
+    inline MOS_SURFACE* Get4xDsSurface(uint8_t bufIndex)
+    {
+        if (bufIndex == CODEC_CURR_TRACKED_BUFFER)
+        {
+            bufIndex = m_trackedBufCurrIdx;
+        }
+        return &m_trackedBuffer[bufIndex].sScaled4xSurface;
+    }
+
+    //!
+    //! \brief  Get the current 2x downscaled surface
+    //!
+    //! \return the current 2x downscaled surface
+    //!
+    inline MOS_SURFACE* Get2xDsSurface(uint8_t bufIndex)
+    {
+        if (bufIndex == CODEC_CURR_TRACKED_BUFFER)
+        {
+            bufIndex = m_trackedBufCurrIdx;
+        }
+        return &m_trackedBuffer[bufIndex].sScaled2xSurface;
+    }
+
+    //!
+    //! \brief  Get the current 16x downscaled surface
+    //!
+    //! \return the current 16x downscaled surface
+    //!
+    inline MOS_SURFACE* Get16xDsSurface(uint8_t bufIndex)
+    {
+        if (bufIndex == CODEC_CURR_TRACKED_BUFFER)
+        {
+            bufIndex = m_trackedBufCurrIdx;
+        }
+        return &m_trackedBuffer[bufIndex].sScaled16xSurface;
+    }
+
+    //!
+    //! \brief  Get the current 32x downscaled surface
+    //!
+    //! \return the current 32x downscaled surface
+    //!
+    inline MOS_SURFACE* Get32xDsSurface(uint8_t bufIndex)
+    {
+        if (bufIndex == CODEC_CURR_TRACKED_BUFFER)
+        {
+            bufIndex = m_trackedBufCurrIdx;
+        }
+        return &m_trackedBuffer[bufIndex].sScaled32xSurface;
     }
 
     //!
@@ -190,6 +247,22 @@ public:
     MOS_STATUS AllocateMvDataResources(uint8_t bufIndex);
 
     //!
+    //! \brief    Allocate DS surface or pick an existing one from the pool
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS AllocateSurfaceDS();
+
+    //!
+    //! \brief    Allocate 2xDS surface or pick an existing one from the pool
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS AllocateSurface2xDS();
+
+    //!
     //! \brief    Constructor
     //!            
     CodechalEncodeTrackedBuffer(CodechalEncoderState* encoder);
@@ -247,6 +320,16 @@ protected:
     void ReleaseMvData(uint8_t bufIndex);
 
     //!
+    //! \brief  Release DS surface
+    //!
+    //! \param  [in] bufIndex
+    //!         buffer index to be released
+    //!
+    //! \return void
+    //!
+    void ReleaseSurfaceDS(uint8_t index);
+
+    //!
     //! \brief  Release DsRecon buffer
     //!
     //! \param  [in] bufIndex
@@ -263,6 +346,10 @@ protected:
     MOS_RESOURCE*                   m_trackedBufCurrMbCode = nullptr;           //!< Pointer to current MbCode buffer
     MOS_RESOURCE*                   m_trackedBufCurrMvData = nullptr;           //!< Pointer to current MvData buffer
     MOS_RESOURCE*                   m_trackedBufCurrMvTemporal = nullptr;       //!< Pointer to current MV temporal buffer
+    MOS_SURFACE*                    m_trackedBufCurrDs4x = nullptr;             //!< Pointer to current 4x downscaled surface
+    MOS_SURFACE*                    m_trackedBufCurrDs2x = nullptr;             //!< Pointer to current 2x downscaled surface
+    MOS_SURFACE*                    m_trackedBufCurrDs16x = nullptr;            //!< Pointer to current 16x downscaled surface
+    MOS_SURFACE*                    m_trackedBufCurrDs32x = nullptr;            //!< Pointer to current 32x downscaled surface
     MOS_SURFACE*                    m_trackedBufCurr4xDsRecon = nullptr;        //!< Pointer to current 4x DsRecon buffer
     MOS_SURFACE*                    m_trackedBufCurr8xDsRecon = nullptr;        //!< Pointer to current 8x DsRecon buffer
 

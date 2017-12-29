@@ -1588,7 +1588,7 @@ protected:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    static MOS_STATUS SendMeSurfaces(
+    MOS_STATUS SendMeSurfaces(
         CodechalHwInterface         *hwInterface, 
         PMOS_COMMAND_BUFFER         cmdBuffer, 
         MeSurfaceParams             *params);

@@ -353,30 +353,6 @@ public:
     //!
     virtual MOS_STATUS DsKernel(KernelParams* params);
 
-    //!
-    //! \brief    Allocate DS surface or pick an existing one from the pool
-    //!
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS AllocateSurfaceDS();
-
-    //!
-    //! \brief    Allocate 2xDS surface or pick an existing one from the pool
-    //!
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS AllocateSurface2xDS();
-
-    //!
-    //! \brief    Release DS surface
-    //!
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    void ReleaseSurfaceDS(uint8_t index);
-
 protected:
     //!
     //! \brief    CSC kernel supported color format

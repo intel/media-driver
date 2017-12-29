@@ -116,234 +116,6 @@ void CodechalEncodeCscDs::ReleaseSurfaceCsc(uint8_t index)
     m_osInterface->pfnFreeResource(m_osInterface, &m_trackedBuffer[index].sCopiedSurface.OsResource);
 }
 
-MOS_STATUS CodechalEncodeCscDs::AllocateSurfaceDS()
-{
-    CODECHAL_ENCODE_FUNCTION_ENTER;
-
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
-    auto trackedBuffer = &m_trackedBuffer[m_currScalingIdx];
-
-    if (!Mos_ResourceIsNull(&trackedBuffer->sScaled4xSurface.OsResource))
-    {
-        return eStatus;
-    }
-
-    // initiate allocation paramters
-    MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferNV12;
-    MOS_ZeroMemory(&allocParamsForBufferNV12, sizeof(MOS_ALLOC_GFXRES_PARAMS));
-    allocParamsForBufferNV12.Type = MOS_GFXRES_2D;
-    allocParamsForBufferNV12.TileType = MOS_TILE_Y;
-    allocParamsForBufferNV12.Format = Format_NV12;
-
-    uint32_t downscaledSurfaceWidth4x, downscaledSurfaceHeight4x;
-    if (m_useCommonKernel)
-    {
-        downscaledSurfaceWidth4x = CODECHAL_GET_4xDS_SIZE_32ALIGNED(m_frameWidth);
-        downscaledSurfaceHeight4x = CODECHAL_GET_4xDS_SIZE_32ALIGNED(m_frameHeight);
-    }
-    else
-    {
-        // MB-alignment not required since dataport handles out-of-bound pixel replication, but IME requires this.
-        downscaledSurfaceWidth4x = m_downscaledWidth4x;
-        // Account for field case, offset needs to be 4K aligned if tiled for DI surface state.
-        // Width will be allocated tile Y aligned, so also tile align height.
-        downscaledSurfaceHeight4x = ((m_downscaledHeight4x/CODECHAL_MACROBLOCK_HEIGHT + 1) >> 1) * CODECHAL_MACROBLOCK_HEIGHT;
-        downscaledSurfaceHeight4x = MOS_ALIGN_CEIL(downscaledSurfaceHeight4x, MOS_YTILE_H_ALIGNMENT) << 1;
-    }
-
-    allocParamsForBufferNV12.dwWidth = downscaledSurfaceWidth4x;
-    allocParamsForBufferNV12.dwHeight = downscaledSurfaceHeight4x;
-    allocParamsForBufferNV12.pBufName = "4x Scaled Surface";
-
-    // allocate 4x DS surface
-    CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
-        m_osInterface,
-        &allocParamsForBufferNV12,
-        &trackedBuffer->sScaled4xSurface.OsResource),
-        "Failed to allocate 4xScaled surface.");
-
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(
-        m_osInterface,
-        &trackedBuffer->sScaled4xSurface));
-
-    // allocate 16x DS surface
-    uint32_t downscaledSurfaceWidth16x, downscaledSurfaceHeight16x;
-    if (m_16xMeSupported)
-    {
-        if (m_useCommonKernel)
-        {
-            downscaledSurfaceWidth16x = CODECHAL_GET_4xDS_SIZE_32ALIGNED(downscaledSurfaceWidth4x);
-            downscaledSurfaceHeight16x = CODECHAL_GET_4xDS_SIZE_32ALIGNED(downscaledSurfaceHeight4x);
-        }
-        else
-        {
-            downscaledSurfaceWidth16x = m_downscaledWidth16x;
-            // Account for field case, offset needs to be 4K aligned if tiled for DI surface state.
-            // Width will be allocated tile Y aligned, so also tile align height.
-            downscaledSurfaceHeight16x = ((m_downscaledHeight16x/CODECHAL_MACROBLOCK_HEIGHT + 1) >> 1) * CODECHAL_MACROBLOCK_HEIGHT;
-            downscaledSurfaceHeight16x = MOS_ALIGN_CEIL(downscaledSurfaceHeight16x, MOS_YTILE_H_ALIGNMENT) << 1;
-        }
-        allocParamsForBufferNV12.dwWidth = downscaledSurfaceWidth16x;
-        allocParamsForBufferNV12.dwHeight = downscaledSurfaceHeight16x;
-        allocParamsForBufferNV12.pBufName = "16x Scaled Surface";
-
-        CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
-            m_osInterface,
-            &allocParamsForBufferNV12,
-            &trackedBuffer->sScaled16xSurface.OsResource),
-            "Failed to allocate 16xScaled surface.");
-
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(
-            m_osInterface,
-            &trackedBuffer->sScaled16xSurface));
-    }
-
-    // allocate 32x DS surface
-    if (m_32xMeSupported)
-    {
-        uint32_t downscaledSurfaceWidth32x, downscaledSurfaceHeight32x;
-        if (m_useCommonKernel)
-        {
-            downscaledSurfaceWidth16x = CODECHAL_GET_4xDS_SIZE_32ALIGNED(downscaledSurfaceWidth4x);
-            downscaledSurfaceHeight16x = CODECHAL_GET_4xDS_SIZE_32ALIGNED(downscaledSurfaceHeight4x);
-            downscaledSurfaceWidth32x = CODECHAL_GET_2xDS_SIZE_32ALIGNED(downscaledSurfaceWidth16x);
-            downscaledSurfaceHeight32x = CODECHAL_GET_2xDS_SIZE_32ALIGNED(downscaledSurfaceHeight16x);
-        }
-        else
-        {
-            downscaledSurfaceWidth32x = m_downscaledWidth32x;
-            // Account for field case, offset needs to be 4K aligned if tiled for DI surface state.
-            // Width will be allocated tile Y aligned, so also tile align height.
-            downscaledSurfaceHeight32x = ((m_downscaledHeight32x/CODECHAL_MACROBLOCK_HEIGHT + 1) >> 1) * CODECHAL_MACROBLOCK_HEIGHT;
-            downscaledSurfaceHeight32x = MOS_ALIGN_CEIL(downscaledSurfaceHeight32x, MOS_YTILE_H_ALIGNMENT) << 1;
-        }
-        allocParamsForBufferNV12.dwWidth = downscaledSurfaceWidth32x;
-        allocParamsForBufferNV12.dwHeight = downscaledSurfaceHeight32x;
-        allocParamsForBufferNV12.pBufName = "32x Scaled Surface";
-
-        CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
-            m_osInterface,
-            &allocParamsForBufferNV12,
-            &trackedBuffer->sScaled32xSurface.OsResource),
-            "Failed to allocate 32xScaled surface.");
-
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(
-            m_osInterface,
-            &trackedBuffer->sScaled32xSurface));
-    }
-
-    if (!m_fieldScalingOutputInterleaved)
-    {
-        // Separated scaled surfaces
-        // Height should be 4K aligned for DI surface state, assume always Y tiled
-        m_scaledBottomFieldOffset = MOS_ALIGN_CEIL(
-            (trackedBuffer->sScaled4xSurface.dwPitch *
-            (trackedBuffer->sScaled4xSurface.dwHeight / 2)), CODECHAL_PAGE_SIZE);
-
-        if (m_16xMeSupported)
-        {
-            // Height should be 4K aligned for DI surface state, assume always Y tiled
-            m_scaled16xBottomFieldOffset = MOS_ALIGN_CEIL(
-                (trackedBuffer->sScaled16xSurface.dwPitch *
-                (trackedBuffer->sScaled16xSurface.dwHeight / 2)), CODECHAL_PAGE_SIZE);
-        }
-
-        if (m_32xMeSupported)
-        {
-            // Height should be 4K aligned for DI surface state, assume always Y tiled
-            m_scaled32xBottomFieldOffset = MOS_ALIGN_CEIL(
-                (trackedBuffer->sScaled32xSurface.dwPitch *
-                (trackedBuffer->sScaled32xSurface.dwHeight / 2)), CODECHAL_PAGE_SIZE);
-        }
-
-    }
-    else
-    {
-        // Interleaved scaled surfaces
-        m_scaledBottomFieldOffset =
-        m_scaled16xBottomFieldOffset =
-        m_scaled32xBottomFieldOffset = 0;
-    }
-
-    return eStatus;
-}
-
-MOS_STATUS CodechalEncodeCscDs::AllocateSurface2xDS()
-{
-    CODECHAL_ENCODE_FUNCTION_ENTER;
-
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
-    auto trackedBuffer = &m_trackedBuffer[m_currScalingIdx];
-
-    if (!Mos_ResourceIsNull(&trackedBuffer->sScaled2xSurface.OsResource))
-    {
-        return eStatus;
-    }
-
-    // initiate allocation paramters
-    MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferNV12;
-    MOS_ZeroMemory(&allocParamsForBufferNV12, sizeof(MOS_ALLOC_GFXRES_PARAMS));
-    allocParamsForBufferNV12.Type = MOS_GFXRES_2D;
-    allocParamsForBufferNV12.TileType = MOS_TILE_Y;
-    allocParamsForBufferNV12.Format = Format_NV12;
-
-    uint32_t surfaceWidth, surfaceHeight;
-    if (m_useCommonKernel)
-    {
-        surfaceWidth = CODECHAL_GET_2xDS_SIZE_32ALIGNED(m_frameWidth);
-        surfaceHeight = CODECHAL_GET_2xDS_SIZE_32ALIGNED(m_frameHeight);
-    }
-    else
-    {
-        surfaceWidth = MOS_ALIGN_CEIL(m_frameWidth, 64) >> 1;
-        surfaceHeight = MOS_ALIGN_CEIL(m_frameHeight, 64) >> 1;
-    }
-
-    if ((uint8_t)HCP_CHROMA_FORMAT_YUV422 == m_outputChromaFormat)
-    {
-        allocParamsForBufferNV12.Format = Format_YUY2;
-        allocParamsForBufferNV12.dwWidth = surfaceWidth >> 1;
-        allocParamsForBufferNV12.dwHeight = surfaceHeight << 1;
-    }
-    else
-    {
-        allocParamsForBufferNV12.dwWidth = surfaceWidth;
-        allocParamsForBufferNV12.dwHeight = surfaceHeight;
-    }
-    allocParamsForBufferNV12.pBufName = "2x Scaled Surface";
-
-    // allocate 2x DS surface
-    CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
-        m_osInterface,
-        &allocParamsForBufferNV12,
-        &trackedBuffer->sScaled2xSurface.OsResource),
-        "Failed to allocate 2xScaled surface.");
-
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(
-        m_osInterface,
-        &trackedBuffer->sScaled2xSurface));
-
-    if ((uint8_t)HCP_CHROMA_FORMAT_YUV422 == m_outputChromaFormat)
-    {
-        trackedBuffer->sScaled2xSurface.Format = Format_YUY2V;
-        trackedBuffer->sScaled2xSurface.dwWidth = surfaceWidth;
-        trackedBuffer->sScaled2xSurface.dwHeight = surfaceHeight;
-    }
-
-    return eStatus;
-}
-
-void CodechalEncodeCscDs::ReleaseSurfaceDS(uint8_t index)
-{
-    // free DS surface
-    m_osInterface->pfnFreeResource(m_osInterface, &m_trackedBuffer[index].sScaled2xSurface.OsResource);
-    m_osInterface->pfnFreeResource(m_osInterface, &m_trackedBuffer[index].sScaled4xSurface.OsResource);
-    m_osInterface->pfnFreeResource(m_osInterface, &m_trackedBuffer[index].sScaled16xSurface.OsResource);
-    m_osInterface->pfnFreeResource(m_osInterface, &m_trackedBuffer[index].sScaled32xSurface.OsResource);
-}
-
 uint8_t CodechalEncodeCscDs::LookUpBufSlot()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
@@ -552,8 +324,8 @@ MOS_STATUS CodechalEncodeCscDs::SetKernelParamsCsc(KernelParams* params)
     // setup surface states
     m_surfaceParamsCsc.psInputSurface = m_rawSurfaceToEnc;
     m_surfaceParamsCsc.psOutputCopiedSurface = &m_trackedBuffer[m_cscBufCurrIdx].sCopiedSurface;
-    m_surfaceParamsCsc.psOutput4xDsSurface =
-        m_scalingEnabled ? &m_trackedBuffer[m_currScalingIdx].sScaled4xSurface : nullptr;
+    m_surfaceParamsCsc.psOutput4xDsSurface = 
+        m_scalingEnabled ? m_encoder->m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER) : nullptr;
 
     if (m_mbStatsSupported)
     {
@@ -1481,12 +1253,12 @@ MOS_STATUS CodechalEncodeCscDs::CscKernel(
 
     if (m_scalingEnabled)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateSurfaceDS());
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_trackedBuf->AllocateSurfaceDS());
     }
 
     if (m_2xScalingEnabled)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateSurface2xDS());
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_trackedBuf->AllocateSurface2xDS());
     }
 
     if (m_waitCscSurf)
@@ -1650,12 +1422,12 @@ MOS_STATUS CodechalEncodeCscDs::DsKernel(
 
     if (m_scalingEnabled)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateSurfaceDS());
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_trackedBuf->AllocateSurfaceDS());
     }
 
     if (m_2xScalingEnabled)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateSurface2xDS());
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_trackedBuf->AllocateSurface2xDS());
     }
 
     PerfTagSetting perfTag;
@@ -2038,7 +1810,6 @@ CodechalEncodeCscDs::~CodechalEncodeCscDs()
     for (uint8_t i = 0; i < CODEC_NUM_TRACKED_BUFFERS; i++)
     {
         ReleaseSurfaceCsc(i);
-        ReleaseSurfaceDS(i);
     }
 
     if (m_sfcState)

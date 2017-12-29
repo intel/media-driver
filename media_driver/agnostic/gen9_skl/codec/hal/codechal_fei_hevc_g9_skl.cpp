@@ -6489,7 +6489,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::InitSurfaceInfoTable()
     param = &m_surfaceParams[SURFACE_Y_4X];
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParams2D(
         param,
-        &m_trackedBuffer[0].sScaled4xSurface,
+        nullptr,
         m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_HME_DOWNSAMPLED_ENCODE].Value,
         0,
         m_verticalLineStride,
@@ -6498,7 +6498,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::InitSurfaceInfoTable()
     param = &m_surfaceParams[SURFACE_Y_4X_VME];
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParamsVME(
         param,
-        &m_trackedBuffer[0].sScaled4xSurface,
+        nullptr,
         m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_REF_ENCODE].Value,
         0));
 

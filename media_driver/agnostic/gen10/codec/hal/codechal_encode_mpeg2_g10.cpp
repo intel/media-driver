@@ -1912,8 +1912,7 @@ MOS_STATUS CodechalEncodeMpeg2G10::SendMeSurfaces(
     CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
 
     auto meBindingTable = &m_meBindingTable;
-    auto scaledIdx = m_refList[m_currReconstructedPic.FrameIdx]->ucScalingIdx;
-    PMOS_SURFACE currScaledSurface = &m_trackedBuffer[scaledIdx].sScaled4xSurface;
+    PMOS_SURFACE currScaledSurface = m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER);
     PMOS_SURFACE meMvDataBuffer = &m_4xMEMVDataBuffer;
 
     // Reference height and width information should be taken from the current scaled surface rather
@@ -2016,9 +2015,9 @@ MOS_STATUS CodechalEncodeMpeg2G10::SendMeSurfaces(
 
         bool refBottomField = (CodecHal_PictureIsBottomField(refPic)) ? 1 : 0;
         uint8_t refPicIdx = m_picIdx[refPic.FrameIdx].ucPicIdx;
-        scaledIdx = m_refList[refPicIdx]->ucScalingIdx;
+        uint8_t scaledIdx = m_refList[refPicIdx]->ucScalingIdx;
         // for 4xMe
-        refScaledSurface.OsResource = m_trackedBuffer[scaledIdx].sScaled4xSurface.OsResource;
+        refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
         refScaledBottomFieldOffset = refBottomField ? (uint32_t)m_scaledBottomFieldOffset : 0;
 
         // L0 Reference Picture Y - VME
@@ -2065,10 +2064,10 @@ MOS_STATUS CodechalEncodeMpeg2G10::SendMeSurfaces(
 
         bool refBottomField = (CodecHal_PictureIsBottomField(refPic)) ? 1 : 0;
         uint8_t refPicIdx = m_picIdx[refPic.FrameIdx].ucPicIdx;
-        scaledIdx = m_refList[refPicIdx]->ucScalingIdx;
+        uint8_t scaledIdx = m_refList[refPicIdx]->ucScalingIdx;
 
         // for 4xMe
-        refScaledSurface.OsResource = m_trackedBuffer[scaledIdx].sScaled4xSurface.OsResource;
+        refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
         refScaledBottomFieldOffset = refBottomField ? (uint32_t)m_scaledBottomFieldOffset : 0;
 
         // L1 Reference Picture Y - VME

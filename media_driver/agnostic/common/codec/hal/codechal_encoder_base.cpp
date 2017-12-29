@@ -3617,7 +3617,7 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                     CODECHAL_DEBUG_TOOL(
                         m_debugInterface->dwScaledBottomFieldOffset = m_scaledBottomFieldOffset;
                         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
-                            &m_trackedBuffer[m_currScalingIdx].sScaled4xSurface,
+                            m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER),
                             CodechalDbgAttr::attrReconstructedSurface,
                             "4xScaledSurf"));
 
@@ -3842,7 +3842,7 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                     {
                         m_debugInterface->dwScaledBottomFieldOffset = m_scaled32xBottomFieldOffset;
                         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
-                            &m_trackedBuffer[currRefList.ucScalingIdx].sScaled32xSurface,
+                            m_trackedBuf->Get32xDsSurface(currRefList.ucScalingIdx),
                             CodechalDbgAttr::attrReconstructedSurface,
                             "32xScaledSurf"))
                     }
@@ -3851,7 +3851,7 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                     {
                         m_debugInterface->dwScaledBottomFieldOffset = 0; // No bottom field offset for Hevc
                         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
-                            &m_trackedBuffer[currRefList.ucScalingIdx].sScaled2xSurface,
+                            m_trackedBuf->Get2xDsSurface(currRefList.ucScalingIdx),
                             CodechalDbgAttr::attrReconstructedSurface,
                             "2xScaledSurf"))
                     }
@@ -3860,7 +3860,7 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                     {
                         m_debugInterface->dwScaledBottomFieldOffset = m_scaled16xBottomFieldOffset;
                         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
-                            &m_trackedBuffer[currRefList.ucScalingIdx].sScaled16xSurface,
+                            m_trackedBuf->Get16xDsSurface(currRefList.ucScalingIdx),
                             CodechalDbgAttr::attrReconstructedSurface,
                             "16xScaledSurf"))
                     }
@@ -3869,7 +3869,7 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                     {
                         m_debugInterface->dwScaledBottomFieldOffset = m_scaledBottomFieldOffset;
                         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
-                            &m_trackedBuffer[currRefList.ucScalingIdx].sScaled4xSurface,
+                            m_trackedBuf->Get4xDsSurface(currRefList.ucScalingIdx),
                             CodechalDbgAttr::attrReconstructedSurface,
                             "4xScaledSurf"))
                     }

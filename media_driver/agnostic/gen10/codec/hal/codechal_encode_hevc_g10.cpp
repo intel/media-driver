@@ -3269,17 +3269,16 @@ MOS_STATUS CodechalEncHevcStateG10::SendMeSurfaces(
 
     PMOS_SURFACE currScaledSurface = nullptr, meMvDataBuffer = nullptr;
     bool use16xMvInputMvDataFor4x = false, is4xHmeStage = false;
-    uint8_t scaledIdx = pRefList[m_currReconstructedPic.FrameIdx]->ucScalingIdx;
     switch(hmeLevel)
     {
         case HME_LEVEL_4x:
-            currScaledSurface     = &m_trackedBuffer[scaledIdx].sScaled4xSurface;
+            currScaledSurface     = m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER);
             meMvDataBuffer        = &s4xMeMvDataBuffer;
             use16xMvInputMvDataFor4x  = b16xMeEnabled;
             is4xHmeStage             = true;
             break;
         case HME_LEVEL_16x:
-            currScaledSurface     = &m_trackedBuffer[scaledIdx].sScaled16xSurface;
+            currScaledSurface     = m_trackedBuf->Get16xDsSurface(CODEC_CURR_TRACKED_BUFFER);
             meMvDataBuffer        = &s16xMeMvDataBuffer;
             break;
         default:
@@ -3368,14 +3367,12 @@ MOS_STATUS CodechalEncHevcStateG10::SendMeSurfaces(
         if(!CodecHal_PictureIsInvalid(refPic) && PicIdx[refPic.FrameIdx].bValid)
         {
             uint8_t refPicIdx = PicIdx[refPic.FrameIdx].ucPicIdx;
-            scaledIdx = pRefList[refPicIdx]->ucScalingIdx;
+            uint8_t scaledIdx = pRefList[refPicIdx]->ucScalingIdx;
 
             // Picture Y VME
             CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParamsVME(
                 &surfaceCodecParams,
-                (hmeLevel == HME_LEVEL_4x) ?
-                    &m_trackedBuffer[scaledIdx].sScaled4xSurface :
-                    &m_trackedBuffer[scaledIdx].sScaled16xSurface,
+                (hmeLevel == HME_LEVEL_4x) ? m_trackedBuf->Get4xDsSurface(scaledIdx) : m_trackedBuf->Get16xDsSurface(scaledIdx),
                 m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_REF_ENCODE].Value,
                 bindingTable->dwBindingTableEntries[startBti++]));
 
@@ -3406,14 +3403,12 @@ MOS_STATUS CodechalEncHevcStateG10::SendMeSurfaces(
            !CodecHal_PictureIsInvalid(pHevcPicParams->RefFrameList[refPic.FrameIdx]))
         {
             uint8_t refPicIdx = PicIdx[refPic.FrameIdx].ucPicIdx;
-            scaledIdx = pRefList[refPicIdx]->ucScalingIdx;
+            uint8_t scaledIdx = pRefList[refPicIdx]->ucScalingIdx;
 
             // Picture Y VME
             CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParamsVME(
                 &surfaceCodecParams,
-                (hmeLevel == HME_LEVEL_4x) ?
-                    &m_trackedBuffer[scaledIdx].sScaled4xSurface :
-                    &m_trackedBuffer[scaledIdx].sScaled16xSurface,
+                (hmeLevel == HME_LEVEL_4x) ? m_trackedBuf->Get4xDsSurface(scaledIdx) : m_trackedBuf->Get16xDsSurface(scaledIdx),
                 m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_REF_ENCODE].Value,
                 bindingTable->dwBindingTableEntries[startBti++]));
 
@@ -4532,7 +4527,7 @@ MOS_STATUS CodechalEncHevcStateG10::SendMbEncSurfacesBKernel(PMOS_COMMAND_BUFFER
         //Source Y 2xDS
         CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParams2D(
             &surfaceCodecParams, 
-            &m_trackedBuffer[m_currScalingIdx].sScaled2xSurface,
+            m_trackedBuf->Get2xDsSurface(CODEC_CURR_TRACKED_BUFFER),
             m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_HME_DOWNSAMPLED_ENCODE].Value,
             bindingTable->dwBindingTableEntries[startBti++],
             0,
@@ -4596,7 +4591,7 @@ MOS_STATUS CodechalEncHevcStateG10::SendMbEncSurfacesBKernel(PMOS_COMMAND_BUFFER
         // 2xDS Source VME surface
         CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParamsVME(
             &surfaceCodecParams,
-            &m_trackedBuffer[m_currScalingIdx].sScaled2xSurface,
+            m_trackedBuf->Get2xDsSurface(CODEC_CURR_TRACKED_BUFFER),
             m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_CURR_ENCODE].Value,
             bindingTable->dwBindingTableEntries[startBti++]));
 
@@ -4618,7 +4613,7 @@ MOS_STATUS CodechalEncHevcStateG10::SendMbEncSurfacesBKernel(PMOS_COMMAND_BUFFER
                 // Picture Y VME
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParamsVME(
                     &surfaceCodecParams,
-                    &m_trackedBuffer[scaledIdx].sScaled2xSurface,
+                    m_trackedBuf->Get2xDsSurface(scaledIdx),
                     m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_REF_ENCODE].Value,
                     bindingTable->dwBindingTableEntries[startBti++]));
 
@@ -4633,7 +4628,7 @@ MOS_STATUS CodechalEncHevcStateG10::SendMbEncSurfacesBKernel(PMOS_COMMAND_BUFFER
                 // Providing Dummy surface as per VME requirement.
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParamsVME(
                     &surfaceCodecParams,
-                    &m_trackedBuffer[m_currScalingIdx].sScaled2xSurface,
+                    m_trackedBuf->Get2xDsSurface(CODEC_CURR_TRACKED_BUFFER),
                     m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_REF_ENCODE].Value,
                     bindingTable->dwBindingTableEntries[startBti++]));
 
@@ -4654,7 +4649,7 @@ MOS_STATUS CodechalEncHevcStateG10::SendMbEncSurfacesBKernel(PMOS_COMMAND_BUFFER
                 // Picture Y VME
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParamsVME(
                     &surfaceCodecParams,
-                    &m_trackedBuffer[scaledIdx].sScaled2xSurface,
+                    m_trackedBuf->Get2xDsSurface(scaledIdx),
                     m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_REF_ENCODE].Value,
                     bindingTable->dwBindingTableEntries[startBti++]));
 
@@ -4669,7 +4664,7 @@ MOS_STATUS CodechalEncHevcStateG10::SendMbEncSurfacesBKernel(PMOS_COMMAND_BUFFER
                 // Providing Dummy surface as per VME requirement.
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParamsVME(
                     &surfaceCodecParams,
-                    &m_trackedBuffer[m_currScalingIdx].sScaled2xSurface,
+                    m_trackedBuf->Get2xDsSurface(CODEC_CURR_TRACKED_BUFFER),
                     m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_REF_ENCODE].Value,
                     bindingTable->dwBindingTableEntries[startBti++]));
 
@@ -4860,12 +4855,12 @@ MOS_STATUS CodechalEncHevcStateG10::EncodeScalingAndConversionKernel(
 
     if (m_scalingEnabled)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->AllocateSurfaceDS());
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_trackedBuf->AllocateSurfaceDS());
     }
 
     if (m_2xScalingEnabled)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->AllocateSurface2xDS());
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_trackedBuf->AllocateSurface2xDS());
     }
 
     PerfTagSetting perfTag;
@@ -4908,15 +4903,11 @@ MOS_STATUS CodechalEncHevcStateG10::EncodeScalingAndConversionKernel(
             encFunctionType         = CODECHAL_MEDIA_STATE_2X_SCALING;
             downscaleStage          = dsStage2x;
 
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(
-                m_osInterface,
-                &m_trackedBuffer[scaledIdx].sScaled2xSurface)); 
-
             inputSurface = m_rawSurfaceToEnc;
             inputFrameWidth = m_oriFrameWidth;
             inputFrameHeight = m_oriFrameHeight;
 
-            outputScaledSurface2x     = &m_trackedBuffer[scaledIdx].sScaled2xSurface;
+            outputScaledSurface2x     = m_trackedBuf->Get2xDsSurface(scaledIdx);
             outputScaledFrameWidth2x  = m_downscaledWidth2x;
             outputScaledFrameHeight2x = m_downscaledHeight2x;
 
@@ -4933,23 +4924,15 @@ MOS_STATUS CodechalEncHevcStateG10::EncodeScalingAndConversionKernel(
             encFunctionType         = CODECHAL_MEDIA_STATE_2X_4X_SCALING;
             downscaleStage          = dsStage2x4x;
 
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(
-                m_osInterface,
-                &m_trackedBuffer[scaledIdx].sScaled2xSurface));
-
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(
-                m_osInterface,
-                &m_trackedBuffer[scaledIdx].sScaled4xSurface));
-
             inputSurface = m_rawSurfaceToEnc;
             inputFrameWidth = m_oriFrameWidth;
             inputFrameHeight = m_oriFrameHeight;
 
-            outputScaledSurface4x = &m_trackedBuffer[scaledIdx].sScaled4xSurface;
+            outputScaledSurface4x = m_trackedBuf->Get4xDsSurface(scaledIdx);
             outputScaledFrameWidth4x  = m_downscaledWidth4x;
             outputScaledFrameHeight4x = m_downscaledHeight4x;
 
-            outputScaledSurface2x = &m_trackedBuffer[scaledIdx].sScaled2xSurface;
+            outputScaledSurface2x = m_trackedBuf->Get2xDsSurface(scaledIdx);
             outputScaledFrameWidth2x  = m_downscaledWidth2x;
             outputScaledFrameHeight2x = m_downscaledHeight2x;
 
@@ -4967,15 +4950,11 @@ MOS_STATUS CodechalEncHevcStateG10::EncodeScalingAndConversionKernel(
             encFunctionType         = CODECHAL_MEDIA_STATE_4X_SCALING;
             downscaleStage          = dsStage4x;
 
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(
-                m_osInterface,
-                &m_trackedBuffer[scaledIdx].sScaled4xSurface)); 
-
             inputSurface = m_rawSurfaceToEnc;
             inputFrameWidth = m_oriFrameWidth;
             inputFrameHeight = m_oriFrameHeight;
 
-            outputScaledSurface4x = &m_trackedBuffer[scaledIdx].sScaled4xSurface;
+            outputScaledSurface4x = m_trackedBuf->Get4xDsSurface(scaledIdx);
             outputScaledFrameWidth4x  = m_downscaledWidth4x;
             outputScaledFrameHeight4x = m_downscaledHeight4x;
 
@@ -4986,15 +4965,11 @@ MOS_STATUS CodechalEncHevcStateG10::EncodeScalingAndConversionKernel(
             encFunctionType         = CODECHAL_MEDIA_STATE_16X_SCALING;
             downscaleStage          = dsStage16x;
 
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(
-                m_osInterface,
-                &m_trackedBuffer[scaledIdx].sScaled16xSurface)); 
-
-            inputSurface = &m_trackedBuffer[scaledIdx].sScaled4xSurface;
+            inputSurface = m_trackedBuf->Get4xDsSurface(scaledIdx);
             inputFrameWidth = m_downscaledWidth4x;
             inputFrameHeight = m_downscaledHeight4x;
 
-            outputScaledSurface4x = &m_trackedBuffer[scaledIdx].sScaled16xSurface;
+            outputScaledSurface4x = m_trackedBuf->Get16xDsSurface(scaledIdx);
             outputScaledFrameWidth4x  = m_downscaledWidth16x;
             outputScaledFrameHeight4x = m_downscaledHeight16x;
 

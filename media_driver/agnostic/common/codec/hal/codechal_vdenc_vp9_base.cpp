@@ -2906,9 +2906,7 @@ MOS_STATUS CodechalVdencVp9State::VdencSendHmeSurfaces(
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-     CODECHAL_ENCODE_CHK_NULL_RETURN(state);
-
-    uint8_t scaledIdx = state->pRefList[m_currReconstructedPic.FrameIdx]->ucScalingIdx;
+    CODECHAL_ENCODE_CHK_NULL_RETURN(state);
 
     bool isCurrFieldPicture       = CodecHal_PictureIsField(m_currOriginalPic) ? true : false;
     bool isCurrBottomField        = CodecHal_PictureIsBottomField(m_currOriginalPic) ? true : false;
@@ -2925,7 +2923,7 @@ MOS_STATUS CodechalVdencVp9State::VdencSendHmeSurfaces(
         CODECHAL_ENCODE_CHK_NULL_RETURN(&state->s16xMeMvDataBuffer);
         kernelState                   = &m_vdencMeKernelState;
         bindingTable                  = &m_vdencMeKernelBindingTable;
-        currScaledSurface            = &m_trackedBuffer[scaledIdx].sScaled16xSurface;
+        currScaledSurface            = m_trackedBuf->Get16xDsSurface(CODEC_CURR_TRACKED_BUFFER);
         meMvDataBuffer               = &state->s16xMeMvDataBuffer;
         meMvBottomFieldOffset        = 0;
         currScaledBottomFieldOffset  = m_scaled16xBottomFieldOffset;
@@ -2938,7 +2936,7 @@ MOS_STATUS CodechalVdencVp9State::VdencSendHmeSurfaces(
         CODECHAL_ENCODE_CHK_NULL_RETURN(&m_resVdencStreamInBuffer[m_currRecycledBufIdx]);
         kernelState                  = &m_vdencStreaminKernelState;
         bindingTable                 = &m_vdencStreaminKernelBindingTable;
-        currScaledSurface           = &m_trackedBuffer[scaledIdx].sScaled4xSurface;
+        currScaledSurface           = m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER);
         meMvDataBuffer              = &state->s4xMeMvDataBuffer;
         meMvBottomFieldOffset       = 0;
         currScaledBottomFieldOffset = m_scaledBottomFieldOffset;
@@ -3031,14 +3029,14 @@ MOS_STATUS CodechalVdencVp9State::VdencSendHmeSurfaces(
             bool isRefFieldPicture = CodecHal_PictureIsField(refPic) ? 1 : 0;
             bool isRefBottomField = (CodecHal_PictureIsBottomField(refPic)) ? 1 : 0;
             uint8_t refPicIdx    = state->PicIdx[refPic.FrameIdx].ucPicIdx;
-            scaledIdx    = state->pRefList[refPicIdx]->ucScalingIdx;
+            uint8_t scaledIdx    = state->pRefList[refPicIdx]->ucScalingIdx;
             if (state->b16xMeInUse)
             {
-                refScaledSurface.OsResource = m_trackedBuffer[scaledIdx].sScaled16xSurface.OsResource;
+                refScaledSurface.OsResource = m_trackedBuf->Get16xDsSurface(scaledIdx)->OsResource;
             }
             else
             {
-                refScaledSurface.OsResource = m_trackedBuffer[scaledIdx].sScaled4xSurface.OsResource;
+                refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
             }
             uint32_t refScaledBottomFieldOffset = isRefBottomField ? currScaledBottomFieldOffset : 0;
 
@@ -3086,15 +3084,15 @@ MOS_STATUS CodechalVdencVp9State::VdencSendHmeSurfaces(
             bool isRefFieldPicture             = CodecHal_PictureIsField(refPic) ? 1 : 0;
             bool isRefBottomField              = (CodecHal_PictureIsBottomField(refPic)) ? 1 : 0;
             uint8_t refPicIdx                  = state->PicIdx[refPic.FrameIdx].ucPicIdx;
-            scaledIdx                  = state->pRefList[refPicIdx]->ucScalingIdx;
+            uint8_t scaledIdx                  = state->pRefList[refPicIdx]->ucScalingIdx;
 
             if (state->b16xMeInUse)
             {
-                refScaledSurface.OsResource = m_trackedBuffer[scaledIdx].sScaled16xSurface.OsResource;
+                refScaledSurface.OsResource = m_trackedBuf->Get16xDsSurface(scaledIdx)->OsResource;
             }
             else
             {
-                refScaledSurface.OsResource = m_trackedBuffer[scaledIdx].sScaled4xSurface.OsResource;
+                refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
             }
             uint32_t refScaledBottomFieldOffset = isRefBottomField ? currScaledBottomFieldOffset : 0;
 
