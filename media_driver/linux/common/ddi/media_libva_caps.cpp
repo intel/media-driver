@@ -1449,11 +1449,16 @@ VAStatus MediaLibvaCaps::CreateDecConfig(
 
 VAStatus MediaLibvaCaps::CreateEncConfig(
         int32_t profileTableIdx,
+        VAEntrypoint entrypoint,
         VAConfigAttrib *attribList,
         int32_t numAttribs,
         VAConfigID *configId)
 {
-    uint32_t rcMode = VA_RC_NONE;
+    uint32_t rcMode = VA_RC_CQP;
+    if((entrypoint == (VAEntrypoint)VAEntrypointStats) || (entrypoint == (VAEntrypoint)VAEntrypointEncPicture))
+    {
+        rcMode = VA_RC_NONE;
+    }
     m_mediaCtx->FeiFunction = 0;
 
     int32_t j;
@@ -1643,7 +1648,7 @@ VAStatus MediaLibvaCaps::CreateConfig(
     }
     else if(CheckEntrypointCodecType(entrypoint, videoEncode))
     {
-        return CreateEncConfig(i, attribList, numAttribs, configId);
+        return CreateEncConfig(i,entrypoint,attribList, numAttribs, configId);
     }
     else
     {
