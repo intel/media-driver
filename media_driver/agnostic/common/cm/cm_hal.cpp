@@ -176,7 +176,7 @@ MOS_STATUS HalCm_AllocateTsResource(
     pOsInterface    = pState->pOsInterface;
 
     iSize = ((sizeof(uint64_t)* CM_SYNC_QWORD_PER_TASK) + (sizeof(uint64_t)* CM_FRAME_TRACKING_QWORD_PER_TASK)) * pState->CmDeviceParam.iMaxTasks;    // 2 QWORDs for each kernel in the task
-
+	// allocate render engine Ts Resource
     MOS_ZeroMemory(&AllocParams, sizeof(MOS_ALLOC_GFXRES_PARAMS));
     AllocParams.Type    = MOS_GFXRES_BUFFER;
     AllocParams.dwBytes = iSize;
@@ -187,7 +187,7 @@ MOS_STATUS HalCm_AllocateTsResource(
     CM_HRESULT2MOSSTATUS_AND_CHECK(pOsInterface->pfnAllocateResource(
         pOsInterface,
         &AllocParams,
-        &pState->TsResource.OsResource));
+        &pState->Render_TsResource.OsResource));
 
     // Lock the Resource
     MOS_ZeroMemory(&LockFlags, sizeof(MOS_LOCK_PARAMS));
@@ -195,14 +195,43 @@ MOS_STATUS HalCm_AllocateTsResource(
     LockFlags.ReadOnly = 1;
     LockFlags.ForceCached = true;   
 
-    pState->TsResource.pData = (uint8_t*)pOsInterface->pfnLockResource(
+    pState->Render_TsResource.pData = (uint8_t*)pOsInterface->pfnLockResource(
                                         pOsInterface, 
-                                        &pState->TsResource.OsResource, 
+                                        &pState->Render_TsResource.OsResource,
                                         &LockFlags);
 
-    CM_CHK_NULL_RETURN_MOSSTATUS(pState->TsResource.pData);
+    CM_CHK_NULL_RETURN_MOSSTATUS(pState->Render_TsResource.pData);
 
-    pState->TsResource.bLocked  = true;
+    pState->Render_TsResource.bLocked  = true;
+
+	//allocated for vebox TS resource
+
+	MOS_ZeroMemory(&AllocParams, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+	AllocParams.Type = MOS_GFXRES_BUFFER;
+	AllocParams.dwBytes = iSize;
+	AllocParams.Format = Format_Buffer;  //used in RenderHal_OsAllocateResource_Linux
+	AllocParams.TileType = MOS_TILE_LINEAR;
+	AllocParams.pBufName = "TsResource";
+
+	CM_HRESULT2MOSSTATUS_AND_CHECK(pOsInterface->pfnAllocateResource(
+		pOsInterface,
+		&AllocParams,
+		&pState->Vebox_TsResource.OsResource));
+
+	// Lock the Resource
+	MOS_ZeroMemory(&LockFlags, sizeof(MOS_LOCK_PARAMS));
+
+	LockFlags.ReadOnly = 1;
+	LockFlags.ForceCached = true;
+
+	pState->Vebox_TsResource.pData = (uint8_t*)pOsInterface->pfnLockResource(
+		pOsInterface,
+		&pState->Vebox_TsResource.OsResource,
+		&LockFlags);
+
+	CM_CHK_NULL_RETURN_MOSSTATUS(pState->Vebox_TsResource.pData);
+
+	pState->Vebox_TsResource.bLocked = true;
 
 finish:
     return hr;
@@ -221,22 +250,42 @@ __inline void HalCm_FreeTsResource(
 
     pOsInterface    = pState->pOsInterface;
 
-    if (!Mos_ResourceIsNull(&pState->TsResource.OsResource))
+	//free Ts resource for render engine
+    if (!Mos_ResourceIsNull(&pState->Render_TsResource.OsResource))
     {
-        if (pState->TsResource.bLocked)
+        if (pState->Render_TsResource.bLocked)
         {
             hr = (MOS_STATUS)pOsInterface->pfnUnlockResource(
                     pOsInterface, 
-                    &pState->TsResource.OsResource);
+                    &pState->Render_TsResource.OsResource);
 
             CM_ASSERT(hr == MOS_STATUS_SUCCESS);
         }
 
         pOsInterface->pfnFreeResourceWithFlag(
             pOsInterface,
-            &pState->TsResource.OsResource,
+            &pState->Render_TsResource.OsResource,
             SURFACE_FLAG_ASSUME_NOT_IN_USE);
     }
+
+	//free vebox TS resource
+
+	if (!Mos_ResourceIsNull(&pState->Vebox_TsResource.OsResource))
+	{
+		if (pState->Vebox_TsResource.bLocked)
+		{
+			hr = (MOS_STATUS)pOsInterface->pfnUnlockResource(
+				pOsInterface,
+				&pState->Vebox_TsResource.OsResource);
+
+			CM_ASSERT(hr == MOS_STATUS_SUCCESS);
+		}
+
+		pOsInterface->pfnFreeResourceWithFlag(
+			pOsInterface,
+			&pState->Vebox_TsResource.OsResource,
+			SURFACE_FLAG_ASSUME_NOT_IN_USE);
+	}
 }
 
 //*-----------------------------------------------------------------------------

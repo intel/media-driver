@@ -573,7 +573,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     iSyncOffset = pState->pfnGetTaskSyncLocation(iTaskId);
 
     // Initialize the location
-    pTaskSyncLocation                 = (int64_t*)(pState->TsResource.pData + iSyncOffset);
+    pTaskSyncLocation                 = (int64_t*)(pState->Render_TsResource.pData + iSyncOffset);
     *pTaskSyncLocation                = CM_INVALID_INDEX;
     *(pTaskSyncLocation + 1)          = CM_INVALID_INDEX;
     if(pState->bCBBEnabled)
@@ -594,7 +594,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     // Register Timestamp Buffer
     CM_HRESULT2MOSSTATUS_AND_CHECK(pOsInterface->pfnRegisterResource(
         pOsInterface,
-        &pState->TsResource.OsResource,
+        &pState->Render_TsResource.OsResource,
         true,
         true));
 
@@ -615,7 +615,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
 
     //Send the First PipeControl Command to indicate the beginning of execution
     PipeCtlParams = g_cRenderHal_InitPipeControlParams;
-    PipeCtlParams.presDest          = &pState->TsResource.OsResource;
+    PipeCtlParams.presDest          = &pState->Render_TsResource.OsResource;
     PipeCtlParams.dwResourceOffset  = iSyncOffset;
     PipeCtlParams.dwPostSyncOp      = MHW_FLUSH_WRITE_TIMESTAMP_REG;
     PipeCtlParams.dwFlushMode       = MHW_FLUSH_WRITE_CACHE;
@@ -713,11 +713,12 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
             // Send CS_STALL pipe control
             //Insert a pipe control as synchronization
             PipeCtlParams = g_cRenderHal_InitPipeControlParams;
-            PipeCtlParams.presDest = &pState->TsResource.OsResource;
+            PipeCtlParams.presDest = &pState->Render_TsResource.OsResource;
             PipeCtlParams.dwPostSyncOp = MHW_FLUSH_NOWRITE;
             PipeCtlParams.dwFlushMode = MHW_FLUSH_WRITE_CACHE;
             PipeCtlParams.bDisableCSStall = 0;
             CM_CHK_MOSSTATUS(pMhwMiInterface->AddPipeControl(&CmdBuffer, nullptr, &PipeCtlParams));
+		
         }
 
         if (sip_enable || csr_enable)
@@ -815,7 +816,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
             {
                 //Insert a pipe control as synchronization
                 PipeCtlParams = g_cRenderHal_InitPipeControlParams;
-                PipeCtlParams.presDest         = &pState->TsResource.OsResource;
+                PipeCtlParams.presDest         = &pState->Render_TsResource.OsResource;
                 PipeCtlParams.dwPostSyncOp     = MHW_FLUSH_NOWRITE;
                 PipeCtlParams.dwFlushMode      = MHW_FLUSH_CUSTOM;
                 PipeCtlParams.bInvalidateTextureCache = true;
@@ -837,7 +838,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
             {
                 //Insert a pipe control as synchronization
                 PipeCtlParams = g_cRenderHal_InitPipeControlParams;
-                PipeCtlParams.presDest = &pState->TsResource.OsResource;
+                PipeCtlParams.presDest = &pState->Render_TsResource.OsResource;
                 PipeCtlParams.dwPostSyncOp = MHW_FLUSH_NOWRITE;
                 PipeCtlParams.dwFlushMode = MHW_FLUSH_CUSTOM;
                 PipeCtlParams.bInvalidateTextureCache = true;
@@ -881,7 +882,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     // issue a PIPE_CONTROL to flush all caches and the stall the CS before 
     // issuing a PIPE_CONTROL to write the timestamp
     PipeCtlParams = g_cRenderHal_InitPipeControlParams;
-    PipeCtlParams.presDest      = &pState->TsResource.OsResource;
+    PipeCtlParams.presDest      = &pState->Render_TsResource.OsResource;
     PipeCtlParams.dwPostSyncOp  = MHW_FLUSH_NOWRITE;
     PipeCtlParams.dwFlushMode   = MHW_FLUSH_WRITE_CACHE;
     CM_CHK_MOSSTATUS(pMhwMiInterface->AddPipeControl(&CmdBuffer, nullptr, &PipeCtlParams));
@@ -903,7 +904,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     // issue a PIPE_CONTROL to write timestamp
     iSyncOffset += sizeof(uint64_t);
     PipeCtlParams = g_cRenderHal_InitPipeControlParams;
-    PipeCtlParams.presDest          = &pState->TsResource.OsResource;
+    PipeCtlParams.presDest          = &pState->Render_TsResource.OsResource;
     PipeCtlParams.dwResourceOffset  = iSyncOffset;
     PipeCtlParams.dwPostSyncOp      = MHW_FLUSH_WRITE_TIMESTAMP_REG;
     PipeCtlParams.dwFlushMode       = MHW_FLUSH_READ_CACHE;

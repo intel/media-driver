@@ -109,7 +109,7 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
 	}
 
 	// initialize the location
-	pTaskSyncLocation = (int64_t*)(pState->TsResource.pData + iSyncOffset);
+	pTaskSyncLocation = (int64_t*)(pState->Vebox_TsResource.pData + iSyncOffset);
 	*pTaskSyncLocation = CM_INVALID_INDEX;
 	*(pTaskSyncLocation + 1) = CM_INVALID_INDEX;
 	if (pState->bCBBEnabled)
@@ -120,7 +120,7 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
 	// register Timestamp Buffer
 	CM_CHK_MOSSTATUS(pOsInterface->pfnRegisterResource(
 		pOsInterface,
-		&pState->TsResource.OsResource,
+		&pState->Vebox_TsResource.OsResource,
 		true,
 		true));
 
@@ -220,7 +220,7 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
 	// issue MI_FLUSH_DW cmd to write timestamp
 	//---------------------------------
 	MOS_ZeroMemory(&miFlushDwParams, sizeof(miFlushDwParams));
-	miFlushDwParams.pOsResource          = &pState->TsResource.OsResource;
+	miFlushDwParams.pOsResource          = &pState->Vebox_TsResource.OsResource;
     miFlushDwParams.dwResourceOffset     = iSyncOffset;
     miFlushDwParams.postSyncOperation    = MHW_FLUSH_WRITE_TIMESTAMP_REG;
     miFlushDwParams.bQWordEnable         = 1;
@@ -268,7 +268,7 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
 	// issue MI_FLUSH_DW cmd to write timestamp, end of execution
 	//---------------------------------
 	MOS_ZeroMemory(&miFlushDwParams, sizeof(miFlushDwParams));
-    miFlushDwParams.pOsResource        = &pState->TsResource.OsResource;
+    miFlushDwParams.pOsResource        = &pState->Vebox_TsResource.OsResource;
     miFlushDwParams.dwResourceOffset   = iSyncOffset + sizeof(uint64_t);
     miFlushDwParams.postSyncOperation  = MHW_FLUSH_WRITE_TIMESTAMP_REG;
     miFlushDwParams.bQWordEnable       = 1;
@@ -293,10 +293,10 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
 	// Make sure copy kernel and update kernels are finished before submitting
 	// VEBOX commands
 	//---------------------------------
-	pOsInterface->pfnSyncGpuContext(
+	   pOsInterface->pfnSyncGpuContext(
 		pOsInterface,
 		MOS_GPU_CONTEXT_RENDER3,
-		MOS_GPU_CONTEXT_VEBOX);
+		MOS_GPU_CONTEXT_VEBOX);  
 
     pOsInterface->pfnResetPerfBufferID(pOsInterface);
     if (!(pOsInterface->pfnIsPerfTagSet(pOsInterface)))

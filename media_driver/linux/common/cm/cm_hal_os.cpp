@@ -1083,7 +1083,7 @@ MOS_STATUS HalCm_QueryTask_Linux(
     pRenderHal = pState->pRenderHal;
     pStateHeap = pRenderHal->pStateHeap;
     iSyncOffset = pState->pfnGetTaskSyncLocation(pQueryParam->iTaskId);
-    piSyncStart = (int64_t*)(pState->TsResource.pData + iSyncOffset);
+    piSyncStart = (int64_t*)(pState->Render_TsResource.pData + iSyncOffset);
     piSyncEnd = piSyncStart + 1;
     pQueryParam->iTaskDuration = CM_INVALID_INDEX;
 
@@ -1549,11 +1549,11 @@ MOS_STATUS HalCm_OsAddArtifactConditionalPipeControl(
 
     //store R6 to synclocation
     MOS_ZeroMemory(&StoreRegMemParams, sizeof(StoreRegMemParams));
-    StoreRegMemParams.presStoreBuffer = &pState->TsResource.OsResource;
+    StoreRegMemParams.presStoreBuffer = &pState->Render_TsResource.OsResource;
     StoreRegMemParams.dwOffset = iSyncOffset + sizeof(uint64_t);
     StoreRegMemParams.dwRegister = pOffsets->GPROffset + 8 * 7; 
     CM_CHK_MOSSTATUS(pMhwMiInterface->AddMiStoreRegisterMemCmd(pCmdBuffer, &StoreRegMemParams));
-    StoreRegMemParams.presStoreBuffer = &pState->TsResource.OsResource;
+    StoreRegMemParams.presStoreBuffer = &pState->Render_TsResource.OsResource;
     StoreRegMemParams.dwOffset = iSyncOffset + sizeof(uint64_t) + 4;
     StoreRegMemParams.dwRegister = pOffsets->GPROffset + 4 + 8 * 7 ;
     CM_CHK_MOSSTATUS(pMhwMiInterface->AddMiStoreRegisterMemCmd(pCmdBuffer, &StoreRegMemParams));

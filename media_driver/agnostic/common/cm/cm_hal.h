@@ -1461,7 +1461,8 @@ typedef struct _CM_HAL_STATE
     PMHW_BATCH_BUFFER           pBatchBuffers;                                  // Array of Batch Buffers                       [*]
     PCM_HAL_TASK_PARAM          pTaskParam;                                     // Pointer to Task Param                        [*]
     PCM_HAL_TASK_TIMESTAMP      pTaskTimeStamp;                                 // Pointer to Task Param
-    CM_HAL_TS_RESOURCE          TsResource;                                     // Resource to store timestamps                 [*]
+    CM_HAL_TS_RESOURCE          Render_TsResource;                              // Resource to store timestamps                 [*]
+	CM_HAL_TS_RESOURCE          Vebox_TsResource;                               // Resource to store timestamps                 [*]
     CM_HAL_TS_RESOURCE          SipResource;                                    // Resource to store debug info                 [*]
     MOS_RESOURCE                CSRResource;                                    // Resource to store CSR info               
     void                        *pTableMem;                                      // Single Memory for all lookup and temp tables [*]
