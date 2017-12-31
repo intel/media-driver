@@ -31,144 +31,39 @@ MOS_STATUS CodechalEncodeCscDs::AllocateSurfaceCsc()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
     if (!m_cscFlag)
     {
-        return eStatus;
+        return MOS_STATUS_SUCCESS;
     }
 
-    m_cscBufCurrIdx = LookUpBufSlot();
+    MOS_STATUS eStatus = m_encoder->m_trackedBuf->AllocateSurfaceCsc();
 
-    CODECHAL_ENCODE_CHK_COND_RETURN(m_cscBufCurrIdx >= CODEC_NUM_TRACKED_BUFFERS, "No CSC buffer is available!");
-
-    auto trackedBuffer = &m_trackedBuffer[m_cscBufCurrIdx];
-
-    if (!Mos_ResourceIsNull(&trackedBuffer->sCopiedSurface.OsResource))
+    if (eStatus == MOS_STATUS_MORE_DATA)
     {
-        return eStatus;
-    }
+        auto cscSurface = m_encoder->m_trackedBuf->GetCurrCscSurface();
 
-    // initiate allocation paramters and lock flags
-    MOS_ALLOC_GFXRES_PARAMS allocParamsNV12;
-    MOS_ZeroMemory(&allocParamsNV12, sizeof(allocParamsNV12));
-    allocParamsNV12.Type = MOS_GFXRES_2D;
-    allocParamsNV12.TileType = MOS_TILE_Y;
-    allocParamsNV12.pBufName = "Y Tile Surface for DS+Copy Kernel";
-
-    uint32_t surfaceWidth, surfaceHeight;
-    if (m_mode == CODECHAL_ENCODE_MODE_HEVC)
-    {
-        // The raw input surface to HEVC Enc should be 32 aligned because of VME hardware restriction as mentioned in DDI.
-        surfaceWidth = MOS_ALIGN_CEIL(m_oriFrameWidth, 32);
-        surfaceHeight = MOS_ALIGN_CEIL(m_oriFrameHeight, 32);
+        if (m_cscAllocFormat == Format_YUY2)
+        {
+            if (cscColorYUY2 == m_colorRawSurface)
+            {
+                cscSurface->Format = Format_YUY2V;
+                cscSurface->dwWidth <<= 1;
+                cscSurface->dwHeight >>= 1;
+            }
+            else if (cscColorY210 == m_colorRawSurface)
+            {
+                cscSurface->Format = Format_Y216V;
+                cscSurface->dwHeight >>= 1;
+            }
+        }
+        eStatus = MOS_STATUS_SUCCESS;
     }
     else
     {
-        surfaceWidth = MOS_ALIGN_CEIL(m_oriFrameWidth, m_rawSurfAlignment);
-        surfaceHeight = MOS_ALIGN_CEIL(m_oriFrameHeight, m_rawSurfAlignment);
-    }
-
-    if (cscColorYUY2 == m_colorRawSurface &&
-        (uint8_t)HCP_CHROMA_FORMAT_YUV422 == m_outputChromaFormat &&
-        !m_allocNv12For422)
-    {
-        allocParamsNV12.Format = Format_YUY2;
-        allocParamsNV12.dwWidth = surfaceWidth >> 1;
-        allocParamsNV12.dwHeight = surfaceHeight << 1;
-    }
-    else if (cscColorY210 == m_colorRawSurface)
-    {
-        allocParamsNV12.Format = Format_YUY2;
-        allocParamsNV12.dwWidth = surfaceWidth;
-        allocParamsNV12.dwHeight = surfaceHeight << 1;
-    }
-    else
-    {
-        allocParamsNV12.Format = Format_NV12;
-        allocParamsNV12.dwWidth = surfaceWidth;
-        allocParamsNV12.dwHeight = surfaceHeight;
-    }
-
-    CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
-        m_osInterface,
-        &allocParamsNV12,
-        &trackedBuffer->sCopiedSurface.OsResource),
-        "Failed to allocate Format converted Surface for Csc+Ds+Conversioin Kernel!");
-
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(
-        m_osInterface,
-        &trackedBuffer->sCopiedSurface));
-
-    if (Format_YUY2 == allocParamsNV12.Format)
-    {
-        if (cscColorYUY2 == m_colorRawSurface &&
-            (uint8_t)HCP_CHROMA_FORMAT_YUV422 == m_outputChromaFormat)
-        {
-            trackedBuffer->sCopiedSurface.Format = Format_YUY2V;
-        }
-        else if (cscColorY210 == m_colorRawSurface)
-        {
-            trackedBuffer->sCopiedSurface.Format = Format_Y216V;
-        }
-        trackedBuffer->sCopiedSurface.dwWidth = surfaceWidth;
-        trackedBuffer->sCopiedSurface.dwHeight = surfaceHeight;
+        CODECHAL_ENCODE_ASSERTMESSAGE("AllocateSurfaceCsc: error = %d", eStatus);
     }
 
     return eStatus;
-}
-
-void CodechalEncodeCscDs::ReleaseSurfaceCsc(uint8_t index)
-{
-    // free CSC surface
-    m_osInterface->pfnFreeResource(m_osInterface, &m_trackedBuffer[index].sCopiedSurface.OsResource);
-}
-
-uint8_t CodechalEncodeCscDs::LookUpBufSlot()
-{
-    CODECHAL_ENCODE_FUNCTION_ENTER;
-
-    if (m_cscBufCountResize)
-    {
-        m_cscBufCountResize--;
-
-        if (m_cscBufAnteIdx != m_cscBufPenuIdx && m_cscBufAnteIdx != m_cscBufLastIdx)
-        {
-            ReleaseSurfaceCsc(m_cscBufAnteIdx);
-            CODECHAL_ENCODE_NORMALMESSAGE("CSC buffer = %d re-allocated", m_cscBufAnteIdx);
-        }
-    }
-
-    uint8_t index = PICTURE_MAX_7BITS;
-    if (m_useRawForRef)
-    {
-        index = m_currScalingIdx;
-        m_waitCscSurf = false;
-    }
-    else
-    {
-        // if Raw won't be used as Ref, can use a ring buffer
-        if (!m_waitForPak)
-        {
-            m_cscBufCountNonRef += m_cscBufCountNonRef <= CODEC_NUM_NON_REF_BUFFERS;
-            CODECHAL_ENCODE_NORMALMESSAGE("CSC buffer count = %d", m_cscBufCountNonRef);
-        }
-        else
-        {
-            m_cscBufCountNonRef = 0;
-        }
-        m_waitCscSurf = m_cscBufCountNonRef > CODEC_NUM_NON_REF_BUFFERS;
-
-        m_cscBufRingIdx = (m_cscBufRingIdx + 1) % CODEC_NUM_NON_REF_BUFFERS;
-        index = CODEC_NUM_REF_BUFFERS + m_cscBufRingIdx;
-    }
-
-    // update the last 3 buffer index
-    m_cscBufAnteIdx = m_cscBufPenuIdx;
-    m_cscBufPenuIdx = m_cscBufLastIdx;
-    m_cscBufLastIdx = index;
-
-    return index;
 }
 
 MOS_STATUS CodechalEncodeCscDs::CheckRawColorFormat(MOS_FORMAT format)
@@ -238,7 +133,7 @@ MOS_STATUS CodechalEncodeCscDs::SetParamsSfc(CODECHAL_ENCODE_SFC_PARAMS* sfcPara
 
     // color space parameters have been set to pSfcState already, no need set here
     sfcParams->pInputSurface = m_rawSurfaceToEnc;
-    sfcParams->pOutputSurface = &m_trackedBuffer[m_cscBufCurrIdx].sCopiedSurface;
+    sfcParams->pOutputSurface = m_encoder->m_trackedBuf->GetCurrCscSurface();
     sfcParams->rcInputSurfaceRegion.X = 0;
     sfcParams->rcInputSurfaceRegion.Y = 0;
     sfcParams->rcInputSurfaceRegion.Width = m_cscRawSurfWidth;
@@ -331,7 +226,7 @@ MOS_STATUS CodechalEncodeCscDs::SetKernelParamsCsc(KernelParams* params)
 
     // setup surface states
     m_surfaceParamsCsc.psInputSurface = m_rawSurfaceToEnc;
-    m_surfaceParamsCsc.psOutputCopiedSurface = &m_trackedBuffer[m_cscBufCurrIdx].sCopiedSurface;
+    m_surfaceParamsCsc.psOutputCopiedSurface = m_cscFlag ? m_encoder->m_trackedBuf->GetCurrCscSurface() : nullptr;
     m_surfaceParamsCsc.psOutput4xDsSurface = 
         m_scalingEnabled ? m_encoder->m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER) : nullptr;
 
@@ -529,30 +424,28 @@ MOS_STATUS CodechalEncodeCscDs::SetSurfacesToEncPak()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    auto cscSurface = m_encoder->m_trackedBuf->GetCurrCscSurface();
 
-    auto trackedBuffer = &m_trackedBuffer[m_cscBufCurrIdx];
-
-    // now we have the converted surface, do different things
-    if (m_cscRequireCopy || m_cscRequireColor || m_cscRequireConvTo8bPlanar)
+    // assign CSC output surface according to different operation
+    if (RenderConsumesCscSurface())
     {
-        m_rawSurfaceToEnc = &trackedBuffer->sCopiedSurface;
+        m_rawSurfaceToEnc = cscSurface;
 
         // update the RawBuffer and RefBuffer (if Raw is used as Ref)
-        m_currRefList->sRefRawBuffer = trackedBuffer->sCopiedSurface;
+        m_currRefList->sRefRawBuffer = *cscSurface;
         if (m_useRawForRef)
         {
-            m_currRefList->sRefBuffer = trackedBuffer->sCopiedSurface;
+            m_currRefList->sRefBuffer = *cscSurface;
         }
-        CODECHAL_ENCODE_NORMALMESSAGE("Set m_rawSurfaceToEnc %d x %d, CSC buf index = %d",
-            m_rawSurfaceToEnc->dwWidth, m_rawSurfaceToEnc->dwHeight, m_cscBufCurrIdx);
+        CODECHAL_ENCODE_NORMALMESSAGE("Set m_rawSurfaceToEnc %d x %d",
+            m_rawSurfaceToEnc->dwWidth, m_rawSurfaceToEnc->dwHeight);
     }
 
-    if (m_cscRequireCopy || m_cscRequireColor || m_cscRequireMmc)
+    if (VdboxConsumesCscSurface())
     {
-        m_rawSurfaceToPak = &trackedBuffer->sCopiedSurface;
-        CODECHAL_ENCODE_NORMALMESSAGE("Set m_rawSurfaceToPak %d x %d, CSC buf index = %d",
-            m_rawSurfaceToPak->dwWidth, m_rawSurfaceToPak->dwHeight, m_cscBufCurrIdx);
+        m_rawSurfaceToPak = cscSurface;
+        CODECHAL_ENCODE_NORMALMESSAGE("Set m_rawSurfaceToPak %d x %d",
+            m_rawSurfaceToPak->dwWidth, m_rawSurfaceToPak->dwHeight);
     }
 
     // dump copied surface from Ds+Copy kernel
@@ -560,13 +453,13 @@ MOS_STATUS CodechalEncodeCscDs::SetSurfacesToEncPak()
     {
         CODECHAL_DEBUG_TOOL( 
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
-                &trackedBuffer->sCopiedSurface,
+                cscSurface,
                 CodechalDbgAttr::attrEncodeRawInputSurface,
                 "Copied_SrcSurf")) // needs to consider YUV420
         )
     }
 
-    return eStatus;
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS CodechalEncodeCscDs::InitKernelStateDS()
@@ -1004,17 +897,40 @@ const uint8_t CodechalEncodeCscDs::GetBTCount()
     return (uint8_t)cscNumSurfaces;
 }
 
-void CodechalEncodeCscDs::Resize()
+void CodechalEncodeCscDs::GetCscAllocation(uint32_t &width, uint32_t &height, MOS_FORMAT &format)
 {
-    CODECHAL_ENCODE_FUNCTION_ENTER;
-
-    m_cscBufCountResize = CODEC_NUM_NON_REF_BUFFERS;
-    for (uint8_t i = 0; i < CODEC_NUM_TRACKED_BUFFERS; i++)
+    uint32_t surfaceWidth, surfaceHeight;
+    if (m_mode == CODECHAL_ENCODE_MODE_HEVC)
     {
-        if (m_cscBufAnteIdx != i && m_cscBufPenuIdx != i && m_cscBufLastIdx != i)
-        {
-            ReleaseSurfaceCsc(i);
-        }
+        // The raw input surface to HEVC Enc should be 32 aligned because of VME hardware restriction as mentioned in DDI.
+        surfaceWidth = MOS_ALIGN_CEIL(m_encoder->m_oriFrameWidth, 32);
+        surfaceHeight = MOS_ALIGN_CEIL(m_encoder->m_oriFrameHeight, 32);
+    }
+    else
+    {
+        surfaceWidth = MOS_ALIGN_CEIL(m_encoder->m_oriFrameWidth, m_rawSurfAlignment);
+        surfaceHeight = MOS_ALIGN_CEIL(m_encoder->m_oriFrameHeight, m_rawSurfAlignment);
+    }
+
+    if (cscColorYUY2 == m_colorRawSurface &&
+        (uint8_t)HCP_CHROMA_FORMAT_YUV422 == m_outputChromaFormat &&
+        !m_allocNv12For422)
+    {
+        format = m_cscAllocFormat = Format_YUY2;
+        width = surfaceWidth >> 1;
+        height = surfaceHeight << 1;
+    }
+    else if (cscColorY210 == m_colorRawSurface)
+    {
+        format = m_cscAllocFormat = Format_YUY2;
+        width = surfaceWidth;
+        height = surfaceHeight << 1;
+    }
+    else
+    {
+        format = m_cscAllocFormat = Format_NV12;
+        width = surfaceWidth;
+        height = surfaceHeight;
     }
 }
 
@@ -1088,7 +1004,7 @@ MOS_STATUS CodechalEncodeCscDs::CheckCondition()
     // CSC no longer required, free existing CSC surface
     if (cscFlagPrev && !m_cscFlag)
     {
-        Resize();
+        m_encoder->m_trackedBuf->ResizeCsc();
     }
     CODECHAL_ENCODE_NORMALMESSAGE("raw surf = %d x %d, tile = %d, color = %d, cscFlag = %d",
         details.dwWidth, details.dwHeight, details.TileType, m_colorRawSurface, m_cscFlag);
@@ -1105,7 +1021,7 @@ MOS_STATUS CodechalEncodeCscDs::WaitCscSurface(MOS_GPU_CONTEXT gpuContext, bool 
     auto syncParams = g_cInitSyncParams;
     syncParams.GpuContext = gpuContext;
     syncParams.bReadOnly = readOnly;
-    syncParams.presSyncResource = &m_trackedBuffer[m_cscBufCurrIdx].sCopiedSurface.OsResource;
+    syncParams.presSyncResource = &m_encoder->m_trackedBuf->GetCurrCscSurface()->OsResource;
     
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnResourceWait(m_osInterface, &syncParams));
     m_osInterface->pfnSetResourceSyncTag(m_osInterface, &syncParams);
@@ -1117,8 +1033,6 @@ MOS_STATUS CodechalEncodeCscDs::KernelFunctions(
     KernelParams* params)
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
-
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(params);
 
@@ -1170,7 +1084,7 @@ MOS_STATUS CodechalEncodeCscDs::KernelFunctions(
         }
     }
 
-    return eStatus;
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS CodechalEncodeCscDs::CscUsingSfc(ENCODE_INPUT_COLORSPACE colorSpace)
@@ -1201,8 +1115,11 @@ MOS_STATUS CodechalEncodeCscDs::CscUsingSfc(ENCODE_INPUT_COLORSPACE colorSpace)
     // allocate CSC surface (existing surfaces will be re-used when associated frame goes out of RefList)
     CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateSurfaceCsc());
 
-    // On-demand sync for CSC surface re-use
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(WaitCscSurface(MOS_GPU_CONTEXT_VEBOX, false));
+    if (m_encoder->m_trackedBuf->GetWaitCsc())
+    {
+        // on-demand sync for CSC surface re-use
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(WaitCscSurface(MOS_GPU_CONTEXT_VEBOX, false));
+    }
     
     CODECHAL_ENCODE_SFC_PARAMS sfcParams;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetParamsSfc(&sfcParams));
@@ -1256,7 +1173,7 @@ MOS_STATUS CodechalEncodeCscDs::CscKernel(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateCsc());
     }
 
-    // allocate CSC surface (existing surfaces will be re-used when associated frame goes out of RefList)
+    // allocate CSC surface (existing surfaces will be re-used when associated frame retires from RefList)
     CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateSurfaceCsc());
 
     if (m_scalingEnabled)
@@ -1269,9 +1186,9 @@ MOS_STATUS CodechalEncodeCscDs::CscKernel(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_trackedBuf->AllocateSurface2xDS());
     }
 
-    if (m_waitCscSurf)
+    if (m_encoder->m_trackedBuf->GetWaitCsc())
     {
-        // in case PAK hasn't yet consumed a surface sent earlier, wait before we can re-use
+        // on-demand sync for CSC surface re-use
         CODECHAL_ENCODE_CHK_STATUS_RETURN(WaitCscSurface(m_renderContext, false));
     }
 
@@ -1538,8 +1455,8 @@ MOS_STATUS CodechalEncodeCscDs::DsKernel(
         }
 
         inputSurface = (params->bRawInputProvided) ? &params->sInputRawSurface : m_rawSurfaceToEnc;
-        inputFrameWidth = m_oriFrameWidth;
-        inputFrameHeight = m_oriFrameHeight;
+        inputFrameWidth = m_encoder->m_oriFrameWidth;
+        inputFrameHeight = m_encoder->m_oriFrameHeight;
         inputBottomFieldOffset = 0;
 
         outputSurface = m_encoder->m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER);
@@ -1735,7 +1652,6 @@ MOS_STATUS CodechalEncodeCscDs::DsKernel(
 
 CodechalEncodeCscDs::CodechalEncodeCscDs(CodechalEncoderState *encoder)
     : m_useRawForRef(encoder->m_useRawForRef),
-      m_waitForPak(encoder->m_waitForPak),
       m_useCommonKernel(encoder->m_useCommonKernel),
       m_useHwScoreboard(encoder->m_useHwScoreboard),
       m_renderContextUsesNullHw(encoder->m_renderContextUsesNullHw),
@@ -1758,10 +1674,6 @@ CodechalEncodeCscDs::CodechalEncodeCscDs(CodechalEncoderState *encoder)
       m_pictureCodingType(encoder->m_pictureCodingType),
       m_standard(encoder->m_standard),
       m_mode(encoder->m_mode),
-      m_oriFrameWidth(encoder->m_oriFrameWidth),
-      m_oriFrameHeight(encoder->m_oriFrameHeight),
-      m_frameWidth(encoder->m_frameWidth),
-      m_frameHeight(encoder->m_frameHeight),
       m_downscaledWidth4x(encoder->m_downscaledWidth4x),
       m_downscaledHeight4x(encoder->m_downscaledHeight4x),
       m_downscaledWidth16x(encoder->m_downscaledWidth16x),
@@ -1784,8 +1696,7 @@ CodechalEncodeCscDs::CodechalEncodeCscDs(CodechalEncoderState *encoder)
       m_flatnessCheckSurface(encoder->m_flatnessCheckSurface),
       m_resMbStatsBuffer(encoder->m_resMbStatsBuffer),
       m_rawSurfaceToEnc(encoder->m_rawSurfaceToEnc),
-      m_rawSurfaceToPak(encoder->m_rawSurfaceToPak),
-      m_trackedBuffer(encoder->m_trackedBuffer)
+      m_rawSurfaceToPak(encoder->m_rawSurfaceToPak)
 {
     // Initilize interface pointers
     m_encoder = encoder;
@@ -1812,12 +1723,6 @@ CodechalEncodeCscDs::~CodechalEncodeCscDs()
 {
     MOS_Delete(m_cscKernelState);
     m_cscKernelState = nullptr;
-
-    // free Csc/Ds surface
-    for (uint8_t i = 0; i < CODEC_NUM_TRACKED_BUFFERS; i++)
-    {
-        ReleaseSurfaceCsc(i);
-    }
 
     if (m_sfcState)
     {

@@ -1082,7 +1082,6 @@ void CodechalEncodeVp8::ResizeBuffer()
 
     // if resolution changed, free existing DS/CSC/MbCode/MvData resources
     m_trackedBuf->Resize();
-    m_cscDsState->Resize();
 }
 
 

@@ -1163,9 +1163,6 @@ void CodechalEncoderState::ResizeOnResChange()
 
     // if resolution changed, free existing tracked buffer resources
     m_trackedBuf->Resize();
-#ifndef _USE_OPEN_KENREL
-    m_cscDsState->Resize();
-#endif
 }
 
 MOS_STATUS CodechalEncoderState::CheckResChangeAndCsc()

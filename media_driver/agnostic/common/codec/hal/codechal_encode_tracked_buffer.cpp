@@ -34,7 +34,7 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateForCurrFrame()
     // in case of resolution change, defer-deallocate remaining 3 buffers from last session
     if (m_trackedBufCountResize)
     {
-        ReleaseBufferOnResChange();
+        DeferredDeallocateOnResChange();
         m_trackedBufCountResize--;
     }
 
@@ -46,7 +46,7 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateForCurrFrame()
     CODECHAL_ENCODE_CHK_COND_RETURN(m_trackedBufCurrIdx >= CODEC_NUM_TRACKED_BUFFERS, "No tracked buffer is available!");
 
     // wait to re-use once # of non-ref slots being used reaches 3
-    m_waitForTrackedBuffer = (m_trackedBufCurrIdx >= CODEC_NUM_REF_BUFFERS && m_trackedBufCountNonRef >= CODEC_NUM_NON_REF_BUFFERS);
+    m_waitTrackedBuffer = (m_trackedBufCurrIdx >= CODEC_NUM_REF_BUFFERS && m_trackedBufCountNonRef >= CODEC_NUM_NON_REF_BUFFERS);
 
     CODECHAL_ENCODE_NORMALMESSAGE("currFrame = %d, currRef = %d, ucNumRef = %d, usedAsRef = %d, tracked buf index = %d",
         m_encoder->m_currOriginalPic.FrameIdx, m_encoder->m_currReconstructedPic.FrameIdx,
@@ -113,8 +113,22 @@ void CodechalEncodeTrackedBuffer::Resize()
             m_trackedBuffer[i].ucSurfIndex7bits = PICTURE_RESIZE;
         }
     }
-
+#ifndef _FULL_OPEN_SOURCE
+    ResizeCsc();
+#endif
     return;
+}
+
+void CodechalEncodeTrackedBuffer::ResizeCsc()
+{
+    // free CSC surfaces except last 3 slots
+    for (uint8_t i = 0; i < CODEC_NUM_TRACKED_BUFFERS; i++)
+    {
+        if (m_cscBufAnteIdx != i && m_cscBufPenuIdx != i && m_cscBufCurrIdx != i)
+        {
+            ReleaseSurfaceCsc(i);
+        }
+    }
 }
 
 void CodechalEncodeTrackedBuffer::ResetUsedForCurrFrame()
@@ -242,12 +256,40 @@ uint8_t CodechalEncodeTrackedBuffer::LookUpBufIndex(
     return index;
 }
 
-void CodechalEncodeTrackedBuffer::ReleaseBufferOnResChange()
+uint8_t CodechalEncodeTrackedBuffer::LookUpBufIndexCsc()
 {
-    if ((m_trackedBufAnteIdx != m_trackedBufPenuIdx) &&
-        (m_trackedBufAnteIdx != m_trackedBufCurrIdx))
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    if (m_encoder->m_useRawForRef)
     {
-        ReleaseMbCode(m_trackedBufAnteIdx);
+        return m_trackedBufCurrIdx;
+    }
+    else
+    {
+        // if Raw won't be used as Ref, can use the size-3 ring buffer
+        if (!m_encoder->m_waitForPak)
+        {
+            m_cscBufCountNonRef += m_cscBufCountNonRef <= CODEC_NUM_NON_REF_BUFFERS;
+            CODECHAL_ENCODE_NORMALMESSAGE("CSC buffer count = %d", m_cscBufCountNonRef);
+        }
+        else
+        {
+            m_cscBufCountNonRef = 0;
+        }
+
+        m_cscBufNonRefIdx %= CODEC_NUM_NON_REF_BUFFERS;
+        return m_cscBufNonRefIdx += CODEC_NUM_REF_BUFFERS;
+    }
+}
+
+void CodechalEncodeTrackedBuffer::DeferredDeallocateOnResChange()
+{
+    if (m_trackedBufAnteIdx != m_trackedBufPenuIdx && m_trackedBufAnteIdx != m_trackedBufCurrIdx)
+    {
+        if (m_mbCodeIsTracked)
+        {
+            ReleaseMbCode(m_trackedBufAnteIdx);
+        }
         ReleaseMvData(m_trackedBufAnteIdx);
         ReleaseDsRecon(m_trackedBufAnteIdx);
 #ifndef _FULL_OPEN_SOURCE
@@ -256,6 +298,13 @@ void CodechalEncodeTrackedBuffer::ReleaseBufferOnResChange()
         m_trackedBuffer[m_trackedBufAnteIdx].ucSurfIndex7bits = PICTURE_MAX_7BITS;
         CODECHAL_ENCODE_NORMALMESSAGE("Tracked buffer = %d re-allocated", m_trackedBufAnteIdx);
     }
+#ifndef _FULL_OPEN_SOURCE
+    if (m_cscBufAnteIdx != m_cscBufPenuIdx && m_cscBufAnteIdx != m_cscBufCurrIdx)
+    {
+        ReleaseSurfaceCsc(m_cscBufAnteIdx);
+        CODECHAL_ENCODE_NORMALMESSAGE("CSC buffer = %d re-allocated", m_cscBufAnteIdx);
+    }
+#endif
 }
 
 MOS_STATUS CodechalEncodeTrackedBuffer::AllocateMbCodeResources(uint8_t bufIndex)
@@ -293,6 +342,50 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateMvDataResources(uint8_t bufIndex
         m_standard, m_encoder->m_mvDataSize, 1, mvDataBuffer, bufIndex, true));
 
     return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalEncodeTrackedBuffer::AllocateSurfaceCsc()
+{
+    // update the last 3 buffer index, find a new slot for current frame
+    m_cscBufAnteIdx = m_cscBufPenuIdx;
+    m_cscBufPenuIdx = m_cscBufCurrIdx;
+    m_cscBufCurrIdx = LookUpBufIndexCsc();
+
+    CODECHAL_ENCODE_CHK_COND_RETURN(m_cscBufCurrIdx >= CODEC_NUM_TRACKED_BUFFERS, "No CSC buffer is available!");
+
+    // wait to re-use once # of non-ref slots being used reaches 3
+    m_waitCscSurface = (m_cscBufCurrIdx >= CODEC_NUM_REF_BUFFERS && m_cscBufCountNonRef > CODEC_NUM_NON_REF_BUFFERS);
+
+    m_trackedBufCurrCsc = &m_encoder->m_trackedBuffer[m_cscBufCurrIdx].sCopiedSurface;
+
+    if (!Mos_ResourceIsNull(&m_trackedBufCurrCsc->OsResource))
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    uint32_t width, height;
+    MOS_FORMAT format;
+    m_encoder->m_cscDsState->GetCscAllocation(width, height, format);
+
+    // initiate allocation paramters and lock flags
+    MOS_ALLOC_GFXRES_PARAMS allocParamsNV12;
+    MOS_ZeroMemory(&allocParamsNV12, sizeof(allocParamsNV12));
+    allocParamsNV12.dwWidth = width;
+    allocParamsNV12.dwHeight = height;
+    allocParamsNV12.Type = MOS_GFXRES_2D;
+    allocParamsNV12.Format = format;
+    allocParamsNV12.TileType = MOS_TILE_Y;
+    allocParamsNV12.pBufName = "Y Tile Surface for DS+Copy Kernel";
+
+    CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
+        m_osInterface,
+        &allocParamsNV12,
+        &m_trackedBufCurrCsc->OsResource),
+        "Failed to allocate Format converted Surface for Csc+Ds+Conversioin Kernel!");
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, m_trackedBufCurrCsc));
+
+    return MOS_STATUS_MORE_DATA;
 }
 
 MOS_STATUS CodechalEncodeTrackedBuffer::AllocateSurfaceDS()
@@ -496,6 +589,11 @@ void CodechalEncodeTrackedBuffer::ReleaseMvData(uint8_t bufIndex)
     m_allocator->ReleaseResource(m_standard, mvDataBuffer, bufIndex);
 }
 
+void CodechalEncodeTrackedBuffer::ReleaseSurfaceCsc(uint8_t bufIndex)
+{
+    m_osInterface->pfnFreeResource(m_osInterface, &m_trackedBuffer[bufIndex].sCopiedSurface.OsResource);
+}
+
 void CodechalEncodeTrackedBuffer::ReleaseSurfaceDS(uint8_t bufIndex)
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
@@ -535,4 +633,9 @@ CodechalEncodeTrackedBuffer::CodechalEncodeTrackedBuffer(CodechalEncoderState* e
 CodechalEncodeTrackedBuffer::~CodechalEncodeTrackedBuffer()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    for (uint8_t i = 0; i < CODEC_NUM_TRACKED_BUFFERS; i++)
+    {
+        ReleaseSurfaceCsc(i);
+    }
 }

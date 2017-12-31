@@ -51,7 +51,7 @@ private:
 
     void LookUpBufIndexMbCode() override;
     MOS_STATUS AllocateMvTemporalBuffer() override;
-    void ReleaseBufferOnResChange() override;
+    void DeferredDeallocateOnResChange() override;
 
     CodechalEncodeHevcBase*         m_hevcState = nullptr;                      //!< HEVC encoder state
     uint8_t                         m_mbCodePenuIdx = 0;                        //!< 2nd-to-last MbCode buffer index

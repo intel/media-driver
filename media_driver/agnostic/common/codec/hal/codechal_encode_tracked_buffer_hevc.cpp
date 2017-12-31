@@ -53,19 +53,9 @@ MOS_STATUS CodechalEncodeTrackedBufferHevc::AllocateMvTemporalBuffer()
     return MOS_STATUS_SUCCESS;
 }
 
-void CodechalEncodeTrackedBufferHevc::ReleaseBufferOnResChange()
+void CodechalEncodeTrackedBufferHevc::DeferredDeallocateOnResChange()
 {
-    if ((m_trackedBufAnteIdx != m_trackedBufPenuIdx) &&
-        (m_trackedBufAnteIdx != m_trackedBufCurrIdx))
-    {
-        ReleaseMvData(m_trackedBufAnteIdx);
-        ReleaseDsRecon(m_trackedBufAnteIdx);
-#ifndef _FULL_OPEN_SOURCE
-        ReleaseSurfaceDS(m_trackedBufAnteIdx);
-#endif
-        m_trackedBuffer[m_trackedBufAnteIdx].ucSurfIndex7bits = PICTURE_MAX_7BITS;
-        CODECHAL_ENCODE_NORMALMESSAGE("Tracked buffer = %d re-allocated", m_trackedBufAnteIdx);
-    }
+    CodechalEncodeTrackedBuffer::DeferredDeallocateOnResChange();
 
     // release MbCode buffer
     if ((m_mbCodeAnteIdx != m_mbCodePenuIdx) &&

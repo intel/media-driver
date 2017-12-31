@@ -264,8 +264,10 @@ public:
     const uint8_t IsEnabled() { return m_cscDsConvEnable; }
     const uint32_t GetRawSurfWidth() { return m_cscRawSurfWidth; }
     const uint32_t GetRawSurfHeight() { return m_cscRawSurfHeight; }
-    const uint8_t RequireCsc() { return m_cscFlag; }
-    const bool UseSfc() { return m_cscUsingSfc; }
+    const bool RequireCsc() { return m_cscFlag != 0; }
+    const bool UseSfc() { return m_cscUsingSfc != 0; }
+    const bool RenderConsumesCscSurface() { return m_cscRequireCopy || m_cscRequireColor || m_cscRequireConvTo8bPlanar; }
+    const bool VdboxConsumesCscSurface() { return m_cscRequireCopy || m_cscRequireColor || m_cscRequireMmc; }
     // 0 for native HW support; 1 for CSC kernel; 2 for VEBOX
     const uint8_t CscMethod() { return (m_cscRequireColor ? (m_cscUsingSfc ? 2 : 1) : 0); }
 
@@ -290,12 +292,12 @@ public:
     virtual const uint8_t GetBTCount();
 
     //!
-    //! \brief    Release existing buffers on resolution change
+    //! \brief    Get CSC surface allocation width/height/format
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    void Resize();
+    void GetCscAllocation(uint32_t &width, uint32_t &height, MOS_FORMAT &format);
 
     //!
     //! \brief    Initialize the class
@@ -537,7 +539,6 @@ protected:
         uint8_t                 m_cscFlag;                                                  //!< the actual CSC/Copy operation to be performed for raw surface
     };
 
-    uint8_t                     m_cscBufCurrIdx = 0;                                        //!< curr copy buffer index
     uint32_t                    m_rawSurfAlignment = 4;                                     //!< Raw surface alignment
     uint32_t                    m_cscRawSurfWidth = 0;                                      //!< Raw surface allocation width
     uint32_t                    m_cscRawSurfHeight = 0;                                     //!< Raw surface allocation height
@@ -565,6 +566,7 @@ protected:
     uint8_t*                    m_dsKernelBase = nullptr;                                   //!< kernel binary base address for DS kernel
     bool                        m_allocNv12For422 = false;                                  //!< use NV12 for 422 converted surface
     CscColor                    m_colorRawSurface = cscColorNv12TileY;                      //!< Raw surface color format
+    MOS_FORMAT                  m_cscAllocFormat = Format_NV12;                             //!< CSC surface allocation format
     CurbeParams                 m_curbeParams;                                              //!< Curbe param (shared by CSC and DS kernel)
     SurfaceParamsCsc            m_surfaceParamsCsc;                                         //!< CSC surface param
     SurfaceParamsDS             m_surfaceParamsDS;                                          //!< DS surface param
@@ -573,7 +575,6 @@ protected:
     //! Reference to data members in Encoder class
     //! 
     bool&                       m_useRawForRef;
-    bool&                       m_waitForPak;
     bool&                       m_useCommonKernel;
     bool&                       m_useHwScoreboard;
     bool&                       m_renderContextUsesNullHw;
@@ -596,10 +597,6 @@ protected:
     uint16_t&                   m_pictureCodingType;
     uint32_t&                   m_standard;
     uint32_t&                   m_mode;
-    uint32_t&                   m_oriFrameWidth; 
-    uint32_t&                   m_oriFrameHeight;
-    uint32_t&                   m_frameWidth;
-    uint32_t&                   m_frameHeight;
     uint32_t&                   m_downscaledWidth4x;
     uint32_t&                   m_downscaledHeight4x;
     uint32_t&                   m_downscaledWidth16x;
@@ -623,7 +620,6 @@ protected:
     MOS_RESOURCE&               m_resMbStatsBuffer;
     MOS_SURFACE*&               m_rawSurfaceToEnc;
     MOS_SURFACE*&               m_rawSurfaceToPak;
-    CODEC_TRACKED_BUFFER*       m_trackedBuffer;
 
 private:
     //!
@@ -968,22 +964,6 @@ private:
 	C_ASSERT(MOS_BYTES_TO_DWORDS(sizeof(DsKernelInlineData)) == 16);
 
     //!
-    //! \brief    Release CSC surface
-    //!
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    void ReleaseSurfaceCsc(uint8_t index);
-
-    //!
-    //! \brief    Look up a free slot to be used
-    //!
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    uint8_t LookUpBufSlot();
-
-    //!
     //! \brief    Check raw surface color format
     //!
     //! \return   MOS_STATUS
@@ -1076,13 +1056,6 @@ private:
         uint8_t                 m_cscDsConvEnable;
     };
 
-    uint8_t                     m_cscBufLastIdx = 0;                                        //!< last copy buffer index
-    uint8_t                     m_cscBufPenuIdx = 0;                                        //!< 2nd-to-last copy buffer index
-    uint8_t                     m_cscBufAnteIdx = 0;                                        //!< 3rd-to-last copy buffer index
-    uint8_t                     m_cscBufRingIdx = 0;                                        //!< buffer index when ring buffer is used
-    uint8_t                     m_cscBufCountNonRef = 0;                                    //!< counting number of CSC surface when ring buffer is used
-    uint8_t                     m_cscBufCountResize = 0;                                    //!< 3 buffers to be delay-destructed during resolution change
-    bool                        m_waitCscSurf = false;                                      //!< wait to re-use CSC surface
     uint32_t                    m_threadTraverseSizeX = 5;                                  //!< target traverse thread space size in width
     uint32_t                    m_threadTraverseSizeY = 2;                                  //!< target traverse thread space size in height
 
