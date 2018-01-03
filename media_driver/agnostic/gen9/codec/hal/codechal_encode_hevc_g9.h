@@ -1565,17 +1565,6 @@ protected:
     void GetMaxRefFrames(uint8_t& maxNumRef0, uint8_t& maxNumRef1);
 
     //!
-    //! \brief    Add Pipe buf address commands
-    //!
-    //! \param    [in] cmdBuffer
-    //!           Pointer to command buffer
-    //!
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS AddHcpPipeBufAddrCmd(PMOS_COMMAND_BUFFER cmdBuffer);
-
-    //!
     //! \brief    Set ME kenrel surface state
     //!
     //! \param    [in] hwInterface
