@@ -645,6 +645,17 @@ MOS_STATUS FieldScalingInterface::InitializeKernelState(
     return eStatus;
 }
 
+MOS_STATUS FieldScalingInterface::SetupMediaVfe(
+    PMOS_COMMAND_BUFFER  cmdBuffer,
+    MHW_KERNEL_STATE     *kernelState)
+{
+    MHW_VFE_PARAMS vfeParams;
+    memset(&vfeParams, 0, sizeof(vfeParams));
+    vfeParams.pKernelState = kernelState;
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_renderInterface->AddMediaVfeCmd(cmdBuffer, &vfeParams));
+
+    return MOS_STATUS_SUCCESS;
+}
 
 MOS_STATUS FieldScalingInterface::DoFieldScaling(
     CODECHAL_DECODE_PROCESSING_PARAMS   *procParams,
@@ -841,10 +852,7 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
     stateBaseAddrParams.dwInstructionBufferSize = kernelState->m_ishRegion.GetHeapSize();
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_renderInterface->AddStateBaseAddrCmd(&cmdBuffer, &stateBaseAddrParams));
 
-    MHW_VFE_PARAMS vfeParams;
-    memset(&vfeParams, 0, sizeof(vfeParams));
-    vfeParams.pKernelState          = kernelState;
-    CODECHAL_DECODE_CHK_STATUS_RETURN(m_renderInterface->AddMediaVfeCmd(&cmdBuffer, &vfeParams));
+    CODECHAL_DECODE_CHK_STATUS_RETURN(SetupMediaVfe(&cmdBuffer, kernelState));
 
     MHW_CURBE_LOAD_PARAMS curbeLoadParams;
     memset(&curbeLoadParams, 0, sizeof(curbeLoadParams));

@@ -43,7 +43,7 @@ public:
     //!
     //! \brief    Destructor
     //!
-    ~FieldScalingInterface();
+    virtual ~FieldScalingInterface();
 
     //!
     //! \brief    Check Field Scaling Supported
@@ -72,6 +72,20 @@ public:
         CodechalDecode                      *decoder,
         CodechalHwInterface                 *hwInterface,
         PMOS_INTERFACE                      osInterface);
+
+    //!
+    //! \brief    Send Media VFE cmds
+    //! \details  Send Media VFE cmds to setup VFE for media kernel
+    //! \param    [in] cmdBuffer
+    //!           Pointer to command buffer
+    //! \param    [in] kernelState
+    //!           Pointer to MHW kernel state
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SetupMediaVfe(
+        PMOS_COMMAND_BUFFER  cmdBuffer,
+        MHW_KERNEL_STATE     *kernelState);
 
     //!
     //! \brief    Perform Field Scaling
