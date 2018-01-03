@@ -552,7 +552,6 @@ struct CodechalVp8MbencSurfaceParams
     PCODEC_PICTURE                      pLastRefPic;
     PCODEC_PICTURE                      pGoldenRefPic;
     PCODEC_PICTURE                      pAlternateRefPic;
-    PCODEC_TRACKED_BUFFER               pTrackedBuffer;
     uint16_t                            wPictureCodingType;
     PMOS_SURFACE                        psCurrPicSurface;
     uint32_t                            dwCurrPicSurfaceOffset;

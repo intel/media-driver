@@ -2506,7 +2506,6 @@ MOS_STATUS CodechalEncodeVp8::MbEncKernel(bool isEncPhase1NotRun, bool isEncPhas
     mbEncSurfaceParams.presPerMVDataSurface               = &m_resPredMvDataSurface;
     mbEncSurfaceParams.bMbEncIFrameDistInUse = mbEncIFrameDistInUse;
     mbEncSurfaceParams.pVp8SliceParams                    = m_vp8SliceParams;
-    mbEncSurfaceParams.pTrackedBuffer = &m_trackedBuffer[0];
     mbEncSurfaceParams.psMeBrcDistortionBuffer            = mbEncIFrameDistInUse ? &m_brcBuffers.sMeBrcDistortionBuffer : &m_s4XMeDistortionBuffer;
     mbEncSurfaceParams.uiRefCtrl                          = m_vp8PicParams->ref_frame_ctrl;
     mbEncSurfaceParams.pMbEncBindingTable = &bindingTable;

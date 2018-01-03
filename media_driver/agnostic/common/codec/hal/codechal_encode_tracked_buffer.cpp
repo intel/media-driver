@@ -106,11 +106,11 @@ void CodechalEncodeTrackedBuffer::Resize()
             ReleaseSurfaceDS(i);
 #endif
             // this slot can now be re-used
-            m_trackedBuffer[i].ucSurfIndex7bits = PICTURE_MAX_7BITS;
+            m_tracker[i].ucSurfIndex7bits = PICTURE_MAX_7BITS;
         }
         else
         {
-            m_trackedBuffer[i].ucSurfIndex7bits = PICTURE_RESIZE;
+            m_tracker[i].ucSurfIndex7bits = PICTURE_RESIZE;
         }
     }
 #ifndef _FULL_OPEN_SOURCE
@@ -135,7 +135,7 @@ void CodechalEncodeTrackedBuffer::ResetUsedForCurrFrame()
 {
     for (auto i = 0; i < CODEC_NUM_TRACKED_BUFFERS; i++)
     {
-        m_trackedBuffer[i].bUsedforCurFrame = false;
+        m_tracker[i].bUsedforCurFrame = false;
     }
 }
 
@@ -151,11 +151,11 @@ uint8_t CodechalEncodeTrackedBuffer::PreencLookUpBufIndex(
 
     for (auto i = 0; i < CODEC_NUM_TRACKED_BUFFERS; i++)
     {
-        if (m_trackedBuffer[j].ucSurfIndex7bits == frameIdx)
+        if (m_tracker[j].ucSurfIndex7bits == frameIdx)
         {
             //this frame is already in cache
             *inCache = true;
-            m_trackedBuffer[j].bUsedforCurFrame = true;
+            m_tracker[j].bUsedforCurFrame = true;
 
             return emptyEntry = j;
         }
@@ -165,7 +165,7 @@ uint8_t CodechalEncodeTrackedBuffer::PreencLookUpBufIndex(
     j = frameIdx % CODEC_NUM_TRACKED_BUFFERS;
     for (auto i = 0; i < CODEC_NUM_TRACKED_BUFFERS; i++)
     {
-        if (!m_trackedBuffer[j].bUsedforCurFrame)
+        if (!m_tracker[j].bUsedforCurFrame)
         {
             //find the first empty entry
             emptyEntry = j;
@@ -176,8 +176,8 @@ uint8_t CodechalEncodeTrackedBuffer::PreencLookUpBufIndex(
 
     if (emptyEntry < CODEC_NUM_TRACKED_BUFFERS)
     {
-        m_trackedBuffer[emptyEntry].ucSurfIndex7bits = frameIdx;
-        m_trackedBuffer[emptyEntry].bUsedforCurFrame = true;
+        m_tracker[emptyEntry].ucSurfIndex7bits = frameIdx;
+        m_tracker[emptyEntry].bUsedforCurFrame = true;
     }
 
     return emptyEntry;
@@ -204,7 +204,7 @@ uint8_t CodechalEncodeTrackedBuffer::LookUpBufIndex(
         // find the first empty slot to re-use
         for (uint8_t i = 0; i < CODEC_NUM_REF_BUFFERS; i++)
         {
-            PCODEC_TRACKED_BUFFER trackedBuffer = &m_trackedBuffer[i];
+            tracker* trackedBuffer = &m_tracker[i];
             uint8_t refFrameIdx = trackedBuffer->ucSurfIndex7bits;
 
             if (refFrameIdx != PICTURE_MAX_7BITS && refFrameIdx != PICTURE_RESIZE)
@@ -250,7 +250,7 @@ uint8_t CodechalEncodeTrackedBuffer::LookUpBufIndex(
 
     if (index < CODEC_NUM_TRACKED_BUFFERS)
     {
-        m_trackedBuffer[index].ucSurfIndex7bits = m_encoder->m_currReconstructedPic.FrameIdx;
+        m_tracker[index].ucSurfIndex7bits = m_encoder->m_currReconstructedPic.FrameIdx;
     }
 
     return index;
@@ -295,7 +295,7 @@ void CodechalEncodeTrackedBuffer::DeferredDeallocateOnResChange()
 #ifndef _FULL_OPEN_SOURCE
         ReleaseSurfaceDS(m_trackedBufAnteIdx);
 #endif
-        m_trackedBuffer[m_trackedBufAnteIdx].ucSurfIndex7bits = PICTURE_MAX_7BITS;
+        m_tracker[m_trackedBufAnteIdx].ucSurfIndex7bits = PICTURE_MAX_7BITS;
         CODECHAL_ENCODE_NORMALMESSAGE("Tracked buffer = %d re-allocated", m_trackedBufAnteIdx);
     }
 #ifndef _FULL_OPEN_SOURCE
@@ -605,14 +605,13 @@ CodechalEncodeTrackedBuffer::CodechalEncodeTrackedBuffer(CodechalEncoderState* e
     m_allocator = encoder->m_allocator;
     m_standard = encoder->m_standard;
     m_osInterface = encoder->GetOsInterface();
-    m_trackedBuffer = encoder->m_trackedBuffer;
     m_mbCodeIsTracked = true;
 
     for (auto i = 0; i < CODEC_NUM_TRACKED_BUFFERS; i++)
     {
         // Init all tracked buffer slots to usable
-        MOS_ZeroMemory(&m_trackedBuffer[i], sizeof(m_trackedBuffer[i]));
-        m_trackedBuffer[i].ucSurfIndex7bits = PICTURE_MAX_7BITS;
+        m_tracker[i].bUsedforCurFrame = false;
+        m_tracker[i].ucSurfIndex7bits = PICTURE_MAX_7BITS;
     }
 }
 

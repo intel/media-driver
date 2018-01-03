@@ -3002,13 +3002,12 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::EncodeScalingKernel(CodechalEncodeCscDs::K
     auto preEncParams = (FeiPreEncParams*)m_encodeParams.pPreEncParams;
     CODECHAL_ENCODE_CHK_NULL_RETURN(preEncParams);
     bool fieldPicture = CodecHal_PictureIsField(m_currOriginalPic);
-    auto trackedBuffer = &m_trackedBuffer[m_currScalingIdx];
     
     //only 4x 
     uint16_t srcWidth  = (uint16_t)m_oriFrameWidth;
     uint16_t srcHeight = (uint16_t)m_oriFrameHeight;
     auto inputSurface  = (params->bRawInputProvided)? &params->sInputRawSurface : m_rawSurfaceToEnc;
-    auto outputSurface = &trackedBuffer->sScaled4xSurface;
+    auto outputSurface = m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER);
     m_currRefList->b4xScalingUsed = true;
 
     uint32_t enableFlatness   = 0;

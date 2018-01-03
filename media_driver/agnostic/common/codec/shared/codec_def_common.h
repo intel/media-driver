@@ -194,12 +194,6 @@ typedef enum tagSLICE_GROUP_MASK
     SLICE_GROUP_LAST    = 0x4
 } SLICE_GROUP_MASK;
 
-typedef struct _CODEC_TRACKED_BUFFER
-{
-    uint8_t             ucSurfIndex7bits;             // 0xFF means the entry can be re-used
-    bool                bUsedforCurFrame;             // Used for FEI Preenc to mark whether this enty can be reused in multi-call case
-} CODEC_TRACKED_BUFFER, *PCODEC_TRACKED_BUFFER;
-
 typedef struct _CODEC_PIC_ID
 {
     uint8_t   ucPicIdx;

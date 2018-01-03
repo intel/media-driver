@@ -256,7 +256,6 @@ public:
         PCODEC_PICTURE        refL1List;
         PMOS_SURFACE          meBrcDistortionBuffer;
         PMOS_RESOURCE         meVdencStreamInBuffer;
-        PCODEC_TRACKED_BUFFER trackedBuffer;
     };
 
     //!

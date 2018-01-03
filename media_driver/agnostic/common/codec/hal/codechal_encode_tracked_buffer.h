@@ -396,7 +396,6 @@ protected:
 
     CodechalEncoderState*           m_encoder = nullptr;                        //!< Pointer to ENCODER base class
     CodechalEncodeAllocator*        m_allocator = nullptr;                      //!< Pointer to resource allocator
-    CODEC_TRACKED_BUFFER*           m_trackedBuffer;                            //!< Pointer to tracked buffer struct
 
     MOS_RESOURCE*                   m_trackedBufCurrMbCode = nullptr;           //!< Pointer to current MbCode buffer
     MOS_RESOURCE*                   m_trackedBufCurrMvData = nullptr;           //!< Pointer to current MvData buffer
@@ -446,21 +445,28 @@ private:
     //!
     MOS_STATUS AllocateDsReconSurfacesVdenc();
 
-    MOS_INTERFACE*                  m_osInterface = nullptr;                    //!< OS interface
+    MOS_INTERFACE*          m_osInterface = nullptr;                            //!< OS interface
 
-    uint8_t                         m_trackedBufNonRefIdx = 0;                  //!< current tracked buffer index when frame won't be used as ref
-    uint8_t                         m_trackedBufCountNonRef = 0;                //!< counting number of tracked buffer when ring buffer is used
-    uint8_t                         m_trackedBufCountResize = 0;                //!< 3 buffers to be delay-destructed during res change
-    uint8_t                         m_trackedBufPenuIdx = 0;                    //!< 2nd-to-last tracked buffer index
-    uint8_t                         m_trackedBufAnteIdx = 0;                    //!< 3rd-to-last tracked buffer index
-    bool                            m_waitTrackedBuffer = false;                //!< wait to re-use tracked buffer
+    uint8_t                 m_trackedBufNonRefIdx = 0;                          //!< current tracked buffer index when frame won't be used as ref
+    uint8_t                 m_trackedBufCountNonRef = 0;                        //!< counting number of tracked buffer when ring buffer is used
+    uint8_t                 m_trackedBufCountResize = 0;                        //!< 3 buffers to be delay-destructed during res change
+    uint8_t                 m_trackedBufPenuIdx = 0;                            //!< 2nd-to-last tracked buffer index
+    uint8_t                 m_trackedBufAnteIdx = 0;                            //!< 3rd-to-last tracked buffer index
+    bool                    m_waitTrackedBuffer = false;                        //!< wait to re-use tracked buffer
 
-    uint8_t                         m_cscBufNonRefIdx = 0;                      //!< current CSC buffer index when ring buffer is used
-    uint8_t                         m_cscBufCountNonRef = 0;                    //!< counting number of CSC surface when ring buffer is used
-    uint8_t                         m_cscBufCurrIdx = 0;                        //!< curr copy buffer index
-    uint8_t                         m_cscBufPenuIdx = 0;                        //!< 2nd-to-last CSC buffer index
-    uint8_t                         m_cscBufAnteIdx = 0;                        //!< 3rd-to-last CSC buffer index
-    bool                            m_waitCscSurface = false;                   //!< wait to re-use CSC surface
+    uint8_t                 m_cscBufNonRefIdx = 0;                              //!< current CSC buffer index when ring buffer is used
+    uint8_t                 m_cscBufCountNonRef = 0;                            //!< counting number of CSC surface when ring buffer is used
+    uint8_t                 m_cscBufCurrIdx = 0;                                //!< curr copy buffer index
+    uint8_t                 m_cscBufPenuIdx = 0;                                //!< 2nd-to-last CSC buffer index
+    uint8_t                 m_cscBufAnteIdx = 0;                                //!< 3rd-to-last CSC buffer index
+    bool                    m_waitCscSurface = false;                           //!< wait to re-use CSC surface
+
+    struct tracker
+    {
+        uint8_t             ucSurfIndex7bits;                                   //!< 0xFF means the entry can be re-used
+        bool                bUsedforCurFrame;                                   //!< Used for FEI Preenc to mark whether this enty can be reused in multi-call case
+    };
+    tracker                 m_tracker[CODEC_NUM_TRACKED_BUFFERS];
 };
 
 #endif  // __CODECHAL_ENCODE_TRACKED_BUFFER_H__

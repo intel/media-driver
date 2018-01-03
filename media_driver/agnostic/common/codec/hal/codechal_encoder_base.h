@@ -1676,9 +1676,6 @@ public:
     MHW_KERNEL_STATE                m_meKernelStates[CODECHAL_ENCODE_ME_IDX_NUM];     //!< ME kernel states
     MeKernelBindingTable            m_meBindingTable;                                 //!< ME binding table
 
-    // tracked buffer
-    CODEC_TRACKED_BUFFER            m_trackedBuffer[CODEC_NUM_TRACKED_BUFFERS];  //!< Csc/Ds/MbCode/MvData surface/buffer
-
     // Ds+Copy kernel optimization
     uint8_t                         m_outputChromaFormat = (uint8_t)HCP_CHROMA_FORMAT_YUV420;     //!< 1: 420 2: 422 3: 444
     bool                            m_gopIsIdrFrameOnly = false;                                  //!< GOP structure contains I-frame only
