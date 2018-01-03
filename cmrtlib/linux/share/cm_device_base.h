@@ -126,7 +126,7 @@ public:
     //!             code can be found in CM Language Spec, looking for read_plane
     //!             and write_plane.
     CM_RT_API virtual int32_t CreateSurface2D(uint32_t width, uint32_t height, CM_SURFACE_FORMAT format, CmSurface2D* &surface) = 0;
-    
+
     //! \brief      Creates a CmSurface3D with given width, height, depth and 
     //!             pixel format.
     //! \details    This function creates a surface in memory with a 3D layout.
@@ -164,7 +164,7 @@ public:
     //!             cap CAP_SURFACE3D_COUNT.
     //! \retval     CM_FAILURE otherwise.
     CM_RT_API virtual int32_t CreateSurface3D(uint32_t width, uint32_t height, uint32_t depth, CM_SURFACE_FORMAT format, CmSurface3D* &surface) = 0;
-    
+
     //! \brief      Creates a CmSurface2D from an existing VA surface.
     //! \details    The application must have created the VA surface using the 
     //!             same VA device as the one used to create the CmDevice. 
@@ -216,7 +216,7 @@ public:
     //! \retval     CM_FAILURE otherwise.
     //! \note       This API is in Linux only.
     CM_RT_API virtual int32_t CreateSurface2D(VASurfaceID vaSurfaceId, CmSurface2D* &surface) = 0;
-    
+
     //! \brief      Creates an array of CmSurface2D type surfaces from an 
     //!             existing array of VA surfaces.
     //! \details    Surface in the VA surface array must be created by the 
@@ -297,7 +297,7 @@ public:
     //! \retval     CM_SUCCESS if the CmQueue is successfully created.
     //! \retval     CM_OUT_OF_HOST_MEMORY if out of system memory.
     //! \retval     CM_FAILURE otherwise.
-    CM_RT_API virtual int32_t CreateQueue(CmQueue* &queue) = 0; 
+    CM_RT_API virtual int32_t CreateQueue(CmQueue* &queue) = 0;
 
     //! \brief      Creates a CmProgram object consisting of kernels loaded from 
     //!             the commonISACode code.
@@ -344,7 +344,7 @@ public:
 
     //! \brief      Creates a CmKernel object from the CmProgram object.
     //! \details    A Cmprogram can contains multiple kernels.
-    //!             The size of all arguments of a kernel should be no more than  
+    //!             The size of all arguments of a kernel should be no more than 
     //!             CAP_ARG_SIZE_PER_KERNEL byte. The number of all kernel 
     //!             arguments should be no more than CAP_ARG_COUNT_PER_KERNEL. 
     //!             The size of kernel binary should be no more than 
@@ -413,7 +413,7 @@ public:
     CM_RT_API virtual int32_t CreateKernel(CmProgram* program, const char* kernelName, const void * fncPnt, CmKernel* & kernel, const char* options = nullptr) = 0;
 
     //! \brief      Creates a CmSampler object.
-    //! \details    This function creates a 3D sampler state object used to sample  
+    //! \details    This function creates a 3D sampler state object used to sample 
     //!             a 2D surface.
     //! \param      [in] sampleState
     //!             Const reference to a CM_SAMPLER_STATE specifying the 
@@ -428,15 +428,15 @@ public:
     //!             co-exist. The amount can be obtained by querying the cap 
     //!             CAP_SAMPLER_COUNT.
     //! \retval     CM_FAILURE otherwise.
-	//! \note       typedef struct _CM_SAMPLER_STATE\n
-	//!             {\n
-	//!                 CM_TEXTURE_FILTER_TYPE 	    minFilterType;\n
-	//!                 CM_TEXTURE_FILTER_TYPE 	    magFilterType;\n
-	//!                 CM_TEXTURE_ADDRESS_TYPE 	addressU;\n
-	//!                 CM_TEXTURE_ADDRESS_TYPE 	addressV;\n
-	//!                 CM_TEXTURE_ADDRESS_TYPE 	addressW;\n
-	//!             } CM_SAMPLER_STATE;\n
-	//!             
+    //! \note       typedef struct _CM_SAMPLER_STATE\n
+    //!             {\n
+    //!                 CM_TEXTURE_FILTER_TYPE      minFilterType;\n
+    //!                 CM_TEXTURE_FILTER_TYPE      magFilterType;\n
+    //!                 CM_TEXTURE_ADDRESS_TYPE     addressU;\n
+    //!                 CM_TEXTURE_ADDRESS_TYPE     addressV;\n
+    //!                 CM_TEXTURE_ADDRESS_TYPE     addressW;\n
+    //!             } CM_SAMPLER_STATE;\n
+    //! 
     //!             For now, only linear and anisotropic filter types are
     //!             supported for hardware and simulation modes. For emulation 
     //!             mode, linear filter type is supported. Wrap, mirror, and 
@@ -481,7 +481,7 @@ public:
     //!             assigned to nullptr once the fuction is return.
     //! \retval     CM_SUCCESS if the CmThreadSpace is successfully destroyed.
     //! \retval     CM_FAILURE if the input is nullptr or not valid.
-    CM_RT_API virtual int32_t DestroyThreadSpace( CmThreadSpace* &threadSpace) = 0; 
+    CM_RT_API virtual int32_t DestroyThreadSpace( CmThreadSpace* &threadSpace) = 0;
 
     //!
     //! \brief      Creates a CmTask object
@@ -500,11 +500,11 @@ public:
     //! \param      [in, out] task Reference to the pointer to the CmTask.
     //! \retval     CM_SUCCESS if the CmTaskis successfully destroyed
     //! \retval     CM_FAILURE otherwise
-    //!	
+    //!
     CM_RT_API virtual int32_t DestroyTask(CmTask* &task)=0;
 
     //!
-    //! \brief      This function can be used to get HW capability.  
+    //! \brief      This function can be used to get HW capability. 
     //! \details    By calling this function, user can get the hardware capabilites
     //!             of running platform.
     //! \param      [in] capName Name of cap to query
@@ -520,11 +520,11 @@ public:
     //!             is larger than required Cap size and Cap Value 
     //!             is successfully returned
     //! \retval     CM_FAILURE otherwise
-    //!	
-    //! \details    					
+    //!
+    //! \details
     //!  <table>
-    //!	   <tr>
-    //! 	<th>Cap Name</th>
+    //!     <tr>
+    //!     <th>Cap Name</th>
     //!     <th>Size in bytes  </th>
     //!     <th>Type of Value</th>
     //!     <th>Description</th>
@@ -604,7 +604,7 @@ public:
     //!     <td>CAP_HW_THREAD_COUNT </td>
     //!     <td>4</td>
     //!     <td>uint32_t</td>
-    //!     <td>Maximum number of threads that HW can run in parallel.This  
+    //!     <td>Maximum number of threads that HW can run in parallel.This 
     //!       indicates hardware parallelism and is hence one
     //!       of the factors indicating performance of the target machine </td>
     //!   </tr>
@@ -795,7 +795,7 @@ public:
     //! \param      [out] physicalSize
     //!             Reference to returned physical size.
     //! \retval     CM_SUCCESS always
-    CM_RT_API virtual int32_t GetSurface2DInfo( uint32_t width, uint32_t height, CM_SURFACE_FORMAT format, uint32_t & pitch, uint32_t & physicalSize)= 0;    
+    CM_RT_API virtual int32_t GetSurface2DInfo( uint32_t width, uint32_t height, CM_SURFACE_FORMAT format, uint32_t & pitch, uint32_t & physicalSize)= 0;
 
     //! \brief      Creates a CmSurface2DUP object.
     //! \details    Creates a CmSurface2DUP in UP (User Provided) system memory 
@@ -898,7 +898,7 @@ public:
     //!             assigned to nullptr once destroy is done.
     //! \retval     CM_SUCCESS if the VME surface is successfully destroyed.
     //! \retval     CM_FAILURE otherwise.
-    //! \note       This can be used for all Gen7_5 and plus platforms.     
+    //! \note       This can be used for all Gen7_5 and plus platforms.
     CM_RT_API virtual int32_t DestroyVmeSurfaceG7_5( SurfaceIndex* &vmeSurfaceIndex) = 0;
 
     //! \brief      Creates a CmSampler8x8 object.
@@ -915,7 +915,7 @@ public:
     //!             maximum count which can be queried by CAP_SAMPLER_COUNT cap.
     CM_RT_API virtual int32_t CreateSampler8x8(const CM_SAMPLER_8X8_DESCR &samplerDescriptor,
                                                CmSampler8x8* &sampler) = 0;
-  
+
     //! \brief      Destroys a CmSampler8x8 object.
     //! \details    A CmSampler8x8 which is not destroyed by calling this 
     //!             function will be destroyed when the CmDevice is destroyed.
@@ -998,11 +998,11 @@ public:
     //!             enabled kernels. See also CreateThreadGroupSpaceEx() API which
     //!             specifies a 3-dimensional thread group space with width, height
     //!             and depth.
-    CM_RT_API virtual int32_t CreateThreadGroupSpace( 
-        uint32_t threadSpaceWidth, 
-        uint32_t threadSpaceHeight, 
-        uint32_t groupSpaceWidth, 
-        uint32_t groupSpaceHeight, 
+    CM_RT_API virtual int32_t CreateThreadGroupSpace(
+        uint32_t threadSpaceWidth,
+        uint32_t threadSpaceHeight,
+        uint32_t groupSpaceWidth,
+        uint32_t groupSpaceHeight,
         CmThreadGroupSpace* &threadGroupSpace) = 0;
 
     //! \brief      Destroys the created thread group space object.
@@ -1137,7 +1137,7 @@ public:
     //! \retval     CM_OUT_OF_HOST_MEMORY if out of host memory.
     //! \retval     CM_FAILURE otherwise.
     CM_RT_API virtual int32_t CreateSamplerSurface2D(
-        CmSurface2D* surface2d, 
+        CmSurface2D* surface2d,
         SurfaceIndex* &samplerSurfaceIndex) = 0;
 
     //! \brief      This function creates a sampler surface index by a given
@@ -1164,7 +1164,7 @@ public:
     //! \retval     CM_OUT_OF_HOST_MEMORY if out of host memory.
     //! \retval     CM_FAILURE otherwise.
     CM_RT_API virtual int32_t CreateSamplerSurface3D(
-        CmSurface3D* surface3d, 
+        CmSurface3D* surface3d,
         SurfaceIndex* &samplerSurfaceIndex) = 0;
 
     //! \brief      This function destroys a sampler surface index created by 
@@ -1194,7 +1194,7 @@ public:
     //! \retval     CM_FAILURE otherwise.
     //! \note       Internally the print buffer occupies static buffer index 1,
     //!             thus only other 3 static buffers can be used by host (0, 2, 3)
-    //!             if print functionality is enabled. 
+    //!             if print functionality is enabled.
     CM_RT_API virtual int32_t InitPrintBuffer(size_t printbufsize = CM_DEFAULT_PRINT_BUFFER_SIZE) = 0;
 
     //! \brief      This function prints the message on the standard display 
@@ -1205,7 +1205,7 @@ public:
     //!             interleaved. To distinguish which thread the printf string 
     //!             comes from, it is better to print the thread id as the 
     //!             first value. Alternatively you could always 
-    //!             put the printf inside if statement that limits the printf to a  
+    //!             put the printf inside if statement that limits the printf to a 
     //!             given thread. If one task has more than one kernels call 
     //!             printf() , their outputs could mix together.
     //! \retval     CM_SUCCESS if the buffer is flushed successfully.
@@ -1260,11 +1260,11 @@ public:
     //! \retval     CM_VA_SURFACE_NOT_SUPPORTED if libva surface creation fail
     //! \retval     CM_FAILURE otherwise.
     //! \note       This is a Linux only API.
-    CM_RT_API virtual int32_t CreateVaSurface2D( 
-        uint32_t width, 
-        uint32_t height, 
-        CM_SURFACE_FORMAT format, 
-        VASurfaceID &vaSurfaceId, 
+    CM_RT_API virtual int32_t CreateVaSurface2D(
+        uint32_t width,
+        uint32_t height,
+        CM_SURFACE_FORMAT format,
+        VASurfaceID &vaSurfaceId,
         CmSurface2D* &surface) = 0;
 
     //!
@@ -1492,13 +1492,13 @@ public:
     //!             instead of stdout.
     //! \details    This function's usage is the same as
     //!             CmDevice::FlushPrintBuffer(). It is recommended to use this
-    //!             interface when there are tons of messages from kernel.  
+    //!             interface when there are tons of messages from kernel.
     //! \param      [in] filename
     //!             name of file the message printed into.
     //! \retval     CM_SUCCESS if the buffer is flushed successfully into file.
     //! \retval     CM_FAILURE otherwise.
     //! \note       This is API is supported in hardware mode. See also
-    //!             FlushPrintBuffer().                                                
+    //!             FlushPrintBuffer().
     //!
     CM_RT_API virtual int32_t FlushPrintBufferIntoFile(const char *filename) = 0;
 
@@ -1667,7 +1667,7 @@ public:
     CM_RT_API virtual int32_t CreateBufferAlias(CmBuffer *originalBuffer,
                                             SurfaceIndex* &aliasIndex) = 0;
 
-    //! \brief      Set the width and height values in the VME surface state.       
+    //! \brief      Set the width and height values in the VME surface state.
     //! \param      [in] vmeIndex
     //!             Pointer to VME surface index.
     //! \param      [in] surfStateParam
@@ -1733,8 +1733,8 @@ public:
     //!             implemented at this moment.
     //!
     CM_RT_API virtual int32_t
-    CreateQueueEx(CmQueue *&queue, 
-                  CM_QUEUE_CREATE_OPTION queueCreateOption = 
+    CreateQueueEx(CmQueue *&queue,
+                  CM_QUEUE_CREATE_OPTION queueCreateOption =
                   CM_DEFAULT_QUEUE_CREATE_OPTION) = 0;
 };
 

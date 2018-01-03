@@ -40,7 +40,6 @@
 #define CM_7_2 702 //for MDFRT API refreshment.
 #define CURRENT_CM_VERSION  (CM_7_2)
 
-
 //CM DDI version in UMD layer
 #define CM_DDI_1_0 100
 #define CM_DDI_1_1 101
@@ -244,7 +243,6 @@ public:
     CLock(CSync &refSync) : m_refSync(refSync) { Lock(); }
     ~CLock() { Unlock(); }
 
-
 private:
     CSync &m_refSync;                     // Synchronization object
 
@@ -256,119 +254,119 @@ private:
 
 typedef struct _CM_SAMPLER_STATE
 {
-  CM_TEXTURE_FILTER_TYPE minFilterType;
-  CM_TEXTURE_FILTER_TYPE magFilterType;   
-  CM_TEXTURE_ADDRESS_TYPE addressU;   
-  CM_TEXTURE_ADDRESS_TYPE addressV;   
-  CM_TEXTURE_ADDRESS_TYPE addressW; 
+    CM_TEXTURE_FILTER_TYPE minFilterType;
+    CM_TEXTURE_FILTER_TYPE magFilterType;
+    CM_TEXTURE_ADDRESS_TYPE addressU;
+    CM_TEXTURE_ADDRESS_TYPE addressV;
+    CM_TEXTURE_ADDRESS_TYPE addressW;
 } CM_SAMPLER_STATE;
 
 typedef enum _CM_PIXEL_TYPE
 {
-  CM_PIXEL_UINT,
-  CM_PIXEL_SINT,
-  CM_PIXEL_OTHER
+    CM_PIXEL_UINT,
+    CM_PIXEL_SINT,
+    CM_PIXEL_OTHER
 } CM_PIXEL_TYPE;
 
 typedef struct _CM_SAMPLER_STATE_EX
 {
-  CM_TEXTURE_FILTER_TYPE minFilterType;
-  CM_TEXTURE_FILTER_TYPE magFilterType;   
-  CM_TEXTURE_ADDRESS_TYPE addressU;   
-  CM_TEXTURE_ADDRESS_TYPE addressV;   
-  CM_TEXTURE_ADDRESS_TYPE addressW;
-  
-  CM_PIXEL_TYPE surfaceFormat;
+    CM_TEXTURE_FILTER_TYPE minFilterType;
+    CM_TEXTURE_FILTER_TYPE magFilterType;
+    CM_TEXTURE_ADDRESS_TYPE addressU;
+    CM_TEXTURE_ADDRESS_TYPE addressV;
+    CM_TEXTURE_ADDRESS_TYPE addressW;
+
+    CM_PIXEL_TYPE surfaceFormat;
     union
     {
-    uint32_t borderColorRedU;
-    int32_t borderColorRedS;
-    float borderColorRedF;
-  };
+        uint32_t borderColorRedU;
+        int32_t borderColorRedS;
+        float borderColorRedF;
+    };
     union
     {
-    uint32_t borderColorGreenU;
-    int32_t borderColorGreenS;
-    float borderColorGreenF;
-  };
+        uint32_t borderColorGreenU;
+        int32_t borderColorGreenS;
+        float borderColorGreenF;
+    };
     union
     {
-    uint32_t borderColorBlueU;
-    int32_t borderColorBlueS;
-    float borderColorBlueF;
-  };
+        uint32_t borderColorBlueU;
+        int32_t borderColorBlueS;
+        float borderColorBlueF;
+    };
     union
     {
-    uint32_t borderColorAlphaU;
-    int32_t borderColorAlphaS;
-    float borderColorAlphaF;
-  };
+        uint32_t borderColorAlphaU;
+        int32_t borderColorAlphaS;
+        float borderColorAlphaF;
+    };
 } CM_SAMPLER_STATE_EX;
 
 //struct used by both CmDevice and CmSampler8x8
 typedef struct _CM_AVS_COEFF_TABLE
 {
-  float   filterCoeff_0_0;
-  float   filterCoeff_0_1;
-  float   filterCoeff_0_2;
-  float   filterCoeff_0_3;
-  float   filterCoeff_0_4;
-  float   filterCoeff_0_5;
-  float   filterCoeff_0_6;
-  float   filterCoeff_0_7;
+    float   filterCoeff_0_0;
+    float   filterCoeff_0_1;
+    float   filterCoeff_0_2;
+    float   filterCoeff_0_3;
+    float   filterCoeff_0_4;
+    float   filterCoeff_0_5;
+    float   filterCoeff_0_6;
+    float   filterCoeff_0_7;
 } CM_AVS_COEFF_TABLE;
 
 #define CM_NUM_COEFF_ROWS 17
 #define CM_NUM_COEFF_ROWS_SKL 32
 typedef struct _CM_AVS_NONPIPLINED_STATE
 {
-  bool bypassXAF;
-  bool bypassYAF;
-  uint8_t defaultSharpLvl;
-  uint8_t maxDerivative4Pixels;
-  uint8_t maxDerivative8Pixels;
-  uint8_t transitionArea4Pixels;
-  uint8_t transitionArea8Pixels;    
-  CM_AVS_COEFF_TABLE Tbl0X[ CM_NUM_COEFF_ROWS_SKL ];
-  CM_AVS_COEFF_TABLE Tbl0Y[ CM_NUM_COEFF_ROWS_SKL ];
-  CM_AVS_COEFF_TABLE Tbl1X[ CM_NUM_COEFF_ROWS_SKL ];
-  CM_AVS_COEFF_TABLE Tbl1Y[ CM_NUM_COEFF_ROWS_SKL ];
-  bool enableRgbAdaptive;
-  bool adaptiveFilterAllChannels;
+    bool bypassXAF;
+    bool bypassYAF;
+    uint8_t defaultSharpLvl;
+    uint8_t maxDerivative4Pixels;
+    uint8_t maxDerivative8Pixels;
+    uint8_t transitionArea4Pixels;
+    uint8_t transitionArea8Pixels;
+    CM_AVS_COEFF_TABLE Tbl0X[ CM_NUM_COEFF_ROWS_SKL ];
+    CM_AVS_COEFF_TABLE Tbl0Y[ CM_NUM_COEFF_ROWS_SKL ];
+    CM_AVS_COEFF_TABLE Tbl1X[ CM_NUM_COEFF_ROWS_SKL ];
+    CM_AVS_COEFF_TABLE Tbl1Y[ CM_NUM_COEFF_ROWS_SKL ];
+    bool enableRgbAdaptive;
+    bool adaptiveFilterAllChannels;
 } CM_AVS_NONPIPLINED_STATE;
 
 enum CM_SAMPLER_STATE_TYPE {
-  CM_SAMPLER8X8_AVS = 0,
-  CM_SAMPLER8X8_CONV = 1,
-  CM_SAMPLER8X8_MISC = 3,
-  CM_SAMPLER8X8_CONV1DH = 4,
-  CM_SAMPLER8X8_CONV1DV = 5,
-  CM_SAMPLER8X8_AVS_EX = 6,
-  CM_SAMPLER8X8_NONE
+    CM_SAMPLER8X8_AVS = 0,
+    CM_SAMPLER8X8_CONV = 1,
+    CM_SAMPLER8X8_MISC = 3,
+    CM_SAMPLER8X8_CONV1DH = 4,
+    CM_SAMPLER8X8_CONV1DV = 5,
+    CM_SAMPLER8X8_AVS_EX = 6,
+    CM_SAMPLER8X8_NONE
 };
 
 typedef struct _CM_AVS_STATE_MSG
 {
-  bool avsType; //true nearest, false adaptive        
-  bool eightTapAFEnable; //HSW+
-  bool bypassIEF; //ignored for BWL, moved to sampler8x8 payload.
-  bool shuffleOutputWriteback; //SKL mode only to be set when AVS msg sequence is 4x4 or 8x4
-  bool hdcDirectWriteEnable;
-  unsigned short gainFactor;
-  unsigned char globalNoiseEstm;
-  unsigned char strongEdgeThr;
-  unsigned char weakEdgeThr;
-  unsigned char strongEdgeWght;
-  unsigned char regularWght;
-  unsigned char nonEdgeWght;
-  unsigned short r3xCoefficient;
-  unsigned short r3cCoefficient;
-  unsigned short r5xCoefficient;
-  unsigned short r5cxCoefficient;
-  unsigned short r5cCoefficient;
-  //For Non-piplined states
-  unsigned short stateID;
-  CM_AVS_NONPIPLINED_STATE * avsState;
+    bool avsType; //true nearest, false adaptive
+    bool eightTapAFEnable; //HSW+
+    bool bypassIEF; //ignored for BWL, moved to sampler8x8 payload.
+    bool shuffleOutputWriteback; //SKL mode only to be set when AVS msg sequence is 4x4 or 8x4
+    bool hdcDirectWriteEnable;
+    unsigned short gainFactor;
+    unsigned char globalNoiseEstm;
+    unsigned char strongEdgeThr;
+    unsigned char weakEdgeThr;
+    unsigned char strongEdgeWght;
+    unsigned char regularWght;
+    unsigned char nonEdgeWght;
+    unsigned short r3xCoefficient;
+    unsigned short r3cCoefficient;
+    unsigned short r5xCoefficient;
+    unsigned short r5cxCoefficient;
+    unsigned short r5cCoefficient;
+    //For Non-piplined states
+    unsigned short stateID;
+    CM_AVS_NONPIPLINED_STATE * avsState;
 } CM_AVS_STATE_MSG;
 
 //*-----------------------------------------------------------------------------
@@ -376,145 +374,145 @@ typedef struct _CM_AVS_STATE_MSG
 //*-----------------------------------------------------------------------------
 typedef enum _CM_CONVOLVE_SKL_TYPE
 {
-  CM_CONVOLVE_SKL_TYPE_2D = 0,
-  CM_CONVOLVE_SKL_TYPE_1D = 1,
-  CM_CONVOLVE_SKL_TYPE_1P = 2
+    CM_CONVOLVE_SKL_TYPE_2D = 0,
+    CM_CONVOLVE_SKL_TYPE_1D = 1,
+    CM_CONVOLVE_SKL_TYPE_1P = 2
 } CM_CONVOLVE_SKL_TYPE;
 
 typedef struct _CM_CONVOLVE_COEFF_TABLE
 {
-  float   filterCoeff_0_0;
-  float   filterCoeff_0_1;
-  float   filterCoeff_0_2;
-  float   filterCoeff_0_3;
-  float   filterCoeff_0_4;
-  float   filterCoeff_0_5;
-  float   filterCoeff_0_6;
-  float   filterCoeff_0_7;
-  float   filterCoeff_0_8;
-  float   filterCoeff_0_9;
-  float   filterCoeff_0_10;
-  float   filterCoeff_0_11;
-  float   filterCoeff_0_12;
-  float   filterCoeff_0_13;
-  float   filterCoeff_0_14;
-  float   filterCoeff_0_15;
-  float   filterCoeff_0_16;    
-  float   filterCoeff_0_17;
-  float   filterCoeff_0_18;
-  float   filterCoeff_0_19;
-  float   filterCoeff_0_20;
-  float   filterCoeff_0_21;
-  float   filterCoeff_0_22;
-  float   filterCoeff_0_23;
-  float   filterCoeff_0_24;
-  float   filterCoeff_0_25;
-  float   filterCoeff_0_26;
-  float   filterCoeff_0_27;
-  float   filterCoeff_0_28;
-  float   filterCoeff_0_29;
-  float   filterCoeff_0_30;
-  float   filterCoeff_0_31;
+    float   filterCoeff_0_0;
+    float   filterCoeff_0_1;
+    float   filterCoeff_0_2;
+    float   filterCoeff_0_3;
+    float   filterCoeff_0_4;
+    float   filterCoeff_0_5;
+    float   filterCoeff_0_6;
+    float   filterCoeff_0_7;
+    float   filterCoeff_0_8;
+    float   filterCoeff_0_9;
+    float   filterCoeff_0_10;
+    float   filterCoeff_0_11;
+    float   filterCoeff_0_12;
+    float   filterCoeff_0_13;
+    float   filterCoeff_0_14;
+    float   filterCoeff_0_15;
+    float   filterCoeff_0_16;
+    float   filterCoeff_0_17;
+    float   filterCoeff_0_18;
+    float   filterCoeff_0_19;
+    float   filterCoeff_0_20;
+    float   filterCoeff_0_21;
+    float   filterCoeff_0_22;
+    float   filterCoeff_0_23;
+    float   filterCoeff_0_24;
+    float   filterCoeff_0_25;
+    float   filterCoeff_0_26;
+    float   filterCoeff_0_27;
+    float   filterCoeff_0_28;
+    float   filterCoeff_0_29;
+    float   filterCoeff_0_30;
+    float   filterCoeff_0_31;
 } CM_CONVOLVE_COEFF_TABLE;
 
 #define CM_NUM_CONVOLVE_ROWS 16
 #define CM_NUM_CONVOLVE_ROWS_SKL 32
 typedef struct _CM_CONVOLVE_STATE_MSG
 {
-  bool coeffSize; //true 16-bit, false 8-bit
-  int8_t sclDwnValue; //Scale down value
-  int8_t width; //Kernel Width
-  int8_t height; //Kernel Height
-  //SKL mode
-  bool isVertical32Mode;
-  bool isHorizontal32Mode;
-  CM_CONVOLVE_SKL_TYPE nConvolveType;
-  CM_CONVOLVE_COEFF_TABLE table[CM_NUM_CONVOLVE_ROWS_SKL];
+    bool coeffSize; //true 16-bit, false 8-bit
+    int8_t sclDwnValue; //Scale down value
+    int8_t width; //Kernel Width
+    int8_t height; //Kernel Height
+    //SKL mode
+    bool isVertical32Mode;
+    bool isHorizontal32Mode;
+    CM_CONVOLVE_SKL_TYPE nConvolveType;
+    CM_CONVOLVE_COEFF_TABLE table[CM_NUM_CONVOLVE_ROWS_SKL];
 } CM_CONVOLVE_STATE_MSG;
 
 struct CM_AVS_STATE_MSG_EX
 {
-  CM_RT_API CM_AVS_STATE_MSG_EX();
+    CM_RT_API CM_AVS_STATE_MSG_EX();
 
-  bool enableAllChannelAdaptiveFilter;  // adaptive filter for all channels. validValues => [true..false]
-  bool enableRgbAdaptiveFilter;          // adaptive filter for all channels. validValues => [true..false]
-  bool enable8TapAdaptiveFilter;        // enable 8-tap filter. validValues => [true..false]
-  bool enableUV8TapFilter;              // enable 8-tap filter on UV/RB channels. validValues => [true..false]
-  bool writebackFormat;                    // true sampleunorm, false standard. validValues => [true..false]
-  bool writebackMode;                      // true avs, false ief. validValues => [true..false]
-  uint8_t stateSelection;                     // 0=>first,1=>second scaler8x8 state. validValues => [0..1]
+    bool enableAllChannelAdaptiveFilter;  // adaptive filter for all channels. validValues => [true..false]
+    bool enableRgbAdaptiveFilter;          // adaptive filter for all channels. validValues => [true..false]
+    bool enable8TapAdaptiveFilter;        // enable 8-tap filter. validValues => [true..false]
+    bool enableUV8TapFilter;              // enable 8-tap filter on UV/RB channels. validValues => [true..false]
+    bool writebackFormat;                    // true sampleunorm, false standard. validValues => [true..false]
+    bool writebackMode;                      // true avs, false ief. validValues => [true..false]
+    uint8_t stateSelection;                     // 0=>first,1=>second scaler8x8 state. validValues => [0..1]
 
-  // Image enhancement filter settings.
-  bool enableIef;        // image enhancement filter enable. validValues => [true..false]
-  bool iefType;          // true "basic" or false "advanced". validValues => [true..false]
-  bool enableIefSmooth; // true based on 3x3, false based on 5x5 validValues => [true..false]
-  float r3cCoefficient;  // smoothing coeffient. Valid values => [0.0..0.96875]
-  float r3xCoefficient;  // smoothing coeffient. Valid values => [0.0..0.96875]
-  float r5cCoefficient;  // smoothing coeffient. validValues => [0.0..0.96875]
-  float r5cxCoefficient; // smoothing coeffient. validValues => [0.0..0.96875]
-  float r5xCoefficient;  // smoothing coeffient. validValues => [0.0..0.96875]
+    // Image enhancement filter settings.
+    bool enableIef;        // image enhancement filter enable. validValues => [true..false]
+    bool iefType;          // true "basic" or false "advanced". validValues => [true..false]
+    bool enableIefSmooth; // true based on 3x3, false based on 5x5 validValues => [true..false]
+    float r3cCoefficient;  // smoothing coeffient. Valid values => [0.0..0.96875]
+    float r3xCoefficient;  // smoothing coeffient. Valid values => [0.0..0.96875]
+    float r5cCoefficient;  // smoothing coeffient. validValues => [0.0..0.96875]
+    float r5cxCoefficient; // smoothing coeffient. validValues => [0.0..0.96875]
+    float r5xCoefficient;  // smoothing coeffient. validValues => [0.0..0.96875]
 
-  // Edge processing settings.
-  uint8_t strongEdgeThreshold; // validValues => [0..64]
-  uint8_t strongEdgeWeight;    // Sharpening strength when a strong edge. validValues => [0..7]
-  uint8_t weakEdgeThreshold;   // validValues => [0..64]
-  uint8_t regularEdgeWeight;   // Sharpening strength when a weak edge. validValues => [0..7]
-  uint8_t nonEdgeWeight;       // Sharpening strength when no edge. validValues => [0..7]
+    // Edge processing settings.
+    uint8_t strongEdgeThreshold; // validValues => [0..64]
+    uint8_t strongEdgeWeight;    // Sharpening strength when a strong edge. validValues => [0..7]
+    uint8_t weakEdgeThreshold;   // validValues => [0..64]
+    uint8_t regularEdgeWeight;   // Sharpening strength when a weak edge. validValues => [0..7]
+    uint8_t nonEdgeWeight;       // Sharpening strength when no edge. validValues => [0..7]
 
-  // Chroma key.
-  bool enableChromaKey; // Chroma keying be performed. validValues => [true..false]
-  uint8_t chromaKeyIndex;  // ChromaKey Table entry. validValues => [0..3]
+    // Chroma key.
+    bool enableChromaKey; // Chroma keying be performed. validValues => [true..false]
+    uint8_t chromaKeyIndex;  // ChromaKey Table entry. validValues => [0..3]
 
-  // Skin tone settings.
-  bool enableSkinTone;              // SkinToneTunedIEF_Enable. validValues => [true..false]
-  bool enableVySkinToneDetection; // Enables STD in the VY subspace. validValues => [true..false]
-  bool skinDetailFactor;            // validValues => [true..false]
-  uint8_t skinTypesMargin;             // validValues => [0..255]
-  uint8_t skinTypesThreshold;          // validValues => [0..255]
+    // Skin tone settings.
+    bool enableSkinTone;              // SkinToneTunedIEF_Enable. validValues => [true..false]
+    bool enableVySkinToneDetection; // Enables STD in the VY subspace. validValues => [true..false]
+    bool skinDetailFactor;            // validValues => [true..false]
+    uint8_t skinTypesMargin;             // validValues => [0..255]
+    uint8_t skinTypesThreshold;          // validValues => [0..255]
 
-  // Miscellaneous settings.
-  uint8_t gainFactor;             // validValues => [0..63]
-  uint8_t globalNoiseEstimation; // validValues => [0..255]
-  bool mrBoost;                // validValues => [true..false]
-  uint8_t mrSmoothThreshold;     // validValues => [0..3]
-  uint8_t mrThreshold; 
-  bool steepnessBoost;         // validValues => [true..false]
-  uint8_t steepnessThreshold;     // validValues => [0..15]
-  bool textureCoordinateMode; // true: clamp, false: mirror. validValues => [true..false]  
-  uint8_t maxHue;                 // Rectangle half width. validValued => [0..63]
-  uint8_t maxSaturation;          // Rectangle half length. validValued => [0..63]
-  int angles;                   // validValued => [0..360]
-  uint8_t diamondMargin ;         // validValues => [0..7]
-  char diamondDu;              // Rhombus center shift in the sat-direction. validValues => [-64..63]
-  char diamondDv;              // Rhombus center shift in the hue-direction. validValues => [-64..63]
-  float diamondAlpha;          // validValues => [0.0..4.0]
-  uint8_t diamondThreshold;       // validValues => [0..63]
-  uint8_t rectangleMargin;        // validValues => [0..7]
-  uint8_t rectangleMidpoint[2];   // validValues => [[0..255, 0..255]]
-  float vyInverseMargin[2];   // validValues => [[0.0..1.0, 0.0..1.0]]
+    // Miscellaneous settings.
+    uint8_t gainFactor;             // validValues => [0..63]
+    uint8_t globalNoiseEstimation; // validValues => [0..255]
+    bool mrBoost;                // validValues => [true..false]
+    uint8_t mrSmoothThreshold;     // validValues => [0..3]
+    uint8_t mrThreshold;
+    bool steepnessBoost;         // validValues => [true..false]
+    uint8_t steepnessThreshold;     // validValues => [0..15]
+    bool textureCoordinateMode; // true: clamp, false: mirror. validValues => [true..false]
+    uint8_t maxHue;                 // Rectangle half width. validValued => [0..63]
+    uint8_t maxSaturation;          // Rectangle half length. validValued => [0..63]
+    int angles;                   // validValued => [0..360]
+    uint8_t diamondMargin ;         // validValues => [0..7]
+    char diamondDu;              // Rhombus center shift in the sat-direction. validValues => [-64..63]
+    char diamondDv;              // Rhombus center shift in the hue-direction. validValues => [-64..63]
+    float diamondAlpha;          // validValues => [0.0..4.0]
+    uint8_t diamondThreshold;       // validValues => [0..63]
+    uint8_t rectangleMargin;        // validValues => [0..7]
+    uint8_t rectangleMidpoint[2];   // validValues => [[0..255, 0..255]]
+    float vyInverseMargin[2];   // validValues => [[0.0..1.0, 0.0..1.0]]
 
-  // Piecewise linear function settings.
-  uint8_t piecewiseLinearYPoints[4];      // validValues => [[0..255, 0..255, 0..255, 0..255]]
-  float piecewiseLinearYSlopes[2];     // validValues => [[-4.0...4.0, -4.0...4.0]]
-  uint8_t piecewiseLinearPointsLower[4];  // validValues => [[0..255, 0..255, 0..255, 0..255]]
-  uint8_t piecewiseLinearPointsUpper[4];  // validValues => [[0..255, 0..255, 0..255, 0..255]]
-  float piecewiseLinearSlopesLower[4]; // validValues => [[-4.0...4.0, -4.0...4.0, -4.0...4.0, -4.0...4.0]]
-  float piecewiseLinearSlopesUpper[4]; // validValues => [[-4.0...4.0, -4.0...4.0, -4.0...4.0, -4.0...4.0]]
-  uint8_t piecewiseLinearBiasesLower[4];  // validValues => [[0..255, 0..255, 0..255, 0..255]]
-  uint8_t piecewiseLinearBiasesUpper[4];  // validValues => [[0..255, 0..255, 0..255, 0..255]]
+    // Piecewise linear function settings.
+    uint8_t piecewiseLinearYPoints[4];      // validValues => [[0..255, 0..255, 0..255, 0..255]]
+    float piecewiseLinearYSlopes[2];     // validValues => [[-4.0...4.0, -4.0...4.0]]
+    uint8_t piecewiseLinearPointsLower[4];  // validValues => [[0..255, 0..255, 0..255, 0..255]]
+    uint8_t piecewiseLinearPointsUpper[4];  // validValues => [[0..255, 0..255, 0..255, 0..255]]
+    float piecewiseLinearSlopesLower[4]; // validValues => [[-4.0...4.0, -4.0...4.0, -4.0...4.0, -4.0...4.0]]
+    float piecewiseLinearSlopesUpper[4]; // validValues => [[-4.0...4.0, -4.0...4.0, -4.0...4.0, -4.0...4.0]]
+    uint8_t piecewiseLinearBiasesLower[4];  // validValues => [[0..255, 0..255, 0..255, 0..255]]
+    uint8_t piecewiseLinearBiasesUpper[4];  // validValues => [[0..255, 0..255, 0..255, 0..255]]
 
-  // AVS non-pipelined states.
-  uint8_t defaultSharpnessLevel;   // default coefficient between smooth and sharp filtering. validValues => [0..255]
-  bool enableXAdaptiveFilter;  // validValues => [true, false]
-  bool enableYAdaptiveFilter;  // validValues => [true, false]
-  uint8_t maxDerivative4Pixels;   // lower boundary of the smooth 4 pixel area. validValues => [0..255]
-  uint8_t maxDerivative8Pixels;   // lower boundary of the smooth 8 pixel area. validValues => [0..255]
-  uint8_t transitionArea4Pixels;  // used in adaptive filtering to specify the width of the transition area for the 4 pixel calculation. validValues => [0..8]
-  uint8_t transitionArea8Pixels;  // Used in adaptive filtering to specify the width of the transition area for the 8 pixel calculation. validValues => [0..8]
-  CM_AVS_COEFF_TABLE table0X[CM_NUM_COEFF_ROWS_SKL];
-  CM_AVS_COEFF_TABLE table0Y[CM_NUM_COEFF_ROWS_SKL];
-  CM_AVS_COEFF_TABLE table1X[CM_NUM_COEFF_ROWS_SKL];
-  CM_AVS_COEFF_TABLE table1Y[CM_NUM_COEFF_ROWS_SKL];
+    // AVS non-pipelined states.
+    uint8_t defaultSharpnessLevel;   // default coefficient between smooth and sharp filtering. validValues => [0..255]
+    bool enableXAdaptiveFilter;  // validValues => [true, false]
+    bool enableYAdaptiveFilter;  // validValues => [true, false]
+    uint8_t maxDerivative4Pixels;   // lower boundary of the smooth 4 pixel area. validValues => [0..255]
+    uint8_t maxDerivative8Pixels;   // lower boundary of the smooth 8 pixel area. validValues => [0..255]
+    uint8_t transitionArea4Pixels;  // used in adaptive filtering to specify the width of the transition area for the 4 pixel calculation. validValues => [0..8]
+    uint8_t transitionArea8Pixels;  // Used in adaptive filtering to specify the width of the transition area for the 8 pixel calculation. validValues => [0..8]
+    CM_AVS_COEFF_TABLE table0X[CM_NUM_COEFF_ROWS_SKL];
+    CM_AVS_COEFF_TABLE table0Y[CM_NUM_COEFF_ROWS_SKL];
+    CM_AVS_COEFF_TABLE table1X[CM_NUM_COEFF_ROWS_SKL];
+    CM_AVS_COEFF_TABLE table1Y[CM_NUM_COEFF_ROWS_SKL];
 };
 
 /*
@@ -527,114 +525,114 @@ typedef struct _CM_MISC_STATE
     {
         struct
         {
-      uint32_t Row0      : 16;
-      uint32_t Reserved  : 8;
-      uint32_t Width     : 4;
-      uint32_t Height    : 4;
-    };
+            uint32_t Row0      : 16;
+            uint32_t Reserved  : 8;
+            uint32_t Width     : 4;
+            uint32_t Height    : 4;
+        };
         struct
         {
-      uint32_t value;
-    };
-  } DW0;
+            uint32_t value;
+        };
+    } DW0;
 
-  //uint32_t 1
+    //uint32_t 1
     union
     {
         struct
         {
-      uint32_t Row1      : 16;
-      uint32_t Row2      : 16;
-    };
+            uint32_t Row1      : 16;
+            uint32_t Row2      : 16;
+        };
         struct
         {
-      uint32_t value;
-    };
-  } DW1;
+            uint32_t value;
+        };
+    } DW1;
 
-  //uint32_t 2
+    //uint32_t 2
     union
     {
         struct
         {
-      uint32_t Row3      : 16;
-      uint32_t Row4      : 16;
-    };
+            uint32_t Row3      : 16;
+            uint32_t Row4      : 16;
+        };
         struct
         {
-      uint32_t value;
-    };
-  } DW2;
+            uint32_t value;
+        };
+    } DW2;
 
-  //uint32_t 3
+    //uint32_t 3
     union
     {
         struct
         {
-      uint32_t Row5      : 16;
-      uint32_t Row6      : 16;
-    };
+            uint32_t Row5      : 16;
+            uint32_t Row6      : 16;
+        };
         struct
         {
-      uint32_t value;
-    };
-  } DW3;
+            uint32_t value;
+        };
+    } DW3;
 
-  //uint32_t 4
+    //uint32_t 4
     union
     {
         struct
         {
-      uint32_t Row7      : 16;
-      uint32_t Row8      : 16;
-    };
+            uint32_t Row7      : 16;
+            uint32_t Row8      : 16;
+        };
         struct
         {
-      uint32_t value;
-    };
-  } DW4;
+            uint32_t value;
+        };
+    } DW4;
 
-  //uint32_t 5
+    //uint32_t 5
     union
     {
         struct
         {
-      uint32_t Row9      : 16;
-      uint32_t Row10      : 16;
-    };
+            uint32_t Row9       : 16;
+            uint32_t Row10      : 16;
+        };
         struct
         {
-      uint32_t value;
-    };
-  } DW5;
+            uint32_t value;
+        };
+    } DW5;
 
-  //uint32_t 6
+    //uint32_t 6
     union
     {
         struct
         {
-      uint32_t Row11      : 16;
-      uint32_t Row12      : 16;
-    };
+            uint32_t Row11      : 16;
+            uint32_t Row12      : 16;
+        };
         struct
         {
-      uint32_t value;
-    };
-  } DW6;
+            uint32_t value;
+        };
+    } DW6;
 
-  //uint32_t 7
+    //uint32_t 7
     union
     {
         struct
         {
-      uint32_t Row13      : 16;
-      uint32_t Row14      : 16;
-    };
+            uint32_t Row13      : 16;
+            uint32_t Row14      : 16;
+        };
         struct
         {
-      uint32_t value;
-    };
-  } DW7;
+            uint32_t value;
+        };
+    } DW7;
 } CM_MISC_STATE;
 
 /*
@@ -642,131 +640,131 @@ typedef struct _CM_MISC_STATE
  */
 typedef struct _CM_MISC_STATE_MSG
 {
-  //uint32_t 0
+    //uint32_t 0
     union
     {
         struct
         {
-      uint32_t Row0      : 16;
-      uint32_t Reserved  : 8;
-      uint32_t Width     : 4;
-      uint32_t Height    : 4;
-    };
+            uint32_t Row0      : 16;
+            uint32_t Reserved  : 8;
+            uint32_t Width     : 4;
+            uint32_t Height    : 4;
+        };
         struct
         {
-      uint32_t value;
-    };
-  }DW0;
+            uint32_t value;
+        };
+    }DW0;
 
-  //uint32_t 1
+    //uint32_t 1
     union
     {
         struct
         {
-      uint32_t Row1      : 16;
-      uint32_t Row2      : 16;
-    };
+            uint32_t Row1      : 16;
+            uint32_t Row2      : 16;
+        };
         struct
         {
-      uint32_t value;
-    };
-  } DW1;
+            uint32_t value;
+        };
+    } DW1;
 
-  //uint32_t 2
+    //uint32_t 2
     union
     {
         struct
         {
-      uint32_t Row3      : 16;
-      uint32_t Row4      : 16;
-    };
+            uint32_t Row3      : 16;
+            uint32_t Row4      : 16;
+        };
         struct
         {
-      uint32_t value;
-    };
-  } DW2;
+            uint32_t value;
+        };
+    } DW2;
 
-  //uint32_t 3
+    //uint32_t 3
     union
     {
         struct
         {
-      uint32_t Row5      : 16;
-      uint32_t Row6      : 16;
-    };
+            uint32_t Row5      : 16;
+            uint32_t Row6      : 16;
+        };
         struct
         {
-      uint32_t value;
-    };
-  } DW3;
+            uint32_t value;
+        };
+    } DW3;
 
-  //uint32_t 4
+    //uint32_t 4
     union
     {
         struct
         {
-      uint32_t Row7      : 16;
-      uint32_t Row8      : 16;
-    };
+            uint32_t Row7      : 16;
+            uint32_t Row8      : 16;
+        };
         struct
         {
-      uint32_t value;
-    };
-  } DW4;
+            uint32_t value;
+        };
+    } DW4;
 
-  //uint32_t 5
+    //uint32_t 5
     union
     {
         struct
         {
-      uint32_t Row9      : 16;
-      uint32_t Row10      : 16;
-    };
+            uint32_t Row9      : 16;
+            uint32_t Row10      : 16;
+        };
         struct
         {
-      uint32_t value;
-    };
-  } DW5;
+            uint32_t value;
+        };
+    } DW5;
 
-  //uint32_t 6
+    //uint32_t 6
     union
     {
         struct
         {
-      uint32_t Row11      : 16;
-      uint32_t Row12      : 16;
-    };
+            uint32_t Row11      : 16;
+            uint32_t Row12      : 16;
+        };
         struct
         {
-      uint32_t value;
-    };
-  } DW6;
+            uint32_t value;
+        };
+    } DW6;
 
-  //uint32_t 7
+    //uint32_t 7
     union
     {
         struct
         {
-      uint32_t Row13      : 16;
-      uint32_t Row14      : 16;
-    };
+            uint32_t Row13      : 16;
+            uint32_t Row14      : 16;
+        };
         struct
         {
-      uint32_t value;
-    };
-  } DW7;
+            uint32_t value;
+        };
+    } DW7;
 } CM_MISC_STATE_MSG;
 
 struct CM_SAMPLER_8X8_DESCR
 {
-  CM_SAMPLER_STATE_TYPE stateType;
+    CM_SAMPLER_STATE_TYPE stateType;
     union
     {
-    CM_AVS_STATE_MSG *avs;
-    CM_AVS_STATE_MSG_EX *avsEx;
-    CM_CONVOLVE_STATE_MSG *conv;
-    CM_MISC_STATE_MSG *misc; //ERODE/DILATE/MINMAX
-  };
+        CM_AVS_STATE_MSG *avs;
+        CM_AVS_STATE_MSG_EX *avsEx;
+        CM_CONVOLVE_STATE_MSG *conv;
+        CM_MISC_STATE_MSG *misc; //ERODE/DILATE/MINMAX
+    };
 };
 
 #endif  // #ifndef CMRTLIB_AGNOSTIC_SHARE_CM_DEF_H_

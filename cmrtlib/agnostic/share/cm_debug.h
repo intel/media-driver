@@ -44,7 +44,6 @@ inline void CmAssertMessage(const char *message) {
 #define CmDebugMessage(arg)
 #endif // _DEBUG
 
-
 #define CmReleaseMessage(arg) CmPrintMessage arg
 
 //*-----------------------------------------------------------------------------
@@ -88,7 +87,6 @@ inline void CmAssertMessage(const char *message) {
 }
 #endif
 
-
 #ifndef CHK_FAILURE_RETURN
 #define CHK_FAILURE_RETURN(ret)                                                           \
 {                                                                               \
@@ -103,7 +101,6 @@ inline void CmAssertMessage(const char *message) {
 typedef void* Handle;
 typedef Handle CmDeviceHandle;
 typedef Handle CmUmdDeviceHandle;
-
 
 int NotifyNewDevice(CmDeviceHandle deviceHandle, CmUmdDeviceHandle umdHandle, uint32_t driverStoreEnabled);
 int NotifyDeviceDestruction(CmDeviceHandle deviceHandle, uint32_t driverStoreEnabled);

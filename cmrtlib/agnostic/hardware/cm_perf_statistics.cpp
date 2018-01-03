@@ -33,10 +33,9 @@ CmPerfStatistics::CmPerfStatistics()
 
     m_perfStatisticFile   = nullptr;
     m_perfStatisticCount = 0;
-    
+
     m_profilerOn      = false;
     m_profilerLevel    = CM_RT_PERF_LOG_LEVEL_DEFAULT;
-
 
     GetProfilerLevel(); // get profiler level from env variable "CM_RT_PERF_LOG"
 
@@ -75,17 +74,17 @@ void CmPerfStatistics::InsertApiCallRecord(char *functionName, float time, LARGE
     CM_STRCPY(records->functionName, MSG_STRING_SIZE, functionName);
 
     m_apiCallRecords.push_back(records);
-    m_apiCallRecordCount++; 
+    m_apiCallRecordCount++;
 
     InsertPerfStatistic(records);
 
 }
 
-//Update Perf Statistic Array 
+//Update Perf Statistic Array
 void CmPerfStatistics::InsertPerfStatistic(ApiCallRecord *record)
 {
     uint32_t index = 0;
-    
+
     for( index = 0 ; index < m_perfStatisticCount ; index ++)
     {
         ApiPerfStatistic *perfStatisticRecords = m_perfStatisticRecords[index];
@@ -126,7 +125,7 @@ void CmPerfStatistics::DumpApiCallRecords()
     {
         return ;
     }
-    
+
     CM_FOPEN(m_apiCallFile, "CmPerfLog.csv", "wb");
     if(! m_apiCallFile )
     {
@@ -139,16 +138,16 @@ void CmPerfStatistics::DumpApiCallRecords()
     {
         ApiCallRecord *records = m_apiCallRecords[i];
 
-        fprintf(m_apiCallFile,  "%-40s  %lld \t %lld \t %fms \n", records->functionName, 
+        fprintf(m_apiCallFile,  "%-40s  %lld \t %lld \t %fms \n", records->functionName,
            records->startTime.QuadPart, records->endTime.QuadPart, records->duration);
 
         CmSafeRelease(records);
     }
-    
+
     m_apiCallRecords.clear();
 
     fclose(m_apiCallFile);
-    
+
 }
 
 //Dump Perf Statistic Records and Release m_perfStatisticRecords Array
@@ -158,7 +157,7 @@ void CmPerfStatistics::DumpPerfStatisticRecords()
     {
         return ;
     }
-    
+
     CM_FOPEN(m_perfStatisticFile, "CmPerfStatistics.txt","wb");
     if(!m_perfStatisticFile )
     {
@@ -171,16 +170,16 @@ void CmPerfStatistics::DumpPerfStatisticRecords()
     {
         ApiPerfStatistic *perfStatisticRecords = m_perfStatisticRecords[i];
 
-        fprintf(m_perfStatisticFile,  "%-40s %fms \t %d \n", perfStatisticRecords->functionName, 
+        fprintf(m_perfStatisticFile,  "%-40s %fms \t %d \n", perfStatisticRecords->functionName,
            perfStatisticRecords->time, perfStatisticRecords->callTimes);
 
         CmSafeRelease(perfStatisticRecords);
     }
-    
+
     m_perfStatisticRecords.clear();
 
     fclose(m_perfStatisticFile);
-    
+
 }
 
 bool CmPerfStatistics::IsProfilerOn()

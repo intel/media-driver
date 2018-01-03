@@ -43,11 +43,11 @@
 #ifdef CM_RT_EXPORTS
 #define CM_RT_API __attribute__((visibility("default")))
 #else
-#define CM_RT_API 
+#define CM_RT_API
 #endif
 
 #ifndef CM_NOINLINE
-  #define CM_NOINLINE __attribute__((noinline)) 
+  #define CM_NOINLINE __attribute__((noinline))
 #endif
 
 #define __cdecl

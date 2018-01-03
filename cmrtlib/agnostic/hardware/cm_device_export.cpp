@@ -66,7 +66,7 @@ CM_RT_API int32_t DestroyCmDevice(CmDevice* &device)
 //!             regarding the task execution. The generated event needs to
 //!             be managed and released by the user. 
 //!             To avoid generating an event, the user can set the event 
-//!             as CM_NO_EVENT and pass it to this function.      
+//!             as CM_NO_EVENT and pass it to this function.
 //! \param      [in] queue
 //!             Pointer to the CmQueue
 //! \param      [in] task

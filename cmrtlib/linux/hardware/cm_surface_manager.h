@@ -54,7 +54,6 @@ public:
 
     int32_t DestroySurface(CmSurface2D* &surface);
 
-
     int32_t CreateBuffer(uint32_t size, CmBuffer* &buffer);
 
     int32_t CreateBufferUP(uint32_t size,

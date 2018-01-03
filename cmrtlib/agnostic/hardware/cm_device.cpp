@@ -68,7 +68,6 @@ CM_RT_API int32_t CmDevice_RT::DestroyBufferUP(CmBufferUP* &buffer)
     return m_surfaceManager->DestroyBufferUP(buffer);
 }
 
-
 //!
 //! Create a CmSurface2D
 //! Input :
@@ -268,7 +267,6 @@ CM_RT_API int32_t CmDevice_RT::DestroyKernel( CmKernel*& kernel)
     return CM_SUCCESS;
 }
 
-
 CM_RT_API int32_t CmDevice_RT::CreateTask(CmTask *& task)
 {
     INSERT_PROFILER_RECORD();
@@ -412,7 +410,6 @@ CM_RT_API int32_t CmDevice_RT::DestroyThreadSpace( CmThreadSpace* &threadSpace)
     return CM_SUCCESS;
 }
 
-
 CM_RT_API int32_t CmDevice_RT::CreateVmeSurfaceG7_5( CmSurface2D* currentSurface,
                                                  CmSurface2D **forwardSurfaceArray,
                                                  CmSurface2D **backwardSurfaceArray,
@@ -455,7 +452,6 @@ CM_RT_API int32_t CmDevice_RT::SetVmeSurfaceStateParam(SurfaceIndex* vmeIndex, C
 
     return inParam.returnValue;
 }
-
 
 CM_RT_API int32_t CmDevice_RT::CreateSampler( const CM_SAMPLER_STATE& samplerState, CmSampler* &sampler )
 {
@@ -534,7 +530,6 @@ CM_RT_API int32_t CmDevice_RT::CreateThreadGroupSpace( uint32_t threadSpaceWidth
     return CM_SUCCESS;
 }
 
-
 CM_RT_API int32_t CmDevice_RT::CreateThreadGroupSpaceEx(uint32_t threadSpaceWidth, uint32_t threadSpaceHeight, uint32_t threadSpaceDepth, uint32_t groupSpaceWidth, uint32_t groupSpaceHeight, uint32_t groupSpaceDepth, CmThreadGroupSpace* &threadGroupSpace)
 {
     INSERT_PROFILER_RECORD();
@@ -557,7 +552,6 @@ CM_RT_API int32_t CmDevice_RT::CreateThreadGroupSpaceEx(uint32_t threadSpaceWidt
 
     return CM_SUCCESS;
 }
-
 
 CM_RT_API int32_t CmDevice_RT::DestroyThreadGroupSpace(CmThreadGroupSpace* &threadGroupSpace)
 {
@@ -729,7 +723,6 @@ CM_RT_API int32_t CmDevice_RT::DestroySampler8x8( CmSampler8x8 *& sampler8x8 )
      samplerSurface2dIndex = (SurfaceIndex*)inParam.samplerSurfIndexHandle;
      return CM_SUCCESS;
  }
-
 
 CM_RT_API int32_t CmDevice_RT::DestroySampler8x8Surface(SurfaceIndex* &sampler8x8SurfaceIndex)
 {
@@ -1019,8 +1012,6 @@ CM_RT_API int32_t CmDevice_RT::CreateVebox( CmVebox* & vebox )
     return CM_SUCCESS;
 }
 
-
-
 CM_RT_API int32_t CmDevice_RT::DestroyVebox( CmVebox* & vebox )
 {
     INSERT_PROFILER_RECORD();
@@ -1091,7 +1082,6 @@ CM_RT_API int32_t CmDevice_RT::CreateBufferAlias(CmBuffer *originalBuffer, Surfa
 
     return CM_SUCCESS;
 }
-
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Duplicate the kernel member values

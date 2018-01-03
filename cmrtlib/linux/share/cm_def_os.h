@@ -44,7 +44,7 @@
 #define CM_STRNCPY(dst, sizeOfDst, src, count) strncpy(dst, src, count)
 #define CM_STRCAT(dst, sizeOfDst, src)       strcat(dst, src)
 #define CM_GETENV(dst, name) dst = getenv(name)
-#define CM_GETENV_FREE(dst) 
+#define CM_GETENV_FREE(dst)
 #define CM_FOPEN(pFile, filename, mode) pFile = fopen(filename, mode)
 
 #ifdef __cplusplus
@@ -54,7 +54,7 @@
 #endif
 
 #define SUCCEEDED(hr)   (hr == VA_STATUS_SUCCESS)
-#define FAILED(hr)      (hr != VA_STATUS_SUCCESS) 
+#define FAILED(hr)      (hr != VA_STATUS_SUCCESS)
 
 typedef enum _VACMTEXTUREADDRESS {
     VACMTADDRESS_WRAP            = 1,
@@ -116,7 +116,7 @@ typedef enum _VA_CM_FORMAT {
     VA_CM_FMT_422H                 = VA_FOURCC_422H,
     VA_CM_FMT_422V                 = VA_FOURCC_422V,
     VA_CM_FMT_IMC3                 = VA_FOURCC_IMC3,
-    VA_CM_FMT_YV12                 = VA_FOURCC_YV12,    
+    VA_CM_FMT_YV12                 = VA_FOURCC_YV12,
     VA_CM_FMT_P010                 = VA_FOURCC_P010,
     VA_CM_FMT_P016                 = VA_FOURCC_P016,
 
@@ -143,7 +143,7 @@ typedef enum _VA_CM_FORMAT {
 #define CM_SURFACE_FORMAT_D16                   VA_CM_FMT_D16
 #define CM_SURFACE_FORMAT_L16                   VA_CM_FMT_L16
 #define CM_SURFACE_FORMAT_A16B16G16R16          VA_CM_FMT_A16B16G16R16
-#define CM_SURFACE_FORMAT_R10G10B10A2           VA_CM_FMT_A2B10G10R10 
+#define CM_SURFACE_FORMAT_R10G10B10A2           VA_CM_FMT_A2B10G10R10
 #define CM_SURFACE_FORMAT_A16B16G16R16F         VA_CM_FMT_A16B16G16R16F
 
 #define CM_SURFACE_FORMAT_444P                  VA_CM_FMT_444P
@@ -197,8 +197,8 @@ private:
 };
 
 //The communication function for CM to call into UMD,  get function pointer by libVA::vaGetLibFunc()
-typedef VAStatus (__cdecl *pvaCmExtSendReqMsg)(VADisplay dpy, void *moduleType, 
-                                             uint32_t *inputFunId,  void *inputData,  uint32_t *inputDataLen, 
+typedef VAStatus (__cdecl *pvaCmExtSendReqMsg)(VADisplay dpy, void *moduleType,
+                                             uint32_t *inputFunId,  void *inputData,  uint32_t *inputDataLen,
                          uint32_t *outputFunId, void *outputData, uint32_t *outputDataLen);
 
 typedef struct _CM_CREATESURFACE2D_PARAM
@@ -209,7 +209,7 @@ typedef struct _CM_CREATESURFACE2D_PARAM
     union
     {
         uint32_t index2DinLookupTable;       // [in] surface 2d's index in look up table.
-        uint32_t vaSurfaceID;              // [in] libva-surface 2d's index in media driver 
+        uint32_t vaSurfaceID;              // [in] libva-surface 2d's index in media driver
     };
     VASurfaceID *vaSurface;                  // [in] Pointer to a Libva Surface.
     void        *cmSurface2DHandle;         // [out] pointer of CmSurface2D used in driver
@@ -221,22 +221,22 @@ typedef struct _CM_CREATESURFACE2D_PARAM
 
 //The communication function for CM to call into UMD,  get function pointer by libVA::vaGetLibFunc()
 typedef VAStatus (__cdecl *pvaCmExtSendReqMsg)(
-                            VADisplay dpy, 
+                            VADisplay dpy,
                             void *moduleType,
-                            uint32_t *inputFunId,   
-                            void *inputData,  
+                            uint32_t *inputFunId,
+                            void *inputData,
                             uint32_t *inputDataLen,
-                            uint32_t *outputFunId,  
-                            void *outputData, 
+                            uint32_t *outputFunId,
+                            void *outputData,
                             uint32_t *outputDataLen);
 
 typedef VADisplay (*pfVAGetDisplayDRM) (int32_t fd);    //vaGetDisplayDRM from libva-drm.so
-typedef Display* (*pfVAOpenDisplayX11)(); 
-typedef VADisplay (*pfVAGetDisplayX11)(Display *dpy); 
-typedef void (*pfCloseDisplayX11) (Display *dpy); 
+typedef Display* (*pfVAOpenDisplayX11)();
+typedef VADisplay (*pfVAGetDisplayX11)(Display *dpy);
+typedef void (*pfCloseDisplayX11) (Display *dpy);
 
 #ifndef CMRT_NOINLINE
-#define CMRT_NOINLINE __attribute__((noinline)) 
+#define CMRT_NOINLINE __attribute__((noinline))
 #endif
 
 #ifdef _DEBUG

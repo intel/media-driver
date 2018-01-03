@@ -253,7 +253,7 @@ int32_t CmSurfaceManager::CreateVaSurface2D(uint32_t width,
     surfaceAttrib.flags = VA_SURFACE_ATTRIB_SETTABLE;
     surfaceAttrib.value.value.i = vaFormat;
 
-    // since no 10-bit format is supported in MDF, 
+    // since no 10-bit format is supported in MDF,
     // the VA_RT_FORMAT_YUV420 will be overwritten
     // by the format in attribute
     vaStatus = vaCreateSurfaces(*dpy, VA_RT_FORMAT_YUV420, width, height, &vaSurface, 1,

@@ -47,7 +47,7 @@ public:
     CM_RT_API int32_t DestroySurface( CmSurface2D* &surface2d);
     CM_RT_API int32_t DestroySurface( CmSurface3D* &surface3d);
 
-    CM_RT_API int32_t CreateQueue( CmQueue* & queue); 
+    CM_RT_API int32_t CreateQueue( CmQueue* & queue);
 
     CM_RT_API int32_t LoadProgram( void* commonISACode, const uint32_t size, CmProgram*& program,  const char* options = nullptr );
 
@@ -56,14 +56,14 @@ public:
     CM_RT_API int32_t CreateSampler( const CM_SAMPLER_STATE & sampleState, CmSampler* &sampler );
 
     CM_RT_API int32_t CreateTask(CmTask *& task);
-    CM_RT_API int32_t GetCaps(CM_DEVICE_CAP_NAME capName, size_t& capValueSize, void* capValue );  
-    CM_RT_API int32_t CreateThreadSpace( uint32_t width, uint32_t height, CmThreadSpace* &threadSpace);  
+    CM_RT_API int32_t GetCaps(CM_DEVICE_CAP_NAME capName, size_t& capValueSize, void* capValue );
+    CM_RT_API int32_t CreateThreadSpace( uint32_t width, uint32_t height, CmThreadSpace* &threadSpace);
 
     CM_RT_API int32_t DestroyKernel( CmKernel*& kernel);
     CM_RT_API int32_t DestroySampler( CmSampler*& sampler );
     CM_RT_API int32_t DestroyProgram( CmProgram*& program );
-    CM_RT_API int32_t DestroySampler8x8( CmSampler8x8 *& sampler );  
-    CM_RT_API int32_t DestroyThreadSpace( CmThreadSpace* &threadSpace); 
+    CM_RT_API int32_t DestroySampler8x8( CmSampler8x8 *& sampler );
+    CM_RT_API int32_t DestroyThreadSpace( CmThreadSpace* &threadSpace);
     CM_RT_API int32_t DestroyTask(CmTask *& task);
 
     CM_RT_API int32_t CreateVmeSurfaceG7_5 (CmSurface2D* currentSurface, CmSurface2D** forwardSurfaceArray, CmSurface2D** backwardSurfaceArray, const uint32_t surfaceCountForward, const uint32_t surfaceCountBackward, SurfaceIndex* & vmeSurfaceIndex );
@@ -81,14 +81,13 @@ public:
     CM_RT_API int32_t CreateSampler8x8Surface(CmSurface2D* surface2d, SurfaceIndex* &sampler8x8SurfaceIndex, CM_SAMPLER8x8_SURFACE surfaceType, CM_SURFACE_ADDRESS_CONTROL_MODE addressControl = CM_SURFACE_CLAMP);
     CM_RT_API int32_t DestroySampler8x8Surface(SurfaceIndex* &sampler8x8SurfaceIndex);
 
-
     CM_RT_API int32_t CreateThreadGroupSpace( uint32_t threadSpaceWidth, uint32_t threadSpaceHeight, uint32_t groupSpaceWidth, uint32_t groupSpaceHeight, CmThreadGroupSpace* &threadGroupSpace);
     CM_RT_API int32_t DestroyThreadGroupSpace(CmThreadGroupSpace* &threadGroupSpace);
 
     CM_RT_API int32_t SetL3Config(const L3ConfigRegisterValues *registerValues);
     CM_RT_API int32_t SetSuggestedL3Config( L3_SUGGEST_CONFIG configIndex);
 
-    CM_RT_API int32_t SetCaps(CM_DEVICE_CAP_NAME capName, size_t capValueSize, void* capValue );  
+    CM_RT_API int32_t SetCaps(CM_DEVICE_CAP_NAME capName, size_t capValueSize, void* capValue );
 
     CM_RT_API int32_t CreateSamplerSurface2D(CmSurface2D* surface2d, SurfaceIndex* & samplerSurface2dIndex);
     CM_RT_API int32_t CreateSamplerSurface3D(CmSurface3D* surface3d, SurfaceIndex* & samplerSurface3dIndex);
@@ -98,9 +97,8 @@ public:
 
     CM_RT_API int32_t FlushPrintBuffer();
 
-    CM_RT_API int32_t CreateVebox( CmVebox* & vebox ); 
+    CM_RT_API int32_t CreateVebox( CmVebox* & vebox );
     CM_RT_API int32_t DestroyVebox(CmVebox* & vebox);
-
 
     CM_RT_API int32_t CreateBufferSVM(uint32_t size, void* & sysMem, uint32_t accessFlag, CmBufferSVM* &buffer );
     CM_RT_API int32_t DestroyBufferSVM( CmBufferSVM* & buffer);
@@ -144,13 +142,13 @@ protected:
     );
 
     ~CmDevice_RT( void );
-    
+
     int32_t SetCapsInternal(CM_DEVICE_CAP_NAME capName, size_t capValueSize, void* capValue);
 
     int32_t CreateQueue_Internel( void );
 
     int32_t CreateProgram(void* commonISACode,
-                          const uint32_t size, 
+                          const uint32_t size,
                           CmProgram*& program,
                           const char* options );
 
@@ -163,7 +161,7 @@ protected:
 
     uint32_t m_cmVersion;
     void    *m_deviceInUmd;    //CmDevice pointer in UMD
-    bool    m_cmCreated; 
+    bool    m_cmCreated;
 
     int32_t Initialize(bool isCmCreated);
     int32_t FreeResources();
@@ -180,18 +178,17 @@ protected:
 #endif
     int32_t InitializeLibvaDisplay( void );
     Display*  m_display ;     // for Android
-    pvaCmExtSendReqMsg    m_fvaCmExtSendReqMsg; //for Linux/Android 
+    pvaCmExtSendReqMsg    m_fvaCmExtSendReqMsg; //for Linux/Android
     VADisplay m_vaDisplay;    //for Android + Linux
 
     // Static variables for libva drm
-#if !defined(ANDROID) 
+#if !defined(ANDROID)
     static uint32_t m_vaReferenceCount;
     static CSync m_vaReferenceCountCriticalSection;
     int32_t m_driFileDescriptor;
     static void  *m_vaDrm;
     static pfVAGetDisplayDRM m_vaGetDisplayDrm;
 #endif
-
 
     L3ConfigRegisterValues m_l3Config;
 

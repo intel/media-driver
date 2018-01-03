@@ -27,8 +27,8 @@
 #include <new>
 #include "cm_debug.h"
 
-#define CmSafeDeleteArray(_ptr) {if(_ptr) {delete[] (_ptr); (_ptr)=0;}}  
-#define CmSafeRelease(_ptr)     {if(_ptr) {delete (_ptr); (_ptr)=0;}}  
+#define CmSafeDeleteArray(_ptr) {if(_ptr) {delete[] (_ptr); (_ptr)=0;}}
+#define CmSafeRelease(_ptr)     {if(_ptr) {delete (_ptr); (_ptr)=0;}}
 
 /*****************************************************************************\
 Inline Function:

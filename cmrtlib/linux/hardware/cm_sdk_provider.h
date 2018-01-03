@@ -24,5 +24,3 @@
 #ifndef EventRegisterMDF_PROVIDER
 #define EventRegisterMDF_PROVIDER()
 #endif
-
-
