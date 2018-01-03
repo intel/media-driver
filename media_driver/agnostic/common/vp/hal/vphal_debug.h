@@ -455,7 +455,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    MOS_STATUS DumpSurface(
+    virtual MOS_STATUS DumpSurface(
         PVPHAL_SURFACE                  pSurf,
         uint32_t                        uiFrameNumber,
         uint32_t                        uiCounter,
@@ -519,8 +519,9 @@ protected:
         uint32_t                        Location,
         char*                           pcLocString);
 
-private:
     PMOS_INTERFACE              m_osInterface;
+
+private:
 
     //!
     //! \brief    Get plane information of a surface
