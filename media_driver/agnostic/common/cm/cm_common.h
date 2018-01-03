@@ -30,9 +30,6 @@
 #include "mhw_mi.h"
 #include "cm_innerdef_os.h"
 #include <list>
-#if USE_EXTENSION_CODE
-#include "cm_private.h"
-#endif
 
 // this marco is used to remove warning from clang to unused parameters
 // which is harmless and useless but to make clang happy
@@ -509,7 +506,6 @@ typedef struct _CM_WALKING_PARAMETERS
 #define  CM_TURBO_BOOST_ENABLE                1
 #define  CM_TURBO_BOOST_DEFAULT              CM_TURBO_BOOST_ENABLE
 
-#if !(USE_EXTENSION_CODE)
 typedef struct _CM_TASK_CONFIG
 {
     uint32_t turboBoostFlag;         //CM_TURBO_BOOST_DISABLE----disabled, CM_TURBO_BOOST_ENABLE--------enabled.
@@ -517,8 +513,6 @@ typedef struct _CM_TASK_CONFIG
     uint32_t reserved1;
     uint32_t reserved2;              //reserve 2 uint32_t fields for future extention
 }CM_TASK_CONFIG, *PCM_TASK_CONFIG;
-#endif
-
 
 struct L3ConfigRegisterValues
 {
