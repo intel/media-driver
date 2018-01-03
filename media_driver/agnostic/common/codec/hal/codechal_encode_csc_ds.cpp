@@ -1012,6 +1012,58 @@ MOS_STATUS CodechalEncodeCscDs::CheckCondition()
     return eStatus;
 }
 
+MOS_STATUS CodechalEncodeCscDs::CheckReconSurfaceAlignment(PMOS_SURFACE surface)
+{
+	CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    uint8_t alignment;
+    if (m_standard == CODECHAL_HEVC ||
+        m_standard == CODECHAL_VP9)
+    {
+        alignment = m_hcpReconSurfAlignment;
+    }
+    else
+    {
+        alignment = m_mfxReconSurfAlignment;
+    }
+
+	MOS_SURFACE resDetails;
+	MOS_ZeroMemory(&resDetails, sizeof(resDetails));
+	resDetails.Format = Format_Invalid;
+	CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, &surface->OsResource, &resDetails));
+
+	if (resDetails.dwHeight % alignment)
+	{
+		CODECHAL_ENCODE_ASSERTMESSAGE("Recon surface alignment does not meet HW requirement!");
+		return MOS_STATUS_INVALID_PARAMETER;
+	}
+
+	return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalEncodeCscDs::CheckRawSurfaceAlignment(PMOS_SURFACE surface)
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    MOS_SURFACE resDetails;
+    MOS_ZeroMemory(&resDetails, sizeof(resDetails));
+    resDetails.Format = Format_Invalid;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, &surface->OsResource, &resDetails));
+
+    if (resDetails.dwHeight % m_rawSurfAlignment)
+    {
+        CODECHAL_ENCODE_ASSERTMESSAGE("Raw surface alignment does not meet HW requirement!");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+void CodechalEncodeCscDs::SetHcpReconAlignment(uint8_t alignment)
+{
+    m_hcpReconSurfAlignment = alignment;
+}
+
 MOS_STATUS CodechalEncodeCscDs::WaitCscSurface(MOS_GPU_CONTEXT gpuContext, bool readOnly)
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;

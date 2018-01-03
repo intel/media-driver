@@ -315,6 +315,30 @@ public:
     //!
     MOS_STATUS CheckCondition();
 
+	//!
+	//! \brief    Check if recon surface's alignment meet HW requirement
+	//!
+	//! \return   MOS_STATUS
+	//!           MOS_STATUS_SUCCESS if success, else fail reason
+	//!
+	MOS_STATUS CheckReconSurfaceAlignment(PMOS_SURFACE surface);
+
+    //!
+    //! \brief    Check if raw surface's alignment meet HW requirement
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS CheckRawSurfaceAlignment(PMOS_SURFACE surface);
+
+    //!
+    //! \brief    Set HCP recon surface alignment
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    void SetHcpReconAlignment(uint8_t alignment);
+
     //!
     //! \brief    On-demand sync for the CSC output surface before use
     //!
@@ -539,7 +563,9 @@ protected:
         uint8_t                 m_cscFlag;                                                  //!< the actual CSC/Copy operation to be performed for raw surface
     };
 
-    uint32_t                    m_rawSurfAlignment = 4;                                     //!< Raw surface alignment
+	uint8_t                     m_rawSurfAlignment = 4;                                     //!< Raw surface alignment
+	uint8_t                     m_mfxReconSurfAlignment = 16;                               //!< Recon surface alignment for MFX engine
+	uint8_t                     m_hcpReconSurfAlignment = 8;                                //!< Recon surface alignment for HCP engine
     uint32_t                    m_cscRawSurfWidth = 0;                                      //!< Raw surface allocation width
     uint32_t                    m_cscRawSurfHeight = 0;                                     //!< Raw surface allocation height
     uint32_t                    m_walkerResolutionX = 0;                                    //!< Media walker resolution X

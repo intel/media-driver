@@ -2125,6 +2125,11 @@ MOS_STATUS CodechalEncodeHevcBase::InitializePicture(const EncoderParams& params
     if (m_newSeq)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SetSequenceStructs());
+
+        if (m_hevcSeqParams->log2_min_coding_block_size_minus3)
+        {
+            m_cscDsState->SetHcpReconAlignment(1 << (m_hevcSeqParams->log2_min_coding_block_size_minus3 + 3));
+        }
     }
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetPictureStructs());

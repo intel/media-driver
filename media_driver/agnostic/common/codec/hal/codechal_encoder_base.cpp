@@ -1174,11 +1174,18 @@ MOS_STATUS CodechalEncoderState::CheckResChangeAndCsc()
         ResizeOnResChange();
     }
 #ifndef _FULL_OPEN_SOURCE
+    // check recon surface's alignment meet HW requirement
+	CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->CheckReconSurfaceAlignment(&m_reconSurface));
+
     if (!m_cscDsState->IsEnabled() ||
         CodecHal_PictureIsField(m_currOriginalPic) ||
         CodecHal_PictureIsInterlacedFrame(m_currOriginalPic))
     {
+        // CSC disabled for interlaced frame
         m_cscDsState->ResetCscFlag();
+
+        // check raw surface's alignment meet HW requirement
+		CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->CheckRawSurfaceAlignment(m_rawSurfaceToEnc));
     }
     else
     {
