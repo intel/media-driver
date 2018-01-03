@@ -86,9 +86,16 @@ public:
     //!
     //! \return the current MV temporal buffer
     //!
-    inline MOS_RESOURCE* GetCurrMvTemporalBuffer()
+    MOS_RESOURCE* GetMvTemporalBuffer(uint8_t bufIndex)
     {
-        return m_trackedBufCurrMvTemporal;
+        if (bufIndex == CODEC_CURR_TRACKED_BUFFER)
+        {
+            return m_trackedBufCurrMvTemporal;
+        }
+        else
+        {
+            return  (MOS_RESOURCE*)m_allocator->GetResource(m_standard, mvTemporalBuffer, bufIndex);
+        }
     }
 
     //!
@@ -174,9 +181,16 @@ public:
     //!
     //! \return the current 4x DsRecon buffer
     //!
-    inline MOS_SURFACE* GetCurr4xDsReconSurface()
+    inline MOS_SURFACE* Get4xDsReconSurface(uint8_t bufIndex)
     {
-        return m_trackedBufCurr4xDsRecon;
+        if (bufIndex == CODEC_CURR_TRACKED_BUFFER)
+        {
+            return m_trackedBufCurr4xDsRecon;
+        }
+        else
+        {
+            return (MOS_SURFACE*)m_allocator->GetResource(m_standard, ds4xRecon, bufIndex);
+        }
     }
 
     //!
@@ -184,9 +198,16 @@ public:
     //!
     //! \return the current 8x DsRecon buffer
     //!
-    inline MOS_SURFACE* GetCurr8xDsReconSurface()
+    inline MOS_SURFACE* Get8xDsReconSurface(uint8_t bufIndex)
     {
-        return m_trackedBufCurr8xDsRecon;
+        if (bufIndex == CODEC_CURR_TRACKED_BUFFER)
+        {
+            return m_trackedBufCurr8xDsRecon;
+        }
+        else
+        {
+            return (MOS_SURFACE*)m_allocator->GetResource(m_standard, ds8xRecon, bufIndex);
+        }
     }
 
     //!

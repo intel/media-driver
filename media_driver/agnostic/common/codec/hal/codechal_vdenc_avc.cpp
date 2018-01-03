@@ -3634,7 +3634,7 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
     MOS_ZeroMemory(&dsSurfaceParams, sizeof(dsSurfaceParams));
     dsSurfaceParams.Mode = m_mode;
     dsSurfaceParams.ucSurfaceStateId = CODECHAL_MFX_DSRECON_SURFACE_ID;
-    dsSurfaceParams.psSurface = (MOS_SURFACE*)m_allocator->GetResource(m_standard, ds4xRecon, m_currScalingIdx);
+    dsSurfaceParams.psSurface = m_trackedBuf->Get4xDsReconSurface(CODEC_CURR_TRACKED_BUFFER);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxSurfaceCmd(&cmdBuffer, &dsSurfaceParams));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(AddMfxPipeBufAddrCmd(&cmdBuffer, &pipeBufAddrParams));
 
@@ -5112,7 +5112,7 @@ MOS_STATUS CodechalVdencAvcState::SetMfxPipeBufAddrStateParams(
 {
     MOS_STATUS eStatus = CodechalEncodeAvcBase::SetMfxPipeBufAddrStateParams(genericParam, param);
 
-    param.ps4xDsSurface                         = (MOS_SURFACE*)m_allocator->GetResource(m_standard, ds4xRecon, m_currScalingIdx);
+    param.ps4xDsSurface                         = m_trackedBuf->Get4xDsReconSurface(CODEC_CURR_TRACKED_BUFFER);
     param.presVdencIntraRowStoreScratchBuffer   = &m_vdencIntraRowStoreScratchBuffer;
     param.presVdencStreamOutBuffer              = &m_vdencStatsBuffer;
     param.presStreamOutBuffer                   = &m_pakStatsBuffer;
@@ -5134,7 +5134,7 @@ MOS_STATUS CodechalVdencAvcState::SetMfxPipeBufAddrStateParams(
                 auto refPicIdx = m_picIdx[refPic.FrameIdx].ucPicIdx;
                 param.presVdencReferences[refIdx] = &m_refList[refPicIdx]->sRefReconBuffer.OsResource;
                 param.presVdenc4xDsSurface[refIdx] =
-                    &((MOS_SURFACE*)m_allocator->GetResource(m_standard, ds4xRecon, m_refList[refPicIdx]->ucScalingIdx))->OsResource;
+                    &(m_trackedBuf->Get4xDsReconSurface(m_refList[refPicIdx]->ucScalingIdx))->OsResource;
             }
         }
     }

@@ -7344,7 +7344,7 @@ MOS_STATUS CodechalEncHevcStateG9::Encode8x8PBMbEncKernel()
             &cmdBuffer,
             SURFACE_COL_MB_MV,
             &bindingTable->dwBindingTableEntries[startBTI++],
-            (MOS_RESOURCE*)m_allocator->GetResource(m_standard, mvTemporalBuffer, mbCodeIdxForTempMVP)));
+            m_trackedBuf->GetMvTemporalBuffer(mbCodeIdxForTempMVP)));
         }
 
     // 12: Current frame col-located data surface -- reserved now
@@ -9616,7 +9616,7 @@ MOS_STATUS CodechalEncHevcStateG9::AddHcpPipeBufAddrCmd(PMOS_COMMAND_BUFFER cmdB
     pipeBufAddrParams.presSaoLineBuffer             = &m_resSaoLineBuffer;
     pipeBufAddrParams.presSaoTileLineBuffer         = &m_resSaoTileLineBuffer;
     pipeBufAddrParams.presSaoTileColumnBuffer       = &m_resSaoTileColumnBuffer;
-    pipeBufAddrParams.presCurMvTempBuffer = m_trackedBuf->GetCurrMvTemporalBuffer();
+    pipeBufAddrParams.presCurMvTempBuffer = m_trackedBuf->GetMvTemporalBuffer(CODEC_CURR_TRACKED_BUFFER);
     pipeBufAddrParams.presLcuBaseAddressBuffer      = &m_resLcuBaseAddressBuffer;
     pipeBufAddrParams.presLcuILDBStreamOutBuffer    = &m_resLcuIldbStreamOutBuffer;
     pipeBufAddrParams.presSaoStreamOutBuffer        = &m_resSaoStreamOutBuffer;
@@ -9655,8 +9655,7 @@ MOS_STATUS CodechalEncHevcStateG9::AddHcpPipeBufAddrCmd(PMOS_COMMAND_BUFFER cmdB
             pipeBufAddrParams.presReferences[frameStoreId] = &(m_refList[idx]->sRefReconBuffer.OsResource);
 
             uint8_t refMbCodeIdx = m_refList[idx]->ucScalingIdx;
-            pipeBufAddrParams.presColMvTempBuffer[frameStoreId] = 
-                (MOS_RESOURCE*)m_allocator->GetResource(m_standard, mvTemporalBuffer, refMbCodeIdx);
+            pipeBufAddrParams.presColMvTempBuffer[frameStoreId] = m_trackedBuf->GetMvTemporalBuffer(refMbCodeIdx);
         }
     }
 

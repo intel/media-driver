@@ -1238,14 +1238,14 @@ void CodechalVdencHevcState::SetVdencSurfaceStateParams(
     // VDENC_DS_REF_SURFACE_STATE parameters
     MOS_ZeroMemory(&ds8xSurfaceParams, sizeof(ds8xSurfaceParams));
     ds8xSurfaceParams.Mode = CODECHAL_ENCODE_MODE_HEVC;
-    ds8xSurfaceParams.psSurface = m_trackedBuf->GetCurr8xDsReconSurface();
+    ds8xSurfaceParams.psSurface = m_trackedBuf->Get8xDsReconSurface(CODEC_CURR_TRACKED_BUFFER);
     ds8xSurfaceParams.ucSurfaceStateId = CODECHAL_MFX_DSRECON_SURFACE_ID;
     ds8xSurfaceParams.dwActualWidth = ds8xSurfaceParams.psSurface->dwWidth;
     ds8xSurfaceParams.dwActualHeight = ds8xSurfaceParams.psSurface->dwHeight;
 
     MOS_ZeroMemory(&ds4xSurfaceParams, sizeof(ds4xSurfaceParams));
     ds4xSurfaceParams.Mode = CODECHAL_ENCODE_MODE_HEVC;
-    ds4xSurfaceParams.psSurface = m_trackedBuf->GetCurr4xDsReconSurface();
+    ds4xSurfaceParams.psSurface = m_trackedBuf->Get4xDsReconSurface(CODEC_CURR_TRACKED_BUFFER);
     ds4xSurfaceParams.ucSurfaceStateId = CODECHAL_MFX_DSRECON_SURFACE_ID;
     ds4xSurfaceParams.dwActualWidth = ds4xSurfaceParams.psSurface->dwWidth;
     ds4xSurfaceParams.dwActualHeight = ds4xSurfaceParams.psSurface->dwHeight;
@@ -1257,15 +1257,15 @@ void CodechalVdencHevcState::SetVdencPipeBufAddrParams(
     MOS_ZeroMemory(&pipeBufAddrParams, sizeof(pipeBufAddrParams));
     pipeBufAddrParams.Mode = CODECHAL_ENCODE_MODE_HEVC;
     pipeBufAddrParams.psRawSurface = m_rawSurfaceToPak;
-    pipeBufAddrParams.ps4xDsSurface = m_trackedBuf->GetCurr4xDsReconSurface();
-    pipeBufAddrParams.ps8xDsSurface = m_trackedBuf->GetCurr8xDsReconSurface();
+    pipeBufAddrParams.ps4xDsSurface = m_trackedBuf->Get4xDsReconSurface(CODEC_CURR_TRACKED_BUFFER);
+    pipeBufAddrParams.ps8xDsSurface = m_trackedBuf->Get8xDsReconSurface(CODEC_CURR_TRACKED_BUFFER);
     pipeBufAddrParams.presVdencStreamOutBuffer = (MOS_RESOURCE*)m_allocator->GetResource(m_standard, vdencStats);
     pipeBufAddrParams.dwVdencStatsStreamOutOffset =  0;
     pipeBufAddrParams.presVdencIntraRowStoreScratchBuffer = (MOS_RESOURCE*)m_allocator->GetResource(m_standard, vdencIntraRowStoreScratch);
     pipeBufAddrParams.presVdencPakObjCmdStreamOutBuffer = m_resVdencPakObjCmdStreamOutBuffer = &m_resMbCodeSurface;
     pipeBufAddrParams.dwNumRefIdxL0ActiveMinus1                                              = m_hevcSliceParams->num_ref_idx_l0_active_minus1;
     pipeBufAddrParams.dwNumRefIdxL1ActiveMinus1                                              = m_hevcSliceParams->num_ref_idx_l1_active_minus1;
-    pipeBufAddrParams.presColMvTempBuffer[0] = m_trackedBuf->GetCurrMvTemporalBuffer();
+    pipeBufAddrParams.presColMvTempBuffer[0] = m_trackedBuf->GetMvTemporalBuffer(CODEC_CURR_TRACKED_BUFFER);
 
     if (m_vdencStreamInEnabled)
     {
@@ -1292,8 +1292,8 @@ void CodechalVdencHevcState::SetVdencPipeBufAddrParams(
 
             // 4x/8x DS surface for VDEnc
             uint8_t scaledIdx                              = m_refList[refPicIdx]->ucScalingIdx;
-            pipeBufAddrParams.presVdenc4xDsSurface[refIdx] = &((MOS_SURFACE*)m_allocator->GetResource(m_standard, ds4xRecon, scaledIdx))->OsResource;
-            pipeBufAddrParams.presVdenc8xDsSurface[refIdx] = &((MOS_SURFACE*)m_allocator->GetResource(m_standard, ds8xRecon, scaledIdx))->OsResource;
+            pipeBufAddrParams.presVdenc4xDsSurface[refIdx] = &(m_trackedBuf->Get4xDsReconSurface(scaledIdx))->OsResource;
+            pipeBufAddrParams.presVdenc8xDsSurface[refIdx] = &(m_trackedBuf->Get8xDsReconSurface(scaledIdx))->OsResource;
 
             m_hevcPicParams->RollingIntraReferenceLocation[refIdx] = m_refList[refPicIdx]->rollingIntraRefreshedPosition;
         }

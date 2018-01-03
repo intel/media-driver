@@ -2263,7 +2263,7 @@ void CodechalEncodeHevcBase::SetHcpPipeBufAddrParams(MHW_VDBOX_PIPE_BUF_ADDR_PAR
     pipeBufAddrParams.presSaoLineBuffer             = &m_resSaoLineBuffer;
     pipeBufAddrParams.presSaoTileLineBuffer         = &m_resSaoTileLineBuffer;
     pipeBufAddrParams.presSaoTileColumnBuffer       = &m_resSaoTileColumnBuffer;
-    pipeBufAddrParams.presCurMvTempBuffer = m_trackedBuf->GetCurrMvTemporalBuffer();
+    pipeBufAddrParams.presCurMvTempBuffer = m_trackedBuf->GetMvTemporalBuffer(CODEC_CURR_TRACKED_BUFFER);
     pipeBufAddrParams.presLcuBaseAddressBuffer      = &m_resLcuBaseAddressBuffer;
     pipeBufAddrParams.dwLcuStreamOutOffset = 0;
     pipeBufAddrParams.presLcuILDBStreamOutBuffer    = &m_resLcuIldbStreamOutBuffer;
@@ -2292,8 +2292,7 @@ void CodechalEncodeHevcBase::SetHcpPipeBufAddrParams(MHW_VDBOX_PIPE_BUF_ADDR_PAR
             pipeBufAddrParams.presReferences[frameStoreId] = &(m_refList[idx]->sRefReconBuffer.OsResource);
 
             uint8_t refMbCodeIdx = m_refList[idx]->ucScalingIdx;
-            pipeBufAddrParams.presColMvTempBuffer[frameStoreId] = 
-                (MOS_RESOURCE*)m_allocator->GetResource(m_standard, mvTemporalBuffer, refMbCodeIdx);
+            pipeBufAddrParams.presColMvTempBuffer[frameStoreId] = m_trackedBuf->GetMvTemporalBuffer(refMbCodeIdx);
         }
     }
 }

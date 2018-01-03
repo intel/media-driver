@@ -4115,9 +4115,9 @@ MOS_STATUS CodechalVdencVp9State::SetHcpSrcSurfaceParams(MHW_VDBOX_SURFACE_PARAM
             refSurface[0]          = (m_dysRefFrameFlags & DYS_REF_LAST) ? &(m_refList[m_vp9PicParams->RefFrameList[refPicIndex].FrameIdx]->sDysSurface) : refSurfaceNonScaled[0];
 
             scalingIdx        = m_refList[m_vp9PicParams->RefFrameList[refPicIndex].FrameIdx]->ucScalingIdx;
-            dsRefSurface4x[0] = (MOS_SURFACE*)m_allocator->GetResource(m_standard, ds4xRecon, scalingIdx);
+            dsRefSurface4x[0] = m_trackedBuf->Get4xDsReconSurface(scalingIdx);
             CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, dsRefSurface4x[0]));
-            dsRefSurface8x[0] = (MOS_SURFACE*)m_allocator->GetResource(m_standard, ds8xRecon, scalingIdx);
+            dsRefSurface8x[0] = m_trackedBuf->Get8xDsReconSurface(scalingIdx);
             CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, dsRefSurface8x[0]));
         }
 
@@ -4130,9 +4130,9 @@ MOS_STATUS CodechalVdencVp9State::SetHcpSrcSurfaceParams(MHW_VDBOX_SURFACE_PARAM
             refSurface[1]          = (m_dysRefFrameFlags & DYS_REF_GOLDEN) ? &(m_refList[m_vp9PicParams->RefFrameList[refPicIndex].FrameIdx]->sDysSurface) : refSurfaceNonScaled[1];
 
             scalingIdx        = m_refList[m_vp9PicParams->RefFrameList[refPicIndex].FrameIdx]->ucScalingIdx;
-            dsRefSurface4x[1] = (MOS_SURFACE*)m_allocator->GetResource(m_standard, ds4xRecon, scalingIdx);
+            dsRefSurface4x[1] = m_trackedBuf->Get4xDsReconSurface(scalingIdx);
             CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, dsRefSurface4x[1]));
-            dsRefSurface8x[1] = (MOS_SURFACE*)m_allocator->GetResource(m_standard, ds8xRecon, scalingIdx);
+            dsRefSurface8x[1] = m_trackedBuf->Get8xDsReconSurface(scalingIdx);
             CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, dsRefSurface8x[1]));
         }
 
@@ -4145,9 +4145,9 @@ MOS_STATUS CodechalVdencVp9State::SetHcpSrcSurfaceParams(MHW_VDBOX_SURFACE_PARAM
             refSurface[2]          = (m_dysRefFrameFlags & DYS_REF_ALT) ? &(m_refList[m_vp9PicParams->RefFrameList[refPicIndex].FrameIdx]->sDysSurface) : refSurfaceNonScaled[2];
 
             scalingIdx        = m_refList[m_vp9PicParams->RefFrameList[refPicIndex].FrameIdx]->ucScalingIdx;
-            dsRefSurface4x[2] = (MOS_SURFACE*)m_allocator->GetResource(m_standard, ds4xRecon, scalingIdx);
+            dsRefSurface4x[2] = m_trackedBuf->Get4xDsReconSurface(scalingIdx);
             CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, dsRefSurface4x[2]));
-            dsRefSurface8x[2] = (MOS_SURFACE*)m_allocator->GetResource(m_standard, ds8xRecon, scalingIdx);
+            dsRefSurface8x[2] = m_trackedBuf->Get8xDsReconSurface(scalingIdx);
             CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, dsRefSurface8x[2]));
         }
 
@@ -4284,7 +4284,7 @@ MOS_STATUS CodechalVdencVp9State::SetHcpPipeBufAddrParams(MHW_VDBOX_PIPE_BUF_ADD
     pipeBufAddrParams.presMetadataLineBuffer       = &m_resMetadataLineBuffer;
     pipeBufAddrParams.presMetadataTileLineBuffer   = &m_resMetadataTileLineBuffer;
     pipeBufAddrParams.presMetadataTileColumnBuffer = &m_resMetadataTileColumnBuffer;
-    pipeBufAddrParams.presCurMvTempBuffer = (MOS_RESOURCE*)m_allocator->GetResource(m_standard, mvTemporalBuffer, m_currMvTemporalBufferIndex);
+    pipeBufAddrParams.presCurMvTempBuffer = m_trackedBuf->GetMvTemporalBuffer(m_currMvTemporalBufferIndex);
 
     // Huc first pass doesn't write probabilities to output prob region but only updates to the input region. HuC run before repak writes to the ouput region.
     uint8_t frameCtxIdx = 0;
@@ -4301,8 +4301,8 @@ MOS_STATUS CodechalVdencVp9State::SetHcpPipeBufAddrParams(MHW_VDBOX_PIPE_BUF_ADD
 
     pipeBufAddrParams.presVp9SegmentIdBuffer              = &m_resSegmentIdBuffer;
     pipeBufAddrParams.presHvdTileRowStoreBuffer           = &m_resHvcTileRowstoreBuffer;
-    pipeBufAddrParams.ps4xDsSurface = m_trackedBuf->GetCurr4xDsReconSurface();
-    pipeBufAddrParams.ps8xDsSurface = m_trackedBuf->GetCurr8xDsReconSurface();
+    pipeBufAddrParams.ps4xDsSurface = m_trackedBuf->Get4xDsReconSurface(CODEC_CURR_TRACKED_BUFFER);
+    pipeBufAddrParams.ps8xDsSurface = m_trackedBuf->Get8xDsReconSurface(CODEC_CURR_TRACKED_BUFFER);
     pipeBufAddrParams.presVdencIntraRowStoreScratchBuffer = &m_resVdencIntraRowStoreScratchBuffer;
     pipeBufAddrParams.dwNumRefIdxL0ActiveMinus1           = (m_vp9PicParams->PicFlags.fields.frame_type) ? m_numRefFrames - 1 : 0;
     pipeBufAddrParams.presVdencStreamOutBuffer            = &m_resVdencBrcStatsBuffer;
@@ -4342,7 +4342,7 @@ MOS_STATUS CodechalVdencVp9State::SetHcpPipeBufAddrParams(MHW_VDBOX_PIPE_BUF_ADD
             }
         }
 
-        pipeBufAddrParams.presColMvTempBuffer[0] = (MOS_RESOURCE*)m_allocator->GetResource(m_standard, mvTemporalBuffer, m_currMvTemporalBufferIndex ^ 0x01);
+        pipeBufAddrParams.presColMvTempBuffer[0] = m_trackedBuf->GetMvTemporalBuffer(m_currMvTemporalBufferIndex ^ 0x01);
     }
 
     return eStatus;
@@ -4373,12 +4373,12 @@ void CodechalVdencVp9State::SetHcpDsSurfaceParams(MHW_VDBOX_SURFACE_PARAMS* dsSu
     MOS_ZeroMemory(&dsSurfaceParams[0], sizeof(MHW_VDBOX_SURFACE_PARAMS));
     dsSurfaceParams[0].Mode = m_mode;
     dsSurfaceParams[0].ucSurfaceStateId = CODECHAL_MFX_DSRECON_SURFACE_ID;
-    dsSurfaceParams[0].psSurface = m_trackedBuf->GetCurr8xDsReconSurface();
+    dsSurfaceParams[0].psSurface = m_trackedBuf->Get8xDsReconSurface(CODEC_CURR_TRACKED_BUFFER);
     // 4xDS Surface
     MOS_ZeroMemory(&dsSurfaceParams[1], sizeof(MHW_VDBOX_SURFACE_PARAMS));
     dsSurfaceParams[1].Mode = m_mode;
     dsSurfaceParams[1].ucSurfaceStateId = CODECHAL_MFX_DSRECON_SURFACE_ID;
-    dsSurfaceParams[1].psSurface = m_trackedBuf->GetCurr4xDsReconSurface();
+    dsSurfaceParams[1].psSurface = m_trackedBuf->Get4xDsReconSurface(CODEC_CURR_TRACKED_BUFFER);
 }
 
 MOS_STATUS CodechalVdencVp9State::GetStatusReport(
@@ -4896,7 +4896,7 @@ MOS_STATUS CodechalVdencVp9State::ExecuteDysPictureLevel()
         pipeBufAddrParams->presMetadataLineBuffer       = &m_resMetadataLineBuffer;
         pipeBufAddrParams->presMetadataTileLineBuffer   = &m_resMetadataTileLineBuffer;
         pipeBufAddrParams->presMetadataTileColumnBuffer = &m_resMetadataTileColumnBuffer;
-        pipeBufAddrParams->presCurMvTempBuffer = (MOS_RESOURCE*)m_allocator->GetResource(m_standard, mvTemporalBuffer, m_currMvTemporalBufferIndex);
+        pipeBufAddrParams->presCurMvTempBuffer = m_trackedBuf->GetMvTemporalBuffer(m_currMvTemporalBufferIndex);
 
         CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetPipeBufAddr(pipeBufAddrParams));
@@ -4917,7 +4917,7 @@ MOS_STATUS CodechalVdencVp9State::ExecuteDysPictureLevel()
                 pipeBufAddrParams->presReferences[i] = &refSurface[i]->OsResource;
             }
 
-            pipeBufAddrParams->presColMvTempBuffer[0] = (MOS_RESOURCE *)m_allocator->GetResource(m_standard, mvTemporalBuffer, m_currMvTemporalBufferIndex ^ 0x01);
+            pipeBufAddrParams->presColMvTempBuffer[0] = m_trackedBuf->GetMvTemporalBuffer(m_currMvTemporalBufferIndex ^ 0x01);
     }
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpPipeBufAddrCmd(&cmdBuffer, pipeBufAddrParams));
 

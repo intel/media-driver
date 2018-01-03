@@ -4205,7 +4205,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PBMbEncKernel()
             &cmdBuffer,
             SURFACE_COL_MB_MV,
             &bindingTable->dwBindingTableEntries[startBTI++],
-            (MOS_RESOURCE*)m_allocator->GetResource(m_standard, mvTemporalBuffer, mbCodeIdxForTempMVP)));
+            m_trackedBuf->GetMvTemporalBuffer(mbCodeIdxForTempMVP)));
     }
 
     // 12: Current frame col-located data surface -- reserved now
@@ -5467,8 +5467,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PBMbEncKernel()
     }
     else
     {
-        PB8x8MbEncParams.m_cmSurfColRefData = 
-            (MOS_RESOURCE*)m_allocator->GetResource(m_standard, mvTemporalBuffer, mbCodeIdxForTempMVP);
+        PB8x8MbEncParams.m_cmSurfColRefData = m_trackedBuf->GetMvTemporalBuffer(mbCodeIdxForTempMVP);
     }
     PB8x8MbEncParams.m_cmSurfIntraDist = &m_intraDist.sResource; 
     PB8x8MbEncParams.m_cmSurfMinDist = &m_minDistortion.OsResource;

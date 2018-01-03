@@ -4313,7 +4313,7 @@ MOS_STATUS CodechalEncHevcStateG10::SendMbEncSurfacesBKernel(PMOS_COMMAND_BUFFER
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSurfaceCodecParams1D(
             &surfaceCodecParams,
-            (MOS_RESOURCE *)m_allocator->GetResource(m_standard, mvTemporalBuffer, mbCodeIdxForTempMVP),
+            m_trackedBuf->GetMvTemporalBuffer(mbCodeIdxForTempMVP),
             MOS_BYTES_TO_DWORDS(m_sizeOfMvTemporalBuffer),
             0,
             m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_MV_DATA_ENCODE].Value,
