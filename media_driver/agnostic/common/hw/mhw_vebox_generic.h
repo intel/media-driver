@@ -121,6 +121,13 @@ public:
                 &cmd2,
                 true,
                 pVeboxSurfaceStateCmdParams->bDIEnable);
+			
+			// Reset Output Format When Input/Output Format are the same 
+			if (pVeboxSurfaceStateCmdParams->SurfInput.Format == pVeboxSurfaceStateCmdParams->SurfOutput.Format)
+            {
+                cmd2.DW3.SurfaceFormat = cmd1.DW3.SurfaceFormat;
+            }
+			
             Mos_AddCommand(pCmdBuffer, &cmd2, cmd2.byteSize);
         }
 
