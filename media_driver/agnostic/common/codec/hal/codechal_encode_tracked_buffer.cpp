@@ -356,9 +356,7 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateSurfaceCsc()
     // wait to re-use once # of non-ref slots being used reaches 3
     m_waitCscSurface = (m_cscBufCurrIdx >= CODEC_NUM_REF_BUFFERS && m_cscBufCountNonRef > CODEC_NUM_NON_REF_BUFFERS);
 
-    m_trackedBufCurrCsc = &m_encoder->m_trackedBuffer[m_cscBufCurrIdx].sCopiedSurface;
-
-    if (!Mos_ResourceIsNull(&m_trackedBufCurrCsc->OsResource))
+    if (m_trackedBufCurrCsc = (MOS_SURFACE*)m_allocator->GetResource(m_standard, cscSurface, m_cscBufCurrIdx))
     {
         return MOS_STATUS_SUCCESS;
     }
@@ -367,21 +365,9 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateSurfaceCsc()
     MOS_FORMAT format;
     m_encoder->m_cscDsState->GetCscAllocation(width, height, format);
 
-    // initiate allocation paramters and lock flags
-    MOS_ALLOC_GFXRES_PARAMS allocParamsNV12;
-    MOS_ZeroMemory(&allocParamsNV12, sizeof(allocParamsNV12));
-    allocParamsNV12.dwWidth = width;
-    allocParamsNV12.dwHeight = height;
-    allocParamsNV12.Type = MOS_GFXRES_2D;
-    allocParamsNV12.Format = format;
-    allocParamsNV12.TileType = MOS_TILE_Y;
-    allocParamsNV12.pBufName = "Y Tile Surface for DS+Copy Kernel";
-
-    CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
-        m_osInterface,
-        &allocParamsNV12,
-        &m_trackedBufCurrCsc->OsResource),
-        "Failed to allocate Format converted Surface for Csc+Ds+Conversioin Kernel!");
+    // allocating Csc surface
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBufCurrCsc = (MOS_SURFACE*)m_allocator->AllocateResource(
+        m_standard, width, height, cscSurface, m_cscBufCurrIdx, false, format, MOS_TILE_Y));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, m_trackedBufCurrCsc));
 
@@ -591,7 +577,7 @@ void CodechalEncodeTrackedBuffer::ReleaseMvData(uint8_t bufIndex)
 
 void CodechalEncodeTrackedBuffer::ReleaseSurfaceCsc(uint8_t bufIndex)
 {
-    m_osInterface->pfnFreeResource(m_osInterface, &m_trackedBuffer[bufIndex].sCopiedSurface.OsResource);
+    m_allocator->ReleaseResource(m_standard, cscSurface, bufIndex);
 }
 
 void CodechalEncodeTrackedBuffer::ReleaseSurfaceDS(uint8_t bufIndex)
@@ -633,9 +619,4 @@ CodechalEncodeTrackedBuffer::CodechalEncodeTrackedBuffer(CodechalEncoderState* e
 CodechalEncodeTrackedBuffer::~CodechalEncodeTrackedBuffer()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
-
-    for (uint8_t i = 0; i < CODEC_NUM_TRACKED_BUFFERS; i++)
-    {
-        ReleaseSurfaceCsc(i);
-    }
 }

@@ -120,9 +120,7 @@ private:
     CodechalEncodeAllocator& operator=(const CodechalEncodeAllocator&) = delete;
 
     void MosToAllocatorCodec(uint32_t);
-    MOS_FORMAT AllocatorToMosFormat();
     void MosToAllocatorFormat(MOS_FORMAT format); 
-    MOS_TILE_TYPE AllocatorToMosTile();
     void MosToAllocatorTile(MOS_TILE_TYPE type);
     
     inline bool IsTrackedBuffer(ResourceName name)

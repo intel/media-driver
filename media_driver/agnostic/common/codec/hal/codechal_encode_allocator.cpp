@@ -60,7 +60,7 @@ enum AllocatorFormat
 {
     allocatorLinearBuffer = 0,
     allocatorBatchBuffer = 1,
-    allocatorSurfNV12 = 2
+    allocatorSurface = 2
 };
 
 //!
@@ -103,59 +103,23 @@ void CodechalEncodeAllocator::MosToAllocatorCodec(uint32_t codec)
     }
 }
 
-MOS_FORMAT CodechalEncodeAllocator::AllocatorToMosFormat()
-{
-    if (allocatorLinearBuffer == m_format)
-    {
-        return Format_Buffer;
-    }
-    else if (allocatorBatchBuffer == m_format)
-    {
-        return Format_Any;
-    }
-    else if (allocatorSurfNV12 == m_format)
-    {
-        return Format_NV12;
-    }
-    else
-    {
-        return Format_Invalid;
-    }
-}
-
 void CodechalEncodeAllocator::MosToAllocatorFormat(MOS_FORMAT format)
 {
-    if (Format_Buffer == format)
+    switch (format)
     {
+    case Format_Buffer :
         m_format = allocatorLinearBuffer;
-    }
-    else if (Format_Any == format)
-    {
+        break;
+    case Format_Any :
         m_format = allocatorBatchBuffer;
-    }
-    else if (Format_NV12 == format)
-    {
-        m_format = allocatorSurfNV12;
-    }
-}
-
-MOS_TILE_TYPE CodechalEncodeAllocator::AllocatorToMosTile()
-{
-    if (allocatorTileLinear == m_tile)
-    {
-        return MOS_TILE_LINEAR;
-    }
-    else if (allocatorTileY == m_tile)
-    {
-        return MOS_TILE_Y;
-    }
-    else if (allocatorTileYf == m_tile)
-    {
-        return MOS_TILE_YF;
-    }
-    else
-    {
-        return MOS_TILE_YS;
+        break;
+    case Format_NV12 :
+    case Format_YUY2 :
+        m_format = allocatorSurface;
+        break;
+    default :
+        CODECHAL_ENCODE_ASSERTMESSAGE("Invalid format type = %d", format);
+        break;
     }
 }
 
@@ -201,7 +165,7 @@ void* CodechalEncodeAllocator::AllocateResource(
         m_size = width;
         m_type = allocatorBatch;
     }
-    else if (allocatorSurfNV12 == m_format)
+    else if (allocatorSurface == m_format)
     {
         m_width = (uint16_t)width;
         m_height = (uint16_t)height;
