@@ -486,6 +486,12 @@ MOS_STATUS CodechalDecodeHevc::AllocateResourcesVariableSizes()
             "Failed to allocate SAO Tile Column Buffer.");
     }
 
+    for (uint8_t i = 0; i < CODEC_NUM_HEVC_INITIAL_MV_BUFFERS; i++)
+    {
+        AllocateMvTemporalBuffer(i);
+    }
+    m_mvBufferProgrammed = true;
+
     if (m_secureDecoder)
     {
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_secureDecoder->AllocateResource(this));
@@ -1392,7 +1398,10 @@ MOS_STATUS CodechalDecodeHevc::SetPictureStructs()
     m_hevcMvBufferIndex = GetMvBufferIndex(
         m_currPic.FrameIdx);
 
-    AllocateMvTemporalBuffer(m_hevcMvBufferIndex);
+    if (m_mvBufferProgrammed)
+    {
+        AllocateMvTemporalBuffer(m_hevcMvBufferIndex);
+    }
 
     hevcRefList[m_currPic.FrameIdx]->ucDMVIdx[0] = m_hevcMvBufferIndex;
 
@@ -2623,6 +2632,7 @@ CodechalDecodeHevc::CodechalDecodeHevc(
                                             m_copyDataBufferSize(0),
                                             m_copyDataBufferInUse(false),
                                             m_mvBufferSize(0),
+                                            m_mvBufferProgrammed(false),
                                             m_enableSf2DmaSubmits(false),
                                             m_widthLastMaxAlloced(0),
                                             m_heightLastMaxAlloced(0),
