@@ -596,12 +596,15 @@ int32_t CmSurfaceManager::GetFormatSize(CM_SURFACE_FORMAT format,uint32_t &sizeP
         case CM_SURFACE_FORMAT_A16B16G16R16:
         case CM_SURFACE_FORMAT_A16B16G16R16F:
         case CM_SURFACE_FORMAT_Y416:
+        case CM_SURFACE_FORMAT_D32F_S8X24_UINT:
+        case CM_SURFACE_FORMAT_R32G8X24_TYPELESS:
             sizePerPixel = 8;
             break;
 
         case CM_SURFACE_FORMAT_X8R8G8B8:
         case CM_SURFACE_FORMAT_A8R8G8B8:
         case CM_SURFACE_FORMAT_R32F:
+        case CM_SURFACE_FORMAT_D32F:
         case CM_SURFACE_FORMAT_R10G10B10A2:
         case CM_SURFACE_FORMAT_R32_UINT:
         case CM_SURFACE_FORMAT_R32_SINT:
@@ -611,6 +614,10 @@ int32_t CmSurfaceManager::GetFormatSize(CM_SURFACE_FORMAT format,uint32_t &sizeP
         case CM_SURFACE_FORMAT_Y410:
         case CM_SURFACE_FORMAT_Y216:
         case CM_SURFACE_FORMAT_Y210:
+        case CM_SURFACE_FORMAT_D24_UNORM_S8_UINT:
+        case CM_SURFACE_FORMAT_R16G16_SINT:
+        case CM_SURFACE_FORMAT_R24G8_TYPELESS:
+        case CM_SURFACE_FORMAT_R32_TYPELESS:
             sizePerPixel = 4;
             break;
 
@@ -635,6 +642,7 @@ int32_t CmSurfaceManager::GetFormatSize(CM_SURFACE_FORMAT format,uint32_t &sizeP
         case CM_SURFACE_FORMAT_IRW3:
         case CM_SURFACE_FORMAT_R16_FLOAT:
         case CM_SURFACE_FORMAT_A8P8:
+        case CM_SURFACE_FORMAT_R16_TYPELESS:
             sizePerPixel = 2;
             break;
 
@@ -1656,6 +1664,8 @@ int32_t CmSurfaceManager::GetPixelBytesAndHeight(uint32_t width, uint32_t height
         case CM_SURFACE_FORMAT_A16B16G16R16:
         case CM_SURFACE_FORMAT_A16B16G16R16F:
         case CM_SURFACE_FORMAT_Y416:
+        case CM_SURFACE_FORMAT_D32F_S8X24_UINT:
+        case CM_SURFACE_FORMAT_R32G8X24_TYPELESS:
             sizePerPixel = 8;
             break;
 
@@ -1663,6 +1673,7 @@ int32_t CmSurfaceManager::GetPixelBytesAndHeight(uint32_t width, uint32_t height
         case CM_SURFACE_FORMAT_A8R8G8B8:
         case CM_SURFACE_FORMAT_A8B8G8R8:
         case CM_SURFACE_FORMAT_R32F:
+        case CM_SURFACE_FORMAT_D32F:
         case CM_SURFACE_FORMAT_R32_UINT:
         case CM_SURFACE_FORMAT_R32_SINT:
         case CM_SURFACE_FORMAT_R10G10B10A2:
@@ -1671,6 +1682,10 @@ int32_t CmSurfaceManager::GetPixelBytesAndHeight(uint32_t width, uint32_t height
         case CM_SURFACE_FORMAT_Y410:
         case CM_SURFACE_FORMAT_Y216:
         case CM_SURFACE_FORMAT_Y210:
+        case CM_SURFACE_FORMAT_D24_UNORM_S8_UINT:
+        case CM_SURFACE_FORMAT_R32_TYPELESS:
+        case CM_SURFACE_FORMAT_R24G8_TYPELESS:
+        case CM_SURFACE_FORMAT_R16G16_SINT:
             sizePerPixel = 4;
             break;
 
@@ -1693,6 +1708,7 @@ int32_t CmSurfaceManager::GetPixelBytesAndHeight(uint32_t width, uint32_t height
         case CM_SURFACE_FORMAT_R16_FLOAT:
         case CM_SURFACE_FORMAT_V8U8:
         case CM_SURFACE_FORMAT_A8P8:
+        case CM_SURFACE_FORMAT_R16_TYPELESS:
             sizePerPixel = 2;
             break;
 

@@ -745,6 +745,24 @@ extern const MHW_SURFACE_PLANES g_cRenderHal_SurfacePlanes[RENDERHAL_PLANES_DEFI
         {
             { MHW_GENERIC_PLANE, 1, 1, 1, 1, 1, 1, MHW_MEDIASTATE_SURFACEFORMAT_R16B16_UNORM }
         }
+    },
+    // RENDERHAL_PLANES_R16G16_SINT
+    { 1,
+        {
+            { MHW_GENERIC_PLANE, 1, 1, 1, 1, 1, 0, MHW_GFX3DSTATE_SURFACEFORMAT_R16G16_SINT }
+        }
+    },
+    // RENDERHAL_PLANES_R24_UNORM_X8_TYPELESS
+    { 1,
+        {
+            { MHW_GENERIC_PLANE, 1, 1, 1, 1, 1, 0, MHW_GFX3DSTATE_SURFACEFORMAT_R24_UNORM_X8_TYPELESS }
+        }
+    },
+    // RENDERHAL_PLANES_R32_FLOAT_X8X24_TYPELESS
+    { 1,
+        {
+            { MHW_GENERIC_PLANE, 1, 1, 1, 1, 0, 0, MHW_GFX3DSTATE_SURFACEFORMAT_R32_FLOAT_X8X24_TYPELESS }
+        }
     }
 };
 
@@ -3348,6 +3366,8 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
                 break;
 
             case Format_R32F:
+            case Format_D32F:
+            case Format_R32:
                 PlaneDefinition = RENDERHAL_PLANES_R32F;
                 break;
 
@@ -3452,7 +3472,10 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
             case Format_R8U:
                 PlaneDefinition = RENDERHAL_PLANES_R8;
                 break;
+
             case Format_R16UN:
+            case Format_D16:
+            case Format_R16:
                 PlaneDefinition = RENDERHAL_PLANES_R16_UNORM;
                 break;
 
@@ -3470,7 +3493,6 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
                 PlaneDefinition = RENDERHAL_PLANES_NV21;
                 break;
             case Format_L16:
-            case Format_D16:
                 PlaneDefinition = RENDERHAL_PLANES_L16;
                 break;
 
@@ -3510,9 +3532,23 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
             case Format_R16G16UN:
                 PlaneDefinition = RENDERHAL_PLANES_R16G16_UNORM;  
                 break;
-            
+
+            case Format_R16G16S:
+                PlaneDefinition = RENDERHAL_PLANES_R16G16_SINT;
+                break;
+
             case Format_R16F:
                 PlaneDefinition = RENDERHAL_PLANES_R16_FLOAT; 
+                break;
+
+            case Format_R24G8:
+            case Format_D24S8UN:
+                PlaneDefinition = RENDERHAL_PLANES_R24_UNORM_X8_TYPELESS;
+                break;
+
+            case Format_R32G8X24:
+            case Format_D32S8X24_FLOAT:
+                PlaneDefinition = RENDERHAL_PLANES_R32_FLOAT_X8X24_TYPELESS;
                 break;
 
             default:
@@ -3569,7 +3605,8 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
                 PlaneDefinition == RENDERHAL_PLANES_A16B16G16R16_ADV ||
                 PlaneDefinition == RENDERHAL_PLANES_A16B16G16R16F    ||
                 PlaneDefinition == RENDERHAL_PLANES_A16R16G16B16F    ||
-                PlaneDefinition == RENDERHAL_PLANES_Y210_RT)
+                PlaneDefinition == RENDERHAL_PLANES_Y210_RT          ||
+                PlaneDefinition == RENDERHAL_PLANES_R32_FLOAT_X8X24_TYPELESS)
             {
                 dwSurfaceWidth = dwSurfaceWidth << 1;
             }

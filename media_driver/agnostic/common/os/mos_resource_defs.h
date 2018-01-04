@@ -174,10 +174,19 @@ typedef enum _MOS_FORMAT
     Format_A16R16G16B16F,          //!< ARGB 64bpp
     Format_YUY2V        ,
     Format_Y216V        ,
+    Format_D32F         ,
+    Format_D24S8UN      ,
+    Format_D32S8X24_FLOAT ,
+
+    Format_R16          ,
+    Format_R16G16S      ,
+    Format_R24G8        ,
+    Format_R32          ,
+    Format_R32G8X24     ,   
     // Last Format
     Format_Count
 } MOS_FORMAT, *PMOS_FORMAT;
-C_ASSERT(Format_Count == 93); //!< When adding, update assert & vphal_solo_scenario.cpp::VpFromXml_GetFormat().
+C_ASSERT(Format_Count == 101); //!< When adding, update assert & vphal_solo_scenario.cpp::VpFromXml_GetFormat().
 
 //!
 //! \brief Macros for format checking

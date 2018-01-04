@@ -275,6 +275,14 @@ std::string CmSurface::GetFormatString(CM_SURFACE_FORMAT format)
         case CM_SURFACE_FORMAT_Y16_UNORM:          return "y16un";
         case CM_SURFACE_FORMAT_Y8_UNORM:           return "y8un";
         case CM_SURFACE_FORMAT_BUFFER_2D:          return "buffer2d";
+        case CM_SURFACE_FORMAT_D32F:               return "d32f";
+        case CM_SURFACE_FORMAT_D24_UNORM_S8_UINT:  return "d24uns8ui";
+        case CM_SURFACE_FORMAT_D32F_S8X24_UINT:    return "d32fs8x24ui";
+        case CM_SURFACE_FORMAT_R16G16_SINT:        return "r16g16si";
+        case CM_SURFACE_FORMAT_R16_TYPELESS:       return "r16";
+        case CM_SURFACE_FORMAT_R24G8_TYPELESS:     return "r24g8";
+        case CM_SURFACE_FORMAT_R32_TYPELESS:       return "r32";
+        case CM_SURFACE_FORMAT_R32G8X24_TYPELESS:  return "r32g8x24";
         default:                                   return "Invalid";
     }
 }

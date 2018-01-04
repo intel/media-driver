@@ -79,7 +79,7 @@
 #define CM_SURFACE_FORMAT_R16_UNORM             Format_R16UN
 #define CM_SURFACE_FORMAT_R8G8_UNORM            Format_R8G8UN
 #define CM_SURFACE_FORMAT_R16_UINT              Format_R16U
-#define CM_SURFACE_FORMAT_R16_TYPELESS          Format_D16
+#define CM_SURFACE_FORMAT_R16_TYPELESS          Format_R16
 #define CM_SURFACE_FORMAT_R16G16_UNORM          Format_R16G16UN
 #define CM_SURFACE_FORMAT_L16                   Format_L16
 #define CM_SURFACE_FORMAT_YUY2                  Format_YUY2
@@ -91,6 +91,13 @@
 #define CM_SURFACE_FORMAT_Y16_UNORM             Format_Y16U
 #define CM_SURFACE_FORMAT_Y8_UNORM              Format_Y8
 #define CM_SURFACE_FORMAT_BUFFER_2D             Format_Buffer_2D
+#define CM_SURFACE_FORMAT_D32F                  Format_D32F
+#define CM_SURFACE_FORMAT_D24_UNORM_S8_UINT     Format_D24S8UN      
+#define CM_SURFACE_FORMAT_D32F_S8X24_UINT       Format_D32S8X24_FLOAT
+#define CM_SURFACE_FORMAT_R16G16_SINT           Format_R16G16S
+#define CM_SURFACE_FORMAT_R24G8_TYPELESS        Format_R24G8
+#define CM_SURFACE_FORMAT_R32_TYPELESS          Format_R32
+#define CM_SURFACE_FORMAT_R32G8X24_TYPELESS     Format_R32G8X24
 
 typedef unsigned char byte;
 
