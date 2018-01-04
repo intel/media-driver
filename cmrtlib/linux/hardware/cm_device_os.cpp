@@ -34,7 +34,6 @@
 #include "cm_gtpin_external_interface.h"
 #endif
 
-#define USE_LIBVA_DRM
 #include <unistd.h>
 #include <fcntl.h>
 

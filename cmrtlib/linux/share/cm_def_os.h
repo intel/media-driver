@@ -22,8 +22,14 @@
 #ifndef CMRTLIB_LINUX_SHARE_CM_DEF_OS_H_
 #define CMRTLIB_LINUX_SHARE_CM_DEF_OS_H_
 
+#include "cm_include.h"
+
 #ifndef ANDROID
+#ifndef USE_LIBVA_DRM
 #include "va/va_x11.h"
+#else  // #ifndef USE_LIBVA_DRM
+#define Display unsigned int
+#endif
 #include "va/va.h"
 #else  // #ifndef ANDROID
 #include <va/va_android.h>
@@ -32,8 +38,6 @@
 
 #include <cstring>
 #include "pthread.h"
-
-#include "cm_include.h"
 
 #define CM_MAX_SURFACE2D_FORMAT_COUNT 12
 
@@ -231,9 +235,12 @@ typedef VAStatus (__cdecl *pvaCmExtSendReqMsg)(
                             uint32_t *outputDataLen);
 
 typedef VADisplay (*pfVAGetDisplayDRM) (int32_t fd);    //vaGetDisplayDRM from libva-drm.so
+
+#ifndef USE_LIBVA_DRM
 typedef Display* (*pfVAOpenDisplayX11)();
 typedef VADisplay (*pfVAGetDisplayX11)(Display *dpy);
 typedef void (*pfCloseDisplayX11) (Display *dpy);
+#endif
 
 #ifndef CMRT_NOINLINE
 #define CMRT_NOINLINE __attribute__((noinline))
