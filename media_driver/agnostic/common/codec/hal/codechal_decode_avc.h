@@ -326,6 +326,14 @@ public:
 
     MOS_STATUS InitMmcState() override;
 
+    //!
+    //! \brief  Initialize Sfc state for AVC decode
+    //!
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS InitSfcState();
+
 #if USE_CODECHAL_DEBUG_TOOL
     MOS_STATUS DumpMvcExtPicParams(
         PCODEC_MVC_EXT_PIC_PARAMS mvcExtPicParams);
@@ -375,7 +383,7 @@ public:
     bool                            m_deblockingEnabled;                                //!< Indicate Deblocking is enabled
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
-    CodechalAvcSfcState m_sfcState;  //!< Avc Sfc State
+    CodechalAvcSfcState *m_sfcState;  //!< Avc Sfc State
 #endif
 
     CODEC_PICTURE            m_currPic;                                       //!< Current Picture Struct

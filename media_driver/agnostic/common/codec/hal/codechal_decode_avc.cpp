@@ -977,6 +977,19 @@ MOS_STATUS CodechalDecodeAvc::InitMmcState()
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS CodechalDecodeAvc::InitSfcState()
+{
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    m_sfcState = MOS_New(CodechalAvcSfcState);
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_sfcState);
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_sfcState->InitializeSfcState(
+        this,
+        m_hwInterface,
+        m_osInterface));
+#endif
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS CodechalDecodeAvc::AllocateStandard(
     PCODECHAL_SETTINGS          settings)
 {
@@ -1006,12 +1019,8 @@ MOS_STATUS CodechalDecodeAvc::AllocateStandard(
     m_picHeightInMb        = (uint16_t)CODECHAL_GET_WIDTH_IN_MACROBLOCKS(m_height);
     m_shortFormatInUse     = (settings->bShortFormatInUse) ? true : false;
 
-#ifdef _DECODE_PROCESSING_SUPPORTED
-    CODECHAL_DECODE_CHK_STATUS_RETURN(m_sfcState.InitializeSfcState(
-        this,
-        m_hwInterface,
-        m_osInterface));
-#endif
+    CODECHAL_DECODE_CHK_STATUS_RETURN(InitSfcState());
+
     for (uint8_t i = 0; i < CODECHAL_DECODE_AVC_MAX_NUM_MVC_VIEWS; i++)
     {
         m_firstFieldIdxList[i] = CODECHAL_DECODE_AVC_INVALID_FRAME_IDX;
@@ -1088,6 +1097,14 @@ CodechalDecodeAvc::~CodechalDecodeAvc()
             m_osInterface,
             &m_resInvalidRefBuffer);
     }
+
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    if (m_sfcState)
+    {
+        MOS_Delete(m_sfcState);
+        m_sfcState = nullptr;
+    }
+#endif
 
     return;
 }
@@ -1191,7 +1208,7 @@ MOS_STATUS CodechalDecodeAvc::SetFrameStates()
     {
         CODECHAL_DECODE_CHK_NULL_RETURN(m_fieldScalingInterface);
 
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_sfcState.CheckAndInitialize(
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_sfcState->CheckAndInitialize(
             decProcessingParams,
             m_avcPicParams,
             m_width,
@@ -1201,7 +1218,7 @@ MOS_STATUS CodechalDecodeAvc::SetFrameStates()
         if (!((!CodecHal_PictureIsFrame(m_avcPicParams->CurrPic) ||
                   m_avcPicParams->seq_fields.mb_adaptive_frame_field_flag) &&
                 m_fieldScalingInterface->IsFieldScalingSupported(decProcessingParams)) &&
-            m_sfcState.m_sfcPipeOut == false)
+            m_sfcState->m_sfcPipeOut == false)
         {
             eStatus = MOS_STATUS_UNKNOWN;
             CODECHAL_DECODE_ASSERTMESSAGE("Downsampling parameters are NOT supported!");
@@ -1407,7 +1424,7 @@ MOS_STATUS CodechalDecodeAvc::AddPictureCmds(
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxPipeModeSelectCmd(cmdBuf, &picMhwParams->PipeModeSelectParams));
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
-    CODECHAL_DECODE_CHK_STATUS_RETURN(m_sfcState.AddSfcCommands(cmdBuf));
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_sfcState->AddSfcCommands(cmdBuf));
 #endif
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxSurfaceCmd(cmdBuf, &picMhwParams->SurfaceParams));
@@ -1793,7 +1810,7 @@ MOS_STATUS CodechalDecodeAvc::DecodePrimitiveLevel()
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     CODECHAL_DECODE_PROCESSING_PARAMS *decProcessingParams = m_decodeParams.m_procParams;
-    if (decProcessingParams != nullptr && !m_sfcState.m_sfcPipeOut && (m_isSecondField || m_avcPicParams->seq_fields.mb_adaptive_frame_field_flag))
+    if (decProcessingParams != nullptr && !m_sfcState->m_sfcPipeOut && (m_isSecondField || m_avcPicParams->seq_fields.mb_adaptive_frame_field_flag))
     {
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_fieldScalingInterface->DoFieldScaling(
             decProcessingParams,
@@ -1823,7 +1840,7 @@ MOS_STATUS CodechalDecodeAvc::DecodePrimitiveLevel()
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnResourceSignal(m_osInterface, &syncParams));
 #ifdef _DECODE_PROCESSING_SUPPORTED
-        if (decProcessingParams && !m_sfcState.m_sfcPipeOut)
+        if (decProcessingParams && !m_sfcState->m_sfcPipeOut)
         {
             syncParams = g_cInitSyncParams;
             syncParams.GpuContext = m_renderContext;
