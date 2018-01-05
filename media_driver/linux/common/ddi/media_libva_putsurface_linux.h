@@ -23,11 +23,13 @@
 //! \file      media_libva_putsurface_linux.h 
 //! \brief     libva(and its extension) putsurface linux implementaion head file  
 //!
+
 #ifndef __MEDIA_LIBVA_PUTSURFACE_LINUX_H__
 #define __MEDIA_LIBVA_PUTSURFACE_LINUX_H__
 
 #include <va/va.h>
 #include <va/va_backend.h>
+#if LIBVA_X11_FOUND
 #include <va/va_dricommon.h>
 #include "mos_defs.h"
 
@@ -232,6 +234,8 @@ VAStatus DdiCodec_PutSurfaceLinuxHW(
     uint32_t         number_cliprects, /* number of clip rects in the clip list */
     uint32_t         flags             /* de-interlacing flags */
 );
+
+#endif //LIBVA_X11_FOUND
 
 #ifndef ANDROID
 //! \brief  Ddi codec put surface linux software

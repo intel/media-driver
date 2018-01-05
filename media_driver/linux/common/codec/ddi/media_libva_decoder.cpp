@@ -42,7 +42,9 @@
 #include "media_ddi_decode_const.h"
 
 #ifndef ANDROID
+#if LIBVA_X11_FOUND
 #include <X11/Xutil.h>
+#endif
 #endif
 
 #include <linux/fb.h>

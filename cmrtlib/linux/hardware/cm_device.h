@@ -177,8 +177,10 @@ protected:
     int32_t GetLibvaDisplayDrm(VADisplay & vaDisplay);
 #endif
     int32_t InitializeLibvaDisplay( void );
+#if ANDROID
     Display*  m_display ;     // for Android
     pvaCmExtSendReqMsg    m_fvaCmExtSendReqMsg; //for Linux/Android
+#endif
     VADisplay m_vaDisplay;    //for Android + Linux
 
     // Static variables for libva drm
