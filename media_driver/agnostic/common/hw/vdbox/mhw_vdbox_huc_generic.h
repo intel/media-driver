@@ -381,7 +381,7 @@ protected:
         {
             if (params->regionParams[i].presRegion)
             {
-                cmd.HucVirtualAddressRegion[i].HucSurfaceVirtualaddrregion015.DW0.Value =
+                cmd.HucVirtualAddressRegion[i].HucSurfaceVirtualaddrregion015.DW0.Value |=
                     m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_HUC_VIRTUAL_ADDR_REGION_BUFFER_CODEC].Value;
                 resourceParams.presResource = params->regionParams[i].presRegion;
                 resourceParams.dwOffset = params->regionParams[i].dwOffset;
