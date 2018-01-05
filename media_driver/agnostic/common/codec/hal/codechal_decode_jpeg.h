@@ -125,6 +125,10 @@ public:
 
     MOS_STATUS InitMmcState() override;
 
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    virtual MOS_STATUS InitSfcState();
+#endif
+
     MOS_SURFACE               m_destSurface;    //!< Pointer to MOS_SURFACE of render surface
     CodecDecodeJpegPicParams *m_jpegPicParams;  //!< Picture parameter for JPEG
 
@@ -229,7 +233,7 @@ protected:
     MOS_RESOURCE m_resSyncObjectVideoContextInUse;  //!< Signals on the video context
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
-    CodechalJpegSfcState m_sfcState;  //!< SFC state
+    CodechalJpegSfcState *m_sfcState = nullptr;  //!< SFC state
 #endif
 };
 #endif

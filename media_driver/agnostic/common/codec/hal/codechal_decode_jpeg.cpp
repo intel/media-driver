@@ -54,6 +54,14 @@ CodechalDecodeJpeg::~CodechalDecodeJpeg()
             &m_resCopiedDataBuffer);
     }
 
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    if (m_sfcState)
+    {
+        MOS_Delete(m_sfcState);
+        m_sfcState = nullptr;
+    }
+#endif
+
     return;
 }
 
@@ -506,7 +514,7 @@ MOS_STATUS CodechalDecodeJpeg::SetFrameStates()
     m_statusReportFeedbackNumber = m_jpegPicParams->m_statusReportFeedbackNumber;
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
-    m_sfcState.CheckAndInitialize(&m_destSurface, m_jpegPicParams);
+    m_sfcState->CheckAndInitialize(&m_destSurface, m_jpegPicParams);
 #endif
 
     CODECHAL_DEBUG_TOOL(
@@ -596,9 +604,9 @@ MOS_STATUS CodechalDecodeJpeg::DecodeStateLevel()
     jpegPicState.dwOutputFormat = m_decodeParams.m_destSurface->Format;
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
-    if (m_sfcState.m_sfcPipeOut)
+    if (m_sfcState->m_sfcPipeOut)
     {
-        jpegPicState.dwOutputFormat = m_sfcState.m_sfcInSurface.Format;
+        jpegPicState.dwOutputFormat = m_sfcState->m_sfcInSurface.Format;
     }
 #endif
 
@@ -658,9 +666,9 @@ MOS_STATUS CodechalDecodeJpeg::DecodeStateLevel()
     surfaceParams.ChromaType    = m_jpegPicParams->m_chromaType;
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
-    if (m_sfcState.m_sfcPipeOut)
+    if (m_sfcState->m_sfcPipeOut)
     {
-        surfaceParams.psSurface = &m_sfcState.m_sfcInSurface;
+        surfaceParams.psSurface = &m_sfcState->m_sfcInSurface;
     }
 #endif
 
@@ -715,7 +723,7 @@ MOS_STATUS CodechalDecodeJpeg::DecodeStateLevel()
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     // Output decode result through SFC
-    CODECHAL_DECODE_CHK_STATUS_RETURN(m_sfcState.AddSfcCommands(&cmdBuffer));
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_sfcState->AddSfcCommands(&cmdBuffer));
 #endif
 
     // CMD_MFX_SURFACE_STATE
@@ -1004,6 +1012,16 @@ MOS_STATUS CodechalDecodeJpeg::InitMmcState()
     return MOS_STATUS_SUCCESS;
 }
 
+#ifdef _DECODE_PROCESSING_SUPPORTED
+MOS_STATUS CodechalDecodeJpeg::InitSfcState()
+{
+    m_sfcState = MOS_New(CodechalJpegSfcState);
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_sfcState);
+
+    return MOS_STATUS_SUCCESS;
+}
+#endif
+
 MOS_STATUS CodechalDecodeJpeg::AllocateStandard(
     PCODECHAL_SETTINGS          settings)
 {
@@ -1014,12 +1032,15 @@ MOS_STATUS CodechalDecodeJpeg::AllocateStandard(
     CODECHAL_DECODE_CHK_NULL_RETURN(settings);
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(InitMmcState());
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    CODECHAL_DECODE_CHK_STATUS_RETURN(InitSfcState());
+#endif
 
     m_width = settings->dwWidth;
     m_height = settings->dwHeight;
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
-    CODECHAL_DECODE_CHK_STATUS_RETURN(m_sfcState.InitializeSfcState(
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_sfcState->InitializeSfcState(
         this,
         m_hwInterface,
         m_osInterface));
