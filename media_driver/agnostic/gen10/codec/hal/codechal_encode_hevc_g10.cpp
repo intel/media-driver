@@ -652,7 +652,8 @@ struct CODECHAL_ENC_HEVC_BRC_UPDATE_CURBE_G10
     uint32_t   DW6_CqpValue                            : MOS_BITFIELD_RANGE( 8, 15);
     uint32_t   DW6_ROIEnable                           : MOS_BITFIELD_RANGE(16, 16);
     uint32_t   DW6_BRCROIEnable                        : MOS_BITFIELD_RANGE(17, 17);
-    uint32_t   DW6_Reserved1                           : MOS_BITFIELD_RANGE(18, 19);
+    uint32_t   DW6_LCUQPAverageEnable                  : MOS_BITFIELD_RANGE(18, 18);
+    uint32_t   DW6_Reserved1                           : MOS_BITFIELD_RANGE(19, 19);
     uint32_t   DW6_SlidingWindowEnable                 : MOS_BITFIELD_RANGE(20, 20);
     uint32_t   DW6_Reserved2                           : MOS_BITFIELD_RANGE(21, 23);
     uint32_t   DW6_RoiRatio                            : MOS_BITFIELD_RANGE(24, 31);
@@ -1308,6 +1309,7 @@ const CODECHAL_ENC_HEVC_BRC_UPDATE_CURBE_G10 CodechalEncHevcStateG10::m_brcUpdat
     0,          // DW6_CqpValue
     0,          // DW6_ROIEnable
     0,          // DW6_BRCROIEnable
+    1,          // DW6_LCUQPAverageEnable
     0,          // DW6_Reserved1
     0,          // DW6_SlidingWindowEnable
     0,          // DW6_Reserved2
@@ -2750,6 +2752,7 @@ MOS_STATUS CodechalEncHevcStateG10::SetCurbeBrcUpdate(CODECHAL_HEVC_BRC_KRNIDX b
         curbe.DW6_CqpValue = m_hevcPicParams->QpY + m_hevcSliceParams->slice_qp_delta;
     }
 
+    curbe.DW6_LCUQPAverageEnable  = (m_hevcPicParams->diff_cu_qp_delta_depth == 0) ? 1 : 0;
     curbe.DW6_SlidingWindowEnable = (m_hevcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_LOW);
     curbe.DW14_ParallelMode       = m_hevcSeqParams->ParallelBRC;
 
