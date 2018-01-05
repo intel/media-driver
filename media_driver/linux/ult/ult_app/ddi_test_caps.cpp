@@ -81,12 +81,12 @@ TEST_F(MediaCapsDdiTest, DecodeEncodeProfile)
        vector<FeatureID> refFeatureIDTable = capsData.GetRefFeatureIDTable(DeviceConfigTable[platforms[i]]);//(platforms[i]);//
        vector<FeatureID> queriedFeatureIDTable;
        ret = driverLoader.InitDriver(platforms[i]); //So far we still use DeviceConfigTable to find the platform, as the libdrm mock use this. If we want to use vector Platforms, we would use vector in libdrm too.
-       EXPECT_EQ (VA_STATUS_SUCCESS , ret );
+       EXPECT_EQ (VA_STATUS_SUCCESS , ret ) << "Platform = " << platforms[i] << ", Failed function = driverLoader.InitDriver" << endl;
        ret = Test_QueryConfigProfiles(&driverLoader.ctx, queriedFeatureIDTable);
-       EXPECT_EQ (VA_STATUS_SUCCESS , ret );
-       EXPECT_TRUE((CompareFeatureIDTable(queriedFeatureIDTable, refFeatureIDTable)));
+       EXPECT_EQ (VA_STATUS_SUCCESS , ret ) << "Platform = " << platforms[i] << ", Failed function = Test_QueryConfigProfiles" << endl;
+       EXPECT_TRUE((CompareFeatureIDTable(queriedFeatureIDTable, refFeatureIDTable))) << "Platform = " << platforms[i] << ", Failed function = CompareFeatureIDTable" << endl;
        ret = driverLoader.CloseDriver();
        //ret = driverLoader.ctx.vtable->vaTerminate(&driverLoader.ctx);
-       EXPECT_EQ (VA_STATUS_SUCCESS , ret );
+       EXPECT_EQ (VA_STATUS_SUCCESS , ret ) << "Platform = " << platforms[i] << ", Failed function = driverLoader.CloseDriver" << endl;
     }
 }

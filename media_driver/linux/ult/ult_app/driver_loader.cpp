@@ -35,10 +35,18 @@ DriverDllLoader::DriverDllLoader()
     else
         driver_path = "/opt/intel/mediasdk/lib64/iHD_drv_video.so";
     platformArray = { 
+#ifdef IGFX_GEN9_SKL_SUPPORTED
         igfxSKLAKE,
+#endif
+#ifdef IGFX_GEN9_BXT_SUPPORTED
         igfxBROXTON,
+#endif
+#ifdef IGFX_GEN8_BDW_SUPPORTED
         igfxBROADWELL,
+#endif
+#ifdef IGFX_GEN10_CNL_SUPPORTED
         igfxCANNONLAKE
+#endif
     };
 }
 

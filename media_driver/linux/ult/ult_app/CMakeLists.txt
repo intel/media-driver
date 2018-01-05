@@ -54,8 +54,6 @@ aux_source_directory(cm SOURCES)
 add_compile_options(-std=c++11)
 set(CMAKE_C_COMPILER "g++")
 
-add_definitions(-DCMAKE_BUILD_TYPE=Debug)
-
 SET(CMAKE_C_FLAGS "-g -O0")
 SET(CMAKE_CXX_FLAGS "-g -O0")
 
@@ -63,3 +61,14 @@ add_executable(drvult ${SOURCES})
 
 LINK_DIRECTORIES(/usr/lib/x86_64-linux-gnu/)
 TARGET_LINK_LIBRARIES(drvult libgtest libdl.so)
+
+if (NOT "${Full_Open_Source_Support}" STREQUAL "yes")
+add_custom_target(RunULT ALL DEPENDS iHD_drv_video drvult)
+add_custom_command(
+    TARGET RunULT
+    POST_BUILD
+    COMMAND LD_PRELOAD=../libdrm_mock/libdrm_mock.so ./drvult ../../../iHD_drv_video.so
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMENT "Running drvult..."
+)
+endif ()

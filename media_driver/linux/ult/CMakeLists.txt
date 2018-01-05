@@ -18,6 +18,15 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 cmake_minimum_required(VERSION 3.1)
+
+if(${PLATFORM} STREQUAL "yocto")
+    set (GEN8_BDW_Supported "no")
+    set (GEN10_CNL_Supported "no")
+endif()
+
+include(${MEDIA_DRIVER_CMAKE}/linux/media_feature_flags_linux.cmake)
+include(${MEDIA_DRIVER_CMAKE}/linux/media_gen_flags_linux.cmake)
+
 if(NOT "${LIBVA_INSTALL_PATH}" STREQUAL "")
     include_directories(BEFORE ${LIBVA_INSTALL_PATH})
 else()
