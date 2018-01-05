@@ -4204,18 +4204,17 @@ MOS_STATUS CodechalVdencVp9State::SetHcpSrcSurfaceParams(MHW_VDBOX_SURFACE_PARAM
 		{
 			surfaceParams[CODECHAL_HCP_LAST_SURFACE_ID].dwReconSurfHeight =
 			surfaceParams[CODECHAL_HCP_GOLDEN_SURFACE_ID].dwReconSurfHeight =
-			surfaceParams[CODECHAL_HCP_ALTREF_SURFACE_ID].dwReconSurfHeight = MOS_ALIGN_CEIL(m_rawSurfaceToPak->dwHeight, CODEC_VP9_MIN_BLOCK_WIDTH);
+			surfaceParams[CODECHAL_HCP_ALTREF_SURFACE_ID].dwReconSurfHeight = m_rawSurfaceToPak->dwHeight;
 		}
     }
 
     // Program Surface params for reconstructed surface
     surfaceParams[CODECHAL_HCP_DECODED_SURFACE_ID].psSurface            = &m_reconSurface;
-    surfaceParams[CODECHAL_HCP_DECODED_SURFACE_ID].dwReconSurfHeight    = MOS_ALIGN_CEIL(m_rawSurfaceToPak->dwHeight, CODEC_VP9_MIN_BLOCK_WIDTH);
+    surfaceParams[CODECHAL_HCP_DECODED_SURFACE_ID].dwReconSurfHeight    = m_rawSurfaceToPak->dwHeight;
 
     // Program Surface params for source surface
     surfaceParams[CODECHAL_HCP_SRC_SURFACE_ID].psSurface                = m_rawSurfaceToPak;
     surfaceParams[CODECHAL_HCP_SRC_SURFACE_ID].bDisplayFormatSwizzle    = m_vp9SeqParams->SeqFlags.fields.DisplayFormatSwizzle;
-    surfaceParams[CODECHAL_HCP_SRC_SURFACE_ID].dwUVPlaneAlignment       = m_rawSurfAlignment;
     surfaceParams[CODECHAL_HCP_SRC_SURFACE_ID].dwActualWidth            = MOS_ALIGN_CEIL(m_oriFrameWidth, CODEC_VP9_MIN_BLOCK_WIDTH);
     surfaceParams[CODECHAL_HCP_SRC_SURFACE_ID].dwActualHeight           = MOS_ALIGN_CEIL(m_oriFrameHeight, CODEC_VP9_MIN_BLOCK_WIDTH);
 
@@ -4840,12 +4839,11 @@ MOS_STATUS CodechalVdencVp9State::ExecuteDysPictureLevel()
 
     // recon
     surfaceParams[CODECHAL_HCP_DECODED_SURFACE_ID].psSurface            = &m_reconSurface;
-    surfaceParams[CODECHAL_HCP_DECODED_SURFACE_ID].dwReconSurfHeight    = MOS_ALIGN_CEIL(m_rawSurfaceToPak->dwHeight, CODEC_VP9_MIN_BLOCK_WIDTH);
+    surfaceParams[CODECHAL_HCP_DECODED_SURFACE_ID].dwReconSurfHeight    = m_rawSurfaceToPak->dwHeight;
 
     // raw
     surfaceParams[CODECHAL_HCP_SRC_SURFACE_ID].psSurface                = m_rawSurfaceToPak;
     surfaceParams[CODECHAL_HCP_SRC_SURFACE_ID].bDisplayFormatSwizzle    = m_vp9SeqParams->SeqFlags.fields.DisplayFormatSwizzle;
-    surfaceParams[CODECHAL_HCP_SRC_SURFACE_ID].dwUVPlaneAlignment       = m_rawSurfAlignment;
     surfaceParams[CODECHAL_HCP_SRC_SURFACE_ID].dwActualWidth            = MOS_ALIGN_CEIL(m_oriFrameWidth, CODEC_VP9_MIN_BLOCK_WIDTH);
     surfaceParams[CODECHAL_HCP_SRC_SURFACE_ID].dwActualHeight           = MOS_ALIGN_CEIL(m_oriFrameHeight, CODEC_VP9_MIN_BLOCK_WIDTH);
 

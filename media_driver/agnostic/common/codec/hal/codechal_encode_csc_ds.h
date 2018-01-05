@@ -546,6 +546,7 @@ protected:
     MhwMiInterface*                         m_miInterface = nullptr;                        //!< Common Mi Interface
     MhwRenderInterface*                     m_renderInterface = nullptr;                    //!< Render engine interface
     XMHW_STATE_HEAP_INTERFACE*              m_stateHeapInterface = nullptr;                 //!< State heap class interface
+    CodecHalEncodeSfc*                      m_sfcState = nullptr;                           //!< SFC interface
     MHW_KERNEL_STATE*                       m_cscKernelState = nullptr;                     //!< CSC kernel state
     MHW_KERNEL_STATE*                       m_dsKernelState = nullptr;                      //!< DS kernel state
 
@@ -1081,9 +1082,6 @@ private:
 
     uint32_t                    m_threadTraverseSizeX = 5;                                  //!< target traverse thread space size in width
     uint32_t                    m_threadTraverseSizeY = 2;                                  //!< target traverse thread space size in height
-
-protected:
-    CodecHalEncodeSfc*          m_sfcState = nullptr;                                       //!< SFC interface
 };
 
 #endif  // __CODECHAL_ENCODE_CSC_DS_H__

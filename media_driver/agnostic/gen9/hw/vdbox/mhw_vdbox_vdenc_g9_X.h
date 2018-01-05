@@ -450,11 +450,6 @@ protected:
 
         typename TVdencCmds::VDENC_REF_SURFACE_STATE_CMD cmd;
 
-        if (!params->dwUVPlaneAlignment)
-        {
-            params->dwUVPlaneAlignment = MHW_VDBOX_MFX_RECON_UV_PLANE_ALIGNMENT;   // by default use 16x alignment
-        }
-
         cmd.Dwords25.DW0.Width                       = params->psSurface->dwWidth - 1;
         cmd.Dwords25.DW0.Height                      = params->psSurface->dwHeight - 1;
         cmd.Dwords25.DW0.CrVCbUPixelOffsetVDirection = params->ucVDirection;
@@ -469,8 +464,7 @@ protected:
         cmd.Dwords25.DW1.SurfaceFormat    = this->MosToMediaStateFormat(params->psSurface->Format); //dwSurfaceFormat;  should be 4
         cmd.Dwords25.DW1.InterleaveChroma = 1;
         cmd.Dwords25.DW1.SurfacePitch     = params->psSurface->dwPitch - 1;
-        cmd.Dwords25.DW2.YOffsetForUCb    = cmd.Dwords25.DW3.YOffsetForVCr =
-            MOS_ALIGN_CEIL(params->psSurface->UPlaneOffset.iYOffset, params->dwUVPlaneAlignment);
+        cmd.Dwords25.DW2.YOffsetForUCb    = cmd.Dwords25.DW3.YOffsetForVCr = params->psSurface->UPlaneOffset.iYOffset;
 
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
@@ -492,11 +486,6 @@ protected:
 
         typename TVdencCmds::VDENC_DS_REF_SURFACE_STATE_CMD cmd;
 
-        if (!params->dwUVPlaneAlignment)
-        {
-            params->dwUVPlaneAlignment = MHW_VDBOX_MFX_RECON_UV_PLANE_ALIGNMENT;   // by default use 16x alignment
-        }
-
         cmd.Dwords25.DW0.Width                       = params->psSurface->dwWidth - 1;
         cmd.Dwords25.DW0.Height                      = params->psSurface->dwHeight - 1;
         cmd.Dwords25.DW0.CrVCbUPixelOffsetVDirection = params->ucVDirection;
@@ -510,8 +499,7 @@ protected:
         cmd.Dwords25.DW1.SurfaceFormat    = this->MosToMediaStateFormat(params->psSurface->Format); //dwSurfaceFormat;  should be 4
         cmd.Dwords25.DW1.InterleaveChroma = 1;
         cmd.Dwords25.DW1.SurfacePitch     = params->psSurface->dwPitch - 1;
-        cmd.Dwords25.DW2.YOffsetForUCb    = cmd.Dwords25.DW3.YOffsetForVCr =
-            MOS_ALIGN_CEIL(params->psSurface->UPlaneOffset.iYOffset, params->dwUVPlaneAlignment);
+        cmd.Dwords25.DW2.YOffsetForUCb    = cmd.Dwords25.DW3.YOffsetForVCr = params->psSurface->UPlaneOffset.iYOffset;
 
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 

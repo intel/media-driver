@@ -820,11 +820,6 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencRefSurfaceStateCmd(
 
     mhw_vdbox_vdenc_g10_X::VDENC_REF_SURFACE_STATE_CMD cmd;
 
-    if (!params->dwUVPlaneAlignment)
-    {
-        params->dwUVPlaneAlignment = MHW_VDBOX_MFX_RECON_UV_PLANE_ALIGNMENT;   // by default use 16x alignment
-    }
-
     if (params->Mode == CODECHAL_ENCODE_MODE_HEVC)
     {
         cmd.Dwords25.DW0.Width  = params->dwActualWidth - 1;
@@ -853,8 +848,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencRefSurfaceStateCmd(
 
     cmd.Dwords25.DW1.InterleaveChroma = 1;
     cmd.Dwords25.DW1.SurfacePitch     = params->psSurface->dwPitch - 1;
-    cmd.Dwords25.DW2.YOffsetForUCb    = cmd.Dwords25.DW3.YOffsetForVCr =
-        MOS_ALIGN_CEIL(params->psSurface->UPlaneOffset.iYOffset, params->dwUVPlaneAlignment);
+    cmd.Dwords25.DW2.YOffsetForUCb    = cmd.Dwords25.DW3.YOffsetForVCr = params->psSurface->UPlaneOffset.iYOffset;
 
     MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
@@ -873,11 +867,6 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencDsRefSurfaceStateCmd(
     MHW_MI_CHK_NULL(params->psSurface);
 
     mhw_vdbox_vdenc_g10_X::VDENC_DS_REF_SURFACE_STATE_CMD cmd;
-
-    if (!params->dwUVPlaneAlignment)
-    {
-        params->dwUVPlaneAlignment = MHW_VDBOX_MFX_RECON_UV_PLANE_ALIGNMENT;   // by default use 16x alignment
-    }
 
     if (params->Mode == CODECHAL_ENCODE_MODE_HEVC)
     {
@@ -902,8 +891,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencDsRefSurfaceStateCmd(
     cmd.Dwords25.DW1.SurfaceFormat    = mhw_vdbox_vdenc_g10_X::VDENC_Surface_State_Fields_CMD::SURFACE_FORMAT_PLANAR_420_8;
     cmd.Dwords25.DW1.InterleaveChroma = 1;
     cmd.Dwords25.DW1.SurfacePitch     = params->psSurface->dwPitch - 1;
-    cmd.Dwords25.DW2.YOffsetForUCb    = cmd.Dwords25.DW3.YOffsetForVCr =
-        MOS_ALIGN_CEIL(params->psSurface->UPlaneOffset.iYOffset, params->dwUVPlaneAlignment);
+    cmd.Dwords25.DW2.YOffsetForUCb    = cmd.Dwords25.DW3.YOffsetForVCr = params->psSurface->UPlaneOffset.iYOffset;
 
     // 2nd surface
     if (numSurfaces > 1)
@@ -924,11 +912,6 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencDsRefSurfaceStateCmd(
         }
         cmd.Dwords69.DW0.CrVCbUPixelOffsetVDirection = params->ucVDirection;
 
-        if (!params->dwUVPlaneAlignment)
-        {
-            params->dwUVPlaneAlignment = MHW_VDBOX_MFX_RECON_UV_PLANE_ALIGNMENT;   // by default use 16x alignment
-        }
-
         cmd.Dwords69.DW1.TiledSurface = IS_TILE_FORMAT(params->psSurface->TileType) ? 1 : 0;
 
         if (cmd.Dwords69.DW1.TiledSurface)
@@ -939,8 +922,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencDsRefSurfaceStateCmd(
         cmd.Dwords69.DW1.SurfaceFormat    = mhw_vdbox_vdenc_g10_X::VDENC_Surface_State_Fields_CMD::SURFACE_FORMAT_PLANAR_420_8;
         cmd.Dwords69.DW1.InterleaveChroma = 1;
         cmd.Dwords69.DW1.SurfacePitch     = params->psSurface->dwPitch - 1;
-        cmd.Dwords69.DW2.YOffsetForUCb    = cmd.Dwords69.DW3.YOffsetForVCr =
-            MOS_ALIGN_CEIL(params->psSurface->UPlaneOffset.iYOffset, params->dwUVPlaneAlignment);
+        cmd.Dwords69.DW2.YOffsetForUCb    = cmd.Dwords69.DW3.YOffsetForVCr = params->psSurface->UPlaneOffset.iYOffset;
     }
 
     MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));

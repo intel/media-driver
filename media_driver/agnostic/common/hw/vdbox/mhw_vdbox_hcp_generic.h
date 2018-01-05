@@ -111,22 +111,11 @@ protected:
         MHW_MI_CHK_NULL(params->psSurface);
 
         typename THcpCmds::HCP_SURFACE_STATE_CMD cmd;
-        uint32_t uvPlaneAlignment = m_uvPlaneAlignmentLegacy;
 
         cmd.DW1.SurfaceId = params->ucSurfaceStateId;
         cmd.DW1.SurfacePitchMinus1 = params->psSurface->dwPitch - 1;
 
-        if (params->ucSurfaceStateId == CODECHAL_HCP_SRC_SURFACE_ID)
-        {
-            uvPlaneAlignment = params->dwUVPlaneAlignment ? params->dwUVPlaneAlignment : m_rawUVPlaneAlignment;
-        }
-        else
-        {
-            uvPlaneAlignment = params->dwUVPlaneAlignment ? params->dwUVPlaneAlignment : m_reconUVPlaneAlignment;
-        }
-
-        cmd.DW2.YOffsetForUCbInPixel =
-            MOS_ALIGN_CEIL(params->psSurface->UPlaneOffset.iYOffset, uvPlaneAlignment);
+        cmd.DW2.YOffsetForUCbInPixel = params->psSurface->UPlaneOffset.iYOffset;
 
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
 

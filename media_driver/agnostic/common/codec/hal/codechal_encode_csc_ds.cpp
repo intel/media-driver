@@ -1760,9 +1760,6 @@ CodechalEncodeCscDs::CodechalEncodeCscDs(CodechalEncoderState *encoder)
     m_dsCurbeLength[0] = sizeof(Ds4xKernelCurbeData);
     m_dsCurbeLength[1] = sizeof(Ds2xKernelCurbeData);
     m_dsInlineDataLength = sizeof(DsKernelInlineData);
-
-    // for Gen9+ the surface alignment is relaxed to 4x instead of 16x
-    m_encoder->m_rawSurfAlignment = MHW_VDBOX_MFX_RAW_UV_PLANE_ALIGNMENT_GEN9;
 }
 
 CodechalEncodeCscDs::~CodechalEncodeCscDs()

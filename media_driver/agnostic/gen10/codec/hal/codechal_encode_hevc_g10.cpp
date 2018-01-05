@@ -7642,7 +7642,6 @@ CodechalEncHevcStateG10::CodechalEncHevcStateG10(
     m_fieldScalingOutputInterleaved       = false;
     m_brcHistoryBufferSize                = HEVC_BRC_HISTORY_BUFFER_SIZE_G10;
     m_kernelBase                          = (uint8_t*)IGCODECKRN_G10;
-    m_rawSurfAlignment                    = MHW_VDBOX_MFX_RAW_UV_PLANE_ALIGNMENT_GEN9;
     pfnGetKernelHeaderAndSize             = GetKernelHeaderAndSize;
 
     MOS_ZeroMemory(&m_kernelDebug, sizeof(m_kernelDebug));

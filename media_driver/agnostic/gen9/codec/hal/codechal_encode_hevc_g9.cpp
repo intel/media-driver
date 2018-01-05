@@ -9770,7 +9770,6 @@ CodechalEncHevcStateG9::CodechalEncHevcStateG9(
     m_brcHistoryBufferSize          = BRC_HISTORY_BUFFER_SIZE;
     m_kuid                          = IDR_CODEC_HEVC_COMBINED_KENREL_INTEL;
     m_kernelBase                    = (uint8_t*)IGCODECKRN_G9;
-    m_rawSurfAlignment              = MHW_VDBOX_MFX_RAW_UV_PLANE_ALIGNMENT_GEN9;
 
     MOS_ZeroMemory(&m_scaled2xSurface, sizeof(m_scaled2xSurface));
     MOS_ZeroMemory(&m_sliceMapSurface, sizeof(m_sliceMapSurface));

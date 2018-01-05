@@ -2221,7 +2221,6 @@ void CodechalEncodeHevcBase::SetHcpSrcSurfaceParams(MHW_VDBOX_SURFACE_PARAMS& sr
     srcSurfaceParams.Mode = m_mode;
     srcSurfaceParams.psSurface = m_rawSurfaceToPak;
     srcSurfaceParams.ucSurfaceStateId = CODECHAL_HCP_SRC_SURFACE_ID;
-    srcSurfaceParams.dwUVPlaneAlignment = m_rawSurfAlignment;
     srcSurfaceParams.ucBitDepthLumaMinus8   = m_hevcSeqParams->bit_depth_luma_minus8;
     srcSurfaceParams.ucBitDepthChromaMinus8 = m_hevcSeqParams->bit_depth_chroma_minus8;
     srcSurfaceParams.bDisplayFormatSwizzle  = m_hevcPicParams->bDisplayFormatSwizzle;
@@ -2237,12 +2236,11 @@ void CodechalEncodeHevcBase::SetHcpReconSurfaceParams(MHW_VDBOX_SURFACE_PARAMS& 
     reconSurfaceParams.Mode = m_mode;
     reconSurfaceParams.psSurface = &m_reconSurface;
     reconSurfaceParams.ucSurfaceStateId = CODECHAL_HCP_DECODED_SURFACE_ID;
-    reconSurfaceParams.dwUVPlaneAlignment     = 1 << (m_hevcSeqParams->log2_min_coding_block_size_minus3 + 3);
     reconSurfaceParams.ucBitDepthLumaMinus8   = m_hevcSeqParams->bit_depth_luma_minus8;
     reconSurfaceParams.ucBitDepthChromaMinus8 = m_hevcSeqParams->bit_depth_chroma_minus8;
     reconSurfaceParams.ChromaType = m_outputChromaFormat;
     reconSurfaceParams.dwActualHeight         = ((m_hevcSeqParams->wFrameHeightInMinCbMinus1 + 1) << (m_hevcSeqParams->log2_min_coding_block_size_minus3 + 3));
-    reconSurfaceParams.dwReconSurfHeight = MOS_ALIGN_CEIL(m_rawSurfaceToPak->dwHeight, reconSurfaceParams.dwUVPlaneAlignment);
+    reconSurfaceParams.dwReconSurfHeight = m_rawSurfaceToPak->dwHeight;
 #ifdef _MMC_SUPPORTED
     m_mmcState->SetSurfaceState(&reconSurfaceParams);
 #endif

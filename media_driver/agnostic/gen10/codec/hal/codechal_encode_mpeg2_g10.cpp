@@ -1617,8 +1617,6 @@ CodechalEncodeMpeg2G10::CodechalEncodeMpeg2G10(
 
     pfnGetKernelHeaderAndSize = GetKernelHeaderAndSize;
 
-    m_rawSurfAlignment = MHW_VDBOX_MFX_RAW_UV_PLANE_ALIGNMENT_GEN9;
-
     MOS_STATUS eStatus = CodecHalGetKernelBinaryAndSize(
         (uint8_t *)IGCODECKRN_G10,
         m_kuid,

@@ -1611,7 +1611,6 @@ CodechalEncodeMpeg2G8::CodechalEncodeMpeg2G8(
     CODECHAL_ENCODE_FUNCTION_ENTER;
     
     pfnGetKernelHeaderAndSize = GetKernelHeaderAndSize;
-    m_rawSurfAlignment = MHW_VDBOX_MFX_UV_PLANE_ALIGNMENT_LEGACY;  // on Gen8 raw surface has to be 16-aligned
 
     MOS_STATUS eStatus = CodecHalGetKernelBinaryAndSize(
         (uint8_t *)IGCODECKRN_G8,

@@ -1678,7 +1678,6 @@ public:
     // Ds+Copy kernel optimization
     uint8_t                         m_outputChromaFormat = (uint8_t)HCP_CHROMA_FORMAT_YUV420;     //!< 1: 420 2: 422 3: 444
     bool                            m_gopIsIdrFrameOnly = false;                                  //!< GOP structure contains I-frame only
-    uint32_t                        m_rawSurfAlignment = MHW_VDBOX_MFX_UV_PLANE_ALIGNMENT_LEGACY; //!< raw surf alignment for HW pipeline to work properly
     PMOS_SURFACE                    m_rawSurfaceToEnc = nullptr;                                  //!< raw surf to enc 
     PMOS_SURFACE                    m_rawSurfaceToPak = nullptr;                                  //!< raw surf to pak
     

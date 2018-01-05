@@ -2402,7 +2402,6 @@ CodechalVdencHevcStateG10::CodechalVdencHevcStateG10(
     m_deltaQpRoiBufferSize         = m_deltaQpBufferSize;
     m_maxNumSlicesSupported        = CODECHAL_HEVC_MAX_SLICE_NUM;
     m_kernelBase                   = (uint8_t*)IGCODECKRN_G10;
-    m_rawSurfAlignment             = MHW_VDBOX_MFX_RAW_UV_PLANE_ALIGNMENT_GEN9;
 
     m_hwInterface->GetStateHeapSettings()->dwNumSyncTags = CODECHAL_ENCODE_HEVC_NUM_SYNC_TAGS; 
     m_hwInterface->GetStateHeapSettings()->dwDshSize = CODECHAL_INIT_DSH_SIZE_HEVC_ENC;

@@ -1233,7 +1233,7 @@ void CodechalVdencHevcState::SetVdencSurfaceStateParams(
     // VDENC_REF_SURFACE_STATE parameters
     reconSurfaceParams.dwActualWidth = srcSurfaceParams.dwActualWidth;
     reconSurfaceParams.dwActualHeight = srcSurfaceParams.dwActualHeight;
-    reconSurfaceParams.dwReconSurfHeight = MOS_ALIGN_CEIL(m_rawSurfaceToPak->dwHeight, reconSurfaceParams.dwUVPlaneAlignment);
+    reconSurfaceParams.dwReconSurfHeight = m_rawSurfaceToPak->dwHeight;
 
     // VDENC_DS_REF_SURFACE_STATE parameters
     MOS_ZeroMemory(&ds8xSurfaceParams, sizeof(ds8xSurfaceParams));
