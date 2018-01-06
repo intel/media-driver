@@ -3975,6 +3975,7 @@ MOS_STATUS CodechalEncodeAvcEncFeiG8::EncodePreEncKernelFunctions()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(EncodeScalingKernel(&cscScalingKernelParams));
         m_dsKernelIdx ++;
 #else
+        m_trackedBuf->AllocateForCurrFramePreenc(m_currScalingIdx);
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->DsKernel(&cscScalingKernelParams));
 #endif
 
@@ -4029,6 +4030,7 @@ MOS_STATUS CodechalEncodeAvcEncFeiG8::EncodePreEncKernelFunctions()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(EncodeScalingKernel(&cscScalingKernelParams));
         m_dsKernelIdx++;
 #else
+        m_trackedBuf->AllocateForCurrFramePreenc(m_currScalingIdx);
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->DsKernel(&cscScalingKernelParams));
 #endif
     }
@@ -4083,6 +4085,7 @@ MOS_STATUS CodechalEncodeAvcEncFeiG8::EncodePreEncKernelFunctions()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(EncodeScalingKernel(&cscScalingKernelParams));
         m_dsKernelIdx++;
 #else
+        m_trackedBuf->AllocateForCurrFramePreenc(m_currScalingIdx);
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->DsKernel(&cscScalingKernelParams));
 #endif
     }
@@ -6595,7 +6598,8 @@ MOS_STATUS CodechalEncodeAvcEncFeiG8::SendMeSurfaces(PMOS_COMMAND_BUFFER cmdBuff
     bool currBottomField = CodecHal_PictureIsBottomField(*(params->pCurrOriginalPic)) ? 1 : 0;
     uint8_t currVDirection = (!currFieldPicture) ? CODECHAL_VDIRECTION_FRAME :
         ((currBottomField) ? CODECHAL_VDIRECTION_BOT_FIELD : CODECHAL_VDIRECTION_TOP_FIELD);
-    auto currScaledSurface = m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER);
+    uint8_t scaledIdx = params->ppRefList[m_currReconstructedPic.FrameIdx]->ucScalingIdx;
+    auto currScaledSurface = m_trackedBuf->Get4xDsSurface(scaledIdx);
     auto meMvDataBuffer = params->ps4xMeMvDataBuffer;
     uint32_t meMvBottomFieldOffset = params->dw4xMeMvBottomFieldOffset;
     uint32_t currScaledBottomFieldOffset = params->dw4xScaledBottomFieldOffset;
@@ -6687,7 +6691,7 @@ MOS_STATUS CodechalEncodeAvcEncFeiG8::SendMeSurfaces(PMOS_COMMAND_BUFFER cmdBuff
             bool refFieldPicture = CodecHal_PictureIsField(refPic) ? 1 : 0;
             bool refBottomField = (CodecHal_PictureIsBottomField(refPic)) ? 1 : 0;
             uint8_t refPicIdx = params->pPicIdx[refPic.FrameIdx].ucPicIdx;
-            uint8_t scaledIdx = params->ppRefList[refPicIdx]->ucScalingIdx;
+            scaledIdx = params->ppRefList[refPicIdx]->ucScalingIdx;
 
             refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
             uint32_t refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
@@ -6748,7 +6752,7 @@ MOS_STATUS CodechalEncodeAvcEncFeiG8::SendMeSurfaces(PMOS_COMMAND_BUFFER cmdBuff
             bool refFieldPicture = CodecHal_PictureIsField(refPic) ? 1 : 0;
             bool refBottomField = (CodecHal_PictureIsBottomField(refPic)) ? 1 : 0;
             uint8_t refPicIdx = params->pPicIdx[refPic.FrameIdx].ucPicIdx;
-            uint8_t scaledIdx = params->ppRefList[refPicIdx]->ucScalingIdx;
+            scaledIdx = params->ppRefList[refPicIdx]->ucScalingIdx;
 
             refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
             uint32_t refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;

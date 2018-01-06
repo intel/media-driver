@@ -131,6 +131,15 @@ void CodechalEncodeTrackedBuffer::ResizeCsc()
     }
 }
 
+void CodechalEncodeTrackedBuffer::AllocateForCurrFramePreenc(uint8_t bufIndex)
+{
+    // update the last 3 buffer index
+    m_trackedBufAnteIdx = m_trackedBufPenuIdx;
+    m_trackedBufPenuIdx = m_trackedBufCurrIdx;
+    // use the buffer index passed in by Preenc
+    m_trackedBufCurrIdx = bufIndex;
+}
+
 void CodechalEncodeTrackedBuffer::ResetUsedForCurrFrame()
 {
     for (auto i = 0; i < CODEC_NUM_TRACKED_BUFFERS; i++)

@@ -265,6 +265,15 @@ public:
     void ResizeCsc();
 
     //!
+    //! \brief    Allocate for Preenc, so far only set the buffer index for DS surface
+    //! \param    [in] bufIndex
+    //!           buffer index for DS surface
+    //!
+    //! \return   void
+    //!
+    void AllocateForCurrFramePreenc(uint8_t bufIndex);
+
+    //!
     //! \brief  Reset used for current frame flag
     //!
     void ResetUsedForCurrFrame();
