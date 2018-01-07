@@ -72,6 +72,9 @@ protected:
             uint32_t width,
             uint32_t height);
 
+    virtual VAStatus LoadAvcEncProfileEntrypoints();
+    virtual VAStatus LoadHevcEncProfileEntrypoints();
+
     //!
     //! \brief    Initialize HEVC low-power encode profiles, entrypoints and attributes
     //!

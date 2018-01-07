@@ -958,7 +958,7 @@ protected:
     //!
     //! \brief    Initialize AVC encode profiles, entrypoints and attributes
     //!
-    VAStatus LoadAvcEncProfileEntrypoints();
+    virtual VAStatus LoadAvcEncProfileEntrypoints();
 
     //!
     //! \brief    Initialize AVC Low-power encode profiles, entrypoints and attributes
@@ -1018,7 +1018,7 @@ protected:
     //!
     //! \brief    Initialize HEVC encode profiles, entrypoints and attributes
     //!
-    VAStatus LoadHevcEncProfileEntrypoints();
+    virtual VAStatus LoadHevcEncProfileEntrypoints();
 
     //!
     //! \brief    Initialize none profiles, entrypoints and attributes

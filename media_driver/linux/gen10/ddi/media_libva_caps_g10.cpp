@@ -348,3 +348,83 @@ VAStatus MediaLibvaCapsG10::QueryAVCROIMaxNum(uint32_t rcMode, int32_t *maxNum, 
     *isRoiInDeltaQP = true;
     return VA_STATUS_SUCCESS;
 }
+
+VAStatus MediaLibvaCapsG10::LoadAvcEncProfileEntrypoints()
+{
+    VAStatus status = VA_STATUS_SUCCESS;
+
+#ifdef _AVC_ENCODE_SUPPORTED
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeAVC))
+    {
+        AttribMap *attributeList;
+        VAProfile profile[3] = {
+            VAProfileH264Main,
+            VAProfileH264High,
+            VAProfileH264ConstrainedBaseline};
+
+        uint32_t configStartIdx;
+
+        for (int32_t i = 0; i < 3; i++)
+        {
+            status = CreateEncAttributes(profile[i],
+                    VAEntrypointEncSlice,
+                    &attributeList);
+
+            DDI_CHK_RET(status, "Failed to initialize Caps!");
+            configStartIdx = m_encConfigs.size();
+            int32_t maxRcMode = 7;
+            for (int32_t j = 0; j < maxRcMode; j++)
+            {
+                AddEncConfig(m_encRcMode[j]);
+            }
+            AddProfileEntry(profile[i], VAEntrypointEncSlice, attributeList,
+                        configStartIdx, m_encConfigs.size() - configStartIdx);
+        }
+    }
+#endif
+    return status;
+}
+
+VAStatus MediaLibvaCapsG10::LoadHevcEncProfileEntrypoints()
+{
+    VAStatus status = VA_STATUS_SUCCESS;
+
+#ifdef _HEVC_ENCODE_SUPPORTED
+    AttribMap *attributeList = nullptr;
+
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVC)
+            || MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVC10bit))
+    {
+        status = CreateEncAttributes(VAProfileHEVCMain, VAEntrypointEncSlice, &attributeList);
+        DDI_CHK_RET(status, "Failed to initialize Caps!");
+        DDI_CHK_NULL(attributeList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+        uint32_t configStartIdx = m_encConfigs.size();
+        AddEncConfig(VA_RC_CQP);
+        for (int32_t j = 3; j < 7; j++)
+        {
+            AddEncConfig(m_encRcMode[j]);
+            AddEncConfig(m_encRcMode[j] | VA_RC_PARALLEL);
+        }
+
+        AddProfileEntry(VAProfileHEVCMain, VAEntrypointEncSlice, attributeList,
+                configStartIdx, m_encConfigs.size() - configStartIdx);
+
+        if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVC10bit))
+        {
+            configStartIdx = m_encConfigs.size();
+            AddEncConfig(VA_RC_CQP);
+            for (int32_t j = 3; j < 7; j++)
+            {
+                AddEncConfig(m_encRcMode[j]);
+                AddEncConfig(m_encRcMode[j] | VA_RC_PARALLEL);
+            }
+            AddProfileEntry(VAProfileHEVCMain10, VAEntrypointEncSlice, attributeList,
+                configStartIdx, m_encConfigs.size() - configStartIdx);
+        }
+    }
+
+#endif
+    return status;
+}
+
