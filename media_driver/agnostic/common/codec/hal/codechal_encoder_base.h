@@ -1526,7 +1526,6 @@ public:
     uint8_t                         m_currRecycledBufIdx = 0;       //!< Current recycled buffer index
     uint8_t                         m_currEncBbSet = 0;             //!< Current encode bb set
     uint8_t                         m_currMbCodeIdx = 0;            //!< Current mb code index
-    uint8_t                         m_currScalingIdx = 0;           //!< Current scaling index
     uint8_t                         m_currMadBufferIdx = 0;         //!< Current mad buffer
     uint32_t                        m_recycledBufStatusNum[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM] = {0};  //!< Recycled buffer status num list
     uint32_t                        m_recycledBufWaitMs = 0;        //!< Recycled buffer wait (ms)

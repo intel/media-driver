@@ -4888,7 +4888,6 @@ MOS_STATUS CodechalEncHevcStateG10::EncodeScalingAndConversionKernel(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(VerifySpaceAvailable());
     }
 
-    uint8_t scaledIdx = m_currScalingIdx;
     CODECHAL_MEDIA_STATE_TYPE encFunctionType;
     PCODEC_REF_LIST           currRefList = m_refList[m_currReconstructedPic.FrameIdx];
     DsStage downscaleStage;
@@ -4915,7 +4914,7 @@ MOS_STATUS CodechalEncHevcStateG10::EncodeScalingAndConversionKernel(
             inputFrameWidth = m_oriFrameWidth;
             inputFrameHeight = m_oriFrameHeight;
 
-            outputScaledSurface2x     = m_trackedBuf->Get2xDsSurface(scaledIdx);
+            outputScaledSurface2x     = m_trackedBuf->Get2xDsSurface(CODEC_CURR_TRACKED_BUFFER);
             outputScaledFrameWidth2x  = m_downscaledWidth2x;
             outputScaledFrameHeight2x = m_downscaledHeight2x;
 
@@ -4936,11 +4935,11 @@ MOS_STATUS CodechalEncHevcStateG10::EncodeScalingAndConversionKernel(
             inputFrameWidth = m_oriFrameWidth;
             inputFrameHeight = m_oriFrameHeight;
 
-            outputScaledSurface4x = m_trackedBuf->Get4xDsSurface(scaledIdx);
+            outputScaledSurface4x = m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER);
             outputScaledFrameWidth4x  = m_downscaledWidth4x;
             outputScaledFrameHeight4x = m_downscaledHeight4x;
 
-            outputScaledSurface2x = m_trackedBuf->Get2xDsSurface(scaledIdx);
+            outputScaledSurface2x = m_trackedBuf->Get2xDsSurface(CODEC_CURR_TRACKED_BUFFER);
             outputScaledFrameWidth2x  = m_downscaledWidth2x;
             outputScaledFrameHeight2x = m_downscaledHeight2x;
 
@@ -4962,7 +4961,7 @@ MOS_STATUS CodechalEncHevcStateG10::EncodeScalingAndConversionKernel(
             inputFrameWidth = m_oriFrameWidth;
             inputFrameHeight = m_oriFrameHeight;
 
-            outputScaledSurface4x = m_trackedBuf->Get4xDsSurface(scaledIdx);
+            outputScaledSurface4x = m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER);
             outputScaledFrameWidth4x  = m_downscaledWidth4x;
             outputScaledFrameHeight4x = m_downscaledHeight4x;
 
@@ -4973,11 +4972,11 @@ MOS_STATUS CodechalEncHevcStateG10::EncodeScalingAndConversionKernel(
             encFunctionType         = CODECHAL_MEDIA_STATE_16X_SCALING;
             downscaleStage          = dsStage16x;
 
-            inputSurface = m_trackedBuf->Get4xDsSurface(scaledIdx);
+            inputSurface = m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER);
             inputFrameWidth = m_downscaledWidth4x;
             inputFrameHeight = m_downscaledHeight4x;
 
-            outputScaledSurface4x = m_trackedBuf->Get16xDsSurface(scaledIdx);
+            outputScaledSurface4x = m_trackedBuf->Get16xDsSurface(CODEC_CURR_TRACKED_BUFFER);
             outputScaledFrameWidth4x  = m_downscaledWidth16x;
             outputScaledFrameHeight4x = m_downscaledHeight16x;
 

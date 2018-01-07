@@ -238,7 +238,7 @@ MOS_STATUS CodechalEncodeCscDs::SetKernelParamsCsc(KernelParams* params)
     else
     {
         m_surfaceParamsCsc.bFlatnessCheckEnabled = m_flatnessCheckEnabled;
-        m_surfaceParamsCsc.psFlatnessCheckSurface = &m_flatnessCheckSurface;
+        m_surfaceParamsCsc.psFlatnessCheckSurface = &m_encoder->m_flatnessCheckSurface;
     }
 
     // setup walker param
@@ -1251,7 +1251,7 @@ MOS_STATUS CodechalEncodeCscDs::CscKernel(
     perfTag.Value = 0;
     perfTag.Mode = (uint16_t)m_mode & CODECHAL_ENCODE_MODE_BIT_MASK;
     perfTag.CallType = CODECHAL_ENCODE_PERFTAG_CALL_DS_CONVERSION_KERNEL;
-    perfTag.PictureCodingType = m_pictureCodingType;
+    perfTag.PictureCodingType = m_encoder->m_pictureCodingType;
     m_osInterface->pfnSetPerfTag(m_osInterface, perfTag.Value);
     // Each scaling kernel buffer counts as a separate perf task
     m_osInterface->pfnResetPerfBufferID(m_osInterface);
@@ -1411,7 +1411,7 @@ MOS_STATUS CodechalEncodeCscDs::DsKernel(
     perfTag.Value = 0;
     perfTag.Mode = m_mode & CODECHAL_ENCODE_MODE_BIT_MASK;
     perfTag.CallType = CODECHAL_ENCODE_PERFTAG_CALL_SCALING_KERNEL;
-    perfTag.PictureCodingType = m_pictureCodingType;
+    perfTag.PictureCodingType = m_encoder->m_pictureCodingType;
     m_osInterface->pfnSetPerfTag(m_osInterface, perfTag.Value);
     m_osInterface->pfnIncPerfBufferID(m_osInterface);
     // Each scaling kernel buffer counts as a separate perf task
@@ -1619,7 +1619,7 @@ MOS_STATUS CodechalEncodeCscDs::DsKernel(
     {
         // Enable flatness check only for 4x scaling.
         m_surfaceParamsDS.bFlatnessCheckEnabled = scaling4xInUse && m_flatnessCheckEnabled;
-        m_surfaceParamsDS.psFlatnessCheckSurface = &m_flatnessCheckSurface;
+        m_surfaceParamsDS.psFlatnessCheckSurface = &m_encoder->m_flatnessCheckSurface;
         m_surfaceParamsDS.dwFlatnessCheckBottomFieldOffset = m_flatnessCheckBottomFieldOffset;
     }
 
@@ -1721,9 +1721,7 @@ CodechalEncodeCscDs::CodechalEncodeCscDs(CodechalEncoderState *encoder)
       m_firstTaskInPhase(encoder->m_firstTaskInPhase),
       m_lastTaskInPhase(encoder->m_lastTaskInPhase),
       m_groupId(encoder->m_groupId),
-      m_currScalingIdx(encoder->m_currScalingIdx),
       m_outputChromaFormat(encoder->m_outputChromaFormat),
-      m_pictureCodingType(encoder->m_pictureCodingType),
       m_standard(encoder->m_standard),
       m_mode(encoder->m_mode),
       m_downscaledWidth4x(encoder->m_downscaledWidth4x),
@@ -1745,7 +1743,6 @@ CodechalEncodeCscDs::CodechalEncodeCscDs(CodechalEncoderState *encoder)
       m_renderContext(encoder->m_renderContext),
       m_walkerMode(encoder->m_walkerMode),
       m_currRefList(encoder->m_currRefList),
-      m_flatnessCheckSurface(encoder->m_flatnessCheckSurface),
       m_resMbStatsBuffer(encoder->m_resMbStatsBuffer),
       m_rawSurfaceToEnc(encoder->m_rawSurfaceToEnc),
       m_rawSurfaceToPak(encoder->m_rawSurfaceToPak)

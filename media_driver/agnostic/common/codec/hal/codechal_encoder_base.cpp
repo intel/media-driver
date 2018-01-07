@@ -4230,7 +4230,7 @@ MOS_STATUS CodechalEncoderState::ExecuteEnc(
 
             // allocate tracked buffer for current frame
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_trackedBuf->AllocateForCurrFrame());
-            m_currRefList->ucScalingIdx = m_currScalingIdx = m_trackedBuf->GetCurrIndex();
+            m_currRefList->ucScalingIdx = m_trackedBuf->GetCurrIndex();
 
             if (m_trackedBuf->IsMbCodeAllocationNeeded())
             {

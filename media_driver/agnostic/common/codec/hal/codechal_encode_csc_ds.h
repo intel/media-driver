@@ -618,9 +618,7 @@ protected:
     bool&                       m_firstTaskInPhase;
     bool&                       m_lastTaskInPhase;
     uint8_t&                    m_groupId;
-    uint8_t&                    m_currScalingIdx;
     uint8_t&                    m_outputChromaFormat;
-    uint16_t&                   m_pictureCodingType;
     uint32_t&                   m_standard;
     uint32_t&                   m_mode;
     uint32_t&                   m_downscaledWidth4x;
@@ -642,7 +640,6 @@ protected:
     MOS_GPU_CONTEXT&            m_renderContext;
     MHW_WALKER_MODE&            m_walkerMode;
     CODEC_REF_LIST*&            m_currRefList;
-    MOS_SURFACE&                m_flatnessCheckSurface;
     MOS_RESOURCE&               m_resMbStatsBuffer;
     MOS_SURFACE*&               m_rawSurfaceToEnc;
     MOS_SURFACE*&               m_rawSurfaceToPak;
