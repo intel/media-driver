@@ -187,6 +187,8 @@ protected:
     //!
     VAStatus ParseMiscParams(void *ptr);
 
+    uint16_t m_previousFRvalue = 0; //!< For saving FR value to be used in case of dynamic BRC reset.
+
 private:
     //!
     //! \brief    Get Encode Codechal Picture Type from Va Slice Type

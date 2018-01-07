@@ -415,6 +415,7 @@ protected:
     CODECHAL_ENCODE_AVC_ROUNDING_PARAMS     *m_roundingParams = nullptr; //!< Rounding parameters.
     uint8_t                                 m_weightScale4x4[6][16];     //!< Inverse quantization weight scale 4x4.
     uint8_t                                 m_weightScale8x8[2][64];     //!< Inverse quantization weight scale 8x8.
+    uint16_t                                m_previousFRper100sec = 0;   //!< For saving FR value to be used in case of dynamic BRC reset.
 
 private:
     //! \brief H.264 Inverse Quantization Matrix Buffer.

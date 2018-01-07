@@ -198,10 +198,23 @@ VAStatus DdiEncodeAvc::ParseMiscParamFR(void *data)
 
     uint32_t numerator = (encMiscParamFR->framerate & 0xffff) * 100; /** 100*/;
     auto denominator = (encMiscParamFR->framerate >> 16)&0xfff;
-    if(denominator)
+    if(denominator == 0)
     {
-        seqParams->FramesPer100Sec = (uint16_t)(numerator/denominator);
+       denominator = 1;
     }
+
+    // Pass frame rate value to seqParams and set BRC reset flag and bNewSeq to true while dynamic BRC occures
+    seqParams->FramesPer100Sec = (uint16_t)(numerator / denominator);
+    if(m_previousFRper100sec != 0)
+    {
+        if(m_previousFRper100sec != seqParams->FramesPer100Sec)
+        {
+            seqParams->bResetBRC = 0x1;
+            m_encodeCtx->bNewSeq = true;
+        }
+    }
+    m_previousFRper100sec = seqParams->FramesPer100Sec;
+
     return VA_STATUS_SUCCESS;
 }
 
@@ -237,6 +250,7 @@ VAStatus DdiEncodeAvc::ParseMiscParamRC(void *data)
             if (m_encodeCtx->uiTargetBitRate)
             {
                 seqParams->bResetBRC = 0x1;
+                m_encodeCtx->bNewSeq = true;
             }
             m_encodeCtx->uiTargetBitRate = seqParams->TargetBitRate;
             m_encodeCtx->uiMaxBitRate    = seqParams->TargetBitRate;
@@ -258,6 +272,7 @@ VAStatus DdiEncodeAvc::ParseMiscParamRC(void *data)
             if ((m_encodeCtx->uiTargetBitRate != 0) && (m_encodeCtx->uiMaxBitRate != 0))
             {
                 seqParams->bResetBRC = 0x1;
+                m_encodeCtx->bNewSeq = true;
             }
             m_encodeCtx->uiTargetBitRate = seqParams->TargetBitRate;
             m_encodeCtx->uiMaxBitRate    = seqParams->MaxBitRate;

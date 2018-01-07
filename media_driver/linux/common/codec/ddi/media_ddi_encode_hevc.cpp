@@ -867,12 +867,25 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
     case VAEncMiscParameterTypeFrameRate:
     {
         VAEncMiscParameterFrameRate *vaEncMiscParamFR = (VAEncMiscParameterFrameRate *)miscParamBuf->data;
-        seqParams->FrameRate.Numerator                = vaEncMiscParamFR->framerate & 0xffff;
-        seqParams->FrameRate.Denominator              = (vaEncMiscParamFR->framerate >> 16 ) & 0xffff;
-        if(seqParams->FrameRate.Denominator == 0)
+        uint32_t vaFRnumerator = vaEncMiscParamFR->framerate & 0xffff;
+        uint32_t vaFRDenominator = (vaEncMiscParamFR->framerate >> 16) & 0xffff;
+        if(vaFRDenominator == 0)
         {
-            seqParams->FrameRate.Denominator = 1;
+            vaFRDenominator = 1;
         }
+        // Pass frame rate value to seqParams and set BRC reset flag and bNewSeq to true while dynamic BRC occures
+        seqParams->FrameRate.Numerator = vaFRnumerator;
+        seqParams->FrameRate.Denominator = vaFRDenominator;
+        if(m_previousFRvalue != 0)
+        {
+            uint16_t seqFRvalue = (uint16_t)(seqParams->FrameRate.Numerator / seqParams->FrameRate.Denominator);
+            if(m_previousFRvalue != seqFRvalue)
+            {
+                seqParams->bResetBRC = 0x1;
+                m_encodeCtx->bNewSeq = true;
+            }
+        }
+        m_previousFRvalue = (uint16_t)(vaFRnumerator / vaFRDenominator);
         break;
     }
     case VAEncMiscParameterTypeRateControl:
@@ -934,6 +947,7 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
                 if ((m_encodeCtx->uiTargetBitRate != 0) && (m_encodeCtx->uiMaxBitRate != 0))
                 {
                     seqParams->bResetBRC = 0x1;
+                    m_encodeCtx->bNewSeq = true;
                 }
                 m_encodeCtx->uiTargetBitRate = seqParams->TargetBitRate;
                 m_encodeCtx->uiMaxBitRate    = seqParams->MaxBitRate;
