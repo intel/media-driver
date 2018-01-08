@@ -195,9 +195,9 @@ CmThreadSpaceRT::~CmThreadSpaceRT( void )
     MosSafeDelete(threadSpaceExt);
 #endif
 
-    if (m_Wavefront26ZDispatchInfo.pNumThreadsInWave)
+    if (m_Wavefront26ZDispatchInfo.numThreadsInWave)
     {
-        MOS_FreeMemory(m_Wavefront26ZDispatchInfo.pNumThreadsInWave);
+        MOS_FreeMemory(m_Wavefront26ZDispatchInfo.numThreadsInWave);
     }
 }
 
@@ -430,7 +430,7 @@ CM_RT_API int32_t CmThreadSpaceRT::SelectThreadDependencyPattern (CM_DEPENDENCY_
         case CM_WAVEFRONT26Z:
             m_DependencyPatternType = CM_WAVEFRONT26Z;
             CMCHK_HR(SetThreadDependencyPattern(Wavefront26ZPattern.count, Wavefront26ZPattern.deltaX, Wavefront26ZPattern.deltaY));
-            m_Wavefront26ZDispatchInfo.pNumThreadsInWave = (uint32_t*)MOS_AllocAndZeroMemory(sizeof(uint32_t) * m_Width * m_Height);
+            m_Wavefront26ZDispatchInfo.numThreadsInWave = (uint32_t*)MOS_AllocAndZeroMemory(sizeof(uint32_t) * m_Width * m_Height);
             if (m_pThreadSpaceUnit == nullptr && !CheckThreadSpaceOrderSet())
             {
                 m_pThreadSpaceUnit = MOS_NewArray(CM_THREAD_SPACE_UNIT, (m_Height * m_Width));
@@ -685,7 +685,7 @@ CM_RT_API int32_t CmThreadSpaceRT::SetThreadSpaceColorCount(uint32_t colorCount)
 
     int32_t result = CM_SUCCESS;
 
-    PCM_HAL_STATE pCmHalState = ((PCM_CONTEXT_DATA)m_pDevice->GetAccelData())->pCmHalState;
+    PCM_HAL_STATE pCmHalState = ((PCM_CONTEXT_DATA)m_pDevice->GetAccelData())->cmHalState;
 
     result = pCmHalState->pCmHalInterface->ColorCountSanityCheck(colorCount);
     if(result != CM_SUCCESS)
@@ -1117,7 +1117,7 @@ int32_t CmThreadSpaceRT::Wavefront26ZSequence()
     CM_COORDINATE pMask[ 8 ];
     uint32_t nMaskNumber = 0;
 
-    m_Wavefront26ZDispatchInfo.pNumThreadsInWave[numWaves] = 1;
+    m_Wavefront26ZDispatchInfo.numThreadsInWave[numWaves] = 1;
     numWaves++;
 
     while ( m_IndexInList < m_Width * m_Height - 1 )
@@ -1253,7 +1253,7 @@ int32_t CmThreadSpaceRT::Wavefront26ZSequence()
             }
         }
 
-        m_Wavefront26ZDispatchInfo.pNumThreadsInWave[numWaves] = threadsInWave;
+        m_Wavefront26ZDispatchInfo.numThreadsInWave[numWaves] = threadsInWave;
         threadsInWave = 0;
         numWaves++;
     }

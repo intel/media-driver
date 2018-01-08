@@ -56,10 +56,10 @@ void CmDeviceRT::ConstructOSSpecific(uint32_t devCreateOption)
     m_pfnReleaseVaSurface = nullptr;
 
     // If use dynamic states.
-    m_DevCreateOption.bDynamicStateHeap = (devCreateOption & CM_DEVICE_CONFIG_DSH_DISABLE_MASK) ? false : true;
-    if (m_DevCreateOption.bDynamicStateHeap)
+    m_DevCreateOption.dynamicStateHeap = (devCreateOption & CM_DEVICE_CONFIG_DSH_DISABLE_MASK) ? false : true;
+    if (m_DevCreateOption.dynamicStateHeap)
     {
-        m_DevCreateOption.MaxTaskNumber = 64;
+        m_DevCreateOption.maxTaskNumber = 64;
     }
     return;
 }
@@ -85,8 +85,8 @@ int32_t CmDeviceRT::CreateAuxDevice(MOS_CONTEXT *pUmdContext)  //VADriverContext
     // allocate pCmCtx
     pCmCtx = (PCM_CONTEXT)MOS_AllocAndZeroMemory(sizeof(CM_CONTEXT));
     CMCHK_NULL(pCmCtx);
-    pCmCtx->VphalDrvCtx = *pUmdContext; // mos context
-    pCmCtx->pCmHalState = pCmHalState;
+    pCmCtx->mosCtx     = *pUmdContext; // mos context
+    pCmCtx->cmHalState = pCmHalState;
 
     m_pAccelData =  (void *)pCmCtx;
 
@@ -110,11 +110,11 @@ int32_t CmDeviceRT::DestroyAuxDevice()
     PCM_CONTEXT_DATA  pCmData = (PCM_CONTEXT_DATA)m_pAccelData;
 
     // Delete VPHAL State
-    if (pCmData && pCmData->pCmHalState)
+    if (pCmData && pCmData->cmHalState)
     {
-        pCmData->VphalDrvCtx.SkuTable.reset();
-        pCmData->VphalDrvCtx.WaTable.reset();
-        HalCm_Destroy(pCmData->pCmHalState);
+        pCmData->mosCtx.SkuTable.reset();
+        pCmData->mosCtx.WaTable.reset();
+        HalCm_Destroy(pCmData->cmHalState);
         // Delete CM Data itself
         MOS_FreeMemory(pCmData);
 
@@ -305,10 +305,10 @@ CM_RETURN_CODE CmDeviceRT::QueryGPUInfoInternal(PCM_QUERY_CAPS pQueryCaps)
     pCmData = (PCM_CONTEXT_DATA)GetAccelData();
     CMCHK_NULL(pCmData);
 
-    pCmHalState = pCmData->pCmHalState;
+    pCmHalState = pCmData->cmHalState;
     CMCHK_NULL(pCmHalState);
 
-    switch(pQueryCaps->Type)
+    switch(pQueryCaps->type)
     {
         case CM_QUERY_GPU:
             pQueryCaps->genCore = pCmHalState->Platform.eRenderCoreFamily;
@@ -319,11 +319,11 @@ CM_RETURN_CODE CmDeviceRT::QueryGPUInfoInternal(PCM_QUERY_CAPS pQueryCaps)
             break;
 
         case CM_QUERY_MIN_RENDER_FREQ:
-            pQueryCaps->MinRenderFreq = 0;
+            pQueryCaps->minRenderFreq = 0;
             break;
 
         case CM_QUERY_MAX_RENDER_FREQ:
-            pQueryCaps->MaxRenderFreq = 0;
+            pQueryCaps->maxRenderFreq = 0;
             break;
 
         case CM_QUERY_STEP:
@@ -331,7 +331,7 @@ CM_RETURN_CODE CmDeviceRT::QueryGPUInfoInternal(PCM_QUERY_CAPS pQueryCaps)
             break;
 
         case CM_QUERY_GPU_FREQ:
-            CHK_MOSSTATUS_RETURN_CMERROR(pCmHalState->pfnGetGPUCurrentFrequency(pCmHalState, &pQueryCaps->GPUCurrentFreq));
+            CHK_MOSSTATUS_RETURN_CMERROR(pCmHalState->pfnGetGPUCurrentFrequency(pCmHalState, &pQueryCaps->gpuCurrentFreq));
             break;
 
         default:
@@ -350,7 +350,7 @@ finish:
 CM_RETURN_CODE
 CmDeviceRT::QuerySurface2DFormatsInternal(PCM_QUERY_CAPS pQueryCaps)
 {
-    if (pQueryCaps->pSurface2DFormats)
+    if (pQueryCaps->surface2DFormats)
     {
         CM_SURFACE_FORMAT formats[ CM_MAX_SURFACE2D_FORMAT_COUNT_INTERNAL ] =
         {
@@ -371,7 +371,7 @@ CmDeviceRT::QuerySurface2DFormatsInternal(PCM_QUERY_CAPS pQueryCaps)
             CM_SURFACE_FORMAT_R8_UINT,
             CM_SURFACE_FORMAT_R16_UINT,
         };
-        CmSafeMemCopy( pQueryCaps->pSurface2DFormats, formats, CM_MAX_SURFACE2D_FORMAT_COUNT_INTERNAL  * sizeof( GMM_RESOURCE_FORMAT ) );
+        CmSafeMemCopy( pQueryCaps->surface2DFormats, formats, CM_MAX_SURFACE2D_FORMAT_COUNT_INTERNAL  * sizeof( GMM_RESOURCE_FORMAT ) );
     }
     else
         return CM_FAILURE;
@@ -496,7 +496,7 @@ int32_t CmDeviceRT::ReadVtuneProfilingFlag()
 
     //Set flag in cm hal layer
     PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)this->GetAccelData();
-    PCM_HAL_STATE pCmHalState = pCmData->pCmHalState;
+    PCM_HAL_STATE pCmHalState = pCmData->cmHalState;
     pCmHalState->pfnSetVtuneProfilingFlag(pCmHalState, m_bVtuneOn);
 
     return CM_SUCCESS;

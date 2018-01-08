@@ -151,7 +151,7 @@ int32_t CmSurface2DUPRT::SetMemoryObjectControl( MEMORY_OBJECT_CONTROL mem_ctrl,
 
     mocs = (m_MemObjCtrl.mem_ctrl << 8) | (m_MemObjCtrl.mem_type<<4) | m_MemObjCtrl.age;
 
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->pCmHalState->pfnSetSurfaceMOCS(pCmData->pCmHalState, m_Handle, mocs, ARG_KIND_SURFACE_2D_UP));
+    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->cmHalState->pfnSetSurfaceMOCS(pCmData->cmHalState, m_Handle, mocs, ARG_KIND_SURFACE_2D_UP));
 
 finish:
     return hr;

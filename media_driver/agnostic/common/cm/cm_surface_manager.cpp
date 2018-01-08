@@ -387,15 +387,15 @@ int32_t CmSurfaceManager::GetSurfaceArraySize(uint32_t& surfaceArraySize)
 //*-----------------------------------------------------------------------------
 int32_t CmSurfaceManager::Initialize( CM_HAL_MAX_VALUES halMaxValues, CM_HAL_MAX_VALUES_EX halMaxValuesEx )
 {
-    uint32_t totalSurfaceCount = halMaxValues.iMaxBufferTableSize + halMaxValues.iMax2DSurfaceTableSize + halMaxValues.iMax3DSurfaceTableSize + halMaxValuesEx.iMax2DUPSurfaceTableSize;
-    uint32_t totalVirtualSurfaceCount = halMaxValues.iMaxSamplerTableSize + halMaxValuesEx.iMaxSampler8x8TableSize;
+    uint32_t totalSurfaceCount = halMaxValues.maxBufferTableSize + halMaxValues.max2DSurfaceTableSize + halMaxValues.max3DSurfaceTableSize + halMaxValuesEx.max2DUPSurfaceTableSize;
+    uint32_t totalVirtualSurfaceCount = halMaxValues.maxSamplerTableSize + halMaxValuesEx.maxSampler8x8TableSize;
     m_surfaceArraySize = totalSurfaceCount + totalVirtualSurfaceCount;
     m_maxSurfaceIndexAllocated = 0;
 
-    m_maxBufferCount = halMaxValues.iMaxBufferTableSize;
-    m_max2DSurfaceCount = halMaxValues.iMax2DSurfaceTableSize;
-    m_max3DSurfaceCount = halMaxValues.iMax3DSurfaceTableSize;
-    m_max2DUPSurfaceCount = halMaxValuesEx.iMax2DUPSurfaceTableSize;
+    m_maxBufferCount = halMaxValues.maxBufferTableSize;
+    m_max2DSurfaceCount = halMaxValues.max2DSurfaceTableSize;
+    m_max3DSurfaceCount = halMaxValues.max3DSurfaceTableSize;
+    m_max2DUPSurfaceCount = halMaxValuesEx.max2DUPSurfaceTableSize;
 
     typedef CmSurface* PCMSURFACE;
 
@@ -801,26 +801,26 @@ int32_t CmSurfaceManager::AllocateBuffer(uint32_t size, CM_BUFFER_TYPE type, uin
     handle = 0;
     CM_HAL_BUFFER_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_HAL_BUFFER_PARAM ) );
-    inParam.iSize = size;
+    inParam.size = size;
 
     inParam.type = type;
 
     if (mosResource)
     {
-        inParam.pMosResource = mosResource;
+        inParam.mosResource = mosResource;
         inParam.isAllocatedbyCmrtUmd = false;
     }
     else
     {
-        inParam.pMosResource = nullptr;
+        inParam.mosResource = nullptr;
         inParam.isAllocatedbyCmrtUmd = true;
     }
     if( sysMem )
     { // For BufferUp/BufferSVM
-        inParam.pData = sysMem;
+        inParam.data = sysMem;
     }
 
-    mos_status = pCmData->pCmHalState->pfnAllocateBuffer(pCmData->pCmHalState, &inParam);
+    mos_status = pCmData->cmHalState->pfnAllocateBuffer(pCmData->cmHalState, &inParam);
     while (mos_status == MOS_STATUS_NO_SPACE )
     {
         if (!TouchSurfaceInPoolForDestroy())
@@ -828,11 +828,11 @@ int32_t CmSurfaceManager::AllocateBuffer(uint32_t size, CM_BUFFER_TYPE type, uin
             CM_ASSERTMESSAGE("Error: Failed to flush surface in pool for destroy.");
             return CM_SURFACE_ALLOCATION_FAILURE;
         }
-        mos_status = pCmData->pCmHalState->pfnAllocateBuffer(pCmData->pCmHalState, &inParam);
+        mos_status = pCmData->cmHalState->pfnAllocateBuffer(pCmData->cmHalState, &inParam);
     }
     MOSSTATUS2CM_AND_CHECK(mos_status, hr);
 
-    handle = inParam.dwHandle;
+    handle = inParam.handle;
 
 finish:
     return hr;
@@ -847,7 +847,7 @@ int32_t CmSurfaceManager::FreeBuffer( uint32_t handle )
     CM_RETURN_CODE  hr          = CM_SUCCESS;
 
     PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->pCmHalState->pfnFreeBuffer(pCmData->pCmHalState, (uint32_t)handle));
+    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->cmHalState->pfnFreeBuffer(pCmData->cmHalState, (uint32_t)handle));
 
 finish:
     return hr;
@@ -932,12 +932,12 @@ int32_t CmSurfaceManager::AllocateSurface2DUP(uint32_t width, uint32_t height, C
 
     CM_HAL_SURFACE2D_UP_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_HAL_SURFACE2D_UP_PARAM ) );
-    inParam.iWidth  = width;
-    inParam.iHeight = height;
+    inParam.width  = width;
+    inParam.height = height;
     inParam.format  = format;
-    inParam.pData   = sysMem;
+    inParam.data   = sysMem;
 
-    mos_status = pCmData->pCmHalState->pfnAllocateSurface2DUP(pCmData->pCmHalState,&inParam);
+    mos_status = pCmData->cmHalState->pfnAllocateSurface2DUP(pCmData->cmHalState,&inParam);
     while ( mos_status == MOS_STATUS_NO_SPACE )
     {
         if (!TouchSurfaceInPoolForDestroy())
@@ -945,11 +945,11 @@ int32_t CmSurfaceManager::AllocateSurface2DUP(uint32_t width, uint32_t height, C
             CM_ASSERTMESSAGE("Error: Failed to flush surface in pool for destroy.");
             return CM_SURFACE_ALLOCATION_FAILURE;
         }
-        mos_status = pCmData->pCmHalState->pfnAllocateSurface2DUP(pCmData->pCmHalState,&inParam);
+        mos_status = pCmData->cmHalState->pfnAllocateSurface2DUP(pCmData->cmHalState,&inParam);
     }
     MOSSTATUS2CM_AND_CHECK(mos_status, hr);
 
-    handle = inParam.dwHandle;
+    handle = inParam.handle;
 
 finish:
     return hr;
@@ -965,7 +965,7 @@ int32_t CmSurfaceManager::FreeSurface2DUP( uint32_t handle )
 
     PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
 
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->pCmHalState->pfnFreeSurface2DUP(pCmData->pCmHalState, (uint32_t)handle));
+    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->cmHalState->pfnFreeSurface2DUP(pCmData->cmHalState, (uint32_t)handle));
 
 finish:
     return hr;
@@ -1069,13 +1069,13 @@ int32_t CmSurfaceManager::AllocateSurface2D(uint32_t width, uint32_t height, CM_
 
     CM_HAL_SURFACE2D_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_HAL_SURFACE2D_PARAM ) );
-    inParam.iWidth = width;
-    inParam.iHeight = height;
+    inParam.width = width;
+    inParam.height = height;
     inParam.format = format;
-    inParam.pData  = nullptr;
+    inParam.data  = nullptr;
     inParam.isAllocatedbyCmrtUmd = true;
 
-    mos_status = pCmData->pCmHalState->pfnAllocateSurface2D(pCmData->pCmHalState,&inParam);
+    mos_status = pCmData->cmHalState->pfnAllocateSurface2D(pCmData->cmHalState,&inParam);
     while (mos_status == MOS_STATUS_NO_SPACE)
     {
         if (!TouchSurfaceInPoolForDestroy())
@@ -1083,16 +1083,16 @@ int32_t CmSurfaceManager::AllocateSurface2D(uint32_t width, uint32_t height, CM_
             CM_ASSERTMESSAGE("Error: Failed to flush surface in pool for destroy.");
             return CM_SURFACE_ALLOCATION_FAILURE;
         }
-        mos_status = pCmData->pCmHalState->pfnAllocateSurface2D(pCmData->pCmHalState,&inParam);
+        mos_status = pCmData->cmHalState->pfnAllocateSurface2D(pCmData->cmHalState,&inParam);
     }
     MOSSTATUS2CM_AND_CHECK(mos_status, hr);
 
-    handle = inParam.dwHandle;
+    handle = inParam.handle;
 
     //Get pitch size for 2D surface
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->pCmHalState->pfnGetSurface2DTileYPitch(pCmData->pCmHalState, &inParam));
+    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->cmHalState->pfnGetSurface2DTileYPitch(pCmData->cmHalState, &inParam));
 
-    pitch = inParam.iPitch;
+    pitch = inParam.pitch;
 
 finish:
     return hr;
@@ -1119,13 +1119,13 @@ int32_t CmSurfaceManager::AllocateSurface2D( uint32_t width, uint32_t height, CM
 
     CM_HAL_SURFACE2D_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_HAL_SURFACE2D_PARAM ) );
-    inParam.iWidth                 = width;
-    inParam.iHeight                = height;
+    inParam.width                  = width;
+    inParam.height                 = height;
     inParam.format                 = format;
-    inParam.pMosResource           = mosResource;
+    inParam.mosResource            = mosResource;
     inParam.isAllocatedbyCmrtUmd   = false;
 
-    mos_status = pCmData->pCmHalState->pfnAllocateSurface2D(pCmData->pCmHalState,&inParam);
+    mos_status = pCmData->cmHalState->pfnAllocateSurface2D(pCmData->cmHalState,&inParam);
     while (mos_status == MOS_STATUS_NO_SPACE)
     {
         if (!TouchSurfaceInPoolForDestroy())
@@ -1133,11 +1133,11 @@ int32_t CmSurfaceManager::AllocateSurface2D( uint32_t width, uint32_t height, CM
             CM_ASSERTMESSAGE("Error: Failed to flush surface in pool for destroy.");
             return CM_SURFACE_ALLOCATION_FAILURE;
         }
-        mos_status = pCmData->pCmHalState->pfnAllocateSurface2D(pCmData->pCmHalState,&inParam);
+        mos_status = pCmData->cmHalState->pfnAllocateSurface2D(pCmData->cmHalState,&inParam);
     }
     MOSSTATUS2CM_AND_CHECK(mos_status, hr);
     
-    handle = inParam.dwHandle;
+    handle = inParam.handle;
 
 finish:
     return hr;
@@ -1152,7 +1152,7 @@ int32_t CmSurfaceManager::FreeSurface2D( uint32_t handle )
     CM_RETURN_CODE  hr          = CM_SUCCESS;
 
     PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->pCmHalState->pfnFreeSurface2D(pCmData->pCmHalState, handle));
+    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->cmHalState->pfnFreeSurface2D(pCmData->cmHalState, handle));
 
 finish:
     return hr;
@@ -1989,14 +1989,14 @@ int32_t CmSurfaceManager::Allocate3DSurface(uint32_t width, uint32_t height, uin
 
     CM_HAL_3DRESOURCE_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_HAL_3DRESOURCE_PARAM ) );
-    inParam.iWidth = width;
-    inParam.iHeight = height;
-    inParam.iDepth = depth;
+    inParam.width = width;
+    inParam.height = height;
+    inParam.depth = depth;
     inParam.format = format;
 
     PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
 
-    mos_status = pCmData->pCmHalState->pfnAllocate3DResource(pCmData->pCmHalState,&inParam);
+    mos_status = pCmData->cmHalState->pfnAllocate3DResource(pCmData->cmHalState,&inParam);
     while (mos_status == MOS_STATUS_NO_SPACE)
     {
         if (!TouchSurfaceInPoolForDestroy())
@@ -2004,11 +2004,11 @@ int32_t CmSurfaceManager::Allocate3DSurface(uint32_t width, uint32_t height, uin
             CM_ASSERTMESSAGE("Error: Failed to flush surface in pool for destroy.");
             return CM_SURFACE_ALLOCATION_FAILURE;
         }
-        mos_status = pCmData->pCmHalState->pfnAllocate3DResource(pCmData->pCmHalState,&inParam);
+        mos_status = pCmData->cmHalState->pfnAllocate3DResource(pCmData->cmHalState,&inParam);
     }
     MOSSTATUS2CM_AND_CHECK(mos_status, hr);
 
-    handle = inParam.dwHandle;
+    handle = inParam.handle;
 
 finish:
     return hr;
@@ -2024,7 +2024,7 @@ int32_t CmSurfaceManager::Free3DSurface( uint32_t handle )
 
     PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
     
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->pCmHalState->pfnFree3DResource(pCmData->pCmHalState, (uint32_t)handle));
+    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->cmHalState->pfnFree3DResource(pCmData->cmHalState, (uint32_t)handle));
 
 finish:
     return hr;
@@ -2191,7 +2191,7 @@ uint32_t CmSurfaceManager::GetSurfaceState(int32_t * &surfState)
 int32_t CmSurfaceManager::UpdateSurface2DTableMosResource( uint32_t index, MOS_RESOURCE * mosResource )
 {
     PCM_CONTEXT_DATA pCmData = ( PCM_CONTEXT_DATA )m_device->GetAccelData();
-    PCM_HAL_STATE pState = pCmData->pCmHalState;
+    PCM_HAL_STATE pState = pCmData->cmHalState;
 
     PCM_HAL_SURFACE2D_ENTRY pEntry = nullptr;
     pEntry = &pState->pUmdSurf2DTable[ index ];
@@ -2229,7 +2229,7 @@ MHW_ROTATION CmRotationToMhwRotation(CM_ROTATION cmRotation)
 int32_t CmSurfaceManager::UpdateSurface2DTableRotation(uint32_t index, CM_ROTATION rotationFlag)
 {
     PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
-    PCM_HAL_STATE pState = pCmData->pCmHalState;
+    PCM_HAL_STATE pState = pCmData->cmHalState;
 
     PCM_HAL_SURFACE2D_ENTRY pEntry = nullptr;
     pEntry = &pState->pUmdSurf2DTable[index];
@@ -2241,7 +2241,7 @@ int32_t CmSurfaceManager::UpdateSurface2DTableRotation(uint32_t index, CM_ROTATI
 int32_t CmSurfaceManager::UpdateSurface2DTableFrameType(uint32_t index, CM_FRAME_TYPE frameType)
 {
     PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
-    PCM_HAL_STATE pState = pCmData->pCmHalState;
+    PCM_HAL_STATE pState = pCmData->cmHalState;
 
     PCM_HAL_SURFACE2D_ENTRY pEntry = nullptr;
     pEntry = &pState->pUmdSurf2DTable[index];
@@ -2253,7 +2253,7 @@ int32_t CmSurfaceManager::UpdateSurface2DTableFrameType(uint32_t index, CM_FRAME
 int32_t CmSurfaceManager::UpdateSurface2DTableChromaSiting(uint32_t index, int32_t chromaSiting)
 {
     PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
-    PCM_HAL_STATE pState = pCmData->pCmHalState;
+    PCM_HAL_STATE pState = pCmData->cmHalState;
     PCM_HAL_SURFACE2D_ENTRY pEntry = nullptr;
     pEntry = &pState->pUmdSurf2DTable[index];
     pEntry->chromaSiting = chromaSiting;
@@ -2263,20 +2263,20 @@ int32_t CmSurfaceManager::UpdateSurface2DTableChromaSiting(uint32_t index, int32
 int32_t CmSurfaceManager::GetSurfaceBTIInfo()
 {
     PCM_HAL_STATE           pCmHalState;
-    pCmHalState = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->pCmHalState;
+    pCmHalState = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
 
     return pCmHalState->pCmHalInterface->GetHwSurfaceBTIInfo(&m_surfaceBTIInfo);
 }
 
 uint32_t CmSurfaceManager::ValidSurfaceIndexStart()
 {
-    return m_surfaceBTIInfo.dwNormalSurfaceStart;
+    return m_surfaceBTIInfo.normalSurfaceStart;
 }
 
 uint32_t CmSurfaceManager::MaxIndirectSurfaceCount()
 {
-    return (m_surfaceBTIInfo.dwNormalSurfaceEnd - 
-            m_surfaceBTIInfo.dwNormalSurfaceStart + 1);
+    return (m_surfaceBTIInfo.normalSurfaceEnd - 
+            m_surfaceBTIInfo.normalSurfaceStart + 1);
 }
 
 //*-----------------------------------------------------------------------------
@@ -2285,8 +2285,8 @@ uint32_t CmSurfaceManager::MaxIndirectSurfaceCount()
 //*----------------------------------------------------------------------------- 
 bool CmSurfaceManager::IsCmReservedSurfaceIndex(uint32_t surfaceBTI)
 {
-    if(surfaceBTI >= m_surfaceBTIInfo.dwReservedSurfaceStart && 
-        surfaceBTI <= m_surfaceBTIInfo.dwReservedSurfaceEnd)
+    if(surfaceBTI >= m_surfaceBTIInfo.reservedSurfaceStart && 
+        surfaceBTI <= m_surfaceBTIInfo.reservedSurfaceEnd)
     {
         return true;
     }
@@ -2303,8 +2303,8 @@ bool CmSurfaceManager::IsCmReservedSurfaceIndex(uint32_t surfaceBTI)
 //*----------------------------------------------------------------------------- 
 bool CmSurfaceManager::IsValidSurfaceIndex(uint32_t surfaceBTI)
 {
-    if(surfaceBTI >= m_surfaceBTIInfo.dwNormalSurfaceStart && 
-       surfaceBTI <= m_surfaceBTIInfo.dwNormalSurfaceEnd)
+    if(surfaceBTI >= m_surfaceBTIInfo.normalSurfaceStart && 
+       surfaceBTI <= m_surfaceBTIInfo.normalSurfaceEnd)
     {
         return true;
     }
@@ -2412,7 +2412,7 @@ int32_t CMRT_UMD::CmSurfaceManager::CreateMediaStateByCurbeSize( void  *& mediaS
 
     // create media state heap
     PCM_CONTEXT_DATA pCmData = ( PCM_CONTEXT_DATA )m_device->GetAccelData();
-    PCM_HAL_STATE pState = pCmData->pCmHalState;
+    PCM_HAL_STATE pState = pCmData->cmHalState;
 
     // Max media state configuration - Curbe, Samplers (3d/AVS/VA), 8x8 sampler table, Media IDs, Kernel Spill area
     RENDERHAL_DYNAMIC_MEDIA_STATE_PARAMS Params;

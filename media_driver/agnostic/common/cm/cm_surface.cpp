@@ -189,7 +189,7 @@ bool CmSurface::MemoryObjectCtrlPolicyCheck(MEMORY_OBJECT_CONTROL memCtrl)
         return false;
     }
     
-    PCM_HAL_STATE  pCmHalState = ((PCM_CONTEXT_DATA)pCmDevice->GetAccelData())->pCmHalState;
+    PCM_HAL_STATE  pCmHalState = ((PCM_CONTEXT_DATA)pCmDevice->GetAccelData())->cmHalState;
     if (pCmHalState == nullptr)
     {
         return false;

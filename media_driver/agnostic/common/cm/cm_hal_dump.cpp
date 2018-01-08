@@ -39,25 +39,25 @@
 #define SIZE_OF_DWORD_PLUS_ONE                  (2*sizeof(uint32_t) +1)
 //!
 //! \brief    Dump Hex Dword to dest buffer
-//! \param    [in] pDestBuf
+//! \param    [in] destBuf
 //!           dest buffer
 //! \param    [in] buflen
 //!           length of buffer
-//! \param    [in] pSrcBuf
+//! \param    [in] srcBuf
 //!           pointer to surface of buffer
 //! \param    [in] uNum
 //!           number of dword to dump
 //! \return   number of bytes written
 //!
-static uint32_t HalCm_CopyHexDwordLine(char  *pDestBuf, size_t buflen, uint32_t *pSrcBuf, uint32_t uNum)
+static uint32_t HalCm_CopyHexDwordLine(char  *destBuf, size_t buflen, uint32_t *srcBuf, uint32_t uNum)
 {
-    uint32_t dwBytesWritten = 0;
+    uint32_t bytesWritten = 0;
     for (uint32_t i = 0; i < uNum; ++i) {
-        dwBytesWritten += PlatformSNPrintf(pDestBuf + dwBytesWritten, buflen - dwBytesWritten, "%08x ", pSrcBuf[i]);
+        bytesWritten += PlatformSNPrintf(destBuf + bytesWritten, buflen - bytesWritten, "%08x ", srcBuf[i]);
     }
-    dwBytesWritten += PlatformSNPrintf(pDestBuf + dwBytesWritten, buflen - dwBytesWritten, "\n");
+    bytesWritten += PlatformSNPrintf(destBuf + bytesWritten, buflen - bytesWritten, "\n");
 
-    return dwBytesWritten;
+    return bytesWritten;
 }
 #endif
 
@@ -70,33 +70,33 @@ static uint32_t HalCm_CopyHexDwordLine(char  *pDestBuf, size_t buflen, uint32_t 
 
 //!
 //! \brief    Read Register key to check if dump flag enabled
-//! \param    [in] pState
+//! \param    [in] state
 //!           Pointer to cm hal state
 //! \return   CM_SUCCESS if success, else fail reason
 //!
-int32_t HalCm_InitDumpCommandBuffer(PCM_HAL_STATE pState)
+int32_t HalCm_InitDumpCommandBuffer(PCM_HAL_STATE state)
 {
-    MOS_USER_FEATURE        UserFeature;
-    char                    sFileName[MOS_MAX_HLT_FILENAME_LEN];
+    MOS_USER_FEATURE        userFeature;
+    char                    fileName[MOS_MAX_HLT_FILENAME_LEN];
     MOS_STATUS              eStatus;
-    MOS_USER_FEATURE_VALUE  UserFeatureValue;
+    MOS_USER_FEATURE_VALUE  userFeatureValue;
     int32_t                 hr = CM_FAILURE;
 
-    MOS_OS_ASSERT(pState);
+    MOS_OS_ASSERT(state);
 
-    MOS_ZeroMemory(&UserFeatureValue, sizeof(MOS_USER_FEATURE_VALUE));
-    MOS_ZeroMemory(&UserFeature, sizeof(UserFeature));
+    MOS_ZeroMemory(&userFeatureValue, sizeof(MOS_USER_FEATURE_VALUE));
+    MOS_ZeroMemory(&userFeature, sizeof(userFeature));
 
     // Check if command buffer dump was enabled in user feature settings.
-    UserFeature.Type = MOS_USER_FEATURE_TYPE_USER;
-    UserFeature.pPath = __MEDIA_USER_FEATURE_SUBKEY_INTERNAL;
-    UserFeature.pValues = &UserFeatureValue;
-    UserFeature.uiNumValues = 1;
-    UserFeatureValue.bData = false;
+    userFeature.Type = MOS_USER_FEATURE_TYPE_USER;
+    userFeature.pPath = __MEDIA_USER_FEATURE_SUBKEY_INTERNAL;
+    userFeature.pValues = &userFeatureValue;
+    userFeature.uiNumValues = 1;
+    userFeatureValue.bData = false;
 
     eStatus = MOS_UserFeature_ReadValue(
         nullptr,
-        &UserFeature,
+        &userFeature,
         "Dump Command Buffer Enable",
         MOS_USER_FEATURE_VALUE_TYPE_INT32);
     if (eStatus != MOS_STATUS_SUCCESS)
@@ -104,17 +104,17 @@ int32_t HalCm_InitDumpCommandBuffer(PCM_HAL_STATE pState)
         MOS_OS_NORMALMESSAGE("Unable to read command buffer user feature key. Status = %d", eStatus);
         goto finish;
     }
-    if (UserFeatureValue.bData)
+    if (userFeatureValue.bData)
     {
-        PlatformSNPrintf(sFileName, MOS_MAX_HLT_FILENAME_LEN, HALCM_COMMAND_BUFFER_OUTPUT_DIR);
-        eStatus = MOS_CreateDirectory(sFileName);
+        PlatformSNPrintf(fileName, MOS_MAX_HLT_FILENAME_LEN, HALCM_COMMAND_BUFFER_OUTPUT_DIR);
+        eStatus = MOS_CreateDirectory(fileName);
         if (eStatus != MOS_STATUS_SUCCESS)
         {
             MOS_OS_NORMALMESSAGE("Failed to create output directory. Status = %d", eStatus);
             goto finish;
         }
         // Setup member function and variable.
-        pState->bDumpCommandBuffer = UserFeatureValue.bData?true: false;
+        state->bDumpCommandBuffer = userFeatureValue.bData?true: false;
     }
     hr = CM_SUCCESS;
 finish:
@@ -125,9 +125,9 @@ finish:
 
 //!
 //! \brief    Dump command buffer to file
-//! \param    [in] pState
+//! \param    [in] state
 //!           pointer to cm hal state
-//! \param    [in] pCmdBuffer
+//! \param    [in] cmdBuffer
 //!           pointer to command buffer
 //! \param    [in] offsetSurfaceState
 //!           offset to surface state
@@ -136,63 +136,63 @@ finish:
 //! \return   int32_t
 //!           CM_SUCCESS if success, else fail reason
 //!
-int32_t HalCm_DumpCommadBuffer(PCM_HAL_STATE pState, PMOS_COMMAND_BUFFER pCmdBuffer, int offsetSurfaceState, size_t sizeOfSurfaceState)
+int32_t HalCm_DumpCommadBuffer(PCM_HAL_STATE state, PMOS_COMMAND_BUFFER cmdBuffer, int offsetSurfaceState, size_t sizeOfSurfaceState)
 {
-    static uint32_t dwCommandBufferNumber = 0;
+    static uint32_t commandBufferNumber = 0;
     int32_t         hr = CM_FAILURE;
     MOS_STATUS      eStatus = MOS_STATUS_UNKNOWN;
-    char            *pOutputBuffer = nullptr;
+    char            *outputBuffer = nullptr;
     // Each hex value should have 9 chars.
-    uint32_t        dwBytesWritten = 0;
-    uint32_t        dwNumberOfDwords = 0;
-    uint32_t        dwSizeToAllocate = 0;
-    char            sFileName[MOS_MAX_HLT_FILENAME_LEN];
+    uint32_t        bytesWritten = 0;
+    uint32_t        numberOfDwords = 0;
+    uint32_t        sizeToAllocate = 0;
+    char            fileName[MOS_MAX_HLT_FILENAME_LEN];
 
-    PMOS_INTERFACE pOsInterface = pState->pOsInterface;
-    PRENDERHAL_STATE_HEAP pStateHeap   = pState->pRenderHal->pStateHeap;
+    PMOS_INTERFACE osInterface = state->pOsInterface;
+    PRENDERHAL_STATE_HEAP stateHeap   = state->pRenderHal->pStateHeap;
 
-    MOS_OS_ASSERT(pState);
-    MOS_OS_ASSERT(pCmdBuffer);
+    MOS_OS_ASSERT(state);
+    MOS_OS_ASSERT(cmdBuffer);
 
     // Set the file name.
-    PlatformSNPrintf(sFileName, MOS_MAX_HLT_FILENAME_LEN, HALCM_COMMAND_BUFFER_OUTPUT_DIR);
-    PlatformSNPrintf(sFileName + strlen(sFileName), MOS_MAX_HLT_FILENAME_LEN - strlen(sFileName), PLATFORM_DIR_SEPERATOR);
-    PlatformSNPrintf(sFileName + strlen(sFileName), MOS_MAX_HLT_FILENAME_LEN - strlen(sFileName), "%s_Pid%d_Tid%ld_%d.txt", HALCM_COMMAND_BUFFER_OUTPUT_FILE, CmGetCurProcessId(), CmGetCurThreadId(), dwCommandBufferNumber);
+    PlatformSNPrintf(fileName, MOS_MAX_HLT_FILENAME_LEN, HALCM_COMMAND_BUFFER_OUTPUT_DIR);
+    PlatformSNPrintf(fileName + strlen(fileName), MOS_MAX_HLT_FILENAME_LEN - strlen(fileName), PLATFORM_DIR_SEPERATOR);
+    PlatformSNPrintf(fileName + strlen(fileName), MOS_MAX_HLT_FILENAME_LEN - strlen(fileName), "%s_Pid%d_Tid%ld_%d.txt", HALCM_COMMAND_BUFFER_OUTPUT_FILE, CmGetCurProcessId(), CmGetCurThreadId(), commandBufferNumber);
 
-    dwNumberOfDwords = pCmdBuffer->iOffset / sizeof(uint32_t);
+    numberOfDwords = cmdBuffer->iOffset / sizeof(uint32_t);
 
-    dwSizeToAllocate = dwNumberOfDwords * (SIZE_OF_DWORD_PLUS_ONE) + 2 +   //length of command buffer line 
-        pStateHeap->iCurrentSurfaceState * 
-        (SIZE_OF_DWORD_PLUS_ONE * pState->pRenderHal->pRenderHalPltInterface->GetSurfaceStateCmdSize() / sizeof(uint32_t) + 2); //length of surface state lines
+    sizeToAllocate = numberOfDwords * (SIZE_OF_DWORD_PLUS_ONE) + 2 +   //length of command buffer line 
+        stateHeap->iCurrentSurfaceState * 
+        (SIZE_OF_DWORD_PLUS_ONE * state->pRenderHal->pRenderHalPltInterface->GetSurfaceStateCmdSize() / sizeof(uint32_t) + 2); //length of surface state lines
 
     // Alloc output buffer.
-    pOutputBuffer = (char *)MOS_AllocAndZeroMemory(dwSizeToAllocate);
-    if (!pOutputBuffer) {
+    outputBuffer = (char *)MOS_AllocAndZeroMemory(sizeToAllocate);
+    if (!outputBuffer) {
         MOS_OS_NORMALMESSAGE("Failed to allocate memory for command buffer dump");
         return MOS_STATUS_NO_SPACE;
     }
     // write command buffer dwords.
-    dwBytesWritten += HalCm_CopyHexDwordLine(pOutputBuffer, dwSizeToAllocate - dwBytesWritten, (uint32_t *)pCmdBuffer->pCmdBase, dwNumberOfDwords);
+    bytesWritten += HalCm_CopyHexDwordLine(outputBuffer, sizeToAllocate - bytesWritten, (uint32_t *)cmdBuffer->pCmdBase, numberOfDwords);
 
     //write all surface states 
-    for (int32_t dwIndex = 0; dwIndex < pStateHeap->iCurrentSurfaceState; ++dwIndex) {
-        PRENDERHAL_SURFACE_STATE_ENTRY pEntry = pStateHeap->pSurfaceEntry + dwIndex;
-        void *pSurfaceState = (char*)pEntry->pSurfaceState;
+    for (int32_t index = 0; index < stateHeap->iCurrentSurfaceState; ++index) {
+        PRENDERHAL_SURFACE_STATE_ENTRY entry = stateHeap->pSurfaceEntry + index;
+        void *surfaceState = (char*)entry->pSurfaceState;
         //the address of surface states are 32bit or uint32_t aligned.
-        dwBytesWritten += HalCm_CopyHexDwordLine(pOutputBuffer + dwBytesWritten, dwSizeToAllocate - dwBytesWritten, (uint32_t*)pSurfaceState, sizeOfSurfaceState / sizeof(uint32_t));
+        bytesWritten += HalCm_CopyHexDwordLine(outputBuffer + bytesWritten, sizeToAllocate - bytesWritten, (uint32_t*)surfaceState, sizeOfSurfaceState / sizeof(uint32_t));
     }
 
-    MOS_OS_CHK_STATUS(MOS_WriteFileFromPtr((const char *)sFileName, pOutputBuffer, dwBytesWritten));
+    MOS_OS_CHK_STATUS(MOS_WriteFileFromPtr((const char *)fileName, outputBuffer, bytesWritten));
 
-    dwCommandBufferNumber++;
+    commandBufferNumber++;
 
     hr = CM_SUCCESS;
 
 finish:
     // Free the memory.
-    if (pOutputBuffer)
+    if (outputBuffer)
     {
-        MOS_FreeMemAndSetNull(pOutputBuffer);
+        MOS_FreeMemAndSetNull(outputBuffer);
     }
 
     return hr;
@@ -209,33 +209,33 @@ finish:
 
 //!
 //! \brief    Read Register key to check if Curbe Data dump flag enabled
-//! \param    [in] pState
+//! \param    [in] state
 //!           Pointer to cm hal state
 //! \return   CM_SUCCESS if success, else fail reason
 //!
-int32_t HalCm_InitDumpCurbeData(PCM_HAL_STATE pState)
+int32_t HalCm_InitDumpCurbeData(PCM_HAL_STATE state)
 {
-    MOS_USER_FEATURE        UserFeature;
-    char                    sFileName[MOS_MAX_HLT_FILENAME_LEN];
+    MOS_USER_FEATURE        userFeature;
+    char                    fileName[MOS_MAX_HLT_FILENAME_LEN];
     MOS_STATUS              eStatus;
-    MOS_USER_FEATURE_VALUE  UserFeatureValue;
+    MOS_USER_FEATURE_VALUE  userFeatureValue;
     int32_t                 hr = CM_FAILURE;
 
-    MOS_OS_ASSERT(pState);
+    MOS_OS_ASSERT(state);
 
-    MOS_ZeroMemory(&UserFeatureValue, sizeof(MOS_USER_FEATURE_VALUE));
-    MOS_ZeroMemory(&UserFeature, sizeof(UserFeature));
+    MOS_ZeroMemory(&userFeatureValue, sizeof(MOS_USER_FEATURE_VALUE));
+    MOS_ZeroMemory(&userFeature, sizeof(userFeature));
 
     // Check if curbe data dump was enabled in user feature settings.
-    UserFeature.Type = MOS_USER_FEATURE_TYPE_USER;
-    UserFeature.pPath = __MEDIA_USER_FEATURE_SUBKEY_INTERNAL;
-    UserFeature.pValues = &UserFeatureValue;
-    UserFeature.uiNumValues = 1;
-    UserFeatureValue.bData = false;
+    userFeature.Type = MOS_USER_FEATURE_TYPE_USER;
+    userFeature.pPath = __MEDIA_USER_FEATURE_SUBKEY_INTERNAL;
+    userFeature.pValues = &userFeatureValue;
+    userFeature.uiNumValues = 1;
+    userFeatureValue.bData = false;
 
     eStatus = MOS_UserFeature_ReadValue(
         nullptr,
-        &UserFeature,
+        &userFeature,
         __MEDIA_USER_FEATURE_VALUE_MDF_CURBE_DUMP_ENABLE,
         MOS_USER_FEATURE_VALUE_TYPE_INT32);
     if (eStatus != MOS_STATUS_SUCCESS)
@@ -243,17 +243,17 @@ int32_t HalCm_InitDumpCurbeData(PCM_HAL_STATE pState)
         MOS_OS_NORMALMESSAGE("Unable to read curbe data dump user feature key. Status = %d", eStatus);
         goto finish;
     }
-    if (UserFeatureValue.bData)
+    if (userFeatureValue.bData)
     {
-        PlatformSNPrintf(sFileName, MOS_MAX_HLT_FILENAME_LEN, HALCM_CURBE_DATA_OUTPUT_DIR);
-        eStatus = MOS_CreateDirectory(sFileName);
+        PlatformSNPrintf(fileName, MOS_MAX_HLT_FILENAME_LEN, HALCM_CURBE_DATA_OUTPUT_DIR);
+        eStatus = MOS_CreateDirectory(fileName);
         if (eStatus != MOS_STATUS_SUCCESS)
         {
             MOS_OS_NORMALMESSAGE("Failed to create curbe data output directory. Status = %d", eStatus);
             goto finish;
         }
         // Setup member function and variable.
-        pState->bDumpCurbeData = UserFeatureValue.bData ? true: false;
+        state->bDumpCurbeData = userFeatureValue.bData ? true: false;
     }
     hr = CM_SUCCESS;
 finish:
@@ -262,64 +262,64 @@ finish:
 
 //!
 //! \brief    Dump Curbe Data to file
-//! \param    [in] pState
+//! \param    [in] state
 //!           pointer to cm hal state
 //! \return   int32_t
 //!           CM_SUCCESS if success, else fail reason
 //!
-int32_t HalCm_DumpCurbeData(PCM_HAL_STATE pState)
+int32_t HalCm_DumpCurbeData(PCM_HAL_STATE state)
 {
-    static uint32_t dwCurbeDataNumber = 0;
+    static uint32_t curbeDataNumber = 0;
     int32_t         hr = CM_FAILURE;
     MOS_STATUS      eStatus = MOS_STATUS_UNKNOWN;
-    char            *pOutputBuffer = nullptr;
-    uint32_t        dwBytesWritten = 0;
-    char            sFileName[MOS_MAX_HLT_FILENAME_LEN];
-    uint32_t        dwNumberOfDwords = 0;
-    uint32_t        dwSizeToAllocate = 0;
-    PMOS_INTERFACE pOsInterface = pState->pOsInterface;
-    PRENDERHAL_STATE_HEAP pStateHeap = pState->pRenderHal->pStateHeap;
+    char            *outputBuffer = nullptr;
+    uint32_t        bytesWritten = 0;
+    char            fileName[MOS_MAX_HLT_FILENAME_LEN];
+    uint32_t        numberOfDwords = 0;
+    uint32_t        sizeToAllocate = 0;
+    PMOS_INTERFACE osInterface = state->pOsInterface;
+    PRENDERHAL_STATE_HEAP stateHeap = state->pRenderHal->pStateHeap;
 
-    MOS_OS_ASSERT(pState);
+    MOS_OS_ASSERT(state);
 
     // Set the file name.
-    PlatformSNPrintf(sFileName, MOS_MAX_HLT_FILENAME_LEN, HALCM_CURBE_DATA_OUTPUT_DIR);
-    PlatformSNPrintf(sFileName + strlen(sFileName), MOS_MAX_HLT_FILENAME_LEN - strlen(sFileName), PLATFORM_DIR_SEPERATOR);
-    PlatformSNPrintf(sFileName + strlen(sFileName), MOS_MAX_HLT_FILENAME_LEN - strlen(sFileName), "%s_Pid%d_Tid%ld_%d.txt", HALCM_CURBE_DATA_OUTPUT_FILE, CmGetCurProcessId(), CmGetCurThreadId(), dwCurbeDataNumber);
+    PlatformSNPrintf(fileName, MOS_MAX_HLT_FILENAME_LEN, HALCM_CURBE_DATA_OUTPUT_DIR);
+    PlatformSNPrintf(fileName + strlen(fileName), MOS_MAX_HLT_FILENAME_LEN - strlen(fileName), PLATFORM_DIR_SEPERATOR);
+    PlatformSNPrintf(fileName + strlen(fileName), MOS_MAX_HLT_FILENAME_LEN - strlen(fileName), "%s_Pid%d_Tid%ld_%d.txt", HALCM_CURBE_DATA_OUTPUT_FILE, CmGetCurProcessId(), CmGetCurThreadId(), curbeDataNumber);
 
     // write curbe data dwords.
-    if (pState->bDynamicStateHeap)
+    if (state->bDynamicStateHeap)
     {
-        dwNumberOfDwords = pStateHeap->pCurMediaState->pDynamicState->Curbe.dwSize;
-        dwSizeToAllocate = dwNumberOfDwords*SIZE_OF_DWORD_PLUS_ONE+2;
-        pOutputBuffer = (char *)MOS_AllocAndZeroMemory(dwSizeToAllocate);
-        dwBytesWritten += HalCm_CopyHexDwordLine(pOutputBuffer, 
-                          dwSizeToAllocate - dwBytesWritten,
-                          (uint32_t*)pStateHeap->pCurMediaState->pDynamicState->pMemoryBlock->pDataPtr + pStateHeap->pCurMediaState->pDynamicState->Curbe.dwOffset,
-                          dwNumberOfDwords);
+        numberOfDwords = stateHeap->pCurMediaState->pDynamicState->Curbe.dwSize;
+        sizeToAllocate = numberOfDwords*SIZE_OF_DWORD_PLUS_ONE+2;
+        outputBuffer = (char *)MOS_AllocAndZeroMemory(sizeToAllocate);
+        bytesWritten += HalCm_CopyHexDwordLine(outputBuffer, 
+                          sizeToAllocate - bytesWritten,
+                          (uint32_t*)stateHeap->pCurMediaState->pDynamicState->pMemoryBlock->pDataPtr + stateHeap->pCurMediaState->pDynamicState->Curbe.dwOffset,
+                          numberOfDwords);
     }
     else
     {
-        dwNumberOfDwords = pStateHeap->pCurMediaState->iCurbeOffset;
-        dwSizeToAllocate = dwNumberOfDwords*SIZE_OF_DWORD_PLUS_ONE+2;
-        pOutputBuffer = (char *)MOS_AllocAndZeroMemory(dwSizeToAllocate);
-        dwBytesWritten += HalCm_CopyHexDwordLine(pOutputBuffer,
-                          dwSizeToAllocate - dwBytesWritten,
-                          (uint32_t*)(pStateHeap->pGshBuffer + pStateHeap->pCurMediaState->dwOffset + pStateHeap->dwOffsetCurbe),
-                          dwNumberOfDwords);
+        numberOfDwords = stateHeap->pCurMediaState->iCurbeOffset;
+        sizeToAllocate = numberOfDwords*SIZE_OF_DWORD_PLUS_ONE+2;
+        outputBuffer = (char *)MOS_AllocAndZeroMemory(sizeToAllocate);
+        bytesWritten += HalCm_CopyHexDwordLine(outputBuffer,
+                          sizeToAllocate - bytesWritten,
+                          (uint32_t*)(stateHeap->pGshBuffer + stateHeap->pCurMediaState->dwOffset + stateHeap->dwOffsetCurbe),
+                          numberOfDwords);
     }
 
-    MOS_OS_CHK_STATUS(MOS_WriteFileFromPtr((const char *)sFileName, pOutputBuffer, dwBytesWritten));
+    MOS_OS_CHK_STATUS(MOS_WriteFileFromPtr((const char *)fileName, outputBuffer, bytesWritten));
 
-    dwCurbeDataNumber++;
+    curbeDataNumber++;
 
     hr = CM_SUCCESS;
 
 finish:
     // Free the memory.
-    if (pOutputBuffer)
+    if (outputBuffer)
     {
-        MOS_FreeMemAndSetNull(pOutputBuffer);
+        MOS_FreeMemAndSetNull(outputBuffer);
     }
 
     return hr;
@@ -332,32 +332,32 @@ finish:
 
 //!
 //! \brief    Read Register key to check if Surface content flag enabled
-//! \param    [in] pState
+//! \param    [in] state
 //!           Pointer to cm hal state
 //! \return   CM_SUCCESS if success, else fail reason
 //!
-int32_t HalCm_InitSurfaceDump(PCM_HAL_STATE pState)
+int32_t HalCm_InitSurfaceDump(PCM_HAL_STATE state)
 {
-    MOS_USER_FEATURE        UserFeature;
+    MOS_USER_FEATURE        userFeature;
     MOS_STATUS              eStatus;
-    MOS_USER_FEATURE_VALUE  UserFeatureValue;
+    MOS_USER_FEATURE_VALUE  userFeatureValue;
     int32_t                 hr = CM_FAILURE;
 
-    MOS_OS_ASSERT(pState);
+    MOS_OS_ASSERT(state);
 
-    MOS_ZeroMemory(&UserFeatureValue, sizeof(MOS_USER_FEATURE_VALUE));
-    MOS_ZeroMemory(&UserFeature, sizeof(UserFeature));
+    MOS_ZeroMemory(&userFeatureValue, sizeof(MOS_USER_FEATURE_VALUE));
+    MOS_ZeroMemory(&userFeature, sizeof(userFeature));
 
     // Check if surface content dump was enabled in user feature settings.
-    UserFeature.Type = MOS_USER_FEATURE_TYPE_USER;
-    UserFeature.pPath = __MEDIA_USER_FEATURE_SUBKEY_INTERNAL;
-    UserFeature.pValues = &UserFeatureValue;
-    UserFeature.uiNumValues = 1;
-    UserFeatureValue.bData = false;
+    userFeature.Type = MOS_USER_FEATURE_TYPE_USER;
+    userFeature.pPath = __MEDIA_USER_FEATURE_SUBKEY_INTERNAL;
+    userFeature.pValues = &userFeatureValue;
+    userFeature.uiNumValues = 1;
+    userFeatureValue.bData = false;
 
     eStatus = MOS_UserFeature_ReadValue(
         nullptr,
-        &UserFeature,
+        &userFeature,
         __MEDIA_USER_FEATURE_VALUE_MDF_SURFACE_DUMP_ENABLE,
         MOS_USER_FEATURE_VALUE_TYPE_INT32);
     if (eStatus != MOS_STATUS_SUCCESS)
@@ -365,10 +365,10 @@ int32_t HalCm_InitSurfaceDump(PCM_HAL_STATE pState)
         MOS_OS_NORMALMESSAGE("Unable to read surface content dump user feature key. Status = %d", eStatus);
         goto finish;
     }
-    if (UserFeatureValue.bData)
+    if (userFeatureValue.bData)
     {
         // Setup member function and variable.
-        pState->bDumpSurfaceContent = UserFeatureValue.bData ? true: false;
+        state->bDumpSurfaceContent = userFeatureValue.bData ? true: false;
     }
     hr = CM_SUCCESS;
 finish:

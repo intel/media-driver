@@ -188,8 +188,8 @@ CmTaskInternal::CmTaskInternal(const uint32_t kernelCount, const uint32_t totalT
     m_TaskType(CM_TASK_TYPE_DEFAULT),
     m_media_state_ptr( nullptr )
 {
-    m_KernelSurfInfo.dwKrnNum = 0;
-    m_KernelSurfInfo.pSurfEntryInfosArray = nullptr;
+    m_KernelSurfInfo.kernelNum = 0;
+    m_KernelSurfInfo.surfEntryInfosArray = nullptr;
     m_pKernelCurbeOffsetArray = MOS_NewArray(uint32_t, kernelCount);
     CM_ASSERT(m_pKernelCurbeOffsetArray != nullptr);
     
@@ -277,7 +277,7 @@ CmTaskInternal::~CmTaskInternal( void )
         MosSafeDeleteArray( m_pDependencyMasks );
     }
 
-    if((m_KernelSurfInfo.dwKrnNum != 0)&&(m_KernelSurfInfo.pSurfEntryInfosArray != nullptr))
+    if((m_KernelSurfInfo.kernelNum != 0)&&(m_KernelSurfInfo.surfEntryInfosArray != nullptr))
     {
         ClearKernelSurfInfo();
     }
@@ -302,7 +302,7 @@ int32_t CmTaskInternal::Initialize(const CmThreadSpaceRT* pTS, bool isWithHints)
     CM_HAL_MAX_VALUES* pHalMaxValues = nullptr;
     CM_HAL_MAX_VALUES_EX* pHalMaxValuesEx = nullptr;
     m_pCmDevice->GetHalMaxValues( pHalMaxValues, pHalMaxValuesEx );
-    PCM_HAL_STATE pCmHalState = ((PCM_CONTEXT_DATA)m_pCmDevice->GetAccelData())->pCmHalState;
+    PCM_HAL_STATE pCmHalState = ((PCM_CONTEXT_DATA)m_pCmDevice->GetAccelData())->cmHalState;
 
     if (m_pCmDevice->IsPrintEnable())
     {
@@ -399,7 +399,7 @@ int32_t CmTaskInternal::Initialize(const CmThreadSpaceRT* pTS, bool isWithHints)
         pKernel->GetSizeInPayload( kernelPayloadSize );
         pKernel->GetSizeInCurbe( kernelCurbeSize );
 
-        if ( ( kernelCurbeSize + kernelPayloadSize ) > pHalMaxValues->iMaxArgByteSizePerKernel )
+        if ( ( kernelCurbeSize + kernelPayloadSize ) > pHalMaxValues->maxArgByteSizePerKernel )
         {   //Failed, exceed the maximum of inline data
             CM_ASSERTMESSAGE("Error: Invalid kernel arg size.");
             return CM_EXCEED_KERNEL_ARG_SIZE_IN_BYTE;
@@ -425,7 +425,7 @@ int32_t CmTaskInternal::Initialize(const CmThreadSpaceRT* pTS, bool isWithHints)
         pKernel->ResetKernelSurfaces();
 
         PCM_CONTEXT_DATA pCmData = ( PCM_CONTEXT_DATA )m_pCmDevice->GetAccelData();
-        PCM_HAL_STATE pState = pCmData->pCmHalState;
+        PCM_HAL_STATE pState = pCmData->cmHalState;
         PRENDERHAL_MEDIA_STATE media_state_ptr = pState->pfnGetMediaStatePtrForKernel( pState, pKernel );
 
         if ( ( media_state_ptr != nullptr ) && ( m_media_state_ptr == nullptr ) )
@@ -439,7 +439,7 @@ int32_t CmTaskInternal::Initialize(const CmThreadSpaceRT* pTS, bool isWithHints)
         }
     }
 
-    if (totalKernelBinarySize > pHalMaxValues->iMaxKernelBinarySize * pHalMaxValues->iMaxKernelsPerTask)
+    if (totalKernelBinarySize > pHalMaxValues->maxKernelBinarySize * pHalMaxValues->maxKernelsPerTask)
     {
         CM_ASSERTMESSAGE("Error: Invalid kernel arg size.");
         return CM_EXCEED_MAX_KERNEL_SIZE_IN_BYTE;
@@ -545,7 +545,7 @@ int32_t CmTaskInternal::Initialize(const CmThreadGroupSpace* pTGS)
         pKernel->GetSizeInPayload(kernelPayloadSize);
             
         PCM_HAL_KERNEL_PARAM  pHalKernelParam = pKernelData->GetHalCmKernelData();
-        if (pHalKernelParam->iCrsThrdConstDataLn + pHalKernelParam->iCurbeSizePerThread + kernelPayloadSize > pHalMaxValues->iMaxArgByteSizePerKernel)
+        if (pHalKernelParam->crossThreadConstDataLen + pHalKernelParam->curbeSizePerThread + kernelPayloadSize > pHalMaxValues->maxArgByteSizePerKernel)
         {   //Failed, exceed the maximum of inline data
             CM_ASSERTMESSAGE("Error: Invalid kernel arg size.");
             return CM_EXCEED_KERNEL_ARG_SIZE_IN_BYTE;
@@ -577,7 +577,7 @@ int32_t CmTaskInternal::Initialize(const CmThreadGroupSpace* pTGS)
         pKernel->ResetKernelSurfaces();
 
         PCM_CONTEXT_DATA pCmData = ( PCM_CONTEXT_DATA )m_pCmDevice->GetAccelData();
-        PCM_HAL_STATE pState = pCmData->pCmHalState;
+        PCM_HAL_STATE pState = pCmData->cmHalState;
         PRENDERHAL_MEDIA_STATE media_state_ptr = pState->pfnGetMediaStatePtrForKernel( pState, pKernel );
 
         if ( ( media_state_ptr != nullptr ) && ( m_media_state_ptr == nullptr ) )
@@ -591,7 +591,7 @@ int32_t CmTaskInternal::Initialize(const CmThreadGroupSpace* pTGS)
         }
     }
 
-    if( totalKernelBinarySize > pHalMaxValues->iMaxKernelBinarySize * pHalMaxValues->iMaxKernelsPerTask)
+    if( totalKernelBinarySize > pHalMaxValues->maxKernelBinarySize * pHalMaxValues->maxKernelsPerTask)
     {
         CM_ASSERTMESSAGE("Error: Invalid kernel arg size.");
         return CM_EXCEED_MAX_KERNEL_SIZE_IN_BYTE;
@@ -659,13 +659,13 @@ int32_t CmTaskInternal::Initialize(CmVeboxRT* pVebox)
             pSurf->GetIndex(pSurfIndex);
             pSurf->GetHandle(surfaceHandle);
             m_SurfaceArray[pSurfIndex->get_data()] = true;
-            m_VeboxSurfaceData.surfaceEntry[i].wSurfaceIndex = (uint16_t)surfaceHandle;
-            m_VeboxSurfaceData.surfaceEntry[i].wSurfaceCtrlBits = pVebox->GetSurfaceControlBits(i);
+            m_VeboxSurfaceData.surfaceEntry[i].surfaceIndex = (uint16_t)surfaceHandle;
+            m_VeboxSurfaceData.surfaceEntry[i].surfaceCtrlBits = pVebox->GetSurfaceControlBits(i);
         }
         else
         {
-            m_VeboxSurfaceData.surfaceEntry[i].wSurfaceIndex = CM_INVALID_INDEX; 
-            m_VeboxSurfaceData.surfaceEntry[i].wSurfaceCtrlBits = CM_INVALID_INDEX;  
+            m_VeboxSurfaceData.surfaceEntry[i].surfaceIndex = CM_INVALID_INDEX; 
+            m_VeboxSurfaceData.surfaceEntry[i].surfaceCtrlBits = CM_INVALID_INDEX;  
         }
     }
 
@@ -1484,10 +1484,10 @@ bool CmTaskInternal::IsThreadGroupSpaceCreated(void)
 int32_t CmTaskInternal::AllocateKernelSurfInfo()
 {
     //Allocate Surf info array
-    m_KernelSurfInfo.dwKrnNum = m_KernelCount;
-    m_KernelSurfInfo.pSurfEntryInfosArray = (CM_HAL_SURFACE_ENTRY_INFO_ARRAY*)MOS_AllocAndZeroMemory(m_KernelCount *
+    m_KernelSurfInfo.kernelNum = m_KernelCount;
+    m_KernelSurfInfo.surfEntryInfosArray = (CM_HAL_SURFACE_ENTRY_INFO_ARRAY*)MOS_AllocAndZeroMemory(m_KernelCount *
                                 sizeof(CM_HAL_SURFACE_ENTRY_INFO_ARRAY));
-    if(m_KernelSurfInfo.pSurfEntryInfosArray == nullptr)
+    if(m_KernelSurfInfo.surfEntryInfosArray == nullptr)
     {
 
         CM_ASSERTMESSAGE("Error: Mem allocation fail.");
@@ -1535,13 +1535,13 @@ int32_t CmTaskInternal::AllocateKernelSurfInfo()
                     break;
             }
         }
-        CM_HAL_SURFACE_ENTRY_INFO_ARRAY* pTempArray =  m_KernelSurfInfo.pSurfEntryInfosArray;
+        CM_HAL_SURFACE_ENTRY_INFO_ARRAY* pTempArray =  m_KernelSurfInfo.surfEntryInfosArray;
         if(iSurfEntryNum>0)
         {
-            pTempArray[i].dwMaxEntryNum = iSurfEntryNum;
-            pTempArray[i].pSurfEntryInfos = (CM_SURFACE_DETAILS*)MOS_AllocAndZeroMemory(iSurfEntryNum*sizeof(CM_SURFACE_DETAILS));
+            pTempArray[i].maxEntryNum = iSurfEntryNum;
+            pTempArray[i].surfEntryInfos = (CM_SURFACE_DETAILS*)MOS_AllocAndZeroMemory(iSurfEntryNum*sizeof(CM_SURFACE_DETAILS));
 
-            if(pTempArray[i].pSurfEntryInfos == nullptr)
+            if(pTempArray[i].surfEntryInfos == nullptr)
             {
                 CM_ASSERTMESSAGE("Error: Mem allocation fail.");
                 return CM_OUT_OF_HOST_MEMORY;
@@ -1551,10 +1551,10 @@ int32_t CmTaskInternal::AllocateKernelSurfInfo()
 
         //allocate memory for those 7 static buffers
         uint32_t iGBufNum=CM_GLOBAL_SURFACE_NUMBER + CM_GTPIN_BUFFER_NUM;
-        pTempArray[i].dwGlobalSurfNum=iGBufNum;
-        pTempArray[i].pGlobalSurfInfos = (CM_SURFACE_DETAILS*)MOS_AllocAndZeroMemory(
+        pTempArray[i].globalSurfNum=iGBufNum;
+        pTempArray[i].globalSurfInfos = (CM_SURFACE_DETAILS*)MOS_AllocAndZeroMemory(
                                 iGBufNum*sizeof(CM_SURFACE_DETAILS));
-        if(pTempArray[i].pGlobalSurfInfos == nullptr)
+        if(pTempArray[i].globalSurfInfos == nullptr)
         {
             CM_ASSERTMESSAGE("Mem allocation fail.");
             return CM_OUT_OF_HOST_MEMORY;
@@ -1571,28 +1571,28 @@ int32_t CmTaskInternal::GetKernelSurfInfo(CM_HAL_SURFACE_ENTRY_INFO_ARRAYS & Sur
 
 int32_t CmTaskInternal::ClearKernelSurfInfo()
 {
-    if (m_KernelSurfInfo.pSurfEntryInfosArray == nullptr)
-    { // if pSurfEntryInfosArray is empty, return directly
+    if (m_KernelSurfInfo.surfEntryInfosArray == nullptr)
+    { // if surfEntryInfosArray is empty, return directly
         return CM_SUCCESS;
     }
     
     //free memory
     for( uint32_t i = 0; i < m_KernelCount; i ++ )
     {
-        if (m_KernelSurfInfo.pSurfEntryInfosArray[i].pSurfEntryInfos != nullptr)
+        if (m_KernelSurfInfo.surfEntryInfosArray[i].surfEntryInfos != nullptr)
         {
-            MosSafeDelete(m_KernelSurfInfo.pSurfEntryInfosArray[i].pSurfEntryInfos);
+            MosSafeDelete(m_KernelSurfInfo.surfEntryInfosArray[i].surfEntryInfos);
         }
-        if (m_KernelSurfInfo.pSurfEntryInfosArray[i].pGlobalSurfInfos!= nullptr)
+        if (m_KernelSurfInfo.surfEntryInfosArray[i].globalSurfInfos!= nullptr)
         {
-            MosSafeDelete(m_KernelSurfInfo.pSurfEntryInfosArray[i].pGlobalSurfInfos);
+            MosSafeDelete(m_KernelSurfInfo.surfEntryInfosArray[i].globalSurfInfos);
         }
     }
 
-    MosSafeDelete(m_KernelSurfInfo.pSurfEntryInfosArray);
+    MosSafeDelete(m_KernelSurfInfo.surfEntryInfosArray);
 
-    m_KernelSurfInfo.dwKrnNum = 0 ;
-    m_KernelSurfInfo.pSurfEntryInfosArray = nullptr;
+    m_KernelSurfInfo.kernelNum = 0 ;
+    m_KernelSurfInfo.surfEntryInfosArray = nullptr;
 
     return CM_SUCCESS;
 }

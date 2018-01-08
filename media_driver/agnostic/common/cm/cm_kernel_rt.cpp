@@ -69,7 +69,7 @@
 // To check if surface type nType is equal to the surface type list in argument ...
 #define CHECK_SURFACE_TYPE( nType, ... )  ( _CheckSurfaceType( nType, __VA_ARGS__, -1 ) )
 
-#define IsKernelArg(arg)    ((arg).iUnitCount == 1)
+#define IsKernelArg(arg)    ((arg).unitCount == 1)
 
 // Warning : x must be uint32_t
 #define SET_MEMORY_OBJECT_CONTROL(x, memCtl) \
@@ -250,7 +250,7 @@ int32_t CmKernelRT::SafeRelease( void)
     if (m_refcount == 0)
     {
         PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)m_pCmDev->GetAccelData();
-        PCM_HAL_STATE pState = pCmData->pCmHalState;
+        PCM_HAL_STATE pState = pCmData->cmHalState;
         if (pState->bDynamicStateHeap)
         {
             pState->pfnDSHUnregisterKernel(pState, m_Id);
@@ -568,7 +568,7 @@ int32_t CmKernelRT::Initialize( const char* kernelName, const char* options )
         count = countTemp;
     }
 
-    if( count > m_pHalMaxValues->iMaxArgsPerKernel )
+    if( count > m_pHalMaxValues->maxArgsPerKernel )
     {
         CM_ASSERTMESSAGE("Error: Invalid kernel arg count.");
         return CM_EXCEED_KERNEL_ARG_AMOUNT;
@@ -780,7 +780,7 @@ int32_t CmKernelRT::Initialize( const char* kernelName, const char* options )
         }
     }
 
-    if(argSize > m_pHalMaxValues->iMaxArgByteSizePerKernel)
+    if(argSize > m_pHalMaxValues->maxArgByteSizePerKernel)
     {
         CM_ASSERTMESSAGE("Error: Invalid kernel arg size.");
         return CM_EXCEED_KERNEL_ARG_SIZE_IN_BYTE;
@@ -2218,7 +2218,7 @@ CM_RT_API int32_t CmKernelRT::SetThreadArg(uint32_t threadId, uint32_t index, si
         return CM_KERNELPAYLOAD_PERTHREADARG_MUTEX_FAIL;
     }
 
-    if(m_ThreadCount > m_pHalMaxValues->iMaxUserThreadsPerTask || m_ThreadCount <=0)
+    if(m_ThreadCount > m_pHalMaxValues->maxUserThreadsPerTask || m_ThreadCount <=0)
     {
         CM_ASSERTMESSAGE("Error: Minimum or Maximum number of threads exceeded.");
         return CM_FAILURE;
@@ -2569,24 +2569,25 @@ int32_t CmKernelRT::CreateThreadArgData(
     if (CHECK_SURFACE_TYPE(pCmArgs->unitKind,  ARG_KIND_SURFACE_VME))
     {
         // reallocate the memory since the number of surfaces in a vme surface could vary
-        MosSafeDeleteArray(pKernelArg->pFirstValue);
+        MosSafeDeleteArray(pKernelArg->firstValue);
     }
 
-    if( pKernelArg->pFirstValue  == nullptr)
-    {   // if pFirstValue = nullptr -> Create  //if pFirst is not nullptr, Update
-        pKernelArg->pFirstValue = MOS_NewArray(uint8_t, (pCmArgs[ThreadArgIndex].unitCount * pCmArgs[ThreadArgIndex].unitSize));
-        if( !pKernelArg->pFirstValue )
+    if( pKernelArg->firstValue  == nullptr)
+    {   
+        // if firstValue = nullptr, then create a new one, otherwise, update the exisitng one
+        pKernelArg->firstValue = MOS_NewArray(uint8_t, (pCmArgs[ThreadArgIndex].unitCount * pCmArgs[ThreadArgIndex].unitSize));
+        if( !pKernelArg->firstValue )
         {
             hr = CM_OUT_OF_HOST_MEMORY;
             goto finish;
         }
     }
 
-    if(pKernelArg->iUnitCount == 1 ) // kernel arg
+    if(pKernelArg->unitCount == 1 ) // kernel arg
     {
         if (pCmArgs[ThreadArgIndex].pValue)
         {
-            CmFastMemCopy(pKernelArg->pFirstValue, pCmArgs[ThreadArgIndex].pValue, ThreadArgCount * ThreadArgSize);
+            CmFastMemCopy(pKernelArg->firstValue, pCmArgs[ThreadArgIndex].pValue, ThreadArgCount * ThreadArgSize);
         }
         goto finish;
     }
@@ -2608,18 +2609,18 @@ int32_t CmKernelRT::CreateThreadArgData(
             {
                 uint32_t offset = pThreadSpaceUnit[pBoardOrder[index]].threadId;
                 uint8_t *pArgSrc = (uint8_t*)pCmArgs[ThreadArgIndex].pValue + offset * ThreadArgSize;
-                uint8_t *pArgDst = pKernelArg->pFirstValue + index * ThreadArgSize;
+                uint8_t *pArgDst = pKernelArg->firstValue + index * ThreadArgSize;
                 CmFastMemCopy(pArgDst, pArgSrc, ThreadArgSize);
             }
         }
         else
         {
-           CmFastMemCopy(pKernelArg->pFirstValue, pCmArgs[ ThreadArgIndex ].pValue, ThreadArgCount * ThreadArgSize);
+           CmFastMemCopy(pKernelArg->firstValue, pCmArgs[ ThreadArgIndex ].pValue, ThreadArgCount * ThreadArgSize);
         }
     }
     else
     {
-        CmFastMemCopy(pKernelArg->pFirstValue, pCmArgs[ ThreadArgIndex ].pValue, ThreadArgCount * ThreadArgSize);
+        CmFastMemCopy(pKernelArg->firstValue, pCmArgs[ ThreadArgIndex ].pValue, ThreadArgCount * ThreadArgSize);
     }
 
 finish:
@@ -2997,8 +2998,8 @@ int32_t CmKernelRT::CreateThreadSpaceParam(
     }
 
     pThreadSpace->GetThreadSpaceSize(TsWidth, TsHeight);
-    pCmKernelThreadSpaceParam->iThreadSpaceWidth =  (uint16_t)TsWidth;
-    pCmKernelThreadSpaceParam->iThreadSpaceHeight = (uint16_t)TsHeight;
+    pCmKernelThreadSpaceParam->threadSpaceWidth =  (uint16_t)TsWidth;
+    pCmKernelThreadSpaceParam->threadSpaceHeight = (uint16_t)TsHeight;
 
     pThreadSpace->GetDependencyPatternType(pCmKernelThreadSpaceParam->patternType);
     pThreadSpace->GetWalkingPattern(pCmKernelThreadSpaceParam->walkingPattern);
@@ -3033,9 +3034,9 @@ int32_t CmKernelRT::CreateThreadSpaceParam(
 
     if(pThreadSpaceUnit)
     {
-        pCmKernelThreadSpaceParam->pThreadCoordinates = MOS_NewArray(CM_HAL_SCOREBOARD, (TsWidth * TsHeight));
-        CMCHK_NULL_RETURN(pCmKernelThreadSpaceParam->pThreadCoordinates , CM_OUT_OF_HOST_MEMORY);
-        CmSafeMemSet(pCmKernelThreadSpaceParam->pThreadCoordinates, 0, TsHeight * TsWidth * sizeof(CM_HAL_SCOREBOARD));
+        pCmKernelThreadSpaceParam->threadCoordinates = MOS_NewArray(CM_HAL_SCOREBOARD, (TsWidth * TsHeight));
+        CMCHK_NULL_RETURN(pCmKernelThreadSpaceParam->threadCoordinates , CM_OUT_OF_HOST_MEMORY);
+        CmSafeMemSet(pCmKernelThreadSpaceParam->threadCoordinates, 0, TsHeight * TsWidth * sizeof(CM_HAL_SCOREBOARD));
 
         uint32_t *pBoardOrder = nullptr;
         pThreadSpace->GetBoardOrder(pBoardOrder);
@@ -3044,13 +3045,13 @@ int32_t CmKernelRT::CreateThreadSpaceParam(
         pCmKernelThreadSpaceParam->reuseBBUpdateMask  = 0;
         for(uint32_t i=0; i< TsWidth * TsHeight ; i++)
         {
-            pCmKernelThreadSpaceParam->pThreadCoordinates[i].x = pThreadSpaceUnit[pBoardOrder[i]].scoreboardCoordinates.x;
-            pCmKernelThreadSpaceParam->pThreadCoordinates[i].y = pThreadSpaceUnit[pBoardOrder[i]].scoreboardCoordinates.y;
-            pCmKernelThreadSpaceParam->pThreadCoordinates[i].mask = pThreadSpaceUnit[pBoardOrder[i]].dependencyMask;
-            pCmKernelThreadSpaceParam->pThreadCoordinates[i].resetMask= pThreadSpaceUnit[pBoardOrder[i]].reset;
-            pCmKernelThreadSpaceParam->pThreadCoordinates[i].color = pThreadSpaceUnit[pBoardOrder[i]].scoreboardColor;
-            pCmKernelThreadSpaceParam->pThreadCoordinates[i].sliceSelect = pThreadSpaceUnit[pBoardOrder[i]].sliceDestinationSelect;
-            pCmKernelThreadSpaceParam->pThreadCoordinates[i].subSliceSelect = pThreadSpaceUnit[pBoardOrder[i]].subSliceDestinationSelect;
+            pCmKernelThreadSpaceParam->threadCoordinates[i].x = pThreadSpaceUnit[pBoardOrder[i]].scoreboardCoordinates.x;
+            pCmKernelThreadSpaceParam->threadCoordinates[i].y = pThreadSpaceUnit[pBoardOrder[i]].scoreboardCoordinates.y;
+            pCmKernelThreadSpaceParam->threadCoordinates[i].mask = pThreadSpaceUnit[pBoardOrder[i]].dependencyMask;
+            pCmKernelThreadSpaceParam->threadCoordinates[i].resetMask= pThreadSpaceUnit[pBoardOrder[i]].reset;
+            pCmKernelThreadSpaceParam->threadCoordinates[i].color = pThreadSpaceUnit[pBoardOrder[i]].scoreboardColor;
+            pCmKernelThreadSpaceParam->threadCoordinates[i].sliceSelect = pThreadSpaceUnit[pBoardOrder[i]].sliceDestinationSelect;
+            pCmKernelThreadSpaceParam->threadCoordinates[i].subSliceSelect = pThreadSpaceUnit[pBoardOrder[i]].subSliceDestinationSelect;
             pCmKernelThreadSpaceParam->reuseBBUpdateMask |= pThreadSpaceUnit[pBoardOrder[i]].reset;
         }
 
@@ -3060,10 +3061,10 @@ int32_t CmKernelRT::CreateThreadSpaceParam(
             pThreadSpace->GetWavefront26ZDispatchInfo(dispatchInfo);
 
             pCmKernelThreadSpaceParam->dispatchInfo.numWaves = dispatchInfo.numWaves;
-            pCmKernelThreadSpaceParam->dispatchInfo.pNumThreadsInWave = MOS_NewArray(uint32_t, dispatchInfo.numWaves);
-            CMCHK_NULL_RETURN(pCmKernelThreadSpaceParam->dispatchInfo.pNumThreadsInWave, CM_OUT_OF_HOST_MEMORY);
-            CmFastMemCopy(pCmKernelThreadSpaceParam->dispatchInfo.pNumThreadsInWave,
-                dispatchInfo.pNumThreadsInWave, dispatchInfo.numWaves*sizeof(uint32_t));
+            pCmKernelThreadSpaceParam->dispatchInfo.numThreadsInWave = MOS_NewArray(uint32_t, dispatchInfo.numWaves);
+            CMCHK_NULL_RETURN(pCmKernelThreadSpaceParam->dispatchInfo.numThreadsInWave, CM_OUT_OF_HOST_MEMORY);
+            CmFastMemCopy(pCmKernelThreadSpaceParam->dispatchInfo.numThreadsInWave,
+                dispatchInfo.numThreadsInWave, dispatchInfo.numWaves*sizeof(uint32_t));
 
          }
     }
@@ -3078,10 +3079,10 @@ int32_t CmKernelRT::CreateThreadSpaceParam(
     switch (dirtyStatus)
     {
     case CM_THREAD_SPACE_CLEAN:
-        pCmKernelThreadSpaceParam->BBdirtyStatus = CM_HAL_BB_CLEAN;
+        pCmKernelThreadSpaceParam->bbDirtyStatus = CM_HAL_BB_CLEAN;
         break;
     default:
-        pCmKernelThreadSpaceParam->BBdirtyStatus = CM_HAL_BB_DIRTY;
+        pCmKernelThreadSpaceParam->bbDirtyStatus = CM_HAL_BB_DIRTY;
         break;
     }
 
@@ -3090,8 +3091,8 @@ finish:
     {
         if( pCmKernelThreadSpaceParam )
         {
-            MosSafeDeleteArray(pCmKernelThreadSpaceParam->dispatchInfo.pNumThreadsInWave);
-            MosSafeDeleteArray(pCmKernelThreadSpaceParam->pThreadCoordinates);
+            MosSafeDeleteArray(pCmKernelThreadSpaceParam->dispatchInfo.numThreadsInWave);
+            MosSafeDeleteArray(pCmKernelThreadSpaceParam->threadCoordinates);
         }
     }
 
@@ -3404,7 +3405,7 @@ int32_t CmKernelRT::CreateKernelData(
                 CMCHK_NULL(pHalKernelParam);
                 // need to set to clean here because CmThreadSpaceParam.BBdirtyStatus is only set in CreateKernelDataInternal
                 // flag used to re-use batch buffer, don't care if BB is busy if it is "clean"
-                pHalKernelParam->KernelThreadSpaceParam.BBdirtyStatus = CM_HAL_BB_CLEAN;
+                pHalKernelParam->kernelThreadSpaceParam.bbDirtyStatus = CM_HAL_BB_CLEAN;
             }
         }
         else
@@ -3553,7 +3554,7 @@ int32_t CmKernelRT::UpdateKernelDataGlobalSurfaceInfo( PCM_HAL_KERNEL_PARAM pHal
         if ( m_GlobalSurfaces[ j ] != nullptr )
         {
             pHalKernelParam->globalSurface[ j ] = m_GlobalSurfaces[ j ]->get_data();
-            pHalKernelParam->bGlobalSurfaceUsed = true;
+            pHalKernelParam->globalSurfaceUsed = true;
         }
         else
         {
@@ -3602,88 +3603,86 @@ int32_t CmKernelRT::CreateKernelDataInternal(
     CMCHK_HR(CreateTempArgs(NumArgs, pTempArgs));
 
     //Create move instructions
-    CMCHK_HR(CreateMovInstructions(movInstNum, pHalKernelParam->pMovInsData, pTempArgs, NumArgs));
+    CMCHK_HR(CreateMovInstructions(movInstNum, pHalKernelParam->movInsData, pTempArgs, NumArgs));
     CMCHK_HR(CalcKernelDataSize(movInstNum, NumArgs, ArgSize, kernelDataSize));
     CMCHK_HR(pKernelData->SetKernelDataSize(kernelDataSize));
 
-    pHalKernelParam->ClonedKernelParam.isClonedKernel = m_IsClonedKernel;
-    pHalKernelParam->ClonedKernelParam.kernelID       = m_CloneKernelID;
-    pHalKernelParam->ClonedKernelParam.hasClones      = m_HasClones;
+    pHalKernelParam->clonedKernelParam.isClonedKernel = m_IsClonedKernel;
+    pHalKernelParam->clonedKernelParam.kernelID       = m_CloneKernelID;
+    pHalKernelParam->clonedKernelParam.hasClones      = m_HasClones;
 
-    pHalKernelParam->uiKernelId = m_Id++;
+    pHalKernelParam->kernelId = m_Id++;
     if ((m_pProgram->m_CISA_majorVersion >= 3 && m_pProgram->m_CISA_minorVersion >= 3))
-        pHalKernelParam->iNumArgs = NumArgs;
+        pHalKernelParam->numArgs = NumArgs;
     else
-        pHalKernelParam->iNumArgs = NumArgs + CM_GPUWALKER_IMPLICIT_ARG_NUM;
-    pHalKernelParam->iNumThreads = m_ThreadCount;
-    pHalKernelParam->iKernelBinarySize = m_uiBinarySize + movInstNum * CM_MOVE_INSTRUCTION_SIZE;
-    pHalKernelParam->iKernelDataSize = kernelDataSize;
-    pHalKernelParam->iMovInsDataSize = movInstNum * CM_MOVE_INSTRUCTION_SIZE;
-    pHalKernelParam->bKernelDebugEnabled = m_blhwDebugEnable;
+        pHalKernelParam->numArgs = NumArgs + CM_GPUWALKER_IMPLICIT_ARG_NUM;
+    pHalKernelParam->numThreads = m_ThreadCount;
+    pHalKernelParam->kernelBinarySize = m_uiBinarySize + movInstNum * CM_MOVE_INSTRUCTION_SIZE;
+    pHalKernelParam->kernelDataSize = kernelDataSize;
+    pHalKernelParam->movInsDataSize = movInstNum * CM_MOVE_INSTRUCTION_SIZE;
+    pHalKernelParam->kernelDebugEnabled = m_blhwDebugEnable;
 
-    pHalKernelParam->dwCmFlags = m_CurbeEnable ? CM_FLAG_CURBE_ENABLED : 0;
-    pHalKernelParam->dwCmFlags |= m_NonstallingScoreboardEnable ? CM_FLAG_NONSTALLING_SCOREBOARD_ENABLED : 0;
+    pHalKernelParam->cmFlags = m_CurbeEnable ? CM_FLAG_CURBE_ENABLED : 0;
+    pHalKernelParam->cmFlags |= m_NonstallingScoreboardEnable ? CM_FLAG_NONSTALLING_SCOREBOARD_ENABLED : 0;
 
-    pHalKernelParam->pKernelBinary = (uint8_t*)m_pBinary;
+    pHalKernelParam->kernelBinary = (uint8_t*)m_pBinary;
 
     CMCHK_HR(pKernelData->GetCmKernel(pCmKernel));
     if (pCmKernel == nullptr)
     {
         return CM_NULL_POINTER;
     }
-    MOS_SecureStrcpy(pHalKernelParam->pKernelName, CM_MAX_KERNEL_NAME_SIZE_IN_BYTE, pCmKernel->GetName());
+    MOS_SecureStrcpy(pHalKernelParam->kernelName, CM_MAX_KERNEL_NAME_SIZE_IN_BYTE, pCmKernel->GetName());
 
     uint32_t thrdSpaceWidth, thrdSpaceHeight, thrdSpaceDepth, grpSpaceWidth, grpSpaceHeight, grpSpaceDepth;
     pTGS->GetThreadGroupSpaceSize(thrdSpaceWidth, thrdSpaceHeight, thrdSpaceDepth, grpSpaceWidth, grpSpaceHeight, grpSpaceDepth);
 
     for (uint32_t i = 0; i < NumArgs; i++)
     {
-        pHalKernelParam->CmArgParams[i].iUnitCount = pTempArgs[i].unitCount;
-        pHalKernelParam->CmArgParams[i].Kind = (CM_HAL_KERNEL_ARG_KIND)(pTempArgs[i].unitKind);
-        pHalKernelParam->CmArgParams[i].iUnitSize = pTempArgs[i].unitSize;
-        pHalKernelParam->CmArgParams[i].iPayloadOffset = pTempArgs[i].unitOffsetInPayload;
-        pHalKernelParam->CmArgParams[i].bPerThread = false;
-        pHalKernelParam->CmArgParams[i].nCustomValue = pTempArgs[i].nCustomValue;
-        pHalKernelParam->CmArgParams[i].bIsNull = pTempArgs[ i ].bIsNull;
+        pHalKernelParam->argParams[i].unitCount = pTempArgs[i].unitCount;
+        pHalKernelParam->argParams[i].kind = (CM_HAL_KERNEL_ARG_KIND)(pTempArgs[i].unitKind);
+        pHalKernelParam->argParams[i].unitSize = pTempArgs[i].unitSize;
+        pHalKernelParam->argParams[i].payloadOffset = pTempArgs[i].unitOffsetInPayload;
+        pHalKernelParam->argParams[i].perThread = false;
+        pHalKernelParam->argParams[i].nCustomValue = pTempArgs[i].nCustomValue;
+        pHalKernelParam->argParams[i].isNull = pTempArgs[ i ].bIsNull;
 
         if (pTempArgs[i].unitKind == CM_ARGUMENT_IMPLICT_LOCALSIZE) {
-            CMCHK_HR(CreateKernelImplicitArgDataGroup(pHalKernelParam->CmArgParams[i].pFirstValue, 3));
-            *(uint32_t *)pHalKernelParam->CmArgParams[i].pFirstValue = thrdSpaceWidth;
-            *(uint32_t *)(pHalKernelParam->CmArgParams[i].pFirstValue + 4) = thrdSpaceHeight;
-            *(uint32_t *)(pHalKernelParam->CmArgParams[i].pFirstValue + 8) = thrdSpaceDepth;
+            CMCHK_HR(CreateKernelImplicitArgDataGroup(pHalKernelParam->argParams[i].firstValue, 3));
+            *(uint32_t *)pHalKernelParam->argParams[i].firstValue = thrdSpaceWidth;
+            *(uint32_t *)(pHalKernelParam->argParams[i].firstValue + 4) = thrdSpaceHeight;
+            *(uint32_t *)(pHalKernelParam->argParams[i].firstValue + 8) = thrdSpaceDepth;
         }
         else if (pTempArgs[i].unitKind == CM_ARGUMENT_IMPLICT_GROUPSIZE) {
-            CMCHK_HR(CreateKernelImplicitArgDataGroup(pHalKernelParam->CmArgParams[i].pFirstValue, 3));
-            *(uint32_t *)pHalKernelParam->CmArgParams[i].pFirstValue = grpSpaceWidth;
-            *(uint32_t *)(pHalKernelParam->CmArgParams[i].pFirstValue + 4) = grpSpaceHeight;
-            *(uint32_t *)(pHalKernelParam->CmArgParams[i].pFirstValue + 8) = grpSpaceDepth;
+            CMCHK_HR(CreateKernelImplicitArgDataGroup(pHalKernelParam->argParams[i].firstValue, 3));
+            *(uint32_t *)pHalKernelParam->argParams[i].firstValue = grpSpaceWidth;
+            *(uint32_t *)(pHalKernelParam->argParams[i].firstValue + 4) = grpSpaceHeight;
+            *(uint32_t *)(pHalKernelParam->argParams[i].firstValue + 8) = grpSpaceDepth;
         }
         else if (pTempArgs[i].unitKind == ARG_KIND_IMPLICIT_LOCALID) {
-            CMCHK_HR(CreateKernelImplicitArgDataGroup(pHalKernelParam->CmArgParams[i].pFirstValue, 3));
-            pHalKernelParam->localId_index = i;
+            CMCHK_HR(CreateKernelImplicitArgDataGroup(pHalKernelParam->argParams[i].firstValue, 3));
+            pHalKernelParam->localIdIndex = i;
         }
         else
-            CreateThreadArgData(&pHalKernelParam->CmArgParams[i], i, nullptr, pTempArgs);
+            CreateThreadArgData(&pHalKernelParam->argParams[i], i, nullptr, pTempArgs);
 
-
-
-        if (pHalKernelParam->dwCmFlags & CM_KERNEL_FLAGS_CURBE)
+        if (pHalKernelParam->cmFlags & CM_KERNEL_FLAGS_CURBE)
         {
-            if (IsKernelArg(pHalKernelParam->CmArgParams[i]))
+            if (IsKernelArg(pHalKernelParam->argParams[i]))
             {
                 // Kernel Arg : calculate curbe size & adjust payloadoffset
-                pHalKernelParam->CmArgParams[i].iPayloadOffset -= CM_PAYLOAD_OFFSET;
+                pHalKernelParam->argParams[i].payloadOffset -= CM_PAYLOAD_OFFSET;
                 if ((m_pProgram->m_CISA_majorVersion == 3) && (m_pProgram->m_CISA_minorVersion < 3)) {
-                    if ((pHalKernelParam->CmArgParams[i].iPayloadOffset + pHalKernelParam->CmArgParams[i].iUnitSize > KrnCurbeSize))
+                    if ((pHalKernelParam->argParams[i].payloadOffset + pHalKernelParam->argParams[i].unitSize > KrnCurbeSize))
                     {  // The largest one
-                        KrnCurbeSize = pHalKernelParam->CmArgParams[i].iPayloadOffset + pHalKernelParam->CmArgParams[i].iUnitSize;
+                        KrnCurbeSize = pHalKernelParam->argParams[i].payloadOffset + pHalKernelParam->argParams[i].unitSize;
                     }
                 }
                 else
                 {
-                    if ((pHalKernelParam->CmArgParams[i].iPayloadOffset + pHalKernelParam->CmArgParams[i].iUnitSize > KrnCurbeSize) && (pTempArgs[i].unitKind != ARG_KIND_IMPLICIT_LOCALID))
+                    if ((pHalKernelParam->argParams[i].payloadOffset + pHalKernelParam->argParams[i].unitSize > KrnCurbeSize) && (pTempArgs[i].unitKind != ARG_KIND_IMPLICIT_LOCALID))
                     {  // The largest one
-                        KrnCurbeSize = pHalKernelParam->CmArgParams[i].iPayloadOffset + pHalKernelParam->CmArgParams[i].iUnitSize;
+                        KrnCurbeSize = pHalKernelParam->argParams[i].payloadOffset + pHalKernelParam->argParams[i].unitSize;
                     }
                 }
             }
@@ -3693,9 +3692,9 @@ int32_t CmKernelRT::CreateKernelDataInternal(
     if ( m_state_buffer_bounded != CM_STATE_BUFFER_NONE )
     {
         PCM_CONTEXT_DATA pCmData = ( PCM_CONTEXT_DATA )m_pCmDev->GetAccelData();
-        PCM_HAL_STATE pState = pCmData->pCmHalState;
+        PCM_HAL_STATE pState = pCmData->cmHalState;
         KrnCurbeSize = pState->pfnGetStateBufferSizeForKernel( pState, this );
-        pHalKernelParam->state_buffer_type = pState->pfnGetStateBufferTypeForKernel( pState, this );
+        pHalKernelParam->stateBufferType = pState->pfnGetStateBufferTypeForKernel( pState, this );
     }
 
     if ((m_pProgram->m_CISA_majorVersion == 3) && (m_pProgram->m_CISA_minorVersion < 3))
@@ -3703,79 +3702,77 @@ int32_t CmKernelRT::CreateKernelDataInternal(
         // GPGPU walker - implicit args
         for (uint32_t i = NumArgs; i < NumArgs + CM_GPUWALKER_IMPLICIT_ARG_NUM; i++)
         {
-            pHalKernelParam->CmArgParams[i].iUnitCount = 1;
-            pHalKernelParam->CmArgParams[i].Kind = CM_ARGUMENT_GENERAL;
-            pHalKernelParam->CmArgParams[i].iUnitSize = 4;
-            pHalKernelParam->CmArgParams[i].iPayloadOffset = MOS_ALIGN_CEIL(KrnCurbeSize, 4) + (i - NumArgs) * sizeof(uint32_t);
-            pHalKernelParam->CmArgParams[i].bPerThread = false;
+            pHalKernelParam->argParams[i].unitCount = 1;
+            pHalKernelParam->argParams[i].kind = CM_ARGUMENT_GENERAL;
+            pHalKernelParam->argParams[i].unitSize = 4;
+            pHalKernelParam->argParams[i].payloadOffset = MOS_ALIGN_CEIL(KrnCurbeSize, 4) + (i - NumArgs) * sizeof(uint32_t);
+            pHalKernelParam->argParams[i].perThread = false;
         }
 
-
-
-        CMCHK_HR(CreateKernelArgDataGroup(pHalKernelParam->CmArgParams[NumArgs + 0].pFirstValue, thrdSpaceWidth));
-        CMCHK_HR(CreateKernelArgDataGroup(pHalKernelParam->CmArgParams[NumArgs + 1].pFirstValue, thrdSpaceHeight));
-        CMCHK_HR(CreateKernelArgDataGroup(pHalKernelParam->CmArgParams[NumArgs + 2].pFirstValue, grpSpaceWidth));
-        CMCHK_HR(CreateKernelArgDataGroup(pHalKernelParam->CmArgParams[NumArgs + 3].pFirstValue, grpSpaceHeight));
-        CMCHK_HR(CreateKernelArgDataGroup(pHalKernelParam->CmArgParams[NumArgs + 4].pFirstValue, thrdSpaceWidth));
-        CMCHK_HR(CreateKernelArgDataGroup(pHalKernelParam->CmArgParams[NumArgs + 5].pFirstValue, thrdSpaceHeight));
-        pHalKernelParam->localId_index = pHalKernelParam->iNumArgs - 2;
+        CMCHK_HR(CreateKernelArgDataGroup(pHalKernelParam->argParams[NumArgs + 0].firstValue, thrdSpaceWidth));
+        CMCHK_HR(CreateKernelArgDataGroup(pHalKernelParam->argParams[NumArgs + 1].firstValue, thrdSpaceHeight));
+        CMCHK_HR(CreateKernelArgDataGroup(pHalKernelParam->argParams[NumArgs + 2].firstValue, grpSpaceWidth));
+        CMCHK_HR(CreateKernelArgDataGroup(pHalKernelParam->argParams[NumArgs + 3].firstValue, grpSpaceHeight));
+        CMCHK_HR(CreateKernelArgDataGroup(pHalKernelParam->argParams[NumArgs + 4].firstValue, thrdSpaceWidth));
+        CMCHK_HR(CreateKernelArgDataGroup(pHalKernelParam->argParams[NumArgs + 5].firstValue, thrdSpaceHeight));
+        pHalKernelParam->localIdIndex = pHalKernelParam->numArgs - 2;
     }
-    pHalKernelParam->GpGpuWalkerParams.CmGpGpuEnable = true;
-    pHalKernelParam->GpGpuWalkerParams.GroupWidth = grpSpaceWidth;
-    pHalKernelParam->GpGpuWalkerParams.GroupHeight = grpSpaceHeight;
-    pHalKernelParam->GpGpuWalkerParams.GroupDepth = grpSpaceDepth;
-    pHalKernelParam->GpGpuWalkerParams.ThreadHeight = thrdSpaceHeight;
-    pHalKernelParam->GpGpuWalkerParams.ThreadWidth = thrdSpaceWidth;
-    pHalKernelParam->GpGpuWalkerParams.ThreadDepth = thrdSpaceDepth;
+    pHalKernelParam->gpgpuWalkerParams.gpgpuEnabled = true;
+    pHalKernelParam->gpgpuWalkerParams.groupWidth = grpSpaceWidth;
+    pHalKernelParam->gpgpuWalkerParams.groupHeight = grpSpaceHeight;
+    pHalKernelParam->gpgpuWalkerParams.groupDepth = grpSpaceDepth;
+    pHalKernelParam->gpgpuWalkerParams.threadHeight = thrdSpaceHeight;
+    pHalKernelParam->gpgpuWalkerParams.threadWidth = thrdSpaceWidth;
+    pHalKernelParam->gpgpuWalkerParams.threadDepth = thrdSpaceDepth;
     //Get SLM size
-    pHalKernelParam->iSLMSize = GetSLMSize();
+    pHalKernelParam->slmSize = GetSLMSize();
 
     //Get spill area to adjust scratch space
-    pHalKernelParam->iSpillSize = GetSpillMemUsed();
+    pHalKernelParam->spillSize = GetSpillMemUsed();
 
     //Set Barrier mode
-    pHalKernelParam->iBarrierMode = m_BarrierMode;
-    pHalKernelParam->iNumberThreadsInGroup = thrdSpaceWidth * thrdSpaceHeight * thrdSpaceDepth;
+    pHalKernelParam->barrierMode = m_BarrierMode;
+    pHalKernelParam->numberThreadsInGroup = thrdSpaceWidth * thrdSpaceHeight * thrdSpaceDepth;
     if ((m_pProgram->m_CISA_majorVersion == 3) && (m_pProgram->m_CISA_minorVersion < 3))
         KrnCurbeSize = MOS_ALIGN_CEIL(KrnCurbeSize, 4) + CM_GPUWALKER_IMPLICIT_ARG_NUM * sizeof(uint32_t);
     else
         KrnCurbeSize = MOS_ALIGN_CEIL(KrnCurbeSize, 4);
     if ((KrnCurbeSize % 32) == 4) //The per-thread data occupy 2 GRF.
     {
-        pHalKernelParam->iCurbeSizePerThread = 64;
+        pHalKernelParam->curbeSizePerThread = 64;
     }
     else
     {
-        pHalKernelParam->iCurbeSizePerThread = 32;
+        pHalKernelParam->curbeSizePerThread = 32;
     }
     if ((m_pProgram->m_CISA_majorVersion == 3) && (m_pProgram->m_CISA_minorVersion < 3)) {
-        pHalKernelParam->iKrnCurbeSize = MOS_ALIGN_CEIL(KrnCurbeSize, 32) - pHalKernelParam->iCurbeSizePerThread + pHalKernelParam->iCurbeSizePerThread *
+        pHalKernelParam->totalCurbeSize = MOS_ALIGN_CEIL(KrnCurbeSize, 32) - pHalKernelParam->curbeSizePerThread + pHalKernelParam->curbeSizePerThread *
             thrdSpaceWidth * thrdSpaceHeight;
         //Since the CURBE is 32 bytes alignment, for GPGPU walker without the user specified thread argument, implicit per-thread id arguments will occupy at most 32 bytes
-        pHalKernelParam->iCrsThrdConstDataLn = MOS_ALIGN_CEIL(KrnCurbeSize, 32) - pHalKernelParam->iCurbeSizePerThread;
+        pHalKernelParam->crossThreadConstDataLen = MOS_ALIGN_CEIL(KrnCurbeSize, 32) - pHalKernelParam->curbeSizePerThread;
     }
     else {
-        pHalKernelParam->iKrnCurbeSize = MOS_ALIGN_CEIL(KrnCurbeSize, 32) + pHalKernelParam->iCurbeSizePerThread *
+        pHalKernelParam->totalCurbeSize = MOS_ALIGN_CEIL(KrnCurbeSize, 32) + pHalKernelParam->curbeSizePerThread *
             thrdSpaceWidth * thrdSpaceHeight * thrdSpaceDepth;
         //Since the CURBE is 32 bytes alignment, for GPGPU walker without the user specified thread argument, implicit per-thread id arguments will occupy at most 32 bytes
-        pHalKernelParam->iCrsThrdConstDataLn = MOS_ALIGN_CEIL(KrnCurbeSize, 32);
+        pHalKernelParam->crossThreadConstDataLen = MOS_ALIGN_CEIL(KrnCurbeSize, 32);
     }
-    pHalKernelParam->iPayloadSize = 0; // no thread arg allowed
+    pHalKernelParam->payloadSize = 0; // no thread arg allowed
 
-    m_SizeInCurbe = GetAlignedCurbeSize(pHalKernelParam->iKrnCurbeSize);
+    m_SizeInCurbe = GetAlignedCurbeSize(pHalKernelParam->totalCurbeSize);
 
-    CMCHK_HR(CreateKernelIndirectData(&pHalKernelParam->IndirectDataParam));
+    CMCHK_HR(CreateKernelIndirectData(&pHalKernelParam->indirectDataParam));
 
     if (m_SamplerBTICount != 0)
     {
-        CmFastMemCopy((void*)pHalKernelParam->SamplerBTIParam.SamplerInfo, (void*)m_SamplerBTIEntry, sizeof(m_SamplerBTIEntry));
-        pHalKernelParam->SamplerBTIParam.iSamplerCount = m_SamplerBTICount;
+        CmFastMemCopy((void*)pHalKernelParam->samplerBTIParam.samplerInfo, (void*)m_SamplerBTIEntry, sizeof(m_SamplerBTIEntry));
+        pHalKernelParam->samplerBTIParam.samplerCount = m_SamplerBTICount;
 
         CmSafeMemSet(m_SamplerBTIEntry, 0, sizeof(m_SamplerBTIEntry));
         m_SamplerBTICount = 0;
     }
 
-    CalculateKernelSurfacesNum(surfNum, pHalKernelParam->iNumSurfaces);
+    CalculateKernelSurfacesNum(surfNum, pHalKernelParam->numSurfaces);
 
     UpdateKernelDataGlobalSurfaceInfo(pHalKernelParam);
 
@@ -3800,9 +3797,9 @@ finish:
             {
                 if (pHalKernelParam)
                 {
-                    if (pHalKernelParam->CmArgParams[i].pFirstValue)
+                    if (pHalKernelParam->argParams[i].firstValue)
                     {
-                        MosSafeDeleteArray(pHalKernelParam->CmArgParams[i].pFirstValue);
+                        MosSafeDeleteArray(pHalKernelParam->argParams[i].firstValue);
                     }
                 }
             }
@@ -3813,9 +3810,9 @@ finish:
             {
                 if (pHalKernelParam)
                 {
-                    if (pHalKernelParam->CmArgParams[i].pFirstValue)
+                    if (pHalKernelParam->argParams[i].firstValue)
                     {
-                        MosSafeDeleteArray(pHalKernelParam->CmArgParams[i].pFirstValue);
+                        MosSafeDeleteArray(pHalKernelParam->argParams[i].firstValue);
                     }
                 }
             }
@@ -3955,7 +3952,7 @@ int32_t CmKernelRT::CreateKernelDataInternal(
         //Create Temp args
         CMCHK_HR(CreateTempArgs(NumArgs, pTempArgs));
         //Create move instructions
-        CMCHK_HR(CreateMovInstructions(movInstNum,   pHalKernelParam->pMovInsData, pTempArgs, NumArgs));
+        CMCHK_HR(CreateMovInstructions(movInstNum,   pHalKernelParam->movInsData, pTempArgs, NumArgs));
     }
 
     CMCHK_HR(CalcKernelDataSize(movInstNum, NumArgs, ArgSize, kernelDataSize));
@@ -3980,28 +3977,28 @@ int32_t CmKernelRT::CreateKernelDataInternal(
         m_Id |= tempID;
     }
 
-    pHalKernelParam->ClonedKernelParam.isClonedKernel = m_IsClonedKernel;
-    pHalKernelParam->ClonedKernelParam.kernelID       = m_CloneKernelID;
-    pHalKernelParam->ClonedKernelParam.hasClones      = m_HasClones;
-    pHalKernelParam->uiKernelId           = m_Id; // kernel id , high 32-bit is kernel id, low 32-bit is kernel data id for batch buffer reuse
-    pHalKernelParam->iNumArgs             = NumArgs;
-    pHalKernelParam->iNumThreads          = m_ThreadCount;
-    pHalKernelParam->iKernelBinarySize    = m_uiBinarySize + movInstNum * CM_MOVE_INSTRUCTION_SIZE;
-    pHalKernelParam->iKernelDataSize      = kernelDataSize;
-    pHalKernelParam->iMovInsDataSize      = movInstNum * CM_MOVE_INSTRUCTION_SIZE;
+    pHalKernelParam->clonedKernelParam.isClonedKernel = m_IsClonedKernel;
+    pHalKernelParam->clonedKernelParam.kernelID       = m_CloneKernelID;
+    pHalKernelParam->clonedKernelParam.hasClones      = m_HasClones;
+    pHalKernelParam->kernelId           = m_Id; // kernel id , high 32-bit is kernel id, low 32-bit is kernel data id for batch buffer reuse
+    pHalKernelParam->numArgs             = NumArgs;
+    pHalKernelParam->numThreads          = m_ThreadCount;
+    pHalKernelParam->kernelBinarySize    = m_uiBinarySize + movInstNum * CM_MOVE_INSTRUCTION_SIZE;
+    pHalKernelParam->kernelDataSize      = kernelDataSize;
+    pHalKernelParam->movInsDataSize      = movInstNum * CM_MOVE_INSTRUCTION_SIZE;
 
-    pHalKernelParam->dwCmFlags            = m_CurbeEnable ? CM_FLAG_CURBE_ENABLED : 0;
-    pHalKernelParam->dwCmFlags            |= m_NonstallingScoreboardEnable ? CM_FLAG_NONSTALLING_SCOREBOARD_ENABLED : 0;
-    pHalKernelParam->bKernelDebugEnabled  = m_blhwDebugEnable;
+    pHalKernelParam->cmFlags             = m_CurbeEnable ? CM_FLAG_CURBE_ENABLED : 0;
+    pHalKernelParam->cmFlags            |= m_NonstallingScoreboardEnable ? CM_FLAG_NONSTALLING_SCOREBOARD_ENABLED : 0;
+    pHalKernelParam->kernelDebugEnabled  = m_blhwDebugEnable;
 
-    pHalKernelParam->pKernelBinary        = (uint8_t*)m_pBinary;
+    pHalKernelParam->kernelBinary        = (uint8_t*)m_pBinary;
 
     CMCHK_HR( pKernelData->GetCmKernel( pCmKernel ) );
     if ( pCmKernel == nullptr )
     {
         return CM_NULL_POINTER;
     }
-    MOS_SecureStrcpy( pHalKernelParam->pKernelName, CM_MAX_KERNEL_NAME_SIZE_IN_BYTE, pCmKernel->GetName() );
+    MOS_SecureStrcpy( pHalKernelParam->kernelName, CM_MAX_KERNEL_NAME_SIZE_IN_BYTE, pCmKernel->GetName() );
 
     if ( pCmThreadSpace )
     {// either from per kernel thread space or per task thread space
@@ -4010,19 +4007,19 @@ int32_t CmKernelRT::CreateKernelDataInternal(
 
     for(uint32_t i =0 ; i< NumArgs; i++)
     {
-        pHalKernelParam->CmArgParams[i].iUnitCount        = pTempArgs[ i ].unitCount;
-        pHalKernelParam->CmArgParams[i].Kind              = (CM_HAL_KERNEL_ARG_KIND)(pTempArgs[ i ].unitKind);
-        pHalKernelParam->CmArgParams[i].iUnitSize         = pTempArgs[ i ].unitSize;
-        pHalKernelParam->CmArgParams[i].iPayloadOffset    = pTempArgs[ i ].unitOffsetInPayload;
-        pHalKernelParam->CmArgParams[i].bPerThread        = (pTempArgs[ i ].unitCount > 1) ? true :false;
-        pHalKernelParam->CmArgParams[i].nCustomValue      = pTempArgs[ i ].nCustomValue;
-        pHalKernelParam->CmArgParams[i].iAliasIndex       = pTempArgs[ i ].aliasIndex;
-        pHalKernelParam->CmArgParams[i].bAliasCreated     = pTempArgs[ i ].bAliasCreated;
-        pHalKernelParam->CmArgParams[i].bIsNull           = pTempArgs[ i ].bIsNull;
+        pHalKernelParam->argParams[i].unitCount        = pTempArgs[ i ].unitCount;
+        pHalKernelParam->argParams[i].kind              = (CM_HAL_KERNEL_ARG_KIND)(pTempArgs[ i ].unitKind);
+        pHalKernelParam->argParams[i].unitSize         = pTempArgs[ i ].unitSize;
+        pHalKernelParam->argParams[i].payloadOffset    = pTempArgs[ i ].unitOffsetInPayload;
+        pHalKernelParam->argParams[i].perThread        = (pTempArgs[ i ].unitCount > 1) ? true :false;
+        pHalKernelParam->argParams[i].nCustomValue      = pTempArgs[ i ].nCustomValue;
+        pHalKernelParam->argParams[i].aliasIndex       = pTempArgs[ i ].aliasIndex;
+        pHalKernelParam->argParams[i].aliasCreated     = pTempArgs[ i ].bAliasCreated;
+        pHalKernelParam->argParams[i].isNull           = pTempArgs[ i ].bIsNull;
 
-        CreateThreadArgData(&pHalKernelParam->CmArgParams[i], i, pCmThreadSpace, pTempArgs);
+        CreateThreadArgData(&pHalKernelParam->argParams[i], i, pCmThreadSpace, pTempArgs);
 
-        if(CHECK_SURFACE_TYPE ( pHalKernelParam->CmArgParams[i].Kind,
+        if(CHECK_SURFACE_TYPE ( pHalKernelParam->argParams[i].kind,
             ARG_KIND_SURFACE_VME,
             ARG_KIND_SURFACE_SAMPLER,
             ARG_KIND_SURFACE2DUP_SAMPLER))
@@ -4031,36 +4028,36 @@ int32_t CmKernelRT::CreateKernelDataInternal(
         }
         else
         {
-            UnitSize = pHalKernelParam->CmArgParams[i].iUnitSize;
+            UnitSize = pHalKernelParam->argParams[i].unitSize;
         }
 
-        if (pHalKernelParam->dwCmFlags & CM_KERNEL_FLAGS_CURBE)
+        if (pHalKernelParam->cmFlags & CM_KERNEL_FLAGS_CURBE)
         {
-            if(IsKernelArg(pHalKernelParam->CmArgParams[i]))
+            if(IsKernelArg(pHalKernelParam->argParams[i]))
             {
                 // Kernel Arg : calculate curbe size & adjust payloadoffset
-                // Note: Here the iPayloadOffset may be different from original value
-                uint32_t dwOffset = pHalKernelParam->CmArgParams[i].iPayloadOffset - CM_PAYLOAD_OFFSET;
+                // Note: Here the payloadOffset may be different from original value
+                uint32_t dwOffset = pHalKernelParam->argParams[i].payloadOffset - CM_PAYLOAD_OFFSET;
                 if (dwOffset >= KrnCurbeSize)
                 {
                     KrnCurbeSize = dwOffset + UnitSize;
                 }
-                pHalKernelParam->CmArgParams[i].iPayloadOffset -= CM_PAYLOAD_OFFSET;
+                pHalKernelParam->argParams[i].payloadOffset -= CM_PAYLOAD_OFFSET;
             }
         }
 
-        if(!IsKernelArg(pHalKernelParam->CmArgParams[i]))
+        if(!IsKernelArg(pHalKernelParam->argParams[i]))
         {   //Thread Arg : Calculate payload size & adjust payloadoffset
             hasThreadArg  = true;
-            pHalKernelParam->CmArgParams[i].iPayloadOffset -= CM_PAYLOAD_OFFSET;
+            pHalKernelParam->argParams[i].payloadOffset -= CM_PAYLOAD_OFFSET;
 
-            if(pHalKernelParam->CmArgParams[i].iPayloadOffset < dwBottomRange)
+            if(pHalKernelParam->argParams[i].payloadOffset < dwBottomRange)
             {
-               dwBottomRange = pHalKernelParam->CmArgParams[i].iPayloadOffset;
+               dwBottomRange = pHalKernelParam->argParams[i].payloadOffset;
             }
-            if(pHalKernelParam->CmArgParams[i].iPayloadOffset >=  dwUpRange)
+            if(pHalKernelParam->argParams[i].payloadOffset >=  dwUpRange)
             {
-               dwUpRange = pHalKernelParam->CmArgParams[i].iPayloadOffset + UnitSize;
+               dwUpRange = pHalKernelParam->argParams[i].payloadOffset + UnitSize;
             }
         }
     }
@@ -4068,58 +4065,58 @@ int32_t CmKernelRT::CreateKernelDataInternal(
     if ( m_state_buffer_bounded != CM_STATE_BUFFER_NONE )
     {
         PCM_CONTEXT_DATA pCmData = ( PCM_CONTEXT_DATA )m_pCmDev->GetAccelData();
-        PCM_HAL_STATE pState = pCmData->pCmHalState;
+        PCM_HAL_STATE pState = pCmData->cmHalState;
         KrnCurbeSize = pState->pfnGetStateBufferSizeForKernel( pState, this );
-        pHalKernelParam->state_buffer_type = pState->pfnGetStateBufferTypeForKernel( pState, this );
+        pHalKernelParam->stateBufferType = pState->pfnGetStateBufferTypeForKernel( pState, this );
     }
 
-    pHalKernelParam->iPayloadSize         = hasThreadArg ? MOS_ALIGN_CEIL(dwUpRange -  dwBottomRange, 4): 0;
-    pHalKernelParam->iKrnCurbeSize        = MOS_ALIGN_CEIL(KrnCurbeSize, 32);
-    pHalKernelParam->iCurbeSizePerThread  = pHalKernelParam->iKrnCurbeSize;
+    pHalKernelParam->payloadSize         = hasThreadArg ? MOS_ALIGN_CEIL(dwUpRange -  dwBottomRange, 4): 0;
+    pHalKernelParam->totalCurbeSize      = MOS_ALIGN_CEIL(KrnCurbeSize, 32);
+    pHalKernelParam->curbeSizePerThread  = pHalKernelParam->totalCurbeSize;
 
-    pHalKernelParam->bPerThreadArgExisted = hasThreadArg;
+    pHalKernelParam->perThreadArgExisted = hasThreadArg;
 
     m_SizeInCurbe = GetAlignedCurbeSize( KrnCurbeSize );
 
-    if ( pHalKernelParam->dwCmFlags & CM_KERNEL_FLAGS_CURBE )
+    if ( pHalKernelParam->cmFlags & CM_KERNEL_FLAGS_CURBE )
     {
         for(uint32_t i=0; i< NumArgs; i++)
         {
-            if(!IsKernelArg(pHalKernelParam->CmArgParams[i]))
+            if(!IsKernelArg(pHalKernelParam->argParams[i]))
             {  // thread arg: need to minus curbe size
-                pHalKernelParam->CmArgParams[i].iPayloadOffset -= pHalKernelParam->iCurbeSizePerThread;
+                pHalKernelParam->argParams[i].payloadOffset -= pHalKernelParam->curbeSizePerThread;
             }
         }
     }
 
     //Create indirect data
-    CMCHK_HR(CreateKernelIndirectData(&pHalKernelParam->IndirectDataParam));
+    CMCHK_HR(CreateKernelIndirectData(&pHalKernelParam->indirectDataParam));
 
     if ( m_SamplerBTICount != 0 )
     {
-        CmFastMemCopy( ( void* )pHalKernelParam->SamplerBTIParam.SamplerInfo, ( void* )m_SamplerBTIEntry, sizeof( m_SamplerBTIEntry ) );
-        pHalKernelParam->SamplerBTIParam.iSamplerCount = m_SamplerBTICount;
+        CmFastMemCopy( ( void* )pHalKernelParam->samplerBTIParam.samplerInfo, ( void* )m_SamplerBTIEntry, sizeof( m_SamplerBTIEntry ) );
+        pHalKernelParam->samplerBTIParam.samplerCount = m_SamplerBTICount;
 
         CmSafeMemSet(m_SamplerBTIEntry, 0, sizeof(m_SamplerBTIEntry));
         m_SamplerBTICount = 0;
     }
 
-    CalculateKernelSurfacesNum(surfNum, pHalKernelParam->iNumSurfaces);
+    CalculateKernelSurfacesNum(surfNum, pHalKernelParam->numSurfaces);
 
     //Create thread space param: only avaliable if per kernel ts exists
     if(m_pThreadSpace)
     {
-        CMCHK_HR(CreateThreadSpaceParam(&pHalKernelParam->KernelThreadSpaceParam, m_pThreadSpace));
+        CMCHK_HR(CreateThreadSpaceParam(&pHalKernelParam->kernelThreadSpaceParam, m_pThreadSpace));
     }
 
     //Get SLM size
-    pHalKernelParam->iSLMSize = GetSLMSize();
+    pHalKernelParam->slmSize = GetSLMSize();
 
     //Get Spill mem used
-    pHalKernelParam->iSpillSize = GetSpillMemUsed();
+    pHalKernelParam->spillSize = GetSpillMemUsed();
 
     //Set Barrier mode
-    pHalKernelParam->iBarrierMode = m_BarrierMode;
+    pHalKernelParam->barrierMode = m_BarrierMode;
 
     CMCHK_HR(UpdateKernelDataGlobalSurfaceInfo( pHalKernelParam ));
 
@@ -4142,9 +4139,9 @@ finish:
              //Clean allocated memory
              for(uint32_t i =0 ; i< NumArgs; i++)
              {
-                if( pHalKernelParam->CmArgParams[i].pFirstValue )
+                if( pHalKernelParam->argParams[i].firstValue )
                 {
-                    MosSafeDeleteArray(pHalKernelParam->CmArgParams[i].pFirstValue);
+                    MosSafeDeleteArray(pHalKernelParam->argParams[i].firstValue);
                 }
              }
          }
@@ -4201,7 +4198,7 @@ int32_t CmKernelRT::UpdateKernelData(
     if(!IsBatchBufferReusable(const_cast<CmThreadSpaceRT *>(pTS)))
     {
         m_Id ++;
-        pHalKernelParam->uiKernelId = m_Id;
+        pHalKernelParam->kernelId = m_Id;
     }
 
     //Update arguments
@@ -4257,34 +4254,34 @@ int32_t CmKernelRT::UpdateKernelData(
                     {
                         for (uint32_t kk = 0; kk < num_surfaces; kk++)
                         {
-                            CM_ASSERT(pHalKernelParam->CmArgParams[ArgIndex + kk].pFirstValue != nullptr);
-                            CmFastMemCopy(pHalKernelParam->CmArgParams[ArgIndex + kk].pFirstValue,
+                            CM_ASSERT(pHalKernelParam->argParams[ArgIndex + kk].firstValue != nullptr);
+                            CmFastMemCopy(pHalKernelParam->argParams[ArgIndex + kk].firstValue,
                                 m_Args[OrgArgIndex].pValue + kk*sizeof(uint32_t), sizeof(uint32_t));
-                            pHalKernelParam->CmArgParams[ArgIndex + kk].iAliasIndex = m_Args[OrgArgIndex].aliasIndex;
-                            pHalKernelParam->CmArgParams[ArgIndex + kk].bAliasCreated = m_Args[OrgArgIndex].bAliasCreated;
-                            pHalKernelParam->CmArgParams[ArgIndex + kk].bIsNull = m_Args[OrgArgIndex].bIsNull;
+                            pHalKernelParam->argParams[ArgIndex + kk].aliasIndex = m_Args[OrgArgIndex].aliasIndex;
+                            pHalKernelParam->argParams[ArgIndex + kk].aliasCreated = m_Args[OrgArgIndex].bAliasCreated;
+                            pHalKernelParam->argParams[ArgIndex + kk].isNull = m_Args[OrgArgIndex].bIsNull;
 
                             if (!m_Args[OrgArgIndex].surfIndex[kk])
                             {
                                 //if surfIndex is 0, set kind to be CM_ARGUMENT_SURFACE2D
                                 //This is for special usage if there is empty element in surface array.
-                                pHalKernelParam->CmArgParams[ArgIndex + kk].Kind = CM_ARGUMENT_SURFACE2D;
+                                pHalKernelParam->argParams[ArgIndex + kk].kind = CM_ARGUMENT_SURFACE2D;
                                 continue;
                             }
 
-                            pHalKernelParam->CmArgParams[ArgIndex + kk].Kind = (CM_HAL_KERNEL_ARG_KIND)m_Args[OrgArgIndex].pSurfArrayArg[kk].argKindForArray;
-                            pHalKernelParam->CmArgParams[ArgIndex + kk].nCustomValue = m_Args[OrgArgIndex].pSurfArrayArg[kk].addressModeForArray;
+                            pHalKernelParam->argParams[ArgIndex + kk].kind = (CM_HAL_KERNEL_ARG_KIND)m_Args[OrgArgIndex].pSurfArrayArg[kk].argKindForArray;
+                            pHalKernelParam->argParams[ArgIndex + kk].nCustomValue = m_Args[OrgArgIndex].pSurfArrayArg[kk].addressModeForArray;
                         }
                     }
                     else
                     {
-                        CM_ASSERT(pHalKernelParam->CmArgParams[ArgIndex].pFirstValue != nullptr);
-                        CmFastMemCopy(pHalKernelParam->CmArgParams[ArgIndex].pFirstValue,
+                        CM_ASSERT(pHalKernelParam->argParams[ArgIndex].firstValue != nullptr);
+                        CmFastMemCopy(pHalKernelParam->argParams[ArgIndex].firstValue,
                                 m_Args[ OrgArgIndex ].pValue, sizeof(uint32_t));
-                        pHalKernelParam->CmArgParams[ArgIndex].Kind = (CM_HAL_KERNEL_ARG_KIND)m_Args[ OrgArgIndex ].unitKind;
-                        pHalKernelParam->CmArgParams[ArgIndex].iAliasIndex   = m_Args[OrgArgIndex].aliasIndex;
-                        pHalKernelParam->CmArgParams[ArgIndex].bAliasCreated = m_Args[OrgArgIndex].bAliasCreated;
-                        pHalKernelParam->CmArgParams[ArgIndex].bIsNull = m_Args[OrgArgIndex].bIsNull;
+                        pHalKernelParam->argParams[ArgIndex].kind = (CM_HAL_KERNEL_ARG_KIND)m_Args[ OrgArgIndex ].unitKind;
+                        pHalKernelParam->argParams[ArgIndex].aliasIndex   = m_Args[OrgArgIndex].aliasIndex;
+                        pHalKernelParam->argParams[ArgIndex].aliasCreated = m_Args[OrgArgIndex].bAliasCreated;
+                        pHalKernelParam->argParams[ArgIndex].isNull = m_Args[OrgArgIndex].bIsNull;
                     }
 
                  }
@@ -4299,14 +4296,14 @@ int32_t CmKernelRT::UpdateKernelData(
                         {
                             surfaces[s] = *(uint32_t *)((uint32_t *)m_Args[OrgArgIndex].pValue + kk + num_surfaces * s);
                         }
-                        CmFastMemCopy(pHalKernelParam->CmArgParams[ArgIndex + kk].pFirstValue,
+                        CmFastMemCopy(pHalKernelParam->argParams[ArgIndex + kk].firstValue,
                             surfaces, sizeof(uint32_t) * m_Args[OrgArgIndex].unitCount);
 
-                        pHalKernelParam->CmArgParams[ArgIndex + kk].Kind = (CM_HAL_KERNEL_ARG_KIND)m_Args[ OrgArgIndex ].unitKind;
+                        pHalKernelParam->argParams[ArgIndex + kk].kind = (CM_HAL_KERNEL_ARG_KIND)m_Args[ OrgArgIndex ].unitKind;
 
-                        pHalKernelParam->CmArgParams[ArgIndex + kk].iAliasIndex = m_Args[OrgArgIndex].aliasIndex;
-                        pHalKernelParam->CmArgParams[ArgIndex + kk].bAliasCreated = m_Args[OrgArgIndex].bAliasCreated;
-                        pHalKernelParam->CmArgParams[ArgIndex + kk].bIsNull = m_Args[OrgArgIndex].bIsNull;
+                        pHalKernelParam->argParams[ArgIndex + kk].aliasIndex = m_Args[OrgArgIndex].aliasIndex;
+                        pHalKernelParam->argParams[ArgIndex + kk].aliasCreated = m_Args[OrgArgIndex].bAliasCreated;
+                        pHalKernelParam->argParams[ArgIndex + kk].isNull = m_Args[OrgArgIndex].bIsNull;
 
                     }
                     MosSafeDeleteArray(surfaces);
@@ -4323,27 +4320,27 @@ int32_t CmKernelRT::UpdateKernelData(
                     {
                         uint16_t VmeSize = (uint16_t)getVmeArgValueSize((PCM_HAL_VME_ARG_VALUE)(m_Args[OrgArgIndex].pValue + VmeSurfoffset));
 
-                        // reallocate the pFirstValue for VME surface every time
+                        // reallocate the firstValue for VME surface every time
                         // since the number of surfaces may vary
-                        MosSafeDeleteArray(pHalKernelParam->CmArgParams[ArgIndex + kk].pFirstValue);
-                        pHalKernelParam->CmArgParams[ArgIndex + kk].pFirstValue = MOS_NewArray(uint8_t, VmeSize);
-                        CM_ASSERT(pHalKernelParam->CmArgParams[ArgIndex + kk].pFirstValue != nullptr);
-                        CmFastMemCopy(pHalKernelParam->CmArgParams[ArgIndex + kk].pFirstValue,
+                        MosSafeDeleteArray(pHalKernelParam->argParams[ArgIndex + kk].firstValue);
+                        pHalKernelParam->argParams[ArgIndex + kk].firstValue = MOS_NewArray(uint8_t, VmeSize);
+                        CM_ASSERT(pHalKernelParam->argParams[ArgIndex + kk].firstValue != nullptr);
+                        CmFastMemCopy(pHalKernelParam->argParams[ArgIndex + kk].firstValue,
                             m_Args[OrgArgIndex].pValue + VmeSurfoffset, VmeSize);
 
-                        pHalKernelParam->CmArgParams[ArgIndex + kk].Kind = (CM_HAL_KERNEL_ARG_KIND)m_Args[OrgArgIndex].unitKind;
+                        pHalKernelParam->argParams[ArgIndex + kk].kind = (CM_HAL_KERNEL_ARG_KIND)m_Args[OrgArgIndex].unitKind;
 
-                        pHalKernelParam->CmArgParams[ArgIndex + kk].iAliasIndex = m_Args[OrgArgIndex].aliasIndex;
-                        pHalKernelParam->CmArgParams[ArgIndex + kk].bAliasCreated = m_Args[OrgArgIndex].bAliasCreated;
-                        pHalKernelParam->CmArgParams[ArgIndex + kk].bIsNull = m_Args[OrgArgIndex].bIsNull;
-                        pHalKernelParam->CmArgParams[ArgIndex + kk].iUnitSize = VmeSize;
+                        pHalKernelParam->argParams[ArgIndex + kk].aliasIndex = m_Args[OrgArgIndex].aliasIndex;
+                        pHalKernelParam->argParams[ArgIndex + kk].aliasCreated = m_Args[OrgArgIndex].bAliasCreated;
+                        pHalKernelParam->argParams[ArgIndex + kk].isNull = m_Args[OrgArgIndex].bIsNull;
+                        pHalKernelParam->argParams[ArgIndex + kk].unitSize = VmeSize;
                         VmeSurfoffset += VmeSize;
                     }
                 }
             }
             else
             {
-                CMCHK_HR(CreateThreadArgData(&pHalKernelParam->CmArgParams[ArgIndex ], OrgArgIndex, pCmThreadSpace, m_Args));
+                CMCHK_HR(CreateThreadArgData(&pHalKernelParam->argParams[ArgIndex ], OrgArgIndex, pCmThreadSpace, m_Args));
             }
         }
         ArgIndex += ArgIndexStep;
@@ -4356,11 +4353,11 @@ int32_t CmKernelRT::UpdateKernelData(
         CMCHK_HR(SortThreadSpace(m_pThreadSpace));
 
         uint32_t TsWidth, TsHeight;
-        PCM_HAL_KERNEL_THREADSPACE_PARAM  pCmKernelThreadSpaceParam = &pHalKernelParam->KernelThreadSpaceParam;
+        PCM_HAL_KERNEL_THREADSPACE_PARAM  pCmKernelThreadSpaceParam = &pHalKernelParam->kernelThreadSpaceParam;
         m_pThreadSpace->GetThreadSpaceSize(TsWidth, TsHeight);
 
-        pCmKernelThreadSpaceParam->iThreadSpaceWidth  = (uint16_t)TsWidth;
-        pCmKernelThreadSpaceParam->iThreadSpaceHeight = (uint16_t)TsHeight;
+        pCmKernelThreadSpaceParam->threadSpaceWidth  = (uint16_t)TsWidth;
+        pCmKernelThreadSpaceParam->threadSpaceHeight = (uint16_t)TsHeight;
         m_pThreadSpace->GetDependencyPatternType(pCmKernelThreadSpaceParam->patternType);
         m_pThreadSpace->GetWalkingPattern(pCmKernelThreadSpaceParam->walkingPattern);
 
@@ -4395,13 +4392,13 @@ int32_t CmKernelRT::UpdateKernelData(
             pCmKernelThreadSpaceParam->reuseBBUpdateMask = 0;
             for(uint32_t i=0; i< TsWidth * TsHeight ; i++)
             {
-                pCmKernelThreadSpaceParam->pThreadCoordinates[i].x = pThreadSpaceUnit[pBoardOrder[i]].scoreboardCoordinates.x;
-                pCmKernelThreadSpaceParam->pThreadCoordinates[i].y = pThreadSpaceUnit[pBoardOrder[i]].scoreboardCoordinates.y;
-                pCmKernelThreadSpaceParam->pThreadCoordinates[i].mask = pThreadSpaceUnit[pBoardOrder[i]].dependencyMask;
-                pCmKernelThreadSpaceParam->pThreadCoordinates[i].resetMask = pThreadSpaceUnit[pBoardOrder[i]].reset;
-                pCmKernelThreadSpaceParam->pThreadCoordinates[i].color = pThreadSpaceUnit[pBoardOrder[i]].scoreboardColor;
-                pCmKernelThreadSpaceParam->pThreadCoordinates[i].sliceSelect = pThreadSpaceUnit[pBoardOrder[i]].sliceDestinationSelect;
-                pCmKernelThreadSpaceParam->pThreadCoordinates[i].subSliceSelect = pThreadSpaceUnit[pBoardOrder[i]].subSliceDestinationSelect;
+                pCmKernelThreadSpaceParam->threadCoordinates[i].x = pThreadSpaceUnit[pBoardOrder[i]].scoreboardCoordinates.x;
+                pCmKernelThreadSpaceParam->threadCoordinates[i].y = pThreadSpaceUnit[pBoardOrder[i]].scoreboardCoordinates.y;
+                pCmKernelThreadSpaceParam->threadCoordinates[i].mask = pThreadSpaceUnit[pBoardOrder[i]].dependencyMask;
+                pCmKernelThreadSpaceParam->threadCoordinates[i].resetMask = pThreadSpaceUnit[pBoardOrder[i]].reset;
+                pCmKernelThreadSpaceParam->threadCoordinates[i].color = pThreadSpaceUnit[pBoardOrder[i]].scoreboardColor;
+                pCmKernelThreadSpaceParam->threadCoordinates[i].sliceSelect = pThreadSpaceUnit[pBoardOrder[i]].sliceDestinationSelect;
+                pCmKernelThreadSpaceParam->threadCoordinates[i].subSliceSelect = pThreadSpaceUnit[pBoardOrder[i]].subSliceDestinationSelect;
                 pCmKernelThreadSpaceParam->reuseBBUpdateMask |= pThreadSpaceUnit[pBoardOrder[i]].reset;
             }
 
@@ -4413,15 +4410,15 @@ int32_t CmKernelRT::UpdateKernelData(
                 if (pCmKernelThreadSpaceParam->dispatchInfo.numWaves >= dispatchInfo.numWaves)
                 {
                     pCmKernelThreadSpaceParam->dispatchInfo.numWaves = dispatchInfo.numWaves;
-                    CmFastMemCopy(pCmKernelThreadSpaceParam->dispatchInfo.pNumThreadsInWave, dispatchInfo.pNumThreadsInWave, dispatchInfo.numWaves*sizeof(uint32_t));
+                    CmFastMemCopy(pCmKernelThreadSpaceParam->dispatchInfo.numThreadsInWave, dispatchInfo.numThreadsInWave, dispatchInfo.numWaves*sizeof(uint32_t));
                 }
                 else
                 {
                     pCmKernelThreadSpaceParam->dispatchInfo.numWaves = dispatchInfo.numWaves;
-                    MosSafeDeleteArray(pCmKernelThreadSpaceParam->dispatchInfo.pNumThreadsInWave);
-                    pCmKernelThreadSpaceParam->dispatchInfo.pNumThreadsInWave = MOS_NewArray(uint32_t, dispatchInfo.numWaves);
-                    CMCHK_NULL_RETURN(pCmKernelThreadSpaceParam->dispatchInfo.pNumThreadsInWave, CM_OUT_OF_HOST_MEMORY);
-                    CmFastMemCopy(pCmKernelThreadSpaceParam->dispatchInfo.pNumThreadsInWave, dispatchInfo.pNumThreadsInWave, dispatchInfo.numWaves*sizeof(uint32_t));
+                    MosSafeDeleteArray(pCmKernelThreadSpaceParam->dispatchInfo.numThreadsInWave);
+                    pCmKernelThreadSpaceParam->dispatchInfo.numThreadsInWave = MOS_NewArray(uint32_t, dispatchInfo.numWaves);
+                    CMCHK_NULL_RETURN(pCmKernelThreadSpaceParam->dispatchInfo.numThreadsInWave, CM_OUT_OF_HOST_MEMORY);
+                    CmFastMemCopy(pCmKernelThreadSpaceParam->dispatchInfo.numThreadsInWave, dispatchInfo.numThreadsInWave, dispatchInfo.numWaves*sizeof(uint32_t));
                 }
             }
         }
@@ -4431,30 +4428,30 @@ int32_t CmKernelRT::UpdateKernelData(
     // Update indirect data
     if( m_Dirty & CM_KERNEL_DATA_PAYLOAD_DATA_DIRTY)
     {
-        pHalKernelParam->IndirectDataParam.iIndirectDataSize = m_usKernelPayloadDataSize;
-        pHalKernelParam->IndirectDataParam.iSurfaceCount     = m_usKernelPayloadSurfaceCount;
+        pHalKernelParam->indirectDataParam.indirectDataSize = m_usKernelPayloadDataSize;
+        pHalKernelParam->indirectDataParam.surfaceCount     = m_usKernelPayloadSurfaceCount;
 
         if(m_usKernelPayloadDataSize != 0)
         {
             if(m_Dirty & CM_KERNEL_DATA_PAYLOAD_DATA_SIZE_DIRTY)
             { // size change, need to reallocate
-                MosSafeDeleteArray(pHalKernelParam->IndirectDataParam.pIndirectData);
-                pHalKernelParam->IndirectDataParam.pIndirectData = MOS_NewArray(uint8_t, m_usKernelPayloadDataSize);
-                CMCHK_NULL_RETURN(pHalKernelParam->IndirectDataParam.pIndirectData, CM_OUT_OF_HOST_MEMORY);
+                MosSafeDeleteArray(pHalKernelParam->indirectDataParam.indirectData);
+                pHalKernelParam->indirectDataParam.indirectData = MOS_NewArray(uint8_t, m_usKernelPayloadDataSize);
+                CMCHK_NULL_RETURN(pHalKernelParam->indirectDataParam.indirectData, CM_OUT_OF_HOST_MEMORY);
             }
-            CmFastMemCopy(pHalKernelParam->IndirectDataParam.pIndirectData, (void *)m_pKernelPayloadData, m_usKernelPayloadDataSize);
+            CmFastMemCopy(pHalKernelParam->indirectDataParam.indirectData, (void *)m_pKernelPayloadData, m_usKernelPayloadDataSize);
         }
 
         if(m_usKernelPayloadSurfaceCount != 0)
         {
             if(m_Dirty & CM_KERNEL_DATA_PAYLOAD_DATA_SIZE_DIRTY)
             { // size change, need to reallocate
-                MosSafeDeleteArray(pHalKernelParam->IndirectDataParam.pSurfaceInfo);
-                pHalKernelParam->IndirectDataParam.pSurfaceInfo = MOS_NewArray(CM_INDIRECT_SURFACE_INFO, m_usKernelPayloadSurfaceCount);
-                CMCHK_NULL_RETURN(pHalKernelParam->IndirectDataParam.pSurfaceInfo, CM_OUT_OF_HOST_MEMORY);
+                MosSafeDeleteArray(pHalKernelParam->indirectDataParam.surfaceInfo);
+                pHalKernelParam->indirectDataParam.surfaceInfo = MOS_NewArray(CM_INDIRECT_SURFACE_INFO, m_usKernelPayloadSurfaceCount);
+                CMCHK_NULL_RETURN(pHalKernelParam->indirectDataParam.surfaceInfo, CM_OUT_OF_HOST_MEMORY);
 
             }
-            CmFastMemCopy((void*)pHalKernelParam->IndirectDataParam.pSurfaceInfo, (void*)m_IndirectSurfaceInfoArray,
+            CmFastMemCopy((void*)pHalKernelParam->indirectDataParam.surfaceInfo, (void*)m_IndirectSurfaceInfoArray,
                              m_usKernelPayloadSurfaceCount * sizeof(CM_INDIRECT_SURFACE_INFO));
             //clear m_IndirectSurfaceInfoArray every enqueue
             CmSafeMemSet(m_IndirectSurfaceInfoArray, 0, m_usKernelPayloadSurfaceCount * sizeof(CM_INDIRECT_SURFACE_INFO));
@@ -4466,8 +4463,8 @@ int32_t CmKernelRT::UpdateKernelData(
     {
         if ( m_SamplerBTICount != 0 )
         {
-            CmFastMemCopy( ( void* )pHalKernelParam->SamplerBTIParam.SamplerInfo, ( void* )m_SamplerBTIEntry, sizeof( m_SamplerBTIEntry ) );
-            pHalKernelParam->SamplerBTIParam.iSamplerCount = m_SamplerBTICount;
+            CmFastMemCopy( ( void* )pHalKernelParam->samplerBTIParam.samplerInfo, ( void* )m_SamplerBTIEntry, sizeof( m_SamplerBTIEntry ) );
+            pHalKernelParam->samplerBTIParam.samplerCount = m_SamplerBTICount;
 
             CmSafeMemSet(m_SamplerBTIEntry, 0, sizeof(m_SamplerBTIEntry));
             m_SamplerBTICount = 0;
@@ -4475,7 +4472,7 @@ int32_t CmKernelRT::UpdateKernelData(
     }
     CMCHK_HR(UpdateKernelDataGlobalSurfaceInfo( pHalKernelParam ));
 
-    CMCHK_HR(CalculateKernelSurfacesNum(surfNum, pHalKernelParam->iNumSurfaces));
+    CMCHK_HR(CalculateKernelSurfacesNum(surfNum, pHalKernelParam->numSurfaces));
 
     CMCHK_HR(UpdateSamplerHeap(pKernelData));
 
@@ -4484,8 +4481,8 @@ finish:
     {
         if( pHalKernelParam )
         {
-            MosSafeDeleteArray(pHalKernelParam->IndirectDataParam.pIndirectData);
-            MosSafeDeleteArray(pHalKernelParam->IndirectDataParam.pSurfaceInfo);
+            MosSafeDeleteArray(pHalKernelParam->indirectDataParam.indirectData);
+            MosSafeDeleteArray(pHalKernelParam->indirectDataParam.surfaceInfo);
         }
     }
     return hr;
@@ -4568,31 +4565,31 @@ int32_t CmKernelRT::UpdateKernelData(
                     {
                         for(uint32_t kk=0;  kk< num_surfaces ; kk++)
                         {
-                            CM_ASSERT(pHalKernelParam->CmArgParams[ArgIndex + kk].pFirstValue != nullptr);
-                            CmFastMemCopy(pHalKernelParam->CmArgParams[ArgIndex + kk].pFirstValue,
+                            CM_ASSERT(pHalKernelParam->argParams[ArgIndex + kk].firstValue != nullptr);
+                            CmFastMemCopy(pHalKernelParam->argParams[ArgIndex + kk].firstValue,
                             m_Args[ OrgArgIndex ].pValue + kk*sizeof(uint32_t), sizeof(uint32_t));
 
                             if (!m_Args[OrgArgIndex].surfIndex[kk])
                             {
                                 //if surfIndex is 0, set kind to be CM_ARGUMENT_SURFACE2D
                                 //This is for special usage if there is empty element in surface array.
-                                pHalKernelParam->CmArgParams[ArgIndex + kk].Kind = CM_ARGUMENT_SURFACE2D;
+                                pHalKernelParam->argParams[ArgIndex + kk].kind = CM_ARGUMENT_SURFACE2D;
                                 continue;
                             }
-                            pHalKernelParam->CmArgParams[ArgIndex + kk].bIsNull = m_Args[OrgArgIndex].bIsNull;
-                            pHalKernelParam->CmArgParams[ArgIndex + kk].Kind = (CM_HAL_KERNEL_ARG_KIND)m_Args[OrgArgIndex].pSurfArrayArg[kk].argKindForArray;
-                            pHalKernelParam->CmArgParams[ArgIndex + kk].nCustomValue = m_Args[OrgArgIndex].pSurfArrayArg[kk].addressModeForArray;
+                            pHalKernelParam->argParams[ArgIndex + kk].isNull = m_Args[OrgArgIndex].bIsNull;
+                            pHalKernelParam->argParams[ArgIndex + kk].kind = (CM_HAL_KERNEL_ARG_KIND)m_Args[OrgArgIndex].pSurfArrayArg[kk].argKindForArray;
+                            pHalKernelParam->argParams[ArgIndex + kk].nCustomValue = m_Args[OrgArgIndex].pSurfArrayArg[kk].addressModeForArray;
 
                         }
                     }
                     else
                     {
-                        CM_ASSERT(pHalKernelParam->CmArgParams[ArgIndex].pFirstValue != nullptr);
-                        CmFastMemCopy(pHalKernelParam->CmArgParams[ArgIndex].pFirstValue,
+                        CM_ASSERT(pHalKernelParam->argParams[ArgIndex].firstValue != nullptr);
+                        CmFastMemCopy(pHalKernelParam->argParams[ArgIndex].firstValue,
                             m_Args[OrgArgIndex].pValue, sizeof(uint32_t));
 
-                        pHalKernelParam->CmArgParams[ArgIndex].Kind = (CM_HAL_KERNEL_ARG_KIND)m_Args[OrgArgIndex].unitKind;
-                        pHalKernelParam->CmArgParams[ArgIndex].bIsNull = m_Args[OrgArgIndex].bIsNull;
+                        pHalKernelParam->argParams[ArgIndex].kind = (CM_HAL_KERNEL_ARG_KIND)m_Args[OrgArgIndex].unitKind;
+                        pHalKernelParam->argParams[ArgIndex].isNull = m_Args[OrgArgIndex].bIsNull;
                     }
                  }
             }
@@ -4606,27 +4603,27 @@ int32_t CmKernelRT::UpdateKernelData(
                     {
                         uint32_t VmeSize = getVmeArgValueSize((PCM_HAL_VME_ARG_VALUE)(m_Args[OrgArgIndex].pValue + VmeSurfoffset));
 
-                        // reallocate the pFirstValue for VME surface every time
+                        // reallocate the firstValue for VME surface every time
                         // since the number of surfaces may vary
-                        MosSafeDeleteArray(pHalKernelParam->CmArgParams[ArgIndex + kk].pFirstValue);
-                        pHalKernelParam->CmArgParams[ArgIndex + kk].pFirstValue = MOS_NewArray(uint8_t, VmeSize);
-                        CM_ASSERT(pHalKernelParam->CmArgParams[ArgIndex + kk].pFirstValue != nullptr);
-                        CmFastMemCopy(pHalKernelParam->CmArgParams[ArgIndex + kk].pFirstValue,
+                        MosSafeDeleteArray(pHalKernelParam->argParams[ArgIndex + kk].firstValue);
+                        pHalKernelParam->argParams[ArgIndex + kk].firstValue = MOS_NewArray(uint8_t, VmeSize);
+                        CM_ASSERT(pHalKernelParam->argParams[ArgIndex + kk].firstValue != nullptr);
+                        CmFastMemCopy(pHalKernelParam->argParams[ArgIndex + kk].firstValue,
                             m_Args[OrgArgIndex].pValue + VmeSurfoffset, VmeSize);
 
-                        pHalKernelParam->CmArgParams[ArgIndex + kk].Kind = (CM_HAL_KERNEL_ARG_KIND)m_Args[OrgArgIndex].unitKind;
+                        pHalKernelParam->argParams[ArgIndex + kk].kind = (CM_HAL_KERNEL_ARG_KIND)m_Args[OrgArgIndex].unitKind;
 
-                        pHalKernelParam->CmArgParams[ArgIndex + kk].iAliasIndex = m_Args[OrgArgIndex].aliasIndex;
-                        pHalKernelParam->CmArgParams[ArgIndex + kk].bAliasCreated = m_Args[OrgArgIndex].bAliasCreated;
-                        pHalKernelParam->CmArgParams[ArgIndex + kk].bIsNull = m_Args[OrgArgIndex].bIsNull;
-                        pHalKernelParam->CmArgParams[ArgIndex + kk].iUnitSize = m_Args[OrgArgIndex].unitSize;
+                        pHalKernelParam->argParams[ArgIndex + kk].aliasIndex = m_Args[OrgArgIndex].aliasIndex;
+                        pHalKernelParam->argParams[ArgIndex + kk].aliasCreated = m_Args[OrgArgIndex].bAliasCreated;
+                        pHalKernelParam->argParams[ArgIndex + kk].isNull = m_Args[OrgArgIndex].bIsNull;
+                        pHalKernelParam->argParams[ArgIndex + kk].unitSize = m_Args[OrgArgIndex].unitSize;
                         VmeSurfoffset += VmeSize;
                     }
                 }
             }
             else
             {
-                CMCHK_HR(CreateThreadArgData(&pHalKernelParam->CmArgParams[ArgIndex ], OrgArgIndex, nullptr, m_Args));
+                CMCHK_HR(CreateThreadArgData(&pHalKernelParam->argParams[ArgIndex ], OrgArgIndex, nullptr, m_Args));
             }
         }
         ArgIndex += ArgIndexStep;
@@ -4636,8 +4633,8 @@ int32_t CmKernelRT::UpdateKernelData(
     {
         if ( m_SamplerBTICount != 0 )
         {
-            CmFastMemCopy( ( void* )pHalKernelParam->SamplerBTIParam.SamplerInfo, ( void* )m_SamplerBTIEntry, sizeof( m_SamplerBTIEntry ) );
-            pHalKernelParam->SamplerBTIParam.iSamplerCount = m_SamplerBTICount;
+            CmFastMemCopy( ( void* )pHalKernelParam->samplerBTIParam.samplerInfo, ( void* )m_SamplerBTIEntry, sizeof( m_SamplerBTIEntry ) );
+            pHalKernelParam->samplerBTIParam.samplerCount = m_SamplerBTICount;
 
             CmSafeMemSet(m_SamplerBTIEntry, 0, sizeof(m_SamplerBTIEntry));
             m_SamplerBTICount = 0;
@@ -4646,7 +4643,7 @@ int32_t CmKernelRT::UpdateKernelData(
 
     CMCHK_HR(UpdateKernelDataGlobalSurfaceInfo( pHalKernelParam ));
 
-    CMCHK_HR(CalculateKernelSurfacesNum(surfNum, pHalKernelParam->iNumSurfaces));
+    CMCHK_HR(CalculateKernelSurfacesNum(surfNum, pHalKernelParam->numSurfaces));
 
     // GPGPU walker - implicit args
     uint32_t thrdSpaceWidth, thrdSpaceHeight, thrdSpaceDepth, grpSpaceWidth, grpSpaceHeight, grpSpaceDepth;
@@ -4654,12 +4651,12 @@ int32_t CmKernelRT::UpdateKernelData(
 
     if (getVersionAsInt(m_pProgram->m_CISA_majorVersion, m_pProgram->m_CISA_minorVersion) < getVersionAsInt(3, 3))
     {
-        CMCHK_HR(CreateKernelArgDataGroup (pHalKernelParam->CmArgParams[ArgIndex + 0].pFirstValue, thrdSpaceWidth));
-        CMCHK_HR(CreateKernelArgDataGroup (pHalKernelParam->CmArgParams[ArgIndex + 1].pFirstValue, thrdSpaceHeight));
-        CMCHK_HR(CreateKernelArgDataGroup (pHalKernelParam->CmArgParams[ArgIndex + 2].pFirstValue, grpSpaceWidth));
-        CMCHK_HR(CreateKernelArgDataGroup (pHalKernelParam->CmArgParams[ArgIndex + 3].pFirstValue, grpSpaceHeight));
-        CMCHK_HR(CreateKernelArgDataGroup (pHalKernelParam->CmArgParams[ArgIndex + 4].pFirstValue, thrdSpaceWidth));
-        CMCHK_HR(CreateKernelArgDataGroup (pHalKernelParam->CmArgParams[ArgIndex + 5].pFirstValue, thrdSpaceHeight));
+        CMCHK_HR(CreateKernelArgDataGroup (pHalKernelParam->argParams[ArgIndex + 0].firstValue, thrdSpaceWidth));
+        CMCHK_HR(CreateKernelArgDataGroup (pHalKernelParam->argParams[ArgIndex + 1].firstValue, thrdSpaceHeight));
+        CMCHK_HR(CreateKernelArgDataGroup (pHalKernelParam->argParams[ArgIndex + 2].firstValue, grpSpaceWidth));
+        CMCHK_HR(CreateKernelArgDataGroup (pHalKernelParam->argParams[ArgIndex + 3].firstValue, grpSpaceHeight));
+        CMCHK_HR(CreateKernelArgDataGroup (pHalKernelParam->argParams[ArgIndex + 4].firstValue, thrdSpaceWidth));
+        CMCHK_HR(CreateKernelArgDataGroup (pHalKernelParam->argParams[ArgIndex + 5].firstValue, thrdSpaceHeight));
     }
 
     CMCHK_HR(UpdateSamplerHeap(pKernelData));
@@ -4677,30 +4674,30 @@ int32_t CmKernelRT::CreateKernelIndirectData(
 {
     int32_t hr = CM_SUCCESS;
 
-    pHalIndreictData->iIndirectDataSize = m_usKernelPayloadDataSize;
-    pHalIndreictData->iSurfaceCount     = m_usKernelPayloadSurfaceCount;
+    pHalIndreictData->indirectDataSize = m_usKernelPayloadDataSize;
+    pHalIndreictData->surfaceCount     = m_usKernelPayloadSurfaceCount;
 
-    if( pHalIndreictData->pIndirectData == nullptr &&  m_usKernelPayloadDataSize != 0)
+    if( pHalIndreictData->indirectData == nullptr &&  m_usKernelPayloadDataSize != 0)
     {
-        pHalIndreictData->pIndirectData = MOS_NewArray(uint8_t, pHalIndreictData->iIndirectDataSize);
-        CMCHK_NULL_RETURN(pHalIndreictData->pIndirectData, CM_OUT_OF_HOST_MEMORY);
+        pHalIndreictData->indirectData = MOS_NewArray(uint8_t, pHalIndreictData->indirectDataSize);
+        CMCHK_NULL_RETURN(pHalIndreictData->indirectData, CM_OUT_OF_HOST_MEMORY);
     }
 
     // For future kernel data, pKbyte is starting point
-    if( pHalIndreictData->pSurfaceInfo == nullptr &&  m_usKernelPayloadSurfaceCount != 0)
+    if( pHalIndreictData->surfaceInfo == nullptr &&  m_usKernelPayloadSurfaceCount != 0)
     {
-        pHalIndreictData->pSurfaceInfo = MOS_NewArray(CM_INDIRECT_SURFACE_INFO, pHalIndreictData->iSurfaceCount);
-        CMCHK_NULL_RETURN(pHalIndreictData->pSurfaceInfo, CM_OUT_OF_HOST_MEMORY);
+        pHalIndreictData->surfaceInfo = MOS_NewArray(CM_INDIRECT_SURFACE_INFO, pHalIndreictData->surfaceCount);
+        CMCHK_NULL_RETURN(pHalIndreictData->surfaceInfo, CM_OUT_OF_HOST_MEMORY);
     }
 
     if(m_usKernelPayloadDataSize != 0)
     {
-        CmFastMemCopy(pHalIndreictData->pIndirectData, (void *)m_pKernelPayloadData, m_usKernelPayloadDataSize);
+        CmFastMemCopy(pHalIndreictData->indirectData, (void *)m_pKernelPayloadData, m_usKernelPayloadDataSize);
     }
 
     if(m_usKernelPayloadSurfaceCount != 0)
     {
-        CmFastMemCopy((void*)pHalIndreictData->pSurfaceInfo, (void*)m_IndirectSurfaceInfoArray,
+        CmFastMemCopy((void*)pHalIndreictData->surfaceInfo, (void*)m_IndirectSurfaceInfoArray,
                     m_usKernelPayloadSurfaceCount * sizeof(CM_INDIRECT_SURFACE_INFO));
         //clear m_IndirectSurfaceInfoArray every enqueue
         CmSafeMemSet(m_IndirectSurfaceInfoArray, 0, m_usKernelPayloadSurfaceCount * sizeof(CM_INDIRECT_SURFACE_INFO));
@@ -4709,8 +4706,8 @@ int32_t CmKernelRT::CreateKernelIndirectData(
 finish:
     if( hr != CM_SUCCESS)
     {
-        if(pHalIndreictData->pIndirectData)                 MosSafeDeleteArray(pHalIndreictData->pIndirectData);
-        if(pHalIndreictData->pSurfaceInfo)                  MosSafeDeleteArray(pHalIndreictData->pSurfaceInfo);
+        if(pHalIndreictData->indirectData)                 MosSafeDeleteArray(pHalIndreictData->indirectData);
+        if(pHalIndreictData->surfaceInfo)                  MosSafeDeleteArray(pHalIndreictData->surfaceInfo);
     }
     return hr;
 }
@@ -4980,7 +4977,7 @@ CM_RT_API CM_RETURN_CODE CmKernelRT::GetIndexForCurbeData( uint32_t curbe_data_s
     CM_RETURN_CODE hr = CM_SUCCESS;
 
     PCM_CONTEXT_DATA pCmData = ( PCM_CONTEXT_DATA )m_pCmDev->GetAccelData();
-    PCM_HAL_STATE pState = pCmData->pCmHalState;
+    PCM_HAL_STATE pState = pCmData->cmHalState;
     PRENDERHAL_MEDIA_STATE media_state_ptr = nullptr;
     void  *temp_ptr = nullptr;
     CmStateBuffer *state_buffer = nullptr;
@@ -5126,7 +5123,7 @@ uint32_t CmKernelRT::GetSpillMemUsed()
     else
     {
         // kernel uses "--nojitter" option, use spill size indicated by client during device creation
-        uiSpillSize = m_pHalMaxValues->iMaxSpillSizePerHwThread;
+        uiSpillSize = m_pHalMaxValues->maxSpillSizePerHwThread;
     }
 
     return uiSpillSize;
@@ -5137,8 +5134,8 @@ int32_t CmKernelRT::SearchAvailableIndirectSurfInfoTableEntry(uint16_t kind, uin
     uint16_t i = 0;
     for ( i = 0; i < CM_MAX_STATIC_SURFACE_STATES_PER_BT; i++ )
     {
-        if ( ( ( m_IndirectSurfaceInfoArray[ i ].iSurfaceIndex == surfaceIndex ) && ( m_IndirectSurfaceInfoArray[ i ].iKind == kind ) && ( m_IndirectSurfaceInfoArray[ i ].iBindingTableIndex == BTIndex ) ) ||
-            ( ( m_IndirectSurfaceInfoArray[ i ].iSurfaceIndex == 0 ) && ( m_IndirectSurfaceInfoArray[ i ].iKind == 0 ) ) )
+        if ( ( ( m_IndirectSurfaceInfoArray[ i ].surfaceIndex == surfaceIndex ) && ( m_IndirectSurfaceInfoArray[ i ].kind == kind ) && ( m_IndirectSurfaceInfoArray[ i ].bindingTableIndex == BTIndex ) ) ||
+            ( ( m_IndirectSurfaceInfoArray[ i ].surfaceIndex == 0 ) && ( m_IndirectSurfaceInfoArray[ i ].kind == 0 ) ) )
         {
             return i;
         }
@@ -5222,7 +5219,7 @@ CM_RT_API int32_t CmKernelRT::SetSurfaceBTI(SurfaceIndex* pSurface, uint32_t BTI
     uint32_t i = 0;
     for (i = 0; i < m_usKernelPayloadSurfaceCount; i++)
     {
-        if (m_IndirectSurfaceInfoArray[i].iBindingTableIndex == (uint16_t)BTIndex)
+        if (m_IndirectSurfaceInfoArray[i].bindingTableIndex == (uint16_t)BTIndex)
         {
             CM_ASSERTMESSAGE("Error: Binding table index has been used once enqueue.");
             return CM_KERNELPAYLOAD_SURFACE_INVALID_BTINDEX;
@@ -5252,8 +5249,8 @@ CM_RT_API int32_t CmKernelRT::SetSurfaceBTI(SurfaceIndex* pSurface, uint32_t BTI
             CM_ASSERTMESSAGE("Error: Can not get available indirect surface info table entry.");
             return CM_FAILURE;
         }
-        m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].iKind = ARG_KIND_SURFACE_2D;
-        m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].iSurfaceIndex = (uint16_t)handle;
+        m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].kind = ARG_KIND_SURFACE_2D;
+        m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].surfaceIndex = (uint16_t)handle;
         pSurf2D->GetSurfaceDesc(width, height, format, bytesPerPixel);
     }
     else
@@ -5269,8 +5266,8 @@ CM_RT_API int32_t CmKernelRT::SetSurfaceBTI(SurfaceIndex* pSurface, uint32_t BTI
                 CM_ASSERTMESSAGE("Error: Can not get available indirect surface info table entry.");
                 return CM_FAILURE;
             }
-            m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].iKind = ARG_KIND_SURFACE_1D;
-            m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].iSurfaceIndex = (uint16_t)handle;
+            m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].kind = ARG_KIND_SURFACE_1D;
+            m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].surfaceIndex = (uint16_t)handle;
         }
         else
         {
@@ -5285,8 +5282,8 @@ CM_RT_API int32_t CmKernelRT::SetSurfaceBTI(SurfaceIndex* pSurface, uint32_t BTI
                     CM_ASSERTMESSAGE("Error: Can not get available indirect surface info table entry.");
                     return CM_FAILURE;
                 }
-                m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].iKind = ARG_KIND_SURFACE_2D_UP;
-                m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].iSurfaceIndex = (uint16_t)handle;
+                m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].kind = ARG_KIND_SURFACE_2D_UP;
+                m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].surfaceIndex = (uint16_t)handle;
                 pSurf2DUP->GetSurfaceDesc(width, height, format, bytesPerPixel);
             }
             else
@@ -5322,7 +5319,7 @@ CM_RT_API int32_t CmKernelRT::SetSurfaceBTI(SurfaceIndex* pSurface, uint32_t BTI
                             CM_ASSERTMESSAGE("Error: Can not get available indirect surface info table entry.");
                             return CM_FAILURE;
                         }
-                        m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].iKind = ARG_KIND_SURFACE_SAMPLER;
+                        m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].kind = ARG_KIND_SURFACE_SAMPLER;
                     }
                     else if ( SurfaceType == SAMPLER_SURFACE_TYPE_2DUP )
                     {
@@ -5336,7 +5333,7 @@ CM_RT_API int32_t CmKernelRT::SetSurfaceBTI(SurfaceIndex* pSurface, uint32_t BTI
                             CM_ASSERTMESSAGE("Error: Can not get available indirect surface info table entry.");
                             return CM_FAILURE;
                         }
-                        m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].iKind = ARG_KIND_SURFACE2DUP_SAMPLER;
+                        m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].kind = ARG_KIND_SURFACE2DUP_SAMPLER;
                     }
                     else if ( SurfaceType == SAMPLER_SURFACE_TYPE_3D )
                     {
@@ -5346,9 +5343,9 @@ CM_RT_API int32_t CmKernelRT::SetSurfaceBTI(SurfaceIndex* pSurface, uint32_t BTI
                             CM_ASSERTMESSAGE("Error: Can not get available indirect surface info table entry.");
                             return CM_FAILURE;
                         }
-                        m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].iKind = ARG_KIND_SURFACE_3D;
+                        m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].kind = ARG_KIND_SURFACE_3D;
                     }
-                    m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].iSurfaceIndex = (uint16_t)handle;
+                    m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].surfaceIndex = (uint16_t)handle;
                 }
                 else
                 {
@@ -5381,7 +5378,7 @@ CM_RT_API int32_t CmKernelRT::SetSurfaceBTI(SurfaceIndex* pSurface, uint32_t BTI
                                 CM_ASSERTMESSAGE("Error: Can not get available indirect surface info table entry.");
                                 return CM_FAILURE;
                             }
-                            m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].iKind = ARG_KIND_SURFACE_SAMPLER8X8_AVS;
+                            m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].kind = ARG_KIND_SURFACE_SAMPLER8X8_AVS;
                         }
                         else if ( pSurfSampler8x8->GetSampler8x8SurfaceType() == CM_VA_SURFACE )
                         {
@@ -5391,9 +5388,9 @@ CM_RT_API int32_t CmKernelRT::SetSurfaceBTI(SurfaceIndex* pSurface, uint32_t BTI
                                 CM_ASSERTMESSAGE("Error: Can not get available indirect surface info table entry.");
                                 return CM_FAILURE;
                             }
-                            m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].iKind = ARG_KIND_SURFACE_SAMPLER8X8_VA;
+                            m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].kind = ARG_KIND_SURFACE_SAMPLER8X8_VA;
                         }
-                        m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].iSurfaceIndex = (uint16_t)handle;
+                        m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].surfaceIndex = (uint16_t)handle;
                     }
                     else
                     {
@@ -5404,13 +5401,13 @@ CM_RT_API int32_t CmKernelRT::SetSurfaceBTI(SurfaceIndex* pSurface, uint32_t BTI
         }
     }
 
-    m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].iBindingTableIndex = (uint16_t)BTIndex;
+    m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].bindingTableIndex = (uint16_t)BTIndex;
     if (SetSurfBTINumForIndirectData(format, pSurface_RT->Type())== 0)
     {
         CM_ASSERTMESSAGE("Error: Set surface binding table index count failure.");
         return CM_FAILURE;
     }
-    m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].iNumBTIPerSurf = (uint16_t)SetSurfBTINumForIndirectData(format, pSurface_RT->Type());
+    m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].numBTIPerSurf = (uint16_t)SetSurfBTINumForIndirectData(format, pSurface_RT->Type());
 
     //Copy it to surface index array
     if (m_pKernelPayloadSurfaceArray[IndirectSurfInfoEntry] == nullptr)
@@ -5727,27 +5724,27 @@ CM_RT_API int32_t CmKernelRT::SetSamplerBTI(SamplerIndex* pSampler, uint32_t nIn
     }
 
     uint32_t        samplerIndex   = pSampler->get_data();
-    PCM_HAL_STATE   pCmHalState    = ((PCM_CONTEXT_DATA)m_pCmDev->GetAccelData())->pCmHalState;
+    PCM_HAL_STATE   pCmHalState    = ((PCM_CONTEXT_DATA)m_pCmDev->GetAccelData())->cmHalState;
 
     uint32_t i = 0;
     for (i = 0; i < m_SamplerBTICount; i++)
     {
-        if ((m_SamplerBTIEntry[i].iSamplerIndex == samplerIndex) && (m_SamplerBTIEntry[i].iSamplerBTI == nIndex))
+        if ((m_SamplerBTIEntry[i].samplerIndex == samplerIndex) && (m_SamplerBTIEntry[i].samplerBTI == nIndex))
         {
             break;
         }
         if (m_Dirty & CM_KERNEL_DATA_SAMPLER_BTI_DIRTY)
         {
-            if ((m_SamplerBTIEntry[i].iSamplerIndex != samplerIndex) && (m_SamplerBTIEntry[i].iSamplerBTI == nIndex))
+            if ((m_SamplerBTIEntry[i].samplerIndex != samplerIndex) && (m_SamplerBTIEntry[i].samplerBTI == nIndex))
             {
                 if (pCmHalState->use_new_sampler_heap)
                 {
                     SamplerParam sampler1 = {};
                     SamplerParam sampler2 = {};
-                    pCmHalState->pCmHalInterface->GetSamplerParamInfoForSamplerType(&pCmHalState->pSamplerTable[m_SamplerBTIEntry[i].iSamplerIndex], sampler1);
+                    pCmHalState->pCmHalInterface->GetSamplerParamInfoForSamplerType(&pCmHalState->pSamplerTable[m_SamplerBTIEntry[i].samplerIndex], sampler1);
                     pCmHalState->pCmHalInterface->GetSamplerParamInfoForSamplerType(&pCmHalState->pSamplerTable[samplerIndex], sampler2);
 
-                    if (sampler1.element_type == sampler2.element_type)
+                    if (sampler1.elementType== sampler2.elementType)
                     {
                         // return failure only if the two samplers have the same type, because different type samplers are able to set to the same BTI
                         return CM_FAILURE;
@@ -5762,14 +5759,14 @@ CM_RT_API int32_t CmKernelRT::SetSamplerBTI(SamplerIndex* pSampler, uint32_t nIn
             CmSampler8x8State_RT *sampler8x8 = nullptr;
             CmSampler8x8State_RT *tmp_sampler8x8 = nullptr;
             m_pCmDev->GetSampler8x8(samplerIndex, sampler8x8);
-            m_pCmDev->GetSampler8x8(m_SamplerBTIEntry[i].iSamplerIndex, tmp_sampler8x8);
+            m_pCmDev->GetSampler8x8(m_SamplerBTIEntry[i].samplerIndex, tmp_sampler8x8);
 
             if (sampler8x8 && tmp_sampler8x8 && (sampler8x8->GetStateType() == CM_SAMPLER8X8_AVS)
                 && (tmp_sampler8x8->GetStateType() == CM_SAMPLER8X8_AVS) &&
                 pCmHalState->pCmHalInterface->IsAdjacentSamplerIndexRequiredbyHw())
             {
-                if ((m_SamplerBTIEntry[i].iSamplerIndex != samplerIndex) &&
-                    ((m_SamplerBTIEntry[i].iSamplerBTI == nIndex + 1) || (m_SamplerBTIEntry[i].iSamplerBTI == nIndex - 1)))
+                if ((m_SamplerBTIEntry[i].samplerIndex != samplerIndex) &&
+                    ((m_SamplerBTIEntry[i].samplerBTI == nIndex + 1) || (m_SamplerBTIEntry[i].samplerBTI == nIndex - 1)))
                     return CM_FAILURE;
             }
         }
@@ -5783,8 +5780,8 @@ CM_RT_API int32_t CmKernelRT::SetSamplerBTI(SamplerIndex* pSampler, uint32_t nIn
 
     if (i == m_SamplerBTICount)
     {
-        m_SamplerBTIEntry[i].iSamplerIndex = samplerIndex;
-        m_SamplerBTIEntry[i].iSamplerBTI = nIndex;
+        m_SamplerBTIEntry[i].samplerIndex = samplerIndex;
+        m_SamplerBTIEntry[i].samplerBTI = nIndex;
 
         m_SamplerBTICount = i + 1;
 
@@ -5848,7 +5845,7 @@ int CmKernelRT::UpdateSamplerHeap(CmKernelData *pCmKernelData)
     // Get sampler bti & offset
     PCM_HAL_KERNEL_PARAM pCmKernel = nullptr;
     PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)m_pCmDev->GetAccelData();
-    PCM_HAL_STATE pState = pCmData->pCmHalState;
+    PCM_HAL_STATE pState = pCmData->cmHalState;
     std::list<SamplerParam>::iterator iter;
     unsigned int heap_offset = 0;
 
@@ -5859,29 +5856,29 @@ int CmKernelRT::UpdateSamplerHeap(CmKernelData *pCmKernelData)
 
     heap_offset = 0;
     pCmKernel = pCmKernelData->GetHalCmKernelData();
-    std::list<SamplerParam> *sampler_heap = pCmKernel->sampler_heap;
+    std::list<SamplerParam> *sampler_heap = pCmKernel->samplerHeap;
 
     // First pass, inserts sampler with user-defined BTI to the list. Sorts by element order low to high, then by BTI order low to high.
     for (unsigned int sampler_element_type = MHW_Sampler1Element; sampler_element_type < MHW_SamplerTotalElements; sampler_element_type++)
     {
-        for (unsigned int n = 0; n < pCmKernel->SamplerBTIParam.iSamplerCount; ++n)
+        for (unsigned int n = 0; n < pCmKernel->samplerBTIParam.samplerCount; ++n)
         {
             SamplerParam sampler = {};
-            sampler.sampler_table_index = pCmKernel->SamplerBTIParam.SamplerInfo[n].iSamplerIndex;
+            sampler.samplerTableIndex = pCmKernel->samplerBTIParam.samplerInfo[n].samplerIndex;
 
-            if (pState->pSamplerTable[sampler.sampler_table_index].ElementType == sampler_element_type)
+            if (pState->pSamplerTable[sampler.samplerTableIndex].ElementType == sampler_element_type)
             {
-                sampler.bti = pCmKernel->SamplerBTIParam.SamplerInfo[n].iSamplerBTI;
-                sampler.user_defined_bti = true;
-                pState->pCmHalInterface->GetSamplerParamInfoForSamplerType(&pState->pSamplerTable[sampler.sampler_table_index], sampler);
+                sampler.bti = pCmKernel->samplerBTIParam.samplerInfo[n].samplerBTI;
+                sampler.userDefinedBti = true;
+                pState->pCmHalInterface->GetSamplerParamInfoForSamplerType(&pState->pSamplerTable[sampler.samplerTableIndex], sampler);
 
                 // Guarantees each user-defined BTI has a spacing between each other user-defined BTIs larger than the stepping
                 for (iter = sampler_heap->begin(); iter != sampler_heap->end(); iter++)
                 {
-                    if (iter->element_type == sampler.element_type)
+                    if (iter->elementType == sampler.elementType)
                     {
                         unsigned int diff = (iter->bti > sampler.bti) ? (iter->bti - sampler.bti) : (sampler.bti - iter->bti);
-                        if (diff < sampler.bti_stepping)
+                        if (diff < sampler.btiStepping)
                         {
                             CM_ASSERTMESSAGE("Sampler BTI setting error. Confliction with other Sampler BTI.\n");
                             return MOS_STATUS_INVALID_PARAMETER;
@@ -5892,16 +5889,16 @@ int CmKernelRT::UpdateSamplerHeap(CmKernelData *pCmKernelData)
                 // Inserts by the order
                 for (iter = sampler_heap->begin(); iter != sampler_heap->end(); iter++)
                 {
-                    if (iter->element_type > sampler.element_type)
+                    if (iter->elementType > sampler.elementType)
                     {
                         break;
                     }
-                    else if ((iter->element_type == sampler.element_type) && (iter->bti > sampler.bti))
+                    else if ((iter->elementType == sampler.elementType) && (iter->bti > sampler.bti))
                     {
                         break;
                     }
                 }
-                sampler.heap_offset = sampler.bti * sampler.bti_multiplier;
+                sampler.heapOffset = sampler.bti * sampler.btiMultiplier;
                 sampler_heap->insert(iter, sampler);
             }
         }
@@ -5911,27 +5908,27 @@ int CmKernelRT::UpdateSamplerHeap(CmKernelData *pCmKernelData)
     // Follows the existing sorted order.
     for (unsigned int sampler_element_type = MHW_Sampler1Element; sampler_element_type < MHW_SamplerTotalElements; sampler_element_type++)
     {
-        for (unsigned int index = 0; index < pCmKernel->iNumArgs; index++)
+        for (unsigned int index = 0; index < pCmKernel->numArgs; index++)
         {
-            PCM_HAL_KERNEL_ARG_PARAM arg_param = &pCmKernel->CmArgParams[index];
-            if (arg_param->bIsNull)
+            PCM_HAL_KERNEL_ARG_PARAM arg_param = &pCmKernel->argParams[index];
+            if (arg_param->isNull)
             {
                 continue;
             }
 
-            for (unsigned int thread_index = 0; thread_index < arg_param->iUnitCount; thread_index++)
+            for (unsigned int thread_index = 0; thread_index < arg_param->unitCount; thread_index++)
             {
-                if (arg_param->Kind == CM_ARGUMENT_SAMPLER)
+                if (arg_param->kind == CM_ARGUMENT_SAMPLER)
                 {
-                    unsigned char *arg = arg_param->pFirstValue + (thread_index * arg_param->iUnitSize);
+                    unsigned char *arg = arg_param->firstValue + (thread_index * arg_param->unitSize);
                     unsigned int sampler_table_index = *((uint32_t *)arg);
 
                     SamplerParam sampler = {};
-                    sampler.sampler_table_index = sampler_table_index;
-                    pState->pCmHalInterface->GetSamplerParamInfoForSamplerType(&pState->pSamplerTable[sampler.sampler_table_index], sampler);
-                    sampler.regular_bti = true;
+                    sampler.samplerTableIndex = sampler_table_index;
+                    pState->pCmHalInterface->GetSamplerParamInfoForSamplerType(&pState->pSamplerTable[sampler.samplerTableIndex], sampler);
+                    sampler.regularBti = true;
 
-                    if (sampler.element_type != sampler_element_type)
+                    if (sampler.elementType != sampler_element_type)
                     {
                         continue;
                     }
@@ -5940,10 +5937,10 @@ int CmKernelRT::UpdateSamplerHeap(CmKernelData *pCmKernelData)
                     bool is_duplicate = false;
                     for (iter = sampler_heap->begin(); iter != sampler_heap->end(); iter++)
                     {
-                        if (iter->sampler_table_index == sampler.sampler_table_index)
+                        if (iter->samplerTableIndex == sampler.samplerTableIndex)
                         {
                             is_duplicate = true;
-                            iter->regular_bti = true;
+                            iter->regularBti = true;
                             break;
                         }
                     }
@@ -5956,13 +5953,13 @@ int CmKernelRT::UpdateSamplerHeap(CmKernelData *pCmKernelData)
                     heap_offset = 0;
                     for (iter = sampler_heap->begin(); iter != sampler_heap->end(); iter++)
                     {
-                        if (iter->element_type == sampler.element_type)
+                        if (iter->elementType == sampler.elementType)
                         {
                             // Needs to keep the inserted sampler's correctness, so do not insert before same element regular sampler
                             // Only insert before user-defined BTI
-                            if (iter->user_defined_bti == true)
+                            if (iter->userDefinedBti == true)
                             {
-                                unsigned int cur_offset = iter->heap_offset;
+                                unsigned int cur_offset = iter->heapOffset;
                                 if (heap_offset > cur_offset)
                                 {
                                     // Confliction, which means that sampler heap in smaller
@@ -5974,33 +5971,33 @@ int CmKernelRT::UpdateSamplerHeap(CmKernelData *pCmKernelData)
                                 }
                                 else
                                 {
-                                    if (cur_offset - heap_offset >= sampler.bti_stepping * sampler.bti_multiplier)
+                                    if (cur_offset - heap_offset >= sampler.btiStepping * sampler.btiMultiplier)
                                     {
                                         break;
                                     }
                                     else
                                     {
-                                        heap_offset = cur_offset + iter->bti_stepping * iter->bti_multiplier;
+                                        heap_offset = cur_offset + iter->btiStepping * iter->btiMultiplier;
                                     }
                                 }
                             }
                             else
                             {
-                                heap_offset += iter->bti_stepping * iter->bti_multiplier;
+                                heap_offset += iter->btiStepping * iter->btiMultiplier;
                             }
                         }
-                        else if (iter->element_type > sampler.element_type)
+                        else if (iter->elementType > sampler.elementType)
                         {
                             break;
                         }
                         else
                         {
-                            heap_offset = iter->heap_offset + iter->size;
+                            heap_offset = iter->heapOffset + iter->size;
                             std::list<SamplerParam>::iterator iter_next = std::next(iter, 1);
-                            if ((iter_next != sampler_heap->end()) && (iter_next->element_type > iter->element_type))
+                            if ((iter_next != sampler_heap->end()) && (iter_next->elementType > iter->elementType))
                             {
                                 // Aligns heap_offset to next nearest multiple of sampler size if next sampler is a different element type
-                                heap_offset = (heap_offset + iter_next->bti_stepping * iter_next->bti_multiplier - 1) / (iter_next->bti_stepping * iter_next->bti_multiplier) * (iter_next->bti_stepping * iter_next->bti_multiplier);
+                                heap_offset = (heap_offset + iter_next->btiStepping * iter_next->btiMultiplier - 1) / (iter_next->btiStepping * iter_next->btiMultiplier) * (iter_next->btiStepping * iter_next->btiMultiplier);
                             }
                         }
                     }
@@ -6008,10 +6005,10 @@ int CmKernelRT::UpdateSamplerHeap(CmKernelData *pCmKernelData)
                     if (iter == sampler_heap->end())
                     {
                         // Aligns heap_offset to next nearest multiple of sampler size if next sampler is a different element type
-                        heap_offset = (heap_offset + sampler.bti_stepping * sampler.bti_multiplier - 1) / (sampler.bti_stepping * sampler.bti_multiplier) * (sampler.bti_stepping * sampler.bti_multiplier);
+                        heap_offset = (heap_offset + sampler.btiStepping * sampler.btiMultiplier - 1) / (sampler.btiStepping * sampler.btiMultiplier) * (sampler.btiStepping * sampler.btiMultiplier);
                     }
-                    sampler.heap_offset = heap_offset;
-                    sampler.bti = sampler.heap_offset / sampler.bti_multiplier;
+                    sampler.heapOffset = heap_offset;
+                    sampler.bti = sampler.heapOffset / sampler.btiMultiplier;
                     sampler_heap->insert(iter, sampler);
                 }
             }

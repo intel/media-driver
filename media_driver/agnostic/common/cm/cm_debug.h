@@ -203,7 +203,7 @@
 
 bool RequestSipBinary(PLATFORM platform,
                       uint32_t bti,
-                      const uint8_t *& pSip,
+                      const uint8_t *& sip,
                       uint32_t& sipSize,
                       uint32_t& resSize);
 

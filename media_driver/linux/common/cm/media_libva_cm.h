@@ -42,11 +42,11 @@ struct _CM_HAL_STATE;
 typedef struct _CM_HAL_STATE *PCM_HAL_STATE;
 typedef struct _CM_CONTEXT
 {
-    MOS_CONTEXT  VphalDrvCtx;
+    MOS_CONTEXT  mosCtx;
     union
     {
-        void                  *pCmHal;
-        PCM_HAL_STATE         pCmHalState;
+        void                  *cmHal;
+        PCM_HAL_STATE         cmHalState;
     };
 } CM_CONTEXT, *PCM_CONTEXT;
 

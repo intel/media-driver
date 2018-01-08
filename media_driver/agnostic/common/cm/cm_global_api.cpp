@@ -40,7 +40,7 @@ CM_RT_API const char* GetCmErrorString(int errCode)
         return nullptr;
     }
 
-    static const char *ErrorStrings[] = {
+    static const char *errorStrings[] = {
 #define ENUM_STRING(e)  #e
         ENUM_STRING(CM_SUCCESS),
         ENUM_STRING(CM_FAILURE),
@@ -147,11 +147,11 @@ CM_RT_API const char* GetCmErrorString(int errCode)
 #undef ENUM_STRING
     };
 
-    const char *ErrorString = "Internal Error";
+    const char *errorString = "Internal Error";
     if (errCode > CM_INTERNAL_ERROR_CODE_OFFSET && errCode >= CM_INVALID_CAP_NAME && errCode <= CM_SUCCESS)
     {
-        ErrorString = ErrorStrings[-errCode];
+        errorString = errorStrings[-errCode];
     }
 
-    return ErrorString;
+    return errorString;
 }

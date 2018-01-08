@@ -58,19 +58,19 @@ public:
     //!
     //! \brief      This function returns the SurfaceIndex object associated 
     //!             with the SVM resource.
-    //! \param      [out] pIndex
+    //! \param      [out] index
     //!             Reference to the pointer to SurfaceIndex.
     //! \returns    CM_SUCCESS.
     //!
-    CM_RT_API virtual int32_t GetIndex(SurfaceIndex* &pIndex) = 0; 
+    CM_RT_API virtual int32_t GetIndex(SurfaceIndex* &index) = 0; 
 
     //!
     //! \brief      Get the pointer of allocated SVM memory starting address.
-    //! \param      [out] pAddr
+    //! \param      [out] addr
     //!             return the allocated SVM memory starting address.
     //! \returns    CM_SUCCESS.
     //!
-    CM_RT_API virtual int32_t GetAddress(void* &pAddr) = 0;
+    CM_RT_API virtual int32_t GetAddress(void* &addr) = 0;
 };
 
 //!
@@ -92,23 +92,23 @@ public:
     //!
     //! \brief      This function returns the SurfaceIndex object associated 
     //!             with this CmBufferUp object. 
-    //! \param      [out] pIndex
+    //! \param      [out] index
     //!             Reference to the pointer to SurfaceIndex.
     //! \returns    CM_SUCCESS.
     //!
-    CM_RT_API virtual int32_t GetIndex(SurfaceIndex* &pIndex) = 0; 
+    CM_RT_API virtual int32_t GetIndex(SurfaceIndex* &index) = 0; 
 
     //!
     //! \brief      Selects one of the pre-defined memory object control
     //!             settings for this buffer.
-    //! \param      [in] mem_ctrl
+    //! \param      [in] memCtrl
     //!             The selected pre-defined memory object control setting.
     //! \retval     CM_SUCCESS if the memory object control is set successfully.
     //! \retval     CM_FAILURE otherwise.
     //! \note       This API is only supported for Gen9 and plus platform.
     //!
     CM_RT_API virtual int32_t
-    SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL mem_ctrl) = 0;
+    SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL memCtrl) = 0;
 };
 
 //!
@@ -126,11 +126,11 @@ public:
     //!
     //! \brief      This function returns the SurfaceIndex object associated 
     //!             with this CmBuffer object. 
-    //! \param      [out] pIndex
+    //! \param      [out] index
     //!             Reference to the pointer to SurfaceIndex.
     //! \returns    CM_SUCCESS.
     //!
-    CM_RT_API virtual int32_t GetIndex(SurfaceIndex* &pIndex) = 0;
+    CM_RT_API virtual int32_t GetIndex(SurfaceIndex* &index) = 0;
 
     //!
     //! \brief      Copies data in this buffer to system memory using CPU.
@@ -145,9 +145,9 @@ public:
     //!             against the size needed for the buffer. If the sysMemSize
     //!             is less than the CmBuffer size, copy only happens for sysMemSize
     //!             bytes, not all data in CmBuffer.
-    //! \param      [out] pSysMem
+    //! \param      [out] sysMem
     //!             Pointer to the system memory receiving buffer data.
-    //! \param      [in] pEvent
+    //! \param      [in] event
     //!             Pointer to the dependent event used for sychronization.
     //! \param      [in] sysMemSize
     //!             Size of the system memory in byte.
@@ -157,8 +157,8 @@ public:
     //! \retval     CM_FAILURE otherwise.
     //!
     CM_RT_API virtual int32_t
-    ReadSurface(unsigned char* pSysMem,
-                CmEvent* pEvent,
+    ReadSurface(unsigned char* sysMem,
+                CmEvent* event,
                 uint64_t sysMemSize = 0xFFFFFFFFFFFFFFFFULL) = 0;
 
     //!
@@ -172,9 +172,9 @@ public:
     //!             will be checked against the size needed for the buffer.
     //!             If the sysMemSize is less than the CmBuffer size, copy only
     //!             happens for sysMemSize bytes, not all data in CmBuffer.
-    //! \param      [in] pSysMem
+    //! \param      [in] sysMem
     //!             Pointer to the system memory storing the buffer data.
-    //! \param      [in] pEvent
+    //! \param      [in] event
     //!             Pointer to the dependent event used for sychronization.
     //! \param      [in] sysMemSize
     //!             Size of the system memory in byte.
@@ -184,8 +184,8 @@ public:
     //! \retval     CM_FAILURE otherwise.
     //!
     CM_RT_API virtual int32_t
-    WriteSurface(const unsigned char* pSysMem,
-                 CmEvent* pEvent,
+    WriteSurface(const unsigned char* sysMem,
+                 CmEvent* event,
                  uint64_t sysMemSize = 0xFFFFFFFFFFFFFFFFULL) = 0;
 
     //!
@@ -198,26 +198,26 @@ public:
     //!             event for InitSurface is usually NULL.
     //! \param      [in] initValue
     //!             uint32_t value used to initialize to.
-    //! \param      [in] pEvent
+    //! \param      [in] event
     //!             Pointer to the dependent event used for sychronization.
     //! \retval     CM_SUCCESS if copy is successful.
     //! \retval     CM_LOCK_SURFACE_FAIL if surface locking is failed.
     //! \retval     CM_FAILURE otherwise.
     //!
     CM_RT_API virtual int32_t InitSurface(const uint32_t initValue,
-                                          CmEvent* pEvent) = 0;
+                                          CmEvent* event) = 0;
 
     //!
     //! \brief      Selects one of the pre-defined memory object control
     //!             settings for this buffer.
-    //! \param      [in] mem_ctrl
+    //! \param      [in] memCtrl
     //!             The selected pre-defined memory object control setting.
     //! \retval     CM_SUCCESS if the memory object control is set successfully.
     //! \retval     CM_FAILURE otherwise.
     //! \note       This API is only supported for Gen9 and plus platform.
     //!
     CM_RT_API virtual int32_t
-    SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL mem_ctrl) = 0;
+    SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL memCtrl) = 0;
 
     //!
     //! \brief      Sets the surface state of this buffer.
@@ -226,9 +226,9 @@ public:
     //!             Usually, the surface index is an alias surface index created 
     //!             by calling CmDevice::CreateBufferAlias. This function can be used to 
     //!             reinterpret the size, offset, and mocs of an existing CmBuffer.
-    //! \param      [in] pSurfIndex
+    //! \param      [in] surfIndex
     //!             Pointer to surface index of this buffer.
-    //! \param      [in] pSSParam
+    //! \param      [in] bufferStateParam
     //!             The surface state parameter of this buffer. It contains
     //!             size, base address offset and memory object control setting. The
     //!             offset must be 16-aligned due to hardware requirement.
@@ -239,8 +239,8 @@ public:
     //! \retval     CM_FAILURE otherwise.
     //!
     CM_RT_API virtual int32_t
-    SetSurfaceStateParam(SurfaceIndex *pSurfIndex,
-                         const CM_BUFFER_STATE_PARAM *pSSParam) = 0;
+    SetSurfaceStateParam(SurfaceIndex *surfIndex,
+                         const CM_BUFFER_STATE_PARAM *bufferStateParam) = 0;
 
 };
 };//namespace

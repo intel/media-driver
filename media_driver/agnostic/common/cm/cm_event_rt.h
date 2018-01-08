@@ -51,21 +51,21 @@ class CmEventRT: public CmEvent
 {
 public:
     static int32_t Create(uint32_t index,
-                          CmQueueRT *pQueue,
-                          CmTaskInternal *pTask,
+                          CmQueueRT *queue,
+                          CmTaskInternal *task,
                           int32_t taskDriverId,
-                          CmDeviceRT *pCmDev,
+                          CmDeviceRT *device,
                           bool isVisible,
-                          CmEventRT *&pEvent);
+                          CmEventRT *&event);
 
-    static int32_t Destroy(CmEventRT *&pEvent);
+    static int32_t Destroy(CmEventRT *&event);
 
     CM_RT_API int32_t GetStatus(CM_STATUS &status);
 
     CM_RT_API int32_t GetExecutionTime(uint64_t &time);
 
     CM_RT_API int32_t
-    WaitForTaskFinished(uint32_t dwTimeOutMs = CM_MAX_TIMEOUT_MS);
+    WaitForTaskFinished(uint32_t timeOutMs = CM_MAX_TIMEOUT_MS);
 
     CM_RT_API int32_t GetSurfaceDetails(uint32_t kernIndex,
                                         uint32_t surfBTI,
@@ -73,8 +73,8 @@ public:
 
     CM_RT_API int32_t GetProfilingInfo(CM_EVENT_PROFILING_INFO infoType,
                                        size_t paramSize,
-                                       void *pInputValue,
-                                       void *pValue);
+                                       void *inputValue,
+                                       void *value);
 
     CM_RT_API int32_t GetExecutionTickTime(uint64_t &ticks);
 
@@ -86,45 +86,45 @@ public:
 
     int32_t SetTaskOsData(void *data);
 
-    int32_t SetSurfaceDetails(CM_HAL_SURFACE_ENTRY_INFO_ARRAYS SurfaceInfo);
+    int32_t SetSurfaceDetails(CM_HAL_SURFACE_ENTRY_INFO_ARRAYS surfaceInfo);
 
     int32_t Acquire(void);
 
     int32_t SafeRelease(void);
 
-    int32_t SetKernelNames(CmTaskRT *pTask,
-                           CmThreadSpaceRT *pThreadSpace,
-                           CmThreadGroupSpace *pThreadGroupSpace);
+    int32_t SetKernelNames(CmTaskRT *task,
+                           CmThreadSpaceRT *threadSpace,
+                           CmThreadGroupSpace *threadGroupSpace);
 
     int32_t SetEnqueueTime(LARGE_INTEGER time);
 
     int32_t SetCompleteTime(LARGE_INTEGER time);
 
-    int32_t GetSubmitTime(LARGE_INTEGER *pTime);
+    int32_t GetSubmitTime(LARGE_INTEGER *time);
 
-    int32_t GetHWStartTime(LARGE_INTEGER *pTime);
+    int32_t GetHWStartTime(LARGE_INTEGER *time);
 
-    int32_t GetHWEndTime(LARGE_INTEGER *pTime);
+    int32_t GetHWEndTime(LARGE_INTEGER *time);
 
-    int32_t GetCompleteTime(LARGE_INTEGER *pTime);
+    int32_t GetCompleteTime(LARGE_INTEGER *time);
 
     uint32_t GetKernelCount();
 
-    int32_t GetEnqueueTime(LARGE_INTEGER *pTime);
+    int32_t GetEnqueueTime(LARGE_INTEGER *time);
 
-    int32_t SetCallBack(EventCallBackFunction function, void *user_data);
+    int32_t SetCallBack(EventCallBackFunction function, void *userData);
 
     int32_t GetStatusNoFlush(CM_STATUS &status);
 
-    int32_t GetQueue(CmQueueRT *&pQueue);
+    int32_t GetQueue(CmQueueRT *&queue);
 
 protected:
     CmEventRT(uint32_t index,
-              CmQueueRT *pQueue,
-              CmTaskInternal *pTask,
+              CmQueueRT *queue,
+              CmTaskInternal *task,
               int32_t taskDriverId,
-              CmDeviceRT *pCmDev,
-              bool isVisible);
+              CmDeviceRT *cmDev,
+              bool m_isVisible);
 
     ~CmEventRT();
 
@@ -134,41 +134,41 @@ protected:
 
     void UnreferenceIfNeeded(void *pdata);
 
-    uint32_t m_Index;
-    int32_t m_TaskDriverId;
-    void *m_OsData;
+    uint32_t m_index;
+    int32_t m_taskDriverId;
+    void *m_osData;
 
-    CM_STATUS m_Status;
-    uint64_t m_Time;
-    uint64_t m_Ticks;
+    CM_STATUS m_status;
+    uint64_t m_time;
+    uint64_t m_ticks;
 
-    LARGE_INTEGER m_GlobalCMSubmitTime;  // The CM task submission time in CPU
-    LARGE_INTEGER m_CMSubmitTimeStamp;   // The CM task submission time in GPU
-    LARGE_INTEGER m_HWStartTimeStamp;    // The task start execution time in GPU
-    LARGE_INTEGER m_HWEndTimeStamp;      // The task end execution time in GPU
-    LARGE_INTEGER m_CompleteTime;        // The task complete time in CPU
-    LARGE_INTEGER m_EnqueueTime;         // The time when the task is pushed into enqueued
+    LARGE_INTEGER m_globalSubmitTimeCpu; // The CM task submission time in CPU
+    LARGE_INTEGER m_submitTimeGpu;       // The CM task submission time in GPU
+    LARGE_INTEGER m_hwStartTimeStamp;    // The task start execution time in GPU
+    LARGE_INTEGER m_hwEndTimeStamp;      // The task end execution time in GPU
+    LARGE_INTEGER m_completeTime;        // The task complete time in CPU
+    LARGE_INTEGER m_enqueueTime;         // The time when the task is pushed into enqueued
                                          //  queue
 
-    char **m_KernelNames;
-    uint32_t *m_ThreadSpace;
-    uint32_t m_KernelCount;
+    char **m_kernelNames;
+    uint32_t *m_threadSpace;
+    uint32_t m_kernelCount;
 
-    CmDeviceRT* m_pDevice;
-    CmQueueRT *m_pQueue;
+    CmDeviceRT* m_device;
+    CmQueueRT *m_queue;
 
-    int32_t m_RefCount;
+    int32_t m_refCount;
 
-    bool isVisible;  // if the event is Visible to user or not
+    bool m_isVisible;  // if the event is Visible to user or not
 
-    CM_HAL_SURFACE_ENTRY_INFO_ARRAYS m_SurEntryInfoArrays;
-    CmTaskInternal *m_pTask;
+    CM_HAL_SURFACE_ENTRY_INFO_ARRAYS m_surEntryInfoArrays;
+    CmTaskInternal *m_task;
 
-    CSync m_CriticalSection_Query;
+    CSync m_criticalSectionQuery;
 
     //Vtune call back
-    EventCallBackFunction m_CallbackFunction;  //CallBack Function
-    void *m_CallbackUserData;                  //Pdata for Callback
+    EventCallBackFunction m_callbackFunction;  //CallBack Function
+    void *m_callbackUserData;                  //Pdata for Callback
 };
 }
 

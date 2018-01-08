@@ -37,8 +37,8 @@ class CmDeviceRT;
 class CmThreadGroupSpace
 {
 public:
-    static int32_t Create(CmDeviceRT* pDevice, uint32_t index, uint32_t thrdSpaceWidth, uint32_t thrdSpaceHeight, uint32_t thrdSpaceDepth, uint32_t grpSpaceWidth, uint32_t grpSpaceHeight, uint32_t grpSpaceDepth, CmThreadGroupSpace* & pTGS);
-    static int32_t Destroy( CmThreadGroupSpace* &pTGS );
+    static int32_t Create(CmDeviceRT* device, uint32_t index, uint32_t threadSpaceWidth, uint32_t threadSpaceHeight, uint32_t threadSpaceDepth, uint32_t groupSpaceWidth, uint32_t groupSpaceHeight, uint32_t groupSpaceDepth, CmThreadGroupSpace* & threadGroupSpace);
+    static int32_t Destroy( CmThreadGroupSpace* &threadGroupSpace );
 
     int32_t GetThreadGroupSpaceSize(uint32_t & threadSpaceWidth, uint32_t & threadSpaceHeight, uint32_t & threadSpaceDepth, uint32_t & groupSpaceWidth, uint32_t & groupSpaceHeight, uint32_t &groupSpaceDepth) const;
     uint32_t GetIndexInTGsArray();
@@ -48,12 +48,12 @@ public:
 #endif
 
 protected:
-    CmThreadGroupSpace(CmDeviceRT* pCmDev, uint32_t index, uint32_t thrdSpaceWidth, uint32_t thrdSpaceHeight, uint32_t grpSpaceWidth, uint32_t grpSpaceHeight);
-    CmThreadGroupSpace(CmDeviceRT* pCmDev, uint32_t index, uint32_t thrdSpaceWidth, uint32_t thrdSpaceHeight, uint32_t thrdSpaceDepth, uint32_t grpSpaceWidth, uint32_t grpSpaceHeight, uint32_t grpSpaceDepth);
+    CmThreadGroupSpace(CmDeviceRT* device, uint32_t index, uint32_t threadSpaceWidth, uint32_t threadSpaceHeight, uint32_t groupSpaceWidth, uint32_t groupSpaceHeight);
+    CmThreadGroupSpace(CmDeviceRT* device, uint32_t index, uint32_t threadSpaceWidth, uint32_t threadSpaceHeight, uint32_t threadSpaceDepth, uint32_t groupSpaceWidth, uint32_t groupSpaceHeight, uint32_t groupSpaceDepth);
     ~CmThreadGroupSpace( void );
     int32_t Initialize( void );
 
-    CmDeviceRT* m_pCmDev;
+    CmDeviceRT* m_cmDev;
     uint32_t m_threadSpaceWidth;
     uint32_t m_threadSpaceHeight;
     uint32_t m_threadSpaceDepth;
@@ -61,7 +61,7 @@ protected:
     uint32_t m_groupSpaceHeight;
     uint32_t m_groupSpaceDepth;  
 
-    uint32_t m_IndexInTGSArray;
+    uint32_t m_indexInThreadGroupSpaceArray;
 };
 };//namespace
 

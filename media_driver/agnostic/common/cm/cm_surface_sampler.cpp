@@ -144,7 +144,7 @@ int32_t CmSurfaceSampler::SetMemoryObjectControl( MEMORY_OBJECT_CONTROL mem_ctrl
         argType = ARG_KIND_SURFACE_3D;
     }
 
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->pCmHalState->pfnSetSurfaceMOCS(pCmData->pCmHalState, m_handleFor2D3D, mocs, argType));
+    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->cmHalState->pfnSetSurfaceMOCS(pCmData->cmHalState, m_handleFor2D3D, mocs, argType));
 
 finish:
     return hr;

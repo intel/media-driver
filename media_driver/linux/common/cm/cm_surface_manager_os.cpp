@@ -223,7 +223,7 @@ int32_t CmSurfaceManager::Surface2DSanityCheck(uint32_t width, uint32_t height, 
 int32_t CmSurfaceManager::GetSurfaceInfo( MOS_RESOURCE * mosResource, uint32_t &width, uint32_t &height, uint32_t &pitch, CM_SURFACE_FORMAT &format)
 {
     PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
-    PCM_HAL_STATE pState  = pCmData->pCmHalState;
+    PCM_HAL_STATE pState  = pCmData->cmHalState;
 
     MOS_SURFACE          surfaceDetails;
     MOS_ZeroMemory(&surfaceDetails, sizeof(surfaceDetails));

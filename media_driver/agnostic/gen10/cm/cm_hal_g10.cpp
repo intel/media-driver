@@ -52,7 +52,7 @@ MOS_STATUS CM_HAL_G10_X::SubmitCommands(
     void                    **ppCmdBuffer) 
 {
     MOS_STATUS                   hr              = MOS_STATUS_SUCCESS;
-    PCM_HAL_STATE                pState          = m_pCmState;            
+    PCM_HAL_STATE                pState          = m_cmState;            
     PRENDERHAL_INTERFACE         pRenderHal      = pState->pRenderHal;
     PMOS_INTERFACE               pOsInterface    = pRenderHal->pOsInterface;
     MhwRenderInterface           *pMhwRender     = pRenderHal->pMhwRenderInterface;
@@ -73,7 +73,7 @@ MOS_STATUS CM_HAL_G10_X::SubmitCommands(
     int32_t                      iSyncOffset;
     int32_t                      iTmp;
     bool                         sip_enable = pRenderHal->bSIPKernel? true: false;
-	bool                         csr_enable = pRenderHal->bCSRKernel ? true : false;
+    bool                         csr_enable = pRenderHal->bCSRKernel ? true : false;
 	
     uint32_t                     i;
     RENDERHAL_GENERIC_PROLOG_PARAMS genericPrologParams;
@@ -268,8 +268,8 @@ MOS_STATUS CM_HAL_G10_X::SubmitCommands(
         pRenderHal,
         MEDIASTATE_DEBUG_COUNTER_FREE_RUNNING,
         iTmp,
-        pState->pTaskParam->dwVfeCurbeSize,
-        pState->pTaskParam->dwUrbEntrySize,
+        pState->pTaskParam->vfeCurbeSize,
+        pState->pTaskParam->urbEntrySize,
         &pState->ScoreboardParams);
 
     // Send VFE State
@@ -277,7 +277,7 @@ MOS_STATUS CM_HAL_G10_X::SubmitCommands(
                      pRenderHal->pRenderHalPltInterface->GetVfeStateParameters()));
 
     // Send CURBE Load
-    if (pState->pTaskParam->dwVfeCurbeSize > 0)
+    if (pState->pTaskParam->vfeCurbeSize > 0)
     {
         CM_CHK_MOSSTATUS(pRenderHal->pfnSendCurbeLoad(pRenderHal, &CmdBuffer));
     }
@@ -302,10 +302,10 @@ MOS_STATUS CM_HAL_G10_X::SubmitCommands(
     {
         // send media walker command, if required
        
-        for (uint32_t i = 0; i < pState->pTaskParam->uiNumKernels; i ++)
+        for (uint32_t i = 0; i < pState->pTaskParam->numKernels; i ++)
         {
             // Insert CONDITIONAL_BATCH_BUFFER_END
-            if ( pTaskParam->uiConditionalEndBitmap & ((uint64_t)1 << (i)) )
+            if ( pTaskParam->conditionalEndBitmap & ((uint64_t)1 << (i)) )
             {
                 // this could be batch buffer end so need to update sync tag, media state flush, write end timestamp
 
@@ -334,8 +334,8 @@ MOS_STATUS CM_HAL_G10_X::SubmitCommands(
             //Insert PIPE_CONTROL at two cases:
             // 1. synchronization is set
             // 2. the next kernel has dependency pattern
-            if((i > 0) && ((pTaskParam->uiSyncBitmap & ((uint64_t)1 << (i-1))) || 
-                (pKernels[i]->KernelThreadSpaceParam.patternType != CM_NONE_DEPENDENCY)))
+            if((i > 0) && ((pTaskParam->syncBitmap & ((uint64_t)1 << (i-1))) || 
+                (pKernels[i]->kernelThreadSpaceParam.patternType != CM_NONE_DEPENDENCY)))
             {
                 //Insert a pipe control as synchronization
                 PipeCtlParams = g_cRenderHal_InitPipeControlParams;
@@ -356,24 +356,24 @@ MOS_STATUS CM_HAL_G10_X::SubmitCommands(
     {
         // send GPGPU walker command, if required
 
-        for (uint32_t i = 0; i < pState->pTaskParam->uiNumKernels; i ++)
+        for (uint32_t i = 0; i < pState->pTaskParam->numKernels; i ++)
         {
             MHW_GPGPU_WALKER_PARAMS GpGpuWalkerParams;
 
-            GpGpuWalkerParams.InterfaceDescriptorOffset = pKernels[i]->GpGpuWalkerParams.InterfaceDescriptorOffset;
-            GpGpuWalkerParams.GpGpuEnable               = pKernels[i]->GpGpuWalkerParams.CmGpGpuEnable;
-            GpGpuWalkerParams.GroupWidth                = pKernels[i]->GpGpuWalkerParams.GroupWidth;
-            GpGpuWalkerParams.GroupHeight               = pKernels[i]->GpGpuWalkerParams.GroupHeight;
-			GpGpuWalkerParams.GroupDepth                = pKernels[i]->GpGpuWalkerParams.GroupDepth;
-            GpGpuWalkerParams.ThreadWidth               = pKernels[i]->GpGpuWalkerParams.ThreadWidth;
-            GpGpuWalkerParams.ThreadHeight              = pKernels[i]->GpGpuWalkerParams.ThreadHeight;
-			GpGpuWalkerParams.ThreadDepth               = pKernels[i]->GpGpuWalkerParams.ThreadDepth;
-            GpGpuWalkerParams.SLMSize                   = pKernels[i]->iSLMSize;
+            GpGpuWalkerParams.InterfaceDescriptorOffset = pKernels[i]->gpgpuWalkerParams.interfaceDescriptorOffset;
+            GpGpuWalkerParams.GpGpuEnable               = pKernels[i]->gpgpuWalkerParams.gpgpuEnabled;
+            GpGpuWalkerParams.GroupWidth                = pKernels[i]->gpgpuWalkerParams.groupWidth;
+            GpGpuWalkerParams.GroupHeight               = pKernels[i]->gpgpuWalkerParams.groupHeight;
+			GpGpuWalkerParams.GroupDepth                = pKernels[i]->gpgpuWalkerParams.groupDepth;
+            GpGpuWalkerParams.ThreadWidth               = pKernels[i]->gpgpuWalkerParams.threadWidth;
+            GpGpuWalkerParams.ThreadHeight              = pKernels[i]->gpgpuWalkerParams.threadHeight;
+			GpGpuWalkerParams.ThreadDepth               = pKernels[i]->gpgpuWalkerParams.threadDepth;
+            GpGpuWalkerParams.SLMSize                   = pKernels[i]->slmSize;
             //Insert PIPE_CONTROL at two cases:
             // 1. synchronization is set
             // 2. the next kernel has dependency pattern
-            if((i > 0) && ((pTaskParam->uiSyncBitmap & ((uint64_t)1 << (i-1))) || 
-                (pKernels[i]->KernelThreadSpaceParam.patternType != CM_NONE_DEPENDENCY)))
+            if((i > 0) && ((pTaskParam->syncBitmap & ((uint64_t)1 << (i-1))) || 
+                (pKernels[i]->kernelThreadSpaceParam.patternType != CM_NONE_DEPENDENCY)))
             {
                 //Insert a pipe control as synchronization
                 PipeCtlParams = g_cRenderHal_InitPipeControlParams;
@@ -387,7 +387,7 @@ MOS_STATUS CM_HAL_G10_X::SubmitCommands(
 
            // CM_CHK_STATUS(HalCm_SendWalkerState_g10(pState, pKernels[i], &CmdBuffer));
         // send media walker command, if required
-         MOS_SecureMemcpy(&pState->WalkerParams, sizeof(MHW_WALKER_PARAMS), &pKernels[i]->WalkerParams, sizeof(CM_HAL_WALKER_PARAMS));
+         MOS_SecureMemcpy(&pState->WalkerParams, sizeof(MHW_WALKER_PARAMS), &pKernels[i]->walkerParams, sizeof(CM_HAL_WALKER_PARAMS));
          CM_CHK_MOSSTATUS(pMhwRender->AddGpGpuWalkerStateCmd(&CmdBuffer, &GpGpuWalkerParams));
         }
         
@@ -402,7 +402,7 @@ MOS_STATUS CM_HAL_G10_X::SubmitCommands(
         CM_CHK_NULL_RETURN_MOSSTATUS(pBatchBuffer->pPrivateData);
         pBbCmArgs = (PCM_HAL_BB_ARGS) pBatchBuffer->pPrivateData;
 
-        if ( (pBbCmArgs->uiRefCount == 1) ||
+        if ( (pBbCmArgs->refCount == 1) ||
                  (pState->pTaskParam->reuseBBUpdateMask == 1) )
         {
             CM_CHK_MOSSTATUS(pMhwMiInterface->AddMiBatchBufferEnd(nullptr, pBatchBuffer));
@@ -414,7 +414,7 @@ MOS_STATUS CM_HAL_G10_X::SubmitCommands(
         }
 
         // UnLock the batch buffer
-        if ( (pBbCmArgs->uiRefCount == 1) ||
+        if ( (pBbCmArgs->refCount == 1) ||
              (pState->pTaskParam->reuseBBUpdateMask == 1) )
         {
             CM_CHK_MOSSTATUS(pRenderHal->pfnUnlockBB(pRenderHal, pBatchBuffer));
@@ -534,7 +534,7 @@ MOS_STATUS CM_HAL_G10_X::HwSetSurfaceMemoryObjectControl(
     uint16_t                        wMemObjCtl,
     PRENDERHAL_SURFACE_STATE_PARAMS pParams)
 {
-	PRENDERHAL_INTERFACE pRenderHal = m_pCmState->pRenderHal;
+	PRENDERHAL_INTERFACE pRenderHal = m_cmState->pRenderHal;
 	MOS_STATUS hr = MOS_STATUS_SUCCESS;
 
 	CM_HAL_MEMORY_OBJECT_CONTROL_G9 cache_type;
@@ -593,11 +593,11 @@ MOS_STATUS CM_HAL_G10_X::UpdatePlatformInfoFromPower(
 MOS_STATUS CM_HAL_G10_X::AllocateSIPCSRResource()
 {
     MOS_STATUS hr = MOS_STATUS_SUCCESS;
-    if (Mos_ResourceIsNull(&m_pCmState->SipResource.OsResource)) 
+    if (Mos_ResourceIsNull(&m_cmState->SipResource.OsResource)) 
     {
         // create  sip resource if it does not exist
-        CM_CHK_MOSSTATUS_RETURN(HalCm_AllocateSipResource(m_pCmState)); 
-        CM_CHK_MOSSTATUS_RETURN(HalCm_AllocateCSRResource(m_pCmState));
+        CM_CHK_MOSSTATUS_RETURN(HalCm_AllocateSipResource(m_cmState)); 
+        CM_CHK_MOSSTATUS_RETURN(HalCm_AllocateCSRResource(m_cmState));
     }
     return hr;
 }
@@ -613,52 +613,52 @@ MOS_STATUS CM_HAL_G10_X::RegisterSampler8x8AVSTable(
     pSampler8x8AVSTable->mhwSamplerAvsTableParam.byteMaxDerivative8Pixels = MEDIASTATE_AVS_MAX_DERIVATIVE_8_PIXELS;
     pSampler8x8AVSTable->mhwSamplerAvsTableParam.byteMaxDerivative4Pixels = MEDIASTATE_AVS_MAX_DERIVATIVE_4_PIXELS;
 
-    pSampler8x8AVSTable->mhwSamplerAvsTableParam.bEnableRGBAdaptive = pAVSTable->bEnableRGBAdaptive;
-    pSampler8x8AVSTable->mhwSamplerAvsTableParam.bAdaptiveFilterAllChannels = pAVSTable->bAdaptiveFilterAllChannels;
+    pSampler8x8AVSTable->mhwSamplerAvsTableParam.bEnableRGBAdaptive = pAVSTable->enableRgbAdaptive;
+    pSampler8x8AVSTable->mhwSamplerAvsTableParam.bAdaptiveFilterAllChannels = pAVSTable->adaptiveFilterAllChannels;
 
     // Assign the coefficient table;
     for (uint32_t i = 0; i < CM_NUM_HW_POLYPHASE_TABLES_G10; i++)
     {
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].ZeroXFilterCoefficient[0] = (uint8_t)pAVSTable->Tbl0X[i].FilterCoeff_0_0;
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].ZeroXFilterCoefficient[1] = (uint8_t)pAVSTable->Tbl0X[i].FilterCoeff_0_1;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].ZeroXFilterCoefficient[0] = (uint8_t)pAVSTable->tbl0X[i].FilterCoeff_0_0;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].ZeroXFilterCoefficient[1] = (uint8_t)pAVSTable->tbl0X[i].FilterCoeff_0_1;
 
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].ZeroXFilterCoefficient[2] = (uint8_t)pAVSTable->Tbl0X[i].FilterCoeff_0_2;
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].ZeroXFilterCoefficient[3] = (uint8_t)pAVSTable->Tbl0X[i].FilterCoeff_0_3;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].ZeroXFilterCoefficient[2] = (uint8_t)pAVSTable->tbl0X[i].FilterCoeff_0_2;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].ZeroXFilterCoefficient[3] = (uint8_t)pAVSTable->tbl0X[i].FilterCoeff_0_3;
 
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].ZeroXFilterCoefficient[4] = (uint8_t)pAVSTable->Tbl0X[i].FilterCoeff_0_4;
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].ZeroXFilterCoefficient[5] = (uint8_t)pAVSTable->Tbl0X[i].FilterCoeff_0_5;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].ZeroXFilterCoefficient[4] = (uint8_t)pAVSTable->tbl0X[i].FilterCoeff_0_4;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].ZeroXFilterCoefficient[5] = (uint8_t)pAVSTable->tbl0X[i].FilterCoeff_0_5;
 
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].ZeroXFilterCoefficient[6] = (uint8_t)pAVSTable->Tbl0X[i].FilterCoeff_0_6;
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].ZeroXFilterCoefficient[7] = (uint8_t)pAVSTable->Tbl0X[i].FilterCoeff_0_7;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].ZeroXFilterCoefficient[6] = (uint8_t)pAVSTable->tbl0X[i].FilterCoeff_0_6;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].ZeroXFilterCoefficient[7] = (uint8_t)pAVSTable->tbl0X[i].FilterCoeff_0_7;
 
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].ZeroYFilterCoefficient[0] = (uint8_t)pAVSTable->Tbl0Y[i].FilterCoeff_0_0;
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].ZeroYFilterCoefficient[1] = (uint8_t)pAVSTable->Tbl0Y[i].FilterCoeff_0_1;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].ZeroYFilterCoefficient[0] = (uint8_t)pAVSTable->tbl0Y[i].FilterCoeff_0_0;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].ZeroYFilterCoefficient[1] = (uint8_t)pAVSTable->tbl0Y[i].FilterCoeff_0_1;
 
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].ZeroYFilterCoefficient[2] = (uint8_t)pAVSTable->Tbl0Y[i].FilterCoeff_0_2;
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].ZeroYFilterCoefficient[3] = (uint8_t)pAVSTable->Tbl0Y[i].FilterCoeff_0_3;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].ZeroYFilterCoefficient[2] = (uint8_t)pAVSTable->tbl0Y[i].FilterCoeff_0_2;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].ZeroYFilterCoefficient[3] = (uint8_t)pAVSTable->tbl0Y[i].FilterCoeff_0_3;
 
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].ZeroYFilterCoefficient[4] = (uint8_t)pAVSTable->Tbl0Y[i].FilterCoeff_0_4;
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].ZeroYFilterCoefficient[5] = (uint8_t)pAVSTable->Tbl0Y[i].FilterCoeff_0_5;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].ZeroYFilterCoefficient[4] = (uint8_t)pAVSTable->tbl0Y[i].FilterCoeff_0_4;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].ZeroYFilterCoefficient[5] = (uint8_t)pAVSTable->tbl0Y[i].FilterCoeff_0_5;
 
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].ZeroYFilterCoefficient[6] = (uint8_t)pAVSTable->Tbl0Y[i].FilterCoeff_0_6;
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].ZeroYFilterCoefficient[7] = (uint8_t)pAVSTable->Tbl0Y[i].FilterCoeff_0_7;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].ZeroYFilterCoefficient[6] = (uint8_t)pAVSTable->tbl0Y[i].FilterCoeff_0_6;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].ZeroYFilterCoefficient[7] = (uint8_t)pAVSTable->tbl0Y[i].FilterCoeff_0_7;
 
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].OneXFilterCoefficient[0] = (uint8_t)pAVSTable->Tbl1X[i].FilterCoeff_0_2;
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].OneXFilterCoefficient[1] = (uint8_t)pAVSTable->Tbl1X[i].FilterCoeff_0_3;
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].OneXFilterCoefficient[2] = (uint8_t)pAVSTable->Tbl1X[i].FilterCoeff_0_4;
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].OneXFilterCoefficient[3] = (uint8_t)pAVSTable->Tbl1X[i].FilterCoeff_0_5;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].OneXFilterCoefficient[0] = (uint8_t)pAVSTable->tbl1X[i].FilterCoeff_0_2;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].OneXFilterCoefficient[1] = (uint8_t)pAVSTable->tbl1X[i].FilterCoeff_0_3;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].OneXFilterCoefficient[2] = (uint8_t)pAVSTable->tbl1X[i].FilterCoeff_0_4;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].OneXFilterCoefficient[3] = (uint8_t)pAVSTable->tbl1X[i].FilterCoeff_0_5;
 
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].OneYFilterCoefficient[0] = (uint8_t)pAVSTable->Tbl1Y[i].FilterCoeff_0_2;
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].OneYFilterCoefficient[1] = (uint8_t)pAVSTable->Tbl1Y[i].FilterCoeff_0_3;
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].OneYFilterCoefficient[2] = (uint8_t)pAVSTable->Tbl1Y[i].FilterCoeff_0_4;
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].OneYFilterCoefficient[3] = (uint8_t)pAVSTable->Tbl1Y[i].FilterCoeff_0_5;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].OneYFilterCoefficient[0] = (uint8_t)pAVSTable->tbl1Y[i].FilterCoeff_0_2;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].OneYFilterCoefficient[1] = (uint8_t)pAVSTable->tbl1Y[i].FilterCoeff_0_3;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].OneYFilterCoefficient[2] = (uint8_t)pAVSTable->tbl1Y[i].FilterCoeff_0_4;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[i].OneYFilterCoefficient[3] = (uint8_t)pAVSTable->tbl1Y[i].FilterCoeff_0_5;
     }
 
-    pSampler8x8AVSTable->mhwSamplerAvsTableParam.byteDefaultSharpnessLevel = pAVSTable->DefaultSharpLvl;
-    pSampler8x8AVSTable->mhwSamplerAvsTableParam.bBypassXAdaptiveFiltering = pAVSTable->BypassXAF;
-    pSampler8x8AVSTable->mhwSamplerAvsTableParam.bBypassYAdaptiveFiltering = pAVSTable->BypassYAF;
+    pSampler8x8AVSTable->mhwSamplerAvsTableParam.byteDefaultSharpnessLevel = pAVSTable->defaultSharpLevel;
+    pSampler8x8AVSTable->mhwSamplerAvsTableParam.bBypassXAdaptiveFiltering = pAVSTable->bypassXAF;
+    pSampler8x8AVSTable->mhwSamplerAvsTableParam.bBypassYAdaptiveFiltering = pAVSTable->bypassYAF;
 
-    if (!pAVSTable->BypassXAF && !pAVSTable->BypassYAF)
+    if (!pAVSTable->bypassXAF && !pAVSTable->bypassYAF)
     {
         pSampler8x8AVSTable->mhwSamplerAvsTableParam.byteMaxDerivative8Pixels = pAVSTable->maxDerivative8Pixels;
         pSampler8x8AVSTable->mhwSamplerAvsTableParam.byteMaxDerivative4Pixels = pAVSTable->maxDerivative4Pixels;
@@ -669,39 +669,39 @@ MOS_STATUS CM_HAL_G10_X::RegisterSampler8x8AVSTable(
     for (int i = 0; i < CM_NUM_HW_POLYPHASE_EXTRA_TABLES_G10; i++)
     {
         int src = i + CM_NUM_HW_POLYPHASE_TABLES_G10;
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].ZeroXFilterCoefficient[0] = (uint8_t)pAVSTable->Tbl0X[src].FilterCoeff_0_0;
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].ZeroXFilterCoefficient[1] = (uint8_t)pAVSTable->Tbl0X[src].FilterCoeff_0_1;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].ZeroXFilterCoefficient[0] = (uint8_t)pAVSTable->tbl0X[src].FilterCoeff_0_0;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].ZeroXFilterCoefficient[1] = (uint8_t)pAVSTable->tbl0X[src].FilterCoeff_0_1;
 
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].ZeroXFilterCoefficient[2] = (uint8_t)pAVSTable->Tbl0X[src].FilterCoeff_0_2;
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].ZeroXFilterCoefficient[3] = (uint8_t)pAVSTable->Tbl0X[src].FilterCoeff_0_3;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].ZeroXFilterCoefficient[2] = (uint8_t)pAVSTable->tbl0X[src].FilterCoeff_0_2;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].ZeroXFilterCoefficient[3] = (uint8_t)pAVSTable->tbl0X[src].FilterCoeff_0_3;
 
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].ZeroXFilterCoefficient[4] = (uint8_t)pAVSTable->Tbl0X[src].FilterCoeff_0_4;
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].ZeroXFilterCoefficient[5] = (uint8_t)pAVSTable->Tbl0X[src].FilterCoeff_0_5;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].ZeroXFilterCoefficient[4] = (uint8_t)pAVSTable->tbl0X[src].FilterCoeff_0_4;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].ZeroXFilterCoefficient[5] = (uint8_t)pAVSTable->tbl0X[src].FilterCoeff_0_5;
 
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].ZeroXFilterCoefficient[6] = (uint8_t)pAVSTable->Tbl0X[src].FilterCoeff_0_6;
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].ZeroXFilterCoefficient[7] = (uint8_t)pAVSTable->Tbl0X[src].FilterCoeff_0_7;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].ZeroXFilterCoefficient[6] = (uint8_t)pAVSTable->tbl0X[src].FilterCoeff_0_6;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].ZeroXFilterCoefficient[7] = (uint8_t)pAVSTable->tbl0X[src].FilterCoeff_0_7;
 
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].ZeroYFilterCoefficient[0] = (uint8_t)pAVSTable->Tbl0Y[src].FilterCoeff_0_0;
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].ZeroYFilterCoefficient[1] = (uint8_t)pAVSTable->Tbl0Y[src].FilterCoeff_0_1;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].ZeroYFilterCoefficient[0] = (uint8_t)pAVSTable->tbl0Y[src].FilterCoeff_0_0;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].ZeroYFilterCoefficient[1] = (uint8_t)pAVSTable->tbl0Y[src].FilterCoeff_0_1;
 
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].ZeroYFilterCoefficient[2] = (uint8_t)pAVSTable->Tbl0Y[src].FilterCoeff_0_2;
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].ZeroYFilterCoefficient[3] = (uint8_t)pAVSTable->Tbl0Y[src].FilterCoeff_0_3;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].ZeroYFilterCoefficient[2] = (uint8_t)pAVSTable->tbl0Y[src].FilterCoeff_0_2;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].ZeroYFilterCoefficient[3] = (uint8_t)pAVSTable->tbl0Y[src].FilterCoeff_0_3;
 
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].ZeroYFilterCoefficient[4] = (uint8_t)pAVSTable->Tbl0Y[src].FilterCoeff_0_4;
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].ZeroYFilterCoefficient[5] = (uint8_t)pAVSTable->Tbl0Y[src].FilterCoeff_0_5;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].ZeroYFilterCoefficient[4] = (uint8_t)pAVSTable->tbl0Y[src].FilterCoeff_0_4;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].ZeroYFilterCoefficient[5] = (uint8_t)pAVSTable->tbl0Y[src].FilterCoeff_0_5;
 
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].ZeroYFilterCoefficient[6] = (uint8_t)pAVSTable->Tbl0Y[src].FilterCoeff_0_6;
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].ZeroYFilterCoefficient[7] = (uint8_t)pAVSTable->Tbl0Y[src].FilterCoeff_0_7;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].ZeroYFilterCoefficient[6] = (uint8_t)pAVSTable->tbl0Y[src].FilterCoeff_0_6;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].ZeroYFilterCoefficient[7] = (uint8_t)pAVSTable->tbl0Y[src].FilterCoeff_0_7;
 
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].OneXFilterCoefficient[0] = (uint8_t)pAVSTable->Tbl1X[src].FilterCoeff_0_2;
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].OneXFilterCoefficient[1] = (uint8_t)pAVSTable->Tbl1X[src].FilterCoeff_0_3;
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].OneXFilterCoefficient[2] = (uint8_t)pAVSTable->Tbl1X[src].FilterCoeff_0_4;
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].OneXFilterCoefficient[3] = (uint8_t)pAVSTable->Tbl1X[src].FilterCoeff_0_5;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].OneXFilterCoefficient[0] = (uint8_t)pAVSTable->tbl1X[src].FilterCoeff_0_2;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].OneXFilterCoefficient[1] = (uint8_t)pAVSTable->tbl1X[src].FilterCoeff_0_3;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].OneXFilterCoefficient[2] = (uint8_t)pAVSTable->tbl1X[src].FilterCoeff_0_4;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].OneXFilterCoefficient[3] = (uint8_t)pAVSTable->tbl1X[src].FilterCoeff_0_5;
 
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].OneYFilterCoefficient[0] = (uint8_t)pAVSTable->Tbl1Y[src].FilterCoeff_0_2;
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].OneYFilterCoefficient[1] = (uint8_t)pAVSTable->Tbl1Y[src].FilterCoeff_0_3;
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].OneYFilterCoefficient[2] = (uint8_t)pAVSTable->Tbl1Y[src].FilterCoeff_0_4;
-        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].OneYFilterCoefficient[3] = (uint8_t)pAVSTable->Tbl1Y[src].FilterCoeff_0_5;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].OneYFilterCoefficient[0] = (uint8_t)pAVSTable->tbl1Y[src].FilterCoeff_0_2;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].OneYFilterCoefficient[1] = (uint8_t)pAVSTable->tbl1Y[src].FilterCoeff_0_3;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].OneYFilterCoefficient[2] = (uint8_t)pAVSTable->tbl1Y[src].FilterCoeff_0_4;
+        pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParamExtra[i].OneYFilterCoefficient[3] = (uint8_t)pAVSTable->tbl1Y[src].FilterCoeff_0_5;
 
     }
 
@@ -711,7 +711,7 @@ MOS_STATUS CM_HAL_G10_X::RegisterSampler8x8AVSTable(
 MOS_STATUS CM_HAL_G10_X::RegisterSampler8x8(
 	PCM_HAL_SAMPLER_8X8_PARAM    pParam)
 {
-	PCM_HAL_STATE               pState = m_pCmState;
+	PCM_HAL_STATE               pState = m_cmState;
 	MOS_STATUS                  hr = MOS_STATUS_SUCCESS;
 	int16_t                     samplerIndex = 0;
 	PMHW_SAMPLER_STATE_PARAM    pSamplerEntry = nullptr;
@@ -722,18 +722,18 @@ MOS_STATUS CM_HAL_G10_X::RegisterSampler8x8(
 		for (uint32_t i = 0; i < pState->CmDeviceParam.iMaxSamplerTableSize; i++) {
 			if (!pState->pSamplerTable[i].bInUse) {
 				pSamplerEntry = &pState->pSamplerTable[i];
-				pParam->dwHandle = (uint32_t)i << 16;
+				pParam->handle = (uint32_t)i << 16;
 				pSamplerEntry->bInUse = true;
 				break;
 			}
 		}
 
 		for (uint32_t i = 0; i < pState->CmDeviceParam.iMaxSampler8x8TableSize; i++) {
-			if (!pState->pSampler8x8Table[i].bInUse) {
+			if (!pState->pSampler8x8Table[i].inUse) {
 				pSampler8x8Entry = &pState->pSampler8x8Table[i];
 				samplerIndex = (int16_t)i;
-				pParam->dwHandle |= (uint32_t)(i & 0xffff);
-				pSampler8x8Entry->bInUse = true;
+				pParam->handle |= (uint32_t)(i & 0xffff);
+				pSampler8x8Entry->inUse = true;
 				break;
 			}
 		}
@@ -746,18 +746,18 @@ MOS_STATUS CM_HAL_G10_X::RegisterSampler8x8(
 		//State data from application
 		pSamplerEntry->SamplerType = MHW_SAMPLER_TYPE_AVS;
 		pSamplerEntry->ElementType = MHW_Sampler128Elements;
-		pSamplerEntry->Avs = pParam->sampler8x8State.avs_param.avs_state;
+		pSamplerEntry->Avs = pParam->sampler8x8State.avsParam.avsState;
 		pSamplerEntry->Avs.stateID = samplerIndex;
 		pSamplerEntry->Avs.iTable8x8_Index = samplerIndex;  // Used for calculating the Media offset of 8x8 table
 		pSamplerEntry->Avs.pMhwSamplerAvsTableParam = &pSampler8x8Entry->sampler8x8State.mhwSamplerAvsTableParam;
 
 		if (pSamplerEntry->Avs.EightTapAFEnable)
-			pParam->sampler8x8State.avs_param.avs_table.bAdaptiveFilterAllChannels = true;
+			pParam->sampler8x8State.avsParam.avsTable.adaptiveFilterAllChannels = true;
 		else
-			pParam->sampler8x8State.avs_param.avs_table.bAdaptiveFilterAllChannels = false;
+			pParam->sampler8x8State.avsParam.avsTable.adaptiveFilterAllChannels = false;
 
 		CM_CHK_MOSSTATUS(RegisterSampler8x8AVSTable(&pSampler8x8Entry->sampler8x8State,
-			&pParam->sampler8x8State.avs_param.avs_table));
+			&pParam->sampler8x8State.avsParam.avsTable));
 
 		pSampler8x8Entry->sampler8x8State.stateType = CM_SAMPLER8X8_AVS;
 	}
@@ -768,7 +768,7 @@ MOS_STATUS CM_HAL_G10_X::RegisterSampler8x8(
 			if (!pState->pSamplerTable[i].bInUse)
 			{
 				pSamplerEntry = &pState->pSamplerTable[i];
-				pParam->dwHandle = (uint32_t)i << 16;
+				pParam->handle = (uint32_t)i << 16;
 				pSamplerEntry->bInUse = true;
 				break;
 			}
@@ -781,23 +781,23 @@ MOS_STATUS CM_HAL_G10_X::RegisterSampler8x8(
 		pSamplerEntry->SamplerType = MHW_SAMPLER_TYPE_MISC;
         pSamplerEntry->ElementType = MHW_Sampler2Elements;
 
-		pSamplerEntry->Misc.byteHeight = pParam->sampler8x8State.misc_state.DW0.Height;
-		pSamplerEntry->Misc.byteWidth = pParam->sampler8x8State.misc_state.DW0.Width;
-		pSamplerEntry->Misc.wRow[0] = pParam->sampler8x8State.misc_state.DW0.Row0;
-		pSamplerEntry->Misc.wRow[1] = pParam->sampler8x8State.misc_state.DW1.Row1;
-		pSamplerEntry->Misc.wRow[2] = pParam->sampler8x8State.misc_state.DW1.Row2;
-		pSamplerEntry->Misc.wRow[3] = pParam->sampler8x8State.misc_state.DW2.Row3;
-		pSamplerEntry->Misc.wRow[4] = pParam->sampler8x8State.misc_state.DW2.Row4;
-		pSamplerEntry->Misc.wRow[5] = pParam->sampler8x8State.misc_state.DW3.Row5;
-		pSamplerEntry->Misc.wRow[6] = pParam->sampler8x8State.misc_state.DW3.Row6;
-		pSamplerEntry->Misc.wRow[7] = pParam->sampler8x8State.misc_state.DW4.Row7;
-		pSamplerEntry->Misc.wRow[8] = pParam->sampler8x8State.misc_state.DW4.Row8;
-		pSamplerEntry->Misc.wRow[9] = pParam->sampler8x8State.misc_state.DW5.Row9;
-		pSamplerEntry->Misc.wRow[10] = pParam->sampler8x8State.misc_state.DW5.Row10;
-		pSamplerEntry->Misc.wRow[11] = pParam->sampler8x8State.misc_state.DW6.Row11;
-		pSamplerEntry->Misc.wRow[12] = pParam->sampler8x8State.misc_state.DW6.Row12;
-		pSamplerEntry->Misc.wRow[13] = pParam->sampler8x8State.misc_state.DW7.Row13;
-		pSamplerEntry->Misc.wRow[14] = pParam->sampler8x8State.misc_state.DW7.Row14;
+		pSamplerEntry->Misc.byteHeight = pParam->sampler8x8State.miscState.DW0.Height;
+		pSamplerEntry->Misc.byteWidth = pParam->sampler8x8State.miscState.DW0.Width;
+		pSamplerEntry->Misc.wRow[0] = pParam->sampler8x8State.miscState.DW0.Row0;
+		pSamplerEntry->Misc.wRow[1] = pParam->sampler8x8State.miscState.DW1.Row1;
+		pSamplerEntry->Misc.wRow[2] = pParam->sampler8x8State.miscState.DW1.Row2;
+		pSamplerEntry->Misc.wRow[3] = pParam->sampler8x8State.miscState.DW2.Row3;
+		pSamplerEntry->Misc.wRow[4] = pParam->sampler8x8State.miscState.DW2.Row4;
+		pSamplerEntry->Misc.wRow[5] = pParam->sampler8x8State.miscState.DW3.Row5;
+		pSamplerEntry->Misc.wRow[6] = pParam->sampler8x8State.miscState.DW3.Row6;
+		pSamplerEntry->Misc.wRow[7] = pParam->sampler8x8State.miscState.DW4.Row7;
+		pSamplerEntry->Misc.wRow[8] = pParam->sampler8x8State.miscState.DW4.Row8;
+		pSamplerEntry->Misc.wRow[9] = pParam->sampler8x8State.miscState.DW5.Row9;
+		pSamplerEntry->Misc.wRow[10] = pParam->sampler8x8State.miscState.DW5.Row10;
+		pSamplerEntry->Misc.wRow[11] = pParam->sampler8x8State.miscState.DW6.Row11;
+		pSamplerEntry->Misc.wRow[12] = pParam->sampler8x8State.miscState.DW6.Row12;
+		pSamplerEntry->Misc.wRow[13] = pParam->sampler8x8State.miscState.DW7.Row13;
+		pSamplerEntry->Misc.wRow[14] = pParam->sampler8x8State.miscState.DW7.Row14;
 	}
 	else if (pParam->sampler8x8State.stateType == CM_SAMPLER8X8_CONV)
 	{
@@ -805,7 +805,7 @@ MOS_STATUS CM_HAL_G10_X::RegisterSampler8x8(
 		{
 			if (!pState->pSamplerTable[i].bInUse) {
 				pSamplerEntry = &pState->pSamplerTable[i];
-				pParam->dwHandle = (uint32_t)i << 16;
+				pParam->handle = (uint32_t)i << 16;
 				pSamplerEntry->bInUse = true;
 				break;
 			}
@@ -819,17 +819,17 @@ MOS_STATUS CM_HAL_G10_X::RegisterSampler8x8(
 		}
 		pSamplerEntry->SamplerType = MHW_SAMPLER_TYPE_CONV;
 
-		pSamplerEntry->Convolve.ui8Height = pParam->sampler8x8State.convolve_state.Height;
-		pSamplerEntry->Convolve.ui8Width = pParam->sampler8x8State.convolve_state.Width;
-		pSamplerEntry->Convolve.ui8ScaledDownValue = pParam->sampler8x8State.convolve_state.SclDwnValue;
-		pSamplerEntry->Convolve.ui8SizeOfTheCoefficient = pParam->sampler8x8State.convolve_state.CoeffSize;
+		pSamplerEntry->Convolve.ui8Height = pParam->sampler8x8State.convolveState.height;
+		pSamplerEntry->Convolve.ui8Width = pParam->sampler8x8State.convolveState.width;
+		pSamplerEntry->Convolve.ui8ScaledDownValue = pParam->sampler8x8State.convolveState.scaleDownValue;
+		pSamplerEntry->Convolve.ui8SizeOfTheCoefficient = pParam->sampler8x8State.convolveState.coeffSize;
 
-		pSamplerEntry->Convolve.ui8MSBWidth = pParam->sampler8x8State.convolve_state.isHorizontal32Mode;
-		pSamplerEntry->Convolve.ui8MSBHeight = pParam->sampler8x8State.convolve_state.isVertical32Mode;
-		pSamplerEntry->Convolve.skl_mode = pParam->sampler8x8State.convolve_state.skl_mode;
+		pSamplerEntry->Convolve.ui8MSBWidth = pParam->sampler8x8State.convolveState.isHorizontal32Mode;
+		pSamplerEntry->Convolve.ui8MSBHeight = pParam->sampler8x8State.convolveState.isVertical32Mode;
+		pSamplerEntry->Convolve.skl_mode = pParam->sampler8x8State.convolveState.sklMode;
 
 		// Currently use DW0.Reserved0 to save the detailed Convolve Type, the DW0.Reserved0 will be cleared when copy to sampelr heap
-		pSamplerEntry->Convolve.ui8ConvolveType = pParam->sampler8x8State.convolve_state.nConvolveType;
+		pSamplerEntry->Convolve.ui8ConvolveType = pParam->sampler8x8State.convolveState.nConvolveType;
 		if (pSamplerEntry->Convolve.skl_mode &&
 			pSamplerEntry->Convolve.ui8ConvolveType == CM_CONVOLVE_SKL_TYPE_2D)
 		{
@@ -849,7 +849,7 @@ MOS_STATUS CM_HAL_G10_X::RegisterSampler8x8(
 		for (int i = 0; i < CM_NUM_CONVOLVE_ROWS_SKL; i++)
 		{
 			MHW_SAMPLER_CONVOLVE_COEFF_TABLE *pCoeffTable = &(pSamplerEntry->Convolve.CoeffTable[i]);
-			CM_HAL_CONVOLVE_COEFF_TABLE      *pSourceTable = &(pParam->sampler8x8State.convolve_state.Table[i]);
+			CM_HAL_CONVOLVE_COEFF_TABLE      *pSourceTable = &(pParam->sampler8x8State.convolveState.table[i]);
 			if (pSamplerEntry->Convolve.ui8SizeOfTheCoefficient == 1)
 			{
 				pCoeffTable->wFilterCoeff[0] = FloatToS3_12(pSourceTable->FilterCoeff_0_0);
@@ -893,7 +893,7 @@ MOS_STATUS CM_HAL_G10_X::RegisterSampler8x8(
 		for (int i = CM_NUM_CONVOLVE_ROWS_SKL; i < CM_NUM_CONVOLVE_ROWS_SKL * 2; i++)
 		{
 			MHW_SAMPLER_CONVOLVE_COEFF_TABLE *pCoeffTable = &(pSamplerEntry->Convolve.CoeffTable[i]);
-			CM_HAL_CONVOLVE_COEFF_TABLE      *pSourceTable = &(pParam->sampler8x8State.convolve_state.Table[i - CM_NUM_CONVOLVE_ROWS_SKL]);
+			CM_HAL_CONVOLVE_COEFF_TABLE      *pSourceTable = &(pParam->sampler8x8State.convolveState.table[i - CM_NUM_CONVOLVE_ROWS_SKL]);
 
 			if (pSamplerEntry->Convolve.ui8SizeOfTheCoefficient == 1)
 			{
@@ -976,52 +976,52 @@ MOS_STATUS CM_HAL_G10_X::SetMediaWalkerParams(
 {
     mhw_render_g10_X::MEDIA_OBJECT_WALKER_CMD MWCmd;
     MWCmd.DW5.Value = engineeringParams.Value[0];
-    pWalkerParams->ScoreboardMask = MWCmd.DW5.ScoreboardMask;
+    pWalkerParams->scoreboardMask = MWCmd.DW5.ScoreboardMask;
 
     MWCmd.DW6.Value = engineeringParams.Value[1];
-    pWalkerParams->ColorCountMinusOne = MWCmd.DW6.ColorCountMinusOne;
-    pWalkerParams->MidLoopUnitX = MWCmd.DW6.MidLoopUnitX;
-    pWalkerParams->MidLoopUnitY = MWCmd.DW6.LocalMidLoopUnitY;
-    pWalkerParams->MiddleLoopExtraSteps = MWCmd.DW6.MiddleLoopExtraSteps;
+    pWalkerParams->colorCountMinusOne = MWCmd.DW6.ColorCountMinusOne;
+    pWalkerParams->midLoopUnitX = MWCmd.DW6.MidLoopUnitX;
+    pWalkerParams->midLoopUnitY = MWCmd.DW6.LocalMidLoopUnitY;
+    pWalkerParams->middleLoopExtraSteps = MWCmd.DW6.MiddleLoopExtraSteps;
 
     MWCmd.DW7.Value = engineeringParams.Value[2];
-    pWalkerParams->dwLocalLoopExecCount = MWCmd.DW7.LocalLoopExecCount;
-    pWalkerParams->dwGlobalLoopExecCount = MWCmd.DW7.GlobalLoopExecCount;
+    pWalkerParams->localLoopExecCount = MWCmd.DW7.LocalLoopExecCount;
+    pWalkerParams->globalLoopExecCount = MWCmd.DW7.GlobalLoopExecCount;
 
     MWCmd.DW8.Value = engineeringParams.Value[3];
-    pWalkerParams->BlockResolution.x = MWCmd.DW8.BlockResolutionX;
-    pWalkerParams->BlockResolution.y = MWCmd.DW8.BlockResolutionY;
+    pWalkerParams->blockResolution.x = MWCmd.DW8.BlockResolutionX;
+    pWalkerParams->blockResolution.y = MWCmd.DW8.BlockResolutionY;
 
     MWCmd.DW9.Value = engineeringParams.Value[4];
-    pWalkerParams->LocalStart.x = MWCmd.DW9.LocalStartX;
-    pWalkerParams->LocalStart.y = MWCmd.DW9.LocalStartY;
+    pWalkerParams->localStart.x = MWCmd.DW9.LocalStartX;
+    pWalkerParams->localStart.y = MWCmd.DW9.LocalStartY;
 
     MWCmd.DW11.Value = engineeringParams.Value[6];
-    pWalkerParams->LocalOutLoopStride.x = MWCmd.DW11.LocalOuterLoopStrideX;
-    pWalkerParams->LocalOutLoopStride.y = MWCmd.DW11.LocalOuterLoopStrideY;
+    pWalkerParams->localOutLoopStride.x = MWCmd.DW11.LocalOuterLoopStrideX;
+    pWalkerParams->localOutLoopStride.y = MWCmd.DW11.LocalOuterLoopStrideY;
 
     MWCmd.DW12.Value = engineeringParams.Value[7];
-    pWalkerParams->LocalInnerLoopUnit.x = MWCmd.DW12.LocalInnerLoopUnitX;
-    pWalkerParams->LocalInnerLoopUnit.y = MWCmd.DW12.LocalInnerLoopUnitY;
+    pWalkerParams->localInnerLoopUnit.x = MWCmd.DW12.LocalInnerLoopUnitX;
+    pWalkerParams->localInnerLoopUnit.y = MWCmd.DW12.LocalInnerLoopUnitY;
 
     MWCmd.DW13.Value = engineeringParams.Value[8];
-    pWalkerParams->GlobalResolution.x = MWCmd.DW13.GlobalResolutionX;
-    pWalkerParams->GlobalResolution.y = MWCmd.DW13.GlobalResolutionY;
+    pWalkerParams->globalResolution.x = MWCmd.DW13.GlobalResolutionX;
+    pWalkerParams->globalResolution.y = MWCmd.DW13.GlobalResolutionY;
 
     MWCmd.DW14.Value = engineeringParams.Value[9];
-    pWalkerParams->GlobalStart.x = MWCmd.DW14.GlobalStartX;
-    pWalkerParams->GlobalStart.y = MWCmd.DW14.GlobalStartY;
+    pWalkerParams->globalStart.x = MWCmd.DW14.GlobalStartX;
+    pWalkerParams->globalStart.y = MWCmd.DW14.GlobalStartY;
 
     MWCmd.DW15.Value = engineeringParams.Value[10];
-    pWalkerParams->GlobalOutlerLoopStride.x = MWCmd.DW15.GlobalOuterLoopStrideX;
-    pWalkerParams->GlobalOutlerLoopStride.y = MWCmd.DW15.GlobalOuterLoopStrideY;
+    pWalkerParams->globalOutlerLoopStride.x = MWCmd.DW15.GlobalOuterLoopStrideX;
+    pWalkerParams->globalOutlerLoopStride.y = MWCmd.DW15.GlobalOuterLoopStrideY;
 
     MWCmd.DW16.Value = engineeringParams.Value[11];
-    pWalkerParams->GlobalInnerLoopUnit.x = MWCmd.DW16.GlobalInnerLoopUnitX;
-    pWalkerParams->GlobalInnerLoopUnit.y = MWCmd.DW16.GlobalInnerLoopUnitY;
+    pWalkerParams->globalInnerLoopUnit.x = MWCmd.DW16.GlobalInnerLoopUnitX;
+    pWalkerParams->globalInnerLoopUnit.y = MWCmd.DW16.GlobalInnerLoopUnitY;
 
-    pWalkerParams->LocalEnd.x = 0;
-    pWalkerParams->LocalEnd.y = 0;
+    pWalkerParams->localEnd.x = 0;
+    pWalkerParams->localEnd.y = 0;
 
     return MOS_STATUS_SUCCESS;
 }
@@ -1060,11 +1060,11 @@ MOS_STATUS CM_HAL_G10_X::GetHwSurfaceBTIInfo(
         return MOS_STATUS_NULL_POINTER;
     }
 
-    pBTIinfo->dwNormalSurfaceStart      =  CM_GLOBAL_SURFACE_INDEX_START_GEN9_PLUS + \
+    pBTIinfo->normalSurfaceStart      =  CM_GLOBAL_SURFACE_INDEX_START_GEN9_PLUS + \
                         CM_GLOBAL_SURFACE_NUMBER + CM_GTPIN_SURFACE_NUMBER ;
-    pBTIinfo->dwNormalSurfaceEnd        =  GT_RESERVED_INDEX_START_GEN9_PLUS - 1;
-    pBTIinfo->dwReservedSurfaceStart    =  CM_GLOBAL_SURFACE_INDEX_START_GEN9_PLUS;
-    pBTIinfo->dwReservedSurfaceEnd      =  CM_GLOBAL_SURFACE_NUMBER + CM_GTPIN_SURFACE_NUMBER;
+    pBTIinfo->normalSurfaceEnd        =  GT_RESERVED_INDEX_START_GEN9_PLUS - 1;
+    pBTIinfo->reservedSurfaceStart    =  CM_GLOBAL_SURFACE_INDEX_START_GEN9_PLUS;
+    pBTIinfo->reservedSurfaceEnd      =  CM_GLOBAL_SURFACE_NUMBER + CM_GTPIN_SURFACE_NUMBER;
 
     return MOS_STATUS_SUCCESS;
 }
@@ -1077,14 +1077,14 @@ MOS_STATUS CM_HAL_G10_X::SetSuggestedL3Conf(
         return MOS_STATUS_INVALID_PARAMETER;
     }
     return HalCm_SetL3Cache((L3ConfigRegisterValues *)&CNL_L3_PLANE[L3Conf],
-                                     &m_pCmState->l3_settings);
+                                     &m_cmState->l3_settings);
 }
 
 MOS_STATUS CM_HAL_G10_X::GetGenStepInfo(char*& stepinfostr)
 {
     const char *CmSteppingInfo_CNL[] = {"A0", "B0", "C0"};
 
-    uint32_t genStepId = m_pCmState->Platform.usRevId;
+    uint32_t genStepId = m_cmState->Platform.usRevId;
 
     uint32_t tablesize = sizeof(CmSteppingInfo_CNL) / sizeof(char *);
 
@@ -1169,29 +1169,29 @@ MOS_STATUS CM_HAL_G10_X::GetSamplerParamInfoForSamplerType(
     switch (sampler_param_ptr->SamplerType)
     {
     case MHW_SAMPLER_TYPE_3D:
-        sampler_param.element_type = MHW_Sampler1Element;
+        sampler_param.elementType = MHW_Sampler1Element;
         break;
     case MHW_SAMPLER_TYPE_MISC:
-        sampler_param.element_type = MHW_Sampler2Elements;
+        sampler_param.elementType = MHW_Sampler2Elements;
         break;
     case MHW_SAMPLER_TYPE_CONV:
         if ((!sampler_param_ptr->Convolve.skl_mode &&
             sampler_param_ptr->Convolve.ui8ConvolveType == CM_CONVOLVE_SKL_TYPE_2D)
             || sampler_param_ptr->Convolve.ui8ConvolveType == CM_CONVOLVE_SKL_TYPE_1P)
         {
-            sampler_param.element_type = MHW_Sampler64Elements;
+            sampler_param.elementType = MHW_Sampler64Elements;
         }
         else if (sampler_param_ptr->Convolve.ui8ConvolveType == CM_CONVOLVE_SKL_TYPE_1D)
         {
-            sampler_param.element_type = MHW_Sampler8Elements;
+            sampler_param.elementType = MHW_Sampler8Elements;
         }
         else
         {
-            sampler_param.element_type = MHW_Sampler128Elements;
+            sampler_param.elementType = MHW_Sampler128Elements;
         }
         break;
     case MHW_SAMPLER_TYPE_AVS:
-        sampler_param.element_type = MHW_Sampler128Elements;
+        sampler_param.elementType = MHW_Sampler128Elements;
         break;
     default:
         break;
@@ -1202,18 +1202,18 @@ MOS_STATUS CM_HAL_G10_X::GetSamplerParamInfoForSamplerType(
         sampler_param_ptr->Convolve.ui8ConvolveType == CM_CONVOLVE_SKL_TYPE_2D)
         || sampler_param_ptr->Convolve.ui8ConvolveType == CM_CONVOLVE_SKL_TYPE_1P))
     {
-        sampler_param.bti_stepping = 2;
+        sampler_param.btiStepping = 2;
     }
     else
     {
-        sampler_param.bti_stepping = 1;
+        sampler_param.btiStepping = 1;
     }
 
     // gets multiplier
-    sampler_param.bti_multiplier = sampler_element_size[sampler_param.element_type] / sampler_param.bti_stepping;
+    sampler_param.btiMultiplier = sampler_element_size[sampler_param.elementType] / sampler_param.btiStepping;
 
     // gets size
-    sampler_param.size = sampler_element_size[sampler_param.element_type];
+    sampler_param.size = sampler_element_size[sampler_param.elementType];
 
     // Temporary solution for conv because MHW use 2048 bytes for all of the convolve samplers.
     // size should always be equal to bti_stepping * bti_multiplier except for this one.
@@ -1228,17 +1228,17 @@ MOS_STATUS CM_HAL_G10_X::GetSamplerParamInfoForSamplerType(
 MOS_STATUS CM_HAL_G10_X::GetExpectedGtSystemConfig(
     PCM_EXPECTED_GT_SYSTEM_INFO pExpectedConfig)
 {
-    if (m_gengt == PLATFORM_INTEL_GT1)
+    if (m_genGT == PLATFORM_INTEL_GT1)
     {
         pExpectedConfig->numSlices    = CNL_GT1_4X8_MAX_NUM_SLICES;
         pExpectedConfig->numSubSlices = CNL_GT1_4X8_MAX_NUM_SUBSLICES;
     }
-    else if (m_gengt == PLATFORM_INTEL_GT2)
+    else if (m_genGT == PLATFORM_INTEL_GT2)
     {
         pExpectedConfig->numSlices    = CNL_GT2_7X8_MAX_NUM_SLICES;
         pExpectedConfig->numSubSlices = CNL_GT2_7X8_MAX_NUM_SUBSLICES;
     }
-    else if (m_gengt == PLATFORM_INTEL_GT3)
+    else if (m_genGT == PLATFORM_INTEL_GT3)
     {
         pExpectedConfig->numSlices    = CNL_GT3_9X8_MAX_NUM_SLICES;
         pExpectedConfig->numSubSlices = CNL_GT3_9_8MAX_NUM_SUBSLICES;

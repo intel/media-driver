@@ -120,33 +120,33 @@ struct CMLOOKUP_ENTRY
 {
     void *osSurfaceHandle;            // Surface defined in video acceleration APIs provided by the OS.
     UMD_RESOURCE umdSurfaceHandle;    // Surface defined in UMD.
-    uint32_t SurfaceAllocationIndex;  // Driver allocation index
+    uint32_t surfaceAllocationIndex;  // Driver allocation index
 };
 typedef CMLOOKUP_ENTRY *PCMLOOKUP_ENTRY;
 
 struct CMSURFACE_REG_TABLE
 {
-    uint32_t Count;            // Number of entries
-    CMLOOKUP_ENTRY *pEntries;  // Surface Lookup table
+    uint32_t count;            // Number of entries
+    CMLOOKUP_ENTRY *entries;  // Surface Lookup table
 };
 
 struct CM_HAL_MAX_VALUES
 {
-    uint32_t iMaxTasks;                 // [in] Max Tasks
-    uint32_t iMaxKernelsPerTask;        // [in] Max kernels per task
-    uint32_t iMaxKernelBinarySize;      // [in] Max kernel binary size
-    uint32_t iMaxSpillSizePerHwThread;  // [in] Max spill size per thread
-    uint32_t iMaxSamplerTableSize;      // [in] Max sampler table size
-    uint32_t iMaxBufferTableSize;       // [in] Max buffer/bufferUP table Size
-    uint32_t iMax2DSurfaceTableSize;    // [in] Max 2D surface table Size
-    uint32_t iMax3DSurfaceTableSize;    // [in] Max 3D surface table Size
-    uint32_t iMaxArgsPerKernel;         // [in] Max arguments per kernel
-    uint32_t iMaxArgByteSizePerKernel;  // [in] Max argument size in byte per kernel
-    uint32_t iMaxSurfacesPerKernel;     // [in] Max Surfaces Per Kernel
-    uint32_t iMaxSamplersPerKernel;     // [in] Max Samplers per kernel
-    uint32_t iMaxHwThreads;             // [in] Max HW threads
-    uint32_t iMaxUserThreadsPerTask;    // [in] Max user threads per task
-    uint32_t iMaxUserThreadsPerTaskNoThreadArg;  // [in] Max user threads per task with no thread arg
+    uint32_t maxTasks;                 // [in] Max Tasks
+    uint32_t maxKernelsPerTask;        // [in] Max kernels per task
+    uint32_t maxKernelBinarySize;      // [in] Max kernel binary size
+    uint32_t maxSpillSizePerHwThread;  // [in] Max spill size per thread
+    uint32_t maxSamplerTableSize;      // [in] Max sampler table size
+    uint32_t maxBufferTableSize;       // [in] Max buffer/bufferUP table Size
+    uint32_t max2DSurfaceTableSize;    // [in] Max 2D surface table Size
+    uint32_t max3DSurfaceTableSize;    // [in] Max 3D surface table Size
+    uint32_t maxArgsPerKernel;         // [in] Max arguments per kernel
+    uint32_t maxArgByteSizePerKernel;  // [in] Max argument size in byte per kernel
+    uint32_t maxSurfacesPerKernel;     // [in] Max Surfaces Per Kernel
+    uint32_t maxSamplersPerKernel;     // [in] Max Samplers per kernel
+    uint32_t maxHwThreads;             // [in] Max HW threads
+    uint32_t maxUserThreadsPerTask;    // [in] Max user threads per task
+    uint32_t maxUserThreadsPerTaskNoThreadArg;  // [in] Max user threads per task with no thread arg
 };
 typedef CM_HAL_MAX_VALUES *PCM_HAL_MAX_VALUES;
 
@@ -155,22 +155,22 @@ typedef CM_HAL_MAX_VALUES *PCM_HAL_MAX_VALUES;
 //-------------------------------------------------------------------------------------------------
 struct CM_HAL_MAX_VALUES_EX
 {
-    uint32_t iMax2DUPSurfaceTableSize;       // [in] Max 2D UP surface table Size
-    uint32_t iMaxSampler8x8TableSize;        // [in] Max sampler 8x8 table size
-    uint32_t iMaxCURBESizePerKernel;         // [in] Max CURBE size per kernel
-    uint32_t iMaxCURBESizePerTask;           // [in] Max CURBE size per task
-    uint32_t iMaxIndirectDataSizePerKernel;  // [in] Max indirect data size per kernel
-    uint32_t iMaxUserThreadsPerMediaWalker;  // [in] Max user threads per media walker
-    uint32_t iMaxUserThreadsPerThreadGroup;  // [in] Max user threads per thread group
+    uint32_t max2DUPSurfaceTableSize;       // [in] Max 2D UP surface table Size
+    uint32_t maxSampler8x8TableSize;        // [in] Max sampler 8x8 table size
+    uint32_t maxCURBESizePerKernel;         // [in] Max CURBE size per kernel
+    uint32_t maxCURBESizePerTask;           // [in] Max CURBE size per task
+    uint32_t maxIndirectDataSizePerKernel;  // [in] Max indirect data size per kernel
+    uint32_t maxUserThreadsPerMediaWalker;  // [in] Max user threads per media walker
+    uint32_t maxUserThreadsPerThreadGroup;  // [in] Max user threads per thread group
 };
 typedef CM_HAL_MAX_VALUES_EX *PCM_HAL_MAX_VALUES_EX;
 
 struct CM_INDIRECT_SURFACE_INFO
 {
-    uint16_t iKind;               // Surface kind, values in CM_ARG_KIND. For now, only support ARG_KIND_SURFACE_1D/ARG_KIND_SURFACE_2D/ARG_KIND_SURFACE_2D_UP
-    uint16_t iSurfaceIndex;       // Surface handle used in driver
-    uint16_t iBindingTableIndex;  // Binding table index
-    uint16_t iNumBTIPerSurf;      // Binding table index count for per surface
+    uint16_t kind;               // Surface kind, values in CM_ARG_KIND. For now, only support ARG_KIND_SURFACE_1D/ARG_KIND_SURFACE_2D/ARG_KIND_SURFACE_2D_UP
+    uint16_t surfaceIndex;       // Surface handle used in driver
+    uint16_t bindingTableIndex;  // Binding table index
+    uint16_t numBTIPerSurf;      // Binding table index count for per surface
 };
 typedef CM_INDIRECT_SURFACE_INFO *PCM_INDIRECT_SURFACE_INFO;
 
@@ -179,10 +179,10 @@ typedef CM_INDIRECT_SURFACE_INFO *PCM_INDIRECT_SURFACE_INFO;
 //*-----------------------------------------------------------------------------
 struct CM_HAL_INDIRECT_DATA_PARAM
 {
-    uint16_t iIndirectDataSize;  // [in] Indirect Data Size
-    uint16_t iSurfaceCount;
-    uint8_t *pIndirectData;      // [in] Pointer to Indirect Data Block
-    PCM_INDIRECT_SURFACE_INFO pSurfaceInfo;
+    uint16_t indirectDataSize;  // [in] Indirect Data Size
+    uint16_t surfaceCount;
+    uint8_t *indirectData;      // [in] Pointer to Indirect Data Block
+    PCM_INDIRECT_SURFACE_INFO surfaceInfo;
 };
 typedef CM_HAL_INDIRECT_DATA_PARAM *PCM_HAL_INDIRECT_DATA_PARAM;
 
@@ -191,16 +191,16 @@ typedef CM_HAL_INDIRECT_DATA_PARAM *PCM_HAL_INDIRECT_DATA_PARAM;
 //------------------------
 struct CM_HAL_CREATE_PARAM
 {
-    bool DisableScratchSpace;           // Flag to disable Scratch Space
-    uint32_t ScratchSpaceSize;          // Size of Scratch Space per HW thread
-    uint32_t MaxTaskNumber;             // Max Task Number
-    bool bRequestSliceShutdown;         // Flag to enable slice shutdown
-    bool bRequestCustomGpuContext;      // Flag to use CUSTOM GPU Context
-    uint32_t KernelBinarySizeinGSH;     // Size to be reserved in GSH for kernel binary
-    bool bDynamicStateHeap;             // Use Dynamic State Heap management
-    bool bDisabledMidThreadPreemption;  // Flag to enable mid thread preemption for GPGPU
-    bool bEnabledKernelDebug;           // Flag  to enable Kernel debug
-    bool bMockRuntimeEnabled;           // Flag to enable mock runtime
+    bool disableScratchSpace;           // Flag to disable Scratch Space
+    uint32_t scratchSpaceSize;          // Size of Scratch Space per HW thread
+    uint32_t maxTaskNumber;             // Max Task Number
+    bool requestSliceShutdown;         // Flag to enable slice shutdown
+    bool requestCustomGpuContext;      // Flag to use CUSTOM GPU Context
+    uint32_t kernelBinarySizeinGSH;     // Size to be reserved in GSH for kernel binary
+    bool dynamicStateHeap;             // Use Dynamic State Heap management
+    bool disabledMidThreadPreemption;  // Flag to enable mid thread preemption for GPGPU
+    bool enabledKernelDebug;           // Flag  to enable Kernel debug
+    bool mockRuntimeEnabled;           // Flag to enable mock runtime
 };
 typedef CM_HAL_CREATE_PARAM *PCM_HAL_CREATE_PARAM;
 
@@ -216,40 +216,40 @@ enum CM_HAL_PIXEL_TYPE
 
 struct CM_HAL_SAMPLER_PARAM
 {
-    uint32_t MagFilter;  // [in]  Mag Filter
-    uint32_t MinFilter;  // [in]  Min Filter
-    uint32_t AddressU;   // [in]  Address U
-    uint32_t AddressV;   // [in]  Address V
-    uint32_t AddressW;   // [in]  Address W
-    uint32_t dwHandle;   // [out] Handle
+    uint32_t magFilter;  // [in]  Mag Filter
+    uint32_t minFilter;  // [in]  Min Filter
+    uint32_t addressU;   // [in]  Address U
+    uint32_t addressV;   // [in]  Address V
+    uint32_t addressW;   // [in]  Address W
+    uint32_t handle;   // [out] Handle
 
-    CM_HAL_PIXEL_TYPE SurfaceFormat;
+    CM_HAL_PIXEL_TYPE surfaceFormat;
     union
     {
-        uint32_t BorderColorRedU;
-        int32_t BorderColorRedS;
-        float BorderColorRedF;
+        uint32_t borderColorRedU;
+        int32_t borderColorRedS;
+        float borderColorRedF;
     };
 
     union
     {
-        uint32_t BorderColorGreenU;
-        int32_t BorderColorGreenS;
-        float BorderColorGreenF;
+        uint32_t borderColorGreenU;
+        int32_t borderColorGreenS;
+        float borderColorGreenF;
     };
 
     union
     {
-        uint32_t BorderColorBlueU;
-        int32_t BorderColorBlueS;
-        float BorderColorBlueF;
+        uint32_t borderColorBlueU;
+        int32_t borderColorBlueS;
+        float borderColorBlueF;
     };
 
     union
     {
-        uint32_t BorderColorAlphaU;
-        int32_t BorderColorAlphaS;
-        float BorderColorAlphaF;
+        uint32_t borderColorAlphaU;
+        int32_t borderColorAlphaS;
+        float borderColorAlphaF;
     };
 };
 typedef CM_HAL_SAMPLER_PARAM *PCM_HAL_SAMPLER_PARAM;
@@ -257,17 +257,17 @@ typedef CM_HAL_SAMPLER_PARAM *PCM_HAL_SAMPLER_PARAM;
 
 struct CM_HAL_SURFACE_ENTRY_INFO_ARRAY
 {
-    uint32_t dwMaxEntryNum;
-    uint32_t dwUsedIndex;
-    PCM_SURFACE_DETAILS pSurfEntryInfos;
-    uint32_t dwGlobalSurfNum;
-    PCM_SURFACE_DETAILS pGlobalSurfInfos;
+    uint32_t maxEntryNum;
+    uint32_t usedIndex;
+    PCM_SURFACE_DETAILS surfEntryInfos;
+    uint32_t globalSurfNum;
+    PCM_SURFACE_DETAILS globalSurfInfos;
 };
 
 struct CM_HAL_SURFACE_ENTRY_INFO_ARRAYS
 {
-    uint32_t dwKrnNum;
-    CM_HAL_SURFACE_ENTRY_INFO_ARRAY *pSurfEntryInfosArray;
+    uint32_t kernelNum;
+    CM_HAL_SURFACE_ENTRY_INFO_ARRAY *surfEntryInfosArray;
 };
 
 //------------------------------------------------------------------------------
@@ -283,8 +283,8 @@ enum CM_BARRIER_MODE
 
 struct CM_SAMPLER_BTI_ENTRY
 {
-    uint32_t iSamplerIndex;
-    uint32_t iSamplerBTI;
+    uint32_t samplerIndex;
+    uint32_t samplerBTI;
 };
 typedef CM_SAMPLER_BTI_ENTRY *PCM_SAMPLER_BTI_ENTRY;
 
@@ -313,23 +313,23 @@ enum CM_QUERY_TYPE
 //*-----------------------------------------------------------------------------
 struct CM_QUERY_CAPS
 {
-    CM_QUERY_TYPE Type;
+    CM_QUERY_TYPE type;
     union
     {
-        int32_t iVersion;
+        int32_t version;
         HANDLE hRegistration;
-        CM_HAL_MAX_VALUES MaxValues;
-        CM_HAL_MAX_VALUES_EX MaxValuesEx;
-        uint32_t MaxVmeTableSize;
+        CM_HAL_MAX_VALUES maxValues;
+        CM_HAL_MAX_VALUES_EX maxValuesEx;
+        uint32_t maxVmeTableSize;
         uint32_t genCore;
         uint32_t genGT;
-        uint32_t MinRenderFreq;
-        uint32_t MaxRenderFreq;
+        uint32_t minRenderFreq;
+        uint32_t maxRenderFreq;
         uint32_t genStepId;
-        uint32_t GPUCurrentFreq;
-        uint32_t Surface2DCount;
-        GMM_RESOURCE_FORMAT *pSurface2DFormats;
-        CM_PLATFORM_INFO PlatformInfo;
+        uint32_t gpuCurrentFreq;
+        uint32_t surface2DCount;
+        GMM_RESOURCE_FORMAT *surface2DFormats;
+        CM_PLATFORM_INFO platformInfo;
     };
 };
 typedef CM_QUERY_CAPS *PCM_QUERY_CAPS;
@@ -350,16 +350,16 @@ enum CM_HAL_TASK_STATUS
 //------------------------------------------------------------------------------
 struct CM_HAL_QUERY_TASK_PARAM
 {
-    int32_t iTaskId;                        // [in]  Task ID
-    uint32_t uiTaskType;                    // [in]  Task type
-    CM_QUEUE_CREATE_OPTION queueOption;     // [in]  Queue type
-    CM_HAL_TASK_STATUS status;              // [out] Task Status
-    uint64_t iTaskDuration;                 // [out] Task Duration 
-    uint64_t iTaskTickDuration;             // [out] Task Duration in Ticks
-    LARGE_INTEGER iTaskGlobalCMSubmitTime;  // [out] The CM task submission time in CPU
-    LARGE_INTEGER iTaskCMSubmitTimeStamp;   // [out] The CM task submission time in GPU
-    LARGE_INTEGER iTaskHWStartTimeStamp;    // [out] The task start execution time in GPU
-    LARGE_INTEGER iTaskHWEndTimeStamp;      // [out] The task end execution time in GPU
+    int32_t taskId;                        // [in]  Task ID
+    uint32_t taskType;                     // [in]  Task type
+    CM_QUEUE_CREATE_OPTION queueOption;    // [in]  Queue type
+    CM_HAL_TASK_STATUS status;             // [out] Task Status
+    uint64_t taskDurationNs;               // [out] Task Duration 
+    uint64_t taskDurationTicks;            // [out] Task Duration in Ticks
+    LARGE_INTEGER taskGlobalSubmitTimeCpu; // [out] The CM task submission time in CPU
+    LARGE_INTEGER taskSubmitTimeGpu;       // [out] The CM task submission time in GPU
+    LARGE_INTEGER taskHWStartTimeStamp;    // [out] The task start execution time in GPU
+    LARGE_INTEGER taskHWEndTimeStamp;      // [out] The task end execution time in GPU
 };
 typedef CM_HAL_QUERY_TASK_PARAM *PCM_HAL_QUERY_TASK_PARAM;
 
@@ -368,41 +368,41 @@ typedef CM_HAL_QUERY_TASK_PARAM *PCM_HAL_QUERY_TASK_PARAM;
 //*-----------------------------------------------------------------------------
 struct CM_HAL_EXEC_TASK_GROUP_PARAM
 {
-    PCM_HAL_KERNEL_PARAM *pKernels;  // [in]  Array of Kernel data
-    uint32_t *piKernelSizes;         // [in]  Parallel array of Kernel Size
-    uint32_t iNumKernels;            // [in]  Number of Kernels in a task
-    int32_t  iTaskIdOut;             // [out] Task ID
+    PCM_HAL_KERNEL_PARAM *kernels;   // [in]  Array of Kernel data
+    uint32_t *kernelSizes;         // [in]  Parallel array of Kernel Size
+    uint32_t numKernels;             // [in]  Number of Kernels in a task
+    int32_t  taskIdOut;              // [out] Task ID
     uint32_t threadSpaceWidth;       // [in]  thread space width within group
     uint32_t threadSpaceHeight;      // [in]  thread space height within group
     uint32_t threadSpaceDepth;       // [in]  thread space depth within group
     uint32_t groupSpaceWidth;        // [in]  group space width
     uint32_t groupSpaceHeight;       // [in]  group space height
     uint32_t groupSpaceDepth;        // [in]  group space depth
-    uint32_t iSLMSize;               // [in]  SLM size per thread group in 1KB unit
-    CM_HAL_SURFACE_ENTRY_INFO_ARRAYS SurEntryInfoArrays;  // [in]  GT-PIN
-    void *OsData;                    // [out] Used for Linux OS data to pass to event
-    uint64_t uiSyncBitmap;           // [in]  synchronization flag among kernels
-    bool bGlobalSurfaceUsed;         // [in]  is global surface used
-    uint32_t *piKernelCurbeOffset;   // [in]  Array of Kernel Curbe Offset
-    bool bKernelDebugEnabled;        // [in] kernel debug is enabled
+    uint32_t slmSize;                // [in]  SLM size per thread group in 1KB unit
+    CM_HAL_SURFACE_ENTRY_INFO_ARRAYS surEntryInfoArrays;  // [in]  GT-PIN
+    void *osData;                    // [out] Used for Linux OS data to pass to event
+    uint64_t syncBitmap;             // [in]  synchronization flag among kernels
+    bool globalSurfaceUsed;          // [in]  is global surface used
+    uint32_t *kernelCurbeOffset;   // [in]  Array of Kernel Curbe Offset
+    bool kernelDebugEnabled;         // [in] kernel debug is enabled
     CM_TASK_CONFIG taskConfig;       // [in] task Config
-    void *user_defined_media_state;  // [in] pointer to a user defined media state heap block
+    void *userDefinedMediaState;     // [in] pointer to a user defined media state heap block
     CM_QUEUE_CREATE_OPTION queueOption;  // [in] multiple contexts queue option
 };
 typedef CM_HAL_EXEC_TASK_GROUP_PARAM *PCM_HAL_EXEC_GROUP_TASK_PARAM;
 
 struct CM_HAL_EXEC_HINTS_TASK_PARAM
 {
-    PCM_HAL_KERNEL_PARAM *pKernels;     // [in]  Array of kernel data
-    uint32_t *piKernelSizes;            // [in]  Parallel array of kernel size
-    uint32_t iNumKernels;               // [in]  Number of kernels in a task
-    int32_t iTaskIdOut;                 // [out] Task ID
-    uint32_t iHints;                    // [in]  Hints
-    uint32_t iNumTasksGenerated;        // [in] Number of task generated already for split task
-    bool isLastTask;                    // [in] Used to split tasks
-    void *OsData;                       // [out] Used for Linux OS data to pass to event
-    uint32_t *piKernelCurbeOffset;      // [in]  Kernel Curbe offset
-    void *user_defined_media_state;     // [in]  pointer to a user defined media state heap block
+    PCM_HAL_KERNEL_PARAM *kernels;     // [in]  Array of kernel data
+    uint32_t *kernelSizes;           // [in]  Parallel array of kernel size
+    uint32_t numKernels;               // [in]  Number of kernels in a task
+    int32_t taskIdOut;                 // [out] Task ID
+    uint32_t hints;                    // [in]  Hints
+    uint32_t numTasksGenerated;        // [in] Number of task generated already for split task
+    bool isLastTask;                   // [in] Used to split tasks
+    void *osData;                      // [out] Used for Linux OS data to pass to event
+    uint32_t *kernelCurbeOffset;     // [in]  Kernel Curbe offset
+    void *userDefinedMediaState;       // [in]  pointer to a user defined media state heap block
     CM_QUEUE_CREATE_OPTION queueOption;  // [in] multiple contexts queue option
 };
 typedef CM_HAL_EXEC_HINTS_TASK_PARAM *PCM_HAL_EXEC_HINTS_TASK_PARAM;
@@ -450,8 +450,8 @@ struct CM_HAL_CONDITIONAL_BB_END_INFO
     uint32_t bufferTableIndex;
     uint32_t offset;
     uint32_t compareValue;
-    bool  bDisableCompareMask;
-    bool  bEndCurrentLevel;
+    bool  disableCompareMask;
+    bool  endCurrentLevel;
     uint32_t  operatorCode;
 };
 typedef CM_HAL_CONDITIONAL_BB_END_INFO *PCM_HAL_CONDITIONAL_BB_END_INFO;
@@ -459,32 +459,32 @@ typedef CM_HAL_CONDITIONAL_BB_END_INFO *PCM_HAL_CONDITIONAL_BB_END_INFO;
 
 struct CM_HAL_EXEC_TASK_PARAM
 {
-    PCM_HAL_KERNEL_PARAM *pKernels;  // [in]  Array of Kernel data
-    uint32_t *piKernelSizes;         // [in]  Parallel array of Kernel Size
-    uint32_t iNumKernels;            // [in]  Number of Kernels in a task
-    int32_t iTaskIdOut;              // [out] Task ID
-    CM_HAL_SCOREBOARD **ppThreadCoordinates;  // [in]  Scoreboard(x,y)
-    CM_DEPENDENCY_PATTERN DependencyPattern;  // [in]  pattern
+    PCM_HAL_KERNEL_PARAM *kernels;  // [in]  Array of Kernel data
+    uint32_t *kernelSizes;         // [in]  Parallel array of Kernel Size
+    uint32_t numKernels;            // [in]  Number of Kernels in a task
+    int32_t taskIdOut;              // [out] Task ID
+    CM_HAL_SCOREBOARD **threadCoordinates;  // [in]  Scoreboard(x,y)
+    CM_DEPENDENCY_PATTERN dependencyPattern;  // [in]  pattern
     uint32_t threadSpaceWidth;       // [in]  width
     uint32_t threadSpaceHeight;      // [in]  height
-    CM_HAL_SURFACE_ENTRY_INFO_ARRAYS SurEntryInfoArrays;  // [out] Used by GT-Pin
-    void *OsData;                    // [out] Used for Linux OS data to pass to event
-    uint32_t ColorCountMinusOne;                // [in]
-    PCM_HAL_MASK_AND_RESET *ppDependencyMasks;  // [in]  media object thread dependency masks
-    uint64_t uiSyncBitmap;                      // [in] bit map for sync b/w kernels
-    bool bGlobalSurfaceUsed;                    // [in] if global surface used
-    uint32_t *piKernelCurbeOffset;              // [in]  array of kernel's curbe offset
-    CM_WALKING_PATTERN WalkingPattern;          // [in]  media walking pattern
+    CM_HAL_SURFACE_ENTRY_INFO_ARRAYS surfEntryInfoArrays;  // [out] Used by GT-Pin
+    void *osData;                    // [out] Used for Linux OS data to pass to event
+    uint32_t colorCountMinusOne;                // [in]
+    PCM_HAL_MASK_AND_RESET *dependencyMasks;  // [in]  media object thread dependency masks
+    uint64_t syncBitmap;                      // [in] bit map for sync b/w kernels
+    bool globalSurfaceUsed;                    // [in] if global surface used
+    uint32_t *kernelCurbeOffset;              // [in]  array of kernel's curbe offset
+    CM_WALKING_PATTERN walkingPattern;          // [in]  media walking pattern
     uint8_t walkingParamsValid;                 // [in] for engineering build
     CM_WALKING_PARAMETERS walkingParams;        // [in] for engineering build
     uint8_t dependencyVectorsValid;             // [in] for engineering build
     CM_HAL_DEPENDENCY dependencyVectors;        // [in] for engineering build
-    CM_MW_GROUP_SELECT MediaWalkerGroupSelect;  // [in]
-    bool bKernelDebugEnabled;                   // [in] kernel debug is enabled
-    uint64_t uiConditionalEndBitmap;            // [in] bit map for conditional end b/w kernels
-    CM_HAL_CONDITIONAL_BB_END_INFO ConditionalEndInfo[CM_MAX_CONDITIONAL_END_CMDS];
+    CM_MW_GROUP_SELECT mediaWalkerGroupSelect;  // [in]
+    bool kernelDebugEnabled;                   // [in] kernel debug is enabled
+    uint64_t conditionalEndBitmap;            // [in] bit map for conditional end b/w kernels
+    CM_HAL_CONDITIONAL_BB_END_INFO conditionalEndInfo[CM_MAX_CONDITIONAL_END_CMDS];
     CM_TASK_CONFIG taskConfig;                  // [in] task Config
-    void *user_defined_media_state;             // [in] pointer to a user defined media state heap block
+    void *userDefinedMediaState;             // [in] pointer to a user defined media state heap block
     CM_QUEUE_CREATE_OPTION queueOption;         // [in] multiple contexts queue option
 };
 typedef CM_HAL_EXEC_TASK_PARAM *PCM_HAL_EXEC_TASK_PARAM;
@@ -495,34 +495,34 @@ typedef CM_HAL_EXEC_TASK_PARAM *PCM_HAL_EXEC_TASK_PARAM;
 //*-----------------------------------------------------------------------------
 struct CM_HAL_TASK_PARAM
 {
-    uint32_t uiNumKernels;                    // [in] number of kernels
-    uint64_t uiSyncBitmap;                    // [in] Sync bitmap
-    uint32_t iBatchBufferSize;                // [in] Size of Batch Buffer Needed
-    uint32_t dwVfeCurbeSize;                  // [out] Sum of CURBE Size
-    uint32_t dwUrbEntrySize;                  // [out] Maximum Payload Size
-    CM_HAL_SCOREBOARD **ppThreadCoordinates;  // [in] Scoreboard(x,y)
-    CM_DEPENDENCY_PATTERN DependencyPattern;  // [in] pattern
+    uint32_t numKernels;                    // [in] number of kernels
+    uint64_t syncBitmap;                    // [in] Sync bitmap
+    uint32_t batchBufferSize;               // [in] Size of Batch Buffer Needed
+    uint32_t vfeCurbeSize;                  // [out] Sum of CURBE Size
+    uint32_t urbEntrySize;                  // [out] Maximum Payload Size
+    CM_HAL_SCOREBOARD **threadCoordinates;  // [in] Scoreboard(x,y)
+    CM_DEPENDENCY_PATTERN dependencyPattern;  // [in] pattern
     uint32_t threadSpaceWidth;                // [in] width
     uint32_t threadSpaceHeight;               // [in] height
     uint32_t groupSpaceWidth;                 // [in] group space width
     uint32_t groupSpaceHeight;                // [in] group space height
-    uint32_t SLMSize;                         // [in] size of SLM
-    CM_HAL_SURFACE_ENTRY_INFO_ARRAYS SurEntryInfoArrays;  // [in] GTPin
-    uint32_t iCurKrnIndex;
-    uint32_t ColorCountMinusOne;          // [in] color count
-    PCM_HAL_MASK_AND_RESET *ppDependencyMasks;  // [in]  Thread dependency masks
+    uint32_t slmSize;                         // [in] size of SLM
+    CM_HAL_SURFACE_ENTRY_INFO_ARRAYS surfEntryInfoArrays;  // [in] GTPin
+    uint32_t curKernelIndex;
+    uint32_t colorCountMinusOne;          // [in] color count
+    PCM_HAL_MASK_AND_RESET *dependencyMasks;  // [in]  Thread dependency masks
     uint8_t reuseBBUpdateMask;            // [in] re-use batch buffer and just update mask
     uint32_t surfacePerBT;                // [out] surface number for binding table
     bool blGpGpuWalkerEnabled;            // [out]
-    CM_WALKING_PATTERN WalkingPattern;    // [in] media walking pattern
-    bool HasBarrier;                      // [in] if there is barrier
+    CM_WALKING_PATTERN walkingPattern;    // [in] media walking pattern
+    bool hasBarrier;                      // [in] if there is barrier
     uint8_t walkingParamsValid;           // [in] for engineering build
     CM_WALKING_PARAMETERS walkingParams;  // [in] for engineering build
     uint8_t dependencyVectorsValid;       // [in] for engineering build
     CM_HAL_DEPENDENCY dependencyVectors;  // [in] for engineering build
-    CM_MW_GROUP_SELECT MediaWalkerGroupSelect;  // [in]
-    uint32_t KernelDebugEnabled;                // [in]
-    uint64_t uiConditionalEndBitmap;            // [in] conditional end bitmap
+    CM_MW_GROUP_SELECT mediaWalkerGroupSelect;  // [in]
+    uint32_t kernelDebugEnabled;                // [in]
+    uint64_t conditionalEndBitmap;            // [in] conditional end bitmap
     CM_HAL_CONDITIONAL_BB_END_INFO
     conditionalEndInfo[CM_MAX_CONDITIONAL_END_CMDS];  // [in] conditional BB end info used to fill conditionalBBEndParams
 
@@ -530,16 +530,16 @@ struct CM_HAL_TASK_PARAM
     conditionalBBEndParams[CM_MAX_CONDITIONAL_END_CMDS];
 
     CM_TASK_CONFIG taskConfig;       // [in] task Config
-    void *user_defined_media_state;  // [in] pointer to a user defined media state heap block
+    void *userDefinedMediaState;  // [in] pointer to a user defined media state heap block
 
     // [in] each kernel's sampler heap offset from the DSH sampler heap base 
-    unsigned int sampler_offsets_by_kernel[CM_MAX_KERNELS_PER_TASK];
+    unsigned int samplerOffsetsByKernel[CM_MAX_KERNELS_PER_TASK];
  
     // [in] each kernel's sampler count 
-    unsigned int sampler_counts_by_kernel[CM_MAX_KERNELS_PER_TASK];
+    unsigned int samplerCountsByKernel[CM_MAX_KERNELS_PER_TASK];
 
     // [in] each kernel's indirect sampler heap offset from the DSH sampler heap base  
-    unsigned int sampler_indirect_offsets_by_kernel[CM_MAX_KERNELS_PER_TASK];
+    unsigned int samplerIndirectOffsetsByKernel[CM_MAX_KERNELS_PER_TASK];
 };
 typedef CM_HAL_TASK_PARAM *PCM_HAL_TASK_PARAM;
 
@@ -558,7 +558,7 @@ enum CM_HAL_BB_DIRTY_STATUS
 struct CM_HAL_WAVEFRONT26Z_DISPATCH_INFO
 {
     uint32_t numWaves;
-    uint32_t *pNumThreadsInWave;
+    uint32_t *numThreadsInWave;
 };
 
 
@@ -567,11 +567,11 @@ struct CM_HAL_WAVEFRONT26Z_DISPATCH_INFO
 //*-----------------------------------------------------------------------------
 struct CM_HAL_KERNEL_THREADSPACE_PARAM
 {
-    uint16_t iThreadSpaceWidth;             // [in] Kernel Threadspace width
-    uint16_t iThreadSpaceHeight;            // [in] Kernel Threadspace height
+    uint16_t threadSpaceWidth;             // [in] Kernel Threadspace width
+    uint16_t threadSpaceHeight;            // [in] Kernel Threadspace height
     CM_DEPENDENCY_PATTERN patternType;      // [in] Kernel dependency as enum
     CM_HAL_DEPENDENCY dependencyInfo;       // [in] Kernel dependency
-    PCM_HAL_SCOREBOARD pThreadCoordinates;  // [in]
+    PCM_HAL_SCOREBOARD threadCoordinates;  // [in]
     uint8_t reuseBBUpdateMask;              // [in]
     CM_HAL_WAVEFRONT26Z_DISPATCH_INFO dispatchInfo;  // [in]
     uint8_t globalDependencyMask;           // [in] dependency mask in gloabal dependency vectors
@@ -581,7 +581,7 @@ struct CM_HAL_KERNEL_THREADSPACE_PARAM
     CM_HAL_DEPENDENCY dependencyVectors;    // [in] for engineering build
     uint32_t colorCountMinusOne;            // [in] for color count minus one
     CM_MW_GROUP_SELECT groupSelect;         // [in] for group select on BDW+
-    CM_HAL_BB_DIRTY_STATUS BBdirtyStatus;   // [in] batch buffer dirty status
+    CM_HAL_BB_DIRTY_STATUS bbDirtyStatus;   // [in] batch buffer dirty status
     CM_WALKING_PATTERN walkingPattern;      // [in] media walking pattern as enum
 };
 typedef CM_HAL_KERNEL_THREADSPACE_PARAM *PCM_HAL_KERNEL_THREADSPACE_PARAM;
@@ -658,16 +658,16 @@ enum CM_HAL_KERNEL_ARG_KIND
 //*-----------------------------------------------------------------------------
 struct CM_HAL_KERNEL_ARG_PARAM
 {
-    CM_HAL_KERNEL_ARG_KIND Kind;  // [in] Kind of argument
-    uint32_t iUnitCount;          // [in] 1 if argument is kernel arg, otherwise equal to thread count
-    uint32_t iUnitSize;       // [in] Unit Size of the argument 
-    uint32_t iPayloadOffset;  // [in] Offset to Thread Payload
-    bool bPerThread;          // [in] Per kernel / per thread argument
-    uint8_t *pFirstValue;     // [in] Byte Pointer to First Value.
+    CM_HAL_KERNEL_ARG_KIND kind;  // [in] Kind of argument
+    uint32_t unitCount;          // [in] 1 if argument is kernel arg, otherwise equal to thread count
+    uint32_t unitSize;       // [in] Unit Size of the argument 
+    uint32_t payloadOffset;  // [in] Offset to Thread Payload
+    bool perThread;          // [in] Per kernel / per thread argument
+    uint8_t *firstValue;     // [in] Byte Pointer to First Value.
     uint32_t nCustomValue;    // [in] CM defined value for the special kind of argument
-    uint32_t iAliasIndex;     // [in] Alias index, used for CmSurface2D alias
-    bool bAliasCreated;       // [in] Whether or not alias was created for this argument
-    bool bIsNull;             // [in] Whether this argument is a null surface
+    uint32_t aliasIndex;     // [in] Alias index, used for CmSurface2D alias
+    bool aliasCreated;       // [in] Whether or not alias was created for this argument
+    bool isNull;             // [in] Whether this argument is a null surface
 };
 typedef CM_HAL_KERNEL_ARG_PARAM *PCM_HAL_KERNEL_ARG_PARAM;
 
@@ -676,8 +676,8 @@ typedef CM_HAL_KERNEL_ARG_PARAM *PCM_HAL_KERNEL_ARG_PARAM;
 //*-----------------------------------------------------------------------------
 struct CM_HAL_SAMPLER_BTI_ENTRY
 {
-    uint32_t iSamplerIndex;
-    uint32_t iSamplerBTI;
+    uint32_t samplerIndex;
+    uint32_t samplerBTI;
 };
 typedef CM_HAL_SAMPLER_BTI_ENTRY *PCM_HAL_SAMPLER_BTI_ENTRY;
 
@@ -686,8 +686,8 @@ typedef CM_HAL_SAMPLER_BTI_ENTRY *PCM_HAL_SAMPLER_BTI_ENTRY;
 //*-----------------------------------------------------------------------------
 struct CM_HAL_SAMPLER_BTI_PARAM
 {
-    CM_HAL_SAMPLER_BTI_ENTRY SamplerInfo[ CM_MAX_SAMPLER_TABLE_SIZE ];
-    uint32_t iSamplerCount;
+    CM_HAL_SAMPLER_BTI_ENTRY samplerInfo[ CM_MAX_SAMPLER_TABLE_SIZE ];
+    uint32_t samplerCount;
 };
 typedef CM_HAL_SAMPLER_BTI_PARAM *PCM_HAL_SAMPLER_BTI_PARAM;
 
@@ -701,24 +701,24 @@ struct CM_HAL_CLONED_KERNEL_PARAM
 
 struct CM_GPGPU_WALKER_PARAMS
 {
-    uint32_t InterfaceDescriptorOffset : 5;
-    uint32_t CmGpGpuEnable             : 1;
+    uint32_t interfaceDescriptorOffset : 5;
+    uint32_t gpgpuEnabled              : 1;
     uint32_t                           : 26;
-    uint32_t ThreadWidth;
-    uint32_t ThreadHeight;
-    uint32_t ThreadDepth;
-    uint32_t GroupWidth;
-    uint32_t GroupHeight;
-    uint32_t GroupDepth;
+    uint32_t threadWidth;
+    uint32_t threadHeight;
+    uint32_t threadDepth;
+    uint32_t groupWidth;
+    uint32_t groupHeight;
+    uint32_t groupDepth;
 };
 typedef CM_GPGPU_WALKER_PARAMS *PCM_GPGPU_WALKER_PARAMS;
 
 
 struct CM_SAMPLER_STATISTICS
 {
-    uint32_t SamplerCount[MAX_ELEMENT_TYPE_COUNT];
-    uint32_t SamplerMultiplier[MAX_ELEMENT_TYPE_COUNT];  //used for distinguishing whether need to take two 
-    uint32_t Sampler_indexBase[MAX_ELEMENT_TYPE_COUNT];
+    uint32_t samplerCount[MAX_ELEMENT_TYPE_COUNT];
+    uint32_t samplerMultiplier[MAX_ELEMENT_TYPE_COUNT];  //used for distinguishing whether need to take two 
+    uint32_t samplerIndexBase[MAX_ELEMENT_TYPE_COUNT];
 };
 
 //*-----------------------------------------------------------------------------
@@ -726,41 +726,41 @@ struct CM_SAMPLER_STATISTICS
 //*-----------------------------------------------------------------------------
 struct CM_HAL_KERNEL_PARAM
 {
-    CM_HAL_KERNEL_ARG_PARAM CmArgParams[CM_MAX_ARGS_PER_KERNEL];
-    CM_SAMPLER_STATISTICS SamplerStatistics;  // [in] each sampler element type count in the kernel argument
-    uint8_t *pKernelData;            // [in] Pointer to Kernel data
-    uint32_t iKernelDataSize;        // [in] Size of Kernel Data
-    uint8_t *pMovInsData;            // [in] pointer to move instruction data
-    uint32_t iMovInsDataSize;        // [in] size of move instructions
-    uint8_t *pKernelBinary;          // [in] Execution code for the kernel
-    uint32_t iKernelBinarySize;      // [in] Size of Kernel Binary
-    uint32_t iNumThreads;            // [in] Number of threads
-    uint32_t iNumArgs;               // [in] Number of Kernel Args
-    bool bPerThreadArgExisted;
-    uint32_t iNumSurfaces;           // [in] Number of Surfaces used in this kernel
-    uint32_t iPayloadSize;           // [in] Kernel Payload Size
-    uint32_t iKrnCurbeSize;          // [in] total CURBE size, GPGPU
-    uint32_t iCurbeSizePerThread;    // [in] CURBE size per thread
-    uint32_t iCrsThrdConstDataLn;    // [in] Cross-thread constant data length HSW+
-    uint32_t iBarrierMode;           // [in] Barrier mode, 0-No barrier, 1-local barrier, 2-global barrier
-    uint32_t iNumberThreadsInGroup;  // [in] Number of Threads in Thread Group
-    uint32_t iSLMSize;               // [in] SLM size in 1K-Bytes or 4K-Bytes
-    uint32_t iSpillSize;             // [in] Kernel spill area, obtained from JITTER
-    uint32_t dwCmFlags;              // [in] Kernel flags
-    uint64_t uiKernelId;             // [in] Kernel Id
-    CM_HAL_KERNEL_THREADSPACE_PARAM KernelThreadSpaceParam;  // [in] ThreadSpace Information
-    CM_HAL_WALKER_PARAMS WalkerParams;  // [out] Media walker parameters for kernel:filled in HalCm_ParseTask
-    bool bGlobalSurfaceUsed;         // [in] Global surface used
+    CM_HAL_KERNEL_ARG_PARAM argParams[CM_MAX_ARGS_PER_KERNEL];
+    CM_SAMPLER_STATISTICS samplerStatistics;  // [in] each sampler element type count in the kernel argument
+    uint8_t *kernelData;            // [in] Pointer to Kernel data
+    uint32_t kernelDataSize;        // [in] Size of Kernel Data
+    uint8_t *movInsData;            // [in] pointer to move instruction data
+    uint32_t movInsDataSize;        // [in] size of move instructions
+    uint8_t *kernelBinary;          // [in] Execution code for the kernel
+    uint32_t kernelBinarySize;      // [in] Size of Kernel Binary
+    uint32_t numThreads;            // [in] Number of threads
+    uint32_t numArgs;               // [in] Number of Kernel Args
+    bool perThreadArgExisted;
+    uint32_t numSurfaces;           // [in] Number of Surfaces used in this kernel
+    uint32_t payloadSize;           // [in] Kernel Payload Size
+    uint32_t totalCurbeSize;        // [in] total CURBE size, GPGPU
+    uint32_t curbeSizePerThread;    // [in] CURBE size per thread
+    uint32_t crossThreadConstDataLen;    // [in] Cross-thread constant data length HSW+
+    uint32_t barrierMode;           // [in] Barrier mode, 0-No barrier, 1-local barrier, 2-global barrier
+    uint32_t numberThreadsInGroup;  // [in] Number of Threads in Thread Group
+    uint32_t slmSize;               // [in] SLM size in 1K-Bytes or 4K-Bytes
+    uint32_t spillSize;             // [in] Kernel spill area, obtained from JITTER
+    uint32_t cmFlags;              // [in] Kernel flags
+    uint64_t kernelId;             // [in] Kernel Id
+    CM_HAL_KERNEL_THREADSPACE_PARAM kernelThreadSpaceParam;  // [in] ThreadSpace Information
+    CM_HAL_WALKER_PARAMS walkerParams;  // [out] Media walker parameters for kernel:filled in HalCm_ParseTask
+    bool globalSurfaceUsed;         // [in] Global surface used
     uint32_t globalSurface[CM_MAX_GLOBAL_SURFACE_NUMBER];  // [in] Global Surface indexes
-    CM_GPGPU_WALKER_PARAMS GpGpuWalkerParams;
-    bool bKernelDebugEnabled;        // [in] kernel debug is enabled
-    CM_HAL_INDIRECT_DATA_PARAM IndirectDataParam;
-    char pKernelName[ CM_MAX_KERNEL_NAME_SIZE_IN_BYTE ];  // [in] A fixed size array to hold the kernel name
-    CM_HAL_SAMPLER_BTI_PARAM SamplerBTIParam;
-    uint32_t localId_index;           //local ID index has different location with different compiler version
-    CM_HAL_CLONED_KERNEL_PARAM ClonedKernelParam;
-    CM_STATE_BUFFER_TYPE state_buffer_type;
-    std::list<SamplerParam> *sampler_heap;
+    CM_GPGPU_WALKER_PARAMS gpgpuWalkerParams;
+    bool kernelDebugEnabled;        // [in] kernel debug is enabled
+    CM_HAL_INDIRECT_DATA_PARAM indirectDataParam;
+    char kernelName[ CM_MAX_KERNEL_NAME_SIZE_IN_BYTE ];  // [in] A fixed size array to hold the kernel name
+    CM_HAL_SAMPLER_BTI_PARAM samplerBTIParam;
+    uint32_t localIdIndex;           //local ID index has different location with different compiler version
+    CM_HAL_CLONED_KERNEL_PARAM clonedKernelParam;
+    CM_STATE_BUFFER_TYPE stateBufferType;
+    std::list<SamplerParam> *samplerHeap;
 };
 typedef CM_HAL_KERNEL_PARAM *PCM_HAL_KERNEL_PARAM;
 
@@ -775,11 +775,11 @@ enum CM_SET_TYPE
 
 struct CM_HAL_MAX_SET_CAPS_PARAM
 {
-    CM_SET_TYPE Type;
+    CM_SET_TYPE type;
     union
     {
-        uint32_t MaxValue;
-        L3ConfigRegisterValues L3CacheValues;
+        uint32_t maxValue;
+        L3ConfigRegisterValues l3CacheValues;
     };
 
 };
@@ -792,13 +792,13 @@ typedef CM_HAL_MAX_SET_CAPS_PARAM *PCM_HAL_MAX_SET_CAPS_PARAM;
 //------------------------------------------------------------------------------
 typedef struct _CM_HAL_BUFFER_PARAM
 {
-    uint32_t                    iSize;                                          // [in]         Buffer Size
-    CM_BUFFER_TYPE              type;                                           // [in]         Buffer type: Buffer, UP, SVM
-    void                        *pData;                                          // [in/out]     Pointer to data
-    uint32_t                    dwHandle;                                       // [in/out]     Handle
-    uint32_t                    iLockFlag;                                      // [in]         Lock flag
-    PMOS_RESOURCE               pMosResource;                                   // [in]         Mos resource
-    bool                        isAllocatedbyCmrtUmd;                           // [in]         Flag for Cmrt@umd Created Buffer
+    uint32_t                    size;                                          // [in]         Buffer Size
+    CM_BUFFER_TYPE              type;                                          // [in]         Buffer type: Buffer, UP, SVM
+    void                        *data;                                         // [in/out]     Pointer to data
+    uint32_t                    handle;                                        // [in/out]     Handle
+    uint32_t                    lockFlag;                                      // [in]         Lock flag
+    PMOS_RESOURCE               mosResource;                                   // [in]         Mos resource
+    bool                        isAllocatedbyCmrtUmd;                          // [in]         Flag for Cmrt@umd Created Buffer
 } CM_HAL_BUFFER_PARAM, *PCM_HAL_BUFFER_PARAM;
 
 //------------------------------------------------------------------------------
@@ -806,11 +806,11 @@ typedef struct _CM_HAL_BUFFER_PARAM
 //------------------------------------------------------------------------------
 typedef struct _CM_HAL_BUFFER_SURFACE_STATE_PARAM
 {
-    uint32_t                    iSize;                                          // [in]         Surface State Size
-    uint32_t                    iOffset;                                        // [in]         Surface State Base Address Offset
-    uint16_t                    wMOCS;                                          // [in]         Surface State mocs settings
-    uint32_t                    iAliasIndex;                                    // [in]         Surface Alias Index
-    uint32_t                    dwHandle;                                       // [in]         Handle
+    uint32_t                    size;                                          // [in]         Surface State Size
+    uint32_t                    offset;                                        // [in]         Surface State Base Address Offset
+    uint16_t                    mocs;                                          // [in]         Surface State mocs settings
+    uint32_t                    aliasIndex;                                    // [in]         Surface Alias Index
+    uint32_t                    handle;                                       // [in]         Handle
 } CM_HAL_BUFFER_SURFACE_STATE_PARAM, *PCM_HAL_BUFFER_SURFACE_STATE_PARAM;
 
 //------------------------------------------------------------------------------
@@ -818,9 +818,9 @@ typedef struct _CM_HAL_BUFFER_SURFACE_STATE_PARAM
 //------------------------------------------------------------------------------
 typedef struct _CM_HAL_BB_ARGS
 {
-    uint64_t  uiKernelIds[CM_MAX_KERNELS_PER_TASK];  
-    uint64_t  uiRefCount;
-    bool      bLatest;
+    uint64_t  kernelIds[CM_MAX_KERNELS_PER_TASK];  
+    uint64_t  refCount;
+    bool      latest;
 } CM_HAL_BB_ARGS, *PCM_HAL_BB_ARGS;
 
 //------------------------------------------------------------------------------
@@ -828,13 +828,13 @@ typedef struct _CM_HAL_BB_ARGS
 //------------------------------------------------------------------------------
 typedef struct _CM_HAL_SURFACE2D_UP_PARAM
 {
-    uint32_t                    iWidth;                                         // [in]         Surface Width
-    uint32_t                    iHeight;                                        // [in]         Surface Height
+    uint32_t                    width;                                         // [in]         Surface Width
+    uint32_t                    height;                                        // [in]         Surface Height
     MOS_FORMAT                  format;                                         // [in]         Surface Format
-    void                        *pData;                                          // [in/out]     Pointer to data
-    uint32_t                    iPitch;                                         // [out]        Pitch
-    uint32_t                    iPhysicalSize;                                  // [out]        Physical size
-    uint32_t                    dwHandle;                                       // [in/out]     Handle
+    void                        *data;                                          // [in/out]     Pointer to data
+    uint32_t                    pitch;                                         // [out]        Pitch
+    uint32_t                    physicalSize;                                  // [out]        Physical size
+    uint32_t                    handle;                                       // [in/out]     Handle
 } CM_HAL_SURFACE2D_UP_PARAM, *PCM_HAL_SURFACE2D_UP_PARAM;
 
 
@@ -843,12 +843,12 @@ typedef struct _CM_HAL_SURFACE2D_UP_PARAM
 //------------------------------------------------------------------------------
 typedef struct _CM_HAL_SURFACE2D_INFO_PARAM
 {
-    uint32_t                    iWidth;                                         // [out]         Surface Width
-    uint32_t                    iHeight;                                        // [out]         Surface Height
+    uint32_t                    width;                                         // [out]         Surface Width
+    uint32_t                    height;                                        // [out]         Surface Height
     MOS_FORMAT                  format;                                         // [out]         Surface Format
-    uint32_t                    iPitch;                                         // [out]         Pitch
-    UMD_RESOURCE                SurfaceHandle ;                                 // [in]          Driver Handler
-    uint32_t                    SurfaceAllocationIndex;                         // [in]          KMD Driver Handler
+    uint32_t                    pitch;                                         // [out]         Pitch
+    UMD_RESOURCE                surfaceHandle ;                                 // [in]          Driver Handler
+    uint32_t                    surfaceAllocationIndex;                         // [in]          KMD Driver Handler
 } CM_HAL_SURFACE2D_INFO_PARAM, *PCM_HAL_SURFACE2D_INFO_PARAM;
 
 //------------------------------------------------------------------------------
@@ -861,9 +861,9 @@ typedef struct _CM_HAL_SURFACE2D_SURFACE_STATE_PARAM
     uint32_t height;
     uint32_t depth;
     uint32_t pitch;
-    uint16_t memory_object_control;
-    uint32_t surface_x_offset;
-    uint32_t surface_y_offset;
+    uint16_t memoryObjectControl;
+    uint32_t surfaceXOffset;
+    uint32_t surfaceYOffset;
 } CM_HAL_SURFACE2D_SURFACE_STATE_PARAM, *PCM_HAL_SURFACE2D_SURFACE_STATE_PARAM;
 
 //------------------------------------------------------------------------------
@@ -871,13 +871,13 @@ typedef struct _CM_HAL_SURFACE2D_SURFACE_STATE_PARAM
 //------------------------------------------------------------------------------
 typedef struct _CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM
 {
-    uint32_t                    iWidth;                                         // [in]         Surface Width
-    uint32_t                    iHeight;                                        // [in]         Surface Height
-    MOS_FORMAT                  format;                                         // [in]         Surface Format
-    void                        *pData;                                          // [in/out]     Pointer to data
-    uint32_t                    iPitch;                                         // [out]        Pitch
-    uint32_t                    iLockFlag;                                      // [out]        lock flag
-    uint32_t                    dwHandle;                                       // [in/out]     Handle
+    uint32_t                    width;                                       // [in]         Surface Width
+    uint32_t                    height;                                      // [in]         Surface Height
+    MOS_FORMAT                  format;                                      // [in]         Surface Format
+    void                        *data;                                       // [in/out]     Pointer to data
+    uint32_t                    pitch;                                       // [out]        Pitch
+    uint32_t                    lockFlag;                                    // [out]        lock flag
+    uint32_t                    handle;                                      // [in/out]     Handle
 } CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM, *PCM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM;
 
 //*-----------------------------------------------------------------------------
@@ -895,8 +895,8 @@ enum MEMCOMP_STATE
 //------------------------------------------------------------------------------
 typedef struct _CM_HAL_SURFACE2D_COMPRESSION_PARAM
 {
-    uint32_t                    dwHandle;
-    MEMCOMP_STATE               MmcMode;
+    uint32_t                    handle;
+    MEMCOMP_STATE               mmcMode;
 }CM_HAL_SURFACE2D_COMPRESSIOM_PARAM, *PCM_HAL_SURFACE2D_COMPRESSION_PARAM;
 
 //------------------------------------------------------------------------------
@@ -904,14 +904,14 @@ typedef struct _CM_HAL_SURFACE2D_COMPRESSION_PARAM
 //------------------------------------------------------------------------------
 typedef struct _CM_HAL_SURFACE2D_PARAM
 {
-    uint32_t                    isAllocatedbyCmrtUmd;                           // [in]         Flag for Cmrt@umd Created Surface
-    PMOS_RESOURCE               pMosResource;                                   // [in]         Mos resource
-    uint32_t                    iWidth;                                         // [in]         Surface Width
-    uint32_t                    iHeight;                                        // [in]         Surface Height
-    MOS_FORMAT                  format;                                         // [in]         Surface Format
-    void                        *pData;                                          // [in]         PData
-    uint32_t                    iPitch;                                         // [out]        Pitch
-    uint32_t                    dwHandle;                                       // [in/out]     Handle
+    uint32_t                    isAllocatedbyCmrtUmd;                          // [in]         Flag for Cmrt@umd Created Surface
+    PMOS_RESOURCE               mosResource;                                   // [in]         Mos resource
+    uint32_t                    width;                                         // [in]         Surface Width
+    uint32_t                    height;                                        // [in]         Surface Height
+    MOS_FORMAT                  format;                                        // [in]         Surface Format
+    void                        *data;                                         // [in]         PData
+    uint32_t                    pitch;                                         // [out]        Pitch
+    uint32_t                    handle;                                        // [in/out]     Handle
 } CM_HAL_SURFACE2D_PARAM, *PCM_HAL_SURFACE2D_PARAM;
 
 //------------------------------------------------------------------------------
@@ -919,16 +919,16 @@ typedef struct _CM_HAL_SURFACE2D_PARAM
 //------------------------------------------------------------------------------
 typedef struct _CM_HAL_3DRESOURCE_PARAM
 {
-    uint32_t                    iHeight;                                        // [in]       Surface Height
-    uint32_t                    iWidth;                                         // [in]       Surface Width
-    uint32_t                    iDepth;                                         // [in]       Surface Depth
+    uint32_t                    height;                                        // [in]       Surface Height
+    uint32_t                    width;                                         // [in]       Surface Width
+    uint32_t                    depth;                                         // [in]       Surface Depth
     MOS_FORMAT                  format;
-    void                        *pData;                                          // [in/out]   Pointer to data
-    uint32_t                    dwHandle;                                       // [in/out]   Handle
-    uint32_t                    iLockFlag;                                      // [in]       Lock flag
-    uint32_t                    pPitch;                                         // [out]      Pitch of Resource
-    uint32_t                    dwQPitch;                                       // [out]      QPitch of the Resource
-    bool                        bQPitchEnable;                                  // [out]      if QPitch is supported by hw
+    void                        *data;                                         // [in/out]   Pointer to data
+    uint32_t                    handle;                                        // [in/out]   Handle
+    uint32_t                    lockFlag;                                      // [in]       Lock flag
+    uint32_t                    pitch;                                         // [out]      Pitch of Resource
+    uint32_t                    qpitch;                                        // [out]      QPitch of the Resource
+    bool                        qpitchEnabled;                                  // [out]      if QPitch is supported by hw
 } CM_HAL_3DRESOURCE_PARAM, *PCM_HAL_3DRESOURCE_PARAM;
 
 //------------------------------------------------------------------------------
@@ -936,8 +936,8 @@ typedef struct _CM_HAL_3DRESOURCE_PARAM
 //------------------------------------------------------------------------------
 typedef struct _CM_HAL_KERNEL_SETUP
 {
-    RENDERHAL_KERNEL_PARAM  RenderParam;
-    MHW_KERNEL_PARAM        CacheEntry;
+    RENDERHAL_KERNEL_PARAM  renderParam;
+    MHW_KERNEL_PARAM        cacheEntry;
 } CM_HAL_KERNEL_SETUP, *PCM_HAL_KERNEL_SETUP;
 
 
@@ -946,14 +946,14 @@ typedef struct _CM_HAL_KERNEL_SETUP
 //------------------------------------------------------------------------------
 typedef struct _CM_VEBOX_SETTINGS
 {
-    bool    bCmDIEnable;
-    bool    bCmDnDiFirstFrame;
-    bool    bCmIECPEnable;
-    bool    bCmDNEnable;
-    uint32_t DIOutputFrames;
-    bool    bDemosaicEnable;
-    bool    bVignetteEnable;
-    bool    bHotPixelFilterEnable;
+    bool    diEnabled;
+    bool    dndiFirstFrame;
+    bool    iecpEnabled;
+    bool    dnEnabled;
+    uint32_t diOutputFrames;
+    bool    demosaicEnabled;
+    bool    vignetteEnabled;
+    bool    hotPixelFilterEnabled;
 }CM_VEBOX_SETTINGS;
 
 #define VEBOX_SURFACE_NUMBER                 (16)     //MAX
@@ -962,24 +962,24 @@ typedef struct _CM_VEBOX_SETTINGS
 #define CM_VEBOX_PARAM_PAGE_NUM    5 
 
 typedef struct _CM_AVS_TABLE_STATE_PARAMS {
-    bool               BypassXAF;
-    bool               BypassYAF;
-    uint8_t            DefaultSharpLvl;
+    bool               bypassXAF;
+    bool               bypassYAF;
+    uint8_t            defaultSharpLevel;
     uint8_t            maxDerivative4Pixels;
     uint8_t            maxDerivative8Pixels;
     uint8_t            transitionArea4Pixels;
     uint8_t            transitionArea8Pixels;
-    CM_AVS_COEFF_TABLE Tbl0X[ NUM_POLYPHASE_TABLES ];
-    CM_AVS_COEFF_TABLE Tbl0Y[ NUM_POLYPHASE_TABLES ];
-    CM_AVS_COEFF_TABLE Tbl1X[ NUM_POLYPHASE_TABLES ];
-    CM_AVS_COEFF_TABLE Tbl1Y[ NUM_POLYPHASE_TABLES ];
-    bool               bEnableRGBAdaptive;
-    bool               bAdaptiveFilterAllChannels;
+    CM_AVS_COEFF_TABLE tbl0X[ NUM_POLYPHASE_TABLES ];
+    CM_AVS_COEFF_TABLE tbl0Y[ NUM_POLYPHASE_TABLES ];
+    CM_AVS_COEFF_TABLE tbl1X[ NUM_POLYPHASE_TABLES ];
+    CM_AVS_COEFF_TABLE tbl1Y[ NUM_POLYPHASE_TABLES ];
+    bool               enableRgbAdaptive;
+    bool               adaptiveFilterAllChannels;
 } CM_AVS_TABLE_STATE_PARAMS, *PCM_AVS_TABLE_STATE_PARAMS;
 
 typedef  struct _CM_HAL_AVS_PARAM {
-    MHW_SAMPLER_STATE_AVS_PARAM avs_state;             // [in] avs state table.
-    CM_AVS_TABLE_STATE_PARAMS    avs_table;             // [in] avs table.
+    MHW_SAMPLER_STATE_AVS_PARAM avsState;             // [in] avs state table.
+    CM_AVS_TABLE_STATE_PARAMS   avsTable;             // [in] avs table.
 } CM_HAL_AVS_PARAM, *PCM_HAL_AVS_PARAM;
 
 /*
@@ -1022,16 +1022,16 @@ typedef struct _CM_HAL_CONVOLVE_COEFF_TABLE{
 
 #define CM_NUM_CONVOLVE_ROWS_SKL 31
 typedef struct _CM_HAL_CONVOLVE_STATE_MSG{
-        bool CoeffSize; //true 16-bit, false 8-bit
-        uint8_t SclDwnValue; //Scale down value
-        uint8_t Width; //Kernel Width
-        uint8_t Height; //Kernel Height   
+        bool coeffSize; //true 16-bit, false 8-bit
+        uint8_t scaleDownValue; //Scale down value
+        uint8_t width; //Kernel Width
+        uint8_t height; //Kernel Height   
         //SKL mode
         bool isVertical32Mode;
         bool isHorizontal32Mode;
-        bool skl_mode;  // new added
+        bool sklMode;  // new added
         CM_CONVOLVE_SKL_TYPE nConvolveType;
-        CM_HAL_CONVOLVE_COEFF_TABLE Table[ CM_NUM_CONVOLVE_ROWS_SKL ];
+        CM_HAL_CONVOLVE_COEFF_TABLE table[ CM_NUM_CONVOLVE_ROWS_SKL ];
 } CM_HAL_CONVOLVE_STATE_MSG;
 
 /*
@@ -1133,9 +1133,9 @@ typedef struct _CM_HAL_SAMPLER_8X8_STATE
 {
     CM_HAL_SAMPLER_8X8_TYPE         stateType;             // [in] types of Sampler8x8
     union {
-        CM_HAL_AVS_PARAM            avs_param;             // [in] avs parameters.
-        CM_HAL_CONVOLVE_STATE_MSG   convolve_state;
-        CM_HAL_MISC_STATE           misc_state;
+        CM_HAL_AVS_PARAM            avsParam;             // [in] avs parameters.
+        CM_HAL_CONVOLVE_STATE_MSG   convolveState;
+        CM_HAL_MISC_STATE           miscState;
         //Will add other sampler8x8 types later.
     };
 } CM_HAL_SAMPLER_8X8_STATE;
@@ -1149,19 +1149,19 @@ typedef struct _CM_HAL_SAMPLER_8X8_TABLE
 typedef struct _CM_HAL_SAMPLER_8X8_PARAM
 {
     CM_HAL_SAMPLER_8X8_STATE          sampler8x8State;      // [in]  Sampler8x8 states
-    uint32_t                          dwHandle;             // [out] Handle 
+    uint32_t                          handle;             // [out] Handle 
 } CM_HAL_SAMPLER_8X8_PARAM, *PCM_HAL_SAMPLER_8X8_PARAM;
 
 typedef struct _CM_HAL_SAMPLER_8X8_ENTRY{
     CM_HAL_SAMPLER_8X8_TABLE       sampler8x8State;       // [in]  Sampler8x8 states
-    bool                           bInUse;                // [out] If the entry has been occupied.
+    bool                           inUse;                // [out] If the entry has been occupied.
 } CM_HAL_SAMPLER_8X8_ENTRY, *PCM_HAL_SAMPLER_8X8_ENTRY;
 
 typedef struct _CM_HAL_BUFFER_SURFACE_STATE_ENTRY
 {
-    uint32_t iSurfaceStateSize;
-    uint32_t iSurfaceStateOffset;
-    uint16_t wSurfaceStateMOCS;
+    uint32_t surfaceStateSize;
+    uint32_t surfaceStateOffset;
+    uint16_t surfaceStateMOCS;
 } CM_HAL_BUFFER_SURFACE_STATE_ENTRY, *PCM_HAL_BUFFER_SURFACE_STATE_ENTRY;
 
 //------------------------------------------------------------------------------
@@ -1461,8 +1461,8 @@ typedef struct _CM_HAL_STATE
     PMHW_BATCH_BUFFER           pBatchBuffers;                                  // Array of Batch Buffers                       [*]
     PCM_HAL_TASK_PARAM          pTaskParam;                                     // Pointer to Task Param                        [*]
     PCM_HAL_TASK_TIMESTAMP      pTaskTimeStamp;                                 // Pointer to Task Param
-    CM_HAL_TS_RESOURCE          Render_TsResource;                              // Resource to store timestamps                 [*]
-	CM_HAL_TS_RESOURCE          Vebox_TsResource;                               // Resource to store timestamps                 [*]
+    CM_HAL_TS_RESOURCE          Render_TsResource;                                     // Resource to store timestamps                 [*]
+    CM_HAL_TS_RESOURCE          Vebox_TsResource;                                     // Resource to store timestamps                 [*]
     CM_HAL_TS_RESOURCE          SipResource;                                    // Resource to store debug info                 [*]
     MOS_RESOURCE                CSRResource;                                    // Resource to store CSR info               
     void                        *pTableMem;                                      // Single Memory for all lookup and temp tables [*]

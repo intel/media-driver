@@ -45,10 +45,10 @@ Output:
 \*****************************************************************************/
 CmDynamicArray::CmDynamicArray( const uint32_t initSize )
 {
-    m_pArrayBuffer = nullptr;
+    m_arrayBuffer = nullptr;
 
-    m_UsedSize = 0;
-    m_ActualSize = 0;
+    m_usedSize = 0;
+    m_actualSize = 0;
 
     CreateArray( initSize );
 
@@ -70,9 +70,9 @@ Output:
 \*****************************************************************************/
 CmDynamicArray::CmDynamicArray()
 {
-    m_pArrayBuffer = nullptr;
-    m_UsedSize = 0;
-    m_ActualSize = 0;
+    m_arrayBuffer = nullptr;
+    m_usedSize = 0;
+    m_actualSize = 0;
 }
 /*****************************************************************************\
 
@@ -115,9 +115,9 @@ void* CmDynamicArray::GetElement( const uint32_t index )
 {
     void* element;
 
-    if( m_pArrayBuffer && IsValidIndex( index ) )
+    if( m_arrayBuffer && IsValidIndex( index ) )
     {
-        element = m_pArrayBuffer[ index ];
+        element = m_arrayBuffer[ index ];
     }
     else
     {
@@ -154,9 +154,9 @@ bool CmDynamicArray::SetElement( const uint32_t index, const void* element )
         CreateArray( index + 1 );
     }
 
-    if( m_pArrayBuffer && IsValidIndex( index ) )
+    if( m_arrayBuffer && IsValidIndex( index ) )
     {
-        m_pArrayBuffer[ index ] = (void*)element;
+        m_arrayBuffer[ index ] = (void*)element;
         success = true;
     }
 
@@ -182,7 +182,7 @@ Output:
 
 uint32_t CmDynamicArray::GetSize( void ) 
 {
-    const uint32_t size = m_UsedSize;
+    const uint32_t size = m_usedSize;
     return size;
 }
 
@@ -207,7 +207,7 @@ Output:
 void CmDynamicArray::Delete( void )
 {
     DeleteArray();
-    m_UsedSize = 0;
+    m_usedSize = 0;
 }
 
 
@@ -230,18 +230,18 @@ Output:
 CmDynamicArray& CmDynamicArray::operator= ( const CmDynamicArray &array )
 {
 
-    if( array.m_pArrayBuffer )
+    if( array.m_arrayBuffer )
     {
-        if( m_UsedSize < array.m_UsedSize )
+        if( m_usedSize < array.m_usedSize )
         {
-            CreateArray( array.m_UsedSize );
+            CreateArray( array.m_usedSize );
         }
 
-        if( m_pArrayBuffer && ( m_UsedSize >= array.m_UsedSize ) )
+        if( m_arrayBuffer && ( m_usedSize >= array.m_usedSize ) )
         {
-            for( uint32_t i = 0; i < array.m_UsedSize; i++ )
+            for( uint32_t i = 0; i < array.m_usedSize; i++ )
             {
-                m_pArrayBuffer[i] = array.m_pArrayBuffer[i];
+                m_arrayBuffer[i] = array.m_arrayBuffer[i];
             }
         }
     }
@@ -282,29 +282,29 @@ void CmDynamicArray::CreateArray( const uint32_t size )
             }
 
             CM_ASSERT( actualSize >= size );
-            CM_ASSERT( actualSize > m_ActualSize );
+            CM_ASSERT( actualSize > m_actualSize );
 
             const uint32_t allocSize = actualSize * sizeof(void*);
 
-            void** pArrayBuffer = MOS_NewArray(void*, allocSize);
+            void** arrayBuffer = MOS_NewArray(void*, allocSize);
 
-            if( pArrayBuffer )
+            if( arrayBuffer )
             {
-                CmSafeMemSet( pArrayBuffer, 0, allocSize );
+                CmSafeMemSet( arrayBuffer, 0, allocSize );
 
-                if( m_pArrayBuffer )
+                if( m_arrayBuffer )
                 {
-                    for( uint32_t i = 0; i < m_UsedSize; i++ )
+                    for( uint32_t i = 0; i < m_usedSize; i++ )
                     {
-                        pArrayBuffer[i] = m_pArrayBuffer[i];
+                        arrayBuffer[i] = m_arrayBuffer[i];
                     }
 
                     DeleteArray();
                 }
 
-                m_pArrayBuffer = pArrayBuffer;
-                m_ActualSize = actualSize;
-                m_UsedSize = size;
+                m_arrayBuffer = arrayBuffer;
+                m_actualSize = actualSize;
+                m_usedSize = size;
             }
             else
             {
@@ -315,7 +315,7 @@ void CmDynamicArray::CreateArray( const uint32_t size )
         else
         {
             // Update the array length
-            m_UsedSize = size;
+            m_usedSize = size;
         }
     }
 }
@@ -337,13 +337,13 @@ Output:
 \*****************************************************************************/
 void CmDynamicArray::DeleteArray( void )
 {
-    if( m_pArrayBuffer )
+    if( m_arrayBuffer )
     {
-        MOS_DeleteArray(m_pArrayBuffer);
-        m_pArrayBuffer = nullptr;
+        MOS_DeleteArray(m_arrayBuffer);
+        m_arrayBuffer = nullptr;
     }
 
-    m_ActualSize = 0;
+    m_actualSize = 0;
 }
 
 /*****************************************************************************\
@@ -363,7 +363,7 @@ Output:
 \*****************************************************************************/
 uint32_t CmDynamicArray::GetMaxSize( void )
 {
-    return m_ActualSize;
+    return m_actualSize;
 }
 
 /*****************************************************************************\
@@ -407,7 +407,7 @@ uint32_t CmDynamicArray::GetFirstFreeIndex()
     uint32_t index = 0;
     for(  index = 0; index < GetMaxSize(); index++ )
     {
-        if( m_pArrayBuffer[ index ] == nullptr)
+        if( m_arrayBuffer[ index ] == nullptr)
         { // Find the first free slot in array
             return index;
         }

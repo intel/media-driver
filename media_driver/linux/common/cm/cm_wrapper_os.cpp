@@ -75,17 +75,17 @@ int32_t CreateCmDeviceFromVA(VADriverContextP pVaDrvCtx,
     CM_DDI_CHK_NULL(pCmCtx, "Null pCmCtx!", CM_OUT_OF_HOST_MEMORY);
 
     // init pCmCtx
-    pCmCtx->VphalDrvCtx.bufmgr    = pMediaCtx->pDrmBufMgr;
-    pCmCtx->VphalDrvCtx.fd        = pMediaCtx->fd;
-    pCmCtx->VphalDrvCtx.wRevision = 0;
-    pCmCtx->VphalDrvCtx.iDeviceId = pMediaCtx->iDeviceId;
-    pCmCtx->VphalDrvCtx.SkuTable  = pMediaCtx->SkuTable;
-    pCmCtx->VphalDrvCtx.WaTable   = pMediaCtx->WaTable;
-    pCmCtx->VphalDrvCtx.gtSystemInfo = *(pMediaCtx->pGtSystemInfo);
-    pCmCtx->VphalDrvCtx.platform   = pMediaCtx->platform;
+    pCmCtx->mosCtx.bufmgr    = pMediaCtx->pDrmBufMgr;
+    pCmCtx->mosCtx.fd        = pMediaCtx->fd;
+    pCmCtx->mosCtx.wRevision = 0;
+    pCmCtx->mosCtx.iDeviceId = pMediaCtx->iDeviceId;
+    pCmCtx->mosCtx.SkuTable  = pMediaCtx->SkuTable;
+    pCmCtx->mosCtx.WaTable   = pMediaCtx->WaTable;
+    pCmCtx->mosCtx.gtSystemInfo = *(pMediaCtx->pGtSystemInfo);
+    pCmCtx->mosCtx.platform   = pMediaCtx->platform;
 
     // Create Cm Device
-    hRes = CreateCmDevice(&(pCmCtx->VphalDrvCtx), pCmDev, DevOption);
+    hRes = CreateCmDevice(&(pCmCtx->mosCtx), pCmDev, DevOption);
     if(hRes != CM_SUCCESS)
     {
         MOS_FreeMemAndSetNull(pCmCtx); // free cm ctx
@@ -160,7 +160,7 @@ int32_t DestroyCmDeviceFromVA(VADriverContextP pVaDrvCtx, CmDevice *pCmDev)
     pCmCtx    = (PCM_CONTEXT)DdiMedia_GetContextFromContextID(pVaDrvCtx, VaContextID, &ctxType);
     CM_DDI_CHK_NULL(pCmCtx, "Null pCmCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    CHK_HR(DestroyCmDevice(&(pCmCtx->VphalDrvCtx)));
+    CHK_HR(DestroyCmDevice(&(pCmCtx->mosCtx)));
 
     // remove from context array
     DdiMediaUtil_LockMutex(&pMediaCtx->CmMutex);

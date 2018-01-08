@@ -31,30 +31,30 @@
 
 namespace CMRT_UMD
 {
-int32_t CmThreadGroupSpace::Create(CmDeviceRT* pDevice, uint32_t index, uint32_t thrdSpaceWidth, uint32_t thrdSpaceHeight, uint32_t thrdSpaceDepth,  uint32_t grpSpaceWidth, uint32_t grpSpaceHeight, uint32_t grpSpaceDepth, CmThreadGroupSpace* & pTGS)
+int32_t CmThreadGroupSpace::Create(CmDeviceRT* device, uint32_t index, uint32_t threadSpaceWidth, uint32_t threadSpaceHeight, uint32_t threadSpaceDepth,  uint32_t groupSpaceWidth, uint32_t groupSpaceHeight, uint32_t groupSpaceDepth, CmThreadGroupSpace* & threadGroupSpace)
 {
-    CM_HAL_MAX_VALUES* pHalMaxValues = nullptr;
-    CM_HAL_MAX_VALUES_EX* pHalMaxValuesEx = nullptr;
-    pDevice->GetHalMaxValues(pHalMaxValues, pHalMaxValuesEx);
-    if( (thrdSpaceWidth == 0) || (thrdSpaceHeight == 0) || (thrdSpaceDepth == 0) || (grpSpaceWidth == 0)
-		|| (grpSpaceHeight == 0) || (grpSpaceDepth==0) 
-		|| (thrdSpaceHeight > MAX_THREAD_SPACE_HEIGHT_PERGROUP)
-		|| (thrdSpaceWidth > MAX_THREAD_SPACE_WIDTH_PERGROUP)
-		|| (thrdSpaceDepth > MAX_THREAD_SPACE_DEPTH_PERGROUP)
-        || (thrdSpaceHeight * thrdSpaceWidth  * thrdSpaceDepth > pHalMaxValuesEx->iMaxUserThreadsPerThreadGroup))
+    CM_HAL_MAX_VALUES* halMaxValues = nullptr;
+    CM_HAL_MAX_VALUES_EX* halMaxValuesEx = nullptr;
+    device->GetHalMaxValues(halMaxValues, halMaxValuesEx);
+    if( (threadSpaceWidth == 0) || (threadSpaceHeight == 0) || (threadSpaceDepth == 0) || (groupSpaceWidth == 0)
+		|| (groupSpaceHeight == 0) || (groupSpaceDepth==0) 
+		|| (threadSpaceHeight > MAX_THREAD_SPACE_HEIGHT_PERGROUP)
+		|| (threadSpaceWidth > MAX_THREAD_SPACE_WIDTH_PERGROUP)
+		|| (threadSpaceDepth > MAX_THREAD_SPACE_DEPTH_PERGROUP)
+        || (threadSpaceHeight * threadSpaceWidth  * threadSpaceDepth > halMaxValuesEx->maxUserThreadsPerThreadGroup))
     {
         CM_ASSERTMESSAGE("Error: Exceed thread group size limitation.");
         return CM_INVALID_THREAD_GROUP_SPACE;
     }
 
     int32_t result = CM_SUCCESS;
-    pTGS = new (std::nothrow) CmThreadGroupSpace(pDevice, index, thrdSpaceWidth, thrdSpaceHeight, thrdSpaceDepth, grpSpaceWidth, grpSpaceHeight, grpSpaceDepth);  //YiGe
-    if( pTGS )
+    threadGroupSpace = new (std::nothrow) CmThreadGroupSpace(device, index, threadSpaceWidth, threadSpaceHeight, threadSpaceDepth, groupSpaceWidth, groupSpaceHeight, groupSpaceDepth);
+    if( threadGroupSpace )
     {
-        result = pTGS->Initialize( );
+        result = threadGroupSpace->Initialize( );
         if( result != CM_SUCCESS )
         {
-            CmThreadGroupSpace::Destroy( pTGS);
+            CmThreadGroupSpace::Destroy( threadGroupSpace);
         }
     }
     else
@@ -65,61 +65,61 @@ int32_t CmThreadGroupSpace::Create(CmDeviceRT* pDevice, uint32_t index, uint32_t
     return result;
 }
 
-int32_t CmThreadGroupSpace::Destroy( CmThreadGroupSpace* &pTGS )
+int32_t CmThreadGroupSpace::Destroy( CmThreadGroupSpace* &threadGroupSpace )
 {
-    CmSafeDelete( pTGS );
-    pTGS = nullptr;
+    CmSafeDelete( threadGroupSpace );
+    threadGroupSpace = nullptr;
     return CM_SUCCESS;
 }
 
-int32_t CmThreadGroupSpace::GetThreadGroupSpaceSize(uint32_t & thrdSpaceWidth, 
-                                                uint32_t & thrdSpaceHeight, 
-                                                uint32_t & thrdSpaceDepth,
-                                                uint32_t & grpSpaceWidth, 
-                                                uint32_t & grpSpaceHeight,
-                                                uint32_t & grpSpaceDepth) const
+int32_t CmThreadGroupSpace::GetThreadGroupSpaceSize(uint32_t & threadSpaceWidth, 
+                                                uint32_t & threadSpaceHeight, 
+                                                uint32_t & threadSpaceDepth,
+                                                uint32_t & groupSpaceWidth, 
+                                                uint32_t & groupSpaceHeight,
+                                                uint32_t & groupSpaceDepth) const
 {
-    thrdSpaceWidth = m_threadSpaceWidth;
-    thrdSpaceHeight = m_threadSpaceHeight;
-    thrdSpaceDepth = m_threadSpaceDepth;
-    grpSpaceWidth = m_groupSpaceWidth;
-    grpSpaceHeight = m_groupSpaceHeight;
-    grpSpaceDepth = m_groupSpaceDepth;   
+    threadSpaceWidth = m_threadSpaceWidth;
+    threadSpaceHeight = m_threadSpaceHeight;
+    threadSpaceDepth = m_threadSpaceDepth;
+    groupSpaceWidth = m_groupSpaceWidth;
+    groupSpaceHeight = m_groupSpaceHeight;
+    groupSpaceDepth = m_groupSpaceDepth;   
 
     return CM_SUCCESS;
 }
 
-CmThreadGroupSpace::CmThreadGroupSpace( CmDeviceRT* pCmDev, 
+CmThreadGroupSpace::CmThreadGroupSpace( CmDeviceRT* cmDev, 
                                         uint32_t index,
-                                        uint32_t thrdSpaceWidth, 
-                                        uint32_t thrdSpaceHeight,
-                                        uint32_t thrdSpaceDepth,
-                                        uint32_t grpSpaceWidth, 
-                                        uint32_t grpSpaceHeight,
-                                        uint32_t grpSpaceDepth) :
-                                        m_pCmDev(pCmDev),
-                                        m_threadSpaceWidth(thrdSpaceWidth), 
-                                        m_threadSpaceHeight(thrdSpaceHeight),
-                                        m_threadSpaceDepth(thrdSpaceDepth),
-                                        m_groupSpaceWidth(grpSpaceWidth), 
-                                        m_groupSpaceHeight(grpSpaceHeight),
-                                        m_groupSpaceDepth(grpSpaceDepth),
-                                        m_IndexInTGSArray(index)
+                                        uint32_t threadSpaceWidth, 
+                                        uint32_t threadSpaceHeight,
+                                        uint32_t threadSpaceDepth,
+                                        uint32_t groupSpaceWidth, 
+                                        uint32_t groupSpaceHeight,
+                                        uint32_t groupSpaceDepth) :
+                                        m_cmDev(cmDev),
+                                        m_threadSpaceWidth(threadSpaceWidth), 
+                                        m_threadSpaceHeight(threadSpaceHeight),
+                                        m_threadSpaceDepth(threadSpaceDepth),
+                                        m_groupSpaceWidth(groupSpaceWidth), 
+                                        m_groupSpaceHeight(groupSpaceHeight),
+                                        m_groupSpaceDepth(groupSpaceDepth),
+                                        m_indexInThreadGroupSpaceArray(index)
 {
 }
 
-CmThreadGroupSpace::CmThreadGroupSpace(CmDeviceRT* pCmDev,
+CmThreadGroupSpace::CmThreadGroupSpace(CmDeviceRT* cmDev,
     uint32_t index,
-    uint32_t thrdSpaceWidth,
-    uint32_t thrdSpaceHeight,
-    uint32_t grpSpaceWidth,
-    uint32_t grpSpaceHeight) :
-    m_pCmDev(pCmDev),
-    m_threadSpaceWidth(thrdSpaceWidth),
-    m_threadSpaceHeight(thrdSpaceHeight),
-    m_groupSpaceWidth(grpSpaceWidth),
-    m_groupSpaceHeight(grpSpaceHeight),
-    m_IndexInTGSArray(index)
+    uint32_t threadSpaceWidth,
+    uint32_t threadSpaceHeight,
+    uint32_t groupSpaceWidth,
+    uint32_t groupSpaceHeight) :
+    m_cmDev(cmDev),
+    m_threadSpaceWidth(threadSpaceWidth),
+    m_threadSpaceHeight(threadSpaceHeight),
+    m_groupSpaceWidth(groupSpaceWidth),
+    m_groupSpaceHeight(groupSpaceHeight),
+    m_indexInThreadGroupSpaceArray(index)
 {
 }
 CmThreadGroupSpace::~CmThreadGroupSpace( void )
@@ -133,7 +133,7 @@ int32_t CmThreadGroupSpace::Initialize( void )
 
 uint32_t CmThreadGroupSpace::GetIndexInTGsArray( void )
 {
-    return m_IndexInTGSArray;
+    return m_indexInThreadGroupSpaceArray;
 }
 
 #if CM_LOG_ON

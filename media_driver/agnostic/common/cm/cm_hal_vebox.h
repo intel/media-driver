@@ -33,8 +33,8 @@
 
 struct CM_VEBOX_SURFACE
 {
-    uint16_t wSurfaceIndex;
-    uint16_t wSurfaceCtrlBits;
+    uint16_t surfaceIndex;
+    uint16_t surfaceCtrlBits;
 };
 
 #define VEBOX_SURFACE_NUMBER (16)     //MAX
@@ -47,13 +47,13 @@ typedef CM_VEBOX_SURFACE_DATA *PCM_VEBOX_SURFACE_DATA;
 
 struct CM_HAL_EXEC_VEBOX_TASK_PARAM
 {
-    uint32_t uiVeboxVersion;   // [in] version
+    uint32_t veboxVersion;   // [in] version
     CM_VEBOX_STATE cmVeboxState;
-    void *pVeboxParam;         // CmBuffer, hold the vebox parameters
+    void *veboxParam;         // CmBuffer, hold the vebox parameters
     uint32_t veboxParamIndex;  // vebox parameter surface index (UMD)
-    CM_VEBOX_SURFACE_DATA CmVeboxSurfaceData;
-    int32_t iTaskIdOut;        // [out] Task ID
-    void *OsData;              // [out] Used for Linux OS data to pass to event
+    CM_VEBOX_SURFACE_DATA veboxSurfaceData;
+    int32_t taskIdOut;        // [out] Task ID
+    void *osData;              // [out] Used for Linux OS data to pass to event
 };
 typedef CM_HAL_EXEC_VEBOX_TASK_PARAM *PCM_HAL_EXEC_VEBOX_TASK_PARAM;
 
@@ -78,47 +78,47 @@ enum VEBOX_SURF_USAGE
 //! \brief      build up vebox command sequence
 //! \details     based on passed vebox param to build command sequence and
 //!             put it into command buffer
-//! \param       [in] pState --- CM_HAL_STATE
-//! \param       [in] pExecVeboxParam -- vebox setup params
+//! \param       [in] state --- CM_HAL_STATE
+//! \param       [in] execVeboxParam -- vebox setup params
 //!
 MOS_STATUS HalCm_ExecuteVeboxTask(
-	PCM_HAL_STATE                   pState,           // [in] Pointer to CM State
-	PCM_HAL_EXEC_VEBOX_TASK_PARAM   pExecVeboxParam);
+	PCM_HAL_STATE                   state,           // [in] Pointer to CM State
+	PCM_HAL_EXEC_VEBOX_TASK_PARAM   execVeboxParam);
 
 //!
 //! \brief      Set up vebox surface Param
 //! \details    set up vebox surface state based on parameter based from application
 //!
-//! \param     [in]pState  -- CM_HAL_STATE
-//! \param     [in]pVeboxSurfaceStateCmdParams  -- surface state param struct
+//! \param     [in]state  -- CM_HAL_STATE
+//! \param     [in]veboxSurfaceStateCmdParams  -- surface state param struct
 //!
 MOS_STATUS HalCm_SetVeboxSurfaceStateCmdParams(
-	PCM_HAL_STATE                   pState,
-	PMHW_VEBOX_SURFACE_STATE_CMD_PARAMS   pVeboxSurfaceStateCmdParams);
+	PCM_HAL_STATE                   state,
+	PMHW_VEBOX_SURFACE_STATE_CMD_PARAMS   veboxSurfaceStateCmdParams);
 
 //!
 //! \brief    set vebox DiIecp Command
 //! \details  build up command to start processing the frames specified by
 //!           VEB_SURFACE_STATE using the parameters specified by VEB_DI_STATE
 //!           and VEB_IECP_STATE.
-//!  \param   [in] pState -- HAL_CM_STATE
-//!  \param   [in] pVeboxDiIecpCmdParams  -- DIECP command parameter
-//!  \param   [in] pCmVeboxSurfaceDataInput  -- surface data such as index and control bits
+//!  \param   [in] state -- HAL_CM_STATE
+//!  \param   [in] veboxDiIecpCmdParams  -- DIECP command parameter
+//!  \param   [in] cmVeboxSurfaceDataInput  -- surface data such as index and control bits
 //!
 MOS_STATUS HalCm_SetVeboxDiIecpCmdParams(
-	PCM_HAL_STATE                   pState,
-	PMHW_VEBOX_DI_IECP_CMD_PARAMS   pVeboxDiIecpCmdParams,
-	PCM_VEBOX_SURFACE_DATA       pCmVeboxSurfaceDataInput);
+	PCM_HAL_STATE                   state,
+	PMHW_VEBOX_DI_IECP_CMD_PARAMS   veboxDiIecpCmdParams,
+	PCM_VEBOX_SURFACE_DATA       cmVeboxSurfaceDataInput);
 
 //!
 //| \brief     reset vebox STMM history
 //! \details   Resets the portion of the Vebox STMM surface associated with
 //|            motion history for temporal filtering.
-//| \param     [in] pOsInterface  -- MOS_INTERFACE
-//| \param     [in] pRenderHalSTMMSurface -- RENDERHAL_SURFACE
+//| \param     [in] osInterface  -- MOS_INTERFACE
+//| \param     [in] renderHalSTMMSurface -- RENDERHAL_SURFACE
 //!
 MOS_STATUS HalCm_VeboxInitSTMMHistory(
-	PMOS_INTERFACE          pOsInterface,
-	PRENDERHAL_SURFACE      pRenderHalSTMMSurface);
+	PMOS_INTERFACE          osInterface,
+	PRENDERHAL_SURFACE      renderHalSTMMSurface);
 
 #endif  // #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMHALVEBOX_H_

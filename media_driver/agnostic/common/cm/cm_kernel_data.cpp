@@ -94,7 +94,7 @@ CmKernelData::CmKernelData(  CmKernelRT* pCmKernel ):
     m_IsInUse(true)
 {
    CmSafeMemSet(&m_HalKernelParam, 0, sizeof(CM_HAL_KERNEL_PARAM));
-   m_HalKernelParam.sampler_heap = MOS_New( std::list<SamplerParam> );
+   m_HalKernelParam.samplerHeap = MOS_New( std::list<SamplerParam> );
 }
 
 //*-----------------------------------------------------------------------------
@@ -104,28 +104,28 @@ CmKernelData::CmKernelData(  CmKernelRT* pCmKernel ):
 CmKernelData::~CmKernelData( void )
 {
     //Free memory space for kernel arguments
-    for(uint32_t i = 0; i< m_HalKernelParam.iNumArgs; i++)
+    for(uint32_t i = 0; i< m_HalKernelParam.numArgs; i++)
     {
-        MosSafeDeleteArray(m_HalKernelParam.CmArgParams[i].pFirstValue);
+        MosSafeDeleteArray(m_HalKernelParam.argParams[i].firstValue);
     }
-    for(uint32_t i = m_HalKernelParam.iNumArgs; i< minimum(m_HalKernelParam.iNumArgs+6, CM_MAX_ARGS_PER_KERNEL); i++)
+    for(uint32_t i = m_HalKernelParam.numArgs; i< minimum(m_HalKernelParam.numArgs+6, CM_MAX_ARGS_PER_KERNEL); i++)
     {
-        MosSafeDeleteArray(m_HalKernelParam.CmArgParams[i].pFirstValue);
+        MosSafeDeleteArray(m_HalKernelParam.argParams[i].firstValue);
     }
 
     //Free memory for indirect data
-    MosSafeDeleteArray(m_HalKernelParam.IndirectDataParam.pIndirectData);
-    MosSafeDeleteArray(m_HalKernelParam.IndirectDataParam.pSurfaceInfo);
+    MosSafeDeleteArray(m_HalKernelParam.indirectDataParam.indirectData);
+    MosSafeDeleteArray(m_HalKernelParam.indirectDataParam.surfaceInfo);
 
     //Free memory for thread space param
-    MosSafeDeleteArray(m_HalKernelParam.KernelThreadSpaceParam.dispatchInfo.pNumThreadsInWave);
-    MosSafeDeleteArray(m_HalKernelParam.KernelThreadSpaceParam.pThreadCoordinates);
+    MosSafeDeleteArray(m_HalKernelParam.kernelThreadSpaceParam.dispatchInfo.numThreadsInWave);
+    MosSafeDeleteArray(m_HalKernelParam.kernelThreadSpaceParam.threadCoordinates);
  
     // Free memory for move instructions
-    MosSafeDeleteArray(m_HalKernelParam.pMovInsData);
+    MosSafeDeleteArray(m_HalKernelParam.movInsData);
 
     //Frees memory for sampler heap
-    MosSafeDelete(m_HalKernelParam.sampler_heap);
+    MosSafeDelete(m_HalKernelParam.samplerHeap);
 }
 
 //*-----------------------------------------------------------------------------
@@ -223,7 +223,7 @@ bool CmKernelData::IsInUse()
 //*-----------------------------------------------------------------------------
 uint32_t CmKernelData::GetKernelCurbeSize( void )
 {
-    return m_HalKernelParam.iKrnCurbeSize;
+    return m_HalKernelParam.totalCurbeSize;
 }
 
 //*-----------------------------------------------------------------------------

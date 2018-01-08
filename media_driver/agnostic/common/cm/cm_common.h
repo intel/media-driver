@@ -428,20 +428,20 @@ const CM_QUEUE_CREATE_OPTION CM_DEFAULT_QUEUE_CREATE_OPTION = { CM_QUEUE_TYPE_RE
 //|GT-PIN
 typedef struct _CM_SURFACE_DETAILS
 {
-    uint32_t            dwWidth;    //width of surface
-    uint32_t            dwHeight;   //height of surface, 0 if surface is CmBuffer
-    uint32_t            dwDepth;    //depth of surface, 0 if surface is CmBuffer or CmSurface2D
+    uint32_t            width;                  //width of surface
+    uint32_t            height;                 //height of surface, 0 if surface is CmBuffer
+    uint32_t            depth;                  //depth of surface, 0 if surface is CmBuffer or CmSurface2D
 
-    DdiSurfaceFormat    dwFormat;   //format of surface, UNKNOWN if surface is CmBuffer
-    uint32_t            dwPlaneIndex;//plane Index for this BTI, 0 if surface is not planar surface
+    DdiSurfaceFormat    format;                 //format of surface, UNKNOWN if surface is CmBuffer
+    uint32_t            planeIndex;             //plane Index for this BTI, 0 if surface is not planar surface
 
-    uint32_t            dwPitch;    //pitch of suface, 0 if surface is CmBuffer
-    uint32_t            dwSlicePitch; //pitch of a slice in CmSurface3D, 0 if surface is CmBuffer or CmSurface2D
-    uint32_t            dwSurfaceBaseAddress;
-    uint8_t             u8TiledSurface;//bool
-    uint8_t             u8TileWalk;//bool
-    uint32_t            dwXOffset;
-    uint32_t            dwYOffset;
+    uint32_t            pitch;                  //pitch of suface, 0 if surface is CmBuffer
+    uint32_t            slicePitch;             //pitch of a slice in CmSurface3D, 0 if surface is CmBuffer or CmSurface2D
+    uint32_t            surfaceBaseAddress;
+    uint8_t             tiledSurface;           //bool
+    uint8_t             tileWalk;               //bool
+    uint32_t            xOffset;
+    uint32_t            yOffset;
 }CM_SURFACE_DETAILS,*PCM_SURFACE_DETAILS;
 
 //------------------------------------------------------------------------------

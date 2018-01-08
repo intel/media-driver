@@ -300,7 +300,7 @@ int32_t CmProgramRT::Initialize( void* pCISACode, const uint32_t uiCISACodeSize,
     const char *platform = nullptr;
     
     PCM_HAL_STATE  pCmHalState = \
-        ((PCM_CONTEXT_DATA)m_pCmDev->GetAccelData())->pCmHalState;
+        ((PCM_CONTEXT_DATA)m_pCmDev->GetAccelData())->cmHalState;
     CMCHK_NULL(pCmHalState);
 
     pCmHalState->pCmHalInterface->GetGenPlatformInfo(nullptr, nullptr, &platform);

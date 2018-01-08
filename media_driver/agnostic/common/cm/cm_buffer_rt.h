@@ -41,27 +41,27 @@ public:
     static int32_t Create(uint32_t index,
                           uint32_t handle,
                           uint32_t size,
-                          bool bIsCmCreated,
-                          CmSurfaceManager *pSurfaceManager,
-                          uint32_t uiBufferType,
+                          bool isCmCreated,
+                          CmSurfaceManager *surfaceManager,
+                          uint32_t bufferType,
                           bool isCMRTAllocatedSVM,
-                          void *pSysMem,
-                          CmBuffer_RT* &pSurface,
+                          void *sysMem,
+                          CmBuffer_RT* &surface,
                           bool isConditionalBuffer,
                           uint32_t comparisonValue,
                           bool enableCompareMask = false);
 
-    CM_RT_API int32_t ReadSurface(unsigned char *pSysMem,
-                                  CmEvent *pEvent,
+    CM_RT_API int32_t ReadSurface(unsigned char *sysMem,
+                                  CmEvent *event,
                                   uint64_t sysMemSize = 0xFFFFFFFFFFFFFFFFULL);
 
-    CM_RT_API int32_t WriteSurface(const unsigned char *pSysMem,
-                                   CmEvent * pEvent,
+    CM_RT_API int32_t WriteSurface(const unsigned char *sysMem,
+                                   CmEvent * event,
                                    uint64_t sysMemSize = 0xFFFFFFFFFFFFFFFFULL);
 
-    CM_RT_API int32_t InitSurface(const uint32_t initValue, CmEvent *pEvent);
+    CM_RT_API int32_t InitSurface(const uint32_t initValue, CmEvent *event);
 
-    CM_RT_API int32_t GetIndex(SurfaceIndex *&pIndex);
+    CM_RT_API int32_t GetIndex(SurfaceIndex *&index);
 
     int32_t GetHandle(uint32_t &handle);
 
@@ -69,18 +69,18 @@ public:
     CM_RT_API CM_ENUM_CLASS_TYPE Type() const
     { return CM_ENUM_CLASS_TYPE_CMBUFFER_RT; };
 
-    int32_t SetMemoryObjectControl(MEMORY_OBJECT_CONTROL mem_ctrl,
-                                   MEMORY_TYPE mem_type,
+    int32_t SetMemoryObjectControl(MEMORY_OBJECT_CONTROL memCtrl,
+                                   MEMORY_TYPE memType,
                                    uint32_t age);
 
-    CM_RT_API int32_t GetAddress(void* &pAddr);
+    CM_RT_API int32_t GetAddress(void* &addr);
 
     CM_RT_API int32_t
-    SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL mem_ctrl);
+    SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL memCtrl);
 
     CM_RT_API int32_t
-    SetSurfaceStateParam(SurfaceIndex *pSurfIndex,
-                         const CM_BUFFER_STATE_PARAM *pSSParam);
+    SetSurfaceStateParam(SurfaceIndex *surfIndex,
+                         const CM_BUFFER_STATE_PARAM *bufferStateParam);
 
     int32_t  GetSize(uint32_t &size);
 
@@ -98,9 +98,9 @@ public:
 
     bool IsCompareMaskEnabled();
 
-    uint32_t GetBufferType() { return m_uiBufferType; }
+    uint32_t GetBufferType() { return m_bufferType; }
 
-    int32_t CreateBufferAlias(SurfaceIndex *&pAliasSurfIndex);
+    int32_t CreateBufferAlias(SurfaceIndex *&aliasSurfIndex);
 
     int32_t GetNumAliases(uint32_t &numAliases);
 
@@ -113,11 +113,11 @@ public:
 protected:
     CmBuffer_RT(uint32_t handle,
                 uint32_t size,
-                bool bIsCmCreated,
-                CmSurfaceManager *pSurfaceManager,
-                uint32_t uiBufferType,
+                bool isCmCreated,
+                CmSurfaceManager *surfaceManager,
+                uint32_t bufferType,
                 bool isCMRTAllocatedSVM,
-                void *pSysMem,
+                void *sysMem,
                 bool isConditionalBuffer,
                 uint32_t comparisonValue,
                 bool enableCompareMask = false);
@@ -126,14 +126,14 @@ protected:
 
     int32_t Initialize(uint32_t index);
 
-    uint32_t m_Handle;
+    uint32_t m_handle;
 
-    uint32_t m_Size;
+    uint32_t m_size;
 
-    uint32_t m_uiBufferType;  // SURFACE_TYPE_BUFFER, SURFACE_TYPE_BUFFER_UP,
+    uint32_t m_bufferType;  // SURFACE_TYPE_BUFFER, SURFACE_TYPE_BUFFER_UP,
                               // SURFACE_TYPE_BUFFER_SVM
   
-    void *m_pSysMem;  // nullptr for Buffer, NON-nullptr for BufferUP and BufferSVM
+    void *m_sysMem;  // nullptr for Buffer, NON-nullptr for BufferUP and BufferSVM
 
     bool m_isCMRTAllocatedSVMBuffer;  //0--User provided SVM buffer, 1--CMRT allocated SVM buffer
 
@@ -145,7 +145,7 @@ protected:
 
     uint32_t m_numAliases;  // number of alias indexes
 
-    SurfaceIndex *m_pAliasIndexes[CM_HAL_MAX_NUM_BUFFER_ALIASES];
+    SurfaceIndex *m_aliasIndexes[CM_HAL_MAX_NUM_BUFFER_ALIASES];
 };
 };
 

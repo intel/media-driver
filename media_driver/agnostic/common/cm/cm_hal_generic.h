@@ -77,59 +77,59 @@ enum CM_HAL_WALKER_MODE
 // MHW_WALKER_PARAMS defined in mhw_render.h
 struct CM_HAL_WALKER_PARAMS
 {
-    uint32_t InterfaceDescriptorOffset : 5;
-    uint32_t CmWalkerEnable            : 1;
-    uint32_t ColorCountMinusOne        : 8;
-    uint32_t UseScoreboard             : 1;
-    uint32_t ScoreboardMask            : 8;
-    uint32_t MidLoopUnitX              : 2;
-    uint32_t MidLoopUnitY              : 2;
-    uint32_t MiddleLoopExtraSteps      : 5;
-    uint32_t GroupIdLoopSelect         : 24;
+    uint32_t interfaceDescriptorOffset : 5;
+    uint32_t cmWalkerEnable            : 1;
+    uint32_t colorCountMinusOne        : 8;
+    uint32_t useScoreboard             : 1;
+    uint32_t scoreboardMask            : 8;
+    uint32_t midLoopUnitX              : 2;
+    uint32_t midLoopUnitY              : 2;
+    uint32_t middleLoopExtraSteps      : 5;
+    uint32_t groupIdLoopSelect         : 24;
     uint32_t                           : 8;
 
-    uint32_t InlineDataLength;
-    uint8_t *pInlineData;
-    uint32_t dwLocalLoopExecCount;
-    uint32_t dwGlobalLoopExecCount;
+    uint32_t inlineDataLength;
+    uint8_t *inlineData;
+    uint32_t localLoopExecCount;
+    uint32_t globalLoopExecCount;
 
-    CM_HAL_WALKER_MODE WalkerMode;
-    CM_HAL_WALKER_XY BlockResolution;
-    CM_HAL_WALKER_XY LocalStart;
-    CM_HAL_WALKER_XY LocalEnd;
-    CM_HAL_WALKER_XY LocalOutLoopStride;
-    CM_HAL_WALKER_XY LocalInnerLoopUnit;
-    CM_HAL_WALKER_XY GlobalResolution;
-    CM_HAL_WALKER_XY GlobalStart;
-    CM_HAL_WALKER_XY GlobalOutlerLoopStride;
-    CM_HAL_WALKER_XY GlobalInnerLoopUnit;
+    CM_HAL_WALKER_MODE walkerMode;
+    CM_HAL_WALKER_XY blockResolution;
+    CM_HAL_WALKER_XY localStart;
+    CM_HAL_WALKER_XY localEnd;
+    CM_HAL_WALKER_XY localOutLoopStride;
+    CM_HAL_WALKER_XY localInnerLoopUnit;
+    CM_HAL_WALKER_XY globalResolution;
+    CM_HAL_WALKER_XY globalStart;
+    CM_HAL_WALKER_XY globalOutlerLoopStride;
+    CM_HAL_WALKER_XY globalInnerLoopUnit;
 
-    bool bAddMediaFlush;
-    bool bRequestSingleSlice;
+    bool addMediaFlush;
+    bool requestSingleSlice;
 };
 typedef CM_HAL_WALKER_PARAMS *PCM_HAL_WALKER_PARAMS;
 
 
 struct SamplerParam
 {
-    unsigned int sampler_table_index;
-    unsigned int heap_offset;
+    unsigned int samplerTableIndex;
+    unsigned int heapOffset;
     unsigned int bti;
-    unsigned int bti_stepping;
-    unsigned int bti_multiplier;
-    bool user_defined_bti;
-    bool regular_bti;
-    unsigned int element_type;
+    unsigned int btiStepping;
+    unsigned int btiMultiplier;
+    bool userDefinedBti;
+    bool regularBti;
+    unsigned int elementType;
     unsigned int size;
 };
 
 
 struct CM_SURFACE_BTI_INFO
 {
-    uint32_t dwNormalSurfaceStart;   // start index of normal surface
-    uint32_t dwNormalSurfaceEnd;     // end index of normal surface
-    uint32_t dwReservedSurfaceStart; // start index of reserved surface
-    uint32_t dwReservedSurfaceEnd;   // end index of reserved surface
+    uint32_t normalSurfaceStart;   // start index of normal surface
+    uint32_t normalSurfaceEnd;     // end index of normal surface
+    uint32_t reservedSurfaceStart; // start index of reserved surface
+    uint32_t reservedSurfaceEnd;   // end index of reserved surface
 };
 typedef CM_SURFACE_BTI_INFO *PCM_SURFACE_BTI_INFO;
 
@@ -155,10 +155,10 @@ struct CM_HAL_GENERIC
     }
 
 public:
-    PCM_HAL_STATE m_pCmState;
+    PCM_HAL_STATE m_cmState;
 
-    CM_HAL_GENERIC(PCM_HAL_STATE pCmState):
-        m_pCmState(pCmState),
+    CM_HAL_GENERIC(PCM_HAL_STATE cmState):
+        m_cmState(cmState),
         m_sliceShutdownEnabled(false) {};
 
     virtual ~CM_HAL_GENERIC(){};
@@ -166,87 +166,87 @@ public:
     //!
     //! \brief    Get GPUCopy Kernel's ISA and Size
     //! \details  Get GPUCopy Kernel's ISA and Size
-    //! \param    [out] pIsa
+    //! \param    [out] isa
     //!           pointer to memory of gpucopy isa
-    //! \param    [out] IsaSize
+    //! \param    [out] isaSize
     //!           size of gpucopy isa
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS GetCopyKernelIsa
-                        (void  *&pIsa, uint32_t &IsaSize) = 0;
+                        (void  *&isa, uint32_t &isaSize) = 0;
 
     //!
     //! \brief    Get GPU Surface Initialization Kernel's ISA and Size
     //! \details  Get GPU Surface Initialization Kernel's ISA and Size
-    //! \param    [out] pIsa
+    //! \param    [out] isa
     //!           pointer to memory of gpu initialization isa
-    //! \param    [out] IsaSize
+    //! \param    [out] isaSize
     //!           size of gpu initialization isa
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS GetInitKernelIsa
-                        (void  *&pIsa, uint32_t &IsaSize) = 0;
+                        (void  *&isa, uint32_t &isaSize) = 0;
 
     //!
     //! \brief    Set media walker parameters
     //! \details  Set media walker parameters
     //! \param    [in]  engineeringParams
     //!           engineering params passed by caller
-    //! \param    [in] pWalkerParams
+    //! \param    [in] walkerParams
     //!           pointer to walker paramaeters to set
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS SetMediaWalkerParams(
                         CM_WALKING_PARAMETERS          engineeringParams,
-                        PCM_HAL_WALKER_PARAMS          pWalkerParams) = 0;
+                        PCM_HAL_WALKER_PARAMS          walkerParams) = 0;
 
     //!
     //! \brief    Set Surface Memory Object Control
     //! \details  Convert Memory Object Control bits to RenderHal Surface State
-    //! \param    [in]  wMemObjCtl
-    //!           wMemObjCtl passed by caller
-    //! \param    [in] pParams
+    //! \param    [in]  memObjCtl
+    //!           memObjCtl passed by caller
+    //! \param    [in] params
     //!           pointer to surface state param
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS HwSetSurfaceMemoryObjectControl(
-                        uint16_t                        wMemObjCtl,
-                        PRENDERHAL_SURFACE_STATE_PARAMS pParams) = 0;
+                        uint16_t                        memObjCtl,
+                        PRENDERHAL_SURFACE_STATE_PARAMS params) = 0;
 
     //!
     //! \brief    Register Sampler8x8
     //! \details  Register Sampler8x8
-    //! \param    [in]  pParam
+    //! \param    [in]  param
     //!           pointer to cmhal sampler8x8 param
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS RegisterSampler8x8(
-                        PCM_HAL_SAMPLER_8X8_PARAM    pParam) = 0;
+                        PCM_HAL_SAMPLER_8X8_PARAM    param) = 0;
 
     //!
     //! \brief    Submit commmand to kernel mode driver
     //! \details  Submit commmand to kernel mode driver
-    //! \param    [in]  pBatchBuffer
+    //! \param    [in]  batchBuffer
     //!           pointer to mhw batch buffer to submit
-    //! \param    [in]  iTaskId
+    //! \param    [in]  taskId
     //!           id of task
-    //! \param    [in]  pKernels
+    //! \param    [in]  kernels
     //!           pointer to array of kernel param
-    //! \param    [out]  ppCmdBuffer
+    //! \param    [out]  cmdBuffer
     //!           pointer cmd buffer returned to cm event
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS SubmitCommands(
-                        PMHW_BATCH_BUFFER       pBatchBuffer,
-                        int32_t                 iTaskId,
-                        PCM_HAL_KERNEL_PARAM    *pKernels,
-                        void                    **ppCmdBuffer) = 0;
+                        PMHW_BATCH_BUFFER       batchBuffer,
+                        int32_t                 taskId,
+                        PCM_HAL_KERNEL_PARAM    *kernels,
+                        void                    **cmdBuffer) = 0;
 
     //!
     //! \brief    Update platform information from power option
@@ -254,14 +254,14 @@ public:
     //!           to adjust platform info (EU numbers/Slice number) accordingly.
     //! \param    [in]  platformInfo
     //!           pointer to platform info
-    //! \param    [in]  bEUSaturation
+    //! \param    [in]  euSaturation
     //!           if EU Saturation required.
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS UpdatePlatformInfoFromPower(
                         PCM_PLATFORM_INFO platformInfo,
-                        bool              bEUSaturation) = 0;
+                        bool              euSaturation) = 0;
 
     //!
     //! \brief    Get media walker's max width
@@ -281,22 +281,22 @@ public:
     //! \brief    Get Surface binding table index info
     //! \details  Get Surface binding table index info, including the start/end index of
     //!           reserved surfaces and normal surfaces
-    //! \param    [in]  pBTIinfo
+    //! \param    [in]  btiInfo
     //!           pointer to binding table information
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     virtual MOS_STATUS GetHwSurfaceBTIInfo(
-                       PCM_SURFACE_BTI_INFO pBTIinfo) = 0;
+                       PCM_SURFACE_BTI_INFO btiInfo) = 0;
 
     //!
     //! \brief    Set Suggested L3 Configuration to RenderHal
     //! \details  Set Suggested L3 Configuration to RenderHal
-    //! \param    [in]  L3Conf
+    //! \param    [in]  l3Conf
     //!           index of selected configuration
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     virtual MOS_STATUS SetSuggestedL3Conf(
-                       L3_SUGGEST_CONFIG L3Conf) = 0;
+                       L3_SUGGEST_CONFIG l3Conf) = 0;
 
     //!
     //! \brief    Allocate SIP/CSR Resource for Preemption and Debug
@@ -316,21 +316,21 @@ public:
 
     //!
     //! \brief    Get the platform code and GT type of Gen platform
-    //! \param    [out]  pPlatformID
+    //! \param    [out]  platformID
     //!           pointer to the platform code defined in GPU_PLATFORM
-    //! \param    [out]  pGengt
+    //! \param    [out]  gengt
     //!           pointer to the GT type defined in GPU_GT_PLATFORM
-    //! \param    [out]  ppPlatformStr
+    //! \param    [out]  platformStr
     //!           pointer to platform string
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
-    virtual MOS_STATUS GetGenPlatformInfo(uint32_t *pPlatformID,
-                                                 uint32_t *pGengt,
-                                                 const char **ppPlatformStr)
+    virtual MOS_STATUS GetGenPlatformInfo(uint32_t *platformID,
+                                                 uint32_t *genGT,
+                                                 const char **platformStr)
     {
-        ASSIGN_IF_VALID(pPlatformID, m_platformID);
-        ASSIGN_IF_VALID(pGengt, m_gengt);
-        ASSIGN_IF_VALID(ppPlatformStr, m_pPlatformStr);
+        ASSIGN_IF_VALID(platformID, m_platformID);
+        ASSIGN_IF_VALID(genGT, m_genGT);
+        ASSIGN_IF_VALID(platformStr, m_platformStr);
         return MOS_STATUS_SUCCESS;
     }
 
@@ -340,17 +340,17 @@ public:
     //!           the platform code defined in GPU_PLATFORM
     //! \param    [in]  gengt
     //!           the GT type defined in GPU_GT_PLATFORM
-    //! \param    [in]  pPlatformStr
+    //! \param    [in]  platformStr
     //!           platform string
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     virtual MOS_STATUS SetGenPlatformInfo(uint32_t platformID,
-                                                 uint32_t gengt,
-                                                 const char *pPlatformStr)
+                                                 uint32_t genGT,
+                                                 const char *platformStr)
     {
         m_platformID = platformID;
-        m_gengt = gengt;
-        m_pPlatformStr = pPlatformStr;
+        m_genGT = genGT;
+        m_platformStr = platformStr;
         return MOS_STATUS_SUCCESS;
     }
 
@@ -484,9 +484,9 @@ public:
     //!
     //! \brief    Get Convolution Sampler Index.
     //! \details  Get Convolution Sampler Index.
-    //! \param    [in]  pSamplerParam
+    //! \param    [in]  samplerParam
     //!           pointer to sampler param
-    //! \param    [in]  pSamplerIndexTable
+    //! \param    [in]  samplerIndexTable
     //!           pointer to sampler index table
     //! \param    [in]  nSamp8X8Num
     //!           number of sampler8x8
@@ -494,55 +494,55 @@ public:
     //!           number of conv sampler
     //! \return   Sampler index.
     virtual int32_t GetConvSamplerIndex(
-            PMHW_SAMPLER_STATE_PARAM  pSamplerParam,
-            char                     *pSamplerIndexTable,
+            PMHW_SAMPLER_STATE_PARAM  samplerParam,
+            char                     *samplerIndexTable,
             int32_t                   nSamp8X8Num,
             int32_t                   nSampConvNum) = 0;
 
     //!
     //! \brief    Set L3 values in CM hal layer.
     //! \details  Use the L3 struct to set L3 to different platforms.
-    //! \param    [in]  values_ptr
+    //! \param    [in]  valuesPtr
     //!           pointer to input L3 config values
-    //! \param    [in]  cmhal_l3_cache_ptr
+    //! \param    [in]  cmhalL3CachePtr
     //!           pointer to hal layer L3 config values
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     virtual MOS_STATUS SetL3CacheConfig(
-            const L3ConfigRegisterValues *values_ptr,
-            PCmHalL3Settings cmhal_l3_cache_ptr) = 0;
+            const L3ConfigRegisterValues *valuesPtr,
+            PCmHalL3Settings cmhalL3CachePtr) = 0;
 
     //!
     //! \brief    Get sampler element count for a given sampler type.
     //! \details  Convert the sampler type to how many element for this sampler
     //!           type for current platform.
-    //! \param    [in]  sampler_param_ptr
+    //! \param    [in]  samplerParamPtr
     //!           pointer to the sampler param defined by MHW
-    //! \param    [in,out]  sampler_param
+    //! \param    [in,out]  samplerParam
     //!           Will get sampler size, sampler element type, sampler bti
     //!           stepping and sampler multiplier for this type of sampler
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     virtual MOS_STATUS GetSamplerParamInfoForSamplerType(
-            PMHW_SAMPLER_STATE_PARAM sampler_param_ptr,
-            SamplerParam  &sampler_param) = 0;
+            PMHW_SAMPLER_STATE_PARAM samplerParamPtr,
+            SamplerParam  &samplerParam) = 0;
 
 
     //!
     //! \brief    Get the expected configuration for specific GT
     //! \details  Get the expected configuration for specific GT
-    //! \param    [in]  pExpectedConfig
+    //! \param    [in]  expectedConfig
     //!           pointer to expected config
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS GetExpectedGtSystemConfig(
-        PCM_EXPECTED_GT_SYSTEM_INFO pExpectedConfig) = 0;
+        PCM_EXPECTED_GT_SYSTEM_INFO expectedConfig) = 0;
 
 protected:
     uint32_t m_platformID;
-    uint32_t m_gengt;
-    const char *m_pPlatformStr;
+    uint32_t m_genGT;
+    const char *m_platformStr;
     std::vector<uint32_t> m_cisaGenIDs;
     bool m_sliceShutdownEnabled;
 };

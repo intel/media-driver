@@ -152,70 +152,70 @@ CM_RT_API int32_t CmSurface3DRT::WriteSurface( const unsigned char* pSysMem,
     CM_ASSERT( pCmDev );
     PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)pCmDev->GetAccelData();
 
-    inParam.dwHandle = m_Handle;
-    inParam.pData = (void*)pSysMem; //Any non-nullptr value will work
-    inParam.iWidth = m_Width;
-    inParam.iHeight = m_Height;
-    inParam.iDepth = m_Depth;
-    inParam.iLockFlag = CM_HAL_LOCKFLAG_WRITEONLY;
+    inParam.handle = m_Handle;
+    inParam.data = (void*)pSysMem; //Any non-nullptr value will work
+    inParam.width = m_Width;
+    inParam.height = m_Height;
+    inParam.depth = m_Depth;
+    inParam.lockFlag = CM_HAL_LOCKFLAG_WRITEONLY;
 
     // Lock 3D Resource
     // Lock may fail due to the out of memory/out of page-in in KMD.
     // Touch queue for the buffer/surface data release
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->pCmHalState->pfnLock3DResource(pCmData->pCmHalState, &inParam));
-    CMCHK_NULL(inParam.pData);
+    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->cmHalState->pfnLock3DResource(pCmData->cmHalState, &inParam));
+    CMCHK_NULL(inParam.data);
 
-    uWidthInBytes = inParam.iWidth * pixel;
+    uWidthInBytes = inParam.width * pixel;
 
     //Copy Resource
-    pTempDst    = (uint8_t*)inParam.pData;
+    pTempDst    = (uint8_t*)inParam.data;
     pTempSrc    = (uint8_t*)pSysMem;
-    pRPlane     = (uint8_t*)inParam.pData;
+    pRPlane     = (uint8_t*)inParam.data;
 
     // Only use Qpitch when Qpitch is supported by HW
-    if (inParam.bQPitchEnable)
+    if (inParam.qpitchEnabled)
     {
-        if (inParam.pPitch == uWidthInBytes && inParam.dwQPitch == inParam.iHeight)
+        if (inParam.pitch == uWidthInBytes && inParam.qpitch == inParam.height)
         {
             CmFastMemCopyWC(pTempDst, pTempSrc, (size_t)uSizeInBytes);
         }
         else
         {
-            for (uint32_t uZ = 0; uZ < inParam.iDepth; uZ++)
+            for (uint32_t uZ = 0; uZ < inParam.depth; uZ++)
             {
                 pTempDst = pRPlane;
-                for (uint32_t uY = 0; uY < inParam.iHeight; uY++)
+                for (uint32_t uY = 0; uY < inParam.height; uY++)
                 {
                     CmFastMemCopyWC(pTempDst, pTempSrc, uWidthInBytes);
                     pTempSrc += uWidthInBytes;
-                    pTempDst += inParam.pPitch;
+                    pTempDst += inParam.pitch;
                 }
-                pRPlane += inParam.dwQPitch * inParam.pPitch;
+                pRPlane += inParam.qpitch * inParam.pitch;
             }
         }
     }
     else
     {
-        if (inParam.pPitch == uWidthInBytes)
+        if (inParam.pitch == uWidthInBytes)
         {
             CmFastMemCopyWC(pTempDst, pTempSrc, (size_t)uSizeInBytes);
         }
         else
         {
-            for (uint32_t uZ = 0; uZ < inParam.iDepth; uZ++)
+            for (uint32_t uZ = 0; uZ < inParam.depth; uZ++)
             {
-                for (uint32_t uY = 0; uY < inParam.iHeight; uY++)
+                for (uint32_t uY = 0; uY < inParam.height; uY++)
                 {
                     CmFastMemCopyWC(pTempDst, pTempSrc, uWidthInBytes);
                     pTempSrc += uWidthInBytes;
-                    pTempDst += inParam.pPitch;
+                    pTempDst += inParam.pitch;
                 }
             }
         }
     }
 
     // unlock 3D resource
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->pCmHalState->pfnUnlock3DResource(pCmData->pCmHalState, &inParam));
+    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->cmHalState->pfnUnlock3DResource(pCmData->cmHalState, &inParam));
 
 finish:
     if (hr < CM_MOS_STATUS_CONVERTED_CODE_OFFSET) {
@@ -285,62 +285,62 @@ CM_RT_API int32_t CmSurface3DRT::ReadSurface( unsigned char* pSysMem, CmEvent* p
     CM_ASSERT( pCmDev );
     PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)pCmDev->GetAccelData();
 
-    inParam.dwHandle = m_Handle;
-    inParam.pData = (void*)pSysMem; //Any non-nullptr value will work
-    inParam.iWidth = m_Width;
-    inParam.iHeight = m_Height;
-    inParam.iDepth = m_Depth;
-    inParam.iLockFlag = CM_HAL_LOCKFLAG_READONLY;
+    inParam.handle = m_Handle;
+    inParam.data = (void*)pSysMem; //Any non-nullptr value will work
+    inParam.width = m_Width;
+    inParam.height = m_Height;
+    inParam.depth = m_Depth;
+    inParam.lockFlag = CM_HAL_LOCKFLAG_READONLY;
 
     // Lock 3D Resource
     // Lock may fail due to the out of memory/out of page-in in KMD.
     // Touch queue for the buffer/surface data release
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->pCmHalState->pfnLock3DResource(pCmData->pCmHalState, &inParam));
-    CMCHK_NULL(inParam.pData);
+    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->cmHalState->pfnLock3DResource(pCmData->cmHalState, &inParam));
+    CMCHK_NULL(inParam.data);
 
-    uWidthInBytes = inParam.iWidth * pixel;
+    uWidthInBytes = inParam.width * pixel;
 
     //Copy Resource
     pTempDst    = (uint8_t*)pSysMem;
-    pTempSrc    = (uint8_t*)inParam.pData;
-    pRPlane     = (uint8_t*)inParam.pData;
+    pTempSrc    = (uint8_t*)inParam.data;
+    pRPlane     = (uint8_t*)inParam.data;
 
     // Only use Qpitch when Qpitch is supported by HW
-    if (inParam.bQPitchEnable)
+    if (inParam.qpitchEnabled)
     {
-        if (inParam.pPitch == uWidthInBytes && inParam.dwQPitch == inParam.iHeight)
+        if (inParam.pitch == uWidthInBytes && inParam.qpitch == inParam.height)
         {
             CmFastMemCopyFromWC(pTempDst, pTempSrc, (size_t)uSizeInBytes, GetCpuInstructionLevel());
         }
         else
         {
-            for (uint32_t uZ = 0; uZ < inParam.iDepth; uZ++)
+            for (uint32_t uZ = 0; uZ < inParam.depth; uZ++)
             {
                 pTempSrc = pRPlane;
-                for (uint32_t uY = 0; uY < inParam.iHeight; uY++)
+                for (uint32_t uY = 0; uY < inParam.height; uY++)
                 {
                     CmFastMemCopyFromWC(pTempDst, pTempSrc, uWidthInBytes, GetCpuInstructionLevel());
-                    pTempSrc += inParam.pPitch;
+                    pTempSrc += inParam.pitch;
                     pTempDst += uWidthInBytes;
                 }
-                pRPlane += inParam.dwQPitch * inParam.pPitch;
+                pRPlane += inParam.qpitch * inParam.pitch;
             }
         }
     }
     else
     {
-        if (inParam.pPitch == uWidthInBytes)
+        if (inParam.pitch == uWidthInBytes)
         {
             CmFastMemCopyFromWC(pTempDst, pTempSrc, (size_t)uSizeInBytes, GetCpuInstructionLevel());
         }
         else
         {
-            for (uint32_t uZ = 0; uZ < inParam.iDepth; uZ++)
+            for (uint32_t uZ = 0; uZ < inParam.depth; uZ++)
             {
-                for (uint32_t uY = 0; uY < inParam.iHeight; uY++)
+                for (uint32_t uY = 0; uY < inParam.height; uY++)
                 {
                     CmFastMemCopyFromWC(pTempDst, pTempSrc, uWidthInBytes, GetCpuInstructionLevel());
-                    pTempSrc += inParam.pPitch;
+                    pTempSrc += inParam.pitch;
                     pTempDst += uWidthInBytes;
                 }
             }
@@ -348,7 +348,7 @@ CM_RT_API int32_t CmSurface3DRT::ReadSurface( unsigned char* pSysMem, CmEvent* p
     }
 
     // unlock 3D resource
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->pCmHalState->pfnUnlock3DResource(pCmData->pCmHalState, &inParam));
+    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->cmHalState->pfnUnlock3DResource(pCmData->cmHalState, &inParam));
 
 finish:
     if (hr < CM_MOS_STATUS_CONVERTED_CODE_OFFSET) {
@@ -418,68 +418,68 @@ CM_RT_API int32_t CmSurface3DRT::InitSurface(const uint32_t initValue, CmEvent* 
     uint32_t updatedHeight = 0;
     CMCHK_HR(m_SurfaceMgr->GetPixelBytesAndHeight(m_Width, m_Height, m_Format, sizePerPixel, updatedHeight));
 
-    inParam.dwHandle = m_Handle;
-    inParam.pData = (void*)0x44; //Any non-nullptr value will work
-    inParam.iWidth = m_Width;
-    inParam.iHeight = m_Height;
-    inParam.iDepth = m_Depth;
-    inParam.iLockFlag = CM_HAL_LOCKFLAG_WRITEONLY;
+    inParam.handle = m_Handle;
+    inParam.data = (void*)0x44; //Any non-nullptr value will work
+    inParam.width = m_Width;
+    inParam.height = m_Height;
+    inParam.depth = m_Depth;
+    inParam.lockFlag = CM_HAL_LOCKFLAG_WRITEONLY;
 
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->pCmHalState->pfnLock3DResource(pCmData->pCmHalState, &inParam));
-    CMCHK_NULL(inParam.pData);
+    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->cmHalState->pfnLock3DResource(pCmData->cmHalState, &inParam));
+    CMCHK_NULL(inParam.data);
 
-    uSizeInBytes = inParam.iWidth * inParam.iHeight * inParam.iDepth * sizePerPixel;
-    uWidthInBytes = inParam.iWidth * sizePerPixel;
+    uSizeInBytes = inParam.width * inParam.height * inParam.depth * sizePerPixel;
+    uWidthInBytes = inParam.width * sizePerPixel;
 
     //Copy Resource
-    pTempDst = (uint8_t*)inParam.pData;
-    pRPlane  = (uint8_t*)inParam.pData;
+    pTempDst = (uint8_t*)inParam.data;
+    pRPlane  = (uint8_t*)inParam.data;
 
     // Only use Qpitch when Qpitch is supported by HW
-    if (inParam.bQPitchEnable)
+    if (inParam.qpitchEnabled)
     {
-        if (inParam.pPitch == uWidthInBytes && inParam.dwQPitch == inParam.iHeight)
+        if (inParam.pitch == uWidthInBytes && inParam.qpitch == inParam.height)
         {
             CmDwordMemSet(pTempDst, initValue, uSizeInBytes);
         }
         else
         {
-            for (uint32_t uZ = 0; uZ < inParam.iDepth; uZ++)
+            for (uint32_t uZ = 0; uZ < inParam.depth; uZ++)
             {
                 pTempDst = pRPlane;
-                for (uint32_t uY = 0; uY < inParam.iHeight; uY++)
+                for (uint32_t uY = 0; uY < inParam.height; uY++)
                 {
                     CmDwordMemSet(pTempDst, initValue, uWidthInBytes);
-                    pTempDst += inParam.pPitch;
+                    pTempDst += inParam.pitch;
                 }
-                pRPlane += inParam.dwQPitch * inParam.pPitch;
+                pRPlane += inParam.qpitch * inParam.pitch;
             }
         }
     }
     else
     {
-        if (inParam.pPitch == uWidthInBytes)
+        if (inParam.pitch == uWidthInBytes)
         {
             CmDwordMemSet(pTempDst, initValue, uSizeInBytes);
         }
         else
         {
-            for (uint32_t uZ = 0; uZ < inParam.iDepth; uZ++)
+            for (uint32_t uZ = 0; uZ < inParam.depth; uZ++)
             {
-                for (uint32_t uY = 0; uY < inParam.iHeight; uY++)
+                for (uint32_t uY = 0; uY < inParam.height; uY++)
                 {
                     CmDwordMemSet(pTempDst, initValue, uWidthInBytes);
-                    pTempDst += inParam.pPitch;
+                    pTempDst += inParam.pitch;
                 }
             }
         }
     }
 
     // unlock
-    inParam.pData = nullptr;
-    inParam.dwHandle = m_Handle;
+    inParam.data = nullptr;
+    inParam.handle = m_Handle;
 
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->pCmHalState->pfnUnlock3DResource(pCmData->pCmHalState, &inParam));
+    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->cmHalState->pfnUnlock3DResource(pCmData->cmHalState, &inParam));
 
 finish:
     if (hr < CM_MOS_STATUS_CONVERTED_CODE_OFFSET) {
@@ -502,7 +502,7 @@ int32_t CmSurface3DRT::SetMemoryObjectControl( MEMORY_OBJECT_CONTROL mem_ctrl, M
 
     mocs = (m_MemObjCtrl.mem_ctrl << 8) | (m_MemObjCtrl.mem_type<<4) | m_MemObjCtrl.age;
 
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->pCmHalState->pfnSetSurfaceMOCS(pCmData->pCmHalState, m_Handle, mocs, ARG_KIND_SURFACE_3D));
+    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->cmHalState->pfnSetSurfaceMOCS(pCmData->cmHalState, m_Handle, mocs, ARG_KIND_SURFACE_3D));
 
 finish:
     return hr;
@@ -566,60 +566,60 @@ void CmSurface3DRT::DumpContent(uint32_t kernelNumber, int32_t taskId, uint32_t 
     CM_ASSERT(pCmDev);
     PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)pCmDev->GetAccelData();
 
-    inParam.dwHandle = m_Handle;
-    inParam.pData = (void*)&surface[0];
-    inParam.iWidth = m_Width;
-    inParam.iHeight = m_Height;
-    inParam.iDepth = m_Depth;
-    inParam.iLockFlag = CM_HAL_LOCKFLAG_READONLY;
+    inParam.handle = m_Handle;
+    inParam.data = (void*)&surface[0];
+    inParam.width = m_Width;
+    inParam.height = m_Height;
+    inParam.depth = m_Depth;
+    inParam.lockFlag = CM_HAL_LOCKFLAG_READONLY;
 
-    pCmData->pCmHalState->pfnLock3DResource(pCmData->pCmHalState, &inParam);
-    if (inParam.pData == nullptr)
+    pCmData->cmHalState->pfnLock3DResource(pCmData->cmHalState, &inParam);
+    if (inParam.data == nullptr)
         return;
     pTempDst = (uint8_t*)&surface[0];
-    pTempSrc = (uint8_t*)inParam.pData;
-    pRPlane = (uint8_t*)inParam.pData;
-    if (inParam.bQPitchEnable)
+    pTempSrc = (uint8_t*)inParam.data;
+    pRPlane = (uint8_t*)inParam.data;
+    if (inParam.qpitchEnabled)
     {
-        if (inParam.pPitch == uWidthInBytes && inParam.dwQPitch == inParam.iHeight)
+        if (inParam.pitch == uWidthInBytes && inParam.qpitch == inParam.height)
         {
             CmFastMemCopyFromWC(pTempDst, pTempSrc, (size_t)surfaceSize, GetCpuInstructionLevel());
         }
         else
         {
-            for (uint32_t uZ = 0; uZ < inParam.iDepth; uZ++)
+            for (uint32_t uZ = 0; uZ < inParam.depth; uZ++)
             {
                 pTempSrc = pRPlane;
-                for (uint32_t uY = 0; uY < inParam.iHeight; uY++)
+                for (uint32_t uY = 0; uY < inParam.height; uY++)
                 {
                     CmFastMemCopyFromWC(pTempDst, pTempSrc, uWidthInBytes, GetCpuInstructionLevel());
-                    pTempSrc += inParam.pPitch;
+                    pTempSrc += inParam.pitch;
                     pTempDst += uWidthInBytes;
                 }
-                pRPlane += inParam.dwQPitch * inParam.pPitch;
+                pRPlane += inParam.qpitch * inParam.pitch;
             }
         }
     }
     else
     {
-        if (inParam.pPitch == uWidthInBytes)
+        if (inParam.pitch == uWidthInBytes)
         {
             CmFastMemCopyFromWC(pTempDst, pTempSrc, (size_t)surfaceSize, GetCpuInstructionLevel());
         }
         else
         {
-            for (uint32_t uZ = 0; uZ < inParam.iDepth; uZ++)
+            for (uint32_t uZ = 0; uZ < inParam.depth; uZ++)
             {
-                for (uint32_t uY = 0; uY < inParam.iHeight; uY++)
+                for (uint32_t uY = 0; uY < inParam.height; uY++)
                 {
                     CmFastMemCopyFromWC(pTempDst, pTempSrc, uWidthInBytes, GetCpuInstructionLevel());
-                    pTempSrc += inParam.pPitch;
+                    pTempSrc += inParam.pitch;
                     pTempDst += uWidthInBytes;
                 }
             }
         }
     }
-    pCmData->pCmHalState->pfnUnlock3DResource(pCmData->pCmHalState, &inParam);
+    pCmData->cmHalState->pfnUnlock3DResource(pCmData->cmHalState, &inParam);
 
     outputFileStream.write(&surface[0], surfaceSize);
     outputFileStream.close();

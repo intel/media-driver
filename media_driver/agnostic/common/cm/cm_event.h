@@ -106,7 +106,7 @@ public:
     //!             notification from OS until task finishes. We recommend use 
 	//!	            this API followed by CmEvent::GetExecutionTime when you try 
 	//!             to get GPU HW execution time.
-    //! \param      [out] dwTimeOutMs
+    //! \param      [out] timeOutMs
     //!             Timeout in milliseconds for the waiting, 2000 milliseconds 
     //!             by-default.
     //! \retval     CM_SUCCESS if successfully wait and get notification from 
@@ -119,7 +119,7 @@ public:
     //!             ReadSurface if the dependent event is given.
     //!
     CM_RT_API virtual int32_t
-    WaitForTaskFinished(uint32_t dwTimeOutMs = CM_MAX_TIMEOUT_MS) = 0;
+    WaitForTaskFinished(uint32_t timeOutMs = CM_MAX_TIMEOUT_MS) = 0;
 
     //!
     //! \brief      Gets surface details for GT-Pin.
@@ -157,10 +157,10 @@ public:
     //!             information to get.
     //! \param      [in] paramSize
     //!             Size of the parameter.
-    //! \param      [in] pInputValue
+    //! \param      [in] inputValue
     //!             Pointer pointing to memory where to get kernel index or 
     //!             callback function.
-    //! \param      [out] pValue
+    //! \param      [out] value
     //!             Pointer pointing to memory where the cap information should 
     //!             be returned.
     //! \retval     CM_SUCCESS if get information successfully.
@@ -168,8 +168,8 @@ public:
     //!
     CM_RT_API virtual int32_t GetProfilingInfo(CM_EVENT_PROFILING_INFO infoType,
                                                size_t paramSize,
-                                               void *pInputValue,
-                                               void *pValue) = 0;
+                                               void *inputValue,
+                                               void *value) = 0;
     
     //!
     //! \brief      Query the raw tick time of a task(one kernel or multiples 

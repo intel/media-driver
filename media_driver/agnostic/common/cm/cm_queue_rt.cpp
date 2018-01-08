@@ -166,7 +166,7 @@ CmQueueRT::~CmQueueRT()
 //*-----------------------------------------------------------------------------
 int32_t CmQueueRT::Initialize()
 {
-    PCM_HAL_STATE pCmHalState = ((PCM_CONTEXT_DATA)m_pDevice->GetAccelData())->pCmHalState;
+    PCM_HAL_STATE pCmHalState = ((PCM_CONTEXT_DATA)m_pDevice->GetAccelData())->cmHalState;
     CM_HAL_MAX_VALUES_EX* pHalMaxValuesEx = nullptr;
     CM_RETURN_CODE hr = CM_SUCCESS;
     m_pDevice->GetHalMaxValues(m_pHalMaxValues, pHalMaxValuesEx);
@@ -266,7 +266,7 @@ CM_RT_API int32_t CmQueueRT::Enqueue(
         return CM_FAILURE;
     }
 
-    if( KernelCount > m_pHalMaxValues->iMaxKernelsPerTask )
+    if( KernelCount > m_pHalMaxValues->maxKernelsPerTask )
     {
         CM_ASSERTMESSAGE("Error: Kernel count exceeds max kernel per enqueue.");
         return CM_EXCEED_MAX_KERNEL_PER_ENQUEUE;
@@ -536,7 +536,7 @@ int32_t CmQueueRT::Enqueue_RT( CmKernelRT* pKernelArray[],
 
     if( !threadArgExists )
     {
-        if (totalThreadCount > m_pHalMaxValues->iMaxUserThreadsPerTaskNoThreadArg )
+        if (totalThreadCount > m_pHalMaxValues->maxUserThreadsPerTaskNoThreadArg )
         {
             CM_ASSERTMESSAGE("Error: Maximum number of threads per task exceeded.");
             return CM_EXCEED_MAX_THREAD_AMOUNT_PER_ENQUEUE;
@@ -544,7 +544,7 @@ int32_t CmQueueRT::Enqueue_RT( CmKernelRT* pKernelArray[],
     }
     else
     {
-        if( totalThreadCount > m_pHalMaxValues->iMaxUserThreadsPerTask )
+        if( totalThreadCount > m_pHalMaxValues->maxUserThreadsPerTask )
         {
             CM_ASSERTMESSAGE("Error: Maximum number of threads per task exceeded.");
             return CM_EXCEED_MAX_THREAD_AMOUNT_PER_ENQUEUE;
@@ -716,7 +716,7 @@ CM_RT_API int32_t CmQueueRT::EnqueueWithHints(
         goto finish;
     }
 
-    if( count > m_pHalMaxValues->iMaxKernelsPerTask )
+    if( count > m_pHalMaxValues->maxKernelsPerTask )
     {
         CM_ASSERTMESSAGE("Error: Kernel count exceeds maximum kernel per enqueue.");
         hr = CM_EXCEED_MAX_KERNEL_PER_ENQUEUE;
@@ -1181,7 +1181,7 @@ int32_t CmQueueRT::EnqueueCopyInternal_1Plane(CmSurface2DRT* pSurface,
     CM_GPUCOPY_KERNEL *pGPUCopyKrnParam     = nullptr;
 
     PCM_HAL_STATE   pCmHalState    =        \
-        ((PCM_CONTEXT_DATA)m_pDevice->GetAccelData())->pCmHalState;
+        ((PCM_CONTEXT_DATA)m_pDevice->GetAccelData())->cmHalState;
 
     width_byte    = widthInPixel * sizePerPixel;
 
@@ -1447,7 +1447,7 @@ int32_t CmQueueRT::EnqueueCopyInternal_2Planes(CmSurface2DRT* pSurface,
 
     CM_GPUCOPY_KERNEL *pGPUCopyKrnParam = nullptr;
     PCM_HAL_STATE       pCmHalState    =      \
-        ((PCM_CONTEXT_DATA)m_pDevice->GetAccelData())->pCmHalState;
+        ((PCM_CONTEXT_DATA)m_pDevice->GetAccelData())->cmHalState;
 
     width_byte = widthInPixel * sizePerPixel;
 
@@ -1709,7 +1709,7 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyGPUToGPU( CmSurface2D* pOutputSurface, C
         return CM_FAILURE;
     }
 
-    PCM_HAL_STATE   pCmHalState = ((PCM_CONTEXT_DATA)m_pDevice->GetAccelData())->pCmHalState;
+    PCM_HAL_STATE   pCmHalState = ((PCM_CONTEXT_DATA)m_pDevice->GetAccelData())->cmHalState;
     CmSurface2DRT *pOutputSurfaceRT = static_cast<CmSurface2DRT *>(pOutputSurface);
     CmSurface2DRT *pInputSurfaceRT = static_cast<CmSurface2DRT *>(pInputSurface);
     if (pCmHalState->pCmHalInterface->IsSurfaceCompressionWARequired())
@@ -2029,7 +2029,7 @@ void CmQueueRT::PopTaskFromFlushedQueue()
 
 #if MDF_SURFACE_CONTENT_DUMP
         PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)m_pDevice->GetAccelData();
-        if (pCmData->pCmHalState->bDumpSurfaceContent)
+        if (pCmData->cmHalState->bDumpSurfaceContent)
         {
             int32_t iTaskId = 0;
             if (pEvent != nullptr)
@@ -2115,7 +2115,7 @@ int32_t CmQueueRT::QueryFlushedTasks()
                 CMCHK_NULL(pTopTaskEvent);
 
                 pTopTaskEvent->GetTaskDriverId(iTaskId);
-                pCmData->pCmHalState->pTaskStatusTable[iTaskId] = CM_INVALID_INDEX;
+                pCmData->cmHalState->pTaskStatusTable[iTaskId] = CM_INVALID_INDEX;
 
                 //Pop task and Destroy it
                 PopTaskFromFlushedQueue();
@@ -2336,20 +2336,20 @@ int32_t CmQueueRT::FlushGeneralTask(CmTaskInternal* pTask)
     //GT-PIN
     if(m_pDevice->CheckGTPinEnabled())
     {
-        CMCHK_HR(pTask->GetKernelSurfInfo(param.SurEntryInfoArrays));
+        CMCHK_HR(pTask->GetKernelSurfInfo(param.surfEntryInfoArrays));
     }
 
     pTask->GetKernelCount( count );
-    param.iNumKernels = count;
+    param.numKernels = count;
 
-    param.pKernels = MOS_NewArray(PCM_HAL_KERNEL_PARAM,count);
-    param.piKernelSizes = MOS_NewArray(uint32_t,count);
-    param.piKernelCurbeOffset = MOS_NewArray(uint32_t,count);
+    param.kernels = MOS_NewArray(PCM_HAL_KERNEL_PARAM,count);
+    param.kernelSizes = MOS_NewArray(uint32_t,count);
+    param.kernelCurbeOffset = MOS_NewArray(uint32_t,count);
     param.queueOption = m_queueOption;
 
-    CMCHK_NULL_RETURN(param.pKernels, CM_OUT_OF_HOST_MEMORY);
-    CMCHK_NULL_RETURN(param.piKernelSizes, CM_OUT_OF_HOST_MEMORY);
-    CMCHK_NULL_RETURN(param.piKernelCurbeOffset, CM_OUT_OF_HOST_MEMORY);
+    CMCHK_NULL_RETURN(param.kernels, CM_OUT_OF_HOST_MEMORY);
+    CMCHK_NULL_RETURN(param.kernelSizes, CM_OUT_OF_HOST_MEMORY);
+    CMCHK_NULL_RETURN(param.kernelCurbeOffset, CM_OUT_OF_HOST_MEMORY);
 
     for( uint32_t i = 0; i < count; i ++ )
     {
@@ -2359,7 +2359,7 @@ int32_t CmQueueRT::FlushGeneralTask(CmTaskInternal* pTask)
         pKernelParam = pKernelData->GetHalCmKernelData();
         CMCHK_NULL(pKernelParam);
 
-        hasThreadArg |= pKernelParam->bPerThreadArgExisted;
+        hasThreadArg |= pKernelParam->perThreadArgExisted;
 
         pTask->GetKernelDataSize( i, kernelDataSize );
         if(kernelDataSize == 0)
@@ -2371,11 +2371,11 @@ int32_t CmQueueRT::FlushGeneralTask(CmTaskInternal* pTask)
 
         pTempData = pKernelData->GetHalCmKernelData();
 
-        param.pKernels[ i ]             = pTempData;
-        param.piKernelSizes[ i ]        = kernelDataSize;
-        param.piKernelCurbeOffset[ i ]  = pTask->GetKernelCurbeOffset(i);
-        param.bGlobalSurfaceUsed       |= pTempData->bGlobalSurfaceUsed;
-        param.bKernelDebugEnabled      |= pTempData->bKernelDebugEnabled;
+        param.kernels[ i ]             = pTempData;
+        param.kernelSizes[ i ]        = kernelDataSize;
+        param.kernelCurbeOffset[ i ]  = pTask->GetKernelCurbeOffset(i);
+        param.globalSurfaceUsed       |= pTempData->globalSurfaceUsed;
+        param.kernelDebugEnabled      |= pTempData->kernelDebugEnabled;
     }
 
     /*
@@ -2407,37 +2407,37 @@ int32_t CmQueueRT::FlushGeneralTask(CmTaskInternal* pTask)
         param.threadSpaceHeight = totalThreadCount/maxTSWidth;
     }
 
-    param.DependencyPattern = CM_NONE_DEPENDENCY;
+    param.dependencyPattern = CM_NONE_DEPENDENCY;
 
     if (pTask->IsThreadSpaceCreated()) //scoreboard data preparation
     {
         if(pTask->IsThreadCoordinatesExisted())
         {
-            param.ppThreadCoordinates = MOS_NewArray(PCM_HAL_SCOREBOARD, count);
-            param.ppDependencyMasks = MOS_NewArray(PCM_HAL_MASK_AND_RESET, count);
+            param.threadCoordinates = MOS_NewArray(PCM_HAL_SCOREBOARD, count);
+            param.dependencyMasks = MOS_NewArray(PCM_HAL_MASK_AND_RESET, count);
 
-            CMCHK_NULL_RETURN(param.ppThreadCoordinates, CM_OUT_OF_HOST_MEMORY);
-            CMCHK_NULL_RETURN(param.ppDependencyMasks, CM_OUT_OF_HOST_MEMORY);
+            CMCHK_NULL_RETURN(param.threadCoordinates, CM_OUT_OF_HOST_MEMORY);
+            CMCHK_NULL_RETURN(param.dependencyMasks, CM_OUT_OF_HOST_MEMORY);
             for(uint32_t i=0; i<count; i++)
             {
                 void *pKernelCoordinates = nullptr;
                 void *pDependencyMasks = nullptr;
                 pTask->GetKernelCoordinates(i, pKernelCoordinates);
                 pTask->GetKernelDependencyMasks(i, pDependencyMasks);
-                param.ppThreadCoordinates[i] = (PCM_HAL_SCOREBOARD)pKernelCoordinates;
-                param.ppDependencyMasks[i] = (PCM_HAL_MASK_AND_RESET)pDependencyMasks;
+                param.threadCoordinates[i] = (PCM_HAL_SCOREBOARD)pKernelCoordinates;
+                param.dependencyMasks[i] = (PCM_HAL_MASK_AND_RESET)pDependencyMasks;
             }
         }
         else
         {
-            param.ppThreadCoordinates = nullptr;
+            param.threadCoordinates = nullptr;
         }
 
-        pTask->GetDependencyPattern(param.DependencyPattern);
+        pTask->GetDependencyPattern(param.dependencyPattern);
 
         pTask->GetThreadSpaceSize(param.threadSpaceWidth, param.threadSpaceHeight);
 
-        pTask->GetWalkingPattern(param.WalkingPattern);
+        pTask->GetWalkingPattern(param.walkingPattern);
 
         if( pTask->CheckWalkingParametersSet( ) )
         {
@@ -2465,21 +2465,21 @@ int32_t CmQueueRT::FlushGeneralTask(CmTaskInternal* pTask)
         hr = CM_INVALID_THREAD_SPACE;
         goto finish;
     }
-    pTask->GetColorCountMinusOne(param.ColorCountMinusOne);
-    pTask->GetMediaWalkerGroupSelect(param.MediaWalkerGroupSelect);
+    pTask->GetColorCountMinusOne(param.colorCountMinusOne);
+    pTask->GetMediaWalkerGroupSelect(param.mediaWalkerGroupSelect);
 
-    param.uiSyncBitmap = pTask->GetSyncBitmap();
-    param.uiConditionalEndBitmap = pTask->GetConditionalEndBitmap();
-    param.user_defined_media_state = pTask->GetMediaStatePtr();
-    CmSafeMemCopy(param.ConditionalEndInfo, pTask->GetConditionalEndInfo(), sizeof(param.ConditionalEndInfo));
+    param.syncBitmap = pTask->GetSyncBitmap();
+    param.conditionalEndBitmap = pTask->GetConditionalEndBitmap();
+    param.userDefinedMediaState = pTask->GetMediaStatePtr();
+    CmSafeMemCopy(param.conditionalEndInfo, pTask->GetConditionalEndInfo(), sizeof(param.conditionalEndInfo));
     CmSafeMemCopy(&param.taskConfig, pTask->GetTaskConfig(), sizeof(param.taskConfig));
     pCmData = (PCM_CONTEXT_DATA)m_pDevice->GetAccelData();
 
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->pCmHalState->pfnSetPowerOption(pCmData->pCmHalState, pTask->GetPowerOption()));
+    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->cmHalState->pfnSetPowerOption(pCmData->cmHalState, pTask->GetPowerOption()));
 
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->pCmHalState->pfnExecuteTask(pCmData->pCmHalState, &param));
+    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->cmHalState->pfnExecuteTask(pCmData->cmHalState, &param));
 
-    if( param.iTaskIdOut < 0 )
+    if( param.taskIdOut < 0 )
     {
         CM_ASSERTMESSAGE("Error: Invalid task ID.");
         hr = CM_FAILURE;
@@ -2490,23 +2490,23 @@ int32_t CmQueueRT::FlushGeneralTask(CmTaskInternal* pTask)
 
     pTask->GetTaskEvent( pEvent );
     CMCHK_NULL(pEvent);
-    CMCHK_HR(pEvent->SetTaskDriverId( param.iTaskIdOut ));
-    CMCHK_HR(pEvent->SetTaskOsData( param.OsData ));
+    CMCHK_HR(pEvent->SetTaskDriverId( param.taskIdOut ));
+    CMCHK_HR(pEvent->SetTaskOsData( param.osData ));
     CMCHK_HR(pTask->ResetKernelDataStatus());
 
     //GT-PIN
     if(m_pDevice->CheckGTPinEnabled())
     {
         //No need to clear the SurEntryInfoArrays here. It will be destored by CmInternalTask
-        CMCHK_HR(pEvent->SetSurfaceDetails(param.SurEntryInfoArrays));
+        CMCHK_HR(pEvent->SetSurfaceDetails(param.surfEntryInfoArrays));
     }
 
 finish:
-    MosSafeDeleteArray( param.pKernels );
-    MosSafeDeleteArray( param.piKernelSizes );
-    MosSafeDeleteArray( param.ppThreadCoordinates);
-    MosSafeDeleteArray( param.ppDependencyMasks);
-    MosSafeDeleteArray( param.piKernelCurbeOffset);
+    MosSafeDeleteArray( param.kernels );
+    MosSafeDeleteArray( param.kernelSizes );
+    MosSafeDeleteArray( param.threadCoordinates);
+    MosSafeDeleteArray( param.dependencyMasks);
+    MosSafeDeleteArray( param.kernelCurbeOffset);
 
     return hr;
 }
@@ -2537,21 +2537,21 @@ int32_t CmQueueRT::FlushGroupTask(CmTaskInternal* pTask)
     //GT-PIN
     if(this->m_pDevice->CheckGTPinEnabled())
     {
-        CMCHK_HR(pTask->GetKernelSurfInfo(param.SurEntryInfoArrays));
+        CMCHK_HR(pTask->GetKernelSurfInfo(param.surEntryInfoArrays));
     }
 
     pTask->GetKernelCount( count );
-    param.iNumKernels = count;
+    param.numKernels = count;
 
-    param.pKernels = MOS_NewArray(PCM_HAL_KERNEL_PARAM, count);
-    param.piKernelSizes = MOS_NewArray(uint32_t, count);
-    param.piKernelCurbeOffset = MOS_NewArray(uint32_t, count);
+    param.kernels = MOS_NewArray(PCM_HAL_KERNEL_PARAM, count);
+    param.kernelSizes = MOS_NewArray(uint32_t, count);
+    param.kernelCurbeOffset = MOS_NewArray(uint32_t, count);
     param.queueOption = m_queueOption;
 
     CmSafeMemCopy(&param.taskConfig, pTask->GetTaskConfig(), sizeof(param.taskConfig));
-    CMCHK_NULL(param.pKernels);
-    CMCHK_NULL(param.piKernelSizes);
-    CMCHK_NULL(param.piKernelCurbeOffset);
+    CMCHK_NULL(param.kernels);
+    CMCHK_NULL(param.kernelSizes);
+    CMCHK_NULL(param.kernelCurbeOffset);
 
     for( uint32_t i = 0; i < count; i ++ )
     {
@@ -2568,15 +2568,15 @@ int32_t CmQueueRT::FlushGroupTask(CmTaskInternal* pTask)
 
         pTempData = pKernelData->GetHalCmKernelData( );
 
-        param.pKernels[ i ]             = pTempData;
-        param.piKernelSizes[ i ]        = kernelDataSize;
-        param.piKernelCurbeOffset [ i ] = pTask->GetKernelCurbeOffset(i);
-        param.bGlobalSurfaceUsed        |= pTempData->bGlobalSurfaceUsed;
-        param.bKernelDebugEnabled       |= pTempData->bKernelDebugEnabled;
+        param.kernels[ i ]             = pTempData;
+        param.kernelSizes[ i ]        = kernelDataSize;
+        param.kernelCurbeOffset [ i ] = pTask->GetKernelCurbeOffset(i);
+        param.globalSurfaceUsed        |= pTempData->globalSurfaceUsed;
+        param.kernelDebugEnabled       |= pTempData->kernelDebugEnabled;
     }
 
-    pTask->GetSLMSize(param.iSLMSize);
-    if(param.iSLMSize > MAX_SLM_SIZE_PER_GROUP_IN_1K)
+    pTask->GetSLMSize(param.slmSize);
+    if(param.slmSize > MAX_SLM_SIZE_PER_GROUP_IN_1K)
     {
         CM_ASSERTMESSAGE("Error: SLM size exceeds the maximum per group.");
         hr = CM_EXCEED_MAX_SLM_SIZE;
@@ -2588,17 +2588,17 @@ int32_t CmQueueRT::FlushGroupTask(CmTaskInternal* pTask)
         pTask->GetThreadGroupSpaceSize(param.threadSpaceWidth, param.threadSpaceHeight, param.threadSpaceDepth, param.groupSpaceWidth, param.groupSpaceHeight, param.groupSpaceDepth);
     }
 
-    param.uiSyncBitmap = pTask->GetSyncBitmap();
-    param.user_defined_media_state = pTask->GetMediaStatePtr();
+    param.syncBitmap = pTask->GetSyncBitmap();
+    param.userDefinedMediaState = pTask->GetMediaStatePtr();
 
     // Call HAL layer to execute pfnExecuteGroupTask
     pCmData = (PCM_CONTEXT_DATA)m_pDevice->GetAccelData();
 
-    CHK_MOSSTATUS_RETURN_CMERROR( pCmData->pCmHalState->pfnSetPowerOption( pCmData->pCmHalState, pTask->GetPowerOption() ) );
+    CHK_MOSSTATUS_RETURN_CMERROR( pCmData->cmHalState->pfnSetPowerOption( pCmData->cmHalState, pTask->GetPowerOption() ) );
 
-    CHK_MOSSTATUS_RETURN_CMERROR( pCmData->pCmHalState->pfnExecuteGroupTask( pCmData->pCmHalState, &param ) );
+    CHK_MOSSTATUS_RETURN_CMERROR( pCmData->cmHalState->pfnExecuteGroupTask( pCmData->cmHalState, &param ) );
 
-    if( param.iTaskIdOut < 0 )
+    if( param.taskIdOut < 0 )
     {
         CM_ASSERTMESSAGE("Error: Invalid task ID.");
         hr = CM_FAILURE;
@@ -2607,20 +2607,20 @@ int32_t CmQueueRT::FlushGroupTask(CmTaskInternal* pTask)
     TASK_LOG(pTask);
     pTask->GetTaskEvent( pEvent );
     CMCHK_NULL( pEvent );
-    CMCHK_HR(pEvent->SetTaskDriverId( param.iTaskIdOut ));
-    CMCHK_HR(pEvent->SetTaskOsData( param.OsData ));
+    CMCHK_HR(pEvent->SetTaskDriverId( param.taskIdOut ));
+    CMCHK_HR(pEvent->SetTaskOsData( param.osData ));
     CMCHK_HR(pTask->ResetKernelDataStatus());
 
     //GT-PIN
     if(this->m_pDevice->CheckGTPinEnabled())
     {
-        CMCHK_HR(pEvent->SetSurfaceDetails(param.SurEntryInfoArrays));
+        CMCHK_HR(pEvent->SetSurfaceDetails(param.surEntryInfoArrays));
     }
 
 finish:
-    MosSafeDeleteArray( param.pKernels );
-    MosSafeDeleteArray( param.piKernelSizes );
-    MosSafeDeleteArray( param.piKernelCurbeOffset);
+    MosSafeDeleteArray( param.kernels );
+    MosSafeDeleteArray( param.kernelSizes );
+    MosSafeDeleteArray( param.kernelCurbeOffset);
 
     return hr;
 }
@@ -2662,17 +2662,17 @@ int32_t CmQueueRT::FlushVeboxTask(CmTaskInternal* pTask)
 
 
     param.cmVeboxState = CmVeboxState;
-    param.pVeboxParam = pVeboxParamBuf;
+    param.veboxParam = pVeboxParamBuf;
 
-    param.CmVeboxSurfaceData = CmVeboxSurfaceData;
+    param.veboxSurfaceData = CmVeboxSurfaceData;
 
     //Set VEBOX task id to -1
-    param.iTaskIdOut = -1;
+    param.taskIdOut = -1;
 
     pCmData = (PCM_CONTEXT_DATA)m_pDevice->GetAccelData();
-    CHK_MOSSTATUS_RETURN_CMERROR( pCmData->pCmHalState->pfnExecuteVeboxTask( pCmData->pCmHalState, &param ) );
+    CHK_MOSSTATUS_RETURN_CMERROR( pCmData->cmHalState->pfnExecuteVeboxTask( pCmData->cmHalState, &param ) );
 
-    if( param.iTaskIdOut < 0 )
+    if( param.taskIdOut < 0 )
     {
         CM_ASSERTMESSAGE("Error: Invalid task ID.");
         hr = CM_FAILURE;
@@ -2681,8 +2681,8 @@ int32_t CmQueueRT::FlushVeboxTask(CmTaskInternal* pTask)
 
     pTask->GetTaskEvent( pEvent );
     CMCHK_NULL( pEvent );
-    CMCHK_HR(pEvent->SetTaskDriverId( param.iTaskIdOut ));
-    CMCHK_HR(pEvent->SetTaskOsData( param.OsData ));
+    CMCHK_HR(pEvent->SetTaskDriverId( param.taskIdOut ));
+    CMCHK_HR(pEvent->SetTaskOsData( param.osData ));
 
 finish:
     return hr;
@@ -2712,19 +2712,19 @@ int32_t CmQueueRT::FlushEnqueueWithHintsTask( CmTaskInternal* pTask )
     CmSafeMemSet( &param, 0, sizeof( CM_HAL_EXEC_HINTS_TASK_PARAM ) );
 
     pTask->GetKernelCount ( count );
-    param.iNumKernels = count;
+    param.numKernels = count;
 
-    param.pKernels = MOS_NewArray(PCM_HAL_KERNEL_PARAM, count);
-    param.piKernelSizes = MOS_NewArray(uint32_t, count);
-    param.piKernelCurbeOffset = MOS_NewArray(uint32_t, count);
+    param.kernels = MOS_NewArray(PCM_HAL_KERNEL_PARAM, count);
+    param.kernelSizes = MOS_NewArray(uint32_t, count);
+    param.kernelCurbeOffset = MOS_NewArray(uint32_t, count);
     param.queueOption = m_queueOption;
 
-    CMCHK_NULL(param.pKernels);
-    CMCHK_NULL(param.piKernelSizes);
-    CMCHK_NULL(param.piKernelCurbeOffset);
+    CMCHK_NULL(param.kernels);
+    CMCHK_NULL(param.kernelSizes);
+    CMCHK_NULL(param.kernelCurbeOffset);
 
-    pTask->GetHints(param.iHints);
-    pTask->GetNumTasksGenerated(param.iNumTasksGenerated);
+    pTask->GetHints(param.hints);
+    pTask->GetNumTasksGenerated(param.numTasksGenerated);
     pTask->GetLastTask(param.isLastTask);
 
     for( uint32_t i = 0; i < count; i ++ )
@@ -2742,20 +2742,20 @@ int32_t CmQueueRT::FlushEnqueueWithHintsTask( CmTaskInternal* pTask )
 
         pTempData = pKernelData->GetHalCmKernelData();
 
-        param.pKernels[ i ]             = pTempData;
-        param.piKernelSizes[ i ]        = kernelDataSize;
-        param.piKernelCurbeOffset[ i ]  = pTask->GetKernelCurbeOffset(i);
+        param.kernels[ i ]             = pTempData;
+        param.kernelSizes[ i ]         = kernelDataSize;
+        param.kernelCurbeOffset[ i ]   = pTask->GetKernelCurbeOffset(i);
     }
 
-    param.user_defined_media_state = pTask->GetMediaStatePtr();
+    param.userDefinedMediaState = pTask->GetMediaStatePtr();
     pCmData = (PCM_CONTEXT_DATA)m_pDevice->GetAccelData();
     CMCHK_NULL(pCmData);
 
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->pCmHalState->pfnSetPowerOption(pCmData->pCmHalState, pTask->GetPowerOption()));
+    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->cmHalState->pfnSetPowerOption(pCmData->cmHalState, pTask->GetPowerOption()));
 
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->pCmHalState->pfnExecuteHintsTask(pCmData->pCmHalState, &param));
+    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->cmHalState->pfnExecuteHintsTask(pCmData->cmHalState, &param));
 
-    if( param.iTaskIdOut < 0 )
+    if( param.taskIdOut < 0 )
     {
         CM_ASSERTMESSAGE("Error: Invalid task ID.");
         hr = CM_FAILURE;
@@ -2766,15 +2766,15 @@ int32_t CmQueueRT::FlushEnqueueWithHintsTask( CmTaskInternal* pTask )
 
     pTask->GetTaskEvent( pEvent );
     CMCHK_NULL( pEvent );
-    CMCHK_HR(pEvent->SetTaskDriverId( param.iTaskIdOut ));
-    CMCHK_HR(pEvent->SetTaskOsData( param.OsData ));
+    CMCHK_HR(pEvent->SetTaskDriverId( param.taskIdOut ));
+    CMCHK_HR(pEvent->SetTaskOsData( param.osData ));
     CMCHK_HR(pTask->ResetKernelDataStatus());
 
 finish:
 
-    MosSafeDeleteArray( param.pKernels );
-    MosSafeDeleteArray( param.piKernelSizes );
-    MosSafeDeleteArray( param.piKernelCurbeOffset );
+    MosSafeDeleteArray( param.kernels );
+    MosSafeDeleteArray( param.kernelSizes );
+    MosSafeDeleteArray( param.kernelCurbeOffset );
 
     return hr;
 }
@@ -2805,7 +2805,7 @@ int32_t CmQueueRT::FlushTaskWithoutSync( bool bIfFlushBlock )
         uint32_t flushedTaskCount = m_FlushedTasks.GetCount();
         if ( bIfFlushBlock )
         {
-            while( flushedTaskCount >= m_pHalMaxValues->iMaxTasks )
+            while( flushedTaskCount >= m_pHalMaxValues->maxTasks )
             {
                 // If the task count in flushed queue is no less than hw restrictiion,
                 // query the staus of flushed task queue. Remove any finished tasks from the queue
@@ -2815,13 +2815,13 @@ int32_t CmQueueRT::FlushTaskWithoutSync( bool bIfFlushBlock )
         }
         else
         {
-            if( flushedTaskCount >= m_pHalMaxValues->iMaxTasks )
+            if( flushedTaskCount >= m_pHalMaxValues->maxTasks )
             {
                 // If the task count in flushed queue is no less than hw restrictiion,
                 // query the staus of flushed task queue. Remove any finished tasks from the queue
                 QueryFlushedTasks();
                 flushedTaskCount = m_FlushedTasks.GetCount();
-                if( flushedTaskCount >= m_pHalMaxValues->iMaxTasks )
+                if( flushedTaskCount >= m_pHalMaxValues->maxTasks )
                 {
                     // If none of flushed tasks finishes, we can't flush more taks.
                     break;

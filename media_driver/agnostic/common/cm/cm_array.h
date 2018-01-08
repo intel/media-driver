@@ -58,10 +58,10 @@ protected:
 
     bool    IsValidIndex( const uint32_t index ) ;
 
-    void**   m_pArrayBuffer;
+    void**   m_arrayBuffer;
 
-    uint32_t m_UsedSize;
-    uint32_t m_ActualSize;
+    uint32_t m_usedSize;
+    uint32_t m_actualSize;
     
 private:
 

@@ -170,7 +170,7 @@ int32_t CmSurfaceSampler8x8::SetMemoryObjectControl(MEMORY_OBJECT_CONTROL mem_ct
         argType = ARG_KIND_SURFACE_SAMPLER8X8_AVS;
     }
 
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->pCmHalState->pfnSetSurfaceMOCS(pCmData->pCmHalState, m_indexFor2D, mocs, argType));
+    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->cmHalState->pfnSetSurfaceMOCS(pCmData->cmHalState, m_indexFor2D, mocs, argType));
 
 finish:
     return hr;

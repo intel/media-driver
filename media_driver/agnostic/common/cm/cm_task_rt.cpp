@@ -389,8 +389,8 @@ int32_t CmTaskRT::SetConditionalEndInfo(SurfaceIndex* pIndex,
         pSurf1D->GetHandle(handle);
         m_ConditionalEndInfo[m_KernelCount].compareValue = pCondParam->opValue;
         m_ConditionalEndInfo[m_KernelCount].bufferTableIndex = handle;
-        m_ConditionalEndInfo[m_KernelCount].bDisableCompareMask = !pCondParam->opMask;
-        m_ConditionalEndInfo[m_KernelCount].bEndCurrentLevel = pCondParam->opLevel;
+        m_ConditionalEndInfo[m_KernelCount].disableCompareMask = !pCondParam->opMask;
+        m_ConditionalEndInfo[m_KernelCount].endCurrentLevel = pCondParam->opLevel;
         m_ConditionalEndInfo[m_KernelCount].operatorCode = pCondParam->opCode;
         m_ConditionalEndInfo[m_KernelCount].offset = offset;
     }
