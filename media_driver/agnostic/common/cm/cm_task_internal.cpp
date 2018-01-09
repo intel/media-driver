@@ -1528,7 +1528,7 @@ int32_t CmTaskInternal::AllocateKernelSurfInfo()
                         break;
 
                 case    ARG_KIND_SURFACE_VME:
-                        iSurfEntryNum = iSurfEntryNum + 9 * pArg[ j ].unitCount;//surfaceVME will use upto 3 surfaces, each one can have upto 3 planes
+                        iSurfEntryNum = iSurfEntryNum + 24 * pArg[ j ].unitCount;//surfaceVME will use upto 8 surfaces, each one can have upto 3 planes
                         break;
 
                 default:

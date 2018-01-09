@@ -4289,7 +4289,7 @@ MOS_STATUS HalCm_Setup2DSurfaceUPStateBasic(
             if ((taskParam->surfEntryInfoArrays.kernelNum != 0) &&
                 (taskParam->surfEntryInfoArrays.surfEntryInfosArray != nullptr))
             { 
-                 CM_CHK_MOSSTATUS(HalCm_GetSurfaceDetails(
+                CM_CHK_MOSSTATUS(HalCm_GetSurfaceDetails(
                          state,
                          indexParam,
                          btIndex + i,
@@ -10215,7 +10215,7 @@ MOS_STATUS HalCm_GetSurfaceDetails(
         }
         else
         {
-            btIndex = btIndex - surfBTIInfo.reservedSurfaceStart;
+            btIndex = btIndex - surfBTIInfo.reservedSurfaceStart - CM_MAX_GLOBAL_SURFACE_NUMBER;
             maxEntryNum = taskParam->surfEntryInfoArrays.surfEntryInfosArray->maxEntryNum;
             if ( btIndex >= maxEntryNum )
             {
@@ -10241,8 +10241,7 @@ MOS_STATUS HalCm_GetSurfaceDetails(
     case CM_ARGUMENT_SURFACE2D_UP:
     case CM_ARGUMENT_SURFACE2D:
     // VME surface and sampler8x8 called with CM_ARGUMENT_SURFACE2D
-
-         btIndex = btIndex - surfBTIInfo.reservedSurfaceStart;
+         btIndex = btIndex - surfBTIInfo.reservedSurfaceStart - CM_MAX_GLOBAL_SURFACE_NUMBER;
          maxEntryNum = taskParam->surfEntryInfoArrays.surfEntryInfosArray->maxEntryNum;
 
          if ( btIndex >= maxEntryNum )
@@ -10315,7 +10314,7 @@ MOS_STATUS HalCm_GetSurfaceDetails(
 
     case CM_ARGUMENT_SURFACE3D:
 
-        btIndex = btIndex - surfBTIInfo.normalSurfaceStart;
+        btIndex = btIndex - surfBTIInfo.normalSurfaceStart - CM_MAX_GLOBAL_SURFACE_NUMBER;
         maxEntryNum = taskParam->surfEntryInfoArrays.surfEntryInfosArray->maxEntryNum;
 
         if ( btIndex >= maxEntryNum )
