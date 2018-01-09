@@ -92,6 +92,10 @@ struct EncodeAvcPar
     uint32_t                    NumSlices;
     bool                        ConstrainedIntraPred;
     uint8_t                     SliceMode;
+    int16_t                     hme0XOffset;
+    int16_t                     hme0YOffset;
+    int16_t                     hme1XOffset;
+    int16_t                     hme1YOffset;
 
     // HME Params
     uint8_t                     SuperCombineDist;

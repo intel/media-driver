@@ -5655,9 +5655,18 @@ MOS_STATUS CodechalVdencAvcState::DumpFrameParFile()
             oss << "EnableWeightPredictionDetection = " << std::dec << +m_avcPar->EnableWeightPredictionDetection << std::endl;
         }
         oss << "WeightedPred = " << std::dec << +m_avcPar->WeightedPred << std::endl;
+        if (m_avcPar->WeightedPred)
+        {
+            oss << "EnableWeightPredictionDetection = 1" << std::endl;
+            oss << "FadeDetectionMethod = 1" << std::endl;
+        }
         oss << "UseOrigAsRef = " << std::dec << +m_avcPar->UseOrigAsRef << std::endl;
         oss << "BiSubMbPartMask = " << std::dec << +m_avcPar->BiSubMbPartMask << std::endl;
         oss << "StaticFrameZMVPercent = " << std::dec << +m_avcPar->StaticFrameZMVPercent << std::endl;
+        oss << "HME0XOffset = " << std::dec << +m_avcPar->hme0XOffset << std::endl;
+        oss << "HME0YOffset = " << std::dec << +m_avcPar->hme0YOffset << std::endl;
+        oss << "HME1XOffset = " << std::dec << +m_avcPar->hme1XOffset << std::endl;
+        oss << "HME1YOffset = " << std::dec << +m_avcPar->hme1YOffset << std::endl;
 
         // HME Params
         oss << "SuperHME = " << std::dec << +(m_useCommonKernel ? m_encodeParState->m_commonPar->superHME : m_avcPar->SuperHME) << std::endl;
@@ -5851,9 +5860,18 @@ MOS_STATUS CodechalVdencAvcState::DumpSeqParFile()
             oss << "EnableWeightPredictionDetection = " << std::dec << +m_avcPar->EnableWeightPredictionDetection << std::endl;
         }
         oss << "WeightedPred = " << std::dec << +m_avcPar->WeightedPred << std::endl;
+        if (m_avcPar->WeightedPred)
+        {
+            oss << "EnableWeightPredictionDetection = 1" << std::endl;
+            oss << "FadeDetectionMethod = 1" << std::endl;
+        }
         oss << "UseOrigAsRef = " << std::dec << +m_avcPar->UseOrigAsRef << std::endl;
         oss << "BiSubMbPartMask = " << std::dec << +m_avcPar->BiSubMbPartMask << std::endl;
         oss << "StaticFrameZMVPercent = " << std::dec << +m_avcPar->StaticFrameZMVPercent << std::endl;
+        oss << "HME0XOffset = " << std::dec << +m_avcPar->hme0XOffset << std::endl;
+        oss << "HME0YOffset = " << std::dec << +m_avcPar->hme0YOffset << std::endl;
+        oss << "HME1XOffset = " << std::dec << +m_avcPar->hme1XOffset << std::endl;
+        oss << "HME1YOffset = " << std::dec << +m_avcPar->hme1YOffset << std::endl;
 
         // HME Params
         oss << "SuperHME = " << std::dec << +(m_useCommonKernel ? m_encodeParState->m_commonPar->superHME : m_avcPar->SuperHME) << std::endl;

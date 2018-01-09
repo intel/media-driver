@@ -4334,6 +4334,11 @@ MOS_STATUS CodechalEncodeAvcBase::PopulateDdiParam(
                 break;
             }
         }
+        if (avcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_EXTREMELY_LOW)
+        {
+            // low delay mode
+            brcType = 8;
+        }
         m_avcPar->BRCMethod = brcMethod;
         m_avcPar->BRCType   = brcType;
 
@@ -4349,13 +4354,13 @@ MOS_STATUS CodechalEncodeAvcBase::PopulateDdiParam(
         // This is only for header matching although I frame doesn't have references
         if (avcSlcParams->num_ref_idx_active_override_flag)
         {
-            m_avcPar->MaxRefIdxL0 = avcSlcParams->num_ref_idx_l0_active_minus1;
-            m_avcPar->MaxRefIdxL1 = avcSlcParams->num_ref_idx_l1_active_minus1;
+            m_avcPar->MaxRefIdxL0 = MOS_MAX(m_avcPar->MaxRefIdxL0, avcSlcParams->num_ref_idx_l0_active_minus1);
+            m_avcPar->MaxRefIdxL1 = MOS_MAX(m_avcPar->MaxRefIdxL1, avcSlcParams->num_ref_idx_l1_active_minus1);
         }
         else
         {
-            m_avcPar->MaxRefIdxL0 = avcPicParams->num_ref_idx_l0_active_minus1;
-            m_avcPar->MaxRefIdxL1 = avcPicParams->num_ref_idx_l1_active_minus1;
+            m_avcPar->MaxRefIdxL0 = MOS_MAX(m_avcPar->MaxRefIdxL0, avcPicParams->num_ref_idx_l0_active_minus1);
+            m_avcPar->MaxRefIdxL1 = MOS_MAX(m_avcPar->MaxRefIdxL1, avcPicParams->num_ref_idx_l1_active_minus1);
         }
 
         if (m_vdencEnabled)
@@ -4370,13 +4375,13 @@ MOS_STATUS CodechalEncodeAvcBase::PopulateDdiParam(
 
         if (avcSlcParams->num_ref_idx_active_override_flag)
         {
-            m_avcPar->MaxRefIdxL0 = avcSlcParams->num_ref_idx_l0_active_minus1;
-            m_avcPar->MaxRefIdxL1 = avcSlcParams->num_ref_idx_l1_active_minus1;
+            m_avcPar->MaxRefIdxL0 = MOS_MAX(m_avcPar->MaxRefIdxL0, avcSlcParams->num_ref_idx_l0_active_minus1);
+            m_avcPar->MaxRefIdxL1 = MOS_MAX(m_avcPar->MaxRefIdxL1, avcSlcParams->num_ref_idx_l1_active_minus1);
         }
         else
         {
-            m_avcPar->MaxRefIdxL0 = avcPicParams->num_ref_idx_l0_active_minus1;
-            m_avcPar->MaxRefIdxL1 = avcPicParams->num_ref_idx_l1_active_minus1;
+            m_avcPar->MaxRefIdxL0 = MOS_MAX(m_avcPar->MaxRefIdxL0, avcPicParams->num_ref_idx_l0_active_minus1);
+            m_avcPar->MaxRefIdxL1 = MOS_MAX(m_avcPar->MaxRefIdxL1, avcPicParams->num_ref_idx_l1_active_minus1);
         }
 
         if (m_avcPar->NumB == 0)  // There's no B frame
@@ -4397,6 +4402,14 @@ MOS_STATUS CodechalEncodeAvcBase::PopulateDdiParam(
             {
                 m_avcPar->StaticFrameZMVPercent = 100;
             }
+
+            if (avcPicParams->bEnableHMEOffset)
+            {
+                m_avcPar->hme0XOffset = MOS_CLAMP_MIN_MAX(avcPicParams->HMEOffset[0][0][0], -128, 127);
+                m_avcPar->hme0YOffset = MOS_CLAMP_MIN_MAX(avcPicParams->HMEOffset[0][0][1], -128, 127);
+                m_avcPar->hme1XOffset = MOS_CLAMP_MIN_MAX(avcPicParams->HMEOffset[1][0][0], -128, 127);
+                m_avcPar->hme1YOffset = MOS_CLAMP_MIN_MAX(avcPicParams->HMEOffset[1][0][1], -128, 127);
+            }
         }
     }
     else if (Slice_Type[avcSlcParams->slice_type] == SLICE_B)
@@ -4405,11 +4418,11 @@ MOS_STATUS CodechalEncodeAvcBase::PopulateDdiParam(
 
         if (avcSlcParams->num_ref_idx_active_override_flag)
         {
-            m_avcPar->MaxBRefIdxL0 = avcSlcParams->num_ref_idx_l0_active_minus1;
+            m_avcPar->MaxBRefIdxL0 = MOS_MAX(m_avcPar->MaxBRefIdxL0, avcSlcParams->num_ref_idx_l0_active_minus1);
         }
         else
         {
-            m_avcPar->MaxBRefIdxL0 = avcPicParams->num_ref_idx_l0_active_minus1;
+            m_avcPar->MaxBRefIdxL0 = MOS_MAX(m_avcPar->MaxBRefIdxL0, avcPicParams->num_ref_idx_l0_active_minus1);
         }
 
         m_avcPar->EnableWeightPredictionDetection = (avcPicParams->weighted_bipred_idc | avcPicParams->weighted_pred_flag) > 0 ? 1 : 0;
