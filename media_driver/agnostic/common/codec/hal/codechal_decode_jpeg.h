@@ -85,12 +85,12 @@ public:
     //!
     //! \brief    Allocate and Initialize JPEG decoder standard
     //! \param    [in] settings
-    //!           Pointer to CODECHAL_SETTINGS
+    //!           Pointer to CodechalSetting
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS AllocateStandard (
-        PCODECHAL_SETTINGS          settings) override;
+        CodechalSetting *settings) override;
 
     //!
     //! \brief  Set states for each frame to prepare for JPEG decode
@@ -205,7 +205,7 @@ private:
     //!         JPEG may not use SFC even when FtrSFCPipe == True, but it can't be known when creating device.
     //! \return If SFC is inuse
     //!
-    bool IsSfcInUse(PCODECHAL_SETTINGS codecHalSettings) override
+    bool IsSfcInUse(CodechalSetting * codecHalSettings) override
     {
         MOS_UNUSED(codecHalSettings);
         return MEDIA_IS_SKU(m_skuTable, FtrSFCPipe);

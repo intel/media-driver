@@ -56,7 +56,7 @@ public:
     void UpdateSSDSliceCount();
 
 protected:
-    MOS_STATUS Initialize(PCODECHAL_SETTINGS codecHalSettings);
+    MOS_STATUS Initialize(CodechalSetting * codecHalSettings);
 
     MOS_STATUS InitKernelState();
 

@@ -5792,7 +5792,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::EncodeKernelFunctions()
     return eStatus;
 }
 
-MOS_STATUS CodechalFeiHevcStateG9Skl::Initialize(PCODECHAL_SETTINGS settings)
+MOS_STATUS CodechalFeiHevcStateG9Skl::Initialize(CodechalSetting * settings)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 

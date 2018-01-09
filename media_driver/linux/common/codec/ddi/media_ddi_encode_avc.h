@@ -46,7 +46,7 @@ public:
     //!
     virtual ~DdiEncodeAvc();
 
-    virtual VAStatus ContextInitialize(PCODECHAL_SETTINGS codecHalSettings);
+    virtual VAStatus ContextInitialize(CodechalSetting * codecHalSettings);
 
     virtual VAStatus RenderPicture(
         VADriverContextP ctx,

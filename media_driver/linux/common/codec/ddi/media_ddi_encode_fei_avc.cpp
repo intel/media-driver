@@ -59,7 +59,7 @@ DdiEncodeAvcFei::~DdiEncodeAvcFei()
 
 }
 
-VAStatus DdiEncodeAvcFei::ContextInitialize(PCODECHAL_SETTINGS codecHalSettings)
+VAStatus DdiEncodeAvcFei::ContextInitialize(CodechalSetting * codecHalSettings)
 {
     VAStatus status = DdiEncodeAvc::ContextInitialize(codecHalSettings);
     if (VA_STATUS_SUCCESS != status)
@@ -67,7 +67,7 @@ VAStatus DdiEncodeAvcFei::ContextInitialize(PCODECHAL_SETTINGS codecHalSettings)
         return status;
     }
 
-    codecHalSettings->CodecFunction = m_encodeCtx->codecFunction;
+    codecHalSettings->codecFunction = m_encodeCtx->codecFunction;
 
     m_encodeCtx->pFeiPicParams = (void *)MOS_AllocAndZeroMemory(CODEC_AVC_MAX_PPS_NUM * sizeof(CodecEncodeAvcFeiPicParams));
     DDI_CHK_NULL(m_encodeCtx->pFeiPicParams, "nullptr m_encodeCtx->pFeiPicParams", VA_STATUS_ERROR_ALLOCATION_FAILED);

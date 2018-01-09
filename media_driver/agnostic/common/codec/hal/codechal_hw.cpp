@@ -24,6 +24,7 @@
 //! \brief    This modules implements HW interface layer to be used on all platforms on     all operating systems/DDIs, across CODECHAL components.
 //!
 #include "codechal_hw.h"
+#include "codechal_setting.h"
 
 #define VDBOX_HUC_VDENC_BRC_INIT_KERNEL_DESCRIPTOR 4
 
@@ -486,14 +487,14 @@ MOS_STATUS CodechalHwInterface::GetStreamoutCommandSize(
 }
 
 MOS_STATUS CodechalHwInterface::Initialize(
-    PCODECHAL_SETTINGS settings)
+    CodechalSetting *settings)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_HW_FUNCTION_ENTER;
 
-    if (CodecHalUsesRenderEngine(settings->CodecFunction, settings->Standard) ||
-        CodecHalIsEnableFieldScaling(settings->CodecFunction, settings->Standard, settings->bDownsamplingHinted))
+    if (CodecHalUsesRenderEngine(settings->codecFunction, settings->standard) ||
+        CodecHalIsEnableFieldScaling(settings->codecFunction, settings->standard, settings->downsamplingHinted))
     {
         CODECHAL_HW_CHK_NULL_RETURN(m_renderInterface);
 

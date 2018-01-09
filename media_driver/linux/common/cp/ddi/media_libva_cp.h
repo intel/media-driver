@@ -30,6 +30,7 @@
 #include "media_libva.h"
 
 typedef struct _DDI_ENCODE_STATUS_REPORT_INFO *PDDI_ENCODE_STATUS_REPORT_INFO;
+class CodechalSetting;
 
 class DdiCpInterface
 {
@@ -81,7 +82,7 @@ public:
 
     void ResetCpContext();
 
-    void* GetParams();
+    void SetCodechalSetting(CodechalSetting *codechalSetting);
 
     VAStatus RenderPictureForVp(
         VADriverContextP      vaDrvCtx,

@@ -1017,26 +1017,24 @@ VAStatus DdiDecodeVC1::CodecHalInit(
     CODECHAL_FUNCTION codecFunction = CODECHAL_FUNCTION_DECODE;
     m_ddiDecodeCtx->pCpDdiInterface->SetEncryptionType(m_ddiDecodeAttr->uiEncryptionType, &codecFunction);
 
-    CODECHAL_SETTINGS      codecHalSettings;
     CODECHAL_STANDARD_INFO standardInfo;
     memset(&standardInfo, 0, sizeof(standardInfo));
-    memset(&codecHalSettings, 0, sizeof(codecHalSettings));
 
     standardInfo.CodecFunction = codecFunction;
     standardInfo.Mode          = (CODECHAL_MODE)m_ddiDecodeCtx->wMode;
 
-    codecHalSettings.CodecFunction                = codecFunction;
-    codecHalSettings.dwWidth                      = m_width;
-    codecHalSettings.dwHeight                     = m_height;
+    m_codechalSettings->codecFunction                = codecFunction;
+    m_codechalSettings->width                      = m_width;
+    m_codechalSettings->height                     = m_height;
 
-    codecHalSettings.ucLumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_8_BITS;
+    m_codechalSettings->lumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_8_BITS;
 
-    codecHalSettings.bShortFormatInUse = m_ddiDecodeCtx->bShortFormatInUse;
+    m_codechalSettings->shortFormatInUse = m_ddiDecodeCtx->bShortFormatInUse;
 
-    codecHalSettings.Mode     = CODECHAL_DECODE_MODE_VC1VLD;
-    codecHalSettings.Standard = CODECHAL_VC1;
+    m_codechalSettings->mode     = CODECHAL_DECODE_MODE_VC1VLD;
+    m_codechalSettings->standard = CODECHAL_VC1;
     /* VC1 uses the Intel-specific Format */
-    codecHalSettings.bIntelEntrypointInUse = true;
+    m_codechalSettings->intelEntrypointInUse = true;
 
     m_ddiDecodeCtx->DecodeParams.m_picParams = MOS_AllocAndZeroMemory(sizeof(CODEC_VC1_PIC_PARAMS));
     if (m_ddiDecodeCtx->DecodeParams.m_picParams == nullptr)
@@ -1055,7 +1053,6 @@ VAStatus DdiDecodeVC1::CodecHalInit(
 
     vaStatus = CreateCodecHal(mediaCtx,
         ptr,
-        &codecHalSettings,
         &standardInfo);
 
     if (vaStatus != VA_STATUS_SUCCESS)

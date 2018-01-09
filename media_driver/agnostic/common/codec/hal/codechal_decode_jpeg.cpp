@@ -1023,7 +1023,7 @@ MOS_STATUS CodechalDecodeJpeg::InitSfcState()
 #endif
 
 MOS_STATUS CodechalDecodeJpeg::AllocateStandard(
-    PCODECHAL_SETTINGS          settings)
+    CodechalSetting *settings)
 {
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
 
@@ -1036,8 +1036,8 @@ MOS_STATUS CodechalDecodeJpeg::AllocateStandard(
     CODECHAL_DECODE_CHK_STATUS_RETURN(InitSfcState());
 #endif
 
-    m_width = settings->dwWidth;
-    m_height = settings->dwHeight;
+    m_width = settings->width;
+    m_height = settings->height;
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_sfcState->InitializeSfcState(

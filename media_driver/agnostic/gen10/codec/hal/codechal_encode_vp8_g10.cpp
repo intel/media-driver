@@ -5848,7 +5848,7 @@ CodechalEncodeVp8G10::CodechalEncodeVp8G10(
     m_brcConstantSurfaceHeight     = CODECHAL_ENCODE_VP8_BRC_CONSTANTSURFACE_HEIGHT;
 }
 
-MOS_STATUS CodechalEncodeVp8G10::Initialize(PCODECHAL_SETTINGS codecHalSettings)
+MOS_STATUS CodechalEncodeVp8G10::Initialize(CodechalSetting * codecHalSettings)
 {
     MOS_STATUS status = MOS_STATUS_SUCCESS;
 

@@ -667,7 +667,7 @@ private:
         PMOS_COMMAND_BUFFER             cmdBuffer);
 
     virtual MOS_STATUS InitKernelState();
-    virtual MOS_STATUS Initialize(PCODECHAL_SETTINGS pSettings);
+    virtual MOS_STATUS Initialize(CodechalSetting * pSettings);
     virtual uint32_t GetMaxBtCount();
     virtual MOS_STATUS AllocateEncResources();
     virtual MOS_STATUS FreeEncResources();

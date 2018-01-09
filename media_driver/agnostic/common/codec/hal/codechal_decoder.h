@@ -29,6 +29,7 @@
 #define __CODECHAL_DECODER_H__
 
 #include "codechal.h"
+#include "codechal_setting.h"
 #include "codechal_hw.h"
 #include "codechal_debug.h"
 #include "codechal_decode_downsampling.h"
@@ -507,7 +508,7 @@ public:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS Allocate(PCODECHAL_SETTINGS codecHalSettings) override;
+    MOS_STATUS Allocate(CodechalSetting * codecHalSettings) override;
 
     //!
     //! \brief  The handle at the begining of each frame.
@@ -734,11 +735,11 @@ protected:
     //!
     //! \brief  Allocate and initialize GEN specific decoder standard
     //! \param  [in] settings
-    //!         Pointer to CODECHAL_SETTINGS
+    //!         Pointer to CodechalSetting
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS AllocateStandard(PCODECHAL_SETTINGS settings)   = 0;
+    virtual MOS_STATUS AllocateStandard(CodechalSetting * settings)   = 0;
 
     //!
     //! \brief  Set states for each frame to prepare for decode
@@ -896,7 +897,7 @@ private:
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS CreateGpuContexts(
-        PCODECHAL_SETTINGS codecHalSettings);
+        CodechalSetting * codecHalSettings);
 
     //!
     //! \brief  Indicates whether or not the SFC is inuse
@@ -904,7 +905,7 @@ private:
     //!         Pointer to CODECHAL Settings
     //! \return If SFC is inuse
     //!
-    virtual bool IsSfcInUse(PCODECHAL_SETTINGS codecHalSettings) { return false; }
+    virtual bool IsSfcInUse(CodechalSetting * codecHalSettings) { return false; }
 
     //!
     //! \brief  Indicates whether or not the frame level multiple thread is enable

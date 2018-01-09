@@ -1631,7 +1631,7 @@ CodechalEncodeMpeg2G9::CodechalEncodeMpeg2G9(
     m_needCheckCpEnabled = true;
 }
 
-MOS_STATUS CodechalEncodeMpeg2G9::Initialize(PCODECHAL_SETTINGS codecHalSettings)
+MOS_STATUS CodechalEncodeMpeg2G9::Initialize(CodechalSetting * codecHalSettings)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 

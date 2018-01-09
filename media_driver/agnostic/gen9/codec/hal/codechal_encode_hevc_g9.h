@@ -1550,7 +1550,7 @@ public:
 protected:
 
     // inherited virtual functions
-    virtual MOS_STATUS Initialize(PCODECHAL_SETTINGS settings);
+    virtual MOS_STATUS Initialize(CodechalSetting * settings);
     MOS_STATUS InitKernelState();
     uint32_t GetMaxBtCount();
     MOS_STATUS EncodeKernelFunctions();

@@ -490,7 +490,7 @@ MOS_STATUS CodechalEncoderState::AllocateResources32xMe(
 }
 
 // Encode Public Interface Functions
-MOS_STATUS CodechalEncoderState::Allocate(PCODECHAL_SETTINGS codecHalSettings)
+MOS_STATUS CodechalEncoderState::Allocate(CodechalSetting * codecHalSettings)
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
@@ -529,12 +529,12 @@ MOS_STATUS CodechalEncoderState::Allocate(PCODECHAL_SETTINGS codecHalSettings)
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CreateGpuContexts());
 
-    if (CodecHalUsesRenderEngine(codecHalSettings->CodecFunction, codecHalSettings->Standard))
+    if (CodecHalUsesRenderEngine(codecHalSettings->codecFunction, codecHalSettings->standard))
     {
         m_renderContextUsesNullHw = m_useNullHw[m_renderContext];
     }
 
-    if (CodecHalUsesVideoEngine(codecHalSettings->CodecFunction))
+    if (CodecHalUsesVideoEngine(codecHalSettings->codecFunction))
     {
         m_videoContextUsesNullHw = m_useNullHw[m_videoContext];
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnRegisterBBCompleteNotifyEvent(
@@ -573,7 +573,7 @@ MOS_STATUS CodechalEncoderState::Execute(void *params)
 
 // Encoder Public Interface Functions
 MOS_STATUS CodechalEncoderState::Initialize(
-    PCODECHAL_SETTINGS settings)
+    CodechalSetting * settings)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
     MOS_STATUS statusKey = MOS_STATUS_SUCCESS;
@@ -585,9 +585,9 @@ MOS_STATUS CodechalEncoderState::Initialize(
     m_storeData      = 1;
     m_firstFrame     = true;
     m_firstTwoFrames = true;
-    m_standard       = settings->Standard;
-    m_mode           = settings->Mode;
-    m_codecFunction  = settings->CodecFunction;
+    m_standard       = settings->standard;
+    m_mode           = settings->mode;
+    m_codecFunction  = settings->codecFunction;
 
     if (CodecHalUsesVideoEngine(m_codecFunction))
     {
@@ -801,8 +801,8 @@ MOS_STATUS CodechalEncoderState::Initialize(
     m_computeContextEnabled = (userFeatureData.u32Data) ? true : false;
 #endif
 
-    m_oriFrameWidth   = settings->dwWidth;
-    m_oriFrameHeight  = settings->dwHeight;
+    m_oriFrameWidth   = settings->width;
+    m_oriFrameHeight  = settings->height;
     m_picWidthInMb    = (uint16_t)CODECHAL_GET_WIDTH_IN_MACROBLOCKS(m_oriFrameWidth);
     m_picHeightInMb   = (uint16_t)CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(m_oriFrameHeight);
     m_frameWidth      = m_picWidthInMb * CODECHAL_MACROBLOCK_WIDTH;
@@ -845,7 +845,7 @@ MOS_STATUS CodechalEncoderState::Initialize(
     m_currOriginalPic.FrameIdx = 0;
     m_currOriginalPic.PicEntry = 0;
 
-    m_hwInterface->GetCpInterface()->RegisterParams(settings->pCpParams);
+    m_hwInterface->GetCpInterface()->RegisterParams(settings->GetCpParams());
 
     // flag to enable kmd for the frame tracking (so encoder driver doesn't need to send a separate command buffer
     // for frame tracking purpose). Currently this feature is disabled for HEVC.

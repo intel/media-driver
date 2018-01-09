@@ -35,7 +35,7 @@ struct DDI_DECODE_CONTEXT;
 struct DDI_MEDIA_CONTEXT;
 struct DDI_DECODE_CONFIG_ATTR;
 struct _CODECHAL_STANDARD_INFO;
-struct _CODECHAL_SETTINGS;
+class CodechalSetting;
 
 //!
 //! \class  DdiMediaDecode
@@ -56,6 +56,8 @@ public:
     {
         MOS_FreeMemory(m_ddiDecodeAttr);
         m_ddiDecodeAttr = nullptr;
+        MOS_Delete(m_codechalSettings);
+        m_codechalSettings = nullptr;
     }
 
     //! \brief    the type conversion to get the DDI_DECODE_CONTEXT
@@ -349,8 +351,6 @@ protected:
     //!           DDI_MEDIA_CONTEXT * type
     //! \param    [in] ptr
     //!           extra data
-    //! \param    [in] codecHalSettings
-    //!           CODECHAL_SETTINGS *
     //! \param    [in] standardInfo
     //!           CODECHAL_STANDARD_INFO *
     //!
@@ -360,7 +360,6 @@ protected:
     VAStatus CreateCodecHal(
         DDI_MEDIA_CONTEXT       *mediaCtx,
         void                    *ptr,
-        _CODECHAL_SETTINGS      *codecHalSettings,
         _CODECHAL_STANDARD_INFO *standardInfo);
 
     //! \brief  the type of decode base class
@@ -376,6 +375,7 @@ protected:
     uint32_t                    m_sliceParamBufNum;     //!<Slice parameter Buffer Number
     uint32_t                    m_sliceCtrlBufNum;      //!<Slice control Buffer Number
     uint32_t                    m_decProcessingType;    //!<Decode Processing type  
+    CodechalSetting             *m_codechalSettings = nullptr;    //!<Codechal Settings
 };
 
 #endif /*  _MEDIA_DDI_DEC_BASE_H_ */

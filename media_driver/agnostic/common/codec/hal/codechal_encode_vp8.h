@@ -851,7 +851,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS Initialize(PCODECHAL_SETTINGS codecHalSettings);
+    virtual MOS_STATUS Initialize(CodechalSetting * codecHalSettings);
 
     //!
     //! \brief    Read Image Status

@@ -608,7 +608,7 @@ public:
     virtual void ProcessRoiDeltaQp();
 
     // Inherited virtual function
-    MOS_STATUS Initialize(PCODECHAL_SETTINGS settings);
+    MOS_STATUS Initialize(CodechalSetting * settings);
     MOS_STATUS AllocatePakResources();
     MOS_STATUS FreePakResources();
     MOS_STATUS AllocateEncResources();

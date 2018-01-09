@@ -57,12 +57,12 @@ public:
     //! \brief    Initialize Encode Context and CodecHal Setting for Hevc
     //!
     //! \param    [out] codecHalSettings
-    //!           Pointer to PCODECHAL_SETTINGS
+    //!           Pointer to CodechalSetting *
     //!
     //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success, else fail reason
     //!
-    VAStatus ContextInitialize(CODECHAL_SETTINGS *codecHalSettings) override;
+    VAStatus ContextInitialize(CodechalSetting *codecHalSettings) override;
 
     //!
     //! \brief    Send required buffers to for process

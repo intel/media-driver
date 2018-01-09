@@ -29,6 +29,7 @@
 #define __CODECHAL_ENCODER_BASE_H__
 
 #include "codechal.h"
+#include "codechal_setting.h"
 #include "codechal_hw.h"
 #include "codechal_debug.h"
 #include "codechal_encode_sfc.h"
@@ -1773,7 +1774,7 @@ public:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS Allocate(PCODECHAL_SETTINGS codecHalSettings) override;
+    MOS_STATUS Allocate(CodechalSetting * codecHalSettings) override;
 
     //!
     //! \brief  The entry to encode each frame.
@@ -1803,7 +1804,7 @@ public:
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS Initialize(
-        PCODECHAL_SETTINGS settings);
+        CodechalSetting * settings);
 
     //!
     //! \brief  Allocate resources for encoder

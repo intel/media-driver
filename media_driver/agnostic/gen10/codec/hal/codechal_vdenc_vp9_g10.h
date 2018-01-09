@@ -97,7 +97,7 @@ public:
     bool CheckSupportedFormat(
         PMOS_SURFACE surface);
 
-    MOS_STATUS Initialize(PCODECHAL_SETTINGS settings);
+    MOS_STATUS Initialize(CodechalSetting * settings);
 
     //!
     //! \brief    Gets the kernel header/size from the kernel descriptor table

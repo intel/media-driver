@@ -160,8 +160,8 @@ bool DdiCpInterface::CheckSupportedBufferForVp(VABufferType type)
     return false;
 }
 
-void* DdiCpInterface::GetParams()
+void DdiCpInterface::SetCodechalSetting(CodechalSetting *codechalSetting)
 {
     DdiStubMessage();
-    return nullptr;
+    return;
 }

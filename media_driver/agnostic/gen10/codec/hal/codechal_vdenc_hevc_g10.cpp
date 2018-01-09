@@ -2291,7 +2291,7 @@ MOS_STATUS CodechalVdencHevcStateG10::GetStatusReport(
     return eStatus;
 }
 
-MOS_STATUS CodechalVdencHevcStateG10::Initialize(PCODECHAL_SETTINGS settings)
+MOS_STATUS CodechalVdencHevcStateG10::Initialize(CodechalSetting * settings)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 

@@ -2534,7 +2534,7 @@ MOS_STATUS CodechalDecodeHevc::InitMmcState()
 }
 
 MOS_STATUS CodechalDecodeHevc::AllocateStandard (
-    PCODECHAL_SETTINGS          settings)
+    CodechalSetting *settings)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -2544,11 +2544,11 @@ MOS_STATUS CodechalDecodeHevc::AllocateStandard (
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(InitMmcState());
 
-    m_width                         = settings->dwWidth;
-    m_height                        = settings->dwHeight;
-    m_is10BitHevc                   = (settings->ucLumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_10_BITS) ? true : false;
-    m_chromaFormatinProfile         = settings->ucChromaFormat;
-    m_shortFormatInUse              = (m_cencDecoder == nullptr) && settings->bShortFormatInUse;
+    m_width                         = settings->width;
+    m_height                        = settings->height;
+    m_is10BitHevc                   = (settings->lumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_10_BITS) ? true : false;
+    m_chromaFormatinProfile         = settings->chromaFormat;
+    m_shortFormatInUse              = (m_cencDecoder == nullptr) && settings->shortFormatInUse;
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     m_sfcState = MOS_New(CodechalHevcSfcState);

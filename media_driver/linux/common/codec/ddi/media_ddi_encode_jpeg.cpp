@@ -63,17 +63,17 @@ DdiEncodeJpeg::~DdiEncodeJpeg()
     m_appData = nullptr;
 }
 
-VAStatus DdiEncodeJpeg::ContextInitialize(CODECHAL_SETTINGS *codecHalSettings)
+VAStatus DdiEncodeJpeg::ContextInitialize(CodechalSetting *codecHalSettings)
 {
     DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CHK_NULL(m_encodeCtx->pCpDdiInterface, "nullptr m_encodeCtx->pCpDdiInterface.", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CHK_NULL(codecHalSettings, "nullptr codecHalSettings.", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    codecHalSettings->CodecFunction = CODECHAL_FUNCTION_PAK;
-    codecHalSettings->dwWidth       = m_encodeCtx->dwFrameWidth;
-    codecHalSettings->dwHeight      = m_encodeCtx->dwFrameHeight;
-    codecHalSettings->Mode          = m_encodeCtx->wModeType;
-    codecHalSettings->Standard      = CODECHAL_JPEG;
+    codecHalSettings->codecFunction = CODECHAL_FUNCTION_PAK;
+    codecHalSettings->width       = m_encodeCtx->dwFrameWidth;
+    codecHalSettings->height      = m_encodeCtx->dwFrameHeight;
+    codecHalSettings->mode          = m_encodeCtx->wModeType;
+    codecHalSettings->standard      = CODECHAL_JPEG;
 
     VAStatus vaStatus = VA_STATUS_SUCCESS;
 
@@ -83,7 +83,6 @@ VAStatus DdiEncodeJpeg::ContextInitialize(CODECHAL_SETTINGS *codecHalSettings)
     m_encodeCtx->pPicParams = (void *)MOS_AllocAndZeroMemory(sizeof(CodecEncodeJpegPictureParams));
     DDI_CHK_NULL(m_encodeCtx->pPicParams, "nullptr m_encodeCtx->pPicParams.", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
-    codecHalSettings->pCpParams = m_encodeCtx->pCpDdiInterface->GetParams();
 
     m_encodeCtx->pbsBuffer = (BSBuffer *)MOS_AllocAndZeroMemory(sizeof(BSBuffer));
     DDI_CHK_NULL(m_encodeCtx->pbsBuffer, "nullptr m_encodeCtx->pbsBuffer.", VA_STATUS_ERROR_ALLOCATION_FAILED);

@@ -83,17 +83,17 @@ DdiEncodeMpeg2::~DdiEncodeMpeg2()
 }
 
 VAStatus DdiEncodeMpeg2::ContextInitialize(
-    CODECHAL_SETTINGS *codecHalSettings)
+    CodechalSetting *codecHalSettings)
 {
     DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CHK_NULL(m_encodeCtx->pCpDdiInterface, "nullptr m_encodeCtx->pCpDdiInterface.", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CHK_NULL(codecHalSettings, "nullptr codecHalSettings.", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    codecHalSettings->CodecFunction = CODECHAL_FUNCTION_ENC_PAK;
-    codecHalSettings->dwWidth       = m_encodeCtx->dwFrameWidth;
-    codecHalSettings->dwHeight      = m_encodeCtx->dwFrameHeight;
-    codecHalSettings->Mode          = m_encodeCtx->wModeType;
-    codecHalSettings->Standard      = CODECHAL_MPEG2;
+    codecHalSettings->codecFunction = CODECHAL_FUNCTION_ENC_PAK;
+    codecHalSettings->width       = m_encodeCtx->dwFrameWidth;
+    codecHalSettings->height      = m_encodeCtx->dwFrameHeight;
+    codecHalSettings->mode          = m_encodeCtx->wModeType;
+    codecHalSettings->standard      = CODECHAL_MPEG2;
 
     m_encodeCtx->pSeqParams = (void *)MOS_AllocAndZeroMemory(sizeof(CodecEncodeMpeg2SequenceParams));
     DDI_CHK_NULL(m_encodeCtx->pSeqParams, "nullptr m_encodeCtx->pSeqParams.", VA_STATUS_ERROR_ALLOCATION_FAILED);
@@ -104,7 +104,6 @@ VAStatus DdiEncodeMpeg2::ContextInitialize(
     m_encodeCtx->pQmatrixParams = (void *)MOS_AllocAndZeroMemory(sizeof(CodecEncodeMpeg2QmatixParams));
     DDI_CHK_NULL(m_encodeCtx->pQmatrixParams, "nullptr m_encodeCtx->pQmatrixParams.", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
-    codecHalSettings->pCpParams = m_encodeCtx->pCpDdiInterface->GetParams();
 
     m_encodeCtx->pVuiParams = (void *)MOS_AllocAndZeroMemory(sizeof(CodecEncodeMpeg2VuiParams));
     DDI_CHK_NULL(m_encodeCtx->pVuiParams, "nullptr m_encodeCtx->pVuiParams.", VA_STATUS_ERROR_ALLOCATION_FAILED);

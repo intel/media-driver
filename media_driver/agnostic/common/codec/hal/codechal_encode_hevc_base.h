@@ -1436,7 +1436,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS Initialize(PCODECHAL_SETTINGS settings);
+    virtual MOS_STATUS Initialize(CodechalSetting * settings);
 
     //!
     //! \brief    Initialize surface info

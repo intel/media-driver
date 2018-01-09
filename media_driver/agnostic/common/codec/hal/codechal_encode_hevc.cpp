@@ -1358,7 +1358,7 @@ bool CodechalEncHevcState::CheckSupportedFormat(PMOS_SURFACE surface)
     return isColorFormatSupported;
 }
 
-MOS_STATUS CodechalEncHevcState::Initialize(PCODECHAL_SETTINGS settings)
+MOS_STATUS CodechalEncHevcState::Initialize(CodechalSetting * settings)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 

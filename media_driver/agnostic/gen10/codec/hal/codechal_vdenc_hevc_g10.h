@@ -1886,7 +1886,7 @@ public:
     // inherited virtual functions
     uint32_t GetMaxBtCount();
     bool CheckSupportedFormat(PMOS_SURFACE surface);
-    MOS_STATUS Initialize(PCODECHAL_SETTINGS settings);
+    MOS_STATUS Initialize(CodechalSetting * settings);
     MOS_STATUS InitKernelState();
     MOS_STATUS AllocatePakResources();
     MOS_STATUS FreePakResources();

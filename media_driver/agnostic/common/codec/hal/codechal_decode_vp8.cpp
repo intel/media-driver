@@ -1450,7 +1450,7 @@ MOS_STATUS CodechalDecodeVp8::InitMmcState()
 }
 
 MOS_STATUS CodechalDecodeVp8::AllocateStandard(
-    PCODECHAL_SETTINGS          settings)
+    CodechalSetting *settings)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -1460,9 +1460,9 @@ MOS_STATUS CodechalDecodeVp8::AllocateStandard(
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(InitMmcState());
 
-    m_width         = settings->dwWidth;
-    m_height        = settings->dwHeight;
-    m_shortFormatInUse = settings->bShortFormatInUse ? true : false;
+    m_width         = settings->width;
+    m_height        = settings->height;
+    m_shortFormatInUse = settings->shortFormatInUse ? true : false;
     m_huCCopyInUse     = false;
 
     // Picture Level Commands

@@ -193,7 +193,7 @@ MOS_STATUS CodechalEncHevcStateG9Bxt::GetKernelHeaderAndSize(
     return eStatus;
 }
 
-MOS_STATUS CodechalEncHevcStateG9Bxt::Initialize(PCODECHAL_SETTINGS settings)
+MOS_STATUS CodechalEncHevcStateG9Bxt::Initialize(CodechalSetting * settings)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 

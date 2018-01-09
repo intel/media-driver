@@ -123,12 +123,12 @@ public:
     //!
     //! \brief    Allocate and initialize AVC decoder standard
     //! \param    [in] settings
-    //!           Pointer to CODECHAL_SETTINGS
+    //!           Pointer to CodechalSetting
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS  AllocateStandard(
-        PCODECHAL_SETTINGS          settings) override;
+        CodechalSetting *          settings) override;
 
     //!
     //! \brief  Set states for each frame to prepare for AVC decode
@@ -354,9 +354,9 @@ private:
     //! \brief  Indicates whether or not the SFC is inuse
     //! \return If SFC is inuse
     //!
-    bool IsSfcInUse(PCODECHAL_SETTINGS codecHalSettings) override
+    bool IsSfcInUse(CodechalSetting * codecHalSettings) override
     {
-        return (codecHalSettings->bDownsamplingHinted && MEDIA_IS_SKU(m_skuTable, FtrSFCPipe));
+        return (codecHalSettings->downsamplingHinted && MEDIA_IS_SKU(m_skuTable, FtrSFCPipe));
     }
 
 public:

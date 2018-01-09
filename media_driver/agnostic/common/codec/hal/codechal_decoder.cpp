@@ -253,7 +253,7 @@ CodechalDecode::CodechalDecode (
 }
 
 MOS_STATUS CodechalDecode::CreateGpuContexts(
-    PCODECHAL_SETTINGS          codecHalSettings)
+    CodechalSetting *codecHalSettings)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -317,7 +317,7 @@ MOS_STATUS CodechalDecode::CreateGpuContexts(
 }
 
 // Decoder Public Interface Functions
-MOS_STATUS CodechalDecode::Allocate (PCODECHAL_SETTINGS codecHalSettings)
+MOS_STATUS CodechalDecode::Allocate (CodechalSetting * codecHalSettings)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -325,13 +325,13 @@ MOS_STATUS CodechalDecode::Allocate (PCODECHAL_SETTINGS codecHalSettings)
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(Codechal::Allocate(codecHalSettings));
 
-    m_standard                  = codecHalSettings->Standard;
-    m_mode                      = codecHalSettings->Mode;
-    m_disableDecodeSyncLock     = codecHalSettings->bDisableDecodeSyncLock ? true : false;
+    m_standard                  = codecHalSettings->standard;
+    m_mode                      = codecHalSettings->mode;
+    m_disableDecodeSyncLock     = codecHalSettings->disableDecodeSyncLock ? true : false;
     m_disableLockForTranscode   = MEDIA_IS_WA(m_waTable, WaDisableLockForTranscodePerf);
     
     // register cp params via codechal_Setting
-    m_cpInterface->RegisterParams(codecHalSettings->pCpParams);
+    m_cpInterface->RegisterParams(codecHalSettings->GetCpParams());
 
     {
         MOS_USER_FEATURE_VALUE_DATA userFeatureData;
@@ -445,8 +445,8 @@ MOS_STATUS CodechalDecode::Allocate (PCODECHAL_SETTINGS codecHalSettings)
         if (m_streamOutEnabled)
         {
             uint32_t numMacroblocks = 
-                (codecHalSettings->dwHeight / CODECHAL_MACROBLOCK_HEIGHT) *
-                (codecHalSettings->dwWidth / CODECHAL_MACROBLOCK_WIDTH);
+                (codecHalSettings->height / CODECHAL_MACROBLOCK_HEIGHT) *
+                (codecHalSettings->width / CODECHAL_MACROBLOCK_WIDTH);
             uint32_t streamOutBufSize = MOS_ALIGN_CEIL(numMacroblocks * CODEC_SIZE_MFX_STREAMOUT_DATA, 64);
 
             m_streamOutCurrBufIdx = 0;
@@ -499,7 +499,7 @@ MOS_STATUS CodechalDecode::Allocate (PCODECHAL_SETTINGS codecHalSettings)
     CodechalSecureDecode::CreateSecureDecode(codecHalSettings, m_hwInterface, &m_secureDecoder);
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
-    m_downsamplingHinted = codecHalSettings->bDownsamplingHinted ? true : false;
+    m_downsamplingHinted = codecHalSettings->downsamplingHinted ? true : false;
     if (CodecHalIsEnableFieldScaling(CODECHAL_FUNCTION_DECODE, m_standard, m_downsamplingHinted))
     {
         CODECHAL_DECODE_CHK_NULL_RETURN(m_fieldScalingInterface);

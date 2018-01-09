@@ -152,7 +152,7 @@ public:
     virtual ~CodechalEncodeJpegState() {};
 
     //derived from base class
-    MOS_STATUS Initialize(CODECHAL_SETTINGS *settings);
+    MOS_STATUS Initialize(CodechalSetting *settings);
 
     MOS_STATUS AllocateResources();
 

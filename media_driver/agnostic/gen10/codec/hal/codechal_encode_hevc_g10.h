@@ -243,7 +243,7 @@ public:
     ~CodechalEncHevcStateG10() {};
 
     // inherited virtual functions
-    MOS_STATUS Initialize(PCODECHAL_SETTINGS settings);
+    MOS_STATUS Initialize(CodechalSetting * settings);
     MOS_STATUS InitKernelState();
     uint32_t GetMaxBtCount();
     MOS_STATUS EncodeKernelFunctions();

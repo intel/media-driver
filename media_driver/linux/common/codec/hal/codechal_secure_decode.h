@@ -41,7 +41,7 @@ public:
     //! \return MOS_STATUS
     //!
     static MOS_STATUS CreateSecureDecode(
-        PCODECHAL_SETTINGS        codecHalSettings, 
+        CodechalSetting           *codecHalSettings, 
         CodechalHwInterface       *hwInterfaceInput, 
         CodechalSecureDecode      **secureDecoder)
     

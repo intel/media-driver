@@ -93,7 +93,7 @@ Codechal::~Codechal()
     MOS_TraceEvent(EVENT_CODECHAL_DESTROY, EVENT_TYPE_END, nullptr, 0, nullptr, 0);
 }
 
-MOS_STATUS Codechal::Allocate(PCODECHAL_SETTINGS codecHalSettings)
+MOS_STATUS Codechal::Allocate(CodechalSetting * codecHalSettings)
 {
     CODECHAL_PUBLIC_FUNCTION_ENTER;
 

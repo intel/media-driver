@@ -1932,7 +1932,7 @@ MOS_STATUS CodechalDecodeVp9::InitMmcState()
 }
 
 MOS_STATUS CodechalDecodeVp9 :: AllocateStandard (
-    PCODECHAL_SETTINGS          settings)
+    CodechalSetting *settings)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -1942,15 +1942,15 @@ MOS_STATUS CodechalDecodeVp9 :: AllocateStandard (
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(InitMmcState());
 
-    m_width                      = settings->dwWidth;
-    m_height                     = settings->dwHeight;
-    if (settings->ucLumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_8_BITS)
+    m_width                      = settings->width;
+    m_height                     = settings->height;
+    if (settings->lumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_8_BITS)
         m_vp9DepthIndicator = 0;
-    if (settings->ucLumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_10_BITS)
+    if (settings->lumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_10_BITS)
         m_vp9DepthIndicator = 1;
-    if (settings->ucLumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_12_BITS)
+    if (settings->lumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_12_BITS)
         m_vp9DepthIndicator = 2;
-    m_chromaFormatinProfile = settings->ucChromaFormat;
+    m_chromaFormatinProfile = settings->chromaFormat;
 
     MHW_VDBOX_STATE_CMDSIZE_PARAMS      stateCmdSizeParams;
     MOS_ZeroMemory(&stateCmdSizeParams, sizeof(stateCmdSizeParams));

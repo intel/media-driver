@@ -271,7 +271,7 @@ MOS_STATUS CodechalInterfacesG9Skl::Initialize(
             m_codechalDevice = MOS_New(Decode::Avc, hwInterface, debugInterface, info);
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
-            if (settings != nullptr && ((PCODECHAL_SETTINGS)settings)->bDownsamplingHinted)
+            if (settings != nullptr && ((CodechalSetting *)settings)->downsamplingHinted)
             {
                 CodechalDecode *decoder = dynamic_cast<CodechalDecode *>(m_codechalDevice);
                 if (decoder == nullptr)

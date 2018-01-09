@@ -1638,7 +1638,7 @@ MOS_STATUS CodechalDecodeMpeg2::InitMmcState()
 }
 
 MOS_STATUS CodechalDecodeMpeg2::AllocateStandard (
-    PCODECHAL_SETTINGS          settings)
+    CodechalSetting *settings)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -1648,8 +1648,8 @@ MOS_STATUS CodechalDecodeMpeg2::AllocateStandard (
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(InitMmcState());
 
-    m_width                         = settings->dwWidth;
-    m_height                        = settings->dwHeight;
+    m_width                         = settings->width;
+    m_height                        = settings->height;
     m_picWidthInMb                  = (uint16_t)CODECHAL_GET_WIDTH_IN_MACROBLOCKS(m_width);
     m_picHeightInMb                 = (uint16_t)CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(m_height);
     m_bbAllocated                   = CODECHAL_DECODE_MPEG2_BATCH_BUFFERS_PER_GROUP;

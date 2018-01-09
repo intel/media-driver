@@ -570,7 +570,7 @@ bool CodechalVdencVp9StateG10::CheckSupportedFormat(
     return isColorFormatSupported;
 }
 
-MOS_STATUS CodechalVdencVp9StateG10::Initialize(PCODECHAL_SETTINGS settings)
+MOS_STATUS CodechalVdencVp9StateG10::Initialize(CodechalSetting * settings)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 

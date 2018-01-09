@@ -63,7 +63,7 @@ public:
     MOS_STATUS Initialize(
         CodechalDecode               *decoder,
         PMOS_CONTEXT                 osContext,
-        PCODECHAL_SETTINGS           settings)
+        CodechalSetting              *settings)
     {
         return MOS_STATUS_UNIMPLEMENTED;
     };

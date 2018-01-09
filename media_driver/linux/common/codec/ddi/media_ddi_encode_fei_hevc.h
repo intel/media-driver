@@ -46,7 +46,7 @@ public:
     //!
     virtual ~DdiEncodeHevcFei();
 
-    virtual VAStatus ContextInitialize(PCODECHAL_SETTINGS codecHalSettings);
+    virtual VAStatus ContextInitialize(CodechalSetting * codecHalSettings);
 
     virtual VAStatus EncodeInCodecHal(uint32_t numSlices);
 

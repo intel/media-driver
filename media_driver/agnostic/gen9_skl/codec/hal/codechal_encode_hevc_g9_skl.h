@@ -82,7 +82,7 @@ private:
         return false;
     }
 
-    MOS_STATUS Initialize(PCODECHAL_SETTINGS settings);
+    MOS_STATUS Initialize(CodechalSetting * settings);
 };
 
 #endif  // __CODECHAL_ENCODE_HEVC_G9_SKL_H__

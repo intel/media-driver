@@ -48,13 +48,13 @@ public:
     //! \brief    Initialize Encode Context and CodecHal Setting for Vp9
     //!
     //! \param    [out] codecHalSettings
-    //!           Pointer to PCODECHAL_SETTINGS
+    //!           Pointer to CodechalSetting *
     //!
     //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success, else fail reason
     //!
     VAStatus ContextInitialize(
-        CODECHAL_SETTINGS *codecHalSettings) override;
+        CodechalSetting *codecHalSettings) override;
 
     //!
     //! \brief    Parse buffer to the server.

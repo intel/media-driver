@@ -1829,7 +1829,7 @@ public:
 
     virtual void FreeResources();
 
-    virtual MOS_STATUS Initialize(PCODECHAL_SETTINGS settings);
+    virtual MOS_STATUS Initialize(CodechalSetting * settings);
 
     //!
     //! \brief      Execute kernel functions

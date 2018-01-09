@@ -694,7 +694,7 @@ struct CodechalEncodeAvcEnc : public CodechalEncodeAvcBase
     //!           MOS_STATUS_SUCCESS if success
     //!
     virtual MOS_STATUS Initialize(
-        PCODECHAL_SETTINGS settings) override;
+        CodechalSetting * settings) override;
 
     //!
     //! \brief    Initialize encoder related members.

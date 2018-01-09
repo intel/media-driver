@@ -1194,7 +1194,7 @@ CodechalEncodeMpeg2::~CodechalEncodeMpeg2()
     MOS_Delete(m_hmeKernel);
 }
 
-MOS_STATUS CodechalEncodeMpeg2::Initialize(PCODECHAL_SETTINGS codecHalSettings)
+MOS_STATUS CodechalEncodeMpeg2::Initialize(CodechalSetting * codecHalSettings)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 

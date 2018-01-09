@@ -9831,7 +9831,7 @@ MOS_STATUS CodechalEncHevcStateG9::UserFeatureKeyReport()
     return eStatus;
 }
 
-MOS_STATUS CodechalEncHevcStateG9::Initialize(PCODECHAL_SETTINGS settings)
+MOS_STATUS CodechalEncHevcStateG9::Initialize(CodechalSetting * settings)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 

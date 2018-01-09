@@ -28,6 +28,12 @@
 #include "media_libva_common.h"
 #include "media_ddi_encode_base.h"
 
+DdiEncodeBase::DdiEncodeBase()
+    :DdiMediaBase()
+{
+    m_codechalSettings = CodechalSetting::CreateCodechalSetting();
+}
+
 VAStatus DdiEncodeBase::BeginPicture(
     VADriverContextP    ctx,
     VAContextID         context,

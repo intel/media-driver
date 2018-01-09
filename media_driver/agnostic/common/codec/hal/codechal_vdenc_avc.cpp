@@ -1167,7 +1167,7 @@ CodechalVdencAvcState::~CodechalVdencAvcState()
     m_osInterface->pfnFreeResource(m_osInterface, &m_resVdencBrcDbgBuffer);
 }
 
-MOS_STATUS CodechalVdencAvcState::Initialize(PCODECHAL_SETTINGS settings)
+MOS_STATUS CodechalVdencAvcState::Initialize(CodechalSetting * settings)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 

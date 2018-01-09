@@ -837,7 +837,7 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS Initialize(
-        PCODECHAL_SETTINGS settings);
+        CodechalSetting * settings);
 
     //!
     //! \brief    Get meida object buffer size

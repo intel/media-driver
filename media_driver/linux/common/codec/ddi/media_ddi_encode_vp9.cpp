@@ -254,17 +254,17 @@ VAStatus DdiEncodeVp9::EncodeInCodecHal(uint32_t numSlices)
     return VA_STATUS_SUCCESS;
 }
 
-VAStatus DdiEncodeVp9::ContextInitialize(CODECHAL_SETTINGS *codecHalSettings)
+VAStatus DdiEncodeVp9::ContextInitialize(CodechalSetting *codecHalSettings)
 {
     DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CHK_NULL(m_encodeCtx->pCpDdiInterface, "nullptr m_encodeCtx->pCpDdiInterface.", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CHK_NULL(codecHalSettings, "nullptr codecHalSettings.", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    codecHalSettings->CodecFunction = m_encodeCtx->codecFunction;
-    codecHalSettings->dwWidth       = m_encodeCtx->dwFrameWidth;
-    codecHalSettings->dwHeight      = m_encodeCtx->dwFrameHeight;
-    codecHalSettings->Mode          = m_encodeCtx->wModeType;
-    codecHalSettings->Standard      = CODECHAL_VP9;
+    codecHalSettings->codecFunction = m_encodeCtx->codecFunction;
+    codecHalSettings->width       = m_encodeCtx->dwFrameWidth;
+    codecHalSettings->height      = m_encodeCtx->dwFrameHeight;
+    codecHalSettings->mode          = m_encodeCtx->wModeType;
+    codecHalSettings->standard      = CODECHAL_VP9;
 
     VAStatus vaStatus = VA_STATUS_SUCCESS;
 
@@ -274,7 +274,6 @@ VAStatus DdiEncodeVp9::ContextInitialize(CODECHAL_SETTINGS *codecHalSettings)
     m_encodeCtx->pPicParams = (void *)MOS_AllocAndZeroMemory(sizeof(CODEC_VP9_ENCODE_PIC_PARAMS));
     DDI_CHK_NULL(m_encodeCtx->pPicParams, "nullptr m_encodeCtx->pPicParams.", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
-    codecHalSettings->pCpParams = m_encodeCtx->pCpDdiInterface->GetParams();
 
     // Allocate Encode Status Report
     m_encodeCtx->pEncodeStatusReport = (void *)MOS_AllocAndZeroMemory(CODECHAL_ENCODE_STATUS_NUM * sizeof(EncodeStatusReport));

@@ -29,7 +29,7 @@
 #include "codechal_debug.h"
 #endif
 
-MOS_STATUS CodechalEncodeJpegState::Initialize(CODECHAL_SETTINGS  *settings)
+MOS_STATUS CodechalEncodeJpegState::Initialize(CodechalSetting  *settings)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 

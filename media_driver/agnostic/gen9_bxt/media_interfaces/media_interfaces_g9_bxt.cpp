@@ -271,7 +271,7 @@ MOS_STATUS CodechalInterfacesG9Bxt::Initialize(
                 return MOS_STATUS_NO_SPACE;
             }
 #ifdef _DECODE_PROCESSING_SUPPORTED
-            if (settings != nullptr && ((PCODECHAL_SETTINGS)settings)->bDownsamplingHinted)
+            if (settings != nullptr && ((CodechalSetting *)settings)->downsamplingHinted)
             {
                 CodechalDecode *decoder = dynamic_cast<CodechalDecode *>(m_codechalDevice);
                 if (decoder == nullptr)

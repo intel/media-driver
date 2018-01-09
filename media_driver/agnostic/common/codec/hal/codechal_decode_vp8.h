@@ -537,12 +537,12 @@ public:
     //!
     //! \brief    Allocate and initialize VP8 decoder standard
     //! \param    [in] settings
-    //!           Pointer to CODECHAL_SETTINGS
+    //!           Pointer to CodechalSetting
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS  AllocateStandard(
-        PCODECHAL_SETTINGS          settings) override;
+        CodechalSetting *          settings) override;
 
     //!
     //! \brief  Set states for each frame to prepare for VP8 decode

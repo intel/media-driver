@@ -6730,7 +6730,7 @@ MOS_STATUS CodechalVdencVp9State::CalculateVdencPictureStateCommandSize()
     return eStatus;
 }
 
-MOS_STATUS CodechalVdencVp9State::Initialize(PCODECHAL_SETTINGS settings)
+MOS_STATUS CodechalVdencVp9State::Initialize(CodechalSetting * settings)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -6750,8 +6750,8 @@ MOS_STATUS CodechalVdencVp9State::Initialize(PCODECHAL_SETTINGS settings)
 #ifdef _MMC_SUPPORTED
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitMmcState());
 #endif
-    m_bitDepth     = (settings->ucLumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_10_BITS) ? VP9_ENCODED_BIT_DEPTH_10 : VP9_ENCODED_BIT_DEPTH_8;
-    m_chromaFormat = settings->ucChromaFormat;
+    m_bitDepth     = (settings->lumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_10_BITS) ? VP9_ENCODED_BIT_DEPTH_10 : VP9_ENCODED_BIT_DEPTH_8;
+    m_chromaFormat = settings->chromaFormat;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CalculateVdencPictureStateCommandSize());
 

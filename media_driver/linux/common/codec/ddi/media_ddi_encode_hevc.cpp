@@ -86,7 +86,7 @@ DdiEncodeHevc::~DdiEncodeHevc()
 }
 
 VAStatus DdiEncodeHevc::ContextInitialize(
-    CODECHAL_SETTINGS *codecHalSettings)
+    CodechalSetting *codecHalSettings)
 {
     DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CHK_NULL(m_encodeCtx->pCpDdiInterface, "nullptr m_encodeCtx->pCpDdiInterface.", VA_STATUS_ERROR_INVALID_CONTEXT);
@@ -94,23 +94,22 @@ VAStatus DdiEncodeHevc::ContextInitialize(
 
     if (true == m_encodeCtx->bVdencActive)
     {
-        codecHalSettings->CodecFunction = CODECHAL_FUNCTION_ENC_VDENC_PAK;
+        codecHalSettings->codecFunction = CODECHAL_FUNCTION_ENC_VDENC_PAK;
     }
     else
     {
-        codecHalSettings->CodecFunction = CODECHAL_FUNCTION_ENC_PAK;
+        codecHalSettings->codecFunction = CODECHAL_FUNCTION_ENC_PAK;
     }
-    codecHalSettings->dwHeight          = m_encodeCtx->dwFrameHeight;
-    codecHalSettings->dwWidth           = m_encodeCtx->dwFrameWidth;
-    codecHalSettings->Mode              = m_encodeCtx->wModeType;
-    codecHalSettings->Standard          = CODECHAL_HEVC;
-    codecHalSettings->ucChromaFormat    = HCP_CHROMA_FORMAT_YUV420;
-    codecHalSettings->ucLumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_8_BITS;
+    codecHalSettings->height          = m_encodeCtx->dwFrameHeight;
+    codecHalSettings->width           = m_encodeCtx->dwFrameWidth;
+    codecHalSettings->mode              = m_encodeCtx->wModeType;
+    codecHalSettings->standard          = CODECHAL_HEVC;
+    codecHalSettings->chromaFormat    = HCP_CHROMA_FORMAT_YUV420;
+    codecHalSettings->lumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_8_BITS;
     if (m_is10Bit)
     {
-        codecHalSettings->ucLumaChromaDepth |= CODECHAL_LUMA_CHROMA_DEPTH_10_BITS;
+        codecHalSettings->lumaChromaDepth |= CODECHAL_LUMA_CHROMA_DEPTH_10_BITS;
     }
-    codecHalSettings->pCpParams = m_encodeCtx->pCpDdiInterface->GetParams();
 
     VAStatus eStatus = VA_STATUS_SUCCESS;
 

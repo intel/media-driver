@@ -336,10 +336,8 @@ VAStatus DdiEncode_CreateContext(
 
     encCtx->pCpDdiInterface->SetHdcp2Enabled(flag);
 
-    CODECHAL_SETTINGS codecHalSettings;
-    MOS_ZeroMemory(&codecHalSettings, sizeof(codecHalSettings));
-
-    vaStatus = encCtx->m_encode->ContextInitialize(&codecHalSettings);
+    encCtx->pCpDdiInterface->SetCodechalSetting(encCtx->m_encode->m_codechalSettings);
+    vaStatus = encCtx->m_encode->ContextInitialize(encCtx->m_encode->m_codechalSettings);
 
     if (vaStatus != VA_STATUS_SUCCESS)
     {
@@ -347,7 +345,7 @@ VAStatus DdiEncode_CreateContext(
         return vaStatus;
     }
 
-    MOS_STATUS eStatus = pCodecHal->Allocate(&codecHalSettings);
+    MOS_STATUS eStatus = pCodecHal->Allocate(encCtx->m_encode->m_codechalSettings);
 
 #ifdef _MMC_SUPPORTED
     PMOS_INTERFACE osInterface = pCodecHal->GetOsInterface();

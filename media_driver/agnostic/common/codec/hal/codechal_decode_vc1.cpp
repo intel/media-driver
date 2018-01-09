@@ -4697,7 +4697,7 @@ MOS_STATUS CodechalDecodeVc1::InitMmcState()
 }
 
 MOS_STATUS CodechalDecodeVc1::AllocateStandard(
-    PCODECHAL_SETTINGS          settings)
+    CodechalSetting *settings)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -4715,12 +4715,12 @@ MOS_STATUS CodechalDecodeVc1::AllocateStandard(
         MOS_GPU_CONTEXT_CREATE_DEFAULT));
     m_renderContext = MOS_GPU_CONTEXT_RENDER;
 
-    m_intelEntrypointInUse = settings->bIntelEntrypointInUse;
-    m_width = settings->dwWidth;
-    m_height = settings->dwHeight;
+    m_intelEntrypointInUse = settings->intelEntrypointInUse;
+    m_width = settings->width;
+    m_height = settings->height;
     m_picWidthInMb         = (uint16_t)CODECHAL_GET_WIDTH_IN_MACROBLOCKS(m_width);
     m_picHeightInMb        = (uint16_t)CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(m_height);
-    m_shortFormatInUse     = settings->bShortFormatInUse;
+    m_shortFormatInUse     = settings->shortFormatInUse;
     m_huCCopyInUse         = false;
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(InitKernelStateVc1Olp());

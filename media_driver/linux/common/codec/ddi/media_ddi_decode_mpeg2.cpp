@@ -605,25 +605,23 @@ VAStatus DdiDecodeMPEG2::CodecHalInit(
     CODECHAL_FUNCTION codecFunction = CODECHAL_FUNCTION_DECODE;
     m_ddiDecodeCtx->pCpDdiInterface->SetEncryptionType(m_ddiDecodeAttr->uiEncryptionType, &codecFunction);
 
-    CODECHAL_SETTINGS      codecHalSettings;
     CODECHAL_STANDARD_INFO standardInfo;
     memset(&standardInfo, 0, sizeof(standardInfo));
-    memset(&codecHalSettings, 0, sizeof(codecHalSettings));
 
     standardInfo.CodecFunction = codecFunction;
     standardInfo.Mode          = (CODECHAL_MODE)m_ddiDecodeCtx->wMode;
 
-    codecHalSettings.CodecFunction                = codecFunction;
-    codecHalSettings.dwWidth                      = m_width;
-    codecHalSettings.dwHeight                     = m_height;
-    codecHalSettings.bIntelEntrypointInUse        = false;
+    m_codechalSettings->codecFunction                = codecFunction;
+    m_codechalSettings->width                      = m_width;
+    m_codechalSettings->height                     = m_height;
+    m_codechalSettings->intelEntrypointInUse        = false;
 
-    codecHalSettings.ucLumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_8_BITS;
+    m_codechalSettings->lumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_8_BITS;
 
-    codecHalSettings.bShortFormatInUse = m_ddiDecodeCtx->bShortFormatInUse;
+    m_codechalSettings->shortFormatInUse = m_ddiDecodeCtx->bShortFormatInUse;
 
-    codecHalSettings.Mode     = CODECHAL_DECODE_MODE_MPEG2VLD;
-    codecHalSettings.Standard = CODECHAL_MPEG2;
+    m_codechalSettings->mode     = CODECHAL_DECODE_MODE_MPEG2VLD;
+    m_codechalSettings->standard = CODECHAL_MPEG2;
 
     m_ddiDecodeCtx->DecodeParams.m_iqMatrixBuffer = MOS_AllocAndZeroMemory(sizeof(CodecMpeg2IqMatrix));
     if (m_ddiDecodeCtx->DecodeParams.m_iqMatrixBuffer == nullptr)
@@ -648,7 +646,6 @@ VAStatus DdiDecodeMPEG2::CodecHalInit(
 
     vaStatus = CreateCodecHal(mediaCtx,
         ptr,
-        &codecHalSettings,
         &standardInfo);
 
     if (vaStatus != VA_STATUS_SUCCESS)

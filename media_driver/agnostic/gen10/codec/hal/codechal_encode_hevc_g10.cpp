@@ -7687,7 +7687,7 @@ CodechalEncHevcStateG10::CodechalEncHevcStateG10(
         MOS_ALIGN_CEIL(m_combinedKernelSize, (1 << MHW_KERNEL_OFFSET_SHIFT));
 }
 
-MOS_STATUS CodechalEncHevcStateG10::Initialize(PCODECHAL_SETTINGS settings)
+MOS_STATUS CodechalEncHevcStateG10::Initialize(CodechalSetting * settings)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 

@@ -180,7 +180,7 @@ public:
     //!
     virtual ~CodechalVdencAvcState();
 
-    virtual MOS_STATUS Initialize( PCODECHAL_SETTINGS settings);
+    virtual MOS_STATUS Initialize( CodechalSetting * settings);
 
     virtual MOS_STATUS InitializePicture(const EncoderParams& params);
 

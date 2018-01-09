@@ -39,6 +39,7 @@ DdiMediaDecode::DdiMediaDecode(DDI_DECODE_CONFIG_ATTR *ddiDecodeAttr)
     m_ddiDecodeAttr = ddiDecodeAttr;
     m_ctxType       = DDI_MEDIA_CONTEXT_TYPE_DECODER;
     m_ddiDecodeCtx  = nullptr;
+    m_codechalSettings = CodechalSetting::CreateCodechalSetting();
 }
 
 VAStatus DdiMediaDecode::BasicInit(
@@ -851,12 +852,11 @@ void DdiMediaDecode::ContextInit(
 VAStatus DdiMediaDecode::CreateCodecHal(
     DDI_MEDIA_CONTEXT       *mediaCtx,
     void                    *ptr,
-    _CODECHAL_SETTINGS      *codecHalSettings,
     _CODECHAL_STANDARD_INFO *standardInfo)
 {
     if ((mediaCtx == nullptr) ||
         (ptr == nullptr) ||
-        (codecHalSettings == nullptr) ||
+        (m_codechalSettings == nullptr) ||
         (standardInfo == nullptr))
     {
         DDI_ASSERTMESSAGE("NULL pointer is passed for CreateCodecHal.\n");
@@ -866,13 +866,12 @@ VAStatus DdiMediaDecode::CreateCodecHal(
     MOS_CONTEXT    *mosCtx   = (MOS_CONTEXT *)ptr;
     VAStatus        vaStatus = VA_STATUS_SUCCESS;
 
-    codecHalSettings->pCpParams = m_ddiDecodeCtx->pCpDdiInterface->GetParams();
 
     Codechal *codecHal = CodechalDevice::CreateFactory(
         nullptr,
         mosCtx,
         standardInfo,
-        codecHalSettings);
+        m_codechalSettings);
     CodechalDecode *decoder = dynamic_cast<CodechalDecode *>(codecHal);
     if (nullptr == codecHal || nullptr == decoder)
     {
@@ -883,9 +882,9 @@ VAStatus DdiMediaDecode::CreateCodecHal(
     m_ddiDecodeCtx->pCodecHal = codecHal;
 
     CodechalCencDecode *cencDecoder = nullptr;
-    if (codecHalSettings->CodecFunction == CODECHAL_FUNCTION_CENC_DECODE)
+    if (m_codechalSettings->codecFunction == CODECHAL_FUNCTION_CENC_DECODE)
     {
-        CodechalCencDecode::CreateCencDecode((CODECHAL_STANDARD)codecHalSettings->Standard, &cencDecoder);
+        CodechalCencDecode::CreateCencDecode((CODECHAL_STANDARD)m_codechalSettings->standard, &cencDecoder);
         if (nullptr == cencDecoder)
         {
             DDI_ASSERTMESSAGE("Failure in CreateCencDecode create.\n");
@@ -895,7 +894,7 @@ VAStatus DdiMediaDecode::CreateCodecHal(
         decoder->SetCencDecoder(cencDecoder);
     }
 
-    if (codecHal->Allocate(codecHalSettings) != MOS_STATUS_SUCCESS)
+    if (codecHal->Allocate(m_codechalSettings) != MOS_STATUS_SUCCESS)
     {
         DDI_ASSERTMESSAGE("Failure in decode allocate.\n");
         vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
@@ -919,9 +918,9 @@ VAStatus DdiMediaDecode::CreateCodecHal(
     }
 #endif
 
-    if (codecHalSettings->CodecFunction == CODECHAL_FUNCTION_CENC_DECODE)
+    if (m_codechalSettings->codecFunction == CODECHAL_FUNCTION_CENC_DECODE)
     {
-        if (cencDecoder->Initialize(decoder, osInterface->pOsContext, codecHalSettings) != MOS_STATUS_SUCCESS)
+        if (cencDecoder->Initialize(decoder, osInterface->pOsContext, m_codechalSettings) != MOS_STATUS_SUCCESS)
         {
             DDI_ASSERTMESSAGE("Failure in CreateCencDecode create.\n");
             vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;

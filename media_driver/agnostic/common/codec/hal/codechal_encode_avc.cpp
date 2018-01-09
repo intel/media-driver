@@ -1524,7 +1524,7 @@ CodechalEncodeAvcEnc::~CodechalEncodeAvcEnc()
 }
 
 
-MOS_STATUS CodechalEncodeAvcEnc::Initialize(PCODECHAL_SETTINGS settings)
+MOS_STATUS CodechalEncodeAvcEnc::Initialize(CodechalSetting * settings)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 

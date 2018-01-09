@@ -1629,7 +1629,7 @@ CodechalEncodeMpeg2G10::CodechalEncodeMpeg2G10(
         MOS_ALIGN_CEIL(m_combinedKernelSize, (1 << MHW_KERNEL_OFFSET_SHIFT));
 }
 
-MOS_STATUS CodechalEncodeMpeg2G10::Initialize(PCODECHAL_SETTINGS codecHalSettings)
+MOS_STATUS CodechalEncodeMpeg2G10::Initialize(CodechalSetting * codecHalSettings)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 

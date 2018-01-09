@@ -2856,7 +2856,7 @@ MOS_STATUS CodechalVdencHevcState::FreeBrcResources()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS CodechalVdencHevcState::Initialize(PCODECHAL_SETTINGS settings)
+MOS_STATUS CodechalVdencHevcState::Initialize(CodechalSetting * settings)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 

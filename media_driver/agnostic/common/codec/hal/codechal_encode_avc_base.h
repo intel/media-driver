@@ -1346,7 +1346,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success
     //!
-    virtual MOS_STATUS Initialize(PCODECHAL_SETTINGS settings);
+    virtual MOS_STATUS Initialize(CodechalSetting * settings);
 
     virtual MOS_STATUS GetStatusReport(
         EncodeStatus* encodeStatus,

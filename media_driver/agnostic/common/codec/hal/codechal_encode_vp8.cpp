@@ -270,7 +270,7 @@ CodechalEncodeVp8::~CodechalEncodeVp8()
     FreeResources();
 }
 
-MOS_STATUS CodechalEncodeVp8::Initialize(PCODECHAL_SETTINGS codecHalSettings)
+MOS_STATUS CodechalEncodeVp8::Initialize(CodechalSetting * codecHalSettings)
 {
     MOS_STATUS status = MOS_STATUS_SUCCESS;
 

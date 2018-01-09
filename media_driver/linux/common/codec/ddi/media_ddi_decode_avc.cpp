@@ -566,28 +566,26 @@ VAStatus DdiDecodeAVC::CodecHalInit(
     CODECHAL_FUNCTION codecFunction = CODECHAL_FUNCTION_DECODE;
     m_ddiDecodeCtx->pCpDdiInterface->SetEncryptionType(m_ddiDecodeAttr->uiEncryptionType, &codecFunction);
 
-    CODECHAL_SETTINGS      codecHalSettings;
     CODECHAL_STANDARD_INFO standardInfo;
     memset(&standardInfo, 0, sizeof(standardInfo));
-    memset(&codecHalSettings, 0, sizeof(codecHalSettings));
 
     standardInfo.CodecFunction = codecFunction;
     standardInfo.Mode          = (CODECHAL_MODE)m_ddiDecodeCtx->wMode;
 
-    codecHalSettings.CodecFunction = codecFunction;
-    codecHalSettings.dwWidth       = m_width;
-    codecHalSettings.dwHeight      = m_height;
+    m_codechalSettings->codecFunction = codecFunction;
+    m_codechalSettings->width       = m_width;
+    m_codechalSettings->height      = m_height;
     //For Avc Decoding:
     // if the slice header contains the emulation_prevention_three_byte, we need to set bIntelEntrypointInUse to false.
     // Because in this case, driver can not get the correct BsdStartAddress by itself. We need to turn to GEN to calculate the correct address.
-    codecHalSettings.bIntelEntrypointInUse = false;
+    m_codechalSettings->intelEntrypointInUse = false;
 
-    codecHalSettings.ucLumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_8_BITS;
+    m_codechalSettings->lumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_8_BITS;
 
-    codecHalSettings.bShortFormatInUse = m_ddiDecodeCtx->bShortFormatInUse;
+    m_codechalSettings->shortFormatInUse = m_ddiDecodeCtx->bShortFormatInUse;
 
-    codecHalSettings.Mode     = CODECHAL_DECODE_MODE_AVCVLD;
-    codecHalSettings.Standard = CODECHAL_AVC;
+    m_codechalSettings->mode     = CODECHAL_DECODE_MODE_AVCVLD;
+    m_codechalSettings->standard = CODECHAL_AVC;
 
     m_ddiDecodeCtx->DecodeParams.m_iqMatrixBuffer = (void*)MOS_AllocAndZeroMemory(sizeof(CODEC_AVC_IQ_MATRIX_PARAMS));
     if (m_ddiDecodeCtx->DecodeParams.m_iqMatrixBuffer == nullptr)
@@ -615,7 +613,7 @@ VAStatus DdiDecodeAVC::CodecHalInit(
     {
         PCODECHAL_DECODE_PROCESSING_PARAMS procParams = nullptr;
 
-        codecHalSettings.bDownsamplingHinted = true;
+        m_codechalSettings->downsamplingHinted = true;
 
         procParams = (PCODECHAL_DECODE_PROCESSING_PARAMS)MOS_AllocAndZeroMemory(sizeof(CODECHAL_DECODE_PROCESSING_PARAMS));
         if (procParams == nullptr)
@@ -635,7 +633,6 @@ VAStatus DdiDecodeAVC::CodecHalInit(
 #endif
     vaStatus = CreateCodecHal(mediaCtx,
                                  ptr,
-                                 &codecHalSettings,
                                  &standardInfo);
 
     if (vaStatus != VA_STATUS_SUCCESS)

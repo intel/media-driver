@@ -59,7 +59,7 @@ MOS_STATUS CodechalEncodeHevcBase::InitMmcState()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS CodechalEncodeHevcBase::Initialize(PCODECHAL_SETTINGS settings)
+MOS_STATUS CodechalEncodeHevcBase::Initialize(CodechalSetting * settings)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -77,9 +77,9 @@ MOS_STATUS CodechalEncodeHevcBase::Initialize(PCODECHAL_SETTINGS settings)
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitMmcState());
 
-    m_is10BitHevc  = (settings->ucLumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_10_BITS) ? true : false;
-    m_chromaFormat = settings->ucChromaFormat;
-    m_bitDepth     = (settings->ucLumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_8_BITS) ? 8 : ((settings->ucLumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_10_BITS) ? 10 : 12);
+    m_is10BitHevc  = (settings->lumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_10_BITS) ? true : false;
+    m_chromaFormat = settings->chromaFormat;
+    m_bitDepth     = (settings->lumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_8_BITS) ? 8 : ((settings->lumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_10_BITS) ? 10 : 12);
     m_frameNum = 0;
 
     const uint32_t minLcuSize = 16;

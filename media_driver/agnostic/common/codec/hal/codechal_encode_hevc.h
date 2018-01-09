@@ -339,7 +339,7 @@ public:
 
     //! Inherited virtual functions
     virtual bool CheckSupportedFormat(PMOS_SURFACE surface);
-    virtual MOS_STATUS Initialize(PCODECHAL_SETTINGS settings);
+    virtual MOS_STATUS Initialize(CodechalSetting * settings);
     virtual MOS_STATUS AllocateBrcResources();
     virtual MOS_STATUS FreeBrcResources();
     virtual MOS_STATUS InitializePicture(const EncoderParams& params);

@@ -1626,7 +1626,7 @@ CodechalEncodeMpeg2G8::CodechalEncodeMpeg2G8(
     m_needCheckCpEnabled = true;
 }
 
-MOS_STATUS CodechalEncodeMpeg2G8::Initialize(PCODECHAL_SETTINGS codecHalSettings)
+MOS_STATUS CodechalEncodeMpeg2G8::Initialize(CodechalSetting * codecHalSettings)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 

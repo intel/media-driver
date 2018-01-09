@@ -1974,7 +1974,7 @@ CodechalEncodeAvcBase::~CodechalEncodeAvcBase()
     }
 }
 
-MOS_STATUS CodechalEncodeAvcBase::Initialize(PCODECHAL_SETTINGS settings)
+MOS_STATUS CodechalEncodeAvcBase::Initialize(CodechalSetting * settings)
 {
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitMmcState());
     return CodechalEncoderState::Initialize( settings );

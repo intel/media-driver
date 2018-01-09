@@ -30,6 +30,7 @@
 #include <va/va.h>
 #include "media_ddi_base.h"
 #include "media_libva_encoder.h"
+#include "codechal_setting.h"
 
 //!
 //! \class  DdiEncodeBase
@@ -39,22 +40,31 @@ class DdiEncodeBase : public DdiMediaBase
 {
 public:
     //!
+    //! \brief Constructor
+    //!
+    DdiEncodeBase();
+
+    //!
     //! \brief    Initialize the encode context and do codechal setting
     //! \details  Allocate memory for pointer members of encode context, set codechal
     //!           which used by Codechal::Allocate
     //!
     //! \param    [out] codecHalSettings
-    //!           PCODECHAL_SETTINGS
+    //!           CodechalSetting *
     //!
     //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual VAStatus ContextInitialize(PCODECHAL_SETTINGS codecHalSettings) = 0;
+    virtual VAStatus ContextInitialize(CodechalSetting * codecHalSettings) = 0;
 
     //!
     //! \brief Destructor
     //!
-    virtual ~DdiEncodeBase(){};
+    virtual ~DdiEncodeBase()
+    {
+        MOS_Delete(m_codechalSettings);
+        m_codechalSettings = nullptr;
+    };
 
     virtual VAStatus BeginPicture(
         VADriverContextP ctx,
@@ -245,7 +255,7 @@ public:
 
     DDI_ENCODE_CONTEXT *m_encodeCtx = nullptr; //!< The referred DDI_ENCODE_CONTEXT object.
     bool m_is10Bit                  = false;   //!< 10 bit flag.
-
+    CodechalSetting    *m_codechalSettings = nullptr;    //!< Codechal Settings
 protected:
     //!
     //! \brief    Do Encode in codechal

@@ -724,7 +724,7 @@ VAStatus DdiEncodeAvc::ParseMiscParamSubMbPartPel(void *data)
     return VA_STATUS_SUCCESS;
 }
 
-VAStatus DdiEncodeAvc::ContextInitialize(PCODECHAL_SETTINGS codecHalSettings)
+VAStatus DdiEncodeAvc::ContextInitialize(CodechalSetting * codecHalSettings)
 {
     DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CHK_NULL(m_encodeCtx->pCpDdiInterface, "nullptr m_encodeCtx->pCpDdiInterface.", VA_STATUS_ERROR_INVALID_CONTEXT);
@@ -732,17 +732,17 @@ VAStatus DdiEncodeAvc::ContextInitialize(PCODECHAL_SETTINGS codecHalSettings)
 
     if (m_encodeCtx->bVdencActive == true)
     {
-        codecHalSettings->CodecFunction = CODECHAL_FUNCTION_ENC_VDENC_PAK;
+        codecHalSettings->codecFunction = CODECHAL_FUNCTION_ENC_VDENC_PAK;
     }
     else
     {
-        codecHalSettings->CodecFunction = m_encodeCtx->codecFunction;
+        codecHalSettings->codecFunction = m_encodeCtx->codecFunction;
     }
 
-    codecHalSettings->dwWidth  = m_encodeCtx->dwFrameWidth;
-    codecHalSettings->dwHeight = m_encodeCtx->dwFrameHeight;
-    codecHalSettings->Mode     = m_encodeCtx->wModeType;
-    codecHalSettings->Standard = CODECHAL_AVC;
+    codecHalSettings->width  = m_encodeCtx->dwFrameWidth;
+    codecHalSettings->height = m_encodeCtx->dwFrameHeight;
+    codecHalSettings->mode     = m_encodeCtx->wModeType;
+    codecHalSettings->standard = CODECHAL_AVC;
 
     m_encodeCtx->pSeqParams = (void *)MOS_AllocAndZeroMemory(CODEC_AVC_MAX_SPS_NUM * sizeof(CODEC_AVC_ENCODE_SEQUENCE_PARAMS));
     DDI_CHK_NULL(m_encodeCtx->pSeqParams, "nullptr m_encodeCtx->pSeqParams", VA_STATUS_ERROR_ALLOCATION_FAILED);
@@ -762,7 +762,6 @@ VAStatus DdiEncodeAvc::ContextInitialize(PCODECHAL_SETTINGS codecHalSettings)
         m_encodeCtx->ppNALUnitParams[i] = &(nalUnitParams[i]);
     }
 
-    codecHalSettings->pCpParams = m_encodeCtx->pCpDdiInterface->GetParams();
 
     VAStatus status = m_encodeCtx->pCpDdiInterface->ParseCpParamsForEncode();
     if (VA_STATUS_SUCCESS != status)

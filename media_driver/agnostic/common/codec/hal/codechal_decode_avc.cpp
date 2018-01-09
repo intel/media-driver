@@ -991,7 +991,7 @@ MOS_STATUS CodechalDecodeAvc::InitSfcState()
 }
 
 MOS_STATUS CodechalDecodeAvc::AllocateStandard(
-    PCODECHAL_SETTINGS          settings)
+    CodechalSetting *settings)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -1001,7 +1001,7 @@ MOS_STATUS CodechalDecodeAvc::AllocateStandard(
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(InitMmcState());
 
-    if (settings->bDownsamplingHinted)
+    if (settings->downsamplingHinted)
     {
         // Create Render Context for field scaling
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
@@ -1012,12 +1012,12 @@ MOS_STATUS CodechalDecodeAvc::AllocateStandard(
         m_renderContext = MOS_GPU_CONTEXT_RENDER;
     }
 
-    m_intelEntrypointInUse = (settings->bIntelEntrypointInUse) ? true : false;
-    m_width = settings->dwWidth;
-    m_height = settings->dwHeight;
+    m_intelEntrypointInUse = (settings->intelEntrypointInUse) ? true : false;
+    m_width = settings->width;
+    m_height = settings->height;
     m_picWidthInMb         = (uint16_t)CODECHAL_GET_WIDTH_IN_MACROBLOCKS(m_width);
     m_picHeightInMb        = (uint16_t)CODECHAL_GET_WIDTH_IN_MACROBLOCKS(m_height);
-    m_shortFormatInUse     = (settings->bShortFormatInUse) ? true : false;
+    m_shortFormatInUse     = (settings->shortFormatInUse) ? true : false;
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(InitSfcState());
 
