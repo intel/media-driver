@@ -120,7 +120,17 @@ MOS_STATUS CodechalEncodeCscDs::InitSfcState()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    return CodecHalEncodeSfc_Initialize(m_hwInterface, m_osInterface);
+    if (!m_sfcState)
+    {
+        m_sfcState = (CodecHalEncodeSfc*)MOS_New(CodecHalEncodeSfc);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(m_sfcState);
+
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_sfcState->Initialize(m_hwInterface, m_osInterface));
+
+        m_sfcState->SetInputColorSpace(MHW_CSpace_sRGB);
+    }
+
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS CodechalEncodeCscDs::SetParamsSfc(CODECHAL_ENCODE_SFC_PARAMS* sfcParams)
@@ -1146,15 +1156,7 @@ MOS_STATUS CodechalEncodeCscDs::CscUsingSfc(ENCODE_INPUT_COLORSPACE colorSpace)
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     // init SFC state
-    if (!m_sfcState)
-    {
-        m_sfcState = (CODECHAL_ENCODE_SFC_STATE*)MOS_New(CODECHAL_ENCODE_SFC_STATE);
-        CODECHAL_ENCODE_CHK_NULL_RETURN(m_sfcState);
-
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSfcState());
-
-        m_sfcState->InputSurfaceColorSpace = MHW_CSpace_sRGB;
-    }
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(InitSfcState());
 
     // wait for raw surface on VEBox context
     auto syncParams = g_cInitSyncParams;
@@ -1180,29 +1182,24 @@ MOS_STATUS CodechalEncodeCscDs::CscUsingSfc(ENCODE_INPUT_COLORSPACE colorSpace)
     switch (colorSpace)
     {
     case ECOLORSPACE_P601:
-        m_sfcState->OutputSurfaceColorSpace = MHW_CSpace_BT601;
+        m_sfcState->SetOutputColorSpace(MHW_CSpace_BT601);
         break;
     case ECOLORSPACE_P709:
-        m_sfcState->OutputSurfaceColorSpace = MHW_CSpace_BT709;
+        m_sfcState->SetOutputColorSpace(MHW_CSpace_BT709);
         break;
     case ECOLORSPACE_P2020:
-        m_sfcState->OutputSurfaceColorSpace = MHW_CSpace_BT2020;
+        m_sfcState->SetOutputColorSpace(MHW_CSpace_BT2020);
         break;
     default:
         CODECHAL_ENCODE_ASSERTMESSAGE("Unknow input color space = %d!", colorSpace);
         eStatus = MOS_STATUS_INVALID_PARAMETER;
     }
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalEncodeSfc_SetParams(
-        m_osInterface,
-        m_sfcState,
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_sfcState->SetParams(
         &sfcParams));
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalEncodeSfc_RenderStart(
-        m_hwInterface,
-        m_osInterface,
-        m_encoder,
-        m_sfcState));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_sfcState->RenderStart(
+        m_encoder));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetSurfacesToEncPak());
 
@@ -1775,7 +1772,7 @@ CodechalEncodeCscDs::~CodechalEncodeCscDs()
 
     if (m_sfcState)
     {
-        CodecHalEncodeSfc_Destroy(m_hwInterface, m_osInterface, m_sfcState);
+        MOS_Delete(m_sfcState);
         m_sfcState = nullptr;
     }
 }

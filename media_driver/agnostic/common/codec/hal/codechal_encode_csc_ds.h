@@ -1082,7 +1082,8 @@ private:
     uint32_t                    m_threadTraverseSizeX = 5;                                  //!< target traverse thread space size in width
     uint32_t                    m_threadTraverseSizeY = 2;                                  //!< target traverse thread space size in height
 
-    CODECHAL_ENCODE_SFC_STATE*  m_sfcState = nullptr;                                       //!< SFC interface
+protected:
+    CodecHalEncodeSfc*          m_sfcState = nullptr;                                       //!< SFC interface
 };
 
 #endif  // __CODECHAL_ENCODE_CSC_DS_H__

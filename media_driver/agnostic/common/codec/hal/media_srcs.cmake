@@ -271,7 +271,7 @@ if(${Common_Encode_Supported} STREQUAL "yes")
     set(TMP_3_SOURCES_
         ${CMAKE_CURRENT_LIST_DIR}/codechal_debug_encode_par.cpp
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_csc_ds.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_sfc.c
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_sfc.cpp
         ${CMAKE_CURRENT_LIST_DIR}/codechal_kernel_base.cpp
         ${CMAKE_CURRENT_LIST_DIR}/codechal_kernel_hme.cpp
         ${CMAKE_CURRENT_LIST_DIR}/codechal_kernel_intra_dist.cpp
