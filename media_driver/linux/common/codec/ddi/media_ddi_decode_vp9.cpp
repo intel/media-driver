@@ -455,12 +455,6 @@ VAStatus DdiDecodeVP9::CodecHalInit(
 CleanUpandReturn:
     FreeResourceBuffer();
 
-    if (m_decodeStatusReport)
-    {
-        MOS_DeleteArray(m_decodeStatusReport);
-        m_decodeStatusReport = nullptr;
-    }
-
     if (m_ddiDecodeCtx->pCodecHal)
     {
         m_ddiDecodeCtx->pCodecHal->Destroy();

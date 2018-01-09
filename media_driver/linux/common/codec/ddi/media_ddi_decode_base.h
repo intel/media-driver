@@ -363,7 +363,7 @@ protected:
         _CODECHAL_STANDARD_INFO *standardInfo);
 
     //! \brief  the type of decode base class
-        uint32_t                    m_ctxType;              //!<Context type
+    uint32_t                    m_ctxType;              //!<Context type
     MOS_SURFACE                 m_destSurface;          //!<Destination Surface structure
     uint32_t                    m_groupIndex;           //!<global Group
     uint16_t                    m_picWidthInMB;         //!<Picture Width in MB width count
@@ -371,7 +371,6 @@ protected:
     uint32_t                    m_width;                //!<Picture Width
     uint32_t                    m_height;               //!<Picture Height
     bool                        m_streamOutEnabled;     //!<Stream Out enable flag
-    CodechalDecodeStatusReport  *m_decodeStatusReport = nullptr;  //!<Decode Status Report
     uint32_t                    m_sliceParamBufNum;     //!<Slice parameter Buffer Number
     uint32_t                    m_sliceCtrlBufNum;      //!<Slice control Buffer Number
     uint32_t                    m_decProcessingType;    //!<Decode Processing type  

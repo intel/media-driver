@@ -1602,9 +1602,6 @@ VAStatus MediaLibvaCaps::CheckProfile(VAProfile profile)
             status = VA_STATUS_ERROR_UNSUPPORTED_PROFILE;
         }
 
-#ifdef ANDROID
-        status = VA_STATUS_ERROR_UNSUPPORTED_PROFILE;
-#endif
     }
     return status;
 }

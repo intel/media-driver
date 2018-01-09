@@ -346,13 +346,6 @@ void DdiMediaDecode::DestroyContext(VADriverContextP ctx)
         m_ddiDecodeCtx->pCpDdiInterface = nullptr;
     }
 
-    if (m_decodeStatusReport)
-    {
-        MOS_DeleteArray(m_decodeStatusReport);
-        m_decodeStatusReport = nullptr;
-    }
-
-
     MOS_FreeMemory(m_ddiDecodeCtx->DecodeParams.m_iqMatrixBuffer);
     m_ddiDecodeCtx->DecodeParams.m_iqMatrixBuffer = nullptr;
 
@@ -925,17 +918,6 @@ VAStatus DdiMediaDecode::CreateCodecHal(
             DDI_ASSERTMESSAGE("Failure in CreateCencDecode create.\n");
             vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
             return vaStatus;
-        }
-    }
-
-    if (decoder->IsStatusQueryReportingEnabled())
-    {
-        m_decodeStatusReport =
-            MOS_NewArray(CodechalDecodeStatusReport, CODECHAL_DECODE_STATUS_NUM);
-        if (m_decodeStatusReport == nullptr)
-        {
-            DDI_ASSERTMESSAGE("Failure to allocate the status buffer for decoding\n");
-            vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
     }
 
