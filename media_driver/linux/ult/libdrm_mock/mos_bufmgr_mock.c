@@ -821,7 +821,6 @@ mos_gem_bo_alloc_internal(struct mos_bufmgr *bufmgr,
 #endif
 
         atomic_set(&bo_gem->refcount, 1);
-        //printf("--libdrm: bo_gem->bo.virtual=%x, bo=%p\n",bo_gem->bo.virtual, &bo_gem->bo);
         pthread_mutex_unlock(&bufmgr_gem->lock);
 
         return &bo_gem->bo;
@@ -1919,8 +1918,6 @@ mos_gem_bo_map_wc(struct mos_linux_bo *bo) {
 	int ret;
 	if(GetDrmMode())//libdrm_mock
 	{
-		if(bo_gem->mem_virtual == nullptr)
-			printf("ERR!!!--drm_intel_gem_bo_map_wc, bo=%x\n",bo);
 #ifdef __cplusplus 
 		bo->virt = bo_gem->mem_virtual;
 #else
@@ -1994,8 +1991,6 @@ drm_export int mos_gem_bo_map(struct mos_linux_bo *bo, int write_enable)
 	int ret;
 	if(GetDrmMode())//libdrm_mock
 	{
-		if(bo_gem->mem_virtual == nullptr)
-			printf("ERR!!!--drm_intel_gem_bo_map, bo=%x\n",bo);
 #ifdef __cplusplus 
         bo->virt = bo_gem->mem_virtual;
 #else

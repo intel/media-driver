@@ -175,10 +175,7 @@ mosdrmIoctl(int fd, unsigned long request, void *arg)
 {
     int	ret;
 #if 1
-    //char *penvset_drm = getenv("DRMMode");
-    int DrmMode=1;//DrmMode=0: HW mode, 1: SW mode.
     int DevIdx=fd-1;//use fd to get DevIdx
-    printf("!!!This is libdrm mock drmIoctl, fd=%d\n",fd);
     switch (request)
     {
         case DRM_IOCTL_I915_GEM_GET_APERTURE:
@@ -263,7 +260,7 @@ mosdrmIoctl(int fd, unsigned long request, void *arg)
                     ret = 0;
                     break;
                 default:
-                    printf("drmIoctl:DRM_IOCTL_I915_GETPARAM with unsupport type=%lld \n", gp->param);
+                    printf("drmIoctl:DRM_IOCTL_I915_GETPARAM with unsupport type\n");
                     do {
                         ret = ioctl(fd, request, arg);
                     } while (ret == -1 && (errno == EINTR || errno == EAGAIN));
@@ -284,7 +281,7 @@ mosdrmIoctl(int fd, unsigned long request, void *arg)
             }
             else
             {
-                printf("drmIoctl: with unsupport DRM_IOCTL_I915_REG_READ =%llx\n ", reg->offset);
+                printf("drmIoctl: with unsupport DRM_IOCTL_I915_REG_READ address\n");
                 ret = -1;
             }
         }
@@ -339,8 +336,7 @@ mosdrmIoctl(int fd, unsigned long request, void *arg)
         }
         break;
         default:
-            printf("drmIoctl: with unsupport IOtype =%x\n ", request);
-            printf("drmIoctl: DRM_IOCTL_I915_SET_VBLANK_PIPE =%x %x %x %x, %x %x\n ", DRM_IOCTL_I915_SET_VBLANK_PIPE, DRM_IOCTL_I915_GET_VBLANK_PIPE,DRM_IOCTL_I915_VBLANK_SWAP,DRM_IOCTL_I915_HWS_ADDR, DRM_IOCTL_I915_GEM_INIT,DRM_IOCTL_I915_GEM_EXECBUFFER );
+            printf("drmIoctl: with unsupport IOType\n");
             do {
                 ret = ioctl(fd, request, arg);
             } while (ret == -1 && (errno == EINTR || errno == EAGAIN));
