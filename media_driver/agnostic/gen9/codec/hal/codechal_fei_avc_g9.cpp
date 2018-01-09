@@ -2430,6 +2430,8 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::EncodePreEncKernelFunctions()
 
     bool dsSurfaceInCache;
     uint8_t scaledIdx = m_trackedBuf->PreencLookUpBufIndex(m_currOriginalPic.FrameIdx, &dsSurfaceInCache);
+    m_trackedBuf->AllocateForCurrFramePreenc(scaledIdx);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_trackedBuf->AllocateSurfaceDS());
 
     bool dsPastRefInCache = false;
     bool callDsPastRef = false;
@@ -2500,7 +2502,6 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::EncodePreEncKernelFunctions()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(EncodeScalingKernel(&cscScalingKernelParams));
         m_dsIdx ++;
 #else
-        m_trackedBuf->AllocateForCurrFramePreenc(scaledIdx);
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->DsKernel(&cscScalingKernelParams));
 #endif
 
@@ -2509,13 +2510,11 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::EncodePreEncKernelFunctions()
     // Scaling for Past ref 
     if (callDsPastRef)
     {
-        scaledIdx = pastRefScaledIdx;
-
         if (!preEncParams->bPastRefUpdated)
         {
             CODECHAL_ENCODE_VERBOSEMESSAGE("Cannot find matched Downscaled Surface, DS again");
         }
-        if (scaledIdx == CODEC_NUM_TRACKED_BUFFERS)
+        if (pastRefScaledIdx == CODEC_NUM_TRACKED_BUFFERS)
         {
             CODECHAL_ENCODE_ASSERTMESSAGE("Cannot find empty DS slot for preenc.");
             eStatus = MOS_STATUS_INVALID_PARAMETER;
@@ -2528,7 +2527,7 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::EncodePreEncKernelFunctions()
         avcRefList[pastRefIdx]->bUsedAsRef = true;
         m_firstField = true;
         m_currRefList = avcRefList[pastRefIdx];
-        m_currRefList->ucScalingIdx = scaledIdx;
+        m_currRefList->ucScalingIdx = pastRefScaledIdx;
         m_currRefList->b4xScalingUsed = false;
         m_currRefList->b16xScalingUsed = false;
         m_currRefList->b32xScalingUsed = false;
@@ -2555,7 +2554,7 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::EncodePreEncKernelFunctions()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(EncodeScalingKernel(&cscScalingKernelParams));
         m_dsIdx++;
 #else
-        m_trackedBuf->AllocateForCurrFramePreenc(scaledIdx);
+        m_trackedBuf->AllocateForCurrFramePreenc(pastRefScaledIdx);
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->DsKernel(&cscScalingKernelParams));
 #endif
     }
@@ -2563,13 +2562,11 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::EncodePreEncKernelFunctions()
     // Scaling for Future ref 
     if (callDsFutureRef)
     {
-        scaledIdx = futureRefScaledIdx;
-
         if (!preEncParams->bFutureRefUpdated)
         {
             CODECHAL_ENCODE_VERBOSEMESSAGE("Cannot find matched Downscaled Surface, DS again");
         }
-        if (scaledIdx == CODEC_NUM_TRACKED_BUFFERS)
+        if (futureRefScaledIdx == CODEC_NUM_TRACKED_BUFFERS)
         {
             CODECHAL_ENCODE_ASSERTMESSAGE("Cannot find empty DS slot for preenc.");
             eStatus = MOS_STATUS_INVALID_PARAMETER;
@@ -2582,7 +2579,7 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::EncodePreEncKernelFunctions()
         avcRefList[futureRefIdx]->bUsedAsRef = true;
         m_firstField = true;
         m_currRefList = avcRefList[futureRefIdx];
-        m_currRefList->ucScalingIdx = scaledIdx;
+        m_currRefList->ucScalingIdx = futureRefScaledIdx;
         m_currRefList->b4xScalingUsed = false;
         m_currRefList->b16xScalingUsed = false;
         m_currRefList->b32xScalingUsed = false;
@@ -2609,7 +2606,7 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::EncodePreEncKernelFunctions()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(EncodeScalingKernel(&cscScalingKernelParams));
         m_dsIdx++;
 #else
-        m_trackedBuf->AllocateForCurrFramePreenc(scaledIdx);
+        m_trackedBuf->AllocateForCurrFramePreenc(futureRefScaledIdx);
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->DsKernel(&cscScalingKernelParams));
 #endif
     }
