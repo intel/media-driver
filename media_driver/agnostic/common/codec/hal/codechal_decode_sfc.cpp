@@ -666,9 +666,6 @@ MOS_STATUS CodechalSfcState::RenderStart()
 
     CODECHAL_HW_CHK_STATUS_RETURN(m_veboxInterface->AddVeboxDiIecp(&cmdBuffer, &veboxDiIecpCmdParams));
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(m_hwInterface->GetMiInterface()->AddWatchdogTimerStopCmd(
-        &cmdBuffer));
-
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_hwInterface->GetMiInterface()->AddMiBatchBufferEnd(
         &cmdBuffer,
         nullptr));

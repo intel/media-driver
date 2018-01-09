@@ -276,9 +276,6 @@ MOS_STATUS CodechalDecodeMpeg2::CopyDataSurface(
         &cmdBuffer,
         &flushDwParams));
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(
-        &cmdBuffer));
-
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(
         &cmdBuffer,
         nullptr));
@@ -1122,9 +1119,6 @@ MOS_STATUS CodechalDecodeMpeg2::SliceLevel()
                 &cmdBuffer));
         }
 
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(
-            &cmdBuffer));
-
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(
             &cmdBuffer,
             nullptr));
@@ -1559,9 +1553,6 @@ MOS_STATUS CodechalDecodeMpeg2::MacroblockLevel()
                 decodeStatusReport,
                 &cmdBuffer));
         }
-
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(
-            &cmdBuffer));
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(
             &cmdBuffer,

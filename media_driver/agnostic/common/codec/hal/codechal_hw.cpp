@@ -402,6 +402,8 @@ MOS_STATUS CodechalHwInterface::GetVdencStateCommandsDataSize(
         &commands,
         &patchList));
 
+    commands += m_sizeOfCmdMediaReset;
+
     if (standard == CODECHAL_AVC)
     {
         commands += m_miInterface->GetMiFlushDwCmdSize();
@@ -1213,8 +1215,6 @@ MOS_STATUS CodechalHwInterface::SendCondBbEndCmd(
 		CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(cmdBuffer, &flushDwParams));
 	}
 
-    CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(cmdBuffer));
-
 	MHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS conditionalBatchBufferEndParams;
 	MOS_ZeroMemory(&conditionalBatchBufferEndParams, sizeof(conditionalBatchBufferEndParams));
 	conditionalBatchBufferEndParams.presSemaphoreBuffer = resource;
@@ -1222,8 +1222,6 @@ MOS_STATUS CodechalHwInterface::SendCondBbEndCmd(
 	conditionalBatchBufferEndParams.dwValue = compData;
 	conditionalBatchBufferEndParams.bDisableCompareMask = disableCompMask;
 	eStatus = m_miInterface->AddMiConditionalBatchBufferEndCmd(cmdBuffer, &conditionalBatchBufferEndParams);
-
-    CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStartCmd(cmdBuffer));
 
 	return eStatus;
 }

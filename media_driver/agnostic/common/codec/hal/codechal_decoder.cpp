@@ -1291,9 +1291,6 @@ MOS_STATUS CodechalDecode::ResetStatusReport(
             &cmdBuffer,
             false));
 
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(
-            &cmdBuffer));
-
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(
             &cmdBuffer,
             nullptr));

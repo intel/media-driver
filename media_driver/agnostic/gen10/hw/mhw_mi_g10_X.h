@@ -56,6 +56,19 @@ struct MhwMiInterfaceG10 : public MhwMiInterfaceGeneric<mhw_mi_g10_X>
         PMHW_MI_SEMAPHORE_WAIT_PARAMS       params);
 
     void InitMmioRegisters();
+
+    MOS_STATUS SetWatchdogTimerThreshold(
+        uint32_t frameWidth,
+        uint32_t frameHeight);
+
+    MOS_STATUS SetWatchdogTimerRegisterOffset(
+        MOS_GPU_CONTEXT gpuContext);
+
+    MOS_STATUS AddWatchdogTimerStartCmd(
+        PMOS_COMMAND_BUFFER cmdBuffer);
+
+    MOS_STATUS AddWatchdogTimerStopCmd(
+        PMOS_COMMAND_BUFFER cmdBuffer);
 };
 
 #endif

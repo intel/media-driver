@@ -35,12 +35,12 @@ class MhwCpInterface;
 #include "mhw_cp.h"
 
 #define MHW_MI_WATCHDOG_ENABLE_COUNTER                 0x0
-#define MHW_MI_WATCHDOG_DISABLE_COUNTER                0xFFFFFFFF
+#define MHW_MI_WATCHDOG_DISABLE_COUNTER                0x1
 #define MHW_MI_DEFAULT_WATCHDOG_THRESHOLD_IN_MS        60
-#define MHW_MI_16K_WATCHDOG_THRESHOLD_IN_MS            1306
-#define MHW_MI_8K_WATCHDOG_THRESHOLD_IN_MS             326
-#define MHW_MI_4K_WATCHDOG_THRESHOLD_IN_MS             82
-#define MHW_MI_FHD_WATCHDOG_THRESHOLD_IN_MS            20
+#define MHW_MI_16K_WATCHDOG_THRESHOLD_IN_MS            2000
+#define MHW_MI_8K_WATCHDOG_THRESHOLD_IN_MS             500
+#define MHW_MI_4K_WATCHDOG_THRESHOLD_IN_MS             100
+#define MHW_MI_FHD_WATCHDOG_THRESHOLD_IN_MS            50
 #define MHW_MI_WATCHDOG_COUNTS_PER_MILLISECOND         (19200123 / 1000)   // Time stamp counts per millisecond
 
 typedef enum _MHW_COMMON_MI_ADDRESS_SHIFT

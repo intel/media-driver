@@ -299,7 +299,8 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::GetHcpStateCommandSize(
             mhw_vdbox_hcp_g10_X::HCP_PIPE_MODE_SELECT_CMD::byteSize +
             mhw_vdbox_hcp_g10_X::HCP_SURFACE_STATE_CMD::byteSize +
             mhw_vdbox_hcp_g10_X::HCP_PIPE_BUF_ADDR_STATE_CMD::byteSize +
-            mhw_vdbox_hcp_g10_X::HCP_IND_OBJ_BASE_ADDR_STATE_CMD::byteSize;
+            mhw_vdbox_hcp_g10_X::HCP_IND_OBJ_BASE_ADDR_STATE_CMD::byteSize +
+            mhw_mi_g10_X::MI_LOAD_REGISTER_REG_CMD::byteSize * 8;
 
         patchListMaxSize =
             PATCH_LIST_COMMAND(VD_PIPELINE_FLUSH_CMD) +
@@ -358,7 +359,8 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::GetHcpStateCommandSize(
             mhw_vdbox_hcp_g10_X::HCP_IND_OBJ_BASE_ADDR_STATE_CMD::byteSize +
             mhw_vdbox_hcp_g10_X::HCP_VP9_SEGMENT_STATE_CMD::byteSize * 8 +
             mhw_vdbox_hcp_g10_X::HCP_VP9_PIC_STATE_CMD::byteSize +
-            mhw_vdbox_hcp_g10_X::HCP_BSD_OBJECT_CMD::byteSize;
+            mhw_vdbox_hcp_g10_X::HCP_BSD_OBJECT_CMD::byteSize +
+            mhw_mi_g10_X::MI_LOAD_REGISTER_REG_CMD::byteSize * 8;
 
         patchListMaxSize =
             PATCH_LIST_COMMAND(VD_PIPELINE_FLUSH_CMD) +

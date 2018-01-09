@@ -263,8 +263,6 @@ MOS_STATUS CodechalDecodeAvc::FormatAvcMonoPicture()
         MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(&cmdBuffer, &flushDwParams));
 
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(&cmdBuffer));
-
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
 
         m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBuffer, 0);
@@ -1769,8 +1767,6 @@ MOS_STATUS CodechalDecodeAvc::DecodePrimitiveLevel()
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(EndStatusReport(decodeStatusReport, &cmdBuffer));
     }
-
-    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(&cmdBuffer));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
 

@@ -1229,9 +1229,6 @@ MOS_STATUS CodechalDecodeVc1::FormatUnequalFieldPicture(
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(&cmdBuffer, &flushDwParams));
     }
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(
-        &cmdBuffer));
-
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(
         &cmdBuffer,
         nullptr));
@@ -1290,9 +1287,6 @@ MOS_STATUS CodechalDecodeVc1::ConstructBistreamBuffer()
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(
         &cmdBuffer,
         &flushDwParams));
-
-    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(
-        &cmdBuffer));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(
         &cmdBuffer,
@@ -1417,9 +1411,6 @@ MOS_STATUS CodechalDecodeVc1::HandleSkipFrame()
             &cmdBuffer,
             &flushDwParams));
         
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(
-            &cmdBuffer));
-
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(
                 &cmdBuffer,
                 nullptr));
@@ -3851,8 +3842,6 @@ submit:
         CODECHAL_DECODE_CHK_STATUS_RETURN(EndStatusReport(decodeStatusReport, &cmdBuffer));
     }
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(&cmdBuffer));
-
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
 
     m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBuffer, 0);
@@ -4153,8 +4142,6 @@ MOS_STATUS CodechalDecodeVc1::DecodePrimitiveLevelIT()
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(EndStatusReport(decodeStatusReport, &cmdBuffer));
     }
-
-    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(&cmdBuffer));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
 
@@ -4538,8 +4525,6 @@ MOS_STATUS CodechalDecodeVc1::PerformVc1Olp()
             CODECHAL_DECODE_CHK_STATUS_RETURN(renderEngineInterface->AddMediaVfeCmd(&cmdBuffer, &vfeStateParams));
         }
     }
-
-    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(&cmdBuffer));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
 

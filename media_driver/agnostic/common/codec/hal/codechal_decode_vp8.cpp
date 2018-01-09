@@ -854,8 +854,6 @@ MOS_STATUS CodechalDecodeVp8::CopyBitstreamBuffer(
         &cmdBuffer,
         &flushDwParams));
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(&cmdBuffer));
-
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(
         &cmdBuffer,
         nullptr));
@@ -1389,8 +1387,6 @@ MOS_STATUS CodechalDecodeVp8::DecodePrimitiveLevel()
             decodeStatusReport.m_frameType   = m_perfType;)
         CODECHAL_DECODE_CHK_STATUS_RETURN(EndStatusReport(decodeStatusReport, &cmdBuffer));
     }
-
-    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(&cmdBuffer));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
 

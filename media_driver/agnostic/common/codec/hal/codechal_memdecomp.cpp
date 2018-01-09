@@ -602,9 +602,6 @@ MOS_STATUS MediaMemDecompState::MemoryDecompress(
         }
     }
 
-    MHW_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(
-        &cmdBuffer));
-
     MHW_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(
         &cmdBuffer,
         nullptr));

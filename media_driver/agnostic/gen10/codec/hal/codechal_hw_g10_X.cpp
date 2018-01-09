@@ -113,6 +113,7 @@ CodechalHwInterfaceG10::CodechalHwInterfaceG10(
 
     // Set platform dependent parameters
     m_sizeOfCmdBatchBufferEnd = mhw_mi_g10_X::MI_BATCH_BUFFER_END_CMD::byteSize;
+    m_sizeOfCmdMediaReset = mhw_mi_g10_X::MI_LOAD_REGISTER_IMM_CMD::byteSize * 8;
     m_vdencBrcImgStateBufferSize = mhw_vdbox_vdenc_g10_X::VDENC_IMG_STATE_CMD::byteSize + mhw_vdbox_mfx_g10_X::MFX_AVC_IMG_STATE_CMD::byteSize
         + mhw_mi_g10_X::MI_BATCH_BUFFER_END_CMD::byteSize;
     m_vdencBatchBuffer1stGroupSize = mhw_vdbox_hcp_g10_X::HCP_PIPE_MODE_SELECT_CMD::byteSize

@@ -335,9 +335,7 @@ MOS_STATUS Mhw_SendGenericPrologCmd (
 
     GpuContext = pOsInterface->pfnGetGpuContext(pOsInterface);
 
-    // This is temperal code, will be removed when other componets UMD MediaReset done.
-    if ( pOsInterface->Component == COMPONENT_Decode    || 
-         pOsInterface->Component == COMPONENT_MEMDECOMP )
+    if ( pOsInterface->Component != COMPONENT_CM )
     {
         MHW_CHK_STATUS(pMiInterface->SetWatchdogTimerRegisterOffset(GpuContext));
 

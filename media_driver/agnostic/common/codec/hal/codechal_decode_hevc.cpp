@@ -974,9 +974,6 @@ MOS_STATUS CodechalDecodeHevc::CopyDataSurface()
         &cmdBuffer,
         &flushDwParams));
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(
-        &cmdBuffer));
-
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(
         &cmdBuffer,
         nullptr));
@@ -2263,9 +2260,6 @@ MOS_STATUS CodechalDecodeHevc::DecodePrimitiveLevel()
 
             if (m_enableSf2DmaSubmits)
             {
-                CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(
-                    &cmdBuffer));
-
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(
                     cmdBufferInUse,
                     nullptr));
@@ -2381,9 +2375,6 @@ MOS_STATUS CodechalDecodeHevc::DecodePrimitiveLevel()
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(
         cmdBufferInUse,
         &flushDwParams));
-
-    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(
-        &cmdBuffer));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(
         cmdBufferInUse,

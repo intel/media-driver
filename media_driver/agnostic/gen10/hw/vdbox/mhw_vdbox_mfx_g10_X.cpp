@@ -315,7 +315,8 @@ MOS_STATUS MhwVdboxMfxInterfaceG10::GetMfxStateCommandsDataSize(
         mhw_vdbox_mfx_g10_X::MFX_PIPE_BUF_ADDR_STATE_CMD::byteSize +
         mhw_vdbox_mfx_g10_X::MFX_IND_OBJ_BASE_ADDR_STATE_CMD::byteSize +
         2 * mhw_mi_g10_X::MI_STORE_DATA_IMM_CMD::byteSize +
-        2 * mhw_mi_g10_X::MI_STORE_REGISTER_MEM_CMD::byteSize;
+        2 * mhw_mi_g10_X::MI_STORE_REGISTER_MEM_CMD::byteSize +
+        8 * mhw_mi_g10_X::MI_LOAD_REGISTER_REG_CMD::byteSize;
 
     uint32_t patchListMaxSize =
         PATCH_LIST_COMMAND(MI_FLUSH_DW_CMD) +
