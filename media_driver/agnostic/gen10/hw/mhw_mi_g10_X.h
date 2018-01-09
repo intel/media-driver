@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -36,7 +36,10 @@ struct MhwMiInterfaceG10 : public MhwMiInterfaceGeneric<mhw_mi_g10_X>
         MhwCpInterface      *cpInterface,
         PMOS_INTERFACE      osInterface) :
         MhwMiInterfaceGeneric(cpInterface, osInterface)
-    { MHW_FUNCTION_ENTER; }
+        {
+            MHW_FUNCTION_ENTER;
+            InitMmioRegisters();
+        }
 
     ~MhwMiInterfaceG10() { MHW_FUNCTION_ENTER; }
 
@@ -51,6 +54,8 @@ struct MhwMiInterfaceG10 : public MhwMiInterfaceGeneric<mhw_mi_g10_X>
     MOS_STATUS AddMiSemaphoreWaitCmd(
         PMOS_COMMAND_BUFFER                 cmdBuffer,
         PMHW_MI_SEMAPHORE_WAIT_PARAMS       params);
+
+    void InitMmioRegisters();
 };
 
 #endif

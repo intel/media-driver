@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1085,6 +1085,18 @@ typedef struct _RENDERHAL_L3_CACHE_SETTINGS
     uint32_t dwLra1Reg;
 } RENDERHAL_L3_CACHE_SETTINGS, *PRENDERHAL_L3_CACHE_SETTINGS;
 
+//!
+// \brief   Settings of Predication
+//!
+typedef struct _RENDERHAL_PREDICATION_SETTINGS
+{
+    MOS_RESOURCE            *pPredicationResource;    // Resource for predication
+    MOS_RESOURCE            *ptempPredicationBuffer;  // Additional temp buffer for Predication due to the limitation of Cond_BB_End 
+    uint64_t                predicationResOffset;     // Offset for Predication resource
+    bool                    predicationNotEqualZero;  // Predication mode
+    bool                    predicationEnabled;       // Indicates whether or not Predication is enabled
+} RENDERHAL_PREDICATION_SETTINGS;
+
 typedef MhwMiInterface *PMHW_MI_INTERFACE;
 //!
 // \brief   Hardware dependent render engine interface
@@ -1191,6 +1203,9 @@ typedef struct _RENDERHAL_INTERFACE
     // Dump state for VP debugging
     void                        *pStateDumper;
 #endif
+
+    // Predication 
+    RENDERHAL_PREDICATION_SETTINGS PredicationParams;   //!< Predication
 
     //---------------------------
     // HW interface functions

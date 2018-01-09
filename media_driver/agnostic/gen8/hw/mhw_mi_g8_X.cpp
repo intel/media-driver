@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -149,4 +149,14 @@ MOS_STATUS MhwMiInterfaceG8::AddMediaStateFlush(
     }
 
     return MOS_STATUS_SUCCESS;
+}
+
+void MhwMiInterfaceG8::InitMmioRegisters()
+{
+    MHW_MI_MMIOREGISTERS *mmioRegisters = &m_mmioRegisters;
+
+    mmioRegisters->generalPurposeRegister0LoOffset            = 0x1A600;
+    mmioRegisters->generalPurposeRegister0HiOffset            = 0x1A604;
+    mmioRegisters->generalPurposeRegister4LoOffset            = 0x1A620;
+    mmioRegisters->generalPurposeRegister4HiOffset            = 0x1A624;
 }

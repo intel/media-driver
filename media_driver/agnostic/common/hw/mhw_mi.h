@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2017, Intel Corporation
+* Copyright (c) 2015-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -294,6 +294,14 @@ typedef struct _MHW_MI_FORCE_WAKEUP_PARAMS
     uint32_t               bMFXPowerWellControlMask        : 1; //!< MFX Power Well Control Mask
     uint32_t               Reserved31_26                   : 6; //!< Reserved Mask
 } MHW_MI_FORCE_WAKEUP_PARAMS, *PMHW_MI_FORCE_WAKEUP_PARAMS;
+
+typedef struct _MHW_MI_MMIOREGISTERS
+{
+    uint32_t            generalPurposeRegister0LoOffset;
+    uint32_t            generalPurposeRegister0HiOffset;
+    uint32_t            generalPurposeRegister4LoOffset;
+    uint32_t            generalPurposeRegister4HiOffset;
+} MHW_MI_MMIOREGISTERS, *PMHW_MI_MMIOREGISTERS;
 
 class MhwMiInterface
 {
@@ -627,6 +635,17 @@ public:
     MOS_STATUS AddProtectedProlog(MOS_COMMAND_BUFFER *cmdBuffer);
 
     //!
+    //! \brief    Get mmio registers address
+    //! \details  Get mmio registers address
+    //! \return   [out] PMHW_MI_MMIOREGISTERS*
+    //!           mmio registers got.
+    //!
+    inline PMHW_MI_MMIOREGISTERS GetMmioRegisters()
+    {
+        return &m_mmioRegisters;
+    }
+
+    //!
     //! \brief    get the size of hw command
     //! \details  Internal function to get the size of MI_FLUSH_DW_CMD
     //! \return   commandSize
@@ -742,6 +761,10 @@ protected:
         uint32_t watchdogCountCtrlOffset;
         uint32_t watchdogCountThresholdOffset;
     } MediaResetParam;
+
+    //! \brief Mmio registers address
+    MHW_MI_MMIOREGISTERS       m_mmioRegisters;  //!< mfx mmio registers
+
 };
 
 #endif // __MHW_MI_H__

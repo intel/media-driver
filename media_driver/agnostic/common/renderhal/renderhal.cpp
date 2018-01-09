@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -4393,6 +4393,128 @@ finish:
 }
 
 //!
+//! \brief    Adds predication attributes in command buffer
+//! \param    PRENDERHAL_INTERFACE pRenderHal
+//!           [in] Pointer to RenderHal Interface Structure
+//! \param    PMOS_COMMAND_BUFFER pcmdBuffer
+//!           [in] Pointer to Command Buffer 
+//! \return   MOS_STATUS
+//!
+MOS_STATUS RenderHal_SendPredicationCommand(
+    PRENDERHAL_INTERFACE        pRenderHal,
+    PMOS_COMMAND_BUFFER         pCmdBuffer)
+{
+    MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
+
+    MHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS  condBBEndParams;
+    MOS_ZeroMemory(&condBBEndParams, sizeof(condBBEndParams));
+
+    // Keep implementation same between Render and VEBox engines - for Render it is highly inefficient
+    // Skip current frame if presPredication is not equal to zero
+    if (pRenderHal->PredicationParams.predicationNotEqualZero)
+    {
+        auto mmioRegistersRender = pRenderHal->pMhwMiInterface->GetMmioRegisters();
+        MHW_MI_FLUSH_DW_PARAMS  flushDwParams;
+        MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiFlushDwCmd(pCmdBuffer, &flushDwParams));
+
+        // load presPredication to general purpose register0
+        MHW_MI_STORE_REGISTER_MEM_PARAMS    loadRegisterMemParams;
+        MOS_ZeroMemory(&loadRegisterMemParams, sizeof(loadRegisterMemParams));
+        loadRegisterMemParams.presStoreBuffer   = pRenderHal->PredicationParams.pPredicationResource;
+        loadRegisterMemParams.dwOffset          = (uint32_t)pRenderHal->PredicationParams.predicationResOffset;
+        loadRegisterMemParams.dwRegister        = mmioRegistersRender->generalPurposeRegister0LoOffset;
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiLoadRegisterMemCmd(
+            pCmdBuffer,
+            &loadRegisterMemParams));
+
+        MHW_MI_LOAD_REGISTER_IMM_PARAMS     loadRegisterImmParams;
+        MOS_ZeroMemory(&loadRegisterImmParams, sizeof(loadRegisterImmParams));
+        loadRegisterImmParams.dwData            = 0;
+        loadRegisterImmParams.dwRegister        = mmioRegistersRender->generalPurposeRegister0HiOffset;
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiLoadRegisterImmCmd(
+            pCmdBuffer,
+            &loadRegisterImmParams));
+
+        // load 0 to general purpose register4
+        MOS_ZeroMemory(&loadRegisterImmParams, sizeof(loadRegisterImmParams));
+        loadRegisterImmParams.dwData            = 0;
+        loadRegisterImmParams.dwRegister        = mmioRegistersRender->generalPurposeRegister4LoOffset;
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiLoadRegisterImmCmd(
+            pCmdBuffer,
+            &loadRegisterImmParams));
+
+        MOS_ZeroMemory(&loadRegisterImmParams, sizeof(loadRegisterImmParams));
+        loadRegisterImmParams.dwData            = 0;
+        loadRegisterImmParams.dwRegister        = mmioRegistersRender->generalPurposeRegister4HiOffset;
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiLoadRegisterImmCmd(
+            pCmdBuffer,
+            &loadRegisterImmParams));
+
+        //perform the add operation
+        MHW_MI_MATH_PARAMS  miMathParams;
+        MHW_MI_ALU_PARAMS   miAluParams[4];
+        MOS_ZeroMemory(&miMathParams, sizeof(miMathParams));
+        MOS_ZeroMemory(&miAluParams, sizeof(miAluParams));
+        // load     srcA, reg0
+        miAluParams[0].AluOpcode    = MHW_MI_ALU_LOAD;
+        miAluParams[0].Operand1     = MHW_MI_ALU_SRCA;
+        miAluParams[0].Operand2     = MHW_MI_ALU_GPREG0;
+        // load     srcB, reg4
+        miAluParams[1].AluOpcode    = MHW_MI_ALU_LOAD;
+        miAluParams[1].Operand1     = MHW_MI_ALU_SRCB;
+        miAluParams[1].Operand2     = MHW_MI_ALU_GPREG4;
+        // add      srcA, srcB
+        miAluParams[2].AluOpcode    = MHW_MI_ALU_ADD;
+        miAluParams[2].Operand1     = MHW_MI_ALU_SRCB;
+        miAluParams[2].Operand2     = MHW_MI_ALU_GPREG4;
+        // store      reg0, ZF
+        miAluParams[3].AluOpcode    = MHW_MI_ALU_STORE;
+        miAluParams[3].Operand1     = MHW_MI_ALU_GPREG0;
+        miAluParams[3].Operand2     = MHW_MI_ALU_ZF;
+        miMathParams.pAluPayload    = miAluParams;
+        miMathParams.dwNumAluParams = 4; // four ALU commands needed for this substract opertaion. see following ALU commands.
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiMathCmd(
+            pCmdBuffer,
+            &miMathParams));
+
+        // if zero, the zero flag will be 0xFFFFFFFF, else zero flag will be 0x0.
+        MHW_MI_STORE_REGISTER_MEM_PARAMS    storeRegParams;
+        MOS_ZeroMemory(&storeRegParams, sizeof(storeRegParams));
+        storeRegParams.presStoreBuffer  = pRenderHal->PredicationParams.pPredicationResource;
+        storeRegParams.dwOffset         = 0;
+        storeRegParams.dwRegister       = mmioRegistersRender->generalPurposeRegister0LoOffset;
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiStoreRegisterMemCmd(
+            pCmdBuffer, 
+            &storeRegParams));
+
+        condBBEndParams.presSemaphoreBuffer = pRenderHal->PredicationParams.pPredicationResource;
+        condBBEndParams.dwOffset            = 0;
+        condBBEndParams.dwValue             = 0;
+        condBBEndParams.bDisableCompareMask = true;
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiConditionalBatchBufferEndCmd(
+            pCmdBuffer,
+            &condBBEndParams));
+
+        pRenderHal->PredicationParams.ptempPredicationBuffer = pRenderHal->PredicationParams.pPredicationResource;
+    }
+    else
+    {
+        // Skip current frame if presPredication is equal to zero
+        condBBEndParams.presSemaphoreBuffer = pRenderHal->PredicationParams.pPredicationResource;
+        condBBEndParams.dwOffset            = (uint32_t)pRenderHal->PredicationParams.predicationResOffset;
+        condBBEndParams.bDisableCompareMask = true;
+        condBBEndParams.dwValue             = 0;
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiConditionalBatchBufferEndCmd(
+            pCmdBuffer,
+            &condBBEndParams));
+    }
+
+finish:
+    return eStatus;
+}
+
+//!
 //! \brief    Initializes command buffer attributes and inserts prolog
 //! \param    PRENDERHAL_INTERFACE pRenderHal
 //!           [in] Pointer to RenderHal Interface Structure
@@ -4473,6 +4595,12 @@ MOS_STATUS RenderHal_InitCommandBuffer(
     genericPrologParams.pvMiInterface       = pRenderHal->pMhwMiInterface;
     genericPrologParams.bMmcEnabled         = pGenericPrologParams ? pGenericPrologParams->bMmcEnabled : false;
     MHW_RENDERHAL_CHK_STATUS(Mhw_SendGenericPrologCmd(pCmdBuffer, &genericPrologParams));
+
+    // Send predication command
+    if (pRenderHal->PredicationParams.predicationEnabled)
+    {
+        MHW_RENDERHAL_CHK_STATUS(RenderHal_SendPredicationCommand(pRenderHal, pCmdBuffer));
+    }
 
 finish:
     return eStatus;
