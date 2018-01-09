@@ -3380,7 +3380,7 @@ MOS_STATUS Mos_Specific_CreateGpuContext(
     PMOS_INTERFACE        pOsInterface,
     MOS_GPU_CONTEXT       GpuContext,
     MOS_GPU_NODE          GpuNode,
-    uint32_t              createOption)
+    PMOS_GPUCTX_CREATOPTIONS createOption)
 {
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
     MOS_UNUSED(pOsInterface);

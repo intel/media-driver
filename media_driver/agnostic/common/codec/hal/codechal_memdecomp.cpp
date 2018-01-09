@@ -894,11 +894,12 @@ MOS_STATUS MediaMemDecompState::Initialize(
     }
     else
     {
+        MOS_GPUCTX_CREATOPTIONS createOption;
         MHW_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
             m_osInterface,
             MOS_GPU_CONTEXT_RENDER,
             MOS_GPU_NODE_3D,
-            MOS_GPU_CONTEXT_CREATE_DEFAULT));
+            &createOption));
 
         m_renderContext = MOS_GPU_CONTEXT_RENDER;
     }

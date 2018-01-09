@@ -260,6 +260,13 @@ typedef struct _MOS_PATCH_ENTRY_PARAMS
     uint8_t                     *cmdBufBase; //!< cmd buffer base address
 } MOS_PATCH_ENTRY_PARAMS, *PMOS_PATCH_ENTRY_PARAMS;
 
+typedef struct _MOS_GPUCTX_CREATOPTIONS MOS_GPUCTX_CREATOPTIONS, *PMOS_GPUCTX_CREATOPTIONS;
+struct _MOS_GPUCTX_CREATOPTIONS
+{
+    uint32_t  CmdBufferNumScale;
+    _MOS_GPUCTX_CREATOPTIONS() : CmdBufferNumScale(MOS_GPU_CONTEXT_CREATE_DEFAULT) {}
+};
+
 class OsContext;
 
 //!
@@ -353,7 +360,7 @@ typedef struct _MOS_INTERFACE
         PMOS_INTERFACE              pOsInterface,
         MOS_GPU_CONTEXT             GpuContext,
         MOS_GPU_NODE                GpuNode,
-        uint32_t                    createOption);
+        PMOS_GPUCTX_CREATOPTIONS    createOption);
 
     MOS_STATUS (* pfnDestroyGpuContext) (
         PMOS_INTERFACE              pOsInterface,

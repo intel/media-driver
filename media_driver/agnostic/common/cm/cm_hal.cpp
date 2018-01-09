@@ -9694,14 +9694,15 @@ MOS_STATUS HalCm_CreateGPUContext(
     MOS_GPU_NODE    gpuNode)
 {
     MOS_STATUS hr = MOS_STATUS_SUCCESS;
-    unsigned int  numCmdBuffers = state->CmDeviceParam.iMaxTasks;
+    MOS_GPUCTX_CREATOPTIONS createOption;
+    createOption.CmdBufferNumScale = state->CmDeviceParam.iMaxTasks;
 
     // Create Compute Context on Compute Node
     CM_HRESULT2MOSSTATUS_AND_CHECK(state->pOsInterface->pfnCreateGpuContext(
         state->pOsInterface,
         gpuContext,
         gpuNode,
-        numCmdBuffers));
+        &createOption));
 
     // Register Compute Context with the Batch Buffer completion event
     CM_HRESULT2MOSSTATUS_AND_CHECK(state->pOsInterface->pfnRegisterBBCompleteNotifyEvent(
@@ -9755,32 +9756,35 @@ MOS_STATUS HalCm_Create(
     //GPU context
     state->GpuContext =   param->requestCustomGpuContext? MOS_GPU_CONTEXT_RENDER4 : MOS_GPU_CONTEXT_RENDER3;
 
-    numCmdBuffers = HalCm_GetNumCmdBuffers(state->pOsInterface, param->maxTaskNumber);
+    {
+        MOS_GPUCTX_CREATOPTIONS createOption;
+        createOption.CmdBufferNumScale = HalCm_GetNumCmdBuffers(state->pOsInterface, param->maxTaskNumber);
 
-    // Create Render GPU Context
-    CM_HRESULT2MOSSTATUS_AND_CHECK(state->pOsInterface->pfnCreateGpuContext(
-        state->pOsInterface,
-        state->GpuContext,
-        MOS_GPU_NODE_3D,
-        numCmdBuffers));
+        // Create Render GPU Context
+        CM_HRESULT2MOSSTATUS_AND_CHECK(state->pOsInterface->pfnCreateGpuContext(
+            state->pOsInterface,
+            state->GpuContext,
+            MOS_GPU_NODE_3D,
+            &createOption));
 
-    // Set current GPU context
-    CM_HRESULT2MOSSTATUS_AND_CHECK(state->pOsInterface->pfnSetGpuContext(
-        state->pOsInterface,
-        state->GpuContext));
+        // Set current GPU context
+        CM_HRESULT2MOSSTATUS_AND_CHECK(state->pOsInterface->pfnSetGpuContext(
+            state->pOsInterface,
+            state->GpuContext));
 
-    // Register Render GPU context with the event
-    CM_HRESULT2MOSSTATUS_AND_CHECK(state->pOsInterface->pfnRegisterBBCompleteNotifyEvent(
-        state->pOsInterface,
-        state->GpuContext));
+        // Register Render GPU context with the event
+        CM_HRESULT2MOSSTATUS_AND_CHECK(state->pOsInterface->pfnRegisterBBCompleteNotifyEvent(
+            state->pOsInterface,
+            state->GpuContext));
 
-    // Create VEBOX Context
-    CM_HRESULT2MOSSTATUS_AND_CHECK(state->pOsInterface->pfnCreateGpuContext(
-        state->pOsInterface,
-        MOS_GPU_CONTEXT_VEBOX,
-        MOS_GPU_NODE_VE,
-        MOS_GPU_CONTEXT_CREATE_DEFAULT));
-
+        // Create VEBOX Context
+        createOption.CmdBufferNumScale = MOS_GPU_CONTEXT_CREATE_DEFAULT;
+        CM_HRESULT2MOSSTATUS_AND_CHECK(state->pOsInterface->pfnCreateGpuContext(
+            state->pOsInterface,
+            MOS_GPU_CONTEXT_VEBOX,
+            MOS_GPU_NODE_VE,
+            &createOption));
+    }
     // Register Vebox GPU context with the Batch Buffer completion event
     CM_HRESULT2MOSSTATUS_AND_CHECK(state->pOsInterface->pfnRegisterBBCompleteNotifyEvent(
         state->pOsInterface,

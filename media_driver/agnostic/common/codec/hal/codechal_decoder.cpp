@@ -252,6 +252,19 @@ CodechalDecode::CodechalDecode (
     m_isHybridDecoder   = standardInfo->bIsHybridCodec ? true : false;
 }
 
+MOS_STATUS CodechalDecode::SetGpuCtxCreatOption(
+    CodechalSetting *          codecHalSetting)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    MOS_UNUSED(codecHalSetting);
+
+    m_gpuCtxCreatOpt = MOS_New(MOS_GPUCTX_CREATOPTIONS);
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_gpuCtxCreatOpt);
+        
+    return eStatus;
+}
+
 MOS_STATUS CodechalDecode::CreateGpuContexts(
     CodechalSetting *codecHalSettings)
 {
@@ -272,11 +285,12 @@ MOS_STATUS CodechalDecode::CreateGpuContexts(
     CODECHAL_UPDATE_VDBOX_USER_FEATURE(m_videoGpuNode);
     CodecHalDecodeMapGpuNodeToGpuContex(m_videoGpuNode, m_videoContext, false); 
 
+    CODECHAL_DECODE_CHK_STATUS_RETURN(SetGpuCtxCreatOption(codecHalSettings));
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
         m_osInterface,
         m_videoContext,
         m_videoGpuNode,
-        MOS_GPU_CONTEXT_CREATE_DEFAULT));
+        m_gpuCtxCreatOpt));
 
     // Create Video2 Context for MPEG2 WA and JPEG incomplete bitstream & VP9 / HEVC DRC support
     // For decode device, we use VDBOX0 always for the WA context
@@ -289,11 +303,13 @@ MOS_STATUS CodechalDecode::CreateGpuContexts(
     {
         CodecHalDecodeMapGpuNodeToGpuContex(MOS_GPU_NODE_VIDEO, m_videoContextForWa, true);
     }
+
+    MOS_GPUCTX_CREATOPTIONS createOption;
     eStatus = (MOS_STATUS)m_osInterface->pfnCreateGpuContext(
         m_osInterface,
         m_videoContextForWa,
         MOS_GPU_NODE_VIDEO,
-        MOS_GPU_CONTEXT_CREATE_DEFAULT);
+        &createOption);
 
     if (eStatus != MOS_STATUS_SUCCESS)
     {
@@ -473,6 +489,8 @@ MOS_STATUS CodechalDecode::Allocate (CodechalSetting * codecHalSettings)
         true,
         0),
         "Failed to allocate predication buffer.");
+    
+    CODECHAL_DECODE_CHK_STATUS_RETURN(AllocateStandard(codecHalSettings));
 
     if(!m_isHybridDecoder)
     {
@@ -488,9 +506,7 @@ MOS_STATUS CodechalDecode::Allocate (CodechalSetting * codecHalSettings)
             m_hcpFrameCrcRegOffset = m_hcpInterface->GetMmioRegisters(m_vdboxIndex)->hcpFrameCrcRegOffset;
         }
     }
-
-    CODECHAL_DECODE_CHK_STATUS_RETURN(AllocateStandard(codecHalSettings));
-
+    
     if (!m_mmc)
     {
         m_mmc = MOS_New(CodecHalMmcState, m_hwInterface);
@@ -637,6 +653,11 @@ CodechalDecode::~CodechalDecode()
                     &(m_streamOutBuffer[i]));
             }
         }
+    }
+    
+    if (m_gpuCtxCreatOpt)
+    {
+        MOS_Delete(m_gpuCtxCreatOpt);
     }
 
     m_osInterface->pfnFreeResource(

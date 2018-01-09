@@ -81,11 +81,14 @@ MOS_STATUS VphalState::Allocate(
     VPHAL_PUBLIC_CHK_NULL(m_renderHal);
 
     // Create Render GPU Context
-    VPHAL_PUBLIC_CHK_STATUS(m_osInterface->pfnCreateGpuContext(
-        m_osInterface,
-        m_renderGpuContext,
-        m_renderGpuNode,
-        MOS_GPU_CONTEXT_CREATE_DEFAULT));
+    {
+        MOS_GPUCTX_CREATOPTIONS createOption;
+        VPHAL_PUBLIC_CHK_STATUS(m_osInterface->pfnCreateGpuContext(
+            m_osInterface,
+            m_renderGpuContext,
+            m_renderGpuNode,
+            &createOption));
+    }
 
     // Set current GPU context
     VPHAL_PUBLIC_CHK_STATUS(m_osInterface->pfnSetGpuContext(
@@ -99,6 +102,7 @@ MOS_STATUS VphalState::Allocate(
 
     if (MEDIA_IS_SKU(m_skuTable, FtrVERing) && m_veboxInterface)
     {
+        MOS_GPUCTX_CREATOPTIONS createOption;
         GpuNodeLimit.bCpEnabled        = (m_osInterface->osCpInterface->IsCpEnabled())? true : false;
         GpuNodeLimit.bSfcInUse         = MEDIA_IS_SKU(m_skuTable, FtrSFCPipe);
 
@@ -113,7 +117,7 @@ MOS_STATUS VphalState::Allocate(
             m_osInterface,
             VeboxGpuContext,
             VeboxGpuNode,
-            MOS_GPU_CONTEXT_CREATE_DEFAULT));
+            &createOption));
 
         // Register Vebox GPU context with the Batch Buffer completion event
         // Ignore if creation fails

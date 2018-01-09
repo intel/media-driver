@@ -77,6 +77,8 @@ MOS_STATUS CodechalEncoderState::CreateGpuContexts()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
+    MOS_GPUCTX_CREATOPTIONS createOption;
+
     if (CodecHalUsesVideoEngine(m_codecFunction))
     {
         MOS_GPU_NODE videoGpuNode = MOS_GPU_NODE_VIDEO;
@@ -102,7 +104,7 @@ MOS_STATUS CodechalEncoderState::CreateGpuContexts()
             m_osInterface,
             gpuContext,
             videoGpuNode,
-            MOS_GPU_CONTEXT_CREATE_DEFAULT);
+            &createOption);
 
         if (eStatus != MOS_STATUS_SUCCESS)
         {
@@ -204,7 +206,7 @@ MOS_STATUS CodechalEncoderState::CreateGpuContexts()
             gpuContext = MOS_GPU_CONTEXT_RENDER2;
             renderGpuNode = MOS_GPU_NODE_3D;
         }
-        eStatus = (MOS_STATUS)m_osInterface->pfnCreateGpuContext(m_osInterface, gpuContext, renderGpuNode, MOS_GPU_CONTEXT_CREATE_DEFAULT);
+        eStatus = (MOS_STATUS)m_osInterface->pfnCreateGpuContext(m_osInterface, gpuContext, renderGpuNode, &createOption);
 
         if (eStatus != MOS_STATUS_SUCCESS)
         {

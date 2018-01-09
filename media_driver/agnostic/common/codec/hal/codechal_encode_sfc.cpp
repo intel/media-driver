@@ -993,11 +993,12 @@ MOS_STATUS CodecHalEncodeSfc::Initialize(
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetVeboxInterface()->CreateHeap());
 
     // Create VEBOX Context
+    MOS_GPUCTX_CREATOPTIONS createOption;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
         m_osInterface,
         MOS_GPU_CONTEXT_VEBOX,
         MOS_GPU_NODE_VE,
-        MOS_GPU_CONTEXT_CREATE_DEFAULT));
+        &createOption));
 
     // Register Vebox GPU context with the Batch Buffer completion event
     // Ignore if creation fails

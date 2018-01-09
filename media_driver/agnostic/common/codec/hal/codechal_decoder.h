@@ -622,7 +622,7 @@ public:
     //! \return The video context \see m_videoContext
     //!
     MOS_GPU_CONTEXT GetVideoContext() { return m_videoContext; }
-
+	
     //!
     //! \brief  Gets video WA context
     //! \return The video WA context \see m_videoContextForWa
@@ -731,6 +731,13 @@ public:
 #endif
 
 protected:
+
+    //!
+    //! \brief  Set up params for gpu context creation
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SetGpuCtxCreatOption(CodechalSetting * settings);
 
     //!
     //! \brief  Allocate and initialize GEN specific decoder standard
@@ -1099,6 +1106,7 @@ protected:
     //! \brief    Decode histogram interface
     //! \details  Support YUV Luma histogram.
     CodechalDecodeHistogram    *m_decodeHistogram = nullptr;
+    PMOS_GPUCTX_CREATOPTIONS   m_gpuCtxCreatOpt = nullptr;
 };
 
 //!

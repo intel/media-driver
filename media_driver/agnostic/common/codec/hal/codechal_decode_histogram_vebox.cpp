@@ -40,11 +40,12 @@ CodechalDecodeHistogramVebox::CodechalDecodeHistogramVebox(
     m_veboxInterface->CreateHeap();
 
     // create Vebox context
+    MOS_GPUCTX_CREATOPTIONS  createOpts;
     m_osInterface->pfnCreateGpuContext(
         m_osInterface,
         MOS_GPU_CONTEXT_VEBOX,
         MOS_GPU_NODE_VE,
-        MOS_GPU_CONTEXT_CREATE_DEFAULT);
+        &createOpts);
 
     // register Vebox GPU context with the Batch Buffer completion event
     m_osInterface->pfnRegisterBBCompleteNotifyEvent(
