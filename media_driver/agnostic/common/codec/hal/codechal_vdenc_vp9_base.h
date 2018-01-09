@@ -41,6 +41,7 @@
 #include "codechal_encoder_base.h"
 #include "codechal_huc_cmd_initializer.h"
 #include "codec_def_vp9_probs.h"
+#include "codechal_debug.h"
 
 #define CODECHAL_ENCODE_VP9_MAX_NUM_HCP_PIPE                    4
 #define CODECHAL_VP9_ENCODE_RECYCLED_BUFFER_NUM                 (CODECHAL_ENCODE_RECYCLED_BUFFER_NUM * CODECHAL_ENCODE_VP9_MAX_NUM_HCP_PIPE) // for salability, need 1 buffer per pipe, 
@@ -2333,6 +2334,17 @@ public:
     //!           MOS_STATUS_SUCCESS if success
     //!
     virtual MOS_STATUS InitMmcState();
+
+#if USE_CODECHAL_DEBUG_TOOL
+    MOS_STATUS DumpSegmentParams(
+        PCODEC_VP9_ENCODE_SEGMENT_PARAMS segmentParams);
+
+    MOS_STATUS DumpSeqParams(
+        PCODEC_VP9_ENCODE_SEQUENCE_PARAMS seqParams);
+
+    MOS_STATUS DumpPicParams(
+        PCODEC_VP9_ENCODE_PIC_PARAMS picParams);
+#endif
 };
 
 #endif  // __CODECHAL_VDENC_VP9_BASE_H__

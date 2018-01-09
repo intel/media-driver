@@ -36,13 +36,6 @@
 #include "mhw_utilities.h"
 #include "mhw_state_heap.h"
 #include "codec_def_common.h"
-#include "codec_def_decode_vp9.h"
-#include "codec_def_decode_avc.h"
-#include "codec_def_decode_hevc.h"
-#include "codec_def_encode_vp9.h"
-#include "codec_def_encode_avc.h"
-#include "codec_def_encode_hevc.h"
-
 #include "codechal_debug_config_manager.h"
 #include <sstream>
 #include <fstream>
@@ -247,16 +240,6 @@ public:
         CodechalHucRegionDumpType dumpType);
 
     MOS_STATUS DeleteCfgLinkNode(uint32_t frameIdx);
-
-    //vp9 encoder parameters
-    MOS_STATUS DumpVp9EncodeSeqParams(
-        PCODEC_VP9_ENCODE_SEQUENCE_PARAMS seqParams);
-
-    MOS_STATUS DumpVp9EncodePicParams(
-        PCODEC_VP9_ENCODE_PIC_PARAMS picParams);
-
-    MOS_STATUS DumpVp9EncodeSegmentParams(
-        PCODEC_VP9_ENCODE_SEGMENT_PARAMS segmentParams);
 
     std::string             m_ddiFileName;
     std::string             m_outputFileName;
