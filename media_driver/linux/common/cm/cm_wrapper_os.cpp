@@ -44,6 +44,7 @@ extern MOS_OS_FORMAT Mos_Specific_FmtMosToOs(
     MOS_FORMAT     format);
 
 
+using CMRT_UMD::CmDeviceRT;
 //!
 //! \brief    Create Cm Device from VA Driver Context.
 //! \details  Create a CmCtx and a associated MOS_CONTEXT. Put the CmCtx into
@@ -262,6 +263,7 @@ CM_OSAL_SURFACE_FORMAT  CmMosFmtToOSFmt(MOS_FORMAT format)
     }
 }
 
+using CMRT_UMD::CmSurface2DRT;
 //*-----------------------------------------------------------------------------
 //| Purpose:    CMRT thin layer library supported function execution
 //| Return:     CM_SUCCESS if successful
@@ -277,7 +279,7 @@ int32_t CmThinExecute(VADriverContextP pVaDrvCtx,
     VADriverContextP     hUMDevice          = nullptr;
     void                 *pCmPrivateInputData = nullptr;
     uint32_t             CmPrivateInputDataSize = 0 ;
-    CmSurface2D          *pCmSurface2d       = nullptr;
+    CMRT_UMD::CmSurface2D *pCmSurface2d       = nullptr;
     SurfaceIndex         *pSurfaceIndex      = nullptr;
     CM_FUNCTION_ID       CmFunctionID;
     int32_t              hr                  = CM_SUCCESS;

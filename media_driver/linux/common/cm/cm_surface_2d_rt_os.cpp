@@ -32,6 +32,8 @@
 
 #define COPY_OPTION(uiOption)    (uiOption & 0x1)
 
+namespace CMRT_UMD
+{
 //*-----------------------------------------------------------------------------
 //| Purpose:    Constructor of CmSurface2D
 //| Returns:    None.
@@ -93,3 +95,4 @@ CM_RT_API int32_t CmSurface2DRT::GetVaSurfaceID( VASurfaceID  &iVASurface)
    iVASurface = m_VaSurfaceID;
    return CM_SUCCESS;
 }
+}  // namespace

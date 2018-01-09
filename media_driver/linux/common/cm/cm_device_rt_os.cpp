@@ -31,6 +31,10 @@
 #include "cm_mem.h"
 #include "cm_surface_2d_rt.h"
 
+extern int32_t CmFillMosResource(VASurfaceID, VADriverContext*, PMOS_RESOURCE);
+
+namespace CMRT_UMD
+{
 //*-----------------------------------------------------------------------------
 //| Purpose:    Destructor of CmDevice
 //| Returns:    None.
@@ -131,7 +135,6 @@ int32_t CmDeviceRT::DestroyAuxDevice()
 //|               pSurface          [out]    Reference to Pointer to CmSurface2D
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-extern int32_t CmFillMosResource(VASurfaceID, VADriverContext*, PMOS_RESOURCE);
 CM_RT_API int32_t CmDeviceRT::CreateSurface2D(VASurfaceID iVASurface,
                                               VADriverContext *pUMDCtx,
                                               CmSurface2D* & pSurface)
@@ -501,3 +504,4 @@ int32_t CmDeviceRT::ReadVtuneProfilingFlag()
 
     return CM_SUCCESS;
 }
+}  // namespace

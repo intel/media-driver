@@ -26,6 +26,8 @@
 
 #include "cm_device_rt.h"
 
+using CMRT_UMD::CmDevice;
+using CMRT_UMD::CmDeviceRT;
 //!
 //! \brief    Creates a CmDevice from a MOS context.
 //! \details  If an existing CmDevice has already associated to the MOS context,

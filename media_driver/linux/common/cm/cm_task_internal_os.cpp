@@ -30,6 +30,8 @@
 #include "cm_device_rt.h"
 #include "cm_event_rt.h"
 
+namespace CMRT_UMD
+{
 //*-----------------------------------------------------------------------------
 //| Purpose:    Write task info into trace_marker
 //| Returns:    Result of operation.
@@ -64,4 +66,4 @@ int32_t CmTaskInternal::VtuneWriteEventInfo()
     
     return CM_SUCCESS;
 }
-
+}  // namespace

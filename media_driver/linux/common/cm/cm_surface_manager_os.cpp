@@ -30,6 +30,8 @@
 #include "cm_surface_2d_rt.h"
 #include "cm_device_rt.h"
 
+namespace CMRT_UMD
+{
 //*-----------------------------------------------------------------------------
 //| Purpose:    Create surface 2d 
 //| Arguments :
@@ -237,3 +239,4 @@ int32_t CmSurfaceManager::GetSurfaceInfo( MOS_RESOURCE * mosResource, uint32_t &
     
     return CM_SUCCESS;
 }
+}  // namespace

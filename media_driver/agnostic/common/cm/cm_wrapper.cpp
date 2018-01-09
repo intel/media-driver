@@ -119,6 +119,32 @@ extern int CmThinExecuteEnableGTPin(CmDevice *pDevice, void *pCmPrivateInputData
 extern int CmThinExecuteRegGTPinMarkers(CmDevice *pDevice, void *pCmPrivateInputData);
 #endif
 
+
+using CMRT_UMD::CmSurface2D;
+using CMRT_UMD::CmSurface2DRT;
+using CMRT_UMD::SurfaceIndex;
+using CMRT_UMD::CmDeviceRT;
+using CMRT_UMD::CmBuffer;
+using CMRT_UMD::CmBufferUP;
+using CMRT_UMD::CmBufferSVM;
+using CMRT_UMD::CmSurface2DUP;
+using CMRT_UMD::CmKernel;
+using CMRT_UMD::CmKernelRT;
+using CMRT_UMD::CmProgram;
+using CMRT_UMD::CmProgramRT;
+using CMRT_UMD::CmTask;
+using CMRT_UMD::CmTaskRT;
+using CMRT_UMD::CmQueue;
+using CMRT_UMD::CmQueueRT;
+using CMRT_UMD::CmThreadSpace;
+using CMRT_UMD::CmThreadGroupSpace;
+using CMRT_UMD::CmEvent;
+using CMRT_UMD::CmThreadSpaceRT;
+using CMRT_UMD::CmSampler;
+using CMRT_UMD::CmVebox;
+using CMRT_UMD::CmVeboxRT;
+using CMRT_UMD::CmSurface3D;
+using CMRT_UMD::CmSampler8x8;
 //*-----------------------------------------------------------------------------
 //| Purpose:    CMRT thin layer library supported function execution
 //| Return:     CM_SUCCESS if successful
@@ -146,7 +172,7 @@ int32_t CmThinExecuteEx(CmDevice *pDevice,
     SurfaceIndex                *pVmeSurIndex       = nullptr;
     SurfaceIndex                *pSurfaceIndex      = nullptr;
     CmSampler                   *pSampler           = nullptr;
-    SamplerIndex                *pSamplerIndex      = nullptr;
+    CMRT_UMD::SamplerIndex      *pSamplerIndex      = nullptr;
     CmThreadGroupSpace          *pThreadGrpSpace    = nullptr;
     CmSurface3D                 *pCmSurface3d       = nullptr;
     CmSampler8x8                *pSampler8x8        = nullptr;

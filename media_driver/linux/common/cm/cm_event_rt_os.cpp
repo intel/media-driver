@@ -27,6 +27,8 @@
 #include "cm_event_rt.h"
 #include "cm_queue_rt.h"
 
+namespace CMRT_UMD
+{
 //*-----------------------------------------------------------------------------
 //! Wait for the task completed with event-driven mechanism
 //! When the task finished, CM will be notified and waken up by KMD.
@@ -93,3 +95,4 @@ void CmEventRT::UnreferenceIfNeeded(void  *pdata)
         mos_bo_unreference((MOS_LINUX_BO*)pdata);
     }
 }
+}  // namespace
