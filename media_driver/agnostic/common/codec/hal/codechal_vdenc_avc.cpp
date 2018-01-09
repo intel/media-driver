@@ -5416,7 +5416,7 @@ MOS_STATUS CodechalVdencAvcState::DumpEncodeImgStats(
 
     uint32_t size = m_mfxInterface->GetAvcImgStateSize() + m_vdencInterface->GetVdencAvcImgStateSize();
 
-    std::string SurfName = "Pak_VDEnc_Pass[" + std::to_string(m_currPass) + "]";
+    std::string SurfName = "Pak_VDEnc_Pass[" + std::to_string(static_cast<uint32_t>(m_currPass)) + "]";
 
     // MFX_AVC_IMG_STATE
     if (m_vdencBrcEnabled)
