@@ -48,7 +48,7 @@ public:
     //! \brief  Decode histogram constructor
     //! \param  [in] hwInterface
     //!         Hardware interface
-    //!         [in] osInterface
+    //! \param  [in] osInterface
     //!         OS interface
     //! \return No return
     //!

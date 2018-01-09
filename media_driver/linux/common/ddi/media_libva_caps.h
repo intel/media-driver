@@ -45,12 +45,6 @@ class MediaLibvaCaps
 protected:
     MediaLibvaCaps(DDI_MEDIA_CONTEXT *mediaCtx);
 public:
-    //!
-    //! \brief    Constructor
-    //!
-    //! \param    [in] mediaCtx 
-    //!           Pointer to DDI_MEDIA_CONTEXT 
-    //! 
 
     //!
     //! \brief    Destructor
@@ -600,8 +594,6 @@ public:
 
     //!
     //! \brief    Initialize the MediaLibvaCaps instance for current platform 
-    //!
-    //! \param    
     //!
     //! \return   VAStatus 
     //!           return VA_STATUS_SUCCESS for success

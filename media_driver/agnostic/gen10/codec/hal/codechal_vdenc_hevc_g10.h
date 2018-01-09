@@ -1754,7 +1754,6 @@ public:
     static constexpr uint32_t   m_insertOffsetAfterCMD1 = 120;        //!< Huc Initializer CMD1 delta
     static constexpr uint32_t   m_insertOffsetAfterCMD2 = 148;        //!< Huc Initializer CMD2 delta
 
-    //!< \cond SKIP_DOXYGEN
     // HuC tables. 
     // These Values are diff for each Gen
     static const int8_t         m_devThreshPB0[8];
@@ -1762,8 +1761,6 @@ public:
     static const int8_t         m_devThreshVBR0[8];
     static const int8_t         m_devThreshI0[8];
     static const uint32_t       m_hucConstantData[];
-    //! \endcond
-
     static const uint32_t       m_meCurbeInit[48];                      //!< Curbe initialization data for ME kernel
  
     //!

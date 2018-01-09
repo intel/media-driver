@@ -41,7 +41,7 @@ public:
     //! \brief  Constructor of decode histogram through vebox
     //! \param  [in] hwInterface
     //!         Hardware interface
-    //!         [in] osInterface
+    //! \param  [in] osInterface
     //!         OS interface
     //! \return No return
     //!

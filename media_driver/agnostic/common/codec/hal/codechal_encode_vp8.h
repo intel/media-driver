@@ -770,7 +770,7 @@ struct CodecEncodeVp8DumpState
 //! \details This class defines the base class for VP8 dual-pipe encoder, it includes
 //!          common member fields, functions, interfaces etc shared by all GENs.
 //!          Gen specific definitions, features should be put into their corresponding classes.
-//!          To create a VP8 dual-pipe encoder instance, client needs to call #CodechalEncodeVp8::CreateVp8State()
+//!          To create a VP8 dual-pipe encoder instance, client needs to call CodechalEncodeVp8::CreateVp8State()
 //!
 class CodechalEncodeVp8 : public CodechalEncoderState
 {
@@ -793,7 +793,7 @@ public:
     //!
     //! \brief    Free encoder resources
     //! \details  It is invoked when destorying encoder instance and it would call 
-    //!           #FreeEncResources(), #FreeBrcResources() and #FreePakResources()
+    //!           FreeEncResources(), FreeBrcResources() and FreePakResources()
     //!
     //! \return   void
     //!
@@ -1137,8 +1137,6 @@ protected:
     //!
     //! \brief    Send Surface for ME
     //!
-    //! \param    [in] pHwInterface
-    //!           Pointer to CodechalHwInterface
     //! \param    [in] cmdBuffer
     //!           Pointer to MOS_COMMAND_BUFFER
     //! \param    [in] params
@@ -1206,8 +1204,6 @@ protected:
     //!
     //! \brief    Send Surface for Mb Enc
     //!
-    //! \param    [in] pHwInterface
-    //!           Pointer to CodechalHwInterface
     //! \param    [in] cmdBuffer
     //!           Pointer to MOS_COMMAND_BUFFER
     //! \param    [in] params
@@ -1274,7 +1270,7 @@ protected:
     //!           Indicate if MbEnc Phase 1 is not enabled
     //! \param    [in]  isEncPhase2
     //!           Indicate if MbEnc Phase 2 is enabled
-    //! \param    [in]  mbEncIFrameDistEnabled
+    //! \param    [in]  mbEncIFrameDistInUse
     //!           Indicate if MbEnc I-Frame distortion is enabled
     //!
     //! \return   MOS_STATUS
@@ -1339,10 +1335,7 @@ protected:
     MOS_STATUS EncodeSliceLevelBrc(PMOS_COMMAND_BUFFER cmdBuffer);
 
     //!
-    //! \brief    Add Batch Buffer End to Picture State Command
-    //!
-    //! \param    [in] cmdBuffer
-    //!           Pointer to MOS_COMMAND_BUFFER
+    //! \brief    Add Batch Buffer End to Picture State Command   
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason

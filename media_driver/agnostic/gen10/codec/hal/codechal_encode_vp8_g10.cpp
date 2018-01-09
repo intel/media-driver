@@ -20,7 +20,7 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     codechal_encode_vp8_g10.c
+//! \file     codechal_encode_vp8_g10.cpp
 //! \brief    VP8 dual-pipe encoder for GEN10.
 //!
 

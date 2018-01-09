@@ -281,11 +281,11 @@ public:
     //!
     //! \brief    Encoder pre enc look up buffer index
     //! \param    [in] frameIdx
-    //!           ucFrame Index
-    //!           [in] inCache
+    //!           frame Index
+    //! \param    [in] inCache
     //!           Indicate if it's in cache
     //! \return   uint8_t
-    //!           uiEmptyEntry
+    //!           emptyEntry
     //!
     uint8_t PreencLookUpBufIndex(
         uint8_t         frameIdx,
@@ -402,7 +402,7 @@ protected:
     //!
     //! \brief  Release DS surface
     //!
-    //! \param  [in] bufIndex
+    //! \param  [in] index
     //!         buffer index to be released
     //!
     //! \return void

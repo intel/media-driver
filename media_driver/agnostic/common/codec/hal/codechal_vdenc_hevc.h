@@ -227,9 +227,11 @@ public:
     //!
     //! \brief    Setup stream-in data per region 
     //!
-    //! \param    [in] streamInWidth, top, bottom, left, right, streaminParams
-    //!                streamInWidth, region corner locations, streamInParams  
-    //!           [out] streaminData
+    //! \param    [in] streamInWidth, top, bottom, left, right
+    //!                streamInWidth, region corner locations, 
+    //! \param    [in] streaminParams
+    //!                 pointer to MHW_VDBOX_VDENC_STREAMIN_STATE_PARAMS
+    //! \param    [out] streaminData
     //!                 pointer to streaminData
     //!
     //! \return   void
@@ -246,10 +248,12 @@ public:
     //!
     //! \brief    Setup stream-in data per region 
     //!
-    //! \param    [in] streamInWidth, top, bottom, left, right, regionId, streaminParams
-    //!                streamInWidth, region corner locations, regionId, streamInParams  
-    //!           [out] streaminData
-    //!                 pointer to streaminData
+    //! \param    [in] streamInWidth, top, bottom, left, right
+    //!                streamInWidth, region corner locations
+    //! \param    [in] regionId
+    //!                region ID
+    //! \param    [out] deltaQpMap
+    //!                pointer to DeltaQpForROI
     //!
     //! \return   void
     //!

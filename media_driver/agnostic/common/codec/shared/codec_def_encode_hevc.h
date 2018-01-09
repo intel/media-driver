@@ -55,6 +55,10 @@
 #define ENCODE_DP_HEVC_NUM_MAX_VME_L1_REF_G9  1
 #define ENCODE_DP_HEVC_MAX_NUM_ROI            16
 
+//!
+//! \enum HEVC_NAL_UNIT_TYPE
+//! \brief HEVC NAL unit type
+//!
 typedef enum
 {
     HEVC_NAL_UT_TRAIL_N           = 0x00, //!< Coded slice segment of a non-TSA, non-STSA trailing picture - slice_segment_layer_rbsp, VLC

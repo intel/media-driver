@@ -304,9 +304,9 @@ public:
     //!
     //! \param    [in] commandtype
     //!           Command type, type 1 or type 2 command
-    //!           [in] cmdBuffer
+    //! \param    [in] cmdBuffer
     //!           Command buffer
-    //!           [in] addToBatchBufferHuCBRC
+    //! \param    [in] addToBatchBufferHuCBRC
     //!           Flag to mention if the scenario is BRC or CQP
     //!
     //! \return   MOS_STATUS

@@ -1907,7 +1907,7 @@ protected:
     //! \param    [in]  downScaleStage
     //!           Down scale stage
     //! \param    [in]  index
-    //!           Index to #sFormatConvertedSurface array
+    //!           Index to formatConvertedSurface array
     //! \param    [in]  refListIdx
     //!           Reference list index
     //!
