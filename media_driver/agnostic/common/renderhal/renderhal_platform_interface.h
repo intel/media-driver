@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -255,6 +255,19 @@ public:
         PMOS_COMMAND_BUFFER          pCmdBuffer)
     {
         return MOS_STATUS_SUCCESS;
+    }
+
+    //!
+    //! \brief    Get Composite MMC Enable/Disable Flag
+    //! \param    [in] pRenderHal
+    //!           Pointer to Hardware Interface
+    //! \return   bool
+    //!           true if Enabled, false if Disabled
+    //! 
+    virtual bool IsCompositeMMCEnabled(
+        PRENDERHAL_INTERFACE         pRenderHal)
+    {
+        return false;
     }
 
     //!
