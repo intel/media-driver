@@ -300,7 +300,7 @@ public:
         PRENDERHAL_INTERFACE       pRenderHal,
         RENDERHAL_PLANE_DEFINITION &PlaneDefinition)
     {
-        PlaneDefinition = isRenderTarget ? RENDERHAL_PLANES_Y210_RT : RENDERHAL_PLANES_Y210;
+        PlaneDefinition = isRenderTarget ? RENDERHAL_PLANES_Y210_RT : (pRenderHal->bIsAVS ? RENDERHAL_PLANES_Y210_ADV : RENDERHAL_PLANES_Y210);
     };
     //! \brief      Set L3 cache override config parameters
     //! \param      [in] pRenderHal

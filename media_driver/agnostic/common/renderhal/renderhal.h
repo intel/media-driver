@@ -1206,6 +1206,9 @@ typedef struct _RENDERHAL_INTERFACE
 
     // Predication 
     RENDERHAL_PREDICATION_SETTINGS PredicationParams;   //!< Predication
+	
+	// Indicates whether it's AVS or not
+    bool                        bIsAVS;
 
     //---------------------------
     // HW interface functions

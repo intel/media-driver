@@ -2873,6 +2873,8 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
     PlaneDefinition     = RENDERHAL_PLANES_DEFINITION_COUNT;
     bIsChromaSitEnabled = 0;
 
+    pRenderHal->bIsAVS  = pParams->bAVS;
+
     // Check palette allocations
     if (IS_PAL_FORMAT(pSurface->Format))
     {
@@ -6212,6 +6214,9 @@ MOS_STATUS RenderHal_InitInterface(
 
     //set MDF load to default value false
     pRenderHal->IsMDFLoad = false;
+
+    //set AVS to default value false
+    pRenderHal->bIsAVS = false;
 
     pRenderHal->iChromaKeyCount        = 0;
     for (int i = 0; i < pRenderHal->iMaxChromaKeys; i++)
