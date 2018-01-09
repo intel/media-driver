@@ -308,8 +308,7 @@ mhw_vdbox_mfx_g8_bdw::MFX_AVC_IMG_STATE_CMD::MFX_AVC_IMG_STATE_CMD()
     DW11.Value                                       = 0;        
     DW11.Framebitratemaxdelta                        = FRAMEBITRATEMAXDELTA_UNNAMED0;
 
-    DW12.Value                                       = 0;  
-    DW12.VadErrorLogic                               = VAD_ERROR_LOGIC_ENABLE;
+    DW12.Value                                       = 0;        
 
     DW13.Value                                       = 0;        
 

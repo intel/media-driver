@@ -1046,8 +1046,6 @@ protected:
 
         cmd.DW5.TrellisQuantizationChromaDisableTqchromadisable = true;
 
-        cmd.DW12.VadErrorLogic = 1;
-
         cmd.DW13.CurrentPictureHasPerformedMmco5 = 0;
         cmd.DW13.NumberOfReferenceFrames = params->ucActiveFrameCnt;
         // These fields to be NumRefIdx(L0 or L1) Active - 1 at picture level
@@ -1202,8 +1200,6 @@ protected:
         cmd.DW11.Framebitratemindelta = bitrateParams.frameBitRateMinDelta;
         cmd.DW11.Framebitratemaxdelta = bitrateParams.frameBitRateMaxDelta;
         cmd.DW11.SliceStatsStreamoutEnable = params->bSliceSizeStreamOutEnabled;
-
-        cmd.DW12.VadErrorLogic = 1;
 
         //add for multiple pass
         if (params->dwMaxFrameSize > 0 && params->pDeltaQp && (!params->bIPCMPass))

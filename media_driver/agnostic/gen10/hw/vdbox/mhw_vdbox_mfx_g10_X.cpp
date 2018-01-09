@@ -1308,8 +1308,6 @@ MOS_STATUS MhwVdboxMfxInterfaceG10::AddMfxDecodeAvcImgCmd(
         avcPicParams->seq_fields.mb_adaptive_frame_field_flag && !avcPicParams->pic_fields.field_pic_flag;
     cmd.DW4.Fieldpicflag = avcPicParams->pic_fields.field_pic_flag;
 
-    cmd.DW12.VadErrorLogic = 1;
-
     cmd.DW5.TrellisQuantizationChromaDisableTqchromadisable = true;
     cmd.DW5.TrellisQuantizationRoundingTqr = 0;
 
@@ -1467,8 +1465,6 @@ MOS_STATUS MhwVdboxMfxInterfaceG10::AddMfxEncodeAvcImgCmd(
     cmd.DW11.Framebitratemindelta = bitrateParams.frameBitRateMinDelta;
     cmd.DW11.Framebitratemaxdelta = bitrateParams.frameBitRateMaxDelta;
     cmd.DW11.SliceStatsStreamoutEnable = params->bSliceSizeStreamOutEnabled;
-
-    cmd.DW12.VadErrorLogic = 1;
 
     //add for multiple pass
     if (params->dwMaxFrameSize > 0 && params->pDeltaQp && (!params->bIPCMPass))

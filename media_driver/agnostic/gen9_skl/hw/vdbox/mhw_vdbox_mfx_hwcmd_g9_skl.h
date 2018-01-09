@@ -1943,9 +1943,7 @@ public:
             //!< DWORD 12
             struct
             {
-                uint32_t                 Reserved384                                      : __CODEGEN_BITFIELD( 0, 17)    ; //!< Reserved
-                uint32_t                 VadErrorLogic                                    : __CODEGEN_BITFIELD(18, 18)    ; //!< VAD_ERROR_LOGIC
-                uint32_t                 Reserved403                                      : __CODEGEN_BITFIELD(19, 31)    ; //!< Reserved
+                uint32_t                 Reserved384                                                                      ; //!< Reserved
             };
             uint32_t                     Value;
         } DW12;
