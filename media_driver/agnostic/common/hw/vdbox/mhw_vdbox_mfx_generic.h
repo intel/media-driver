@@ -700,7 +700,7 @@ protected:
         //DW6
         cmd.DW6.StreamId10 = 0;
         cmd.DW6.SliceId30 = sliceParams->slice_id;
-        cmd.DW6.Cabaczerowordinsertionenable = (seqParams->RateControlMethod == RATECONTROL_CQP) ? 0 : 1;;
+        cmd.DW6.Cabaczerowordinsertionenable = 1;
         cmd.DW6.Emulationbytesliceinsertenable = 1;
         cmd.DW6.IsLastSlice =
             (startMbNum + sliceParams->NumMbsForSlice) >= (uint32_t)(widthInMb * frameFieldHeightInMb);

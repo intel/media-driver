@@ -1719,9 +1719,15 @@ VAStatus DdiEncodeAvc::ParsePackedHeaderData(void *ptr)
         while (scanCount <= hdrDataSize)
         {
             scFound += (sc0 == 0 && sc1 == 0 && sc2 == 1);
-            if (2 == scFound)
+            if (1 == scFound) {
+                // when the first nal is SVC nal, skip it.
+                uint32_t nalType = (*header)&0x1f;
+                if (nalType != 0xe) {
+                    break;
+                }                
+            } else if (2 == scFound)
             {
-                m_encodeCtx->pSliceHeaderData[m_encodeCtx->uiSliceHeaderCnt].SkipEmulationByteCount = MOS_MIN(15, (scanCount - 3));  // HW can only skip up to 15 bytes
+                m_encodeCtx->pSliceHeaderData[m_encodeCtx->uiSliceHeaderCnt].SkipEmulationByteCount = MOS_MIN(15, scanCount);  // HW can only skip up to 15 bytes
                 break;
             }
             sc0 = sc1;
