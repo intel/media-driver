@@ -5314,6 +5314,8 @@ MOS_STATUS CodechalVdencVp9State::SetPictureStructs()
     uint8_t currRefIdx = m_vp9PicParams->CurrReconstructedPic.FrameIdx;
 
     m_dysRefFrameFlags = DYS_REF_NONE;
+	m_dysBrc = false;
+	m_dysCqp = false;
 
     // m_refFrameFlags is to indicate which frames to be used as reference
     // m_refFrameFlags & 0x01 != 0: Last ref frames used as reference
