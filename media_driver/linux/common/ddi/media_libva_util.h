@@ -322,6 +322,19 @@ void     DdiMediaUtil_UnRefBufObjInMediaBuffer(PDDI_MEDIA_BUFFER buf);
 //!
 int32_t  DdiMediaUtil_OpenGraphicsAdaptor(char *devName);
 
+//!
+//! \brief  Unregister RT surfaces
+//!
+//! \param  [in] ctx
+//!     Pointer to VA driver context
+//! \param  [in] surface
+//!     Pointer to ddi media surface
+//!     
+//! \return     VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
+VAStatus DdiMediaUtil_UnRegisterRTSurfaces(VADriverContextP    ctx,PDDI_MEDIA_SURFACE surface);
+
 //------------------------------------------------------------------------------
 // Macros for debug messages, Assert, Null check and condition check within ddi files
 //------------------------------------------------------------------------------

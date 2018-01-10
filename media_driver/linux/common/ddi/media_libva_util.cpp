@@ -44,6 +44,10 @@
 #include "mos_utilities.h"
 #include "mos_os.h"
 #include "hwinfo_linux.h"
+#include "media_ddi_decode_base.h"
+#include "media_ddi_encode_base.h"
+#include "media_libva_decoder.h"
+#include "media_libva_encoder.h"
 
 #ifdef DEBUG
 static int32_t         frameCountFps   = -1;
@@ -1452,4 +1456,58 @@ int32_t DdiMediaUtil_OpenGraphicsAdaptor(char *devName)
     }
 
     return hDevice;
+}
+
+VAStatus DdiMediaUtil_UnRegisterRTSurfaces(
+    VADriverContextP    ctx,
+    PDDI_MEDIA_SURFACE surface)
+{
+    DDI_CHK_NULL(ctx,"nullptr context!", VA_STATUS_ERROR_INVALID_CONTEXT);
+    PDDI_MEDIA_CONTEXT mediaCtx   = DdiMedia_GetMediaContext(ctx);
+    DDI_CHK_NULL(mediaCtx,"nullptr mediaCtx!", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(surface, "nullptr surface!", VA_STATUS_ERROR_INVALID_PARAMETER);
+    
+    //Look through all decode contexts to unregister the surface in each decode context's RTtable.
+    if (mediaCtx->pDecoderCtxHeap != nullptr)
+    {
+        PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT decVACtxHeapBase;
+
+        DdiMediaUtil_LockMutex(&mediaCtx->DecoderMutex);
+        decVACtxHeapBase  = (PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT)mediaCtx->pDecoderCtxHeap->pHeapBase;
+        for (int32_t j = 0; j < mediaCtx->pDecoderCtxHeap->uiAllocatedHeapElements; j++)
+        {
+            if (decVACtxHeapBase[j].pVaContext != nullptr)
+            {
+                PDDI_DECODE_CONTEXT  decCtx = (PDDI_DECODE_CONTEXT)decVACtxHeapBase[j].pVaContext;
+                if (decCtx && decCtx->m_ddiDecode)
+                {
+                    //not check the return value since the surface may not be registered in the context. pay attention to LOGW.
+                    decCtx->m_ddiDecode->UnRegisterRTSurfaces(&decCtx->RTtbl, surface);
+                }
+            }
+        }
+        DdiMediaUtil_UnLockMutex(&mediaCtx->DecoderMutex);
+    }
+    if (mediaCtx->pEncoderCtxHeap != nullptr)
+    {
+        PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT pEncVACtxHeapBase;
+
+        DdiMediaUtil_LockMutex(&mediaCtx->EncoderMutex);
+        pEncVACtxHeapBase  = (PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT)mediaCtx->pEncoderCtxHeap->pHeapBase;
+        for (int32_t j = 0; j < mediaCtx->pEncoderCtxHeap->uiAllocatedHeapElements; j++)
+        {
+            if (pEncVACtxHeapBase[j].pVaContext != nullptr)
+            {
+                PDDI_ENCODE_CONTEXT  pEncCtx = (PDDI_ENCODE_CONTEXT)pEncVACtxHeapBase[j].pVaContext;
+                if (pEncCtx && pEncCtx->m_encode)
+                {
+                    //not check the return value since the surface may not be registered in the context. pay attention to LOGW.
+                    pEncCtx->m_encode->UnRegisterRTSurfaces(&pEncCtx->RTtbl, surface);
+                }
+            }
+        }
+        DdiMediaUtil_UnLockMutex(&mediaCtx->EncoderMutex);
+    }
+
+    return VA_STATUS_SUCCESS;
 }
