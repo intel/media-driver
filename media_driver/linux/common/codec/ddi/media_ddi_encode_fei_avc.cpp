@@ -274,6 +274,8 @@ VAStatus DdiEncodeAvcFei::EncodeInCodecHal(uint32_t numSlices)
         encodeParams->pBSBuffer      = m_encodeCtx->pbsBuffer;
         encodeParams->pSlcHeaderData = (void *)m_encodeCtx->pSliceHeaderData;
         encodeParams->pFeiPicParams  = (CodecEncodeAvcFeiPicParams *)(m_encodeCtx->pFeiPicParams);
+        //clear registered recon/ref surface flags
+        DDI_CHK_RET(ClearRefList(&m_encodeCtx->RTtbl, true), "ClearRefList failed!");
     }
 
     status = m_encodeCtx->pCodecHal->Execute(encodeParams);

@@ -943,6 +943,9 @@ VAStatus DdiEncodeAvc::EncodeInCodecHal(uint32_t numSlices)
 
     DdiMedia_MediaSurfaceToMosResource(rtTbl->pCurrentReconTarget, &(reconSurface->OsResource));
 
+    //clear registered recon/ref surface flags
+    DDI_CHK_RET(ClearRefList(&m_encodeCtx->RTtbl, false), "ClearRefList failed!");
+
     // Bitstream surface
     PMOS_RESOURCE bitstreamSurface = &encodeParams->resBitstreamBuffer;
     *bitstreamSurface        = m_encodeCtx->resBitstreamBuffer;  // in render picture
@@ -1309,9 +1312,15 @@ VAStatus DdiEncodeAvc::ParsePicParams(
         picParams->FieldCodingFlag = 1;
     }
 
+    if (pic->CurrPic.picture_id != VA_INVALID_SURFACE)
+    {
+        RegisterRTSurfaces(&(m_encodeCtx->RTtbl),
+            DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx,
+                pic->CurrPic.picture_id));
+    }
+
     // Curr Recon Pic
     SetupCodecPicture(mediaCtx, &(m_encodeCtx->RTtbl), &picParams->CurrReconstructedPic,pic->CurrPic, picParams->FieldCodingFlag, false, false);
-
     DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_encodeCtx->RTtbl);
 
     rtTbl->pCurrentReconTarget = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, pic->CurrPic.picture_id);
@@ -1337,6 +1346,12 @@ VAStatus DdiEncodeAvc::ParsePicParams(
     // RefFrame List
     for (uint32_t i = 0; i < DDI_CODEC_NUM_MAX_REF_FRAME; i++)
     {
+        if(pic->ReferenceFrames[i].picture_id!= VA_INVALID_SURFACE)
+        {
+            UpdateRegisteredRTSurfaceFlag(&(m_encodeCtx->RTtbl),
+                DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx,
+                    pic->ReferenceFrames[i].picture_id));
+        }
         SetupCodecPicture(mediaCtx, &(m_encodeCtx->RTtbl), &(picParams->RefFrameList[i]), pic->ReferenceFrames[i], picParams->FieldCodingFlag, true, false);
     }
 
