@@ -118,21 +118,6 @@ VAStatus DdiDecode_CreateBuffer(
 );
 
 //!
-//! \brief  Unregister RT surfaces
-//!
-//! \param  [in] ctx
-//!     Pointer to VA driver context
-//! \param  [in] surface
-//!     Pointer to ddi media surface
-//!     
-//! \return     VAStatus
-//!     VA_STATUS_SUCCESS if success, else fail reason
-//!
-VAStatus DdiDecode_UnRegisterRTSurfaces(
-    VADriverContextP    ctx,
-    PDDI_MEDIA_SURFACE surface);
-
-//!
 //! \brief  Begin picture
 //!
 //! \param  [in] ctx
