@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2017, Intel Corporation
+* Copyright (c) 2016-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -3889,7 +3889,6 @@ int32_t CompositeState::SetLayerRT(
     uTargetIndex = 0;
     do
     {
-        SetSurfaceCompressionParams(pRenderingData->pTarget[uTargetIndex], true);
         // Get surface state allocation parameters for RT (scaling mode, stride)
         SetSurfaceParams(
             pRenderingData->pTarget[uTargetIndex],
