@@ -120,6 +120,9 @@ VAStatus DdiEncodeHevcFei::EncodeInCodecHal(uint32_t numSlices)
 
     DdiMedia_MediaSurfaceToMosResource(rtTbl->pCurrentReconTarget, &(reconSurface.OsResource));
 
+    //clear registered recon/ref surface flags
+    DDI_CHK_RET(ClearRefList(&m_encodeCtx->RTtbl, true), "ClearRefList failed!");
+
     // Bitstream surface
     MOS_RESOURCE bitstreamSurface;
     MOS_ZeroMemory(&bitstreamSurface, sizeof(bitstreamSurface));
