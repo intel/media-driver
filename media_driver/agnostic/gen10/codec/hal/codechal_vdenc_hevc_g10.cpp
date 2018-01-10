@@ -1579,9 +1579,14 @@ MOS_STATUS CodechalVdencHevcStateG10::SetDmemHuCBrcInitReset()
     hucVdencBrcInitDmem->MaxQP_U8 = m_hevcPicParams->BRCMaxQp;
 
     hucVdencBrcInitDmem->MaxBRCLevel_U8 = 1;
-    hucVdencBrcInitDmem->LumaBitDepth_U8 = 8;    // default: 8
-    hucVdencBrcInitDmem->ChromaBitDepth_U8 = 8;    // default: 8
+	hucVdencBrcInitDmem->LumaBitDepth_U8 = 8;    // default: 8
+	hucVdencBrcInitDmem->ChromaBitDepth_U8 = 8;    // default: 8
+	if (m_hevcSeqParams->SourceBitDepth == 1)
+	{
 
+		hucVdencBrcInitDmem->LumaBitDepth_U8 = 10;    // default: 8
+		hucVdencBrcInitDmem->ChromaBitDepth_U8 = 10;    // default: 8
+	}
     // 0=No SAO 1=Disable 2nd pass SAO; 2=Enable 2nd pass SAO; 3=Adaptive SAO
     // HuC FW suggested ASAO flag setting
     // checking SAO flag for first slice is enough since this flag has the same value for all slices within a picture
@@ -1815,7 +1820,9 @@ MOS_STATUS CodechalVdencHevcStateG10::SetDmemHuCBrcUpdate()
     hucVdencBrcUpdateDmem->Ref_Data_Offset[1] = ((2 + circularFrameIdx) % 4) * m_weightHistSize;
     hucVdencBrcUpdateDmem->Ref_Data_Offset[2] = ((1 + circularFrameIdx) % 4) * m_weightHistSize;
 
-    hucVdencBrcUpdateDmem->MaxNumSliceAllowed_U16 = (uint16_t)GetMaxAllowedSlices(m_hevcSeqParams->Level);
+	// temporarily set to 0 for CNL Beta. TEDDI/MSDK based tests need to send the values 30 * level .
+	// Also need to remove this  pCodecHalSeqParams->Level = pDDISeqParams->general_level_idc / 3;
+	hucVdencBrcUpdateDmem->MaxNumSliceAllowed_U16 = 0; //(uint16_t)GetMaxAllowedSlices(m_hevcSeqParams->Level);
 
     hucVdencBrcUpdateDmem->OpMode_U8         // 1: BRC (including ACQP), 2: Weighted prediction (should not be enabled in first pass)
         = (m_hevcVdencWeightedPredEnabled && !IsFirstPass()) ? 3 : 1;    // 01: BRC, 10: WP never used,  11: BRC + WP
