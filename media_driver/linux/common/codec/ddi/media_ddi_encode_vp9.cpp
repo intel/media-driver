@@ -154,6 +154,9 @@ VAStatus DdiEncodeVp9::EncodeInCodecHal(uint32_t numSlices)
     bitstreamSurface        = m_encodeCtx->resBitstreamBuffer;  // in render picture
     bitstreamSurface.Format = Format_Buffer;
 
+    //clear registered recon/ref surface flags
+    DDI_CHK_RET(ClearRefList(&m_encodeCtx->RTtbl, true), "ClearRefList failed!");
+
     encodeParams.psRawSurface               = &rawSurface;
     encodeParams.psReconSurface             = &reconSurface;
     encodeParams.presBitstreamBuffer        = &bitstreamSurface;
@@ -578,11 +581,13 @@ VAStatus DdiEncodeVp9::ParsePicParams(DDI_MEDIA_CONTEXT *mediaCtx, void *ptr)
  
     DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_encodeCtx->RTtbl);
 
+    auto recon = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->reconstructed_frame);
+    DDI_CHK_RET(RegisterRTSurfaces(rtTbl, recon),"RegisterRTSurfaces failed!");
+
     SetupCodecPicture(mediaCtx, rtTbl, &vp9PicParam->CurrReconstructedPic,
                                              picParam->reconstructed_frame, false);
-
-    rtTbl->pCurrentReconTarget = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->reconstructed_frame);
-    DDI_CHK_NULL(rtTbl->pCurrentReconTarget, "nullptr rtTbl->pCurrentReconTarget", VA_STATUS_ERROR_INVALID_PARAMETER);
+    rtTbl->pCurrentReconTarget = recon;
+    DDI_CHK_NULL(rtTbl->pCurrentReconTarget, "NULL rtTbl->pCurrentReconTarget", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     // curr orig pic
     vp9PicParam->CurrOriginalPic.FrameIdx = GetRenderTargetID(rtTbl, rtTbl->pCurrentReconTarget);
@@ -592,6 +597,7 @@ VAStatus DdiEncodeVp9::ParsePicParams(DDI_MEDIA_CONTEXT *mediaCtx, void *ptr)
     {
         if (picParam->reference_frames[i] != VA_INVALID_SURFACE)
         {
+            UpdateRegisteredRTSurfaceFlag(rtTbl, DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->reference_frames[i]));
             SetupCodecPicture(mediaCtx, rtTbl, &vp9PicParam->RefFrameList[i],
                                          picParam->reference_frames[i], true);
         }
