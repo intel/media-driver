@@ -1699,7 +1699,7 @@ VAStatus MediaLibvaCaps::QueryConfigEntrypoints(
         }
     }
     *numEntrypoints = j;
-
+    DDI_CHK_CONDITION((j == 0), "cant find the profile!", VA_STATUS_ERROR_UNSUPPORTED_PROFILE);    
     /* If the assert fails then GEN_MAX_ENTRYPOINTS needs to be bigger */
     DDI_CHK_CONDITION((j > DDI_CODEC_GEN_MAX_ENTRYPOINTS),
             "Execeed maximum number of profiles!", VA_STATUS_ERROR_MAX_NUM_EXCEEDED);
