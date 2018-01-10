@@ -103,39 +103,6 @@ VAStatus DdiDecode_CreateBuffer(
 
 }
 
-VAStatus DdiDecode_UnRegisterRTSurfaces(
-    VADriverContextP    ctx,
-    PDDI_MEDIA_SURFACE surface)
-{
-    DDI_CHK_NULL(ctx,"nullptr context!", VA_STATUS_ERROR_INVALID_CONTEXT);
-    PDDI_MEDIA_CONTEXT mediaCtx   = DdiMedia_GetMediaContext(ctx);
-    DDI_CHK_NULL(mediaCtx,"nullptr mediaCtx!", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(surface, "nullptr surface!", VA_STATUS_ERROR_INVALID_PARAMETER);
-    
-    //Look through all decode contexts to unregister the surface in each decode context's RTtable.
-    if (mediaCtx->pDecoderCtxHeap != nullptr)
-    {
-        PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT decVACtxHeapBase;
-
-        DdiMediaUtil_LockMutex(&mediaCtx->DecoderMutex);
-        decVACtxHeapBase  = (PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT)mediaCtx->pDecoderCtxHeap->pHeapBase;
-        for (int32_t j = 0; j < mediaCtx->pDecoderCtxHeap->uiAllocatedHeapElements; j++)
-        {
-            if (decVACtxHeapBase[j].pVaContext != nullptr)
-            {
-                PDDI_DECODE_CONTEXT  decCtx = (PDDI_DECODE_CONTEXT)decVACtxHeapBase[j].pVaContext;
-                if (decCtx && decCtx->m_ddiDecode)
-                {
-                    //not check the return value since the surface may not be registered in the context. pay attention to LOGW.
-                    decCtx->m_ddiDecode->UnRegisterRTSurfaces(&decCtx->RTtbl, surface);
-                }
-            }
-        }
-        DdiMediaUtil_UnLockMutex(&mediaCtx->DecoderMutex);
-    }
-    return VA_STATUS_SUCCESS;
-}
-
 VAStatus DdiDecode_BeginPicture (
     VADriverContextP    ctx,
     VAContextID         context,
