@@ -433,6 +433,11 @@ VAStatus DdiEncode_DestroyContext(VADriverContextP ctx, VAContextID context)
     if (nullptr != encCtx->m_encode)
     {
         encCtx->m_encode->FreeCompBuffer();
+        if(nullptr != encCtx->m_encode->m_codechalSettings)
+        {
+            MOS_Delete(encCtx->m_encode->m_codechalSettings);
+            encCtx->m_encode->m_codechalSettings = nullptr;
+        }
     }
 
     MOS_FreeMemory(codecHal->GetOsInterface()->pOsContext->pPerfData);
