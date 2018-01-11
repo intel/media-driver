@@ -1240,22 +1240,6 @@ typedef struct _CODECHAL_ENCODE_AVC_SFD_CURBE_PARAMS
         uint32_t                            index);
 
      //!
-     //! \brief    Build slices with header insertion
-     //! \param    [in] hwInterface
-     //!           HW Encoder interface pointer
-     //! \param    [in] cmdBuffer
-     //!           command buffer
-     //! \param    [in] params
-     //!           VDBOX AVC slice state params
-     //! \return   MOS_STATUS
-     //!           MOS_STATUS_SUCCESS if success, else fail reason
-     //!
-     MOS_STATUS CodecHalAvcEncode_SendSlice(
-        CodechalHwInterface            *hwInterface,
-        PMOS_COMMAND_BUFFER             cmdBuffer,
-        PMHW_VDBOX_AVC_SLICE_STATE      params);
-
-     //!
      //! \brief    Get profile level max frame size
      //! \param    [in] seqParams
      //!           Encoder Sequence params
@@ -1543,6 +1527,19 @@ public:
     //! \brief    Update the slice count according to the slice shutdown policy
     //!
     virtual void UpdateSSDSliceCount();
+
+    //!
+    //! \brief    Build slices with header insertion
+    //! \param    [in] cmdBuffer
+    //!           command buffer
+    //! \param    [in] params
+    //!           VDBOX AVC slice state params
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS SendSlice(
+        PMOS_COMMAND_BUFFER             cmdBuffer,
+        PMHW_VDBOX_AVC_SLICE_STATE      params);
 
     //!
     //! \brief      Store number passes

@@ -150,12 +150,10 @@ bool CodecHalAvcEncode_GetFieldParity(
     return (fieldParity ? true : false);
 }
 
-MOS_STATUS CodecHalAvcEncode_SendSlice(
-    CodechalHwInterface            *hwInterface,
+MOS_STATUS CodechalEncodeAvcBase::SendSlice(
     PMOS_COMMAND_BUFFER             cmdBuffer,
     PMHW_VDBOX_AVC_SLICE_STATE      params)
 {
-    MhwMiInterface                      *miInterface;
     PCODEC_AVC_ENCODE_SLICE_PARAMS      avcSlcParams;
     MHW_VDBOX_AVC_REF_IDX_PARAMS        refIdxParams;
     MHW_VDBOX_AVC_WEIGHTOFFSET_PARAMS   weightOffsetParams;
@@ -168,12 +166,9 @@ MOS_STATUS CodecHalAvcEncode_SendSlice(
     uint32_t                            maxBytesInPakInsertObjCmd;
     uint32_t                            nalunitPosiSize, nalunitPosiOffset;
     bool                                insertZeroByteWA = false;
-    MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    CODECHAL_ENCODE_CHK_NULL_RETURN(hwInterface);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(hwInterface->GetMiInterface());
     CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pAvcPicIdx);
@@ -185,7 +180,6 @@ MOS_STATUS CodecHalAvcEncode_SendSlice(
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pBsBuffer);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->ppNalUnitParams);
 
-    miInterface = hwInterface->GetMiInterface();
     avcSlcParams = params->pEncodeAvcSliceParams;
     maxBytesInPakInsertObjCmd = ((2 << 11) - 1) * 4; // 12 bits for DwordLength field in PAK_INSERT_OBJ cmd
     nalunitPosiSize = 0;
@@ -221,7 +215,7 @@ MOS_STATUS CodecHalAvcEncode_SendSlice(
         refIdxParams.uiList = LIST_0;
         refIdxParams.uiNumRefForList = avcSlcParams->num_ref_idx_l0_active_minus1 + 1;
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(hwInterface->GetMfxInterface()->AddMfxAvcRefIdx(cmdBufferInUse, batchBufferInUse, &refIdxParams));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxAvcRefIdx(cmdBufferInUse, batchBufferInUse, &refIdxParams));
 
         if (params->pEncodeAvcPicParams->weighted_pred_flag == EXPLICIT_WEIGHTED_INTER_PRED_MODE)
         {
@@ -237,7 +231,7 @@ MOS_STATUS CodecHalAvcEncode_SendSlice(
                 sizeof(weightOffsetParams.Weights),
                 &avcSlcParams->Weights,
                 sizeof(avcSlcParams->Weights)));
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(hwInterface->GetMfxInterface()->AddMfxAvcWeightOffset(
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxAvcWeightOffset(
                 cmdBufferInUse,
                 batchBufferInUse,
                 &weightOffsetParams));
@@ -249,12 +243,12 @@ MOS_STATUS CodecHalAvcEncode_SendSlice(
         refIdxParams.uiList = LIST_0;
         refIdxParams.uiNumRefForList = avcSlcParams->num_ref_idx_l0_active_minus1 + 1;
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(hwInterface->GetMfxInterface()->AddMfxAvcRefIdx(cmdBufferInUse, batchBufferInUse, &refIdxParams));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxAvcRefIdx(cmdBufferInUse, batchBufferInUse, &refIdxParams));
 
         refIdxParams.uiList = LIST_1;
         refIdxParams.uiNumRefForList = avcSlcParams->num_ref_idx_l1_active_minus1 + 1;
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(hwInterface->GetMfxInterface()->AddMfxAvcRefIdx(cmdBufferInUse, batchBufferInUse, &refIdxParams));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxAvcRefIdx(cmdBufferInUse, batchBufferInUse, &refIdxParams));
 
         if (params->pEncodeAvcPicParams->weighted_bipred_idc == EXPLICIT_WEIGHTED_INTER_PRED_MODE)
         {
@@ -269,7 +263,7 @@ MOS_STATUS CodecHalAvcEncode_SendSlice(
             weightOffsetParams.uiLumaWeightFlag   = avcSlcParams->luma_weight_flag[LIST_0];
             weightOffsetParams.uiChromaWeightFlag = avcSlcParams->chroma_weight_flag[LIST_0];
             weightOffsetParams.uiNumRefForList    = avcSlcParams->num_ref_idx_l0_active_minus1 + 1;
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(hwInterface->GetMfxInterface()->AddMfxAvcWeightOffset(
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxAvcWeightOffset(
                 cmdBufferInUse,
                 batchBufferInUse,
                 &weightOffsetParams));
@@ -280,7 +274,7 @@ MOS_STATUS CodecHalAvcEncode_SendSlice(
             weightOffsetParams.uiLumaWeightFlag   = avcSlcParams->luma_weight_flag[LIST_1];
             weightOffsetParams.uiChromaWeightFlag = avcSlcParams->chroma_weight_flag[LIST_1];
             weightOffsetParams.uiNumRefForList    = avcSlcParams->num_ref_idx_l1_active_minus1 + 1;
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(hwInterface->GetMfxInterface()->AddMfxAvcWeightOffset(
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxAvcWeightOffset(
                 cmdBufferInUse,
                 batchBufferInUse,
                 &weightOffsetParams));
@@ -288,7 +282,7 @@ MOS_STATUS CodecHalAvcEncode_SendSlice(
     }
 
     // add AVC Slice state commands
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(hwInterface->GetMfxInterface()->AddMfxAvcSlice(cmdBufferInUse, batchBufferInUse, params));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxAvcSlice(cmdBufferInUse, batchBufferInUse, params));
 
     //insert AU, SPS, PSP headers before first slice header
     if (params->bInsertBeforeSliceHeaders)
@@ -326,7 +320,7 @@ MOS_STATUS CodecHalAvcEncode_SendSlice(
                     CODECHAL_ENCODE_VERBOSEMESSAGE("The emulation prevention bytes are not inserted by the app and are requested to be inserted by HW.");
                 }
 
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(hwInterface->GetMfxInterface()->AddMfxPakInsertObject(
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxPakInsertObject(
                     cmdBufferInUse, batchBufferInUse, &pakInsertObjectParams));
 
                 if (nalunitPosiSize > maxBytesInPakInsertObjCmd)
@@ -345,14 +339,14 @@ MOS_STATUS CodecHalAvcEncode_SendSlice(
     }
 
     // Insert 0x00 for super slice case when PPS/AUD is not inserted
-    if (MEDIA_IS_WA(hwInterface->GetWaTable(), WaSuperSliceHeaderPacking) && insertZeroByteWA && params->bVdencInUse && hwInterface->m_isVdencSuperSliceEnabled)
+    if (MEDIA_IS_WA(m_hwInterface->GetWaTable(), WaSuperSliceHeaderPacking) && insertZeroByteWA && params->bVdencInUse && m_hwInterface->m_isVdencSuperSliceEnabled)
     {
         MOS_ZeroMemory(&pakInsertObjectParams, sizeof(pakInsertObjectParams));
         pakInsertObjectParams.pBsBuffer = params->pBsBuffer;
         pakInsertObjectParams.dwBitSize = 8;
         pakInsertObjectParams.dwOffset = params->dwOffset;
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(hwInterface->GetMfxInterface()->AddMfxPakInsertObject(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxPakInsertObject(
             cmdBufferInUse, batchBufferInUse, &pakInsertObjectParams));
     }
 
@@ -376,7 +370,7 @@ MOS_STATUS CodecHalAvcEncode_SendSlice(
     pakInsertObjectParams.bSliceHeaderIndicator = (!params->bVdencInUse) ? false : true;
 
     // Remove one byte of 00 for super slice case when PPS/AUD is not inserted, so that HW could patch slice header correctly
-    if (MEDIA_IS_WA(hwInterface->GetWaTable(), WaSuperSliceHeaderPacking) && insertZeroByteWA && params->bVdencInUse && hwInterface->m_isVdencSuperSliceEnabled)
+    if (MEDIA_IS_WA(m_hwInterface->GetWaTable(), WaSuperSliceHeaderPacking) && insertZeroByteWA && params->bVdencInUse && m_hwInterface->m_isVdencSuperSliceEnabled)
     {
         pakInsertObjectParams.dwBitSize = params->dwLength - 8;
         pakInsertObjectParams.dwOffset = params->dwOffset + 1;
@@ -387,30 +381,30 @@ MOS_STATUS CodecHalAvcEncode_SendSlice(
         pakInsertObjectParams.dwOffset = params->dwOffset;
     }
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(hwInterface->GetMfxInterface()->AddMfxPakInsertObject(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxPakInsertObject(
         cmdBufferInUse, batchBufferInUse, &pakInsertObjectParams));
 
     if (params->bVdencInUse)
     {
         //For CNL VDENC Walker command and WeightsOffsets cmds are sent per Super slice
-        if (hwInterface->m_isVdencSuperSliceEnabled)
+        if (m_hwInterface->m_isVdencSuperSliceEnabled)
         {
             weightOffsetParams.pAvcPicParams = params->pEncodeAvcPicParams;
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(hwInterface->GetVdencInterface()->AddVdencAvcWeightsOffsetsStateCmd(cmdBuffer, &weightOffsetParams));
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencAvcWeightsOffsetsStateCmd(cmdBuffer, &weightOffsetParams));
 
             MOS_ZeroMemory(&vdencWalkerStateParams, sizeof(vdencWalkerStateParams));
             vdencWalkerStateParams.Mode             = CODECHAL_ENCODE_MODE_AVC;
             vdencWalkerStateParams.pAvcSeqParams    = params->pEncodeAvcSeqParams;
             vdencWalkerStateParams.pAvcPicParams    = params->pEncodeAvcPicParams;
             vdencWalkerStateParams.pAvcSlcParams    = avcSlcParams;
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(hwInterface->GetVdencInterface()->AddVdencWalkerStateCmd(cmdBuffer, &vdencWalkerStateParams));
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencWalkerStateCmd(cmdBuffer, &vdencWalkerStateParams));
         }
     }
     else
     {
         if (params->bSingleTaskPhaseSupported)
         {
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(miInterface->AddMiBatchBufferEnd(nullptr, batchBufferInUse));
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(nullptr, batchBufferInUse));
 
             // Insert Batch Buffer Start command to send AVC_PAK_OBJ data for MBs in this slice
             MOS_ZeroMemory(&secondLevelBatchBuffer, sizeof(MHW_BATCH_BUFFER));
@@ -418,7 +412,7 @@ MOS_STATUS CodecHalAvcEncode_SendSlice(
             secondLevelBatchBuffer.OsResource = batchBufferInUse->OsResource;
             secondLevelBatchBuffer.dwOffset = params->dwBatchBufferForPakSlicesStartOffset;
             secondLevelBatchBuffer.bSecondLevel = true;
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(miInterface->AddMiBatchBufferStartCmd(cmdBuffer, &secondLevelBatchBuffer));
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(cmdBuffer, &secondLevelBatchBuffer));
         }
 
         // Insert Batch Buffer Start command to send AVC_PAK_OBJ data for MBs in this slice
@@ -426,10 +420,10 @@ MOS_STATUS CodecHalAvcEncode_SendSlice(
         secondLevelBatchBuffer.OsResource = *params->presDataBuffer;
         secondLevelBatchBuffer.dwOffset = params->dwDataBufferOffset;
         secondLevelBatchBuffer.bSecondLevel = true;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(miInterface->AddMiBatchBufferStartCmd(cmdBuffer, &secondLevelBatchBuffer));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(cmdBuffer, &secondLevelBatchBuffer));
     }
 
-    return eStatus;
+    return MOS_STATUS_SUCCESS;
 }
 static int32_t GetMaxMBPS(uint8_t levelIdc)
 {
