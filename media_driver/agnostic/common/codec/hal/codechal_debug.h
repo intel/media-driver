@@ -192,6 +192,11 @@ public:
         CODECHAL_MEDIA_STATE_TYPE mediaState,
         PMHW_KERNEL_STATE         kernelState);
 
+    MOS_STATUS DumpMDFCurbe(
+        CODECHAL_MEDIA_STATE_TYPE mediaState,
+        uint8_t *                 curbeBuffer,
+        uint32_t                  curbeSize);
+
     MOS_STATUS DumpKernelRegion(
         CODECHAL_MEDIA_STATE_TYPE mediaState,
         MHW_STATE_HEAP_TYPE       stateHeapType,

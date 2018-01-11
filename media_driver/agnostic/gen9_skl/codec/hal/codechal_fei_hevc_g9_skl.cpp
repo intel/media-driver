@@ -4540,6 +4540,14 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode2xScalingKernel()
     }
 
     m_cmKernelMap["2xScaling"]->SetupCurbe(curbe);
+
+    CODECHAL_MEDIA_STATE_TYPE encFunctionType = CODECHAL_MEDIA_STATE_2X_SCALING;
+    CODECHAL_DEBUG_TOOL(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpMDFCurbe(
+            encFunctionType,
+            (uint8_t *)curbe, sizeof(*curbe)));
+    )
+
     m_cmKernelMap["2xScaling"]->AllocateSurfaces(&scalingParams);
     m_cmKernelMap["2xScaling"]->CreateAndDispatchKernel(m_cmEvent, false, (!m_singleTaskPhaseSupported));
 
@@ -4614,6 +4622,14 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode32x32PuModeDecisionKernel()
     }
 
     m_cmKernelMap["I_32X32"]->SetupCurbe(curbe);
+
+    CODECHAL_MEDIA_STATE_TYPE encFunctionType = CODECHAL_MEDIA_STATE_32x32_PU_MODE_DECISION;
+    CODECHAL_DEBUG_TOOL(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpMDFCurbe(
+            encFunctionType,
+            (uint8_t *)curbe, sizeof(*curbe)));
+    )
+
     m_cmKernelMap["I_32X32"]->AllocateSurfaces(&I32x32Params);
     m_cmKernelMap["I_32X32"]->CreateAndDispatchKernel(m_cmEvent, false, (!m_singleTaskPhaseSupported));
 
@@ -4664,6 +4680,14 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode16x16SadPuComputationKernel()
     }
 
     m_cmKernelMap["I_16X16_SAD"]->SetupCurbe(curbe);
+
+    CODECHAL_MEDIA_STATE_TYPE encFunctionType = CODECHAL_MEDIA_STATE_16x16_PU_SAD;
+    CODECHAL_DEBUG_TOOL(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpMDFCurbe(
+            encFunctionType,
+            (uint8_t *)curbe, sizeof(*curbe)));
+    )
+
     m_cmKernelMap["I_16X16_SAD"]->AllocateSurfaces(&I16x16SadParams);
     m_cmKernelMap["I_16X16_SAD"]->CreateAndDispatchKernel(m_cmEvent, false, (!m_singleTaskPhaseSupported));
 
@@ -4790,6 +4814,14 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode16x16PuModeDecisionKernel()
     }
 
     m_cmKernelMap["I_16X16_MODE"]->SetupCurbe(curbe);
+
+    CODECHAL_MEDIA_STATE_TYPE encFunctionType = CODECHAL_MEDIA_STATE_16x16_PU_MODE_DECISION;
+    CODECHAL_DEBUG_TOOL(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpMDFCurbe(
+            encFunctionType,
+            (uint8_t *)curbe, sizeof(*curbe)));
+    )
+
     m_cmKernelMap["I_16X16_MODE"]->AllocateSurfaces(&I16x16ModeParams);
     m_cmKernelMap["I_16X16_MODE"]->CreateAndDispatchKernel(m_cmEvent, false, (!m_singleTaskPhaseSupported));
 
@@ -4874,6 +4906,14 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PUKernel()
     }
 
     m_cmKernelMap["I_8X8"]->SetupCurbe(curbe);
+
+    CODECHAL_MEDIA_STATE_TYPE encFunctionType = CODECHAL_MEDIA_STATE_8x8_PU;
+    CODECHAL_DEBUG_TOOL(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpMDFCurbe(
+            encFunctionType,
+            (uint8_t *)curbe, sizeof(*curbe)));
+    )
+
     m_cmKernelMap["I_8X8"]->AllocateSurfaces(&I8x8Params);
     m_cmKernelMap["I_8X8"]->CreateAndDispatchKernel(m_cmEvent, false, (!m_singleTaskPhaseSupported));
     
@@ -4960,6 +5000,14 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PUFMODEKernel()
     }
 
     m_cmKernelMap["I_8X8_MODE"]->SetupCurbe(curbe);
+
+    CODECHAL_MEDIA_STATE_TYPE encFunctionType = CODECHAL_MEDIA_STATE_8x8_PU_FMODE;
+    CODECHAL_DEBUG_TOOL(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpMDFCurbe(
+            encFunctionType,
+            (uint8_t *)curbe, sizeof(*curbe)));
+    )
+
     m_cmKernelMap["I_8X8_MODE"]->AllocateSurfaces(&I8x8ModeParams);
     m_cmKernelMap["I_8X8_MODE"]->CreateAndDispatchKernel(m_cmEvent, false, ((!m_singleTaskPhaseSupported)|| m_lastTaskInPhase));
 
@@ -5024,6 +5072,14 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode32X32BIntraCheckKernel()
     }
 
     m_cmKernelMap["PB_32x32"]->SetupCurbe(curbe);
+
+    CODECHAL_MEDIA_STATE_TYPE encFunctionType = CODECHAL_MEDIA_STATE_32x32_B_INTRA_CHECK;
+    CODECHAL_DEBUG_TOOL(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpMDFCurbe(
+            encFunctionType,
+            (uint8_t *)curbe, sizeof(*curbe)));
+    )
+
     m_cmKernelMap["PB_32x32"]->AllocateSurfaces(&PB32x32Params);
     m_cmKernelMap["PB_32x32"]->CreateAndDispatchKernel(m_cmEvent, false, (!m_singleTaskPhaseSupported));
 
@@ -5086,6 +5142,14 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8BPakKernel(
     }
 
     m_cmKernelMap["PB_8x8_PAK"]->SetupCurbe(curbe);
+
+    CODECHAL_MEDIA_STATE_TYPE encFunctionType = CODECHAL_MEDIA_STATE_HEVC_B_PAK;
+    CODECHAL_DEBUG_TOOL(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpMDFCurbe(
+            encFunctionType,
+            (uint8_t *)curbe, sizeof(*curbe)));
+    )
+
     m_cmKernelMap["PB_8x8_PAK"]->AllocateSurfaces(&PB8x8PakParams);
     m_cmKernelMap["PB_8x8_PAK"]->CreateAndDispatchKernel(m_cmEvent, false, ((!m_singleTaskPhaseSupported)|| m_lastTaskInPhase));
 
@@ -5509,6 +5573,26 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PBMbEncKernel()
     }
 
     m_cmKernelMap["PB_8x8_MBENC"]->SetupCurbe(curbe);
+
+    CODECHAL_MEDIA_STATE_TYPE encFunctionType = CODECHAL_MEDIA_STATE_HEVC_B_MBENC;
+    if (m_pictureCodingType == P_TYPE)
+    {
+        //P frame curbe only use the DW0~DW75
+        CODECHAL_DEBUG_TOOL(
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpMDFCurbe(
+                encFunctionType,
+                (uint8_t *)curbe, sizeof(*curbe) - sizeof(uint32_t)));
+        )
+    }
+    else
+    {
+        CODECHAL_DEBUG_TOOL(
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpMDFCurbe(
+                encFunctionType,
+                (uint8_t *)curbe, sizeof(*curbe)));
+        )
+    }
+
     m_cmKernelMap["PB_8x8_MBENC"]->AllocateSurfaces(&PB8x8MbEncParams);
     m_cmKernelMap["PB_8x8_MBENC"]->CreateAndDispatchKernel(m_cmEvent, false, (!m_singleTaskPhaseSupported));
 

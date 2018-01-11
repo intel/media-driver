@@ -342,6 +342,48 @@ MOS_STATUS CodechalDebugInterface::DumpCurbe(
         binaryDump);
 }
 
+MOS_STATUS CodechalDebugInterface::DumpMDFCurbe(
+    CODECHAL_MEDIA_STATE_TYPE mediaState,
+    uint8_t *                 curbeBuffer,
+    uint32_t                  curbeSize)
+{
+    CODECHAL_DEBUG_FUNCTION_ENTER;
+
+    uint8_t     *curbeAlignedData = nullptr;
+    uint32_t     curbeAlignedSize = 0;
+    MOS_STATUS   eStatus = MOS_STATUS_SUCCESS;
+
+    if (mediaState >= CODECHAL_NUM_MEDIA_STATES ||
+        !m_configMgr->AttrIsEnabled(mediaState, CodechalDbgAttr::attrCurbe))
+    {
+        return eStatus;
+    }
+
+    std::string funcName = m_configMgr->GetMediaStateStr(mediaState);
+
+    const char *fileName = CreateFileName(
+        funcName.c_str(),
+        CodechalDbgBufferType::bufCurbe,
+        CodechalDbgExtType::txt);
+
+    curbeAlignedSize = MOS_ALIGN_CEIL(curbeSize, 64);
+    curbeAlignedData = (uint8_t *)malloc(curbeAlignedSize * sizeof(uint8_t));
+    if (curbeAlignedData == nullptr)
+    {
+        eStatus = MOS_STATUS_NULL_POINTER;
+        return eStatus;
+    }
+
+    MOS_ZeroMemory(curbeAlignedData, curbeAlignedSize);
+    MOS_SecureMemcpy(curbeAlignedData, curbeSize, curbeBuffer, curbeSize);
+
+    eStatus = DumpBufferInHexDwords(curbeAlignedData, curbeAlignedSize);
+
+    free(curbeAlignedData);
+
+    return eStatus;
+}
+
 MOS_STATUS CodechalDebugInterface::DumpKernelRegion(
     CODECHAL_MEDIA_STATE_TYPE mediaState,
     MHW_STATE_HEAP_TYPE       stateHeap,
