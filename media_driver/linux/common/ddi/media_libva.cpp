@@ -1028,6 +1028,7 @@ VAStatus DdiMedia_MediaMemoryDecompress(PDDI_MEDIA_CONTEXT mediaCtx, DDI_MEDIA_S
 #ifdef ANDROID
     DDI_ASSERT(mediaSurface->bo);
     intel_ufo_bo_datatype_t datatype;
+    datatype.value = 0;
     mos_bo_get_datatype(mediaSurface->bo, &datatype.value);
     if ((MOS_MEMCOMP_STATE)datatype.compression_mode != MOS_MEMCOMP_DISABLED)
 #else

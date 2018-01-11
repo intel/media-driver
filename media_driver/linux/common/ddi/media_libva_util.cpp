@@ -653,6 +653,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
         {
             intel_ufo_bo_datatype_t datatype;
             
+            datatype.value = 0;
             mos_bo_get_datatype(bo, &datatype.value);
             datatype.is_mmc_capable   = (uint32_t)gmmParams.Flags.Gpu.MMC;
             datatype.compression_hint = INTEL_UFO_BUFFER_HINT_MMC_COMPRESSED;

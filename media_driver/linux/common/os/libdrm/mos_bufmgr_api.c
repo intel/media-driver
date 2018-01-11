@@ -384,10 +384,10 @@ int mos_bo_set_datatype(struct mos_linux_bo *bo, uint32_t userdata)
 
 int mos_bo_get_datatype(struct mos_linux_bo *bo, uint32_t *userdata)
 {
-	*userdata = 0;
 	if (bo->bufmgr->bo_get_userdata)
 		return bo->bufmgr->bo_get_userdata(bo, userdata);
 
+	*userdata = 0;
 	return 0;
 }
 
