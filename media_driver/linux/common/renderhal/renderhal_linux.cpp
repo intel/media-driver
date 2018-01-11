@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -334,22 +334,36 @@ MOS_STATUS RenderHal_SetSurfaceStateToken(
 //!
 //! \brief    Get Y Offset according to the planeOffset struct and surface pitch
 //! \details  Get Y Offset according to the planeOffset struct and surface pitch
-//! \param   PMOS_PLANE_OFFSET pPlaneOffset
-//!           [in] pointer to the Plane offset
-//! \param    uint32_t pitch
-//!           [in] Pitch of the surface
+//! \param    pOsInterface
+//!           [in] pointer to OS Interface
+//! \param    pSurface
+//!           [in] Pointers to Surface
 //! \return   uint16_t
 //!           [out] the Y offset
 //!
 uint16_t RenderHal_CalculateYOffset(PMOS_INTERFACE pOsInterface, PMOS_SURFACE pSurface)
 {
+    // This is for MMCD/Non-MMCD, GMM will allocate the surface 32 height align surface, the the UV offset will not equal to the surface height.
     MOS_SURFACE    ResDetails;
+    uint16_t       UYoffset = 0;
 
+    MHW_RENDERHAL_ASSERT(pSurface);
     MHW_RENDERHAL_ASSERT(!Mos_ResourceIsNull(&pSurface->OsResource));
+    MHW_RENDERHAL_ASSERT(pOsInterface);
     MOS_ZeroMemory(&ResDetails, sizeof(MOS_SURFACE));
-    
+
     pOsInterface->pfnGetResourceInfo(pOsInterface, &pSurface->OsResource, &ResDetails);
-    return (uint16_t)ResDetails.dwHeight;
+
+    if (ResDetails.dwPitch)
+    {
+        UYoffset = (uint16_t)(ResDetails.LockOffset.YUV.U / ResDetails.dwPitch);
+        
+        return MOS_MAX(UYoffset, (uint16_t)ResDetails.dwHeight);
+    }
+    else
+    {
+        return (uint16_t)ResDetails.dwHeight;
+    }
 }
 
 //!
