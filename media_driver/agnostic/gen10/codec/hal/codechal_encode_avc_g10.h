@@ -110,6 +110,10 @@ public:
 
     MOS_STATUS SetCurbeAvcWP(PCODECHAL_ENCODE_AVC_WP_CURBE_PARAMS params);
 
+	virtual MOS_STATUS SceneChangeReport(
+		PMOS_COMMAND_BUFFER       cmdBuffer,
+		PCODECHAL_ENCODE_AVC_GENERIC_PICTURE_LEVEL_PARAMS   params);
+
     MOS_STATUS SendAvcWPSurfaces(
         PMOS_COMMAND_BUFFER cmdBuffer,
         PCODECHAL_ENCODE_AVC_WP_SURFACE_PARAMS params);
@@ -173,6 +177,7 @@ protected:
     static constexpr uint32_t m_defaultTrellisQuantIntraRounding = 5;
     static constexpr uint32_t m_sfdCostTableBufferSize = 52;
     static constexpr uint32_t m_sfdOutputBufferSize = 128;
+	static constexpr uint32_t m_brcHistoryBufferOffsetSceneChanged = 0x2FC;
 
     static const uint8_t  m_ftq25[64];
     static const uint16_t m_lambdData[256];

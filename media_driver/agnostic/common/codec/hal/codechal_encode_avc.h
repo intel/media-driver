@@ -1534,6 +1534,22 @@ struct CodechalEncodeAvcEnc : public CodechalEncodeAvcBase
         PMOS_COMMAND_BUFFER         cmdBuffer,
         bool                        frameTracking) override;
 
+	//!
+	//! \brief  Realize the scene change report
+	//! \param  [in] cmdBuffer
+	//!         Command buffer
+	//!         [in]  params
+	//!           Pointer to the CODECHAL_ENCODE_AVC_GENERIC_PICTURE_LEVEL_PARAMS
+	//! \return MOS_STATUS
+	//!         MOS_STATUS_SUCCESS if success
+	//!
+	virtual MOS_STATUS SceneChangeReport(
+		PMOS_COMMAND_BUFFER       cmdBuffer,
+		PCODECHAL_ENCODE_AVC_GENERIC_PICTURE_LEVEL_PARAMS  params)
+	{
+		return MOS_STATUS_SUCCESS;
+	};
+
     //! \brief    Dump encode kernel output
     //!
     //! \return   MOS_STATUS

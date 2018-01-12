@@ -6749,6 +6749,25 @@ MOS_STATUS CodechalEncodeAvcEncG10::ExecuteKernelFunctions()
     return eStatus;
 }
 
+MOS_STATUS CodechalEncodeAvcEncG10::SceneChangeReport(PMOS_COMMAND_BUFFER    cmdBuffer, PCODECHAL_ENCODE_AVC_GENERIC_PICTURE_LEVEL_PARAMS params)
+{
+
+	MHW_MI_COPY_MEM_MEM_PARAMS                      copyMemMemParams;
+	uint32_t offset = (m_encodeStatusBuf.wCurrIndex * m_encodeStatusBuf.dwReportSize)
+		+ (sizeof(uint32_t) * 2) + m_encodeStatusBuf.dwSceneChangedOffset;
+
+	MOS_ZeroMemory(&copyMemMemParams, sizeof(copyMemMemParams));
+	copyMemMemParams.presSrc = params->presBrcHistoryBuffer;
+	copyMemMemParams.dwSrcOffset = m_brcHistoryBufferOffsetSceneChanged;
+	copyMemMemParams.presDst = &m_encodeStatusBuf.resStatusBuffer;
+	copyMemMemParams.dwDstOffset = offset;
+	CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiCopyMemMemCmd(
+		cmdBuffer,
+		&copyMemMemParams));
+
+	return MOS_STATUS_SUCCESS;
+}
+
 #if USE_CODECHAL_DEBUG_TOOL
 MOS_STATUS CodechalEncodeAvcEncG10::KernelDebugDumps()
 {

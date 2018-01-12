@@ -8771,6 +8771,14 @@ MOS_STATUS CodechalEncodeAvcEnc::GenericEncodePictureLevel(PCODECHAL_ENCODE_AVC_
         m_hwInterface->m_numRequestedEuSlices = CODECHAL_SLICE_SHUTDOWN_DEFAULT;
     }
 
+	if (m_currPass == 0 && params->bBrcEnabled)
+	{
+		CODECHAL_ENCODE_AVC_GENERIC_PICTURE_LEVEL_PARAMS    encodePictureLevelParam;
+		MOS_ZeroMemory(&encodePictureLevelParam, sizeof(encodePictureLevelParam));
+		encodePictureLevelParam.presBrcHistoryBuffer = params->presBrcHistoryBuffer;
+		CODECHAL_ENCODE_CHK_STATUS_RETURN(SceneChangeReport(&cmdBuffer, &encodePictureLevelParam));
+	}
+	
     if (m_currPass)
     {
         MHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS miConditionalBatchBufferEndParams;

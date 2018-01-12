@@ -38,6 +38,7 @@
 #define CODECHAL_VDENC_AVC_P_SLICE_SIZE_MINUS_G9                            500
 
 #define CODECHAL_ENCODE_AVC_SEI_BUFFER_SIZE                                 10240   // 10K is just estimation
+#define CODECHAL_ENCODE_AVC_BRC_HISTORY_BUFFER_OFFSET_SCENE_CHANGED         0x2F8   // (368 + 12)*2 = 760
 
 typedef enum _CODECHAL_BINDING_TABLE_OFFSET_2xSCALING_CM_G9
 {
@@ -2759,6 +2760,25 @@ MOS_STATUS CodechalEncodeAvcEncG9::GetStatusReport(
     }
     else
         return CodechalEncoderState::GetStatusReport(status, numStatus);
+}
+
+MOS_STATUS CodechalEncodeAvcEncG9::SceneChangeReport(PMOS_COMMAND_BUFFER    cmdBuffer, PCODECHAL_ENCODE_AVC_GENERIC_PICTURE_LEVEL_PARAMS params)
+{
+
+	MHW_MI_COPY_MEM_MEM_PARAMS                      copyMemMemParams;
+	uint32_t offset = (m_encodeStatusBuf.wCurrIndex * m_encodeStatusBuf.dwReportSize)
+		+ (sizeof(uint32_t) * 2) + m_encodeStatusBuf.dwSceneChangedOffset;
+
+	MOS_ZeroMemory(&copyMemMemParams, sizeof(copyMemMemParams));
+	copyMemMemParams.presSrc = params->presBrcHistoryBuffer;
+	copyMemMemParams.dwSrcOffset = CODECHAL_ENCODE_AVC_BRC_HISTORY_BUFFER_OFFSET_SCENE_CHANGED;
+	copyMemMemParams.presDst = &m_encodeStatusBuf.resStatusBuffer;
+	copyMemMemParams.dwDstOffset = offset;
+	CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiCopyMemMemCmd(
+		cmdBuffer,
+		&copyMemMemParams));
+
+	return MOS_STATUS_SUCCESS;
 }
 
 #if USE_CODECHAL_DEBUG_TOOL

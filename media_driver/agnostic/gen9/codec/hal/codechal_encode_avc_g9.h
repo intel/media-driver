@@ -5629,6 +5629,10 @@ public:
     virtual MOS_STATUS SetCurbeAvcWP(
         PCODECHAL_ENCODE_AVC_WP_CURBE_PARAMS params);
 
+	virtual MOS_STATUS SceneChangeReport(
+		PMOS_COMMAND_BUFFER       cmdBuffer,
+		PCODECHAL_ENCODE_AVC_GENERIC_PICTURE_LEVEL_PARAMS   params);
+
     virtual MOS_STATUS SetCurbeAvcBrcInitReset(
         PCODECHAL_ENCODE_AVC_BRC_INIT_RESET_CURBE_PARAMS params);
 
