@@ -22,9 +22,6 @@ cmake_minimum_required(VERSION 3.5)
 
 add_subdirectory(media_driver)
 
-if (DEFINED BUILD_ALONG_WITH_CMRTLIB)
-    add_subdirectory(cmrtlib)
-endif()
 
 if (TARGET iHD_drv_video AND TARGET igfxcmrt)
     install (FILES ${CMAKE_CURRENT_BINARY_DIR}/media_driver/iHD_drv_video.so DESTINATION /usr/lib/x86_64-linux-gnu/dri/)
