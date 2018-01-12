@@ -1576,6 +1576,16 @@ VAStatus MediaLibvaCaps::CheckEncodeResolution(
                 return VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED;
             }
             break;
+        case VAProfileMPEG2Simple:
+        case VAProfileMPEG2Main:
+            if( width > CODEC_MAX_PIC_WIDTH
+                    || width < m_encMinWidth
+                    || height > CODEC_MAX_PIC_HEIGHT
+                    || height < m_encMinHeight)
+            {
+                return VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED;
+            }
+            break; 
         default:
             if (width > m_encMax4kWidth
                     || width < m_encMinWidth
