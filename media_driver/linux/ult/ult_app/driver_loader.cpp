@@ -107,7 +107,7 @@ VAStatus DriverDllLoader::InitDriver(int platform_id)
         {
             return VA_STATUS_ERROR_UNKNOWN;          
         }
-        printf("INFO: Found init function %s and CM entry point %s\n.",
+        printf("INFO: Found init function %s and CM entry point %s.\n",
                init_func_s, cm_entry_name);
 
         ctx.vtable = &vtable;
