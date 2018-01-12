@@ -325,10 +325,10 @@ VAStatus DdiEncode_CreateContext(
     encCtx->pCodecHal = pCodecHal;
 
     // Setup some initial data
-    encCtx->dwFrameWidth      = picture_width;
-    encCtx->dwFrameHeight     = picture_height;
     encCtx->wPicWidthInMB     = (uint16_t)(DDI_CODEC_NUM_MACROBLOCKS_WIDTH(picture_width));
     encCtx->wPicHeightInMB    = (uint16_t)(DDI_CODEC_NUM_MACROBLOCKS_HEIGHT(picture_height));
+    encCtx->dwFrameWidth      = encCtx->wPicWidthInMB * CODECHAL_MACROBLOCK_WIDTH;
+    encCtx->dwFrameHeight     = encCtx->wPicHeightInMB * CODECHAL_MACROBLOCK_HEIGHT;
     //recoder old resolution for dynamic resolution  change
     encCtx->wContextPicWidthInMB  = encCtx->wPicWidthInMB;
     encCtx->wContextPicHeightInMB = encCtx->wPicHeightInMB;
