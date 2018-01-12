@@ -152,7 +152,7 @@ protected:
     class BrcBlockCopyCurbe;
 
 protected:
-    static constexpr uint32_t m_initBrcHistoryBufferSize = 864;
+    static constexpr uint32_t m_initBrcHistoryBufferSize = 880;
     static constexpr uint32_t m_mbEncrcHistoryBufferSize = 128;
     static constexpr uint32_t m_brcConstSurfaceWidth = 64;
     static constexpr uint32_t m_brcConstSurfaceHeight = 53;

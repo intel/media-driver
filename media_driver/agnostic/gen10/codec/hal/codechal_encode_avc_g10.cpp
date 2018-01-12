@@ -318,6 +318,8 @@ public:
         m_dw29.Value                     = 0;
         m_dw30.Value                     = 0;
         m_dw31.Value                     = 0;
+		m_dw32.Value                     = 0;
+		m_dw33.Value                     = 0;
     }
     
     union
@@ -739,6 +741,31 @@ public:
             uint32_t   Value;
         };
     } m_dw31;
+
+	union
+	{
+		struct
+		{
+			uint32_t   SurfaceIndexhistorybuffer;
+		};
+		struct
+		{
+			uint32_t   Value;
+		};
+
+	} m_dw32;
+
+	union
+	{
+		struct
+		{
+			uint32_t  SurfaceIndexdistortionbuffer;
+		};
+		struct
+		{
+			uint32_t   Value;
+		};
+	} m_dw33;
 };
 
 class CodechalEncodeAvcEncG10::BrcFrameUpdateCurbe
@@ -793,6 +820,15 @@ public:
         m_dw21.Value                  = 0;
         m_dw22.Value                  = 0;
         m_dw23.Value                  = 0;
+		m_dw24.Value                  = 0;
+		m_dw25.Value                  = 0;
+		m_dw26.Value                  = 0;
+		m_dw27.Value                  = 0;
+		m_dw28.Value                  = 0;
+		m_dw29.Value                  = 0;
+		m_dw30.Value                  = 0;
+		m_dw31.Value                  = 0;
+		m_dw32.Value                  = 0;
     }
     
     union
@@ -1118,6 +1154,114 @@ public:
             uint32_t   Value;
         };
     } m_dw23;
+
+	union
+	{
+		struct
+		{
+			uint32_t   SurfaceIndexBRChistorybuffer;
+		};
+		struct
+		{
+			uint32_t   Value;
+		};
+	} m_dw24;
+
+	union
+	{
+		struct
+		{
+			uint32_t   SurfaceIndexPreciousPAKstatisticsoutputbuffer;
+		};
+		struct
+		{
+			uint32_t   Value;
+		};
+	} m_dw25;
+
+	union
+	{
+		struct
+		{
+			uint32_t   SurfaceIndexAVCIMGstateinputbuffer;
+		};
+		struct
+		{
+			uint32_t   Value;
+		};
+	} m_dw26;
+
+	union
+	{
+		struct
+		{
+			uint32_t  SurfaceIndexAVCIMGstateoutputbuffer;
+		};
+		struct
+		{
+			uint32_t  Value;
+		};
+	} m_dw27;
+
+	union
+	{
+		struct
+		{
+			uint32_t  SurfaceIndexAVC_Encbuffer;
+		};
+		struct
+		{
+			uint32_t  Value;
+		};
+	} m_dw28;
+
+	union
+	{
+		struct
+		{
+			uint32_t  SurfaceIndexAVCDISTORTIONbuffer;
+		};
+		struct
+		{
+			uint32_t  Value;
+		};
+	} m_dw29;
+
+	union
+	{
+		struct
+		{
+			uint32_t  SurfaceIndexBRCconstdatabuffer;
+		};
+		struct
+		{
+			uint32_t  Value;
+		};
+	} m_dw30;
+
+	union
+	{
+		struct
+		{
+			uint32_t  SurfaceIndexMBStatsBuffer;
+		};
+		struct
+		{
+			uint32_t  Value;
+		};
+	} m_dw31;
+
+	union
+	{
+		struct
+		{
+			uint32_t  SurfaceIndexMotionvectorbuffer;
+		};
+		struct
+		{
+			uint32_t  Value;
+		};
+	} m_dw32;
 };
 
 class CodechalEncodeAvcEncG10::MbBrcUpdateCurbe
@@ -1132,6 +1276,11 @@ public:
         m_dw4.Value = 0;
         m_dw5.Value = 0;
         m_dw6.Value = 0;
+		m_dw7.Value = 0;
+		m_dw8.Value = 0;
+		m_dw9.Value = 0;
+		m_dw10.Value = 0;
+		m_dw11.Value = 0;
     }
     
     union
@@ -1220,6 +1369,66 @@ public:
             uint32_t   Value;
         };
     } m_dw6;
+
+	union
+	{
+		struct
+		{
+			uint32_t Reserved;
+		};
+		struct
+		{
+			uint32_t  Value;
+		};
+	} m_dw7;
+
+	union
+	{
+		struct
+		{
+			uint32_t HistorybufferIndex;
+		};
+		struct
+		{
+			uint32_t Value;
+		};
+	} m_dw8;
+
+	union
+	{
+		struct
+		{
+			uint32_t MBQPbufferIndex;
+		};
+		struct
+		{
+			uint32_t Value;
+		};
+	} m_dw9;
+
+	union
+	{
+		struct
+		{
+			uint32_t ROIbufferIndex;
+		};
+		struct
+		{
+			uint32_t Value;
+		};
+	} m_dw10;
+
+	union
+	{
+		struct
+		{
+			uint32_t MBstatisticalbufferIndex;
+		};
+		struct
+		{
+			uint32_t Value;
+		};
+	} m_dw11;
 } ;
 
 class CodechalEncodeAvcEncG10::MbEncCurbe
@@ -1923,7 +2132,7 @@ public:
                 uint32_t   EnableAdaptiveTxDecision         : MOS_BITFIELD_BIT(19);
                 uint32_t   EnablePerMBStaticCheck           : MOS_BITFIELD_BIT(20);
                 uint32_t   EnableAdaptiveSearchWindowSize   : MOS_BITFIELD_BIT(21);
-                uint32_t                                    : MOS_BITFIELD_BIT(22);
+                uint32_t   RemoveIntraRefreshOverlap        : MOS_BITFIELD_BIT(22);
                 uint32_t   CQPFlag                          : MOS_BITFIELD_BIT(23);
                 uint32_t   List1RefID0FieldParity           : MOS_BITFIELD_BIT(24);
                 uint32_t   List1RefID1FieldParity           : MOS_BITFIELD_BIT(25);
@@ -1963,7 +2172,8 @@ public:
                 uint32_t   NumRefIdxL0MinusOne      : MOS_BITFIELD_RANGE(0, 7);
                 uint32_t   HMECombinedExtraSUs      : MOS_BITFIELD_RANGE(8, 15);
                 uint32_t   NumRefIdxL1MinusOne      : MOS_BITFIELD_RANGE(16, 23);
-                uint32_t                            : MOS_BITFIELD_RANGE(24, 27);
+			    uint32_t                            : MOS_BITFIELD_RANGE(24, 26);
+				uint32_t   MBInputEnable            : MOS_BITFIELD_BIT(27);
                 uint32_t   IsFwdFrameShortTermRef   : MOS_BITFIELD_BIT(28);
                 uint32_t   CheckAllFractionalEnable : MOS_BITFIELD_BIT(29);
                 uint32_t   HMECombineOverlap        : MOS_BITFIELD_RANGE(30, 31);
@@ -4427,6 +4637,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SetCurbeAvcMbEnc(
         cmd.m_encCurbe.DW37.T8x8FlagForInterEn = picParams->transform_8x8_mode_flag;
     cmd.m_encCurbe.DW2.LenSP                   = MaxLenSP[seqParams->TargetUsage];
     cmd.m_encCurbe.DW1.ExtendedMvCostRange     = bExtendedMvCostRange;
+	cmd.m_encCurbe.DW36.MBInputEnable          = bMbSpecificDataEnabled;
     cmd.m_encCurbe.DW38.LenSP                  = 0;  // MBZ
     cmd.m_encCurbe.DW3.SrcAccess =
         cmd.m_encCurbe.DW3.RefAccess = framePicture ? 0 : 1;
@@ -4593,6 +4804,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SetCurbeAvcMbEnc(
 
     cmd.m_encCurbe.DW34.EnablePerMBStaticCheck          = params->bStaticFrameDetectionEnabled;
     cmd.m_encCurbe.DW34.EnableAdaptiveSearchWindowSize  = params->bApdatvieSearchWindowSizeEnabled;
+	cmd.m_encCurbe.DW34.RemoveIntraRefreshOverlap       = picParams->bDisableRollingIntraRefreshOverlap;
     cmd.m_encCurbe.DW34.bOriginalBff                    = framePicture ? 0 : ((m_firstField && (bottomField)) || (!m_firstField && (!bottomField)));
     cmd.m_encCurbe.DW34.EnableMBFlatnessChkOptimization = m_flatnessCheckEnabled;
     cmd.m_encCurbe.DW34.ROIEnableFlag                   = params->bRoiEnabled;
@@ -4968,6 +5180,9 @@ MOS_STATUS CodechalEncodeAvcEncG10::SetCurbeAvcBrcInitReset(PCODECHAL_ENCODE_AVC
     cmd.m_dw10.FrameHeightInBytes  = m_frameHeight;
     cmd.m_dw12.NoSlices            = m_numSlices;
 
+	cmd.m_dw32.SurfaceIndexhistorybuffer    = CODECHAL_ENCODE_AVC_BRC_INIT_RESET_HISTORY;
+	cmd.m_dw33.SurfaceIndexdistortionbuffer = CODECHAL_ENCODE_AVC_BRC_INIT_RESET_DISTORTION;
+
     // if VUI present, VUI data has high priority
     if (seqParams->vui_parameters_present_flag && seqParams->RateControlMethod != RATECONTROL_AVBR)
     {
@@ -5227,7 +5442,18 @@ MOS_STATUS CodechalEncodeAvcEncG10::SetCurbeAvcFrameBrcUpdate(PCODECHAL_ENCODE_A
         this,
         (uint32_t*)&profileLevelMaxFrame));
 
-    cmd.m_dw19.UserMaxFrame = profileLevelMaxFrame;
+    cmd.m_dw19.UserMaxFrame                                  = profileLevelMaxFrame;
+	cmd.m_dw24.SurfaceIndexBRChistorybuffer                  = frameBrcUpdateHistory;
+	cmd.m_dw25.SurfaceIndexPreciousPAKstatisticsoutputbuffer = frameBrcUpdatePakStatisticsOutput;
+	cmd.m_dw26.SurfaceIndexAVCIMGstateinputbuffer            = frameBrcUpdateImageStateRead;
+	cmd.m_dw27.SurfaceIndexAVCIMGstateoutputbuffer           = frameBrcUpdateImageStateWrite;
+	cmd.m_dw28.SurfaceIndexAVC_Encbuffer                     = frameBrcUpdateMbEncCurbeWrite;
+	cmd.m_dw29.SurfaceIndexAVCDISTORTIONbuffer               = frameBrcUpdateDistortion;
+	cmd.m_dw30.SurfaceIndexBRCconstdatabuffer                = frameBrcUpdateConstantData;
+	cmd.m_dw31.SurfaceIndexMBStatsBuffer                     = frameBrcUpdateMbStat;
+	cmd.m_dw32.SurfaceIndexMotionvectorbuffer                = frameBrcUpdateMvStat;
+	auto pStateHeapInterface = m_hwInterface->GetRenderInterface()->m_stateHeapInterface;
+	CODECHAL_ENCODE_CHK_NULL_RETURN(pStateHeapInterface);
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(params->pKernelState->m_dshRegion.AddData(
         &cmd,
@@ -5328,6 +5554,13 @@ MOS_STATUS CodechalEncodeAvcEncG10::SetCurbeAvcMbBrcUpdate(PCODECHAL_ENCODE_AVC_
     {
         curbe.m_dw0.ROIRatio = 0;
     }
+
+	curbe.m_dw8.HistorybufferIndex        = mbBrcUpdateHistory;
+	curbe.m_dw9.MBQPbufferIndex           = mbBrcUpdateMbQP;
+	curbe.m_dw10.ROIbufferIndex           = mbBrcUpdateROI;
+	curbe.m_dw11.MBstatisticalbufferIndex = mbBrcUpdateMbStat;
+	auto pStateHeapInterface            = m_hwInterface->GetRenderInterface()->m_stateHeapInterface;
+	CODECHAL_ENCODE_CHK_NULL_RETURN(pStateHeapInterface);
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(params->pKernelState->m_dshRegion.AddData(
         &curbe,
