@@ -2107,26 +2107,6 @@ VAStatus MediaLibvaCaps::QuerySurfaceAttributes(
         attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE;
         attribs[i].value.value.i = maxHeight;
         i++;
-
-        attribs[i].type = VASurfaceAttribMinWidth;
-        attribs[i].value.type = VAGenericValueTypeInteger;
-        attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE;
-        attribs[i].value.value.i = m_encMinWidth;
-        if(profile == VAProfileJPEGBaseline)
-        {
-            attribs[i].value.value.i = m_encJpegMinWidth;
-        }
-        i++;
-
-        attribs[i].type = VASurfaceAttribMinHeight;
-        attribs[i].value.type = VAGenericValueTypeInteger;
-        attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE;
-        attribs[i].value.value.i = m_encMinHeight;
-        if(profile == VAProfileJPEGBaseline)
-        {
-            attribs[i].value.value.i = m_encJpegMinHeight;
-        }
-        i++;
     }
     else if(entrypoint == VAEntrypointEncSlice || entrypoint == VAEntrypointEncSliceLP || entrypoint == VAEntrypointEncPicture || entrypoint == VAEntrypointFEI)
     {
