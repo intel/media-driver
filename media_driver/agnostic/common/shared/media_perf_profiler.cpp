@@ -207,7 +207,7 @@ MOS_STATUS MediaPerfProfiler::Initialize(void* context, MOS_INTERFACE *osInterfa
         return status;
     }
 
-    // Read output file name from registry
+    // Read output file name
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     userFeatureData.StringData.pStringData = m_outputFileName;
     MOS_UserFeature_ReadValue_ID(
@@ -226,7 +226,7 @@ MOS_STATUS MediaPerfProfiler::Initialize(void* context, MOS_INTERFACE *osInterfa
         userFeatureData.StringData.uSize++;
     }
 
-    // Read buffer size from registry
+    // Read buffer size
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
@@ -234,7 +234,7 @@ MOS_STATUS MediaPerfProfiler::Initialize(void* context, MOS_INTERFACE *osInterfa
         &userFeatureData);
     m_bufferSize = userFeatureData.u32Data;
 
-    // Read Memory information register from registry
+    // Read Memory information register
     int8_t regIndex = 0;
     for (regIndex = 0; regIndex < 8; regIndex++)
     {
@@ -467,7 +467,7 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectEndCmd(void* context,
 
     MOS_GPU_CONTEXT  gpuContext;
     bool             rcsEngineUsed = false;
-    UINT             perfDataIndex = 0;
+    uint32_t         perfDataIndex = 0;
 
     gpuContext     = osInterface->pfnGetGpuContext(osInterface);
     rcsEngineUsed = MOS_RCS_ENGINE_USED(gpuContext);
@@ -551,7 +551,7 @@ MOS_GPU_NODE MediaPerfProfiler::GpuContextToGpuNode(MOS_GPU_CONTEXT context)
             break;
         case MOS_GPU_CONTEXT_COMPUTE:
         case MOS_GPU_CONTEXT_CM_COMPUTE:
-            node = MOS_GPU_NODE_3D;    // Todo: MOS_GPU_NODE_COMPUTE?
+            node = MOS_GPU_NODE_3D;
             break;
         case MOS_GPU_CONTEXT_VIDEO:
         case MOS_GPU_CONTEXT_VIDEO2:
