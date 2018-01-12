@@ -80,3 +80,4 @@ if (TARGET iHD_drv_video AND TARGET igfxcmrt)
     include(CPack)
 
 endif()
+
