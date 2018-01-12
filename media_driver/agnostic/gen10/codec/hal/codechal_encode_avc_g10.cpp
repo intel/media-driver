@@ -4591,9 +4591,8 @@ MOS_STATUS CodechalEncodeAvcEncG10::SetCurbeAvcMbEnc(
         cmd.m_encCurbe.DW34.bDirectMode               = slcParams->direct_spatial_mv_pred_flag;
     }
 
-    cmd.m_encCurbe.DW34.EnablePerMBStaticCheck         = params->bStaticFrameDetectionEnabled;
-    cmd.m_encCurbe.DW34.EnableAdaptiveSearchWindowSize = params->bApdatvieSearchWindowSizeEnabled;
-
+    cmd.m_encCurbe.DW34.EnablePerMBStaticCheck          = params->bStaticFrameDetectionEnabled;
+    cmd.m_encCurbe.DW34.EnableAdaptiveSearchWindowSize  = params->bApdatvieSearchWindowSizeEnabled;
     cmd.m_encCurbe.DW34.bOriginalBff                    = framePicture ? 0 : ((m_firstField && (bottomField)) || (!m_firstField && (!bottomField)));
     cmd.m_encCurbe.DW34.EnableMBFlatnessChkOptimization = m_flatnessCheckEnabled;
     cmd.m_encCurbe.DW34.ROIEnableFlag                   = params->bRoiEnabled;
