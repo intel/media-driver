@@ -2128,7 +2128,7 @@ VAStatus MediaLibvaCaps::QuerySurfaceAttributes(
         }
         i++;
     }
-    else if(entrypoint == VAEntrypointEncSlice)
+    else if(entrypoint == VAEntrypointEncSlice || entrypoint == VAEntrypointEncSliceLP || entrypoint == VAEntrypointEncPicture || entrypoint == VAEntrypointFEI)
     {
         if (profile == VAProfileHEVCMain10 || profile == VAProfileVP9Profile2)
         {
