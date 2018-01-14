@@ -151,6 +151,8 @@ public:
 
     MOS_LINUX_CONTEXT* GetDrmContext(){return m_intelContext;};
 
+	GMM_CLIENT_CONTEXT*  GetGmmClientContext() { return m_pGmmClientContext; };
+
 #ifndef ANDROID
 
     //!
@@ -362,5 +364,10 @@ private:
     //! \brief  drm device fd
     //!
     uint32_t            m_fd             = 0;
+
+	//!
+	//!UMD specific ClientContext object in GMM
+	//!
+	GMM_CLIENT_CONTEXT   *m_pGmmClientContext = nullptr;
 };
 #endif // #ifndef __MOS_CONTEXT_SPECIFIC_H__

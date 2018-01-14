@@ -517,6 +517,8 @@ struct _MOS_OS_CONTEXT
     int32_t             cmDevRefCount;
     void                *pCmDev;
 
+	GMM_CLIENT_CONTEXT  *pGmmClientContext;   //UMD specific ClientContext object in GMM
+
     // GPU Status Buffer
     PMOS_RESOURCE   pGPUStatusBuffer;
 

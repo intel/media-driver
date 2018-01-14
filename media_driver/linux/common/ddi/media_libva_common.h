@@ -415,6 +415,9 @@ struct DDI_MEDIA_CONTEXT
     PLATFORM            platform;
 
     MediaLibvaCaps     *m_caps;
+    
+	GMM_CLIENT_CONTEXT  *pGmmClientContext;
+
 #ifndef ANDROID
     // X11 Func table, for vpgPutSurface (Linux)
     PDDI_X11_FUNC_TABLE X11FuncTable;

@@ -206,7 +206,7 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
             tileFormatLinux               = I915_TILING_NONE;
     }
 
-    GMM_RESOURCE_INFO*  gmmResourceInfoPtr = GmmResCreate(&gmmParams);
+    GMM_RESOURCE_INFO*  gmmResourceInfoPtr = pOsContextSpecific->GetGmmClientContext()->CreateResInfoObject(&gmmParams);
 
     if (gmmResourceInfoPtr == nullptr)
     {
@@ -350,6 +350,8 @@ void GraphicsResourceSpecific::Free(OsContext* osContextPtr, uint32_t  freeFlag)
     MOS_UNUSED(osContextPtr);
     MOS_UNUSED(freeFlag);
 
+	OsContextSpecific *pOsContextSpecific = static_cast<OsContextSpecific *>(osContextPtr);
+
     MOS_LINUX_BO* boPtr = m_bo;
 
     if (boPtr)
@@ -358,7 +360,7 @@ void GraphicsResourceSpecific::Free(OsContext* osContextPtr, uint32_t  freeFlag)
         m_bo = nullptr;
         if (nullptr != m_gmmResInfo)
         {
-            GmmResFree(m_gmmResInfo);
+			pOsContextSpecific->GetGmmClientContext()->DestroyResInfoObject(m_gmmResInfo);
             m_gmmResInfo = nullptr;
             m_memAllocCounterGfx--;
         }

@@ -1272,6 +1272,7 @@ void Mos_Specific_Destroy(
     if (pOsInterface->modulizedMosEnabled && !Mos_Solo_IsEnabled())
     {
         OsContext* pOsContext = pOsInterface->osContextPtr;
+        GmmDeleteClientContext(pOsInterface->pOsContext->pGmmClientContext);
         if (pOsContext == nullptr)
         {
             MOS_OS_ASSERTMESSAGE("Unable to get the active OS context.");
@@ -1651,7 +1652,7 @@ MOS_STATUS Mos_Specific_AllocateResource(
             tileformat_linux               = I915_TILING_NONE;
     }
 
-    pOsResource->pGmmResInfo = pGmmResourceInfo = GmmResCreate(&GmmParams);
+    pOsResource->pGmmResInfo = pGmmResourceInfo = pOsInterface->pOsContext->pGmmClientContext->CreateResInfoObject(&GmmParams);
 
     MOS_OS_CHK_NULL(pGmmResourceInfo);
 
@@ -2000,7 +2001,7 @@ void Mos_Specific_FreeResource(
         {
             MOS_OS_NORMALMESSAGE("<MemNinjaFree osInterface = \"%d\" component = \"%d\" memType = \"Gfx\" memPtr = \"%d\" />.",
                 pOsInterface, pOsInterface->Component, pOsResource->pGmmResInfo);
-            GmmResFree(pOsResource->pGmmResInfo);
+			pOsInterface->pOsContext->pGmmClientContext->DestroyResInfoObject(pOsResource->pGmmResInfo);
             pOsResource->pGmmResInfo = nullptr;
 
             MosMemAllocCounterGfx--;
@@ -5158,6 +5159,7 @@ MOS_STATUS Mos_Specific_InitInterface(
 
     iDeviceId                                 = pOsDriverContext->iDeviceId;
     pOsContext->bFreeContext                  = true;
+    pOsContext->pGmmClientContext = GmmCreateClientContext((GMM_CLIENT)GMM_LIBVA_LINUX);
     pOsInterface->pOsContext                  = pOsContext;
     pOsInterface->bUsesPatchList              = true;
     pOsInterface->bUsesGfxAddress             = false;
