@@ -58,6 +58,7 @@ include_directories(${CMAKE_CURRENT_LIST_DIR}/../linux/hardware)
 
 if(NOT "${LIBVA_INSTALL_PATH}" STREQUAL "")
     include_directories(BEFORE ${LIBVA_INSTALL_PATH})
+    link_directories(BEFORE ${LIBVA_LIBRARY_PATH})
 else()
     include(FindPkgConfig)
     if(NOT LIBVA_FOUND)
