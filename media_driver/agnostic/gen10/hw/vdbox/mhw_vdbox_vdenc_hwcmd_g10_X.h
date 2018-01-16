@@ -3326,7 +3326,9 @@ public:
             struct
             {
                 uint32_t                 Log2WeightDenomLuma                              : __CODEGEN_BITFIELD( 0,  2)    ; //!< Log 2 Weight Denom Luma
-                uint32_t                 Reserved99                                       : __CODEGEN_BITFIELD( 3, 31)    ; //!< Reserved
+                uint32_t                 Reserved99                                       : __CODEGEN_BITFIELD( 3,  3)    ; //!< Reserved
+				uint32_t                 HevcLog2WeightDemonLuma	                      : __CODEGEN_BITFIELD( 4,  6)    ; //!< HevcLog2WeightDemonLuma
+                uint32_t                 Reserved107                                      : __CODEGEN_BITFIELD( 7, 31)    ; //!< Reserved
             };
             uint32_t                     Value;
         } DW3;

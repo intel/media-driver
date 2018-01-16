@@ -2136,6 +2136,7 @@ MOS_STATUS CodechalVdencHevcStateG10::ConstructBatchBufferHuCBRC(PMOS_RESOURCE b
         if (sliceState.bInsertBeforeSliceHeaders)
         {
             uint32_t maxBytesInPakInsertObjCmd = ((2 << 11) - 1) * 4; // 12 bits for DwordLength field in PAK_INSERT_OBJ cmd
+            m_1stPakInsertObjectCmdSize = 0;
 
             for (auto i = 0; i < HEVC_MAX_NAL_UNIT_TYPE; i++)
             {
@@ -2170,12 +2171,11 @@ MOS_STATUS CodechalVdencHevcStateG10::ConstructBatchBufferHuCBRC(PMOS_RESOURCE b
                     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpPakInsertObject(&constructedCmdBuf, &pakInsertObjectParams));
 
                     // this info needed again in BrcUpdate HuC FW const
-                    m_1stPakInsertObjectCmdSize = constructedCmdBuf.iOffset - cmdBufOffset;
-                    // 1st PakInsertObject cmd is not always inserted for each slice
-                    m_vdencBatchBufferPerSliceVarSize[slcCount]
-                        += m_1stPakInsertObjectCmdSize;
+                    m_1stPakInsertObjectCmdSize += (constructedCmdBuf.iOffset - cmdBufOffset);
                 }
             }
+            // 1st PakInsertObject cmd is not always inserted for each slice
+            m_vdencBatchBufferPerSliceVarSize[slcCount] += m_1stPakInsertObjectCmdSize;
         }
 
         // set 2nd HCP_PAK_INSERT_OBJECT command

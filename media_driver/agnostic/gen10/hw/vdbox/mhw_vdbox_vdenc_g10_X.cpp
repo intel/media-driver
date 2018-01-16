@@ -1183,6 +1183,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencWalkerStateCmd(
         cmd.DW2.NextsliceMbLcuStartXPosition = 0;            //  Must be zero for super slices
         cmd.DW2.NextsliceMbStartYPosition    = (params->pEncodeHevcSliceParams->slice_segment_address + params->pEncodeHevcSliceParams->NumLCUsInSlice) / widthInCtb;
         cmd.DW5.TileWidth                    = widthInPix - 1;
+        cmd.DW3.Log2WeightDenomLuma          = cmd.DW3.HevcLog2WeightDemonLuma = params->pEncodeHevcSliceParams->luma_log2_weight_denom;
     }
     else if (params->Mode == CODECHAL_ENCODE_MODE_VP9)
     {
