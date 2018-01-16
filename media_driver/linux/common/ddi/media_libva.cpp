@@ -1366,6 +1366,62 @@ VAStatus DdiMedia__Initialize (
         return VA_STATUS_ERROR_OPERATION_FAILED;
     }
 
+    mediaCtx->modularizedGpuCtxEnabled = true;
+
+    if (mediaCtx->modularizedGpuCtxEnabled)
+    {
+        // prepare m_osContext
+        mediaCtx->m_osContext = OsContext::GetOsContextObject();
+        if (mediaCtx->m_osContext == nullptr)
+        {
+            MOS_OS_ASSERTMESSAGE("Unable to get the active OS context.");
+            return VA_STATUS_ERROR_OPERATION_FAILED;
+        }
+
+        // fill in the mos context struct as input to initialize m_osContext
+        MOS_CONTEXT mosCtx           = {};
+        mosCtx.bufmgr                = mediaCtx->pDrmBufMgr;
+        mosCtx.fd                    = mediaCtx->fd;
+        mosCtx.iDeviceId             = mediaCtx->iDeviceId;
+        mosCtx.SkuTable              = mediaCtx->SkuTable;
+        mosCtx.WaTable               = mediaCtx->WaTable;
+        mosCtx.gtSystemInfo          = *mediaCtx->pGtSystemInfo;
+        mosCtx.platform              = mediaCtx->platform;
+        mosCtx.ppMediaMemDecompState = &mediaCtx->pMediaMemDecompState;
+        mosCtx.pfnMemoryDecompress   = mediaCtx->pfnMemoryDecompress;
+        mosCtx.pPerfData             = (PERF_DATA *)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
+
+        eStatus = mediaCtx->m_osContext->Init(&mosCtx);
+        if (MOS_STATUS_SUCCESS != eStatus)
+        {
+            MOS_OS_ASSERTMESSAGE("Unable to initialize OS context.");
+            return VA_STATUS_ERROR_OPERATION_FAILED;
+        }
+
+        // Prepare the command buffer manager
+        mediaCtx->m_cmdBufMgr = CmdBufMgr::GetObject();
+        if (mediaCtx->m_cmdBufMgr == nullptr)
+        {
+            MOS_OS_ASSERTMESSAGE(" nullptr returned by CmdBufMgr::GetObject");
+            return VA_STATUS_ERROR_OPERATION_FAILED;
+        }
+
+        MOS_STATUS ret = mediaCtx->m_cmdBufMgr->Initialize(mediaCtx->m_osContext, COMMAND_BUFFER_SIZE);
+        if (ret != MOS_STATUS_SUCCESS)
+        {
+            MOS_OS_ASSERTMESSAGE(" cmdBufMgr Initialization failed");
+            return VA_STATUS_ERROR_OPERATION_FAILED;
+        }
+
+        // Prepare the gpu Context manager
+        mediaCtx->m_gpuContextMgr = GpuContextMgr::GetObject(mediaCtx->pGtSystemInfo, mediaCtx->m_osContext);
+        if (mediaCtx->m_gpuContextMgr == nullptr)
+        {
+            MOS_OS_ASSERTMESSAGE(" nullptr returned by GpuContextMgr::GetObject");
+            return VA_STATUS_ERROR_OPERATION_FAILED;
+        }
+    }
+
     DdiMediaUtil_UnLockMutex(&GlobalMutex);
 
     return VA_STATUS_SUCCESS;
@@ -1386,6 +1442,18 @@ static VAStatus DdiMedia_Terminate (
     DDI_CHK_NULL(mediaCtx, "nullptr mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
 
     DdiMediaUtil_LockMutex(&GlobalMutex);
+
+    if (mediaCtx->modularizedGpuCtxEnabled)
+    {
+        mediaCtx->m_gpuContextMgr->CleanUp();
+        MOS_Delete(mediaCtx->m_gpuContextMgr);
+
+        mediaCtx->m_cmdBufMgr->CleanUp();
+        MOS_Delete(mediaCtx->m_cmdBufMgr);
+
+        mediaCtx->m_osContext->CleanUp();
+        MOS_Delete(mediaCtx->m_osContext);
+    }
 
 #ifndef ANDROID
     DdiMedia_DestroyX11Connection(mediaCtx);

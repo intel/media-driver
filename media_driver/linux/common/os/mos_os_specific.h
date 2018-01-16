@@ -40,9 +40,7 @@
 #include "mos_bufmgr.h"
 #include "xf86drm.h"
 
-#ifndef ANDROID
 #include <vector>
-#endif
 
 typedef unsigned int MOS_OS_FORMAT;
 
@@ -504,6 +502,10 @@ struct _MOS_OS_CONTEXT
 
     void                **ppMediaMemDecompState; //!<Media memory decompression data structure
 
+    // For modulized GPU context
+    void*               m_gpuContextMgr;
+    void*               m_cmdBufMgr;
+
     //For 2VD box
     int32_t             bKMDHasVCS2;
     int32_t             semid;
@@ -534,7 +536,8 @@ struct _MOS_OS_CONTEXT
     // Os Context interface functions
     void (* pfnDestroy)(
         struct _MOS_OS_CONTEXT      *pOsContext,
-        int32_t                     MODSEnabled);
+        int32_t                     MODSEnabled,
+        int32_t                     MODSForGpuContext);
 
     int32_t (* pfnRefresh)(
         struct _MOS_OS_CONTEXT      *pOsContext);
@@ -573,16 +576,16 @@ struct _MOS_OS_CONTEXT
         uint32_t                    KernelID);
 
     uint32_t (* pfnGetGpuCtxBufferTag)(
-		PMOS_CONTEXT               pOsContext,
-		MOS_GPU_CONTEXT            GpuContext);
+        PMOS_CONTEXT               pOsContext,
+        MOS_GPU_CONTEXT            GpuContext);
 
-	void (* pfnIncGpuCtxBufferTag)(
-		PMOS_CONTEXT               pOsContext,
-		MOS_GPU_CONTEXT            GpuContext);
+    void (* pfnIncGpuCtxBufferTag)(
+        PMOS_CONTEXT               pOsContext,
+        MOS_GPU_CONTEXT            GpuContext);
 
-	uint32_t (* GetGPUTag)(
-		PMOS_CONTEXT               pOsContext,
-		MOS_GPU_CONTEXT            GpuContext);
+    uint32_t (* GetGPUTag)(
+        PMOS_INTERFACE             pOsInterface,
+        MOS_GPU_CONTEXT            GpuContext);
 
 };
 
@@ -777,6 +780,14 @@ void Mos_Specific_SetResourceWidth(
 void Mos_Specific_SetResourceFormat(
     PMOS_RESOURCE               pOsResource,
     MOS_FORMAT                  mosFormat);
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+MOS_LINUX_BO * Mos_GetNopCommandBuffer_Linux(
+    PMOS_INTERFACE        pOsInterface);
+
+MOS_LINUX_BO * Mos_GetBadCommandBuffer_Linux(
+    PMOS_INTERFACE        pOsInterface);
+#endif
 
 #ifdef __cplusplus
 }

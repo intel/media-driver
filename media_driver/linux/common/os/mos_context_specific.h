@@ -31,6 +31,8 @@
 #include "mos_context.h"
 
 class GraphicsResourceSpecific;
+class CmdBufMgr;
+class GpuContextMgr;
 
 class OsContextSpecific : public OsContext
 {
@@ -110,48 +112,65 @@ public:
     //!
     //! \brief  Get the performance information
     //!
-    struct PerfInfo GetPerfInfo(){return m_performanceInfo;};
+    struct PerfInfo GetPerfInfo() { return m_performanceInfo; }
 
     //!
     //! \brief  Get the performance information
     //!
-    void SetPerfInfo(const struct PerfInfo &performanceInfo){MOS_SecureMemcpy(&m_performanceInfo, sizeof(struct PerfInfo), &performanceInfo, sizeof(struct PerfInfo));};
+    void SetPerfInfo(const struct PerfInfo &performanceInfo)
+    {
+        MOS_SecureMemcpy(&m_performanceInfo, sizeof(struct PerfInfo), &performanceInfo, sizeof(struct PerfInfo));
+    }
 
     //!
     //! \brief  Return whether we need 64bit relocation
     //!
-    bool Is64BitRelocUsed(){return m_use64BitRelocs;};
+    bool Is64BitRelocUsed() { return m_use64BitRelocs; }
 
     //!
     //! \brief  Return whether the KMD support the 2nd VCS
     //!
-    bool IsKmdWithVcs2(){return m_kmdHasVCS2;};
+    bool IsKmdWithVcs2() { return m_kmdHasVCS2; }
 
     //!
     //! \brief  Return the semaphore ID we use to protect the IPC creation process
     //! \return sem id
     //!
-    int32_t GetSemId(){return m_semId;};
+    int32_t GetSemId() { return m_semId; }
 
     //!
     //! \brief  Return the shm ID for the IPC
     //! \return shm id
-    int32_t GetShmId(){return m_shmId;};
+    int32_t GetShmId() { return m_shmId; }
 
     //!
     //! \brief  Return the shm object for the IPC
     //! \return shm id
     //!
-    void* GetShmPtr(){return m_shm;};
+    void *GetShmPtr() { return m_shm; }
 
     //!
     //! \brief  Return the function ptr for memory decompression function
     //!
-    void* GetpfnMemoryDecompaddr(){return (void *)m_memoryDecompress;};
+    void *GetpfnMemoryDecompaddr() { return (void *)m_memoryDecompress; }
 
-    MOS_LINUX_CONTEXT* GetDrmContext(){return m_intelContext;};
+    MOS_LINUX_CONTEXT *GetDrmContext() { return m_intelContext; }
 
-	GMM_CLIENT_CONTEXT*  GetGmmClientContext() { return m_pGmmClientContext; };
+    GPU_CONTEXT_HANDLE GetGpuContextHandle(MOS_GPU_CONTEXT GpuContext)
+    {
+        return m_GpuContextHandle[GpuContext];
+    }
+
+    void SetGpuContextHandle(MOS_GPU_CONTEXT GpuContext, GPU_CONTEXT_HANDLE gpuContextHandle)
+    {
+        m_GpuContextHandle[GpuContext] = gpuContextHandle;
+    }
+
+    GpuContextMgr *GetGpuContextMgr() { return m_gpuContextMgr; }
+
+    CmdBufMgr* GetCmdBufMgr(){return m_cmdBufMgr;}
+
+    GMM_CLIENT_CONTEXT*  GetGmmClientContext() { return m_pGmmClientContext; };
 
 #ifndef ANDROID
 
@@ -369,5 +388,10 @@ private:
 	//!UMD specific ClientContext object in GMM
 	//!
 	GMM_CLIENT_CONTEXT   *m_pGmmClientContext = nullptr;
+
+    GPU_CONTEXT_HANDLE  m_GpuContextHandle[MOS_GPU_CONTEXT_MAX]; // Index to GPU Context (GpuContextHandles)
+
+    GpuContextMgr      *m_gpuContextMgr = nullptr;
+    CmdBufMgr          *m_cmdBufMgr = nullptr;
 };
 #endif // #ifndef __MOS_CONTEXT_SPECIFIC_H__

@@ -76,14 +76,16 @@ int32_t CreateCmDeviceFromVA(VADriverContextP pVaDrvCtx,
     CM_DDI_CHK_NULL(pCmCtx, "Null pCmCtx!", CM_OUT_OF_HOST_MEMORY);
 
     // init pCmCtx
-    pCmCtx->mosCtx.bufmgr    = pMediaCtx->pDrmBufMgr;
-    pCmCtx->mosCtx.fd        = pMediaCtx->fd;
-    pCmCtx->mosCtx.wRevision = 0;
-    pCmCtx->mosCtx.iDeviceId = pMediaCtx->iDeviceId;
-    pCmCtx->mosCtx.SkuTable  = pMediaCtx->SkuTable;
-    pCmCtx->mosCtx.WaTable   = pMediaCtx->WaTable;
-    pCmCtx->mosCtx.gtSystemInfo = *(pMediaCtx->pGtSystemInfo);
-    pCmCtx->mosCtx.platform   = pMediaCtx->platform;
+    pCmCtx->mosCtx.bufmgr          = pMediaCtx->pDrmBufMgr;
+    pCmCtx->mosCtx.m_gpuContextMgr = pMediaCtx->m_gpuContextMgr;
+    pCmCtx->mosCtx.m_cmdBufMgr     = pMediaCtx->m_cmdBufMgr;
+    pCmCtx->mosCtx.fd              = pMediaCtx->fd;
+    pCmCtx->mosCtx.wRevision       = 0;
+    pCmCtx->mosCtx.iDeviceId       = pMediaCtx->iDeviceId;
+    pCmCtx->mosCtx.SkuTable        = pMediaCtx->SkuTable;
+    pCmCtx->mosCtx.WaTable         = pMediaCtx->WaTable;
+    pCmCtx->mosCtx.gtSystemInfo    = *(pMediaCtx->pGtSystemInfo);
+    pCmCtx->mosCtx.platform        = pMediaCtx->platform;
 
     // Create Cm Device
     hRes = CreateCmDevice(&(pCmCtx->mosCtx), pCmDev, DevOption);
@@ -382,15 +384,17 @@ int32_t CmThinExecute(VADriverContextP pVaDrvCtx,
             MOS_ZeroMemory(&mosCtx, sizeof(MOS_CONTEXT));
 
             // init pCmCtx
-            mosCtx.bufmgr    = pMediaCtx->pDrmBufMgr;
-            mosCtx.fd        = pMediaCtx->fd;
-            mosCtx.wRevision = 0;
-            mosCtx.iDeviceId = pMediaCtx->iDeviceId;
-            mosCtx.SkuTable  = pMediaCtx->SkuTable;
-            mosCtx.WaTable   = pMediaCtx->WaTable;
-            mosCtx.gtSystemInfo = *(pMediaCtx->pGtSystemInfo);
-            mosCtx.platform   = pMediaCtx->platform;
-            hr = CmThinExecuteUlt(&mosCtx, pCmPrivateInputData);
+            mosCtx.bufmgr          = pMediaCtx->pDrmBufMgr;
+            mosCtx.m_gpuContextMgr = pMediaCtx->m_gpuContextMgr;
+            mosCtx.m_cmdBufMgr     = pMediaCtx->m_cmdBufMgr;
+            mosCtx.fd              = pMediaCtx->fd;
+            mosCtx.wRevision       = 0;
+            mosCtx.iDeviceId       = pMediaCtx->iDeviceId;
+            mosCtx.SkuTable        = pMediaCtx->SkuTable;
+            mosCtx.WaTable         = pMediaCtx->WaTable;
+            mosCtx.gtSystemInfo    = *(pMediaCtx->pGtSystemInfo);
+            mosCtx.platform        = pMediaCtx->platform;
+            hr                     = CmThinExecuteUlt(&mosCtx, pCmPrivateInputData);
             break;
         }
 #endif

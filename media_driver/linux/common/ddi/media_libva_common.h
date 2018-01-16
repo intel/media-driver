@@ -34,6 +34,9 @@
 #include "drm.h"
 #include "i915_drm.h"
 #include "mos_bufmgr.h"
+#include "mos_context.h"
+#include "mos_gpucontextmgr.h"
+#include "mos_cmdbufmgr.h"
 
 #include "mos_os.h"
 
@@ -389,6 +392,12 @@ struct DDI_MEDIA_CONTEXT
 
     // media context reference number
     uint32_t            uiRef;
+
+    // modulized Gpu context and cmd buffer
+    bool                modularizedGpuCtxEnabled;
+    OsContext          *m_osContext;
+    GpuContextMgr      *m_gpuContextMgr;
+    CmdBufMgr          *m_cmdBufMgr;
 
     // mutexs to protect the shared resource among multiple context
     MEDIA_MUTEX_T       SurfaceMutex;

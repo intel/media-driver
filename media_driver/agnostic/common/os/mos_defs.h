@@ -456,5 +456,6 @@ enum MOS_MEMCOMP_STATE
     MOS_MEMCOMP_RC
 };
 typedef enum MOS_MEMCOMP_STATE *PMOS_MEMCOMP_STATE;
+typedef uint32_t               GPU_CONTEXT_HANDLE;
 
 #endif // __MOS_DEFS_H__

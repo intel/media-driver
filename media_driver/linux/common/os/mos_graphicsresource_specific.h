@@ -142,6 +142,8 @@ public:
     //!
     MOS_STATUS ConvertToMosResource(MOS_RESOURCE* mosResourcePtr);
 
+    MOS_LINUX_BO*  GetBufferObject(){return m_bo;};
+
 protected:
     //!
     //! \brief  Converts MOS format infot GMM format.

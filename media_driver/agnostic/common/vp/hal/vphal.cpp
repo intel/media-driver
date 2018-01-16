@@ -366,7 +366,7 @@ MOS_STATUS VphalState::GetStatusReport(
         }
 
 #if LINUX
-        dwGpuTag           = pOsContext->GetGPUTag(pOsContext, pStatusEntry->GpuContextOrdinal);
+        dwGpuTag           = pOsContext->GetGPUTag(m_osInterface, pStatusEntry->GpuContextOrdinal);
 #else
         dwGpuTag           = pOsContext->GetGPUTag(pOsContext->GetGpuContextHandle(pStatusEntry->GpuContextOrdinal));
 #endif

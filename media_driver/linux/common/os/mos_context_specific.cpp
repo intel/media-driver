@@ -43,6 +43,8 @@
 #endif
 
 #include "mos_context_specific.h"
+#include "mos_gpucontextmgr.h"
+#include "mos_cmdbufmgr.h"
 
 OsContextSpecific::OsContextSpecific()
 {
@@ -483,8 +485,10 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
         return MOS_STATUS_INVALID_HANDLE;
     }
 
-    m_bufmgr = pOsDriverContext->bufmgr;
-    m_fd     = pOsDriverContext->fd;
+    m_bufmgr        = pOsDriverContext->bufmgr;
+    m_gpuContextMgr = static_cast<GpuContextMgr *>(pOsDriverContext->m_gpuContextMgr);
+    m_cmdBufMgr     = static_cast<CmdBufMgr *>(pOsDriverContext->m_cmdBufMgr);
+    m_fd            = pOsDriverContext->fd;
     MOS_SecureMemcpy(&m_perfData, sizeof(PERF_DATA), pOsDriverContext->pPerfData, sizeof(PERF_DATA));
     mos_bufmgr_gem_enable_reuse(pOsDriverContext->bufmgr);
     m_cpContext = pOsDriverContext->pCpContext;

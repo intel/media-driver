@@ -1174,14 +1174,16 @@ VAStatus DdiVp_InitCtx(VADriverContextP pVaDrvCtx, PDDI_VP_CONTEXT pVpCtx)
 
     // initialize VPHAL
     DDI_CHK_NULL(pVpCtx, "Null pVpCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
-    pVpCtx->MosDrvCtx.bufmgr                = pMediaCtx->pDrmBufMgr;
-    pVpCtx->MosDrvCtx.fd                    = pMediaCtx->fd;
-    pVpCtx->MosDrvCtx.iDeviceId             = pMediaCtx->iDeviceId;
-    pVpCtx->MosDrvCtx.SkuTable              = pMediaCtx->SkuTable;
-    pVpCtx->MosDrvCtx.WaTable               = pMediaCtx->WaTable;
-    pVpCtx->MosDrvCtx.gtSystemInfo          = *pMediaCtx->pGtSystemInfo;
-    pVpCtx->MosDrvCtx.platform              = pMediaCtx->platform;
-	
+    pVpCtx->MosDrvCtx.bufmgr          = pMediaCtx->pDrmBufMgr;
+    pVpCtx->MosDrvCtx.m_gpuContextMgr = pMediaCtx->m_gpuContextMgr;
+    pVpCtx->MosDrvCtx.m_cmdBufMgr     = pMediaCtx->m_cmdBufMgr;
+    pVpCtx->MosDrvCtx.fd              = pMediaCtx->fd;
+    pVpCtx->MosDrvCtx.iDeviceId       = pMediaCtx->iDeviceId;
+    pVpCtx->MosDrvCtx.SkuTable        = pMediaCtx->SkuTable;
+    pVpCtx->MosDrvCtx.WaTable         = pMediaCtx->WaTable;
+    pVpCtx->MosDrvCtx.gtSystemInfo    = *pMediaCtx->pGtSystemInfo;
+    pVpCtx->MosDrvCtx.platform        = pMediaCtx->platform;
+
     pVpCtx->MosDrvCtx.ppMediaMemDecompState = &pMediaCtx->pMediaMemDecompState;
     pVpCtx->MosDrvCtx.pfnMemoryDecompress   = pMediaCtx->pfnMemoryDecompress;
     pVpCtx->MosDrvCtx.pPerfData             = (PERF_DATA*)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));

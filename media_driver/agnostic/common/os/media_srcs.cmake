@@ -43,6 +43,24 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_utilities.h
 )
 
+if(${PLATFORM} STREQUAL "linux" OR ${PLATFORM} STREQUAL "yocto" OR ${PLATFORM} STREQUAL "android")
+set(TMP_SOURCES_
+    ${TMP_SOURCES_}
+    ${CMAKE_CURRENT_LIST_DIR}/mos_cmdbufmgr.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_commandbuffer.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontextmgr.cpp
+)
+
+set(TMP_HEADERS_
+    ${TMP_HEADERS_}
+    ${CMAKE_CURRENT_LIST_DIR}/mos_cmdbufmgr.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_commandbuffer.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontextmgr.h
+)
+endif()
+
 set(SOURCES_
     ${SOURCES_}
     ${TMP_SOURCES_}

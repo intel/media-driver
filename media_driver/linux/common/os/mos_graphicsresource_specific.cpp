@@ -408,6 +408,8 @@ MOS_STATUS GraphicsResourceSpecific::ConvertToMosResource(MOS_RESOURCE* pMosReso
 
     pMosResource->user_provided_va    = m_userProvidedVA;
     
+    pMosResource->pGfxResource    = this;
+
     return  MOS_STATUS_SUCCESS;
 }
 

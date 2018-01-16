@@ -266,13 +266,15 @@ VAStatus DdiEncode_CreateContext(
     }
 
     // Get the buf manager for codechal create
-    mosCtx.bufmgr       = mediaDrvCtx->pDrmBufMgr;
-    mosCtx.fd           = mediaDrvCtx->fd;
-    mosCtx.iDeviceId    = mediaDrvCtx->iDeviceId;
-    mosCtx.SkuTable     = mediaDrvCtx->SkuTable;
-    mosCtx.WaTable      = mediaDrvCtx->WaTable;
-    mosCtx.gtSystemInfo = *mediaDrvCtx->pGtSystemInfo;
-    mosCtx.platform     = mediaDrvCtx->platform;
+    mosCtx.bufmgr          = mediaDrvCtx->pDrmBufMgr;
+    mosCtx.m_gpuContextMgr = mediaDrvCtx->m_gpuContextMgr;
+    mosCtx.m_cmdBufMgr     = mediaDrvCtx->m_cmdBufMgr;
+    mosCtx.fd              = mediaDrvCtx->fd;
+    mosCtx.iDeviceId       = mediaDrvCtx->iDeviceId;
+    mosCtx.SkuTable        = mediaDrvCtx->SkuTable;
+    mosCtx.WaTable         = mediaDrvCtx->WaTable;
+    mosCtx.gtSystemInfo    = *mediaDrvCtx->pGtSystemInfo;
+    mosCtx.platform        = mediaDrvCtx->platform;
 
     mosCtx.ppMediaMemDecompState = &mediaDrvCtx->pMediaMemDecompState;
     mosCtx.pfnMemoryDecompress   = mediaDrvCtx->pfnMemoryDecompress;

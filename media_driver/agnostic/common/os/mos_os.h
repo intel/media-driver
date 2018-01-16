@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -19,10 +19,6 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
-//!
-//! \file      mos_os.h  
-//! \brief      
-//!
 //!
 //! \file     mos_os.h
 //! \brief    Common interface and structure used in MOS OS
@@ -323,6 +319,7 @@ typedef struct _MOS_INTERFACE
 
     // for MODS Wrapper
     int32_t                         modulizedMosEnabled;
+    int32_t                         modularizedGpuCtxEnabled; 
     OsContext*                      osContextPtr;
 
     // used for media reset enabling/disabling in UMD

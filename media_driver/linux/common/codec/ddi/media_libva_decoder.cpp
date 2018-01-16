@@ -302,16 +302,18 @@ VAStatus DdiDecode_CreateContext (
     decCtx->pMediaCtx                       = mediaCtx;
     decCtx->m_ddiDecode                     = ddiDecBase;
 
-    mosCtx.bufmgr                           = mediaCtx->pDrmBufMgr;
-    mosCtx.fd                               = mediaCtx->fd;
-    mosCtx.iDeviceId                        = mediaCtx->iDeviceId;
-    mosCtx.SkuTable                         = mediaCtx->SkuTable;
-    mosCtx.WaTable                          = mediaCtx->WaTable;
-    mosCtx.gtSystemInfo                     = *mediaCtx->pGtSystemInfo;
-    mosCtx.platform                         = mediaCtx->platform;
-    mosCtx.ppMediaMemDecompState            = &mediaCtx->pMediaMemDecompState;
-    mosCtx.pfnMemoryDecompress              = mediaCtx->pfnMemoryDecompress;
-    mosCtx.pPerfData                        = (PERF_DATA*)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
+    mosCtx.bufmgr                = mediaCtx->pDrmBufMgr;
+    mosCtx.m_gpuContextMgr       = mediaCtx->m_gpuContextMgr;
+    mosCtx.m_cmdBufMgr           = mediaCtx->m_cmdBufMgr;
+    mosCtx.fd                    = mediaCtx->fd;
+    mosCtx.iDeviceId             = mediaCtx->iDeviceId;
+    mosCtx.SkuTable              = mediaCtx->SkuTable;
+    mosCtx.WaTable               = mediaCtx->WaTable;
+    mosCtx.gtSystemInfo          = *mediaCtx->pGtSystemInfo;
+    mosCtx.platform              = mediaCtx->platform;
+    mosCtx.ppMediaMemDecompState = &mediaCtx->pMediaMemDecompState;
+    mosCtx.pfnMemoryDecompress   = mediaCtx->pfnMemoryDecompress;
+    mosCtx.pPerfData             = (PERF_DATA *)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
 
     if (nullptr == mosCtx.pPerfData)
     {
