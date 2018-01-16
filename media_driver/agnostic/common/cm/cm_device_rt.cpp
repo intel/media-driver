@@ -633,13 +633,19 @@ CM_RT_API int32_t CmDeviceRT::CreateSurface2DUP(uint32_t width,
     int32_t result = m_pSurfaceMgr->Surface2DSanityCheck(width, height, format);
     if (result != CM_SUCCESS)
     {
-        CM_ASSERTMESSAGE("Error: Surface2D sanity check failure.");
+        CM_ASSERTMESSAGE("Error: Surface2D sanity check failure.\n");
         return result;
     }
 
     if (sysMem == nullptr)
     {
-        CM_ASSERTMESSAGE("Error: Pointer to host memory is null.");
+        CM_ASSERTMESSAGE("Error: Pointer to host memory is null.\n");
+        return CM_INVALID_ARG_VALUE;
+    }
+    auto uint_ptr = reinterpret_cast<uintptr_t>(sysMem);
+    if (uint_ptr & (0x1000 - 1))
+    {
+        CM_ASSERTMESSAGE("Error: Pointer to host memory isn't 4K-aligned.\n");
         return CM_INVALID_ARG_VALUE;
     }
 

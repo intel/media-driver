@@ -33,20 +33,31 @@ public:
 
     ~Surface2DUPTest()
     {
-        if (m_sys_mem)
+        if (nullptr != m_sys_mem)
         {
             free(m_sys_mem);
         }
         return;
     }//========
 
-    int32_t CreateDestroy(uint32_t width, uint32_t height)
+  int32_t CreateDestroy(CM_SURFACE_FORMAT format,
+                        uint32_t width,
+                        uint32_t height)
     {
         CMRT_UMD::MockDevice mock_device(&m_driverLoader);
-        m_sys_mem = memalign(4096, 4*width*height);
+        uint32_t pitch = 0, alloc_size = 0;
+        if (CM_SUCCESS == mock_device->GetSurface2DInfo(width, height, format,
+                                                        pitch, alloc_size))
+        {
+            m_sys_mem = memalign(0x1000, alloc_size);
+        }
+        else  // In case width or height is invalid. This pointer will not be referenced anyway. 
+        {
+            m_sys_mem = memalign(0x1000, 4*width*height);
+        }
         int32_t result = mock_device->CreateSurface2DUP(
-            width, height, CM_SURFACE_FORMAT_A8R8G8B8, m_sys_mem, m_surface);
-        if (result != CM_SUCCESS)
+            width, height, format, m_sys_mem, m_surface);
+        if (CM_SUCCESS != result)
         {
             return result;
         }
@@ -54,6 +65,21 @@ public:
         result = m_surface->GetIndex(surface_index);
         EXPECT_EQ(CM_SUCCESS, result);
         EXPECT_GT(surface_index->get_data(), 0);
+        result = mock_device->DestroySurface2DUP(m_surface);
+        free(m_sys_mem);
+        m_sys_mem = nullptr;
+        return result;
+    }//===============
+
+    int32_t CreateDestroy(void *sys_mem)
+    {
+        CMRT_UMD::MockDevice mock_device(&m_driverLoader);
+        int32_t result = mock_device->CreateSurface2DUP(
+            WIDTH, HEIGHT, CM_SURFACE_FORMAT_A8R8G8B8, sys_mem, m_surface);
+        if (CM_SUCCESS != result)
+        {
+            return result;
+        }
         return mock_device->DestroySurface2DUP(m_surface);
     }//===================================================
 
@@ -65,12 +91,79 @@ private:
 TEST_F(Surface2DUPTest, MultipleSizes)
 {
     RunEach(CM_SUCCESS,
-            [this]() { return CreateDestroy(WIDTH, HEIGHT); });
+            [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8,
+                                            WIDTH, HEIGHT); });
 
     RunEach(CM_SUCCESS,
-            [this]() { return CreateDestroy(CM_MIN_SURF_WIDTH, HEIGHT); });
+            [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8,
+                                            WIDTH + 1, HEIGHT + 1); });
 
     RunEach(CM_SUCCESS,
-            [this]() { return CreateDestroy(WIDTH, CM_MIN_SURF_HEIGHT); });
+            [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8,
+                                            CM_MIN_SURF_WIDTH, HEIGHT); });
+
+    RunEach(CM_INVALID_WIDTH,
+            [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8,
+                                            0, HEIGHT); });
+
+    RunEach(CM_SUCCESS,
+            [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8,
+                                            WIDTH, CM_MIN_SURF_HEIGHT); });
+
+    RunEach(CM_INVALID_HEIGHT,
+            [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8,
+                                            WIDTH, 0); });
+
+    RunEach(CM_SUCCESS,
+            [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8,
+                                            CM_MAX_2D_SURF_WIDTH, HEIGHT); });
+
+    RunEach(CM_INVALID_WIDTH,
+            [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8,
+                                            CM_MAX_2D_SURF_WIDTH + 1,
+                                            HEIGHT); });
+
+    RunEach(CM_SUCCESS,
+            [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8,
+                                            WIDTH, CM_MAX_2D_SURF_HEIGHT); });
+
+    RunEach(CM_INVALID_HEIGHT,
+            [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8,
+                                            WIDTH,
+                                            CM_MAX_2D_SURF_HEIGHT + 1); });
+    return;
+}//========
+
+TEST_F(Surface2DUPTest, InvalidSystemMemory)
+{
+    uint8_t *sys_mem = nullptr;
+    RunEach(CM_INVALID_ARG_VALUE,
+            [this, sys_mem]() { return CreateDestroy(sys_mem); });
+
+    sys_mem = new uint8_t[4*WIDTH*HEIGHT];
+    if ((reinterpret_cast<uintptr_t>(sys_mem) & 4095) == 0)
+    {
+        ++sys_mem;
+    }
+    RunEach(CM_INVALID_ARG_VALUE,
+            [this, sys_mem]() { return CreateDestroy(sys_mem); });
+    delete[] sys_mem;
+    return;
+}//========
+
+TEST_F(Surface2DUPTest, PlanarFormat)
+{
+    RunEach(CM_SUCCESS, [this]() { return CreateDestroy(CM_SURFACE_FORMAT_NV12,
+                                                        WIDTH, HEIGHT); });
+    RunEach(CM_INVALID_WIDTH,
+            [this]() { return CreateDestroy(CM_SURFACE_FORMAT_NV12,
+                                            WIDTH + 1, HEIGHT); });
+
+    RunEach(CM_SUCCESS, [this]() { return CreateDestroy(CM_SURFACE_FORMAT_YUY2,
+                                                        WIDTH, HEIGHT); });
+    RunEach(CM_INVALID_WIDTH,
+            [this]() { return CreateDestroy(CM_SURFACE_FORMAT_YUY2,
+                                            WIDTH + 1, HEIGHT); });
+
     return;
 }//========
