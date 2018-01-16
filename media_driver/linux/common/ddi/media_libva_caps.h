@@ -570,6 +570,26 @@ public:
     bool IsVpConfigId(VAConfigID configId);
 
     //!
+    //! \brief    Check if the entrypoint is supported by MFE
+    //!
+    //! \param    [in] entrypoint
+    //!           Specify the VAEntrypoint
+    //!
+    //! \return   true if supported, otherwise false
+    //!
+    bool IsMfeSupportedEntrypoint(VAEntrypoint entrypoint);
+
+    //!
+    //! \brief    Check if the profile is supported by MFE
+    //!
+    //! \param    [in] profile
+    //!           Specify the VAProfile
+    //!
+    //! \return   true if supported, otherwise false
+    //!
+    bool IsMfeSupportedProfile(VAProfile profile);
+
+    //!
     //! \brief    Destory the VAConfigID 
     //!
     //! \param    [in] configId 

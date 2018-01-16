@@ -2349,20 +2349,41 @@ static VAStatus DdiMedia_AddContextInternal(
     PDDI_ENCODE_MFE_CONTEXT encodeMfeContext = (PDDI_ENCODE_MFE_CONTEXT)DdiMedia_GetContextFromContextID(ctx, mfe_context, &ctxType);
     DDI_CHK_NULL(encodeMfeContext, "nullptr encodeMfeContext", VA_STATUS_ERROR_INVALID_CONTEXT);
 
+    if (ctxType != DDI_MEDIA_CONTEXT_TYPE_MFE)
+    {
+        return VA_STATUS_ERROR_OPERATION_FAILED;
+    }
+
     PDDI_ENCODE_CONTEXT     encodeContext    = DdiEncode_GetEncContextFromContextID(ctx, context);
     DDI_CHK_NULL(encodeContext, "nullptr encodeContext", VA_STATUS_ERROR_INVALID_CONTEXT);
 
     CodechalEncoderState    *encoder         = dynamic_cast<CodechalEncoderState *>(encodeContext->pCodecHal);
     DDI_CHK_NULL(encoder, "nullptr codechal encoder", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    if (encodeContext->wModeType != CODECHAL_ENCODE_MODE_AVC)
+    if (!mediaCtx->m_caps->IsMfeSupportedEntrypoint(encodeContext->vaEntrypoint))
     {
-        DDI_VERBOSEMESSAGE("MFE is not supported for the codec!");
-        return VA_STATUS_ERROR_UNIMPLEMENTED;
+        return VA_STATUS_ERROR_UNSUPPORTED_ENTRYPOINT;
+    }
+
+    if (!mediaCtx->m_caps->IsMfeSupportedProfile(encodeContext->vaProfile))
+    {
+        return VA_STATUS_ERROR_UNSUPPORTED_PROFILE;
     }
 
     DdiMediaUtil_LockMutex(&encodeMfeContext->encodeMfeMutex);
     encodeMfeContext->pDdiEncodeContexts.push_back(encodeContext);
+
+    if (encodeMfeContext->currentStreamId == 0)
+    {
+        encodeMfeContext->isFEI = (encodeContext->vaEntrypoint == VAEntrypointFEI) ? true : false;
+    }
+
+    //MFE cannot support legacy and FEI together
+    if ((encodeContext->vaEntrypoint != VAEntrypointFEI && encodeMfeContext->isFEI) ||
+        (encodeContext->vaEntrypoint == VAEntrypointFEI && !encodeMfeContext->isFEI))
+    {
+        return VA_STATUS_ERROR_INVALID_CONTEXT;
+    }
 
     encoder->m_mfeEnabled = true;
     // Assign one unique id to this sub context/stream
@@ -2387,18 +2408,32 @@ static VAStatus DdiMedia_ReleaseContextInternal(
     PDDI_ENCODE_MFE_CONTEXT encodeMfeContext  = (PDDI_ENCODE_MFE_CONTEXT)DdiMedia_GetContextFromContextID(ctx, mfe_context, &ctxType);
     DDI_CHK_NULL(encodeMfeContext, "nullptr encodeMfeContext", VA_STATUS_ERROR_INVALID_CONTEXT);
 
+    if (ctxType != DDI_MEDIA_CONTEXT_TYPE_MFE ||
+        encodeMfeContext->pDdiEncodeContexts.size() == 0)
+    {
+        return VA_STATUS_ERROR_OPERATION_FAILED;
+    }
+
     PDDI_ENCODE_CONTEXT encodeContext  = DdiEncode_GetEncContextFromContextID(ctx, context);
     DDI_CHK_NULL(encodeMfeContext, "nullptr encodeContext", VA_STATUS_ERROR_INVALID_CONTEXT);
 
+    bool contextErased = false;
     DdiMediaUtil_LockMutex(&encodeMfeContext->encodeMfeMutex);
     for (int32_t i = 0; i < encodeMfeContext->pDdiEncodeContexts.size(); i++)
     {
         if (encodeMfeContext->pDdiEncodeContexts[i] == encodeContext)
         {
             encodeMfeContext->pDdiEncodeContexts.erase(encodeMfeContext->pDdiEncodeContexts.begin() + i);
+            contextErased = true;
             break;
         }
     }
+
+    if (!contextErased)
+    {
+        return VA_STATUS_ERROR_OPERATION_FAILED;
+    }
+
     DdiMediaUtil_UnLockMutex(&encodeMfeContext->encodeMfeMutex);
 
     return VA_STATUS_SUCCESS;

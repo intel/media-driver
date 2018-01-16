@@ -288,9 +288,10 @@ VAStatus DdiEncode_CreateContext(
         return vaStatus;
     }
 
-    encCtx->vaProfile  = profile;
-    encCtx->uiRCMethod = rcMode;
-    encCtx->wModeType = mediaDrvCtx->m_caps->GetEncodeCodecMode(profile, entrypoint);
+    encCtx->vaEntrypoint  = entrypoint;
+    encCtx->vaProfile     = profile;
+    encCtx->uiRCMethod    = rcMode;
+    encCtx->wModeType     = mediaDrvCtx->m_caps->GetEncodeCodecMode(profile, entrypoint);
     encCtx->codecFunction = mediaDrvCtx->m_caps->GetEncodeCodecFunction(profile, entrypoint);
 
     if (entrypoint == VAEntrypointEncSliceLP)
@@ -597,6 +598,20 @@ VAStatus DdiEncode_MfeSubmit(
         DDI_CHK_NULL(encodeContext, "nullptr encodeContext", VA_STATUS_ERROR_INVALID_CONTEXT);
         CodechalEncoderState *encoder = dynamic_cast<CodechalEncoderState *>(encodeContext->pCodecHal);
         DDI_CHK_NULL(encoder, "nullptr codechal encoder", VA_STATUS_ERROR_INVALID_CONTEXT);
+
+        if (!encoder->m_mfeEnabled ||
+            encoder->m_mfeEncodeSharedState != encodeMfeContext->mfeEncodeSharedState)
+        {
+            return VA_STATUS_ERROR_INVALID_CONTEXT;
+        }
+
+        // make sure the context has called BeginPicture&RenderPicture&EndPicture
+        if (encodeContext->RTtbl.pRT[0] == nullptr
+            || encodeContext->dwNumSlices <= 0
+            || encodeContext->EncodeParams.pBSBuffer != encodeContext->pbsBuffer)
+        {
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
 
         encoder->m_mfeEncodeParams.submitIndex  = i;
         encoder->m_mfeEncodeParams.submitNumber = num_contexts;

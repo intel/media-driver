@@ -2533,6 +2533,29 @@ bool MediaLibvaCaps::IsVpConfigId(VAConfigID configId)
             (configId < (DDI_VP_GEN_CONFIG_ATTRIBUTES_BASE + m_vpConfigs.size())));
 }
 
+bool MediaLibvaCaps::IsMfeSupportedEntrypoint(VAEntrypoint entrypoint)
+{
+    if (entrypoint != VAEntrypointEncSlice &&           //MFE only support Encode slice
+        entrypoint != VAEntrypointFEI )                 //and FEI yet
+    {
+        return false;
+    }
+
+    return true;
+}
+
+bool MediaLibvaCaps::IsMfeSupportedProfile(VAProfile profile)
+{
+    if (profile != VAProfileH264Main &&                  // MFE only support AVC now
+        profile != VAProfileH264High &&
+        profile != VAProfileH264ConstrainedBaseline)
+    {
+        return false;
+    }
+
+    return true;
+}
+
 VAStatus MediaLibvaCaps::DestroyConfig(VAConfigID configId)
 {
     if( IsDecConfigId(configId) || IsEncConfigId(configId) || IsVpConfigId(configId))
