@@ -50,7 +50,7 @@ struct CODECHAL_FEI_HEVC_I_32x32_PU_MODE_DECISION_CURBE_G9
         struct {
             uint32_t       SliceType                    : MOS_BITFIELD_RANGE(0, 1);   
             uint32_t       PuType                       : MOS_BITFIELD_RANGE(2, 3);
-            uint32_t       EnableStatisticsDataDump     : MOS_BITFIELD_BIT(4);
+            uint32_t       EnableStatsDataDump          : MOS_BITFIELD_BIT(4);
             uint32_t       LCUType                      : MOS_BITFIELD_BIT(5); 
             uint32_t       Res_6_15                     : MOS_BITFIELD_RANGE(6, 15);   
             uint32_t       SliceQp                      : MOS_BITFIELD_RANGE(16, 23);
@@ -58,8 +58,9 @@ struct CODECHAL_FEI_HEVC_I_32x32_PU_MODE_DECISION_CURBE_G9
             uint32_t       LCUBRCEnable                 : MOS_BITFIELD_BIT(25);
             uint32_t       ROIEnable                    : MOS_BITFIELD_BIT(26);
             uint32_t       FASTSurveillanceFlag         : MOS_BITFIELD_BIT(27);
-            uint32_t       Res_28_29                    : MOS_BITFIELD_RANGE(28, 29);
-            uint32_t       bQualityImprovementEnable    : MOS_BITFIELD_BIT(30);
+            uint32_t       Res_28                       : MOS_BITFIELD_BIT(28);
+            uint32_t       EnableFlexibleParam          : MOS_BITFIELD_BIT(29);
+            uint32_t       EnableQualityImprovement     : MOS_BITFIELD_BIT(30);
             uint32_t       EnableDebugDump              : MOS_BITFIELD_BIT(31); 
         };
         uint32_t Value;
@@ -165,7 +166,7 @@ struct CODECHAL_FEI_HEVC_I_32x32_PU_MODE_DECISION_CURBE_G9
 
     union {
         struct {
-            uint32_t       BTI_Stats_Surface;
+            uint32_t       BTI_Stats_Data;
         };
         uint32_t Value;
     } DW16;
@@ -223,8 +224,9 @@ struct CODECHAL_FEI_HEVC_I_16x16_PU_MODEDECISION_CURBE_G9
             uint32_t       LCUBRCEnable                 : MOS_BITFIELD_BIT(26);
             uint32_t       ROIEnable                    : MOS_BITFIELD_BIT(27);
             uint32_t       FASTSurveillanceFlag         : MOS_BITFIELD_BIT(28);
-            uint32_t       bQualityImprovementEnable    : MOS_BITFIELD_BIT(29);
-            uint32_t       Reserved_30_31               : MOS_BITFIELD_RANGE(30, 31);
+            uint32_t       EnableQualityImprovement     : MOS_BITFIELD_BIT(29);
+            uint32_t       EnableFlexibleParam          : MOS_BITFIELD_BIT(30);
+            uint32_t       Reserved_31                  : MOS_BITFIELD_BIT(31);
         };
         uint32_t Value;
     } DW3;
@@ -443,8 +445,8 @@ struct CODECHAL_FEI_HEVC_I_8x8_PU_CURBE_G9
             uint32_t       LCUBRCEnable                 : MOS_BITFIELD_BIT(26);
             uint32_t       ROIEnable                    : MOS_BITFIELD_BIT(27);
             uint32_t       FASTSurveillanceFlag         : MOS_BITFIELD_BIT(28);
-            uint32_t       Reserved_29                  : MOS_BITFIELD_BIT(29);
-            uint32_t       bQualityImprovementEnable    : MOS_BITFIELD_BIT(30);
+            uint32_t       EnableFlexibleParam          : MOS_BITFIELD_BIT(29);
+            uint32_t       EnableQualityImprovement     : MOS_BITFIELD_BIT(30);
             uint32_t       EnableDebugDump              : MOS_BITFIELD_BIT(31);   
         };
         uint32_t Value;
