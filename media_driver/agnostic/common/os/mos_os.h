@@ -261,6 +261,7 @@ struct _MOS_GPUCTX_CREATOPTIONS
 {
     uint32_t  CmdBufferNumScale;
     _MOS_GPUCTX_CREATOPTIONS() : CmdBufferNumScale(MOS_GPU_CONTEXT_CREATE_DEFAULT) {}
+    virtual ~_MOS_GPUCTX_CREATOPTIONS(){}
 };
 
 class OsContext;
