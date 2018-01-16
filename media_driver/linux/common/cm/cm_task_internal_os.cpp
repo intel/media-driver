@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_task_internal_os.cpp  
-//! \brief     Contains Class CmTaskInternal  definitions  
+//! \file      cm_task_internal_os.cpp 
+//! \brief     Contains Class CmTaskInternal  definitions 
 //!
 
 #include "cm_task_internal.h"
@@ -39,7 +39,7 @@ namespace CMRT_UMD
 int32_t CmTaskInternal::VtuneWriteEventInfo()
 {
     if(!m_pCmDevice->IsVtuneLogOn())
-    {   // return directly if ETW log is off 
+    {   // return directly if ETW log is off
         return CM_SUCCESS;
     }
 
@@ -63,7 +63,7 @@ int32_t CmTaskInternal::VtuneWriteEventInfo()
         return CM_NULL_POINTER;
     }
     pCmFtrace->WriteTaskProfilingInfo(&m_TaskProfilingInfo);
-    
+
     return CM_SUCCESS;
 }
 }  // namespace

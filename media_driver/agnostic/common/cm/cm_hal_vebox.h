@@ -57,7 +57,6 @@ struct CM_HAL_EXEC_VEBOX_TASK_PARAM
 };
 typedef CM_HAL_EXEC_VEBOX_TASK_PARAM *PCM_HAL_EXEC_VEBOX_TASK_PARAM;
 
-
 enum VEBOX_SURF_USAGE
 {
     VEBOX_CURRENT_FRAME_INPUT_SURF,
@@ -73,7 +72,6 @@ enum VEBOX_SURF_USAGE
     VEBOX_SKIN_SCORE_OUTPUT_SURF
 };
 
-
 //!
 //! \brief      build up vebox command sequence
 //! \details     based on passed vebox param to build command sequence and
@@ -82,8 +80,8 @@ enum VEBOX_SURF_USAGE
 //! \param       [in] execVeboxParam -- vebox setup params
 //!
 MOS_STATUS HalCm_ExecuteVeboxTask(
-	PCM_HAL_STATE                   state,           // [in] Pointer to CM State
-	PCM_HAL_EXEC_VEBOX_TASK_PARAM   execVeboxParam);
+    PCM_HAL_STATE                   state,           // [in] Pointer to CM State
+    PCM_HAL_EXEC_VEBOX_TASK_PARAM   execVeboxParam);
 
 //!
 //! \brief      Set up vebox surface Param
@@ -93,8 +91,8 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
 //! \param     [in]veboxSurfaceStateCmdParams  -- surface state param struct
 //!
 MOS_STATUS HalCm_SetVeboxSurfaceStateCmdParams(
-	PCM_HAL_STATE                   state,
-	PMHW_VEBOX_SURFACE_STATE_CMD_PARAMS   veboxSurfaceStateCmdParams);
+    PCM_HAL_STATE                   state,
+    PMHW_VEBOX_SURFACE_STATE_CMD_PARAMS   veboxSurfaceStateCmdParams);
 
 //!
 //! \brief    set vebox DiIecp Command
@@ -106,9 +104,9 @@ MOS_STATUS HalCm_SetVeboxSurfaceStateCmdParams(
 //!  \param   [in] cmVeboxSurfaceDataInput  -- surface data such as index and control bits
 //!
 MOS_STATUS HalCm_SetVeboxDiIecpCmdParams(
-	PCM_HAL_STATE                   state,
-	PMHW_VEBOX_DI_IECP_CMD_PARAMS   veboxDiIecpCmdParams,
-	PCM_VEBOX_SURFACE_DATA       cmVeboxSurfaceDataInput);
+    PCM_HAL_STATE                   state,
+    PMHW_VEBOX_DI_IECP_CMD_PARAMS   veboxDiIecpCmdParams,
+    PCM_VEBOX_SURFACE_DATA       cmVeboxSurfaceDataInput);
 
 //!
 //| \brief     reset vebox STMM history
@@ -118,7 +116,7 @@ MOS_STATUS HalCm_SetVeboxDiIecpCmdParams(
 //| \param     [in] renderHalSTMMSurface -- RENDERHAL_SURFACE
 //!
 MOS_STATUS HalCm_VeboxInitSTMMHistory(
-	PMOS_INTERFACE          osInterface,
-	PRENDERHAL_SURFACE      renderHalSTMMSurface);
+    PMOS_INTERFACE          osInterface,
+    PRENDERHAL_SURFACE      renderHalSTMMSurface);
 
 #endif  // #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMHALVEBOX_H_

@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_surface_vme.cpp  
-//! \brief     Contains Class CmSurfaceVme  definitions  
+//! \file      cm_surface_vme.cpp 
+//! \brief     Contains Class CmSurfaceVme  definitions 
 //!
 
 #include "cm_surface_vme.h"
@@ -30,8 +30,8 @@
 
 namespace CMRT_UMD
 {
-int32_t CmSurfaceVme::Create( 
-    uint32_t index, 
+int32_t CmSurfaceVme::Create(
+    uint32_t index,
     uint32_t indexFor2DCurrent,
     uint32_t indexFor2DForward,
     uint32_t indexFor2DBackward,
@@ -62,11 +62,11 @@ int32_t CmSurfaceVme::Create(
     return result;
 }
 
-int32_t CmSurfaceVme::Create( uint32_t index, 
-                              uint32_t indexFor2DCurSurface, 
+int32_t CmSurfaceVme::Create( uint32_t index,
+                              uint32_t indexFor2DCurSurface,
                               uint32_t *pForwardSurface,
                               uint32_t *pBackwardSurface,
-                              uint32_t indexCurrent, 
+                              uint32_t indexCurrent,
                               uint32_t *pForward,
                               uint32_t *pBackward,
                               const uint32_t surfaceFCount,
@@ -95,7 +95,7 @@ int32_t CmSurfaceVme::Create( uint32_t index,
     return result;
 }
 
-CmSurfaceVme::CmSurfaceVme( 
+CmSurfaceVme::CmSurfaceVme(
     uint32_t indexFor2DCurrent,
     uint32_t indexFor2DForward,
     uint32_t indexFor2DBackward,
@@ -103,7 +103,7 @@ CmSurfaceVme::CmSurfaceVme(
     uint32_t indexForForward,
     uint32_t indexForBackward,
     CmSurfaceManager* pSurfaceManager ):
-    CmSurface( pSurfaceManager,true ), 
+    CmSurface( pSurfaceManager,true ),
     m_IndexFor2DCurrent( indexFor2DCurrent ),
     m_IndexFor2DForward( indexFor2DForward ),
     m_IndexFor2DBackward( indexFor2DBackward ),
@@ -141,13 +141,13 @@ CmSurfaceVme::CmSurfaceVme(
                             const uint32_t surfaceFCount,
                             const uint32_t surfaceBCount,
                             uint32_t indexFor2DCurSurface,
-                            uint32_t *pForwardSurface, 
+                            uint32_t *pForwardSurface,
                             uint32_t *pBackwardSurface,
-                            uint32_t indexCurrent, 
+                            uint32_t indexCurrent,
                             uint32_t *pForward,
                             uint32_t *pBackward,
                             CmSurfaceManager* pSurfaceManager):
-                            CmSurface( pSurfaceManager, false), 
+                            CmSurface( pSurfaceManager, false),
                             m_IndexFor2DCurrent(indexFor2DCurSurface),
                             m_IndexFor2DForward(0),
                             m_IndexFor2DBackward(0),
@@ -180,89 +180,89 @@ int32_t CmSurfaceVme::Initialize( uint32_t index )
     return CmSurface::Initialize( index );
 }
 
-int32_t CmSurfaceVme::GetIndex( SurfaceIndex*& pIndex ) 
-{ 
-    pIndex = m_pIndex; 
+int32_t CmSurfaceVme::GetIndex( SurfaceIndex*& pIndex )
+{
+    pIndex = m_pIndex;
     return CM_SUCCESS;
 }
 
-int32_t CmSurfaceVme::GetIndexCurrent( uint32_t& index ) 
-{ 
-    index = m_IndexFor2DCurrent; 
+int32_t CmSurfaceVme::GetIndexCurrent( uint32_t& index )
+{
+    index = m_IndexFor2DCurrent;
     return CM_SUCCESS;
 }
 
-int32_t CmSurfaceVme::GetIndexForward( uint32_t& index ) 
-{ 
-    index = m_IndexFor2DForward; 
+int32_t CmSurfaceVme::GetIndexForward( uint32_t& index )
+{
+    index = m_IndexFor2DForward;
     return CM_SUCCESS;
 }
 
-int32_t CmSurfaceVme::GetIndexBackward( uint32_t& index ) 
-{ 
-    index = m_IndexFor2DBackward; 
+int32_t CmSurfaceVme::GetIndexBackward( uint32_t& index )
+{
+    index = m_IndexFor2DBackward;
     return CM_SUCCESS;
 }
 
 int32_t CmSurfaceVme::GetIndexForwardArray( uint32_t *&index_array)
-{ 
-    index_array = m_pForwardSurfaceArray; 
+{
+    index_array = m_pForwardSurfaceArray;
     return CM_SUCCESS;
 }
 
 int32_t CmSurfaceVme::GetIndexBackwardArray( uint32_t *& index_array)
-{ 
-    index_array = m_pBackwardSurfaceArray; 
+{
+    index_array = m_pBackwardSurfaceArray;
     return CM_SUCCESS;
 }
 
 int32_t CmSurfaceVme::GetIndexForwardCount( uint32_t &count)
-{ 
-    count= m_SurfaceFCount; 
+{
+    count= m_SurfaceFCount;
     return CM_SUCCESS;
 }
 
 /////////////
-int32_t CmSurfaceVme::GetCmIndexCurrent( uint16_t & index ) 
-{ 
-    index = (uint16_t)m_CmIndexForCurrent; 
+int32_t CmSurfaceVme::GetCmIndexCurrent( uint16_t & index )
+{
+    index = (uint16_t)m_CmIndexForCurrent;
     return CM_SUCCESS;
 }
 
-int32_t CmSurfaceVme::GetCmIndexForward( uint16_t& index ) 
-{ 
-    index = (uint16_t)m_CmIndexForForward; 
+int32_t CmSurfaceVme::GetCmIndexForward( uint16_t& index )
+{
+    index = (uint16_t)m_CmIndexForForward;
     return CM_SUCCESS;
 }
 
-int32_t CmSurfaceVme::GetCmIndexBackward( uint16_t& index ) 
-{ 
-    index = (uint16_t)m_CmIndexForBackward; 
+int32_t CmSurfaceVme::GetCmIndexBackward( uint16_t& index )
+{
+    index = (uint16_t)m_CmIndexForBackward;
     return CM_SUCCESS;
 }
 
 int32_t CmSurfaceVme::GetCmIndexForwardArray( uint32_t *&index_array)
-{ 
-    index_array = m_pForwardCmIndexArray; 
+{
+    index_array = m_pForwardCmIndexArray;
     return CM_SUCCESS;
 }
 
 int32_t CmSurfaceVme::GetCmIndexBackwardArray( uint32_t *& index_array)
-{ 
-    index_array = m_pBackwardCmIndexArray; 
+{
+    index_array = m_pBackwardCmIndexArray;
     return CM_SUCCESS;
 }
 /////////////
 
 int32_t CmSurfaceVme::GetIndexBackwardCount( uint32_t & count)
-{ 
-    count = m_SurfaceBCount; 
+{
+    count = m_SurfaceBCount;
     return CM_SUCCESS;
 }
 
 bool CmSurfaceVme::IsVmeSurfaceGen7_5()
-{ 
-    return m_IsGen7_5; 
+{
+    return m_IsGen7_5;
 }
 
 int32_t CmSurfaceVme::GetSurfaceStateResolution(uint32_t& width, uint32_t& height)

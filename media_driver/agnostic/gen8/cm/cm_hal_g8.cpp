@@ -20,14 +20,14 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_hal_g8.cpp  
-//! \brief     Common HAL CM Gen8 functions  
+//! \file      cm_hal_g8.cpp 
+//! \brief     Common HAL CM Gen8 functions 
 //!
 
 #include "cm_hal_g8.h"
 #include "cm_common.h"
-#include "cm_gpucopy_kernel_g8.h" 
-#include "cm_gpuinit_kernel_g8.h" 
+#include "cm_gpucopy_kernel_g8.h"
+#include "cm_gpuinit_kernel_g8.h"
 #include "renderhal_platform_interface.h"
 #include "mhw_state_heap_hwcmd_g8_X.h"
 
@@ -46,10 +46,10 @@ union CM_HAL_MEMORY_OBJECT_CONTROL_G8
 };
 
 MOS_STATUS CM_HAL_G8_X::SubmitCommands(
-    PMHW_BATCH_BUFFER       pBatchBuffer,       
-    int32_t                 iTaskId,           
-    PCM_HAL_KERNEL_PARAM    *pKernels,          
-    void                    **ppCmdBuffer) 
+    PMHW_BATCH_BUFFER       pBatchBuffer,
+    int32_t                 iTaskId,
+    PCM_HAL_KERNEL_PARAM    *pKernels,
+    void                    **ppCmdBuffer)
 {
     MOS_STATUS                      hr              = MOS_STATUS_SUCCESS;
     PCM_HAL_STATE                   pState          = m_cmState;
@@ -152,9 +152,9 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
     dwSyncTag = pRenderHal->pStateHeap->dwNextTag++;
 
     // Check if any task to use SLM
-    for (uint32_t i = 0; i < pState->taskParam->numKernels; i ++) 
+    for (uint32_t i = 0; i < pState->taskParam->numKernels; i ++)
     {
-        if (pKernels[i]->slmSize > 0) 
+        if (pKernels[i]->slmSize > 0)
         {
             bSLMUsed = true;
             break;
@@ -219,7 +219,7 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
         &pState->scoreboardParams);
 
     // Send VFE State
-    CM_CHK_MOSSTATUS(pMhwRender->AddMediaVfeCmd(&CmdBuffer, 
+    CM_CHK_MOSSTATUS(pMhwRender->AddMediaVfeCmd(&CmdBuffer,
                      pRenderHal->pRenderHalPltInterface->GetVfeStateParameters()));
 
     // Send CURBE Load
@@ -268,7 +268,7 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
                     CM_CHK_MOSSTATUS(pMhwMiInterface->AddMediaStateFlush(&CmdBuffer, nullptr, &FlushParam));
                 }
 
-                // Insert a pipe control for synchronization since this Conditional Batch Buffer End command 
+                // Insert a pipe control for synchronization since this Conditional Batch Buffer End command
                 // will use value written by previous kernel. Also needed since this may be the Batch Buffer End
                 PipeCtlParams = g_cRenderHal_InitPipeControlParams;
                 PipeCtlParams.presDest = &pState->renderTimeStampResource.osResource;
@@ -283,7 +283,7 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
                 PipeCtlParams.dwPostSyncOp = MHW_FLUSH_WRITE_TIMESTAMP_REG;
                 PipeCtlParams.dwFlushMode = MHW_FLUSH_READ_CACHE;
                                 CM_CHK_MOSSTATUS(pMhwMiInterface->AddPipeControl(&CmdBuffer, nullptr, &PipeCtlParams));
-                
+
                 // Insert conditional batch buffer end
                 pMhwMiInterface->AddMiConditionalBatchBufferEndCmd(&CmdBuffer, &pTaskParam->conditionalBBEndParams[i]);
             }
@@ -291,7 +291,7 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
             //Insert PIPE_CONTROL at two cases:
             // 1. synchronization is set
             // 2. the next kernel has dependency pattern
-            if((i > 0) && ((pTaskParam->syncBitmap & ((uint64_t)1 << (i-1))) || 
+            if((i > 0) && ((pTaskParam->syncBitmap & ((uint64_t)1 << (i-1))) ||
                 (pKernels[i]->kernelThreadSpaceParam.patternType != CM_NONE_DEPENDENCY)))
             {
                 //Insert a pipe control as synchronization
@@ -357,7 +357,7 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
     {
         // Send Start batch buffer command
         CM_CHK_MOSSTATUS(pMhwMiInterface->AddMiBatchBufferStartCmd(
-            &CmdBuffer, 
+            &CmdBuffer,
             pBatchBuffer));
 
         CM_CHK_NULL_RETURN_MOSSTATUS(pBatchBuffer->pPrivateData);
@@ -383,7 +383,7 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
         }
     }
 
-    // issue a PIPE_CONTROL to flush all caches and the stall the CS before 
+    // issue a PIPE_CONTROL to flush all caches and the stall the CS before
     // issuing a PIPE_CONTROL to write the timestamp
     PipeCtlParams = g_cRenderHal_InitPipeControlParams;
     PipeCtlParams.presDest      = &pState->renderTimeStampResource.osResource;
@@ -414,7 +414,7 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
     PipeCtlParams.dwFlushMode       = MHW_FLUSH_READ_CACHE;
     CM_CHK_MOSSTATUS(pMhwMiInterface->AddPipeControl(&CmdBuffer, nullptr, &PipeCtlParams));
 
-    if ( bSLMUsed & pState->pfnIsWASLMinL3Cache()) 
+    if ( bSLMUsed & pState->pfnIsWASLMinL3Cache())
     {
         //Disable SLM in L3 when command submitted
         pState->l3Settings.enableSlm = false;
@@ -423,7 +423,7 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
         pMhwRender->SetL3Cache(&CmdBuffer);
     }
 
-    // Send Sync Tag 
+    // Send Sync Tag
     CM_CHK_MOSSTATUS( pRenderHal->pfnSendSyncTag( pRenderHal, &CmdBuffer ) );
 
     //Couple to the BB_START , otherwise GPU Hang without it in KMD.
@@ -431,7 +431,7 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
 
     // Return unused command buffer space to OS
     pOsInterface->pfnReturnCommandBuffer(pOsInterface, &CmdBuffer, 0);
-    
+
 #if MDF_COMMAND_BUFFER_DUMP
     if (pState->dumpCommandBuffer)
     {
@@ -555,13 +555,13 @@ MOS_STATUS CM_HAL_G8_X::HwSetSurfaceMemoryObjectControl(
 {
     MOS_STATUS                      hr = MOS_STATUS_SUCCESS;
     CM_HAL_MEMORY_OBJECT_CONTROL_G8 cache_type;
-    
+
     MOS_ZeroMemory( &cache_type, sizeof( CM_HAL_MEMORY_OBJECT_CONTROL_G8 ) );
 
     if ( ( wMemObjCtl & CM_MEMOBJCTL_CACHE_MASK ) >> 8 == CM_INVALID_MEMOBJCTL )
     {
-		CM_CHK_NULL_RETURN(pGmmGlobalContext);
-		CM_CHK_NULL_RETURN(pGmmGlobalContext->GetCachePolicyObj());
+        CM_CHK_NULL_RETURN(pGmmGlobalContext);
+        CM_CHK_NULL_RETURN(pGmmGlobalContext->GetCachePolicyObj());
         cache_type.DwordValue = pGmmGlobalContext->GetCachePolicyObj()->CachePolicyGetMemoryObject( nullptr, CM_RESOURCE_USAGE_SurfaceState ).DwordValue;
 
         // for default value and SVM surface, override the cache control from WB to WT
@@ -584,8 +584,8 @@ MOS_STATUS CM_HAL_G8_X::HwSetSurfaceMemoryObjectControl(
     return hr;
 }
 
-MOS_STATUS CM_HAL_G8_X::RegisterSampler8x8(    
-    PCM_HAL_SAMPLER_8X8_PARAM    pParam)   
+MOS_STATUS CM_HAL_G8_X::RegisterSampler8x8(
+    PCM_HAL_SAMPLER_8X8_PARAM    pParam)
 {
     MOS_STATUS                  hr = MOS_STATUS_SUCCESS;
     PMHW_SAMPLER_STATE_PARAM    pSamplerEntry = nullptr;
@@ -627,10 +627,10 @@ MOS_STATUS CM_HAL_G8_X::RegisterSampler8x8(
         pSamplerEntry->Avs.iTable8x8_Index          = samplerIndex;  // Used for calculating the Media offset of 8x8 table
         pSamplerEntry->Avs.pMhwSamplerAvsTableParam = &pSampler8x8Entry->sampler8x8State.mhwSamplerAvsTableParam;
 
-		if (pSamplerEntry->Avs.EightTapAFEnable)
-			pParam->sampler8x8State.avsParam.avsTable.adaptiveFilterAllChannels = true;
-		else
-			pParam->sampler8x8State.avsParam.avsTable.adaptiveFilterAllChannels = false;
+        if (pSamplerEntry->Avs.EightTapAFEnable)
+            pParam->sampler8x8State.avsParam.avsTable.adaptiveFilterAllChannels = true;
+        else
+            pParam->sampler8x8State.avsParam.avsTable.adaptiveFilterAllChannels = false;
 
         RegisterSampler8x8AVSTable(&pSampler8x8Entry->sampler8x8State,
                                    &pParam->sampler8x8State.avsParam.avsTable);
@@ -700,7 +700,7 @@ MOS_STATUS CM_HAL_G8_X::RegisterSampler8x8(
         pSamplerEntry->Convolve.ui8SizeOfTheCoefficient = pParam->sampler8x8State.convolveState.coeffSize;
 
         pSamplerEntry->ElementType = MHW_Sampler64Elements;
-        
+
         for ( int i = 0; i < CM_NUM_CONVOLVE_ROWS_BDW; i++ )
         {
             MHW_SAMPLER_CONVOLVE_COEFF_TABLE *pCoeffTable  = &(pSamplerEntry->Convolve.CoeffTable[i]);
@@ -744,13 +744,13 @@ MOS_STATUS CM_HAL_G8_X::RegisterSampler8x8(
                 pCoeffTable->wFilterCoeff[15] = FloatToS3_4( pSourceTable->FilterCoeff_0_15 );
             }
         }
-        
+
     }
 
     return hr;
 }
 
-MOS_STATUS CM_HAL_G8_X::SetupHwDebugControl(    
+MOS_STATUS CM_HAL_G8_X::SetupHwDebugControl(
     PRENDERHAL_INTERFACE   pRenderHal,
     PMOS_COMMAND_BUFFER    pCmdBuffer)
 {
@@ -763,7 +763,7 @@ MOS_STATUS CM_HAL_G8_X::SetupHwDebugControl(
 
     MHW_MI_LOAD_REGISTER_IMM_PARAMS LoadRegImm;
     MOS_ZeroMemory(&LoadRegImm, sizeof(MHW_MI_LOAD_REGISTER_IMM_PARAMS));
-    
+
     // INSTPM, global debug enable
     LoadRegImm.dwRegister = INSTPM;
     LoadRegImm.dwData = (INSTPM_GLOBAL_DEBUG_ENABLE << 16) | INSTPM_GLOBAL_DEBUG_ENABLE;
@@ -796,7 +796,7 @@ MOS_STATUS CM_HAL_G8_X::RegisterSampler8x8AVSTable(
     pSampler8x8AVSTable->mhwSamplerAvsTableParam.byteDefaultSharpnessLevel = MEDIASTATE_AVS_SHARPNESS_LEVEL_SHARP;
 
     pSampler8x8AVSTable->mhwSamplerAvsTableParam.bEnableRGBAdaptive         = false;
-	pSampler8x8AVSTable->mhwSamplerAvsTableParam.bAdaptiveFilterAllChannels = pAVSTable->adaptiveFilterAllChannels;
+    pSampler8x8AVSTable->mhwSamplerAvsTableParam.bAdaptiveFilterAllChannels = pAVSTable->adaptiveFilterAllChannels;
     pSampler8x8AVSTable->mhwSamplerAvsTableParam.bBypassXAdaptiveFiltering  = true;
     pSampler8x8AVSTable->mhwSamplerAvsTableParam.bBypassYAdaptiveFiltering  = true;
 
@@ -854,7 +854,7 @@ MOS_STATUS CM_HAL_G8_X::UpdatePlatformInfoFromPower(
     PRENDERHAL_INTERFACE       pRenderHal = pState->renderHal;
     CM_POWER_OPTION            CMPower;
 
-    if ( pState->requestSingleSlice || 
+    if ( pState->requestSingleSlice ||
          pRenderHal->bRequestSingleSlice ||
         (pState->powerOption.nSlice != 0 && pState->powerOption.nSlice < platformInfo->numSlices))
     {
@@ -917,7 +917,7 @@ MOS_STATUS CM_HAL_G8_X::GetExpectedGtSystemConfig(
 MOS_STATUS CM_HAL_G8_X::AllocateSIPCSRResource()
 {
     MOS_STATUS hr = MOS_STATUS_SUCCESS;
-    if (Mos_ResourceIsNull(&m_cmState->sipResource.osResource)) 
+    if (Mos_ResourceIsNull(&m_cmState->sipResource.osResource))
     {
         hr = HalCm_AllocateSipResource(m_cmState); // create  sip resource if it does not exist
     }
@@ -981,7 +981,7 @@ MOS_STATUS CM_HAL_G8_X::SetSuggestedL3Conf(
 
 MOS_STATUS CM_HAL_G8_X::GetGenStepInfo(char*& stepinfostr)
 {
-    const char *GenSteppingInfoTable[] = { "A0", "XX", "XX", "B0", "D0", "E0", "F0", 
+    const char *GenSteppingInfoTable[] = { "A0", "XX", "XX", "B0", "D0", "E0", "F0",
                                            "G0", "G1", "H0", "J0" };
 
     uint32_t genStepId = m_cmState->platform.usRevId;
@@ -1026,7 +1026,7 @@ int32_t CM_HAL_G8_X::GetConvSamplerIndex(
     int32_t                   nSamp8X8Num,
     int32_t                   nSampConvNum)
 {
-    
+
     //  2D convolve BDW
     int32_t iSamplerIndex = 1 + (nSamp8X8Num + nSampConvNum) * 2;
     while (pSamplerIndexTable[iSamplerIndex] != CM_INVALID_INDEX)
@@ -1038,7 +1038,7 @@ int32_t CM_HAL_G8_X::GetConvSamplerIndex(
 }
 
 MOS_STATUS CM_HAL_G8_X::SetL3CacheConfig(
-            const L3ConfigRegisterValues *values_ptr, 
+            const L3ConfigRegisterValues *values_ptr,
             PCmHalL3Settings cmhal_l3_cache_ptr)
 {
     return HalCm_SetL3Cache( values_ptr, cmhal_l3_cache_ptr );

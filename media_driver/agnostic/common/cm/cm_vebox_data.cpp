@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_vebox_data.cpp  
-//! \brief     Contains Class CmVeboxData definitions  
+//! \file      cm_vebox_data.cpp 
+//! \brief     Contains Class CmVeboxData definitions 
 //!
 
 #include "cm_vebox_data.h"
@@ -31,7 +31,7 @@
 namespace CMRT_UMD
 {
 //*-----------------------------------------------------------------------------
-//| Purpose:    Create Vebox Data 
+//| Purpose:    Create Vebox Data
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 int32_t CmVeboxData::Create( uint8_t *pStateData, uint8_t *pSurfaceData, CmVeboxData*& pVeboxData )
@@ -67,7 +67,7 @@ int32_t CmVeboxData::Destroy( CmVeboxData* &pVeboxData )
         pVeboxData->SafeRelease();
         pVeboxData = nullptr;
     }
-    
+
     return CM_SUCCESS;
 }
 
@@ -139,9 +139,8 @@ int32_t CmVeboxData::GetVeboxDataSize(uint32_t& uiStateDataSize, uint32_t& uiSur
     return CM_SUCCESS;
 }
 
-
 //*-----------------------------------------------------------------------------
-//| Purpose:    Increase Reference count 
+//| Purpose:    Increase Reference count
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 int32_t CmVeboxData::Acquire( void )

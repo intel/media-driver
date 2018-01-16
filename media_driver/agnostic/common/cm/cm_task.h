@@ -44,13 +44,13 @@ enum CM_CONDITIONAL_END_OPERATOR_CODE
 //! \details
 //!     The parameters of conditional batch buffer end command, for platforms
 //!     till CNL, only opValue and opMask fields are used.
-//!  
+//!
 struct CM_CONDITIONAL_END_PARAM
 {
-    uint32_t opValue;                           //!< operand of comparing operation 
-    CM_CONDITIONAL_END_OPERATOR_CODE  opCode;   //!< operation type 
-    bool  opMask;                               //!< mask of operand 
-    bool  opLevel;                              //!< batch buffer level to end 
+    uint32_t opValue;                           //!< operand of comparing operation
+    CM_CONDITIONAL_END_OPERATOR_CODE  opCode;   //!< operation type
+    bool  opMask;                               //!< mask of operand
+    bool  opLevel;                              //!< batch buffer level to end
 };
 
 namespace CMRT_UMD

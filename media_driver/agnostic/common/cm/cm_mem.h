@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_mem.h  
-//! \brief     Contains CM memory function definitions  
+//! \file      cm_mem.h 
+//! \brief     Contains CM memory function definitions 
 //!
 #pragma once
 
@@ -30,7 +30,6 @@
 #include <emmintrin.h>
 #include "cm_debug.h"
 #include "mos_utilities.h"
-
 
 enum CPU_INSTRUCTION_LEVEL
 {
@@ -49,8 +48,6 @@ typedef uint32_t            PREFETCH[8];    //             32-bytes
 typedef uint32_t            CACHELINE[8];   //             32-bytes
 typedef uint16_t            DHWORD[32];     // 512-bits,   64-bytes
 
-
-
 #define CmSafeDeleteArray(_ptr) {if(_ptr != nullptr) {delete[] (_ptr); (_ptr)=nullptr;}}
 #define CmSafeDelete(_ptr)      {if(_ptr != nullptr) {delete (_ptr);(_ptr)=nullptr;}}
 #define MosSafeDeleteArray(_ptr) {MOS_DeleteArray(_ptr); (_ptr)=nullptr;}
@@ -67,7 +64,7 @@ inline bool IsAligned( void * ptr, const size_t alignSize );
 inline size_t Round( const size_t value, const size_t size );
 
 inline void CmFastMemCopy( void* dst, const   void* src, const size_t bytes );
-inline void CmFastMemCopyWC( void* dst,   const void* src, const size_t bytes ); 
+inline void CmFastMemCopyWC( void* dst,   const void* src, const size_t bytes );
 inline void CmFastMemCopyFromWC( void* dst, const void* src, const size_t bytes, CPU_INSTRUCTION_LEVEL cpuInstructionLevel );
 
 inline void Prefetch( const void* ptr );
@@ -76,7 +73,6 @@ inline void FastMemCopy_SSE2( void* dst,  void* src, const size_t doubleQuadWord
 inline void FastMemCopy_SSE2_movntdq_movdqa( void* dst,  void* src,  const size_t doubleQuadWords );
 inline void FastMemCopy_SSE2_movdqu_movdqa( void* dst,   void* src,  const size_t doubleQuadWords );
 inline void FastMemCopy_SSE2_movntdq_movdqu( void* dst, const void* src, const size_t doubleQuadWords);
-
 
 /*****************************************************************************\
 MACROS:
@@ -100,7 +96,6 @@ Description:
     __asm _emit ((OFFSET>>8)&0xFF)              \
     __asm _emit ((OFFSET>>16)&0xFF)             \
     __asm _emit ((OFFSET>>24)&0xFF)
-
 
 /*****************************************************************************\
 MACROS:
@@ -130,9 +125,7 @@ Description:
 #define BIT( n )    ( 1 << (n) )
 #endif
 
-
 #include "cm_mem_os.h"
-
 
 /*****************************************************************************\
 Inline Function:
@@ -149,7 +142,7 @@ inline void CmSafeMemSet( void* dst, const int data, const size_t bytes )
     {
         ::memset( dst, data, bytes );
     }
-#if defined(_DEBUG) 
+#if defined(_DEBUG)
     // catch exceptions here so they are easily debugged
     __except( EXCEPTION_EXECUTE_HANDLER )
     {
@@ -192,7 +185,7 @@ inline void CmSafeMemCopy( void* pdst, const void *psrc, const size_t bytes )
     {
         MOS_SecureMemcpy( p_dst, bytes, p_src, bytes );
     }
-#if defined(_DEBUG) 
+#if defined(_DEBUG)
     // catch exceptions here so they are easily debugged
     __except( EXCEPTION_EXECUTE_HANDLER )
     {
@@ -225,7 +218,6 @@ inline int CmSafeMemCompare( const void* dst, const void* src, const size_t byte
     }
 #endif
 }
-
 
 /*****************************************************************************\
 Inline Function:
@@ -382,7 +374,7 @@ Input:
 \*****************************************************************************/
 inline void FastMemCopy_SSE2_movntdq_movdqa(
     void* dst,
-    void* src, 
+    void* src,
     const size_t doubleQuadWords )
 {
     CM_ASSERT( IsAligned( dst, sizeof(DQWORD) ) );
@@ -436,8 +428,8 @@ Input:
     doubleQuadWords - number of DoubleQuadWords to copy
 \*****************************************************************************/
 inline void FastMemCopy_SSE2_movdqu_movdqa(
-    void* dst, 
-    void* src, 
+    void* dst,
+    void* src,
     const size_t doubleQuadWords )
 {
     CM_ASSERT( IsAligned( src, sizeof(DQWORD) ) );
@@ -490,8 +482,8 @@ Input:
     doubleQuadWords - number of DoubleQuadWords to copy
 \*****************************************************************************/
 inline void FastMemCopy_SSE2_movntdq_movdqu(
-    void* dst, 
-    const void* src, 
+    void* dst,
+    const void* src,
     const size_t doubleQuadWords )
 {
     CM_ASSERT( IsAligned( dst, sizeof(DQWORD) ) );
@@ -544,8 +536,8 @@ Input:
     doubleQuadWords - number of DoubleQuadWords to copy
 \*****************************************************************************/
 inline void FastMemCopy_SSE2_movdqu_movdqu(
-    void* dst, 
-    const void* src, 
+    void* dst,
+    const void* src,
     const size_t doubleQuadWords )
 {
     const size_t DoubleQuadWordsPerPrefetch = sizeof(PREFETCH) / sizeof(DQWORD);
@@ -596,8 +588,8 @@ Input:
     doubleQuadWords - number of DoubleQuadWords to copy
 \*****************************************************************************/
 inline void FastMemCopy_SSE2(
-    void* dst, 
-    void* src, 
+    void* dst,
+    void* src,
     const size_t doubleQuadWords )
 {
     // Determine if the source and destination addresses are 128-bit aligned
@@ -661,7 +653,6 @@ inline void CmFastMemCopy( void* dst, const   void* src, const size_t bytes )
         MOS_SecureMemcpy( p_dst, count, p_src, count );
     }
 }
-
 
 /*****************************************************************************\
 Inline Function:

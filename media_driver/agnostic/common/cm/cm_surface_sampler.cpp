@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_surface_sampler.cpp  
-//! \brief     Contains Class CmSurfaceSampler definitions  
+//! \file      cm_surface_sampler.cpp 
+//! \brief     Contains Class CmSurfaceSampler definitions 
 //!
 
 #include "cm_surface_sampler.h"
@@ -32,7 +32,7 @@
 
 namespace CMRT_UMD
 {
-int32_t CmSurfaceSampler::Create( 
+int32_t CmSurfaceSampler::Create(
     uint32_t index,                //SurfaceSampler's index in surface array
     uint32_t handleFor2D3D,        //indexing resource array of HalCm
     uint32_t indexForCurrent,      //SurfaceIndex's ID for 2D/3D, also indexing surface array
@@ -62,13 +62,13 @@ int32_t CmSurfaceSampler::Create(
     return result;
 }
 
-CmSurfaceSampler::CmSurfaceSampler( 
-    uint32_t indexForCurrent, 
+CmSurfaceSampler::CmSurfaceSampler(
+    uint32_t indexForCurrent,
     uint32_t handleFor2D3D,
     SAMPLER_SURFACE_TYPE surfaceType,
     CmSurfaceManager* pSurfaceManager,
     CM_FLAG* pFlag):
-    CmSurface(pSurfaceManager,false ), 
+    CmSurface(pSurfaceManager,false ),
     m_CmIndexForCurrent(indexForCurrent),
     m_handleFor2D3D( handleFor2D3D),
     m_surfaceType(surfaceType)
@@ -91,15 +91,15 @@ int32_t CmSurfaceSampler::Initialize( uint32_t index )
     return CmSurface::Initialize( index );
 }
 
-int32_t CmSurfaceSampler::GetSurfaceIndex( SurfaceIndex*& pIndex ) 
-{ 
-    pIndex = m_pIndex; 
+int32_t CmSurfaceSampler::GetSurfaceIndex( SurfaceIndex*& pIndex )
+{
+    pIndex = m_pIndex;
     return CM_SUCCESS;
 }
 
-int32_t CmSurfaceSampler::GetHandle( uint32_t& handle ) 
-{ 
-    handle = m_handleFor2D3D; 
+int32_t CmSurfaceSampler::GetHandle( uint32_t& handle )
+{
+    handle = m_handleFor2D3D;
     return CM_SUCCESS;
 }
 
@@ -109,9 +109,9 @@ int32_t CmSurfaceSampler::GetSurfaceType(SAMPLER_SURFACE_TYPE& type)
     return CM_SUCCESS;
 }
 
-int32_t CmSurfaceSampler::GetCmIndexCurrent( uint16_t & index ) 
-{ 
-    index = (uint16_t)m_CmIndexForCurrent; 
+int32_t CmSurfaceSampler::GetCmIndexCurrent( uint16_t & index )
+{
+    index = (uint16_t)m_CmIndexForCurrent;
     return CM_SUCCESS;
 }
 
@@ -119,7 +119,7 @@ int32_t CmSurfaceSampler::SetMemoryObjectControl( MEMORY_OBJECT_CONTROL mem_ctrl
 {
     CM_RETURN_CODE  hr = CM_SUCCESS;
     uint16_t mocs = 0;
-    
+
     CmSurface::SetMemoryObjectControl( mem_ctrl, mem_type, age );
 
     CmDeviceRT *pCmDevice = nullptr;

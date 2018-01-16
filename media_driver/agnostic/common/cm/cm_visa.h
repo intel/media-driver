@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_visa.h  
-//! \brief     Contains Class ISAfile definitions  
+//! \file      cm_visa.h 
+//! \brief     Contains Class ISAfile definitions 
 //!
 
 #ifndef VISA_H
@@ -373,7 +373,6 @@ namespace vISA {
             return p;
         }
 
-
         //!
         //! \brief      Adds all the AttributeInfo's fields to a buffer.
         //! \details    Every field from this class is added to a buffer
@@ -392,7 +391,6 @@ namespace vISA {
                 i++;
             }
         }
-
 
         //!
         //! \brief      Makes the changes needed to support 303 version's AttributeInfo.
@@ -546,7 +544,6 @@ namespace vISA {
             return p;
         }
 
-
         //!
         //! \brief      Adds all the InputInfo's fields to a buffer.
         //! \details    Every field from this class is added to a buffer
@@ -565,7 +562,6 @@ namespace vISA {
                 i++;
             }
         }
-
 
         //!
         //! \brief      Makes the changes needed to support 303 version's InputInfo.
@@ -678,7 +674,7 @@ namespace vISA {
         //!
         //! \brief      Returns the reference to the vector of AttributeInfo objects.
         //! \details    VmeInfo has a vector of AttributeInfo objects
-        //!             that represents another entity within the vISA object format.  
+        //!             that represents another entity within the vISA object format. 
         //! \retval     Reference to the vector of AttributeInfo*.
         //!
         std::vector<AttributeInfo*> &getAttributeInfo() {
@@ -723,7 +719,6 @@ namespace vISA {
             return p;
         }
 
-
         //!
         //! \brief      Adds all the VmeInfo's fields to a buffer.
         //! \details    Every field from this class is added to a buffer
@@ -747,7 +742,6 @@ namespace vISA {
             }
             i++;
         }
-
 
         //!
         //! \brief      Makes the changes needed to support 303 version's VmeInfo.
@@ -860,7 +854,7 @@ namespace vISA {
         //!
         //! \brief      Returns the reference to the vector of AttributeInfo objects.
         //! \details    SurfaceInfo has a vector of AttributeInfo objects
-        //!             that represents another entity within the vISA object format.  
+        //!             that represents another entity within the vISA object format. 
         //! \retval     Reference to the vector of AttributeInfo*.
         //!
         std::vector<AttributeInfo*> &getAttributeInfo() {
@@ -905,7 +899,6 @@ namespace vISA {
             return p;
         }
 
-
         //!
         //! \brief      Adds all the SurfaceInfo's fields to a buffer.
         //! \details    Every field from this class is added to a buffer
@@ -929,7 +922,6 @@ namespace vISA {
             }
             i++;
         }
-
 
         //!
         //! \brief      Makes the changes needed to support 303 version's SurfaceInfo.
@@ -1042,7 +1034,7 @@ namespace vISA {
         //!
         //! \brief      Returns the reference to the vector of AttributeInfo objects.
         //! \details    SamplerInfo has a vector of AttributeInfo objects
-        //!             that represents another entity within the vISA object format.  
+        //!             that represents another entity within the vISA object format. 
         //! \retval     Reference to the vector of AttributeInfo*.
         //!
         std::vector<AttributeInfo*> &getAttributeInfo() {
@@ -1087,7 +1079,6 @@ namespace vISA {
             return p;
         }
 
-
         //!
         //! \brief      Adds all the SamplerInfo's fields to a buffer.
         //! \details    Every field from this class is added to a buffer
@@ -1111,7 +1102,6 @@ namespace vISA {
             }
             i++;
         }
-
 
         //!
         //! \brief      Makes the changes needed to support 303 version's SamplerInfo.
@@ -1224,7 +1214,7 @@ namespace vISA {
         //!
         //! \brief      Returns the reference to the vector of AttributeInfo objects.
         //! \details    LabelInfo has a vector of AttributeInfo objects
-        //!             that represents another entity within the vISA object format.  
+        //!             that represents another entity within the vISA object format. 
         //! \retval     Reference to the vector of AttributeInfo*.
         //!
         std::vector<AttributeInfo*> &getAttributeInfo() {
@@ -1269,7 +1259,6 @@ namespace vISA {
             return p;
         }
 
-
         //!
         //! \brief      Adds all the LabelInfo's fields to a buffer.
         //! \details    Every field from this class is added to a buffer
@@ -1293,7 +1282,6 @@ namespace vISA {
             }
             i++;
         }
-
 
         //!
         //! \brief      Makes the changes needed to support 303 version's LabelInfo.
@@ -1406,7 +1394,7 @@ namespace vISA {
         //!
         //! \brief      Returns the reference to the vector of AttributeInfo objects.
         //! \details    PredicateInfo has a vector of AttributeInfo objects
-        //!             that represents another entity within the vISA object format.  
+        //!             that represents another entity within the vISA object format. 
         //! \retval     Reference to the vector of AttributeInfo*.
         //!
         std::vector<AttributeInfo*> &getAttributeInfo() {
@@ -1451,7 +1439,6 @@ namespace vISA {
             return p;
         }
 
-
         //!
         //! \brief      Adds all the PredicateInfo's fields to a buffer.
         //! \details    Every field from this class is added to a buffer
@@ -1475,7 +1462,6 @@ namespace vISA {
             }
             i++;
         }
-
 
         //!
         //! \brief      Makes the changes needed to support 303 version's PredicateInfo.
@@ -1609,7 +1595,6 @@ namespace vISA {
             return p;
         }
 
-
         //!
         //! \brief      Adds all the RelocationInfo's fields to a buffer.
         //! \details    Every field from this class is added to a buffer
@@ -1730,7 +1715,7 @@ namespace vISA {
         //!
         //! \brief      Returns the reference to the vector of AttributeInfo objects.
         //! \details    AddressInfo has a vector of AttributeInfo objects
-        //!             that represents another entity within the vISA object format.  
+        //!             that represents another entity within the vISA object format. 
         //! \retval     Reference to the vector of AttributeInfo*.
         //!
         std::vector<AttributeInfo*> &getAttributeInfo() {
@@ -1775,7 +1760,6 @@ namespace vISA {
             return p;
         }
 
-
         //!
         //! \brief      Adds all the AddressInfo's fields to a buffer.
         //! \details    Every field from this class is added to a buffer
@@ -1799,7 +1783,6 @@ namespace vISA {
             }
             i++;
         }
-
 
         //!
         //! \brief      Makes the changes needed to support 303 version's AddressInfo.
@@ -2000,7 +1983,7 @@ namespace vISA {
         //!
         //! \brief      Returns the reference to the vector of AttributeInfo objects.
         //! \details    Variable has a vector of AttributeInfo objects
-        //!             that represents another entity within the vISA object format.  
+        //!             that represents another entity within the vISA object format. 
         //! \retval     Reference to the vector of AttributeInfo*.
         //!
         std::vector<AttributeInfo*> &getAttributeInfo() {
@@ -2045,7 +2028,6 @@ namespace vISA {
             return p;
         }
 
-
         //!
         //! \brief      Adds all the Variable's fields to a buffer.
         //! \details    Every field from this class is added to a buffer
@@ -2069,7 +2051,6 @@ namespace vISA {
             }
             i++;
         }
-
 
         //!
         //! \brief      Makes the changes needed to support 303 version's Variable.
@@ -2176,7 +2157,6 @@ namespace vISA {
             }
             return p;
         }
-
 
         //!
         //! \brief      Adds all the StringPool's fields to a buffer.
@@ -2340,7 +2320,6 @@ namespace vISA {
             }
             return p;
         }
-
 
         //!
         //! \brief      Adds all the GenBinary's fields to a buffer.
@@ -2580,7 +2559,7 @@ namespace vISA {
         //!
         //! \brief      Returns the reference to the vector of RelocationInfo objects.
         //! \details    Function has a vector of RelocationInfo objects
-        //!             that represents another entity within the vISA object format.  
+        //!             that represents another entity within the vISA object format. 
         //! \retval     Reference to the vector of RelocationInfo*.
         //!
         std::vector<RelocationInfo*> &getVariableRelocSymtab() {
@@ -2611,7 +2590,7 @@ namespace vISA {
         //!
         //! \brief      Returns the reference to the vector of RelocationInfo objects.
         //! \details    Function has a vector of RelocationInfo objects
-        //!             that represents another entity within the vISA object format.  
+        //!             that represents another entity within the vISA object format. 
         //! \retval     Reference to the vector of RelocationInfo*.
         //!
         std::vector<RelocationInfo*> &getFunctionRelocSymtab() {
@@ -2673,7 +2652,6 @@ namespace vISA {
             i++;
             return p;
         }
-
 
         //!
         //! \brief      Adds all the Function's fields to a buffer.
@@ -2911,7 +2889,7 @@ namespace vISA {
         //!
         //! \brief      Returns the reference to the vector of AttributeInfo objects.
         //! \details    GlobalVariable has a vector of AttributeInfo objects
-        //!             that represents another entity within the vISA object format.  
+        //!             that represents another entity within the vISA object format. 
         //! \retval     Reference to the vector of AttributeInfo*.
         //!
         std::vector<AttributeInfo*> &getAttributeInfo() {
@@ -2955,7 +2933,6 @@ namespace vISA {
             i++;
             return p;
         }
-
 
         //!
         //! \brief      Adds all the GlobalVariable's fields to a buffer.
@@ -3076,7 +3053,7 @@ namespace vISA {
         //!
         //! \brief      Returns the reference to the vector of StringPool objects.
         //! \details    FunctionBody has a vector of StringPool objects
-        //!             that represents another entity within the vISA object format.  
+        //!             that represents another entity within the vISA object format. 
         //! \retval     Reference to the vector of StringPool*.
         //!
         std::vector<StringPool*> &getStringPool() {
@@ -3128,7 +3105,7 @@ namespace vISA {
         //!
         //! \brief      Returns the reference to the vector of Variable objects.
         //! \details    FunctionBody has a vector of Variable objects
-        //!             that represents another entity within the vISA object format.  
+        //!             that represents another entity within the vISA object format. 
         //! \retval     Reference to the vector of Variable*.
         //!
         std::vector<Variable*> &getVarInfo() {
@@ -3159,7 +3136,7 @@ namespace vISA {
         //!
         //! \brief      Returns the reference to the vector of AddressInfo objects.
         //! \details    FunctionBody has a vector of AddressInfo objects
-        //!             that represents another entity within the vISA object format.  
+        //!             that represents another entity within the vISA object format. 
         //! \retval     Reference to the vector of AddressInfo*.
         //!
         std::vector<AddressInfo*> &getAddressInfo() {
@@ -3190,7 +3167,7 @@ namespace vISA {
         //!
         //! \brief      Returns the reference to the vector of PredicateInfo objects.
         //! \details    FunctionBody has a vector of PredicateInfo objects
-        //!             that represents another entity within the vISA object format.  
+        //!             that represents another entity within the vISA object format. 
         //! \retval     Reference to the vector of PredicateInfo*.
         //!
         std::vector<PredicateInfo*> &getPredicateInfo() {
@@ -3221,7 +3198,7 @@ namespace vISA {
         //!
         //! \brief      Returns the reference to the vector of LabelInfo objects.
         //! \details    FunctionBody has a vector of LabelInfo objects
-        //!             that represents another entity within the vISA object format.  
+        //!             that represents another entity within the vISA object format. 
         //! \retval     Reference to the vector of LabelInfo*.
         //!
         std::vector<LabelInfo*> &getLabelInfo() {
@@ -3252,7 +3229,7 @@ namespace vISA {
         //!
         //! \brief      Returns the reference to the vector of SamplerInfo objects.
         //! \details    FunctionBody has a vector of SamplerInfo objects
-        //!             that represents another entity within the vISA object format.  
+        //!             that represents another entity within the vISA object format. 
         //! \retval     Reference to the vector of SamplerInfo*.
         //!
         std::vector<SamplerInfo*> &getSamplerInfo() {
@@ -3283,7 +3260,7 @@ namespace vISA {
         //!
         //! \brief      Returns the reference to the vector of SurfaceInfo objects.
         //! \details    FunctionBody has a vector of SurfaceInfo objects
-        //!             that represents another entity within the vISA object format.  
+        //!             that represents another entity within the vISA object format. 
         //! \retval     Reference to the vector of SurfaceInfo*.
         //!
         std::vector<SurfaceInfo*> &getSurfaceInfo() {
@@ -3314,7 +3291,7 @@ namespace vISA {
         //!
         //! \brief      Returns the reference to the vector of VmeInfo objects.
         //! \details    FunctionBody has a vector of VmeInfo objects
-        //!             that represents another entity within the vISA object format.  
+        //!             that represents another entity within the vISA object format. 
         //! \retval     Reference to the vector of VmeInfo*.
         //!
         std::vector<VmeInfo*> &getVmeInfo() {
@@ -3429,7 +3406,7 @@ namespace vISA {
         //!
         //! \brief      Returns the reference to the vector of AttributeInfo objects.
         //! \details    FunctionBody has a vector of AttributeInfo objects
-        //!             that represents another entity within the vISA object format.  
+        //!             that represents another entity within the vISA object format. 
         //! \retval     Reference to the vector of AttributeInfo*.
         //!
         std::vector<AttributeInfo*> &getAttributeInfo() {
@@ -3644,7 +3621,6 @@ namespace vISA {
             return p;
         }
 
-
         //!
         //! \brief      Adds all the FunctionBody's fields to a buffer.
         //! \details    Every field from this class is added to a buffer
@@ -3744,7 +3720,6 @@ namespace vISA {
                 i++;
             }
         }
-
 
         //!
         //! \brief      Makes the changes needed to support 303 version's FunctionBody.
@@ -3856,7 +3831,7 @@ namespace vISA {
         //!
         //! \brief      Returns the reference to the vector of StringPool objects.
         //! \details    KernelBody has a vector of StringPool objects
-        //!             that represents another entity within the vISA object format.  
+        //!             that represents another entity within the vISA object format. 
         //! \retval     Reference to the vector of StringPool*.
         //!
         std::vector<StringPool*> &getStringPool() {
@@ -3908,7 +3883,7 @@ namespace vISA {
         //!
         //! \brief      Returns the reference to the vector of Variable objects.
         //! \details    KernelBody has a vector of Variable objects
-        //!             that represents another entity within the vISA object format.  
+        //!             that represents another entity within the vISA object format. 
         //! \retval     Reference to the vector of Variable*.
         //!
         std::vector<Variable*> &getVarInfo() {
@@ -3939,7 +3914,7 @@ namespace vISA {
         //!
         //! \brief      Returns the reference to the vector of AddressInfo objects.
         //! \details    KernelBody has a vector of AddressInfo objects
-        //!             that represents another entity within the vISA object format.  
+        //!             that represents another entity within the vISA object format. 
         //! \retval     Reference to the vector of AddressInfo*.
         //!
         std::vector<AddressInfo*> &getAddressInfo() {
@@ -3970,7 +3945,7 @@ namespace vISA {
         //!
         //! \brief      Returns the reference to the vector of PredicateInfo objects.
         //! \details    KernelBody has a vector of PredicateInfo objects
-        //!             that represents another entity within the vISA object format.  
+        //!             that represents another entity within the vISA object format. 
         //! \retval     Reference to the vector of PredicateInfo*.
         //!
         std::vector<PredicateInfo*> &getPredicateInfo() {
@@ -4001,7 +3976,7 @@ namespace vISA {
         //!
         //! \brief      Returns the reference to the vector of LabelInfo objects.
         //! \details    KernelBody has a vector of LabelInfo objects
-        //!             that represents another entity within the vISA object format.  
+        //!             that represents another entity within the vISA object format. 
         //! \retval     Reference to the vector of LabelInfo*.
         //!
         std::vector<LabelInfo*> &getLabelInfo() {
@@ -4032,7 +4007,7 @@ namespace vISA {
         //!
         //! \brief      Returns the reference to the vector of SamplerInfo objects.
         //! \details    KernelBody has a vector of SamplerInfo objects
-        //!             that represents another entity within the vISA object format.  
+        //!             that represents another entity within the vISA object format. 
         //! \retval     Reference to the vector of SamplerInfo*.
         //!
         std::vector<SamplerInfo*> &getSamplerInfo() {
@@ -4063,7 +4038,7 @@ namespace vISA {
         //!
         //! \brief      Returns the reference to the vector of SurfaceInfo objects.
         //! \details    KernelBody has a vector of SurfaceInfo objects
-        //!             that represents another entity within the vISA object format.  
+        //!             that represents another entity within the vISA object format. 
         //! \retval     Reference to the vector of SurfaceInfo*.
         //!
         std::vector<SurfaceInfo*> &getSurfaceInfo() {
@@ -4094,7 +4069,7 @@ namespace vISA {
         //!
         //! \brief      Returns the reference to the vector of VmeInfo objects.
         //! \details    KernelBody has a vector of VmeInfo objects
-        //!             that represents another entity within the vISA object format.  
+        //!             that represents another entity within the vISA object format. 
         //! \retval     Reference to the vector of VmeInfo*.
         //!
         std::vector<VmeInfo*> &getVmeInfo() {
@@ -4125,7 +4100,7 @@ namespace vISA {
         //!
         //! \brief      Returns the reference to the vector of InputInfo objects.
         //! \details    KernelBody has a vector of InputInfo objects
-        //!             that represents another entity within the vISA object format.  
+        //!             that represents another entity within the vISA object format. 
         //! \retval     Reference to the vector of InputInfo*.
         //!
         std::vector<InputInfo*> &getInputInfo() {
@@ -4198,7 +4173,7 @@ namespace vISA {
         //!
         //! \brief      Returns the reference to the vector of AttributeInfo objects.
         //! \details    KernelBody has a vector of AttributeInfo objects
-        //!             that represents another entity within the vISA object format.  
+        //!             that represents another entity within the vISA object format. 
         //! \retval     Reference to the vector of AttributeInfo*.
         //!
         std::vector<AttributeInfo*> &getAttributeInfo() {
@@ -4431,7 +4406,6 @@ namespace vISA {
             return p;
         }
 
-
         //!
         //! \brief      Adds all the KernelBody's fields to a buffer.
         //! \details    Every field from this class is added to a buffer
@@ -4540,7 +4514,6 @@ namespace vISA {
                 i++;
             }
         }
-
 
         //!
         //! \brief      Makes the changes needed to support 303 version's KernelBody.
@@ -4800,7 +4773,7 @@ namespace vISA {
         //!
         //! \brief      Returns the reference to the vector of RelocationInfo objects.
         //! \details    Kernel has a vector of RelocationInfo objects
-        //!             that represents another entity within the vISA object format.  
+        //!             that represents another entity within the vISA object format. 
         //! \retval     Reference to the vector of RelocationInfo*.
         //!
         std::vector<RelocationInfo*> &getVariableRelocSymtab() {
@@ -4831,7 +4804,7 @@ namespace vISA {
         //!
         //! \brief      Returns the reference to the vector of RelocationInfo objects.
         //! \details    Kernel has a vector of RelocationInfo objects
-        //!             that represents another entity within the vISA object format.  
+        //!             that represents another entity within the vISA object format. 
         //! \retval     Reference to the vector of RelocationInfo*.
         //!
         std::vector<RelocationInfo*> &getFunctionRelocSymtab() {
@@ -4862,7 +4835,7 @@ namespace vISA {
         //!
         //! \brief      Returns the reference to the vector of GenBinary objects.
         //! \details    Kernel has a vector of GenBinary objects
-        //!             that represents another entity within the vISA object format.  
+        //!             that represents another entity within the vISA object format. 
         //! \retval     Reference to the vector of GenBinary*.
         //!
         std::vector<GenBinary*> &getGenBinaryInfo() {
@@ -4942,7 +4915,6 @@ namespace vISA {
             i++;
             return p;
         }
-
 
         //!
         //! \brief      Adds all the Kernel's fields to a buffer.
@@ -5172,7 +5144,7 @@ namespace vISA {
         //!
         //! \brief      Returns the reference to the vector of Kernel objects.
         //! \details    Header has a vector of Kernel objects
-        //!             that represents another entity within the vISA object format.  
+        //!             that represents another entity within the vISA object format. 
         //! \retval     Reference to the vector of Kernel*.
         //!
         std::vector<Kernel*> &getKernelInfo() {
@@ -5203,7 +5175,7 @@ namespace vISA {
         //!
         //! \brief      Returns the reference to the vector of GlobalVariable objects.
         //! \details    Header has a vector of GlobalVariable objects
-        //!             that represents another entity within the vISA object format.  
+        //!             that represents another entity within the vISA object format. 
         //! \retval     Reference to the vector of GlobalVariable*.
         //!
         std::vector<GlobalVariable*> &getFileScopeVarInfo() {
@@ -5234,7 +5206,7 @@ namespace vISA {
         //!
         //! \brief      Returns the reference to the vector of Function objects.
         //! \details    Header has a vector of Function objects
-        //!             that represents another entity within the vISA object format.  
+        //!             that represents another entity within the vISA object format. 
         //! \retval     Reference to the vector of Function*.
         //!
         std::vector<Function*> &getFunctionInfo() {
@@ -5315,7 +5287,6 @@ namespace vISA {
             i++;
             return p;
         }
-
 
         //!
         //! \brief      Adds all the Header's fields to a buffer.

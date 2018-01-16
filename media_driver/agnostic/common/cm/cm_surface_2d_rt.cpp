@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_surface_2d_rt.cpp  
-//! \brief     Contains OS-agnostic CmSurface2DRT member functions.  
+//! \file      cm_surface_2d_rt.cpp 
+//! \brief     Contains OS-agnostic CmSurface2DRT member functions. 
 //!
 
 #include "cm_surface_2d_rt.h"
@@ -37,7 +37,7 @@
 namespace CMRT_UMD
 {
 //*-----------------------------------------------------------------------------
-//| Purpose:    Create Surface 2D 
+//| Purpose:    Create Surface 2D
 //| Arguments :
 //|               index             [in]     index in runtime Surface2D table
 //|               handle            [in]     index in driver's surface2D table
@@ -53,14 +53,14 @@ namespace CMRT_UMD
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 int32_t CmSurface2DRT::Create(
-                           uint32_t index, 
-                           uint32_t handle, 
-                           uint32_t width, 
-                           uint32_t height, 
+                           uint32_t index,
+                           uint32_t handle,
+                           uint32_t width,
+                           uint32_t height,
                            uint32_t pitch,
                            CM_SURFACE_FORMAT format,
                            bool isCmCreated,
-                           CmSurfaceManager* pSurfaceManager, 
+                           CmSurfaceManager* pSurfaceManager,
                            CmSurface2DRT* &pSurface )
 {
     int32_t result = CM_SUCCESS;
@@ -133,7 +133,7 @@ CM_RT_API int32_t CmSurface2DRT::WriteSurfaceHybridStrides( const unsigned char*
     if (result != CM_SUCCESS)
     {
         CM_ASSERTMESSAGE("Error: Failed to get correct surface info.")
-        return result; 
+        return result;
     }
 
     widthInBytes = m_Width * sizePerPixel;
@@ -189,7 +189,7 @@ CM_RT_API int32_t CmSurface2DRT::WriteSurfaceHybridStrides( const unsigned char*
             CMCHK_HR(WriteSurfaceFullStride(pSysMem, pEvent, iWidthStride, iHeightStride, sysMemSize));
         }
     }
-    
+
 finish:
     return hr;
 }
@@ -257,7 +257,7 @@ CM_RT_API int32_t CmSurface2DRT::WriteSurface( const unsigned char* pSysMem, CmE
     pDst  = ( uint8_t *)(inParam.data);
     pSurf = ( uint8_t *)pSysMem;
 
-    // Get the memory size according to the format 
+    // Get the memory size according to the format
     CMCHK_HR(m_SurfaceMgr->GetPixelBytesAndHeight(m_Width, m_Height, m_Format, sizePerPixel, updatedHeight));
 
     size = m_Width * sizePerPixel;
@@ -315,7 +315,7 @@ CM_RT_API int32_t CmSurface2DRT::ReadSurfaceHybridStrides( unsigned char* pSysMe
     if (result != CM_SUCCESS)
     {
         CM_ASSERTMESSAGE("Error: Failed to get correct surface info.")
-        return result; 
+        return result;
     }
 
     widthInBytes = m_Width * sizePerPixel;
@@ -332,7 +332,7 @@ CM_RT_API int32_t CmSurface2DRT::ReadSurfaceHybridStrides( unsigned char* pSysMe
     }
 
     WaitForReferenceFree();   // wait all owner task finished
-    
+
     if (bForceCPUCopy)
     {
         CMCHK_HR(ReadSurfaceFullStride(pSysMem, pEvent, iWidthStride, iHeightStride, sysMemSize));
@@ -471,9 +471,9 @@ finish:
 //| Purpose:    Get the index of CmSurface2D
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-CM_RT_API int32_t CmSurface2DRT::GetIndex( SurfaceIndex*& pIndex ) 
-{ 
-    pIndex = m_pIndex; 
+CM_RT_API int32_t CmSurface2DRT::GetIndex( SurfaceIndex*& pIndex )
+{
+    pIndex = m_pIndex;
     return CM_SUCCESS;
 }
 
@@ -542,7 +542,7 @@ CM_RT_API int32_t CmSurface2DRT::WriteSurfaceStride( const unsigned char* pSysMe
     pDst = ( uint8_t *)(inParam.data);
     pSrc = ( uint8_t *)pSysMem;
 
-    // Get the memory size according to the format 
+    // Get the memory size according to the format
     CMCHK_HR(m_SurfaceMgr->GetPixelBytesAndHeight(m_Width, m_Height, m_Format, sizePerPixel, updatedHeight));
 
     widthInByte = m_Width * sizePerPixel;
@@ -577,7 +577,7 @@ CM_RT_API int32_t CmSurface2DRT::SetCompressionMode(MEMCOMP_STATE MmcMode)
     CM_HAL_SURFACE2D_COMPRESSIOM_PARAM MmCModeParam;
     CmDeviceRT * pCmDevice = nullptr;
     m_SurfaceMgr->GetCmDevice(pCmDevice);
-    CM_ASSERT(pCmDevice); 
+    CM_ASSERT(pCmDevice);
     MmCModeParam.handle = m_Handle;
     MmCModeParam.mmcMode = MmcMode;
     PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)pCmDevice->GetAccelData();
@@ -615,7 +615,7 @@ CM_RT_API int32_t CmSurface2DRT::ReadSurfaceStride( unsigned char* pSysMem, CmEv
 //|
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-CM_RT_API int32_t CmSurface2DRT::ReadSurfaceFullStride( unsigned char* pSysMem, CmEvent* pEvent, 
+CM_RT_API int32_t CmSurface2DRT::ReadSurfaceFullStride( unsigned char* pSysMem, CmEvent* pEvent,
                     const uint32_t iWidthStride, const uint32_t iHeightStride, uint64_t sysMemSize )
 {
     INSERT_API_CALL_LOG();
@@ -666,7 +666,7 @@ CM_RT_API int32_t CmSurface2DRT::ReadSurfaceFullStride( unsigned char* pSysMem, 
     pDst = ( uint8_t *)pSysMem;
     pSrc = ( uint8_t *)(inParam.data);
 
-    // Get the memory size according to the format 
+    // Get the memory size according to the format
     CMCHK_HR(m_SurfaceMgr->GetPixelBytesAndHeight(m_Width, m_Height, m_Format, sizePerPixel, updatedHeight));
 
     if( m_Format == CM_SURFACE_FORMAT_NV12)
@@ -682,7 +682,7 @@ CM_RT_API int32_t CmSurface2DRT::ReadSurfaceFullStride( unsigned char* pSysMem, 
         pDst  = ( uint8_t *)pSysMem + iWidthStride * iHeightStride;
 
         //To support NV12 format with odd height here.
-        //if original height is even, the UV plane's height is set as m_Height/2, which equals to (m_Height+1)/2 
+        //if original height is even, the UV plane's height is set as m_Height/2, which equals to (m_Height+1)/2
         //if original height is odd, the UV plane's height is set as roundup(m_Height/2), which equals to (m_Height+1)/2 too
         for (uint32_t i = 0; i< (m_Height + 1) / 2; i++)
         { // UV plane
@@ -781,7 +781,7 @@ CM_RT_API int32_t CmSurface2DRT::WriteSurfaceFullStride( const unsigned char* pS
     pDst = ( uint8_t *)(inParam.data);
     pSrc = ( uint8_t *)pSysMem;
 
-    // Get the memory size according to the format 
+    // Get the memory size according to the format
     CMCHK_HR(m_SurfaceMgr->GetPixelBytesAndHeight(m_Width, m_Height, m_Format, sizePerPixel, updatedHeight));
 
     if( m_Format == CM_SURFACE_FORMAT_NV12)
@@ -797,7 +797,7 @@ CM_RT_API int32_t CmSurface2DRT::WriteSurfaceFullStride( const unsigned char* pS
         pSrc  = ( uint8_t *)pSysMem + iWidthStride * iHeightStride;
 
         //To support NV12 format with odd height here.
-        //if original height is even, the UV plane's height is set as m_Height/2, which equals to (m_Height+1)/2 
+        //if original height is even, the UV plane's height is set as m_Height/2, which equals to (m_Height+1)/2
         //if original height is odd, the UV plane's height is set as roundup(m_Height/2), which equals to (m_Height+1)/2 too
         for( uint32_t i=0 ; i< ( m_Height + 1) /2 ; i++)
         { // UV plane
@@ -834,21 +834,21 @@ finish:
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Let CM know that the UMD resource of current CmSurface2D 
-//              wrapper was changed. This change may happen at the CmSurface2D 
-//              creation and destroy time or changed from outside of CM. This 
+//| Purpose:    Let CM know that the UMD resource of current CmSurface2D
+//              wrapper was changed. This change may happen at the CmSurface2D
+//              creation and destroy time or changed from outside of CM. This
 //              should be called immediately after the UMD resource changed.
-//   
+//
 //| Arguments :
-//|             umdResource       [in]  Pointer to the UMD resource for the CM 
+//|             umdResource       [in]  Pointer to the UMD resource for the CM
 //|                                     wrapper. Set it to nullptr when the
-//|                                     third party MosResource was deleted 
+//|                                     third party MosResource was deleted
 //|                                     before the CmSurface2D.
 //|             updateMosResource [in]  1: will update the MosResource.
 //|                                     0: will not update the MosResource.
-//|             pMosResource      [in]  Pointer to the new valid MosResource 
+//|             pMosResource      [in]  Pointer to the new valid MosResource
 //|                                     that the CMSurface2D will be based on.
-//|                                     Do not set this parameter if the 
+//|                                     Do not set this parameter if the
 //|                                     MosResource is already deleted.
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
@@ -904,9 +904,9 @@ int32_t CmSurface2DRT::SetSurfaceProperties(uint32_t width, uint32_t height, CM_
 //*-----------------------------------------------------------------------------
 //| Purpose:    Get the description of surface 2d, width,height,format and the size of pixel .
 //| Arguments :
-//|               width         [out]     Reference to  width of surface 
-//|               height        [out]     Reference to  height of surface 
-//|               format        [out]     Reference to  format of surface 
+//|               width         [out]     Reference to  width of surface
+//|               height        [out]     Reference to  height of surface
+//|               format        [out]     Reference to  format of surface
 //|               sizeperpixel  [out]     Reference to  the pixel's size in bytes
 //|
 //| Returns:    Result of the operation.
@@ -966,7 +966,7 @@ CM_RT_API int32_t CmSurface2DRT::InitSurface(const unsigned int pInitValue, CmEv
     pitch = inParam.pitch;
     pSurf = ( uint32_t *)inParam.data;
 
-    widthInBytes = m_Width * sizePerPixel; 
+    widthInBytes = m_Width * sizePerPixel;
     if(widthInBytes != pitch)
     {
         for (uint32_t i=0; i < updatedHeight; i++)
@@ -979,7 +979,7 @@ CM_RT_API int32_t CmSurface2DRT::InitSurface(const unsigned int pInitValue, CmEv
             {
                 CmDwordMemSet(pSurf, pInitValue, widthInBytes + sizeof(uint32_t));
             }
-            
+
            pSurf += (pitch >> 2); // divide by 4 byte to dword
         }
     }
@@ -1093,7 +1093,7 @@ CM_RT_API int32_t CmSurface2DRT::SetSurfaceStateParam( SurfaceIndex *pSurfIndex,
     {
         iAliasIndex = m_pIndex->get_data();
     }
-    
+
     CHK_MOSSTATUS_RETURN_CMERROR( pCmData->cmHalState->pfnSet2DSurfaceStateParam(pCmData->cmHalState, &inParam, iAliasIndex, m_Handle) );
 
 finish:
@@ -1123,7 +1123,7 @@ void CmSurface2DRT::Log(std::ostringstream &oss)
 {
 #if CM_LOG_ON
     oss << " Surface2D Info "
-        << " Width:" << m_Width 
+        << " Width:" << m_Width
         << " Height:"<< m_Height
         << " Format:"<< GetFormatString(m_Format)
         << " Pitch:" << m_Pitch
@@ -1133,7 +1133,6 @@ void CmSurface2DRT::Log(std::ostringstream &oss)
         << std::endl;
 #endif
 }
-
 
 void CmSurface2DRT::DumpContent(uint32_t kernelNumber, int32_t taskId, uint32_t argIndex)
 {
@@ -1161,7 +1160,7 @@ void CmSurface2DRT::DumpContent(uint32_t kernelNumber, int32_t taskId, uint32_t 
     uint32_t        sizePerPixel = 0;
     uint32_t        updatedHeight = 0;
     uint32_t        surfaceSize = 0;
-    uint32_t        widthInByte = 0; 
+    uint32_t        widthInByte = 0;
     uint8_t         *pDst = nullptr;
     uint8_t         *pSurf = nullptr;
     m_SurfaceMgr->GetPixelBytesAndHeight(m_Width, m_Height, m_Format, sizePerPixel, updatedHeight);
@@ -1195,7 +1194,7 @@ void CmSurface2DRT::DumpContent(uint32_t kernelNumber, int32_t taskId, uint32_t 
     {
         CmFastMemCopyFromWC((unsigned char *)&surface[0], pSurf, m_Pitch * updatedHeight, GetCpuInstructionLevel());
     }
-    inParam.data = nullptr; 
+    inParam.data = nullptr;
     pCmData->cmHalState->pfnUnlock2DResource(pCmData->cmHalState, &inParam);
 
     outputFileStream.write(&surface[0], surfaceSize);
@@ -1203,9 +1202,6 @@ void CmSurface2DRT::DumpContent(uint32_t kernelNumber, int32_t taskId, uint32_t 
     surface2DDumpNumber++;
 #endif
 }
-
-
-
 
 CM_RT_API int32_t CmSurface2DRT::SetProperty(CM_FRAME_TYPE frameType)
 {

@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_task_internal.h  
-//! \brief     Contains Class CmTaskInternal  definitions  
+//! \file      cm_task_internal.h 
+//! \brief     Contains Class CmTaskInternal  definitions 
 //!
 
 #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMTASKINTERNAL_H_
@@ -90,11 +90,11 @@ public:
 
     int32_t GetKernelCount( uint32_t& count );
     int32_t GetKernel( const uint32_t index, CmKernelRT* & pKernel );
-    int32_t GetKernelData( const uint32_t index, CmKernelData* & pKernelData ); 
+    int32_t GetKernelData( const uint32_t index, CmKernelData* & pKernelData );
     int32_t GetKernelDataSize( const uint32_t index, uint32_t & size );
     uint32_t GetKernelCurbeOffset( const uint32_t index );
     int32_t GetTotalThreadCount( uint32_t& totalThreadCount );
-    
+
     int32_t SetTaskEvent( CmEventRT* pEvent );
     int32_t GetTaskEvent( CmEventRT* & pEvent );
 
@@ -119,7 +119,7 @@ public:
     int32_t GetHints(uint32_t& hints);
     int32_t GetNumTasksGenerated(uint32_t& numTasksGenerated);
     int32_t GetLastTask(bool& isLastTask);
-    
+
     bool IsThreadGroupSpaceCreated(void);
     bool IsThreadSpaceCreated(void );
     bool IsThreadCoordinatesExisted(void);
@@ -128,7 +128,7 @@ public:
     int32_t GetKernelSurfInfo(CM_HAL_SURFACE_ENTRY_INFO_ARRAYS & SurfEntryInfoArray);
     int32_t ClearKernelSurfInfo();
     int32_t ResetKernelDataStatus();
-    
+
     int32_t GetTaskType(uint32_t& taskType);
 
     int32_t GetVeboxState(CM_VEBOX_STATE & pVeboxState);
@@ -149,7 +149,7 @@ public:
     void  *GetMediaStatePtr();
 #if CM_LOG_ON
     std::string Log();
-#endif 
+#endif
 
     void SurfaceDump(int32_t taskId);
 
@@ -164,7 +164,7 @@ protected:
 
     int32_t Initialize(const CmThreadSpaceRT* pTS, bool isWithHints);
     int32_t Initialize(const CmThreadGroupSpace* pTGS);
-    
+
     int32_t Initialize(CmVeboxRT* pVebox);
     int32_t Initialize(uint32_t hints, uint32_t numTasksGenerated, bool isLastTask);
 
@@ -176,7 +176,7 @@ protected:
 
     CmDynamicArray m_Kernels;
     CmDynamicArray m_KernelData; // one CmKernelData* per kernel
-    uint32_t *m_pKernelCurbeOffsetArray; // Array to record each kernel's curbe offset. Even the same kernel could have different curbe offset. 
+    uint32_t *m_pKernelCurbeOffsetArray; // Array to record each kernel's curbe offset. Even the same kernel could have different curbe offset.
     uint32_t m_KernelCount;
 
     uint32_t m_TotalThreadCount;    //total thread count per task
@@ -186,9 +186,9 @@ protected:
     //ThreadSpaceInformation from CreateThreadSpace() or CreateThreadGroupSpace()
     bool            m_IsThreadSpaceCreated;
     bool            m_IsThreadCoordinatesExisted;
-    uint32_t        m_ThreadSpaceWidth;     
+    uint32_t        m_ThreadSpaceWidth;
     uint32_t        m_ThreadSpaceHeight;
-    uint32_t        m_ThreadSpaceDepth;   
+    uint32_t        m_ThreadSpaceDepth;
 
     PCM_HAL_SCOREBOARD *m_pThreadCoordinates;
     CM_DEPENDENCY_PATTERN m_DependencyPattern;
@@ -218,11 +218,11 @@ protected:
 
     CM_HAL_SURFACE_ENTRY_INFO_ARRAYS m_KernelSurfInfo;
     CmDeviceRT*                      m_pCmDevice;
-    bool                             *m_SurfaceArray;  // vector-flag of surfaces R/W by this CM Task (containing multi-kernel) 
+    bool                             *m_SurfaceArray;  // vector-flag of surfaces R/W by this CM Task (containing multi-kernel)
     bool                             m_IsSurfaceUpdateDone;
 
     uint32_t        m_TaskType; //0 - Task with thread space, 1 - Task with thread group space, 2 - Task for VEBOX
-    
+
     CmBufferUP   *  m_pVeboxParam;
     CM_VEBOX_STATE  m_VeboxState;
     CM_VEBOX_SURFACE_DATA m_VeboxSurfaceData;

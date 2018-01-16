@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_buffer.h  
-//! \brief     Contains  Class CmBuffer/CmBufferUp definitions  
+//! \file      cm_buffer.h 
+//! \brief     Contains  Class CmBuffer/CmBufferUp definitions 
 //!
 
 #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMBUFFER_H_
@@ -51,7 +51,7 @@ class CmEvent;
 //!             other surfaces and buffers. The other way is to pass the address to CM 
 //!             kernel function(genx_main) as an argument for kernel to use.
 //! \note       Right now BufferSVM feature is not working on Linux yet.
-class CmBufferSVM  
+class CmBufferSVM
 {
 public:
 
@@ -62,7 +62,7 @@ public:
     //!             Reference to the pointer to SurfaceIndex.
     //! \returns    CM_SUCCESS.
     //!
-    CM_RT_API virtual int32_t GetIndex(SurfaceIndex* &index) = 0; 
+    CM_RT_API virtual int32_t GetIndex(SurfaceIndex* &index) = 0;
 
     //!
     //! \brief      Get the pointer of allocated SVM memory starting address.
@@ -86,7 +86,7 @@ public:
 //!             application's responsibility to make sure the accesses from CPU 
 //!             and GPU are not overlapped. 
 //!
-class CmBufferUP  
+class CmBufferUP
 {
 public:
     //!
@@ -96,7 +96,7 @@ public:
     //!             Reference to the pointer to SurfaceIndex.
     //! \returns    CM_SUCCESS.
     //!
-    CM_RT_API virtual int32_t GetIndex(SurfaceIndex* &index) = 0; 
+    CM_RT_API virtual int32_t GetIndex(SurfaceIndex* &index) = 0;
 
     //!
     //! \brief      Selects one of the pre-defined memory object control

@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_mov_inst.h  
-//! \brief     Contains Class MovInst_RT definitions  
+//! \file      cm_mov_inst.h 
+//! \brief     Contains Class MovInst_RT definitions 
 //!
 
 #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMMOVINST_H_
@@ -34,7 +34,7 @@
 // Both operands must be direct GRF with no modifiers.
 // predication is disabled, and all instruction control fields have default value.
 // The format of the mov instruction should be identical for SNB/IVB/HSW
-class MovInst_RT 
+class MovInst_RT
 {
 
 #define GENX_GRF_BYTE_SIZE   32
@@ -112,7 +112,7 @@ public:
             EnableDebug();
         }    // DbgCtrl
         SetBits( 8, 8, 0);      //align mode = align1
-        SetExecSize( EXEC_SIZE_8 );     //exec size = 8 
+        SetExecSize( EXEC_SIZE_8 );     //exec size = 8
         SetDstRegFile( REG_GRF );  //dst reg file = GRF
         SetDstType( REG_TYPE_UD );        //dst type = UD
         SetSrcRegFile( REG_GRF );  //src0 reg file = GRF
@@ -146,9 +146,9 @@ public:
 
     // Create a sequence of Gen move instructions to copy <size> byte data
     // from srcOffset to dstOffset.  The move instructions are appended
-    // to the <movInsts> vector starting at the given <index>.  The 
-    // function returns the total number of move instructions created 
-    static uint32_t CreateMoves( uint32_t dstOffset, uint32_t srcOffset, uint32_t size, 
+    // to the <movInsts> vector starting at the given <index>.  The
+    // function returns the total number of move instructions created
+    static uint32_t CreateMoves( uint32_t dstOffset, uint32_t srcOffset, uint32_t size,
         CMRT_UMD::CmDynamicArray &movInsts, uint32_t index, bool is_BDW, bool is_hwdebug ) {
 
             uint32_t dstEnd = dstOffset + size;
@@ -157,16 +157,16 @@ public:
             uint32_t numMoves = 0;
 
             if( remainder != 0 ) {
-                // dst address is not GRF-aligned, handle this portion first 
+                // dst address is not GRF-aligned, handle this portion first
                 // until we get a GRF-aligned dst address
                 uint32_t dstGRFEnd = dstOffset + GENX_GRF_BYTE_SIZE - remainder;
                 if( dstGRFEnd > dstEnd ) {
                     dstGRFEnd = dstEnd;
                 }
                 while( dstGRFEnd != dstOffset ) {
-                    while( (dstGRFEnd - dstOffset) >= moveSize ) { 
-                        MovInst_RT* inst = MovInst_RT::CreateSingleMove( 
-                            dstOffset, srcOffset, moveSize, is_BDW, is_hwdebug); 
+                    while( (dstGRFEnd - dstOffset) >= moveSize ) {
+                        MovInst_RT* inst = MovInst_RT::CreateSingleMove(
+                            dstOffset, srcOffset, moveSize, is_BDW, is_hwdebug);
                         if( !movInsts.SetElement( index + numMoves, inst )) {
                             CmSafeDelete(inst);
                             CM_ASSERTMESSAGE("Error: SetElement failure.");
@@ -191,9 +191,9 @@ public:
 
             moveSize = GENX_GRF_BYTE_SIZE;
             while( dstEnd != dstOffset ) {
-                while( (dstEnd - dstOffset) >= moveSize ) { 
-                    MovInst_RT* inst = MovInst_RT::CreateSingleMove( 
-                        dstOffset, srcOffset, moveSize, is_BDW, is_hwdebug); 
+                while( (dstEnd - dstOffset) >= moveSize ) {
+                    MovInst_RT* inst = MovInst_RT::CreateSingleMove(
+                        dstOffset, srcOffset, moveSize, is_BDW, is_hwdebug);
                     if( !movInsts.SetElement( index + numMoves, inst )) {
                         CM_ASSERTMESSAGE("Error: SetElement failure.");
                         CmSafeDelete(inst);
@@ -222,7 +222,7 @@ public:
     // Create a single move instruction for the given dst/src offset and size,
     // all in unit of bytes.  The size must be a legal Gen execution size,
     // i.e., power-of-twos from 1 to 32.
-    static MovInst_RT *CreateSingleMove( uint32_t dstOffset, uint32_t srcOffset, uint32_t size, bool is_BDW, bool is_hwdebug ) 
+    static MovInst_RT *CreateSingleMove( uint32_t dstOffset, uint32_t srcOffset, uint32_t size, bool is_BDW, bool is_hwdebug )
     {
         Genx_Exec_Size eSize;
         Genx_Reg_Type type;
@@ -280,7 +280,7 @@ public:
                 HStride = MovInst_RT::HS_0;
                 break;
             default:
-                // below assignment is to avoid variables being used uninitialized in this function 
+                // below assignment is to avoid variables being used uninitialized in this function
                 eSize = MovInst_RT::EXEC_SIZE_1;
                 type = MovInst_RT::REG_TYPE_UD;
                 VStride = MovInst_RT::VS_0;
@@ -596,8 +596,8 @@ public:
         srcSubregNum = GetSrcSubregNum() / GetTypeSize( GetSrcType() );
 
         CM_NORMALMESSAGE("mov (%d) r%d.%d<%d>:%s r%d.%d<%d;%d,%d>:%s.",
-            execSize, GetDstRegNum(), dstSubregNum, dstHStride, dstType, 
-            GetSrcRegNum(), srcSubregNum, srcVStride, srcWidth, srcHStride, srcType ); 
+            execSize, GetDstRegNum(), dstSubregNum, dstHStride, dstType,
+            GetSrcRegNum(), srcSubregNum, srcVStride, srcWidth, srcHStride, srcType );
     }
 };
 

@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_program.h  
-//! \brief     Contains Class CmProgram definitions  
+//! \file      cm_program.h 
+//! \brief     Contains Class CmProgram definitions 
 //!
 
 #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMPROGRAM_H_
@@ -91,16 +91,16 @@ struct CM_KERNEL_INFO
 
     //Just a copy for original binary pointer and size (GTPin using only)
     void* pOrigBinary;
-    uint32_t uiOrigBinarySize; 
+    uint32_t uiOrigBinarySize;
 
     uint32_t globalStringCount;
-    const char** globalStrings; 
+    const char** globalStrings;
     char kernelASMName[CM_MAX_KERNEL_NAME_SIZE_IN_BYTE + 1];        //The name of the Gen assembly file for this kernel (no extension)
     uint8_t kernelSLMSize;     //Size of the SLM used by each thread group
     bool blNoBarrier;       //Indicate if the barrier is used in kernel: true means no barrier used, false means barrier is used.
 
     FINALIZER_INFO *jitInfo;
-    
+
     uint32_t variable_count;
     gen_var_info_t *variables;
     uint32_t address_count;
@@ -116,12 +116,12 @@ struct CM_KERNEL_INFO
     uint32_t vme_count;
     spec_var_info_t *vme;
 
-    uint32_t kernelInfoRefCount;    //reference counter for kernel info to reuse kernel info and jitbinary 
+    uint32_t kernelInfoRefCount;    //reference counter for kernel info to reuse kernel info and jitbinary
 };
 
 //Function pointer definition for jitter compilation functions.
-typedef int (__cdecl *pJITCompile)(const char *kernelName, 
-                                   const void *kernelIsa, 
+typedef int (__cdecl *pJITCompile)(const char *kernelName,
+                                   const void *kernelIsa,
                                    uint32_t kernelIsaSize,
                                    void* &genBinary,
                                    uint32_t &genBinarySize,
@@ -135,19 +135,17 @@ typedef int (__cdecl *pJITCompile)(const char *kernelName,
 
 typedef void (__cdecl *pFreeBlock)(void*);
 
-typedef void (__cdecl *pJITVersion)(unsigned int &majorV, 
+typedef void (__cdecl *pJITVersion)(unsigned int &majorV,
                                     unsigned int &minorV);
 
-#define CM_JIT_FLAG_SIZE           256 
-#define CM_JIT_ERROR_MESSAGE_SIZE  512  
+#define CM_JIT_FLAG_SIZE           256
+#define CM_JIT_ERROR_MESSAGE_SIZE  512
 #define CM_JIT_PROF_INFO_SIZE      4096
 #define CM_RT_JITTER_MAX_NUM_FLAGS 30
 
 #define JITCOMPILE_FUNCTION_STR "JITCompile"
 #define FREEBLOCK_FUNCTION_STR  "freeBlock"
 #define JITVERSION_FUNCTION_STR "getJITVersion"
-
-
 
 namespace CMRT_UMD
 {
@@ -188,7 +186,7 @@ public:
 
     int32_t Acquire( void);
     int32_t SafeRelease( void);
-    
+
     uint32_t GetProgramIndex();
 
 #if (_RELEASE_INTERNAL)
@@ -235,7 +233,7 @@ protected:
 public:
     uint32_t m_CISA_magicNumber;
     uint8_t m_CISA_majorVersion;
-    uint8_t m_CISA_minorVersion;   
+    uint8_t m_CISA_minorVersion;
 
 private:
     CmProgramRT (const CmProgramRT& other);

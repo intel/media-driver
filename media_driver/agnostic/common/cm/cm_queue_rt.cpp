@@ -420,10 +420,8 @@ int32_t CmQueueRT::Enqueue_RT(
 
     result = FlushTaskWithoutSync();
 
-
     return result;
 }
-
 
 int32_t CmQueueRT::Enqueue_RT(CmKernelRT* pKernelArray[],
                         const uint32_t uiKernelCount,
@@ -1867,7 +1865,6 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyCPUToCPU( unsigned char* pDstSysMem, uns
         pOutputLinearAddressAligned = OutputLinearAddress & ADDRESS_PAGE_ALIGNMENT_MASK_X86;  // make sure the address page aligned.
     }
 
-
     SrcLeftShiftOffset = (int32_t)(InputLinearAddress  - pInputLinearAddressAligned) ;
     DstLeftShiftOffset = (int32_t)(OutputLinearAddress - pOutputLinearAddressAligned) ;
 
@@ -1924,7 +1921,6 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyCPUToCPU( unsigned char* pDstSysMem, uns
     CMCHK_NULL(pGPUCopyKrnParam->pKernel);
     pKernel = pGPUCopyKrnParam->pKernel;
 
-
     CMCHK_NULL(pSurfaceInput);
     CMCHK_HR(pSurfaceInput->GetIndex(pSurfaceInputIndex));
     CMCHK_NULL(pSurfaceOutput);
@@ -1979,7 +1975,6 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyCPUToCPU( unsigned char* pDstSysMem, uns
     {
         GPUCOPY_KERNEL_UNLOCK(pGPUCopyKrnParam);
     }
-
 
 finish:
     if(hr != CM_SUCCESS)
@@ -2281,13 +2276,11 @@ CM_RT_API int32_t CmQueueRT::EnqueueInitSurface2D( CmSurface2D* pSurf2D, const u
     threadNum = threadWidth * threadHeight;
     CMCHK_HR(pKernel->SetThreadCount( threadNum ));
 
-
     CMCHK_HR(m_pDevice->CreateThreadSpace( threadWidth, threadHeight, pTS ));
     CMCHK_NULL(pTS);
 
     CMCHK_HR(pKernel->SetKernelArg( 0, sizeof( uint32_t ), &initValue ));
     CMCHK_HR(pKernel->SetKernelArg( 1, sizeof( SurfaceIndex ), pOutputIndexCM ));
-
 
     CMCHK_HR(m_pDevice->CreateQueue( pCmQueue ));
 
@@ -2660,7 +2653,6 @@ int32_t CmQueueRT::FlushVeboxTask(CmTaskInternal* pTask)
     temp = static_cast<CmBuffer_RT*>(pVeboxParamBuf);
     temp->GetHandle(param.veboxParamIndex);
 
-
     param.cmVeboxState = CmVeboxState;
     param.veboxParam = pVeboxParamBuf;
 
@@ -2857,7 +2849,6 @@ int32_t CmQueueRT::FlushTaskWithoutSync( bool bIfFlushBlock )
                 break;
         }
 
-
         if(hr == CM_SUCCESS)
         {
             m_FlushedTasks.Push( pTask );
@@ -2953,7 +2944,6 @@ finish:
     return hr;
 }
 
-
 //*-----------------------------------------------------------------------------
 //| Purpose:   Create Event and Update event in m_EventArray
 //| Returns:   result of operation
@@ -3023,7 +3013,6 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyCPUToGPUFullStride( CmSurface2D* pSurfac
     CmSurface2DRT *pSurfaceRT = static_cast<CmSurface2DRT *>(pSurface);
     return EnqueueCopyInternal(pSurfaceRT, (unsigned char*)pSysMem, widthStride, heightStride, CM_FASTCOPY_CPU2GPU, option, pEvent);
 }
-
 
 //*---------------------------------------------------------------------------------------------------------
 //| Name:       EnqueueCopyGPUToCPUFullStride()

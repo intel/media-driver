@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_log.h  
-//! \brief     Contains Class Cm Logger definitions  
+//! \file      cm_log.h 
+//! \brief     Contains Class Cm Logger definitions 
 //!
 
 #include <iostream>
@@ -35,7 +35,6 @@
 // Definition (and initialization) of static attributes
 CmLogger* CmLogger::GlobalCmLogger = nullptr;
 CMRT_UMD::CSync     GlobalCmLogLock;
-
 
 /**
  * Logger Constructor.
@@ -55,25 +54,23 @@ CmLogger::CmLogger()
     {// if it is not set, no file will be generated.
         return ;
     }
-        
+
     //Get Log File name
     std::ostringstream OutPutFile;
 
     SYSTEMTIME Systime;
     GetLocalTime(&Systime);
 
-    OutPutFile << "CM_LOG_" << CmGetCurProcessId() << "_" << Systime.wMonth 
+    OutPutFile << "CM_LOG_" << CmGetCurProcessId() << "_" << Systime.wMonth
                 << "_" << Systime.wDay << "_" << Systime.wHour
                 << "_" << Systime.wMinute << "_" << Systime.wSecond<<".log";
 
     mLogFile = OutPutFile.str();
 
-    // Open file 
+    // Open file
     mStreamOut.open(mLogFile.c_str(), std::ios::app);
-    
 
 }
-
 
 CmLogger::~CmLogger()
 {
@@ -93,22 +90,21 @@ CmLogger::~CmLogger()
 CmLogger& CmLogger::GetInstance()
 {
     CmLogger::Lock();
-    
+
     if (GlobalCmLogger == nullptr)
-    {   
+    {
         GlobalCmLogger = new CmLogger();
     }
-    
+
     CmLogger::Unlock();
     return *GlobalCmLogger;
 }
-
 
 void CmLogger::GetVerbosityLevel()
 {
     // Read VerbosityLevel from RegisterKey
     MOS_USER_FEATURE_VALUE      UserFeatureValue;
-    MOS_USER_FEATURE            UserFeature;    
+    MOS_USER_FEATURE            UserFeature;
     // User feature key reads
     MOS_ZeroMemory(&UserFeatureValue, sizeof(MOS_USER_FEATURE_VALUE));
     UserFeature.Type            = MOS_USER_FEATURE_TYPE_USER;
@@ -117,7 +113,7 @@ void CmLogger::GetVerbosityLevel()
     UserFeature.uiNumValues     = 1;
 
     UserFeatureValue.u32Data = CM_LOG_LEVEL_NONE; // default value
-    
+
     MOS_UserFeature_ReadValue(
         nullptr,
         &UserFeature,
@@ -176,7 +172,6 @@ void CmLogger::Print(const unsigned int verbosityLevel,
     CmLogger::Unlock();
 }
 
-
 void CmLogger::LogDataArrayHex(std::ostringstream &oss, unsigned char * data, unsigned int size )
 {
     std::ios::fmtflags f(oss.flags()); // store the oss flags
@@ -187,12 +182,11 @@ void CmLogger::LogDataArrayHex(std::ostringstream &oss, unsigned char * data, un
     {
         oss << std::setfill('0') << std::setw(2) << std::hex << static_cast<short>(data[i]);
     }
-    oss << std::endl; 
+    oss << std::endl;
 
     oss.flags(f);// restore the flags
-    
-}
 
+}
 
 void CmLogger::Lock()
 {
@@ -218,11 +212,9 @@ CmLogTimer::~CmLogTimer()
     CM_INFO(mString);
 }
 
-
 void CmLogTimer::Stop()
 {
     mTimer.Stop();
 }
-
 
 #endif

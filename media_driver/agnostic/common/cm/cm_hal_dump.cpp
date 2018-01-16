@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_hal_dump.cpp  
-//! \brief     Functions related to dump generated hw commands/curbe data  
+//! \file      cm_hal_dump.cpp 
+//! \brief     Functions related to dump generated hw commands/curbe data 
 //!
 
 #include "cm_hal.h"
@@ -61,12 +61,10 @@ static uint32_t HalCm_CopyHexDwordLine(char  *destBuf, size_t buflen, uint32_t *
 }
 #endif
 
-
 #if MDF_COMMAND_BUFFER_DUMP
 
 #define HALCM_COMMAND_BUFFER_OUTPUT_DIR         "HALCM_Command_Buffer_Dumps"
 #define HALCM_COMMAND_BUFFER_OUTPUT_FILE        "Command_Buffer"
-
 
 //!
 //! \brief    Read Register key to check if dump flag enabled
@@ -121,8 +119,6 @@ finish:
     return hr;
 }
 
-
-
 //!
 //! \brief    Dump command buffer to file
 //! \param    [in] state
@@ -161,8 +157,8 @@ int32_t HalCm_DumpCommadBuffer(PCM_HAL_STATE state, PMOS_COMMAND_BUFFER cmdBuffe
 
     numberOfDwords = cmdBuffer->iOffset / sizeof(uint32_t);
 
-    sizeToAllocate = numberOfDwords * (SIZE_OF_DWORD_PLUS_ONE) + 2 +   //length of command buffer line 
-        stateHeap->iCurrentSurfaceState * 
+    sizeToAllocate = numberOfDwords * (SIZE_OF_DWORD_PLUS_ONE) + 2 +   //length of command buffer line
+        stateHeap->iCurrentSurfaceState *
         (SIZE_OF_DWORD_PLUS_ONE * state->renderHal->pRenderHalPltInterface->GetSurfaceStateCmdSize() / sizeof(uint32_t) + 2); //length of surface state lines
 
     // Alloc output buffer.
@@ -174,7 +170,7 @@ int32_t HalCm_DumpCommadBuffer(PCM_HAL_STATE state, PMOS_COMMAND_BUFFER cmdBuffe
     // write command buffer dwords.
     bytesWritten += HalCm_CopyHexDwordLine(outputBuffer, sizeToAllocate - bytesWritten, (uint32_t *)cmdBuffer->pCmdBase, numberOfDwords);
 
-    //write all surface states 
+    //write all surface states
     for (int32_t index = 0; index < stateHeap->iCurrentSurfaceState; ++index) {
         PRENDERHAL_SURFACE_STATE_ENTRY entry = stateHeap->pSurfaceEntry + index;
         void *surfaceState = (char*)entry->pSurfaceState;
@@ -200,7 +196,6 @@ finish:
 }
 
 #endif
-
 
 #if MDF_CURBE_DATA_DUMP
 
@@ -293,7 +288,7 @@ int32_t HalCm_DumpCurbeData(PCM_HAL_STATE state)
         numberOfDwords = stateHeap->pCurMediaState->pDynamicState->Curbe.dwSize;
         sizeToAllocate = numberOfDwords*SIZE_OF_DWORD_PLUS_ONE+2;
         outputBuffer = (char *)MOS_AllocAndZeroMemory(sizeToAllocate);
-        bytesWritten += HalCm_CopyHexDwordLine(outputBuffer, 
+        bytesWritten += HalCm_CopyHexDwordLine(outputBuffer,
                           sizeToAllocate - bytesWritten,
                           (uint32_t*)stateHeap->pCurMediaState->pDynamicState->pMemoryBlock->pDataPtr + stateHeap->pCurMediaState->pDynamicState->Curbe.dwOffset,
                           numberOfDwords);

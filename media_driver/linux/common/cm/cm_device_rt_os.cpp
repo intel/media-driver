@@ -104,7 +104,6 @@ finish:
     return hr;
 }
 
-
 //*-----------------------------------------------------------------------------
 //| Purpose:    Destory Intel Aux Device : CM device
 //| Returns:    Result of the operation.
@@ -178,7 +177,6 @@ CM_RT_API int32_t CmDeviceRT::DestroySurface(CmSurface2D* & pSurface)
 
     return status;
 }
-
 
 //*----------------------------------------------------------------------------
 //| Purpose:    Get JIT Compiler function from igfxcmjit64/32.dll
@@ -345,7 +343,6 @@ finish:
     return hr;
 }
 
-
 //*-----------------------------------------------------------------------------
 //| Purpose:    Get the supported formats in Surface2D from Internal
 //| Returns:    Result of the operation.
@@ -381,7 +378,6 @@ CmDeviceRT::QuerySurface2DFormatsInternal(PCM_QUERY_CAPS pQueryCaps)
 
     return CM_SUCCESS;
 }
-
 
 //*-----------------------------------------------------------------------------
 //| Purpose:   Report all the supported formats for surface2D
@@ -424,7 +420,6 @@ int32_t CmDeviceRT::QuerySurface2DFormats(void *pCapValue,
     }
 }
 
-
 //*-----------------------------------------------------------------------------
 //| Purpose:    Set CM Context ID in MediaContext
 //| Arguments : Context ID
@@ -446,7 +441,6 @@ int32_t CmDeviceRT::GetVaCtxID(uint32_t &vaCtxID)
     vaCtxID = m_VaCtxID;
     return CM_SUCCESS;
 }
-
 
 int32_t CmDeviceRT::RegisterCallBack(pCallBackReleaseVaSurface pCallBack)
 {

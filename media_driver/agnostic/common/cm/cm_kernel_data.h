@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_kernel_data.h  
-//! \brief     Contains Class CmKernelData definitions  
+//! \file      cm_kernel_data.h 
+//! \brief     Contains Class CmKernelData definitions 
 //!
 
 #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMKERNELDATA_H_
@@ -63,11 +63,10 @@ protected:
     CmKernelRT*    m_pCmKernel;
     uint32_t     m_RefCount;
     CM_HAL_KERNEL_PARAM m_HalKernelParam;
-    
 
     // if it is Ture, it means the task with this kernel is not flushed yet
     bool        m_IsInUse;
-        
+
 private:
     CmKernelData (const CmKernelData& other);
     CmKernelData& operator= (const CmKernelData& other);

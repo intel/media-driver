@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_array.cpp  
-//! \brief     Contains  Class CmDynamicArray definitions  
+//! \file      cm_array.cpp 
+//! \brief     Contains  Class CmDynamicArray definitions 
 //!
 
 #include "cm_array.h"
@@ -111,7 +111,7 @@ Output:
 
 \*****************************************************************************/
 
-void* CmDynamicArray::GetElement( const uint32_t index ) 
+void* CmDynamicArray::GetElement( const uint32_t index )
 {
     void* element;
 
@@ -180,13 +180,11 @@ Output:
 
 \*****************************************************************************/
 
-uint32_t CmDynamicArray::GetSize( void ) 
+uint32_t CmDynamicArray::GetSize( void )
 {
     const uint32_t size = m_usedSize;
     return size;
 }
-
-
 
 /*****************************************************************************\
 
@@ -209,7 +207,6 @@ void CmDynamicArray::Delete( void )
     DeleteArray();
     m_usedSize = 0;
 }
-
 
 /*****************************************************************************\
 
@@ -245,7 +242,6 @@ CmDynamicArray& CmDynamicArray::operator= ( const CmDynamicArray &array )
             }
         }
     }
-
 
     return *this;
 }
@@ -382,7 +378,7 @@ Output:
 
 \*****************************************************************************/
 
-bool CmDynamicArray::IsValidIndex( const uint32_t index ) 
+bool CmDynamicArray::IsValidIndex( const uint32_t index )
 {
     return ( index < GetSize() );
 }
@@ -412,7 +408,7 @@ uint32_t CmDynamicArray::GetFirstFreeIndex()
             return index;
         }
     }
-    return index; 
+    return index;
 }
 
 /*****************************************************************************\
@@ -422,14 +418,12 @@ Function:
 
 Description:
     Set the element into the first available slot in the array
-    If all the slots are occupied, it will expend the array first. 
-   
+    If all the slots are occupied, it will expend the array first.
 
 Input:
     void
 
 Output:
-    
 
 \*****************************************************************************/
 

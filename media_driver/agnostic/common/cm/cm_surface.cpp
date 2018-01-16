@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_surface.cpp  
-//! \brief     Contains Class CmSurface  definitions  
+//! \file      cm_surface.cpp 
+//! \brief     Contains Class CmSurface  definitions 
 //!
 
 #include "cm_surface.h"
@@ -51,8 +51,8 @@ int32_t CmSurface::Destroy( CmSurface* &pSurface )
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 CmSurface::CmSurface( CmSurfaceManager* surfMgr ,bool isCmCreated):
-    m_pIndex( nullptr ), 
-    m_SurfaceMgr( surfMgr ), 
+    m_pIndex( nullptr ),
+    m_SurfaceMgr( surfMgr ),
     m_IsCmCreated (isCmCreated)
 {
 
@@ -86,7 +86,7 @@ int32_t CmSurface::Initialize( uint32_t index )
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Flush the task, once flushed, lock will untill the task finishes 
+//| Purpose:    Flush the task, once flushed, lock will untill the task finishes
 //|             the execution of kernels upon the surface
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
@@ -105,9 +105,9 @@ int32_t CmSurface::FlushDeviceQueue( CmEventRT* pEvent )
     //Used for timeout detection
     CmQueueRT* pCmQueue = nullptr;
     pEvent->GetQueue(pCmQueue);
-    uint32_t num_tasks; 
+    uint32_t num_tasks;
     pCmQueue->GetTaskCount(num_tasks);
-    LARGE_INTEGER freq; 
+    LARGE_INTEGER freq;
     MOS_QueryPerformanceFrequency((uint64_t*)&freq.QuadPart);
     LARGE_INTEGER start;
     MOS_QueryPerformanceCounter((uint64_t*)&start.QuadPart);
@@ -117,9 +117,9 @@ int32_t CmSurface::FlushDeviceQueue( CmEventRT* pEvent )
     pEvent->GetStatusNoFlush( status );
     // Not necessary CM_STATUS_FINISHED, once flushed, lock will waiti
     // untill the task finishes the execution of kernels upon the surface
-    //while( ( status != CM_STATUS_FLUSHED ) && 
+    //while( ( status != CM_STATUS_FLUSHED ) &&
     //       ( status != CM_STATUS_FINISHED ) &&
-    //       ( status != CM_STATUS_STARTED ) ) 
+    //       ( status != CM_STATUS_STARTED ) )
     while( status == CM_STATUS_QUEUED )
     {
         LARGE_INTEGER current;
@@ -188,7 +188,7 @@ bool CmSurface::MemoryObjectCtrlPolicyCheck(MEMORY_OBJECT_CONTROL memCtrl)
     {
         return false;
     }
-    
+
     PCM_HAL_STATE  pCmHalState = ((PCM_CONTEXT_DATA)pCmDevice->GetAccelData())->cmHalState;
     if (pCmHalState == nullptr)
     {
@@ -207,12 +207,11 @@ int32_t CmSurface::SetMemoryObjectControl(MEMORY_OBJECT_CONTROL mem_ctrl, MEMORY
     }
 
     m_MemObjCtrl.mem_ctrl = mem_ctrl;
-    m_MemObjCtrl.mem_type = mem_type;  
+    m_MemObjCtrl.mem_type = mem_type;
     m_MemObjCtrl.age= age;
 
     return CM_SUCCESS;
 }
-
 
 std::string CmSurface::GetFormatString(CM_SURFACE_FORMAT format)
 {

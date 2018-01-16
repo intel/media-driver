@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_perf.cpp  
-//! \brief     Contains functions which recode time and calculate performance  
+//! \file      cm_perf.cpp 
+//! \brief     Contains functions which recode time and calculate performance 
 //!
 
 #include <iostream>

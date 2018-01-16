@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_vebox_rt.cpp  
-//! \brief     Contains CmVeboxRT implementations.  
+//! \file      cm_vebox_rt.cpp 
+//! \brief     Contains CmVeboxRT implementations. 
 //!
 
 #include "cm_vebox_rt.h"
@@ -32,12 +32,12 @@
 namespace CMRT_UMD
 {
 //*-----------------------------------------------------------------------------
-//| Purpose:    Create Vebox 
+//| Purpose:    Create Vebox
 //*-----------------------------------------------------------------------------
 int32_t CmVeboxRT::Create( CmDeviceRT* pCmDev, uint32_t index, CmVeboxRT* & pCmVebox )
 {
     int32_t result = CM_SUCCESS;
-    
+
     pCmVebox = new (std::nothrow) CmVeboxRT(pCmDev, index);
     if (pCmVebox)
     {
@@ -57,7 +57,7 @@ int32_t CmVeboxRT::Create( CmDeviceRT* pCmDev, uint32_t index, CmVeboxRT* & pCmV
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Destroy Vebox 
+//| Purpose:    Destroy Vebox
 //*-----------------------------------------------------------------------------
 int32_t CmVeboxRT::Destroy( CmVeboxRT* & pCmVebox )
 {
@@ -69,7 +69,6 @@ int32_t CmVeboxRT::Destroy( CmVeboxRT* & pCmVebox )
     }
     return CM_SUCCESS;
 }
-
 
 CmVeboxRT::CmVeboxRT( CmDeviceRT* pCmDev, uint32_t index ):
             m_pCmDev( pCmDev ),
@@ -105,7 +104,7 @@ CM_RT_API int32_t CmVeboxRT::SetState(CM_VEBOX_STATE& VeBoxState)
 
     m_VeboxState = VeBoxState;
     return CM_SUCCESS;
-    
+
 }
 
 int32_t CmVeboxRT::SetSurfaceInternal(VEBOX_SURF_USAGE surfUsage, CmSurface2D* pSurf)
@@ -124,7 +123,7 @@ int32_t CmVeboxRT::SetSurfaceInternal(VEBOX_SURF_USAGE surfUsage, CmSurface2D* p
 
 int32_t CmVeboxRT::SetSurfaceControlBitsInternal(VEBOX_SURF_USAGE surfUsage, const uint16_t ctrlBits)
 {
-   
+
     if( (uint32_t)surfUsage < VEBOX_SURFACE_NUMBER )
     {
         m_wSurfaceCtrlBits[surfUsage] = ctrlBits;
@@ -238,8 +237,6 @@ CM_RT_API int32_t CmVeboxRT::SetStatisticsOutputSurfaceControlBits( const uint16
 {
     return SetSurfaceControlBitsInternal(VEBOX_STATISTICS_OUTPUT_SURF, ctrlBits);
 }
-
-
 
 int32_t CmVeboxRT::GetSurface(uint32_t surfUsage, CmSurface2DRT*& pSurf)
 {

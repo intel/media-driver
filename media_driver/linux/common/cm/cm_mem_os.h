@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_mem_os.h  
-//! \brief     Contains CM memory function definitions  
+//! \file      cm_mem_os.h 
+//! \brief     Contains CM memory function definitions 
 //!
 #pragma once
 
@@ -105,7 +105,6 @@ inline bool TestSSE4_1( void )
     return success;
 }
 
-
 /*****************************************************************************\
 Inline Function:
     GetCPUID
@@ -126,7 +125,6 @@ inline void GetCPUID(int CPUInfo[4], int InfoType)
 
     __get_cpuid(InfoType, (unsigned int*)CPUInfo, (unsigned int*)CPUInfo + 1, (unsigned int*)CPUInfo + 2, (unsigned int*)CPUInfo + 3);
 
-
 #ifndef NO_EXCEPTION_HANDLING
     }
     __except( EXCEPTION_EXECUTE_HANDLER )
@@ -136,7 +134,6 @@ inline void GetCPUID(int CPUInfo[4], int InfoType)
     }
 #endif  //NO_EXCEPTION_HANDLING
 }
-
 
 /*****************************************************************************\
 Inline Function:
@@ -249,5 +246,4 @@ inline void CmFastMemCopyFromWC( void* dst, const void* src, const size_t bytes,
         CmFastMemCopy( dst, src, bytes );
     }
 }
-
 

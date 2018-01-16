@@ -21,7 +21,7 @@
 */
 //!
 //! \file      cm_hal_g9.h
-//! \brief     Common HAL CM Gen9 functions  
+//! \brief     Common HAL CM Gen9 functions 
 //!
 
 #ifndef __VPHAL_CM_G9__
@@ -43,7 +43,7 @@
 #define CM_MAX_THREADSPACE_WIDTH_SKLUP_FOR_MW   2047
 #define CM_MAX_THREADSPACE_HEIGHT_SKLUP_FOR_MW  2047
 
-// The defines for the CM VEBOX usage   
+// The defines for the CM VEBOX usage
 
 typedef struct __CM_VEBOX_PARAM_G9
 {
@@ -60,7 +60,7 @@ typedef struct __CM_VEBOX_PARAM_G9
 }CM_VEBOX_PARAM_G9, PCM_VEBOX_PARAM_G9;
 
 #define CM_SKL_L3_CONFIG_NUM 8
-static const L3_CONFIG SKL_L3[CM_SKL_L3_CONFIG_NUM]  = 
+static const L3_CONFIG SKL_L3[CM_SKL_L3_CONFIG_NUM]  =
 {  //8k unit
     {256,    128,    384,    0,    0,    0,    0,    0,    0}
 };
@@ -79,11 +79,11 @@ static const L3ConfigRegisterValues SKL_L3_PLANE[CM_SKL_L3_CONFIG_NUM] =
 
 struct CM_HAL_G9_X:public CM_HAL_GENERIC
 {
-    
+
 public:
     CM_HAL_G9_X(PCM_HAL_STATE pCmState):
         CM_HAL_GENERIC(pCmState) {};
-        
+
     ~CM_HAL_G9_X(){};
 
     MOS_STATUS GetCopyKernelIsa(void  *&pIsa, uint32_t &IsaSize);
@@ -98,21 +98,21 @@ public:
                         uint16_t                        wMemObjCtl,
                         PRENDERHAL_SURFACE_STATE_PARAMS pParams);
 
-    MOS_STATUS RegisterSampler8x8(    
-                        PCM_HAL_SAMPLER_8X8_PARAM    pParam); 
+    MOS_STATUS RegisterSampler8x8(
+                        PCM_HAL_SAMPLER_8X8_PARAM    pParam);
 
     MOS_STATUS SubmitCommands(
-                        PMHW_BATCH_BUFFER       pBatchBuffer,       
-                        int32_t                 iTaskId,           
-                        PCM_HAL_KERNEL_PARAM    *pKernels,          
-                        void                    **ppCmdBuffer); 
+                        PMHW_BATCH_BUFFER       pBatchBuffer,
+                        int32_t                 iTaskId,
+                        PCM_HAL_KERNEL_PARAM    *pKernels,
+                        void                    **ppCmdBuffer);
 
     MOS_STATUS UpdatePlatformInfoFromPower(
                         PCM_PLATFORM_INFO platformInfo,
                         bool              bEUSaturation);
-    
+
     uint32_t   GetMediaWalkerMaxThreadWidth();
-    
+
     uint32_t   GetMediaWalkerMaxThreadHeight();
 
     MOS_STATUS GetHwSurfaceBTIInfo(
@@ -138,7 +138,7 @@ public:
             int32_t                   nSampConvNum);
 
     MOS_STATUS SetL3CacheConfig(
-            const L3ConfigRegisterValues *values_ptr, 
+            const L3ConfigRegisterValues *values_ptr,
             PCmHalL3Settings cmhal_l3_cache_ptr);
 
     MOS_STATUS GetSamplerParamInfoForSamplerType(
@@ -154,7 +154,6 @@ public:
         }
     }
 
-
     MOS_STATUS GetExpectedGtSystemConfig(
         PCM_EXPECTED_GT_SYSTEM_INFO pExpectedConfig);
 
@@ -162,17 +161,16 @@ private:
     MOS_STATUS RegisterSampler8x8AVSTable(
                        PCM_HAL_SAMPLER_8X8_TABLE  pSampler8x8AVSTable,
                        PCM_AVS_TABLE_STATE_PARAMS pAVSTable);
-        
-    MOS_STATUS SetupHwDebugControl(    
+
+    MOS_STATUS SetupHwDebugControl(
                         PRENDERHAL_INTERFACE   pRenderHal,
                         PMOS_COMMAND_BUFFER    pCmdBuffer);
 
     std::vector<const char *> m_steppingTable;
-    
+
 };
 
 #define REG_GPR_BASE_G9 0x2600
 #define REG_TIMESTAMP_BASE_G9  0x2358
-
 
 #endif  // __VPHAL_CM_G9__

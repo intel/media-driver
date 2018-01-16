@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_surface_sampler8x8.cpp  
-//! \brief     Contains Class CmSurfaceSampler8x8  definitions  
+//! \file      cm_surface_sampler8x8.cpp 
+//! \brief     Contains Class CmSurfaceSampler8x8  definitions 
 //!
 
 #include "cm_surface_sampler8x8.h"
@@ -37,8 +37,8 @@ namespace CMRT_UMD
 //| Purpose:    Create CmSurfaceSampler8x8
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmSurfaceSampler8x8::Create( 
-    uint32_t index, 
+int32_t CmSurfaceSampler8x8::Create(
+    uint32_t index,
     uint32_t indexFor2D,            //indexing resource array of HalCm
     uint32_t cmIndex,      //SurfaceIndex's ID for 2D, also indexing surface array in cmrt@umd
     CmSurfaceManager* pSurfaceManager,
@@ -70,7 +70,7 @@ int32_t CmSurfaceSampler8x8::Create(
 }
 
 // Constructor of CmSurfaceSampler8x8
-CmSurfaceSampler8x8::CmSurfaceSampler8x8( 
+CmSurfaceSampler8x8::CmSurfaceSampler8x8(
     uint32_t cmIndex,      //SurfaceIndex's ID for 2D, also indexing surface array in cmrt@umd
     uint32_t indexFor2D,
     CmSurfaceManager* pSurfaceManager,
@@ -113,9 +113,9 @@ int32_t CmSurfaceSampler8x8::Initialize( uint32_t index )
 //| Purpose:    Get the index of CmSurfaceSampler8x8
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmSurfaceSampler8x8::GetIndex( SurfaceIndex*& pIndex ) 
-{ 
-    pIndex = m_pIndex; 
+int32_t CmSurfaceSampler8x8::GetIndex( SurfaceIndex*& pIndex )
+{
+    pIndex = m_pIndex;
     return CM_SUCCESS;
 }
 
@@ -123,15 +123,15 @@ int32_t CmSurfaceSampler8x8::GetIndex( SurfaceIndex*& pIndex )
 //| Purpose:    Get the current index of CmSurfaceSampler8x8
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmSurfaceSampler8x8::GetIndexCurrent( uint32_t& index ) 
-{ 
-    index = m_indexFor2D; 
+int32_t CmSurfaceSampler8x8::GetIndexCurrent( uint32_t& index )
+{
+    index = m_indexFor2D;
     return CM_SUCCESS;
 }
 
-int32_t CmSurfaceSampler8x8::GetCmIndex( uint16_t& index ) 
-{ 
-    index = (uint16_t)m_CmIndex; 
+int32_t CmSurfaceSampler8x8::GetCmIndex( uint16_t& index )
+{
+    index = (uint16_t)m_CmIndex;
     return CM_SUCCESS;
 }
 
@@ -149,7 +149,7 @@ int32_t CmSurfaceSampler8x8::SetMemoryObjectControl(MEMORY_OBJECT_CONTROL mem_ct
 {
     CM_RETURN_CODE  hr = CM_SUCCESS;
     uint16_t mocs = 0;
-    
+
     CmSurface::SetMemoryObjectControl( mem_ctrl, mem_type, age );
 
     CmDeviceRT *pCmDevice = nullptr;

@@ -43,7 +43,6 @@
     byte_input = snprintf(msg_buf + byte_offset, MSG_LENGTH - byte_offset, _fmt, _value); \
     byte_offset += byte_input;
 
-
 //Global static pointer to ensure a single instance
 CmFtrace* CmFtrace::m_ftrace = nullptr;
 
@@ -69,7 +68,6 @@ CmFtrace* CmFtrace::GetInstance()
 
     return m_ftrace;
 }
-
 
 void CmFtrace::WriteTaskProfilingInfo(CM_PROFILING_INFO *pTaskInfo)
 {

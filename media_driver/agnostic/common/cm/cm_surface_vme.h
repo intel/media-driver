@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_surface_vme.h  
-//! \brief     Contains Class CmSurfaceVme  definitions  
+//! \file      cm_surface_vme.h 
+//! \brief     Contains Class CmSurfaceVme  definitions 
 //!
 #pragma once
 
@@ -33,8 +33,8 @@ namespace CMRT_UMD
 class CmSurfaceVme : public CmSurface
 {
 public:
-    static int32_t Create( 
-        uint32_t index, 
+    static int32_t Create(
+        uint32_t index,
         uint32_t indexFor2DCurrent,
         uint32_t indexFor2DForward,
         uint32_t indexFor2DBackward,
@@ -43,13 +43,13 @@ public:
         uint32_t indexForBackward,
         CmSurfaceManager* pSurfaceManager,
         CmSurfaceVme* &pSurface );
-    
+
     static int32_t Create(
         uint32_t index,
         uint32_t indexFor2DCurSurface,
         uint32_t *pForwardSurface,
         uint32_t *pBackwardSurface,
-       uint32_t indexCurrent, 
+       uint32_t indexCurrent,
        uint32_t *pForward,
        uint32_t *pBackward,
         const uint32_t surfaceFCount,
@@ -58,17 +58,17 @@ public:
         CmSurfaceVme* &pSurface );
 
     int32_t GetIndex(SurfaceIndex*& pIndex);
-    int32_t GetIndexCurrent( uint32_t& index ); 
-    int32_t GetIndexForward( uint32_t& index ); 
-    int32_t GetIndexBackward( uint32_t& index ); 
+    int32_t GetIndexCurrent( uint32_t& index );
+    int32_t GetIndexForward( uint32_t& index );
+    int32_t GetIndexBackward( uint32_t& index );
     int32_t GetIndexForwardArray( uint32_t*& index );
     int32_t GetIndexBackwardArray( uint32_t*& index );
     int32_t GetIndexForwardCount( uint32_t &count);
     int32_t GetIndexBackwardCount( uint32_t & count);
 
-    int32_t GetCmIndexCurrent( uint16_t& index ); 
-    int32_t GetCmIndexForward( uint16_t& index ); 
-    int32_t GetCmIndexBackward( uint16_t& index ); 
+    int32_t GetCmIndexCurrent( uint16_t& index );
+    int32_t GetCmIndexForward( uint16_t& index );
+    int32_t GetCmIndexBackward( uint16_t& index );
     int32_t GetCmIndexForwardArray( uint32_t*& index );
     int32_t GetCmIndexBackwardArray( uint32_t*& index );
 
@@ -77,7 +77,7 @@ public:
 
     bool IsVmeSurfaceGen7_5();
 
-    CM_ENUM_CLASS_TYPE Type() const {return CM_ENUM_CLASS_TYPE_CMSURFACEVME;};  
+    CM_ENUM_CLASS_TYPE Type() const {return CM_ENUM_CLASS_TYPE_CMSURFACEVME;};
 
     // calculate the size needed for the pValue
     int32_t GetVmeCmArgSize();
@@ -85,22 +85,22 @@ public:
     int32_t GetTotalSurfacesCount();
 
 protected:
-    CmSurfaceVme(     
+    CmSurfaceVme(
         uint32_t indexFor2DCurrent,
         uint32_t indexFor2DForward,
         uint32_t indexFor2DBackward,
         uint32_t indexForCurrent,
         uint32_t indexForForward,
         uint32_t indexForBackward,
-        CmSurfaceManager* pSurfaceManager );   
+        CmSurfaceManager* pSurfaceManager );
 
     CmSurfaceVme(
         const uint32_t surfaceFCount,
         const uint32_t surfaceBCount,
         uint32_t indexFor2DCurSurface,
-        uint32_t *pForwardSurface, 
+        uint32_t *pForwardSurface,
         uint32_t *pBackwardSurface,
-        uint32_t indexCurrent, 
+        uint32_t indexCurrent,
         uint32_t *pForward,
         uint32_t *pBackward,
         CmSurfaceManager* pSurfaceManager);

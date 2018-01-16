@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_printf_host.h  
-//! \brief     Contains Class PFParser definitions   
+//! \file      cm_printf_host.h 
+//! \brief     Contains Class PFParser definitions 
 //!
 
 #pragma once
@@ -84,7 +84,7 @@
 /// [7]: Scalar upper 32bits: Upper 32bits of double and [u]*int64_t.
 
 typedef struct _CM_PRINT_HEADER{
-    unsigned int object_type; 
+    unsigned int object_type;
     unsigned int  data_type;
     unsigned int  width;
     unsigned int  height;
@@ -110,11 +110,11 @@ enum  PRINT_FMT_STATUS
 // Here's the grammar for printf format strings (using EBNF). Only one format directive is to be
 // returned from the input at a time:
 //
-// format: 
-//       { STRING } directive 
+// format:
+//       { STRING } directive
 //
 //
-// directive: 
+// directive:
 //       PERCENT flags { width } { PERIOD precision } { length_modifier } conversion
 //
 // flags:
@@ -192,9 +192,9 @@ enum  PRINT_FMT_STATUS
 class PFParser
 {
 public:
-    PFParser(FILE* streamout) : mInSpec(false), mInputStart(nullptr), mCurrLoc(nullptr), mArgsExpected(0), 
+    PFParser(FILE* streamout) : mInSpec(false), mInputStart(nullptr), mCurrLoc(nullptr), mArgsExpected(0),
                  mNumMultArg(0), mUnsupported(false), mError(false), mStreamOut(streamout) {};
-    void setStart(char *iStart) 
+    void setStart(char *iStart)
     {
         mInputStart= mCurrLoc = iStart;
         // Prime the system with the first token
@@ -210,12 +210,12 @@ private:
     public:
         enum TokenType { _None_, Error,
                          String, Percent, Minus, Plus, Space, Zero, Integer, Period, Hash, Star,
-                         hh_Mod, h_Mod, l_Mod, ll_Mod, j_Mod, z_Mod, t_Mod, L_Mod, 
-                         c_Conv, s_Conv, d_Conv, i_Conv, o_Conv, x_Conv, X_Conv, u_Conv, f_Conv, 
+                         hh_Mod, h_Mod, l_Mod, ll_Mod, j_Mod, z_Mod, t_Mod, L_Mod,
+                         c_Conv, s_Conv, d_Conv, i_Conv, o_Conv, x_Conv, X_Conv, u_Conv, f_Conv,
                          F_Conv, e_Conv, E_Conv, a_Conv, A_Conv, g_Conv, G_Conv, n_Conv, p_Conv,
                          End
         };
-        
+
         Token() : mTokenType(_None_), mTokenInt(0) {};
         bool operator==(const Token &other) const {
             return mTokenType == other.mTokenType;

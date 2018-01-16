@@ -44,7 +44,6 @@ struct CM_PLATFORM_INFO
 };
 typedef CM_PLATFORM_INFO *PCM_PLATFORM_INFO;
 
-
 struct CM_HAL_WALKER_XY
 {
     union
@@ -109,7 +108,6 @@ struct CM_HAL_WALKER_PARAMS
 };
 typedef CM_HAL_WALKER_PARAMS *PCM_HAL_WALKER_PARAMS;
 
-
 struct SamplerParam
 {
     unsigned int samplerTableIndex;
@@ -123,7 +121,6 @@ struct SamplerParam
     unsigned int size;
 };
 
-
 struct CM_SURFACE_BTI_INFO
 {
     uint32_t normalSurfaceStart;   // start index of normal surface
@@ -132,7 +129,6 @@ struct CM_SURFACE_BTI_INFO
     uint32_t reservedSurfaceEnd;   // end index of reserved surface
 };
 typedef CM_SURFACE_BTI_INFO *PCM_SURFACE_BTI_INFO;
-
 
 //------------------------------------------------------------------------------
 //| CM HW Expected GT system info
@@ -143,7 +139,6 @@ struct CM_EXPECTED_GT_SYSTEM_INFO
     uint32_t numSubSlices;
 };
 typedef CM_EXPECTED_GT_SYSTEM_INFO *PCM_EXPECTED_GT_SYSTEM_INFO;
-
 
 struct CM_HAL_GENERIC
 {
@@ -526,7 +521,6 @@ public:
     virtual MOS_STATUS GetSamplerParamInfoForSamplerType(
             PMHW_SAMPLER_STATE_PARAM samplerParamPtr,
             SamplerParam  &samplerParam) = 0;
-
 
     //!
     //! \brief    Get the expected configuration for specific GT

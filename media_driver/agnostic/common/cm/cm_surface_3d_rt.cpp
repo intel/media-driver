@@ -93,7 +93,6 @@ int32_t CmSurface3DRT::GetHandle( uint32_t& handle)
     return CM_SUCCESS;
 }
 
-
 CM_RT_API int32_t CmSurface3DRT::WriteSurface( const unsigned char* pSysMem,
                                                 CmEvent* pEvent,
                                                 uint64_t sysMemSize )
@@ -223,7 +222,6 @@ finish:
     }
     return hr;
 }
-
 
 CM_RT_API int32_t CmSurface3DRT::ReadSurface( unsigned char* pSysMem, CmEvent* pEvent, uint64_t sysMemSize )
 {
@@ -357,7 +355,6 @@ finish:
     return hr;
 }
 
-
 CM_RT_API int32_t CmSurface3DRT::GetIndex( SurfaceIndex*& pIndex )
 {
     pIndex = m_pIndex;
@@ -385,7 +382,6 @@ int32_t CmSurface3DRT::SetProperties( uint32_t width,  uint32_t height, uint32_t
     m_Format = format;
     return CM_SUCCESS;
 }
-
 
 CM_RT_API int32_t CmSurface3DRT::InitSurface(const uint32_t initValue, CmEvent* pEvent)
 {

@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_event_rt.cpp  
-//! \brief     Contains OS-agnostic CmEventRT member functions.  
+//! \file      cm_event_rt.cpp 
+//! \brief     Contains OS-agnostic CmEventRT member functions. 
 //!
 
 #include "cm_event_rt.h"
@@ -39,7 +39,7 @@
 namespace CMRT_UMD
 {
 //*-----------------------------------------------------------------------------
-//| Purpose:    Create Cm Event 
+//| Purpose:    Create Cm Event
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 int32_t CmEventRT::Create(uint32_t index, CmQueueRT *queue, CmTaskInternal *task, int32_t taskDriverId, CmDeviceRT *cmDev, bool isVisible, CmEventRT *&event)
@@ -48,7 +48,7 @@ int32_t CmEventRT::Create(uint32_t index, CmQueueRT *queue, CmTaskInternal *task
     event = new (std::nothrow) CmEventRT( index, queue, task, taskDriverId, cmDev, isVisible );
     if( event )
     {
-        if(isVisible) 
+        if(isVisible)
         {   // Increase the refcount when the Event is visiable
             event->Acquire();
         }
@@ -67,7 +67,7 @@ int32_t CmEventRT::Create(uint32_t index, CmQueueRT *queue, CmTaskInternal *task
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Destroy Cm Event 
+//| Purpose:    Destroy Cm Event
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 int32_t CmEventRT::Destroy( CmEventRT* &event )
@@ -86,7 +86,7 @@ int32_t CmEventRT::Destroy( CmEventRT* &event )
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 CmEventRT::CmEventRT(uint32_t index, CmQueueRT *queue, CmTaskInternal *task, int32_t taskDriverId, CmDeviceRT *device, bool isVisible):
-    m_index( index ), 
+    m_index( index ),
     m_taskDriverId( taskDriverId ),
     m_status( CM_STATUS_QUEUED ),
     m_time( 0 ),
@@ -103,9 +103,9 @@ CmEventRT::CmEventRT(uint32_t index, CmQueueRT *queue, CmTaskInternal *task, int
     m_globalSubmitTimeCpu.QuadPart = 0;
     m_submitTimeGpu.QuadPart = 0;
     m_hwStartTimeStamp.QuadPart = 0;
-    m_hwEndTimeStamp.QuadPart = 0;               
-    m_completeTime.QuadPart = 0;                   
-    m_enqueueTime.QuadPart = 0;                 
+    m_hwEndTimeStamp.QuadPart = 0;
+    m_completeTime.QuadPart = 0;
+    m_enqueueTime.QuadPart = 0;
 
     m_kernelNames          = nullptr ;
     m_threadSpace          = nullptr ;
@@ -113,7 +113,7 @@ CmEventRT::CmEventRT(uint32_t index, CmQueueRT *queue, CmTaskInternal *task, int
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Increase Reference count 
+//| Purpose:    Increase Reference count
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 int32_t CmEventRT::Acquire( void )
@@ -175,7 +175,7 @@ CmEventRT::~CmEventRT( void )
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Initialize Cm Event 
+//| Purpose:    Initialize Cm Event
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 int32_t CmEventRT::Initialize(void)
@@ -210,7 +210,7 @@ int32_t CmEventRT::Initialize(void)
 //!     CM_SUCCESS if the status is successfully returned;
 //!     CM_FAILURE if not.
 //*-----------------------------------------------------------------------------
-CM_RT_API int32_t CmEventRT::GetStatus( CM_STATUS& status) 
+CM_RT_API int32_t CmEventRT::GetStatus( CM_STATUS& status)
 {
     if( ( m_status == CM_STATUS_FLUSHED ) || ( m_status == CM_STATUS_STARTED ) )
     {
@@ -219,7 +219,7 @@ CM_RT_API int32_t CmEventRT::GetStatus( CM_STATUS& status)
 
     m_queue->FlushTaskWithoutSync();
 
-    status = m_status; 
+    status = m_status;
     return CM_SUCCESS;
 }
 
@@ -269,8 +269,8 @@ int32_t CmEventRT::GetQueue(CmQueueRT *& queue)
 //*-----------------------------------------------------------------------------
 CM_RT_API int32_t CmEventRT::GetExecutionTime(uint64_t& time)
 {
-    CM_STATUS eventStatus = CM_STATUS_QUEUED; 
-    
+    CM_STATUS eventStatus = CM_STATUS_QUEUED;
+
     GetStatusNoFlush(eventStatus);
 
     if( eventStatus == CM_STATUS_FINISHED )
@@ -304,10 +304,10 @@ CM_RT_API int32_t CmEventRT::GetExecutionTickTime(uint64_t& ticks)
 int32_t CmEventRT::GetSubmitTime(LARGE_INTEGER* time)
 {
 
-    CM_STATUS eventStatus = CM_STATUS_QUEUED; 
-    
+    CM_STATUS eventStatus = CM_STATUS_QUEUED;
+
     GetStatusNoFlush(eventStatus);
-    
+
     if( eventStatus == CM_STATUS_FINISHED )
     {
         *time = m_globalSubmitTimeCpu;
@@ -322,10 +322,10 @@ int32_t CmEventRT::GetSubmitTime(LARGE_INTEGER* time)
 
 int32_t CmEventRT::GetHWStartTime(LARGE_INTEGER* time)
 {
-    CM_STATUS eventStatus = CM_STATUS_QUEUED; 
-    
+    CM_STATUS eventStatus = CM_STATUS_QUEUED;
+
     GetStatusNoFlush(eventStatus);
-    
+
     if( eventStatus == CM_STATUS_FINISHED )
     {
         time->QuadPart = m_globalSubmitTimeCpu.QuadPart + m_hwStartTimeStamp.QuadPart - m_submitTimeGpu.QuadPart;
@@ -335,9 +335,8 @@ int32_t CmEventRT::GetHWStartTime(LARGE_INTEGER* time)
     {
         return CM_FAILURE;
     }
-    
-}
 
+}
 
 uint32_t CmEventRT::GetKernelCount()
 {
@@ -347,10 +346,10 @@ uint32_t CmEventRT::GetKernelCount()
 int32_t CmEventRT::GetHWEndTime(LARGE_INTEGER* time)
 {
 
-    CM_STATUS eventStatus = CM_STATUS_QUEUED; 
-    
+    CM_STATUS eventStatus = CM_STATUS_QUEUED;
+
     GetStatusNoFlush(eventStatus);
-    
+
     if( eventStatus == CM_STATUS_FINISHED )
     {
         time->QuadPart = m_globalSubmitTimeCpu.QuadPart + m_hwEndTimeStamp.QuadPart - m_submitTimeGpu.QuadPart;
@@ -365,10 +364,10 @@ int32_t CmEventRT::GetHWEndTime(LARGE_INTEGER* time)
 int32_t CmEventRT::GetCompleteTime(LARGE_INTEGER* time)
 {
 
-    CM_STATUS eventStatus = CM_STATUS_QUEUED; 
-    
+    CM_STATUS eventStatus = CM_STATUS_QUEUED;
+
     GetStatusNoFlush(eventStatus);
-    
+
     if( eventStatus == CM_STATUS_FINISHED )
     {
         *time = m_completeTime;
@@ -378,7 +377,7 @@ int32_t CmEventRT::GetCompleteTime(LARGE_INTEGER* time)
     {
         return CM_FAILURE;
     }
-    
+
 }
 
 int32_t CmEventRT::GetEnqueueTime(LARGE_INTEGER* time)
@@ -399,7 +398,6 @@ int32_t CmEventRT::GetEnqueueTime(LARGE_INTEGER* time)
 
 }
 
-
 int32_t CmEventRT::SetKernelNames(CmTaskRT* task, CmThreadSpaceRT* threadSpace, CmThreadGroupSpace* threadGroupSpace)
 {
     uint32_t i = 0;
@@ -413,7 +411,7 @@ int32_t CmEventRT::SetKernelNames(CmTaskRT* task, CmThreadSpaceRT* threadSpace, 
     CMCHK_NULL_RETURN(m_kernelNames, CM_OUT_OF_HOST_MEMORY);
     CmSafeMemSet(m_kernelNames, 0, m_kernelCount*sizeof(char*) );
     CMCHK_NULL_RETURN(m_threadSpace, CM_OUT_OF_HOST_MEMORY);
-    
+
     for (i = 0; i < m_kernelCount; i++)
     {
         m_kernelNames[i] = MOS_NewArray(char, CM_MAX_KERNEL_NAME_SIZE_IN_BYTE);
@@ -435,7 +433,7 @@ int32_t CmEventRT::SetKernelNames(CmTaskRT* task, CmThreadSpaceRT* threadSpace, 
         m_threadSpace[0] = threadWidth;
         m_threadSpace[1] = threadHeight;
         m_threadSpace[2] = threadWidth;
-        m_threadSpace[3] = threadHeight;  
+        m_threadSpace[3] = threadHeight;
     }
     else if (threadGroupSpace)
     {
@@ -482,13 +480,13 @@ int32_t CmEventRT::GetIndex( uint32_t & index )
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Set Task ID 
+//| Purpose:    Set Task ID
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 int32_t CmEventRT::SetTaskDriverId( int32_t id )
 {
     m_taskDriverId = id;
-    if( m_taskDriverId > -1 ) 
+    if( m_taskDriverId > -1 )
         // Valid task id in driver, i.e. the task has been passed down to driver
     {
         m_status = CM_STATUS_FLUSHED;
@@ -519,7 +517,7 @@ int32_t CmEventRT::SetTaskOsData( void  *data )
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Get Task ID 
+//| Purpose:    Get Task ID
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 int32_t CmEventRT::GetTaskDriverId( int32_t & id )
@@ -537,8 +535,8 @@ int32_t CmEventRT::Query( void )
     CM_RETURN_CODE  hr = CM_SUCCESS;
 
     CLock Lock(m_criticalSectionQuery);
-    
-    if( ( m_status != CM_STATUS_FLUSHED ) && ( m_status != CM_STATUS_STARTED ) ) 
+
+    if( ( m_status != CM_STATUS_FLUSHED ) && ( m_status != CM_STATUS_STARTED ) )
     {
         return CM_FAILURE;
     }
@@ -576,7 +574,7 @@ int32_t CmEventRT::Query( void )
         m_submitTimeGpu = param.taskSubmitTimeGpu;
         m_hwStartTimeStamp = param.taskHWStartTimeStamp;
         m_hwEndTimeStamp = param.taskHWEndTimeStamp;
-      
+
     }
     else if( param.status == CM_TASK_IN_PROGRESS )
     {
@@ -591,9 +589,8 @@ finish:
     return hr;
 }
 
-
 //*-----------------------------------------------------------------------------
-//| Purpose:    GT-PIN : Get Surface Details 
+//| Purpose:    GT-PIN : Get Surface Details
 //| Returns:    result of operation
 //*-----------------------------------------------------------------------------
 CM_RT_API  int32_t CmEventRT::GetSurfaceDetails(uint32_t kernIndex, uint32_t surfBTI,CM_SURFACE_DETAILS & outDetails )
@@ -623,7 +620,7 @@ CM_RT_API  int32_t CmEventRT::GetSurfaceDetails(uint32_t kernIndex, uint32_t sur
             CM_ASSERTMESSAGE("Error: Incorrect surface Binding table Index.");
             return CM_INVALID_ARG_VALUE;
         }
-        tempSurfInfo = tempIndex + 
+        tempSurfInfo = tempIndex +
                         m_surEntryInfoArrays.surfEntryInfosArray[kernIndex].globalSurfInfos;
 
     }
@@ -642,7 +639,7 @@ CM_RT_API  int32_t CmEventRT::GetSurfaceDetails(uint32_t kernIndex, uint32_t sur
                     m_surEntryInfoArrays.surfEntryInfosArray[kernIndex].surfEntryInfos;
 
     }
-    else 
+    else
     {//error
         CM_ASSERTMESSAGE("Error: Incorrect surface Binding table Index.");
         return CM_INVALID_ARG_VALUE;
@@ -689,7 +686,7 @@ int32_t CmEventRT::SetSurfaceDetails(CM_HAL_SURFACE_ENTRY_INFO_ARRAYS surfaceInf
             m_surEntryInfoArrays.surfEntryInfosArray[i].surfEntryInfos=temp;
             CmFastMemCopy(m_surEntryInfoArrays.surfEntryInfosArray[i].surfEntryInfos,
                                          surfaceInfo.surfEntryInfosArray[i].surfEntryInfos,
-                                         surfEntryNum*sizeof(CM_SURFACE_DETAILS)); 
+                                         surfEntryNum*sizeof(CM_SURFACE_DETAILS));
          }
 
         //static buffers
@@ -708,7 +705,7 @@ int32_t CmEventRT::SetSurfaceDetails(CM_HAL_SURFACE_ENTRY_INFO_ARRAYS surfaceInf
                 m_surEntryInfoArrays.surfEntryInfosArray[i].globalSurfInfos=temp;
                 CmFastMemCopy(m_surEntryInfoArrays.surfEntryInfosArray[i].globalSurfInfos,
                                              surfaceInfo.surfEntryInfosArray[i].globalSurfInfos,
-                                             globalSurfNum*sizeof(CM_SURFACE_DETAILS)); 
+                                             globalSurfNum*sizeof(CM_SURFACE_DETAILS));
              }
         }//(globalSurfNum>0)
     }//for
@@ -765,7 +762,7 @@ CM_RT_API  int32_t CmEventRT::GetProfilingInfo(CM_EVENT_PROFILING_INFO infoType,
                  *((char **)value) = m_kernelNames[kernelIndex];
              }
              break;
-             
+
         case CM_EVENT_PROFILING_THREADSPACE:
              {
                  CHK_NULL(inputValue);
@@ -775,8 +772,8 @@ CM_RT_API  int32_t CmEventRT::GetProfilingInfo(CM_EVENT_PROFILING_INFO infoType,
                     hr = CM_INVALID_PARAM_SIZE;
                     goto finish;
                  }
-                 // 4 elements, global/local, width/height, 
-                 CmSafeMemCopy(value, m_threadSpace + kernelIndex*4 , sizeof(uint32_t)*4); 
+                 // 4 elements, global/local, width/height,
+                 CmSafeMemCopy(value, m_threadSpace + kernelIndex*4 , sizeof(uint32_t)*4);
              }
             break;
 

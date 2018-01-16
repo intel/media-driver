@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_hal_g8.h  
-//! \brief     Common HAL CM Gen8 functions  
+//! \file      cm_hal_g8.h 
+//! \brief     Common HAL CM Gen8 functions 
 //!
 
 #ifndef __VPHAL_CM_G8__
@@ -42,7 +42,7 @@
 #define CM_BDW_L3_CONFIG_NUM 8
 #define CM_NUM_CONVOLVE_ROWS_BDW 16
 
-static const L3_CONFIG BDW_L3[CM_BDW_L3_CONFIG_NUM]  = 
+static const L3_CONFIG BDW_L3[CM_BDW_L3_CONFIG_NUM]  =
 {  //8k unit
     {0,    48,    48,    0,    0,    0,    0,    0,    96},
     {0,    48,    0,    16,    32,    0,    0,    0,    96},
@@ -396,7 +396,7 @@ typedef struct _CM_VEBOX_STATE_G8
 
 struct CM_HAL_G8_X:public CM_HAL_GENERIC
 {
-    
+
 public:
     CM_HAL_G8_X(PCM_HAL_STATE pCmState):CM_HAL_GENERIC(pCmState){};
     ~CM_HAL_G8_X(){};
@@ -404,7 +404,7 @@ public:
     MOS_STATUS GetCopyKernelIsa(void  *&pIsa, uint32_t &IsaSize);
 
     MOS_STATUS GetInitKernelIsa(void  *&pIsa, uint32_t &IsaSize);
-    
+
     MOS_STATUS SetMediaWalkerParams(
                         CM_WALKING_PARAMETERS          engineeringParams,
                         PCM_HAL_WALKER_PARAMS          pWalkerParams);
@@ -413,14 +413,14 @@ public:
                         uint16_t                        wMemObjCtl,
                         PRENDERHAL_SURFACE_STATE_PARAMS pParams);
 
-    MOS_STATUS RegisterSampler8x8(    
-                        PCM_HAL_SAMPLER_8X8_PARAM    pParam); 
+    MOS_STATUS RegisterSampler8x8(
+                        PCM_HAL_SAMPLER_8X8_PARAM    pParam);
 
     MOS_STATUS SubmitCommands(
-                        PMHW_BATCH_BUFFER       pBatchBuffer,       
-                        int32_t                 iTaskId,           
-                        PCM_HAL_KERNEL_PARAM    *pKernels,          
-                        void                    **ppCmdBuffer); 
+                        PMHW_BATCH_BUFFER       pBatchBuffer,
+                        int32_t                 iTaskId,
+                        PCM_HAL_KERNEL_PARAM    *pKernels,
+                        void                    **ppCmdBuffer);
 
     MOS_STATUS UpdatePlatformInfoFromPower(
                         PCM_PLATFORM_INFO platformInfo,
@@ -441,7 +441,7 @@ public:
     MOS_STATUS AllocateSIPCSRResource();
 
     MOS_STATUS GetGenStepInfo(char*& stepinfostr);
-    
+
     bool IsSurf3DQpitchSupportedbyHw(){ return false;};
 
     bool IsCompareMaskSupportedbyHw(){ return false;};
@@ -465,7 +465,7 @@ public:
             int32_t                   nSampConvNum);
 
     MOS_STATUS SetL3CacheConfig(
-            const L3ConfigRegisterValues *values_ptr, 
+            const L3ConfigRegisterValues *values_ptr,
             PCmHalL3Settings cmhal_l3_cache_ptr);
 
     MOS_STATUS GetSamplerParamInfoForSamplerType(
@@ -477,8 +477,8 @@ private:
     MOS_STATUS RegisterSampler8x8AVSTable(
                         PCM_HAL_SAMPLER_8X8_TABLE  pSampler8x8AVSTable,
                         PCM_AVS_TABLE_STATE_PARAMS pAVSTable);
-        
-    MOS_STATUS SetupHwDebugControl(    
+
+    MOS_STATUS SetupHwDebugControl(
                         PRENDERHAL_INTERFACE   pRenderHal,
                         PMOS_COMMAND_BUFFER    pCmdBuffer);
 };

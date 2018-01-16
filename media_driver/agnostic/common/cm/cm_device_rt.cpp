@@ -377,7 +377,6 @@ void CmDeviceRT::DestructCommon()
     }
 }
 
-
 //*-----------------------------------------------------------------------------
 //| Purpose:    Create Aux Device and Initialize it
 //| Returns:    Result of the operation.
@@ -438,7 +437,6 @@ int32_t CmDeviceRT::Initialize(MOS_CONTEXT *umdContext)
 
     return result;
 }
-
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Create Buffer
@@ -611,7 +609,6 @@ CM_RT_API int32_t CmDeviceRT::ForceDestroyBufferUP(CmBufferUP* & surface)
     return status;
 }
 
-
 //*--------------------------------------------------------------------------------------------
 //| Purpose:    Create Surface 2D UP
 //| Arguments :   width             [in]     width of the  CmSurface2DUP
@@ -727,7 +724,6 @@ int32_t CmDeviceRT:: CreateSurface2D(PMOS_RESOURCE mosResource,
     return ret;
 }
 
-
 //*-----------------------------------------------------------------------------
 //| Purpose:    Create Surface 2D
 //| Arguments :
@@ -770,7 +766,6 @@ CM_RT_API int32_t CmDeviceRT::CreateSurface3D(uint32_t width,
     surface = surfaceRT;
     return ret;
 }
-
 
 CM_RT_API int32_t CmDeviceRT::DestroySurface( CmBuffer* & surface)
 {
@@ -839,7 +834,6 @@ CM_RT_API int32_t CmDeviceRT::DestroySurface( CmSurface3D* & surface)
         return CM_FAILURE;
     }
 }
-
 
 //*----------------------------------------------------------------------------
 //| Purpose:    Get Current platform information
@@ -1073,7 +1067,6 @@ int32_t CmDeviceRT::GetCapsInternal(void  *caps, uint32_t *size)
 finish:
     return hr;
 }
-
 
 //*-----------------------------------------------------------------------------
 //! Get HW capability.
@@ -2314,7 +2307,6 @@ CmDeviceRT::CreateSampler8x8SurfaceEx(CmSurface2D* currentSurface,
     return result;
 }
 
-
 //*-----------------------------------------------------------------------------
 //| Purpose:    Create Sampler Surface 2D with Flag
 //| Returns:    Result of the operation.
@@ -2346,7 +2338,6 @@ CmDeviceRT::CreateSamplerSurface2DEx(CmSurface2D* p2DSurface,
 
     return result;
 }
-
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Destroy Sampler8x8 Surface
@@ -2719,7 +2710,6 @@ int32_t CmDeviceRT::GetGenStepInfo(char*& stepinfostr)
 finish:
     return hr;
 }
-
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Create Sampler Surface 2D
@@ -3298,7 +3288,6 @@ CM_RT_API int32_t CmDeviceRT::DestroyBufferSVM(CmBufferSVM* & bufferSVM)
     }
 }
 
-
 //*-----------------------------------------------------------------------------
 //| Purpose:    Creates an alias to CmSurface2D, p2DSurface
 //| Returns:    Result of the operation
@@ -3357,8 +3346,6 @@ CM_RT_API int32_t CmDeviceRT::CreateBufferAlias(CmBuffer *buffer,
 
     return CM_SUCCESS;
 }
-
-
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Initialize Dev Create Option
@@ -3424,7 +3411,6 @@ int32_t CmDeviceRT::InitDevCreateOption(CM_HAL_CREATE_PARAM & devCreateParam,
 
     return CM_SUCCESS;
 }
-
 
 bool CmDeviceRT::IsScratchSpaceDisabled()
 {

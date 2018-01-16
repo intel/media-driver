@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_array.h  
-//! \brief     Contains CM array function definitions  
+//! \file      cm_array.h 
+//! \brief     Contains CM array function definitions 
 //!
 
 #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMARRAY_H_
@@ -50,7 +50,7 @@ public:
     bool    SetElementIntoFreeSlot(const void* element); //Set the element into the first available slot in the array
 
     CmDynamicArray& operator= ( const CmDynamicArray &array );
-   
+
 protected:
 
     void    CreateArray( const uint32_t size );
@@ -62,7 +62,7 @@ protected:
 
     uint32_t m_usedSize;
     uint32_t m_actualSize;
-    
+
 private:
 
     CmDynamicArray (const CmDynamicArray& other);

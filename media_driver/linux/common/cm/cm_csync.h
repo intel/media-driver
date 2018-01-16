@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_csync.h  
-//! \brief     Contains CSync and CLock definitions  
+//! \file      cm_csync.h 
+//! \brief     Contains CSync and CLock definitions 
 //!
 
 #ifndef MEDIADRIVER_LINUX_COMMON_CM_CMCSYNC_H_
@@ -34,41 +34,41 @@ namespace CMRT_UMD
 class CSync
 {
 public:
-    CSync() 
-    { 
-        int32_t ret = 0; 
-        ret = pthread_mutex_init(&m_CriticalSection, nullptr); 
-        if (ret != 0) 
+    CSync()
+    {
+        int32_t ret = 0;
+        ret = pthread_mutex_init(&m_CriticalSection, nullptr);
+        if (ret != 0)
         {
             CM_ASSERTMESSAGE("Error: Failed in pthread_mutex_init.");
         }
     }
 
     ~CSync()
-    { 
+    {
         int32_t ret = 0 ;
-        ret = pthread_mutex_destroy(&m_CriticalSection); 
-        if (ret != 0) 
+        ret = pthread_mutex_destroy(&m_CriticalSection);
+        if (ret != 0)
         {
             CM_ASSERTMESSAGE("Error: Failed in pthread_mutex_destroy.");
         }
     }
 
-    void Acquire() 
-    { 
+    void Acquire()
+    {
         int32_t ret = 0;
-        ret = pthread_mutex_lock(&m_CriticalSection); 
-        if (ret != 0) 
+        ret = pthread_mutex_lock(&m_CriticalSection);
+        if (ret != 0)
         {
             CM_ASSERTMESSAGE("Error: Failed in pthread_mutex_lock.");
         }
     }
 
-    void Release() 
+    void Release()
     {
         int32_t ret = 0;
-        ret = pthread_mutex_unlock(&m_CriticalSection); 
-        if (ret != 0) 
+        ret = pthread_mutex_unlock(&m_CriticalSection);
+        if (ret != 0)
         {
             CM_ASSERTMESSAGE("Error: Failed in pthread_mutex_unlock.");
         }

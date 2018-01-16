@@ -22,18 +22,18 @@
 
 #ifndef _CM_JITTER_INFO_
 #define _CM_JITTER_INFO_
-// Make JIT_INFO available in offline compile too, 
+// Make JIT_INFO available in offline compile too,
 // so we don't have to have annoying #ifdef DLL_MODE
 typedef struct _CM_PROFILE_INFO {
-	int kind;
-	int index;
-	int value;
+    int kind;
+    int index;
+    int value;
 } CM_PROFILE_INFO;
 
 typedef struct _CM_BB_INFO {
-	int id;
-	unsigned staticCycle;
-	unsigned sendStallCycle;
+    int id;
+    unsigned staticCycle;
+    unsigned sendStallCycle;
 } CM_BB_INFO;
 
 typedef struct _CM_JIT_INFO {
@@ -58,7 +58,7 @@ typedef struct _CM_JIT_INFO {
 
     // whether kernel uses a barrier
     bool usesBarrier;
-    
+
     unsigned BBNum;
     CM_BB_INFO *BBInfo;
 

@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_task_internal.cpp  
-//! \brief     Contains Class CmTaskInternal  definitions  
+//! \file      cm_task_internal.cpp 
+//! \brief     Contains Class CmTaskInternal  definitions 
 //!
 
 #include "cm_task_internal.h"
@@ -46,7 +46,7 @@
 namespace CMRT_UMD
 {
 //*-----------------------------------------------------------------------------
-//| Purpose:    Create Task internal 
+//| Purpose:    Create Task internal
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 int32_t CmTaskInternal::Create(const uint32_t kernelCount, const uint32_t totalThreadCount, CmKernelRT* pKernelArray[], const CmThreadSpaceRT* pTS, CmDeviceRT* pCmDevice, const uint64_t uiSyncBitmap, CmTaskInternal*& pTask, const uint64_t uiConditionalEndBitmap, PCM_HAL_CONDITIONAL_BB_END_INFO pConditionalEndInfo)
@@ -70,7 +70,7 @@ int32_t CmTaskInternal::Create(const uint32_t kernelCount, const uint32_t totalT
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Create Task internal with Thread Group Space 
+//| Purpose:    Create Task internal with Thread Group Space
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 int32_t CmTaskInternal::Create( const uint32_t kernelCount, const uint32_t totalThreadCount, CmKernelRT* pKernelArray[], const CmThreadGroupSpace* pTGS, CmDeviceRT* pCmDevice, const uint64_t uiSyncBitmap, CmTaskInternal*& pTask )
@@ -138,9 +138,8 @@ int32_t CmTaskInternal::Create(const uint32_t kernelCount, const uint32_t totalT
     return result;
 }
 
-
 //*-----------------------------------------------------------------------------
-//| Purpose:    Destroy Task internal 
+//| Purpose:    Destroy Task internal
 //| Returns:    None.
 //*-----------------------------------------------------------------------------
 int32_t CmTaskInternal::Destroy( CmTaskInternal* &pTask )
@@ -192,7 +191,7 @@ CmTaskInternal::CmTaskInternal(const uint32_t kernelCount, const uint32_t totalT
     m_KernelSurfInfo.surfEntryInfosArray = nullptr;
     m_pKernelCurbeOffsetArray = MOS_NewArray(uint32_t, kernelCount);
     CM_ASSERT(m_pKernelCurbeOffsetArray != nullptr);
-    
+
     for( uint32_t i = 0 ; i < kernelCount; i ++ )
     {
         m_Kernels.SetElement( i, pKernelArray[ i ] );
@@ -231,7 +230,7 @@ CmTaskInternal::~CmTaskInternal( void )
 
     //Release Profiling Info
     VtuneReleaseProfilingInfo();
-    
+
     for( uint32_t i = 0; i < m_KernelCount; i ++ )
     {
         CmKernelRT *pKernel = (CmKernelRT*)m_Kernels.GetElement(i);
@@ -245,7 +244,6 @@ CmTaskInternal::~CmTaskInternal( void )
     }
     m_KernelData.Delete();
     m_Kernels.Delete();
-
 
     MosSafeDeleteArray(m_pKernelCurbeOffsetArray);
 
@@ -263,7 +261,7 @@ CmTaskInternal::~CmTaskInternal( void )
             if (m_pThreadCoordinates[i])
             {
                 MosSafeDeleteArray(m_pThreadCoordinates[i]);
-            } 
+            }
         }
         MosSafeDeleteArray( m_pThreadCoordinates );
     }
@@ -347,7 +345,7 @@ int32_t CmTaskInternal::Initialize(const CmThreadSpaceRT* pTS, bool isWithHints)
         }
 
         uint32_t totalSize =  0;
-        CmKernelData* pKernelData = nullptr; 
+        CmKernelData* pKernelData = nullptr;
 
         if ( isWithHints )
         {
@@ -530,8 +528,8 @@ int32_t CmTaskInternal::Initialize(const CmThreadGroupSpace* pTGS)
         pKernel->CollectKernelSurface();
 
         uint32_t totalSize =  0;
-        CmKernelData* pKernelData = nullptr; 
-        
+        CmKernelData* pKernelData = nullptr;
+
         int32_t result = pKernel->CreateKernelData( pKernelData, totalSize, pTGS );
         if(result != CM_SUCCESS)
         {
@@ -543,7 +541,7 @@ int32_t CmTaskInternal::Initialize(const CmThreadGroupSpace* pTGS)
         pKernelData->SetKernelDataSize(totalSize);
 
         pKernel->GetSizeInPayload(kernelPayloadSize);
-            
+
         PCM_HAL_KERNEL_PARAM  pHalKernelParam = pKernelData->GetHalCmKernelData();
         if (pHalKernelParam->crossThreadConstDataLen + pHalKernelParam->curbeSizePerThread + kernelPayloadSize > pHalMaxValues->maxArgByteSizePerKernel)
         {   //Failed, exceed the maximum of inline data
@@ -556,9 +554,9 @@ int32_t CmTaskInternal::Initialize(const CmThreadGroupSpace* pTGS)
             kernelCurbeSize = pKernel->GetAlignedCurbeSize(kernelCurbeSize);
             totalCurbeSize += kernelCurbeSize;
         }
-            
+
         m_pKernelCurbeOffsetArray[ i ] = totalCurbeSize - kernelCurbeSize;
-                
+
         m_KernelData.SetElement( i, pKernelData );
 
         m_SLMSize = pKernel->GetSLMSize();
@@ -611,9 +609,9 @@ int32_t CmTaskInternal::Initialize(const CmThreadGroupSpace* pTGS)
     {
         AllocateKernelSurfInfo();
     }
-    
+
     this->VtuneInitProfilingInfo(pTGS);
-    
+
     return CM_SUCCESS;
 }
 
@@ -623,7 +621,7 @@ int32_t CmTaskInternal::Initialize(const CmThreadGroupSpace* pTGS)
 //*-----------------------------------------------------------------------------
 int32_t CmTaskInternal::Initialize(CmVeboxRT* pVebox)
 {
-    int32_t result = CM_SUCCESS; 
+    int32_t result = CM_SUCCESS;
     CmSurfaceManager* pSurfaceMgr = nullptr;
     uint32_t surfacePoolSize = 0;
 
@@ -642,7 +640,6 @@ int32_t CmTaskInternal::Initialize(CmVeboxRT* pVebox)
 
     pParamBuffer = pVebox->GetParam();
     m_VeboxState = pVebox->GetState();
-
 
     m_pVeboxParam = pParamBuffer;
     m_TaskType = CM_INTERNAL_TASK_VEBOX;
@@ -664,17 +661,15 @@ int32_t CmTaskInternal::Initialize(CmVeboxRT* pVebox)
         }
         else
         {
-            m_VeboxSurfaceData.surfaceEntry[i].surfaceIndex = CM_INVALID_INDEX; 
-            m_VeboxSurfaceData.surfaceEntry[i].surfaceCtrlBits = CM_INVALID_INDEX;  
+            m_VeboxSurfaceData.surfaceEntry[i].surfaceIndex = CM_INVALID_INDEX;
+            m_VeboxSurfaceData.surfaceEntry[i].surfaceCtrlBits = CM_INVALID_INDEX;
         }
     }
-
 
     UpdateSurfaceStateOnTaskCreation();
 
     return result;
 }
-
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Initialize Class  CmTaskInternal with hints
@@ -699,7 +694,6 @@ int32_t CmTaskInternal::Initialize(uint32_t hints, uint32_t numTasksGenerated, b
 
     return result;
 }
-
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Get Kernel Count
@@ -830,10 +824,10 @@ int32_t CmTaskInternal::GetTaskStatus(CM_STATUS & TaskStatus)
 int32_t CmTaskInternal::VtuneSetFlushTime()
 {
     if(!m_pCmDevice->IsVtuneLogOn())
-    {   // return directly if ETW log is off 
+    {   // return directly if ETW log is off
         return CM_SUCCESS;
     }
-    
+
     MOS_QueryPerformanceCounter((uint64_t*)&m_TaskProfilingInfo.FlushTime.QuadPart);
     return CM_SUCCESS;
 }
@@ -852,7 +846,7 @@ int32_t CmTaskInternal::VtuneInitProfilingInfo(const CmThreadSpaceRT *pPerTaskTs
     int32_t     hr = CM_SUCCESS;
 
     if(!m_pCmDevice->IsVtuneLogOn())
-    {   // return directly if ETW log is off 
+    {   // return directly if ETW log is off
         return CM_SUCCESS;
     }
 
@@ -861,7 +855,6 @@ int32_t CmTaskInternal::VtuneInitProfilingInfo(const CmThreadSpaceRT *pPerTaskTs
     m_TaskProfilingInfo.dwThreadID    = CmGetCurThreadId(); // Get Thread ID
 
     MOS_QueryPerformanceCounter((uint64_t*)&m_TaskProfilingInfo.EnqueueTime.QuadPart); // Get Enqueue Time
-
 
     //  Currently, the Kernel/ThreadSpace/ThreadGroupSpace could not be deleted before task finished.
     m_TaskProfilingInfo.pKernelNames = MOS_NewArray(char, (CM_MAX_KERNEL_NAME_SIZE_IN_BYTE * m_KernelCount));
@@ -885,7 +878,7 @@ int32_t CmTaskInternal::VtuneInitProfilingInfo(const CmThreadSpaceRT *pPerTaskTs
         CMCHK_NULL(pCmKernel);
 
         //Copy Kernel Name
-        MOS_SecureStrcpy(m_TaskProfilingInfo.pKernelNames + m_TaskProfilingInfo.dwKernelNameLen, 
+        MOS_SecureStrcpy(m_TaskProfilingInfo.pKernelNames + m_TaskProfilingInfo.dwKernelNameLen,
                  CM_MAX_KERNEL_NAME_SIZE_IN_BYTE, pCmKernel->GetName());
 
         //Add Kernel Name Length
@@ -912,7 +905,7 @@ int32_t CmTaskInternal::VtuneInitProfilingInfo(const CmThreadSpaceRT *pPerTaskTs
         }
         else
         {
-            //Fill the thread count 
+            //Fill the thread count
             uint32_t ThreadCount = 0;
             pCmKernel->GetThreadCount(ThreadCount);
             m_TaskProfilingInfo.pLocalWorkWidth[i] = ThreadCount;
@@ -953,7 +946,7 @@ int32_t CmTaskInternal::VtuneInitProfilingInfo(const CmThreadGroupSpace *pPerTas
     int32_t     hr = CM_SUCCESS;
 
     if(!m_pCmDevice->IsVtuneLogOn())
-    {   // return directly if ETW log is off 
+    {   // return directly if ETW log is off
         return CM_SUCCESS;
     }
 
@@ -983,7 +976,7 @@ int32_t CmTaskInternal::VtuneInitProfilingInfo(const CmThreadGroupSpace *pPerTas
     {
         CMCHK_HR(GetKernel(i, pCmKernel));
         CMCHK_NULL(pCmKernel);
-        
+
         //Copy Kernel Name
         MOS_SecureStrcpy(m_TaskProfilingInfo.pKernelNames + m_TaskProfilingInfo.dwKernelNameLen,
                  CM_MAX_KERNEL_NAME_SIZE_IN_BYTE, pCmKernel->GetName());
@@ -995,7 +988,7 @@ int32_t CmTaskInternal::VtuneInitProfilingInfo(const CmThreadGroupSpace *pPerTas
 
         if (pPerTaskThreadGroupSpace)
         {  // Per Thread Group Space
-            pPerTaskThreadGroupSpace->GetThreadGroupSpaceSize(TsWidth, TsHeight, TsDepth, TgsWidth, TgsHeight, TgsDepth); 
+            pPerTaskThreadGroupSpace->GetThreadGroupSpaceSize(TsWidth, TsHeight, TsDepth, TgsWidth, TgsHeight, TgsDepth);
             m_TaskProfilingInfo.pLocalWorkWidth[i] = TsWidth;
             m_TaskProfilingInfo.pLocalWorkHeight[i] = TsHeight;
             m_TaskProfilingInfo.pGlobalWorkWidth[i] = TsWidth*TgsWidth;
@@ -1026,7 +1019,6 @@ finish:
     return hr;
 }
 
-
 //*-----------------------------------------------------------------------------
 //| Purpose:    Release Profiling information
 //| Returns:    Result of operation.
@@ -1034,10 +1026,10 @@ finish:
 int32_t CmTaskInternal::VtuneReleaseProfilingInfo()
 {
     if(!m_pCmDevice->IsVtuneLogOn())
-    {   // return directly if ETW log is off 
+    {   // return directly if ETW log is off
         return CM_SUCCESS;
     }
-    
+
     MosSafeDeleteArray(m_TaskProfilingInfo.pKernelNames);
     MosSafeDeleteArray(m_TaskProfilingInfo.pLocalWorkWidth);
     MosSafeDeleteArray(m_TaskProfilingInfo.pLocalWorkHeight);
@@ -1047,9 +1039,8 @@ int32_t CmTaskInternal::VtuneReleaseProfilingInfo()
     return CM_SUCCESS;
 }
 
-
 //*-----------------------------------------------------------------------------
-//| Purpose:    Reset KernelData status from IN_USE to IDLE. 
+//| Purpose:    Reset KernelData status from IN_USE to IDLE.
 //              It is called immediately after the task being flushed.
 //| Returns:    Result of operation.
 //*-----------------------------------------------------------------------------
@@ -1091,11 +1082,11 @@ int32_t CmTaskInternal::CreateThreadSpaceData(const CmThreadSpaceRT* pTS)
         m_pThreadCoordinates = MOS_NewArray(PCM_HAL_SCOREBOARD, m_KernelCount);
         CMCHK_NULL_RETURN(m_pThreadCoordinates, CM_FAILURE);
         CmSafeMemSet(m_pThreadCoordinates, 0, m_KernelCount*sizeof(PCM_HAL_SCOREBOARD));
-        
+
         m_pDependencyMasks = MOS_NewArray(PCM_HAL_MASK_AND_RESET, m_KernelCount);
         CMCHK_NULL_RETURN(m_pDependencyMasks, CM_FAILURE);
         CmSafeMemSet(m_pDependencyMasks, 0, m_KernelCount*sizeof(PCM_HAL_MASK_AND_RESET));
-        
+
         pKernelCoordinateIndex = MOS_NewArray(uint32_t, m_KernelCount);
         if(m_pThreadCoordinates && pKernelCoordinateIndex && m_pDependencyMasks)
         {
@@ -1123,7 +1114,7 @@ int32_t CmTaskInternal::CreateThreadSpaceData(const CmThreadSpaceRT* pTS)
                 {
                     CmSafeMemSet(m_pThreadCoordinates[i], 0, sizeof(CM_HAL_SCOREBOARD)* threadCount);
                 }
-                else 
+                else
                 {
                     CM_ASSERTMESSAGE("Error: Pointer to thread coordinates is null.");
                     hr = CM_NULL_POINTER;
@@ -1181,7 +1172,7 @@ int32_t CmTaskInternal::CreateThreadSpaceData(const CmThreadSpaceRT* pTS)
 
             MosSafeDeleteArray(pKernelCoordinateIndex);
         }
-        else 
+        else
         {
             CM_ASSERTMESSAGE("Error: Failed to create thread space data.");
             hr = CM_FAILURE;
@@ -1190,7 +1181,7 @@ int32_t CmTaskInternal::CreateThreadSpaceData(const CmThreadSpaceRT* pTS)
 
         m_IsThreadCoordinatesExisted = true;
     }
-    else 
+    else
     {
         m_pThreadCoordinates = nullptr;
         m_pDependencyMasks = nullptr;
@@ -1233,7 +1224,7 @@ finish:
                 MosSafeDeleteArray(m_pThreadCoordinates[i]);
             }
         }
-        
+
         if(m_pDependencyMasks)
         {
             for (i = 0; i< m_KernelCount; i++)
@@ -1249,14 +1240,14 @@ finish:
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Get thread space's coordinates 
+//| Purpose:    Get thread space's coordinates
 //| Returns:    CM_SUCCESS.
 //*-----------------------------------------------------------------------------
 int32_t CmTaskInternal::GetKernelCoordinates(const uint32_t index, void  *&pKernelCoordinates)
 {
     if (m_pThreadCoordinates != nullptr)
     {
-        pKernelCoordinates = (void *)m_pThreadCoordinates[index]; 
+        pKernelCoordinates = (void *)m_pThreadCoordinates[index];
     }
     else
     {
@@ -1274,7 +1265,7 @@ int32_t CmTaskInternal::GetKernelDependencyMasks(const uint32_t index, void  *&p
 {
     if (m_pDependencyMasks != nullptr)
     {
-        pKernelDependencyMasks = (void *)m_pDependencyMasks[index]; 
+        pKernelDependencyMasks = (void *)m_pDependencyMasks[index];
     }
     else
     {
@@ -1285,7 +1276,7 @@ int32_t CmTaskInternal::GetKernelDependencyMasks(const uint32_t index, void  *&p
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Get dependency pattern 
+//| Purpose:    Get dependency pattern
 //| Returns:    CM_SUCCESS.
 //*-----------------------------------------------------------------------------
 int32_t CmTaskInternal::GetDependencyPattern(CM_DEPENDENCY_PATTERN &DependencyPattern)
@@ -1295,7 +1286,7 @@ int32_t CmTaskInternal::GetDependencyPattern(CM_DEPENDENCY_PATTERN &DependencyPa
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Get media walking pattern 
+//| Purpose:    Get media walking pattern
 //| Returns:    CM_SUCCESS.
 //*-----------------------------------------------------------------------------
 int32_t CmTaskInternal::GetWalkingPattern(CM_WALKING_PATTERN &WalkingPattern)
@@ -1315,7 +1306,7 @@ int32_t CmTaskInternal::GetWalkingParameters(CM_WALKING_PARAMETERS &pWalkingPara
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Check to see if media walking parameters have been set 
+//| Purpose:    Check to see if media walking parameters have been set
 //| Returns:    true if media walking parameters set, false otherwise
 //*-----------------------------------------------------------------------------
 bool CmTaskInternal::CheckWalkingParametersSet( )
@@ -1324,7 +1315,7 @@ bool CmTaskInternal::CheckWalkingParametersSet( )
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Get dependency vectors 
+//| Purpose:    Get dependency vectors
 //| Returns:    CM_FAILURE if dest ptr is nullptr, CM_SUCCESS otherwise
 //*-----------------------------------------------------------------------------
 int32_t CmTaskInternal::GetDependencyVectors(CM_HAL_DEPENDENCY &pDependencyVectors)
@@ -1334,7 +1325,7 @@ int32_t CmTaskInternal::GetDependencyVectors(CM_HAL_DEPENDENCY &pDependencyVecto
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Check to see if dependency vectors have been set 
+//| Purpose:    Check to see if dependency vectors have been set
 //| Returns:    true if dependency vectors are set, false otherwise
 //*-----------------------------------------------------------------------------
 bool CmTaskInternal::CheckDependencyVectorsSet( )
@@ -1354,7 +1345,7 @@ int32_t CmTaskInternal::GetTotalThreadCount( uint32_t& totalThreadCount )
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Get the width,height of thread space 
+//| Purpose:    Get the width,height of thread space
 //| Returns:    CM_SUCCESS.
 //*-----------------------------------------------------------------------------
 
@@ -1403,7 +1394,6 @@ bool CmTaskInternal::IsThreadCoordinatesExisted(void)
 //| Purpose:    Whether thread coordinates are existed
 //| Returns:    Result of operation.
 //*-----------------------------------------------------------------------------
-
 
 int32_t CmTaskInternal::GetThreadGroupSpaceSize(uint32_t& trdSpaceWidth, uint32_t& trdSpaceHeight, uint32_t& trdSpaceDepth, uint32_t& grpSpaceWidth, uint32_t& grpSpaceHeight, uint32_t& grpSpaceDepth)
 {
@@ -1575,7 +1565,7 @@ int32_t CmTaskInternal::ClearKernelSurfInfo()
     { // if surfEntryInfosArray is empty, return directly
         return CM_SUCCESS;
     }
-    
+
     //free memory
     for( uint32_t i = 0; i < m_KernelCount; i ++ )
     {
@@ -1603,7 +1593,6 @@ int32_t CmTaskInternal::GetTaskType(uint32_t& taskType)
 
     return CM_SUCCESS;
 }
-
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Get vebox state
@@ -1656,7 +1645,7 @@ int32_t CmTaskInternal::SetPowerOption( PCM_POWER_OPTION pPowerOption )
         return CM_NULL_POINTER;
     }
     CmFastMemCopy( &m_PowerOption, pPowerOption, sizeof( m_PowerOption ) );
-    return CM_SUCCESS;   
+    return CM_SUCCESS;
 }
 
 //*-----------------------------------------------------------------------------
@@ -1714,7 +1703,7 @@ int32_t CmTaskInternal::DisplayThreadSpaceData(uint32_t width, uint32_t height)
     {
         CM_NORMALMESSAGE("Dependency Pattern: %s.", g_DependencyPatternString[m_DependencyPattern]);
     }
-    else 
+    else
     {
         CM_NORMALMESSAGE("Dependency Pattern: UNASSIGNED.");
     }
@@ -1752,7 +1741,7 @@ int32_t CmTaskInternal::UpdateSurfaceStateOnTaskCreation()
     }
 
     uint32_t poolSize = pSurfaceMgr->GetSurfacePoolSize();
-    
+
     CSync* pSurfaceLock = m_pCmDevice->GetSurfaceCreationLock();
     if (pSurfaceLock == nullptr)
     {
@@ -1802,7 +1791,7 @@ int32_t CmTaskInternal::UpdateSurfaceStateOnTaskDestroy()
     }
 
     uint32_t poolSize = pSurfaceMgr->GetSurfacePoolSize();
-    
+
     CSync* pSurfaceLock = m_pCmDevice->GetSurfaceCreationLock();
     if (pSurfaceLock == nullptr)
     {
@@ -1834,8 +1823,8 @@ std::string CmTaskInternal::Log()
 {
     std::ostringstream  oss;
 
-    oss << "Enqueue Task Type:" << m_TaskType 
-        << " Kernel Count:" << m_KernelCount 
+    oss << "Enqueue Task Type:" << m_TaskType
+        << " Kernel Count:" << m_KernelCount
         << " Total Thread Count:" << m_TotalThreadCount
         << " Sync Bit:"<<m_ui64SyncBitmap
         << " Conditional End Bit:" << m_ui64ConditionalEndBitmap
@@ -1846,7 +1835,7 @@ std::string CmTaskInternal::Log()
         case CM_INTERNAL_TASK_WITH_THREADSPACE:
             if ( m_IsThreadSpaceCreated )
             {
-                oss << "Thread Space Width :" << m_ThreadSpaceWidth << " Height :" << m_ThreadSpaceHeight 
+                oss << "Thread Space Width :" << m_ThreadSpaceWidth << " Height :" << m_ThreadSpaceHeight
                     << "Walker Patten :" << (int)m_WalkingPattern << std::endl;
             }
             break;
@@ -1863,9 +1852,9 @@ std::string CmTaskInternal::Log()
             break;
 
         case CM_INTERNAL_TASK_ENQUEUEWITHHINTS:
-            oss << " Hints :" << m_Hints 
-                << " Thread Space Width :" << m_ThreadSpaceWidth 
-                << " Height :" << m_ThreadSpaceHeight 
+            oss << " Hints :" << m_Hints
+                << " Thread Space Width :" << m_ThreadSpaceWidth
+                << " Height :" << m_ThreadSpaceHeight
                 << " Walker Patten :" << (int)m_WalkingPattern
                 << std::endl;
             break;
@@ -1885,7 +1874,6 @@ std::string CmTaskInternal::Log()
 }
 #endif
 
-
 void CmTaskInternal::SurfaceDump(int32_t taskId)
 {
 #if MDF_SURFACE_CONTENT_DUMP
@@ -1896,7 +1884,6 @@ void CmTaskInternal::SurfaceDump(int32_t taskId)
     }
 #endif
 }
-
 
 int32_t CmTaskInternal::SetProperty(CM_TASK_CONFIG * pTaskConfig)
 {

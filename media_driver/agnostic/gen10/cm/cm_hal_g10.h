@@ -21,7 +21,7 @@
 */
 //!
 //! \file      cm_hal_g10.h
-//! \brief     Common HAL CM Gen10 functions  
+//! \brief     Common HAL CM Gen10 functions 
 //!
 
 #ifndef __HAL_CM_G10__
@@ -42,16 +42,16 @@ static const L3_CONFIG CNL_L3[CM_CNL_L3_CONFIG_NUM] =
 
 static const L3ConfigRegisterValues CNL_L3_PLANE[CM_CNL_L3_CONFIG_NUM] =
 {                                                                    // SLM    URB   Rest   DC     RO      Sum
-	{ 0x00000000, 0x00000000, 0x00000000, 0x80000080 },              // 0       128    128   0     0       256
-	{ 0x00000000, 0x00000000, 0x00000000, 0x00418080 },              // 0       128     0    32    96      256
-	{ 0x00000000, 0x00000000, 0x00000000, 0x00420060 },              // 0       96      0    32    128     256
-	{ 0x00000000, 0x00000000, 0x00000000, 0x00030040 },              // 0       64      0    0     192     256
-	{ 0x00000000, 0x00000000, 0x00000000, 0xC0000040 },              // 0       64      0    192    0      256
-	{ 0x00000000, 0x00000000, 0x00000000, 0x00428040 },              // 0       64      0    32    160     256
-	{ 0x00000000, 0x00000000, 0x00000000, 0xA0000021 },              // 64      32     160   0     0       256
-	{ 0x00000000, 0x00000000, 0x00000000, 0x01008021 },              // 64      32       0   128   32      256
-	{ 0x00000000, 0x00000000, 0x00000000, 0xC0000001 }               // 64      0      192   0     0       256
-  
+    { 0x00000000, 0x00000000, 0x00000000, 0x80000080 },              // 0       128    128   0     0       256
+    { 0x00000000, 0x00000000, 0x00000000, 0x00418080 },              // 0       128     0    32    96      256
+    { 0x00000000, 0x00000000, 0x00000000, 0x00420060 },              // 0       96      0    32    128     256
+    { 0x00000000, 0x00000000, 0x00000000, 0x00030040 },              // 0       64      0    0     192     256
+    { 0x00000000, 0x00000000, 0x00000000, 0xC0000040 },              // 0       64      0    192    0      256
+    { 0x00000000, 0x00000000, 0x00000000, 0x00428040 },              // 0       64      0    32    160     256
+    { 0x00000000, 0x00000000, 0x00000000, 0xA0000021 },              // 64      32     160   0     0       256
+    { 0x00000000, 0x00000000, 0x00000000, 0x01008021 },              // 64      32       0   128   32      256
+    { 0x00000000, 0x00000000, 0x00000000, 0xC0000001 }               // 64      0      192   0     0       256
+
 };
 
 #define CM_MAX_THREADSPACE_WIDTH_SKLUP_FOR_MW   2047
@@ -65,14 +65,14 @@ typedef struct _CM_L3_CONTROL_REGISTER_G10
     {
         struct _BitField
         {
-            uint32_t SlmModeEnable                 : BITFIELD_BIT(      0  );   // 
-            uint32_t UrbAllocation                 : BITFIELD_RANGE(  1,7  );   // 
-            uint32_t GpgpuL3CreditModeEnable       : BITFIELD_BIT(      8  );   // 
+            uint32_t SlmModeEnable                 : BITFIELD_BIT(      0  );   //
+            uint32_t UrbAllocation                 : BITFIELD_RANGE(  1,7  );   //
+            uint32_t GpgpuL3CreditModeEnable       : BITFIELD_BIT(      8  );   //
             uint32_t ErrorDetectionBehaviorControl : BITFIELD_BIT(      9  );   //
-            uint32_t Reserved0                     : BITFIELD_BIT(     10  );   // 
-            uint32_t ReadOnlyClientPool            : BITFIELD_RANGE( 11,17 );   // 
-            uint32_t DcWayAssignment               : BITFIELD_RANGE( 18,24 );   // 
-            uint32_t AllL3ClientPool               : BITFIELD_RANGE( 25,31 );   // 
+            uint32_t Reserved0                     : BITFIELD_BIT(     10  );   //
+            uint32_t ReadOnlyClientPool            : BITFIELD_RANGE( 11,17 );   //
+            uint32_t DcWayAssignment               : BITFIELD_RANGE( 18,24 );   //
+            uint32_t AllL3ClientPool               : BITFIELD_RANGE( 25,31 );   //
         } BitField;
 
         uint32_t Value;
@@ -84,7 +84,7 @@ typedef struct _CM_L3_CONTROL_REGISTER_G10
 
 struct CM_HAL_G10_X:public CM_HAL_GENERIC
 {
-    
+
 public:
     CM_HAL_G10_X(PCM_HAL_STATE pCmState):CM_HAL_GENERIC(pCmState){};
     ~CM_HAL_G10_X(){};
@@ -105,14 +105,14 @@ public:
                        PCM_HAL_SAMPLER_8X8_TABLE  pSampler8x8AVSTable,
                        PCM_AVS_TABLE_STATE_PARAMS pAVSTable);
 
-    MOS_STATUS RegisterSampler8x8(    
-                        PCM_HAL_SAMPLER_8X8_PARAM    pParam); 
+    MOS_STATUS RegisterSampler8x8(
+                        PCM_HAL_SAMPLER_8X8_PARAM    pParam);
 
     MOS_STATUS SubmitCommands(
-                        PMHW_BATCH_BUFFER       pBatchBuffer,       
-                        int32_t                 iTaskId,           
-                        PCM_HAL_KERNEL_PARAM    *pKernels,          
-                        void                    **ppCmdBuffer); 
+                        PMHW_BATCH_BUFFER       pBatchBuffer,
+                        int32_t                 iTaskId,
+                        PCM_HAL_KERNEL_PARAM    *pKernels,
+                        void                    **ppCmdBuffer);
 
     uint32_t   GetMediaWalkerMaxThreadWidth();
     uint32_t   GetMediaWalkerMaxThreadHeight();
@@ -145,7 +145,6 @@ public:
             PMHW_SAMPLER_STATE_PARAM sampler_param_ptr,
             SamplerParam  &sampler_param);
 
-
     MOS_STATUS GetExpectedGtSystemConfig(
         PCM_EXPECTED_GT_SYSTEM_INFO pExpectedConfig);
 
@@ -154,10 +153,10 @@ private:
                         PCM_PLATFORM_INFO platformInfo,
                         bool              bEUSaturation);
 
-    MOS_STATUS SetupHwDebugControl(    
+    MOS_STATUS SetupHwDebugControl(
                         PRENDERHAL_INTERFACE   pRenderHal,
                         PMOS_COMMAND_BUFFER    pCmdBuffer);
-    
+
 };
 
 #endif  // __VPHAL_CM_G10__

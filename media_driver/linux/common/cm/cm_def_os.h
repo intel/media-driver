@@ -20,13 +20,13 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_def_os.h  
-//! \brief     Contains CM definitions  
+//! \file      cm_def_os.h 
+//! \brief     Contains CM definitions 
 //!
 #pragma once
 
-#pragma GCC diagnostic ignored "-Wdelete-non-virtual-dtor" 
-#pragma GCC diagnostic ignored "-Wnon-virtual-dtor" 
+#pragma GCC diagnostic ignored "-Wdelete-non-virtual-dtor"
+#pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
 
 #include <assert.h>
 #include <stdarg.h>
@@ -47,7 +47,7 @@
 #endif // !SUCCEEDED
 
 #ifndef FAILED
-#define FAILED(hr)      (hr != VA_STATUS_SUCCESS) 
+#define FAILED(hr)      (hr != VA_STATUS_SUCCESS)
 #endif // !FAILED
 
 static inline char *
@@ -70,12 +70,11 @@ inline int memcpy_s(void *dst, size_t numberOfElements, const void *src, size_t 
     return 0;
 }
 
-#define CM_CONTEXT_DATA  CM_CONTEXT 
-#define PCM_CONTEXT_DATA PCM_CONTEXT 
+#define CM_CONTEXT_DATA  CM_CONTEXT
+#define PCM_CONTEXT_DATA PCM_CONTEXT
 
-#define CM_MAX_SURFACE2D_FORMAT_COUNT   19 
-#define CM_MAX_SURFACE2D_FORMAT_COUNT_INTERNAL   (CM_MAX_SURFACE2D_FORMAT_COUNT-1) 
-  
+#define CM_MAX_SURFACE2D_FORMAT_COUNT   19
+#define CM_MAX_SURFACE2D_FORMAT_COUNT_INTERNAL   (CM_MAX_SURFACE2D_FORMAT_COUNT-1)
 
 typedef enum _CM_TEXTURE_ADDRESS_TYPE
 {
@@ -98,7 +97,6 @@ typedef enum _CM_TEXTURE_FILTER_TYPE
     CM_TEXTURE_FILTER_TYPE_GAUSSIANQUAD     = 7
 } CM_TEXTURE_FILTER_TYPE;
 
-
 // From Compiler
 #define CM_NOINLINE __attribute__((noinline))
 
@@ -112,12 +110,12 @@ public:
     CM_NOINLINE SurfaceIndex(const unsigned int& _n) { index = _n; };
     CM_NOINLINE SurfaceIndex& operator = (const unsigned int& _n) { this->index = _n; return *this; };
     CM_NOINLINE SurfaceIndex& operator + (const unsigned int& _n) { this->index += _n; return *this; };
-    CM_NOINLINE SurfaceIndex& operator= (const SurfaceIndex& other) { this->index = other.index; return *this; };    
+    CM_NOINLINE SurfaceIndex& operator= (const SurfaceIndex& other) { this->index = other.index; return *this; };
     virtual unsigned int get_data(void) { return index; };
-    
+
     //g++ warning: class has virtual functions but non-virtual destructor
     virtual ~SurfaceIndex() {};
-      
+
 private:
     unsigned int index;
 
@@ -142,7 +140,7 @@ public:
     CM_NOINLINE SamplerIndex& operator = (const unsigned int& _n) { this->index = _n; return *this; };
     virtual unsigned int get_data(void) { return index; };
     virtual ~SamplerIndex(){};
-    
+
 private:
     unsigned int index;
 
@@ -185,5 +183,4 @@ inline void GetLocalTime(PSYSTEMTIME psystime)
     psystime->wMilliseconds = 0;
 }
 #endif
-
 

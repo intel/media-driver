@@ -92,7 +92,7 @@
 #define CM_SURFACE_FORMAT_Y8_UNORM              Format_Y8
 #define CM_SURFACE_FORMAT_BUFFER_2D             Format_Buffer_2D
 #define CM_SURFACE_FORMAT_D32F                  Format_D32F
-#define CM_SURFACE_FORMAT_D24_UNORM_S8_UINT     Format_D24S8UN      
+#define CM_SURFACE_FORMAT_D24_UNORM_S8_UINT     Format_D24S8UN
 #define CM_SURFACE_FORMAT_D32F_S8X24_UINT       Format_D32S8X24_FLOAT
 #define CM_SURFACE_FORMAT_R16G16_SINT           Format_R16G16S
 #define CM_SURFACE_FORMAT_R24G8_TYPELESS        Format_R24G8
@@ -120,7 +120,6 @@ typedef unsigned char byte;
 #define CM_MAX_3D_SURF_WIDTH            2048
 #define CM_MAX_3D_SURF_HEIGHT           2048
 #define CM_MAX_3D_SURF_DEPTH            2048
-
 
 #define CM_INIT_PROGRAM_COUNT       16
 #define CM_INIT_KERNEL_COUNT        64
@@ -159,7 +158,6 @@ typedef unsigned char byte;
 #define CM_MAX_ENTRY_FOR_A_SURFACE      6   //maxium planes(3)*dual state(2)
 #define CM_GTPIN_BUFFER_NUM             3
 
-
 #define CM_INIT_KERNEL_PER_PROGRAM              64  //
 
 #define CM_MAX_SURFACE3D_FORMAT_COUNT   3
@@ -184,7 +182,6 @@ typedef unsigned char byte;
 #define CM_MAX_THREADSPACE_HEIGHT_FOR_MW       511
 #define CM_MAX_THREADSPACE_WIDTH_SKLUP_FOR_MW  2047
 #define CM_MAX_THREADSPACE_HEIGHT_SKLUP_FOR_MW 2047
-
 
 #define MAX_SLM_SIZE_PER_GROUP_IN_1K        64 // 64KB PER Group on Gen7+
 #define CM_MAX_THREAD_GROUP                 64

@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_log.h  
-//! \brief     Contains Class CmLogger declarations.  
+//! \file      cm_log.h 
+//! \brief     Contains Class CmLogger declarations. 
 //!
 
 #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMLOG_H_
@@ -36,8 +36,8 @@
 #define CM_LOG_ON                   1
 #endif
 
-#if !(CM_LOG_ON) 
-#define INSERT_API_CALL_LOG() 
+#if !(CM_LOG_ON)
+#define INSERT_API_CALL_LOG()
 #define TASK_LOG(_pTask)
 #define DEVICE_LOG(_pDev)
 
@@ -53,7 +53,6 @@ typedef enum _CM_LOG_LEVEL{
     CM_LOG_LEVEL_INFO    = 4
 }CM_LOG_LEVEL;
 
-
 #define _CM_LOG(priority, msg) { \
     std::ostringstream __debug_stream__; \
     __debug_stream__ << msg; \
@@ -66,11 +65,10 @@ typedef enum _CM_LOG_LEVEL{
 #define CM_DEBUG(msg)     _CM_LOG(CM_LOG_LEVEL_DEBUG, msg)
 #define CM_INFO(msg)      _CM_LOG(CM_LOG_LEVEL_INFO, msg)
 
-
 #define INSERT_API_CALL_LOG() CmLogTimer _LogTimer(__FUNCTION__)
 #define TASK_LOG(_pTask)      CM_DEBUG(_pTask->Log());
 #define DEVICE_LOG(_pDev)     CM_DEBUG(_pDev->Log());
- 
+
 class CmLogger
 {
 
@@ -89,7 +87,7 @@ class CmLogger
      * \brief Stream used when logging on a file or screen
      */
     std::ofstream mStreamOut;
-    
+
     /**
      * \brief Verbosity threshold
      */
@@ -126,7 +124,6 @@ public:
 
 };
 
-
 class  CmLogTimer
 {
 
@@ -135,12 +132,11 @@ public:
     ~CmLogTimer();
 
     void Stop();
-    
+
 private:
     std::string mString;
     CmTimer     mTimer;
 };
-
 
 #endif
 

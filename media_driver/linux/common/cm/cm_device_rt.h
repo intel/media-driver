@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_device_rt.h  
-//! \brief     Contains CmDeviceRT declarations.  
+//! \file      cm_device_rt.h 
+//! \brief     Contains CmDeviceRT declarations. 
 //!
 
 #ifndef MEDIADRIVER_LINUX_COMMON_CM_CMDEVICERT_H_
@@ -158,7 +158,7 @@ public:
 
     CM_RT_API int32_t DestroySampler8x8(CmSampler8x8* &ps8x8State);
 
-    CM_RT_API int32_t 
+    CM_RT_API int32_t
     CreateSampler8x8Surface(CmSurface2D *p2DSurface,
                             SurfaceIndex* &pDIIndex,
                             CM_SAMPLER8x8_SURFACE surf_type,
@@ -193,7 +193,7 @@ public:
     CM_RT_API int32_t
     DestroySamplerSurface(SurfaceIndex* &pSamplerSurfaceIndex);
 
-    CM_RT_API int32_t 
+    CM_RT_API int32_t
     InitPrintBuffer(size_t size = CM_DEFAULT_PRINT_BUFFER_SIZE);
 
     CM_RT_API int32_t FlushPrintBuffer();
@@ -265,7 +265,7 @@ public:
     CM_RT_API int32_t GetVISAVersion(uint32_t &majorVersion,
                                      uint32_t &minorVersion);
 
-    CM_RT_API int32_t 
+    CM_RT_API int32_t
     CreateQueueEx(CmQueue* &pQueue,
                   CM_QUEUE_CREATE_OPTION QueueCreateOption
                       = CM_DEFAULT_QUEUE_CREATE_OPTION);
@@ -352,7 +352,7 @@ public:
                                    const uint32_t uiCISACodeSize,
                                    void *pGenCode,
                                    const uint32_t uiGenCodeSize,
-                                   CmProgram* &pProgram, 
+                                   CmProgram* &pProgram,
                                    const char *options = nullptr);
 
     int32_t DestroySurfaceInPool(uint32_t &freeSurfNum);
@@ -373,7 +373,7 @@ public:
 
     uint32_t GetDriverStoreFlag() { return m_IsDriverStoreEnabled; }
 
-    void SetDriverStoreFlag(uint32_t dsEnabled) 
+    void SetDriverStoreFlag(uint32_t dsEnabled)
     { m_IsDriverStoreEnabled = dsEnabled; }
 
     CmDynamicArray* GetKernelArray();
@@ -409,7 +409,7 @@ protected:
 
     int32_t UnregisterSamplerState(uint32_t index);
 
-    int32_t 
+    int32_t
     RegisterSampler8x8State(const CM_SAMPLER_8X8_DESCR &sampler8x8State,
                             uint32_t &index);
 
@@ -423,7 +423,6 @@ protected:
 
     int32_t ReadVtuneProfilingFlag();
 
-
     CmDeviceRT(uint32_t DevCreateOption);
 
     ~CmDeviceRT();
@@ -436,14 +435,14 @@ protected:
 
     int32_t QuerySurface2DFormats(void *pCapValue, uint32_t &capValueSize);
 
-    inline bool IsMediaResetNeeded(uint32_t options) 
+    inline bool IsMediaResetNeeded(uint32_t options)
     {
         UNUSED(options);
-        return false; 
+        return false;
     }
 
     inline HANDLE QueryRegHandleInternal(PCM_HAL_STATE pCmHalState)
-    { 
+    {
         UNUSED(pCmHalState);
         return (HANDLE)nullptr;
     }

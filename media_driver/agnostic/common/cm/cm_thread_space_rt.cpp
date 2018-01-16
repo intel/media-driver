@@ -37,7 +37,7 @@
 
 enum CM_TS_FLAG
 {
-    WHITE = 0, 
+    WHITE = 0,
     GRAY  = 1,
     BLACK = 2
 };
@@ -234,7 +234,6 @@ int32_t CmThreadSpaceRT::Initialize( void )
 
     return CM_SUCCESS;
 }
-
 
 //*-----------------------------------------------------------------------------
 //! Associate a thread to one uint in the 2-dimensional dependency board with default mask
@@ -1241,7 +1240,6 @@ int32_t CmThreadSpaceRT::Wavefront26ZSequence()
             }
         }
 
-
         for ( uint32_t iX = 0; iX < m_Width; ++iX )
         {
             if ( ( m_pBoardFlag[ pWaveFrontOffset[ iX ] ] == WHITE ) && ( pWaveFrontOffset[ iX ] != 0 ) )
@@ -1544,7 +1542,6 @@ int32_t CmThreadSpaceRT::Wavefront26ZISeqVV26HH26()
                     localWidthCounter++;
                 }
             }
-
 
             temp_xyFor26.x = temp_xyFor26.x + (2 * m_26ZIBlockWidth);
             temp_xyFor26.y = temp_xyFor26.y - ( 1 * m_26ZIBlockHeight);

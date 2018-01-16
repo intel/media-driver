@@ -132,7 +132,7 @@ protected:
 
     uint32_t m_bufferType;  // SURFACE_TYPE_BUFFER, SURFACE_TYPE_BUFFER_UP,
                               // SURFACE_TYPE_BUFFER_SVM
-  
+
     void *m_sysMem;  // nullptr for Buffer, NON-nullptr for BufferUP and BufferSVM
 
     bool m_isCMRTAllocatedSVMBuffer;  //0--User provided SVM buffer, 1--CMRT allocated SVM buffer

@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_vebox_data.h  
-//! \brief     Contains Class CmVeboxData definitions  
+//! \file      cm_vebox_data.h 
+//! \brief     Contains Class CmVeboxData definitions 
 //!
 #pragma once
 #include "cm_def.h"
@@ -38,7 +38,7 @@ public:
     int32_t GetData( uint8_t*& pStateData, uint8_t*& pSurfaceData );
     int32_t SetVeboxDataSize(uint32_t uiStateDataSize, uint32_t uiSurfaceDataSize);
     int32_t GetVeboxDataSize(uint32_t& uiStateDataSize, uint32_t& uiSurfaceDataSize);
-    
+
     int32_t Acquire(void);
     int32_t SafeRelease(void);
 
@@ -51,10 +51,10 @@ protected:
 
     uint32_t m_StateDataSize;
     uint8_t *m_pStateData;
-    
+
     uint32_t m_SurfaceDataSize;
     uint8_t *m_pSurfaceData;
-    
+
     int32_t m_RefCount;
 
 private:

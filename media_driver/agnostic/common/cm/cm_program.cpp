@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_program.cpp  
-//! \brief     Contains Class CmProgram definitions  
+//! \file      cm_program.cpp 
+//! \brief     Contains Class CmProgram definitions 
 //!
 
 #include "cm_program.h"
@@ -52,7 +52,7 @@ namespace CMRT_UMD
 //| Arguments :
 //|               pCmDev            [in]     Pointer to Cm Device
 //|               pCommonISACode    [in]     Pointer to memory where common isa locates
-//|               size              [in]     Size of memory 
+//|               size              [in]     Size of memory
 //|               pProgram          [in]     Reference to pointer to CmProgram
 //|               options           [in]     jitter or non-jitter
 //| Returns:    Result of the operation.
@@ -103,7 +103,7 @@ int32_t CmProgramRT::Acquire( void  )
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    SafeRelease: 
+//| Purpose:    SafeRelease:
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 int32_t CmProgramRT::SafeRelease( void )
@@ -121,14 +121,14 @@ int32_t CmProgramRT::SafeRelease( void )
 //| Purpose:    Constructor of Cm Program
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-CmProgramRT::CmProgramRT( CmDeviceRT* pCmDev, uint32_t programId ): 
+CmProgramRT::CmProgramRT( CmDeviceRT* pCmDev, uint32_t programId ):
     m_pCmDev( pCmDev ),
-    m_ProgramCodeSize( 0 ), 
-    m_pProgramCode(nullptr), 
+    m_ProgramCodeSize( 0 ),
+    m_pProgramCode(nullptr),
     m_ISAfile(nullptr),
     m_Options( nullptr ),
     m_SurfaceCount( 0 ),
-    m_KernelCount( 0 ), 
+    m_KernelCount( 0 ),
     m_pKernelInfo( CM_INIT_KERNEL_PER_PROGRAM ),
     m_IsJitterEnabled(false),
     m_IsHwDebugEnabled(false),
@@ -198,7 +198,7 @@ int32_t CmProgramRT::Initialize( void* pCISACode, const uint32_t uiCISACodeSize,
     bool bLoadingGPUCopyKernel = false;
     int32_t result = CM_SUCCESS;
     int32_t hr     = CM_FAILURE;
-    
+
     m_IsJitterEnabled = true; //by default jitter is ON
 
     int numJitFlags = 0;
@@ -298,13 +298,13 @@ int32_t CmProgramRT::Initialize( void* pCISACode, const uint32_t uiCISACodeSize,
     }
 
     const char *platform = nullptr;
-    
+
     PCM_HAL_STATE  pCmHalState = \
         ((PCM_CONTEXT_DATA)m_pCmDev->GetAccelData())->cmHalState;
     CMCHK_NULL(pCmHalState);
 
     pCmHalState->cmHalInterface->GetGenPlatformInfo(nullptr, nullptr, &platform);
-    
+
     if( m_IsJitterEnabled )
     {
     //reg control for svm IA/GT cache coherence
@@ -423,7 +423,7 @@ int32_t CmProgramRT::Initialize( void* pCISACode, const uint32_t uiCISACodeSize,
             // move byte_pos to the right index
             byte_pos += name_len;
         }
-       
+
         if(m_IsJitterEnabled)
         {
             if (bUseVisaApi)
@@ -516,7 +516,7 @@ int32_t CmProgramRT::Initialize( void* pCISACode, const uint32_t uiCISACodeSize,
                 // num_gen_binaries
                 READ_FIELD_FROM_BUF(num_gen_binaries, uint8_t);
             }
-            
+
             uint32_t genxBinaryOffset = 0;
             uint32_t genxBinarySize = 0;
             for (int j = 0; j < num_gen_binaries; j++)
@@ -542,7 +542,7 @@ int32_t CmProgramRT::Initialize( void* pCISACode, const uint32_t uiCISACodeSize,
                     // binary size
                     READ_FIELD_FROM_BUF(size, uint32_t);
                 }
-           
+
                 if (pCmHalState->cmHalInterface->IsCisaIDSupported((uint32_t)gen_platform))
                 {
                     // assign correct offset/size based on platform
@@ -560,13 +560,13 @@ int32_t CmProgramRT::Initialize( void* pCISACode, const uint32_t uiCISACodeSize,
 
             if (pGenCode == nullptr)
             {
-                pKernInfo->genxBinaryOffset = genxBinaryOffset; 
+                pKernInfo->genxBinaryOffset = genxBinaryOffset;
                 pKernInfo->genxBinarySize = genxBinarySize;
             }
-            else 
+            else
             {
                 // If user provided Gen binary passed, will use it instead of binary from FAT CISA
-                pKernInfo->genxBinaryOffset = uiCISACodeSize; 
+                pKernInfo->genxBinaryOffset = uiCISACodeSize;
                 pKernInfo->genxBinarySize = uiGenCodeSize;
             }
 
@@ -606,10 +606,8 @@ int32_t CmProgramRT::Initialize( void* pCISACode, const uint32_t uiCISACodeSize,
             }
             CmSafeMemSet( jitProfInfo, 0, CM_JIT_PROF_INFO_SIZE );
 
-
             result = m_fJITCompile( pKernInfo->kernelName, (uint8_t*)pCISACode, uiCISACodeSize,
                                     jitBinary, jitBinarySize, platform, m_CISA_majorVersion, m_CISA_minorVersion, numJitFlags, jitFlags, errorMsg, jitProfInfo );
-           
 
             //if error code returned or error message not nullptr
             if(result != CM_SUCCESS)// || errorMsg[0])
@@ -628,7 +626,7 @@ int32_t CmProgramRT::Initialize( void* pCISACode, const uint32_t uiCISACodeSize,
                 free(errorMsg);
                 return CM_INVALID_KERNEL_SPILL_CODE;
             }
-            
+
             free(errorMsg);
 
             pKernInfo->jitBinaryCode = jitBinary;
@@ -696,7 +694,7 @@ finish:
 //| Purpose:    Get size and address of Common Isa
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmProgramRT::GetCommonISACode( void* & pCommonISACode, uint32_t & size ) 
+int32_t CmProgramRT::GetCommonISACode( void* & pCommonISACode, uint32_t & size )
 {
     pCommonISACode = (void *)m_pProgramCode;
     size = m_ProgramCodeSize;

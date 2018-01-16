@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_buffer_rt.cpp  
-//! \brief     Contains implementation of CmBuffer_RT.  
+//! \file      cm_buffer_rt.cpp 
+//! \brief     Contains implementation of CmBuffer_RT. 
 //!
 
 #include "cm_buffer_rt.h"
@@ -35,7 +35,7 @@
 namespace CMRT_UMD
 {
 //*-----------------------------------------------------------------------------
-//| Purpose:    Create CM Buffer 
+//| Purpose:    Create CM Buffer
 //| Returns:    Result of the operation
 //*-----------------------------------------------------------------------------
 int32_t CmBuffer_RT::Create( uint32_t index, uint32_t handle, uint32_t size, bool isCmCreated, CmSurfaceManager* surfaceManager, uint32_t bufferType, bool isCMRTAllocatedSVM, void  *sysMem, CmBuffer_RT* &surface, bool isConditionalBuffer, uint32_t comparisonValue, bool enableCompareMask )
@@ -61,9 +61,9 @@ int32_t CmBuffer_RT::Create( uint32_t index, uint32_t handle, uint32_t size, boo
     return result;
 }
 
-CmBuffer_RT::CmBuffer_RT( uint32_t handle, uint32_t size, bool isCmCreated, CmSurfaceManager* surfaceManager, uint32_t bufferType, bool isCMRTAllocatedSVM, void  *sysMem, bool isConditionalBuffer, uint32_t comparisonValue, bool enableCompareMask ): 
-    CmSurface( surfaceManager,isCmCreated ), 
-    m_handle( handle ), 
+CmBuffer_RT::CmBuffer_RT( uint32_t handle, uint32_t size, bool isCmCreated, CmSurfaceManager* surfaceManager, uint32_t bufferType, bool isCMRTAllocatedSVM, void  *sysMem, bool isConditionalBuffer, uint32_t comparisonValue, bool enableCompareMask ):
+    CmSurface( surfaceManager,isCmCreated ),
+    m_handle( handle ),
     m_size( size ),
     m_bufferType(bufferType),
     m_sysMem( sysMem ),
@@ -107,7 +107,7 @@ CM_RT_API int32_t CmBuffer_RT::WriteSurface( const unsigned char* sysMem, CmEven
 
     CM_RETURN_CODE  hr      = CM_SUCCESS;
     uint8_t         *dst    = nullptr;
-    uint8_t         *surf   = nullptr; 
+    uint8_t         *surf   = nullptr;
     size_t copySize = MOS_MIN((size_t)sysMemSize, m_size);
 
     if (sysMem == nullptr)
@@ -211,9 +211,9 @@ finish:
     return hr;
 }
 
-CM_RT_API int32_t CmBuffer_RT::GetIndex( SurfaceIndex*& index ) 
-{ 
-    index = m_pIndex; 
+CM_RT_API int32_t CmBuffer_RT::GetIndex( SurfaceIndex*& index )
+{
+    index = m_pIndex;
     return CM_SUCCESS;
 }
 
@@ -247,7 +247,7 @@ CM_RT_API int32_t CmBuffer_RT::InitSurface(const uint32_t initValue, CmEvent* ev
 
     CmDwordMemSet(inParam.data, initValue, m_size);
 
-    // unlock 
+    // unlock
     CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnUnlockBuffer(cmData->cmHalState, &inParam));
 
 finish:
@@ -322,7 +322,6 @@ CM_RT_API int32_t CmBuffer_RT::SetSurfaceStateParam(SurfaceIndex *surfIndex, con
         return CM_NULL_POINTER;
     }
 
-
     CM_HAL_BUFFER_SURFACE_STATE_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( inParam ) );
 
@@ -338,27 +337,26 @@ CM_RT_API int32_t CmBuffer_RT::SetSurfaceStateParam(SurfaceIndex *surfIndex, con
     inParam.offset  = bufferStateParam->uiBaseAddressOffset;
     inParam.size    = newSize;
     inParam.mocs    = (uint16_t)((bufferStateParam->mocs.mem_ctrl << 8)|(bufferStateParam->mocs.mem_type << 4)|(bufferStateParam->mocs.age));
-    
+
     CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnSetBufferSurfaceStatePara(cmData->cmHalState, &inParam));
-    
+
 finish:
     return hr;
 }
 
-
-int32_t CmBuffer_RT::GetSize( uint32_t& size ) 
-{ 
-    size = m_size; 
+int32_t CmBuffer_RT::GetSize( uint32_t& size )
+{
+    size = m_size;
     return CM_SUCCESS;
 }
 
-int32_t CmBuffer_RT::SetSize( uint32_t size ) 
-{ 
-    m_size = size; 
+int32_t CmBuffer_RT::SetSize( uint32_t size )
+{
+    m_size = size;
     return CM_SUCCESS;
 }
 
-bool CmBuffer_RT::IsUpSurface() 
+bool CmBuffer_RT::IsUpSurface()
 {
     return (m_bufferType == CM_BUFFER_UP);
 }
@@ -435,7 +433,7 @@ void CmBuffer_RT::Log(std::ostringstream &oss)
 {
 #if CM_LOG_ON
     oss << " Surface Buffer Info "
-        << " Size:"         << m_size 
+        << " Size:"         << m_size
         << " Buffer Type:"  << m_bufferType
         << " Sys Address:"  << m_sysMem
         << " Handle:"       << m_handle
@@ -461,7 +459,7 @@ void CmBuffer_RT::DumpContent(uint32_t kernelNumber, int32_t taskId, uint32_t ar
         << "_buffer_surfi_" << m_pIndex->get_data()
         <<"_w_"<< m_size
         <<"_"<< bufferDumpNumber;
-    
+
     std::ofstream  outputFileStream;
     outputFileStream.open(outputFileName.str().c_str(), std::ofstream::binary);
 

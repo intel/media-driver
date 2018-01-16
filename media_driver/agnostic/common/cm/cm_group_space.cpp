@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_group_space.cpp  
-//! \brief     Contains Class CmThreadGroupSpace definitions  
+//! \file      cm_group_space.cpp 
+//! \brief     Contains Class CmThreadGroupSpace definitions 
 //!
 
 #include "cm_group_space.h"
@@ -37,10 +37,10 @@ int32_t CmThreadGroupSpace::Create(CmDeviceRT* device, uint32_t index, uint32_t 
     CM_HAL_MAX_VALUES_EX* halMaxValuesEx = nullptr;
     device->GetHalMaxValues(halMaxValues, halMaxValuesEx);
     if( (threadSpaceWidth == 0) || (threadSpaceHeight == 0) || (threadSpaceDepth == 0) || (groupSpaceWidth == 0)
-		|| (groupSpaceHeight == 0) || (groupSpaceDepth==0) 
-		|| (threadSpaceHeight > MAX_THREAD_SPACE_HEIGHT_PERGROUP)
-		|| (threadSpaceWidth > MAX_THREAD_SPACE_WIDTH_PERGROUP)
-		|| (threadSpaceDepth > MAX_THREAD_SPACE_DEPTH_PERGROUP)
+        || (groupSpaceHeight == 0) || (groupSpaceDepth==0)
+        || (threadSpaceHeight > MAX_THREAD_SPACE_HEIGHT_PERGROUP)
+        || (threadSpaceWidth > MAX_THREAD_SPACE_WIDTH_PERGROUP)
+        || (threadSpaceDepth > MAX_THREAD_SPACE_DEPTH_PERGROUP)
         || (threadSpaceHeight * threadSpaceWidth  * threadSpaceDepth > halMaxValuesEx->maxUserThreadsPerThreadGroup))
     {
         CM_ASSERTMESSAGE("Error: Exceed thread group size limitation.");
@@ -72,10 +72,10 @@ int32_t CmThreadGroupSpace::Destroy( CmThreadGroupSpace* &threadGroupSpace )
     return CM_SUCCESS;
 }
 
-int32_t CmThreadGroupSpace::GetThreadGroupSpaceSize(uint32_t & threadSpaceWidth, 
-                                                uint32_t & threadSpaceHeight, 
+int32_t CmThreadGroupSpace::GetThreadGroupSpaceSize(uint32_t & threadSpaceWidth,
+                                                uint32_t & threadSpaceHeight,
                                                 uint32_t & threadSpaceDepth,
-                                                uint32_t & groupSpaceWidth, 
+                                                uint32_t & groupSpaceWidth,
                                                 uint32_t & groupSpaceHeight,
                                                 uint32_t & groupSpaceDepth) const
 {
@@ -84,24 +84,24 @@ int32_t CmThreadGroupSpace::GetThreadGroupSpaceSize(uint32_t & threadSpaceWidth,
     threadSpaceDepth = m_threadSpaceDepth;
     groupSpaceWidth = m_groupSpaceWidth;
     groupSpaceHeight = m_groupSpaceHeight;
-    groupSpaceDepth = m_groupSpaceDepth;   
+    groupSpaceDepth = m_groupSpaceDepth;
 
     return CM_SUCCESS;
 }
 
-CmThreadGroupSpace::CmThreadGroupSpace( CmDeviceRT* cmDev, 
+CmThreadGroupSpace::CmThreadGroupSpace( CmDeviceRT* cmDev,
                                         uint32_t index,
-                                        uint32_t threadSpaceWidth, 
+                                        uint32_t threadSpaceWidth,
                                         uint32_t threadSpaceHeight,
                                         uint32_t threadSpaceDepth,
-                                        uint32_t groupSpaceWidth, 
+                                        uint32_t groupSpaceWidth,
                                         uint32_t groupSpaceHeight,
                                         uint32_t groupSpaceDepth) :
                                         m_cmDev(cmDev),
-                                        m_threadSpaceWidth(threadSpaceWidth), 
+                                        m_threadSpaceWidth(threadSpaceWidth),
                                         m_threadSpaceHeight(threadSpaceHeight),
                                         m_threadSpaceDepth(threadSpaceDepth),
-                                        m_groupSpaceWidth(groupSpaceWidth), 
+                                        m_groupSpaceWidth(groupSpaceWidth),
                                         m_groupSpaceHeight(groupSpaceHeight),
                                         m_groupSpaceDepth(groupSpaceDepth),
                                         m_indexInThreadGroupSpaceArray(index)

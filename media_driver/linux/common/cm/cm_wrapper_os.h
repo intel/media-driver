@@ -42,7 +42,7 @@
 typedef struct _CM_CREATECMDEVICE_PARAM
 {
     uint32_t                    DevCreateOption;            // [in]  Dev create option
-    pCallBackReleaseVaSurface   pCallBackReleaseVaSurf;	    // [in]  Function Pointer to free Libva surface
+    pCallBackReleaseVaSurface   pCallBackReleaseVaSurf;        // [in]  Function Pointer to free Libva surface
     void                        *pCmDeviceHandle;           // [out] pointer to handle in driver
     uint32_t                    iVersion;                   // [out] the Cm version
     uint32_t                    iDriverStoreEnabled;        // [out] DriverStoreEnable flag
@@ -75,8 +75,8 @@ extern "C" {
 #endif
 int32_t CmThinExecute(VADriverContextP pVaDrvCtx,
                       void *pCmDeviceHandle,
-                      uint32_t inputFunctionId,  
-                      void *inputData, 
+                      uint32_t inputFunctionId,
+                      void *inputData,
                       uint32_t inputDataLen);
 #if defined(__cplusplus)
 };

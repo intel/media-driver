@@ -61,7 +61,7 @@ void HalCm_OsResource_Unreference(
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Reference the Command Buffer and Pass it to event 
+//| Purpose:    Reference the Command Buffer and Pass it to event
 //| Returns:    N/A
 //*-----------------------------------------------------------------------------
 MOS_STATUS HalCm_ReferenceCommandBuf_Linux(
@@ -78,7 +78,7 @@ MOS_STATUS HalCm_ReferenceCommandBuf_Linux(
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Set Command Buffer Resource and Pass it to event 
+//| Purpose:    Set Command Buffer Resource and Pass it to event
 //| Returns:    N/A
 //*-----------------------------------------------------------------------------
 MOS_STATUS HalCm_SetCommandBufResource_Linux(
@@ -135,7 +135,7 @@ GMM_RESOURCE_FORMAT HalCm_ConvertMosFmtToGmmFmt(
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 MOS_STATUS HalCm_GetSurfaceAndRegister(
-    PCM_HAL_STATE                pState, 
+    PCM_HAL_STATE                pState,
     PRENDERHAL_SURFACE           pRenderHalSurface,
     CM_HAL_KERNEL_ARG_KIND       surfKind,
     uint32_t                     iIndex,
@@ -149,11 +149,11 @@ MOS_STATUS HalCm_GetSurfaceAndRegister(
 
     hr           = MOS_STATUS_UNKNOWN;
 
-    if (!pRenderHalSurface) 
+    if (!pRenderHalSurface)
     {
         goto finish;
     }
-    else 
+    else
     {
         MOS_ZeroMemory(pRenderHalSurface, sizeof(RENDERHAL_SURFACE));
     }
@@ -216,7 +216,7 @@ MOS_STATUS HalCm_GetSurfaceAndRegister(
                 pSurface));
 
             if ( (pSurface->Format == Format_NV12 || pSurface->Format == Format_YV12)
-                  && (!pixelPitch)) 
+                  && (!pixelPitch))
             {
                 pRenderHalSurface->SurfType = RENDERHAL_SURF_OUT_RENDERTARGET;
             }
@@ -232,7 +232,7 @@ MOS_STATUS HalCm_GetSurfaceAndRegister(
             CM_HRESULT2MOSSTATUS_AND_CHECK(pRenderHal->pOsInterface->pfnRegisterResource(
                 pRenderHal->pOsInterface,  &(pState->surf2DUPTable[iIndex].osResource), true, true));
 
-            // Get Details of 2D surface and fill the VPHAL Surface 
+            // Get Details of 2D surface and fill the VPHAL Surface
             pSurface->OsResource = pState->surf2DUPTable[iIndex].osResource;
             pSurface->dwWidth    = pState->surf2DUPTable[iIndex].width;
             pSurface->dwHeight   = pState->surf2DUPTable[iIndex].height;
@@ -243,7 +243,7 @@ MOS_STATUS HalCm_GetSurfaceAndRegister(
             pSurface->dwOffset   = 0;
 
             if ( (pSurface->Format == Format_NV12 || pSurface->Format == Format_YV12)
-                  && (!pixelPitch)) 
+                  && (!pixelPitch))
             {
                 pRenderHalSurface->SurfType = RENDERHAL_SURF_OUT_RENDERTARGET;
             }
@@ -293,7 +293,7 @@ MOS_STATUS HalCm_GetSurfaceAndRegister(
             CM_HRESULT2MOSSTATUS_AND_CHECK(pRenderHal->pOsInterface->pfnRegisterResource(
                 pRenderHal->pOsInterface, &(pState->umdSurf2DTable[iIndex].osResource), true, true));
 
-            // Get Details of 2D surface and fill the VPHAL Surface 
+            // Get Details of 2D surface and fill the VPHAL Surface
             pSurface->OsResource  = pState->umdSurf2DTable[iIndex].osResource;
 
             MOS_ZeroMemory(&Info, sizeof(RENDERHAL_GET_SURFACE_INFO));
@@ -373,7 +373,7 @@ MOS_STATUS HalCm_GetSurfPitchSize(
         *pPitch = 0;
         *pPhysicalSize = 0;
     }
-    
+
 finish:
     return hr;
 
@@ -388,7 +388,7 @@ MOS_STATUS HalCm_GetSurface2DPitchAndSize_Linux(
     PCM_HAL_SURFACE2D_UP_PARAM      pParam)                                             // [in]  Pointer to Buffer Param
 {
     UNUSED(pState);
-    return HalCm_GetSurfPitchSize(pParam->width, pParam->height, pParam->format, 
+    return HalCm_GetSurfPitchSize(pParam->width, pParam->height, pParam->format,
                                   &pParam->pitch, &pParam->physicalSize);
 }
 
@@ -419,23 +419,23 @@ uint32_t HalCm_GetSurf2DUPBaseWidth( uint32_t Width, uint32_t Pitch, MOS_FORMAT 
 
     switch(format)
     {
-        case Format_L8 : 
-        case Format_P8 : 
-        case Format_A8 : 
+        case Format_L8 :
+        case Format_P8 :
+        case Format_A8 :
         case Format_NV12:
             PixelSize = 1;
             break;
-            
-        case Format_X8R8G8B8    : 
-        case Format_A8R8G8B8    : 
-        case Format_A8B8G8R8    : 
-        case Format_R32F        : 
+
+        case Format_X8R8G8B8    :
+        case Format_A8R8G8B8    :
+        case Format_A8B8G8R8    :
+        case Format_R32F        :
             PixelSize = 4;
             break;
-        
+
         case Format_V8U8        :
-        case Format_YUY2        : 
-        case Format_UYVY        : 
+        case Format_YUY2        :
+        case Format_UYVY        :
             PixelSize = 2;
             break;
 
@@ -449,7 +449,7 @@ uint32_t HalCm_GetSurf2DUPBaseWidth( uint32_t Width, uint32_t Pitch, MOS_FORMAT 
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Create Gmm Resource Info for 2DUP 
+//| Purpose:    Create Gmm Resource Info for 2DUP
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 MOS_STATUS HalCm_CreateGmmResInfo2DUP( PMOS_RESOURCE pOsResource, void  *pSysMem, uint32_t SysMemSize)
@@ -466,14 +466,14 @@ MOS_STATUS HalCm_CreateGmmResInfo2DUP( PMOS_RESOURCE pOsResource, void  *pSysMem
     GmmParams.BaseWidth             = pOsResource->iWidth;
     GmmParams.BaseHeight            = pOsResource->iHeight;
     GmmParams.ArraySize             = 1;
-    GmmParams.Type                  = RESOURCE_2D; 
+    GmmParams.Type                  = RESOURCE_2D;
 
     GmmParams.Format                = HalCm_ConvertMosFmtToGmmFmt(pOsResource->Format);
-    
+
     GmmParams.Flags.Gpu.Video      = true;
     GmmParams.Flags.Info.Linear    = true;
     GmmParams.Flags.Info.ExistingSysMem = true;
-    
+
     GmmParams.ExistingSysMemSize   = SysMemSize;
     GmmParams.pExistingSysMem      = (GMM_VOIDPTR64)pSysMem;
 
@@ -487,7 +487,7 @@ finish:
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Create Gmm Resource Info for 3D 
+//| Purpose:    Create Gmm Resource Info for 3D
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 MOS_STATUS HalCm_CreateGmmResInfo3D( PMOS_RESOURCE pOsResource)
@@ -510,7 +510,7 @@ MOS_STATUS HalCm_CreateGmmResInfo3D( PMOS_RESOURCE pOsResource)
 
     GmmParams.Flags.Gpu.Video      = true;
     GmmParams.Flags.Info.Linear    = true;
-    
+
     //Create GmmResourceInfo
     pOsResource->pGmmResInfo = GmmResCreate(&GmmParams);
 
@@ -519,7 +519,6 @@ MOS_STATUS HalCm_CreateGmmResInfo3D( PMOS_RESOURCE pOsResource)
 finish:
     return eStatus;
 }
-
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Allocate Linear Buffer or BufferUP
@@ -538,7 +537,7 @@ MOS_STATUS HalCm_AllocateBuffer_Linux(
     uint32_t                tileformat;
     const char              *fmt;
     PMOS_RESOURCE           pOsResource;
-    MOS_LINUX_BO     	    *bo = nullptr;
+    MOS_LINUX_BO             *bo = nullptr;
 
     iSize  = pParam->size;
     tileformat = I915_TILING_NONE;
@@ -549,7 +548,6 @@ MOS_STATUS HalCm_AllocateBuffer_Linux(
 
     hr              = MOS_STATUS_SUCCESS;
     pOsInterface    = pState->renderHal->pOsInterface;
-
 
     // Find a free slot
     for (i = 0; i < pState->cmDeviceParam.maxBufferTableSize; i++)
@@ -594,38 +592,38 @@ MOS_STATUS HalCm_AllocateBuffer_Linux(
             AllocParams.pBufName      = "CmBuffer";
 
             CM_HRESULT2MOSSTATUS_AND_CHECK(pOsInterface->pfnAllocateResource(
-                pOsInterface, 
+                pOsInterface,
                 &AllocParams,
                 &pEntry->osResource));
         }
         else  //BufferUP
         {
-#if defined(DRM_IOCTL_I915_GEM_USERPTR) 
-           bo =  mos_bo_alloc_userptr(pOsInterface->pOsContext->bufmgr, 
-                                 "CM Buffer UP", 
-                                 (void *)(pParam->data), 
-                                 tileformat, 
+#if defined(DRM_IOCTL_I915_GEM_USERPTR)
+           bo =  mos_bo_alloc_userptr(pOsInterface->pOsContext->bufmgr,
+                                 "CM Buffer UP",
+                                 (void *)(pParam->data),
+                                 tileformat,
                                  ROUND_UP_TO(iSize,MOS_PAGE_SIZE),
                                  ROUND_UP_TO(iSize,MOS_PAGE_SIZE),
 #if defined(ANDROID)
                                  I915_USERPTR_UNSYNCHRONIZED
 #else
-				 0
+                 0
 #endif
-				 );
+                 );
 #else
-           bo =  mos_bo_alloc_vmap(pOsInterface->pOsContext->bufmgr, 
-                                "CM Buffer UP", 
-                                (void *)(pParam->data), 
-                                tileformat, 
+           bo =  mos_bo_alloc_vmap(pOsInterface->pOsContext->bufmgr,
+                                "CM Buffer UP",
+                                (void *)(pParam->data),
+                                tileformat,
                                 ROUND_UP_TO(iSize,MOS_PAGE_SIZE),
                                 ROUND_UP_TO(iSize,MOS_PAGE_SIZE),
 #if defined(ANDROID)
                                  I915_USERPTR_UNSYNCHRONIZED
 #else
-				 0
+                 0
 #endif
-				 );
+                 );
 #endif
 
             pOsResource->bMapped = false;
@@ -722,33 +720,33 @@ MOS_STATUS HalCm_AllocateSurface2DUP_Linux(
     pOsResource = &(pEntry->osResource);
     // Resets the Resource
     Mos_ResetResource(pOsResource);
-    //Get Surface2D's physical size and pitch 
+    //Get Surface2D's physical size and pitch
     HalCm_GetSurfPitchSize(iWidth, iHeight, Format, &align_x, &iSize);
 
-#if defined(DRM_IOCTL_I915_GEM_USERPTR) 
-    bo =  mos_bo_alloc_userptr(pOsInterface->pOsContext->bufmgr, 
-                         "CM Surface2D UP", 
-                         (void *)(pSysMem), 
-                         tileformat, 
-                         align_x, 
+#if defined(DRM_IOCTL_I915_GEM_USERPTR)
+    bo =  mos_bo_alloc_userptr(pOsInterface->pOsContext->bufmgr,
+                         "CM Surface2D UP",
+                         (void *)(pSysMem),
+                         tileformat,
+                         align_x,
                          iSize,
 #if defined(ANDROID)
                          I915_USERPTR_UNSYNCHRONIZED
 #else
-			 0
+             0
 #endif
-			 );
+             );
 #else
-    bo =  mos_bo_alloc_vmap(pOsInterface->pOsContext->bufmgr, 
-                         "CM Surface2D UP", 
-                         (void *)(pSysMem), 
-                         tileformat, 
-                         align_x, 
+    bo =  mos_bo_alloc_vmap(pOsInterface->pOsContext->bufmgr,
+                         "CM Surface2D UP",
+                         (void *)(pSysMem),
+                         tileformat,
+                         align_x,
                          iSize,
 #if defined(ANDROID)
                          I915_USERPTR_UNSYNCHRONIZED
 #else
-			 0
+             0
 #endif
                          );
 #endif
@@ -763,7 +761,7 @@ MOS_STATUS HalCm_AllocateSurface2DUP_Linux(
         pOsResource->bo       = bo;
         pOsResource->TileType = LinuxToMosTileType(tileformat);
         pOsResource->pData    = (uint8_t*) bo->virt;
-       
+
         // Create Gmm resource info
         CM_CHK_MOSSTATUS(HalCm_CreateGmmResInfo2DUP(pOsResource, pSysMem, iSize));
     }
@@ -980,7 +978,7 @@ void HalCm_GetLibDrmVMapFnt(
 //*-----------------------------------------------------------------------------
 MOS_STATUS HalCm_GetPlatformInfo_Linux(
     PCM_HAL_STATE                  pState,              // [in] Pointer to CM State
-    PCM_PLATFORM_INFO	           platformInfo,        // [out] Pointer to platformInfo
+    PCM_PLATFORM_INFO               platformInfo,        // [out] Pointer to platformInfo
     bool                           bEUSaturated)
 {
 
@@ -988,14 +986,14 @@ MOS_STATUS HalCm_GetPlatformInfo_Linux(
     MEDIA_SYSTEM_INFO             *pGtSystemInfo;
 
     UNUSED(bEUSaturated);
-    
+
     pGtSystemInfo = pState->osInterface->pfnGetGtSystemInfo(pState->osInterface);
 
     platformInfo->numHWThreadsPerEU    = pGtSystemInfo->ThreadCount / pGtSystemInfo->EUCount;
     platformInfo->numEUsPerSubSlice    = pGtSystemInfo->EUCount / pGtSystemInfo->SubSliceCount;
     platformInfo->numSlices            = pGtSystemInfo->SliceCount;
     platformInfo->numSubSlices         = pGtSystemInfo->SubSliceCount;
-        
+
     return hr;
 }
 
@@ -1017,11 +1015,11 @@ MOS_STATUS HalCm_GetGTSystemInfo_Linux(
     pSystemInfo->numMaxSubSlicesSupported = pGtSystemInfo->MaxSubSlicesSupported;
 
     pState->cmHalInterface->GetExpectedGtSystemConfig(&expectedGTInfo);
-    
+
     // check numSlices/SubSlices enabled equal the expected number for this GT
     // if match, pSystemInfo->isSliceInfoValid = true, else pSystemInfo->isSliceInfoValid = false
     if ((expectedGTInfo.numSlices    == pGtSystemInfo->SliceCount) &&
-        (expectedGTInfo.numSubSlices == pGtSystemInfo->SubSliceCount)) 
+        (expectedGTInfo.numSubSlices == pGtSystemInfo->SubSliceCount))
     {
         pSystemInfo->isSliceInfoValid = true;
     }
@@ -1169,7 +1167,7 @@ MOS_STATUS HalCm_Lock2DResource(
     pOsInterface   = pState->osInterface;
 
     if(pParam->data == nullptr)
-    {   // CMRT@UMD 
+    {   // CMRT@UMD
         PCM_HAL_SURFACE2D_ENTRY    pEntry;
 
         // Get the 2D Resource Entry
@@ -1197,10 +1195,10 @@ MOS_STATUS HalCm_Lock2DResource(
             LockFlags.WriteOnly = true;
         }
 
-        LockFlags.ForceCached = true;	
+        LockFlags.ForceCached = true;
 
         pParam->data = pOsInterface->pfnLockResource(
-                        pOsInterface, 
+                        pOsInterface,
                         &pEntry->osResource,
                         &LockFlags);
 
@@ -1305,7 +1303,7 @@ MOS_STATUS HalCm_GetGfxTextAddress(
     case CM_TEXTURE_ADDRESS_BORDER:
         *pGfxAddress = MHW_GFX3DSTATE_TEXCOORDMODE_CLAMP_BORDER;
         break;
-        
+
     default:
         CM_ERROR_ASSERT("Address '%d' not supported", addressMode);
         goto finish;
@@ -1318,9 +1316,9 @@ finish:
 //*-----------------------------------------------------------------------------
 //| Purpose:    If WA required to set SLM in L3
 //| Returns:    Display corruption observed when running MDF workload.
-//|             This issue is related to SLM setting in L3. 
-//|             To resolve this problem, we need to disable SLM after 
-//|             command submission. 
+//|             This issue is related to SLM setting in L3.
+//|             To resolve this problem, we need to disable SLM after
+//|             command submission.
 //*-----------------------------------------------------------------------------
 bool HalCm_IsWaSLMinL3Cache_Linux()
 {
@@ -1334,11 +1332,11 @@ bool HalCm_IsWaSLMinL3Cache_Linux()
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Enable GPU frequency Turbo boost on Linux 
+//| Purpose:    Enable GPU frequency Turbo boost on Linux
 //| Returns:    MOS_STATUS_SUCCESS.
 //*-----------------------------------------------------------------------------
 #define I915_CONTEXT_PRIVATE_PARAM_BOOST 0x80000000
-MOS_STATUS HalCm_EnableTurboBoost_Linux(    
+MOS_STATUS HalCm_EnableTurboBoost_Linux(
     PCM_HAL_STATE             pState)
 {
 #ifndef ANDROID
@@ -1348,7 +1346,7 @@ MOS_STATUS HalCm_EnableTurboBoost_Linux(
     MOS_ZeroMemory( &CtxParam, sizeof( CtxParam ) );
     CtxParam.param = I915_CONTEXT_PRIVATE_PARAM_BOOST;
     CtxParam.value = 1;
-    RetVal = drmIoctl( pState->osInterface->pOsContext->fd, 
+    RetVal = drmIoctl( pState->osInterface->pOsContext->fd,
                       DRM_IOCTL_I915_GEM_CONTEXT_SETPARAM, &CtxParam );
 #endif
     //if drmIoctl fail, we will stay in normal mode.
@@ -1383,8 +1381,8 @@ void HalCm_OsInitInterface(
 //*-------------------------------------------------------------------------------------
 //| Purpose:    Add PipeControl with a Conditional Time Stamp (valid/invalid time stamp)
 //| Returns:    On Success, right before Pipe Control commands, insert commands to write
-//|             time stamp to Sync Location. When the condition same as following 
-//|             "conditional buffer end" command is assert, the time stamp is a valid value, 
+//|             time stamp to Sync Location. When the condition same as following
+//|             "conditional buffer end" command is assert, the time stamp is a valid value,
 //|             otherwise an invalid time stamp is used to write Sync Location.
 //*-------------------------------------------------------------------------------------
 
@@ -1411,11 +1409,11 @@ MOS_STATUS HalCm_OsAddArtifactConditionalPipeControl(
     PMHW_MI_INTERFACE  pMhwMiInterface = pState->renderHal->pMhwMiInterface;
 
     MOS_ZeroMemory(&LoadRegRegParams, sizeof(LoadRegRegParams));
-    LoadRegRegParams.dwSrcRegister = pOffsets->timeStampOffset;                                                  //read time stamp 
-    LoadRegRegParams.dwDstRegister = pOffsets->gprOffset + 0;                                                    
-    CM_CHK_MOSSTATUS(pMhwMiInterface->AddMiLoadRegisterRegCmd(pCmdBuffer, &LoadRegRegParams));     
-    LoadRegRegParams.dwSrcRegister = pOffsets->timeStampOffset + 4;                                              
-    LoadRegRegParams.dwDstRegister = pOffsets->gprOffset + 4;                                                    
+    LoadRegRegParams.dwSrcRegister = pOffsets->timeStampOffset;                                                  //read time stamp
+    LoadRegRegParams.dwDstRegister = pOffsets->gprOffset + 0;
+    CM_CHK_MOSSTATUS(pMhwMiInterface->AddMiLoadRegisterRegCmd(pCmdBuffer, &LoadRegRegParams));
+    LoadRegRegParams.dwSrcRegister = pOffsets->timeStampOffset + 4;
+    LoadRegRegParams.dwDstRegister = pOffsets->gprOffset + 4;
     CM_CHK_MOSSTATUS(pMhwMiInterface->AddMiLoadRegisterRegCmd(pCmdBuffer, &LoadRegRegParams));     //R0: time stamp
 
     MOS_ZeroMemory(&MathParams, sizeof(MathParams));
@@ -1430,14 +1428,14 @@ MOS_STATUS HalCm_OsAddArtifactConditionalPipeControl(
     // store      reg2, CF
     AluParams[2].AluOpcode = MHW_MI_ALU_STORE;
     AluParams[2].Operand1 = MHW_MI_ALU_GPREG2;
-    AluParams[2].Operand2 = MHW_MI_ALU_CF;                                                               
+    AluParams[2].Operand2 = MHW_MI_ALU_CF;
     // store      reg3, CF
     AluParams[2].AluOpcode = MHW_MI_ALU_STORE;
     AluParams[2].Operand1 = MHW_MI_ALU_GPREG3;
     AluParams[2].Operand2 = MHW_MI_ALU_CF;                                                                      //clear R1 -- R3
-        
+
     MathParams.pAluPayload = AluParams;
-    MathParams.dwNumAluParams = 3; 
+    MathParams.dwNumAluParams = 3;
     CM_CHK_MOSSTATUS(pMhwMiInterface->AddMiMathCmd(pCmdBuffer, &MathParams));                     //MI cmd to clear R1 - R3
 
     MOS_ZeroMemory(&LoadRegMemParams, sizeof(LoadRegMemParams));
@@ -1445,11 +1443,11 @@ MOS_STATUS HalCm_OsAddArtifactConditionalPipeControl(
     LoadRegMemParams.dwOffset = pConditionalParams->dwOffset;
     LoadRegMemParams.dwRegister = pOffsets->gprOffset + 8 * 1;
     CM_CHK_MOSSTATUS(pMhwMiInterface->AddMiLoadRegisterMemCmd(pCmdBuffer, &LoadRegMemParams));    //R1: compared value 32bits, in coditional surface
-    if (!pConditionalParams->bDisableCompareMask) 
+    if (!pConditionalParams->bDisableCompareMask)
     {
         LoadRegMemParams.dwOffset = pConditionalParams->dwOffset + 4;
         LoadRegMemParams.dwRegister = pOffsets->gprOffset + 8 * 2;
-        CM_CHK_MOSSTATUS(pMhwMiInterface->AddMiLoadRegisterMemCmd(pCmdBuffer, &LoadRegMemParams)); //r1, r2: compared value and its mask  
+        CM_CHK_MOSSTATUS(pMhwMiInterface->AddMiLoadRegisterMemCmd(pCmdBuffer, &LoadRegMemParams)); //r1, r2: compared value and its mask
         //load1 reg1, srca
         AluParams[0].AluOpcode = MHW_MI_ALU_LOAD;
         AluParams[0].Operand1 = MHW_MI_ALU_SRCA;
@@ -1466,7 +1464,7 @@ MOS_STATUS HalCm_OsAddArtifactConditionalPipeControl(
         AluParams[3].Operand2 = MHW_MI_ALU_ACCU;                                                                     //REG14 = TS + 1
 
         MathParams.pAluPayload = AluParams;
-        MathParams.dwNumAluParams = 4; 
+        MathParams.dwNumAluParams = 4;
         CM_CHK_MOSSTATUS(pMhwMiInterface->AddMiMathCmd(pCmdBuffer, &MathParams));                     //R1 & R2 --> R1: compared value, to be used
     }
 
@@ -1479,7 +1477,6 @@ MOS_STATUS HalCm_OsAddArtifactConditionalPipeControl(
     LoadRegImmParams.dwData = 1;
     LoadRegImmParams.dwRegister = pOffsets->gprOffset + 8 * 3;
     CM_CHK_MOSSTATUS(pMhwMiInterface->AddMiLoadRegisterImmCmd(pCmdBuffer, &LoadRegImmParams));    //R3 = 1
-    
 
     //load1 reg3, srca
     AluParams[0].AluOpcode = MHW_MI_ALU_LOAD;
@@ -1495,11 +1492,11 @@ MOS_STATUS HalCm_OsAddArtifactConditionalPipeControl(
     AluParams[3].AluOpcode = MHW_MI_ALU_STORE;
     AluParams[3].Operand1 = MHW_MI_ALU_GPREG14;
     AluParams[3].Operand2 = MHW_MI_ALU_ACCU;                                                                     //REG14 = TS + 1
-    
+
     // load     srcB, reg1
     AluParams[4].AluOpcode = MHW_MI_ALU_LOAD;
     AluParams[4].Operand1 = MHW_MI_ALU_SRCB;
-    AluParams[4].Operand2 = MHW_MI_ALU_GPREG1;                                               //load compared val 
+    AluParams[4].Operand2 = MHW_MI_ALU_GPREG1;                                               //load compared val
     // load     srcA, reg2
     AluParams[5].AluOpcode = MHW_MI_ALU_LOAD;
     AluParams[5].Operand1 = MHW_MI_ALU_SRCA;
@@ -1511,7 +1508,7 @@ MOS_STATUS HalCm_OsAddArtifactConditionalPipeControl(
     AluParams[7].Operand1 = MHW_MI_ALU_GPREG4;
     AluParams[7].Operand2 = MHW_MI_ALU_CF;                                                 //!CF ==> R4, mask
     //load      reg4, srcA
-    AluParams[8].AluOpcode = MHW_MI_ALU_LOAD;   
+    AluParams[8].AluOpcode = MHW_MI_ALU_LOAD;
     AluParams[8].Operand1 = MHW_MI_ALU_SRCA;
     AluParams[8].Operand2 = MHW_MI_ALU_GPREG4;
     //load reg14, SRCB
@@ -1521,7 +1518,7 @@ MOS_STATUS HalCm_OsAddArtifactConditionalPipeControl(
     //and
     AluParams[10].AluOpcode = MHW_MI_ALU_AND;                                             //0 or TS+1 (!CF & TS)
 
-    //store reg6, accu  
+    //store reg6, accu
     AluParams[11].AluOpcode = MHW_MI_ALU_STORE;                                       //R6 = (TS+1) (to terminate) or 0 (to continue)
     AluParams[11].Operand1 = MHW_MI_ALU_GPREG6;
     AluParams[11].Operand2 = MHW_MI_ALU_ACCU;
@@ -1537,12 +1534,11 @@ MOS_STATUS HalCm_OsAddArtifactConditionalPipeControl(
     AluParams[13].Operand2 = MHW_MI_ALU_GPREG3;
     //sub
     AluParams[14].AluOpcode = MHW_MI_ALU_SUB;                                             //-1 or TS (!CF & TS)
-    //store reg7, accu  
+    //store reg7, accu
     AluParams[15].AluOpcode = MHW_MI_ALU_STORE;                                       //R7 = (TS) (to terminate) or all '1'  ( -1 to continue)
     AluParams[15].Operand1 = MHW_MI_ALU_GPREG7;
     AluParams[15].Operand2 = MHW_MI_ALU_ACCU;
-    
-    
+
     MathParams.pAluPayload = AluParams;
     MathParams.dwNumAluParams = 16;
     CM_CHK_MOSSTATUS(pMhwMiInterface->AddMiMathCmd(pCmdBuffer, &MathParams));            //set artifact time stamp (-1 or TS) per condition in GPR R7
@@ -1551,7 +1547,7 @@ MOS_STATUS HalCm_OsAddArtifactConditionalPipeControl(
     MOS_ZeroMemory(&StoreRegMemParams, sizeof(StoreRegMemParams));
     StoreRegMemParams.presStoreBuffer = &pState->renderTimeStampResource.osResource;
     StoreRegMemParams.dwOffset = iSyncOffset + sizeof(uint64_t);
-    StoreRegMemParams.dwRegister = pOffsets->gprOffset + 8 * 7; 
+    StoreRegMemParams.dwRegister = pOffsets->gprOffset + 8 * 7;
     CM_CHK_MOSSTATUS(pMhwMiInterface->AddMiStoreRegisterMemCmd(pCmdBuffer, &StoreRegMemParams));
     StoreRegMemParams.presStoreBuffer = &pState->renderTimeStampResource.osResource;
     StoreRegMemParams.dwOffset = iSyncOffset + sizeof(uint64_t) + 4;
@@ -1566,7 +1562,7 @@ MOS_STATUS HalCm_OsAddArtifactConditionalPipeControl(
 
     PipeCtlParams.dwFlushMode = MHW_FLUSH_READ_CACHE;
     CM_CHK_MOSSTATUS(pMhwMiInterface->AddPipeControl(pCmdBuffer, nullptr, &PipeCtlParams));
-    
+
 finish:
     return hr;
 };
@@ -1579,7 +1575,7 @@ uint32_t HalCm_GetNumCmdBuffers(PMOS_INTERFACE pOsInterface, uint32_t maxTaskNum
 
 MOS_STATUS HalCm_GetSipBinary(PCM_HAL_STATE pState)
 {
-	UNUSED(pState);
+    UNUSED(pState);
     // Function not implemented on Linux, just return success for sanity check
     return MOS_STATUS_SUCCESS;
 }

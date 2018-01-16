@@ -21,7 +21,7 @@
 */
 //!
 //! \file      cm_group_space.h
-//! \brief     Contains Class CmThreadGroupSpace definitions  
+//! \brief     Contains Class CmThreadGroupSpace definitions 
 //!
 
 #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMGROUPSPACE_H_
@@ -42,7 +42,7 @@ public:
 
     int32_t GetThreadGroupSpaceSize(uint32_t & threadSpaceWidth, uint32_t & threadSpaceHeight, uint32_t & threadSpaceDepth, uint32_t & groupSpaceWidth, uint32_t & groupSpaceHeight, uint32_t &groupSpaceDepth) const;
     uint32_t GetIndexInTGsArray();
-    
+
 #if CM_LOG_ON
     std::string Log();
 #endif
@@ -59,7 +59,7 @@ protected:
     uint32_t m_threadSpaceDepth;
     uint32_t m_groupSpaceWidth;
     uint32_t m_groupSpaceHeight;
-    uint32_t m_groupSpaceDepth;  
+    uint32_t m_groupSpaceDepth;
 
     uint32_t m_indexInThreadGroupSpaceArray;
 };

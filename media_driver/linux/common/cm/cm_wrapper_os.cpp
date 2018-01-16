@@ -43,7 +43,6 @@ extern MOS_FORMAT Mos_Specific_FmtOsToMos(
 extern MOS_OS_FORMAT Mos_Specific_FmtMosToOs(
     MOS_FORMAT     format);
 
-
 using CMRT_UMD::CmDeviceRT;
 //!
 //! \brief    Create Cm Device from VA Driver Context.
@@ -181,7 +180,6 @@ finish:
     return hr;
 }
 
-
 extern MOS_FORMAT   VpGetFormatFromMediaFormat(DDI_MEDIA_FORMAT mf);
 //*-----------------------------------------------------------------------------
 //| Purpose:    Get resource information from LibVA-created surface and fill into OsResource
@@ -237,7 +235,6 @@ int32_t CmFillMosResource( VASurfaceID        iVASurfaceID,
 
     return CM_SUCCESS;
 }
-
 
 MOS_FORMAT CmOSFmtToMosFmt(CM_OSAL_SURFACE_FORMAT format)
 {

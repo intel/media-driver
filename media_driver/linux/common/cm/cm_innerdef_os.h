@@ -20,14 +20,14 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_innerdef_os.h  
-//! \brief     Contains CM definitions (cm_innerdef_os.h)  
+//! \file      cm_innerdef_os.h 
+//! \brief     Contains CM definitions (cm_innerdef_os.h) 
 //!
 
 #pragma once
 
-#pragma GCC diagnostic ignored "-Wdelete-non-virtual-dtor" 
-#pragma GCC diagnostic ignored "-Wnon-virtual-dtor" 
+#pragma GCC diagnostic ignored "-Wdelete-non-virtual-dtor"
+#pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
 
 // Use this Macro to distinguish open-source and close-source.
 // Note that this will be moved to CMake Files in future
@@ -43,8 +43,8 @@
 //Referecing:
 //    [Intel-gfx] [PATCH 21/21] drm/i915: Introduce vmap (mapping of user pages into video memory) ioctl
 //    http://lists.freedesktop.org/archives/intel-gfx/2011-April/010241.html
-#if defined(DRM_IOCTL_I915_GEM_USERPTR)  
-#define DRMVMAP_FUNCTION_STR        "mos_bo_alloc_userptr" 
+#if defined(DRM_IOCTL_I915_GEM_USERPTR)
+#define DRMVMAP_FUNCTION_STR        "mos_bo_alloc_userptr"
 #else
 #define DRMVMAP_FUNCTION_STR        "mos_bo_alloc_vmap"  //for usrptr
 #endif

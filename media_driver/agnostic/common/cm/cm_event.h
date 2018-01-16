@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_event.h  
-//! \brief     Contains CmEvent declarations.  
+//! \file      cm_event.h 
+//! \brief     Contains CmEvent declarations. 
 //!
 
 #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMEVENT_H_
@@ -70,11 +70,11 @@ public:
     //!             The reference to the execution status. Four status values, 
     //!             CM_STATUS_QUEUED, CM_STATUS_FLUSHED, CM_STATUS_STARTED, and 
     //!             CM_STATUS_FINISHED are supported. CM_STATUS_FLUSHED means 
-    //!             that the task is already sent to driver/hardware.  
-	//!             CM_STATUS_STARTED means hardware starts to execute the task.  
+    //!             that the task is already sent to driver/hardware. 
+    //!             CM_STATUS_STARTED means hardware starts to execute the task. 
     //!             CM_STATUS_FINISHED means hardware has finished the 
     //!             execution of all kernels in the task. In Emulation/Simulation 
-	//!             mode since the Enqueue operation is a blocking call, this 
+    //!             mode since the Enqueue operation is a blocking call, this 
     //!             function always returns CM_STATUS_FINISHED.
     //! \retval     CM_SUCCESS if the status is successfully returned.
     //! \retval     CM_FAILURE if otherwise.
@@ -87,9 +87,9 @@ public:
     //! \details    The execution time is measured from the time the task 
     //!             started execution in GPU to the time when the task finished 
     //!             execution.We recommend pair this API with 
-    //!             CmEvent::WaitForTaskFinished in practice when you try to  
+    //!             CmEvent::WaitForTaskFinished in practice when you try to 
     //!             get GPU HW execution time. This is a non-blocking call. 
-	//!             In Emulation/Simulation mode this function always returns 100.
+    //!             In Emulation/Simulation mode this function always returns 100.
     //! \param      [out] time
     //!             Reference to time.
     //! \retval     CM_SUCCESS if the execution time is successfully returned.
@@ -104,8 +104,8 @@ public:
     //!             to reduce CPU usage and power consumption in the waiting: 
     //!             current process goes to sleep and waits for the 
     //!             notification from OS until task finishes. We recommend use 
-	//!	            this API followed by CmEvent::GetExecutionTime when you try 
-	//!             to get GPU HW execution time.
+    //!             this API followed by CmEvent::GetExecutionTime when you try 
+    //!             to get GPU HW execution time.
     //! \param      [out] timeOutMs
     //!             Timeout in milliseconds for the waiting, 2000 milliseconds 
     //!             by-default.
@@ -140,12 +140,12 @@ public:
     GetSurfaceDetails(uint32_t kernIndex,
                       uint32_t surfBTI,
                       CM_SURFACE_DETAILS& outDetails) = 0;
-    
+
     //!
     //! \brief      This function can be used to get more profiling 
     //!             information for vTune.
     //! \details    It can provided 9 profiling values, for profiling 
-    //!             information,including  
+    //!             information,including 
     //!             CM_EVENT_PROFILING_HWSTART,CM_EVENT_PROFILING_HWEND,
     //!             CM_EVENT_PROFILING_SUBMIT,CM_EVENT_PROFILING_COMPLETE,
     //!             CM_EVENT_PROFILING_ENQUEUE,CM_EVENT_PROFILING_KERNELCOUNT,
@@ -170,7 +170,7 @@ public:
                                                size_t paramSize,
                                                void *inputValue,
                                                void *value) = 0;
-    
+
     //!
     //! \brief      Query the raw tick time of a task(one kernel or multiples 
     //!             kernels running concurrently).

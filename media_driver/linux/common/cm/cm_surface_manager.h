@@ -79,7 +79,6 @@ public:
     int32_t DestroySampler8x8Surface(SurfaceIndex* &sampler8x8SurfaceIndex );
     int32_t DestroySurface( CmSurfaceSampler8x8* &sampler8x8Surface);
 
-
     int32_t GetSurface( const uint32_t index, CmSurface* &surface);
     int32_t GetCmDevice( CmDeviceRT* &device);
 

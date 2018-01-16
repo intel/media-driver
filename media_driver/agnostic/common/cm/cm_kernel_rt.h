@@ -56,7 +56,7 @@ struct CM_ARG
 
     uint16_t index;
     SURFACE_KIND s_k;
-    
+
     uint32_t unitCount; // 1 for for per kernel arg ; thread # for per thread arg
 
     uint16_t unitSize; // size of arg in byte
@@ -73,15 +73,15 @@ struct CM_ARG
 
     bool bIsNull;       // used to indicate if this is a null surface
 
-    uint32_t unitVmeArraySize; // number of Vme surfaces in surface array 
+    uint32_t unitVmeArraySize; // number of Vme surfaces in surface array
 
     // pointer to the arg values. the size is unitCount * unitSize
     union
     {
-        uint8_t *pValue; 
+        uint8_t *pValue;
         int32_t *pIValue;
         uint32_t *pUIValue;
-        float  *pFValue; 
+        float  *pFValue;
     };
 
     uint16_t *surfIndex;

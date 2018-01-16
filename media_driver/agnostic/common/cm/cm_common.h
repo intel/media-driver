@@ -159,7 +159,6 @@ typedef enum _CM_RETURN_CODE
     CM_INVALID_CAP_NAME                         = -101,
     CM_INVALID_USER_GPU_CONTEXT_FOR_QUEUE_EX    = -102,
 
-
     /*
      * RANGE -10000 ~ -19999 FOR INTERNAL ERROR CODE
      */
@@ -374,7 +373,6 @@ typedef enum _CM_RETURN_CODE
 #define CM_KERNELBINARY_BLOCKSIZE_2MB (1024 * 1024 * 2)
 #define CM_64BYTE (64)
 
-
 #define CM_DDI_1_0 100
 #define CM_DDI_1_1 101
 #define CM_DDI_1_2 102
@@ -422,7 +420,6 @@ struct CM_QUEUE_CREATE_OPTION
 };
 
 const CM_QUEUE_CREATE_OPTION CM_DEFAULT_QUEUE_CREATE_OPTION = { CM_QUEUE_TYPE_RENDER, false, 0, 0, 0, 0 };
-
 
 //------------------------------------------------------------------------------
 //|GT-PIN
@@ -497,7 +494,6 @@ typedef struct _CM_WALKING_PARAMETERS
     uint32_t Value[CM_NUM_DWORD_FOR_MW_PARAM];
 } CM_WALKING_PARAMETERS, *PCM_WALKING_PARAMETERS;
 
-
 #define  CM_FUSED_EU_DISABLE                 0
 #define  CM_FUSED_EU_ENABLE                  1
 #define  CM_FUSED_EU_DEFAULT                 CM_FUSED_EU_DISABLE
@@ -551,7 +547,6 @@ typedef struct _CM_VEBOX_STATE
     uint32_t    __CODEGEN_UNIQUE(Reserved) : BITFIELD_RANGE(22, 24);
     uint32_t    StateSurfaceControlBits : BITFIELD_RANGE(25, 31);
 
-
 }  CM_VEBOX_STATE, *PCM_VEBOX_STATE;
 
 //------------------------------------------------------------------------------
@@ -598,7 +593,6 @@ typedef enum _CM_GPUCOPY_KERNEL_ID
     GPU_COPY_KERNEL_CPU2CPU_ID                  = 0x9
 } CM_GPUCOPY_KERNEL_ID;
 
-
 // referenced in both g9 and g10.
 typedef enum _CM_HAL_MEMORY_OBJECT_CONTROL_G9
 {
@@ -612,14 +606,12 @@ typedef enum _CM_HAL_MEMORY_OBJECT_CONTROL_G9
     CM_MEMORY_OBJECT_CONTROL_SKL_NO_CACHE    = 0x7
 }CM_HAL_MEMORY_OBJECT_CONTROL_G9;
 
-
 typedef struct _CM_POWER_OPTION
 {
     uint16_t nSlice;                      // set number of slice to use: 0(default number), 1, 2...
     uint16_t nSubSlice;                   // set number of subslice to use: 0(default number), 1, 2...
     uint16_t nEU;                         // set number of EU to use: 0(default number), 1, 2...
 } CM_POWER_OPTION, *PCM_POWER_OPTION;
-
 
 //*-----------------------------------------------------------------------------
 //| CM Convolve type for SKL+
@@ -630,7 +622,6 @@ typedef enum _CM_CONVOLVE_SKL_TYPE
     CM_CONVOLVE_SKL_TYPE_1D = 1,
     CM_CONVOLVE_SKL_TYPE_1P = 2
 } CM_CONVOLVE_SKL_TYPE;
-
 
 // to define frame type for interlace frame support
 typedef enum _CM_FRAME_TYPE

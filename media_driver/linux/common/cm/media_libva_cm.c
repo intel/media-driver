@@ -21,7 +21,7 @@
 */
 //!
 //! \file      media_libva_cm.c 
-//! \brief     LibVA CM(C for Media) extensions interface implementaion  
+//! \brief     LibVA CM(C for Media) extensions interface implementaion 
 //!
 #include <va/va.h>
 #include <va/va_vpp.h>
@@ -69,12 +69,12 @@ VAStatus DdiDestroyContextCM (
 //! returns VA_STATUS_SUCCESS if call succeeds
 /////////////////////////////////////////////////////////////////////////////
 VAStatus vaCmExtSendReqMsg(
-     VADisplay dpy, 
+     VADisplay dpy,
      void      *moduleType,
      uint32_t  *inputFunId,
-     void      *inputData, 
-     uint32_t  *inputDataLen, 
-     uint32_t  *outputFunId, 
+     void      *inputData,
+     uint32_t  *inputDataLen,
+     uint32_t  *outputFunId,
      void      *outputData,
      uint32_t  *outputDataLen)
 {
@@ -85,7 +85,7 @@ VAStatus vaCmExtSendReqMsg(
     void *           pCmDeviceHandle;
     DDI_UNUSED(outputFunId);
     DDI_UNUSED(outputDataLen);
-    
+
     CM_DDI_FUNCTION_ENTER;
 
     hr        = VA_STATUS_ERROR_UNKNOWN;
@@ -95,7 +95,7 @@ VAStatus vaCmExtSendReqMsg(
     funcID    = *(int *)inputFunId;
 
     pCmDeviceHandle  = outputData;
-    if ( *(int *)moduleType != VAExtModuleCMRT) 
+    if ( *(int *)moduleType != VAExtModuleCMRT)
     {
         return VA_STATUS_ERROR_UNKNOWN;
     }

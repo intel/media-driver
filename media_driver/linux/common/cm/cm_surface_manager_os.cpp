@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_surface_manager_os.cpp  
-//! \brief     Contains Class CmSurfaceManager  definitions  
+//! \file      cm_surface_manager_os.cpp 
+//! \brief     Contains Class CmSurfaceManager  definitions 
 //!
 #include "cm_surface_manager.h"
 
@@ -33,7 +33,7 @@
 namespace CMRT_UMD
 {
 //*-----------------------------------------------------------------------------
-//| Purpose:    Create surface 2d 
+//| Purpose:    Create surface 2d
 //| Arguments :
 //|               mosResource        [in]       pointer to mos resource
 //|               createdByCm        [in]       if this surface created by thin layer
@@ -41,7 +41,7 @@ namespace CMRT_UMD
 //|
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
- int32_t CmSurfaceManager::CreateSurface2D(MOS_RESOURCE * mosResource, bool createdByCm, CmSurface2DRT* & surface) 
+ int32_t CmSurfaceManager::CreateSurface2D(MOS_RESOURCE * mosResource, bool createdByCm, CmSurface2DRT* & surface)
  {
     uint32_t handle         = 0;
     uint32_t index          = ValidSurfaceIndexStart();
@@ -59,7 +59,7 @@ namespace CMRT_UMD
     {
         CM_ASSERTMESSAGE("Error: Failed to get surface info from mosResource.");
         return result;
-    } 
+    }
 
     //Sanity check
     result = Surface2DSanityCheck(width, height, format);
@@ -67,7 +67,7 @@ namespace CMRT_UMD
     {
         CM_ASSERTMESSAGE("Error: Sanity check for surface 2D failure.");
         return result;
-    } 
+    }
 
     // For 2D surface, since the real memory buffer is not allocated in CMRT@UMD, no reuse/manager can be done
     // Real reuse is controlled by the CMRT library.
@@ -83,7 +83,7 @@ namespace CMRT_UMD
         return CM_EXCEED_SURFACE_AMOUNT;
     }
 
-    result = AllocateSurface2D( width, height, format, mosResource, handle); 
+    result = AllocateSurface2D( width, height, format, mosResource, handle);
     if( result != CM_SUCCESS )
     {
         CM_ASSERTMESSAGE("Error: Failed to allocate surface.");
@@ -100,10 +100,9 @@ namespace CMRT_UMD
 
     m_surfaceArray[ index ] = surface;
     UpdateProfileFor2DSurface(index, width, height, format);
-    
+
     return CM_SUCCESS;
  }
-
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Check the legality of surface's width,height and format
@@ -144,7 +143,7 @@ int32_t CmSurfaceManager::Surface2DSanityCheck(uint32_t width, uint32_t height, 
         case CM_SURFACE_FORMAT_R32_SINT:
         case CM_SURFACE_FORMAT_BUFFER_2D:
             break;
-            
+
         case CM_SURFACE_FORMAT_R8_UINT:
         case CM_SURFACE_FORMAT_R16_UINT:
         case CM_SURFACE_FORMAT_L16:
@@ -197,7 +196,7 @@ int32_t CmSurfaceManager::Surface2DSanityCheck(uint32_t width, uint32_t height, 
                 return CM_INVALID_HEIGHT;
             }
             break;
-            
+
         default:
             CM_ASSERTMESSAGE("Error: Unsupported surface format.");
             return CM_SURFACE_FORMAT_NOT_SUPPORTED;
@@ -205,7 +204,6 @@ int32_t CmSurfaceManager::Surface2DSanityCheck(uint32_t width, uint32_t height, 
 
     return CM_SUCCESS;
 }
-
 
 //!
 //! \brief    Get mos surface's information (width, height, pitch and format)
@@ -236,7 +234,7 @@ int32_t CmSurfaceManager::GetSurfaceInfo( MOS_RESOURCE * mosResource, uint32_t &
     height   = surfaceDetails.dwHeight;
     format   = surfaceDetails.Format;
     pitch    = surfaceDetails.dwLockPitch;
-    
+
     return CM_SUCCESS;
 }
 }  // namespace

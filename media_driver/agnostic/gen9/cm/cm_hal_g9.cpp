@@ -20,14 +20,14 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_hal_g9.cpp  
-//! \brief     Common HAL CM Gen9 functions  
+//! \file      cm_hal_g9.cpp 
+//! \brief     Common HAL CM Gen9 functions 
 //!
 
 #include "cm_hal_g9.h"
 #include "mhw_render_hwcmd_g9_X.h"
-#include "cm_gpucopy_kernel_g9.h" 
-#include "cm_gpuinit_kernel_g9.h" 
+#include "cm_gpucopy_kernel_g9.h"
+#include "cm_gpuinit_kernel_g9.h"
 #include "renderhal_platform_interface.h"
 #include "mhw_render.h"
 
@@ -42,7 +42,6 @@ struct PACKET_SURFACE_STATE
         mhw_state_heap_g9_X::MEDIA_SURFACE_STATE_CMD cmdSurfaceState_adv;
     };
 };
-
 
 //------------------------------------------------------------------------------
 //| Purpose: Sets Media Walker Parameters from engineering API for GEN9
@@ -151,7 +150,7 @@ MOS_STATUS CM_HAL_G9_X::RegisterSampler8x8AVSTable(
     pSampler8x8AVSTable->mhwSamplerAvsTableParam.byteMaxDerivative4Pixels  = MEDIASTATE_AVS_MAX_DERIVATIVE_4_PIXELS;
 
     pSampler8x8AVSTable->mhwSamplerAvsTableParam.bEnableRGBAdaptive         = false;
-	pSampler8x8AVSTable->mhwSamplerAvsTableParam.bAdaptiveFilterAllChannels = pAVSTable->adaptiveFilterAllChannels;
+    pSampler8x8AVSTable->mhwSamplerAvsTableParam.bAdaptiveFilterAllChannels = pAVSTable->adaptiveFilterAllChannels;
 
     // Assign the coefficient table;
     for ( uint32_t i = 0; i < CM_NUM_HW_POLYPHASE_TABLES_G9; i++ )
@@ -184,7 +183,7 @@ MOS_STATUS CM_HAL_G9_X::RegisterSampler8x8AVSTable(
         pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[ i ].OneXFilterCoefficient[1]  = ( uint8_t )pAVSTable->tbl1X[ i ].FilterCoeff_0_3;
         pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[ i ].OneXFilterCoefficient[2]  = ( uint8_t )pAVSTable->tbl1X[ i ].FilterCoeff_0_4;
         pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[ i ].OneXFilterCoefficient[3]  = ( uint8_t )pAVSTable->tbl1X[ i ].FilterCoeff_0_5;
-                                                                                                       
+
         pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[ i ].OneYFilterCoefficient[0]  = ( uint8_t )pAVSTable->tbl1Y[ i ].FilterCoeff_0_2;
         pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[ i ].OneYFilterCoefficient[1]  = ( uint8_t )pAVSTable->tbl1Y[ i ].FilterCoeff_0_3;
         pSampler8x8AVSTable->mhwSamplerAvsTableParam.paMhwAvsCoeffParam[ i ].OneYFilterCoefficient[2]  = ( uint8_t )pAVSTable->tbl1Y[ i ].FilterCoeff_0_4;
@@ -246,7 +245,7 @@ MOS_STATUS CM_HAL_G9_X::RegisterSampler8x8AVSTable(
 }
 
 MOS_STATUS CM_HAL_G9_X::RegisterSampler8x8(
-    PCM_HAL_SAMPLER_8X8_PARAM    pParam)      
+    PCM_HAL_SAMPLER_8X8_PARAM    pParam)
 {
     PCM_HAL_STATE               pState = m_cmState;
     MOS_STATUS                  hr = MOS_STATUS_SUCCESS;
@@ -288,10 +287,10 @@ MOS_STATUS CM_HAL_G9_X::RegisterSampler8x8(
         pSamplerEntry->Avs.iTable8x8_Index          = samplerIndex;  // Used for calculating the Media offset of 8x8 table
         pSamplerEntry->Avs.pMhwSamplerAvsTableParam = &pSampler8x8Entry->sampler8x8State.mhwSamplerAvsTableParam;
 
-		if (pSamplerEntry->Avs.EightTapAFEnable)
-			pParam->sampler8x8State.avsParam.avsTable.adaptiveFilterAllChannels = true;
-		else
-			pParam->sampler8x8State.avsParam.avsTable.adaptiveFilterAllChannels = false;
+        if (pSamplerEntry->Avs.EightTapAFEnable)
+            pParam->sampler8x8State.avsParam.avsTable.adaptiveFilterAllChannels = true;
+        else
+            pParam->sampler8x8State.avsParam.avsTable.adaptiveFilterAllChannels = false;
 
         CM_CHK_MOSSTATUS(RegisterSampler8x8AVSTable(&pSampler8x8Entry->sampler8x8State,
                                                     &pParam->sampler8x8State.avsParam.avsTable));
@@ -367,13 +366,13 @@ MOS_STATUS CM_HAL_G9_X::RegisterSampler8x8(
 
         // Currently use DW0.Reserved0 to save the detailed Convolve Type, the DW0.Reserved0 will be cleared when copy to sampelr heap
         pSamplerEntry->Convolve.ui8ConvolveType = pParam->sampler8x8State.convolveState.nConvolveType;
-        if (pSamplerEntry->Convolve.skl_mode && 
+        if (pSamplerEntry->Convolve.skl_mode &&
             pSamplerEntry->Convolve.ui8ConvolveType == CM_CONVOLVE_SKL_TYPE_2D)
         {
             pSamplerEntry->ElementType = MHW_Sampler128Elements;
         }
-        else if ((!pSamplerEntry->Convolve.skl_mode && 
-                  pSamplerEntry->Convolve.ui8ConvolveType == CM_CONVOLVE_SKL_TYPE_2D) 
+        else if ((!pSamplerEntry->Convolve.skl_mode &&
+                  pSamplerEntry->Convolve.ui8ConvolveType == CM_CONVOLVE_SKL_TYPE_2D)
                   || pSamplerEntry->Convolve.ui8ConvolveType == CM_CONVOLVE_SKL_TYPE_1P)
         {
             pSamplerEntry->ElementType = MHW_Sampler64Elements;
@@ -532,15 +531,14 @@ MOS_STATUS CM_HAL_G9_X::HwSetSurfaceMemoryObjectControl(
     return hr;
 }
 
-
 MOS_STATUS CM_HAL_G9_X::SubmitCommands(
-    PMHW_BATCH_BUFFER       pBatchBuffer,       
-    int32_t                 iTaskId,            
-    PCM_HAL_KERNEL_PARAM    *pKernels,          
-    void                    **ppCmdBuffer)      
+    PMHW_BATCH_BUFFER       pBatchBuffer,
+    int32_t                 iTaskId,
+    PCM_HAL_KERNEL_PARAM    *pKernels,
+    void                    **ppCmdBuffer)
 {
     MOS_STATUS                   hr           = MOS_STATUS_SUCCESS;
-    PCM_HAL_STATE                pState       = m_cmState;      
+    PCM_HAL_STATE                pState       = m_cmState;
     PRENDERHAL_INTERFACE         pRenderHal   = pState->renderHal;
     MhwRenderInterface           *pMhwRender  = pRenderHal->pMhwRenderInterface;
     PRENDERHAL_STATE_HEAP        pStateHeap   = pRenderHal->pStateHeap;
@@ -565,7 +563,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     RENDERHAL_GENERIC_PROLOG_PARAMS genericPrologParams;
     MOS_RESOURCE                 OsResource;
     CM_HAL_MI_REG_OFFSETS  MiReg_G9 = { REG_TIMESTAMP_BASE_G9, REG_GPR_BASE_G9 };
-    
+
     MOS_ZeroMemory(&CmdBuffer, sizeof(MOS_COMMAND_BUFFER));
     MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
 
@@ -652,11 +650,12 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
         // Same reg offset and value for gpgpu pipe and media pipe
         if ( enableGpGpu )
         {
-            if (MEDIA_IS_SKU(pState->skuTable, FtrGpGpuMidThreadLevelPreempt)) {
-				if (csr_enable)
-					LoadRegImm.dwData = MHW_RENDER_ENGINE_MID_THREAD_PREEMPT_VALUE;
-				else
-					LoadRegImm.dwData = MHW_RENDER_ENGINE_THREAD_GROUP_PREEMPT_VALUE;
+            if (MEDIA_IS_SKU(pState->skuTable, FtrGpGpuMidThreadLevelPreempt)) 
+            {
+                if (csr_enable)
+                    LoadRegImm.dwData = MHW_RENDER_ENGINE_MID_THREAD_PREEMPT_VALUE;
+                else
+                    LoadRegImm.dwData = MHW_RENDER_ENGINE_THREAD_GROUP_PREEMPT_VALUE;
 
             }
             else if ( MEDIA_IS_SKU(pState->skuTable, FtrGpGpuThreadGroupLevelPreempt ))
@@ -718,13 +717,13 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
             PipeCtlParams.dwFlushMode = MHW_FLUSH_WRITE_CACHE;
             PipeCtlParams.bDisableCSStall = 0;
             CM_CHK_MOSSTATUS(pMhwMiInterface->AddPipeControl(&CmdBuffer, nullptr, &PipeCtlParams));
-		
+
         }
 
         if (sip_enable || csr_enable)
         {
             // Send SIP State
-			CM_CHK_MOSSTATUS(pRenderHal->pfnSendSipStateCmd(pRenderHal, &CmdBuffer));
+            CM_CHK_MOSSTATUS(pRenderHal->pfnSendSipStateCmd(pRenderHal, &CmdBuffer));
 
             CM_HRESULT2MOSSTATUS_AND_CHECK(pOsInterface->pfnRegisterResource(
                 pOsInterface,
@@ -801,9 +800,9 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
 
                 CM_CHK_MOSSTATUS(pRenderHal->pfnSendSyncTag(pRenderHal, &CmdBuffer));
 
-                // conditionally write timestamp 
+                // conditionally write timestamp
                 CM_CHK_MOSSTATUS(HalCm_OsAddArtifactConditionalPipeControl(&MiReg_G9, pState, &CmdBuffer, iSyncOffset, &pTaskParam->conditionalBBEndParams[i]));
-                
+
                 // Insert conditional batch buffer end
                 pMhwMiInterface->AddMiConditionalBatchBufferEndCmd(&CmdBuffer, &pTaskParam->conditionalBBEndParams[i]);
             }
@@ -811,7 +810,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
             //Insert PIPE_CONTROL at two cases:
             // 1. synchronization is set
             // 2. the next kernel has dependency pattern
-            if((i > 0) && ((pTaskParam->syncBitmap & ((uint64_t)1 << (i-1))) || 
+            if((i > 0) && ((pTaskParam->syncBitmap & ((uint64_t)1 << (i-1))) ||
                 (pKernels[i]->kernelThreadSpaceParam.patternType != CM_NONE_DEPENDENCY)))
             {
                 //Insert a pipe control as synchronization
@@ -853,7 +852,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     {
         // Send Start batch buffer command
         CM_CHK_MOSSTATUS(pMhwMiInterface->AddMiBatchBufferStartCmd(
-            &CmdBuffer, 
+            &CmdBuffer,
             pBatchBuffer));
 
         CM_CHK_NULL_RETURN_MOSSTATUS(pBatchBuffer->pPrivateData);
@@ -879,7 +878,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
         }
     }
 
-    // issue a PIPE_CONTROL to flush all caches and the stall the CS before 
+    // issue a PIPE_CONTROL to flush all caches and the stall the CS before
     // issuing a PIPE_CONTROL to write the timestamp
     PipeCtlParams = g_cRenderHal_InitPipeControlParams;
     PipeCtlParams.presDest      = &pState->renderTimeStampResource.osResource;
@@ -910,7 +909,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     PipeCtlParams.dwFlushMode       = MHW_FLUSH_READ_CACHE;
     CM_CHK_MOSSTATUS(pMhwMiInterface->AddPipeControl(&CmdBuffer, nullptr, &PipeCtlParams));
 
-    // Send Sync Tag 
+    // Send Sync Tag
     CM_CHK_MOSSTATUS( pRenderHal->pfnSendSyncTag( pRenderHal, &CmdBuffer ) );
 
     // Add PipeControl to invalidate ISP and MediaState to avoid PageFault issue
@@ -947,7 +946,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
             offsetof(PACKET_SURFACE_STATE, cmdSurfaceState),
             mhw_state_heap_g9_X::RENDER_SURFACE_STATE_CMD::byteSize);
     }
-#endif 
+#endif
 
     CM_CHK_MOSSTATUS(pState->pfnGetGlobalTime(&pState->taskTimeStamp->submitTimeInCpu[iTaskId]));
     CM_CHK_MOSSTATUS(pState->pfnGetGpuTime(pState, &pState->taskTimeStamp->submitTimeInGpu[iTaskId]));
@@ -1021,7 +1020,7 @@ MOS_STATUS CM_HAL_G9_X::UpdatePlatformInfoFromPower(
     PRENDERHAL_INTERFACE       pRenderHal = pState->renderHal;
     CM_POWER_OPTION            CMPower;
 
-    if ( pState->requestSingleSlice || 
+    if ( pState->requestSingleSlice ||
          pRenderHal->bRequestSingleSlice ||
         (pState->powerOption.nSlice != 0 && pState->powerOption.nSlice < platformInfo->numSlices))
     {
@@ -1090,7 +1089,7 @@ MOS_STATUS CM_HAL_G9_X::SetSuggestedL3Conf(
 MOS_STATUS CM_HAL_G9_X::AllocateSIPCSRResource()
 {
     MOS_STATUS hr = MOS_STATUS_SUCCESS;
-    if (Mos_ResourceIsNull(&m_cmState->sipResource.osResource)) 
+    if (Mos_ResourceIsNull(&m_cmState->sipResource.osResource))
     {
         CM_CHK_MOSSTATUS_RETURN(HalCm_AllocateSipResource(m_cmState)); // create  sip resource if it does not exist
         CM_CHK_MOSSTATUS_RETURN(HalCm_AllocateCSRResource(m_cmState));
@@ -1101,7 +1100,7 @@ MOS_STATUS CM_HAL_G9_X::AllocateSIPCSRResource()
 
 MOS_STATUS CM_HAL_G9_X::GetGenStepInfo(char*& stepinfostr)
 {
-    const char *CmSteppingInfo[] = { "A", "B", "C", "D", "E", "F", 
+    const char *CmSteppingInfo[] = { "A", "B", "C", "D", "E", "F",
                                          "G", "H", "I", "J" };
     uint32_t genStepId = m_cmState->platform.usRevId;
 
@@ -1113,7 +1112,7 @@ MOS_STATUS CM_HAL_G9_X::GetGenStepInfo(char*& stepinfostr)
         }
         else
         {
-            stepinfostr = nullptr; 
+            stepinfostr = nullptr;
         }
     }
     else
@@ -1127,10 +1126,6 @@ MOS_STATUS CM_HAL_G9_X::GetGenStepInfo(char*& stepinfostr)
             stepinfostr = nullptr;
     }
     }
-
-    
-
-    
 
     return MOS_STATUS_SUCCESS;
 }
@@ -1162,7 +1157,7 @@ int32_t CM_HAL_G9_X::GetConvSamplerIndex(
     int32_t                   nSampConvNum)
 {
     int32_t iSamplerIndex = 0;
-    
+
     if ((pSamplerParam->Convolve.ui8ConvolveType == CM_CONVOLVE_SKL_TYPE_2D) &&
         (pSamplerParam->Convolve.skl_mode))
     {
@@ -1176,7 +1171,7 @@ int32_t CM_HAL_G9_X::GetConvSamplerIndex(
     }
     else
     {
-        // 1P convolve SKL+ 
+        // 1P convolve SKL+
         iSamplerIndex = 1 + (nSamp8X8Num + nSampConvNum) * 2;
         while (pSamplerIndexTable[iSamplerIndex] != CM_INVALID_INDEX)
         {
@@ -1188,7 +1183,7 @@ int32_t CM_HAL_G9_X::GetConvSamplerIndex(
 }
 
 MOS_STATUS CM_HAL_G9_X::SetL3CacheConfig(
-            const L3ConfigRegisterValues *values_ptr, 
+            const L3ConfigRegisterValues *values_ptr,
             PCmHalL3Settings cmhal_l3_cache_ptr)
 {
     return HalCm_SetL3Cache( values_ptr, cmhal_l3_cache_ptr );

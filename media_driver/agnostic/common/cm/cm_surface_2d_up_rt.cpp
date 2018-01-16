@@ -119,7 +119,6 @@ int32_t CmSurface2DUPRT::GetHandle( uint32_t& handle)
     return CM_SUCCESS;
 }
 
-
 //*-----------------------------------------------------------------------------
 //| Purpose:    Get Surface Index
 //| Returns:    CM_SUCCESS.

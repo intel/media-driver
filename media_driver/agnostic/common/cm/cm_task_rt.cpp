@@ -147,7 +147,7 @@ CM_RT_API int32_t CmTaskRT::AddKernel( CmKernel *pKernel )
     }
 
     CmKernelRT *pKernelRT = static_cast<CmKernelRT *>(pKernel);
-    m_pKernelArray[m_KernelCount] = pKernelRT; 
+    m_pKernelArray[m_KernelCount] = pKernelRT;
     pKernelRT->SetIndexInTask(m_KernelCount);
 
     m_KernelCount++;
@@ -235,7 +235,6 @@ bool CmTaskRT::IntegrityCheckKernelThreadspace( void )
     uint32_t              unassociated        = 0;
 
     kernelCount = this->GetKernelCount();
-
 
     pTSMapping = MOS_NewArray(byte*, kernelCount);
     pKernelInScoreboard = MOS_NewArray(byte, kernelCount);
@@ -353,12 +352,12 @@ uint64_t CmTaskRT::GetSyncBitmap()
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Set the conditional value, compare mask and handle for the 
+//| Purpose:    Set the conditional value, compare mask and handle for the
 //|             surface associated with pIndex
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 int32_t CmTaskRT::SetConditionalEndInfo(SurfaceIndex* pIndex,
-                                        uint32_t offset, 
+                                        uint32_t offset,
                                         CM_CONDITIONAL_END_PARAM *pCondParam)
 {
     CmSurface*        pSurface = nullptr;
@@ -414,7 +413,7 @@ CM_HAL_CONDITIONAL_BB_END_INFO* CmTaskRT::GetConditionalEndInfo()
 
 PCM_POWER_OPTION CmTaskRT::GetPowerOption()
 {
-    return &m_PowerOption;   
+    return &m_PowerOption;
 }
 
 #if CM_LOG_ON
@@ -422,7 +421,7 @@ std::string CmTaskRT::Log()
 {
     std::ostringstream  oss;
 
-    oss << " Kernel Count:" << m_KernelCount 
+    oss << " Kernel Count:" << m_KernelCount
         << " Sync Bit:"<<m_ui64SyncBitmap
         << " Conditional End Bit: " << m_ui64ConditionalEndBitmap
         << std::endl;

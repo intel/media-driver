@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_kernel_data.cpp  
-//! \brief     Contains Class CmKernelData definitions  
+//! \file      cm_kernel_data.cpp 
+//! \brief     Contains Class CmKernelData definitions 
 //!
 
 #include "cm_kernel_data.h"
@@ -34,7 +34,7 @@
 namespace CMRT_UMD
 {
 //*-----------------------------------------------------------------------------
-//| Purpose:    Create Kernel Data 
+//| Purpose:    Create Kernel Data
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 int32_t CmKernelData::Create( CmKernelRT* pCmKernel, CmKernelData*& pKernelData )
@@ -120,7 +120,7 @@ CmKernelData::~CmKernelData( void )
     //Free memory for thread space param
     MosSafeDeleteArray(m_HalKernelParam.kernelThreadSpaceParam.dispatchInfo.numThreadsInWave);
     MosSafeDeleteArray(m_HalKernelParam.kernelThreadSpaceParam.threadCoordinates);
- 
+
     // Free memory for move instructions
     MosSafeDeleteArray(m_HalKernelParam.movInsData);
 
@@ -168,7 +168,7 @@ int32_t CmKernelData::GetKernelDataSize()
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Increase Reference count 
+//| Purpose:    Increase Reference count
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 uint32_t CmKernelData::Acquire( void )
@@ -209,7 +209,7 @@ PCM_HAL_KERNEL_PARAM CmKernelData::GetHalCmKernelData( )
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Whether the kernel data is in use 
+//| Purpose:    Whether the kernel data is in use
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 bool CmKernelData::IsInUse()
@@ -218,7 +218,7 @@ bool CmKernelData::IsInUse()
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Get Curbe Size from kernel data 
+//| Purpose:    Get Curbe Size from kernel data
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 uint32_t CmKernelData::GetKernelCurbeSize( void )

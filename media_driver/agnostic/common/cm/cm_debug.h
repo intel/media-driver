@@ -20,10 +20,9 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_debug.h  
-//! \brief     Contains CM debug definitions  
+//! \file      cm_debug.h 
+//! \brief     Contains CM debug definitions 
 //!
-
 
 #ifndef __CM_DEBUG_H__
 #define __CM_DEBUG_H__
@@ -73,7 +72,7 @@
 #define CM_MOS_CHK_STATUS_RETURN( _stmt )                                       \
     MOS_CHK_STATUS_RETURN( MOS_COMPONENT_CM, MOS_CM_SUBCOMP_SELF, _stmt )
 
-// Check the condition, if true, print the error message 
+// Check the condition, if true, print the error message
 // and return the specified value, do nothing otherwise.
 #define CM_DDI_CHK_CONDITION(condition, _str, _ret)                             \
     if (condition) {                                                            \
@@ -132,7 +131,6 @@
     }                                                                           \
 }
 #endif
-
 
 //*-----------------------------------------------------------------------------
 //| Macro checks the CM Results

@@ -101,12 +101,12 @@ CM_RT_API int32_t DestroyCmDevice(MOS_CONTEXT *pMosContext)
        pMosContext->cmDevRefCount --;
        return CM_SUCCESS;
     }
-    
+
     pMosContext->cmDevRefCount -- ;
-   
+
     pMosContext->SkuTable.reset();
     pMosContext->WaTable.reset();
- 
+
     CmDevice *pDevice =  (CmDevice *)(pMosContext->pCmDev);
     CmDeviceRT* pDeviceRT = static_cast<CmDeviceRT*>(pDevice);
     int32_t ret = CmDeviceRT::Destroy(pDeviceRT);
@@ -116,6 +116,6 @@ CM_RT_API int32_t DestroyCmDevice(MOS_CONTEXT *pMosContext)
     }
 
     pMosContext->pCmDev = nullptr;
-    
+
     return CM_SUCCESS;
 }//===================

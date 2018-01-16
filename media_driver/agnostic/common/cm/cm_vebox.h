@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_vebox.h  
-//! \brief     Contains CmVebox declarations.  
+//! \file      cm_vebox.h 
+//! \brief     Contains CmVebox declarations. 
 //!
 
 #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMVEBOX_H_
@@ -38,7 +38,7 @@ class CmBufferUP;
 
 //! \brief      CmVebox is an abstraction of the vebox hardware, 
 //! \details    Details of vebox hardware be found at 
-//!             https://01.org/sites/default/files/documentation/intel-gfx-prm-osrc-skl-vol09-media_vebox.pdf, or  
+//!             https://01.org/sites/default/files/documentation/intel-gfx-prm-osrc-skl-vol09-media_vebox.pdf, or 
 //!             https://01.org/sites/default/files/documentation/intel-gfx-prm-osrc-kbl-vol09-media_vebox.pdf
 
 class CmVebox
@@ -47,7 +47,7 @@ public:
     //! \brief      Set state for the vebox object
     //! \param      [in] VeBoxState
     //!             CM_VEBOX_STATE
-    //! \returns    CM_SUCCESS   
+    //! \returns    CM_SUCCESS
     CM_RT_API virtual int32_t SetState(CM_VEBOX_STATE &VeBoxState) = 0;
 
     //! \brief      Set the current frame input surface for the vebox object
@@ -58,7 +58,7 @@ public:
 
     //! \brief      Set the control bits for the current frame input surface
     //! \details    Details of the control bits can be found at 
-    //!             https://01.org/sites/default/files/documentation/intel-gfx-prm-osrc-skl-vol09-media_vebox.pdf, or  
+    //!             https://01.org/sites/default/files/documentation/intel-gfx-prm-osrc-skl-vol09-media_vebox.pdf, or 
     //!             https://01.org/sites/default/files/documentation/intel-gfx-prm-osrc-kbl-vol09-media_vebox.pdf
     //! \param      [in] ctrlBits
     //!             control bit value
@@ -193,6 +193,5 @@ public:
     CM_RT_API virtual int32_t SetParam(CmBufferUP *pParamBuffer) = 0;
 };
 };//namespace
-
 
 #endif  // #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMVEBOX_H_

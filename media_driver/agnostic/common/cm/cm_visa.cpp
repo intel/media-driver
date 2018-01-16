@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_visa.cpp  
-//! \brief     Contains ISAfile definitions  
+//! \file      cm_visa.cpp 
+//! \brief     Contains ISAfile definitions 
 //!
 
 #include "cm_visa.h"
@@ -58,7 +58,6 @@ ISAfile::ISAfile(const ISAfile& other) {
         function_data.push_back(fb2);
     }
 }
-
 
 ISAfile& ISAfile::operator= (const ISAfile& other) {
     if (this != &other) {

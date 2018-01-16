@@ -302,7 +302,6 @@ public:
     SetSurfaceStateParam(SurfaceIndex *pSurfIndex,
                          const CM_SURFACE2D_STATE_PARAM *pSSParam) = 0;
 
-
 // Pay Attention: below APIs only used in UMD. If you add an API exposed to application, please add it BEFORE this line.
 public:
     //!

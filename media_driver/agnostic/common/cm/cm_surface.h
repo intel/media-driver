@@ -21,7 +21,7 @@
 */
 //!
 //! \file      cm_surface.h
-//! \brief     Contains Class CmSurface  definitions  
+//! \brief     Contains Class CmSurface  definitions 
 //!
 #pragma once
 
@@ -47,7 +47,7 @@ public:
     virtual void Log(std::ostringstream &oss) { return; }
 
 protected:
-    CmSurface( CmSurfaceManager* Mgr , bool IsCmCreated );                  
+    CmSurface( CmSurfaceManager* Mgr , bool IsCmCreated );
     virtual ~CmSurface( void );
     int32_t Initialize( uint32_t index );
 
@@ -59,9 +59,9 @@ protected:
     CmSurfaceManager* m_SurfaceMgr;
 
     bool m_IsCmCreated;
-    
+
     CM_SURFACE_MEM_OBJ_CTRL m_MemObjCtrl;
-    
+
 private:
     CmSurface (const CmSurface& other);
     CmSurface& operator= (const CmSurface& other);

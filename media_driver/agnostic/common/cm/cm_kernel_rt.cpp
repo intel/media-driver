@@ -460,7 +460,6 @@ int32_t CmKernelRT::Initialize( const char* kernelName, const char* options )
         }
     }
 
-
     m_NonstallingScoreboardEnable = true;
 
     void* pCommonISACode = nullptr;
@@ -821,7 +820,6 @@ int32_t CmKernelRT::Initialize( const char* kernelName, const char* options )
     return CM_SUCCESS;
 }
 
-
 //*-----------------------------------------------------------------------------
 //! A CmKernel can run in multiple threads concurrently. This
 //! fucntion is to set the number of threads.
@@ -973,19 +971,19 @@ int32_t CmKernelRT::SetArgsVme(CM_KERNEL_INTERNAL_ARG_TYPE nArgType, uint32_t Ar
 
     if (arg.unitSize < TotalVmeArgValueSize) // need to re-allocate larger area)
     {
-        if (arg.pValue) 
+        if (arg.pValue)
         {
             MosSafeDeleteArray(arg.pValue);
         }
         arg.pValue = MOS_NewArray(uint8_t, TotalVmeArgValueSize);
-        
-        if (arg.surfIndex) 
+
+        if (arg.surfIndex)
         {
             MosSafeDeleteArray(arg.surfIndex);
         }
         arg.surfIndex = MOS_NewArray(uint16_t, TotalSurfacesInVme);
     }
-    
+
     CMCHK_NULL(arg.pValue);
     CmSafeMemSet(arg.pValue, 0, TotalVmeArgValueSize);
     CMCHK_NULL(arg.surfIndex);
@@ -1050,7 +1048,6 @@ finish:
     return hr;
 
 }
-
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Fill arg for a single vme surface.
@@ -1717,7 +1714,6 @@ int32_t CmKernelRT::SetArgsInternal( CM_KERNEL_INTERNAL_ARG_TYPE nArgType, uint3
                      pValue = surfaces;
                      pSurfIndexValue = surfIndexArray;
 
-
                      size = ( size / sizeof( SurfaceIndex ) ) * sizeof( uint32_t );
                      m_Args[ index ].unitSize = ( uint16_t )size;
 
@@ -2309,7 +2305,6 @@ int32_t CmKernelRT::CalcKernelDataSize(
 
     TotalKernelDataSize = totalSize;
 
-
     return hr;
 }
 
@@ -2354,7 +2349,6 @@ int32_t CmKernelRT::CreateMovInstructions( uint32_t &movInstNum, uint8_t *&pCode
             }
             // sort pArg to ppArgSorted accorind to offsetinPayload
             QuickSort( ppArgSorted, 0, NumArgs - 1 );
-
 
             // record compiler generated offset, used as move dst later
             uint16_t *unitOffsetInPayloadSorted = MOS_NewArray(uint16_t, NumArgs);
@@ -2519,7 +2513,6 @@ int32_t CmKernelRT::CreateMovInstructions( uint32_t &movInstNum, uint8_t *&pCode
        movInstNum += addInstNum; // take add Y instruction into consideration
     }
 
-
     return CM_SUCCESS;
 }
 
@@ -2573,7 +2566,7 @@ int32_t CmKernelRT::CreateThreadArgData(
     }
 
     if( pKernelArg->firstValue  == nullptr)
-    {   
+    {
         // if firstValue = nullptr, then create a new one, otherwise, update the exisitng one
         pKernelArg->firstValue = MOS_NewArray(uint8_t, (pCmArgs[ThreadArgIndex].unitCount * pCmArgs[ThreadArgIndex].unitSize));
         if( !pKernelArg->firstValue )
@@ -2710,7 +2703,6 @@ int32_t CmKernelRT::SortThreadSpace( CmThreadSpaceRT*  pThreadSpace )
 finish:
     return hr;
 }
-
 
 //*-----------------------------------------------------------------------------
 //| Purpose:   Create temp args array with surface array broken down
@@ -3194,8 +3186,6 @@ int32_t CmKernelRT::Reset( void )
     return CM_SUCCESS;
 }
 
-
-
 //*-----------------------------------------------------------------------------
 //| Purpose:   Get the pointer to arguments array
 //*-----------------------------------------------------------------------------
@@ -3521,7 +3511,6 @@ finish:
     return hr;
 }
 
-
 int32_t CmKernelRT::CleanArgDirtyFlag()
 {
 
@@ -3833,7 +3822,6 @@ finish:
     return hr;
 }
 
-
 //*-----------------------------------------------------------------------------
 //| Purpose:    Prepare Kernel Data including thread args, kernel args
 //| Returns:    Result of the operation.
@@ -3903,7 +3891,6 @@ bool CmKernelRT::IsPrologueDirty( void )
 
     return prologueDirty;
 }
-
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Prepare Kernel Data including thread args, kernel args
@@ -4424,7 +4411,6 @@ int32_t CmKernelRT::UpdateKernelData(
         }
     }
 
-
     // Update indirect data
     if( m_Dirty & CM_KERNEL_DATA_PAYLOAD_DATA_DIRTY)
     {
@@ -4664,7 +4650,6 @@ finish:
     return hr;
 }
 
-
 //*-----------------------------------------------------------------------------
 //| Purpose:    Create kernel indirect data
 //| Returns:    Result of the operation.
@@ -4887,7 +4872,6 @@ int32_t CmKernelRT::SetAssociatedToTSFlag(bool b)
     m_AssociatedToTS = b;
     return CM_SUCCESS;
 }
-
 
 //*-----------------------------------------------------------------------------
 //| Purpose: Set threadspace for kernel
@@ -5571,7 +5555,6 @@ int32_t CmKernelRT::CalculateKernelSurfacesNum(uint32_t& kernelSurfaceNum, uint3
     return CM_SUCCESS;
 }
 
-
 //*-----------------------------------------------------------------------------
 //| Purpose:    Get aligned curbe size for different platforms
 //| Returns:    Result of operation.
@@ -5669,7 +5652,6 @@ void CmKernelRT::ArgLog(std::ostringstream &oss, uint32_t index, CM_ARG Arg)
     }
 }
 #endif
-
 
 void CmKernelRT::SurfaceDump(uint32_t kernelNumber, int32_t taskId)
 {
@@ -5808,12 +5790,12 @@ CMRT_UMD_API int32_t CmKernelRT::ReplaceBinary(std::vector<char>& binary)
         return CM_INVALID_ARG_VALUE;
     }
 
-	if(m_pBinaryOrig == nullptr)
-	{
+    if(m_pBinaryOrig == nullptr)
+    {
         //Store the orignal binary once.
         m_pBinaryOrig = m_pBinary;
         m_uiBinarySizeOrig = m_uiBinarySize;
-	}
+    }
 
     m_pBinary = MOS_NewArray(char, size);
     CmSafeMemCopy((void *)m_pBinary, (void *)&binary[0], size);
@@ -5830,10 +5812,10 @@ CMRT_UMD_API int32_t CmKernelRT::ResetBinary()
         //ReplaceBinary is never called
         return CM_SUCCESS;
     }
-	if(m_pBinary!= m_pBinaryOrig)
-	{
+    if(m_pBinary!= m_pBinaryOrig)
+    {
         MosSafeDeleteArray(m_pBinary);
-	}
+    }
     m_pBinary = m_pBinaryOrig;
     m_uiBinarySize = m_uiBinarySizeOrig;
 
