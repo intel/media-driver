@@ -619,24 +619,19 @@ protected:
         cmd.DW4.SliceSaoLumaFlag = hevcSliceParams->LongSliceFlags.fields.slice_sao_luma_flag;
         cmd.DW4.MvdL1ZeroFlag = hevcSliceParams->LongSliceFlags.fields.mvd_l1_zero_flag;
 
-        uint32_t  numNegativePic = 0;
-        uint32_t  numPositivePic = 0;
+        uint8_t isLowDelay = 1;
 
         if (hevcSliceParams->LongSliceFlags.fields.slice_type != cmd.SLICE_TYPE_I_SLICE)
         {
             for (uint8_t i = 0; i < hevcSliceParams->num_ref_idx_l0_active_minus1 + 1; i++)
             {
                 uint8_t  refFrameID = hevcSliceParams->RefPicList[0][i].FrameIdx;
-                int32_t  pocDiff = hevcPicParams->CurrPicOrderCntVal - hevcPicParams->PicOrderCntValList[refFrameID];
-                if (pocDiff > 0)
+                if (hevcPicParams->PicOrderCntValList[refFrameID] > hevcPicParams->CurrPicOrderCntVal)
                 {
-                    numNegativePic++;
+                    isLowDelay = 0;
+                    break;
                 }
             }
-        }
-        else
-        {
-            numNegativePic = 0;
         }
 
         if (hevcSliceParams->LongSliceFlags.fields.slice_type == cmd.SLICE_TYPE_B_SLICE)
@@ -644,27 +639,15 @@ protected:
             for (uint8_t i = 0; i < hevcSliceParams->num_ref_idx_l1_active_minus1 + 1; i++)
             {
                 uint8_t  refFrameID = hevcSliceParams->RefPicList[1][i].FrameIdx;
-                int32_t  pocDiff = hevcPicParams->CurrPicOrderCntVal - hevcPicParams->PicOrderCntValList[refFrameID];
-                if (pocDiff < 0)
+                if (hevcPicParams->PicOrderCntValList[refFrameID] > hevcPicParams->CurrPicOrderCntVal)
                 {
-                    numPositivePic++;
+                    isLowDelay = 0;
+                    break;
                 }
             }
         }
-        else
-        {
-            numPositivePic = 0;
-        }
 
-        if ((numNegativePic == (hevcSliceParams->num_ref_idx_l0_active_minus1 + 1)) &&
-            (numPositivePic == 0))
-        {
-            cmd.DW4.Islowdelay = 1;
-        }
-        else
-        {
-            cmd.DW4.Islowdelay = 0;
-        }
+        cmd.DW4.Islowdelay = isLowDelay & 0x1;
 
         cmd.DW4.CollocatedFromL0Flag = hevcSliceParams->LongSliceFlags.fields.collocated_from_l0_flag;
         cmd.DW4.Chromalog2Weightdenom = hevcSliceParams->luma_log2_weight_denom + hevcSliceParams->delta_chroma_log2_weight_denom;
