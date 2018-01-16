@@ -1999,7 +1999,7 @@ MOS_STATUS CodechalDecodeHevc::SendSliceLongFormat(
         refIdxParams.ucNumRefForList = slc->num_ref_idx_l0_active_minus1 + 1;
         eStatus = MOS_SecureMemcpy(&refIdxParams.RefPicList, sizeof(refIdxParams.RefPicList), &slc->RefPicList, sizeof(slc->RefPicList));
         CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(eStatus, "Failed to copy memory.");
-        refIdxParams.ppHevcRefList = hevcSliceState->ppHevcRefList;
+        refIdxParams.hevcRefList = (void**)m_hevcRefList;
         refIdxParams.poc_curr_pic  = m_hevcPicParams->CurrPicOrderCntVal;
         for (uint8_t i = 0; i < CODEC_MAX_NUM_REF_FRAME_HEVC; i++)
         {
@@ -2184,7 +2184,6 @@ MOS_STATUS CodechalDecodeHevc::DecodePrimitiveLevel()
         MOS_ZeroMemory(&hevcSliceState, sizeof(hevcSliceState));
         hevcSliceState.presDataBuffer = m_copyDataBufferInUse ? &m_resCopyDataBuffer : &m_resDataBuffer;
         hevcSliceState.pHevcPicParams = m_hevcPicParams;
-        hevcSliceState.ppHevcRefList  = m_hevcRefList;
         hevcSliceState.pRefIdxMapping = &m_refIdxMapping[0];
 
         PCODEC_HEVC_SLICE_PARAMS slc = m_hevcSliceParams;

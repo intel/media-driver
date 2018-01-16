@@ -1533,8 +1533,6 @@ MOS_STATUS MhwVdboxMfxInterfaceG10::AddMfxAvcDirectmodeCmd(
     PMOS_COMMAND_BUFFER cmdBuffer,
     PMHW_VDBOX_AVC_DIRECTMODE_PARAMS params)
 {
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
     MHW_FUNCTION_ENTER;
 
     MHW_MI_CHK_NULL(cmdBuffer);
@@ -1568,20 +1566,23 @@ MOS_STATUS MhwVdboxMfxInterfaceG10::AddMfxAvcDirectmodeCmd(
             &resourceParams));
     }
 
+    CODEC_REF_LIST** refList;
+    MHW_MI_CHK_NULL(refList = (CODEC_REF_LIST**)params->avcRefList);
+
     if (CodecHal_PictureIsBottomField(params->CurrPic))
     {
         cmd.PocList[MHW_VDBOX_AVC_DMV_DEST_TOP] = 0;
         cmd.PocList[MHW_VDBOX_AVC_DMV_DEST_BOTTOM] =
-            params->ppAvcRefList[params->CurrPic.FrameIdx]->iFieldOrderCnt[1];
+            refList[params->CurrPic.FrameIdx]->iFieldOrderCnt[1];
     }
     else
     {
         cmd.PocList[MHW_VDBOX_AVC_DMV_DEST_TOP] = cmd.PocList[MHW_VDBOX_AVC_DMV_DEST_BOTTOM] =
-            params->ppAvcRefList[params->CurrPic.FrameIdx]->iFieldOrderCnt[0];
+            refList[params->CurrPic.FrameIdx]->iFieldOrderCnt[0];
         if (CodecHal_PictureIsFrame(params->CurrPic))
         {
             cmd.PocList[MHW_VDBOX_AVC_DMV_DEST_BOTTOM] =
-                params->ppAvcRefList[params->CurrPic.FrameIdx]->iFieldOrderCnt[1];
+                refList[params->CurrPic.FrameIdx]->iFieldOrderCnt[1];
         }
     }
 
@@ -1598,8 +1599,8 @@ MOS_STATUS MhwVdboxMfxInterfaceG10::AddMfxAvcDirectmodeCmd(
         if (params->pAvcPicIdx[i].bValid)
         {
             uint8_t idx = params->pAvcPicIdx[i].ucPicIdx;
-            uint8_t picID = params->bPicIdRemappingInUse ? i : params->ppAvcRefList[idx]->ucFrameId;
-            uint8_t mvIdx = params->ppAvcRefList[idx]->ucDMVIdx[0];
+            uint8_t picID = params->bPicIdRemappingInUse ? i : refList[idx]->ucFrameId;
+            uint8_t mvIdx = refList[idx]->ucDMVIdx[0];
 
             uint8_t validRef = ((params->uiUsedForReferenceFlags >> (i * 2)) >> 0) & 1;
             uint8_t frameID = picID << 1;
@@ -1623,8 +1624,7 @@ MOS_STATUS MhwVdboxMfxInterfaceG10::AddMfxAvcDirectmodeCmd(
                         &resourceParams));
                 }
 
-                cmd.PocList[frameID] =
-                    params->ppAvcRefList[idx]->iFieldOrderCnt[0] * validRef;
+                cmd.PocList[frameID] = refList[idx]->iFieldOrderCnt[0] * validRef;
             }
             else
             {
@@ -1635,8 +1635,7 @@ MOS_STATUS MhwVdboxMfxInterfaceG10::AddMfxAvcDirectmodeCmd(
             frameID = (picID << 1) + 1;
             if (frameID < CODEC_AVC_NUM_REF_DMV_BUFFERS * 2)
             {
-                cmd.PocList[frameID] =
-                    params->ppAvcRefList[idx]->iFieldOrderCnt[1] * validRef;
+                cmd.PocList[frameID] = refList[idx]->iFieldOrderCnt[1] * validRef;
             }
             else
             {
@@ -1671,7 +1670,7 @@ MOS_STATUS MhwVdboxMfxInterfaceG10::AddMfxAvcDirectmodeCmd(
 
     MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
-    return eStatus;
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS MhwVdboxMfxInterfaceG10::AddMfdAvcSliceAddrCmd(

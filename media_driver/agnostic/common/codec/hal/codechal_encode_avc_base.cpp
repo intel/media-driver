@@ -172,7 +172,6 @@ MOS_STATUS CodechalEncodeAvcBase::SendSlice(
     CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pAvcPicIdx);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(params->ppAvcRefList);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->presDataBuffer);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pEncodeAvcSeqParams);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pEncodeAvcPicParams);
@@ -201,8 +200,9 @@ MOS_STATUS CodechalEncodeAvcBase::SendSlice(
     // Add reference index and weight offset commands
     MOS_ZeroMemory(&refIdxParams, sizeof(refIdxParams));
     refIdxParams.CurrPic = params->pEncodeAvcPicParams->CurrReconstructedPic;
+    refIdxParams.isEncode = true;
     refIdxParams.pAvcPicIdx = params->pAvcPicIdx;
-    refIdxParams.ppAvcRefList = params->ppAvcRefList;
+    refIdxParams.avcRefList = (void**)m_refList;
     refIdxParams.oneOnOneMapping = params->oneOnOneMapping;
    
     CODECHAL_ENCODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(

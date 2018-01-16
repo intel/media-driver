@@ -384,8 +384,6 @@ protected:
         PMHW_BATCH_BUFFER batchBuffer,
         PMHW_VDBOX_AVC_REF_IDX_PARAMS params)
     {
-        MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
         MHW_FUNCTION_ENTER;
 
         MHW_MI_CHK_NULL(params);
@@ -398,7 +396,7 @@ protected:
 
         typename TMfxCmds::MFX_AVC_REF_IDX_STATE_CMD cmd;
 
-        auto avcRefList = params->ppAvcRefList;
+        CODEC_REF_LIST** avcRefList = (CODEC_REF_LIST**)params->avcRefList;
         AvcRefListWrite *cmdAvcRefListWrite = (AvcRefListWrite *)&(cmd.ReferenceListEntry);
 
         cmd.DW1.RefpiclistSelect = params->uiList;
@@ -445,7 +443,7 @@ protected:
 
         MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
-        return eStatus;
+        return MOS_STATUS_SUCCESS;
     }
 
     MOS_STATUS AddMfxDecodeAvcWeightOffset(

@@ -6753,7 +6753,6 @@ MOS_STATUS CodechalEncodeAvcEnc::ExecuteSliceLevel()
     MOS_ZeroMemory(&sliceState, sizeof(sliceState));
     sliceState.presDataBuffer = &m_resMbCodeSurface;
     sliceState.pAvcPicIdx = &(m_picIdx[0]);
-    sliceState.ppAvcRefList = &(m_refList[0]);
     sliceState.pEncodeAvcSeqParams = m_avcSeqParam;
     sliceState.pEncodeAvcPicParams = avcPicParams;
     sliceState.pBsBuffer = &m_bsBuffer;
@@ -8748,9 +8747,10 @@ MOS_STATUS CodechalEncodeAvcEnc::GenericEncodePictureLevel(PCODECHAL_ENCODE_AVC_
     MHW_VDBOX_AVC_DIRECTMODE_PARAMS directmodeParams;
     MOS_ZeroMemory(&directmodeParams, sizeof(directmodeParams));
     directmodeParams.CurrPic = m_avcPicParam->CurrReconstructedPic;
+    directmodeParams.isEncode = true;
     directmodeParams.uiUsedForReferenceFlags = 0xFFFFFFFF;
     directmodeParams.pAvcPicIdx = &(m_picIdx[0]);
-    directmodeParams.ppAvcRefList = &(m_refList[0]);
+    directmodeParams.avcRefList = (void**)m_refList;
     directmodeParams.bPicIdRemappingInUse = false;
     directmodeParams.bDisableDmvBuffers = true;
 

@@ -2396,7 +2396,6 @@ void CodechalEncodeHevcBase::SetHcpSliceStateCommonParams(MHW_VDBOX_HEVC_SLICE_S
     MOS_ZeroMemory(&sliceStateParams, sizeof(sliceStateParams));
     sliceStateParams.presDataBuffer = &m_resMbCodeSurface;
     sliceStateParams.pHevcPicIdx           = &(m_picIdx[0]);
-    sliceStateParams.ppHevcRefList         = &(m_refList[0]);
     sliceStateParams.pEncodeHevcSeqParams  = m_hevcSeqParams;
     sliceStateParams.pEncodeHevcPicParams  = m_hevcPicParams;
     sliceStateParams.pBsBuffer = &m_bsBuffer;
@@ -2472,6 +2471,7 @@ MOS_STATUS CodechalEncodeHevcBase::AddHcpRefIdxCmd(
         MOS_ZeroMemory(&refIdxParams, sizeof(refIdxParams));
 
         refIdxParams.CurrPic = hevcPicParams->CurrReconstructedPic;
+        refIdxParams.isEncode = true;
         refIdxParams.ucList = LIST_0;
         refIdxParams.ucNumRefForList = hevcSlcParams->num_ref_idx_l0_active_minus1 + 1;
         eStatus = MOS_SecureMemcpy(&refIdxParams.RefPicList, sizeof(refIdxParams.RefPicList),
@@ -2482,7 +2482,7 @@ MOS_STATUS CodechalEncodeHevcBase::AddHcpRefIdxCmd(
             return eStatus;
         }
 
-        refIdxParams.ppHevcRefList = params->ppHevcRefList;
+        refIdxParams.hevcRefList = (void**)m_refList;
         refIdxParams.poc_curr_pic = hevcPicParams->CurrPicOrderCnt;
         for (auto i = 0; i < CODEC_MAX_NUM_REF_FRAME_HEVC; i++)
         {

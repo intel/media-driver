@@ -94,10 +94,11 @@ typedef struct _MHW_VDBOX_HCP_BUFFER_REALLOC_PARAMS
 typedef struct _MHW_VDBOX_HEVC_REF_IDX_PARAMS
 {
     CODEC_PICTURE                   CurrPic;
+    bool                            isEncode;
     uint8_t                         ucList;
     uint8_t                         ucNumRefForList;
     CODEC_PICTURE                   RefPicList[2][CODEC_MAX_NUM_REF_FRAME_HEVC];
-    PCODEC_REF_LIST                *ppHevcRefList;
+    void                            **hevcRefList;
     int32_t                         poc_curr_pic;
     int32_t                         poc_list[CODEC_MAX_NUM_REF_FRAME_HEVC];
     int8_t                         *pRefIdxMapping;
@@ -126,7 +127,6 @@ typedef struct _MHW_VDBOX_ENCODE_HEVC_TRANSFORM_SKIP_PARAMS
 typedef struct _MHW_VDBOX_HEVC_SLICE_STATE
 {
     PCODEC_PIC_ID                   pHevcPicIdx;
-    PCODEC_REF_LIST                *ppHevcRefList;
     PMOS_RESOURCE                   presDataBuffer;
     uint32_t                        dwDataBufferOffset;
     uint32_t                        dwOffset;

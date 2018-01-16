@@ -486,7 +486,8 @@ protected:
                 cmd.HcpRefValue[i].DW0.ListEntryLxReferencePictureFrameIdRefaddr07 = *(params->pRefIdxMapping + refFrameIDx);
                 int32_t pocDiff = params->poc_curr_pic - params->poc_list[refFrameIDx];
                 cmd.HcpRefValue[i].DW0.ReferencePictureTbValue = CodecHal_Clip3(-128, 127, pocDiff);
-                cmd.HcpRefValue[i].DW0.Longtermreference = CodecHal_PictureIsLongTermRef(params->ppHevcRefList[params->CurrPic.FrameIdx]->RefList[refFrameIDx]);
+                CODEC_REF_LIST** refList = (CODEC_REF_LIST**)params->hevcRefList;
+                cmd.HcpRefValue[i].DW0.Longtermreference = CodecHal_PictureIsLongTermRef(refList[params->CurrPic.FrameIdx]->RefList[refFrameIDx]);
                 cmd.HcpRefValue[i].DW0.FieldPicFlag = (params->RefFieldPicFlag >> refFrameIDx) & 0x01;
                 cmd.HcpRefValue[i].DW0.BottomFieldFlag = ((params->RefBottomFieldFlag >> refFrameIDx) & 0x01) ? 0 : 1;
             }

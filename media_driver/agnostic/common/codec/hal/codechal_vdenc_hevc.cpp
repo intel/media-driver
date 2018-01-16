@@ -1952,7 +1952,6 @@ MOS_STATUS CodechalVdencHevcState::SendHwSliceEncodeCommand(
     CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pHevcPicIdx);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(params->ppHevcRefList);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->presDataBuffer);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pEncodeHevcSeqParams);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pEncodeHevcPicParams);

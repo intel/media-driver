@@ -357,7 +357,6 @@ typedef struct _MHW_VDBOX_MPEG2_PIC_STATE
 typedef struct _MHW_VDBOX_AVC_SLICE_STATE
 {
     PCODEC_PIC_ID                           pAvcPicIdx;
-    PCODEC_REF_LIST                        *ppAvcRefList;
     PMOS_RESOURCE                           presDataBuffer;
     uint32_t                                dwDataBufferOffset;
     uint32_t                                dwOffset;
@@ -417,12 +416,13 @@ typedef struct _MHW_VDBOX_AVC_DPB_PARAMS
 typedef struct _MHW_VDBOX_AVC_DIRECTMODE_PARAMS
 {
     CODEC_PICTURE                   CurrPic;
+    bool                            isEncode;
     uint32_t                        uiUsedForReferenceFlags;
     PMOS_RESOURCE                   presAvcDmvBuffers;
     uint8_t                         ucAvcDmvIdx;
     PCODEC_AVC_DMV_LIST             pAvcDmvList;
     PCODEC_PIC_ID                   pAvcPicIdx;
-    PCODEC_REF_LIST                *ppAvcRefList;
+    void                            **avcRefList;
     bool                            bPicIdRemappingInUse;
     int32_t                         CurrFieldOrderCnt[2];
     bool                            bDisableDmvBuffers;
@@ -432,11 +432,12 @@ typedef struct _MHW_VDBOX_AVC_DIRECTMODE_PARAMS
 typedef struct _MHW_VDBOX_AVC_REF_IDX_PARAMS
 {
     CODEC_PICTURE                   CurrPic;
+    bool                            isEncode;
     uint32_t                        uiList;
     uint32_t                        uiNumRefForList;
     CODEC_PICTURE                   RefPicList[2][32];
     PCODEC_PIC_ID                   pAvcPicIdx;
-    PCODEC_REF_LIST                *ppAvcRefList;
+    void                            **avcRefList;
     bool                            bIntelEntrypointInUse;
     bool                            bPicIdRemappingInUse;
     bool                            oneOnOneMapping = false;

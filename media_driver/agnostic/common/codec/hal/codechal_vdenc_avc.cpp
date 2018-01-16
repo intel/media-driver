@@ -3840,7 +3840,6 @@ MOS_STATUS CodechalVdencAvcState::ExecuteSliceLevel()
     MOS_ZeroMemory(&sliceState, sizeof(sliceState));
     sliceState.presDataBuffer = &m_resMbCodeSurface;
     sliceState.pAvcPicIdx = &(m_picIdx[0]);
-    sliceState.ppAvcRefList = &(m_refList[0]);
     sliceState.pEncodeAvcSeqParams = m_avcSeqParam;
     sliceState.pEncodeAvcPicParams = avcPicParams;
     sliceState.pBsBuffer = &m_bsBuffer;

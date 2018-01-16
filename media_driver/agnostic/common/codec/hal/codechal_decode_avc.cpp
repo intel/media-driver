@@ -52,7 +52,6 @@ MOS_STATUS CodechalDecodeAvc::SendSlice(
     CODECHAL_DECODE_CHK_NULL_RETURN(avcSliceState->pAvcPicIdx);
     CODECHAL_DECODE_CHK_NULL_RETURN(avcSliceState->pAvcPicParams);
     CODECHAL_DECODE_CHK_NULL_RETURN(avcSliceState->pAvcSliceParams);
-    CODECHAL_DECODE_CHK_NULL_RETURN(avcSliceState->ppAvcRefList);
 
     PCODEC_AVC_PIC_PARAMS avcPicParams = avcSliceState->pAvcPicParams;
     PCODEC_AVC_SLICE_PARAMS slc = avcSliceState->pAvcSliceParams;
@@ -90,7 +89,7 @@ MOS_STATUS CodechalDecodeAvc::SendSlice(
                 "Failed to copy memory");
 
             refIdxParams.pAvcPicIdx = avcSliceState->pAvcPicIdx;
-            refIdxParams.ppAvcRefList = avcSliceState->ppAvcRefList;
+            refIdxParams.avcRefList = (void**)m_avcRefList;
             refIdxParams.bIntelEntrypointInUse = avcSliceState->bIntelEntrypointInUse;
             refIdxParams.bPicIdRemappingInUse = avcSliceState->bPicIdRemappingInUse;
 
@@ -413,12 +412,6 @@ MOS_STATUS CodechalDecodeAvc::SetPictureStructs()
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_DECODE_FUNCTION_ENTER;
-
-    CODECHAL_DECODE_CHK_NULL_RETURN(m_avcRefList);
-    for (int i = 0; i < CODEC_AVC_NUM_UNCOMPRESSED_SURFACE; i++)
-    {
-        CODECHAL_DECODE_CHK_NULL_RETURN(m_avcRefList[i]);
-    }
 
     PCODEC_AVC_PIC_PARAMS picParams = m_avcPicParams;
     CODEC_PICTURE         prevPic   = m_currPic;
@@ -1402,7 +1395,7 @@ MOS_STATUS CodechalDecodeAvc::InitPicMhwParams(
     picMhwParams->AvcDirectmodeParams.ucAvcDmvIdx             = m_avcMvBufferIndex;
     picMhwParams->AvcDirectmodeParams.pAvcDmvList             = &(m_avcDmvList[0]);
     picMhwParams->AvcDirectmodeParams.pAvcPicIdx              = &(m_avcPicIdx[0]);
-    picMhwParams->AvcDirectmodeParams.ppAvcRefList            = &(m_avcRefList[0]);
+    picMhwParams->AvcDirectmodeParams.avcRefList              = (void**)m_avcRefList;
     picMhwParams->AvcDirectmodeParams.bPicIdRemappingInUse    = m_picIdRemappingInUse;
     picMhwParams->AvcDirectmodeParams.presMvcDummyDmvBuffer   = &(m_resMvcDummyDmvBuffer[(m_avcPicParams->seq_fields.direct_8x8_inference_flag) ? 1 : 0]);
 
@@ -1518,7 +1511,6 @@ MOS_STATUS CodechalDecodeAvc::ParseSlice(
     avcSliceState.pAvcPicParams         = m_avcPicParams;
     avcSliceState.pMvcExtPicParams      = m_mvcExtPicParams;
     avcSliceState.pAvcPicIdx            = &(m_avcPicIdx[0]);
-    avcSliceState.ppAvcRefList          = &(m_avcRefList[0]);
     avcSliceState.bPhantomSlice = false;
     avcSliceState.dwTotalBytesConsumed = 0;
 
@@ -2277,7 +2269,6 @@ MOS_STATUS CodechalDecodeAvc::DumpIQParams(
 MOS_STATUS CodechalDecodeAvc::SetFrameStoreIds(uint8_t frameIdx)
 {
     CODECHAL_DECODE_CHK_NULL_RETURN(m_avcFrameStoreId);
-    CODECHAL_DECODE_CHK_NULL_RETURN(m_avcRefList);
 
     uint8_t invalidFrame = 0x7f;
 

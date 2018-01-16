@@ -2021,7 +2021,6 @@ MOS_STATUS CodechalVdencHevcStateG10::ConstructBatchBufferHuCBRC(PMOS_RESOURCE b
     MOS_ZeroMemory(&sliceState, sizeof(sliceState));
     sliceState.presDataBuffer = &m_resMbCodeSurface;
     sliceState.pHevcPicIdx           = &m_picIdx[0];
-    sliceState.ppHevcRefList         = &m_refList[0];
     sliceState.pEncodeHevcSeqParams  = m_hevcSeqParams;
     sliceState.pEncodeHevcPicParams  = m_hevcPicParams;
     sliceState.pBsBuffer = &m_bsBuffer;
