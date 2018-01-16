@@ -601,6 +601,7 @@ MOS_STATUS MhwVeboxInterfaceG10::AddVeboxState(
     PMHW_VEBOX_3D_LUT          pLUT3D;
     uint32_t                   uiInstanceBaseAddr = 0;
     MHW_RESOURCE_PARAMS        ResourceParams;
+    MOS_ALLOC_GFXRES_PARAMS    AllocParamsForBufferLinear;
 
     mhw_vebox_g10_X::VEBOX_STATE_CMD cmd;
 
@@ -787,6 +788,38 @@ MOS_STATUS MhwVeboxInterfaceG10::AddVeboxState(
         ResourceParams.pdwCmd             = & (cmd.DW16.Value);
         ResourceParams.dwLocationInCmd    = 16;
         ResourceParams.HwCommandType      = MOS_VEBOX_STATE;
+        ResourceParams.dwSharedMocsOffset = 1 - ResourceParams.dwLocationInCmd;
+
+        MHW_CHK_STATUS(pfnAddResourceToCmd(
+            pOsInterface,
+            pCmdBuffer,
+            &ResourceParams));
+    }
+    else
+    {
+        // Allocate Resource to avoid Page Fault issue since HW will access it
+        if (Mos_ResourceIsNull(&pVeboxStateCmdParams->DummyIecpResource))
+        {
+            MOS_ZeroMemory(&AllocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+
+            AllocParamsForBufferLinear.Type = MOS_GFXRES_BUFFER;
+            AllocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
+            AllocParamsForBufferLinear.Format = Format_Buffer;
+            AllocParamsForBufferLinear.dwBytes = m_veboxSettings.uiIecpStateSize;
+            AllocParamsForBufferLinear.pBufName = "DummyIecpResource";
+
+            MHW_CHK_STATUS(pOsInterface->pfnAllocateResource(
+                pOsInterface,
+                &AllocParamsForBufferLinear,
+                &pVeboxStateCmdParams->DummyIecpResource));
+        }
+
+        MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
+        ResourceParams.presResource = &pVeboxStateCmdParams->DummyIecpResource;
+        ResourceParams.dwOffset = 0;
+        ResourceParams.pdwCmd = &(cmd.DW4.Value);
+        ResourceParams.dwLocationInCmd = 4;
+        ResourceParams.HwCommandType = MOS_VEBOX_STATE;
         ResourceParams.dwSharedMocsOffset = 1 - ResourceParams.dwLocationInCmd;
 
         MHW_CHK_STATUS(pfnAddResourceToCmd(
