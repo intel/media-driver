@@ -413,6 +413,59 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     DDI_CHK_RET(status, "Failed to Check Encode RT Format!");
     (*attribList)[attrib.type] = attrib.value;
 
+    attrib.type = VAConfigAttribMaxPictureWidth;
+    attrib.value = CODEC_MAX_PIC_WIDTH;
+    if(profile == VAProfileJPEGBaseline)
+    {
+        attrib.value = ENCODE_JPEG_MAX_PIC_WIDTH;
+    }
+    if(IsAvcProfile(profile)||IsHevcProfile(profile))
+    {
+        attrib.value = CODEC_4K_MAX_PIC_WIDTH;
+    }
+    (*attribList)[attrib.type] = attrib.value;
+
+    attrib.type = VAConfigAttribMaxPictureHeight;
+    attrib.value = CODEC_MAX_PIC_HEIGHT;
+    if(profile == VAProfileJPEGBaseline)
+    {
+        attrib.value = ENCODE_JPEG_MAX_PIC_HEIGHT;
+    }
+    if(IsAvcProfile(profile)||IsHevcProfile(profile))
+    {
+        attrib.value = CODEC_4K_MAX_PIC_HEIGHT;
+    }
+    (*attribList)[attrib.type] = attrib.value;
+
+    attrib.type = VAConfigAttribEncJPEG;
+    attrib.value =
+        ((JPEG_MAX_QUANT_TABLE << 14)       | // max_num_quantization_tables : 3
+         (JPEG_MAX_NUM_HUFF_TABLE_INDEX << 11)   | // max_num_huffman_tables : 3
+         (1 << 7)                    | // max_num_scans : 4
+         (jpegNumComponent << 4));              // max_num_components : 3
+    // arithmatic_coding_mode = 0
+    // progressive_dct_mode = 0
+    // non_interleaved_mode = 0
+    // differential_mode = 0
+    (*attribList)[attrib.type] = attrib.value;
+
+    attrib.type = VAConfigAttribEncQualityRange;
+    if (profile == VAProfileJPEGBaseline)
+    {
+        // JPEG has no target usage.
+        attrib.value = 1;
+    }
+    else
+    {
+        attrib.value = NUM_TARGET_USAGE_MODES - 1;// Indicates TUs from 1 upto the value reported are supported
+    }
+    (*attribList)[attrib.type] = attrib.value;
+
+    if(IsJpegProfile(profile))
+    {
+        return status;
+    }
+
     attrib.type = VAConfigAttribRateControl;
     attrib.value = VA_RC_CQP;
     if (entrypoint != VAEntrypointEncSliceLP ||
@@ -519,54 +572,6 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     else
     {
         attrib.value = VA_ENC_SLICE_STRUCTURE_ARBITRARY_MACROBLOCKS;
-    }
-    (*attribList)[attrib.type] = attrib.value;
-
-    attrib.type = VAConfigAttribMaxPictureWidth;
-    attrib.value = CODEC_MAX_PIC_WIDTH;
-    if(profile == VAProfileJPEGBaseline)
-    {
-        attrib.value = ENCODE_JPEG_MAX_PIC_WIDTH;
-    }
-    if(IsAvcProfile(profile)||IsHevcProfile(profile))
-    {
-        attrib.value = CODEC_4K_MAX_PIC_WIDTH;
-    }
-    (*attribList)[attrib.type] = attrib.value;
-
-    attrib.type = VAConfigAttribMaxPictureHeight;
-    attrib.value = CODEC_MAX_PIC_HEIGHT;
-    if(profile == VAProfileJPEGBaseline)
-    {
-        attrib.value = ENCODE_JPEG_MAX_PIC_HEIGHT;
-    }
-    if(IsAvcProfile(profile)||IsHevcProfile(profile))
-    {
-        attrib.value = CODEC_4K_MAX_PIC_HEIGHT;
-    }
-    (*attribList)[attrib.type] = attrib.value;
-
-    attrib.type = VAConfigAttribEncJPEG;
-    attrib.value =
-        ((JPEG_MAX_QUANT_TABLE << 14)       | // max_num_quantization_tables : 3
-         (JPEG_MAX_NUM_HUFF_TABLE_INDEX << 11)   | // max_num_huffman_tables : 3
-         (1 << 7)                    | // max_num_scans : 4
-         (jpegNumComponent << 4));              // max_num_components : 3
-    // arithmatic_coding_mode = 0
-    // progressive_dct_mode = 0
-    // non_interleaved_mode = 0
-    // differential_mode = 0
-    (*attribList)[attrib.type] = attrib.value;
-
-    attrib.type = VAConfigAttribEncQualityRange;
-    if (profile == VAProfileJPEGBaseline)
-    {
-        // JPEG has no target usage.
-        attrib.value = 1;
-    }
-    else
-    {
-        attrib.value = NUM_TARGET_USAGE_MODES - 1;// Indicates TUs from 1 upto the value reported are supported
     }
     (*attribList)[attrib.type] = attrib.value;
 
