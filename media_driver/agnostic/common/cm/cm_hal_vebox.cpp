@@ -54,7 +54,7 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
     RENDERHAL_GENERIC_PROLOG_PARAMS     genericPrologParams;
     MOS_RESOURCE                        osResource;
     CM_VEBOX_SURFACE_DATA               cmVeboxSurfaceData;
-    PRENDERHAL_INTERFACE                renderHal = state->pRenderHal;
+    PRENDERHAL_INTERFACE                renderHal = state->renderHal;
 
 	//-----------------------------------
 	CM_PUBLIC_ASSERT(state);
@@ -67,9 +67,9 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
 	MOS_ZeroMemory(&cmdBuffer, sizeof(MOS_COMMAND_BUFFER));
 	MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
 
-	veboxInterface = state->pVeboxInterface;
+	veboxInterface = state->veboxInterface;
 	veboxHeap = veboxInterface->m_veboxHeap;
-	osInterface = state->pOsInterface;
+	osInterface = state->osInterface;
 	remaining = 0;
 
 	// update Cm state settings
@@ -93,7 +93,7 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
 	osInterface->pfnResetOsStates(osInterface);
 
 	// reset HW
-	CM_CHK_MOSSTATUS(state->pRenderHal->pfnReset(state->pRenderHal));
+	CM_CHK_MOSSTATUS(state->renderHal->pfnReset(state->renderHal));
 
 	// get the Task Id
 	CM_CHK_MOSSTATUS(HalCm_GetNewTaskId(state, &taskId));
@@ -109,10 +109,10 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
 	}
 
 	// initialize the location
-	taskSyncLocation = (int64_t*)(state->Vebox_TsResource.pData + syncOffset);
+	taskSyncLocation = (int64_t*)(state->veboxTimeStampResource.data + syncOffset);
 	*taskSyncLocation = CM_INVALID_INDEX;
 	*(taskSyncLocation + 1) = CM_INVALID_INDEX;
-	if (state->bCBBEnabled)
+	if (state->cbbEnabled)
 	{
 		*(taskSyncLocation + 2) = CM_INVALID_TAG;
 	}
@@ -120,7 +120,7 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
 	// register Timestamp Buffer
 	CM_CHK_MOSSTATUS(osInterface->pfnRegisterResource(
 		osInterface,
-		&state->Vebox_TsResource.OsResource,
+		&state->veboxTimeStampResource.osResource,
 		true,
 		true));
 
@@ -210,8 +210,8 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
 	//---------------------------------
 	// send command buffer header at the beginning (OS dependent)
 	//---------------------------------
-	CM_CHK_MOSSTATUS(state->pRenderHal->pfnInitCommandBuffer(
-		state->pRenderHal,
+	CM_CHK_MOSSTATUS(state->renderHal->pfnInitCommandBuffer(
+		state->renderHal,
 		&cmdBuffer,
 		&genericPrologParams));
 
@@ -220,7 +220,7 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
 	// issue MI_FLUSH_DW cmd to write timestamp
 	//---------------------------------
 	MOS_ZeroMemory(&miFlushDwParams, sizeof(miFlushDwParams));
-	miFlushDwParams.pOsResource          = &state->Vebox_TsResource.OsResource;
+	miFlushDwParams.pOsResource          = &state->veboxTimeStampResource.osResource;
     miFlushDwParams.dwResourceOffset     = syncOffset;
     miFlushDwParams.postSyncOperation    = MHW_FLUSH_WRITE_TIMESTAMP_REG;
     miFlushDwParams.bQWordEnable         = 1;
@@ -268,7 +268,7 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
 	// issue MI_FLUSH_DW cmd to write timestamp, end of execution
 	//---------------------------------
 	MOS_ZeroMemory(&miFlushDwParams, sizeof(miFlushDwParams));
-    miFlushDwParams.pOsResource        = &state->Vebox_TsResource.OsResource;
+    miFlushDwParams.pOsResource        = &state->veboxTimeStampResource.osResource;
     miFlushDwParams.dwResourceOffset   = syncOffset + sizeof(uint64_t);
     miFlushDwParams.postSyncOperation  = MHW_FLUSH_WRITE_TIMESTAMP_REG;
     miFlushDwParams.bQWordEnable       = 1;
@@ -340,7 +340,7 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
 	CM_CHK_MOSSTATUS(osInterface->pfnSubmitCommandBuffer(
 		osInterface,
 		&cmdBuffer,
-		state->bNullHwRenderCm));
+		state->nullHwRenderCm));
 
 	// Set the Task ID
 	veboxTaskParam->taskIdOut = taskId;
@@ -349,9 +349,9 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
 	state->pfnReferenceCommandBuffer(&cmdBuffer.OsResource, &veboxTaskParam->osData);
 
 	// Update the task ID table
-	state->pTaskStatusTable[taskId] = (char)taskId;
+	state->taskStatusTable[taskId] = (char)taskId;
 
-	if (!(state->bNullHwRenderCm))
+	if (!(state->nullHwRenderCm))
 	{
 		// Update Vebox Sync tag info
 		veboxHeap->pStates[veboxHeap->uiCurState].dwSyncTag = veboxHeap->dwNextTag++;
@@ -445,7 +445,7 @@ MOS_STATUS HalCm_SetVeboxDiIecpCmdParams(
 
 	// Align dwEndingX with surface state
 	HalCm_Convert_RENDERHAL_SURFACE_To_MHW_VEBOX_SURFACE(&state->cmVeboxSurfaces[VEBOX_CURRENT_FRAME_INPUT_SURF], &surfInput);
-	state->pVeboxInterface->VeboxAdjustBoundary(
+	state->veboxInterface->VeboxAdjustBoundary(
 		&surfInput,
 		&width, 
         &height,

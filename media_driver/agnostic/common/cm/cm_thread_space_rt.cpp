@@ -687,7 +687,7 @@ CM_RT_API int32_t CmThreadSpaceRT::SetThreadSpaceColorCount(uint32_t colorCount)
 
     PCM_HAL_STATE pCmHalState = ((PCM_CONTEXT_DATA)m_pDevice->GetAccelData())->cmHalState;
 
-    result = pCmHalState->pCmHalInterface->ColorCountSanityCheck(colorCount);
+    result = pCmHalState->cmHalInterface->ColorCountSanityCheck(colorCount);
     if(result != CM_SUCCESS)
     {
         CM_ASSERTMESSAGE("Error: Color count sanity check failure.");

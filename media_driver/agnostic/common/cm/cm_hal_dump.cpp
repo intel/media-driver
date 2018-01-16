@@ -114,7 +114,7 @@ int32_t HalCm_InitDumpCommandBuffer(PCM_HAL_STATE state)
             goto finish;
         }
         // Setup member function and variable.
-        state->bDumpCommandBuffer = userFeatureValue.bData?true: false;
+        state->dumpCommandBuffer = userFeatureValue.bData?true: false;
     }
     hr = CM_SUCCESS;
 finish:
@@ -148,8 +148,8 @@ int32_t HalCm_DumpCommadBuffer(PCM_HAL_STATE state, PMOS_COMMAND_BUFFER cmdBuffe
     uint32_t        sizeToAllocate = 0;
     char            fileName[MOS_MAX_HLT_FILENAME_LEN];
 
-    PMOS_INTERFACE osInterface = state->pOsInterface;
-    PRENDERHAL_STATE_HEAP stateHeap   = state->pRenderHal->pStateHeap;
+    PMOS_INTERFACE osInterface = state->osInterface;
+    PRENDERHAL_STATE_HEAP stateHeap   = state->renderHal->pStateHeap;
 
     MOS_OS_ASSERT(state);
     MOS_OS_ASSERT(cmdBuffer);
@@ -163,7 +163,7 @@ int32_t HalCm_DumpCommadBuffer(PCM_HAL_STATE state, PMOS_COMMAND_BUFFER cmdBuffe
 
     sizeToAllocate = numberOfDwords * (SIZE_OF_DWORD_PLUS_ONE) + 2 +   //length of command buffer line 
         stateHeap->iCurrentSurfaceState * 
-        (SIZE_OF_DWORD_PLUS_ONE * state->pRenderHal->pRenderHalPltInterface->GetSurfaceStateCmdSize() / sizeof(uint32_t) + 2); //length of surface state lines
+        (SIZE_OF_DWORD_PLUS_ONE * state->renderHal->pRenderHalPltInterface->GetSurfaceStateCmdSize() / sizeof(uint32_t) + 2); //length of surface state lines
 
     // Alloc output buffer.
     outputBuffer = (char *)MOS_AllocAndZeroMemory(sizeToAllocate);
@@ -253,7 +253,7 @@ int32_t HalCm_InitDumpCurbeData(PCM_HAL_STATE state)
             goto finish;
         }
         // Setup member function and variable.
-        state->bDumpCurbeData = userFeatureValue.bData ? true: false;
+        state->dumpCurbeData = userFeatureValue.bData ? true: false;
     }
     hr = CM_SUCCESS;
 finish:
@@ -277,8 +277,8 @@ int32_t HalCm_DumpCurbeData(PCM_HAL_STATE state)
     char            fileName[MOS_MAX_HLT_FILENAME_LEN];
     uint32_t        numberOfDwords = 0;
     uint32_t        sizeToAllocate = 0;
-    PMOS_INTERFACE osInterface = state->pOsInterface;
-    PRENDERHAL_STATE_HEAP stateHeap = state->pRenderHal->pStateHeap;
+    PMOS_INTERFACE osInterface = state->osInterface;
+    PRENDERHAL_STATE_HEAP stateHeap = state->renderHal->pStateHeap;
 
     MOS_OS_ASSERT(state);
 
@@ -288,7 +288,7 @@ int32_t HalCm_DumpCurbeData(PCM_HAL_STATE state)
     PlatformSNPrintf(fileName + strlen(fileName), MOS_MAX_HLT_FILENAME_LEN - strlen(fileName), "%s_Pid%d_Tid%ld_%d.txt", HALCM_CURBE_DATA_OUTPUT_FILE, CmGetCurProcessId(), CmGetCurThreadId(), curbeDataNumber);
 
     // write curbe data dwords.
-    if (state->bDynamicStateHeap)
+    if (state->dshEnabled)
     {
         numberOfDwords = stateHeap->pCurMediaState->pDynamicState->Curbe.dwSize;
         sizeToAllocate = numberOfDwords*SIZE_OF_DWORD_PLUS_ONE+2;
@@ -368,7 +368,7 @@ int32_t HalCm_InitSurfaceDump(PCM_HAL_STATE state)
     if (userFeatureValue.bData)
     {
         // Setup member function and variable.
-        state->bDumpSurfaceContent = userFeatureValue.bData ? true: false;
+        state->dumpSurfaceContent = userFeatureValue.bData ? true: false;
     }
     hr = CM_SUCCESS;
 finish:

@@ -230,7 +230,7 @@ int32_t CmSurfaceManager::GetSurfaceInfo( MOS_RESOURCE * mosResource, uint32_t &
     MOS_SURFACE          surfaceDetails;
     MOS_ZeroMemory(&surfaceDetails, sizeof(surfaceDetails));
     surfaceDetails.Format = CM_SURFACE_FORMAT_INVALID;
-    pState->pOsInterface->pfnGetResourceInfo(pState->pOsInterface, mosResource, &surfaceDetails);
+    pState->osInterface->pfnGetResourceInfo(pState->osInterface, mosResource, &surfaceDetails);
 
     width    = surfaceDetails.dwWidth;
     height   = surfaceDetails.dwHeight;

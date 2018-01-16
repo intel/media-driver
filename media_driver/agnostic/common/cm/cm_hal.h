@@ -1169,10 +1169,10 @@ typedef struct _CM_HAL_BUFFER_SURFACE_STATE_ENTRY
 //------------------------------------------------------------------------------
 typedef struct _CM_HAL_BUFFER_ENTRY
 {
-    MOS_RESOURCE                        OsResource;                                         // [in] Pointer to OS Resource
-    uint32_t                            iSize;                                              // [in] Size of Buffer
-    void                                *pAddress;                                           // [in] SVM address
-    void                                *pGmmResourceInfo;                                   // [out] GMM resource info
+    MOS_RESOURCE                        osResource;                                         // [in] Pointer to OS Resource
+    uint32_t                            size;                                              // [in] Size of Buffer
+    void                                *address;                                           // [in] SVM address
+    void                                *gmmResourceInfo;                                   // [out] GMM resource info
     bool                                isAllocatedbyCmrtUmd;                               // [in] Whether Surface allocated by CMRT
     uint16_t                            memObjCtl;                                          // [in] MOCS value set from CMRT
     CM_HAL_BUFFER_SURFACE_STATE_ENTRY   surfaceStateEntry[CM_HAL_MAX_NUM_BUFFER_ALIASES];   // [in] width/height of surface to be used in surface state
@@ -1183,18 +1183,18 @@ typedef struct _CM_HAL_BUFFER_ENTRY
 //------------------------------------------------------------------------------
 typedef struct _CM_HAL_SURFACE2D_UP_ENTRY
 {
-    MOS_RESOURCE                OsResource;                                     // [in] Pointer to OS Resource
-    uint32_t                    iWidth;                                         // [in] Width of Surface
-    uint32_t                    iHeight;                                        // [in] Height of Surface
+    MOS_RESOURCE                osResource;                                     // [in] Pointer to OS Resource
+    uint32_t                    width;                                         // [in] Width of Surface
+    uint32_t                    height;                                        // [in] Height of Surface
     MOS_FORMAT                  format;                                         // [in] Format of Surface
-    void                        *pGmmResourceInfo;                               // [out] GMM resource info
+    void                        *gmmResourceInfo;                               // [out] GMM resource info
     uint16_t                    memObjCtl;                                      // [in] MOCS value set from CMRT
 } CM_HAL_SURFACE2D_UP_ENTRY, *PCM_HAL_SURFACE2D_UP_ENTRY; 
 
 typedef struct _CM_HAL_SURFACE_STATE_ENTRY
 {
-    uint32_t iSurfaceStateWidth;
-    uint32_t iSurfaceStateHeight;
+    uint32_t surfaceStateWidth;
+    uint32_t surfaceStateHeight;
 } CM_HAL_SURFACE_STATE_ENTRY, *PCM_HAL_SURFACE_STATE_ENTRY;
 
 typedef struct _CM_HAL_VME_ARG_VALUE
@@ -1207,24 +1207,24 @@ typedef struct _CM_HAL_VME_ARG_VALUE
     // Please use CmSurfaceVme::GetVmeCmArgSize() to allocate the memory for this structure
 }CM_HAL_VME_ARG_VALUE, *PCM_HAL_VME_ARG_VALUE;
 
-inline uint32_t *findRefInVmeArg(PCM_HAL_VME_ARG_VALUE pValue)
+inline uint32_t *findRefInVmeArg(PCM_HAL_VME_ARG_VALUE value)
 {
-    return (uint32_t *)(pValue+1);
+    return (uint32_t *)(value+1);
 }
 
-inline uint32_t *findFwRefInVmeArg(PCM_HAL_VME_ARG_VALUE pValue)
+inline uint32_t *findFwRefInVmeArg(PCM_HAL_VME_ARG_VALUE value)
 {
-    return (uint32_t *)(pValue+1);
+    return (uint32_t *)(value+1);
 }
 
-inline uint32_t *findBwRefInVmeArg(PCM_HAL_VME_ARG_VALUE pValue)
+inline uint32_t *findBwRefInVmeArg(PCM_HAL_VME_ARG_VALUE value)
 {
-    return &((uint32_t *)(pValue+1))[pValue->fwRefNum];
+    return &((uint32_t *)(value+1))[value->fwRefNum];
 }
 
-inline uint32_t getVmeArgValueSize(PCM_HAL_VME_ARG_VALUE pValue)
+inline uint32_t getVmeArgValueSize(PCM_HAL_VME_ARG_VALUE value)
 {
-    return sizeof(CM_HAL_VME_ARG_VALUE) + (pValue->fwRefNum + pValue->bwRefNum) * sizeof(uint32_t);
+    return sizeof(CM_HAL_VME_ARG_VALUE) + (value->fwRefNum + value->bwRefNum) * sizeof(uint32_t);
 }
 
 inline uint32_t getSurfNumFromArgArraySize(uint32_t argArraySize, uint32_t argNum)
@@ -1238,15 +1238,15 @@ inline uint32_t getSurfNumFromArgArraySize(uint32_t argArraySize, uint32_t argNu
 //------------------------------------------------------------------------------
 typedef struct _CM_HAL_SURFACE2D_ENTRY
 {
-    MOS_RESOURCE                OsResource;                                     // [in] Pointer to OS Resource
-    uint32_t                    iWidth;                                         // [in] Width of Surface
-    uint32_t                    iHeight;                                        // [in] Height of Surface
+    MOS_RESOURCE                osResource;                                    // [in] Pointer to OS Resource
+    uint32_t                    width;                                         // [in] Width of Surface
+    uint32_t                    height;                                        // [in] Height of Surface
     MOS_FORMAT                  format;                                         // [in] Format of Surface
-    void                        *pGmmResourceInfo;                               // [out] GMM resource info
+    void                        *gmmResourceInfo;                               // [out] GMM resource info
     uint32_t                    isAllocatedbyCmrtUmd;                           // [in] Whether Surface allocated by CMRT
-    uint32_t                    iSurfaceStateWidth;                             // [in] Width of Surface to be set in surface state
-    uint32_t                    iSurfaceStateHeight;                            // [in] Height of Surface to be set in surface state
-    bool                        bReadSync[CM_HAL_GPU_CONTEXT_COUNT];              // [in] Used in on demand sync for each gpu context
+    uint32_t                    surfaceStateWidth;                             // [in] Width of Surface to be set in surface state
+    uint32_t                    surfaceStateHeight;                            // [in] Height of Surface to be set in surface state
+    bool                        readSyncs[CM_HAL_GPU_CONTEXT_COUNT];              // [in] Used in on demand sync for each gpu context
     CM_HAL_SURFACE2D_SURFACE_STATE_PARAM  surfaceStateParam[CM_HAL_MAX_NUM_2D_ALIASES];   // [in] width/height of surface to be used in surface state
     MHW_ROTATION                rotationFlag;
     int32_t                     chromaSiting;
@@ -1259,12 +1259,12 @@ typedef struct _CM_HAL_SURFACE2D_ENTRY
 //------------------------------------------------------------------------------
 typedef struct _CM_HAL_3DRESOURCE_ENTRY
 {
-    MOS_RESOURCE           OsResource;                                     // [in] Pointer to OS Resource
-    uint32_t               iWidth;                                         // [in] Width of Surface
-    uint32_t               iHeight;                                        // [in] Height of Surface
-    uint32_t               iDepth;                                         // [in] Depth of Surface
-    MOS_FORMAT             format;                                         // [in] Format of Surface
-    uint16_t               memObjCtl;                                      // [in] MOCS value set from CMRT                                        
+    MOS_RESOURCE           osResource;                                    // [in] Pointer to OS Resource
+    uint32_t               width;                                         // [in] Width of Surface
+    uint32_t               height;                                        // [in] Height of Surface
+    uint32_t               depth;                                         // [in] Depth of Surface
+    MOS_FORMAT             format;                                        // [in] Format of Surface
+    uint16_t               memObjCtl;                                     // [in] MOCS value set from CMRT                                        
 } CM_HAL_3DRESOURCE_ENTRY, *PCM_HAL_3DRESOURCE_ENTRY; 
 
 
@@ -1273,9 +1273,9 @@ typedef struct _CM_HAL_3DRESOURCE_ENTRY
 //*-----------------------------------------------------------------------------
 typedef struct _CM_HAL_TS_RESOURCE
 {
-    MOS_RESOURCE                OsResource;                                     // [in] OS Resource
-    bool                        bLocked;                                        // [in] Locked Flag
-    uint8_t                     *pData;                                          // [in] Linear Data
+    MOS_RESOURCE                osResource;                                     // [in] OS Resource
+    bool                        locked;                                        // [in] Locked Flag
+    uint8_t                     *data;                                          // [in] Linear Data
 } CM_HAL_TS_RESOURCE, *PCM_HAL_TS_RESOURCE;
 
 //------------------------------------------------------------------------------
@@ -1287,23 +1287,23 @@ typedef struct _CM_HAL_MULTI_USE_BTI_ENTRY
     {
     struct
     {
-        uint32_t RegularSurfIndex : 8;
-        uint32_t SamplerSurfIndex : 8;
-        uint32_t VmeSurfIndex : 8;
-        uint32_t Sampler8x8SurfIndex : 8;
+        uint32_t regularSurfIndex : 8;
+        uint32_t samplerSurfIndex : 8;
+        uint32_t vmeSurfIndex : 8;
+        uint32_t sampler8x8SurfIndex : 8;
     };
     struct
     {
-        uint32_t Value;
+        uint32_t value;
     };
     } BTI;
 
     struct 
     {
-        void  *RegularBTIEntryPos;
-        void  *SamplerBTIEntryPos;
-        void  *VmeBTIEntryPos;
-        void  *Sampler8x8BTIEntryPos;
+        void  *regularBtiEntryPosition;
+        void  *samplerBtiEntryPosition;
+        void  *vmeBtiEntryPosition;
+        void  *sampler8x8BtiEntryPosition;
     } BTITableEntry;
     uint32_t nPlaneNumber;
 } CM_HAL_MULTI_USE_BTI_ENTRY, *PCM_HAL_MULTI_USE_BTI_ENTRY;
@@ -1313,12 +1313,12 @@ typedef struct _CM_HAL_MULTI_USE_BTI_ENTRY
 //------------------------------------------------------------------------------
 typedef struct _CM_HAL_STATE_BUFFER_ENTRY
 {
-    void                    *kernel_ptr;
-    uint32_t                state_buffer_index;
-    CM_STATE_BUFFER_TYPE    state_buffer_type;
-    uint32_t                state_buffer_size;
-    uint64_t                state_buffer_va_ptr;
-    PRENDERHAL_MEDIA_STATE  media_state_ptr;
+    void                    *kernelPtr;
+    uint32_t                stateBufferIndex;
+    CM_STATE_BUFFER_TYPE    stateBufferType;
+    uint32_t                stateBufferSize;
+    uint64_t                stateBufferVaPtr;
+    PRENDERHAL_MEDIA_STATE  mediaStatePtr;
 } CM_HAL_STATE_BUFFER_ENTRY;
 
 typedef struct _CM_HAL_STATE *PCM_HAL_STATE;
@@ -1328,29 +1328,28 @@ typedef struct _CM_HAL_STATE *PCM_HAL_STATE;
 //------------------------------------------------------------------------------
 typedef struct CmHalL3Settings
 {
-    bool    enable_slm;     // Enable SLM cache configuration
-    bool    override_settings;      // Override cache settings
-
+    bool    enableSlm;     // Enable SLM cache configuration
+    bool    overrideSettings;      // Override cache settings
                                    // Override values
-    bool    l3_caching_enabled;
+    bool    l3CachingEnabled;
 
-    bool    cntl_reg_override;
-    bool    cntl_reg2_override;
-    bool    cntl_reg3_override;
-    bool    sqc_reg1_override;
-    bool    sqc_reg4_override;
-    bool    lra1_reg_override;
-    bool    tc_cntl_reg_override;
-    bool    alloc_reg_override;
+    bool    cntlRegOverride;
+    bool    cntlReg2Override;
+    bool    cntlReg3Override;
+    bool    sqcReg1Override;
+    bool    sqcReg4Override;
+    bool    lra1RegOverride;
+    bool    tcCntlRegOverride;
+    bool    allocRegOverride;
 
-    unsigned long   cntl_reg;
-    unsigned long   cntl_reg2;
-    unsigned long   cntl_reg3;
-    unsigned long   sqc_reg1;
-    unsigned long   sqc_reg4;
-    unsigned long   lra1_reg;
-    unsigned long   tc_cntl_reg;
-    unsigned long   alloc_reg;
+    unsigned long   cntlReg;
+    unsigned long   cntlReg2;
+    unsigned long   cntlReg3;
+    unsigned long   sqcReg1;
+    unsigned long   sqcReg4;
+    unsigned long   lra1Reg;
+    unsigned long   tcCntlReg;
+    unsigned long   allocReg;
 } *PCmHalL3Settings;
 
 //------------------------------------------------------------------------------
@@ -1358,18 +1357,18 @@ typedef struct CmHalL3Settings
 //------------------------------------------------------------------------------
 struct CM_HAL_DEVICE_PARAM
 {
-    uint32_t iMaxTasks;                      // [in] Max Tasks
-    uint32_t iMaxKernelsPerTask;             // [in] Maximum Number of Kernels Per Task
-    uint32_t iMaxKernelBinarySize;           // [in] Maximum binary size of the kernel
-    uint32_t iMaxSamplerTableSize;           // [in] Max sampler table size
-    uint32_t iMaxBufferTableSize;            // [in] Buffer table Size
-    uint32_t iMax2DSurfaceUPTableSize;       // [in] 2D surfaceUP table Size
-    uint32_t iMax2DSurfaceTableSize;         // [in] 2D surface table Size
-    uint32_t iMax3DSurfaceTableSize;         // [in] 3D table Size
-    uint32_t iMaxSampler8x8TableSize;        // [in] Max Sampler 8x8 table size
-    uint32_t iMaxPerThreadScratchSpaceSize;  // [in] Max per hw thread scratch space size
-    uint32_t iMaxAVSSamplers;                // [in] Max Number of AVS Samplers
-    int32_t iMaxGSHKernelEntries;            // [in] Max number of kernel entries in GSH
+    uint32_t maxTasks;                      // [in] Max Tasks
+    uint32_t maxKernelsPerTask;             // [in] Maximum Number of Kernels Per Task
+    uint32_t maxKernelBinarySize;           // [in] Maximum binary size of the kernel
+    uint32_t maxSamplerTableSize;           // [in] Max sampler table size
+    uint32_t maxBufferTableSize;            // [in] Buffer table Size
+    uint32_t max2DSurfaceUPTableSize;       // [in] 2D surfaceUP table Size
+    uint32_t max2DSurfaceTableSize;         // [in] 2D surface table Size
+    uint32_t max3DSurfaceTableSize;         // [in] 3D table Size
+    uint32_t maxSampler8x8TableSize;        // [in] Max Sampler 8x8 table size
+    uint32_t maxPerThreadScratchSpaceSize;  // [in] Max per hw thread scratch space size
+    uint32_t maxAvsSamplers;                // [in] Max Number of AVS Samplers
+    int32_t maxGshKernelEntries;            // [in] Max number of kernel entries in GSH
 };
 typedef CM_HAL_DEVICE_PARAM *PCM_HAL_DEVICE_PARAM;
 
@@ -1403,7 +1402,7 @@ typedef CM_HAL_KERNEL_GROUP_INFO *PCM_HAL_KERNEL_GROUP_INFO;
 struct CM_HAL_MAX_HW_THREAD_VALUES
 {
     uint32_t userFeatureValue;
-    uint32_t APIValue;
+    uint32_t apiValue;
 };
 
 struct CM_HAL_EXEC_VEBOX_TASK_PARAM;
@@ -1414,23 +1413,23 @@ typedef CM_HAL_EXEC_VEBOX_TASK_PARAM *PCM_HAL_EXEC_VEBOX_TASK_PARAM;
 //------------------------------------------------------------------------------
 struct CM_HAL_OSSYNC_PARAM
 {
-    HANDLE iOSSyncEvent;  //KMD Notification
+    HANDLE osSyncEvent;  //KMD Notification
 };
 typedef CM_HAL_OSSYNC_PARAM *PCM_HAL_OSSYNC_PARAM;
 
 
 struct CM_HAL_TASK_TIMESTAMP
 {
-    LARGE_INTEGER iGlobalCmSubmitTime[CM_MAXIMUM_TASKS];  // [out] The CM task submission time in CPU
-    uint64_t iCMSubmitTimeStamp[CM_MAXIMUM_TASKS];        // [out] The CM task submission time in GPU
+    LARGE_INTEGER submitTimeInCpu[CM_MAXIMUM_TASKS];  // [out] The CM task submission time in CPU
+    uint64_t submitTimeInGpu[CM_MAXIMUM_TASKS];        // [out] The CM task submission time in GPU
 };
 typedef CM_HAL_TASK_TIMESTAMP *PCM_HAL_TASK_TIMESTAMP;
 
 
 struct CM_HAL_HINT_TASK_INDEXES
 {
-    uint32_t iKernelIndexes[CM_MAX_TASKS_EU_SATURATION];    // [in/out] kernel indexes used for EU saturation
-    uint32_t iDispatchIndexes[CM_MAX_TASKS_EU_SATURATION];  // [in/out] dispatch indexes used for EU saturation
+    uint32_t kernelIndexes[CM_MAX_TASKS_EU_SATURATION];    // [in/out] kernel indexes used for EU saturation
+    uint32_t dispatchIndexes[CM_MAX_TASKS_EU_SATURATION];  // [in/out] dispatch indexes used for EU saturation
 };
 
 //-------------------------------
@@ -1451,92 +1450,92 @@ typedef CM_GT_SYSTEM_INFO *PCM_GT_SYSTEM_INFO;
 typedef struct _CM_HAL_STATE
 {
     // Internal/private structures
-    PLATFORM                    Platform;
-    MEDIA_FEATURE_TABLE         *pSkuTable;
-    MEDIA_WA_TABLE              *pWaTable;
-    PMOS_INTERFACE              pOsInterface;                                   // OS Interface                                 [*]
-    PRENDERHAL_INTERFACE        pRenderHal;                                     // Render Engine Interface                      [*]
-    MhwVeboxInterface           *pVeboxInterface;                               // Vebox Interface
-    MhwCpInterface*             pCpInterface;                                  // Cp  Interface
-    PMHW_BATCH_BUFFER           pBatchBuffers;                                  // Array of Batch Buffers                       [*]
-    PCM_HAL_TASK_PARAM          pTaskParam;                                     // Pointer to Task Param                        [*]
-    PCM_HAL_TASK_TIMESTAMP      pTaskTimeStamp;                                 // Pointer to Task Param
-    CM_HAL_TS_RESOURCE          Render_TsResource;                                     // Resource to store timestamps                 [*]
-    CM_HAL_TS_RESOURCE          Vebox_TsResource;                                     // Resource to store timestamps                 [*]
-    CM_HAL_TS_RESOURCE          SipResource;                                    // Resource to store debug info                 [*]
-    MOS_RESOURCE                CSRResource;                                    // Resource to store CSR info               
-    void                        *pTableMem;                                      // Single Memory for all lookup and temp tables [*]
-    CM_HAL_HINT_TASK_INDEXES    HintIndexes;                                    // Indexes for EU Saturation API
-    bool                        bRequestSingleSlice;                            // Requests single slice for life of CM device
-    bool                        bDisabledMidThreadPreemption;                  // set the flag to indicate to disable the midthread preemption
-    bool                        bEnabledKernelDebug;                            // set the flag to indicate to enable SIP debugging
-    PCMLOOKUP_ENTRY             pSurf2DTable;                                   // Surface registration lookup entries
-    PCM_HAL_SURFACE2D_ENTRY     pUmdSurf2DTable;                                // Surface2D entries used by CMRT@Driver
-    PCM_HAL_BUFFER_ENTRY        pBufferTable;                                   // Buffer registration table
-    PCM_HAL_SURFACE2D_UP_ENTRY  pSurf2DUPTable;                                 // Buffer registration table
-    PCM_HAL_3DRESOURCE_ENTRY    pSurf3DTable;                                   // 3D surface registration table
-    PMHW_SAMPLER_STATE_PARAM    pSamplerTable;                              // Sampler table
-    CM_SAMPLER_STATISTICS       SamplerStatistics;
-    PCM_HAL_SAMPLER_8X8_ENTRY   pSampler8x8Table;                               // Sampler 8x8 table
-    char                        *pTaskStatusTable;                               // Table for task status
-    int32_t                     iCurrentTaskEntry;                              // Current task status entry id
-    PCM_HAL_MULTI_USE_BTI_ENTRY pBT2DIndexTable;                                // Table to store Used 2D binding indexes (temporary)
-    PCM_HAL_MULTI_USE_BTI_ENTRY pBT2DUPIndexTable;                              // Table to store Used 2D binding indexes (temporary)
-    PCM_HAL_MULTI_USE_BTI_ENTRY pBT3DIndexTable;                                // Table to store Used 3D binding indexes (temporary)
-    PCM_HAL_MULTI_USE_BTI_ENTRY pBTBufferIndexTable;                            // Table to store Buffer Binding indexes (temporary)
-    char                        *pSamplerIndexTable;                             // Table to store Used Sampler indexes (temporary)
-    char                        *pVmeIndexTable;                                 // Table to store Used VME indexes (temporary)
-    char                        *pSampler8x8IndexTable;                          // Table to store Used Sampler8x8 indexes (temporary)
+    PLATFORM                    platform;
+    MEDIA_FEATURE_TABLE         *skuTable;
+    MEDIA_WA_TABLE              *waTable;
+    PMOS_INTERFACE              osInterface;                                   // OS Interface                                 [*]
+    PRENDERHAL_INTERFACE        renderHal;                                     // Render Engine Interface                      [*]
+    MhwVeboxInterface           *veboxInterface;                               // Vebox Interface
+    MhwCpInterface*             cpInterface;                                   // Cp  Interface
+    PMHW_BATCH_BUFFER           batchBuffers;                                  // Array of Batch Buffers                       [*]
+    PCM_HAL_TASK_PARAM          taskParam;                                     // Pointer to Task Param                        [*]
+    PCM_HAL_TASK_TIMESTAMP      taskTimeStamp;                                 // Pointer to Task Time Stamp
+    CM_HAL_TS_RESOURCE          renderTimeStampResource;                              // Resource to store timestamps                 [*]
+    CM_HAL_TS_RESOURCE          veboxTimeStampResource;                               // Resource to store timestamps                 [*]
+    CM_HAL_TS_RESOURCE          sipResource;                                    // Resource to store debug info                 [*]
+    MOS_RESOURCE                csrResource;                                    // Resource to store CSR info               
+    void                        *tableMemories;                                      // Single Memory for all lookup and temp tables [*]
+    CM_HAL_HINT_TASK_INDEXES    hintIndexes;                                    // Indexes for EU Saturation API
+    bool                        requestSingleSlice;                            // Requests single slice for life of CM device
+    bool                        midThreadPreemptionDisabled;                  // set the flag to indicate to disable the midthread preemption
+    bool                        kernelDebugEnabled;                            // set the flag to indicate to enable SIP debugging
+    PCMLOOKUP_ENTRY             surf2DTable;                                   // Surface registration lookup entries
+    PCM_HAL_SURFACE2D_ENTRY     umdSurf2DTable;                                // Surface2D entries used by CMRT@Driver
+    PCM_HAL_BUFFER_ENTRY        bufferTable;                                   // Buffer registration table
+    PCM_HAL_SURFACE2D_UP_ENTRY  surf2DUPTable;                                 // Buffer registration table
+    PCM_HAL_3DRESOURCE_ENTRY    surf3DTable;                                   // 3D surface registration table
+    PMHW_SAMPLER_STATE_PARAM    samplerTable;                              // Sampler table
+    CM_SAMPLER_STATISTICS       samplerStatistics;
+    PCM_HAL_SAMPLER_8X8_ENTRY   sampler8x8Table;                               // Sampler 8x8 table
+    char                        *taskStatusTable;                               // Table for task status
+    int32_t                     currentTaskEntry;                              // Current task status entry id
+    PCM_HAL_MULTI_USE_BTI_ENTRY bti2DIndexTable;                                // Table to store Used 2D binding indexes (temporary)
+    PCM_HAL_MULTI_USE_BTI_ENTRY bti2DUPIndexTable;                              // Table to store Used 2D binding indexes (temporary)
+    PCM_HAL_MULTI_USE_BTI_ENTRY bti3DIndexTable;                                // Table to store Used 3D binding indexes (temporary)
+    PCM_HAL_MULTI_USE_BTI_ENTRY btiBufferIndexTable;                            // Table to store Buffer Binding indexes (temporary)
+    char                        *samplerIndexTable;                             // Table to store Used Sampler indexes (temporary)
+    char                        *vmeIndexTable;                                 // Table to store Used VME indexes (temporary)
+    char                        *sampler8x8IndexTable;                          // Table to store Used Sampler8x8 indexes (temporary)
 
-    CMSURFACE_REG_TABLE         SurfaceRegTable;                                // Surface registration table
-    CM_HAL_DEVICE_PARAM         CmDeviceParam;                                  // Device Param
-    RENDERHAL_KRN_ALLOCATION     KernelParams_RenderHal;                        // RenderHal Kernel Setup
-    MHW_KERNEL_PARAM            KernelParams_Mhw;                               // MHW Kernel setup
-    int32_t                     iNumBatchBuffers;                               // Number of batch buffers
-    uint32_t                    dwDummyArg;                                     // Dummy Argument for no argument kernel
-    CM_HAL_MAX_HW_THREAD_VALUES MaxHWThreadValues;                              // Maximum number of hardware threads values
-    MHW_VFE_SCOREBOARD          ScoreboardParams;                               // Scoreboard Parameters
-    MHW_WALKER_PARAMS           WalkerParams;                                   // Walker Parameters
-    void                        *pResourceList;                                  // List of resource handles (temporary) NOTE: Only use this for enqueue
+    CMSURFACE_REG_TABLE         surfaceRegTable;                                // Surface registration table
+    CM_HAL_DEVICE_PARAM         cmDeviceParam;                                  // Device Param
+    RENDERHAL_KRN_ALLOCATION    kernelParamsRenderHal;                          // RenderHal Kernel Setup
+    MHW_KERNEL_PARAM            kernelParamsMhw;                               // MHW Kernel setup
+    int32_t                     numBatchBuffers;                               // Number of batch buffers
+    uint32_t                    dummyArg;                                     // Dummy Argument for no argument kernel
+    CM_HAL_MAX_HW_THREAD_VALUES maxHWThreadValues;                              // Maximum number of hardware threads values
+    MHW_VFE_SCOREBOARD          scoreboardParams;                               // Scoreboard Parameters
+    MHW_WALKER_PARAMS           walkerParams;                                   // Walker Parameters
+    void                        *resourceList;                                  // List of resource handles (temporary) NOTE: Only use this for enqueue
 
-    bool                        bNullHwRenderCm;                                // Null rendering flag for Cm function 
+    bool                        nullHwRenderCm;                                // Null rendering flag for Cm function 
     HMODULE                     hLibModule;                                     // module handle pointing to the dynamically opened library
 
-    bool                        bDynamicStateHeap;                              // Enable Dynamic State Heap
-    uint32_t                    dwDSHKernelCacheHit;                            // Kernel Cache hit count
-    uint32_t                    dwDSHKernelCacheMiss;                              // Kernel Cache miss count
+    bool                        dshEnabled;                              // Enable Dynamic State Heap
+    uint32_t                    dshKernelCacheHit;                            // Kernel Cache hit count
+    uint32_t                    dshKernelCacheMiss;                              // Kernel Cache miss count
 
     RENDERHAL_SURFACE           cmVeboxSurfaces[CM_HAL_MAX_VEBOX_SURF_NUM];     // cm vebox surfaces
     CM_VEBOX_SETTINGS           cmVeboxSettings;                                // cm vebox settings
     RENDERHAL_SURFACE           cmVebeboxParamSurf;
     uint32_t                    cmDebugBTIndex;                                 // cm Debug BT index
     
-    void                        *pDrmVMap;                                       //for libdrm's patched function "drm_intel_bo_from_vmapping"
+    void                        *drmVMap;                                       //for libdrm's patched function "drm_intel_bo_from_vmapping"
 
-    CM_POWER_OPTION             PowerOption;                                    // Power option
-    bool                        bEUSaturationEnabled;                           // EU saturation enabled
+    CM_POWER_OPTION             powerOption;                                    // Power option
+    bool                        euSaturationEnabled;                           // EU saturation enabled
 
-    int32_t                     nNumKernelsInGSH;                               // current kernel number in GSH
-    int32_t                     *pTotalKernelSize;                              // Total size table of every kernel in GSH kernel entries 
+    int32_t                     kernelNumInGsh;                               // current kernel number in GSH
+    int32_t                     *totalKernelSize;                              // Total size table of every kernel in GSH kernel entries 
 
-    MOS_GPU_CONTEXT             GpuContext;                                     // GPU Context 
-    uint32_t                    nSurfaceArraySize;                              // size of surface array used for 2D surface alias
+    MOS_GPU_CONTEXT             gpuContext;                                     // GPU Context 
+    uint32_t                    surfaceArraySize;                              // size of surface array used for 2D surface alias
 
-    bool                        bVtuneProfilerOn;                               // Vtune profiling on or not
-    bool                        bCBBEnabled;                                    // if conditional batch buffer enabled
+    bool                        vtuneProfilerOn;                               // Vtune profiling on or not
+    bool                        cbbEnabled;                                    // if conditional batch buffer enabled
 
     uint32_t                    currentPerfTagIndex[MAX_COMBINE_NUM_IN_PERFTAG];
-    std::map<std::string, int>  *pPerfTagIndexMap[MAX_COMBINE_NUM_IN_PERFTAG];  // mapping from kernel name to perf tag
+    std::map<std::string, int>  *perfTagIndexMap[MAX_COMBINE_NUM_IN_PERFTAG];  // mapping from kernel name to perf tag
 
-    PCM_HAL_GENERIC             pCmHalInterface;                                // pointer to genX interfaces          
+    PCM_HAL_GENERIC             cmHalInterface;                                // pointer to genX interfaces          
 
     std::map< void *, CM_HAL_STATE_BUFFER_ENTRY > *state_buffer_list_ptr;        // table of bounded state buffer and kernel ptr
 
-    CmHalL3Settings             l3_settings;
+    CmHalL3Settings             l3Settings;
 
-    bool                        use_new_sampler_heap;
+    bool                        useNewSamplerHeap;
 #if USE_EXTENSION_CODE
-    bool                        bMockRuntimeEnabled;
+    bool                        mockRuntimeEnabled;
 #endif
 
 //------------------------------------------------------------------------------
@@ -1609,147 +1608,147 @@ typedef struct _CM_HAL_STATE
     // Export Interface methods called by CMRT@UMD <START>
     //********************************************************************************
     MOS_STATUS (* pfnCmAllocate)
-    (   PCM_HAL_STATE               pState);
+    (   PCM_HAL_STATE               state);
 
     MOS_STATUS (* pfnGetMaxValues)
-        (   PCM_HAL_STATE           pState,
-            PCM_HAL_MAX_VALUES      pMaxValues);
+        (   PCM_HAL_STATE           state,
+            PCM_HAL_MAX_VALUES      maxValues);
 
     MOS_STATUS (* pfnGetMaxValuesEx)
-        (   PCM_HAL_STATE           pState,
-            PCM_HAL_MAX_VALUES_EX   pMaxValuesEx);
+        (   PCM_HAL_STATE           state,
+            PCM_HAL_MAX_VALUES_EX   maxValuesEx);
 
     MOS_STATUS (* pfnExecuteTask) 
-    (   PCM_HAL_STATE               pState,
-        PCM_HAL_EXEC_TASK_PARAM     pParam);
+    (   PCM_HAL_STATE               state,
+        PCM_HAL_EXEC_TASK_PARAM     param);
 
     MOS_STATUS (* pfnExecuteGroupTask) 
-    (   PCM_HAL_STATE                   pState,
-        PCM_HAL_EXEC_GROUP_TASK_PARAM   pParam);
+    (   PCM_HAL_STATE                   state,
+        PCM_HAL_EXEC_GROUP_TASK_PARAM   param);
 
     MOS_STATUS (* pfnExecuteVeboxTask) 
-    (   PCM_HAL_STATE                   pState,
-        PCM_HAL_EXEC_VEBOX_TASK_PARAM   pParam);
+    (   PCM_HAL_STATE                   state,
+        PCM_HAL_EXEC_VEBOX_TASK_PARAM   param);
 
     MOS_STATUS (* pfnExecuteHintsTask)
-    (   PCM_HAL_STATE                   pState,
-        PCM_HAL_EXEC_HINTS_TASK_PARAM   pParam);
+    (   PCM_HAL_STATE                   state,
+        PCM_HAL_EXEC_HINTS_TASK_PARAM   param);
 
     MOS_STATUS (* pfnQueryTask) 
-    (   PCM_HAL_STATE               pState,
-        PCM_HAL_QUERY_TASK_PARAM    pParam);
+    (   PCM_HAL_STATE               state,
+        PCM_HAL_QUERY_TASK_PARAM    param);
 
     MOS_STATUS (* pfnRegisterKMDNotifyEventHandle) 
-    (   PCM_HAL_STATE               pState,
-        PCM_HAL_OSSYNC_PARAM        pParam);
+    (   PCM_HAL_STATE               state,
+        PCM_HAL_OSSYNC_PARAM        param);
 
     MOS_STATUS (* pfnRegisterSampler) 
-    (   PCM_HAL_STATE               pState,
-        PCM_HAL_SAMPLER_PARAM       pParam);
+    (   PCM_HAL_STATE               state,
+        PCM_HAL_SAMPLER_PARAM       param);
 
     MOS_STATUS (* pfnUnRegisterSampler) 
-    (   PCM_HAL_STATE               pState,
-        uint32_t                    dwHandle);
+    (   PCM_HAL_STATE               state,
+        uint32_t                    handle);
 
     MOS_STATUS (* pfnRegisterSampler8x8) 
-    (   PCM_HAL_STATE               pState,
-        PCM_HAL_SAMPLER_8X8_PARAM   pParam);
+    (   PCM_HAL_STATE               state,
+        PCM_HAL_SAMPLER_8X8_PARAM   param);
 
     MOS_STATUS (* pfnUnRegisterSampler8x8) 
-    (   PCM_HAL_STATE               pState,
-        uint32_t                    dwHandle);
+    (   PCM_HAL_STATE               state,
+        uint32_t                    handle);
 
     MOS_STATUS (*pfnAllocateBuffer) 
-    (   PCM_HAL_STATE               pState,
-        PCM_HAL_BUFFER_PARAM        pParam);
+    (   PCM_HAL_STATE               state,
+        PCM_HAL_BUFFER_PARAM        param);
 
     MOS_STATUS (*pfnFreeBuffer) 
-    (   PCM_HAL_STATE               pState,
-        uint32_t                    dwHandle);
+    (   PCM_HAL_STATE               state,
+        uint32_t                    handle);
 
     MOS_STATUS (*pfnLockBuffer) 
-    (   PCM_HAL_STATE               pState,
-        PCM_HAL_BUFFER_PARAM        pParam);
+    (   PCM_HAL_STATE               state,
+        PCM_HAL_BUFFER_PARAM        param);
 
     MOS_STATUS (*pfnUnlockBuffer) 
-    (   PCM_HAL_STATE               pState,
-        PCM_HAL_BUFFER_PARAM        pParam);
+    (   PCM_HAL_STATE               state,
+        PCM_HAL_BUFFER_PARAM        param);
 
     MOS_STATUS (*pfnAllocateSurface2DUP) 
-    (   PCM_HAL_STATE               pState,
-        PCM_HAL_SURFACE2D_UP_PARAM  pParam);
+    (   PCM_HAL_STATE               state,
+        PCM_HAL_SURFACE2D_UP_PARAM  param);
 
     MOS_STATUS (*pfnFreeSurface2DUP) 
-    (   PCM_HAL_STATE               pState,
-        uint32_t                    dwHandle);
+    (   PCM_HAL_STATE               state,
+        uint32_t                    handle);
 
     MOS_STATUS (*pfnGetSurface2DPitchAndSize) 
-    (   PCM_HAL_STATE               pState,
-        PCM_HAL_SURFACE2D_UP_PARAM  pParam);
+    (   PCM_HAL_STATE               state,
+        PCM_HAL_SURFACE2D_UP_PARAM  param);
 
     MOS_STATUS (*pfnAllocate3DResource) 
-    (   PCM_HAL_STATE               pState,
-        PCM_HAL_3DRESOURCE_PARAM    pParam);
+    (   PCM_HAL_STATE               state,
+        PCM_HAL_3DRESOURCE_PARAM    param);
 
     MOS_STATUS (*pfnFree3DResource) 
-    (   PCM_HAL_STATE               pState,
-        uint32_t                    dwHandle);
+    (   PCM_HAL_STATE               state,
+        uint32_t                    handle);
 
     MOS_STATUS (*pfnLock3DResource) 
-    (   PCM_HAL_STATE               pState,
-        PCM_HAL_3DRESOURCE_PARAM    pParam);
+    (   PCM_HAL_STATE               state,
+        PCM_HAL_3DRESOURCE_PARAM    param);
 
     MOS_STATUS (*pfnUnlock3DResource) 
-    (   PCM_HAL_STATE               pState,
-        PCM_HAL_3DRESOURCE_PARAM    pParam);
+    (   PCM_HAL_STATE               state,
+        PCM_HAL_3DRESOURCE_PARAM    param);
 
     MOS_STATUS (*pfnAllocateSurface2D) 
-    (   PCM_HAL_STATE               pState,
-        PCM_HAL_SURFACE2D_PARAM     pParam);
+    (   PCM_HAL_STATE               state,
+        PCM_HAL_SURFACE2D_PARAM     param);
 
     MOS_STATUS (*pfnFreeSurface2D) 
-    (   PCM_HAL_STATE               pState,
-        uint32_t                    dwHandle);
+    (   PCM_HAL_STATE               state,
+        uint32_t                    handle);
 
     MOS_STATUS (*pfnLock2DResource) 
-    (   PCM_HAL_STATE                          pState,
-        PCM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM    pParam);
+    (   PCM_HAL_STATE                          state,
+        PCM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM    param);
 
     MOS_STATUS (*pfnUnlock2DResource) 
-    (   PCM_HAL_STATE                          pState,
-        PCM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM    pParam);
+    (   PCM_HAL_STATE                          state,
+        PCM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM    param);
 
     MOS_STATUS (*pfnGetSurface2DTileYPitch) 
-    (   PCM_HAL_STATE               pState,
-        PCM_HAL_SURFACE2D_PARAM     pParam);
+    (   PCM_HAL_STATE               state,
+        PCM_HAL_SURFACE2D_PARAM     param);
 
     MOS_STATUS (*pfnSetCaps)
-    (   PCM_HAL_STATE               pState,
-        PCM_HAL_MAX_SET_CAPS_PARAM  pParam);
+    (   PCM_HAL_STATE               state,
+        PCM_HAL_MAX_SET_CAPS_PARAM  param);
 
     MOS_STATUS (*pfnGetGPUCurrentFrequency)
-    (    PCM_HAL_STATE              pState,
-        uint32_t                    *pGPUCurrentFreq);
+    (    PCM_HAL_STATE              state,
+        uint32_t                    *gpucurrentFreq);
 
     MOS_STATUS (*pfnSet2DSurfaceStateParam) 
-    (   PCM_HAL_STATE                          pState,
-        PCM_HAL_SURFACE2D_SURFACE_STATE_PARAM  pParam,
-        uint32_t                               iAliasIndex,
-        uint32_t                               dwHandle);
+    (   PCM_HAL_STATE                          state,
+        PCM_HAL_SURFACE2D_SURFACE_STATE_PARAM  param,
+        uint32_t                               aliasIndex,
+        uint32_t                               handle);
 
     MOS_STATUS (*pfnSetBufferSurfaceStatePara) (
-     PCM_HAL_STATE                            pState,
-     PCM_HAL_BUFFER_SURFACE_STATE_PARAM       pParam);
+     PCM_HAL_STATE                            state,
+     PCM_HAL_BUFFER_SURFACE_STATE_PARAM       param);
 
     MOS_STATUS (*pfnSetSurfaceMOCS) (
-     PCM_HAL_STATE                  pState,
-     uint32_t                       dwHanlde,
+     PCM_HAL_STATE                  state,
+     uint32_t                       hanlde,
      uint16_t                       mocs,
      uint32_t                       argKind);
 
     MOS_STATUS (*pfnSetPowerOption)
-    (   PCM_HAL_STATE               pState,
-        PCM_POWER_OPTION            pPowerOption);
+    (   PCM_HAL_STATE               state,
+        PCM_POWER_OPTION            powerOption);
    
     //********************************************************************************
     // Export Interface methods called by CMRT@UMD <END>
@@ -1759,74 +1758,74 @@ typedef struct _CM_HAL_STATE
     // Internal interface methods called by CM HAL only <START>
     //********************************************************************************
     int32_t (*pfnGetTaskSyncLocation)
-    (   int32_t                     iTaskId);
+    (   int32_t                     taskId);
 
     MOS_STATUS (*pfnGetGpuTime)
-    (   PCM_HAL_STATE               pState,
-        uint64_t                    *piGpuTime);
+    (   PCM_HAL_STATE               state,
+        uint64_t                    *gpuTime);
 
     MOS_STATUS (*pfnConvertToQPCTime)
     (   uint64_t                    nanoseconds,
-        LARGE_INTEGER               *QPCTime );
+        LARGE_INTEGER               *qpcTime );
 
     MOS_STATUS (*pfnGetGlobalTime)
-    (   LARGE_INTEGER               *pGlobalTime);
+    (   LARGE_INTEGER               *globalTime);
 
     MOS_STATUS (*pfnSendMediaWalkerState)
-    (   PCM_HAL_STATE               pState,
-        PCM_HAL_KERNEL_PARAM        pKernelParam,
-        PMOS_COMMAND_BUFFER         pCmdBuffer);
+    (   PCM_HAL_STATE               state,
+        PCM_HAL_KERNEL_PARAM        kernelParam,
+        PMOS_COMMAND_BUFFER         cmdBuffer);
 
     MOS_STATUS (*pfnSendGpGpuWalkerState)
-    (   PCM_HAL_STATE               pState,
-        PCM_HAL_KERNEL_PARAM        pKernelParam,
-        PMOS_COMMAND_BUFFER         pCmdBuffer);
+    (   PCM_HAL_STATE               state,
+        PCM_HAL_KERNEL_PARAM        kernelParam,
+        PMOS_COMMAND_BUFFER         cmdBuffer);
 
     MOS_STATUS (*pfnUpdatePowerOption)
-    (   PCM_HAL_STATE               pState,
-        PCM_POWER_OPTION            pPowerOption);
+    (   PCM_HAL_STATE               state,
+        PCM_POWER_OPTION            powerOption);
 
 	MOS_STATUS (*pfnGetSipBinary)
-    (   PCM_HAL_STATE               pState);
+    (   PCM_HAL_STATE               state);
 
     MOS_STATUS(*pfnGetPlatformInfo)
-    (   PCM_HAL_STATE               pState,
+    (   PCM_HAL_STATE               state,
         PCM_PLATFORM_INFO           platformInfo,
-        bool                        bEUSaturation);
+        bool                        euSaturated);
 
     MOS_STATUS(*pfnGetGTSystemInfo)
-    (   PCM_HAL_STATE               pState,
-        PCM_GT_SYSTEM_INFO          pSystemInfo);
+    (   PCM_HAL_STATE               state,
+        PCM_GT_SYSTEM_INFO          systemInfo);
 
     MOS_STATUS (*pfnSetSurfaceReadFlag) 
-    ( PCM_HAL_STATE           pState,
-      uint32_t                dwHandle,
-      bool                    bReadSync);
+    ( PCM_HAL_STATE           state,
+      uint32_t                handle,
+      bool                    readSync);
 
     MOS_STATUS (*pfnSetVtuneProfilingFlag)
-    (   PCM_HAL_STATE               pState,
-        bool                        bVtuneOn);
+    (   PCM_HAL_STATE               state,
+        bool                        vtuneOn);
 
     MOS_STATUS(*pfnReferenceCommandBuffer)
-    (   PMOS_RESOURCE               pOsResource,
-        void                        **ppCmdBuffer);
+    (   PMOS_RESOURCE               osResource,
+        void                        **cmdBuffer);
 
     MOS_STATUS(*pfnSetCommandBufferResource)
-    (   PMOS_RESOURCE               pOsResource,
-        void                        **ppCmdBuffer);
+    (   PMOS_RESOURCE               osResource,
+        void                        **cmdBuffer);
 
     MOS_STATUS(*pfnWriteGPUStatusTagToCMTSResource)
-    (   PCM_HAL_STATE               pState,
-        PMOS_COMMAND_BUFFER         pCmdBuffer,
-        int32_t                     iTaskID,
+    (   PCM_HAL_STATE               state,
+        PMOS_COMMAND_BUFFER         cmdBuffer,
+        int32_t                     taskID,
         bool                        isVebox);
 
     MOS_STATUS(*pfnEnableTurboBoost)
-    (   PCM_HAL_STATE               pState);
+    (   PCM_HAL_STATE               state);
 
     MOS_STATUS(*pfnSetCompressionMode)
         (
-        PCM_HAL_STATE               pState,
+        PCM_HAL_STATE               state,
         CM_HAL_SURFACE2D_COMPRESSIOM_PARAM  MmcParam
         );
 
@@ -1834,85 +1833,85 @@ typedef struct _CM_HAL_STATE
 
     MOS_STATUS( *pfnInsertToStateBufferList )
         (
-        PCM_HAL_STATE               pState,
-        void                        *kernel_ptr,
-        uint32_t                    state_buffer_index,
-        CM_STATE_BUFFER_TYPE        state_buffer_type,
-        uint32_t                    state_buffer_size,
-        uint64_t                    state_buffer_va_ptr,
-        PRENDERHAL_MEDIA_STATE      media_state_ptr );
+        PCM_HAL_STATE               state,
+        void                        *kernelPtr,
+        uint32_t                    stateBufferIndex,
+        CM_STATE_BUFFER_TYPE        stateBufferType,
+        uint32_t                    stateBufferSize,
+        uint64_t                    stateBufferVaPtr,
+        PRENDERHAL_MEDIA_STATE      mediaStatePtr );
 
     MOS_STATUS( *pfnDeleteFromStateBufferList )
         (
-        PCM_HAL_STATE               pState,
-        void                        *kernel_ptr );
+        PCM_HAL_STATE               state,
+        void                        *kernelPtr );
 
     PRENDERHAL_MEDIA_STATE( *pfnGetMediaStatePtrForKernel )
         (
-        PCM_HAL_STATE               pState,
-        void                        *kernel_ptr );
+        PCM_HAL_STATE               state,
+        void                        *kernelPtr );
 
     uint64_t( *pfnGetStateBufferVAPtrForSurfaceIndex )
         (
-        PCM_HAL_STATE               pState,
-        uint32_t                    surf_index );
+        PCM_HAL_STATE               state,
+        uint32_t                    surfIndex );
 
     PRENDERHAL_MEDIA_STATE( *pfnGetMediaStatePtrForSurfaceIndex )
         (
-        PCM_HAL_STATE               pState,
-        uint32_t                    surf_index );
+        PCM_HAL_STATE               state,
+        uint32_t                    surfIndex );
 
     uint64_t( *pfnGetStateBufferVAPtrForMediaStatePtr )
         (
-        PCM_HAL_STATE               pState,
-        PRENDERHAL_MEDIA_STATE      media_state_ptr );
+        PCM_HAL_STATE               state,
+        PRENDERHAL_MEDIA_STATE      mediaStatePtr );
 
     uint32_t( *pfnGetStateBufferSizeForKernel )
         (
-        PCM_HAL_STATE               pState,
-        void                        *kernel_ptr );
+        PCM_HAL_STATE               state,
+        void                        *kernelPtr );
 
     CM_STATE_BUFFER_TYPE( *pfnGetStateBufferTypeForKernel )
         (
-        PCM_HAL_STATE               pState,
-        void                        *kernel_ptr );
+        PCM_HAL_STATE               state,
+        void                        *kernelPtr );
 
     MOS_STATUS(*pfnCreateGPUContext)
         (
-        PCM_HAL_STATE               pState,
-        MOS_GPU_CONTEXT             gpu_context,
-        MOS_GPU_NODE                gpu_node );
+        PCM_HAL_STATE               state,
+        MOS_GPU_CONTEXT             gpuContext,
+        MOS_GPU_NODE                gpuNode );
 
     //********************************************************************************
     // Internal interface methods called by CM HAL only <END>
     //********************************************************************************
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    bool                        bDumpCommandBuffer;                            //flag to enable command buffer dump
-    bool                        bDumpCurbeData;                                //flag to enable curbe data dump
-    bool                        bDumpSurfaceContent;                           //flag to enable surface content dump
+    bool                        dumpCommandBuffer;                            //flag to enable command buffer dump
+    bool                        dumpCurbeData;                                //flag to enable curbe data dump
+    bool                        dumpSurfaceContent;                           //flag to enable surface content dump
     int32_t(*pfnInitDumpCommandBuffer)
         (
-        PCM_HAL_STATE            pState);
+        PCM_HAL_STATE            state);
     int32_t(*pfnDumpCommadBuffer)
         (
-        PCM_HAL_STATE            pState,
-        PMOS_COMMAND_BUFFER      pCmdBuffer,
+        PCM_HAL_STATE            state,
+        PMOS_COMMAND_BUFFER      cmdBuffer,
         int                      offsetSurfaceState,
         size_t                   sizeOfSurfaceState);
 #endif //(_DEBUG || _RELEASE_INTERNAL)
 
     MOS_STATUS(*pfnDSHUnregisterKernel)
         (
-        PCM_HAL_STATE               pState,
-        uint64_t                    uiKernelId);
+        PCM_HAL_STATE               state,
+        uint64_t                    kernelId);
 } CM_HAL_STATE, *PCM_HAL_STATE;
 
 
 typedef struct _CM_HAL_MI_REG_OFFSETS 
 {
-    uint32_t TimeStampOffset;
-    uint32_t GPROffset;
+    uint32_t timeStampOffset;
+    uint32_t gprOffset;
 } CM_HAL_MI_REG_OFFSETS, *PCM_HAL_MI_REG_OFFSETS;
 
 
@@ -1922,10 +1921,10 @@ typedef struct _CM_HAL_MI_REG_OFFSETS
 //*-----------------------------------------------------------------------------
 struct CM_HAL_INDEX_PARAM
 {
-    uint32_t dwSamplerIndexCount;     // [in] sampler indices used
-    uint32_t dwVmeIndexCount;         // [in] VME indices used
-    uint32_t dwSampler8x8IndexCount;  // [in] Sampler8x8 indices used
-    uint32_t dwBTArray[8];            // [in] 256 indexes
+    uint32_t samplerIndexCount;     // [in] sampler indices used
+    uint32_t vmeIndexCount;         // [in] VME indices used
+    uint32_t sampler8x8IndexCount;  // [in] Sampler8x8 indices used
+    uint32_t btArray[8];            // [in] 256 indexes
 };
 typedef CM_HAL_INDEX_PARAM *PCM_HAL_INDEX_PARAM;
 
@@ -1940,21 +1939,21 @@ typedef CM_HAL_INDEX_PARAM *PCM_HAL_INDEX_PARAM;
 //| Returns: Result of the operation
 //*-----------------------------------------------------------------------------
 __inline MOS_STATUS HalCm_GetNewTaskId(
-    PCM_HAL_STATE       pState,                                                 // [in]  Pointer to HAL CM State
+    PCM_HAL_STATE       state,                                                 // [in]  Pointer to HAL CM State
     int32_t             *piIndex)                                                // [out] Pointer to Task Index
 {
     uint32_t i, j;
     uint32_t maxTasks;
 
-    i = pState->iCurrentTaskEntry;
-    maxTasks = pState->CmDeviceParam.iMaxTasks;
+    i = state->currentTaskEntry;
+    maxTasks = state->cmDeviceParam.maxTasks;
 
     for (j = maxTasks; j > 0; j--, i = (i + 1) % maxTasks)
     {
-        if (pState->pTaskStatusTable[i] == CM_INVALID_INDEX)
+        if (state->taskStatusTable[i] == CM_INVALID_INDEX)
         {
             *piIndex = i;
-            pState->iCurrentTaskEntry = (i + 1) % maxTasks;
+            state->currentTaskEntry = (i + 1) % maxTasks;
             return MOS_STATUS_SUCCESS;
         }
     }
@@ -1965,207 +1964,207 @@ __inline MOS_STATUS HalCm_GetNewTaskId(
 }
 
 MOS_STATUS HalCm_Create(
-    PMOS_CONTEXT            pOsDriverContext,
-    PCM_HAL_CREATE_PARAM    pCmCreateParam,
-    PCM_HAL_STATE           *pCmState);
+    PMOS_CONTEXT            osDriverContext,
+    PCM_HAL_CREATE_PARAM    cmCreateParam,
+    PCM_HAL_STATE           *cmState);
 
 void HalCm_Destroy(
-    PCM_HAL_STATE           pState);
+    PCM_HAL_STATE           state);
 
 void HalCm_GetUserFeatureSettings(
-    PCM_HAL_STATE           pState);
+    PCM_HAL_STATE           state);
 
 MOS_STATUS HalCm_GetSurfaceDetails(
-    PCM_HAL_STATE                   pState,
-    PCM_HAL_INDEX_PARAM             pIndexParam,
-    uint32_t                        iBTIndex,
-    MOS_SURFACE&                    MosSurface,
+    PCM_HAL_STATE                   state,
+    PCM_HAL_INDEX_PARAM             indexParam,
+    uint32_t                        btindex,
+    MOS_SURFACE&                    mosSurface,
     int16_t                         globalSurface,
-    PRENDERHAL_SURFACE_STATE_ENTRY  pSurfaceEntry,
-    uint32_t                        dwTempPlaneIndex,
-    RENDERHAL_SURFACE_STATE_PARAMS  SurfaceParam,
+    PRENDERHAL_SURFACE_STATE_ENTRY  surfaceEntry,
+    uint32_t                        tempPlaneIndex,
+    RENDERHAL_SURFACE_STATE_PARAMS  surfaceParam,
     CM_HAL_KERNEL_ARG_KIND          argKind);
 
 MOS_STATUS HalCm_AllocateTsResource(
-    PCM_HAL_STATE           pState);
+    PCM_HAL_STATE           state);
 
 MOS_STATUS HalCm_AllocateTables(
-    PCM_HAL_STATE           pState);
+    PCM_HAL_STATE           state);
 
 MOS_STATUS HalCm_Allocate(
-    PCM_HAL_STATE           pState);
+    PCM_HAL_STATE           state);
 
 MOS_STATUS HalCm_SetupSipSurfaceState(
-    PCM_HAL_STATE           pState,
-    PCM_HAL_INDEX_PARAM     pIndexParam,
-    int32_t                 iBindingTable);
+    PCM_HAL_STATE           state,
+    PCM_HAL_INDEX_PARAM     indexParam,
+    int32_t                 bindingTable);
 
 //===============<Below are Os-dependent Private/Non-DDI Functions>============================================
 
 void HalCm_OsInitInterface(
-    PCM_HAL_STATE           pCmState);
+    PCM_HAL_STATE           cmState);
 
 MOS_STATUS HalCm_GetSurfaceAndRegister(
-    PCM_HAL_STATE           pState, 
-    PRENDERHAL_SURFACE      pRenderHalSurface,
+    PCM_HAL_STATE           state, 
+    PRENDERHAL_SURFACE      renderHalSurface,
     CM_HAL_KERNEL_ARG_KIND  surfKind,
-    uint32_t                iIndex,
+    uint32_t                index,
     bool                    pixelPitch);
 
 MOS_STATUS HalCm_SendMediaWalkerState(
-    PCM_HAL_STATE           pState,
-    PCM_HAL_KERNEL_PARAM    pKernelParam,
-    PMOS_COMMAND_BUFFER     pCmdBuffer);
+    PCM_HAL_STATE           state,
+    PCM_HAL_KERNEL_PARAM    kernelParam,
+    PMOS_COMMAND_BUFFER     cmdBuffer);
 
 MOS_STATUS HalCm_SendGpGpuWalkerState(
-    PCM_HAL_STATE           pState,
-    PCM_HAL_KERNEL_PARAM    pKernelParam,
-    PMOS_COMMAND_BUFFER     pCmdBuffer);
+    PCM_HAL_STATE           state,
+    PCM_HAL_KERNEL_PARAM    kernelParam,
+    PMOS_COMMAND_BUFFER     cmdBuffer);
 
 //===============<Below are Os-non-dependent Private/Non-DDI Functions>=========================================
 
 uint32_t HalCm_GetFreeBindingIndex(
-    PCM_HAL_STATE           pState,
-    PCM_HAL_INDEX_PARAM     pIndexParam,
+    PCM_HAL_STATE           state,
+    PCM_HAL_INDEX_PARAM     indexParam,
     uint32_t                count);
 
 void HalCm_PreSetBindingIndex(
-    PCM_HAL_INDEX_PARAM     pIndexParam,
+    PCM_HAL_INDEX_PARAM     indexParam,
     uint32_t                start,
     uint32_t                end);
 
 MOS_STATUS HalCm_Setup2DSurfaceStateWithBTIndex(
-    PCM_HAL_STATE           pState,
-    int32_t                 iBindingTable,
+    PCM_HAL_STATE           state,
+    int32_t                 bindingTable,
     uint32_t                surfIndex,
     uint32_t                btIndex,
     bool                    pixelPitch);
 
 MOS_STATUS HalCm_SetupBufferSurfaceStateWithBTIndex(
-    PCM_HAL_STATE           pState,
-    int32_t                 iBindingTable,
+    PCM_HAL_STATE           state,
+    int32_t                 bindingTable,
     uint32_t                surfIndex,
     uint32_t                btIndex,
     bool                    pixelPitch);
 
 MOS_STATUS HalCm_Setup2DSurfaceUPStateWithBTIndex(
-    PCM_HAL_STATE           pState,
-    int32_t                 iBindingTable,
+    PCM_HAL_STATE           state,
+    int32_t                 bindingTable,
     uint32_t                surfIndex,
     uint32_t                btIndex,
     bool                    pixelPitch);
 
 MOS_STATUS HalCm_SetupSampler8x8SurfaceStateWithBTIndex(
-    PCM_HAL_STATE           pState,
-    int32_t                 iBindingTable,
+    PCM_HAL_STATE           state,
+    int32_t                 bindingTable,
     uint32_t                surfIndex,
     uint32_t                btIndex,
     bool                    pixelPitch,
-    CM_HAL_KERNEL_ARG_KIND  iKind,
-    uint32_t                AddressControl );
+    CM_HAL_KERNEL_ARG_KIND  kind,
+    uint32_t                addressControl );
 
 MOS_STATUS HalCm_Setup3DSurfaceStateWithBTIndex(
-    PCM_HAL_STATE           pState,
-    int32_t                 iBindingTable,
+    PCM_HAL_STATE           state,
+    int32_t                 bindingTable,
     uint32_t                surfIndex,
     uint32_t                btIndex);
 
 MOS_STATUS HalCm_SyncOnResource(
-    PCM_HAL_STATE           pState,
-    PMOS_SURFACE            pSurface,
+    PCM_HAL_STATE           state,
+    PMOS_SURFACE            surface,
     bool                    isWrite);
 
 void HalCm_OsResource_Unreference(
-    PMOS_RESOURCE          pOsResource);
+    PMOS_RESOURCE          osResource);
 
 void HalCm_OsResource_Reference(
-    PMOS_RESOURCE            pOsResource);
+    PMOS_RESOURCE            osResource);
 
 MOS_STATUS HalCm_SetSurfaceReadFlag(
-    PCM_HAL_STATE           pState,
-    uint32_t                dwHandle);
+    PCM_HAL_STATE           state,
+    uint32_t                handle);
 
 MOS_STATUS HalCm_SetVtuneProfilingFlag(
-    PCM_HAL_STATE           pState,
-    bool                    bVtuneOn);
+    PCM_HAL_STATE           state,
+    bool                    vtuneOn);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 int32_t HalCm_InitDumpCommandBuffer(
-    PCM_HAL_STATE            pState);
+    PCM_HAL_STATE            state);
 
 int32_t HalCm_DumpCommadBuffer(
-    PCM_HAL_STATE            pState,
-    PMOS_COMMAND_BUFFER      pCmdBuffer,
+    PCM_HAL_STATE            state,
+    PMOS_COMMAND_BUFFER      cmdBuffer,
     int                      offsetSurfaceState,
     size_t                   sizeOfSurfaceState);
 #endif //(_DEBUG || _RELEASE_INTERNAL)
 
 MOS_STATUS HalCm_Convert_RENDERHAL_SURFACE_To_MHW_VEBOX_SURFACE(
-    PRENDERHAL_SURFACE           pRenderHalSurface,
-    PMHW_VEBOX_SURFACE_PARAMS    pMhwVeboxSurface);
+    PRENDERHAL_SURFACE           renderHalSurface,
+    PMHW_VEBOX_SURFACE_PARAMS    mhwVeboxSurface);
 
 bool HalCm_IsCbbEnabled(
-    PCM_HAL_STATE                           pState);
+    PCM_HAL_STATE                           state);
 
 int32_t HalCm_SyncKernel(
-    PCM_HAL_STATE                           pState,
-    uint32_t                                dwSync);
+    PCM_HAL_STATE                           state,
+    uint32_t                                sync);
 
 MOS_STATUS HalCm_GetGfxTextAddress(
     uint32_t                     addressMode,
-    MHW_GFX3DSTATE_TEXCOORDMODE  *pGfxAddress);
+    MHW_GFX3DSTATE_TEXCOORDMODE  *gfxAddress);
 
 MOS_STATUS HalCm_GetGfxMapFilter(
     uint32_t                     filterMode,
-    MHW_GFX3DSTATE_MAPFILTER     *pGfxFilter);
+    MHW_GFX3DSTATE_MAPFILTER     *gfxFilter);
 
 MOS_STATUS HalCm_Unlock2DResource(
-    PCM_HAL_STATE                           pState,  
-    PCM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM     pParam);
+    PCM_HAL_STATE                           state,  
+    PCM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM     param);
 
 MOS_STATUS HalCm_Lock2DResource(
-    PCM_HAL_STATE                           pState,              
-    PCM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM     pParam);
+    PCM_HAL_STATE                           state,              
+    PCM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM     param);
 
 int32_t HalCm_GetTaskSyncLocation(
-    int32_t             iTaskId);
+    int32_t             taskId);
 
 MOS_STATUS HalCm_SetL3Cache(
-    const L3ConfigRegisterValues            *pL3Values,
-    PCmHalL3Settings                      pCmHalL3Cache );
+    const L3ConfigRegisterValues            *l3Values,
+    PCmHalL3Settings                      cmHalL3Cache );
 
-MOS_STATUS HalCm_AllocateSipResource(PCM_HAL_STATE pState);
+MOS_STATUS HalCm_AllocateSipResource(PCM_HAL_STATE state);
 
-MOS_STATUS HalCm_AllocateCSRResource(PCM_HAL_STATE pState);
+MOS_STATUS HalCm_AllocateCSRResource(PCM_HAL_STATE state);
 
 MOS_STATUS HalCm_OsAddArtifactConditionalPipeControl(
-    PCM_HAL_MI_REG_OFFSETS pOffsets,
-    PCM_HAL_STATE pState,
-    PMOS_COMMAND_BUFFER pCmdBuffer,
-    int32_t iSyncOffset,
-    PMHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS pConditionalParams);
+    PCM_HAL_MI_REG_OFFSETS offsets,
+    PCM_HAL_STATE state,
+    PMOS_COMMAND_BUFFER cmdBuffer,
+    int32_t syncOffset,
+    PMHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS conditionalParams);
 
 //!
 //! \brief    Get the number of command buffers according to the max task number
 //! \details  Get the number of command buffers according to the max task number
 //!           the returned number will be passed to pfnCreateGpuContext()
-//! \param    [in] pOsInterface
+//! \param    [in] osInterface
 //!           pointer to OS interface
 //! \param    [in] maxTaskNumber
 //!           max number of task to support
 //! \return   uint32_t
 //!
-uint32_t HalCm_GetNumCmdBuffers(PMOS_INTERFACE pOsInterface, uint32_t maxTaskNumber);
+uint32_t HalCm_GetNumCmdBuffers(PMOS_INTERFACE osInterface, uint32_t maxTaskNumber);
 
-void HalCm_GetLegacyRenderHalL3Setting( CmHalL3Settings *l3_settings_ptr, RENDERHAL_L3_CACHE_SETTINGS *l3_settings_legacy_ptr );
+void HalCm_GetLegacyRenderHalL3Setting( CmHalL3Settings *l3SettingsPtr, RENDERHAL_L3_CACHE_SETTINGS *l3SettingsLegacyPtr );
 
 MOS_STATUS HalCm_GetNumKernelsPerGroup(
     uint8_t     hintsBits,
     uint32_t    numKernels,
-    uint32_t    *pNumKernelsPerGroup,
-    uint32_t    *pNumKernelGroups,
-    uint32_t    *pRemapKrnToGrp,
-    uint32_t    *pRemapGrpToKrn
+    uint32_t    *numKernelsPerGroup,
+    uint32_t    *numKernelGroups,
+    uint32_t    *remapKernelToGroup,
+    uint32_t    *pRemapGroupToKernel
     );
 
 MOS_STATUS HalCm_GetParallelGraphInfo(
@@ -2175,98 +2174,98 @@ MOS_STATUS HalCm_GetParallelGraphInfo(
     uint32_t                       height,
     PCM_HAL_PARALLELISM_GRAPH_INFO graphInfo,
     CM_DEPENDENCY_PATTERN          pattern,
-    bool                           bNoDependencyCase);
+    bool                           noDependencyCase);
 
 MOS_STATUS HalCm_SetDispatchPattern(
     CM_HAL_PARALLELISM_GRAPH_INFO  graphInfo,
     CM_DEPENDENCY_PATTERN          pattern,
-    uint32_t                       *pDispatchFreq
+    uint32_t                       *dispatchFreq
     );
 
 MOS_STATUS HalCm_SetKernelGrpFreqDispatch(
     PCM_HAL_PARALLELISM_GRAPH_INFO  graphInfo,
     PCM_HAL_KERNEL_GROUP_INFO       groupInfo,
     uint32_t                        numKernelGroups,
-    uint32_t                        *pMinSteps);
+    uint32_t                        *minSteps);
 
 MOS_STATUS HalCm_SetNoDependKernelDispatchPattern(
     uint32_t                        numThreads,
     uint32_t                        minSteps,
-    uint32_t                        *pDispatchFreq);
+    uint32_t                        *dispatchFreq);
 
 MOS_STATUS HalCm_SetupSamplerState(
-    PCM_HAL_STATE                   pState,
-    PCM_HAL_KERNEL_PARAM            pKernelParam,
-    PCM_HAL_KERNEL_ARG_PARAM        pArgParam,
-    PCM_HAL_INDEX_PARAM             pIndexParam,
-    int32_t                         iMediaID,
-    uint32_t                        iThreadIndex,
-    uint8_t                         *pBuffer);
+    PCM_HAL_STATE                   state,
+    PCM_HAL_KERNEL_PARAM            kernelParam,
+    PCM_HAL_KERNEL_ARG_PARAM        argParam,
+    PCM_HAL_INDEX_PARAM             indexParam,
+    int32_t                         mediaID,
+    uint32_t                        threadIndex,
+    uint8_t                         *buffer);
 
 MOS_STATUS HalCm_SetupBufferSurfaceState(
-    PCM_HAL_STATE               pState,
-    PCM_HAL_KERNEL_ARG_PARAM    pArgParam,
-    PCM_HAL_INDEX_PARAM         pIndexParam,
-    int32_t                     iBindingTable,
+    PCM_HAL_STATE               state,
+    PCM_HAL_KERNEL_ARG_PARAM    argParam,
+    PCM_HAL_INDEX_PARAM         indexParam,
+    int32_t                     bindingTable,
     int16_t                     globalSurface,
-    uint32_t                    iThreadIndex,
-    uint8_t                     *pBuffer);
+    uint32_t                    threadIndex,
+    uint8_t                     *buffer);
 
 MOS_STATUS HalCm_Setup2DSurfaceUPState(
-    PCM_HAL_STATE               pState,
-    PCM_HAL_KERNEL_ARG_PARAM    pArgParam,
-    PCM_HAL_INDEX_PARAM         pIndexParam,
-    int32_t                     iBindingTable,
-    uint32_t                    iThreadIndex,
-    uint8_t                     *pBuffer);
+    PCM_HAL_STATE               state,
+    PCM_HAL_KERNEL_ARG_PARAM    argParam,
+    PCM_HAL_INDEX_PARAM         indexParam,
+    int32_t                     bindingTable,
+    uint32_t                    threadIndex,
+    uint8_t                     *buffer);
 
 MOS_STATUS HalCm_Setup2DSurfaceUPSamplerState(
-    PCM_HAL_STATE               pState,
-    PCM_HAL_KERNEL_ARG_PARAM    pArgParam,
-    PCM_HAL_INDEX_PARAM         pIndexParam,
-    int32_t                     iBindingTable,
-    uint32_t                    iThreadIndex,
-    uint8_t                     *pBuffer);
+    PCM_HAL_STATE               state,
+    PCM_HAL_KERNEL_ARG_PARAM    argParam,
+    PCM_HAL_INDEX_PARAM         indexParam,
+    int32_t                     bindingTable,
+    uint32_t                    threadIndex,
+    uint8_t                     *buffer);
 
 MOS_STATUS HalCm_Setup2DSurfaceSamplerState(
-    PCM_HAL_STATE              pState,
-    PCM_HAL_KERNEL_ARG_PARAM   pArgParam,
-    PCM_HAL_INDEX_PARAM        pIndexParam,
-    int32_t                    iBindingTable,
-    uint32_t                   iThreadIndex,
-    uint8_t                    *pBuffer);
+    PCM_HAL_STATE              state,
+    PCM_HAL_KERNEL_ARG_PARAM   argParam,
+    PCM_HAL_INDEX_PARAM        indexParam,
+    int32_t                    bindingTable,
+    uint32_t                   threadIndex,
+    uint8_t                    *buffer);
 
 MOS_STATUS HalCm_Setup2DSurfaceState(
-    PCM_HAL_STATE              pState,
-    PCM_HAL_KERNEL_ARG_PARAM   pArgParam,
-    PCM_HAL_INDEX_PARAM        pIndexParam,
-    int32_t                    iBindingTable,
-    uint32_t                   iThreadIndex,
-    uint8_t                    *pBuffer);
+    PCM_HAL_STATE              state,
+    PCM_HAL_KERNEL_ARG_PARAM   argParam,
+    PCM_HAL_INDEX_PARAM        indexParam,
+    int32_t                    bindingTable,
+    uint32_t                   threadIndex,
+    uint8_t                    *buffer);
 
 MOS_STATUS HalCm_Setup3DSurfaceState(
-    PCM_HAL_STATE               pState,
-    PCM_HAL_KERNEL_ARG_PARAM    pArgParam,
-    PCM_HAL_INDEX_PARAM         pIndexParam,
-    int32_t                     iBindingTable,
-    uint32_t                    iThreadIndex,
-    uint8_t                     *pBuffer);
+    PCM_HAL_STATE               state,
+    PCM_HAL_KERNEL_ARG_PARAM    argParam,
+    PCM_HAL_INDEX_PARAM         indexParam,
+    int32_t                     bindingTable,
+    uint32_t                    threadIndex,
+    uint8_t                     *buffer);
 
 MOS_STATUS HalCm_SetupVmeSurfaceState(
-    PCM_HAL_STATE               pState,
-    PCM_HAL_KERNEL_ARG_PARAM    pArgParam,
-    PCM_HAL_INDEX_PARAM         pIndexParam,
-    int32_t                     iBindingTable,
-    uint32_t                    iThreadIndex,
-    uint8_t                     *pBuffer);
+    PCM_HAL_STATE               state,
+    PCM_HAL_KERNEL_ARG_PARAM    argParam,
+    PCM_HAL_INDEX_PARAM         indexParam,
+    int32_t                     bindingTable,
+    uint32_t                    threadIndex,
+    uint8_t                     *buffer);
 
 MOS_STATUS HalCm_SetupSampler8x8SurfaceState(
-    PCM_HAL_STATE               pState,
-    PCM_HAL_KERNEL_ARG_PARAM    pArgParam,
-    PCM_HAL_INDEX_PARAM         pIndexParam,
-    int32_t                     iBindingTable,
-    uint32_t                    iThreadIndex,
-    uint8_t                     *pBuffer);
+    PCM_HAL_STATE               state,
+    PCM_HAL_KERNEL_ARG_PARAM    argParam,
+    PCM_HAL_INDEX_PARAM         indexParam,
+    int32_t                     bindingTable,
+    uint32_t                    threadIndex,
+    uint8_t                     *buffer);
 
 //*-----------------------------------------------------------------------------
 //| Helper functions for EnqueueWithHints

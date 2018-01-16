@@ -123,8 +123,8 @@ protected:
               CmQueueRT *queue,
               CmTaskInternal *task,
               int32_t taskDriverId,
-              CmDeviceRT *cmDev,
-              bool m_isVisible);
+              CmDeviceRT *device,
+              bool isVisible);
 
     ~CmEventRT();
 

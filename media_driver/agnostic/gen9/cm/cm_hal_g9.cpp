@@ -256,18 +256,18 @@ MOS_STATUS CM_HAL_G9_X::RegisterSampler8x8(
 
     if (pParam->sampler8x8State.stateType == CM_SAMPLER8X8_AVS)
     {
-        for (uint32_t i = 0; i < pState->CmDeviceParam.iMaxSamplerTableSize; i++) {
-            if (!pState->pSamplerTable[i].bInUse) {
-                pSamplerEntry = &pState->pSamplerTable[i];
+        for (uint32_t i = 0; i < pState->cmDeviceParam.maxSamplerTableSize; i++) {
+            if (!pState->samplerTable[i].bInUse) {
+                pSamplerEntry = &pState->samplerTable[i];
                 pParam->handle = (uint32_t)i << 16;
                 pSamplerEntry->bInUse = true;
                 break;
             }
         }
 
-        for (uint32_t i = 0; i < pState->CmDeviceParam.iMaxSampler8x8TableSize; i++) {
-            if (!pState->pSampler8x8Table[i].inUse) {
-                pSampler8x8Entry = &pState->pSampler8x8Table[i];
+        for (uint32_t i = 0; i < pState->cmDeviceParam.maxSampler8x8TableSize; i++) {
+            if (!pState->sampler8x8Table[i].inUse) {
+                pSampler8x8Entry = &pState->sampler8x8Table[i];
                 samplerIndex = (int16_t)i;
                 pParam->handle |= (uint32_t)(i & 0xffff);
                 pSampler8x8Entry->inUse = true;
@@ -300,11 +300,11 @@ MOS_STATUS CM_HAL_G9_X::RegisterSampler8x8(
     }
     else if (pParam->sampler8x8State.stateType == CM_SAMPLER8X8_MISC)
     {
-        for (uint32_t i = 0; i < pState->CmDeviceParam.iMaxSamplerTableSize; i++)
+        for (uint32_t i = 0; i < pState->cmDeviceParam.maxSamplerTableSize; i++)
         {
-            if (!pState->pSamplerTable[i].bInUse)
+            if (!pState->samplerTable[i].bInUse)
             {
-                pSamplerEntry = &pState->pSamplerTable[i];
+                pSamplerEntry = &pState->samplerTable[i];
                 pParam->handle = (uint32_t)i << 16;
                 pSamplerEntry->bInUse = true;
                 break;
@@ -338,10 +338,10 @@ MOS_STATUS CM_HAL_G9_X::RegisterSampler8x8(
     }
     else if (pParam->sampler8x8State.stateType == CM_SAMPLER8X8_CONV)
     {
-        for (uint32_t i = 0; i < pState->CmDeviceParam.iMaxSamplerTableSize; i++)
+        for (uint32_t i = 0; i < pState->cmDeviceParam.maxSamplerTableSize; i++)
         {
-            if (!pState->pSamplerTable[i].bInUse) {
-                pSamplerEntry = &pState->pSamplerTable[i];
+            if (!pState->samplerTable[i].bInUse) {
+                pSamplerEntry = &pState->samplerTable[i];
                 pParam->handle = (uint32_t)i << 16;
                 pSamplerEntry->bInUse = true;
                 break;
@@ -485,7 +485,7 @@ MOS_STATUS CM_HAL_G9_X::HwSetSurfaceMemoryObjectControl(
     uint16_t                        wMemObjCtl,
     PRENDERHAL_SURFACE_STATE_PARAMS pParams)
 {
-    PRENDERHAL_INTERFACE pRenderHal = m_cmState->pRenderHal;
+    PRENDERHAL_INTERFACE pRenderHal = m_cmState->renderHal;
     MOS_STATUS hr = MOS_STATUS_SUCCESS;
 
     CM_HAL_MEMORY_OBJECT_CONTROL_G9 cache_type;
@@ -541,7 +541,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
 {
     MOS_STATUS                   hr           = MOS_STATUS_SUCCESS;
     PCM_HAL_STATE                pState       = m_cmState;      
-    PRENDERHAL_INTERFACE         pRenderHal   = pState->pRenderHal;
+    PRENDERHAL_INTERFACE         pRenderHal   = pState->renderHal;
     MhwRenderInterface           *pMhwRender  = pRenderHal->pMhwRenderInterface;
     PRENDERHAL_STATE_HEAP        pStateHeap   = pRenderHal->pStateHeap;
     PMOS_INTERFACE               pOsInterface = pRenderHal->pOsInterface;
@@ -549,15 +549,15 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     MHW_PIPE_CONTROL_PARAMS      PipeCtlParams;
     MHW_ID_LOAD_PARAMS           IdLoadParams;
     int32_t                      iRemaining   = 0;
-    bool                         enableWalker = pState->WalkerParams.CmWalkerEnable;
-    bool                         enableGpGpu  = pState->pTaskParam->blGpGpuWalkerEnabled;
+    bool                         enableWalker = pState->walkerParams.CmWalkerEnable;
+    bool                         enableGpGpu  = pState->taskParam->blGpGpuWalkerEnabled;
     MOS_COMMAND_BUFFER           CmdBuffer;
     uint32_t                     dwSyncTag;
     uint32_t                     dwFrameId;
     int64_t                      *pTaskSyncLocation;
     int32_t                      iSyncOffset;
     int32_t                      iTmp;
-    PCM_HAL_TASK_PARAM           pTaskParam = pState->pTaskParam;
+    PCM_HAL_TASK_PARAM           pTaskParam = pState->taskParam;
     bool                         sip_enable = pRenderHal->bSIPKernel? true: false;
     bool                         csr_enable = pRenderHal->bCSRKernel? true: false;
     PCM_HAL_BB_ARGS              pBbCmArgs;
@@ -573,10 +573,10 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     iSyncOffset = pState->pfnGetTaskSyncLocation(iTaskId);
 
     // Initialize the location
-    pTaskSyncLocation                 = (int64_t*)(pState->Render_TsResource.pData + iSyncOffset);
+    pTaskSyncLocation                 = (int64_t*)(pState->renderTimeStampResource.data + iSyncOffset);
     *pTaskSyncLocation                = CM_INVALID_INDEX;
     *(pTaskSyncLocation + 1)          = CM_INVALID_INDEX;
-    if(pState->bCBBEnabled)
+    if(pState->cbbEnabled)
     {
         *(pTaskSyncLocation + 2) = CM_INVALID_TAG;
     }
@@ -594,7 +594,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     // Register Timestamp Buffer
     CM_HRESULT2MOSSTATUS_AND_CHECK(pOsInterface->pfnRegisterResource(
         pOsInterface,
-        &pState->Render_TsResource.OsResource,
+        &pState->renderTimeStampResource.osResource,
         true,
         true));
 
@@ -603,7 +603,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     iRemaining = CmdBuffer.iRemaining;
 
     // Update power option of this command;
-    CM_CHK_MOSSTATUS( pState->pfnUpdatePowerOption( pState, &pState->PowerOption ) );
+    CM_CHK_MOSSTATUS( pState->pfnUpdatePowerOption( pState, &pState->powerOption ) );
 
     // use frame tracking to write the GPU status Tag to GPU status buffer.
     // On Linux, it justs return next sync tag here since currently no frame tracking support
@@ -615,7 +615,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
 
     //Send the First PipeControl Command to indicate the beginning of execution
     PipeCtlParams = g_cRenderHal_InitPipeControlParams;
-    PipeCtlParams.presDest          = &pState->Render_TsResource.OsResource;
+    PipeCtlParams.presDest          = &pState->renderTimeStampResource.osResource;
     PipeCtlParams.dwResourceOffset  = iSyncOffset;
     PipeCtlParams.dwPostSyncOp      = MHW_FLUSH_WRITE_TIMESTAMP_REG;
     PipeCtlParams.dwFlushMode       = MHW_FLUSH_WRITE_CACHE;
@@ -631,7 +631,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     dwSyncTag = pStateHeap->dwNextTag++;
 
     //enable SKL L3 config
-    HalCm_GetLegacyRenderHalL3Setting( &pState->l3_settings, &pRenderHal->L3CacheSettings );
+    HalCm_GetLegacyRenderHalL3Setting( &pState->l3Settings, &pRenderHal->L3CacheSettings );
     pRenderHal->pfnEnableL3Caching(pRenderHal, &pRenderHal->L3CacheSettings);
     pMhwRender->SetL3Cache(&CmdBuffer);
 
@@ -642,7 +642,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
 
     // Adds granularity control for preemption for Gen9.
     // Supporting Preemption granularity control reg for 3D and GPGPU mode for per ctx and with non-privileged access
-    if ( MEDIA_IS_SKU(pState->pSkuTable, FtrPerCtxtPreemptionGranularityControl ))
+    if ( MEDIA_IS_SKU(pState->skuTable, FtrPerCtxtPreemptionGranularityControl ))
     {
         MHW_MI_LOAD_REGISTER_IMM_PARAMS LoadRegImm;
         MOS_ZeroMemory( &LoadRegImm, sizeof( MHW_MI_LOAD_REGISTER_IMM_PARAMS ) );
@@ -652,22 +652,22 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
         // Same reg offset and value for gpgpu pipe and media pipe
         if ( enableGpGpu )
         {
-            if (MEDIA_IS_SKU(pState->pSkuTable, FtrGpGpuMidThreadLevelPreempt)) {
+            if (MEDIA_IS_SKU(pState->skuTable, FtrGpGpuMidThreadLevelPreempt)) {
 				if (csr_enable)
 					LoadRegImm.dwData = MHW_RENDER_ENGINE_MID_THREAD_PREEMPT_VALUE;
 				else
 					LoadRegImm.dwData = MHW_RENDER_ENGINE_THREAD_GROUP_PREEMPT_VALUE;
 
             }
-            else if ( MEDIA_IS_SKU(pState->pSkuTable, FtrGpGpuThreadGroupLevelPreempt ))
+            else if ( MEDIA_IS_SKU(pState->skuTable, FtrGpGpuThreadGroupLevelPreempt ))
             {
                 LoadRegImm.dwData = MHW_RENDER_ENGINE_THREAD_GROUP_PREEMPT_VALUE;
-                pState->pRenderHal->pfnEnableGpgpuMiddleBatchBufferPreemption( pState->pRenderHal );
+                pState->renderHal->pfnEnableGpgpuMiddleBatchBufferPreemption( pState->renderHal );
             }
-            else if ( MEDIA_IS_SKU(pState->pSkuTable, FtrGpGpuMidBatchPreempt ))
+            else if ( MEDIA_IS_SKU(pState->skuTable, FtrGpGpuMidBatchPreempt ))
             {
                 LoadRegImm.dwData = MHW_RENDER_ENGINE_MID_BATCH_PREEMPT_VALUE;
-                pState->pRenderHal->pfnEnableGpgpuMiddleBatchBufferPreemption( pState->pRenderHal );
+                pState->renderHal->pfnEnableGpgpuMiddleBatchBufferPreemption( pState->renderHal );
             }
             else
             {
@@ -677,15 +677,15 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
         }
         else
         {
-            if ( MEDIA_IS_SKU(pState->pSkuTable, FtrMediaMidThreadLevelPreempt))
+            if ( MEDIA_IS_SKU(pState->skuTable, FtrMediaMidThreadLevelPreempt))
             {
                 LoadRegImm.dwData = MHW_RENDER_ENGINE_MID_THREAD_PREEMPT_VALUE;
             }
-            else if ( MEDIA_IS_SKU(pState->pSkuTable, FtrMediaThreadGroupLevelPreempt) )
+            else if ( MEDIA_IS_SKU(pState->skuTable, FtrMediaThreadGroupLevelPreempt) )
             {
                 LoadRegImm.dwData = MHW_RENDER_ENGINE_THREAD_GROUP_PREEMPT_VALUE;
             }
-            else if ( MEDIA_IS_SKU(pState->pSkuTable, FtrMediaMidBatchPreempt))
+            else if ( MEDIA_IS_SKU(pState->skuTable, FtrMediaMidBatchPreempt))
             {
                 LoadRegImm.dwData = MHW_RENDER_ENGINE_MID_BATCH_PREEMPT_VALUE;
             }
@@ -713,7 +713,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
             // Send CS_STALL pipe control
             //Insert a pipe control as synchronization
             PipeCtlParams = g_cRenderHal_InitPipeControlParams;
-            PipeCtlParams.presDest = &pState->Render_TsResource.OsResource;
+            PipeCtlParams.presDest = &pState->renderTimeStampResource.osResource;
             PipeCtlParams.dwPostSyncOp = MHW_FLUSH_NOWRITE;
             PipeCtlParams.dwFlushMode = MHW_FLUSH_WRITE_CACHE;
             PipeCtlParams.bDisableCSStall = 0;
@@ -728,30 +728,30 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
 
             CM_HRESULT2MOSSTATUS_AND_CHECK(pOsInterface->pfnRegisterResource(
                 pOsInterface,
-                &pState->CSRResource,
+                &pState->csrResource,
                 true,
                 true));
 
             // Send csr base addr command
-            CM_CHK_MOSSTATUS(pMhwRender->AddGpgpuCsrBaseAddrCmd(&CmdBuffer, &pState->CSRResource));
+            CM_CHK_MOSSTATUS(pMhwRender->AddGpgpuCsrBaseAddrCmd(&CmdBuffer, &pState->csrResource));
         }
     }
 
     // Setup VFE State params. Each Renderer MUST call pfnSetVfeStateParams().
     // See comment in pfnSetVfeStateParams() for details.
     iTmp = RENDERHAL_USE_MEDIA_THREADS_MAX;
-    if (pState->MaxHWThreadValues.userFeatureValue != 0)
+    if (pState->maxHWThreadValues.userFeatureValue != 0)
     {
-        if( pState->MaxHWThreadValues.userFeatureValue < pRenderHal->pHwCaps->dwMaxThreads)
+        if( pState->maxHWThreadValues.userFeatureValue < pRenderHal->pHwCaps->dwMaxThreads)
         {
-            iTmp = pState->MaxHWThreadValues.userFeatureValue;
+            iTmp = pState->maxHWThreadValues.userFeatureValue;
         }
     }
-    else if (pState->MaxHWThreadValues.APIValue != 0)
+    else if (pState->maxHWThreadValues.apiValue != 0)
     {
-        if( pState->MaxHWThreadValues.APIValue < pRenderHal->pHwCaps->dwMaxThreads)
+        if( pState->maxHWThreadValues.apiValue < pRenderHal->pHwCaps->dwMaxThreads)
         {
-            iTmp = pState->MaxHWThreadValues.APIValue;
+            iTmp = pState->maxHWThreadValues.apiValue;
         }
     }
 
@@ -759,22 +759,22 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
         pRenderHal,
         MEDIASTATE_DEBUG_COUNTER_FREE_RUNNING,
         iTmp,
-        pState->pTaskParam->vfeCurbeSize,
-        pState->pTaskParam->urbEntrySize,
-        &pState->ScoreboardParams);
+        pState->taskParam->vfeCurbeSize,
+        pState->taskParam->urbEntrySize,
+        &pState->scoreboardParams);
 
     // Send VFE State
     CM_CHK_MOSSTATUS(pMhwRender->AddMediaVfeCmd(&CmdBuffer,
                      pRenderHal->pRenderHalPltInterface->GetVfeStateParameters()));
 
     // Send CURBE Load
-    if (pState->pTaskParam->vfeCurbeSize > 0)
+    if (pState->taskParam->vfeCurbeSize > 0)
     {
         CM_CHK_MOSSTATUS(pRenderHal->pfnSendCurbeLoad(pRenderHal, &CmdBuffer));
     }
 
     // Send Interface Descriptor Load
-    if (pState->bDynamicStateHeap)
+    if (pState->dshEnabled)
     {
         PRENDERHAL_DYNAMIC_STATE pDynamicState = pStateHeap->pCurMediaState->pDynamicState;
         IdLoadParams.dwInterfaceDescriptorStartOffset = pDynamicState->pMemoryBlock->dwDataOffset +
@@ -792,7 +792,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     if (enableWalker)
     {
         // send media walker command, if required
-        for (uint32_t i = 0; i < pState->pTaskParam->numKernels; i ++)
+        for (uint32_t i = 0; i < pState->taskParam->numKernels; i ++)
         {
             // Insert CONDITIONAL_BATCH_BUFFER_END
             if ( pTaskParam->conditionalEndBitmap & ((uint64_t)1 << (i)))
@@ -816,7 +816,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
             {
                 //Insert a pipe control as synchronization
                 PipeCtlParams = g_cRenderHal_InitPipeControlParams;
-                PipeCtlParams.presDest         = &pState->Render_TsResource.OsResource;
+                PipeCtlParams.presDest         = &pState->renderTimeStampResource.osResource;
                 PipeCtlParams.dwPostSyncOp     = MHW_FLUSH_NOWRITE;
                 PipeCtlParams.dwFlushMode      = MHW_FLUSH_CUSTOM;
                 PipeCtlParams.bInvalidateTextureCache = true;
@@ -831,14 +831,14 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     {
         // send GPGPU walker command, if required
 
-        for (uint32_t i = 0; i < pState->pTaskParam->numKernels; i ++)
+        for (uint32_t i = 0; i < pState->taskParam->numKernels; i ++)
         {
             //Insert PIPE_CONTROL as synchronization if synchronization is set
             if((i > 0) && (pTaskParam->syncBitmap & ((uint64_t)1 << (i-1))))
             {
                 //Insert a pipe control as synchronization
                 PipeCtlParams = g_cRenderHal_InitPipeControlParams;
-                PipeCtlParams.presDest = &pState->Render_TsResource.OsResource;
+                PipeCtlParams.presDest = &pState->renderTimeStampResource.osResource;
                 PipeCtlParams.dwPostSyncOp = MHW_FLUSH_NOWRITE;
                 PipeCtlParams.dwFlushMode = MHW_FLUSH_CUSTOM;
                 PipeCtlParams.bInvalidateTextureCache = true;
@@ -860,7 +860,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
         pBbCmArgs = (PCM_HAL_BB_ARGS) pBatchBuffer->pPrivateData;
 
         if ( (pBbCmArgs->refCount == 1) ||
-                 (pState->pTaskParam->reuseBBUpdateMask == 1) )
+                 (pState->taskParam->reuseBBUpdateMask == 1) )
         {
             // Add BB end command
             CM_CHK_MOSSTATUS(pMhwMiInterface->AddMiBatchBufferEnd(nullptr, pBatchBuffer));
@@ -873,7 +873,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
 
         // UnLock the batch buffer
         if ( (pBbCmArgs->refCount == 1) ||
-             (pState->pTaskParam->reuseBBUpdateMask == 1) )
+             (pState->taskParam->reuseBBUpdateMask == 1) )
         {
             CM_CHK_MOSSTATUS(pRenderHal->pfnUnlockBB(pRenderHal, pBatchBuffer));
         }
@@ -882,20 +882,20 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     // issue a PIPE_CONTROL to flush all caches and the stall the CS before 
     // issuing a PIPE_CONTROL to write the timestamp
     PipeCtlParams = g_cRenderHal_InitPipeControlParams;
-    PipeCtlParams.presDest      = &pState->Render_TsResource.OsResource;
+    PipeCtlParams.presDest      = &pState->renderTimeStampResource.osResource;
     PipeCtlParams.dwPostSyncOp  = MHW_FLUSH_NOWRITE;
     PipeCtlParams.dwFlushMode   = MHW_FLUSH_WRITE_CACHE;
     CM_CHK_MOSSTATUS(pMhwMiInterface->AddPipeControl(&CmdBuffer, nullptr, &PipeCtlParams));
 
     // Find the SVM slot, patch it into this dummy pipe_control
-    for (i = 0; i < pState->CmDeviceParam.iMaxBufferTableSize; i++)
+    for (i = 0; i < pState->cmDeviceParam.maxBufferTableSize; i++)
     {
         //Only register SVM resource here
-        if (pState->pBufferTable[i].pAddress)
+        if (pState->bufferTable[i].address)
         {
             CM_HRESULT2MOSSTATUS_AND_CHECK(pOsInterface->pfnRegisterResource(
                     pOsInterface,
-                    &pState->pBufferTable[i].OsResource,
+                    &pState->bufferTable[i].osResource,
                     true,
                     false));
         }
@@ -904,7 +904,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     // issue a PIPE_CONTROL to write timestamp
     iSyncOffset += sizeof(uint64_t);
     PipeCtlParams = g_cRenderHal_InitPipeControlParams;
-    PipeCtlParams.presDest          = &pState->Render_TsResource.OsResource;
+    PipeCtlParams.presDest          = &pState->renderTimeStampResource.osResource;
     PipeCtlParams.dwResourceOffset  = iSyncOffset;
     PipeCtlParams.dwPostSyncOp      = MHW_FLUSH_WRITE_TIMESTAMP_REG;
     PipeCtlParams.dwFlushMode       = MHW_FLUSH_READ_CACHE;
@@ -939,7 +939,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     pOsInterface->pfnReturnCommandBuffer(pOsInterface, &CmdBuffer, 0);
 
 #if MDF_COMMAND_BUFFER_DUMP
-    if (pState->bDumpCommandBuffer)
+    if (pState->dumpCommandBuffer)
     {
         pState->pfnDumpCommadBuffer(
             pState,
@@ -949,15 +949,15 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     }
 #endif 
 
-    CM_CHK_MOSSTATUS(pState->pfnGetGlobalTime(&pState->pTaskTimeStamp->iGlobalCmSubmitTime[iTaskId]));
-    CM_CHK_MOSSTATUS(pState->pfnGetGpuTime(pState, &pState->pTaskTimeStamp->iCMSubmitTimeStamp[iTaskId]));
+    CM_CHK_MOSSTATUS(pState->pfnGetGlobalTime(&pState->taskTimeStamp->submitTimeInCpu[iTaskId]));
+    CM_CHK_MOSSTATUS(pState->pfnGetGpuTime(pState, &pState->taskTimeStamp->submitTimeInGpu[iTaskId]));
 
     // Submit command buffer
     CM_HRESULT2MOSSTATUS_AND_CHECK(pOsInterface->pfnSubmitCommandBuffer(pOsInterface,
         &CmdBuffer,
-        pState->bNullHwRenderCm));
+        pState->nullHwRenderCm));
 
-    if (pState->bNullHwRenderCm == false)
+    if (pState->nullHwRenderCm == false)
     {
         pStateHeap->pCurMediaState->bBusy = true;
         if ( !enableWalker && !enableGpGpu )
@@ -968,7 +968,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     }
 
     // reset API call number of HW threads
-    pState->MaxHWThreadValues.APIValue = 0;
+    pState->maxHWThreadValues.apiValue = 0;
 
     pState->pfnReferenceCommandBuffer(&CmdBuffer.OsResource, ppCmdBuffer);
 
@@ -1018,18 +1018,18 @@ MOS_STATUS CM_HAL_G9_X::UpdatePlatformInfoFromPower(
     bool              bEUSaturation)
 {
     PCM_HAL_STATE              pState     = m_cmState;
-    PRENDERHAL_INTERFACE       pRenderHal = pState->pRenderHal;
+    PRENDERHAL_INTERFACE       pRenderHal = pState->renderHal;
     CM_POWER_OPTION            CMPower;
 
-    if ( pState->bRequestSingleSlice || 
+    if ( pState->requestSingleSlice || 
          pRenderHal->bRequestSingleSlice ||
-        (pState->PowerOption.nSlice != 0 && pState->PowerOption.nSlice < platformInfo->numSlices))
+        (pState->powerOption.nSlice != 0 && pState->powerOption.nSlice < platformInfo->numSlices))
     {
         platformInfo->numSubSlices = platformInfo->numSubSlices / platformInfo->numSlices;
-        if (pState->PowerOption.nSlice > 1)
+        if (pState->powerOption.nSlice > 1)
         {
-            platformInfo->numSubSlices *= pState->PowerOption.nSlice;
-            platformInfo->numSlices     = pState->PowerOption.nSlice;
+            platformInfo->numSubSlices *= pState->powerOption.nSlice;
+            platformInfo->numSlices     = pState->powerOption.nSlice;
         }
         else
         {
@@ -1084,13 +1084,13 @@ MOS_STATUS CM_HAL_G9_X::SetSuggestedL3Conf(
         return MOS_STATUS_INVALID_PARAMETER;
     }
     return HalCm_SetL3Cache((L3ConfigRegisterValues *)&SKL_L3_PLANE[L3Conf],
-                                     &m_cmState->l3_settings);
+                                     &m_cmState->l3Settings);
 }
 
 MOS_STATUS CM_HAL_G9_X::AllocateSIPCSRResource()
 {
     MOS_STATUS hr = MOS_STATUS_SUCCESS;
-    if (Mos_ResourceIsNull(&m_cmState->SipResource.OsResource)) 
+    if (Mos_ResourceIsNull(&m_cmState->sipResource.osResource)) 
     {
         CM_CHK_MOSSTATUS_RETURN(HalCm_AllocateSipResource(m_cmState)); // create  sip resource if it does not exist
         CM_CHK_MOSSTATUS_RETURN(HalCm_AllocateCSRResource(m_cmState));
@@ -1103,7 +1103,7 @@ MOS_STATUS CM_HAL_G9_X::GetGenStepInfo(char*& stepinfostr)
 {
     const char *CmSteppingInfo[] = { "A", "B", "C", "D", "E", "F", 
                                          "G", "H", "I", "J" };
-    uint32_t genStepId = m_cmState->Platform.usRevId;
+    uint32_t genStepId = m_cmState->platform.usRevId;
 
     if (m_steppingTable.size() != 0) //check if the stepping table been overwritten
     {

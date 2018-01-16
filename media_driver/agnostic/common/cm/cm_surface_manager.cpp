@@ -2210,13 +2210,13 @@ int32_t CmSurfaceManager::UpdateSurface2DTableMosResource( uint32_t index, MOS_R
     PCM_HAL_STATE pState = pCmData->cmHalState;
 
     PCM_HAL_SURFACE2D_ENTRY pEntry = nullptr;
-    pEntry = &pState->pUmdSurf2DTable[ index ];
-    pEntry->OsResource = *mosResource;
-    HalCm_OsResource_Reference( &pEntry->OsResource );
+    pEntry = &pState->umdSurf2DTable[ index ];
+    pEntry->osResource = *mosResource;
+    HalCm_OsResource_Reference( &pEntry->osResource );
 
     for ( int i = 0; i < CM_HAL_GPU_CONTEXT_COUNT; i++ )
     {
-        pEntry->bReadSync[ i ] = false;
+        pEntry->readSyncs[ i ] = false;
     }
     return CM_SUCCESS;
 }
@@ -2248,7 +2248,7 @@ int32_t CmSurfaceManager::UpdateSurface2DTableRotation(uint32_t index, CM_ROTATI
     PCM_HAL_STATE pState = pCmData->cmHalState;
 
     PCM_HAL_SURFACE2D_ENTRY pEntry = nullptr;
-    pEntry = &pState->pUmdSurf2DTable[index];
+    pEntry = &pState->umdSurf2DTable[index];
     pEntry->rotationFlag = CmRotationToMhwRotation(rotationFlag);
 
     return CM_SUCCESS;
@@ -2260,7 +2260,7 @@ int32_t CmSurfaceManager::UpdateSurface2DTableFrameType(uint32_t index, CM_FRAME
     PCM_HAL_STATE pState = pCmData->cmHalState;
 
     PCM_HAL_SURFACE2D_ENTRY pEntry = nullptr;
-    pEntry = &pState->pUmdSurf2DTable[index];
+    pEntry = &pState->umdSurf2DTable[index];
     pEntry->frameType = frameType;
 
     return CM_SUCCESS;
@@ -2271,7 +2271,7 @@ int32_t CmSurfaceManager::UpdateSurface2DTableChromaSiting(uint32_t index, int32
     PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
     PCM_HAL_STATE pState = pCmData->cmHalState;
     PCM_HAL_SURFACE2D_ENTRY pEntry = nullptr;
-    pEntry = &pState->pUmdSurf2DTable[index];
+    pEntry = &pState->umdSurf2DTable[index];
     pEntry->chromaSiting = chromaSiting;
     return CM_SUCCESS;
 }
@@ -2281,7 +2281,7 @@ int32_t CmSurfaceManager::GetSurfaceBTIInfo()
     PCM_HAL_STATE           pCmHalState;
     pCmHalState = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
 
-    return pCmHalState->pCmHalInterface->GetHwSurfaceBTIInfo(&m_surfaceBTIInfo);
+    return pCmHalState->cmHalInterface->GetHwSurfaceBTIInfo(&m_surfaceBTIInfo);
 }
 
 uint32_t CmSurfaceManager::ValidSurfaceIndexStart()
@@ -2444,7 +2444,7 @@ int32_t CMRT_UMD::CmSurfaceManager::CreateMediaStateByCurbeSize( void  *& mediaS
     Params.iMaxThreads = CM_MAX_USER_THREADS;
 
     // Prepare Media States to accommodate all parameters - Curbe, Samplers (3d/AVS/VA), 8x8 sampler table, Media IDs
-    mediaState = pState->pRenderHal->pfnAssignDynamicState( pState->pRenderHal, &Params, RENDERHAL_COMPONENT_CM );
+    mediaState = pState->renderHal->pfnAssignDynamicState( pState->renderHal, &Params, RENDERHAL_COMPONENT_CM );
 
     return result;
 }

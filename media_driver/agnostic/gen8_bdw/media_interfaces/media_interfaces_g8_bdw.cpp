@@ -356,23 +356,23 @@ MOS_STATUS CMHalInterfacesG8Bdw::Initialize(CM_HAL_STATE *pCmState)
     }
     uint32_t gengt = PLATFORM_INTEL_GT2;
 
-    if( MEDIA_IS_SKU(pCmState->pSkuTable, FtrGT1 ))
+    if( MEDIA_IS_SKU(pCmState->skuTable, FtrGT1 ))
     {
         gengt = PLATFORM_INTEL_GT1;
     }
-    else if (MEDIA_IS_SKU(pCmState->pSkuTable, FtrGT1_5))
+    else if (MEDIA_IS_SKU(pCmState->skuTable, FtrGT1_5))
     {
         gengt = PLATFORM_INTEL_GT1_5;
     }
-    else if( MEDIA_IS_SKU(pCmState->pSkuTable, FtrGT2 ))
+    else if( MEDIA_IS_SKU(pCmState->skuTable, FtrGT2 ))
     {
         gengt = PLATFORM_INTEL_GT2;
     }
-    else if( MEDIA_IS_SKU(pCmState->pSkuTable, FtrGT3 ))
+    else if( MEDIA_IS_SKU(pCmState->skuTable, FtrGT3 ))
     {
         gengt = PLATFORM_INTEL_GT3;
     }
-    else if( MEDIA_IS_SKU(pCmState->pSkuTable, FtrGT4 ))
+    else if( MEDIA_IS_SKU(pCmState->skuTable, FtrGT4 ))
     {
         gengt = PLATFORM_INTEL_GT4;
     }

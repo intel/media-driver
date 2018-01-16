@@ -251,7 +251,7 @@ int32_t CmKernelRT::SafeRelease( void)
     {
         PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)m_pCmDev->GetAccelData();
         PCM_HAL_STATE pState = pCmData->cmHalState;
-        if (pState->bDynamicStateHeap)
+        if (pState->dshEnabled)
         {
             pState->pfnDSHUnregisterKernel(pState, m_Id);
         }
@@ -1105,7 +1105,7 @@ int32_t CmKernelRT::SetArgsSingleVme(CmSurfaceVme* pSurfVme, uint8_t *pVmeArgVal
     pVmeArg->fwRefNum = VmeForwardSurfaceCount;
     pVmeArg->bwRefNum = VmeBackwardSurfaceCount; // these two numbers must be set before any other operations
 
-    pSurfVme->GetSurfaceStateResolution(pVmeArg->surfStateParam.iSurfaceStateWidth, pVmeArg->surfStateParam.iSurfaceStateHeight);
+    pSurfVme->GetSurfaceStateResolution(pVmeArg->surfStateParam.surfaceStateWidth, pVmeArg->surfStateParam.surfaceStateHeight);
 
     pSurfVme->GetIndexForwardArray(f_array);
     pSurfVme->GetIndexBackwardArray(b_array);
@@ -4982,7 +4982,7 @@ CM_RT_API CM_RETURN_CODE CmKernelRT::GetIndexForCurbeData( uint32_t curbe_data_s
     void  *temp_ptr = nullptr;
     CmStateBuffer *state_buffer = nullptr;
 
-    if ( pState->bDynamicStateHeap == false )
+    if ( pState->dshEnabled == false )
     {
         // Currently only support it when dynamic state heap is enabled
         return CM_FAILED_TO_CREATE_CURBE_SURFACE;
@@ -4995,7 +4995,7 @@ CM_RT_API CM_RETURN_CODE CmKernelRT::GetIndexForCurbeData( uint32_t curbe_data_s
     if ( ( state_buffer != nullptr ) && ( media_state_ptr != nullptr ) )
     {
         // Get curbe address, ideally the DSH should provide the API to get all of the GFX VA of different part of the heap
-        uint64_t curbe_gfx_va = pState->pOsInterface->pfnGetResourceGfxAddress( pState->pOsInterface, &( media_state_ptr->pDynamicState->pMemoryBlock->pStateHeap->resHeap ) ) +
+        uint64_t curbe_gfx_va = pState->osInterface->pfnGetResourceGfxAddress( pState->osInterface, &( media_state_ptr->pDynamicState->pMemoryBlock->pStateHeap->resHeap ) ) +
             media_state_ptr->pDynamicState->pMemoryBlock->dwDataOffset + media_state_ptr->pDynamicState->Curbe.dwOffset;
 
         SurfaceIndex *temp_index = nullptr;
@@ -5737,12 +5737,12 @@ CM_RT_API int32_t CmKernelRT::SetSamplerBTI(SamplerIndex* pSampler, uint32_t nIn
         {
             if ((m_SamplerBTIEntry[i].samplerIndex != samplerIndex) && (m_SamplerBTIEntry[i].samplerBTI == nIndex))
             {
-                if (pCmHalState->use_new_sampler_heap)
+                if (pCmHalState->useNewSamplerHeap)
                 {
                     SamplerParam sampler1 = {};
                     SamplerParam sampler2 = {};
-                    pCmHalState->pCmHalInterface->GetSamplerParamInfoForSamplerType(&pCmHalState->pSamplerTable[m_SamplerBTIEntry[i].samplerIndex], sampler1);
-                    pCmHalState->pCmHalInterface->GetSamplerParamInfoForSamplerType(&pCmHalState->pSamplerTable[samplerIndex], sampler2);
+                    pCmHalState->cmHalInterface->GetSamplerParamInfoForSamplerType(&pCmHalState->samplerTable[m_SamplerBTIEntry[i].samplerIndex], sampler1);
+                    pCmHalState->cmHalInterface->GetSamplerParamInfoForSamplerType(&pCmHalState->samplerTable[samplerIndex], sampler2);
 
                     if (sampler1.elementType== sampler2.elementType)
                     {
@@ -5763,7 +5763,7 @@ CM_RT_API int32_t CmKernelRT::SetSamplerBTI(SamplerIndex* pSampler, uint32_t nIn
 
             if (sampler8x8 && tmp_sampler8x8 && (sampler8x8->GetStateType() == CM_SAMPLER8X8_AVS)
                 && (tmp_sampler8x8->GetStateType() == CM_SAMPLER8X8_AVS) &&
-                pCmHalState->pCmHalInterface->IsAdjacentSamplerIndexRequiredbyHw())
+                pCmHalState->cmHalInterface->IsAdjacentSamplerIndexRequiredbyHw())
             {
                 if ((m_SamplerBTIEntry[i].samplerIndex != samplerIndex) &&
                     ((m_SamplerBTIEntry[i].samplerBTI == nIndex + 1) || (m_SamplerBTIEntry[i].samplerBTI == nIndex - 1)))
@@ -5849,7 +5849,7 @@ int CmKernelRT::UpdateSamplerHeap(CmKernelData *pCmKernelData)
     std::list<SamplerParam>::iterator iter;
     unsigned int heap_offset = 0;
 
-    if (pState->use_new_sampler_heap == false)
+    if (pState->useNewSamplerHeap == false)
     {
         return CM_SUCCESS;
     }
@@ -5866,11 +5866,11 @@ int CmKernelRT::UpdateSamplerHeap(CmKernelData *pCmKernelData)
             SamplerParam sampler = {};
             sampler.samplerTableIndex = pCmKernel->samplerBTIParam.samplerInfo[n].samplerIndex;
 
-            if (pState->pSamplerTable[sampler.samplerTableIndex].ElementType == sampler_element_type)
+            if (pState->samplerTable[sampler.samplerTableIndex].ElementType == sampler_element_type)
             {
                 sampler.bti = pCmKernel->samplerBTIParam.samplerInfo[n].samplerBTI;
                 sampler.userDefinedBti = true;
-                pState->pCmHalInterface->GetSamplerParamInfoForSamplerType(&pState->pSamplerTable[sampler.samplerTableIndex], sampler);
+                pState->cmHalInterface->GetSamplerParamInfoForSamplerType(&pState->samplerTable[sampler.samplerTableIndex], sampler);
 
                 // Guarantees each user-defined BTI has a spacing between each other user-defined BTIs larger than the stepping
                 for (iter = sampler_heap->begin(); iter != sampler_heap->end(); iter++)
@@ -5925,7 +5925,7 @@ int CmKernelRT::UpdateSamplerHeap(CmKernelData *pCmKernelData)
 
                     SamplerParam sampler = {};
                     sampler.samplerTableIndex = sampler_table_index;
-                    pState->pCmHalInterface->GetSamplerParamInfoForSamplerType(&pState->pSamplerTable[sampler.samplerTableIndex], sampler);
+                    pState->cmHalInterface->GetSamplerParamInfoForSamplerType(&pState->samplerTable[sampler.samplerTableIndex], sampler);
                     sampler.regularBti = true;
 
                     if (sampler.elementType != sampler_element_type)

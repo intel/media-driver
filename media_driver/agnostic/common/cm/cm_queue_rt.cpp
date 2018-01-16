@@ -175,7 +175,7 @@ int32_t CmQueueRT::Initialize()
     if (m_queueOption.UserGPUContext == true)
     {
         // Checks if it is the user-provided GPU context. If it is valid, we will create the queue with the existing Context
-        if (pCmHalState->pOsInterface->pfnIsGpuContextValid(pCmHalState->pOsInterface, (MOS_GPU_CONTEXT)m_queueOption.GPUContext) != MOS_STATUS_SUCCESS)
+        if (pCmHalState->osInterface->pfnIsGpuContextValid(pCmHalState->osInterface, (MOS_GPU_CONTEXT)m_queueOption.GPUContext) != MOS_STATUS_SUCCESS)
         {
             // Returns failure
             CM_ASSERTMESSAGE("Error: The user passed in an GPU context which is not valid");
@@ -187,8 +187,8 @@ int32_t CmQueueRT::Initialize()
         // Create MDF preset GPU context, update GPUContext in m_queueOption
         if (m_queueOption.QueueType == CM_QUEUE_TYPE_RENDER)
         {
-            CHK_MOSSTATUS_RETURN_CMERROR(pCmHalState->pfnCreateGPUContext(pCmHalState, pCmHalState->GpuContext, MOS_GPU_NODE_3D));
-            m_queueOption.GPUContext = pCmHalState->GpuContext;
+            CHK_MOSSTATUS_RETURN_CMERROR(pCmHalState->pfnCreateGPUContext(pCmHalState, pCmHalState->gpuContext, MOS_GPU_NODE_3D));
+            m_queueOption.GPUContext = pCmHalState->gpuContext;
         }
         else if (m_queueOption.QueueType == CM_QUEUE_TYPE_COMPUTE)
         {
@@ -1282,7 +1282,7 @@ int32_t CmQueueRT::EnqueueCopyInternal_1Plane(CmSurface2DRT* pSurface,
 
         if( direction == CM_FASTCOPY_CPU2GPU)
         {
-            if (pCmHalState->pCmHalInterface->IsSurfaceCompressionWARequired())
+            if (pCmHalState->cmHalInterface->IsSurfaceCompressionWARequired())
             {
                 CMCHK_HR(pSurface->SetCompressionMode(MEMCOMP_DISABLED));
             }
@@ -1521,7 +1521,7 @@ int32_t CmQueueRT::EnqueueCopyInternal_2Planes(CmSurface2DRT* pSurface,
     CMCHK_HR(m_pDevice->CreateBufferUP(BufferUP_UV_Size, (void *)pLinearAddressAligned_UV, pCMBufferUP_UV));
 
     //Configure memory object control for the two BufferUP to solve the same cache-line coherency issue.
-    if (pCmHalState->pCmHalInterface->IsGPUCopySurfaceNoCacheWARequired())
+    if (pCmHalState->cmHalInterface->IsGPUCopySurfaceNoCacheWARequired())
     {
         CMCHK_HR(pCMBufferUP_Y->SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL_SKL_NO_LLC_L3));
         CMCHK_HR(pCMBufferUP_UV->SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL_SKL_NO_LLC_L3));
@@ -1556,7 +1556,7 @@ int32_t CmQueueRT::EnqueueCopyInternal_2Planes(CmSurface2DRT* pSurface,
     if (direction == CM_FASTCOPY_CPU2GPU) //Write
     {
         //Input BufferUP_Y and BufferUP_UV
-        if (pCmHalState->pCmHalInterface->IsSurfaceCompressionWARequired())
+        if (pCmHalState->cmHalInterface->IsSurfaceCompressionWARequired())
         {
             CMCHK_HR(pSurface->SetCompressionMode(MEMCOMP_DISABLED));
         }
@@ -1712,7 +1712,7 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyGPUToGPU( CmSurface2D* pOutputSurface, C
     PCM_HAL_STATE   pCmHalState = ((PCM_CONTEXT_DATA)m_pDevice->GetAccelData())->cmHalState;
     CmSurface2DRT *pOutputSurfaceRT = static_cast<CmSurface2DRT *>(pOutputSurface);
     CmSurface2DRT *pInputSurfaceRT = static_cast<CmSurface2DRT *>(pInputSurface);
-    if (pCmHalState->pCmHalInterface->IsSurfaceCompressionWARequired())
+    if (pCmHalState->cmHalInterface->IsSurfaceCompressionWARequired())
     {
         CMCHK_HR(pOutputSurfaceRT->SetCompressionMode(MEMCOMP_DISABLED));
     }
@@ -2029,7 +2029,7 @@ void CmQueueRT::PopTaskFromFlushedQueue()
 
 #if MDF_SURFACE_CONTENT_DUMP
         PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)m_pDevice->GetAccelData();
-        if (pCmData->cmHalState->bDumpSurfaceContent)
+        if (pCmData->cmHalState->dumpSurfaceContent)
         {
             int32_t iTaskId = 0;
             if (pEvent != nullptr)
@@ -2115,7 +2115,7 @@ int32_t CmQueueRT::QueryFlushedTasks()
                 CMCHK_NULL(pTopTaskEvent);
 
                 pTopTaskEvent->GetTaskDriverId(iTaskId);
-                pCmData->cmHalState->pTaskStatusTable[iTaskId] = CM_INVALID_INDEX;
+                pCmData->cmHalState->taskStatusTable[iTaskId] = CM_INVALID_INDEX;
 
                 //Pop task and Destroy it
                 PopTaskFromFlushedQueue();

@@ -42,13 +42,13 @@ namespace CMRT_UMD
 //| Purpose:    Create Cm Event 
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmEventRT::Create(uint32_t index, CmQueueRT *queue, CmTaskInternal *task, int32_t taskDriverId, CmDeviceRT *cmDev, bool m_isVisible, CmEventRT *&event)
+int32_t CmEventRT::Create(uint32_t index, CmQueueRT *queue, CmTaskInternal *task, int32_t taskDriverId, CmDeviceRT *cmDev, bool isVisible, CmEventRT *&event)
 {
     int32_t result = CM_SUCCESS;
-    event = new (std::nothrow) CmEventRT( index, queue, task, taskDriverId, cmDev, m_isVisible );
+    event = new (std::nothrow) CmEventRT( index, queue, task, taskDriverId, cmDev, isVisible );
     if( event )
     {
-        if(m_isVisible) 
+        if(isVisible) 
         {   // Increase the refcount when the Event is visiable
             event->Acquire();
         }
@@ -85,16 +85,16 @@ int32_t CmEventRT::Destroy( CmEventRT* &event )
 //| Purpose:    Constructor of Cm Event
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-CmEventRT::CmEventRT(uint32_t index, CmQueueRT *queue, CmTaskInternal *task, int32_t taskDriverId, CmDeviceRT *cmDev, bool m_isVisible):
+CmEventRT::CmEventRT(uint32_t index, CmQueueRT *queue, CmTaskInternal *task, int32_t taskDriverId, CmDeviceRT *device, bool isVisible):
     m_index( index ), 
     m_taskDriverId( taskDriverId ),
     m_status( CM_STATUS_QUEUED ),
     m_time( 0 ),
     m_ticks(0),
-    m_device( cmDev ),
+    m_device( device ),
     m_queue (queue),
     m_refCount(0),
-    m_isVisible(m_isVisible),
+    m_isVisible(isVisible),
     m_task(task),
     m_osData(nullptr),
     m_callbackFunction(nullptr),

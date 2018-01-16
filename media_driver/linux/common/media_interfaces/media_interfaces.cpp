@@ -412,7 +412,7 @@ CM_HAL_GENERIC* CMHalDevice::CreateFactory(
         CM_HAL_STATE *pCmState)
 {
     CMHalDevice *device = nullptr;
-    device = CMHalFactory::CreateHal(pCmState->Platform.eProductFamily);
+    device = CMHalFactory::CreateHal(pCmState->platform.eProductFamily);
     if (device == nullptr)
     {
         return nullptr;

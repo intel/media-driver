@@ -495,7 +495,7 @@ CM_RT_API int32_t CmDeviceRT::CreateBuffer(PMOS_RESOURCE mosResource,
 
     MOS_SURFACE mosSurfDetails;
     MOS_ZeroMemory(&mosSurfDetails, sizeof(mosSurfDetails));
-    int hr = state->pOsInterface->pfnGetResourceInfo(state->pOsInterface, mosResource, &mosSurfDetails);
+    int hr = state->osInterface->pfnGetResourceInfo(state->osInterface, mosResource, &mosSurfDetails);
     if(hr != MOS_STATUS_SUCCESS)
     {
         CM_ASSERTMESSAGE("Error: Get resource info failure.");
@@ -642,8 +642,8 @@ CM_RT_API int32_t CmDeviceRT::CreateSurface2DUP(uint32_t width,
         CM_ASSERTMESSAGE("Error: Pointer to host memory is null.\n");
         return CM_INVALID_ARG_VALUE;
     }
-    auto uint_ptr = reinterpret_cast<uintptr_t>(sysMem);
-    if (uint_ptr & (0x1000 - 1))
+    auto uintPtr = reinterpret_cast<uintptr_t>(sysMem);
+    if (uintPtr & (0x1000 - 1))
     {
         CM_ASSERTMESSAGE("Error: Pointer to host memory isn't 4K-aligned.\n");
         return CM_INVALID_ARG_VALUE;
@@ -1360,7 +1360,7 @@ finish:
         {
             uint32_t platform = PLATFORM_INTEL_UNKNOWN;
             capValueSize = sizeof( uint32_t );
-            cmHalState->pCmHalInterface->GetGenPlatformInfo(&platform, nullptr, nullptr);
+            cmHalState->cmHalInterface->GetGenPlatformInfo(&platform, nullptr, nullptr);
             CmSafeMemCopy( capValue, &platform, capValueSize );
             return CM_SUCCESS;
         }
@@ -2657,7 +2657,7 @@ int32_t CmDeviceRT::LoadPredefinedCopyKernel(CmProgram*& program)
     void * gpucopyKernelIsa;
     uint32_t gpucopyKernelIsaSize;
 
-    cmHalState->pCmHalInterface->GetCopyKernelIsa(gpucopyKernelIsa, gpucopyKernelIsaSize);
+    cmHalState->cmHalInterface->GetCopyKernelIsa(gpucopyKernelIsa, gpucopyKernelIsaSize);
 
     hr = LoadProgram((void *)gpucopyKernelIsa, gpucopyKernelIsaSize, program, "PredefinedGPUKernel");
     if (hr != CM_SUCCESS)
@@ -2690,7 +2690,7 @@ int32_t CmDeviceRT::LoadPredefinedInitKernel(CmProgram*& program)
     void * gpuinitKernelIsa;
     uint32_t gpuinitKernelIsaSize;
 
-    cmHalState->pCmHalInterface->GetInitKernelIsa(gpuinitKernelIsa, gpuinitKernelIsaSize);
+    cmHalState->cmHalInterface->GetInitKernelIsa(gpuinitKernelIsa, gpuinitKernelIsaSize);
 
     hr = LoadProgram((void *)gpuinitKernelIsa, gpuinitKernelIsaSize, program, "PredefinedGPUKernel");
     if (hr != CM_SUCCESS)
@@ -2714,7 +2714,7 @@ int32_t CmDeviceRT::GetGenStepInfo(char*& stepinfostr)
 
     cmHalState = ((PCM_CONTEXT_DATA)GetAccelData())->cmHalState;
 
-    CHK_MOSSTATUS_RETURN_CMERROR(cmHalState->pCmHalInterface->GetGenStepInfo(stepinfostr));
+    CHK_MOSSTATUS_RETURN_CMERROR(cmHalState->cmHalInterface->GetGenStepInfo(stepinfostr));
 
 finish:
     return hr;
@@ -2884,7 +2884,7 @@ CM_RT_API int32_t CmDeviceRT::SetSuggestedL3Config(L3_SUGGEST_CONFIG l3SuggestCo
     CM_RETURN_CODE  hr          = CM_SUCCESS;
 
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)this->GetAccelData();
-    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pCmHalInterface->SetSuggestedL3Conf(l3SuggestConfig));
+    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->cmHalInterface->SetSuggestedL3Conf(l3SuggestConfig));
 
 finish:
     return hr;
@@ -2982,14 +2982,14 @@ int32_t CmDeviceRT::RegisterSyncEvent(void *syncEventHandle)
     CM_RETURN_CODE  hr          = CM_SUCCESS;
 
     CM_HAL_OSSYNC_PARAM syncParam;
-    syncParam.iOSSyncEvent = syncEventHandle;
+    syncParam.osSyncEvent = syncEventHandle;
 
     PCM_CONTEXT_DATA  cmData = (PCM_CONTEXT_DATA)GetAccelData();
     PCM_HAL_STATE  cmHalState = cmData->cmHalState;
     // Call HAL layer to wait for Task finished with event-driven mechanism
     CHK_MOSSTATUS_RETURN_CMERROR(cmHalState->pfnRegisterKMDNotifyEventHandle(cmHalState, &syncParam));
 
-    m_OSSyncEvent = syncParam.iOSSyncEvent;
+    m_OSSyncEvent = syncParam.osSyncEvent;
 
 finish:
     return hr;
@@ -3113,7 +3113,7 @@ int32_t CmDeviceRT::GetSurf2DLookUpEntry(uint32_t index,
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)GetAccelData();
     if(cmData)
     {
-        lookupEntry = &(cmData->cmHalState->pSurf2DTable[index]);
+        lookupEntry = &(cmData->cmHalState->surf2DTable[index]);
     }
     else
     {
@@ -3438,7 +3438,7 @@ bool CmDeviceRT::IsScratchSpaceDisabled()
 int32_t CmDeviceRT::SetSurfaceArraySizeForAlias()
 {
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)this->GetAccelData();
-    m_pSurfaceMgr->GetSurfaceArraySize(cmData->cmHalState->nSurfaceArraySize);
+    m_pSurfaceMgr->GetSurfaceArraySize(cmData->cmHalState->surfaceArraySize);
     return CM_SUCCESS;
 }
 

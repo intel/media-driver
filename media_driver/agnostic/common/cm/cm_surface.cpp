@@ -195,7 +195,7 @@ bool CmSurface::MemoryObjectCtrlPolicyCheck(MEMORY_OBJECT_CONTROL memCtrl)
         return false;
     }
 
-    return pCmHalState->pCmHalInterface->MemoryObjectCtrlPolicyCheck(memCtrl);
+    return pCmHalState->cmHalInterface->MemoryObjectCtrlPolicyCheck(memCtrl);
 
 }
 

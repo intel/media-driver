@@ -314,11 +314,11 @@ CM_RETURN_CODE CmDeviceRT::QueryGPUInfoInternal(PCM_QUERY_CAPS pQueryCaps)
     switch(pQueryCaps->type)
     {
         case CM_QUERY_GPU:
-            pQueryCaps->genCore = pCmHalState->Platform.eRenderCoreFamily;
+            pQueryCaps->genCore = pCmHalState->platform.eRenderCoreFamily;
             break;
 
         case CM_QUERY_GT:
-            pCmHalState->pCmHalInterface->GetGenPlatformInfo(nullptr, &pQueryCaps->genGT, nullptr);
+            pCmHalState->cmHalInterface->GetGenPlatformInfo(nullptr, &pQueryCaps->genGT, nullptr);
             break;
 
         case CM_QUERY_MIN_RENDER_FREQ:
@@ -330,7 +330,7 @@ CM_RETURN_CODE CmDeviceRT::QueryGPUInfoInternal(PCM_QUERY_CAPS pQueryCaps)
             break;
 
         case CM_QUERY_STEP:
-            pQueryCaps->genStepId = pCmHalState->Platform.usRevId;
+            pQueryCaps->genStepId = pCmHalState->platform.usRevId;
             break;
 
         case CM_QUERY_GPU_FREQ:

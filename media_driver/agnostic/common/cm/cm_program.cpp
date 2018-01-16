@@ -303,7 +303,7 @@ int32_t CmProgramRT::Initialize( void* pCISACode, const uint32_t uiCISACodeSize,
         ((PCM_CONTEXT_DATA)m_pCmDev->GetAccelData())->cmHalState;
     CMCHK_NULL(pCmHalState);
 
-    pCmHalState->pCmHalInterface->GetGenPlatformInfo(nullptr, nullptr, &platform);
+    pCmHalState->cmHalInterface->GetGenPlatformInfo(nullptr, nullptr, &platform);
     
     if( m_IsJitterEnabled )
     {
@@ -543,7 +543,7 @@ int32_t CmProgramRT::Initialize( void* pCISACode, const uint32_t uiCISACodeSize,
                     READ_FIELD_FROM_BUF(size, uint32_t);
                 }
            
-                if (pCmHalState->pCmHalInterface->IsCisaIDSupported((uint32_t)gen_platform))
+                if (pCmHalState->cmHalInterface->IsCisaIDSupported((uint32_t)gen_platform))
                 {
                     // assign correct offset/size based on platform
                     genxBinaryOffset = offset;
