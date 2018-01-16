@@ -85,8 +85,6 @@ typedef enum _VACMTEXTUREFILTERTYPE {
     VACMTEXF_FORCE_DWORD     = 0x7fffffff
 } VACMTEXTUREFILTERTYPE;
 
-#define CM_MAX_TIMEOUT 2
-
 #define CM_ATTRIBUTE(attribute) __attribute__((attribute))
 
 typedef enum _VA_CM_FORMAT {
