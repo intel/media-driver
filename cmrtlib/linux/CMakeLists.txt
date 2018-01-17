@@ -36,10 +36,10 @@ set(LIBRARY_OUTPUT_PATH    ${MDF_OPTION__OUTPUT_DIR})
 
 # Set up compile options that will be used for the Linux build
 if(CMAKE_COMPILER_IS_GNUCC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-variable -Wno-write-strings -Wno-deprecated -DVPHAL -DLINUX -msse4.1 -std=gnu++0x -fPIC -fpermissive -fstack-protector-all")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.1 -std=c++11 -fPIC -fpermissive -fstack-protector-all -Werror")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fno-strict-aliasing -D_FORTIFY_SOURCE=2")
     set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG -D__DEBUG -O0")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-variable -Wno-write-strings -Wno-deprecated -DVPHAL -DLINUX -msse4.1 -std=gnu++0x -fPIC -fpermissive -fstack-protector-all")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse4.1 -std=c++11 -fPIC -fpermissive -fstack-protector-all -Werror")
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -fno-strict-aliasing -D_FORTIFY_SOURCE=2")
     set(CMAKE_C_FLAGS_DEBUG   "${CMAKE_C_FLAGS_DEBUG} -D_DEBUG -D__DEBUG -O0")
 

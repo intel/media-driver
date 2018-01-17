@@ -25,7 +25,7 @@
 #include <cstdio>
 #include "cm_def_os.h"
 
-inline void CmPrintMessage( char *str, ... )
+inline void CmPrintMessage( const char *str, ... )
 {
 #ifdef _DEBUG
     //iSTD::PrintMessage( str );
