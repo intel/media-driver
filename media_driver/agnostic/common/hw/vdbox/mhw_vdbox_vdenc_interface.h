@@ -113,7 +113,6 @@ typedef struct _MHW_VDBOX_VDENC_CMD2_STATE
     bool                                    bROIStreamInEnabled;
     bool                                    bUseDefaultQpDeltas;
     bool                                    bPanicEnabled;
-    bool                                    bTileReplayEnable;
     bool                                    bPartialFrameUpdateEnable;
 
     // VP9

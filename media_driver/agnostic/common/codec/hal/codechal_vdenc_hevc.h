@@ -123,8 +123,6 @@ public:
     bool                                    m_pakOnlyPass = false;                             //!< flag to signal VDEnc+PAK vs. PAK only 
     bool                                    m_hucCmdInitializerUsed = false;                   //!< Command initializer HuC used flag
 
-    // VDENC Display interface related
-    bool                                    m_enableTileReplay = false;                        //!< TileReplay Enable               
 
     //Resources for VDEnc
     MOS_RESOURCE                            m_sliceCountBuffer;                                //!< Slice count buffer

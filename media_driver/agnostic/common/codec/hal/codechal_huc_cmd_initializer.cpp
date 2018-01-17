@@ -227,7 +227,6 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerSetConstData(
     bool                                        roiStreamInEnabled,
     bool                                        roundingEnabled,
     bool                                        panicEnabled,
-    bool                                        tileReplayEnabled,
     int32_t                                     currentPass
     )
 {
@@ -262,7 +261,6 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerSetConstData(
     m_roundingEnabled    = roundingEnabled;
     m_panicEnabled       = panicEnabled;
     m_roiStreamInEnabled = roiStreamInEnabled;
-    m_tileReplayEnabled  = tileReplayEnabled;
     m_currentPass        = currentPass;
 
     MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));

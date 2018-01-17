@@ -195,7 +195,6 @@ public:
     bool                                        m_roundingEnabled;
     bool                                        m_panicEnabled;
     bool                                        m_roiStreamInEnabled;
-    bool                                        m_tileReplayEnabled;
     int32_t                                     m_currentPass;
 
     CodechalEncoderState                        *m_encoder = nullptr;                //!< Pointer to ENCODER base class
@@ -271,7 +270,6 @@ public:
         bool                                        roiStreamInEnabled,
         bool                                        roundingEnabled,
         bool                                        panicEnabled,
-        bool                                        tileReplayEnabled,
         int32_t                                     currentPass
         );
 

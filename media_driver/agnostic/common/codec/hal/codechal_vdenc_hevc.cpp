@@ -1702,7 +1702,6 @@ MOS_STATUS CodechalVdencHevcState::ExecutePictureLevel()
         m_vdencNativeROIEnabled,
         m_hevcVdencRoundingEnabled,
         panicEnabled,
-        m_enableTileReplay,
         currentPass));
 
     // Send HuC BRC Init/ Update only on first pipe.
