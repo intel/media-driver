@@ -413,6 +413,12 @@ FieldScalingInterface::~FieldScalingInterface()
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
 
+    if (m_mmcState != nullptr)
+    {
+        MOS_Delete(m_mmcState);
+        m_mmcState = nullptr;
+    }
+
     CODECHAL_DECODE_ASSERT(m_osInterface);
     if (m_osInterface != nullptr)
     {
@@ -672,6 +678,8 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
     CODECHAL_DECODE_CHK_NULL_RETURN(procParams->pOutputSurface);
     CODECHAL_DECODE_CHK_NULL_RETURN(m_hwInterface->GetMiInterface());
 
+    CODECHAL_DECODE_CHK_STATUS_RETURN(InitMmcState());
+
     MOS_SYNC_PARAMS syncParams;
     syncParams                  = g_cInitSyncParams;
     syncParams.GpuContext       = m_decoder->GetVideoContext();
@@ -785,13 +793,10 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
     surfaceCodecParams.bForceChromaFormat         = true;
     surfaceCodecParams.ChromaType                 = MHW_GFX3DSTATE_SURFACEFORMAT_R8G8_UNORM;
 
-    if (m_hwInterface->m_mmcEnabled)
-    {
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetMemoryCompressionMode(
-            m_osInterface, 
-            &surfaceCodecParams.psSurface->OsResource,
-            (MOS_MEMCOMP_STATE*) &surfaceCodecParams.psSurface->CompressionMode));
-    }
+#ifdef _MMC_SUPPORTED
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_mmcState);
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceParams(&surfaceCodecParams));
+#endif
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
@@ -827,13 +832,9 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
         surfaceCodecParams.ChromaType               = MHW_GFX3DSTATE_SURFACEFORMAT_R8G8_UNORM;
     }
 
-    if (m_hwInterface->m_mmcEnabled)
-    {
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetMemoryCompressionMode(
-            m_osInterface, 
-            &surfaceCodecParams.psSurface->OsResource,
-            (PMOS_MEMCOMP_STATE) &surfaceCodecParams.psSurface->CompressionMode));
-    }
+#ifdef _MMC_SUPPORTED
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceParams(&surfaceCodecParams));
+#endif
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
@@ -922,4 +923,16 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
     m_osInterface->pfnSetGpuContext(m_osInterface, m_decoder->GetVideoContext());
 
     return (MOS_STATUS)eStatus;
+}
+
+MOS_STATUS FieldScalingInterface::InitMmcState()
+{
+#ifdef _MMC_SUPPORTED
+    if (m_mmcState == nullptr)
+    {
+        m_mmcState = MOS_New(CodecHalMmcState, m_hwInterface);
+        CODECHAL_DECODE_CHK_NULL_RETURN(m_mmcState);
+    }
+#endif
+    return MOS_STATUS_SUCCESS;
 }

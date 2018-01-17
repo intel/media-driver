@@ -7841,22 +7841,14 @@ MOS_STATUS CodechalEncHevcStateG10::Initialize(CodechalSetting * settings)
         m_32xMeSupported = false;  //disabling since uhme is not supported on CNL
     }
 
-    // MMCD Default ON
-    userFeatureData.i32Data = true;
-    userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
-
-    MOS_STATUS regStatus = MOS_STATUS_SUCCESS;
-    regStatus = MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_CODEC_MMC_ENABLE_ID,
-        &userFeatureData);
-    m_hwInterface->m_mmcEnabled = (userFeatureData.i32Data) ? true : false;
-
     // disable MMCD if we enable Codechal dump. Because dump code changes the surface state from compressed to uncompressed, 
     // this causes mis-match issue between dump is enabled or disabled.
     CODECHAL_DEBUG_TOOL(
-        if (m_hwInterface->m_mmcEnabled && m_debugInterface && m_debugInterface->m_dbgCfgHead) {
-            m_hwInterface->m_mmcEnabled = 0;
+        if (CodecHalMmcState::IsMmcEnabled() && m_debugInterface && m_debugInterface->m_dbgCfgHead) {
+            if (m_mmcState)
+            {
+                m_mmcState->SetMmcDisabled();
+            }
         })
 
     return eStatus;

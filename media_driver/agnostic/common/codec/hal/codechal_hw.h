@@ -358,7 +358,6 @@ public:
     uint32_t                    m_vdencBatchBufferPerSliceConstSize = 0;        //!> vdenc batch buffer per slice const size
     uint32_t                    m_mpeg2BrcConstantSurfaceWidth = 64;            //!> mpeg2 brc constant surface width
     uint32_t                    m_mpeg2BrcConstantSurfaceHeight = 43;           //!> mpeg2 brc constant surface height
-    bool                        m_mmcEnabled = false;                           //!> media memory compression enabled flag
     uint32_t                    m_avcMbStatBufferSize = 0;                      //!> AVC Mb status buffer size
     uint32_t                    m_pakIntTileStatsSize = 0;                      //!> Size of combined statistics across all tiles
     uint32_t                    m_pakIntAggregatedFrameStatsSize = 0;           //!> Size of HEVC/ VP9 PAK Stats, HEVC Slice Streamout, VDEnc Stats

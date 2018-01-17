@@ -72,43 +72,6 @@ CodechalHwInterface::CodechalHwInterface(
 
     m_stateHeapSettings = MHW_STATE_HEAP_SETTINGS();
 
-	if (MEDIA_IS_SKU(m_skuTable, FtrMemoryCompression))
-    {
-        MOS_USER_FEATURE_VALUE_DATA        userFeatureData;
-        MOS_USER_FEATURE_VALUE_WRITE_DATA  userFeatureWriteData;
-        MOS_STATUS  regStatus = MOS_STATUS_SUCCESS;
-        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-
-        // check Codec MMC enabling
-        userFeatureData.i32Data = true;
-        userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
-
-        regStatus = MOS_UserFeature_ReadValue_ID(
-            nullptr,
-            __MEDIA_USER_FEATURE_VALUE_CODEC_MMC_ENABLE_ID,
-            &userFeatureData);
-        m_mmcEnabled = (userFeatureData.i32Data) ? true : false;
-
-        // report in-use
-        MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
-        userFeatureWriteData.Value.i32Data = m_mmcEnabled;
-        userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_CODEC_MMC_IN_USE_ID;
-        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
-
-		bool isDecode = codecFunction == CODECHAL_FUNCTION_DECODE || codecFunction == CODECHAL_FUNCTION_CENC_DECODE;
-
-        // check Encode/Decode MMC enabling
-        regStatus = MOS_UserFeature_ReadValue_ID(
-            nullptr,
-            isDecode ? __MEDIA_USER_FEATURE_VALUE_DECODE_MMC_ENABLE_ID : __MEDIA_USER_FEATURE_VALUE_ENCODE_MMC_ENABLE_ID,
-            &userFeatureData);
-        m_mmcEnabled = (userFeatureData.i32Data) ? true : false;
-
-        userFeatureWriteData.Value.i32Data = m_mmcEnabled;
-        userFeatureWriteData.ValueID = isDecode ? __MEDIA_USER_FEATURE_VALUE_DECODE_MMC_IN_USE_ID : __MEDIA_USER_FEATURE_VALUE_ENCODE_MMC_IN_USE_ID;
-        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
-    }
-
     MOS_ZeroMemory(&m_hucDmemDummy, sizeof(m_hucDmemDummy));
     MOS_ZeroMemory(&m_dummyStreamIn, sizeof(m_dummyStreamIn));
     MOS_ZeroMemory(&m_dummyStreamOut, sizeof(m_dummyStreamOut));
