@@ -2357,6 +2357,12 @@ MOS_STATUS CodechalVdencHevcState::SetPictureStructs()
     // In VDENC mode, this field "Cu_Qp_Delta_Enabled_Flag" should always be set to 1.
     CODECHAL_ENCODE_ASSERT(m_hevcPicParams->cu_qp_delta_enabled_flag == 1);
 
+    // Restriction: If RollingI is enabled, ROI needs to be disabled
+    if (m_hevcPicParams->bEnableRollingIntraRefresh)
+    {
+        m_hevcPicParams->NumROI = 0;
+    }
+
     //VDEnc StreamIn enabled if case of ROI (All frames), DirtyRect and SHME (ldB frames)
     m_vdencStreamInEnabled = (m_vdencEnabled) && (m_hevcPicParams->NumROI ||
                                                      (m_hevcPicParams->NumDirtyRects > 0 && (B_TYPE == m_hevcPicParams->CodingType)) || (m_b16XMeEnabled));
