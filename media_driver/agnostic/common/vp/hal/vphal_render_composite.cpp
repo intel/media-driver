@@ -3889,6 +3889,7 @@ int32_t CompositeState::SetLayerRT(
     uTargetIndex = 0;
     do
     {
+        SetSurfaceCompressionParams(pRenderingData->pTarget[uTargetIndex], true);
         // Get surface state allocation parameters for RT (scaling mode, stride)
         SetSurfaceParams(
             pRenderingData->pTarget[uTargetIndex],
