@@ -24,6 +24,8 @@
 //! \brief     libva(and its extension) putsurface linux implementaion
 //!
 
+/* Disable this module completely if compiled without X11 dependencies */
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -40,13 +42,18 @@
 #include <sys/mman.h>
 #include <dlfcn.h>
 #include <sys/ioctl.h>
+
+#if LIBVA_X11_FOUND
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#endif //LIBVA_X11_FOUND
 
 #include "media_libva_putsurface_linux.h"
 #include "media_libva_util.h"
 #include "media_libva_common.h"
 #include "media_libva_vp.h"
+
+#if LIBVA_X11_FOUND
 
 extern MOS_FORMAT     VpGetFormatFromMediaFormat(DDI_MEDIA_FORMAT mf);
 extern VPHAL_CSPACE   DdiVp_GetColorSpaceFromMediaFormat(DDI_MEDIA_FORMAT mf);
@@ -537,7 +544,10 @@ VAStatus DdiCodec_PutSurfaceLinuxHW(
     return VA_STATUS_SUCCESS;
 }
 
+#endif //LIBVA_X11_FOUND
+
 #ifndef ANDROID
+#if LIBVA_X11_FOUND
 // move from media_libva_putsurface_linux.c
 static unsigned long DdiMedia_mask2shift(unsigned long mask)
 {
@@ -942,6 +952,8 @@ VAStatus DdiMedia_PutSurfaceLinuxSW(
     MOS_FreeMemory(dispTempBuffer);
     return VA_STATUS_SUCCESS;
 }
+
+#endif //LIBVA_X11_FOUND
 
 VAStatus DdiMedia_PutSurfaceDummy(
     VADriverContextP ctx,

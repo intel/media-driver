@@ -136,7 +136,9 @@ CmDevice_RT::CmDevice_RT(
     m_deviceInUmd(nullptr),
     m_cmCreated ( true ),
     m_vaDisplay    (vaDisplay),
+#if ANDROID
     m_display       (nullptr),
+#endif
     m_fvaCmExtSendReqMsg (nullptr),
     m_gtpinEnabled( false ),
     m_gtpinBufferUP0( nullptr ),

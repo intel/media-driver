@@ -39,7 +39,9 @@
 
 
 #ifndef ANDROID
+#if LIBVA_X11_FOUND
 #include <X11/Xutil.h>
+#endif
 #endif
 
 #include <linux/fb.h>
@@ -1320,7 +1322,9 @@ VAStatus DdiMedia__Initialize (
     mediaCtx->bIsAtomSOC = IS_ATOMSOC(mediaCtx->iDeviceId);
 
 #ifndef ANDROID
+#if LIBVA_X11_FOUND
     output_dri_init(ctx);
+#endif //LIBVA_X11_FOUND
 #endif
 
     eStatus = Mos_Solo_DdiInitializeDeviceId(
@@ -1388,6 +1392,7 @@ static VAStatus DdiMedia_Terminate (
     DdiMediaUtil_LockMutex(&GlobalMutex);
 
 #ifndef ANDROID
+#if LIBVA_X11_FOUND
     DdiMedia_DestroyX11Connection(mediaCtx);
 
     if (mediaCtx->m_caps)
@@ -1400,6 +1405,7 @@ static VAStatus DdiMedia_Terminate (
             mediaCtx->dri_output = nullptr;
         }
     }
+#endif //LIBVA_X11_FOUND
 #endif
 
     //destory resources
@@ -3596,6 +3602,7 @@ static VAStatus DdiMedia_PutSurface(
 {
     DDI_FUNCTION_ENTER();
 
+#if LIBVA_X11_FOUND
     DDI_CHK_NULL(ctx, "nullptr ctx", VA_STATUS_ERROR_INVALID_PARAMETER);
     if(number_cliprects > 0)
     {
@@ -3642,6 +3649,10 @@ static VAStatus DdiMedia_PutSurface(
     }
 #endif
 
+#else
+    /* This should never be called since PutSurfaceDummy will be called instead */
+    return VA_STATUS_SUCCESS;
+#endif //LIBVA_X11_FOUND
 }
 
 /* List all the VAImageFormats supported during vaCreateSurfaces
