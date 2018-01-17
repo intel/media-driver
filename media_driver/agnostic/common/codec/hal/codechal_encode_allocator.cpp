@@ -115,6 +115,7 @@ void CodechalEncodeAllocator::MosToAllocatorFormat(MOS_FORMAT format)
         break;
     case Format_NV12 :
     case Format_YUY2 :
+    case Format_P208 :
         m_format = allocatorSurface;
         break;
     default :
