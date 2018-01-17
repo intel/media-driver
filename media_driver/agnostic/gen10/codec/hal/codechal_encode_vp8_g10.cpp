@@ -26,7 +26,9 @@
 
 #include "codechal_encode_vp8_g10.h"
 #include "codeckrnheader.h"
+#ifndef _FULL_OPEN_SOURCE
 #include "igcodeckrn_g10.h"
+#endif
 #include "mhw_vdbox_mfx_hwcmd_g10_X.h"
 
 #define     INTRA_PROBABILIY                 63
@@ -5830,9 +5832,14 @@ CodechalEncodeVp8G10::CodechalEncodeVp8G10(
     pfnGetKernelHeaderAndSize         = GetKernelHeaderAndSize;
 
     m_kuid = IDR_CODEC_AllVP8Enc;
+#ifndef _FULL_OPEN_SOURCE
+    m_kernelBase = (uint8_t*)IGCODECKRN_G10;
+#else
+    m_kernelBase = nullptr;
+#endif
 
     CodecHalGetKernelBinaryAndSize(
-        (uint8_t *)IGCODECKRN_G10,
+        m_kernelBase,
         m_kuid,
         &m_kernelBinary,
         &m_combinedKernelSize);

@@ -447,7 +447,6 @@ MOS_STATUS CodechalInterfacesG9Skl::Initialize(
             CODECHAL_PUBLIC_ASSERTMESSAGE("Unsupported encode function requested.");
             return MOS_STATUS_INVALID_PARAMETER;
         }
-#ifndef _FULL_OPEN_SOURCE
         if (info->Mode != CODECHAL_ENCODE_MODE_JPEG)
         {
             // Create CSC and Downscaling interface
@@ -456,7 +455,6 @@ MOS_STATUS CodechalInterfacesG9Skl::Initialize(
                 return MOS_STATUS_INVALID_PARAMETER;
             }
         }
-#endif
     }
     else
     {

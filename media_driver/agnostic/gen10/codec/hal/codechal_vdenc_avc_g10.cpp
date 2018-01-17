@@ -27,7 +27,9 @@
 
 #include "codechal_vdenc_avc_g10.h"
 #include "codeckrnheader.h"
+#ifndef _FULL_OPEN_SOURCE
 #include "igcodeckrn_g10.h"
+#endif
 #if USE_CODECHAL_DEBUG_TOOL
 #include "codechal_debug_encode_par_g10.h"
 #include "mhw_vdbox_mfx_hwcmd_g10_X.h"
@@ -411,7 +413,11 @@ CodechalVdencAvcStateG10::CodechalVdencAvcStateG10(
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     m_kuid = IDR_CODEC_AllAVCEnc;
+#ifndef _FULL_OPEN_SOURCE
     m_kernelBase = (uint8_t*)IGCODECKRN_G10;
+#else
+    m_kernelBase = nullptr;
+#endif
     AddIshSize(m_kuid, m_kernelBase);
     
     m_cmKernelEnable = true;

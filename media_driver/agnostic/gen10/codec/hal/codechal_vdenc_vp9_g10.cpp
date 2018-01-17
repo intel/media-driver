@@ -37,7 +37,9 @@
 
 #include "codechal_vdenc_vp9_g10.h"
 #include "codeckrnheader.h"
+#ifndef _FULL_OPEN_SOURCE
 #include "igcodeckrn_g10.h"
+#endif
 #include "mhw_vdbox_vdenc_hwcmd_g10_X.h"
 
 CodechalVdencVp9StateG10::CodechalVdencVp9StateG10(
@@ -49,7 +51,12 @@ CodechalVdencVp9StateG10::CodechalVdencVp9StateG10(
     m_hwInterface->GetStateHeapSettings()->dwNumSyncTags = CODECHAL_ENCODE_VP9_NUM_SYNC_TAGS;
     m_hwInterface->GetStateHeapSettings()->dwDshSize = CODECHAL_ENCODE_VP9_INIT_DSH_SIZE;
 
+#ifndef _FULL_OPEN_SOURCE
     m_kernelBase = (uint8_t*)IGCODECKRN_G10;
+#else
+    m_kernelBase = nullptr;
+#endif
+
     m_kuid = IDR_CODEC_VDENC_HME;
 
     pfnGetKernelHeaderAndSize = GetCommonKernelHeaderAndSize;

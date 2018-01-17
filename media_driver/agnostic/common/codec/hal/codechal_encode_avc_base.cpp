@@ -3399,7 +3399,9 @@ void CodechalEncodeAvcBase::UpdateSSDSliceCount()
 
 MOS_STATUS CodechalEncodeAvcBase::AddIshSize( uint32_t kuid , uint8_t* kernelBase)
 {
+#ifndef _FULL_OPEN_SOURCE
     CODECHAL_ENCODE_CHK_NULL_RETURN(kernelBase);
+#endif
 
     uint8_t* kernelBinary;
     uint32_t kernelSize;

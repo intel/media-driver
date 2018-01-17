@@ -26,7 +26,9 @@
 
 #include "codechal_vdenc_hevc_g10.h"
 #include "codeckrnheader.h"
+#ifndef _FULL_OPEN_SOURCE
 #include "igcodeckrn_g10.h"
+#endif
 #include "codechal_huc_cmd_initializer.h"
 
 struct CODECHAL_HEVC_VP9_VDENC_KERNEL_HEADER_G10
@@ -2407,14 +2409,18 @@ CodechalVdencHevcStateG10::CodechalVdencHevcStateG10(
     m_brcRoiBufferSize             = m_roiStreamInBufferSize;
     m_deltaQpRoiBufferSize         = m_deltaQpBufferSize;
     m_maxNumSlicesSupported        = CODECHAL_HEVC_MAX_SLICE_NUM;
+#ifndef _FULL_OPEN_SOURCE
     m_kernelBase                   = (uint8_t*)IGCODECKRN_G10;
+#else
+    m_kernelBase                   = nullptr;
+#endif
 
     m_hwInterface->GetStateHeapSettings()->dwNumSyncTags = CODECHAL_ENCODE_HEVC_NUM_SYNC_TAGS; 
     m_hwInterface->GetStateHeapSettings()->dwDshSize = CODECHAL_INIT_DSH_SIZE_HEVC_ENC;
 
     m_kuid = IDR_CODEC_VDENC_HME;
     MOS_STATUS eStatus = CodecHalGetKernelBinaryAndSize(
-        (uint8_t*)IGCODECKRN_G10,
+        m_kernelBase,
         m_kuid,
         &m_kernelBinary,
         &m_combinedKernelSize);

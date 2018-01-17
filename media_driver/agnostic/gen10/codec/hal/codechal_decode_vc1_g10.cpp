@@ -27,7 +27,9 @@
 //!
 
 #include "codeckrnheader.h"
+#ifndef _FULL_OPEN_SOURCE
 #include "igcodeckrn_g10.h"
+#endif
 #include "codechal_decode_vc1_g10.h"
 
 CodechalDecodeVc1G10::CodechalDecodeVc1G10(
@@ -41,9 +43,14 @@ CodechalDecodeVc1G10::CodechalDecodeVc1G10(
     CODECHAL_DECODE_CHK_NULL_NO_STATUS_RETURN(hwInterface);
 
     m_olpCurbeStaticDataLength = CODECHAL_DECODE_VC1_CURBE_SIZE_OLP;
+    uint8_t* kernelBase = nullptr;
+
+#ifndef _FULL_OPEN_SOURCE
+    kernelBase = (uint8_t*)IGCODECKRN_G10;
+#endif
 
     MOS_STATUS eStatus = CodecHalGetKernelBinaryAndSize(
-        (uint8_t *)IGCODECKRN_G10,
+        kernelBase,
         IDR_CODEC_AllVC1_NV12,
         &m_olpKernelBase,
         &m_olpKernelSize);

@@ -28,7 +28,9 @@
 #include "codechal_cenc_decode.h"
 #include "codechal_encoder_base.h"
 #include "codechal_vdenc_hevc_g10.h"
+#ifndef _FULL_OPEN_SOURCE
 #include "igcodeckrn_g10.h"
+#endif
 
 extern template class MediaInterfacesFactory<MhwInterfaces>;
 extern template class MediaInterfacesFactory<MmdDevice>;
@@ -403,8 +405,11 @@ MOS_STATUS CodechalInterfacesG10Cnl::Initialize(
             {
                 m_codechalDevice = encoder;
             }
-
+#ifndef _FULL_OPEN_SOURCE
             encoder->m_kernelBase = (uint8_t*)IGCODECKRN_G10;
+#else
+            encoder->m_kernelBase = nullptr;
+#endif
         }
         else
 #endif
@@ -429,8 +434,11 @@ MOS_STATUS CodechalInterfacesG10Cnl::Initialize(
             {
                 m_codechalDevice = encoder;
             }
-
+#ifndef _FULL_OPEN_SOURCE
             encoder->m_kernelBase = (uint8_t*)IGCODECKRN_G10;
+#else
+            encoder->m_kernelBase = nullptr;
+#endif
         }
         else
 #endif
@@ -448,8 +456,6 @@ MOS_STATUS CodechalInterfacesG10Cnl::Initialize(
             {
                 m_codechalDevice = encoder;
             }
-
-            encoder->m_kernelBase = (uint8_t*)IGCODECKRN_G10;
         }
         else
 #endif

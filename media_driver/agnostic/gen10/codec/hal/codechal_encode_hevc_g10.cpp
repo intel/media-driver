@@ -25,7 +25,9 @@
 //!
 
 #include "codechal_encode_hevc_g10.h"
+#ifndef _FULL_OPEN_SOURCE
 #include "igcodeckrn_g10.h"
+#endif
 #include "codeckrnheader.h"
 
 //! HME mode
@@ -839,8 +841,8 @@ C_ASSERT(MOS_BYTES_TO_DWORDS(sizeof(CODECHAL_ENC_HEVC_MBENC_I_CURBE_G10)) == 29)
 struct CODECHAL_ENC_HEVC_MBENC_B_CURBE_G10
 {
     // DWORD 0
-    uint32_t   DW0_FrameWidthInSamples                                     : MOS_BITFIELD_RANGE( 0, 15); // Input picture horizontal size in pixel. It should be the actual “to-be-encoded” size.
-    uint32_t   DW0_FrameHeightInSamples                                    : MOS_BITFIELD_RANGE(16, 31); // Input picture vertical size in pixel. It should be the actual “to-be-encoded” size.
+    uint32_t   DW0_FrameWidthInSamples                                     : MOS_BITFIELD_RANGE( 0, 15); // Input picture horizontal size in pixel. It should be the actual "to-be-encoded" size.
+    uint32_t   DW0_FrameHeightInSamples                                    : MOS_BITFIELD_RANGE(16, 31); // Input picture vertical size in pixel. It should be the actual "to-be-encoded" size.
 
     // DWORD 1
     uint32_t   DW1_Log2MaxCUSize                                           : MOS_BITFIELD_RANGE( 0,  3);
@@ -7644,7 +7646,11 @@ CodechalEncHevcStateG10::CodechalEncHevcStateG10(
     m_2xMeSupported                       = true;
     m_fieldScalingOutputInterleaved       = false;
     m_brcHistoryBufferSize                = HEVC_BRC_HISTORY_BUFFER_SIZE_G10;
+#ifndef _FULL_OPEN_SOURCE
     m_kernelBase                          = (uint8_t*)IGCODECKRN_G10;
+#else
+    m_kernelBase                          = nullptr;
+#endif
     pfnGetKernelHeaderAndSize             = GetKernelHeaderAndSize;
 
     MOS_ZeroMemory(&m_kernelDebug, sizeof(m_kernelDebug));

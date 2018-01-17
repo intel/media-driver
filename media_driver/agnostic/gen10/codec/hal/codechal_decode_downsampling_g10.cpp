@@ -24,15 +24,22 @@
 //! \brief    Implements the decode interface extension for downsampling on Gen10.
 //!
 #include "codechal_decoder.h"
+
+#ifndef _FULL_OPEN_SOURCE
 #include "igcodeckrn_g10.h"
+#endif
+
 #include "codechal_decode_downsampling_g10.h"
 
 FieldScalingInterfaceG10::FieldScalingInterfaceG10(CodechalHwInterface *hwInterface):
     FieldScalingInterface(hwInterface)
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
-
+#ifndef _FULL_OPEN_SOURCE
     m_kernelBase = (uint8_t*)IGCODECKRN_G10;
+#else
+    m_kernelBase = nullptr;
+#endif
 
     InitInterfaceStateHeapSetting(hwInterface);
 }

@@ -24,13 +24,19 @@
 //! \brief    This module sets up a kernel for Gen10 media memory decompression.
 
 #include "codechal_memdecomp_g10.h"
+#ifndef _FULL_OPEN_SOURCE
 #include "igcodeckrn_g10.h"
+#endif
 
 MediaMemDecompStateG10::MediaMemDecompStateG10():
     MediaMemDecompState()
 {
      MHW_FUNCTION_ENTER;
 
+#ifndef _FULL_OPEN_SOURCE
      m_kernelBase = (uint8_t *)IGCODECKRN_G10;
+#else
+     m_kernelBase = nullptr;
+#endif
 }
 

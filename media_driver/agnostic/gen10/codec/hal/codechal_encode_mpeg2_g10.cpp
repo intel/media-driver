@@ -25,7 +25,9 @@
 //!
 
 #include "codechal_encode_mpeg2_g10.h"
+#ifndef _FULL_OPEN_SOURCE
 #include "igcodeckrn_g10.h"
+#endif
 
 struct KernelHeader
 {
@@ -1616,9 +1618,13 @@ CodechalEncodeMpeg2G10::CodechalEncodeMpeg2G10(
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     pfnGetKernelHeaderAndSize = GetKernelHeaderAndSize;
+    uint8_t* kernelBase = nullptr;
+#ifndef _FULL_OPEN_SOURCE
+    kernelBase = (uint8_t*)IGCODECKRN_G10;
+#endif
 
     MOS_STATUS eStatus = CodecHalGetKernelBinaryAndSize(
-        (uint8_t *)IGCODECKRN_G10,
+        kernelBase,
         m_kuid,
         &m_kernelBinary,
         &m_combinedKernelSize);
