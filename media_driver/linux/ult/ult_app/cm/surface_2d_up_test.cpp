@@ -33,10 +33,7 @@ public:
 
     ~Surface2DUPTest()
     {
-        if (nullptr != m_sys_mem)
-        {
-            free(m_sys_mem);
-        }
+        Release();
         return;
     }//========
 
@@ -59,6 +56,7 @@ public:
             width, height, format, m_sys_mem, m_surface);
         if (CM_SUCCESS != result)
         {
+            Release();
             return result;
         }
         SurfaceIndex *surface_index = nullptr;
@@ -66,8 +64,7 @@ public:
         EXPECT_EQ(CM_SUCCESS, result);
         EXPECT_GT(surface_index->get_data(), 0);
         result = mock_device->DestroySurface2DUP(m_surface);
-        free(m_sys_mem);
-        m_sys_mem = nullptr;
+        Release();
         return result;
     }//===============
 
@@ -82,6 +79,17 @@ public:
         }
         return mock_device->DestroySurface2DUP(m_surface);
     }//===================================================
+
+    bool Release()
+    {
+        if (nullptr == m_sys_mem)
+        {
+            return false;
+        }
+        free(m_sys_mem);
+        m_sys_mem = nullptr;
+        return true;
+    }//=============
 
 private:
     CMRT_UMD::CmSurface2DUP *m_surface;
@@ -141,7 +149,7 @@ TEST_F(Surface2DUPTest, InvalidSystemMemory)
             [this, sys_mem]() { return CreateDestroy(sys_mem); });
 
     sys_mem = new uint8_t[4*WIDTH*HEIGHT];
-    if ((reinterpret_cast<uintptr_t>(sys_mem) & 4095) == 0)
+    if ((reinterpret_cast<uintptr_t>(sys_mem) & (0x1000 - 1)) == 0)  // 4k-aligned.
     {
         ++sys_mem;
     }

@@ -32,20 +32,20 @@ public:
 
     ~BufferUPTest()
     {
-      if (m_sys_mem)
-      {
-          free(m_sys_mem);
-      }
-      return;
-    }//======
+        Release();
+        return;
+    }//========
 
     int32_t CreateDestroy(uint32_t size)
     {
         CMRT_UMD::MockDevice mock_device(&m_driverLoader);
-        m_sys_mem = memalign(4096, size);
+        uint32_t real_size = size? size: SIZE;
+        m_sys_mem = memalign(0x1000, real_size);
+
         int32_t result = mock_device->CreateBufferUP(size, m_sys_mem, m_buffer);
-        if (result != CM_SUCCESS)
+        if (CM_SUCCESS != result)
         {
+            Release();
             return result;
         }
 
@@ -53,23 +53,75 @@ public:
         result = m_buffer->GetIndex(surface_index);
         EXPECT_EQ(CM_SUCCESS, result);
         EXPECT_GT(surface_index->get_data(), 0);
+        result = mock_device->DestroyBufferUP(m_buffer);
+        Release();
+        return result;
+    }//===============
+
+    int32_t CreateDestroy(void *sys_mem)
+    {
+        CMRT_UMD::MockDevice mock_device(&m_driverLoader);
+        int32_t result = mock_device->CreateBufferUP(SIZE, sys_mem, m_buffer);
+        if (CM_SUCCESS != result)
+        {
+            return result;
+        }
         return mock_device->DestroyBufferUP(m_buffer);
     }//===============================================
+
+    bool Release()
+    {
+        if (nullptr == m_sys_mem)
+        {
+            return false;
+        }
+        free(m_sys_mem);
+        m_sys_mem = nullptr;
+        return true;
+    }//=============
   
 private:
     CMRT_UMD::CmBufferUP *m_buffer;
     void *m_sys_mem;
 };//================
 
-TEST_F(BufferUPTest, CreateDestroy)
+TEST_F(BufferUPTest, MultipleSizes)
 {
     RunEach(CM_SUCCESS,
             [this]() { return CreateDestroy(SIZE); });
+
+    RunEach(CM_INVALID_WIDTH,
+            [this]() { return CreateDestroy(SIZE + 1); });
 
     RunEach(CM_SUCCESS,
             [this]() { return CreateDestroy(4); });  // 4-byte is the minimum size.
 
     RunEach(CM_SUCCESS,
-            [this]() { return CreateDestroy(512*1024*1024); });
+            [this]() { return CreateDestroy(16); });
+
+    RunEach(CM_SUCCESS,
+            [this]() { return CreateDestroy(512*1024*1024); });  // The maximum size.
+
+    uint32_t zero_size = 0;
+    RunEach(CM_INVALID_WIDTH,
+            [this, zero_size]() { return CreateDestroy(zero_size); });
+    
+    return;
+}//========
+
+TEST_F(BufferUPTest, InvalidSystemMemory)
+{
+    uint8_t *sys_mem = nullptr;
+    RunEach(CM_INVALID_ARG_VALUE,
+            [this, sys_mem]() { return CreateDestroy(sys_mem); });
+
+    sys_mem = new uint8_t[SIZE];
+    if ((reinterpret_cast<uintptr_t>(sys_mem) & (0x1000 - 1)) == 0)  // 4k-aligned.
+    {
+        ++sys_mem;
+    }
+    RunEach(CM_INVALID_ARG_VALUE,
+            [this, sys_mem]() { return CreateDestroy(sys_mem); });
+    delete[] sys_mem;
     return;
 }//========

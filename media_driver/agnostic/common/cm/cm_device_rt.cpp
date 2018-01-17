@@ -532,14 +532,20 @@ CM_RT_API int32_t CmDeviceRT::CreateBufferUP(uint32_t size,
     // size should be in the valid range and be aligned in uint32_t
     if( ( size < CM_MIN_SURF_WIDTH ) || ( size > CM_MAX_1D_SURF_WIDTH ) || (size % sizeof(uint32_t)))
     {
-        CM_ASSERTMESSAGE("Error: Invalid buffer size.");
+        CM_ASSERTMESSAGE("Error: Invalid buffer size.\n");
         return CM_INVALID_WIDTH;
     }
 
     if (nullptr == sysMem)
     {
-        CM_ASSERTMESSAGE("Error: Pointer to host memory is null.");
-        return CM_NULL_POINTER;
+        CM_ASSERTMESSAGE("Error: Pointer to host memory is null.\n");
+        return CM_INVALID_ARG_VALUE;
+    }
+    auto uintPtr = reinterpret_cast<uintptr_t>(sysMem);
+    if (uintPtr & (0x1000 - 1))
+    {
+        CM_ASSERTMESSAGE("Error: Pointer to host memory isn't 4K-aligned.\n");
+        return CM_INVALID_ARG_VALUE;
     }
 
     CLock locker(m_CriticalSection_Surface);
