@@ -538,7 +538,7 @@ void MhwVeboxInterfaceG10::SetVeboxSurfaces(
         bDIEnable);
 
     dwSurfacePitch = (pSurfaceParam->TileType == MOS_TILE_LINEAR) ?
-	    MOS_ALIGN_CEIL(pSurfaceParam->dwPitch, MHW_VEBOX_LINEAR_PITCH) : pSurfaceParam->dwPitch;
+        MOS_ALIGN_CEIL(pSurfaceParam->dwPitch, MHW_VEBOX_LINEAR_PITCH) : pSurfaceParam->dwPitch;
 
     pVeboxSurfaceState->DW1.SurfaceIdentification = bIsOutputSurface;
     pVeboxSurfaceState->DW2.Width                 = dwSurfaceWidth - 1;

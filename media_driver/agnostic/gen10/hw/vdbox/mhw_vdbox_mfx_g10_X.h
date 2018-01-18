@@ -31,7 +31,6 @@
 #include "mhw_vdbox_mfx_hwcmd_g10_X.h"
 #include "mhw_mi_hwcmd_g10_X.h"
 
-
 //!  MHW Vdbox Mfx interface for Gen10
 /*!
 This class defines the Mfx command construction functions for Gen10 platform

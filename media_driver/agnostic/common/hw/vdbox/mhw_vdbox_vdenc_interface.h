@@ -493,7 +493,7 @@ public:
         PMOS_COMMAND_BUFFER                     cmdBuffer,
         PMHW_BATCH_BUFFER                       batchBuffer,
         PMHW_VDBOX_VDENC_WEIGHT_OFFSET_PARAMS   params) = 0;
-    
+
     //!
     //! \brief    Adds CMD1 command in command buffer
     //! \details  Client facing function to add CMD1 command in command buffer

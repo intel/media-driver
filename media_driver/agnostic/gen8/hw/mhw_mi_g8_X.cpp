@@ -77,9 +77,9 @@ MOS_STATUS MhwMiInterfaceG8::AddMiConditionalBatchBufferEndCmd(
     MHW_MI_CHK_NULL(params);
     MHW_MI_CHK_NULL(params->presSemaphoreBuffer);
 
-    // Case 1 - Batch buffer condition matches - If this is not present then conditional 
+    // Case 1 - Batch buffer condition matches - If this is not present then conditional
     //          batch buffer will  exit to ring with terminating CP.
-    // Case 2 - Batch buffer condition DOES NOT match - Although this will disable CP 
+    // Case 2 - Batch buffer condition DOES NOT match - Although this will disable CP
     //          but after end of conditional batch buffer CP will be re-enabled.
     MHW_MI_CHK_STATUS(m_cpInterface->AddEpilog(m_osInterface, cmdBuffer));
 

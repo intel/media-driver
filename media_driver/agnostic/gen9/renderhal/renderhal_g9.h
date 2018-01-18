@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      renderhal_g9.h  
-//! \brief      
+//! \file      renderhal_g9.h 
+//! \brief 
 //!
 //!
 //! \file       renderhal_g9.h
@@ -32,7 +32,7 @@
 #define __RENDERHAL_G9_H__
 
 #include "renderhal_platform_interface.h"
-#include "mhw_render_hwcmd_g9_X.h" 
+#include "mhw_render_hwcmd_g9_X.h"
 #include "mhw_state_heap_hwcmd_g9_X.h"
 
 //! \brief      for SKL GT2 VP and MDF
@@ -85,7 +85,7 @@ class XRenderHal_Interface_g9 : public XRenderHal_Platform_Interface
 public:
     XRenderHal_Interface_g9() {}
     virtual ~XRenderHal_Interface_g9() {}
-    
+
     //!
     //! \brief    Setup Surface State
     //! \details  Setup Surface States for Gen9
@@ -192,8 +192,8 @@ public:
     //! \return   true of false
     //!
     inline bool IsEnableYV12SinglePass(
-        PRENDERHAL_INTERFACE    pRenderHal) 
-    { 
+        PRENDERHAL_INTERFACE    pRenderHal)
+    {
         return MEDIA_IS_WA(pRenderHal->pWaTable, WaEnableYV12BugFixInHalfSliceChicken7);
     }
 

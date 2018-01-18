@@ -50,7 +50,6 @@ MOS_STATUS MhwSfcInterfaceG9::AddSfcState(
     return MOS_STATUS_SUCCESS;
 }
 
-
 MhwSfcInterfaceG9::MhwSfcInterfaceG9(PMOS_INTERFACE pOsInterface)
    : MhwSfcInterfaceGeneric(pOsInterface)
 {

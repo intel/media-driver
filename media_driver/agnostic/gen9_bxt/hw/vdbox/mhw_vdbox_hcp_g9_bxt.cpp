@@ -116,7 +116,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Bxt::GetHcpStateCommandSize(
                 PATCH_LIST_COMMAND(MI_BATCH_BUFFER_START_CMD) +   // When BRC is on, HCP_PIC_STATE_CMD command is in the BB
                 2 * PATCH_LIST_COMMAND(MI_STORE_DATA_IMM_CMD) +   // Slice level commands
                 2 * PATCH_LIST_COMMAND(MI_FLUSH_DW_CMD) +   // need for Status report, Mfc Status and
-                11 * PATCH_LIST_COMMAND(MI_STORE_REGISTER_MEM_CMD); // 8 for BRCStatistics and 3 for RC6 WAs 
+                11 * PATCH_LIST_COMMAND(MI_STORE_REGISTER_MEM_CMD); // 8 for BRCStatistics and 3 for RC6 WAs
         }
         else
         {
@@ -216,7 +216,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Bxt::GetHcpPrimitiveCommandSize(
                 PATCH_LIST_COMMAND(HCP_BSD_OBJECT_CMD);
         }
     }
-    else if (standard == CODECHAL_VP9)      // VP9 Clear decode does not require primitive level commands. VP9 DRM does. 
+    else if (standard == CODECHAL_VP9)      // VP9 Clear decode does not require primitive level commands. VP9 DRM does.
     {
         if (modeSpecific)                  // VP9 DRM
         {
@@ -254,7 +254,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Bxt::AddHcpPipeModeSelectCmd(
 
     MHW_MI_CHK_NULL(params);
 
-    mhw_vdbox_hcp_g9_bxt::HCP_PIPE_MODE_SELECT_CMD   *cmd = 
+    mhw_vdbox_hcp_g9_bxt::HCP_PIPE_MODE_SELECT_CMD   *cmd =
         (mhw_vdbox_hcp_g9_bxt::HCP_PIPE_MODE_SELECT_CMD*)cmdBuffer->pCmdPtr;
 
     MHW_MI_CHK_STATUS(MhwVdboxHcpInterfaceG9<mhw_vdbox_hcp_g9_bxt>::AddHcpPipeModeSelectCmd(cmdBuffer, params));
@@ -451,9 +451,9 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Bxt::AddHcpVp9PicStateCmd(
         cmd.DW2.LastFrameType                   = !params->PrevFrameParams.fields.KeyFrame;
 
         cmd.DW2.UsePrevInFindMvReferences       = vp9PicParams->PicFlags.fields.error_resilient_mode    ||
-                                                    params->PrevFrameParams.fields.KeyFrame             || 
-                                                    params->PrevFrameParams.fields.IntraOnly            || 
-                                                    !params->PrevFrameParams.fields.Display             || 
+                                                    params->PrevFrameParams.fields.KeyFrame             ||
+                                                    params->PrevFrameParams.fields.IntraOnly            ||
+                                                    !params->PrevFrameParams.fields.Display             ||
                                                     isScaling ? false : true;
 
         cmd.DW2.SegmentIdStreaminEnable         = vp9PicParams->PicFlags.fields.error_resilient_mode    ||

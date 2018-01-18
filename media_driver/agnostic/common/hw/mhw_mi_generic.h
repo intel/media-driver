@@ -123,7 +123,7 @@ protected:
     MhwMiInterfaceGeneric(
         MhwCpInterface      *cpInterface,
         PMOS_INTERFACE      osInterface) : MhwMiInterface(cpInterface, osInterface) {}
-    
+
 public:
     virtual ~MhwMiInterfaceGeneric() { MHW_FUNCTION_ENTER; }
 
@@ -175,9 +175,9 @@ public:
             MHW_MI_CHK_STATUS(AddMediaStateFlush(cmdBuffer, batchBuffer));
         }
 
-        // Mhw_CommonMi_AddMiBatchBufferEnd() is designed to handle both 1st level 
+        // Mhw_CommonMi_AddMiBatchBufferEnd() is designed to handle both 1st level
         // and 2nd level BB.  It inserts MI_BATCH_BUFFER_END in both cases.
-        // However, since the 2nd level BB always returens to the 1st level BB and 
+        // However, since the 2nd level BB always returens to the 1st level BB and
         // no chained BB scenario in Media, Epilog is only needed in the 1st level BB.
         // Therefre, here only the 1st level BB case needs an Epilog inserted.
         if (cmdBuffer)
@@ -201,7 +201,7 @@ public:
 
         return MOS_STATUS_SUCCESS;
     }
-    
+
     MOS_STATUS AddMiBatchBufferEndOnly(
         PMOS_COMMAND_BUFFER             cmdBuffer,
         PMHW_BATCH_BUFFER               batchBuffer)
@@ -214,9 +214,9 @@ public:
             return MOS_STATUS_NULL_POINTER;
         }
 
-        // Mhw_CommonMi_AddMiBatchBufferEnd() is designed to handle both 1st level 
+        // Mhw_CommonMi_AddMiBatchBufferEnd() is designed to handle both 1st level
         // and 2nd level BB.  It inserts MI_BATCH_BUFFER_END in both cases.
-        // However, since the 2nd level BB always returens to the 1st level BB and 
+        // However, since the 2nd level BB always returens to the 1st level BB and
         // no chained BB scenario in Media, Epilog is only needed in the 1st level BB.
         // Therefre, here only the 1st level BB case needs an Epilog inserted.
         if (cmdBuffer)
@@ -366,7 +366,7 @@ public:
             m_osInterface,
             cmdBuffer,
             &resourceParams));
-    
+
         MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
         resourceParams.presResource     = params->presSrc;
         resourceParams.dwOffset         = params->dwSrcOffset;
@@ -385,7 +385,7 @@ public:
 
         return MOS_STATUS_SUCCESS;
     }
-    
+
     MOS_STATUS AddMiStoreRegisterMemCmd(
         PMOS_COMMAND_BUFFER                 cmdBuffer,
         PMHW_MI_STORE_REGISTER_MEM_PARAMS   params)
@@ -621,7 +621,7 @@ public:
 
         return MOS_STATUS_SUCCESS;
     }
-    
+
     MOS_STATUS AddMiSemaphoreWaitCmd(
         PMOS_COMMAND_BUFFER             cmdBuffer,
         PMHW_MI_SEMAPHORE_WAIT_PARAMS   params)
@@ -649,10 +649,10 @@ public:
 
         cmd.DW0.MemoryType          = IsGlobalGttInUse();
         cmd.DW0.WaitMode            = params->bPollingWaitMode;
-    
+
         cmd.DW0.CompareOperation    = params->CompareOperation;
         cmd.DW1.SemaphoreDataDword  = params->dwSemaphoreData;
-        
+
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
         return MOS_STATUS_SUCCESS;
@@ -677,7 +677,7 @@ public:
         PMHW_PIPE_CONTROL_PARAMS        params)
     {
         MHW_FUNCTION_ENTER;
-    
+
         MHW_MI_CHK_NULL(params);
 
         if (cmdBuffer == nullptr && batchBuffer == nullptr)
@@ -751,7 +751,7 @@ public:
                 cmd.DW1.TlbInvalidate                     = params->bTlbInvalidate;
                 cmd.DW1.TextureCacheInvalidationEnable    = params->bInvalidateTextureCache;
                 break;
-                
+
             // No-flush operation requested
             case MHW_FLUSH_NONE:
             default:
@@ -763,7 +763,7 @@ public:
         if (cmd.DW1.CommandStreamerStallEnable &&
             (cmd.DW1.DcFlushEnable == 0 && cmd.DW1.NotifyEnable == 0 && cmd.DW1.PostSyncOperation == 0 &&
              cmd.DW1.DepthStallEnable == 0 && cmd.DW1.StallAtPixelScoreboard == 0 && cmd.DW1.DepthCacheFlushEnable == 0  &&
-             cmd.DW1.RenderTargetCacheFlushEnable == 0)) 
+             cmd.DW1.RenderTargetCacheFlushEnable == 0))
         {
             cmd.DW1.CommandStreamerStallEnable = 0;
         }
@@ -883,7 +883,7 @@ public:
         return TMiCmds::MI_BATCH_BUFFER_START_CMD::byteSize;
     }
 
-    inline uint32_t GetMiBatchBufferEndCmdSize()        
+    inline uint32_t GetMiBatchBufferEndCmdSize()
     {
         return TMiCmds::MI_BATCH_BUFFER_END_CMD::byteSize;
     }

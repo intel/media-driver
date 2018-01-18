@@ -230,7 +230,7 @@ typedef struct _MHW_SFC_STATE_PARAMS
                                                                                 // b/w smooth and sharp filters rather than the calculated value
     bool                            bBypassYAdaptiveFilter;                     // If true, Y direction will use Default Sharpness level to blend
                                                                                 // b/w smooth and sharp filters rather than the calculated value
-    bool                            bRGBAdaptive;                               // If true, Enable the RGB Adaptive filter                                                                             
+    bool                            bRGBAdaptive;                               // If true, Enable the RGB Adaptive filter
     // IEF params
     bool                            bIEFEnable;                                 // IEF Filter enable
     bool                            bSkinToneTunedIEFEnable;                    // Skin Tone Tuned IEF enable

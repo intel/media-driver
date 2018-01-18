@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      renderhal_g8_bdw.h  
-//! \brief     BDW specific functions  
+//! \file      renderhal_g8_bdw.h 
+//! \brief     BDW specific functions 
 //!
 //!
 //! \file       renderhal_g8_bdw.h

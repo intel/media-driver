@@ -263,7 +263,7 @@ typedef struct _MHW_WALKER_PARAMS
     MHW_WALKER_XY           GlobalInnerLoopUnit;
 
     bool                    bAddMediaFlush;
-    bool                    bRequestSingleSlice; 
+    bool                    bRequestSingleSlice;
     bool                    bForceNoneCpWorkload;
 } MHW_WALKER_PARAMS, *PMHW_WALKER_PARAMS;
 
@@ -274,10 +274,10 @@ typedef struct _MHW_GPGPU_WALKER_PARAMS
     uint32_t                                               : 26;
     uint32_t                   ThreadWidth;
     uint32_t                   ThreadHeight;
-	uint32_t                   ThreadDepth;
+    uint32_t                   ThreadDepth;
     uint32_t                   GroupWidth;
     uint32_t                   GroupHeight;
-	uint32_t                   GroupDepth;   
+    uint32_t                   GroupDepth;
     uint32_t                   SLMSize;
 } MHW_GPGPU_WALKER_PARAMS, *PMHW_GPGPU_WALKER_PARAMS;
 
@@ -546,7 +546,7 @@ public:
     //! \return   void
     //!
     void SetOsInterface(PMOS_INTERFACE osInterface) { m_osInterface = osInterface;}
-    
+
 protected:
     //!
     //! \brief    Initializes the Render interface

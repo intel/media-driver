@@ -112,7 +112,7 @@ typedef enum _MHW_CSPACE
     MHW_CSpace_BT601Gray            ,   //!< BT.601 Y[16,235]
     MHW_CSpace_BT601Gray_FullRange  ,   //!< BT.601 Y[0,255]
     MHW_CSpace_BT2020               ,   //!< BT.2020 YUV Limited Range 10bit Y[64, 940] UV[64, 960]
-    MHW_CSpace_BT2020_FullRange     ,   //!< BT.2020 YUV Full Range 10bit [0, 1023] 
+    MHW_CSpace_BT2020_FullRange     ,   //!< BT.2020 YUV Full Range 10bit [0, 1023]
     MHW_CSpace_BT2020_RGB           ,   //!< BT.2020 RGB Full Range 10bit [0, 1023]
     MHW_CSpace_BT2020_stRGB         ,   //!< BT.2020 RGB Studio Range 10bit [64, 940]
     MHW_CSpace_Count                    //!< Keep this at the end
@@ -512,8 +512,8 @@ typedef struct _MHW_ICC_COLOR_CONVERSION_PARAMS
 
 typedef struct _MHW_DEBAYER_PARAMS
 {
-	uint32_t BayerInput;                  //!< 0 – MSB (default); 1 – LSB    
-	uint32_t LSBBayerBitDepth;            //!< 10, 12 or 14 for varies bayer input
+    uint32_t BayerInput;                  //!< 0 – MSB (default); 1 – LSB
+    uint32_t LSBBayerBitDepth;            //!< 10, 12 or 14 for varies bayer input
 } MHW_DEBAYER_PARAMS, *PMHW_DEBAYER_PARAMS;
 
 //!
@@ -542,10 +542,10 @@ typedef struct _MHW_CAPPIPE_PARAMS
 //!
 typedef struct _MHW_3DLUT_PARAMS
 {
-	uint32_t bActive;                    //!< Active or not
-	uint32_t LUTSize;                    //!< Size (one dimensions) of the LUT
-	uint32_t LUTLength;                  //!< Length of the LUT, in unit of bit
-	uint8_t *pLUT;                       //!< Pointer to the LUT value
+    uint32_t bActive;                    //!< Active or not
+    uint32_t LUTSize;                    //!< Size (one dimensions) of the LUT
+    uint32_t LUTLength;                  //!< Length of the LUT, in unit of bit
+    uint8_t *pLUT;                       //!< Pointer to the LUT value
 } MHW_3DLUT_PARAMS, *PMHW_3DLUT_PARAMS;
 
 //!
@@ -571,7 +571,7 @@ typedef struct _MHW_VEBOX_IECP_PARAMS
 
     bool                            bAce;
 
-	MHW_3DLUT_PARAMS                s3DLutParams;
+    MHW_3DLUT_PARAMS                s3DLutParams;
 } MHW_VEBOX_IECP_PARAMS, *PMHW_VEBOX_IECP_PARAMS;
 
 //!
@@ -782,7 +782,7 @@ typedef const MHW_VEBOX_SETTINGS CMHW_VEBOX_SETTINGS, *PCMHW_VEBOX_SETTINGS;
 typedef struct _MHW_VEBOX_GPUNODE_LIMIT
 {
     bool    bSfcInUse;
-    bool    bCpEnabled;  
+    bool    bCpEnabled;
     uint32_t dwGpuNodeToUse;
 } MHW_VEBOX_GPUNODE_LIMIT, *PMHW_VEBOX_GPUNODE_LIMIT;
 
@@ -794,7 +794,6 @@ typedef struct _MHW_VEBOX_MMIO
     uint32_t dwWatchdogCountCtrlOffset;
     uint32_t dwWatchdogCountThresholdOffset;
 } MHW_VEBOX_MMIO, *PMHW_VEBOX_MMIO;
-
 
 class MhwVeboxInterface
 {
@@ -827,7 +826,7 @@ public:
         PMOS_COMMAND_BUFFER                     pCmdBuffer,
         PMHW_VEBOX_STATE_CMD_PARAMS             pVeboxStateCmdParams,
         bool                                    bUseCmBuffer) = 0;
-    
+
     //!
     //! \brief      Send Vebox Surface State commands
     //! \details    Set surface state for input and output surfaces

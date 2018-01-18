@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      mhw_vdbox.h  
-//! \brief     This modules implements HW interface layer to be used on all platforms on all operating systems/DDIs, across MHW components.  
+//! \file      mhw_vdbox.h 
+//! \brief     This modules implements HW interface layer to be used on all platforms on all operating systems/DDIs, across MHW components. 
 //!
 #ifndef _MHW_VDBOX_H_
 #define _MHW_VDBOX_H_
@@ -99,7 +99,7 @@ typedef enum _MHW_VDBOX_ADDRESS_SHIFT
 typedef enum _MHW_VDBOX_NODE_IND
 {
     MHW_VDBOX_NODE_1           = 0x0,
-    MHW_VDBOX_NODE_2           = 0x1,         
+    MHW_VDBOX_NODE_2           = 0x1,
 } MHW_VDBOX_NODE_IND;
 
 typedef struct _MHW_VDBOX_AVC_QM_PARAMS
@@ -304,7 +304,7 @@ typedef struct _MHW_VDBOX_PIPE_BUF_ADDR_PARAMS
     PMOS_RESOURCE               presDeblockingFilterColumnRowStoreScratchBuffer; // For HEVC, VP9
     PMOS_RESOURCE               presMetadataLineBuffer;                          // For HEVC, VP9
     PMOS_RESOURCE               presMetadataTileLineBuffer;                      // For HEVC, VP9
-    PMOS_RESOURCE               presMetadataTileColumnBuffer;                    // For HEVC, VP9  
+    PMOS_RESOURCE               presMetadataTileColumnBuffer;                    // For HEVC, VP9
     PMOS_RESOURCE               presSaoLineBuffer;                               // For HEVC only
     PMOS_RESOURCE               presSaoTileLineBuffer;                           // For HEVC only
     PMOS_RESOURCE               presSaoTileColumnBuffer;                         // For HEVC only
@@ -330,9 +330,9 @@ typedef struct _MHW_VDBOX_PIPE_BUF_ADDR_PARAMS
     bool                        bDecodecReconIs10Bit;
     uint32_t                    dwNumRefIdxL0ActiveMinus1;
     uint32_t                    dwNumRefIdxL1ActiveMinus1;
-    uint32_t                    dwLcuStreamOutOffset;                        
-    uint32_t                    dwFrameStatStreamOutOffset;                     
-    uint32_t                    dwVdencStatsStreamOutOffset;                    
+    uint32_t                    dwLcuStreamOutOffset;
+    uint32_t                    dwFrameStatStreamOutOffset;
+    uint32_t                    dwVdencStatsStreamOutOffset;
     bool                        oneOnOneMapping = false;                 // Flag for indicating using 1:1 ref index mapping for vdenc
 } MHW_VDBOX_PIPE_BUF_ADDR_PARAMS, *PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS;
 
@@ -391,7 +391,7 @@ typedef struct _MHW_VDBOX_AVC_IMG_PARAMS
     uint8_t                                 ucCurrPass;
     uint8_t                                *pDeltaQp;
     uint32_t                                dwMaxFrameSize;
-    
+
     bool                                    bIPCMPass;
     // VDEnc specific
     bool                                    bVdencEnabled;

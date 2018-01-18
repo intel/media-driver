@@ -61,7 +61,7 @@ extern const RENDERHAL_STATE_HEAP_SETTINGS g_cRenderHal_State_Heap_Settings_g10 
     RENDERHAL_SSH_BINDING_TABLE_ALIGN          //!< iBTAlignment
 };
 
-const uint32_t g_cLookup_RotationMode_g10[8] = 
+const uint32_t g_cLookup_RotationMode_g10[8] =
 {
     ROTATION_IDENTITY,  // 0 - MHW_ROTATION_IDENTITY
     ROTATION_90,        // 1 - MHW_ROTATION_90
@@ -303,7 +303,6 @@ finish:
     return eStatus;
 }
 
-
 //!
 //! \brief    Encode SLM Size for Interface Descriptor
 //! \details  Setup SLM size
@@ -318,7 +317,7 @@ uint32_t XRenderHal_Interface_g10::EncodeSLMSize(uint32_t SLMSize)
     {
         EncodedValue = SLMSize;
     }
-    else 
+    else
     {
         EncodedValue = 0;
         do
@@ -329,7 +328,6 @@ uint32_t XRenderHal_Interface_g10::EncodeSLMSize(uint32_t SLMSize)
     }
     return EncodedValue;
 }
-
 
 //!
 //! \brief    Convert To Nano Seconds
@@ -372,7 +370,7 @@ uint8_t XRenderHal_Interface_g10::SetChromaDirection(
 {
     uint8_t Direction;
     MHW_RENDERHAL_UNUSED(pRenderHal);
-    
+
     MHW_RENDERHAL_ASSERT(pRenderHal);
     MHW_RENDERHAL_ASSERT(pRenderHalSurface);
 
@@ -505,11 +503,10 @@ MOS_STATUS XRenderHal_Interface_g10::EnableL3Caching(
     pCacheConfig = &mHwL3CacheConfig;
     MOS_ZeroMemory(pCacheConfig, sizeof(MHW_RENDER_ENGINE_L3_CACHE_SETTINGS));
 
-	if (pCacheSettings->bEnableSLM)
-		pCacheConfig->dwCntlReg = RENDERHAL_L3_CACHE_SLM_CONFIG_CNTLREG_VALUE_G10_RENDERHAL;
-	else
-		pCacheConfig->dwCntlReg = RENDERHAL_L3_CACHE_CONFIG_CNTLREG_VALUE_G10_RENDERHAL;
-
+    if (pCacheSettings->bEnableSLM)
+        pCacheConfig->dwCntlReg = RENDERHAL_L3_CACHE_SLM_CONFIG_CNTLREG_VALUE_G10_RENDERHAL;
+    else
+        pCacheConfig->dwCntlReg = RENDERHAL_L3_CACHE_CONFIG_CNTLREG_VALUE_G10_RENDERHAL;
 
     // Override L3 cache configuration
     if (pCacheSettings->bOverride)
@@ -522,7 +519,7 @@ MOS_STATUS XRenderHal_Interface_g10::EnableL3Caching(
     MHW_RENDERHAL_CHK_STATUS(pMhwRender->EnableL3Caching(pCacheConfig));
 
 finish:
-    return eStatus;   
+    return eStatus;
 }
 
 //!
@@ -614,7 +611,7 @@ MOS_STATUS XRenderHal_Interface_g10::GetSamplerOffsetAndPtr_DSH(
 
             if (pSamplerParams)
             {
-                dwSamplerIndirect += pDynamicState->SamplerInd.dwOffset +            				  // offset to indirect sampler area
+                dwSamplerIndirect += pDynamicState->SamplerInd.dwOffset +                              // offset to indirect sampler area
                                      iSamplerID * pRenderHal->pHwSizes->dwSizeSamplerIndirectState;   // Goto to "samplerID" indirect state
                 pSamplerParams->Unorm.IndirectStateOffset = dwSamplerIndirect;
                 pSamplerParams->Unorm.pIndirectState      = (void *)((uint8_t*)pDynamicState->pMemoryBlock->pStateHeap->pvLockedHeap + dwSamplerIndirect);

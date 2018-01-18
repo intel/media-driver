@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      mhw_state_heap_g9.h  
-//! \brief         This modules implements HW interface layer to be used on all platforms on     all operating systems/DDIs, across MHW components.  
+//! \file      mhw_state_heap_g9.h 
+//! \brief         This modules implements HW interface layer to be used on all platforms on     all operating systems/DDIs, across MHW components. 
 //!
 
 #ifndef __MHW_STATE_HEAP_G9_H__
@@ -37,7 +37,7 @@ private:
     uint16_t                m_wSizeOfInterfaceDescriptor;
     uint32_t                m_dwSizeSurfaceState;
     uint32_t                m_dwSizeSurfaceStateAdv;
-    
+
 public:
     MHW_STATE_HEAP_INTERFACE_G9_X(PMOS_INTERFACE pInputOSInterface, int8_t bDynamicMode);
 

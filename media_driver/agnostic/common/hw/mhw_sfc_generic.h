@@ -366,14 +366,14 @@ public:
                                                       = m_iefLineBufferCtrl.Gen9.Index;
 
        // Set DW29
-       cmd.DW29.OutputSurfaceTileWalk       = (pOutSurface->TileType == MOS_TILE_Y) ? 
+       cmd.DW29.OutputSurfaceTileWalk       = (pOutSurface->TileType == MOS_TILE_Y) ?
                                                          true : false;
        cmd.DW29.OutputSurfaceTiled          = (pOutSurface->TileType != MOS_TILE_LINEAR) ?
                                                          true : false;
-       cmd.DW29.OutputSurfaceHalfPitchForChroma 
+       cmd.DW29.OutputSurfaceHalfPitchForChroma
                                                       = bHalfPitchForChroma;
        cmd.DW29.OutputSurfacePitch          = pOutSurface->dwPitch - 1;
-       cmd.DW29.OutputSurfaceInterleaveChromaEnable 
+       cmd.DW29.OutputSurfaceInterleaveChromaEnable
                                                       = bInterleaveChroma;
        cmd.DW29.OutputSurfaceFormat         = cmd.DW3.OutputSurfaceFormatType;
 

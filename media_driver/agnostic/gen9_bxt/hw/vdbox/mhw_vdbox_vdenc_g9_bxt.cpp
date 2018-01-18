@@ -140,7 +140,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG9Bxt::AddVdencImgStateCmd(
     cmd.DW5.PictureType                     = avcPicParams->CodingType - 1;
     cmd.DW5.ConstrainedIntraPredictionFlag  = avcPicParams->constrained_intra_pred_flag;
 
-    // HME Ref1 Disable should be set as 0 when VDEnc Perf Mode is enabled 
+    // HME Ref1 Disable should be set as 0 when VDEnc Perf Mode is enabled
     if ((avcPicParams->CodingType != I_TYPE) &&
         (!params->pEncodeAvcSliceParams->num_ref_idx_l0_active_minus1) &&
         (!params->bVDEncPerfModeEnabled))
@@ -224,7 +224,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG9Bxt::AddVdencImgStateCmd(
         {
             int8_t dQpRoi = avcPicParams->ROI[i].PriorityLevelOrDQp;
 
-            // clip delta qp roi to VDEnc supported range 
+            // clip delta qp roi to VDEnc supported range
             priorityLevelOrDQp[i] = (char)CodecHal_Clip3(
                 ENCODE_VDENC_AVC_MIN_ROI_DELTA_QP_G9, ENCODE_VDENC_AVC_MAX_ROI_DELTA_QP_G9, dQpRoi);
         }

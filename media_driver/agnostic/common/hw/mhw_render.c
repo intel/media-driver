@@ -64,7 +64,7 @@ void MhwRenderInterface::InitPlatformCaps(
     }
 
     MOS_ZeroMemory(&m_hwCaps, sizeof(MHW_RENDER_ENGINE_CAPS));
-    
+
     m_hwCaps.dwMaxUnormSamplers       = MHW_RENDER_ENGINE_SAMPLERS_MAX;
     m_hwCaps.dwMaxAVSSamplers         = MHW_RENDER_ENGINE_SAMPLERS_AVS_MAX;
     m_hwCaps.dwMaxBTIndex             = MHW_RENDER_ENGINE_SSH_SURFACES_PER_BT_MAX - 1;

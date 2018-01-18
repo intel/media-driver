@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      mhw_utilities.c  
-//! \brief         This modules implements utilities which are shared by both the HW interface     and the state heap interface.  
+//! \file      mhw_utilities.c 
+//! \brief         This modules implements utilities which are shared by both the HW interface     and the state heap interface. 
 //!
 #include "mhw_utilities.h"
 #include "mhw_render.h"
@@ -76,7 +76,6 @@ MOS_STATUS Mhw_AddResourceToCmd_GfxAddress(
         pOsInterface->pfnGetResourceGfxAddress(pOsInterface, pParams->presResource) + pParams->dwOffset;
     dwGfxAddrBottom = (uint32_t)(ui64GfxAddress & 0x00000000FFFFFFFF);
     dwGfxAddrTop = (uint32_t)((ui64GfxAddress & 0xFFFFFFFF00000000) >> 32);
-
 
     *pParams->pdwCmd = (*pParams->pdwCmd & ~dwMask) | (dwGfxAddrBottom & dwMask);
     // this is next DW for top part of the address
@@ -262,7 +261,7 @@ MOS_STATUS Mhw_SurfaceFormatToType(
     uint32_t                       *pdwSurfaceType)
 {
     MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
-    
+
     MHW_FUNCTION_ENTER;
 
     MHW_CHK_NULL(psSurface);
@@ -275,13 +274,13 @@ MOS_STATUS Mhw_SurfaceFormatToType(
         case MHW_GFX3DSTATE_SURFACEFORMAT_L8_UNORM:
             *pdwSurfaceType = GFX3DSTATE_SURFACETYPE_BUFFER;
             break;
-        
+
         // 2D Surface for Codec: GFX3DSTATE_SURFACEFORMAT_YCRCB_NORMAL, GFX3DSTATE_SURFACEFORMAT_YCRCB_SWAPY
         // GFX3DSTATE_SURFACEFORMAT_R32_UNORM, GFX3DSTATE_SURFACEFORMAT_R16_UNORM, GFX3DSTATE_SURFACEFORMAT_R8_UNORM
 
         // 2D & 3D Surface
-        default:    
-            (psSurface->dwDepth > 1) ? 
+        default:
+            (psSurface->dwDepth > 1) ?
                 *pdwSurfaceType = GFX3DSTATE_SURFACETYPE_3D:
                 *pdwSurfaceType = GFX3DSTATE_SURFACETYPE_2D;
     }
@@ -848,7 +847,7 @@ MOS_STATUS Mhw_AllocateBb(
     AllocParams.Format   = Format_Buffer;
     AllocParams.dwBytes  = allocSize;
     AllocParams.pBufName = "BatchBuffer";
-    
+
     MHW_CHK_STATUS(pOsInterface->pfnAllocateResource(
         pOsInterface,
         &AllocParams,

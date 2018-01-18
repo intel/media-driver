@@ -49,7 +49,7 @@ protected:
         MI_FLUSH_DW_CMD_NUMBER_OF_ADDRESSES                        =  1, //  2 DW for  1 address field
         MI_CONDITIONAL_BATCH_BUFFER_END_CMD_NUMBER_OF_ADDRESSES    =  1, //  2 DW for  1 address field
         MI_STORE_REGISTER_MEM_CMD_NUMBER_OF_ADDRESSES              =  1, //  2 DW for  1 address field
-    
+
         VD_PIPELINE_FLUSH_CMD_NUMBER_OF_ADDRESSES                  =  0,  //  0 DW for  0 address fields
 
         HUC_PIPE_MODE_SELECT_CMD_NUMBER_OF_ADDRESSES               =  0, //  0 DW for    address fields
@@ -103,7 +103,7 @@ protected:
             maxSize +=
                 2 * TMiCmds::MI_CONDITIONAL_BATCH_BUFFER_END_CMD::byteSize;
 
-            patchListMaxSize += 
+            patchListMaxSize +=
                 2 * PATCH_LIST_COMMAND(MI_CONDITIONAL_BATCH_BUFFER_END_CMD);
         }
         else if (standard == CODECHAL_CENC)
@@ -112,7 +112,7 @@ protected:
             numStoreReg     = 3;
 
             maxSize +=
-                TMiCmds::MI_FLUSH_DW_CMD::byteSize * 2 +               
+                TMiCmds::MI_FLUSH_DW_CMD::byteSize * 2 +
                 TMiCmds::MI_BATCH_BUFFER_END_CMD::byteSize;
 
             patchListMaxSize +=
@@ -164,7 +164,6 @@ protected:
             numSlices       * PATCH_LIST_COMMAND(HUC_START_CMD) +
             numStoreDataImm * PATCH_LIST_COMMAND(MI_STORE_DATA_IMM_CMD) +
             numStoreReg     * PATCH_LIST_COMMAND(MI_STORE_REGISTER_MEM_CMD);
-
 
         if (params->bHucDummyStream)
         {
@@ -428,7 +427,5 @@ protected:
         return MOS_STATUS_SUCCESS;
     }
 };
-
-
 
 #endif

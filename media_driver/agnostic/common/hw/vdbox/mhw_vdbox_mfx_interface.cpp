@@ -66,22 +66,22 @@ const uint16_t MhwVdboxMfxInterface::m_mpeg2DefaultNonIntraQuantizerMatrix[64] =
 
 const uint32_t MhwVdboxMfxInterface::m_mpeg2SliceDeltaQPMax[4] =
 {
-    0x02040608, 0x01020304, 0x01020304, 0x01010202 
+    0x02040608, 0x01020304, 0x01020304, 0x01010202
 };
 
 const uint32_t MhwVdboxMfxInterface::m_mpeg2InitSliceDeltaQPMin[4] =
-{ 
-    0x81828384, 0x81828384, 0x81828384, 0x81828384 
+{
+    0x81828384, 0x81828384, 0x81828384, 0x81828384
 };
 
-const uint32_t MhwVdboxMfxInterface::m_mpeg2FrameBitrateMinMax[4] = 
-{ 
-    0x00010000, 0x00010000, 0x00010000, 0x00010000 
+const uint32_t MhwVdboxMfxInterface::m_mpeg2FrameBitrateMinMax[4] =
+{
+    0x00010000, 0x00010000, 0x00010000, 0x00010000
 };
 
-const uint32_t MhwVdboxMfxInterface::m_mpeg2FrameBitrateMinMaxDelta[4] = 
-{ 
-    0x00010000, 0x00010000, 0x00010000, 0x00010000 
+const uint32_t MhwVdboxMfxInterface::m_mpeg2FrameBitrateMinMaxDelta[4] =
+{
+    0x00010000, 0x00010000, 0x00010000, 0x00010000
 };
 
 const uint8_t MhwVdboxMfxInterface::m_columnScan4x4[16] =
@@ -289,7 +289,7 @@ uint32_t MhwVdboxMfxInterface::GetViewOrder(
     auto avcPicParams = params->pAvcPicParams;
     auto mvcExtPicParams = params->pMvcExtPicParams;
     auto avcRefList = params->ppAvcRefList;
-  
+
     // No need to check if bottom field since only progressive is supported
     uint32_t currPOC = avcPicParams->CurrFieldOrderCnt[0];
     uint32_t numRefs = (list == LIST_0) ? mvcExtPicParams->NumInterViewRefsL0 : mvcExtPicParams->NumInterViewRefsL1;
@@ -378,7 +378,6 @@ bool MhwVdboxMfxInterface::IsVc1PPicture(
 
     return isP;
 }
-
 
 bool MhwVdboxMfxInterface::IsVc1BPicture(
     const CODEC_PICTURE& picture,
@@ -642,7 +641,6 @@ uint32_t MhwVdboxMfxInterface::MosToMediaStateFormat(MOS_FORMAT format)
 
     return MHW_MEDIASTATE_SURFACEFORMAT_YCRCB_NORMAL;
 }
-
 
 uint32_t MhwVdboxMfxInterface::GetJpegHorizontalSamplingFactorForY(
     CodecEncodeJpegInputSurfaceFormat format)

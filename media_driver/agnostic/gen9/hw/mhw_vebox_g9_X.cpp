@@ -380,7 +380,7 @@ void MhwVeboxInterfaceG9::SetVeboxSurfaces(
     pVeboxSurfaceState->DW3.BayerPatternFormat    = bBayerStride;
     pVeboxSurfaceState->DW3.SurfacePitch          = dwSurfacePitch - 1;
     pVeboxSurfaceState->DW3.TiledSurface          = (pSurfaceParam->TileType != MOS_TILE_LINEAR) ? true : false;
-    pVeboxSurfaceState->DW3.TileWalk              = (pSurfaceParam->TileType == MOS_TILE_Y) 
+    pVeboxSurfaceState->DW3.TileWalk              = (pSurfaceParam->TileType == MOS_TILE_Y)
                                                     ? VeboxSurfaceState.TILE_WALK_TILEWALKYMAJOR
                                                     : VeboxSurfaceState.TILE_WALK_TILEWALKXMAJOR;
     pVeboxSurfaceState->DW4.XOffsetForU           = wUXOffset;
@@ -625,7 +625,7 @@ MOS_STATUS MhwVeboxInterfaceG9::AddVeboxState(
                 &AllocParamsForBufferLinear,
                 &pVeboxStateCmdParams->DummyIecpResource));
         }
-        
+
         MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
         ResourceParams.presResource = &pVeboxStateCmdParams->DummyIecpResource;
         ResourceParams.dwOffset = 0;

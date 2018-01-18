@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      renderhal_hashtable.h  
-//! \brief         This modules defines hash table implementation used for kernel search in RenderHal.  
+//! \file      renderhal_hashtable.h 
+//! \brief         This modules defines hash table implementation used for kernel search in RenderHal. 
 //!
 #ifndef __RENDERHAL_HASHTABLE_H__
 #define __RENDERHAL_HASHTABLE_H__

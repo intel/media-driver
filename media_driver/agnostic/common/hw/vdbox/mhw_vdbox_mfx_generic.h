@@ -318,7 +318,7 @@ protected:
                 }
             }
             MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
-           
+
             cmd.DW1.Obj0.Avc = avcQmIntra8x8;
             for (auto i = 0; i < 64; i++)
             {
@@ -387,7 +387,7 @@ protected:
         MHW_FUNCTION_ENTER;
 
         MHW_MI_CHK_NULL(params);
-       
+
         if (cmdBuffer == nullptr && batchBuffer == nullptr)
         {
             MHW_ASSERTMESSAGE("No valid buffer to add the command to!");
@@ -665,7 +665,7 @@ protected:
         auto seqParams = avcSliceState->pEncodeAvcSeqParams;
         auto sliceParams = avcSliceState->pEncodeAvcSliceParams;
         auto picParams = avcSliceState->pEncodeAvcPicParams;
-        
+
         uint16_t widthInMb = seqParams->pic_width_in_mbs_minus1 + 1;
         uint16_t frameFieldHeightInMb = avcSliceState->wFrameFieldHeightInMB;
         bool mbaffFrameFlag = seqParams->mb_adaptive_frame_field_flag ? true : false;
@@ -702,7 +702,7 @@ protected:
         cmd.DW6.Emulationbytesliceinsertenable = 1;
         cmd.DW6.IsLastSlice =
             (startMbNum + sliceParams->NumMbsForSlice) >= (uint32_t)(widthInMb * frameFieldHeightInMb);
-        // Driver only programs 1st slice state, VDENC will detect the last slice 
+        // Driver only programs 1st slice state, VDENC will detect the last slice
         if (avcSliceState->bVdencInUse)
         {
             cmd.DW6.TailInsertionPresentInBitstream = avcSliceState->bVdencNoTailInsertion ?
@@ -763,7 +763,7 @@ protected:
 
         cmd.DW9.Roundintra = avcSliceState->dwRoundingIntraValue;
         cmd.DW9.Roundintraenable = 1;
-   
+
         MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
@@ -781,11 +781,11 @@ protected:
         MHW_MI_CHK_NULL(params);
         MHW_MI_CHK_NULL(params->pAvcPicParams);
 
-        auto avcPicParams = params->pAvcPicParams;       
+        auto avcPicParams = params->pAvcPicParams;
         auto currFrameIdx = avcPicParams->CurrPic.FrameIdx;
         auto currAvcRefList = params->ppAvcRefList[currFrameIdx];
 
-        int16_t refFrameOrder[CODEC_MAX_NUM_REF_FRAME] = { 0 };  
+        int16_t refFrameOrder[CODEC_MAX_NUM_REF_FRAME] = { 0 };
         uint32_t usedForRef = 0;
         uint16_t nonExistingFrameFlags = 0;
         uint16_t longTermFrame = 0;
@@ -933,7 +933,7 @@ protected:
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
         MHW_MI_CHK_NULL(params->pMpeg2PicParams);
-       
+
         typename TMfxCmds::MFX_MPEG2_PIC_STATE_CMD cmd;
         auto picParams = params->pMpeg2PicParams;
 
@@ -1116,7 +1116,7 @@ protected:
             cmdBuffer,
             batchBuffer,
             &sliceInfoParam);
-      
+
         MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
@@ -1193,7 +1193,7 @@ protected:
                 inlineDataMpeg2->DW5.Value = *point++;
             }
         }
-      
+
         MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
@@ -1351,7 +1351,7 @@ protected:
         MHW_MI_CHK_NULL(brcImgBuffer);
         MHW_MI_CHK_NULL(params);
 
-        MOS_LOCK_PARAMS lockFlags;     
+        MOS_LOCK_PARAMS lockFlags;
         MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
         lockFlags.WriteOnly = 1;
         uint8_t *data = (uint8_t*)m_osInterface->pfnLockResource(m_osInterface, brcImgBuffer, &lockFlags);
@@ -1566,7 +1566,7 @@ protected:
                     fwdDoubleIcEnable = TOP_FIELD;
                     cmd.DW3.Lumscale1DoubleFwd = fwdRefParams->Vc1IcValues[icField].wICCScale1;
                     cmd.DW3.Lumshift1DoubleFwd = fwdRefParams->Vc1IcValues[icField].wICCShiftL1;
-                    // IC values for the bottom out of bound pixels (replicated lines of the last 
+                    // IC values for the bottom out of bound pixels (replicated lines of the last
                     // line of top field)
                     cmd.DW3.Lumscale2DoubleFwd = fwdRefParams->Vc1IcValues[icField].wICCScale1;
                     cmd.DW3.Lumshift2DoubleFwd = fwdRefParams->Vc1IcValues[icField].wICCShiftL1;
@@ -1574,7 +1574,7 @@ protected:
                 if (MOS_IS_BIT_SET(fwdRefParams->dwRefSurfaceFlags, CODECHAL_VC1_BOT_FIELD_COMP_2))
                 {
                     fwdDoubleIcEnable |= BOTTOM_FIELD;
-                    // IC values for the top out of bound pixels (replicated lines of the first 
+                    // IC values for the top out of bound pixels (replicated lines of the first
                     // line of bottom field)
                     cmd.DW3.Lumscale1DoubleFwd = fwdRefParams->Vc1IcValues[icField].wICCScale2;
                     cmd.DW3.Lumshift1DoubleFwd = fwdRefParams->Vc1IcValues[icField].wICCShiftL2;
@@ -1681,9 +1681,9 @@ protected:
                     if (vc1PicParams->picture_fields.intensity_compensation)
                     {
                         bwdDoubleIcEnable = TOP_FIELD;
-                        // If the reference picture is not interlaced field and current picture is bottom field 
-                        // and second field, double backwards values are identical to the the single forward 
-                        // values used by the p interlaced field top field  
+                        // If the reference picture is not interlaced field and current picture is bottom field
+                        // and second field, double backwards values are identical to the the single forward
+                        // values used by the p interlaced field top field
                         if (!CodecHal_PictureIsField((params->ppVc1RefList[vc1PicParams->ForwardRefIdx])->RefPic) &&
                             (CodecHal_PictureIsBottomField(vc1PicParams->CurrPic) && isSecondField))
                         {
@@ -1757,9 +1757,9 @@ protected:
                     if (vc1PicParams->picture_fields.intensity_compensation)
                     {
                         bwdDoubleIcEnable |= BOTTOM_FIELD;
-                        // If the reference picture is not interlaced field and current picture is top field and 
-                        // second field, double backwards values are identical to the the single forward values 
-                        // used by the p interlaced field bottom field   
+                        // If the reference picture is not interlaced field and current picture is top field and
+                        // second field, double backwards values are identical to the the single forward values
+                        // used by the p interlaced field bottom field
                         if (!CodecHal_PictureIsField((params->ppVc1RefList[vc1PicParams->ForwardRefIdx])->RefPic) &&
                             (CodecHal_PictureIsTopField(vc1PicParams->CurrPic) && isSecondField))
                         {
@@ -2237,7 +2237,7 @@ protected:
 
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
- 
+
         typename TMfxCmds::MFX_VC1_DIRECTMODE_STATE_CMD cmd;
 
         MHW_RESOURCE_PARAMS resourceParams;
@@ -2289,7 +2289,7 @@ protected:
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(vc1SliceState);
         MHW_MI_CHK_NULL(vc1SliceState->pSlc);
-     
+
         typename TMfxCmds::MFD_VC1_BSD_OBJECT_CMD cmd;
         auto slcParams = vc1SliceState->pSlc;
 
@@ -2340,23 +2340,23 @@ protected:
     //!           VC1 intra flag
     //!
     uint8_t GetVc1IntraFlag(PMHW_VDBOX_VC1_MB_STATE mbState, PCODEC_VC1_MB_PARAMS mbParams)
-    {             
+    {
         const uint8_t PATTERN_CODE_INTRA_MB = 0xF;
         uint8_t intra8x8Flag = 0;
 
-        if (mbParams->mb_type.intra_mb)                                                      
-        {                                                                                   
-            intra8x8Flag = PATTERN_CODE_INTRA_MB;                                          
-        }                                                                                   
-        else if (mbParams->mb_type.motion_4mv && (mbState->PicFlags == PICTURE_FRAME))   
-        {                                                                                   
-            intra8x8Flag = mbParams->pattern_code.block_luma_intra;                         
-        }                                                                                   
-        else                                                                                
-        {                                                                                   
-            intra8x8Flag = 0;                                                              
-        }      
-    
+        if (mbParams->mb_type.intra_mb)
+        {
+            intra8x8Flag = PATTERN_CODE_INTRA_MB;
+        }
+        else if (mbParams->mb_type.motion_4mv && (mbState->PicFlags == PICTURE_FRAME))
+        {
+            intra8x8Flag = mbParams->pattern_code.block_luma_intra;
+        }
+        else
+        {
+            intra8x8Flag = 0;
+        }
+
         return intra8x8Flag;
     }
 
@@ -2388,7 +2388,6 @@ protected:
             0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1
         };
 
-
         auto vc1PicParams = mbState->pVc1PicParams;
 
         //------------------------------------
@@ -2404,7 +2403,7 @@ protected:
 
         if (mbOverlapSmoothing)
         {
-            uint8_t intra8x8 = GetVc1IntraFlag(mbState, mbParams); 
+            uint8_t intra8x8 = GetVc1IntraFlag(mbState, mbParams);
 
             if ((vc1PicParams->picture_fields.picture_type == vc1BBField) || !intra8x8)
             {
@@ -2596,7 +2595,7 @@ protected:
         }
         else if (vc1PicParams->entrypoint_fields.loopfilter)
         {
-            //driver generates the edge control value for I and B frames in VC1 Simple and Main profile 
+            //driver generates the edge control value for I and B frames in VC1 Simple and Main profile
             if (mbState->bMbHorizOrigin == 0 && mbState->bMbVertOrigin == 0)
             {
                 inlineDataVc1->DW9.Value = MHW_VDBOX_DECODE_VC1_IT_ILDB_EDGE_CONTROL_LUMA_X0Y0;
@@ -2634,7 +2633,7 @@ protected:
                 mbState,
                 mbParams,
                 mbState->bMbHorizOrigin,
-                mbState->bMbVertOrigin); 
+                mbState->bMbVertOrigin);
 
             MHW_MI_CHK_STATUS(Mhw_AddCommandBB(batchBuffer, &cmd, sizeof(cmd)));
         }
@@ -2688,7 +2687,7 @@ protected:
                     mbState,
                     mbParams,
                     mbState->bMbHorizOrigin,
-                    mbState->bMbVertOrigin); 
+                    mbState->bMbVertOrigin);
 
                 MHW_MI_CHK_STATUS(Mhw_AddCommandBB(batchBuffer, &cmd, sizeof(cmd)));
             }
@@ -2729,7 +2728,7 @@ protected:
         MHW_MI_CHK_NULL(params);
 
         typename TMfxCmds::MFX_JPEG_HUFF_TABLE_STATE_CMD cmd;
-       
+
         cmd.DW1.Hufftableid1Bit = params->HuffTableID;
 
         MOS_SecureMemcpy(cmd.DcBits128BitArray, sizeof(cmd.DcBits128BitArray), params->pDCBits, sizeof(cmd.DcBits128BitArray));
@@ -2756,7 +2755,7 @@ protected:
         MHW_MI_CHK_NULL(params);
 
         typename TMfxCmds::MFD_JPEG_BSD_OBJECT_CMD cmd;
-    
+
         cmd.DW1.IndirectDataLength = params->dwIndirectDataLength;
         cmd.DW2.IndirectDataStartAddress = params->dwDataStartAddress;
         cmd.DW3.ScanVerticalPosition = params->dwScanVerticalPosition;

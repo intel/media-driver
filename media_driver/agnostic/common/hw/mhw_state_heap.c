@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      mhw_state_heap.c  
-//! \brief         This modules implements HW interface layer to be used on all platforms on     all operating systems/DDIs, across MHW components.  
+//! \file      mhw_state_heap.c 
+//! \brief         This modules implements HW interface layer to be used on all platforms on     all operating systems/DDIs, across MHW components. 
 //!
 #include "mhw_state_heap.h"
 #include "mhw_utilities.h"
@@ -36,7 +36,7 @@ extern const uint8_t g_cMhw_VDirection[MHW_NUM_FRAME_FIELD_TYPES] = {
     MEDIASTATE_VDIRECTION_BOTTOM_FIELD
 };
 
-extern const MHW_SAMPLER_STATE_UNORM_PARAM g_cInit_MhwSamplerStateUnormParam = 
+extern const MHW_SAMPLER_STATE_UNORM_PARAM g_cInit_MhwSamplerStateUnormParam =
 {
     MHW_SAMPLER_FILTER_CUSTOM,                      // SamplerFilterMode
     MHW_GFX3DSTATE_MAPFILTER_LINEAR,                // MagFilter
@@ -49,8 +49,8 @@ extern const MHW_SAMPLER_STATE_UNORM_PARAM g_cInit_MhwSamplerStateUnormParam =
     {0},
     {0},
     {0},
-    0, 
-    0, 
+    0,
+    0,
     0
 };
 
@@ -149,9 +149,9 @@ MOS_STATUS Mhw_StateHeapInterface_AssignSpaceInStateHeap(
                   dwSpaceRequested,
                   bStatic,
                   bZeroAssignedMem));
-    
+
 finish:
-    return eStatus;    
+    return eStatus;
 }
 
 //!
@@ -203,9 +203,9 @@ MOS_STATUS Mhw_StateHeapInterface_LockStateHeap(
 
     MHW_CHK_STATUS(pCommonStateHeapInterface->pStateHeapInterface->LockStateHeap(
                    pStateHeap));
-    
+
 finish:
-    return eStatus;       
+    return eStatus;
 }
 
 //!
@@ -230,9 +230,9 @@ MOS_STATUS Mhw_StateHeapInterface_UnlockStateHeap(
 
     MHW_CHK_STATUS(pCommonStateHeapInterface->pStateHeapInterface->UnLockStateHeap(
                    pStateHeap));
-    
+
 finish:
-    return eStatus;      
+    return eStatus;
 }
 
 //!
@@ -261,9 +261,9 @@ MOS_STATUS Mhw_StateHeapInterface_ExtendStateHeap(
 
     MHW_CHK_STATUS(pCommonStateHeapInterface->pStateHeapInterface->ExtendStateHeap(
                    StateHeapType, dwSizeRequested));
-    
+
 finish:
-    return eStatus;      
+    return eStatus;
 }
 
 //!
@@ -288,9 +288,9 @@ MOS_STATUS Mhw_StateHeapInterface_UpdateGlobalCmdBufId(
     MHW_CHK_NULL(pCommonStateHeapInterface->pStateHeapInterface);
 
     MHW_CHK_STATUS(pCommonStateHeapInterface->pStateHeapInterface->UpdateGlobalCmdBufId());
-    
+
 finish:
-    return eStatus;  
+    return eStatus;
 }
 
 //!
@@ -347,9 +347,9 @@ MOS_STATUS Mhw_StateHeapInterface_CalculateSshAndBtSizesRequested(
 
     MHW_CHK_STATUS(pCommonStateHeapInterface->pStateHeapInterface->CalculateSshAndBtSizesRequested(
                    dwBtEntriesRequested, pdwSshSize, pdwBtSize));
-    
+
 finish:
-    return eStatus;      
+    return eStatus;
 }
 
 //!
@@ -375,9 +375,9 @@ MOS_STATUS Mhw_StateHeapInterface_RequestSshSpaceForCmdBuf(
 
     MHW_CHK_STATUS(pCommonStateHeapInterface->pStateHeapInterface->RequestSshSpaceForCmdBuf(
                    dwBtEntriesRequested));
-    
+
 finish:
-    return eStatus;        
+    return eStatus;
 }
 
 MOS_STATUS Mhw_StateHeapInterface_SetInterfaceDescriptor (
@@ -393,9 +393,9 @@ MOS_STATUS Mhw_StateHeapInterface_SetInterfaceDescriptor (
 
     MHW_CHK_STATUS(pCommonStateHeapInterface->pStateHeapInterface->SetInterfaceDescriptor(
                    dwNumIdsToSet, pParams));
-    
+
 finish:
-    return eStatus;      
+    return eStatus;
 }
 
 MOS_STATUS Mhw_StateHeapInterface_SetInterfaceDescriptorEntry (
@@ -410,9 +410,9 @@ MOS_STATUS Mhw_StateHeapInterface_SetInterfaceDescriptorEntry (
 
     MHW_CHK_STATUS(pCommonStateHeapInterface->pStateHeapInterface->SetInterfaceDescriptorEntry(
                    pParams));
-    
+
 finish:
-    return eStatus;    
+    return eStatus;
 }
 
 MOS_STATUS Mhw_StateHeapInterface_SetBindingTable (
@@ -427,9 +427,9 @@ MOS_STATUS Mhw_StateHeapInterface_SetBindingTable (
 
     MHW_CHK_STATUS(pCommonStateHeapInterface->pStateHeapInterface->SetBindingTable(
                    pKernelState));
-    
+
 finish:
-    return eStatus;  
+    return eStatus;
 }
 
 MOS_STATUS Mhw_StateHeapInterface_SetBindingTableEntry (
@@ -444,9 +444,9 @@ MOS_STATUS Mhw_StateHeapInterface_SetBindingTableEntry (
 
     MHW_CHK_STATUS(pCommonStateHeapInterface->pStateHeapInterface->SetBindingTableEntry(
                    pParams));
-    
+
 finish:
-    return eStatus;      
+    return eStatus;
 }
 
 MOS_STATUS Mhw_StateHeapInterface_SendBindingTableEntry (
@@ -461,9 +461,9 @@ MOS_STATUS Mhw_StateHeapInterface_SendBindingTableEntry (
 
     MHW_CHK_STATUS(pCommonStateHeapInterface->pStateHeapInterface->SendBindingTableEntry (
                    pParams));
-    
+
 finish:
-    return eStatus;    
+    return eStatus;
 }
 
 MOS_STATUS Mhw_StateHeapInterface_SetSurfaceState(
@@ -481,9 +481,9 @@ MOS_STATUS Mhw_StateHeapInterface_SetSurfaceState(
 
     MHW_CHK_STATUS(pCommonStateHeapInterface->pStateHeapInterface->SetSurfaceState (
                    pKernelState,pCmdBuffer, dwNumSurfaceStatesToSet, pParams));
-    
+
 finish:
-    return eStatus;    
+    return eStatus;
 }
 
 MOS_STATUS Mhw_StateHeapInterface_SetSurfaceStateEntry(
@@ -498,9 +498,9 @@ MOS_STATUS Mhw_StateHeapInterface_SetSurfaceStateEntry(
 
     MHW_CHK_STATUS(pCommonStateHeapInterface->pStateHeapInterface->SetSurfaceStateEntry(
                    pParams));
-    
+
 finish:
-    return eStatus;   
+    return eStatus;
 }
 
 MOS_STATUS Mhw_StateHeapInterface_InitSamplerStates(
@@ -516,9 +516,9 @@ MOS_STATUS Mhw_StateHeapInterface_InitSamplerStates(
 
     MHW_CHK_STATUS(pCommonStateHeapInterface->pStateHeapInterface->InitSamplerStates(
                    pSampler,iSamplers));
-    
+
 finish:
-    return eStatus;  
+    return eStatus;
 }
 
 MOS_STATUS Mhw_StateHeapInterface_SetSamplerState(
@@ -534,9 +534,9 @@ MOS_STATUS Mhw_StateHeapInterface_SetSamplerState(
 
     MHW_CHK_STATUS(pCommonStateHeapInterface->pStateHeapInterface->SetSamplerState(
                    pSampler,pParams));
-    
+
 finish:
-    return eStatus;  
+    return eStatus;
 }
 
 uint32_t Mhw_StateHeapInterface_DSH_CalculateSpaceNeeded(
@@ -553,7 +553,7 @@ PMHW_STATE_HEAP_MEMORY_BLOCK Mhw_StateHeapInterface_DSH_AllocateDynamicBlock(
         MHW_STATE_HEAP_TYPE                  StateHeapType,
         PMHW_STATE_HEAP_DYNAMIC_ALLOC_PARAMS pParams)
 {
-    return pStateHeapInterface->pStateHeapInterface->AllocateDynamicBlockDyn( 
+    return pStateHeapInterface->pStateHeapInterface->AllocateDynamicBlockDyn(
         StateHeapType,  pParams);
 }
 
@@ -587,7 +587,7 @@ MOS_STATUS Mhw_StateHeapInterface_DSH_RefreshDynamicHeap (
 }
 
 MOS_STATUS Mhw_StateHeapInterface_DSH_ReleaseStateHeap(
-    PMHW_STATE_HEAP_INTERFACE pStateHeapInterface, 
+    PMHW_STATE_HEAP_INTERFACE pStateHeapInterface,
     PMHW_STATE_HEAP pStateHeap)
 {
     return pStateHeapInterface->pStateHeapInterface->ReleaseStateHeapDyn(pStateHeap);
@@ -616,9 +616,9 @@ MOS_STATUS Mhw_StateHeapInterface_Create(
 
     MHW_CHK_STATUS((*ppStateHeapInterface)->pStateHeapInterface->InitializeInterface(
         StateHeapSettings));
-    
+
 finish:
-    return eStatus;      
+    return eStatus;
 }
 //!
 //! \brief    Destroys the state heap interface
@@ -666,7 +666,7 @@ MOS_STATUS Mhw_StateHeapInterface_InitInterface(
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
     MhwInterfaces::CreateParams params;
     MhwInterfaces               *mhwInterfaces = nullptr;
-    
+
     MHW_FUNCTION_ENTER;
 
     MHW_CHK_NULL(ppCommonStateHeapInterface);
@@ -707,7 +707,7 @@ MOS_STATUS Mhw_StateHeapInterface_InitInterface(
     pCommonStateHeapInterface->pfnSetSurfaceStateEntry        = Mhw_StateHeapInterface_SetSurfaceStateEntry;
     pCommonStateHeapInterface->pfnInitSamplerStates           = Mhw_StateHeapInterface_InitSamplerStates;
     pCommonStateHeapInterface->pfnSetSamplerState             = Mhw_StateHeapInterface_SetSamplerState;
-    
+
     MOS_ZeroMemory(&params, sizeof(params));
     params.Flags.m_stateHeap = true;
     params.m_heapMode = bDynamicMode;
@@ -715,7 +715,7 @@ MOS_STATUS Mhw_StateHeapInterface_InitInterface(
     if (mhwInterfaces)
     {
         pCommonStateHeapInterface->pStateHeapInterface = mhwInterfaces->m_stateHeapInterface;
-        // MhwInterfaces always create CP and MI interfaces, so we have to delete those we don't need. 
+        // MhwInterfaces always create CP and MI interfaces, so we have to delete those we don't need.
         MOS_Delete(mhwInterfaces->m_miInterface);
         MOS_Delete(mhwInterfaces->m_cpInterface);
         MOS_Delete(mhwInterfaces);
@@ -738,13 +738,12 @@ finish:
     return eStatus;
 }
 
-
 XMHW_STATE_HEAP_INTERFACE::XMHW_STATE_HEAP_INTERFACE(
     PMOS_INTERFACE pInputOSInterface,
     int8_t         bDynamicMode):
     m_pOsInterface(pInputOSInterface),
     m_bDynmaicMode(bDynamicMode),
-    m_pWaTable(nullptr),        
+    m_pWaTable(nullptr),
     m_pSyncTags(nullptr),
     m_pdwCmdBufIdGlobal(nullptr),
     m_dwCurrCmdBufId(0),
@@ -766,13 +765,12 @@ XMHW_STATE_HEAP_INTERFACE::XMHW_STATE_HEAP_INTERFACE(
     m_wSizeOfCmdInterfaceDescriptorData(0)
 {
     MHW_FUNCTION_ENTER;
-    
+
     MOS_ZeroMemory(&m_resCmdBufIdGlobal, sizeof(m_resCmdBufIdGlobal));
     MOS_ZeroMemory(&m_SurfaceStateHeap, sizeof(m_SurfaceStateHeap));
     MOS_ZeroMemory(&m_HwSizes, sizeof(m_HwSizes));
     MOS_ZeroMemory(&m_StateHeapSettings, sizeof(m_StateHeapSettings));
 }
-
 
 XMHW_STATE_HEAP_INTERFACE::~XMHW_STATE_HEAP_INTERFACE()
 {
@@ -789,7 +787,7 @@ XMHW_STATE_HEAP_INTERFACE::~XMHW_STATE_HEAP_INTERFACE()
 
     //Release m_SyncTags
     MOS_FreeMemory(m_pSyncTags);
-	
+
     // Destroy all memory block objects and block manager objects for ISH, DSH
     if(m_bDynmaicMode == 1)
     {
@@ -818,7 +816,7 @@ XMHW_STATE_HEAP_INTERFACE::~XMHW_STATE_HEAP_INTERFACE()
             }
             m_pOsInterface->pfnFreeResource(m_pOsInterface, &pStateHeapPtr->resHeap);
         }
-        
+
         if(m_bDynmaicMode == 0)
         {
             pMemBlkPtr = pStateHeapPtr->pMemoryHead;
@@ -858,7 +856,7 @@ XMHW_STATE_HEAP_INTERFACE::~XMHW_STATE_HEAP_INTERFACE()
                 pMemBlkPtr = pMemBlkNext;
             }
         }
-        
+
         MOS_FreeMemory(pStateHeapPtr);
         pStateHeapPtr = pStateHeapNext;
     }
@@ -929,7 +927,7 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::InitializeInterface(
     }
 
     //Sync tagas and sync tag id
-    m_pSyncTags = (PMHW_SYNC_TAG)MOS_AllocAndZeroMemory(sizeof(MHW_SYNC_TAG) * 
+    m_pSyncTags = (PMHW_SYNC_TAG)MOS_AllocAndZeroMemory(sizeof(MHW_SYNC_TAG) *
                         StateHeapSettings.dwNumSyncTags);
     MHW_CHK_NULL(m_pSyncTags);
 
@@ -995,7 +993,6 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::InitializeInterface(
 finish:
     return eStatus;
 }
-
 
 MOS_STATUS XMHW_STATE_HEAP_INTERFACE::InitMemoryBlock(
     PMHW_STATE_HEAP                 pStateHeap,
@@ -1127,7 +1124,7 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::ReturnSpaceMemoryBlock(
     }
 
 finish:
-    return eStatus;   
+    return eStatus;
 }
 
 MOS_STATUS XMHW_STATE_HEAP_INTERFACE::AssignSpaceInStateHeap(
@@ -1207,7 +1204,7 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::AssignSpaceInStateHeap(
         requestedBlock->AddData(nullptr, 0, 0, true);
     }
 
-    return MOS_STATUS_SUCCESS;    
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS XMHW_STATE_HEAP_INTERFACE::SubmitBlocks(PMHW_KERNEL_STATE pKernelState)
@@ -1266,7 +1263,7 @@ MOS_STATUS  XMHW_STATE_HEAP_INTERFACE::UnLockStateHeap(
     MOS_STATUS      eStatus = MOS_STATUS_SUCCESS;
 
     MHW_CHK_NULL(pStateHeap);
-    
+
     if (pStateHeap->bKeepLocked)
     {
         MHW_CHK_NULL(pStateHeap->pvLockedHeap);
@@ -1274,7 +1271,7 @@ MOS_STATUS  XMHW_STATE_HEAP_INTERFACE::UnLockStateHeap(
     }
 
     MHW_CHK_STATUS(m_pOsInterface->pfnUnlockResource(m_pOsInterface, &pStateHeap->resHeap));
-    
+
     pStateHeap->pvLockedHeap = nullptr;
 
 finish:
@@ -1433,7 +1430,7 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::ExtendStateHeapDyn(
 
     // Register new state heap with block manager
     pBlockManager->RegisterStateHeap(pNewStateHeap);
-    
+
 finish:
     if (eStatus != MOS_STATUS_SUCCESS)
     {
@@ -1533,7 +1530,7 @@ uint32_t XMHW_STATE_HEAP_INTERFACE::CalculateSpaceNeededDyn(
     PMHW_BLOCK_MANAGER              pBlockManager = nullptr;
     uint32_t                        dwNeeded = 0;
     MOS_STATUS                      eStatus = MOS_STATUS_SUCCESS;
-    
+
     MHW_FUNCTION_ENTER;
 
     MHW_CHK_NULL(pParams);
@@ -1569,7 +1566,7 @@ uint32_t XMHW_STATE_HEAP_INTERFACE::CalculateSpaceNeededDyn(
 
 finish:
     return dwNeeded;
-    
+
 }
 
 MOS_STATUS XMHW_STATE_HEAP_INTERFACE::CalculateSshAndBtSizesRequested(
@@ -1661,14 +1658,13 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::ReleaseStateHeapDyn(
 
     // Free OS resource
     m_pOsInterface->pfnFreeResource(m_pOsInterface, &pStateHeap->resHeap);
-    
+
     // Free MHW State Heap structure
     MOS_FreeMemory(pStateHeap);
 
 finish:
     return eStatus;
 }
-
 
 PMHW_STATE_HEAP_MEMORY_BLOCK  XMHW_STATE_HEAP_INTERFACE::AllocateDynamicBlockDyn(
         MHW_STATE_HEAP_TYPE                  StateHeapType,
@@ -1680,7 +1676,7 @@ PMHW_STATE_HEAP_MEMORY_BLOCK  XMHW_STATE_HEAP_INTERFACE::AllocateDynamicBlockDyn
     PMHW_STATE_HEAP_MEMORY_BLOCK    pAuxBlock;
     MOS_STATUS                      eStatus = MOS_STATUS_SUCCESS;
     uint32_t                        dwMinSize, dwIncrement, dwMaxSize;
-    
+
     MHW_FUNCTION_ENTER;
 
     MHW_CHK_NULL(pParams);
@@ -1750,7 +1746,7 @@ PMHW_STATE_HEAP_MEMORY_BLOCK  XMHW_STATE_HEAP_INTERFACE::AllocateDynamicBlockDyn
             uint32_t dwTotalSize = 0;
 
             // Do not allow heap to grow automatically
-            // Note: Caller may try to clean up the heap, wait or implement a different heap expansion logic 
+            // Note: Caller may try to clean up the heap, wait or implement a different heap expansion logic
             if (!pParams->bGrow)
             {
                 break;
@@ -1817,7 +1813,6 @@ finish:
     return pMemoryBlock;
 }
 
-
 MOS_STATUS XMHW_STATE_HEAP_INTERFACE::SubmitDynamicBlockDyn(
         MHW_STATE_HEAP_TYPE                  StateHeapType,
         PMHW_STATE_HEAP_MEMORY_BLOCK         pBlock,
@@ -1825,7 +1820,7 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::SubmitDynamicBlockDyn(
 {
     PMHW_BLOCK_MANAGER  pBlockManager = nullptr;
     MOS_STATUS          eStatus = MOS_STATUS_SUCCESS;
-    
+
     MHW_FUNCTION_ENTER;
 
     MHW_CHK_NULL(pBlock);
@@ -1852,7 +1847,6 @@ finish:
     return eStatus;
 }
 
-
 MOS_STATUS XMHW_STATE_HEAP_INTERFACE::FreeDynamicBlockDyn(
         MHW_STATE_HEAP_TYPE                  StateHeapType,
         PMHW_STATE_HEAP_MEMORY_BLOCK         pBlock,
@@ -1860,7 +1854,7 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::FreeDynamicBlockDyn(
 {
     PMHW_BLOCK_MANAGER  pBlockManager = nullptr;
     MOS_STATUS          eStatus = MOS_STATUS_SUCCESS;
-    
+
     MHW_FUNCTION_ENTER;
 
     MHW_CHK_NULL(pBlock);
@@ -1893,7 +1887,7 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::RefreshDynamicHeapDyn (
 {
     PMHW_BLOCK_MANAGER  pBlockManager = nullptr;
     MOS_STATUS          eStatus = MOS_STATUS_SUCCESS;
-    
+
     MHW_FUNCTION_ENTER;
 
     if (StateHeapType == MHW_ISH_TYPE)

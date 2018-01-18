@@ -333,7 +333,7 @@ MOS_STATUS MhwVdboxMfxInterfaceG8Bdw::AddMfxJpegPicCmd(
     {
         cmd.DW1.InputFormatYuv = picParams->m_chromaType;
     }
-       
+
     cmd.DW1.Rotation = picParams->m_rotation;
     cmd.DW1.OutputFormatYuv = GetJpegDecodeFormat((MOS_FORMAT)params->dwOutputFormat);
 

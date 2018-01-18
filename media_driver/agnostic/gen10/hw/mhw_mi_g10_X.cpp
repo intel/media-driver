@@ -96,16 +96,16 @@ MOS_STATUS MhwMiInterfaceG10::AddMiConditionalBatchBufferEndCmd(
     MHW_MI_CHK_NULL(params);
     MHW_MI_CHK_NULL(params->presSemaphoreBuffer);
 
-    // Case 1 - Batch buffer condition matches - If this is not present then conditional 
+    // Case 1 - Batch buffer condition matches - If this is not present then conditional
     //          batch buffer will  exit to ring with terminating CP.
-    // Case 2 - Batch buffer condition DOES NOT match - Although this will disable CP 
+    // Case 2 - Batch buffer condition DOES NOT match - Although this will disable CP
     //          but after end of conditional batch buffer CP will be re-enabled.
     MHW_MI_CHK_STATUS(m_cpInterface->AddEpilog(m_osInterface, cmdBuffer));
 
     mhw_mi_g10_X::MI_CONDITIONAL_BATCH_BUFFER_END_CMD cmd;
     cmd.DW0.UseGlobalGtt        = IsGlobalGttInUse();
     cmd.DW0.CompareSemaphore    = 1; // CompareDataDword is always assumed to be set
-    cmd.DW0.CompareMaskMode     = !params->bDisableCompareMask; 
+    cmd.DW0.CompareMaskMode     = !params->bDisableCompareMask;
     cmd.DW1.CompareDataDword    = params->dwValue;
 
     MHW_RESOURCE_PARAMS resourceParams;
@@ -233,8 +233,8 @@ MOS_STATUS MhwMiInterfaceG10::AddWatchdogTimerStartCmd(
 
     MHW_MI_CHK_NULL(cmdBuffer);
 
-    // Send Stop before Start is to help recover from incorrect wdt state if previous submission 
-    // cause hang and not have a chance to execute the stop cmd in the end of batch buffer. 
+    // Send Stop before Start is to help recover from incorrect wdt state if previous submission
+    // cause hang and not have a chance to execute the stop cmd in the end of batch buffer.
     MHW_MI_CHK_STATUS(AddWatchdogTimerStopCmd(cmdBuffer));
 
     //Configure Watchdog timer Threshold

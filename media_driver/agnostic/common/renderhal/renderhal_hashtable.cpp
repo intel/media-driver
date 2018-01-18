@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      renderhal_hashtable.cpp  
-//! \brief         This modules implements a simple coalesced hash table used for kernel search in     dynamic state heap based RenderHal. It exposes hash table initialization, destruction,     registration, unregistration and search functions used to speed up kernel search.     The hash table size is current limited to 65535 (MAX uint16_t-1), and 2 keys may be used     iKUID (Kernel Unique Identifier - int32_t) and CacheID (Arbitrary Kernel Cache ID - int32_t).     Given the dynamic nature of the ISH and kernel allocation, the hash table is allowed     to grow dynamically as needed.  
+//! \file      renderhal_hashtable.cpp 
+//! \brief         This modules implements a simple coalesced hash table used for kernel search in     dynamic state heap based RenderHal. It exposes hash table initialization, destruction,     registration, unregistration and search functions used to speed up kernel search.     The hash table size is current limited to 65535 (MAX uint16_t-1), and 2 keys may be used     iKUID (Kernel Unique Identifier - int32_t) and CacheID (Arbitrary Kernel Cache ID - int32_t).     Given the dynamic nature of the ISH and kernel allocation, the hash table is allowed     to grow dynamically as needed. 
 //!
 #include "renderhal.h"
 #include "renderhal_hashtable.h"
@@ -132,7 +132,7 @@ MOS_STATUS RenderHal_HashTable_Register(PRENDERHAL_COALESCED_HASH_TABLE pHashTab
 
     // Get new entry
     wEntry = pHashTable->wFree;
-    
+
     // Extend hash table, get new free entry
     if (wEntry == 0)
     {

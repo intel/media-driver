@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      renderhal_dsh.h  
-//! \brief         This module defines render engine state heap management functions based     on dynamic state heap (DSH) infrastructure, rather than static state heap.  
+//! \file      renderhal_dsh.h 
+//! \brief         This module defines render engine state heap management functions based     on dynamic state heap (DSH) infrastructure, rather than static state heap. 
 //!
 #ifndef __RENDERHAL_DSH_H__
 #define __RENDERHAL_DSH_H__

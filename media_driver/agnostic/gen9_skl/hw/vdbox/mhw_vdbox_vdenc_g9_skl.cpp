@@ -219,7 +219,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG9Skl::AddVdencImgStateCmd(
         {
             int8_t dQpRoi = avcPicParams->ROI[i].PriorityLevelOrDQp;
 
-            // clip delta qp roi to VDEnc supported range 
+            // clip delta qp roi to VDEnc supported range
             priorityLevelOrDQp[i] = (char)CodecHal_Clip3(ENCODE_VDENC_AVC_MIN_ROI_DELTA_QP_G9, ENCODE_VDENC_AVC_MAX_ROI_DELTA_QP_G9, dQpRoi);
         }
 

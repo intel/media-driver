@@ -74,10 +74,9 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Skl::GetHcpStateCommandSize(
                 10 * mhw_mi_g9_X::MI_STORE_REGISTER_MEM_CMD::byteSize + // 8 for BRCStatistics and 2 for RC6 WAs
                 mhw_mi_g9_X::MI_LOAD_REGISTER_MEM_CMD::byteSize + // 1 for RC6
                 2 * mhw_vdbox_hcp_g9_skl::HCP_PAK_INSERT_OBJECT_CMD::byteSize + // Two PAK insert object commands are for headers before the slice header and the header for the end of stream
-                4 * mhw_mi_g9_X::MI_STORE_DATA_IMM_CMD::byteSize + // two (BRC+reference frame) for clean-up HW semaphore memory and another two for signal it  
+                4 * mhw_mi_g9_X::MI_STORE_DATA_IMM_CMD::byteSize + // two (BRC+reference frame) for clean-up HW semaphore memory and another two for signal it
                 17 * mhw_mi_g9_X::MI_SEMAPHORE_WAIT_CMD::byteSize + // Use HW wait command for each reference and one wait for current semaphore object
                 mhw_mi_g9_X::MI_SEMAPHORE_WAIT_CMD::byteSize;        // Use HW wait command for each BRC pass
-
 
             patchListMaxSize +=
                 20 * PATCH_LIST_COMMAND(HCP_QM_STATE_CMD) +
@@ -86,7 +85,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Skl::GetHcpStateCommandSize(
                 PATCH_LIST_COMMAND(MI_BATCH_BUFFER_START_CMD) + // When BRC is on, HCP_PIC_STATE_CMD command is in the BB
                 2 * PATCH_LIST_COMMAND(MI_STORE_DATA_IMM_CMD) + // Slice level commands
                 2 * PATCH_LIST_COMMAND(MI_FLUSH_DW_CMD) + // need for Status report, Mfc Status and
-                11 * PATCH_LIST_COMMAND(MI_STORE_REGISTER_MEM_CMD) +// 8 for BRCStatistics and 3 for RC6 WAs  
+                11 * PATCH_LIST_COMMAND(MI_STORE_REGISTER_MEM_CMD) +// 8 for BRCStatistics and 3 for RC6 WAs
                 22 * PATCH_LIST_COMMAND(MI_STORE_DATA_IMM_CMD); // Use HW wait commands plus its memory clean-up and signal (4 + 16 +1 + 1)
         }
         else
@@ -185,9 +184,9 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Skl::GetHcpPrimitiveCommandSize(
                 PATCH_LIST_COMMAND(HCP_BSD_OBJECT_CMD);
         }
     }
-    else if (standard == CODECHAL_VP9)      // VP9 Clear decode does not require primitive level commands. VP9 DRM does. 
+    else if (standard == CODECHAL_VP9)      // VP9 Clear decode does not require primitive level commands. VP9 DRM does.
     {
-        if (modeSpecific)                  // VP9 DRM 
+        if (modeSpecific)                  // VP9 DRM
         {
             maxSize +=
                 mhw_vdbox_hcp_g9_skl::HCP_VP9_SEGMENT_STATE_CMD::byteSize * 8 +

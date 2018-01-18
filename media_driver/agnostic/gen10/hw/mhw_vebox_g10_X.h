@@ -120,7 +120,7 @@ private:
 
      //!
      //! \brief      Manual mode H2S
-     //! \details    Manual mode H2S 
+     //! \details    Manual mode H2S
      //              Based on WW23'16 algorithm design.
      //! \param      [in] pVeboxIecpParams
      //!             Pointer to VEBOX IECP State Params

@@ -138,7 +138,7 @@ MOS_STATUS MhwRenderInterfaceG8::AddPaletteLoadCmd(
     mhw_render_g8_X::PALETTE_ENTRY_CMD entry;
     uint32_t cmdSize = entry.byteSize * params->iNumEntries;
 
-    // Send palette load command followed by palette data    
+    // Send palette load command followed by palette data
     MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, params->pPaletteData, cmdSize));
 
     return MOS_STATUS_SUCCESS;

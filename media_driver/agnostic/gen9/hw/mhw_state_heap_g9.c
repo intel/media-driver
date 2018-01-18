@@ -20,12 +20,12 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      mhw_state_heap_g9.c  
-//! \brief         This modules implements HW interface layer to be used on all platforms on     all operating systems/DDIs, across MHW components.  
+//! \file      mhw_state_heap_g9.c 
+//! \brief         This modules implements HW interface layer to be used on all platforms on     all operating systems/DDIs, across MHW components. 
 //!
 #include "mhw_state_heap_g9.h"
 #include "mhw_cp.h"
-#include "mhw_render_hwcmd_g9_X.h" 
+#include "mhw_render_hwcmd_g9_X.h"
 #include "mhw_state_heap_hwcmd_g9_X.h"
 
 MHW_STATE_HEAP_INTERFACE_G9_X::MHW_STATE_HEAP_INTERFACE_G9_X(
@@ -64,7 +64,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G9_X::InitHwSizes()
     m_HwSizes.dwSizeSamplerStateVA         = mhw_state_heap_g9_X::SAMPLER_STATE_8x8_ERODE_DILATE_MINMAXFILTER_CMD::byteSize;   // MinMaxFilter, Erode, Dilate functions
     m_HwSizes.dwSizeSamplerStateVAConvolve = mhw_state_heap_g9_X::SAMPLER_STATE_8x8_CONVOLVE_CMD::byteSize;
     m_HwSizes.dwSizeSamplerStateTable8x8   = mhw_state_heap_g9_X::SAMPLER_STATE_8x8_AVS_CMD::byteSize - 16 * sizeof(uint32_t); // match old definitions to table size
-    m_HwSizes.dwSizeSampler8x8Table        = 
+    m_HwSizes.dwSizeSampler8x8Table        =
         MOS_ALIGN_CEIL(m_HwSizes.dwSizeSamplerStateTable8x8, MHW_SAMPLER_STATE_ALIGN);
     m_HwSizes.dwSizeSamplerStateAvs        =
         MOS_ALIGN_CEIL(mhw_state_heap_g9_X::SAMPLER_STATE_8x8_AVS_CMD::byteSize, MHW_SAMPLER_STATE_AVS_ALIGN_MEDIA);
@@ -187,7 +187,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G9_X::SetSurfaceState(
             pCmd->DW2.SurfacePitch              = pParams->psSurface->dwPitch - 1;
             pCmd->DW2.SurfaceFormat             = pParams->ForceSurfaceFormat[i];
             pCmd->DW2.InterleaveChroma          = pParams->bInterleaveChroma;
-            
+
             if (IS_Y_MAJOR_TILE_FORMAT(pParams->psSurface->TileType))
             {
                 pCmd->DW2.TileMode = mhw_state_heap_g9_X::MEDIA_SURFACE_STATE_CMD::TILE_MODE_TILEMODEYMAJOR;
@@ -204,7 +204,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G9_X::SetSurfaceState(
             if(pParams->psSurface->bCompressible)
             {
                 MHW_MI_CHK_STATUS(pOsInterface->pfnGetMemoryCompressionMode(pOsInterface, &pParams->psSurface->OsResource, (PMOS_MEMCOMP_STATE) &pParams->psSurface->CompressionMode));
-                
+
                 pCmd->DW2.MemoryCompressionEnable       =
                     (pParams->psSurface->CompressionMode == MOS_MMC_DISABLED) ? 0 : 1;
                 pCmd->DW2.MemoryCompressionMode         =
@@ -214,7 +214,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G9_X::SetSurfaceState(
             pCmd->DW5.SurfaceMemoryObjectControlState   = pParams->dwCacheabilityControl;
 
             pCmd->DW5.TiledResourceMode                 = Mhw_ConvertToTRMode(pParams->psSurface->TileType);
-            
+
             if (i == MHW_U_PLANE)         // AVS U plane
             {
                 // Lockoffset is the offset from base address of Y plane to the origin of U/V plane.
@@ -224,7 +224,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G9_X::SetSurfaceState(
 
                 pCmd->DW3.XOffsetforU = ((uint32_t)pParams->psSurface->UPlaneOffset.iLockSurfaceOffset % pSurface->dwPitch);
                 pCmd->DW3.YOffsetforU = ((uint32_t)pParams->psSurface->UPlaneOffset.iLockSurfaceOffset / pSurface->dwPitch);*/
-                
+
                 pCmd->DW3.YOffsetForUCb = pParams->psSurface->UPlaneOffset.iYOffset;
             }
             else if (i == MHW_V_PLANE)    // AVS V plane
@@ -242,7 +242,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G9_X::SetSurfaceState(
                 pCmd->DW4.XOffsetForVCr = pParams->dwXOffset[MHW_V_PLANE];
                 pCmd->DW4.YOffsetForVCr = pParams->dwYOffset[MHW_V_PLANE];
             }
-            
+
             // Temporary solution for Codec.
             pCmd->DW3.YOffsetForUCb = pParams->psSurface->UPlaneOffset.iYOffset;
 
@@ -258,7 +258,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G9_X::SetSurfaceState(
                 pKernelState->dwBindingTableSize    +
                 (pParams->dwBindingTableOffset[i] * m_dwMaxSurfaceStateSize);
             ResourceParams.HwCommandType    = MOS_SURFACE_STATE_ADV;
-        
+
             MHW_MI_CHK_STATUS(m_pfnAddResourceToCmd(
                 pOsInterface,
                 pCmdBuffer,
@@ -288,8 +288,8 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G9_X::SetSurfaceState(
             pCmd->DW0.VerticalLineStride        = pParams->bVertLineStride;
             pCmd->DW0.VerticalLineStrideOffset  = pParams->bVertLineStrideOffs;
             pCmd->DW0.MediaBoundaryPixelMode    = pParams->MediaBoundaryPixelMode;
-            pCmd->DW0.SurfaceFormat             = pParams->ForceSurfaceFormat[i]; 
-            
+            pCmd->DW0.SurfaceFormat             = pParams->ForceSurfaceFormat[i];
+
             if (IS_Y_MAJOR_TILE_FORMAT(pParams->psSurface->TileType))
             {
                 pCmd->DW0.TileMode = mhw_state_heap_g9_X::RENDER_SURFACE_STATE_CMD::TILE_MODE_YMAJOR;
@@ -309,7 +309,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G9_X::SetSurfaceState(
                 pParams->psSurface->dwWidth : pParams->dwWidthToUse[i];
             pCmd->DW2.Height                    = (pParams->dwHeightToUse[i] == 0) ?
                 pParams->psSurface->dwHeight : pParams->dwHeightToUse[i];
-            pCmd->DW3.SurfacePitch              = (pParams->dwPitchToUse[i] == 0) ? 
+            pCmd->DW3.SurfacePitch              = (pParams->dwPitchToUse[i] == 0) ?
                 pParams->psSurface->dwPitch : pParams->dwPitchToUse[i];
 
             if(pParams->psSurface->bCompressible)
@@ -343,26 +343,26 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G9_X::SetSurfaceState(
                 pCmd->DW5.YOffset           = pParams->dwYOffset[i] >> 2;
                 pCmd->DW5.TiledResourceMode = Mhw_ConvertToTRMode(pParams->psSurface->TileType);
             }
-            
+
             ResourceParams.presResource     = &pParams->psSurface->OsResource;
             ResourceParams.dwOffset         =
                 pParams->psSurface->dwOffset + pParams->dwBaseAddrOffset[i];
             ResourceParams.pdwCmd           = (pCmd->DW8_9.Value);
             ResourceParams.dwLocationInCmd  = 8;
             ResourceParams.bIsWritable      = pParams->bIsWritable;
-            
+
             ResourceParams.dwOffsetInSSH    =
                 uiIndirectStateOffset               +
                 pKernelState->dwSshOffset           +
                 pKernelState->dwBindingTableSize    +
                 (pParams->dwBindingTableOffset[i] * m_dwMaxSurfaceStateSize);
             ResourceParams.HwCommandType    = MOS_SURFACE_STATE;
-            
+
             MHW_MI_CHK_STATUS(m_pfnAddResourceToCmd(
                 pOsInterface,
                 pCmdBuffer,
                 &ResourceParams));
-        }  
+        }
     }
 
     return eStatus;
@@ -372,7 +372,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G9_X::SetSurfaceStateEntry(
     PMHW_SURFACE_STATE_PARAMS   pParams)
 {
 
-    if (!pParams) 
+    if (!pParams)
         return MOS_STATUS_INVALID_PARAMETER;
 
     uint32_t TileMode = (pParams->bTiledSurface) ? ((pParams->bTileWalk == 0) ? 2 /*x-tile*/: 3 /*y-tile*/) : 0; /*linear*/
@@ -380,7 +380,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G9_X::SetSurfaceStateEntry(
     if (pParams->bUseAdvState)
     {
         // Obtain the Pointer to the Surface state from SSH Buffer
-        mhw_state_heap_g9_X::MEDIA_SURFACE_STATE_CMD* pSurfaceStateAdv = 
+        mhw_state_heap_g9_X::MEDIA_SURFACE_STATE_CMD* pSurfaceStateAdv =
                 (mhw_state_heap_g9_X::MEDIA_SURFACE_STATE_CMD*) pParams->pSurfaceState;
 
         // Initialize Surface State
@@ -598,10 +598,10 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G9_X::LoadSamplerAvsTable(
     pSampler8x8Avs->DW153.AdaptiveFilterForAllChannels  = pMhwSamplerAvsTableParam->bAdaptiveFilterAllChannels;
     pSampler8x8Avs->DW153.BypassYAdaptiveFiltering      = pMhwSamplerAvsTableParam->bBypassYAdaptiveFiltering;
     pSampler8x8Avs->DW153.BypassXAdaptiveFiltering      = pMhwSamplerAvsTableParam->bBypassXAdaptiveFiltering;
-    
+
     u32ConvolveTableNum =
         sizeof(pSampler8x8Avs->FilterCoefficient1731) / sizeof(pSampler8x8Avs->FilterCoefficient1731[0]);
-    // DW160 ~ DW279 setting for extra table coefficients (DW0 ~ DW7) * 15 
+    // DW160 ~ DW279 setting for extra table coefficients (DW0 ~ DW7) * 15
     for (uint32_t u32CoeffTableIdx = 0; u32CoeffTableIdx < u32ConvolveTableNum; u32CoeffTableIdx++)
     {
         PMHW_AVS_COEFFICIENT_PARAM   pCoeffParamExtra = &pMhwSamplerAvsTableParam->paMhwAvsCoeffParamExtra[u32CoeffTableIdx];

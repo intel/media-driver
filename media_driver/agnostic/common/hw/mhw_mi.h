@@ -264,7 +264,7 @@ typedef struct _MHW_MI_SEMAPHORE_WAIT_PARAMS
     bool                        bPollingWaitMode;
     uint32_t                    dwCompareOperation;
     uint32_t                    dwSemaphoreData;
-    MHW_COMMON_MI_SEMAPHORE_COMPARE_OPERATION       CompareOperation;   
+    MHW_COMMON_MI_SEMAPHORE_COMPARE_OPERATION       CompareOperation;
 }MHW_MI_SEMAPHORE_WAIT_PARAMS, *PMHW_MI_SEMAPHORE_WAIT_PARAMS;
 
 typedef struct _MHW_MEDIA_STATE_FLUSH_PARAM
@@ -307,7 +307,7 @@ class MhwMiInterface
 {
 public:
     virtual ~MhwMiInterface() { MHW_FUNCTION_ENTER; }
-    
+
     //!
     //! \brief    Adds MI_NOOP_CMD to the buffer provided
     //! \details  Either the command or batch buffer must be valid

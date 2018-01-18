@@ -60,7 +60,7 @@ protected:
         vdencSurfaceFormatRgba4444        = 1,    //!< RGBA 32-bit 4:4:4:4 packed (8:8:8:8 MSB-X:B:G:R)
         vdencSurfaceFormatYuv444          = 2,    //!< YUV 32-bit 4:4:4 packed (8:8:8:8 MSB-Y:U:X:V)
         vdencSurfaceFormatY8Unorm         = 3,
-        vdencSurfaceFormatPlanar420_8     = 4,    //!< (NV12, IMC1,2,3,4, YV12) 
+        vdencSurfaceFormatPlanar420_8     = 4,    //!< (NV12, IMC1,2,3,4, YV12)
         vdencSurfaceFormatYcrcbSwapy422   = 5,    //!< UYVY (8:8:8:8 MSB Y1 V0 Y0 U0)
         vdencSurfaceFormatYcrcbSwapuv422  = 6,    //!< YVYU (8:8:8:8 MSB U0 Y1 V0 Y0)
         vdencSurfaceFormatYcrcbSwapuvy422 = 7,    //!< VYUY (8:8:8:8 MSB Y1 U0 Y0 V0)

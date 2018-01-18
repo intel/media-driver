@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      renderhal_g10.h  
-//! \brief      
+//! \file      renderhal_g10.h 
+//! \brief 
 //!
 //!
 //! \file       renderhal_g10.h
@@ -32,7 +32,7 @@
 #define __RENDERHAL_G10_H__
 
 #include "renderhal_platform_interface.h"
-#include "mhw_render_hwcmd_g10_X.h" 
+#include "mhw_render_hwcmd_g10_X.h"
 #include "mhw_state_heap_hwcmd_g10_X.h"
 
 //! \brief      for CNL GT2 VP and MDF
@@ -49,7 +49,7 @@ class XRenderHal_Interface_g10 : public XRenderHal_Platform_Interface
 public:
     XRenderHal_Interface_g10() {}
     virtual ~XRenderHal_Interface_g10() {}
-    
+
     //!
     //! \brief    Setup Surface State
     //! \details  Setup Surface States for Gen10
@@ -91,8 +91,8 @@ public:
     //!             [in]    Pointer to RenderHal interface
     //! \return     true if BDW A0 stepping, false otherwise
     //!
-    bool PerThreadScratchSpaceStart2K(PRENDERHAL_INTERFACE pRenderHal) 
-    { 
+    bool PerThreadScratchSpaceStart2K(PRENDERHAL_INTERFACE pRenderHal)
+    {
         MOS_UNUSED(pRenderHal);
         return true;
     }
@@ -160,10 +160,10 @@ public:
     //! \return   true of false
     //!
     inline bool IsEnableYV12SinglePass(
-        PRENDERHAL_INTERFACE    pRenderHal) 
-    { 
+        PRENDERHAL_INTERFACE    pRenderHal)
+    {
         MOS_UNUSED(pRenderHal);
-        return false; 
+        return false;
     }
 
     //!

@@ -71,9 +71,9 @@ public:
         PMOS_COMMAND_BUFFER             cmdBuffer,
         PMHW_PALETTE_PARAMS             params);
 
-	MOS_STATUS AddGpgpuCsrBaseAddrCmd(
-		PMOS_COMMAND_BUFFER             cmdBuffer,
-		PMOS_RESOURCE                   csrResource);
+    MOS_STATUS AddGpgpuCsrBaseAddrCmd(
+        PMOS_COMMAND_BUFFER             cmdBuffer,
+        PMOS_RESOURCE                   csrResource);
 
     MOS_STATUS EnableL3Caching(
         PMHW_RENDER_ENGINE_L3_CACHE_SETTINGS    cacheSettings);
@@ -83,6 +83,5 @@ public:
 
     MHW_RENDER_ENGINE_L3_CACHE_CONFIG* GetL3CacheConfig() { return &m_l3CacheConfig; }
 };
-
 
 #endif

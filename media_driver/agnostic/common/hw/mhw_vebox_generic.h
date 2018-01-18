@@ -33,7 +33,6 @@
 #define HDR_OETF_1DLUT_POINT_NUMBER                  256
 #define MHW_FORWARD_GAMMA_SEGMENT_CONTROL_POINT      1024
 
-
 template <class TVeboxCmds>
 class MhwVeboxInterfaceGeneric : public MhwVeboxInterface
 {
@@ -121,13 +120,13 @@ public:
                 &cmd2,
                 true,
                 pVeboxSurfaceStateCmdParams->bDIEnable);
-			
-			// Reset Output Format When Input/Output Format are the same 
-			if (pVeboxSurfaceStateCmdParams->SurfInput.Format == pVeboxSurfaceStateCmdParams->SurfOutput.Format)
+
+            // Reset Output Format When Input/Output Format are the same
+            if (pVeboxSurfaceStateCmdParams->SurfInput.Format == pVeboxSurfaceStateCmdParams->SurfOutput.Format)
             {
                 cmd2.DW3.SurfaceFormat = cmd1.DW3.SurfaceFormat;
             }
-			
+
             Mos_AddCommand(pCmdBuffer, &cmd2, cmd2.byteSize);
         }
 

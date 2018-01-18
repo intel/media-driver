@@ -983,7 +983,6 @@ public:
         return m_numVdbox;
     }
 
-
     //!
     //! \brief    set the flag of decode in use
     //!

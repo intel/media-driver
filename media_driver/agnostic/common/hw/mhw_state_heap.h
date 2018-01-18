@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      mhw_state_heap.h  
-//! \brief         This modules implements HW interface layer to be used on all platforms on     all operating systems/DDIs, across MHW components.  
+//! \file      mhw_state_heap.h 
+//! \brief         This modules implements HW interface layer to be used on all platforms on     all operating systems/DDIs, across MHW components. 
 //!
 #ifndef __MHW_STATE_HEAP_H__
 #define __MHW_STATE_HEAP_H__
@@ -129,7 +129,7 @@ typedef enum _MHW_ROTATION
     MHW_ROTATION_90,                //!< Rotation 90 degrees
     MHW_ROTATION_180,               //!< Rotation 180 degrees
     MHW_ROTATION_270,               //!< Rotation 270 degrees
-    MHW_MIRROR_HORIZONTAL,          //!< Horizontal Mirror 
+    MHW_MIRROR_HORIZONTAL,          //!< Horizontal Mirror
     MHW_MIRROR_VERTICAL,            //!< Vertical Mirror
     MHW_ROTATE_90_MIRROR_VERTICAL,  //!< 90 + V Mirror
     MHW_ROTATE_90_MIRROR_HORIZONTAL //!< 90 + H Mirror
@@ -243,7 +243,7 @@ typedef struct _MHW_KERNEL_PARAM
 
     //!
     //! \brief Dynamic kernel parameters may follow below if necessary.
-    //! 
+    //!
     int32_t bLoaded;                        //!< Kernel Loaded flag
     int32_t iKID;                           //!< Interface descriptor ID for the kernel
     int32_t iKUID;                          //!< Kernel Unique ID
@@ -261,7 +261,7 @@ typedef struct MHW_KERNEL_STATE
         m_dshRegion = MemoryBlock();
         m_ishRegion = MemoryBlock();
     }
-    
+
     virtual ~MHW_KERNEL_STATE() { MHW_FUNCTION_ENTER;  }
     //!
     //! \brief Set when the kernel state is created
@@ -276,7 +276,7 @@ typedef struct MHW_KERNEL_STATE
     //!              to the kernel state and it is not necessary to acquire a
     //!              kernel state region for the DSH/ISH (whichever is
     //!              static).
-    //! 
+    //!
     uint32_t dwSshOffset = 0;            //!< Offset within SSH to the kernel state region
     uint32_t dwBindingTableSize = 0;     //!< The size of the binding table for this kernel state
     uint32_t dwSshSize = 0;              //!< Size of the kernel state region in the SSH
@@ -376,7 +376,6 @@ struct _MHW_STATE_HEAP
     PMHW_STATE_HEAP_MEMORY_BLOCK    pScratchSpace;  //!< Block associated with current active scratch space (older scratch spaces are removed)
     uint32_t                        dwScratchSpace; //!< Active scratch space size
 
-
     PMHW_STATE_HEAP  pPrev;         //!< The first state heap is considered primary (pPrev == nullptr)
     PMHW_STATE_HEAP  pNext;
 
@@ -450,7 +449,7 @@ typedef struct _MHW_RCS_SURFACE_PARAMS
 
     uint32_t        bUseAdvState;                     //!< Indicates that SURFACE_STATE_ADV should be used
 
-    uint32_t        dwNumPlanes;                      //!< Indicates the number of valid binding table offsets included 
+    uint32_t        dwNumPlanes;                      //!< Indicates the number of valid binding table offsets included
     uint32_t        dwPlaneType[MHW_MAX_SURFACE_PLANES]; //!< Indicates the plane type
     uint32_t        dwBindingTableOffset[MHW_MAX_SURFACE_PLANES]; //!< Binding table offset for all planes included in surface
     uint32_t        dwCacheabilityControl;
@@ -566,7 +565,7 @@ typedef struct _MHW_SAMPLER_AVS_TABLE_PARAM
     uint8_t byteMaxDerivative8Pixels;
     uint8_t byteMaxDerivative4Pixels;
     uint8_t byteDefaultSharpnessLevel;
-   
+
     bool bEnableRGBAdaptive;
     bool bAdaptiveFilterAllChannels;
     bool bBypassYAdaptiveFiltering;
@@ -688,7 +687,7 @@ typedef struct _MHW_SAMPLER_STATE_UNORM_PARAM
         int32_t BorderColorBlueS;
         float BorderColorBlueF;
     };
-    
+
     union {
         uint32_t BorderColorAlphaU;
         int32_t BorderColorAlphaS;
@@ -725,7 +724,7 @@ typedef struct _MHW_RENDER_STATE_SIZES
 //! \brief  Structure to handle VME Sampler State
 //!
 typedef struct _MHW_SAMPLER_STATE_VME_PARAM
-{             
+{
     uint32_t                     *pdwLUTSearchPath;
     uint32_t                     *pdwLUTMbMode;
     uint32_t                     *pdwLUTMv;
@@ -751,7 +750,7 @@ typedef struct _MHW_SAMPLER_STATE_CONVOLVE_PARAM
 
 typedef struct _MHW_SAMPLER_8x8_MISC_STATE {
     uint8_t byteHeight;
-    uint8_t byteWidth;  
+    uint8_t byteWidth;
     uint16_t wRow[15];
 } MHW_SAMPLER_8x8_MISC_STATE, *PMHW_SAMPLER_8x8_MISC_STATE;
 
@@ -805,7 +804,6 @@ struct MHW_STATE_HEAP_SETTINGS
     uint32_t        dwNumSyncTags = 0; //!< to be removed with old interfaces
 };
 
-
 typedef struct _MHW_STATE_HEAP_DYNAMIC_ALLOC_PARAMS
 {
     int32_t                      *piSizes;               //<! [in] array of block sizes to allocate
@@ -822,7 +820,6 @@ typedef struct _MHW_STATE_HEAP_DYNAMIC_ALLOC_PARAMS
 
 typedef MOS_STATUS ( *pfnAddResourceToCmd) (PMOS_INTERFACE , PMOS_COMMAND_BUFFER ,PMHW_RESOURCE_PARAMS);
 
-    
 class XMHW_STATE_HEAP_INTERFACE
 {
 public:
@@ -869,7 +866,7 @@ public:
     MHW_STATE_HEAP          m_SurfaceStateHeap; //!< Simulated SSH with MHW_STATE_HEAP.
     uint16_t                m_wSizeOfCmdInterfaceDescriptorData;
     MHW_RENDER_STATE_SIZES  m_HwSizes;
-    
+
 public:
     //!
     //! \brief Internal to MHW
@@ -887,7 +884,6 @@ public:
 
     virtual ~XMHW_STATE_HEAP_INTERFACE();
 
-
     PMHW_STATE_HEAP GetDSHPointer(){ return   m_pDynamicStateHeaps; };
 
     PMHW_STATE_HEAP GetISHPointer(){ return   m_pInstructionStateHeaps;};
@@ -899,7 +895,7 @@ public:
     PMOS_RESOURCE  GetResCmdBufIdGlobal(){return &m_resCmdBufIdGlobal;};
 
     PMHW_SYNC_TAG  GetSycnTags(){return m_pSyncTags;};
-    
+
     uint16_t GetIdAlignment(){return m_wIdAlignment;};
 
     uint16_t GetSizeofCmdSampleState(){return m_wSizeOfCmdSamplerState;};
@@ -919,7 +915,7 @@ public:
     PMHW_RENDER_STATE_SIZES GetHwSizesPointer() { return & m_HwSizes;};
 
     uint32_t GetSizeofSamplerStateAvs() { return m_HwSizes.dwSizeSamplerStateAvs;};
-    
+
     //!
     //! \brief    Initializes the MI StateHeap interface
     //! \details  Internal MHW function to initialize all function pointers and some parameters
@@ -1064,10 +1060,9 @@ public:
     uint32_t CalculateSpaceNeededDyn(
         MHW_STATE_HEAP_TYPE                  StateHeapType,
         PMHW_STATE_HEAP_DYNAMIC_ALLOC_PARAMS pParams);
-    
-    
+
     //Virtual Interfaces
-    
+
     //!
     //! \brief    Adds INTERFACE_DESCRIPTOR command(s) to the DSH
     //! \details  Client facing function to add INTERFACE_DESCRIPTOR(s) to the DSH
@@ -1134,7 +1129,7 @@ public:
     //!
     virtual MOS_STATUS SetSurfaceStateEntry(
         PMHW_SURFACE_STATE_PARAMS   pParams) = 0;
-    
+
     //!
     //! \brief    Set surface state in ssh
     //! \details  Set sampler state in ssh
@@ -1194,7 +1189,7 @@ public:
     //! \return   MOS_STATUS
     //!           SUCCESS    if state heap was either marked for deletion or actually freed
     //!
-    MOS_STATUS ReleaseStateHeapDyn(PMHW_STATE_HEAP pStateHeap); 
+    MOS_STATUS ReleaseStateHeapDyn(PMHW_STATE_HEAP pStateHeap);
 
     //!
     //! \brief    Allocates a dynamic block
@@ -1262,7 +1257,7 @@ public:
     MOS_STATUS RefreshDynamicHeapDyn (
         MHW_STATE_HEAP_TYPE         StateHeapType,
         uint32_t                    dwSyncTag);
-    
+
 private:
 
     //!
@@ -1277,7 +1272,7 @@ private:
     //!
     MOS_STATUS InsertLinkedList(
         PMHW_STATE_HEAP_MEMORY_BLOCK    pStartNode,
-        PMHW_STATE_HEAP_MEMORY_BLOCK    pNodeToAdd); 
+        PMHW_STATE_HEAP_MEMORY_BLOCK    pNodeToAdd);
 
     //!
     //! \brief    Allocate and initialize a memory block based on input parameters
@@ -1297,7 +1292,7 @@ private:
         PMHW_STATE_HEAP                 pStateHeap,
         PMHW_STATE_HEAP_MEMORY_BLOCK    *ppMemoryBlock,
         uint32_t                        dwRequestedSize,
-        bool                            bStatic); 
+        bool                            bStatic);
 
     //!
     //! \brief    Inserts a new memory block into an existing available memory block
@@ -1313,7 +1308,6 @@ private:
         PMHW_STATE_HEAP_MEMORY_BLOCK    pMemoryBlockFree,
         PMHW_STATE_HEAP_MEMORY_BLOCK    pMemoryBlockToAdd);
 
-
     //!
     //! \brief    Returns the space of the memory block to the state heap
     //! \details  MHW private function to return the memory block space to the state heap
@@ -1328,7 +1322,7 @@ private:
         PMHW_STATE_HEAP_MEMORY_BLOCK    pMemoryBlock);
 
     //Interfaces different cross static and dynmaic mode
-    
+
     //!
     //! \brief    Extends the dynamic state heap
     //! \details  Allocates a dynamic state heap (ISH/DSH) with requested size
@@ -1357,15 +1351,13 @@ private:
         MHW_STATE_HEAP_TYPE         StateHeapType,
         uint32_t                    dwSizeRequested);
 
-
 };
-
 
 struct _MHW_STATE_HEAP_INTERFACE
 {
-    
+
     XMHW_STATE_HEAP_INTERFACE               *pStateHeapInterface;
-    
+
     //!
     //! \brief Internal to MHW
     //!
@@ -1373,7 +1365,7 @@ struct _MHW_STATE_HEAP_INTERFACE
     MOS_STATUS (*pfnCreate) (
         PMHW_STATE_HEAP_INTERFACE   *ppStateHeapInterface,
         MHW_STATE_HEAP_SETTINGS     StateHeapSettings);
-    
+
     MOS_STATUS (*pfnDestroy) (
         PMHW_STATE_HEAP_INTERFACE   pCommonStateHeapInterface);
 
@@ -1498,7 +1490,6 @@ struct _MHW_STATE_HEAP_INTERFACE
         uint32_t                    *pdwSshSize,
         uint32_t                    *pdwBtSize);
 
-
     MOS_STATUS(* pfnInitSamplerStates) (
         PMHW_STATE_HEAP_INTERFACE   pCommonStateHeapInterface,
         void                        *pSampler,
@@ -1508,7 +1499,6 @@ struct _MHW_STATE_HEAP_INTERFACE
         PMHW_STATE_HEAP_INTERFACE          pCommonStateHeapInterface,
         void                               *pSampler,
         PMHW_SAMPLER_STATE_PARAM           pParams);
-
 
     //Interfaces in dynamic mode
     uint32_t (*pfnCalculateDynamicSpaceNeeded) (

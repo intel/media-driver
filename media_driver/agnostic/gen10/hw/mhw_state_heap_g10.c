@@ -20,12 +20,12 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      mhw_state_heap_g10.c  
-//! \brief         This modules implements HW interface layer to be used on all platforms on     all operating systems/DDIs, across MHW components.  
+//! \file      mhw_state_heap_g10.c 
+//! \brief         This modules implements HW interface layer to be used on all platforms on     all operating systems/DDIs, across MHW components. 
 //!
 #include "mhw_state_heap_g10.h"
 #include "mhw_cp.h"
-#include "mhw_render_hwcmd_g10_X.h" 
+#include "mhw_render_hwcmd_g10_X.h"
 
 MHW_STATE_HEAP_INTERFACE_G10_X::MHW_STATE_HEAP_INTERFACE_G10_X(
     PMOS_INTERFACE pInputOSInterface, int8_t bDynamicMode):
@@ -132,7 +132,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G10_X::SetSurfaceStateEntry(
     if (pParams->bUseAdvState)
     {
         // Obtain the Pointer to the Surface state from SSH Buffer
-        mhw_state_heap_g10_X::MEDIA_SURFACE_STATE_CMD*  pSurfaceStateAdv = 
+        mhw_state_heap_g10_X::MEDIA_SURFACE_STATE_CMD*  pSurfaceStateAdv =
             (mhw_state_heap_g10_X::MEDIA_SURFACE_STATE_CMD*) pParams->pSurfaceState;
 
         // Initialize Surface State
@@ -159,7 +159,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G10_X::SetSurfaceStateEntry(
         pSurfaceStateAdv->DW4.YOffsetForVCr                  = pParams->dwYOffsetForV;
         pSurfaceStateAdv->DW5.VerticalLineStride             = pParams->bVerticalLineStride;
         pSurfaceStateAdv->DW5.VerticalLineStrideOffset       = pParams->bVerticalLineStrideOffset;
-        pSurfaceStateAdv->DW5.SurfaceMemoryObjectControlState     = pParams->dwCacheabilityControl; 
+        pSurfaceStateAdv->DW5.SurfaceMemoryObjectControlState     = pParams->dwCacheabilityControl;
 
         // Return offset and pointer for patching
         pParams->pdwCmd          = (uint32_t *)&(pSurfaceStateAdv->DW6.Value);
@@ -168,7 +168,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G10_X::SetSurfaceStateEntry(
     else // not AVS
     {
         // Obtain the Pointer to the Surface state from SSH Buffer
-        mhw_state_heap_g10_X::RENDER_SURFACE_STATE_CMD * pSurfaceState = 
+        mhw_state_heap_g10_X::RENDER_SURFACE_STATE_CMD * pSurfaceState =
             (mhw_state_heap_g10_X::RENDER_SURFACE_STATE_CMD *) pParams->pSurfaceState;
 
         // Initialize Surface State
@@ -306,7 +306,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G10_X::SetSurfaceState(
             pCmd->DW2.SurfacePitch              = pParams->psSurface->dwPitch - 1;
             pCmd->DW2.SurfaceFormat             = pParams->ForceSurfaceFormat[i];
             pCmd->DW2.InterleaveChroma          = pParams->bInterleaveChroma;
-            
+
             if (IS_Y_MAJOR_TILE_FORMAT(pParams->psSurface->TileType))
             {
                 pCmd->DW2.TileMode = mhw_state_heap_g10_X::MEDIA_SURFACE_STATE_CMD::TILE_MODE_TILEMODEYMAJOR;
@@ -323,7 +323,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G10_X::SetSurfaceState(
             if(pParams->psSurface->bCompressible)
             {
                 MHW_MI_CHK_STATUS(pOsInterface->pfnGetMemoryCompressionMode(pOsInterface, &pParams->psSurface->OsResource, (PMOS_MEMCOMP_STATE) &pParams->psSurface->CompressionMode));
-                
+
                 pCmd->DW2.MemoryCompressionEnable       =
                     (pParams->psSurface->CompressionMode == MOS_MMC_DISABLED) ? 0 : 1;
                 pCmd->DW2.MemoryCompressionMode         =
@@ -333,7 +333,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G10_X::SetSurfaceState(
             pCmd->DW5.SurfaceMemoryObjectControlState   = pParams->dwCacheabilityControl;
 
             pCmd->DW5.TiledResourceMode                 = Mhw_ConvertToTRMode(pParams->psSurface->TileType);
-            
+
             if (i == MHW_U_PLANE)         // AVS U plane
             {
                 // Lockoffset is the offset from base address of Y plane to the origin of U/V plane.
@@ -343,7 +343,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G10_X::SetSurfaceState(
 
                 pCmd->DW3.XOffsetforU = ((uint32_t)pParams->psSurface->UPlaneOffset.iLockSurfaceOffset % pSurface->dwPitch);
                 pCmd->DW3.YOffsetforU = ((uint32_t)pParams->psSurface->UPlaneOffset.iLockSurfaceOffset / pSurface->dwPitch);*/
-                
+
                 pCmd->DW3.YOffsetForUCb = pParams->psSurface->UPlaneOffset.iYOffset;
             }
             else if (i == MHW_V_PLANE)    // AVS V plane
@@ -361,7 +361,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G10_X::SetSurfaceState(
                 pCmd->DW4.XOffsetForVCr = pParams->dwXOffset[MHW_V_PLANE];
                 pCmd->DW4.YOffsetForVCr = pParams->dwYOffset[MHW_V_PLANE];
             }
-            
+
             pCmd->DW3.YOffsetForUCb = pParams->psSurface->UPlaneOffset.iYOffset;
 
             ResourceParams.presResource     = &pParams->psSurface->OsResource;
@@ -376,7 +376,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G10_X::SetSurfaceState(
                 pKernelState->dwBindingTableSize    +
                 (pParams->dwBindingTableOffset[i] * m_dwMaxSurfaceStateSize);
             ResourceParams.HwCommandType    = MOS_SURFACE_STATE_ADV;
-        
+
             MHW_MI_CHK_STATUS(m_pfnAddResourceToCmd(
                 pOsInterface,
                 pCmdBuffer,
@@ -406,8 +406,8 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G10_X::SetSurfaceState(
             pCmd->DW0.VerticalLineStride        = pParams->bVertLineStride;
             pCmd->DW0.VerticalLineStrideOffset  = pParams->bVertLineStrideOffs;
             pCmd->DW0.MediaBoundaryPixelMode    = pParams->MediaBoundaryPixelMode;
-            pCmd->DW0.SurfaceFormat             = pParams->ForceSurfaceFormat[i]; 
-            
+            pCmd->DW0.SurfaceFormat             = pParams->ForceSurfaceFormat[i];
+
             if (IS_Y_MAJOR_TILE_FORMAT(pParams->psSurface->TileType))
             {
                 pCmd->DW0.TileMode = mhw_state_heap_g10_X::RENDER_SURFACE_STATE_CMD::TILE_MODE_YMAJOR;
@@ -418,7 +418,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G10_X::SetSurfaceState(
             }
             else if (pParams->psSurface->TileType == MOS_TILE_X)
             {
-                pCmd->DW0.TileMode = mhw_state_heap_g10_X::RENDER_SURFACE_STATE_CMD::TILE_MODE_XMAJOR; 
+                pCmd->DW0.TileMode = mhw_state_heap_g10_X::RENDER_SURFACE_STATE_CMD::TILE_MODE_XMAJOR;
             }
 
             pCmd->DW1.MemoryObjectControlState  = pParams->dwCacheabilityControl;
@@ -427,7 +427,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G10_X::SetSurfaceState(
                 pParams->psSurface->dwWidth : pParams->dwWidthToUse[i];
             pCmd->DW2.Height                    = (pParams->dwHeightToUse[i] == 0) ?
                 pParams->psSurface->dwHeight : pParams->dwHeightToUse[i];
-            pCmd->DW3.SurfacePitch              = (pParams->dwPitchToUse[i] == 0) ? 
+            pCmd->DW3.SurfacePitch              = (pParams->dwPitchToUse[i] == 0) ?
                 pParams->psSurface->dwPitch : pParams->dwPitchToUse[i];
 
             if(pParams->psSurface->bCompressible)
@@ -461,26 +461,26 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G10_X::SetSurfaceState(
                 pCmd->DW5.YOffset           = pParams->dwYOffset[i] >> 2;
                 pCmd->DW5.TiledResourceMode = Mhw_ConvertToTRMode(pParams->psSurface->TileType);
             }
-            
+
             ResourceParams.presResource     = &pParams->psSurface->OsResource;
             ResourceParams.dwOffset         =
                 pParams->psSurface->dwOffset + pParams->dwBaseAddrOffset[i];
             ResourceParams.pdwCmd           = (pCmd->DW8_9.Value);
             ResourceParams.dwLocationInCmd  = 8;
             ResourceParams.bIsWritable      = pParams->bIsWritable;
-            
+
             ResourceParams.dwOffsetInSSH    =
                 uiIndirectStateOffset               +
                 pKernelState->dwSshOffset           +
                 pKernelState->dwBindingTableSize    +
                 (pParams->dwBindingTableOffset[i] * m_dwMaxSurfaceStateSize);
             ResourceParams.HwCommandType    = MOS_SURFACE_STATE;
-            
+
             MHW_MI_CHK_STATUS(m_pfnAddResourceToCmd(
                 pOsInterface,
                 pCmdBuffer,
                 &ResourceParams));
-        }  
+        }
     }
 
     return eStatus;
@@ -761,92 +761,92 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G10_X::SetSamplerState(
                 }
             }
         }
-		else if (pParam->SamplerType == MHW_SAMPLER_TYPE_CONV)
-		{
-			uint32_t u32ConvolveTableNum;
+        else if (pParam->SamplerType == MHW_SAMPLER_TYPE_CONV)
+        {
+            uint32_t u32ConvolveTableNum;
 
-			if (pParam->Convolve.ui8ConvolveType == 0)
-			{   // 2D convolve, 2048: size of CONV for Gen9+.
-				// how many tables need to be filled = total_bytes_of_tables / bytes_per_table
-				// = (total_sizeof_convolve - sizeof_DW0_to_DW15) / size_per_table
-				u32ConvolveTableNum = 62; // (2048 - 16*4) / 32
-			}
-			else if (pParam->Convolve.ui8ConvolveType == 1)
-			{   // 1D convolve, 128: size of 1D CONV for Gen9+.
-				u32ConvolveTableNum = 2;  // (128 - 16*4) / 32
-			}
-			else
-			{   // 1P convolve, 1024 size of CONV for Gen8.
-				u32ConvolveTableNum = 30; // (1024 - 16*4) / 32
-			}
+            if (pParam->Convolve.ui8ConvolveType == 0)
+            {   // 2D convolve, 2048: size of CONV for Gen9+.
+                // how many tables need to be filled = total_bytes_of_tables / bytes_per_table
+                // = (total_sizeof_convolve - sizeof_DW0_to_DW15) / size_per_table
+                u32ConvolveTableNum = 62; // (2048 - 16*4) / 32
+            }
+            else if (pParam->Convolve.ui8ConvolveType == 1)
+            {   // 1D convolve, 128: size of 1D CONV for Gen9+.
+                u32ConvolveTableNum = 2;  // (128 - 16*4) / 32
+            }
+            else
+            {   // 1P convolve, 1024 size of CONV for Gen8.
+                u32ConvolveTableNum = 30; // (1024 - 16*4) / 32
+            }
 
-			mhw_state_heap_g10_X::SAMPLER_STATE_8x8_CONVOLVE_CMD *pSamplerConvolve =
-				(mhw_state_heap_g10_X::SAMPLER_STATE_8x8_CONVOLVE_CMD*)pSampler;
+            mhw_state_heap_g10_X::SAMPLER_STATE_8x8_CONVOLVE_CMD *pSamplerConvolve =
+                (mhw_state_heap_g10_X::SAMPLER_STATE_8x8_CONVOLVE_CMD*)pSampler;
 
-			mhw_state_heap_g10_X::SAMPLER_STATE_8x8_CONVOLVE_CMD SamplerConvolveInit;
-			*pSamplerConvolve = SamplerConvolveInit;
+            mhw_state_heap_g10_X::SAMPLER_STATE_8x8_CONVOLVE_CMD SamplerConvolveInit;
+            *pSamplerConvolve = SamplerConvolveInit;
 
-			auto ConvolveTableEntries =
-				sizeof(pSamplerConvolve->FilterCoefficient300310) / sizeof(pSamplerConvolve->FilterCoefficient300310[0]);
-			if (ConvolveTableEntries < u32ConvolveTableNum)
-			{
-				MHW_ASSERTMESSAGE("Incorrect number of convolve entries requested!");
-				return MOS_STATUS_INVALID_PARAMETER;
-			}
+            auto ConvolveTableEntries =
+                sizeof(pSamplerConvolve->FilterCoefficient300310) / sizeof(pSamplerConvolve->FilterCoefficient300310[0]);
+            if (ConvolveTableEntries < u32ConvolveTableNum)
+            {
+                MHW_ASSERTMESSAGE("Incorrect number of convolve entries requested!");
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
 
-			pSamplerConvolve->DW0.Height = pParam->Convolve.ui8Height;
-			pSamplerConvolve->DW0.Width = pParam->Convolve.ui8Width;
-			pSamplerConvolve->DW0.ScaleDownValue = pParam->Convolve.ui8ScaledDownValue;
-			pSamplerConvolve->DW0.SizeOfTheCoefficient = pParam->Convolve.ui8SizeOfTheCoefficient;
-			pSamplerConvolve->DW0.MsbHeight = pParam->Convolve.ui8MSBHeight;
-			pSamplerConvolve->DW0.MsbWidth = pParam->Convolve.ui8MSBWidth;
+            pSamplerConvolve->DW0.Height = pParam->Convolve.ui8Height;
+            pSamplerConvolve->DW0.Width = pParam->Convolve.ui8Width;
+            pSamplerConvolve->DW0.ScaleDownValue = pParam->Convolve.ui8ScaledDownValue;
+            pSamplerConvolve->DW0.SizeOfTheCoefficient = pParam->Convolve.ui8SizeOfTheCoefficient;
+            pSamplerConvolve->DW0.MsbHeight = pParam->Convolve.ui8MSBHeight;
+            pSamplerConvolve->DW0.MsbWidth = pParam->Convolve.ui8MSBWidth;
 
-			for (uint32_t i = 0; i < u32ConvolveTableNum; i++)
-			{
-				pSamplerConvolve->FilterCoefficient300310[i].DW0.FilterCoefficient00 = pParam->Convolve.CoeffTable[i].wFilterCoeff[0];
-				pSamplerConvolve->FilterCoefficient300310[i].DW0.FilterCoefficient01 = pParam->Convolve.CoeffTable[i].wFilterCoeff[1];
-				pSamplerConvolve->FilterCoefficient300310[i].DW1.FilterCoefficient02 = pParam->Convolve.CoeffTable[i].wFilterCoeff[2];
-				pSamplerConvolve->FilterCoefficient300310[i].DW1.FilterCoefficient03 = pParam->Convolve.CoeffTable[i].wFilterCoeff[3];
-				pSamplerConvolve->FilterCoefficient300310[i].DW2.FilterCoefficient04 = pParam->Convolve.CoeffTable[i].wFilterCoeff[4];
-				pSamplerConvolve->FilterCoefficient300310[i].DW2.FilterCoefficient05 = pParam->Convolve.CoeffTable[i].wFilterCoeff[5];
-				pSamplerConvolve->FilterCoefficient300310[i].DW3.FilterCoefficient06 = pParam->Convolve.CoeffTable[i].wFilterCoeff[6];
-				pSamplerConvolve->FilterCoefficient300310[i].DW3.FilterCoefficient07 = pParam->Convolve.CoeffTable[i].wFilterCoeff[7];
-				pSamplerConvolve->FilterCoefficient300310[i].DW4.FilterCoefficient08 = pParam->Convolve.CoeffTable[i].wFilterCoeff[8];
-				pSamplerConvolve->FilterCoefficient300310[i].DW4.FilterCoefficient09 = pParam->Convolve.CoeffTable[i].wFilterCoeff[9];
-				pSamplerConvolve->FilterCoefficient300310[i].DW5.FilterCoefficient010 = pParam->Convolve.CoeffTable[i].wFilterCoeff[10];
-				pSamplerConvolve->FilterCoefficient300310[i].DW5.FilterCoefficient011 = pParam->Convolve.CoeffTable[i].wFilterCoeff[11];
-				pSamplerConvolve->FilterCoefficient300310[i].DW6.FilterCoefficient012 = pParam->Convolve.CoeffTable[i].wFilterCoeff[12];
-				pSamplerConvolve->FilterCoefficient300310[i].DW6.FilterCoefficient013 = pParam->Convolve.CoeffTable[i].wFilterCoeff[13];
-				pSamplerConvolve->FilterCoefficient300310[i].DW7.FilterCoefficient014 = pParam->Convolve.CoeffTable[i].wFilterCoeff[14];
-				pSamplerConvolve->FilterCoefficient300310[i].DW7.FilterCoefficient015 = pParam->Convolve.CoeffTable[i].wFilterCoeff[15];
-			}
-		}
-		else if (pParam->SamplerType == MHW_SAMPLER_TYPE_MISC)
-		{
-			mhw_state_heap_g10_X::SAMPLER_STATE_8x8_ERODE_DILATE_MINMAXFILTER_CMD *pSamplerMisc =
-				(mhw_state_heap_g10_X::SAMPLER_STATE_8x8_ERODE_DILATE_MINMAXFILTER_CMD*)pSampler;
+            for (uint32_t i = 0; i < u32ConvolveTableNum; i++)
+            {
+                pSamplerConvolve->FilterCoefficient300310[i].DW0.FilterCoefficient00 = pParam->Convolve.CoeffTable[i].wFilterCoeff[0];
+                pSamplerConvolve->FilterCoefficient300310[i].DW0.FilterCoefficient01 = pParam->Convolve.CoeffTable[i].wFilterCoeff[1];
+                pSamplerConvolve->FilterCoefficient300310[i].DW1.FilterCoefficient02 = pParam->Convolve.CoeffTable[i].wFilterCoeff[2];
+                pSamplerConvolve->FilterCoefficient300310[i].DW1.FilterCoefficient03 = pParam->Convolve.CoeffTable[i].wFilterCoeff[3];
+                pSamplerConvolve->FilterCoefficient300310[i].DW2.FilterCoefficient04 = pParam->Convolve.CoeffTable[i].wFilterCoeff[4];
+                pSamplerConvolve->FilterCoefficient300310[i].DW2.FilterCoefficient05 = pParam->Convolve.CoeffTable[i].wFilterCoeff[5];
+                pSamplerConvolve->FilterCoefficient300310[i].DW3.FilterCoefficient06 = pParam->Convolve.CoeffTable[i].wFilterCoeff[6];
+                pSamplerConvolve->FilterCoefficient300310[i].DW3.FilterCoefficient07 = pParam->Convolve.CoeffTable[i].wFilterCoeff[7];
+                pSamplerConvolve->FilterCoefficient300310[i].DW4.FilterCoefficient08 = pParam->Convolve.CoeffTable[i].wFilterCoeff[8];
+                pSamplerConvolve->FilterCoefficient300310[i].DW4.FilterCoefficient09 = pParam->Convolve.CoeffTable[i].wFilterCoeff[9];
+                pSamplerConvolve->FilterCoefficient300310[i].DW5.FilterCoefficient010 = pParam->Convolve.CoeffTable[i].wFilterCoeff[10];
+                pSamplerConvolve->FilterCoefficient300310[i].DW5.FilterCoefficient011 = pParam->Convolve.CoeffTable[i].wFilterCoeff[11];
+                pSamplerConvolve->FilterCoefficient300310[i].DW6.FilterCoefficient012 = pParam->Convolve.CoeffTable[i].wFilterCoeff[12];
+                pSamplerConvolve->FilterCoefficient300310[i].DW6.FilterCoefficient013 = pParam->Convolve.CoeffTable[i].wFilterCoeff[13];
+                pSamplerConvolve->FilterCoefficient300310[i].DW7.FilterCoefficient014 = pParam->Convolve.CoeffTable[i].wFilterCoeff[14];
+                pSamplerConvolve->FilterCoefficient300310[i].DW7.FilterCoefficient015 = pParam->Convolve.CoeffTable[i].wFilterCoeff[15];
+            }
+        }
+        else if (pParam->SamplerType == MHW_SAMPLER_TYPE_MISC)
+        {
+            mhw_state_heap_g10_X::SAMPLER_STATE_8x8_ERODE_DILATE_MINMAXFILTER_CMD *pSamplerMisc =
+                (mhw_state_heap_g10_X::SAMPLER_STATE_8x8_ERODE_DILATE_MINMAXFILTER_CMD*)pSampler;
 
-			mhw_state_heap_g10_X::SAMPLER_STATE_8x8_ERODE_DILATE_MINMAXFILTER_CMD SamplerMiscInit;
-			*pSamplerMisc = SamplerMiscInit;
+            mhw_state_heap_g10_X::SAMPLER_STATE_8x8_ERODE_DILATE_MINMAXFILTER_CMD SamplerMiscInit;
+            *pSamplerMisc = SamplerMiscInit;
 
-			pSamplerMisc->DW0.HeightOfTheKernel = pParam->Misc.byteHeight;
-			pSamplerMisc->DW0.WidthOfTheKernel = pParam->Misc.byteWidth;
-			pSamplerMisc->DW0.BitMask16ForRow0150 = pParam->Misc.wRow[0];
-			pSamplerMisc->DW1.BitMask16ForRow1150 = pParam->Misc.wRow[1];
-			pSamplerMisc->DW1.BitMask16ForRow2150 = pParam->Misc.wRow[2];
-			pSamplerMisc->DW2.BitMask16ForRow3150 = pParam->Misc.wRow[3];
-			pSamplerMisc->DW2.BitMask16ForRow4150 = pParam->Misc.wRow[4];
-			pSamplerMisc->DW3.BitMask16ForRow5150 = pParam->Misc.wRow[5];
-			pSamplerMisc->DW3.BitMask16ForRow6150 = pParam->Misc.wRow[6];
-			pSamplerMisc->DW4.BitMask16ForRow7150 = pParam->Misc.wRow[7];
-			pSamplerMisc->DW4.BitMask16ForRow8150 = pParam->Misc.wRow[8];
-			pSamplerMisc->DW5.BitMask16ForRow9150 = pParam->Misc.wRow[9];
-			pSamplerMisc->DW5.BitMask16ForRow10150 = pParam->Misc.wRow[10];
-			pSamplerMisc->DW6.BitMask16ForRow11150 = pParam->Misc.wRow[11];
-			pSamplerMisc->DW6.BitMask16ForRow12150 = pParam->Misc.wRow[12];
-			pSamplerMisc->DW7.BitMask16ForRow13150 = pParam->Misc.wRow[13];
-			pSamplerMisc->DW7.BitMask16ForRow14150 = pParam->Misc.wRow[14];
-		}
+            pSamplerMisc->DW0.HeightOfTheKernel = pParam->Misc.byteHeight;
+            pSamplerMisc->DW0.WidthOfTheKernel = pParam->Misc.byteWidth;
+            pSamplerMisc->DW0.BitMask16ForRow0150 = pParam->Misc.wRow[0];
+            pSamplerMisc->DW1.BitMask16ForRow1150 = pParam->Misc.wRow[1];
+            pSamplerMisc->DW1.BitMask16ForRow2150 = pParam->Misc.wRow[2];
+            pSamplerMisc->DW2.BitMask16ForRow3150 = pParam->Misc.wRow[3];
+            pSamplerMisc->DW2.BitMask16ForRow4150 = pParam->Misc.wRow[4];
+            pSamplerMisc->DW3.BitMask16ForRow5150 = pParam->Misc.wRow[5];
+            pSamplerMisc->DW3.BitMask16ForRow6150 = pParam->Misc.wRow[6];
+            pSamplerMisc->DW4.BitMask16ForRow7150 = pParam->Misc.wRow[7];
+            pSamplerMisc->DW4.BitMask16ForRow8150 = pParam->Misc.wRow[8];
+            pSamplerMisc->DW5.BitMask16ForRow9150 = pParam->Misc.wRow[9];
+            pSamplerMisc->DW5.BitMask16ForRow10150 = pParam->Misc.wRow[10];
+            pSamplerMisc->DW6.BitMask16ForRow11150 = pParam->Misc.wRow[11];
+            pSamplerMisc->DW6.BitMask16ForRow12150 = pParam->Misc.wRow[12];
+            pSamplerMisc->DW7.BitMask16ForRow13150 = pParam->Misc.wRow[13];
+            pSamplerMisc->DW7.BitMask16ForRow14150 = pParam->Misc.wRow[14];
+        }
         else
         {
             MHW_ASSERTMESSAGE("Invalid sampler type '%d'", pParam->SamplerType);
@@ -858,7 +858,6 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G10_X::SetSamplerState(
 
     return eStatus;
 }
-
 
 //!
 //! \brief    Load Sampler 8X8 State Table for Gen9
@@ -937,10 +936,10 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G10_X::LoadSamplerAvsTable(
     pSampler8x8Avs->DW153.AdaptiveFilterForAllChannels  = pMhwSamplerAvsTableParam->bAdaptiveFilterAllChannels;
     pSampler8x8Avs->DW153.BypassYAdaptiveFiltering      = pMhwSamplerAvsTableParam->bBypassYAdaptiveFiltering;
     pSampler8x8Avs->DW153.BypassXAdaptiveFiltering      = pMhwSamplerAvsTableParam->bBypassXAdaptiveFiltering;
-    
+
     u32ConvolveTableNum =
         sizeof(pSampler8x8Avs->FilterCoefficient1731) / sizeof(pSampler8x8Avs->FilterCoefficient1731[0]);
-    // DW160 ~ DW279 setting for extra table coefficients (DW0 ~ DW7) * 15 
+    // DW160 ~ DW279 setting for extra table coefficients (DW0 ~ DW7) * 15
     for (uint32_t u32CoeffTableIdx = 0; u32CoeffTableIdx < u32ConvolveTableNum; u32CoeffTableIdx++)
     {
         PMHW_AVS_COEFFICIENT_PARAM   pCoeffParamExtra = &pMhwSamplerAvsTableParam->paMhwAvsCoeffParamExtra[u32CoeffTableIdx];

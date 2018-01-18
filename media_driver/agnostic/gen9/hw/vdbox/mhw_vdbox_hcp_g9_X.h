@@ -140,7 +140,7 @@ protected:
     void InitMmioRegisters()
     {
         MmioRegistersHcp *mmioRegisters = &this->m_mmioRegisters[MHW_VDBOX_NODE_1];
-    
+
         mmioRegisters->hcpEncImageStatusMaskRegOffset                    = 0x1E9B8;
         mmioRegisters->hcpEncImageStatusCtrlRegOffset                    = 0x1E9BC;
         mmioRegisters->hcpEncBitstreamBytecountFrameRegOffset            = 0x1E9A0;
@@ -156,7 +156,7 @@ protected:
         mmioRegisters->csEngineIdOffset                                  = 0;
         mmioRegisters->hcpDecStatusRegOffset                             = 0x1E900;
         mmioRegisters->hcpCabacStatusRegOffset                           = 0x1E904;
-    
+
     }
 
     void InitRowstoreUserFeatureSettings()
@@ -704,7 +704,7 @@ protected:
 
         // Decoded Picture
         // Caching policy change if any of below modes are true
-        // Note for future dev: probably a good idea to add a macro for the below check 
+        // Note for future dev: probably a good idea to add a macro for the below check
         if (this->m_osInterface->osCpInterface->IsHMEnabled() ||
             this->m_osInterface->osCpInterface->IsIDMEnabled() ||
             this->m_osInterface->osCpInterface->IsSMEnabled())
@@ -1235,7 +1235,7 @@ protected:
                 resourceParams.dwSize = MOS_ALIGN_CEIL(params->dwMvObjectSize, 0x1000);
                 resourceParams.bIsWritable = false;
 
-                // no upper bound for indirect CU object 
+                // no upper bound for indirect CU object
                 resourceParams.dwUpperBoundLocationOffsetFromCmd = 0;
 
                 MHW_MI_CHK_STATUS(this->pfnAddResourceToCmd(
@@ -1386,31 +1386,31 @@ protected:
         PMHW_VDBOX_HEVC_PIC_STATE        params)
     {
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
+
         MHW_FUNCTION_ENTER;
-    
+
         MHW_MI_CHK_NULL(params);
         MHW_MI_CHK_NULL(params->pHevcEncSeqParams);
         MHW_MI_CHK_NULL(params->pHevcEncPicParams);
 
         typename THcpCmds::HCP_PIC_STATE_CMD  cmd;
-    
+
         auto hevcSeqParams  = params->pHevcEncSeqParams;
         auto hevcPicParams  = params->pHevcEncPicParams;
-    
+
         cmd.DW1.Framewidthinmincbminus1         = hevcSeqParams->wFrameWidthInMinCbMinus1;
         cmd.DW1.Frameheightinmincbminus1        = hevcSeqParams->wFrameHeightInMinCbMinus1;
-    
+
         cmd.DW2.Mincusize                       = hevcSeqParams->log2_min_coding_block_size_minus3;
         cmd.DW2.CtbsizeLcusize                  = hevcSeqParams->log2_max_coding_block_size_minus3;
         cmd.DW2.Maxtusize                       = hevcSeqParams->log2_max_transform_block_size_minus2;
         cmd.DW2.Mintusize                       = hevcSeqParams->log2_min_transform_block_size_minus2;
         cmd.DW2.Minpcmsize                      = 0;
         cmd.DW2.Maxpcmsize                      = 0;
-    
+
         cmd.DW3.Colpicisi                       = 0; // MBZ
         cmd.DW3.Curpicisi                       = 0; // MBZ
-    
+
         cmd.DW4.SampleAdaptiveOffsetEnabledFlag         = 0;
         cmd.DW4.PcmEnabledFlag                          = 0;
         cmd.DW4.CuQpDeltaEnabledFlag                    = hevcPicParams->cu_qp_delta_enabled_flag;
@@ -1424,25 +1424,25 @@ protected:
         cmd.DW4.TilesEnabledFlag                        = 0;
         cmd.DW4.WeightedPredFlag                        = hevcPicParams->weighted_pred_flag;
         cmd.DW4.WeightedBipredFlag                      = hevcPicParams->weighted_bipred_flag;
-    	cmd.DW4.Fieldpic = 0;
-    	cmd.DW4.Bottomfield = 0;
+        cmd.DW4.Fieldpic = 0;
+        cmd.DW4.Bottomfield = 0;
         cmd.DW4.TransformSkipEnabledFlag                = hevcPicParams->transform_skip_enabled_flag;
         cmd.DW4.AmpEnabledFlag                          = hevcSeqParams->amp_enabled_flag;
         cmd.DW4.Reserved152                             = hevcPicParams->LcuMaxBitsizeAllowed > 0;
         cmd.DW4.TransquantBypassEnableFlag              = hevcPicParams->transquant_bypass_enabled_flag;
         cmd.DW4.StrongIntraSmoothingEnableFlag          = hevcSeqParams->strong_intra_smoothing_enable_flag;
-    
+
         cmd.DW5.PicCbQpOffset                                           = hevcPicParams->pps_cb_qp_offset & 0x1f;
         cmd.DW5.PicCrQpOffset                                           = hevcPicParams->pps_cr_qp_offset & 0x1f;
         cmd.DW5.MaxTransformHierarchyDepthIntraOrNamedAsTuMaxDepthIntra = hevcSeqParams->max_transform_hierarchy_depth_intra;
         cmd.DW5.MaxTransformHierarchyDepthInterOrNamedAsTuMaxDepthInter = hevcSeqParams->max_transform_hierarchy_depth_inter;
         cmd.DW5.PcmSampleBitDepthChromaMinus1   = 7;
         cmd.DW5.PcmSampleBitDepthLumaMinus1     = 7;
-    
+
         cmd.DW6.LcuMaxBitsizeAllowed            = hevcPicParams->LcuMaxBitsizeAllowed;
-    
+
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
-    
+
         return eStatus;
     }
 
@@ -1451,32 +1451,32 @@ protected:
         PMHW_VDBOX_HEVC_SLICE_STATE      hevcSliceState)
     {
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
+
         MHW_FUNCTION_ENTER;
-    
+
         MHW_MI_CHK_NULL(hevcSliceState);
 
         typename THcpCmds::HCP_SLICE_STATE_CMD cmd;
-    
+
         auto hevcSliceParams = hevcSliceState->pEncodeHevcSliceParams;
         auto hevcPicParams   = hevcSliceState->pEncodeHevcPicParams;
         auto hevcSeqParams   = hevcSliceState->pEncodeHevcSeqParams;
-    
+
         uint32_t ctbSize    = 1 << (hevcSeqParams->log2_max_coding_block_size_minus3 + 3);
         uint32_t widthInPix = (1 << (hevcSeqParams->log2_min_coding_block_size_minus3 + 3)) *
                               (hevcSeqParams->wFrameWidthInMinCbMinus1 + 1);
         uint32_t widthInCtb = (widthInPix / ctbSize) +
                               ((widthInPix % ctbSize) ? 1 : 0);  // round up
-    
+
         uint32_t ctbAddr    = hevcSliceParams->slice_segment_address;
 
         cmd.DW1.SlicestartctbxOrSliceStartLcuXEncoder   = ctbAddr % widthInCtb;
         cmd.DW1.SlicestartctbyOrSliceStartLcuYEncoder   = ctbAddr / widthInCtb;
-    
+
         ctbAddr = hevcSliceParams->slice_segment_address + hevcSliceParams->NumLCUsInSlice;
         cmd.DW2.NextslicestartctbxOrNextSliceStartLcuXEncoder = ctbAddr % widthInCtb;
         cmd.DW2.NextslicestartctbyOrNextSliceStartLcuYEncoder = ctbAddr / widthInCtb;
-    
+
         cmd.DW3.SliceType                               = hevcSliceParams->slice_type;
         cmd.DW3.Lastsliceofpic                          = hevcSliceState->bLastSlice;
         cmd.DW3.DependentSliceFlag                      = hevcSliceParams->dependent_slice_segment_flag;
@@ -1484,7 +1484,7 @@ protected:
         cmd.DW3.Sliceqp                                 = hevcSliceParams->slice_qp_delta + hevcPicParams->QpY;
         cmd.DW3.SliceCbQpOffset                         = hevcSliceParams->slice_cb_qp_offset;
         cmd.DW3.SliceCrQpOffset                         = hevcSliceParams->slice_cr_qp_offset;
-    
+
         cmd.DW4.SliceHeaderDisableDeblockingFilterFlag          = hevcSliceParams->slice_deblocking_filter_disable_flag;
         cmd.DW4.SliceTcOffsetDiv2OrFinalTcOffsetDiv2Encoder     = hevcSliceParams->tc_offset_div2;
         cmd.DW4.SliceBetaOffsetDiv2OrFinalBetaOffsetDiv2Encoder = hevcSliceParams->beta_offset_div2;
@@ -1498,7 +1498,7 @@ protected:
         cmd.DW4.LumaLog2WeightDenom                     = hevcSliceParams->luma_log2_weight_denom;
         cmd.DW4.CabacInitFlag                           = hevcSliceParams->cabac_init_flag;
         cmd.DW4.Maxmergeidx                             = hevcSliceParams->MaxNumMergeCand - 1;
-    
+
         if (cmd.DW3.SliceTemporalMvpEnableFlag)
         {
             if (cmd.DW3.SliceType == MhwVdboxHcpInterface::hevcSliceI)
@@ -1509,13 +1509,13 @@ protected:
             {
                 // need to check with Ce for DDI issues
                 uint8_t collocatedFromL0Flag = cmd.DW4.CollocatedFromL0Flag;
-    
+
                 uint8_t collocatedRefIndex   = hevcPicParams->CollocatedRefPicIndex;
                 MHW_ASSERT(collocatedRefIndex < CODEC_MAX_NUM_REF_FRAME_HEVC);
-    
+
                 uint8_t collocatedFrameIdx = hevcSliceState->pRefIdxMapping[collocatedRefIndex];
                 MHW_ASSERT(collocatedRefIndex < CODEC_MAX_NUM_REF_FRAME_HEVC);
-    
+
                 cmd.DW4.Collocatedrefidx = collocatedFrameIdx;
             }
         }
@@ -1523,9 +1523,9 @@ protected:
         {
              cmd.DW4.Collocatedrefidx   = 0;
         }
-    
+
         cmd.DW5.Sliceheaderlength       = 0;
-    
+
         if(!hevcPicParams->bUsedAsRef && hevcPicParams->CodingType != I_TYPE)
         {
             // non reference B frame
@@ -1538,18 +1538,18 @@ protected:
             cmd.DW6.Roundinter = 5;
             cmd.DW6.Roundintra = 11;
         }
-    
+
         cmd.DW7.Cabaczerowordinsertionenable            = 1;
         cmd.DW7.Emulationbytesliceinsertenable          = 1;
         cmd.DW7.HeaderInsertionEnable                   = 1;
-        cmd.DW7.TailInsertionEnable                     = 
+        cmd.DW7.TailInsertionEnable                     =
                 (hevcPicParams->bLastPicInSeq || hevcPicParams->bLastPicInStream) && hevcSliceState->bLastSlice;
         cmd.DW7.SlicedataEnable                         = 1;
-    
+
         cmd.DW8.IndirectPakBseDataStartOffsetWrite      = hevcSliceState->dwHeaderBytesInserted;
-    
+
         MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, hevcSliceState->pBatchBufferForPakSlices, &cmd, cmd.byteSize));
-    
+
         return eStatus;
     }
 
@@ -1666,20 +1666,20 @@ protected:
         PMHW_VDBOX_VP9_SEGMENT_STATE     params)
     {
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
+
         MHW_MI_CHK_NULL(params);
 
         typename THcpCmds::HCP_VP9_SEGMENT_STATE_CMD  cmd;
         void*  segData = nullptr;
-    
+
         cmd.DW1.SegmentId = params->ucCurrentSegmentId;
-    
+
         if (!this->m_decodeInUse)
         {
             CODEC_VP9_ENCODE_SEG_PARAMS             vp9SegData;
-    
+
             vp9SegData = params->pVp9EncodeSegmentParams->SegData[params->ucCurrentSegmentId];
-    
+
             if (params->pbSegStateBufferPtr)   // Use the seg data from this buffer (output of BRC)
             {
                 segData = params->pbSegStateBufferPtr;
@@ -1689,7 +1689,7 @@ protected:
                 cmd.DW2.SegmentSkipped          = vp9SegData.SegmentFlags.fields.SegmentSkipped;
                 cmd.DW2.SegmentReference        = vp9SegData.SegmentFlags.fields.SegmentReference;
                 cmd.DW2.SegmentReferenceEnabled = vp9SegData.SegmentFlags.fields.SegmentReferenceEnabled;
-    
+
                 segData = &cmd;
             }
         }
@@ -1697,32 +1697,32 @@ protected:
         {
             CODEC_VP9_SEG_PARAMS            vp9SegData;
             vp9SegData = params->pVp9SegmentParams->SegData[params->ucCurrentSegmentId];
-    
+
             cmd.DW2.SegmentSkipped          = vp9SegData.SegmentFlags.fields.SegmentReferenceSkipped;
             cmd.DW2.SegmentReference        = vp9SegData.SegmentFlags.fields.SegmentReference;
             cmd.DW2.SegmentReferenceEnabled = vp9SegData.SegmentFlags.fields.SegmentReferenceEnabled;
-    
+
             cmd.DW3.Filterlevelref0Mode0    = vp9SegData.FilterLevel[0][0];
             cmd.DW3.Filterlevelref0Mode1    = vp9SegData.FilterLevel[0][1];
             cmd.DW3.Filterlevelref1Mode0    = vp9SegData.FilterLevel[1][0];
             cmd.DW3.Filterlevelref1Mode1    = vp9SegData.FilterLevel[1][1];
-    
+
             cmd.DW4.Filterlevelref2Mode0    = vp9SegData.FilterLevel[2][0];
             cmd.DW4.Filterlevelref2Mode1    = vp9SegData.FilterLevel[2][1];
             cmd.DW4.Filterlevelref3Mode0    = vp9SegData.FilterLevel[3][0];
             cmd.DW4.Filterlevelref3Mode1    = vp9SegData.FilterLevel[3][1];
-    
+
             cmd.DW5.LumaDcQuantScaleDecodeModeOnly  = vp9SegData.LumaDCQuantScale;
             cmd.DW5.LumaAcQuantScaleDecodeModeOnly  = vp9SegData.LumaACQuantScale;
-    
+
             cmd.DW6.ChromaDcQuantScaleDecodeModeOnly = vp9SegData.ChromaDCQuantScale;
             cmd.DW6.ChromaAcQuantScaleDecodeModeOnly = vp9SegData.ChromaACQuantScale;
-    
+
             segData = &cmd;
         }
-    
+
         MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, segData, cmd.byteSize));
-    
+
         return eStatus;
     }
 
@@ -1731,9 +1731,9 @@ protected:
         MHW_VDBOX_HEVC_PIC_STATE        hevcPicState)
     {
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
+
         MHW_FUNCTION_ENTER;
-    
+
         MHW_MI_CHK_NULL(hcpImgStates);
 
         MOS_COMMAND_BUFFER constructedCmdBuf;
@@ -1741,21 +1741,21 @@ protected:
         uint32_t* insertion = nullptr;
         MOS_LOCK_PARAMS lockFlags;
         this->m_brcNumPakPasses = hevcPicState.brcNumPakPasses;
-    
+
         MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
         lockFlags.WriteOnly = 1;
         uint8_t *data = (uint8_t*)this->m_osInterface->pfnLockResource(this->m_osInterface, hcpImgStates, &lockFlags);
         MHW_MI_CHK_NULL(data);
-    
+
         constructedCmdBuf.pCmdBase      = (uint32_t *)data;
         constructedCmdBuf.pCmdPtr       = (uint32_t *)data;
         constructedCmdBuf.iOffset       = 0;
         constructedCmdBuf.iRemaining    = BRC_IMG_STATE_SIZE_PER_PASS * (this->m_brcNumPakPasses);
-    
+
         MHW_MI_CHK_STATUS(this->AddHcpPicStateCmd(&constructedCmdBuf, &hevcPicState));
-    
+
         cmd = *(typename THcpCmds::HCP_PIC_STATE_CMD *)data;
-    
+
         for (uint32_t i = 0; i < this->m_brcNumPakPasses; i++)
         {
             if (i == 0)
@@ -1766,23 +1766,23 @@ protected:
             {
                 cmd.DW6.Nonfirstpassflag = true;
             }
-    
+
             cmd.DW6.FrameszoverstatusenFramebitratemaxreportmask  = true;
             cmd.DW6.FrameszunderstatusenFramebitrateminreportmask = true;
             cmd.DW6.LcumaxbitstatusenLcumaxsizereportmask         = false; // BRC update kernel does not consider if there is any LCU whose size is too big
             cmd.DW6.Lcustatisticoutputenableflag                  = false;
-    
+
             *(typename THcpCmds::HCP_PIC_STATE_CMD *)data = cmd;
-    
+
             /* add batch buffer end insertion flag */
             insertion = (uint32_t*)(data + THcpCmds::HCP_PIC_STATE_CMD::byteSize);
             *insertion = 0x05000000;
-    
+
             data += BRC_IMG_STATE_SIZE_PER_PASS;
         }
-    
+
         this->m_osInterface->pfnUnlockResource(this->m_osInterface, hcpImgStates);
-    
+
         return eStatus;
     }
 

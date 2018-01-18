@@ -148,7 +148,7 @@ MOS_STATUS MhwRenderInterfaceG10::AddMediaObject(
     MHW_FUNCTION_ENTER;
 
     MHW_MI_CHK_NULL(params);
-    
+
     mhw_render_g10_X::MEDIA_OBJECT_CMD *cmd;
     if (cmdBuffer)
     {
@@ -215,7 +215,7 @@ MOS_STATUS MhwRenderInterfaceG10::AddPaletteLoadCmd(
     mhw_render_g10_X::PALETTE_ENTRY_CMD entry;
     uint32_t cmdSize = entry.byteSize * params->iNumEntries;
 
-    // Send palette load command followed by palette data    
+    // Send palette load command followed by palette data
     MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, params->pPaletteData, cmdSize));
 
     return MOS_STATUS_SUCCESS;
@@ -261,30 +261,30 @@ MOS_STATUS MhwRenderInterfaceG10::SetL3Cache(
 }
 
 MOS_STATUS MhwRenderInterfaceG10::AddGpgpuCsrBaseAddrCmd(
-	PMOS_COMMAND_BUFFER             cmdBuffer,
-	PMOS_RESOURCE                   csrResource)
+    PMOS_COMMAND_BUFFER             cmdBuffer,
+    PMOS_RESOURCE                   csrResource)
 {
-	MHW_MI_CHK_NULL(cmdBuffer);
-	MHW_MI_CHK_NULL(csrResource);
+    MHW_MI_CHK_NULL(cmdBuffer);
+    MHW_MI_CHK_NULL(csrResource);
 
 #if (EMUL)
-	MHW_NORMALMESSAGE("GPGPU_CSR_BASE_ADDRESS not supported.");
-	return MOS_STATUS_SUCCESS;
+    MHW_NORMALMESSAGE("GPGPU_CSR_BASE_ADDRESS not supported.");
+    return MOS_STATUS_SUCCESS;
 #endif
 
-	mhw_render_g10_X::STATE_CSR_BASE_ADDRESS_CMD cmd;
-	MHW_RESOURCE_PARAMS resourceParams;
-	MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
-	resourceParams.presResource = csrResource;
-	resourceParams.pdwCmd = (uint32_t *)cmd.DW1_2.Value;
-	resourceParams.dwLocationInCmd = 1;
+    mhw_render_g10_X::STATE_CSR_BASE_ADDRESS_CMD cmd;
+    MHW_RESOURCE_PARAMS resourceParams;
+    MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
+    resourceParams.presResource = csrResource;
+    resourceParams.pdwCmd = (uint32_t *)cmd.DW1_2.Value;
+    resourceParams.dwLocationInCmd = 1;
 
-	MHW_MI_CHK_STATUS(AddResourceToCmd(
-		m_osInterface,
-		cmdBuffer,
-		&resourceParams));
+    MHW_MI_CHK_STATUS(AddResourceToCmd(
+        m_osInterface,
+        cmdBuffer,
+        &resourceParams));
 
-	MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
-	return MOS_STATUS_SUCCESS;
+    return MOS_STATUS_SUCCESS;
 }

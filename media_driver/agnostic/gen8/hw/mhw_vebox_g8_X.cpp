@@ -74,7 +74,7 @@ void  MhwVeboxInterfaceG8::SetVeboxIecpStateCcm(
         pVeboxIecpState->CcmState.DW8.C8CoefficientOf3X3TransformMatrix =
             (uint32_t)(pCapPipeParams->ColorCorrectionParams.CCM[2][2] * uCoeffValue);
     }
- 
+
 }
 
 void MhwVeboxInterfaceG8::SetVeboxIecpStateBecsc(

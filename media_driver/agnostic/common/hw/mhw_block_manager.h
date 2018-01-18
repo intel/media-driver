@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      mhw_block_manager.h  
-//! \brief         This modules implements state heap block manager used in MHW  
+//! \file      mhw_block_manager.h 
+//! \brief         This modules implements state heap block manager used in MHW 
 //!
 #ifndef __MHW_BLOCK_MANAGER_H__
 #define __MHW_BLOCK_MANAGER_H__
@@ -71,7 +71,6 @@ typedef struct _MHW_BLOCK_LIST
     char                            szListName[16];     //!< List name for debugging purposes
 } MHW_BLOCK_LIST, *PMHW_BLOCK_LIST;
 
-
 struct MHW_BLOCK_MANAGER
 {
 private:
@@ -79,7 +78,7 @@ private:
     MHW_MEMORY_POOL          m_MemoryPool;                          //!< Memory pool of PMHW_STATE_HEAP_MEMORY_BLOCK objects
     MHW_BLOCK_LIST           m_BlockList[MHW_BLOCK_STATE_COUNT];    //!< Block lists associated with each block state
     PMHW_STATE_HEAP          m_pStateHeap;                          //!< Points to state heap
-    
+
 public:
 
     //!
@@ -131,7 +130,7 @@ public:
     //! \brief    Allocate memory block with scratch space
     //! \details  Allocate memory block with scratch space
     //! \param    [in] dwSize
-    //!           Size of memory block to allocate   
+    //!           Size of memory block to allocate 
     //! \param    [in] dwAlignment
     //!           Alignment
     //! \param    [in] dwScratchSpace
@@ -172,7 +171,7 @@ public:
     //!           Returns the status of the operation
     //!
     MOS_STATUS FreeBlock(
-        PMHW_STATE_HEAP_MEMORY_BLOCK pBlock, 
+        PMHW_STATE_HEAP_MEMORY_BLOCK pBlock,
         uint32_t dwSyncTag);
 
     //!
@@ -218,14 +217,14 @@ public:
     //!           Pointer to state heap
     //!
     void SetStateHeap(PMHW_STATE_HEAP pStateHeap);
-    
+
     // Multiple Block Allocation algorithm description (multiple kernel load):
     //
     // Multiple blocks must be efficiently allocated in multiple heaps or in a single heap.
-    // 
+    //
     // Each load may introduce block fragmentation. The more kernels are loaded, the greater
     // are the chances to fragment the heap, reducing the chances of finding contiguous for a
-    // larger kernel. Therefore, the efficient way to use the heap is to load larger kernels 
+    // larger kernel. Therefore, the efficient way to use the heap is to load larger kernels
     // first ensuring they have enough contiguous space, and then load the smaller kernels,
     // which are more likely to fit in remaining blocks.
     //
@@ -234,13 +233,13 @@ public:
     // 1) The total size of all blocks is calculated to check if there's even a fighting chance
     //    to load them all - if the amount available is insufficient, other measures will be taken.
     //
-    // 2) In order to allocate blocks according to size, we first sort the array of sizes 
+    // 2) In order to allocate blocks according to size, we first sort the array of sizes
     //    using an index array (never touching the source array!) - this is done by a merge sort
-    //    implementation, which is O(n*log(n)) - may try using other algorithm such as QuickSort - 
+    //    implementation, which is O(n*log(n)) - may try using other algorithm such as QuickSort -
     //    although quicksort is not always the best (may be O(n^2) in same cases)
     //
     // 3) Select a specific heap (or nullptr if bHeapAffinity is false). Check if there is enough space
-    //    to load all blocks - ignoring the fragmentation for now. Only by traversing the list of 
+    //    to load all blocks - ignoring the fragmentation for now. Only by traversing the list of
     //    blocks we will be able to determine if the heap can be used or not. Trying to load larger
     //    kernels FIRST helps identifying heap fragmentation issues faster than leaving it for last.
     //
@@ -324,10 +323,9 @@ private:
     //!           Returns error code
     //!
     MOS_STATUS AttachBlock(
-        MHW_BLOCK_STATE              BlockState, 
+        MHW_BLOCK_STATE              BlockState,
         PMHW_STATE_HEAP_MEMORY_BLOCK pBlock,
         PMHW_STATE_HEAP_MEMORY_BLOCK pBlockPos);
-
 
     //!
     //! \brief    INTERNAL function to insert a block into a block list.
@@ -372,7 +370,6 @@ private:
         MHW_BLOCK_STATE              BlockState,
         PMHW_STATE_HEAP_MEMORY_BLOCK pBlockPos);
 
-
     //!
     //! \brief    INTERNAL function to remove a block from a block list.
     //! \details  Removes a block from a list provided. The caller may specify the block
@@ -391,7 +388,6 @@ private:
     PMHW_STATE_HEAP_MEMORY_BLOCK DetachBlockInternal(
         PMHW_BLOCK_LIST              pList,
         PMHW_STATE_HEAP_MEMORY_BLOCK pBlock);
-
 
     //!
     //! \brief    Interface to move block from one list to another
@@ -418,7 +414,6 @@ private:
         PMHW_BLOCK_LIST              pDstList,      // Destination list
         PMHW_STATE_HEAP_MEMORY_BLOCK pBlock,        // Block to be moved (or HEAD/TAIL of source list)
         PMHW_STATE_HEAP_MEMORY_BLOCK pBlockPos);    // Position to insert (or HEAD/TAIL of target list)
-
 
     //!
     //! \brief    Returns memory block object to pool
@@ -470,7 +465,7 @@ private:
         PMHW_STATE_HEAP_MEMORY_BLOCK    pBlock,
         uint32_t                        dwSplitSize,
         uint32_t                        dwAlignment,
-        bool                            bBackward);   
+        bool                            bBackward);
 
     //!
     //! \brief    Merge blocks
@@ -488,10 +483,10 @@ private:
     //!           Returns the status of the operation
     //!
     MOS_STATUS MergeBlocksInternal(
-        PMHW_STATE_HEAP_MEMORY_BLOCK    pBlockL,        
-        PMHW_STATE_HEAP_MEMORY_BLOCK    pBlockH,        
-        uint32_t                        dwAlignment,    
-        bool                            bBackward);     
+        PMHW_STATE_HEAP_MEMORY_BLOCK    pBlockL,
+        PMHW_STATE_HEAP_MEMORY_BLOCK    pBlockH,
+        uint32_t                        dwAlignment,
+        bool                            bBackward);
 
     //!
     //! \brief    ResizeBlock
@@ -512,7 +507,7 @@ private:
         PMHW_STATE_HEAP_MEMORY_BLOCK    pBlock,
         uint32_t                        dwNewSize,
         uint32_t                        dwAlignment,
-        bool                            bBackward);     
+        bool                            bBackward);
 };
 
 #endif // __MHW_BLOCK_MANAGER_H__

@@ -123,7 +123,7 @@ protected:
 
     //!
     //! \brief    Check whether interview prediction is used for MVC 
-    //!          
+    //! 
     //! \param    [in] currPic
     //!           Current picture
     //! \param    [in] currPoc
@@ -137,14 +137,14 @@ protected:
     //!           True if interview prediction is used, false otherwise
     //!
     bool IsMvcInterviewPred(
-        const CODEC_PICTURE &currPic, 
+        const CODEC_PICTURE &currPic,
         int32_t currPoc[CODEC_NUM_FIELDS_PER_FRAME],
-        uint8_t refListIdx, 
+        uint8_t refListIdx,
         PCODEC_REF_LIST *refList)
     {
         return (((refListIdx) != (currPic).FrameIdx) &&
-            (!CodecHal_PictureIsTopField(currPic) && (refList[refListIdx]->iFieldOrderCnt[1] == (currPoc)[1]) || 
-                !CodecHal_PictureIsBottomField(currPic) && (refList[refListIdx]->iFieldOrderCnt[0] == (currPoc)[0])) && 
+            (!CodecHal_PictureIsTopField(currPic) && (refList[refListIdx]->iFieldOrderCnt[1] == (currPoc)[1]) ||
+                !CodecHal_PictureIsBottomField(currPic) && (refList[refListIdx]->iFieldOrderCnt[0] == (currPoc)[0])) &&
                 ((currPic).FrameIdx != 0x7f));
     }
 
@@ -222,7 +222,7 @@ protected:
             // BDW only
             bool setVideoNode = false;
 
-            //If 2VDBox feature check for Content Protection, default to Master VDBox. 
+            //If 2VDBox feature check for Content Protection, default to Master VDBox.
             if (this->m_osInterface->osCpInterface->IsCpEnabled())
             {
                 setVideoNode = true;
@@ -445,9 +445,9 @@ protected:
                 if (isModeSpecific)
                 {
                     // isModeSpecific = bShortFormat for AVC decode
-					maxSize +=
-						TMfxCmds::MFD_AVC_DPB_STATE_CMD::byteSize +
-						TMfxCmds::MFD_AVC_SLICEADDR_CMD::byteSize;
+                    maxSize +=
+                        TMfxCmds::MFD_AVC_DPB_STATE_CMD::byteSize +
+                        TMfxCmds::MFD_AVC_SLICEADDR_CMD::byteSize;
 
                     patchListMaxSize +=
                         PATCH_LIST_COMMAND(MFD_AVC_DPB_STATE_CMD) +
@@ -498,11 +498,11 @@ protected:
         {
             if (mode == CODECHAL_DECODE_MODE_VC1VLD)
             {
-				maxSize =
-					TMfxCmds::MFD_VC1_BSD_OBJECT_CMD::byteSize;
+                maxSize =
+                    TMfxCmds::MFD_VC1_BSD_OBJECT_CMD::byteSize;
 
-				patchListMaxSize +=
-					PATCH_LIST_COMMAND(MFD_VC1_BSD_OBJECT_CMD);
+                patchListMaxSize +=
+                    PATCH_LIST_COMMAND(MFD_VC1_BSD_OBJECT_CMD);
             }
             else if (mode == CODECHAL_DECODE_MODE_VC1IT)
             {
@@ -517,11 +517,11 @@ protected:
         {
             if (mode == CODECHAL_DECODE_MODE_MPEG2VLD)
             {
-				maxSize =
-					TMfxCmds::MFD_MPEG2_BSD_OBJECT_CMD::byteSize;
+                maxSize =
+                    TMfxCmds::MFD_MPEG2_BSD_OBJECT_CMD::byteSize;
 
-				patchListMaxSize =
-					PATCH_LIST_COMMAND(MFD_MPEG2_BSD_OBJECT_CMD);
+                patchListMaxSize =
+                    PATCH_LIST_COMMAND(MFD_MPEG2_BSD_OBJECT_CMD);
 
             }
             else if (mode == CODECHAL_DECODE_MODE_MPEG2IDCT)
@@ -633,7 +633,7 @@ protected:
         MHW_ASSERT(params->Mode != CODECHAL_UNSUPPORTED_MODE);
 
         typename TMfxCmds::MFX_SURFACE_STATE_CMD cmd;
-        
+
         cmd.DW1.SurfaceId = params->ucSurfaceStateId;
 
         cmd.DW2.Height = params->psSurface->dwHeight - 1;
@@ -653,7 +653,7 @@ protected:
             // this parameter must always be 0 for JPEG regardless of the YUV format
             cmd.DW3.InterleaveChroma = 0;
 
-            // Separate function for JPEG decode because this surface format should match with that programmed 
+            // Separate function for JPEG decode because this surface format should match with that programmed
             // in JPEG Picture State
             cmd.DW3.SurfaceFormat = this->GetJpegDecodeFormat(params->psSurface->Format);
         }
@@ -686,7 +686,7 @@ protected:
         resourceParams.HwCommandType = MOS_MFX_INDIRECT_OBJ_BASE_ADDR;
 
         typename TMfxCmds::MFX_IND_OBJ_BASE_ADDR_STATE_CMD cmd;
-       
+
         // mode specific settings
         if (CodecHalIsDecodeModeVLD(params->Mode) || (params->Mode == CODECHAL_ENCODE_MODE_VP8))
         {
@@ -796,7 +796,7 @@ protected:
         MHW_MI_CHK_NULL(params->pAvcPicParams);
 
         auto avcPicParams = params->pAvcPicParams;
-        
+
         typename TMfxCmds::MFX_AVC_IMG_STATE_CMD cmd;
 
         uint32_t numMBs =
@@ -861,7 +861,6 @@ protected:
 
         return eStatus;
     }
-
 
     MOS_STATUS AddMfxEncodeAvcImgCmd(
         PMOS_COMMAND_BUFFER cmdBuffer,
@@ -1009,7 +1008,7 @@ protected:
             cmd.DW4.Mbstatenabled = true;
             cmd.DW5.IntraIntermbipcmflagForceipcmcontrolmask = true;
         }
-      
+
         MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
@@ -1030,7 +1029,7 @@ protected:
         resourceParams.HwCommandType = MOS_MFX_AVC_DIRECT_MODE;
 
         typename TMfxCmds::MFX_AVC_DIRECTMODE_STATE_CMD cmd;
-        
+
         if (!params->bDisableDmvBuffers)
         {
             MHW_MI_CHK_NULL(params->presAvcDmvBuffers);
@@ -1346,11 +1345,11 @@ protected:
             cmd.DW1.SkipemulbytecntSkipEmulationByteCount = params->uiSkipEmulationCheckCount;
             cmd.DW1.DatabitsinlastdwSrcdataendingbitinclusion50 = dataBitsInLastDw;
             cmd.DW1.DatabyteoffsetSrcdatastartingbyteoffset10 = 0;
-            cmd.DW1.Headerlengthexcludefrmsize = cmd.DW1.EmulationflagEmulationbytebitsinsertenable ? false 
+            cmd.DW1.Headerlengthexcludefrmsize = cmd.DW1.EmulationflagEmulationbytebitsinsertenable ? false
                 : params->bHeaderLengthExcludeFrmSize; // Cannot be set to true if emulation byte bit insertion is enabled
             MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
-            // Add actual data 
+            // Add actual data
             uint8_t* data = (uint8_t*)(params->pBsBuffer->pBase + params->dwOffset);
             MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, data, byteSize));
         }

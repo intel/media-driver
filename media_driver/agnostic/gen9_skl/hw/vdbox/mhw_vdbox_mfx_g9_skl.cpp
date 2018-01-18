@@ -322,7 +322,7 @@ MOS_STATUS MhwVdboxMfxInterfaceG9Skl::AddMfxPipeBufAddrCmd(
             cmd.DW64.ScaledReferenceSurfaceMemoryCompressionEnable = MHW_MEDIA_MEMCOMP_ENABLED;
         }
         cmd.DW64.ScaledReferenceSurfaceMemoryCompressionMode = (params->Ps4xDsSurfMmcState == MOS_MEMCOMP_HORIZONTAL) ?
-			MHW_MEDIA_MEMCOMP_MODE_HORIZONTAL : MHW_MEDIA_MEMCOMP_MODE_VERTICAL;
+            MHW_MEDIA_MEMCOMP_MODE_HORIZONTAL : MHW_MEDIA_MEMCOMP_MODE_VERTICAL;
         cmd.DW64.ScaledReferenceSurfaceIndexToMemoryObjectControlStateMocsTables =
             m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SURFACE_HME_DOWNSAMPLED_ENCODE].Value >> 1;
 

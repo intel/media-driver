@@ -38,7 +38,6 @@
 #define MHW_HCP_WORST_CASE_CU_TU_INFO            (4 * MHW_CACHELINE_SIZE) // 2+1+1
 #define MHW_HCP_WORST_CASE_CU_TU_INFO_REXT       (6 * MHW_CACHELINE_SIZE) // 4+1+1
 
-
 typedef struct _MHW_VDBOX_HEVC_PIC_STATE
 {
     // Decode
@@ -739,7 +738,7 @@ public:
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!   
+    //!
     virtual MOS_STATUS GetHevcBufferSize(
         MHW_VDBOX_HCP_INTERNAL_BUFFER_TYPE  bufferType,
         PMHW_VDBOX_HCP_BUFFER_SIZE_PARAMS   hcpBufSizeParam) = 0;

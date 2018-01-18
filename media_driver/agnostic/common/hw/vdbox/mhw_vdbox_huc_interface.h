@@ -98,7 +98,7 @@ protected:
 
     static const uint32_t  m_hucStatusHevcS2lFailureMask = 0x8000;  //!< HuC Status HEVC short to long failure mask
                                                                     //!< bit15: uKernal uOS Status, FW will write 0 if has critical error
-                                                                
+
     static const uint32_t  m_hucStatus2ImemLoadedMask = 0x40;     //!< HuC Status 2 IMEM loaded mask
                                                                   //!< bit 6: Valid IMEM Loaded
     static const uint32_t  m_hucErrorFlagsMask = 0xFFFE;          //!< HuC error 2 flags mask

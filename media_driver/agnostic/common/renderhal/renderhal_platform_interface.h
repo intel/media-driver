@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      renderhal_platform_interface.h  
-//! \brief     abstract the platfrom specific APIs into one class  
+//! \file      renderhal_platform_interface.h 
+//! \brief     abstract the platfrom specific APIs into one class 
 //!
 //!
 //! \file     renderhal.h
@@ -39,7 +39,7 @@ class XRenderHal_Platform_Interface
 public:
     XRenderHal_Platform_Interface() {}
     virtual ~XRenderHal_Platform_Interface() {}
-    
+
     //!
     //! \brief    Setup Surface State
     //! \details  Setup Surface States
@@ -204,7 +204,6 @@ public:
     virtual void InitDynamicHeapSettings(
         PRENDERHAL_INTERFACE  pRenderHal) = 0;
 
-
     //!
     //! \brief      Get the depth bit mask for buffer 
     //! \details    Get the depth bit mask for buffer 
@@ -263,7 +262,7 @@ public:
     //!           Pointer to Hardware Interface
     //! \return   bool
     //!           true if Enabled, false if Disabled
-    //! 
+    //!
     virtual bool IsCompositeMMCEnabled(
         PRENDERHAL_INTERFACE         pRenderHal)
     {

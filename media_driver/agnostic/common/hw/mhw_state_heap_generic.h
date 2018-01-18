@@ -39,7 +39,7 @@ public:
     MHW_STATE_HEAP_INTERFACE_GENERIC(
         PMOS_INTERFACE      pInputOsInterface,
         int8_t              bDynamicMode) : XMHW_STATE_HEAP_INTERFACE(pInputOsInterface, bDynamicMode) {}
-    
+
     virtual ~MHW_STATE_HEAP_INTERFACE_GENERIC() { MHW_FUNCTION_ENTER; }
 
     MOS_STATUS SetBindingTable(PMHW_KERNEL_STATE  pKernelState)
@@ -84,11 +84,11 @@ public:
     {
         MOS_STATUS   eStatus = MOS_STATUS_SUCCESS;
         uint8_t*     pBindingTablePtr = pParams->pBindingTableEntry;
-        
+
         //Init Cmds
         typename     TCmds::BINDING_TABLE_STATE_CMD Cmd;
         Cmd.DW0.SurfaceStatePointer = pParams->dwSurfaceStateOffset >> m_mhwBindingTableSurfaceShift;
-        
+
         //Copy to binding table Entry
         MHW_MI_CHK_STATUS(MOS_SecureMemcpy(pBindingTablePtr, Cmd.byteSize, &Cmd, Cmd.byteSize));
 
@@ -109,14 +109,14 @@ public:
             return MOS_STATUS_SUCCESS;
         }
 
-        typename TCmds::BINDING_TABLE_STATE_CMD *pBtSrc =  
+        typename TCmds::BINDING_TABLE_STATE_CMD *pBtSrc =
             (typename TCmds::BINDING_TABLE_STATE_CMD *)pParams->pBindingTableSource ;
-        
-        typename TCmds::BINDING_TABLE_STATE_CMD *pBtDst =  
+
+        typename TCmds::BINDING_TABLE_STATE_CMD *pBtDst =
             (typename TCmds::BINDING_TABLE_STATE_CMD *)pParams->pBindingTableTarget;
-        
+
         uint32_t CmdByteSize = TCmds::BINDING_TABLE_STATE_CMD::byteSize;
-        
+
         // Setup and increment BT pointers
         pParams->pBindingTableSource += CmdByteSize;
         pParams->pBindingTableTarget += CmdByteSize;
@@ -124,7 +124,7 @@ public:
         if (pBtSrc->DW0.SurfaceStatePointer != 0)
         {
             // Set binding table entry in indirect state
-            *pBtDst = *pBtSrc; 
+            *pBtDst = *pBtSrc;
 
             // Return surface state parameters associated with BT entry
             pParams->iSurfaceStateOffset = pBtSrc->DW0.Value;
@@ -136,7 +136,7 @@ public:
             *pBtDst = typename TCmds::BINDING_TABLE_STATE_CMD();
             pParams->iSurfaceState       = -1;
         }
-    
+
         return eStatus;
     }
 

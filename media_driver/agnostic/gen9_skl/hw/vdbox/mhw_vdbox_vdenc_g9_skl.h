@@ -72,7 +72,6 @@ public:
         return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
     }
 
-
 };
 
 #endif

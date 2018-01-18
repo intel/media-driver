@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      mhw_block_manager.c  
-//! \brief         This modules implements memory block management functions as part of MHW     dynamic state heap implementation  
+//! \file      mhw_block_manager.c 
+//! \brief         This modules implements memory block management functions as part of MHW     dynamic state heap implementation 
 //!
 #include "mhw_block_manager.h"
 #include "mhw_utilities.h"
@@ -57,7 +57,7 @@ void Mhw_BlockManager_ReverseMergeSort_With_Index(const uint32_t *pdwSizes, int3
     uint8_t *s1, *s2;                                   // Merge source groups 1 and 2
     uint8_t n1, n2;                                     // Merge sizes  groups 1 and 2
     uint8_t *d;                                         // Merge destination
-    
+
     // Very simple cases
     if (iCount <= 1)
     {
@@ -72,7 +72,7 @@ void Mhw_BlockManager_ReverseMergeSort_With_Index(const uint32_t *pdwSizes, int3
     }
 
     // Initialize sorted index table
-    for (i = 0; i < iCount; i++) 
+    for (i = 0; i < iCount; i++)
     {
         Index1[i] = i;
     }
@@ -102,9 +102,9 @@ void Mhw_BlockManager_ReverseMergeSort_With_Index(const uint32_t *pdwSizes, int3
         s2 = pSrc;        // Second group
         for (i = n; i < iCount; i += 2*n)   // i is the offset of the 2nd group
         {
-            s1 += n;    
+            s1 += n;
             n1 = n;
-            s2 += n;    
+            s2 += n;
             n2 = n;
 
             // Limit size of last group
@@ -112,7 +112,7 @@ void Mhw_BlockManager_ReverseMergeSort_With_Index(const uint32_t *pdwSizes, int3
             {
                 n2 = iCount - i;
             }
-        
+
             // Merge groups
             while (n1 > 0 && n2 > 0)
             {
@@ -141,7 +141,7 @@ void Mhw_BlockManager_ReverseMergeSort_With_Index(const uint32_t *pdwSizes, int3
             }
         }
 
-        // Copy the last group (not merge-sorted) 
+        // Copy the last group (not merge-sorted)
         for (i = i - n; i < iCount; i++)
         {
             *(d++) = *(s2++);
@@ -216,9 +216,9 @@ void Mhw_BlockManager_ReverseMergeSort(uint32_t *pdwSizes, int32_t iCount)
         // Group selection and merge - O(n)
         for (i = n; i < iCount; i += 2*n)   // i is the offset of the 2nd group
         {
-            s1 += n;    
+            s1 += n;
             n1 =  n;
-            s2 += n;    
+            s2 += n;
             n2 =  n;
 
             // Limit size of last group
@@ -226,7 +226,7 @@ void Mhw_BlockManager_ReverseMergeSort(uint32_t *pdwSizes, int32_t iCount)
             {
                 n2 = iCount - i;
             }
-        
+
             // Merge groups
             while (n1 > 0 && n2 > 0)
             {
@@ -255,7 +255,7 @@ void Mhw_BlockManager_ReverseMergeSort(uint32_t *pdwSizes, int32_t iCount)
             }
         }
 
-        // Copy the last group (not merge-sorted) 
+        // Copy the last group (not merge-sorted)
         for (i = i - n; i < iCount; i++)
         {
             *(d++) = *(s2++);
@@ -271,7 +271,7 @@ void Mhw_BlockManager_ReverseMergeSort(uint32_t *pdwSizes, int32_t iCount)
 MHW_BLOCK_MANAGER::MHW_BLOCK_MANAGER(PMHW_BLOCK_MANAGER_PARAMS pParams):
     m_pStateHeap(nullptr),
     m_MemoryPool(sizeof(MHW_STATE_HEAP_MEMORY_BLOCK), sizeof(void *))
-{    
+{
     //Init Parameters
     if(pParams != nullptr)
     {
@@ -294,7 +294,6 @@ MHW_BLOCK_MANAGER::MHW_BLOCK_MANAGER(PMHW_BLOCK_MANAGER_PARAMS pParams):
     //Extend Pool
     ExtendPool(m_Params.dwPoolInitialCount);
 }
-
 
 MHW_BLOCK_MANAGER::~MHW_BLOCK_MANAGER()
 {
@@ -340,7 +339,7 @@ MOS_STATUS MHW_BLOCK_MANAGER::RegisterStateHeap(
     pBlock->dwSyncTagId         = MHW_BLOCK_MANAGER_INVALID_TAG;
     pBlock->bStatic             = 0;
 
-    // Set first/last memory block in state heap 
+    // Set first/last memory block in state heap
     pStateHeap->pMemoryHead     = pBlock;
     pStateHeap->pMemoryTail     = pBlock;
 
@@ -418,7 +417,6 @@ MOS_STATUS MHW_BLOCK_MANAGER::UnregisterStateHeap(
     }
 }
 
-
 PMHW_STATE_HEAP_MEMORY_BLOCK MHW_BLOCK_MANAGER::GetBlockFromPool()
 {
     PMHW_STATE_HEAP_MEMORY_BLOCK pBlock = nullptr;
@@ -434,7 +432,6 @@ PMHW_STATE_HEAP_MEMORY_BLOCK MHW_BLOCK_MANAGER::GetBlockFromPool()
 
     return pBlock;
 }
-
 
 void MHW_BLOCK_MANAGER::ExtendPool(uint32_t  dwCount)
 {
@@ -466,7 +463,7 @@ void MHW_BLOCK_MANAGER::ExtendPool(uint32_t  dwCount)
 }
 
 MOS_STATUS MHW_BLOCK_MANAGER::AttachBlock(
-    MHW_BLOCK_STATE              BlockState, 
+    MHW_BLOCK_STATE              BlockState,
     PMHW_STATE_HEAP_MEMORY_BLOCK pBlock,
     PMHW_STATE_HEAP_MEMORY_BLOCK pBlockPos)
 {
@@ -586,7 +583,6 @@ PMHW_STATE_HEAP_MEMORY_BLOCK MHW_BLOCK_MANAGER::DetachBlock(
     return pBlock;
 }
 
-
 PMHW_STATE_HEAP_MEMORY_BLOCK MHW_BLOCK_MANAGER::DetachBlockInternal(
     PMHW_BLOCK_LIST              pList,
     PMHW_STATE_HEAP_MEMORY_BLOCK pBlock)
@@ -657,7 +653,6 @@ PMHW_STATE_HEAP_MEMORY_BLOCK MHW_BLOCK_MANAGER::DetachBlockInternal(
     return pBlock;
 }
 
-
 MOS_STATUS MHW_BLOCK_MANAGER::MoveBlock(
     PMHW_BLOCK_LIST              pSrcList,      // Source list
     PMHW_BLOCK_LIST              pDstList,      // Destination list
@@ -708,7 +703,7 @@ MOS_STATUS MHW_BLOCK_MANAGER::Refresh(uint32_t dwSyncTag)
         // NOTE - blocks are to be inserted in the sequence of execution,
         //        so we may finish the search as soon as we find the first
         //        block still "in use" (block tag > current sync tag)
-        //        For now we're doing an exhaustive search, but it may not be needed - once 
+        //        For now we're doing an exhaustive search, but it may not be needed - once
         //        we find the first block still in execution, we can probably stop the search
 
         // Save next pointer before moving the block to another queue
@@ -732,7 +727,7 @@ MOS_STATUS MHW_BLOCK_MANAGER::Refresh(uint32_t dwSyncTag)
             BLOCK_MANAGER_CHK_STATUS(MoveBlock(pList, &m_BlockList[MHW_BLOCK_STATE_ALLOCATED],
                            pBlock, MHW_BLOCK_POSITION_TAIL));
         }
-        else 
+        else
         // Block is non-static  -> free block
         {
             FreeBlock(pBlock, dwSyncTag);
@@ -806,7 +801,6 @@ void MHW_BLOCK_MANAGER::ConsolidateBlock(
     }
 }
 
-
 MOS_STATUS MHW_BLOCK_MANAGER::AllocateBlockInternal(
     PMHW_STATE_HEAP_MEMORY_BLOCK pBlock,
     uint32_t                     dwAlignment)
@@ -842,7 +836,7 @@ MOS_STATUS MHW_BLOCK_MANAGER::SplitBlockInternal(
     PMHW_STATE_HEAP_MEMORY_BLOCK    pBlock,
     uint32_t                        dwSplitSize,
     uint32_t                        dwAlignment,
-    bool                            bBackward)   
+    bool                            bBackward)
 {
     uint32_t                     dwSplitOffset = 0;
     MOS_STATUS                   eStatus = MOS_STATUS_SUCCESS;
@@ -856,13 +850,13 @@ MOS_STATUS MHW_BLOCK_MANAGER::SplitBlockInternal(
     {
         return MOS_STATUS_UNKNOWN;
     }
-   
+
     // Verify block state
     if (pBlock->BlockState <= MHW_BLOCK_STATE_POOL  ||          // Cannot split a block object from pool (contains invalid data)
         pBlock->BlockState >= MHW_BLOCK_STATE_DELETED)          // Cannot split a block being deleted
     {
         return MOS_STATUS_INVALID_PARAMETER;
-        
+
     }
 
     // Select list
@@ -893,7 +887,7 @@ MOS_STATUS MHW_BLOCK_MANAGER::SplitBlockInternal(
         pBlockH = pBlock;       // We'll keep the high end of the block
         pBlockL = GetBlockFromPool();
         BLOCK_MANAGER_CHK_NULL(pBlockL);
-        
+
         uint32_t reserved = pBlockL->Reserved;
         *pBlockL = *pBlock;
         pBlockL->Reserved = reserved;
@@ -921,7 +915,7 @@ MOS_STATUS MHW_BLOCK_MANAGER::SplitBlockInternal(
         pBlockL = pBlock;       // We'll keep the low end of the block
         pBlockH = GetBlockFromPool();
         BLOCK_MANAGER_CHK_NULL(pBlockH);
-        
+
         uint32_t reserved = pBlockH->Reserved;
         *pBlockH = *pBlock;
         pBlockH->Reserved = reserved;
@@ -971,7 +965,6 @@ MOS_STATUS MHW_BLOCK_MANAGER::SplitBlockInternal(
 
     return eStatus;
 }
-
 
 MOS_STATUS MHW_BLOCK_MANAGER::MergeBlocksInternal(
     PMHW_STATE_HEAP_MEMORY_BLOCK    pBlockL,        // block in lower memory
@@ -1041,7 +1034,7 @@ MOS_STATUS MHW_BLOCK_MANAGER::MergeBlocksInternal(
 
         // Merge blocks
         pBlockH = DetachBlock(MHW_BLOCK_STATE_FREE, pBlockH);
-		BLOCK_MANAGER_CHK_NULL(pBlockH);
+        BLOCK_MANAGER_CHK_NULL(pBlockH);
 
         pBlockL->dwBlockSize += pBlockH->dwBlockSize;
         if (pBlockL->BlockState != MHW_BLOCK_STATE_FREE)
@@ -1073,7 +1066,7 @@ MOS_STATUS MHW_BLOCK_MANAGER::ResizeBlock(
 
     BLOCK_MANAGER_CHK_NULL(pBlock);
     MHW_ASSERT(dwNewSize > 0);
-   
+
     // Verify block state
     if (pBlock->BlockState <= MHW_BLOCK_STATE_POOL  ||          // Cannot touch a block object from pool - invalid data
         pBlock->BlockState >= MHW_BLOCK_STATE_DELETED)          // Cannot touch a block being deleted
@@ -1095,7 +1088,7 @@ MOS_STATUS MHW_BLOCK_MANAGER::ResizeBlock(
                 return eStatus;
             }
         }
-        
+
         // Select block to be freed
         pBlock = (bBackward) ? pBlock->pPrev : pBlock->pNext;
         BLOCK_MANAGER_CHK_NULL(pBlock);
@@ -1123,7 +1116,7 @@ MOS_STATUS MHW_BLOCK_MANAGER::ResizeBlock(
     {
         dwAvailable += pNewBlock->dwBlockSize;
     }
-  
+
     // Check for contiguous available space in backward direction
     if (bBackward)
     {
@@ -1179,7 +1172,6 @@ MOS_STATUS MHW_BLOCK_MANAGER::ResizeBlock(
 
     return eStatus;
 }
-
 
 PMHW_STATE_HEAP_MEMORY_BLOCK MHW_BLOCK_MANAGER::AllocateWithScratchSpace(
     uint32_t            dwSize,
@@ -1261,7 +1253,7 @@ PMHW_STATE_HEAP_MEMORY_BLOCK MHW_BLOCK_MANAGER::AllocateWithScratchSpace(
                     pStateHeap->dwScratchSpace = pScratch->dwDataSize;   // Available scratch space size (aligned)
                 }
             }
-            
+
             // Scratch space not present or failed to expand - find a new scratch space
             if (!pScratch)
             {
@@ -1277,7 +1269,7 @@ PMHW_STATE_HEAP_MEMORY_BLOCK MHW_BLOCK_MANAGER::AllocateWithScratchSpace(
                     }
                 }
 
-                // Not enough contiguous space for scratch in heap - try next heap 
+                // Not enough contiguous space for scratch in heap - try next heap
                 if (!pScratch)
                 {
                     continue;
@@ -1299,7 +1291,7 @@ PMHW_STATE_HEAP_MEMORY_BLOCK MHW_BLOCK_MANAGER::AllocateWithScratchSpace(
                 pScratch->bStatic = true;
 
                 // Free the old scratch space
-                // NOTE: scratch spaces are also tracked by Sync Tags and maintained in submitted/allocated lists, 
+                // NOTE: scratch spaces are also tracked by Sync Tags and maintained in submitted/allocated lists,
                 //       If in use, it just clears the bStatic flag, so it will be freed when no longer in use.
                 if (pStateHeap->pScratchSpace)
                 {
@@ -1322,7 +1314,6 @@ PMHW_STATE_HEAP_MEMORY_BLOCK MHW_BLOCK_MANAGER::AllocateWithScratchSpace(
 
     return pBlock;
 }
-
 
 PMHW_STATE_HEAP_MEMORY_BLOCK MHW_BLOCK_MANAGER::AllocateBlock(
     uint32_t            dwSize,
@@ -1382,7 +1373,7 @@ PMHW_STATE_HEAP_MEMORY_BLOCK MHW_BLOCK_MANAGER::AllocateBlock(
         return nullptr;
     }
 
-    // Block was found, adjust the allocation size to account for 
+    // Block was found, adjust the allocation size to account for
     // heap granularity and block alignment
     dwAdjust    = MOS_ALIGN_OFFSET(pBlock->dwOffsetInStateHeap, dwAlignment);                 // Increase in size to align data
     dwAllocSize = MOS_ALIGN_CEIL(dwSize + dwAdjust, m_Params.dwHeapGranularity); // Account for heap granularity (avoid odd addresses in heap)
@@ -1402,14 +1393,14 @@ PMHW_STATE_HEAP_MEMORY_BLOCK MHW_BLOCK_MANAGER::AllocateBlock(
     {
         // Split free block in 2, keep the first part (lower offset)
         eStatus = SplitBlockInternal(pBlock, dwAllocSize, dwAlignment, false);
-        if (eStatus != MOS_STATUS_SUCCESS && 
+        if (eStatus != MOS_STATUS_SUCCESS &&
             eStatus != MOS_STATUS_UNKNOWN)
         {
             MHW_ASSERTMESSAGE("ERROR: AllocateBlock: Failed to allocate block");
             return nullptr;
         }
     }
-        
+
     // Move block from free to allocated queue
     DetachBlock(MHW_BLOCK_STATE_FREE,      pBlock);
     AttachBlock(MHW_BLOCK_STATE_ALLOCATED, pBlock, MHW_BLOCK_POSITION_TAIL);
@@ -1430,9 +1421,8 @@ PMHW_STATE_HEAP_MEMORY_BLOCK MHW_BLOCK_MANAGER::AllocateBlock(
     return pBlock;
 }
 
-
 MOS_STATUS MHW_BLOCK_MANAGER::FreeBlock(
-    PMHW_STATE_HEAP_MEMORY_BLOCK pBlock, 
+    PMHW_STATE_HEAP_MEMORY_BLOCK pBlock,
     uint32_t dwSyncTag)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
@@ -1487,7 +1477,6 @@ MOS_STATUS MHW_BLOCK_MANAGER::FreeBlock(
     return eStatus;
 }
 
-
 uint32_t MHW_BLOCK_MANAGER::CalculateSpaceNeeded(
     const uint32_t      *pdwSizes,
     int32_t             iCount,
@@ -1507,7 +1496,7 @@ uint32_t MHW_BLOCK_MANAGER::CalculateSpaceNeeded(
         return dwNeeded;
     }
 
-    // This is the minimum block 
+    // This is the minimum block
     uint32_t dwBlockGranularity = m_Params.dwHeapGranularity;
     uint32_t dwBlockMinSize     = m_Params.dwHeapBlockMinSize;
     if (dwAlignment > dwBlockGranularity)
@@ -1590,7 +1579,6 @@ uint32_t MHW_BLOCK_MANAGER::CalculateSpaceNeeded(
     return dwNeeded;
 }
 
-
 MOS_STATUS MHW_BLOCK_MANAGER::SubmitBlock(
     PMHW_STATE_HEAP_MEMORY_BLOCK pBlock,
     uint32_t                     dwSyncTag)
@@ -1617,7 +1605,6 @@ MOS_STATUS MHW_BLOCK_MANAGER::SubmitBlock(
 
     return eStatus;
 }
-
 
 PMHW_STATE_HEAP_MEMORY_BLOCK MHW_BLOCK_MANAGER::AllocateMultiple(
     uint32_t            *pdwSizes,
@@ -1720,7 +1707,7 @@ PMHW_STATE_HEAP_MEMORY_BLOCK MHW_BLOCK_MANAGER::AllocateMultiple(
         }
     } while (pStateHeap);
 
-    // Allocation successful, reorder blocks according to original request 
+    // Allocation successful, reorder blocks according to original request
     if (pBlockArray[0])
     {
         for (int32_t i = 0; i < iCount; i++)

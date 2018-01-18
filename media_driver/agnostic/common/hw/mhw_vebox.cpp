@@ -182,8 +182,8 @@ MOS_STATUS MhwVeboxInterface::UpdateVeboxSync()
     pVeboxHeap      = m_veboxHeap;
     pOsInterface    = m_osInterface;
 
-    // If KMD frame tracking is on, the dwSyncTag has been set to gpu status tag 
-    // in Mhw_VeboxInterface_AssignVeboxState(). dwNextTag is not used anymore. 
+    // If KMD frame tracking is on, the dwSyncTag has been set to gpu status tag
+    // in Mhw_VeboxInterface_AssignVeboxState(). dwNextTag is not used anymore.
     if (!pOsInterface->bEnableKmdMediaFrameTracking)
     {
         pVeboxHeap->pStates[pVeboxHeap->uiCurState].dwSyncTag =
@@ -218,7 +218,6 @@ MOS_STATUS MhwVeboxInterface::CreateHeap( )
     MOS_ALLOC_GFXRES_PARAMS AllocParams;
     MOS_LOCK_PARAMS         LockFlags;
 
-
     eStatus         = MOS_STATUS_SUCCESS;
 
     uiSize =  sizeof(MHW_VEBOX_HEAP);
@@ -228,7 +227,7 @@ MOS_STATUS MhwVeboxInterface::CreateHeap( )
     // Allocate memory for VEBOX
     pMem = (uint8_t*)MOS_AllocAndZeroMemory(uiSize);
     MHW_CHK_NULL(pMem);
-    
+
     m_veboxHeap = (PMHW_VEBOX_HEAP)pMem;
 
     m_veboxHeap->pStates =

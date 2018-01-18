@@ -333,7 +333,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::GetHcpStateCommandSize(
                 PATCH_LIST_COMMAND(MI_BATCH_BUFFER_START_CMD) + // When BRC is on, HCP_PIC_STATE_CMD command is in the BB
                 2 * PATCH_LIST_COMMAND(MI_STORE_DATA_IMM_CMD) + // Slice level commands
                 2 * PATCH_LIST_COMMAND(MI_FLUSH_DW_CMD) + // need for Status report, Mfc Status and
-                11 * PATCH_LIST_COMMAND(MI_STORE_REGISTER_MEM_CMD);// 8 for BRCStatistics and 3 for RC6 WAs  
+                11 * PATCH_LIST_COMMAND(MI_STORE_REGISTER_MEM_CMD);// 8 for BRCStatistics and 3 for RC6 WAs
         }
         else
         {
@@ -450,7 +450,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::GetHcpPrimitiveCommandSize(
                 PATCH_LIST_COMMAND(HCP_BSD_OBJECT_CMD);
         }
     }
-    else if (standard == CODECHAL_VP9)      // VP9 Clear decode does not require primitive level commands. VP9 DRM does. 
+    else if (standard == CODECHAL_VP9)      // VP9 Clear decode does not require primitive level commands. VP9 DRM does.
     {
         if (modeSpecific)                  // VP9 DRM
         {
@@ -1425,7 +1425,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpIndObjBaseAddrCmd(
             resourceParams.dwSize = MOS_ALIGN_CEIL(params->dwMvObjectSize, 0x1000);
             resourceParams.bIsWritable = false;
 
-            // no upper bound for indirect CU object 
+            // no upper bound for indirect CU object
             resourceParams.dwUpperBoundLocationOffsetFromCmd = 0;
 
             MHW_MI_CHK_STATUS(pfnAddResourceToCmd(
@@ -1575,7 +1575,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpEncodePicStateCmd(
 
     auto hevcSeqParams = params->pHevcEncSeqParams;
     auto hevcPicParams = params->pHevcEncPicParams;
-    
+
     if (params->bBatchBufferInUse)
     {
         MHW_MI_CHK_NULL(params->pBatchBuffer);
@@ -1593,24 +1593,24 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpEncodePicStateCmd(
     cmd.DW2.Minpcmsize                   = 0; // Not supported in CNL
     cmd.DW2.Maxpcmsize                   = 0; // Not supported in CNL
 
-    cmd.DW3.Colpicisi                    = 0; 
-    cmd.DW3.Curpicisi                    = 0; 
+    cmd.DW3.Colpicisi                    = 0;
+    cmd.DW3.Curpicisi                    = 0;
 
     cmd.DW4.SampleAdaptiveOffsetEnabledFlag                 = hevcSeqParams->SAO_enabled_flag; // HW restriction, does not support SAO filtering for LCU size 16x16
     cmd.DW4.PcmEnabledFlag                                  = 0; // Not supported in CNL
     cmd.DW4.CuQpDeltaEnabledFlag                            = hevcPicParams->cu_qp_delta_enabled_flag; // In VDENC mode, this field should always be set to 1.
     cmd.DW4.DiffCuQpDeltaDepthOrNamedAsMaxDqpDepth          = hevcPicParams->diff_cu_qp_delta_depth;
     cmd.DW4.PcmLoopFilterDisableFlag                        = hevcSeqParams->pcm_loop_filter_disable_flag;
-    cmd.DW4.ConstrainedIntraPredFlag                        = 0; 
-    cmd.DW4.Log2ParallelMergeLevelMinus2                    = 0; 
+    cmd.DW4.ConstrainedIntraPredFlag                        = 0;
+    cmd.DW4.Log2ParallelMergeLevelMinus2                    = 0;
     cmd.DW4.SignDataHidingFlag                              = 0; // currently not supported in encoder
-    cmd.DW4.LoopFilterAcrossTilesEnabledFlag                = 0; 
+    cmd.DW4.LoopFilterAcrossTilesEnabledFlag                = 0;
     cmd.DW4.EntropyCodingSyncEnabledFlag                    = 0; // not supported as per Dimas notes. PAK restriction
     cmd.DW4.TilesEnabledFlag                                = 0; // not supported in encoder
     cmd.DW4.WeightedPredFlag                                = hevcPicParams->weighted_pred_flag;
     cmd.DW4.WeightedBipredFlag                              = hevcPicParams->weighted_bipred_flag;
-    cmd.DW4.Fieldpic                                        = 0; 
-    cmd.DW4.Bottomfield                                     = 0; 
+    cmd.DW4.Fieldpic                                        = 0;
+    cmd.DW4.Bottomfield                                     = 0;
     cmd.DW4.AmpEnabledFlag                                  = hevcSeqParams->amp_enabled_flag;
     cmd.DW4.TransquantBypassEnableFlag                      = hevcPicParams->transquant_bypass_enabled_flag;
     cmd.DW4.StrongIntraSmoothingEnableFlag                  = hevcSeqParams->strong_intra_smoothing_enable_flag;
@@ -1851,14 +1851,14 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpEncodeSliceStateCmd(
     cmd.DW3.SliceCbQpOffset             = hevcSliceParams->slice_cb_qp_offset;
     cmd.DW3.SliceCbQpOffset             = hevcSliceParams->slice_cr_qp_offset;
     cmd.DW3.Intrareffetchdisable        = hevcSliceState->bIntraRefFetchDisable;
-    
+
     cmd.DW4.SliceHeaderDisableDeblockingFilterFlag               = hevcSliceParams->slice_deblocking_filter_disable_flag;
     cmd.DW4.SliceTcOffsetDiv2OrFinalTcOffsetDiv2Encoder
                                         = hevcSliceParams->tc_offset_div2;
     cmd.DW4.SliceBetaOffsetDiv2OrFinalBetaOffsetDiv2Encoder
                                         = hevcSliceParams->beta_offset_div2;
     cmd.DW4.SliceLoopFilterAcrossSlicesEnabledFlag
-                                        = 0; 
+                                        = 0;
     cmd.DW4.SliceSaoChromaFlag          = hevcSliceState->bSaoChromaFlag;
     cmd.DW4.SliceSaoLumaFlag            = hevcSliceState->bSaoLumaFlag;
     cmd.DW4.MvdL1ZeroFlag               = 0; // Decoder only - set to 0 for encoder
@@ -2002,7 +2002,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpPakInsertObject(
             dataBitsInLastDw = 32;
         }
 
-        dwordsUsed                                                += (MOS_ALIGN_CEIL(byteSize, sizeof(uint32_t))) / sizeof(uint32_t); 
+        dwordsUsed                                                += (MOS_ALIGN_CEIL(byteSize, sizeof(uint32_t))) / sizeof(uint32_t);
         cmd.DW0.DwordLength                                         = OP_LENGTH(dwordsUsed);
         cmd.DW1.Headerlengthexcludefrmsize                          = 0;
         cmd.DW1.EndofsliceflagLastdstdatainsertcommandflag          = params->bEndOfSlice;
@@ -2041,7 +2041,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpVp9PicStateCmd(
     mhw_vdbox_hcp_g10_X::HCP_VP9_PIC_STATE_CMD cmd;
     auto vp9PicParams = params->pVp9PicParams;
     auto vp9RefList = params->ppVp9RefList;
-    
+
     cmd.DW0.DwordLength                  = mhw_vdbox_hcp_g10_X::GetOpLength(12); //VP9_PIC_STATE command is common for both Decoder and Encoder. Decoder uses only 12 DWORDS of the generated 33 DWORDS
 
     uint32_t curFrameWidth               = vp9PicParams->FrameWidthMinus1 + 1;
@@ -2082,10 +2082,10 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpVp9PicStateCmd(
     }
     cmd.DW3.Bitdepthminus8 = vp9PicParams->BitDepthMinus8;
     cmd.DW3.ProfileLevel   = vp9PicParams->profile;
-    
+
     cmd.DW10.UncompressedHeaderLengthInBytes70  = vp9PicParams->UncompressedHeaderLengthInBytes;
     cmd.DW10.FirstPartitionSizeInBytes150       = vp9PicParams->FirstPartitionSize;
-    
+
     if (vp9PicParams->PicFlags.fields.frame_type && !vp9PicParams->PicFlags.fields.intra_only)
     {
         PCODEC_PICTURE refFrameList     = &(vp9PicParams->RefFrameList[0]);
@@ -2115,9 +2115,9 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpVp9PicStateCmd(
         cmd.DW2.LastFrameType                   = !params->PrevFrameParams.fields.KeyFrame;
 
         cmd.DW2.UsePrevInFindMvReferences       = vp9PicParams->PicFlags.fields.error_resilient_mode    ||
-                                                    params->PrevFrameParams.fields.KeyFrame             || 
-                                                    params->PrevFrameParams.fields.IntraOnly            || 
-                                                    !params->PrevFrameParams.fields.Display             || 
+                                                    params->PrevFrameParams.fields.KeyFrame             ||
+                                                    params->PrevFrameParams.fields.IntraOnly            ||
+                                                    !params->PrevFrameParams.fields.Display             ||
                                                     isScaling ? false : true;
 
         cmd.DW2.SegmentIdStreaminEnable         = vp9PicParams->PicFlags.fields.error_resilient_mode    ||
@@ -2226,7 +2226,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpVp9PicStateEncCmd(
                 lastRefFrameWidth = curFrameWidth;
                 lastRefFrameHeight = curFrameHeight;
             }
-           
+
             cmd.DW4.HorizontalScaleFactorForLast    = (lastRefFrameWidth * m_vp9ScalingFactor) / curFrameWidth;
             cmd.DW4.VerticalScaleFactorForLast      = (lastRefFrameHeight * m_vp9ScalingFactor) / curFrameHeight;
 
@@ -2251,7 +2251,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpVp9PicStateEncCmd(
                 goldenRefFrameWidth = curFrameWidth;
                 goldenRefFrameHeight = curFrameHeight;
             }
-        
+
             cmd.DW5.HorizontalScaleFactorForGolden  = (goldenRefFrameWidth * m_vp9ScalingFactor) / curFrameWidth;
             cmd.DW5.VerticalScaleFactorForGolden    = (goldenRefFrameHeight * m_vp9ScalingFactor) / curFrameHeight;
 
@@ -2276,7 +2276,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpVp9PicStateEncCmd(
                 altRefFrameWidth = curFrameWidth;
                 altRefFrameHeight = curFrameHeight;
             }
-            
+
             cmd.DW6.HorizontalScaleFactorForAltref      = (altRefFrameWidth * m_vp9ScalingFactor) / curFrameWidth;
             cmd.DW6.VerticalScaleFactorForAltref        = (altRefFrameHeight * m_vp9ScalingFactor) / curFrameHeight;
 

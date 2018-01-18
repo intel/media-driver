@@ -47,7 +47,7 @@ protected:
         MI_CONDITIONAL_BATCH_BUFFER_END_CMD_NUMBER_OF_ADDRESSES    =  1, //  2 DW for  1 address field
         MI_STORE_REGISTER_MEM_CMD_NUMBER_OF_ADDRESSES              =  1, //  2 DW for  1 address field
         MI_SEMAPHORE_WAIT_CMD_NUMBER_OF_ADDRESSES                  =  1, //  2 DW for  1 address fields
-    
+
         HCP_PIPE_MODE_SELECT_CMD_NUMBER_OF_ADDRESSES               =  0, //  0 DW for    address fields
         HCP_SURFACE_STATE_CMD_NUMBER_OF_ADDRESSES                  =  0, //  0 DW for    address fields
         HCP_PIPE_BUF_ADDR_STATE_CMD_NUMBER_OF_ADDRESSES            = 24, // 48 DW for 24 address fields
@@ -63,7 +63,7 @@ protected:
         HCP_BSD_OBJECT_CMD_NUMBER_OF_ADDRESSES                     =  0, //  0 DW for    address fields
         HCP_VP9_SEGMENT_STATE_CMD_NUMBER_OF_ADDRESSES              =  0, //  0 DW for    address fields
         HCP_VP9_PIC_STATE_CMD_NUMBER_OF_ADDRESSES                  =  0, //  0 DW for    address fields
-        
+
         VD_PIPELINE_FLUSH_CMD_NUMBER_OF_ADDRESSES                  =  0,  //  0 DW for  0 address fields
     };
 
@@ -117,23 +117,23 @@ public:
     MOS_STATUS AddHcpPipeModeSelectCmd(
         PMOS_COMMAND_BUFFER                  cmdBuffer,
         PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS   params);
-    
+
     MOS_STATUS AddHcpDecodeSurfaceStateCmd(
         PMOS_COMMAND_BUFFER              cmdBuffer,
         PMHW_VDBOX_SURFACE_PARAMS        params);
-    
+
     MOS_STATUS AddHcpEncodeSurfaceStateCmd(
         PMOS_COMMAND_BUFFER              cmdBuffer,
         PMHW_VDBOX_SURFACE_PARAMS        params);
-    
+
     MOS_STATUS AddHcpDecodePicStateCmd(
         PMOS_COMMAND_BUFFER              cmdBuffer,
         PMHW_VDBOX_HEVC_PIC_STATE        params);
-    
+
     MOS_STATUS AddHcpDecodeSliceStateCmd(
         PMOS_COMMAND_BUFFER              cmdBuffer,
         PMHW_VDBOX_HEVC_SLICE_STATE      hevcSliceState);
-    
+
     MOS_STATUS AddHcpVp9PicStateCmd(
         PMOS_COMMAND_BUFFER              cmdBuffer,
         PMHW_BATCH_BUFFER                batchBuffer,

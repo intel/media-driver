@@ -285,7 +285,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencPipeBufAddrCmd(
             mmcMode != MOS_MEMCOMP_DISABLED ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE
             : mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_DISABLE;
         cmd.OriginalUncompressedPicture.PictureFields.DW0.MemoryCompressionMode =
-            mmcMode == MOS_MEMCOMP_HORIZONTAL ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE 
+            mmcMode == MOS_MEMCOMP_HORIZONTAL ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE
             : mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_VERTICALCOMPRESSIONMODE;
         cmd.OriginalUncompressedPicture.PictureFields.DW0.MemoryObjectControlState =
             m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_ORIGINAL_UNCOMPRESSED_PICTURE_ENCODE].Value;
@@ -393,10 +393,10 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencPipeBufAddrCmd(
             {
             case 0:
                 cmd.FwdRef0.PictureFields.DW0.MemoryCompressionEnable =
-                    mmcMode != MOS_MEMCOMP_DISABLED ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE 
+                    mmcMode != MOS_MEMCOMP_DISABLED ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE
                     : mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_DISABLE;
                 cmd.FwdRef0.PictureFields.DW0.MemoryCompressionMode =
-                    mmcMode == MOS_MEMCOMP_HORIZONTAL ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE 
+                    mmcMode == MOS_MEMCOMP_HORIZONTAL ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE
                     : mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_VERTICALCOMPRESSIONMODE;
                 cmd.FwdRef0.PictureFields.DW0.MemoryObjectControlState =
                     m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC].Value;
@@ -404,10 +404,10 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencPipeBufAddrCmd(
                 break;
             case 1:
                 cmd.FwdRef1.PictureFields.DW0.MemoryCompressionEnable =
-                    mmcMode != MOS_MEMCOMP_DISABLED ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE 
+                    mmcMode != MOS_MEMCOMP_DISABLED ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE
                     : mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_DISABLE;
                 cmd.FwdRef1.PictureFields.DW0.MemoryCompressionMode =
-                    mmcMode == MOS_MEMCOMP_HORIZONTAL ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE 
+                    mmcMode == MOS_MEMCOMP_HORIZONTAL ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE
                     : mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_VERTICALCOMPRESSIONMODE;
                 cmd.FwdRef1.PictureFields.DW0.MemoryObjectControlState =
                     m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC].Value;
@@ -415,10 +415,10 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencPipeBufAddrCmd(
                 break;
             case 2:
                 cmd.FwdRef2.PictureFields.DW0.MemoryCompressionEnable =
-                    mmcMode != MOS_MEMCOMP_DISABLED ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE 
+                    mmcMode != MOS_MEMCOMP_DISABLED ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE
                     : mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_DISABLE;
                 cmd.FwdRef2.PictureFields.DW0.MemoryCompressionMode =
-                    mmcMode == MOS_MEMCOMP_HORIZONTAL ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE 
+                    mmcMode == MOS_MEMCOMP_HORIZONTAL ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE
                     : mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_VERTICALCOMPRESSIONMODE;
                 cmd.FwdRef2.PictureFields.DW0.MemoryObjectControlState =
                     m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC].Value;
@@ -465,19 +465,19 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencPipeBufAddrCmd(
                 {
                 case 0:
                     cmd.DsFwdRef0.PictureFields.DW0.MemoryCompressionEnable =
-                        mmcMode != MOS_MEMCOMP_DISABLED ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE 
+                        mmcMode != MOS_MEMCOMP_DISABLED ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE
                         : mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_DISABLE;
                     cmd.DsFwdRef0.PictureFields.DW0.MemoryCompressionMode =
-                        mmcMode == MOS_MEMCOMP_HORIZONTAL ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE 
+                        mmcMode == MOS_MEMCOMP_HORIZONTAL ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE
                         : mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_VERTICALCOMPRESSIONMODE;
                     cmd.DsFwdRef0.PictureFields.DW0.TiledResourceMode = Mhw_ConvertToTRMode(details.TileType);
                     break;
                 case 1:
                     cmd.DsFwdRef1.PictureFields.DW0.MemoryCompressionEnable =
-                        mmcMode != MOS_MEMCOMP_DISABLED ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE 
+                        mmcMode != MOS_MEMCOMP_DISABLED ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE
                         : mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_DISABLE;
                     cmd.DsFwdRef1.PictureFields.DW0.MemoryCompressionMode =
-                        mmcMode == MOS_MEMCOMP_HORIZONTAL ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE 
+                        mmcMode == MOS_MEMCOMP_HORIZONTAL ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE
                         : mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_VERTICALCOMPRESSIONMODE;
                     cmd.DsFwdRef1.PictureFields.DW0.TiledResourceMode = Mhw_ConvertToTRMode(details.TileType);
                     break;
@@ -518,19 +518,19 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencPipeBufAddrCmd(
                 {
                 case 0:
                     cmd.DsFwdRef0.PictureFields.DW0.MemoryCompressionEnable =
-                        mmcMode != MOS_MEMCOMP_DISABLED ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE 
+                        mmcMode != MOS_MEMCOMP_DISABLED ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE
                         : mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_DISABLE;
                     cmd.DsFwdRef0.PictureFields.DW0.MemoryCompressionMode =
-                        mmcMode == MOS_MEMCOMP_HORIZONTAL ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE 
+                        mmcMode == MOS_MEMCOMP_HORIZONTAL ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE
                         : mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_VERTICALCOMPRESSIONMODE;
                     cmd.DsFwdRef0.PictureFields.DW0.TiledResourceMode = Mhw_ConvertToTRMode(details.TileType);
                     break;
                 case 1:
                     cmd.DsFwdRef1.PictureFields.DW0.MemoryCompressionEnable =
-                        mmcMode != MOS_MEMCOMP_DISABLED ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE 
+                        mmcMode != MOS_MEMCOMP_DISABLED ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE
                         : mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_DISABLE;
                     cmd.DsFwdRef1.PictureFields.DW0.MemoryCompressionMode =
-                        mmcMode == MOS_MEMCOMP_HORIZONTAL ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE 
+                        mmcMode == MOS_MEMCOMP_HORIZONTAL ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE
                         : mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_VERTICALCOMPRESSIONMODE;
                     cmd.DsFwdRef1.PictureFields.DW0.TiledResourceMode = Mhw_ConvertToTRMode(details.TileType);
                     break;
@@ -569,19 +569,19 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencPipeBufAddrCmd(
                 {
                 case 0:
                     cmd.DsFwdRef04X.PictureFields.DW0.MemoryCompressionEnable =
-                        mmcMode != MOS_MEMCOMP_DISABLED ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE 
+                        mmcMode != MOS_MEMCOMP_DISABLED ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE
                         : mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_DISABLE;
                     cmd.DsFwdRef04X.PictureFields.DW0.MemoryCompressionMode =
-                        mmcMode == MOS_MEMCOMP_HORIZONTAL ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE 
+                        mmcMode == MOS_MEMCOMP_HORIZONTAL ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE
                         : mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_VERTICALCOMPRESSIONMODE;
                     cmd.DsFwdRef04X.PictureFields.DW0.TiledResourceMode = Mhw_ConvertToTRMode(details.TileType);
                     break;
                 case 1:
                     cmd.DsFwdRef14X.PictureFields.DW0.MemoryCompressionEnable =
-                        mmcMode != MOS_MEMCOMP_DISABLED ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE 
+                        mmcMode != MOS_MEMCOMP_DISABLED ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE
                         : mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_DISABLE;
                     cmd.DsFwdRef14X.PictureFields.DW0.MemoryCompressionMode =
-                        mmcMode == MOS_MEMCOMP_HORIZONTAL ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE 
+                        mmcMode == MOS_MEMCOMP_HORIZONTAL ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE
                         : mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_VERTICALCOMPRESSIONMODE;
                     cmd.DsFwdRef14X.PictureFields.DW0.TiledResourceMode = Mhw_ConvertToTRMode(details.TileType);
                     break;
@@ -615,10 +615,10 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencPipeBufAddrCmd(
 
             MHW_MI_CHK_STATUS(m_osInterface->pfnGetMemoryCompressionMode(m_osInterface, resourceParams.presResource, &mmcMode));
             cmd.ColocatedMv.PictureFields.DW0.MemoryCompressionEnable =
-                mmcMode != MOS_MEMCOMP_DISABLED ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE 
+                mmcMode != MOS_MEMCOMP_DISABLED ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE
                 : mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_DISABLE;
             cmd.ColocatedMv.PictureFields.DW0.MemoryCompressionMode =
-                mmcMode == MOS_MEMCOMP_HORIZONTAL ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE 
+                mmcMode == MOS_MEMCOMP_HORIZONTAL ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE
                 : mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_VERTICALCOMPRESSIONMODE;
             cmd.ColocatedMv.PictureFields.DW0.MemoryObjectControlState =
                 m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC].Value;
@@ -639,10 +639,10 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencPipeBufAddrCmd(
 
             MHW_MI_CHK_STATUS(m_osInterface->pfnGetMemoryCompressionMode(m_osInterface, resourceParams.presResource, &mmcMode));
             cmd.ScaledReferenceSurface8X.PictureFields.DW0.MemoryCompressionEnable =
-                mmcMode != MOS_MEMCOMP_DISABLED ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE 
+                mmcMode != MOS_MEMCOMP_DISABLED ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE
                 : mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_DISABLE;
             cmd.ScaledReferenceSurface8X.PictureFields.DW0.MemoryCompressionMode =
-                mmcMode == MOS_MEMCOMP_HORIZONTAL ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE 
+                mmcMode == MOS_MEMCOMP_HORIZONTAL ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE
                 : mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_VERTICALCOMPRESSIONMODE;
             cmd.ScaledReferenceSurface8X.PictureFields.DW0.MemoryObjectControlState =
                 m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC].Value;
@@ -663,10 +663,10 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencPipeBufAddrCmd(
 
             MHW_MI_CHK_STATUS(m_osInterface->pfnGetMemoryCompressionMode(m_osInterface, resourceParams.presResource, &mmcMode));
             cmd.ScaledReferenceSurface4X.PictureFields.DW0.MemoryCompressionEnable =
-                mmcMode != MOS_MEMCOMP_DISABLED ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE 
+                mmcMode != MOS_MEMCOMP_DISABLED ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE
                 : mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_DISABLE;
             cmd.ScaledReferenceSurface4X.PictureFields.DW0.MemoryCompressionMode =
-                mmcMode == MOS_MEMCOMP_HORIZONTAL ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE 
+                mmcMode == MOS_MEMCOMP_HORIZONTAL ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE
                 : mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_VERTICALCOMPRESSIONMODE;
             cmd.ScaledReferenceSurface4X.PictureFields.DW0.MemoryObjectControlState =
                 m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC].Value;
@@ -688,10 +688,10 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencPipeBufAddrCmd(
 
             MHW_MI_CHK_STATUS(m_osInterface->pfnGetMemoryCompressionMode(m_osInterface, resourceParams.presResource, &mmcMode));
             cmd.VdencCuRecordStreamOutBuffer.PictureFields.DW0.MemoryCompressionEnable =
-                mmcMode != MOS_MEMCOMP_DISABLED ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE 
+                mmcMode != MOS_MEMCOMP_DISABLED ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE
                 : mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_DISABLE;
             cmd.VdencCuRecordStreamOutBuffer.PictureFields.DW0.MemoryCompressionMode =
-                mmcMode == MOS_MEMCOMP_HORIZONTAL ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE 
+                mmcMode == MOS_MEMCOMP_HORIZONTAL ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE
                 : mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_VERTICALCOMPRESSIONMODE;
             cmd.VdencCuRecordStreamOutBuffer.PictureFields.DW0.MemoryObjectControlState =
                 m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC].Value;
@@ -712,10 +712,10 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencPipeBufAddrCmd(
 
             MHW_MI_CHK_STATUS(m_osInterface->pfnGetMemoryCompressionMode(m_osInterface, resourceParams.presResource, &mmcMode));
             cmd.VdencLcuPakObjCmdBuffer.PictureFields.DW0.MemoryCompressionEnable =
-                mmcMode != MOS_MEMCOMP_DISABLED ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE 
+                mmcMode != MOS_MEMCOMP_DISABLED ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_ENABLE
                 : mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_ENABLE_DISABLE;
             cmd.VdencLcuPakObjCmdBuffer.PictureFields.DW0.MemoryCompressionMode =
-                mmcMode == MOS_MEMCOMP_HORIZONTAL ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE 
+                mmcMode == MOS_MEMCOMP_HORIZONTAL ? mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE
                 : mhw_vdbox_vdenc_g10_X::VDENC_Surface_Control_Bits_CMD::MEMORY_COMPRESSION_MODE_VERTICALCOMPRESSIONMODE;
             cmd.VdencLcuPakObjCmdBuffer.PictureFields.DW0.MemoryObjectControlState =
                 m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC].Value;
@@ -755,10 +755,10 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencPipeBufAddrCmd(
     // DW61: Weights Histogram Streamout offset
     // This parameter specifies the 64 byte aligned offset in the VDEnc Statistics Streamout buffer where the luma and chroma histogram for the weights/offsets determination is written out.
 
-    // Following simulation programming hard-coding the value 
-    // The first 2 CLs(cacheline=64bytes) are ENC frame statistics data. 
-    // The 3rd CL is for VDL1* stats (hits & misses which simulation doesn't model). 
-    // Hence it's a dummy CL for us. Histogram stats start from 4th CL onwards. 
+    // Following simulation programming hard-coding the value
+    // The first 2 CLs(cacheline=64bytes) are ENC frame statistics data.
+    // The 3rd CL is for VDL1* stats (hits & misses which simulation doesn't model).
+    // Hence it's a dummy CL for us. Histogram stats start from 4th CL onwards.
     cmd.DW61.WeightsHistogramStreamoutOffset = 3 * MHW_CACHELINE_SIZE;
 
     MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
@@ -1013,8 +1013,8 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencImgStateCmd(
     cmd.DW5.PictureType                     = avcPicParams->CodingType - 1;
     cmd.DW5.ConstrainedIntraPredictionFlag  = avcPicParams->constrained_intra_pred_flag;
 
-    // HME Ref1 Disable should be set as 0 when VDEnc Perf Mode is enabled 
-    if ((avcPicParams->CodingType != I_TYPE) && 
+    // HME Ref1 Disable should be set as 0 when VDEnc Perf Mode is enabled
+    if ((avcPicParams->CodingType != I_TYPE) &&
         (!params->pEncodeAvcSliceParams->num_ref_idx_l0_active_minus1) &&
         (!params->bVDEncPerfModeEnabled))
     {
@@ -1103,7 +1103,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencImgStateCmd(
         {
             int8_t dQpRoi = avcPicParams->ROI[i].PriorityLevelOrDQp;
 
-            // clip delta qp roi to VDEnc supported range 
+            // clip delta qp roi to VDEnc supported range
             priorityLevelOrDQp[i] = (char)CodecHal_Clip3(
                 ENCODE_VDENC_AVC_MIN_ROI_DELTA_QP_G9, ENCODE_VDENC_AVC_MAX_ROI_DELTA_QP_G9, dQpRoi);
         }

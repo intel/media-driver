@@ -55,9 +55,9 @@ MhwMiInterface::MhwMiInterface(
     m_cpInterface = cpInterface;
     m_osInterface = osInterface;
 
-    UseGlobalGtt.m_cs   = 
-    UseGlobalGtt.m_vcs  = 
-    UseGlobalGtt.m_vecs = MEDIA_IS_WA(m_osInterface->pfnGetWaTable(m_osInterface), WaForceGlobalGTT) || 
+    UseGlobalGtt.m_cs   =
+    UseGlobalGtt.m_vcs  =
+    UseGlobalGtt.m_vecs = MEDIA_IS_WA(m_osInterface->pfnGetWaTable(m_osInterface), WaForceGlobalGTT) ||
                          !MEDIA_IS_SKU(m_osInterface->pfnGetSkuTable(m_osInterface), FtrPPGTT);
 
     MediaResetParam.watchdogCountThreshold = MHW_MI_DEFAULT_WATCHDOG_THRESHOLD_IN_MS;

@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      mhw_utilities.h  
-//! \brief         This modules implements utilities which are shared by both the HW interface     and the state heap interface.  
+//! \file      mhw_utilities.h 
+//! \brief         This modules implements utilities which are shared by both the HW interface     and the state heap interface. 
 //!
 #ifndef __MHW_UTILITIES_H__
 #define __MHW_UTILITIES_H__
@@ -65,7 +65,7 @@ typedef struct _MHW_BATCH_BUFFER MHW_BATCH_BUFFER, *PMHW_BATCH_BUFFER;
 #define POLYPHASE_Y_COEFFICIENT_TABLE_SIZE_G10   (NUM_POLYPHASE_Y_ENTRIES  * NUM_HW_POLYPHASE_TABLES_G10 * sizeof(int32_t))
 #define POLYPHASE_UV_COEFFICIENT_TABLE_SIZE_G10  (NUM_POLYPHASE_UV_ENTRIES * NUM_HW_POLYPHASE_TABLES_G10 * sizeof(int32_t))
 
-#define MHW__PWR_CLK_STATE_REG	0x20C8  //MMIO register for power clock state
+#define MHW__PWR_CLK_STATE_REG    0x20C8  //MMIO register for power clock state
 
 // Calculates the number of bits between the startbit and the endbit (0 based).
 #ifndef MHW_BITFIELD_RANGE
@@ -446,7 +446,7 @@ enum  MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_MODE
     MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_422TO420   = 0x3
 };
 
-// SFC Pre-AVS Chroma Downsampling Coefficient -- Fractional Position of the Bilinear Filter 
+// SFC Pre-AVS Chroma Downsampling Coefficient -- Fractional Position of the Bilinear Filter
 enum MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF
 {
     MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_0_OVER_8   = 0x0,
@@ -510,7 +510,7 @@ typedef struct _MHW_RENDER_PWR_CLK_STATE_PARAMS
             // 0010: 2 EUs
             // 0100: 4 EUs
             // 0110: 6 EUs
-            // 1000: 8 EUs 
+            // 1000: 8 EUs
             uint32_t EUmin : BITFIELD_RANGE(0, 3); // Minimum number of EUs to power (per subslice if multiple subslices enabled)
             uint32_t EUmax : BITFIELD_RANGE(4, 7); // Maximum number of EUs to power (per subslice if multiple subslices enabled)
                                               //  To specify an exact number of subslices, set EUmax equal to EUmin
@@ -523,7 +523,7 @@ typedef struct _MHW_RENDER_PWR_CLK_STATE_PARAMS
 
             uint32_t SCountEn : BITFIELD_RANGE(18, 18);
 
-            uint32_t Reserved1 : BITFIELD_RANGE(19, 30); 
+            uint32_t Reserved1 : BITFIELD_RANGE(19, 30);
 
                                                     // Main trigger: Power Clock State Enable
                                                     //  0: No specific power state set, no message/wait with PMunit
@@ -584,8 +584,8 @@ typedef struct _MHW_RESOURCE_PARAMS
     uint32_t                            dwLsbNum;
     uint32_t                            dwOffsetInSSH;
 
-    // Location of upper bound value relative to 
-    // allocated resource address. The upper bound 
+    // Location of upper bound value relative to
+    // allocated resource address. The upper bound
     // value will be set if this parameter is > zero
     uint32_t                            dwUpperBoundLocationOffsetFromCmd;
     uint32_t                            dwSize;

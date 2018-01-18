@@ -208,7 +208,7 @@ MOS_STATUS XRenderHal_Interface_g8::SetupSurfaceState(
             SurfStateParams.bSurfaceArraySpacing      = true;
 
             // Setup surface g7 surface state
-            if (pSurfaceEntry->YUVPlane == MHW_U_PLANE || 
+            if (pSurfaceEntry->YUVPlane == MHW_U_PLANE ||
                 pSurfaceEntry->YUVPlane == MHW_V_PLANE)
             {
                 pPlaneOffset = (pSurfaceEntry->YUVPlane == MHW_U_PLANE) ?
@@ -228,7 +228,7 @@ MOS_STATUS XRenderHal_Interface_g8::SetupSurfaceState(
                 if (pOffsetOverride)
                 {
                     pPlaneOffset->iSurfaceOffset += pOffsetOverride->iUVOffsetAdjust;
-                    SurfStateParams.iXOffset     = (dwPixelsPerSampleUV == 1) ? 
+                    SurfStateParams.iXOffset     = (dwPixelsPerSampleUV == 1) ?
                                                      pPlaneOffset->iXOffset :    //        is it correct? No override if PixelsPerSamplerUV == 1??
                                                      pOffsetOverride->iUVOffsetX;
                     SurfStateParams.iYOffset     = pOffsetOverride->iUVOffsetY;
@@ -352,7 +352,6 @@ uint8_t XRenderHal_Interface_g8::SetChromaDirection(
     return Direction;
 }
 
-
 //!
 //! \brief    Convert To Nano Seconds
 //! \details  Convert to Nano Seconds
@@ -377,7 +376,6 @@ void XRenderHal_Interface_g8::ConvertToNanoSeconds(
 
     *piNs = iTicks * RENDERHAL_NS_PER_TICK_RENDER_G8;
 }
-
 
 //!
 //! \brief    Initialize the State Heap Settings per platform
@@ -426,7 +424,6 @@ MOS_STATUS XRenderHal_Interface_g8::EnableL3Caching(
     MHW_RENDER_ENGINE_L3_CACHE_SETTINGS  mHwL3CacheConfig;
     PMHW_RENDER_ENGINE_L3_CACHE_SETTINGS pCacheConfig;
     MhwRenderInterface                   *pMhwRender;
-    
 
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
     pMhwRender = pRenderHal->pMhwRenderInterface;
@@ -465,7 +462,7 @@ MOS_STATUS XRenderHal_Interface_g8::EnableL3Caching(
     MHW_RENDERHAL_CHK_STATUS(pMhwRender->EnableL3Caching(pCacheConfig));
 
 finish:
-    return eStatus;   
+    return eStatus;
 }
 
 //!

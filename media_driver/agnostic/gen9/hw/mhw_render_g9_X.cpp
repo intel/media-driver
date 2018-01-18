@@ -58,7 +58,7 @@ MOS_STATUS MhwRenderInterfaceG9::AddMediaVfeCmd(
         (mhw_render_g9_X::MEDIA_VFE_STATE_CMD*)cmdBuffer->pCmdPtr;
 
     MHW_MI_CHK_STATUS(MhwRenderInterfaceGeneric<mhw_render_g9_X>::AddMediaVfeCmd(cmdBuffer, params));
-     
+
     cmd->DW4.SliceDisable = params->eVfeSliceDisable;
 
     cmd->DW6.ScoreboardType = params->Scoreboard.ScoreboardType;
@@ -200,7 +200,7 @@ MOS_STATUS MhwRenderInterfaceG9::AddPaletteLoadCmd(
     mhw_render_g9_X::PALETTE_ENTRY_CMD entry;
     uint32_t cmdSize = entry.byteSize * params->iNumEntries;
 
-    // Send palette load command followed by palette data    
+    // Send palette load command followed by palette data
     MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, params->pPaletteData, cmdSize));
 
     return MOS_STATUS_SUCCESS;
@@ -250,16 +250,16 @@ MOS_STATUS MhwRenderInterfaceG9::EnableL3Caching(
     m_l3CacheConfig.dwL3CacheCntlReg3_Register = l3CacheCntl3RegisterOffset;
     m_l3CacheConfig.dwL3CacheSqcReg1_Register  = l3CacheSqc1RegisterOffset;
     m_l3CacheConfig.dwL3CacheCntlReg_Register  = m_l3CacheCntlRegisterOffset;
-    
+
     if ( cacheSettings )
     {
         m_l3CacheConfig.bL3CachingEnabled          = true;
-        
+
         m_l3CacheConfig.dwL3CacheCntlReg2_Setting  = cacheSettings->dwCntlReg2;
         m_l3CacheConfig.dwL3CacheCntlReg3_Setting  = cacheSettings->dwCntlReg3;
         m_l3CacheConfig.dwL3CacheSqcReg1_Setting   = cacheSettings->dwSqcReg1;
         m_l3CacheConfig.dwL3CacheCntlReg_Setting   = cacheSettings->dwCntlReg;
-    } 
+    }
     else
     {
         // L3 Caching enabled by default

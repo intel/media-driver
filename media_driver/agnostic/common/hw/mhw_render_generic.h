@@ -101,11 +101,11 @@ public:
             uint32_t indirectStateOffset, indirectStateSize;
             MHW_MI_CHK_STATUS(m_osInterface->pfnGetIndirectState(m_osInterface, &indirectStateOffset, &indirectStateSize));
 
-            // When KMD parsing assistance is not used, 
-            // UMD is required to set up the SSH 
-            // in the STATE_BASE_ADDRESS command. 
-            // All addresses used in the STATE_BASE_ADDRESS 
-            // command need to have the modify 
+            // When KMD parsing assistance is not used,
+            // UMD is required to set up the SSH
+            // in the STATE_BASE_ADDRESS command.
+            // All addresses used in the STATE_BASE_ADDRESS
+            // command need to have the modify
             // bit associated with it set to 1.
             cmd.DW4_5.SurfaceStateBaseAddressModifyEnable    = true;
             resourceParams.presResource                      = &cmdBuffer->OsResource;
@@ -365,7 +365,7 @@ public:
             MHW_ASSERTMESSAGE("No valid buffer to add the command to!");
             return MOS_STATUS_INVALID_PARAMETER;
         }
-        
+
         typename TRenderCmds::MEDIA_OBJECT_CMD cmd;
 
         if (params->dwInlineDataSize > 0)

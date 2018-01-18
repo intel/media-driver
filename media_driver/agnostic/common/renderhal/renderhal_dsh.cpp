@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      renderhal_dsh.cpp  
-//! \brief         This module implements render engine state heap management functions based     on dynamic state heap (DSH) infrastructure, rather than static state heap.     It allows dynamic allocation and expansion of general state heap (media states)     and instraction state heaps (media kernels) based on demand. It also allows     dynamic configuration of media states based on specific workload requirements,     as well as dynamic allocation of kernel scratch space (spill area).  
+//! \file      renderhal_dsh.cpp 
+//! \brief         This module implements render engine state heap management functions based     on dynamic state heap (DSH) infrastructure, rather than static state heap.     It allows dynamic allocation and expansion of general state heap (media states)     and instraction state heaps (media kernels) based on demand. It also allows     dynamic configuration of media states based on specific workload requirements,     as well as dynamic allocation of kernel scratch space (spill area). 
 //!
 #include "renderhal.h"
 #include "renderhal_platform_interface.h"
@@ -117,7 +117,7 @@ PRENDERHAL_MEDIA_STATE RenderHal_DSH_GetMediaStateFromPool(
 
     PRENDERHAL_MEDIA_STATE_LIST pList = &pStateHeap->FreeStates;
 
-    // If pool is empty, extend pool of free media states 
+    // If pool is empty, extend pool of free media states
     if (pList->iCount == 0)
     {
         MHW_RENDERHAL_CHK_STATUS(RenderHal_DSH_ExtendMediaStatePool(pStateHeap));
@@ -477,7 +477,7 @@ PRENDERHAL_KRN_ALLOCATION RenderHal_DSH_AllocateDynamicKernel(PRENDERHAL_INTERFA
         MHW_RENDERHAL_CHK_NULL(pKernelAllocation);
 
         // Clear kernel allocation entry, setup kernel uniq id
-        uint32_t Reserved = pKernelAllocation->Reserved; // Preserve before 
+        uint32_t Reserved = pKernelAllocation->Reserved; // Preserve before
         MOS_ZeroMemory(pKernelAllocation, sizeof(RENDERHAL_KRN_ALLOCATION));
         pKernelAllocation->dwFlags  = RENDERHAL_KERNEL_ALLOCATION_FREE;    // Krn allocation does not point to a kernel
         pKernelAllocation->Reserved = Reserved;
@@ -535,7 +535,6 @@ MOS_STATUS RenderHal_DSH_UnregisterKernel(PRENDERHAL_INTERFACE pRenderHal, PREND
 finish:
     return eStatus;
 }
-
 
 //!
 //! \brief    Allocate GSH, SSH, ISH control structures and heaps
@@ -604,7 +603,7 @@ MOS_STATUS RenderHal_DSH_AllocateStateHeaps(
 
     pStateHeap->pMediaStatesMemPool = MOS_New(MHW_MEMORY_POOL, iSize, sizeof(void *));
     MHW_RENDERHAL_CHK_NULL(pStateHeap->pMediaStatesMemPool);
-    
+
     MHW_RENDERHAL_CHK_STATUS(RenderHal_DSH_ExtendMediaStatePool(pStateHeap));
 
     //-------------------------------------------------------------------------
@@ -639,7 +638,7 @@ MOS_STATUS RenderHal_DSH_AllocateStateHeaps(
 
     // Calculate memory size to store all binding tables and surface states
     pStateHeap->dwSizeSSH = pSettings->iBindingTables * pStateHeap->iBindingTableSize +
-                            pSettings->iSurfaceStates * 
+                            pSettings->iSurfaceStates *
                             pRenderHal->pRenderHalPltInterface->GetSurfaceStateCmdSize();
     pRenderHal->dwIndirectHeapSize = MOS_ALIGN_CEIL(pStateHeap->dwSizeSSH, MHW_PAGE_SIZE);
 
@@ -690,7 +689,7 @@ MOS_STATUS RenderHal_DSH_AllocateStateHeaps(
     pStateHeap->bIshLocked = false;
 
     // Setup pointer to sync tags
-    pStateHeap->pSync = (uint32_t *)pRenderHal->pMhwStateHeap->GetCmdBufIdGlobalPointer(); 
+    pStateHeap->pSync = (uint32_t *)pRenderHal->pMhwStateHeap->GetCmdBufIdGlobalPointer();
 
     // Reset pool of Kernel allocations objects
     pStateHeap->pKernelAllocMemPool = MOS_New(MHW_MEMORY_POOL, sizeof(RENDERHAL_KRN_ALLOCATION), sizeof(void *));
@@ -783,7 +782,6 @@ MOS_STATUS RenderHal_DSH_FreeStateHeaps(PRENDERHAL_INTERFACE pRenderHal)
 finish:
     return eStatus;
 }
-
 
 //!
 //! \brief    Refresh Sync
@@ -994,10 +992,10 @@ MOS_STATUS RenderHal_DSH_ExpandKernelStateHeap(
 
     pMhwStateHeap = pRenderHal->pMhwStateHeap;
     pStateHeap    = pRenderHal->pStateHeap;
-    dwFrameId     = pRenderHal->pfnGetCurrentFrameId(pRenderHal, MOS_GPU_CONTEXT_INVALID_HANDLE); 
+    dwFrameId     = pRenderHal->pfnGetCurrentFrameId(pRenderHal, MOS_GPU_CONTEXT_INVALID_HANDLE);
 
     // Increase size of the ISH (up to max size)
-    dwNewSize = MOS_ALIGN_CEIL(pMhwStateHeap->GetISHPointer()->dwSize + dwAdditionalKernelSpaceNeeded, 
+    dwNewSize = MOS_ALIGN_CEIL(pMhwStateHeap->GetISHPointer()->dwSize + dwAdditionalKernelSpaceNeeded,
                                pRenderHal->DynamicHeapSettings.dwIshSizeIncrement);
     if (dwNewSize > pRenderHal->DynamicHeapSettings.dwIshMaximumSize)
     {
@@ -1076,7 +1074,7 @@ MOS_STATUS RenderHal_DSH_RefreshDynamicKernels(
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwStateHeap);
-    
+
     pStateHeap    = pRenderHal->pStateHeap;
     pMhwStateHeap = pRenderHal->pMhwStateHeap;
 
@@ -1111,7 +1109,7 @@ MOS_STATUS RenderHal_DSH_RefreshDynamicKernels(
     // (older kernels remain at the head of the list)
     //
     // The caching algorithm tries to find a balance between amount of times
-    // the kernels was used, and how recently it was used - so kernels that are 
+    // the kernels was used, and how recently it was used - so kernels that are
     // heavily used but at the beginning of the list are less likely to be removed
     // compared with a kernel that was barely used (dwCount)
     //
@@ -1424,9 +1422,9 @@ MOS_STATUS RenderHal_DSH_LoadSipKernel(
         goto finish;
     }
 
-    // Copy SIP Debug kernel into SIP location in ISH (Instruction State Heap) 
+    // Copy SIP Debug kernel into SIP location in ISH (Instruction State Heap)
     MOS_SecureMemcpy(pIshMemoryBlock->pDataPtr, dwSipSize, pSipKernel, dwSipSize);
-   
+
 finish:
     return eStatus;
 }
@@ -1450,7 +1448,7 @@ MOS_STATUS RenderHal_DSH_SendSipStateCmd(
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwStateHeap);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwRenderInterface);
-    
+
     pSipMemoryBlock = pRenderHal->pMhwStateHeap->GetISHPointer()->pDebugKernel;
 
     if ((pRenderHal->bSIPKernel || pRenderHal->bCSRKernel) && pSipMemoryBlock != nullptr)
@@ -1821,7 +1819,7 @@ PRENDERHAL_MEDIA_STATE RenderHal_DSH_AssignDynamicState(
 
         pDynamicState->dwSizeSamplers = dwSamplerSize = MOS_ALIGN_CEIL(dwSamplerSize, dwSamplerStateAlign);
         dwSamplerSize *= pParams->iMaxMediaIDs;     // Move tables to end of all sampler states
-         
+
         // 8x8 tables
         if (pParams->iMax8x8Tables > 0)
         {
@@ -1835,7 +1833,7 @@ PRENDERHAL_MEDIA_STATE RenderHal_DSH_AssignDynamicState(
         dwSizeMediaState += dwSamplerSize;
     }
     else
-    {        
+    {
         uint32_t dwSamplerSize = 0;
 
         // common base for all sampler types
@@ -1981,7 +1979,7 @@ PRENDERHAL_MEDIA_STATE RenderHal_DSH_AssignDynamicState(
                                     true));
 
     // Set sync tags for media state and memory block
-    pDynamicState->pMemoryBlock->dwSyncTagId = pMediaState->dwSyncTag = 
+    pDynamicState->pMemoryBlock->dwSyncTagId = pMediaState->dwSyncTag =
         pRenderHal->pfnGetNextFrameId(pRenderHal, MOS_GPU_CONTEXT_INVALID_HANDLE);
 
     // Reset HW allocations
@@ -2001,10 +1999,10 @@ PRENDERHAL_MEDIA_STATE RenderHal_DSH_AssignDynamicState(
     // End time
     pCurrentPtr += sizeof(uint64_t);
     *((uint64_t*)pCurrentPtr) = 0;
-   
+
     // Component ID
     pCurrentPtr += sizeof(uint64_t);
-    *((RENDERHAL_COMPONENT *)pCurrentPtr) = componentID; 
+    *((RENDERHAL_COMPONENT *)pCurrentPtr) = componentID;
 
 finish:
     if (pRenderHal && pRenderHal->pStateHeap)
@@ -2090,15 +2088,15 @@ MOS_STATUS RenderHal_DSH_SubmitDynamicState(
     pMediaState->bBusy = true;
 
     // Move memory block to sumitted queue (media states memory block in use by GPU)
-    pRenderHal->pMhwStateHeap->SubmitDynamicBlockDyn(MHW_DSH_TYPE, 
-                                    pMediaState->pDynamicState->pMemoryBlock, 
+    pRenderHal->pMhwStateHeap->SubmitDynamicBlockDyn(MHW_DSH_TYPE,
+                                    pMediaState->pDynamicState->pMemoryBlock,
                                     pMediaState->dwSyncTag);
 
     // Update scratch space sync tag (in case we need to reallocate it)
     if (pMediaState->pDynamicState->pScratchSpace)
     {
-        pRenderHal->pMhwStateHeap->SubmitDynamicBlockDyn(MHW_DSH_TYPE, 
-                                    pMediaState->pDynamicState->pScratchSpace, 
+        pRenderHal->pMhwStateHeap->SubmitDynamicBlockDyn(MHW_DSH_TYPE,
+                                    pMediaState->pDynamicState->pScratchSpace,
                                     pMediaState->dwSyncTag);
     }
 
@@ -2817,7 +2815,7 @@ MOS_STATUS RenderHal_DSH_Initialize(
     }
 
     // Apply SSH settings for the current platform
-    pRenderHal->StateHeapSettings.iSurfaceStateHeaps = 
+    pRenderHal->StateHeapSettings.iSurfaceStateHeaps =
                                 pRenderHal->StateHeapSettings.iMediaStateHeaps;
 
     // Allocate and initialize state heaps (GSH, SSH, ISH)
@@ -2825,7 +2823,7 @@ MOS_STATUS RenderHal_DSH_Initialize(
 
     // If ASM debug is enabled, allocate debug resource
     MHW_RENDERHAL_CHK_STATUS(RenderHal_AllocateDebugSurface(pRenderHal));
-    
+
 finish:
     return eStatus;
 }

@@ -362,7 +362,7 @@ protected:
         MHW_FUNCTION_ENTER;
 
         typename THcpCmds::HCP_TILE_STATE_CMD cmd;
-       
+
         MHW_MI_CHK_NULL(params);
         MHW_MI_CHK_NULL(params->pTileColWidth);
         MHW_MI_CHK_NULL(params->pTileRowHeight);
