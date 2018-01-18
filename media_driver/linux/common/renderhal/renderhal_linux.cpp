@@ -356,8 +356,7 @@ uint16_t RenderHal_CalculateYOffset(PMOS_INTERFACE pOsInterface, PMOS_SURFACE pS
 
     if (ResDetails.dwPitch)
     {
-        UYoffset = (uint16_t)(ResDetails.LockOffset.YUV.U / ResDetails.dwPitch);
-        
+        UYoffset = (uint16_t)((ResDetails.RenderOffset.YUV.U.BaseOffset - ResDetails.RenderOffset.YUV.Y.BaseOffset) / ResDetails.dwPitch + ResDetails.RenderOffset.YUV.U.YOffset);
         return MOS_MAX(UYoffset, (uint16_t)ResDetails.dwHeight);
     }
     else
