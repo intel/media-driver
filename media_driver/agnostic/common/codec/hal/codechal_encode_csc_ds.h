@@ -564,9 +564,9 @@ protected:
         uint8_t                 m_cscFlag;                                                  //!< the actual CSC/Copy operation to be performed for raw surface
     };
 
-	uint8_t                     m_rawSurfAlignment = 4;                                     //!< Raw surface alignment
-	uint8_t                     m_mfxReconSurfAlignment = 16;                               //!< Recon surface alignment for MFX engine
-	uint8_t                     m_hcpReconSurfAlignment = 8;                                //!< Recon surface alignment for HCP engine
+    uint8_t                     m_rawSurfAlignment = 4;                                     //!< Raw surface alignment
+    uint8_t                     m_mfxReconSurfAlignment = 16;                               //!< Recon surface alignment for MFX engine
+    uint8_t                     m_hcpReconSurfAlignment = 8;                                //!< Recon surface alignment for HCP engine
     uint32_t                    m_cscRawSurfWidth = 0;                                      //!< Raw surface allocation width
     uint32_t                    m_cscRawSurfHeight = 0;                                     //!< Raw surface allocation height
     uint32_t                    m_walkerResolutionX = 0;                                    //!< Media walker resolution X
@@ -591,7 +591,6 @@ protected:
     uint32_t                    m_combinedKernelSize = 0;                                   //!< Combined kernel size
     uint8_t*                    m_kernelBase = nullptr;                                     //!< kernel binary base address
     uint8_t*                    m_dsKernelBase = nullptr;                                   //!< kernel binary base address for DS kernel
-    bool                        m_allocNv12For422 = false;                                  //!< use NV12 for 422 converted surface
     CscColor                    m_colorRawSurface = cscColorNv12TileY;                      //!< Raw surface color format
     MOS_FORMAT                  m_cscAllocFormat = Format_NV12;                             //!< CSC surface allocation format
     CurbeParams                 m_curbeParams;                                              //!< Curbe param (shared by CSC and DS kernel)

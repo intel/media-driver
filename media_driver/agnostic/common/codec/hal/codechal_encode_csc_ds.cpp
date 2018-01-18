@@ -922,9 +922,7 @@ void CodechalEncodeCscDs::GetCscAllocation(uint32_t &width, uint32_t &height, MO
         surfaceHeight = MOS_ALIGN_CEIL(m_encoder->m_oriFrameHeight, m_rawSurfAlignment);
     }
 
-    if (cscColorYUY2 == m_colorRawSurface &&
-        (uint8_t)HCP_CHROMA_FORMAT_YUV422 == m_outputChromaFormat &&
-        !m_allocNv12For422)
+    if (cscColorYUY2 == m_colorRawSurface && m_cscRequireConvTo8bPlanar)
     {
         format = m_cscAllocFormat = Format_YUY2;
         width = surfaceWidth >> 1;
@@ -1037,18 +1035,18 @@ MOS_STATUS CodechalEncodeCscDs::CheckReconSurfaceAlignment(PMOS_SURFACE surface)
         alignment = m_mfxReconSurfAlignment;
     }
 
-	MOS_SURFACE resDetails;
-	MOS_ZeroMemory(&resDetails, sizeof(resDetails));
-	resDetails.Format = Format_Invalid;
-	CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, &surface->OsResource, &resDetails));
+    MOS_SURFACE resDetails;
+    MOS_ZeroMemory(&resDetails, sizeof(resDetails));
+    resDetails.Format = Format_Invalid;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, &surface->OsResource, &resDetails));
 
-	if (resDetails.dwHeight % alignment)
-	{
-		CODECHAL_ENCODE_ASSERTMESSAGE("Recon surface alignment does not meet HW requirement!");
-		return MOS_STATUS_INVALID_PARAMETER;
-	}
+    if (resDetails.dwHeight % alignment)
+    {
+        CODECHAL_ENCODE_ASSERTMESSAGE("Recon surface alignment does not meet HW requirement!");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
 
-	return MOS_STATUS_SUCCESS;
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS CodechalEncodeCscDs::CheckRawSurfaceAlignment(PMOS_SURFACE surface)
