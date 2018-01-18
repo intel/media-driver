@@ -163,7 +163,7 @@ public:
 class CmProgramRT : public CmProgram
 {
 public:
-    static int32_t Create( CmDeviceRT* pCmDev, void* pCISACode, const uint32_t uiCISACodeSize, void* pGenCode, const uint32_t uiGenCodeSize, CmProgramRT*& pProgram,  const char* options, const uint32_t programId );
+    static int32_t Create( CmDeviceRT* pCmDev, void* pCISACode, const uint32_t uiCISACodeSize, CmProgramRT*& pProgram,  const char* options, const uint32_t programId );
     static int32_t Destroy( CmProgramRT* &pProgram );
 
     int32_t GetCommonISACode( void* & pCommonISACode, uint32_t & size ) ;
@@ -202,7 +202,7 @@ protected:
     CmProgramRT( CmDeviceRT* pCmDev, uint32_t programId );
     ~CmProgramRT( void );
 
-    int32_t Initialize( void* pCISACode, const uint32_t uiCISACodeSize, void* pGenCode, const uint32_t uiGenCodeSize, const char* options );
+    int32_t Initialize( void* pCISACode, const uint32_t uiCISACodeSize, const char* options );
 #if USE_EXTENSION_CODE
     int InitForGTPin(const char *jitFlags[CM_RT_JITTER_MAX_NUM_FLAGS], int &numJitFlags);
 #endif

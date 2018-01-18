@@ -347,14 +347,6 @@ public:
 
     int32_t GetSurf2DLookUpEntry(uint32_t index, PCMLOOKUP_ENTRY &pLookupEntry);
 
-    //User may provide specific Gen code during LoadProgram stage, this function is used for thin layer
-    int32_t LoadProgramWithGenCode(void *pCISACode,
-                                   const uint32_t uiCISACodeSize,
-                                   void *pGenCode,
-                                   const uint32_t uiGenCodeSize,
-                                   CmProgram* &pProgram,
-                                   const char *options = nullptr);
-
     int32_t DestroySurfaceInPool(uint32_t &freeSurfNum);
 
     int32_t CreateSurface2D(PMOS_RESOURCE pMosResource,

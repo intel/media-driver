@@ -1519,7 +1519,7 @@ CM_RT_API int32_t CmDeviceRT::LoadProgram(void* commonISACode,
     uint32_t firstfreeslot = m_ProgramArray.GetFirstFreeIndex();
 
     CmProgramRT *programRT = static_cast<CmProgramRT *>(program);
-    result = CmProgramRT::Create( this, commonISACode, size, nullptr, 0, programRT, options, firstfreeslot );
+    result = CmProgramRT::Create( this, commonISACode, size, programRT, options, firstfreeslot );
     if( result == CM_SUCCESS )
     {
         m_ProgramArray.SetElement( firstfreeslot, programRT );
@@ -3177,40 +3177,6 @@ CM_RT_API int32_t CmDeviceRT::DestroyVebox(CmVebox* & vebox) //HSW
     }
 }
 
-//*-----------------------------------------------------------------------------
-//| Purpose:    Load program from memory with user provided Gen binary
-//| Arguments :
-//|               cisaCode         [in]       pointer to memory where common isa locates
-//|               cisaCodeSize    [in]       size of common isa
-//|               genCode          [in]       pointer to memory where user provided Gen binary locates
-//|               genCodeSize     [in]       size of user provided Gen binary
-//|               program          [in/out]   Pointer to CmProgram
-//|               options           [in]       options : non-jitter,jitter
-//|
-//| Returns:    Result of the operation.
-//*-----------------------------------------------------------------------------
-int32_t CmDeviceRT::LoadProgramWithGenCode(void* cisaCode,
-                                           const uint32_t cisaCodeSize,
-                                           void* genCode,
-                                           const uint32_t genCodeSize,
-                                           CmProgram*& program,
-                                           const char* options)
-{
-    int32_t result;
-    CLock locker(m_CriticalSection_Program_Kernel);
-
-    uint32_t firstfreeslot = m_ProgramArray.GetFirstFreeIndex();
-
-    CmProgramRT *programRT = static_cast<CmProgramRT *>(program);
-    result = CmProgramRT::Create( this, cisaCode, cisaCodeSize, genCode, genCodeSize, programRT, options, firstfreeslot );
-    if( result == CM_SUCCESS )
-    {
-        m_ProgramArray.SetElement( firstfreeslot, programRT );
-        m_ProgramCount ++;
-    }
-    program = programRT;
-    return result;
-}
 
 int32_t CmDeviceRT::DestroySurfaceInPool(uint32_t &freeSurfNum)
 {

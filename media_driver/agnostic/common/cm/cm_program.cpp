@@ -57,14 +57,14 @@ namespace CMRT_UMD
 //|               options           [in]     jitter or non-jitter
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmProgramRT::Create( CmDeviceRT* pCmDev, void* pCISACode, const uint32_t uiCISACodeSize, void* pGenCode, const uint32_t uiGenCodeSize, CmProgramRT*& pProgram,  const char* options, const uint32_t programId )
+int32_t CmProgramRT::Create( CmDeviceRT* pCmDev, void* pCISACode, const uint32_t uiCISACodeSize, CmProgramRT*& pProgram,  const char* options, const uint32_t programId )
 {
     int32_t result = CM_SUCCESS;
     pProgram = new (std::nothrow) CmProgramRT( pCmDev, programId );
     if( pProgram )
     {
         pProgram->Acquire();
-        result = pProgram->Initialize( pCISACode, uiCISACodeSize, pGenCode, uiGenCodeSize, options );
+        result = pProgram->Initialize( pCISACode, uiCISACodeSize, options );
         if( result != CM_SUCCESS )
         {
             CmProgramRT::Destroy( pProgram);
@@ -193,7 +193,7 @@ finish:
 //| Purpose:    Initialize Cm Program
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmProgramRT::Initialize( void* pCISACode, const uint32_t uiCISACodeSize, void* pGenCode, const uint32_t uiGenCodeSize, const char* options )
+int32_t CmProgramRT::Initialize( void* pCISACode, const uint32_t uiCISACodeSize, const char* options )
 {
     bool bLoadingGPUCopyKernel = false;
     int32_t result = CM_SUCCESS;
@@ -558,17 +558,8 @@ int32_t CmProgramRT::Initialize( void* pCISACode, const uint32_t uiCISACodeSize,
                 }
             }
 
-            if (pGenCode == nullptr)
-            {
-                pKernInfo->genxBinaryOffset = genxBinaryOffset;
-                pKernInfo->genxBinarySize = genxBinarySize;
-            }
-            else
-            {
-                // If user provided Gen binary passed, will use it instead of binary from FAT CISA
-                pKernInfo->genxBinaryOffset = uiCISACodeSize;
-                pKernInfo->genxBinarySize = uiGenCodeSize;
-            }
+            pKernInfo->genxBinaryOffset = genxBinaryOffset;
+            pKernInfo->genxBinarySize = genxBinarySize;
 
             if ( pKernInfo->genxBinarySize == 0 || pKernInfo->genxBinaryOffset == 0 )
             {
@@ -660,7 +651,7 @@ int32_t CmProgramRT::Initialize( void* pCISACode, const uint32_t uiCISACodeSize,
 
     // now byte_pos index to the start of common isa body;
     // compute the code size for common isa
-    m_ProgramCodeSize = uiCISACodeSize + uiGenCodeSize;
+    m_ProgramCodeSize = uiCISACodeSize;
     m_pProgramCode = MOS_NewArray(uint8_t, m_ProgramCodeSize);
     if( !m_pProgramCode )
     {
@@ -671,12 +662,6 @@ int32_t CmProgramRT::Initialize( void* pCISACode, const uint32_t uiCISACodeSize,
 
     //Copy CISA content
     CmFastMemCopy((void *)m_pProgramCode, pCISACode, uiCISACodeSize);
-
-    //Copy User provided Gen binary content if it has
-    if(pGenCode)
-    {
-        CmFastMemCopy(m_pProgramCode + uiCISACodeSize, pGenCode, uiGenCodeSize);
-    }
 
     hr = CM_SUCCESS;
 
