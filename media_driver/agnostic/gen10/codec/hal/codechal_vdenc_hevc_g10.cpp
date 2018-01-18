@@ -956,7 +956,8 @@ MOS_STATUS CodechalVdencHevcStateG10::SetMeCurbe(bool using4xMe)
     {
         //StreamIn CURBE
         curbe.DW6.LCUSize = 1;//Only LCU64 supported by the VDEnc HW
-        curbe.DW6.InputStreamInEn = 0;
+        // Kernel should use driver-prepared stream-in surface during ROI/ Dirty-Rect
+        curbe.DW6.InputStreamInEn = (m_hevcPicParams->NumROI || (m_hevcPicParams->NumDirtyRects > 0 && (B_TYPE == m_hevcPicParams->CodingType)));
         curbe.DW31.NumImePredictors = m_imgStateImePredictors;
         curbe.DW31.MaxCuSize = 3;
         curbe.DW31.MaxTuSize = 3;
@@ -1190,31 +1191,51 @@ MOS_STATUS CodechalVdencHevcStateG10::SendMeSurfaces(bool using4xMe, PMOS_COMMAN
 
     if (using4xMe)
     {
-        MOS_LOCK_PARAMS lockFlags;
-        MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
-        lockFlags.WriteOnly = true;
+        // Send driver-prepared stream-in surface as input during ROI/ Dirty-Rect
+        if (m_hevcPicParams->NumROI || (m_hevcPicParams->NumDirtyRects > 0 && (B_TYPE == m_hevcPicParams->CodingType)))
+        {
+            MOS_ZeroMemory(&surfaceCodecParams, sizeof(surfaceCodecParams));
+            surfaceCodecParams.dwSize = MOS_BYTES_TO_DWORDS((MOS_ALIGN_CEIL(m_frameWidth, CODEC_HEVC_VDENC_LCU_WIDTH) / 32) * (MOS_ALIGN_CEIL(m_frameHeight, CODEC_HEVC_VDENC_LCU_HEIGHT) / 32) * CODECHAL_CACHELINE_SIZE);
+            surfaceCodecParams.bIs2DSurface = false;
+            surfaceCodecParams.presBuffer = &m_resVdencStreamInBuffer[m_currRecycledBufIdx];
+            surfaceCodecParams.dwBindingTableOffset = bindingTable->dwBindingTableEntries[CODECHAL_VDENC_HME_VDENC_STREAMIN_INPUT_CM_G10];
+            surfaceCodecParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_VDENC_STREAMIN_CODEC].Value;
+            surfaceCodecParams.bIsWritable = true;
+            surfaceCodecParams.bRenderTarget = true;
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
+                m_hwInterface,
+                cmdBuffer,
+                &surfaceCodecParams,
+                kernelState));
+        }
+        else    // Clear stream-in surface otherwise
+        {
+            MOS_LOCK_PARAMS lockFlags;
+            MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+            lockFlags.WriteOnly = true;
 
-        auto data = (PCODECHAL_VDENC_HEVC_STREAMIN_STATE_G10)m_osInterface->pfnLockResource(
-            m_osInterface,
-            &m_resVdencStreamInBuffer[m_currRecycledBufIdx],
-            &lockFlags);
+            auto data = (PCODECHAL_VDENC_HEVC_STREAMIN_STATE_G10)m_osInterface->pfnLockResource(
+                m_osInterface,
+                &m_resVdencStreamInBuffer[m_currRecycledBufIdx],
+                &lockFlags);
 
-        CODECHAL_ENCODE_CHK_NULL_RETURN(data);
+            CODECHAL_ENCODE_CHK_NULL_RETURN(data);
 
-        MOS_ZeroMemory(
-            data,
-            (MOS_ALIGN_CEIL(m_frameWidth, 64) / 32) * (MOS_ALIGN_CEIL(m_frameHeight, 64) / 32) * CODECHAL_CACHELINE_SIZE);
+            MOS_ZeroMemory(
+                data,
+                (MOS_ALIGN_CEIL(m_frameWidth, 64) / 32) * (MOS_ALIGN_CEIL(m_frameHeight, 64) / 32) * CODECHAL_CACHELINE_SIZE);
 
-        m_osInterface->pfnUnlockResource(
-            m_osInterface,
-            &m_resVdencStreamInBuffer[m_currRecycledBufIdx]);
+            m_osInterface->pfnUnlockResource(
+                m_osInterface,
+                &m_resVdencStreamInBuffer[m_currRecycledBufIdx]);
+        }
 
         MOS_ZeroMemory(&surfaceCodecParams, sizeof(surfaceCodecParams));
 		surfaceCodecParams.dwSize = MOS_BYTES_TO_DWORDS((MOS_ALIGN_CEIL(m_frameWidth, CODEC_HEVC_VDENC_LCU_WIDTH) / 32) * (MOS_ALIGN_CEIL(m_frameHeight, CODEC_HEVC_VDENC_LCU_HEIGHT) / 32) * CODECHAL_CACHELINE_SIZE);
         surfaceCodecParams.bIs2DSurface = false;
         surfaceCodecParams.presBuffer = &m_resVdencStreamInBuffer[m_currRecycledBufIdx];
         surfaceCodecParams.dwBindingTableOffset = bindingTable->dwBindingTableEntries[CODECHAL_VDENC_HME_VDENC_STREAMIN_OUTPUT_CM_G10];
-        surfaceCodecParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_BRC_ME_DISTORTION_ENCODE].Value;
+        surfaceCodecParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_VDENC_STREAMIN_CODEC].Value;
         surfaceCodecParams.bIsWritable = true;
         surfaceCodecParams.bRenderTarget = true;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
