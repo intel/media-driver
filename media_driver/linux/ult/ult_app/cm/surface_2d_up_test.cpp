@@ -37,9 +37,9 @@ public:
         return;
     }//========
 
-  int32_t CreateDestroy(CM_SURFACE_FORMAT format,
-                        uint32_t width,
-                        uint32_t height)
+    int32_t CreateDestroy(CM_SURFACE_FORMAT format,
+                          uint32_t width,
+                          uint32_t height)
     {
         CMRT_UMD::MockDevice mock_device(&m_driverLoader);
         uint32_t pitch = 0, alloc_size = 0;
@@ -50,10 +50,10 @@ public:
         }
         else  // In case width or height is invalid. This pointer will not be referenced anyway. 
         {
-            m_sys_mem = memalign(0x1000, 4*width*height);
+            m_sys_mem = memalign(0x1000, 4*WIDTH*HEIGHT);
         }
-        int32_t result = mock_device->CreateSurface2DUP(
-            width, height, format, m_sys_mem, m_surface);
+        int32_t result = mock_device->CreateSurface2DUP(width, height, format,
+                                                        m_sys_mem, m_surface);
         if (CM_SUCCESS != result)
         {
             Release();
@@ -149,12 +149,15 @@ TEST_F(Surface2DUPTest, InvalidSystemMemory)
             [this, sys_mem]() { return CreateDestroy(sys_mem); });
 
     sys_mem = new uint8_t[4*WIDTH*HEIGHT];
+    uint8_t *sys_mem_for_surface = sys_mem;
     if ((reinterpret_cast<uintptr_t>(sys_mem) & (0x1000 - 1)) == 0)  // 4k-aligned.
     {
-        ++sys_mem;
+        ++sys_mem_for_surface;
     }
-    RunEach(CM_INVALID_ARG_VALUE,
-            [this, sys_mem]() { return CreateDestroy(sys_mem); });
+    auto CreateWithNonalignedPointer
+        = [this, sys_mem_for_surface]()
+        { return CreateDestroy(sys_mem_for_surface); };
+    RunEach(CM_INVALID_ARG_VALUE, CreateWithNonalignedPointer);
     delete[] sys_mem;
     return;
 }//========

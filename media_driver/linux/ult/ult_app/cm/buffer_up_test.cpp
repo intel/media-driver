@@ -116,12 +116,15 @@ TEST_F(BufferUPTest, InvalidSystemMemory)
             [this, sys_mem]() { return CreateDestroy(sys_mem); });
 
     sys_mem = new uint8_t[SIZE];
+    uint8_t *sys_mem_for_surface = sys_mem;
     if ((reinterpret_cast<uintptr_t>(sys_mem) & (0x1000 - 1)) == 0)  // 4k-aligned.
     {
-        ++sys_mem;
+        ++sys_mem_for_surface;
     }
-    RunEach(CM_INVALID_ARG_VALUE,
-            [this, sys_mem]() { return CreateDestroy(sys_mem); });
+    auto CreateWithNonalignedPointer
+        = [this, sys_mem_for_surface]()
+          { return CreateDestroy(sys_mem_for_surface); };
+    RunEach(CM_INVALID_ARG_VALUE, CreateWithNonalignedPointer);
     delete[] sys_mem;
     return;
 }//========
