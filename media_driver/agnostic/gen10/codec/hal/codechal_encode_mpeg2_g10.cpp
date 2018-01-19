@@ -208,7 +208,8 @@ public:
             struct
             {
                 uint32_t m_reserved0                      : MOS_BITFIELD_RANGE(0, 2);
-                uint32_t m_meModes                        : MOS_BITFIELD_RANGE(3, 4);
+                uint32_t m_writeDistortions               : MOS_BITFIELD_BIT(3);
+                uint32_t m_useMvFromPrevStep              : MOS_BITFIELD_BIT(4);
                 uint32_t m_reserved5                      : MOS_BITFIELD_RANGE(5, 7);
                 uint32_t m_superCombineDist               : MOS_BITFIELD_RANGE(8, 15);
                 uint32_t m_maxVmvR                        : MOS_BITFIELD_RANGE(16, 31);
@@ -1856,7 +1857,8 @@ MOS_STATUS CodechalEncodeMpeg2G10::SetCurbeMe()
     cmd.m_curbeData.DW4.m_pictureWidth =
         CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(m_frameWidth / scaleFactor);
     cmd.m_curbeData.DW5.m_qpPrimeY = m_mvCostTableOffset;
-    cmd.m_curbeData.DW6.m_meModes = CODECHAL_ENCODE_ME4X_ONLY;
+    cmd.m_curbeData.DW6.m_writeDistortions = false;
+    cmd.m_curbeData.DW6.m_useMvFromPrevStep = false;
     cmd.m_curbeData.DW6.m_superCombineDist = m_superCombineDistGeneric[m_seqParams->m_targetUsage];
     cmd.m_curbeData.DW6.m_maxVmvR = m_maxVmvr;
 
