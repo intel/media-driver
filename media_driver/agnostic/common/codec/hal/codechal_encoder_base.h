@@ -39,6 +39,7 @@
 #include "codechal_mmc.h"
 #include "codechal_utilities.h"
 #include "cm_rt_umd.h"
+#include <algorithm> // std::reverse
 
 //------------------------------------------------------------------------------
 // Macros specific to MOS_CODEC_SUBCOMP_ENCODE sub-comp
@@ -1498,6 +1499,7 @@ public:
     uint32_t                        m_numberTilesInFrame = 0;                       //!< Track number of tiles per frame
     bool                            m_inlineEncodeStatusUpdate = false;             //!< check whether use inline encode status update or seperate BB
     AtomicScratchBuffer             m_atomicScratchBuf;                             //!< Stores atomic operands and result
+    bool                            m_skipFrameBasedHWCounterRead = false;          //!< Skip reading Frame base HW counter for status report
 
     // Shared Parameters
     BSBuffer                        m_bsBuffer;                                     //!< Bitstream buffer
@@ -2424,5 +2426,14 @@ static void PutBits(BSBuffer *bsbuffer, uint32_t code, uint32_t length)
     {
         PutBitsSub(bsbuffer, code, length);
     }
+}
+
+template<typename ValueType>
+static ValueType SwapEndianness(ValueType value)
+{
+    uint8_t*    startLocation = reinterpret_cast<uint8_t*>(&value);
+    uint8_t*    endLocation = startLocation + sizeof(ValueType);
+    std::reverse(startLocation, endLocation);
+    return value;
 }
 #endif  // __CODECHAL_ENCODER_BASE_H__

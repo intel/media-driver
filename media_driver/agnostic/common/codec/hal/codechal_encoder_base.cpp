@@ -28,30 +28,6 @@
 #include "codechal_encoder_base.h"
 #include "codechal_encode_tracked_buffer_hevc.h"
 #include "mos_solo_generic.h"
-/*****************************************************************************\
-Function:
-    Function to swap the endianess {Needed as MbEnc Adv count and IV returned by HW
-    is in little endian and the MSDK expects report out in big Endian}
-\*****************************************************************************/
-template<typename ValueType>
-MOS_STATUS SwapEndianess(ValueType* value)
-{
-    MOS_STATUS eStatus  = MOS_STATUS_SUCCESS;
-
-    CODECHAL_ENCODE_CHK_NULL_RETURN(value);
-
-    int32_t size     = sizeof(ValueType);
-    int32_t halfSize = size / 2;
-
-    for (auto i = 0; i < halfSize; i++)
-    {
-        uint8_t temp = ((uint8_t*)(value))[i];
-        ((uint8_t*)(value))[i] = ((uint8_t*)(value))[size - i - 1];
-        ((uint8_t*)(value))[size - i - 1] = temp;
-    }
-
-    return eStatus;
-}
 
 void CodechalEncoderState::PrepareNodes(
     MOS_GPU_NODE& videoGpuNode,
@@ -1264,7 +1240,7 @@ MOS_STATUS CodechalEncoderState::AllocateResources()
         m_hwInterface->SetRowstoreCachingOffsets(&rowstoreParams);
     }
 
-    if (m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface))
+    if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface) && m_skipFrameBasedHWCounterRead == false)
     {
         // eStatus query reporting
         m_encodeStatusBuf.dwReportSize           = MOS_ALIGN_CEIL(sizeof(EncodeStatus), sizeof(uint64_t));
@@ -2000,7 +1976,7 @@ void CodechalEncoderState::FreeResources()
     }
 
     // Release HW Counter buffer
-    if (m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface))
+    if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface) && m_skipFrameBasedHWCounterRead == false)
     {
         if (!Mos_ResourceIsNull(&m_resHwCount))
         {
@@ -2913,15 +2889,18 @@ MOS_STATUS CodechalEncoderState::StartStatusReport(
             cmdBuffer,
             &storeDataParams));
 
-        if (m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface))
+        if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface) && m_skipFrameBasedHWCounterRead == false )
         {
+            uint32_t writeOffset = sizeof(HwCounter) * CODECHAL_ENCODE_STATUS_NUM;
+
             CODECHAL_ENCODE_CHK_NULL_RETURN(m_hwInterface->GetCpInterface());
 
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetCpInterface()->SetMfxInlineStatusRead(
                 m_osInterface,
                 cmdBuffer,
                 &m_resHwCount,
-                encodeStatusBuf->wCurrIndex));
+                encodeStatusBuf->wCurrIndex,
+                writeOffset));
         }
     }
 
@@ -3693,16 +3672,16 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                     // Call corresponding CODEC's status report function if existing
                     GetStatusReport(encodeStatus, encodeStatusReport);
 
-                    if (m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface))
+                    if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface) && m_skipFrameBasedHWCounterRead == false)
                     {
                         //Report out counter read from HW
                         uint64_t *address2Counter = (uint64_t *)(((char *)(m_dataHwCount)) + (index * sizeof(HwCounter)));
 
                         hwCounterValue.Count = *address2Counter;
-                        SwapEndianess(&hwCounterValue.Count); //Report back in Big endian
+                        hwCounterValue.Count = SwapEndianness(hwCounterValue.Count); //Report back in Big endian
 
-                        hwCounterValue.IV = *(address2Counter++);          //IV value computation
-                        SwapEndianess(&hwCounterValue.IV);
+                        hwCounterValue.IV = *(++address2Counter);          //IV value computation
+                        hwCounterValue.IV = SwapEndianness(hwCounterValue.IV);
 
                         encodeStatusReport->HWCounterValue = hwCounterValue;
                         CODECHAL_ENCODE_NORMALMESSAGE("hwCounterValue.Count = 0x%llx, hwCounterValue.IV = 0x%llx", hwCounterValue.Count, hwCounterValue.IV);
@@ -3725,17 +3704,17 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
 
                     CODECHAL_ENCODE_CHK_NULL_RETURN(m_skuTable);
 
-                    if (m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface))
+                    if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface) && m_skipFrameBasedHWCounterRead == false)
                     {
                         //Report out counter read from HW
                         uint64_t *address2Counter = (uint64_t *)(((char *)(m_dataHwCount))+(index*sizeof(HwCounter)));
 
                         hwCounterValue.Count     = *address2Counter;
-                        SwapEndianess(&hwCounterValue.Count); //Report back in Big endian
+                        hwCounterValue.Count = SwapEndianness(hwCounterValue.Count); //Report back in Big endian
 
                         //IV value computation:
-                        hwCounterValue.IV        = *(address2Counter++);
-                        SwapEndianess(&hwCounterValue.IV);
+                        hwCounterValue.IV        = *(++address2Counter);
+                        hwCounterValue.IV = SwapEndianness(hwCounterValue.IV);
 
                         encodeStatusReport->HWCounterValue = hwCounterValue;
                     }

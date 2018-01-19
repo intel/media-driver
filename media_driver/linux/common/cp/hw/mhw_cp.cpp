@@ -105,12 +105,14 @@ MOS_STATUS MhwCpInterface::SetMfxInlineStatusRead(
     PMOS_INTERFACE      osInterface,
     PMOS_COMMAND_BUFFER cmdBuffer,
     PMOS_RESOURCE       resource,
-    uint16_t            currentIndex)
+    uint16_t            currentIndex,
+    uint32_t            writeOffset)
 {
     MOS_UNUSED(osInterface);
     MOS_UNUSED(cmdBuffer);
     MOS_UNUSED(resource);
     MOS_UNUSED(currentIndex);
+    MOS_UNUSED(writeOffset);
 
     MhwStubMessage();
     return MOS_STATUS_SUCCESS;

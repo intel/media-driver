@@ -106,7 +106,8 @@ public:
         PMOS_INTERFACE      osInterface,
         PMOS_COMMAND_BUFFER cmdBuffer,
         PMOS_RESOURCE       resource,
-        uint16_t            currentIndex);
+        uint16_t            currentIndex,
+        uint32_t            writeOffset);
 
     MOS_STATUS SetProtectionSettingsForMiFlushDw(
         PMOS_INTERFACE osInterface,
