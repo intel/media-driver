@@ -27,7 +27,7 @@ class Surface2DTest: public CmTest
 public:
     static const uint32_t WIDTH = 64;
     static const uint32_t HEIGHT = 64;
-  
+
     Surface2DTest(): m_surface(nullptr) {}
 
     ~Surface2DTest() {}
@@ -82,7 +82,7 @@ public:
 
         result = memcmp(to_surface, from_surface, 4*width*height);
         EXPECT_EQ(0, result);
-        
+
         return mock_device->DestroySurface(m_surface);
     }//===============================================
 
@@ -116,7 +116,7 @@ public:
         }
         EXPECT_EQ(0, result);
         EXPECT_EQ(from_surface[WIDTH], 42);
-        
+
         return mock_device->DestroySurface(m_surface);
     }//===============================================
 

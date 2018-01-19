@@ -25,7 +25,7 @@ HevcEncBufs::HevcEncBufs()
 {
     sps = make_shared<VAEncSequenceParameterBufferHEVC>();
     memset(sps.get(), 0, sizeof(VAEncSequenceParameterBufferHEVC));
-    
+
     sps->general_profile_idc = 0x1;
     sps->general_level_idc = 0x5a;
     sps->intra_period = 0x5;
@@ -41,7 +41,7 @@ HevcEncBufs::HevcEncBufs()
     sps->max_transform_hierarchy_depth_intra = 0x2;
     sps->pcm_sample_bit_depth_luma_minus1 = 0x7;
     sps->pcm_sample_bit_depth_chroma_minus1 = 0x7;
-    
+
     pps = make_shared<VAEncPictureParameterBufferHEVC>();
     memset(pps.get(), 0, sizeof(VAEncPictureParameterBufferHEVC));
 
@@ -53,7 +53,7 @@ HevcEncBufs::HevcEncBufs()
         pps->reference_frames[i].picture_id = 0xffffffff;
         pps->reference_frames[i].flags = 0x1;
     }
-    
+
     for (auto i = 0; i < 15; i++)
     {
         slc->ref_pic_list0[i].picture_id = 0xffffffff;
@@ -77,7 +77,7 @@ AvcEncBufs::AvcEncBufs()
 {
     sps = make_shared<VAEncSequenceParameterBufferH264>();
     memset(sps.get(), 0, sizeof(VAEncSequenceParameterBufferH264));
-    
+
     sps->level_idc = 0x33;
     sps->intra_period = 0x1f;
     sps->intra_idr_period = 0x3d;
@@ -87,7 +87,7 @@ AvcEncBufs::AvcEncBufs()
     sps->picture_width_in_mbs = 0x14;
     sps->picture_height_in_mbs = 0xf;
     sps->seq_fields.value = 0x3105;
-    
+
     pps = make_shared<VAEncPictureParameterBufferH264>();
     memset(pps.get(), 0, sizeof(VAEncPictureParameterBufferH264));
 
@@ -178,7 +178,7 @@ void EncTestDataHEVC::InitCompBuffers()
 {
     frameArray.resize(ENC_FRAME_NUM);
     pBufs = make_shared<HevcEncBufs>();
-    
+
     for (auto i = 0; i < ENC_FRAME_NUM; i++)
     {
         frameArray[i].spsData.assign((char*)pBufs->GetSpsBuf(), (char*)pBufs->GetSpsBuf() + pBufs->GetSpsSize());
@@ -195,7 +195,7 @@ void EncTestDataHEVC::UpdateCompBuffers(int frameId)
     pps->decoded_curr_pic.picture_id = resources[frameId];
 
     if (frameId == 0)//I frame
-    { 
+    {
         pps->decoded_curr_pic.pic_order_cnt = 0x0;
         pps->pic_init_qp = 0xf;
         slc->slice_type = 0x2;
@@ -204,7 +204,7 @@ void EncTestDataHEVC::UpdateCompBuffers(int frameId)
     {
         pps->decoded_curr_pic.pic_order_cnt = 0x2;
         pps->reference_frames[0].flags = 0;
-        pps->reference_frames[0].picture_id = resources[0];	
+        pps->reference_frames[0].picture_id = resources[0];
         pps->reference_frames[0].pic_order_cnt = 0x0;
         pps->pic_init_qp = 0x19;
         pps->pic_fields.value = 0x210;
@@ -300,7 +300,7 @@ void EncTestDataAVC::InitCompBuffers()
 {
     frameArray.resize(3);
     pBufs = make_shared<AvcEncBufs>();
-    
+
     for (auto i = 0; i < ENC_FRAME_NUM; i++)
     {
         frameArray[i].spsData.assign((char*)pBufs->GetSpsBuf(), (char*)pBufs->GetSpsBuf() + pBufs->GetSpsSize());

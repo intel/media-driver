@@ -30,7 +30,6 @@
 #endif
 #define drm_export __attribute__((visibility("default")))
 
-
 /**
  * Static (compile-time) assertion.
  * Basically, use COND to dimension an array.  If COND is false/zero the
@@ -40,7 +39,6 @@
    do { \
       (void) sizeof(char [1 - 2*!(COND)]); \
    } while (0)
-
 
 #include <sys/mman.h>
 
@@ -64,13 +62,11 @@ static inline void *drm_mmap(void *addr, size_t length, int prot, int flags,
 #  define drm_munmap(addr, length) \
               munmap(addr, length)
 
-
 #else
 
 /* assume large file support exists */
 #  define drm_mmap(addr, length, prot, flags, fd, offset) \
               mmap(addr, length, prot, flags, fd, offset)
-
 
 static inline int drm_munmap(void *addr, size_t length)
 {

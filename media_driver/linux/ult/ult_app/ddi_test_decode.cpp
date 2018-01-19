@@ -58,7 +58,7 @@ void MediaDecodeDdiTest::DecodeExecute(DecTestData* pDecData, Platform_t platfor
     EXPECT_EQ (VA_STATUS_SUCCESS , ret ) << "Platform = " << platform << ", Failed function = driverLoader.InitDriver" << endl;
     //Query Attribute list for settings.
     //DdiMedia_GetConfigAttributes();
-    
+
     //The attribute only use RCType and FEI function type in createconfig.
     ret = driverLoader.ctx.vtable->vaCreateConfig(&driverLoader.ctx, pDecData->GetFeatureID().profile, pDecData->GetFeatureID().entrypoint, (VAConfigAttrib *)&(pDecData->GetConfAttrib()[0]), pDecData->GetConfAttrib().size(),&m_config_id);
     EXPECT_EQ (VA_STATUS_SUCCESS , ret ) << "Platform = " << platform << ", Failed function = driverLoader.ctx.vtable->vaCreateConfig" << endl;
@@ -149,7 +149,7 @@ bool DecodeTestConfig::IsDecTestEnabled(DeviceConfig platform, FeatureID feature
     {
         //Infact, we may need to call QueryEntroyPoint to make sure it does have this config. But we suppose this test is done in Caps test.
         //Otherwise, here is need to call QueryEntroyPoint to check if it's supported.
-        if (featureId == FeatureIDArray[i]) 
+        if (featureId == FeatureIDArray[i])
         {
             bEnable = true;
             break;

@@ -47,12 +47,12 @@ struct DeviceConfig
             uint32_t reserved:21;
        };
     };
-    
+
     //uint32_t mmap_version; //I915_PARAM_MMAP_VERSION
     int32_t num_fences_avail;           //I915_PARAM_NUM_FENCES_AVAIL
     int32_t aliasing_ppgtt;             //I915_PARAM_HAS_ALIASING_PPGTT
-	int32_t subslice_total;				//I915_PARAM_SUBSLICE_TOTAL
-	int32_t eu_total;					//I915_PARAM_EU_TOTAL
+    int32_t subslice_total;             //I915_PARAM_SUBSLICE_TOTAL
+    int32_t eu_total;                   //I915_PARAM_EU_TOTAL
 
     uint64_t edram_reg;
 /*
@@ -63,7 +63,7 @@ struct DeviceConfig
 #define DEVICECONFIG( aper, devId, rev, flags, fences,ppgtt,subslice, eu, edram_reg ) { aper, devId, rev, flags, fences,ppgtt,subslice, eu, edram_reg},
 /*
  *      aperture_size, DeviceId, flags(), num_fences_avail, aliasing_ppgtt, subslice_total, eu_total, edram_reg,
- */                                                                              
+ */
 DEVICECONFIG( 4286468096, 0x191e, 0x7, 0x01ff, 32, 3, 3, 24, 0 )    //SKL
 DEVICECONFIG( 4267114496, 0x5a84, 0xb, 0x03df, 32, 3, 3, 18, 0x0 )  //BXT
 DEVICECONFIG( 4248690688, 0x1606, 0x9, 0x03ff, 32, 3, 2, 12, 0x0 )   //BDW

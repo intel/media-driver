@@ -79,7 +79,7 @@ public:
         m_sys_mem = nullptr;
         return true;
     }//=============
-  
+
 private:
     CMRT_UMD::CmBufferUP *m_buffer;
     void *m_sys_mem;
@@ -105,7 +105,7 @@ TEST_F(BufferUPTest, MultipleSizes)
     uint32_t zero_size = 0;
     RunEach(CM_INVALID_WIDTH,
             [this, zero_size]() { return CreateDestroy(zero_size); });
-    
+
     return;
 }//========
 

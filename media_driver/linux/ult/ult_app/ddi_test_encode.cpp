@@ -77,7 +77,7 @@ void MediaEncodeDdiTest::EncodeExecute(EncTestData* pEncData, Platform_t platfor
         ret = driverLoader.ctx.vtable->vaBeginPicture(&driverLoader.ctx,m_context_id,resources[0]);
 
         vector<vector<CompBufConif>> &compBufs=pEncData->GetCompBuffers();
-        ret = driverLoader.ctx.vtable->vaCreateBuffer(&driverLoader.ctx, m_context_id, compBufs[i][0].BufType,	compBufs[i][0].BufSize, 1, compBufs[i][0].pData,&compBufs[i][0].BufID);
+        ret = driverLoader.ctx.vtable->vaCreateBuffer(&driverLoader.ctx, m_context_id, compBufs[i][0].BufType,    compBufs[i][0].BufSize, 1, compBufs[i][0].pData,&compBufs[i][0].BufID);
         EXPECT_EQ (VA_STATUS_SUCCESS , ret ) << "Platform = " << platform << ", Failed function = driverLoader.ctx.vtable->vaCreateBuffer" << endl;
 
         pEncData->UpdateCompBuffers(i);
@@ -115,7 +115,6 @@ void MediaEncodeDdiTest::EncodeExecute(EncTestData* pEncData, Platform_t platfor
             EXPECT_EQ (VA_STATUS_SUCCESS , ret ) << "Platform = " << platform << ", Failed function = driverLoader.ctx.vtable->vaDestroyBuffer" << endl;
         }
       }
-
 
     ret = driverLoader.ctx.vtable->vaDestroySurfaces(&driverLoader.ctx, &resources[0], resources.size());
     EXPECT_EQ (VA_STATUS_SUCCESS , ret ) << "Platform = " << platform << ", Failed function = driverLoader.ctx.vtable->vaDestroySurfaces" << endl;
@@ -163,7 +162,7 @@ bool EncodeTestConfig::IsEncTestEnabled(DeviceConfig platform, FeatureID feature
     {
         //Infact, we may need to call QueryEntroyPoint to make sure it does have this config. But we suppose this test is done in Caps test.
         //Otherwise, here is need to call QueryEntroyPoint to check if it's supported.
-        if (featureId == FeatureIDArray[i]) 
+        if (featureId == FeatureIDArray[i])
         {
             bEnable = true;
             break;

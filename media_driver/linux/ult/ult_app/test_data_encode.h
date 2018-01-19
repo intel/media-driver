@@ -21,7 +21,6 @@
 */
 #pragma once
 
-
 #include "driver_loader.h"
 #include<string>
 #include<string.h>
@@ -100,7 +99,6 @@ protected:
     vector <VAConfigAttrib> ConfAttrib;
     vector <VASurfaceAttrib>SurfAttrib;
 };
-
 
 class EncTestDataHEVC : public EncTestData
 {

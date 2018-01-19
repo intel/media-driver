@@ -48,7 +48,7 @@ public:
         {
             m_sys_mem = memalign(0x1000, alloc_size);
         }
-        else  // In case width or height is invalid. This pointer will not be referenced anyway. 
+        else  // In case width or height is invalid. This pointer will not be referenced anyway.
         {
             m_sys_mem = memalign(0x1000, 4*WIDTH*HEIGHT);
         }

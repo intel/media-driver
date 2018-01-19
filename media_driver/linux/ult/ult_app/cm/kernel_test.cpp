@@ -52,7 +52,7 @@ public:
         CreateKernel(&mock_device);
         return mock_device->DestroyProgram(m_program);
     }//===============================================
-  
+
 private:
     CMRT_UMD::CmProgram *m_program;
     CMRT_UMD::CmKernel *m_kernel;

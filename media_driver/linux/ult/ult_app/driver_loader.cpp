@@ -34,7 +34,7 @@ DriverDllLoader::DriverDllLoader()
         driver_path = DirverPath;
     else
         driver_path = "/opt/intel/mediasdk/lib64/iHD_drv_video.so";
-    platformArray = { 
+    platformArray = {
 #ifdef IGFX_GEN9_SKL_SUPPORTED
         igfxSKLAKE,
 #endif
@@ -88,7 +88,7 @@ VAStatus DriverDllLoader::InitDriver(int platform_id)
         drm_fd = 1;
     drmstate.fd = drm_fd;
     drmstate.auth_type = 3;
-	//putenv("DRMMode=1");
+    //putenv("DRMMode=1");
 
     umdhandle = dlopen(driver_path, RTLD_NOW | RTLD_GLOBAL | RTLD_NODELETE);
 
@@ -105,7 +105,7 @@ VAStatus DriverDllLoader::InitDriver(int platform_id)
                                                        cm_entry_name);
         if (!init_func || !vaCmExtSendReqMsg)
         {
-            return VA_STATUS_ERROR_UNKNOWN;          
+            return VA_STATUS_ERROR_UNKNOWN;
         }
         printf("INFO: Found init function %s and CM entry point %s.\n",
                init_func_s, cm_entry_name);

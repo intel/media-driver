@@ -31,7 +31,6 @@ namespace CMRT_UMD
 {
 vaDestroySurfacesFunc MockDevice::vaDestroySurfaces = nullptr;
 
-
 int32_t ReleaseVaSurface(void *va_display, void *surface)
 {
     VADisplayContext *display = reinterpret_cast<VADisplayContext*>(va_display);

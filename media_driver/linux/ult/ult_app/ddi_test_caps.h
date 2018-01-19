@@ -26,14 +26,14 @@
 
 #include "gtest/gtest.h"
 
-class MediaCapsDdiTest : public testing::Test 
+class MediaCapsDdiTest : public testing::Test
 {
 protected:
-    virtual void SetUp() 
+    virtual void SetUp()
     {
     }
 
-    virtual void TearDown() 
+    virtual void TearDown()
     {
     }
 

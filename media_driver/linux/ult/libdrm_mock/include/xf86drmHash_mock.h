@@ -24,9 +24,9 @@
  * Authors: Rickard E. (Rik) Faith <faith@valinux.com>
  */
 
-#define HASH_INVALID 0xffffffff	/* A value that is out of bound */
-#define HASH_SIZE  512		/* Good for about 100 entries */
-				/* If you change this value, you probably
+#define HASH_INVALID 0xffffffff    /* A value that is out of bound */
+#define HASH_SIZE  512        /* Good for about 100 entries */
+                /* If you change this value, you probably
                                    have to change the HashHash hashing
                                    function! */
 
@@ -39,9 +39,9 @@ typedef struct HashBucket {
 typedef struct HashTable {
     unsigned long    magic;
     unsigned long    entries;
-    unsigned long    hits;	/* At top of linked list */
-    unsigned long    partials;	/* Not at top of linked list */
-    unsigned long    misses;	/* Not in table */
+    unsigned long    hits;    /* At top of linked list */
+    unsigned long    partials;    /* Not at top of linked list */
+    unsigned long    misses;    /* Not in table */
     HashBucketPtr    buckets[HASH_SIZE];
     int              p0;
     HashBucketPtr    p1;

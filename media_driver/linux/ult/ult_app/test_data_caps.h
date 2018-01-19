@@ -41,7 +41,7 @@ class CapsTestData
 public:
     CapsTestData();
     ~CapsTestData();
-    vector<FeatureID>& GetRefFeatureIDTable(DeviceConfig platform) 
+    vector<FeatureID>& GetRefFeatureIDTable(DeviceConfig platform)
     {
         return mapPlatformRefFeatureIDs[platform];
     };

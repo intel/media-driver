@@ -29,7 +29,7 @@ public:
     static const uint32_t HEIGHT = 64;
 
     ThreadSpaceTest(): m_thread_space(nullptr) {}
-  
+
     ~ThreadSpaceTest() {}
 
     int32_t CreateDestroy(uint32_t width, uint32_t height)

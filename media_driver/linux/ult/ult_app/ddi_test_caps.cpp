@@ -43,7 +43,7 @@ int Test_QueryConfigProfiles(VADriverContextP ctx, vector<FeatureID> &queriedFea
 
     max_num_profiles = ctx->max_profiles;
     profile_list = (VAProfile*)malloc(max_num_profiles * sizeof(VAProfile));
-    
+
     if (!profile_list) {
         printf("Failed to allocate memory for profile list\n");
         return -1;
@@ -51,12 +51,12 @@ int Test_QueryConfigProfiles(VADriverContextP ctx, vector<FeatureID> &queriedFea
     ret = ctx->vtable->vaQueryConfigProfiles(ctx, profile_list, &num_profiles);
     if (ret)
         return -1;
-    
+
     for (i = 0; i < num_profiles; i++) {
         char *profile_str;
-    
+
         profile = profile_list[i];
-        ret= ctx->vtable->vaQueryConfigEntrypoints(ctx, profile, entrypoints, 
+        ret= ctx->vtable->vaQueryConfigEntrypoints(ctx, profile, entrypoints,
                                              &num_entrypoint);
         if (ret == VA_STATUS_ERROR_UNSUPPORTED_PROFILE)
             continue;

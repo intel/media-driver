@@ -37,14 +37,14 @@ private:
     map<DeviceConfig, vector<FeatureID>, MapFeatureIDComparer> mapPlatformFeatureID;
 };
 
-class MediaDecodeDdiTest : public testing::Test 
+class MediaDecodeDdiTest : public testing::Test
 {
 protected:
-    virtual void SetUp() 
+    virtual void SetUp()
     {
     }
 
-    virtual void TearDown() 
+    virtual void TearDown()
     {
     }
 

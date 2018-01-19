@@ -86,18 +86,18 @@ static unsigned long HashHash(unsigned long key)
     int                  i;
 
     if (!init) {
-	void *state;
-	state = drmRandomCreate(37);
-	if (!state)
-		return HASH_INVALID;
-	for (i = 0; i < 256; i++) scatter[i] = drmRandom(state);
-	drmRandomDestroy(state);
-	++init;
+    void *state;
+    state = drmRandomCreate(37);
+    if (!state)
+        return HASH_INVALID;
+    for (i = 0; i < 256; i++) scatter[i] = drmRandom(state);
+    drmRandomDestroy(state);
+    ++init;
     }
 
     while (tmp) {
-	hash = (hash << 1) + scatter[tmp & 0xff];
-	tmp >>= 8;
+    hash = (hash << 1) + scatter[tmp & 0xff];
+    tmp >>= 8;
     }
 
     hash %= HASH_SIZE;
@@ -134,11 +134,11 @@ int drmHashDestroy(void *t)
     if (table->magic != HASH_MAGIC) return -1; /* Bad magic */
 
     for (i = 0; i < HASH_SIZE; i++) {
-	for (bucket = table->buckets[i]; bucket;) {
-	    next = bucket->next;
-	    drmFree(bucket);
-	    bucket = next;
-	}
+    for (bucket = table->buckets[i]; bucket;) {
+        next = bucket->next;
+        drmFree(bucket);
+        bucket = next;
+    }
     }
     drmFree(table);
     return 0;
@@ -148,7 +148,7 @@ int drmHashDestroy(void *t)
    top. */
 
 static HashBucketPtr HashFind(HashTablePtr table,
-			      unsigned long key, unsigned long *h)
+                  unsigned long key, unsigned long *h)
 {
     unsigned long hash = HashHash(key);
     HashBucketPtr prev = nullptr;
@@ -157,22 +157,22 @@ static HashBucketPtr HashFind(HashTablePtr table,
     if (h) *h = hash;
 
     if (hash == HASH_INVALID)
-	return nullptr;
+    return nullptr;
 
     for (bucket = table->buckets[hash]; bucket; bucket = bucket->next) {
-	if (bucket->key == key) {
-	    if (prev) {
-				/* Organize */
-		prev->next           = bucket->next;
-		bucket->next         = table->buckets[hash];
-		table->buckets[hash] = bucket;
-		++table->partials;
-	    } else {
-		++table->hits;
-	    }
-	    return bucket;
-	}
-	prev = bucket;
+    if (bucket->key == key) {
+        if (prev) {
+                /* Organize */
+        prev->next           = bucket->next;
+        bucket->next         = table->buckets[hash];
+        table->buckets[hash] = bucket;
+        ++table->partials;
+        } else {
+        ++table->hits;
+        }
+        return bucket;
+    }
+    prev = bucket;
     }
     ++table->misses;
     return nullptr;
@@ -186,9 +186,9 @@ int drmHashLookup(void *t, unsigned long key, void **value)
     if (!table || table->magic != HASH_MAGIC) return -1; /* Bad magic */
 
     bucket = HashFind(table, key, nullptr);
-    if (!bucket) return 1;	/* Not found */
+    if (!bucket) return 1;    /* Not found */
     *value = bucket->value;
-    return 0;			/* Found */
+    return 0;            /* Found */
 }
 
 int drmHashInsert(void *t, unsigned long key, void *value)
@@ -203,7 +203,7 @@ int drmHashInsert(void *t, unsigned long key, void *value)
     if (hash == HASH_INVALID) return -1;
 
     bucket               = (HashBucketPtr)drmMalloc(sizeof(*bucket));
-    if (!bucket) return -1;	/* Error */
+    if (!bucket) return -1;    /* Error */
     bucket->key          = key;
     bucket->value        = value;
     bucket->next         = table->buckets[hash];
@@ -211,7 +211,7 @@ int drmHashInsert(void *t, unsigned long key, void *value)
 #if DEBUG
     printf("Inserted %lu at %lu/%p\n", key, hash, bucket);
 #endif
-    return 0;			/* Added to table */
+    return 0;            /* Added to table */
 }
 
 int drmHashDelete(void *t, unsigned long key)
@@ -225,7 +225,7 @@ int drmHashDelete(void *t, unsigned long key)
     bucket = HashFind(table, key, &hash);
 
     if (hash == HASH_INVALID) return -1;
-    if (!bucket) return 1;	/* Not found */
+    if (!bucket) return 1;    /* Not found */
 
     table->buckets[hash] = bucket->next;
     drmFree(bucket);

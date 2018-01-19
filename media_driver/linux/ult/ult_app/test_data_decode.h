@@ -95,7 +95,6 @@ protected:
     vector <VAConfigAttrib> ConfAttrib;
 };
 
-
 class DecTestDataHEVC : public DecTestData
 {
 public:

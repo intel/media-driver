@@ -37,7 +37,7 @@ namespace CMRT_UMD
 typedef int32_t (*ReleaseSurfaceCallback)(void *va_display,
                                           void *surface);
 
-typedef	VAStatus (*vaDestroySurfacesFunc)(VADriverContextP ctx,
+typedef    VAStatus (*vaDestroySurfacesFunc)(VADriverContextP ctx,
                                           VASurfaceID *surface_list,
                                           int num_surfaces);
 

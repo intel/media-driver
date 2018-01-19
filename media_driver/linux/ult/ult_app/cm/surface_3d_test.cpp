@@ -75,7 +75,7 @@ public:
 
         result = memcmp(to_surface, from_surface, sizeof(to_surface));
         EXPECT_EQ(0, result);
-        
+
         return mock_device->DestroySurface(m_surface);
     }//===============================================
 

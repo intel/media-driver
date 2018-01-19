@@ -43,7 +43,7 @@
 #define HAS_ATOMIC_OPS 1
 
 typedef struct {
-	int atomic;
+    int atomic;
 } atomic_t;
 
 # define atomic_read(x) ((x)->atomic)
@@ -59,11 +59,11 @@ typedef struct {
 
 static inline int atomic_add_unless(atomic_t *v, int add, int unless)
 {
-	int c, old;
-	c = atomic_read(v);
-	while (c != unless && (old = atomic_cmpxchg(v, c, c + add)) != c)
-		c = old;
-	return c == unless;
+    int c, old;
+    c = atomic_read(v);
+    while (c != unless && (old = atomic_cmpxchg(v, c, c + add)) != c)
+        c = old;
+    return c == unless;
 }
 
 #endif

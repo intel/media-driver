@@ -49,7 +49,7 @@ DecBufHEVC::DecBufHEVC()
 
     slc = make_shared<VASliceParameterBufferHEVC>();
     memset(slc.get(), 0, sizeof(VASliceParameterBufferHEVC));
-    
+
     slc->slice_data_size = 0x10;
     slc->slice_data_byte_offset = 0x7;
     for (auto i = 0; i < 15; i++)
@@ -72,7 +72,7 @@ DecBufAVC::DecBufAVC()
 {
     pps = make_shared<VAPictureParameterBufferH264>();
     memset(pps.get(), 0, sizeof(VAPictureParameterBufferH264));
-    
+
     pps->CurrPic.flags = 0x8;
     for (auto i = 0; i < 16; i++)
     {
@@ -87,7 +87,7 @@ DecBufAVC::DecBufAVC()
 
     slc = make_shared<VASliceParameterBufferH264>();
     memset(slc.get(), 0, sizeof(VASliceParameterBufferH264));
-    
+
     slc->slice_data_size = 0x10;
     slc->slice_data_bit_offset = 0x24;
     slc->slice_type = 0x2;
@@ -189,7 +189,7 @@ void DecTestDataAVC::InitCompBuffers()
     {
         frameArrayLong[i].picParam.assign((char*)pBufs->GetPpsBuf(), (char*)pBufs->GetPpsBuf() + pBufs->GetPpsSize());
         frameArrayLong[i].slcParam.assign((char*)pBufs->GetSlcBuf(), (char*)pBufs->GetSlcBuf() + pBufs->GetSlcSize());
-		frameArrayLong[i].bsData.assign((char*)pBufs->GetBsBuf(), (char*)pBufs->GetBsBuf() + pBufs->GetBsSize());
+        frameArrayLong[i].bsData.assign((char*)pBufs->GetBsBuf(), (char*)pBufs->GetBsBuf() + pBufs->GetBsSize());
     }
 }
 
