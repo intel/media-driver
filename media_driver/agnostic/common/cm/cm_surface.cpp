@@ -226,6 +226,7 @@ std::string CmSurface::GetFormatString(CM_SURFACE_FORMAT format)
         case CM_SURFACE_FORMAT_NV12:               return "nv12";
         case CM_SURFACE_FORMAT_P016:               return "p016";
         case CM_SURFACE_FORMAT_P010:               return "p010";
+        case CM_SURFACE_FORMAT_P208:               return "p208";
         case CM_SURFACE_FORMAT_V8U8:               return "v8u8";
         case CM_SURFACE_FORMAT_A8L8:               return "a8l8";
         case CM_SURFACE_FORMAT_D16:                return "d16";

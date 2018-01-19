@@ -660,6 +660,7 @@ int32_t CmSurfaceManager::GetFormatSize(CM_SURFACE_FORMAT format,uint32_t &sizeP
         case CM_SURFACE_FORMAT_IA44:
         case CM_SURFACE_FORMAT_AI44:
         case CM_SURFACE_FORMAT_400P:
+        case CM_SURFACE_FORMAT_P208:
         case CM_SURFACE_FORMAT_BUFFER_2D:
             sizePerPixel = 1;
             break;
@@ -1835,7 +1836,10 @@ int32_t CmSurfaceManager::GetPixelBytesAndHeight(uint32_t width, uint32_t height
             sizePerPixel = 1;
             updatedHeight = height * 2;
             break;
-
+        case CM_SURFACE_FORMAT_P208:
+            sizePerPixel = 1;
+            updatedHeight = height * 2;
+            break;
         case CM_SURFACE_FORMAT_YV12:
         case CM_SURFACE_FORMAT_411R://411R
         case CM_SURFACE_FORMAT_I420:            //I420
@@ -2458,6 +2462,7 @@ bool CMRT_UMD::CmSurfaceManager::IsSupportedForSamplerSurface2D(CM_SURFACE_FORMA
         case CM_SURFACE_FORMAT_Y210:
         case CM_SURFACE_FORMAT_Y216:
         case CM_SURFACE_FORMAT_P010:
+        case CM_SURFACE_FORMAT_P208:
         case CM_SURFACE_FORMAT_P016:
         case CM_SURFACE_FORMAT_YV12:
         case CM_SURFACE_FORMAT_411P:

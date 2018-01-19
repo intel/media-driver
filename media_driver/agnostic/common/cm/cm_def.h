@@ -42,6 +42,7 @@
 #define CM_SURFACE_FORMAT_NV12                  Format_NV12
 #define CM_SURFACE_FORMAT_P016                  Format_P016
 #define CM_SURFACE_FORMAT_P010                  Format_P010
+#define CM_SURFACE_FORMAT_P208                  Format_P208
 #define CM_SURFACE_FORMAT_V8U8                  Format_V8U8
 #define CM_SURFACE_FORMAT_A8L8                  Format_A8L8
 #define CM_SURFACE_FORMAT_D16                   Format_D16

@@ -5147,6 +5147,7 @@ int32_t CmKernelRT::SetSurfBTINumForIndirectData(CM_SURFACE_FORMAT format, CM_EN
     {
         if ((format == CM_SURFACE_FORMAT_NV12) ||
             (format == CM_SURFACE_FORMAT_P010) ||
+            (format == CM_SURFACE_FORMAT_P208) ||
             (format == CM_SURFACE_FORMAT_P016))
         {
             return 2;
@@ -5494,6 +5495,7 @@ int32_t CmKernelRT::CalculateKernelSurfacesNum(uint32_t& kernelSurfaceNum, uint3
                         pSurf2D->GetSurfaceDesc(width, height, format, bytesPerPixel);
                         if ((format == CM_SURFACE_FORMAT_NV12) ||
                             (format == CM_SURFACE_FORMAT_P010) ||
+                            (format == CM_SURFACE_FORMAT_P208) ||
                             (format == CM_SURFACE_FORMAT_P016))
                         {
                             neededBTEntryNum += 2;
@@ -5519,6 +5521,7 @@ int32_t CmKernelRT::CalculateKernelSurfacesNum(uint32_t& kernelSurfaceNum, uint3
                         pSurf2D_UP->GetSurfaceDesc(width, height, format, bytesPerPixel);
                         if ((format == CM_SURFACE_FORMAT_NV12) ||
                             (format == CM_SURFACE_FORMAT_P010) ||
+                            (format == CM_SURFACE_FORMAT_P208) ||
                             (format == CM_SURFACE_FORMAT_P016))
                         {
                             neededBTEntryNum += 2;
