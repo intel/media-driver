@@ -690,26 +690,44 @@ VAStatus DdiEncodeHevc::ParseSlcParams(
 
         for (uint32_t i = 0; i < numMaxRefFrame; i++)
         {
-            SetupCodecPicture(
-                mediaCtx,
-                &(m_encodeCtx->RTtbl),
-                &(hevcSlcParams->RefPicList[0][i]),
-                vaEncSlcParamsHEVC->ref_pic_list0[i],
-                false,
-                true);
-            GetSlcRefIdx(&(hevcPicParams->RefFrameList[0]), &(hevcSlcParams->RefPicList[0][i]));
+            if(i >  hevcSlcParams->num_ref_idx_l0_active_minus1)
+            {
+                hevcSlcParams->RefPicList[0][i].FrameIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC;
+                hevcSlcParams->RefPicList[0][i].PicFlags = PICTURE_INVALID;
+                hevcSlcParams->RefPicList[0][i].PicEntry = 0xFF;
+            }
+            else
+            {
+                SetupCodecPicture(
+                    mediaCtx,
+                    &(m_encodeCtx->RTtbl),
+                    &(hevcSlcParams->RefPicList[0][i]),
+                    vaEncSlcParamsHEVC->ref_pic_list0[i],
+                    false,
+                    true);
+                GetSlcRefIdx(&(hevcPicParams->RefFrameList[0]), &(hevcSlcParams->RefPicList[0][i]));
+            }
         }
 
         for (uint32_t i = 0; i < numMaxRefFrame; i++)
         {
-            SetupCodecPicture(
-                mediaCtx,
-                &(m_encodeCtx->RTtbl),
-                &(hevcSlcParams->RefPicList[1][i]),
-                vaEncSlcParamsHEVC->ref_pic_list1[i],
-                false,
-                true);
-            GetSlcRefIdx(&(hevcPicParams->RefFrameList[0]), &(hevcSlcParams->RefPicList[1][i]));
+            if(i >  hevcSlcParams->num_ref_idx_l1_active_minus1)
+            {
+                hevcSlcParams->RefPicList[1][i].FrameIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC;
+                hevcSlcParams->RefPicList[1][i].PicFlags = PICTURE_INVALID;
+                hevcSlcParams->RefPicList[1][i].PicEntry = 0xFF;
+            }
+            else
+            {
+                SetupCodecPicture(
+                    mediaCtx,
+                    &(m_encodeCtx->RTtbl),
+                    &(hevcSlcParams->RefPicList[1][i]),
+                    vaEncSlcParamsHEVC->ref_pic_list1[i],
+                    false,
+                    true);
+                GetSlcRefIdx(&(hevcPicParams->RefFrameList[0]), &(hevcSlcParams->RefPicList[1][i]));
+            }
         }
 
         vaEncSlcParamsHEVC++;
