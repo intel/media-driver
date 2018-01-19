@@ -1398,10 +1398,6 @@ int32_t CmSurfaceManager::DestroySurface( CmBuffer_RT* & buffer, SURFACE_DESTROY
     void  *pAddress = nullptr;
     int32_t result =  CM_SUCCESS;
 
-    if ( !buffer )
-    {
-        return CM_FAILURE;
-    }
     SurfaceIndex* pIndex = nullptr;
     buffer->GetIndex( pIndex );
     CM_ASSERT( pIndex );
@@ -1458,11 +1454,6 @@ int32_t CmSurfaceManager::DestroySurface( CmSurface2DUPRT* & surface2dUP, SURFAC
 {
     uint32_t handle = 0;
     int32_t result = CM_SUCCESS;
-
-    if ( !surface2dUP  )
-    {
-        return CM_FAILURE;
-    }
 
     SurfaceIndex* pIndex = nullptr;
     surface2dUP->GetIndex( pIndex );

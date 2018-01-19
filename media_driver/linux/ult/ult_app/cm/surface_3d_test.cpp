@@ -33,13 +33,14 @@ public:
 
     ~Surface3DTest() {}
 
-    int32_t CreateDestroy(uint32_t width,
+    int32_t CreateDestroy(CM_SURFACE_FORMAT format,
+                          uint32_t width,
                           uint32_t height,
                           uint32_t depth)
     {
         CMRT_UMD::MockDevice mock_device(&m_driverLoader);
-        int32_t result = mock_device->CreateSurface3D(
-            width, height, depth, CM_SURFACE_FORMAT_A8R8G8B8, m_surface);
+        int32_t result = mock_device->CreateSurface3D(width, height, depth,
+                                                      format, m_surface);
         if (result != CM_SUCCESS)
         {
             return result;
@@ -81,8 +82,10 @@ public:
     int32_t Initialize()
     {
         CMRT_UMD::MockDevice mock_device(&m_driverLoader);
-        int32_t result = mock_device->CreateSurface3D(
-            WIDTH, HEIGHT, DEPTH, CM_SURFACE_FORMAT_A8R8G8B8, m_surface);
+        int32_t result
+                = mock_device->CreateSurface3D(WIDTH, HEIGHT, DEPTH,
+                                               CM_SURFACE_FORMAT_A8R8G8B8,
+                                               m_surface);
         EXPECT_EQ(CM_SUCCESS, result);
 
         result = m_surface->InitSurface(0x42424242, nullptr);
@@ -103,24 +106,66 @@ private:
 TEST_F(Surface3DTest, MultipleSizes)
 {
     RunEach(CM_SUCCESS,
-            [this]() { return CreateDestroy(WIDTH, HEIGHT, DEPTH); });
+            [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8,
+                                            WIDTH, HEIGHT, DEPTH); });
 
     RunEach(CM_SUCCESS,
-            [this]() { return CreateDestroy(CM_MIN_SURF_WIDTH,
+            [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8,
+                                            CM_MIN_SURF_WIDTH,
                                             CM_MIN_SURF_HEIGHT,
                                             CM_MIN_SURF_DEPTH); });
 
     RunEach(CM_SUCCESS,
-            [this]() { return CreateDestroy(CM_MAX_3D_SURF_WIDTH, HEIGHT,
+            [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8,
+                                            CM_MAX_3D_SURF_WIDTH, HEIGHT,
                                             DEPTH); });
 
     RunEach(CM_SUCCESS,
-            [this]() { return CreateDestroy(WIDTH, CM_MAX_3D_SURF_HEIGHT,
+            [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8,
+                                            WIDTH, CM_MAX_3D_SURF_HEIGHT,
                                             DEPTH); });
 
     RunEach(CM_SUCCESS,
-            [this]() { return CreateDestroy(WIDTH, HEIGHT,
+            [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8,
+                                            WIDTH, HEIGHT,
                                             CM_MAX_3D_SURF_DEPTH); });
+
+    RunEach(CM_INVALID_WIDTH,
+            [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8, 0,
+                                            HEIGHT, DEPTH); });
+
+    RunEach(CM_INVALID_HEIGHT,
+            [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8, WIDTH,
+                                            0, DEPTH); });
+
+    RunEach(CM_INVALID_DEPTH,
+            [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8, WIDTH,
+                                            HEIGHT, 0); });
+
+    RunEach(CM_INVALID_DEPTH,
+            [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8, WIDTH,
+                                            HEIGHT,
+                                            CM_MAX_3D_SURF_DEPTH + 1); });
+
+    // Tests size in odd numbers.
+    RunEach(CM_SUCCESS,
+            [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8,
+                                            WIDTH + 1, HEIGHT + 3,
+                                            DEPTH + 5); });
+
+    return;
+}//========
+
+TEST_F(Surface3DTest, Abgr16Format)
+{
+    RunEach(CM_SUCCESS,
+            [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A16B16G16R16,
+                                            WIDTH, HEIGHT, DEPTH); });
+
+    RunEach(CM_SUCCESS,
+            [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A16B16G16R16,
+                                            WIDTH + 1, HEIGHT + 3,
+                                            DEPTH + 5); });
     return;
 }//========
 

@@ -163,6 +163,10 @@ CM_RT_API int32_t CmDeviceRT::DestroySurface(CmSurface2D* & pSurface)
     int32_t status = CM_SUCCESS;
 
     CmSurface2DRT *pSurfaceRT = static_cast<CmSurface2DRT *>(pSurface);
+    if (nullptr == pSurfaceRT)
+    {
+        return CM_NULL_POINTER;
+    }
     status = m_pSurfaceMgr->DestroySurface( pSurfaceRT, APP_DESTROY);
 
     if (status != CM_FAILURE) //CM_SURFACE_IN_USE may be returned, which should be treated as SUCCESS.

@@ -567,10 +567,9 @@ CM_RT_API int32_t CmDeviceRT::DestroyBufferUP(CmBufferUP* & surface)
     INSERT_API_CALL_LOG();
 
     CmBuffer_RT* temp = static_cast< CmBuffer_RT* >(surface);
-
-    if(temp == nullptr)
+    if (nullptr == temp)
     {
-        return CM_FAILURE;
+        return CM_NULL_POINTER;
     }
 
     CLock locker(m_CriticalSection_Surface);
@@ -597,11 +596,11 @@ CM_RT_API int32_t CmDeviceRT::DestroyBufferUP(CmBufferUP* & surface)
 CM_RT_API int32_t CmDeviceRT::ForceDestroyBufferUP(CmBufferUP* & surface)
 {
     INSERT_API_CALL_LOG();
-    CmBuffer_RT* temp = static_cast< CmBuffer_RT* >(surface);
 
-    if( temp == nullptr)
+    CmBuffer_RT* temp = static_cast< CmBuffer_RT* >(surface);
+    if (nullptr == temp)
     {
-        return CM_FAILURE;
+        return CM_NULL_POINTER;
     }
 
     CLock locker(m_CriticalSection_Surface);
@@ -776,10 +775,9 @@ CM_RT_API int32_t CmDeviceRT::CreateSurface3D(uint32_t width,
 CM_RT_API int32_t CmDeviceRT::DestroySurface( CmBuffer* & surface)
 {
     CmBuffer_RT* temp = static_cast< CmBuffer_RT* >(surface);
-
-    if(temp == nullptr)
+    if (nullptr == temp)
     {
-        return CM_FAILURE;
+        return CM_NULL_POINTER;
     }
 
     CLock locker(m_CriticalSection_Surface);
@@ -808,6 +806,11 @@ CM_RT_API int32_t CmDeviceRT::DestroySurface2DUP( CmSurface2DUP* & surface)
     CLock locker(m_CriticalSection_Surface);
 
     CmSurface2DUPRT *surfaceRT = static_cast<CmSurface2DUPRT *>(surface);
+    if (nullptr == surfaceRT)
+    {
+       return CM_NULL_POINTER;
+    }
+
     int32_t status = m_pSurfaceMgr->DestroySurface( surfaceRT, APP_DESTROY );
 
     if (status != CM_FAILURE) //CM_SURFACE_IN_USE, or  CM_SURFACE_CACHED may be returned, which should be treated as SUCCESS.
@@ -828,6 +831,11 @@ CM_RT_API int32_t CmDeviceRT::DestroySurface( CmSurface3D* & surface)
     CLock locker(m_CriticalSection_Surface);
 
     CmSurface3DRT *surfaceRT = static_cast<CmSurface3DRT *>(surface);
+    if (nullptr == surfaceRT)
+    {
+        return CM_NULL_POINTER;
+    }
+
     int32_t status = m_pSurfaceMgr->DestroySurface( surfaceRT, APP_DESTROY);
 
     if (status != CM_FAILURE) //CM_SURFACE_IN_USE, or  CM_SURFACE_CACHED may be returned, which should be treated as SUCCESS.
@@ -3244,6 +3252,10 @@ CM_RT_API int32_t CmDeviceRT::DestroyBufferSVM(CmBufferSVM* & bufferSVM)
     INSERT_API_CALL_LOG();
 
     CmBuffer_RT* temp = static_cast< CmBuffer_RT* >(bufferSVM);
+    if (nullptr == temp)
+    {
+        return CM_NULL_POINTER;
+    }
 
     CLock locker(m_CriticalSection_Surface);
 

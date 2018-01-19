@@ -99,12 +99,23 @@ TEST_F(BufferTest, MultipleSizes)
 {
     RunEach(CM_SUCCESS,
             [this]() { return CreateDestroy(SIZE); });
+
     RunEach(CM_INVALID_WIDTH,
             [this]() { return CreateDestroy(0); });
+
+    RunEach(CM_SUCCESS,
+            [this]() { return CreateDestroy(1); });
+
+    RunEach(CM_SUCCESS,
+            [this]() { return CreateDestroy(16*1024*1024); });
+
+    RunEach(CM_SUCCESS,
+            [this]() { return CreateDestroy(64*1024*1024); });
 
     uint32_t large_size = 0x40000001;  // 1-byte larger than maximum size.
     RunEach(CM_INVALID_WIDTH,
             [this, large_size]() { return CreateDestroy(large_size); });
+    
     return;
 }//========
 
