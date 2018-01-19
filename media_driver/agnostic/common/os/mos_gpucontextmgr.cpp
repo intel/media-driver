@@ -60,6 +60,11 @@ GpuContextMgr::GpuContextMgr(GT_SYSTEM_INFO *gtSystemInfo, OsContext *osContext)
 GpuContextMgr::~GpuContextMgr()
 {
     MOS_OS_FUNCTION_ENTER;
+
+    if (m_gpuContextArrayMutex)
+    {
+        MOS_DestroyMutex(m_gpuContextArrayMutex);
+    }
 }
 
 GpuContextMgr* GpuContextMgr::GetObject(

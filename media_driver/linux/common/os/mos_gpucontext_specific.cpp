@@ -112,6 +112,7 @@ void GpuContextSpecific::Clear()
             MOS_OS_ASSERTMESSAGE("failed to unlock the status buf bundled w/ the specified gpucontext");
         }
         m_statusBufferResource->Free(m_osContext, 0);
+        MOS_Delete(m_statusBufferResource);
     }
 
     for (auto& curCommandBuffer : m_cmdBufPool)

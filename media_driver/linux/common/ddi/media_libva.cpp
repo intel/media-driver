@@ -1389,7 +1389,6 @@ VAStatus DdiMedia__Initialize (
         mosCtx.platform              = mediaCtx->platform;
         mosCtx.ppMediaMemDecompState = &mediaCtx->pMediaMemDecompState;
         mosCtx.pfnMemoryDecompress   = mediaCtx->pfnMemoryDecompress;
-        mosCtx.pPerfData             = (PERF_DATA *)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
 
         eStatus = mediaCtx->m_osContext->Init(&mosCtx);
         if (MOS_STATUS_SUCCESS != eStatus)
@@ -5496,7 +5495,7 @@ VAStatus __vaDriverInit_0_31(VADriverContextP ctx )
     pVTable->vaCreateBuffer                  = DdiMedia_CreateBuffer;
     pVTable->vaBufferSetNumElements          = DdiMedia_BufferSetNumElements;
     pVTable->vaMapBuffer                     = DdiMedia_MapBuffer;
-    pVTable->vaUnmapBuffer                   = DdiMedia_UnmapBuffer;
+    pVTable->vaUnmapBuffer                   = DdiMedia_UnmapBuffer; 
     pVTable->vaDestroyBuffer                 = DdiMedia_DestroyBuffer;
     pVTable->vaBeginPicture                  = DdiMedia_BeginPicture;
     pVTable->vaRenderPicture                 = DdiMedia_RenderPicture;

@@ -5540,6 +5540,8 @@ MOS_STATUS Mos_Specific_InitInterface(
     MOS_OS_CHK_NULL(pOsInterface);
     MOS_OS_CHK_NULL(pOsDriverContext);
 
+    pOsInterface->modularizedGpuCtxEnabled    = true;
+
     // Create Linux OS Context
     pOsContext = (PMOS_OS_CONTEXT)MOS_AllocAndZeroMemory(sizeof(MOS_OS_CONTEXT));
     if (pOsContext == nullptr)
@@ -5598,8 +5600,6 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->dwNumNalUnitBytesIncluded   = MOS_NAL_UNIT_LENGTH - MOS_NAL_UNIT_STARTCODE_LENGTH;
 
     pOsInterface->bInlineCodecStatusUpdate    = true;
-
-    pOsInterface->modularizedGpuCtxEnabled    = true;
     
     //Added by Ben for video memory allocation
     pOsInterface->pOsContext->bufmgr = pOsDriverContext->bufmgr;
