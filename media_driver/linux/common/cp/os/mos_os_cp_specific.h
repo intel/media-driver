@@ -45,11 +45,13 @@ public:
         bool           bWrite,
         MOS_HW_COMMAND HwCommandType,
         uint32_t       forceDwordOffset,
-        void           *plResource);
+        void           *plResource,
+        void           *pPatchLocationList);
 
     MOS_STATUS PermeatePatchForHM(
         void        *virt,
-        void        *pvCurrentPatch);
+        void        *pvCurrentPatch,
+        void        *resource);
 
     bool IsCpEnabled();
 

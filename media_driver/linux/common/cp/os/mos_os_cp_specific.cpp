@@ -47,13 +47,15 @@ MOS_STATUS MosCpInterface::RegisterPatchForHM(
     bool           bWrite,
     MOS_HW_COMMAND HwCommandType,
     uint32_t       forceDwordOffset,
-    void           *plResource)
+    void           *plResource,
+    void           *pPatchLocationList)
 {
     MOS_UNUSED(pPatchAddress);
     MOS_UNUSED(bWrite);
     MOS_UNUSED(HwCommandType);
     MOS_UNUSED(forceDwordOffset);
     MOS_UNUSED(plResource);
+    MOS_UNUSED(pPatchLocationList);
 
     OsStubMessage();
     return  MOS_STATUS_SUCCESS;
@@ -61,10 +63,12 @@ MOS_STATUS MosCpInterface::RegisterPatchForHM(
 
 MOS_STATUS MosCpInterface::PermeatePatchForHM(
     void    *virt,
-    void    *pvCurrentPatch)
+    void    *pvCurrentPatch,
+    void    *resource)
 {
     MOS_UNUSED(virt);
     MOS_UNUSED(pvCurrentPatch);
+    MOS_UNUSED(resource);
 
     OsStubMessage();
     return  MOS_STATUS_SUCCESS;

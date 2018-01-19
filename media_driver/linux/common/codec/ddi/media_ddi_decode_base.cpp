@@ -859,6 +859,7 @@ VAStatus DdiMediaDecode::CreateCodecHal(
     MOS_CONTEXT    *mosCtx   = (MOS_CONTEXT *)ptr;
     VAStatus        vaStatus = VA_STATUS_SUCCESS;
 
+    m_ddiDecodeCtx->pCpDdiInterface->SetCodechalSetting(m_codechalSettings);
 
     Codechal *codecHal = CodechalDevice::CreateFactory(
         nullptr,

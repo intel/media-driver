@@ -200,7 +200,8 @@ MOS_STATUS GpuContextSpecific::SetPatchEntry(
             params->bWrite,
             params->HwCommandType,
             params->forceDwordOffset,
-            params->presResource);
+            params->presResource,
+            &m_patchLocationList[m_currentNumPatchLocations]);
     }
 
     m_currentNumPatchLocations++;
@@ -425,7 +426,8 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
 
         MOS_OS_CHK_STATUS_RETURN(osInterface->osCpInterface->PermeatePatchForHM(
             cmd_bo->virt,
-            currentPatch))
+            currentPatch,
+            resource))
 
 #ifndef ANDROID
         uint64_t boOffset = alloc_bo->offset64;

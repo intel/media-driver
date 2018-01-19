@@ -2502,7 +2502,8 @@ MOS_STATUS Mos_Specific_SetPatchEntry(
             pParams->bWrite,
             pParams->HwCommandType,
             pParams->forceDwordOffset,
-            pParams->presResource);
+            pParams->presResource,
+            &pPatchList[pOsGpuContext->uiCurrentNumPatchLocations]);
     }
 
     pOsGpuContext->uiCurrentNumPatchLocations++;
@@ -3186,7 +3187,8 @@ MOS_STATUS Mos_Specific_SubmitCommandBuffer(
 
         MOS_OS_CHK_STATUS(pOsInterface->osCpInterface->PermeatePatchForHM(
             cmd_bo->virt,
-            pCurrentPatch));
+            pCurrentPatch,
+            pResource));
 
 #ifndef ANDROID
         boOffset = alloc_bo->offset64;
