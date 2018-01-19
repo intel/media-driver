@@ -82,8 +82,9 @@ VAStatus DdiDecodeVP8::ParseSliceParams(
     uint8_t num_token_partitions;
     num_token_partitions                = slcParam->num_of_partitions - 1;
     picParams->CodedCoeffTokenPartition = (num_token_partitions != 8) ? (num_token_partitions >> 1) : 3;
-    //macroblock_offset is in unit of bit.
-    picParams->uiFirstMbByteOffset = slcParam->slice_data_offset + slcParam->macroblock_offset >> 3;
+    //macroblock_offset is in unit of bit.it should be always the next byte, the byte is divided to two parts
+    //used bits and remaining bits, if used bits == 8, uiFirstMbByteOffset should add 1, so use 8 to do the ceil operator
+    picParams->uiFirstMbByteOffset = slcParam->slice_data_offset + ((slcParam->macroblock_offset + 8) >> 3);
 
     memcpy(picParams->uiPartitionSize, slcParam->partition_size, sizeof(picParams->uiPartitionSize));
 
