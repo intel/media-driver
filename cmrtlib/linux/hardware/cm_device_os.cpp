@@ -38,10 +38,10 @@
 #include <fcntl.h>
 
 #ifndef ANDROID
-uint32_t CmDevice_RT::m_vaReferenceCount                = 0;
-CSync CmDevice_RT::m_vaReferenceCountCriticalSection   ;
-void  *CmDevice_RT::m_vaDrm                       = nullptr ;
-pfVAGetDisplayDRM CmDevice_RT::m_vaGetDisplayDrm    = nullptr ;
+uint32_t CmDevice_RT::m_vaReferenceCount = 0;
+CSync CmDevice_RT::m_vaReferenceCountCriticalSection;
+void  *CmDevice_RT::m_vaDrm = nullptr;
+pfVAGetDisplayDRM CmDevice_RT::m_vaGetDisplayDrm = nullptr;
 #endif
 // current binary version, query by command "strings",
 //       e.g. "strings  -a igfxcmrt64.so | grep current_version "
@@ -136,7 +136,9 @@ CmDevice_RT::CmDevice_RT(
     m_deviceInUmd(nullptr),
     m_cmCreated ( true ),
     m_vaDisplay    (vaDisplay),
+#ifdef ANDROID
     m_display       (nullptr),
+#endif
     m_fvaCmExtSendReqMsg (nullptr),
     m_gtpinEnabled( false ),
     m_gtpinBufferUP0( nullptr ),
@@ -352,76 +354,27 @@ int32_t CmDevice_RT::InitializeLibvaDisplay()
         int vaMajorVersion, vaMinorVersion;
 
 #ifndef ANDROID
-#ifndef USE_LIBVA_DRM
-    pfVAOpenDisplayX11 vaOpenDisplayX11 = nullptr;
-    pfVAGetDisplayX11 vaGetDisplayX11 = nullptr;
-    char *dlSymErr = nullptr;
-
-    dlerror();
-    m_hLibVaX11 = dlopen( "libva-x11.so", RTLD_LAZY );
-    if (!m_hLibVaX11)
-    {
-        fprintf(stderr, "%s\n", dlerror());
-        return CM_INVALID_LIBVA_INITIALIZE;
-    }
-
-    //dynamically load function XOpenDisplay from libva-x11.so
-    dlerror();
-    vaOpenDisplayX11 = (pfVAOpenDisplayX11)dlsym(m_hLibVaX11, "XOpenDisplay");
-    if ((dlSymErr= dlerror()) != nullptr)  {
-        fprintf(stderr, "%s\n", dlSymErr);
-        return CM_INVALID_LIBVA_INITIALIZE;
-    }
-
-    dlerror();
-    m_pCloseDisplayX11 = (pfCloseDisplayX11)dlsym(m_hLibVaX11, "XCloseDisplay");
-    if ((dlSymErr= dlerror()) != nullptr)  {
-        fprintf(stderr, "%s\n", dlSymErr);
-        return CM_INVALID_LIBVA_INITIALIZE;
-    }
-
-    if (vaOpenDisplayX11)
-    {
-        m_display = vaOpenDisplayX11();
-    }
-
-    dlerror();
-    vaGetDisplayX11 = (pfVAGetDisplayX11)dlsym(m_hLibVaX11, "vaGetDisplay");
-    if ((dlSymErr= dlerror()) != nullptr)  {
-        fprintf(stderr, "%s\n", dlSymErr);
-        return CM_INVALID_LIBVA_INITIALIZE;
-    }
-
-    if (vaGetDisplayX11)
-    {
-        m_vaDisplay = vaGetDisplayX11(m_display);
-    }
-
-    if (!m_vaDisplay)
-    {
-        return CM_INVALID_LIBVA_INITIALIZE;
-    }
-#else
     int32_t ret = GetLibvaDisplayDrm(m_vaDisplay);
     if ( ret != CM_SUCCESS)
     {
         CmAssert(0);
         return ret;
     }
-#endif //end of USE_LIBVA_DRM
 #else
-        m_display = (Display*)malloc(sizeof(Display));
-        *(m_display) = ANDROID_DISPLAY;
+    m_display = (Display*)malloc(sizeof(Display));
+    *(m_display) = ANDROID_DISPLAY;
 
-        if (m_display == nullptr) {
-            fprintf(stderr, "Can't connect X server!\n");
-            return CM_INVALID_LIBVA_INITIALIZE;
-        }
+    if (m_display == nullptr)
+    {
+        fprintf(stderr, "Can't connect X server!\n");
+        return CM_INVALID_LIBVA_INITIALIZE;
+    }
 
-        m_vaDisplay = vaGetDisplay(m_display);
-        if (m_vaDisplay == nullptr) {
-            return CM_INVALID_LIBVA_INITIALIZE;
-        }
+    m_vaDisplay = vaGetDisplay(m_display);
+    if (m_vaDisplay == nullptr)
+    {
+        return CM_INVALID_LIBVA_INITIALIZE;
+    }
 #endif  //ANDROID
 
         vaStatus = vaInitialize(m_vaDisplay, &vaMajorVersion, &vaMinorVersion);

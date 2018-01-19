@@ -29,12 +29,7 @@
 
 #include <dlfcn.h>
 
-#define USE_LIBVA_DRM
-
 #ifndef ANDROID
-#ifndef USE_LIBVA_DRM
-#include "va/va_x11.h"
-#endif
 #include "va/va.h"
 #else
 #include <va/va_android.h>

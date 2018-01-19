@@ -172,22 +172,23 @@ protected:
     int32_t CreateVmeSurface( CmSurface2D* currentSurface, CmSurface2D** forwardSurfaceArray, CmSurface2D** backwardSurfaceArray, const uint32_t surfaceCountForward, const uint32_t surfaceCountBackward, SurfaceIndex* & vmeSurfaceIndex, CM_FUNCTION_ID functionName);
     int32_t DestroyVmeSurface( SurfaceIndex* & vmeSurfaceIndex );
 
-#ifndef ANDOID
+#ifndef ANDROID
     int32_t FreeLibvaDrm();
     int32_t GetLibvaDisplayDrm(VADisplay & vaDisplay);
 #endif
     int32_t InitializeLibvaDisplay( void );
-    Display*  m_display ;     // for Android
-    pvaCmExtSendReqMsg    m_fvaCmExtSendReqMsg; //for Linux/Android
-    VADisplay m_vaDisplay;    //for Android + Linux
+    
+    pvaCmExtSendReqMsg    m_fvaCmExtSendReqMsg;
+    VADisplay m_vaDisplay;
 
-    // Static variables for libva drm
 #if !defined(ANDROID)
     static uint32_t m_vaReferenceCount;
     static CSync m_vaReferenceCountCriticalSection;
     int32_t m_driFileDescriptor;
     static void  *m_vaDrm;
     static pfVAGetDisplayDRM m_vaGetDisplayDrm;
+#else
+    Display*  m_display;
 #endif
 
     L3ConfigRegisterValues m_l3Config;

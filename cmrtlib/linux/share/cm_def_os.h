@@ -25,16 +25,11 @@
 #include "cm_include.h"
 
 #ifndef ANDROID
-#ifndef USE_LIBVA_DRM
-#include "va/va_x11.h"
-#else  // #ifndef USE_LIBVA_DRM
-#define Display unsigned int
-#endif
 #include "va/va.h"
-#else  // #ifndef ANDROID
+#else
 #include <va/va_android.h>
 #define Display unsigned int
-#endif  // #ifndef ANDROID
+#endif
 
 #include <cstring>
 #include "pthread.h"
@@ -235,12 +230,6 @@ typedef VAStatus (__cdecl *pvaCmExtSendReqMsg)(
                             uint32_t *outputDataLen);
 
 typedef VADisplay (*pfVAGetDisplayDRM) (int32_t fd);    //vaGetDisplayDRM from libva-drm.so
-
-#ifndef USE_LIBVA_DRM
-typedef Display* (*pfVAOpenDisplayX11)();
-typedef VADisplay (*pfVAGetDisplayX11)(Display *dpy);
-typedef void (*pfCloseDisplayX11) (Display *dpy);
-#endif
 
 #ifndef CMRT_NOINLINE
 #define CMRT_NOINLINE __attribute__((noinline))
