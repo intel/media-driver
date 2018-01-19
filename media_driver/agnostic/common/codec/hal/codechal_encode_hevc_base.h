@@ -168,7 +168,6 @@ const unsigned char g_cInit_HEVC_BRC_QP_ADJUST[CODECHAL_HEVC_BRC_QP_ADJUST_SIZE]
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 
-
     0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x03, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x03,
     0x03, 0x04, 0xff, 0x00, 0x00, 0x00, 0x00, 0x02, 0x02, 0x03, 0x03, 0xff, 0xff, 0x00, 0x00, 0x00,
     0x01, 0x02, 0x02, 0x02, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x01, 0x02, 0x02, 0xfe, 0xff, 0xff,
@@ -377,7 +376,6 @@ enum
     CODECHAL_HEVC_DS_COMBINED_MB_STATS = CODECHAL_HEVC_DS_COMBINED_BEGIN + 5,
     CODECHAL_HEVC_DS_COMBINED_2xDOWNSCALE = CODECHAL_HEVC_DS_COMBINED_BEGIN + 6,
     CODECHAL_HEVC_DS_COMBINED_END = CODECHAL_HEVC_DS_COMBINED_BEGIN + 7,
-
 
     //BRC Init/Reset
     CODECHAL_HEVC_BRC_INIT_RESET_BEGIN = CODECHAL_HEVC_DS_COMBINED_END,
@@ -1004,7 +1002,7 @@ public:
                 (rc == RATECONTROL_VCM) ||
                 (rc == RATECONTROL_ICQ) ||
                 (rc == RATECONTROL_QVBR);
-    } 
+    }
 
     //!
     //! \brief    Help function to calculate the slice QP
@@ -1118,7 +1116,7 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS SendPrologWithFrameTracking(
-        PMOS_COMMAND_BUFFER cmdBuffer, 
+        PMOS_COMMAND_BUFFER cmdBuffer,
         bool frameTrackingRequested);
 
     //!
@@ -1146,7 +1144,7 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS SendHWWaitCommand(
-        PMOS_RESOURCE semaphoreMem, 
+        PMOS_RESOURCE semaphoreMem,
         PMOS_COMMAND_BUFFER cmdBuffer,
         uint32_t semValue);
 
@@ -1197,8 +1195,8 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS SetSemaphoreMem(
-        PMOS_RESOURCE semaphoreMem, 
-        PMOS_COMMAND_BUFFER cmdBuffer, 
+        PMOS_RESOURCE semaphoreMem,
+        PMOS_COMMAND_BUFFER cmdBuffer,
         uint32_t value);
 
     //!
@@ -1234,8 +1232,8 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS AllocateBuffer(
-        PCODECHAL_ENCODE_BUFFER buffer, 
-        uint32_t size, 
+        PCODECHAL_ENCODE_BUFFER buffer,
+        uint32_t size,
         const char* name);
 
     //!
@@ -1256,9 +1254,9 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS AllocateBuffer2D(
-        PMOS_SURFACE surface, 
-        uint32_t width, 
-        uint32_t height, 
+        PMOS_SURFACE surface,
+        uint32_t width,
+        uint32_t height,
         const char* name,
         MOS_TILE_TYPE tileType = MOS_TILE_LINEAR);
 
@@ -1278,7 +1276,7 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS AllocateSurface(
-        PMOS_SURFACE surface, 
+        PMOS_SURFACE surface,
         uint32_t width,
         uint32_t height,
         const char* name);
@@ -1295,7 +1293,7 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS AllocateBatchBufferForPakSlices(
-        uint32_t numSlices, 
+        uint32_t numSlices,
         unsigned char numPakPasses);
 
     //! \brief    Calculates the PSNR values for luma/ chroma 
@@ -1309,11 +1307,10 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS CalculatePSNR(
-        EncodeStatus        *encodeStatus, 
+        EncodeStatus        *encodeStatus,
         EncodeStatusReport  *encodeStatusReport);
 
-
-    //! \brief    Copy sum square error for luma/ chroma channel from  
+    //! \brief    Copy sum square error for luma/ chroma channel from 
     //!           frame statistics report into encodeStatus buffer
     //!
     //! \param    [in, out] cmdBuffer
@@ -1360,7 +1357,7 @@ public:
     //! \brief    Help function to calculate bit stream buffer size
     //!
     //! \return   Calcuated bitstream buffer size
-    //!           
+    //!
     uint32_t GetBitstreamBufferSize();
 
     //!
@@ -1426,9 +1423,9 @@ public:
 
     //!
     //! \brief    Initialize encoder instance with the provided settings
-    //! \details  When derived class overwrite this function to do its own initialization, 
-    //            it should call #CodechalEncodeHevcBase::Initialize() first 
-    //            to do common initializations         
+    //! \details  When derived class overwrite this function to do its own initialization,
+    //            it should call #CodechalEncodeHevcBase::Initialize() first
+    //            to do common initializations
     //!
     //! \param    [in] settings
     //!           Encoder settings
@@ -1743,7 +1740,6 @@ public:
         PMHW_BATCH_BUFFER batchBuffer,
         PMHW_VDBOX_HEVC_SLICE_STATE params);
 
-
     //! \brief    Initialize kernel state
     //!
     //! \return   MOS_STATUS
@@ -1781,7 +1777,7 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS AllocateEncResources() = 0;
-   
+
     //!
     //! \brief    Free ENC resources
     //!
@@ -1824,7 +1820,7 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS ValidateRefFrameData(PCODEC_HEVC_ENCODE_SLICE_PARAMS slcParams) = 0;
- 
+
     //!
     //! \brief    Encode kernel functions
     //!
@@ -1991,7 +1987,7 @@ public:
         PCODEC_HEVC_ENCODE_PICTURE_PARAMS picParams);
 
     MOS_STATUS DumpMbEncPakOutput(PCODEC_REF_LIST currRefList);
-    
+
     MOS_STATUS DumpFrameStatsBuffer();
 #endif
 };

@@ -35,7 +35,7 @@ CMRTKernelI16x16Mode::CMRTKernelI16x16Mode()
 
     m_cmSurface2DCount = 5;
     m_cmBufferCount    = 6;
-    m_cmVmeSurfCount   = 1;   
+    m_cmVmeSurfCount   = 1;
 
     if (m_cmSurface2DCount > 0)
     {
@@ -112,7 +112,7 @@ CM_RETURN_CODE CMRTKernelI16x16Mode::CreateAndDispatchKernel(CmEvent *&cmEvent, 
     height = (curbe[0] >> 16) & 0x0FFFF;
     width_padded = ((width + 16) >> 5) << 5;
     height_padded = ((height + 16) >> 5) << 5;
-    
+
     threadSpaceWidth = width_padded >> 5;
     threadSpaceHeight = height_padded >> 5;
 
@@ -139,7 +139,7 @@ CM_RETURN_CODE CMRTKernelI16x16Mode::CreateAndDispatchKernel(CmEvent *&cmEvent, 
 CM_RETURN_CODE CMRTKernelI16x16ModeUMD::AllocateSurfaces(void *params)
 {
     IFrameKernelParams *I16x16ModeParams = (IFrameKernelParams *)params;
- 
+
     CM_BUFFER_STATE_PARAM bufParams;
     memset(&bufParams, 0, sizeof(CM_BUFFER_STATE_PARAM));
     bufParams.uiSize = I16x16ModeParams->m_bufSize;
@@ -151,7 +151,7 @@ CM_RETURN_CODE CMRTKernelI16x16ModeUMD::AllocateSurfaces(void *params)
     CM_CHK_STATUS_RETURN(m_cmBuffer[0]->GetIndex(m_surfIndex[1]));
     CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE *)I16x16ModeParams->m_cmSurfPOCDbuf, m_cmBuffer[1]));
     CM_CHK_STATUS_RETURN(m_cmDev->CreateBufferAlias(m_cmBuffer[1], m_surfIndex[2]));
-    CM_CHK_STATUS_RETURN(m_cmBuffer[1]->SetSurfaceStateParam(m_surfIndex[2], &bufParams)); 
+    CM_CHK_STATUS_RETURN(m_cmBuffer[1]->SetSurfaceStateParam(m_surfIndex[2], &bufParams));
     CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE *)I16x16ModeParams->m_cmSurfPer32x32PUDataOut, m_cmBuffer[2]));
     CM_CHK_STATUS_RETURN(m_cmBuffer[2]->GetIndex(m_surfIndex[3]));
     CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE *)I16x16ModeParams->m_cmSurfVMEMode, m_cmBuffer[3]));

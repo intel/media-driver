@@ -90,7 +90,7 @@ typedef struct _CODEC_VP9_PIC_PARAMS
     uint32_t            BSBytesInBuffer;
 
     uint32_t            StatusReportFeedbackNumber;
-    
+
     uint8_t             profile;                        // [0..3]
     uint8_t             BitDepthMinus8;                 // [0, 2, 4]
     uint8_t             subsampling_x;                  // [0..1]

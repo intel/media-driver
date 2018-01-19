@@ -255,7 +255,7 @@ MOS_STATUS CodechalDecodeHevc::AllocateResourcesVariableSizes()
         //record the width and height used for allocation internal resources.
         m_mfdDeblockingFilterRowStoreScratchBufferPicWidth = mfdDeblockingFilterRowStoreScratchBufferPicWidthMax;
     }
-    
+
     reallocParam.dwPicWidth         = widthMax;
     reallocParam.dwPicWidthAlloced  = m_widthLastMaxAlloced;
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_hcpInterface->IsHevcBufferReallocNeeded(
@@ -418,7 +418,7 @@ MOS_STATUS CodechalDecodeHevc::AllocateResourcesVariableSizes()
             }
 
             // SAO Line buffer
-            hcpBufSizeParam.dwPicWidth = saoLineBufferPicWidthMax;    
+            hcpBufSizeParam.dwPicWidth = saoLineBufferPicWidthMax;
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_hcpInterface->GetHevcBufferSize(
                 MHW_VDBOX_HCP_INTERNAL_BUFFER_SAO_LINE,
                 &hcpBufSizeParam));
@@ -433,7 +433,7 @@ MOS_STATUS CodechalDecodeHevc::AllocateResourcesVariableSizes()
         //record the width and height used for allocation internal resources.
         m_saoLineBufferPicWidth = saoLineBufferPicWidthMax;
     }
-    
+
     reallocParam.dwPicWidth         = widthMax;
     reallocParam.dwPicWidthAlloced  = m_widthLastMaxAlloced;
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_hcpInterface->IsHevcBufferReallocNeeded(
@@ -447,7 +447,7 @@ MOS_STATUS CodechalDecodeHevc::AllocateResourcesVariableSizes()
                 m_osInterface,
                 &m_resSaoTileLineBuffer);
         }
-        // SAO Tile Line buffer 
+        // SAO Tile Line buffer
         hcpBufSizeParam.dwPicWidth = widthMax;
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_hcpInterface->GetHevcBufferSize(
             MHW_VDBOX_HCP_INTERNAL_BUFFER_SAO_TILE_LINE,
@@ -809,7 +809,7 @@ MOS_STATUS CodechalDecodeHevc::SetHucDmemS2LSliceBss(
         hucHevcS2LSliceBss->SliceBytesInBuffer    = m_hevcSliceParams[i].slice_data_size;
         hucHevcS2LSliceBss++;
     }
-    
+
     return eStatus;
 }
 
@@ -987,7 +987,7 @@ MOS_STATUS CodechalDecodeHevc::CopyDataSurface()
         syncParams.GpuContext = m_videoContext;
         syncParams.presSyncResource = &m_resSyncObjectWaContextInUse;
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnEngineSignal(m_osInterface, &syncParams));
-        
+
         syncParams = g_cInitSyncParams;
         syncParams.GpuContext = m_videoContextForWa;
         syncParams.presSyncResource = &m_resSyncObjectWaContextInUse;
@@ -1136,9 +1136,9 @@ MOS_STATUS CodechalDecodeHevc::SetFrameStates ()
             m_dataOffset    = 0;
             m_resDataBuffer = *(m_decodeParams.m_dataBuffer);
         }
-        
+
         CODECHAL_DECODE_CHK_STATUS_RETURN(CheckAndCopyBitstream());
-        
+
         //For CENC case, the Entry has been initialized with value in SetParamsForDecode
         PCODEC_REF_LIST destEntry = m_hevcRefList[m_hevcPicParams->CurrPic.FrameIdx];
         MOS_ZeroMemory(destEntry, sizeof(CODEC_REF_LIST));
@@ -1261,9 +1261,8 @@ MOS_STATUS CodechalDecodeHevc::SetFrameStates ()
         m_hwInterface->SetRowstoreCachingOffsets(&rowstoreParams);
     }
 
-
     AllocateResourcesVariableSizes();
-    
+
     // Calculate Tile info
     if (m_hevcPicParams->tiles_enabled_flag)
     {
@@ -1379,7 +1378,7 @@ MOS_STATUS CodechalDecodeHevc::SetPictureStructs()
         //Mark Referenced frame's MV buffer as used
         for(i = 0; i < CODEC_MAX_NUM_REF_FRAME_HEVC; i++)
         {
-            if(!CodecHal_PictureIsInvalid(picParams->RefFrameList[i]) && 
+            if(!CodecHal_PictureIsInvalid(picParams->RefFrameList[i]) &&
                 picParams->PicOrderCntValList[i] != picParams->CurrPicOrderCntVal)
             {
                 uint8_t index = picParams->RefFrameList[i].FrameIdx;
@@ -1814,7 +1813,7 @@ MOS_STATUS CodechalDecodeHevc::SendPictureLongFormat()
     }
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(
-        &cmdBuffer, 
+        &cmdBuffer,
         sendPrologWithFrameTracking));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(InitPicLongFormatMhwParams());
@@ -2230,9 +2229,9 @@ MOS_STATUS CodechalDecodeHevc::DecodePrimitiveLevel()
             {
                 // Check HuC_STATUS2 bit6, if bit6 > 0 HW continue execution following cmd, otherwise it send a COND BB END cmd.
                 eStatus = m_hwInterface->SendCondBbEndCmd(
-                            &m_decodeStatusBuf.m_statusBuffer, 
+                            &m_decodeStatusBuf.m_statusBuffer,
                             statusBufferOffset + m_decodeStatusBuf.m_hucErrorStatus2MaskOffset,
-                            0, 
+                            0,
                             false,
                             cmdBufferInUse);
                 CODECHAL_DECODE_CHK_STATUS_RETURN(eStatus);
@@ -2337,7 +2336,7 @@ MOS_STATUS CodechalDecodeHevc::DecodePrimitiveLevel()
             cmdBufferInUse,
             &syncParams));
     }
-    
+
     if (m_statusQueryReportingEnabled)
     {
         CodechalDecodeStatusReport decodeStatusReport;
@@ -2379,7 +2378,7 @@ MOS_STATUS CodechalDecodeHevc::DecodePrimitiveLevel()
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(
         cmdBufferInUse,
         nullptr));
-   
+
     m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBuffer, 0);
 
     bool syncCompleteFrame = m_copyDataBufferInUse;
@@ -2567,13 +2566,12 @@ MOS_STATUS CodechalDecodeHevc::AllocateStandard (
             &userFeatureData);
         m_enableSf2DmaSubmits = userFeatureData.u32Data ? true : false;
     }
-    
 
     MHW_VDBOX_STATE_CMDSIZE_PARAMS stateCmdSizeParams;
     MOS_ZeroMemory(&stateCmdSizeParams, sizeof(stateCmdSizeParams));
     stateCmdSizeParams.bShortFormat    = m_shortFormatInUse;
     stateCmdSizeParams.bHucDummyStream = (m_secureDecoder ? m_secureDecoder->IsDummyStreamEnabled() : false);
-    
+
     // Picture Level Commands
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_hwInterface->GetHxxStateCommandSize(
             m_mode,
@@ -2823,7 +2821,7 @@ MOS_STATUS CodechalDecodeHevc::DumpPicParams(
     std::ofstream ofs(fileName, std::ios::out);
     ofs << oss.str();
     ofs.close();
-    
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -3046,7 +3044,7 @@ MOS_STATUS CodechalDecodeHevc::DumpIQParams(
     std::ofstream ofs(fileName, std::ios::out);
     ofs << oss.str();
     ofs.close();
-    
+
     return MOS_STATUS_SUCCESS;
 }
 

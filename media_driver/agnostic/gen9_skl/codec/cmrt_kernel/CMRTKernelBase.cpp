@@ -58,10 +58,10 @@ CMRTKernelBase::~CMRTKernelBase()
 CM_RETURN_CODE CMRTKernelBase::LoadProgramISA(const char* sFilename, CmProgram * &program)
 {
     int32_t err          = 0;
-    uint32_t codeSize     = 0; 
+    uint32_t codeSize     = 0;
     FILE     *fp          = nullptr;
     void     *codeBuf     = nullptr;
-    int32_t  result; 
+    int32_t  result;
 
     if (sFilename == nullptr)
     {
@@ -92,7 +92,7 @@ CM_RETURN_CODE CMRTKernelBase::LoadProgramISA(const char* sFilename, CmProgram *
         return CM_FAILURE;
     }
 
-    if (fread(codeBuf, 1, codeSize, fp) != codeSize) 
+    if (fread(codeBuf, 1, codeSize, fp) != codeSize)
     {
         printf("Error reading in ISA.");
         free(codeBuf);
@@ -204,10 +204,10 @@ CM_RETURN_CODE CMRTKernelBase::AddKernel(CmEvent *&cmEvent, bool destroyEvent, b
     }
 
     if (m_cmQueue == nullptr)
-    {   
+    {
         CM_CHK_STATUS_RETURN(m_cmDev->CreateQueue(m_cmQueue));//CreateQueue is just get queue of CmDev, so just need call once.
     }
-    
+
     CM_CHK_STATUS_RETURN(m_cmKernel->AssociateThreadSpace(m_cmThreadSpace));
     CM_CHK_STATUS_RETURN(m_cmTask->AddKernel(m_cmKernel));
 
@@ -219,7 +219,7 @@ CM_RETURN_CODE CMRTKernelBase::AddKernel(CmEvent *&cmEvent, bool destroyEvent, b
         {
            CM_CHK_STATUS_RETURN(m_cmQueue->DestroyEvent(cmEvent));
         }
-    } 
+    }
     else
     {
         CM_CHK_STATUS_RETURN(m_cmTask->AddSync());

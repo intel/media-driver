@@ -44,7 +44,6 @@ CodechalKernelHmeG10::CodechalKernelHmeG10(
 {
 }
 
-
 MOS_STATUS CodechalKernelHmeG10::SetCurbe(MHW_KERNEL_STATE *kernelState)
 {
     CODECHAL_ENCODE_CHK_NULL_RETURN(kernelState);

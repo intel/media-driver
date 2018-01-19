@@ -27,7 +27,7 @@
 #include "codechal_mmc_decode_vp8.h"
 
 CodechalMmcDecodeVp8::CodechalMmcDecodeVp8(
-    CodechalHwInterface    *hwInterface, 
+    CodechalHwInterface    *hwInterface,
     void *standardState):
     CodecHalMmcState(hwInterface)
 {
@@ -68,7 +68,7 @@ MOS_STATUS CodechalMmcDecodeVp8::SetPipeBufAddr(
     PMOS_COMMAND_BUFFER cmdBuffer)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
+
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     // MMC is only enabled for frame decoding and no interlaced support in VP8
@@ -97,7 +97,7 @@ MOS_STATUS CodechalMmcDecodeVp8::SetRefrenceSync(
     bool disableLockForTranscode)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
+
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     // Check if reference surface needs to be synchronized in MMC case

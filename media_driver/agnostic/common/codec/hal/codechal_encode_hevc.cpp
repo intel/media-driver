@@ -82,7 +82,7 @@ uint32_t CodechalEncHevcState::GetPicHdrSize()
             hdrPtr = m_bsBuffer.pBase + accum;
             uint32_t hdrOffset = GetStartCodeOffset(hdrPtr, origSize);
             hdrPtr += hdrOffset;
-            
+
             uint32_t zeroCount = 0;
             for (uint32_t j = 0 ; j < origSize - hdrOffset ; j++)
             {
@@ -178,7 +178,7 @@ MOS_STATUS CodechalEncHevcState::SetSequenceStructs()
         m_isMaxLcu64       = false;
         m_2xScalingEnabled = false;
     }
- 
+
     // allocate resources only needed in LCU64 kernel
     if (m_firstFrame && m_isMaxLcu64)
     {
@@ -203,7 +203,7 @@ MOS_STATUS CodechalEncHevcState::SetPictureStructs()
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
-  
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncodeHevcBase::SetPictureStructs());
 
     // do not support interlaced coding now
@@ -231,7 +231,7 @@ MOS_STATUS CodechalEncHevcState::SetPictureStructs()
             m_numPasses = (uint8_t)(m_mfxInterface->GetBrcNumPakPasses() - 1);  // 1 original plus extra to handle BRC
         }
     }
-    else 
+    else
     {
         m_numPasses = 0;  // no IPCM for HEVC
     }
@@ -329,7 +329,7 @@ MOS_STATUS CodechalEncHevcState::ExecutePictureLevel()
     {
         // Command buffer or patch list size are too small and so we cannot submit multiple pass of PAKs together
         m_firstTaskInPhase = true;
-        m_lastTaskInPhase  = true; 
+        m_lastTaskInPhase  = true;
     }
 
     if (m_vdboxIndex > m_mfxInterface->GetMaxVdboxIndex())
@@ -338,7 +338,7 @@ MOS_STATUS CodechalEncHevcState::ExecutePictureLevel()
         eStatus = MOS_STATUS_INVALID_PARAMETER;
         return eStatus;
     }
-   
+
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(GetCommandBuffer(&cmdBuffer));
 
@@ -346,8 +346,8 @@ MOS_STATUS CodechalEncHevcState::ExecutePictureLevel()
     {
         // Send command buffer header at the beginning (OS dependent)
         // frame tracking tag is only added in the last command buffer header
-        bool requestFrameTracking = m_singleTaskPhaseSupported ? 
-            m_firstTaskInPhase : 
+        bool requestFrameTracking = m_singleTaskPhaseSupported ?
+            m_firstTaskInPhase :
             m_lastTaskInPhase;
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(&cmdBuffer, requestFrameTracking));
@@ -365,16 +365,16 @@ MOS_STATUS CodechalEncHevcState::ExecutePictureLevel()
         uint32_t baseOffset = (m_encodeStatusBuf.wCurrIndex * m_encodeStatusBuf.dwReportSize) +
                 sizeof(uint32_t) * 2;  // pEncodeStatus is offset by 2 DWs in the resource       ;
 
-        CODECHAL_ENCODE_ASSERT((m_encodeStatusBuf.dwImageStatusMaskOffset & 7) == 0); // Make sure uint64_t aligned            
+        CODECHAL_ENCODE_ASSERT((m_encodeStatusBuf.dwImageStatusMaskOffset & 7) == 0); // Make sure uint64_t aligned
         CODECHAL_ENCODE_ASSERT((m_encodeStatusBuf.dwImageStatusMaskOffset + sizeof(uint32_t)) == m_encodeStatusBuf.dwImageStatusCtrlOffset);
-            
+
         miConditionalBatchBufferEndParams.presSemaphoreBuffer = &m_encodeStatusBuf.resStatusBuffer;
         miConditionalBatchBufferEndParams.dwOffset = baseOffset + m_encodeStatusBuf.dwImageStatusMaskOffset;
-                
+
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiConditionalBatchBufferEndCmd(
             &cmdBuffer,
-            &miConditionalBatchBufferEndParams));        
-        
+            &miConditionalBatchBufferEndParams));
+
         auto mmioRegisters = m_hcpInterface->GetMmioRegisters(m_vdboxIndex);
         MHW_MI_STORE_REGISTER_MEM_PARAMS miStoreRegMemParams;
         MHW_MI_COPY_MEM_MEM_PARAMS miCpyMemMemParams;
@@ -385,27 +385,27 @@ MOS_STATUS CodechalEncHevcState::ExecutePictureLevel()
         miLoadRegMemParams.dwOffset = baseOffset + m_encodeStatusBuf.dwImageStatusCtrlOffset;
         miLoadRegMemParams.dwRegister = mmioRegisters->hcpEncImageStatusCtrlRegOffset;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterMemCmd(&cmdBuffer, &miLoadRegMemParams));
-           
+
         MOS_ZeroMemory(&miStoreRegMemParams, sizeof(miStoreRegMemParams));
         miStoreRegMemParams.presStoreBuffer = &m_brcBuffers.resBrcPakStatisticBuffer[m_brcBuffers.uiCurrBrcPakStasIdxForWrite];
         miStoreRegMemParams.dwOffset = CODECHAL_OFFSETOF(CODECHAL_ENCODE_HEVC_PAK_STATS_BUFFER, HCP_IMAGE_STATUS_CONTROL_FOR_LAST_PASS);
-        miStoreRegMemParams.dwRegister = mmioRegisters->hcpEncImageStatusCtrlRegOffset; 
+        miStoreRegMemParams.dwRegister = mmioRegisters->hcpEncImageStatusCtrlRegOffset;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(&cmdBuffer, &miStoreRegMemParams));
-       
+
         MOS_ZeroMemory(&miStoreRegMemParams, sizeof(miStoreRegMemParams));
         miStoreRegMemParams.presStoreBuffer =  &m_encodeStatusBuf.resStatusBuffer;
         miStoreRegMemParams.dwOffset = baseOffset + m_encodeStatusBuf.dwImageStatusCtrlOfLastBRCPassOffset;
-        miStoreRegMemParams.dwRegister = mmioRegisters->hcpEncImageStatusCtrlRegOffset; 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(&cmdBuffer, &miStoreRegMemParams));              
+        miStoreRegMemParams.dwRegister = mmioRegisters->hcpEncImageStatusCtrlRegOffset;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(&cmdBuffer, &miStoreRegMemParams));
     }
-        
+
     if (IsFirstPass() && m_osInterface->bTagResourceSync)
     {
-        // This is a short term solution to solve the sync tag issue: the sync tag write for PAK is inserted at the end of 2nd pass PAK BB 
-        // which may be skipped in multi-pass PAK enabled case. The idea here is to insert the previous frame's tag at the beginning 
+        // This is a short term solution to solve the sync tag issue: the sync tag write for PAK is inserted at the end of 2nd pass PAK BB
+        // which may be skipped in multi-pass PAK enabled case. The idea here is to insert the previous frame's tag at the beginning
         // of the BB and keep the current frame's tag at the end of the BB. There will be a delay for tag update but it should be fine
         // as long as Dec/VP/Enc won't depend on this PAK so soon.
-       
+
         MOS_RESOURCE globalGpuContextSyncTagBuffer;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetGpuStatusBufferResource(
             m_osInterface,
@@ -418,7 +418,7 @@ MOS_STATUS CodechalEncHevcState::ExecutePictureLevel()
         params.dwValue = (value > 0) ? (value - 1) : 0;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(&cmdBuffer, &params));
     }
-  
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(StartStatusReport(&cmdBuffer, CODECHAL_NUM_MEDIA_STATES));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(AddHcpPipeModeSelectCmd(&cmdBuffer));
@@ -440,7 +440,7 @@ MOS_STATUS CodechalEncHevcState::ExecutePictureLevel()
     {
         uint32_t picStateCmdOffset;
         picStateCmdOffset = GetCurrentPass();
-        
+
         MHW_BATCH_BUFFER batchBuffer;
         MOS_ZeroMemory(&batchBuffer, sizeof(batchBuffer));
         batchBuffer.OsResource   = m_brcBuffers.resBrcImageStatesWriteBuffer[m_currRecycledBufIdx];
@@ -523,7 +523,7 @@ MOS_STATUS CodechalEncHevcState::AddHcpWeightOffsetStateCmd(
         hcpWeightOffsetParams.ucList = LIST_1;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpWeightOffsetStateCmd(cmdBuffer, nullptr, &hcpWeightOffsetParams));
     }
-  
+
     return eStatus;
 }
 
@@ -535,7 +535,7 @@ MOS_STATUS CodechalEncHevcState::SendHwSliceEncodeCommand(
     PMHW_VDBOX_HEVC_SLICE_STATE     params)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
+
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(params);
@@ -559,7 +559,7 @@ MOS_STATUS CodechalEncHevcState::SendHwSliceEncodeCommand(
     {
         cmdBufferInUse = cmdBuffer;
     }
-   
+
     // add HCP_REF_IDX command
     CODECHAL_ENCODE_CHK_STATUS_RETURN(AddHcpRefIdxCmd(cmdBufferInUse, batchBufferInUse, params));
 
@@ -571,7 +571,7 @@ MOS_STATUS CodechalEncHevcState::SendHwSliceEncodeCommand(
 
     // add HEVC Slice state commands
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpSliceStateCmd(cmdBufferInUse, params));
-    
+
     // add HCP_PAK_INSERT_OBJECTS command
     CODECHAL_ENCODE_CHK_STATUS_RETURN(AddHcpPakInsertNALUs(cmdBufferInUse, batchBufferInUse, params));
 
@@ -603,7 +603,7 @@ MOS_STATUS CodechalEncHevcState::SendHwSliceEncodeCommand(
 MOS_STATUS CodechalEncHevcState::ExecuteSliceLevel()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
+
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_slcData);
@@ -661,8 +661,8 @@ MOS_STATUS CodechalEncHevcState::ExecuteSliceLevel()
     if (!Mos_ResourceIsNull(&m_resFrameStatStreamOutBuffer))
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(ReadSseStatistics(&cmdBuffer));
-    }    
-    
+    }
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(EndStatusReport(&cmdBuffer, CODECHAL_NUM_MEDIA_STATES));
 
     if (!m_singleTaskPhaseSupported || m_lastTaskInPhase)
@@ -686,10 +686,10 @@ MOS_STATUS CodechalEncHevcState::ExecuteSliceLevel()
         MOS_SYNC_PARAMS syncParams = g_cInitSyncParams;
         syncParams.GpuContext = m_videoContext;
         syncParams.presSyncResource = &m_resSyncObjectRenderContextInUse;
-    
+
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnEngineWait(m_osInterface, &syncParams));
     }
-    
+
     bool renderingFlags = m_videoContextUsesNullHw;
 
     if (!m_singleTaskPhaseSupported || m_lastTaskInPhase)
@@ -786,14 +786,14 @@ int16_t CodechalEncHevcState::ComputeTemporalDifference(const CODEC_PICTURE& ref
 MOS_STATUS CodechalEncHevcState::WaitForRefFrameReady(uint8_t mbCodeIdx)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-   
+
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     if (!m_refSync[mbCodeIdx].bInUsed)
     {
         return eStatus;
     }
-    
+
     MOS_SYNC_PARAMS syncParams = g_cInitSyncParams;
     syncParams.GpuContext = m_renderContext;
     syncParams.presSyncResource = &m_refSync[mbCodeIdx].resSyncObject;
@@ -1363,7 +1363,7 @@ MOS_STATUS CodechalEncHevcState::Initialize(CodechalSetting * settings)
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    // common initilization 
+    // common initilization
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncodeHevcBase::Initialize(settings));
 
     m_brcBuffers.dwBrcHcpPicStateSize       = BRC_IMG_STATE_SIZE_PER_PASS * CODECHAL_ENCODE_BRC_MAXIMUM_NUM_PASSES;

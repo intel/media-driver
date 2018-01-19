@@ -295,9 +295,9 @@ void CodechalVdencHevcState::SetPakPassType()
 }
 
 void CodechalVdencHevcState::ComputeVDEncInitQP(int32_t& initQPIP, int32_t& initQPB)
-{  
+{
     CODECHAL_ENCODE_FUNCTION_ENTER;
-   
+
     const float x0 = 0, y0 = 1.19f, x1 = 1.75f, y1 = 1.75f;
     uint32_t frameSize = ((m_frameWidth * m_frameHeight * 3) >> 1);
 
@@ -376,7 +376,7 @@ MOS_STATUS CodechalVdencHevcState::StoreHuCStatus2Register(PMOS_COMMAND_BUFFER c
 MOS_STATUS CodechalVdencHevcState::HuCBrcInitReset()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-   
+
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     MOS_COMMAND_BUFFER cmdBuffer;
@@ -394,7 +394,6 @@ MOS_STATUS CodechalVdencHevcState::HuCBrcInitReset()
     MHW_VDBOX_HUC_IMEM_STATE_PARAMS imemParams;
     MOS_ZeroMemory(&imemParams, sizeof(imemParams));
     imemParams.dwKernelDescriptor = m_vdboxHucHevcBrcInitKernelDescriptor;
-    
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucImemStateCmd(&cmdBuffer, &imemParams));
 
@@ -423,7 +422,7 @@ MOS_STATUS CodechalVdencHevcState::HuCBrcInitReset()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(HuCBrcDummyStreamObject(&cmdBuffer));
 
     // Store HUC_STATUS2 register bit 6 before HUC_Start command
-    // BitField: VALID IMEM LOADED - This bit will be cleared by HW at the end of a HUC workload 
+    // BitField: VALID IMEM LOADED - This bit will be cleared by HW at the end of a HUC workload
     // (HUC_Start command with last start bit set).
     CODECHAL_DEBUG_TOOL(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHuCStatus2Register(&cmdBuffer));
@@ -1016,7 +1015,7 @@ MOS_STATUS CodechalVdencHevcState::SetRegionsHuCBrcUpdate(PMHW_VDBOX_HUC_VIRTUAL
     MOS_ZeroMemory(virtualAddrParams, sizeof(MHW_VDBOX_HUC_VIRTUAL_ADDR_PARAMS));
     virtualAddrParams->regionParams[0].presRegion = &m_vdencBrcHistoryBuffer;                // Region 0 - History Buffer (Input/Output)
     virtualAddrParams->regionParams[0].isWritable = true;
-    virtualAddrParams->regionParams[1].presRegion = 
+    virtualAddrParams->regionParams[1].presRegion =
         (MOS_RESOURCE*)m_allocator->GetResource(m_standard, vdencStats);                     // Region 1  VDEnc Statistics Buffer (Input) - VDENC_HEVC_VP9_FRAME_BASED_STATISTICS_STREAMOUT
     virtualAddrParams->regionParams[2].presRegion = &m_resFrameStatStreamOutBuffer;          // Region 2  PAK Statistics Buffer (Input) - MFX_PAK_FRAME_STATISTICS
     virtualAddrParams->regionParams[3].presRegion = &m_vdencReadBatchBuffer[m_currRecycledBufIdx][currentPass];    // Region 3 - Input SLB Buffer (Input)
@@ -1043,9 +1042,9 @@ MOS_STATUS CodechalVdencHevcState::SetRegionsHuCBrcUpdate(PMHW_VDBOX_HUC_VIRTUAL
 MOS_STATUS CodechalVdencHevcState::HuCBrcUpdate()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
+
     CODECHAL_ENCODE_FUNCTION_ENTER;
- 
+
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(GetCommandBuffer(&cmdBuffer));
 
@@ -1108,7 +1107,7 @@ MOS_STATUS CodechalVdencHevcState::HuCBrcUpdate()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(HuCBrcDummyStreamObject(&cmdBuffer));
 
     // Store HUC_STATUS2 register bit 6 before HUC_Start command
-    // BitField: VALID IMEM LOADED - This bit will be cleared by HW at the end of a HUC workload 
+    // BitField: VALID IMEM LOADED - This bit will be cleared by HW at the end of a HUC workload
     // (HUC_Start command with last start bit set).
     CODECHAL_DEBUG_TOOL(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHuCStatus2Register(&cmdBuffer));
@@ -1213,7 +1212,7 @@ void CodechalVdencHevcState::SetVdencPipeModeSelectParams(
 
     // needs to be enabled for 1st pass in multi-pass case
     // This bit is ignored if PAK only second pass is enabled.
-    if ((currentPass == 0) && (currentPass != m_numPasses))  
+    if ((currentPass == 0) && (currentPass != m_numPasses))
     {
         pipeModeSelectParams.bVdencPakObjCmdStreamOutEnable = true;
     }
@@ -1314,7 +1313,7 @@ void CodechalVdencHevcState::SetHcpSliceStateCommonParams(MHW_VDBOX_HEVC_SLICE_S
     // This bit disables Top intra Reference pixel fetch in VDENC mode.
     // In PAK only second pass, this bit should be set to one.
     // "IntraRefFetchDisable" in HCP SLICE STATE should be set to 0 in first pass and 1 in subsequent passes.
-    // For dynamic slice, 2nd pass is still VDEnc + PAK pass, not PAK only pass. 
+    // For dynamic slice, 2nd pass is still VDEnc + PAK pass, not PAK only pass.
     sliceStateParams.bIntraRefFetchDisable = m_pakOnlyPass;
 }
 
@@ -1434,7 +1433,7 @@ MOS_STATUS CodechalVdencHevcState::AddHcpWeightOffsetStateCmd(
         hcpWeightOffsetParams.ucList = LIST_1;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpWeightOffsetStateCmd(cmdBuffer, nullptr, &hcpWeightOffsetParams));
     }
-  
+
     return eStatus;
 }
 
@@ -1486,7 +1485,6 @@ MOS_STATUS CodechalVdencHevcState::AddVdencWeightOffsetStateCmd(
         nullptr,
         &vdencWeightOffsetParams));
 
-
     return eStatus;
 }
 
@@ -1515,8 +1513,8 @@ MOS_STATUS CodechalVdencHevcState::AddVdencWalkerStateCmd(
 MOS_STATUS CodechalVdencHevcState::ReadBrcPakStats(
     PMOS_COMMAND_BUFFER cmdBuffer)
 {
-    CODECHAL_ENCODE_FUNCTION_ENTER; 
-    
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
     MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
 
     uint32_t offset = (m_encodeStatusBuf.wCurrIndex * m_encodeStatusBuf.dwReportSize) +
@@ -1569,7 +1567,6 @@ MOS_STATUS CodechalVdencHevcState::ReadSliceSize()
     m_osInterface->pfnUnlockResource(
         m_osInterface,
         m_resSliceCountBuffer);
-
 
     //Read slice size for each of the slice from the buffer if SSC enabled
     data = (uint8_t *)m_osInterface->pfnLockResource(
@@ -1790,7 +1787,7 @@ MOS_STATUS CodechalVdencHevcState::ExecutePictureLevel()
             &miConditionalBatchBufferEndParams,
             sizeof(MHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS));
 
-        // VDENC uses HuC FW generated semaphore for conditional 2nd pass 
+        // VDENC uses HuC FW generated semaphore for conditional 2nd pass
         miConditionalBatchBufferEndParams.presSemaphoreBuffer =
             &m_resPakMmioBuffer;
 
@@ -1826,11 +1823,11 @@ MOS_STATUS CodechalVdencHevcState::ExecutePictureLevel()
 
     if (!currentPass && m_osInterface->bTagResourceSync)
     {
-        // This is a short term solution to solve the sync tag issue: the sync tag write for PAK is inserted at the end of 2nd pass PAK BB 
-        // which may be skipped in multi-pass PAK enabled case. The idea here is to insert the previous frame's tag at the beginning 
+        // This is a short term solution to solve the sync tag issue: the sync tag write for PAK is inserted at the end of 2nd pass PAK BB
+        // which may be skipped in multi-pass PAK enabled case. The idea here is to insert the previous frame's tag at the beginning
         // of the BB and keep the current frame's tag at the end of the BB. There will be a delay for tag update but it should be fine
         // as long as Dec/VP/Enc won't depend on this PAK so soon.
-        
+
         MOS_RESOURCE globalGpuContextSyncTagBuffer;
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetGpuStatusBufferResource(
@@ -1893,7 +1890,7 @@ MOS_STATUS CodechalVdencHevcState::ExecutePictureLevel()
     SetHcpQmStateParams(fqmParams, qmParams);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpFqmStateCmd(&cmdBuffer, &fqmParams));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpQmStateCmd(&cmdBuffer, &qmParams));
-      
+
     SetVdencPipeModeSelectParams(*m_pipeModeSelectParams);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencPipeModeSelectCmd(&cmdBuffer, m_pipeModeSelectParams));
 
@@ -1945,7 +1942,7 @@ MOS_STATUS CodechalVdencHevcState::SendHwSliceEncodeCommand(
     PMHW_VDBOX_HEVC_SLICE_STATE params)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-   
+
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
@@ -1974,7 +1971,7 @@ MOS_STATUS CodechalVdencHevcState::SendHwSliceEncodeCommand(
     else
     {
         // Weighted Prediction
-        // This slice level command is issued, if the weighted_pred_flag or weighted_bipred_flag equals one. 
+        // This slice level command is issued, if the weighted_pred_flag or weighted_bipred_flag equals one.
         // If zero, then this command is not issued.
         if (params->bWeightedPredInUse)
         {
@@ -1989,7 +1986,7 @@ MOS_STATUS CodechalVdencHevcState::SendHwSliceEncodeCommand(
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(AddHcpPakInsertSliceHeader(cmdBuffer, params->pVdencBatchBuffer, params));
 
-        // Send VDENC_WEIGHT_OFFSETS_STATE command 
+        // Send VDENC_WEIGHT_OFFSETS_STATE command
         CODECHAL_ENCODE_CHK_STATUS_RETURN(AddVdencWeightOffsetStateCmd(cmdBuffer, hevcSlcParams));
     }
 
@@ -2075,7 +2072,7 @@ MOS_STATUS CodechalVdencHevcState::ExecuteSliceLevel()
     flushDwParams.bVideoPipelineCacheInvalidate = true;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(&cmdBuffer, &flushDwParams));
 
-    // Send VD_PIPELINE_FLUSH command 
+    // Send VD_PIPELINE_FLUSH command
     MHW_VDBOX_VD_PIPE_FLUSH_PARAMS vdPipelineFlushParams;
     MOS_ZeroMemory(&vdPipelineFlushParams, sizeof(vdPipelineFlushParams));
     vdPipelineFlushParams.Flags.bWaitDoneHEVC = 1;
@@ -2120,7 +2117,7 @@ MOS_STATUS CodechalVdencHevcState::ExecuteSliceLevel()
     }
 
     std::string pakPassName = "PAK_PASS[" + std::to_string(GetCurrentPass())+"]";
-    CODECHAL_DEBUG_TOOL(    
+    CODECHAL_DEBUG_TOOL(
         CODECHAL_ENCODE_CHK_STATUS_RETURN( m_debugInterface->DumpCmdBuffer(
             &cmdBuffer,
             CODECHAL_NUM_MEDIA_STATES,
@@ -2306,10 +2303,10 @@ MOS_STATUS CodechalVdencHevcState::SetPictureStructs()
         m_hmeEnabled = m_b16XMeEnabled = m_b32XMeEnabled = false;
         m_16xMeSupported = false;
     }
-    
-    // SSC can be satisfied in single VDEnc+PAK pass when required. 
+
+    // SSC can be satisfied in single VDEnc+PAK pass when required.
     // However it is not 100% guaranteed due to delay in HW.
-    // When it happens, PAK would indicate SSC violation in MMIO register 
+    // When it happens, PAK would indicate SSC violation in MMIO register
     // and HuC would adjust SSC threshold and triggers another VDEnc+PAK pass.
     // SSC requires HuC for all target usages. (allow 1 pass SSC temporarily for testing purpose)
     if (m_vdencHucUsed && m_hevcSeqParams->SliceSizeControl)
@@ -2336,14 +2333,14 @@ MOS_STATUS CodechalVdencHevcState::SetPictureStructs()
         else if (m_hevcPicParams->BRCPrecision == 1)  // single-pass BRC
         {
             m_numPasses = 0;
-            // There is no need of additional pass for SSC, violation rate could be high but ok 
+            // There is no need of additional pass for SSC, violation rate could be high but ok
         }
     }
     else   // CQP, ACQP
     {
         m_numPasses = 0;
 
-        // ACQP + SSC, ACQP + WP. CQP + SSC/WP donot need 2nd pass 
+        // ACQP + SSC, ACQP + WP. CQP + SSC/WP donot need 2nd pass
         // driver programs 2nd pass, but it will be decided by conditional batch buffer end cmd to execute 2nd pass
         if (m_vdencHuCConditional2ndPass && m_hevcVdencAcqpEnabled)
         {
@@ -2508,7 +2505,7 @@ MOS_STATUS CodechalVdencHevcState::GetStatusReport(
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    // common initilization 
+    // common initilization
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncodeHevcBase::GetStatusReport(encodeStatus, encodeStatusReport));
 
     if (m_vdencHucUsed)
@@ -2532,8 +2529,8 @@ MOS_STATUS CodechalVdencHevcState::GetStatusReport(
 
 MOS_STATUS CodechalVdencHevcState::AllocatePakResources()
 {
-    CODECHAL_ENCODE_FUNCTION_ENTER; 
-    
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncodeHevcBase::AllocatePakResources());
@@ -2622,7 +2619,7 @@ MOS_STATUS CodechalVdencHevcState::AllocateEncResources()
         m_standard, size, 1, vdencIntraRowStoreScratch));
 
     // VDENC Statistics buffer, only needed for BRC
-    // The size is 19 CL for each tile, allocated with worst case, optimize later 
+    // The size is 19 CL for each tile, allocated with worst case, optimize later
     size = MOS_ALIGN_CEIL(m_vdencBrcStatsBufferSize * m_maxTileNumber, CODECHAL_PAGE_SIZE);
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_allocator->AllocateResource(
         m_standard, size, 1, vdencStats));
@@ -2796,7 +2793,7 @@ MOS_STATUS CodechalVdencHevcState::AllocateBrcResources()
     // Debug buffer
     allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(m_brcDebugBufSize, CODECHAL_PAGE_SIZE);
     allocParamsForBufferLinear.pBufName = "VDENC BRC Debug Buffer";
-    
+
     CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
         m_osInterface,
         &allocParamsForBufferLinear,
@@ -2837,7 +2834,7 @@ MOS_STATUS CodechalVdencHevcState::FreeBrcResources()
     }
 
     m_osInterface->pfnFreeResource(m_osInterface, &m_dataFromPicsBuffer);
-    
+
     for (auto k = 0; k < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; k++)
     {
         m_osInterface->pfnFreeResource(m_osInterface, &m_vdencDeltaQpBuffer[k]);
@@ -2866,14 +2863,14 @@ MOS_STATUS CodechalVdencHevcState::Initialize(CodechalSetting * settings)
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    // common initilization 
+    // common initilization
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncodeHevcBase::Initialize(settings));
 
     m_vdencBrcBuffers.uiCurrBrcPakStasIdxForRead = 0;
-    //Reading buffer is with 2 frames late for BRC kernel uses the PAK statstic info of the frame before the previous frame  
+    //Reading buffer is with 2 frames late for BRC kernel uses the PAK statstic info of the frame before the previous frame
     m_vdencBrcBuffers.uiCurrBrcPakStasIdxForWrite =
         (m_vdencBrcBuffers.uiCurrBrcPakStasIdxForRead + 2) % CODECHAL_ENCODE_RECYCLED_BUFFER_NUM;
-    
+
     uint32_t vdencPictureStatesSize = 0, vdencPicturePatchListSize = 0;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetVdencStateCommandsDataSize(
         CODECHAL_ENCODE_MODE_HEVC,
@@ -2882,7 +2879,7 @@ MOS_STATUS CodechalVdencHevcState::Initialize(CodechalSetting * settings)
 
     //the following code used to calculate ulMBCodeSize:
     //pakObjCmdStreamOutDataSize = 2*BYTES_PER_DWORD*(numOfLcu*NUM_PAK_DWS_PER_LCU + numOfLcu*maxNumOfCUperLCU*NUM_DWS_PER_CU); // Multiply by 2 for sideband
-    //const uint32_t maxNumOfCUperLCU = (64/8)*(64/8); 
+    //const uint32_t maxNumOfCUperLCU = (64/8)*(64/8);
     // NUM_PAK_DWS_PER_LCU 5
     // NUM_DWS_PER_CU 8
     uint32_t numOfLCU = MOS_ROUNDUP_DIVIDE(m_frameWidth, MAX_LCU_SIZE) * MOS_ROUNDUP_DIVIDE(m_frameHeight, MAX_LCU_SIZE);
@@ -2968,7 +2965,7 @@ CodechalVdencHevcState::CodechalVdencHevcState(
     PCODECHAL_STANDARD_INFO standardInfo)
     :CodechalEncodeHevcBase(hwInterface, debugInterface, standardInfo)
 {
-    m_fieldScalingOutputInterleaved = false; 
+    m_fieldScalingOutputInterleaved = false;
     m_2xMeSupported = false;
     m_combinedDownScaleAndDepthConversion = false;
     m_vdencBrcStatsBufferSize = m_brcStatsBufSize;
@@ -2976,15 +2973,15 @@ CodechalVdencHevcState::CodechalVdencHevcState(
 
     MOS_ZeroMemory(&m_sliceCountBuffer, sizeof(m_sliceCountBuffer));
     MOS_ZeroMemory(&m_vdencModeTimerBuffer, sizeof(m_vdencModeTimerBuffer));
-    
-    MOS_ZeroMemory(&m_vdencBrcBuffers, sizeof(m_vdencBrcBuffers)); 
+
+    MOS_ZeroMemory(&m_vdencBrcBuffers, sizeof(m_vdencBrcBuffers));
     MOS_ZeroMemory(&m_dataFromPicsBuffer, sizeof(m_dataFromPicsBuffer));
     MOS_ZeroMemory(&m_vdencDeltaQpBuffer, sizeof(m_vdencDeltaQpBuffer));
     MOS_ZeroMemory(&m_vdencOutputROIStreaminBuffer, sizeof(m_vdencOutputROIStreaminBuffer));
     MOS_ZeroMemory(m_vdencBrcUpdateDmemBuffer, sizeof(m_vdencBrcUpdateDmemBuffer));
     MOS_ZeroMemory(&m_vdencBrcInitDmemBuffer, sizeof(m_vdencBrcInitDmemBuffer));
     MOS_ZeroMemory(&m_vdencBrcConstDataBuffer, sizeof(m_vdencBrcConstDataBuffer));
-    MOS_ZeroMemory(&m_vdencBrcHistoryBuffer, sizeof(m_vdencBrcHistoryBuffer));    
+    MOS_ZeroMemory(&m_vdencBrcHistoryBuffer, sizeof(m_vdencBrcHistoryBuffer));
     MOS_ZeroMemory(&m_vdencReadBatchBuffer, sizeof(m_vdencReadBatchBuffer));
     MOS_ZeroMemory(&m_vdencBrcDbgBuffer, sizeof(m_vdencBrcDbgBuffer));
     MOS_ZeroMemory(&m_vdenc2ndLevelBatchBuffer, sizeof(m_vdenc2ndLevelBatchBuffer));

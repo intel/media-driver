@@ -32,10 +32,10 @@
 //!
 //! \struct CodecDecodeMpeg2PicParams
 //! \brief  Mpeg2 picture parameter
-//! 
+//!
 struct CodecDecodeMpeg2PicParams
 {
-    CODEC_PICTURE       m_currPic;                      //!< The current frame surface 
+    CODEC_PICTURE       m_currPic;                      //!< The current frame surface
     uint16_t            m_forwardRefIdx;                //!< Forward reference index
     uint16_t            m_backwardRefIdx;               //!< Backward reference index
     uint32_t            m_topFieldFirst;                //!< Indicate that the first field of the reconstructed frame is the top field
@@ -90,8 +90,8 @@ struct CodecDecodeMpeg2SliceParams
     uint32_t m_sliceDataSize;               //!< Number of bits for this slice
     uint32_t m_sliceDataOffset;             //!< Offset to the first byte of slice data
     uint32_t m_macroblockOffset;            //!< Offset to the first bit of MB from the first byte of slice data
-    uint32_t m_sliceHorizontalPosition;     //!< The horizontal position of the first macroblock in the slice 
-    uint32_t m_sliceVerticalPosition;       //!< The vertical position of the first macroblock in the slice 
+    uint32_t m_sliceHorizontalPosition;     //!< The horizontal position of the first macroblock in the slice
+    uint32_t m_sliceVerticalPosition;       //!< The vertical position of the first macroblock in the slice
     int32_t  m_quantiserScaleCode;          //!< Quantiser scale code
     uint32_t m_numMbsForSlice;              //!<  The number of macroblocks in the slice
     bool     m_numMbsForSliceOverflow;      //!< NumMbsForSlice > max allowable Mbs

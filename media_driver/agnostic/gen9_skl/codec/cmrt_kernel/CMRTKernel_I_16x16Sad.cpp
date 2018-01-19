@@ -110,7 +110,7 @@ CM_RETURN_CODE CMRTKernelI16x16Sad::CreateAndDispatchKernel(CmEvent *&cmEvent, b
 
     width = curbe[0] & 0x0FFFF;
     height = (curbe[0] >> 16) & 0x0FFFF;
- 
+
     threadSpaceWidth = width >> 4;
     threadSpaceHeight = height >> 4;
 
@@ -136,7 +136,7 @@ CM_RETURN_CODE CMRTKernelI16x16Sad::CreateAndDispatchKernel(CmEvent *&cmEvent, b
 CM_RETURN_CODE CMRTKernelI16x16SadUMD::AllocateSurfaces(void *params)
 {
     IFrameKernelParams *I16x16SadParams = (IFrameKernelParams *)params;
- 
+
     CM_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D((MOS_RESOURCE *)I16x16SadParams->m_cmSurfCurrY, m_cmSurface2D[0]));
     CM_CHK_STATUS_RETURN(m_cmSurface2D[0]->GetIndex(m_surfIndex[0]));
     CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE *)I16x16SadParams->m_cmSurfSAD16x16, m_cmBuffer[0]));

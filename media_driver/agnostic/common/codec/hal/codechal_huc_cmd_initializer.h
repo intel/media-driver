@@ -177,7 +177,6 @@ struct Vp9CmdInitializerParams
     uint16_t                            rdQpLambda;
     bool                                vdencPakOnlyMultipassEnabled;
 
-
 };
 #endif
 
@@ -248,7 +247,6 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS CmdInitializerAllocateResources(CodechalHwInterface*    m_hwInterface);
-
 
     //!
     //! \brief    Set all the data of the InputCom of command initializer HuC FW
@@ -358,9 +356,9 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS AddCommandsVp9(uint32_t commandtype, PMOS_COMMAND_BUFFER cmdBuffer) 
-    { 
-        return MOS_STATUS_SUCCESS; 
+    virtual MOS_STATUS AddCommandsVp9(uint32_t commandtype, PMOS_COMMAND_BUFFER cmdBuffer)
+    {
+        return MOS_STATUS_SUCCESS;
     }
 #endif
 #if USE_CODECHAL_DEBUG_TOOL

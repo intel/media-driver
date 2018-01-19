@@ -1738,7 +1738,6 @@ C_ASSERT(MOS_BYTES_TO_DWORDS(sizeof(CODECHAL_VDENC_HEVC_ME_CURBE_G10)) == 48);
 
 using PCODECHAL_VDENC_HEVC_ME_CURBE_G10 = CODECHAL_VDENC_HEVC_ME_CURBE_G10*;
 
-
 //!  HEVC VDEnc encoder class for GEN10
 /*!
 This class defines the member fields, functions for GEN10 platform
@@ -1750,11 +1749,11 @@ public:
     static constexpr uint32_t   m_brcConstantSurfaceWidth = 64;        //!< BRC constant surface width
     static constexpr uint32_t   m_brcConstantSurfaceHeight = 35;       //!< BRC constant surface height
     static constexpr uint32_t   m_brcHistoryBufferSize = 1016;          //!< BRC history buffer size
-    static constexpr uint32_t   m_bframeMeBidirectionalWeight = 32;    //!< B frame bidirection weight 
+    static constexpr uint32_t   m_bframeMeBidirectionalWeight = 32;    //!< B frame bidirection weight
     static constexpr uint32_t   m_insertOffsetAfterCMD1 = 120;        //!< Huc Initializer CMD1 delta
     static constexpr uint32_t   m_insertOffsetAfterCMD2 = 148;        //!< Huc Initializer CMD2 delta
 
-    // HuC tables. 
+    // HuC tables.
     // These Values are diff for each Gen
     static const int8_t         m_devThreshPB0[8];
     static const int8_t         m_devThreshPB0LowDelay[8];
@@ -1762,10 +1761,10 @@ public:
     static const int8_t         m_devThreshI0[8];
     static const uint32_t       m_hucConstantData[];
     static const uint32_t       m_meCurbeInit[48];                      //!< Curbe initialization data for ME kernel
- 
+
     //!
     //! \brief    Constructor
-    //!     
+    //!
     CodechalVdencHevcStateG10(CodechalHwInterface* hwInterface,
         CodechalDebugInterface* debugInterface,
         PCODECHAL_STANDARD_INFO standardInfo);
@@ -1879,7 +1878,7 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS SendMeSurfaces(bool using4xMe, PMOS_COMMAND_BUFFER cmdBuffer);
-  
+
     // inherited virtual functions
     uint32_t GetMaxBtCount();
     bool CheckSupportedFormat(PMOS_SURFACE surface);

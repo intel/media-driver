@@ -27,7 +27,7 @@
 #include "codechal_mmc_decode_vp9.h"
 
 CodechalMmcDecodeVp9::CodechalMmcDecodeVp9(
-    CodechalHwInterface    *hwInterface, 
+    CodechalHwInterface    *hwInterface,
     void *standardState):
     CodecHalMmcState(hwInterface)
 {
@@ -68,7 +68,7 @@ MOS_STATUS CodechalMmcDecodeVp9::SetPipeBufAddr(
     PMOS_COMMAND_BUFFER cmdBuffer)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
+
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     if (m_mmcEnabled &&
@@ -97,7 +97,7 @@ MOS_STATUS CodechalMmcDecodeVp9::SetRefrenceSync(
     bool disableLockForTranscode)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
+
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     // Check if reference surface needs to be synchronized in MMC case
@@ -156,9 +156,9 @@ MOS_STATUS CodechalMmcDecodeVp9::CheckReferenceList(
     MOS_MEMCOMP_STATE mmcMode;
 
     // Disable MMC if self-reference is dectected for P/B frames (mainly for error concealment)
-    if (((pipeBufAddrParams->PostDeblockSurfMmcState != MOS_MEMCOMP_DISABLED) || 
+    if (((pipeBufAddrParams->PostDeblockSurfMmcState != MOS_MEMCOMP_DISABLED) ||
         (pipeBufAddrParams->PreDeblockSurfMmcState != MOS_MEMCOMP_DISABLED)) &&
-        (picParams->PicFlags.fields.frame_type != CODEC_VP9_KEY_FRAME && 
+        (picParams->PicFlags.fields.frame_type != CODEC_VP9_KEY_FRAME &&
         !picParams->PicFlags.fields.intra_only))
     {
         bool selfReference = false;
@@ -168,13 +168,13 @@ MOS_STATUS CodechalMmcDecodeVp9::CheckReferenceList(
         {
             selfReference = true;
         }
-    
+
         if (selfReference)
         {
             pipeBufAddrParams->PostDeblockSurfMmcState = MOS_MEMCOMP_DISABLED;
             pipeBufAddrParams->PreDeblockSurfMmcState  = MOS_MEMCOMP_DISABLED;
             CODECHAL_DECODE_ASSERTMESSAGE("Self-reference is detected for P/B frames!");
-    
+
             // Decompress current frame to avoid green corruptions in this error handling case
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetMemoryCompressionMode(
                 m_osInterface,
@@ -196,8 +196,8 @@ MOS_STATUS CodechalMmcDecodeVp9::CheckReferenceList(
         if (pipeBufAddrParams->presReferences[i])
         {
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetMemoryCompressionMode(
-                m_osInterface, 
-                pipeBufAddrParams->presReferences[i], 
+                m_osInterface,
+                pipeBufAddrParams->presReferences[i],
                 &mmcMode));
             if (firstRefPic)
             {
@@ -219,8 +219,8 @@ MOS_STATUS CodechalMmcDecodeVp9::CheckReferenceList(
             if (pipeBufAddrParams->presReferences[i])
             {
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetMemoryCompressionMode(
-                    m_osInterface, 
-                    pipeBufAddrParams->presReferences[i], 
+                    m_osInterface,
+                    pipeBufAddrParams->presReferences[i],
                     &mmcMode));
                 if(mmcMode != MOS_MEMCOMP_DISABLED)
                 {
@@ -231,6 +231,6 @@ MOS_STATUS CodechalMmcDecodeVp9::CheckReferenceList(
             }
         }
     }
-    
+
     return eStatus;
 }

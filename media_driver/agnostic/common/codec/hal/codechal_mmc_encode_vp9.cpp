@@ -27,7 +27,7 @@
 #include "codechal_mmc_encode_vp9.h"
 
 CodechalMmcEncodeVp9::CodechalMmcEncodeVp9(
-    CodechalHwInterface    *hwInterface, 
+    CodechalHwInterface    *hwInterface,
     void *standardState):
     CodecHalMmcState(hwInterface)
 {
@@ -71,7 +71,7 @@ MOS_STATUS CodechalMmcEncodeVp9::SetPipeBufAddr(
 
     if (m_mmcEnabled && m_vp9State->m_reconSurface.bCompressible)
     {
-        pipeBufAddrParams->PostDeblockSurfMmcState = 
+        pipeBufAddrParams->PostDeblockSurfMmcState =
         pipeBufAddrParams->PreDeblockSurfMmcState = MOS_MEMCOMP_HORIZONTAL;
     }
     else

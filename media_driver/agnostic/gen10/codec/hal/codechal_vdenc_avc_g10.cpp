@@ -197,9 +197,9 @@ struct BrcUpdateDmem
     uint8_t     UPD_SLCSZ_ConsertativeThreshold_U8;   // =0, 0: do not set conservative threshold (suggested for video conference) 1: set conservative threshold for non-video conference
     uint16_t    UPD_TargetSliceSize_U16;              // default: 1498, max target slice size from app DDI
     uint16_t    UPD_MaxNumSliceAllowed_U16;           // computed by driver based on level idc
-    uint16_t    UPD_SLBB_Size_U16;                    // second level batch buffer (SLBB) size in bytes, the input buffer will contain two SLBBs A and B, A followed by B, A and B have the same structure. 
+    uint16_t    UPD_SLBB_Size_U16;                    // second level batch buffer (SLBB) size in bytes, the input buffer will contain two SLBBs A and B, A followed by B, A and B have the same structure.
     uint16_t    UPD_SLBB_B_Offset_U16;                // offset in bytes from the beginning of the input buffer, it points to the start of SLBB B, set by driver for skip frame support
-    uint16_t    UPD_AvcImgStateOffset_U16;            // offset in bytes from the beginning of SLBB A 
+    uint16_t    UPD_AvcImgStateOffset_U16;            // offset in bytes from the beginning of SLBB A
     uint16_t    reserved_u16;
     uint32_t    NumOfSlice;                           // PAK output via MMIO
 
@@ -214,10 +214,10 @@ struct BrcUpdateDmem
     uint32_t    MiniFramePaddingSize_U32;             // PAK output via MMIO
     uint16_t    UPD_WidthInMB_U16;                    // width in MB
     uint16_t    UPD_HeightInMB_U16;                   // height in MB
-    int8_t      UPD_ROIQpDelta_I8[8];                 // Application specified ROI QP Adjustment for Zone0, Zone1, Zone2 and Zone3, Zone4, Zone5, Zone6 and Zone7. 
+    int8_t      UPD_ROIQpDelta_I8[8];                 // Application specified ROI QP Adjustment for Zone0, Zone1, Zone2 and Zone3, Zone4, Zone5, Zone6 and Zone7.
     uint8_t     RSVD2[36];
 };
-using PBrcUpdateDmem = struct BrcUpdateDmem*; 
+using PBrcUpdateDmem = struct BrcUpdateDmem*;
 
 const uint32_t CodechalVdencAvcStateG10::m_mvCostSkipBiasQPel[3][8] =
 {
@@ -419,10 +419,10 @@ CodechalVdencAvcStateG10::CodechalVdencAvcStateG10(
     m_kernelBase = nullptr;
 #endif
     AddIshSize(m_kuid, m_kernelBase);
-    
+
     m_cmKernelEnable = true;
     m_mbStatsSupported = true; //Starting from GEN9
-	m_needCheckCpEnabled = true;
+    m_needCheckCpEnabled = true;
 
     pfnGetKernelHeaderAndSize    = CodechalVdencAvcStateG10::GetKernelHeaderAndSize;
 
@@ -887,7 +887,7 @@ MOS_STATUS CodechalVdencAvcStateG10::PopulatePakParam(
     }
 
     CODECHAL_DEBUG_CHK_NULL(data);
- 
+
     mhw_vdbox_mfx_g10_X::MFX_AVC_IMG_STATE_CMD mfxCmd;
     mfxCmd = *(mhw_vdbox_mfx_g10_X::MFX_AVC_IMG_STATE_CMD *)(data);
 

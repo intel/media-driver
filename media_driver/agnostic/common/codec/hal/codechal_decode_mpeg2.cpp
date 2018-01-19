@@ -245,7 +245,7 @@ MOS_STATUS CodechalDecodeMpeg2::CopyDataSurface(
         m_osInterface,
         m_videoContextForWa));
     m_osInterface->pfnResetOsStates(m_osInterface);
-    
+
     m_osInterface->pfnSetPerfTag(
         m_osInterface,
         (uint16_t)(((m_mode << 4) & 0xF0) | COPY_TYPE));
@@ -1199,10 +1199,10 @@ void CodechalDecodeMpeg2::PackMotionVectors(
     {
         switch(motionType)
         {
-        case CodechalDecodeMcFrame: 
+        case CodechalDecodeMcFrame:
             intelMotionType = CODECHAL_MPEG2_IMT_FRAME_FRAME;
             break;
-        case CodechalDecodeMcField: 
+        case CodechalDecodeMcField:
             intelMotionType = CODECHAL_MPEG2_IMT_FRAME_FIELD;
             break;
         case CodechalDecodeMcDmv:
@@ -1427,7 +1427,7 @@ MOS_STATUS CodechalDecodeMpeg2::MacroblockLevel()
 
                 MOS_ZeroMemory(mpeg2MbState.sPackedMVs0,sizeof(mpeg2MbState.sPackedMVs0));
                 MOS_ZeroMemory(mpeg2MbState.sPackedMVs1,sizeof(mpeg2MbState.sPackedMVs1));
-                if ((!intraMB) && (mpeg2MbState.pMBParams->MBType.m_value & 
+                if ((!intraMB) && (mpeg2MbState.pMBParams->MBType.m_value &
                     (CODECHAL_DECODE_MPEG2_MB_MOTION_BACKWARD | CODECHAL_DECODE_MPEG2_MB_MOTION_FORWARD)))
                 {
                     PackMotionVectors(m_picParams->m_currPic.PicFlags, &mpeg2MbState);
@@ -1532,7 +1532,7 @@ MOS_STATUS CodechalDecodeMpeg2::MacroblockLevel()
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_hwInterface->WriteSyncTagToResource(
                 &cmdBuffer,
                 &syncParams));
-        } 
+        }
 
         if (m_statusQueryReportingEnabled)
         {

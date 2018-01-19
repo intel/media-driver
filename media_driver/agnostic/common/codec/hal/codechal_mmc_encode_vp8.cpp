@@ -27,7 +27,7 @@
 #include "codechal_mmc_encode_vp8.h"
 
 CodechalMmcEncodeVp8::CodechalMmcEncodeVp8(
-    CodechalHwInterface    *hwInterface, 
+    CodechalHwInterface    *hwInterface,
     void *standardState):
     CodecHalMmcState(hwInterface)
 {
@@ -68,14 +68,14 @@ MOS_STATUS CodechalMmcEncodeVp8::SetPipeBufAddr(
     PMOS_COMMAND_BUFFER cmdBuffer)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
+
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_vp8State->m_vp8PicParams);
 
     // MMC is only enabled for frame encoding and VP8 doesn't support interlaced encoding.
     if (m_mmcEnabled && m_vp8State->m_reconSurface.bCompressible)
-    {    
+    {
         // deblocking is enabled
         if ((m_vp8State->m_vp8PicParams->version == 0) || (m_vp8State->m_vp8PicParams->version == 1))
         {

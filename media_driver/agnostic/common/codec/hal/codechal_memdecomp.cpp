@@ -134,7 +134,7 @@ public:
     //! \brief    Destructor
     //!
     ~MediaObjectCopyCurbe(){};
-    
+
     static const size_t m_byteSize = 28; //!< Byte size of cube data DW0-6.
 } ;
 
@@ -616,7 +616,7 @@ MOS_STATUS MediaMemDecompState::MemoryDecompress(
     // Update the compression mode
     MHW_CHK_STATUS_RETURN(m_osInterface->pfnSetMemoryCompressionMode(
         m_osInterface,
-        targetResource, 
+        targetResource,
         MOS_MEMCOMP_DISABLED));
     MHW_CHK_STATUS_RETURN(m_osInterface->pfnSetMemoryCompressionHint(
         m_osInterface,
@@ -641,7 +641,6 @@ MOS_STATUS MediaMemDecompState::MemoryDecompress(
     return eStatus;
 }
 
-
 MOS_STATUS MediaMemDecompState::GetResourceInfo(
     PMOS_SURFACE   surface)
 {
@@ -656,7 +655,7 @@ MOS_STATUS MediaMemDecompState::GetResourceInfo(
 
     MHW_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(
         m_osInterface,
-        &surface->OsResource, 
+        &surface->OsResource,
         &details));
 
     surface->Format                      = details.Format;
@@ -814,7 +813,7 @@ MOS_STATUS MediaMemDecompState::SetKernelStateParams()
         kernelState->KernelParams.iBlockHeight = 16;
         kernelState->KernelParams.iIdCount     = 1;
 
-        kernelState->dwCurbeOffset = 
+        kernelState->dwCurbeOffset =
             m_stateHeapInterface->pStateHeapInterface->GetSizeofCmdInterfaceDescriptorData();
 
         MHW_CHK_STATUS_RETURN(m_stateHeapInterface->pfnCalculateSshAndBtSizesRequested(
@@ -932,7 +931,7 @@ MOS_STATUS MediaMemDecompState::Initialize(
     m_renderContextUsesNullHw =
         ((m_renderContext == MOS_GPU_CONTEXT_RENDER) ? nullHWAccelerationEnable.CtxRender : nullHWAccelerationEnable.CtxRender2) ||
         nullHWAccelerationEnable.Mmc;
-    
+
     MOS_ALLOC_GFXRES_PARAMS allocParams;
     MOS_ZeroMemory(&allocParams, sizeof(allocParams));
     allocParams.Type = MOS_GFXRES_BUFFER;
@@ -957,8 +956,8 @@ MOS_STATUS MediaMemDecompState::Initialize(
     MOS_ZeroMemory(m_cmdBufIdGlobal, allocParams.dwBytes);
 
     MHW_CHK_STATUS_RETURN(m_stateHeapInterface->pfnSetCmdBufStatusPtr(
-        m_stateHeapInterface, 
+        m_stateHeapInterface,
         m_cmdBufIdGlobal));
-    
+
     return eStatus;
 }

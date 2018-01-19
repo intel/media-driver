@@ -55,9 +55,9 @@ public:
     static MOS_STATUS GetKernelHeaderAndSize(
         void                           *pvBinary,
         EncOperation                   operation,
-		uint32_t                       dwKrnStateIdx,
+        uint32_t                       dwKrnStateIdx,
         void                           *pvKrnHeader,
-		uint32_t                       *pdwKrnSize);
+        uint32_t                       *pdwKrnSize);
 
     //!
     //! \brief    Constructor

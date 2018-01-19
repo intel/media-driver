@@ -456,7 +456,7 @@ public:
     //! \brief    Destructor
     //!
     ~BrcInitResetCurbe(){};
-    
+
     static const size_t m_byteSize = sizeof(CurbeData);
 
 };
@@ -583,7 +583,6 @@ public:
             {
                 uint32_t m_value;
             };
-
 
         } DW7;
 
@@ -736,7 +735,7 @@ public:
     //! \brief    Destructor
     //!
     ~BrcUpdateCurbe(){};
-    
+
     static const size_t m_byteSize = sizeof(CurbeData);
 
  } ;
@@ -1014,7 +1013,6 @@ BrcUpdateCurbe::BrcUpdateCurbe()
     }
 }
 
-
 const uint8_t CodechalEncodeMpeg2::m_qpAdjustmentDistThresholdMaxFrameThresholdI[] = {
     0x01,   0x02,   0x03,   0x04,   0x05,   0x01,   0x01,   0x02,   0x03,   0x04,
     0x00,   0x00,   0x01,   0x02,   0x03,   0x00,   0x00,   0x00,   0x01,   0x02,
@@ -1118,7 +1116,6 @@ MOS_STATUS CodechalEncodeMpeg2::InitMmcState()
 #endif
     return MOS_STATUS_SUCCESS;
 }
-
 
 CodechalEncodeMpeg2::CodechalEncodeMpeg2(
     CodechalHwInterface*    hwInterface,
@@ -2741,7 +2738,6 @@ MOS_STATUS CodechalEncodeMpeg2::InitKernelStateBrc()
         0                                                                 // MbBRCUpdate kernel is not needed
     };
 
-
     CODECHAL_KERNEL_HEADER currKrnHeader;
     // CODECHAL_ENCODE_BRC_IDX_NUM - 2: BlockCopy and MbBRCUpdate kernel not needed
     for (uint8_t krnStateIdx = 0; krnStateIdx < CODECHAL_ENCODE_BRC_IDX_NUM - 2; krnStateIdx++)
@@ -3407,7 +3403,6 @@ MOS_STATUS CodechalEncodeMpeg2::EncodeMbEncKernel(bool mbEncIFrameDistEnabled)
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SendGenericKernelCmds(&cmdBuffer, &sendKernelCmdsParams));
 
-
     // Add binding table
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_stateHeapInterface->pfnSetBindingTable(
         m_stateHeapInterface,
@@ -3469,7 +3464,7 @@ MOS_STATUS CodechalEncodeMpeg2::EncodeMbEncKernel(bool mbEncIFrameDistEnabled)
             encFunctionType,
             nullptr));
     )
-    
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_stateHeapInterface->pfnSubmitBlocks(
         m_stateHeapInterface,
         kernelState));
@@ -3556,7 +3551,7 @@ MOS_STATUS CodechalEncodeMpeg2::SendBrcUpdateSurfaces(
         &surfaceCodecParams,
         kernelState));
 
-    // BRC ENC CURBE Buffer - read only 
+    // BRC ENC CURBE Buffer - read only
     MOS_RESOURCE *dsh = nullptr;
     CODECHAL_ENCODE_CHK_NULL_RETURN(dsh = mbEncKernelState->m_dshRegion.GetResource());
     bufSize = MOS_ALIGN_CEIL(
@@ -3564,7 +3559,7 @@ MOS_STATUS CodechalEncodeMpeg2::SendBrcUpdateSurfaces(
         m_stateHeapInterface->pStateHeapInterface->GetCurbeAlignment());
     MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
     surfaceCodecParams.presBuffer = dsh;
-    surfaceCodecParams.dwOffset = 
+    surfaceCodecParams.dwOffset =
         mbEncKernelState->m_dshRegion.GetOffset() +
         mbEncKernelState->dwCurbeOffset;
     surfaceCodecParams.dwSize = MOS_BYTES_TO_DWORDS(bufSize);
@@ -3654,7 +3649,7 @@ MOS_STATUS CodechalEncodeMpeg2::SetCurbeBrcUpdate()
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
-    
+
     BrcUpdateCurbe cmd;
 
     cmd.m_curbeData.DW5.m_targetSizeFlag = 0;
@@ -3723,7 +3718,7 @@ MOS_STATUS CodechalEncodeMpeg2::InitBrcConstantBuffer()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    auto brcConstantDataBuffer  = 
+    auto brcConstantDataBuffer  =
         m_brcBuffers.sBrcConstantDataBuffer[m_currRecycledBufIdx];
 
     CodechalResLock bufLock(m_osInterface, &brcConstantDataBuffer.OsResource);
@@ -3757,9 +3752,9 @@ MOS_STATUS CodechalEncodeMpeg2::InitBrcConstantBuffer()
     // Fill surface with QP Adjustment table, Distortion threshold table, MaxFrame threshold table for I frame
     // The surface width happens to be the size of the array.
     CODECHAL_ENCODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(
-        data, 
+        data,
         m_frameThresholdArraySize,
-        maxFrameThresholdArray, 
+        maxFrameThresholdArray,
         m_frameThresholdArraySize));
 
     data += m_frameThresholdArraySize;
@@ -3776,9 +3771,9 @@ MOS_STATUS CodechalEncodeMpeg2::InitBrcConstantBuffer()
             copySize = m_distQpAdjustmentArraySize - i;
         }
         CODECHAL_ENCODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(
-            data + i, 
-            copySize, 
-            distQPAdjustmentArray + i, 
+            data + i,
+            copySize,
+            distQPAdjustmentArray + i,
             copySize));
     }
 
@@ -3816,7 +3811,6 @@ MOS_STATUS CodechalEncodeMpeg2::EncodeBrcUpdateKernel()
     // m_mbEncKernelStates: I: m_mbEncKernelStates[0], P: m_mbEncKernelStates[1], B: m_mbEncKernelStates[2]
     uint32_t krnStateIdx = m_pictureCodingType - 1;
     auto mbEncKernelState = &m_mbEncKernelStates[krnStateIdx];
-
 
     // Setup MbEnc Curbe
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AssignDshAndSshSpace(
@@ -4011,10 +4005,10 @@ MOS_STATUS CodechalEncodeMpeg2::EncodeBrcUpdateKernel()
             0,
             CODECHAL_MEDIA_STATE_BRC_UPDATE));
     )
-       
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_stateHeapInterface->pfnSubmitBlocks(
         m_stateHeapInterface,
-        kernelState)); 
+        kernelState));
     if (!m_singleTaskPhaseSupported || m_lastTaskInPhase)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_stateHeapInterface->pfnUpdateGlobalCmdBufId(
@@ -4036,7 +4030,7 @@ MOS_STATUS CodechalEncodeMpeg2::EncodeBrcUpdateKernel()
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(
             m_osInterface,
-            &cmdBuffer, 
+            &cmdBuffer,
             m_renderContextUsesNullHw));
         m_lastTaskInPhase = false;
     }
@@ -4084,7 +4078,7 @@ MOS_STATUS CodechalEncodeMpeg2::ExecuteKernelFunctions()
 
     // Scaling and HME are not dependent on the output from PAK
     if (m_waitForPak &&
-        m_semaphoreObjCount && 
+        m_semaphoreObjCount &&
         !Mos_ResourceIsNull(&m_resSyncObjectVideoContextInUse))
     {
         // Wait on PAK
@@ -4255,7 +4249,7 @@ MOS_STATUS CodechalEncodeMpeg2::ExecuteKernelFunctions()
 
     // Reset indices for next frame
     if (m_brcEnabled)
-    {        
+    {
         m_mbEncCurbeSetInBrcUpdate = false;
     }
 
@@ -4281,7 +4275,7 @@ MOS_STATUS CodechalEncodeMpeg2::ExecutePictureLevel()
     pipeModeSelectParams.Mode = m_mode;
     pipeModeSelectParams.bStreamOutEnabled = true;
     bool suppressReconPic =
-        (!m_refList[m_currReconstructedPic.FrameIdx]->bUsedAsRef) && 
+        (!m_refList[m_currReconstructedPic.FrameIdx]->bUsedAsRef) &&
         m_suppressReconPicSupported;
     pipeModeSelectParams.bPreDeblockOutEnable  = !suppressReconPic;
     pipeModeSelectParams.bPostDeblockOutEnable = 0;
@@ -4294,7 +4288,7 @@ MOS_STATUS CodechalEncodeMpeg2::ExecutePictureLevel()
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetPipeBufAddr(&pipeBufAddrParams));
-    
+
     pipeBufAddrParams.psPostDeblockSurface = &m_reconSurface;
     pipeBufAddrParams.psRawSurface = m_rawSurfaceToPak;
     pipeBufAddrParams.presStreamOutBuffer = &m_resStreamOutBuffer[m_currRecycledBufIdx];
@@ -4374,7 +4368,7 @@ MOS_STATUS CodechalEncodeMpeg2::ExecutePictureLevel()
     mpeg2PicState.ucKernelMode           = m_kernelMode;
 
     m_hwInterface->m_numRequestedEuSlices    = (m_brcEnabled &&
-                                               m_sliceStateEnable && 
+                                               m_sliceStateEnable &&
                                                ((m_frameHeight * m_frameWidth) >= m_hwInterface->m_mpeg2SSDResolutionThreshold)) ?
                                                m_sliceShutdownRequestState : m_sliceShutdownDefaultState;
 
@@ -4395,12 +4389,12 @@ MOS_STATUS CodechalEncodeMpeg2::ExecutePictureLevel()
     if (!m_singleTaskPhaseSupported || m_firstTaskInPhase)
     {
         // frame tracking tag is only added in the last command buffer header
-        auto requestFrameTracking = 
+        auto requestFrameTracking =
             m_singleTaskPhaseSupported ? m_firstTaskInPhase : m_lastTaskInPhase;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(&cmdBuffer, requestFrameTracking));
 
         m_hwInterface->m_numRequestedEuSlices    = CODECHAL_SLICE_SHUTDOWN_DEFAULT;
-    }    
+    }
 
     if (m_currPass)
     {
@@ -4423,10 +4417,10 @@ MOS_STATUS CodechalEncodeMpeg2::ExecutePictureLevel()
 
     if (!m_currPass && m_osInterface->bTagResourceSync)
     {
-        // This is a solution to solve the sync tag issue: the sync tag write for PAK is inserted at the end of 2nd pass PAK BB 
-        // which may be skipped in multi-pass PAK enabled case. The idea here is to insert the previous frame's tag at the beginning 
+        // This is a solution to solve the sync tag issue: the sync tag write for PAK is inserted at the end of 2nd pass PAK BB
+        // which may be skipped in multi-pass PAK enabled case. The idea here is to insert the previous frame's tag at the beginning
         // of the BB and keep the current frame's tag at the end of the BB. There will be a delay for tag update but it should be fine
-        // as long as Dec/VP/Enc won't depend on this PAK so soon.        
+        // as long as Dec/VP/Enc won't depend on this PAK so soon.
         MOS_RESOURCE globalGpuContextSyncTagBuffer;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetGpuStatusBufferResource(
             m_osInterface,
@@ -4438,7 +4432,7 @@ MOS_STATUS CodechalEncodeMpeg2::ExecutePictureLevel()
         params.dwResourceOffset = m_osInterface->pfnGetGpuStatusTagOffset(m_osInterface, m_osInterface->CurrentGpuContextOrdinal);
         params.dwValue          = (statusTag > 0)? (statusTag - 1) : 0;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(&cmdBuffer, &params));
-    }    
+    }
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(StartStatusReport(&cmdBuffer, CODECHAL_NUM_MEDIA_STATES));
 
@@ -4510,7 +4504,6 @@ MOS_STATUS CodechalEncodeMpeg2::SendSliceParams(
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pBsBuffer);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pSlcData);
 
- 
     if (params->pSlcData->SliceGroup & SLICE_GROUP_START)
     {
         // add Mpeg2 Slice group commands
@@ -4611,7 +4604,7 @@ MOS_STATUS CodechalEncodeMpeg2::ExecuteSliceLevel()
     if (m_lastPicInStream)
     {
         MHW_VDBOX_PAK_INSERT_PARAMS pakInsertObjectParams;
-        MOS_ZeroMemory(&pakInsertObjectParams,sizeof(pakInsertObjectParams)); 
+        MOS_ZeroMemory(&pakInsertObjectParams,sizeof(pakInsertObjectParams));
         pakInsertObjectParams.bLastPicInStream  = true;
         if (m_codecFunction == CODECHAL_FUNCTION_ENC_PAK)
         {
@@ -4770,7 +4763,7 @@ MOS_STATUS CodechalEncodeMpeg2::PackSkippedMB(uint32_t mbIncrement)
     // attention: currently, mpeg2 encode only support frame encoding and field frame encoding , so Picture_Struct should be 3
     if(m_picParams->m_framePredFrameDCT == 0)
     {
-        PutBits(bsBuffer, 2, 2);  
+        PutBits(bsBuffer, 2, 2);
     }
     // motion_vectors   // motion_vector ( 0, 0 )   //
     // set the MV to zero for skip MB.
@@ -4788,10 +4781,10 @@ MOS_STATUS CodechalEncodeMpeg2::PackSkipSliceData()
     auto slcParams      = m_sliceParams;
     auto bsBuffer       = &m_bsBuffer;
 
-    while (bsBuffer->BitOffset)    
-    {      
+    while (bsBuffer->BitOffset)
+    {
         PutBits(bsBuffer, 0, 1);
-    }    
+    }
 
     for (uint32_t slcCount = 0; slcCount < m_numSlices; slcCount++)
     {
@@ -4812,9 +4805,9 @@ MOS_STATUS CodechalEncodeMpeg2::PackSkipSliceData()
         PackSkippedMB(1);
         PackSkippedMB(slcParams->m_numMbsForSlice - 1);
         while (bsBuffer->BitOffset)
-        {      
+        {
             PutBits(bsBuffer, 0, 1);
-        }    
+        }
         slcParams++;
     }
 
@@ -4841,7 +4834,7 @@ MOS_STATUS CodechalEncodeMpeg2::EncodeCopySkipFrame()
     //unlock bitstream buffer
     m_osInterface->pfnUnlockResource( m_osInterface, &m_resBitstreamBuffer );
 
-    //get cmd buffer    
+    //get cmd buffer
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
     //start status report
@@ -4852,7 +4845,7 @@ MOS_STATUS CodechalEncodeMpeg2::EncodeCopySkipFrame()
                     m_encodeStatusBuf.wCurrIndex * m_encodeStatusBuf.dwReportSize);
     encodeStatus->dwMFCBitstreamByteCountPerFrame  = bsSize;
     encodeStatus->dwHeaderBytesInserted            = 0;  // set dwHeaderBytesInserted to 0
-    
+
     //end status report
     CODECHAL_ENCODE_CHK_STATUS_RETURN(EndStatusReport(&cmdBuffer, CODECHAL_NUM_MEDIA_STATES));
 
@@ -4894,13 +4887,13 @@ MOS_STATUS CodechalEncodeMpeg2::SendMbEncSurfaces(
     // Caution: if PAFF supports added, need to make sure each field get correct surface pointer
     // PAK Obj command buffer
     uint32_t pakSize = (uint32_t)m_picWidthInMb * m_frameFieldHeightInMb * 16 * 4;  // 12 DW for MB + 4 DW for MV
-    CODECHAL_SURFACE_CODEC_PARAMS surfaceCodecParams;    
-    
+    CODECHAL_SURFACE_CODEC_PARAMS surfaceCodecParams;
+
     MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
     surfaceCodecParams.presBuffer = presMbCodeBuffer;
     surfaceCodecParams.dwSize = pakSize;
     surfaceCodecParams.dwOffset = (uint32_t)m_mbcodeBottomFieldOffset;
-    surfaceCodecParams.dwCacheabilityControl = 
+    surfaceCodecParams.dwCacheabilityControl =
         m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_PAK_OBJECT_ENCODE].Value;
     surfaceCodecParams.dwBindingTableOffset = m_mbEncBindingTable.m_mbEncPakObj;
     surfaceCodecParams.bRenderTarget = true;
@@ -4922,7 +4915,7 @@ MOS_STATUS CodechalEncodeMpeg2::SendMbEncSurfaces(
         surfaceCodecParams.presBuffer = presPrevMbCodeBuffer;
         surfaceCodecParams.dwSize = pakSize;
         surfaceCodecParams.dwOffset = (uint32_t)m_mbcodeBottomFieldOffset;
-        surfaceCodecParams.dwCacheabilityControl = 
+        surfaceCodecParams.dwCacheabilityControl =
             m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_PAK_OBJECT_ENCODE].Value;
         surfaceCodecParams.dwBindingTableOffset = m_mbEncBindingTable.m_mbEncPakObjPrev;
         surfaceCodecParams.bRenderTarget = true;
@@ -4953,7 +4946,7 @@ MOS_STATUS CodechalEncodeMpeg2::SendMbEncSurfaces(
         cmdBuffer,
         &surfaceCodecParams,
         kernelState));
-     
+
     bool currBottomField = CodecHal_PictureIsBottomField(m_currOriginalPic) ? 1 : 0;
     uint8_t vDirection = (CodecHal_PictureIsFrame(m_currOriginalPic)) ? CODECHAL_VDIRECTION_FRAME :
         (currBottomField) ? CODECHAL_VDIRECTION_BOT_FIELD : CODECHAL_VDIRECTION_TOP_FIELD;
@@ -4962,7 +4955,7 @@ MOS_STATUS CodechalEncodeMpeg2::SendMbEncSurfaces(
     MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
     surfaceCodecParams.bUseAdvState = true;
     surfaceCodecParams.psSurface = currPicSurface;
-    surfaceCodecParams.dwCacheabilityControl = 
+    surfaceCodecParams.dwCacheabilityControl =
         m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_CURR_ENCODE].Value;
     surfaceCodecParams.dwBindingTableOffset = m_mbEncBindingTable.m_mbEncCurrentPic;
     surfaceCodecParams.ucVDirection = vDirection;
@@ -5010,7 +5003,7 @@ MOS_STATUS CodechalEncodeMpeg2::SendMbEncSurfaces(
         surfaceCodecParams.psSurface = &m_refList[picIdx0]->sRefBuffer;
         surfaceCodecParams.dwBindingTableOffset = m_mbEncBindingTable.m_mbEncForwardPic;
         surfaceCodecParams.ucVDirection = vDirection;
-        surfaceCodecParams.dwCacheabilityControl = 
+        surfaceCodecParams.dwCacheabilityControl =
             m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_REF_ENCODE].Value;
 
 #ifdef _MMC_SUPPORTED
@@ -5037,7 +5030,7 @@ MOS_STATUS CodechalEncodeMpeg2::SendMbEncSurfaces(
         MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
         surfaceCodecParams.bUseAdvState = true;
         surfaceCodecParams.psSurface = &m_refList[picIdx1]->sRefBuffer;
-        surfaceCodecParams.dwCacheabilityControl = 
+        surfaceCodecParams.dwCacheabilityControl =
             m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_REF_ENCODE].Value;
         surfaceCodecParams.dwBindingTableOffset = m_mbEncBindingTable.m_mbEncBackwardPic;
         surfaceCodecParams.ucVDirection = vDirection;
@@ -5054,13 +5047,13 @@ MOS_STATUS CodechalEncodeMpeg2::SendMbEncSurfaces(
 
     // Interlace Frame
     if ((CodecHal_PictureIsFrame(m_picParams->m_currOriginalPic)) &&
-        (m_picParams->m_fieldCodingFlag || m_picParams->m_fieldFrameCodingFlag)) 
+        (m_picParams->m_fieldCodingFlag || m_picParams->m_fieldFrameCodingFlag))
     {
         // Current Picture Interlace
         MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
         surfaceCodecParams.bUseAdvState = true;
         surfaceCodecParams.psSurface = currPicSurface;
-        surfaceCodecParams.dwCacheabilityControl = 
+        surfaceCodecParams.dwCacheabilityControl =
             m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_CURR_ENCODE].Value;
         surfaceCodecParams.dwBindingTableOffset = m_mbEncBindingTable.m_mbEncInterlaceFrameCurrentPic;
         surfaceCodecParams.ucVDirection = vDirection;
@@ -5080,7 +5073,7 @@ MOS_STATUS CodechalEncodeMpeg2::SendMbEncSurfaces(
             MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
             surfaceCodecParams.bUseAdvState = true;
             surfaceCodecParams.psSurface = &m_refList[picIdx1]->sRefBuffer;
-            surfaceCodecParams.dwCacheabilityControl = 
+            surfaceCodecParams.dwCacheabilityControl =
                 m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_REF_ENCODE].Value;
             surfaceCodecParams.dwBindingTableOffset = m_mbEncBindingTable.m_mbEncInterlaceFrameBackwardPic;
             surfaceCodecParams.ucVDirection = vDirection;
@@ -5120,7 +5113,7 @@ MOS_STATUS CodechalEncodeMpeg2::SendMbEncSurfaces(
         surfaceCodecParams.bIs2DSurface = true;
         surfaceCodecParams.bMediaBlockRW = true;
         surfaceCodecParams.psSurface = &m_mbQpDataSurface;
-        surfaceCodecParams.dwCacheabilityControl = 
+        surfaceCodecParams.dwCacheabilityControl =
            m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_MB_QP_CODEC].Value;
         surfaceCodecParams.dwBindingTableOffset = m_mbEncBindingTable.m_mbEncMbControl;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
@@ -5142,8 +5135,8 @@ MOS_STATUS CodechalEncodeMpeg2::SendPrologWithFrameTracking(
 
 void CodechalEncodeMpeg2::UpdateSSDSliceCount()
 {
-    m_setRequestedEUSlices = (m_brcEnabled         && 
-                                        m_sliceStateEnable && 
+    m_setRequestedEUSlices = (m_brcEnabled         &&
+                                        m_sliceStateEnable &&
                                        (m_frameHeight * m_frameWidth) >= m_hwInterface->m_mpeg2SSDResolutionThreshold) ? true : false;
 
     m_hwInterface->m_numRequestedEuSlices = (m_setRequestedEUSlices) ?

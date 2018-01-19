@@ -24,14 +24,14 @@
 //! \brief    Defines class CodechalSetting
 //!
 #ifndef __CODECHAL_SETTING_H__
-#define __CODECHAL_SETTING_H__ 
+#define __CODECHAL_SETTING_H__
 
 #include "codec_def_common.h"
 //!
 //! \class  CodechalSettingExt 
 //! \brief  Settings used to finalize the creation of the CodecHal device 
 //!
-class CodechalSetting 
+class CodechalSetting
 {
 public:
     CODECHAL_FUNCTION       codecFunction = CODECHAL_FUNCTION_INVALID;                  //!< High level codec functionality requested.
@@ -63,14 +63,14 @@ public:
     virtual ~CodechalSetting(){};
 
     //!
-    //! \brief    Return the pointer to CP parameters  
+    //! \brief    Return the pointer to CP parameters 
     //!
     virtual void *GetCpParams();
 
     //!
-    //! \brief    Create CodechalSetting instance  
+    //! \brief    Create CodechalSetting instance 
     //!
     static CodechalSetting *CreateCodechalSetting();
-}; 
+};
 
 #endif

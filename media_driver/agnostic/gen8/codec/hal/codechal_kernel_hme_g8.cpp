@@ -137,13 +137,13 @@ MOS_STATUS CodechalKernelHmeG8::SetCurbe(MHW_KERNEL_STATE *kernelState)
     if (m_pictureCodingType == B_TYPE)
     {
         CODECHAL_ENCODE_CHK_NULL_RETURN(m_bmeMethodTable);
-        methodIndex = m_curbeParam.bmeMethodTable ? 
+        methodIndex = m_curbeParam.bmeMethodTable ?
             m_curbeParam.bmeMethodTable[m_curbeParam.targetUsage] : m_bmeMethodTable[m_curbeParam.targetUsage];
     }
     else
     {
         CODECHAL_ENCODE_CHK_NULL_RETURN(m_meMethodTable);
-        methodIndex = m_curbeParam.meMethodTable ? 
+        methodIndex = m_curbeParam.meMethodTable ?
             m_curbeParam.meMethodTable[m_curbeParam.targetUsage] : m_meMethodTable[m_curbeParam.targetUsage];
     }
 

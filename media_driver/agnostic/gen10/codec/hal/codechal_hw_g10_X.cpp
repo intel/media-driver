@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      codechal_hw_g10_X.cpp  
-//! \brief         This modules implements HW interface layer for CNL+ to be used on on all operating systems/DDIs, across CODECHAL components.  
+//! \file      codechal_hw_g10_X.cpp 
+//! \brief         This modules implements HW interface layer for CNL+ to be used on on all operating systems/DDIs, across CODECHAL components. 
 //!
 #include "codechal_hw_g10_X.h"
 #include "mhw_state_heap_g10.h"
@@ -108,7 +108,6 @@ CodechalHwInterfaceG10::CodechalHwInterfaceG10(
 
     m_isVdencSuperSliceEnabled = true;
 
-   
     m_ssEuTable = m_defaultSsEuLutG10;
 
     // Set platform dependent parameters

@@ -40,7 +40,7 @@ CodechalVdencAvcStateG9::CodechalVdencAvcStateG9(
     m_kernelBase = (uint8_t*)IGCODECKRN_G9;
     m_kuid = IDR_CODEC_AllAVCEnc;
     AddIshSize(m_kuid, m_kernelBase);
-    
+
     m_cmKernelEnable = true;
     m_mbStatsSupported = true; //Starting from GEN9
 

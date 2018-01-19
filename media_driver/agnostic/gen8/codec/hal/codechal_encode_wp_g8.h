@@ -34,7 +34,7 @@ class CodechalEncodeWPG8 : public CodechalEncodeWP
 public:
     //!
     //! \brief    Constructor
-    //!            
+    //!
     CodechalEncodeWPG8(CodechalEncoderState* encoder);
 
     //!

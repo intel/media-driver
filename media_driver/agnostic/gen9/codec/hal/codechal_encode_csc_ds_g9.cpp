@@ -78,7 +78,7 @@ MOS_STATUS CodechalEncodeCscDsG9::SetCurbeCsc()
     {
         curbe.DW3_EnableMBStatSurface = false;
     }
-    
+
     // RGB->YUV CSC coefficients
     if (m_curbeParams.inputColorSpace == ECOLORSPACE_P709)
     {
@@ -134,7 +134,7 @@ MOS_STATUS CodechalEncodeCscDsG9::SetCurbeCsc()
             curbe.DW9_CscCoefficientC10 = 0x0038;
         }
     }
-    else 
+    else
     {
         CODECHAL_ENCODE_ASSERTMESSAGE("Unsupported ARGB input color space = %d!", m_curbeParams.inputColorSpace);
         return MOS_STATUS_INVALID_PARAMETER;
@@ -161,7 +161,7 @@ MOS_STATUS CodechalEncodeCscDsG9::InitKernelStateDS()
     if (CODECHAL_AVC == m_standard)
     {
         m_dsBTCount[0] = ds4xNumSurfaces;
-        m_dsCurbeLength[0] = 
+        m_dsCurbeLength[0] =
         m_dsInlineDataLength = sizeof(Ds4xKernelCurbeData);
         m_dsBTISrcY = ds4xSrcYPlane;
         m_dsBTIDstY = ds4xDstYPlane;

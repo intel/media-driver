@@ -27,12 +27,12 @@
 #include "codechal_mmc_encode_avc.h"
 
 CodechalMmcEncodeAvc::CodechalMmcEncodeAvc(
-    CodechalHwInterface    *hwInterface, 
+    CodechalHwInterface    *hwInterface,
     void *standardState):
     CodecHalMmcState(hwInterface)
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
-    
+
     m_avcState = (CodechalEncodeAvcBase *)standardState;
     CODECHAL_HW_ASSERT(m_avcState);
 
@@ -57,7 +57,7 @@ CodechalMmcEncodeAvc::CodechalMmcEncodeAvc(
         userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_ENCODE_MMC_IN_USE_ID;
         MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
     }
-    
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     m_compressibleId  = __MEDIA_USER_FEATURE_VALUE_MMC_ENC_RECON_COMPRESSIBLE_ID;
     m_compressModeId  = __MEDIA_USER_FEATURE_VALUE_MMC_ENC_RECON_COMPRESSMODE_ID;
@@ -69,7 +69,7 @@ MOS_STATUS CodechalMmcEncodeAvc::SetPipeBufAddr(
     PMOS_COMMAND_BUFFER cmdBuffer)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
+
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_avcState->m_avcPicParam);

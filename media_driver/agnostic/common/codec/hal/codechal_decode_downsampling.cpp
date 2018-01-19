@@ -394,7 +394,7 @@ const float FieldScalingInterface::m_minScaleRatio = 0.125f;
 FieldScalingInterface::FieldScalingInterface(CodechalHwInterface *hwInterface)
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
-    
+
     memset(&m_kernelSize, 0, sizeof(m_kernelSize));
     memset(&m_dshSize, 0, sizeof(m_dshSize));
     memset(&m_syncObject, 0, sizeof(m_syncObject));
@@ -556,7 +556,7 @@ bool FieldScalingInterface::IsFieldScalingSupported(
     }
 
     // Check output size
-    if (!MOS_WITHIN_RANGE(destSurface->dwWidth, m_minInputWidth, m_maxInputWidth)     || 
+    if (!MOS_WITHIN_RANGE(destSurface->dwWidth, m_minInputWidth, m_maxInputWidth)     ||
         !MOS_WITHIN_RANGE(destSurface->dwHeight, m_minInputHeight, m_maxInputHeight))
     {
         CODECHAL_DECODE_ASSERTMESSAGE("Unsupported Output Resolution '0x%08x'x'0x%08x' for field scaling.", destSurface->dwWidth, destSurface->dwHeight);
@@ -623,7 +623,7 @@ MOS_STATUS FieldScalingInterface::InitializeKernelState(
         kernelState->KernelParams.iSamplerLength = m_stateHeapInterface->pStateHeapInterface->GetSizeofCmdSampleState();
 
         kernelState->dwCurbeOffset        = m_stateHeapInterface->pStateHeapInterface->GetSizeofCmdInterfaceDescriptorData();
-        kernelState->dwSamplerOffset      = 
+        kernelState->dwSamplerOffset      =
             kernelState->dwCurbeOffset +
             MOS_ALIGN_CEIL(kernelState->KernelParams.iCurbeLength, m_stateHeapInterface->pStateHeapInterface->GetCurbeAlignment());
         kernelState->dwKernelBinaryOffset = 0;
@@ -734,7 +734,7 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
         &idParams));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(SetCurbeFieldScaling(
-        kernelState, 
+        kernelState,
         procParams));
 
     MHW_SAMPLER_STATE_PARAM samplerParams[m_samplerNum];
@@ -905,7 +905,7 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddPipeControl(&cmdBuffer, nullptr, &pipeControlParams));
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_hwInterface->WriteSyncTagToResource(&cmdBuffer, &syncParams));
     }
-    
+
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_stateHeapInterface->pfnUpdateGlobalCmdBufId(
         m_stateHeapInterface));
 

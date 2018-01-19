@@ -27,7 +27,7 @@
 #include "codechal_mmc_decode_jpeg.h"
 
 CodechalMmcDecodeJpeg::CodechalMmcDecodeJpeg(
-    CodechalHwInterface    *hwInterface, 
+    CodechalHwInterface    *hwInterface,
     void *standardState):
     CodecHalMmcState(hwInterface)
 {
@@ -69,7 +69,7 @@ MOS_STATUS CodechalMmcDecodeJpeg::SetPipeBufAddr(
     PMOS_COMMAND_BUFFER cmdBuffer)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
+
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     CODECHAL_DECODE_CHK_NULL_RETURN(m_jpegState->m_jpegPicParams);

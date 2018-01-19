@@ -68,7 +68,7 @@ enum CodechalBindingTableOffsetVp8MeG10
     CODECHAL_VP8_ME_DISTORTION_G10             = 3,
     CODECHAL_VP8_ME_MIN_DIST_BRC_DATA_G10      = 4,
     CODECHAL_VP8_VME_INTER_PRED_G10            = 5,
-    CODECHAL_VP8_ME_REF1_PIC_G10               = 6, 
+    CODECHAL_VP8_ME_REF1_PIC_G10               = 6,
     CODECHAL_VP8_ME_REF2_PIC_G10               = 8,
     CODECHAL_VP8_ME_REF3_PIC_G10               = 10,
     CODECHAL_VP8_ME_NUM_SURFACES_G10           = 11
@@ -120,7 +120,7 @@ enum CodechalBindingTableOffsetVp8MpuFhbG10
     CODECHAL_VP8_MPU_FHB_REF_TOKEN_PROBABILITY_G10     = 3,
     CODECHAL_VP8_MPU_FHB_CURR_TOKEN_PROBABILITY_G10    = 4,
     CODECHAL_VP8_MPU_FHB_HEADER_BITSTREAM_G10          = 5,
-    CODECHAL_VP8_MPU_FHB_HEADER_METADATA_G10           = 6, 
+    CODECHAL_VP8_MPU_FHB_HEADER_METADATA_G10           = 6,
     CODECHAL_VP8_MPU_FHB_PICTURE_STATE_G10             = 7,
     CODECHAL_VP8_MPU_FHB_MPU_BITSTREAM_G10             = 8,
     CODECHAL_VP8_MPU_FHB_TOKEN_BITS_DATA_TABLE_G10     = 9,
@@ -138,7 +138,7 @@ enum CodechalBindingTableOffsetVp8TpuFhbG10
     CODECHAL_VP8_TPU_FHB_HEADER_BITSTREAM_G10          = 3,
     CODECHAL_VP8_TPU_FHB_DEFAULT_TOKEN_PROBABILITY_G10 = 4,
     CODECHAL_VP8_TPU_FHB_PICTURE_STATE_G10             = 5,
-    CODECHAL_VP8_TPU_FHB_MPU_CURBE_DATA_G10            = 6, 
+    CODECHAL_VP8_TPU_FHB_MPU_CURBE_DATA_G10            = 6,
     CODECHAL_VP8_TPU_FHB_HEADER_METADATA_G10           = 7,
     CODECHAL_VP8_TPU_FHB_TOKEN_PROBABILITY_G10         = 8,
     CODECHAL_VP8_TPU_FHB_PAK_HW_PASS1_PROBABILITY_G10  = 9,
@@ -610,7 +610,7 @@ struct MediaObjectVp8BrcUpdateStaticDataG10
     // This offset includes the 8 bytes of the INSERT command at the
     // beginning of the buffer.
     // Similarly for the VbvDelay field.
-    union 
+    union
     {
         struct
         {
@@ -625,8 +625,8 @@ struct MediaObjectVp8BrcUpdateStaticDataG10
     } DW6;
 
     // This size is the size of the entire 2nd level batch buffer
-    // containing the INSERT_OBJ command for inserting the 
-    // picture header data into the bitstream. It includes the batch buffer end 
+    // containing the INSERT_OBJ command for inserting the
+    // picture header data into the bitstream. It includes the batch buffer end
     // command at the end of the buffer.
     union
     {
@@ -638,7 +638,6 @@ struct MediaObjectVp8BrcUpdateStaticDataG10
         {
             uint32_t Value;
         };
-
 
     } DW7;
 
@@ -2269,7 +2268,7 @@ struct MediaObjectVp8MbencPStaticDataG10
         };
     } DW0;
         //DW1
-    union 
+    union
     {
         struct
         {
@@ -2297,56 +2296,56 @@ struct MediaObjectVp8MbencPStaticDataG10
     } DW1;
 
     //DW2
-    union 
+    union
     {
-        struct 
+        struct
         {
             uint32_t LambdaIntraSegment0               :16;
             uint32_t LambdaInterSegment0               :16;
         };
-        struct 
+        struct
         {
             uint32_t Value;
         };
     } DW2;
 
     //DW3
-    union 
+    union
     {
-        struct 
+        struct
         {
             uint32_t LambdaIntraSegment1               :16;
             uint32_t LambdaInterSegment1               :16;
         };
-        struct 
+        struct
         {
             uint32_t Value;
         };
     } DW3;
 
     //DW4
-    union 
+    union
     {
-        struct 
+        struct
         {
             uint32_t LambdaIntraSegment2               :16;
             uint32_t LambdaInterSegment2               :16;
         };
-        struct 
+        struct
         {
             uint32_t Value;
         };
     } DW4;
 
     //DW5
-    union 
+    union
     {
-        struct 
+        struct
         {
             uint32_t LambdaIntraSegment3               :16;
             uint32_t LambdaInterSegment3               :16;
         };
-        struct 
+        struct
         {
             uint32_t Value;
         };
@@ -2355,38 +2354,38 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW6
     union
     {
-        struct  
+        struct
         {
             uint32_t ReferenceFrameSignBias_0          : 8;
             uint32_t ReferenceFrameSignBias_1          : 8;
             uint32_t ReferenceFrameSignBias_2          : 8;
             uint32_t ReferenceFrameSignBias_3          : 8;
         };
-        struct  
+        struct
         {
             uint32_t   Value;
         };
     } DW6;
 
     //DW7
-    union 
+    union
     {
-        struct 
+        struct
         {
             uint32_t RawDistThreshold                  :16;
             uint32_t TemporalLayerID                   :8;
             uint32_t ReservedMBZ                       :8;
         };
-        struct 
+        struct
         {
             uint32_t Value;
         };
     } DW7;
 
     //DW8
-    union 
+    union
     {
-        struct 
+        struct
         {
             uint32_t SkipModeEnable                    :1;
             uint32_t AdaptiveSearchEnable              :1;
@@ -2398,16 +2397,16 @@ struct MediaObjectVp8MbencPStaticDataG10
             uint32_t ReservedMBZ3                      :16;
             uint32_t EarlyIMESuccessfulStopThreshold   :8;
         };
-        struct 
+        struct
         {
             uint32_t Value;
         };
     } DW8;
 
     //DW9
-    union 
+    union
     {
-        struct 
+        struct
         {
             uint32_t MaximumNumberOfMotionVectors      :6;
             uint32_t ReservedMBZ1                      :2;
@@ -2418,34 +2417,34 @@ struct MediaObjectVp8MbencPStaticDataG10
             uint32_t RefPixelBiasEnable                :1;
             uint32_t ReservedMBZ3                      :2;
         };
-        struct 
+        struct
         {
             uint32_t Value;
         };
     } DW9;
 
     //DW10
-    union 
+    union
     {
-        struct 
+        struct
         {
             uint32_t MaxFixedSearchPathLength          :8;
             uint32_t MaximumSearchPathLength           :8;
             uint32_t ReservedMBZ                       :16;
         };
-        struct 
+        struct
         {
             uint32_t Value;
         };
     } DW10;
 
     //DW11
-    union 
+    union
     {
-        struct 
+        struct
         {
             uint32_t SourceBlockSize                   :2;
-            uint32_t ReservedMBZ1                      :2;                       
+            uint32_t ReservedMBZ1                      :2;
             uint32_t InterMbTypeRoadMap                :2;
             uint32_t SourceAccess                      :1;
             uint32_t ReferenceAccess                   :1;
@@ -2460,25 +2459,25 @@ struct MediaObjectVp8MbencPStaticDataG10
             uint32_t BlockBasedSkipEnable              :1;
             uint32_t InterSADMeasureAdjustment         :2;
             uint32_t IntraSADMeasureAdjustment         :2;
-            uint32_t SubMacroBlockSubPartitionMask     :6;           
+            uint32_t SubMacroBlockSubPartitionMask     :6;
             uint32_t ReservedMBZ2                      :1;
         };
-        struct 
+        struct
         {
             uint32_t Value;
         };
     } DW11;
 
     //DW12
-    union 
+    union
     {
-        struct 
+        struct
         {
             uint32_t ReservedMBZ                       :16;
             uint32_t ReferenceSearchWindowsWidth       :8;
             uint32_t ReferenceSearchWindowsHeight      :8;
         };
-        struct 
+        struct
         {
             uint32_t Value;
         };
@@ -2487,14 +2486,14 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW13
     union
     {
-        struct  
+        struct
         {
             uint32_t Mode0CostSegment0             :8;
             uint32_t Mode1CostSegment0             :8;
             uint32_t Mode2CostSegment0             :8;
             uint32_t Mode3CostSegment0             :8;
         };
-        struct  
+        struct
         {
             uint32_t Value;
         };
@@ -2503,14 +2502,14 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW14
     union
     {
-        struct  
+        struct
         {
             uint32_t Mode4CostSegment0             :8;
             uint32_t Mode5CostSegment0             :8;
             uint32_t Mode6CostSegment0             :8;
             uint32_t Mode7CostSegment0             :8;
         };
-        struct  
+        struct
         {
             uint32_t Value;
         };
@@ -2519,7 +2518,7 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW15
     union
     {
-        struct  
+        struct
         {
             uint32_t Mode8CostSegment0             :8;
             uint32_t Mode9CostSegment0             :8;
@@ -2542,7 +2541,7 @@ struct MediaObjectVp8MbencPStaticDataG10
             SearchPathDelta   SPDelta_2;
             SearchPathDelta   SPDelta_3;
         };
-        struct  
+        struct
         {
             uint32_t Value;
         };
@@ -2551,14 +2550,14 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW17
     union
     {
-        struct  
+        struct
         {
             SearchPathDelta   SPDelta_4;
             SearchPathDelta   SPDelta_5;
             SearchPathDelta   SPDelta_6;
             SearchPathDelta   SPDelta_7;
         };
-        struct  
+        struct
         {
             uint32_t Value;
         };
@@ -2567,14 +2566,14 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW18
     union
     {
-        struct  
+        struct
         {
             SearchPathDelta   SPDelta_8;
             SearchPathDelta   SPDelta_9;
             SearchPathDelta   SPDelta_10;
             SearchPathDelta   SPDelta_11;
         };
-        struct  
+        struct
         {
             uint32_t Value;
         };
@@ -2583,14 +2582,14 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW19
     union
     {
-        struct  
+        struct
         {
             SearchPathDelta   SPDelta_12;
             SearchPathDelta   SPDelta_13;
             SearchPathDelta   SPDelta_14;
             SearchPathDelta   SPDelta_15;
         };
-        struct  
+        struct
         {
             uint32_t Value;
         };
@@ -2599,14 +2598,14 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW20
     union
     {
-        struct  
+        struct
         {
             SearchPathDelta   SPDelta_16;
             SearchPathDelta   SPDelta_17;
             SearchPathDelta   SPDelta_18;
             SearchPathDelta   SPDelta_19;
         };
-        struct  
+        struct
         {
             uint32_t Value;
         };
@@ -2615,14 +2614,14 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW21
     union
     {
-        struct  
+        struct
         {
             SearchPathDelta   SPDelta_20;
             SearchPathDelta   SPDelta_21;
             SearchPathDelta   SPDelta_22;
             SearchPathDelta   SPDelta_23;
         };
-        struct  
+        struct
         {
             uint32_t Value;
         };
@@ -2631,14 +2630,14 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW22
     union
     {
-        struct  
+        struct
         {
             SearchPathDelta   SPDelta_24;
             SearchPathDelta   SPDelta_25;
             SearchPathDelta   SPDelta_26;
             SearchPathDelta   SPDelta_27;
         };
-        struct  
+        struct
         {
             uint32_t Value;
         };
@@ -2647,14 +2646,14 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW23
     union
     {
-        struct  
+        struct
         {
             SearchPathDelta   SPDelta_28;
             SearchPathDelta   SPDelta_29;
             SearchPathDelta   SPDelta_30;
             SearchPathDelta   SPDelta_31;
         };
-        struct  
+        struct
         {
             uint32_t Value;
         };
@@ -2663,14 +2662,14 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW24
     union
     {
-        struct  
+        struct
         {
             SearchPathDelta   SPDelta_32;
             SearchPathDelta   SPDelta_33;
             SearchPathDelta   SPDelta_34;
             SearchPathDelta   SPDelta_35;
         };
-        struct  
+        struct
         {
             uint32_t Value;
         };
@@ -2679,14 +2678,14 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW25
     union
     {
-        struct  
+        struct
         {
             SearchPathDelta   SPDelta_36;
             SearchPathDelta   SPDelta_37;
             SearchPathDelta   SPDelta_38;
             SearchPathDelta   SPDelta_39;
         };
-        struct  
+        struct
         {
             uint32_t Value;
         };
@@ -2695,14 +2694,14 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW26
     union
     {
-        struct  
+        struct
         {
             SearchPathDelta   SPDelta_40;
             SearchPathDelta   SPDelta_41;
             SearchPathDelta   SPDelta_42;
             SearchPathDelta   SPDelta_43;
         };
-        struct  
+        struct
         {
             uint32_t Value;
         };
@@ -2711,14 +2710,14 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW27
     union
     {
-        struct  
+        struct
         {
             SearchPathDelta   SPDelta_44;
             SearchPathDelta   SPDelta_45;
             SearchPathDelta   SPDelta_46;
             SearchPathDelta   SPDelta_47;
         };
-        struct  
+        struct
         {
             uint32_t Value;
         };
@@ -2727,14 +2726,14 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW28
     union
     {
-        struct  
+        struct
         {
             SearchPathDelta   SPDelta_48;
             SearchPathDelta   SPDelta_49;
             SearchPathDelta   SPDelta_50;
             SearchPathDelta   SPDelta_51;
         };
-        struct  
+        struct
         {
             uint32_t Value;
         };
@@ -2743,14 +2742,14 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW29
     union
     {
-        struct  
+        struct
         {
             SearchPathDelta   SPDelta_52;
             SearchPathDelta   SPDelta_53;
             SearchPathDelta   SPDelta_54;
             SearchPathDelta   SPDelta_55;
         };
-        struct  
+        struct
         {
             uint32_t Value;
         };
@@ -2813,7 +2812,6 @@ struct MediaObjectVp8MbencPStaticDataG10
             uint32_t HMECombineLen                 :16;
             uint32_t Intra16x16NoDCPenaltySegment2 :8;
             uint32_t Intra16x16NoDCPenaltySegment3 :8;
-
 
         };
         struct
@@ -2919,7 +2917,6 @@ struct MediaObjectVp8MbencPStaticDataG10
             uint32_t Value;
         };
     } DW40;
-
 
     // DW41
     union
@@ -3225,7 +3222,7 @@ struct MediaObjectVp8MbencPStaticDataG10
             uint32_t AverageQPOfAltRefFrame    :8;
             uint32_t ReservedMBZ               :8;
         };
-        struct  
+        struct
         {
             uint32_t Value;
         };
@@ -3242,7 +3239,7 @@ struct MediaObjectVp8MbencPStaticDataG10
             uint32_t Intra4x4NoDCPenaltySegment2   :8;
             uint32_t Intra4x4NoDCPenaltySegment3   :8;
         };
-        struct  
+        struct
         {
             uint32_t Value;
         };
@@ -3252,14 +3249,14 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW64
     union
     {
-        struct  
+        struct
         {
             uint32_t Mode0CostSegment1         :8;
             uint32_t Mode1CostSegment1         :8;
             uint32_t Mode2CostSegment1         :8;
             uint32_t Mode3CostSegment1         :8;
         };
-        struct  
+        struct
         {
             uint32_t Value;
         };
@@ -3268,14 +3265,14 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW65
     union
     {
-        struct  
+        struct
         {
             uint32_t Mode4CostSegment1         :8;
             uint32_t Mode5CostSegment1         :8;
             uint32_t Mode6CostSegment1         :8;
             uint32_t Mode7CostSegment1         :8;
         };
-        struct  
+        struct
         {
             uint32_t Value;
         };
@@ -3284,7 +3281,7 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW66
     union
     {
-        struct  
+        struct
         {
             uint32_t Mode8CostSegment1         :8;
             uint32_t Mode9CostSegment1         :8;
@@ -3332,14 +3329,14 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW69
     union
     {
-        struct  
+        struct
         {
             uint32_t Mode0CostSegment2         :8;
             uint32_t Mode1CostSegment2         :8;
             uint32_t Mode2CostSegment2         :8;
             uint32_t Mode3CostSegment2         :8;
         };
-        struct  
+        struct
         {
             uint32_t Value;
         };
@@ -3348,14 +3345,14 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW70
     union
     {
-        struct  
+        struct
         {
             uint32_t Mode4CostSegment2         :8;
             uint32_t Mode5CostSegment2         :8;
             uint32_t Mode6CostSegment2         :8;
             uint32_t Mode7CostSegment2         :8;
         };
-        struct  
+        struct
         {
             uint32_t Value;
         };
@@ -3364,7 +3361,7 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW71
     union
     {
-        struct  
+        struct
         {
             uint32_t Mode8CostSegment2         :8;
             uint32_t Mode9CostSegment2         :8;
@@ -3412,14 +3409,14 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW74
     union
     {
-        struct  
+        struct
         {
             uint32_t Mode0CostSegment3         :8;
             uint32_t Mode1CostSegment3         :8;
             uint32_t Mode2CostSegment3         :8;
             uint32_t Mode3CostSegment3         :8;
         };
-        struct  
+        struct
         {
             uint32_t Value;
         };
@@ -3428,14 +3425,14 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW75
     union
     {
-        struct  
+        struct
         {
             uint32_t Mode4CostSegment3         :8;
             uint32_t Mode5CostSegment3         :8;
             uint32_t Mode6CostSegment3         :8;
             uint32_t Mode7CostSegment3         :8;
         };
-        struct  
+        struct
         {
             uint32_t Value;
         };
@@ -3444,7 +3441,7 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW76
     union
     {
-        struct  
+        struct
         {
             uint32_t Mode8CostSegment3         :8;
             uint32_t Mode9CostSegment3         :8;
@@ -3492,12 +3489,12 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW79
     union
     {
-        struct  
+        struct
         {
             uint32_t NewMVSkipThresholdSegment0 :16;
             uint32_t NewMVSkipThresholdSegment1 :16;
         };
-        struct 
+        struct
         {
             uint32_t Value;
         };
@@ -3506,12 +3503,12 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW80
     union
     {
-        struct  
+        struct
         {
             uint32_t NewMVSkipThresholdSegment2 :16;
             uint32_t NewMVSkipThresholdSegment3 :16;
         };
-        struct 
+        struct
         {
             uint32_t Value;
         };
@@ -3520,11 +3517,11 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW81
     union
     {
-        struct  
+        struct
         {
             uint32_t PerMbOutputDataSurfaceBTI                 :32;
         };
-        struct 
+        struct
         {
             uint32_t Value;
         };
@@ -3533,11 +3530,11 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW82
     union
     {
-        struct  
+        struct
         {
             uint32_t CurrentPictureYSurfaceBTI                 :32;
         };
-        struct 
+        struct
         {
             uint32_t Value;
         };
@@ -3546,11 +3543,11 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW83
     union
     {
-        struct  
+        struct
         {
             uint32_t CurrentPictureInterleavedUVSurfaceBTI     :32;
         };
-        struct 
+        struct
         {
             uint32_t Value;
         };
@@ -3559,11 +3556,11 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW84
     union
     {
-        struct  
+        struct
         {
             uint32_t HMEMVDataSurfaceBTI                       :32;
         };
-        struct 
+        struct
         {
             uint32_t Value;
         };
@@ -3572,11 +3569,11 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW85
     union
     {
-        struct  
+        struct
         {
             uint32_t MVDataSurfaceBTI                          :32;
         };
-        struct 
+        struct
         {
             uint32_t Value;
         };
@@ -3585,11 +3582,11 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW86
     union
     {
-        struct  
+        struct
         {
             uint32_t MbCountPerReferenceFrameBTI               :32;
         };
-        struct 
+        struct
         {
             uint32_t Value;
         };
@@ -3598,11 +3595,11 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW87
     union
     {
-        struct  
+        struct
         {
             uint32_t VMEInterPredictionBTI                     :32;
         };
-        struct 
+        struct
         {
             uint32_t Value;
         };
@@ -3611,11 +3608,11 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW88
     union
     {
-        struct  
+        struct
         {
             uint32_t ActiveRef1BTI                             : 32;
         };
-        struct 
+        struct
         {
             uint32_t Value;
         };
@@ -3624,11 +3621,11 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW89
     union
     {
-        struct  
+        struct
         {
             uint32_t ActiveRef2BTI                             : 32;
         };
-        struct 
+        struct
         {
             uint32_t Value;
         };
@@ -3637,11 +3634,11 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW90
     union
     {
-        struct  
+        struct
         {
             uint32_t ActiveRef3BTI                             : 32;
         };
-        struct 
+        struct
         {
             uint32_t Value;
         };
@@ -3650,11 +3647,11 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW91
     union
     {
-        struct  
+        struct
         {
             uint32_t PerMbQuantDataBTI                         :32;
         };
-        struct 
+        struct
         {
             uint32_t Value;
         };
@@ -3663,11 +3660,11 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW92
     union
     {
-        struct  
+        struct
         {
             uint32_t SegmentMapBTI                             :32;
         };
-        struct 
+        struct
         {
             uint32_t Value;
         };
@@ -3676,11 +3673,11 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW93
     union
     {
-        struct  
+        struct
         {
             uint32_t InterPredictionDistortionBTI              :32;
         };
-        struct 
+        struct
         {
             uint32_t Value;
         };
@@ -3689,11 +3686,11 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW94
     union
     {
-        struct  
+        struct
         {
             uint32_t HistogramBTI                              :32;
         };
-        struct 
+        struct
         {
             uint32_t Value;
         };
@@ -3702,11 +3699,11 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW95
     union
     {
-        struct  
+        struct
         {
             uint32_t PredMVDataBTI                             :32;
         };
-        struct 
+        struct
         {
             uint32_t Value;
         };
@@ -3715,11 +3712,11 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW96
     union
     {
-        struct  
+        struct
         {
             uint32_t ModeCostUpdateBTI       :32;
         };
-        struct 
+        struct
         {
             uint32_t Value;
         };
@@ -3728,11 +3725,11 @@ struct MediaObjectVp8MbencPStaticDataG10
     // DW97
     union
     {
-        struct  
+        struct
         {
             uint32_t KernelDebugDumpBTI       :32;
         };
-        struct 
+        struct
         {
             uint32_t Value;
         };
@@ -3740,14 +3737,13 @@ struct MediaObjectVp8MbencPStaticDataG10
 };
 C_ASSERT(MOS_BYTES_TO_DWORDS(sizeof(struct MediaObjectVp8MbencPStaticDataG10)) == 98);
 
-
 struct MediaObjectVp8MpuFhbStaticDataG10
 {
     // uint32_t 0
     union {
         struct {
-            uint32_t       FrameWidth                           : MOS_BITFIELD_RANGE(  0,15 );   // 
-            uint32_t       FrameHeight                          : MOS_BITFIELD_RANGE( 16,31 );   // 
+            uint32_t       FrameWidth                           : MOS_BITFIELD_RANGE(  0,15 );   //
+            uint32_t       FrameHeight                          : MOS_BITFIELD_RANGE( 16,31 );   //
         };
         uint32_t Value;
     } DW0;
@@ -3755,29 +3751,29 @@ struct MediaObjectVp8MpuFhbStaticDataG10
     // uint32_t 1
     union {
         struct {
-            uint32_t       FrameType                            : MOS_BITFIELD_BIT(       0 );   // 
-            uint32_t       Version                              : MOS_BITFIELD_RANGE(  1, 3 );   // 
-            uint32_t       ShowFrame                            : MOS_BITFIELD_BIT(       4 );   // 
-            uint32_t       HorizontalScaleCode                  : MOS_BITFIELD_RANGE(  5, 6 );   // 
-            uint32_t       VerticalScaleCode                    : MOS_BITFIELD_RANGE(  7, 8 );   // 
-            uint32_t       ColorSpaceType                       : MOS_BITFIELD_BIT(       9 );   // 
-            uint32_t       ClampType                            : MOS_BITFIELD_BIT(      10 );   // 
-            uint32_t       PartitionNumL2                       : MOS_BITFIELD_RANGE( 11,12 );   // 
-            uint32_t       EnableSegmentation                   : MOS_BITFIELD_BIT(      13 );   // 
-            uint32_t       SegMapUpdate                         : MOS_BITFIELD_BIT(      14 );   // 
-            uint32_t       SegmentationFeatureUpdate            : MOS_BITFIELD_BIT(      15 );   // 
-            uint32_t       SegmentationFeatureMode              : MOS_BITFIELD_BIT(      16 );   // 
-            uint32_t       LoopFilterType                       : MOS_BITFIELD_BIT(      17 );   // 
-            uint32_t       SharpnessLevel                       : MOS_BITFIELD_RANGE( 18,20 );   // 
-            uint32_t       LoopFilterAdjustmentOn               : MOS_BITFIELD_BIT(      21 );   // 
-            uint32_t       MBNoCoeffiscientSkip                 : MOS_BITFIELD_BIT(      22 );   // 
-            uint32_t       GoldenReferenceCopyFlag              : MOS_BITFIELD_RANGE( 23,24 );   // 
-            uint32_t       AlternateReferenceCopyFlag           : MOS_BITFIELD_RANGE( 25,26 );   // 
+            uint32_t       FrameType                            : MOS_BITFIELD_BIT(       0 );   //
+            uint32_t       Version                              : MOS_BITFIELD_RANGE(  1, 3 );   //
+            uint32_t       ShowFrame                            : MOS_BITFIELD_BIT(       4 );   //
+            uint32_t       HorizontalScaleCode                  : MOS_BITFIELD_RANGE(  5, 6 );   //
+            uint32_t       VerticalScaleCode                    : MOS_BITFIELD_RANGE(  7, 8 );   //
+            uint32_t       ColorSpaceType                       : MOS_BITFIELD_BIT(       9 );   //
+            uint32_t       ClampType                            : MOS_BITFIELD_BIT(      10 );   //
+            uint32_t       PartitionNumL2                       : MOS_BITFIELD_RANGE( 11,12 );   //
+            uint32_t       EnableSegmentation                   : MOS_BITFIELD_BIT(      13 );   //
+            uint32_t       SegMapUpdate                         : MOS_BITFIELD_BIT(      14 );   //
+            uint32_t       SegmentationFeatureUpdate            : MOS_BITFIELD_BIT(      15 );   //
+            uint32_t       SegmentationFeatureMode              : MOS_BITFIELD_BIT(      16 );   //
+            uint32_t       LoopFilterType                       : MOS_BITFIELD_BIT(      17 );   //
+            uint32_t       SharpnessLevel                       : MOS_BITFIELD_RANGE( 18,20 );   //
+            uint32_t       LoopFilterAdjustmentOn               : MOS_BITFIELD_BIT(      21 );   //
+            uint32_t       MBNoCoeffiscientSkip                 : MOS_BITFIELD_BIT(      22 );   //
+            uint32_t       GoldenReferenceCopyFlag              : MOS_BITFIELD_RANGE( 23,24 );   //
+            uint32_t       AlternateReferenceCopyFlag           : MOS_BITFIELD_RANGE( 25,26 );   //
             uint32_t       LastFrameUpdate                      : MOS_BITFIELD_BIT(      27 );   //
             uint32_t       SignBiasGolden                       : MOS_BITFIELD_BIT(      28 );   //
             uint32_t       SignBiasAltRef                       : MOS_BITFIELD_BIT(      29 );   //
             uint32_t       RefreshEntropyP                      : MOS_BITFIELD_BIT(      30 );   //
-            uint32_t       ForcedLFUpdateForKeyFrame            : MOS_BITFIELD_BIT(      31 );   //  
+            uint32_t       ForcedLFUpdateForKeyFrame            : MOS_BITFIELD_BIT(      31 );   //
         };
         uint32_t Value;
     } DW1;
@@ -3785,12 +3781,12 @@ struct MediaObjectVp8MpuFhbStaticDataG10
     // uint32_t 2
     union {
         struct {
-            uint32_t       LoopFilterLevel                      : MOS_BITFIELD_RANGE(  0, 5 );   // 
-            uint32_t                                            : MOS_BITFIELD_RANGE(  6, 7 );   //  
-            uint32_t       Qindex                               : MOS_BITFIELD_RANGE(  8,14 );   // 
-            uint32_t                                            : MOS_BITFIELD_BIT(      15 );   //  
-            uint32_t       Y1DCQindex                           : MOS_BITFIELD_RANGE( 16,23 );   // 
-            uint32_t       Y2DCQindex                           : MOS_BITFIELD_RANGE( 24,31 );   // 
+            uint32_t       LoopFilterLevel                      : MOS_BITFIELD_RANGE(  0, 5 );   //
+            uint32_t                                            : MOS_BITFIELD_RANGE(  6, 7 );   //
+            uint32_t       Qindex                               : MOS_BITFIELD_RANGE(  8,14 );   //
+            uint32_t                                            : MOS_BITFIELD_BIT(      15 );   //
+            uint32_t       Y1DCQindex                           : MOS_BITFIELD_RANGE( 16,23 );   //
+            uint32_t       Y2DCQindex                           : MOS_BITFIELD_RANGE( 24,31 );   //
         };
         uint32_t Value;
     } DW2;
@@ -3798,10 +3794,10 @@ struct MediaObjectVp8MpuFhbStaticDataG10
     // uint32_t 3
     union {
         struct {
-            uint32_t       Y2ACQindex                           : MOS_BITFIELD_RANGE(  0, 7 );   // 
-            uint32_t       UVDCQindex                           : MOS_BITFIELD_RANGE(  8,15 );   // 
-            uint32_t       UVACQindex                           : MOS_BITFIELD_RANGE( 16,23 );   // 
-            uint32_t       FeatureData0Segment0                 : MOS_BITFIELD_RANGE( 24,31 );   // 
+            uint32_t       Y2ACQindex                           : MOS_BITFIELD_RANGE(  0, 7 );   //
+            uint32_t       UVDCQindex                           : MOS_BITFIELD_RANGE(  8,15 );   //
+            uint32_t       UVACQindex                           : MOS_BITFIELD_RANGE( 16,23 );   //
+            uint32_t       FeatureData0Segment0                 : MOS_BITFIELD_RANGE( 24,31 );   //
         };
         uint32_t Value;
     } DW3;
@@ -3809,10 +3805,10 @@ struct MediaObjectVp8MpuFhbStaticDataG10
     // uint32_t 4
     union {
         struct {
-            uint32_t       FeatureData0Segment1                 : MOS_BITFIELD_RANGE(  0, 7 );   // 
-            uint32_t       FeatureData0Segment2                 : MOS_BITFIELD_RANGE(  8,15 );   // 
-            uint32_t       FeatureData0Segment3                 : MOS_BITFIELD_RANGE( 16,23 );   // 
-            uint32_t       FeatureData1Segment0                 : MOS_BITFIELD_RANGE( 24,31 );   // 
+            uint32_t       FeatureData0Segment1                 : MOS_BITFIELD_RANGE(  0, 7 );   //
+            uint32_t       FeatureData0Segment2                 : MOS_BITFIELD_RANGE(  8,15 );   //
+            uint32_t       FeatureData0Segment3                 : MOS_BITFIELD_RANGE( 16,23 );   //
+            uint32_t       FeatureData1Segment0                 : MOS_BITFIELD_RANGE( 24,31 );   //
         };
         uint32_t Value;
     } DW4;
@@ -3820,10 +3816,10 @@ struct MediaObjectVp8MpuFhbStaticDataG10
     // uint32_t 5
     union {
         struct {
-            uint32_t       FeatureData1Segment1                 : MOS_BITFIELD_RANGE(  0, 7 );   // 
-            uint32_t       FeatureData1Segment2                 : MOS_BITFIELD_RANGE(  8,15 );   // 
-            uint32_t       FeatureData1Segment3                 : MOS_BITFIELD_RANGE( 16,23 );   // 
-            uint32_t       RefLFDelta0                          : MOS_BITFIELD_RANGE( 24,31 );   // 
+            uint32_t       FeatureData1Segment1                 : MOS_BITFIELD_RANGE(  0, 7 );   //
+            uint32_t       FeatureData1Segment2                 : MOS_BITFIELD_RANGE(  8,15 );   //
+            uint32_t       FeatureData1Segment3                 : MOS_BITFIELD_RANGE( 16,23 );   //
+            uint32_t       RefLFDelta0                          : MOS_BITFIELD_RANGE( 24,31 );   //
         };
         uint32_t Value;
     } DW5;
@@ -3831,10 +3827,10 @@ struct MediaObjectVp8MpuFhbStaticDataG10
     // uint32_t 6
     union {
         struct {
-            uint32_t       RefLFDelta1                          : MOS_BITFIELD_RANGE(  0, 7 );   // 
-            uint32_t       RefLFDelta2                          : MOS_BITFIELD_RANGE(  8,15 );   // 
-            uint32_t       RefLFDelta3                          : MOS_BITFIELD_RANGE( 16,23 );   // 
-            uint32_t       ModeLFDelta0                         : MOS_BITFIELD_RANGE( 24,31 );   // 
+            uint32_t       RefLFDelta1                          : MOS_BITFIELD_RANGE(  0, 7 );   //
+            uint32_t       RefLFDelta2                          : MOS_BITFIELD_RANGE(  8,15 );   //
+            uint32_t       RefLFDelta3                          : MOS_BITFIELD_RANGE( 16,23 );   //
+            uint32_t       ModeLFDelta0                         : MOS_BITFIELD_RANGE( 24,31 );   //
         };
         uint32_t Value;
     } DW6;
@@ -3842,25 +3838,25 @@ struct MediaObjectVp8MpuFhbStaticDataG10
     // uint32_t 7
     union {
         struct {
-            uint32_t       ModeLFDelta1                         : MOS_BITFIELD_RANGE(  0, 7 );   // 
-            uint32_t       ModeLFDelta2                         : MOS_BITFIELD_RANGE(  8,15 );   // 
-            uint32_t       ModeLFDelta3                         : MOS_BITFIELD_RANGE( 16,23 );   // 
+            uint32_t       ModeLFDelta1                         : MOS_BITFIELD_RANGE(  0, 7 );   //
+            uint32_t       ModeLFDelta2                         : MOS_BITFIELD_RANGE(  8,15 );   //
+            uint32_t       ModeLFDelta3                         : MOS_BITFIELD_RANGE( 16,23 );   //
             uint32_t       ForcedTokenSurfaceRead               : MOS_BITFIELD_BIT(      24 );
             uint32_t       ModecostEnableFlag                   : MOS_BITFIELD_BIT(      25 );
             uint32_t        MCFilterSelect                       : MOS_BITFIELD_BIT(      26 );
             uint32_t        ChromaFullPixelMCFilterMode : MOS_BITFIELD_BIT(27);
-            uint32_t       MaxNumPakPasses : MOS_BITFIELD_RANGE(28, 31);   // 
+            uint32_t       MaxNumPakPasses : MOS_BITFIELD_RANGE(28, 31);   //
 
         };
         uint32_t Value;
     } DW7;
-    
+
     // uint32_t 8
     union {
         struct {
-            uint32_t       TemporalLayerID : MOS_BITFIELD_RANGE(0, 7);   // 
-            uint32_t       NumTLevels      : MOS_BITFIELD_RANGE(8, 15);   // 
-            uint32_t       ReservedMBZ     : MOS_BITFIELD_RANGE(16, 31);   // 
+            uint32_t       TemporalLayerID : MOS_BITFIELD_RANGE(0, 7);   //
+            uint32_t       NumTLevels      : MOS_BITFIELD_RANGE(8, 15);   //
+            uint32_t       ReservedMBZ     : MOS_BITFIELD_RANGE(16, 31);   //
         };
         uint32_t Value;
     } DW8;
@@ -3868,7 +3864,7 @@ struct MediaObjectVp8MpuFhbStaticDataG10
     // uint32_t 9
     union {
         struct {
-            uint32_t       ReservedMBZ     : MOS_BITFIELD_RANGE(0, 31);   // 
+            uint32_t       ReservedMBZ     : MOS_BITFIELD_RANGE(0, 31);   //
         };
         uint32_t Value;
     } DW9;
@@ -3876,7 +3872,7 @@ struct MediaObjectVp8MpuFhbStaticDataG10
     // uint32_t 10
     union {
         struct {
-            uint32_t       ReservedMBZ     : MOS_BITFIELD_RANGE(0, 31);   // 
+            uint32_t       ReservedMBZ     : MOS_BITFIELD_RANGE(0, 31);   //
         };
         uint32_t Value;
     } DW10;
@@ -3884,7 +3880,7 @@ struct MediaObjectVp8MpuFhbStaticDataG10
     // uint32_t 11
     union {
         struct {
-            uint32_t       ReservedMBZ     : MOS_BITFIELD_RANGE(0, 31);   // 
+            uint32_t       ReservedMBZ     : MOS_BITFIELD_RANGE(0, 31);   //
         };
         uint32_t Value;
     } DW11;
@@ -3892,7 +3888,7 @@ struct MediaObjectVp8MpuFhbStaticDataG10
     // uint32_t 12
     union {
         struct {
-            uint32_t       HistogramBTI                        : MOS_BITFIELD_RANGE(  0, 31);   // 
+            uint32_t       HistogramBTI                        : MOS_BITFIELD_RANGE(  0, 31);   //
         };
         uint32_t Value;
     } DW12;
@@ -3900,7 +3896,7 @@ struct MediaObjectVp8MpuFhbStaticDataG10
     // uint32_t 13
     union {
         struct {
-            uint32_t       ReferenceModeProbabilityBTI         : MOS_BITFIELD_RANGE(  0, 31);   // 
+            uint32_t       ReferenceModeProbabilityBTI         : MOS_BITFIELD_RANGE(  0, 31);   //
         };
         uint32_t Value;
     } DW13;
@@ -3908,7 +3904,7 @@ struct MediaObjectVp8MpuFhbStaticDataG10
     // uint32_t 14
     union {
         struct {
-            uint32_t       ModeProbabilityBTI                  : MOS_BITFIELD_RANGE(  0, 31);   // 
+            uint32_t       ModeProbabilityBTI                  : MOS_BITFIELD_RANGE(  0, 31);   //
         };
         uint32_t Value;
     } DW14;
@@ -3916,7 +3912,7 @@ struct MediaObjectVp8MpuFhbStaticDataG10
     // uint32_t 15
     union {
         struct {
-            uint32_t       ReferenceTokenProbabilityBTI        : MOS_BITFIELD_RANGE(  0, 31);   // 
+            uint32_t       ReferenceTokenProbabilityBTI        : MOS_BITFIELD_RANGE(  0, 31);   //
         };
         uint32_t Value;
     } DW15;
@@ -3924,7 +3920,7 @@ struct MediaObjectVp8MpuFhbStaticDataG10
     // uint32_t 16
     union {
         struct {
-            uint32_t       TokenProbabilityBTI                 : MOS_BITFIELD_RANGE(  0, 31);   // 
+            uint32_t       TokenProbabilityBTI                 : MOS_BITFIELD_RANGE(  0, 31);   //
         };
         uint32_t Value;
     } DW16;
@@ -3932,7 +3928,7 @@ struct MediaObjectVp8MpuFhbStaticDataG10
     // uint32_t 17
     union {
         struct {
-            uint32_t       FrameHeaderBitstreamBTI             : MOS_BITFIELD_RANGE(  0, 31);   // 
+            uint32_t       FrameHeaderBitstreamBTI             : MOS_BITFIELD_RANGE(  0, 31);   //
         };
         uint32_t Value;
     } DW17;
@@ -3940,7 +3936,7 @@ struct MediaObjectVp8MpuFhbStaticDataG10
     // uint32_t 18
     union {
         struct {
-            uint32_t       HeaderMetaDataBTI                   : MOS_BITFIELD_RANGE(  0, 31);   // 
+            uint32_t       HeaderMetaDataBTI                   : MOS_BITFIELD_RANGE(  0, 31);   //
         };
         uint32_t Value;
     } DW18;
@@ -3948,7 +3944,7 @@ struct MediaObjectVp8MpuFhbStaticDataG10
     // uint32_t 19
     union {
         struct {
-            uint32_t       PictureStateBTI                     : MOS_BITFIELD_RANGE(  0, 31);   // 
+            uint32_t       PictureStateBTI                     : MOS_BITFIELD_RANGE(  0, 31);   //
         };
         uint32_t Value;
     } DW19;
@@ -3956,45 +3952,44 @@ struct MediaObjectVp8MpuFhbStaticDataG10
     // uint32_t 20
     union {
         struct {
-            uint32_t       MPUBitStreamBTI                     : MOS_BITFIELD_RANGE(  0, 31);   // 
+            uint32_t       MPUBitStreamBTI                     : MOS_BITFIELD_RANGE(  0, 31);   //
         };
         uint32_t Value;
     } DW20;
 
     union {
         struct {
-            uint32_t       TokenBitsDataBTI                    : MOS_BITFIELD_RANGE(  0, 31);   // 
+            uint32_t       TokenBitsDataBTI                    : MOS_BITFIELD_RANGE(  0, 31);   //
         };
         uint32_t Value;
     } DW21;
     union {
         struct {
-            uint32_t       KernelDebugDumpBTI                  : MOS_BITFIELD_RANGE(  0, 31);   // 
+            uint32_t       KernelDebugDumpBTI                  : MOS_BITFIELD_RANGE(  0, 31);   //
         };
         uint32_t Value;
     } DW22;
     union {
         struct {
-            uint32_t       EntropyCostBTI                      : MOS_BITFIELD_RANGE(  0, 31);   // 
+            uint32_t       EntropyCostBTI                      : MOS_BITFIELD_RANGE(  0, 31);   //
         };
         uint32_t Value;
     } DW23;
     union {
         struct {
-            uint32_t       ModeCostUpdateBTI                   : MOS_BITFIELD_RANGE(  0, 31);   // 
+            uint32_t       ModeCostUpdateBTI                   : MOS_BITFIELD_RANGE(  0, 31);   //
         };
         uint32_t Value;
     } DW24;
 };
 C_ASSERT(MOS_BYTES_TO_DWORDS(sizeof(struct MediaObjectVp8MpuFhbStaticDataG10)) == 25);
 
-
 struct MediaObjectVp8TpuFhbStaticDataG10
 {
 // uint32_t 0
     union {
         struct {
-            uint32_t       MBsInFrame                           : MOS_BITFIELD_RANGE(  0, 31);   // 
+            uint32_t       MBsInFrame                           : MOS_BITFIELD_RANGE(  0, 31);   //
         };
         uint32_t Value;
     } DW0;
@@ -4002,12 +3997,12 @@ struct MediaObjectVp8TpuFhbStaticDataG10
     // uint32_t 1
     union {
         struct {
-            uint32_t       FrameType                            : MOS_BITFIELD_BIT(       0 );   // 
-            uint32_t       EnableSegmentation                   : MOS_BITFIELD_BIT(       1 );   // 
-            uint32_t       RebinarizationFrameHdr               : MOS_BITFIELD_BIT(       2 );   // 
-            uint32_t       RefreshEntropyP                      : MOS_BITFIELD_BIT(       3 );   // 
-            uint32_t       MBNoCoeffiscientSkip                 : MOS_BITFIELD_BIT(       4 );   // 
-            uint32_t                                            : MOS_BITFIELD_RANGE(  5,31 );   // 
+            uint32_t       FrameType                            : MOS_BITFIELD_BIT(       0 );   //
+            uint32_t       EnableSegmentation                   : MOS_BITFIELD_BIT(       1 );   //
+            uint32_t       RebinarizationFrameHdr               : MOS_BITFIELD_BIT(       2 );   //
+            uint32_t       RefreshEntropyP                      : MOS_BITFIELD_BIT(       3 );   //
+            uint32_t       MBNoCoeffiscientSkip                 : MOS_BITFIELD_BIT(       4 );   //
+            uint32_t                                            : MOS_BITFIELD_RANGE(  5,31 );   //
         };
         uint32_t Value;
     } DW1;
@@ -4015,8 +4010,8 @@ struct MediaObjectVp8TpuFhbStaticDataG10
     // uint32_t 2
     union {
         struct {
-            uint32_t       TokenProbabilityStatOffset           : MOS_BITFIELD_RANGE(  0,15 );   // 
-            uint32_t       TokenProbabilityEndOffset            : MOS_BITFIELD_RANGE( 16,31 );   // 
+            uint32_t       TokenProbabilityStatOffset           : MOS_BITFIELD_RANGE(  0,15 );   //
+            uint32_t       TokenProbabilityEndOffset            : MOS_BITFIELD_RANGE( 16,31 );   //
         };
         uint32_t Value;
     } DW2;
@@ -4024,9 +4019,9 @@ struct MediaObjectVp8TpuFhbStaticDataG10
     // uint32_t 3
     union {
         struct {
-            uint32_t       FrameHeaderBitCount                  : MOS_BITFIELD_RANGE(  0,15 );   // 
-            uint32_t       MaxQP                                : MOS_BITFIELD_RANGE( 16,23 );   // 
-            uint32_t       MinQP                                : MOS_BITFIELD_RANGE( 24,31 );   // 
+            uint32_t       FrameHeaderBitCount                  : MOS_BITFIELD_RANGE(  0,15 );   //
+            uint32_t       MaxQP                                : MOS_BITFIELD_RANGE( 16,23 );   //
+            uint32_t       MinQP                                : MOS_BITFIELD_RANGE( 24,31 );   //
         };
         uint32_t Value;
     } DW3;
@@ -4034,10 +4029,10 @@ struct MediaObjectVp8TpuFhbStaticDataG10
     // uint32_t 4
     union {
         struct {
-            uint32_t       LoopFilterLevelSegment0              : MOS_BITFIELD_RANGE(  0, 7 );   // 
-            uint32_t       LoopFilterLevelSegment1              : MOS_BITFIELD_RANGE(  8,15 );   // 
-            uint32_t       LoopFilterLevelSegment2              : MOS_BITFIELD_RANGE( 16,23 );   // 
-            uint32_t       LoopFilterLevelSegment3              : MOS_BITFIELD_RANGE( 24,31 );   // 
+            uint32_t       LoopFilterLevelSegment0              : MOS_BITFIELD_RANGE(  0, 7 );   //
+            uint32_t       LoopFilterLevelSegment1              : MOS_BITFIELD_RANGE(  8,15 );   //
+            uint32_t       LoopFilterLevelSegment2              : MOS_BITFIELD_RANGE( 16,23 );   //
+            uint32_t       LoopFilterLevelSegment3              : MOS_BITFIELD_RANGE( 24,31 );   //
         };
         uint32_t Value;
     } DW4;
@@ -4045,10 +4040,10 @@ struct MediaObjectVp8TpuFhbStaticDataG10
     // uint32_t 5
     union {
         struct {
-            uint32_t       QuantizationIndexSegment0            : MOS_BITFIELD_RANGE(  0, 7 );   // 
-            uint32_t       QuantizationIndexSegment1            : MOS_BITFIELD_RANGE(  8,15 );   // 
-            uint32_t       QuantizationIndexSegment2            : MOS_BITFIELD_RANGE( 16,23 );   // 
-            uint32_t       QuantizationIndexSegment3            : MOS_BITFIELD_RANGE( 24,31 );   // 
+            uint32_t       QuantizationIndexSegment0            : MOS_BITFIELD_RANGE(  0, 7 );   //
+            uint32_t       QuantizationIndexSegment1            : MOS_BITFIELD_RANGE(  8,15 );   //
+            uint32_t       QuantizationIndexSegment2            : MOS_BITFIELD_RANGE( 16,23 );   //
+            uint32_t       QuantizationIndexSegment3            : MOS_BITFIELD_RANGE( 24,31 );   //
         };
         uint32_t Value;
     } DW5;
@@ -4056,7 +4051,7 @@ struct MediaObjectVp8TpuFhbStaticDataG10
     // uint32_t 6
     union {
         struct {
-            uint32_t        PakPassNum                           : MOS_BITFIELD_RANGE(  0, 31);   // 
+            uint32_t        PakPassNum                           : MOS_BITFIELD_RANGE(  0, 31);   //
         };
         uint32_t Value;
     } DW6;
@@ -4073,7 +4068,7 @@ struct MediaObjectVp8TpuFhbStaticDataG10
     // uint32_t 8
     union {
         struct {
-            uint32_t       CumulativeDQIndex01                : MOS_BITFIELD_RANGE(  0, 31);   // 
+            uint32_t       CumulativeDQIndex01                : MOS_BITFIELD_RANGE(  0, 31);   //
         };
         uint32_t Value;
     } DW8;
@@ -4081,7 +4076,7 @@ struct MediaObjectVp8TpuFhbStaticDataG10
     // uint32_t 9
     union {
         struct {
-            uint32_t       CumulativeDQIndex02                 : MOS_BITFIELD_RANGE(  0, 31);   // 
+            uint32_t       CumulativeDQIndex02                 : MOS_BITFIELD_RANGE(  0, 31);   //
         };
         uint32_t Value;
     } DW9;
@@ -4089,7 +4084,7 @@ struct MediaObjectVp8TpuFhbStaticDataG10
     // uint32_t 10
     union {
         struct {
-            uint32_t       CumulativeLoopFilter01              : MOS_BITFIELD_RANGE(  0, 31);   // 
+            uint32_t       CumulativeLoopFilter01              : MOS_BITFIELD_RANGE(  0, 31);   //
         };
         uint32_t Value;
     } DW10;
@@ -4097,7 +4092,7 @@ struct MediaObjectVp8TpuFhbStaticDataG10
     // uint32_t 11
     union {
         struct {
-            uint32_t       CumulativeLoopFilter02              : MOS_BITFIELD_RANGE(  0, 31);   // 
+            uint32_t       CumulativeLoopFilter02              : MOS_BITFIELD_RANGE(  0, 31);   //
         };
         uint32_t Value;
     } DW11;
@@ -4105,7 +4100,7 @@ struct MediaObjectVp8TpuFhbStaticDataG10
     // uint32_t 12
     union {
         struct {
-            uint32_t       PakTokenStatisticsBTI                : MOS_BITFIELD_RANGE(  0, 31);   // 
+            uint32_t       PakTokenStatisticsBTI                : MOS_BITFIELD_RANGE(  0, 31);   //
         };
         uint32_t Value;
     } DW12;
@@ -4113,7 +4108,7 @@ struct MediaObjectVp8TpuFhbStaticDataG10
     // uint32_t 13
     union {
         struct {
-            uint32_t       TokenUpdateFlagsBTI                  : MOS_BITFIELD_RANGE(  0, 31);   // 
+            uint32_t       TokenUpdateFlagsBTI                  : MOS_BITFIELD_RANGE(  0, 31);   //
         };
         uint32_t Value;
     } DW13;
@@ -4121,7 +4116,7 @@ struct MediaObjectVp8TpuFhbStaticDataG10
     // uint32_t 14
     union {
         struct {
-            uint32_t       EntropyCostTableBTI                  : MOS_BITFIELD_RANGE(  0, 31);   // 
+            uint32_t       EntropyCostTableBTI                  : MOS_BITFIELD_RANGE(  0, 31);   //
         };
         uint32_t Value;
     } DW14;
@@ -4129,14 +4124,14 @@ struct MediaObjectVp8TpuFhbStaticDataG10
     // uint32_t 15
     union {
         struct {
-            uint32_t       FrameHeaderBitstreamBTI              : MOS_BITFIELD_RANGE(  0, 31);   // 
+            uint32_t       FrameHeaderBitstreamBTI              : MOS_BITFIELD_RANGE(  0, 31);   //
         };
         uint32_t Value;
     } DW15;
     // uint32_t 16
     union {
         struct {
-            uint32_t       DefaultTokenProbabilityBTI           : MOS_BITFIELD_RANGE(  0, 31);   // 
+            uint32_t       DefaultTokenProbabilityBTI           : MOS_BITFIELD_RANGE(  0, 31);   //
         };
         uint32_t Value;
     } DW16;
@@ -4144,7 +4139,7 @@ struct MediaObjectVp8TpuFhbStaticDataG10
     // uint32_t 17
     union {
         struct {
-            uint32_t       PictureStateBTI                      : MOS_BITFIELD_RANGE(  0, 31);   // 
+            uint32_t       PictureStateBTI                      : MOS_BITFIELD_RANGE(  0, 31);   //
         };
         uint32_t Value;
     } DW17;
@@ -4152,7 +4147,7 @@ struct MediaObjectVp8TpuFhbStaticDataG10
     // uint32_t 18
     union {
         struct {
-            uint32_t       MpuCurbeDataBTI                      : MOS_BITFIELD_RANGE(  0, 31);   // 
+            uint32_t       MpuCurbeDataBTI                      : MOS_BITFIELD_RANGE(  0, 31);   //
         };
         uint32_t Value;
     } DW18;
@@ -4160,7 +4155,7 @@ struct MediaObjectVp8TpuFhbStaticDataG10
     // uint32_t 19
     union {
         struct {
-            uint32_t       HeaderMetaDataBTI                    : MOS_BITFIELD_RANGE(  0, 31);   // 
+            uint32_t       HeaderMetaDataBTI                    : MOS_BITFIELD_RANGE(  0, 31);   //
         };
         uint32_t Value;
     } DW19;
@@ -4168,7 +4163,7 @@ struct MediaObjectVp8TpuFhbStaticDataG10
     // uint32_t 20
     union {
         struct {
-            uint32_t       TokenProbabilityBTI                  : MOS_BITFIELD_RANGE(  0, 31);   // 
+            uint32_t       TokenProbabilityBTI                  : MOS_BITFIELD_RANGE(  0, 31);   //
         };
         uint32_t Value;
     } DW20;
@@ -4176,7 +4171,7 @@ struct MediaObjectVp8TpuFhbStaticDataG10
     // uint32_t 21
     union {
         struct {
-            uint32_t       PakHardwareTokenProbabilityPass1BTI  : MOS_BITFIELD_RANGE(  0, 31);   // 
+            uint32_t       PakHardwareTokenProbabilityPass1BTI  : MOS_BITFIELD_RANGE(  0, 31);   //
         };
         uint32_t Value;
     } DW21;
@@ -4184,7 +4179,7 @@ struct MediaObjectVp8TpuFhbStaticDataG10
     // uint32_t 22
     union {
         struct {
-            uint32_t       KeyFrameTokenProbabilityBTI          : MOS_BITFIELD_RANGE(  0, 31);   // 
+            uint32_t       KeyFrameTokenProbabilityBTI          : MOS_BITFIELD_RANGE(  0, 31);   //
         };
         uint32_t Value;
     } DW22;
@@ -4192,7 +4187,7 @@ struct MediaObjectVp8TpuFhbStaticDataG10
     // uint32_t 23
     union {
         struct {
-            uint32_t       UpdatedTokenProbabilityBTI           : MOS_BITFIELD_RANGE(  0, 31);   // 
+            uint32_t       UpdatedTokenProbabilityBTI           : MOS_BITFIELD_RANGE(  0, 31);   //
         };
         uint32_t Value;
     } DW23;
@@ -4200,7 +4195,7 @@ struct MediaObjectVp8TpuFhbStaticDataG10
     // uint32_t 24
     union {
         struct {
-            uint32_t       PakHardwareTokenProbabilityPass2BTI  : MOS_BITFIELD_RANGE(  0, 31);   // 
+            uint32_t       PakHardwareTokenProbabilityPass2BTI  : MOS_BITFIELD_RANGE(  0, 31);   //
         };
         uint32_t Value;
     } DW24;
@@ -4208,7 +4203,7 @@ struct MediaObjectVp8TpuFhbStaticDataG10
     // uint32_t 25
     union {
         struct {
-            uint32_t       KernelDebugDumpBTI                   : MOS_BITFIELD_RANGE(  0, 31);   // 
+            uint32_t       KernelDebugDumpBTI                   : MOS_BITFIELD_RANGE(  0, 31);   //
         };
         uint32_t Value;
     } DW25;
@@ -4216,7 +4211,7 @@ struct MediaObjectVp8TpuFhbStaticDataG10
     // uint32_t 26
     union {
     struct {
-            uint32_t       RepakDecisionSurfaceBTI               : MOS_BITFIELD_RANGE(0, 31);   // 
+            uint32_t       RepakDecisionSurfaceBTI               : MOS_BITFIELD_RANGE(0, 31);   //
         };
         uint32_t Value;
     } DW26;
@@ -4233,14 +4228,14 @@ struct CodechalVp8KernelHeaderG10 {
     // MPU/FHB
     CODECHAL_KERNEL_HEADER VP8_MPU;
 
-    // TPU 
+    // TPU
     CODECHAL_KERNEL_HEADER VP8_TPU;
 
     // Intra prediction mode search  for only luma components of key-frame.
     // To be used when HW intra prediction is disabled.
     CODECHAL_KERNEL_HEADER VP8MBEnc_I_Luma;
 
-    // HME 
+    // HME
     CODECHAL_KERNEL_HEADER VP8_ME_P;
 
     // DownScaling
@@ -4595,9 +4590,9 @@ const uint8_t VP8_DIAMOND[56] =
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-const uint8_t VP8_MAINREF_TABLE_G10[8] = 
+const uint8_t VP8_MAINREF_TABLE_G10[8] =
 {
-    0, 1, 2, 9, 3, 13, 14, 57   
+    0, 1, 2, 9, 3, 13, 14, 57
 };
 
 const uint8_t VP8_NUM_REFS_G10[8] =
@@ -4607,7 +4602,7 @@ const uint8_t VP8_NUM_REFS_G10[8] =
 
 const uint8_t VP8_BRC_IFRAME_COST_TABLE_G10[128][4] =
 {
-    { 0x5,     0x5,     0x8,     0x8},    
+    { 0x5,     0x5,     0x8,     0x8},
     { 0xa,     0xa,     0xd,     0xd},
     { 0xd,     0xf,     0xf,    0x19},
     {0x19,    0x1a,    0x1a,    0x1a},
@@ -5057,12 +5052,11 @@ const uint16_t VP8_QUANT_AC_G10[CODECHAL_VP8_MAX_QP/* + 1 + 32*/] =
     284, 284, 284, 284, 284, 284, 284, 284, 284, 284, 284, 284, 284, 284, 284, 284*/
 };
 
-extern const uint16_t VP8_MB_MODE_COST_LUMA_G10[10] = 
-{   657,    869,    915,    917,    208,    0,      0,      0,      0,      0}; 
+extern const uint16_t VP8_MB_MODE_COST_LUMA_G10[10] =
+{   657,    869,    915,    917,    208,    0,      0,      0,      0,      0};
 
-
-static const uint16_t VP8_BLOCK_MODE_COST_G10[10][10][10] = 
-{                                                                                              
+static const uint16_t VP8_BLOCK_MODE_COST_G10[10][10][10] =
+{
     {       {37,  1725,  1868,  1151,  1622,  2096,  2011,  1770,  2218,  2128  },
     {139,  759,  1683,  911,  1455,  1846,  1570,  1295,  1792,  1648   },
     {560,  1383,  408,  639,  1612,  1174,  1562,  1736,  847,  991     },
@@ -5074,7 +5068,7 @@ static const uint16_t VP8_BLOCK_MODE_COST_G10[10][10][10] =
     {516,  1414,  741,  1045,  1495,  738,  1288,  1619,  442,  1200    },
     {424,  1365,  706,  825,  1197,  1453,  1191,  1462,  1186,  519    },
 
-    },                                                                                             
+    },
     {       {393,  515,  1491,  549,  1598,  1524,  964,  1126,  1651,  2172    },
     {693,  237,  1954,  641,  1525,  2073,  1183,  971,  1973,  2235    },
     {560,  739,  855,  836,  1224,  1115,  966,  839,  1076,  767       },
@@ -5086,7 +5080,7 @@ static const uint16_t VP8_BLOCK_MODE_COST_G10[10][10][10] =
     {744,  1004,  695,  1012,  1326,  834,  1215,  774,  724,  704      },
     {522,  567,  1036,  1082,  1039,  1333,  873,  1135,  1189,  677    },
 
-    },                                                                                             
+    },
     {       {103,  1441,  1000,  864,  1513,  1928,  1832,  1916,  1663,  1567  },
     {304,  872,  1100,  515,  1416,  1417,  3463,  1051,  1305,  1227   },
     {684,  2176,  242,  729,  1867,  1496,  2056,  1544,  1038,  930    },
@@ -5097,7 +5091,7 @@ static const uint16_t VP8_BLOCK_MODE_COST_G10[10][10][10] =
     {216,  873,  1595,  738,  1339,  3896,  3898,  743,  1343,  1605    },
     {675,  1580,  543,  749,  1859,  1245,  1589,  2377,  384,  1075    },
     {594,  1163,  415,  684,  1474,  1080,  1491,  1478,  1077,  801    },
-    },                                                                                             
+    },
     {       {238,  1131,  1483,  398,  1510,  1651,  1495,  1545,  1970,  2090  },
     {499,  456,  1499,  449,  1558,  1691,  1272,  969,  2114,  2116    },
     {675,  1386,  318,  645,  1449,  1588,  1666,  1925,  979,  859     },
@@ -5108,7 +5102,7 @@ static const uint16_t VP8_BLOCK_MODE_COST_G10[10][10][10] =
     {397,  741,  1336,  642,  1506,  1852,  1340,  599,  1854,  1000    },
     {625,  1212,  597,  750,  1291,  1057,  1401,  1401,  527,  954     },
     {499,  1041,  654,  752,  1299,  1217,  1605,  1424,  1377,  505    },
-    },                                                                                             
+    },
     {       {263,  1094,  1218,  602,  938,  1487,  1231,  1016,  1724,  1448   },
     {452,  535,  1728,  562,  1008,  1471,  1473,  873,  3182,  1136    },
     {553,  1570,  935,  1093,  826,  1339,  879,  1007,  1006,  476     },
@@ -5119,7 +5113,7 @@ static const uint16_t VP8_BLOCK_MODE_COST_G10[10][10][10] =
     {342,  1254,  1857,  989,  612,  1856,  1858,  553,  1840,  1037    },
     {553,  1316,  811,  1072,  1068,  728,  1328,  1317,  1064,  475    },
     {288,  1303,  1167,  1167,  823,  1634,  1636,  2497,  1294,  491   },
-    },                                                                                             
+    },
     {       {227,  1059,  1369,  1066,  1505,  740,  970,  1511,  972,  1775    },
     {516,  587,  1033,  646,  1188,  748,  978,  1445,  1294,  1450     },
     {684,  1048,  663,  747,  1126,  826,  1386,  1128,  635,  924      },
@@ -5130,7 +5124,7 @@ static const uint16_t VP8_BLOCK_MODE_COST_G10[10][10][10] =
     {505,  621,  1394,  876,  1394,  876,  878,  795,  878,  1399       },
     {684,  1302,  968,  1704,  1280,  561,  972,  1713,  387,  1104     },
     {397,  1447,  1060,  867,  957,  1058,  749,  1475,  1210,  660     },
-    },                                                                                             
+    },
     {       {331,  933,  1647,  761,  1647,  998,  513,  1402,  1461,  2219     },
     {573,  485,  1968,  641,  1570,  1198,  588,  1086,  1382,  1982    },
     {790,  942,  570,  790,  1607,  1005,  938,  1193,  714,  751       },
@@ -5141,7 +5135,7 @@ static const uint16_t VP8_BLOCK_MODE_COST_G10[10][10][10] =
     {393,  937,  1091,  934,  939,  1348,  1092,  579,  1351,  1095     },
     {560,  1013,  1007,  1014,  1011,  644,  1165,  1155,  605,  1016   },
     {567,  627,  997,  793,  2562,  998,  849,  1260,  922,  748        },
-    },                                                                                             
+    },
     {       {338,  762,  1868,  717,  1247,  1757,  1263,  535,  1751,  2162    },
     {488,  442,  3235,  756,  1658,  1814,  1264,  528,  1857,  2119    },
     {522,  1087,  840,  1103,  843,  1354,  1098,  888,  946,  588      },
@@ -5152,7 +5146,7 @@ static const uint16_t VP8_BLOCK_MODE_COST_G10[10][10][10] =
     {401,  977,  2167,  1537,  1069,  1764,  3810,  259,  3624,  1578   },
     {560,  1104,  601,  1371,  965,  658,  2704,  779,  967,  969       },
     {547,  1057,  801,  1141,  1133,  1397,  937,  605,  1252,  631     },
-    },                                                                                             
+    },
     {       {163,  1240,  925,  983,  1653,  1321,  1353,  1566,  946,  1601    },
     {401,  726,  758,  836,  1241,  926,  1656,  795,  1394,  1396      },
     {905,  1073,  366,  876,  1436,  1576,  1732,  2432,  459,  1019    },
@@ -5163,7 +5157,7 @@ static const uint16_t VP8_BLOCK_MODE_COST_G10[10][10][10] =
     {406,  596,  1001,  993,  1257,  1258,  1260,  746,  1002,  1264    },
     {979,  1371,  780,  1188,  1693,  1024,  1286,  1699,  183,  1405   },
     {733,  1292,  458,  884,  1554,  889,  1151,  1286,  738,  740      },
-    },                                                                                             
+    },
     {       {109,  1377,  1177,  933,  1140,  1928,  1639,  1705,  1861,  1292  },
     {342,  570,  1081,  638,  1154,  1231,  1339,  1342,  1750,  1494   },
     {560,  1203,  345,  767,  1325,  1681,  1425,  1905,  1205,  786    },
@@ -5174,11 +5168,11 @@ static const uint16_t VP8_BLOCK_MODE_COST_G10[10][10][10] =
     {227,  888,  1039,  929,  988,  3753,  1707,  818,  1710,  1306     },
     {767,  1055,  627,  725,  1312,  980,  1065,  1324,  599,  811      },
     {304,  1372,  888,  1173,  979,  1578,  1580,  1974,  1318,  482    },
-    }                                                                                              
+    }
 };
 
 // VP8 BRC
-extern const uint8_t VP8_BRC_IFRAME_COST_TABLE_G10[128][4]; 
+extern const uint8_t VP8_BRC_IFRAME_COST_TABLE_G10[128][4];
 extern const uint32_t VP8_BRC_PFRAME_COST_TABLE_G10[256];
 extern const uint32_t VP8_NewMVSkipThreshold_G10[128];
 
@@ -5222,7 +5216,7 @@ const uint8_t VP8_BRC_QPAdjustment_DistThreshold_MaxFrameThreshold_DistQPAdjustm
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 };
 
-const uint16_t VP8_BRC_QUANT_DC_TABLE [128] = 
+const uint16_t VP8_BRC_QUANT_DC_TABLE [128] =
 {
       4,   5,   6,   7,   8,   9,  10,  10,  11,  12,  13,  14,  15,  16,  17,  17,
      18,  19,  20,  20,  21,  21,  22,  22,  23,  23,  24,  25,  25,  26,  27,  28,
@@ -5247,7 +5241,7 @@ const uint16_t VP8_BRC_QUANT_AC_TABLE [128] =
 };
 
 const uint16_t VP8_BRC_SKIP_MV_THRESHOLD_TABLE [256] =
-{       
+{
     111,  120,  129,  137,  146,  155,  163,  172,  180,  189,  198,  206,  215,  224,  232,  241,
     249,  258,  267,  275,  284,  293,  301,  310,  318,  327,  336,  344,  353,  362,  370,  379,
     387,  396,  405,  413,  422,  431,  439,  448,  456,  465,  474,  482,  491,  500,  508,  517,
@@ -5861,12 +5855,11 @@ MOS_STATUS CodechalEncodeVp8G10::Initialize(CodechalSetting * codecHalSettings)
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    // common initilization 
+    // common initilization
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncodeVp8::Initialize(codecHalSettings));
 
     return status;
 }
-
 
 MOS_STATUS CodechalEncodeVp8G10::InitKernelState()
 {
@@ -6423,7 +6416,7 @@ MOS_STATUS CodechalEncodeVp8G10::InitBrcConstantBuffer(struct CodechalVp8InitBrc
         CODECHAL_ENCODE_ASSERTMESSAGE("Failed to copy memory.");
         return status;
     }
-    
+
     params->pOsInterface->pfnUnlockResource(
         params->pOsInterface,
         &params->resBrcConstantDataBuffer);
@@ -6487,9 +6480,9 @@ MOS_STATUS CodechalEncodeVp8G10::InitMBEncConstantBuffer(struct CodechalVp8InitM
 
     // Fill surface with VP8_MB_MODE_COST_LUMA table for I frame
     status = MOS_SecureMemcpy(
-        data, 
+        data,
         sizeof(VP8_MB_MODE_COST_LUMA_G10),
-        (void *)VP8_MB_MODE_COST_LUMA_G10, 
+        (void *)VP8_MB_MODE_COST_LUMA_G10,
         sizeof(VP8_MB_MODE_COST_LUMA_G10));
     if(status != MOS_STATUS_SUCCESS)
     {
@@ -6512,9 +6505,9 @@ MOS_STATUS CodechalEncodeVp8G10::InitMBEncConstantBuffer(struct CodechalVp8InitM
 
     // Fill surface with VP8_BLOCK_MODE_COST table for I frame
     status = MOS_SecureMemcpy(
-        data, 
+        data,
         sizeof(VP8_BLOCK_MODE_COST_G10),
-        (void *)VP8_BLOCK_MODE_COST_G10, 
+        (void *)VP8_BLOCK_MODE_COST_G10,
         sizeof(VP8_BLOCK_MODE_COST_G10));
     if(status != MOS_STATUS_SUCCESS)
     {
@@ -6580,9 +6573,9 @@ MOS_STATUS CodechalEncodeVp8G10::InitMpuTpuBuffer()
     CODECHAL_ENCODE_CHK_NULL_RETURN(data);
 
     status = MOS_SecureMemcpy(
-        data, 
+        data,
         sizeof(VP8_DEFAULT_COEFF_PROBS_G10),
-        (void *)VP8_DEFAULT_COEFF_PROBS_G10, 
+        (void *)VP8_DEFAULT_COEFF_PROBS_G10,
         sizeof(VP8_DEFAULT_COEFF_PROBS_G10));
     if(status != MOS_STATUS_SUCCESS)
     {
@@ -6604,9 +6597,9 @@ MOS_STATUS CodechalEncodeVp8G10::InitMpuTpuBuffer()
     CODECHAL_ENCODE_CHK_NULL_RETURN(data);
 
     status = MOS_SecureMemcpy(
-        data, 
+        data,
         sizeof(VP8_C0_TABLE),
-        (void *)VP8_C0_TABLE, 
+        (void *)VP8_C0_TABLE,
         sizeof(VP8_C0_TABLE));
     if(status != MOS_STATUS_SUCCESS)
     {
@@ -6908,7 +6901,7 @@ MOS_STATUS CodechalEncodeVp8G10::SetBrcInitResetCurbe(struct CodechalVp8BrcInitR
     cmd.DW12.LevelQP = 60;
     // DW13 default 100
     cmd.DW13.MaxSection_pct = 100;
-    cmd.DW13.OverShootCBR_pct = 115; 
+    cmd.DW13.OverShootCBR_pct = 115;
 
     // DW14 default 100
     cmd.DW14.MinSection_pct = 100;
@@ -7065,7 +7058,7 @@ MOS_STATUS CodechalEncodeVp8G10::SetBrcUpdateCurbe(struct CodechalVp8BrcUpdateCu
 
     MOS_ZeroMemory(&cmd, sizeof(cmd));
 
-    cmd.DW0.TargetSize = 0; 
+    cmd.DW0.TargetSize = 0;
     cmd.DW2.PictureHeaderSize = 0;   // matching kernel value
     cmd.DW5.TargetSizeFlag = 0;
 
@@ -7475,7 +7468,7 @@ MOS_STATUS CodechalEncodeVp8G10::SetMbEncCurbe(struct CodechalVp8MbencCurbeParam
         cmd.DW1.RefFrameFlags                 = picParams->ref_frame_ctrl;
         cmd.DW1.EnableSegmentation            = picParams->segmentation_enabled;
         cmd.DW1.EnableSegmentationInfoUpdate  = 1;//dont care field hardcoding to match kernel- picParams->update_mb_segmentation_map;
-        cmd.DW1.MultiReferenceQPCheck         = false;    
+        cmd.DW1.MultiReferenceQPCheck         = false;
         cmd.DW1.ModecostEnableFlag            = 1;
 
         // temporal scaliability is enable
@@ -7774,9 +7767,9 @@ MOS_STATUS CodechalEncodeVp8G10::SetMeCurbe(struct CodechalVp8MeCurbeParams* par
 
     tableIdx = 0; /* Only P pictures in VP8, no B pictures */
     meMethod = (params->ucKernelMode == encodeNormalMode) ? 6 : 4;
-    status = MOS_SecureMemcpy((uint32_t*)(&cmd.DW16), 
-                            14 * sizeof(uint32_t), 
-                            m_encodeSearchPath[tableIdx][meMethod], 
+    status = MOS_SecureMemcpy((uint32_t*)(&cmd.DW16),
+                            14 * sizeof(uint32_t),
+                            m_encodeSearchPath[tableIdx][meMethod],
                             14 * sizeof(uint32_t));
 
     if (status != MOS_STATUS_SUCCESS)
@@ -7838,7 +7831,7 @@ MOS_STATUS CodechalEncodeVp8G10::SetMpuCurbe(struct CodechalVp8MpuCurbeParams* p
     cmd.DW1.SegMapUpdate =
         (picParams->segmentation_enabled) ? picParams->update_mb_segmentation_map : 0;
     cmd.DW1.SegmentationFeatureUpdate = picParams->update_segment_feature_data;    // setup whenever segmentation is 1
-    cmd.DW1.SegmentationFeatureMode = 1;    // delta mode  
+    cmd.DW1.SegmentationFeatureMode = 1;    // delta mode
     cmd.DW1.LoopFilterType = picParams->filter_type;
     cmd.DW1.SharpnessLevel = picParams->sharpness_level;
     cmd.DW1.LoopFilterAdjustmentOn = picParams->loop_filter_adj_enable;
@@ -8046,7 +8039,7 @@ MOS_STATUS CodechalEncodeVp8G10::SendMpuSurfaces(
         kernelState));
 
     // Picture state
-    size = mhw_vdbox_mfx_g10_X::MFX_VP8_PIC_STATE_CMD::byteSize; 
+    size = mhw_vdbox_mfx_g10_X::MFX_VP8_PIC_STATE_CMD::byteSize;
     MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
     surfaceCodecParams.dwSize = size;
     surfaceCodecParams.presBuffer = params->presPictureState;

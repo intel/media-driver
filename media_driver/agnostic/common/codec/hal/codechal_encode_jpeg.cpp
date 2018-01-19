@@ -171,14 +171,13 @@ uint8_t CodechalEncodeJpegState::MapHuffValIndex(uint8_t huffValIndex)
     return mappedIndex;
 }
 
-
 // Implemented based on Flowchart in figure C.1 in JPEG spec
 MOS_STATUS CodechalEncodeJpegState::GenerateSizeTable(
     uint8_t     bits[],
     uint8_t     huffSize[],
     uint8_t&    lastK)
 {
-    CODECHAL_ENCODE_FUNCTION_ENTER; 
+    CODECHAL_ENCODE_FUNCTION_ENTER;
 
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -267,7 +266,7 @@ MOS_STATUS CodechalEncodeJpegState::OrderCodes(
         k++;
     } while (k < lastK);
 
-    // copy over the first 162 values of reordered arrays to Huffman Code and size arrays 
+    // copy over the first 162 values of reordered arrays to Huffman Code and size arrays
     CODECHAL_ENCODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(&huffCode[0], JPEG_NUM_HUFF_TABLE_AC_HUFFVAL * sizeof(uint16_t), &eHuffCo[0], JPEG_NUM_HUFF_TABLE_AC_HUFFVAL * sizeof(uint16_t)));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(&huffSize[0], JPEG_NUM_HUFF_TABLE_AC_HUFFVAL * sizeof(uint8_t), &eHuffSi[0], JPEG_NUM_HUFF_TABLE_AC_HUFFVAL * sizeof(uint8_t)));
 
@@ -279,7 +278,7 @@ MOS_STATUS CodechalEncodeJpegState::ConvertHuffDataToTable(
     CodechalEncodeJpegHuffTable         *huffmanTable)
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
-    
+
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     huffmanTable->m_tableClass = huffmanData.m_tableClass;
@@ -321,7 +320,7 @@ MOS_STATUS CodechalEncodeJpegState::PackSOI(BSBuffer *buffer)
 MOS_STATUS CodechalEncodeJpegState::PackApplicationData(
     BSBuffer                        *buffer,
     uint8_t                         *appDataChunk,
-    uint32_t   			            size)
+    uint32_t                           size)
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
@@ -532,7 +531,7 @@ MOS_STATUS CodechalEncodeJpegState::PackScanHeader(
         scanHeader += 1;
 
         // For Y8 image format there is only one scan component, so scanComponent[1] and scanComponent[2] should not be added to the header
-        // scanHeader->scanComponent[j].Tdaj 
+        // scanHeader->scanComponent[j].Tdaj
         if (j == 0)
         {
             *scanHeader = (uint8_t)(((m_jpegHuffmanTable->m_huffmanData[0].m_tableID & 0x0F) << 4)
@@ -858,7 +857,7 @@ MOS_STATUS CodechalEncodeJpegState::ExecuteSliceLevel()
             uint8_t* appDataChunk = nullptr;
             uint32_t appDataChunkSize = m_appDataSize;
 
-            // We can write a maximum of 1020 words per command, so if the size of the app data is 
+            // We can write a maximum of 1020 words per command, so if the size of the app data is
             // more than 1020 we need to send multiple commands for writing out app data
             uint32_t numAppDataCmdsNeeded = 1;
             uint32_t appDataCmdSizeResidue = 0;
@@ -912,7 +911,7 @@ MOS_STATUS CodechalEncodeJpegState::ExecuteSliceLevel()
             MOS_FreeMemory(appDataChunk);
         }
 
-        // Add Quant Table for Y 
+        // Add Quant Table for Y
         CODECHAL_ENCODE_CHK_STATUS_RETURN(PackQuantTable(pakInsertObjectParams.pBsBuffer, jpegComponentY));
 
         pakInsertObjectParams.dwOffset                      = 0;
@@ -992,7 +991,7 @@ MOS_STATUS CodechalEncodeJpegState::ExecuteSliceLevel()
             MOS_FreeMemory(pakInsertObjectParams.pBsBuffer->pBase);
         }
 
-        // Add scan header 
+        // Add scan header
         CODECHAL_ENCODE_CHK_STATUS_RETURN(PackScanHeader(pakInsertObjectParams.pBsBuffer));
         pakInsertObjectParams.dwOffset                      = 0;
         pakInsertObjectParams.dwBitSize                     = pakInsertObjectParams.pBsBuffer->BufferSize;

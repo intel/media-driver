@@ -45,8 +45,8 @@
 #define ENCODE_VDENC_HEVC_MAX_STREAMINROI_G10   3
 #define ENCODE_VDENC_HEVC_MAX_ROI_NUMBER_G10    8
 #define ENCODE_VDENC_HEVC_MAX_DIRTYRECT_G10     256
-#define ENCODE_VDENC_HEVC_ROI_BLOCKSIZE_G10     2        // 0:8x8, 1:16x16, 2:32x32, 3:64x64 
-#define ENCODE_VDENC_HEVC_MIN_ROI_DELTA_QP_G10  -8 
+#define ENCODE_VDENC_HEVC_ROI_BLOCKSIZE_G10     2        // 0:8x8, 1:16x16, 2:32x32, 3:64x64
+#define ENCODE_VDENC_HEVC_MIN_ROI_DELTA_QP_G10  -8
 #define ENCODE_VDENC_HEVC_MAX_ROI_DELTA_QP_G10  7        // Max delta QP for VDEnc ROI
 #define ENCODE_VDENC_HEVC_MAX_SLICE_NUM         201
 
@@ -109,7 +109,7 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
 {
     /*! \brief Plus 1 specifies the width of each encoded picture in units of minimum coding block size.
     *
-    *   The encoded picture width in units of luma samples equals (wFrameWidthInMinCbMinus1 + 1) * (1 << (log2_min_coding_block_size_minus3 + 3)) 
+    *   The encoded picture width in units of luma samples equals (wFrameWidthInMinCbMinus1 + 1) * (1 << (log2_min_coding_block_size_minus3 + 3))
     *   Programming Note: HW requres surface allocation Y offset of chroma plain to be multiple of 32 pixels. And HEVC spec requires frame resolution to be multiple of minimal CU (could be 8 pixels) horizontally and vertically. Framework needs to pad accordingly. If source resolution is different from what is actually encoded (padding happens), cropping information should be provided in the SPS header accordingly.
     */
     uint16_t      wFrameWidthInMinCbMinus1;
@@ -179,9 +179,9 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
             *  \n Profile & Level               Yes
             *  \n UserMaxFrameSize              Yes
             *  \n InitVBVBufferFullnessInBit    No
-            *  \n TargetBitRate                 Yes 
+            *  \n TargetBitRate                 Yes
             *  \n VBVBufferSizeInBit            No
-            *  \n MaxBitRate                    Yes 
+            *  \n MaxBitRate                    Yes
             *  \n FramesPer100Sec *             No
             *  \n RateControlMethod             No
             *  \n GopPicSize                    No
@@ -416,7 +416,7 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
     *   It affects the BRC algorithm used, but may or may not have an effect based on the combination of other BRC parameters.  Only valid when the driver reports support for FrameSizeToleranceSupport.
     */
     ENCODE_FRAMESIZE_TOLERANCE  FrameSizeTolerance;
-    
+
     uint32_t palette_mode_enabled_flag;
     uint32_t motion_vector_resolution_control_idc;
     uint32_t intra_boundary_filtering_disabled_flag;
@@ -436,9 +436,9 @@ typedef struct _CODEC_HEVC_ENCODE_PICTURE_PARAMS
     /*! \brief Specifies the uncompressed surface of the reconstructed frame for the current encoded picture.
     *
     *    The PicFlags regarding reference usage are expected to be valid at this time.
-    *    The recon surface may be of different format and different bit depth from that of source. 
-    *    The framework needs to specify it through chroma_format_idc and bit_depth_luma_minus8 
-    *    and bit_depth_chroma_minus8 in SPS data structure. 
+    *    The recon surface may be of different format and different bit depth from that of source.
+    *    The framework needs to specify it through chroma_format_idc and bit_depth_luma_minus8
+    *    and bit_depth_chroma_minus8 in SPS data structure.
     */
     CODEC_PICTURE           CurrReconstructedPic;
     /*! \brief Specifies the collocated reference picture’s index into the RefFrameList[].
@@ -631,7 +631,7 @@ typedef struct _CODEC_HEVC_ENCODE_PICTURE_PARAMS
     CODEC_ROI               ROI[16];
     /*! \brief Distinct delta QP values assigned to the ROI
     *
-    *    Value entries are distinct and within [MinDeltaQp..MaxDeltaQp]. 
+    *    Value entries are distinct and within [MinDeltaQp..MaxDeltaQp].
     */
     int8_t                  ROIDistinctDeltaQp[8];
     uint32_t                RollingIntraReferenceLocation[16];
@@ -899,7 +899,7 @@ struct CodecEncodeHevcFeiPicParams
     MOS_RESOURCE                resCURecord;             // ENC CU record output buffer or PAK CU record input buffer
     MOS_RESOURCE                resMVPredictor;          // input external MV predictor surface
     MOS_RESOURCE                resCTBQp;                // input QP per CTB surface
-    MOS_RESOURCE                resDistortion;           // ENC or ENC_PAK Distortion output surface 
+    MOS_RESOURCE                resDistortion;           // ENC or ENC_PAK Distortion output surface
 
     uint32_t                    NumMVPredictorsL0;
     uint32_t                    NumMVPredictorsL1;

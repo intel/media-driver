@@ -315,13 +315,13 @@ public:
     //!
     MOS_STATUS CheckCondition();
 
-	//!
-	//! \brief    Check if recon surface's alignment meet HW requirement
-	//!
-	//! \return   MOS_STATUS
-	//!           MOS_STATUS_SUCCESS if success, else fail reason
-	//!
-	MOS_STATUS CheckReconSurfaceAlignment(PMOS_SURFACE surface);
+    //!
+    //! \brief    Check if recon surface's alignment meet HW requirement
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS CheckReconSurfaceAlignment(PMOS_SURFACE surface);
 
     //!
     //! \brief    Check if raw surface's alignment meet HW requirement
@@ -599,7 +599,7 @@ protected:
 
     //!
     //! Reference to data members in Encoder class
-    //! 
+    //!
     bool&                       m_useRawForRef;
     bool&                       m_useCommonKernel;
     bool&                       m_useHwScoreboard;
@@ -742,19 +742,19 @@ private:
         uint32_t DW2_Reserved;
 
         // DW3
-		uint32_t DW3_Reserved;
+        uint32_t DW3_Reserved;
 
         // DW4
-		uint32_t DW4_Reserved;
+        uint32_t DW4_Reserved;
 
         // DW5
-		uint32_t DW5_Reserved;
+        uint32_t DW5_Reserved;
 
         // DW6
         uint32_t DW6_Reserved;
 
         // DW7
-		uint32_t DW7_Reserved;
+        uint32_t DW7_Reserved;
 
         // DW8
         union
@@ -798,9 +798,9 @@ private:
     {
         DsKernelInlineData()
         {
-            DW04_VideoXScalingStep = 
+            DW04_VideoXScalingStep =
             DW05_VideoStepDelta = 0.0;
-            DW00 = 
+            DW00 =
             DW01 =
             DW02 =
             DW03 =
@@ -816,175 +816,175 @@ private:
             DW15_Reserved = 0;
         }
 
-		// uint32_t 0 - GRF R7.0
-		union
-		{
-			// All
-			struct
-			{
-				uint32_t       DestinationBlockHorizontalOrigin : 16;
-				uint32_t       DestinationBlockVerticalOrigin : 16;
-			};
-			// Block Copy
-			struct
-			{
-				uint32_t       BlockHeight : 16;
-				uint32_t       BufferOffset : 16;
-			};
-			// FMD Summation
-			struct
-			{
-				uint32_t       StartRowOffset;
-			};
-			uint32_t DW00;
-		};
+        // uint32_t 0 - GRF R7.0
+        union
+        {
+            // All
+            struct
+            {
+                uint32_t       DestinationBlockHorizontalOrigin : 16;
+                uint32_t       DestinationBlockVerticalOrigin : 16;
+            };
+            // Block Copy
+            struct
+            {
+                uint32_t       BlockHeight : 16;
+                uint32_t       BufferOffset : 16;
+            };
+            // FMD Summation
+            struct
+            {
+                uint32_t       StartRowOffset;
+            };
+            uint32_t DW00;
+        };
 
-		// uint32_t 1 - GRF R7.1
-		union
-		{
-			// Composite
-			struct
-			{
-				uint32_t       HorizontalBlockCompositeMaskLayer0 : 16;
-				uint32_t       VerticalBlockCompositeMaskLayer0 : 16;
-			};
-			// FMD Summation
-			struct
-			{
-				uint32_t       TotalRows;
-			};
-			uint32_t DW01;
-		};
+        // uint32_t 1 - GRF R7.1
+        union
+        {
+            // Composite
+            struct
+            {
+                uint32_t       HorizontalBlockCompositeMaskLayer0 : 16;
+                uint32_t       VerticalBlockCompositeMaskLayer0 : 16;
+            };
+            // FMD Summation
+            struct
+            {
+                uint32_t       TotalRows;
+            };
+            uint32_t DW01;
+        };
 
-		// uint32_t 2 - GRF R7.2
-		union
-		{
-			// Composite
-			struct
-			{
-				uint32_t       HorizontalBlockCompositeMaskLayer1 : 16;
-				uint32_t       VerticalBlockCompositeMaskLayer1 : 16;
-			};
-			// FMD Summation
-			struct
-			{
-				uint32_t       StartColumnOffset;
-			};
-			uint32_t DW02;
-		};
+        // uint32_t 2 - GRF R7.2
+        union
+        {
+            // Composite
+            struct
+            {
+                uint32_t       HorizontalBlockCompositeMaskLayer1 : 16;
+                uint32_t       VerticalBlockCompositeMaskLayer1 : 16;
+            };
+            // FMD Summation
+            struct
+            {
+                uint32_t       StartColumnOffset;
+            };
+            uint32_t DW02;
+        };
 
-		// uint32_t 3 - GRF R7.3
-		union
-		{
-			// Composite
-			struct
-			{
-				uint32_t       HorizontalBlockCompositeMaskLayer2 : 16;
-				uint32_t       VerticalBlockCompositeMaskLayer2 : 16;
-			};
-			// FMD Summation
-			struct
-			{
-				uint32_t       TotalColumns;
-			};
+        // uint32_t 3 - GRF R7.3
+        union
+        {
+            // Composite
+            struct
+            {
+                uint32_t       HorizontalBlockCompositeMaskLayer2 : 16;
+                uint32_t       VerticalBlockCompositeMaskLayer2 : 16;
+            };
+            // FMD Summation
+            struct
+            {
+                uint32_t       TotalColumns;
+            };
             uint32_t DW03;
-		};
+        };
 
-		// uint32_t 4 - GRF R7.4
-		// Sampler Load
+        // uint32_t 4 - GRF R7.4
+        // Sampler Load
         float       DW04_VideoXScalingStep;
 
-		// uint32_t 5 - GRF R7.5
-		// NLAS
+        // uint32_t 5 - GRF R7.5
+        // NLAS
         float       DW05_VideoStepDelta;
 
-		// uint32_t 6 - GRF R7.6
-		union
-		{
-			// AVScaling
-			struct
-			{
-				uint32_t       VerticalBlockNumber : 17;
-				uint32_t       AreaOfInterest : 1;
-				uint32_t : 14;
-			};
+        // uint32_t 6 - GRF R7.6
+        union
+        {
+            // AVScaling
+            struct
+            {
+                uint32_t       VerticalBlockNumber : 17;
+                uint32_t       AreaOfInterest : 1;
+                uint32_t : 14;
+            };
             uint32_t DW06;
-		};
+        };
 
-		// uint32_t 7 - GRF R7.7
-		// AVScaling
+        // uint32_t 7 - GRF R7.7
+        // AVScaling
         uint32_t       DW07_GroupIDNumber;
 
-		// uint32_t 8 - GRF R8.0
-		union
-		{
-			// Composite
-			struct
-			{
-				uint32_t       HorizontalBlockCompositeMaskLayer3 : 16;
-				uint32_t       VerticalBlockCompositeMaskLayer3 : 16;
-			};
+        // uint32_t 8 - GRF R8.0
+        union
+        {
+            // Composite
+            struct
+            {
+                uint32_t       HorizontalBlockCompositeMaskLayer3 : 16;
+                uint32_t       VerticalBlockCompositeMaskLayer3 : 16;
+            };
             uint32_t DW08;
-		};
+        };
 
-		// uint32_t 9 - GRF R8.1
-		union
-		{
-			// Composite
-			struct
-			{
-				uint32_t       HorizontalBlockCompositeMaskLayer4 : 16;
-				uint32_t       VerticalBlockCompositeMaskLayer4 : 16;
-			};
+        // uint32_t 9 - GRF R8.1
+        union
+        {
+            // Composite
+            struct
+            {
+                uint32_t       HorizontalBlockCompositeMaskLayer4 : 16;
+                uint32_t       VerticalBlockCompositeMaskLayer4 : 16;
+            };
             uint32_t DW09;
-		};
+        };
 
-		// uint32_t 10 - GRF R8.2
-		union
-		{
-			// Composite
-			struct
-			{
-				uint32_t       HorizontalBlockCompositeMaskLayer5 : 16;
-				uint32_t       VerticalBlockCompositeMaskLayer5 : 16;
-			};
+        // uint32_t 10 - GRF R8.2
+        union
+        {
+            // Composite
+            struct
+            {
+                uint32_t       HorizontalBlockCompositeMaskLayer5 : 16;
+                uint32_t       VerticalBlockCompositeMaskLayer5 : 16;
+            };
             uint32_t DW10;
-		};
+        };
 
-		// uint32_t 11 - GRF R8.3
-		union
-		{
-			// Composite
-			struct
-			{
-				uint32_t       HorizontalBlockCompositeMaskLayer6 : 16;
-				uint32_t       VerticalBlockCompositeMaskLayer6 : 16;
-			};
+        // uint32_t 11 - GRF R8.3
+        union
+        {
+            // Composite
+            struct
+            {
+                uint32_t       HorizontalBlockCompositeMaskLayer6 : 16;
+                uint32_t       VerticalBlockCompositeMaskLayer6 : 16;
+            };
             uint32_t DW11;
-		};
+        };
 
-		// uint32_t 12 - GRF R8.4
-		union
-		{
-			// Composite
-			struct
-			{
-				uint32_t       HorizontalBlockCompositeMaskLayer7 : 16;
-				uint32_t       VerticalBlockCompositeMaskLayer7 : 16;
-			};
+        // uint32_t 12 - GRF R8.4
+        union
+        {
+            // Composite
+            struct
+            {
+                uint32_t       HorizontalBlockCompositeMaskLayer7 : 16;
+                uint32_t       VerticalBlockCompositeMaskLayer7 : 16;
+            };
             uint32_t DW12;
-		};
+        };
 
-		// uint32_t 13 - GRF R8.5
+        // uint32_t 13 - GRF R8.5
         uint32_t DW13_Reserved;
 
-		// uint32_t 14 - GRF R8.6
+        // uint32_t 14 - GRF R8.6
         uint32_t DW14_Reserved;
 
-		// uint32_t 15 - GRF R8.7
+        // uint32_t 15 - GRF R8.7
         uint32_t DW15_Reserved;
     };
-	C_ASSERT(MOS_BYTES_TO_DWORDS(sizeof(DsKernelInlineData)) == 16);
+    C_ASSERT(MOS_BYTES_TO_DWORDS(sizeof(DsKernelInlineData)) == 16);
 
     //!
     //! \brief    Check raw surface color format

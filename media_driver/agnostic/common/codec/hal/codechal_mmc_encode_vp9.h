@@ -41,7 +41,7 @@ public:
     //! \brief    Constructor
     //!
     CodechalMmcEncodeVp9(
-        CodechalHwInterface    *hwInterface, 
+        CodechalHwInterface    *hwInterface,
         void *standardState);
 
     //!
@@ -52,7 +52,7 @@ public:
     MOS_STATUS SetPipeBufAddr(
         PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams,
         PMOS_COMMAND_BUFFER cmdBuffer = nullptr) override;
-    
+
     CodechalVdencVp9State  *m_vp9State = nullptr; //!< Pinter to VP9 encode state
 };
 

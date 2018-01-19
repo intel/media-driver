@@ -193,7 +193,6 @@ VAStatus DdiEncodeVp9::EncodeInCodecHal(uint32_t numSlices)
     encodeParams.ppNALUnitParams = m_encodeCtx->ppNALUnitParams;
     encodeParams.pSegmentParams  = m_segParams;
 
-
     if (savedFrameRate == 0)
     {
         /* use the default framerate if FrameRate is not passed */
@@ -211,7 +210,7 @@ VAStatus DdiEncodeVp9::EncodeInCodecHal(uint32_t numSlices)
             (m_encodeCtx->vaProfile <= VAProfileVP9Profile3))
         {
             codecProfile = m_encodeCtx->vaProfile - VAProfileVP9Profile0;
-        } 
+        }
 
         Vp9WriteUncompressHeader(m_encodeCtx,
                                    codecProfile,
@@ -276,7 +275,6 @@ VAStatus DdiEncodeVp9::ContextInitialize(CodechalSetting *codecHalSettings)
 
     m_encodeCtx->pPicParams = (void *)MOS_AllocAndZeroMemory(sizeof(CODEC_VP9_ENCODE_PIC_PARAMS));
     DDI_CHK_NULL(m_encodeCtx->pPicParams, "nullptr m_encodeCtx->pPicParams.", VA_STATUS_ERROR_ALLOCATION_FAILED);
-
 
     // Allocate Encode Status Report
     m_encodeCtx->pEncodeStatusReport = (void *)MOS_AllocAndZeroMemory(CODECHAL_ENCODE_STATUS_NUM * sizeof(EncodeStatusReport));
@@ -404,7 +402,7 @@ VAStatus DdiEncodeVp9::ResetAtFrameLevel()
 {
     DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    lastPackedHeaderType = 0; 
+    lastPackedHeaderType = 0;
     headerInsertFlag     = 0;
 
     CODEC_VP9_ENCODE_SEQUENCE_PARAMS *vp9SeqParam = (PCODEC_VP9_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams);
@@ -440,7 +438,7 @@ VAStatus DdiEncodeVp9::ParseSeqParams(void *ptr)
     if (vp9SeqParams->GopPicSize != savedGopSize)
     {
         savedGopSize = vp9SeqParams->GopPicSize;
-        vp9SeqParams->SeqFlags.fields.bResetBRC = 1; 
+        vp9SeqParams->SeqFlags.fields.bResetBRC = 1;
     }
 
     return VA_STATUS_SUCCESS;
@@ -490,10 +488,10 @@ VAStatus DdiEncodeVp9::ParsePicParams(DDI_MEDIA_CONTEXT *mediaCtx, void *ptr)
 
     vp9PicParam->SrcFrameWidthMinus1          = picParam->frame_width_src - 1;
     vp9PicParam->SrcFrameHeightMinus1         = picParam->frame_height_src - 1;
-    
+
     vp9PicParam->DstFrameWidthMinus1          = picParam->frame_width_dst - 1;
     vp9PicParam->DstFrameHeightMinus1         = picParam->frame_height_dst - 1;
-    
+
     /* width_src and width_dst won't be zero at the same time
      * If only one of them is zero, assume that there is no dynamica scaling.
      * In such case it is dervied.
@@ -522,22 +520,22 @@ VAStatus DdiEncodeVp9::ParsePicParams(DDI_MEDIA_CONTEXT *mediaCtx, void *ptr)
             vp9PicParam->DstFrameHeightMinus1 = picParam->frame_height_src - 1;
         }
     }
-    
+
     vp9PicParam->filter_level                 = picParam->filter_level;
     vp9PicParam->sharpness_level              = picParam->sharpness_level;
-    
+
     vp9PicParam->LumaACQIndex                 = picParam->luma_ac_qindex;
     vp9PicParam->LumaDCQIndexDelta            = picParam->luma_dc_qindex_delta;
     vp9PicParam->ChromaACQIndexDelta          = picParam->chroma_ac_qindex_delta;
     vp9PicParam->ChromaDCQIndexDelta          = picParam->chroma_dc_qindex_delta;
-    
+
     vp9PicParam->RefFlags.fields.LastRefIdx        = picParam->ref_flags.bits.ref_last_idx;
     vp9PicParam->RefFlags.fields.GoldenRefIdx      = picParam->ref_flags.bits.ref_gf_idx;
     vp9PicParam->RefFlags.fields.AltRefIdx         = picParam->ref_flags.bits.ref_arf_idx;
     vp9PicParam->RefFlags.fields.LastRefSignBias   = picParam->ref_flags.bits.ref_last_sign_bias;
     vp9PicParam->RefFlags.fields.GoldenRefSignBias = picParam->ref_flags.bits.ref_gf_sign_bias;
     vp9PicParam->RefFlags.fields.AltRefSignBias    = picParam->ref_flags.bits.ref_arf_sign_bias;
-    
+
     vp9PicParam->RefFlags.fields.ref_frame_ctrl_l0   = picParam->ref_flags.bits.ref_frame_ctrl_l0;
     if ((picParam->pic_flags.bits.frame_type == 0) ||
         (picParam->pic_flags.bits.intra_only))
@@ -548,7 +546,6 @@ VAStatus DdiEncodeVp9::ParsePicParams(DDI_MEDIA_CONTEXT *mediaCtx, void *ptr)
     {
         vp9PicParam->RefFlags.fields.ref_frame_ctrl_l0   = 0x07;
     }
-
 
     vp9PicParam->RefFlags.fields.ref_frame_ctrl_l1   = picParam->ref_flags.bits.ref_frame_ctrl_l1;
     vp9PicParam->RefFlags.fields.refresh_frame_flags = picParam->refresh_frame_flags;
@@ -578,7 +575,7 @@ VAStatus DdiEncodeVp9::ParsePicParams(DDI_MEDIA_CONTEXT *mediaCtx, void *ptr)
     vp9PicParam->SkipFrameFlag  = picParam->skip_frame_flag;
     vp9PicParam->NumSkipFrames  = picParam->number_skip_frames;
     vp9PicParam->SizeSkipFrames = picParam->skip_frames_size;
- 
+
     DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_encodeCtx->RTtbl);
 
     auto recon = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->reconstructed_frame);
@@ -778,7 +775,7 @@ VAStatus DdiEncodeVp9::ParseMiscParamRC(void *data)
 
     if (VA_RC_CBR == m_encodeCtx->uiRCMethod)
     {
-        seqParams->TargetBitRate[0]  = seqParams->MaxBitRate; 
+        seqParams->TargetBitRate[0]  = seqParams->MaxBitRate;
         seqParams->MinBitRate        = seqParams->MaxBitRate;
         seqParams->RateControlMethod = RATECONTROL_CBR;
         if (savedTargetBit != seqParams->MaxBitRate)
@@ -828,7 +825,7 @@ VAStatus DdiEncodeVp9::ParseMiscParamQualityLevel(void *data)
      * 6-7 mapped  the 7.
      * 0-3-4-5 mapped to 4.
      */
-    
+
     if (vaEncMiscParamQualityLevel->quality_level == 0)
     {
         vp9TargetUsage = TARGETUSAGE_RT_SPEED;

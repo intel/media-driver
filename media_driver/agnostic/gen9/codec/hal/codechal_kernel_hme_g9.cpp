@@ -33,7 +33,7 @@ const uint32_t CodechalKernelHmeG9::Curbe::m_initCurbe[39] =
     0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
     0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
     0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
-    0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff    
+    0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
 };
 // clang-format on
 
@@ -43,7 +43,6 @@ CodechalKernelHmeG9::CodechalKernelHmeG9(
         : CodechalKernelHme(encoder, me4xDistBufferSupported)
 {
 }
-
 
 MOS_STATUS CodechalKernelHmeG9::SetCurbe(MHW_KERNEL_STATE *kernelState)
 {

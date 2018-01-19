@@ -38,8 +38,6 @@
 #define CODECHAL_DECODE_JPEG_ERR_FRAME_WIDTH        32
 #define CODECHAL_DECODE_JPEG_ERR_FRAME_HEIGHT       32
 
-
-
 CodechalDecodeJpeg::~CodechalDecodeJpeg()
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
@@ -368,7 +366,7 @@ MOS_STATUS CodechalDecodeJpeg::CheckSupportedFormat(
         *format = m_osInterface->pfnFmt_OsToMos((MOS_OS_FORMAT)m_jpegPicParams->m_renderTargetFormat);
     }
 
-    //No support for RGBP/BGRP channel swap or YUV/RGB conversion!    
+    //No support for RGBP/BGRP channel swap or YUV/RGB conversion!
     switch (*format)
     {
     case Format_BGRP:
@@ -400,7 +398,6 @@ MOS_STATUS CodechalDecodeJpeg::CheckSupportedFormat(
 
     return eStatus;
 }
-
 
 MOS_STATUS CodechalDecodeJpeg::SetFrameStates()
 {
@@ -698,7 +695,6 @@ MOS_STATUS CodechalDecodeJpeg::DecodeStateLevel()
         jpegPicState.dwHeightInBlocks = (m_destSurface.dwHeight / CODECHAL_DECODE_JPEG_BLOCK_SIZE) - 1;
     }
 
-
     // Add commands to command buffer
     // MI_FLUSH_DW command -> must be before to MFX_PIPE_MODE_SELECT
     MHW_MI_FLUSH_DW_PARAMS flushDwParams;
@@ -805,7 +801,7 @@ MOS_STATUS CodechalDecodeJpeg::DecodePrimitiveLevel()
         for (uint16_t scanComponent = 0; scanComponent < numComponents; scanComponent++)
         {
             // Determine which huffman table we will be writing to
-            // For gray image, componentIdentifier[jpegComponentU] and componentIdentifier[jpegComponentV] are initialized to 0, 
+            // For gray image, componentIdentifier[jpegComponentU] and componentIdentifier[jpegComponentV] are initialized to 0,
             // and when ComponentSelector[scanComponent] is equal 0, variable huffTableID is set to 1, and wrong Huffman table is used,
             // so it is more reasonable to use componentIdentifier[jpegComponentY] to determine which huffman table we will be writing to.
             uint8_t ComponentSelector =
@@ -880,7 +876,7 @@ MOS_STATUS CodechalDecodeJpeg::DecodePrimitiveLevel()
             {
                 scanComponentIndex = 2;
             }
-            // Add logic for component identifier JPEG_A 
+            // Add logic for component identifier JPEG_A
 
             jpegBsdObject.sScanComponent |= (1 << scanComponentIndex);
         }
@@ -889,7 +885,6 @@ MOS_STATUS CodechalDecodeJpeg::DecodePrimitiveLevel()
             &cmdBuffer,
             &jpegBsdObject));
     }
-
 
     // Check if destination surface needs to be synchronized
     MOS_SYNC_PARAMS syncParams = g_cInitSyncParams;
@@ -982,7 +977,7 @@ MOS_STATUS CodechalDecodeJpeg::DecodePrimitiveLevel()
             m_videoContextUsesNullHw));
         }
 
-    // Set output surface layout 
+    // Set output surface layout
     SetOutputSurfaceLayout(&m_decodeParams.m_outputSurfLayout);
 
     // Send the signal to indicate decode completion, in case On-Demand Sync is not present
@@ -1078,7 +1073,7 @@ MOS_STATUS CodechalDecodeJpeg::DumpIQParams(
         "_DEC",
         CodechalDbgBufferType::bufIqParams,
         CodechalDbgExtType::txt);
-    
+
     std::ofstream ofs(fileName, std::ios::out);
     ofs << oss.str();
     ofs.close();
@@ -1134,7 +1129,7 @@ MOS_STATUS CodechalDecodeJpeg::DumpPicParams(
     std::ofstream ofs(fileName, std::ios::out);
     ofs << oss.str();
     ofs.close();
-    
+
     return MOS_STATUS_SUCCESS;
 }
 

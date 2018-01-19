@@ -54,9 +54,9 @@ public:
     static MOS_STATUS GetKernelHeaderAndSize(
         void                         *binary,
         EncOperation                 operation,
-		uint32_t                     krnStateIdx,
+        uint32_t                     krnStateIdx,
         void                         *krnHeader,
-		uint32_t                     *krnSize);
+        uint32_t                     *krnSize);
 
     //!
     //! \brief    Constructor
@@ -70,7 +70,6 @@ public:
     //! \brief    Destructor
     //!
     ~CodechalEncodeAvcEncG10();
-
 
     MOS_STATUS ExecuteKernelFunctions();
 
@@ -110,9 +109,9 @@ public:
 
     MOS_STATUS SetCurbeAvcWP(PCODECHAL_ENCODE_AVC_WP_CURBE_PARAMS params);
 
-	virtual MOS_STATUS SceneChangeReport(
-		PMOS_COMMAND_BUFFER       cmdBuffer,
-		PCODECHAL_ENCODE_AVC_GENERIC_PICTURE_LEVEL_PARAMS   params);
+    virtual MOS_STATUS SceneChangeReport(
+        PMOS_COMMAND_BUFFER       cmdBuffer,
+        PCODECHAL_ENCODE_AVC_GENERIC_PICTURE_LEVEL_PARAMS   params);
 
     MOS_STATUS SendAvcWPSurfaces(
         PMOS_COMMAND_BUFFER cmdBuffer,
@@ -177,7 +176,7 @@ protected:
     static constexpr uint32_t m_defaultTrellisQuantIntraRounding = 5;
     static constexpr uint32_t m_sfdCostTableBufferSize = 52;
     static constexpr uint32_t m_sfdOutputBufferSize = 128;
-	static constexpr uint32_t m_brcHistoryBufferOffsetSceneChanged = 0x2FC;
+    static constexpr uint32_t m_brcHistoryBufferOffsetSceneChanged = 0x2FC;
 
     static const uint8_t  m_ftq25[64];
     static const uint16_t m_lambdData[256];

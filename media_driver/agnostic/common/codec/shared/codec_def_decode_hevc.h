@@ -37,11 +37,11 @@
 #define CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6  600
 #define CODECHAL_HEVC_MAX_NUM_SLICES_LVL_5  200
 #define CODECHAL_HEVC_NUM_DMEM_BUFFERS      8
-	
+
 /*! \brief Picture-level parameters of a compressed picture for HEVC decoding.
  *
- *   Note 1: Application only pass in the first num_tile_columns_minus1 tile column widths and first num_tile_rows_minus1 tile row heights. The last width and height need to be calculated by driver from the picture dimension. Values used for data type alignement. Their values should be set to 0, and can be ignored by decoder. 
- *   Note 2: HEVC host decoder should discard any NAL units with nal_unit_type in the range of [10 – 15, 22 – 63]. 
+ *   Note 1: Application only pass in the first num_tile_columns_minus1 tile column widths and first num_tile_rows_minus1 tile row heights. The last width and height need to be calculated by driver from the picture dimension. Values used for data type alignement. Their values should be set to 0, and can be ignored by decoder.
+ *   Note 2: HEVC host decoder should discard any NAL units with nal_unit_type in the range of [10 – 15, 22 – 63].
  *   Note 3: When tiles_enabled_flag equals 1 and uniform_spacing_flag takes value 1, driver may ignore the values passed in column_width_minus1[] and raw_height_minus1[]. Instead driver should generate and populate these tile dimension values based on picture resolution and num_tile_columns_minus1, num_tile_rows_minus1. It can be referred to formula (6-3) and (6-4) in HEVC spec.
  */
 typedef struct _CODEC_HEVC_PIC_PARAMS
@@ -75,7 +75,7 @@ typedef struct _CODEC_HEVC_PIC_PARAMS
             /*! \brief Indicates that B slices are not used in the coded video sequence.
             *
             *   This flag does not affect the decoding process.
-            *   Note: This flag does not correspond to any indication provided in the HEVC bitstream itself. Thus, a host software decoder would need some external information (e.g. as determined at the application level) to be able to set this flag to 1. In the absence of any such available indication, the host software decoder must set this flag to 0. 
+            *   Note: This flag does not correspond to any indication provided in the HEVC bitstream itself. Thus, a host software decoder would need some external information (e.g. as determined at the application level) to be able to set this flag to 1. In the absence of any such available indication, the host software decoder must set this flag to 0.
             */
             uint16_t              NoBiPredFlag                        : 1;
             uint16_t              ReservedBits1                       : 1;    //!< Value is used for alignemnt and has no meaning, set to 0.
@@ -118,10 +118,10 @@ typedef struct _CODEC_HEVC_PIC_PARAMS
     *
     *   This is an redundant parameter which serves as same purpose as wNumBitsForShortTermRPSInSlice.
     */
-    uint8_t                       ucNumDeltaPocsOfRefRpsIdx; 
+    uint8_t                       ucNumDeltaPocsOfRefRpsIdx;
     /*! \brief Bit count in the bit stream for parsing short_term_ref_pic_set in slice segment header.
     *
-    *   If short_term_ref_pic_set_sps_flag takes value 1, wNumBitsForShortTermRPSInSlice should be  0. The bit count value is calculated when emulation prevention bytes are removed from raw elementary bit stream. 
+    *   If short_term_ref_pic_set_sps_flag takes value 1, wNumBitsForShortTermRPSInSlice should be  0. The bit count value is calculated when emulation prevention bytes are removed from raw elementary bit stream.
     */
     uint16_t                      wNumBitsForShortTermRPSInSlice;
     uint16_t                      ReservedBits2;                                  //!< Value is used for alignemnt and has no meaning, set to 0.
@@ -222,7 +222,7 @@ typedef struct _CODEC_HEVC_PIC_PARAMS
     int32_t                       CurrPicOrderCntVal;
     /*! \brief FrameIdx for each entry specifies the surface index for all pictures that are or will be referred to by the current or future pictures.
     *
-    *   The valid entries are indexed from 0 to 126, inclusive. The PicFlags of non-valid entries (including the picture of the entry which is not referred by current picture or future pictures) should take value PICTURE_INVALID. A PicFlags setting of PICTURE_LONG_TERM_REFERENCE indicates if the picture is a long term reference or not. 
+    *   The valid entries are indexed from 0 to 126, inclusive. The PicFlags of non-valid entries (including the picture of the entry which is not referred by current picture or future pictures) should take value PICTURE_INVALID. A PicFlags setting of PICTURE_LONG_TERM_REFERENCE indicates if the picture is a long term reference or not.
     *   NOTE: for interlace (field) pictures, the FrameIdx field of two RefFrameList entries may have same value and point to same reference surface. And in this case, application should allocate buffer size with double picture height to hold the whole picture.
     */
     CODEC_PICTURE                 RefFrameList[15];
@@ -238,7 +238,7 @@ typedef struct _CODEC_HEVC_PIC_PARAMS
     /*! \brief Contain the indices to the RefFrameList[] used in inter predection.
     *
     *   The indices to the RefFrameList[] indicate all the reference pictures that may be used in inter prediction of the current picture and that may be used in inter prediction of one or more of the pictures following the current picture in decoding order.
-    *   When an entry in RefPicSetStCurrBefore[], RefPicSetStCurrAfter[] and RefPicSetLtCurr[] is not valid, it shall be set to 0xff. Invalid entries shall not be present between valid entries in RefPicSetStCurrBefore[], RefPicSetStCurrAfter[] and RefPicSetLtCurr[]. Valid entries in RefPicSetStCurrBefore[], RefPicSetStCurrAfter[] and RefPicSetLtCurr[] shall have values in the range of 0 to 7, inclusive, and each corresponding entry in RefFrameList[] referred to by a valid entry in RefPicSetStCurrBefore[], RefPicSetStCurrAfter[] and RefPicSetLtCurr[] shall not have PicFlags equal to PICTURE_INVALID. Any entry in RefPicSetStCurrBefore[], RefPicSetStCurrAfter[] and RefPicSetLtCurr[] that is not equal to 0xFF shall not be equal to the value of any other entry in RefPicSetStCurrBefore[], RefPicSetStCurrAfter[] or RefPicSetLtCurr[]. 
+    *   When an entry in RefPicSetStCurrBefore[], RefPicSetStCurrAfter[] and RefPicSetLtCurr[] is not valid, it shall be set to 0xff. Invalid entries shall not be present between valid entries in RefPicSetStCurrBefore[], RefPicSetStCurrAfter[] and RefPicSetLtCurr[]. Valid entries in RefPicSetStCurrBefore[], RefPicSetStCurrAfter[] and RefPicSetLtCurr[] shall have values in the range of 0 to 7, inclusive, and each corresponding entry in RefFrameList[] referred to by a valid entry in RefPicSetStCurrBefore[], RefPicSetStCurrAfter[] and RefPicSetLtCurr[] shall not have PicFlags equal to PICTURE_INVALID. Any entry in RefPicSetStCurrBefore[], RefPicSetStCurrAfter[] and RefPicSetLtCurr[] that is not equal to 0xFF shall not be equal to the value of any other entry in RefPicSetStCurrBefore[], RefPicSetStCurrAfter[] or RefPicSetLtCurr[].
     */
     uint8_t                       RefPicSetStCurrAfter[8];
     /*! \brief Contain the indices to the RefFrameList[] used in inter predection.
@@ -249,7 +249,7 @@ typedef struct _CODEC_HEVC_PIC_PARAMS
     uint8_t                       RefPicSetLtCurr[8];
     /*! \brief Is a 16 entry array indicating whether or not a picture is a field picture.
     *
-    *   Each bit of the low 15 bits indicats if the associated picture in DPB is a field picture or not. Specifically, if ((RefFieldPicFlag >> i) & 0x01) > 0, then the referencepicture specified by RefFrameList[i] is a field picture. Otherwise, it is frame picture. For field picture, coresponding bit of RefBottomFieldFlag indicates the field polarity. The MSB, (RefFieldPicFlag >> 15) & 0x01, indicates the field or frame status of current decoded picture, CurrPic. 
+    *   Each bit of the low 15 bits indicats if the associated picture in DPB is a field picture or not. Specifically, if ((RefFieldPicFlag >> i) & 0x01) > 0, then the referencepicture specified by RefFrameList[i] is a field picture. Otherwise, it is frame picture. For field picture, coresponding bit of RefBottomFieldFlag indicates the field polarity. The MSB, (RefFieldPicFlag >> 15) & 0x01, indicates the field or frame status of current decoded picture, CurrPic.
     */
     uint16_t                      RefFieldPicFlag;
     /*! \brief Is a 16 entry array indicating the polarity of a picture.
@@ -280,8 +280,8 @@ typedef struct _CODEC_HEVC_SLICE_PARAMS
     uint32_t                slice_data_size;
     /*! \brief This member locates the NAL unit with nal_unit_type equal to 1 .. 8 for the current slice.
     *
-    *   At least one bit stream data buffer should be present which is associated with the slice control data buffer. If necessary, multiple bit stream data buffers are allowed, but not suggested. The size of the data in the bitstream data buffer (and the amount of data reported by the host decoder) shall be an integer multiple of 128 bytes. When  the end of the slice data is not an even multiple of 128 bytes, the decoder should pad the end of the buffer with zeroes.  When more than one bitstream data buffers are present, these data buffers should be in sequential order. They should be treated as if concatenated linearly with no space in between.  The value of slice_data_offset is the byte offset, from the start of the first bitstream data buffer, of the first byte of the start code prefix in the byte stream NAL unit that contains the NAL unit with nal_unit_type equal to 1 .. 8. The current slice is the slice associated with this slice control data structure. The bitstream data buffer shall not contain NAL units with values of nal_unit_type outside the range [1 .. 8]. However, the accelerator shall allow any such NAL units to be present and should ignore their content if present. 
-    *   Note: The bitstream data buffer shall contain the full NAL unit byte stream, either encrpted or clear. This means that the buffer will contain emulation_prevention_three_byte syntax elements where those elements are required to be present in a NAL unit, as defined in the HEVC specification. The bitstream data buffer may or may not contrain leading_zero_8bits, zero_byte, and trailing_zero_8bits syntax elements. If present, the accelerator shall ignore these elements. 
+    *   At least one bit stream data buffer should be present which is associated with the slice control data buffer. If necessary, multiple bit stream data buffers are allowed, but not suggested. The size of the data in the bitstream data buffer (and the amount of data reported by the host decoder) shall be an integer multiple of 128 bytes. When  the end of the slice data is not an even multiple of 128 bytes, the decoder should pad the end of the buffer with zeroes.  When more than one bitstream data buffers are present, these data buffers should be in sequential order. They should be treated as if concatenated linearly with no space in between.  The value of slice_data_offset is the byte offset, from the start of the first bitstream data buffer, of the first byte of the start code prefix in the byte stream NAL unit that contains the NAL unit with nal_unit_type equal to 1 .. 8. The current slice is the slice associated with this slice control data structure. The bitstream data buffer shall not contain NAL units with values of nal_unit_type outside the range [1 .. 8]. However, the accelerator shall allow any such NAL units to be present and should ignore their content if present.
+    *   Note: The bitstream data buffer shall contain the full NAL unit byte stream, either encrpted or clear. This means that the buffer will contain emulation_prevention_three_byte syntax elements where those elements are required to be present in a NAL unit, as defined in the HEVC specification. The bitstream data buffer may or may not contrain leading_zero_8bits, zero_byte, and trailing_zero_8bits syntax elements. If present, the accelerator shall ignore these elements.
     */
     uint32_t                slice_data_offset;
 
@@ -289,7 +289,7 @@ typedef struct _CODEC_HEVC_SLICE_PARAMS
     uint16_t                NumEmuPrevnBytesInSliceHdr;           //!< Number of emulation prevention bytes in slice head; ByteOffsetToSliceData doesn't include these bytes.
     /*! \brief Byte offset to the location of the first byte of slice_data() data structure for the current slice in the bitstream data buffer.
     *
-    *   This byte offset is the offset within the RBSP date for the slice, relative to the starting position of the slice_header() in the RBSP. That is, it represents a byte offset after the removal of any emulation_prevention_three_byte syntax elements that precedes the start of the slice_data() in the NAL unit.  
+    *   This byte offset is the offset within the RBSP date for the slice, relative to the starting position of the slice_header() in the RBSP. That is, it represents a byte offset after the removal of any emulation_prevention_three_byte syntax elements that precedes the start of the slice_data() in the NAL unit.
     */
     uint32_t                ByteOffsetToSliceData;
     /*! \brief Same as HEVC syntax element.
@@ -299,10 +299,10 @@ typedef struct _CODEC_HEVC_SLICE_PARAMS
     uint32_t                slice_segment_address;
     /*! \brief Specifies the surfaces of reference pictures
     *
-    *   The value of FrameIdx specifies the index of RefFrameList structure. And valid value range is [0..14, 0x7F]. Invalid entries are indicated by setting PicFlags to PICTURE_INVALID and the PicFlags value of PICTURE_LONG_TERM_REFERENCE has no meaning. 
-    *   RefPicIdx[0][] corresponds to reference list 0. 
-    *   RefPicIdx[1][] corresponds to reference list 1. 
-    *   Each list may contain duplicated reference picture indexes.  
+    *   The value of FrameIdx specifies the index of RefFrameList structure. And valid value range is [0..14, 0x7F]. Invalid entries are indicated by setting PicFlags to PICTURE_INVALID and the PicFlags value of PICTURE_LONG_TERM_REFERENCE has no meaning.
+    *   RefPicIdx[0][] corresponds to reference list 0.
+    *   RefPicIdx[1][] corresponds to reference list 1.
+    *   Each list may contain duplicated reference picture indexes.
     */
     CODEC_PICTURE       RefPicList[2][15];
     union
@@ -310,7 +310,7 @@ typedef struct _CODEC_HEVC_SLICE_PARAMS
         uint32_t            value;
         struct
         {
-            uint32_t        LastSliceOfPic                               : 1;   //!< Specifies if current slice is the last slice of picture. 
+            uint32_t        LastSliceOfPic                               : 1;   //!< Specifies if current slice is the last slice of picture.
             uint32_t        dependent_slice_segment_flag                 : 1;   //!< Same as HEVC syntax element
             uint32_t        slice_type                                   : 2;   //!< Same as HEVC syntax element
             uint32_t        color_plane_id                               : 2;   //!< Same as HEVC syntax element
@@ -353,7 +353,7 @@ typedef struct _CODEC_HEVC_SLICE_PARAMS
     uint8_t             luma_log2_weight_denom;
     /*! \brief Same as HEVC syntax element.
     *
-    *   Specifies the base 2 logarithm of the denominator for all chroma weighting factors. Value range of luma_log2_weight_denom + delta_chroma_log2_weight_denom: 0 to 7, inclusive. 
+    *   Specifies the base 2 logarithm of the denominator for all chroma weighting factors. Value range of luma_log2_weight_denom + delta_chroma_log2_weight_denom: 0 to 7, inclusive.
     */
     uint8_t             delta_chroma_log2_weight_denom;
 

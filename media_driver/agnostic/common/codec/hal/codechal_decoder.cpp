@@ -261,7 +261,7 @@ MOS_STATUS CodechalDecode::SetGpuCtxCreatOption(
 
     m_gpuCtxCreatOpt = MOS_New(MOS_GPUCTX_CREATOPTIONS);
     CODECHAL_DECODE_CHK_NULL_RETURN(m_gpuCtxCreatOpt);
-        
+
     return eStatus;
 }
 
@@ -283,7 +283,7 @@ MOS_STATUS CodechalDecode::CreateGpuContexts(
     m_videoGpuNode = (MOS_GPU_NODE)(gpuNodeLimit.dwGpuNodeToUse);
 
     CODECHAL_UPDATE_VDBOX_USER_FEATURE(m_videoGpuNode);
-    CodecHalDecodeMapGpuNodeToGpuContex(m_videoGpuNode, m_videoContext, false); 
+    CodecHalDecodeMapGpuNodeToGpuContex(m_videoGpuNode, m_videoContext, false);
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(SetGpuCtxCreatOption(codecHalSettings));
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
@@ -345,7 +345,7 @@ MOS_STATUS CodechalDecode::Allocate (CodechalSetting * codecHalSettings)
     m_mode                      = codecHalSettings->mode;
     m_disableDecodeSyncLock     = codecHalSettings->disableDecodeSyncLock ? true : false;
     m_disableLockForTranscode   = MEDIA_IS_WA(m_waTable, WaDisableLockForTranscodePerf);
-    
+
     // register cp params via codechal_Setting
     m_cpInterface->RegisterParams(codecHalSettings->GetCpParams());
 
@@ -426,7 +426,7 @@ MOS_STATUS CodechalDecode::Allocate (CodechalSetting * codecHalSettings)
         m_decodeStatusBuf.m_decodeStatus    = (CodechalDecodeStatus *)(data + sizeof(uint32_t) * 2);
         m_decodeStatusBuf.m_currIndex       = 0;
         m_decodeStatusBuf.m_firstIndex      = 0;
-        m_decodeStatusBuf.m_swStoreData     = 1; 
+        m_decodeStatusBuf.m_swStoreData     = 1;
 
         m_decodeStatusBuf.m_storeDataOffset             = 0;
         m_decodeStatusBuf.m_decErrorStatusOffset        = CODECHAL_OFFSETOF(CodechalDecodeStatus, m_mmioErrorStatusReg);
@@ -460,7 +460,7 @@ MOS_STATUS CodechalDecode::Allocate (CodechalSetting * codecHalSettings)
         // StreamOut Buffer Allocation
         if (m_streamOutEnabled)
         {
-            uint32_t numMacroblocks = 
+            uint32_t numMacroblocks =
                 (codecHalSettings->height / CODECHAL_MACROBLOCK_HEIGHT) *
                 (codecHalSettings->width / CODECHAL_MACROBLOCK_WIDTH);
             uint32_t streamOutBufSize = MOS_ALIGN_CEIL(numMacroblocks * CODEC_SIZE_MFX_STREAMOUT_DATA, 64);
@@ -480,7 +480,7 @@ MOS_STATUS CodechalDecode::Allocate (CodechalSetting * codecHalSettings)
                 m_streamOutCurrStatusIdx[i] = CODECHAL_DECODE_STATUS_NUM;
             }
         }
-    }  
+    }
 
     CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(AllocateBuffer(
         &m_predicationBuffer,
@@ -489,7 +489,7 @@ MOS_STATUS CodechalDecode::Allocate (CodechalSetting * codecHalSettings)
         true,
         0),
         "Failed to allocate predication buffer.");
-    
+
     CODECHAL_DECODE_CHK_STATUS_RETURN(AllocateStandard(codecHalSettings));
 
     if(!m_isHybridDecoder)
@@ -506,7 +506,7 @@ MOS_STATUS CodechalDecode::Allocate (CodechalSetting * codecHalSettings)
             m_hcpFrameCrcRegOffset = m_hcpInterface->GetMmioRegisters(m_vdboxIndex)->hcpFrameCrcRegOffset;
         }
     }
-    
+
     if (!m_mmc)
     {
         m_mmc = MOS_New(CodecHalMmcState, m_hwInterface);
@@ -654,7 +654,7 @@ CodechalDecode::~CodechalDecode()
             }
         }
     }
-    
+
     if (m_gpuCtxCreatOpt)
     {
         MOS_Delete(m_gpuCtxCreatOpt);
@@ -774,7 +774,7 @@ MOS_STATUS CodechalDecode::EndFrame ()
 
         for (uint32_t i = 0; i < numReportsAvailable; i++) {
             uint16_t index = (m_debugInterface->m_preIndex + i) % CODECHAL_DECODE_STATUS_NUM;
-            decodeStatusReport = 
+            decodeStatusReport =
                 &(m_decodeStatusBuf.m_decodeStatus[index].m_decodeStatusReport);
 
             // record SurfDumpFrameNum to handle BB_END data not written case
@@ -1071,7 +1071,7 @@ MOS_STATUS CodechalDecode::Execute(void *params)
             }
             else
             {
-               //  Dump ResidualDifference 
+               //  Dump ResidualDifference
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
                     decodeParams->m_dataBuffer,
                     CodechalDbgAttr::attrResidualDifference,
@@ -1235,7 +1235,7 @@ MOS_STATUS CodechalDecode::EndStatusReport(
             cmdBuffer,
             &regParams));
     }
-    
+
     //MB Count
     uint32_t mbCountOffset =
         currIndex * sizeof(CodechalDecodeStatus) +
@@ -1435,7 +1435,7 @@ MOS_STATUS CodechalDecode::GetStatusReport(
                              m_hcpInterface->GetHcpCabacErrorFlagsMask()) != 0)
                         {
                             codecStatus[j].m_codecStatus = CODECHAL_STATUS_ERROR;
-                            codecStatus[j].m_numMbsAffected = 
+                            codecStatus[j].m_numMbsAffected =
                                 (m_decodeStatusBuf.m_decodeStatus[i].m_mmioMBCountReg & 0xFFFC0000) >> 18;
                         }
 
@@ -1448,7 +1448,7 @@ MOS_STATUS CodechalDecode::GetStatusReport(
                     else
                     {
                         // Check to see if decoding error occurs
-                        if ((m_decodeStatusBuf.m_decodeStatus[i].m_mmioErrorStatusReg & 
+                        if ((m_decodeStatusBuf.m_decodeStatus[i].m_mmioErrorStatusReg &
                              m_mfxInterface->GetMfxErrorFlagsMask()) != 0)
                         {
                             codecStatus[j].m_codecStatus = CODECHAL_STATUS_ERROR;
@@ -1456,7 +1456,7 @@ MOS_STATUS CodechalDecode::GetStatusReport(
                         //MB Count bit[15:0] is error concealment MB count for none JPEG decoder.
                         if (m_standard != CODECHAL_JPEG)
                         {
-                            codecStatus[j].m_numMbsAffected = 
+                            codecStatus[j].m_numMbsAffected =
                                 m_decodeStatusBuf.m_decodeStatus[i].m_mmioMBCountReg & 0xFFFF;
                         }
                         if (m_standard == CODECHAL_AVC)
@@ -1650,7 +1650,7 @@ MOS_STATUS CodechalDecode::SendPredicationCommand(
         storeRegParams.dwOffset = 0;
         storeRegParams.dwRegister = mmioRegistersMfx->generalPurposeRegister0LoOffset;
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(
-            cmdBuffer, 
+            cmdBuffer,
             &storeRegParams));
 
         condBBEndParams.presSemaphoreBuffer = &m_predicationBuffer;

@@ -278,7 +278,7 @@ VAStatus DdiDecodeJPEG::ParseHuffmanTbl(
 /////////////////////////////////////////////////////////////////////////////////////////
 //
 //   Function:    JpegQMatrixDecode
-//   Description: Parse the QMatrix table from VAAPI, and load the valid Qmatrix to the Buffer used by 
+//   Description: Parse the QMatrix table from VAAPI, and load the valid Qmatrix to the Buffer used by
 //                    CodecHal
 //
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -392,7 +392,7 @@ VAStatus DdiDecodeJPEG::RenderPicture(
         {
         case VASliceDataBufferType:
         {
-			DDI_CHK_RET(SetBufferRendered(buffers[i]),"SetBufferRendered failed!");
+            DDI_CHK_RET(SetBufferRendered(buffers[i]),"SetBufferRendered failed!");
             m_ddiDecodeCtx->DecodeParams.m_dataSize += dataSize;
             break;
         }
@@ -492,11 +492,11 @@ VAStatus DdiDecodeJPEG::BeginPicture(
 }
 
 VAStatus DdiDecodeJPEG::InitDecodeParams(
-	VADriverContextP ctx,
-	VAContextID      context)
+    VADriverContextP ctx,
+    VAContextID      context)
 {
     m_ctxType = DDI_MEDIA_CONTEXT_TYPE_DECODER;
-	/* skip the mediaCtx check as it is checked in caller */
+    /* skip the mediaCtx check as it is checked in caller */
     PDDI_MEDIA_CONTEXT mediaCtx;
     mediaCtx = DdiMedia_GetMediaContext(ctx);
     DDI_CHK_RET(DecodeCombineBitstream(mediaCtx),"DecodeCombineBitstream failed!");
@@ -663,11 +663,11 @@ void DdiDecodeJPEG::DestroyContext(
     DdiMediaDecode::DestroyContext(ctx);
 }
 
-uint8_t* DdiDecodeJPEG::GetPicParamBuf( 
-    DDI_CODEC_COM_BUFFER_MGR    *bufMgr) 
-{ 
-    return (uint8_t*)(&(bufMgr->Codec_Param.Codec_Param_JPEG.PicParamJPEG)); 
-} 
+uint8_t* DdiDecodeJPEG::GetPicParamBuf(
+    DDI_CODEC_COM_BUFFER_MGR    *bufMgr)
+{
+    return (uint8_t*)(&(bufMgr->Codec_Param.Codec_Param_JPEG.PicParamJPEG));
+}
 
 VAStatus DdiDecodeJPEG::AllocBsBuffer(
     DDI_CODEC_COM_BUFFER_MGR   *bufMgr,
@@ -727,8 +727,8 @@ VAStatus DdiDecodeJPEG::AllocSliceControlBuffer(
 
     bufMgr     = &(m_ddiDecodeCtx->BufMgr);
     availSize = m_sliceCtrlBufNum - bufMgr->dwNumSliceControl;
-    
-	if(availSize < buf->iNumElements)
+
+    if(availSize < buf->iNumElements)
     {
         newSize   = sizeof(VASliceParameterBufferJPEGBaseline) * (m_sliceCtrlBufNum - availSize + buf->iNumElements);
         bufMgr->Codec_Param.Codec_Param_JPEG.pVASliceParaBufJPEG = (VASliceParameterBufferJPEGBaseline *)realloc(bufMgr->Codec_Param.Codec_Param_JPEG.pVASliceParaBufJPEG, newSize);
@@ -843,7 +843,7 @@ VAStatus DdiDecodeJPEG::CodecHalInit(
 {
     VAStatus     vaStatus = VA_STATUS_SUCCESS;
     MOS_CONTEXT *mosCtx   = (MOS_CONTEXT *)ptr;
-    
+
     CODECHAL_FUNCTION codecFunction = CODECHAL_FUNCTION_DECODE;
     m_ddiDecodeCtx->pCpDdiInterface->SetEncryptionType(m_ddiDecodeAttr->uiEncryptionType, &codecFunction);
 

@@ -31,7 +31,7 @@
 
 class CMRTKernelDownScaling : public CMRTKernelBase
 {
-public: 
+public:
     MOS_RESOURCE m_mosResourceWA;
     CMRTKernelDownScaling();
     ~CMRTKernelDownScaling();
@@ -47,6 +47,4 @@ public:
 };
 
 #endif
-
-
 

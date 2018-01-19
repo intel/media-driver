@@ -49,7 +49,7 @@ MOS_STATUS CodechalHevcSfcState::CheckAndInitialize(
             decProcessingParams->rcInputSurfaceRegion.Width  = m_inputFrameWidth;
             decProcessingParams->rcInputSurfaceRegion.Height = m_inputFrameHeight;
 
-            // SFC Initialization. 
+            // SFC Initialization.
             // Initialize once for most of the resources
             // Destroy them in CodecHalHevc_Destroy()
             CODECHAL_HW_CHK_STATUS_RETURN(Initialize(

@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      codechal_secure_decode.h  
-//! \brief     Stub file for CodecHal Secure Decode  
+//! \file      codechal_secure_decode.h 
+//! \brief     Stub file for CodecHal Secure Decode 
 //!
 #ifndef __CODECHAL_SECURE_DECODE_H__
 #define __CODECHAL_SECURE_DECODE_H__
@@ -41,10 +41,10 @@ public:
     //! \return MOS_STATUS
     //!
     static MOS_STATUS CreateSecureDecode(
-        CodechalSetting           *codecHalSettings, 
-        CodechalHwInterface       *hwInterfaceInput, 
+        CodechalSetting           *codecHalSettings,
+        CodechalHwInterface       *hwInterfaceInput,
         CodechalSecureDecode      **secureDecoder)
-    
+
     {
         *secureDecoder = nullptr;
         return MOS_STATUS_SUCCESS;

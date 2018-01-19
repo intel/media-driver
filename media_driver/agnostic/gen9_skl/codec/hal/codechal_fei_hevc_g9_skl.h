@@ -40,39 +40,39 @@ struct CODECHAL_FEI_HEVC_I_32x32_PU_MODE_DECISION_CURBE_G9
 {
     union {
         struct {
-            uint32_t       FrameWidth                   : MOS_BITFIELD_RANGE(0, 15);   
-            uint32_t       FrameHeight                  : MOS_BITFIELD_RANGE(16, 31); 
+            uint32_t       FrameWidth                   : MOS_BITFIELD_RANGE(0, 15);
+            uint32_t       FrameHeight                  : MOS_BITFIELD_RANGE(16, 31);
         };
         uint32_t Value;
     } DW0;
 
     union {
         struct {
-            uint32_t       SliceType                    : MOS_BITFIELD_RANGE(0, 1);   
+            uint32_t       SliceType                    : MOS_BITFIELD_RANGE(0, 1);
             uint32_t       PuType                       : MOS_BITFIELD_RANGE(2, 3);
             uint32_t       EnableStatsDataDump          : MOS_BITFIELD_BIT(4);
-            uint32_t       LCUType                      : MOS_BITFIELD_BIT(5); 
-            uint32_t       Res_6_15                     : MOS_BITFIELD_RANGE(6, 15);   
+            uint32_t       LCUType                      : MOS_BITFIELD_BIT(5);
+            uint32_t       Res_6_15                     : MOS_BITFIELD_RANGE(6, 15);
             uint32_t       SliceQp                      : MOS_BITFIELD_RANGE(16, 23);
-            uint32_t       BRCEnable                    : MOS_BITFIELD_BIT(24); 
+            uint32_t       BRCEnable                    : MOS_BITFIELD_BIT(24);
             uint32_t       LCUBRCEnable                 : MOS_BITFIELD_BIT(25);
             uint32_t       ROIEnable                    : MOS_BITFIELD_BIT(26);
             uint32_t       FASTSurveillanceFlag         : MOS_BITFIELD_BIT(27);
             uint32_t       Res_28                       : MOS_BITFIELD_BIT(28);
             uint32_t       EnableFlexibleParam          : MOS_BITFIELD_BIT(29);
             uint32_t       EnableQualityImprovement     : MOS_BITFIELD_BIT(30);
-            uint32_t       EnableDebugDump              : MOS_BITFIELD_BIT(31); 
+            uint32_t       EnableDebugDump              : MOS_BITFIELD_BIT(31);
         };
         uint32_t Value;
     } DW1;
-    
+
     union {
         struct {
             uint32_t       Lambda;
         };
         uint32_t Value;
     } DW2;
-    
+
     union {
         struct {
             uint32_t       ModeCost32x32;
@@ -138,14 +138,14 @@ struct CODECHAL_FEI_HEVC_I_32x32_PU_MODE_DECISION_CURBE_G9
 
     union {
         struct {
-            uint32_t       BTI_Src_Y2x_VME;   
+            uint32_t       BTI_Src_Y2x_VME;
         };
         uint32_t Value;
     } DW12;
 
     union {
         struct {
-            uint32_t       BTI_Brc_Input;   
+            uint32_t       BTI_Brc_Input;
         };
         uint32_t Value;
     } DW13;
@@ -173,7 +173,7 @@ struct CODECHAL_FEI_HEVC_I_32x32_PU_MODE_DECISION_CURBE_G9
 
     union {
         struct {
-            uint32_t       BTI_Kernel_Debug;   
+            uint32_t       BTI_Kernel_Debug;
         };
         uint32_t Value;
     } DW17;
@@ -187,22 +187,22 @@ struct CODECHAL_FEI_HEVC_I_16x16_PU_MODEDECISION_CURBE_G9
 {
     union {
         struct {
-            uint32_t       FrameWidth                   : MOS_BITFIELD_RANGE(0, 15);   
-            uint32_t       FrameHeight                  : MOS_BITFIELD_RANGE(16, 31); 
+            uint32_t       FrameWidth                   : MOS_BITFIELD_RANGE(0, 15);
+            uint32_t       FrameHeight                  : MOS_BITFIELD_RANGE(16, 31);
         };
         uint32_t Value;
     } DW0;
 
     union {
         struct {
-            uint32_t       Log2MaxCUSize                : MOS_BITFIELD_RANGE(0, 7);   
+            uint32_t       Log2MaxCUSize                : MOS_BITFIELD_RANGE(0, 7);
             uint32_t       Log2MinCUSize                : MOS_BITFIELD_RANGE(8, 15);
-            uint32_t       Log2MinTUSize                : MOS_BITFIELD_RANGE(16, 23); 
-            uint32_t       SliceQp                      : MOS_BITFIELD_RANGE(24, 31);   
+            uint32_t       Log2MinTUSize                : MOS_BITFIELD_RANGE(16, 23);
+            uint32_t       SliceQp                      : MOS_BITFIELD_RANGE(24, 31);
         };
         uint32_t Value;
     } DW1;
-    
+
     union {
         struct {
             uint32_t       FixedPoint_Lambda_PredMode;
@@ -212,8 +212,8 @@ struct CODECHAL_FEI_HEVC_I_16x16_PU_MODEDECISION_CURBE_G9
 
     union {
         struct {
-            uint32_t       LambdaScalingFactor          : MOS_BITFIELD_RANGE(0, 7);   
-            uint32_t       SliceType                    : MOS_BITFIELD_RANGE(8, 9);   
+            uint32_t       LambdaScalingFactor          : MOS_BITFIELD_RANGE(0, 7);
+            uint32_t       SliceType                    : MOS_BITFIELD_RANGE(8, 9);
             uint32_t       Reserved_10_15               : MOS_BITFIELD_RANGE(10, 15);
             uint32_t       IntraRefreshEn               : MOS_BITFIELD_RANGE(16, 17);
             uint32_t       EnableRollingIntra           : MOS_BITFIELD_BIT(18);
@@ -250,7 +250,7 @@ struct CODECHAL_FEI_HEVC_I_16x16_PU_MODEDECISION_CURBE_G9
 
     union {
         struct {
-            uint32_t       ScreenContentFlag            : MOS_BITFIELD_BIT(0); 
+            uint32_t       ScreenContentFlag            : MOS_BITFIELD_BIT(0);
             uint32_t       Reserved                     : MOS_BITFIELD_RANGE(1, 31);
         };
         uint32_t Value;
@@ -258,7 +258,7 @@ struct CODECHAL_FEI_HEVC_I_16x16_PU_MODEDECISION_CURBE_G9
 
     union {
         struct {
-            uint32_t       ModeCostIntraNonPred         : MOS_BITFIELD_RANGE(0, 7);   
+            uint32_t       ModeCostIntraNonPred         : MOS_BITFIELD_RANGE(0, 7);
             uint32_t       ModeCostIntra16x16           : MOS_BITFIELD_RANGE(8, 15);
             uint32_t       ModeCostIntra8x8             : MOS_BITFIELD_RANGE(16, 23);
             uint32_t       ModeCostIntra4x4             : MOS_BITFIELD_RANGE(24, 31);
@@ -287,7 +287,7 @@ struct CODECHAL_FEI_HEVC_I_16x16_PU_MODEDECISION_CURBE_G9
             // 0: for intra, no Haar
             // 1: for inter or enable statictics data dump, need Haar
             uint32_t       HaarTransformMode            : MOS_BITFIELD_RANGE(0, 1);
-            uint32_t       SimplifiedFlagForInter       : MOS_BITFIELD_BIT(2); 
+            uint32_t       SimplifiedFlagForInter       : MOS_BITFIELD_BIT(2);
             uint32_t       Reserved                     : MOS_BITFIELD_RANGE(3, 31);
         };
         uint32_t Value;
@@ -421,37 +421,37 @@ struct CODECHAL_FEI_HEVC_I_8x8_PU_CURBE_G9
 {
     union {
         struct {
-            uint32_t       FrameWidth                   : MOS_BITFIELD_RANGE(0, 15);   
-            uint32_t       FrameHeight                  : MOS_BITFIELD_RANGE(16, 31); 
+            uint32_t       FrameWidth                   : MOS_BITFIELD_RANGE(0, 15);
+            uint32_t       FrameHeight                  : MOS_BITFIELD_RANGE(16, 31);
         };
         uint32_t Value;
     } DW0;
 
     union {
         struct {
-            uint32_t       SliceType                    : MOS_BITFIELD_RANGE(0, 1);   
+            uint32_t       SliceType                    : MOS_BITFIELD_RANGE(0, 1);
             uint32_t       PuType                       : MOS_BITFIELD_RANGE(2, 3);
-            uint32_t       DcFilterFlag                 : MOS_BITFIELD_BIT(4); 
-            uint32_t       AngleRefineFlag              : MOS_BITFIELD_BIT(5);   
-            uint32_t       LCUType                      : MOS_BITFIELD_BIT(6);   
-            uint32_t       ScreenContentFlag            : MOS_BITFIELD_BIT(7);   
+            uint32_t       DcFilterFlag                 : MOS_BITFIELD_BIT(4);
+            uint32_t       AngleRefineFlag              : MOS_BITFIELD_BIT(5);
+            uint32_t       LCUType                      : MOS_BITFIELD_BIT(6);
+            uint32_t       ScreenContentFlag            : MOS_BITFIELD_BIT(7);
             uint32_t       IntraRefreshEn               : MOS_BITFIELD_RANGE(8, 9);
             uint32_t       EnableRollingIntra           : MOS_BITFIELD_BIT(10);
             uint32_t       HalfUpdateMixedLCU           : MOS_BITFIELD_BIT(11);
             uint32_t       Reserved_12_15               : MOS_BITFIELD_RANGE(12, 15);
             uint32_t       QPValue                      : MOS_BITFIELD_RANGE(16, 23);
-            uint32_t       EnableIntraEarlyExit         : MOS_BITFIELD_BIT(24);   
-            uint32_t       BRCEnable                    : MOS_BITFIELD_BIT(25);   
+            uint32_t       EnableIntraEarlyExit         : MOS_BITFIELD_BIT(24);
+            uint32_t       BRCEnable                    : MOS_BITFIELD_BIT(25);
             uint32_t       LCUBRCEnable                 : MOS_BITFIELD_BIT(26);
             uint32_t       ROIEnable                    : MOS_BITFIELD_BIT(27);
             uint32_t       FASTSurveillanceFlag         : MOS_BITFIELD_BIT(28);
             uint32_t       EnableFlexibleParam          : MOS_BITFIELD_BIT(29);
             uint32_t       EnableQualityImprovement     : MOS_BITFIELD_BIT(30);
-            uint32_t       EnableDebugDump              : MOS_BITFIELD_BIT(31);   
+            uint32_t       EnableDebugDump              : MOS_BITFIELD_BIT(31);
         };
         uint32_t Value;
     } DW1;
-    
+
     union {
         struct {
             uint32_t       LumaLambda;
@@ -468,9 +468,9 @@ struct CODECHAL_FEI_HEVC_I_8x8_PU_CURBE_G9
 
     union {
         struct {
-            uint32_t       HaarTransformFlag            : MOS_BITFIELD_RANGE(0, 1);   
+            uint32_t       HaarTransformFlag            : MOS_BITFIELD_RANGE(0, 1);
             uint32_t       SimplifiedFlagForInter       : MOS_BITFIELD_BIT(2);
-            uint32_t       Reserved                     : MOS_BITFIELD_RANGE(3, 31);   
+            uint32_t       Reserved                     : MOS_BITFIELD_RANGE(3, 31);
         };
         uint32_t Value;
     } DW4;
@@ -570,7 +570,6 @@ class CodechalFeiHevcStateG9Skl : public CodechalEncHevcStateG9
 //    static constexpr uint32_t                   NUM_CONCURRENT_THREAD = 2;              //!< Number of concurrent threads
 //    static constexpr uint32_t                   MAX_NUM_KERNEL_SPLIT  = 8;              //!< Maximal kernel split number
 
-
     static const uint32_t                       FEI_ENCB_B_CURBE_INIT[56];              //!< Initialization FEI ENC curbe for B frame
     static const uint32_t                       FEI_ENCB_P_CURBE_INIT[56];              //!< Initialization FEI ENC curbe for P frame
     static const uint32_t                       FEI_ENCB_I_CURBE_INIT[56];              //!< Initialization FEI ENC curbe for I frame
@@ -582,7 +581,7 @@ typedef std::map<std::string, CMRTKernelBase *> CmKernelMapType;
 public:
     //!
     //! \brief    Constructor
-    //!     
+    //!
     CodechalFeiHevcStateG9Skl(CodechalHwInterface* hwInterface,
         CodechalDebugInterface* debugInterface,
         PCODECHAL_STANDARD_INFO standardInfo);
@@ -698,7 +697,7 @@ private:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS Encode16x16SadPuComputationKernel(); 
+    virtual MOS_STATUS Encode16x16SadPuComputationKernel();
 
     //!
     //! \brief    Invoke 16x16 PU mode decision kernel

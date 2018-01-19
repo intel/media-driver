@@ -39,7 +39,7 @@ class CodechalEncodeMpeg2G9Skl : public CodechalEncodeMpeg2G9
 public:
     //!
     //! \brief    Constructor
-    //!                                                                                         
+    //!
     CodechalEncodeMpeg2G9Skl(
         CodechalHwInterface*    hwInterface,
         CodechalDebugInterface* debugInterface,

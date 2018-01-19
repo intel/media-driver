@@ -36,7 +36,6 @@ typedef struct _MHW_PIPE_CONTROL_PARAMS        *PMHW_PIPE_CONTROL_PARAMS;
 typedef struct _MHW_VDBOX_PIPE_BUF_ADDR_PARAMS *PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS;
 typedef struct _MHW_VDBOX_SURFACE_PARAMS       *PMHW_VDBOX_SURFACE_PARAMS;
 
-
 //! \class CodecHalMmcState
 //! \brief Media memory compression state. This class defines the member fields
 //!        functions etc used by memory compression. 
@@ -53,9 +52,9 @@ public:
     //! \brief    Destructor
     //!
     virtual ~CodecHalMmcState() {};
-    
+
     //!
-    //! \brief    Check if MMC is enabled         
+    //! \brief    Check if MMC is enabled 
     //!
     //! \return   bool
     //!           true if mmc is enabled, else false
@@ -63,12 +62,12 @@ public:
     static bool IsMmcEnabled();
 
     //!
-    //! \brief    Disable MMC state         
+    //! \brief    Disable MMC state 
     //!
-    //! \return   void   
+    //! \return   void 
     //!
     void SetMmcDisabled();
-    
+
     //!
     //! \brief    Get surface memory compression state
     //! \param    [out] surface
@@ -78,7 +77,7 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS GetSurfaceMmcState(PMOS_SURFACE surface);
-    
+
     //!
     //! \brief    Disable surface memory compression state
     //! \param    [in,out] surface
@@ -88,7 +87,7 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS DisableSurfaceMmcState(PMOS_SURFACE surface);
-    
+
     //!
     //! \brief    Set destinate surface memory compression state by source surface
     //! \param    [out] dstSurface
@@ -103,7 +102,6 @@ public:
         PMOS_SURFACE dstSurface,
         PMOS_SURFACE srcSurface);
 
-    
     //!
     //! \brief    Set surface paramter
     //! \param    [in,out] surfaceParams
@@ -114,11 +112,11 @@ public:
     //!
     virtual MOS_STATUS SetSurfaceParams(
         PCODECHAL_SURFACE_CODEC_PARAMS surfaceParams);
-      
+
     //!
     //! \brief    Set pipe buffer address parameter
-    //! \details  Set pipe buffer address parameter in MMC case          
-    //!          
+    //! \details  Set pipe buffer address parameter in MMC case 
+    //! 
     //! \param    [in,out] pipeBufAddrParams
     //!           Pointer to PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS
     //! \param    [in] cmdBuffer
@@ -137,12 +135,12 @@ public:
     //!
     //! \brief    Set Surface State MMC state parameter
     //! \details  Set MMC state for speficied SurfaceState cmd parameters
-    //!          
+    //! 
     //! \param    [in,out] surfaceStateParams
     //!           Pointer to PMHW_VDBOX_SURFACE_PARAMS
     //! \param    [in] cmdBuffer
     //!           Pointer to MOS command buffer
-    //!          
+    //! 
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
@@ -176,7 +174,7 @@ public:
 
     //!
     //! \brief    Set reference sync
-    //! \details  Set reference sync, check if reference surface needs to be synchronized in MMC case           
+    //! \details  Set reference sync, check if reference surface needs to be synchronized in MMC case 
     //!
     //! \param    [in] disableDecodeSyncLock
     //!           Indicates if decode sync lock is disabled
@@ -197,8 +195,8 @@ public:
 
     //!
     //! \brief    Check reference list
-    //! \details  Check reference list, including self-reference detection and mmc state consistence detection           
-    //!          
+    //! \details  Check reference list, including self-reference detection and mmc state consistence detection 
+    //! 
     //! \param    [in,out] pipeBufAddrParams
     //!           Pointer to PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS
     //!
@@ -228,12 +226,12 @@ public:
 
         return MOS_STATUS_SUCCESS;
     }
-    
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     //!
     //! \brief    Update mmc user feature key 
     //! \details  Report out the memory compression state for render target surface
-    //!          
+    //! 
     //! \param    [in] surface
     //!           Pointer to PMOS_SURFACE
     //!
@@ -244,7 +242,7 @@ public:
 #endif
 
 protected:
-    
+
     static bool             m_mmcEnabled;                           //!< Indicate if media memory compression is enabled
     PMOS_INTERFACE          m_osInterface = nullptr;                //!< Os Inteface
     bool                    m_hcpMmcEnabled = false;                //!< Inidate if hcp mmc is enabled
@@ -254,7 +252,7 @@ protected:
     bool                    m_userFeatureUpdated = false;              //!< Inidate if mmc user feature key is updated
     uint32_t                m_compressibleId  = 0;
     uint32_t                m_compressModeId  = 0;
-#endif    
+#endif
 };
 
 #endif  // __CODECHAL_MMC_H__

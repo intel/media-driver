@@ -107,7 +107,7 @@ CM_RETURN_CODE CMRTKernelPB32x32::CreateAndDispatchKernel(CmEvent *&cmEvent, boo
     height = (curbe[0] >> 16) & 0x0FFFF;
     widthPadded = ((width + 16) >> 5) << 5;
     heightPadded = ((height + 16) >> 5) << 5;
-    
+
     threadSpaceWidth = widthPadded >> 5;
     threadSpaceHeight = heightPadded >> 5;
 
@@ -134,7 +134,7 @@ CM_RETURN_CODE CMRTKernelPB32x32::CreateAndDispatchKernel(CmEvent *&cmEvent, boo
 CM_RETURN_CODE CMRTKernelPB32x32UMD::AllocateSurfaces(void *params)
 {
     PBFrameKernelParams *PB32x32Params = (PBFrameKernelParams *)params;
- 
+
     CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE *)PB32x32Params->m_cmSurfPer32x32ICOut, m_cmBuffer[0]));
     CM_CHK_STATUS_RETURN(m_cmBuffer[0]->GetIndex(m_surfIndex[0]));
     CM_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D((MOS_RESOURCE *)PB32x32Params->m_cmSurfCurrY, m_cmSurface2D[0]));

@@ -113,7 +113,6 @@
 #define CODECHAL_DECODE_VC1_BITS_PIC_HEADER_FLAG   1
 #define CODECHAL_DECODE_VC1_BITS_SLICE_HEADER      ((CODECHAL_DECODE_VC1_BITS_SC_SUFFIX) + (CODECHAL_DECODE_VC1_BITS_SLICE_ADDR) + (CODECHAL_DECODE_VC1_BITS_PIC_HEADER_FLAG))
 
-
 #define CODECHAL_DECODE_VC1_MV_OFFEST_SIZE         3
 
 MOS_STATUS CodechalDecodeVc1::GetBits(uint32_t bitsRead, uint32_t &value)
@@ -1166,8 +1165,6 @@ MOS_STATUS CodechalDecodeVc1::FormatUnequalFieldPicture(
             (frameHeight + MOS_YTILE_H_ALIGNMENT + uvblockHeight);
     }
 
-
-
     if (m_hwInterface->m_noHuC)
     {
         CodechalDataCopyParams dataCopyParams;
@@ -1267,7 +1264,7 @@ MOS_STATUS CodechalDecodeVc1::ConstructBistreamBuffer()
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSetGpuContext(m_osInterface, m_videoContextForWa));
     m_osInterface->pfnResetOsStates(m_osInterface);
     m_osInterface->pfnSetPerfTag(m_osInterface, (uint16_t)(((m_mode << 4) & 0xF0) | COPY_TYPE));
-    
+
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
 
@@ -1371,9 +1368,9 @@ MOS_STATUS CodechalDecodeVc1::HandleSkipFrame()
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSetGpuContext(m_osInterface, m_videoContextForWa));
         m_osInterface->pfnResetOsStates(m_osInterface);
-        
+
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
-     
+
         // Send command buffer header at the beginning (OS dependent)
         CODECHAL_DECODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(&cmdBuffer, false));
 
@@ -1410,18 +1407,18 @@ MOS_STATUS CodechalDecodeVc1::HandleSkipFrame()
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(
             &cmdBuffer,
             &flushDwParams));
-        
+
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(
                 &cmdBuffer,
                 nullptr));
-        
+
         m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBuffer, 0);
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_videoContextUsesNullHw));
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSetGpuContext(m_osInterface, m_videoContext));
     }
-      
+
     return (MOS_STATUS)eStatus;
 }
 
@@ -2388,7 +2385,6 @@ MOS_STATUS CodechalDecodeVc1::ParseFieldPictureLayerPAdvanced()
         skipBits += 3;    // 3 bit MBMODETAB
     }
 
-
     if (0 == numRef)
     {
         skipBits += 2;    // 2-bit MVTAB
@@ -2649,7 +2645,6 @@ MOS_STATUS CodechalDecodeVc1::ParsePictureHeaderAdvanced()
                 numPanScanWindows = 2 + repeatFirstField;
             }
         }
-
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(GetBits(CODECHAL_DECODE_VC1_BITS_PS_PRESENT, value));
 
@@ -3388,7 +3383,7 @@ MOS_STATUS CodechalDecodeVc1::DecodeStateLevel()
     }
     else
     {
-        pipeBufAddrParams.psPreDeblockSurface = destSurface;        
+        pipeBufAddrParams.psPreDeblockSurface = destSurface;
     }
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetPipeBufAddr(&pipeBufAddrParams));
@@ -4113,7 +4108,7 @@ MOS_STATUS CodechalDecodeVc1::DecodePrimitiveLevelIT()
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_hwInterface->WriteSyncTagToResource(&cmdBuffer, &syncParams));
         }
     }
-    
+
     if (m_statusQueryReportingEnabled)
     {
         CodechalDecodeStatusReport decodeStatusReport;
@@ -4174,7 +4169,7 @@ MOS_STATUS CodechalDecodeVc1::DecodePrimitiveLevelIT()
 
         m_huCCopyInUse = false;
     }
-    
+
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_videoContextUsesNullHw));
 
     CODECHAL_DEBUG_TOOL(
@@ -4405,7 +4400,7 @@ MOS_STATUS CodechalDecodeVc1::PerformVc1Olp()
         (m_destSurface.UPlaneOffset.iYOffset % MOS_YTILE_H_ALIGNMENT);
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->GetSurfaceMmcState(surfaceParamsSrc.psSurface));
-    
+
     MHW_RCS_SURFACE_PARAMS surfaceParamsDst;
     MOS_ZeroMemory(&surfaceParamsDst, sizeof(surfaceParamsDst));
     surfaceParamsDst = surfaceParamsSrc;
@@ -4771,7 +4766,7 @@ MOS_STATUS CodechalDecodeVc1::DumpPicParams(
     std::ostringstream oss;
     oss.setf(std::ios::showbase | std::ios::uppercase);
     oss.setf(std::ios::hex, std::ios::basefield);
-    
+
     oss<< "CurrPic FrameIdx: "<< +vc1PicParams->CurrPic.FrameIdx<<std::endl;
     oss<< "CurrPic PicFlags: "<< +vc1PicParams->CurrPic.PicFlags<<std::endl;
     oss<< "DeblockedPicIdx: "<< +vc1PicParams->DeblockedPicIdx<<std::endl;

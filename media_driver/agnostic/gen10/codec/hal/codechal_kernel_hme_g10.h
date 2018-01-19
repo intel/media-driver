@@ -300,7 +300,7 @@ public:
                 uint32_t Value;
             } DW15;
 
-            struct 
+            struct
             {
                 // DW16
                 union

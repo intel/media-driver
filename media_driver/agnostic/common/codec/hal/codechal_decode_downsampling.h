@@ -119,7 +119,7 @@ public:
 protected:
     //!
     //! \brief    Constructor
-    //!    
+    //!
     FieldScalingInterface(CodechalHwInterface *hwInterface);
 
     //!
@@ -169,7 +169,7 @@ protected:
     MHW_KERNEL_STATE                m_kernelStates[stateMax];                                           //!< Kernel state
     uint32_t                        m_dshSize[stateMax];                                                //!< DSH size
     MOS_RESOURCE                    m_syncObject;                                                       //!< Sync Object
-    
+
     //!
     //! \brief    Initialize state heap settings and kernel params
     //! \details  Initialize Field Scaling Kernel State heap settings & params

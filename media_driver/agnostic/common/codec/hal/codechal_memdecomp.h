@@ -21,7 +21,7 @@
 */
 //! \file     codechal_memdecomp.h
 //! \brief    Defines data structures and interfaces for media memory decompression.
-//! \details  
+//! \details 
 //!
 
 #ifndef __CODECHAL_MEDIAMEMCOMP_H__
@@ -66,7 +66,7 @@ public:
     //! \details  Initialize memory decompress state
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!   
+    //!
     MOS_STATUS Initialize(
         PMOS_INTERFACE                  osInterface,
         MhwCpInterface                  *cpInterface,
@@ -74,22 +74,22 @@ public:
         MhwRenderInterface              *renderInterface);
 
 protected:
-       
+
     //!
     //! \enum DecompKernelStateIdx
     //! \brief Decompress kernel state index
     //!
-    enum DecompKernelStateIdx 
+    enum DecompKernelStateIdx
     {
         decompKernelStatePa = 0,
         decompKernelStatePl2,
         decompKernelStateMax
     };
-    
+
     //!
     //! \enum CopyBindingTableOffset
     //! \brief Decompress copy kernel binding table offset
-    //!    
+    //!
     enum CopyBindingTableOffset
     {
         copySurfaceSrcY      = 0,
@@ -109,7 +109,7 @@ protected:
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!    
+    //!
     virtual MOS_STATUS InitKernelState(uint32_t kernelStateIdx);
 
     //!
@@ -152,7 +152,7 @@ protected:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS SetKernelStateParams();
-    
+
     //!
     //! \brief    Get resource information
     //! \details  Get resource information for the specifc surface
@@ -162,7 +162,7 @@ protected:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS GetResourceInfo(PMOS_SURFACE surface);
-    
+
     //!
     //! \brief    Get the surface width in bytes
     //! \details  Get the suface width in bytes
@@ -182,10 +182,10 @@ protected:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS WriteSyncTagToResourceCmd(
-        PMOS_COMMAND_BUFFER   cmdBuffer); 
-    
+        PMOS_COMMAND_BUFFER   cmdBuffer);
+
     static constexpr uint32_t    m_numMemDecompSyncTags  = 8;           //!< Number of memory decompress sync tags
-    
+
     PMOS_INTERFACE               m_osInterface           = nullptr;     //!< Pointer to Os Inteface
     MhwCpInterface               *m_cpInterface          = nullptr;     //!< Pointer to Cp Interface
     MhwMiInterface              *m_miInterface           = nullptr;     //!< Pointer to MhwMiInterface
@@ -202,7 +202,7 @@ protected:
     bool                         m_disableDecodeSyncLock   = false;     //!< Indicate if decode sync lock disabled or not
     bool                         m_disableLockForTranscode = false;     //!< Indicate if lock is disabled for transcode or not
     uint32_t                     *m_cmdBufIdGlobal;                     //!< Pointer to command buffer global Id
-    MOS_RESOURCE                 m_resCmdBufIdGlobal;                   //!< Resource for command buffer global Id 
+    MOS_RESOURCE                 m_resCmdBufIdGlobal;                   //!< Resource for command buffer global Id
     uint32_t                     m_currCmdBufId;                        //!< Current command buffer Id
 };
 

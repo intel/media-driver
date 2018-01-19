@@ -29,7 +29,7 @@
 CodechalKernelIntraDist::CodechalKernelIntraDist(CodechalEncoderState *encoder) :
         CodechalKernelBase(encoder)
 {
-    
+
 }
 
 CodechalKernelIntraDist::~CodechalKernelIntraDist()

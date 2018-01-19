@@ -172,7 +172,7 @@ public:
             EncodeStatus*       encodeStatus,
             EncodeStatusReport* encodeStatusReport) { return MOS_STATUS_SUCCESS;};
 
-    MOS_STATUS ExecuteKernelFunctions() { return MOS_STATUS_SUCCESS;}; 
+    MOS_STATUS ExecuteKernelFunctions() { return MOS_STATUS_SUCCESS;};
 
 #if USE_CODECHAL_DEBUG_TOOL
     MOS_STATUS DumpQuantTables(
@@ -229,8 +229,8 @@ protected:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS GenerateSizeTable(
-        uint8_t     bits[], 
-        uint8_t     huffSize[], 
+        uint8_t     bits[],
+        uint8_t     huffSize[],
         uint8_t&    lastK);
 
     //!
@@ -245,7 +245,7 @@ protected:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS GenerateCodeTable(
-        uint8_t     huffSize[], 
+        uint8_t     huffSize[],
         uint16_t    huffCode[]);
 
     //!
@@ -281,7 +281,7 @@ protected:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS ConvertHuffDataToTable(
-        CodecEncodeJpegHuffData             huffmanData, 
+        CodecEncodeJpegHuffData             huffmanData,
         CodechalEncodeJpegHuffTable         *huffmanTable);
 
     //!

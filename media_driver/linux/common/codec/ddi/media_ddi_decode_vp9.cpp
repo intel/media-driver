@@ -364,10 +364,10 @@ void DdiDecodeVP9::FreeResourceBuffer()
     bufMgr->pSliceData = nullptr;
 }
 
-uint8_t* DdiDecodeVP9::GetPicParamBuf( 
-    DDI_CODEC_COM_BUFFER_MGR    *bufMgr) 
-{ 
-    return (uint8_t*)(&(bufMgr->Codec_Param.Codec_Param_VP9.PicParamVP9)); 
+uint8_t* DdiDecodeVP9::GetPicParamBuf(
+    DDI_CODEC_COM_BUFFER_MGR    *bufMgr)
+{
+    return (uint8_t*)(&(bufMgr->Codec_Param.Codec_Param_VP9.PicParamVP9));
 }
 
 VAStatus DdiDecodeVP9::AllocSliceControlBuffer(
@@ -482,24 +482,24 @@ VAStatus DdiDecodeVP9::InitDecodeParams(
         m_ctxType = DDI_MEDIA_CONTEXT_TYPE_CENC_DECODER;
     }
     /* skip the mediaCtx check as it is checked in caller */
-    PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);    
+    PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);
     DDI_CHK_RET(DecodeCombineBitstream(mediaCtx),"DecodeCombineBitstream failed!");
     DDI_CODEC_COM_BUFFER_MGR *bufMgr = &(m_ddiDecodeCtx->BufMgr);
     bufMgr->dwNumSliceData    = 0;
     bufMgr->dwNumSliceControl = 0;
-    
+
     if (m_ctxType == DDI_MEDIA_CONTEXT_TYPE_CENC_DECODER)
     {
         DDI_CHK_RET(m_ddiDecodeCtx->pCpDdiInterface->EndPictureCenc(ctx, context),"EndPictureCenc failed!");
     }
 
     DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_ddiDecodeCtx->RTtbl);
-    
+
     if ((rtTbl == nullptr) || (rtTbl->pCurrentRT == nullptr))
     {
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
-	return VA_STATUS_SUCCESS;
+    return VA_STATUS_SUCCESS;
 }
 
 MOS_FORMAT DdiDecodeVP9::GetFormat()
@@ -510,8 +510,8 @@ MOS_FORMAT DdiDecodeVP9::GetFormat()
 
     CODEC_VP9_PIC_PARAMS *picParams = (CODEC_VP9_PIC_PARAMS *)decodeParams->m_picParams;
     if (((picParams->profile == VAProfileVP9Profile2) ||
-	    (picParams->profile == VAProfileVP9Profile3)) &&
-	    (picParams->BitDepthMinus8 > 0))
+        (picParams->profile == VAProfileVP9Profile3)) &&
+        (picParams->BitDepthMinus8 > 0))
     {
         Format = Format_P010;
         if ((picParams->subsampling_x == 0) || (picParams->subsampling_y == 0))
@@ -519,7 +519,7 @@ MOS_FORMAT DdiDecodeVP9::GetFormat()
             Format = Format_Y210;
         }
     }
-    return Format;   
+    return Format;
 }
 
 void DdiDecodeVP9::DestroyContext(

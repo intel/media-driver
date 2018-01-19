@@ -126,7 +126,7 @@ enum REFLIST
 };
 
 //!
-//! \enum     CODECHAL_STANDARD    
+//! \enum     CODECHAL_STANDARD 
 //! \brief    Codec standard
 //!
 enum CODECHAL_STANDARD

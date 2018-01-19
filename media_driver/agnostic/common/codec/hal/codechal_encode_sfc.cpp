@@ -208,7 +208,7 @@ bool CodecHalEncodeSfc::GetYuvRangeAndOffset(
 }
 
 bool CodecHalEncodeSfc::CalcYuvToRgbMatrix(
-    MHW_CSPACE      srcCspace,                          // [in] YUV Color space 
+    MHW_CSPACE      srcCspace,                          // [in] YUV Color space
     MHW_CSPACE      dstCspace,                          // [in] RGB Color space
     float           *transferMatrix,                    // [in] Transfer matrix (3x3)
     float           *outMatrix)                         // [out] Conversion matrix (3x4)
@@ -245,7 +245,7 @@ bool CodecHalEncodeSfc::CalcYuvToRgbMatrix(
 }
 
 bool CodecHalEncodeSfc::CalcRgbToYuvMatrix(
-    MHW_CSPACE      srcCspace,                      // [in] RGB Color space 
+    MHW_CSPACE      srcCspace,                      // [in] RGB Color space
     MHW_CSPACE      dstCspace,                      // [in] YUV Color space
     float           *transferMatrix,                // [in] Transfer matrix (3x3)
     float           *outMatrix)                     // [out] Conversion matrix (3x4)
@@ -315,7 +315,7 @@ void CodecHalEncodeSfc::GetCSCMatrix(
             {
                 CalcRgbToYuvMatrix(srcCspace, dstCspace, (float *)CODECHAL_CSC_BT709_RGB_YUV, cscMatrix);
             }
-        }        
+        }
     }
     // BT2020 YUV to RGB conversion
     else if (IsCspace(srcCspace, MHW_CSpace_BT2020))
@@ -406,7 +406,7 @@ void CodecHalEncodeSfc::GetCscMatrix(
             cscInOffset[1] = -16.0F;
             cscInOffset[2] = -16.0F;
             break;
-        
+
         //BT2020 YUV->RGB
         case MHW_CSpace_BT2020:
             cscInOffset[0] = -16.0F;
@@ -473,9 +473,9 @@ void CodecHalEncodeSfc::GetCscMatrix(
 
         //BT2020 RGB->YUV
         case MHW_CSpace_BT2020:
-            cscOutOffset[0] = 16.0F;    
-            cscOutOffset[1] = 128.0F;   
-            cscOutOffset[2] = 128.0F;   
+            cscOutOffset[0] = 16.0F;
+            cscOutOffset[1] = 128.0F;
+            cscOutOffset[2] = 128.0F;
             break;
 
         case MHW_CSpace_BT2020_FullRange:
@@ -483,13 +483,13 @@ void CodecHalEncodeSfc::GetCscMatrix(
             cscOutOffset[1] = 128.0F;
             cscOutOffset[2] = 128.0F;
             break;
-        
+
         case MHW_CSpace_BT2020_RGB:
             cscOutOffset[0] = 0.0F;
             cscOutOffset[1] = 0.0F;
             cscOutOffset[2] = 0.0F;
             break;
-        
+
         case MHW_CSpace_BT2020_stRGB:
             cscOutOffset[0] = 16.0F;
             cscOutOffset[1] = 16.0F;
@@ -547,7 +547,7 @@ MOS_STATUS CodecHalEncodeSfc::AllocateResources()
         ptr = (char*)MOS_AllocAndZeroMemory(size);
         CODECHAL_ENCODE_CHK_NULL_RETURN(ptr);
 
-        m_avsParams.piYCoefsX  = (int32_t*)ptr; 
+        m_avsParams.piYCoefsX  = (int32_t*)ptr;
 
         ptr += ycoeffTableSize;
         m_avsParams.piUVCoefsX = (int32_t*)ptr;
@@ -599,7 +599,7 @@ MOS_STATUS CodecHalEncodeSfc::SetVeboxStateParams(
 
     params->VeboxMode.ColorGamutExpansionEnable     = 0;
     params->VeboxMode.ColorGamutCompressionEnable   = 0;
-    // On SKL, GlobalIECP must be enabled when the output pipe is Vebox or SFC 
+    // On SKL, GlobalIECP must be enabled when the output pipe is Vebox or SFC
     params->VeboxMode.GlobalIECPEnable              = 1;
     params->VeboxMode.DNEnable                      = 0;
     params->VeboxMode.DIEnable                      = 0;
@@ -864,7 +864,7 @@ MOS_STATUS CodecHalEncodeSfc::SetSfcStateParams(
     }
 
     // Default to Horizontal Left, Vertical Top
-    params->dwChromaDownSamplingHorizontalCoef = (m_chromaSiting & MHW_CHROMA_SITING_HORZ_CENTER) ? 
+    params->dwChromaDownSamplingHorizontalCoef = (m_chromaSiting & MHW_CHROMA_SITING_HORZ_CENTER) ?
                                                   MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_4_OVER_8 :
                                                   ((m_chromaSiting & MHW_CHROMA_SITING_HORZ_RIGHT) ?
                                                   MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_8_OVER_8 :
@@ -907,11 +907,11 @@ MOS_STATUS CodecHalEncodeSfc::SetSfcStateParams(
     params->bRGBASwapEnable                = params->bCSCEnable;
 
     // CodecHal does not support SFC rotation
-    params->RotationMode                   = MHW_ROTATION_IDENTITY; 
+    params->RotationMode                   = MHW_ROTATION_IDENTITY;
 
     // For downsampling, expect output surface to be MMC disabled
     // For Jpeg, the only usage is CSC and the output surface format is RGB8, so also disable MMC
-    params->bMMCEnable                     = false; 
+    params->bMMCEnable                     = false;
     params->MMCMode                        = MOS_MMC_DISABLED;
 
     return eStatus;

@@ -107,7 +107,7 @@ CM_RETURN_CODE CMRTKernelPB8x8Pak::CreateAndDispatchKernel(CmEvent *&cmEvent, bo
     height = (curbe[0] >> 16) & 0x0FFFF;
     width_padded = ((width + 16) >> 5) << 5;
     height_padded = ((height + 16) >> 5) << 5;
-    
+
     threadSpaceWidth = width_padded >> 5;
     threadSpaceHeight = height_padded >> 5;
 

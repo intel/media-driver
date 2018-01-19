@@ -178,7 +178,7 @@ void* CodechalEncodeAllocator::AllocateResource(
         return nullptr;
     }
 
-    CODECHAL_ENCODE_NORMALMESSAGE("Alloc ID = 0x%x, type = %d, codec = %d, format = %d, tile = %d, zero = %d, width = %d, height = %d, size = %d", 
+    CODECHAL_ENCODE_NORMALMESSAGE("Alloc ID = 0x%x, type = %d, codec = %d, format = %d, tile = %d, zero = %d, width = %d, height = %d, size = %d",
         m_typeID, m_type, m_codec, m_format, m_tile, m_zeroOnAllocation, m_width, m_height, m_size);
 
     void* buffer = nullptr;

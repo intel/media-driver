@@ -1237,7 +1237,6 @@ MOS_STATUS CodechalDecodeVp8::DecodeStateLevel()
         m_presAltRefSurface    = &(m_vp8RefList[m_vp8PicParams->ucAltRefPicIndex]->resRefPic);
     }
 
-
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
 
@@ -1633,7 +1632,7 @@ MOS_STATUS CodechalDecodeVp8::DumpIQParams(
     {
         return MOS_STATUS_SUCCESS;
     }
-    
+
     CODECHAL_DEBUG_CHK_NULL(matrixData);
 
     std::ostringstream oss;

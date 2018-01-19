@@ -135,25 +135,25 @@ public:
     virtual VAStatus InitDecodeParams(
         VADriverContextP ctx,
         VAContextID      context);
-    
+
     //!
     //! \brief    Get decode format
     //! \details  The function is used to get decode format
     //!
-    //! \return   MOS_FORMAT     
+    //! \return   MOS_FORMAT 
     //!           VA_STATUS_SUCCESS if success
     //!
     virtual MOS_FORMAT GetFormat();
-    
+
     //!
     //! \brief    Set common decode param setting for each codec
     //! \details  Set common decode param setting for each decode class
     //!
-    //! \return   VAStatus     
+    //! \return   VAStatus 
     //!           VA_STATUS_SUCCESS if success
     //!
     virtual VAStatus SetDecodeParams();
-    
+
     //!
     //! \brief    Make the end of rendering for a picture
     //! \details  The driver will flush/submit the decoding processing.
@@ -171,7 +171,7 @@ public:
     virtual VAStatus EndPicture(
         VADriverContextP ctx,
         VAContextID      context);
- 
+
     //!
     //! \brief    the first step of Initializing internal structure of DdiMediaDecode
     //! \details  Initialize and allocate the internal structur of DdiMediaDecode. This
@@ -226,7 +226,7 @@ public:
     //! \return   i
     //!           buffer index
     virtual int32_t GetBitstreamBufIndexFromBuffer(
-        DDI_CODEC_COM_BUFFER_MGR *bufMgr, 
+        DDI_CODEC_COM_BUFFER_MGR *bufMgr,
         DDI_MEDIA_BUFFER *buf);
 
     //!
@@ -236,7 +236,7 @@ public:
     //! \param    [in] buf
     //!           DDI_MEDIA_BUFFER *buf
     //! \return   VAStatus
-    //!    
+    //!
     virtual VAStatus AllocSliceControlBuffer(
         DDI_MEDIA_BUFFER       *buf)
     {
@@ -257,7 +257,6 @@ public:
         DDI_CODEC_COM_BUFFER_MGR    *bufMgr,
         DDI_MEDIA_BUFFER            *buf);
 
-    
     //! 
     //! \brief    Get Picture parameter size 
     //! \details  Get Picture parameter size for each decoder 
@@ -265,13 +264,13 @@ public:
     //! \param    [in] bufMgr 
     //!        DDI_CODEC_COM_BUFFER_MGR    *bufMgr 
     //! \return   uint8_t* 
-    //! 
-     virtual uint8_t* GetPicParamBuf( 
-         DDI_CODEC_COM_BUFFER_MGR    *bufMgr) 
-         { 
-             return (uint8_t*)bufMgr; 
-         } 
-    
+    //!
+     virtual uint8_t* GetPicParamBuf(
+         DDI_CODEC_COM_BUFFER_MGR    *bufMgr)
+         {
+             return (uint8_t*)bufMgr;
+         }
+
     //! 
     //! \brief    Create buffer in ddi decode context 
     //! \details  Create related decode buffer in ddi decode base class 
@@ -286,7 +285,7 @@ public:
     //!           void data
     //! \param    [in] bufId 
     //!           VABufferID bufId
-    //! 
+    //!
     virtual VAStatus CreateBuffer(
         VABufferType           type,
         uint32_t               size,
@@ -373,7 +372,7 @@ protected:
     bool                        m_streamOutEnabled;     //!<Stream Out enable flag
     uint32_t                    m_sliceParamBufNum;     //!<Slice parameter Buffer Number
     uint32_t                    m_sliceCtrlBufNum;      //!<Slice control Buffer Number
-    uint32_t                    m_decProcessingType;    //!<Decode Processing type  
+    uint32_t                    m_decProcessingType;    //!<Decode Processing type
     CodechalSetting             *m_codechalSettings = nullptr;    //!<Codechal Settings
 };
 

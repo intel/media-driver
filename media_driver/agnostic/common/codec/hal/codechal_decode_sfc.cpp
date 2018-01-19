@@ -139,7 +139,7 @@ MOS_STATUS CodechalSfcState::SetVeboxStateParams(
 
     veboxCmdParams->VeboxMode.ColorGamutExpansionEnable     = 0;
     veboxCmdParams->VeboxMode.ColorGamutCompressionEnable   = 0;
-    // On SKL, GlobalIECP must be enabled when the output pipe is Vebox or SFC 
+    // On SKL, GlobalIECP must be enabled when the output pipe is Vebox or SFC
     veboxCmdParams->VeboxMode.GlobalIECPEnable              = 1;
     veboxCmdParams->VeboxMode.DNEnable                      = 0;
     veboxCmdParams->VeboxMode.DIEnable                      = 0;
@@ -352,11 +352,11 @@ MOS_STATUS CodechalSfcState::SetSfcStateParams(
     sfcStateParams->bRGBASwapEnable                = sfcStateParams->bCSCEnable;
 
     // CodecHal does not support SFC rotation
-    sfcStateParams->RotationMode                   = MHW_ROTATION_IDENTITY; 
+    sfcStateParams->RotationMode                   = MHW_ROTATION_IDENTITY;
 
     // For downsampling, expect output surface to be MMC disabled
     // For Jpeg, the only usage is CSC and the output surface format is RGB8, so also disable MMC
-    sfcStateParams->bMMCEnable                     = false; 
+    sfcStateParams->bMMCEnable                     = false;
     sfcStateParams->MMCMode                        = MOS_MMC_DISABLED;
 
     return eStatus;

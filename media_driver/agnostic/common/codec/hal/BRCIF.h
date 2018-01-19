@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      BRCIF.h  
-//! \brief     This modules implements the interface for BRC dll  
+//! \file      BRCIF.h 
+//! \brief     This modules implements the interface for BRC dll 
 //!
 #ifndef _BRCIF_H__
 #define _BRCIF_H__

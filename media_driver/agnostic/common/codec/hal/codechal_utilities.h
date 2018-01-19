@@ -227,7 +227,7 @@ MOS_STATUS CodecHalGetResourceInfo(
     PMOS_SURFACE surface);
 
 //!
-//! \brief    Allocate data list with specific type and length  
+//! \brief    Allocate data list with specific type and length 
 //!
 //! \param    [in,out] dataList
 //!           Pointer to a type * pointer. Specify the address of the memory handles 
@@ -238,19 +238,19 @@ MOS_STATUS CodecHalGetResourceInfo(
 //!           MOS_STATUS_SUCCESS if success, else fail reason
 //!
 template <class type>
-MOS_STATUS CodecHalAllocateDataList(type **dataList, uint32_t length)     
-{                                                               
-    type *ptr;                                                  
+MOS_STATUS CodecHalAllocateDataList(type **dataList, uint32_t length)
+{
+    type *ptr;
     ptr = (type *)MOS_AllocAndZeroMemory(sizeof(type) * length);
-    if (ptr == nullptr)                                            
-    {                                                           
-        CODECHAL_PUBLIC_ASSERTMESSAGE("No memory to allocate CodecHal data list."); 
-        return MOS_STATUS_NO_SPACE;                          
-    }                                                           
-    for (uint32_t i = 0; i < length; i++)                           
-    {                                                           
-        dataList[i] = &(ptr[i]);                              
-    }                                                           
+    if (ptr == nullptr)
+    {
+        CODECHAL_PUBLIC_ASSERTMESSAGE("No memory to allocate CodecHal data list.");
+        return MOS_STATUS_NO_SPACE;
+    }
+    for (uint32_t i = 0; i < length; i++)
+    {
+        dataList[i] = &(ptr[i]);
+    }
     return MOS_STATUS_SUCCESS;
 }
 
@@ -266,18 +266,18 @@ MOS_STATUS CodecHalAllocateDataList(type **dataList, uint32_t length)
 //!           MOS_STATUS_SUCCESS if success, else fail reason
 //!
 template <class type>
-MOS_STATUS CodecHalFreeDataList(type **dataList, uint32_t length)   
-{                                                   
-    type* ptr;                                      
-    ptr = dataList[0];                   
-    if (ptr)                                        
-    {                                               
-        MOS_FreeMemory(ptr);                        
-    }                                               
-    for (uint32_t i = 0; i < length; i++)               
-    {                                               
-        dataList[i] = nullptr;                       
-    }                                               
+MOS_STATUS CodecHalFreeDataList(type **dataList, uint32_t length)
+{
+    type* ptr;
+    ptr = dataList[0];
+    if (ptr)
+    {
+        MOS_FreeMemory(ptr);
+    }
+    for (uint32_t i = 0; i < length; i++)
+    {
+        dataList[i] = nullptr;
+    }
 
     return MOS_STATUS_SUCCESS;
 }

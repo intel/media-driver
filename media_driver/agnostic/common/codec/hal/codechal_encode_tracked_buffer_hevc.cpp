@@ -62,7 +62,7 @@ void CodechalEncodeTrackedBufferHevc::DeferredDeallocateOnResChange()
         (m_mbCodeAnteIdx != m_mbCodeCurrIdx))
     {
         ReleaseMbCode(m_mbCodeAnteIdx);
-    }    
+    }
 }
 
 CodechalEncodeTrackedBufferHevc::CodechalEncodeTrackedBufferHevc(CodechalEncoderState* encoder)

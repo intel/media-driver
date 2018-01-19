@@ -65,7 +65,7 @@ struct DDI_DECODE_CONTEXT
     DdiCpInterface                  *pCpDdiInterface;
     // Parameters
     CodechalDecodeParams            DecodeParams;
-    uint16_t                        wMode;                  // Get the info during hand shaking    
+    uint16_t                        wMode;                  // Get the info during hand shaking
     Codechal                        *pCodecHal;
     bool                            bShortFormatInUse;
     VASurfaceDecodeMBErrors         vaSurfDecErrOutput[2];
@@ -103,7 +103,7 @@ static __inline PDDI_DECODE_CONTEXT DdiDecode_GetDecContextFromPVOID (void *decC
 //!     DAta
 //! \param  [in] bufId
 //!     VA buffer ID
-//!     
+//! 
 //! \return     VAStatus
 //!     VA_STATUS_SUCCESS if success, else fail reason
 //!
@@ -126,7 +126,7 @@ VAStatus DdiDecode_CreateBuffer(
 //!     VA context ID
 //! \param  [in] renderTarget
 //!     VA surface ID
-//!     
+//! 
 //! \return     VAStatus
 //!     VA_STATUS_SUCCESS if success, else fail reason
 //!
@@ -143,7 +143,7 @@ VAStatus DdiDecode_BeginPicture (
 //!     Pointer to VA driver context
 //! \param  [in] context
 //!     VA context ID
-//!     
+//! 
 //! \return     VAStatus
 //!     VA_STATUS_SUCCESS if success, else fail reason
 //!
@@ -163,7 +163,7 @@ VAStatus DdiDecode_EndPicture (
 //!     VA buffer ID
 //! \param  [in] numBuffers
 //!     Number of buffers
-//!     
+//! 
 //! \return     VAStatus
 //!     VA_STATUS_SUCCESS if success, else fail reason
 //!
@@ -193,7 +193,7 @@ VAStatus DdiDecode_RenderPicture (
 //!     Number of render targets
 //! \param  [in] context
 //!     VA context ID
-//!     
+//! 
 //! \return     VAStatus
 //!     VA_STATUS_SUCCESS if success, else fail reason
 //!
@@ -215,7 +215,7 @@ VAStatus DdiDecode_CreateContext (
 //!     Pointer to VA driver context
 //! \param  [in] context
 //!     VA context ID
-//!     
+//! 
 //! \return     VAStatus
 //!     VA_STATUS_SUCCESS if success, else fail reason
 //!

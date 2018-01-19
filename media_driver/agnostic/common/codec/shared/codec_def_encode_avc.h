@@ -70,16 +70,16 @@ typedef struct _CODECHAL_ENCODE_AVC_QUALITY_CTRL_PARAMS
     {
         struct
         {
-            // Disables skip check for ENC. 
+            // Disables skip check for ENC.
             unsigned int skipCheckDisable : 1;
             // Indicates app will override default driver FTQ settings using FTQEnable.
             unsigned int FTQOverride : 1;
             // Enables/disables FTQ.
             unsigned int FTQEnable : 1;
-            // Indicates the app will provide the Skip Threshold LUT to use when FTQ is 
+            // Indicates the app will provide the Skip Threshold LUT to use when FTQ is
             // enabled (FTQSkipThresholdLUT), else default driver thresholds will be used.
             unsigned int FTQSkipThresholdLUTInput : 1;
-            // Indicates the app will provide the Skip Threshold LUT to use when FTQ is 
+            // Indicates the app will provide the Skip Threshold LUT to use when FTQ is
             // disabled (NonFTQSkipThresholdLUT), else default driver thresholds will be used.
             unsigned int NonFTQSkipThresholdLUTInput : 1;
             // Control to enable the ENC mode decision algorithm to bias to fewer B Direct/Skip types.
@@ -87,7 +87,7 @@ typedef struct _CODECHAL_ENCODE_AVC_QUALITY_CTRL_PARAMS
             unsigned int directBiasAdjustmentEnable : 1;
             // Enables global motion bias.
             unsigned int globalMotionBiasAdjustmentEnable : 1;
-            // MV cost scaling ratio for HME predictors.  It is used when 
+            // MV cost scaling ratio for HME predictors.  It is used when
             // globalMotionBiasAdjustmentEnable == 1, else it is ignored.  Values are:
             //      0: set MV cost to be 0 for HME predictor.
             //      1: scale MV cost to be ? of the default value for HME predictor.
@@ -99,7 +99,7 @@ typedef struct _CODECHAL_ENCODE_AVC_QUALITY_CTRL_PARAMS
             //disable Super HME
             unsigned int SuperHMEDisable                    : 1;
             //disable Ultra HME
-            unsigned int UltraHMEDisable                    : 1;            
+            unsigned int UltraHMEDisable                    : 1;
             // Force RepartitionCheck
             unsigned int ForceRepartitionCheck              : 2;
 
@@ -205,7 +205,6 @@ enum
 
 const uint8_t Slice_Type[10] = { SLICE_P, SLICE_B, SLICE_I, SLICE_SP, SLICE_SI, SLICE_P, SLICE_B, SLICE_I, SLICE_SP, SLICE_SI };
 
-
 typedef struct _CODEC_ROI_MAP
 {
     char                PriorityLevelOrDQp; // [-3..3] or [-51..51]
@@ -301,7 +300,7 @@ typedef struct _CODEC_AVC_ENCODE_SEQUENCE_PARAMS
     *
     *   Should not be greater than max SPS set reported by driver.
     */
-    uint8_t           seq_parameter_set_id; 
+    uint8_t           seq_parameter_set_id;
     uint8_t           chroma_format_idc;                      //!< Same as AVC syntax element.
     uint8_t           bit_depth_luma_minus8;                  //!< Same as AVC syntax element.
     uint8_t           bit_depth_chroma_minus8;                //!< Same as AVC syntax element.
@@ -434,7 +433,7 @@ typedef struct _CODEC_AVC_ENCODE_SEQUENCE_PARAMS
             *        \n - 1: BRC may decide larger P/B frame size.
             */
             uint32_t           bAutoMaxPBFrameSizeForSceneChange : 1;
-            /* Control the force panic mode through DDI other than user feature key */ 
+            /* Control the force panic mode through DDI other than user feature key */
             uint32_t           bForcePanicModeControl       : 1;
             uint32_t           bPanicModeDisable            : 1;
             uint32_t           Reserved1                    : 7;
@@ -541,9 +540,9 @@ typedef struct _CODEC_AVC_ENCODE_PIC_PARAMS
     /*! \brief Specifies the uncompressed surface of the reconstructed frame for the current encoded picture.
     *
     *    The PicFlags regarding reference usage are expected to be valid at this time.
-    *    The recon surface may be of different format and different bit depth from that of source. 
-    *    The framework needs to specify it through chroma_format_idc and bit_depth_luma_minus8 and 
-    *    bit_depth_chroma_minus8 in SPS data structure. 
+    *    The recon surface may be of different format and different bit depth from that of source.
+    *    The framework needs to specify it through chroma_format_idc and bit_depth_luma_minus8 and
+    *    bit_depth_chroma_minus8 in SPS data structure.
     */
     CODEC_PICTURE   CurrReconstructedPic;
     /*! \brief Specifies picture coding type.
@@ -743,7 +742,7 @@ typedef struct _CODEC_AVC_ENCODE_PIC_PARAMS
     */
     uint8_t         ucMinimumQP;
     uint8_t         ucMaximumQP;    //!< Specifies the maximum Qp to be used for BRC.
-    
+
     uint32_t        dwZMvThreshold; //!< Used for static frame detection.
 
     /*! \brief Indicates that an HMEOffset will be sent by the application in HMEOffset for each reference.
@@ -766,7 +765,7 @@ typedef struct _CODEC_AVC_ENCODE_PIC_PARAMS
     *    SubMbPartMask is only valid when bEnableSubMbPartMask is true. Bit0~6 indicate inter 16x16, 16x8, 8x16, 8x8, 8x4, 4x8, 4x4.
     */
     bool            bEnableSubMbPartMask;
-    uint8_t         SubMbPartMask;               
+    uint8_t         SubMbPartMask;
 
     /*! \brief Specifies motion search modes that will be used.
     *

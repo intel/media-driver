@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      codechal_hw.h  
-//! \brief         This modules implements HW interface layer to be used on all platforms on     all operating systems/DDIs, across CODECHAL components.  
+//! \file      codechal_hw.h 
+//! \brief         This modules implements HW interface layer to be used on all platforms on     all operating systems/DDIs, across CODECHAL components. 
 //!
 #ifndef __CODECHAL_HW_H__
 #define __CODECHAL_HW_H__
@@ -329,7 +329,7 @@ protected:
     MOS_RESOURCE                m_dummyStreamIn;          //!> Resource of dummy stream in
     MOS_RESOURCE                m_dummyStreamOut;         //!> Resource of dummy stream out
     MOS_RESOURCE                m_hucDmemDummy;           //!> Resource of Huc DMEM for dummy streamout WA
-    uint32_t                    m_dmemBufSize = 0;        //!> 
+    uint32_t                    m_dmemBufSize = 0;        //!>
 
     // COND BBE WA
     MOS_RESOURCE                m_conditionalBbEndDummy;  //!> Dummy Resource for conditional batch buffer end WA
@@ -1100,7 +1100,6 @@ public:
         uint32_t                                    semaData,
         MHW_COMMON_MI_SEMAPHORE_COMPARE_OPERATION   opCode,
         PMOS_COMMAND_BUFFER                         cmdBuffer);
-
 
     //!
     //! \brief    Send mi atomic dword cmd

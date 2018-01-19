@@ -22,7 +22,7 @@
 //!
 //! \file     codechal_memdecomp_g9.cpp
 //! \brief    This module sets up a kernel for Gen9 media memory decompression.
-//! \details 
+//! \details
 
 #include "codechal_memdecomp_g9.h"
 #include "igcodeckrn_g9.h"
@@ -52,7 +52,7 @@ MOS_STATUS MediaMemDecompStateG9::InitKernelState(
     uint32_t kernelSize = 0;
     if ((kernelStateIdx == decompKernelStatePl2)&&
         m_osInterface->osCpInterface->IsSMEnabled())
-    {        
+    {
         m_osInterface->osCpInterface->GetTK(
             (uint32_t **)&kernelBase,
             &kernelSize,

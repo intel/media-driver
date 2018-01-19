@@ -61,7 +61,7 @@ MOS_STATUS CodecHalInitMediaObjectWalkerParams(
     walkerParams->dwGlobalLoopExecCount    = 0xFFFF;  //MAX VALUE
 
     if (walkerCodecParams->bMbEncIFrameDistInUse || walkerCodecParams->bNoDependency)
-    {   
+    {
         walkerParams->ScoreboardMask         = 0;
         // Raster scan walking pattern
         walkerParams->LocalOutLoopStride.x   = 0;
@@ -85,7 +85,7 @@ MOS_STATUS CodecHalInitMediaObjectWalkerParams(
     {
         walkerParams->LocalEnd.x             = 0;
         walkerParams->LocalEnd.y             = 0;
-    
+
         if (walkerCodecParams->WalkerDegree == CODECHAL_46_DEGREE)   // Gen6 only VP8 HybridPak2Pattern
         {
             // 46 degree walking pattern
@@ -123,7 +123,7 @@ MOS_STATUS CodecHalInitMediaObjectWalkerParams(
 
             walkerParams->LocalOutLoopStride.x = 1;
             walkerParams->LocalOutLoopStride.y = 0;
-            
+
             walkerParams->LocalInnerLoopUnit.x = MOS_BITFIELD_VALUE((uint32_t)-1, 16);
             walkerParams->LocalInnerLoopUnit.y = 4;
 
@@ -156,14 +156,14 @@ MOS_STATUS CodecHalInitMediaObjectWalkerParams(
             // dispatch 4 threads together in one LCU
             walkerParams->BlockResolution.x        = 2;
             walkerParams->BlockResolution.y        = 2;
-            
+
             // 26 degree in the global loop
             walkerParams->GlobalOutlerLoopStride.x = 2;
             walkerParams->GlobalOutlerLoopStride.y = 0;
 
             walkerParams->GlobalInnerLoopUnit.x    = 0xFFF -4 + 1; // -4 in 2's compliment format
             walkerParams->GlobalInnerLoopUnit.y    = 2;
-        } 
+        }
         else
         {
             // 26 degree walking pattern
@@ -174,7 +174,7 @@ MOS_STATUS CodecHalInitMediaObjectWalkerParams(
             walkerParams->LocalInnerLoopUnit.y   = 1;
         }
     }
-    
+
     if (walkerCodecParams->bMbaff)
     {
         walkerParams->ScoreboardMask              = 0xFF;
@@ -183,12 +183,11 @@ MOS_STATUS CodecHalInitMediaObjectWalkerParams(
         walkerParams->LocalInnerLoopUnit.y        = 2;
     }
 
-
-    // In case of multiple Slice scenarios, every slice can be processed parallelly 
-    // to enhance the performance. This is accomplished by  launching the slices concurrently, 
-    // providing the X and Y position of the thread along with Color bit. The AVC MBEnc kernel 
-    // uses the color bit sent in the header to identify the Slice and calculates the MBY index 
-    // accordingly.The color bit literally conveys the slice number of the MB. 
+    // In case of multiple Slice scenarios, every slice can be processed parallelly
+    // to enhance the performance. This is accomplished by  launching the slices concurrently,
+    // providing the X and Y position of the thread along with Color bit. The AVC MBEnc kernel
+    // uses the color bit sent in the header to identify the Slice and calculates the MBY index
+    // accordingly.The color bit literally conveys the slice number of the MB.
     if (walkerCodecParams->bColorbitSupported && walkerCodecParams->dwNumSlices <= CODECHAL_MEDIA_WALKER_MAX_COLORS)
     {
         walkerParams->ColorCountMinusOne       = walkerCodecParams->dwNumSlices - 1;
@@ -383,11 +382,11 @@ MOS_STATUS CodecHalSetRcsSurfaceState(
 
                 CODECHAL_PUBLIC_CHK_STATUS_RETURN(osInterface->pfnGetMemoryCompressionMode(
                     osInterface, &surfaceRcsParams.psSurface->OsResource, &mmcstate));
-                
+
                 // MMC HW requires GFX3DSTATE_SURFACEFORMAT_YCRCB_SWAPUVY format for P010 UV planes.
-                surfaceRcsParams.ForceSurfaceFormat[MHW_U_PLANE] = (surfaceCodecParams->psSurface->Format == Format_P010) ? 
+                surfaceRcsParams.ForceSurfaceFormat[MHW_U_PLANE] = (surfaceCodecParams->psSurface->Format == Format_P010) ?
                     ((mmcstate != MOS_MEMCOMP_DISABLED) ? MHW_GFX3DSTATE_SURFACEFORMAT_YCRCB_SWAPUVY : MHW_GFX3DSTATE_SURFACEFORMAT_R16G16_UNORM) :
-					MHW_GFX3DSTATE_SURFACEFORMAT_R16_UINT;
+                    MHW_GFX3DSTATE_SURFACEFORMAT_R16_UINT;
             }
             surfaceRcsParams.dwBindingTableOffset[MHW_U_PLANE]    = surfaceCodecParams->dwUVBindingTableOffset;
 
@@ -396,9 +395,9 @@ MOS_STATUS CodecHalSetRcsSurfaceState(
             {
                 widthInBytes *= 2;
             }
-            surfaceRcsParams.dwWidthToUse[MHW_U_PLANE]            = (surfaceCodecParams->bMediaBlockRW) ? 
+            surfaceRcsParams.dwWidthToUse[MHW_U_PLANE]            = (surfaceCodecParams->bMediaBlockRW) ?
                 WIDTH_IN_DW(widthInBytes) : (surfaceCodecParams->psSurface->dwWidth / 2);
-            surfaceRcsParams.dwHeightToUse[MHW_U_PLANE]           = (surfaceCodecParams->bUseHalfHeight) ? 
+            surfaceRcsParams.dwHeightToUse[MHW_U_PLANE]           = (surfaceCodecParams->bUseHalfHeight) ?
                 (surfaceCodecParams->psSurface->dwHeight / 4) : (surfaceCodecParams->psSurface->dwHeight / 2);
 
             if (surfaceCodecParams->psSurface->Format == Format_YUY2V || surfaceCodecParams->psSurface->Format == Format_Y216V)
@@ -408,7 +407,7 @@ MOS_STATUS CodecHalSetRcsSurfaceState(
 
             if (IS_Y_MAJOR_TILE_FORMAT(surfaceRcsParams.psSurface->TileType))
             {
-                uint32_t tileHeightAlignment = 
+                uint32_t tileHeightAlignment =
                     (MOS_TILE_YS == surfaceRcsParams.psSurface->TileType) ? MOS_YSTILE_H_ALIGNMENT : MOS_YTILE_H_ALIGNMENT;
 
                 surfaceRcsParams.dwBaseAddrOffset[MHW_U_PLANE] =
@@ -445,14 +444,14 @@ MOS_STATUS CodecHalSetRcsSurfaceState(
         surfaceRcsParams.bUseAdvState                       = surfaceCodecParams->bUseAdvState;
         // MMC info passed with psSurface->CompressionMode
         surfaceRcsParams.psSurface                          = surfaceCodecParams->psSurface;
-        surfaceRcsParams.dwWidthToUse[MHW_Y_PLANE]	        = surfaceCodecParams->dwWidthInUse;
-        surfaceRcsParams.dwWidthToUse[MHW_U_PLANE]	        = surfaceRcsParams.dwWidthToUse[MHW_V_PLANE] = surfaceCodecParams->dwWidthInUse / 2;
-        surfaceRcsParams.dwHeightToUse[MHW_Y_PLANE]	        = surfaceCodecParams->dwHeightInUse;
+        surfaceRcsParams.dwWidthToUse[MHW_Y_PLANE]            = surfaceCodecParams->dwWidthInUse;
+        surfaceRcsParams.dwWidthToUse[MHW_U_PLANE]            = surfaceRcsParams.dwWidthToUse[MHW_V_PLANE] = surfaceCodecParams->dwWidthInUse / 2;
+        surfaceRcsParams.dwHeightToUse[MHW_Y_PLANE]            = surfaceCodecParams->dwHeightInUse;
         surfaceRcsParams.dwHeightToUse[MHW_U_PLANE]         = surfaceRcsParams.dwHeightToUse[MHW_V_PLANE] =
             (surfaceCodecParams->psSurface->Format == Format_YUY2V || surfaceCodecParams->psSurface->Format == Format_Y216V) ?
             surfaceCodecParams->dwHeightInUse :
             surfaceCodecParams->dwHeightInUse / 2;
-        
+
         surfaceRcsParams.ForceSurfaceFormat[MHW_Y_PLANE]    = MHW_MEDIASTATE_SURFACEFORMAT_PLANAR_420_8;
         surfaceRcsParams.dwBindingTableOffset[MHW_Y_PLANE]  = surfaceCodecParams->dwBindingTableOffset;
         surfaceRcsParams.bInterleaveChroma                  = true;
@@ -483,10 +482,10 @@ MOS_STATUS CodecHalSetRcsSurfaceState(
     }
 
     CODECHAL_PUBLIC_CHK_STATUS_RETURN(stateHeapInterface->pfnSetSurfaceState(
-        stateHeapInterface, 
-        kernelState, 
+        stateHeapInterface,
+        kernelState,
         cmdBuffer,
-        1, 
+        1,
         &surfaceRcsParams));
 
     return MOS_STATUS_SUCCESS;
@@ -520,19 +519,19 @@ MOS_STATUS CodecHalGetResourceInfo(
         details.RenderOffset.YUV.Y.YOffset;
     surface->UPlaneOffset.iSurfaceOffset = details.RenderOffset.YUV.U.BaseOffset;
     surface->UPlaneOffset.iXOffset       = details.RenderOffset.YUV.U.XOffset;
-    surface->UPlaneOffset.iYOffset       = 
+    surface->UPlaneOffset.iYOffset       =
         (surface->UPlaneOffset.iSurfaceOffset - surface->dwOffset) / surface->dwPitch +
         details.RenderOffset.YUV.U.YOffset;
     surface->UPlaneOffset.iLockSurfaceOffset = details.LockOffset.YUV.U;
     surface->VPlaneOffset.iSurfaceOffset = details.RenderOffset.YUV.V.BaseOffset;
     surface->VPlaneOffset.iXOffset       = details.RenderOffset.YUV.V.XOffset;
-    surface->VPlaneOffset.iYOffset       = 
+    surface->VPlaneOffset.iYOffset       =
         (surface->VPlaneOffset.iSurfaceOffset - surface->dwOffset) / surface->dwPitch +
         details.RenderOffset.YUV.V.YOffset;
     surface->VPlaneOffset.iLockSurfaceOffset = details.LockOffset.YUV.V;
     surface->bCompressible     = details.bCompressible;
-    surface->CompressionMode   = details.CompressionMode;    
-    surface->bIsCompressed     = details.bIsCompressed; 
+    surface->CompressionMode   = details.CompressionMode;
+    surface->bIsCompressed     = details.bIsCompressed;
 
     return MOS_STATUS_SUCCESS;
 }

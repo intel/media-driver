@@ -3489,7 +3489,7 @@ CodechalEncodeAvcEncG8::CodechalEncodeAvcEncG8(
 
     m_kernelBase = (uint8_t *)IGCODECKRN_G8;
     AddIshSize(m_kuid, m_kernelBase);
-    
+
     m_cmKernelEnable           = true;
     bBrcSplitEnable            = false;
     bHighTextureModeCostEnable = false;
@@ -3505,7 +3505,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::GetKernelHeaderAndSize(
     EncOperation                   operation,
     uint32_t                       krnStateIdx,
     void                           *pvKrnHeader,
-	uint32_t                       *pdwKrnSize)
+    uint32_t                       *pdwKrnSize)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -3764,7 +3764,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::InitKernelStateWP()
     CODECHAL_ENCODE_CHK_NULL_RETURN(pWPKernelState);
 
     auto kernelStatePtr = pWPKernelState;
-    
+
     kernelStatePtr->KernelParams.iBTCount = WP_NUM_SURFACES;
     kernelStatePtr->KernelParams.iThreadCount = m_renderEngineInterface->GetHwCaps()->dwMaxThreads;
     kernelStatePtr->KernelParams.iCurbeLength = sizeof(WP_CURBE);
@@ -3780,7 +3780,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::InitKernelStateWP()
         kernelStatePtr->KernelParams.iBTCount,
         &kernelStatePtr->dwSshSize,
         &kernelStatePtr->dwBindingTableSize));
-    
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->MhwInitISH(m_stateHeapInterface, kernelStatePtr));
     return eStatus;
 }
@@ -3839,10 +3839,9 @@ MOS_STATUS CodechalEncodeAvcEncG8::InitBrcConstantBuffer(
     }
 }
 
-
 MOS_STATUS CodechalEncodeAvcEncG8::InitBrcConstantBufferMultiRefQP(
         PCODECHAL_ENCODE_AVC_INIT_BRC_CONSTANT_BUFFER_PARAMS        params)
-{    
+{
 
     MOS_STATUS          eStatus = MOS_STATUS_SUCCESS;
 
@@ -3851,7 +3850,6 @@ MOS_STATUS CodechalEncodeAvcEncG8::InitBrcConstantBufferMultiRefQP(
     CODECHAL_ENCODE_CHK_NULL_RETURN(params);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pOsInterface);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pPicParams);
-
 
     uint8_t tableIdx  = params->wPictureCodingType - 1;
     if(tableIdx >= 3)
@@ -3922,8 +3920,8 @@ MOS_STATUS CodechalEncodeAvcEncG8::InitBrcConstantBufferMultiRefQP(
     {
         for(uint8_t qp = 0; qp < CODEC_AVC_NUM_QP; qp++)
         {
-            *(data+ 1 + (qp * 2)) = (uint8_t) CalcSkipVal((params->dwMbEncBlockBasedSkipEn ? true : false), 
-				(params->pPicParams->transform_8x8_mode_flag ? true : false), (uint16_t)(params->pAvcQCParams->NonFTQSkipThresholdLUT[qp]));
+            *(data+ 1 + (qp * 2)) = (uint8_t) CalcSkipVal((params->dwMbEncBlockBasedSkipEn ? true : false),
+                (params->pPicParams->transform_8x8_mode_flag ? true : false), (uint16_t)(params->pAvcQCParams->NonFTQSkipThresholdLUT[qp]));
         }
     }
 
@@ -4063,14 +4061,12 @@ MOS_STATUS CodechalEncodeAvcEncG8::InitBrcConstantBufferMultiRefQP(
 
 }
 
-
-
 MOS_STATUS CodechalEncodeAvcEncG8::GetTrellisQuantization(
         PCODECHAL_ENCODE_AVC_TQ_INPUT_PARAMS    params,
         PCODECHAL_ENCODE_AVC_TQ_PARAMS          trellisQuantParams)
-{   
+{
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
+
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(params);
@@ -4104,7 +4100,6 @@ MOS_STATUS CodechalEncodeAvcEncG8::InitKernelStateMe()
     MOS_STATUS status = CodecHalGetKernelBinaryAndSize(m_kernelBase, m_kuid, &kernelBinary, &kernelSize);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(status);
 
-
     for (uint32_t krnStateIdx = 0; krnStateIdx < 2; krnStateIdx++)
     {
         auto kernelStatePtr = &m_meKernelStates[krnStateIdx];
@@ -4123,7 +4118,6 @@ MOS_STATUS CodechalEncodeAvcEncG8::InitKernelStateMe()
         kernelStatePtr->KernelParams.iBlockWidth = CODECHAL_MACROBLOCK_WIDTH;
         kernelStatePtr->KernelParams.iBlockHeight = CODECHAL_MACROBLOCK_HEIGHT;
         kernelStatePtr->KernelParams.iIdCount = 1;
-        
 
         kernelStatePtr->dwCurbeOffset = m_stateHeapInterface->pStateHeapInterface->GetSizeofCmdInterfaceDescriptorData();
         kernelStatePtr->KernelParams.pBinary = kernelBinary + (currKrnHeader.KernelStartPointer << MHW_KERNEL_OFFSET_SHIFT);
@@ -4291,10 +4285,10 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeAvcWP(PCODECHAL_ENCODE_AVC_WP_CURBE_P
     MOS_STATUS                eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
-    
+
     CODECHAL_ENCODE_CHK_NULL_RETURN(params);
 
-    auto seqParams = m_avcSeqParam;    
+    auto seqParams = m_avcSeqParam;
     CODECHAL_ENCODE_ASSERT(seqParams->TargetUsage < NUM_TARGET_USAGE_MODES);
 
     WP_CURBE     cmd;
@@ -4320,7 +4314,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeAvcWP(PCODECHAL_ENCODE_AVC_WP_CURBE_P
         &cmd,
         kernelState->dwCurbeOffset,
         sizeof(cmd)));
-    
+
     return eStatus;
 }
 
@@ -4328,21 +4322,21 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeAvcMbEnc(
         PCODECHAL_ENCODE_AVC_MBENC_CURBE_PARAMS params)
 {
     MOS_STATUS                    eStatus = MOS_STATUS_SUCCESS;
-    
+
     CODECHAL_ENCODE_FUNCTION_ENTER;
-    
+
     CODECHAL_ENCODE_CHK_NULL_RETURN(params);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pPicParams);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pSeqParams);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pSlcParams);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pdwBlockBasedSkipEn);
-    
+
     auto picParams = params->pPicParams;
     auto seqParams = params->pSeqParams;
     auto slcParams = params->pSlcParams;
-    
+
     CODECHAL_ENCODE_ASSERT(seqParams->TargetUsage < NUM_TARGET_USAGE_MODES);
-    
+
     // set sliceQp to MAX_SLICE_QP for  MbEnc kernel, we can use it to verify whether QP is changed or not
     uint8_t sliceQp = (params->bUseMbEncAdvKernel && params->bBrcEnabled) ? CODECHAL_ENCODE_AVC_MAX_SLICE_QP : picParams->pic_init_qp_minus26 + 26 + slcParams->slice_qp_delta;
     bool framePicture = CodecHal_PictureIsFrame(picParams->CurrOriginalPic);
@@ -4379,7 +4373,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeAvcMbEnc(
             sizeof(MBENC_CURBE_CM)));
         }
         break;
-    
+
         case P_TYPE:
         if (framePicture)
         {
@@ -4398,7 +4392,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeAvcMbEnc(
             sizeof(MBENC_CURBE_CM)));
         }
         break;
-    
+
         case B_TYPE:
         if (framePicture)
         {
@@ -4417,14 +4411,14 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeAvcMbEnc(
             sizeof(MBENC_CURBE_CM)));
         }
         break;
-    
+
         default:
         CODECHAL_ENCODE_ASSERTMESSAGE("Invalid picture coding type.");
         eStatus = MOS_STATUS_UNKNOWN;
         return eStatus;
         }
     }
-    
+
     // r1
     cmd.DW0.AdaptiveEn =
         cmd.DW37.AdaptiveEn = EnableAdaptiveSearch[seqParams->TargetUsage];
@@ -4473,7 +4467,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeAvcMbEnc(
     cmd.DW7.IntraPartMask = picParams->transform_8x8_mode_flag ? 0 : 0x2;    // Disable 8x8 if flag is not set
     cmd.DW7.SrcFieldPolarity             = bottomField;
 
-    uint8_t tableIdx;    
+    uint8_t tableIdx;
     // r2
     if (params->bMbEncIFrameDistEnabled)
     {
@@ -4488,7 +4482,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeAvcMbEnc(
         CODECHAL_ENCODE_ASSERTMESSAGE("Failed to copy memory.");
         return eStatus;
         }
-    
+
         if (m_pictureCodingType == I_TYPE &&     bOldModeCostEnable)
         {
         // Old intra mode cost needs to be used if bOldModeCostEnable is 1
@@ -4501,7 +4495,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeAvcMbEnc(
         cmd.ModeMvCost.DW11.Value = MvCost_PSkipAdjustment_Cm_Common[sliceQp];
         }
     }
-    
+
     if(params->pAvcQCParams && params->pAvcQCParams->FTQSkipThresholdLUTInput)
     {
         cmd.ModeMvCost.DW14.SICFwdTransCoeffThreshold_0 = params->pAvcQCParams->FTQSkipThresholdLUT[sliceQp];
@@ -4512,7 +4506,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeAvcMbEnc(
         cmd.ModeMvCost.DW15.SICFwdTransCoeffThreshold_5 = params->pAvcQCParams->FTQSkipThresholdLUT[sliceQp];
         cmd.ModeMvCost.DW15.SICFwdTransCoeffThreshold_6 = params->pAvcQCParams->FTQSkipThresholdLUT[sliceQp];
     }
-    
+
     // r3 & r4
     if (params->bMbEncIFrameDistEnabled)
     {
@@ -4530,13 +4524,13 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeAvcMbEnc(
         return eStatus;
         }
     }
-    
+
     // r5
     if(m_pictureCodingType != I_TYPE && params->pAvcQCParams && params->pAvcQCParams->NonFTQSkipThresholdLUTInput)
     {
         cmd.DW32.SkipVal = (uint16_t) CalcSkipVal(cmd.DW3.BlockBasedSkipEnable, picParams->transform_8x8_mode_flag,
                                 params->pAvcQCParams->NonFTQSkipThresholdLUT[sliceQp]);
-    
+
     }
     else
     {
@@ -4555,13 +4549,13 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeAvcMbEnc(
         [sliceQp];
         }
     }
-    
+
     cmd.ModeMvCost.DW13.QpPrimeY = sliceQp;
     // QpPrimeCb and QpPrimeCr are not used by Kernel. Following settings are for CModel matching.
     cmd.ModeMvCost.DW13.QpPrimeCb = sliceQp;
     cmd.ModeMvCost.DW13.QpPrimeCr = sliceQp;
     cmd.ModeMvCost.DW13.TargetSizeInWord = 0xff; // hardcoded for BRC disabled
-    
+
     if (bMultiPredEnable && (m_pictureCodingType != I_TYPE))
     {
         switch (MultiPred[seqParams->TargetUsage])
@@ -4570,19 +4564,19 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeAvcMbEnc(
         cmd.DW32.MultiPredL0Disable = CODECHAL_ENCODE_AVC_MULTIPRED_DISABLE;
         cmd.DW32.MultiPredL1Disable = CODECHAL_ENCODE_AVC_MULTIPRED_DISABLE;
         break;
-    
+
         case 1: // Enable multipred for P pictures only
         cmd.DW32.MultiPredL0Disable = (m_pictureCodingType == P_TYPE) ? CODECHAL_ENCODE_AVC_MULTIPRED_ENABLE : CODECHAL_ENCODE_AVC_MULTIPRED_DISABLE;
         cmd.DW32.MultiPredL1Disable = CODECHAL_ENCODE_AVC_MULTIPRED_DISABLE;
         break;
-    
+
         case 2: // Enable multipred for B pictures only
         cmd.DW32.MultiPredL0Disable = (m_pictureCodingType == B_TYPE) ?
         CODECHAL_ENCODE_AVC_MULTIPRED_ENABLE : CODECHAL_ENCODE_AVC_MULTIPRED_DISABLE;
         cmd.DW32.MultiPredL1Disable = (m_pictureCodingType == B_TYPE) ?
         CODECHAL_ENCODE_AVC_MULTIPRED_ENABLE : CODECHAL_ENCODE_AVC_MULTIPRED_DISABLE;
         break;
-    
+
         case 3: // Enable multipred for both P & B picture types
         cmd.DW32.MultiPredL0Disable = CODECHAL_ENCODE_AVC_MULTIPRED_ENABLE;
         cmd.DW32.MultiPredL1Disable = (m_pictureCodingType == B_TYPE) ?
@@ -4595,7 +4589,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeAvcMbEnc(
         cmd.DW32.MultiPredL0Disable = CODECHAL_ENCODE_AVC_MULTIPRED_DISABLE;
         cmd.DW32.MultiPredL1Disable = CODECHAL_ENCODE_AVC_MULTIPRED_DISABLE;
     }
-    
+
     if (!framePicture)
     {
         if (m_pictureCodingType != I_TYPE)
@@ -4615,7 +4609,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeAvcMbEnc(
         cmd.DW34.List1RefID1FieldParity = CodecHalAvcEncode_GetFieldParity(slcParams, LIST_1, CODECHAL_ENCODE_REF_ID_1);
         }
     }
-    
+
     if (m_pictureCodingType == B_TYPE)
     {
         cmd.DW34.List1RefID0FrameFieldFlag = GetRefPicFieldFlag(params, LIST_1, CODECHAL_ENCODE_REF_ID_0);
@@ -4638,11 +4632,11 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeAvcMbEnc(
     cmd.DW38.RefThreshold = m_refThreshold;
     cmd.DW39.HMERefWindowsCombThreshold = (m_pictureCodingType == B_TYPE) ?
         HMEBCombineLen[seqParams->TargetUsage] : HMECombineLen[seqParams->TargetUsage];
-    
+
     // Default:2 used for MBBRC (MB QP Surface width and height are 4x downscaled picture in MB unit * 4  bytes)
     // 0 used for MBQP data surface (MB QP Surface width and height are same as the input picture size in MB unit * 1bytes)
     cmd.DW47.MbQpReadFactor =     bMbQpDataEnabled ? 0 : 2;
-    
+
     // Those fields are not really used for I_dist kernel,
     // but set them to 0 to get bit-exact match with kernel prototype
     if (params->bMbEncIFrameDistEnabled)
@@ -4654,7 +4648,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeAvcMbEnc(
         cmd.DW33.Intra4x4NonDCPredPenalty = 0;
         cmd.DW33.Intra8x8NonDCPredPenalty = 0;
     }
-    
+
     //r6
     if (cmd.DW4.UseActualRefQPValue)
     {
@@ -4669,10 +4663,10 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeAvcMbEnc(
         cmd.DW46.ActualQPValueForRefID0List1 = AVCGetQPValueFromRefList(params, LIST_1, CODECHAL_ENCODE_REF_ID_0);
         cmd.DW46.ActualQPValueForRefID1List1 = AVCGetQPValueFromRefList(params, LIST_1, CODECHAL_ENCODE_REF_ID_1);
     }
-    
+
     tableIdx = m_pictureCodingType - 1;
     cmd.DW46.RefCost = RefCost_MultiRefQp[tableIdx][sliceQp];
-    
+
     // Picture Coding Type dependent parameters
     if (m_pictureCodingType == I_TYPE)
     {
@@ -4756,7 +4750,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeAvcMbEnc(
         cmd.DW42.DistScaleFactorRefID5List0 = m_distScaleFactorList0[5];
         cmd.DW43.DistScaleFactorRefID6List0 = m_distScaleFactorList0[6];
         cmd.DW43.DistScaleFactorRefID7List0 = m_distScaleFactorList0[7];
-    
+
         if(params->pAvcQCParams)
         {
         cmd.DW34.EnableDirectBiasAdjustment     = params->pAvcQCParams->directBiasAdjustmentEnable;
@@ -4765,7 +4759,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeAvcMbEnc(
             cmd.DW7.NonSkipModeAdded = 1;
             cmd.DW7.NonSkipZMvAdded  = 1;
         }
-    
+
         cmd.DW34.EnableGlobalMotionBiasAdjustment    = params->pAvcQCParams->globalMotionBiasAdjustmentEnable;
         if(cmd.DW34.EnableGlobalMotionBiasAdjustment)
         {
@@ -4784,19 +4778,19 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeAvcMbEnc(
         }
         }
     }
-    
+
     *params->pdwBlockBasedSkipEn = cmd.DW3.BlockBasedSkipEnable;
-    
+
     if (ROLLING_I_SQUARE == picParams->EnableRollingIntraRefresh && !params->bSquareRollingIEnabled)
     {
         picParams->EnableRollingIntraRefresh = false;
     }
-    
+
     if (picParams->EnableRollingIntraRefresh)
     {
         /* Multiple predictor should be completely disabled for the RollingI feature. This does not lead to much quality drop for P frames especially for TU as 1 */
         cmd.DW32.MultiPredL0Disable = CODECHAL_ENCODE_AVC_MULTIPRED_DISABLE;
-    
+
         /* Pass the same IntraRefreshUnit to the kernel w/o the adjustment by -1, so as to have an overlap of one MB row or column of Intra macroblocks
         across one P frame to another P frame, as needed by the RollingI algo */
         if (ROLLING_I_SQUARE == picParams->EnableRollingIntraRefresh && RATECONTROL_CQP != seqParams->RateControlMethod)
@@ -4821,43 +4815,43 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeAvcMbEnc(
     {
         cmd.DW34.IntraRefreshEn             = 0;
     }
-    
+
     if (true == params->bRoiEnabled)
     {
         cmd.DW49.ROI1_X_left = picParams->ROI[0].Left;
         cmd.DW49.ROI1_Y_top = picParams->ROI[0].Top;
         cmd.DW50.ROI1_X_right = picParams->ROI[0].Right;
         cmd.DW50.ROI1_Y_bottom = picParams->ROI[0].Bottom;
-    
+
         cmd.DW51.ROI2_X_left = picParams->ROI[1].Left;
         cmd.DW51.ROI2_Y_top = picParams->ROI[1].Top;
         cmd.DW52.ROI2_X_right = picParams->ROI[1].Right;
         cmd.DW52.ROI2_Y_bottom = picParams->ROI[1].Bottom;
-    
+
         cmd.DW53.ROI3_X_left = picParams->ROI[2].Left;
         cmd.DW53.ROI3_Y_top = picParams->ROI[2].Top;
         cmd.DW54.ROI3_X_right = picParams->ROI[2].Right;
         cmd.DW54.ROI3_Y_bottom = picParams->ROI[2].Bottom;
-    
+
         cmd.DW55.ROI4_X_left = picParams->ROI[3].Left;
         cmd.DW55.ROI4_Y_top = picParams->ROI[3].Top;
         cmd.DW56.ROI4_X_right = picParams->ROI[3].Right;
         cmd.DW56.ROI4_Y_bottom = picParams->ROI[3].Bottom;
-    
+
         if (    bBrcEnabled == false)
         {
         uint16_t numROI = picParams->NumROI;
         char priorityLevelOrDQp[CODECHAL_ENCODE_AVC_MAX_ROI_NUMBER] = { 0 };
-    
+
         // cqp case
         for (uint32_t i = 0; i < numROI; i += 1)
         {
             char dQpRoi = picParams->ROI[i].PriorityLevelOrDQp;
-    
+
             // clip qp roi in order to have (qp + qpY) in range [0, 51]
             priorityLevelOrDQp[i] = (char)CodecHal_Clip3(-sliceQp, CODECHAL_ENCODE_AVC_MAX_SLICE_QP - sliceQp, dQpRoi);
         }
-    
+
         cmd.DW57.ROI1_dQpPrimeY = priorityLevelOrDQp[0];
         cmd.DW57.ROI2_dQpPrimeY = priorityLevelOrDQp[1];
         cmd.DW57.ROI3_dQpPrimeY = priorityLevelOrDQp[2];
@@ -4873,28 +4867,28 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeAvcMbEnc(
     {
         // enable  Dirty Rect flag
         cmd.DW4.EnableDirtyRect = true;
-        
+
         cmd.DW49.ROI1_X_left      = params->pPicParams->DirtyROI[0].Left;
         cmd.DW49.ROI1_Y_top       = params->pPicParams->DirtyROI[0].Top;
         cmd.DW50.ROI1_X_right      = params->pPicParams->DirtyROI[0].Right;
         cmd.DW50.ROI1_Y_bottom      = params->pPicParams->DirtyROI[0].Bottom;
-       
+
         cmd.DW51.ROI2_X_left      = params->pPicParams->DirtyROI[1].Left;
         cmd.DW51.ROI2_Y_top       = params->pPicParams->DirtyROI[1].Top;
         cmd.DW52.ROI2_X_right      = params->pPicParams->DirtyROI[1].Right;
         cmd.DW52.ROI2_Y_bottom      = params->pPicParams->DirtyROI[1].Bottom;
-    
+
         cmd.DW53.ROI3_X_left      = params->pPicParams->DirtyROI[2].Left;
         cmd.DW53.ROI3_Y_top       = params->pPicParams->DirtyROI[2].Top;
         cmd.DW54.ROI3_X_right      = params->pPicParams->DirtyROI[2].Right;
         cmd.DW54.ROI3_Y_bottom      = params->pPicParams->DirtyROI[2].Bottom;
-    
+
         cmd.DW55.ROI4_X_left      = params->pPicParams->DirtyROI[3].Left;
         cmd.DW55.ROI4_Y_top       = params->pPicParams->DirtyROI[3].Top;
         cmd.DW56.ROI4_X_right      = params->pPicParams->DirtyROI[3].Right;
         cmd.DW56.ROI4_Y_bottom      = params->pPicParams->DirtyROI[3].Bottom;
     }
-    
+
     //IPCM QP and threshold
     cmd.DW65.IPCM_QP0            = initIpcmThresholdTable[0].QP;
     cmd.DW65.IPCM_QP1            = initIpcmThresholdTable[1].QP;
@@ -4906,7 +4900,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeAvcMbEnc(
     cmd.DW67.IPCM_Thresh2            = initIpcmThresholdTable[2].Threshold;
     cmd.DW68.IPCM_Thresh3            = initIpcmThresholdTable[3].Threshold;
     cmd.DW68.IPCM_Thresh4            = initIpcmThresholdTable[4].Threshold;
-    
+
     cmd.DW73.MBDataSurfIndex        = MBENC_MFC_AVC_PAK_OBJ_CM;
     cmd.DW74.MVDataSurfIndex        = MBENC_IND_MV_DATA_CM;
     cmd.DW75.IDistSurfIndex         = MBENC_BRC_DISTORTION_CM;
@@ -4939,7 +4933,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeAvcMbEnc(
         &cmd,
         params->pKernelState->dwCurbeOffset,
         sizeof(cmd)));
-    
+
     return eStatus;
 }
 
@@ -4949,11 +4943,11 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeAvcBrcInitReset(PCODECHAL_ENCODE_AVC_
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
     CODECHAL_ENCODE_FUNCTION_ENTER;
     CODECHAL_ENCODE_CHK_NULL_RETURN(params);
-    
+
     auto picParams          = m_avcPicParam;
     auto seqParams          = m_avcSeqParam;
     auto vuiParams          = m_avcVuiParams;
-    
+
     BRC_INIT_RESET_CURBE cmd = initBrcInitResetCurbe;
 
     uint32_t  profileLevelMaxFrame;
@@ -5109,7 +5103,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeAvcBrcInitReset(PCODECHAL_ENCODE_AVC_
         &cmd,
         params->pKernelState->dwCurbeOffset,
         sizeof(cmd)));
-    
+
     return eStatus;
 }
 
@@ -5183,7 +5177,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeAvcFrameBrcUpdate(PCODECHAL_ENCODE_AV
         cmd.DW12.gRateRatioThreshold4 = (uint32_t)((100 + (usAVBRAccuracy / (double)30)*(125 - 100)));
         cmd.DW12.gRateRatioThreshold5 = (uint32_t)((100 + (usAVBRAccuracy / (double)30)*(160 - 100)));
     }
-    
+
     auto picParams = m_avcPicParam;
     //Rolling Intra Refresh
     //BRC controls only for square region rolling I, it does not control for others (Row and Column)
@@ -5209,7 +5203,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeAvcFrameBrcUpdate(PCODECHAL_ENCODE_AV
         &profileLevelMaxFrame));
 
     cmd.DW19.UserMaxFrame = profileLevelMaxFrame;
-    
+
     auto stateHeapInterface =     m_hwInterface->GetRenderInterface()->m_stateHeapInterface;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(params->pKernelState->m_dshRegion.AddData(
@@ -5221,7 +5215,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeAvcFrameBrcUpdate(PCODECHAL_ENCODE_AV
 }
 
 MOS_STATUS CodechalEncodeAvcEncG8::SendAvcBrcFrameUpdateSurfaces(PMOS_COMMAND_BUFFER cmdBuffer, PCODECHAL_ENCODE_AVC_BRC_UPDATE_SURFACE_PARAMS params)
-{    
+{
     MOS_STATUS                                      eStatus = MOS_STATUS_SUCCESS;
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
@@ -5382,10 +5376,9 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeAvcBrcBlockCopy(PCODECHAL_ENCODE_AVC_
 {
     MOS_STATUS                                        eStatus = MOS_STATUS_SUCCESS;
     CODECHAL_ENCODE_FUNCTION_ENTER;
-    
+
     CODECHAL_ENCODE_CHK_NULL_RETURN(params);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pKernelState);
-
 
     BRC_BLOCK_COPY_CURBE_CM cmd;
     MOS_ZeroMemory(&cmd, sizeof(cmd));
@@ -5410,7 +5403,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmdB
     MOS_STATUS                eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
-    
+
     CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pAvcSlcParams);
@@ -5421,11 +5414,11 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmdB
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pAvcPicIdx);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pMbEncBindingTable);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pKernelState);
-    
+
     bool currBottomField = CodecHal_PictureIsBottomField(*(params->pCurrOriginalPic)) ? 1 : 0;
 
     uint8_t vDirection;
-    
+
     if (params->bMbEncIFrameDistInUse)
     {
         vDirection = CODECHAL_VDIRECTION_FRAME;
@@ -5435,10 +5428,10 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmdB
         vDirection = (CodecHal_PictureIsFrame(*(params->pCurrOriginalPic))) ? CODECHAL_VDIRECTION_FRAME :
         (currBottomField) ? CODECHAL_VDIRECTION_BOT_FIELD : CODECHAL_VDIRECTION_TOP_FIELD;
     }
-    
+
     // PAK Obj command buffer
 
-    CODECHAL_SURFACE_CODEC_PARAMS        surfaceCodecParams;    
+    CODECHAL_SURFACE_CODEC_PARAMS        surfaceCodecParams;
     MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
     auto currPicRefListEntry = params->ppRefList[params->pCurrReconstructedPic->FrameIdx];
     auto mbCodeBuffer = &currPicRefListEntry->resRefMbCodeBuffer;
@@ -5457,7 +5450,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmdB
         cmdBuffer,
         &surfaceCodecParams,
         kernelState));
-    
+
     // MV data buffer
     size = params->dwFrameWidthInMb * params->dwFrameFieldHeightInMb * 32 * 4;
     MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
@@ -5474,7 +5467,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmdB
         cmdBuffer,
         &surfaceCodecParams,
         kernelState));
-    
+
     // Current Picture Y
     MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
     surfaceCodecParams.bIs2DSurface = true;
@@ -5487,18 +5480,18 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmdB
     surfaceCodecParams.dwUVBindingTableOffset = avcMbEncBindingTable->dwAvcMBEncCurrUV;
     surfaceCodecParams.dwVerticalLineStride = params->dwVerticalLineStride;
     surfaceCodecParams.dwVerticalLineStrideOffset = params->dwVerticalLineStrideOffset;
-    
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         cmdBuffer,
         &surfaceCodecParams,
         kernelState));
-    
+
     // AVC_ME MV data buffer
     if (params->bHmeEnabled)
     {
         CODECHAL_ENCODE_CHK_NULL_RETURN(params->ps4xMeMvDataBuffer);
-    
+
         MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
         surfaceCodecParams.bIs2DSurface = true;
         surfaceCodecParams.bMediaBlockRW = true;
@@ -5511,9 +5504,9 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmdB
         cmdBuffer,
         &surfaceCodecParams,
         kernelState));
-    
+
         CODECHAL_ENCODE_CHK_NULL_RETURN(params->ps4xMeDistortionBuffer);
-    
+
         MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
         surfaceCodecParams.bIs2DSurface = true;
         surfaceCodecParams.bMediaBlockRW = true;
@@ -5527,12 +5520,12 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmdB
         &surfaceCodecParams,
         kernelState));
     }
-    
+
     if (params->bMbConstDataBufferInUse)
     {
         // 16 DWs per QP value
         size = 16 * 52 * sizeof(uint32_t);
-    
+
         MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
         surfaceCodecParams.presBuffer = params->presMbBrcConstDataBuffer;
         surfaceCodecParams.dwSize = size;
@@ -5560,7 +5553,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmdB
         &surfaceCodecParams,
         kernelState));
     }
-    
+
     // Current Picture Y - VME
     MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
     surfaceCodecParams.bUseAdvState = true;
@@ -5570,13 +5563,13 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmdB
     surfaceCodecParams.dwBindingTableOffset = currFieldPicture ?
         avcMbEncBindingTable->dwAvcMBEncFieldCurrPic[0] : avcMbEncBindingTable->dwAvcMBEncCurrPicFrame[0];
     surfaceCodecParams.ucVDirection = vDirection;
-    
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         cmdBuffer,
         &surfaceCodecParams,
         kernelState));
-    
+
     surfaceCodecParams.dwBindingTableOffset = currFieldPicture ?
         avcMbEncBindingTable->dwAvcMBEncFieldCurrPic[1] : avcMbEncBindingTable->dwAvcMBEncCurrPicFrame[1];
     surfaceCodecParams.ucVDirection = vDirection;
@@ -5586,7 +5579,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmdB
         &surfaceCodecParams,
         kernelState));
 
-    uint32_t   refBindingTableOffset;    
+    uint32_t   refBindingTableOffset;
     uint8_t    refVDirection;
     // Setup references 1...n
     // LIST 0 references
@@ -5616,7 +5609,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmdB
             refVDirection = CODECHAL_VDIRECTION_FRAME;
             refBindingTableOffset = avcMbEncBindingTable->dwAvcMBEncFwdPicFrame[refIdx];
         }
-    
+
         // Picture Y VME
         MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
         surfaceCodecParams.bUseAdvState = true;
@@ -5635,7 +5628,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmdB
         surfaceCodecParams.dwBindingTableOffset = refBindingTableOffset;
         surfaceCodecParams.ucVDirection = refVDirection;
         surfaceCodecParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_REF_ENCODE].Value;
-    
+
         CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
             m_hwInterface,
             cmdBuffer,
@@ -5654,7 +5647,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmdB
         // Only 1 LIST 1 reference required here since only single ref is supported in frame case
         break;
         }
-    
+
         CODEC_PICTURE refPic = params->pAvcSlcParams->RefPicList[LIST_1][refIdx];
         if (!CodecHal_PictureIsInvalid(refPic) && params->pAvcPicIdx[refPic.FrameIdx].bValid)
         {
@@ -5666,7 +5659,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmdB
             if (refBottomField)
             {
             refVDirection = CODECHAL_VDIRECTION_BOT_FIELD;
-            uint32_t refMbCodeBottomFieldOffset =     params->dwFrameFieldHeightInMb * params->dwFrameWidthInMb * 64;            
+            uint32_t refMbCodeBottomFieldOffset =     params->dwFrameFieldHeightInMb * params->dwFrameWidthInMb * 64;
             refMbCodeBottomFieldOffsetUsed = refMbCodeBottomFieldOffset;
             uint32_t refMvBottomFieldOffset =     MOS_ALIGN_CEIL(params->dwFrameFieldHeightInMb * params->dwFrameWidthInMb * (32 * 4), 0x1000);
             refMvBottomFieldOffsetUsed = refMvBottomFieldOffset;
@@ -5687,7 +5680,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmdB
             refMvBottomFieldOffsetUsed = 0;
             refBindingTableOffset = avcMbEncBindingTable->dwAvcMBEncBwdPicFrame[refIdx];
         }
-    
+
         // Picture Y VME
         MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
         surfaceCodecParams.bUseAdvState = true;
@@ -5706,13 +5699,13 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmdB
         surfaceCodecParams.dwBindingTableOffset = refBindingTableOffset;
         surfaceCodecParams.ucVDirection = refVDirection;
         surfaceCodecParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_REF_ENCODE].Value;
-    
+
         CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
             m_hwInterface,
             cmdBuffer,
             &surfaceCodecParams,
             kernelState));
-    
+
         if (refIdx == 0)
         {
             if(currFieldPicture && (params->ppRefList[refPicIdx]->ucAvcPictureCodingType == CODEC_AVC_PIC_CODING_TYPE_FRAME || params->ppRefList[refPicIdx]->ucAvcPictureCodingType == CODEC_AVC_PIC_CODING_TYPE_INVALID))
@@ -5733,7 +5726,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmdB
             cmdBuffer,
             &surfaceCodecParams,
             kernelState));
-    
+
             // MV data buffer
             size = params->dwFrameWidthInMb * params->dwFrameFieldHeightInMb * 32 * 4;
             MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
@@ -5748,7 +5741,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmdB
             &surfaceCodecParams,
             kernelState));
         }
-    
+
         if (refIdx < CODECHAL_ENCODE_NUM_MAX_VME_L1_REF)
         {
             if (currFieldPicture)
@@ -5767,7 +5760,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmdB
             {
             refBindingTableOffset = avcMbEncBindingTable->dwAvcMBEncBwdPicFrame[refIdx + CODECHAL_ENCODE_NUM_MAX_VME_L1_REF];
             }
-    
+
             // Picture Y VME
             MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
             surfaceCodecParams.bUseAdvState = true;
@@ -5777,7 +5770,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmdB
             surfaceCodecParams.dwBindingTableOffset = refBindingTableOffset;
             surfaceCodecParams.ucVDirection = refVDirection;
             surfaceCodecParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_REF_ENCODE].Value;
-    
+
             CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
             m_hwInterface,
             cmdBuffer,
@@ -5786,7 +5779,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmdB
         }
         }
     }
-    
+
     // BRC distortion data buffer for I frame
     if (params->bMbEncIFrameDistInUse)
     {
@@ -5804,7 +5797,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmdB
         &surfaceCodecParams,
         kernelState));
     }
-    
+
     // RefPicSelect of Current Picture
     if (params->bUsedAsRef)
     {
@@ -5824,7 +5817,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmdB
         &surfaceCodecParams,
         kernelState));
     }
-    
+
     if (params->bFlatnessCheckEnabled)
     {
         MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
@@ -5842,11 +5835,11 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmdB
         &surfaceCodecParams,
         kernelState));
     }
-    
+
     if (params->bMADEnabled)
     {
         size = CODECHAL_MAD_BUFFER_SIZE;
-    
+
         MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
         surfaceCodecParams.bRawSurface = true;
         surfaceCodecParams.dwSize = size;
@@ -5860,7 +5853,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmdB
         &surfaceCodecParams,
         kernelState));
     }
-    
+
     if (params->bUseMbEncAdvKernel)
     {
         auto stateHeapInterface = m_hwInterface->GetRenderInterface()->m_stateHeapInterface;
@@ -5903,7 +5896,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmdB
                 kernelState));
         }
     }
-    
+
     if (params->bArbitraryNumMbsInSlice)
     {
         MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
@@ -5914,14 +5907,14 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmdB
         surfaceCodecParams.bIsWritable = false;
         surfaceCodecParams.dwOffset = currBottomField ? params->dwSliceMapBottomFieldOffset : 0;
         surfaceCodecParams.dwBindingTableOffset = avcMbEncBindingTable->dwAvcMBEncSliceMapData;
-    
+
         CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         cmdBuffer,
         &surfaceCodecParams,
         kernelState));
     }
-    
+
     if(!params->bMbEncIFrameDistInUse)
     {
         if( params->bMbDisableSkipMapEnabled )
@@ -5942,7 +5935,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmdB
             &surfaceCodecParams,
             kernelState));
         }
-    
+
         if( params->bStaticFrameDetectionEnabled )
         {
         // static frame detection output surface
@@ -5959,7 +5952,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmdB
             kernelState));
         }
     }
-    
+
     return eStatus;
 }
 
@@ -5968,7 +5961,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendAvcWPSurfaces(PMOS_COMMAND_BUFFER cmdBuff
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
-    
+
     CODECHAL_ENCODE_CHK_NULL_RETURN(params);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pKernelState);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->psInputRefBuffer);
@@ -5990,7 +5983,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendAvcWPSurfaces(PMOS_COMMAND_BUFFER cmdBuff
         cmdBuffer,
         &surfaceParams,
         params->pKernelState));
-    
+
     MOS_ZeroMemory(&surfaceParams, sizeof(surfaceParams));
     surfaceParams.bIs2DSurface = true;
     surfaceParams.bMediaBlockRW = true;
@@ -6006,7 +5999,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendAvcWPSurfaces(PMOS_COMMAND_BUFFER cmdBuff
         cmdBuffer,
         &surfaceParams,
         params->pKernelState));
-    
+
     return eStatus;
 }
 
@@ -6015,25 +6008,25 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendMeSurfaces (
         MeSurfaceParams* params)
 {
     MOS_STATUS            eStatus = MOS_STATUS_SUCCESS;
-    CODECHAL_ENCODE_FUNCTION_ENTER;   
- 
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
     CODECHAL_ENCODE_CHK_NULL_RETURN(params);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pKernelState);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pCurrOriginalPic);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->ps4xMeMvDataBuffer);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->psMeBrcDistortionBuffer);
-    
+
     CODECHAL_MEDIA_STATE_TYPE encMediaStateType = (params->b32xMeInUse) ? CODECHAL_MEDIA_STATE_32X_ME :
         params->b16xMeInUse ? CODECHAL_MEDIA_STATE_16X_ME : CODECHAL_MEDIA_STATE_4X_ME;
-    
+
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pMeBindingTable);
     auto meBindingTable = params->pMeBindingTable;
-    
+
     bool currFieldPicture = CodecHal_PictureIsField(*(params->pCurrOriginalPic)) ? 1 : 0;
     bool currBottomField = CodecHal_PictureIsBottomField(*(params->pCurrOriginalPic)) ? 1 : 0;
     uint8_t currVDirection = (!currFieldPicture) ? CODECHAL_VDIRECTION_FRAME :
         ((currBottomField) ? CODECHAL_VDIRECTION_BOT_FIELD : CODECHAL_VDIRECTION_TOP_FIELD);
-        
+
     PMOS_SURFACE currScaledSurface = nullptr;
     PMOS_SURFACE meMvDataBuffer = nullptr;
     uint32_t meMvBottomFieldOffset;
@@ -6062,14 +6055,14 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendMeSurfaces (
         meMvBottomFieldOffset = params->dw4xMeMvBottomFieldOffset;
         currScaledBottomFieldOffset = params->dw4xScaledBottomFieldOffset;
     }
-    
+
     // Reference height and width information should be taken from the current scaled surface rather
     // than from the reference scaled surface in the case of PAFF.
     auto refScaledSurface = *currScaledSurface;
-    
+
     uint32_t width = MOS_ALIGN_CEIL(params->dwDownscaledWidthInMb * 32, 64);
     uint32_t height = params->dwDownscaledHeightInMb * 4 * CODECHAL_ENCODE_ME_DATA_SIZE_MULTIPLIER;
-    
+
     // Force the values
     meMvDataBuffer->dwWidth = width;
     meMvDataBuffer->dwHeight = height;
@@ -6089,7 +6082,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendMeSurfaces (
         cmdBuffer,
         &surfaceParams,
         params->pKernelState));
-    
+
     if (params->b16xMeInUse && params->b32xMeEnabled)
     {
         // Pass 32x MV to 16x ME operation
@@ -6124,7 +6117,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendMeSurfaces (
         &surfaceParams,
         params->pKernelState));
     }
-    
+
     // Insert Distortion buffers only for 4xMe case
     if (!params->b32xMeInUse && !params->b16xMeInUse)
     {
@@ -6142,7 +6135,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendMeSurfaces (
         cmdBuffer,
         &surfaceParams,
         params->pKernelState));
-    
+
         MOS_ZeroMemory(&surfaceParams, sizeof(surfaceParams));
         surfaceParams.bIs2DSurface = true;
         surfaceParams.bMediaBlockRW = true;
@@ -6164,7 +6157,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendMeSurfaces (
     for (uint8_t refIdx = 0; refIdx <= params->dwNumRefIdxL0ActiveMinus1; refIdx++)
     {
         auto refPic = params->pL0RefFrameList[refIdx];
-    
+
         if (!CodecHal_PictureIsInvalid(refPic) && params->pPicIdx[refPic.FrameIdx].bValid)
         {
         if (refIdx == 0)
@@ -6183,7 +6176,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendMeSurfaces (
             &surfaceParams,
             params->pKernelState));
         }
-    
+
         bool refFieldPicture = CodecHal_PictureIsField(refPic) ? 1 : 0;
         bool refBottomField = (CodecHal_PictureIsBottomField(refPic)) ? 1 : 0;
         uint8_t refPicIdx = params->pPicIdx[refPic.FrameIdx].ucPicIdx;
@@ -6203,7 +6196,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendMeSurfaces (
             refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
             refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
         }
-    
+
         // L0 Reference Picture Y - VME
         MOS_ZeroMemory(&surfaceParams, sizeof(surfaceParams));
         surfaceParams.bUseAdvState = true;
@@ -6220,13 +6213,13 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendMeSurfaces (
             params->pKernelState));
         }
     }
-    
+
     // Setup references 1...n
     // LIST 1 references
     for (uint8_t refIdx = 0; refIdx <= params->dwNumRefIdxL1ActiveMinus1; refIdx++)
     {
         auto refPic = params->pL1RefFrameList[refIdx];
-    
+
         if (!CodecHal_PictureIsInvalid(refPic) && params->pPicIdx[refPic.FrameIdx].bValid)
         {
         if (refIdx == 0)
@@ -6245,7 +6238,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendMeSurfaces (
             &surfaceParams,
             params->pKernelState));
         }
-    
+
         bool refFieldPicture = CodecHal_PictureIsField(refPic) ? 1 : 0;
         bool refBottomField = (CodecHal_PictureIsBottomField(refPic)) ? 1 : 0;
         uint8_t refPicIdx = params->pPicIdx[refPic.FrameIdx].ucPicIdx;
@@ -6265,7 +6258,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendMeSurfaces (
             refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
             refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
         }
-    
+
         // L1 Reference Picture Y - VME
         MOS_ZeroMemory(&surfaceParams, sizeof(surfaceParams));
         surfaceParams.bUseAdvState = true;
@@ -6286,7 +6279,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SendMeSurfaces (
 }
 
 MOS_STATUS CodechalEncodeAvcEncG8::InitKernelStateBrc()
-{   
+{
     MOS_STATUS                              eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
@@ -6309,7 +6302,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::InitKernelStateBrc()
             krnStateIdx,
             &currKrnHeader,
             &kernelSize));
-        
+
         auto renderEngineInterface  =     m_hwInterface->GetRenderInterface();
         auto stateHeapInterface     = m_renderEngineInterface->m_stateHeapInterface;
         CODECHAL_ENCODE_CHK_NULL_RETURN(stateHeapInterface);
@@ -6360,7 +6353,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeMe(MeCurbeParams* params)
 
     uint8_t mvShiftFactor = 0;
     uint8_t prevMvReadPosFactor = 0;
-    bool  useMvFromPrevStep; 
+    bool  useMvFromPrevStep;
     bool  writeDistortions;
     uint32_t scaleFactor;
     switch (params->hmeLvl)
@@ -6417,7 +6410,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeMe(MeCurbeParams* params)
     char qpPrimeY =
         (m_avcPicParam->pic_init_qp_minus26 + 26) +
         m_avcSliceParams->slice_qp_delta;
-    
+
     cmd.DW5.QpPrimeY = qpPrimeY;
     cmd.DW6.WriteDistortions = writeDistortions;
     cmd.DW6.UseMvFromPrevStep = useMvFromPrevStep;

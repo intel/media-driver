@@ -127,7 +127,6 @@ static int get_max_log2_tile_cols(const int sb_cols)
     return max_log2 - 1;
 }
 
-
 bool Vp9WriteUncompressHeader(struct _DDI_ENCODE_CONTEXT *ddiEncContext,
                                 uint32_t codecProfile,
                                 uint8_t  *headerData,
@@ -155,7 +154,6 @@ bool Vp9WriteUncompressHeader(struct _DDI_ENCODE_CONTEXT *ddiEncContext,
 
     CODEC_VP9_ENCODE_PIC_PARAMS *picParam = (CODEC_VP9_ENCODE_PIC_PARAMS *)ddiEncContext->pPicParams;
     CODEC_VP9_ENCODE_SEGMENT_PARAMS *segParams = (CODEC_VP9_ENCODE_SEGMENT_PARAMS *)ddiEncContext->pVpxSegParams;
-
 
     if (picParam == nullptr)
         return false;

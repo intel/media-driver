@@ -158,7 +158,6 @@ typedef struct _CODECHAL_ME_OUTPUT_PARAMS
     bool                            bVdencStreamInInUse;
 } CODECHAL_ME_OUTPUT_PARAMS, *PCODECHAL_ME_OUTPUT_PARAMS;
 
-
 class CodechalDebugInterface
 {
 public:

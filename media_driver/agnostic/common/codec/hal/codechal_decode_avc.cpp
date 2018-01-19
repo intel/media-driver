@@ -187,7 +187,6 @@ MOS_STATUS CodechalDecodeAvc::FormatAvcMonoPicture()
         m_osInterface->pfnSetGpuContext(m_osInterface, m_videoContextForWa);
         m_osInterface->pfnResetOsStates(m_osInterface);
 
-
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(&cmdBuffer, false));
@@ -903,8 +902,8 @@ MOS_STATUS CodechalDecodeAvc::AllocateResourcesVariableSizes()
 
         for (ctr = 0; ctr < 4; ctr++)
         {
-            // Allocate first 3 ref DMV buffers and then grow as needed, always 
-            // allocate the last DMV buffer which is used for non referenced pictures. 
+            // Allocate first 3 ref DMV buffers and then grow as needed, always
+            // allocate the last DMV buffer which is used for non referenced pictures.
             if (ctr == 3)
             {
                 ctr = CODEC_AVC_NUM_DMV_BUFFERS - 1;
@@ -929,7 +928,6 @@ MOS_STATUS CodechalDecodeAvc::AllocateResourcesVariableSizes()
 
     return eStatus;
 }
-
 
 MOS_STATUS CodechalDecodeAvc::AllocateResourcesFixedSizes()
 {
@@ -1262,7 +1260,7 @@ MOS_STATUS CodechalDecodeAvc::InitPicMhwParams(
     CODECHAL_DECODE_CHK_NULL_RETURN(picMhwParams);
 
     MOS_ZeroMemory(picMhwParams, sizeof(*picMhwParams));
-    
+
     picMhwParams->PipeModeSelectParams.Mode = CODECHAL_DECODE_MODE_AVCVLD;
     //enable decodestreamout if either app or codechal dump need it
     picMhwParams->PipeModeSelectParams.bStreamOutEnabled     =
@@ -1291,7 +1289,7 @@ MOS_STATUS CodechalDecodeAvc::InitPicMhwParams(
     picMhwParams->PipeBufAddrParams.presMfdDeblockingFilterRowStoreScratchBuffer =
         &m_resMfdDeblockingFilterRowStoreScratchBuffer;
 
-    //Do not support export decode streamout to app buffer and codechal_dump simultenously 
+    //Do not support export decode streamout to app buffer and codechal_dump simultenously
     //which can lead to extra memory copy
     //decode streamout to application
     if (m_decodeParams.m_streamOutEnabled)
@@ -1309,7 +1307,6 @@ MOS_STATUS CodechalDecodeAvc::InitPicMhwParams(
             m_streamOutCurrStatusIdx[m_streamOutCurrBufIdx] = 0;
         )
     }
-
 
     MOS_SURFACE dstSurface;
     uint8_t firstValidFrameId = CODEC_AVC_MAX_NUM_REF_FRAME;
@@ -1451,7 +1448,6 @@ MOS_STATUS CodechalDecodeAvc::AddPictureCmds(
     return eStatus;
 }
 
-
 MOS_STATUS CodechalDecodeAvc::DecodeStateLevel()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
@@ -1561,7 +1557,6 @@ MOS_STATUS CodechalDecodeAvc::ParseSlice(
             slc->first_mb_in_next_slice = 0;
         }
 
-
         // error handling for garbage data
         if (((uint64_t)(slc->slice_data_offset) + length) > m_dataSize)
         {
@@ -1666,7 +1661,6 @@ MOS_STATUS CodechalDecodeAvc::ParseSlice(
 
     return eStatus;
 }
-
 
 MOS_STATUS CodechalDecodeAvc::DecodePrimitiveLevel()
 {
@@ -2261,7 +2255,7 @@ MOS_STATUS CodechalDecodeAvc::DumpIQParams(
     std::ofstream ofs(fileName, std::ios::out);
     ofs << oss.str();
     ofs.close();
-    
+
     return MOS_STATUS_SUCCESS;
 }
 #endif

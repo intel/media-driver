@@ -38,122 +38,122 @@
 
 MOS_STATUS CodechalEncodeCscDsG10::SetCurbeCsc()
 {
-	CODECHAL_ENCODE_FUNCTION_ENTER;
+    CODECHAL_ENCODE_FUNCTION_ENTER;
 
-	CscKernelCurbeData curbe;
+    CscKernelCurbeData curbe;
 
-	curbe.DW0_InputPictureWidth = m_curbeParams.dwInputPictureWidth;
-	curbe.DW0_InputPictureHeight = m_curbeParams.dwInputPictureHeight;
+    curbe.DW0_InputPictureWidth = m_curbeParams.dwInputPictureWidth;
+    curbe.DW0_InputPictureHeight = m_curbeParams.dwInputPictureHeight;
 
-	if (m_curbeParams.bCscOrCopyOnly)
-	{
-		curbe.DW1_CscDsCopyOpCode = 0;    // Copy only
-	}
-	else
-	{
-		// Enable DS kernel (0  disable, 1  enable)
-		curbe.DW1_CscDsCopyOpCode = 1;    // 0x01 to 0x7F: DS + Copy
-	}
+    if (m_curbeParams.bCscOrCopyOnly)
+    {
+        curbe.DW1_CscDsCopyOpCode = 0;    // Copy only
+    }
+    else
+    {
+        // Enable DS kernel (0  disable, 1  enable)
+        curbe.DW1_CscDsCopyOpCode = 1;    // 0x01 to 0x7F: DS + Copy
+    }
 
-	if (cscColorNv12TileY == m_colorRawSurface ||
-		cscColorNv12Linear == m_colorRawSurface)
-	{
-		curbe.DW1_InputColorFormat = 0;
-	}
-	else if (cscColorYUY2 == m_colorRawSurface)
-	{
-		curbe.DW1_InputColorFormat = 1;
-	}
-	else if ((cscColorARGB == m_colorRawSurface) || (cscColorABGR == m_colorRawSurface))
-	{
-		curbe.DW1_InputColorFormat = 2;
-	}
+    if (cscColorNv12TileY == m_colorRawSurface ||
+        cscColorNv12Linear == m_colorRawSurface)
+    {
+        curbe.DW1_InputColorFormat = 0;
+    }
+    else if (cscColorYUY2 == m_colorRawSurface)
+    {
+        curbe.DW1_InputColorFormat = 1;
+    }
+    else if ((cscColorARGB == m_colorRawSurface) || (cscColorABGR == m_colorRawSurface))
+    {
+        curbe.DW1_InputColorFormat = 2;
+    }
 
-	if (m_curbeParams.bFlatnessCheckEnabled ||
-		m_curbeParams.bMBVarianceOutputEnabled ||
-		m_curbeParams.bMBPixelAverageOutputEnabled)
-	{
-		curbe.DW2_FlatnessThreshold = 128;
-		curbe.DW3_EnableMBStatSurface = true;
-	}
-	else
-	{
-		curbe.DW3_EnableMBStatSurface = false;
-	}
+    if (m_curbeParams.bFlatnessCheckEnabled ||
+        m_curbeParams.bMBVarianceOutputEnabled ||
+        m_curbeParams.bMBPixelAverageOutputEnabled)
+    {
+        curbe.DW2_FlatnessThreshold = 128;
+        curbe.DW3_EnableMBStatSurface = true;
+    }
+    else
+    {
+        curbe.DW3_EnableMBStatSurface = false;
+    }
 
-	// RGB->YUV CSC coefficients
-	if (m_curbeParams.inputColorSpace == ECOLORSPACE_P709)
-	{
-		curbe.DW4_CscCoefficientC0 = 0xFFCD;
-		curbe.DW5_CscCoefficientC3 = 0x0080;
-		curbe.DW6_CscCoefficientC4 = 0x004F;
-		curbe.DW7_CscCoefficientC7 = 0x0010;
-		curbe.DW8_CscCoefficientC8 = 0xFFD5;
-		curbe.DW9_CscCoefficientC11 = 0x0080;
-		if (cscColorARGB == m_colorRawSurface)
-		{
-			curbe.DW4_CscCoefficientC1 = 0xFFFB;
-			curbe.DW5_CscCoefficientC2 = 0x0038;
-			curbe.DW6_CscCoefficientC5 = 0x0008;
-			curbe.DW7_CscCoefficientC6 = 0x0017;
-			curbe.DW8_CscCoefficientC9 = 0x0038;
-			curbe.DW9_CscCoefficientC10 = 0xFFF3;
-		}
-		else // cscColorABGR == m_colorRawSurface
-		{
-			curbe.DW4_CscCoefficientC1 = 0x0038;
-			curbe.DW5_CscCoefficientC2 = 0xFFFB;
-			curbe.DW6_CscCoefficientC5 = 0x0017;
-			curbe.DW7_CscCoefficientC6 = 0x0008;
-			curbe.DW8_CscCoefficientC9 = 0xFFF3;
-			curbe.DW9_CscCoefficientC10 = 0x0038;
-		}
-	}
-	else if (m_curbeParams.inputColorSpace == ECOLORSPACE_P601)
-	{
-		curbe.DW4_CscCoefficientC0 = 0xFFD1;
-		curbe.DW5_CscCoefficientC3 = 0x0080;
-		curbe.DW6_CscCoefficientC4 = 0x0041;
-		curbe.DW7_CscCoefficientC7 = 0x0010;
-		curbe.DW8_CscCoefficientC8 = 0xFFDB;
-		curbe.DW9_CscCoefficientC11 = 0x0080;
-		if (cscColorARGB == m_colorRawSurface)
-		{
-			curbe.DW4_CscCoefficientC1 = 0xFFF7;
-			curbe.DW5_CscCoefficientC2 = 0x0038;
-			curbe.DW6_CscCoefficientC5 = 0x000D;
-			curbe.DW7_CscCoefficientC6 = 0x0021;
-			curbe.DW8_CscCoefficientC9 = 0x0038;
-			curbe.DW9_CscCoefficientC10 = 0xFFED;
-		}
-		else // cscColorABGR == m_colorRawSurface
-		{
-			curbe.DW4_CscCoefficientC1 = 0x0038;
-			curbe.DW5_CscCoefficientC2 = 0xFFF7;
-			curbe.DW6_CscCoefficientC5 = 0x0021;
-			curbe.DW7_CscCoefficientC6 = 0x000D;
-			curbe.DW8_CscCoefficientC9 = 0xFFED;
-			curbe.DW9_CscCoefficientC10 = 0x0038;
-		}
-	}
-	else
-	{
-		CODECHAL_ENCODE_ASSERTMESSAGE("Unsupported ARGB input color space = %d!", m_curbeParams.inputColorSpace);
-		return MOS_STATUS_INVALID_PARAMETER;
-	}
+    // RGB->YUV CSC coefficients
+    if (m_curbeParams.inputColorSpace == ECOLORSPACE_P709)
+    {
+        curbe.DW4_CscCoefficientC0 = 0xFFCD;
+        curbe.DW5_CscCoefficientC3 = 0x0080;
+        curbe.DW6_CscCoefficientC4 = 0x004F;
+        curbe.DW7_CscCoefficientC7 = 0x0010;
+        curbe.DW8_CscCoefficientC8 = 0xFFD5;
+        curbe.DW9_CscCoefficientC11 = 0x0080;
+        if (cscColorARGB == m_colorRawSurface)
+        {
+            curbe.DW4_CscCoefficientC1 = 0xFFFB;
+            curbe.DW5_CscCoefficientC2 = 0x0038;
+            curbe.DW6_CscCoefficientC5 = 0x0008;
+            curbe.DW7_CscCoefficientC6 = 0x0017;
+            curbe.DW8_CscCoefficientC9 = 0x0038;
+            curbe.DW9_CscCoefficientC10 = 0xFFF3;
+        }
+        else // cscColorABGR == m_colorRawSurface
+        {
+            curbe.DW4_CscCoefficientC1 = 0x0038;
+            curbe.DW5_CscCoefficientC2 = 0xFFFB;
+            curbe.DW6_CscCoefficientC5 = 0x0017;
+            curbe.DW7_CscCoefficientC6 = 0x0008;
+            curbe.DW8_CscCoefficientC9 = 0xFFF3;
+            curbe.DW9_CscCoefficientC10 = 0x0038;
+        }
+    }
+    else if (m_curbeParams.inputColorSpace == ECOLORSPACE_P601)
+    {
+        curbe.DW4_CscCoefficientC0 = 0xFFD1;
+        curbe.DW5_CscCoefficientC3 = 0x0080;
+        curbe.DW6_CscCoefficientC4 = 0x0041;
+        curbe.DW7_CscCoefficientC7 = 0x0010;
+        curbe.DW8_CscCoefficientC8 = 0xFFDB;
+        curbe.DW9_CscCoefficientC11 = 0x0080;
+        if (cscColorARGB == m_colorRawSurface)
+        {
+            curbe.DW4_CscCoefficientC1 = 0xFFF7;
+            curbe.DW5_CscCoefficientC2 = 0x0038;
+            curbe.DW6_CscCoefficientC5 = 0x000D;
+            curbe.DW7_CscCoefficientC6 = 0x0021;
+            curbe.DW8_CscCoefficientC9 = 0x0038;
+            curbe.DW9_CscCoefficientC10 = 0xFFED;
+        }
+        else // cscColorABGR == m_colorRawSurface
+        {
+            curbe.DW4_CscCoefficientC1 = 0x0038;
+            curbe.DW5_CscCoefficientC2 = 0xFFF7;
+            curbe.DW6_CscCoefficientC5 = 0x0021;
+            curbe.DW7_CscCoefficientC6 = 0x000D;
+            curbe.DW8_CscCoefficientC9 = 0xFFED;
+            curbe.DW9_CscCoefficientC10 = 0x0038;
+        }
+    }
+    else
+    {
+        CODECHAL_ENCODE_ASSERTMESSAGE("Unsupported ARGB input color space = %d!", m_curbeParams.inputColorSpace);
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
 
-	curbe.DW16_SrcNV12SurfYIndex = cscSrcYPlane;
-	curbe.DW17_DstYSurfIndex = cscDstDsYPlane;
-	curbe.DW18_MbStatDstSurfIndex = cscDstFlatOrMbStats;
-	curbe.DW19_CopyDstNV12SurfIndex = cscDstCopyYPlane;
-	curbe.DW20_SrcNV12SurfUVIndex = cscSrcUVPlane;
+    curbe.DW16_SrcNV12SurfYIndex = cscSrcYPlane;
+    curbe.DW17_DstYSurfIndex = cscDstDsYPlane;
+    curbe.DW18_MbStatDstSurfIndex = cscDstFlatOrMbStats;
+    curbe.DW19_CopyDstNV12SurfIndex = cscDstCopyYPlane;
+    curbe.DW20_SrcNV12SurfUVIndex = cscSrcUVPlane;
 
-	CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscKernelState->m_dshRegion.AddData(
-		&curbe,
-		m_cscKernelState->dwCurbeOffset,
-		sizeof(curbe)));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscKernelState->m_dshRegion.AddData(
+        &curbe,
+        m_cscKernelState->dwCurbeOffset,
+        sizeof(curbe)));
 
-	return MOS_STATUS_SUCCESS;
+    return MOS_STATUS_SUCCESS;
 }
 MOS_STATUS CodechalEncodeCscDsG10::InitKernelStateDS()
 {
@@ -162,7 +162,7 @@ MOS_STATUS CodechalEncodeCscDsG10::InitKernelStateDS()
     if (CODECHAL_AVC == m_standard)
     {
         m_dsBTCount[0] = ds4xNumSurfaces;
-        m_dsCurbeLength[0] = 
+        m_dsCurbeLength[0] =
         m_dsInlineDataLength = sizeof(Ds4xKernelCurbeData);
         m_dsBTISrcY = ds4xSrcYPlane;
         m_dsBTIDstY = ds4xDstYPlane;

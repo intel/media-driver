@@ -24,7 +24,6 @@
 //! \brief    Defines DdiDecodeVP8 class for VP8 decode
 //!
 
-
 #ifndef __MEDIA_DDI_DECODER_VP8_H__
 #define __MEDIA_DDI_DECODER_VP8_H__
 
@@ -60,7 +59,7 @@ public:
         int32_t             numBuffers) override;
 
     virtual VAStatus SetDecodeParams() override;
-    
+
     virtual void ContextInit(
         int32_t picWidth,
         int32_t picHeight) override;
@@ -72,7 +71,7 @@ public:
     virtual VAStatus AllocSliceControlBuffer(
         DDI_MEDIA_BUFFER       *buf) override;
 
-    virtual uint8_t* GetPicParamBuf( 
+    virtual uint8_t* GetPicParamBuf(
         DDI_CODEC_COM_BUFFER_MGR     *bufMgr) override;
 
 private:

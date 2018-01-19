@@ -54,7 +54,7 @@ enum ResourceName
     cscSurface = trackedBuffer,
     mbCodeBuffer = cscSurface + 32,
     mvDataBuffer = mbCodeBuffer + 32,
-    mvTemporalBuffer = mvDataBuffer + 32, 
+    mvTemporalBuffer = mvDataBuffer + 32,
     ds4xSurface = mvTemporalBuffer + 32,
     ds2xSurface = ds4xSurface + 32,
     ds16xSurface = ds2xSurface + 32,
@@ -62,7 +62,7 @@ enum ResourceName
     ds4xRecon = ds32xSurface + 32,
     ds8xRecon = ds4xRecon + 32,
     trackedBufferEnd = ds8xRecon,
-    
+
     // recycled buffer
     recycledBuffer = trackedBufferEnd + 32,
     brcReadSurface = recycledBuffer,
@@ -120,9 +120,9 @@ private:
     CodechalEncodeAllocator& operator=(const CodechalEncodeAllocator&) = delete;
 
     void MosToAllocatorCodec(uint32_t);
-    void MosToAllocatorFormat(MOS_FORMAT format); 
+    void MosToAllocatorFormat(MOS_FORMAT format);
     void MosToAllocatorTile(MOS_TILE_TYPE type);
-    
+
     inline bool IsTrackedBuffer(ResourceName name)
     {
         return (trackedBuffer <= name && name <= trackedBufferEnd);
@@ -132,7 +132,7 @@ private:
     {
         return (recycledBuffer <= name && name <= recycledBufferEnd);
     }
-    
+
     uint16_t SetResourceID(uint32_t codec, ResourceName name, uint8_t index);
     virtual uint16_t GetResourceID(uint64_t resourceTag, Match level) override;
 
@@ -151,7 +151,7 @@ private:
                 {
                     uint16_t        m_trackedRecycleBufferIndex : MOS_BITFIELD_RANGE(0, 4);
                     uint16_t        m_trackedRecycleBufferName : MOS_BITFIELD_RANGE(5, 10);
-                    uint16_t        m_codec : MOS_BITFIELD_RANGE(11, 13); 
+                    uint16_t        m_codec : MOS_BITFIELD_RANGE(11, 13);
                     uint16_t        m_type : MOS_BITFIELD_RANGE(14, 15);
                 };
                 uint16_t            m_typeID;

@@ -86,7 +86,7 @@ typedef struct _CODECHAL_ENCODE_AVC_MBENC_CURBE_CM_G9
             uint32_t   Value;
         };
     } DW1;
-    
+
     // DW2
     union
     {
@@ -2095,7 +2095,7 @@ MOS_STATUS CodechalEncodeAvcEncG9Bxt::SetCurbeAvcMbEnc(PCODECHAL_ENCODE_AVC_MBEN
     if (pPicParams->UserFlags.bDisableSubMBPartition)
     {
         Cmd.common.DW3.SubMbPartMask = CODECHAL_ENCODE_AVC_DISABLE_4X4_SUB_MB_PARTITION | CODECHAL_ENCODE_AVC_DISABLE_4X8_SUB_MB_PARTITION | CODECHAL_ENCODE_AVC_DISABLE_8X4_SUB_MB_PARTITION;
-    } 
+    }
 
     if (pPicParams->bEnableSubMbPartMask)
     {
@@ -2435,7 +2435,7 @@ MOS_STATUS CodechalEncodeAvcEncG9Bxt::SetCurbeAvcMbEnc(PCODECHAL_ENCODE_AVC_MBEN
         {
             CODEC_PICTURE    RefPic;
             RefPic = pSlcParams->RefPicList[LIST_1][0];
-            
+
             Cmd.common.DW64.L1ListRef0PictureCodingType = m_refList[m_picIdx[RefPic.FrameIdx].ucPicIdx]->ucAvcPictureCodingType;
             if(bFramePicture && ((Cmd.common.DW64.L1ListRef0PictureCodingType == CODEC_AVC_PIC_CODING_TYPE_TFF_FIELD) || (Cmd.common.DW64.L1ListRef0PictureCodingType == CODEC_AVC_PIC_CODING_TYPE_BFF_FIELD)))
             {
@@ -2913,7 +2913,6 @@ CodechalEncodeAvcEncG9Bxt::CodechalEncodeAvcEncG9Bxt(
     AddIshSize(m_kuid, m_kernelBase);
 }
 
-
 MOS_STATUS CodechalEncodeAvcEncG9Bxt::InitializeState()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
@@ -3083,17 +3082,17 @@ MOS_STATUS CodechalEncodeAvcEncG9Bxt::InitKernelStateMfeMbEnc()
     pKernelStatePtr->KernelParams.iBlockWidth = CODECHAL_MACROBLOCK_WIDTH;
     pKernelStatePtr->KernelParams.iBlockHeight = CODECHAL_MACROBLOCK_HEIGHT;
     pKernelStatePtr->KernelParams.iIdCount = 1;
-    
+
     pKernelStatePtr->dwCurbeOffset = m_stateHeapInterface->pStateHeapInterface->GetSizeofCmdInterfaceDescriptorData();
     pKernelStatePtr->KernelParams.pBinary = kernelBinary + (CurrKrnHeader.KernelStartPointer << MHW_KERNEL_OFFSET_SHIFT);
     pKernelStatePtr->KernelParams.iSize = kernelSize;
-    
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_stateHeapInterface->pfnCalculateSshAndBtSizesRequested(
         m_stateHeapInterface,
         pKernelStatePtr->KernelParams.iBTCount,
         &pKernelStatePtr->dwSshSize,
         &pKernelStatePtr->dwBindingTableSize));
-    
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->MhwInitISH(m_stateHeapInterface, pKernelStatePtr));
 
     return eStatus;
@@ -3153,7 +3152,7 @@ MOS_STATUS CodechalEncodeAvcEncG9Bxt::InitKernelStateBrc()
     pBindingTable->dwFrameBrcDistortionBuffer = CODECHAL_ENCODE_AVC_FRAME_BRC_UPDATE_DISTORTION_G9;
     pBindingTable->dwFrameBrcConstantData = CODECHAL_ENCODE_AVC_FRAME_BRC_UPDATE_CONSTANT_DATA_G9;
     pBindingTable->dwFrameBrcMbStatBuffer = CODECHAL_ENCODE_AVC_FRAME_BRC_UPDATE_MB_STAT_G9;
-    // starting GEN9 BRC kernel has split into a frame level update, and an MB level update. 
+    // starting GEN9 BRC kernel has split into a frame level update, and an MB level update.
     // above is BTI for frame level, below is BTI for MB level
     pBindingTable->dwMbBrcHistoryBuffer = CODECHAL_ENCODE_AVC_MB_BRC_UPDATE_HISTORY_G9;
     pBindingTable->dwMbBrcMbQpBuffer = CODECHAL_ENCODE_AVC_MB_BRC_UPDATE_MB_QP_G9;

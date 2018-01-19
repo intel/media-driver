@@ -104,7 +104,6 @@ VAStatus DdiEncodeMpeg2::ContextInitialize(
     m_encodeCtx->pQmatrixParams = (void *)MOS_AllocAndZeroMemory(sizeof(CodecEncodeMpeg2QmatixParams));
     DDI_CHK_NULL(m_encodeCtx->pQmatrixParams, "nullptr m_encodeCtx->pQmatrixParams.", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
-
     m_encodeCtx->pVuiParams = (void *)MOS_AllocAndZeroMemory(sizeof(CodecEncodeMpeg2VuiParams));
     DDI_CHK_NULL(m_encodeCtx->pVuiParams, "nullptr m_encodeCtx->pVuiParams.", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
@@ -193,7 +192,7 @@ VAStatus DdiEncodeMpeg2::RenderPicture(
             {
                 uint32_t numSlices = buf->iNumElements;
                 DDI_CHK_STATUS(ParseSlcParams(mediaCtx, data, numSlices), VA_STATUS_ERROR_INVALID_BUFFER);
-            } 
+            }
             break;
 
         case VAEncPackedHeaderParameterBufferType:
@@ -885,9 +884,8 @@ void DdiEncodeMpeg2::ParseMiscParamEncQualityLevel(void *data)
     {
         mpeg2SeqParams->m_targetUsage = TARGETUSAGE_RT_SPEED;
         DDI_ASSERTMESSAGE("Target usage from application is not correct, should be in [0,7]!\n");
-    }    
+    }
 }
-
 
 void DdiEncodeMpeg2::ParseMiscParamMaxFrame(void *data)
 {

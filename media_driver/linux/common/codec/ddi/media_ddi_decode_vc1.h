@@ -21,7 +21,7 @@
 */
 //!
 //! \file      media_ddi_decode_vc1.h 
-//! \brief     libva(and its extension) decoder implementation  
+//! \brief     libva(and its extension) decoder implementation 
 //!
 
 #ifndef __MEDIA_DDI_DECODER_VC1_H__
@@ -77,7 +77,7 @@ public:
     virtual VAStatus AllocSliceControlBuffer(
         DDI_MEDIA_BUFFER       *buf) override;
 
-    virtual uint8_t* GetPicParamBuf( 
+    virtual uint8_t* GetPicParamBuf(
      DDI_CODEC_COM_BUFFER_MGR    *bufMgr) override;
 private:
     //!

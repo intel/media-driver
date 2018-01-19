@@ -28,9 +28,9 @@
 #include "mos_utilities.h"
 
 CodechalDecodeHistogramVebox::CodechalDecodeHistogramVebox(
-    CodechalHwInterface *hwInterface, 
+    CodechalHwInterface *hwInterface,
     MOS_INTERFACE *osInterface):
-    CodechalDecodeHistogram(hwInterface, osInterface), 
+    CodechalDecodeHistogram(hwInterface, osInterface),
     m_veboxInterface(hwInterface->GetVeboxInterface())
 {
     MOS_ZeroMemory(&m_resSyncObject, sizeof(m_resSyncObject));
@@ -194,7 +194,7 @@ MOS_STATUS CodechalDecodeHistogramVebox::SetVeboxStateParams(
 
     veboxCmdParams->VeboxMode.ColorGamutExpansionEnable     = 0;
     veboxCmdParams->VeboxMode.ColorGamutCompressionEnable   = 0;
-    // On SKL, GlobalIECP must be enabled when the output pipe is Vebox or SFC 
+    // On SKL, GlobalIECP must be enabled when the output pipe is Vebox or SFC
     veboxCmdParams->VeboxMode.GlobalIECPEnable              = 1;
     veboxCmdParams->VeboxMode.DNEnable                      = 0;
     veboxCmdParams->VeboxMode.DIEnable                      = 0;

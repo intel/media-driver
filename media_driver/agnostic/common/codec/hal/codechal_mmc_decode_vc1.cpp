@@ -27,12 +27,12 @@
 #include "codechal_mmc_decode_vc1.h"
 
 CodechalMmcDecodeVc1::CodechalMmcDecodeVc1(
-    CodechalHwInterface    *hwInterface, 
+    CodechalHwInterface    *hwInterface,
     void *standardState):
     CodecHalMmcState(hwInterface)
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
-    
+
     m_vc1State = (CodechalDecodeVc1 *)standardState;
     CODECHAL_HW_ASSERT(m_vc1State);
 
@@ -71,7 +71,7 @@ MOS_STATUS CodechalMmcDecodeVc1::SetPipeBufAddr(
     PMOS_COMMAND_BUFFER cmdBuffer)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
+
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     CODECHAL_DECODE_CHK_NULL_RETURN(m_vc1State->m_vc1PicParams);
@@ -96,7 +96,7 @@ MOS_STATUS CodechalMmcDecodeVc1::SetRefrenceSync(
     bool disableLockForTranscode)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
+
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     CODECHAL_DECODE_CHK_NULL_RETURN(m_vc1State->m_vc1PicParams);
@@ -163,7 +163,7 @@ MOS_STATUS CodechalMmcDecodeVc1::CheckReferenceList(
             pipeBufAddrParams->PostDeblockSurfMmcState = MOS_MEMCOMP_DISABLED;
             pipeBufAddrParams->PreDeblockSurfMmcState = MOS_MEMCOMP_DISABLED;
             CODECHAL_DECODE_ASSERTMESSAGE("Self-reference is detected for P/B frames!");
-    
+
             // Decompress current frame to avoid green corruptions in this error handling case
             MOS_MEMCOMP_STATE mmcMode;
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetMemoryCompressionMode(

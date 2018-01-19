@@ -20,7 +20,7 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      codechal_hw_g9_bxt.cpp  
+//! \file      codechal_hw_g9_bxt.cpp 
 //! \brief         This modules implements HW interface layer to be used on bxt on all operating systems/DDIs, across CODECHAL components.
 //!
 

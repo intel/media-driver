@@ -426,7 +426,7 @@ VAStatus DdiEncode_DestroyContext (
 //! \param  [in] data
 //!     Data
 //! \param  [in] buf_id
-//!     VA buffer ID    
+//!     VA buffer ID 
 //!
 //! \return VAStatus
 //!     VA_STATUS_SUCCESS if success, else fail reason

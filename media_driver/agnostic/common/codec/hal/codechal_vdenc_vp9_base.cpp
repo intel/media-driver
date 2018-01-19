@@ -658,7 +658,7 @@ MOS_STATUS CodechalVdencVp9State::CalculateTemporalRatios(
 
     if (numberOfLayers > CODECHAL_ENCODE_VP9_VDENC_MAX_NUM_TEMPORAL_LAYERS)
     {
-        CODECHAL_ENCODE_ASSERTMESSAGE("VP9 VDEnc supports only %d temporal layers (%d provided)", 
+        CODECHAL_ENCODE_ASSERTMESSAGE("VP9 VDEnc supports only %d temporal layers (%d provided)",
             CODECHAL_ENCODE_VP9_VDENC_MAX_NUM_TEMPORAL_LAYERS, numberOfLayers);
         return MOS_STATUS_INVALID_PARAMETER;
     }
@@ -765,7 +765,7 @@ MOS_STATUS CodechalVdencVp9State::ConstructPicStateBatchBuf(
     picState.bVdencPakOnlyPassFlag           = m_vdencPakonlyMultipassEnabled;
     picState.uiMaxBitRate                     = m_vp9SeqParams->MaxBitRate * CODECHAL_ENCODE_BRC_KBPS;
     picState.uiMinBitRate                     = m_vp9SeqParams->MinBitRate * CODECHAL_ENCODE_BRC_KBPS;
-    constructedCmdBuf.iOffset += m_cmd1Size;  
+    constructedCmdBuf.iOffset += m_cmd1Size;
     m_hucPicStateOffset = (uint16_t)constructedCmdBuf.iOffset;
     constructedCmdBuf.pCmdPtr += constructedCmdBuf.iOffset/sizeof(uint32_t);
     eStatus = m_hcpInterface->AddHcpVp9PicStateEncCmd(&constructedCmdBuf, nullptr, &picState);
@@ -806,7 +806,7 @@ MOS_STATUS CodechalVdencVp9State::ConstructPicStateBatchBuf(
     m_slbbImgStateOffset = (uint16_t)constructedCmdBuf.iOffset;
     constructedCmdBuf.iOffset += m_cmd2Size;
     constructedCmdBuf.pCmdPtr += m_cmd2Size/ sizeof(uint32_t);
-    
+
     // BB_END
     eStatus = m_miInterface->AddMiBatchBufferEnd(&constructedCmdBuf, nullptr);
     if (eStatus != MOS_STATUS_SUCCESS)
@@ -1089,7 +1089,7 @@ MOS_STATUS CodechalVdencVp9State::HuCVp9Prob()
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucVirtualAddrStateCmd(&cmdBuffer, &virtualAddrParams));
     // Store HUC_STATUS2 register bit 6 before HUC_Start command
-    // BitField: VALID IMEM LOADED - This bit will be cleared by HW at the end of a HUC workload 
+    // BitField: VALID IMEM LOADED - This bit will be cleared by HW at the end of a HUC workload
     // (HUC_Start command with last start bit set).
     CODECHAL_DEBUG_TOOL(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHuCStatus2Register(&cmdBuffer));
@@ -1116,7 +1116,7 @@ MOS_STATUS CodechalVdencVp9State::HuCVp9Prob()
     storeDataParams.dwResourceOffset = sizeof(uint32_t);
     storeDataParams.dwValue = 1 << 31; //Repak bit for HUC is bit 31
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(&cmdBuffer, &storeDataParams) );
-       
+
     // store HUC_STATUS register
     MHW_MI_STORE_REGISTER_MEM_PARAMS storeRegParams;
     MOS_ZeroMemory(&storeRegParams, sizeof(storeRegParams));
@@ -2669,7 +2669,6 @@ MOS_STATUS CodechalVdencVp9State::DysKernel(
     return eStatus;
 }
 
-
 MOS_STATUS CodechalVdencVp9State::InitMEState(
     VdencVmeState* state)
 {
@@ -3041,7 +3040,7 @@ MOS_STATUS CodechalVdencVp9State::VdencSendHmeSurfaces(
         }
     }
 
-    //List1 
+    //List1
     for (uint8_t refIdx = 0; refIdx <= state->num_ref_idx_l1_active_minus1; refIdx++)
     {
         CODEC_PICTURE refPic = state->RefPicList[LIST_1][refIdx];
@@ -3211,7 +3210,6 @@ MOS_STATUS CodechalVdencVp9State::VdencHmeKernel(
             MHW_SSH_TYPE,
             kernelState)));
 
-
     uint32_t resolutionX = CODECHAL_GET_WIDTH_IN_MACROBLOCKS(m_frameWidth / scalingFactor);
     uint32_t resolutionY = CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(m_frameFieldHeight / scalingFactor);
 
@@ -3264,7 +3262,6 @@ MOS_STATUS CodechalVdencVp9State::VdencHmeKernel(
 
     return eStatus;
 }
-
 
 MOS_STATUS CodechalVdencVp9State::ConstructPakInsertObjBatchBuf(
     PMOS_RESOURCE pakInsertObjBuffer)
@@ -3423,7 +3420,7 @@ MOS_STATUS CodechalVdencVp9State::RefreshFrameInternalBuffers()
                 &m_resProbBuffer[i]));
             CODECHAL_ENCODE_CHK_STATUS_RETURN(status1);
         }
-        else if (i == 0) // this buffer do not need to clear in current frame, also it has not been cleared to key type in previous frame.            
+        else if (i == 0) // this buffer do not need to clear in current frame, also it has not been cleared to key type in previous frame.
         {                // in this case, only context buffer 0 will be temporally overwritten.
             if (m_vp9PicParams->PicFlags.fields.intra_only)
             {
@@ -3520,7 +3517,7 @@ MOS_STATUS CodechalVdencVp9State::RefreshFrameInternalBuffers()
         }
     }
 
-    for (auto coeffSize = 0; coeffSize < 4; coeffSize++) 
+    for (auto coeffSize = 0; coeffSize < 4; coeffSize++)
     {
         if (coeffSize > m_txMode)
         {
@@ -3529,13 +3526,13 @@ MOS_STATUS CodechalVdencVp9State::RefreshFrameInternalBuffers()
 
         switch (coeffSize)
         {
-        case 0: index = PAK_TX_4x4_COEFF_PROB_IDX; 
+        case 0: index = PAK_TX_4x4_COEFF_PROB_IDX;
             break;
-        case 1: index = PAK_TX_8x8_COEFF_PROB_IDX; 
+        case 1: index = PAK_TX_8x8_COEFF_PROB_IDX;
             break;
-        case 2: index = PAK_TX_16x16_COEFF_PROB_IDX; 
+        case 2: index = PAK_TX_16x16_COEFF_PROB_IDX;
             break;
-        case 3: index = PAK_TX_32x32_COEFF_PROB_IDX; 
+        case 3: index = PAK_TX_32x32_COEFF_PROB_IDX;
             break;
         }
 
@@ -3585,7 +3582,7 @@ MOS_STATUS CodechalVdencVp9State::RefreshFrameInternalBuffers()
         if (allowComp)
         {
             if (m_vp9PicParams->PicFlags.fields.comp_prediction_mode == PRED_MODE_HYBRID)
-            {                   
+            {
                 PutDataForCompressedHdr(compressedHdr, 1, 128, PAK_COMPOUND_PRED_MODE_IDX);
                 PutDataForCompressedHdr(compressedHdr, 1, 128, PAK_COMPOUND_PRED_MODE_IDX + 1);
                 index = PAK_HYBRID_PRED_CTX_IDX;
@@ -3657,7 +3654,7 @@ MOS_STATUS CodechalVdencVp9State::RefreshFrameInternalBuffers()
         }
 
         for (auto d = 0; d < 2; d++)
-        { 
+        {
             index = (d == 0) ? PAK_MVCOMP0_IDX : PAK_MVCOMP1_IDX;
             PutDataForCompressedHdr(compressedHdr, 0, 252, index);
             index += 8;
@@ -3676,7 +3673,7 @@ MOS_STATUS CodechalVdencVp9State::RefreshFrameInternalBuffers()
         }
 
         for (auto d = 0; d < 2; d++)
-        { 
+        {
             index = (d == 0) ? PAK_MVFRAC_COMP0_IDX : PAK_MVFRAC_COMP1_IDX;
             for (auto i = 0; i < 3; i++)
             {
@@ -3697,7 +3694,7 @@ MOS_STATUS CodechalVdencVp9State::RefreshFrameInternalBuffers()
 
         if (m_vp9PicParams->PicFlags.fields.allow_high_precision_mv)
         {
-            for (auto d = 0; d < 2; d++) 
+            for (auto d = 0; d < 2; d++)
             {
                 index = (d == 0) ? PAK_MVHP_COMP0_IDX : PAK_MVHP_COMP1_IDX;
                 PutDataForCompressedHdr(compressedHdr, 0, 252, index);
@@ -3740,24 +3737,24 @@ MOS_STATUS CodechalVdencVp9State::ExecutePictureLevel()
 
     PerfTagSetting perfTag;
     CODECHAL_ENCODE_SET_PERFTAG_INFO(perfTag, CODECHAL_ENCODE_PERFTAG_CALL_PAK_ENGINE);
-   
+
     if (m_currPass == 0)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(ConstructPakInsertObjBatchBuf(&m_resHucPakInsertUncompressedHeaderReadBuffer));
     }
 
-    // For VDENC dynamic scaling, here are the steps we need to process 
-    //   Pass 0. VDENC + PAK Pass                                         
-    //     a. If this is Dys + BRC case, then run BRC Pass 0              
-    //     b. Ref frame scaling                                           
-    //    c. VDENC + PAK pass to stream out PakObjCmd                    
-    //   Pass 1 -> Reset to Pass 0 so as to run HPU Pass 0                
-    //     a. If this is Dys + BRC case, then run BRC Pass 1              
-    //     b. Run HPU Pass 0                                              
-    //     c. Lite Pass (Pak only multi pass enabled) to stream in        
-    //        PakObjCmd from previous pass                                 
-    //   Pass 1 -> Only run HPU Pass 1 to update the probabilities for    
-    //   next frame. Repak is disabled for performance reasons            
+    // For VDENC dynamic scaling, here are the steps we need to process
+    //   Pass 0. VDENC + PAK Pass
+    //     a. If this is Dys + BRC case, then run BRC Pass 0
+    //     b. Ref frame scaling
+    //    c. VDENC + PAK pass to stream out PakObjCmd
+    //   Pass 1 -> Reset to Pass 0 so as to run HPU Pass 0
+    //     a. If this is Dys + BRC case, then run BRC Pass 1
+    //     b. Run HPU Pass 0
+    //     c. Lite Pass (Pak only multi pass enabled) to stream in
+    //        PakObjCmd from previous pass
+    //   Pass 1 -> Only run HPU Pass 1 to update the probabilities for
+    //   next frame. Repak is disabled for performance reasons
     if ( m_dysRefFrameFlags != DYS_REF_NONE)
     {
         if (m_currPass == 0)
@@ -3799,18 +3796,18 @@ MOS_STATUS CodechalVdencVp9State::ExecutePictureLevel()
             m_lastTaskInPhase = false;
         }
     }
-	else
-	{
-		if (IsFirstPass() && m_vdencBrcEnabled)
-		{
-			m_vdencPakObjCmdStreamOutEnabled = true;
-			m_resVdencPakObjCmdStreamOutBuffer = &m_resMbCodeSurface;
-		}
-		else
-		{
-			m_vdencPakObjCmdStreamOutEnabled = false;
-		}
-	}
+    else
+    {
+        if (IsFirstPass() && m_vdencBrcEnabled)
+        {
+            m_vdencPakObjCmdStreamOutEnabled = true;
+            m_resVdencPakObjCmdStreamOutBuffer = &m_resMbCodeSurface;
+        }
+        else
+        {
+            m_vdencPakObjCmdStreamOutEnabled = false;
+        }
+    }
 
     if ((m_dysRefFrameFlags != DYS_REF_NONE) && m_dysVdencMultiPassEnabled)
     {
@@ -3842,7 +3839,7 @@ MOS_STATUS CodechalVdencVp9State::ExecutePictureLevel()
             bool origSingleTaskPhase = m_singleTaskPhaseSupported;
             // If this is the case of Dynamic Scaling + BRC Pass 0'  VDENC + Pak  pass
             // As a WA, Disable SingleTaskPhase before running 1st BRC update
-            // To run HPU0 on the next pass i.e Pak only pass, we make Pass 1 as Pass 0 in which case the 
+            // To run HPU0 on the next pass i.e Pak only pass, we make Pass 1 as Pass 0 in which case the
             // BRC dmem buffer( resVdencBrcUpdateDmemBuffer[0] ) will get overridden if we do not submit BRC command now.
             if (m_dysBrc && m_dysRefFrameFlags != DYS_REF_NONE)
             {
@@ -3870,7 +3867,7 @@ MOS_STATUS CodechalVdencVp9State::ExecutePictureLevel()
             {
                 //Reset earlier set PAK perf tag
                 m_osInterface->pfnResetPerfBufferID(m_osInterface);
-				// Add Hpu tag here after added
+                // Add Hpu tag here after added
             }
             CODECHAL_ENCODE_CHK_STATUS_RETURN(HuCVp9Prob());
         }
@@ -3884,7 +3881,7 @@ MOS_STATUS CodechalVdencVp9State::ExecutePictureLevel()
     if (m_dysRefFrameFlags != DYS_REF_NONE && m_currPass == 0)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(DysRefFrames());
-    
+
         if (m_dysVdencMultiPassEnabled)
         {
             m_singleTaskPhaseSupported = true;
@@ -3962,9 +3959,9 @@ MOS_STATUS CodechalVdencVp9State::ExecutePictureLevel()
         miConditionalBatchBufferEndParams.presSemaphoreBuffer =
             &m_resHucPakMmioBuffer;
         // Make the DisableCompareMask 0, so that the HW will do AND operation on DW0 with Mask DW1, refer to HuCVp9Prob() for the settings
-        // and compare the result against the Semaphore data which in our case dwValue = 0. 
+        // and compare the result against the Semaphore data which in our case dwValue = 0.
         // If result > dwValue then continue execution otherwise terminate the batch buffer
-        miConditionalBatchBufferEndParams.bDisableCompareMask = false; 
+        miConditionalBatchBufferEndParams.bDisableCompareMask = false;
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiConditionalBatchBufferEndCmd(
             &cmdBuffer,
@@ -4067,7 +4064,7 @@ MOS_STATUS CodechalVdencVp9State::ExecutePictureLevel()
     {
         if (m_dysRefFrameFlags != DYS_REF_NONE && m_dysVdencMultiPassEnabled)
         {
-            // For DyS + BRC case, we run BRC on Pass 0, so although we dont run HPU on Pass 0 
+            // For DyS + BRC case, we run BRC on Pass 0, so although we dont run HPU on Pass 0
             // (VDENC + PAK pass) we will still use the write buffer here
             if (m_dysBrc)
             {
@@ -4194,18 +4191,18 @@ MOS_STATUS CodechalVdencVp9State::SetHcpSrcSurfaceParams(MHW_VDBOX_SURFACE_PARAM
             surfaceParams[CODECHAL_HCP_ALTREF_SURFACE_ID].psSurface             = refSurface[2];
         }
 
-		if (m_dysCurrFrameFlag)
-		{
-			surfaceParams[CODECHAL_HCP_LAST_SURFACE_ID].dwReconSurfHeight = MOS_ALIGN_CEIL(refSurface[0]->dwHeight, CODEC_VP9_MIN_BLOCK_WIDTH);
-			surfaceParams[CODECHAL_HCP_GOLDEN_SURFACE_ID].dwReconSurfHeight = MOS_ALIGN_CEIL(refSurface[1]->dwHeight, CODEC_VP9_MIN_BLOCK_WIDTH);
-			surfaceParams[CODECHAL_HCP_ALTREF_SURFACE_ID].dwReconSurfHeight = MOS_ALIGN_CEIL(refSurface[2]->dwHeight, CODEC_VP9_MIN_BLOCK_WIDTH);
-		}
-		else
-		{
-			surfaceParams[CODECHAL_HCP_LAST_SURFACE_ID].dwReconSurfHeight =
-			surfaceParams[CODECHAL_HCP_GOLDEN_SURFACE_ID].dwReconSurfHeight =
-			surfaceParams[CODECHAL_HCP_ALTREF_SURFACE_ID].dwReconSurfHeight = m_rawSurfaceToPak->dwHeight;
-		}
+        if (m_dysCurrFrameFlag)
+        {
+            surfaceParams[CODECHAL_HCP_LAST_SURFACE_ID].dwReconSurfHeight = MOS_ALIGN_CEIL(refSurface[0]->dwHeight, CODEC_VP9_MIN_BLOCK_WIDTH);
+            surfaceParams[CODECHAL_HCP_GOLDEN_SURFACE_ID].dwReconSurfHeight = MOS_ALIGN_CEIL(refSurface[1]->dwHeight, CODEC_VP9_MIN_BLOCK_WIDTH);
+            surfaceParams[CODECHAL_HCP_ALTREF_SURFACE_ID].dwReconSurfHeight = MOS_ALIGN_CEIL(refSurface[2]->dwHeight, CODEC_VP9_MIN_BLOCK_WIDTH);
+        }
+        else
+        {
+            surfaceParams[CODECHAL_HCP_LAST_SURFACE_ID].dwReconSurfHeight =
+            surfaceParams[CODECHAL_HCP_GOLDEN_SURFACE_ID].dwReconSurfHeight =
+            surfaceParams[CODECHAL_HCP_ALTREF_SURFACE_ID].dwReconSurfHeight = m_rawSurfaceToPak->dwHeight;
+        }
     }
 
     // Program Surface params for reconstructed surface
@@ -4262,7 +4259,7 @@ MOS_STATUS CodechalVdencVp9State::SetHcpPipeBufAddrParams(MHW_VDBOX_PIPE_BUF_ADD
     PMOS_SURFACE* dsRefSurface8x)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
+
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     MOS_ZeroMemory(&pipeBufAddrParams, sizeof(pipeBufAddrParams));
@@ -4649,7 +4646,6 @@ MOS_STATUS CodechalVdencVp9State::PakConstructPicStateBatchBuf(
     return eStatus;
 }
 
-
 // This is used only for DynamicScaling
 MOS_STATUS CodechalVdencVp9State::ExecuteDysPictureLevel()
 {
@@ -4673,7 +4669,7 @@ MOS_STATUS CodechalVdencVp9State::ExecuteDysPictureLevel()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(ConstructPakInsertObjBatchBuf(&m_resHucPakInsertUncompressedHeaderReadBuffer));
         CODECHAL_ENCODE_CHK_STATUS_RETURN(PakConstructPicStateBatchBuf(
             &m_brcBuffers.resPicStateBrcWriteHucReadBuffer));
-        
+
     }
 
     MOS_COMMAND_BUFFER cmdBuffer;
@@ -4723,8 +4719,8 @@ MOS_STATUS CodechalVdencVp9State::ExecuteDysPictureLevel()
 
     if (!m_currPass && m_osInterface->bTagResourceSync)
     {
-        // This is a short term WA to solve the sync tag issue: the sync tag write for PAK is inserted at the end of 2nd pass PAK BB 
-        // which may be skipped in multi-pass PAK enabled case. The idea here is to insert the previous frame's tag at the beginning 
+        // This is a short term WA to solve the sync tag issue: the sync tag write for PAK is inserted at the end of 2nd pass PAK BB
+        // which may be skipped in multi-pass PAK enabled case. The idea here is to insert the previous frame's tag at the beginning
         // of the BB and keep the current frame's tag at the end of the BB. There will be a delay for tag update but it should be fine
         // as long as Dec/VP/Enc won't depend on this PAK so soon.
         MOS_RESOURCE globalGpuContextSyncTagBuffer;
@@ -4847,13 +4843,13 @@ MOS_STATUS CodechalVdencVp9State::ExecuteDysPictureLevel()
     surfaceParams[CODECHAL_HCP_SRC_SURFACE_ID].dwActualWidth            = MOS_ALIGN_CEIL(m_oriFrameWidth, CODEC_VP9_MIN_BLOCK_WIDTH);
     surfaceParams[CODECHAL_HCP_SRC_SURFACE_ID].dwActualHeight           = MOS_ALIGN_CEIL(m_oriFrameHeight, CODEC_VP9_MIN_BLOCK_WIDTH);
 
-    // Decodec picture 
+    // Decodec picture
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpSurfaceCmd(&cmdBuffer, &surfaceParams[CODECHAL_HCP_DECODED_SURFACE_ID]));
 
-    // Source input 
+    // Source input
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpSurfaceCmd(&cmdBuffer, &surfaceParams[CODECHAL_HCP_SRC_SURFACE_ID]));
 
-    // Last reference picture 
+    // Last reference picture
     if (refSurface[0])
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpSurfaceCmd(&cmdBuffer, &surfaceParams[CODECHAL_HCP_LAST_SURFACE_ID]));
@@ -4899,7 +4895,6 @@ MOS_STATUS CodechalVdencVp9State::ExecuteDysPictureLevel()
         CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetPipeBufAddr(pipeBufAddrParams));
 
-        
         //Huc is disabled for ref frame scaling, use input region
         uint8_t frameCtxIdx = m_vp9PicParams->PicFlags.fields.frame_context_idx;
         CODECHAL_ENCODE_ASSERT(frameCtxIdx < CODEC_VP9_NUM_CONTEXTS);
@@ -5314,8 +5309,8 @@ MOS_STATUS CodechalVdencVp9State::SetPictureStructs()
     uint8_t currRefIdx = m_vp9PicParams->CurrReconstructedPic.FrameIdx;
 
     m_dysRefFrameFlags = DYS_REF_NONE;
-	m_dysBrc = false;
-	m_dysCqp = false;
+    m_dysBrc = false;
+    m_dysCqp = false;
 
     // m_refFrameFlags is to indicate which frames to be used as reference
     // m_refFrameFlags & 0x01 != 0: Last ref frames used as reference
@@ -5432,7 +5427,7 @@ MOS_STATUS CodechalVdencVp9State::SetPictureStructs()
             }
         }
     }
-	m_dysCurrFrameFlag = m_dysRefFrameFlags;
+    m_dysCurrFrameFlag = m_dysRefFrameFlags;
 
     refList[currRefIdx]->sRefReconBuffer = m_reconSurface;
     refList[currRefIdx]->sRefRawBuffer = m_rawSurface;
@@ -5559,14 +5554,14 @@ MOS_STATUS CodechalVdencVp9State::InitializePicture(const EncoderParams& params)
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_nalUnitParams);
 
     m_segmentMapProvided = params.bSegmentMapProvided && m_vp9PicParams->PicFlags.fields.segmentation_enabled;
-    // In MBBRC case, without a SegMap provided by the app, we need to set the SegMapUpdate ON 
+    // In MBBRC case, without a SegMap provided by the app, we need to set the SegMapUpdate ON
     // as the Segmap is generated by HuC and it can be different for every frame
     if (m_vp9PicParams->PicFlags.fields.segmentation_enabled && !params.bSegmentMapProvided)
     {
         m_vp9PicParams->PicFlags.fields.segmentation_update_map = 1;
     }
 
-    // For dynamic scaling, the SingleTaskPhaseSupported is set to true and it does not get restored 
+    // For dynamic scaling, the SingleTaskPhaseSupported is set to true and it does not get restored
     // to the original value after encoding of the frame. So need to restore to the original state
     m_singleTaskPhaseSupported = m_storeSingleTaskPhaseSupported;
 
@@ -5901,7 +5896,7 @@ MOS_STATUS CodechalVdencVp9State::AllocateResources()
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncoderState::AllocateResources());
 
-    // Application needs to pass the maxinum frame width/height 
+    // Application needs to pass the maxinum frame width/height
     m_maxPicWidth = m_frameWidth;
     m_maxPicHeight = m_frameHeight;
 
@@ -5946,7 +5941,7 @@ MOS_STATUS CodechalVdencVp9State::AllocateResources()
 
         //the following code used to calculate ulMBCodeSize:
         //pakObjCmdStreamOutDataSize = 2*BYTES_PER_DWORD*(numOfLcu*NUM_PAK_DWS_PER_LCU + numOfLcu*maxNumOfCUperLCU*NUM_DWS_PER_CU); // Multiply by 2 for sideband
-        //const uint32_t maxNumOfCUperLCU = (64/8)*(64/8); 
+        //const uint32_t maxNumOfCUperLCU = (64/8)*(64/8);
         // NUM_PAK_DWS_PER_LCU 5
         // NUM_DWS_PER_CU 8
         uint32_t numOfLCU = maxPicSizeInSb;
@@ -6082,7 +6077,7 @@ MOS_STATUS CodechalVdencVp9State::AllocateResources()
             &allocParamsForBufferLinear,
             &m_resProbabilityCounterBuffer));
 
-        // Tile record stream out buffer 
+        // Tile record stream out buffer
         size = maxPicSizeInSb * CODECHAL_CACHELINE_SIZE; // worst case: each SB is a tile
         allocParamsForBufferLinear.dwBytes = size;
         allocParamsForBufferLinear.pBufName = "TileRecordStrmOutBuffer";
@@ -6092,7 +6087,7 @@ MOS_STATUS CodechalVdencVp9State::AllocateResources()
             &allocParamsForBufferLinear,
             &m_resTileRecordStrmOutBuffer));
 
-        // CU statistics stream out buffer 
+        // CU statistics stream out buffer
         size = MOS_ALIGN_CEIL(maxPicSizeInSb * 64 * 8, CODECHAL_CACHELINE_SIZE);
         allocParamsForBufferLinear.dwBytes = size;
         allocParamsForBufferLinear.pBufName = "CuStatsStrmOutBuffer";
@@ -6128,9 +6123,9 @@ MOS_STATUS CodechalVdencVp9State::AllocateResources()
             &lockFlagsWriteOnly);
         CODECHAL_ENCODE_CHK_NULL_RETURN(data);
 
-        MOS_SecureMemcpy(data, sizeof(Keyframe_Default_Probs), 
+        MOS_SecureMemcpy(data, sizeof(Keyframe_Default_Probs),
             Keyframe_Default_Probs, sizeof(Keyframe_Default_Probs));
-        MOS_SecureMemcpy(data + sizeof(Keyframe_Default_Probs), sizeof(Inter_Default_Probs), 
+        MOS_SecureMemcpy(data + sizeof(Keyframe_Default_Probs), sizeof(Inter_Default_Probs),
             Inter_Default_Probs, sizeof(Inter_Default_Probs));
 
         m_osInterface->pfnUnlockResource(m_osInterface, &m_resHucDefaultProbBuffer);
@@ -6811,7 +6806,6 @@ MOS_STATUS CodechalVdencVp9State::ReadHcpStatus(
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
 
-
     CODECHAL_ENCODE_CHK_COND_RETURN((m_vdboxIndex > m_hwInterface->GetMfxInterface()->GetMaxVdboxIndex()),"ERROR - vdbox index exceed the maximum");
 
     EncodeStatusBuffer* encodeStatusBuf   = &m_encodeStatusBuf;
@@ -6845,7 +6839,7 @@ MOS_STATUS CodechalVdencVp9State::ReadHcpStatus(
 
     MOS_ZeroMemory(&copyMemMemParams, sizeof(copyMemMemParams));
 
-    // write frame size directly to huc second pass dmem buffer 
+    // write frame size directly to huc second pass dmem buffer
     // it is needed for correct pipeline synchronization and dmem initialization
     copyMemMemParams.presSrc = &encodeStatusBuf->resStatusBuffer;
     copyMemMemParams.dwSrcOffset = baseOffset + encodeStatusBuf->dwBSByteCountOffset;
@@ -7295,10 +7289,10 @@ MOS_STATUS CodechalVdencVp9State::ContextBufferInit(
         }
     }
 
-    //16 bytes of zeros 
+    //16 bytes of zeros
     byteCnt += 16;
 
-    // mb skip probs            
+    // mb skip probs
     for (i = 0; i < CODEC_VP9_MBSKIP_CONTEXTS; i++)
     {
         ctxBuffer[byteCnt++] = DefaultMbskipProbs[i];

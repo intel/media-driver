@@ -94,11 +94,11 @@ VAStatus DdiDecode_CreateBuffer(
     VABufferID              *bufId
 )
 {
-    *bufId     = VA_INVALID_ID; 
+    *bufId     = VA_INVALID_ID;
     if (decCtx->m_ddiDecode){
         DDI_CHK_RET(decCtx->m_ddiDecode->CreateBuffer(type, size, numElements, data, bufId),"DdiDecode_CreateBuffer failed!");
     }
-    
+
     return VA_STATUS_SUCCESS;
 
 }
@@ -138,7 +138,7 @@ VAStatus DdiDecode_EndPicture (
 {
     DDI_FUNCTION_ENTER();
     DDI_CHK_NULL(ctx,                "nullptr context in vpgDecodeEndPicture!", VA_STATUS_ERROR_INVALID_CONTEXT);
-    uint32_t                         ctxType;   
+    uint32_t                         ctxType;
     // assume the VAContextID is decoder ID
     PDDI_DECODE_CONTEXT decCtx     = (PDDI_DECODE_CONTEXT)DdiMedia_GetContextFromContextID(ctx, context, &ctxType);
     DDI_CHK_NULL(decCtx,            "nullptr decCtx",            VA_STATUS_ERROR_INVALID_CONTEXT);
@@ -170,7 +170,7 @@ VAStatus DdiDecode_RenderPicture (
     uint32_t  ctxType;
     PDDI_DECODE_CONTEXT decCtx  = (PDDI_DECODE_CONTEXT)DdiMedia_GetContextFromContextID(ctx, context, &ctxType);
     DDI_CHK_NULL(decCtx,            "nullptr decCtx",            VA_STATUS_ERROR_INVALID_CONTEXT);
-    
+
     if (decCtx->m_ddiDecode)
     {
         VAStatus va = decCtx->m_ddiDecode->RenderPicture(ctx, context, buffers, numBuffers);
@@ -203,7 +203,7 @@ void DdiDecodeCleanUp(
             MOS_FreeMemory(decCtx);
             decCtx = nullptr;
         }
-    }  
+    }
     return;
 }
 
@@ -262,7 +262,7 @@ VAStatus DdiDecode_CreateContext (
             &decConfigAttr.uiDecSliceMode,
             &decConfigAttr.uiEncryptionType,
             &decConfigAttr.uiDecProcessingType),"Invalide config_id!");
-    
+
     mode = mediaCtx->m_caps->GetDecodeCodecMode(decConfigAttr.profile);
     codecKey =  mediaCtx->m_caps->GetDecodeCodecKey(decConfigAttr.profile);
     va       =  mediaCtx->m_caps->CheckDecodeResolution(
@@ -298,7 +298,7 @@ VAStatus DdiDecode_CreateContext (
             MOS_Delete(ddiDecBase);
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
-    
+
     decCtx->pMediaCtx                       = mediaCtx;
     decCtx->m_ddiDecode                     = ddiDecBase;
 
@@ -358,7 +358,7 @@ VAStatus DdiDecode_CreateContext (
         }
         if (VA_STATUS_SUCCESS != ddiDecBase->RegisterRTSurfaces(&decCtx->RTtbl, surface))
         {
-            va = VA_STATUS_ERROR_MAX_NUM_EXCEEDED;            
+            va = VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
             DdiDecodeCleanUp(ctx,decCtx);
             return va;
         }

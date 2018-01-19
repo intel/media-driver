@@ -51,7 +51,6 @@ typedef enum _CODECHAL_BINDING_TABLE_OFFSET_2xSCALING_CM_G9
     CODECHAL_2xSCALING_NUM_SURFACES_CM_G9 = 4
 }CODECHAL_BINDING_TABLE_OFFSET_2xSCALING_CM_G9;
 
-
 typedef enum _CODECHAL_ENCODE_AVC_BINDING_TABLE_OFFSET_BRC_UPDATE_G9
 {
     CODECHAL_ENCODE_AVC_BRC_UPDATE_HISTORY_G9 = 0,
@@ -74,7 +73,6 @@ const CODECHAL_ENCODE_AVC_IPCM_THRESHOLD CodechalEncodeAvcEncG9::IPCM_Threshold_
     { 10, 7500 },
     { 18, 9000 },
 };
-
 
 typedef struct _CODECHAL_ENCODE_AVC_BRC_BLOCK_COPY_CURBE_CM_G9
 {
@@ -879,7 +877,6 @@ const uint32_t CodechalEncodeAvcEncG9::IntraModeCostForHighTextureMB[CODEC_AVC_N
     0x00006d0b, 0x00006e0d, 0x0000780e, 0x00007918
 };
 
-
 static const CODECHAL_ENCODE_AVC_FRAME_BRC_UPDATE_CURBE_G9 g_cInit_CODECHAL_ENCODE_AVC_FRAME_BRC_UPDATE_CURBE_G9 =
 {
     // uint32_t 0
@@ -1663,7 +1660,7 @@ MOS_STATUS CodechalEncodeAvcEncG9::SetCurbeAvcMbBrcUpdate(PCODECHAL_ENCODE_AVC_B
                 roisize += (CODECHAL_MACROBLOCK_HEIGHT * MOS_ABS(m_avcPicParam->ROI[i].Top - m_avcPicParam->ROI[i].Bottom)) *
                                 (CODECHAL_MACROBLOCK_WIDTH * MOS_ABS(m_avcPicParam->ROI[i].Right - m_avcPicParam->ROI[i].Left));
             }
-            
+
             if (roisize)
             {
                 uint32_t numMBs = m_picWidthInMb * m_picHeightInMb;
@@ -1689,7 +1686,7 @@ MOS_STATUS CodechalEncodeAvcEncG9::SetCurbeAvcMbBrcUpdate(PCODECHAL_ENCODE_AVC_B
 
 MOS_STATUS CodechalEncodeAvcEncG9::SetCurbeAvcBrcBlockCopy(PCODECHAL_ENCODE_AVC_BRC_BLOCK_COPY_CURBE_PARAMS params)
 {
-    MOS_STATUS								        eStatus = MOS_STATUS_SUCCESS;
+    MOS_STATUS                                        eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(params);
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pKernelState);
@@ -2199,7 +2196,7 @@ MOS_STATUS CodechalEncodeAvcEncG9::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmdB
     if (params->dwMbEncBRCBufferSize > 0)
     {
         //Started from GEN95, separated Mbenc curbe from BRC update kernel. BRC update kernel will generate a 128 bytes surface for mbenc.
-        //The new surface contains the updated data for mbenc. MBenc kernel has been changed to use the new BRC update output surface 
+        //The new surface contains the updated data for mbenc. MBenc kernel has been changed to use the new BRC update output surface
         //to update its curbe internally.
         // MbEnc BRC buffer - write only
         MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
@@ -2425,7 +2422,7 @@ MOS_STATUS CodechalEncodeAvcEncG9::SendAvcBrcFrameUpdateSurfaces(PMOS_COMMAND_BU
     if (params->dwMbEncBRCBufferSize > 0)
     {
         //Started from GEN95, separated Mbenc curbe from BRC update kernel. BRC update kernel will generate a 128 bytes surface for mbenc.
-        //The new surface contains the updated data for mbenc. MBenc kernel has been changed to use the new BRC update output surface 
+        //The new surface contains the updated data for mbenc. MBenc kernel has been changed to use the new BRC update output surface
         //to update its curbe internally.
         // MbEnc BRC buffer - write only
         MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
@@ -2540,23 +2537,23 @@ MOS_STATUS CodechalEncodeAvcEncG9::SendAvcBrcFrameUpdateSurfaces(PMOS_COMMAND_BU
         &surfaceCodecParams,
         kernelState));
 
-	// MV data buffer
-	if (params->psMvDataBuffer)
-	{
-		memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
-		surfaceCodecParams.bIs2DSurface = true;
-		surfaceCodecParams.bMediaBlockRW = true;
-		surfaceCodecParams.psSurface = params->psMvDataBuffer;
-		surfaceCodecParams.dwOffset = params->dwMvBottomFieldOffset;
-		surfaceCodecParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_MV_DATA_ENCODE].Value;
-		surfaceCodecParams.dwBindingTableOffset = avcBrcUpdateBindingTable->dwFrameBrcMvDataBuffer;
-		CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
-			m_hwInterface,
-			cmdBuffer,
-			&surfaceCodecParams,
-			kernelState));
-	}
-	
+    // MV data buffer
+    if (params->psMvDataBuffer)
+    {
+        memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+        surfaceCodecParams.bIs2DSurface = true;
+        surfaceCodecParams.bMediaBlockRW = true;
+        surfaceCodecParams.psSurface = params->psMvDataBuffer;
+        surfaceCodecParams.dwOffset = params->dwMvBottomFieldOffset;
+        surfaceCodecParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_MV_DATA_ENCODE].Value;
+        surfaceCodecParams.dwBindingTableOffset = avcBrcUpdateBindingTable->dwFrameBrcMvDataBuffer;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
+            m_hwInterface,
+            cmdBuffer,
+            &surfaceCodecParams,
+            kernelState));
+    }
+
     return eStatus;
 }
 
@@ -2750,12 +2747,12 @@ MOS_STATUS CodechalEncodeAvcEncG9::GetStatusReport(
             m_cmEventCheckIdx            = (m_cmEventCheckIdx + 1) % CM_EVENT_NUM;
             codecStatus[0].CodecStatus = CODECHAL_STATUS_SUCCESSFUL;
 
-            return MOS_STATUS_SUCCESS;                    
+            return MOS_STATUS_SUCCESS;
         }
         else
         {
             codecStatus[0].CodecStatus = CODECHAL_STATUS_UNAVAILABLE;
-            return MOS_STATUS_SUCCESS;                    
+            return MOS_STATUS_SUCCESS;
         }
     }
     else
@@ -2765,20 +2762,20 @@ MOS_STATUS CodechalEncodeAvcEncG9::GetStatusReport(
 MOS_STATUS CodechalEncodeAvcEncG9::SceneChangeReport(PMOS_COMMAND_BUFFER    cmdBuffer, PCODECHAL_ENCODE_AVC_GENERIC_PICTURE_LEVEL_PARAMS params)
 {
 
-	MHW_MI_COPY_MEM_MEM_PARAMS                      copyMemMemParams;
-	uint32_t offset = (m_encodeStatusBuf.wCurrIndex * m_encodeStatusBuf.dwReportSize)
-		+ (sizeof(uint32_t) * 2) + m_encodeStatusBuf.dwSceneChangedOffset;
+    MHW_MI_COPY_MEM_MEM_PARAMS                      copyMemMemParams;
+    uint32_t offset = (m_encodeStatusBuf.wCurrIndex * m_encodeStatusBuf.dwReportSize)
+        + (sizeof(uint32_t) * 2) + m_encodeStatusBuf.dwSceneChangedOffset;
 
-	MOS_ZeroMemory(&copyMemMemParams, sizeof(copyMemMemParams));
-	copyMemMemParams.presSrc = params->presBrcHistoryBuffer;
-	copyMemMemParams.dwSrcOffset = CODECHAL_ENCODE_AVC_BRC_HISTORY_BUFFER_OFFSET_SCENE_CHANGED;
-	copyMemMemParams.presDst = &m_encodeStatusBuf.resStatusBuffer;
-	copyMemMemParams.dwDstOffset = offset;
-	CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiCopyMemMemCmd(
-		cmdBuffer,
-		&copyMemMemParams));
+    MOS_ZeroMemory(&copyMemMemParams, sizeof(copyMemMemParams));
+    copyMemMemParams.presSrc = params->presBrcHistoryBuffer;
+    copyMemMemParams.dwSrcOffset = CODECHAL_ENCODE_AVC_BRC_HISTORY_BUFFER_OFFSET_SCENE_CHANGED;
+    copyMemMemParams.presDst = &m_encodeStatusBuf.resStatusBuffer;
+    copyMemMemParams.dwDstOffset = offset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiCopyMemMemCmd(
+        cmdBuffer,
+        &copyMemMemParams));
 
-	return MOS_STATUS_SUCCESS;
+    return MOS_STATUS_SUCCESS;
 }
 
 #if USE_CODECHAL_DEBUG_TOOL

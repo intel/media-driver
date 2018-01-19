@@ -40,7 +40,7 @@
  */
 typedef struct _CODECHAL_HEVC_IQ_MATRIX_PARAMS
 {
-    /*! \brief Scaling lists for the 4x4 scaling process.  
+    /*! \brief Scaling lists for the 4x4 scaling process.
      *
      *  Corresponding to ScalingList[ 0 ][ MatrixID ][ i ] in HEVC specification, where MatrixID is in the range of 0 to 5, inclusive, and i is in the range of 0 to 15, inclusive.
      */
@@ -54,7 +54,7 @@ typedef struct _CODECHAL_HEVC_IQ_MATRIX_PARAMS
 
     /*! \brief Scaling lists for the 8x8 scaling process.
     *
-    *  Corresponding to ScalingList[ 2 ][ MatrixID ][ i ] in HEVC specification, where MatrixID is in the range of 0 to 5, inclusive, and i is in the range of 0 to 63, inclusive. 
+    *  Corresponding to ScalingList[ 2 ][ MatrixID ][ i ] in HEVC specification, where MatrixID is in the range of 0 to 5, inclusive, and i is in the range of 0 to 63, inclusive.
     */
     uint8_t               ucScalingLists2[6][64];
 

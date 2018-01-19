@@ -389,7 +389,6 @@ int32_t DdiMediaDecode::GetBitstreamBufIndexFromBuffer(DDI_CODEC_COM_BUFFER_MGR 
     return DDI_CODEC_INVALID_BUFFER_INDEX;
 }
 
-
 VAStatus DdiMediaDecode::AllocBsBuffer(
     DDI_CODEC_COM_BUFFER_MGR    *bufMgr,
     DDI_MEDIA_BUFFER            *buf)
@@ -483,7 +482,7 @@ VAStatus DdiMediaDecode::AllocBsBuffer(
             bufMgr->dwBitstreamIndex = i;
         }
         bufMgr->ui64BitstreamOrder = (bufMgr->ui64BitstreamOrder << 4) + bufMgr->dwBitstreamIndex;
-        
+
         bsBufObj                   = bufMgr->pBitStreamBuffObject[bufMgr->dwBitstreamIndex];
         bsBufObj ->pMediaCtx       = m_ddiDecodeCtx->pMediaCtx;
         bsBufBaseAddr              = bufMgr->pBitStreamBase[bufMgr->dwBitstreamIndex];
@@ -513,7 +512,7 @@ VAStatus DdiMediaDecode::AllocBsBuffer(
             {
                return VA_STATUS_ERROR_ALLOCATION_FAILED;
             }
-            
+
             bsBufBaseAddr = (uint8_t*)DdiMediaUtil_LockBuffer(bsBufObj, MOS_LOCKFLAG_WRITEONLY);
             if(bsBufBaseAddr == nullptr)
             {
@@ -523,7 +522,7 @@ VAStatus DdiMediaDecode::AllocBsBuffer(
             bufMgr->pBitStreamBase[bufMgr->dwBitstreamIndex] = bsBufBaseAddr;
         }
     }
-    
+
     if(bufMgr->pBitStreamBase[bufMgr->dwBitstreamIndex] == nullptr)
     {
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
@@ -555,20 +554,19 @@ VAStatus DdiMediaDecode::AllocBsBuffer(
 
 MOS_FORMAT DdiMediaDecode::GetFormat()
 {
-    return  Format_NV12; 
+    return  Format_NV12;
 }
 
-
 VAStatus DdiMediaDecode::InitDecodeParams(
-	VADriverContextP ctx,
-	VAContextID      context)
+    VADriverContextP ctx,
+    VAContextID      context)
 {
     m_ctxType = DDI_MEDIA_CONTEXT_TYPE_DECODER;
     if ((context & DDI_MEDIA_MASK_VACONTEXT_TYPE) == DDI_MEDIA_VACONTEXTID_OFFSET_CENC)
     {
         m_ctxType = DDI_MEDIA_CONTEXT_TYPE_CENC_DECODER;
     }
-	/* skip the mediaCtx check as it is checked in caller */
+    /* skip the mediaCtx check as it is checked in caller */
     PDDI_MEDIA_CONTEXT mediaCtx;
     mediaCtx = DdiMedia_GetMediaContext(ctx);
     DDI_CHK_RET(DecodeCombineBitstream(mediaCtx),"DecodeCombineBitstream failed!");
@@ -580,7 +578,7 @@ VAStatus DdiMediaDecode::InitDecodeParams(
     if (m_ctxType == DDI_MEDIA_CONTEXT_TYPE_CENC_DECODER)
     {
         DDI_CHK_RET(m_ddiDecodeCtx->pCpDdiInterface->EndPictureCenc(ctx, context),"EndPictureCenc failed!");
-    } 
+    }
     DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_ddiDecodeCtx->RTtbl);
 
     if ((rtTbl == nullptr) || (rtTbl->pCurrentRT == nullptr))
@@ -588,7 +586,7 @@ VAStatus DdiMediaDecode::InitDecodeParams(
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
     return VA_STATUS_SUCCESS;
-	
+
 }
 
 VAStatus DdiMediaDecode::SetDecodeParams()
@@ -598,7 +596,7 @@ VAStatus DdiMediaDecode::SetDecodeParams()
     {
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
-    
+
     MOS_FORMAT expectedFormat = m_ddiDecodeCtx->m_ddiDecode->GetFormat();
     m_destSurface.Format   = expectedFormat;
     DdiMedia_MediaSurfaceToMosResource((&(m_ddiDecodeCtx->RTtbl))->pCurrentRT, &(m_destSurface.OsResource));
@@ -621,7 +619,7 @@ VAStatus DdiMediaDecode::SetDecodeParams()
     {
         (&m_ddiDecodeCtx->DecodeParams)->m_streamOutEnabled           = true;
         (&m_ddiDecodeCtx->DecodeParams)->m_externalStreamOutBuffer    = &bufMgr->resExternalStreamOutBuffer;
-    }    
+    }
     else
     {
         (&m_ddiDecodeCtx->DecodeParams)->m_streamOutEnabled           = false;
@@ -634,7 +632,7 @@ VAStatus DdiMediaDecode::EndPicture(
     VADriverContextP ctx,
     VAContextID      context)
 {
-    DDI_FUNCTION_ENTER();   
+    DDI_FUNCTION_ENTER();
     DDI_CHK_RET(m_ddiDecodeCtx->m_ddiDecode->InitDecodeParams(ctx,context),"InitDecodeParams failed!");
     DDI_CHK_RET(m_ddiDecodeCtx->m_ddiDecode->SetDecodeParams(), "SetDecodeParams failed!");
     DDI_CHK_RET(ClearRefList(&(m_ddiDecodeCtx->RTtbl), true), "ClearRefList failed!");
@@ -706,20 +704,20 @@ VAStatus DdiMediaDecode::CreateBuffer(
             va = m_ddiDecodeCtx->m_ddiDecode->AllocBsBuffer(&(m_ddiDecodeCtx->BufMgr), buf);
             if(va != VA_STATUS_SUCCESS)
             {
-                goto CleanUpandReturn;   
-	    }
-            
+                goto CleanUpandReturn;
+        }
+
             break;
         case VASliceParameterBufferType:
             va = m_ddiDecodeCtx->m_ddiDecode->AllocSliceControlBuffer(buf);
-	    if(va != VA_STATUS_SUCCESS)
+        if(va != VA_STATUS_SUCCESS)
             {
-                goto CleanUpandReturn;   
-	    }
+                goto CleanUpandReturn;
+        }
             buf->format     = Media_Format_CPU;
             break;
         case VAPictureParameterBufferType:
-            buf->pData      = m_ddiDecodeCtx->m_ddiDecode->GetPicParamBuf(&(m_ddiDecodeCtx->BufMgr)); 
+            buf->pData      = m_ddiDecodeCtx->m_ddiDecode->GetPicParamBuf(&(m_ddiDecodeCtx->BufMgr));
             buf->format     = Media_Format_CPU;
             break;
         case VAIQMatrixBufferType:
@@ -746,7 +744,7 @@ VAStatus DdiMediaDecode::CreateBuffer(
                 va = VA_STATUS_ERROR_INVALID_PARAMETER;
                 goto CleanUpandReturn;
             }
-            buf->iSize  = size * numElements;   
+            buf->iSize  = size * numElements;
             buf->format = Media_Format_Buffer;
             va = DdiMediaUtil_CreateBuffer(buf, m_ddiDecodeCtx->pMediaCtx->pDrmBufMgr);
             if(va != VA_STATUS_SUCCESS)
@@ -779,7 +777,6 @@ VAStatus DdiMediaDecode::CreateBuffer(
     bufferHeapElement->pCtx         = (void*)m_ddiDecodeCtx;
     bufferHeapElement->uiCtxType    = DDI_MEDIA_CONTEXT_TYPE_DECODER;
     *bufId                          = bufferHeapElement->uiVaBufferID;
-
 
     // Keep record the VaBufferID of JPEG slice data buffer we allocated, in order to do buffer mapping when render this buffer. otherwise we
     // can not get correct buffer address when application create them disordered.

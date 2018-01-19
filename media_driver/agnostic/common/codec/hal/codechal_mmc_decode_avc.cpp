@@ -27,7 +27,7 @@
 #include "codechal_mmc_decode_avc.h"
 
 CodechalMmcDecodeAvc::CodechalMmcDecodeAvc(
-    CodechalHwInterface    *hwInterface, 
+    CodechalHwInterface    *hwInterface,
     void *standardState):
     CodecHalMmcState(hwInterface)
 {
@@ -69,7 +69,7 @@ MOS_STATUS CodechalMmcDecodeAvc::SetPipeBufAddr(
     PMOS_COMMAND_BUFFER cmdBuffer)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
+
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     CODECHAL_DECODE_CHK_NULL_RETURN(m_avcState->m_avcPicParams);
@@ -101,7 +101,7 @@ MOS_STATUS CodechalMmcDecodeAvc::SetRefrenceSync(
     bool disableLockForTranscode)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
+
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     CODECHAL_DECODE_CHK_NULL_RETURN(m_avcState->m_avcPicParams);
@@ -155,7 +155,7 @@ MOS_STATUS CodechalMmcDecodeAvc::CheckReferenceList(
     {
         uint8_t activeFrameCnt = 0;
         bool selfReference = false;
-        
+
         for (uint8_t i = 0; i < CODEC_AVC_MAX_NUM_REF_FRAME; i++)
         {
             if (m_avcState->m_avcPicIdx[i].bValid)

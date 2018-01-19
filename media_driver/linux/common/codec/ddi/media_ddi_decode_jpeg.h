@@ -21,7 +21,7 @@
 */
 //!
 //! \file      media_ddi_decode_jpeg.h 
-//! \brief     libva(and its extension) decoder implementation  
+//! \brief     libva(and its extension) decoder implementation 
 //!
 
 #ifndef __MEDIA_DDI_JPEG_DECODER_H__
@@ -86,8 +86,8 @@ public:
         DDI_CODEC_COM_BUFFER_MGR    *bufMgr,
         DDI_MEDIA_BUFFER            *buf) override;
 
-    virtual uint8_t* GetPicParamBuf( 
-        DDI_CODEC_COM_BUFFER_MGR	 *bufMgr) override;
+    virtual uint8_t* GetPicParamBuf(
+        DDI_CODEC_COM_BUFFER_MGR     *bufMgr) override;
 
 private:
     //!

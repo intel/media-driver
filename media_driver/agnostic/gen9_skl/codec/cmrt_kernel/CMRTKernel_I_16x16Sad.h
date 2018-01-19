@@ -43,11 +43,9 @@ class CMRTKernelI16x16SadUMD:public CMRTKernelI16x16Sad
 
 public:
     CMRTKernelI16x16SadUMD() : CMRTKernelI16x16Sad(){};
-    
+
     CM_RETURN_CODE AllocateSurfaces(void *params);
 };
 
 #endif
-
-
 

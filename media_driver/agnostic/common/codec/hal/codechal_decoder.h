@@ -622,7 +622,7 @@ public:
     //! \return The video context \see m_videoContext
     //!
     MOS_GPU_CONTEXT GetVideoContext() { return m_videoContext; }
-	
+
     //!
     //! \brief  Gets video WA context
     //! \return The video WA context \see m_videoContextForWa
@@ -848,7 +848,7 @@ protected:
     {
         return MOS_STATUS_SUCCESS;
     }
-    
+
     //!
     //! \brief  Linear to Y tiled address
     //!
@@ -871,7 +871,7 @@ protected:
         PCODECHAL_DECODE_PROCESSING_PARAMS decProcParams);
 
 #endif
-    
+
 private:
 
     //!
@@ -990,7 +990,7 @@ protected:
     MEDIA_FEATURE_TABLE         *m_skuTable          = nullptr;
 
     //!< mmc state
-    CodecHalMmcState            *m_mmc              = nullptr; 
+    CodecHalMmcState            *m_mmc              = nullptr;
     //! \brief Decode parameters
     CodechalDecodeParams        m_decodeParams;
     //! \brief Decode mode

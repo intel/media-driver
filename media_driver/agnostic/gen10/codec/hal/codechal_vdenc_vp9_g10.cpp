@@ -107,7 +107,7 @@ CodechalVdencVp9StateG10::CodechalVdencVp9StateG10(
 //!
 MOS_STATUS CodechalVdencVp9StateG10::GetCommonKernelHeaderAndSize(
     void*        binary,
-    EncOperation operation, //change it back to this EncOperation operation, 
+    EncOperation operation, //change it back to this EncOperation operation,
     uint32_t     krnStateIdx,
     void*        krnHeader,
     uint32_t*    krnSize)
@@ -581,10 +581,10 @@ MOS_STATUS CodechalVdencVp9StateG10::Initialize(CodechalSetting * settings)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
-    CODECHAL_ENCODE_FUNCTION_ENTER;                                
+    CODECHAL_ENCODE_FUNCTION_ENTER;
     //Create and register huc Cmd Initializer
     m_hucCmdInitializer = MOS_New(CodechalCmdInitializer);
-    
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalVdencVp9State::Initialize(settings));
 
     m_dysVdencMultiPassEnabled = true;
@@ -623,7 +623,7 @@ MOS_STATUS CodechalVdencVp9StateG10::Initialize(CodechalSetting * settings)
         __MEDIA_USER_FEATURE_VALUE_SINGLE_TASK_PHASE_ENABLE_ID,
         &userFeatureData);
     m_singleTaskPhaseSupported = (userFeatureData.i32Data) ? true : false;
-    // For dynamic scaling, the SingleTaskPhaseSupported is set to true and it does not get restored 
+    // For dynamic scaling, the SingleTaskPhaseSupported is set to true and it does not get restored
     // to the original value after encoding of the frame. So need to restore to the original state
     m_storeSingleTaskPhaseSupported = m_singleTaskPhaseSupported; //Save the SingleTaskPhase state here
 
@@ -979,7 +979,7 @@ MOS_STATUS CodechalVdencVp9StateG10::ExecuteKernelFunctions()
         //StreamIn kernel, 4xME
         vdencMeState.b16xMeInUse = false;
         vdencMeState.b4xMeInUse = true;
-        m_lastTaskInPhase = true;       
+        m_lastTaskInPhase = true;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(VdencHmeKernel(&vdencMeState));
     }
 

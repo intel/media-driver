@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      codechal_hw_g9_X.h  
-//! \brief         This modules implements HW interface layer to be used on gen9 platforms on all operating systems/DDIs, across CODECHAL components.  
+//! \file      codechal_hw_g9_X.h 
+//! \brief         This modules implements HW interface layer to be used on gen9 platforms on all operating systems/DDIs, across CODECHAL components. 
 //!
 #ifndef __CODECHAL_HW_G9_X_H__
 #define __CODECHAL_HW_G9_X_H__
@@ -41,7 +41,7 @@ class CodechalHwInterfaceG9 : public CodechalHwInterface
 protected:
     static const uint32_t m_sliceShutdownAvcTargetUsageThresholdG9Halo = 4;
     static const CODECHAL_SSEU_SETTING m_defaultSsEuLutG9[CODECHAL_NUM_MEDIA_STATES];
-        
+
 public:
     //!
     //! \brief    Constructor
@@ -88,7 +88,7 @@ public:
 
         m_sizeOfCmdMediaObject = mhw_render_g9_X::MEDIA_OBJECT_CMD::byteSize;
         m_sizeOfCmdMediaStateFlush = mhw_mi_g9_X::MEDIA_STATE_FLUSH_CMD::byteSize;
-        
+
     }
 
     //!

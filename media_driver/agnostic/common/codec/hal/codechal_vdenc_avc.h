@@ -518,7 +518,7 @@ public:
     MOS_STATUS RestoreTLBAllocation(
         PMOS_COMMAND_BUFFER                         cmdBuffer,
         PMOS_RESOURCE                               tlbMmioBuffer);
-    
+
     //!
     //! \brief    Set VDENC HuC Brc InitReset state
     //! 
@@ -555,7 +555,7 @@ protected:
     // AvcGeneraicState functions
     //!
     //! \brief    AVC VDEnc State Initialization.
-    //!           
+    //! 
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success
     //!
@@ -563,7 +563,7 @@ protected:
 
     //!
     //! \brief    Allocate VDENC necessary resources.
-    //!           
+    //! 
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success
     //!

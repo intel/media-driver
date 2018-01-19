@@ -39,7 +39,7 @@ class CodechalEncodeTrackedBufferHevc : public CodechalEncodeTrackedBuffer
 public:
     //!
     //! \brief    Constructor
-    //!            
+    //!
     CodechalEncodeTrackedBufferHevc(CodechalEncoderState* encoder);
 
     ~CodechalEncodeTrackedBufferHevc()

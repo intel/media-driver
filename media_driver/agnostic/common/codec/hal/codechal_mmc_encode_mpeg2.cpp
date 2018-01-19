@@ -27,7 +27,7 @@
 #include "codechal_mmc_encode_mpeg2.h"
 
 CodechalMmcEncodeMpeg2::CodechalMmcEncodeMpeg2(
-    CodechalHwInterface    *hwInterface, 
+    CodechalHwInterface    *hwInterface,
     void *standardState):
     CodecHalMmcState(hwInterface)
 {
@@ -57,7 +57,7 @@ CodechalMmcEncodeMpeg2::CodechalMmcEncodeMpeg2(
         userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_ENCODE_MMC_IN_USE_ID;
         MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
     }
-    
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     m_compressibleId  = __MEDIA_USER_FEATURE_VALUE_MMC_ENC_RECON_COMPRESSIBLE_ID;
     m_compressModeId  = __MEDIA_USER_FEATURE_VALUE_MMC_ENC_RECON_COMPRESSMODE_ID;
@@ -69,7 +69,7 @@ MOS_STATUS CodechalMmcEncodeMpeg2::SetPipeBufAddr(
     PMOS_COMMAND_BUFFER cmdBuffer)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
+
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_mpeg2State);
@@ -79,7 +79,7 @@ MOS_STATUS CodechalMmcEncodeMpeg2::SetPipeBufAddr(
     bool framePic = (CodecHal_PictureIsFrame(m_mpeg2State->m_picParams->m_currOriginalPic)) &&
         !m_mpeg2State->m_picParams->m_fieldCodingFlag;
     bool suppressReconPic =
-        (!m_mpeg2State->m_refList[m_mpeg2State->m_currReconstructedPic.FrameIdx]->bUsedAsRef) && 
+        (!m_mpeg2State->m_refList[m_mpeg2State->m_currReconstructedPic.FrameIdx]->bUsedAsRef) &&
         m_mpeg2State->m_suppressReconPicSupported;
 
     if (m_mmcEnabled &&

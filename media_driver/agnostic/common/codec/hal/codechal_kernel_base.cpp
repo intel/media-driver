@@ -62,7 +62,7 @@ CodechalKernelBase::CodechalKernelBase(CodechalEncoderState *encoder) :
     m_debugInterface     = encoder->GetDebugInterface();
     m_miInterface        = m_hwInterface->GetMiInterface();
     m_renderInterface    = m_hwInterface->GetRenderInterface();
-    m_stateHeapInterface = m_renderInterface->m_stateHeapInterface->pStateHeapInterface; 
+    m_stateHeapInterface = m_renderInterface->m_stateHeapInterface->pStateHeapInterface;
 }
 
 CodechalKernelBase::~CodechalKernelBase()
@@ -117,7 +117,7 @@ MOS_STATUS CodechalKernelBase::Initialize(
     CODECHAL_ENCODE_CHK_NULL_RETURN(binaryBase);
 
     m_callback           = callback;
- 
+
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_osInterface);
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_hwInterface);
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_miInterface);

@@ -339,7 +339,7 @@ public:
 
     //!
     //! \brief    Constructor
-    //!            
+    //!
     CodechalEncodeTrackedBuffer(CodechalEncoderState* encoder);
 
     virtual ~CodechalEncodeTrackedBuffer();

@@ -66,13 +66,13 @@ public:
     static MOS_STATUS EncodeGetKernelHeaderAndSize(
         void                           *pvBinary,
         EncOperation                   operation,
-		uint32_t                       dwKrnStateIdx,
+        uint32_t                       dwKrnStateIdx,
         void                           *pvKrnHeader,
-		uint32_t                       *pdwKrnSize);
+        uint32_t                       *pdwKrnSize);
 
     // Inherited virtual functions
     virtual MOS_STATUS GetTrellisQuantization(
-        PCODECHAL_ENCODE_AVC_TQ_INPUT_PARAMS pParams, 
+        PCODECHAL_ENCODE_AVC_TQ_INPUT_PARAMS pParams,
         PCODECHAL_ENCODE_AVC_TQ_PARAMS       pTrellisQuantParams);
 
     virtual MOS_STATUS SetDmemHuCBrcInitReset();
@@ -97,14 +97,14 @@ private:
 protected:
     virtual MOS_STATUS PopulateBrcInitParam(
         void *cmd);
-		
+
     virtual MOS_STATUS PopulateBrcUpdateParam(
         void *cmd);
-		
+
     virtual MOS_STATUS PopulateEncParam(
         uint8_t meMethod,
         void    *cmd);
-		
+
     virtual MOS_STATUS PopulatePakParam(
         PMOS_COMMAND_BUFFER cmdBuffer,
         PMHW_BATCH_BUFFER   secondLevelBatchBuffer);

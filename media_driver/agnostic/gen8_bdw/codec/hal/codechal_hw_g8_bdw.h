@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      codechal_hw_g8_bdw.h  
-//! \brief         This modules implements HW interface layer to be used on bdw on all operating systems/DDIs, across CODECHAL components.  
+//! \file      codechal_hw_g8_bdw.h 
+//! \brief         This modules implements HW interface layer to be used on bdw on all operating systems/DDIs, across CODECHAL components. 
 //!
 #ifndef __CODECHAL_HW_G8_BDW_H__
 #define __CODECHAL_HW_G8_BDW_H__
@@ -54,6 +54,5 @@ public:
     //!
     virtual ~CodechalHwInterfaceG8Bdw() {}
 };
-
 
 #endif // __CODECHAL_HW_G8_BDW_H__

@@ -146,7 +146,6 @@ struct MEDIA_OBJECT_DOWNSCALING_2X_STATIC_DATA_G9
     } DW9;
 };
 
-
 //! HEVC encoder intra 32x32 PU mode decision kernel curbe for GEN9
 struct CODECHAL_ENC_HEVC_I_32x32_PU_MODE_DECISION_CURBE_G9
 {
@@ -1411,11 +1410,11 @@ class CodechalEncHevcStateG9 : public CodechalEncHevcState
 protected:
     static constexpr uint32_t                   NUM_CONCURRENT_THREAD = 2;              //!< Number of concurrent threads
     static constexpr uint32_t                   MAX_NUM_KERNEL_SPLIT = 8;               //!< Maximal kernel split number
-    static constexpr uint32_t                   BRC_CONSTANT_SURFACE_WIDTH = 64;        //!< BRC constant surface width        
+    static constexpr uint32_t                   BRC_CONSTANT_SURFACE_WIDTH = 64;        //!< BRC constant surface width
     static constexpr uint32_t                   BRC_CONSTANT_SURFACE_HEIGHT= 53;        //!< BRC constant surface height
     static constexpr uint32_t                   BRC_HISTORY_BUFFER_SIZE = 576;          //!< BRC history buffer size
-    
-    //! Encoder surface index 
+
+    //! Encoder surface index
     enum SURFACE_ID
     {
         SURFACE_RAW_Y = 0,
@@ -1457,7 +1456,7 @@ protected:
         SURFACE_RAW_FC_8bit_Y,
         SURFACE_RAW_FC_8bit_Y_UV,
         SURFACE_RAW_MBSTAT,
-        // Statistics output 
+        // Statistics output
         SURFACE_PU_STATS,
         SURFACE_8X8_PU_HAAR_DIST,
         SURFACE_8X8_PU_FRAME_STATS,
@@ -1470,7 +1469,7 @@ protected:
         SURFACE_FEI_CTB_DISTORTION,
         SURFACE_NUM_TOTAL
     };
-    
+
     static const uint8_t                        m_ftqBasedSkip[NUM_TARGET_USAGE_MODES];   //!< FTP Skip LUT
     static const uint8_t                        m_meMethod[NUM_TARGET_USAGE_MODES];       //!< ME method LUT
     static const uint8_t                        m_superCombineDist[NUM_TARGET_USAGE_MODES + 1]; //!< m_superCombineDist LUT
@@ -1508,13 +1507,13 @@ protected:
     uint32_t                                    m_fixedPointLambdaForLuma = 0;         //!< Fixed point lambda value for luma
     uint32_t                                    m_fixedPointLambdaForChroma = 0;       //!< Fixed point lambda value for chroma
     double                                      m_qpLambdaMd[3][QP_NUM] = { { 0.0 } }; //!< Mode decision lambda table
-    double                                      m_qpLambdaMe[3][QP_NUM] = { { 0.0 } }; //!< Motion search lambda table 
+    double                                      m_qpLambdaMe[3][QP_NUM] = { { 0.0 } }; //!< Motion search lambda table
 
     // Resources for the render engine
     MOS_SURFACE                                 m_scaled2xSurface;                       //!< 2x scaled surfaces
     MOS_SURFACE                                 m_sliceMapSurface;                       //!< Slice map surface
     CODECHAL_ENCODE_BUFFER                      m_32x32PuOutputData;                   //!< 32x32 PU output buffer
-    CODECHAL_ENCODE_BUFFER                      m_sad16x16Pu;                          //!< SAD 16x16 PU buffer 
+    CODECHAL_ENCODE_BUFFER                      m_sad16x16Pu;                          //!< SAD 16x16 PU buffer
     CODECHAL_ENCODE_BUFFER                      m_vme8x8Mode;                          //!< VME 8x8 mode buffer
     CODECHAL_ENCODE_BUFFER                      m_intraMode;                           //!< Intra mode buffer
     CODECHAL_ENCODE_BUFFER                      m_intraDist;                           //!< Intra distortion buffer
@@ -1529,7 +1528,7 @@ protected:
     CODECHAL_ENCODE_BUFFER                      m_mvIndex;                             //!< MV index buffer
     CODECHAL_ENCODE_BUFFER                      m_mvpIndex;                            //!< MVP index buffer
 
-    // Rolling I or intra refresh 
+    // Rolling I or intra refresh
     bool                                        m_firstIntraRefresh = false;         //!< First intra fresh flag
     uint32_t                                    m_frameNumInGob = 0;                 //!< Frame number in GOP
     uint32_t                                    m_frameNumWithoutIntraRefresh = 0;   //!< Frame number without intra fresh
@@ -1578,8 +1577,8 @@ protected:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS SendMeSurfaces(
-        CodechalHwInterface         *hwInterface, 
-        PMOS_COMMAND_BUFFER         cmdBuffer, 
+        CodechalHwInterface         *hwInterface,
+        PMOS_COMMAND_BUFFER         cmdBuffer,
         MeSurfaceParams             *params);
 
     //!
@@ -1918,7 +1917,7 @@ protected:
         DsStage downScaleStage,
         uint32_t index,
         uint32_t refListIdx);
-       
+
     //!
     //! \brief    Convert picture coding type to HEVC frame type
     //!

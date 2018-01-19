@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      codechal_hw_g8_X.cpp  
-//! \brief         This modules implements HW interface layer for gen8 platforms to be used on on all operating systems/DDIs, across CODECHAL components.  
+//! \file      codechal_hw_g8_X.cpp 
+//! \brief         This modules implements HW interface layer for gen8 platforms to be used on on all operating systems/DDIs, across CODECHAL components. 
 //!
 #include "codechal_hw_g8_X.h"
 #include "mhw_state_heap_g8.h"

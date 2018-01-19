@@ -1039,7 +1039,7 @@ VAStatus DdiEncodeBase::CreateBuffer(
         //which havent been exposed. the permb QP buffer of FEI is 1D buffer.
         if (CODECHAL_FUNCTION_ENC_PAK == m_encodeCtx->codecFunction ||
             CODECHAL_FUNCTION_ENC_VDENC_PAK == m_encodeCtx->codecFunction ||
-            (((CODECHAL_FUNCTION_FEI_ENC_PAK == m_encodeCtx->codecFunction) || (CODECHAL_FUNCTION_FEI_ENC == m_encodeCtx->codecFunction)) && 
+            (((CODECHAL_FUNCTION_FEI_ENC_PAK == m_encodeCtx->codecFunction) || (CODECHAL_FUNCTION_FEI_ENC == m_encodeCtx->codecFunction)) &&
               (m_encodeCtx->wModeType == CODECHAL_ENCODE_MODE_HEVC)))
         {
             buf->iWidth = MOS_ALIGN_CEIL(size, 64);

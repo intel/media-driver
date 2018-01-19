@@ -90,7 +90,7 @@ static uint32_t codechalEncodeSearchPath[2][8][16] =
             0x1F11F10F, 0x2E22E2FE, 0x20E220DF, 0x2EDD06FC, 0x11D33FF1, 0xEB1FF33D, 0x02F1F1F1, 0x1F201111,
             0xF1EFFF0C, 0xF01104F1, 0x10FF0A50, 0x000FF1C0, 0x00000000, 0x00000000, 0x00000000, 0x00000000
         }
-            
+
     },
     // B-Frame
     {
@@ -108,7 +108,7 @@ static uint32_t codechalEncodeSearchPath[2][8][16] =
         {
             0x0101F00F, 0x0F0F1010, 0xF0F0F00F, 0x01010101, 0x10101010, 0x0F0F0F0F, 0xF0F0F00F, 0x0101F0F0,
             0x01010101, 0x10101010, 0x0F0F1010, 0x0F0F0F0F, 0xF0F0F00F, 0xF0F0F0F0, 0x00000000, 0x00000000
-                    
+
         },
         // MEMethod: 3
         {

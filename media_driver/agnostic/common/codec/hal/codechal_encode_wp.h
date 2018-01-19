@@ -35,12 +35,12 @@
 //! \class    CodechalEncodeWP
 //! \brief    Weighted prediction kernel base class
 //! \details  Entry point to create weighted prediction class instance 
-//!          
+//! 
 //!         This class defines the base class for weighted prediction feature, it includes
 //!         common member fields, functions, interfaces etc shared by all Gens.
 //!
 //!         To create an instance, client needs to call #CodechalEncodeWP::CreateWPState()
-//!  
+//!
 class CodechalEncodeWP
 {
 public:
@@ -59,7 +59,7 @@ public:
         *        \n - m: the weight or offset used in the weighted prediction process (0 = weight, 1 = offset)
         */
         uint16_t        weights[2][32][3][2] = {};
-        uint8_t         luma_log2_weight_denom = 0; //!< Same as AVC syntax element.    
+        uint8_t         luma_log2_weight_denom = 0; //!< Same as AVC syntax element.
     };
 
     //!
@@ -127,7 +127,7 @@ public:
     //!
     //! \return   PMOS_SURFACE
     //!           Pointer to MOS surface
-    //!    
+    //!
     PMOS_SURFACE GetWPOutputPicList(uint8_t index) { return &m_surfaceParams.weightedPredOutputPicList[index]; }
 
     //!
@@ -920,7 +920,7 @@ protected:
 
     //!
     //! \brief    Constructor
-    //!            
+    //!
     CodechalEncodeWP(CodechalEncoderState* encoder);
 
     CodechalEncoderState*       m_encoder = nullptr;                         //!< Pointer to ENCODER base class
@@ -941,7 +941,7 @@ protected:
 
     //!
     //! Reference to data members in Encoder class
-    //! 
+    //!
     bool&                       m_useHwScoreboard;
     bool&                       m_renderContextUsesNullHw;
     bool&                       m_groupIdSelectSupported;

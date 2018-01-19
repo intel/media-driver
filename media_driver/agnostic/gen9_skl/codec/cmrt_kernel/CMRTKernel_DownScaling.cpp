@@ -38,7 +38,7 @@ CMRTKernelDownScaling::CMRTKernelDownScaling()
     m_cmVmeSurfCount    = 0;
 
     if (m_cmSurface2DCount > 0)
-    { 
+    {
         m_cmSurface2D   = (CmSurface2D **)malloc(sizeof(CmSurface2D *) * m_cmSurface2DCount);
         if (m_cmSurface2D != NULL)
         {
@@ -63,7 +63,7 @@ CMRTKernelDownScaling::CMRTKernelDownScaling()
             memset(m_cmVmeSurf, 0, sizeof(SurfaceIndex *) * m_cmVmeSurfCount);
         }
     }
- 
+
     m_surfIndex         = (SurfaceIndex **)malloc(sizeof(SurfaceIndex *) * (m_cmSurface2DCount + m_cmBufferCount + m_cmVmeSurfCount));
     if (m_surfIndex != NULL)
     {
@@ -89,7 +89,7 @@ CMRTKernelDownScaling::~CMRTKernelDownScaling()
     }
 
     if (m_surfIndex != nullptr)
-    {    
+    {
         free(m_surfIndex);
     }
 }
@@ -105,15 +105,15 @@ CM_RETURN_CODE CMRTKernelDownScaling::CreateAndDispatchKernel(CmEvent *&cmEvent,
     CM_RETURN_CODE r = CM_SUCCESS;
     int32_t result;
     uint32_t *curbe = (uint32_t *)m_curbe;
-    uint32_t reserved[7]; 
+    uint32_t reserved[7];
     uint32_t width, height, scaling2xWidth, scaling2xHeight, threadSpaceWidth, threadSpaceHeight;
-    
+
     width =  curbe[0] & 0x0FFFF;
     height = (curbe[0] >> 16) & 0x0FFFF;
- 
+
     scaling2xWidth = (16 * MOS_ROUNDUP_DIVIDE(width , 32));
     scaling2xHeight = (16 * MOS_ROUNDUP_DIVIDE(height , 32));
-    
+
     if (scaling2xWidth < 48)
     {
         scaling2xWidth = 48;
@@ -133,12 +133,11 @@ CM_RETURN_CODE CMRTKernelDownScaling::CreateAndDispatchKernel(CmEvent *&cmEvent,
     m_cmKernel->SetKernelArg(3, sizeof(SurfaceIndex), m_surfIndex[0]);            // DW8
     m_cmKernel->SetKernelArg(4, sizeof(SurfaceIndex), m_surfIndex[1]);            // DW9
 
-
     CM_CHK_STATUS_RETURN(m_cmKernel->SetThreadCount(threadSpaceWidth * threadSpaceHeight));
     //create Thread Space
     result = m_cmDev->CreateThreadSpace(threadSpaceWidth, threadSpaceHeight, m_cmThreadSpace);
     if (result != CM_SUCCESS)
-    { 
+    {
         printf("CM Create ThreadSpace error : %d", result);
         return (CM_RETURN_CODE)result;
     }
@@ -161,7 +160,7 @@ CM_RETURN_CODE CMRTKernelDownScalingUMD::AllocateSurfaces(void *params)
         Mos_Specific_SetResourceFormat(&m_mosResourceWA, CM_SURFACE_FORMAT_R8G8_SNORM);
         Mos_Specific_SetResourceWidth(&m_mosResourceWA, Mos_Specific_GetResourcePitch(&m_mosResourceWA) / 2);
 
-        CM_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D(&m_mosResourceWA, m_cmSurface2D[0]));            
+        CM_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D(&m_mosResourceWA, m_cmSurface2D[0]));
         CM_CHK_STATUS_RETURN(m_cmSurface2D[0]->GetIndex(m_surfIndex[0]));
 
         CM_SURFACE2D_STATE_PARAM surfaceParams;

@@ -350,7 +350,7 @@ VAStatus DdiDecodeVP8::RenderPicture(
         case VAProbabilityBufferType:
         {
             VAProbabilityDataBufferVP8 *probInput = (VAProbabilityDataBufferVP8 *)data;
-	    DDI_CHK_RET(ParseProbabilityData(m_ddiDecodeCtx->BufMgr.Codec_Param.Codec_Param_VP8.pVP8ProbabilityDataBuffObject, probInput),"ParseProbabilityData failed!");
+        DDI_CHK_RET(ParseProbabilityData(m_ddiDecodeCtx->BufMgr.Codec_Param.Codec_Param_VP8.pVP8ProbabilityDataBuffObject, probInput),"ParseProbabilityData failed!");
             DdiMedia_MediaBufferToMosResource(m_ddiDecodeCtx->BufMgr.Codec_Param.Codec_Param_VP8.pVP8ProbabilityDataBuffObject,
                 &m_ddiDecodeCtx->BufMgr.Codec_Param.Codec_Param_VP8.resProbabilityDataBuffer);
             m_ddiDecodeCtx->DecodeParams.m_coefProbSize = dataSize;
@@ -508,10 +508,10 @@ void DdiDecodeVP8::FreeResourceBuffer()
     bufMgr->pSliceData = nullptr;
 }
 
-uint8_t* DdiDecodeVP8::GetPicParamBuf( 
-    DDI_CODEC_COM_BUFFER_MGR    *bufMgr) 
-{ 
-    return (uint8_t*)(&(bufMgr->Codec_Param.Codec_Param_VP8.PicParamVP8)); 
+uint8_t* DdiDecodeVP8::GetPicParamBuf(
+    DDI_CODEC_COM_BUFFER_MGR    *bufMgr)
+{
+    return (uint8_t*)(&(bufMgr->Codec_Param.Codec_Param_VP8.PicParamVP8));
 }
 
 VAStatus DdiDecodeVP8::AllocSliceControlBuffer(

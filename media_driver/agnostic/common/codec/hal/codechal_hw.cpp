@@ -168,10 +168,10 @@ MOS_STATUS CodechalHwInterface::InitCacheabilityControlSettings(
 
     if (l3CachingEnabled)
     {
-		InitL3CacheSettings();
-	}
+        InitL3CacheSettings();
+    }
 
-	return eStatus;
+    return eStatus;
 }
 
 MOS_STATUS CodechalHwInterface::InitL3CacheSettings()
@@ -181,15 +181,15 @@ MOS_STATUS CodechalHwInterface::InitL3CacheSettings()
         CODECHAL_HW_CHK_STATUS_RETURN(m_renderInterface->EnableL3Caching(nullptr));
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-		// Override default L3 cache settings
-		auto l3CacheConfig =
-			m_renderInterface->GetL3CacheConfig();
-		MHW_RENDER_ENGINE_L3_CACHE_SETTINGS l3Overrides;
-		CODECHAL_HW_CHK_STATUS_RETURN(InitL3ControlUserFeatureSettings(
-			l3CacheConfig,
-			&l3Overrides));
-		CODECHAL_HW_CHK_STATUS_RETURN(m_renderInterface->EnableL3Caching(
-			&l3Overrides));
+        // Override default L3 cache settings
+        auto l3CacheConfig =
+            m_renderInterface->GetL3CacheConfig();
+        MHW_RENDER_ENGINE_L3_CACHE_SETTINGS l3Overrides;
+        CODECHAL_HW_CHK_STATUS_RETURN(InitL3ControlUserFeatureSettings(
+            l3CacheConfig,
+            &l3Overrides));
+        CODECHAL_HW_CHK_STATUS_RETURN(m_renderInterface->EnableL3Caching(
+            &l3Overrides));
 #endif // (_DEBUG || _RELEASE_INTERNAL)
 
     return MOS_STATUS_SUCCESS;
@@ -701,9 +701,9 @@ uint32_t CodechalHwInterface::ComposeSurfaceCacheabilityControl(
             if (cacheSetting.Gen8.TargetCache == CODECHAL_MO_TARGET_CACHE_ELLC)
             {
                 //Check if the SKU doesn't have EDRAM
-				if (!MEDIA_IS_SKU(m_skuTable, FtrEDram))
+                if (!MEDIA_IS_SKU(m_skuTable, FtrEDram))
                 {
-                    // No eDRAM, set the caching to uncache 
+                    // No eDRAM, set the caching to uncache
                     cacheSetting.Gen8.CacheControl = 1;
                 }
             }
@@ -720,7 +720,7 @@ MOS_STATUS CodechalHwInterface::AddHucDummyStreamOut(
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
-	if (!MEDIA_IS_WA(m_waTable, WaHucStreamoutEnable))
+    if (!MEDIA_IS_WA(m_waTable, WaHucStreamoutEnable))
     {
         return eStatus;
     }
@@ -844,7 +844,7 @@ MOS_STATUS CodechalHwInterface::PerformHucStreamOut(
     CODECHAL_HW_FUNCTION_ENTER;
     CODECHAL_HW_CHK_NULL_RETURN(cmdBuffer);
 
-	if (MEDIA_IS_SKU(m_skuTable, FtrEnableMediaKernels) && MEDIA_IS_WA(m_waTable, WaHucStreamoutEnable))
+    if (MEDIA_IS_SKU(m_skuTable, FtrEnableMediaKernels) && MEDIA_IS_WA(m_waTable, WaHucStreamoutEnable))
     {
         CODECHAL_HW_CHK_STATUS_RETURN(AddHucDummyStreamOut(cmdBuffer));
     }
@@ -891,8 +891,8 @@ MOS_STATUS CodechalHwInterface::PerformHucStreamOut(
     CODECHAL_HW_CHK_STATUS_RETURN(m_hucInterface->AddHucStreamObjectCmd(cmdBuffer, &streamObjParams));
 
     // This flag is always false if huc fw is not loaded.
-	if (MEDIA_IS_SKU(m_skuTable, FtrEnableMediaKernels) &&
-		MEDIA_IS_WA(m_waTable, WaHucStreamoutOnlyDisable))
+    if (MEDIA_IS_SKU(m_skuTable, FtrEnableMediaKernels) &&
+        MEDIA_IS_WA(m_waTable, WaHucStreamoutOnlyDisable))
     {
         CODECHAL_HW_CHK_STATUS_RETURN(AddHucDummyStreamOut(cmdBuffer));
     }
@@ -1047,8 +1047,8 @@ MOS_STATUS CodechalHwInterface::InitL3ControlUserFeatureSettings(
 {
     CODECHAL_HW_FUNCTION_ENTER;
 
-	CODECHAL_HW_CHK_NULL_RETURN(l3CacheConfig);
-	CODECHAL_HW_CHK_NULL_RETURN(l3Overrides);
+    CODECHAL_HW_CHK_NULL_RETURN(l3CacheConfig);
+    CODECHAL_HW_CHK_NULL_RETURN(l3Overrides);
 
     MOS_USER_FEATURE_VALUE_DATA userFeatureData;
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
@@ -1158,37 +1158,36 @@ MOS_STATUS CodechalHwInterface::SendMiAtomicDwordCmd(
 }
 
 MOS_STATUS CodechalHwInterface::SendCondBbEndCmd(
-	PMOS_RESOURCE              resource,
-	uint32_t                   offset,
-	uint32_t                   compData,
-	bool                       disableCompMask,
-	PMOS_COMMAND_BUFFER        cmdBuffer)
+    PMOS_RESOURCE              resource,
+    uint32_t                   offset,
+    uint32_t                   compData,
+    bool                       disableCompMask,
+    PMOS_COMMAND_BUFFER        cmdBuffer)
 {
-	MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
-	CODECHAL_HW_FUNCTION_ENTER;
+    CODECHAL_HW_FUNCTION_ENTER;
 
-	if (!Mos_ResourceIsNull(&m_conditionalBbEndDummy))
-	{
-		MHW_MI_FLUSH_DW_PARAMS flushDwParams;
-		MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
-		flushDwParams.postSyncOperation = 1;
-		flushDwParams.pOsResource = &m_conditionalBbEndDummy;
-		flushDwParams.dwDataDW1 = 0;
-		CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(cmdBuffer, &flushDwParams));
-	}
+    if (!Mos_ResourceIsNull(&m_conditionalBbEndDummy))
+    {
+        MHW_MI_FLUSH_DW_PARAMS flushDwParams;
+        MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
+        flushDwParams.postSyncOperation = 1;
+        flushDwParams.pOsResource = &m_conditionalBbEndDummy;
+        flushDwParams.dwDataDW1 = 0;
+        CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(cmdBuffer, &flushDwParams));
+    }
 
-	MHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS conditionalBatchBufferEndParams;
-	MOS_ZeroMemory(&conditionalBatchBufferEndParams, sizeof(conditionalBatchBufferEndParams));
-	conditionalBatchBufferEndParams.presSemaphoreBuffer = resource;
-	conditionalBatchBufferEndParams.dwOffset = offset;
-	conditionalBatchBufferEndParams.dwValue = compData;
-	conditionalBatchBufferEndParams.bDisableCompareMask = disableCompMask;
-	eStatus = m_miInterface->AddMiConditionalBatchBufferEndCmd(cmdBuffer, &conditionalBatchBufferEndParams);
+    MHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS conditionalBatchBufferEndParams;
+    MOS_ZeroMemory(&conditionalBatchBufferEndParams, sizeof(conditionalBatchBufferEndParams));
+    conditionalBatchBufferEndParams.presSemaphoreBuffer = resource;
+    conditionalBatchBufferEndParams.dwOffset = offset;
+    conditionalBatchBufferEndParams.dwValue = compData;
+    conditionalBatchBufferEndParams.bDisableCompareMask = disableCompMask;
+    eStatus = m_miInterface->AddMiConditionalBatchBufferEndCmd(cmdBuffer, &conditionalBatchBufferEndParams);
 
-	return eStatus;
+    return eStatus;
 }
-
 
 MOS_STATUS CodechalHwInterface::MhwInitISH(
     PMHW_STATE_HEAP_INTERFACE   stateHeapInterface,

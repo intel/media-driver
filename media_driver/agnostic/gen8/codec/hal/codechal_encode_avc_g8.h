@@ -863,38 +863,38 @@ struct CodechalEncodeAvcEncG8 : public CodechalEncodeAvcEnc
     static const uint32_t m_mbencCurbeSizeInDword = 96;
     static const uint32_t m_mbencNumTargetUsagesCm = 3;
     static const uint32_t m_hmeFirstStep           = 0;
-    
+
     static const uint32_t m_hmeFollowingStep = 1;
     static const uint32_t m_mvShiftFactor32x = 1;
     static const uint32_t m_mvShiftFactor16x = 2;
     static const uint32_t m_mvShiftFactor4x  = 2;
     static const uint32_t m_prevMvReadPosition16x = 1;
     static const uint32_t m_prevMvReadPosition8x = 0;
-    
+
     // BRC Constant Surface
     static const uint32_t m_brcConstantSurfaceQpList0 = 32;
     static const uint32_t m_brcConstantSurfaceQpList0Reserved = 32;
     static const uint32_t m_brcConstantSurfaceQpList1 = 32;
     static const uint32_t m_brcConstantSurfaceQpList1Reserved = 160;
-    
+
     static const uint32_t m_brcConstantSurfaceWidth = 64;
     static const uint32_t m_brcConstantSurfaceHeight = 44;
-    
+
     static const uint32_t m_initBrcHistoryBufferSize  = 864;
     static const uint32_t m_brcConstantSurfaceIntraCostScalingFactor = 64;
-    
+
     static const uint32_t m_sfdOutputBufferSize = 128;
-    
+
     static const uint32_t m_cabacZone0Threshold = 128;
     static const uint32_t m_cabacZone1Threshold = 384;
     static const uint32_t m_cabacZone2Threshold = 768;
     static const uint32_t m_cabacZone3Threshold = 65535;
-    
+
     static const uint32_t m_cabacWaZone0IMinQp  = 10;
     static const uint32_t m_cabacWaZone1IMinQp  = 12;
     static const uint32_t m_cabacWaZone2IMinQp  = 14;
     static const uint32_t m_cabacWaZone3IMinQp  = 16;
-    
+
     static const uint32_t m_cabacWaZone0PMinQp  = 4;
     static const uint32_t m_cabacWaZone1PMinQp  = 6;
     static const uint32_t m_cabacWaZone2PMinQp  = 8;
@@ -906,13 +906,12 @@ struct CodechalEncodeAvcEncG8 : public CodechalEncodeAvcEnc
     static const uint32_t m_initMBEncCurbeCmNormalPField[m_mbencCurbeSizeInDword];
     static const uint32_t m_initMBEncCurbeCmNormalBFrame[m_mbencCurbeSizeInDword];
     static const uint32_t m_initMBEncCurbeCmNormalBField[m_mbencCurbeSizeInDword];
-    static const uint32_t m_initMBEncCurbeCmIFrameDist[m_mbencCurbeSizeInDword]; 
+    static const uint32_t m_initMBEncCurbeCmIFrameDist[m_mbencCurbeSizeInDword];
     static const uint32_t m_initMeCurbeCm[39];
     static const int32_t  m_brcBtCounts[CODECHAL_ENCODE_BRC_IDX_NUM];
     static const int32_t  m_brcCurbeSize[CODECHAL_ENCODE_BRC_IDX_NUM];
     static const uint32_t m_trellisQuantizationRounding[NUM_TARGET_USAGE_MODES];
-    
-      
+
     //!
     //! \brief    Constructor
     //!
@@ -921,23 +920,21 @@ struct CodechalEncodeAvcEncG8 : public CodechalEncodeAvcEnc
         CodechalDebugInterface *debugInterface,
         PCODECHAL_STANDARD_INFO standardInfo);
 
-
     ~CodechalEncodeAvcEncG8();
 
     static MOS_STATUS GetKernelHeaderAndSize(
         void                           *pvBinary,
         EncOperation                   operation,
-		uint32_t                       krnStateIdx,
+        uint32_t                       krnStateIdx,
         void                           *krnHeader,
-		uint32_t                       *krnSize);
+        uint32_t                       *krnSize);
 
     void UpdateSSDSliceCount();
-    
+
     virtual MOS_STATUS InitMbBrcConstantDataBuffer(
         PCODECHAL_ENCODE_AVC_INIT_MBBRC_CONSTANT_DATA_BUFFER_PARAMS params);
 
     virtual MOS_STATUS InitializeState();
-
 
     //!
     //! \brief    Init ME kernel state
@@ -946,7 +943,7 @@ struct CodechalEncodeAvcEncG8 : public CodechalEncodeAvcEnc
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS InitKernelStateMe();
-    
+
     virtual MOS_STATUS InitKernelStateMbEnc();
 
     virtual MOS_STATUS InitKernelStateWP();
@@ -993,7 +990,7 @@ struct CodechalEncodeAvcEncG8 : public CodechalEncodeAvcEnc
     virtual MOS_STATUS SendMeSurfaces(
         PMOS_COMMAND_BUFFER pCmdBuffer,
         MeSurfaceParams* params);
-        
+
     virtual MOS_STATUS SetCurbeMe(MeCurbeParams* params);
     //!
     //! \brief    initial multi ref Qp BRC constant Buffer.
@@ -1002,10 +999,9 @@ struct CodechalEncodeAvcEncG8 : public CodechalEncodeAvcEnc
     //!           BRC init constant buffer params.
     //!
     //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason   
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
     MOS_STATUS InitBrcConstantBufferMultiRefQP(PCODECHAL_ENCODE_AVC_INIT_BRC_CONSTANT_BUFFER_PARAMS params);
 
-    
 };
 
 using PCodechalEncodeAvcEncG8       = CodechalEncodeAvcEncG8*;

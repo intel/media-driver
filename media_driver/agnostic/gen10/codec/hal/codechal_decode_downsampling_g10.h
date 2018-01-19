@@ -33,7 +33,7 @@ class FieldScalingInterfaceG10 : public FieldScalingInterface
 public:
     //!
     //! \brief    Constructor
-    //!            
+    //!
     FieldScalingInterfaceG10(CodechalHwInterface *hwInterface);
 
     //!

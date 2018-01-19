@@ -197,9 +197,9 @@ typedef struct _CODECHAL_VDENC_AVC_BRC_UPDATE_DMEM_G9_SKL
     uint8_t     UPD_SLCSZ_ConsertativeThreshold_U8;   // =0, 0: do not set conservative threshold (suggested for video conference) 1: set conservative threshold for non-video conference
     uint16_t    UPD_TargetSliceSize_U16;              // default: 1498, max target slice size from app DDI
     uint16_t    UPD_MaxNumSliceAllowed_U16;           // computed by driver based on level idc
-    uint16_t    UPD_SLBB_Size_U16;                    // second level batch buffer (SLBB) size in bytes, the input buffer will contain two SLBBs A and B, A followed by B, A and B have the same structure. 
+    uint16_t    UPD_SLBB_Size_U16;                    // second level batch buffer (SLBB) size in bytes, the input buffer will contain two SLBBs A and B, A followed by B, A and B have the same structure.
     uint16_t    UPD_SLBB_B_Offset_U16;                // offset in bytes from the beginning of the input buffer, it points to the start of SLBB B, set by driver for skip frame support
-    uint16_t    UPD_AvcImgStateOffset_U16;            // offset in bytes from the beginning of SLBB A 
+    uint16_t    UPD_AvcImgStateOffset_U16;            // offset in bytes from the beginning of SLBB A
 
     /* HME distortion based QP adjustment */
     uint16_t    AveHmeDist_U16;
@@ -475,7 +475,7 @@ MOS_STATUS CodechalVdencAvcStateG9Skl::LoadHmeMvCostTable(PCODEC_AVC_ENCODE_SEQU
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
-    
+
     const uint32_t(*puiVdencHmeCostTable)[CODEC_AVC_NUM_QP];
     puiVdencHmeCostTable = HmeCost;
 

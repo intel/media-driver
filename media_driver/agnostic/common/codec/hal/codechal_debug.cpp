@@ -472,7 +472,7 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
     {
     case Format_YUY2:
     case Format_Y216V:
-    case Format_P010: 
+    case Format_P010:
     case Format_P016:
         width = width << 1;
         break;
@@ -524,7 +524,7 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
     case Format_NV12:
     case Format_P010:
     case Format_P016:
-        height >>= 1; 
+        height >>= 1;
         break;
     case  Format_Y416:
     case  Format_AYUV:
@@ -613,7 +613,7 @@ MOS_STATUS CodechalDebugInterface::DumpBuffer(
     const char *fileName;
     bool binaryDump = m_configMgr->AttrIsEnabled(CodechalDbgAttr::attrDumpBufferInBinary);
     const char* extType = binaryDump ? CodechalDbgExtType::dat : CodechalDbgExtType::txt;
-    
+
     if (mediaState == CODECHAL_NUM_MEDIA_STATES)
     {
         fileName = CreateFileName(bufferName, attrName, extType);
@@ -870,10 +870,9 @@ MOS_STATUS CodechalDebugInterface::DumpHucRegion(
         funcName = funcName + inputName + bufName + regionNumName + regionName + "_Pass" + passName;
         break;
     }
- 
+
     return DumpBuffer(region, nullptr, funcName.c_str(), regionSize, regionOffset);
 }
-
 
 MOS_STATUS CodechalDebugInterface::DeleteCfgLinkNode(uint32_t frameIdx)
 {

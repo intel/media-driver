@@ -608,7 +608,7 @@ VAStatus DdiEncodeAvc::ParseMiscParamROI(void *data)
     DDI_CHK_NULL(m_encodeCtx->pMediaCtx->m_caps, "nullptr m_caps", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     int32_t maxROIsupported = 0;
-    bool isROIValueInDeltaQP = false; 
+    bool isROIValueInDeltaQP = false;
     m_encodeCtx->pMediaCtx->m_caps->QueryAVCROIMaxNum(m_encodeCtx->uiRCMethod, &maxROIsupported, &isROIValueInDeltaQP);
     if (maxROIsupported == 0)
     {
@@ -761,7 +761,6 @@ VAStatus DdiEncodeAvc::ContextInitialize(CodechalSetting * codecHalSettings)
     {
         m_encodeCtx->ppNALUnitParams[i] = &(nalUnitParams[i]);
     }
-
 
     VAStatus status = m_encodeCtx->pCpDdiInterface->ParseCpParamsForEncode();
     if (VA_STATUS_SUCCESS != status)
@@ -1739,7 +1738,7 @@ VAStatus DdiEncodeAvc::ParsePackedHeaderData(void *ptr)
                 uint32_t nalType = (*header)&0x1f;
                 if (nalType != 0xe) {
                     break;
-                }                
+                }
             } else if (2 == scFound)
             {
                 m_encodeCtx->pSliceHeaderData[m_encodeCtx->uiSliceHeaderCnt].SkipEmulationByteCount = MOS_MIN(15, scanCount);  // HW can only skip up to 15 bytes

@@ -27,12 +27,12 @@
 #include "codechal_mmc_decode_mpeg2.h"
 
 CodechalMmcDecodeMpeg2::CodechalMmcDecodeMpeg2(
-    CodechalHwInterface    *hwInterface, 
+    CodechalHwInterface    *hwInterface,
     void *standardState):
     CodecHalMmcState(hwInterface)
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
-    
+
     m_mpeg2State = (CodechalDecodeMpeg2 *)standardState;
     CODECHAL_HW_ASSERT(m_mpeg2State);
 
@@ -69,7 +69,7 @@ MOS_STATUS CodechalMmcDecodeMpeg2::SetPipeBufAddr(
     PMOS_COMMAND_BUFFER cmdBuffer)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
+
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     CODECHAL_DECODE_CHK_NULL_RETURN(m_mpeg2State->m_picParams);
@@ -93,7 +93,7 @@ MOS_STATUS CodechalMmcDecodeMpeg2::SetRefrenceSync(
     bool disableLockForTranscode)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
+
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     CODECHAL_DECODE_CHK_NULL_RETURN(m_mpeg2State->m_picParams);

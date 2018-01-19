@@ -242,35 +242,35 @@ MOS_STATUS CodechalEncoderState::DestroyMeResources(
             m_osInterface,
             &param->ps16xMeMvDataBuffer->OsResource);
     }
-    
+
     if (param->ps32xMeMvDataBuffer != nullptr)
     {
         m_osInterface->pfnFreeResource(
             m_osInterface,
             &param->ps32xMeMvDataBuffer->OsResource);
     }
-    
+
     if (param->ps4xMeDistortionBuffer != nullptr)
     {
         m_osInterface->pfnFreeResource(
             m_osInterface,
             &param->ps4xMeDistortionBuffer->OsResource);
     }
-    
+
     if (param->ps4xMeMvDataBuffer != nullptr)
     {
         m_osInterface->pfnFreeResource(
             m_osInterface,
             &param->ps4xMeMvDataBuffer->OsResource);
     }
-    
+
     if (param->presMvAndDistortionSumSurface != nullptr)
     {
         m_osInterface->pfnFreeResource(
             m_osInterface,
             param->presMvAndDistortionSumSurface);
     }
-    
+
     return eStatus;
 }
 
@@ -650,7 +650,7 @@ MOS_STATUS CodechalEncoderState::Initialize(
                     &userFeatureData);
                 m_walkerMode = (MHW_WALKER_MODE)userFeatureData.u32Data;
 #endif // _DEBUG || _RELEASE_INTERNAL
-                
+
                 if (MEDIA_IS_SKU(m_skuTable, FtrSliceShutdownOverride))
                 {
                     //Default Slice State
@@ -717,7 +717,7 @@ MOS_STATUS CodechalEncoderState::Initialize(
                             &userFeatureData);
 
                         if (statusKey == MOS_STATUS_SUCCESS && userFeatureData.StringData.uSize > 0)
-                        { 
+                        {
                             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnLoadLibrary(m_osInterface, path_buffer, &m_swBrcMode));
                         }
                     }
@@ -1120,7 +1120,6 @@ MOS_STATUS  CodechalEncoderState::FreeMDFKernelSurfaces(
     return MOS_STATUS_SUCCESS;
 }
 
-
 MOS_STATUS CodechalEncoderState::InitCommon()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
@@ -1134,7 +1133,7 @@ MOS_STATUS CodechalEncoderState::InitCommon()
     m_picQuant              = encodeParams->bPicQuant ? true: false;        // used by AVC and MPEG2
     m_newQmatrixData        = encodeParams->bNewQmatrixData ? true: false;  // used by AVC and MPEG2
     m_numSlices             = encodeParams->dwNumSlices;                    // used by all except VP9
-    m_slcData               = 
+    m_slcData               =
         (PCODEC_ENCODER_SLCDATA)(encodeParams->pSlcHeaderData);             // used by AVC, MPEG2, and HEVC
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(encodeParams->presBitstreamBuffer);
@@ -1152,7 +1151,7 @@ MOS_STATUS CodechalEncoderState::InitCommon()
     {
         m_reconSurface     = *(encodeParams->psReconSurface);         // used by all except JPEG
     }
-    
+
     if(encodeParams->pBSBuffer)
     {
         m_bsBuffer          = *(encodeParams->pBSBuffer);              // used by all except VP9
@@ -1179,7 +1178,7 @@ MOS_STATUS CodechalEncoderState::CheckResChangeAndCsc()
     }
 #ifndef _FULL_OPEN_SOURCE
     // check recon surface's alignment meet HW requirement
-	CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->CheckReconSurfaceAlignment(&m_reconSurface));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->CheckReconSurfaceAlignment(&m_reconSurface));
 
     if (!m_cscDsState->IsEnabled() ||
         CodecHal_PictureIsField(m_currOriginalPic) ||
@@ -1189,7 +1188,7 @@ MOS_STATUS CodechalEncoderState::CheckResChangeAndCsc()
         m_cscDsState->ResetCscFlag();
 
         // check raw surface's alignment meet HW requirement
-		CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->CheckRawSurfaceAlignment(m_rawSurfaceToEnc));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->CheckRawSurfaceAlignment(m_rawSurfaceToEnc));
     }
     else
     {
@@ -1253,8 +1252,8 @@ MOS_STATUS CodechalEncoderState::AllocateResources()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateSyncResource(m_osInterface, &m_resSyncObjectRenderContextInUse));
     }
 
-    //For HEVC, moved to standard specific as LCU size is not available here 
-    if  (m_hwInterface->GetMfxInterface()->IsRowStoreCachingSupported() && 
+    //For HEVC, moved to standard specific as LCU size is not available here
+    if  (m_hwInterface->GetMfxInterface()->IsRowStoreCachingSupported() &&
          ((m_mode == CODECHAL_ENCODE_MODE_AVC)                              ||
           (m_mode == CODECHAL_ENCODE_MODE_VP9 && m_vdencEnabled)))
     {
@@ -1392,11 +1391,11 @@ MOS_STATUS CodechalEncoderState::AllocateResources()
         m_encodeStatusBufRcs.wFirstIndex             = 0;
     }
 
-    if (m_pakEnabled) 
+    if (m_pakEnabled)
     {
         m_stateHeapInterface->pfnSetCmdBufStatusPtr(m_stateHeapInterface, m_encodeStatusBuf.pData);
     }
-    else 
+    else
     {
         m_stateHeapInterface->pfnSetCmdBufStatusPtr(m_stateHeapInterface, m_encodeStatusBufRcs.pData);
     }
@@ -1411,16 +1410,16 @@ MOS_STATUS CodechalEncoderState::AllocateResources()
         allocParamsForBufferLinear.Type     = MOS_GFXRES_BUFFER;
         allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
         allocParamsForBufferLinear.Format   = Format_Buffer;
-        
+
         size  = MHW_CACHELINE_SIZE * 4 * 2; //  each set of scratch is 4 cacheline size, and allocate 2 set.
         allocParamsForBufferLinear.dwBytes  = size;
         allocParamsForBufferLinear.pBufName = "atomic sratch buffer";
-            
+
         eStatus = (MOS_STATUS)m_osInterface->pfnAllocateResource(
                 m_osInterface,
                 &allocParamsForBufferLinear,
                 &(m_atomicScratchBuf.resAtomicScratchBuffer));
-  
+
         if (eStatus != MOS_STATUS_SUCCESS)
         {
             CODECHAL_ENCODE_ASSERTMESSAGE("Failed to allocate Finger Print Source Buffer.");
@@ -1437,7 +1436,7 @@ MOS_STATUS CodechalEncoderState::AllocateResources()
             CODECHAL_ENCODE_ASSERTMESSAGE("Failed to lock Finger Print Source Buffer.");
             return eStatus;
         }
- 
+
         MOS_ZeroMemory(data, size);
         m_atomicScratchBuf.pData                 = (uint32_t*)data;
         m_atomicScratchBuf.dwSize                = size;
@@ -1717,7 +1716,7 @@ MOS_STATUS CodechalEncoderState::ExecuteMeKernel(
     uint32_t krnStateIdx = vdencMeInUse ?
         CODECHAL_ENCODE_ME_IDX_VDENC :
         ((m_pictureCodingType == P_TYPE) ? CODECHAL_ENCODE_ME_IDX_P : CODECHAL_ENCODE_ME_IDX_B);
-    
+
     PMHW_KERNEL_STATE kernelState = &m_meKernelStates[krnStateIdx];
 
     // If Single Task Phase is not enabled, use BT count for the kernel state.
@@ -1803,7 +1802,7 @@ MOS_STATUS CodechalEncoderState::ExecuteMeKernel(
     previous frames would be left in the buffer (for example, the L1 mv for B frame would still show
     in the P frame mv data buffer */
 
-    // Zeroing out the buffers has perf impact, so zero it out only when dumps are actually enabled 
+    // Zeroing out the buffers has perf impact, so zero it out only when dumps are actually enabled
     CODECHAL_DEBUG_TOOL(
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_debugInterface);
     uint8_t* data = NULL;
@@ -2079,7 +2078,7 @@ void CodechalEncoderState::FreeResources()
             m_osInterface->pfnUnlockResource(
             m_osInterface,
             &(m_atomicScratchBuf.resAtomicScratchBuffer));
-            
+
             m_osInterface->pfnFreeResource(
                 m_osInterface,
                 &m_atomicScratchBuf.resAtomicScratchBuffer);
@@ -2242,8 +2241,8 @@ MOS_STATUS CodechalEncoderState::VerifySpaceAvailable()
         // OS could reset the sizes if necessary, therefore, requires to re-verify
         for (auto i = 0; i < 3; i++)
         {
-            //Experiment shows resizing CmdBuf size and PatchList size in two calls one after the other would cause previously 
-            //successfully requested size to fallback to wrong value, hence never satisfying the requirement. So we call pfnResize() 
+            //Experiment shows resizing CmdBuf size and PatchList size in two calls one after the other would cause previously
+            //successfully requested size to fallback to wrong value, hence never satisfying the requirement. So we call pfnResize()
             //only once depending on whether CmdBuf size not enough, or PatchList size not enough, or both.
             if (m_usePatchList)
             {
@@ -2300,8 +2299,8 @@ MOS_STATUS CodechalEncoderState::VerifySpaceAvailable()
         uint32_t requestedSizeOriginal = 0, requestedPatchListSizeOriginal = 0;
         for (auto i = 0; i < 3; i++)
         {
-            //Experiment shows resizing CmdBuf size and PatchList size in two calls one after the other would cause previously 
-            //successfully requested size to fallback to wrong value, hence never satisfying the requirement. So we call pfnResize() 
+            //Experiment shows resizing CmdBuf size and PatchList size in two calls one after the other would cause previously
+            //successfully requested size to fallback to wrong value, hence never satisfying the requirement. So we call pfnResize()
             //only once depending on whether CmdBuf size not enough, or PatchList size not enough, or both.
             if (m_usePatchList)
             {
@@ -2399,7 +2398,7 @@ MOS_STATUS CodechalEncoderState::AddMediaVfeCmd(
         // Scoreboard 2
         vfeParams.Scoreboard.ScoreboardDelta[2].x = 0xF;
         vfeParams.Scoreboard.ScoreboardDelta[2].y = 3;
-        // Scoreboard 3                               
+        // Scoreboard 3
         vfeParams.Scoreboard.ScoreboardDelta[3].x = 0xF;
         vfeParams.Scoreboard.ScoreboardDelta[3].y = 1;
     }
@@ -2631,8 +2630,8 @@ MOS_STATUS CodechalEncoderState::ReadImageStatus(
         MHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams;
 
         // Added for VDEnc slice overflow bit in MFC_IMAGE_STATUS_CONTROL
-        // The bit is connected on the non-AVC encoder side of MMIO register. 
-        // Need a dummy MFX_PIPE_MODE_SELECT to decoder and read this register. 
+        // The bit is connected on the non-AVC encoder side of MMIO register.
+        // Need a dummy MFX_PIPE_MODE_SELECT to decoder and read this register.
         if (m_waReadVDEncOverflowStatus)
         {
             MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
@@ -3018,12 +3017,12 @@ MOS_STATUS CodechalEncoderState::EndStatusReport(
         &storeDataParams));
 
     if (encFunctionType == CODECHAL_NUM_MEDIA_STATES && m_inlineEncodeStatusUpdate)
-    {   
+    {
         if (m_currPass < m_numPasses)
         {
             if(m_vdencBrcEnabled)
             {
-                //delay to check at the beginning of next pass util huc status updated;                
+                //delay to check at the beginning of next pass util huc status updated;
             }
             else
             {
@@ -3223,7 +3222,7 @@ MOS_STATUS CodechalEncoderState::UpdateEncodeStatus(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiAtomicCmd(
             cmdBuffer,
             &atomicParams));
-                
+
         // n3_lo = 0
         MOS_ZeroMemory(&storeDataParams, sizeof(storeDataParams));
         storeDataParams.pOsResource = &(m_atomicScratchBuf.resAtomicScratchBuffer);
@@ -3246,7 +3245,7 @@ MOS_STATUS CodechalEncoderState::UpdateEncodeStatus(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterMemCmd(
             cmdBuffer,
             &registerMemParams));
-        
+
         // Reset GPR4_Lo
         MOS_ZeroMemory(&registerMemParams, sizeof(registerMemParams));
         registerMemParams.presStoreBuffer = &(m_atomicScratchBuf.resAtomicScratchBuffer);
@@ -3255,7 +3254,7 @@ MOS_STATUS CodechalEncoderState::UpdateEncodeStatus(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterMemCmd(
             cmdBuffer,
             &registerMemParams));
-            
+
         // Make Flush DW call to make sure all previous work is done
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(
             cmdBuffer,
@@ -3269,16 +3268,16 @@ MOS_STATUS CodechalEncoderState::UpdateEncodeStatus(
         atomicParams.dwDataSize = sizeof(uint32_t);
         atomicParams.Operation = MHW_MI_ATOMIC_CMP;
         atomicParams.bReturnData = true;
-        
+
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiAtomicCmd(
             cmdBuffer,
             &atomicParams));
-        
+
         // n2_hi = 1
         MOS_ZeroMemory(&storeDataParams, sizeof(storeDataParams));
         storeDataParams.pOsResource =&(m_atomicScratchBuf.resAtomicScratchBuffer);
         storeDataParams.dwResourceOffset = operand2Offset + sizeof(uint32_t);
-        storeDataParams.dwValue          = 1; 
+        storeDataParams.dwValue          = 1;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(
             cmdBuffer,
             &storeDataParams));
@@ -3287,7 +3286,7 @@ MOS_STATUS CodechalEncoderState::UpdateEncodeStatus(
         MOS_ZeroMemory(&storeDataParams, sizeof(storeDataParams));
         storeDataParams.pOsResource =&(m_atomicScratchBuf.resAtomicScratchBuffer);
         storeDataParams.dwResourceOffset = operand3Offset + sizeof(uint32_t);
-        storeDataParams.dwValue          = 1; 
+        storeDataParams.dwValue          = 1;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(
             cmdBuffer,
             &storeDataParams));
@@ -3308,8 +3307,8 @@ MOS_STATUS CodechalEncoderState::UpdateEncodeStatus(
         registerMemParams.dwRegister = mmioRegisters->generalPurposeRegister0HiOffset; // VCS_GPR0_Hi
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterMemCmd(
             cmdBuffer,
-            &registerMemParams));  
-       
+            &registerMemParams));
+
         // Reset GPR4_Lo and GPR4_Hi
         MOS_ZeroMemory(&registerMemParams, sizeof(registerMemParams));
         registerMemParams.presStoreBuffer =&(m_atomicScratchBuf.resAtomicScratchBuffer);
@@ -3317,14 +3316,14 @@ MOS_STATUS CodechalEncoderState::UpdateEncodeStatus(
         registerMemParams.dwRegister = mmioRegisters->generalPurposeRegister4LoOffset; // VCS_GPR4_Hi
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterMemCmd(
             cmdBuffer,
-            &registerMemParams));  
+            &registerMemParams));
         MOS_ZeroMemory(&registerMemParams, sizeof(registerMemParams));
         registerMemParams.presStoreBuffer = &(m_atomicScratchBuf.resAtomicScratchBuffer);
         registerMemParams.dwOffset  =  zeroValueOffset ;
         registerMemParams.dwRegister = mmioRegisters->generalPurposeRegister4HiOffset; // VCS_GPR4_Hi
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterMemCmd(
             cmdBuffer,
-            &registerMemParams));  
+            &registerMemParams));
 
         // Make Flush DW call to make sure all previous work is done
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(
@@ -3356,7 +3355,7 @@ MOS_STATUS CodechalEncoderState::UpdateEncodeStatus(
         registerMemParams.dwRegister = mmioRegisters->generalPurposeRegister0LoOffset; // VCS_GPR0_Lo
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterMemCmd(
             cmdBuffer,
-            &registerMemParams));   
+            &registerMemParams));
 
         // Make Flush DW call to make sure all previous work is done
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(
@@ -3380,14 +3379,14 @@ MOS_STATUS CodechalEncoderState::UpdateEncodeStatus(
         registerMemParams.dwRegister = mmioRegisters->generalPurposeRegister0LoOffset; // VCS_GPR0_Lo
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterMemCmd(
             cmdBuffer,
-            &registerMemParams));   
+            &registerMemParams));
 
         // step-5: m_storeData = m_storeData + VCS_GPR0_Lo = m_storeData + n2_hi
         // if not completed n2_hi should be 0, then m_storeData = m_storeData + 0
         // if completed, n2_hi should be 1, then m_storeData = m_storeData + 1
         MOS_ZeroMemory(&atomicParams, sizeof(atomicParams));
         atomicParams.pOsResource =&m_encodeStatusBuf.resStatusBuffer;
-        atomicParams.dwResourceOffset =  0;                             
+        atomicParams.dwResourceOffset =  0;
         atomicParams.dwDataSize = sizeof(uint32_t);
         atomicParams.Operation = MHW_MI_ATOMIC_ADD;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiAtomicCmd(
@@ -3670,10 +3669,10 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                         break;
                     }
                 }
-                
+
                 encodeStatusReport->CodecStatus = CODECHAL_STATUS_SUCCESSFUL;
-                
-                if (m_codecFunction == CODECHAL_FUNCTION_HYBRIDPAK && m_mode == CODECHAL_ENCODE_MODE_VP9 && 
+
+                if (m_codecFunction == CODECHAL_FUNCTION_HYBRIDPAK && m_mode == CODECHAL_ENCODE_MODE_VP9 &&
                     encodeStatusReport->CodecStatus != CODECHAL_STATUS_ERROR)
                 {
                      unsigned int size = ((m_frameWidth + 63) >> 6) * ((m_frameHeight + 63) >> 6) + 1;
@@ -3698,13 +3697,13 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                     {
                         //Report out counter read from HW
                         uint64_t *address2Counter = (uint64_t *)(((char *)(m_dataHwCount)) + (index * sizeof(HwCounter)));
-                        
+
                         hwCounterValue.Count = *address2Counter;
                         SwapEndianess(&hwCounterValue.Count); //Report back in Big endian
-                                                                             
+
                         hwCounterValue.IV = *(address2Counter++);          //IV value computation
                         SwapEndianess(&hwCounterValue.IV);
-                        
+
                         encodeStatusReport->HWCounterValue = hwCounterValue;
                         CODECHAL_ENCODE_NORMALMESSAGE("hwCounterValue.Count = 0x%llx, hwCounterValue.IV = 0x%llx", hwCounterValue.Count, hwCounterValue.IV);
                     }
@@ -3721,11 +3720,10 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                     encodeStatusReport->SuggestedQpYDelta =
                         encodeStatus->ImageStatusCtrl.CumulativeSliceDeltaQP;
                     encodeStatusReport->NumberPasses = (uint8_t)(encodeStatus->ImageStatusCtrl.TotalNumPass + 1);
-                    encodeStatusReport->SceneChangeDetected = 
+                    encodeStatusReport->SceneChangeDetected =
                         (encodeStatus->dwSceneChangedFlag & CODECHAL_ENCODE_SCENE_CHANGE_DETECTED_MASK) ? 1 : 0;
 
                     CODECHAL_ENCODE_CHK_NULL_RETURN(m_skuTable);
-
 
                     if (m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface))
                     {
@@ -4144,7 +4142,7 @@ MOS_STATUS CodechalEncoderState::ExecuteEnc(
         }
 
         m_encodeParams = *encodeParams;
-        
+
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetCpInterface()->UpdateParams(true));
 
         if (CodecHalUsesVideoEngine(m_codecFunction))

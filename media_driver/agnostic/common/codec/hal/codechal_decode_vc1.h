@@ -448,7 +448,7 @@ protected:
     //!
     //! \brief    Construct VC1 decode bitstream buffer
     //! \details  For WaVC1ShortFormat. Construct VC1 decode bistream buffer by
-    //            adding a stuffing byte ahead of frame bitstream data. It's for 
+    //            adding a stuffing byte ahead of frame bitstream data. It's for
     //            simple & main profile short format only.
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason

@@ -141,7 +141,7 @@ VAStatus DdiEncodeAvcFei::EncodeInCodecHal(uint32_t numSlices)
         reconSurface->dwOffset = 0;
 
         DdiMedia_MediaSurfaceToMosResource(rtTbl->pCurrentReconTarget, &(reconSurface->OsResource));
-     
+
         // Bitstream surface
         PMOS_RESOURCE bitstreamSurface = &encodeParams->resBitstreamBuffer;
         *bitstreamSurface        = m_encodeCtx->resBitstreamBuffer;  // in render picture
@@ -820,7 +820,6 @@ VAStatus DdiEncodeAvcFei::ParseMiscParams(void *ptr)
     case VAEncMiscParameterTypeSubMbPartPel:
         status = ParseMiscParamSubMbPartPel((void *)miscParamBuf->data);
         break;
-
 
     default:
         DDI_ASSERTMESSAGE("unsupported misc parameter type.");

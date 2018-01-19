@@ -294,6 +294,5 @@ typedef struct _CODEC_VC1_MB_PARAMS
     } motion_vector[4];
 } CODEC_VC1_MB_PARAMS, *PCODEC_VC1_MB_PARAMS;
 
-
 #endif  // __CODEC_DEF_DECODE_VC1_H__
 

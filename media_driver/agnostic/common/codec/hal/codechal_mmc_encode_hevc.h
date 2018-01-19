@@ -41,7 +41,7 @@ public:
     //! \brief    Constructor
     //!
     CodechalMmcEncodeHevc(
-        CodechalHwInterface    *hwInterface, 
+        CodechalHwInterface    *hwInterface,
         void *standardState);
 
     //!
@@ -52,9 +52,9 @@ public:
     MOS_STATUS SetPipeBufAddr(
         PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams,
         PMOS_COMMAND_BUFFER cmdBuffer = nullptr) override;
-    
+
     CodechalEncodeHevcBase           *m_hevcState = nullptr; //!< Pinter to HEVC encode state
-    
+
 };
 
 #endif  // __CODECHAL_MMC_ENCODE_AVC_H__

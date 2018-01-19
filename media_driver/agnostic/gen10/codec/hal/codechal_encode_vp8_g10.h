@@ -41,7 +41,6 @@ struct CodechalEncodeVp8InitKernelStateParams
     int32_t                         iCurbeCount;
 };
 
-
 class CodechalEncodeVp8G10 : public CodechalEncodeVp8
 {
 public:
@@ -62,7 +61,7 @@ protected:
     MOS_STATUS Initialize(CodechalSetting * codecHalSettings);
 
     MOS_STATUS InitKernelStateHelper(struct CodechalEncodeVp8InitKernelStateParams* params);
-    
+
     MOS_STATUS InitKernelState() override;
 
     //!

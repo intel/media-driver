@@ -184,7 +184,7 @@ public:
     static const uint32_t  m_brcConstantSurfaceHeight       = 35;       //!< BRC constant surface height
     static const uint32_t  m_minScaledSurfaceSize           = 64;       //!< Minimal scaled surface size
     static const uint32_t  m_brcCombinedEncBufferSize       = 128;      //!< Brc Combined Enc buffer size
-    
+
     static const uint32_t  m_brcLcu32x32LambdaModeCost[m_brcLambdaModeCostTableSize>>2];   //!< Lambda mode cost table for BRC LCU32x32
     static const uint32_t  m_brcLcu64x64LambdaModeCost[m_brcLambdaModeCostTableSize>>2];   //!< Lambda mode cost table for BRC LCU64x64
     static const uint32_t  m_encIConstantDataLut[m_encIConstantDataLutSize];               //!< Constant data table for I kernel
@@ -219,7 +219,7 @@ public:
     CODECHAL_ENCODE_BUFFER  m_jobQueueHeaderSurfaceForBLcu64;          //!< Job Queue Header buffer surface
     MOS_SURFACE             m_jobQueueDataSurfaceForBLcu64Cu32;        //!< Job Queue Data Surface for LCU64 CU32
     MOS_SURFACE             m_jobQueueDataSurfaceForBLcu64;            //!< Job Queue Data Surface for LCU64
-    MOS_SURFACE             m_cuSplitSurface;                          //!< Cu Split Surface 
+    MOS_SURFACE             m_cuSplitSurface;                          //!< Cu Split Surface
     MOS_SURFACE             m_mbStatisticsSurface;                     //!< MB statistics surface
     MOS_SURFACE             m_mbSplitSurface;                          //!< MB split surface
     MOS_SURFACE             m_residualDataScratchSurfaceForBLcu32;     //!< Residual Data Scratch Surface for LCU 32 B-kernel
@@ -261,7 +261,7 @@ public:
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!    
+    //!
     MOS_STATUS AllocateMeResources();
 
     //!
@@ -292,9 +292,9 @@ public:
     static MOS_STATUS GetKernelHeaderAndSize(
         void                           *binary,
         EncOperation                   operation,
-		uint32_t                       krnStateIdx,
+        uint32_t                       krnStateIdx,
         void                           *krnHeader,
-		uint32_t                       *krnSize);
+        uint32_t                       *krnSize);
 
     //!
     //! \brief    Get encoder kernel header and kernel size

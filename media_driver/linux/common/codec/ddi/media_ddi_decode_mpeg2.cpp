@@ -378,7 +378,7 @@ VAStatus DdiDecodeMPEG2::RenderPicture(
                 (VASliceParameterBufferMPEG2 *)data;
             int32_t numSlices = buf->iNumElements;
             DDI_CHK_RET(AllocSliceParamContext(numSlices),"AllocSliceParamContext failed!");
-			DDI_CHK_RET(ParseSliceParams(mediaCtx, slcInfoMpeg2, numSlices),"ParseSliceParams failed!");
+            DDI_CHK_RET(ParseSliceParams(mediaCtx, slcInfoMpeg2, numSlices),"ParseSliceParams failed!");
             m_ddiDecodeCtx->DecodeParams.m_numSlices += numSlices;
             m_groupIndex++;
             break;
@@ -386,14 +386,14 @@ VAStatus DdiDecodeMPEG2::RenderPicture(
         case VAPictureParameterBufferType:
         {
             VAPictureParameterBufferMPEG2 *picParam = (VAPictureParameterBufferMPEG2 *)data;
-			DDI_CHK_RET(ParsePicParams(mediaCtx, picParam),"ParsePicParams failed!");
+            DDI_CHK_RET(ParsePicParams(mediaCtx, picParam),"ParsePicParams failed!");
             break;
         }
         case VAIQMatrixBufferType:
         {
             VAIQMatrixBufferMPEG2 *imxBuf =
                 (VAIQMatrixBufferMPEG2 *)data;
-			DDI_CHK_RET(ParseIQMatrix(mediaCtx, imxBuf),"ParseIQMatrix failed!");
+            DDI_CHK_RET(ParseIQMatrix(mediaCtx, imxBuf),"ParseIQMatrix failed!");
             break;
         }
         case VADecodeStreamoutBufferType:
@@ -454,10 +454,10 @@ void DdiDecodeMPEG2::DestroyContext(
     DdiMediaDecode::DestroyContext(ctx);
 }
 
-uint8_t* DdiDecodeMPEG2::GetPicParamBuf( 
-    DDI_CODEC_COM_BUFFER_MGR    *bufMgr) 
-{ 
-    return (uint8_t*)(&(bufMgr->Codec_Param.Codec_Param_MPEG2.PicParamMPEG2)); 
+uint8_t* DdiDecodeMPEG2::GetPicParamBuf(
+    DDI_CODEC_COM_BUFFER_MGR    *bufMgr)
+{
+    return (uint8_t*)(&(bufMgr->Codec_Param.Codec_Param_MPEG2.PicParamMPEG2));
 }
 
 VAStatus DdiDecodeMPEG2::AllocSliceControlBuffer(

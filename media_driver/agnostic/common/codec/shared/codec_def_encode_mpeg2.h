@@ -58,7 +58,7 @@ enum CodecEncodeMpeg2ExtensionStartCode
 //!
 //! \struct CodecEncodeMpeg2SequenceParams
 //! \brief  MPEG2 Sequence Parameter Set
-//! 
+//!
 struct CodecEncodeMpeg2SequenceParams
 {
     uint16_t  m_frameWidth;                     //!< Width of picture in unit of pixels
@@ -74,7 +74,7 @@ struct CodecEncodeMpeg2SequenceParams
         uint16_t  m_aratioFrate;                    //!< Aspect ratio and frame rate
         struct
         {
-            uint16_t  m_aspectRatio           : 4;  //!< Aspect ratio 
+            uint16_t  m_aspectRatio           : 4;  //!< Aspect ratio
             uint16_t  m_frameRateCode         : 4;  //!< Frame rate Code
             uint16_t  m_frameRateExtN         : 3;  //!< Frame rate extend numerator
             uint16_t  m_frameRateExtD         : 5;  //!< Frame rate extend denominator
@@ -86,8 +86,8 @@ struct CodecEncodeMpeg2SequenceParams
 
     uint8_t   m_progressiveSequence           : 1;  //!< Indicate progressive sequence
     uint8_t   m_lowDelay                      : 1;  //!< Indicate low delay
-    uint8_t   m_resetBRC                      : 1;  //!< Indicate if a BRC reset is desired to set a new bit rate or frame rate 
-    uint8_t   m_noAcceleratorSPSInsertion     : 1;  //!< Indicates if current SPS is just a BRC parameter update, not a SPS change to be inserted into the bitstream.  
+    uint8_t   m_resetBRC                      : 1;  //!< Indicate if a BRC reset is desired to set a new bit rate or frame rate
+    uint8_t   m_noAcceleratorSPSInsertion     : 1;  //!< Indicates if current SPS is just a BRC parameter update, not a SPS change to be inserted into the bitstream.
     uint8_t   m_forcePanicModeControl         : 1;  // Force to control the panic mode through DDI.
     uint8_t   m_panicModeDisable              : 1;  // Disable the panic mode
     uint8_t   m_reserved0                     : 2;  //!<  Reserved
@@ -104,24 +104,24 @@ struct CodecEncodeMpeg2SequenceParams
 //!
 //! \struct CodecEncodeMpeg2PictureParams
 //! \brief  MPEG2 Picture Parameter Set
-//! 
+//!
 struct CodecEncodeMpeg2PictureParams
 {
     CODEC_PICTURE       m_currOriginalPic;               //!< The current uncompressed original frame surface for encoding
     CODEC_PICTURE       m_currReconstructedPic;          //!< The uncompressed frame surface for the current reconstructed picture.
-    uint8_t             m_pictureCodingType;             //!< Coding Type 
+    uint8_t             m_pictureCodingType;             //!< Coding Type
     uint8_t             m_fieldCodingFlag           : 1; //!< Indication of field mode coding when set to 1.
     uint8_t             m_fieldFrameCodingFlag      : 1; //!< Indication interlaced frame coding
     uint8_t             m_reserved0                 : 2; //!< Reserved
-    uint8_t             m_interleavedFieldBFF       : 1; //!< Indication of input picture layout has top field and bottom field interleaved together 
-                                                         //!< with bottom field first when set to 1; otherwise (when set to 0) it is  
+    uint8_t             m_interleavedFieldBFF       : 1; //!< Indication of input picture layout has top field and bottom field interleaved together
+                                                         //!< with bottom field first when set to 1; otherwise (when set to 0) it is 
                                                          //!< interleaved with top field first.
-    uint8_t             m_progressiveField          : 1; //!< Indication of input picture layout has only one field picture (half of a frame) stored progressively 
+    uint8_t             m_progressiveField          : 1; //!< Indication of input picture layout has only one field picture (half of a frame) stored progressively
     uint8_t             m_reserved1                 : 2; //!< Reserved
 
     uint8_t             m_numSlice;                      //!< Number of slices per frame; number of slices per field in field coding
     uint8_t             m_picBackwardPrediction;         //!< Indicates whether any macroblocks of the current picture might include backward prediction
-    uint8_t             m_bidirectionalAveragingMode;    //!< Indicates the rounding method for combining prediction planes in bidirectional motion compensation 
+    uint8_t             m_bidirectionalAveragingMode;    //!< Indicates the rounding method for combining prediction planes in bidirectional motion compensation
     uint8_t             m_pic4MVallowed;                 //!< Picture 4 MV allowed
     CODEC_PICTURE       m_refFrameList[2];               //!< List of reference frame buffers
     bool                m_useRawPicForRef;               //!< Setting to 1 may improve performance at the cost of image quality
@@ -144,7 +144,7 @@ struct CodecEncodeMpeg2PictureParams
     bool                m_lastPicInStream;               //!< Indicate the last picture of the stream
     bool                m_newGop;                        //!< Indicates that a new GOP will start with this picture
 
-    uint16_t            m_gopPicSize;                    //!< Number of pictures within the current GOP 
+    uint16_t            m_gopPicSize;                    //!< Number of pictures within the current GOP
     uint8_t             m_gopRefDist;                    //!< Distance between I- or P (or GPB) - key frames
     uint8_t             m_gopOptFlag                : 2; //!< Indicate the additional flags for the GOP specification
     uint8_t             m_reserved3                 : 6; //!< Reserved
@@ -175,7 +175,7 @@ struct CodecEncodeMpeg2PictureParams
 //!
 //! \struct CodecEncodeMpeg2SliceParmas
 //! \brief  MPEG2 Slice Parameters
-//! 
+//!
 struct CodecEncodeMpeg2SliceParmas
 {
     uint16_t      m_numMbsForSlice;                 //!< Number of macroblocks per slice
@@ -198,12 +198,11 @@ struct CodecEncodeMpeg2VuiParams
     uint32_t    m_transferCharacteristics   : 8; //!< The opto-electronic transfer characteristic of the source picture
     uint32_t    m_matrixCoefficients        : 8; //!< The matrix coefficients used in deriving luminance and chrominance signals
 
-    uint32_t    m_displayHorizontalSize     : 14;//!< The horizontal size of the display active region 
+    uint32_t    m_displayHorizontalSize     : 14;//!< The horizontal size of the display active region
     uint32_t    m_reserved1                 : 2; //!< Reserved
     uint32_t    m_displayVerticalSize       : 14;//!< The vertical size of the display active region
     uint32_t    m_reserved2                 : 2; //!< Reserved
 };
-
 
 //!
 //! \struct CodecEncodeMpeg2QmatixParams
@@ -227,6 +226,5 @@ struct CodecEncodeMpeg2UserDataList
     uint32_t                        m_userDataSize;
     CodecEncodeMpeg2UserDataList    *m_nextItem;
 };
-
 
 #endif  // __CODEC_DEF_ENCODE_MPEG2_H__

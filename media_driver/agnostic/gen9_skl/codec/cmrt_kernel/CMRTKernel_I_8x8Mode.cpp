@@ -105,14 +105,14 @@ CM_RETURN_CODE CMRTKernelI8x8Mode::CreateAndDispatchKernel(CmEvent *&cmEvent, bo
     CM_RETURN_CODE r = CM_SUCCESS;
     int32_t result;
     uint8_t i, idx = 0;
-    uint32_t width, height, width_padded, height_padded, threadSpaceWidth, threadSpaceHeight; 
+    uint32_t width, height, width_padded, height_padded, threadSpaceWidth, threadSpaceHeight;
     uint32_t *curbe=(uint32_t *)m_curbe;
 
     width = curbe[0] & 0x0FFFF;
     height = (curbe[0] >> 16) & 0x0FFFF;
     width_padded = ((width + 16) >> 5) << 5;
     height_padded = ((height + 16) >> 5) << 5;
-    
+
     if (*((uint32_t *)m_curbe + 1) & 0x40)
     {
         threadSpaceWidth = width_padded >> 5;
@@ -147,7 +147,7 @@ CM_RETURN_CODE CMRTKernelI8x8Mode::CreateAndDispatchKernel(CmEvent *&cmEvent, bo
 CM_RETURN_CODE CMRTKernelI8x8ModeUMD::AllocateSurfaces(void *params)
 {
     IFrameKernelParams *I8x8ModeParams = (IFrameKernelParams *)params;
- 
+
     CM_BUFFER_STATE_PARAM bufParams;
     memset(&bufParams, 0, sizeof(CM_BUFFER_STATE_PARAM));
     bufParams.uiSize = I8x8ModeParams->m_bufSize;

@@ -237,7 +237,7 @@ MOS_STATUS CodechalEncodeCscDs::SetKernelParamsCsc(KernelParams* params)
     // setup surface states
     m_surfaceParamsCsc.psInputSurface = m_rawSurfaceToEnc;
     m_surfaceParamsCsc.psOutputCopiedSurface = m_cscFlag ? m_encoder->m_trackedBuf->GetCurrCscSurface() : nullptr;
-    m_surfaceParamsCsc.psOutput4xDsSurface = 
+    m_surfaceParamsCsc.psOutput4xDsSurface =
         m_scalingEnabled ? m_encoder->m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER) : nullptr;
 
     if (m_mbStatsSupported)
@@ -377,10 +377,10 @@ MOS_STATUS CodechalEncodeCscDs::SendSurfaceCsc(PMOS_COMMAND_BUFFER cmdBuffer)
         surfaceParams.dwSize = CODECHAL_GET_WIDTH_IN_MACROBLOCKS(m_surfaceParamsCsc.psInputSurface->dwWidth) *
             CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(m_surfaceParamsCsc.psInputSurface->dwHeight) * 16 * sizeof(uint32_t);
         surfaceParams.presBuffer = m_surfaceParamsCsc.presMBVProcStatsBuffer;
-		surfaceParams.dwCacheabilityControl =
-			m_hwInterface->ComposeSurfaceCacheabilityControl(
-				MOS_CODEC_RESOURCE_USAGE_MB_STATS_ENCODE,
-				codechalLLC | codechalL3);
+        surfaceParams.dwCacheabilityControl =
+            m_hwInterface->ComposeSurfaceCacheabilityControl(
+                MOS_CODEC_RESOURCE_USAGE_MB_STATS_ENCODE,
+                codechalLLC | codechalL3);
         surfaceParams.dwBindingTableOffset = cscDstFlatOrMbStats;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
             m_hwInterface,
@@ -461,7 +461,7 @@ MOS_STATUS CodechalEncodeCscDs::SetSurfacesToEncPak()
     // dump copied surface from Ds+Copy kernel
     if (m_cscFlag)
     {
-        CODECHAL_DEBUG_TOOL( 
+        CODECHAL_DEBUG_TOOL(
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
                 cscSurface,
                 CodechalDbgAttr::attrEncodeRawInputSurface,
@@ -565,15 +565,15 @@ MOS_STATUS CodechalEncodeCscDs::InitKernelStateDS()
 MOS_STATUS CodechalEncodeCscDs::SetCurbeDS4x()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
-    
+
     Ds4xKernelCurbeData curbe;
-    
+
     curbe.DW0_InputPictureWidth = m_curbeParams.dwInputPictureWidth;
     curbe.DW0_InputPictureHeight = m_curbeParams.dwInputPictureHeight;
 
     curbe.DW1_InputYBTIFrame = ds4xSrcYPlane;
     curbe.DW2_OutputYBTIFrame = ds4xDstYPlane;
-    
+
     if (m_curbeParams.bFieldPicture)
     {
         curbe.DW3_InputYBTIBottomField = ds4xSrcYPlaneBtmField;
@@ -1022,7 +1022,7 @@ MOS_STATUS CodechalEncodeCscDs::CheckCondition()
 
 MOS_STATUS CodechalEncodeCscDs::CheckReconSurfaceAlignment(PMOS_SURFACE surface)
 {
-	CODECHAL_ENCODE_FUNCTION_ENTER;
+    CODECHAL_ENCODE_FUNCTION_ENTER;
 
     uint8_t alignment;
     if (m_standard == CODECHAL_HEVC ||
@@ -1082,7 +1082,7 @@ MOS_STATUS CodechalEncodeCscDs::WaitCscSurface(MOS_GPU_CONTEXT gpuContext, bool 
     syncParams.GpuContext = gpuContext;
     syncParams.bReadOnly = readOnly;
     syncParams.presSyncResource = &m_encoder->m_trackedBuf->GetCurrCscSurface()->OsResource;
-    
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnResourceWait(m_osInterface, &syncParams));
     m_osInterface->pfnSetResourceSyncTag(m_osInterface, &syncParams);
 
@@ -1172,7 +1172,7 @@ MOS_STATUS CodechalEncodeCscDs::CscUsingSfc(ENCODE_INPUT_COLORSPACE colorSpace)
         // on-demand sync for CSC surface re-use
         CODECHAL_ENCODE_CHK_STATUS_RETURN(WaitCscSurface(MOS_GPU_CONTEXT_VEBOX, false));
     }
-    
+
     CODECHAL_ENCODE_SFC_PARAMS sfcParams;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetParamsSfc(&sfcParams));
 
@@ -1442,7 +1442,7 @@ MOS_STATUS CodechalEncodeCscDs::DsKernel(
     idParams.pKernelState = m_dsKernelState;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_stateHeapInterface->SetInterfaceDescriptor(1, &idParams));
 
-    uint32_t scaleFactor, downscaledWidthInMb, downscaledHeightInMb; 
+    uint32_t scaleFactor, downscaledWidthInMb, downscaledHeightInMb;
     uint32_t inputFrameWidth, inputFrameHeight, outputFrameWidth, outputFrameHeight;
     uint32_t inputBottomFieldOffset, outputBottomFieldOffset;
     PMOS_SURFACE inputSurface, outputSurface;
@@ -1473,7 +1473,7 @@ MOS_STATUS CodechalEncodeCscDs::DsKernel(
     {
         scaleFactor = SCALE_FACTOR_16x;
         downscaledWidthInMb = m_downscaledWidth16x / CODECHAL_MACROBLOCK_WIDTH;
-        downscaledHeightInMb = m_downscaledHeight16x / CODECHAL_MACROBLOCK_HEIGHT; 
+        downscaledHeightInMb = m_downscaledHeight16x / CODECHAL_MACROBLOCK_HEIGHT;
         if (fieldPicture)
         {
             downscaledHeightInMb = (downscaledHeightInMb + 1) >> 1 << 1;

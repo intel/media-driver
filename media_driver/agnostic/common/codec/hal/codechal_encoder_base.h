@@ -237,7 +237,6 @@ enum BindingTableOffsetKernel
     HmeEnd,
 };
 
-
 //!
 //! \enum   BrcUpdateFlag
 //! \brief  Indicate the Brc Update Flag
@@ -271,9 +270,9 @@ enum TrellisSetting
 //!
 enum MbBrcSetting
 {
-    mbBrcInternal = 0, 
-    mbBrcEnabled  = 1, 
-    mbBrcDisabled = 2, 
+    mbBrcInternal = 0,
+    mbBrcEnabled  = 1,
+    mbBrcDisabled = 2,
 };
 
 // User Feature Key Report Writeout
@@ -301,7 +300,6 @@ enum MbBrcSetting
     UserFeatureWriteData.ValueID        = (key);\
     MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);\
 }
-
 
 // ---------------------------
 // Tables
@@ -1194,7 +1192,7 @@ public:
     MhwMiInterface*                 m_miInterface = nullptr;                   //!< Common Mi Interface
     MhwRenderInterface*             m_renderEngineInterface = nullptr;               //!< Render engine interface
     PMHW_STATE_HEAP_INTERFACE       m_stateHeapInterface = nullptr;                  //!< State heap interface
-    
+
     virtual MOS_STATUS SetCurbeMe(
         MeCurbeParams* params)
     {
@@ -1395,7 +1393,7 @@ public:
     // Encoder private data
     MhwVdboxMfxInterface*           m_mfxInterface = nullptr;                       //!< Mfx Interface
     MhwVdboxHcpInterface*           m_hcpInterface = nullptr;                       //!< Hcp Interface
-    MhwVdboxHucInterface*           m_hucInterface = nullptr;                       //!< Huc Interface  
+    MhwVdboxHucInterface*           m_hucInterface = nullptr;                       //!< Huc Interface
     MhwVdboxVdencInterface*         m_vdencInterface = nullptr;                     //!< Vdenc Interface
     MhwMiInterface*                 m_miInterface = nullptr;                        //!< Mi Interface
     MhwRenderInterface*             m_renderEngineInterface = nullptr;              //!< Render engine interface
@@ -1406,7 +1404,7 @@ public:
     PLATFORM                        m_platform;                                     //!< The platorm info
     MEDIA_FEATURE_TABLE             *m_skuTable = nullptr;                          //!< SKU table
     MEDIA_WA_TABLE                  *m_waTable = nullptr;                           //!< WA table
-    CodecHalMmcState*               m_mmcState = nullptr;                           //!< Memory compression 
+    CodecHalMmcState*               m_mmcState = nullptr;                           //!< Memory compression
     MEDIA_SYSTEM_INFO               *m_gtSystemInfo = nullptr;                      //!< GT system infomation
     MOS_GPU_NODE                    m_videoGpuNode;                                 //!< GPU node of video
     MOS_GPU_CONTEXT                 m_videoContext;                                 //!< GPU context of video
@@ -1613,7 +1611,7 @@ public:
     // VDEnc StreamIn Buffer
     MOS_RESOURCE                    m_resVdencStreamInBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];  //!< Resources of Vdenc stream in buffer
 
-    // Maximum number of slices allowed by video spec 
+    // Maximum number of slices allowed by video spec
     uint32_t                        m_maxNumSlicesAllowed = 0;          //!< Max number of slices allowed
 
     //VDEnc HuC FW status
@@ -1679,9 +1677,9 @@ public:
     // Ds+Copy kernel optimization
     uint8_t                         m_outputChromaFormat = (uint8_t)HCP_CHROMA_FORMAT_YUV420;     //!< 1: 420 2: 422 3: 444
     bool                            m_gopIsIdrFrameOnly = false;                                  //!< GOP structure contains I-frame only
-    PMOS_SURFACE                    m_rawSurfaceToEnc = nullptr;                                  //!< raw surf to enc 
+    PMOS_SURFACE                    m_rawSurfaceToEnc = nullptr;                                  //!< raw surf to enc
     PMOS_SURFACE                    m_rawSurfaceToPak = nullptr;                                  //!< raw surf to pak
-    
+
     // HME VDEnc
     GenericBindingTable             m_vdencMeKernelBindingTable;        //!< Vdenc ME kernel binding table
     MHW_KERNEL_STATE                m_vdencMeKernelState;               //!< Vdenc ME kernel state
@@ -1738,7 +1736,7 @@ public:
     uint32_t                        m_numSkipFrames = 0;        //!< Number of skip frame
     uint32_t                        m_sizeSkipFrames = 0;       //!< acccumulative size of skipped frames for skipflag = 2
     uint32_t                        m_sizeCurrSkipFrame = 0;    //!< size of curr skipped frame for skipflag = 2
-    
+
     MHW_VDBOX_NODE_IND              m_vdboxIndex;               //!< Index of vdbox
 
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -2123,7 +2121,7 @@ public:
 
     //!
     //! \brief  Resize Internal Buffer on Resolution Change
-    //! 
+    //!
     virtual void ResizeOnResChange();
 
     //!

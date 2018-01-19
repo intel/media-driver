@@ -225,8 +225,8 @@ VAStatus DdiEncodeHevcFei::ResetAtFrameLevel()
     feiPicParams->MultiPredL1             = 0;     // 000: no neighbor MVs will be used as predictor for L1, 001: spatial MVs, 010 temporal MVs, others: reserved.
     feiPicParams->SubPelMode              = 3;     // half/quater pixels mode, 00b integer mode search, 01b half mode search, 11b quater mode search
     feiPicParams->AdaptiveSearch          = true;  // whether adaptive searching is enabled for IME
-    feiPicParams->MVPredictorInput        = 0;     // 000: disable MV Predictor input, 001: enabled per 16x16 block, 
-                                                    // 010: enabled per 32x32 block, 
+    feiPicParams->MVPredictorInput        = 0;     // 000: disable MV Predictor input, 001: enabled per 16x16 block,
+                                                    // 010: enabled per 32x32 block,
                                                     // 011: enabled per 64x64 block,
                                                     // 111: block size can vary and is determined by BlockSize in MVP
                                                     // others: reserved
@@ -349,7 +349,7 @@ VAStatus DdiEncodeHevcFei::RenderPicture(VADriverContextP ctx, VAContextID conte
 
     DDI_FUNCTION_EXIT(vaStatus);
     return vaStatus;
-   
+
 }
 
 VAStatus DdiEncodeHevcFei::ParseMiscParamFeiPic(void *data)

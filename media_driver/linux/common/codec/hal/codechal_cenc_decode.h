@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      codechal_cenc_decode.h  
-//! \brief     Stub file for CodecHal CENC Decode  
+//! \file      codechal_cenc_decode.h 
+//! \brief     Stub file for CodecHal CENC Decode 
 //!
 #ifndef __CODECHAL_CENC_DECODE_H__
 #define __CODECHAL_CENC_DECODE_H__
@@ -77,7 +77,6 @@ public:
     {
         return MOS_STATUS_UNIMPLEMENTED;
     };
-
 
     //!
     //! \brief  Get Status Report

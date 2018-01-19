@@ -204,7 +204,7 @@ MOS_STATUS CodechalEncodeAvcBase::SendSlice(
     refIdxParams.pAvcPicIdx = params->pAvcPicIdx;
     refIdxParams.avcRefList = (void**)m_refList;
     refIdxParams.oneOnOneMapping = params->oneOnOneMapping;
-   
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(
         &refIdxParams.RefPicList,
         2 * 32 * sizeof(CODEC_PICTURE),
@@ -225,7 +225,7 @@ MOS_STATUS CodechalEncodeAvcBase::SendSlice(
             weightOffsetParams.uiLumaWeightFlag   = avcSlcParams->luma_weight_flag[LIST_0];
             weightOffsetParams.uiChromaWeightFlag = avcSlcParams->chroma_weight_flag[LIST_0];
             weightOffsetParams.uiNumRefForList    = avcSlcParams->num_ref_idx_l0_active_minus1 + 1;
-            
+
             CODECHAL_ENCODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(
                 &weightOffsetParams.Weights,
                 sizeof(weightOffsetParams.Weights),
@@ -533,7 +533,7 @@ MOS_STATUS CodecHalAvcEncode_GetProfileLevelMaxFrameSize(
         (uint64_t)( ( ((double)iMaxMBPS * frameRateD) /
         (double)seqParams->FramesPer100Sec) * bitsPerMB);
     userMaxFrameSize = seqParams->UserMaxFrameSize;
-    
+
     if ((encoder->m_pictureCodingType != I_TYPE) && (seqParams->UserMaxPBFrameSize > 0))
     {
         userMaxFrameSize = seqParams->UserMaxPBFrameSize;
@@ -1886,7 +1886,6 @@ MOS_STATUS CodecHalAvcEncode_PackSliceHeader(
     return eStatus;
 }
 
-
 MOS_STATUS CodechalEncodeAvcBase::InitMmcState()
 {
 #ifdef _MMC_SUPPORTED
@@ -2136,7 +2135,7 @@ MOS_STATUS CodechalEncodeAvcBase::ReleaseBatchBufferForPakSlices(
 // for AVC, we cannot use the CodecHal_GetBiWeight function since AVC can use B as reference and
 // also supports PAFF
 int32_t CodechalEncodeAvcBase::GetBiWeight(
-    uint32_t distScaleFactorRefID0List0, 
+    uint32_t distScaleFactorRefID0List0,
     uint16_t weightedBiPredIdc)
 {
     int32_t biWeight = 32;      // default value
@@ -2164,7 +2163,7 @@ MOS_STATUS CodechalEncodeAvcBase::AllocateResources()
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncoderState::AllocateResources());
-    
+
     // initiate allocation parameters and lock flags
     MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferLinear;
     MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
@@ -2280,8 +2279,8 @@ MOS_STATUS CodechalEncodeAvcBase::SetSequenceStructs()
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     auto seqParams = m_avcSeqParam;
-    
-    // seq_scaling_matrix_present_flag and chroma_format_idc 
+
+    // seq_scaling_matrix_present_flag and chroma_format_idc
     // shall not be present for main profile
     if (seqParams->Profile == CODEC_AVC_MAIN_PROFILE)
     {
@@ -2396,14 +2395,14 @@ MOS_STATUS CodechalEncodeAvcBase::SetSequenceStructs()
 MOS_STATUS CodechalEncodeAvcBase::SetPictureStructs()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;    
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     auto picParams = m_avcPicParam;
     auto seqParams = m_avcSeqParam;
     auto avcRefList = &m_refList[0];
     auto avcPicIdx = &m_picIdx[0];
     auto slcParams = m_avcSliceParams;
-    
+
     if (seqParams->Profile == CODEC_AVC_MAIN_PROFILE || seqParams->Profile == CODEC_AVC_BASE_PROFILE)
     {
         picParams->transform_8x8_mode_flag = 0;
@@ -2627,7 +2626,7 @@ MOS_STATUS CodechalEncodeAvcBase::SetPictureStructs()
             m_resMbCodeSurface = feiPicParams->resMBCode;
             m_resMvDataSurface = feiPicParams->resMVData;
 
-            // Inside the AvcRefList, mbCodesurface and mvdatasurface are stored at frame basis, 
+            // Inside the AvcRefList, mbCodesurface and mvdatasurface are stored at frame basis,
             // For FEI, mbcode and mv data buffer are provided separately for each field picture and we need to store them separately.
             if (CodecHal_PictureIsTopField(picParams->CurrOriginalPic))
             {
@@ -2708,7 +2707,7 @@ MOS_STATUS CodechalEncodeAvcBase::SetPictureStructs()
                 feiPicParams = (CodecEncodeAvcFeiPicParams *)m_encodeParams.pFeiPicParams;
                 CODECHAL_ENCODE_CHK_NULL_RETURN(feiPicParams);
 
-                // for user provided MbCode and Mv data buffer, set BottomFieldOffset to 0 
+                // for user provided MbCode and Mv data buffer, set BottomFieldOffset to 0
                 if (feiPicParams->MbCodeMvEnable)
                 {
                     m_mbcodeBottomFieldOffset = 0;
@@ -2858,7 +2857,7 @@ MOS_STATUS CodechalEncodeAvcBase::EncodeMeKernel(
             MHW_ISH_TYPE,
             kernelState));
     )
-        
+
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
 
@@ -3070,10 +3069,10 @@ MOS_STATUS CodechalEncodeAvcBase::EncodeMeKernel(
 }
 
 MOS_STATUS CodechalEncodeAvcBase::SetSliceStructs()
-{    
+{
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
     CODECHAL_ENCODE_FUNCTION_ENTER;
-    
+
     auto slcParams = m_avcSliceParams;
     auto seqParams = m_avcSeqParam;
     auto picParams = m_avcPicParam;
@@ -3096,7 +3095,7 @@ MOS_STATUS CodechalEncodeAvcBase::SetSliceStructs()
     for (uint32_t sliceCount = 0; sliceCount < m_numSlices; sliceCount++)
     {
         if (m_sliceStructCaps != CODECHAL_SLICE_STRUCT_ARBITRARYMBSLICE)
-        {           
+        {
             if (sliceCount == 0)
             {
                 numMbsForFirstSlice = slcParams->NumMbsForSlice;
@@ -3110,7 +3109,7 @@ MOS_STATUS CodechalEncodeAvcBase::SetSliceStructs()
                 // Slice height should be in power of 2
                 if (m_sliceStructCaps == CODECHAL_SLICE_STRUCT_POW2ROWS && (m_sliceHeight & (m_sliceHeight - 1)))
                 {
-                    // app can only pass orig numMBs in picture for single slice, set slice height to the nearest pow2 
+                    // app can only pass orig numMBs in picture for single slice, set slice height to the nearest pow2
                     if (m_numSlices == 1)
                     {
                         uint16_t sliceHeightPow2 = 1;
@@ -3252,7 +3251,7 @@ void CodechalEncodeAvcBase::SetMfxPipeModeSelectParams(
 }
 
 MOS_STATUS CodechalEncodeAvcBase::SetMfxPipeBufAddrStateParams(
-    CODECHAL_ENCODE_AVC_GENERIC_PICTURE_LEVEL_PARAMS genericParam, 
+    CODECHAL_ENCODE_AVC_GENERIC_PICTURE_LEVEL_PARAMS genericParam,
     MHW_VDBOX_PIPE_BUF_ADDR_PARAMS& param)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
@@ -3414,7 +3413,6 @@ MOS_STATUS CodechalEncodeAvcBase::AddIshSize( uint32_t kuid , uint8_t* kernelBas
     return status;
 }
 
-
 MOS_STATUS CodechalEncodeAvcBase::StoreNumPasses(
     EncodeStatusBuffer             *encodeStatusBuf,
     MhwMiInterface                 *miInterface,
@@ -3440,7 +3438,6 @@ MOS_STATUS CodechalEncodeAvcBase::StoreNumPasses(
     storeDataParams.dwResourceOffset = offset;
     storeDataParams.dwValue          = currPass + 1;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(miInterface->AddMiStoreDataImmCmd(cmdBuffer, &storeDataParams));
-
 
     return MOS_STATUS_SUCCESS;
 }
@@ -3611,7 +3608,7 @@ MOS_STATUS CodechalEncodeAvcBase::DumpSeqParams(
             ofs << "SeqParamFile"
                 << " = \"" << m_debugInterface->m_fileName << "\"" << std::endl;
             ofs.close();
-        }        
+        }
     }
 
     return MOS_STATUS_SUCCESS;

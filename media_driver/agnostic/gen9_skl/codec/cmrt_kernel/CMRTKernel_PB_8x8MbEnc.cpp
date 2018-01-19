@@ -330,7 +330,6 @@ void CMRTKernelPB8x8MbEnc::SetupMwScoreboard26Zig(CM_WALKING_PARAMETERS& walkPar
 
     int32_t tmp1 = ((LCU_width + 1) >> 1) + ((LCU_width + ((LCU_height - 1) << 1)) + (2 * splitCount - 1)) / (2 * splitCount);
 
-
     scoreBoardMask = 0x0FF;
     globalResolutionX = ts_width;
     globalResolutionY = 4 * tmp1;
@@ -405,7 +404,7 @@ CM_RETURN_CODE CMRTKernelPB8x8MbEncUMD::AllocateSurfaces(void *params)
     CM_VME_SURFACE_STATE_PARAM surfaceParams;
     memset(&surfaceParams, 0, sizeof(CM_VME_SURFACE_STATE_PARAM));
     surfaceParams.width = PB8x8MbEncParams->m_width;
-    surfaceParams.height = PB8x8MbEncParams->m_height; 
+    surfaceParams.height = PB8x8MbEncParams->m_height;
 
     CM_BUFFER_STATE_PARAM bufParams;
     memset(&bufParams, 0, sizeof(CM_BUFFER_STATE_PARAM));
@@ -430,7 +429,7 @@ CM_RETURN_CODE CMRTKernelPB8x8MbEncUMD::AllocateSurfaces(void *params)
     CM_CHK_STATUS_RETURN(m_cmBuffer[2]->GetIndex(m_surfIndex[8]));
     CM_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfSIF, m_cmSurface2D[5]));
     CM_CHK_STATUS_RETURN(m_cmSurface2D[5]->GetIndex(m_surfIndex[9]));
-    
+
     if (PB8x8MbEncParams->m_cmSurfColRefData == nullptr)
     {
         m_surfIndex[10] = (SurfaceIndex *)CM_NULL_SURFACE;

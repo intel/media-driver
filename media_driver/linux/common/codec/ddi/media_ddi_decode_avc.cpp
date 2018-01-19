@@ -385,7 +385,7 @@ VAStatus DdiDecodeAVC::RenderPicture(
             return VA_STATUS_ERROR_INVALID_BUFFER;
         }
         uint32_t dataSize = buf->iSize;
-		
+
         DdiMedia_MapBuffer(ctx, buffers[i], &data);
 
         if (data == nullptr)
@@ -418,7 +418,7 @@ VAStatus DdiDecodeAVC::RenderPicture(
             slcInfoH264        = (VASliceParameterBufferH264 *)data;
             uint32_t numSlices = buf->iNumElements;
             DDI_CHK_RET(AllocSliceParamContext(numSlices),"AllocSliceParamContext failed!");
-			DDI_CHK_RET(ParseSliceParams(mediaCtx, slcInfoH264, numSlices),"ParseSliceParams failed!");
+            DDI_CHK_RET(ParseSliceParams(mediaCtx, slcInfoH264, numSlices),"ParseSliceParams failed!");
             m_ddiDecodeCtx->DecodeParams.m_numSlices += numSlices;
             m_groupIndex++;
             break;
@@ -426,19 +426,19 @@ VAStatus DdiDecodeAVC::RenderPicture(
         case VAIQMatrixBufferType:
         {
             VAIQMatrixBufferH264 *imxBuf = (VAIQMatrixBufferH264 *)data;
-			DDI_CHK_RET(ParseIQMatrix(mediaCtx, imxBuf),"ParseIQMatrix failed!");
+            DDI_CHK_RET(ParseIQMatrix(mediaCtx, imxBuf),"ParseIQMatrix failed!");
             break;
         }
         case VAPictureParameterBufferType:
         {
             VAPictureParameterBufferH264 *picParam;
             picParam = (VAPictureParameterBufferH264 *)data;
-			DDI_CHK_RET(ParsePicParams(mediaCtx, picParam),"ParsePicParams failed!");
+            DDI_CHK_RET(ParsePicParams(mediaCtx, picParam),"ParsePicParams failed!");
             break;
         }
         case VAProcPipelineParameterBufferType:
         {
-			DDI_CHK_RET(ParseProcessingBuffer(mediaCtx, data),"ParseProcessingBuffer failed!");
+            DDI_CHK_RET(ParseProcessingBuffer(mediaCtx, data),"ParseProcessingBuffer failed!");
             break;
         }
         case VADecodeStreamoutBufferType:
@@ -463,17 +463,17 @@ VAStatus DdiDecodeAVC::SetDecodeParams()
 {
     DDI_CHK_RET(DdiMediaDecode::SetDecodeParams(),"SetDecodeParams failed!");
 #ifdef _DECODE_PROCESSING_SUPPORTED
-		// Bridge the SFC input with VDBOX output
+        // Bridge the SFC input with VDBOX output
     if (m_decProcessingType == VA_DEC_PROCESSING)
     {
         PCODECHAL_DECODE_PROCESSING_PARAMS procParams = nullptr;
-	    procParams				  = (&m_ddiDecodeCtx->DecodeParams)->m_procParams;
+        procParams                  = (&m_ddiDecodeCtx->DecodeParams)->m_procParams;
         procParams->pInputSurface = (&m_ddiDecodeCtx->DecodeParams)->m_destSurface;
         // codechal_decode_sfc.c expects Input Width/Height information.
-        procParams->pInputSurface->dwWidth	= procParams->pInputSurface->OsResource.iWidth;
+        procParams->pInputSurface->dwWidth    = procParams->pInputSurface->OsResource.iWidth;
         procParams->pInputSurface->dwHeight = procParams->pInputSurface->OsResource.iHeight;
-        procParams->pInputSurface->dwPitch	= procParams->pInputSurface->OsResource.iPitch;
-        procParams->pInputSurface->Format	= procParams->pInputSurface->OsResource.Format;
+        procParams->pInputSurface->dwPitch    = procParams->pInputSurface->OsResource.iPitch;
+        procParams->pInputSurface->Format    = procParams->pInputSurface->OsResource.Format;
     }
 #endif
 
@@ -502,11 +502,11 @@ void DdiDecodeAVC::ContextInit(int32_t picWidth, int32_t picHeight)
     return;
 }
 
-uint8_t* DdiDecodeAVC::GetPicParamBuf( 
-    DDI_CODEC_COM_BUFFER_MGR    *bufMgr) 
-    { 
-         return (uint8_t*)(&(bufMgr->Codec_Param.Codec_Param_H264.PicParam264)); 
-    } 
+uint8_t* DdiDecodeAVC::GetPicParamBuf(
+    DDI_CODEC_COM_BUFFER_MGR    *bufMgr)
+    {
+         return (uint8_t*)(&(bufMgr->Codec_Param.Codec_Param_H264.PicParam264));
+    }
 
 VAStatus DdiDecodeAVC::AllocSliceControlBuffer(
     DDI_MEDIA_BUFFER       *buf)
@@ -517,8 +517,8 @@ VAStatus DdiDecodeAVC::AllocSliceControlBuffer(
 
     bufMgr     = &(m_ddiDecodeCtx->BufMgr);
     availSize = m_sliceCtrlBufNum - bufMgr->dwNumSliceControl;
-    
-	if(m_ddiDecodeCtx->bShortFormatInUse)
+
+    if(m_ddiDecodeCtx->bShortFormatInUse)
     {
         if(availSize < buf->iNumElements)
                 {
@@ -607,7 +607,7 @@ VAStatus DdiDecodeAVC::CodecHalInit(
         vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
         goto CleanUpandReturn;
     }
-    
+
 #ifdef _DECODE_PROCESSING_SUPPORTED
     if (m_decProcessingType == VA_DEC_PROCESSING)
     {

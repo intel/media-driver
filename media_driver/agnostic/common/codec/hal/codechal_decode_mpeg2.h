@@ -30,7 +30,6 @@
 
 #include "codechal_decoder.h"
 
-
 //!
 //! \def CODECHAL_DECODE_MPEG2_MAXIMUM_BATCH_BUFFERS
 //! maximum number of batch buffer

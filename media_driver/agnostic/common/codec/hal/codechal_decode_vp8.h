@@ -32,7 +32,6 @@
 #include "codechal_hw.h"
 #include "codechal_decoder.h"
 
-
 //*------------------------------------------------------------------------------
 //* Codec Definitions
 //*------------------------------------------------------------------------------
@@ -197,7 +196,6 @@ struct _CODECHAL_DECODE_VP8_FRAME_HEAD
 
     int32_t iNewFrameBufferIdx, iLastFrameBufferIdx, iGoldenFrameBufferIdx, iAltFrameBufferIdx;
     int32_t iLastFrameBufferCurrIdx, iGoldenFrameBufferCurrIdx, iAltFrameBufferCurrIdx;
-
 
     int32_t iFrameType;
 
@@ -504,7 +502,6 @@ private:
 };
 
 using PVP8_ENTROPY_STATE = Vp8EntropyState*;
-
 
 //!
 //! \class CodechalDecodeVp8

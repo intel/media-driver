@@ -27,7 +27,7 @@
 #include "codechal_mmc_decode_hevc.h"
 
 CodechalMmcDecodeHevc::CodechalMmcDecodeHevc(
-    CodechalHwInterface    *hwInterface, 
+    CodechalHwInterface    *hwInterface,
     void *standardState):
     CodecHalMmcState(hwInterface)
 {
@@ -69,7 +69,7 @@ MOS_STATUS CodechalMmcDecodeHevc::SetPipeBufAddr(
     PMOS_COMMAND_BUFFER cmdBuffer)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
+
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     pipeBufAddrParams->PreDeblockSurfMmcState = MOS_MEMCOMP_DISABLED;
@@ -97,7 +97,7 @@ MOS_STATUS CodechalMmcDecodeHevc::SetRefrenceSync(
     bool disableLockForTranscode)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    
+
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     CODECHAL_DECODE_CHK_NULL_RETURN(m_hevcState->m_hevcPicParams);
@@ -110,7 +110,7 @@ MOS_STATUS CodechalMmcDecodeHevc::SetRefrenceSync(
         syncParams.GpuContext = m_hevcState->GetVideoContext();
         syncParams.bDisableDecodeSyncLock = disableDecodeSyncLock;
         syncParams.bDisableLockForTranscode = disableLockForTranscode;
-        
+
         for (uint32_t i = 0; i < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC; i++)
         {
             if (m_hevcState->m_presReferences[i])

@@ -41,7 +41,7 @@ public:
     //! \brief    Constructor
     //!
     CodechalMmcDecodeVp8(
-        CodechalHwInterface    *hwInterface, 
+        CodechalHwInterface    *hwInterface,
         void *standardState);
 
     //!
@@ -59,7 +59,7 @@ public:
 
     MOS_STATUS CheckReferenceList(
         PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams) override;
-    
+
     CodechalDecodeVp8 *m_vp8State = nullptr;  //!< Pinter to VP8 decode state
 };
 

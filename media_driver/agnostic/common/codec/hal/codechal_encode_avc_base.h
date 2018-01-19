@@ -1352,7 +1352,6 @@ public:
     //!
     virtual MOS_STATUS UserFeatureKeyReport();
 
-
     //!
     //! \brief    Initialize Encode ME kernel state
     //!
@@ -1388,7 +1387,7 @@ public:
         MeSurfaceParams* params) = 0;
     //!
     //! \brief    AVC State Initialization.
-    //!           
+    //! 
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success
     //!
@@ -1396,7 +1395,7 @@ public:
 
     //!
     //! \brief    AVC Resource Allocation.
-    //!           
+    //! 
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success
     //!
@@ -1404,7 +1403,7 @@ public:
 
     //!
     //! \brief    Set AVC Sequence Structs.
-    //!           
+    //! 
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success
     //!
@@ -1412,7 +1411,7 @@ public:
 
     //!
     //! \brief    Set AVC Picture Structs.
-    //!           
+    //! 
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success
     //!
@@ -1420,7 +1419,7 @@ public:
 
     //!
     //! \brief    Set AVC Slice Structs.
-    //!           
+    //! 
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success
     //!
@@ -1440,11 +1439,10 @@ public:
     virtual MOS_STATUS EncodeMeKernel(
         EncodeBrcBuffers* brcBuffers,
         HmeLevel          hmeLevel);
-    
 
     //!
     //! \brief    Allocate Batch Buffer For PakSlice.
-    //!           
+    //! 
     //! \param    [in] numSlices
     //!           Number of Slice
     //! \param    [in] numPakPasses
@@ -1462,7 +1460,7 @@ public:
 
     //!
     //! \brief    Release Batch Buffer For PakSlice.
-    //!           
+    //! 
     //! \param    [in] currRecycledBufIdx
     //!           Current Recycle Buffer Index.
     //!
@@ -1473,7 +1471,7 @@ public:
 
     //!
     //! \brief    Initialize kernel binary size info.
-    //!           
+    //! 
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success
     //!
@@ -1520,7 +1518,7 @@ public:
     //!           Bidirectional weight
     //!
     int32_t GetBiWeight(
-        uint32_t distScaleFactorRefID0List0, 
+        uint32_t distScaleFactorRefID0List0,
         uint16_t weightedBiPredIdc);
 
     //!
@@ -1582,7 +1580,7 @@ public:
         PCODECHAL_ENCODE_AVC_VUI_PARAMS avcVuiParams);
 
 #endif
-    
+
 protected:
     //!
     //! \brief    Set MFX_PIPE_MODE_SELECT parameter
@@ -1654,7 +1652,6 @@ protected:
     //! \return   void
     //!
     virtual void SetMfxAvcImgStateParams(MHW_VDBOX_AVC_IMG_PARAMS& param);
-
 
 public:
     PMOS_INTERFACE                              m_origOsInterface           = nullptr;    //!< Os Interface

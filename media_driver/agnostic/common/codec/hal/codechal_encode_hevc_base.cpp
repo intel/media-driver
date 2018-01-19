@@ -84,7 +84,7 @@ MOS_STATUS CodechalEncodeHevcBase::Initialize(CodechalSetting * settings)
 
     const uint32_t minLcuSize = 16;
     const uint32_t picWidthInLCU = MOS_ROUNDUP_DIVIDE(m_frameWidth, minLcuSize);        //assume smallest LCU to get max width
-    const uint32_t picHeightInLCU = MOS_ROUNDUP_DIVIDE(m_frameHeight, minLcuSize);      //assume smallest LCU to get max height																							// MaxNumLcu is when LCU size is min lcu size(16)
+    const uint32_t picHeightInLCU = MOS_ROUNDUP_DIVIDE(m_frameHeight, minLcuSize);      //assume smallest LCU to get max height                                                                                            // MaxNumLcu is when LCU size is min lcu size(16)
     const uint32_t maxNumLCUs = picWidthInLCU *  picHeightInLCU;
     m_mvOffset = MOS_ALIGN_CEIL((maxNumLCUs * (m_hcpInterface->GetHcpPakObjSize()) * sizeof(uint32_t)), CODECHAL_PAGE_SIZE);
 
@@ -128,7 +128,7 @@ MOS_STATUS CodechalEncodeHevcBase::AllocatePakResources()
 
     const uint32_t minLcuSize = 16;
     const uint32_t picWidthInMinLCU = MOS_ROUNDUP_DIVIDE(m_frameWidth, minLcuSize);        //assume smallest LCU to get max width
-    const uint32_t picHeightInMinLCU = MOS_ROUNDUP_DIVIDE(m_frameHeight, minLcuSize);      //assume smallest LCU to get max height	
+    const uint32_t picHeightInMinLCU = MOS_ROUNDUP_DIVIDE(m_frameHeight, minLcuSize);      //assume smallest LCU to get max height
 
     MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferLinear;
     MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
@@ -349,7 +349,7 @@ MOS_STATUS CodechalEncodeHevcBase::AllocatePakResources()
     // Lcu Base Address buffer
     // HEVC Encoder Mode: Slice size is written to this buffer when slice size conformance is enabled.
     // 1 CL (= 16 DWs = 64 bytes) per slice * Maximum number of dynamic slice = 600
-    // Note that simulation is assigning much larger space for this. 
+    // Note that simulation is assigning much larger space for this.
     allocParamsForBufferLinear.dwBytes = CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6 * CODECHAL_CACHELINE_SIZE;
     allocParamsForBufferLinear.pBufName = "LcuBaseAddressBuffer";
 
@@ -633,7 +633,7 @@ MOS_STATUS CodechalEncodeHevcBase::ReadSseStatistics(PMOS_COMMAND_BUFFER cmdBuff
 
     // encodeStatus is offset by 2 DWs in the resource
     uint32_t sseOffsetinBytes = (m_encodeStatusBuf.wCurrIndex * m_encodeStatusBuf.dwReportSize) + sizeof(uint32_t) * 2 + m_encodeStatusBuf.dwSumSquareErrorOffset;
-    for (auto i = 0; i < 6; i++)    // 64 bit SSE values for luma/ chroma channels need to be copied 
+    for (auto i = 0; i < 6; i++)    // 64 bit SSE values for luma/ chroma channels need to be copied
     {
         MHW_MI_COPY_MEM_MEM_PARAMS miCpyMemMemParams;
         MOS_ZeroMemory(&miCpyMemMemParams, sizeof(miCpyMemMemParams));
@@ -686,11 +686,11 @@ MOS_STATUS CodechalEncodeHevcBase::CalculatePSNR(
 
         if (m_hevcSeqParams->bit_depth_luma_minus8 == 0)
         {
-            //8bit pixel data is represented in 10bit format in HW. so SSE should right shift by 4. 
+            //8bit pixel data is represented in 10bit format in HW. so SSE should right shift by 4.
             encodeStatus->sumSquareError[i] >>= 4;
-        }        
+        }
         encodeStatusReport->PSNRx100[i] = (uint16_t) CodecHal_Clip3(0, 10000,
-            (uint16_t) (encodeStatus->sumSquareError[i] ? 1000 * log10(squarePeakPixelValue * numPixels / encodeStatus->sumSquareError[i]) : -1));    
+            (uint16_t) (encodeStatus->sumSquareError[i] ? 1000 * log10(squarePeakPixelValue * numPixels / encodeStatus->sumSquareError[i]) : -1));
 
         CODECHAL_ENCODE_VERBOSEMESSAGE("PSNRx100[%d]:%d.\n", i, encodeStatusReport->PSNRx100[i]);
     }
@@ -807,17 +807,17 @@ MOS_STATUS CodechalEncodeHevcBase::SetSequenceStructs()
     m_picWidthInMb = (uint16_t)CODECHAL_GET_WIDTH_IN_MACROBLOCKS(m_oriFrameWidth);
     m_picHeightInMb = (uint16_t)CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(m_oriFrameHeight);
 
-	// Get row store cache params: as all the needed information is got here 
-	if (m_hcpInterface->IsRowStoreCachingSupported())
-	{
-		MHW_VDBOX_ROWSTORE_PARAMS rowstoreParams;
-		rowstoreParams.Mode = m_mode;
-		rowstoreParams.dwPicWidth = m_frameWidth;
+    // Get row store cache params: as all the needed information is got here
+    if (m_hcpInterface->IsRowStoreCachingSupported())
+    {
+        MHW_VDBOX_ROWSTORE_PARAMS rowstoreParams;
+        rowstoreParams.Mode = m_mode;
+        rowstoreParams.dwPicWidth = m_frameWidth;
                 rowstoreParams.ucChromaFormat   = m_chromaFormat;
                 rowstoreParams.ucBitDepthMinus8 = m_hevcSeqParams->bit_depth_luma_minus8;
                 rowstoreParams.ucLCUSize        = 1 << (m_hevcSeqParams->log2_max_coding_block_size_minus3 + 3);
                 m_hwInterface->SetRowstoreCachingOffsets(&rowstoreParams);
-	}
+    }
 
         m_brcEnabled = IsRateControlBrc(m_hevcSeqParams->RateControlMethod);
 
@@ -964,7 +964,7 @@ MOS_STATUS CodechalEncodeHevcBase::SetPictureStructs()
             if (m_currUsedRefPic[i] && index == m_hevcPicParams->RefFrameList[ii].FrameIdx)
             {
                 // We find the same FrameIdx in the ref_frame_list. Multiple reference frames are the same.
-                // In other words, RefFrameList[i] and RefFrameList[ii] have the same surface Id 
+                // In other words, RefFrameList[i] and RefFrameList[ii] have the same surface Id
                 duplicatedIdx = true;
                 m_refIdxMapping[i] = m_refIdxMapping[ii];
                 break;
@@ -1089,7 +1089,7 @@ MOS_STATUS CodechalEncodeHevcBase::SetPictureStructs()
                 if (m_picIdx[ii].bValid && index == m_hevcPicParams->RefFrameList[ii].FrameIdx)
                 {
                     // We find the same FrameIdx in the ref_frame_list. Multiple reference frames are the same.
-                    // In other words, RefFrameList[i] and RefFrameList[ii] have the same surface Id 
+                    // In other words, RefFrameList[i] and RefFrameList[ii] have the same surface Id
                     duplicatedIdx = true;
                     break;
                 }
@@ -1127,7 +1127,7 @@ MOS_STATUS CodechalEncodeHevcBase::SetPictureStructs()
 
     CodecEncodeHevcFeiPicParams *feiPicParams = (CodecEncodeHevcFeiPicParams *)m_encodeParams.pFeiPicParams;
     if ((m_codecFunction == CODECHAL_FUNCTION_ENC_PAK) ||
-       ((m_codecFunction == CODECHAL_FUNCTION_FEI_ENC_PAK) && (feiPicParams->bCTBCmdCuRecordEnable == false)) || 
+       ((m_codecFunction == CODECHAL_FUNCTION_FEI_ENC_PAK) && (feiPicParams->bCTBCmdCuRecordEnable == false)) ||
         (m_codecFunction == CODECHAL_FUNCTION_ENC_VDENC_PAK))
     {
         m_currMinus2MbCodeIndex = m_lastMbCodeIndex;
@@ -1142,7 +1142,7 @@ MOS_STATUS CodechalEncodeHevcBase::SetPictureStructs()
     }
     else if(((m_codecFunction == CODECHAL_FUNCTION_FEI_ENC_PAK) && feiPicParams->bCTBCmdCuRecordEnable) ||
              (m_codecFunction == CODECHAL_FUNCTION_FEI_ENC) ||
-             (m_codecFunction == CODECHAL_FUNCTION_FEI_PAK)) 
+             (m_codecFunction == CODECHAL_FUNCTION_FEI_PAK))
     {
         if(Mos_ResourceIsNull(&feiPicParams->resCURecord) || Mos_ResourceIsNull(&feiPicParams->resCTBCmd))
         {
@@ -1238,7 +1238,6 @@ MOS_STATUS CodechalEncodeHevcBase::SetSliceStructs()
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(VerifySliceSAOState());
 
-
 #if (_DEBUG || _RELEASE_INTERNAL)
     m_forceSinglePakPass = false;
     MOS_USER_FEATURE_VALUE_DATA userFeatureData;
@@ -1250,7 +1249,7 @@ MOS_STATUS CodechalEncodeHevcBase::SetSliceStructs()
         &userFeatureData);
     if (userFeatureData.u32Data > 0 && userFeatureData.u32Data <= m_numPasses)
     {
-        m_numPasses = (uint8_t)userFeatureData.u32Data - 1;  
+        m_numPasses = (uint8_t)userFeatureData.u32Data - 1;
         if (m_numPasses == 0)
         {
             m_forceSinglePakPass = true;
@@ -1350,7 +1349,7 @@ MOS_STATUS CodechalEncodeHevcBase::VerifySliceSAOState()
             slcSaoChromaCount += slcParams->slice_sao_chroma_flag;
         }
 
-        // For HCP_SLICE_STATE command, slices must have the same SAO setting within a picture for encoder. 
+        // For HCP_SLICE_STATE command, slices must have the same SAO setting within a picture for encoder.
         if (((slcSaoLumaCount > 0) && (slcSaoLumaCount != m_numSlices)) ||
             ((slcSaoChromaCount > 0) && (slcSaoChromaCount != m_numSlices)))
         {
@@ -1467,7 +1466,7 @@ MOS_STATUS CodechalEncodeHevcBase::VerifyCommandBufferSize()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    // resize CommandBuffer Size for every BRC pass 
+    // resize CommandBuffer Size for every BRC pass
     if (!m_singleTaskPhaseSupported)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(VerifySpaceAvailable());
@@ -1691,7 +1690,7 @@ void CodechalEncodeHevcBase::CalcTransformSkipParameters(
     }
 
     int sliceQP = CalSliceQp();
-    
+
     int qpIdx = 0;
     if (sliceQP <= 22)
     {
@@ -1783,9 +1782,9 @@ MOS_STATUS CodechalEncodeHevcBase::SendWatchdogTimerStartCmd(
     MmioRegistersHcp                    *mmioRegisters;
     MHW_MI_LOAD_REGISTER_IMM_PARAMS     registerImmParams;
     MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
-    
+
     CODECHAL_ENCODE_FUNCTION_ENTER;
-    
+
     mmioRegisters      = m_hcpInterface->GetMmioRegisters(m_vdboxIndex);
 
     //Configure Watchdog timer Threshold
@@ -1802,8 +1801,8 @@ MOS_STATUS CodechalEncodeHevcBase::SendWatchdogTimerStartCmd(
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterImmCmd(
         cmdBuffer,
         &registerImmParams));
- 
-    return eStatus;    
+
+    return eStatus;
 }
 
 MOS_STATUS CodechalEncodeHevcBase::SendMIAtomicCmd(
@@ -1815,7 +1814,7 @@ MOS_STATUS CodechalEncodeHevcBase::SendMIAtomicCmd(
 {
     MHW_MI_ATOMIC_PARAMS       atomicParams;
     MOS_STATUS                 eStatus = MOS_STATUS_SUCCESS;
-    
+
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     MOS_ZeroMemory((&atomicParams), sizeof(atomicParams));
@@ -1846,7 +1845,7 @@ MOS_STATUS CodechalEncodeHevcBase::WaitForVDBOX(PMOS_COMMAND_BUFFER cmdBuffer)
                 cmdBuffer,
                 1));
     }
-    
+
     //keep these codes here, in case later we need support parallel frame PAK (need more than one set of internal buffers used by PAK HW).
 #if 0
     if (m_pictureCodingType == I_TYPE)
@@ -2062,7 +2061,7 @@ MOS_STATUS CodechalEncodeHevcBase::GetStatusReport(
     CODECHAL_ENCODE_CHK_NULL_RETURN(encodeStatus);
     CODECHAL_ENCODE_CHK_NULL_RETURN(encodeStatusReport);
 
-    // The last pass of BRC may have a zero value of hcpCumulativeFrameDeltaQp 
+    // The last pass of BRC may have a zero value of hcpCumulativeFrameDeltaQp
     if (encodeStatus->ImageStatusCtrl.hcpTotalPass && encodeStatus->ImageStatusCtrl.hcpCumulativeFrameDeltaQp == 0)
     {
         encodeStatus->ImageStatusCtrl.hcpCumulativeFrameDeltaQp = encodeStatus->ImageStatusCtrlOfLastBRCPass.hcpCumulativeFrameDeltaQp;
@@ -2643,7 +2642,7 @@ CodechalEncodeHevcBase::CodechalEncodeHevcBase(
     MOS_ZeroMemory(&m_s32XMeMvDataBuffer, sizeof(m_s32XMeMvDataBuffer));
     MOS_ZeroMemory(&m_s4XMeDistortionBuffer, sizeof(m_s4XMeDistortionBuffer));
 
-    m_fieldScalingOutputInterleaved = false; 
+    m_fieldScalingOutputInterleaved = false;
     m_interlacedFieldDisabled = true;
     m_firstField = true;     // Each frame is treated as the first field
 

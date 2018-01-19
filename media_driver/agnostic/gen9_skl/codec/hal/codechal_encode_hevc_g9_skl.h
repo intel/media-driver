@@ -38,7 +38,7 @@ class CodechalEncHevcStateG9Skl : public CodechalEncHevcStateG9
 public:
     //!
     //! \brief    Constructor
-    //!     
+    //!
     CodechalEncHevcStateG9Skl(CodechalHwInterface* hwInterface,
         CodechalDebugInterface* debugInterface,
         PCODECHAL_STANDARD_INFO standardInfo);
@@ -75,7 +75,7 @@ private:
         uint32_t                       krnStateIdx,
         void                           *krnHeader,
         uint32_t                       *krnSize);
-   
+
     // Inherited virtual function
     bool UsePlatformControlFlag()
     {

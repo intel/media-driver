@@ -573,7 +573,6 @@ VAStatus DdiEncode_EndPicture(VADriverContextP ctx, VAContextID context)
     return vaStatus;
 }
 
-
 VAStatus DdiEncode_MfeSubmit(
     VADriverContextP    ctx,
     VAMFContextID      mfe_context,

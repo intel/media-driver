@@ -33,7 +33,7 @@
 //! 
 //! \file     codechal_vdenc_vp9_g10.h
 //! \brief    VP9 VDENC encoder for GEN10 platform.
-//! 
+//!
 
 #ifndef __CODECHAL_VDENC_VP9_G10_H__
 #define __CODECHAL_VDENC_VP9_G10_H__
@@ -53,7 +53,7 @@ public:
         // DownScaling
         CODECHAL_KERNEL_HEADER PLY_DSCALE;
 
-        // HME 
+        // HME
         CODECHAL_KERNEL_HEADER VP9_ME_P;
 
         // 32x32 I ENC KERNEL

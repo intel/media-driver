@@ -46,15 +46,15 @@
 #define INTERMEDIATE_PARTITION0_SIZE        (64 * 1024)
 #define TOKEN_STATISTICS_SIZE               (304 * sizeof(uint32_t))                                                                           //270 tokens + 34 DWs for partition and segment info
 #define COEFFS_PROPABILITIES_SIZE           (VP8_NUM_COEFF_PLANES * VP8_NUM_COEFF_BANDS * VP8_NUM_LOCAL_COMPLEXITIES * VP8_NUM_COEFF_NODES) //1056
-#define HISTOGRAM_SIZE                      (136 * sizeof(uint32_t)) 
+#define HISTOGRAM_SIZE                      (136 * sizeof(uint32_t))
 #define MODE_PROPABILITIES_SIZE             96
-#define HEADER_METADATA_SIZE                (32  * sizeof(uint32_t)) 
+#define HEADER_METADATA_SIZE                (32  * sizeof(uint32_t))
 #define PICTURE_STATE_CMD_SIZE              (37  * sizeof(uint32_t))
 #define PICTURE_STATE_SIZE                  (PICTURE_STATE_CMD_SIZE + HEADER_METADATA_SIZE + (16 * sizeof(uint32_t)))                            // + Extra dws for NOOP and BB_End
 #define HEADER_METADATA_OFFSET              (PICTURE_STATE_CMD_SIZE + (3 * sizeof(uint32_t)))                                                   //Add one extra noop
 #define MPU_BITSTREAM_SIZE                  128
 #define TPU_BITSTREAM_SIZE                  1344
-#define ENTROPY_COST_TABLE_SIZE             (256 * sizeof(uint32_t)) 
+#define ENTROPY_COST_TABLE_SIZE             (256 * sizeof(uint32_t))
 #define MPU_CURBE_SIZE                      (24 * sizeof(uint32_t))
 #define TOKEN_BITS_DATA_SIZE                (16 * sizeof(uint32_t))
 #define VP8_KERNEL_DUMP_SIZE                (600000 * sizeof(uint32_t))
@@ -97,16 +97,16 @@ enum CodechalEncodeVp8MbpakKernelStateIdx
     CODECHAL_ENCODE_VP8_MBPAK_IDX_NUM
 };
 
-static const uint8_t CodecHal_TargetUsageToMode_VP8[NUM_TARGET_USAGE_MODES] = 
-{ 
-    encodeNormalMode, 
-    encodeQualityMode, 
-    encodeQualityMode, 
+static const uint8_t CodecHal_TargetUsageToMode_VP8[NUM_TARGET_USAGE_MODES] =
+{
     encodeNormalMode,
-    encodeNormalMode, 
-    encodeNormalMode, 
-    encodePerformanceMode, 
-    encodePerformanceMode 
+    encodeQualityMode,
+    encodeQualityMode,
+    encodeNormalMode,
+    encodeNormalMode,
+    encodeNormalMode,
+    encodePerformanceMode,
+    encodePerformanceMode
 };
 
 struct CodechalVp8ModeCostUpdateSurface
@@ -681,7 +681,6 @@ struct CodechalVp8TpuSurfaceParams
     PMHW_KERNEL_STATE                   pKernelState;
 };
 
-
 struct CodechalResourcesBrcParams
 {
     bool       bHWWalker;
@@ -705,7 +704,7 @@ struct CodechalVp8InitBrcConstantBufferParams
 struct CodechalVp8InitMbencConstantBufferParams
 {
     PMOS_INTERFACE                          pOsInterface;
-    MOS_SURFACE                             sMBModeCostLumaBuffer; 
+    MOS_SURFACE                             sMBModeCostLumaBuffer;
     MOS_SURFACE                             sBlockModeCostBuffer;
     PMOS_RESOURCE                           presHistogram;
 };
@@ -806,7 +805,7 @@ public:
     //! \return   void
     //!
     virtual void ResizeBuffer();
-    
+
     //!
     //! \brief    Initialize encoder at picture level. Called by each frame.
     //!
@@ -841,12 +840,12 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS ExecuteSliceLevel();
-    
+
     //!
     //! \brief    Initialize encoder instance
-    //! \details  When GEN specific derived class implements this function to do its own initialization, 
-    //            it is required that the derived class calls #CodechalEncodeMpeg2::Initialize() first 
-    //            which would do common initialization for all GENs         
+    //! \details  When GEN specific derived class implements this function to do its own initialization,
+    //            it is required that the derived class calls #CodechalEncodeMpeg2::Initialize() first
+    //            which would do common initialization for all GENs
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
@@ -925,7 +924,6 @@ protected:
         CodechalDebugInterface* debugInterface,
         PCODECHAL_STANDARD_INFO standardInfo);
 
-       
     //!
     //! \brief    Allocate Resource of BRC
     //!
@@ -993,8 +991,6 @@ protected:
         PMHW_BATCH_BUFFER   batchBuffer,
         uint32_t            bufSize,
         PCCHAR              name);
-    
-    
 
     //!
     //! \brief    Free all Resources of BRC
@@ -1335,7 +1331,7 @@ protected:
     MOS_STATUS EncodeSliceLevelBrc(PMOS_COMMAND_BUFFER cmdBuffer);
 
     //!
-    //! \brief    Add Batch Buffer End to Picture State Command   
+    //! \brief    Add Batch Buffer End to Picture State Command 
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
@@ -1364,7 +1360,7 @@ protected:
     CODEC_VP8_ENCODE_QUANT_DATA *       m_vp8QuantData   = nullptr;
     CODECHAL_VP8_HYBRIDPAK_FRAMEUPDATE *m_vp8SliceParams = nullptr;
 
-    uint8_t*                               m_kernelBinary = nullptr;                            //!< Pointer to the kernel binary 
+    uint8_t*                               m_kernelBinary = nullptr;                            //!< Pointer to the kernel binary
     uint32_t                               m_combinedKernelSize = 0;                            //!< Combined kernel binary size
 
     CODEC_PIC_ID    m_picIdx[CODEC_MAX_NUM_REF_FRAME_NON_AVC];

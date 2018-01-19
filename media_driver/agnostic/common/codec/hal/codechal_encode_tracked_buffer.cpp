@@ -539,8 +539,8 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateSurface2xDS()
 
 MOS_STATUS CodechalEncodeTrackedBuffer::AllocateDsReconSurfacesVdenc()
 {
-    CODECHAL_ENCODE_FUNCTION_ENTER; 
-    
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
     // early exit if already allocated
     if (m_trackedBufCurr4xDsRecon = (MOS_SURFACE*)m_allocator->GetResource(m_standard, ds4xRecon, m_trackedBufCurrIdx))
     {

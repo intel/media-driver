@@ -721,14 +721,14 @@ public:
 
     //!
     //! \brief    Constructor
-    //! 
+    //!
     MeCurbe();
-    
+
     //!
     //! \brief    Destructor
     //!
     ~MeCurbe(){};
-    
+
     static const size_t m_byteSize = sizeof(CurbeData);
 
 } ;
@@ -866,7 +866,7 @@ public:
                 };
             } DW6;
         } MvCost;
-        
+
         union
         {
             struct
@@ -1021,7 +1021,7 @@ public:
                 uint32_t m_value;
             };
         } DW15;
-        
+
         struct
         {
             union
@@ -1438,7 +1438,7 @@ public:
                 uint32_t m_value;
             };
         } DW48;
-        
+
         union
         {
             struct
@@ -1450,7 +1450,7 @@ public:
                 uint32_t m_value;
             };
         } DW49;
-        
+
         union
         {
             struct
@@ -1462,7 +1462,7 @@ public:
                 uint32_t m_value;
             };
         } DW50;
-        
+
         union
         {
             struct
@@ -1474,7 +1474,7 @@ public:
                 uint32_t m_value;
             };
         } DW51;
-        
+
         union
         {
             struct
@@ -1486,7 +1486,7 @@ public:
                 uint32_t m_value;
             };
         } DW52;
-        
+
         union
         {
             struct
@@ -1498,7 +1498,7 @@ public:
                 uint32_t m_value;
             };
         } DW53;
-        
+
         union
         {
             struct
@@ -1510,7 +1510,7 @@ public:
                 uint32_t m_value;
             };
         } DW54;
-        
+
         union
         {
             struct
@@ -1523,33 +1523,33 @@ public:
             };
         } DW55;
     }m_curbeData;
-    
+
     //!
     //! \brief    Constructor
-    //! 
+    //!
     MbEncCurbeG10(uint8_t codingType);
-    
+
     //!
     //! \brief    Destructor
     //!
     ~MbEncCurbeG10(){};
-        
+
     static const size_t m_byteSize = sizeof(CurbeData);
 };
 
 MeCurbe::MeCurbe()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
-    
+
     MOS_ZeroMemory(&m_curbeData, m_byteSize);
-    
+
     m_curbeData.DW0.m_value  = 0x00000000;
     m_curbeData.DW1.m_value  = 0x00200010;
     m_curbeData.DW2.m_value  = 0x00003939;
     m_curbeData.DW3.m_value  = 0x77a43000;
     m_curbeData.DW4.m_value  = 0x00000000;
     m_curbeData.DW5.m_value  = 0x28300000;
-    
+
     m_curbeData.DW32.m_value = 0xffffffff;
     m_curbeData.DW33.m_value = 0xffffffff;
     m_curbeData.DW34.m_value = 0xffffffff;
@@ -1557,7 +1557,7 @@ MeCurbe::MeCurbe()
     m_curbeData.DW36.m_value = 0xffffffff;
     m_curbeData.DW37.m_value = 0xffffffff;
     m_curbeData.DW38.m_value = 0xffffffff;
-    
+
 }
 
 MbEncCurbeG10::MbEncCurbeG10(uint8_t codingType)
@@ -1597,7 +1597,7 @@ MbEncCurbeG10::MbEncCurbeG10(uint8_t codingType)
             m_curbeData.DW9.m_value  = 0x7EA01000;
             m_curbeData.DW10.m_value = 0x2020FF00;
             break;
-            
+
     }
 
     m_curbeData.DW3.m_value         = 0xFE0C0000;
@@ -1641,7 +1641,7 @@ MOS_STATUS CodechalEncodeMpeg2G10::Initialize(CodechalSetting * codecHalSettings
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    // common initilization 
+    // common initilization
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncodeMpeg2::Initialize(codecHalSettings));
 
     return eStatus;
@@ -1650,9 +1650,9 @@ MOS_STATUS CodechalEncodeMpeg2G10::Initialize(CodechalSetting * codecHalSettings
 MOS_STATUS CodechalEncodeMpeg2G10::GetKernelHeaderAndSize(
     void                           *binary,
     EncOperation                   operation,
-	uint32_t                       krnStateIdx,
+    uint32_t                       krnStateIdx,
     void                           *krnHeader,
-	uint32_t                       *krnSize)
+    uint32_t                       *krnSize)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -1690,11 +1690,11 @@ MOS_STATUS CodechalEncodeMpeg2G10::GetKernelHeaderAndSize(
 
     currKrnHeader += krnStateIdx;
     *((PCODECHAL_KERNEL_HEADER)krnHeader) = *currKrnHeader;
-    
+
     PCODECHAL_KERNEL_HEADER invalidEntry = &(kernelHeaderTable->m_mpeg2BrcResetFrame) + 1;
     PCODECHAL_KERNEL_HEADER nextKrnHeader = (currKrnHeader + 1);
     uint32_t nextKrnOffset = *krnSize;
-    
+
     if (nextKrnHeader < invalidEntry)
     {
         nextKrnOffset = nextKrnHeader->KernelStartPointer << MHW_KERNEL_OFFSET_SHIFT;
@@ -1780,7 +1780,7 @@ MOS_STATUS CodechalEncodeMpeg2G10::InitKernelStateMe()
 }
 
 MOS_STATUS CodechalEncodeMpeg2G10::InitKernelStateMbEnc()
-{    
+{
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
@@ -1844,16 +1844,16 @@ MOS_STATUS CodechalEncodeMpeg2G10::SetCurbeMe()
     cmd.m_curbeData.DW3.m_subPelMode = 3;
     if (m_fieldScalingOutputInterleaved)
     {
-        cmd.m_curbeData.DW3.m_srcAccess = cmd.m_curbeData.DW3.m_refAccess = 
+        cmd.m_curbeData.DW3.m_srcAccess = cmd.m_curbeData.DW3.m_refAccess =
             CodecHal_PictureIsField(m_picParams->m_currOriginalPic) ? 1 : 0;
-        cmd.m_curbeData.DW7.m_srcFieldPolarity = 
+        cmd.m_curbeData.DW7.m_srcFieldPolarity =
             CodecHal_PictureIsBottomField(m_picParams->m_currOriginalPic) ? 1 : 0;
     }
 
     uint32_t scaleFactor = 4; // Scale factor always 4x, SHME/UHME not supported
-    cmd.m_curbeData.DW4.m_pictureHeightMinus1 = 
+    cmd.m_curbeData.DW4.m_pictureHeightMinus1 =
         CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(m_frameFieldHeight / scaleFactor) - 1;
-    cmd.m_curbeData.DW4.m_pictureWidth = 
+    cmd.m_curbeData.DW4.m_pictureWidth =
         CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(m_frameWidth / scaleFactor);
     cmd.m_curbeData.DW5.m_qpPrimeY = m_mvCostTableOffset;
     cmd.m_curbeData.DW6.m_meModes = CODECHAL_ENCODE_ME4X_ONLY;
@@ -1867,7 +1867,7 @@ MOS_STATUS CodechalEncodeMpeg2G10::SetCurbeMe()
 
     if (m_pictureCodingType == B_TYPE)
     {
-        // This field is irrelevant since we are not using the bi-direct search. 
+        // This field is irrelevant since we are not using the bi-direct search.
         // set it to 32
         cmd.m_curbeData.DW1.m_biWeight = 32;
         cmd.m_curbeData.DW13.m_numRefIdxL1MinusOne = 0;   // always 0 for MPEG2
@@ -1883,7 +1883,7 @@ MOS_STATUS CodechalEncodeMpeg2G10::SetCurbeMe()
     uint8_t meMethod = (m_pictureCodingType == B_TYPE) ? m_bMeMethodGeneric[m_seqParams->m_targetUsage] : m_meMethodGeneric[m_seqParams->m_targetUsage];
     uint8_t tableIdx = (m_pictureCodingType == B_TYPE) ? 1 : 0;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(
-        &(cmd.m_curbeData.SpDelta), 14 * sizeof(uint32_t), 
+        &(cmd.m_curbeData.SpDelta), 14 * sizeof(uint32_t),
         m_encodeSearchPath[tableIdx][meMethod],
         14 * sizeof(uint32_t)));
 
@@ -1894,10 +1894,10 @@ MOS_STATUS CodechalEncodeMpeg2G10::SetCurbeMe()
     cmd.m_curbeData.DW36.m_vmeFwdInterPredictionSurfIndex = m_meBindingTable.dwMECurrForFwdRef;
     cmd.m_curbeData.DW37.m_vmeBwdInterPredictionSurfIndex = m_meBindingTable.dwMECurrForBwdRef;
 
-    uint32_t krnStateIdx = 
+    uint32_t krnStateIdx =
         (m_pictureCodingType == P_TYPE) ? CODECHAL_ENCODE_ME_IDX_P : CODECHAL_ENCODE_ME_IDX_B;
     auto kernelState = &m_meKernelStates[krnStateIdx];
-    
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(kernelState->m_dshRegion.AddData(
         &cmd,
         kernelState->dwCurbeOffset,
@@ -1920,7 +1920,7 @@ MOS_STATUS CodechalEncodeMpeg2G10::SendMeSurfaces(
     // Reference height and width information should be taken from the current scaled surface rather
     // than from the reference scaled surface in the case of PAFF.
     auto bufWidth = MOS_ALIGN_CEIL(m_downscaledWidthInMb4x * 32, 64);
-    auto bufHeight = 
+    auto bufHeight =
         m_downscaledHeightInMb4x * 4 * CODECHAL_ENCODE_ME_DATA_SIZE_MULTIPLIER;
 
     // Force the values
@@ -1928,7 +1928,7 @@ MOS_STATUS CodechalEncodeMpeg2G10::SendMeSurfaces(
     meMvDataBuffer->dwHeight = bufHeight;
     meMvDataBuffer->dwPitch = bufWidth;
 
-    uint32_t krnStateIdx = 
+    uint32_t krnStateIdx =
         (m_pictureCodingType == P_TYPE) ? CODECHAL_ENCODE_ME_IDX_P : CODECHAL_ENCODE_ME_IDX_B;
     auto kernelState = &m_meKernelStates[krnStateIdx];
 
@@ -1938,7 +1938,7 @@ MOS_STATUS CodechalEncodeMpeg2G10::SendMeSurfaces(
     surfaceParams.bMediaBlockRW = true;
     surfaceParams.psSurface = meMvDataBuffer;
     surfaceParams.dwOffset = m_memvBottomFieldOffset;
-    surfaceParams.dwCacheabilityControl = 
+    surfaceParams.dwCacheabilityControl =
         m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_MV_DATA_ENCODE].Value;
     surfaceParams.dwBindingTableOffset = meBindingTable->dwMEMVDataSurface;
     surfaceParams.bIsWritable = true;
@@ -1956,7 +1956,7 @@ MOS_STATUS CodechalEncodeMpeg2G10::SendMeSurfaces(
     surfaceParams.psSurface = &m_brcBuffers.sMeBrcDistortionBuffer;
     surfaceParams.dwOffset = m_brcBuffers.dwMeBrcDistortionBottomFieldOffset;
     surfaceParams.dwBindingTableOffset = meBindingTable->dwMEBRCDist;
-    surfaceParams.dwCacheabilityControl = 
+    surfaceParams.dwCacheabilityControl =
         m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_BRC_ME_DISTORTION_ENCODE].Value;
     surfaceParams.bIsWritable = true;
     surfaceParams.bRenderTarget = true;
@@ -1972,7 +1972,7 @@ MOS_STATUS CodechalEncodeMpeg2G10::SendMeSurfaces(
     surfaceParams.psSurface = &m_4xMEDistortionBuffer;
     surfaceParams.dwOffset = m_meDistortionBottomFieldOffset;
     surfaceParams.dwBindingTableOffset = meBindingTable->dwMEDist;
-    surfaceParams.dwCacheabilityControl = 
+    surfaceParams.dwCacheabilityControl =
         m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ME_DISTORTION_ENCODE].Value;
     surfaceParams.bIsWritable = true;
     surfaceParams.bRenderTarget = true;
@@ -1981,14 +1981,14 @@ MOS_STATUS CodechalEncodeMpeg2G10::SendMeSurfaces(
         cmdBuffer,
         &surfaceParams,
         kernelState));
-    
+
     bool currFieldPicture = CodecHal_PictureIsField(m_currOriginalPic) ? 1 : 0;
     bool currBottomField = CodecHal_PictureIsBottomField(m_currOriginalPic) ? 1 : 0;
     uint8_t currVDirection = (!currFieldPicture) ? CODECHAL_VDIRECTION_FRAME :
         ((currBottomField) ? CODECHAL_VDIRECTION_BOT_FIELD : CODECHAL_VDIRECTION_TOP_FIELD);
     uint32_t refScaledBottomFieldOffset = 0;
     auto refScaledSurface = *currScaledSurface;
-    
+
     // Setup references 1...n
     // LIST 0 references
     CODEC_PICTURE refPic = m_picParams->m_refFrameList[0];
@@ -2005,7 +2005,7 @@ MOS_STATUS CodechalEncodeMpeg2G10::SendMeSurfaces(
         surfaceParams.bUseAdvState = true;
         surfaceParams.psSurface = currScaledSurface;
         surfaceParams.dwOffset = currBottomField ? (uint32_t)m_scaledBottomFieldOffset : 0;
-        surfaceParams.dwCacheabilityControl = 
+        surfaceParams.dwCacheabilityControl =
             m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_CURR_ENCODE].Value;
         surfaceParams.dwBindingTableOffset = meBindingTable->dwMECurrForFwdRef;
         surfaceParams.ucVDirection = currVDirection;
@@ -2027,7 +2027,7 @@ MOS_STATUS CodechalEncodeMpeg2G10::SendMeSurfaces(
         surfaceParams.bUseAdvState = true;
         surfaceParams.psSurface = &refScaledSurface;
         surfaceParams.dwOffset = refBottomField ? refScaledBottomFieldOffset : 0;
-        surfaceParams.dwCacheabilityControl = 
+        surfaceParams.dwCacheabilityControl =
             m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_REF_ENCODE].Value;
         surfaceParams.dwBindingTableOffset = meBindingTable->dwMEFwdRefPicIdx[0];
         surfaceParams.ucVDirection = !currFieldPicture ? CODECHAL_VDIRECTION_FRAME :
@@ -2054,7 +2054,7 @@ MOS_STATUS CodechalEncodeMpeg2G10::SendMeSurfaces(
         surfaceParams.bUseAdvState = true;
         surfaceParams.psSurface = currScaledSurface;
         surfaceParams.dwOffset = currBottomField ? (uint32_t)m_scaledBottomFieldOffset : 0;
-        surfaceParams.dwCacheabilityControl = 
+        surfaceParams.dwCacheabilityControl =
             m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_CURR_ENCODE].Value;
         surfaceParams.dwBindingTableOffset = meBindingTable->dwMECurrForBwdRef;
         surfaceParams.ucVDirection = currVDirection;
@@ -2077,7 +2077,7 @@ MOS_STATUS CodechalEncodeMpeg2G10::SendMeSurfaces(
         surfaceParams.bUseAdvState = true;
         surfaceParams.psSurface = &refScaledSurface;
         surfaceParams.dwOffset = refBottomField ? refScaledBottomFieldOffset : 0;
-        surfaceParams.dwCacheabilityControl = 
+        surfaceParams.dwCacheabilityControl =
             m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_REF_ENCODE].Value;
         surfaceParams.dwBindingTableOffset = meBindingTable->dwMEBwdRefPicIdx[0];
         surfaceParams.ucVDirection = (!currFieldPicture) ? CODECHAL_VDIRECTION_FRAME :
@@ -2108,7 +2108,7 @@ MOS_STATUS CodechalEncodeMpeg2G10::SetCurbeMbEnc(
     MbEncCurbeG10 cmd(m_picParams->m_pictureCodingType);
 
     // Set CURBE data as per
-    cmd.m_curbeData.DW0.m_isInterlacedFrameFlag = 
+    cmd.m_curbeData.DW0.m_isInterlacedFrameFlag =
         (CodecHal_PictureIsFrame(m_picParams->m_currOriginalPic)) ? (m_picParams->m_fieldCodingFlag || m_picParams->m_fieldFrameCodingFlag) : 0;
     cmd.m_curbeData.DW0.m_isTopFieldFirst = cmd.m_curbeData.DW0.m_isInterlacedFrameFlag ? !m_picParams->m_interleavedFieldBFF : 0;
     cmd.m_curbeData.DW0.m_forceToSkip = 0;
@@ -2192,7 +2192,7 @@ MOS_STATUS CodechalEncodeMpeg2G10::SetCurbeMbEnc(
             sizeof(uint32_t)* 2,
             m_vmeLutXyP,
             sizeof(uint32_t)* 2));
-        
+
         //VME_SEARCH_PATH
         CODECHAL_ENCODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(
             &(cmd.m_curbeData.VmeSPath0),
@@ -2205,14 +2205,14 @@ MOS_STATUS CodechalEncodeMpeg2G10::SetCurbeMbEnc(
             sizeof(uint32_t)* 16,
             m_vmeSPathP1,
             sizeof(uint32_t)* 16));
-        
+
         //Interlaced motion vector cost is the same as progressive P frame
         CODECHAL_ENCODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(
             &(cmd.m_curbeData.VmeSPath1.MvCostInterlace),
             sizeof(uint32_t)* 2,
             m_vmeLutXyP,
             sizeof(uint32_t)* 2));
-        
+
         }
     else// B_TYPE
     {
@@ -2255,20 +2255,20 @@ MOS_STATUS CodechalEncodeMpeg2G10::SetCurbeMbEnc(
             sizeof(uint32_t)* 16,
             m_vmeSPathB0,
             sizeof(uint32_t)* 16));
-        
+
         CODECHAL_ENCODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(
             &(cmd.m_curbeData.VmeSPath1),
             sizeof(uint32_t)* 16,
             m_vmeSPathB1,
             sizeof(uint32_t)* 16));
-        
+
         //Interlaced motion vector cost is the same as progressive P frame
         CODECHAL_ENCODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(
             &(cmd.m_curbeData.VmeSPath1.MvCostInterlace),
             sizeof(uint32_t)* 2,
             m_vmeLutXyP,
             sizeof(uint32_t)* 2));
-        
+
     }
 
     //ModeCost for P/B pictures
@@ -2299,7 +2299,7 @@ MOS_STATUS CodechalEncodeMpeg2G10::SetCurbeMbEnc(
         // wPictureCodingType: I_TYPE = 1, P_TYPE = 2, B_TYPE = 3
         // KernelStates are I: 0, P: 1, B: 2
         // m_mbEncKernelStates: I: m_mbEncKernelStates[0], P: m_mbEncKernelStates[1], B: m_mbEncKernelStates[2]
-        uint32_t krnStateIdx = m_pictureCodingType - 1; 
+        uint32_t krnStateIdx = m_pictureCodingType - 1;
         kernelState = &m_mbEncKernelStates[krnStateIdx];
     }
     CODECHAL_ENCODE_CHK_STATUS_RETURN(kernelState->m_dshRegion.AddData(

@@ -56,7 +56,7 @@ struct CODECHAL_ENC_HEVC_KERNEL_HEADER_G9_BXT
     CODECHAL_KERNEL_HEADER Hevc_LCUEnc_P_Adv;                               //!< P frame Adv kernel
 };
 
-//! \brief  typedef of struct CODECHAL_ENC_HEVC_KERNEL_HEADER_G9_BXT 
+//! \brief  typedef of struct CODECHAL_ENC_HEVC_KERNEL_HEADER_G9_BXT
 using PCODECHAL_ENC_HEVC_KERNEL_HEADER_G9_BXT = struct CODECHAL_ENC_HEVC_KERNEL_HEADER_G9_BXT*;
 
 MOS_STATUS CodechalEncHevcStateG9Bxt::GetKernelHeaderAndSize(
@@ -87,8 +87,8 @@ MOS_STATUS CodechalEncHevcStateG9Bxt::GetKernelHeaderAndSize(
     else if (operation == ENC_ME)
     {
         // Only BXT supports P frame. P HME index CODECHAL_ENCODE_ME_IDX_P is 0 and B HME index CODECHAL_ENCODE_ME_IDX_B is 1
-        // Use kernel total number to check if P frame is supported 
-        // MBEnc kernels + BRC kernels + DownSampling kernel + DS combined kernel 
+        // Use kernel total number to check if P frame is supported
+        // MBEnc kernels + BRC kernels + DownSampling kernel + DS combined kernel
         if (kernelHeaderTable->nKernelCount == (CODECHAL_HEVC_MBENC_NUM_BXT_SKL + CODECHAL_HEVC_BRC_NUM + 2))
         {
             if (krnStateIdx == 0)
@@ -199,7 +199,7 @@ MOS_STATUS CodechalEncHevcStateG9Bxt::Initialize(CodechalSetting * settings)
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    // common initilization 
+    // common initilization
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncHevcStateG9::Initialize(settings));
 
     m_cscDsState->EnableMmc();

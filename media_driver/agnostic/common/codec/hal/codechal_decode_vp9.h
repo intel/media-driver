@@ -76,8 +76,6 @@ typedef struct _CODECHAL_DECODE_VP9_PROB_UPDATE
     uint8_t      SegPredProbs[3];  //!< Segment predict prob buffers
 } CODECHAL_DECODE_VP9_PROB_UPDATE, *PCODECHAL_DECODE_VP9_PROB_UPDATE;
 
-
-
 //!
 //! \class CodechalDecodeVp9
 //! \brief This class defines the member fields, functions etc used by VP9 decoder.
@@ -214,7 +212,6 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS DetermineDecodePhase();
-
 
     // Parameters passed by application
     uint16_t                  m_usFrameWidthAlignedMinBlk;   //!< Picture Width aligned to minBlock

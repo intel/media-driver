@@ -106,7 +106,7 @@ MOS_STATUS CodechalKernelHme::AllocateResources()
         CODECHAL_ENCODE_CHK_NULL_RETURN(allocSurface = MOS_New(MOS_SURFACE));
         memset(allocSurface, 0, sizeof(MOS_SURFACE));
         MOS_ZeroMemory(allocSurface, sizeof(MOS_SURFACE));
-        
+
         allocSurface->TileType      = MOS_TILE_LINEAR;
         allocSurface->bArraySpacing = true;
         allocSurface->Format        = Format_Buffer_2D;
@@ -487,7 +487,7 @@ MOS_STATUS CodechalKernelHme::Execute(CurbeParam &curbeParam, SurfaceParams &sur
     m_4xMeInUse = Is4xMeEnabled() ? (hmeLevel & HmeLevel::hmeLevel4x) != 0 : false;
     m_16xMeInUse = Is16xMeEnabled() ? (hmeLevel & HmeLevel::hmeLevel16x) != 0  : false;
     m_32xMeInUse = Is32xMeEnabled() ? (hmeLevel & HmeLevel::hmeLevel32x) != 0 : false;
-    
+
     memcpy_s(&m_curbeParam, sizeof(m_curbeParam), &curbeParam, sizeof(m_curbeParam));
     memcpy_s(&m_surfaceParam, sizeof(m_surfaceParam), &surfaceParam, sizeof(m_surfaceParam));
 

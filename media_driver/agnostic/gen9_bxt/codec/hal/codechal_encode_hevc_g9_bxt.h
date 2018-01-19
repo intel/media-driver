@@ -74,7 +74,7 @@ private:
         uint32_t                       krnStateIdx,
         void                           *krnHeader,
         uint32_t                       *krnSize);
-   
+
     // Inherited virtual function
     bool UsePlatformControlFlag()
     {

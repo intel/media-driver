@@ -156,7 +156,6 @@ public:
     SurfaceIndex *m_vmeSurface;
     SurfaceIndex *m_commonSurface;
 
-
     CodechalEncodeAvcEncFeiG9(
         CodechalHwInterface *   hwInterface,
         CodechalDebugInterface *debugInterface,
@@ -459,7 +458,7 @@ public:
     //!
     virtual MOS_STATUS GetMbEncKernelStateIdx(
         CodechalEncodeIdOffsetParams       *params,
-		uint32_t                           *kernelOffset);
+        uint32_t                           *kernelOffset);
 
     //!
     //! \brief    Set AVC MbEnc kernel Curbe data.

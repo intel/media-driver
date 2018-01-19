@@ -41,7 +41,6 @@ public:
         CodechalDebugInterface *debugInterface,
         PCODECHAL_STANDARD_INFO standardInfo) : CodechalEncodeAvcEncFeiG9(hwInterface, debugInterface, standardInfo){};
 
-
     //!
     //! \brief    Destructor
     //!

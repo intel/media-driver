@@ -303,7 +303,7 @@ protected:
     uint32_t& m_frameFieldHeight;
     uint32_t& m_standard;
     MHW_WALKER_MODE& m_walkerMode;
-    
+
 };
 
 #endif /* __CODECHAL_KERNEL_BASE_H__ */

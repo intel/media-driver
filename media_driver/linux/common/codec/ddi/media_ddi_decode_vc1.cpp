@@ -21,7 +21,7 @@
 */
 //!
 //! \file      media_ddi_decode_vc1.cpp 
-//! \brief     libva(and its extension) decoder implementation  
+//! \brief     libva(and its extension) decoder implementation 
 //!
 #include "media_libva_decoder.h"
 #include "media_libva_util.h"
@@ -40,7 +40,7 @@ static const int32_t FractionToScaleFactor[21] = {
     128, 85,  170, 64,  192,
     51,  102, 153, 204, 43,
     215, 37,  74,  111, 148,
-    185, 222, 32,  96,  160, 
+    185, 222, 32,  96,  160,
     224,
 };
 
@@ -491,7 +491,6 @@ VAStatus DdiDecodeVC1::ParsePicParams(
     return VA_STATUS_SUCCESS;
 }
 
-
 VAStatus DdiDecodeVC1::ParseSliceParams(
         DDI_MEDIA_CONTEXT            *mediaCtx,
         VASliceParameterBufferVC1    *slcParam,
@@ -575,10 +574,10 @@ void DdiDecodeVC1::DestroyContext(
     DdiMediaDecode::DestroyContext(ctx);
 }
 
-uint8_t* DdiDecodeVC1::GetPicParamBuf( 
-    DDI_CODEC_COM_BUFFER_MGR    *bufMgr) 
-{ 
-    return (uint8_t*)(&(bufMgr->Codec_Param.Codec_Param_VC1.PicParamVC1)); 
+uint8_t* DdiDecodeVC1::GetPicParamBuf(
+    DDI_CODEC_COM_BUFFER_MGR    *bufMgr)
+{
+    return (uint8_t*)(&(bufMgr->Codec_Param.Codec_Param_VC1.PicParamVC1));
 }
 
 VAStatus DdiDecodeVC1::AllocSliceControlBuffer(
@@ -772,7 +771,7 @@ VAStatus DdiDecodeVC1::RenderPicture(
                 (VASliceParameterBufferVC1 *)data;
             int32_t numSlices = buf->iNumElements;
             DDI_CHK_RET(AllocSliceParamContext(numSlices),"AllocSliceParamContext failed!");
-	    DDI_CHK_RET(ParseSliceParams(mediaCtx, slcInfo, numSlices),"ParseSliceParams failed!");
+        DDI_CHK_RET(ParseSliceParams(mediaCtx, slcInfo, numSlices),"ParseSliceParams failed!");
             m_ddiDecodeCtx->DecodeParams.m_numSlices += numSlices;
             m_groupIndex++;
             break;
@@ -1013,7 +1012,7 @@ VAStatus DdiDecodeVC1::CodecHalInit(
 {
     VAStatus     vaStatus = VA_STATUS_SUCCESS;
     MOS_CONTEXT *mosCtx   = (MOS_CONTEXT *)ptr;
-    
+
     CODECHAL_FUNCTION codecFunction = CODECHAL_FUNCTION_DECODE;
     m_ddiDecodeCtx->pCpDdiInterface->SetEncryptionType(m_ddiDecodeAttr->uiEncryptionType, &codecFunction);
 

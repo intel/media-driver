@@ -41,20 +41,20 @@ public:
     //! \brief    Constructor
     //!
     CodechalMmcEncodeAvc(
-        CodechalHwInterface    *hwInterface, 
+        CodechalHwInterface    *hwInterface,
         void *standardState);
 
     //!
     //! \brief    Destructor
     //!
     ~CodechalMmcEncodeAvc() {};
-    
+
     MOS_STATUS SetPipeBufAddr(
         PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams,
         PMOS_COMMAND_BUFFER cmdBuffer = nullptr) override;
 
     CodechalEncodeAvcBase           *m_avcState = nullptr; //!< Pinter to AVC encode state
-    
+
 };
 
 #endif  // __CODECHAL_MMC_ENCODE_AVC_H__

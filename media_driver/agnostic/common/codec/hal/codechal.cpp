@@ -115,21 +115,21 @@ MOS_STATUS Codechal::Allocate(CodechalSetting * codecHalSettings)
         &userFeatureData);
     nullHWAccelerationEnable.Value = userFeatureData.u32Data;
 
-    m_useNullHw[MOS_GPU_CONTEXT_VIDEO]         = 
+    m_useNullHw[MOS_GPU_CONTEXT_VIDEO]         =
         (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxVideo);
-    m_useNullHw[MOS_GPU_CONTEXT_VIDEO2]        = 
+    m_useNullHw[MOS_GPU_CONTEXT_VIDEO2]        =
         (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxVideo2);
-    m_useNullHw[MOS_GPU_CONTEXT_VIDEO3]        = 
+    m_useNullHw[MOS_GPU_CONTEXT_VIDEO3]        =
         (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxVideo3);
-    m_useNullHw[MOS_GPU_CONTEXT_VDBOX2_VIDEO]  = 
+    m_useNullHw[MOS_GPU_CONTEXT_VDBOX2_VIDEO]  =
         (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxVDBox2Video);
-    m_useNullHw[MOS_GPU_CONTEXT_VDBOX2_VIDEO2] = 
+    m_useNullHw[MOS_GPU_CONTEXT_VDBOX2_VIDEO2] =
         (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxVDBox2Video2);
-    m_useNullHw[MOS_GPU_CONTEXT_VDBOX2_VIDEO3] = 
+    m_useNullHw[MOS_GPU_CONTEXT_VDBOX2_VIDEO3] =
         (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxVDBox2Video3);
-    m_useNullHw[MOS_GPU_CONTEXT_RENDER]        = 
+    m_useNullHw[MOS_GPU_CONTEXT_RENDER]        =
         (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxRender);
-    m_useNullHw[MOS_GPU_CONTEXT_RENDER2]       = 
+    m_useNullHw[MOS_GPU_CONTEXT_RENDER2]       =
         (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxRender2);
 #endif // _DEBUG || _RELEASE_INTERNAL
 

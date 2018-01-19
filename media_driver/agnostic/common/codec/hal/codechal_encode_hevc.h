@@ -328,7 +328,7 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS AllocateEncStatsResources();
-    
+
     //!
     //! \brief    Free encoder states resources
     //!

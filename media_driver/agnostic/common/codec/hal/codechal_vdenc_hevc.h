@@ -76,7 +76,7 @@ public:
         uint32_t                            uiCurrBrcPakStasIdxForWrite;
     };
 
-    static constexpr uint8_t                m_numMaxVdencL0Ref = 3;                   //!< Max number of reference frame list0   
+    static constexpr uint8_t                m_numMaxVdencL0Ref = 3;                   //!< Max number of reference frame list0
     static constexpr uint8_t                m_numMaxVdencL1Ref = 3;                   //!< Max number of reference frame list1
     static constexpr uint32_t               m_brcPakStatsBufSize = 464;               //!< Pak statistic buffer size
     static constexpr uint32_t               m_brcStatsBufSize = 1216;                 //!< BRC Statistic buf size: 48DWs (3CLs) of HMDC Frame Stats + 256 DWs (16CLs) of Histogram Stats = 1216 bytes
@@ -91,7 +91,7 @@ public:
 
     //!< \cond SKIP_DOXYGEN
     // HuC tables
-    // Note: These const values are same for all Gen now. 
+    // Note: These const values are same for all Gen now.
     // In case they become diff later, then need to move declaration to each Gen's derived class
     static const uint8_t                    m_estRateThreshP0[7];
     static const uint8_t                    m_estRateThreshB0[7];
@@ -111,7 +111,7 @@ public:
     static const uint16_t                   m_rdQpLambdaI[52];
     static const uint16_t                   m_rdQpLambdaP[52];
     //! \endcond
-     
+
     bool                                    m_hevcVdencAcqpEnabled = false;                    //!< ACQP enable flag
     bool                                    m_hevcRdoqAdaptationEnabled = false;               //!< RDOQ adaptation enable flag
     bool                                    m_hevcVdencRoundingEnabled = false;                //!< Rounding enable flag
@@ -120,9 +120,8 @@ public:
     bool                                    m_hevcVdencWeightedPredEnabled = false;            //!< Weighted pred enable flag
     bool                                    m_vdencHuCConditional2ndPass = false;              //!< HuC conditional 2nd pass enable flag
     bool                                    m_vdencNativeROIEnabled = false;                   //!< Native ROI enable flag
-    bool                                    m_pakOnlyPass = false;                             //!< flag to signal VDEnc+PAK vs. PAK only 
+    bool                                    m_pakOnlyPass = false;                             //!< flag to signal VDEnc+PAK vs. PAK only
     bool                                    m_hucCmdInitializerUsed = false;                   //!< Command initializer HuC used flag
-
 
     //Resources for VDEnc
     MOS_RESOURCE                            m_sliceCountBuffer;                                //!< Slice count buffer
@@ -168,7 +167,7 @@ public:
 protected:
     //!
     //! \brief    Constructor
-    //!            
+    //!
     CodechalVdencHevcState(CodechalHwInterface* hwInterface,
         CodechalDebugInterface* debugInterface,
         PCODECHAL_STANDARD_INFO standardInfo);
@@ -429,7 +428,7 @@ public:
     //!
     //! \brief    Set VDENC_SRC_SURFACE_STATE, VDENC_REF_SURFACE_STATE and 
     //!           VDENC_DS_REF_SURFACE_STATE parameters
-    //!           
+    //! 
     //! \param    [in, out] srcSurfaceParams
     //!           Source picture surface parameters
     //! \param    [in, out] reconSurfaceParams
@@ -524,7 +523,7 @@ public:
 
     //!
     //! \brief    Get maximal number of slices allowed for specific LevelId
-    //!          
+    //! 
     //! \param    [in] levelIdc
     //!           Level Id
     //!
@@ -534,7 +533,7 @@ public:
 
     //!
     //! \brief    Specify if VDEnc+PAK or Pak only pass is used
-    //!          
+    //! 
     //! \return   void
     //!
     void SetPakPassType();
@@ -554,7 +553,7 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS HuCBrcUpdate();
-    
+
     //!
     //! \brief    Use dummy stream object for HuC BRC FW.
     //!
@@ -570,7 +569,7 @@ public:
     //! \brief    Computer QP initialization value used for BRC
     //!
     //! \param    [out] initQPIP
-    //!           QP initialization value for I/P frame  
+    //!           QP initialization value for I/P frame 
     //! \param    [out] initQPB
     //!           QP initialization value for B frame
     //!
@@ -627,7 +626,7 @@ public:
     MOS_STATUS ReadHcpStatus(PMOS_COMMAND_BUFFER cmdBuffer);
     MOS_STATUS UserFeatureKeyReport();
     MOS_STATUS GetStatusReport(
-        EncodeStatus *encodeStatus, 
+        EncodeStatus *encodeStatus,
         EncodeStatusReport *encodeStatusReport);
     void SetHcpSliceStateCommonParams(MHW_VDBOX_HEVC_SLICE_STATE& sliceStateParams);
     MOS_STATUS AddHcpPakInsertSliceHeader(

@@ -87,7 +87,6 @@ public:
         CodechalDebugInterface *debugInterface,
         PCODECHAL_STANDARD_INFO standardInfo);
 
-
     ~CodechalEncodeAvcEncFeiG8();
 
     void UpdateSSDSliceCount();
@@ -174,7 +173,6 @@ public:
         MOS_STATUS DispatchKernelMbEnc(
             void      *params);
 
-
         //!
         //! \brief    Dispatch MDF FEI preproc
         //!
@@ -234,8 +232,8 @@ public:
         MOS_STATUS DispatchKernelScaling(
             uint32_t flatnessThreshold,
             uint32_t options,
-            uint16_t sourceWidth, 
-            uint16_t sourceHeight, 
+            uint16_t sourceWidth,
+            uint16_t sourceHeight,
             uint32_t kernelType,
             SurfaceIndex** surfIdxArray);
 

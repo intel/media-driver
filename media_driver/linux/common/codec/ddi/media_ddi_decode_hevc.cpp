@@ -400,7 +400,7 @@ VAStatus DdiDecodeHEVC::RenderPicture(
             VASliceParameterBufferHEVC *slcInfoHEVC = (VASliceParameterBufferHEVC *)data;
             int32_t                     numSlices   = buf->iNumElements;
             DDI_CHK_RET(AllocSliceParamContext(numSlices),"AllocSliceParamContext failed!");
-			DDI_CHK_RET(ParseSliceParams(mediaCtx, slcInfoHEVC, numSlices),"ParseSliceParams failed!");
+            DDI_CHK_RET(ParseSliceParams(mediaCtx, slcInfoHEVC, numSlices),"ParseSliceParams failed!");
             m_ddiDecodeCtx->DecodeParams.m_numSlices += numSlices;
             m_groupIndex++;
             break;
@@ -408,13 +408,13 @@ VAStatus DdiDecodeHEVC::RenderPicture(
         case VAIQMatrixBufferType:
         {
             VAIQMatrixBufferHEVC *imxBuf = (VAIQMatrixBufferHEVC *)data;
-			DDI_CHK_RET(ParseIQMatrix(mediaCtx, imxBuf),"ParseIQMatrix failed!");
+            DDI_CHK_RET(ParseIQMatrix(mediaCtx, imxBuf),"ParseIQMatrix failed!");
             break;
         }
         case VAPictureParameterBufferType:
         {
             VAPictureParameterBufferHEVC *picParam = (VAPictureParameterBufferHEVC *)data;
-			DDI_CHK_RET(ParsePicParams(mediaCtx, picParam),"ParsePicParams failed!");
+            DDI_CHK_RET(ParsePicParams(mediaCtx, picParam),"ParsePicParams failed!");
             break;
         }
         case VAProcPipelineParameterBufferType:
@@ -442,35 +442,35 @@ VAStatus DdiDecodeHEVC::RenderPicture(
 MOS_FORMAT DdiDecodeHEVC::GetFormat()
 {
     MOS_FORMAT Format = Format_NV12;
-    DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_ddiDecodeCtx->RTtbl); 
+    DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_ddiDecodeCtx->RTtbl);
     CodechalDecodeParams *decodeParams = &m_ddiDecodeCtx->DecodeParams;
     CODEC_HEVC_PIC_PARAMS *picParams = (CODEC_HEVC_PIC_PARAMS *)decodeParams->m_picParams;
     if ((m_ddiDecodeAttr->profile == VAProfileHEVCMain10) &&
-	    ((picParams->bit_depth_luma_minus8 ||
-		picParams->bit_depth_chroma_minus8)))
+        ((picParams->bit_depth_luma_minus8 ||
+        picParams->bit_depth_chroma_minus8)))
     {
         Format = Format_P010;
-	
-	if (picParams->chroma_format_idc == 2)
-	{
+
+    if (picParams->chroma_format_idc == 2)
+    {
             Format = Format_Y210;
         }
         else if (picParams->chroma_format_idc == 3)
-	{
+    {
             Format = Format_Y410;
         }
     }
-    else if(m_ddiDecodeAttr->profile == VAProfileHEVCMain10 
-		&& picParams->bit_depth_luma_minus8 == 0
-	    && picParams->bit_depth_chroma_minus8 == 0
-	    && rtTbl->pCurrentRT->format == Media_Format_P010)
+    else if(m_ddiDecodeAttr->profile == VAProfileHEVCMain10
+        && picParams->bit_depth_luma_minus8 == 0
+        && picParams->bit_depth_chroma_minus8 == 0
+        && rtTbl->pCurrentRT->format == Media_Format_P010)
     {
-	    // for hevc deocde 8bit in 10bit, the app will pass the render 
-	    // target surface with the P010. 
+        // for hevc deocde 8bit in 10bit, the app will pass the render
+        // target surface with the P010.
         Format = Format_P010;
     }
     return Format;
-       
+
 }
 
 VAStatus DdiDecodeHEVC::SetDecodeParams()
@@ -508,7 +508,6 @@ VAStatus DdiDecodeHEVC::SetDecodeParams()
      }
      return VA_STATUS_SUCCESS;
 }
-
 
 VAStatus DdiDecodeHEVC::AllocSliceParamContext(
     int32_t numSlices)
@@ -676,11 +675,11 @@ void DdiDecodeHEVC::FreeResourceBuffer()
     return;
 }
 
-uint8_t* DdiDecodeHEVC::GetPicParamBuf( 
-    DDI_CODEC_COM_BUFFER_MGR    *bufMgr) 
-{ 
-    return (uint8_t*)(&(bufMgr->Codec_Param.Codec_Param_HEVC.PicParamHEVC)); 
-} 
+uint8_t* DdiDecodeHEVC::GetPicParamBuf(
+    DDI_CODEC_COM_BUFFER_MGR    *bufMgr)
+{
+    return (uint8_t*)(&(bufMgr->Codec_Param.Codec_Param_HEVC.PicParamHEVC));
+}
 
 VAStatus DdiDecodeHEVC::AllocSliceControlBuffer(
     DDI_MEDIA_BUFFER       *buf)
@@ -691,8 +690,8 @@ VAStatus DdiDecodeHEVC::AllocSliceControlBuffer(
 
     bufMgr     = &(m_ddiDecodeCtx->BufMgr);
     availSize = m_sliceCtrlBufNum - bufMgr->dwNumSliceControl;
-    
-	if(m_ddiDecodeCtx->bShortFormatInUse)
+
+    if(m_ddiDecodeCtx->bShortFormatInUse)
     {
         if(availSize < buf->iNumElements)
         {

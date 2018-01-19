@@ -113,7 +113,7 @@ public:
     //! \brief    Initialize encoder instance
     //! \details  When GEN specific derived class implements this function to do its own initialization,
     //            it is required that the derived class calls #CodechalEncodeMpeg2::Initialize() first
-    //            which would do common initialization for all GENs         
+    //            which would do common initialization for all GENs
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
@@ -154,10 +154,10 @@ public:
         SendKernelCmdsParams *params) override;
 
 protected:
-            
+
     //!
     //! \brief    Constructor
-    //!            
+    //!
     CodechalEncodeMpeg2(
         CodechalHwInterface* hwInterface,
         CodechalDebugInterface* debugInterface,
@@ -547,7 +547,7 @@ protected:
     virtual MOS_STATUS SetCurbeMe()
     {
         // No operations when m_hmeKernel exists
-        return MOS_STATUS_SUCCESS; 
+        return MOS_STATUS_SUCCESS;
     }
 
     //!
@@ -609,7 +609,7 @@ protected:
     //!
     //! \enum  MbEncKernelStateIdx
     //! \brief MbEnc kernel index
-    //!     
+    //!
     enum MbEncKernelStateIdx
     {
         mbEncKernelIdxI = 0,
