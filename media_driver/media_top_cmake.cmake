@@ -59,6 +59,7 @@ set_source_files_properties(${SOURCES_} PROPERTIES LANGUAGE "CXX")
 
 add_library( ${LIB_NAME} SHARED ${SOURCES_})
 
+set_target_properties(${LIB_NAME} PROPERTIES COMPILE_FLAGS "-Werror")
 set_target_properties(${LIB_NAME} PROPERTIES LINK_FLAGS "-Wl,--no-as-needed -Wl,--gc-sections -z relro -z now -fstack-protector -fPIC")
 set_target_properties(${LIB_NAME} PROPERTIES PREFIX "")
 
