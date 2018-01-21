@@ -2250,6 +2250,9 @@ DdiMedia_CreateSurfaces2(
         }
     }
 
+    MOS_FreeMemory(bo_names);
+    MOS_FreeMemory(gmmParams);
+
     return VA_STATUS_SUCCESS;
 }
 
