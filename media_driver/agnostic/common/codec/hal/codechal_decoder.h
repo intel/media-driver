@@ -37,7 +37,6 @@
 #include "codechal_mmc.h"
 #include "codechal_utilities.h"
 #include "cm_wrapper.h"
-#include "media_perf_profiler.h"
 
 class CodechalSecureDecode;
 class CodechalCencDecode;
@@ -1108,9 +1107,6 @@ protected:
     //! \details  Support YUV Luma histogram.
     CodechalDecodeHistogram    *m_decodeHistogram = nullptr;
     PMOS_GPUCTX_CREATOPTIONS   m_gpuCtxCreatOpt = nullptr;
-
-    //! \brief Performance data profiler
-    MediaPerfProfiler           *m_perfProfiler    = nullptr;
 };
 
 //!

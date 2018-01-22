@@ -20,12 +20,10 @@
 
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mediamemdecomp.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/media_perf_profiler.cpp
 )
 
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mediamemdecomp.h
-    ${CMAKE_CURRENT_LIST_DIR}/media_perf_profiler.h
 )
 
 set(SOURCES_

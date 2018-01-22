@@ -144,7 +144,7 @@ int32_t Linux_GetCommandBuffer(
     int32_t                 iSize)
 {
     int32_t                bResult  = false;
-    MOS_LINUX_BO           *cmd_bo = nullptr;
+    MOS_LINUX_BO    	   *cmd_bo = nullptr;
 
     if ( pOsContext == nullptr ||
          pCmdBuffer == nullptr)
@@ -1595,7 +1595,7 @@ MOS_STATUS Mos_Specific_AllocateResource(
     int32_t                 iPitch;
     unsigned long           ulPitch;
     MOS_STATUS              eStatus;
-    MOS_LINUX_BO            *bo;
+    MOS_LINUX_BO	    *bo;
     MOS_TILE_TYPE           tileformat;
     uint32_t                tileformat_linux;
     int32_t                 iHeight;
@@ -2114,7 +2114,7 @@ void Mos_Specific_FreeResource(
         {
             MOS_OS_NORMALMESSAGE("<MemNinjaFree osInterface = \"%d\" component = \"%d\" memType = \"Gfx\" memPtr = \"%d\" />.",
                 pOsInterface, pOsInterface->Component, pOsResource->pGmmResInfo);
-            pOsInterface->pOsContext->pGmmClientContext->DestroyResInfoObject(pOsResource->pGmmResInfo);
+			pOsInterface->pOsContext->pGmmClientContext->DestroyResInfoObject(pOsResource->pGmmResInfo);
             pOsResource->pGmmResInfo = nullptr;
 
             MosMemAllocCounterGfx--;
@@ -2678,7 +2678,7 @@ void Mos_Specific_ResetResourceAllocationIndex (
 MOS_STATUS Mos_Specific_GetCommandBuffer(
     PMOS_INTERFACE          pOsInterface,
     PMOS_COMMAND_BUFFER     pCmdBuffer,
-    uint32_t                dwFlags)
+	uint32_t                dwFlags)
 {
     MOS_OS_FUNCTION_ENTER;
 
@@ -2919,7 +2919,7 @@ MOS_STATUS Mos_Specific_GetIndirectStatePointer(
 void Mos_Specific_ReturnCommandBuffer(
     PMOS_INTERFACE          pOsInterface,
     PMOS_COMMAND_BUFFER     pCmdBuffer,
-    uint32_t                dwFlags)
+	uint32_t                dwFlags)
 {
     MOS_OS_FUNCTION_ENTER;
 
@@ -3041,7 +3041,7 @@ MOS_LINUX_BO * Mos_GetBadCommandBuffer_Linux(
     // 31:29 = 0
     // 28:23 = 0x1c
     // ---> 31:24 = 0x0e, 23=0x0
-    // 22:22 = 0x1    (GTT, must be secure batch)
+    // 22:22 = 0x1	(GTT, must be secure batch)
     // 21:16 = 0x0
     // ---> 23:20 = 0x4, 19:16=0x0
     // 15:15 = 0x1 (polling mode)
@@ -3308,8 +3308,8 @@ MOS_STATUS Mos_Specific_SubmitCommandBuffer(
     
     //dwComponentTag 3: decode,5: vpp,6: encode
     //dwCallType     8: PAK(CODECHAL_ENCODE_PERFTAG_CALL_PAK_ENGINE)
-    //               34:PREENC
-    //               5: VPP
+    //		     34: PREENC
+    //		     5: VPP
     dwComponentTag = (PerfData & 0xF000) >> 12;
     dwCallType     = (PerfData & 0xFC) >> 2;
 
@@ -3387,7 +3387,7 @@ MOS_STATUS Mos_Specific_SubmitCommandBuffer(
      }
      else
      {
-           ret = mos_bo_mrb_exec(cmd_bo,
+       	ret = mos_bo_mrb_exec(cmd_bo,
                                        pOsGpuContext->uiCommandBufferSize,
                                        cliprects,
                                        num_cliprects,
@@ -3863,17 +3863,11 @@ void Mos_Specific_IncPerfFrameID(
 uint32_t Mos_Specific_GetPerfTag(
     PMOS_INTERFACE pOsInterface)
 {
-    uint32_t                perfTag;
+    uint32_t                dwPerfTag;
+    MOS_UNUSED(pOsInterface);
+    dwPerfTag = 0;
 
-    PMOS_CONTEXT osContext = (pOsInterface) ? (PMOS_CONTEXT)pOsInterface->pOsContext : nullptr;
-
-    if (osContext == nullptr || !osContext->uEnablePerfTag)
-    {
-        return 0;
-    }
-
-    perfTag = *(uint32_t *)(osContext->pPerfData);
-    return perfTag;
+    return dwPerfTag;
 }
 
 //!
@@ -5135,7 +5129,7 @@ MOS_STATUS Mos_Specific_SetMemoryCompressionHint(
 finish:
     return eStatus;
 }
-
+		
 #ifdef ANDROID
 //!
 //! \brief    Create GPU node association.
@@ -5786,15 +5780,15 @@ MOS_STATUS Mos_Specific_InitInterface(
     Mos_Solo_Initialize(pOsInterface);
 #endif // MOS_MEDIASOLO_SUPPORTED
 
-    // read the "Disable KMD Watchdog" user feature key
+	// read the "Disable KMD Watchdog" user feature key
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_DISABLE_KMD_WATCHDOG_ID,
         &UserFeatureData);
-    pOsContext->bDisableKmdWatchdog = (UserFeatureData.i32Data) ? true : false;
-    
-    // read "Linux PerformanceTag Enable" user feature key
+    pOsContext->bDisableKmdWatchdog = (UserFeatureData.i32Data) ? true : false;	
+	
+	// read "Linux PerformanceTag Enable" user feature key
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,

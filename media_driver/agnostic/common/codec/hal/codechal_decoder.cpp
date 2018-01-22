@@ -537,14 +537,6 @@ MOS_STATUS CodechalDecode::Allocate (CodechalSetting * codecHalSettings)
             m_videoContext));
     }
 
-    if (!m_perfProfiler)
-    {
-        m_perfProfiler = MediaPerfProfiler::Instance();
-        CODECHAL_DECODE_CHK_NULL_RETURN(m_perfProfiler);
-
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_perfProfiler->Initialize((void*)this, m_osInterface));
-    }
-
     return eStatus;
 }
 
@@ -684,12 +676,6 @@ CodechalDecode::~CodechalDecode()
         }
     }
 #endif
-
-    if (m_perfProfiler)
-    {
-        MediaPerfProfiler::Destroy(m_perfProfiler, (void*)this, m_osInterface);
-        m_perfProfiler = nullptr;
-    }
 }
 
 void CodechalDecode::CalcRequestedSpace(
@@ -1287,7 +1273,6 @@ MOS_STATUS CodechalDecode::EndStatusReport(
     CodechalDecodeStatus *decodeStatus = &m_decodeStatusBuf.m_decodeStatus[m_decodeStatusBuf.m_currIndex];
     MOS_ZeroMemory(decodeStatus, sizeof(CodechalDecodeStatus));
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectEndCmd((void*)this, m_osInterface, m_miInterface, cmdBuffer));
     if (!m_osInterface->bEnableKmdMediaFrameTracking && m_osInterface->bInlineCodecStatusUpdate)
     {
         MHW_MI_FLUSH_DW_PARAMS flushDwParams;
@@ -1569,8 +1554,6 @@ MOS_STATUS CodechalDecode::SendPrologWithFrameTracking(
         cmdBuffer,
         &genericPrologParams));
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectStartCmd((void*)this, m_osInterface, m_miInterface, cmdBuffer));
-    
     // Send predication command
     if (m_decodeParams.m_predicationEnabled)
     {
