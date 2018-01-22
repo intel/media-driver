@@ -1378,10 +1378,10 @@ MOS_STATUS CodechalDecodeHevc::SetPictureStructs()
         //Mark Referenced frame's MV buffer as used
         for(i = 0; i < CODEC_MAX_NUM_REF_FRAME_HEVC; i++)
         {
-            if(!CodecHal_PictureIsInvalid(picParams->RefFrameList[i]) &&
-                picParams->PicOrderCntValList[i] != picParams->CurrPicOrderCntVal)
+            uint8_t index = picParams->RefFrameList[i].FrameIdx;
+            if(!CodecHal_PictureIsInvalid(picParams->RefFrameList[i])
+                && index != picParams->CurrPic.FrameIdx)
             {
-                uint8_t index = picParams->RefFrameList[i].FrameIdx;
                 if (index < CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC)
                 {
                     hevcMVBufferList[hevcRefList[index]->ucDMVIdx[0]].bInUse = true;
