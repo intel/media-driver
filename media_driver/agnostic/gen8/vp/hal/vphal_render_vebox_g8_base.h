@@ -46,7 +46,7 @@ struct VEBOX_STATE_UPDATE_STATIC_DATA_G8
         // DN State Update
         struct
         {
-            uint32_t       OffsetToSlice0;            
+            uint32_t       OffsetToSlice0;
         };
 
         uint32_t       Value;
@@ -58,7 +58,7 @@ struct VEBOX_STATE_UPDATE_STATIC_DATA_G8
         // DN State Update
         struct
         {
-            uint32_t       OffsetToSlice1;            
+            uint32_t       OffsetToSlice1;
         };
 
         uint32_t       Value;
@@ -70,8 +70,8 @@ struct VEBOX_STATE_UPDATE_STATIC_DATA_G8
         // DN State Update
         struct
         {
-            uint32_t       FirstFrameFlag              : 16; 
-            uint32_t       NoiseLevel                  : 16;            
+            uint32_t       FirstFrameFlag              : 16;
+            uint32_t       NoiseLevel                  : 16;
         };
 
         uint32_t   Value;
@@ -83,7 +83,7 @@ struct VEBOX_STATE_UPDATE_STATIC_DATA_G8
         // Vebox Statistics Surface
         struct
         {
-            uint32_t       VeboxStatisticsSurface;             
+            uint32_t       VeboxStatisticsSurface;
         };
 
         uint32_t   Value;
@@ -95,7 +95,7 @@ struct VEBOX_STATE_UPDATE_STATIC_DATA_G8
         // Vebox DnDi State Surface
         struct
         {
-            uint32_t       VeboxDndiStateSurface;             
+            uint32_t       VeboxDndiStateSurface;
         };
 
         uint32_t   Value;
@@ -107,7 +107,7 @@ struct VEBOX_STATE_UPDATE_STATIC_DATA_G8
         // Vebox GNE surface
         struct
         {
-            uint32_t       VeboxTempSurface;             
+            uint32_t       VeboxTempSurface;
         };
 
         uint32_t   Value;

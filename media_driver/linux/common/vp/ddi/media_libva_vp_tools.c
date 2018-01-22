@@ -46,7 +46,7 @@ VAStatus VpInitDumpConfig(
     PDDI_VP_CONTEXT     pVpCtx)
 {
     int32_t     uSurfIndex;
-	VAStatus    vaStatus = VA_STATUS_SUCCESS;
+    VAStatus    vaStatus = VA_STATUS_SUCCESS;
 
     pVpCtx->pCurVpDumpDDIParam = nullptr;
     pVpCtx->pPreVpDumpDDIParam = nullptr;
@@ -54,7 +54,7 @@ VAStatus VpInitDumpConfig(
     // allocate pCurVpDumpDDIParam
     pVpCtx->pCurVpDumpDDIParam = (PDDI_VP_DUMP_PARAM)MOS_AllocAndZeroMemory(sizeof(DDI_VP_DUMP_PARAM));
     if (pVpCtx->pCurVpDumpDDIParam)
-    {        
+    {
         for (uSurfIndex = 0; uSurfIndex < VPHAL_MAX_SOURCES; uSurfIndex++)
         {
             pVpCtx->pCurVpDumpDDIParam->pPipelineParamBuffers[uSurfIndex] = (VAProcPipelineParameterBuffer *)MOS_AllocAndZeroMemory(sizeof(VAProcPipelineParameterBuffer));
@@ -68,7 +68,7 @@ VAStatus VpInitDumpConfig(
     // allocate pPreVpDumpDDIParam
     pVpCtx->pPreVpDumpDDIParam = (PDDI_VP_DUMP_PARAM)MOS_AllocAndZeroMemory(sizeof(DDI_VP_DUMP_PARAM));
     if (pVpCtx->pPreVpDumpDDIParam)
-    {        
+    {
         for (uSurfIndex = 0; uSurfIndex < VPHAL_MAX_SOURCES; uSurfIndex++)
         {
             pVpCtx->pPreVpDumpDDIParam->pPipelineParamBuffers[uSurfIndex] = (VAProcPipelineParameterBuffer *)MOS_AllocAndZeroMemory(sizeof(VAProcPipelineParameterBuffer));
@@ -78,18 +78,18 @@ VAStatus VpInitDumpConfig(
                 goto FINISH;
             }
         }
-    }    
-	
-FINISH:	
+    }
+
+FINISH:
     pVpCtx->fpDumpFile = nullptr;
-    return vaStatus;	
+    return vaStatus;
 }
 
 void VpDestoryDumpConfig(
     PDDI_VP_CONTEXT     pVpCtx)
 {
     int32_t     uSurfIndex;
-	VAStatus    vaStatus = VA_STATUS_SUCCESS;
+    VAStatus    vaStatus = VA_STATUS_SUCCESS;
 
     if (pVpCtx->pCurVpDumpDDIParam)
     {
@@ -102,7 +102,7 @@ void VpDestoryDumpConfig(
         }
         MOS_FreeMemAndSetNull(pVpCtx->pCurVpDumpDDIParam);
     }
-	
+
     if (nullptr != pVpCtx->pPreVpDumpDDIParam)
     {
         for (uint32_t uSurfIndex = 0; uSurfIndex < VPHAL_MAX_SOURCES; uSurfIndex++)
@@ -132,7 +132,7 @@ void VpDestoryDumpConfig(
 void VpDumpDeinterlacingParameterBuffer(
     FILE                                      *fpLog,
     VAProcFilterParameterBufferDeinterlacing  *deint)
-{    
+{
     if (deint && fpLog)
     {
         fprintf(fpLog, "\t    type = %d\n",      deint->type);
@@ -154,7 +154,7 @@ void VpDumpColorBalanceParameterBuffer(
     FILE                                     *fpLog,
     VAProcFilterParameterBufferColorBalance  *colorbalance,
     uint32_t                                 uElementNum)
-{    
+{
     for (uint32_t i = 0; i<uElementNum; i++)
     {
         if (fpLog && colorbalance)
@@ -163,7 +163,7 @@ void VpDumpColorBalanceParameterBuffer(
             fprintf(fpLog, "\t    attrib = %d\n", colorbalance[i].attrib);
             fprintf(fpLog, "\t    value = %f\n",  colorbalance[i].value);
         }
-    } 
+    }
 }
 
 //!
@@ -179,7 +179,7 @@ void VpDumpTotalColorCorrectionParameterBuffer(
     FILE                                             *fpLog,
     VAProcFilterParameterBufferTotalColorCorrection  *filter_param,
     uint32_t                                         uElementNum)
-{    
+{
     for (uint32_t i = 0; i<uElementNum; i++)
     {
         if (fpLog && filter_param)
@@ -188,7 +188,7 @@ void VpDumpTotalColorCorrectionParameterBuffer(
             fprintf(fpLog, "\t    attrib = %d\n", filter_param[i].attrib);
             fprintf(fpLog, "\t    value = %f\n",  filter_param[i].value);
         }
-    } 
+    }
 }
 
 //!
@@ -201,7 +201,7 @@ void VpDumpTotalColorCorrectionParameterBuffer(
 void VpDumpFilterParameterBuffer(
     FILE                            *fpLog,
     VAProcFilterParameterBuffer     *buffer)
-{    
+{
     if (fpLog && buffer)
     {
         fprintf(fpLog, "\t    type = %d\n",  buffer->type);
@@ -228,14 +228,14 @@ void VpDumpProcFiltersParameterBuffer(
 {
     VABufferType        type;
     unsigned int        size;
-    unsigned int        num_elements;    
+    unsigned int        num_elements;
     PDDI_MEDIA_CONTEXT  pMediaCtx;
-    void                *pData;  
+    void                *pData;
     PDDI_MEDIA_BUFFER   pFilterBuf;
-    
+
     size                = 0;
     num_elements        = 0;
-    pFilterBuf          = nullptr; 
+    pFilterBuf          = nullptr;
     pMediaCtx           = nullptr;
     pData               = nullptr;
 
@@ -250,20 +250,20 @@ void VpDumpProcFiltersParameterBuffer(
     fprintf(fpLog, "\t  filters = %p\n", filters);
 
     if (num_filters == 0 || filters == nullptr)
-    {        
+    {
         return;
-    }    
+    }
 
-    // get buffer type information 
+    // get buffer type information
     for (int i = 0; i < num_filters; i++)
     {
         VABufferID filter = filters[i];
         pFilterBuf = DdiMedia_GetBufferFromVABufferID(pMediaCtx, filter);
-        
-        // Map Buffer data to virtual addres space
-        DdiMedia_MapBuffer(pVaDrvCtx, filter, &pData);  
 
-        VAProcFilterParameterBufferBase* filter_param = (VAProcFilterParameterBufferBase*) pData;   
+        // Map Buffer data to virtual addres space
+        DdiMedia_MapBuffer(pVaDrvCtx, filter, &pData);
+
+        VAProcFilterParameterBufferBase* filter_param = (VAProcFilterParameterBufferBase*) pData;
         if (nullptr != pFilterBuf)
         {
             fprintf(fpLog, "\t  num_elements = %d\n", pFilterBuf->iNumElements);
@@ -307,8 +307,8 @@ void VpDumpProcFiltersParameterBuffer(
                 fprintf(fpLog, "\t    type = %d\n", filter_param->type);
                 break;
             }
-        }        
-    }    
+        }
+    }
 }
 
 //!
@@ -322,7 +322,7 @@ void VpDumpProcFiltersParameterBuffer(
 //!          return 1, if the env is not set
 //!
 int  VpParseLogConfig(
-    const char *env, 
+    const char *env,
     char       *env_value)
 {
     char *token, *value, *saveptr;
@@ -373,10 +373,10 @@ int  VpParseLogConfig(
     if (value)
     {
         if (env_value)
-		{
+        {
             strncpy(env_value, value, 1024);
-		}
-		
+        }
+
         return 0;
     }
 
@@ -394,10 +394,10 @@ int  VpParseLogConfig(
 //!          return false, if current parameters and previous are different
 //!
 bool VpCmpDDIDumpParam(
-    PDDI_VP_DUMP_PARAM  pCur, 
+    PDDI_VP_DUMP_PARAM  pCur,
     PDDI_VP_DUMP_PARAM  pPre)
 {
-    bool bRet = true;  
+    bool bRet = true;
 
     if (!pCur || !pPre)
     {
@@ -405,23 +405,23 @@ bool VpCmpDDIDumpParam(
     }
 
     if (memcmp(pCur->SrcFormat, pPre->SrcFormat, sizeof(MOS_FORMAT)*VPHAL_MAX_SOURCES) != 0)
-    {               
+    {
          bRet = false;
-    } 
+    }
 
     if (memcmp(pCur->TargetFormat, pPre->TargetFormat, sizeof(MOS_FORMAT)*VPHAL_MAX_TARGETS) != 0)
     {
-         bRet = false;                    
+         bRet = false;
     }
 
     for (uint32_t uSurfIndex = 0; uSurfIndex < VPHAL_MAX_SOURCES; uSurfIndex++)
     {
         if (memcmp(pCur->pPipelineParamBuffers[uSurfIndex], pPre->pPipelineParamBuffers[uSurfIndex], sizeof(VAProcPipelineParameterBuffer)) != 0)
-        {                         
+        {
             bRet = false;
         }
     }
- 
+
     return bRet;
 }
 
@@ -430,41 +430,41 @@ VAStatus VpDumpProcPipelineParams(
     PDDI_VP_CONTEXT         pVpCtx)
 {
     PDDI_MEDIA_CONTEXT      pMediaCtx;
-    FILE                    *fpLog; 
+    FILE                    *fpLog;
     long                    suffix;
     struct timeval          time;
     VPHAL_RENDER_PARAMS     *pRenderParams;
     PDDI_MEDIA_SURFACE      pMediaSrcSurf;
     bool                    bDumpToFile;
     PDDI_VP_DUMP_PARAM      pCurDDIParam;
-    PDDI_VP_DUMP_PARAM      pPreDDIParam; 
-    char                    env_value[1024];         
+    PDDI_VP_DUMP_PARAM      pPreDDIParam;
+    char                    env_value[1024];
 
     DDI_CHK_NULL(pVaDrvCtx,                  "Null pVaDrvCtx.",       VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(pVpCtx,                     "Null pVpCtx.",          VA_STATUS_ERROR_INVALID_CONTEXT);  
+    DDI_CHK_NULL(pVpCtx,                     "Null pVpCtx.",          VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CHK_NULL(pVpCtx->pVpHalRenderParams, "Null Render Params.",   VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(pVpCtx->pCurVpDumpDDIParam, "Null Dump Params.",     VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(pVpCtx->pPreVpDumpDDIParam, "Null Dump Params.",     VA_STATUS_ERROR_INVALID_PARAMETER);
 
     for (uint32_t index = 0; index < pVpCtx->pVpHalRenderParams->uDstCount; index++)
-    {        
-        pVpCtx->pCurVpDumpDDIParam->TargetFormat[index] = pVpCtx->pVpHalRenderParams->pTarget[index]->Format;       
+    {
+        pVpCtx->pCurVpDumpDDIParam->TargetFormat[index] = pVpCtx->pVpHalRenderParams->pTarget[index]->Format;
     }
-	
+
     pCurDDIParam = pVpCtx->pCurVpDumpDDIParam;
-    pPreDDIParam = pVpCtx->pPreVpDumpDDIParam;   
+    pPreDDIParam = pVpCtx->pPreVpDumpDDIParam;
 
     // If current ddi param is same with the previous, don't dump into file.
     bDumpToFile = VpCmpDDIDumpParam(pCurDDIParam, pPreDDIParam);
     if (bDumpToFile)
-    {        
+    {
        return VA_STATUS_SUCCESS;
     }
 
-    fpLog              = nullptr;    
-    pMediaCtx          = DdiMedia_GetMediaContext(pVaDrvCtx); 
+    fpLog              = nullptr;
+    pMediaCtx          = DdiMedia_GetMediaContext(pVaDrvCtx);
     pRenderParams      = pVpCtx->pVpHalRenderParams;
-    pMediaSrcSurf      = nullptr;    
+    pMediaSrcSurf      = nullptr;
 
     gettimeofday(&time, nullptr);
     suffix = ((long)time.tv_sec) * 1000 + (long)time.tv_usec / 1000;
@@ -476,29 +476,29 @@ VAStatus VpDumpProcPipelineParams(
         {
             int32_t tmp = strnlen(env_value, sizeof(env_value));
             int32_t left = sizeof(env_value) - tmp;
-            snprintf(env_value+tmp, left, "%ld", suffix);      
+            snprintf(env_value+tmp, left, "%ld", suffix);
             MOS_SecureFileOpen(&pVpCtx->fpDumpFile, env_value, "w");
         }
-    }  
-    fpLog = pVpCtx->fpDumpFile;  
+    }
+    fpLog = pVpCtx->fpDumpFile;
 
     if (fpLog)
     {
-        fprintf(fpLog, "\t-------------------------------\n");        
-        fprintf(fpLog, "\tTargetFormat Count = %d\n", pRenderParams->uDstCount);    
+        fprintf(fpLog, "\t-------------------------------\n");
+        fprintf(fpLog, "\tTargetFormat Count = %d\n", pRenderParams->uDstCount);
         for (uint32_t uDstIndex = 0; uDstIndex < pRenderParams->uDstCount; uDstIndex++)
-        {                
+        {
             fprintf(fpLog, "\tTargetFormat = %d\n", (int32_t)(pCurDDIParam->TargetFormat[uDstIndex]));
         }
         for (uint32_t uSurfIndex = 0; uSurfIndex < pRenderParams->uSrcCount; uSurfIndex++)
         {
             VAProcPipelineParameterBuffer  *p = pCurDDIParam->pPipelineParamBuffers[uSurfIndex];
             if (p)
-            {                
+            {
                 fprintf(fpLog, "\t--VAProcPipelineParameterBuffer\n");
                 fprintf(fpLog, "\t  surface = 0x%08x\n", p->surface);
                 fprintf(fpLog, "\t    Format = %d\n", (int32_t)(pCurDDIParam->SrcFormat[uSurfIndex]));
-                
+
                 if (p->surface_region)
                 {
                     fprintf(fpLog, "\t  surface_region\n");
@@ -506,7 +506,7 @@ VAStatus VpDumpProcPipelineParams(
                     fprintf(fpLog, "\t    y = %d\n", p->surface_region->y);
                     fprintf(fpLog, "\t    width = %d\n", p->surface_region->width);
                     fprintf(fpLog, "\t    height = %d\n", p->surface_region->height);
-                }                
+                }
 
                 fprintf(fpLog, "\t  surface_color_standard = %d\n", p->surface_color_standard);
 
@@ -517,7 +517,7 @@ VAStatus VpDumpProcPipelineParams(
                     fprintf(fpLog, "\t    y = %d\n", p->output_region->y);
                     fprintf(fpLog, "\t    width = %d\n", p->output_region->width);
                     fprintf(fpLog, "\t    height = %d\n", p->output_region->height);
-                }                
+                }
 
                 fprintf(fpLog, "\t  output_background_color = 0x%08x\n", p->output_background_color);
                 fprintf(fpLog, "\t  output_color_standard = %d\n", p->output_color_standard);
@@ -591,13 +591,13 @@ VAStatus VpDumpProcPipelineParams(
                 fprintf(fpLog, "\t  chroma_siting_flag = %d\n", p->input_color_properties.chroma_sample_location & 0x3);
 #endif
             }
-        }   
-        
+        }
+
         MOS_SecureMemcpy(pPreDDIParam->SrcFormat, sizeof(MOS_FORMAT)*VPHAL_MAX_SOURCES, pCurDDIParam->SrcFormat, sizeof(MOS_FORMAT)*VPHAL_MAX_SOURCES);
         MOS_SecureMemcpy(pPreDDIParam->TargetFormat, sizeof(MOS_FORMAT)*VPHAL_MAX_TARGETS, pCurDDIParam->TargetFormat, sizeof(MOS_FORMAT)*VPHAL_MAX_TARGETS);
         for (uint32_t uSurfIndex = 0; uSurfIndex < VPHAL_MAX_SOURCES; uSurfIndex++)
         {
-            MOS_SecureMemcpy(pPreDDIParam->pPipelineParamBuffers[uSurfIndex], sizeof(VAProcPipelineParameterBuffer), pCurDDIParam->pPipelineParamBuffers[uSurfIndex], sizeof(VAProcPipelineParameterBuffer));           
+            MOS_SecureMemcpy(pPreDDIParam->pPipelineParamBuffers[uSurfIndex], sizeof(VAProcPipelineParameterBuffer), pCurDDIParam->pPipelineParamBuffers[uSurfIndex], sizeof(VAProcPipelineParameterBuffer));
         }
     }
 

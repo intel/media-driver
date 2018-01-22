@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      hal_kernelrules_g8.c  
-//! \brief         Fast Compositing Kernel DLL rules for gen8  
+//! \file      hal_kernelrules_g8.c 
+//! \brief         Fast Compositing Kernel DLL rules for gen8 
 //!
 #include "hal_kerneldll.h"  // Rule definitions
 #include "vpkrnheader.h"    // Kernel IDs
@@ -273,7 +273,6 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g8[] =
     { RID_SetKernel        , IDR_VP_PL2_444Dscale16_Buf_3        , Kdll_None },
     { RID_SetParserState   , Parser_SampleLayer0ColorFill        , Kdll_None },
 
-
     // Sample 0.34x (PL3 | PL3_RGB) -> Src0
     { RID_Op_NewEntry      , RULE_DEFAULT                        , Kdll_None },
     { RID_IsParserState    , Parser_SampleLayer0                 , Kdll_None },
@@ -487,7 +486,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g8[] =
     // If Render Target is not NV12, simply call Intermix
     { RID_Op_NewEntry      , RULE_DEFAULT                        , Kdll_None },
     { RID_IsParserState    , Parser_SampleLayer0SelectCSC        , Kdll_None },
-    { RID_SetParserState   , Parser_SampleLayer0Mix              , Kdll_None }, 
+    { RID_SetParserState   , Parser_SampleLayer0Mix              , Kdll_None },
 
     // Intermix the layer 0
 
@@ -774,7 +773,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g8[] =
     { RID_SetParserState   , Parser_RotateLayer0                 , Kdll_None },
 
     // Src0 PreComp Rotation
-       
+
     // Rotate 0
     { RID_Op_NewEntry      , RULE_DEFAULT                        , Kdll_None },
     { RID_IsParserState    , Parser_RotateLayer0                 , Kdll_None },
@@ -1662,8 +1661,8 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g8[] =
     { RID_IsParserState    , Parser_DualOutput                       , Kdll_None },
     { RID_SetParserState   , Parser_Rotation                         , Kdll_None },
 
-    // PL2_Scale_Rotate/Mirroring cases. It requires to keep track of the first 
-    // layer (layer 0) format, because the post composition rotation kernel requires 
+    // PL2_Scale_Rotate/Mirroring cases. It requires to keep track of the first
+    // layer (layer 0) format, because the post composition rotation kernel requires
     // to match the layer 0 input format.
     // For PL3 input, we will use PL2 kernels as PL3 may be replaced by PL2.
 
@@ -1759,7 +1758,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g8[] =
     { RID_IsParserState    , Parser_Rotation                         , Kdll_None },
     { RID_IsLayerRotation  , VPHAL_ROTATE_90_MIRROR_VERTICAL         , Kdll_None },
     { RID_SetKernel        , IDR_VP_PA_Scale_Rotate90_Mirror_V_L0    , Kdll_None },
-    { RID_SetParserState   , Parser_DestSurfIndex               	 , Kdll_None },
+    { RID_SetParserState   , Parser_DestSurfIndex                    , Kdll_None },
 
     { RID_Op_NewEntry      , RULE_DEFAULT                            , Kdll_None },
     { RID_IsParserState    , Parser_Rotation                         , Kdll_None },
@@ -1898,7 +1897,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g8[] =
     { RID_Op_NewEntry      , RULE_DEFAULT                          , Kdll_None },
     { RID_IsParserState    , Parser_WriteOutput                    , Kdll_None },
     { RID_IsLayerID        , Layer_RenderTarget                    , Kdll_None },
-    { RID_IsLayerFormat    , Format_AYUV                           , Kdll_None }, 
+    { RID_IsLayerFormat    , Format_AYUV                           , Kdll_None },
     { RID_IsLayerNumber    , 0                                     , Kdll_None },
     { RID_IsSrc0ColorFill  , ColorFill_True                        , Kdll_None },
     { RID_SetKernel        , IDR_VP_Set_Scale_Buf_0123_Colorfill   , Kdll_None },

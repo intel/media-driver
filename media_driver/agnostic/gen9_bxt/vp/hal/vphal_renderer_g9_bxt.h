@@ -48,7 +48,7 @@ public:
         PRENDERHAL_INTERFACE                pRenderHal,
         MOS_STATUS                          *pStatus) :
         VphalRendererG9(pRenderHal, pStatus)
-    {        
+    {
     }
 
     //!

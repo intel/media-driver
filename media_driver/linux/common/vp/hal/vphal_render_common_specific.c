@@ -39,9 +39,9 @@ bool VpHal_RndrCommonIsMiBBEndNeeded(
     PMOS_INTERFACE           pOsInterface)
 {
     bool needed = false;
-    
+
     VPHAL_RENDER_ASSERT(pOsInterface);
-    
+
     // in linux, this flag is always false
 
     return needed;

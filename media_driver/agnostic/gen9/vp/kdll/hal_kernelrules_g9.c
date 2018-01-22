@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      hal_kernelrules_g9.c  
-//! \brief         Fast Compositing Kernel DLL rules for gen9  
+//! \file      hal_kernelrules_g9.c 
+//! \brief         Fast Compositing Kernel DLL rules for gen9 
 //!
 #include "hal_kerneldll.h"  // Rule definitions
 #include "vpkrnheader.h"    // Kernel IDs
@@ -225,7 +225,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g9[] =
     { RID_SetKernel        , IDR_VP_P010_444Dscale16_Buf_2_Rot_270 , Kdll_None },
     { RID_SetKernel        , IDR_VP_P010_444Dscale16_Buf_3_Rot_270 , Kdll_None },
     { RID_SetParserState   , Parser_SampleLayer0Done               , Kdll_None },
-    
+
     // Mirror Horizontal
     { RID_Op_NewEntry      , RULE_DEFAULT                          , Kdll_None },
     { RID_IsParserState    , Parser_SampleLayer0                   , Kdll_None },
@@ -345,7 +345,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g9[] =
     { RID_SetKernel        , IDR_VP_P010_444Dscale16_Buf_2_Rot_270 , Kdll_None },
     { RID_SetKernel        , IDR_VP_P010_444Dscale16_Buf_3_Rot_270 , Kdll_None },
     { RID_SetParserState   , Parser_SampleLayer0Done               , Kdll_None },
-    
+
     // Mirror Horizontal
     { RID_Op_NewEntry      , RULE_DEFAULT                          , Kdll_None },
     { RID_IsParserState    , Parser_SampleLayer0                   , Kdll_None },
@@ -425,7 +425,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g9[] =
     { RID_SetKernel        , IDR_VP_P010_444Dscale16_Buf_2         , Kdll_None },
     { RID_SetKernel        , IDR_VP_P010_444Dscale16_Buf_3         , Kdll_None },
     { RID_SetParserState   , Parser_SampleLayer0Done               , Kdll_None },
-  
+
     // Sample_Unorm progressive scaling
     // Sample (RGB | AYUV | Packed YUV | NV12 | 400P) -> Src0
 
@@ -581,7 +581,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g9[] =
     { RID_SetParserState   , Parser_SampleLayer0Done             , Kdll_None },
 
     // Sample NV12 (width or height is not a multiple of 4) -> Src0
-    
+
     // Rotate 90 degrees
     { RID_Op_NewEntry      , RULE_DEFAULT                        , Kdll_None },
     { RID_IsParserState    , Parser_SampleLayer0                 , Kdll_None },
@@ -688,7 +688,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g9[] =
     { RID_SetKernel        , IDR_VP_PL2_444Scale16_Buf_3_Rot_90  , Kdll_None },
     { RID_SetKernel        , IDR_VP_Call_Mirror_H_YUV            , Kdll_None },
     { RID_SetParserState   , Parser_SampleLayer0Done             , Kdll_None },
-   
+
     // No Rotation
     { RID_Op_NewEntry      , RULE_DEFAULT                        , Kdll_None },
     { RID_IsParserState    , Parser_SampleLayer0                 , Kdll_None },
@@ -809,7 +809,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g9[] =
     { RID_SetKernel        , IDR_VP_PL3_444Scale16_Buf_3_Rot_90  , Kdll_None },
     { RID_SetKernel        , IDR_VP_Call_Mirror_H_YUV            , Kdll_None },
     { RID_SetParserState   , Parser_SampleLayer0Done             , Kdll_None },
-    
+
     // No Rotation
     { RID_Op_NewEntry      , RULE_DEFAULT                        , Kdll_None },
     { RID_IsParserState    , Parser_SampleLayer0                 , Kdll_None },
@@ -821,7 +821,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g9[] =
     { RID_SetKernel        , IDR_VP_PL3_444Scale16_Buf_2         , Kdll_None },
     { RID_SetKernel        , IDR_VP_PL3_444Scale16_Buf_3         , Kdll_None },
     { RID_SetParserState   , Parser_SampleLayer0Done             , Kdll_None },
-    
+
     // Sample progressive scaling
     // Sample 0.34x (RGB | AYUV | Packed YUV | YV12 | NV12 | 400P) -> Src0
     // Rotate 90 degrees
@@ -1238,7 +1238,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g9[] =
     // VYUY Output
     { RID_Op_NewEntry      , RULE_DEFAULT                                   , Kdll_None },
     { RID_IsParserState    , Parser_SampleLayer0                            , Kdll_None },
-    { RID_IsSrc0Sampling   , Sample_Scaling_AVS                             , Kdll_None	},
+    { RID_IsSrc0Sampling   , Sample_Scaling_AVS                             , Kdll_None    },
     { RID_IsSrc1Processing , Process_None                                   , Kdll_None },
     { RID_IsSrc0Rotation   , VPHAL_ROTATION_IDENTITY                        , Kdll_None },
     { RID_IsSrc0ColorFill  , ColorFill_False                                , Kdll_None },
@@ -1256,7 +1256,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g9[] =
     // YVYU Output
     { RID_Op_NewEntry      , RULE_DEFAULT                                   , Kdll_None },
     { RID_IsParserState    , Parser_SampleLayer0                            , Kdll_None },
-    { RID_IsSrc0Sampling   , Sample_Scaling_AVS                             , Kdll_None	},
+    { RID_IsSrc0Sampling   , Sample_Scaling_AVS                             , Kdll_None    },
     { RID_IsSrc1Processing , Process_None                                   , Kdll_None },
     { RID_IsSrc0Rotation   , VPHAL_ROTATION_IDENTITY                        , Kdll_None },
     { RID_IsSrc0ColorFill  , ColorFill_False                                , Kdll_None },
@@ -1274,7 +1274,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g9[] =
     // UYVY Output
     { RID_Op_NewEntry      , RULE_DEFAULT                                   , Kdll_None },
     { RID_IsParserState    , Parser_SampleLayer0                            , Kdll_None },
-    { RID_IsSrc0Sampling   , Sample_Scaling_AVS                             , Kdll_None	},
+    { RID_IsSrc0Sampling   , Sample_Scaling_AVS                             , Kdll_None    },
     { RID_IsSrc1Processing , Process_None                                   , Kdll_None },
     { RID_IsSrc0Rotation   , VPHAL_ROTATION_IDENTITY                        , Kdll_None },
     { RID_IsSrc0ColorFill  , ColorFill_False                                , Kdll_None },
@@ -1292,7 +1292,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g9[] =
     // NV12 Output
     { RID_Op_NewEntry      , RULE_DEFAULT                                   , Kdll_None },
     { RID_IsParserState    , Parser_SampleLayer0                            , Kdll_None },
-    { RID_IsSrc0Sampling   , Sample_Scaling_AVS                             , Kdll_None	},
+    { RID_IsSrc0Sampling   , Sample_Scaling_AVS                             , Kdll_None    },
     { RID_IsSrc1Processing , Process_None                                   , Kdll_None },
     { RID_IsSrc0Rotation   , VPHAL_ROTATION_IDENTITY                        , Kdll_None },
     { RID_IsSrc0ColorFill  , ColorFill_False                                , Kdll_None },
@@ -1482,7 +1482,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g9[] =
     { RID_SetParserState   , Parser_SampleLayer0Done             , Kdll_None },
 
     // AVS Sample PL2(width or height is not a multiple of 4) -> Src0
-    
+
     // Rotate 90 degrees
     { RID_Op_NewEntry      , RULE_DEFAULT                        , Kdll_None },
     { RID_IsParserState    , Parser_SampleLayer0                 , Kdll_None },
@@ -1601,7 +1601,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g9[] =
     { RID_SetKernel        , IDR_VP_PL2_444AVS16_Buf_2           , Kdll_None },
     { RID_SetKernel        , IDR_VP_PL2_444AVS16_Buf_3           , Kdll_None },
     { RID_SetParserState   , Parser_SampleLayer0Done             , Kdll_None },
-    
+
     // AVS Sample (PL3 | PL3_RGB) -> Src0
 
     // Rotate 90 degrees
@@ -1722,7 +1722,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g9[] =
     { RID_SetKernel        , IDR_VP_PL3_444AVS16_Buf_2           , Kdll_None },
     { RID_SetKernel        , IDR_VP_PL3_444AVS16_Buf_3           , Kdll_None },
     { RID_SetParserState   , Parser_SampleLayer0Done             , Kdll_None },
-        
+
     // Sample_Unorm interlaced scaling
     // Interlaced Sample RGB -> Src0
     // jump to sampleLayer0SelectCSC to decide if CSC needed before Mix
@@ -1874,7 +1874,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g9[] =
     { RID_SetKernel        , IDR_VP_Interlace_420_16_Buf_2       , Kdll_None },
     { RID_SetKernel        , IDR_VP_Interlace_420_16_Buf_3       , Kdll_None },
     { RID_SetParserState   , Parser_SampleLayer0Done             , Kdll_None },
-    
+
     // Interlaced scaling, intermix the top and bottom fields
     { RID_Op_NewEntry      , RULE_DEFAULT                        , Kdll_None },
     { RID_IsParserState    , Parser_SampleLayer0Mix              , Kdll_None },
@@ -2702,7 +2702,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g9[] =
     { RID_SetParserState   , Parser_SetupCSC1                    , Kdll_None },
 
     // AVS Sample PL2(width or height is not a multiple of 4) -> Src1
-    
+
     // Rotate 90 degrees
     { RID_Op_NewEntry      , RULE_DEFAULT                        , Kdll_None },
     { RID_IsParserState    , Parser_SampleLayer1                 , Kdll_None },
@@ -2803,7 +2803,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g9[] =
     { RID_SetParserState   , Parser_SetupCSC1                    , Kdll_None },
 
     // AVS Sample (PL3 | PL3_RGB) -> Src1
-    
+
     // Rotate 90 degrees
     { RID_Op_NewEntry      , RULE_DEFAULT                        , Kdll_None },
     { RID_IsParserState    , Parser_SampleLayer1                 , Kdll_None },
@@ -3361,8 +3361,8 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g9[] =
     { RID_IsParserState    , Parser_WriteOutput                  , Kdll_None },
     { RID_IsLayerID        , Layer_RenderTarget                  , Kdll_None },
     { RID_IsLayerFormat    , Format_A8R8G8B8                     , Kdll_Or   },
-    { RID_IsLayerFormat    , Format_A8B8G8R8					 , Kdll_None },
-    { RID_Is64BSaveEnabled , true                                , Kdll_None }, 
+    { RID_IsLayerFormat    , Format_A8B8G8R8                     , Kdll_None },
+    { RID_Is64BSaveEnabled , true                                , Kdll_None },
     { RID_IsLayerNumber    , 0                                   , Kdll_None },
     { RID_IsSrc0ColorFill  , ColorFill_True                      , Kdll_None },
     { RID_SetKernel        , IDR_VP_Set_Scale_Buf_0123_Colorfill , Kdll_None },
@@ -3376,8 +3376,8 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g9[] =
     { RID_Op_NewEntry      , RULE_DEFAULT                        , Kdll_None },
     { RID_IsParserState    , Parser_WriteOutput                  , Kdll_None },
     { RID_IsLayerID        , Layer_RenderTarget                  , Kdll_None },
-    { RID_IsLayerFormat    , Format_A8R8G8B8					 , Kdll_Or	 },
-    { RID_IsLayerFormat    , Format_A8B8G8R8					 , Kdll_None },
+    { RID_IsLayerFormat    , Format_A8R8G8B8                     , Kdll_Or     },
+    { RID_IsLayerFormat    , Format_A8B8G8R8                     , Kdll_None },
     { RID_IsLayerNumber    , 0                                   , Kdll_None },
     { RID_IsSrc0ColorFill  , ColorFill_True                      , Kdll_None },
     { RID_SetKernel        , IDR_VP_Set_Scale_Buf_0123_Colorfill , Kdll_None },
@@ -3449,7 +3449,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g9[] =
     { RID_Op_NewEntry      , RULE_DEFAULT                        , Kdll_None },
     { RID_IsParserState    , Parser_WriteOutput                  , Kdll_None },
     { RID_IsLayerID        , Layer_RenderTarget                  , Kdll_None },
-    { RID_IsLayerFormat    , Format_AYUV                         , Kdll_None }, 
+    { RID_IsLayerFormat    , Format_AYUV                         , Kdll_None },
     { RID_IsLayerNumber    , 0                                   , Kdll_None },
     { RID_IsSrc0ColorFill  , ColorFill_True                      , Kdll_None },
     { RID_SetKernel        , IDR_VP_Set_Scale_Buf_0123_Colorfill , Kdll_None },

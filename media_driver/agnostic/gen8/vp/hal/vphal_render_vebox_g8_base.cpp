@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     
-//! \brief    
+//! \file 
+//! \brief 
 //!
 //!
 //! \file     vphal_render_vebox_g8_base.cpp
@@ -246,7 +246,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G8_BASE::LoadUpdateDenoiseKernelStaticData(
 
     // Get offset for slice0 and slice1
     VPHAL_RENDER_CHK_STATUS(VeboxGetStatisticsSurfaceOffsets(
-        &iOffset0, 
+        &iOffset0,
         &iOffset1));
 
     // Load DN update kernel CURBE data
@@ -301,8 +301,8 @@ void VPHAL_VEBOX_STATE_G8_BASE::VeboxGetBeCSCMatrix(
 
     // Get the matrix to use for conversion
     VpHal_GetCscMatrix(
-        pSrcSurface->ColorSpace, 
-        pOutSurface->ColorSpace, 
+        pSrcSurface->ColorSpace,
+        pOutSurface->ColorSpace,
         pVeboxState->fCscCoeff,
         pVeboxState->fCscInOffset,
         pVeboxState->fCscOutOffset);
@@ -318,7 +318,7 @@ void VPHAL_VEBOX_STATE_G8_BASE::VeboxGetBeCSCMatrix(
 
         // Copy row 0 to Temp
         MOS_SecureMemcpy(
-            fTemp, 
+            fTemp,
             uiSize,
             &pVeboxState->fCscCoeff[0],
             uiSize);
@@ -388,7 +388,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G8_BASE::SetupVeboxKernel(
     }
 
     // Store pointer to Kernel Parameter
-    pRenderData->pKernelParam[iKDTIndex] = 
+    pRenderData->pKernelParam[iKDTIndex] =
         &pVeboxState->pKernelParamTable[iKDTIndex];
 
     // Set Parameters for Kernel Entry
@@ -447,7 +447,6 @@ MOS_STATUS VPHAL_VEBOX_STATE_G8_BASE::GetFFDISurfParams(
 
     return MOS_STATUS_SUCCESS;
 }
-
 
 bool VPHAL_VEBOX_STATE_G8_BASE::IsFFDISurfNeeded()
 {
@@ -797,9 +796,9 @@ MOS_STATUS VPHAL_VEBOX_STATE_G8_BASE::SetupDiIecpStateForOutputSurf(
                 true,
                 true));
 
-        pVeboxDiIecpCmdParams->pOsResCurrOutput   = 
+        pVeboxDiIecpCmdParams->pOsResCurrOutput   =
             &pRenderData->pRenderTarget->OsResource;
-        pVeboxDiIecpCmdParams->CurrOutputSurfCtrl.Value = 
+        pVeboxDiIecpCmdParams->CurrOutputSurfCtrl.Value =
             pVeboxState->DnDiSurfMemObjCtl.CurrentOutputSurfMemObjCtl;
     }
     else if (bDiScdEnable)
@@ -812,7 +811,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G8_BASE::SetupDiIecpStateForOutputSurf(
 
         pVeboxDiIecpCmdParams->pOsResCurrOutput   =
             &pVeboxState->FFDISurfaces[pRenderData->iFrame1]->OsResource;
-        pVeboxDiIecpCmdParams->CurrOutputSurfCtrl.Value = 
+        pVeboxDiIecpCmdParams->CurrOutputSurfCtrl.Value =
             pVeboxState->DnDiSurfMemObjCtl.CurrentOutputSurfMemObjCtl;
 
         VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnRegisterResource(
@@ -821,9 +820,9 @@ MOS_STATUS VPHAL_VEBOX_STATE_G8_BASE::SetupDiIecpStateForOutputSurf(
             true,
             true));
 
-        pVeboxDiIecpCmdParams->pOsResPrevOutput   = 
+        pVeboxDiIecpCmdParams->pOsResPrevOutput   =
             &pVeboxState->FFDISurfaces[pRenderData->iFrame0]->OsResource;
-        pVeboxDiIecpCmdParams->PrevOutputSurfCtrl.Value = 
+        pVeboxDiIecpCmdParams->PrevOutputSurfCtrl.Value =
             pVeboxState->DnDiSurfMemObjCtl.CurrentOutputSurfMemObjCtl;
     }
     else if (IsIECPEnabled()) // IECP output surface without DI
@@ -834,9 +833,9 @@ MOS_STATUS VPHAL_VEBOX_STATE_G8_BASE::SetupDiIecpStateForOutputSurf(
             true,
             true));
 
-        pVeboxDiIecpCmdParams->pOsResCurrOutput   = 
+        pVeboxDiIecpCmdParams->pOsResCurrOutput   =
             &pVeboxState->FFDISurfaces[pRenderData->iCurDNOut]->OsResource;
-        pVeboxDiIecpCmdParams->CurrOutputSurfCtrl.Value = 
+        pVeboxDiIecpCmdParams->CurrOutputSurfCtrl.Value =
             pVeboxState->DnDiSurfMemObjCtl.CurrentOutputSurfMemObjCtl;
     }
 
@@ -894,11 +893,11 @@ MOS_STATUS VPHAL_VEBOX_STATE_G8_BASE::SetupDiIecpState(
         false,
         true));
 
-    pVeboxDiIecpCmdParams->pOsResCurrInput          = 
+    pVeboxDiIecpCmdParams->pOsResCurrInput          =
         &pVeboxState->m_currentSurface->OsResource;
-    pVeboxDiIecpCmdParams->dwCurrInputSurfOffset    = 
+    pVeboxDiIecpCmdParams->dwCurrInputSurfOffset    =
         pVeboxState->m_currentSurface->dwOffset;
-    pVeboxDiIecpCmdParams->CurrInputSurfCtrl.Value  = 
+    pVeboxDiIecpCmdParams->CurrInputSurfCtrl.Value  =
         pVeboxState->DnDiSurfMemObjCtl.CurrentInputSurfMemObjCtl;
 
     // Reference surface
@@ -910,11 +909,11 @@ MOS_STATUS VPHAL_VEBOX_STATE_G8_BASE::SetupDiIecpState(
             false,
             true));
 
-        pVeboxDiIecpCmdParams->pOsResPrevInput          = 
+        pVeboxDiIecpCmdParams->pOsResPrevInput          =
             &pVeboxState->m_previousSurface->OsResource;
-        pVeboxDiIecpCmdParams->dwPrevInputSurfOffset    = 
+        pVeboxDiIecpCmdParams->dwPrevInputSurfOffset    =
             pVeboxState->m_previousSurface->dwOffset;
-        pVeboxDiIecpCmdParams->PrevInputSurfCtrl.Value  = 
+        pVeboxDiIecpCmdParams->PrevInputSurfCtrl.Value  =
             pVeboxState->DnDiSurfMemObjCtl.PreviousInputSurfMemObjCtl;
     }
 
@@ -930,9 +929,9 @@ MOS_STATUS VPHAL_VEBOX_STATE_G8_BASE::SetupDiIecpState(
             true,
             true));
 
-        pVeboxDiIecpCmdParams->pOsResDenoisedCurrOutput   = 
+        pVeboxDiIecpCmdParams->pOsResDenoisedCurrOutput   =
             &pVeboxState->FFDNSurfaces[pRenderData->iCurDNOut]->OsResource;
-        pVeboxDiIecpCmdParams->DenoisedCurrOutputSurfCtrl.Value = 
+        pVeboxDiIecpCmdParams->DenoisedCurrOutputSurfCtrl.Value =
             pVeboxState->DnDiSurfMemObjCtl.DnOutSurfMemObjCtl;
     }
 
@@ -946,9 +945,9 @@ MOS_STATUS VPHAL_VEBOX_STATE_G8_BASE::SetupDiIecpState(
             false,
             true));
 
-        pVeboxDiIecpCmdParams->pOsResStmmInput   = 
+        pVeboxDiIecpCmdParams->pOsResStmmInput   =
             &pVeboxState->STMMSurfaces[pRenderData->iCurHistIn].OsResource;
-        pVeboxDiIecpCmdParams->StmmInputSurfCtrl.Value = 
+        pVeboxDiIecpCmdParams->StmmInputSurfCtrl.Value =
             pVeboxState->DnDiSurfMemObjCtl.STMMInputSurfMemObjCtl;
 
         // STMM out
@@ -958,9 +957,9 @@ MOS_STATUS VPHAL_VEBOX_STATE_G8_BASE::SetupDiIecpState(
             true,
             true));
 
-        pVeboxDiIecpCmdParams->pOsResStmmOutput   = 
+        pVeboxDiIecpCmdParams->pOsResStmmOutput   =
             &pVeboxState->STMMSurfaces[pRenderData->iCurHistOut].OsResource;
-        pVeboxDiIecpCmdParams->StmmOutputSurfCtrl.Value = 
+        pVeboxDiIecpCmdParams->StmmOutputSurfCtrl.Value =
             pVeboxState->DnDiSurfMemObjCtl.STMMOutputSurfMemObjCtl;
     }
 
@@ -999,7 +998,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G8_BASE::VeboxQueryStatLayout(
 
     VPHAL_RENDER_ASSERT(pQuery);
 
-    switch (QueryType) 
+    switch (QueryType)
     {
         case VEBOX_STAT_QUERY_GNE_OFFEST:
             *pQuery = VPHAL_VEBOX_STATISTICS_SURFACE_GNE_OFFSET_G8;
@@ -1025,7 +1024,6 @@ MOS_STATUS VPHAL_VEBOX_STATE_G8_BASE::VeboxQueryStatLayout(
 
     return eStatus;
 }
-
 
 //!
 //! \brief    Vebox get Luma default value
@@ -1165,12 +1163,12 @@ void VPHAL_VEBOX_STATE_G8_BASE::SetupSurfaceStates(
 
     if (IS_VPHAL_OUTPUT_PIPE_VEBOX(pRenderData))                     // Vebox output pipe
     {
-        pVeboxSurfaceStateCmdParams->pSurfOutput = 
+        pVeboxSurfaceStateCmdParams->pSurfOutput =
             pRenderData->pRenderTarget;
     }
     else if (bDiVarianceEnable)                                      // DNDI, DI, DI + IECP
     {
-        pVeboxSurfaceStateCmdParams->pSurfOutput = 
+        pVeboxSurfaceStateCmdParams->pSurfOutput =
             pVeboxState->FFDISurfaces[pRenderData->iFrame0];
     }
     else if (IsIECPEnabled())                                    // DN + IECP or IECP only
@@ -1180,7 +1178,7 @@ void VPHAL_VEBOX_STATE_G8_BASE::SetupSurfaceStates(
     }
     else if (pRenderData->bDenoise)                                 // DN only
     {
-        pVeboxSurfaceStateCmdParams->pSurfOutput = 
+        pVeboxSurfaceStateCmdParams->pSurfOutput =
             pVeboxState->FFDNSurfaces[pRenderData->iCurDNOut];
     }
     else
@@ -1319,13 +1317,13 @@ bool VPHAL_VEBOX_STATE_G8_BASE::IsNeeded(
 
     // Determine the output pipe before setting the rendering flags for Vebox
     SET_VPHAL_OUTPUT_PIPE(
-        pRenderData, 
+        pRenderData,
         GetOutputPipe(
             pcRenderParams,
             pSrcSurface,
             &pRenderPassData->bCompNeeded));
 
-    // Update execution state based on current and past events such as the 
+    // Update execution state based on current and past events such as the
     // # of future and past frames available.
     pVeboxState->UpdateVeboxExecutionState(
         pSrcSurface,
@@ -1409,12 +1407,11 @@ MOS_STATUS VPHAL_VEBOX_STATE_G8_BASE::SetupSurfaceStatesForDenoise()
     pVeboxState->tmpResource.TileType = MOS_TILE_LINEAR;
     pVeboxState->tmpResource.OsResource = pVeboxState->VeboxTempSurface.OsResource;
 
-
     // Statistics Surface-----------------------------------------------------------
     VPHAL_RENDER_CHK_STATUS(VpHal_CommonSetBufferSurfaceForHwAccess(
                 pRenderHal,
                 &pVeboxState->VeboxStatisticsSurface,
-				&pVeboxState->RenderHalVeboxStatisticsSurface,
+                &pVeboxState->RenderHalVeboxStatisticsSurface,
                 nullptr,
                 pRenderData->iBindingTable,
                 BI_DN_STATISTICS_SURFACE,
@@ -1433,7 +1430,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G8_BASE::SetupSurfaceStatesForDenoise()
     VPHAL_RENDER_CHK_STATUS(VpHal_CommonSetSurfaceForHwAccess(
                 pRenderHal,
                 &pVeboxState->VeboxHeapResource,
-				&pVeboxState->RenderHalVeboxHeapResource,
+                &pVeboxState->RenderHalVeboxHeapResource,
                 &SurfaceParams,
                 pRenderData->iBindingTable,
                 BI_DN_VEBOX_STATE_SURFACE,
@@ -1452,7 +1449,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G8_BASE::SetupSurfaceStatesForDenoise()
     VPHAL_RENDER_CHK_STATUS(VpHal_CommonSetSurfaceForHwAccess(
                 pRenderHal,
                 &pVeboxState->tmpResource,
-				&pVeboxState->RenderHalTmpResource,
+                &pVeboxState->RenderHalTmpResource,
                 &SurfaceParams,
                 pRenderData->iBindingTable,
                 BI_DN_TEMP_SURFACE,
@@ -1521,7 +1518,7 @@ bool VPHAL_VEBOX_STATE_G8_BASE::IsRTFormatSupported(
     }
 
     if ((pSrcSurface->ColorSpace == CSpace_BT2020) &&
-        ((pSrcSurface->Format == Format_P010)      || 
+        ((pSrcSurface->Format == Format_P010)      ||
         (pSrcSurface->Format == Format_P016))      &&
         IS_RGB32_FORMAT(pRTSurface->Format))
     {
@@ -1545,7 +1542,7 @@ bool VPHAL_VEBOX_STATE_G8_BASE::IsDnFormatSupported(
     bool    bRet;
 
     bRet = false;
-	VPHAL_RENDER_CHK_NULL_NO_STATUS(pSrcSurface);
+    VPHAL_RENDER_CHK_NULL_NO_STATUS(pSrcSurface);
 
     if ((pSrcSurface->Format != Format_YUYV)     &&
         (pSrcSurface->Format != Format_VYUY)     &&

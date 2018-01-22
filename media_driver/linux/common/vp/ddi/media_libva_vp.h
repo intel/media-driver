@@ -104,10 +104,10 @@ typedef struct _DDI_VP_STATE
     bool      bProcampEnable;
     bool      bDeinterlaceEnable;
     bool      bDenoiseEnable;
-	bool      bIEFEnable;
+    bool      bIEFEnable;
 } DDI_VP_STATE;
 
-// public APIs 
+// public APIs
 
 VAStatus DdiVp_CreateContext(
     VADriverContextP    pVaDrvCtx,
@@ -179,5 +179,4 @@ PVPHAL_RENDER_PARAMS VpGetRenderParams(PDDI_VP_CONTEXT pVpCtx);
 PDDI_VP_CONTEXT DdiVp_GetVpContextFromContextID(VADriverContextP ctx, VAContextID vaCtxID);
 
 #endif //_MEDIA_LIBVA_VP_H_
-
 

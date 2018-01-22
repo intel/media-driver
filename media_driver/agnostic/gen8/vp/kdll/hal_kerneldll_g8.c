@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      hal_kerneldll_g8.c  
-//! \brief         Kernel Dynamic Linking/Loading routines for Gen8  
+//! \file      hal_kerneldll_g8.c 
+//! \brief         Kernel Dynamic Linking/Loading routines for Gen8 
 //!
 
 #include "hal_kerneldll.h"
@@ -94,11 +94,11 @@ void KernelDll_StartKernelSearch_g8(
 
         // PreComp L0 Rotation Optimization
         // In Multilayer case, if L0 is the only layer that rotates, then do preComp Rotation of L0
-        // ie Rotate L0 after Scaling and DONT rotate the RT after Composition. This makes it possible to 
+        // ie Rotate L0 after Scaling and DONT rotate the RT after Composition. This makes it possible to
         // perform rotation and Composition in single phase.
         pSearchState->bRTRotate = true;
 
-        // PreComp rotation is possible only if there are more than 2 filters/layers. 
+        // PreComp rotation is possible only if there are more than 2 filters/layers.
         // Otherwise RT rotation is done
         if (iFilterSize > 2)
         {
@@ -144,14 +144,14 @@ void KernelDll_StartKernelSearch_g8(
         {
             for (nLayer = 0; nLayer < iFilterSize - 1; nLayer++)
             {
-            	if (pSearchState->pFilter[nLayer].format == Format_NV12 && pSearchState->pFilter[nLayer].sampler == Sample_iScaling_AVS)
-            	{
-            	    pSearchState->ShuffleSamplerData = Shuffle_None;
-            	}
-            	else
-            	{
-            	    pSearchState->ShuffleSamplerData = Shuffle_RenderTarget;
-            	}
+                if (pSearchState->pFilter[nLayer].format == Format_NV12 && pSearchState->pFilter[nLayer].sampler == Sample_iScaling_AVS)
+                {
+                    pSearchState->ShuffleSamplerData = Shuffle_None;
+                }
+                else
+                {
+                    pSearchState->ShuffleSamplerData = Shuffle_RenderTarget;
+                }
             }
         }
         // There are mix of sampler message types. Adjust the data in all sample 8x8 layer.

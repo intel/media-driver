@@ -32,7 +32,6 @@
 
 extern const Kdll_RuleEntry         g_KdllRuleTable_g8[];
 
-
 // Platform restriction on BDW: Check if the BDW SKU doesn't have EDRAM
 // Currently on BDW, if the surface is to be cached in eLLC and
 // the HW SKU doesn't have eLLC then it gets cached in LLC.
@@ -94,7 +93,7 @@ void VphalRendererG8::GetCacheCntl(
     }
 }
 
-MOS_STATUS VphalRendererG8::AllocateRenderComponents(   
+MOS_STATUS VphalRendererG8::AllocateRenderComponents(
     PMHW_VEBOX_INTERFACE                pVeboxInterface,
     PMHW_SFC_INTERFACE                  pSfcInterface)
 {

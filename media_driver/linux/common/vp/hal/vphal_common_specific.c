@@ -50,7 +50,7 @@ MOS_STATUS VpHal_GetSurfaceInfo(
     VPHAL_PUBLIC_ASSERT(pOsInterface);
     VPHAL_PUBLIC_ASSERT(pInfo);
     VPHAL_PUBLIC_ASSERT(pSurface);
-    
+
     PMOS_RESOURCE    pResource = &pSurface->OsResource;
     MOS_SURFACE      ResDetails;
 

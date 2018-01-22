@@ -76,7 +76,7 @@ void VphalRendererG9::GetCacheCntl(
     }
 }
 
-MOS_STATUS VphalRendererG9::AllocateRenderComponents(   
+MOS_STATUS VphalRendererG9::AllocateRenderComponents(
     PMHW_VEBOX_INTERFACE                pVeboxInterface,
     PMHW_SFC_INTERFACE                  pSfcInterface)
 {
@@ -170,6 +170,6 @@ MOS_STATUS VphalRendererG9::InitKdllParam()
     pKernelDllRules     = g_KdllRuleTable_g9;
     pcKernelBin         = (const void*)IGVPKRN_G9;
     dwKernelBinSize     = IGVPKRN_G9_SIZE;
-    
+
     return eStatus;
 }

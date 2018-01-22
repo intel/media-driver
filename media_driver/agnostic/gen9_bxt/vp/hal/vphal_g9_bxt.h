@@ -52,11 +52,10 @@ public:
     VphalStateG9Bxt(
         PMOS_INTERFACE          pOsInterface,
         PMOS_CONTEXT            pOsDriverContext,
-        MOS_STATUS              *peStatus) : 
+        MOS_STATUS              *peStatus) :
         VphalStateG9(pOsInterface, pOsDriverContext, peStatus)
-    {        
+    {
     }
-
 
     //!
     //! \brief    VphalState Destuctor
@@ -64,7 +63,7 @@ public:
     //! \return   VOID
     //!
     ~VphalStateG9Bxt()
-    {        
+    {
     }
 
 protected:

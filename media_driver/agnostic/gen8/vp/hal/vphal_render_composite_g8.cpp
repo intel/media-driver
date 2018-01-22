@@ -53,7 +53,7 @@ void CompositeStateG8::SubmitStatesFillGenSpecificStaticData(
         }
     }
 
-    // Set ChromaSitting 
+    // Set ChromaSitting
     pStatic->DW10.ChromaSitingLocation = GetOutputChromaSitting(pTarget);
 
     if (pRenderingData->iLayers > 0)
@@ -99,12 +99,12 @@ PRENDERHAL_OFFSET_OVERRIDE CompositeStateG8::GetPlaneOffsetOverrideParam(
         return nullptr;
     }
 
-    // Due to lacking of native 32x32 block support, we use 2x2 x (16x16) instead, 
+    // Due to lacking of native 32x32 block support, we use 2x2 x (16x16) instead,
     // so only the left-top block can perform none zero X/Y origin correctly.
-    // Due to limitation of X/Y offset in Surface State, it can be programmed 
+    // Due to limitation of X/Y offset in Surface State, it can be programmed
     // within a tile only to make left/top coordinate falling into (0, 0) block.
-    // Adjust Surface Base Address to tile alignment. 
-    // The same approach below is applied to both X and Y direction. 
+    // Adjust Surface Base Address to tile alignment.
+    // The same approach below is applied to both X and Y direction.
     //
     // |   32 DWORDs    |   32 DWORDs    | 16 pxls| 16 pxls|
     // |----------------|----------------|--------|--------|-----
@@ -179,12 +179,12 @@ PRENDERHAL_OFFSET_OVERRIDE CompositeStateG8::GetPlaneOffsetOverrideParam(
                 ~(VPHAL_MACROBLOCK_SIZE - 1);
 
         // # of tiles in X direction for base address adjustment
-        // it's to simply shifting left VPHAL_YTILE_W_SHIFTBITS and 
+        // it's to simply shifting left VPHAL_YTILE_W_SHIFTBITS and
         // then right shifting uBytesPerPixelShift number of bits
         uYPlaneTopLvlIndexX     = tempRect.left >> (VPHAL_YTILE_W_SHIFTBITS - uBytesPerPixelShift);
 
         // Xoffset within tile and above 16x16 block, in DWORD
-        uYPlane2ndLvlIndexX     = ((tempRect.left & 
+        uYPlane2ndLvlIndexX     = ((tempRect.left &
                 ((VPHAL_YTILE_W_ALIGNMENT >> uBytesPerPixelShift)-1)) &
                 ~(VPHAL_MACROBLOCK_SIZE - 1)) >> (2 - uBytesPerPixelShift);
 
@@ -200,7 +200,7 @@ PRENDERHAL_OFFSET_OVERRIDE CompositeStateG8::GetPlaneOffsetOverrideParam(
             //        (rebased) new Y plane base->| |(tile-aligned)    |     |  |
             //                                    | |                  |     |  |
             // uiOld_YplaneBase_to_New_UVplaneBase| |////colorfill/////|     |  |
-            //                                    | |//////area////////|     |  |uiNew_YplaneHeight 
+            //                                    | |//////area////////|     |  |uiNew_YplaneHeight
             //                old UV plane base ->| +------------------+     |  |
             //                                    | |                  |  |
             //                 new UV plane base->| |(tile-aligned)    |  |
@@ -208,9 +208,9 @@ PRENDERHAL_OFFSET_OVERRIDE CompositeStateG8::GetPlaneOffsetOverrideParam(
             //          32 > YOffsetFor_UV_Plane|   |     UV-plane     |  | uiOldUVplaneBaseToBottom
             //     16 > new UV plane rect.top|  |   |                  |  | =tempRect.bottom/2
             //                                    | |                  |  |
-            //                 uiNew_UVplaneHeight| |//colorfill area//|  |  
+            //                 uiNew_UVplaneHeight| |//colorfill area//|  |
             //               =uiNew_YplaneHeight/2| +------------------+  |<-UV plane rect.bottom (old == new)
-            //    
+            //
 
             uint32_t uiOldUVplaneBaseToBottom            = tempRect.bottom / 2;
             uint32_t uiNew_UVplaneHeight                 = pSurface->dwHeight / 2; // (= uiNew_YplaneHeight / 2);

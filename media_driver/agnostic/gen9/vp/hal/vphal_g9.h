@@ -52,9 +52,9 @@ public:
     VphalStateG9(
         PMOS_INTERFACE          pOsInterface,
         PMOS_CONTEXT            pOsDriverContext,
-        MOS_STATUS              *peStatus) : 
+        MOS_STATUS              *peStatus) :
         VphalState(pOsInterface, pOsDriverContext, peStatus)
-    {        
+    {
     }
 
     //!
@@ -62,7 +62,7 @@ public:
     //! \details  Destroys VPHAL and all internal states and objects
     //!
     virtual ~VphalStateG9()
-    {        
+    {
     }
 
 protected:
