@@ -74,10 +74,10 @@ typedef union _LARGE_INTEGER
 {
     struct
     {
-        uint32_t LowPart;
-        int32_t HighPart;
+        unsigned int LowPart;
+        int HighPart;
     } u;
-    int64_t QuadPart;
+    long long int QuadPart;
 } LARGE_INTEGER;
 
 typedef int HANDLE;
