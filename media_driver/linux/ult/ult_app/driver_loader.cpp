@@ -82,7 +82,7 @@ VAStatus DriverDllLoader::InitDriver(int platform_id)
     const char *cm_entry_name = "vaCmExtSendReqMsg";
     VADriverInit init_func = NULL;
 
-    printf("Load driver from %s.\n", driver_path);
+    //printf("Load driver from %s.\n", driver_path);
     int drm_fd = platform_id+1;//open("/dev/dri/renderD128", O_RDONLY);
     if(drm_fd<0)
         drm_fd = 1;
@@ -99,7 +99,7 @@ VAStatus DriverDllLoader::InitDriver(int platform_id)
     }
     else
     {
-        printf("INFO: Load driver success\n");
+        //printf("INFO: Load driver success\n");
         init_func = (VADriverInit)dlsym(umdhandle, init_func_s);
         vaCmExtSendReqMsg = (CmExtSendReqMsgFunc)dlsym(umdhandle,
                                                        cm_entry_name);
@@ -107,17 +107,16 @@ VAStatus DriverDllLoader::InitDriver(int platform_id)
         {
             return VA_STATUS_ERROR_UNKNOWN;
         }
-        printf("INFO: Found init function %s and CM entry point %s.\n",
-               init_func_s, cm_entry_name);
+        //printf("INFO: Found init function %s and CM entry point %s.\n", init_func_s, cm_entry_name);
 
         ctx.vtable = &vtable;
         ctx.vtable_vpp = &vtable_vpp;
         ctx.drm_state = &drmstate;
         vaStatus = (*init_func)(&ctx);
-        if (VA_STATUS_SUCCESS == vaStatus)
-        {
-            printf("INFO: Get driver DDI functions\n");
-        }
+        //if (VA_STATUS_SUCCESS == vaStatus)
+        //{
+        //    printf("INFO: Get driver DDI functions\n");
+        //}
         return vaStatus;
     }
 }

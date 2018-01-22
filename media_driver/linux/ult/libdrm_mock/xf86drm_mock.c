@@ -335,6 +335,12 @@ mosdrmIoctl(int fd, unsigned long request, void *arg)
             ret = 0;
         }
         break;
+        case DRM_IOCTL_I915_GEM_CONTEXT_GETPARAM:
+        case DRM_IOCTL_I915_GEM_CONTEXT_SETPARAM:
+        {
+            ret = -1;
+        }
+        break;
         default:
             printf("drmIoctl: with unsupport IOType\n");
             do {
