@@ -40,11 +40,11 @@ public:
                           uint32_t width,
                           uint32_t height,
                           CM_SURFACE_FORMAT format,
-                          void *pSysMem,
-                          CmSurfaceManager *pSurfaceManager,
-                          CmSurface2DUPRT* &pSurface);
+                          void *sysMem,
+                          CmSurfaceManager *surfaceManager,
+                          CmSurface2DUPRT* &surface);
 
-    CM_RT_API int32_t GetIndex(SurfaceIndex* &pIndex);
+    CM_RT_API int32_t GetIndex(SurfaceIndex* &index);
 
     int32_t GetHandle(uint32_t &handle);
 
@@ -52,8 +52,8 @@ public:
     CM_ENUM_CLASS_TYPE Type() const
     { return CM_ENUM_CLASS_TYPE_CMSURFACE2DUP; }
 
-    int32_t SetMemoryObjectControl(MEMORY_OBJECT_CONTROL mem_ctrl,
-                                   MEMORY_TYPE mem_type,
+    int32_t SetMemoryObjectControl(MEMORY_OBJECT_CONTROL memCtrl,
+                                   MEMORY_TYPE memType,
                                    uint32_t age);
 
     CM_RT_API int32_t GetSurfaceDesc(uint32_t &width,
@@ -62,7 +62,7 @@ public:
                                      uint32_t &sizeperpixel);
 
     CM_RT_API int32_t
-    SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL mem_ctrl);
+    SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL memCtrl);
 
     CM_RT_API int32_t SetProperty(CM_FRAME_TYPE frameType);
 
@@ -77,19 +77,19 @@ protected:
                     uint32_t width,
                     uint32_t height,
                     CM_SURFACE_FORMAT format,
-                    void *pSysMem,
-                    CmSurfaceManager *pSurfaceManager);
+                    void *sysMem,
+                    CmSurfaceManager *surfaceManager);
 
     ~CmSurface2DUPRT();
 
     int32_t Initialize(uint32_t index);
 
-    uint32_t m_Handle;
-    uint32_t m_Width;
-    uint32_t m_Height;
+    uint32_t m_handle;
+    uint32_t m_width;
+    uint32_t m_height;
     CM_FRAME_TYPE m_frameType;
-    CM_SURFACE_FORMAT m_Format;
-    void *m_pSysMem;
+    CM_SURFACE_FORMAT m_format;
+    void *m_sysMem;
 };
 };  //namespace
 

@@ -53,7 +53,7 @@ protected:
     ~CmThreadGroupSpace( void );
     int32_t Initialize( void );
 
-    CmDeviceRT* m_cmDev;
+    CmDeviceRT* m_device;
     uint32_t m_threadSpaceWidth;
     uint32_t m_threadSpaceHeight;
     uint32_t m_threadSpaceDepth;

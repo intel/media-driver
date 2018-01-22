@@ -49,17 +49,17 @@ public:
     //!
     //! \brief      This function returns the SurfaceIndex object associated
     //!             with the surface.
-    //! \param      [out] pIndex
+    //! \param      [out] index
     //!             Reference to the pointer to SurfaceIndex.
     //! \returns    CM_SUCCESS.
     //!
-    CM_RT_API virtual int32_t GetIndex(SurfaceIndex* &pIndex) = 0;
+    CM_RT_API virtual int32_t GetIndex(SurfaceIndex* &index) = 0;
 
     //!
     //! \brief      Selects one of the pre-defined memory object control
     //!             settings for this surface.
     //! \details    This API is platform related for SKL and plus platforms.
-    //! \param      [in] mem_ctrl
+    //! \param      [in] memCtrl
     //!             The selected pre-defined memory object control setting.
     //! \retval     CM_SUCCESS if the memory object control is set successfully.
     //! \retval     CM_FAILURE if the memory object control is not set
@@ -67,7 +67,7 @@ public:
     //! \note       This function is only implemented for hardware and simulation mode, .
     //!
     CM_RT_API virtual int32_t
-    SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL mem_ctrl) = 0;
+    SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL memCtrl) = 0;
 
     //!
     //! \brief      Set surface property for interlace usage.

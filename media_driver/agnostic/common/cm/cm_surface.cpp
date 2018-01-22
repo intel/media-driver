@@ -39,9 +39,9 @@ namespace CMRT_UMD
 //| Purpose:    Destory CmSurface
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmSurface::Destroy( CmSurface* &pSurface )
+int32_t CmSurface::Destroy( CmSurface* &surface )
 {
-    CmSafeDelete( pSurface );
+    CmSafeDelete( surface );
 
     return CM_SUCCESS;
 }
@@ -51,9 +51,9 @@ int32_t CmSurface::Destroy( CmSurface* &pSurface )
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 CmSurface::CmSurface( CmSurfaceManager* surfMgr ,bool isCmCreated):
-    m_pIndex( nullptr ),
-    m_SurfaceMgr( surfMgr ),
-    m_IsCmCreated (isCmCreated)
+    m_index( nullptr ),
+    m_surfaceMgr( surfMgr ),
+    m_isCmCreated (isCmCreated)
 {
 
 }
@@ -64,7 +64,7 @@ CmSurface::CmSurface( CmSurfaceManager* surfMgr ,bool isCmCreated):
 //*-----------------------------------------------------------------------------
 CmSurface::~CmSurface( void )
 {
-    MosSafeDelete(m_pIndex);
+    MosSafeDelete(m_index);
 }
 
 //*-----------------------------------------------------------------------------
@@ -74,8 +74,8 @@ CmSurface::~CmSurface( void )
 int32_t CmSurface::Initialize( uint32_t index )
 {
     // using CM compiler data structure
-    m_pIndex = MOS_New(SurfaceIndex, index);
-    if( m_pIndex )
+    m_index = MOS_New(SurfaceIndex, index);
+    if( m_index )
     {
         return CM_SUCCESS;
     }
@@ -90,36 +90,33 @@ int32_t CmSurface::Initialize( uint32_t index )
 //|             the execution of kernels upon the surface
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmSurface::FlushDeviceQueue( CmEventRT* pEvent )
+int32_t CmSurface::FlushDeviceQueue( CmEventRT* event )
 {
-    if( pEvent == nullptr )
+    if( event == nullptr )
     {
         CM_ASSERTMESSAGE("Error: Pointer to CM event is null.")
         return CM_FAILURE;
     }
 
-    CmDeviceRT* pCmDev = nullptr;
-    m_SurfaceMgr->GetCmDevice( pCmDev );
-    CM_ASSERT( pCmDev );
+    CmDeviceRT* device = nullptr;
+    m_surfaceMgr->GetCmDevice( device );
+    CM_ASSERT( device );
 
     //Used for timeout detection
-    CmQueueRT* pCmQueue = nullptr;
-    pEvent->GetQueue(pCmQueue);
-    uint32_t num_tasks;
-    pCmQueue->GetTaskCount(num_tasks);
+    CmQueueRT* cmQueue = nullptr;
+    event->GetQueue(cmQueue);
+    uint32_t numTasks;
+    cmQueue->GetTaskCount(numTasks);
     LARGE_INTEGER freq;
     MOS_QueryPerformanceFrequency((uint64_t*)&freq.QuadPart);
     LARGE_INTEGER start;
     MOS_QueryPerformanceCounter((uint64_t*)&start.QuadPart);
-    int64_t timeout = start.QuadPart + (CM_MAX_TIMEOUT * freq.QuadPart * num_tasks); //Count to timeout at
+    int64_t timeout = start.QuadPart + (CM_MAX_TIMEOUT * freq.QuadPart * numTasks); //Count to timeout at
 
     CM_STATUS status;
-    pEvent->GetStatusNoFlush( status );
-    // Not necessary CM_STATUS_FINISHED, once flushed, lock will waiti
+    event->GetStatusNoFlush( status );
+    // Not necessary CM_STATUS_FINISHED, once flushed, lock will wait
     // untill the task finishes the execution of kernels upon the surface
-    //while( ( status != CM_STATUS_FLUSHED ) &&
-    //       ( status != CM_STATUS_FINISHED ) &&
-    //       ( status != CM_STATUS_STARTED ) )
     while( status == CM_STATUS_QUEUED )
     {
         LARGE_INTEGER current;
@@ -128,7 +125,7 @@ int32_t CmSurface::FlushDeviceQueue( CmEventRT* pEvent )
         if( current.QuadPart > timeout )
             return CM_EXCEED_MAX_TIMEOUT;
 
-        pEvent->GetStatusNoFlush( status );
+        event->GetStatusNoFlush( status );
     }
 
     return CM_SUCCESS;
@@ -136,15 +133,15 @@ int32_t CmSurface::FlushDeviceQueue( CmEventRT* pEvent )
 
 int32_t CmSurface::TouchDeviceQueue()
 {
-    CmDeviceRT* pCmDev = nullptr;
+    CmDeviceRT* device = nullptr;
 
-    m_SurfaceMgr->GetCmDevice(pCmDev);
-    CM_ASSERT(pCmDev);
+    m_surfaceMgr->GetCmDevice(device);
+    CM_ASSERT(device);
 
-    std::vector<CmQueueRT *> &pCmQueue = pCmDev->GetQueue();
-    CSync *lock = pCmDev->GetQueueLock();
+    std::vector<CmQueueRT *> &cmQueue = device->GetQueue();
+    CSync *lock = device->GetQueueLock();
     lock->Acquire();
-    for (auto iter = pCmQueue.begin(); iter != pCmQueue.end(); iter++)
+    for (auto iter = cmQueue.begin(); iter != cmQueue.end(); iter++)
     {
         int32_t result = (*iter)->TouchFlushedTasks();
         if (FAILED(result))
@@ -161,9 +158,9 @@ int32_t CmSurface::TouchDeviceQueue()
 int32_t CmSurface::WaitForReferenceFree()
 {
     // Make sure the surface is not referenced any more
-    int32_t * pSurfState = nullptr;
-    m_SurfaceMgr->GetSurfaceState(pSurfState);
-    while (pSurfState[m_pIndex->get_data()])
+    int32_t * surfState = nullptr;
+    m_surfaceMgr->GetSurfaceState(surfState);
+    while (surfState[m_index->get_data()])
     {
         if (FAILED(TouchDeviceQueue()))
         {
@@ -182,33 +179,33 @@ bool CmSurface::MemoryObjectCtrlPolicyCheck(MEMORY_OBJECT_CONTROL memCtrl)
         return true;
     }
 
-    CmDeviceRT* pCmDevice =  nullptr;
-    m_SurfaceMgr->GetCmDevice(pCmDevice);
-    if(pCmDevice == nullptr)
+    CmDeviceRT* cmDevice =  nullptr;
+    m_surfaceMgr->GetCmDevice(cmDevice);
+    if(cmDevice == nullptr)
     {
         return false;
     }
 
-    PCM_HAL_STATE  pCmHalState = ((PCM_CONTEXT_DATA)pCmDevice->GetAccelData())->cmHalState;
-    if (pCmHalState == nullptr)
+    PCM_HAL_STATE  cmHalState = ((PCM_CONTEXT_DATA)cmDevice->GetAccelData())->cmHalState;
+    if (cmHalState == nullptr)
     {
         return false;
     }
 
-    return pCmHalState->cmHalInterface->MemoryObjectCtrlPolicyCheck(memCtrl);
+    return cmHalState->cmHalInterface->MemoryObjectCtrlPolicyCheck(memCtrl);
 
 }
 
-int32_t CmSurface::SetMemoryObjectControl(MEMORY_OBJECT_CONTROL mem_ctrl, MEMORY_TYPE mem_type, uint32_t age)
+int32_t CmSurface::SetMemoryObjectControl(MEMORY_OBJECT_CONTROL memCtrl, MEMORY_TYPE memType, uint32_t age)
 {
-    if (!MemoryObjectCtrlPolicyCheck(mem_ctrl))
+    if (!MemoryObjectCtrlPolicyCheck(memCtrl))
     {
         return CM_FAILURE;
     }
 
-    m_MemObjCtrl.mem_ctrl = mem_ctrl;
-    m_MemObjCtrl.mem_type = mem_type;
-    m_MemObjCtrl.age= age;
+    m_memObjCtrl.mem_ctrl = memCtrl;
+    m_memObjCtrl.mem_type = memType;
+    m_memObjCtrl.age= age;
 
     return CM_SUCCESS;
 }

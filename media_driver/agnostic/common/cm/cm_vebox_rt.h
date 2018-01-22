@@ -42,28 +42,28 @@ class CmVeboxData;
 class CmVeboxRT: public CmVebox
 {
 public:
-    static int32_t Create(CmDeviceRT *pCmDev,
+    static int32_t Create(CmDeviceRT *device,
                           uint32_t index,
-                          CmVeboxRT* &pCmVebox);
+                          CmVeboxRT* &cmVebox);
 
-    static int32_t Destroy(CmVeboxRT* &pCmVebox);
+    static int32_t Destroy(CmVeboxRT* &cmVebox);
 
     //! \brief      Set vebox state
     //! \details    Pass user defined vebox state to vebox class member
-    //!             m_VeboxState
-    //! \param      [in] VeBoxState
+    //!             m_veboxState
+    //! \param      [in] veboxState
     //!             CM_VEBOX_STATE
     //! \returns    CM_SUCCESS
-    CM_RT_API int32_t SetState(CM_VEBOX_STATE &pVeBoxState);
+    CM_RT_API int32_t SetState(CM_VEBOX_STATE &veboxState);
 
     //! \brief      Set current frame input surface
     //! \details    Bind the CM surface to current frame input surface in the vebox class
-    //! \param      [in] pSurf
+    //! \param      [in] surface
     //!             CmSurface2D
     //! \retval     CM_SUCCESS if the surface index is less than max index number
     //! \retval     CM_FAILURE if the surface index is larger or equal to max index
     //!             number
-    CM_RT_API int32_t SetCurFrameInputSurface(CmSurface2D *pSurf);
+    CM_RT_API int32_t SetCurFrameInputSurface(CmSurface2D *surface);
 
     //! \brief      Set current frame input surface control bits
     //! \details    Pass user defined current frame input surface control bits to vebox
@@ -78,12 +78,12 @@ public:
 
     //! \brief      Set previous frame input surface
     //! \details    Bind the CM surface to previous frame input surface in the vebox class
-    //! \param      [in] pSurf
+    //! \param      [in] surface
     //!             CmSurface2D
     //! \retval     CM_SUCCESS if the surface index is less than max index number
     //! \retval     CM_FAILURE if the surface index is larger or equal to max index
     //!             number
-    CM_RT_API int32_t SetPrevFrameInputSurface(CmSurface2D *pSurf);
+    CM_RT_API int32_t SetPrevFrameInputSurface(CmSurface2D *surface);
 
     //! \brief      Set previous frame input surface control bits
     //! \details    Pass user defined previous frame input surface control bits to vebox
@@ -98,12 +98,12 @@ public:
 
     //! \brief      Set STMM frame input surface
     //! \details    Bind the CM surface to STMM input surface in the vebox class
-    //! \param      [in] pSurf
+    //! \param      [in] surface
     //!             CmSurface2D
     //! \retval     CM_SUCCESS if the surface index is less than max index number
     //! \retval     CM_FAILURE if the surface index is larger or equal to max index
     //!             number
-    CM_RT_API int32_t SetSTMMInputSurface(CmSurface2D *pSurf);
+    CM_RT_API int32_t SetSTMMInputSurface(CmSurface2D *surface);
 
     //! \brief      Set STMM frame input surface control bits
     //! \details    Pass User defined STMM Input frame surface control bits to vebox member,
@@ -117,12 +117,12 @@ public:
 
     //! \brief      Set STMM frame output surface
     //! \details    Bind the CM surface to STMM output surface in the vebox class
-    //! \param      [in] pSurf
+    //! \param      [in] surface
     //!             CmSurface2D
     //! \retval     CM_SUCCESS if the surface index is less than max index number
     //! \retval     CM_FAILURE if the surface index is larger or equal to max index
     //!             number
-    CM_RT_API int32_t SetSTMMOutputSurface(CmSurface2D *pSurf);
+    CM_RT_API int32_t SetSTMMOutputSurface(CmSurface2D *surface);
 
     //! \brief      Set STMM output frame surface control bits
     //! \details    Pass User defined STMM Output frame surface control bits to vebox member,
@@ -136,12 +136,12 @@ public:
 
     //! \brief      Set Denoised current frame output surface
     //! \details    Bind the CM surface to denoised current frame output surface in the vebox class
-    //! \param      [in] pSurf
+    //! \param      [in] surface
     //!             CmSurface2D
     //! \retval     CM_SUCCESS if the surface index is less than max index number
     //! \retval     CM_FAILURE if the surface index is larger or equal to max index
     //!             number
-    CM_RT_API int32_t SetDenoisedCurFrameOutputSurface(CmSurface2D *pSurf);
+    CM_RT_API int32_t SetDenoisedCurFrameOutputSurface(CmSurface2D *surface);
 
     //! \brief      Set denoised current output frame surface control bits
     //! \details    Pass user defined  denoised current output frame surface control bits
@@ -156,12 +156,12 @@ public:
 
     //! \brief      set current frame output surface
     //! \details    Bind the CM surface to current frame output surface in the vebox class
-    //! \param      [in] pSurf
+    //! \param      [in] surface
     //!             CmSurface2D
     //! \retval     CM_SUCCESS if the surface index is less than max index number
     //! \retval     CM_FAILURE if the surface index is larger or equal to max index
     //!             number
-    CM_RT_API int32_t SetCurFrameOutputSurface(CmSurface2D *pSurf);
+    CM_RT_API int32_t SetCurFrameOutputSurface(CmSurface2D *surface);
 
     //! \brief      Set current frame output surface control bits
     //! \details    Pass user defined current frame output surface control bits to vebox
@@ -176,12 +176,12 @@ public:
 
     //! \brief      Set previous frame output surface
     //! \details    Bind the CM surface to previous frame output surface in the vebox class
-    //! \param      [in] pSurf
+    //! \param      [in] surface
     //!             CmSurface2D
     //! \retval     CM_SUCCESS if the surface index is less than max index number
     //! \retval     CM_FAILURE if the surface index is larger or equal to max index
     //!             number
-    CM_RT_API int32_t SetPrevFrameOutputSurface(CmSurface2D *pSurf);
+    CM_RT_API int32_t SetPrevFrameOutputSurface(CmSurface2D *surface);
 
     //! \brief      Set previous frame output surface control bits
     //! \details    Pass user defined previous frame output surface control bits to vebox
@@ -196,12 +196,12 @@ public:
 
     //! \brief      Set statistics output surface
     //! \details    Bind the CM surface to statistics output surface in the vebox class
-    //! \param      [in] pSurf
+    //! \param      [in] surface
     //!             CmSurface2D
     //! \retval     CM_SUCCESS if the surface index is less than max index number
     //! \retval     CM_FAILURE if the surface index is larger or equal to max index
     //!             number
-    CM_RT_API int32_t SetStatisticsOutputSurface(CmSurface2D *pSurf);
+    CM_RT_API int32_t SetStatisticsOutputSurface(CmSurface2D *surface);
 
     //! \brief      Set statistics output surface control bits
     //! \details    Pass user defined statistics output surface control bits to vebox
@@ -216,15 +216,15 @@ public:
 
     //! \brief      Set vebox parameter.
     //! \details    Pass pointer of the parameter buffer to vebox class member
-    //!             m_ParamBuffer. Later on, during the enqueue stage, the
+    //!             m_paramBuffer. Later on, during the enqueue stage, the
     //!             parameter in the buffer will be bonded to the VEBOX command for
     //!             processing.
-    //! \param      [in] pParamBuffer
+    //! \param      [in] paramBuffer
     //!             CmBufferUP which contains all the vebox parameter.
     //! \returns    CM_SUCCESS.
-    CM_RT_API int32_t SetParam(CmBufferUP *pParamBuffer);
+    CM_RT_API int32_t SetParam(CmBufferUP *paramBuffer);
 
-    int32_t GetSurface(uint32_t surfUsage, CmSurface2DRT *&pSurf);
+    int32_t GetSurface(uint32_t surfUsage, CmSurface2DRT *&surface);
 
     uint32_t GetIndexInVeboxArray();
 
@@ -235,24 +235,24 @@ public:
     uint16_t GetSurfaceControlBits(uint32_t usage);
 
 protected:
-    CmVeboxRT(CmDeviceRT *pCmDev, uint32_t index);
+    CmVeboxRT(CmDeviceRT *device, uint32_t index);
 
     ~CmVeboxRT();
 
     int32_t Initialize();
 
-    int32_t SetSurfaceInternal(VEBOX_SURF_USAGE surfUsage, CmSurface2D *pSurf);
+    int32_t SetSurfaceInternal(VEBOX_SURF_USAGE surfUsage, CmSurface2D *surface);
 
     int32_t SetSurfaceControlBitsInternal(VEBOX_SURF_USAGE surfUsage,
                                           const uint16_t ctrlBits);
 
-    CmDeviceRT *m_pCmDev;
-    uint32_t m_MaxSurfaceIndex;
-    CM_VEBOX_STATE m_VeboxState;
-    CmBufferUP *m_ParamBuffer;
-    CmSurface2DRT *m_pSurface2D[VEBOX_MAX_SURFACE_COUNT];
-    uint16_t m_wSurfaceCtrlBits[VEBOX_MAX_SURFACE_COUNT];
-    uint32_t m_IndexInVeboxArray;
+    CmDeviceRT *m_device;
+    uint32_t m_maxSurfaceIndex;
+    CM_VEBOX_STATE m_veboxState;
+    CmBufferUP *m_paramBuffer;
+    CmSurface2DRT *m_surface2D[VEBOX_MAX_SURFACE_COUNT];
+    uint16_t m_surfaceCtrlBits[VEBOX_MAX_SURFACE_COUNT];
+    uint32_t m_indexInVeboxArray;
 };
 };  //namespace
 

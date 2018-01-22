@@ -39,19 +39,19 @@ namespace CMRT_UMD
 //| Purpose:    Create CmTask
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmTaskRT::Create(CmDeviceRT *pCmDevice,
+int32_t CmTaskRT::Create(CmDeviceRT *device,
                          uint32_t index,
-                         uint32_t max_kernel_count,
-                         CmTaskRT* &pKernelArray)
+                         uint32_t maxKernelCount,
+                         CmTaskRT* &kernelArray)
 {
     int32_t result = CM_SUCCESS;
-    pKernelArray = new (std::nothrow) CmTaskRT( pCmDevice, index, max_kernel_count );
-    if( pKernelArray )
+    kernelArray = new (std::nothrow) CmTaskRT( device, index, maxKernelCount );
+    if( kernelArray )
     {
-        result = pKernelArray->Initialize();
+        result = kernelArray->Initialize();
         if( result != CM_SUCCESS )
         {
-            CmTaskRT::Destroy( pKernelArray);
+            CmTaskRT::Destroy( kernelArray);
         }
     }
     else
@@ -66,12 +66,12 @@ int32_t CmTaskRT::Create(CmDeviceRT *pCmDevice,
 //| Purpose:    Destroy CmTask
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmTaskRT::Destroy( CmTaskRT* &pKernelArray )
+int32_t CmTaskRT::Destroy( CmTaskRT* &kernelArray )
 {
-    if( pKernelArray )
+    if( kernelArray )
     {
-        delete pKernelArray;
-        pKernelArray = nullptr;
+        delete kernelArray;
+        kernelArray = nullptr;
     }
 
     return CM_SUCCESS;
@@ -81,21 +81,21 @@ int32_t CmTaskRT::Destroy( CmTaskRT* &pKernelArray )
 //| Purpose:    Constructor of  CmTask
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-CmTaskRT::CmTaskRT(CmDeviceRT *pCmDevice,
+CmTaskRT::CmTaskRT(CmDeviceRT *device,
                    uint32_t index,
-                   uint32_t max_kernel_count):
-    m_pKernelArray( nullptr ),
-    m_KernelCount(0),
-    m_MaxKernelCount( max_kernel_count ),
-    m_IndexTaskArray(index),
-    m_ui64SyncBitmap( 0 ),
-    m_ui64ConditionalEndBitmap( 0 ),
-    m_pCmDev( pCmDevice )
+                   uint32_t maxKernelCount):
+    m_kernelArray( nullptr ),
+    m_kernelCount(0),
+    m_maxKernelCount( maxKernelCount ),
+    m_indexTaskArray(index),
+    m_syncBitmap( 0 ),
+    m_conditionalEndBitmap( 0 ),
+    m_device( device )
 {
-    CmSafeMemSet( &m_PowerOption, 0, sizeof( m_PowerOption ) );
-    CmSafeMemSet(&m_ConditionalEndInfo, 0, sizeof(m_ConditionalEndInfo));
-    CmSafeMemSet(&m_TaskConfig, 0, sizeof(m_TaskConfig));
-    m_TaskConfig.turboBoostFlag = CM_TURBO_BOOST_DEFAULT;
+    CmSafeMemSet( &m_powerOption, 0, sizeof( m_powerOption ) );
+    CmSafeMemSet(&m_conditionalEndInfo, 0, sizeof(m_conditionalEndInfo));
+    CmSafeMemSet(&m_taskConfig, 0, sizeof(m_taskConfig));
+    m_taskConfig.turboBoostFlag = CM_TURBO_BOOST_DEFAULT;
 }
 
 //*-----------------------------------------------------------------------------
@@ -104,7 +104,7 @@ CmTaskRT::CmTaskRT(CmDeviceRT *pCmDevice,
 //*-----------------------------------------------------------------------------
 CmTaskRT::~CmTaskRT( void )
 {
-    MosSafeDeleteArray(m_pKernelArray );
+    MosSafeDeleteArray(m_kernelArray );
 }
 
 //*-----------------------------------------------------------------------------
@@ -113,10 +113,10 @@ CmTaskRT::~CmTaskRT( void )
 //*-----------------------------------------------------------------------------
 int32_t CmTaskRT::Initialize( )
 {
-    m_pKernelArray = MOS_NewArray(CmKernelRT*, m_MaxKernelCount);
-    if(m_pKernelArray)
+    m_kernelArray = MOS_NewArray(CmKernelRT*, m_maxKernelCount);
+    if(m_kernelArray)
     {
-        CmSafeMemSet( m_pKernelArray, 0, sizeof(CmKernelRT*) * m_MaxKernelCount );
+        CmSafeMemSet( m_kernelArray, 0, sizeof(CmKernelRT*) * m_maxKernelCount );
         return CM_SUCCESS;
     }
     else
@@ -130,30 +130,30 @@ int32_t CmTaskRT::Initialize( )
 //| Purpose:    Add Kernel to task
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-CM_RT_API int32_t CmTaskRT::AddKernel( CmKernel *pKernel )
+CM_RT_API int32_t CmTaskRT::AddKernel( CmKernel *kernel )
 {
     INSERT_API_CALL_LOG();
 
     // already reached max kernel count
-    if(m_MaxKernelCount <= m_KernelCount)
+    if(m_maxKernelCount <= m_kernelCount)
     {
         return CM_EXCEED_MAX_KERNEL_PER_ENQUEUE;
     }
     // passed in nullptr pointer
-    if(pKernel == nullptr)
+    if(kernel == nullptr)
     {
         CM_ASSERTMESSAGE("Error: Pointer to kernel is null.");
         return CM_INVALID_ARG_VALUE;
     }
 
-    CmKernelRT *pKernelRT = static_cast<CmKernelRT *>(pKernel);
-    m_pKernelArray[m_KernelCount] = pKernelRT;
-    pKernelRT->SetIndexInTask(m_KernelCount);
+    CmKernelRT *kernelRT = static_cast<CmKernelRT *>(kernel);
+    m_kernelArray[m_kernelCount] = kernelRT;
+    kernelRT->SetIndexInTask(m_kernelCount);
 
-    m_KernelCount++;
+    m_kernelCount++;
 
 #if USE_EXTENSION_CODE
-    AddKernelForGTPin(pKernel);
+    AddKernelForGTPin(kernel);
 #endif
     return CM_SUCCESS;
 }
@@ -166,15 +166,15 @@ CM_RT_API int32_t CmTaskRT::Reset( void )
 {
     INSERT_API_CALL_LOG();
 
-    m_KernelCount = 0;
-    m_ui64SyncBitmap = 0;
-    m_ui64ConditionalEndBitmap = 0;
-    CmSafeMemSet(&m_ConditionalEndInfo, 0, sizeof(m_ConditionalEndInfo));
-    CmSafeMemSet(&m_TaskConfig, 0, sizeof(m_TaskConfig));
-    m_TaskConfig.turboBoostFlag = CM_TURBO_BOOST_DEFAULT;
-    if(m_pKernelArray)
+    m_kernelCount = 0;
+    m_syncBitmap = 0;
+    m_conditionalEndBitmap = 0;
+    CmSafeMemSet(&m_conditionalEndInfo, 0, sizeof(m_conditionalEndInfo));
+    CmSafeMemSet(&m_taskConfig, 0, sizeof(m_taskConfig));
+    m_taskConfig.turboBoostFlag = CM_TURBO_BOOST_DEFAULT;
+    if(m_kernelArray)
     {
-        CmSafeMemSet( m_pKernelArray, 0, sizeof(CmKernelRT*) * m_MaxKernelCount );
+        CmSafeMemSet( m_kernelArray, 0, sizeof(CmKernelRT*) * m_maxKernelCount );
         return CM_SUCCESS;
     }
     else
@@ -190,7 +190,7 @@ CM_RT_API int32_t CmTaskRT::Reset( void )
 //*-----------------------------------------------------------------------------
 uint32_t CmTaskRT::GetKernelCount()
 {
-    return m_KernelCount;
+    return m_kernelCount;
 }
 
 //*-----------------------------------------------------------------------------
@@ -199,17 +199,17 @@ uint32_t CmTaskRT::GetKernelCount()
 //*-----------------------------------------------------------------------------
 CmKernelRT* CmTaskRT::GetKernelPointer(uint32_t index)
 {
-    if(index >= m_KernelCount)
+    if(index >= m_kernelCount)
     {
         CM_ASSERTMESSAGE("Error: The kernel index exceeds the kernel count.");
         return nullptr;
     }
-    return m_pKernelArray[index];
+    return m_kernelArray[index];
 }
 
 uint32_t CmTaskRT::GetIndexInTaskArray()
 {
-    return m_IndexTaskArray;
+    return m_indexTaskArray;
 }
 
 //*-----------------------------------------------------------------------------
@@ -222,96 +222,96 @@ bool CmTaskRT::IntegrityCheckKernelThreadspace( void )
     uint32_t              kernelCount         = 0;
     uint32_t              i                   = 0;
     uint32_t              j                   = 0;
-    CmKernelRT*             pKernel_RT          = nullptr;
-    CmKernelRT*             pKernTmp            = nullptr;
+    CmKernelRT*             kernelRT          = nullptr;
+    CmKernelRT*             kernelTmp            = nullptr;
     uint32_t              threadCount         = 0;
-    CmThreadSpaceRT*        pKernelTS           = nullptr;
+    CmThreadSpaceRT*        kernelThreadSpace           = nullptr;
     uint32_t              width               = 0;
     uint32_t              height              = 0;
-    byte**                pTSMapping          = nullptr;
-    byte*                 pKernelInScoreboard = nullptr;
-    CM_THREAD_SPACE_UNIT* pThreadSpaceUnit    = nullptr;
+    byte**                threadSpaceMapping          = nullptr;
+    byte*                 kernelInScoreboard = nullptr;
+    CM_THREAD_SPACE_UNIT* threadSpaceUnit    = nullptr;
     uint32_t              kernelIndex         = 0;
     uint32_t              unassociated        = 0;
 
     kernelCount = this->GetKernelCount();
 
-    pTSMapping = MOS_NewArray(byte*, kernelCount);
-    pKernelInScoreboard = MOS_NewArray(byte, kernelCount);
+    threadSpaceMapping = MOS_NewArray(byte*, kernelCount);
+    kernelInScoreboard = MOS_NewArray(byte, kernelCount);
 
-    CMCHK_NULL_RETURN(pTSMapping, CM_OUT_OF_HOST_MEMORY);
-    CMCHK_NULL_RETURN(pKernelInScoreboard, CM_OUT_OF_HOST_MEMORY);
+    CMCHK_NULL_RETURN(threadSpaceMapping, CM_OUT_OF_HOST_MEMORY);
+    CMCHK_NULL_RETURN(kernelInScoreboard, CM_OUT_OF_HOST_MEMORY);
 
-    CmSafeMemSet(pTSMapping, 0, kernelCount*sizeof(byte *));
-    CmSafeMemSet(pKernelInScoreboard, 0, kernelCount*sizeof(byte));
+    CmSafeMemSet(threadSpaceMapping, 0, kernelCount*sizeof(byte *));
+    CmSafeMemSet(kernelInScoreboard, 0, kernelCount*sizeof(byte));
 
     for( i = 0; i < kernelCount; ++i )
     {
-        pKernel_RT = this->GetKernelPointer(i);
-        CMCHK_NULL(pKernel_RT);
+        kernelRT = this->GetKernelPointer(i);
+        CMCHK_NULL(kernelRT);
 
-        CMCHK_HR(pKernel_RT->GetThreadSpace(pKernelTS));
-        CMCHK_NULL_RETURN(pKernelTS, CM_KERNEL_THREADSPACE_NOT_SET);
+        CMCHK_HR(kernelRT->GetThreadSpace(kernelThreadSpace));
+        CMCHK_NULL_RETURN(kernelThreadSpace, CM_KERNEL_THREADSPACE_NOT_SET);
 
-        CMCHK_HR(pKernelTS->GetThreadSpaceSize(width, height));
-        CMCHK_HR(pKernel_RT->GetThreadCount(threadCount));
+        CMCHK_HR(kernelThreadSpace->GetThreadSpaceSize(width, height));
+        CMCHK_HR(kernelRT->GetThreadCount(threadCount));
         if (threadCount == 0)
         {
             threadCount = width * height;
         }
 
-        if( pKernelTS->IsThreadAssociated() )
+        if( kernelThreadSpace->IsThreadAssociated() )
         {
-            pTSMapping[i] = MOS_NewArray(byte, threadCount);
-            CMCHK_NULL_RETURN(pTSMapping[i], CM_OUT_OF_HOST_MEMORY);
-            CmSafeMemSet(pTSMapping[i], 0, threadCount * sizeof(byte));
-            pKernelInScoreboard[i] = false;
+            threadSpaceMapping[i] = MOS_NewArray(byte, threadCount);
+            CMCHK_NULL_RETURN(threadSpaceMapping[i], CM_OUT_OF_HOST_MEMORY);
+            CmSafeMemSet(threadSpaceMapping[i], 0, threadCount * sizeof(byte));
+            kernelInScoreboard[i] = false;
 
-            hr = pKernelTS->GetThreadSpaceUnit(pThreadSpaceUnit);
-            if( hr != CM_SUCCESS  || pThreadSpaceUnit == nullptr )
+            hr = kernelThreadSpace->GetThreadSpaceUnit(threadSpaceUnit);
+            if( hr != CM_SUCCESS  || threadSpaceUnit == nullptr )
             {
                 CM_ASSERTMESSAGE("Error: Invalid thread space unit");
-                MosSafeDeleteArray(pTSMapping[i]);
+                MosSafeDeleteArray(threadSpaceMapping[i]);
                 hr = CM_FAILURE;
                 goto finish;
             }
 
             for( j = 0; j < width * height; ++j )
             {
-                pKernTmp = static_cast<CmKernelRT*>(pThreadSpaceUnit[j].pKernel);
-                if( pKernTmp == nullptr )
+                kernelTmp = static_cast<CmKernelRT*>(threadSpaceUnit[j].kernel);
+                if( kernelTmp == nullptr )
                 {
-                    if (pKernelTS->GetNeedSetKernelPointer())
+                    if (kernelThreadSpace->GetNeedSetKernelPointer())
                     {
-                        pKernTmp = pKernelTS->GetKernelPointer();
+                        kernelTmp = kernelThreadSpace->GetKernelPointer();
                     }
-                    if (pKernTmp == nullptr)
+                    if (kernelTmp == nullptr)
                     {
                         CM_ASSERTMESSAGE("Error: Invalid kernel pointer.");
-                        MosSafeDeleteArray(pTSMapping[i]);
+                        MosSafeDeleteArray(threadSpaceMapping[i]);
                         hr = CM_FAILURE;
                         goto finish;
                     }
                 }
 
-                kernelIndex = pKernTmp->GetIndexInTask();
-                pTSMapping[kernelIndex][pThreadSpaceUnit[j].threadId] = 1;
-                pKernelInScoreboard[kernelIndex] = 1;
+                kernelIndex = kernelTmp->GetIndexInTask();
+                threadSpaceMapping[kernelIndex][threadSpaceUnit[j].threadId] = 1;
+                kernelInScoreboard[kernelIndex] = 1;
             }
 
-            if( pKernelInScoreboard[i] )
+            if( kernelInScoreboard[i] )
             {
-                pKernel_RT->SetAssociatedToTSFlag(true);
+                kernelRT->SetAssociatedToTSFlag(true);
                 for( j = 0; j < threadCount; ++j )
                 {
-                    if( pTSMapping[i][j] == 0 )
+                    if( threadSpaceMapping[i][j] == 0 )
                     {
                         unassociated++;
                         break;
                     }
                 }
             }
-            MosSafeDeleteArray(pTSMapping[i]);
+            MosSafeDeleteArray(threadSpaceMapping[i]);
         }
 
         if( unassociated != 0 )
@@ -324,8 +324,8 @@ bool CmTaskRT::IntegrityCheckKernelThreadspace( void )
 
 finish:
 
-    MosSafeDeleteArray(pTSMapping);
-    MosSafeDeleteArray(pKernelInScoreboard);
+    MosSafeDeleteArray(threadSpaceMapping);
+    MosSafeDeleteArray(kernelInScoreboard);
 
     return (hr == CM_SUCCESS)? true: false;
 }
@@ -338,9 +338,9 @@ CM_RT_API int32_t CmTaskRT::AddSync( void )
 {
     INSERT_API_CALL_LOG();
 
-    if (m_KernelCount > 0)
+    if (m_kernelCount > 0)
     {
-        m_ui64SyncBitmap |= (uint64_t)1 << (m_KernelCount - 1);
+        m_syncBitmap |= (uint64_t)1 << (m_kernelCount - 1);
     }
 
     return CM_SUCCESS;
@@ -348,50 +348,50 @@ CM_RT_API int32_t CmTaskRT::AddSync( void )
 
 uint64_t CmTaskRT::GetSyncBitmap()
 {
-    return m_ui64SyncBitmap;
+    return m_syncBitmap;
 }
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Set the conditional value, compare mask and handle for the
-//|             surface associated with pIndex
+//|             surface associated with index
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmTaskRT::SetConditionalEndInfo(SurfaceIndex* pIndex,
+int32_t CmTaskRT::SetConditionalEndInfo(SurfaceIndex* index,
                                         uint32_t offset,
-                                        CM_CONDITIONAL_END_PARAM *pCondParam)
+                                        CM_CONDITIONAL_END_PARAM *conditionalParam)
 {
-    CmSurface*        pSurface = nullptr;
-    CmSurfaceManager* pSurfaceMgr = nullptr;
+    CmSurface*        surface = nullptr;
+    CmSurfaceManager* surfaceMgr = nullptr;
     uint32_t          surfIndex = 0;
     uint32_t          handle = 0;
 
-    m_pCmDev->GetSurfaceManager(pSurfaceMgr);
-    if (!pSurfaceMgr)
+    m_device->GetSurfaceManager(surfaceMgr);
+    if (!surfaceMgr)
     {
         CM_ASSERTMESSAGE("Error: Pointer to surface manager is null.");
         return CM_NULL_POINTER;
     }
 
-    surfIndex = pIndex->get_data();
+    surfIndex = index->get_data();
 
-    pSurfaceMgr->GetSurface(surfIndex, pSurface);
-    if (!pSurface)
+    surfaceMgr->GetSurface(surfIndex, surface);
+    if (!surface)
     {
         CM_ASSERTMESSAGE("Error: Pointer to surface is null.");
         return CM_NULL_POINTER;
     }
 
-    if (pSurface->Type() == CM_ENUM_CLASS_TYPE_CMBUFFER_RT)
+    if (surface->Type() == CM_ENUM_CLASS_TYPE_CMBUFFER_RT)
     {
-        CmBuffer_RT* pSurf1D = static_cast<CmBuffer_RT*> (pSurface);
+        CmBuffer_RT* surf1D = static_cast<CmBuffer_RT*> (surface);
 
-        pSurf1D->GetHandle(handle);
-        m_ConditionalEndInfo[m_KernelCount].compareValue = pCondParam->opValue;
-        m_ConditionalEndInfo[m_KernelCount].bufferTableIndex = handle;
-        m_ConditionalEndInfo[m_KernelCount].disableCompareMask = !pCondParam->opMask;
-        m_ConditionalEndInfo[m_KernelCount].endCurrentLevel = pCondParam->opLevel;
-        m_ConditionalEndInfo[m_KernelCount].operatorCode = pCondParam->opCode;
-        m_ConditionalEndInfo[m_KernelCount].offset = offset;
+        surf1D->GetHandle(handle);
+        m_conditionalEndInfo[m_kernelCount].compareValue = conditionalParam->opValue;
+        m_conditionalEndInfo[m_kernelCount].bufferTableIndex = handle;
+        m_conditionalEndInfo[m_kernelCount].disableCompareMask = !conditionalParam->opMask;
+        m_conditionalEndInfo[m_kernelCount].endCurrentLevel = conditionalParam->opLevel;
+        m_conditionalEndInfo[m_kernelCount].operatorCode = conditionalParam->opCode;
+        m_conditionalEndInfo[m_kernelCount].offset = offset;
     }
     else
     {
@@ -403,17 +403,17 @@ int32_t CmTaskRT::SetConditionalEndInfo(SurfaceIndex* pIndex,
 
 uint64_t CmTaskRT::GetConditionalEndBitmap()
 {
-    return m_ui64ConditionalEndBitmap;
+    return m_conditionalEndBitmap;
 }
 
 CM_HAL_CONDITIONAL_BB_END_INFO* CmTaskRT::GetConditionalEndInfo()
 {
-    return m_ConditionalEndInfo;
+    return m_conditionalEndInfo;
 }
 
 PCM_POWER_OPTION CmTaskRT::GetPowerOption()
 {
-    return &m_PowerOption;
+    return &m_powerOption;
 }
 
 #if CM_LOG_ON
@@ -421,15 +421,15 @@ std::string CmTaskRT::Log()
 {
     std::ostringstream  oss;
 
-    oss << " Kernel Count:" << m_KernelCount
-        << " Sync Bit:"<<m_ui64SyncBitmap
-        << " Conditional End Bit: " << m_ui64ConditionalEndBitmap
+    oss << " Kernel Count:" << m_kernelCount
+        << " Sync Bit:"<<m_syncBitmap
+        << " Conditional End Bit: " << m_conditionalEndBitmap
         << std::endl;
 
-    for (uint32_t i=0 ; i< m_KernelCount; i++)
+    for (uint32_t i=0 ; i< m_kernelCount; i++)
     {
-        CmKernelRT* pKernel = (CmKernelRT*)m_pKernelArray[i];
-        oss << pKernel->Log(); // log each kernel
+        CmKernelRT* kernel = (CmKernelRT*)m_kernelArray[i];
+        oss << kernel->Log(); // log each kernel
     }
     return oss.str();
 }
@@ -437,27 +437,27 @@ std::string CmTaskRT::Log()
 
 CM_RT_API int32_t CmTaskRT::SetProperty(const CM_TASK_CONFIG &taskConfig)
 {
-    m_TaskConfig = taskConfig;
+    m_taskConfig = taskConfig;
     return CM_SUCCESS;
 }
 
 PCM_TASK_CONFIG CmTaskRT::GetTaskConfig()
 {
-    return &m_TaskConfig;
+    return &m_taskConfig;
 }
 
 CM_RT_API int32_t CmTaskRT::AddConditionalEnd(
-                                SurfaceIndex* pConditionalSurface,
+                                SurfaceIndex* conditionalSurfaceIndex,
                                 uint32_t offset,
-                                CM_CONDITIONAL_END_PARAM *pCondParam)
+                                CM_CONDITIONAL_END_PARAM *conditionalParam)
 {
     INSERT_API_CALL_LOG();
 
     int32_t hr = CM_SUCCESS;
 
-    m_ui64ConditionalEndBitmap |= (uint64_t)1 << m_KernelCount;
+    m_conditionalEndBitmap |= (uint64_t)1 << m_kernelCount;
 
-    hr = SetConditionalEndInfo(pConditionalSurface, offset, pCondParam);
+    hr = SetConditionalEndInfo(conditionalSurfaceIndex, offset, conditionalParam);
 
     return hr;
 }

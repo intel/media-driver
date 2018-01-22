@@ -161,8 +161,8 @@ Description:
 inline void CmDwordMemSet( void* dst, const uint32_t data, const size_t bytes )
 {
     uint32_t *ptr = reinterpret_cast<uint32_t*>( dst );
-    uint32_t size_in_dwords = (uint32_t)(bytes >> 2); // divide by 4 byte to dword
-    uint32_t *maxPtr = ptr + size_in_dwords;
+    uint32_t sizeInDwords = (uint32_t)(bytes >> 2); // divide by 4 byte to dword
+    uint32_t *maxPtr = ptr + sizeInDwords;
     while(ptr < maxPtr)
         *ptr++ = data;
 }
@@ -174,16 +174,16 @@ Inline Function:
 Description:
     Memory Copy
 \*****************************************************************************/
-inline void CmSafeMemCopy( void* pdst, const void *psrc, const size_t bytes )
+inline void CmSafeMemCopy( void* dst, const void *src, const size_t bytes )
 {
-  uint8_t *p_dst = (uint8_t*)pdst;
-  uint8_t *p_src = (uint8_t*)psrc;
+  uint8_t *cacheDst = (uint8_t*)dst;
+  uint8_t *cacheSrc = (uint8_t*)src;
 
 #if defined(_DEBUG)
     __try
 #endif
     {
-        MOS_SecureMemcpy( p_dst, bytes, p_src, bytes );
+        MOS_SecureMemcpy( cacheDst, bytes, cacheSrc, bytes );
     }
 #if defined(_DEBUG)
     // catch exceptions here so they are easily debugged
@@ -233,34 +233,34 @@ Output:
 \*****************************************************************************/
 inline CPU_INSTRUCTION_LEVEL GetCpuInstructionLevel( void )
 {
-    int CpuInfo[4];
-    memset( CpuInfo, 0, 4*sizeof(int) );
+    int cpuInfo[4];
+    memset( cpuInfo, 0, 4*sizeof(int) );
 
-    GetCPUID(CpuInfo, 1);
+    GetCPUID(cpuInfo, 1);
 
-    CPU_INSTRUCTION_LEVEL CpuInstructionLevel = CPU_INSTRUCTION_LEVEL_UNKNOWN;
-    if( (CpuInfo[2] & BIT(19)) && TestSSE4_1() )
+    CPU_INSTRUCTION_LEVEL cpuInstructionLevel = CPU_INSTRUCTION_LEVEL_UNKNOWN;
+    if( (cpuInfo[2] & BIT(19)) && TestSSE4_1() )
     {
-        CpuInstructionLevel = CPU_INSTRUCTION_LEVEL_SSE4_1;
+        cpuInstructionLevel = CPU_INSTRUCTION_LEVEL_SSE4_1;
     }
-    else if( CpuInfo[2] & BIT(1) )
+    else if( cpuInfo[2] & BIT(1) )
     {
-        CpuInstructionLevel = CPU_INSTRUCTION_LEVEL_SSE3;
+        cpuInstructionLevel = CPU_INSTRUCTION_LEVEL_SSE3;
     }
-    else if( CpuInfo[3] & BIT(26) )
+    else if( cpuInfo[3] & BIT(26) )
     {
-        CpuInstructionLevel = CPU_INSTRUCTION_LEVEL_SSE2;
+        cpuInstructionLevel = CPU_INSTRUCTION_LEVEL_SSE2;
     }
-    else if( CpuInfo[3] & BIT(25) )
+    else if( cpuInfo[3] & BIT(25) )
     {
-        CpuInstructionLevel = CPU_INSTRUCTION_LEVEL_SSE;
+        cpuInstructionLevel = CPU_INSTRUCTION_LEVEL_SSE;
     }
-    else if( CpuInfo[3] & BIT(23) )
+    else if( cpuInfo[3] & BIT(23) )
     {
-        CpuInstructionLevel = CPU_INSTRUCTION_LEVEL_MMX;
+        cpuInstructionLevel = CPU_INSTRUCTION_LEVEL_MMX;
     }
 
-    return CpuInstructionLevel;
+    return cpuInstructionLevel;
 }
 
 /*****************************************************************************\
@@ -380,7 +380,7 @@ inline void FastMemCopy_SSE2_movntdq_movdqa(
     CM_ASSERT( IsAligned( dst, sizeof(DQWORD) ) );
     CM_ASSERT( IsAligned( src, sizeof(DQWORD) ) );
 
-    const size_t DoubleQuadWordsPerPrefetch = sizeof(PREFETCH) / sizeof(DQWORD);
+    const size_t doubleQuadWordsPerPrefetch = sizeof(PREFETCH) / sizeof(DQWORD);
 
     // Prefetch the src data
     Prefetch( (uint8_t*)src );
@@ -393,14 +393,14 @@ inline void FastMemCopy_SSE2_movntdq_movdqa(
     size_t count = doubleQuadWords;
 
     // Copies a cacheline per loop iteration
-    while( count >= DoubleQuadWordsPerPrefetch )
+    while( count >= doubleQuadWordsPerPrefetch )
     {
         Prefetch( (uint8_t*)src128i + 2 * sizeof(PREFETCH) );
 
-        count -= DoubleQuadWordsPerPrefetch;
+        count -= doubleQuadWordsPerPrefetch;
 
         // Copy cacheline of data
-        for( size_t i = 0; i < DoubleQuadWordsPerPrefetch; i++ )
+        for( size_t i = 0; i < doubleQuadWordsPerPrefetch; i++ )
         {
             _mm_stream_si128( dst128i++,
                 _mm_load_si128( src128i++ ) );
@@ -434,7 +434,7 @@ inline void FastMemCopy_SSE2_movdqu_movdqa(
 {
     CM_ASSERT( IsAligned( src, sizeof(DQWORD) ) );
 
-    const size_t DoubleQuadWordsPerPrefetch = sizeof(PREFETCH) / sizeof(DQWORD);
+    const size_t doubleQuadWordsPerPrefetch = sizeof(PREFETCH) / sizeof(DQWORD);
 
     // Prefetch the src data
     Prefetch( (uint8_t*)src );
@@ -447,14 +447,14 @@ inline void FastMemCopy_SSE2_movdqu_movdqa(
     size_t count = doubleQuadWords;
 
     // Copies a cacheline per loop iteration
-    while( count >= DoubleQuadWordsPerPrefetch )
+    while( count >= doubleQuadWordsPerPrefetch )
     {
         Prefetch( (uint8_t*)src128i + 2 * sizeof(PREFETCH) );
 
-        count -= DoubleQuadWordsPerPrefetch;
+        count -= doubleQuadWordsPerPrefetch;
 
         // Copy cacheline of data
-        for( size_t i = 0; i < DoubleQuadWordsPerPrefetch; i++ )
+        for( size_t i = 0; i < doubleQuadWordsPerPrefetch; i++ )
         {
             _mm_storeu_si128( dst128i++,
                 _mm_load_si128( src128i++ ) );
@@ -488,7 +488,7 @@ inline void FastMemCopy_SSE2_movntdq_movdqu(
 {
     CM_ASSERT( IsAligned( dst, sizeof(DQWORD) ) );
 
-    const size_t DoubleQuadWordsPerPrefetch = sizeof(PREFETCH) / sizeof(DQWORD);
+    const size_t doubleQuadWordsPerPrefetch = sizeof(PREFETCH) / sizeof(DQWORD);
 
     // Prefetch the src data
     Prefetch( (uint8_t*)src );
@@ -501,14 +501,14 @@ inline void FastMemCopy_SSE2_movntdq_movdqu(
     size_t count = doubleQuadWords;
 
     // Copies a cacheline per loop iteration
-    while( count >= DoubleQuadWordsPerPrefetch )
+    while( count >= doubleQuadWordsPerPrefetch )
     {
         Prefetch( (uint8_t*)src128i + 2 * sizeof(PREFETCH) );
 
-        count -= DoubleQuadWordsPerPrefetch;
+        count -= doubleQuadWordsPerPrefetch;
 
         // Copy cacheline of data
-        for( size_t i = 0; i < DoubleQuadWordsPerPrefetch; i++ )
+        for( size_t i = 0; i < doubleQuadWordsPerPrefetch; i++ )
         {
             _mm_stream_si128( dst128i++,
                 _mm_loadu_si128( src128i++ ) );
@@ -540,7 +540,7 @@ inline void FastMemCopy_SSE2_movdqu_movdqu(
     const void* src,
     const size_t doubleQuadWords )
 {
-    const size_t DoubleQuadWordsPerPrefetch = sizeof(PREFETCH) / sizeof(DQWORD);
+    const size_t doubleQuadWordsPerPrefetch = sizeof(PREFETCH) / sizeof(DQWORD);
 
     // Prefetch the src data
     Prefetch( (uint8_t*)src );
@@ -553,14 +553,14 @@ inline void FastMemCopy_SSE2_movdqu_movdqu(
     size_t count = doubleQuadWords;
 
     // Copies a cacheline per loop iteration
-    while( count >= DoubleQuadWordsPerPrefetch )
+    while( count >= doubleQuadWordsPerPrefetch )
     {
         Prefetch( (uint8_t*)src128i + 2 * sizeof(PREFETCH) );
 
-        count -= DoubleQuadWordsPerPrefetch;
+        count -= doubleQuadWordsPerPrefetch;
 
         // Copy cacheline of data
-        for( size_t i = 0; i < DoubleQuadWordsPerPrefetch; i++ )
+        for( size_t i = 0; i < doubleQuadWordsPerPrefetch; i++ )
         {
             _mm_storeu_si128( dst128i++,
                 _mm_loadu_si128( src128i++ ) );
@@ -630,8 +630,8 @@ inline void CmFastMemCopy( void* dst, const   void* src, const size_t bytes )
 {
 
     // Cache pointers to memory
-    uint8_t *p_dst = (uint8_t*)dst;
-    uint8_t *p_src = (uint8_t*)src;
+    uint8_t *cacheDst = (uint8_t*)dst;
+    uint8_t *cacheSrc = (uint8_t*)src;
 
     size_t count = bytes;
 
@@ -640,17 +640,17 @@ inline void CmFastMemCopy( void* dst, const   void* src, const size_t bytes )
 
     if( doubleQuadWords )
     {
-        FastMemCopy_SSE2( p_dst, p_src, doubleQuadWords );
+        FastMemCopy_SSE2( cacheDst, cacheSrc, doubleQuadWords );
 
-        p_dst += doubleQuadWords * sizeof(DQWORD);
-        p_src += doubleQuadWords * sizeof(DQWORD);
+        cacheDst += doubleQuadWords * sizeof(DQWORD);
+        cacheSrc += doubleQuadWords * sizeof(DQWORD);
         count -= doubleQuadWords * sizeof(DQWORD);
     }
 
     // Copy remaining uint8_t(s)
     if( count )
     {
-        MOS_SecureMemcpy( p_dst, count, p_src, count );
+        MOS_SecureMemcpy( cacheDst, count, cacheSrc, count );
     }
 }
 
@@ -670,23 +670,23 @@ bytes - number of bytes to copy
 inline void CmFastMemCopyWC( void* dst,   const void* src, const size_t bytes )
 {
   // Cache pointers to memory
-  uint8_t *p_dst = (uint8_t*)dst;
-  uint8_t *p_src = (uint8_t*)src;
+  uint8_t *cacheDst = (uint8_t*)dst;
+  uint8_t *cacheSrc = (uint8_t*)src;
 
   size_t count = bytes;
 
   if( count >= sizeof(DQWORD) )
   {
     const size_t doubleQuadwordAlignBytes =
-      GetAlignmentOffset( p_dst, sizeof(DQWORD) );
+      GetAlignmentOffset( cacheDst, sizeof(DQWORD) );
 
     // The destination pointer should be 128-bit aligned
     if( doubleQuadwordAlignBytes )
     {
-      MOS_SecureMemcpy( p_dst, doubleQuadwordAlignBytes,p_src, doubleQuadwordAlignBytes );
+      MOS_SecureMemcpy( cacheDst, doubleQuadwordAlignBytes,cacheSrc, doubleQuadwordAlignBytes );
 
-      p_dst += doubleQuadwordAlignBytes;
-      p_src += doubleQuadwordAlignBytes;
+      cacheDst += doubleQuadwordAlignBytes;
+      cacheSrc += doubleQuadwordAlignBytes;
       count -= doubleQuadwordAlignBytes;
     }
 
@@ -697,24 +697,24 @@ inline void CmFastMemCopyWC( void* dst,   const void* src, const size_t bytes )
     {
       // Determine if the source and destination addresses are
       // 128-bit aligned
-      CM_ASSERT( IsAligned( p_dst, sizeof(DQWORD) ) );
+      CM_ASSERT( IsAligned( cacheDst, sizeof(DQWORD) ) );
 
       const bool isSrcDoubleQuadWordAligned =
-        IsAligned( p_src, sizeof(DQWORD) );
+        IsAligned( cacheSrc, sizeof(DQWORD) );
 
       if( isSrcDoubleQuadWordAligned )
       {
-        FastMemCopy_SSE2_movntdq_movdqa( p_dst, p_src,
+        FastMemCopy_SSE2_movntdq_movdqa( cacheDst, cacheSrc,
           doubleQuadWords );
       }
       else
       {
-        FastMemCopy_SSE2_movntdq_movdqu( p_dst, p_src,
+        FastMemCopy_SSE2_movntdq_movdqu( cacheDst, cacheSrc,
           doubleQuadWords );
       }
 
-      p_dst += doubleQuadWords * sizeof(DQWORD);
-      p_src += doubleQuadWords * sizeof(DQWORD);
+      cacheDst += doubleQuadWords * sizeof(DQWORD);
+      cacheSrc += doubleQuadWords * sizeof(DQWORD);
       count -= doubleQuadWords * sizeof(DQWORD);
     }
   }
@@ -722,7 +722,7 @@ inline void CmFastMemCopyWC( void* dst,   const void* src, const size_t bytes )
   // Copy remaining uint8_t(s)
   if( count )
   {
-    MOS_SecureMemcpy( p_dst, count, p_src, count );
+    MOS_SecureMemcpy( cacheDst, count, cacheSrc, count );
   }
 }
 

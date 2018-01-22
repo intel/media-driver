@@ -42,10 +42,10 @@ namespace CMRT_UMD
 //| Purpose:    Create Cm Event
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmEventRT::Create(uint32_t index, CmQueueRT *queue, CmTaskInternal *task, int32_t taskDriverId, CmDeviceRT *cmDev, bool isVisible, CmEventRT *&event)
+int32_t CmEventRT::Create(uint32_t index, CmQueueRT *queue, CmTaskInternal *task, int32_t taskDriverId, CmDeviceRT *device, bool isVisible, CmEventRT *&event)
 {
     int32_t result = CM_SUCCESS;
-    event = new (std::nothrow) CmEventRT( index, queue, task, taskDriverId, cmDev, isVisible );
+    event = new (std::nothrow) CmEventRT( index, queue, task, taskDriverId, device, isVisible );
     if( event )
     {
         if(isVisible)

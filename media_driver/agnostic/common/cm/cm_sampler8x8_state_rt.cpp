@@ -36,9 +36,9 @@ namespace CMRT_UMD
 //| Purpose:    Get the Index of CmSampler8x8State_RT
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmSampler8x8State_RT::GetIndex( SamplerIndex* & pIndex )
+int32_t CmSampler8x8State_RT::GetIndex( SamplerIndex* & index )
 {
-    pIndex=m_pIndex;
+    index=m_index;
     return CM_SUCCESS;
 }
 
@@ -46,16 +46,16 @@ int32_t CmSampler8x8State_RT::GetIndex( SamplerIndex* & pIndex )
 //| Purpose:    Create the CmSampler8x8State_RT
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmSampler8x8State_RT::Create( const CM_SAMPLER_8X8_DESCR& sampleState, uint32_t index, CmSampler8x8State_RT* & pSampler )
+int32_t CmSampler8x8State_RT::Create( const CM_SAMPLER_8X8_DESCR& sampleState, uint32_t index, CmSampler8x8State_RT* & sampler )
 {
     int32_t result = CM_SUCCESS;
-    pSampler = new (std::nothrow) CmSampler8x8State_RT( sampleState );
-    if( pSampler )
+    sampler = new (std::nothrow) CmSampler8x8State_RT( sampleState );
+    if( sampler )
     {
-        result = pSampler->Initialize( index );
+        result = sampler->Initialize( index );
         if( result != CM_SUCCESS )
         {
-            CmSampler8x8State_RT::Destroy( pSampler );
+            CmSampler8x8State_RT::Destroy( sampler );
         }
 
     }
@@ -73,9 +73,9 @@ int32_t CmSampler8x8State_RT::Create( const CM_SAMPLER_8X8_DESCR& sampleState, u
 //| Purpose:    Destroy CmSampler8x8State_RT
 //| Returns:    CM_SUCCESS.
 //*-----------------------------------------------------------------------------
-int32_t CmSampler8x8State_RT::Destroy( CmSampler8x8State_RT* &pSampler )
+int32_t CmSampler8x8State_RT::Destroy( CmSampler8x8State_RT* &sampler )
 {
-    CmSafeDelete( pSampler );
+    CmSafeDelete( sampler );
     return CM_SUCCESS;
 
 }
@@ -85,21 +85,21 @@ int32_t CmSampler8x8State_RT::Destroy( CmSampler8x8State_RT* &pSampler )
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 CmSampler8x8State_RT::CmSampler8x8State_RT( const CM_SAMPLER_8X8_DESCR& sampleState ):
-                    m_pIndex( nullptr )
+                    m_index( nullptr )
 {
-     CmSafeMemSet( & m_avs_state,       0, sizeof(CM_AVS_STATE_MSG));
-     CmSafeMemSet( & m_convolve_state,  0, sizeof(CM_CONVOLVE_STATE_MSG));
-     CmSafeMemSet( & m_misc_state,      0, sizeof(CM_MISC_STATE_MSG));
+     CmSafeMemSet( & m_avsState,       0, sizeof(CM_AVS_STATE_MSG));
+     CmSafeMemSet( & m_convolveState,  0, sizeof(CM_CONVOLVE_STATE_MSG));
+     CmSafeMemSet( & m_miscState,      0, sizeof(CM_MISC_STATE_MSG));
 
     if(sampleState.stateType == CM_SAMPLER8X8_AVS)
     {
-        CmFastMemCopy( &this->m_avs_state,  sampleState.avs, sizeof(CM_AVS_STATE_MSG) );
+        CmFastMemCopy( &this->m_avsState,  sampleState.avs, sizeof(CM_AVS_STATE_MSG) );
     } else if(sampleState.stateType == CM_SAMPLER8X8_CONV)
     {
-        CmFastMemCopy( &this->m_convolve_state,  sampleState.conv, sizeof(CM_CONVOLVE_STATE_MSG) );
+        CmFastMemCopy( &this->m_convolveState,  sampleState.conv, sizeof(CM_CONVOLVE_STATE_MSG) );
     } else if(sampleState.stateType == CM_SAMPLER8X8_MISC)
     {
-        CmFastMemCopy( &this->m_misc_state,  sampleState.misc, sizeof(CM_MISC_STATE_MSG) );
+        CmFastMemCopy( &this->m_miscState,  sampleState.misc, sizeof(CM_MISC_STATE_MSG) );
     }  else {
         CM_ASSERTMESSAGE("Error: Invalid sampler8x8 state type.")
     }
@@ -113,7 +113,7 @@ CmSampler8x8State_RT::CmSampler8x8State_RT( const CM_SAMPLER_8X8_DESCR& sampleSt
 //*-----------------------------------------------------------------------------
 CmSampler8x8State_RT::~CmSampler8x8State_RT( void )
 {
-    MosSafeDelete(m_pIndex);
+    MosSafeDelete(m_index);
 }
 
 //*-----------------------------------------------------------------------------
@@ -124,8 +124,8 @@ int32_t CmSampler8x8State_RT::Initialize( uint32_t index )
 {
     int status = CM_FAILURE;
     // using CM compiler data structure
-    m_pIndex = MOS_New(SamplerIndex, index);
-    if( m_pIndex )
+    m_index = MOS_New(SamplerIndex, index);
+    if( m_index )
     {
         status = CM_SUCCESS;
     }

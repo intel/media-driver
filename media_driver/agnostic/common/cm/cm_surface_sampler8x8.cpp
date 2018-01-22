@@ -41,22 +41,22 @@ int32_t CmSurfaceSampler8x8::Create(
     uint32_t index,
     uint32_t indexFor2D,            //indexing resource array of HalCm
     uint32_t cmIndex,      //SurfaceIndex's ID for 2D, also indexing surface array in cmrt@umd
-    CmSurfaceManager* pSurfaceManager,
-    CmSurfaceSampler8x8* &pSurface,
-    CM_SAMPLER8x8_SURFACE sampler8x8_type,
+    CmSurfaceManager* surfaceManager,
+    CmSurfaceSampler8x8* &surface,
+    CM_SAMPLER8x8_SURFACE sampler8x8Type,
     CM_SURFACE_ADDRESS_CONTROL_MODE mode,
-    CM_FLAG* pFlag)
+    CM_FLAG* flag)
 {
     int32_t result = CM_SUCCESS;
 
-    pSurface = new ( std::nothrow ) CmSurfaceSampler8x8( cmIndex, indexFor2D, pSurfaceManager, sampler8x8_type, mode, pFlag);
-    if ( pSurface )
+    surface = new ( std::nothrow ) CmSurfaceSampler8x8( cmIndex, indexFor2D, surfaceManager, sampler8x8Type, mode, flag);
+    if ( surface )
     {
-        result = pSurface->Initialize( index );
+        result = surface->Initialize( index );
         if( result != CM_SUCCESS )
         {
-            CmSurface* pBaseSurface = pSurface;
-            CmSurface::Destroy( pBaseSurface );
+            CmSurface* baseSurface = surface;
+            CmSurface::Destroy( baseSurface );
         }
     }
     else
@@ -73,20 +73,20 @@ int32_t CmSurfaceSampler8x8::Create(
 CmSurfaceSampler8x8::CmSurfaceSampler8x8(
     uint32_t cmIndex,      //SurfaceIndex's ID for 2D, also indexing surface array in cmrt@umd
     uint32_t indexFor2D,
-    CmSurfaceManager* pSurfaceManager,
-    CM_SAMPLER8x8_SURFACE sampler8x8_type,
+    CmSurfaceManager* surfaceManager,
+    CM_SAMPLER8x8_SURFACE sampler8x8Type,
     CM_SURFACE_ADDRESS_CONTROL_MODE mode,
-    CM_FLAG* pFlag) :
-    CmSurface(pSurfaceManager, false ),
+    CM_FLAG* flag) :
+    CmSurface(surfaceManager, false ),
     m_indexFor2D( indexFor2D ),
-    m_CmIndex(cmIndex),
-    m_sampler8x8_type( sampler8x8_type ),
+    m_surfaceIndex(cmIndex),
+    m_sampler8x8Type( sampler8x8Type ),
     m_nAddressMode( mode )
 {
-    if (pFlag != nullptr)
+    if (flag != nullptr)
     {
-        m_Flag.rotationFlag = pFlag->rotationFlag;
-        m_Flag.chromaSiting = pFlag->chromaSiting;
+        m_flag.rotationFlag = flag->rotationFlag;
+        m_flag.chromaSiting = flag->chromaSiting;
     }
 }
 
@@ -101,10 +101,10 @@ CmSurfaceSampler8x8::~CmSurfaceSampler8x8( void )
 //*-----------------------------------------------------------------------------
 int32_t CmSurfaceSampler8x8::Initialize( uint32_t index )
 {
-    CmSurfaceManager* pSurfMgr = m_SurfaceMgr;
+    CmSurfaceManager* surfMgr = m_surfaceMgr;
 
-    pSurfMgr->UpdateSurface2DTableRotation(m_indexFor2D, m_Flag.rotationFlag);
-    pSurfMgr->UpdateSurface2DTableChromaSiting(m_indexFor2D, m_Flag.chromaSiting);
+    surfMgr->UpdateSurface2DTableRotation(m_indexFor2D, m_flag.rotationFlag);
+    surfMgr->UpdateSurface2DTableChromaSiting(m_indexFor2D, m_flag.chromaSiting);
 
     return CmSurface::Initialize( index );
 }
@@ -113,9 +113,9 @@ int32_t CmSurfaceSampler8x8::Initialize( uint32_t index )
 //| Purpose:    Get the index of CmSurfaceSampler8x8
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmSurfaceSampler8x8::GetIndex( SurfaceIndex*& pIndex )
+int32_t CmSurfaceSampler8x8::GetIndex( SurfaceIndex*& index )
 {
-    pIndex = m_pIndex;
+    index = m_index;
     return CM_SUCCESS;
 }
 
@@ -131,13 +131,13 @@ int32_t CmSurfaceSampler8x8::GetIndexCurrent( uint32_t& index )
 
 int32_t CmSurfaceSampler8x8::GetCmIndex( uint16_t& index )
 {
-    index = (uint16_t)m_CmIndex;
+    index = (uint16_t)m_surfaceIndex;
     return CM_SUCCESS;
 }
 
 CM_SAMPLER8x8_SURFACE CmSurfaceSampler8x8::GetSampler8x8SurfaceType()
 {
-    return m_sampler8x8_type;
+    return m_sampler8x8Type;
 }
 
 CM_SURFACE_ADDRESS_CONTROL_MODE CmSurfaceSampler8x8::GetAddressControlMode()
@@ -145,23 +145,23 @@ CM_SURFACE_ADDRESS_CONTROL_MODE CmSurfaceSampler8x8::GetAddressControlMode()
     return m_nAddressMode;
 }
 
-int32_t CmSurfaceSampler8x8::SetMemoryObjectControl(MEMORY_OBJECT_CONTROL mem_ctrl, MEMORY_TYPE mem_type, uint32_t age)
+int32_t CmSurfaceSampler8x8::SetMemoryObjectControl(MEMORY_OBJECT_CONTROL memCtrl, MEMORY_TYPE memType, uint32_t age)
 {
     CM_RETURN_CODE  hr = CM_SUCCESS;
     uint16_t mocs = 0;
 
-    CmSurface::SetMemoryObjectControl( mem_ctrl, mem_type, age );
+    CmSurface::SetMemoryObjectControl( memCtrl, memType, age );
 
-    CmDeviceRT *pCmDevice = nullptr;
-    m_SurfaceMgr->GetCmDevice(pCmDevice);
-    PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)pCmDevice->GetAccelData();
-    CMCHK_NULL(pCmData);
+    CmDeviceRT *cmDevice = nullptr;
+    m_surfaceMgr->GetCmDevice(cmDevice);
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)cmDevice->GetAccelData();
+    CMCHK_NULL(cmData);
 
-    mocs = (m_MemObjCtrl.mem_ctrl << 8) | (m_MemObjCtrl.mem_type<<4) | m_MemObjCtrl.age;
+    mocs = (m_memObjCtrl.mem_ctrl << 8) | (m_memObjCtrl.mem_type<<4) | m_memObjCtrl.age;
 
     CM_ARG_KIND argType;
 
-    if (m_sampler8x8_type == CM_VA_SURFACE)
+    if (m_sampler8x8Type == CM_VA_SURFACE)
     {
         argType = ARG_KIND_SURFACE_SAMPLER8X8_VA;
     }
@@ -170,7 +170,7 @@ int32_t CmSurfaceSampler8x8::SetMemoryObjectControl(MEMORY_OBJECT_CONTROL mem_ct
         argType = ARG_KIND_SURFACE_SAMPLER8X8_AVS;
     }
 
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->cmHalState->pfnSetSurfaceMOCS(pCmData->cmHalState, m_indexFor2D, mocs, argType));
+    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnSetSurfaceMOCS(cmData->cmHalState, m_indexFor2D, mocs, argType));
 
 finish:
     return hr;

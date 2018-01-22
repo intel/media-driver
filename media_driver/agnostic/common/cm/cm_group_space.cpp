@@ -89,7 +89,7 @@ int32_t CmThreadGroupSpace::GetThreadGroupSpaceSize(uint32_t & threadSpaceWidth,
     return CM_SUCCESS;
 }
 
-CmThreadGroupSpace::CmThreadGroupSpace( CmDeviceRT* cmDev,
+CmThreadGroupSpace::CmThreadGroupSpace( CmDeviceRT* device,
                                         uint32_t index,
                                         uint32_t threadSpaceWidth,
                                         uint32_t threadSpaceHeight,
@@ -97,7 +97,7 @@ CmThreadGroupSpace::CmThreadGroupSpace( CmDeviceRT* cmDev,
                                         uint32_t groupSpaceWidth,
                                         uint32_t groupSpaceHeight,
                                         uint32_t groupSpaceDepth) :
-                                        m_cmDev(cmDev),
+                                        m_device(device),
                                         m_threadSpaceWidth(threadSpaceWidth),
                                         m_threadSpaceHeight(threadSpaceHeight),
                                         m_threadSpaceDepth(threadSpaceDepth),
@@ -108,13 +108,13 @@ CmThreadGroupSpace::CmThreadGroupSpace( CmDeviceRT* cmDev,
 {
 }
 
-CmThreadGroupSpace::CmThreadGroupSpace(CmDeviceRT* cmDev,
+CmThreadGroupSpace::CmThreadGroupSpace(CmDeviceRT* device,
     uint32_t index,
     uint32_t threadSpaceWidth,
     uint32_t threadSpaceHeight,
     uint32_t groupSpaceWidth,
     uint32_t groupSpaceHeight) :
-    m_cmDev(cmDev),
+    m_device(device),
     m_threadSpaceWidth(threadSpaceWidth),
     m_threadSpaceHeight(threadSpaceHeight),
     m_groupSpaceWidth(groupSpaceWidth),

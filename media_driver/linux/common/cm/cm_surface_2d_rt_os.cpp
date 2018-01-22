@@ -77,7 +77,7 @@ CmSurface2DRT::~CmSurface2DRT( void )
     {
         // Release VA Surface created in thin layer via call back
         CmDeviceRT *pCmDev;
-        m_SurfaceMgr->GetCmDevice(pCmDev);
+        m_surfaceMgr->GetCmDevice(pCmDev);
         pCmDev->ReleaseVASurface(m_pVaDpy, &m_VaSurfaceID);
     }
 }

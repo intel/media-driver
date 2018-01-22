@@ -313,11 +313,11 @@ int32_t CmThinExecute(VADriverContextP pVaDrvCtx,
         case CM_FN_DESTROYCMDEVICE:
             PCM_DESTROYCMDEVICE_PARAM pCmDevDestroyParam;
             pCmDevDestroyParam = (PCM_DESTROYCMDEVICE_PARAM)(pCmPrivateInputData);
-            pDevice            = (CmDevice *)(pCmDevDestroyParam->pCmDeviceHandle);
+            pDevice            = (CmDevice *)(pCmDevDestroyParam->deviceHandle);
             cmRet = DestroyCmDeviceFromVA(pVaDrvCtx,pDevice);
             //Fill the output message
-            pCmDevDestroyParam->pCmDeviceHandle = nullptr;
-            pCmDevDestroyParam->iReturnValue    = cmRet;
+            pCmDevDestroyParam->deviceHandle = nullptr;
+            pCmDevDestroyParam->returnValue    = cmRet;
             break;
 
         case CM_FN_CMDEVICE_CREATESURFACE2D:

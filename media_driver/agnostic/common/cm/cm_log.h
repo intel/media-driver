@@ -75,23 +75,23 @@ class CmLogger
     /**
      * \brief Pointer to the unique Logger (i.e., Singleton)
      */
-    static CmLogger* GlobalCmLogger;
+    static CmLogger* m_globalCmLogger;
 
     /**
      * \brief Initial part of the name of the file used for Logging.
      * Date and time are automatically appended.
      */
-    std::string mLogFile;
+    std::string m_logFile;
 
     /**
      * \brief Stream used when logging on a file or screen
      */
-    std::ofstream mStreamOut;
+    std::ofstream m_streamOut;
 
     /**
      * \brief Verbosity threshold
      */
-    unsigned int  mVerbosityLevel;
+    unsigned int  m_verbosityLevel;
 
     CmLogger();
     ~CmLogger();
@@ -134,8 +134,8 @@ public:
     void Stop();
 
 private:
-    std::string mString;
-    CmTimer     mTimer;
+    std::string m_string;
+    CmTimer     m_timer;
 };
 
 #endif

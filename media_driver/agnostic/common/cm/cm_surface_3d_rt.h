@@ -41,20 +41,20 @@ public:
                           uint32_t height,
                           uint32_t depth,
                           CM_SURFACE_FORMAT format,
-                          CmSurfaceManager *pSurfaceManager,
-                          CmSurface3DRT* &pSurface);
+                          CmSurfaceManager *surfaceManager,
+                          CmSurface3DRT* &surface);
 
-    CM_RT_API int32_t ReadSurface(unsigned char *pSysMem,
-                                  CmEvent *pEvent,
+    CM_RT_API int32_t ReadSurface(unsigned char *sysMem,
+                                  CmEvent *event,
                                   uint64_t sysMemSize = 0xFFFFFFFFFFFFFFFFULL);
 
-    CM_RT_API int32_t WriteSurface(const unsigned char *pSysMem,
-                                   CmEvent *pEvent,
+    CM_RT_API int32_t WriteSurface(const unsigned char *sysMem,
+                                   CmEvent *event,
                                    uint64_t sysMemSize = 0xFFFFFFFFFFFFFFFFULL);
 
-    CM_RT_API int32_t InitSurface(const uint32_t initValue, CmEvent *pEvent);
+    CM_RT_API int32_t InitSurface(const uint32_t initValue, CmEvent *event);
 
-    CM_RT_API int32_t GetIndex(SurfaceIndex* &pIndex);
+    CM_RT_API int32_t GetIndex(SurfaceIndex* &index);
 
     int32_t GetHandle(uint32_t &handle);
 
@@ -71,12 +71,12 @@ public:
     //NOT depend on RTTI::dynamic_cast
     CM_ENUM_CLASS_TYPE Type() const { return CM_ENUM_CLASS_TYPE_CMSURFACE3D; };
 
-    int32_t SetMemoryObjectControl(MEMORY_OBJECT_CONTROL mem_ctrl,
-                                   MEMORY_TYPE mem_type,
+    int32_t SetMemoryObjectControl(MEMORY_OBJECT_CONTROL memCtrl,
+                                   MEMORY_TYPE memType,
                                    uint32_t age);
 
     CM_RT_API int32_t
-    SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL mem_ctrl);
+    SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL memCtrl);
 
     void Log(std::ostringstream &oss);
 
@@ -90,17 +90,17 @@ protected:
                   uint32_t height,
                   uint32_t depth,
                   CM_SURFACE_FORMAT format,
-                  CmSurfaceManager *pSurfaceManager);
+                  CmSurfaceManager *surfaceManager);
 
     ~CmSurface3DRT();
 
     int32_t Initialize(uint32_t index);
 
-    uint32_t m_Handle;
-    uint32_t m_Width;
-    uint32_t m_Height;
-    uint32_t m_Depth;
-    CM_SURFACE_FORMAT m_Format;
+    uint32_t m_handle;
+    uint32_t m_width;
+    uint32_t m_height;
+    uint32_t m_depth;
+    CM_SURFACE_FORMAT m_format;
 };
 };  //namespace
 

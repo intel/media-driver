@@ -35,8 +35,8 @@
 #endif
 
 #define READ_FIELD_FROM_BUF( dst, type ) \
-    dst = *((type *) &buf[byte_pos]); \
-    byte_pos += sizeof(type);
+    dst = *((type *) &buf[bytePos]); \
+    bytePos += sizeof(type);
 
 #define CM_RT_JITTER_DEBUG_FLAG "-debug"
 #define CM_RT_JITTER_NCSTATELESS_FLAG "-ncstateless"
@@ -50,21 +50,21 @@ namespace CMRT_UMD
 //*-----------------------------------------------------------------------------
 //| Purpose:    Create Cm Program
 //| Arguments :
-//|               pCmDev            [in]     Pointer to Cm Device
-//|               pCommonISACode    [in]     Pointer to memory where common isa locates
+//|               device            [in]     Pointer to Cm Device
+//|               commonISACode    [in]     Pointer to memory where common isa locates
 //|               size              [in]     Size of memory
 //|               pProgram          [in]     Reference to pointer to CmProgram
 //|               options           [in]     jitter or non-jitter
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmProgramRT::Create( CmDeviceRT* pCmDev, void* pCISACode, const uint32_t uiCISACodeSize, CmProgramRT*& pProgram,  const char* options, const uint32_t programId )
+int32_t CmProgramRT::Create( CmDeviceRT* device, void* cisaCode, const uint32_t cisaCodeSize, CmProgramRT*& pProgram,  const char* options, const uint32_t programId )
 {
     int32_t result = CM_SUCCESS;
-    pProgram = new (std::nothrow) CmProgramRT( pCmDev, programId );
+    pProgram = new (std::nothrow) CmProgramRT( device, programId );
     if( pProgram )
     {
         pProgram->Acquire();
-        result = pProgram->Initialize( pCISACode, uiCISACodeSize, options );
+        result = pProgram->Initialize( cisaCode, cisaCodeSize, options );
         if( result != CM_SUCCESS )
         {
             CmProgramRT::Destroy( pProgram);
@@ -82,12 +82,12 @@ int32_t CmProgramRT::Create( CmDeviceRT* pCmDev, void* pCISACode, const uint32_t
 //| Purpose:    Destroy Cm Program
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmProgramRT::Destroy( CmProgramRT* &pProgram )
+int32_t CmProgramRT::Destroy( CmProgramRT* &program )
 {
-    long refCount = pProgram->SafeRelease(  );
+    long refCount = program->SafeRelease(  );
     if( refCount == 0 )
     {
-        pProgram = nullptr;
+        program = nullptr;
     }
     return CM_SUCCESS;
 }
@@ -121,27 +121,27 @@ int32_t CmProgramRT::SafeRelease( void )
 //| Purpose:    Constructor of Cm Program
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-CmProgramRT::CmProgramRT( CmDeviceRT* pCmDev, uint32_t programId ):
-    m_pCmDev( pCmDev ),
-    m_ProgramCodeSize( 0 ),
-    m_pProgramCode(nullptr),
-    m_ISAfile(nullptr),
-    m_Options( nullptr ),
-    m_SurfaceCount( 0 ),
-    m_KernelCount( 0 ),
-    m_pKernelInfo( CM_INIT_KERNEL_PER_PROGRAM ),
-    m_IsJitterEnabled(false),
-    m_IsHwDebugEnabled(false),
+CmProgramRT::CmProgramRT( CmDeviceRT* device, uint32_t programId ):
+    m_device( device ),
+    m_programCodeSize( 0 ),
+    m_programCode(nullptr),
+    m_isaFile(nullptr),
+    m_options( nullptr ),
+    m_surfaceCount( 0 ),
+    m_kernelCount( 0 ),
+    m_kernelInfo( CM_INIT_KERNEL_PER_PROGRAM ),
+    m_isJitterEnabled(false),
+    m_isHwDebugEnabled(false),
     m_refCount(0),
     m_programIndex(programId),
     m_fJITCompile(nullptr),
     m_fFreeBlock(nullptr),
     m_fJITVersion(nullptr),
-    m_CISA_magicNumber(0),
-    m_CISA_majorVersion(0),
-    m_CISA_minorVersion(0)
+    m_cisaMagicNumber(0),
+    m_cisaMajorVersion(0),
+    m_cisaMinorVersion(0)
 {
-    CmSafeMemSet(m_IsaFileName,0,sizeof(char)*CM_MAX_ISA_FILE_NAME_SIZE_IN_BYTE);
+    CmSafeMemSet(m_isaFileName,0,sizeof(char)*CM_MAX_ISA_FILE_NAME_SIZE_IN_BYTE);
 }
 
 //*-----------------------------------------------------------------------------
@@ -150,39 +150,39 @@ CmProgramRT::CmProgramRT( CmDeviceRT* pCmDev, uint32_t programId ):
 //*-----------------------------------------------------------------------------
 CmProgramRT::~CmProgramRT( void )
 {
-    MosSafeDeleteArray( m_Options );
-    MosSafeDeleteArray( m_pProgramCode );
-    for( uint32_t i = 0; i < m_KernelCount; i ++ )
+    MosSafeDeleteArray( m_options );
+    MosSafeDeleteArray( m_programCode );
+    for( uint32_t i = 0; i < m_kernelCount; i ++ )
     {
         uint32_t refCount = this->ReleaseKernelInfo(i);
         CM_ASSERT(refCount == 0);
 
     }
-    m_pKernelInfo.Delete();
-    CmSafeDelete(m_ISAfile);
+    m_kernelInfo.Delete();
+    CmSafeDelete(m_isaFile);
 }
 
 #if (_RELEASE_INTERNAL)
 int32_t CmProgramRT::ReadUserFeatureValue(const char *pcMessageKey, uint32_t &value)
 {
-    MOS_USER_FEATURE        UserFeature;
-    MOS_USER_FEATURE_VALUE  UserFeatureValue = __NULL_USER_FEATURE_VALUE__;
+    MOS_USER_FEATURE        userFeature;
+    MOS_USER_FEATURE_VALUE  userFeatureValue = __NULL_USER_FEATURE_VALUE__;
     CM_RETURN_CODE          hr = CM_SUCCESS;
 
     // Set the component's message level and asserts:
-    UserFeatureValue.u32Data    = __MOS_USER_FEATURE_KEY_MESSAGE_DEFAULT_VALUE;
-    UserFeature.Type            = MOS_USER_FEATURE_TYPE_USER;
-    UserFeature.pPath           = __MEDIA_USER_FEATURE_SUBKEY_INTERNAL;
-    UserFeature.pValues         = &UserFeatureValue;
-    UserFeature.uiNumValues     = 1;
+    userFeatureValue.u32Data    = __MOS_USER_FEATURE_KEY_MESSAGE_DEFAULT_VALUE;
+    userFeature.Type            = MOS_USER_FEATURE_TYPE_USER;
+    userFeature.pPath           = __MEDIA_USER_FEATURE_SUBKEY_INTERNAL;
+    userFeature.pValues         = &userFeatureValue;
+    userFeature.uiNumValues     = 1;
 
     CHK_MOSSTATUS_RETURN_CMERROR(MOS_UserFeature_ReadValue(
                                 nullptr,
-                                &UserFeature,
+                                &userFeature,
                                 pcMessageKey,
                                 MOS_USER_FEATURE_VALUE_TYPE_UINT32));
 
-    value = UserFeature.pValues->u32Data;
+    value = userFeature.pValues->u32Data;
 
 finish:
     return hr;
@@ -193,19 +193,19 @@ finish:
 //| Purpose:    Initialize Cm Program
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmProgramRT::Initialize( void* pCISACode, const uint32_t uiCISACodeSize, const char* options )
+int32_t CmProgramRT::Initialize( void* cisaCode, const uint32_t cisaCodeSize, const char* options )
 {
-    bool bLoadingGPUCopyKernel = false;
+    bool loadingGPUCopyKernel = false;
     int32_t result = CM_SUCCESS;
     int32_t hr     = CM_FAILURE;
 
-    m_IsJitterEnabled = true; //by default jitter is ON
+    m_isJitterEnabled = true; //by default jitter is ON
 
     int numJitFlags = 0;
     const char *jitFlags[CM_RT_JITTER_MAX_NUM_FLAGS];
     CmSafeMemSet(jitFlags, 0, sizeof(char *) * CM_RT_JITTER_MAX_NUM_FLAGS);
 
-    char* pFlagStepInfo = nullptr;
+    char* flagStepInfo = nullptr;
 
     if( options )
     {
@@ -217,95 +217,95 @@ int32_t CmProgramRT::Initialize( void* pCISACode, const uint32_t uiCISACodeSize,
         }
         else
         {
-            m_Options = MOS_NewArray(char, (length + 1));
-            if( !m_Options )
+            m_options = MOS_NewArray(char, (length + 1));
+            if( !m_options )
             {
                 CM_ASSERTMESSAGE("Error: Out of system memory.");
                 return CM_OUT_OF_HOST_MEMORY;
 
             }
-            CmFastMemCopy( m_Options, options, length);
-            m_Options[ length ] = '\0';
+            CmFastMemCopy( m_options, options, length);
+            m_options[ length ] = '\0';
 
             if(strstr(options, "nojitter"))
-                m_IsJitterEnabled = false;
+                m_isJitterEnabled = false;
 
-            if(!strcmp(m_Options, "PredefinedGPUKernel"))
-                bLoadingGPUCopyKernel = true;
-            if( (m_IsJitterEnabled == true) && (bLoadingGPUCopyKernel == false))
+            if(!strcmp(m_options, "PredefinedGPUKernel"))
+                loadingGPUCopyKernel = true;
+            if( (m_isJitterEnabled == true) && (loadingGPUCopyKernel == false))
             { // option: "nonjitter" and "PredefinedGPUCopyKernel" should not be passed to jitter
                 char *token = nullptr;
-                char *next_token = nullptr;
-                char *ptr =  m_Options;
+                char *nextToken = nullptr;
+                char *ptr =  m_options;
 
-                while( nullptr != (token = strtok_s(ptr," ",&next_token)))
+                while( nullptr != (token = strtok_s(ptr," ",&nextToken)))
                 {
                     if(numJitFlags >= CM_RT_JITTER_MAX_NUM_USER_FLAGS)
                     {
                         CM_ASSERTMESSAGE("Error: Invalid jitter user flags number.");
-                        MosSafeDeleteArray(m_Options);
+                        MosSafeDeleteArray(m_options);
                         return CM_FAILURE;
                     }
                     if(!strcmp(token, CM_RT_JITTER_DEBUG_FLAG))
                     {
-                        m_IsHwDebugEnabled = true;
+                        m_isHwDebugEnabled = true;
                     }
                     jitFlags[numJitFlags] = token;
                     numJitFlags++;
-                    ptr = next_token;
+                    ptr = nextToken;
                 }
             }
         }
     }
 
-    uint8_t *buf = (uint8_t*)pCISACode;
-    uint32_t byte_pos = 0;
+    uint8_t *buf = (uint8_t*)cisaCode;
+    uint32_t bytePos = 0;
 
-    READ_FIELD_FROM_BUF(m_CISA_magicNumber, uint32_t);
-    READ_FIELD_FROM_BUF(m_CISA_majorVersion, uint8_t);
-    READ_FIELD_FROM_BUF(m_CISA_minorVersion, uint8_t);
+    READ_FIELD_FROM_BUF(m_cisaMagicNumber, uint32_t);
+    READ_FIELD_FROM_BUF(m_cisaMajorVersion, uint8_t);
+    READ_FIELD_FROM_BUF(m_cisaMinorVersion, uint8_t);
 
-    bool bUseVisaApi = true;
+    bool useVisaApi = true;
     vISA::Header *header = nullptr;
 
     auto getVersionAsInt = [](int major, int minor) {return major * 100 + minor;};
-    if (getVersionAsInt(m_CISA_majorVersion, m_CISA_minorVersion) < getVersionAsInt(3, 2))
+    if (getVersionAsInt(m_cisaMajorVersion, m_cisaMinorVersion) < getVersionAsInt(3, 2))
     {
-        bUseVisaApi = false;
+        useVisaApi = false;
     }
     else
     {
-        m_ISAfile = new vISA::ISAfile((uint8_t*)pCISACode, uiCISACodeSize);
-        if (!m_ISAfile->readFile())
+        m_isaFile = new vISA::ISAfile((uint8_t*)cisaCode, cisaCodeSize);
+        if (!m_isaFile->readFile())
         {
             CM_ASSERTMESSAGE("Error: invalid VISA.");
-            MosSafeDeleteArray(m_Options);
+            MosSafeDeleteArray(m_options);
             return CM_INVALID_COMMON_ISA;
         }
-        header = m_ISAfile->getHeader();
+        header = m_isaFile->getHeader();
     }
 
-    if (m_CISA_magicNumber != CISA_MAGIC_NUMBER)
+    if (m_cisaMagicNumber != CISA_MAGIC_NUMBER)
     {
         CM_ASSERTMESSAGE("Error: Invalid CISA magic number.");
-        MosSafeDeleteArray(m_Options);
+        MosSafeDeleteArray(m_options);
         return CM_INVALID_COMMON_ISA;
     }
 
-    if(bLoadingGPUCopyKernel)//for predefined kernel(GPUCopy), forcely disable jitting
+    if(loadingGPUCopyKernel)//for predefined kernel(GPUCopy), forcely disable jitting
     {
-        m_IsJitterEnabled = false;
+        m_isJitterEnabled = false;
     }
 
     const char *platform = nullptr;
 
-    PCM_HAL_STATE  pCmHalState = \
-        ((PCM_CONTEXT_DATA)m_pCmDev->GetAccelData())->cmHalState;
-    CMCHK_NULL(pCmHalState);
+    PCM_HAL_STATE  cmHalState = \
+        ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
+    CMCHK_NULL(cmHalState);
 
-    pCmHalState->cmHalInterface->GetGenPlatformInfo(nullptr, nullptr, &platform);
+    cmHalState->cmHalInterface->GetGenPlatformInfo(nullptr, nullptr, &platform);
 
-    if( m_IsJitterEnabled )
+    if( m_isJitterEnabled )
     {
     //reg control for svm IA/GT cache coherence
 #if (_RELEASE_INTERNAL)
@@ -320,25 +320,25 @@ int32_t CmProgramRT::Initialize( void* pCISACode, const uint32_t uiCISACodeSize,
 
         //Load jitter library and add function pointers to program
         // Get hmodule from CmDevice_RT or CmDevice_Sim, which is casted from CmDevice
-        result = m_pCmDev->LoadJITDll();
+        result = m_device->LoadJITDll();
         if(result != CM_SUCCESS)
         {
             CM_ASSERTMESSAGE("Error: Load jitter library failure.");
-            MosSafeDeleteArray(m_Options);
+            MosSafeDeleteArray(m_options);
             return result;
         }
 
-        m_pCmDev->GetJITCompileFnt(m_fJITCompile);
-        m_pCmDev->GetFreeBlockFnt(m_fFreeBlock);
-        m_pCmDev->GetJITVersionFnt(m_fJITVersion);
+        m_device->GetJITCompileFnt(m_fJITCompile);
+        m_device->GetFreeBlockFnt(m_fFreeBlock);
+        m_device->GetJITVersionFnt(m_fJITVersion);
 
         uint32_t jitMajor = 0;
         uint32_t jitMinor = 0;
         m_fJITVersion(jitMajor, jitMinor);
-        if((jitMajor < m_CISA_majorVersion) || (jitMajor == m_CISA_majorVersion && jitMinor < m_CISA_minorVersion))
+        if((jitMajor < m_cisaMajorVersion) || (jitMajor == m_cisaMajorVersion && jitMinor < m_cisaMinorVersion))
             return CM_JITDLL_OLDER_THAN_ISA;
 #if USE_EXTENSION_CODE
-        if( m_pCmDev->CheckGTPinEnabled() && !bLoadingGPUCopyKernel)
+        if( m_device->CheckGTPinEnabled() && !loadingGPUCopyKernel)
         {
             hr = InitForGTPin(jitFlags, numJitFlags);
             if (hr != CM_SUCCESS)
@@ -349,88 +349,88 @@ int32_t CmProgramRT::Initialize( void* pCISACode, const uint32_t uiCISACodeSize,
 #endif
         //Pass stepping info to JITTER..."
         char *stepstr = nullptr;
-        m_pCmDev->GetGenStepInfo(stepstr);
+        m_device->GetGenStepInfo(stepstr);
         if(stepstr != nullptr)
         {
-            pFlagStepInfo = MOS_NewArray(char, CM_JIT_FLAG_SIZE);
-            if (pFlagStepInfo)
+            flagStepInfo = MOS_NewArray(char, CM_JIT_FLAG_SIZE);
+            if (flagStepInfo)
             {
                 jitFlags[numJitFlags] = "-stepping";
                 numJitFlags++;
 
-                CmSafeMemSet(pFlagStepInfo, 0, CM_JIT_FLAG_SIZE);
-                MOS_SecureStringPrint(pFlagStepInfo, CM_JIT_FLAG_SIZE, CM_JIT_FLAG_SIZE, "%s", stepstr);
+                CmSafeMemSet(flagStepInfo, 0, CM_JIT_FLAG_SIZE);
+                MOS_SecureStringPrint(flagStepInfo, CM_JIT_FLAG_SIZE, CM_JIT_FLAG_SIZE, "%s", stepstr);
                 if (numJitFlags >= CM_RT_JITTER_MAX_NUM_FLAGS)
                 {
                     CM_ASSERTMESSAGE("Error: Invalid jitter user flags number.");
                     hr = CM_FAILURE;
                     goto finish;
                 }
-                jitFlags[numJitFlags] = pFlagStepInfo;
+                jitFlags[numJitFlags] = flagStepInfo;
                 numJitFlags++;
             }
             else
             {
                 CM_ASSERTMESSAGE("Error: Out of system memory.");
-                MosSafeDeleteArray(m_Options);
+                MosSafeDeleteArray(m_options);
                 return CM_OUT_OF_HOST_MEMORY;
             }
         }
     }
 
-    if (bUseVisaApi)
+    if (useVisaApi)
     {
-        m_KernelCount = header->getNumKernels();
+        m_kernelCount = header->getNumKernels();
     }
     else
     {
-        byte_pos = 4 + 1 + 1; // m_CISA_magicNumber:sizeof (uint32_t) + m_CISA_majorVersion:sizeof(uint8_t) + m_CISA_minorVersion:sizeof(uint8_t)
-        unsigned short num_kernels;
-        READ_FIELD_FROM_BUF(num_kernels, unsigned short);
-        m_KernelCount = num_kernels;
+        bytePos = 4 + 1 + 1; // m_cisaMagicNumber:sizeof (uint32_t) + m_cisaMajorVersion:sizeof(uint8_t) + m_cisaMinorVersion:sizeof(uint8_t)
+        unsigned short numKernels;
+        READ_FIELD_FROM_BUF(numKernels, unsigned short);
+        m_kernelCount = numKernels;
     }
 
 #ifdef _DEBUG
-    if(m_IsJitterEnabled)
+    if(m_isJitterEnabled)
         CM_NORMALMESSAGE("Jitter Compiling...");
 #endif
 
-    for (uint32_t i = 0; i < m_KernelCount; i++)
+    for (uint32_t i = 0; i < m_kernelCount; i++)
     {
-        CM_KERNEL_INFO* pKernInfo = new (std::nothrow) CM_KERNEL_INFO;
-        if (!pKernInfo)
+        CM_KERNEL_INFO* kernInfo = new (std::nothrow) CM_KERNEL_INFO;
+        if (!kernInfo)
         {
             CM_ASSERTMESSAGE("Error: Out of system memory.");
-            MosSafeDeleteArray(pFlagStepInfo);
-            MosSafeDeleteArray(m_Options);
+            MosSafeDeleteArray(flagStepInfo);
+            MosSafeDeleteArray(m_options);
             hr = CM_OUT_OF_HOST_MEMORY;
             goto finish;
         }
-        CmSafeMemSet(pKernInfo, 0, sizeof(CM_KERNEL_INFO));
+        CmSafeMemSet(kernInfo, 0, sizeof(CM_KERNEL_INFO));
 
         vISA::Kernel *kernel = nullptr;
-        uint8_t name_len = 0;
-        if (bUseVisaApi)
+        uint8_t nameLen = 0;
+        if (useVisaApi)
         {
             kernel = header->getKernelInfo()[i];
-            name_len = kernel->getNameLen();
-            CmFastMemCopy(pKernInfo->kernelName, kernel->getName(), name_len);
+            nameLen = kernel->getNameLen();
+            CmFastMemCopy(kernInfo->kernelName, kernel->getName(), nameLen);
         }
         else
         {
-            READ_FIELD_FROM_BUF(name_len, uint8_t);
-            CmFastMemCopy(pKernInfo->kernelName, buf + byte_pos, name_len);
-            // move byte_pos to the right index
-            byte_pos += name_len;
+            READ_FIELD_FROM_BUF(nameLen, uint8_t);
+            CmFastMemCopy(kernInfo->kernelName, buf + bytePos, nameLen);
+            // move bytePos to the right index
+            bytePos += nameLen;
         }
 
-        if(m_IsJitterEnabled)
+        if(m_isJitterEnabled)
         {
-            if (bUseVisaApi)
+            if (useVisaApi)
             {
-                pKernInfo->kernelIsaOffset = kernel->getOffset();
-                pKernInfo->kernelIsaSize = kernel->getSize();
-                pKernInfo->inputCountOffset = kernel->getInputOffset();
+                kernInfo->kernelIsaOffset = kernel->getOffset();
+                kernInfo->kernelIsaSize = kernel->getSize();
+                kernInfo->inputCountOffset = kernel->getInputOffset();
             }
             else
             {
@@ -442,108 +442,108 @@ int32_t CmProgramRT::Initialize( void* pCISACode, const uint32_t uiCISACodeSize,
                 READ_FIELD_FROM_BUF(kernelIsaSize, uint32_t); //read kernel isa size
                 READ_FIELD_FROM_BUF(inputCountOffset, uint32_t);
 
-                pKernInfo->kernelIsaOffset = kernelIsaOffset;
-                pKernInfo->kernelIsaSize = kernelIsaSize;
-                pKernInfo->inputCountOffset = inputCountOffset;
+                kernInfo->kernelIsaOffset = kernelIsaOffset;
+                kernInfo->kernelIsaSize = kernelIsaSize;
+                kernInfo->inputCountOffset = inputCountOffset;
 
                 // read relocation symbols
-                unsigned short num_var_syms = 0, num_func_syms = 0;
-                unsigned char num_gen_binaries = 0;
+                unsigned short numVarSyms = 0, num_func_syms = 0;
+                unsigned char numGenBinaries = 0;
 
-                READ_FIELD_FROM_BUF(num_var_syms, uint16_t);
+                READ_FIELD_FROM_BUF(numVarSyms, uint16_t);
                 // CISA layout of var_syms is symbolic_index[0], resolved_index[0],
                 // ...resolved_index[n-1]. Skip all.
-                byte_pos += sizeof(uint16_t) * num_var_syms;
-                byte_pos += sizeof(uint16_t) * num_var_syms;
+                bytePos += sizeof(uint16_t) * numVarSyms;
+                bytePos += sizeof(uint16_t) * numVarSyms;
 
                 READ_FIELD_FROM_BUF(num_func_syms, uint16_t);
                 // CISA layout of func_syms is symbolic_index[0], resolved_index[0],
                 // ...resolved_index[n-1]. Skip all.
-                byte_pos += sizeof(uint16_t) * num_func_syms;
-                byte_pos += sizeof(uint16_t) * num_func_syms;
+                bytePos += sizeof(uint16_t) * num_func_syms;
+                bytePos += sizeof(uint16_t) * num_func_syms;
 
-                // num_gen_binaries
-                READ_FIELD_FROM_BUF(num_gen_binaries, uint8_t);
-                // CISA layout of gen_binaries is gen_platform[0], binary offset[0],
+                // numGenBinaries
+                READ_FIELD_FROM_BUF(numGenBinaries, uint8_t);
+                // CISA layout of gen_binaries is genPlatform[0], binary offset[0],
                 // binary size[0]...binary size[n-1]. Skip all.
-                // skip all gen_platform
-                byte_pos += sizeof(uint8_t) * num_gen_binaries;
+                // skip all genPlatform
+                bytePos += sizeof(uint8_t) * numGenBinaries;
                 // skip all binary offset
-                byte_pos += sizeof(uint32_t) * num_gen_binaries;
+                bytePos += sizeof(uint32_t) * numGenBinaries;
                 // skip all binary size
-                byte_pos += sizeof(uint32_t) * num_gen_binaries;
+                bytePos += sizeof(uint32_t) * numGenBinaries;
 
-                // byte_pos should point to name_len of next kernel
+                // bytePos should point to nameLen of next kernel
             }
         }
         else // non jitting
         {
-            uint8_t num_gen_binaries = 0;
-            if (bUseVisaApi)
+            uint8_t numGenBinaries = 0;
+            if (useVisaApi)
             {
-                pKernInfo->kernelIsaOffset = kernel->getOffset();
-                pKernInfo->inputCountOffset = kernel->getInputOffset();
-                num_gen_binaries = kernel->getNumGenBinaries();
+                kernInfo->kernelIsaOffset = kernel->getOffset();
+                kernInfo->inputCountOffset = kernel->getInputOffset();
+                numGenBinaries = kernel->getNumGenBinaries();
             }
             else
             {
                 uint32_t kernelIsaOffset;
                 READ_FIELD_FROM_BUF(kernelIsaOffset, uint32_t); //read kernel isa offset
-                pKernInfo->kernelIsaOffset = kernelIsaOffset;
+                kernInfo->kernelIsaOffset = kernelIsaOffset;
 
                 // skipping kernelIsaSize
-                byte_pos += 4;
+                bytePos += 4;
 
                 uint32_t inputCountOffset;
                 READ_FIELD_FROM_BUF(inputCountOffset, uint32_t);
-                pKernInfo->inputCountOffset = inputCountOffset;
+                kernInfo->inputCountOffset = inputCountOffset;
 
                 // read relocation symbols
-                unsigned short num_var_syms = 0, num_func_syms = 0;
+                unsigned short numVarSyms = 0, num_func_syms = 0;
 
-                READ_FIELD_FROM_BUF(num_var_syms, uint16_t);
+                READ_FIELD_FROM_BUF(numVarSyms, uint16_t);
                 // CISA layout of var_syms is symbolic_index[0], resolved_index[0],
                 // ...resolved_index[n-1]. Skip all.
-                byte_pos += sizeof(uint16_t) * num_var_syms;
-                byte_pos += sizeof(uint16_t) * num_var_syms;
+                bytePos += sizeof(uint16_t) * numVarSyms;
+                bytePos += sizeof(uint16_t) * numVarSyms;
 
                 READ_FIELD_FROM_BUF(num_func_syms, uint16_t);
                 // CISA layout of func_syms is symbolic_index[0], resolved_index[0],
                 // ...resolved_index[n-1]. Skip all.
-                byte_pos += sizeof(uint16_t) * num_func_syms;
-                byte_pos += sizeof(uint16_t) * num_func_syms;
+                bytePos += sizeof(uint16_t) * num_func_syms;
+                bytePos += sizeof(uint16_t) * num_func_syms;
 
-                // num_gen_binaries
-                READ_FIELD_FROM_BUF(num_gen_binaries, uint8_t);
+                // numGenBinaries
+                READ_FIELD_FROM_BUF(numGenBinaries, uint8_t);
             }
 
             uint32_t genxBinaryOffset = 0;
             uint32_t genxBinarySize = 0;
-            for (int j = 0; j < num_gen_binaries; j++)
+            for (int j = 0; j < numGenBinaries; j++)
             {
                 vISA::GenBinary *genBinary = nullptr;
-                uint8_t gen_platform = 0;
+                uint8_t genPlatform = 0;
                 uint32_t offset = 0;
                 uint32_t size = 0;
 
-                if (bUseVisaApi)
+                if (useVisaApi)
                 {
                     genBinary = kernel->getGenBinaryInfo()[j];
-                    gen_platform = genBinary->getGenPlatform();
+                    genPlatform = genBinary->getGenPlatform();
                     offset = genBinary->getBinaryOffset();
                     size = genBinary->getBinarySize();
                 }
                 else
                 {
-                    // gen_platform
-                    READ_FIELD_FROM_BUF(gen_platform, uint8_t);
+                    // genPlatform
+                    READ_FIELD_FROM_BUF(genPlatform, uint8_t);
                     // binary offset
                     READ_FIELD_FROM_BUF(offset, uint32_t);
                     // binary size
                     READ_FIELD_FROM_BUF(size, uint32_t);
                 }
 
-                if (pCmHalState->cmHalInterface->IsCisaIDSupported((uint32_t)gen_platform))
+                if (cmHalState->cmHalInterface->IsCisaIDSupported((uint32_t)genPlatform))
                 {
                     // assign correct offset/size based on platform
                     genxBinaryOffset = offset;
@@ -551,36 +551,36 @@ int32_t CmProgramRT::Initialize( void* pCISACode, const uint32_t uiCISACodeSize,
                 }
                 else
                 {
-                    MosSafeDeleteArray(pFlagStepInfo);
-                    MosSafeDeleteArray(m_Options);
-                    CmSafeDelete(pKernInfo);
+                    MosSafeDeleteArray(flagStepInfo);
+                    MosSafeDeleteArray(m_options);
+                    CmSafeDelete(kernInfo);
                     return CM_INVALID_GENX_BINARY;
                 }
             }
 
-            pKernInfo->genxBinaryOffset = genxBinaryOffset;
-            pKernInfo->genxBinarySize = genxBinarySize;
+            kernInfo->genxBinaryOffset = genxBinaryOffset;
+            kernInfo->genxBinarySize = genxBinarySize;
 
-            if ( pKernInfo->genxBinarySize == 0 || pKernInfo->genxBinaryOffset == 0 )
+            if ( kernInfo->genxBinarySize == 0 || kernInfo->genxBinaryOffset == 0 )
             {
                 CM_ASSERTMESSAGE("Error: Invalid genx binary.");
-                MosSafeDeleteArray(pFlagStepInfo);
-                MosSafeDeleteArray(m_Options);
-                CmSafeDelete(pKernInfo);
+                MosSafeDeleteArray(flagStepInfo);
+                MosSafeDeleteArray(m_options);
+                CmSafeDelete(kernInfo);
                 return CM_INVALID_GENX_BINARY;
             }
         }
 
-        if(m_IsJitterEnabled)
+        if(m_isJitterEnabled)
         {
-            pKernInfo->jitBinaryCode = 0;
-            void* jitBinary = 0;// = (void**)malloc(m_KernelCount*sizeof(void*));
-            uint32_t jitBinarySize = 0;// = (uint32_t*)malloc(m_KernelCount*sizeof(uint32_t*));
+            kernInfo->jitBinaryCode = 0;
+            void* jitBinary = 0;// = (void**)malloc(m_kernelCount*sizeof(void*));
+            uint32_t jitBinarySize = 0;// = (uint32_t*)malloc(m_kernelCount*sizeof(uint32_t*));
             char* errorMsg = (char*)malloc(CM_JIT_ERROR_MESSAGE_SIZE);
             if (errorMsg == nullptr)
             {
                 CM_ASSERTMESSAGE("Error: Out of system memory.");
-                CmSafeDelete(pKernInfo);
+                CmSafeDelete(kernInfo);
                 hr = CM_OUT_OF_HOST_MEMORY;
                 goto finish;
             }
@@ -591,69 +591,69 @@ int32_t CmProgramRT::Initialize( void* pCISACode, const uint32_t uiCISACodeSize,
             {
                 CM_ASSERTMESSAGE("Error: Out of system memory.");
                 free(errorMsg);
-                CmSafeDelete(pKernInfo);
+                CmSafeDelete(kernInfo);
                 hr = CM_OUT_OF_HOST_MEMORY;
                 goto finish;
             }
             CmSafeMemSet( jitProfInfo, 0, CM_JIT_PROF_INFO_SIZE );
 
-            result = m_fJITCompile( pKernInfo->kernelName, (uint8_t*)pCISACode, uiCISACodeSize,
-                                    jitBinary, jitBinarySize, platform, m_CISA_majorVersion, m_CISA_minorVersion, numJitFlags, jitFlags, errorMsg, jitProfInfo );
+            result = m_fJITCompile( kernInfo->kernelName, (uint8_t*)cisaCode, cisaCodeSize,
+                                    jitBinary, jitBinarySize, platform, m_cisaMajorVersion, m_cisaMinorVersion, numJitFlags, jitFlags, errorMsg, jitProfInfo );
 
             //if error code returned or error message not nullptr
             if(result != CM_SUCCESS)// || errorMsg[0])
             {
                 CM_NORMALMESSAGE("%s.", errorMsg);
                 free(errorMsg);
-                CmSafeDelete(pKernInfo);
+                CmSafeDelete(kernInfo);
                 hr = CM_JIT_COMPILE_FAILURE;
                 goto finish;
             }
 
             // if spill code exists and scrach space disabled, return error to user
-            if( jitProfInfo->isSpill &&  m_pCmDev->IsScratchSpaceDisabled())
+            if( jitProfInfo->isSpill &&  m_device->IsScratchSpaceDisabled())
             {
-                CmSafeDelete(pKernInfo);
+                CmSafeDelete(kernInfo);
                 free(errorMsg);
                 return CM_INVALID_KERNEL_SPILL_CODE;
             }
 
             free(errorMsg);
 
-            pKernInfo->jitBinaryCode = jitBinary;
-            pKernInfo->jitBinarySize = jitBinarySize;
-            pKernInfo->jitInfo = jitProfInfo;
+            kernInfo->jitBinaryCode = jitBinary;
+            kernInfo->jitBinarySize = jitBinarySize;
+            kernInfo->jitInfo = jitProfInfo;
 
 #if USE_EXTENSION_CODE
-            if ( m_IsHwDebugEnabled )
+            if ( m_isHwDebugEnabled )
             {
-                NotifyKernelBinary(this->m_pCmDev,
+                NotifyKernelBinary(this->m_device,
                                    this,
-                                   pKernInfo->kernelName,
+                                   kernInfo->kernelName,
                                    jitBinary,
                                    jitBinarySize,
                                    jitProfInfo->genDebugInfo,
                                    jitProfInfo->genDebugInfoSize,
                                    nullptr,
-                                   m_pCmDev->GetDriverStoreFlag());
+                                   m_device->GetDriverStoreFlag());
             }
 #endif
         }
 
-        m_pKernelInfo.SetElement( i, pKernInfo );
+        m_kernelInfo.SetElement( i, kernInfo );
         this->AcquireKernelInfo(i);
     }
 
 #ifdef _DEBUG
-    if(m_IsJitterEnabled)
+    if(m_isJitterEnabled)
         CM_NORMALMESSAGE("Jitter Done.");
 #endif
 
-    // now byte_pos index to the start of common isa body;
+    // now bytePos index to the start of common isa body;
     // compute the code size for common isa
-    m_ProgramCodeSize = uiCISACodeSize;
-    m_pProgramCode = MOS_NewArray(uint8_t, m_ProgramCodeSize);
-    if( !m_pProgramCode )
+    m_programCodeSize = cisaCodeSize;
+    m_programCode = MOS_NewArray(uint8_t, m_programCodeSize);
+    if( !m_programCode )
     {
         CM_ASSERTMESSAGE("Error: Out of system memory.");
         hr = CM_OUT_OF_HOST_MEMORY;
@@ -661,16 +661,16 @@ int32_t CmProgramRT::Initialize( void* pCISACode, const uint32_t uiCISACodeSize,
     }
 
     //Copy CISA content
-    CmFastMemCopy((void *)m_pProgramCode, pCISACode, uiCISACodeSize);
+    CmFastMemCopy((void *)m_programCode, cisaCode, cisaCodeSize);
 
     hr = CM_SUCCESS;
 
 finish:
-    MosSafeDeleteArray(pFlagStepInfo);
+    MosSafeDeleteArray(flagStepInfo);
     if(hr != CM_SUCCESS )
     {
-        MosSafeDeleteArray(m_Options);
-        MosSafeDeleteArray(m_pProgramCode);
+        MosSafeDeleteArray(m_options);
+        MosSafeDeleteArray(m_programCode);
     }
     return hr;
 }
@@ -679,10 +679,10 @@ finish:
 //| Purpose:    Get size and address of Common Isa
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmProgramRT::GetCommonISACode( void* & pCommonISACode, uint32_t & size )
+int32_t CmProgramRT::GetCommonISACode( void* & commonISACode, uint32_t & size )
 {
-    pCommonISACode = (void *)m_pProgramCode;
-    size = m_ProgramCodeSize;
+    commonISACode = (void *)m_programCode;
+    size = m_programCodeSize;
 
     return CM_SUCCESS;
 }
@@ -693,7 +693,7 @@ int32_t CmProgramRT::GetCommonISACode( void* & pCommonISACode, uint32_t & size )
 //*-----------------------------------------------------------------------------
 int32_t CmProgramRT::GetKernelCount( uint32_t& kernelCount )
 {
-    kernelCount = m_KernelCount;
+    kernelCount = m_kernelCount;
     return CM_SUCCESS;
 }
 
@@ -701,16 +701,16 @@ int32_t CmProgramRT::GetKernelCount( uint32_t& kernelCount )
 //| Purpose:    Get the Kernel's Infomation
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmProgramRT::GetKernelInfo( uint32_t index, CM_KERNEL_INFO*& pKernelInfo )
+int32_t CmProgramRT::GetKernelInfo( uint32_t index, CM_KERNEL_INFO*& kernelInfo )
 {
-    if( index < m_KernelCount )
+    if( index < m_kernelCount )
     {
-        pKernelInfo = (CM_KERNEL_INFO*)m_pKernelInfo.GetElement( index ) ;
+        kernelInfo = (CM_KERNEL_INFO*)m_kernelInfo.GetElement( index ) ;
         return CM_SUCCESS;
     }
     else
     {
-        pKernelInfo = nullptr;
+        kernelInfo = nullptr;
         return CM_FAILURE;
     }
 }
@@ -721,7 +721,7 @@ int32_t CmProgramRT::GetKernelInfo( uint32_t index, CM_KERNEL_INFO*& pKernelInfo
 //*-----------------------------------------------------------------------------
 int32_t CmProgramRT::GetIsaFileName( char* & isaFileName )
 {
-    isaFileName = m_IsaFileName;
+    isaFileName = m_isaFileName;
     return CM_SUCCESS;
 }
 
@@ -731,7 +731,7 @@ int32_t CmProgramRT::GetIsaFileName( char* & isaFileName )
 //*-----------------------------------------------------------------------------
 int32_t CmProgramRT::GetKernelOptions( char* & kernelOptions )
 {
-    kernelOptions = m_Options;
+    kernelOptions = m_options;
     return CM_SUCCESS;
 }
 
@@ -741,7 +741,7 @@ int32_t CmProgramRT::GetKernelOptions( char* & kernelOptions )
 //*-----------------------------------------------------------------------------
 uint32_t CmProgramRT::GetSurfaceCount(void)
 {
-    return m_SurfaceCount;
+    return m_surfaceCount;
 }
 
 //*-----------------------------------------------------------------------------
@@ -750,7 +750,7 @@ uint32_t CmProgramRT::GetSurfaceCount(void)
 //*-----------------------------------------------------------------------------
 int32_t CmProgramRT::SetSurfaceCount(uint32_t count)
 {
-    m_SurfaceCount = count;
+    m_surfaceCount = count;
     return CM_SUCCESS;
 }
 
@@ -760,18 +760,18 @@ int32_t CmProgramRT::SetSurfaceCount(uint32_t count)
 //*-----------------------------------------------------------------------------
 uint32_t CmProgramRT::AcquireKernelInfo(uint32_t index)
 {
-    CM_KERNEL_INFO* pKernelInfo = nullptr;
+    CM_KERNEL_INFO* kernelInfo = nullptr;
 
-    if( index < m_KernelCount )
+    if( index < m_kernelCount )
     {
-        pKernelInfo = (CM_KERNEL_INFO *)m_pKernelInfo.GetElement( index ) ;
-        if (pKernelInfo)
+        kernelInfo = (CM_KERNEL_INFO *)m_kernelInfo.GetElement( index ) ;
+        if (kernelInfo)
         {
-            CM_ASSERT( (int32_t)pKernelInfo->kernelInfoRefCount >= 0 );
-            CM_ASSERT( pKernelInfo->kernelInfoRefCount < UINT_MAX );
+            CM_ASSERT( (int32_t)kernelInfo->kernelInfoRefCount >= 0 );
+            CM_ASSERT( kernelInfo->kernelInfoRefCount < UINT_MAX );
 
-            ++ pKernelInfo->kernelInfoRefCount;
-            return pKernelInfo->kernelInfoRefCount;
+            ++ kernelInfo->kernelInfoRefCount;
+            return kernelInfo->kernelInfoRefCount;
         }
         else
         {
@@ -790,95 +790,95 @@ uint32_t CmProgramRT::AcquireKernelInfo(uint32_t index)
 //*-----------------------------------------------------------------------------
 uint32_t CmProgramRT::ReleaseKernelInfo(uint32_t index)
 {
-    CM_KERNEL_INFO* pKernelInfo = nullptr;
+    CM_KERNEL_INFO* kernelInfo = nullptr;
 
-    if( index < m_KernelCount )
+    if( index < m_kernelCount )
     {
-        pKernelInfo = (CM_KERNEL_INFO *)m_pKernelInfo.GetElement( index ) ;
-        if (pKernelInfo)
+        kernelInfo = (CM_KERNEL_INFO *)m_kernelInfo.GetElement( index ) ;
+        if (kernelInfo)
         {
-            CM_ASSERT( pKernelInfo->kernelInfoRefCount > 0 );
+            CM_ASSERT( kernelInfo->kernelInfoRefCount > 0 );
 
-            -- pKernelInfo->kernelInfoRefCount;
+            -- kernelInfo->kernelInfoRefCount;
 
-            if (pKernelInfo->kernelInfoRefCount == 1)
+            if (kernelInfo->kernelInfoRefCount == 1)
             {
                 /////////////////////////////////////////////////////////////
                 //Free global string memory space, Start
-                for (int i = 0; i < (int) pKernelInfo->globalStringCount; i ++)
+                for (int i = 0; i < (int) kernelInfo->globalStringCount; i ++)
                 {
-                    if (pKernelInfo->globalStrings[i])
+                    if (kernelInfo->globalStrings[i])
                     {
-                        free((void *)pKernelInfo->globalStrings[i]);
+                        free((void *)kernelInfo->globalStrings[i]);
                     }
                 }
-                if (pKernelInfo->globalStrings)
+                if (kernelInfo->globalStrings)
                 {
-                    free((void *)pKernelInfo->globalStrings);
-                    pKernelInfo->globalStrings = nullptr;
-                    pKernelInfo->globalStringCount = 0;
+                    free((void *)kernelInfo->globalStrings);
+                    kernelInfo->globalStrings = nullptr;
+                    kernelInfo->globalStringCount = 0;
                 }
                 //Free global string memory space, End
                 /////////////////////////////////////////////////////////////
 
-                for (uint32_t i = 0; i < pKernelInfo->surface_count; i++) {
-                    if (pKernelInfo->surface[i].attribute_count && pKernelInfo->surface[i].attributes) {
-                        free(pKernelInfo->surface[i].attributes);
+                for (uint32_t i = 0; i < kernelInfo->surfaceCount; i++) {
+                    if (kernelInfo->surface[i].attributeCount && kernelInfo->surface[i].attributes) {
+                        free(kernelInfo->surface[i].attributes);
                     }
                 }
-                if (pKernelInfo->surface) {
-                    free(pKernelInfo->surface);
-                    pKernelInfo->surface = nullptr;
-                    pKernelInfo->surface_count = 0;
+                if (kernelInfo->surface) {
+                    free(kernelInfo->surface);
+                    kernelInfo->surface = nullptr;
+                    kernelInfo->surfaceCount = 0;
                 }
 
                 return 1;
             }
 
-            else if (pKernelInfo->kernelInfoRefCount == 0)
+            else if (kernelInfo->kernelInfoRefCount == 0)
             {
-                if(m_IsJitterEnabled)
+                if(m_isJitterEnabled)
                 {
-                    if(pKernelInfo && pKernelInfo->jitBinaryCode)
-                        m_fFreeBlock(pKernelInfo->jitBinaryCode);
-                    if(pKernelInfo && pKernelInfo->jitInfo)
-                        free(pKernelInfo->jitInfo);
+                    if(kernelInfo && kernelInfo->jitBinaryCode)
+                        m_fFreeBlock(kernelInfo->jitBinaryCode);
+                    if(kernelInfo && kernelInfo->jitInfo)
+                        free(kernelInfo->jitInfo);
                 }
 
                 /////////////////////////////////////////////////////////////
                 //Free global string memory space, Start
-                for (int i = 0; i < (int) pKernelInfo->globalStringCount; i ++)
+                for (int i = 0; i < (int) kernelInfo->globalStringCount; i ++)
                 {
-                    if (pKernelInfo->globalStrings[i])
+                    if (kernelInfo->globalStrings[i])
                     {
-                        free((void *)pKernelInfo->globalStrings[i]);
+                        free((void *)kernelInfo->globalStrings[i]);
                     }
                 }
-                if (pKernelInfo->globalStrings)
+                if (kernelInfo->globalStrings)
                 {
-                    free((void *)pKernelInfo->globalStrings);
+                    free((void *)kernelInfo->globalStrings);
                 }
                 //Free global string memory space, End
                 /////////////////////////////////////////////////////////////
 
-                for (uint32_t i = 0; i < pKernelInfo->surface_count; i++) {
-                    if (pKernelInfo->surface[i].attribute_count && pKernelInfo->surface[i].attributes) {
-                        free(pKernelInfo->surface[i].attributes);
+                for (uint32_t i = 0; i < kernelInfo->surfaceCount; i++) {
+                    if (kernelInfo->surface[i].attributeCount && kernelInfo->surface[i].attributes) {
+                        free(kernelInfo->surface[i].attributes);
                     }
                 }
-                if (pKernelInfo->surface) {
-                    free(pKernelInfo->surface);
+                if (kernelInfo->surface) {
+                    free(kernelInfo->surface);
                 }
 
-                CmSafeDelete( pKernelInfo );
+                CmSafeDelete( kernelInfo );
 
-                m_pKernelInfo.SetElement(index, nullptr);
+                m_kernelInfo.SetElement(index, nullptr);
 
                 return 0;
             }
             else
             {
-                return pKernelInfo->kernelInfoRefCount;
+                return kernelInfo->kernelInfoRefCount;
             }
         }
         else
@@ -894,16 +894,16 @@ uint32_t CmProgramRT::ReleaseKernelInfo(uint32_t index)
 
 int32_t CmProgramRT::GetKernelInfoRefCount(uint32_t index, uint32_t& refCount)
 {
-    CM_KERNEL_INFO* pKernelInfo = nullptr;
+    CM_KERNEL_INFO* kernelInfo = nullptr;
 
     refCount = 0;
 
-    if( index < m_KernelCount )
+    if( index < m_kernelCount )
     {
-        pKernelInfo =(CM_KERNEL_INFO *) m_pKernelInfo.GetElement( index ) ;
-        if (pKernelInfo)
+        kernelInfo =(CM_KERNEL_INFO *) m_kernelInfo.GetElement( index ) ;
+        if (kernelInfo)
         {
-            refCount = pKernelInfo->kernelInfoRefCount;
+            refCount = kernelInfo->kernelInfoRefCount;
             return CM_SUCCESS;
         }
         else
@@ -919,8 +919,8 @@ int32_t CmProgramRT::GetKernelInfoRefCount(uint32_t index, uint32_t& refCount)
 
 int32_t CmProgramRT::GetCISAVersion(uint32_t& majorVersion, uint32_t& minorVersion)
 {
-    majorVersion = m_CISA_majorVersion;
-    minorVersion = m_CISA_minorVersion;
+    majorVersion = m_cisaMajorVersion;
+    minorVersion = m_cisaMinorVersion;
 
     return CM_SUCCESS;
 }
@@ -932,6 +932,6 @@ uint32_t CmProgramRT::GetProgramIndex()
 
 vISA::ISAfile *CmProgramRT::getISAfile()
 {
-    return m_ISAfile;
+    return m_isaFile;
 }
 }

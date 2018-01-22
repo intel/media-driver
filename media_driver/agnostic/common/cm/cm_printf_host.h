@@ -84,14 +84,14 @@
 /// [7]: Scalar upper 32bits: Upper 32bits of double and [u]*int64_t.
 
 typedef struct _CM_PRINT_HEADER{
-    unsigned int object_type;
-    unsigned int  data_type;
+    unsigned int  objectType;
+    unsigned int  dataType;
     unsigned int  width;
     unsigned int  height;
     unsigned int  tid;
     unsigned int  reserved3;
-    unsigned int  scalar_low32;
-    unsigned int  scalar_uper32;
+    unsigned int  scalarLow32;
+    unsigned int  scalarHigh32;
 }CM_PRINT_HEADER, *PCM_PRINT_HEADER;
 
 enum  PRINT_FMT_STATUS
@@ -194,9 +194,9 @@ class PFParser
 public:
     PFParser(FILE* streamout) : mInSpec(false), mInputStart(nullptr), mCurrLoc(nullptr), mArgsExpected(0),
                  mNumMultArg(0), mUnsupported(false), mError(false), mStreamOut(streamout) {};
-    void setStart(char *iStart)
+    void setStart(char *start)
     {
-        mInputStart= mCurrLoc = iStart;
+        mInputStart= mCurrLoc = start;
         // Prime the system with the first token
         getToken();
     }
@@ -277,6 +277,6 @@ private:
     int  conversion(void);
 };
 
-void DumpAllThreadOutput( FILE *streamout, unsigned char * DumpMem, size_t buffersize);
+void DumpAllThreadOutput( FILE *streamout, unsigned char * dumpMem, size_t buffersize);
 
 #endif

@@ -36,31 +36,31 @@ class CmEventRT;
 class CmSurface
 {
 public:
-    static int32_t Destroy( CmSurface* &pSurface );
-    bool IsCmCreated( void ){ return m_IsCmCreated; }
+    static int32_t Destroy( CmSurface* &surface );
+    bool IsCmCreated( void ){ return m_isCmCreated; }
     virtual CM_ENUM_CLASS_TYPE Type() const = 0;
     int32_t TouchDeviceQueue();
     int32_t WaitForReferenceFree();
-    int32_t SetMemoryObjectControl(MEMORY_OBJECT_CONTROL mem_ctrl, MEMORY_TYPE mem_type, uint32_t age);
+    int32_t SetMemoryObjectControl(MEMORY_OBJECT_CONTROL memCtrl, MEMORY_TYPE memType, uint32_t age);
     std::string GetFormatString(CM_SURFACE_FORMAT format);
     virtual void DumpContent(uint32_t kernelNumber, int32_t taskId, uint32_t argIndex) { return; }
     virtual void Log(std::ostringstream &oss) { return; }
 
 protected:
-    CmSurface( CmSurfaceManager* Mgr , bool IsCmCreated );
+    CmSurface( CmSurfaceManager* surfMgr , bool isCmCreated );
     virtual ~CmSurface( void );
     int32_t Initialize( uint32_t index );
 
-    int32_t FlushDeviceQueue( CmEventRT* pEvent );
+    int32_t FlushDeviceQueue( CmEventRT* event );
     bool MemoryObjectCtrlPolicyCheck(MEMORY_OBJECT_CONTROL memCtrl);
 
-    SurfaceIndex* m_pIndex;
+    SurfaceIndex* m_index;
 
-    CmSurfaceManager* m_SurfaceMgr;
+    CmSurfaceManager* m_surfaceMgr;
 
-    bool m_IsCmCreated;
+    bool m_isCmCreated;
 
-    CM_SURFACE_MEM_OBJ_CTRL m_MemObjCtrl;
+    CM_SURFACE_MEM_OBJ_CTRL m_memObjCtrl;
 
 private:
     CmSurface (const CmSurface& other);

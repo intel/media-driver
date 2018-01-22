@@ -45,16 +45,16 @@ class CmVebox
 {
 public:
     //! \brief      Set state for the vebox object
-    //! \param      [in] VeBoxState
+    //! \param      [in] veboxState
     //!             CM_VEBOX_STATE
     //! \returns    CM_SUCCESS
-    CM_RT_API virtual int32_t SetState(CM_VEBOX_STATE &VeBoxState) = 0;
+    CM_RT_API virtual int32_t SetState(CM_VEBOX_STATE &veboxState) = 0;
 
     //! \brief      Set the current frame input surface for the vebox object
-    //! \param      [in] pSurf
+    //! \param      [in] surface
     //!             CmSurface2D
     //! \retval     CM_SUCCESS
-    CM_RT_API virtual int32_t SetCurFrameInputSurface(CmSurface2D *pSurf) = 0;
+    CM_RT_API virtual int32_t SetCurFrameInputSurface(CmSurface2D *surface) = 0;
 
     //! \brief      Set the control bits for the current frame input surface
     //! \details    Details of the control bits can be found at 
@@ -67,10 +67,10 @@ public:
     SetCurFrameInputSurfaceControlBits(const uint16_t ctrlBits) = 0;
 
     //! \brief      Set the previous frame input surface for the vebox object
-    //! \param      [in] pSurf
+    //! \param      [in] surface
     //!             CmSurface2D
     //! \retval     CM_SUCCESS
-    CM_RT_API virtual int32_t SetPrevFrameInputSurface(CmSurface2D *pSurf) = 0;
+    CM_RT_API virtual int32_t SetPrevFrameInputSurface(CmSurface2D *surface) = 0;
 
     //! \brief      Set the control bits for the previous frame input surface
     //! \details    Details of the control bits can be found at 
@@ -83,10 +83,10 @@ public:
     SetPrevFrameInputSurfaceControlBits(const uint16_t ctrlBits) = 0;
 
     //! \brief      Set the STMM input surface for the vebox object
-    //! \param      [in] pSurf
+    //! \param      [in] surface
     //!             CmSurface2D
     //! \retval     CM_SUCCESS
-    CM_RT_API virtual int32_t SetSTMMInputSurface(CmSurface2D *pSurf) = 0;
+    CM_RT_API virtual int32_t SetSTMMInputSurface(CmSurface2D *surface) = 0;
 
     //! \brief      Set the control bits the for STMM input surface
     //! \details    Details of the control bits can be found at 
@@ -99,10 +99,10 @@ public:
     SetSTMMInputSurfaceControlBits(const uint16_t ctrlBits) = 0;
 
     //! \brief      Set the STMM output surface for the vebox object
-    //! \param      [in] pSurf
+    //! \param      [in] surface
     //!             CmSurface2D
     //! \retval     CM_SUCCESS
-    CM_RT_API virtual int32_t SetSTMMOutputSurface(CmSurface2D *pSurf) = 0;
+    CM_RT_API virtual int32_t SetSTMMOutputSurface(CmSurface2D *surface) = 0;
 
     //! \brief      Set the control bits the for STMM output surface
     //! \details    Details of the control bits can be found at 
@@ -115,11 +115,11 @@ public:
     SetSTMMOutputSurfaceControlBits(const uint16_t ctrlBits) = 0;
 
     //! \brief      Set the denoised current frame output surface for the vebox object
-    //! \param      [in] pSurf
+    //! \param      [in] surface
     //!             CmSurface2D
     //! \retval     CM_SUCCESS
     CM_RT_API virtual int32_t
-    SetDenoisedCurFrameOutputSurface(CmSurface2D *pSurf) = 0;
+    SetDenoisedCurFrameOutputSurface(CmSurface2D *surface) = 0;
 
     //! \brief      Set the control bits for the denoised current frame output surface 
     //! \details    Details of the control bits can be found at 
@@ -132,10 +132,10 @@ public:
     SetDenoisedCurOutputSurfaceControlBits(const uint16_t ctrlBits) = 0;
 
     //! \brief      Set the current frame output surface for the vebox object
-    //! \param      [in] pSurf
+    //! \param      [in] surface
     //!             CmSurface2D
     //! \retval     CM_SUCCESS
-    CM_RT_API virtual int32_t SetCurFrameOutputSurface(CmSurface2D *pSurf) = 0;
+    CM_RT_API virtual int32_t SetCurFrameOutputSurface(CmSurface2D *surface) = 0;
 
     //! \brief      Set the control bits for the current frame output surface 
     //! \details    Details of the control bits can be found at 
@@ -148,10 +148,10 @@ public:
     SetCurFrameOutputSurfaceControlBits(const uint16_t ctrlBits) = 0;
 
     //! \brief      Set the previous frame output surface for the vebox object
-    //! \param      [in] pSurf
+    //! \param      [in] surface
     //!             CmSurface2D
     //! \retval     CM_SUCCESS
-    CM_RT_API virtual int32_t SetPrevFrameOutputSurface(CmSurface2D *pSurf) = 0;
+    CM_RT_API virtual int32_t SetPrevFrameOutputSurface(CmSurface2D *surface) = 0;
 
     //! \brief      Set the control bits for the previous frame output surface 
     //! \details    Details of the control bits can be found at 
@@ -164,11 +164,11 @@ public:
     SetPrevFrameOutputSurfaceControlBits(const uint16_t ctrlBits) = 0;
 
     //! \brief      Set the statistics output surface for the vebox object
-    //! \param      [in] pSurf
+    //! \param      [in] surface
     //!             CmSurface2D
     //! \retval     CM_SUCCESS
     CM_RT_API virtual int32_t
-    SetStatisticsOutputSurface(CmSurface2D *pSurf) = 0;
+    SetStatisticsOutputSurface(CmSurface2D *surface) = 0;
 
     //! \brief      Set the control bits for the statistics output surface 
     //! \details    Details of the control bits can be found at 
@@ -187,10 +187,10 @@ public:
     //!             can be found at 
     //!             https://01.org/sites/default/files/documentation/intel-gfx-prm-osrc-skl-vol09-media_vebox.pdf, or 
     //!             https://01.org/sites/default/files/documentation/intel-gfx-prm-osrc-kbl-vol09-media_vebox.pdf
-    //! \param      [in] pParamBuffer
+    //! \param      [in] paramBuffer
     //!             CmBufferUP which contains all the vebox parameter.
     //! \returns    CM_SUCCESS.
-    CM_RT_API virtual int32_t SetParam(CmBufferUP *pParamBuffer) = 0;
+    CM_RT_API virtual int32_t SetParam(CmBufferUP *paramBuffer) = 0;
 };
 };//namespace
 

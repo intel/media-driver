@@ -49,21 +49,21 @@ enum CM_INTERNAL_TASK_TYPE
 //*-----------------------------------------------------------------------------
 struct CM_PROFILING_INFO
 {
-    uint32_t dwTaskID;
-    uint32_t dwThreadID;
-    uint32_t dwKernelCount;
-    uint32_t dwKernelNameLen;
-    char     *pKernelNames;
-    uint32_t *pLocalWorkWidth;
-    uint32_t *pLocalWorkHeight;
-    uint32_t *pGlobalWorkWidth;
-    uint32_t *pGlobalWorkHeight;
+    uint32_t taskID;
+    uint32_t threadID;
+    uint32_t kernelCount;
+    uint32_t kernelNameLen;
+    char     *kernelNames;
+    uint32_t *localWorkWidth;
+    uint32_t *localWorkHeight;
+    uint32_t *globalWorkWidth;
+    uint32_t *globalWorkHeight;
 
-    LARGE_INTEGER EnqueueTime;
-    LARGE_INTEGER FlushTime;
-    LARGE_INTEGER HwStartTime;
-    LARGE_INTEGER HwEndTime;
-    LARGE_INTEGER CompleteTime;
+    LARGE_INTEGER enqueueTime;
+    LARGE_INTEGER flushTime;
+    LARGE_INTEGER hwStartTime;
+    LARGE_INTEGER hwEndTime;
+    LARGE_INTEGER completeTime;
 };
 
 namespace CMRT_UMD
@@ -82,38 +82,38 @@ class CmTaskInternal: public CmDynamicArray
 {
 public:
 
-    static int32_t Create(const uint32_t kernelCount, const uint32_t totalThreadCount, CmKernelRT* pKernelArray[], const CmThreadSpaceRT* pTS, CmDeviceRT* pCmDevice, const uint64_t uiSyncBitmap, CmTaskInternal*& pTask, const uint64_t uiConditionalendBitmap, PCM_HAL_CONDITIONAL_BB_END_INFO pConditionalEndInfo);
-    static int32_t Destroy( CmTaskInternal* &pTask );
-    static int32_t Create( const uint32_t kernelCount, const uint32_t totalThreadCount, CmKernelRT* pKernelArray[], const CmThreadGroupSpace* pTGS, CmDeviceRT* pCmDevice, const uint64_t uiSyncBitmap, CmTaskInternal*& pTask);
-    static int32_t Create( CmDeviceRT* pCmDevice, CmVeboxRT* pVebox, CmTaskInternal*& pTask );
-    static int32_t Create( const uint32_t kernelCount, const uint32_t totalThreadCount, CmKernelRT* pKernelArray[], CmTaskInternal*& pTask, uint32_t numTasksGenerated, bool isLastTask, uint32_t hints, CmDeviceRT* pCmDevice);
+    static int32_t Create(const uint32_t kernelCount, const uint32_t totalThreadCount, CmKernelRT* kernelArray[], const CmThreadSpaceRT* threadSpace, CmDeviceRT* device, const uint64_t syncBitmap, CmTaskInternal*& task, const uint64_t conditionalEndBitmap, PCM_HAL_CONDITIONAL_BB_END_INFO conditionalEndInfo);
+    static int32_t Destroy( CmTaskInternal* &task );
+    static int32_t Create( const uint32_t kernelCount, const uint32_t totalThreadCount, CmKernelRT* kernelArray[], const CmThreadGroupSpace* threadGroupSpace, CmDeviceRT* device, const uint64_t syncBitmap, CmTaskInternal*& task);
+    static int32_t Create( CmDeviceRT* device, CmVeboxRT* vebox, CmTaskInternal*& task );
+    static int32_t Create( const uint32_t kernelCount, const uint32_t totalThreadCount, CmKernelRT* kernelArray[], CmTaskInternal*& task, uint32_t numGeneratedTasks, bool isLastTask, uint32_t hints, CmDeviceRT* device);
 
     int32_t GetKernelCount( uint32_t& count );
-    int32_t GetKernel( const uint32_t index, CmKernelRT* & pKernel );
-    int32_t GetKernelData( const uint32_t index, CmKernelData* & pKernelData );
+    int32_t GetKernel( const uint32_t index, CmKernelRT* & kernel );
+    int32_t GetKernelData( const uint32_t index, CmKernelData* & kernelData );
     int32_t GetKernelDataSize( const uint32_t index, uint32_t & size );
     uint32_t GetKernelCurbeOffset( const uint32_t index );
     int32_t GetTotalThreadCount( uint32_t& totalThreadCount );
 
-    int32_t SetTaskEvent( CmEventRT* pEvent );
-    int32_t GetTaskEvent( CmEventRT* & pEvent );
+    int32_t SetTaskEvent( CmEventRT* event );
+    int32_t GetTaskEvent( CmEventRT* & event );
 
-    int32_t CreateThreadSpaceData(const CmThreadSpaceRT* pTS);
-    int32_t GetKernelCoordinates(const uint32_t index, void  *&pKernelCoordinates);
-    int32_t GetKernelDependencyMasks(const uint32_t index, void  *&pKernelDependencyMasks);
-    int32_t GetDependencyPattern(CM_DEPENDENCY_PATTERN &pDependencyPattern);
-    int32_t GetWalkingPattern(CM_WALKING_PATTERN &pWalkingPattern);
-    int32_t GetWalkingParameters(CM_WALKING_PARAMETERS &pWalkingParameters);
-    int32_t GetDependencyVectors(CM_HAL_DEPENDENCY &pDependencyVector);
+    int32_t CreateThreadSpaceData(const CmThreadSpaceRT* threadSpace);
+    int32_t GetKernelCoordinates(const uint32_t index, void  *&kernelCoordinates);
+    int32_t GetKernelDependencyMasks(const uint32_t index, void  *&kernelDependencyMasks);
+    int32_t GetDependencyPattern(CM_DEPENDENCY_PATTERN &dependencyPattern);
+    int32_t GetWalkingPattern(CM_WALKING_PATTERN &walkingPattern);
+    int32_t GetWalkingParameters(CM_WALKING_PARAMETERS &walkingParameters);
+    int32_t GetDependencyVectors(CM_HAL_DEPENDENCY &dependencyVector);
     bool CheckWalkingParametersSet();
     bool CheckDependencyVectorsSet();
 #if _DEBUG
     int32_t DisplayThreadSpaceData(uint32_t width, uint32_t height);
 #endif
     int32_t GetThreadSpaceSize(uint32_t& width, uint32_t& height );
-    int32_t GetThreadGroupSpaceSize(uint32_t& trdSpaceWidth, uint32_t& trdSpaceHeight, uint32_t& trdSpaceDepth, uint32_t& grpSpaceWidth, uint32_t& grpSpaceHeight, uint32_t& grpSpaceDepth);
-    int32_t GetSLMSize(uint32_t& iSLMSize);
-    int32_t GetSpillMemUsed(uint32_t& iSpillMemUsed);
+    int32_t GetThreadGroupSpaceSize(uint32_t& threadSpaceWidth, uint32_t& threadSpaceHeight, uint32_t& threadSpaceDepth, uint32_t& groupSpaceWidth, uint32_t& groupSpaceHeight, uint32_t& groupSpaceDepth);
+    int32_t GetSLMSize(uint32_t& slmSize);
+    int32_t GetSpillMemUsed(uint32_t& spillMemUsed);
     int32_t GetColorCountMinusOne(uint32_t& colorCount);
     int32_t GetMediaWalkerGroupSelect(CM_MW_GROUP_SELECT& groupSelect);
     int32_t GetHints(uint32_t& hints);
@@ -125,15 +125,15 @@ public:
     bool IsThreadCoordinatesExisted(void);
 
     int32_t AllocateKernelSurfInfo();
-    int32_t GetKernelSurfInfo(CM_HAL_SURFACE_ENTRY_INFO_ARRAYS & SurfEntryInfoArray);
+    int32_t GetKernelSurfInfo(CM_HAL_SURFACE_ENTRY_INFO_ARRAYS & surfEntryInfoArray);
     int32_t ClearKernelSurfInfo();
     int32_t ResetKernelDataStatus();
 
     int32_t GetTaskType(uint32_t& taskType);
 
-    int32_t GetVeboxState(CM_VEBOX_STATE & pVeboxState);
-    int32_t GetVeboxParam(CmBufferUP * &pVeboxParam);
-    int32_t GetVeboxSurfaceData(CM_VEBOX_SURFACE_DATA &pVeboxSurfaceData);
+    int32_t GetVeboxState(CM_VEBOX_STATE & veboxState);
+    int32_t GetVeboxParam(CmBufferUP * &veboxParam);
+    int32_t GetVeboxSurfaceData(CM_VEBOX_SURFACE_DATA &veboxSurfaceData);
 
     int32_t GetTaskSurfaces( bool  *&surfArray );
 
@@ -141,10 +141,10 @@ public:
     uint64_t GetConditionalEndBitmap();
     CM_HAL_CONDITIONAL_BB_END_INFO* GetConditionalEndInfo();
 
-    int32_t SetPowerOption( PCM_POWER_OPTION pPowerOption );
+    int32_t SetPowerOption( PCM_POWER_OPTION powerOption );
     PCM_POWER_OPTION GetPowerOption();
-    int32_t GetTaskStatus(CM_STATUS & TaskStatus);
-    int32_t SetProperty(CM_TASK_CONFIG * pTaskConfig);
+    int32_t GetTaskStatus(CM_STATUS & taskStatus);
+    int32_t SetProperty(CM_TASK_CONFIG * taskConfig);
     PCM_TASK_CONFIG GetTaskConfig();
     void  *GetMediaStatePtr();
 #if CM_LOG_ON
@@ -153,19 +153,19 @@ public:
 
     void SurfaceDump(int32_t taskId);
 
-    int32_t VtuneInitProfilingInfo(const CmThreadGroupSpace *pPerTaskThreadGroupSpace);
-    int32_t VtuneInitProfilingInfo(const CmThreadSpaceRT *pPerTaskTs);
+    int32_t VtuneInitProfilingInfo(const CmThreadGroupSpace *perTaskThreadGroupSpace);
+    int32_t VtuneInitProfilingInfo(const CmThreadSpaceRT *perTaskThreadSpace);
     int32_t VtuneSetFlushTime();
 
 protected:
 
-    CmTaskInternal(const uint32_t kernelCount, const uint32_t totalThreadCount, CmKernelRT* pKernelArray[], CmDeviceRT* pCmDevice, const uint64_t uiSyncBitmap, const uint64_t uiConditionalEndBitmap, PCM_HAL_CONDITIONAL_BB_END_INFO pConditionalEndInfo);
+    CmTaskInternal(const uint32_t kernelCount, const uint32_t totalThreadCount, CmKernelRT* kernelArray[], CmDeviceRT* device, const uint64_t syncBitmap, const uint64_t conditionalEndBitmap, PCM_HAL_CONDITIONAL_BB_END_INFO conditionalEndInfo);
     ~CmTaskInternal( void );
 
-    int32_t Initialize(const CmThreadSpaceRT* pTS, bool isWithHints);
-    int32_t Initialize(const CmThreadGroupSpace* pTGS);
+    int32_t Initialize(const CmThreadSpaceRT* threadSpace, bool isWithHints);
+    int32_t Initialize(const CmThreadGroupSpace* threadGroupSpace);
 
-    int32_t Initialize(CmVeboxRT* pVebox);
+    int32_t Initialize(CmVeboxRT* vebox);
     int32_t Initialize(uint32_t hints, uint32_t numTasksGenerated, bool isLastTask);
 
     int32_t VtuneWriteEventInfo();
@@ -174,63 +174,63 @@ protected:
     int32_t UpdateSurfaceStateOnTaskCreation();
     int32_t UpdateSurfaceStateOnTaskDestroy();
 
-    CmDynamicArray m_Kernels;
-    CmDynamicArray m_KernelData; // one CmKernelData* per kernel
-    uint32_t *m_pKernelCurbeOffsetArray; // Array to record each kernel's curbe offset. Even the same kernel could have different curbe offset.
-    uint32_t m_KernelCount;
+    CmDynamicArray m_kernels;
+    CmDynamicArray m_kernelData; // one CmKernelData* per kernel
+    uint32_t *m_kernelCurbeOffsetArray; // Array to record each kernel's curbe offset. Even the same kernel could have different curbe offset.
+    uint32_t m_kernelCount;
 
-    uint32_t m_TotalThreadCount;    //total thread count per task
+    uint32_t m_totalThreadCount;    //total thread count per task
 
-    CmEventRT* m_pTaskEvent;
+    CmEventRT* m_taskEvent;
 
     //ThreadSpaceInformation from CreateThreadSpace() or CreateThreadGroupSpace()
-    bool            m_IsThreadSpaceCreated;
-    bool            m_IsThreadCoordinatesExisted;
-    uint32_t        m_ThreadSpaceWidth;
-    uint32_t        m_ThreadSpaceHeight;
-    uint32_t        m_ThreadSpaceDepth;
+    bool            m_isThreadSpaceCreated;
+    bool            m_isThreadCoordinatesExisted;
+    uint32_t        m_threadSpaceWidth;
+    uint32_t        m_threadSpaceHeight;
+    uint32_t        m_threadSpaceDepth;
 
-    PCM_HAL_SCOREBOARD *m_pThreadCoordinates;
-    CM_DEPENDENCY_PATTERN m_DependencyPattern;
-    CM_WALKING_PATTERN m_WalkingPattern;
-    uint32_t m_WalkingParameters[CM_NUM_DWORD_FOR_MW_PARAM];
-    bool m_MediaWalkerParamsSet;
-    CM_HAL_DEPENDENCY m_DependencyVectors;
-    bool m_DependencyVectorsSet;
-    PCM_HAL_MASK_AND_RESET    *m_pDependencyMasks;
-    CM_MW_GROUP_SELECT         m_MediaWalkerGroupSelect;
+    PCM_HAL_SCOREBOARD *m_threadCoordinates;
+    CM_DEPENDENCY_PATTERN m_dependencyPattern;
+    CM_WALKING_PATTERN m_walkingPattern;
+    uint32_t m_walkingParameters[CM_NUM_DWORD_FOR_MW_PARAM];
+    bool m_mediaWalkerParamsSet;
+    CM_HAL_DEPENDENCY m_dependencyVectors;
+    bool m_dependencyVectorsSet;
+    PCM_HAL_MASK_AND_RESET    *m_dependencyMasks;
+    CM_MW_GROUP_SELECT         m_mediaWalkerGroupSelect;
 
-    bool            m_IsThreadGroupSpaceCreated;
-    uint32_t        m_GroupSpaceWidth;
-    uint32_t        m_GroupSpaceHeight;
-    uint32_t        m_GroupSpaceDepth;
-    uint32_t        m_SLMSize;      //SLM size per thread group in 1KB unit
-    uint32_t        m_SpillMemUsed;
+    bool            m_isThreadGroupSpaceCreated;
+    uint32_t        m_groupSpaceWidth;
+    uint32_t        m_groupSpaceHeight;
+    uint32_t        m_groupSpaceDepth;
+    uint32_t        m_slmSize;      //SLM size per thread group in 1KB unit
+    uint32_t        m_spillMemUsed;
 
-    uint32_t        m_ColorCountMinusOne;
-    uint32_t        m_Hints;
-    uint32_t        m_NumTasksGenerated;
-    bool            m_IsLastTask;
+    uint32_t        m_colorCountMinusOne;
+    uint32_t        m_hints;
+    uint32_t        m_numTasksGenerated;
+    bool            m_isLastTask;
 
     uint64_t        m_ui64SyncBitmap;
     uint64_t        m_ui64ConditionalEndBitmap;
-    CM_HAL_CONDITIONAL_BB_END_INFO m_ConditionalEndInfo[CM_MAX_CONDITIONAL_END_CMDS];
+    CM_HAL_CONDITIONAL_BB_END_INFO m_conditionalEndInfo[CM_MAX_CONDITIONAL_END_CMDS];
 
-    CM_HAL_SURFACE_ENTRY_INFO_ARRAYS m_KernelSurfInfo;
-    CmDeviceRT*                      m_pCmDevice;
-    bool                             *m_SurfaceArray;  // vector-flag of surfaces R/W by this CM Task (containing multi-kernel)
-    bool                             m_IsSurfaceUpdateDone;
+    CM_HAL_SURFACE_ENTRY_INFO_ARRAYS m_kernelSurfInfo;
+    CmDeviceRT*                      m_cmDevice;
+    bool                             *m_surfaceArray;  // vector-flag of surfaces R/W by this CM Task (containing multi-kernel)
+    bool                             m_isSurfaceUpdateDone;
 
-    uint32_t        m_TaskType; //0 - Task with thread space, 1 - Task with thread group space, 2 - Task for VEBOX
+    uint32_t        m_taskType; //0 - Task with thread space, 1 - Task with thread group space, 2 - Task for VEBOX
 
-    CmBufferUP   *  m_pVeboxParam;
-    CM_VEBOX_STATE  m_VeboxState;
-    CM_VEBOX_SURFACE_DATA m_VeboxSurfaceData;
+    CmBufferUP   *  m_veboxParam;
+    CM_VEBOX_STATE  m_veboxState;
+    CM_VEBOX_SURFACE_DATA m_veboxSurfaceData;
 
-    CM_POWER_OPTION m_PowerOption;
-    CM_PROFILING_INFO   m_TaskProfilingInfo;
-    CM_TASK_CONFIG  m_TaskConfig;
-    void            *m_media_state_ptr;
+    CM_POWER_OPTION m_powerOption;
+    CM_PROFILING_INFO   m_taskProfilingInfo;
+    CM_TASK_CONFIG  m_taskConfig;
+    void            *m_mediaStatePtr;
 private:
     CmTaskInternal (const CmTaskInternal& other);
     CmTaskInternal& operator= (const CmTaskInternal& other);

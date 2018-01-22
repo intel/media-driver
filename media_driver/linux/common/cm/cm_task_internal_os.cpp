@@ -38,13 +38,13 @@ namespace CMRT_UMD
 //*-----------------------------------------------------------------------------
 int32_t CmTaskInternal::VtuneWriteEventInfo()
 {
-    if(!m_pCmDevice->IsVtuneLogOn())
+    if(!m_cmDevice->IsVtuneLogOn())
     {   // return directly if ETW log is off
         return CM_SUCCESS;
     }
 
-    if (m_TaskProfilingInfo.dwKernelCount == 0 ||
-        m_TaskProfilingInfo.pKernelNames == nullptr)
+    if (m_taskProfilingInfo.kernelCount == 0 ||
+        m_taskProfilingInfo.kernelNames == nullptr)
     {
         //Skip ETW Write since information is not filled
         //Vebox/EnqueueWithHints
@@ -52,17 +52,17 @@ int32_t CmTaskInternal::VtuneWriteEventInfo()
     }
 
     //Get Complete Time
-    m_pTaskEvent->GetCompleteTime(&m_TaskProfilingInfo.CompleteTime);
+    m_taskEvent->GetCompleteTime(&m_taskProfilingInfo.completeTime);
 
     //Get HW start/end Time
-    m_pTaskEvent->GetHWStartTime(&m_TaskProfilingInfo.HwStartTime);
-    m_pTaskEvent->GetHWEndTime(&m_TaskProfilingInfo.HwEndTime);
+    m_taskEvent->GetHWStartTime(&m_taskProfilingInfo.hwStartTime);
+    m_taskEvent->GetHWEndTime(&m_taskProfilingInfo.hwEndTime);
     CmFtrace *pCmFtrace = CmFtrace::GetInstance();
     if (pCmFtrace == nullptr)
     {
         return CM_NULL_POINTER;
     }
-    pCmFtrace->WriteTaskProfilingInfo(&m_TaskProfilingInfo);
+    pCmFtrace->WriteTaskProfilingInfo(&m_taskProfilingInfo);
 
     return CM_SUCCESS;
 }

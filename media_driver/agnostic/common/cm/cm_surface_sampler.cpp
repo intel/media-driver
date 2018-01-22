@@ -37,20 +37,20 @@ int32_t CmSurfaceSampler::Create(
     uint32_t handleFor2D3D,        //indexing resource array of HalCm
     uint32_t indexForCurrent,      //SurfaceIndex's ID for 2D/3D, also indexing surface array
     SAMPLER_SURFACE_TYPE surfaceType,
-    CmSurfaceManager* pSurfaceManager,
-    CmSurfaceSampler* &pSurfaceSampler,
-    CM_FLAG* pFlag)
+    CmSurfaceManager* surfaceManager,
+    CmSurfaceSampler* &surfaceSampler,
+    CM_FLAG* flag)
 {
     int32_t result = CM_SUCCESS;
 
-    pSurfaceSampler = new (std::nothrow) CmSurfaceSampler( indexForCurrent, handleFor2D3D, surfaceType, pSurfaceManager, pFlag);
-    if( pSurfaceSampler )
+    surfaceSampler = new (std::nothrow) CmSurfaceSampler( indexForCurrent, handleFor2D3D, surfaceType, surfaceManager, flag);
+    if( surfaceSampler )
     {
-        result = pSurfaceSampler->Initialize( index );
+        result = surfaceSampler->Initialize( index );
         if( result != CM_SUCCESS )
         {
-            CmSurface* pBaseSurface = pSurfaceSampler;
-            CmSurface::Destroy( pBaseSurface );
+            CmSurface* baseSurface = surfaceSampler;
+            CmSurface::Destroy( baseSurface );
         }
     }
     else
@@ -66,17 +66,17 @@ CmSurfaceSampler::CmSurfaceSampler(
     uint32_t indexForCurrent,
     uint32_t handleFor2D3D,
     SAMPLER_SURFACE_TYPE surfaceType,
-    CmSurfaceManager* pSurfaceManager,
-    CM_FLAG* pFlag):
-    CmSurface(pSurfaceManager,false ),
-    m_CmIndexForCurrent(indexForCurrent),
+    CmSurfaceManager* surfaceManager,
+    CM_FLAG* flag):
+    CmSurface(surfaceManager,false ),
+    m_indexForCurrent(indexForCurrent),
     m_handleFor2D3D( handleFor2D3D),
     m_surfaceType(surfaceType)
 {
-    if (pFlag != nullptr)
+    if (flag != nullptr)
     {
-        m_Flag.rotationFlag = pFlag->rotationFlag;
-        m_Flag.chromaSiting = pFlag->chromaSiting;
+        m_flag.rotationFlag = flag->rotationFlag;
+        m_flag.chromaSiting = flag->chromaSiting;
     }
 }
 
@@ -86,14 +86,14 @@ CmSurfaceSampler::~CmSurfaceSampler( void )
 
 int32_t CmSurfaceSampler::Initialize( uint32_t index )
 {
-    CmSurfaceManager* pSurfMgr = m_SurfaceMgr;
-    pSurfMgr->UpdateSurface2DTableRotation(m_handleFor2D3D, m_Flag.rotationFlag);
+    CmSurfaceManager* surfMgr = m_surfaceMgr;
+    surfMgr->UpdateSurface2DTableRotation(m_handleFor2D3D, m_flag.rotationFlag);
     return CmSurface::Initialize( index );
 }
 
-int32_t CmSurfaceSampler::GetSurfaceIndex( SurfaceIndex*& pIndex )
+int32_t CmSurfaceSampler::GetSurfaceIndex( SurfaceIndex*& index )
 {
-    pIndex = m_pIndex;
+    index = m_index;
     return CM_SUCCESS;
 }
 
@@ -111,23 +111,23 @@ int32_t CmSurfaceSampler::GetSurfaceType(SAMPLER_SURFACE_TYPE& type)
 
 int32_t CmSurfaceSampler::GetCmIndexCurrent( uint16_t & index )
 {
-    index = (uint16_t)m_CmIndexForCurrent;
+    index = (uint16_t)m_indexForCurrent;
     return CM_SUCCESS;
 }
 
-int32_t CmSurfaceSampler::SetMemoryObjectControl( MEMORY_OBJECT_CONTROL mem_ctrl, MEMORY_TYPE mem_type, uint32_t age)
+int32_t CmSurfaceSampler::SetMemoryObjectControl( MEMORY_OBJECT_CONTROL memCtrl, MEMORY_TYPE memType, uint32_t age)
 {
     CM_RETURN_CODE  hr = CM_SUCCESS;
     uint16_t mocs = 0;
 
-    CmSurface::SetMemoryObjectControl( mem_ctrl, mem_type, age );
+    CmSurface::SetMemoryObjectControl( memCtrl, memType, age );
 
-    CmDeviceRT *pCmDevice = nullptr;
-    m_SurfaceMgr->GetCmDevice(pCmDevice);
-    PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)pCmDevice->GetAccelData();
-    CMCHK_NULL(pCmData);
+    CmDeviceRT *cmDevice = nullptr;
+    m_surfaceMgr->GetCmDevice(cmDevice);
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)cmDevice->GetAccelData();
+    CMCHK_NULL(cmData);
 
-    mocs = (m_MemObjCtrl.mem_ctrl << 8) | (m_MemObjCtrl.mem_type<<4) | m_MemObjCtrl.age;
+    mocs = (m_memObjCtrl.mem_ctrl << 8) | (m_memObjCtrl.mem_type<<4) | m_memObjCtrl.age;
 
     CM_ARG_KIND argType;
 
@@ -144,7 +144,7 @@ int32_t CmSurfaceSampler::SetMemoryObjectControl( MEMORY_OBJECT_CONTROL mem_ctrl
         argType = ARG_KIND_SURFACE_3D;
     }
 
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->cmHalState->pfnSetSurfaceMOCS(pCmData->cmHalState, m_handleFor2D3D, mocs, argType));
+    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnSetSurfaceMOCS(cmData->cmHalState, m_handleFor2D3D, mocs, argType));
 
 finish:
     return hr;

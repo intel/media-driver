@@ -58,9 +58,9 @@ class CmSurface2DRT;
 
 struct CM_GPUCOPY_KERNEL
 {
-    CmKernel *pKernel;
-    CM_GPUCOPY_KERNEL_ID KernelID;
-    bool bLocked;
+    CmKernel *kernel;
+    CM_GPUCOPY_KERNEL_ID kernelID;
+    bool locked;
 };
 
 class ThreadSafeQueue
@@ -120,68 +120,68 @@ public:
 class CmQueueRT: public CmQueue
 {
 public:
-    static int32_t Create(CmDeviceRT *pDevice,
-                          CmQueueRT *&pQueue,
-                          CM_QUEUE_CREATE_OPTION QueueCreateOption);
+    static int32_t Create(CmDeviceRT *device,
+                          CmQueueRT *&queue,
+                          CM_QUEUE_CREATE_OPTION queueCreateOption);
 
-    static int32_t Destroy(CmQueueRT *&pQueue);
+    static int32_t Destroy(CmQueueRT *&queue);
 
-    CM_RT_API int32_t Enqueue(CmTask *pTask,
-                              CmEvent *&pEvent,
-                              const CmThreadSpace *pThreadSpace = nullptr);
+    CM_RT_API int32_t Enqueue(CmTask *task,
+                              CmEvent *&event,
+                              const CmThreadSpace *threadSpace = nullptr);
 
-    CM_RT_API int32_t DestroyEvent(CmEvent *&pEvent);
+    CM_RT_API int32_t DestroyEvent(CmEvent *&event);
 
     CM_RT_API int32_t
-    EnqueueWithGroup(CmTask *pTask,
-                     CmEvent *&pEvent,
-                     const CmThreadGroupSpace *pThreadGroupSpace = nullptr);
+    EnqueueWithGroup(CmTask *task,
+                     CmEvent *&event,
+                     const CmThreadGroupSpace *threadGroupSpace = nullptr);
 
-    CM_RT_API int32_t EnqueueVebox(CmVebox *pVebox, CmEvent *&pEvent);
+    CM_RT_API int32_t EnqueueVebox(CmVebox *vebox, CmEvent *&event);
 
-    CM_RT_API int32_t EnqueueWithHints(CmTask *pTask,
-                                       CmEvent *&pEvent,
+    CM_RT_API int32_t EnqueueWithHints(CmTask *task,
+                                       CmEvent *&event,
                                        uint32_t hints = 0);
 
-    CM_RT_API int32_t EnqueueCopyCPUToGPU(CmSurface2D *pSurface,
-                                          const unsigned char *pSysMem,
-                                          CmEvent *&pEvent);
+    CM_RT_API int32_t EnqueueCopyCPUToGPU(CmSurface2D *surface,
+                                          const unsigned char *sysMem,
+                                          CmEvent *&event);
 
-    CM_RT_API int32_t EnqueueCopyGPUToCPU(CmSurface2D *pSurface,
-                                          unsigned char *pSysMem,
-                                          CmEvent *&pEvent);
+    CM_RT_API int32_t EnqueueCopyGPUToCPU(CmSurface2D *surface,
+                                          unsigned char *sysMem,
+                                          CmEvent *&event);
 
-    CM_RT_API int32_t EnqueueInitSurface2D(CmSurface2D *pSurf2D,
+    CM_RT_API int32_t EnqueueInitSurface2D(CmSurface2D *surf2D,
                                            const uint32_t initValue,
-                                           CmEvent *&pEvent);
+                                           CmEvent *&event);
 
-    CM_RT_API int32_t EnqueueCopyGPUToGPU(CmSurface2D *pOutputSurface,
-                                          CmSurface2D *pInputSurface,
+    CM_RT_API int32_t EnqueueCopyGPUToGPU(CmSurface2D *outputSurface,
+                                          CmSurface2D *inputSurface,
                                           uint32_t option,
-                                          CmEvent *&pEvent);
+                                          CmEvent *&event);
 
-    CM_RT_API int32_t EnqueueCopyCPUToCPU(unsigned char *pDstSysMem,
-                                          unsigned char *pSrcSysMem,
+    CM_RT_API int32_t EnqueueCopyCPUToCPU(unsigned char *dstSysMem,
+                                          unsigned char *srcSysMem,
                                           uint32_t size,
                                           uint32_t option,
-                                          CmEvent *&pEvent);
+                                          CmEvent *&event);
 
-    CM_RT_API int32_t EnqueueCopyCPUToGPUFullStride(CmSurface2D *pSurface,
-                                                    const unsigned char *pSysMem,
+    CM_RT_API int32_t EnqueueCopyCPUToGPUFullStride(CmSurface2D *surface,
+                                                    const unsigned char *sysMem,
                                                     const uint32_t widthStride,
                                                     const uint32_t heightStride,
                                                     const uint32_t option,
-                                                    CmEvent *&pEvent);
+                                                    CmEvent *&event);
 
-    CM_RT_API int32_t EnqueueCopyGPUToCPUFullStride(CmSurface2D *pSurface,
-                                                    unsigned char *pSysMem,
+    CM_RT_API int32_t EnqueueCopyGPUToCPUFullStride(CmSurface2D *surface,
+                                                    unsigned char *sysMem,
                                                     const uint32_t widthStride,
                                                     const uint32_t heightStride,
                                                     const uint32_t option,
-                                                    CmEvent *&pEvent);
+                                                    CmEvent *&event);
 
-    int32_t EnqueueCopyInternal_1Plane(CmSurface2DRT *pSurface,
-                                       unsigned char *pSysMem,
+    int32_t EnqueueCopyInternal_1Plane(CmSurface2DRT *surface,
+                                       unsigned char *sysMem,
                                        CM_SURFACE_FORMAT format,
                                        const uint32_t widthInPixel,
                                        const uint32_t widthStride,
@@ -190,10 +190,10 @@ public:
                                        const uint32_t sizePerPixel,
                                        CM_GPUCOPY_DIRECTION direction,
                                        const uint32_t option,
-                                       CmEvent *&pEvent);
+                                       CmEvent *&event);
 
-    int32_t EnqueueCopyInternal_2Planes(CmSurface2DRT *pSurface,
-                                        unsigned char *pSysMem,
+    int32_t EnqueueCopyInternal_2Planes(CmSurface2DRT *surface,
+                                        unsigned char *sysMem,
                                         CM_SURFACE_FORMAT format,
                                         const uint32_t widthInPixel,
                                         const uint32_t widthStride,
@@ -202,30 +202,30 @@ public:
                                         const uint32_t sizePerPixel,
                                         CM_GPUCOPY_DIRECTION direction,
                                         const uint32_t option,
-                                        CmEvent *&pEvent);
+                                        CmEvent *&event);
 
-    int32_t EnqueueCopyInternal(CmSurface2DRT *pSurface,
-                                unsigned char *pSysMem,
+    int32_t EnqueueCopyInternal(CmSurface2DRT *surface,
+                                unsigned char *sysMem,
                                 const uint32_t widthStride,
                                 const uint32_t heightStride,
                                 CM_GPUCOPY_DIRECTION direction,
                                 const uint32_t option,
-                                CmEvent *&pEvent);
+                                CmEvent *&event);
 
-    int32_t EnqueueUnalignedCopyInternal(CmSurface2DRT *pSurface,
-                                         unsigned char *pSysMem,
+    int32_t EnqueueUnalignedCopyInternal(CmSurface2DRT *surface,
+                                         unsigned char *sysMem,
                                          const uint32_t widthStride,
                                          const uint32_t heightStride,
                                          CM_GPUCOPY_DIRECTION direction,
-                                         CmEvent *&pEvent);
+                                         CmEvent *&event);
 
-    int32_t FlushTaskWithoutSync(bool bIfFlushBlock = false);
+    int32_t FlushTaskWithoutSync(bool flushBlocked = false);
 
     int32_t GetTaskCount(uint32_t &numTasks);
 
     int32_t TouchFlushedTasks();
 
-    int32_t GetTaskHasThreadArg(CmKernelRT *pKernelArray[],
+    int32_t GetTaskHasThreadArg(CmKernelRT *kernelArray[],
                                 uint32_t numKernels,
                                 bool &threadArgExists);
     int32_t CleanQueue();
@@ -233,102 +233,102 @@ public:
     CM_QUEUE_CREATE_OPTION &GetQueueOption();
 
 protected:
-    CmQueueRT(CmDeviceRT *pDevice, CM_QUEUE_CREATE_OPTION QueueCreateOption);
+    CmQueueRT(CmDeviceRT *device, CM_QUEUE_CREATE_OPTION queueCreateOption);
 
     ~CmQueueRT();
 
     int32_t Initialize();
 
     int32_t
-    Enqueue_RT(CmKernelRT *pKernelArray[],
-               const uint32_t uiKernelCount,
-               const uint32_t uiTotalThreadCount,
-               CmEventRT *&pEvent,
-               const CmThreadSpaceRT *pTS = nullptr,
-               const uint64_t uiSyncBitmap = 0,
-               PCM_POWER_OPTION pPowerOption = nullptr,
-               const uint64_t uiConditionalEndBitmap = 0,
-               PCM_HAL_CONDITIONAL_BB_END_INFO pConditionalEndInfo = nullptr,
-               CM_TASK_CONFIG *pTaskConfig = nullptr);
+    Enqueue_RT(CmKernelRT *kernelArray[],
+               const uint32_t kernelCount,
+               const uint32_t totalThreadCount,
+               CmEventRT *&event,
+               const CmThreadSpaceRT *threadSpace = nullptr,
+               const uint64_t syncBitmap = 0,
+               PCM_POWER_OPTION powerOption = nullptr,
+               const uint64_t conditionalEndBitmap = 0,
+               PCM_HAL_CONDITIONAL_BB_END_INFO conditionalEndInfo = nullptr,
+               CM_TASK_CONFIG *taskConfig = nullptr);
 
-    int32_t Enqueue_RT(CmKernelRT *pKernelArray[],
-                       const uint32_t uiKernelCount,
-                       const uint32_t uiTotalThreadCount,
-                       CmEventRT *&pEvent,
-                       const CmThreadGroupSpace *pTGS = nullptr,
-                       const uint64_t uiSyncBitmap = 0,
-                       PCM_POWER_OPTION pPowerOption = nullptr,
-                       CM_TASK_CONFIG *pTaskConfig = nullptr);
+    int32_t Enqueue_RT(CmKernelRT *kernelArray[],
+                       const uint32_t kernelCount,
+                       const uint32_t totalThreadCount,
+                       CmEventRT *&event,
+                       const CmThreadGroupSpace *threadGroupSpace = nullptr,
+                       const uint64_t syncBitmap = 0,
+                       PCM_POWER_OPTION powerOption = nullptr,
+                       CM_TASK_CONFIG *taskConfig = nullptr);
 
-    int32_t Enqueue_RT(CmKernelRT *pKernelArray[],
-                       CmEventRT *&pEvent,
+    int32_t Enqueue_RT(CmKernelRT *kernelArray[],
+                       CmEventRT *&event,
                        uint32_t numTaskGenerated,
                        bool isLastTask,
                        uint32_t hints = 0,
-                       PCM_POWER_OPTION pPowerOption = nullptr);
+                       PCM_POWER_OPTION powerOption = nullptr);
 
     int32_t QueryFlushedTasks();
 
     //New sub functions for different task flush
-    int32_t FlushGeneralTask(CmTaskInternal *pTask);
+    int32_t FlushGeneralTask(CmTaskInternal *task);
 
-    int32_t FlushGroupTask(CmTaskInternal *pTask);
+    int32_t FlushGroupTask(CmTaskInternal *task);
 
-    int32_t FlushVeboxTask(CmTaskInternal *pTask);
+    int32_t FlushVeboxTask(CmTaskInternal *task);
 
-    int32_t FlushEnqueueWithHintsTask(CmTaskInternal *pTask);
+    int32_t FlushEnqueueWithHintsTask(CmTaskInternal *task);
 
     void PopTaskFromFlushedQueue();
 
-    int32_t CreateEvent(CmTaskInternal *pTask,
-                        bool bIsVisible,
+    int32_t CreateEvent(CmTaskInternal *task,
+                        bool isVisible,
                         int32_t &taskDriverId,
-                        CmEventRT *&pEvent);
+                        CmEventRT *&event);
 
-    int32_t AddGPUCopyKernel(CM_GPUCOPY_KERNEL* &pKernelParam);
+    int32_t AddGPUCopyKernel(CM_GPUCOPY_KERNEL* &kernelParam);
 
-    int32_t GetGPUCopyKrnID(uint32_t WidthInByte,
+    int32_t GetGPUCopyKrnID(uint32_t widthInByte,
                             uint32_t height,
                             CM_SURFACE_FORMAT format,
-                            CM_GPUCOPY_DIRECTION CopyDirection,
-                            CM_GPUCOPY_KERNEL_ID &KernelID);
+                            CM_GPUCOPY_DIRECTION copyDirection,
+                            CM_GPUCOPY_KERNEL_ID &kernelID);
 
-    int32_t AllocateGPUCopyKernel(uint32_t WidthInByte,
+    int32_t AllocateGPUCopyKernel(uint32_t widthInByte,
                                   uint32_t height,
                                   CM_SURFACE_FORMAT format,
-                                  CM_GPUCOPY_DIRECTION CopyDirection,
-                                  CmKernel* &pKernel);
+                                  CM_GPUCOPY_DIRECTION copyDirection,
+                                  CmKernel* &kernel);
 
-    int32_t CreateGPUCopyKernel(uint32_t WidthInByte,
+    int32_t CreateGPUCopyKernel(uint32_t widthInByte,
                                 uint32_t height,
                                 CM_SURFACE_FORMAT format,
-                                CM_GPUCOPY_DIRECTION CopyDirection,
-                                CM_GPUCOPY_KERNEL* &pGPUCopyKrnParam);
+                                CM_GPUCOPY_DIRECTION copyDirection,
+                                CM_GPUCOPY_KERNEL* &gpuCopyKernelParam);
 
-    int32_t SearchGPUCopyKernel(uint32_t WidthInByte,
+    int32_t SearchGPUCopyKernel(uint32_t widthInByte,
                                 uint32_t height,
                                 CM_SURFACE_FORMAT format,
-                                CM_GPUCOPY_DIRECTION CopyDirection,
-                                CM_GPUCOPY_KERNEL* &pKernelParam);
+                                CM_GPUCOPY_DIRECTION copyDirection,
+                                CM_GPUCOPY_KERNEL* &kernelParam);
 
-    CmDeviceRT *m_pDevice;
-    ThreadSafeQueue m_EnqueuedTasks;
-    ThreadSafeQueue m_FlushedTasks;
+    CmDeviceRT *m_device;
+    ThreadSafeQueue m_enqueuedTasks;
+    ThreadSafeQueue m_flushedTasks;
 
-    CmDynamicArray m_EventArray;
-    CSync m_CriticalSection_Event;        // Protect m_EventArray
-    CSync m_CriticalSection_HalExecute;   // Protect execution in HALCm, i.e HalCm_Execute
-    CSync m_CriticalSection_FlushedTask;  // Protect QueryFlushedTask
-    CSync m_CriticalSection_TaskInternal;
+    CmDynamicArray m_eventArray;
+    CSync m_criticalSectionEvent;        // Protect m_eventArray
+    CSync m_criticalSectionHalExecute;   // Protect execution in HALCm, i.e HalCm_Execute
+    CSync m_criticalSectionFlushedTask;  // Protect QueryFlushedTask
+    CSync m_criticalSectionTaskInternal;
 
-    uint32_t m_EventCount;
+    uint32_t m_eventCount;
 
-    CmDynamicArray m_CopyKrnParamArray;
-    uint32_t m_CopyKrnParamArrayCount;
+    CmDynamicArray m_copyKernelParamArray;
+    uint32_t m_copyKernelParamArrayCount;
 
-    CSync m_CriticalSection_GPUCopyKrn;
+    CSync m_criticalSectionGPUCopyKrn;
 
-    CM_HAL_MAX_VALUES *m_pHalMaxValues;
+    CM_HAL_MAX_VALUES *m_halMaxValues;
     CM_QUEUE_CREATE_OPTION m_queueOption;
 };
 };  //namespace

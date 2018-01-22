@@ -34,17 +34,17 @@ namespace CMRT_UMD
 //*-----------------------------------------------------------------------------
 //| Purpose:    Create Vebox
 //*-----------------------------------------------------------------------------
-int32_t CmVeboxRT::Create( CmDeviceRT* pCmDev, uint32_t index, CmVeboxRT* & pCmVebox )
+int32_t CmVeboxRT::Create( CmDeviceRT* device, uint32_t index, CmVeboxRT* & cmVebox )
 {
     int32_t result = CM_SUCCESS;
 
-    pCmVebox = new (std::nothrow) CmVeboxRT(pCmDev, index);
-    if (pCmVebox)
+    cmVebox = new (std::nothrow) CmVeboxRT(device, index);
+    if (cmVebox)
     {
-        result = pCmVebox->Initialize();
+        result = cmVebox->Initialize();
         if( result != CM_SUCCESS )
         {
-            CmVeboxRT::Destroy(pCmVebox);
+            CmVeboxRT::Destroy(cmVebox);
         }
     }
     else
@@ -59,21 +59,21 @@ int32_t CmVeboxRT::Create( CmDeviceRT* pCmDev, uint32_t index, CmVeboxRT* & pCmV
 //*-----------------------------------------------------------------------------
 //| Purpose:    Destroy Vebox
 //*-----------------------------------------------------------------------------
-int32_t CmVeboxRT::Destroy( CmVeboxRT* & pCmVebox )
+int32_t CmVeboxRT::Destroy( CmVeboxRT* & cmVebox )
 {
-    if(pCmVebox)
+    if(cmVebox)
     {
         /*need some work to delete vebox state*/
-        delete pCmVebox;
-        pCmVebox = nullptr;
+        delete cmVebox;
+        cmVebox = nullptr;
     }
     return CM_SUCCESS;
 }
 
-CmVeboxRT::CmVeboxRT( CmDeviceRT* pCmDev, uint32_t index ):
-            m_pCmDev( pCmDev ),
-            m_IndexInVeboxArray( index ),
-            m_MaxSurfaceIndex(VEBOX_MAX_SURFACE_COUNT)
+CmVeboxRT::CmVeboxRT( CmDeviceRT* device, uint32_t index ):
+            m_device( device ),
+            m_indexInVeboxArray( index ),
+            m_maxSurfaceIndex(VEBOX_MAX_SURFACE_COUNT)
 {
 }
 
@@ -86,32 +86,32 @@ int32_t CmVeboxRT::Initialize()
 
     for (int32_t i = 0; i < VEBOX_MAX_SURFACE_COUNT; i++)
     {
-        m_pSurface2D[i] = nullptr;
-        m_wSurfaceCtrlBits[i] = 0;
+        m_surface2D[i] = nullptr;
+        m_surfaceCtrlBits[i] = 0;
 
     }
 
     return CM_SUCCESS;
 }
 
-CM_RT_API int32_t CmVeboxRT::SetParam(CmBufferUP *pParamBuffer)
+CM_RT_API int32_t CmVeboxRT::SetParam(CmBufferUP *paramBuffer)
 {
-    m_ParamBuffer = pParamBuffer;
+    m_paramBuffer = paramBuffer;
     return CM_SUCCESS;
 }
-CM_RT_API int32_t CmVeboxRT::SetState(CM_VEBOX_STATE& VeBoxState)
+CM_RT_API int32_t CmVeboxRT::SetState(CM_VEBOX_STATE& veboxState)
 {
 
-    m_VeboxState = VeBoxState;
+    m_veboxState = veboxState;
     return CM_SUCCESS;
 
 }
 
-int32_t CmVeboxRT::SetSurfaceInternal(VEBOX_SURF_USAGE surfUsage, CmSurface2D* pSurf)
+int32_t CmVeboxRT::SetSurfaceInternal(VEBOX_SURF_USAGE surfUsage, CmSurface2D* surface)
 {
-    if( (uint32_t)surfUsage <  m_MaxSurfaceIndex)
+    if( (uint32_t)surfUsage <  m_maxSurfaceIndex)
     {
-        m_pSurface2D[surfUsage] = static_cast<CmSurface2DRT *>(pSurf);
+        m_surface2D[surfUsage] = static_cast<CmSurface2DRT *>(surface);
         return CM_SUCCESS;
     }
     else
@@ -126,7 +126,7 @@ int32_t CmVeboxRT::SetSurfaceControlBitsInternal(VEBOX_SURF_USAGE surfUsage, con
 
     if( (uint32_t)surfUsage < VEBOX_SURFACE_NUMBER )
     {
-        m_wSurfaceCtrlBits[surfUsage] = ctrlBits;
+        m_surfaceCtrlBits[surfUsage] = ctrlBits;
         return CM_SUCCESS;
     }
     else
@@ -136,9 +136,9 @@ int32_t CmVeboxRT::SetSurfaceControlBitsInternal(VEBOX_SURF_USAGE surfUsage, con
     }
 }
 
-CM_RT_API int32_t CmVeboxRT::SetCurFrameInputSurface( CmSurface2D * pSurf )
+CM_RT_API int32_t CmVeboxRT::SetCurFrameInputSurface( CmSurface2D * surface )
 {
-    return SetSurfaceInternal(VEBOX_CURRENT_FRAME_INPUT_SURF, pSurf);
+    return SetSurfaceInternal(VEBOX_CURRENT_FRAME_INPUT_SURF, surface);
 }
 
 CM_RT_API int32_t CmVeboxRT::SetCurFrameInputSurfaceControlBits( const uint16_t ctrlBits )
@@ -146,9 +146,9 @@ CM_RT_API int32_t CmVeboxRT::SetCurFrameInputSurfaceControlBits( const uint16_t 
     return SetSurfaceControlBitsInternal(VEBOX_CURRENT_FRAME_INPUT_SURF, ctrlBits);
 }
 
-CM_RT_API int32_t CmVeboxRT::SetPrevFrameInputSurface( CmSurface2D * pSurf )
+CM_RT_API int32_t CmVeboxRT::SetPrevFrameInputSurface( CmSurface2D * surface )
 {
-    return SetSurfaceInternal(VEBOX_PREVIOUS_FRAME_INPUT_SURF, pSurf);
+    return SetSurfaceInternal(VEBOX_PREVIOUS_FRAME_INPUT_SURF, surface);
 }
 
 CM_RT_API int32_t CmVeboxRT::SetPrevFrameInputSurfaceControlBits( const uint16_t ctrlBits )
@@ -156,9 +156,9 @@ CM_RT_API int32_t CmVeboxRT::SetPrevFrameInputSurfaceControlBits( const uint16_t
     return SetSurfaceControlBitsInternal(VEBOX_PREVIOUS_FRAME_INPUT_SURF, ctrlBits);
 }
 
-CM_RT_API int32_t CmVeboxRT::SetSTMMInputSurface( CmSurface2D* pSurf )
+CM_RT_API int32_t CmVeboxRT::SetSTMMInputSurface( CmSurface2D* surface )
 {
-    return SetSurfaceInternal(VEBOX_STMM_INPUT_SURF, pSurf);
+    return SetSurfaceInternal(VEBOX_STMM_INPUT_SURF, surface);
 }
 
 CM_RT_API int32_t CmVeboxRT::SetSTMMInputSurfaceControlBits( const uint16_t ctrlBits )
@@ -166,9 +166,9 @@ CM_RT_API int32_t CmVeboxRT::SetSTMMInputSurfaceControlBits( const uint16_t ctrl
     return SetSurfaceControlBitsInternal(VEBOX_STMM_INPUT_SURF, ctrlBits);
 }
 
-CM_RT_API int32_t CmVeboxRT::SetSTMMOutputSurface( CmSurface2D* pSurf )
+CM_RT_API int32_t CmVeboxRT::SetSTMMOutputSurface( CmSurface2D* surface )
 {
-    return SetSurfaceInternal(VEBOX_STMM_OUTPUT_SURF, pSurf);
+    return SetSurfaceInternal(VEBOX_STMM_OUTPUT_SURF, surface);
 }
 
 CM_RT_API int32_t CmVeboxRT::SetSTMMOutputSurfaceControlBits( const uint16_t ctrlBits )
@@ -176,9 +176,9 @@ CM_RT_API int32_t CmVeboxRT::SetSTMMOutputSurfaceControlBits( const uint16_t ctr
     return SetSurfaceControlBitsInternal(VEBOX_STMM_OUTPUT_SURF, ctrlBits);
 }
 
-CM_RT_API int32_t CmVeboxRT::SetDenoisedCurFrameOutputSurface( CmSurface2D* pSurf )
+CM_RT_API int32_t CmVeboxRT::SetDenoisedCurFrameOutputSurface( CmSurface2D* surface )
 {
-    return SetSurfaceInternal(VEBOX_DN_CURRENT_FRAME_OUTPUT_SURF, pSurf);
+    return SetSurfaceInternal(VEBOX_DN_CURRENT_FRAME_OUTPUT_SURF, surface);
 }
 
 CM_RT_API int32_t CmVeboxRT::SetDenoisedCurOutputSurfaceControlBits( const uint16_t ctrlBits )
@@ -186,27 +186,27 @@ CM_RT_API int32_t CmVeboxRT::SetDenoisedCurOutputSurfaceControlBits( const uint1
     return SetSurfaceControlBitsInternal(VEBOX_DN_CURRENT_FRAME_OUTPUT_SURF, ctrlBits);
 }
 
-CM_RT_API int32_t CmVeboxRT::SetCurFrameOutputSurface( CmSurface2D* pSurf )
+CM_RT_API int32_t CmVeboxRT::SetCurFrameOutputSurface( CmSurface2D* surface )
 {
-    int32_t ret = SetSurfaceInternal(VEBOX_CURRENT_FRAME_OUTPUT_SURF, pSurf);
-    CmSurface2DRT* pSurf2D = static_cast<CmSurface2DRT *>(pSurf);
+    int32_t ret = SetSurfaceInternal(VEBOX_CURRENT_FRAME_OUTPUT_SURF, surface);
+    CmSurface2DRT* surf2D = static_cast<CmSurface2DRT *>(surface);
     uint32_t width;
     uint32_t height;
     CM_SURFACE_FORMAT format;
     uint32_t pixelsize;
-    if (m_pSurface2D[VEBOX_LACE_ACE_RGB_HISTOGRAM_OUTPUT_SURF] == nullptr)
+    if (m_surface2D[VEBOX_LACE_ACE_RGB_HISTOGRAM_OUTPUT_SURF] == nullptr)
     {
         if (ret == CM_SUCCESS)
         {
-            ret = pSurf2D->GetSurfaceDesc(width, height, format, pixelsize);
+            ret = surf2D->GetSurfaceDesc(width, height, format, pixelsize);
         }
         if (ret == CM_SUCCESS)
         {
-            CmSurface2D *pSurface2DBase = nullptr;
-            ret = m_pCmDev->CreateSurface2D(width, height, format, pSurface2DBase); // allocate the histogram surface if CmIECP Enabled
-            if (pSurface2DBase != nullptr)
+            CmSurface2D *surface2DBase = nullptr;
+            ret = m_device->CreateSurface2D(width, height, format, surface2DBase); // allocate the histogram surface if CmIECP Enabled
+            if (surface2DBase != nullptr)
             {
-                m_pSurface2D[VEBOX_LACE_ACE_RGB_HISTOGRAM_OUTPUT_SURF] = static_cast<CmSurface2DRT *>(pSurface2DBase);
+                m_surface2D[VEBOX_LACE_ACE_RGB_HISTOGRAM_OUTPUT_SURF] = static_cast<CmSurface2DRT *>(surface2DBase);
             }
         }
     }
@@ -218,9 +218,9 @@ CM_RT_API int32_t CmVeboxRT::SetCurFrameOutputSurfaceControlBits( const uint16_t
     return SetSurfaceControlBitsInternal(VEBOX_CURRENT_FRAME_OUTPUT_SURF, ctrlBits);
 }
 
-CM_RT_API int32_t CmVeboxRT::SetPrevFrameOutputSurface( CmSurface2D* pSurf )
+CM_RT_API int32_t CmVeboxRT::SetPrevFrameOutputSurface( CmSurface2D* surface )
 {
-    return SetSurfaceInternal(VEBOX_PREVIOUS_FRAME_OUTPUT_SURF, pSurf);
+    return SetSurfaceInternal(VEBOX_PREVIOUS_FRAME_OUTPUT_SURF, surface);
 }
 
 CM_RT_API int32_t CmVeboxRT::SetPrevFrameOutputSurfaceControlBits( const uint16_t ctrlBits )
@@ -228,9 +228,9 @@ CM_RT_API int32_t CmVeboxRT::SetPrevFrameOutputSurfaceControlBits( const uint16_
     return SetSurfaceControlBitsInternal(VEBOX_PREVIOUS_FRAME_OUTPUT_SURF, ctrlBits);
 }
 
-CM_RT_API int32_t CmVeboxRT::SetStatisticsOutputSurface( CmSurface2D* pSurf )
+CM_RT_API int32_t CmVeboxRT::SetStatisticsOutputSurface( CmSurface2D* surface )
 {
-    return SetSurfaceInternal(VEBOX_STATISTICS_OUTPUT_SURF, pSurf);
+    return SetSurfaceInternal(VEBOX_STATISTICS_OUTPUT_SURF, surface);
 }
 
 CM_RT_API int32_t CmVeboxRT::SetStatisticsOutputSurfaceControlBits( const uint16_t ctrlBits )
@@ -238,17 +238,17 @@ CM_RT_API int32_t CmVeboxRT::SetStatisticsOutputSurfaceControlBits( const uint16
     return SetSurfaceControlBitsInternal(VEBOX_STATISTICS_OUTPUT_SURF, ctrlBits);
 }
 
-int32_t CmVeboxRT::GetSurface(uint32_t surfUsage, CmSurface2DRT*& pSurf)
+int32_t CmVeboxRT::GetSurface(uint32_t surfUsage, CmSurface2DRT*& surface)
 {
     int hr = CM_SUCCESS;
 
     if (surfUsage < VEBOX_SURFACE_NUMBER)
     {
-        pSurf = m_pSurface2D[surfUsage];
+        surface = m_surface2D[surfUsage];
     }
     else
     {
-        pSurf = nullptr;
+        surface = nullptr;
         hr = CM_FAILURE;
     }
 
@@ -257,23 +257,23 @@ int32_t CmVeboxRT::GetSurface(uint32_t surfUsage, CmSurface2DRT*& pSurf)
 
 uint32_t CmVeboxRT::GetIndexInVeboxArray()
 {
-    return m_IndexInVeboxArray;
+    return m_indexInVeboxArray;
 }
 
 CM_VEBOX_STATE  CmVeboxRT::GetState()
 {
-    return m_VeboxState;
+    return m_veboxState;
 }
 
 CmBufferUP * CmVeboxRT::GetParam( )
 {
-    return m_ParamBuffer;
+    return m_paramBuffer;
 }
 
 uint16_t CmVeboxRT::GetSurfaceControlBits(uint32_t usage)
 {
     if (usage < VEBOX_MAX_SURFACE_COUNT)
-        return m_wSurfaceCtrlBits[usage];
+        return m_surfaceCtrlBits[usage];
     else
         return CM_FAILURE;
 }

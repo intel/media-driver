@@ -47,12 +47,12 @@ public:
     //!             CmDevice keeps the mapping between index value and CmSampler8x8.
     //!             SamplerIndex is passed to CM kernel function as an argument to
     //!             indicate this CmSampler8x8.
-    //! \param      [out] pIndex
+    //! \param      [out] index
     //!             Reference to SamplerIndex pointer. It'll point to the
     //!             SamplerIndex associated with this CmSampler8x8.
     //! \retval     CM_SUCCESS.
     //!
-    CM_RT_API virtual int32_t GetIndex(SamplerIndex* &pIndex) = 0;
+    CM_RT_API virtual int32_t GetIndex(SamplerIndex* &index) = 0;
 };
 }; //namespace
 

@@ -38,9 +38,9 @@ public:
     static int32_t Create(uint32_t index,
                           uint32_t handle,
                           uint32_t size,
-                          CmSurfaceManager *pSurfaceManager,
-                          CM_STATE_BUFFER_TYPE state_buffer_type,
-                          CmStateBuffer *&pSurface);
+                          CmSurfaceManager *surfaceManager,
+                          CM_STATE_BUFFER_TYPE stateBufferType,
+                          CmStateBuffer *&surface);
 
     CM_RT_API CM_ENUM_CLASS_TYPE Type() const
     { return CM_ENUM_CLASS_TYPE_CM_STATE_BUFFER; };
@@ -48,12 +48,12 @@ public:
 protected:
     CmStateBuffer(uint32_t handle,
                   uint32_t size,
-                  CmSurfaceManager *pSurfaceManager,
-                  CM_STATE_BUFFER_TYPE state_buffer_type);
+                  CmSurfaceManager *surfaceManager,
+                  CM_STATE_BUFFER_TYPE stateBufferType);
 
     ~CmStateBuffer();
 
-    CM_STATE_BUFFER_TYPE m_state_buffer_type;
+    CM_STATE_BUFFER_TYPE m_stateBufferType;
 };
 }
 

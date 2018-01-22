@@ -33,7 +33,7 @@
 
 struct CM_THREAD_SPACE_UNIT
 {
-    void *pKernel;
+    void *kernel;
     uint32_t threadId;
     int32_t numEdges; //For Emulation mode
     CM_COORDINATE scoreboardCoordinates;
@@ -66,22 +66,22 @@ class CmThreadSpaceExt;
 class CmThreadSpaceRT: public CmThreadSpace
 {
 public:
-    static int32_t Create(CmDeviceRT *pDevice,
+    static int32_t Create(CmDeviceRT *device,
                           uint32_t indexTsArray,
                           uint32_t width,
                           uint32_t height,
-                          CmThreadSpaceRT* &pTS);
+                          CmThreadSpaceRT* &threadSpace);
 
-    static int32_t Destroy(CmThreadSpaceRT* &pTS);
+    static int32_t Destroy(CmThreadSpaceRT* &threadSpace);
 
     CM_RT_API int32_t AssociateThread(uint32_t x,
                                       uint32_t y,
-                                      CmKernel *pKernel,
+                                      CmKernel *kernel,
                                       uint32_t threadId);
 
     CM_RT_API int32_t AssociateThreadWithMask(uint32_t x,
                                               uint32_t y,
-                                              CmKernel *pKernel,
+                                              CmKernel *kernel,
                                               uint32_t threadId,
                                               uint8_t dependencyMask);
 
@@ -110,24 +110,24 @@ public:
 
     CM_RT_API int32_t
     SetThreadSpaceOrder(uint32_t threadCount,
-                        const CM_THREAD_PARAM *pThreadSpaceOrder);
+                        const CM_THREAD_PARAM *threadSpaceOrder);
 
     int32_t GetThreadSpaceSize(uint32_t &width, uint32_t &height);
 
-    int32_t GetThreadSpaceUnit(CM_THREAD_SPACE_UNIT *&pThreadSpaceUnit);
+    int32_t GetThreadSpaceUnit(CM_THREAD_SPACE_UNIT *&threadSpaceUnit);
 
-    int32_t GetDependency(CM_HAL_DEPENDENCY *&pDependency);
+    int32_t GetDependency(CM_HAL_DEPENDENCY *&dependency);
 
     int32_t
-    GetDependencyPatternType(CM_DEPENDENCY_PATTERN &DependencyPatternType);
+    GetDependencyPatternType(CM_DEPENDENCY_PATTERN &dependencyPatternType);
 
-    int32_t GetWalkingPattern(CM_WALKING_PATTERN &pWalkingPattern);
+    int32_t GetWalkingPattern(CM_WALKING_PATTERN &walkingPattern);
 
     int32_t Get26ZIDispatchPattern(CM_26ZI_DISPATCH_PATTERN &pattern);
 
-    int32_t GetWalkingParameters(CM_WALKING_PARAMETERS &pWalkingParameters);
+    int32_t GetWalkingParameters(CM_WALKING_PARAMETERS &walkingParameters);
 
-    int32_t GetDependencyVectors(CM_HAL_DEPENDENCY &pDependencyVectors);
+    int32_t GetDependencyVectors(CM_HAL_DEPENDENCY &dependencyVectors);
 
     bool CheckWalkingParametersSet();
 
@@ -140,9 +140,9 @@ public:
     int32_t GetWavefront26ZDispatchInfo(
         CM_HAL_WAVEFRONT26Z_DISPATCH_INFO &dispatchInfo);
 
-    bool IntegrityCheck(CmTaskRT *pTask);
+    bool IntegrityCheck(CmTaskRT *task);
 
-    int32_t GetBoardOrder(uint32_t *&pBoardOrder);
+    int32_t GetBoardOrder(uint32_t *&boardOrder);
 
     int32_t Wavefront45Sequence();
 
@@ -172,11 +172,11 @@ public:
 
     CM_THREAD_SPACE_DIRTY_STATUS GetDirtyStatus() const;
 
-    uint32_t SetDirtyStatus(CM_THREAD_SPACE_DIRTY_STATUS DirtyStatus) const;
+    uint32_t SetDirtyStatus(CM_THREAD_SPACE_DIRTY_STATUS dirtyStatus) const;
 
     bool GetNeedSetKernelPointer() const;
 
-    int32_t SetKernelPointer(CmKernelRT *pKernel) const;
+    int32_t SetKernelPointer(CmKernelRT *kernel) const;
 
     bool KernelPointerIsNULL() const;
 
@@ -186,7 +186,7 @@ public:
 
 #if USE_EXTENSION_CODE
     friend class CmThreadSpaceExt;
-    CmThreadSpaceExt *threadSpaceExt;
+    CmThreadSpaceExt *m_threadSpaceExt;
 #endif
 
 #if CM_LOG_ON
@@ -194,7 +194,7 @@ public:
 #endif
 
 protected:
-    CmThreadSpaceRT(CmDeviceRT *pDevice,
+    CmThreadSpaceRT(CmDeviceRT *device,
                     uint32_t indexTsArray,
                     uint32_t width,
                     uint32_t height);
@@ -207,47 +207,47 @@ protected:
     int32_t PrintBoardOrder();
 #endif
 
-    CmDeviceRT *m_pDevice;
+    CmDeviceRT *m_device;
 
-    uint32_t m_Width;
-    uint32_t m_Height;
-    uint32_t m_ColorCountMinusOne;
+    uint32_t m_width;
+    uint32_t m_height;
+    uint32_t m_colorCountMinusOne;
 
     uint32_t m_26ZIBlockWidth;
     uint32_t m_26ZIBlockHeight;
 
-    CM_THREAD_SPACE_UNIT *m_pThreadSpaceUnit;
-    bool m_ThreadAssociated;
+    CM_THREAD_SPACE_UNIT *m_threadSpaceUnit;
+    bool m_threadAssociated;
 
-    bool m_NeedSetKernelPointer;
-    CmKernelRT **m_ppKernel;
+    bool m_needSetKernelPointer;
+    CmKernelRT **m_kernel;
 
-    CM_DEPENDENCY_PATTERN m_DependencyPatternType;
-    CM_DEPENDENCY_PATTERN m_CurrentDependencyPattern;
-    CM_HAL_DEPENDENCY m_Dependency;
+    CM_DEPENDENCY_PATTERN m_dependencyPatternType;
+    CM_DEPENDENCY_PATTERN m_currentDependencyPattern;
+    CM_HAL_DEPENDENCY m_dependency;
     CM_26ZI_DISPATCH_PATTERN m_26ZIDispatchPattern;
-    CM_26ZI_DISPATCH_PATTERN m_Current26ZIDispatchPattern;
+    CM_26ZI_DISPATCH_PATTERN m_current26ZIDispatchPattern;
 
-    uint32_t *m_pBoardFlag;
-    uint32_t *m_pBoardOrderList;
-    uint32_t m_IndexInList;
-    uint32_t m_IndexInTsArray;  // index in device's TsArray
+    uint32_t *m_boardFlag;
+    uint32_t *m_boardOrderList;
+    uint32_t m_indexInList;
+    uint32_t m_indexInThreadSpaceArray;  // index in device's ThreadSpaceArray
 
-    CM_WALKING_PATTERN m_WalkingPattern;
-    uint32_t m_WalkingParameters[CM_NUM_DWORD_FOR_MW_PARAM];
-    bool m_MediaWalkerParamsSet;
-    CM_HAL_DEPENDENCY m_DependencyVectors;
-    bool m_DependencyVectorsSet;
-    bool m_ThreadSpaceOrderSet;
+    CM_WALKING_PATTERN m_walkingPattern;
+    uint32_t m_walkingParameters[CM_NUM_DWORD_FOR_MW_PARAM];
+    bool m_mediaWalkerParamsSet;
+    CM_HAL_DEPENDENCY m_dependencyVectors;
+    bool m_dependencyVectorsSet;
+    bool m_threadSpaceOrderSet;
 
 private:
     CmThreadSpaceRT(const CmThreadSpaceRT &other);
 
     CmThreadSpaceRT &operator=(const CmThreadSpaceRT &other);
 
-    CM_THREAD_SPACE_DIRTY_STATUS *m_pDirtyStatus;
+    CM_THREAD_SPACE_DIRTY_STATUS *m_dirtyStatus;
 
-    CM_HAL_WAVEFRONT26Z_DISPATCH_INFO m_Wavefront26ZDispatchInfo;
+    CM_HAL_WAVEFRONT26Z_DISPATCH_INFO m_wavefront26ZDispatchInfo;
 
     //Group select in media pipe, by default no group setting
     CM_MW_GROUP_SELECT m_groupSelect;

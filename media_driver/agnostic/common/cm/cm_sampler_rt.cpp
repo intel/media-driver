@@ -35,16 +35,16 @@ namespace CMRT_UMD
 //| Purpose:    Create CmSampler
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmSamplerRT::Create( uint32_t index, CmSamplerRT* & pSampler )
+int32_t CmSamplerRT::Create( uint32_t index, CmSamplerRT* & sampler )
 {
     int32_t result = CM_SUCCESS;
-    pSampler = new (std::nothrow) CmSamplerRT();
-    if( pSampler )
+    sampler = new (std::nothrow) CmSamplerRT();
+    if( sampler )
     {
-        result = pSampler->Initialize( index );
+        result = sampler->Initialize( index );
         if( result != CM_SUCCESS )
         {
-            CmSamplerRT::Destroy( pSampler );
+            CmSamplerRT::Destroy( sampler );
         }
     }
     else
@@ -59,9 +59,9 @@ int32_t CmSamplerRT::Create( uint32_t index, CmSamplerRT* & pSampler )
 //| Purpose:    Destory CmSampler
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmSamplerRT::Destroy( CmSamplerRT* &pSampler )
+int32_t CmSamplerRT::Destroy( CmSamplerRT* &sampler )
 {
-    CmSafeDelete( pSampler );
+    CmSafeDelete( sampler );
 
     return CM_SUCCESS;
 }
@@ -71,7 +71,7 @@ int32_t CmSamplerRT::Destroy( CmSamplerRT* &pSampler )
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 CmSamplerRT::CmSamplerRT( void ):
-                    m_pIndex( nullptr )
+                    m_index( nullptr )
 {
 }
 
@@ -81,9 +81,9 @@ CmSamplerRT::CmSamplerRT( void ):
 //*-----------------------------------------------------------------------------
 CmSamplerRT::~CmSamplerRT( void )
 {
-    if( m_pIndex )
+    if( m_index )
     {
-        MOS_Delete(m_pIndex);
+        MOS_Delete(m_index);
     }
 }
 
@@ -94,8 +94,8 @@ CmSamplerRT::~CmSamplerRT( void )
 int32_t CmSamplerRT::Initialize( uint32_t index )
 {
     // using CM compiler data structures
-    m_pIndex = MOS_New(SamplerIndex, index);
-    if( m_pIndex )
+    m_index = MOS_New(SamplerIndex, index);
+    if( m_index )
     {
         return CM_SUCCESS;
     }
@@ -114,9 +114,9 @@ int32_t CmSamplerRT::Initialize( uint32_t index )
 //! OUTPUT:
 //!     CM_SUCCESS if index is successfully returned
 //*-----------------------------------------------------------------------------
-CM_RT_API int32_t CmSamplerRT::GetIndex( SamplerIndex* & pIndex )
+CM_RT_API int32_t CmSamplerRT::GetIndex( SamplerIndex* & index )
 {
-    pIndex = m_pIndex;
+    index = m_index;
     return CM_SUCCESS;
 }
 

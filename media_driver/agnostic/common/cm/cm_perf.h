@@ -48,7 +48,7 @@ private:
     LARGE_INTEGER       m_start;
     LARGE_INTEGER       m_end;
     LARGE_INTEGER       m_freq;
-    std::string         m_func_name;
+    std::string         m_funcName;
     bool                m_bstopped;
 };
 

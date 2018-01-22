@@ -32,30 +32,30 @@ namespace CMRT_UMD
 class CmVeboxData : public CmDynamicArray
 {
 public:
-    static int32_t Create( uint8_t *pStateData, uint8_t *pSurfaceData, CmVeboxData*& pVeboxData );
-    static int32_t Destroy( CmVeboxData* &pVeboxData );
+    static int32_t Create( uint8_t *stateData, uint8_t *surfaceData, CmVeboxData*& veboxData );
+    static int32_t Destroy( CmVeboxData* &veboxData );
 
-    int32_t GetData( uint8_t*& pStateData, uint8_t*& pSurfaceData );
-    int32_t SetVeboxDataSize(uint32_t uiStateDataSize, uint32_t uiSurfaceDataSize);
-    int32_t GetVeboxDataSize(uint32_t& uiStateDataSize, uint32_t& uiSurfaceDataSize);
+    int32_t GetData( uint8_t*& stateData, uint8_t*& surfaceData );
+    int32_t SetVeboxDataSize(uint32_t stateDataSize, uint32_t surfaceDataSize);
+    int32_t GetVeboxDataSize(uint32_t& stateDataSize, uint32_t& surfaceDataSize);
 
     int32_t Acquire(void);
     int32_t SafeRelease(void);
 
 protected:
 
-    CmVeboxData( uint8_t *pStateData, uint8_t *pSurfaceData );
+    CmVeboxData( uint8_t *stateData, uint8_t *surfaceData );
     ~CmVeboxData ( void );
 
     int32_t Initialize( void );
 
-    uint32_t m_StateDataSize;
-    uint8_t *m_pStateData;
+    uint32_t m_stateDataSize;
+    uint8_t *m_stateData;
 
-    uint32_t m_SurfaceDataSize;
-    uint8_t *m_pSurfaceData;
+    uint32_t m_surfaceDataSize;
+    uint8_t *m_surfaceData;
 
-    int32_t m_RefCount;
+    int32_t m_refCount;
 
 private:
     CmVeboxData& operator= (const CmVeboxData& other);

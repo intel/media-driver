@@ -59,8 +59,8 @@ typedef struct _CM_JIT_INFO {
     // whether kernel uses a barrier
     bool usesBarrier;
 
-    unsigned BBNum;
-    CM_BB_INFO *BBInfo;
+    unsigned bbNum;
+    CM_BB_INFO *bbInfo;
 
     // number of spill/fill, weighted by loop
     unsigned int numGRFSpillFill;

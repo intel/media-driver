@@ -128,7 +128,7 @@ CM_RT_API int32_t CmBuffer_RT::WriteSurface( const unsigned char* sysMem, CmEven
 
     // Lock Buffer first
     CmDeviceRT * cmDevice = nullptr;
-    m_SurfaceMgr->GetCmDevice(cmDevice);
+    m_surfaceMgr->GetCmDevice(cmDevice);
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)cmDevice->GetAccelData();
 
     CM_HAL_BUFFER_PARAM inParam;
@@ -187,7 +187,7 @@ CM_RT_API int32_t CmBuffer_RT::ReadSurface( unsigned char* sysMem, CmEvent* even
 
     // Lock Buffer first
     CmDeviceRT * cmDevice = nullptr;
-    m_SurfaceMgr->GetCmDevice(cmDevice);
+    m_surfaceMgr->GetCmDevice(cmDevice);
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)cmDevice->GetAccelData();
 
     CM_HAL_BUFFER_PARAM inParam;
@@ -213,7 +213,7 @@ finish:
 
 CM_RT_API int32_t CmBuffer_RT::GetIndex( SurfaceIndex*& index )
 {
-    index = m_pIndex;
+    index = m_index;
     return CM_SUCCESS;
 }
 
@@ -232,7 +232,7 @@ CM_RT_API int32_t CmBuffer_RT::InitSurface(const uint32_t initValue, CmEvent* ev
     }
 
     CmDeviceRT* cmDevice = nullptr;
-    m_SurfaceMgr->GetCmDevice( cmDevice );
+    m_surfaceMgr->GetCmDevice( cmDevice );
     CM_ASSERT( cmDevice );
 
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)cmDevice->GetAccelData();
@@ -267,11 +267,11 @@ int32_t CmBuffer_RT::SetMemoryObjectControl( MEMORY_OBJECT_CONTROL memCtrl, MEMO
     CmSurface::SetMemoryObjectControl( memCtrl, memType, age );
 
     CmDeviceRT *cmDevice = nullptr;
-    m_SurfaceMgr->GetCmDevice(cmDevice);
+    m_surfaceMgr->GetCmDevice(cmDevice);
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)cmDevice->GetAccelData();
     CMCHK_NULL(cmData);
 
-    mocs = (m_MemObjCtrl.mem_ctrl << 8) | (m_MemObjCtrl.mem_type<<4) | m_MemObjCtrl.age;
+    mocs = (m_memObjCtrl.mem_ctrl << 8) | (m_memObjCtrl.mem_type<<4) | m_memObjCtrl.age;
 
     CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnSetSurfaceMOCS(cmData->cmHalState, m_handle, mocs, ARG_KIND_SURFACE_1D));
 
@@ -308,7 +308,7 @@ CM_RT_API int32_t CmBuffer_RT::SetSurfaceStateParam(SurfaceIndex *surfIndex, con
         newSize = m_size - bufferStateParam->uiBaseAddressOffset;
     }
     CmDeviceRT* cmDevice = nullptr;
-    m_SurfaceMgr->GetCmDevice( cmDevice );
+    m_surfaceMgr->GetCmDevice( cmDevice );
     if (nullptr == cmDevice)
     {
         CM_ASSERTMESSAGE("Error: Invalid CmDevice.");
@@ -331,7 +331,7 @@ CM_RT_API int32_t CmBuffer_RT::SetSurfaceStateParam(SurfaceIndex *surfIndex, con
     }
     else
     {
-        inParam.aliasIndex  = m_pIndex->get_data();
+        inParam.aliasIndex  = m_index->get_data();
     }
     inParam.handle  = m_handle;
     inParam.offset  = bufferStateParam->uiBaseAddressOffset;
@@ -401,8 +401,8 @@ int32_t CmBuffer_RT::CreateBufferAlias(SurfaceIndex* & aliasIndex)
 
     if( m_numAliases < CM_HAL_MAX_NUM_BUFFER_ALIASES )
     {
-        origIndex = m_pIndex->get_data();
-        m_SurfaceMgr->GetSurfaceArraySize(surfArraySize);
+        origIndex = m_index->get_data();
+        m_surfaceMgr->GetSurfaceArraySize(surfArraySize);
         newIndex = origIndex + ( (m_numAliases + 1) * surfArraySize);
         m_aliasIndexes[m_numAliases] = MOS_New(SurfaceIndex, newIndex);
         if( m_aliasIndexes[m_numAliases] )
@@ -437,8 +437,8 @@ void CmBuffer_RT::Log(std::ostringstream &oss)
         << " Buffer Type:"  << m_bufferType
         << " Sys Address:"  << m_sysMem
         << " Handle:"       << m_handle
-        << " SurfaceIndex:" << m_pIndex->get_data()
-        << " IsCmCreated:"  << m_IsCmCreated
+        << " SurfaceIndex:" << m_index->get_data()
+        << " IsCmCreated:"  << m_isCmCreated
         << std::endl;
 #endif
 }
@@ -456,7 +456,7 @@ void CmBuffer_RT::DumpContent(uint32_t kernelNumber, int32_t taskId, uint32_t ar
     outputFileName << "t_" << taskId
         << "_k_" << kernelNumber
         <<"_argi_"<< argIndex
-        << "_buffer_surfi_" << m_pIndex->get_data()
+        << "_buffer_surfi_" << m_index->get_data()
         <<"_w_"<< m_size
         <<"_"<< bufferDumpNumber;
 
@@ -472,7 +472,7 @@ void CmBuffer_RT::DumpContent(uint32_t kernelNumber, int32_t taskId, uint32_t ar
         std::vector<char>buffer(m_size);
 
         CmDeviceRT *cmDevice = nullptr;
-        m_SurfaceMgr->GetCmDevice(cmDevice);
+        m_surfaceMgr->GetCmDevice(cmDevice);
         PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)cmDevice->GetAccelData();
         CM_HAL_BUFFER_PARAM inParam;
         CmSafeMemSet(&inParam, 0, sizeof(CM_HAL_BUFFER_PARAM));

@@ -81,25 +81,25 @@ void CmFtrace::WriteTaskProfilingInfo(CM_PROFILING_INFO *pTaskInfo)
     uint byte_input = 0;
 
     PRINT_TO_STRING("%s: ", "mdf_v1")
-    PRINT_TO_STRING("kernelcount=%d|", pTaskInfo->dwKernelCount);
-    PRINT_TO_STRING("taskid=%d|",      pTaskInfo->dwTaskID);
-    PRINT_TO_STRING("threadid=%u|",    pTaskInfo->dwThreadID);
+    PRINT_TO_STRING("kernelcount=%d|", pTaskInfo->kernelCount);
+    PRINT_TO_STRING("taskid=%d|",      pTaskInfo->taskID);
+    PRINT_TO_STRING("threadid=%u|",    pTaskInfo->threadID);
 
     uint kernel_name_offset = 0;
-    for(uint i=0 ; i< pTaskInfo->dwKernelCount; i++)
+    for(uint i=0 ; i< pTaskInfo->kernelCount; i++)
     {
         //Kernel name.
-        char *kernelname = pTaskInfo->pKernelNames + kernel_name_offset;
+        char *kernelname = pTaskInfo->kernelNames + kernel_name_offset;
         PRINT_TO_STRING("kernelname=%s|", kernelname);
         kernel_name_offset += strlen(kernelname) + 1;
 
         //Local work width&height
-        PRINT_TO_STRING("localwidth=%d|", pTaskInfo->pLocalWorkWidth[i]);
-        PRINT_TO_STRING("localheight=%d|", pTaskInfo->pLocalWorkHeight[i]);
+        PRINT_TO_STRING("localwidth=%d|", pTaskInfo->localWorkWidth[i]);
+        PRINT_TO_STRING("localheight=%d|", pTaskInfo->localWorkHeight[i]);
 
         //Global work width&height
-        PRINT_TO_STRING("globalwidth=%d|",  pTaskInfo->pGlobalWorkWidth[i]);
-        PRINT_TO_STRING("globalheight=%d|", pTaskInfo->pGlobalWorkHeight[i]);
+        PRINT_TO_STRING("globalwidth=%d|",  pTaskInfo->globalWorkWidth[i]);
+        PRINT_TO_STRING("globalheight=%d|", pTaskInfo->globalWorkHeight[i]);
     }
 
     //Note: enqueuetime/flushtime/completetime are measured in performance counter
@@ -109,14 +109,14 @@ void CmFtrace::WriteTaskProfilingInfo(CM_PROFILING_INFO *pTaskInfo)
     //hw_start_time = flush_time; hw_end_time = hw_start_time + kernel_execution_time
 
     LARGE_INTEGER kernel_exe_time;
-    kernel_exe_time.QuadPart = pTaskInfo->HwEndTime.QuadPart - pTaskInfo->HwStartTime.QuadPart;
+    kernel_exe_time.QuadPart = pTaskInfo->hwEndTime.QuadPart - pTaskInfo->hwStartTime.QuadPart;
 
     //write time stampes
-    PRINT_TO_STRING("enqueuetime=%lld|",   (long long)pTaskInfo->EnqueueTime.QuadPart);
-    PRINT_TO_STRING("flushtime=%lld|",     (long long)pTaskInfo->FlushTime.QuadPart);
-    PRINT_TO_STRING("hwstarttime=%lld|",   (long long)pTaskInfo->FlushTime.QuadPart);
-    PRINT_TO_STRING("hwendtime=%lld|",     (long long)(pTaskInfo->FlushTime.QuadPart + kernel_exe_time.QuadPart) );
-    PRINT_TO_STRING("completetime=%lld\n", (long long)pTaskInfo->CompleteTime.QuadPart);
+    PRINT_TO_STRING("enqueuetime=%lld|",   (long long)pTaskInfo->enqueueTime.QuadPart);
+    PRINT_TO_STRING("flushtime=%lld|",     (long long)pTaskInfo->flushTime.QuadPart);
+    PRINT_TO_STRING("hwstarttime=%lld|",   (long long)pTaskInfo->flushTime.QuadPart);
+    PRINT_TO_STRING("hwendtime=%lld|",     (long long)(pTaskInfo->flushTime.QuadPart + kernel_exe_time.QuadPart) );
+    PRINT_TO_STRING("completetime=%lld\n", (long long)pTaskInfo->completeTime.QuadPart);
 
     // write message to trace_marker
     size_t writeSize = write(m_filehandle, msg_buf, byte_offset);

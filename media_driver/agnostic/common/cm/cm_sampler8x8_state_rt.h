@@ -39,13 +39,13 @@ class SamplerIndex;
 class CmSampler8x8State_RT: public CmSampler8x8
 {
 public:
-    CM_RT_API int32_t GetIndex(SamplerIndex* &pIndex);
+    CM_RT_API int32_t GetIndex(SamplerIndex* &index);
 
     static int32_t Create(const CM_SAMPLER_8X8_DESCR &sampleState,
                           unsigned int index,
-                          CmSampler8x8State_RT* &pSampler);
+                          CmSampler8x8State_RT* &sampler);
 
-    static int32_t Destroy(CmSampler8x8State_RT* &pSampler);
+    static int32_t Destroy(CmSampler8x8State_RT* &sampler);
 
     //NOT depend on RTTI::dynamic_cast
     CM_ENUM_CLASS_TYPE Type() const
@@ -62,11 +62,11 @@ private:
 
     int32_t Initialize(unsigned int index);
 
-    SamplerIndex *m_pIndex;
+    SamplerIndex *m_index;
 
-    CM_AVS_STATE_MSG m_avs_state;
-    CM_CONVOLVE_STATE_MSG m_convolve_state; //BWL+
-    CM_MISC_STATE_MSG m_misc_state; //BWL+
+    CM_AVS_STATE_MSG m_avsState;
+    CM_CONVOLVE_STATE_MSG m_convolveState;
+    CM_MISC_STATE_MSG m_miscState;
 
     CM_SAMPLER_STATE_TYPE m_stateType;
 };

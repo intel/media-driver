@@ -45,10 +45,10 @@ class CmSurface3D
 public:
     //! \brief      This function returns the SurfaceIndex object associated
     //!             with the surface.
-    //! \param      [out] pIndex
+    //! \param      [out] index
     //!             Reference to the pointer to the SurfaceIndex.
     //! \returns    Always returns CM_SUCCESS.
-    CM_RT_API virtual int32_t GetIndex(SurfaceIndex* &pIndex) = 0;
+    CM_RT_API virtual int32_t GetIndex(SurfaceIndex* &index) = 0;
 
     //! \brief      Copy the surface content to system memory.
     //! \details    The size of data copied is the size of data in surface. It is
@@ -61,22 +61,22 @@ public:
     //!             the task corresponding to the dependent task but before
     //!             ReadSurface. If sysMemSize is given, it will be checked
     //!             against the size needed for the surface.
-    //! \param      [in] pSysMem
+    //! \param      [in] sysMem
     //!             pointer to the target system memory.
-    //! \param      [in] pEvent
+    //! \param      [in] event
     //!             pointer to the dependent event. See also CmEvent.
     //! \param      [in] sysMemSize
     //!             size of the system memory. Default value is -1 which means
     //!             no memory size checking.
     //! \retval     CM_SUCCESS if the copy is successful.
-    //! \retval     CM_INVALID_ARG_VALUE if pSysMem is nullptr or the sysMemSize
+    //! \retval     CM_INVALID_ARG_VALUE if sysMem is nullptr or the sysMemSize
     //!             is less than total size of CmSurface3D.
     //! \retval     CM_LOCK_SURFACE_FAIL if surface locking is failed.
     //! \retval     CM_EXCEED_MAX_TIMEOUT if the dependent task times out.
     //! \retval     CM_FAILURE otherwise.
     CM_RT_API virtual int32_t
-    ReadSurface(unsigned char *pSysMem,
-                CmEvent *pEvent,
+    ReadSurface(unsigned char *sysMem,
+                CmEvent *event,
                 uint64_t sysMemSize = 0xFFFFFFFFFFFFFFFFULL) = 0;
 
     //! \brief      Copy system memory content to surface.
@@ -88,22 +88,22 @@ public:
     //!             CM_STATUS_FINISHED. The dependent event for WriteSurface is
     //!             usually NULL. If sysMemSize is given, it will be checked
     //!             against the size needed for the surface.
-    //! \param      [in] pSysMem
+    //! \param      [in] sysMem
     //!             pointer to the source system memory.
-    //! \param      [in] pEvent
+    //! \param      [in] event
     //!             pointer to the dependent event. See also CmEvent.
     //! \param      [in] sysMemSize
     //!             size of the system memory. The default value is -1, which
     //!             means no memory size checking.
     //! \retval     CM_SUCCESS if the copy is successful.
-    //! \retval     CM_INVALID_ARG_VALUE if pSysMem is nullptr or the sysMemSize
+    //! \retval     CM_INVALID_ARG_VALUE if sysMem is nullptr or the sysMemSize
     //!             is less than total size of CmSurface3D.
     //! \retval     CM_LOCK_SURFACE_FAIL if surface locking is failed.
     //! \retval     CM_EXCEED_MAX_TIMEOUT if the dependent task times out.
     //! \retval     CM_FAILURE otherwise.
     CM_RT_API virtual int32_t
-    WriteSurface(const unsigned char *pSysMem,
-                 CmEvent *pEvent,
+    WriteSurface(const unsigned char *sysMem,
+                 CmEvent *event,
                  uint64_t sysMemSize = 0xFFFFFFFFFFFFFFFFULL) = 0;
 
     //! \brief      Set memory in surface to initValue.
@@ -115,24 +115,24 @@ public:
     //!             event for InitSurface is usually NULL.
     //! \param      [in] initValue
     //!             4-byte value used to initilize the memory.
-    //! \param      [in] pEvent
+    //! \param      [in] event
     //!             pointer to the dependent event. See also CmEvent.
     //! \retval     CM_SUCCESS if the copy is successful.
     //! \retval     CM_LOCK_SURFACE_FAIL if surface locking is failed.
     //! \retval     CM_FAILURE otherwise.
     CM_RT_API virtual int32_t InitSurface(const uint32_t initValue,
-                                          CmEvent *pEvent) = 0;
+                                          CmEvent *event) = 0;
 
     //! \brief      Selects one of the pre-defined memory object control
     //!             settings for this surface.
-    //! \param      [in] mem_ctrl
+    //! \param      [in] memCtrl
     //!             the selected pre-defined memory object control setting.
     //!             See also MEMORY_OBJECT_CONTROL.
     //! \retval     CM_SUCCESS if the copy is successful.
     //! \retval     CM_FAILURE otherwise.
     //! \note       This API is platform related, and only for SKL and plus platforms.
     CM_RT_API virtual int32_t
-    SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL mem_ctrl) = 0;
+    SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL memCtrl) = 0;
 };
 };//namespace
 

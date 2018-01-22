@@ -31,32 +31,32 @@ namespace CMRT_UMD
 {
 CmStateBuffer::CmStateBuffer(uint32_t handle,
                              uint32_t size,
-                             CmSurfaceManager *pSurfaceManager,
-                             CM_STATE_BUFFER_TYPE state_buffer_type)
-    : CmBuffer_RT(handle, size, true, pSurfaceManager, 0, false, nullptr, false,
+                             CmSurfaceManager *surfaceManager,
+                             CM_STATE_BUFFER_TYPE stateBufferType)
+    : CmBuffer_RT(handle, size, true, surfaceManager, 0, false, nullptr, false,
                   0, 0),
-      m_state_buffer_type(state_buffer_type) {}
+      m_stateBufferType(stateBufferType) {}
 
 CMRT_UMD::CmStateBuffer::~CmStateBuffer() {}
 
 int32_t CmStateBuffer::Create(uint32_t index,
                               uint32_t handle,
                               uint32_t size,
-                              CmSurfaceManager *pSurfaceManager,
-                              CM_STATE_BUFFER_TYPE state_buffer_type,
-                              CmStateBuffer *&pSurface)
+                              CmSurfaceManager *surfaceManager,
+                              CM_STATE_BUFFER_TYPE stateBufferType,
+                              CmStateBuffer *&surface)
 {
     int32_t result = CM_SUCCESS;
 
-    pSurface = new (std::nothrow)
-        CmStateBuffer(handle, size, pSurfaceManager, state_buffer_type);
-    if (pSurface)
+    surface = new (std::nothrow)
+        CmStateBuffer(handle, size, surfaceManager, stateBufferType);
+    if (surface)
     {
-        result = pSurface->Initialize(index);
+        result = surface->Initialize(index);
         if (result != CM_SUCCESS)
         {
-            CmSurface *pBaseSurface = pSurface;
-            CmSurface::Destroy(pBaseSurface);
+            CmSurface *baseSurface = surface;
+            CmSurface::Destroy(baseSurface);
         }
     }
     else

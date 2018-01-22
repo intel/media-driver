@@ -37,197 +37,197 @@
 
 typedef struct _CM_DESTROYCMDEVICE_PARAM
 {
-    void        *pCmDeviceHandle;        // [in/out] pointer to CmDevice object
-    int32_t     iReturnValue;           // [out] the return value from CMRT@UMD
+    void        *deviceHandle;        // [in/out] pointer to CmDevice object
+    int32_t     returnValue;           // [out] the return value from CMRT@UMD
 }CM_DESTROYCMDEVICE_PARAM, *PCM_DESTROYCMDEVICE_PARAM;
 
 typedef struct _CM_DESTROYBUFFER_PARAM
 {
-    void        *pCmBufferHandle;       // [in/out] pointer to CmBuffer object
-    int32_t     iReturnValue;           // [out] the return value from CMRT@UMD
+    void        *bufferHandle;       // [in/out] pointer to CmBuffer object
+    int32_t     returnValue;           // [out] the return value from CMRT@UMD
 }CM_DESTROYBUFFER_PARAM, *PCM_DESTROYBUFFER_PARAM;
 
 typedef struct _CM_DESTROYSURFACE2D_PARAM
 {
-    void        *pCmSurface2DHandle;         // [in/out] pointer to CmSurface2D object
-    int32_t     iReturnValue;               // [out] the return value from CMRT@UMD
+    void        *surface2DHandle;         // [in/out] pointer to CmSurface2D object
+    int32_t     returnValue;               // [out] the return value from CMRT@UMD
 }CM_DESTROYSURFACE2D_PARAM, *PCM_DESTROYSURFACE2D_PARAM;
 
 typedef struct _CM_CREATESURFACE2DUP_PARAM
 {
-    uint32_t iWidth;                // [in] width of 2D texture in pixel
-    uint32_t iHeight;               // [in] height of 2D texture in pixel
-    CM_OSAL_SURFACE_FORMAT Format;  // [in] 2D texture foramt in OS layer.
-    void *pSysMem;                  // [in] Pointer to system memory
-    void *pCmSurface2DUPHandle;     // [out] pointer of CmSurface2D used in driver
-    int32_t iReturnValue;           // [out] the return value from driver
+    uint32_t width;                // [in] width of 2D texture in pixel
+    uint32_t height;               // [in] height of 2D texture in pixel
+    CM_OSAL_SURFACE_FORMAT format;  // [in] 2D texture foramt in OS layer.
+    void *sysMem;                  // [in] Pointer to system memory
+    void *surface2DUPHandle;     // [out] pointer of CmSurface2D used in driver
+    int32_t returnValue;           // [out] the return value from driver
 }CM_CREATESURFACE2DUP_PARAM, *PCM_CREATESURFACE2DUP_PARAM;
 
 typedef struct _CM_DESTROYSURFACE2DUP_PARAM
 {
-    void        *pCmSurface2DUPHandle;         // [in/out] pointer to CmSurface2D object
-    int32_t     iReturnValue;               // [out] the return value from CMRT@UMD
+    void        *surface2DUPHandle;         // [in/out] pointer to CmSurface2D object
+    int32_t     returnValue;               // [out] the return value from CMRT@UMD
 }CM_DESTROYSURFACE2DUP_PARAM, *PCM_DESTROYSURFACE2DUP_PARAM;
 
 typedef struct _CM_LOADPROGRAM_PARAM
 {
-    void                *pCISACode;              // [in] pointer to the CISA code buffer
-    uint32_t            uiCISACodeSize;         // [in] size of CISA code
+    void                *cisaCode;              // [in] pointer to the CISA code buffer
+    uint32_t            cisaCodeSize;         // [in] size of CISA code
     char*               options;                // [in] additonal options for LoadProgram
-    void                *pCmProgramHandle;       // [out] pointer to CmProgram object used by CMRT@UMD
+    void                *programHandle;       // [out] pointer to CmProgram object used by CMRT@UMD
     uint32_t            indexInArray;           // [out] index in m_ProgramArray of CMRT@UMD
-    int32_t             iReturnValue;           // [out] the return value from CMRT@UMD
+    int32_t             returnValue;           // [out] the return value from CMRT@UMD
 }CM_LOADPROGRAM_PARAM, *PCM_LOADPROGRAM_PARAM;
 
 typedef struct _CM_DESTROYPROGRAM_PARAM
 {
-    void                *pCmProgramHandle;       // [IN] pointer to CmProgram object used by CMRT@UMD
-    int32_t             iReturnValue;           // [out] the return value from CMRT@UMD
+    void                *programHandle;       // [IN] pointer to CmProgram object used by CMRT@UMD
+    int32_t             returnValue;           // [out] the return value from CMRT@UMD
 }CM_DESTROYPROGRAM_PARAM, *PCM_DESTROYPROGRAM_PARAM;
 
 typedef struct _CM_CREATEKERNEL_PARAM
 {
-    void                *pCmProgramHandle;       // [in] pointer to CmProgram used in driver
-    char*               pKernelName;            // [in] pointer to the kernel name string
-    char*               pOptions;               // [in] pointer to the kernel creation options
-    void                *pCmKernelHandle;        // [out] pointer to new created CmKernel used in driver
+    void                *programHandle;       // [in] pointer to CmProgram used in driver
+    char*               kernelName;            // [in] pointer to the kernel name string
+    char*               options;               // [in] pointer to the kernel creation options
+    void                *kernelHandle;        // [out] pointer to new created CmKernel used in driver
     uint32_t            indexKernelArray;       // [out] index in m_KernelArray
-    int32_t             iReturnValue;           // [out] the return value from driver
+    int32_t             returnValue;           // [out] the return value from driver
 }CM_CREATEKERNEL_PARAM, *PCM_CREATEKERNEL_PARAM;
 
 typedef struct _CM_DESTROYKERNEL_PARAM
 {
-    void                *pCmKernelHandle;        // [in/out] pointer to new created CmKernel used in driver
-    int32_t             iReturnValue;           // [out] the return value from driver
+    void                *kernelHandle;        // [in/out] pointer to new created CmKernel used in driver
+    int32_t             returnValue;           // [out] the return value from driver
 }CM_DESTROYKERNEL_PARAM, *PCM_DESTROYKERNEL_PARAM;
 
 typedef struct _CM_SETSURFACEMEMORYOBJECTCTRL_PARAM
 {
-    void                    *pCmSurfaceHandle;       // [in]
+    void                    *surfaceHandle;       // [in]
     MEMORY_OBJECT_CONTROL   memCtrl;                // [in]
     MEMORY_TYPE             memType;                // [in]
-    uint32_t                uiAge;                  // [in]
-    int32_t                 iReturnValue;           // [out]
+    uint32_t                age;                  // [in]
+    int32_t                 returnValue;           // [out]
 }CM_SETSURFACEMEMORYOBJECTCTRL_PARAM, *PCM_SETSURFACEMEMORYOBJECTCTRL_PARAM;
 
 typedef struct _CM_CREATETASK_PARAM
 {
-    void                *pCmTaskHandle;          // [out] pointer to new created CmTask used in driver
-    uint32_t            iTaskIndex;             // [out] index of task i
-    int32_t             iReturnValue;           // [out] the return value from driver
+    void                *taskHandle;          // [out] pointer to new created CmTask used in driver
+    uint32_t            taskIndex;             // [out] index of task i
+    int32_t             returnValue;           // [out] the return value from driver
 }CM_CREATETASK_PARAM, *PCM_CREATETASK_PARAM;
 
 typedef struct _CM_DESTROYTASK_PARAM
 {
-    void                *pCmTaskHandle;          // [in/out] pointer to CmTask used in driver
-    int32_t             iReturnValue;           // [out] the return value from driver
+    void                *taskHandle;          // [in/out] pointer to CmTask used in driver
+    int32_t             returnValue;           // [out] the return value from driver
 }CM_DESTROYTASK_PARAM, *PCM_DESTROYTASK_PARAM;
 
 struct CM_CREATEQUEUE_PARAM
 {
-    unsigned int            iCmQueueType;           // [in]
-    bool                    bCmRunAloneMode;        // [in]
-    unsigned int            iCmGPUContext;          // [in]
-    void                   *pCmQueueHandle;         // [out]
-    int32_t                 iReturnValue;           // [out]
+    unsigned int            queueType;           // [in]
+    bool                    runAloneMode;        // [in]
+    unsigned int            gpuContext;          // [in]
+    void                   *queueHandle;         // [out]
+    int32_t                 returnValue;           // [out]
 };
 
 typedef struct _CM_ENQUEUE_PARAM
 {
-    void                *pCmQueueHandle;         // [in]
-    void                *pCmTaskHandle;          // [in]
-    void                *pCmThreadSpaceHandle;   // [in]
-    void                *pCmEventHandle;         // [out]
-    uint32_t            iEventIndex;            // [out] index of pCmEventHandle in m_EventArray
-    int32_t             iReturnValue;           // [out]
+    void                *queueHandle;         // [in]
+    void                *taskHandle;          // [in]
+    void                *threadSpaceHandle;   // [in]
+    void                *eventHandle;         // [out]
+    uint32_t            eventIndex;            // [out] index of pCmEventHandle in m_EventArray
+    int32_t             returnValue;           // [out]
 }CM_ENQUEUE_PARAM, *PCM_ENQUEUE_PARAM;
 
 typedef struct _CM_ENQUEUEHINTS_PARAM
 {
-    void                 *pCmQueueHandle;        // [in]
-    void                 *pCmTaskHandle;         // [in]
-    void                 *pCmEventHandle;        // [in]
-    uint32_t             uiHints;               // [in]
-    uint32_t             iEventIndex;           // [out] index of pCmEventHandle in m_EventArray
-    int32_t              iReturnValue;          // [out]
+    void                 *queueHandle;        // [in]
+    void                 *taskHandle;         // [in]
+    void                 *eventHandle;        // [in]
+    uint32_t             hints;               // [in]
+    uint32_t             eventIndex;           // [out] index of pCmEventHandle in m_EventArray
+    int32_t              returnValue;          // [out]
 }CM_ENQUEUEHINTS_PARAM, *PCM_ENQUEUEHINTS_PARAM;
 
 typedef struct _CM_DESTROYEVENT_PARAM
 {
-    void                *pCmQueueHandle;         // [in]
-    void                *pCmEventHandle;         // [in]
-    int32_t             iReturnValue;           // [out]
+    void                *queueHandle;         // [in]
+    void                *eventHandle;         // [in]
+    int32_t             returnValue;           // [out]
 }CM_DESTROYEVENT_PARAM, *PCM_DESTROYEVENT_PARAM;
 
 typedef struct _CM_CREATETHREADSPACE_PARAM
 {
-    uint32_t            TsWidth;                // [in]
-    uint32_t            TsHeight;               // [in]
-    void                *pCmTsHandle;            // [out]
+    uint32_t            threadSpaceWidth;                // [in]
+    uint32_t            threadSpaceHeight;               // [in]
+    void                *threadSpaceHandle;            // [out]
     uint32_t            indexInTSArray;         // [out]
-    int32_t             iReturnValue;           // [out]
+    int32_t             returnValue;           // [out]
 }CM_CREATETHREADSPACE_PARAM, *PCM_CREATETHREADSPACE_PARAM;
 
 typedef struct _CM_DESTROYTHREADSPACE_PARAM
 {
-    void                *pCmTsHandle;            // [in]
-    int32_t             iReturnValue;           // [out]
+    void                *threadSpaceHandle;            // [in]
+    int32_t             returnValue;           // [out]
 }CM_DESTROYTHREADSPACE_PARAM, *PCM_DESTROYTHREADSPACE_PARAM;
 
 typedef struct _CM_DESTROYVMESURFACE_PARAM
 {
-    void                    *pCmVmeSurfIndexHandle;    // [in]
-    int32_t                 iReturnValue;             // [out]
+    void                    *vmeSurfIndexHandle;    // [in]
+    int32_t                 returnValue;             // [out]
 }CM_DESTROYVMESURFACE_PARAM, *PCM_DESTROYVMESURFACE_PARAM;
 
 typedef struct _CM_CONFIGVMESURFACEDIMENSION_PARAM
 {
-    void                        *pCmVmeSurfHandle;    // [in]
-    CM_VME_SURFACE_STATE_PARAM  *pSurfDimPara;        // [in]
-    int32_t                     iReturnValue;         // [out]
+    void                        *vmeSurfHandle;    // [in]
+    CM_VME_SURFACE_STATE_PARAM  *surfDimensionPara;        // [in]
+    int32_t                     returnValue;         // [out]
 }CM_CONFIGVMESURFACEDIMENSION_PARAM, *PCM_CONFIGVMESURFACEDIMENSION_PARAM;
 
 typedef struct _CM_CREATEVMESURFACE_PARAM
 {
-    void                    *pCmCurSurfHandle;         // [in]
-    void                    *pCmForwardSurfArray;      // [in]
-    void                    *pCmBackwardSurfArray;     // [in]
-    uint32_t                iForwardSurfCount;        // [in]
-    uint32_t                iBackwardSurfCount;       // [in]
-    void                    *pCmVmeSurfIndexHandle;    // [out]
-    int32_t                 iReturnValue;             // [out]
+    void                    *curSurfHandle;         // [in]
+    void                    *forwardSurfArray;      // [in]
+    void                    *backwardSurfArray;     // [in]
+    uint32_t                forwardSurfCount;        // [in]
+    uint32_t                backwardSurfCount;       // [in]
+    void                    *vmeSurfIndexHandle;    // [out]
+    int32_t                 returnValue;             // [out]
 }CM_CREATEVMESURFACE_PARAM, *PCM_CREATEVMESURFACE_PARAM;
 
 typedef struct _CM_CREATESAMPLER_PARAM
 {
-    CM_SAMPLER_STATE        SampleState;                // [in]
-    void                    *pCmSamplerHandle;           // [out]
-    void                    *pCmSamplerIndexHandle;      // [out]
-    int32_t                 iReturnValue;               // [out]
+    CM_SAMPLER_STATE        sampleState;                // [in]
+    void                    *samplerHandle;           // [out]
+    void                    *samplerIndexHandle;      // [out]
+    int32_t                 returnValue;               // [out]
 }CM_CREATESAMPLER_PARAM, *PCM_CREATESAMPLER_PARAM;
 
 typedef struct _CM_CREATESAMPLER_PARAM_EX
 {
-    CM_SAMPLER_STATE_EX     SampleState;                // [in]
-    void                    *pCmSamplerHandle;           // [out]
-    void                    *pCmSamplerIndexHandle;      // [out]
-    int32_t                 iReturnValue;               // [out]
+    CM_SAMPLER_STATE_EX     sampleState;                // [in]
+    void                    *samplerHandle;           // [out]
+    void                    *samplerIndexHandle;      // [out]
+    int32_t                 returnValue;               // [out]
 }CM_CREATESAMPLER_PARAM_EX, *PCM_CREATESAMPLER_PARAM_EX;
 
 typedef struct _CM_DESTROYSAMPLER_PARAM
 {
-    void                    *pCmSamplerHandle;          // [in]
-    int32_t                 iReturnValue;              // [out]
+    void                    *samplerHandle;          // [in]
+    int32_t                 returnValue;              // [out]
 }CM_DESTROYSAMPLER_PARAM, *PCM_DESTROYSAMPLER_PARAM;
 
 typedef struct _CM_ENQUEUEGROUP_PARAM
 {
-    void                *pCmQueueHandle;         // [in]
-    void                *pCmTaskHandle;          // [in]
-    void                *pCmTGrpSpaceHandle;     // [in]
-    void                *pCmEventHandle;         // [out]
-    uint32_t            iEventIndex;            // [out] index of pCmEventHandle in m_EventArray
-    int32_t             iReturnValue;           // [out]
+    void                *queueHandle;         // [in]
+    void                *taskHandle;          // [in]
+    void                *threadGroupSpaceHandle;     // [in]
+    void                *eventHandle;         // [out]
+    uint32_t            eventIndex;            // [out] index of pCmEventHandle in m_EventArray
+    int32_t             returnValue;           // [out]
 }CM_ENQUEUEGROUP_PARAM, *PCM_ENQUEUEGROUP_PARAM;
 
 typedef struct _CM_CREATETGROUPSPACE_PARAM
@@ -238,229 +238,229 @@ typedef struct _CM_CREATETGROUPSPACE_PARAM
     uint32_t                grpSpaceWidth;               // [in]
     uint32_t                grpSpaceHeight;              // [in]
     uint32_t                grpSpaceDepth;               // [in]
-    void                    *pCmGrpSpaceHandle;           // [out]
-    uint32_t                iTGSIndex;                   // [out]
-    int32_t                 iReturnValue;                // [out]
+    void                    *groupSpaceHandle;           // [out]
+    uint32_t                threadGroupSpaceIndex;                   // [out]
+    int32_t                 returnValue;                // [out]
 }CM_CREATETGROUPSPACE_PARAM, *PCM_CREATETGROUPSPACE_PARAM;
 
 typedef struct _CM_DESTROYTGROPUSPACE_PARAM
 {
-    void                    *pCmGrpSpaceHandle;          // [in]
-    int32_t                 iReturnValue;               // [out]
+    void                    *groupSpaceHandle;          // [in]
+    int32_t                 returnValue;               // [out]
 }CM_DESTROYTGROPUSPACE_PARAM, *PCM_DESTROYTGROPUSPACE_PARAM;
 
 typedef struct _CM_GETSURFACE2DINFO_PARAM
 {
-    uint32_t                                iWidth;                 // [in]         Surface Width
-    uint32_t                                iHeight;                // [in]         Surface Height
+    uint32_t                                width;                 // [in]         Surface Width
+    uint32_t                                height;                // [in]         Surface Height
     CM_OSAL_SURFACE_FORMAT                  format;                 // [in]         Surface Format
-    uint32_t                                iPitch;                 // [out]        Pitch
-    uint32_t                                iPhysicalSize;          // [out]        Physical size
-    uint32_t                                iReturnValue;           // [out]        Return value
+    uint32_t                                pitch;                 // [out]        Pitch
+    uint32_t                                physicalSize;          // [out]        Physical size
+    uint32_t                                returnValue;           // [out]        Return value
 } CM_GETSURFACE2DINFO_PARAM, *PCM_GETSURFACE2DINFO_PARAM;
 
 typedef struct _CM_GETCAPS_PARAM
 {
     CM_DEVICE_CAP_NAME              capName;                //[in]
     uint32_t                        capValueSize;           //[in]
-    void                            *pCapValue;              //[in/out]
-    uint32_t                        iReturnValue;           //[out]        Return value
+    void                            *capValue;              //[in/out]
+    uint32_t                        returnValue;           //[out]        Return value
 }CM_GETCAPS_PARAM, *PCM_GETCAPS_PARAM;
 
 typedef struct _CM_ENQUEUE_GPUCOPY_V2V_PARAM
 {
-    void                    *pCmQueueHandle;         // [in]
-    void                    *pCmSrcSurface2d;        // [in]
-    void                    *pCmDstSurface2d;        // [in]
-    uint32_t                iOption;                 // [in]
-    void                    *pCmEventHandle;         // [out]
-    uint32_t                iEventIndex;             // [out] index of pCmEventHandle in m_EventArray
-    int32_t                 iReturnValue;            // [out]
+    void                    *queueHandle;         // [in]
+    void                    *srcSurface2d;        // [in]
+    void                    *dstSurface2d;        // [in]
+    uint32_t                option;                 // [in]
+    void                    *eventHandle;         // [out]
+    uint32_t                eventIndex;             // [out] index of pCmEventHandle in m_EventArray
+    int32_t                 returnValue;            // [out]
 }CM_ENQUEUE_GPUCOPY_V2V_PARAM, *PCM_ENQUEUE_GPUCOPY_V2V_PARAM;
 
 typedef struct _CM_ENQUEUE_GPUCOPY_L2L_PARAM
 {
-    void                    *pCmQueueHandle;         // [in]
-    void                    *pSrcSysMem;             // [in]
-    void                    *pDstSysMem;             // [in]
-    uint32_t                CopySize;                // [in]
-    uint32_t                iOption;                 // [in]
-    void                    *pCmEventHandle;         // [out]
-    uint32_t                iEventIndex;             // [out] index of pCmEventHandle in m_EventArray
-    int32_t                 iReturnValue;            // [out]
+    void                    *queueHandle;         // [in]
+    void                    *srcSysMem;             // [in]
+    void                    *dstSysMem;             // [in]
+    uint32_t                copySize;                // [in]
+    uint32_t                option;                 // [in]
+    void                    *eventHandle;         // [out]
+    uint32_t                eventIndex;             // [out] index of pCmEventHandle in m_EventArray
+    int32_t                 returnValue;            // [out]
 }CM_ENQUEUE_GPUCOPY_L2L_PARAM, *PCM_ENQUEUE_GPUCOPY_L2L_PARAM;
 
 typedef struct _CM_CREATE_SURFACE3D_PARAM
 {
-    uint32_t iWidth;                // [in] width of 3D  in pixel
-    uint32_t iHeight;               // [in] height of 3D  in pixel
-    uint32_t iDepth;                // [in] depth of 3D surface in pixel
-    CM_OSAL_SURFACE_FORMAT Format;  // [in] 2D texture foramt in OS abstraction layer.
-    void *pCmSurface3DHandle;       // [out] pointer of CmSurface3D used in driver
-    int32_t iReturnValue;           // [out] the return value from driver
+    uint32_t width;                // [in] width of 3D  in pixel
+    uint32_t height;               // [in] height of 3D  in pixel
+    uint32_t depth;                // [in] depth of 3D surface in pixel
+    CM_OSAL_SURFACE_FORMAT format;  // [in] 2D texture foramt in OS abstraction layer.
+    void *surface3DHandle;       // [out] pointer of CmSurface3D used in driver
+    int32_t returnValue;           // [out] the return value from driver
 } CM_CREATE_SURFACE3D_PARAM, *PCM_CREATE_SURFACE3D_PARAM;
 
 typedef struct _CM_DESTROY_SURFACE3D_PARAM
 {
-    void        *pCmSurface3DHandle;       // [in] pointer of CmSurface3D used in driver
-    int32_t     iReturnValue;             // [out] the return value from driver
+    void        *surface3DHandle;       // [in] pointer of CmSurface3D used in driver
+    int32_t     returnValue;             // [out] the return value from driver
 }CM_DESTROY_SURFACE3D_PARAM, *PCM_DESTROY_SURFACE3D_PARAM;
 
 typedef struct _CM_CREATESAMPLER2D_PARAM
 {
-    void                *pCmSurface2DHandle;         // [in] pointer to CmSurface2D object used by CMRT@UMD
-    void                *pSamplerSurfIndexHandle;    // [out] pointer of SurfaceIndex used in driver
-    int32_t             iReturnValue;               // [out] the return value from CMRT@UMD
+    void                *surface2DHandle;         // [in] pointer to CmSurface2D object used by CMRT@UMD
+    void                *samplerSurfIndexHandle;    // [out] pointer of SurfaceIndex used in driver
+    int32_t             returnValue;               // [out] the return value from CMRT@UMD
 }CM_CREATESAMPLER2D_PARAM, *PCM_CREATESAMPLER2D_PARAM;
 
 typedef struct _CM_CREATESAMPLER2DUP_PARAM
 {
-    void                *pCmSurface2DUPHandle;       // [in] pointer to CmSurface2DUP object used by CMRT@UMD
-    void                *pSamplerSurfIndexHandle;    // [out] pointer of SurfaceIndex used in driver
-    int32_t             iReturnValue;               // [out] the return value from CMRT@UMD
+    void                *surface2DUPHandle;       // [in] pointer to CmSurface2DUP object used by CMRT@UMD
+    void                *samplerSurfIndexHandle;    // [out] pointer of SurfaceIndex used in driver
+    int32_t             returnValue;               // [out] the return value from CMRT@UMD
 }CM_CREATESAMPLER2DUP_PARAM, *PCM_CREATESAMPLER2DUP_PARAM;
 
 typedef struct _CM_CREATESAMPLER3D_PARAM
 {
-    void                *pCmSurface3DHandle;         // [in] pointer to CmSurface3D object used by CMRT@UMD
-    void                *pSamplerSurfIndexHandle;    // [out] pointer of SurfaceIndex used in driver
-    int32_t             iReturnValue;               // [out] the return value from CMRT@UMD
+    void                *surface3DHandle;         // [in] pointer to CmSurface3D object used by CMRT@UMD
+    void                *samplerSurfIndexHandle;    // [out] pointer of SurfaceIndex used in driver
+    int32_t             returnValue;               // [out] the return value from CMRT@UMD
  }CM_CREATESAMPLER3D_PARAM, *PCM_CREATESAMPLER3D_PARAM;
 
 typedef struct _CM_DESTROYSAMPLERSURF_PARAM
 {
-    void                *pSamplerSurfIndexHandle;    // [in] pointer of SamplerSurfaceIndex used in driver
-    int32_t             iReturnValue;               // [out] the return value from CMRT@UMD
+    void                *samplerSurfIndexHandle;    // [in] pointer of SamplerSurfaceIndex used in driver
+    int32_t             returnValue;               // [out] the return value from CMRT@UMD
 }CM_DESTROYSAMPLERSURF_PARAM, *PCM_DESTROYSAMPLERSURF_PARAM;
 
 typedef struct _CM_DEVICE_SETCAP_PARAM
 {
     CM_DEVICE_CAP_NAME  capName;                    // [in] Cap Type
     size_t              capValueSize;               // [in] Value Size
-    void                *pCapValue;                  // [in] Pointer to value
-    int32_t             iReturnValue;               // [out] the return value from CMRT@UMD
+    void                *capValue;                  // [in] Pointer to value
+    int32_t             returnValue;               // [out] the return value from CMRT@UMD
 }CM_DEVICE_SETCAP_PARAM, *PCM_DEVICE_SETCAP_PARAM;
 
 typedef struct _CM_DEVICE_SETSUGGESTEDL3_PARAM
 {
-    L3_SUGGEST_CONFIG   l3_s_c;                      // [in] Cap Type
-    int32_t             iReturnValue;               // [out] the return value from CMRT@UMD
+    L3_SUGGEST_CONFIG   l3SuggestConfig;                      // [in] Cap Type
+    int32_t             returnValue;               // [out] the return value from CMRT@UMD
 }CM_DEVICE_SETSUGGESTEDL3_PARAM, *PCM_DEVICE_SETSUGGESTEDL3_PARAM;
 
 using CMRT_UMD::SamplerIndex;
 typedef struct _CM_CREATESAMPLER8x8_PARAM
 {
-    CM_SAMPLER_8X8_DESCR        Sample8x8Desc;                // [in]
-    void                        *pCmSampler8x8Handle;          // [out]
-    SamplerIndex*               pCmSamplerIndexHandle;        // [out]
-    int32_t                     iReturnValue;                 // [out]
+    CM_SAMPLER_8X8_DESCR        sample8x8Desc;                // [in]
+    void                        *sampler8x8Handle;          // [out]
+    SamplerIndex*               samplerIndexHandle;        // [out]
+    int32_t                     returnValue;                 // [out]
 }CM_CREATESAMPLER8x8_PARAM, *PCM_CREATESAMPLER8x8_PARAM;
 
 typedef struct _CM_DESTROYSAMPLER8x8_PARAM
 {
-    void                    *pCmSampler8x8Handle;          // [in]
-    int32_t                 iReturnValue;                 // [out]
+    void                    *sampler8x8Handle;          // [in]
+    int32_t                 returnValue;                 // [out]
 }CM_DESTROYSAMPLER8x8_PARAM, *PCM_DESTROYSAMPLER8x8_PARAM;
 
 using CMRT_UMD::SurfaceIndex;
 typedef struct _CM_CREATESAMPLER8x8SURF_PARAM
 {
-    void                        *pCmSurf2DHandle;              // [in]
-    CM_SAMPLER8x8_SURFACE       CmSampler8x8Type;             // [in]
-    CM_SURFACE_ADDRESS_CONTROL_MODE Sampler8x8Mode;           // [in]
-    SurfaceIndex*               pCmSurfIndexHandle;           // [out]
-    int32_t                     iReturnValue;                 // [out]
+    void                        *surf2DHandle;              // [in]
+    CM_SAMPLER8x8_SURFACE       sampler8x8Type;             // [in]
+    CM_SURFACE_ADDRESS_CONTROL_MODE sampler8x8Mode;           // [in]
+    SurfaceIndex*               surfIndexHandle;           // [out]
+    int32_t                     returnValue;                 // [out]
 }CM_CREATESAMPLER8x8SURF_PARAM, *PCM_CREATESAMPLER8x8SURF_PARAM;
 
 typedef struct _CM_CREATESAMPLER8x8SURFEX_PARAM
 {
-    void                        *pCmSurf2DHandle;              // [in]
-    CM_SAMPLER8x8_SURFACE       CmSampler8x8Type;             // [in]
-    CM_SURFACE_ADDRESS_CONTROL_MODE Sampler8x8Mode;           // [in]
-    CM_FLAG*                    pFlag;                        // [in]
-    SurfaceIndex*               pCmSurfIndexHandle;           // [out]
-    int32_t                     iReturnValue;                 // [out]
+    void                        *surf2DHandle;              // [in]
+    CM_SAMPLER8x8_SURFACE       sampler8x8Type;             // [in]
+    CM_SURFACE_ADDRESS_CONTROL_MODE sampler8x8Mode;           // [in]
+    CM_FLAG*                    flag;                        // [in]
+    SurfaceIndex*               surfIndexHandle;           // [out]
+    int32_t                     returnValue;                 // [out]
 }CM_CREATESAMPLER8x8SURFEX_PARAM, *PCM_CREATESAMPLER8x8SURFEX_PARAM;
 
 typedef struct _CM_CREATESAMPLER2DEX_PARAM
 {
-    void                *pCmSurface2DHandle;                   // [in]
-    CM_FLAG*            pFlag;                                // [in]
-    void                *pSamplerSurfIndexHandle;              // [out]
-    int32_t             iReturnValue;                         // [out]
+    void                *surface2DHandle;                   // [in]
+    CM_FLAG*            flag;                                // [in]
+    void                *samplerSurfIndexHandle;              // [out]
+    int32_t             returnValue;                         // [out]
 }CM_CREATESAMPLER2DEX_PARAM, *PCM_CREATESAMPLER2DEX_PARAM;
 
 typedef struct _CM_DESTROYSAMPLER8x8SURF_PARAM
 {
-    SurfaceIndex*               pCmSurfIndexHandle;           // [in]
-    int32_t                     iReturnValue;                 // [out]
+    SurfaceIndex*               surfIndexHandle;           // [in]
+    int32_t                     returnValue;                 // [out]
 }CM_DESTROYSAMPLER8x8SURF_PARAM, *PCM_DESTROYSAMPLER8x8SURF_PARAM;
 
 typedef struct _CM_ENQUEUE_2DINIT_PARAM
 {
-    void                    *pCmQueueHandle;         // [in] handle of Queue
-    void                    *pCmSurface2d;           // [in] handle of surface 2d
-    uint32_t                dwInitValue;            // [in] init value
-    void                    *pCmEventHandle;         // [out] event's handle
-    uint32_t                iEventIndex;            // [out] event's index
-    int32_t                 iReturnValue;           // [out] return value
+    void                    *queueHandle;         // [in] handle of Queue
+    void                    *surface2d;           // [in] handle of surface 2d
+    uint32_t                initValue;            // [in] init value
+    void                    *eventHandle;         // [out] event's handle
+    uint32_t                eventIndex;            // [out] event's index
+    int32_t                 returnValue;           // [out] return value
 }CM_ENQUEUE_2DINIT_PARAM, *PCM_ENQUEUE_2DINIT_PARAM;
 
 typedef struct _CM_DEVICE_INIT_PRINT_BUFFER_PARAM
 {
-    uint32_t            dwPrintBufferSize;              //[in]  print buffer's size
-    void                *pPrintBufferMem;                //[out] print buffer's memory
-    int32_t             iReturnValue;                   //[out] return value
+    uint32_t            printBufferSize;              //[in]  print buffer's size
+    void                *printBufferMem;                //[out] print buffer's memory
+    int32_t             returnValue;                   //[out] return value
 }CM_DEVICE_INIT_PRINT_BUFFER_PARAM, *PCM_DEVICE_INIT_PRINT_BUFFER_PARAM;
 
 typedef struct _CM_CREATEVEBOX_PARAM
 {
-    void                    *pCmVeboxHandle;         // [out] CmVeboxG75's handle
+    void                    *veboxHandle;         // [out] CmVeboxG75's handle
     uint32_t                indexInVeboxArray;      // [out] index in m_VeboxArray
-    int32_t                 iReturnValue;           // [out] return value
+    int32_t                 returnValue;           // [out] return value
 }CM_CREATEVEBOX_PARAM, *PCM_CREATEVEBOX_PARAM;
 
 typedef struct _CM_DESTROYVEBOX_PARAM
 {
-    void                    *pCmVeboxHandle;         // [IN] CmVeboxG75's handle
-    int32_t                 iReturnValue;           // [out] return value
+    void                    *veboxHandle;         // [IN] CmVeboxG75's handle
+    int32_t                 returnValue;           // [out] return value
 }CM_DESTROYVEBOX_PARAM, *PCM_DESTROYVEBOX_PARAM;
 
 typedef struct _CM_DEVICE_CREATE_SURF2D_ALIAS_PARAM
 {
-    void                    *pCmSurface2DHandle;      // [IN] pointer to CMSurface2D
-    void                    *pSurfaceIndexHandle;     // [OUT] pointer of SurfaceIndex
-    int32_t                 iReturnValue;            // [OUT] return value
+    void                    *surface2DHandle;      // [IN] pointer to CMSurface2D
+    void                    *surfaceIndexHandle;     // [OUT] pointer of SurfaceIndex
+    int32_t                 returnValue;            // [OUT] return value
 } CM_DEVICE_CREATE_SURF2D_ALIAS_PARAM, *PCM_DEVICE_CREATE_SURF2D_ALIAS_PARAM;
 
 typedef struct _CM_DEVICE_CREATE_BUFFER_ALIAS_PARAM
 {
-    void                    *pCmBufferHandle;        // [IN] pointer to CmBuffer object
-    void                    *pSurfaceIndexHandle;    // [OUT] ponter of SurfaceIndex
-    int32_t                 iReturnValue;           // [OUT] return value
+    void                    *bufferHandle;        // [IN] pointer to CmBuffer object
+    void                    *surfaceIndexHandle;    // [OUT] ponter of SurfaceIndex
+    int32_t                 returnValue;           // [OUT] return value
 } CM_DEVICE_CREATE_BUFFER_ALIAS_PARAM, *PCM_DEVICE_CREATE_BUFFER_ALIAS_PARAM;
 
 typedef struct _CM_CLONE_KERNEL_PARAM
 {
-    void                    *pCmKernelHandleSrc;     // [IN] source kernel
-    void                    *pCmKernelHandleDest;    // [OUT] dest kernel
-    int32_t                 iReturnValue;           // [OUT] return value
+    void                    *kernelHandleSrc;     // [IN] source kernel
+    void                    *kernelHandleDest;    // [OUT] dest kernel
+    int32_t                 returnValue;           // [OUT] return value
 }CM_CLONE_KERNEL_PARAM, *PCM_CLONE_KERNEL_PARAM;
 
 typedef struct _CM_ENQUEUE_VEBOX_PARAM
 {
-    void                    *pCmQueueHandle;         // [IN]
-    void                    *pCmVeboxHandle;         // [IN] CmVeboxG75's handle
-    void                    *pCmEventHandle;         // [out] event's handle
-    uint32_t                iEventIndex;            // [out] event's index
-    int32_t                 iReturnValue;           // [out] return value
+    void                    *queueHandle;         // [IN]
+    void                    *veboxHandle;         // [IN] CmVeboxG75's handle
+    void                    *eventHandle;         // [out] event's handle
+    uint32_t                eventIndex;            // [out] event's index
+    int32_t                 returnValue;           // [out] return value
 }CM_ENQUEUE_VEBOX_PARAM, *PCM_ENQUEUE_VEBOX_PARAM;
 
 struct CM_GET_VISA_VERSION_PARAM
 {
-    uint32_t                  iMajorVersion;         // [OUT] the major version of jitter
-    uint32_t                  iMinorVersion;         // [OUT] the minor version of jitter
-    int32_t                   iReturnValue;          // [OUT] return value
+    uint32_t                  majorVersion;         // [OUT] the major version of jitter
+    uint32_t                  minorVersion;         // [OUT] the minor version of jitter
+    int32_t                   returnValue;          // [OUT] return value
 };
 
 //*-----------------------------------------------------------------------------
@@ -548,16 +548,16 @@ enum CM_FUNCTION_ID
 //| Return:     CM_SUCCESS if successful
 //*-----------------------------------------------------------------------------
 using CMRT_UMD::CmDevice;
-int32_t CmThinExecuteEx(CmDevice *pCmDevice,
+int32_t CmThinExecuteEx(CmDevice *device,
                         CM_FUNCTION_ID cmFunctionID,
-                        void *pInputData,
+                        void *inputData,
                         uint32_t inputDataLen);
 
 // Below APIs are called in CmThinExecute(), so they are declared here again.
-extern int32_t CreateCmDevice(MOS_CONTEXT *pMosContext,
-                              CmDevice* &pDevice,
+extern int32_t CreateCmDevice(MOS_CONTEXT *mosContext,
+                              CmDevice* &device,
                               uint32_t devCreateOption);
 
-extern int32_t DestroyCmDevice(MOS_CONTEXT *pMosContext);
+extern int32_t DestroyCmDevice(MOS_CONTEXT *mosContext);
 
 #endif  // #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMWRAPPER_H_

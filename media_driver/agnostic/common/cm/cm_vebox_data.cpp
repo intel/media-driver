@@ -34,17 +34,17 @@ namespace CMRT_UMD
 //| Purpose:    Create Vebox Data
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmVeboxData::Create( uint8_t *pStateData, uint8_t *pSurfaceData, CmVeboxData*& pVeboxData )
+int32_t CmVeboxData::Create( uint8_t *stateData, uint8_t *surfaceData, CmVeboxData*& veboxData )
 {
     int32_t result = CM_SUCCESS;
-    pVeboxData = new (std::nothrow) CmVeboxData( pStateData, pSurfaceData );
-    if( pVeboxData )
+    veboxData = new (std::nothrow) CmVeboxData( stateData, surfaceData );
+    if( veboxData )
     {
-        pVeboxData->Acquire();
-        result = pVeboxData->Initialize();
+        veboxData->Acquire();
+        result = veboxData->Initialize();
         if( result != CM_SUCCESS )
         {
-            CmVeboxData::Destroy( pVeboxData );
+            CmVeboxData::Destroy( veboxData );
         }
     }
     else
@@ -60,12 +60,12 @@ int32_t CmVeboxData::Create( uint8_t *pStateData, uint8_t *pSurfaceData, CmVebox
 //| Purpose:    Destroy CM Vebox Data
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmVeboxData::Destroy( CmVeboxData* &pVeboxData )
+int32_t CmVeboxData::Destroy( CmVeboxData* &veboxData )
 {
-    if (pVeboxData)
+    if (veboxData)
     {
-        pVeboxData->SafeRelease();
-        pVeboxData = nullptr;
+        veboxData->SafeRelease();
+        veboxData = nullptr;
     }
 
     return CM_SUCCESS;
@@ -75,12 +75,12 @@ int32_t CmVeboxData::Destroy( CmVeboxData* &pVeboxData )
 //| Purpose:    CM Vebox Data constructor
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-CmVeboxData::CmVeboxData( uint8_t *pStateData, uint8_t *pSurfaceData ):
-    m_StateDataSize( 0 ),
-    m_pStateData( pStateData ),
-    m_SurfaceDataSize( 0 ),
-    m_pSurfaceData( pSurfaceData ),
-    m_RefCount(0)
+CmVeboxData::CmVeboxData( uint8_t *stateData, uint8_t *surfaceData ):
+    m_stateDataSize( 0 ),
+    m_stateData( stateData ),
+    m_surfaceDataSize( 0 ),
+    m_surfaceData( surfaceData ),
+    m_refCount(0)
 {
 }
 
@@ -90,8 +90,8 @@ CmVeboxData::CmVeboxData( uint8_t *pStateData, uint8_t *pSurfaceData ):
 //*-----------------------------------------------------------------------------
 CmVeboxData::~CmVeboxData( void )
 {
-    MosSafeDeleteArray( m_pStateData );
-    MosSafeDeleteArray( m_pSurfaceData );
+    MosSafeDeleteArray( m_stateData );
+    MosSafeDeleteArray( m_surfaceData );
 }
 
 //*-----------------------------------------------------------------------------
@@ -107,10 +107,10 @@ int32_t CmVeboxData::Initialize( void )
 //| Purpose:    Get Vebox Data pointer
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmVeboxData::GetData( uint8_t*& pStateData, uint8_t*& pSurfaceData )
+int32_t CmVeboxData::GetData( uint8_t*& stateData, uint8_t*& surfaceData )
 {
-    pStateData   = m_pStateData;
-    pSurfaceData = m_pSurfaceData;
+    stateData   = m_stateData;
+    surfaceData = m_surfaceData;
 
     return CM_SUCCESS;
 }
@@ -119,10 +119,10 @@ int32_t CmVeboxData::GetData( uint8_t*& pStateData, uint8_t*& pSurfaceData )
 //| Purpose:    SET Vebox Data size
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmVeboxData::SetVeboxDataSize(uint32_t uiStateDataSize, uint32_t uiSurfaceDataSize)
+int32_t CmVeboxData::SetVeboxDataSize(uint32_t stateDataSize, uint32_t surfaceDataSize)
 {
-    m_StateDataSize   = uiStateDataSize;
-    m_SurfaceDataSize = uiSurfaceDataSize;
+    m_stateDataSize   = stateDataSize;
+    m_surfaceDataSize = surfaceDataSize;
 
     return CM_SUCCESS;
 }
@@ -131,10 +131,10 @@ int32_t CmVeboxData::SetVeboxDataSize(uint32_t uiStateDataSize, uint32_t uiSurfa
 //| Purpose:    Get Vebox Data size
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmVeboxData::GetVeboxDataSize(uint32_t& uiStateDataSize, uint32_t& uiSurfaceDataSize)
+int32_t CmVeboxData::GetVeboxDataSize(uint32_t& stateDataSize, uint32_t& surfaceDataSize)
 {
-    uiStateDataSize   = m_StateDataSize;
-    uiSurfaceDataSize = m_SurfaceDataSize;
+    stateDataSize   = m_stateDataSize;
+    surfaceDataSize = m_surfaceDataSize;
 
     return CM_SUCCESS;
 }
@@ -145,8 +145,8 @@ int32_t CmVeboxData::GetVeboxDataSize(uint32_t& uiStateDataSize, uint32_t& uiSur
 //*-----------------------------------------------------------------------------
 int32_t CmVeboxData::Acquire( void )
 {
-    ++m_RefCount;
-    return m_RefCount;
+    ++m_refCount;
+    return m_refCount;
 }
 
 //*-----------------------------------------------------------------------------
@@ -155,15 +155,15 @@ int32_t CmVeboxData::Acquire( void )
 //*-----------------------------------------------------------------------------
 int32_t CmVeboxData::SafeRelease( )
 {
-    --m_RefCount;
-    if( m_RefCount == 0 )
+    --m_refCount;
+    if( m_refCount == 0 )
     {
         delete this;
         return 0;
     }
     else
     {
-        return m_RefCount;
+        return m_refCount;
     }
 }
 }  // namespace

@@ -47,26 +47,26 @@
 
 struct CM_ENQUEUE_GPUCOPY_PARAM
 {
-    void *pCmQueueHandle;  // [in] CmQueue pointer in CMRT@UMD
-    void *pCmSurface2d;    // [in] CmSurface2d pointer in CMRT@UMD
-    void *pSysMem;         // [in] pointer of system memory
-    CM_GPUCOPY_DIRECTION iCopyDir;  // [in] direction for GPUCopy: CM_FASTCOPY_GPU2CPU (0) or CM_FASTCOPY_CPU2GPU(1)
-    uint32_t iWidthStride;   // [in] width stride in byte for system memory, ZERO means no setting
-    uint32_t iHeightStride;  // [in] height stride in row for system memory, ZERO means no setting
-    uint32_t iOption;        // [in] option passed by user, only support CM_FASTCOPY_OPTION_NONBLOCKING(0) and CM_FASTCOPY_OPTION_BLOCKING(1)
-    void *pCmEventHandle;    // [in/out] return CmDevice pointer in CMRT@UMD, nullptr if the input is CM_NO_EVENT
-    uint32_t iEventIndex;    // [out] index of Event in m_EventArray
-    int32_t iReturnValue;    // [out] return value from CMRT@UMD
+    void *queueHandle;  // [in] CmQueue pointer in CMRT@UMD
+    void *surface2d;    // [in] CmSurface2d pointer in CMRT@UMD
+    void *sysMem;         // [in] pointer of system memory
+    CM_GPUCOPY_DIRECTION copyDir;  // [in] direction for GPUCopy: CM_FASTCOPY_GPU2CPU (0) or CM_FASTCOPY_CPU2GPU(1)
+    uint32_t widthStride;   // [in] width stride in byte for system memory, ZERO means no setting
+    uint32_t heightStride;  // [in] height stride in row for system memory, ZERO means no setting
+    uint32_t option;        // [in] option passed by user, only support CM_FASTCOPY_OPTION_NONBLOCKING(0) and CM_FASTCOPY_OPTION_BLOCKING(1)
+    void *eventHandle;    // [in/out] return CmDevice pointer in CMRT@UMD, nullptr if the input is CM_NO_EVENT
+    uint32_t eventIndex;    // [out] index of Event in m_EventArray
+    int32_t returnValue;    // [out] return value from CMRT@UMD
 };
 
 struct CM_CREATEBUFFER_PARAM
 {
-    uint32_t iSize;             // [in]  buffer size in byte
+    uint32_t size;             // [in]  buffer size in byte
     CM_BUFFER_TYPE bufferType;  // [in]  Buffer type (Buffer, BufferUP, or Buffer SVM)
-    void *pSysMem;              // [in]  Address of system memory
-    void *pCmBufferHandle;      // [out] pointer to CmBuffer object in CMRT@UMD
-    int32_t iReturnValue;       // [out] the return value from CMRT@UMD
-    uint32_t uiReserved;        // Reserved field to ensure sizeof(CM_CREATEBUFFER_PARAM_V2) is different from sizeof(CM_CREATEBUFFER_PARAM_V1) in x64 mode
+    void *sysMem;              // [in]  Address of system memory
+    void *bufferHandle;      // [out] pointer to CmBuffer object in CMRT@UMD
+    int32_t returnValue;       // [out] the return value from CMRT@UMD
+    uint32_t reserved;        // Reserved field to ensure sizeof(CM_CREATEBUFFER_PARAM_V2) is different from sizeof(CM_CREATEBUFFER_PARAM_V1) in x64 mode
 };
 
 //*-----------------------------------------------------------------------------
@@ -75,34 +75,34 @@ struct CM_CREATEBUFFER_PARAM
 //*-----------------------------------------------------------------------------
 double CmGetTimeInms()
 {
-    LARGE_INTEGER   Freq;
-    LARGE_INTEGER   Count;
-    double   Curtime;
+    LARGE_INTEGER   freq;
+    LARGE_INTEGER   count;
+    double   curTime;
 
-    MOS_QueryPerformanceFrequency((uint64_t*)&Freq.QuadPart);
-    MOS_QueryPerformanceCounter((uint64_t*)&Count.QuadPart);
-    Curtime = (double)(1000.0 * Count.QuadPart/(double)Freq.QuadPart);
+    MOS_QueryPerformanceFrequency((uint64_t*)&freq.QuadPart);
+    MOS_QueryPerformanceCounter((uint64_t*)&count.QuadPart);
+    curTime = (double)(1000.0 * count.QuadPart/(double)freq.QuadPart);
 
-    return Curtime;
+    return curTime;
 }
 
 //*-----------------------------------------------------------------------------
 //| Purpose:   Convert GMM_RESROUCE_Format got by GetCaps to OSAL format
 //| Return:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t ConvertToOperatingSystemAbstractionLayerFormat(void *pSrc,
-                                                       uint32_t NumOfFormats)
+int32_t ConvertToOperatingSystemAbstractionLayerFormat(void *src,
+                                                       uint32_t numOfFormats)
 {
     uint32_t i = 0 ;
-    if(pSrc == nullptr || NumOfFormats == 0)
+    if(src == nullptr || numOfFormats == 0)
     {
         CM_ASSERTMESSAGE("Error: Invalid input arguments.");
         return CM_INVALID_ARG_VALUE;
     }
 
-    for ( i=0 ; i< NumOfFormats ; i++)
+    for ( i=0 ; i< numOfFormats ; i++)
     {
-        *((CM_OSAL_SURFACE_FORMAT *)pSrc+i) = CmMosFmtToOSFmt(*((CM_SURFACE_FORMAT *)pSrc+i));
+        *((CM_OSAL_SURFACE_FORMAT *)src+i) = CmMosFmtToOSFmt(*((CM_SURFACE_FORMAT *)src+i));
     }
     return CM_SUCCESS;
 }
@@ -114,8 +114,8 @@ int32_t ConvertToOperatingSystemAbstractionLayerFormat(void *pSrc,
         }
 
 #if USE_EXTENSION_CODE
-extern int CmThinExecuteEnableGTPin(CmDevice *pDevice, void *pCmPrivateInputData);
-extern int CmThinExecuteRegGTPinMarkers(CmDevice *pDevice, void *pCmPrivateInputData);
+extern int CmThinExecuteEnableGTPin(CmDevice *device, void *cmPrivateInputData);
+extern int CmThinExecuteRegGTPinMarkers(CmDevice *device, void *cmPrivateInputData);
 #endif
 
 using CMRT_UMD::CmSurface2D;
@@ -147,102 +147,100 @@ using CMRT_UMD::CmSampler8x8;
 //| Purpose:    CMRT thin layer library supported function execution
 //| Return:     CM_SUCCESS if successful
 //*-----------------------------------------------------------------------------
-int32_t CmThinExecuteEx(CmDevice *pDevice,
-                        CM_FUNCTION_ID CmFunctionID,
-                        void *pCmPrivateInputData,
-                        uint32_t CmPrivateInputDataSize)
+int32_t CmThinExecuteEx(CmDevice *device,
+                        CM_FUNCTION_ID cmFunctionID,
+                        void *cmPrivateInputData,
+                        uint32_t cmPrivateInputDataSize)
 {
-    int32_t                     hr                  = CM_SUCCESS;
-    int32_t                     cmRet               = CM_INVALID_PRIVATE_DATA;
-    CmBuffer                    *pCmBuffer          = nullptr;
-    CmBufferUP                  *pCmBufferUP        = nullptr;
-    CmBufferSVM                 *pCmBufferSVM       = nullptr;
-    CmSurface2DRT               *pCmSurface2d       = nullptr;
-    CmSurface2DUP               *pCmSurface2dup     = nullptr;
-    CmProgram                   *pCmProgram         = nullptr;
-    CmKernel                    *pCmKernel          = nullptr;
-    CmTask                      *pCmTask            = nullptr;
-    CmQueue                     *pCmQueue           = nullptr;
-    CmQueueRT                   *pCmQueueRT         = nullptr;
-    CmEvent                     *pCmEvent           = nullptr;
-    CmThreadSpace               *pCmTs              = nullptr;
-    CmThreadGroupSpace          *pCmTGS             = nullptr;
-    SurfaceIndex                *pVmeSurIndex       = nullptr;
-    SurfaceIndex                *pSurfaceIndex      = nullptr;
-    CmSampler                   *pSampler           = nullptr;
-    CMRT_UMD::SamplerIndex      *pSamplerIndex      = nullptr;
-    CmThreadGroupSpace          *pThreadGrpSpace    = nullptr;
-    CmSurface3D                 *pCmSurface3d       = nullptr;
-    CmSampler8x8                *pSampler8x8        = nullptr;
-    CmSurface2D                 *pCmSrcSurface2d    = nullptr;
-    CmSurface2D                 *pCmDstSurface2d    = nullptr;
-    CmSurface2D                 *pCmSurf2DBase      = nullptr;
-    CmVebox                     *pCmVebox           = nullptr;
-    CmDeviceRT                  *pDeviceRT          = nullptr;
-    if (pCmPrivateInputData == nullptr)
+    int32_t                     hr                 = CM_SUCCESS;
+    int32_t                     cmRet              = CM_INVALID_PRIVATE_DATA;
+    CmBuffer                    *cmBuffer          = nullptr;
+    CmBufferUP                  *cmBufferUP        = nullptr;
+    CmBufferSVM                 *cmBufferSVM       = nullptr;
+    CmSurface2DRT               *cmSurface2d       = nullptr;
+    CmSurface2DUP               *cmSurface2dup     = nullptr;
+    CmProgram                   *cmProgram         = nullptr;
+    CmKernel                    *cmKernel          = nullptr;
+    CmTask                      *cmTask            = nullptr;
+    CmQueue                     *cmQueue           = nullptr;
+    CmQueueRT                   *cmQueueRT         = nullptr;
+    CmEvent                     *cmEvent           = nullptr;
+    CmThreadSpace               *cmThreadSpace     = nullptr;
+    CmThreadGroupSpace          *cmThreadGroupSpace = nullptr;
+    SurfaceIndex                *vmeSurIndex       = nullptr;
+    SurfaceIndex                *surfaceIndex      = nullptr;
+    CmSampler                   *sampler           = nullptr;
+    CMRT_UMD::SamplerIndex      *samplerIndex      = nullptr;
+    CmThreadGroupSpace          *threadGrpSpace    = nullptr;
+    CmSurface3D                 *cmSurface3d       = nullptr;
+    CmSampler8x8                *sampler8x8        = nullptr;
+    CmSurface2D                 *cmSrcSurface2d    = nullptr;
+    CmSurface2D                 *cmDstSurface2d    = nullptr;
+    CmSurface2D                 *cmSurf2DBase      = nullptr;
+    CmVebox                     *cmVebox           = nullptr;
+    CmDeviceRT                  *deviceRT          = nullptr;
+    if (cmPrivateInputData == nullptr)
     {
         CM_ASSERTMESSAGE("Error: Null pointer.");
         return CM_INVALID_PRIVATE_DATA;
     }
 
-    if ((CmFunctionID != CM_FN_RT_ULT_INFO)&&(pDevice == nullptr))
+    if ((cmFunctionID != CM_FN_RT_ULT_INFO)&&(device == nullptr))
     {
         CM_ASSERTMESSAGE("Error: Null pointer.");
         return CM_NULL_POINTER;
     }
-    pDeviceRT = static_cast<CmDeviceRT*>(pDevice);
+    deviceRT = static_cast<CmDeviceRT*>(device);
 
-    switch(CmFunctionID)
+    switch(cmFunctionID)
     {
     case CM_FN_CMDEVICE_CREATEBUFFER:
-        if(CmPrivateInputDataSize == sizeof(CM_CREATEBUFFER_PARAM))
+        if(cmPrivateInputDataSize == sizeof(CM_CREATEBUFFER_PARAM))
         {
             CM_CREATEBUFFER_PARAM *pCmBufferParam
-                = (CM_CREATEBUFFER_PARAM*)(pCmPrivateInputData);
+                = (CM_CREATEBUFFER_PARAM*)(cmPrivateInputData);
 
-            //pDevice = CmGetDeviceHandle(hUMDevice);
-            //CM_DDI_ASSERT(pDevice);
             if(pCmBufferParam->bufferType == CM_BUFFER_N)
             {
                 //Create Buffer
-                cmRet = pDevice->CreateBuffer(pCmBufferParam->iSize, pCmBuffer);
+                cmRet = device->CreateBuffer(pCmBufferParam->size, cmBuffer);
                 //Create Surface Index
                 if( cmRet == CM_SUCCESS)
                 {
-                    pCmBufferParam->pCmBufferHandle = static_cast<CmBuffer *>(pCmBuffer);
+                    pCmBufferParam->bufferHandle = static_cast<CmBuffer *>(cmBuffer);
                 }
                 //Fill the output message
-                pCmBufferParam->iReturnValue        = cmRet;
+                pCmBufferParam->returnValue        = cmRet;
             }
             else if(pCmBufferParam->bufferType == CM_BUFFER_UP)
             { // Create Buffer Up
-                cmRet = pDevice->CreateBufferUP(pCmBufferParam->iSize,
-                                             pCmBufferParam->pSysMem,
-                                             pCmBufferUP);
+                cmRet = device->CreateBufferUP(pCmBufferParam->size,
+                                             pCmBufferParam->sysMem,
+                                             cmBufferUP);
                 //Create Surface Index
                 if( cmRet == CM_SUCCESS)
                 {
-                    pCmBufferParam->pCmBufferHandle     = pCmBufferUP;
+                    pCmBufferParam->bufferHandle     = cmBufferUP;
                 }
                 //Fill the output message
-                pCmBufferParam->iReturnValue        = cmRet;
+                pCmBufferParam->returnValue        = cmRet;
             }
             else if (pCmBufferParam->bufferType == CM_BUFFER_SVM)
             {
-                cmRet = pDevice->CreateBufferSVM(pCmBufferParam->iSize,
-                                                 pCmBufferParam->pSysMem,
+                cmRet = device->CreateBufferSVM(pCmBufferParam->size,
+                                                 pCmBufferParam->sysMem,
                                                  0,
-                                                 pCmBufferSVM);
+                                                 cmBufferSVM);
                 if (cmRet == CM_SUCCESS)
                 {
-                    pCmBufferParam->pCmBufferHandle = pCmBufferSVM;
+                    pCmBufferParam->bufferHandle = cmBufferSVM;
                 }
                 //Fill the output message
-                pCmBufferParam->iReturnValue        = cmRet;
+                pCmBufferParam->returnValue        = cmRet;
             }
             else //should never jump here
             {
-                pCmBufferParam->iReturnValue = CM_INVALID_ARG_VALUE;
+                pCmBufferParam->returnValue = CM_INVALID_ARG_VALUE;
                 goto finish;
             }
         }
@@ -254,785 +252,784 @@ int32_t CmThinExecuteEx(CmDevice *pDevice,
         break;
 
     case CM_FN_CMDEVICE_DESTROYBUFFER:
-        PCM_DESTROYBUFFER_PARAM pCmDestBufferParam;
-        pCmDestBufferParam = (PCM_DESTROYBUFFER_PARAM)(pCmPrivateInputData);
+        PCM_DESTROYBUFFER_PARAM cmDestBufferParam;
+        cmDestBufferParam = (PCM_DESTROYBUFFER_PARAM)(cmPrivateInputData);
 
-        pCmBuffer = (CmBuffer *)(pCmDestBufferParam->pCmBufferHandle);
-        CM_ASSERT(pCmBuffer);
+        cmBuffer = (CmBuffer *)(cmDestBufferParam->bufferHandle);
+        CM_ASSERT(cmBuffer);
 
-        cmRet = pDevice->DestroySurface(pCmBuffer);
+        cmRet = device->DestroySurface(cmBuffer);
 
         //Fill the output message
-        pCmDestBufferParam->iReturnValue  = cmRet;
+        cmDestBufferParam->returnValue  = cmRet;
         break;
 
     case CM_FN_CMDEVICE_DESTROYBUFFERUP:
-        PCM_DESTROYBUFFER_PARAM pCmDestBufferUPParam;
-        pCmDestBufferUPParam = (PCM_DESTROYBUFFER_PARAM)(pCmPrivateInputData);
+        PCM_DESTROYBUFFER_PARAM cmDestBufferUPParam;
+        cmDestBufferUPParam = (PCM_DESTROYBUFFER_PARAM)(cmPrivateInputData);
 
-        pCmBufferUP= (CmBufferUP *)(pCmDestBufferUPParam->pCmBufferHandle);
-        CM_ASSERT(pCmBufferUP);
+        cmBufferUP= (CmBufferUP *)(cmDestBufferUPParam->bufferHandle);
+        CM_ASSERT(cmBufferUP);
 
-        cmRet = pDevice->DestroyBufferUP(pCmBufferUP);
+        cmRet = device->DestroyBufferUP(cmBufferUP);
 
         //Fill the output message
-        pCmDestBufferUPParam->iReturnValue  = cmRet;
+        cmDestBufferUPParam->returnValue  = cmRet;
         break;
 
     case CM_FN_CMDEVICE_DESTROYBUFFERSVM:
-        PCM_DESTROYBUFFER_PARAM pCmDestBufferSVMParam;
-        pCmDestBufferSVMParam = (PCM_DESTROYBUFFER_PARAM)(pCmPrivateInputData);
+        PCM_DESTROYBUFFER_PARAM cmDestBufferSVMParam;
+        cmDestBufferSVMParam = (PCM_DESTROYBUFFER_PARAM)(cmPrivateInputData);
 
-        pCmBufferSVM = (CmBufferSVM *)(pCmDestBufferSVMParam->pCmBufferHandle);
-        CM_ASSERT(pCmBufferSVM);
+        cmBufferSVM = (CmBufferSVM *)(cmDestBufferSVMParam->bufferHandle);
+        CM_ASSERT(cmBufferSVM);
 
-        cmRet = pDevice->DestroyBufferSVM(pCmBufferSVM);
+        cmRet = device->DestroyBufferSVM(cmBufferSVM);
         //Fill the output message
-        pCmDestBufferSVMParam->iReturnValue  = cmRet;
+        cmDestBufferSVMParam->returnValue  = cmRet;
         break;
 
     case CM_FN_CMDEVICE_CREATESURFACE2DUP:
-        PCM_CREATESURFACE2DUP_PARAM pCmCreate2DUpParam;
-        pCmCreate2DUpParam = (PCM_CREATESURFACE2DUP_PARAM)(pCmPrivateInputData);
+        PCM_CREATESURFACE2DUP_PARAM cmCreate2DUpParam;
+        cmCreate2DUpParam = (PCM_CREATESURFACE2DUP_PARAM)(cmPrivateInputData);
 
-        cmRet = pDevice->CreateSurface2DUP(pCmCreate2DUpParam->iWidth,
-            pCmCreate2DUpParam->iHeight,
-            CmOSFmtToMosFmt(pCmCreate2DUpParam->Format),
-            pCmCreate2DUpParam->pSysMem,
-            pCmSurface2dup);
+        cmRet = device->CreateSurface2DUP(cmCreate2DUpParam->width,
+            cmCreate2DUpParam->height,
+            CmOSFmtToMosFmt(cmCreate2DUpParam->format),
+            cmCreate2DUpParam->sysMem,
+            cmSurface2dup);
         if( cmRet == CM_SUCCESS)
         {
-            pCmCreate2DUpParam->pCmSurface2DUPHandle = static_cast<CmSurface2DUP *>(pCmSurface2dup);
+            cmCreate2DUpParam->surface2DUPHandle = static_cast<CmSurface2DUP *>(cmSurface2dup);
         }
 
-        pCmCreate2DUpParam->iReturnValue         = cmRet;
+        cmCreate2DUpParam->returnValue         = cmRet;
         break;
 
     case CM_FN_CMDEVICE_DESTROYSURFACE2DUP:
-        PCM_DESTROYSURFACE2DUP_PARAM pCmDestroy2DUpParam;
-        pCmDestroy2DUpParam = (PCM_DESTROYSURFACE2DUP_PARAM)(pCmPrivateInputData);
-        pCmSurface2dup = static_cast<CmSurface2DUP *>(pCmDestroy2DUpParam->pCmSurface2DUPHandle);
+        PCM_DESTROYSURFACE2DUP_PARAM cmDestroy2DUpParam;
+        cmDestroy2DUpParam = (PCM_DESTROYSURFACE2DUP_PARAM)(cmPrivateInputData);
+        cmSurface2dup = static_cast<CmSurface2DUP *>(cmDestroy2DUpParam->surface2DUPHandle);
 
-        cmRet = pDevice->DestroySurface2DUP(pCmSurface2dup);
+        cmRet = device->DestroySurface2DUP(cmSurface2dup);
 
-        pCmDestroy2DUpParam->iReturnValue        = cmRet;
+        cmDestroy2DUpParam->returnValue        = cmRet;
         break;
 
     case CM_FN_CMDEVICE_GETSURFACE2DINFO:
-        PCM_GETSURFACE2DINFO_PARAM pCmGet2DinfoParam;
+        PCM_GETSURFACE2DINFO_PARAM cmGet2DinfoParam;
         uint32_t pitch,physicalsize;
-        pCmGet2DinfoParam = (PCM_GETSURFACE2DINFO_PARAM)(pCmPrivateInputData);
+        cmGet2DinfoParam = (PCM_GETSURFACE2DINFO_PARAM)(cmPrivateInputData);
 
-        cmRet = pDevice->GetSurface2DInfo( pCmGet2DinfoParam->iWidth,
-                                        pCmGet2DinfoParam->iHeight,
-                                        CmOSFmtToMosFmt(pCmGet2DinfoParam->format),
+        cmRet = device->GetSurface2DInfo( cmGet2DinfoParam->width,
+                                        cmGet2DinfoParam->height,
+                                        CmOSFmtToMosFmt(cmGet2DinfoParam->format),
                                         pitch,
                                         physicalsize);
 
-        pCmGet2DinfoParam->iPitch           = pitch;
-        pCmGet2DinfoParam->iPhysicalSize    = physicalsize;
-        pCmGet2DinfoParam->iReturnValue     = cmRet;
+        cmGet2DinfoParam->pitch           = pitch;
+        cmGet2DinfoParam->physicalSize    = physicalsize;
+        cmGet2DinfoParam->returnValue     = cmRet;
         break;
 
      case CM_FN_CMDEVICE_CREATESURFACE2D_ALIAS:
          {
-             PCM_DEVICE_CREATE_SURF2D_ALIAS_PARAM pCreateSurf2DAliasParam;
-             pCreateSurf2DAliasParam = (PCM_DEVICE_CREATE_SURF2D_ALIAS_PARAM)(pCmPrivateInputData);
-             CmSurface2D * pCmSurfBase = static_cast<CmSurface2D *>(pCreateSurf2DAliasParam->pCmSurface2DHandle);
-             pSurfaceIndex = (SurfaceIndex*)pCreateSurf2DAliasParam->pSurfaceIndexHandle;
+             PCM_DEVICE_CREATE_SURF2D_ALIAS_PARAM createSurf2DAliasParam;
+             createSurf2DAliasParam = (PCM_DEVICE_CREATE_SURF2D_ALIAS_PARAM)(cmPrivateInputData);
+             CmSurface2D * cmSurfBase = static_cast<CmSurface2D *>(createSurf2DAliasParam->surface2DHandle);
+             surfaceIndex = (SurfaceIndex*)createSurf2DAliasParam->surfaceIndexHandle;
 
-             cmRet = pDevice->CreateSurface2DAlias(pCmSurfBase, pSurfaceIndex);
-             pCreateSurf2DAliasParam->pSurfaceIndexHandle = pSurfaceIndex;
-             pCreateSurf2DAliasParam->iReturnValue = cmRet;
+             cmRet = device->CreateSurface2DAlias(cmSurfBase, surfaceIndex);
+             createSurf2DAliasParam->surfaceIndexHandle = surfaceIndex;
+             createSurf2DAliasParam->returnValue = cmRet;
          }
          break;
 
      case CM_FN_CMDEVICE_CREATEBUFFER_ALIAS:
          {
-             PCM_DEVICE_CREATE_BUFFER_ALIAS_PARAM pCreateBufferAliasParam;
-             pCreateBufferAliasParam = (PCM_DEVICE_CREATE_BUFFER_ALIAS_PARAM)(pCmPrivateInputData);
-             pCmBuffer= static_cast<CmBuffer *>(pCreateBufferAliasParam->pCmBufferHandle);
-             pSurfaceIndex = (SurfaceIndex*)pCreateBufferAliasParam->pSurfaceIndexHandle;
+             PCM_DEVICE_CREATE_BUFFER_ALIAS_PARAM createBufferAliasParam;
+             createBufferAliasParam = (PCM_DEVICE_CREATE_BUFFER_ALIAS_PARAM)(cmPrivateInputData);
+             cmBuffer= static_cast<CmBuffer *>(createBufferAliasParam->bufferHandle);
+             surfaceIndex = (SurfaceIndex*)createBufferAliasParam->surfaceIndexHandle;
 
-             cmRet = pDevice->CreateBufferAlias(pCmBuffer, pSurfaceIndex);
-             pCreateBufferAliasParam->pSurfaceIndexHandle = pSurfaceIndex;
-             pCreateBufferAliasParam->iReturnValue = cmRet;
+             cmRet = device->CreateBufferAlias(cmBuffer, surfaceIndex);
+             createBufferAliasParam->surfaceIndexHandle = surfaceIndex;
+             createBufferAliasParam->returnValue = cmRet;
          }
          break;
 
      case CM_FN_CMDEVICE_CLONEKERNEL:
          {
-             PCM_CLONE_KERNEL_PARAM  pCloneKernelParam;
-             pCloneKernelParam = (PCM_CLONE_KERNEL_PARAM)(pCmPrivateInputData);
-             CmKernel * pKernelDest = static_cast<CmKernel *>(pCloneKernelParam->pCmKernelHandleDest);
-             CmKernel * pKernelSrc = static_cast<CmKernel *>(pCloneKernelParam->pCmKernelHandleSrc);
-             cmRet = pDevice->CloneKernel(pKernelDest, pKernelSrc);
-             pCloneKernelParam->pCmKernelHandleDest = pKernelDest;
+             PCM_CLONE_KERNEL_PARAM  cloneKernelParam;
+             cloneKernelParam = (PCM_CLONE_KERNEL_PARAM)(cmPrivateInputData);
+             CmKernel * kernelDest = static_cast<CmKernel *>(cloneKernelParam->kernelHandleDest);
+             CmKernel * kernelSrc = static_cast<CmKernel *>(cloneKernelParam->kernelHandleSrc);
+             cmRet = device->CloneKernel(kernelDest, kernelSrc);
+             cloneKernelParam->kernelHandleDest = kernelDest;
 
-             pCloneKernelParam->iReturnValue = cmRet;
+             cloneKernelParam->returnValue = cmRet;
          }
          break;
 
      case CM_FN_CMDEVICE_DESTROYSURFACE2D:
         {
-            PCM_DESTROYSURFACE2D_PARAM pCmDestroy2DParam;
+            PCM_DESTROYSURFACE2D_PARAM cmDestroy2DParam;
 
-            pCmDestroy2DParam    = (PCM_DESTROYSURFACE2D_PARAM)(pCmPrivateInputData);
-            CmSurface2D * pCmSurfBase = (CmSurface2D *)(pCmDestroy2DParam->pCmSurface2DHandle);
+            cmDestroy2DParam    = (PCM_DESTROYSURFACE2D_PARAM)(cmPrivateInputData);
+            CmSurface2D * cmSurfBase = (CmSurface2D *)(cmDestroy2DParam->surface2DHandle);
 
-            CM_ASSERT(pCmSurfBase);
+            CM_ASSERT(cmSurfBase);
 
-            cmRet = pDevice->DestroySurface(pCmSurfBase);
+            cmRet = device->DestroySurface(cmSurfBase);
             //Fill output message
-            pCmDestroy2DParam->pCmSurface2DHandle    = nullptr;
-            pCmDestroy2DParam->iReturnValue          = cmRet;
+            cmDestroy2DParam->surface2DHandle    = nullptr;
+            cmDestroy2DParam->returnValue        = cmRet;
         }
         break;
 
     case CM_FN_CMDEVICE_LOADPROGRAM:
-        PCM_LOADPROGRAM_PARAM       pCmLoadProgParam;
-        pCmLoadProgParam     = (PCM_LOADPROGRAM_PARAM)(pCmPrivateInputData);
-        CM_ASSERT(pCmLoadProgParam->pCISACode);
+        PCM_LOADPROGRAM_PARAM       cmLoadProgParam;
+        cmLoadProgParam     = (PCM_LOADPROGRAM_PARAM)(cmPrivateInputData);
+        CM_ASSERT(cmLoadProgParam->cisaCode);
 
-        cmRet = pDevice->LoadProgram(pCmLoadProgParam->pCISACode,
-                                     pCmLoadProgParam->uiCISACodeSize,
-                                     pCmProgram,
-                                     pCmLoadProgParam->options);
+        cmRet = device->LoadProgram(cmLoadProgParam->cisaCode,
+                                     cmLoadProgParam->cisaCodeSize,
+                                     cmProgram,
+                                     cmLoadProgParam->options);
 
-        if(cmRet == CM_SUCCESS && pCmProgram)
+        if(cmRet == CM_SUCCESS && cmProgram)
         {
-            pCmLoadProgParam->pCmProgramHandle  = static_cast<CmProgram *>(pCmProgram);
-            CmProgramRT *pCmProgramRT = static_cast<CmProgramRT *>(pCmProgram);
-            pCmLoadProgParam->indexInArray      = pCmProgramRT->GetProgramIndex();
+            cmLoadProgParam->programHandle  = static_cast<CmProgram *>(cmProgram);
+            CmProgramRT *cmProgramRT = static_cast<CmProgramRT *>(cmProgram);
+            cmLoadProgParam->indexInArray      = cmProgramRT->GetProgramIndex();
         }
-        pCmLoadProgParam->iReturnValue      = cmRet;
+        cmLoadProgParam->returnValue      = cmRet;
         break;
 
     case CM_FN_CMDEVICE_DESTROYPROGRAM:
-        PCM_DESTROYPROGRAM_PARAM   pCmDestoyProgParam;
-        pCmDestoyProgParam = (PCM_DESTROYPROGRAM_PARAM)(pCmPrivateInputData);
-        pCmProgram           = (CmProgram *)(pCmDestoyProgParam->pCmProgramHandle);
+        PCM_DESTROYPROGRAM_PARAM   cmDestoyProgParam;
+        cmDestoyProgParam = (PCM_DESTROYPROGRAM_PARAM)(cmPrivateInputData);
+        cmProgram         = (CmProgram *)(cmDestoyProgParam->programHandle);
 
-        CM_ASSERT(pCmProgram);
+        CM_ASSERT(cmProgram);
 
-        cmRet = pDevice->DestroyProgram(pCmProgram);
+        cmRet = device->DestroyProgram(cmProgram);
 
-        pCmDestoyProgParam->iReturnValue = cmRet;
+        cmDestoyProgParam->returnValue = cmRet;
         break;
 
      case CM_FN_CMDEVICE_CREATEKERNEL:
-        PCM_CREATEKERNEL_PARAM  pCmCreateKernelParam;
-        pCmCreateKernelParam =(PCM_CREATEKERNEL_PARAM)(pCmPrivateInputData);
-        pCmProgram           = (CmProgram *)(pCmCreateKernelParam->pCmProgramHandle);
+        PCM_CREATEKERNEL_PARAM  cmCreateKernelParam;
+        cmCreateKernelParam =(PCM_CREATEKERNEL_PARAM)(cmPrivateInputData);
+        cmProgram           = (CmProgram *)(cmCreateKernelParam->programHandle);
 
-        cmRet = pDevice->CreateKernel(pCmProgram,
-                                   pCmCreateKernelParam->pKernelName,
-                                   pCmKernel,
-                                   pCmCreateKernelParam->pOptions);
-        if(cmRet == CM_SUCCESS && pCmKernel)
+        cmRet = device->CreateKernel(cmProgram,
+                                   cmCreateKernelParam->kernelName,
+                                   cmKernel,
+                                   cmCreateKernelParam->options);
+        if(cmRet == CM_SUCCESS && cmKernel)
         {
-            pCmCreateKernelParam->pCmKernelHandle = static_cast< CmKernel * >(pCmKernel);
-            CmKernelRT *pKernelRT = static_cast<CmKernelRT *>(pCmKernel);
-            pCmCreateKernelParam->indexKernelArray = pKernelRT->GetKernelIndex();
+            cmCreateKernelParam->kernelHandle = static_cast< CmKernel * >(cmKernel);
+            CmKernelRT *kernelRT = static_cast<CmKernelRT *>(cmKernel);
+            cmCreateKernelParam->indexKernelArray = kernelRT->GetKernelIndex();
         }
-        pCmCreateKernelParam->iReturnValue = cmRet;
+        cmCreateKernelParam->returnValue = cmRet;
         break;
 
     case CM_FN_CMDEVICE_DESTROYKERNEL:
-        PCM_DESTROYKERNEL_PARAM pCmDestroyKernelParam;
-        pCmDestroyKernelParam = (PCM_DESTROYKERNEL_PARAM)(pCmPrivateInputData);
-        pCmKernel            =(CmKernel *)(pCmDestroyKernelParam->pCmKernelHandle);
-        CM_ASSERT(pCmKernel);
+        PCM_DESTROYKERNEL_PARAM cmDestroyKernelParam;
+        cmDestroyKernelParam = (PCM_DESTROYKERNEL_PARAM)(cmPrivateInputData);
+        cmKernel            =(CmKernel *)(cmDestroyKernelParam->kernelHandle);
+        CM_ASSERT(cmKernel);
 
-        cmRet = pDevice->DestroyKernel(pCmKernel);
+        cmRet = device->DestroyKernel(cmKernel);
 
-        pCmDestroyKernelParam->iReturnValue = cmRet;
+        cmDestroyKernelParam->returnValue = cmRet;
         break;
 
     case CM_FN_CMDEVICE_CREATETASK:
-        PCM_CREATETASK_PARAM pCmCreateTaskParam;
-        pCmCreateTaskParam = (PCM_CREATETASK_PARAM)(pCmPrivateInputData);
-        cmRet = pDevice->CreateTask(pCmTask);
+        PCM_CREATETASK_PARAM cmCreateTaskParam;
+        cmCreateTaskParam = (PCM_CREATETASK_PARAM)(cmPrivateInputData);
+        cmRet = device->CreateTask(cmTask);
 
-        if(cmRet == CM_SUCCESS && pCmTask)
+        if(cmRet == CM_SUCCESS && cmTask)
         {
-            pCmCreateTaskParam->pCmTaskHandle = pCmTask;
-            CmTaskRT *pCmTaskRT = static_cast<CmTaskRT *>(pCmTask);
-            pCmCreateTaskParam->iTaskIndex    = pCmTaskRT->GetIndexInTaskArray();
+            cmCreateTaskParam->taskHandle = cmTask;
+            CmTaskRT *cmTaskRT = static_cast<CmTaskRT *>(cmTask);
+            cmCreateTaskParam->taskIndex    = cmTaskRT->GetIndexInTaskArray();
         }
-        pCmCreateTaskParam->iReturnValue  = cmRet;
+        cmCreateTaskParam->returnValue  = cmRet;
         break;
 
     case CM_FN_CMDEVICE_DESTROYTASK:
-        PCM_DESTROYTASK_PARAM pCmDestroyTaskParam;
-        pCmDestroyTaskParam = (PCM_DESTROYTASK_PARAM)(pCmPrivateInputData);
-        pCmTask             = (CmTask *)pCmDestroyTaskParam->pCmTaskHandle;
+        PCM_DESTROYTASK_PARAM cmDestroyTaskParam;
+        cmDestroyTaskParam = (PCM_DESTROYTASK_PARAM)(cmPrivateInputData);
+        cmTask             = (CmTask *)cmDestroyTaskParam->taskHandle;
 
-        cmRet = pDevice->DestroyTask(pCmTask);
+        cmRet = device->DestroyTask(cmTask);
 
-        pCmDestroyTaskParam->iReturnValue = cmRet;
+        cmDestroyTaskParam->returnValue = cmRet;
         break;
 
     case CM_FN_CMDEVICE_CREATEQUEUE:
     {
-        CM_CREATEQUEUE_PARAM *pCmCreateQueParam;
-        pCmCreateQueParam = (CM_CREATEQUEUE_PARAM *)(pCmPrivateInputData);
+        CM_CREATEQUEUE_PARAM *cmCreateQueParam;
+        cmCreateQueParam = (CM_CREATEQUEUE_PARAM *)(cmPrivateInputData);
 
-        CM_QUEUE_CREATE_OPTION QueueCreateOption = CM_DEFAULT_QUEUE_CREATE_OPTION;
-        QueueCreateOption.QueueType = (CM_QUEUE_TYPE)pCmCreateQueParam->iCmQueueType;
-        QueueCreateOption.RunAloneMode = pCmCreateQueParam->bCmRunAloneMode;
-        cmRet = pDevice->CreateQueueEx(pCmQueue, QueueCreateOption);
+        CM_QUEUE_CREATE_OPTION queueCreateOption = CM_DEFAULT_QUEUE_CREATE_OPTION;
+        queueCreateOption.QueueType = (CM_QUEUE_TYPE)cmCreateQueParam->queueType;
+        queueCreateOption.RunAloneMode = cmCreateQueParam->runAloneMode;
+        cmRet = device->CreateQueueEx(cmQueue, queueCreateOption);
 
-        pCmCreateQueParam->iReturnValue = cmRet;
-        pCmCreateQueParam->pCmQueueHandle = (pCmQueue);
+        cmCreateQueParam->returnValue = cmRet;
+        cmCreateQueParam->queueHandle = (cmQueue);
         break;
     }
 
     case CM_FN_CMQUEUE_ENQUEUE:
-        PCM_ENQUEUE_PARAM pCmEnqueueParam;
-        pCmEnqueueParam = (PCM_ENQUEUE_PARAM)(pCmPrivateInputData);
-        pCmQueue        = (CmQueue *)pCmEnqueueParam->pCmQueueHandle;
-        pCmTask         = (CmTask  *)pCmEnqueueParam->pCmTaskHandle;
-        pCmTs           = (CmThreadSpace *)pCmEnqueueParam->pCmThreadSpaceHandle;
-        pCmEvent        = (CmEvent*)pCmEnqueueParam->pCmEventHandle; // used as input
+        PCM_ENQUEUE_PARAM cmEnqueueParam;
+        cmEnqueueParam = (PCM_ENQUEUE_PARAM)(cmPrivateInputData);
+        cmQueue        = (CmQueue *)cmEnqueueParam->queueHandle;
+        cmTask         = (CmTask  *)cmEnqueueParam->taskHandle;
+        cmThreadSpace           = (CmThreadSpace *)cmEnqueueParam->threadSpaceHandle;
+        cmEvent        = (CmEvent*)cmEnqueueParam->eventHandle; // used as input
 
-        CM_ASSERT(pCmQueue);
-        CM_ASSERT(pCmTask);
+        CM_ASSERT(cmQueue);
+        CM_ASSERT(cmTask);
 
-        cmRet = pCmQueue->Enqueue(pCmTask,pCmEvent,pCmTs);
+        cmRet = cmQueue->Enqueue(cmTask,cmEvent,cmThreadSpace);
 
-        pCmEnqueueParam->pCmEventHandle = pCmEvent;
-        pCmEnqueueParam->iReturnValue = cmRet;
+        cmEnqueueParam->eventHandle = cmEvent;
+        cmEnqueueParam->returnValue = cmRet;
         break;
 
      case CM_FN_CMQUEUE_ENQUEUEWITHHINTS:
-        PCM_ENQUEUEHINTS_PARAM pCmEnqueueHintsParam;
-        pCmEnqueueHintsParam = (PCM_ENQUEUEHINTS_PARAM)(pCmPrivateInputData);
-        pCmQueue             = (CmQueue *)pCmEnqueueHintsParam->pCmQueueHandle;
-        pCmTask              = (CmTask  *)pCmEnqueueHintsParam->pCmTaskHandle;
-        pCmEvent             = (CmEvent *)pCmEnqueueHintsParam->pCmEventHandle; // used as input
+        PCM_ENQUEUEHINTS_PARAM cmEnqueueHintsParam;
+        cmEnqueueHintsParam = (PCM_ENQUEUEHINTS_PARAM)(cmPrivateInputData);
+        cmQueue             = (CmQueue *)cmEnqueueHintsParam->queueHandle;
+        cmTask              = (CmTask  *)cmEnqueueHintsParam->taskHandle;
+        cmEvent             = (CmEvent *)cmEnqueueHintsParam->eventHandle; // used as input
 
-        if(pCmQueue)
+        if(cmQueue)
         {
-            cmRet = pCmQueue->EnqueueWithHints(pCmTask, pCmEvent, pCmEnqueueHintsParam->uiHints);
+            cmRet = cmQueue->EnqueueWithHints(cmTask, cmEvent, cmEnqueueHintsParam->hints);
         }
 
-        pCmEnqueueHintsParam->pCmEventHandle = pCmEvent;
-        pCmEnqueueHintsParam->iReturnValue = cmRet;
+        cmEnqueueHintsParam->eventHandle = cmEvent;
+        cmEnqueueHintsParam->returnValue = cmRet;
         break;
 
     case CM_FN_CMQUEUE_DESTROYEVENT:
-        PCM_DESTROYEVENT_PARAM pCmDestroyEventParam;
-        pCmDestroyEventParam = (PCM_DESTROYEVENT_PARAM)(pCmPrivateInputData);
-        pCmQueue        = (CmQueue *)pCmDestroyEventParam->pCmQueueHandle;
-        pCmEvent        = (CmEvent *)pCmDestroyEventParam->pCmEventHandle;
-        CM_ASSERT(pCmQueue);
-        CM_ASSERT(pCmEvent);
+        PCM_DESTROYEVENT_PARAM cmDestroyEventParam;
+        cmDestroyEventParam = (PCM_DESTROYEVENT_PARAM)(cmPrivateInputData);
+        cmQueue        = (CmQueue *)cmDestroyEventParam->queueHandle;
+        cmEvent        = (CmEvent *)cmDestroyEventParam->eventHandle;
+        CM_ASSERT(cmQueue);
+        CM_ASSERT(cmEvent);
 
-        cmRet = pCmQueue->DestroyEvent(pCmEvent);
+        cmRet = cmQueue->DestroyEvent(cmEvent);
 
-        pCmDestroyEventParam->iReturnValue = cmRet;
+        cmDestroyEventParam->returnValue = cmRet;
         break;
 
     case CM_FN_CMDEVICE_CREATETHREADSPACE:
-        PCM_CREATETHREADSPACE_PARAM pCmCreateTsParam;
-        pCmCreateTsParam = (PCM_CREATETHREADSPACE_PARAM)(pCmPrivateInputData);
+        PCM_CREATETHREADSPACE_PARAM cmCreateTsParam;
+        cmCreateTsParam = (PCM_CREATETHREADSPACE_PARAM)(cmPrivateInputData);
 
-        cmRet = pDevice->CreateThreadSpace(pCmCreateTsParam->TsWidth,
-                                        pCmCreateTsParam->TsHeight,
-                                        pCmTs);
-        if(cmRet==CM_SUCCESS && pCmTs)
+        cmRet = device->CreateThreadSpace(cmCreateTsParam->threadSpaceWidth,
+                                        cmCreateTsParam->threadSpaceHeight,
+                                        cmThreadSpace);
+        if(cmRet==CM_SUCCESS && cmThreadSpace)
         {
-            pCmCreateTsParam->pCmTsHandle = pCmTs;
-            CmThreadSpaceRT *pCmTsRT = static_cast<CmThreadSpaceRT *>(pCmTs);
-            pCmCreateTsParam->indexInTSArray = pCmTsRT->GetIndexInTsArray();
+            cmCreateTsParam->threadSpaceHandle = cmThreadSpace;
+            CmThreadSpaceRT *cmThreadSpaceRT = static_cast<CmThreadSpaceRT *>(cmThreadSpace);
+            cmCreateTsParam->indexInTSArray = cmThreadSpaceRT->GetIndexInTsArray();
         }
-        pCmCreateTsParam->iReturnValue = cmRet;
+        cmCreateTsParam->returnValue = cmRet;
         break;
 
     case CM_FN_CMDEVICE_DESTROYTHREADSPACE:
-        PCM_DESTROYTHREADSPACE_PARAM pCmDestroyTsParam;
-        pCmDestroyTsParam = (PCM_DESTROYTHREADSPACE_PARAM)(pCmPrivateInputData);
-        pCmTs               = (CmThreadSpace *)pCmDestroyTsParam->pCmTsHandle;
-        CM_ASSERT(pCmTs);
-        cmRet = pDevice->DestroyThreadSpace(pCmTs);
-        pCmDestroyTsParam->iReturnValue = cmRet;
+        PCM_DESTROYTHREADSPACE_PARAM cmDestroyTsParam;
+        cmDestroyTsParam = (PCM_DESTROYTHREADSPACE_PARAM)(cmPrivateInputData);
+        cmThreadSpace    = (CmThreadSpace *)cmDestroyTsParam->threadSpaceHandle;
+        CM_ASSERT(cmThreadSpace);
+        cmRet = device->DestroyThreadSpace(cmThreadSpace);
+        cmDestroyTsParam->returnValue = cmRet;
         break;
 
     case CM_FN_CMDEVICE_CREATEVMESURFACEG7_5:
-        PCM_CREATEVMESURFACE_PARAM  pCreateVmeSurf7p5Param;
-        pCreateVmeSurf7p5Param = ( PCM_CREATEVMESURFACE_PARAM )( pCmPrivateInputData );
+        PCM_CREATEVMESURFACE_PARAM  createVmeSurf7p5Param;
+        createVmeSurf7p5Param = ( PCM_CREATEVMESURFACE_PARAM )( cmPrivateInputData );
 
-        cmRet = pDevice->CreateVmeSurfaceG7_5((CmSurface2D *) pCreateVmeSurf7p5Param->pCmCurSurfHandle,
-                                           (CmSurface2D * *) pCreateVmeSurf7p5Param->pCmForwardSurfArray,
-                                           (CmSurface2D * * )pCreateVmeSurf7p5Param->pCmBackwardSurfArray,
-                                           pCreateVmeSurf7p5Param->iForwardSurfCount,
-                                           pCreateVmeSurf7p5Param->iBackwardSurfCount,
-                                           pVmeSurIndex);
+        cmRet = device->CreateVmeSurfaceG7_5((CmSurface2D *) createVmeSurf7p5Param->curSurfHandle,
+                                           (CmSurface2D * *) createVmeSurf7p5Param->forwardSurfArray,
+                                           (CmSurface2D * * )createVmeSurf7p5Param->backwardSurfArray,
+                                           createVmeSurf7p5Param->forwardSurfCount,
+                                           createVmeSurf7p5Param->backwardSurfCount,
+                                           vmeSurIndex);
 
-        pCreateVmeSurf7p5Param->pCmVmeSurfIndexHandle = pVmeSurIndex;
-        pCreateVmeSurf7p5Param->iReturnValue = cmRet;
+        createVmeSurf7p5Param->vmeSurfIndexHandle = vmeSurIndex;
+        createVmeSurf7p5Param->returnValue = cmRet;
         break;
 
     case CM_FN_CMDEVICE_CREATEHEVCVMESURFACEG10:
-        PCM_CREATEVMESURFACE_PARAM  pCreateVmeSurfParamG10;
-        pCreateVmeSurfParamG10 = ( PCM_CREATEVMESURFACE_PARAM )( pCmPrivateInputData );
+        PCM_CREATEVMESURFACE_PARAM  createVmeSurfParamG10;
+        createVmeSurfParamG10 = ( PCM_CREATEVMESURFACE_PARAM )( cmPrivateInputData );
 
-        cmRet = pDevice->CreateHevcVmeSurfaceG10( ( CmSurface2D * )pCreateVmeSurfParamG10->pCmCurSurfHandle,
-                                             ( CmSurface2D * * )pCreateVmeSurfParamG10->pCmForwardSurfArray,
-                                             ( CmSurface2D * * )pCreateVmeSurfParamG10->pCmBackwardSurfArray,
-                                             pCreateVmeSurfParamG10->iForwardSurfCount,
-                                             pCreateVmeSurfParamG10->iBackwardSurfCount,
-                                             pVmeSurIndex );
+        cmRet = device->CreateHevcVmeSurfaceG10( ( CmSurface2D * )createVmeSurfParamG10->curSurfHandle,
+                                             ( CmSurface2D * * )createVmeSurfParamG10->forwardSurfArray,
+                                             ( CmSurface2D * * )createVmeSurfParamG10->backwardSurfArray,
+                                             createVmeSurfParamG10->forwardSurfCount,
+                                             createVmeSurfParamG10->backwardSurfCount,
+                                             vmeSurIndex );
 
-        pCreateVmeSurfParamG10->pCmVmeSurfIndexHandle = pVmeSurIndex;
-        pCreateVmeSurfParamG10->iReturnValue = cmRet;
+        createVmeSurfParamG10->vmeSurfIndexHandle = vmeSurIndex;
+        createVmeSurfParamG10->returnValue = cmRet;
         break;
 
     case CM_FN_CMDEVICE_DESTROYVMESURFACE:
-        PCM_DESTROYVMESURFACE_PARAM pDestroyVmeSurfParam;
-        pDestroyVmeSurfParam = ( PCM_DESTROYVMESURFACE_PARAM )( pCmPrivateInputData );
+        PCM_DESTROYVMESURFACE_PARAM destroyVmeSurfParam;
+        destroyVmeSurfParam = ( PCM_DESTROYVMESURFACE_PARAM )( cmPrivateInputData );
 
-        pVmeSurIndex = ( SurfaceIndex* )pDestroyVmeSurfParam->pCmVmeSurfIndexHandle;
-        cmRet = pDeviceRT->DestroyVmeSurface( pVmeSurIndex );
-        pDestroyVmeSurfParam->iReturnValue = cmRet;
+        vmeSurIndex = ( SurfaceIndex* )destroyVmeSurfParam->vmeSurfIndexHandle;
+        cmRet = deviceRT->DestroyVmeSurface( vmeSurIndex );
+        destroyVmeSurfParam->returnValue = cmRet;
         break;
 
     case CM_FN_CMDEVICE_CONFIGVMESURFACEDIMENSION:
-        PCM_CONFIGVMESURFACEDIMENSION_PARAM pConfigSurfStateParam;
-        pConfigSurfStateParam = (PCM_CONFIGVMESURFACEDIMENSION_PARAM)(pCmPrivateInputData);
+        PCM_CONFIGVMESURFACEDIMENSION_PARAM configSurfStateParam;
+        configSurfStateParam = (PCM_CONFIGVMESURFACEDIMENSION_PARAM)(cmPrivateInputData);
 
-        pVmeSurIndex = (SurfaceIndex* )pConfigSurfStateParam->pCmVmeSurfHandle;
-        cmRet = pDevice->SetVmeSurfaceStateParam(pVmeSurIndex, pConfigSurfStateParam->pSurfDimPara);
-        pConfigSurfStateParam->iReturnValue = cmRet;
+        vmeSurIndex = (SurfaceIndex* )configSurfStateParam->vmeSurfHandle;
+        cmRet = device->SetVmeSurfaceStateParam(vmeSurIndex, configSurfStateParam->surfDimensionPara);
+        configSurfStateParam->returnValue = cmRet;
         break;
 
     case CM_FN_CMDEVICE_CREATESAMPLER:
-        PCM_CREATESAMPLER_PARAM pCreateSamplerParam;
-        pCreateSamplerParam = (PCM_CREATESAMPLER_PARAM)(pCmPrivateInputData);
+        PCM_CREATESAMPLER_PARAM createSamplerParam;
+        createSamplerParam = (PCM_CREATESAMPLER_PARAM)(cmPrivateInputData);
 
-        cmRet = pDevice->CreateSampler(pCreateSamplerParam->SampleState, pSampler);
+        cmRet = device->CreateSampler(createSamplerParam->sampleState, sampler);
         if(cmRet == CM_SUCCESS)
         {
-             cmRet = pSampler->GetIndex(pSamplerIndex);
-             pCreateSamplerParam->pCmSamplerHandle =  static_cast<CmSampler *>(pSampler);
-             pCreateSamplerParam->pCmSamplerIndexHandle = pSamplerIndex;
+             cmRet = sampler->GetIndex(samplerIndex);
+             createSamplerParam->samplerHandle =  static_cast<CmSampler *>(sampler);
+             createSamplerParam->samplerIndexHandle = samplerIndex;
         }
-        pCreateSamplerParam->iReturnValue = cmRet;
+        createSamplerParam->returnValue = cmRet;
         break;
 
     case CM_FN_CMDEVICE_CREATESAMPLER_EX:
-        PCM_CREATESAMPLER_PARAM_EX pCreateSamplerParamEx;
-        pCreateSamplerParamEx = (PCM_CREATESAMPLER_PARAM_EX)(pCmPrivateInputData);
+        PCM_CREATESAMPLER_PARAM_EX createSamplerParamEx;
+        createSamplerParamEx = (PCM_CREATESAMPLER_PARAM_EX)(cmPrivateInputData);
 
-        cmRet = pDevice->CreateSamplerEx(pCreateSamplerParamEx->SampleState, pSampler);
+        cmRet = device->CreateSamplerEx(createSamplerParamEx->sampleState, sampler);
         if(cmRet == CM_SUCCESS)
         {
-             cmRet = pSampler->GetIndex(pSamplerIndex);
-             pCreateSamplerParamEx->pCmSamplerHandle =  static_cast<CmSampler *>(pSampler);
-             pCreateSamplerParamEx->pCmSamplerIndexHandle = pSamplerIndex;
+             cmRet = sampler->GetIndex(samplerIndex);
+             createSamplerParamEx->samplerHandle =  static_cast<CmSampler *>(sampler);
+             createSamplerParamEx->samplerIndexHandle = samplerIndex;
         }
-        pCreateSamplerParamEx->iReturnValue = cmRet;
+        createSamplerParamEx->returnValue = cmRet;
         break;
 
     case CM_FN_CMDEVICE_DESTROYSAMPLER:
-        PCM_DESTROYSAMPLER_PARAM pDestroySamplerParam;
-        pDestroySamplerParam = (PCM_DESTROYSAMPLER_PARAM)(pCmPrivateInputData);
+        PCM_DESTROYSAMPLER_PARAM destroySamplerParam;
+        destroySamplerParam = (PCM_DESTROYSAMPLER_PARAM)(cmPrivateInputData);
 
-        pSampler            = (CmSampler *)pDestroySamplerParam->pCmSamplerHandle;
-        cmRet = pDevice->DestroySampler(pSampler);
-        pDestroySamplerParam->iReturnValue = cmRet;
+        sampler            = (CmSampler *)destroySamplerParam->samplerHandle;
+        cmRet = device->DestroySampler(sampler);
+        destroySamplerParam->returnValue = cmRet;
         break;
 
     case CM_FN_CMDEVICE_CREATETHREADGROUPSPACE:
-        PCM_CREATETGROUPSPACE_PARAM pCreateTGrpSpaceParam;
-        pCreateTGrpSpaceParam = (PCM_CREATETGROUPSPACE_PARAM)(pCmPrivateInputData);
+        PCM_CREATETGROUPSPACE_PARAM createTGrpSpaceParam;
+        createTGrpSpaceParam = (PCM_CREATETGROUPSPACE_PARAM)(cmPrivateInputData);
 
-        cmRet  = pDevice->CreateThreadGroupSpaceEx(
-                 pCreateTGrpSpaceParam->thrdSpaceWidth,
-                 pCreateTGrpSpaceParam->thrdSpaceHeight,
-                 pCreateTGrpSpaceParam->thrdSpaceDepth,
-                 pCreateTGrpSpaceParam->grpSpaceWidth,
-                 pCreateTGrpSpaceParam->grpSpaceHeight,
-                 pCreateTGrpSpaceParam->grpSpaceDepth,
-                 pThreadGrpSpace);
-        if(cmRet == CM_SUCCESS && pThreadGrpSpace)
+        cmRet  = device->CreateThreadGroupSpaceEx(
+                 createTGrpSpaceParam->thrdSpaceWidth,
+                 createTGrpSpaceParam->thrdSpaceHeight,
+                 createTGrpSpaceParam->thrdSpaceDepth,
+                 createTGrpSpaceParam->grpSpaceWidth,
+                 createTGrpSpaceParam->grpSpaceHeight,
+                 createTGrpSpaceParam->grpSpaceDepth,
+                 threadGrpSpace);
+        if(cmRet == CM_SUCCESS && threadGrpSpace)
         {
-            pCreateTGrpSpaceParam->pCmGrpSpaceHandle = static_cast<CmThreadGroupSpace *>(pThreadGrpSpace);
-            pCreateTGrpSpaceParam->iTGSIndex         = pThreadGrpSpace->GetIndexInTGsArray();
+            createTGrpSpaceParam->groupSpaceHandle = static_cast<CmThreadGroupSpace *>(threadGrpSpace);
+            createTGrpSpaceParam->threadGroupSpaceIndex = threadGrpSpace->GetIndexInTGsArray();
         }
-        pCreateTGrpSpaceParam->iReturnValue = cmRet;
+        createTGrpSpaceParam->returnValue = cmRet;
         break;
 
     case CM_FN_CMDEVICE_DESTROYTHREADGROUPSPACE:
-        PCM_DESTROYTGROPUSPACE_PARAM pDestroyTGrpSpaceParam;
-        pDestroyTGrpSpaceParam = (PCM_DESTROYTGROPUSPACE_PARAM)(pCmPrivateInputData);
+        PCM_DESTROYTGROPUSPACE_PARAM destroyTGrpSpaceParam;
+        destroyTGrpSpaceParam = (PCM_DESTROYTGROPUSPACE_PARAM)(cmPrivateInputData);
 
-        pThreadGrpSpace     = (CmThreadGroupSpace *)pDestroyTGrpSpaceParam->pCmGrpSpaceHandle;
-        cmRet = pDevice->DestroyThreadGroupSpace(pThreadGrpSpace);
-        pDestroyTGrpSpaceParam->iReturnValue = cmRet;
+        threadGrpSpace     = (CmThreadGroupSpace *)destroyTGrpSpaceParam->groupSpaceHandle;
+        cmRet = device->DestroyThreadGroupSpace(threadGrpSpace);
+        destroyTGrpSpaceParam->returnValue = cmRet;
         break;
 
     case CM_FN_CMQUEUE_ENQUEUEWITHGROUP:
-        PCM_ENQUEUEGROUP_PARAM pEnqueueGroupParam;
-        pEnqueueGroupParam = (PCM_ENQUEUEGROUP_PARAM)(pCmPrivateInputData);
-        pCmQueue    = (CmQueue *)pEnqueueGroupParam->pCmQueueHandle;
-        pThreadGrpSpace = (CmThreadGroupSpace *)pEnqueueGroupParam->pCmTGrpSpaceHandle;
-        pCmTask     = (CmTask *)pEnqueueGroupParam->pCmTaskHandle;
-        pCmEvent    = (CmEvent*)pEnqueueGroupParam->pCmEventHandle; // used as input
+        PCM_ENQUEUEGROUP_PARAM enqueueGroupParam;
+        enqueueGroupParam = (PCM_ENQUEUEGROUP_PARAM)(cmPrivateInputData);
+        cmQueue    = (CmQueue *)enqueueGroupParam->queueHandle;
+        threadGrpSpace = (CmThreadGroupSpace *)enqueueGroupParam->threadGroupSpaceHandle;
+        cmTask     = (CmTask *)enqueueGroupParam->taskHandle;
+        cmEvent    = (CmEvent*)enqueueGroupParam->eventHandle; // used as input
 
-        cmRet = pCmQueue->EnqueueWithGroup(pCmTask,
-                                        pCmEvent,
-                                        pThreadGrpSpace);
+        cmRet = cmQueue->EnqueueWithGroup(cmTask,
+                                        cmEvent,
+                                        threadGrpSpace);
 
-        pEnqueueGroupParam->pCmEventHandle = pCmEvent;
-        pEnqueueGroupParam->iReturnValue = cmRet;
+        enqueueGroupParam->eventHandle = cmEvent;
+        enqueueGroupParam->returnValue = cmRet;
         break;
 
     case CM_FN_CMDEVICE_GETCAPS:
-        PCM_GETCAPS_PARAM pGetCapParam;
-        pGetCapParam = (PCM_GETCAPS_PARAM)(pCmPrivateInputData);
+        PCM_GETCAPS_PARAM getCapParam;
+        getCapParam = (PCM_GETCAPS_PARAM)(cmPrivateInputData);
 
-        cmRet = pDevice->GetCaps(pGetCapParam->capName,
-                              pGetCapParam->capValueSize,
-                              pGetCapParam->pCapValue);
+        cmRet = device->GetCaps(getCapParam->capName,
+                              getCapParam->capValueSize,
+                              getCapParam->capValue);
 
-        if( (cmRet == CM_SUCCESS) &&   pGetCapParam->capName == CAP_SURFACE2D_FORMATS)
+        if( (cmRet == CM_SUCCESS) &&   getCapParam->capName == CAP_SURFACE2D_FORMATS)
         { // need to convert to OSAL Format
             cmRet = ConvertToOperatingSystemAbstractionLayerFormat(
-                pGetCapParam->pCapValue, CM_MAX_SURFACE2D_FORMAT_COUNT);
+                getCapParam->capValue, CM_MAX_SURFACE2D_FORMAT_COUNT);
         }
 
-        if( (cmRet == CM_SUCCESS) &&  pGetCapParam->capName == CAP_SURFACE3D_FORMATS)
+        if( (cmRet == CM_SUCCESS) &&  getCapParam->capName == CAP_SURFACE3D_FORMATS)
         {
             cmRet = ConvertToOperatingSystemAbstractionLayerFormat(
-                pGetCapParam->pCapValue, CM_MAX_SURFACE3D_FORMAT_COUNT);
+                getCapParam->capValue, CM_MAX_SURFACE3D_FORMAT_COUNT);
         }
-        pGetCapParam->iReturnValue = cmRet;
+        getCapParam->returnValue = cmRet;
         break;
 
     case CM_FN_CMDEVICE_SETCAPS:
-        PCM_DEVICE_SETCAP_PARAM pSetCapParam;
-        pSetCapParam = (PCM_DEVICE_SETCAP_PARAM)(pCmPrivateInputData);
-        cmRet = pDevice->SetCaps(pSetCapParam->capName, pSetCapParam->capValueSize, pSetCapParam->pCapValue);
-        pSetCapParam->iReturnValue = cmRet;
+        PCM_DEVICE_SETCAP_PARAM setCapParam;
+        setCapParam = (PCM_DEVICE_SETCAP_PARAM)(cmPrivateInputData);
+        cmRet = device->SetCaps(setCapParam->capName, setCapParam->capValueSize, setCapParam->capValue);
+        setCapParam->returnValue = cmRet;
         break;
 
     case CM_FN_CMDEVICE_SETSUGGESTEDL3CONFIG:
-        PCM_DEVICE_SETSUGGESTEDL3_PARAM pSetL3IndexParam;
-        pSetL3IndexParam = (PCM_DEVICE_SETSUGGESTEDL3_PARAM)(pCmPrivateInputData);
-        cmRet = pDevice->SetSuggestedL3Config(pSetL3IndexParam->l3_s_c);
-        pSetL3IndexParam->iReturnValue = cmRet;
+        PCM_DEVICE_SETSUGGESTEDL3_PARAM setL3IndexParam;
+        setL3IndexParam = (PCM_DEVICE_SETSUGGESTEDL3_PARAM)(cmPrivateInputData);
+        cmRet = device->SetSuggestedL3Config(setL3IndexParam->l3SuggestConfig);
+        setL3IndexParam->returnValue = cmRet;
         break;
 
     case CM_FN_CMQUEUE_ENQUEUECOPY:
 
-        CM_ENQUEUE_GPUCOPY_PARAM *pEnqueueGpuCopyParam;
-        pEnqueueGpuCopyParam = (CM_ENQUEUE_GPUCOPY_PARAM*)(pCmPrivateInputData);
-        pCmQueue     =  (CmQueue *)pEnqueueGpuCopyParam->pCmQueueHandle;
-        pCmQueueRT   = static_cast<CmQueueRT*>(pCmQueue);
-        pCmSurface2d =  CM_SURFACE_2D(pEnqueueGpuCopyParam->pCmSurface2d);
-        pCmEvent     =  (CmEvent*)pEnqueueGpuCopyParam->pCmEventHandle; // used as input
+        CM_ENQUEUE_GPUCOPY_PARAM *enqueueGpuCopyParam;
+        enqueueGpuCopyParam = (CM_ENQUEUE_GPUCOPY_PARAM*)(cmPrivateInputData);
+        cmQueue     =  (CmQueue *)enqueueGpuCopyParam->queueHandle;
+        cmQueueRT   = static_cast<CmQueueRT*>(cmQueue);
+        cmSurface2d =  CM_SURFACE_2D(enqueueGpuCopyParam->surface2d);
+        cmEvent     =  (CmEvent*)enqueueGpuCopyParam->eventHandle; // used as input
 
-        cmRet = pCmQueueRT->EnqueueCopyInternal( pCmSurface2d,
-                                               (unsigned char *) pEnqueueGpuCopyParam->pSysMem,
-                                               pEnqueueGpuCopyParam->iWidthStride,
-                                               pEnqueueGpuCopyParam->iHeightStride,
-                                               pEnqueueGpuCopyParam->iCopyDir,
-                                               pEnqueueGpuCopyParam->iOption,
-                                               pCmEvent);
+        cmRet = cmQueueRT->EnqueueCopyInternal( cmSurface2d,
+                                               (unsigned char *) enqueueGpuCopyParam->sysMem,
+                                               enqueueGpuCopyParam->widthStride,
+                                               enqueueGpuCopyParam->heightStride,
+                                               enqueueGpuCopyParam->copyDir,
+                                               enqueueGpuCopyParam->option,
+                                               cmEvent);
 
-        pEnqueueGpuCopyParam->pCmEventHandle = pCmEvent;
-        pEnqueueGpuCopyParam->iReturnValue   = cmRet;
+        enqueueGpuCopyParam->eventHandle = cmEvent;
+        enqueueGpuCopyParam->returnValue = cmRet;
 
         break;
 
    case CM_FN_CMQUEUE_ENQUEUESURF2DINIT:
-        PCM_ENQUEUE_2DINIT_PARAM  pEnqueue2DInitParam;
-        pEnqueue2DInitParam = (PCM_ENQUEUE_2DINIT_PARAM)(pCmPrivateInputData);
+        PCM_ENQUEUE_2DINIT_PARAM  enqueue2DInitParam;
+        enqueue2DInitParam = (PCM_ENQUEUE_2DINIT_PARAM)(cmPrivateInputData);
 
-        pCmQueue = (CmQueue *)pEnqueue2DInitParam->pCmQueueHandle;
-        pCmSurf2DBase = (CmSurface2D *)(pEnqueue2DInitParam->pCmSurface2d);
-        pCmEvent     = (CmEvent*)pEnqueue2DInitParam->pCmEventHandle; // used as input
-        CM_ASSERT(pCmQueue);
-        CM_ASSERT(pCmSurf2DBase);
+        cmQueue = (CmQueue *)enqueue2DInitParam->queueHandle;
+        cmSurf2DBase = (CmSurface2D *)(enqueue2DInitParam->surface2d);
+        cmEvent     = (CmEvent*)enqueue2DInitParam->eventHandle; // used as input
+        CM_ASSERT(cmQueue);
+        CM_ASSERT(cmSurf2DBase);
 
-        cmRet = pCmQueue->EnqueueInitSurface2D(pCmSurf2DBase, pEnqueue2DInitParam->dwInitValue, pCmEvent);
+        cmRet = cmQueue->EnqueueInitSurface2D(cmSurf2DBase, enqueue2DInitParam->initValue, cmEvent);
 
-        pEnqueue2DInitParam->pCmEventHandle = pCmEvent;
-        pEnqueue2DInitParam->iReturnValue = cmRet;
+        enqueue2DInitParam->eventHandle = cmEvent;
+        enqueue2DInitParam->returnValue = cmRet;
         break;
 
     case CM_FN_CMQUEUE_ENQUEUECOPY_V2V:
-        PCM_ENQUEUE_GPUCOPY_V2V_PARAM  pEnqueueCopyV2VParam;
-        pEnqueueCopyV2VParam = (PCM_ENQUEUE_GPUCOPY_V2V_PARAM)(pCmPrivateInputData);
+        PCM_ENQUEUE_GPUCOPY_V2V_PARAM  enqueueCopyV2VParam;
+        enqueueCopyV2VParam = (PCM_ENQUEUE_GPUCOPY_V2V_PARAM)(cmPrivateInputData);
 
-        pCmQueue = (CmQueue *)pEnqueueCopyV2VParam->pCmQueueHandle;
-        pCmSrcSurface2d = (CmSurface2D *)(pEnqueueCopyV2VParam->pCmSrcSurface2d);
-        pCmDstSurface2d = (CmSurface2D *)(pEnqueueCopyV2VParam->pCmDstSurface2d);
-        pCmEvent        = (CmEvent*)pEnqueueCopyV2VParam->pCmEventHandle; // used as input
-        CM_ASSERT(pCmQueue);
-        CM_ASSERT(pCmSrcSurface2d);
-        CM_ASSERT(pCmDstSurface2d);
+        cmQueue = (CmQueue *)enqueueCopyV2VParam->queueHandle;
+        cmSrcSurface2d = (CmSurface2D *)(enqueueCopyV2VParam->srcSurface2d);
+        cmDstSurface2d = (CmSurface2D *)(enqueueCopyV2VParam->dstSurface2d);
+        cmEvent        = (CmEvent*)enqueueCopyV2VParam->eventHandle; // used as input
+        CM_ASSERT(cmQueue);
+        CM_ASSERT(cmSrcSurface2d);
+        CM_ASSERT(cmDstSurface2d);
 
-        cmRet = pCmQueue->EnqueueCopyGPUToGPU(pCmDstSurface2d,
-                                              pCmSrcSurface2d,
-                                              pEnqueueCopyV2VParam->iOption,
-                                              pCmEvent);
+        cmRet = cmQueue->EnqueueCopyGPUToGPU(cmDstSurface2d,
+                                              cmSrcSurface2d,
+                                              enqueueCopyV2VParam->option,
+                                              cmEvent);
 
-        pEnqueueCopyV2VParam->pCmEventHandle = pCmEvent;
-        pEnqueueCopyV2VParam->iReturnValue = cmRet;
+        enqueueCopyV2VParam->eventHandle = cmEvent;
+        enqueueCopyV2VParam->returnValue = cmRet;
 
         break;
 
     case CM_FN_CMQUEUE_ENQUEUECOPY_L2L:
-        PCM_ENQUEUE_GPUCOPY_L2L_PARAM  pEnqueueCopyL2LParam;
-        pEnqueueCopyL2LParam = (PCM_ENQUEUE_GPUCOPY_L2L_PARAM)(pCmPrivateInputData);
+        PCM_ENQUEUE_GPUCOPY_L2L_PARAM  enqueueCopyL2LParam;
+        enqueueCopyL2LParam = (PCM_ENQUEUE_GPUCOPY_L2L_PARAM)(cmPrivateInputData);
 
-        pCmQueue = (CmQueue *)pEnqueueCopyL2LParam->pCmQueueHandle;
-        pCmEvent = (CmEvent*)pEnqueueCopyL2LParam->pCmEventHandle; // used as input
-        CM_ASSERT(pCmQueue);
+        cmQueue = (CmQueue *)enqueueCopyL2LParam->queueHandle;
+        cmEvent = (CmEvent*)enqueueCopyL2LParam->eventHandle; // used as input
+        CM_ASSERT(cmQueue);
 
-        cmRet = pCmQueue->EnqueueCopyCPUToCPU((unsigned char *) pEnqueueCopyL2LParam->pDstSysMem,
-                                           (unsigned char *) pEnqueueCopyL2LParam->pSrcSysMem,
-                                            pEnqueueCopyL2LParam->CopySize,
-                                            pEnqueueCopyL2LParam->iOption,
-                                            pCmEvent);
+        cmRet = cmQueue->EnqueueCopyCPUToCPU((unsigned char *) enqueueCopyL2LParam->dstSysMem,
+                                           (unsigned char *) enqueueCopyL2LParam->srcSysMem,
+                                            enqueueCopyL2LParam->copySize,
+                                            enqueueCopyL2LParam->option,
+                                            cmEvent);
 
-        pEnqueueCopyL2LParam->pCmEventHandle = pCmEvent;
-        pEnqueueCopyL2LParam->iReturnValue = cmRet;
+        enqueueCopyL2LParam->eventHandle = cmEvent;
+        enqueueCopyL2LParam->returnValue = cmRet;
 
         break;
 
     case CM_FN_CMQUEUE_ENQUEUEVEBOX:
-        PCM_ENQUEUE_VEBOX_PARAM pEnqueueVeboxParam;
-        pEnqueueVeboxParam = (PCM_ENQUEUE_VEBOX_PARAM)(pCmPrivateInputData);
-        pCmQueue = (CmQueue *)pEnqueueVeboxParam->pCmQueueHandle;
-        pCmVebox = (CmVebox *)pEnqueueVeboxParam->pCmVeboxHandle;
-        pCmEvent = (CmEvent *)pEnqueueVeboxParam->pCmEventHandle;
+        PCM_ENQUEUE_VEBOX_PARAM enqueueVeboxParam;
+        enqueueVeboxParam = (PCM_ENQUEUE_VEBOX_PARAM)(cmPrivateInputData);
+        cmQueue = (CmQueue *)enqueueVeboxParam->queueHandle;
+        cmVebox = (CmVebox *)enqueueVeboxParam->veboxHandle;
+        cmEvent = (CmEvent *)enqueueVeboxParam->eventHandle;
 
-        if (pCmQueue)
+        if (cmQueue)
         {
-            cmRet = pCmQueue->EnqueueVebox(pCmVebox, pCmEvent);
+            cmRet = cmQueue->EnqueueVebox(cmVebox, cmEvent);
         }
 
-        pEnqueueVeboxParam->pCmEventHandle = pCmEvent;
-
-        pEnqueueVeboxParam->iReturnValue = cmRet;
+        enqueueVeboxParam->eventHandle = cmEvent;
+        enqueueVeboxParam->returnValue = cmRet;
 
         break;
 
         //Surface 3D Create/Destroy Read/Write
     case CM_FN_CMDEVICE_CREATESURFACE3D:
-        PCM_CREATE_SURFACE3D_PARAM pCreateS3dParam;
-        pCreateS3dParam = (PCM_CREATE_SURFACE3D_PARAM)(pCmPrivateInputData);
+        PCM_CREATE_SURFACE3D_PARAM createSurf3dParam;
+        createSurf3dParam = (PCM_CREATE_SURFACE3D_PARAM)(cmPrivateInputData);
 
-        cmRet = pDevice->CreateSurface3D(pCreateS3dParam->iWidth,
-                                    pCreateS3dParam->iHeight,
-                                    pCreateS3dParam->iDepth,
-                                    CmOSFmtToMosFmt(pCreateS3dParam->Format),
-                                    pCmSurface3d);
+        cmRet = device->CreateSurface3D(createSurf3dParam->width,
+                                    createSurf3dParam->height,
+                                    createSurf3dParam->depth,
+                                    CmOSFmtToMosFmt(createSurf3dParam->format),
+                                    cmSurface3d);
         if(cmRet == CM_SUCCESS)
         {
-             pCreateS3dParam->pCmSurface3DHandle  = static_cast<CmSurface3D *>(pCmSurface3d);
+             createSurf3dParam->surface3DHandle  = static_cast<CmSurface3D *>(cmSurface3d);
         }
-        pCreateS3dParam->iReturnValue        = cmRet;
+        createSurf3dParam->returnValue        = cmRet;
         break;
 
     case CM_FN_CMDEVICE_DESTROYSURFACE3D:
-        PCM_DESTROY_SURFACE3D_PARAM pDestroyS3dParam;
-        pDestroyS3dParam = (PCM_DESTROY_SURFACE3D_PARAM)(pCmPrivateInputData);
-        pCmSurface3d     = static_cast<CmSurface3D *>(pDestroyS3dParam->pCmSurface3DHandle);
+        PCM_DESTROY_SURFACE3D_PARAM destroySurf3dParam;
+        destroySurf3dParam = (PCM_DESTROY_SURFACE3D_PARAM)(cmPrivateInputData);
+        cmSurface3d     = static_cast<CmSurface3D *>(destroySurf3dParam->surface3DHandle);
 
-        cmRet = pDevice->DestroySurface(pCmSurface3d);
+        cmRet = device->DestroySurface(cmSurface3d);
 
-        pDestroyS3dParam->iReturnValue = cmRet;
+        destroySurf3dParam->returnValue = cmRet;
         break;
 
    case CM_FN_CMDEVICE_CREATESAMPLERSURFACE2D:
-        PCM_CREATESAMPLER2D_PARAM pCreateSSurf2DParam;
-        pCreateSSurf2DParam = (PCM_CREATESAMPLER2D_PARAM)(pCmPrivateInputData);
+        PCM_CREATESAMPLER2D_PARAM createSampler2DParam;
+        createSampler2DParam = (PCM_CREATESAMPLER2D_PARAM)(cmPrivateInputData);
 
-        pCmSurf2DBase     = (CmSurface2D *)pCreateSSurf2DParam->pCmSurface2DHandle;
+        cmSurf2DBase     = (CmSurface2D *)createSampler2DParam->surface2DHandle;
 
-        cmRet = pDevice->CreateSamplerSurface2D(pCmSurf2DBase, pSurfaceIndex);
+        cmRet = device->CreateSamplerSurface2D(cmSurf2DBase, surfaceIndex);
 
-        pCreateSSurf2DParam->pSamplerSurfIndexHandle = pSurfaceIndex;
-        pCreateSSurf2DParam->iReturnValue = cmRet;
+        createSampler2DParam->samplerSurfIndexHandle = surfaceIndex;
+        createSampler2DParam->returnValue = cmRet;
         break;
 
    case CM_FN_CMDEVICE_CREATESAMPLERSURFACE2D_EX:
-       PCM_CREATESAMPLER2DEX_PARAM pCreateSSurf2DExParam;
-       pCreateSSurf2DExParam = (PCM_CREATESAMPLER2DEX_PARAM)(pCmPrivateInputData);
+       PCM_CREATESAMPLER2DEX_PARAM createSampler2DExParam;
+       createSampler2DExParam = (PCM_CREATESAMPLER2DEX_PARAM)(cmPrivateInputData);
 
-       pCmSurf2DBase = (CmSurface2D *)pCreateSSurf2DExParam->pCmSurface2DHandle;
+       cmSurf2DBase = (CmSurface2D *)createSampler2DExParam->surface2DHandle;
 
-       cmRet = pDevice->CreateSamplerSurface2DEx(pCmSurf2DBase, pSurfaceIndex, pCreateSSurf2DExParam->pFlag);
+       cmRet = device->CreateSamplerSurface2DEx(cmSurf2DBase, surfaceIndex, createSampler2DExParam->flag);
 
-       pCreateSSurf2DExParam->pSamplerSurfIndexHandle = pSurfaceIndex;
-       pCreateSSurf2DExParam->iReturnValue = cmRet;
+       createSampler2DExParam->samplerSurfIndexHandle = surfaceIndex;
+       createSampler2DExParam->returnValue = cmRet;
        break;
 
    case CM_FN_CMDEVICE_CREATESAMPLERSURFACE2DUP:
-        PCM_CREATESAMPLER2DUP_PARAM pCreateSurf2DUPParam;
-        pCreateSurf2DUPParam = (PCM_CREATESAMPLER2DUP_PARAM)(pCmPrivateInputData);
+        PCM_CREATESAMPLER2DUP_PARAM createSampler2DUPParam;
+        createSampler2DUPParam = (PCM_CREATESAMPLER2DUP_PARAM)(cmPrivateInputData);
 
-        pCmSurface2dup     = (CmSurface2DUP *)pCreateSurf2DUPParam->pCmSurface2DUPHandle;
+        cmSurface2dup     = (CmSurface2DUP *)createSampler2DUPParam->surface2DUPHandle;
 
-        cmRet = pDevice->CreateSamplerSurface2DUP(pCmSurface2dup, pSurfaceIndex);
+        cmRet = device->CreateSamplerSurface2DUP(cmSurface2dup, surfaceIndex);
 
-        pCreateSurf2DUPParam->pSamplerSurfIndexHandle = pSurfaceIndex;
-        pCreateSurf2DUPParam->iReturnValue = cmRet;
+        createSampler2DUPParam->samplerSurfIndexHandle = surfaceIndex;
+        createSampler2DUPParam->returnValue = cmRet;
         break;
 
    case CM_FN_CMDEVICE_CREATESAMPLERSURFACE3D:
-        PCM_CREATESAMPLER3D_PARAM pCreateSSurf3DParam;
-        pCreateSSurf3DParam = (PCM_CREATESAMPLER3D_PARAM)(pCmPrivateInputData);
+        PCM_CREATESAMPLER3D_PARAM createSampler3DParam;
+        createSampler3DParam = (PCM_CREATESAMPLER3D_PARAM)(cmPrivateInputData);
 
-        pCmSurface3d     = (CmSurface3D *)pCreateSSurf3DParam->pCmSurface3DHandle;
+        cmSurface3d     = (CmSurface3D *)createSampler3DParam->surface3DHandle;
 
-        cmRet = pDevice->CreateSamplerSurface3D(pCmSurface3d, pSurfaceIndex);
+        cmRet = device->CreateSamplerSurface3D(cmSurface3d, surfaceIndex);
 
-        pCreateSSurf3DParam->pSamplerSurfIndexHandle = pSurfaceIndex;
-        pCreateSSurf3DParam->iReturnValue = cmRet;
+        createSampler3DParam->samplerSurfIndexHandle = surfaceIndex;
+        createSampler3DParam->returnValue = cmRet;
         break;
 
    case CM_FN_CMDEVICE_DESTROYSAMPLERSURFACE:
-        PCM_DESTROYSAMPLERSURF_PARAM pDestroySSurfParam;
-        pDestroySSurfParam = (PCM_DESTROYSAMPLERSURF_PARAM)(pCmPrivateInputData);
+        PCM_DESTROYSAMPLERSURF_PARAM destroySamplerSurfParam;
+        destroySamplerSurfParam = (PCM_DESTROYSAMPLERSURF_PARAM)(cmPrivateInputData);
 
-        pSurfaceIndex    = (SurfaceIndex *)pDestroySSurfParam->pSamplerSurfIndexHandle;
-        cmRet = pDevice->DestroySamplerSurface(pSurfaceIndex );
+        surfaceIndex    = (SurfaceIndex *)destroySamplerSurfParam->samplerSurfIndexHandle;
+        cmRet = device->DestroySamplerSurface(surfaceIndex );
 
-        pDestroySSurfParam->iReturnValue = cmRet;
+        destroySamplerSurfParam->returnValue = cmRet;
         break;
 
     case CM_FN_CMDEVICE_CREATESAMPLER8X8:
-        PCM_CREATESAMPLER8x8_PARAM pCreateSam8x8Param;
-        pCreateSam8x8Param = (PCM_CREATESAMPLER8x8_PARAM)(pCmPrivateInputData);
+        PCM_CREATESAMPLER8x8_PARAM createSampler8x8Param;
+        createSampler8x8Param = (PCM_CREATESAMPLER8x8_PARAM)(cmPrivateInputData);
 
-        cmRet = pDevice->CreateSampler8x8(pCreateSam8x8Param->Sample8x8Desc ,
-                                       pSampler8x8);
+        cmRet = device->CreateSampler8x8(createSampler8x8Param->sample8x8Desc ,
+                                       sampler8x8);
         if(cmRet == CM_SUCCESS)
         {
-             cmRet = pSampler8x8->GetIndex(pSamplerIndex);
-             pCreateSam8x8Param->pCmSamplerIndexHandle = pSamplerIndex;
-             pCreateSam8x8Param->pCmSampler8x8Handle = static_cast<CmSampler8x8 *>(pSampler8x8);
+             cmRet = sampler8x8->GetIndex(samplerIndex);
+             createSampler8x8Param->samplerIndexHandle = samplerIndex;
+             createSampler8x8Param->sampler8x8Handle = static_cast<CmSampler8x8 *>(sampler8x8);
         }
-        pCreateSam8x8Param->iReturnValue = cmRet;
+        createSampler8x8Param->returnValue = cmRet;
         break;
 
     case CM_FN_CMDEVICE_DESTROYSAMPLER8X8:
-        PCM_DESTROYSAMPLER8x8_PARAM pDestroySam8x8Param;
-        pDestroySam8x8Param = (PCM_DESTROYSAMPLER8x8_PARAM)(pCmPrivateInputData);
+        PCM_DESTROYSAMPLER8x8_PARAM destroySampler8x8Param;
+        destroySampler8x8Param = (PCM_DESTROYSAMPLER8x8_PARAM)(cmPrivateInputData);
 
-        pSampler8x8         = (CmSampler8x8 *)pDestroySam8x8Param->pCmSampler8x8Handle;
-        cmRet = pDevice->DestroySampler8x8( pSampler8x8);
+        sampler8x8         = (CmSampler8x8 *)destroySampler8x8Param->sampler8x8Handle;
+        cmRet = device->DestroySampler8x8( sampler8x8);
 
-        pDestroySam8x8Param->iReturnValue = cmRet;
+        destroySampler8x8Param->returnValue = cmRet;
         break;
 
     case CM_FN_CMDEVICE_CREATESAMPLER8X8SURFACE:
-        PCM_CREATESAMPLER8x8SURF_PARAM pCreateSam8x8SurfParam;
-        pCreateSam8x8SurfParam = (PCM_CREATESAMPLER8x8SURF_PARAM)(pCmPrivateInputData);
+        PCM_CREATESAMPLER8x8SURF_PARAM createSampler8x8SurfParam;
+        createSampler8x8SurfParam = (PCM_CREATESAMPLER8x8SURF_PARAM)(cmPrivateInputData);
 
-        cmRet = pDevice->CreateSampler8x8Surface(
-            (CmSurface2D *) pCreateSam8x8SurfParam->pCmSurf2DHandle,
-            pSurfaceIndex,
-            pCreateSam8x8SurfParam->CmSampler8x8Type,
-            pCreateSam8x8SurfParam->Sampler8x8Mode);
+        cmRet = device->CreateSampler8x8Surface(
+            (CmSurface2D *) createSampler8x8SurfParam->surf2DHandle,
+            surfaceIndex,
+            createSampler8x8SurfParam->sampler8x8Type,
+            createSampler8x8SurfParam->sampler8x8Mode);
 
-        pCreateSam8x8SurfParam->pCmSurfIndexHandle = pSurfaceIndex;
-        pCreateSam8x8SurfParam->iReturnValue       = cmRet;
+        createSampler8x8SurfParam->surfIndexHandle = surfaceIndex;
+        createSampler8x8SurfParam->returnValue     = cmRet;
         break;
 
     case CM_FN_CMDEVICE_CREATESAMPLER8X8SURFACE_EX:
-        PCM_CREATESAMPLER8x8SURFEX_PARAM pCreateSam8x8SurfParamEx;
-        pCreateSam8x8SurfParamEx = (PCM_CREATESAMPLER8x8SURFEX_PARAM)(pCmPrivateInputData);
+        PCM_CREATESAMPLER8x8SURFEX_PARAM createSampler8x8SurfParamEx;
+        createSampler8x8SurfParamEx = (PCM_CREATESAMPLER8x8SURFEX_PARAM)(cmPrivateInputData);
 
-        cmRet = pDevice->CreateSampler8x8SurfaceEx(
-            (CmSurface2D *)pCreateSam8x8SurfParamEx->pCmSurf2DHandle,
-            pSurfaceIndex,
-            pCreateSam8x8SurfParamEx->CmSampler8x8Type,
-            pCreateSam8x8SurfParamEx->Sampler8x8Mode,
-            pCreateSam8x8SurfParamEx->pFlag);
+        cmRet = device->CreateSampler8x8SurfaceEx(
+            (CmSurface2D *)createSampler8x8SurfParamEx->surf2DHandle,
+            surfaceIndex,
+            createSampler8x8SurfParamEx->sampler8x8Type,
+            createSampler8x8SurfParamEx->sampler8x8Mode,
+            createSampler8x8SurfParamEx->flag);
 
-        pCreateSam8x8SurfParamEx->pCmSurfIndexHandle = pSurfaceIndex;
-        pCreateSam8x8SurfParamEx->iReturnValue = cmRet;
+        createSampler8x8SurfParamEx->surfIndexHandle = surfaceIndex;
+        createSampler8x8SurfParamEx->returnValue = cmRet;
         break;
 
     case CM_FN_CMDEVICE_DESTROYSAMPLER8X8SURFACE:
-        PCM_DESTROYSAMPLER8x8SURF_PARAM pDestroySam8x8SurfParam;
-        pDestroySam8x8SurfParam = (PCM_DESTROYSAMPLER8x8SURF_PARAM)(pCmPrivateInputData);
+        PCM_DESTROYSAMPLER8x8SURF_PARAM destroySampler8x8SurfParam;
+        destroySampler8x8SurfParam = (PCM_DESTROYSAMPLER8x8SURF_PARAM)(cmPrivateInputData);
 
-        cmRet = pDevice->DestroySampler8x8Surface(pDestroySam8x8SurfParam->pCmSurfIndexHandle);
+        cmRet = device->DestroySampler8x8Surface(destroySampler8x8SurfParam->surfIndexHandle);
 
-        pDestroySam8x8SurfParam->iReturnValue       = cmRet;
+        destroySampler8x8SurfParam->returnValue       = cmRet;
         break;
 
 #if USE_EXTENSION_CODE
     case CM_FN_CMDEVICE_ENABLE_GTPIN:
-        hr = CmThinExecuteEnableGTPin(pDevice, pCmPrivateInputData);
+        hr = CmThinExecuteEnableGTPin(device, cmPrivateInputData);
         break;
 
     case   CM_FN_CMDEVICE_REGISTER_GTPIN_MARKERS:
-        hr = CmThinExecuteRegGTPinMarkers(pDevice, pCmPrivateInputData);
+        hr = CmThinExecuteRegGTPinMarkers(device, cmPrivateInputData);
         break;
 #endif
 
     case CM_FN_CMDEVICE_INIT_PRINT_BUFFER:
-        PCM_DEVICE_INIT_PRINT_BUFFER_PARAM pInitPrintBufferParam;
-        pInitPrintBufferParam  = (PCM_DEVICE_INIT_PRINT_BUFFER_PARAM)(pCmPrivateInputData);
+        PCM_DEVICE_INIT_PRINT_BUFFER_PARAM initPrintBufferParam;
+        initPrintBufferParam  = (PCM_DEVICE_INIT_PRINT_BUFFER_PARAM)(cmPrivateInputData);
 
-        cmRet = pDevice->InitPrintBuffer(pInitPrintBufferParam->dwPrintBufferSize);
+        cmRet = device->InitPrintBuffer(initPrintBufferParam->printBufferSize);
         if( cmRet == CM_SUCCESS)
         {
             //Return the print buffer memory to thin layer
-            pDeviceRT->GetPrintBufferMem((unsigned char *&)pInitPrintBufferParam->pPrintBufferMem);
+            deviceRT->GetPrintBufferMem((unsigned char *&)initPrintBufferParam->printBufferMem);
         }
 
-        pInitPrintBufferParam->iReturnValue     = cmRet;
+        initPrintBufferParam->returnValue     = cmRet;
         break;
 
     case CM_FN_CMDEVICE_CREATEVEBOX:
         {
-            PCM_CREATEVEBOX_PARAM pCreateVeboxParam;
-            pCreateVeboxParam = (PCM_CREATEVEBOX_PARAM) (pCmPrivateInputData);
-            cmRet = pDevice->CreateVebox(pCmVebox);
-            if( cmRet == CM_SUCCESS && pCmVebox)
+            PCM_CREATEVEBOX_PARAM createVeboxParam;
+            createVeboxParam = (PCM_CREATEVEBOX_PARAM) (cmPrivateInputData);
+            cmRet = device->CreateVebox(cmVebox);
+            if( cmRet == CM_SUCCESS && cmVebox)
             {
-                pCreateVeboxParam->pCmVeboxHandle = pCmVebox;
-                CmVeboxRT *pVeboxRT = static_cast<CmVeboxRT *>(pCmVebox);
-                pCreateVeboxParam->indexInVeboxArray = pVeboxRT->GetIndexInVeboxArray();
+                createVeboxParam->veboxHandle = cmVebox;
+                CmVeboxRT *veboxRT = static_cast<CmVeboxRT *>(cmVebox);
+                createVeboxParam->indexInVeboxArray = veboxRT->GetIndexInVeboxArray();
             }
-            pCreateVeboxParam->iReturnValue = cmRet;
+            createVeboxParam->returnValue = cmRet;
         }
         break;
 
     case CM_FN_CMDEVICE_DESTROYVEBOX:
-        PCM_DESTROYVEBOX_PARAM pDestroyVeboxParam;
-        pDestroyVeboxParam = (PCM_DESTROYVEBOX_PARAM)(pCmPrivateInputData);
-        pCmVebox         = (CmVebox *)pDestroyVeboxParam->pCmVeboxHandle;
-        cmRet = pDevice->DestroyVebox(pCmVebox);
-        pDestroyVeboxParam->iReturnValue = cmRet;
+        PCM_DESTROYVEBOX_PARAM destroyVeboxParam;
+        destroyVeboxParam = (PCM_DESTROYVEBOX_PARAM)(cmPrivateInputData);
+        cmVebox         = (CmVebox *)destroyVeboxParam->veboxHandle;
+        cmRet = device->DestroyVebox(cmVebox);
+        destroyVeboxParam->returnValue = cmRet;
         break;
 
 #if USE_EXTENSION_CODE
         //Get MDF UMD ULT information
     case CM_FN_RT_ULT_INFO:
-        hr = CmThinExecuteUltInfo(pCmPrivateInputData);
+        hr = CmThinExecuteUltInfo(cmPrivateInputData);
         break;
 #endif
 
     case CM_FN_CMDEVICE_GETVISAVERSION:
-        CM_GET_VISA_VERSION_PARAM *pGetVISAVersionParam;
-        pGetVISAVersionParam = (CM_GET_VISA_VERSION_PARAM *)(pCmPrivateInputData);
-        cmRet = pDevice->GetVISAVersion(pGetVISAVersionParam->iMajorVersion, pGetVISAVersionParam->iMinorVersion);
-        pGetVISAVersionParam->iReturnValue = cmRet;
+        CM_GET_VISA_VERSION_PARAM *getVisaVersionParam;
+        getVisaVersionParam = (CM_GET_VISA_VERSION_PARAM *)(cmPrivateInputData);
+        cmRet = device->GetVISAVersion(getVisaVersionParam->majorVersion, getVisaVersionParam->minorVersion);
+        getVisaVersionParam->returnValue = cmRet;
         break;
 
     default:
-        CM_ASSERTMESSAGE("Error: Invalid Function code '%d'.", CmFunctionID);
+        CM_ASSERTMESSAGE("Error: Invalid Function code '%d'.", cmFunctionID);
         hr = CM_INVALID_PRIVATE_DATA;
         break;
 

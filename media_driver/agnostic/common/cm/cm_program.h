@@ -34,7 +34,7 @@
 
 struct attribute_info_t
 {
-    unsigned short name_index;
+    unsigned short nameIndex;
     unsigned char size;
     unsigned char* values;
     char *name;
@@ -42,28 +42,28 @@ struct attribute_info_t
 
 struct gen_var_info_t
 {
-    unsigned short name_index;
-    unsigned char bit_properties;
-    unsigned short num_elements;
-    unsigned short alias_index;
-    unsigned short alias_offset;
-    unsigned char attribute_count;
+    unsigned short nameIndex;
+    unsigned char bitProperties;
+    unsigned short numElements;
+    unsigned short aliasIndex;
+    unsigned short aliasOffset;
+    unsigned char attributeCount;
     attribute_info_t* attributes;
 } ;
 
 struct spec_var_info_t
 {
-    unsigned short name_index;
-    unsigned short num_elements;
-    unsigned char attribute_count;
+    unsigned short nameIndex;
+    unsigned short numElements;
+    unsigned char attributeCount;
     attribute_info_t* attributes;
 };
 
 struct label_info_t
 {
-    unsigned short name_index;
+    unsigned short nameIndex;
     unsigned char kind;
-    unsigned char attribute_count;
+    unsigned char attributeCount;
     attribute_info_t* attributes;
 };
 
@@ -90,8 +90,8 @@ struct CM_KERNEL_INFO
     };
 
     //Just a copy for original binary pointer and size (GTPin using only)
-    void* pOrigBinary;
-    uint32_t uiOrigBinarySize;
+    void* origBinary;
+    uint32_t origBinarySize;
 
     uint32_t globalStringCount;
     const char** globalStrings;
@@ -101,19 +101,19 @@ struct CM_KERNEL_INFO
 
     FINALIZER_INFO *jitInfo;
 
-    uint32_t variable_count;
+    uint32_t variableCount;
     gen_var_info_t *variables;
-    uint32_t address_count;
+    uint32_t addressCount;
     spec_var_info_t *address;
-    uint32_t predicte_count;
-    spec_var_info_t *predictes;
-    uint32_t label_count;
+    uint32_t predicateCount;
+    spec_var_info_t *predicates;
+    uint32_t labelCount;
     label_info_t *label;
-    uint32_t sampler_count;
+    uint32_t samplerCount;
     spec_var_info_t *sampler;
-    uint32_t surface_count;
+    uint32_t surfaceCount;
     spec_var_info_t *surface;
-    uint32_t vme_count;
+    uint32_t vmeCount;
     spec_var_info_t *vme;
 
     uint32_t kernelInfoRefCount;    //reference counter for kernel info to reuse kernel info and jitbinary
@@ -154,7 +154,7 @@ class CmDeviceRT;
 class CmProgram
 {
 public:
-    virtual int32_t GetCommonISACode(void* & pCommonISACode, uint32_t & size) = 0;
+    virtual int32_t GetCommonISACode(void* & commonISACode, uint32_t & size) = 0;
 };
 
 //*-----------------------------------------------------------------------------
@@ -163,20 +163,20 @@ public:
 class CmProgramRT : public CmProgram
 {
 public:
-    static int32_t Create( CmDeviceRT* pCmDev, void* pCISACode, const uint32_t uiCISACodeSize, CmProgramRT*& pProgram,  const char* options, const uint32_t programId );
-    static int32_t Destroy( CmProgramRT* &pProgram );
+    static int32_t Create( CmDeviceRT* device, void* cisaCode, const uint32_t cisaCodeSize, CmProgramRT*& program,  const char* options, const uint32_t programId );
+    static int32_t Destroy( CmProgramRT* &program );
 
-    int32_t GetCommonISACode( void* & pCommonISACode, uint32_t & size ) ;
+    int32_t GetCommonISACode( void* & commonISACode, uint32_t & size ) ;
     int32_t GetKernelCount( uint32_t& kernelCount );
-    int32_t GetKernelInfo( uint32_t index, CM_KERNEL_INFO*& pKernelInfo );
+    int32_t GetKernelInfo( uint32_t index, CM_KERNEL_INFO*& kernelInfo );
     int32_t GetIsaFileName( char* & kernelName );
     int32_t GetKernelOptions( char* & kernelOptions );
 
     uint32_t GetSurfaceCount(void);
     int32_t SetSurfaceCount(uint32_t count);
 
-    bool IsJitterEnabled( void ){ return m_IsJitterEnabled; }
-    bool IsHwDebugEnabled (void ){ return m_IsHwDebugEnabled;}
+    bool IsJitterEnabled( void ){ return m_isJitterEnabled; }
+    bool IsHwDebugEnabled (void ){ return m_isHwDebugEnabled;}
 
     uint32_t AcquireKernelInfo(uint32_t index);
     uint32_t ReleaseKernelInfo(uint32_t index);
@@ -193,33 +193,33 @@ public:
     int32_t ReadUserFeatureValue(const char *pcMessageKey, uint32_t &value);
 #endif
 
-    //! \brief    get ISAfile object
-    //! \detail   ISAfile object provides methods to read, parse and write ISA files.
-    //! \return   Pointer to ISAfile object
+    //! \brief    get m_isaFile object
+    //! \detail   m_isaFile object provides methods to read, parse and write ISA files.
+    //! \return   Pointer to m_isaFile object
     vISA::ISAfile *getISAfile();
 
 protected:
-    CmProgramRT( CmDeviceRT* pCmDev, uint32_t programId );
+    CmProgramRT( CmDeviceRT* device, uint32_t programId );
     ~CmProgramRT( void );
 
-    int32_t Initialize( void* pCISACode, const uint32_t uiCISACodeSize, const char* options );
+    int32_t Initialize( void* cisaCode, const uint32_t cisaCodeSize, const char* options );
 #if USE_EXTENSION_CODE
     int InitForGTPin(const char *jitFlags[CM_RT_JITTER_MAX_NUM_FLAGS], int &numJitFlags);
 #endif
-    CmDeviceRT* m_pCmDev;
+    CmDeviceRT* m_device;
 
-    uint32_t m_ProgramCodeSize;
-    uint8_t *m_pProgramCode;
-    vISA::ISAfile* m_ISAfile;
-    char* m_Options;
-    char m_IsaFileName[ CM_MAX_ISA_FILE_NAME_SIZE_IN_BYTE ];
-    uint32_t m_SurfaceCount;
+    uint32_t m_programCodeSize;
+    uint8_t *m_programCode;
+    vISA::ISAfile* m_isaFile;
+    char* m_options;
+    char m_isaFileName[ CM_MAX_ISA_FILE_NAME_SIZE_IN_BYTE ];
+    uint32_t m_surfaceCount;
 
-    uint32_t m_KernelCount;
-    CmDynamicArray m_pKernelInfo;
+    uint32_t m_kernelCount;
+    CmDynamicArray m_kernelInfo;
 
-    bool m_IsJitterEnabled;
-    bool m_IsHwDebugEnabled;
+    bool m_isJitterEnabled;
+    bool m_isHwDebugEnabled;
 
     uint32_t m_refCount;
 
@@ -231,9 +231,9 @@ protected:
     pJITVersion     m_fJITVersion;
 
 public:
-    uint32_t m_CISA_magicNumber;
-    uint8_t m_CISA_majorVersion;
-    uint8_t m_CISA_minorVersion;
+    uint32_t m_cisaMagicNumber;
+    uint8_t m_cisaMajorVersion;
+    uint8_t m_cisaMinorVersion;
 
 private:
     CmProgramRT (const CmProgramRT& other);

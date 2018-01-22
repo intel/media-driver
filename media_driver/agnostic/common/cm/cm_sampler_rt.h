@@ -34,11 +34,11 @@ namespace CMRT_UMD
 class CmSamplerRT: public CmSampler
 {
 public:
-    static int32_t Create(unsigned int index, CmSamplerRT* &pSampler);
+    static int32_t Create(unsigned int index, CmSamplerRT* &sampler);
 
-    static int32_t Destroy(CmSamplerRT* &pSampler);
+    static int32_t Destroy(CmSamplerRT* &sampler);
 
-    CM_RT_API int32_t GetIndex(SamplerIndex* &pIndex);
+    CM_RT_API int32_t GetIndex(SamplerIndex* &index);
 
     CM_ENUM_CLASS_TYPE Type() const { return CM_ENUM_CLASS_TYPE_CMSAMPLER_RT; }
 
@@ -49,7 +49,7 @@ protected:
 
     int32_t Initialize(unsigned int index);
 
-    SamplerIndex *m_pIndex;
+    SamplerIndex *m_index;
 
 private:
     CmSamplerRT(const CmSamplerRT &other);

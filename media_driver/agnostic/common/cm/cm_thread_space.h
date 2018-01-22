@@ -118,7 +118,7 @@ public:
     //!             X coordinate of the unit in thread space.
     //! \param      [in] y
     //!             Y coordinate of the unit in thread space.
-    //! \param      [in] pKernel
+    //! \param      [in] kernel
     //!             Pointer to CmKernel.
     //! \param      [in] threadId
     //!             Thread index.
@@ -127,7 +127,7 @@ public:
     //!
     CM_RT_API virtual int32_t AssociateThread(uint32_t x,
                                               uint32_t y,
-                                              CmKernel *pKernel,
+                                              CmKernel *kernel,
                                               uint32_t threadId) = 0;
 
     //!
@@ -162,7 +162,7 @@ public:
     //!             X coordinate of the unit in thread space.
     //! \param      [in] y
     //!             Y coordinate of the unit in thread space.
-    //! \param      [in] pKernel
+    //! \param      [in] kernel
     //!             Pointer to CmKernel.
     //! \param      [in] threadId
     //!             Thread index.
@@ -174,7 +174,7 @@ public:
     CM_RT_API virtual int32_t
     AssociateThreadWithMask(uint32_t x,
                             uint32_t y,
-                            CmKernel* pKernel,
+                            CmKernel* kernel,
                             uint32_t threadId,
                             uint8_t dependencyMask) = 0;
 
@@ -294,7 +294,7 @@ public:
     //!             scoreboard (x,y).
     //! \param      [in] threadCount
     //!             The count of total threads.
-    //! \param      [in] pThreadSpaceOrder
+    //! \param      [in] threadSpaceOrder
     //!             CM_THREAD_PARAM is a structure defines the thread dispatch
     //!             order list
     //! \retval     CM_SUCCESS if thread space order is successfully set.
@@ -305,7 +305,7 @@ public:
     //!
     CM_RT_API virtual int32_t
     SetThreadSpaceOrder(uint32_t threadCount,
-                        const CM_THREAD_PARAM* pThreadSpaceOrder) = 0;
+                        const CM_THREAD_PARAM* threadSpaceOrder) = 0;
 };
 }; //namespace
 

@@ -74,14 +74,14 @@ public:
     //! \details    Same kernel can appear in the task multiple times as long
     //!             as all the value of its arguments are the same for multiple
     //!             copies of the kernel.
-    //! \param      [in] pKernel
+    //! \param      [in] kernel
     //!             A pointer to CmKernel object.
-    //! \retval     CM_SUCCESS if pKernel is added.
+    //! \retval     CM_SUCCESS if kernel is added.
     //! \retval     CM_EXCEED_MAX_KERNEL_PER_ENQUEUE trying to add more kernels
     //!             than CAP_KERNEL_COUNT_PER_TASK.
-    //! \retval     CM_INVALID_ARG_VALUE if pKernel is NULL.
+    //! \retval     CM_INVALID_ARG_VALUE if kernel is NULL.
     //!
-    CM_RT_API virtual int32_t AddKernel(CmKernel *pKernel) = 0;
+    CM_RT_API virtual int32_t AddKernel(CmKernel *kernel) = 0;
 
     //!
     //! \brief      Resets a CmTask object
@@ -109,7 +109,7 @@ public:
     //!             slice, subslice and EU number. The setting takes effect
     //!             only for current task; the value needs to be set again if
     //!             user wants it to take effect for the next task.
-    //! \param      [in] pCmPowerOption
+    //! \param      [in] powerOption
     //!             A pointer to CM_POWER_OPTION struct
     //! \retval     CM_SUCCESS.
     //! \retval     CM_EXCEED_MAX_POWER_OPTION_FOR_ PLATFORM if the any of the
@@ -117,28 +117,28 @@ public:
     //!             configuration.
     //!
     CM_RT_API virtual int32_t
-    SetPowerOption(PCM_POWER_OPTION pCmPowerOption) = 0;
+    SetPowerOption(PCM_POWER_OPTION powerOption) = 0;
 
     //!
     //! \brief      This API is used for the conditional end feature.
     //! \details    It adds a conditional batch buffer end command between two
-    //!             kernels in a task. The pConditionalSurface + offset is the
+    //!             kernels in a task. The conditionalSurface + offset is the
     //!             address storing its data against the dword value provided in
-    //!             pCondParam. If the data at the compare memory address is
-    //!             greater than the dword set in pCondParam, the execution of
+    //!             conditionalParam. If the data at the compare memory address is
+    //!             greater than the dword set in conditionalParam, the execution of
     //!             the command buffer will continue. If not, the remaining
     //!             kernels in the task will be skipped. The user can call this
     //!             API multiple times to insert multiple conditional ends
-    //!             between different kernels. When opMask in pCondParam is 1,
+    //!             between different kernels. When opMask in conditionalParam is 1,
     //!             the actual comparison value is the result of bitwise-and of
     //!             the value in memory and mask.
-    //! \param      [in] pConditionalSurface
+    //! \param      [in] conditionalSurfaceIndex
     //!             Pointer to the surface used to store comparison
     //!             dword by kernel.
     //! \param      [in] offset
     //!             The offset pointered by pSurface where stores comparison
-    //!             dword value, and mask if opMask in pCondParam is set to 1.
-    //! \param      [in] pCondParam
+    //!             dword value, and mask if opMask in conditionalParam is set to 1.
+    //! \param      [in] conditionalParam
     //!             Pointer to the parameters of conditional batch buffer end
     //!             command, for platforms till CNL, only opValue and opMask fields are
     //!             used.
@@ -147,9 +147,9 @@ public:
     //! \retval     CM_FAILURE otherwise.
     //!
     CM_RT_API virtual int32_t
-    AddConditionalEnd(SurfaceIndex* pConditionalSurface,
+    AddConditionalEnd(SurfaceIndex* conditionalSurfaceIndex,
                       uint32_t offset,
-                      CM_CONDITIONAL_END_PARAM *pCondParam) = 0;
+                      CM_CONDITIONAL_END_PARAM *conditionalParam) = 0;
 
     //!
     //! \brief      Expose bitfield for task related property.

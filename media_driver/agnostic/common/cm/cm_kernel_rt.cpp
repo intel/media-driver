@@ -52,8 +52,8 @@
 #define GENERATE_GLOBAL_SURFACE_INDEX
 
 #define READ_FIELD_FROM_BUF( dst, type ) \
-    dst = *((type *) &buf[byte_pos]); \
-    byte_pos += sizeof(type);
+    dst = *((type *) &buf[bytePosition]); \
+    bytePosition += sizeof(type);
 
 #define PER_ARG_SIZE_IN_DWORD 3
 #define KERNEL_INFO_SIZE_IN_DWORD 4
@@ -76,12 +76,12 @@
            x = ((uint16_t)(memCtl.mem_ctrl<< 8 | memCtl.mem_type << 4 | memCtl.age)) << 16 | (x);
 
 #define   ADD_INTO_VME_INDEX_ARRAY(value)     \
-    pVmeIndexArray[VmeIndexArrayPosition] = value ;                 \
-    VmeIndexArrayPosition ++;
+    vmeIndexArray[vmeIndexArrayPosition] = value ;                 \
+    vmeIndexArrayPosition ++;
 
 #define   ADD_INTO_VME_CM_INDEX_ARRAY(value)  ; \
-    pVmeCmIndexArray[VmeCmIndexArrayPosition] = value ;                 \
-    VmeCmIndexArrayPosition ++;
+    vmeCmIndexArray[vmeCmIndexArrayPosition] = value ;                 \
+    vmeCmIndexArrayPosition ++;
 
 typedef CM_ARG* PCM_ARG;
 
@@ -92,28 +92,28 @@ typedef CM_ARG* PCM_ARG;
 #define CM_KERNEL_DATA_PAYLOAD_DATA_SIZE_DIRTY (1 << 3)  // indirect payload data size changes
 #define CM_KERNEL_DATA_GLOBAL_SURFACE_DIRTY    (1 << 4)  // global surface dirty
 #define CM_KERNEL_DATA_THREAD_COUNT_DIRTY      (1 << 5)  // thread count dirty, reset() be called
-#define CM_KERNEL_DATA_SAMPLER_BTI_DIRTY       (1 << 6)  // sampler bti dirty
+#define cMKERNELDATASAMPLERBTIDIRTY       (1 << 6)  // sampler bti dirty
 
-int32_t Partition( PCM_ARG* ppArg, int32_t p, int32_t r )
+int32_t Partition( PCM_ARG* args, int32_t p, int32_t r )
 {
-    uint16_t x = ppArg[p]->unitOffsetInPayload;
+    uint16_t x = args[p]->unitOffsetInPayload;
     int32_t i = p - 1;
     int32_t j = r + 1;
     while( 1 )
     {
         do {
             j --;
-        } while( ppArg[j]->unitOffsetInPayload > x );
+        } while( args[j]->unitOffsetInPayload > x );
 
         do {
             i ++;
-        } while( ppArg[i]->unitOffsetInPayload < x );
+        } while( args[i]->unitOffsetInPayload < x );
 
         if( i < j )
         {
-            PCM_ARG tmpP = ppArg[i];
-            ppArg[i] = ppArg[j];
-            ppArg[j] = tmpP;
+            PCM_ARG tmpP = args[i];
+            args[i] = args[j];
+            args[j] = tmpP;
         }
         else
         {
@@ -125,31 +125,31 @@ int32_t Partition( PCM_ARG* ppArg, int32_t p, int32_t r )
 // Cannot be called directly! use macro CHECK_SURFACE_TYPE!
 bool _CheckSurfaceType( int nType, ... )
 {
-    bool bMatch = false;
+    bool match = false;
     va_list ap;
     va_start( ap, nType );
-    int iType = 0;
+    int type = 0;
 
-    while ( ( iType = va_arg( ap, int ) ) >= 0 )
+    while ( ( type = va_arg( ap, int ) ) >= 0 )
     {
-        if( iType == nType )
+        if( type == nType )
         {
-            bMatch = true;
+            match = true;
             break;
         }
     }
     va_end(ap);
 
-    return bMatch;
+    return match;
 }
 
-void QuickSort( PCM_ARG* ppArg, int32_t p, int32_t r )
+void QuickSort( PCM_ARG* args, int32_t p, int32_t r )
 {
     if( p < r )
     {
-        int32_t q = Partition( ppArg, p, r );
-        QuickSort( ppArg, p, q );
-        QuickSort( ppArg, q + 1, r );
+        int32_t q = Partition( args, p, r );
+        QuickSort( args, p, q );
+        QuickSort( args, q + 1, r );
     }
 }
 
@@ -158,31 +158,31 @@ namespace CMRT_UMD
 //*-----------------------------------------------------------------------------
 //| Purpose:     Create CM Kernel
 //| Arguments :
-//|               pCmDev        [in]    Pointer to device
-//|               pProgram      [in]    Pointer to cm Program
+//|               device        [in]    Pointer to device
+//|               program      [in]    Pointer to cm Program
 //|               kernelName    [in]    Name of kernel
 //|               kernelId      [in]    Kernel's ID
-//|               pKernel       [in/out]    Reference Pointer to CM Kernel
+//|               kernel       [in/out]    Reference Pointer to CM Kernel
 //|               options       [in]    jitter, or non-jitter
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmKernelRT::Create(CmDeviceRT *pCmDev,
-                           CmProgramRT *pProgram,
+int32_t CmKernelRT::Create(CmDeviceRT *device,
+                           CmProgramRT *program,
                            const char *kernelName,
-                           uint32_t KernelIndex,
-                           uint32_t KernelSeqNum,
-                           CmKernelRT* &pKernel,
+                           uint32_t kernelIndex,
+                           uint32_t kernelSeqNum,
+                           CmKernelRT* &kernel,
                            const char *options)
 {
     int32_t result = CM_SUCCESS;
-    pKernel = new (std::nothrow) CmKernelRT( pCmDev, pProgram, KernelIndex, KernelSeqNum );
-    if( pKernel )
+    kernel = new (std::nothrow) CmKernelRT( device, program, kernelIndex, kernelSeqNum );
+    if( kernel )
     {
-        pKernel->Acquire();
-        result = pKernel->Initialize( kernelName, options );
+        kernel->Acquire();
+        result = kernel->Initialize( kernelName, options );
         if( result != CM_SUCCESS )
         {
-            CmKernelRT::Destroy( pKernel, pProgram);
+            CmKernelRT::Destroy( kernel, program);
             return result;
         }
     }
@@ -195,16 +195,16 @@ int32_t CmKernelRT::Create(CmDeviceRT *pCmDev,
     {
         if (strcmp(options, "PredefinedGPUCopyKernel") == 0)
         {
-            pKernel->m_blCreatingGPUCopyKernel = true;
+            kernel->m_blCreatingGPUCopyKernel = true;
         }
         else
         {
-            pKernel->m_blCreatingGPUCopyKernel = false;
+            kernel->m_blCreatingGPUCopyKernel = false;
         }
     }
 
 #if USE_EXTENSION_CODE
-    result = pKernel->InitForGTPin(pCmDev, pProgram, pKernel);
+    result = kernel->InitForGTPin(device, program, kernel);
 #endif
 
     return result;
@@ -214,18 +214,18 @@ int32_t CmKernelRT::Create(CmDeviceRT *pCmDev,
 //| Purpose:    Destory Kernel
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmKernelRT::Destroy( CmKernelRT* &pKernel, CmProgramRT *&pProgram )
+int32_t CmKernelRT::Destroy( CmKernelRT* &kernel, CmProgramRT *&program )
 {
-    uint32_t refCount = pKernel->SafeRelease();
+    uint32_t refCount = kernel->SafeRelease();
     if (refCount == 0)
     {
-        pKernel = nullptr;
+        kernel = nullptr;
     }
 
-    refCount = pProgram->SafeRelease();
+    refCount = program->SafeRelease();
     if (refCount == 0)
     {
-        pProgram = nullptr;
+        program = nullptr;
     }
     return CM_SUCCESS;
 }
@@ -249,11 +249,11 @@ int32_t CmKernelRT::SafeRelease( void)
     --m_refcount;
     if (m_refcount == 0)
     {
-        PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)m_pCmDev->GetAccelData();
-        PCM_HAL_STATE pState = pCmData->cmHalState;
-        if (pState->dshEnabled)
+        PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
+        PCM_HAL_STATE state = cmData->cmHalState;
+        if (state->dshEnabled)
         {
-            pState->pfnDSHUnregisterKernel(pState, m_Id);
+            state->pfnDSHUnregisterKernel(state, m_id);
         }
         delete this;
         return 0;
@@ -265,81 +265,81 @@ int32_t CmKernelRT::SafeRelease( void)
 //| Purpose:    Kernel constructor
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-CmKernelRT::CmKernelRT(CmDeviceRT *pCmDev,
-                       CmProgramRT *pProgram,
-                       uint32_t KernelIndex,
-                       uint32_t KernelSeqNum):
-    m_pCmDev( pCmDev ),
-    m_pSurfaceMgr( nullptr ),
-    m_pProgram( pProgram ),
-    m_Options( nullptr ),
-    m_pBinary( nullptr ),
-    m_uiBinarySize(0),
-    m_ThreadCount( 0 ),
-    m_LastThreadCount( 0 ),
-    m_SizeInCurbe( 0 ),
-    m_SizeInPayload( 0 ),
-    m_ArgCount( 0 ),
-    m_Args( nullptr ),
-    m_pKernelInfo(nullptr),
+CmKernelRT::CmKernelRT(CmDeviceRT *device,
+                       CmProgramRT *program,
+                       uint32_t kernelIndex,
+                       uint32_t kernelSeqNum):
+    m_device( device ),
+    m_surfaceMgr( nullptr ),
+    m_program( program ),
+    m_options( nullptr ),
+    m_binary( nullptr ),
+    m_binarySize(0),
+    m_threadCount( 0 ),
+    m_lastThreadCount( 0 ),
+    m_sizeInCurbe( 0 ),
+    m_sizeInPayload( 0 ),
+    m_argCount( 0 ),
+    m_args( nullptr ),
+    m_kernelInfo(nullptr),
     m_kernelIndexInProgram( CM_INVALID_KERNEL_INDEX ),
-    m_CurbeEnable( true ),
-    m_NonstallingScoreboardEnable(false),
-    m_Dirty( CM_KERNEL_DATA_CLEAN ),
-    m_pLastKernelData( nullptr ),
-    m_LastKernelDataSize( 0 ),
-    m_IndexInTask(0),
-    m_AssociatedToTS(false),
-    m_blPerThreadArgExists(false),
-    m_blPerKernelArgExists( false ),
-    m_pThreadSpace( nullptr ),
+    m_curbeEnabled( true ),
+    m_nonstallingScoreboardEnabled(false),
+    m_dirty( CM_KERNEL_DATA_CLEAN ),
+    m_lastKernelData( nullptr ),
+    m_lastKernelDataSize( 0 ),
+    m_indexInTask(0),
+    m_threadSpaceAssociated(false),
+    m_perThreadArgExists(false),
+    m_perKernelArgExists( false ),
+    m_threadSpace( nullptr ),
     m_adjustScoreboardY( 0 ),
-    m_LastAdjustScoreboardY( 0 ),
+    m_lastAdjustScoreboardY( 0 ),
     m_blCreatingGPUCopyKernel( false),
     m_usKernelPayloadDataSize( 0 ),
-    m_pKernelPayloadData( nullptr ),
+    m_kernelPayloadData( nullptr ),
     m_usKernelPayloadSurfaceCount( 0 ),
     m_refcount(0),
-    m_pHalMaxValues( nullptr ),
-    m_pHalMaxValuesEx( nullptr ),
-    m_SurfaceArray(nullptr),
-    m_pThreadGroupSpace( nullptr ),
-    m_VMESurfaceCount( 0 ),
-    m_MaxSurfaceIndexAllocated(0),
-    m_BarrierMode(CM_LOCAL_BARRIER),
-    m_SamplerBTICount( 0 ),
-    m_IsClonedKernel(false),
-    m_CloneKernelID(0),
-    m_HasClones( false ),
-    m_state_buffer_bounded( CM_STATE_BUFFER_NONE ),
-    m_pBinaryOrig(nullptr),
-    m_uiBinarySizeOrig(0)
+    m_halMaxValues( nullptr ),
+    m_halMaxValuesEx( nullptr ),
+    m_surfaceArray(nullptr),
+    m_threadGroupSpace( nullptr ),
+    m_vmeSurfaceCount( 0 ),
+    m_maxSurfaceIndexAllocated(0),
+    m_barrierMode(CM_LOCAL_BARRIER),
+    m_samplerBtiCount( 0 ),
+    m_isClonedKernel(false),
+    m_cloneKernelID(0),
+    m_hasClones( false ),
+    m_stateBufferBounded( CM_STATE_BUFFER_NONE ),
+    m_binaryOrig(nullptr),
+    m_binarySizeOrig(0)
 {
-    pProgram->Acquire();
-    m_pProgram = pProgram;
+    program->Acquire();
+    m_program = program;
 
-    pCmDev->GetSurfaceManager(m_pSurfaceMgr);
+    device->GetSurfaceManager(m_surfaceMgr);
 
-    m_Id = KernelSeqNum; // Unique number for each kernel. This ID is used in Batch buffer.
-    m_Id <<= 32;
-    m_kernelIndex = KernelIndex;
+    m_id = kernelSeqNum; // Unique number for each kernel. This ID is used in Batch buffer.
+    m_id <<= 32;
+    m_kernelIndex = kernelIndex;
 
     for (int i = 0; i < CM_GLOBAL_SURFACE_NUMBER; i++)
     {
-        m_GlobalSurfaces[i] = nullptr;
-        m_GlobalCmIndex[i] = 0;
+        m_globalSurfaces[i] = nullptr;
+        m_globalCmIndex[i] = 0;
     }
 
-    m_blhwDebugEnable = pProgram->IsHwDebugEnabled();
+    m_blhwDebugEnable = program->IsHwDebugEnabled();
 
     CmSafeMemSet(m_pKernelPayloadSurfaceArray, 0, sizeof(m_pKernelPayloadSurfaceArray));
     CmSafeMemSet(m_IndirectSurfaceInfoArray, 0, sizeof(m_IndirectSurfaceInfoArray));
-    CmSafeMemSet( m_SamplerBTIEntry, 0, sizeof( m_SamplerBTIEntry ) );
+    CmSafeMemSet( m_samplerBtiEntry, 0, sizeof( m_samplerBtiEntry ) );
 
-    if (m_SamplerBTICount > 0)
+    if (m_samplerBtiCount > 0)
     {
-        CmSafeMemSet(m_SamplerBTIEntry, 0, sizeof(m_SamplerBTIEntry));
-        m_SamplerBTICount = 0;
+        CmSafeMemSet(m_samplerBtiEntry, 0, sizeof(m_samplerBtiEntry));
+        m_samplerBtiCount = 0;
     }
 
     ResetKernelSurfaces();
@@ -351,35 +351,35 @@ CmKernelRT::CmKernelRT(CmDeviceRT *pCmDev,
 //*-----------------------------------------------------------------------------
 CmKernelRT::~CmKernelRT( void )
 {
-    MosSafeDeleteArray(m_Options);
+    MosSafeDeleteArray(m_options);
 
     DestroyArgs();
 
-    if(m_pLastKernelData)
+    if(m_lastKernelData)
     {
-        CmKernelData::Destroy( m_pLastKernelData );
+        CmKernelData::Destroy( m_lastKernelData );
     }
 
-    if( m_pCmDev->CheckGTPinEnabled() && !m_blCreatingGPUCopyKernel)
+    if( m_device->CheckGTPinEnabled() && !m_blCreatingGPUCopyKernel)
     {
-        MosSafeDeleteArray(m_pBinary);
+        MosSafeDeleteArray(m_binary);
     }
 
-    MosSafeDeleteArray(m_pBinaryOrig);
+    MosSafeDeleteArray(m_binaryOrig);
 
     if( CM_INVALID_KERNEL_INDEX != m_kernelIndexInProgram )
     {
-        m_pProgram->ReleaseKernelInfo(m_kernelIndexInProgram);
+        m_program->ReleaseKernelInfo(m_kernelIndexInProgram);
     }
 
     for(int i=0; i< CM_GLOBAL_SURFACE_NUMBER; i++)
     {
-        SurfaceIndex *pSurfIndex = m_GlobalSurfaces[i];
-        MosSafeDelete(pSurfIndex);
+        SurfaceIndex *surfIndex = m_globalSurfaces[i];
+        MosSafeDelete(surfIndex);
     }
 
-    MosSafeDeleteArray(m_pKernelPayloadData);
-    MosSafeDeleteArray(m_SurfaceArray);
+    MosSafeDeleteArray(m_kernelPayloadData);
+    MosSafeDeleteArray(m_surfaceArray);
 }
 
 //*-----------------------------------------------------------------------------
@@ -402,13 +402,13 @@ int32_t CmKernelRT::Initialize( const char* kernelName, const char* options )
     }
 
     uint32_t kernelCount = 0;
-    m_pProgram->GetKernelCount( kernelCount );
+    m_program->GetKernelCount( kernelCount );
 
     CM_KERNEL_INFO* kernelInfo = nullptr;
     uint32_t i = 0;
     for( i = 0; i < kernelCount; i ++ )
     {
-        m_pProgram->GetKernelInfo( i, kernelInfo );
+        m_program->GetKernelInfo( i, kernelInfo );
         if( !kernelInfo )
         {
             CM_ASSERTMESSAGE("Error: Invalid kernel info.");
@@ -426,10 +426,10 @@ int32_t CmKernelRT::Initialize( const char* kernelName, const char* options )
         return CM_FAILURE;
     }
 
-    m_pCmDev->GetHalMaxValues( m_pHalMaxValues, m_pHalMaxValuesEx);
+    m_device->GetHalMaxValues( m_halMaxValues, m_halMaxValuesEx);
 
-    m_pProgram->AcquireKernelInfo(i);
-    m_pKernelInfo = kernelInfo;
+    m_program->AcquireKernelInfo(i);
+    m_kernelInfo = kernelInfo;
     m_kernelIndexInProgram = i;
 
     if( options )
@@ -442,47 +442,47 @@ int32_t CmKernelRT::Initialize( const char* kernelName, const char* options )
         }
         else
         {
-            m_Options = MOS_NewArray(char, (length+1));
-            if( !m_Options )
+            m_options = MOS_NewArray(char, (length+1));
+            if( !m_options )
             {
                 CM_ASSERTMESSAGE("Error: Out of system memory.");
                 return CM_OUT_OF_HOST_MEMORY;
 
             }
-            CmFastMemCopy( m_Options, options, length);
-            m_Options[ length ] = '\0';
+            CmFastMemCopy( m_options, options, length);
+            m_options[ length ] = '\0';
 
-            char* pTmp = strstr( m_Options, "nocurbe" );
-            if( pTmp )
+            char* tmp = strstr( m_options, "nocurbe" );
+            if( tmp )
             {
-                m_CurbeEnable = false;
+                m_curbeEnabled = false;
             }
         }
     }
 
-    m_NonstallingScoreboardEnable = true;
+    m_nonstallingScoreboardEnabled = true;
 
-    void* pCommonISACode = nullptr;
+    void* commonISACode = nullptr;
     uint32_t commonISACodeSize = 0;
-    m_pProgram->GetCommonISACode(pCommonISACode, commonISACodeSize);
-    if ((pCommonISACode == nullptr) || (commonISACodeSize <= 0))
+    m_program->GetCommonISACode(commonISACode, commonISACodeSize);
+    if ((commonISACode == nullptr) || (commonISACodeSize <= 0))
     {
         CM_ASSERTMESSAGE("Error: Invalid VISA.");
         return CM_INVALID_COMMON_ISA;
     }
 
-    bool bUseVisaApi = true;
+    bool useVisaApi = true;
     vISA::ISAfile *isaFile = nullptr;
     vISA::KernelBody *kernelBody = nullptr;
 
     auto getVersionAsInt = [](int major, int minor) { return major * 100 + minor; };
-    if (getVersionAsInt(m_pProgram->m_CISA_majorVersion, m_pProgram->m_CISA_minorVersion) < getVersionAsInt(3, 2))
+    if (getVersionAsInt(m_program->m_cisaMajorVersion, m_program->m_cisaMinorVersion) < getVersionAsInt(3, 2))
     {
-        bUseVisaApi = false;
+        useVisaApi = false;
     }
     else
     {
-        isaFile = m_pProgram->getISAfile();
+        isaFile = m_program->getISAfile();
         if (!isaFile)
         {
             CM_ASSERTMESSAGE("Error: Invalid VISA.");
@@ -491,30 +491,30 @@ int32_t CmKernelRT::Initialize( const char* kernelName, const char* options )
         kernelBody = isaFile->getKernelsData().at(m_kernelIndexInProgram);
     }
 
-    uint8_t *buf = (uint8_t*)pCommonISACode;
-    uint32_t byte_pos = m_pKernelInfo->kernelIsaOffset;
+    uint8_t *buf = (uint8_t*)commonISACode;
+    uint32_t bytePosition = m_kernelInfo->kernelIsaOffset;
 
     uint32_t kernelInfoRefCount = 0;
-    m_pProgram->GetKernelInfoRefCount(m_kernelIndexInProgram, kernelInfoRefCount);
+    m_program->GetKernelInfoRefCount(m_kernelIndexInProgram, kernelInfoRefCount);
     if (kernelInfoRefCount <= 2)    //Only read for 1st time Kernel creation, later we reuse them
     {
-        if (bUseVisaApi)
+        if (useVisaApi)
         {
-            m_pKernelInfo->globalStringCount = kernelBody->getStringCount();
+            m_kernelInfo->globalStringCount = kernelBody->getStringCount();
         }
         {
-            READ_FIELD_FROM_BUF(m_pKernelInfo->globalStringCount, unsigned short);
+            READ_FIELD_FROM_BUF(m_kernelInfo->globalStringCount, unsigned short);
         }
 
-        m_pKernelInfo->globalStrings = (const char**) malloc( m_pKernelInfo->globalStringCount * sizeof(char*) );
-        if(m_pKernelInfo->globalStrings  == nullptr)
+        m_kernelInfo->globalStrings = (const char**) malloc( m_kernelInfo->globalStringCount * sizeof(char*) );
+        if(m_kernelInfo->globalStrings  == nullptr)
         {
             CM_ASSERTMESSAGE("Error: Out of system memory.");
             return CM_OUT_OF_HOST_MEMORY;
         }
-        CmSafeMemSet(m_pKernelInfo->globalStrings, 0, m_pKernelInfo->globalStringCount * sizeof(char*) );
+        CmSafeMemSet(m_kernelInfo->globalStrings, 0, m_kernelInfo->globalStringCount * sizeof(char*) );
 
-        if (bUseVisaApi)
+        if (useVisaApi)
         {
             int i = 0;
             for (vISA::StringPool *globalString : kernelBody->getStringPool())
@@ -528,13 +528,13 @@ int32_t CmKernelRT::Initialize( const char* kernelName, const char* options )
                 }
                 CmFastMemCopy(string, globalString->getString(), stringLength);
                 string[stringLength] = '\0';
-                m_pKernelInfo->globalStrings[i] = string;
+                m_kernelInfo->globalStrings[i] = string;
                 i++;
             }
         }
         else
         {
-            for (int i = 0; i < (int)m_pKernelInfo->globalStringCount; i++)
+            for (int i = 0; i < (int)m_kernelInfo->globalStringCount; i++)
             {
                 char* string = (char*)malloc(CM_MAX_KERNEL_STRING_IN_BYTE + 1);
                 if (string == nullptr)
@@ -543,52 +543,52 @@ int32_t CmKernelRT::Initialize( const char* kernelName, const char* options )
                     return CM_OUT_OF_HOST_MEMORY;
                 }
                 int j = 0;
-                while (buf[byte_pos] != '\0' && j < CM_MAX_KERNEL_STRING_IN_BYTE) {
-                    string[j++] = buf[byte_pos++];
+                while (buf[bytePosition] != '\0' && j < CM_MAX_KERNEL_STRING_IN_BYTE) {
+                    string[j++] = buf[bytePosition++];
                 }
                 string[j] = '\0';
-                byte_pos++;
-                m_pKernelInfo->globalStrings[i] = string;
+                bytePosition++;
+                m_kernelInfo->globalStrings[i] = string;
             }
         }
     }
 
     uint32_t count = 0;
-    if (bUseVisaApi)
+    if (useVisaApi)
     {
         count = kernelBody->getNumInputs();
     }
     else
     {
-        byte_pos = m_pKernelInfo->inputCountOffset;
+        bytePosition = m_kernelInfo->inputCountOffset;
 
         uint8_t countTemp = 0;
         READ_FIELD_FROM_BUF(countTemp, uint8_t);
         count = countTemp;
     }
 
-    if( count > m_pHalMaxValues->maxArgsPerKernel )
+    if( count > m_halMaxValues->maxArgsPerKernel )
     {
         CM_ASSERTMESSAGE("Error: Invalid kernel arg count.");
         return CM_EXCEED_KERNEL_ARG_AMOUNT;
     }
 
-    m_Args = MOS_NewArray(CM_ARG, count);
-    if( (!m_Args) && (count != 0) )
+    m_args = MOS_NewArray(CM_ARG, count);
+    if( (!m_args) && (count != 0) )
     {
         CM_ASSERTMESSAGE("Error: Out of system memory.");
-        MosSafeDeleteArray(m_Options);
+        MosSafeDeleteArray(m_options);
         return CM_OUT_OF_HOST_MEMORY;
     }
-    CmSafeMemSet(m_Args, 0, sizeof(CM_ARG) * count);
-    m_ArgCount  = count;
+    CmSafeMemSet(m_args, 0, sizeof(CM_ARG) * count);
+    m_argCount  = count;
 
     uint32_t preDefinedSurfNum;
-    if ( (m_pProgram->m_CISA_majorVersion > 3) || ((m_pProgram->m_CISA_majorVersion == 3) && (m_pProgram->m_CISA_minorVersion >=1)) )  //CISA 3.1 +
+    if ( (m_program->m_cisaMajorVersion > 3) || ((m_program->m_cisaMajorVersion == 3) && (m_program->m_cisaMinorVersion >=1)) )  //CISA 3.1 +
     {
         preDefinedSurfNum = COMMON_ISA_NUM_PREDEFINED_SURF_VER_3_1;
     }
-    else if ((m_pProgram->m_CISA_majorVersion == 3) && (m_pProgram->m_CISA_minorVersion == 0))
+    else if ((m_program->m_cisaMajorVersion == 3) && (m_program->m_cisaMinorVersion == 0))
     {
         preDefinedSurfNum = COMMON_ISA_NUM_PREDEFINED_SURF_VER_2_1;
     }
@@ -599,12 +599,12 @@ int32_t CmKernelRT::Initialize( const char* kernelName, const char* options )
 
     uint32_t argSize = 0;
 
-    for (uint32_t i = 0; i < m_ArgCount; i++)
+    for (uint32_t i = 0; i < m_argCount; i++)
     {
         vISA::InputInfo *inputInfo = nullptr;
         uint8_t kind = 0;
 
-        if (bUseVisaApi)
+        if (useVisaApi)
         {
             inputInfo = kernelBody->getInputInfo()[i];
             kind = inputInfo->getKind();
@@ -626,19 +626,19 @@ int32_t CmKernelRT::Initialize( const char* kernelName, const char* options )
         else if (kind == 0x8)
         {
             kind = ARG_KIND_IMPLICT_LOCALSIZE;
-            m_Args[i].bIsSet = true;
-            m_Args[i].unitCount = 1;
+            m_args[i].isSet = true;
+            m_args[i].unitCount = 1;
         }
         else if (kind == 0x10) {
             kind = ARG_KIND_IMPLICT_GROUPSIZE;
-            m_Args[i].bIsSet = true;
-            m_Args[i].unitCount = 1;
+            m_args[i].isSet = true;
+            m_args[i].unitCount = 1;
         }
         else if (kind == 0x18) {
             kind = ARG_KIND_IMPLICIT_LOCALID;
-            m_Args[i].bIsSet = true;
-            m_Args[i].unitCount = 1;
-            m_blPerKernelArgExists = true;  //only VISA3.3+, can come here, so, no matter it is there any explicit arg, implicit arg exits
+            m_args[i].isSet = true;
+            m_args[i].unitCount = 1;
+            m_perKernelArgExists = true;  //only VISA3.3+, can come here, so, no matter it is there any explicit arg, implicit arg exits
         }
         else if (kind == 0x2A) {
             kind = ARG_KIND_SURFACE_2D_SCOREBOARD;
@@ -647,21 +647,21 @@ int32_t CmKernelRT::Initialize( const char* kernelName, const char* options )
             kind = ARG_KIND_GENERAL_DEPVEC;
         }
 
-        m_Args[i].unitKind = kind;
-        m_Args[i].unitKindOrig = kind;
+        m_args[i].unitKind = kind;
+        m_args[i].unitKindOrig = kind;
 
-        if (kind == ARG_KIND_SURFACE && m_pKernelInfo->surface_count)
+        if (kind == ARG_KIND_SURFACE && m_kernelInfo->surfaceCount)
         {
-            m_Args[i].s_k = DATA_PORT_SURF;
+            m_args[i].surfaceKind = DATA_PORT_SURF;
         }
 
-        if (bUseVisaApi)
+        if (useVisaApi)
         {
-            m_Args[i].unitOffsetInPayload = inputInfo->getOffset();
-            m_Args[i].unitOffsetInPayloadOrig = inputInfo->getOffset();
+            m_args[i].unitOffsetInPayload = inputInfo->getOffset();
+            m_args[i].unitOffsetInPayloadOrig = inputInfo->getOffset();
 
-            m_Args[i].unitSize = inputInfo->getSize();
-            m_Args[i].unitSizeOrig = inputInfo->getSize();
+            m_args[i].unitSize = inputInfo->getSize();
+            m_args[i].unitSizeOrig = inputInfo->getSize();
         }
         else
         {
@@ -670,74 +670,74 @@ int32_t CmKernelRT::Initialize( const char* kernelName, const char* options )
 
             uint16_t tmpW;
             READ_FIELD_FROM_BUF(tmpW, uint16_t);
-            m_Args[i].unitOffsetInPayload = tmpW;
-            m_Args[i].unitOffsetInPayloadOrig = tmpW;
+            m_args[i].unitOffsetInPayload = tmpW;
+            m_args[i].unitOffsetInPayloadOrig = tmpW;
 
             READ_FIELD_FROM_BUF(tmpW, uint16_t);
-            m_Args[i].unitSize = tmpW;
-            m_Args[i].unitSizeOrig = tmpW;
+            m_args[i].unitSize = tmpW;
+            m_args[i].unitSizeOrig = tmpW;
         }
 
-        argSize += m_Args[i].unitSize;
+        argSize += m_args[i].unitSize;
     }
     //////////////////////////////////////////////////////////////////////////
 
     if (kernelInfoRefCount <= 2)    //Only read for 1st time Kernel creation, later we reuse them
     {
-        uint16_t attribute_count = 0;
-        if (bUseVisaApi)
+        uint16_t attributeCount = 0;
+        if (useVisaApi)
         {
-            attribute_count = kernelBody->getAttributeCount();
+            attributeCount = kernelBody->getAttributeCount();
         }
         else
         {
             /////////////////////////////////////////////////////////////////////////
             // Get pre-defined kernel attributes, Start
             //skipping size and entry
-            byte_pos += 8;
+            bytePosition += 8;
 
-            READ_FIELD_FROM_BUF(attribute_count, uint16_t);
+            READ_FIELD_FROM_BUF(attributeCount, uint16_t);
         }
 
-        for (int i = 0; i < attribute_count; i++)
+        for (int i = 0; i < attributeCount; i++)
         {
             vISA::AttributeInfo *attribute = nullptr;
-            uint32_t name_index = 0;
+            uint32_t nameIndex = 0;
             uint8_t size = 0;
 
-            if (bUseVisaApi)
+            if (useVisaApi)
             {
                 attribute = kernelBody->getAttributeInfo()[i];
-                name_index = attribute->getName();
+                nameIndex = attribute->getName();
                 size = attribute->getSize();
             }
             else
             {
-                READ_FIELD_FROM_BUF(name_index, uint16_t);
+                READ_FIELD_FROM_BUF(nameIndex, uint16_t);
                 READ_FIELD_FROM_BUF(size, uint8_t);
             }
 
-            if( strcmp( m_pKernelInfo->globalStrings[name_index], "AsmName" ) == 0 )
+            if( strcmp( m_kernelInfo->globalStrings[nameIndex], "AsmName" ) == 0 )
             {
-                if (bUseVisaApi)
+                if (useVisaApi)
                 {
-                    CmFastMemCopy(m_pKernelInfo->kernelASMName, attribute->getValue(), size);
+                    CmFastMemCopy(m_kernelInfo->kernelASMName, attribute->getValue(), size);
                 }
                 else
                 {
-                    CmFastMemCopy(m_pKernelInfo->kernelASMName, &buf[byte_pos], size);
-                    byte_pos += size;
+                    CmFastMemCopy(m_kernelInfo->kernelASMName, &buf[bytePosition], size);
+                    bytePosition += size;
                 }
             }
-            else if (strcmp( m_pKernelInfo->globalStrings[name_index], "SLMSize" ) == 0)
+            else if (strcmp( m_kernelInfo->globalStrings[nameIndex], "SLMSize" ) == 0)
             {
-                if (bUseVisaApi)
+                if (useVisaApi)
                 {
-                    m_pKernelInfo->kernelSLMSize = attribute->getValue()[0];
+                    m_kernelInfo->kernelSLMSize = attribute->getValue()[0];
                 }
                 else
                 {
-                    READ_FIELD_FROM_BUF(m_pKernelInfo->kernelSLMSize, uint8_t);
+                    READ_FIELD_FROM_BUF(m_kernelInfo->kernelSLMSize, uint8_t);
                 }
 
                 /* Notes by Stony@2014-04-09
@@ -745,13 +745,13 @@ int32_t CmKernelRT::Initialize( const char* kernelName, const char* options )
                  * > CISA3.1: the size is number of 1KB
                  * Here convert it to the number of 1KB if <=CISA 3.1
                  */
-                if ((m_pProgram->m_CISA_majorVersion == 3) && (m_pProgram->m_CISA_minorVersion <= 1))
+                if ((m_program->m_cisaMajorVersion == 3) && (m_program->m_cisaMinorVersion <= 1))
                 {
-                    m_pKernelInfo->kernelSLMSize = m_pKernelInfo->kernelSLMSize * 4;
+                    m_kernelInfo->kernelSLMSize = m_kernelInfo->kernelSLMSize * 4;
                 }
 
                 // align to power of 2
-                uint32_t v = m_pKernelInfo->kernelSLMSize;
+                uint32_t v = m_kernelInfo->kernelSLMSize;
                 v--;
                 v |= v >> 1;
                 v |= v >> 2;
@@ -759,62 +759,62 @@ int32_t CmKernelRT::Initialize( const char* kernelName, const char* options )
                 v |= v >> 8;
                 v |= v >> 16;
                 v++;
-                m_pKernelInfo->kernelSLMSize = ( uint8_t )v;
+                m_kernelInfo->kernelSLMSize = ( uint8_t )v;
             }
-            else if (strcmp(m_pKernelInfo->globalStrings[name_index], "NoBarrier") == 0)
+            else if (strcmp(m_kernelInfo->globalStrings[nameIndex], "NoBarrier") == 0)
             {
-                m_pKernelInfo->blNoBarrier = true;
-                if (!bUseVisaApi)
+                m_kernelInfo->blNoBarrier = true;
+                if (!useVisaApi)
                 {
-                    byte_pos += size;
+                    bytePosition += size;
                 }
             }
             else
             {
-                if (!bUseVisaApi)
+                if (!useVisaApi)
                 {
-                    byte_pos += size;
+                    bytePosition += size;
                 }
             }
         }
     }
 
-    if(argSize > m_pHalMaxValues->maxArgByteSizePerKernel)
+    if(argSize > m_halMaxValues->maxArgByteSizePerKernel)
     {
         CM_ASSERTMESSAGE("Error: Invalid kernel arg size.");
         return CM_EXCEED_KERNEL_ARG_SIZE_IN_BYTE;
     }
 
-    buf = (uint8_t*)pCommonISACode;
+    buf = (uint8_t*)commonISACode;
 
-    if(m_pProgram->IsJitterEnabled())
+    if(m_program->IsJitterEnabled())
     {
         //m_JitterEnable = true;
         char *programOptions;
-        m_pProgram->GetKernelOptions(programOptions);
+        m_program->GetKernelOptions(programOptions);
         //if no options or same options, copy load program's binary. else re-jitter
         {
-            m_pBinary = (char *)m_pKernelInfo->jitBinaryCode;
-            m_uiBinarySize = m_pKernelInfo->jitBinarySize;
-            m_pKernelInfo->pOrigBinary = m_pKernelInfo->jitBinaryCode;
-            m_pKernelInfo->uiOrigBinarySize = m_pKernelInfo->jitBinarySize;
+            m_binary = (char *)m_kernelInfo->jitBinaryCode;
+            m_binarySize = m_kernelInfo->jitBinarySize;
+            m_kernelInfo->origBinary = m_kernelInfo->jitBinaryCode;
+            m_kernelInfo->origBinarySize = m_kernelInfo->jitBinarySize;
         }
     }
     else
     {
-        char* pBinary = (char*)(buf + m_pKernelInfo->genxBinaryOffset );
+        char* binary = (char*)(buf + m_kernelInfo->genxBinaryOffset );
 
         //No copy, point to the binary offset in CISA code.
-        m_pBinary = pBinary;
-        m_uiBinarySize = m_pKernelInfo->genxBinarySize;
+        m_binary = binary;
+        m_binarySize = m_kernelInfo->genxBinarySize;
 
-        m_pKernelInfo->pOrigBinary = pBinary;
-        m_pKernelInfo->uiOrigBinarySize = m_pKernelInfo->genxBinarySize;
+        m_kernelInfo->origBinary = binary;
+        m_kernelInfo->origBinarySize = m_kernelInfo->genxBinarySize;
     }
 
-    if (m_pKernelInfo->blNoBarrier)
+    if (m_kernelInfo->blNoBarrier)
     {
-        m_BarrierMode = CM_NO_BARRIER;
+        m_barrierMode = CM_NO_BARRIER;
     }
 
     return CM_SUCCESS;
@@ -836,21 +836,21 @@ CM_RT_API int32_t CmKernelRT::SetThreadCount(uint32_t count )
     if ((int)count <= 0)
         return CM_INVALID_ARG_VALUE;
 
-    if (m_pThreadSpace == nullptr)
+    if (m_threadSpace == nullptr)
     {
-        if (m_ThreadCount)
+        if (m_threadCount)
         {
             // Setting threadCount twice with different values will cause reset of kernels
-            if (m_ThreadCount != count)
+            if (m_threadCount != count)
             {
                 Reset();
-                m_ThreadCount = count;
-                m_Dirty |= CM_KERNEL_DATA_THREAD_COUNT_DIRTY;
+                m_threadCount = count;
+                m_dirty |= CM_KERNEL_DATA_THREAD_COUNT_DIRTY;
             }
         }
         else // first time
         {
-            m_ThreadCount = count;
+            m_threadCount = count;
         }
     }
     return CM_SUCCESS;
@@ -858,63 +858,63 @@ CM_RT_API int32_t CmKernelRT::SetThreadCount(uint32_t count )
 
 int32_t CmKernelRT::GetThreadCount(uint32_t& count )
 {
-    count = m_ThreadCount;
+    count = m_threadCount;
     return CM_SUCCESS;
 }
 
 int32_t CmKernelRT::GetKernelSurfaces(bool  *&surfArray)
 {
-    surfArray = m_SurfaceArray;
+    surfArray = m_surfaceArray;
     return CM_SUCCESS;
 }
 
 int32_t CmKernelRT::ResetKernelSurfaces()
 {
-    uint32_t surfacePoolSize = m_pSurfaceMgr->GetSurfacePoolSize();
-    if (!m_SurfaceArray)
+    uint32_t surfacePoolSize = m_surfaceMgr->GetSurfacePoolSize();
+    if (!m_surfaceArray)
     {
-        m_SurfaceArray = MOS_NewArray(bool, surfacePoolSize);
-        if (!m_SurfaceArray)
+        m_surfaceArray = MOS_NewArray(bool, surfacePoolSize);
+        if (!m_surfaceArray)
         {
             CM_ASSERTMESSAGE("Error: Failed to rest kernel surfaces due to out of system memory.");
             return CM_OUT_OF_HOST_MEMORY;
         }
     }
-    CmSafeMemSet( m_SurfaceArray, 0, surfacePoolSize * sizeof( bool ) );
+    CmSafeMemSet( m_surfaceArray, 0, surfacePoolSize * sizeof( bool ) );
 
     return CM_SUCCESS;
 }
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Get CmSurface from surface manager.
-//|             Use "pValue + IndexSurfaceArray" to locate its SurfaceIndex
+//|             Use "value + indexSurfaceArray" to locate its surfaceIndex
 //| Returns:    CmSurface. Null if not found
 //*-----------------------------------------------------------------------------
-CmSurface* CmKernelRT::GetSurfaceFromSurfaceArray( SurfaceIndex* pValue, uint32_t IndexSurfaceArray)
+CmSurface* CmKernelRT::GetSurfaceFromSurfaceArray( SurfaceIndex* value, uint32_t indexSurfaceArray)
 {
     int32_t hr                          = CM_SUCCESS;
-    CmSurface *pCmSurface           = nullptr;
-    SurfaceIndex* pSurfaceIndex     = nullptr;
+    CmSurface *surface           = nullptr;
+    SurfaceIndex* surfaceIndex     = nullptr;
 
-    pSurfaceIndex = pValue + IndexSurfaceArray;
-    CMCHK_NULL(pSurfaceIndex);
+    surfaceIndex = value + indexSurfaceArray;
+    CMCHK_NULL(surfaceIndex);
 
-    if (pSurfaceIndex->get_data() == CM_NULL_SURFACE
-        || pSurfaceIndex->get_data() == 0)
+    if (surfaceIndex->get_data() == CM_NULL_SURFACE
+        || surfaceIndex->get_data() == 0)
     {
-        pCmSurface = (CmSurface *)CM_NULL_SURFACE;
+        surface = (CmSurface *)CM_NULL_SURFACE;
         goto finish;
     }
 
-    m_pSurfaceMgr->GetSurface(pSurfaceIndex->get_data(), pCmSurface);
+    m_surfaceMgr->GetSurface(surfaceIndex->get_data(), surface);
 
 finish:
     if(hr != CM_SUCCESS)
     {
-        pCmSurface = nullptr;
+        surface = nullptr;
     }
 
-    return pCmSurface;
+    return surface;
 }
 
 //*-----------------------------------------------------------------------------
@@ -922,46 +922,46 @@ finish:
 //|             in surface array. So far, don't support vme surface array in thread arg.
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmKernelRT::SetArgsVme(CM_KERNEL_INTERNAL_ARG_TYPE nArgType, uint32_t ArgIndex, const void *pValue, uint32_t nThreadID)
+int32_t CmKernelRT::SetArgsVme(CM_KERNEL_INTERNAL_ARG_TYPE nArgType, uint32_t argIndex, const void *value, uint32_t nThreadID)
 {
-    uint32_t NumofElements = 0;
-    CM_ARG& arg        = m_Args[ ArgIndex ];
-    uint32_t TotalVmeArgValueSize       = 0;
-    uint32_t TotalSurfacesInVme         = 0;
-    uint32_t TempVmeArgValueSize        = 0;
-    uint32_t VmeArgValueOffset          = 0;
-    uint32_t LastVmeSurfCount           = 0;
-    CmSurfaceVme* pSurfVme          = nullptr;
-    uint8_t *pVmeArgValueArray         = nullptr;
-    uint16_t *pVmeCmIndexArray          = nullptr;
+    uint32_t elementNum = 0;
+    CM_ARG& arg        = m_args[ argIndex ];
+    uint32_t totalVmeArgValueSize       = 0;
+    uint32_t totalSurfacesInVme         = 0;
+    uint32_t tempVmeArgValueSize        = 0;
+    uint32_t vmeArgValueOffset          = 0;
+    uint32_t lastVmeSurfCount           = 0;
+    CmSurfaceVme* surfVme          = nullptr;
+    uint8_t *vmeArgValueArray         = nullptr;
+    uint16_t *vmeCmIndexArray          = nullptr;
     int32_t hr = CM_SUCCESS;
 
     //Get Number of elements in surface array
     if (arg.unitVmeArraySize == 0)
     {  //First Time
-        NumofElements = arg.unitSize / sizeof(uint32_t);
+        elementNum = arg.unitSize / sizeof(uint32_t);
     }
     else
     {
-        NumofElements = arg.unitVmeArraySize;
+        elementNum = arg.unitVmeArraySize;
     }
 
-    //Get Size of pVmeIndexArray and pVmeCmIndexArray.
-    for(uint32_t i=0; i< NumofElements; i++)
+    //Get Size of vmeIndexArray and vmeCmIndexArray.
+    for(uint32_t i=0; i< elementNum; i++)
     {
-        if (((SurfaceIndex*)(pValue)+i)->get_data() == 0 || ((SurfaceIndex*)(pValue)+i)->get_data() == CM_NULL_SURFACE)
+        if (((SurfaceIndex*)(value)+i)->get_data() == 0 || ((SurfaceIndex*)(value)+i)->get_data() == CM_NULL_SURFACE)
         {
-            TempVmeArgValueSize = sizeof(CM_HAL_VME_ARG_VALUE);
-            TotalVmeArgValueSize += TempVmeArgValueSize;
-            TotalSurfacesInVme++;
+            tempVmeArgValueSize = sizeof(CM_HAL_VME_ARG_VALUE);
+            totalVmeArgValueSize += tempVmeArgValueSize;
+            totalSurfacesInVme++;
         }
         else
         {
-            pSurfVme = static_cast<CmSurfaceVme*>(GetSurfaceFromSurfaceArray((SurfaceIndex*)pValue, i));
-            CMCHK_NULL(pSurfVme);
-            TempVmeArgValueSize = pSurfVme->GetVmeCmArgSize();
-            TotalVmeArgValueSize += TempVmeArgValueSize;
-            TotalSurfacesInVme += pSurfVme->GetTotalSurfacesCount();
+            surfVme = static_cast<CmSurfaceVme*>(GetSurfaceFromSurfaceArray((SurfaceIndex*)value, i));
+            CMCHK_NULL(surfVme);
+            tempVmeArgValueSize = surfVme->GetVmeCmArgSize();
+            totalVmeArgValueSize += tempVmeArgValueSize;
+            totalSurfacesInVme += surfVme->GetTotalSurfacesCount();
         }
     }
 
@@ -969,72 +969,72 @@ int32_t CmKernelRT::SetArgsVme(CM_KERNEL_INTERNAL_ARG_TYPE nArgType, uint32_t Ar
     // arg.pValue    : an array of CM_HAL_VME_ARG_VALUE structure followed by an array of reference surfaces
     // arg.surfIndex : an array listing all the Cm surface indexes, in the order of current, fw surfaces, bw surfaces
 
-    if (arg.unitSize < TotalVmeArgValueSize) // need to re-allocate larger area)
+    if (arg.unitSize < totalVmeArgValueSize) // need to re-allocate larger area)
     {
-        if (arg.pValue)
+        if (arg.value)
         {
-            MosSafeDeleteArray(arg.pValue);
+            MosSafeDeleteArray(arg.value);
         }
-        arg.pValue = MOS_NewArray(uint8_t, TotalVmeArgValueSize);
+        arg.value = MOS_NewArray(uint8_t, totalVmeArgValueSize);
 
         if (arg.surfIndex)
         {
             MosSafeDeleteArray(arg.surfIndex);
         }
-        arg.surfIndex = MOS_NewArray(uint16_t, TotalSurfacesInVme);
+        arg.surfIndex = MOS_NewArray(uint16_t, totalSurfacesInVme);
     }
 
-    CMCHK_NULL(arg.pValue);
-    CmSafeMemSet(arg.pValue, 0, TotalVmeArgValueSize);
+    CMCHK_NULL(arg.value);
+    CmSafeMemSet(arg.value, 0, totalVmeArgValueSize);
     CMCHK_NULL(arg.surfIndex);
-    CmSafeMemSet(arg.surfIndex, 0, TotalSurfacesInVme * sizeof(uint16_t));
+    CmSafeMemSet(arg.surfIndex, 0, totalSurfacesInVme * sizeof(uint16_t));
 
     //Set each Vme Surface
-    for (uint32_t i = 0; i< NumofElements; i++)
+    for (uint32_t i = 0; i< elementNum; i++)
     {
-        if (((SurfaceIndex*)(pValue)+i)->get_data() == 0 || ((SurfaceIndex*)(pValue)+i)->get_data() == CM_NULL_SURFACE)
+        if (((SurfaceIndex*)(value)+i)->get_data() == 0 || ((SurfaceIndex*)(value)+i)->get_data() == CM_NULL_SURFACE)
         {
-            PCM_HAL_VME_ARG_VALUE pVmeArg = (PCM_HAL_VME_ARG_VALUE)(arg.pValue + VmeArgValueOffset);
-            pVmeArg->fwRefNum = 0;
-            pVmeArg->bwRefNum = 0;
-            pVmeArg->curSurface = CM_NULL_SURFACE;
-            TempVmeArgValueSize = sizeof(CM_HAL_VME_ARG_VALUE);
-            VmeArgValueOffset += TempVmeArgValueSize;
-            arg.surfIndex[LastVmeSurfCount] = CM_NULL_SURFACE;
-            LastVmeSurfCount++;
+            PCM_HAL_VME_ARG_VALUE vmeArg = (PCM_HAL_VME_ARG_VALUE)(arg.value + vmeArgValueOffset);
+            vmeArg->fwRefNum = 0;
+            vmeArg->bwRefNum = 0;
+            vmeArg->curSurface = CM_NULL_SURFACE;
+            tempVmeArgValueSize = sizeof(CM_HAL_VME_ARG_VALUE);
+            vmeArgValueOffset += tempVmeArgValueSize;
+            arg.surfIndex[lastVmeSurfCount] = CM_NULL_SURFACE;
+            lastVmeSurfCount++;
         }
         else
         {
-            pSurfVme = static_cast<CmSurfaceVme*>(GetSurfaceFromSurfaceArray((SurfaceIndex*)pValue, i));
-            CMCHK_NULL(pSurfVme);
-            SetArgsSingleVme(pSurfVme, arg.pValue + VmeArgValueOffset, arg.surfIndex + LastVmeSurfCount);
-            TempVmeArgValueSize = pSurfVme->GetVmeCmArgSize();
-            VmeArgValueOffset += TempVmeArgValueSize;
-            LastVmeSurfCount += pSurfVme->GetTotalSurfacesCount();
+            surfVme = static_cast<CmSurfaceVme*>(GetSurfaceFromSurfaceArray((SurfaceIndex*)value, i));
+            CMCHK_NULL(surfVme);
+            SetArgsSingleVme(surfVme, arg.value + vmeArgValueOffset, arg.surfIndex + lastVmeSurfCount);
+            tempVmeArgValueSize = surfVme->GetVmeCmArgSize();
+            vmeArgValueOffset += tempVmeArgValueSize;
+            lastVmeSurfCount += surfVme->GetTotalSurfacesCount();
         }
     }
 
     if ( nArgType == CM_KERNEL_INTERNEL_ARG_PERKERNEL ) // per kernel arg
     {
         // First time set
-        if( !arg.pValue )
+        if( !arg.value )
         {   // Increment size kernel arguments will take up in CURBE
-            m_SizeInCurbe += CM_ARGUMENT_SURFACE_SIZE * NumofElements;
+            m_sizeInCurbe += CM_ARGUMENT_SURFACE_SIZE * elementNum;
         }
 
         arg.unitCount = 1;
-        arg.bIsDirty  = true;
-        arg.bIsSet    = true;
+        arg.isDirty  = true;
+        arg.isSet    = true;
         arg.unitKind  = ARG_KIND_SURFACE_VME;
-        arg.unitSize = (uint16_t)TotalVmeArgValueSize; // the unitSize can't represent surfaces count here
-        arg.unitVmeArraySize = NumofElements;
+        arg.unitSize = (uint16_t)totalVmeArgValueSize; // the unitSize can't represent surfaces count here
+        arg.unitVmeArraySize = elementNum;
 
-        m_Dirty |= CM_KERNEL_DATA_KERNEL_ARG_DIRTY;
-        m_blPerKernelArgExists = true;
+        m_dirty |= CM_KERNEL_DATA_KERNEL_ARG_DIRTY;
+        m_perKernelArgExists = true;
     }
     else
     {
-        // Thread Arg doesn't support VME surfaces as it is rarely used and it is complex to implement,
+        // Thread arg doesn't support VME surfaces as it is rarely used and it is complex to implement,
         // since each thread may has different surface number in its vme surface argment.
         hr = CM_THREAD_ARG_NOT_ALLOWED;
     }
@@ -1042,7 +1042,7 @@ int32_t CmKernelRT::SetArgsVme(CM_KERNEL_INTERNAL_ARG_TYPE nArgType, uint32_t Ar
 finish:
     if(hr != CM_SUCCESS)
     {
-        MosSafeDeleteArray(arg.pValue);
+        MosSafeDeleteArray(arg.value);
         MosSafeDeleteArray(arg.surfIndex);
     }
     return hr;
@@ -1051,91 +1051,91 @@ finish:
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Fill arg for a single vme surface.
-//|             pVmeIndexArray points to arg.pValue
-//|             pVmeCmIndexArray points to arg.surfIndex
+//|             vmeIndexArray points to arg.pValue
+//|             vmeCmIndexArray points to arg.surfIndex
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmKernelRT::SetArgsSingleVme(CmSurfaceVme* pSurfVme, uint8_t *pVmeArgValueArray, uint16_t *pCmSufacesArray)
+int32_t CmKernelRT::SetArgsSingleVme(CmSurfaceVme* vmeSurface, uint8_t *vmeArgValueArray, uint16_t *cmSufacesArray)
 {
 
     int32_t hr = CM_SUCCESS;
     CM_SURFACE_MEM_OBJ_CTRL memCtl;
-    uint32_t VmeBackwardSurfaceCount        = 0;
-    uint32_t VmeForwardSurfaceCount         = 0;
-    uint32_t VmeCurrentSurfaceIndex         = 0;
-    uint16_t VmeCurrentCmIndex              = 0;
-    int32_t VmeIndexArrayPosition          = 0; // Offset for pVmeIndexArray
-    int32_t VmeCmIndexArrayPosition        = 0; // Offset for pVmeCmIndexArray
+    uint32_t vmeBackwardSurfaceCount        = 0;
+    uint32_t vmeForwardSurfaceCount         = 0;
+    uint32_t vmeCurrentSurfaceIndex         = 0;
+    uint16_t vmeCurrentCmIndex              = 0;
+    int32_t vmeIndexArrayPosition          = 0; // Offset for vmeIndexArray
+    int32_t vmeCmIndexArrayPosition        = 0; // Offset for vmeCmIndexArray
     uint32_t tempOutput                     = 0;
-    uint32_t CmSurfArrayIdx                 = 0;
+    uint32_t cmSurfArrayIdx                 = 0;
     uint32_t surfStateWidth                 = 0;
     uint32_t surfStateHeight                = 0;
 
-    uint32_t *f_array       = nullptr;
-    uint32_t *b_array       = nullptr;
-    uint32_t *f_CmIndex     = nullptr;
-    uint32_t *b_CmIndex     = nullptr;
+    uint32_t *fArray       = nullptr;
+    uint32_t *bArray       = nullptr;
+    uint32_t *fCmIndex     = nullptr;
+    uint32_t *bCmIndex     = nullptr;
 
     uint32_t *fwSurfInArg = nullptr;
     uint32_t *bwSurfInArg = nullptr;
 
-    CmSurface *pSurface = nullptr;
-    PCM_HAL_VME_ARG_VALUE pVmeArg = (PCM_HAL_VME_ARG_VALUE)pVmeArgValueArray;
+    CmSurface *surface = nullptr;
+    PCM_HAL_VME_ARG_VALUE vmeArg = (PCM_HAL_VME_ARG_VALUE)vmeArgValueArray;
 
-    CMCHK_NULL(pSurfVme);
-    CMCHK_NULL(pVmeArg);
-    CMCHK_NULL(pCmSufacesArray);
+    CMCHK_NULL(vmeSurface);
+    CMCHK_NULL(vmeArg);
+    CMCHK_NULL(cmSufacesArray);
 
-    if(pSurfVme == (CmSurfaceVme *)CM_NULL_SURFACE)
+    if(vmeSurface == (CmSurfaceVme *)CM_NULL_SURFACE)
     {
-        pVmeArg->fwRefNum = 0;
-        pVmeArg->bwRefNum = 0;
-        pVmeArg->curSurface = CM_NULL_SURFACE;
-        pCmSufacesArray[CmSurfArrayIdx] =  CM_NULL_SURFACE;
+        vmeArg->fwRefNum = 0;
+        vmeArg->bwRefNum = 0;
+        vmeArg->curSurface = CM_NULL_SURFACE;
+        cmSufacesArray[cmSurfArrayIdx] =  CM_NULL_SURFACE;
         return hr;
     }
 
     // Get Vme Backward Forward Surface Count
-    pSurfVme->GetIndexBackwardCount(VmeBackwardSurfaceCount);
-    pSurfVme->GetIndexForwardCount(VmeForwardSurfaceCount);
+    vmeSurface->GetIndexBackwardCount(vmeBackwardSurfaceCount);
+    vmeSurface->GetIndexForwardCount(vmeForwardSurfaceCount);
 
-    pVmeArg->fwRefNum = VmeForwardSurfaceCount;
-    pVmeArg->bwRefNum = VmeBackwardSurfaceCount; // these two numbers must be set before any other operations
+    vmeArg->fwRefNum = vmeForwardSurfaceCount;
+    vmeArg->bwRefNum = vmeBackwardSurfaceCount; // these two numbers must be set before any other operations
 
-    pSurfVme->GetSurfaceStateResolution(pVmeArg->surfStateParam.surfaceStateWidth, pVmeArg->surfStateParam.surfaceStateHeight);
+    vmeSurface->GetSurfaceStateResolution(vmeArg->surfStateParam.surfaceStateWidth, vmeArg->surfStateParam.surfaceStateHeight);
 
-    pSurfVme->GetIndexForwardArray(f_array);
-    pSurfVme->GetIndexBackwardArray(b_array);
-    pSurfVme->GetIndexCurrent(VmeCurrentSurfaceIndex);
+    vmeSurface->GetIndexForwardArray(fArray);
+    vmeSurface->GetIndexBackwardArray(bArray);
+    vmeSurface->GetIndexCurrent(vmeCurrentSurfaceIndex);
 
-    pSurfVme->GetCmIndexCurrent(VmeCurrentCmIndex);
-    pSurfVme->GetCmIndexForwardArray(f_CmIndex);
-    pSurfVme->GetCmIndexBackwardArray(b_CmIndex);
+    vmeSurface->GetCmIndexCurrent(vmeCurrentCmIndex);
+    vmeSurface->GetCmIndexForwardArray(fCmIndex);
+    vmeSurface->GetCmIndexBackwardArray(bCmIndex);
 
-    pCmSufacesArray[CmSurfArrayIdx++] = VmeCurrentCmIndex;
+    cmSufacesArray[cmSurfArrayIdx++] = vmeCurrentCmIndex;
 
     // Set Current Vme Surface
-    m_pSurfaceMgr->GetSurface(VmeCurrentCmIndex, pSurface);
-    CMCHK_NULL(pSurface);
+    m_surfaceMgr->GetSurface(vmeCurrentCmIndex, surface);
+    CMCHK_NULL(surface);
 
-    pVmeArg->curSurface = VmeCurrentSurfaceIndex;
+    vmeArg->curSurface = vmeCurrentSurfaceIndex;
 
     //Set Forward Vme Surfaces
-    fwSurfInArg = findFwRefInVmeArg(pVmeArg);
-    for (uint32_t i = 0; i < VmeForwardSurfaceCount; i++)
+    fwSurfInArg = findFwRefInVmeArg(vmeArg);
+    for (uint32_t i = 0; i < vmeForwardSurfaceCount; i++)
     {
-        GetVmeSurfaceIndex( f_array, f_CmIndex, i, &tempOutput);
+        GetVmeSurfaceIndex( fArray, fCmIndex, i, &tempOutput);
         fwSurfInArg[i] = tempOutput;
-        pCmSufacesArray[CmSurfArrayIdx++] = (uint16_t)f_CmIndex[i];
+        cmSufacesArray[cmSurfArrayIdx++] = (uint16_t)fCmIndex[i];
     }
 
     //Set Backward Vme Surfaces
-    bwSurfInArg = findBwRefInVmeArg(pVmeArg);
-    for (uint32_t i = 0; i < VmeBackwardSurfaceCount; i++)
+    bwSurfInArg = findBwRefInVmeArg(vmeArg);
+    for (uint32_t i = 0; i < vmeBackwardSurfaceCount; i++)
     {
-        GetVmeSurfaceIndex( b_array, b_CmIndex, i, &tempOutput);
+        GetVmeSurfaceIndex( bArray, bCmIndex, i, &tempOutput);
         bwSurfInArg[i] = tempOutput;
-        pCmSufacesArray[CmSurfArrayIdx++] = (uint16_t)b_CmIndex[i];
+        cmSufacesArray[cmSurfArrayIdx++] = (uint16_t)bCmIndex[i];
     }
 
 finish:
@@ -1148,20 +1148,20 @@ finish:
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 int32_t CmKernelRT::GetVmeSurfaceIndex(
-    uint32_t *pVmeIndexArray,
-    uint32_t *pVmeCmIndexArray,
+    uint32_t *vmeIndexArray,
+    uint32_t *vmeCmIndexArray,
     uint32_t index,
-    uint32_t *pOutputValue)
+    uint32_t *outputValue)
 {
     int32_t hr = CM_SUCCESS;
-    uint32_t value = pVmeIndexArray[index];
+    uint32_t value = vmeIndexArray[index];
 
-    if (pVmeIndexArray[index] == CM_INVALID_VME_SURFACE)
+    if (vmeIndexArray[index] == CM_INVALID_VME_SURFACE)
     {
         value = CM_NULL_SURFACE;
     }
 
-    *pOutputValue = value;
+    *outputValue = value;
 
     return hr;
 }
@@ -1176,14 +1176,14 @@ int32_t CmKernelRT::GetVmeSurfaceIndex(
 //!             4) Pointer to current surface in surface array.
 //!             5) Current surface  index
 //!             6) Pointer to argument value
-//!             7) Value of surface handle combined with memory object control
+//!             7) value of surface handle combined with memory object control
 //!             8) Original surface index for each surface in array
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 int32_t CmKernelRT::SetArgsInternalSurfArray(
     int32_t offset,uint32_t kernelArgIndex,
-    int32_t surfCount, CmSurface* pCurrentSurface,
-    uint32_t currentSurfIndex, SurfaceIndex* pValue,
+    int32_t surfCount, CmSurface* currentSurface,
+    uint32_t currentSurfIndex, SurfaceIndex* value,
     uint32_t surfValue[], uint16_t origSurfIndex[])
 {
     CM_SURFACE_MEM_OBJ_CTRL memCtl;
@@ -1193,109 +1193,109 @@ int32_t CmKernelRT::SetArgsInternalSurfArray(
     uint16_t                samplerCmIndex;
     uint32_t                surfaceArraySize = 0;
 
-    m_pSurfaceMgr->GetSurfaceArraySize(surfaceArraySize);
-    MosSafeDeleteArray(m_Args[kernelArgIndex].pSurfArrayArg); // delete it if it was allcated
-    m_Args[kernelArgIndex].pSurfArrayArg = MOS_NewArray(SURFACE_ARRAY_ARG, surfCount);
-    if (!m_Args[kernelArgIndex].pSurfArrayArg)
+    m_surfaceMgr->GetSurfaceArraySize(surfaceArraySize);
+    MosSafeDeleteArray(m_args[kernelArgIndex].surfArrayArg); // delete it if it was allcated
+    m_args[kernelArgIndex].surfArrayArg = MOS_NewArray(SURFACE_ARRAY_ARG, surfCount);
+    if (!m_args[kernelArgIndex].surfArrayArg)
     {
         CM_ASSERTMESSAGE("Error: Out of system memory.");
         return CM_OUT_OF_HOST_MEMORY;
     }
-    CmSafeMemSet((void *)m_Args[kernelArgIndex].pSurfArrayArg, 0,  sizeof(SURFACE_ARRAY_ARG) * surfCount);
+    CmSafeMemSet((void *)m_args[kernelArgIndex].surfArrayArg, 0,  sizeof(SURFACE_ARRAY_ARG) * surfCount);
     while (offset < surfCount)
     {
-        switch (pCurrentSurface->Type())
+        switch (currentSurface->Type())
         {
           case CM_ENUM_CLASS_TYPE_CMSURFACE2D:
           {
-             CmSurface2DRT* pSurf2D = static_cast<CmSurface2DRT*>(pCurrentSurface);
+             CmSurface2DRT* surf2D = static_cast<CmSurface2DRT*>(currentSurface);
 
              uint32_t numAliases = 0;
-             pSurf2D->GetNumAliases(numAliases);
+             surf2D->GetNumAliases(numAliases);
              if (numAliases)
              {
-                 m_Args[kernelArgIndex].bAliasCreated = true;
+                 m_args[kernelArgIndex].aliasCreated = true;
              }
              else
              {
-                 m_Args[kernelArgIndex].bAliasCreated = false;
+                 m_args[kernelArgIndex].aliasCreated = false;
              }
 
              //set memory object control
-             pSurf2D->GetIndexFor2D(surfRegTableIndex);
+             surf2D->GetIndexFor2D(surfRegTableIndex);
 
              surfValue[offset] = surfRegTableIndex;
              origSurfIndex[offset] = (uint16_t)currentSurfIndex;
 
-             m_Args[kernelArgIndex].pSurfArrayArg[offset].argKindForArray = ARG_KIND_SURFACE_2D;
-             m_Args[kernelArgIndex].unitKind = ARG_KIND_SURFACE_2D;
+             m_args[kernelArgIndex].surfArrayArg[offset].argKindForArray = ARG_KIND_SURFACE_2D;
+             m_args[kernelArgIndex].unitKind = ARG_KIND_SURFACE_2D;
 
              break;
          }
          case CM_ENUM_CLASS_TYPE_CMBUFFER_RT:
          {
-             CmBuffer_RT* pSurf1D = static_cast<CmBuffer_RT*>(pCurrentSurface);
+             CmBuffer_RT* surf1D = static_cast<CmBuffer_RT*>(currentSurface);
 
              uint32_t numAliases = 0;
-             pSurf1D->GetNumAliases(numAliases);
+             surf1D->GetNumAliases(numAliases);
              if (numAliases)
              {
-                 m_Args[kernelArgIndex].bAliasCreated = true;
+                 m_args[kernelArgIndex].aliasCreated = true;
              }
              else
              {
-                 m_Args[kernelArgIndex].bAliasCreated = false;
+                 m_args[kernelArgIndex].aliasCreated = false;
              }
 
              //set memory object control
-             pSurf1D->GetHandle(handle);
+             surf1D->GetHandle(handle);
 
              surfValue[offset] = handle;
              origSurfIndex[offset] = (uint16_t)currentSurfIndex;
 
-             m_Args[kernelArgIndex].pSurfArrayArg[offset].argKindForArray = ARG_KIND_SURFACE_1D;
-             m_Args[kernelArgIndex].unitKind = ARG_KIND_SURFACE_1D;
+             m_args[kernelArgIndex].surfArrayArg[offset].argKindForArray = ARG_KIND_SURFACE_1D;
+             m_args[kernelArgIndex].unitKind = ARG_KIND_SURFACE_1D;
              break;
          }
          case CM_ENUM_CLASS_TYPE_CMSURFACE2DUP:
          {
-             CmSurface2DUPRT* pSurf2DUP = static_cast<CmSurface2DUPRT*>(pCurrentSurface);
+             CmSurface2DUPRT* surf2DUP = static_cast<CmSurface2DUPRT*>(currentSurface);
 
              //set memory object
-             pSurf2DUP->GetHandle(handle);
+             surf2DUP->GetHandle(handle);
 
              surfValue[offset] = handle;
              origSurfIndex[offset] = (uint16_t)currentSurfIndex;
 
-             m_Args[kernelArgIndex].pSurfArrayArg[offset].argKindForArray = ARG_KIND_SURFACE_2D_UP;
-             m_Args[kernelArgIndex].unitKind = ARG_KIND_SURFACE_2D_UP;
+             m_args[kernelArgIndex].surfArrayArg[offset].argKindForArray = ARG_KIND_SURFACE_2D_UP;
+             m_args[kernelArgIndex].unitKind = ARG_KIND_SURFACE_2D_UP;
              break;
          }
          case CM_ENUM_CLASS_TYPE_CMSURFACE3D:
          {
-             CmSurface3DRT* pSurf3D = static_cast<CmSurface3DRT*>(pCurrentSurface);
+             CmSurface3DRT* surf3D = static_cast<CmSurface3DRT*>(currentSurface);
 
-             pSurf3D->GetHandle(handle);
+             surf3D->GetHandle(handle);
 
              surfValue[offset] = handle;
              origSurfIndex[offset] = (uint16_t)currentSurfIndex;
 
-             m_Args[kernelArgIndex].pSurfArrayArg[offset].argKindForArray = ARG_KIND_SURFACE_3D;
-             m_Args[kernelArgIndex].unitKind = ARG_KIND_SURFACE_3D;
+             m_args[kernelArgIndex].surfArrayArg[offset].argKindForArray = ARG_KIND_SURFACE_3D;
+             m_args[kernelArgIndex].unitKind = ARG_KIND_SURFACE_3D;
 
              break;
          }
 
          case CM_ENUM_CLASS_TYPE_CM_STATE_BUFFER:
          {
-             CmStateBuffer* pStateBuffer = static_cast< CmStateBuffer* >( pCurrentSurface );
-             pStateBuffer->GetHandle( handle );
+             CmStateBuffer* stateBuffer = static_cast< CmStateBuffer* >( currentSurface );
+             stateBuffer->GetHandle( handle );
 
              surfValue[ offset ] = handle;
              origSurfIndex[ offset ] = ( uint16_t )currentSurfIndex;
 
-             m_Args[ kernelArgIndex ].pSurfArrayArg[ offset ].argKindForArray = ARG_KIND_STATE_BUFFER;
-             m_Args[ kernelArgIndex ].unitKind = ARG_KIND_STATE_BUFFER;
+             m_args[ kernelArgIndex ].surfArrayArg[ offset ].argKindForArray = ARG_KIND_STATE_BUFFER;
+             m_args[ kernelArgIndex ].unitKind = ARG_KIND_STATE_BUFFER;
 
              break;
          }
@@ -1303,12 +1303,12 @@ int32_t CmKernelRT::SetArgsInternalSurfArray(
          //sampler surface
          case CM_ENUM_CLASS_TYPE_CMSURFACESAMPLER:
          {
-             CmSurfaceSampler* pSurfSampler = static_cast <CmSurfaceSampler *> (pCurrentSurface);
-             pSurfSampler->GetHandle(samplerIndex);
-             pSurfSampler->GetCmIndexCurrent(samplerCmIndex);
+             CmSurfaceSampler* surfSampler = static_cast <CmSurfaceSampler *> (currentSurface);
+             surfSampler->GetHandle(samplerIndex);
+             surfSampler->GetCmIndexCurrent(samplerCmIndex);
 
-             m_pSurfaceMgr->GetSurface(samplerCmIndex, pCurrentSurface);
-             if (!pCurrentSurface)
+             m_surfaceMgr->GetSurface(samplerCmIndex, currentSurface);
+             if (!currentSurface)
              {
                  CM_ASSERTMESSAGE("Error: Pointer to current surface is null.");
                  return CM_NULL_POINTER;
@@ -1318,21 +1318,21 @@ int32_t CmKernelRT::SetArgsInternalSurfArray(
              origSurfIndex[offset] = (uint16_t)samplerCmIndex;
 
              SAMPLER_SURFACE_TYPE type;
-             pSurfSampler->GetSurfaceType(type);
+             surfSampler->GetSurfaceType(type);
              if (type == SAMPLER_SURFACE_TYPE_2D)
              {
-                 m_Args[kernelArgIndex].pSurfArrayArg[offset].argKindForArray = ARG_KIND_SURFACE_SAMPLER;
-                 m_Args[kernelArgIndex].unitKind = ARG_KIND_SURFACE_SAMPLER;
+                 m_args[kernelArgIndex].surfArrayArg[offset].argKindForArray = ARG_KIND_SURFACE_SAMPLER;
+                 m_args[kernelArgIndex].unitKind = ARG_KIND_SURFACE_SAMPLER;
              }
              else if (type == SAMPLER_SURFACE_TYPE_2DUP)
              {
-                 m_Args[kernelArgIndex].pSurfArrayArg[offset].argKindForArray = ARG_KIND_SURFACE2DUP_SAMPLER;
-                 m_Args[kernelArgIndex].unitKind = ARG_KIND_SURFACE2DUP_SAMPLER;
+                 m_args[kernelArgIndex].surfArrayArg[offset].argKindForArray = ARG_KIND_SURFACE2DUP_SAMPLER;
+                 m_args[kernelArgIndex].unitKind = ARG_KIND_SURFACE2DUP_SAMPLER;
              }
              else if(type == SAMPLER_SURFACE_TYPE_3D)
              {
-                 m_Args[kernelArgIndex].pSurfArrayArg[offset].argKindForArray = ARG_KIND_SURFACE_3D;
-                 m_Args[kernelArgIndex].unitKind = ARG_KIND_SURFACE_3D;
+                 m_args[kernelArgIndex].surfArrayArg[offset].argKindForArray = ARG_KIND_SURFACE_3D;
+                 m_args[kernelArgIndex].unitKind = ARG_KIND_SURFACE_3D;
              }
              else
              {
@@ -1344,12 +1344,12 @@ int32_t CmKernelRT::SetArgsInternalSurfArray(
          //sampler8x8surface
          case CM_ENUM_CLASS_TYPE_CMSURFACESAMPLER8X8:
          {
-             CmSurfaceSampler8x8* pSurfSampler8x8 = static_cast <CmSurfaceSampler8x8 *> (pCurrentSurface);
-             pSurfSampler8x8->GetIndexCurrent(samplerIndex);
-             pSurfSampler8x8->GetCmIndex(samplerCmIndex);
+             CmSurfaceSampler8x8* surfSampler8x8 = static_cast <CmSurfaceSampler8x8 *> (currentSurface);
+             surfSampler8x8->GetIndexCurrent(samplerIndex);
+             surfSampler8x8->GetCmIndex(samplerCmIndex);
 
-             m_pSurfaceMgr->GetSurface(samplerCmIndex, pCurrentSurface);
-             if (!pCurrentSurface)
+             m_surfaceMgr->GetSurface(samplerCmIndex, currentSurface);
+             if (!currentSurface)
              {
                  CM_ASSERTMESSAGE("Error: Pointer to current surface is null.");
                  return CM_FAILURE;
@@ -1359,17 +1359,17 @@ int32_t CmKernelRT::SetArgsInternalSurfArray(
              origSurfIndex[offset] = (uint16_t)samplerCmIndex;
 
              CM_SAMPLER8x8_SURFACE type;
-             type = pSurfSampler8x8->GetSampler8x8SurfaceType();
+             type = surfSampler8x8->GetSampler8x8SurfaceType();
              if (type == CM_VA_SURFACE)
              {
-                 m_Args[kernelArgIndex].unitKind = ARG_KIND_SURFACE_SAMPLER8X8_VA;
-                 m_Args[kernelArgIndex].pSurfArrayArg[offset].addressModeForArray = pSurfSampler8x8->GetAddressControlMode();
-                 m_Args[kernelArgIndex].pSurfArrayArg[offset].argKindForArray = ARG_KIND_SURFACE_SAMPLER8X8_VA;
+                 m_args[kernelArgIndex].unitKind = ARG_KIND_SURFACE_SAMPLER8X8_VA;
+                 m_args[kernelArgIndex].surfArrayArg[offset].addressModeForArray = surfSampler8x8->GetAddressControlMode();
+                 m_args[kernelArgIndex].surfArrayArg[offset].argKindForArray = ARG_KIND_SURFACE_SAMPLER8X8_VA;
              }
              else if(type == CM_AVS_SURFACE)
              {
-                 m_Args[kernelArgIndex].unitKind = ARG_KIND_SURFACE_SAMPLER8X8_AVS;
-                 m_Args[kernelArgIndex].pSurfArrayArg[offset].argKindForArray = ARG_KIND_SURFACE_SAMPLER8X8_AVS;
+                 m_args[kernelArgIndex].unitKind = ARG_KIND_SURFACE_SAMPLER8X8_AVS;
+                 m_args[kernelArgIndex].surfArrayArg[offset].argKindForArray = ARG_KIND_SURFACE_SAMPLER8X8_AVS;
              }
              else
              {
@@ -1387,7 +1387,7 @@ int32_t CmKernelRT::SetArgsInternalSurfArray(
        offset++;
        if (offset < surfCount)
        {
-           currentSurfIndex = pValue[offset].get_data();
+           currentSurfIndex = value[offset].get_data();
 
            while ((!currentSurfIndex && (offset < surfCount))||(currentSurfIndex == CM_NULL_SURFACE))
            {
@@ -1396,7 +1396,7 @@ int32_t CmKernelRT::SetArgsInternalSurfArray(
                offset++;
                if (offset >= surfCount)
                    break;
-               currentSurfIndex = pValue[offset].get_data();
+               currentSurfIndex = value[offset].get_data();
            }
 
            if (currentSurfIndex > surfaceArraySize)
@@ -1406,8 +1406,8 @@ int32_t CmKernelRT::SetArgsInternalSurfArray(
        }
        if (offset < surfCount)
        {
-           m_pSurfaceMgr->GetSurface(currentSurfIndex, pCurrentSurface);
-           if (nullptr == pCurrentSurface)
+           m_surfaceMgr->GetSurface(currentSurfIndex, currentSurface);
+           if (nullptr == currentSurface)
            {
                CM_ASSERTMESSAGE("Error: Pointer to current surface is null.");
                return CM_FAILURE;
@@ -1422,7 +1422,7 @@ int32_t CmKernelRT::SetArgsInternalSurfArray(
 // argument; set parameter nArgType to CM_KERNEL_INTERNEL_ARG_THREAD to set
 // a thread argument
 //*-----------------------------------------------------------------------------
-int32_t CmKernelRT::SetArgsInternal( CM_KERNEL_INTERNAL_ARG_TYPE nArgType, uint32_t index, size_t size, const void *pValue, uint32_t nThreadID )
+int32_t CmKernelRT::SetArgsInternal( CM_KERNEL_INTERNAL_ARG_TYPE nArgType, uint32_t index, size_t size, const void *value, uint32_t nThreadID )
 {
     uint32_t surfRegTableIndex = 0; // for 2D surf
     uint32_t handle = 0; // for 1D surf
@@ -1431,23 +1431,23 @@ int32_t CmKernelRT::SetArgsInternal( CM_KERNEL_INTERNAL_ARG_TYPE nArgType, uint3
     uint16_t samplerCmIndex;
     uint32_t samplerIdx = 0;
     uint32_t vmeIdx = 0;
-    uint16_t *pSurfIndexValue =  nullptr;
+    uint16_t *surfIndexValue =  nullptr;
     uint32_t surfaces[CM_MAX_ARGS_PER_KERNEL];
     uint16_t surfIndexArray[CM_MAX_ARGS_PER_KERNEL];
     std::vector< int > sampler_index_array;
 
     //Clear "set" flag in case user call API to set the same one argument multiple times.
-    m_Args[index].bIsSet = false;
-    if( m_Args[ index ].unitKind == ARG_KIND_GENERAL || (m_Args[index].unitKind == ARG_KIND_GENERAL_DEPVEC))
+    m_args[index].isSet = false;
+    if( m_args[ index ].unitKind == ARG_KIND_GENERAL || (m_args[index].unitKind == ARG_KIND_GENERAL_DEPVEC))
     {
-        if( size != m_Args[ index ].unitSize )
+        if( size != m_args[ index ].unitSize )
         {
             CM_ASSERTMESSAGE("Error: Invalid kernel arg size.");
             return CM_INVALID_ARG_SIZE;
         }
     }
     //For surface type
-    else if (CHECK_SURFACE_TYPE(m_Args[index].unitKind,
+    else if (CHECK_SURFACE_TYPE(m_args[index].unitKind,
         ARG_KIND_SURFACE,
         ARG_KIND_SURFACE_1D,
         ARG_KIND_SURFACE_2D,
@@ -1463,147 +1463,147 @@ int32_t CmKernelRT::SetArgsInternal( CM_KERNEL_INTERNAL_ARG_TYPE nArgType, uint3
         ))
     {
 
-        // this code is to convert surfaceIndex object to index of type uint32_t,
+        // this code is to convert SurfaceIndex object to index of type uint32_t,
         // which is expected by commonISA/genBinary
         // index is the index of the surface in surface registration table of CM device
         // in driver
 
-        int signature_size = m_Args[index].unitSize;
-        int num_surfaces = signature_size / sizeof(int);
-        SurfaceIndex* pSurfIndex = (SurfaceIndex*)pValue;
-        if (pSurfIndex == (SurfaceIndex*)CM_NULL_SURFACE)
+        int signatureSize = m_args[index].unitSize;
+        int numSurfaces = signatureSize / sizeof(int);
+        SurfaceIndex* surfIndex = (SurfaceIndex*)value;
+        if (surfIndex == (SurfaceIndex*)CM_NULL_SURFACE)
         {
-            m_Args[index].bIsSet = true;
-            m_Args[index].unitCount = 1; // per kernel arg
-            m_Dirty |= CM_KERNEL_DATA_KERNEL_ARG_DIRTY;
-            m_blPerKernelArgExists = true;
-            m_Args[index].bIsDirty = true;
-            m_Args[index].bIsNull = true;
+            m_args[index].isSet = true;
+            m_args[index].unitCount = 1; // per kernel arg
+            m_dirty |= CM_KERNEL_DATA_KERNEL_ARG_DIRTY;
+            m_perKernelArgExists = true;
+            m_args[index].isDirty = true;
+            m_args[index].isNull = true;
             return CM_SUCCESS;
         }
-        m_Args[index].bIsNull = false;
+        m_args[index].isNull = false;
         CM_SURFACE_MEM_OBJ_CTRL memCtl;
 
-        if (m_Args[index].unitKind != ARG_KIND_SURFACE_VME)
+        if (m_args[index].unitKind != ARG_KIND_SURFACE_VME)
         {
-            if (size != sizeof(SurfaceIndex)* num_surfaces)
+            if (size != sizeof(SurfaceIndex)* numSurfaces)
             {
                 CM_ASSERTMESSAGE("Error: Invalid kernel arg size.");
                 return CM_INVALID_ARG_SIZE;
             }
         }
 
-        uint32_t surfIndex = pSurfIndex->get_data();
+        uint32_t surfIndexData = surfIndex->get_data();
         int i = 0;
         uint32_t surfaceArraySize = 0;
-        m_pSurfaceMgr->GetSurfaceArraySize(surfaceArraySize);
+        m_surfaceMgr->GetSurfaceArraySize(surfaceArraySize);
 
-        if (surfIndex > surfaceArraySize)
+        if (surfIndexData > surfaceArraySize)
         {
-            if (m_Args[index].aliasIndex != surfIndex)
+            if (m_args[index].aliasIndex != surfIndexData)
             {
-                m_Args[index].bIsDirty = true;
-                m_Dirty |= CM_KERNEL_DATA_KERNEL_ARG_DIRTY;
-                m_Args[index].aliasIndex = surfIndex;
+                m_args[index].isDirty = true;
+                m_dirty |= CM_KERNEL_DATA_KERNEL_ARG_DIRTY;
+                m_args[index].aliasIndex = surfIndexData;
             }
 
-            surfIndex = surfIndex % surfaceArraySize;
+            surfIndexData = surfIndexData % surfaceArraySize;
         }
         else
         {
-            m_Args[index].aliasIndex = 0;
+            m_args[index].aliasIndex = 0;
         }
 
-        while (!surfIndex && (i < num_surfaces))
+        while (!surfIndexData && (i < numSurfaces))
         {
             surfaces[i] = CM_NULL_SURFACE;
             surfIndexArray[i] = 0;
             i++;
-            if (i >= num_surfaces)
+            if (i >= numSurfaces)
                 break;
-            surfIndex = pSurfIndex[i].get_data();
+            surfIndexData = surfIndex[i].get_data();
         }
 
-        if (i >= num_surfaces)
+        if (i >= numSurfaces)
         {
-            m_Args[index].unitKind = ARG_KIND_SURFACE_2D;
-            pValue = surfaces;
+            m_args[index].unitKind = ARG_KIND_SURFACE_2D;
+            value = surfaces;
             size = (size / sizeof(SurfaceIndex)) * sizeof(uint32_t);
-            m_Args[index].unitSize = (uint16_t)size;
+            m_args[index].unitSize = (uint16_t)size;
             goto finish;
         }
-        CmSurface* pSurface = nullptr;
-        m_pSurfaceMgr->GetSurface(surfIndex, pSurface);
-        if (nullptr == pSurface)
+        CmSurface* surface = nullptr;
+        m_surfaceMgr->GetSurface(surfIndexData, surface);
+        if (nullptr == surface)
         {
             CM_ASSERTMESSAGE("Error: Invalid surface.");
             return CM_FAILURE;
         }
 
-        if (SurfTypeToArgKind(pSurface->Type()) != m_Args[index].unitKind)
+        if (SurfTypeToArgKind(surface->Type()) != m_args[index].unitKind)
         {   // if surface type changes i.e 2D <-> 2DUP  Need to set bIsDrity as true
-            m_Args[index].bIsDirty = true;
-            m_Dirty |= CM_KERNEL_DATA_KERNEL_ARG_DIRTY;
+            m_args[index].isDirty = true;
+            m_dirty |= CM_KERNEL_DATA_KERNEL_ARG_DIRTY;
         }
 
-        uint32_t CISA_majorVersion, CISA_minorVersion;
-        m_pProgram->GetCISAVersion(CISA_majorVersion, CISA_minorVersion);
+        uint32_t cisaMajorVersion, cisaMinorVersion;
+        m_program->GetCISAVersion(cisaMajorVersion, cisaMinorVersion);
 
         //This path is for surface array, including 1D, 2D, 3D,samplersurface, samplersurface8x8
-        if ((num_surfaces > 1) && (pSurface->Type() != CM_ENUM_CLASS_TYPE_CMSURFACEVME))
+        if ((numSurfaces > 1) && (surface->Type() != CM_ENUM_CLASS_TYPE_CMSURFACEVME))
         {
-            int32_t hr = SetArgsInternalSurfArray(i,index, num_surfaces, pSurface, surfIndex, pSurfIndex,surfaces, surfIndexArray);
+            int32_t hr = SetArgsInternalSurfArray(i,index, numSurfaces, surface, surfIndexData, surfIndex,surfaces, surfIndexArray);
             if (hr != CM_SUCCESS)
             {
                 CM_ASSERTMESSAGE("Error: SetArgsInternal for surface array failed!\n");
                 return CM_INVALID_ARG_VALUE;
             }
-            pValue = surfaces;
-            pSurfIndexValue = surfIndexArray;
+            value = surfaces;
+            surfIndexValue = surfIndexArray;
             size = (size / sizeof(SurfaceIndex)) * sizeof(uint32_t);
-            m_Args[index].unitSize = (uint16_t)size;
+            m_args[index].unitSize = (uint16_t)size;
         }
         else
         {   //This is for single surface and surface array for VME surface
-            switch (pSurface->Type())
+            switch (surface->Type())
             {
                  case CM_ENUM_CLASS_TYPE_CMSURFACE2D:
                  {
-                     CmSurface2DRT* pSurf2D = static_cast<CmSurface2DRT*>(pSurface);
+                     CmSurface2DRT* surf2D = static_cast<CmSurface2DRT*>(surface);
 
                      uint32_t numAliases = 0;
-                     pSurf2D->GetNumAliases(numAliases);
+                     surf2D->GetNumAliases(numAliases);
                      if (numAliases)
                      {
-                         m_Args[index].bAliasCreated = true;
+                         m_args[index].aliasCreated = true;
                      }
                      else
                      {
-                         m_Args[index].bAliasCreated = false;
+                         m_args[index].aliasCreated = false;
                      }
 
                      //set memory object control
-                     pSurf2D->GetIndexFor2D(surfRegTableIndex);
+                     surf2D->GetIndexFor2D(surfRegTableIndex);
 
                      surfaces[i] = surfRegTableIndex;
-                     surfIndexArray[i] = (uint16_t)surfIndex;
+                     surfIndexArray[i] = (uint16_t)surfIndexData;
 
-                     pValue = surfaces;
-                     pSurfIndexValue = surfIndexArray;
+                     value = surfaces;
+                     surfIndexValue = surfIndexArray;
 
                      size = (size / sizeof(SurfaceIndex)) * sizeof(uint32_t);
-                     m_Args[index].unitSize = (uint16_t)size;
+                     m_args[index].unitSize = (uint16_t)size;
 
-                     if ((m_Args[index].unitKind == ARG_KIND_SURFACE) || (m_Args[index].unitKind == ARG_KIND_SURFACE_2D_UP)) // first time or last time is set to 2DUP
+                     if ((m_args[index].unitKind == ARG_KIND_SURFACE) || (m_args[index].unitKind == ARG_KIND_SURFACE_2D_UP)) // first time or last time is set to 2DUP
                      {
-                         m_Args[index].unitKind = ARG_KIND_SURFACE_2D;
-                         if (m_Args[index].s_k == SAMPLER_SURF)
-                             m_Args[index].unitKind = ARG_KIND_SURFACE_SAMPLER;
+                         m_args[index].unitKind = ARG_KIND_SURFACE_2D;
+                         if (m_args[index].surfaceKind == SAMPLER_SURF)
+                             m_args[index].unitKind = ARG_KIND_SURFACE_SAMPLER;
                      }
-                     else if (m_Args[index].unitKind != ARG_KIND_SURFACE_2D &&
-                         m_Args[index].unitKind != ARG_KIND_SURFACE_SAMPLER &&
-                         m_Args[index].unitKind != ARG_KIND_SURFACE2DUP_SAMPLER &&
-                         m_Args[index].unitKind != ARG_KIND_SURFACE_2D_SCOREBOARD)
+                     else if (m_args[index].unitKind != ARG_KIND_SURFACE_2D &&
+                         m_args[index].unitKind != ARG_KIND_SURFACE_SAMPLER &&
+                         m_args[index].unitKind != ARG_KIND_SURFACE2DUP_SAMPLER &&
+                         m_args[index].unitKind != ARG_KIND_SURFACE_2D_SCOREBOARD)
                      {
                          CM_ASSERTMESSAGE("Error: Assign a 2D surface to the arg which is previously assigned 1D surface, 3D surface, or VME surface.");
                          return CM_INVALID_ARG_VALUE;
@@ -1612,36 +1612,36 @@ int32_t CmKernelRT::SetArgsInternal( CM_KERNEL_INTERNAL_ARG_TYPE nArgType, uint3
                  }
                  case CM_ENUM_CLASS_TYPE_CMBUFFER_RT:
                  {
-                     CmBuffer_RT* pSurf1D = static_cast<CmBuffer_RT*>(pSurface);
+                     CmBuffer_RT* surf1D = static_cast<CmBuffer_RT*>(surface);
 
                      uint32_t numAliases = 0;
-                     pSurf1D->GetNumAliases(numAliases);
+                     surf1D->GetNumAliases(numAliases);
                      if (numAliases)
                      {
-                         m_Args[index].bAliasCreated = true;
+                         m_args[index].aliasCreated = true;
                      }
                      else
                      {
-                         m_Args[index].bAliasCreated = false;
+                         m_args[index].aliasCreated = false;
                      }
 
                      //set memory object control
-                     pSurf1D->GetHandle(handle);
+                     surf1D->GetHandle(handle);
 
                      surfaces[i] = handle;
-                     surfIndexArray[i] = (uint16_t)surfIndex;
+                     surfIndexArray[i] = (uint16_t)surfIndexData;
 
-                     pValue = surfaces;
-                     pSurfIndexValue = surfIndexArray;
+                     value = surfaces;
+                     surfIndexValue = surfIndexArray;
 
                      size = (size / sizeof(SurfaceIndex)) * sizeof(uint32_t);
-                     m_Args[index].unitSize = (uint16_t)size;
+                     m_args[index].unitSize = (uint16_t)size;
 
-                     if (m_Args[index].unitKind == ARG_KIND_SURFACE)
+                     if (m_args[index].unitKind == ARG_KIND_SURFACE)
                      {
-                         m_Args[index].unitKind = ARG_KIND_SURFACE_1D;
+                         m_args[index].unitKind = ARG_KIND_SURFACE_1D;
                      }
-                     else if (m_Args[index].unitKind != ARG_KIND_SURFACE_1D)
+                     else if (m_args[index].unitKind != ARG_KIND_SURFACE_1D)
                      {
                          CM_ASSERTMESSAGE("Error: Assign a 1D surface to the arg which is previously assigned 2D surface, 3D surface, or VME surface.");
                          return CM_INVALID_ARG_VALUE;
@@ -1650,25 +1650,25 @@ int32_t CmKernelRT::SetArgsInternal( CM_KERNEL_INTERNAL_ARG_TYPE nArgType, uint3
                  }
                  case CM_ENUM_CLASS_TYPE_CMSURFACE2DUP:
                  {
-                     CmSurface2DUPRT* pSurf2DUP = static_cast<CmSurface2DUPRT*>(pSurface);
+                     CmSurface2DUPRT* surf2DUP = static_cast<CmSurface2DUPRT*>(surface);
 
                      //set memory object
-                     pSurf2DUP->GetHandle(handle);
+                     surf2DUP->GetHandle(handle);
 
                      surfaces[i] = handle;
-                     surfIndexArray[i] = (uint16_t)surfIndex;
+                     surfIndexArray[i] = (uint16_t)surfIndexData;
 
-                     pValue = surfaces;
-                     pSurfIndexValue = surfIndexArray;
+                     value = surfaces;
+                     surfIndexValue = surfIndexArray;
 
                      size = (size / sizeof(SurfaceIndex)) * sizeof(uint32_t);
-                     m_Args[index].unitSize = (uint16_t)size;
+                     m_args[index].unitSize = (uint16_t)size;
 
-                     if ((m_Args[index].unitKind == ARG_KIND_SURFACE) || (m_Args[index].unitKind == ARG_KIND_SURFACE_2D)) // first time or last time is set to 2D
+                     if ((m_args[index].unitKind == ARG_KIND_SURFACE) || (m_args[index].unitKind == ARG_KIND_SURFACE_2D)) // first time or last time is set to 2D
                      {
-                         m_Args[index].unitKind = ARG_KIND_SURFACE_2D_UP;
+                         m_args[index].unitKind = ARG_KIND_SURFACE_2D_UP;
                      }
-                     else if (m_Args[index].unitKind != ARG_KIND_SURFACE_2D_UP)
+                     else if (m_args[index].unitKind != ARG_KIND_SURFACE_2D_UP)
                      {
                          CM_ASSERTMESSAGE("Error: Assign a 2D surface UP to the arg which is previously assigned other surfaces.");
                          return CM_INVALID_ARG_VALUE;
@@ -1678,24 +1678,24 @@ int32_t CmKernelRT::SetArgsInternal( CM_KERNEL_INTERNAL_ARG_TYPE nArgType, uint3
                  }
                  case CM_ENUM_CLASS_TYPE_CMSURFACE3D:
                  {
-                     CmSurface3DRT* pSurf3D = static_cast<CmSurface3DRT*>(pSurface);
+                     CmSurface3DRT* surf3D = static_cast<CmSurface3DRT*>(surface);
 
-                     pSurf3D->GetHandle(handle);
+                     surf3D->GetHandle(handle);
 
                      surfaces[i] = handle;
-                     surfIndexArray[i] = (uint16_t)surfIndex;
+                     surfIndexArray[i] = (uint16_t)surfIndexData;
 
-                     pValue = surfaces;
-                     pSurfIndexValue = surfIndexArray;
+                     value = surfaces;
+                     surfIndexValue = surfIndexArray;
 
                      size = (size / sizeof(SurfaceIndex)) * sizeof(uint32_t);
-                     m_Args[index].unitSize = (uint16_t)size;
+                     m_args[index].unitSize = (uint16_t)size;
 
-                     if (m_Args[index].unitKind == ARG_KIND_SURFACE) // first time
+                     if (m_args[index].unitKind == ARG_KIND_SURFACE) // first time
                      {
-                         m_Args[index].unitKind = ARG_KIND_SURFACE_3D;
+                         m_args[index].unitKind = ARG_KIND_SURFACE_3D;
                      }
-                     else if (m_Args[index].unitKind != ARG_KIND_SURFACE_3D)
+                     else if (m_args[index].unitKind != ARG_KIND_SURFACE_3D)
                      {
                          CM_ASSERTMESSAGE("Error: Assign a 3D surface to the arg which is previously assigned 1D surface, 2D surface or VME surface");
                          return CM_INVALID_ARG_VALUE;
@@ -1705,23 +1705,23 @@ int32_t CmKernelRT::SetArgsInternal( CM_KERNEL_INTERNAL_ARG_TYPE nArgType, uint3
 
                  case CM_ENUM_CLASS_TYPE_CM_STATE_BUFFER:
                  {
-                     CmStateBuffer* pStateBuffer = static_cast< CmStateBuffer* >( pSurface );
-                     pStateBuffer->GetHandle( handle );
+                     CmStateBuffer* stateBuffer = static_cast< CmStateBuffer* >( surface );
+                     stateBuffer->GetHandle( handle );
 
                      surfaces[ i ] = handle;
-                     surfIndexArray[ i ] = ( uint16_t )surfIndex;
+                     surfIndexArray[ i ] = ( uint16_t )surfIndexData;
 
-                     pValue = surfaces;
-                     pSurfIndexValue = surfIndexArray;
+                     value = surfaces;
+                     surfIndexValue = surfIndexArray;
 
                      size = ( size / sizeof( SurfaceIndex ) ) * sizeof( uint32_t );
-                     m_Args[ index ].unitSize = ( uint16_t )size;
+                     m_args[ index ].unitSize = ( uint16_t )size;
 
-                     if ( m_Args[ index ].unitKind == ARG_KIND_SURFACE ) // first time
+                     if ( m_args[ index ].unitKind == ARG_KIND_SURFACE ) // first time
                      {
-                         m_Args[ index ].unitKind = ARG_KIND_STATE_BUFFER;
+                         m_args[ index ].unitKind = ARG_KIND_STATE_BUFFER;
                      }
-                     else if ( m_Args[ index ].unitKind != ARG_KIND_STATE_BUFFER )
+                     else if ( m_args[ index ].unitKind != ARG_KIND_STATE_BUFFER )
                      {
                          CM_ASSERTMESSAGE( "Error: Assign a state buffer to the arg which is previously assigned 1D surface, 2D surface, 3D surface or VME surface" );
                          return CM_INVALID_ARG_VALUE;
@@ -1731,41 +1731,41 @@ int32_t CmKernelRT::SetArgsInternal( CM_KERNEL_INTERNAL_ARG_TYPE nArgType, uint3
 
                  case CM_ENUM_CLASS_TYPE_CMSURFACEVME:
                  {
-                     return SetArgsVme(nArgType, index, pValue, nThreadID);
+                     return SetArgsVme(nArgType, index, value, nThreadID);
                  }
                  case CM_ENUM_CLASS_TYPE_CMSURFACESAMPLER8X8:
                  {
-                     CmSurfaceSampler8x8* pSurfSampler8x8 = static_cast <CmSurfaceSampler8x8 *> (pSurface);
-                     pSurfSampler8x8->GetIndexCurrent(samplerIndex);
-                     pSurfSampler8x8->GetCmIndex(samplerCmIndex);
+                     CmSurfaceSampler8x8* surfSampler8x8 = static_cast <CmSurfaceSampler8x8 *> (surface);
+                     surfSampler8x8->GetIndexCurrent(samplerIndex);
+                     surfSampler8x8->GetCmIndex(samplerCmIndex);
 
-                     m_pSurfaceMgr->GetSurface(samplerCmIndex, pSurface);
-                     if (!pSurface)
+                     m_surfaceMgr->GetSurface(samplerCmIndex, surface);
+                     if (!surface)
                      {
                          CM_ASSERTMESSAGE("Error: Invalid sampler8x8 surface.");
                          return CM_FAILURE;
                      }
 
                      size = (size / sizeof(SurfaceIndex)) * sizeof(uint32_t);
-                     m_Args[index].unitSize = (uint16_t)size;
+                     m_args[index].unitSize = (uint16_t)size;
 
-                     pValue = &samplerIndex;
-                     pSurfIndexValue = &samplerCmIndex;
+                     value = &samplerIndex;
+                     surfIndexValue = &samplerCmIndex;
 
-                     if (m_Args[index].unitKind == ARG_KIND_SURFACE)
+                     if (m_args[index].unitKind == ARG_KIND_SURFACE)
                      {
-                         if (pSurfSampler8x8->GetSampler8x8SurfaceType() == CM_VA_SURFACE)
+                         if (surfSampler8x8->GetSampler8x8SurfaceType() == CM_VA_SURFACE)
                          {
-                             m_Args[index].unitKind = ARG_KIND_SURFACE_SAMPLER8X8_VA;
-                             m_Args[index].nCustomValue = pSurfSampler8x8->GetAddressControlMode();
+                             m_args[index].unitKind = ARG_KIND_SURFACE_SAMPLER8X8_VA;
+                             m_args[index].nCustomValue = surfSampler8x8->GetAddressControlMode();
                          }
                          else
                          {
-                             m_Args[index].unitKind = ARG_KIND_SURFACE_SAMPLER8X8_AVS;
+                             m_args[index].unitKind = ARG_KIND_SURFACE_SAMPLER8X8_AVS;
                          }
                      }
-                     else if (m_Args[index].unitKind != ARG_KIND_SURFACE_SAMPLER8X8_AVS &&
-                         m_Args[index].unitKind != ARG_KIND_SURFACE_SAMPLER8X8_VA)
+                     else if (m_args[index].unitKind != ARG_KIND_SURFACE_SAMPLER8X8_AVS &&
+                         m_args[index].unitKind != ARG_KIND_SURFACE_SAMPLER8X8_VA)
                      {
                          CM_ASSERTMESSAGE("Error: Assign a Sampler8x8 surface to the arg which is previously 2D surface.");
                          return CM_FAILURE;
@@ -1774,44 +1774,44 @@ int32_t CmKernelRT::SetArgsInternal( CM_KERNEL_INTERNAL_ARG_TYPE nArgType, uint3
                  }
                  case CM_ENUM_CLASS_TYPE_CMSURFACESAMPLER:
                  {
-                     CmSurfaceSampler* pSurfSampler = static_cast <CmSurfaceSampler *> (pSurface);
-                     pSurfSampler->GetHandle(samplerIndex);
-                     pSurfSampler->GetCmIndexCurrent(samplerCmIndex);
+                     CmSurfaceSampler* surfSampler = static_cast <CmSurfaceSampler *> (surface);
+                     surfSampler->GetHandle(samplerIndex);
+                     surfSampler->GetCmIndexCurrent(samplerCmIndex);
 
-                     m_pSurfaceMgr->GetSurface(samplerCmIndex, pSurface);
-                     if (!pSurface)
+                     m_surfaceMgr->GetSurface(samplerCmIndex, surface);
+                     if (!surface)
                      {
                          CM_ASSERTMESSAGE("Error: Invalid sampler surface.");
                          return CM_FAILURE;
                      }
 
                      size = (size / sizeof(SurfaceIndex)) * sizeof(uint32_t);
-                     m_Args[index].unitSize = (uint16_t)size;
+                     m_args[index].unitSize = (uint16_t)size;
 
-                     pValue = &samplerIndex;
-                     pSurfIndexValue = &samplerCmIndex;
+                     value = &samplerIndex;
+                     surfIndexValue = &samplerCmIndex;
 
-                     if (m_Args[index].unitKind == ARG_KIND_SURFACE)
+                     if (m_args[index].unitKind == ARG_KIND_SURFACE)
                      {   // first time
                          SAMPLER_SURFACE_TYPE type;
-                         pSurfSampler->GetSurfaceType(type);
+                         surfSampler->GetSurfaceType(type);
                          if (type == SAMPLER_SURFACE_TYPE_2D)
                          {
-                             m_Args[index].unitKind = ARG_KIND_SURFACE_SAMPLER;
+                             m_args[index].unitKind = ARG_KIND_SURFACE_SAMPLER;
                          }
                          else if (type == SAMPLER_SURFACE_TYPE_2DUP)
                          {
-                             m_Args[index].unitKind = ARG_KIND_SURFACE2DUP_SAMPLER;
+                             m_args[index].unitKind = ARG_KIND_SURFACE2DUP_SAMPLER;
                          }
                          else
                          {
-                             m_Args[index].unitKind = ARG_KIND_SURFACE_3D;
+                             m_args[index].unitKind = ARG_KIND_SURFACE_3D;
                          }
 
                      }
-                     else if ((m_Args[index].unitKind != ARG_KIND_SURFACE_SAMPLER) &&
-                         m_Args[index].unitKind != ARG_KIND_SURFACE2DUP_SAMPLER &&
-                         (m_Args[index].unitKind != ARG_KIND_SURFACE_3D))
+                     else if ((m_args[index].unitKind != ARG_KIND_SURFACE_SAMPLER) &&
+                         m_args[index].unitKind != ARG_KIND_SURFACE2DUP_SAMPLER &&
+                         (m_args[index].unitKind != ARG_KIND_SURFACE_3D))
                      {
                          CM_ASSERTMESSAGE("Error: Assign a Sampler surface to the arg which is previously 2D/3D surface.");
                          return CM_FAILURE;
@@ -1826,51 +1826,51 @@ int32_t CmKernelRT::SetArgsInternal( CM_KERNEL_INTERNAL_ARG_TYPE nArgType, uint3
             }
         }
     }
-    else if (m_Args[index].unitKind == ARG_KIND_SAMPLER)
+    else if (m_args[index].unitKind == ARG_KIND_SAMPLER)
     {
-        unsigned int num_samplers = m_Args[index].unitSize / sizeof(int);
+        unsigned int numSamplers = m_args[index].unitSize / sizeof(int);
 
-        if (num_samplers > 1)
+        if (numSamplers > 1)
         {
-            size = num_samplers * sizeof(unsigned int);
+            size = numSamplers * sizeof(unsigned int);
 
-            for (unsigned int i = 0; i < num_samplers; i++)
+            for (unsigned int i = 0; i < numSamplers; i++)
             {
-                SamplerIndex* pSamplerIndex = (SamplerIndex*)pValue + i;
-                samplerIdx = pSamplerIndex->get_data();
+                SamplerIndex* samplerIndex = (SamplerIndex*)value + i;
+                samplerIdx = samplerIndex->get_data();
                 sampler_index_array.push_back(samplerIdx);
             }
         }
         else
         {
-            SamplerIndex* pSamplerIndex = (SamplerIndex*)pValue;
-            samplerIdx = pSamplerIndex->get_data();
+            SamplerIndex* samplerIndex = (SamplerIndex*)value;
+            samplerIdx = ((SamplerIndex*)value)->get_data();
             size = sizeof(unsigned int);
-            m_Args[index].unitSize = (uint16_t)size;
-            pValue = &samplerIdx;
+            m_args[index].unitSize = (uint16_t)size;
+            value = &samplerIdx;
         }
     }
 
 finish:
     if ( nArgType == CM_KERNEL_INTERNEL_ARG_PERKERNEL ) // per kernel arg
     {
-        CM_ARG& arg = m_Args[ index ];
+        CM_ARG& arg = m_args[ index ];
 
         // Assume from now on, size is valid, i.e. confirmed with function signature
-        if( !arg.pValue )
+        if( !arg.value )
         {
             //Increment size kernel arguments will take up in CURBE
-            uint32_t tempUnitSize = m_Args[ index ].unitSize;
-            if( (m_Args[index].unitKind == ARG_KIND_SURFACE_VME ) ||
-                (m_Args[index].unitKind == ARG_KIND_SURFACE_SAMPLER ) ||
-                (m_Args[index].unitKind == ARG_KIND_SURFACE2DUP_SAMPLER ))
+            uint32_t tempUnitSize = m_args[ index ].unitSize;
+            if( (m_args[index].unitKind == ARG_KIND_SURFACE_VME ) ||
+                (m_args[index].unitKind == ARG_KIND_SURFACE_SAMPLER ) ||
+                (m_args[index].unitKind == ARG_KIND_SURFACE2DUP_SAMPLER ))
             {
                 tempUnitSize = CM_ARGUMENT_SURFACE_SIZE;
             }
 
             // first setKernelArg or first setKernelArg after each enqueue
-            arg.pValue = MOS_NewArray(uint8_t,size);
-            if( !arg.pValue )
+            arg.value = MOS_NewArray(uint8_t,size);
+            if( !arg.value )
             {
                 CM_ASSERTMESSAGE("Error: Out of system memory.");
                 return CM_OUT_OF_HOST_MEMORY;
@@ -1878,47 +1878,47 @@ finish:
 
             arg.unitCount = 1;
 
-            CmFastMemCopy((void *)arg.pValue, pValue, size);
+            CmFastMemCopy((void *)arg.value, value, size);
 
-            if((( m_Args[ index ].unitKind == ARG_KIND_SURFACE ) || // first time
-                 ( m_Args[ index ].unitKind == ARG_KIND_SURFACE_1D ) ||
-                 ( m_Args[ index ].unitKind == ARG_KIND_SURFACE_2D ) ||
-                 ( m_Args[ index ].unitKind == ARG_KIND_SURFACE_2D_UP ) ||
-                 ( m_Args[ index ].unitKind == ARG_KIND_SURFACE_SAMPLER ) ||
-                 ( m_Args[ index ].unitKind == ARG_KIND_SURFACE2DUP_SAMPLER ) ||
-                 ( m_Args[ index ].unitKind == ARG_KIND_SURFACE_3D ) ||
-                 ( m_Args[ index ].unitKind == ARG_KIND_SURFACE_VME ) ||
-                 ( m_Args[ index ].unitKind == ARG_KIND_SURFACE_SAMPLER8X8_AVS) ||
-                 ( m_Args[ index ].unitKind == ARG_KIND_SURFACE_SAMPLER8X8_VA) ||
-                 ( m_Args[ index ].unitKind == ARG_KIND_SURFACE_2D_SCOREBOARD) ||
-                 ( m_Args[ index ].unitKind == ARG_KIND_STATE_BUFFER ) ) && pSurfIndexValue )
+            if((( m_args[ index ].unitKind == ARG_KIND_SURFACE ) || // first time
+                 ( m_args[ index ].unitKind == ARG_KIND_SURFACE_1D ) ||
+                 ( m_args[ index ].unitKind == ARG_KIND_SURFACE_2D ) ||
+                 ( m_args[ index ].unitKind == ARG_KIND_SURFACE_2D_UP ) ||
+                 ( m_args[ index ].unitKind == ARG_KIND_SURFACE_SAMPLER ) ||
+                 ( m_args[ index ].unitKind == ARG_KIND_SURFACE2DUP_SAMPLER ) ||
+                 ( m_args[ index ].unitKind == ARG_KIND_SURFACE_3D ) ||
+                 ( m_args[ index ].unitKind == ARG_KIND_SURFACE_VME ) ||
+                 ( m_args[ index ].unitKind == ARG_KIND_SURFACE_SAMPLER8X8_AVS) ||
+                 ( m_args[ index ].unitKind == ARG_KIND_SURFACE_SAMPLER8X8_VA) ||
+                 ( m_args[ index ].unitKind == ARG_KIND_SURFACE_2D_SCOREBOARD) ||
+                 ( m_args[ index ].unitKind == ARG_KIND_STATE_BUFFER ) ) && surfIndexValue )
             {
                 arg.surfIndex = MOS_NewArray(uint16_t, (size / sizeof(int32_t)));
                 if (!arg.surfIndex)
                 {
                     CM_ASSERTMESSAGE("Error: Out of system memory.");
-                    MosSafeDeleteArray(arg.pValue);
+                    MosSafeDeleteArray(arg.value);
                     return CM_OUT_OF_HOST_MEMORY;
                 }
                 CmSafeMemSet((void *)arg.surfIndex, 0, size/sizeof(int32_t) * sizeof(uint16_t));
-                if( pSurfIndexValue == nullptr )
+                if( surfIndexValue == nullptr )
                 {
                     CM_ASSERTMESSAGE("Error: Pointer to surface index value is null.");
                     return CM_NULL_POINTER;
                 }
-                CmFastMemCopy((void *)arg.surfIndex, pSurfIndexValue, size / sizeof(int32_t) * sizeof(uint16_t));
+                CmFastMemCopy((void *)arg.surfIndex, surfIndexValue, size / sizeof(int32_t) * sizeof(uint16_t));
             }
 
-            if (m_Args[index].unitKind == ARG_KIND_SAMPLER)
+            if (m_args[index].unitKind == ARG_KIND_SAMPLER)
             {
-                for (unsigned int sampler_index = 0; sampler_index < sampler_index_array.size(); sampler_index++)
+                for (unsigned int samplerIndex = 0; samplerIndex < sampler_index_array.size(); samplerIndex++)
                 {
-                    *( (int *)arg.pValue + sampler_index) = sampler_index_array[sampler_index];
+                    *( (int *)arg.value + samplerIndex) = sampler_index_array[samplerIndex];
                 }
             }
 
-            m_Dirty |= CM_KERNEL_DATA_KERNEL_ARG_DIRTY;
-            arg.bIsDirty = true;
+            m_dirty |= CM_KERNEL_DATA_KERNEL_ARG_DIRTY;
+            arg.isDirty = true;
         }
         else
         {
@@ -1927,143 +1927,143 @@ finish:
                 CM_ASSERTMESSAGE("Error: Invalid arg count.");
                 return CM_FAILURE;
             }
-            if( memcmp( (void *)arg.pValue, pValue, size ) != 0 )
+            if( memcmp( (void *)arg.value, value, size ) != 0 )
             {
-                CmFastMemCopy((void *)arg.pValue, pValue, size);
-                m_Dirty |= CM_KERNEL_DATA_KERNEL_ARG_DIRTY;
-                arg.bIsDirty = true;
+                CmFastMemCopy((void *)arg.value, value, size);
+                m_dirty |= CM_KERNEL_DATA_KERNEL_ARG_DIRTY;
+                arg.isDirty = true;
             }
-            if((( m_Args[ index ].unitKind == ARG_KIND_SURFACE ) || // first time
-             ( m_Args[ index ].unitKind == ARG_KIND_SURFACE_1D ) ||
-             ( m_Args[ index ].unitKind == ARG_KIND_SURFACE_2D ) ||
-             ( m_Args[ index ].unitKind == ARG_KIND_SURFACE_2D_UP ) ||
-             ( m_Args[ index ].unitKind == ARG_KIND_SURFACE_SAMPLER ) ||
-             ( m_Args[ index ].unitKind == ARG_KIND_SURFACE2DUP_SAMPLER ) ||
-             ( m_Args[ index ].unitKind == ARG_KIND_SURFACE_3D ) ||
-             ( m_Args[ index ].unitKind == ARG_KIND_SURFACE_VME ) ||
-             ( m_Args[ index ].unitKind == ARG_KIND_SURFACE_SAMPLER8X8_AVS) ||
-             ( m_Args[ index ].unitKind == ARG_KIND_SURFACE_SAMPLER8X8_VA) ||
-             ( m_Args[ index ].unitKind == ARG_KIND_SURFACE_2D_SCOREBOARD) ||
-             ( m_Args[ index ].unitKind == ARG_KIND_STATE_BUFFER ) ) && pSurfIndexValue )
+            if((( m_args[ index ].unitKind == ARG_KIND_SURFACE ) || // first time
+             ( m_args[ index ].unitKind == ARG_KIND_SURFACE_1D ) ||
+             ( m_args[ index ].unitKind == ARG_KIND_SURFACE_2D ) ||
+             ( m_args[ index ].unitKind == ARG_KIND_SURFACE_2D_UP ) ||
+             ( m_args[ index ].unitKind == ARG_KIND_SURFACE_SAMPLER ) ||
+             ( m_args[ index ].unitKind == ARG_KIND_SURFACE2DUP_SAMPLER ) ||
+             ( m_args[ index ].unitKind == ARG_KIND_SURFACE_3D ) ||
+             ( m_args[ index ].unitKind == ARG_KIND_SURFACE_VME ) ||
+             ( m_args[ index ].unitKind == ARG_KIND_SURFACE_SAMPLER8X8_AVS) ||
+             ( m_args[ index ].unitKind == ARG_KIND_SURFACE_SAMPLER8X8_VA) ||
+             ( m_args[ index ].unitKind == ARG_KIND_SURFACE_2D_SCOREBOARD) ||
+             ( m_args[ index ].unitKind == ARG_KIND_STATE_BUFFER ) ) && surfIndexValue )
             {
                 CmSafeMemSet((void *)arg.surfIndex, 0, size/sizeof(int32_t) * sizeof(uint16_t));
-                if( pSurfIndexValue == nullptr )
+                if( surfIndexValue == nullptr )
                 {
                     CM_ASSERTMESSAGE("Error: Pointer to surface index value is null.");
                     return CM_NULL_POINTER;
                 }
-                CmFastMemCopy((void *)arg.surfIndex, pSurfIndexValue, size/sizeof(int32_t) * sizeof(uint16_t));
+                CmFastMemCopy((void *)arg.surfIndex, surfIndexValue, size/sizeof(int32_t) * sizeof(uint16_t));
             }
 
-            if (m_Args[index].unitKind == ARG_KIND_SAMPLER)
+            if (m_args[index].unitKind == ARG_KIND_SAMPLER)
             {
-                for (unsigned int sampler_index = 0; sampler_index < sampler_index_array.size(); sampler_index++)
+                for (unsigned int samplerIndex = 0; samplerIndex < sampler_index_array.size(); samplerIndex++)
                 {
-                    *((int *)arg.pValue + sampler_index) = sampler_index_array[sampler_index];
+                    *((int *)arg.value + samplerIndex) = sampler_index_array[samplerIndex];
                 }
             }
         }
 
-        m_blPerKernelArgExists = true;
+        m_perKernelArgExists = true;
     }
     else //per thread arg
     {
-        CM_ARG& arg = m_Args[ index ];
+        CM_ARG& arg = m_args[ index ];
 
         // Assume from now on, size is valid, i.e. confirmed with function signature
-        if( !arg.pValue )
+        if( !arg.value )
         {
             //Increment size per-thread arguments will take up in payload of media object or media object walker commands
-            m_SizeInPayload += arg.unitSize;
-            DW_ALIGNMENT(m_SizeInPayload);
+            m_sizeInPayload += arg.unitSize;
+            DW_ALIGNMENT(m_sizeInPayload);
 
             // first setThreadArg or first setThreadArg after each enqueue
-            arg.pValue = MOS_NewArray(uint8_t, (size * m_ThreadCount));
-            if( !arg.pValue )
+            arg.value = MOS_NewArray(uint8_t, (size * m_threadCount));
+            if( !arg.value )
             {
                 CM_ASSERTMESSAGE("Error: Out of system memory.");
                 return CM_OUT_OF_HOST_MEMORY;
 
             }
-            arg.unitCount = m_ThreadCount;
+            arg.unitCount = m_threadCount;
 
             uint32_t offset = size * nThreadID;
-            uint8_t *pThreadValue = ( uint8_t *)arg.pValue;
-            pThreadValue += offset;
+            uint8_t *threadValue = ( uint8_t *)arg.value;
+            threadValue += offset;
 
-            CmFastMemCopy(pThreadValue, pValue, size);
-            if((( m_Args[ index ].unitKind == ARG_KIND_SURFACE ) || // first time
-                 ( m_Args[ index ].unitKind == ARG_KIND_SURFACE_1D ) ||
-                 ( m_Args[ index ].unitKind == ARG_KIND_SURFACE_2D ) ||
-                 ( m_Args[ index ].unitKind == ARG_KIND_SURFACE_2D_UP ) ||
-                 ( m_Args[ index ].unitKind == ARG_KIND_SURFACE_SAMPLER ) ||
-                 ( m_Args[ index ].unitKind == ARG_KIND_SURFACE2DUP_SAMPLER ) ||
-                 ( m_Args[ index ].unitKind == ARG_KIND_SURFACE_3D ) ||
-                 ( m_Args[ index ].unitKind == ARG_KIND_SURFACE_VME ) ||
-                 ( m_Args[ index ].unitKind == ARG_KIND_SURFACE_SAMPLER8X8_AVS) ||
-                 ( m_Args[ index ].unitKind == ARG_KIND_SURFACE_SAMPLER8X8_VA) ||
-                 ( m_Args[ index ].unitKind == ARG_KIND_SURFACE_2D_SCOREBOARD) ||
-                 ( m_Args[ index ].unitKind == ARG_KIND_STATE_BUFFER ) ) && pSurfIndexValue )
+            CmFastMemCopy(threadValue, value, size);
+            if((( m_args[ index ].unitKind == ARG_KIND_SURFACE ) || // first time
+                 ( m_args[ index ].unitKind == ARG_KIND_SURFACE_1D ) ||
+                 ( m_args[ index ].unitKind == ARG_KIND_SURFACE_2D ) ||
+                 ( m_args[ index ].unitKind == ARG_KIND_SURFACE_2D_UP ) ||
+                 ( m_args[ index ].unitKind == ARG_KIND_SURFACE_SAMPLER ) ||
+                 ( m_args[ index ].unitKind == ARG_KIND_SURFACE2DUP_SAMPLER ) ||
+                 ( m_args[ index ].unitKind == ARG_KIND_SURFACE_3D ) ||
+                 ( m_args[ index ].unitKind == ARG_KIND_SURFACE_VME ) ||
+                 ( m_args[ index ].unitKind == ARG_KIND_SURFACE_SAMPLER8X8_AVS) ||
+                 ( m_args[ index ].unitKind == ARG_KIND_SURFACE_SAMPLER8X8_VA) ||
+                 ( m_args[ index ].unitKind == ARG_KIND_SURFACE_2D_SCOREBOARD) ||
+                 ( m_args[ index ].unitKind == ARG_KIND_STATE_BUFFER ) ) && surfIndexValue )
             {
-                arg.surfIndex = MOS_NewArray(uint16_t, (size / sizeof(uint32_t) * m_ThreadCount));
+                arg.surfIndex = MOS_NewArray(uint16_t, (size / sizeof(uint32_t) * m_threadCount));
                 if( !arg.surfIndex )
                 {
                     CM_ASSERTMESSAGE("Error: Out of system memory.");
-                    MosSafeDeleteArray(arg.pValue);
+                    MosSafeDeleteArray(arg.value);
                     return CM_OUT_OF_HOST_MEMORY;
                 }
-                CmSafeMemSet((void *)arg.surfIndex, 0, size/sizeof(uint32_t) * sizeof(uint16_t) * m_ThreadCount);
-                if( pSurfIndexValue == nullptr )
+                CmSafeMemSet((void *)arg.surfIndex, 0, size/sizeof(uint32_t) * sizeof(uint16_t) * m_threadCount);
+                if( surfIndexValue == nullptr )
                 {
                     CM_ASSERTMESSAGE("Error: Pointer to surface index value is null.");
                     return CM_NULL_POINTER;
                 }
-                CmFastMemCopy((void *)(arg.surfIndex + size/sizeof(uint32_t)  * nThreadID), pSurfIndexValue, size/sizeof(uint32_t) * sizeof(uint16_t));
+                CmFastMemCopy((void *)(arg.surfIndex + size/sizeof(uint32_t)  * nThreadID), surfIndexValue, size/sizeof(uint32_t) * sizeof(uint16_t));
             }
-            m_blPerThreadArgExists = true;
+            m_perThreadArgExists = true;
         }
         else
         {
-            if( arg.unitCount != m_ThreadCount )
+            if( arg.unitCount != m_threadCount )
             {
-                CM_ASSERTMESSAGE("Error: Arg count is not matched with thread count.");
+                CM_ASSERTMESSAGE("Error: arg count is not matched with thread count.");
                 return CM_FAILURE;
 
             }
             uint32_t offset = size * nThreadID;
-            uint8_t *pThreadValue = ( uint8_t *)arg.pValue;
-            pThreadValue += offset;
+            uint8_t *threadValue = ( uint8_t *)arg.value;
+            threadValue += offset;
 
-            if( memcmp( pThreadValue, pValue, size ) != 0 )
+            if( memcmp( threadValue, value, size ) != 0 )
             {
-                CmFastMemCopy(pThreadValue, pValue, size);
-                m_Dirty |= CM_KERNEL_DATA_THREAD_ARG_DIRTY;
-                arg.bIsDirty = true;
+                CmFastMemCopy(threadValue, value, size);
+                m_dirty |= CM_KERNEL_DATA_THREAD_ARG_DIRTY;
+                arg.isDirty = true;
             }
-            if((( m_Args[ index ].unitKind == ARG_KIND_SURFACE ) || // first time
-                 ( m_Args[ index ].unitKind == ARG_KIND_SURFACE_1D ) ||
-                 ( m_Args[ index ].unitKind == ARG_KIND_SURFACE_2D ) ||
-                 ( m_Args[ index ].unitKind == ARG_KIND_SURFACE_2D_UP ) ||
-                 ( m_Args[ index ].unitKind == ARG_KIND_SURFACE_SAMPLER ) ||
-                 ( m_Args[ index ].unitKind == ARG_KIND_SURFACE2DUP_SAMPLER ) ||
-                 ( m_Args[ index ].unitKind == ARG_KIND_SURFACE_3D ) ||
-                 ( m_Args[ index ].unitKind == ARG_KIND_SURFACE_VME ) ||
-                 ( m_Args[ index ].unitKind == ARG_KIND_SURFACE_SAMPLER8X8_AVS) ||
-                 ( m_Args[ index ].unitKind == ARG_KIND_SURFACE_SAMPLER8X8_VA) ||
-                 ( m_Args[ index ].unitKind == ARG_KIND_SURFACE_2D_SCOREBOARD) ||
-                 ( m_Args[ index ].unitKind == ARG_KIND_STATE_BUFFER ) ) && pSurfIndexValue )
+            if((( m_args[ index ].unitKind == ARG_KIND_SURFACE ) || // first time
+                 ( m_args[ index ].unitKind == ARG_KIND_SURFACE_1D ) ||
+                 ( m_args[ index ].unitKind == ARG_KIND_SURFACE_2D ) ||
+                 ( m_args[ index ].unitKind == ARG_KIND_SURFACE_2D_UP ) ||
+                 ( m_args[ index ].unitKind == ARG_KIND_SURFACE_SAMPLER ) ||
+                 ( m_args[ index ].unitKind == ARG_KIND_SURFACE2DUP_SAMPLER ) ||
+                 ( m_args[ index ].unitKind == ARG_KIND_SURFACE_3D ) ||
+                 ( m_args[ index ].unitKind == ARG_KIND_SURFACE_VME ) ||
+                 ( m_args[ index ].unitKind == ARG_KIND_SURFACE_SAMPLER8X8_AVS) ||
+                 ( m_args[ index ].unitKind == ARG_KIND_SURFACE_SAMPLER8X8_VA) ||
+                 ( m_args[ index ].unitKind == ARG_KIND_SURFACE_2D_SCOREBOARD) ||
+                 ( m_args[ index ].unitKind == ARG_KIND_STATE_BUFFER ) ) && surfIndexValue )
             {
-                if( pSurfIndexValue == nullptr )
+                if( surfIndexValue == nullptr )
                 {
                     CM_ASSERTMESSAGE("Error: Pointer to surface index value is null.");
                     return CM_NULL_POINTER;
                 }
-                CmFastMemCopy((void *)(arg.surfIndex + size/sizeof(uint32_t)  * nThreadID), pSurfIndexValue, size/sizeof(uint32_t) * sizeof(uint16_t));
+                CmFastMemCopy((void *)(arg.surfIndex + size/sizeof(uint32_t)  * nThreadID), surfIndexValue, size/sizeof(uint32_t) * sizeof(uint16_t));
             }
         }
     }
 
-    m_Args[index].bIsSet = true;
+    m_args[index].isSet = true;
 
     return CM_SUCCESS;
 }
@@ -2082,26 +2082,26 @@ finish:
 //!     CM_SUCCESS or
 //!     CM_INVALID_ARG_INDEX if index is invalid;
 //!     CM_INVALID_ARG_SIZE if size is invalid;
-//!     CM_INVALID_ARG_VALUE if pValue is NULL.
+//!     CM_INVALID_ARG_VALUE if value is NULL.
 //*-----------------------------------------------------------------------------
-CM_RT_API int32_t CmKernelRT::SetKernelArg(uint32_t index, size_t size, const void * pValue )
+CM_RT_API int32_t CmKernelRT::SetKernelArg(uint32_t index, size_t size, const void * value )
 {
     INSERT_API_CALL_LOG();
     //It should be mutual exclusive with Indirect Data
-    if(m_pKernelPayloadData)
+    if(m_kernelPayloadData)
     {
         CM_ASSERTMESSAGE("Error: SetKernelArg should be mutual exclusive with indirect data.");
         return CM_KERNELPAYLOAD_PERKERNELARG_MUTEX_FAIL;
     }
 
-    if( index >= m_ArgCount )
+    if( index >= m_argCount )
     {
         CM_ASSERTMESSAGE("Error: Invalid kernel arg count.");
         return CM_INVALID_ARG_INDEX;
 
     }
 
-    if( !pValue)
+    if( !value)
     {
         CM_ASSERTMESSAGE("Error: Invalid kernel arg value.");
         return CM_INVALID_ARG_VALUE;
@@ -2114,7 +2114,7 @@ CM_RT_API int32_t CmKernelRT::SetKernelArg(uint32_t index, size_t size, const vo
     }
 
     int32_t nRetVal = 0;
-    if ( ( nRetVal = SetArgsInternal( CM_KERNEL_INTERNEL_ARG_PERKERNEL, index, size, pValue ) ) != CM_SUCCESS )
+    if ( ( nRetVal = SetArgsInternal( CM_KERNEL_INTERNEL_ARG_PERKERNEL, index, size, value ) ) != CM_SUCCESS )
     {
         return nRetVal;
     }
@@ -2126,7 +2126,7 @@ CM_RT_API int32_t CmKernelRT::SetKernelArg(uint32_t index, size_t size, const vo
 //| Purpose:   Set Static Buffer
 //| Return :   The result of operation
 //*-----------------------------------------------------------------------------
-CM_RT_API int32_t CmKernelRT::SetStaticBuffer(uint32_t index, const void * pValue )
+CM_RT_API int32_t CmKernelRT::SetStaticBuffer(uint32_t index, const void * value )
 {
     INSERT_API_CALL_LOG();
     if(index >= CM_GLOBAL_SURFACE_NUMBER)
@@ -2135,48 +2135,48 @@ CM_RT_API int32_t CmKernelRT::SetStaticBuffer(uint32_t index, const void * pValu
         return CM_INVALID_GLOBAL_BUFFER_INDEX;
     }
 
-    if(!pValue)
+    if(!value)
     {
         CM_ASSERTMESSAGE("Error: Invalid StaticBuffer arg value.");
         return CM_INVALID_BUFFER_HANDLER;
     }
 
-    SurfaceIndex* pSurfIndex = (SurfaceIndex* )pValue;
-    uint32_t surfIndex = pSurfIndex->get_data();
-    if (surfIndex >= m_pSurfaceMgr->GetSurfacePoolSize())
+    SurfaceIndex* surfIndex = (SurfaceIndex* )value;
+    uint32_t surfIndexData = surfIndex->get_data();
+    if (surfIndexData >= m_surfaceMgr->GetSurfacePoolSize())
     {
         CM_ASSERTMESSAGE("Error: StaticBuffer doesn't allow alias index.");
         return CM_INVALID_ARG_INDEX;
     }
     uint32_t handle = 0; // for 1D surf
 
-    CmSurface* pSurface  = nullptr;
-    m_pSurfaceMgr->GetSurface( surfIndex, pSurface );
-    if(pSurface == nullptr)
+    CmSurface* surface  = nullptr;
+    m_surfaceMgr->GetSurface( surfIndexData, surface );
+    if(surface == nullptr)
     {
         CM_ASSERTMESSAGE("Error: Invalid surface.");
         return CM_INVALID_BUFFER_HANDLER;
     }
 
-    CmBuffer_RT* pSurf1D = nullptr;
-    if ( pSurface->Type() == CM_ENUM_CLASS_TYPE_CMBUFFER_RT )
+    CmBuffer_RT* surf1D = nullptr;
+    if ( surface->Type() == CM_ENUM_CLASS_TYPE_CMBUFFER_RT )
     {
         CM_SURFACE_MEM_OBJ_CTRL memCtl;
-        pSurf1D = static_cast< CmBuffer_RT* >( pSurface );
-        pSurf1D->GetHandle( handle );
+        surf1D = static_cast< CmBuffer_RT* >( surface );
+        surf1D->GetHandle( handle );
 
-        if (m_GlobalSurfaces[index] == nullptr)
+        if (m_globalSurfaces[index] == nullptr)
         {
-            m_GlobalSurfaces[index] = MOS_New(SurfaceIndex,0);
-            if( !m_GlobalSurfaces[index] )
+            m_globalSurfaces[index] = MOS_New(SurfaceIndex,0);
+            if( !m_globalSurfaces[index] )
             {
                 CM_ASSERTMESSAGE("Error: Out of system memory.");
                 return CM_OUT_OF_HOST_MEMORY;
             }
         }
-        *m_GlobalSurfaces[index] = handle;
-        m_GlobalCmIndex[index] = surfIndex;
-        m_Dirty |= CM_KERNEL_DATA_GLOBAL_SURFACE_DIRTY;
+        *m_globalSurfaces[index] = handle;
+        m_globalCmIndex[index] = surfIndexData;
+        m_dirty |= CM_KERNEL_DATA_GLOBAL_SURFACE_DIRTY;
     }
     else
     {
@@ -2201,40 +2201,40 @@ CM_RT_API int32_t CmKernelRT::SetStaticBuffer(uint32_t index, const void * pValu
 //!     CM_SUCCESS or
 //!     CM_INVALID_ARG_INDEX if index is invalid
 //!     CM_INVALID_ARG_SIZE if size is invalid
-//!     CM_INVALID_ARG_VALUE if pValue is nullptr
+//!     CM_INVALID_ARG_VALUE if value is nullptr
 //*-----------------------------------------------------------------------------
-CM_RT_API int32_t CmKernelRT::SetThreadArg(uint32_t threadId, uint32_t index, size_t size, const void * pValue )
+CM_RT_API int32_t CmKernelRT::SetThreadArg(uint32_t threadId, uint32_t index, size_t size, const void * value )
 {
     INSERT_API_CALL_LOG();
 
     //It should be mutual exclusive with Indirect Data
-    if(m_pKernelPayloadData)
+    if(m_kernelPayloadData)
     {
         CM_ASSERTMESSAGE("Error: SetThredArg should be mutual exclusive with indirect data.");
         return CM_KERNELPAYLOAD_PERTHREADARG_MUTEX_FAIL;
     }
 
-    if(m_ThreadCount > m_pHalMaxValues->maxUserThreadsPerTask || m_ThreadCount <=0)
+    if(m_threadCount > m_halMaxValues->maxUserThreadsPerTask || m_threadCount <=0)
     {
         CM_ASSERTMESSAGE("Error: Minimum or Maximum number of threads exceeded.");
         return CM_FAILURE;
     }
 
-    if( index >= m_ArgCount )
+    if( index >= m_argCount )
     {
         CM_ASSERTMESSAGE("Error: Invalid thread arg count.");
         return CM_INVALID_ARG_INDEX;
 
     }
 
-    if( threadId >= m_ThreadCount )
+    if( threadId >= m_threadCount )
     {
         CM_ASSERTMESSAGE("Error: thread id exceeds the threadcount.");
         return CM_INVALID_THREAD_INDEX;
 
     }
 
-    if( !pValue)
+    if( !value)
     {
         CM_ASSERTMESSAGE("Error: Invalid thread arg value.");
         return CM_INVALID_ARG_VALUE;
@@ -2247,7 +2247,7 @@ CM_RT_API int32_t CmKernelRT::SetThreadArg(uint32_t threadId, uint32_t index, si
     }
 
     int32_t nRetVal = 0;
-    if ( ( nRetVal = SetArgsInternal( CM_KERNEL_INTERNEL_ARG_PERTHREAD, index, size, pValue, threadId ) ) != CM_SUCCESS )
+    if ( ( nRetVal = SetArgsInternal( CM_KERNEL_INTERNEL_ARG_PERTHREAD, index, size, value, threadId ) ) != CM_SUCCESS )
     {
         return nRetVal;
     }
@@ -2259,15 +2259,15 @@ CM_RT_API int32_t CmKernelRT::SetThreadArg(uint32_t threadId, uint32_t index, si
 //| Purpose:  Calculate the total size of kernel data
 //*-----------------------------------------------------------------------------
 int32_t CmKernelRT::CalcKernelDataSize(
-                uint32_t MovInsNum,                 // [in] the number of move instructions
-                uint32_t NumArgs,                   // [in] number of args , surface array count
-                uint32_t ArgSize,                   // [in] Size of arguments
-                uint32_t & TotalKernelDataSize)      // [out] total size of kernel data
+                uint32_t movInstNum,                 // [in] the number of move instructions
+                uint32_t numArgs,                   // [in] number of args , surface array count
+                uint32_t argSize,                   // [in] Size of arguments
+                uint32_t & totalKernelDataSize)      // [out] total size of kernel data
 {
     int32_t hr             = CM_SUCCESS;
 
-    uint32_t headSize = ( KERNEL_INFO_SIZE_IN_DWORD + NumArgs * PER_ARG_SIZE_IN_DWORD ) * sizeof( uint32_t );
-    uint32_t totalSize =  headSize + MovInsNum * CM_MOVE_INSTRUCTION_SIZE + m_uiBinarySize + ArgSize;
+    uint32_t headSize = ( KERNEL_INFO_SIZE_IN_DWORD + numArgs * PER_ARG_SIZE_IN_DWORD ) * sizeof( uint32_t );
+    uint32_t totalSize =  headSize + movInstNum * CM_MOVE_INSTRUCTION_SIZE + m_binarySize + argSize;
 
     totalSize += 4; // one dword for flag. the first bit is curbe on/off
     totalSize += 8; //sizeof( uint64_t ) for id
@@ -2303,7 +2303,7 @@ int32_t CmKernelRT::CalcKernelDataSize(
         totalSize +=  m_usKernelPayloadSurfaceCount * sizeof(CM_INDIRECT_SURFACE_INFO);
     }
 
-    TotalKernelDataSize = totalSize;
+    totalKernelDataSize = totalSize;
 
     return hr;
 }
@@ -2313,10 +2313,10 @@ int32_t CmKernelRT::CalcKernelDataSize(
 //| Purpose:   Create object for mov instructions
 //|            instructions will be copied into DstMem
 //*-----------------------------------------------------------------------------
-int32_t CmKernelRT::ConstructObjMovs(InstructionDistanceConfig *pInstDist, uint32_t dstOffset, uint32_t srcOffset, uint32_t size, CmDynamicArray &movInsts, uint32_t index, bool is_BDW, bool is_hwdebug)
+int32_t CmKernelRT::ConstructObjMovs(InstructionDistanceConfig *instDist, uint32_t dstOffset, uint32_t srcOffset, uint32_t size, CmDynamicArray &movInsts, uint32_t index, bool isBdw, bool isHwDebug)
 {
-    UNUSED(pInstDist);
-    return MovInst_RT::CreateMoves(dstOffset, srcOffset, size, movInsts, index, is_BDW, is_hwdebug);
+    UNUSED(instDist);
+    return MovInst_RT::CreateMoves(dstOffset, srcOffset, size, movInsts, index, isBdw, isHwDebug);
 }
 #endif
 
@@ -2324,61 +2324,61 @@ int32_t CmKernelRT::ConstructObjMovs(InstructionDistanceConfig *pInstDist, uint3
 //| Purpose:   Create mov instructions
 //|            instructions will be copied into DstMem
 //*-----------------------------------------------------------------------------
-int32_t CmKernelRT::CreateMovInstructions( uint32_t &movInstNum, uint8_t *&pCodeDst, CM_ARG* pTempArgs, uint32_t NumArgs)
+int32_t CmKernelRT::CreateMovInstructions( uint32_t &movInstNum, uint8_t *&codeDst, CM_ARG* tempArgs, uint32_t numArgs)
 {
     //Create Mov Instruction
-    CmDynamicArray      movInsts( NumArgs );
+    CmDynamicArray      movInsts( numArgs );
     InstructionDistanceConfig InstDist(movInsts.GetMaxSize());
 
     movInstNum = 0;
 
     //Note: if no thread arg and no per kernel arg, no need move instrcutions at all.
-    if( m_CurbeEnable && (m_blPerThreadArgExists || m_blPerKernelArgExists))
+    if( m_curbeEnabled && (m_perThreadArgExists || m_perKernelArgExists))
     {
-        if( ( m_ArgCount > 0 ) && ( m_ThreadCount > 1) )
+        if( ( m_argCount > 0 ) && ( m_threadCount > 1) )
         {
-            PCM_ARG* ppArgSorted = MOS_NewArray(PCM_ARG,NumArgs);
-            if( !ppArgSorted )
+            PCM_ARG* sortedArgs = MOS_NewArray(PCM_ARG,numArgs);
+            if( !sortedArgs )
             {
                 CM_ASSERTMESSAGE("Error: Out of system memory.");
                 return CM_OUT_OF_HOST_MEMORY;
             }
-            for( uint32_t j = 0; j < NumArgs; j++ )
+            for( uint32_t j = 0; j < numArgs; j++ )
             {
-                ppArgSorted[ j ] = pTempArgs + j;
+                sortedArgs[ j ] = tempArgs + j;
             }
-            // sort pArg to ppArgSorted accorind to offsetinPayload
-            QuickSort( ppArgSorted, 0, NumArgs - 1 );
+            // sort arg to sortedArgs accorind to offsetinPayload
+            QuickSort( sortedArgs, 0, numArgs - 1 );
 
             // record compiler generated offset, used as move dst later
-            uint16_t *unitOffsetInPayloadSorted = MOS_NewArray(uint16_t, NumArgs);
+            uint16_t *unitOffsetInPayloadSorted = MOS_NewArray(uint16_t, numArgs);
             if( !unitOffsetInPayloadSorted )
             {
                 CM_ASSERTMESSAGE("Error: Out of system memory.");
-                MosSafeDeleteArray(ppArgSorted);
+                MosSafeDeleteArray(sortedArgs);
                 return CM_OUT_OF_HOST_MEMORY;
             }
-            for( uint32_t j = 0; j < NumArgs; j++ )
+            for( uint32_t j = 0; j < numArgs; j++ )
             {
-                unitOffsetInPayloadSorted[j] = ppArgSorted[j]->unitOffsetInPayload;
+                unitOffsetInPayloadSorted[j] = sortedArgs[j]->unitOffsetInPayload;
             }
 
             uint16_t kernelArgEnd = 32;
             bool beforeFirstThreadArg = true;
-            for( uint32_t j = 0; j < NumArgs; j++ )
+            for( uint32_t j = 0; j < numArgs; j++ )
             {
-                if( ppArgSorted[j]->unitCount == 1 )
-                    // consider m_ThreadCount = 1 case later, where all args are treated as per thread arg
+                if( sortedArgs[j]->unitCount == 1 )
+                    // consider m_threadCount = 1 case later, where all args are treated as per thread arg
                 {
                     if( beforeFirstThreadArg )
                     {
-                        kernelArgEnd = ppArgSorted[j]->unitOffsetInPayload + ppArgSorted[j]->unitSize;
+                        kernelArgEnd = sortedArgs[j]->unitOffsetInPayload + sortedArgs[j]->unitSize;
                     }
                     else
                     {
                         DW_ALIGNMENT( kernelArgEnd ); // necessary ?
-                        ppArgSorted[j]->unitOffsetInPayload = kernelArgEnd;
-                        kernelArgEnd += ppArgSorted[j]->unitSize;
+                        sortedArgs[j]->unitOffsetInPayload = kernelArgEnd;
+                        kernelArgEnd += sortedArgs[j]->unitSize;
                     }
                 }
                 else // per thread
@@ -2393,20 +2393,20 @@ int32_t CmKernelRT::CreateMovInstructions( uint32_t &movInstNum, uint8_t *&pCode
             GRF_ALIGNMENT(kernelArgEnd); // offset of thread arg start related to R0
             uint32_t threadArgStart = kernelArgEnd;
 
-            for (uint32_t j = 0; j < NumArgs; j++)
+            for (uint32_t j = 0; j < numArgs; j++)
             {
-                if (ppArgSorted[j]->unitCount > 1) // per thread
+                if (sortedArgs[j]->unitCount > 1) // per thread
                 {
-                    ppArgSorted[j]->unitOffsetInPayload = (uint16_t)threadArgStart;
-                    threadArgStart += ppArgSorted[j]->unitSize;
+                    sortedArgs[j]->unitOffsetInPayload = (uint16_t)threadArgStart;
+                    threadArgStart += sortedArgs[j]->unitSize;
                     DW_ALIGNMENT(threadArgStart);
                 }
             }
 
             bool needMovInstructions = false;
-            for( uint32_t j = 0; j < NumArgs; j++ )
+            for( uint32_t j = 0; j < numArgs; j++ )
             {
-                if ( unitOffsetInPayloadSorted[j] != ppArgSorted[j]->unitOffsetInPayload )
+                if ( unitOffsetInPayloadSorted[j] != sortedArgs[j]->unitOffsetInPayload )
                 {
                     needMovInstructions = true;
                     break;
@@ -2426,17 +2426,17 @@ int32_t CmKernelRT::CreateMovInstructions( uint32_t &movInstNum, uint8_t *&pCode
                 nextIndex += ConstructObjMovs(&InstDist, R64_OFFSET, 32, size, movInsts, nextIndex, true, m_blhwDebugEnable);
 
                 beforeFirstThreadArg = true;
-                for (uint32_t j = 0; j < NumArgs; j++)
+                for (uint32_t j = 0; j < numArgs; j++)
                 {
-                    if (ppArgSorted[j]->unitCount == 1)
-                        // consider m_ThreadCount = 1 case later, where all args are treated as per thread arg
+                    if (sortedArgs[j]->unitCount == 1)
+                        // consider m_threadCount = 1 case later, where all args are treated as per thread arg
                     {
                         if (beforeFirstThreadArg == false)
                         {
-                            // add move inst to move from ppArgSorted[j]->unitOffsetInPayload + R64 to unitOffsetInPayloadSorted[j]
+                            // add move inst to move from sortedArgs[j]->unitOffsetInPayload + R64 to unitOffsetInPayloadSorted[j]
                             nextIndex += ConstructObjMovs(&InstDist, unitOffsetInPayloadSorted[j],
-                                R64_OFFSET + ppArgSorted[j]->unitOffsetInPayload - 32,
-                                ppArgSorted[j]->unitSize, movInsts, nextIndex, true, m_blhwDebugEnable);
+                                R64_OFFSET + sortedArgs[j]->unitOffsetInPayload - 32,
+                                sortedArgs[j]->unitSize, movInsts, nextIndex, true, m_blhwDebugEnable);
                         }
                     }
                     else // per thread
@@ -2446,26 +2446,26 @@ int32_t CmKernelRT::CreateMovInstructions( uint32_t &movInstNum, uint8_t *&pCode
                             beforeFirstThreadArg = false;
                         }
 
-                        // add move inst to move from ppArgSorted[j]->unitOffsetInPayload + R64 to unitOffsetInPayloadSorted[j]
+                        // add move inst to move from sortedArgs[j]->unitOffsetInPayload + R64 to unitOffsetInPayloadSorted[j]
                         nextIndex += ConstructObjMovs(&InstDist, unitOffsetInPayloadSorted[j],
-                            R64_OFFSET + ppArgSorted[j]->unitOffsetInPayload - CM_PAYLOAD_OFFSET,
-                            ppArgSorted[j]->unitSize, movInsts, nextIndex, true, m_blhwDebugEnable);
+                            R64_OFFSET + sortedArgs[j]->unitOffsetInPayload - CM_PAYLOAD_OFFSET,
+                            sortedArgs[j]->unitSize, movInsts, nextIndex, true, m_blhwDebugEnable);
                     }
                 }
 
                 movInstNum = nextIndex;
             }
 
-            MosSafeDeleteArray(ppArgSorted);
+            MosSafeDeleteArray(sortedArgs);
             MosSafeDeleteArray(unitOffsetInPayloadSorted);
         }
-    }// End of if( m_CurbeEnable && m_ThreadArgExists)
+    }// End of if( m_curbeEnabled && m_ThreadArgExists)
 
     uint32_t addInstDW[4];
     MOS_ZeroMemory(addInstDW, CM_MOVE_INSTRUCTION_SIZE);
     uint32_t addInstNum =0;
 
-    if(m_pThreadSpace && m_adjustScoreboardY)
+    if(m_threadSpace && m_adjustScoreboardY)
     {
         addInstNum = 1;
 
@@ -2481,8 +2481,8 @@ int32_t CmKernelRT::CreateMovInstructions( uint32_t &movInstNum, uint8_t *&pCode
 
     if (movInstNum || addInstNum)
     {
-        pCodeDst = MOS_NewArray(uint8_t, ((movInstNum + addInstNum)  * CM_MOVE_INSTRUCTION_SIZE));
-        if (!pCodeDst)
+        codeDst = MOS_NewArray(uint8_t, ((movInstNum + addInstNum)  * CM_MOVE_INSTRUCTION_SIZE));
+        if (!codeDst)
         {
             return CM_OUT_OF_HOST_MEMORY;
         }
@@ -2494,21 +2494,21 @@ int32_t CmKernelRT::CreateMovInstructions( uint32_t &movInstNum, uint8_t *&pCode
         if (!movInst)
         {
             CM_ASSERTMESSAGE("Error: Invalid move instructions.");
-            MosSafeDeleteArray(pCodeDst);
+            MosSafeDeleteArray(codeDst);
             return CM_FAILURE;
         }
         if (j != 0)
         {
             movInst->ClearDebug();
         }
-        CmFastMemCopy(pCodeDst + j * CM_MOVE_INSTRUCTION_SIZE, movInst->GetBinary(), CM_MOVE_INSTRUCTION_SIZE);
+        CmFastMemCopy(codeDst + j * CM_MOVE_INSTRUCTION_SIZE, movInst->GetBinary(), CM_MOVE_INSTRUCTION_SIZE);
         CmSafeDelete(movInst); // delete each element in movInsts
     }
     movInsts.Delete();
 
     if(addInstNum != 0)
     {
-       CmFastMemCopy(pCodeDst + movInstNum * CM_MOVE_INSTRUCTION_SIZE, addInstDW, CM_MOVE_INSTRUCTION_SIZE);
+       CmFastMemCopy(codeDst + movInstNum * CM_MOVE_INSTRUCTION_SIZE, addInstDW, CM_MOVE_INSTRUCTION_SIZE);
 
        movInstNum += addInstNum; // take add Y instruction into consideration
     }
@@ -2517,31 +2517,31 @@ int32_t CmKernelRT::CreateMovInstructions( uint32_t &movInstNum, uint8_t *&pCode
 }
 
 int32_t CmKernelRT::CreateKernelArgDataGroup(
-    uint8_t   *&pData,
-    uint32_t   Value)
+    uint8_t   *&data,
+    uint32_t   value)
 {
-    if (pData == nullptr)
+    if (data == nullptr)
     {
-        pData = MOS_NewArray(uint8_t, sizeof(uint32_t));
-        if(!pData)
+        data = MOS_NewArray(uint8_t, sizeof(uint32_t));
+        if(!data)
         {
             return CM_OUT_OF_HOST_MEMORY;
         }
     }
-    *(uint32_t *)pData = Value;
+    *(uint32_t *)data = value;
     return CM_SUCCESS;
 }
 
 int32_t CmKernelRT::CreateKernelImplicitArgDataGroup(
-    uint8_t   *&pData,
+    uint8_t   *&data,
     uint32_t   size)
 {
-    pData = MOS_NewArray(uint8_t, (size * sizeof(uint32_t)));
-    if (!pData)
+    data = MOS_NewArray(uint8_t, (size * sizeof(uint32_t)));
+    if (!data)
     {
         return CM_OUT_OF_HOST_MEMORY;
     }
-    *(uint32_t *)pData = 0;
+    *(uint32_t *)data = 0;
     return CM_SUCCESS;
 }
 
@@ -2550,70 +2550,70 @@ int32_t CmKernelRT::CreateKernelImplicitArgDataGroup(
 //|            instructions will be copied into DstMem
 //*-----------------------------------------------------------------------------
 int32_t CmKernelRT::CreateThreadArgData(
-    PCM_HAL_KERNEL_ARG_PARAM    pKernelArg,
-    uint32_t                    ThreadArgIndex,
-    CmThreadSpaceRT*              pThreadSpace,
-    CM_ARG*                     pCmArgs )
+    PCM_HAL_KERNEL_ARG_PARAM    kernelArg,
+    uint32_t                    threadArgIndex,
+    CmThreadSpaceRT*              threadSpace,
+    CM_ARG*                     cmArgs )
 {
     int32_t         hr              = CM_SUCCESS;
-    uint32_t        ThreadArgCount  = pCmArgs[ ThreadArgIndex].unitCount;
-    uint32_t        ThreadArgSize   = pCmArgs[ ThreadArgIndex ].unitSize;
+    uint32_t        threadArgCount  = cmArgs[ threadArgIndex].unitCount;
+    uint32_t        threadArgSize   = cmArgs[ threadArgIndex ].unitSize;
 
-    if (CHECK_SURFACE_TYPE(pCmArgs->unitKind,  ARG_KIND_SURFACE_VME))
+    if (CHECK_SURFACE_TYPE(cmArgs->unitKind,  ARG_KIND_SURFACE_VME))
     {
         // reallocate the memory since the number of surfaces in a vme surface could vary
-        MosSafeDeleteArray(pKernelArg->firstValue);
+        MosSafeDeleteArray(kernelArg->firstValue);
     }
 
-    if( pKernelArg->firstValue  == nullptr)
+    if( kernelArg->firstValue  == nullptr)
     {
         // if firstValue = nullptr, then create a new one, otherwise, update the exisitng one
-        pKernelArg->firstValue = MOS_NewArray(uint8_t, (pCmArgs[ThreadArgIndex].unitCount * pCmArgs[ThreadArgIndex].unitSize));
-        if( !pKernelArg->firstValue )
+        kernelArg->firstValue = MOS_NewArray(uint8_t, (cmArgs[threadArgIndex].unitCount * cmArgs[threadArgIndex].unitSize));
+        if( !kernelArg->firstValue )
         {
             hr = CM_OUT_OF_HOST_MEMORY;
             goto finish;
         }
     }
 
-    if(pKernelArg->unitCount == 1 ) // kernel arg
+    if(kernelArg->unitCount == 1 ) // kernel arg
     {
-        if (pCmArgs[ThreadArgIndex].pValue)
+        if (cmArgs[threadArgIndex].value)
         {
-            CmFastMemCopy(pKernelArg->firstValue, pCmArgs[ThreadArgIndex].pValue, ThreadArgCount * ThreadArgSize);
+            CmFastMemCopy(kernelArg->firstValue, cmArgs[threadArgIndex].value, threadArgCount * threadArgSize);
         }
         goto finish;
     }
 
-    if( pThreadSpace != nullptr )
+    if( threadSpace != nullptr )
     {
-        CM_DEPENDENCY_PATTERN DependencyPatternType = CM_NONE_DEPENDENCY;
-        pThreadSpace->GetDependencyPatternType(DependencyPatternType);
+        CM_DEPENDENCY_PATTERN dependencyPatternType = CM_NONE_DEPENDENCY;
+        threadSpace->GetDependencyPatternType(dependencyPatternType);
 
-        if ((m_AssociatedToTS == true) &&  (DependencyPatternType != CM_NONE_DEPENDENCY))
+        if ((m_threadSpaceAssociated == true) &&  (dependencyPatternType != CM_NONE_DEPENDENCY))
         {
-            CM_THREAD_SPACE_UNIT *pThreadSpaceUnit = nullptr;
-            pThreadSpace->GetThreadSpaceUnit(pThreadSpaceUnit);
+            CM_THREAD_SPACE_UNIT *threadSpaceUnit = nullptr;
+            threadSpace->GetThreadSpaceUnit(threadSpaceUnit);
 
-            uint32_t *pBoardOrder = nullptr;
-            pThreadSpace->GetBoardOrder(pBoardOrder);
+            uint32_t *boardOrder = nullptr;
+            threadSpace->GetBoardOrder(boardOrder);
 
-            for (uint32_t index = 0; index < ThreadArgCount; index++)
+            for (uint32_t index = 0; index < threadArgCount; index++)
             {
-                uint32_t offset = pThreadSpaceUnit[pBoardOrder[index]].threadId;
-                uint8_t *pArgSrc = (uint8_t*)pCmArgs[ThreadArgIndex].pValue + offset * ThreadArgSize;
-                uint8_t *pArgDst = pKernelArg->firstValue + index * ThreadArgSize;
-                CmFastMemCopy(pArgDst, pArgSrc, ThreadArgSize);
+                uint32_t offset = threadSpaceUnit[boardOrder[index]].threadId;
+                uint8_t *argSrc = (uint8_t*)cmArgs[threadArgIndex].value + offset * threadArgSize;
+                uint8_t *argDst = kernelArg->firstValue + index * threadArgSize;
+                CmFastMemCopy(argDst, argSrc, threadArgSize);
             }
         }
         else
         {
-           CmFastMemCopy(pKernelArg->firstValue, pCmArgs[ ThreadArgIndex ].pValue, ThreadArgCount * ThreadArgSize);
+           CmFastMemCopy(kernelArg->firstValue, cmArgs[ threadArgIndex ].value, threadArgCount * threadArgSize);
         }
     }
     else
     {
-        CmFastMemCopy(pKernelArg->firstValue, pCmArgs[ ThreadArgIndex ].pValue, ThreadArgCount * ThreadArgSize);
+        CmFastMemCopy(kernelArg->firstValue, cmArgs[ threadArgIndex ].value, threadArgCount * threadArgSize);
     }
 
 finish:
@@ -2623,69 +2623,69 @@ finish:
 //*-----------------------------------------------------------------------------
 //| Purpose:   Sort thread space for scorboarding
 //*-----------------------------------------------------------------------------
-int32_t CmKernelRT::SortThreadSpace( CmThreadSpaceRT*  pThreadSpace )
+int32_t CmKernelRT::SortThreadSpace( CmThreadSpaceRT*  threadSpace )
 {
     int32_t                   hr = CM_SUCCESS;
-    CM_DEPENDENCY_PATTERN DependencyPatternType = CM_NONE_DEPENDENCY;
+    CM_DEPENDENCY_PATTERN dependencyPatternType = CM_NONE_DEPENDENCY;
 
-    CMCHK_NULL(pThreadSpace);
+    CMCHK_NULL(threadSpace);
 
-    pThreadSpace->GetDependencyPatternType(DependencyPatternType);
+    threadSpace->GetDependencyPatternType(dependencyPatternType);
 
-    if(!pThreadSpace->IsThreadAssociated())
+    if(!threadSpace->IsThreadAssociated())
     {//Skip Sort if it is media walker
         return CM_SUCCESS;
     }
 
-    if (pThreadSpace->CheckDependencyVectorsSet())
+    if (threadSpace->CheckDependencyVectorsSet())
     {
-        pThreadSpace->WavefrontDependencyVectors();
+        threadSpace->WavefrontDependencyVectors();
     }
     else
     {
-        switch (DependencyPatternType)
+        switch (dependencyPatternType)
         {
             case CM_WAVEFRONT:
-                pThreadSpace->Wavefront45Sequence();
+                threadSpace->Wavefront45Sequence();
                 break;
 
             case CM_WAVEFRONT26:
-                pThreadSpace->Wavefront26Sequence();
+                threadSpace->Wavefront26Sequence();
                 break;
 
             case CM_WAVEFRONT26Z:
-                pThreadSpace->Wavefront26ZSequence();
+                threadSpace->Wavefront26ZSequence();
                 break;
 
             case CM_WAVEFRONT26ZI:
                 CM_26ZI_DISPATCH_PATTERN dispatchPattern;
-                pThreadSpace->Get26ZIDispatchPattern(dispatchPattern);
+                threadSpace->Get26ZIDispatchPattern(dispatchPattern);
                 switch (dispatchPattern)
                 {
                 case VVERTICAL_HVERTICAL_26:
-                    pThreadSpace->Wavefront26ZISeqVVHV26();
+                    threadSpace->Wavefront26ZISeqVVHV26();
                     break;
                 case VVERTICAL_HHORIZONTAL_26:
-                    pThreadSpace->Wavefront26ZISeqVVHH26();
+                    threadSpace->Wavefront26ZISeqVVHH26();
                     break;
                 case VVERTICAL26_HHORIZONTAL26:
-                    pThreadSpace->Wavefront26ZISeqVV26HH26();
+                    threadSpace->Wavefront26ZISeqVV26HH26();
                     break;
                 case VVERTICAL1X26_HHORIZONTAL1X26:
-                    pThreadSpace->Wavefront26ZISeqVV1x26HH1x26();
+                    threadSpace->Wavefront26ZISeqVV1x26HH1x26();
                     break;
                 default:
-                    pThreadSpace->Wavefront26ZISeqVVHV26();
+                    threadSpace->Wavefront26ZISeqVVHV26();
                     break;
                 }
                 break;
 
             case CM_HORIZONTAL_WAVE:
-                pThreadSpace->HorizentalSequence();
+                threadSpace->HorizentalSequence();
                 break;
 
             case CM_VERTICAL_WAVE:
-                pThreadSpace->VerticalSequence();
+                threadSpace->VerticalSequence();
                 break;
 
             case CM_NONE_DEPENDENCY:
@@ -2709,27 +2709,27 @@ finish:
 //|            instructions will be copied into DstMem
 //*-----------------------------------------------------------------------------
 int32_t CmKernelRT::CreateTempArgs(
-    uint32_t     NumofArgs,
-    CM_ARG*      &pTempArgs)
+    uint32_t     numArgs,
+    CM_ARG*      &tempArgs)
 {
     int32_t     hr              = CM_SUCCESS;
-    int32_t     num_surfaces    = 0;
-    int32_t     increased_args  = 0;
+    int32_t     numSurfaces    = 0;
+    int32_t     increasedArgs  = 0;
 
-    if( NumofArgs < m_ArgCount || pTempArgs != nullptr )
+    if( numArgs < m_argCount || tempArgs != nullptr )
     {
         CM_ASSERTMESSAGE("Error: Invalid arg number or arg value.");
         hr = CM_FAILURE;
         goto finish;
     }
 
-    pTempArgs = MOS_NewArray(CM_ARG, NumofArgs);
-    CMCHK_NULL_RETURN(pTempArgs, CM_OUT_OF_HOST_MEMORY);
-    CmSafeMemSet(pTempArgs, 0, NumofArgs* sizeof(CM_ARG) );
+    tempArgs = MOS_NewArray(CM_ARG, numArgs);
+    CMCHK_NULL_RETURN(tempArgs, CM_OUT_OF_HOST_MEMORY);
+    CmSafeMemSet(tempArgs, 0, numArgs* sizeof(CM_ARG) );
 
-    for( uint32_t j = 0; j < m_ArgCount; j++ )
+    for( uint32_t j = 0; j < m_argCount; j++ )
     {
-        if ( CHECK_SURFACE_TYPE( m_Args[ j ].unitKind, // first time
+        if ( CHECK_SURFACE_TYPE( m_args[ j ].unitKind, // first time
                                 ARG_KIND_SURFACE,
                                 ARG_KIND_SURFACE_1D,
                                 ARG_KIND_SURFACE_2D,
@@ -2742,113 +2742,113 @@ int32_t CmKernelRT::CreateTempArgs(
                                 ARG_KIND_SURFACE_2D_SCOREBOARD,
                                 ARG_KIND_STATE_BUFFER ) )
         {
-            num_surfaces = m_Args[j].unitSize/sizeof(int);
+            numSurfaces = m_args[j].unitSize/sizeof(int);
 
-            if (num_surfaces > 1)
+            if (numSurfaces > 1)
             {
-                if (m_Args[j].unitCount == 1)
+                if (m_args[j].unitCount == 1)
                 { //Kernel arg
-                    for (int32_t k = 0; k < num_surfaces; k++)
+                    for (int32_t k = 0; k < numSurfaces; k++)
                     {
-                        pTempArgs[j + increased_args + k] = m_Args[j];
-                        pTempArgs[j + increased_args + k].unitSize = sizeof(int32_t);
-                        pTempArgs[j + increased_args + k].unitSizeOrig = sizeof(int32_t);
-                        pTempArgs[j + increased_args + k].pValue = (uint8_t *)((uint32_t *)m_Args[j].pValue + k);
-                        pTempArgs[j + increased_args + k].unitOffsetInPayload = m_Args[j].unitOffsetInPayload + 4 * k;
-                        pTempArgs[j + increased_args + k].unitOffsetInPayloadOrig = pTempArgs[j + increased_args + k].unitOffsetInPayload;
+                        tempArgs[j + increasedArgs + k] = m_args[j];
+                        tempArgs[j + increasedArgs + k].unitSize = sizeof(int32_t);
+                        tempArgs[j + increasedArgs + k].unitSizeOrig = sizeof(int32_t);
+                        tempArgs[j + increasedArgs + k].value = (uint8_t *)((uint32_t *)m_args[j].value + k);
+                        tempArgs[j + increasedArgs + k].unitOffsetInPayload = m_args[j].unitOffsetInPayload + 4 * k;
+                        tempArgs[j + increasedArgs + k].unitOffsetInPayloadOrig = tempArgs[j + increasedArgs + k].unitOffsetInPayload;
                         //For each surface kind and custom value  in surface array
-                        if (!m_Args[j].surfIndex[k])
+                        if (!m_args[j].surfIndex[k])
                         {
                             //if surfIndex is 0, set kind to be CM_ARGUMENT_SURFACE2D
                             //This is for special usage if there is empty element in surface array.
-                            pTempArgs[j + increased_args + k].unitKind = CM_ARGUMENT_SURFACE2D;
+                            tempArgs[j + increasedArgs + k].unitKind = CM_ARGUMENT_SURFACE2D;
                             continue;
                         }
-                        pTempArgs[j + increased_args + k].unitKind = m_Args[j].pSurfArrayArg[k].argKindForArray;
-                        pTempArgs[j + increased_args + k].nCustomValue = m_Args[j].pSurfArrayArg[k].addressModeForArray;
+                        tempArgs[j + increasedArgs + k].unitKind = m_args[j].surfArrayArg[k].argKindForArray;
+                        tempArgs[j + increasedArgs + k].nCustomValue = m_args[j].surfArrayArg[k].addressModeForArray;
                     }
                 }
                 else
                 {
-                    uint32_t *surfaces = (uint32_t *)MOS_NewArray(uint8_t, ((sizeof(int32_t) * m_Args[j].unitCount)));
+                    uint32_t *surfaces = (uint32_t *)MOS_NewArray(uint8_t, ((sizeof(int32_t) * m_args[j].unitCount)));
                     CMCHK_NULL_RETURN(surfaces, CM_OUT_OF_HOST_MEMORY);
-                    for (int32_t k = 0; k < num_surfaces; k++)
+                    for (int32_t k = 0; k < numSurfaces; k++)
                     {
-                        pTempArgs[j + increased_args + k] = m_Args[j];
-                        pTempArgs[j + increased_args + k].unitSize = sizeof(int32_t);
-                        pTempArgs[j + increased_args + k].unitSizeOrig = sizeof(int32_t);
-                        pTempArgs[j + increased_args + k].pValue = MOS_NewArray(uint8_t, ((sizeof(int32_t) * m_Args[j].unitCount)));
-                        if(pTempArgs[j + increased_args + k].pValue == nullptr)
+                        tempArgs[j + increasedArgs + k] = m_args[j];
+                        tempArgs[j + increasedArgs + k].unitSize = sizeof(int32_t);
+                        tempArgs[j + increasedArgs + k].unitSizeOrig = sizeof(int32_t);
+                        tempArgs[j + increasedArgs + k].value = MOS_NewArray(uint8_t, ((sizeof(int32_t) * m_args[j].unitCount)));
+                        if(tempArgs[j + increasedArgs + k].value == nullptr)
                         {
                             CM_ASSERTMESSAGE("Error: Out of system memory.");
                             hr = CM_OUT_OF_HOST_MEMORY;
                             MosSafeDeleteArray(surfaces);
                             goto finish;
                         }
-                        for (uint32_t s = 0; s < m_Args[j].unitCount; s++)
+                        for (uint32_t s = 0; s < m_args[j].unitCount; s++)
                         {
-                            surfaces[s] = *(uint32_t *)((uint32_t *)m_Args[j].pValue + k + num_surfaces * s);
+                            surfaces[s] = *(uint32_t *)((uint32_t *)m_args[j].value + k + numSurfaces * s);
                         }
-                        CmFastMemCopy(pTempArgs[j + increased_args + k].pValue, surfaces, sizeof(int32_t) * m_Args[j].unitCount);
-                        pTempArgs[j + increased_args + k].unitOffsetInPayload = m_Args[j].unitOffsetInPayload + 4 * k;
-                        pTempArgs[j + increased_args + k].unitOffsetInPayloadOrig = (uint16_t)-1;
+                        CmFastMemCopy(tempArgs[j + increasedArgs + k].value, surfaces, sizeof(int32_t) * m_args[j].unitCount);
+                        tempArgs[j + increasedArgs + k].unitOffsetInPayload = m_args[j].unitOffsetInPayload + 4 * k;
+                        tempArgs[j + increasedArgs + k].unitOffsetInPayloadOrig = (uint16_t)-1;
                     }
                     MosSafeDeleteArray(surfaces);
                 }
-                increased_args += num_surfaces - 1;
+                increasedArgs += numSurfaces - 1;
             }
             else
             {
-                pTempArgs[j + increased_args] = m_Args[j];
+                tempArgs[j + increasedArgs] = m_args[j];
             }
         }
-        else if (m_Args[ j ].unitKind == ARG_KIND_SURFACE_VME)
+        else if (m_args[ j ].unitKind == ARG_KIND_SURFACE_VME)
         {
-            num_surfaces = m_Args[ j ].unitVmeArraySize;
-            if(num_surfaces == 1)
+            numSurfaces = m_args[ j ].unitVmeArraySize;
+            if(numSurfaces == 1)
             {  // single vme surface
-               pTempArgs[j + increased_args] = m_Args[j];
+               tempArgs[j + increasedArgs] = m_args[j];
             }
             else
             {  // multiple vme surfaces in surface array
-                if (m_Args[j].unitCount == 1) { //Kernel Arg
-                    uint32_t VmeSurfoffset = 0;
+                if (m_args[j].unitCount == 1) { //Kernel arg
+                    uint32_t vmeSurfOffset = 0;
 
-                    for (int32_t k = 0; k < num_surfaces; k++)
+                    for (int32_t k = 0; k < numSurfaces; k++)
                     {
-                        uint16_t VmeSize = (uint16_t)getVmeArgValueSize((PCM_HAL_VME_ARG_VALUE)(m_Args[j].pValue + VmeSurfoffset));
+                        uint16_t vmeSize = (uint16_t)getVmeArgValueSize((PCM_HAL_VME_ARG_VALUE)(m_args[j].value + vmeSurfOffset));
 
-                        pTempArgs[j + increased_args + k] = m_Args[j];
-                        pTempArgs[j + increased_args + k].unitSize = VmeSize;
-                        pTempArgs[j + increased_args + k].unitSizeOrig = VmeSize;
-                        pTempArgs[j + increased_args + k].pValue = (uint8_t *)(m_Args[j].pValue + VmeSurfoffset);
-                        pTempArgs[j + increased_args + k].unitOffsetInPayload = m_Args[j].unitOffsetInPayload + k*4;
-                        pTempArgs[j + increased_args + k].unitOffsetInPayloadOrig = pTempArgs[j + increased_args + k].unitOffsetInPayload;
+                        tempArgs[j + increasedArgs + k] = m_args[j];
+                        tempArgs[j + increasedArgs + k].unitSize = vmeSize;
+                        tempArgs[j + increasedArgs + k].unitSizeOrig = vmeSize;
+                        tempArgs[j + increasedArgs + k].value = (uint8_t *)(m_args[j].value + vmeSurfOffset);
+                        tempArgs[j + increasedArgs + k].unitOffsetInPayload = m_args[j].unitOffsetInPayload + k*4;
+                        tempArgs[j + increasedArgs + k].unitOffsetInPayloadOrig = tempArgs[j + increasedArgs + k].unitOffsetInPayload;
 
-                        VmeSurfoffset += VmeSize;
+                        vmeSurfOffset += vmeSize;
                     }
                 }
              }
-            increased_args += num_surfaces - 1;
+            increasedArgs += numSurfaces - 1;
         }
-        else if (m_Args[j].unitKind == ARG_KIND_SAMPLER)
+        else if (m_args[j].unitKind == ARG_KIND_SAMPLER)
         {
-            unsigned int num_samplers = m_Args[j].unitSize / sizeof(int);
+            unsigned int numSamplers = m_args[j].unitSize / sizeof(int);
 
-            if (num_samplers > 1)
+            if (numSamplers > 1)
             {
-                if (m_Args[j].unitCount == 1)
+                if (m_args[j].unitCount == 1)
                 {
                     //Kernel arg
-                    for (unsigned int k = 0; k < num_samplers; k++)
+                    for (unsigned int k = 0; k < numSamplers; k++)
                     {
-                        pTempArgs[j + increased_args + k] = m_Args[j];
-                        pTempArgs[j + increased_args + k].unitSize = sizeof(int);
-                        pTempArgs[j + increased_args + k].unitSizeOrig = sizeof(int);
-                        pTempArgs[j + increased_args + k].pValue = (unsigned char *)((unsigned int *)m_Args[j].pValue + k);
-                        pTempArgs[j + increased_args + k].unitOffsetInPayload = m_Args[j].unitOffsetInPayload + 4 * k;
-                        pTempArgs[j + increased_args + k].unitOffsetInPayloadOrig = pTempArgs[j + increased_args + k].unitOffsetInPayload;
-                        pTempArgs[j + increased_args + k].unitKind = CM_ARGUMENT_SAMPLER;
+                        tempArgs[j + increasedArgs + k] = m_args[j];
+                        tempArgs[j + increasedArgs + k].unitSize = sizeof(int);
+                        tempArgs[j + increasedArgs + k].unitSizeOrig = sizeof(int);
+                        tempArgs[j + increasedArgs + k].value = (unsigned char *)((unsigned int *)m_args[j].value + k);
+                        tempArgs[j + increasedArgs + k].unitOffsetInPayload = m_args[j].unitOffsetInPayload + 4 * k;
+                        tempArgs[j + increasedArgs + k].unitOffsetInPayloadOrig = tempArgs[j + increasedArgs + k].unitOffsetInPayload;
+                        tempArgs[j + increasedArgs + k].unitKind = CM_ARGUMENT_SAMPLER;
                     }
                 }
                 else
@@ -2857,30 +2857,30 @@ int32_t CmKernelRT::CreateTempArgs(
                     // Not implemented yet.
                     return CM_NOT_IMPLEMENTED;
                 }
-                increased_args += num_samplers - 1;
+                increasedArgs += numSamplers - 1;
             }
             else
             {
-                pTempArgs[j + increased_args] = m_Args[j];
+                tempArgs[j + increasedArgs] = m_args[j];
             }
         }
         else
         {
-            pTempArgs[j + increased_args] = m_Args[j];
+            tempArgs[j + increasedArgs] = m_args[j];
         }
     }
 
 finish:
     if(hr == CM_OUT_OF_HOST_MEMORY)
     {
-        if(pTempArgs)
+        if(tempArgs)
         {
-            for (uint32_t j = 0; j < NumofArgs; j++)
+            for (uint32_t j = 0; j < numArgs; j++)
             {
-                MosSafeDeleteArray(pTempArgs[j].pValue);
+                MosSafeDeleteArray(tempArgs[j].value);
             }
         }
-        MosSafeDeleteArray( pTempArgs );
+        MosSafeDeleteArray( tempArgs );
     }
     return hr;
 }
@@ -2888,46 +2888,46 @@ finish:
 //*-----------------------------------------------------------------------------
 //| Purpose:   Get the number of args includes the num of surfaces in surface array
 //*-----------------------------------------------------------------------------
-int32_t CmKernelRT::GetArgCountPlusSurfArray(uint32_t &ArgSize, uint32_t & ArgCountPlus)
+int32_t CmKernelRT::GetArgCountPlusSurfArray(uint32_t &argSize, uint32_t & argCountPlus)
 {
-    unsigned int extra_args = 0;
+    unsigned int extraArgs = 0;
 
-    ArgCountPlus = m_ArgCount;
-    ArgSize      = 0;
+    argCountPlus = m_argCount;
+    argSize      = 0;
 
     if(m_usKernelPayloadDataSize)
     { // if payload data exists, the number of args is zero
-        ArgCountPlus  = 0;
-        ArgSize       = 0;
+        argCountPlus  = 0;
+        argSize       = 0;
         return CM_SUCCESS;
     }
 
-    if( m_ArgCount != 0 )   //Need pass the arg either by arguments area, or by indirect payload area
+    if( m_argCount != 0 )   //Need pass the arg either by arguments area, or by indirect payload area
     {
          //Sanity check for argument setting
-        if((m_blPerThreadArgExists == false) && (m_blPerKernelArgExists == false) && (m_usKernelPayloadDataSize == 0))
+        if((m_perThreadArgExists == false) && (m_perKernelArgExists == false) && (m_usKernelPayloadDataSize == 0))
         {
-            if ( m_state_buffer_bounded == CM_STATE_BUFFER_NONE )
+            if ( m_stateBufferBounded == CM_STATE_BUFFER_NONE )
             {
                 CM_ASSERTMESSAGE( "Error: Kernel arguments are not set." );
                 return CM_NOT_SET_KERNEL_ARGUMENT;
             }
         }
 
-        if(m_blPerThreadArgExists || m_blPerKernelArgExists)
+        if(m_perThreadArgExists || m_perKernelArgExists)
         {
-            for( uint32_t j = 0; j < m_ArgCount; j ++ )
+            for( uint32_t j = 0; j < m_argCount; j ++ )
             {
                 //Sanity checking for every argument setting
-                if ( !m_Args[j].bIsSet )
+                if ( !m_args[j].isSet )
                 {
                     CM_ASSERTMESSAGE("Error: One Kernel argument is not set.");
                     return CM_KERNEL_ARG_SETTING_FAILED;
                 }
 
-                ArgSize += m_Args[j].unitSize * m_Args[j].unitCount;
+                argSize += m_args[j].unitSize * m_args[j].unitCount;
 
-                if ( CHECK_SURFACE_TYPE( m_Args[ j ].unitKind,
+                if ( CHECK_SURFACE_TYPE( m_args[ j ].unitKind,
                                         ARG_KIND_SURFACE,
                                         ARG_KIND_SURFACE_1D,
                                         ARG_KIND_SURFACE_2D,
@@ -2940,29 +2940,29 @@ int32_t CmKernelRT::GetArgCountPlusSurfArray(uint32_t &ArgSize, uint32_t & ArgCo
                                         ARG_KIND_SURFACE_2D_SCOREBOARD,
                                         ARG_KIND_STATE_BUFFER ) )
                 {
-                     int num_surfaces = m_Args[j].unitSize/sizeof(int);
-                     if (num_surfaces > 1) {
-                           extra_args += num_surfaces - 1;
+                     int numSurfaces = m_args[j].unitSize/sizeof(int);
+                     if (numSurfaces > 1) {
+                           extraArgs += numSurfaces - 1;
                      }
                 }
-                else if (CHECK_SURFACE_TYPE(m_Args[j].unitKind, ARG_KIND_SURFACE_VME))
+                else if (CHECK_SURFACE_TYPE(m_args[j].unitKind, ARG_KIND_SURFACE_VME))
                 {
-                    int num_surfaces = m_Args[j].unitVmeArraySize;
-                    if (num_surfaces > 1) {
-                        extra_args += num_surfaces - 1;
+                    int numSurfaces = m_args[j].unitVmeArraySize;
+                    if (numSurfaces > 1) {
+                        extraArgs += numSurfaces - 1;
                     }
                 }
-                else if (m_Args[j].unitKind == ARG_KIND_SAMPLER)
+                else if (m_args[j].unitKind == ARG_KIND_SAMPLER)
                 {
-                    int num_samplers = m_Args[j].unitSize / sizeof(int);
-                    if (num_samplers > 1)
+                    int numSamplers = m_args[j].unitSize / sizeof(int);
+                    if (numSamplers > 1)
                     {
-                        extra_args += (num_samplers - 1);
+                        extraArgs += (numSamplers - 1);
                     }
                 }
             }
 
-            ArgCountPlus = m_ArgCount + extra_args;
+            argCountPlus = m_argCount + extraArgs;
         }
     }
     return CM_SUCCESS;
@@ -2972,119 +2972,119 @@ int32_t CmKernelRT::GetArgCountPlusSurfArray(uint32_t &ArgSize, uint32_t & ArgCo
 //| Purpose:   Create Thread Space Param
 //*-----------------------------------------------------------------------------
 int32_t CmKernelRT::CreateThreadSpaceParam(
-    PCM_HAL_KERNEL_THREADSPACE_PARAM pCmKernelThreadSpaceParam,
-    CmThreadSpaceRT*                   pThreadSpace     )
+    PCM_HAL_KERNEL_THREADSPACE_PARAM kernelThreadSpaceParam,
+    CmThreadSpaceRT*                   threadSpace     )
 {
     int32_t                      hr = CM_SUCCESS;
-    CM_HAL_DEPENDENCY*           pDependency = nullptr;
-    uint32_t                     TsWidth = 0;
-    uint32_t                     TsHeight =0;
-    CM_THREAD_SPACE_UNIT         *pThreadSpaceUnit = nullptr;
+    CM_HAL_DEPENDENCY*           dependency = nullptr;
+    uint32_t                     threadSpaceWidth = 0;
+    uint32_t                     threadSpaceHeight =0;
+    CM_THREAD_SPACE_UNIT         *threadSpaceUnit = nullptr;
     CM_THREAD_SPACE_DIRTY_STATUS dirtyStatus = CM_THREAD_SPACE_CLEAN;
 
-    if (pCmKernelThreadSpaceParam == nullptr || pThreadSpace == nullptr)
+    if (kernelThreadSpaceParam == nullptr || threadSpace == nullptr)
     {
         CM_ASSERTMESSAGE("Error: Pointer to CmKernelThreadSpaceParam or thread space is null.");
         hr = CM_NULL_POINTER;
         goto finish;
     }
 
-    pThreadSpace->GetThreadSpaceSize(TsWidth, TsHeight);
-    pCmKernelThreadSpaceParam->threadSpaceWidth =  (uint16_t)TsWidth;
-    pCmKernelThreadSpaceParam->threadSpaceHeight = (uint16_t)TsHeight;
+    threadSpace->GetThreadSpaceSize(threadSpaceWidth, threadSpaceHeight);
+    kernelThreadSpaceParam->threadSpaceWidth =  (uint16_t)threadSpaceWidth;
+    kernelThreadSpaceParam->threadSpaceHeight = (uint16_t)threadSpaceHeight;
 
-    pThreadSpace->GetDependencyPatternType(pCmKernelThreadSpaceParam->patternType);
-    pThreadSpace->GetWalkingPattern(pCmKernelThreadSpaceParam->walkingPattern);
-    pThreadSpace->GetDependency( pDependency);
+    threadSpace->GetDependencyPatternType(kernelThreadSpaceParam->patternType);
+    threadSpace->GetWalkingPattern(kernelThreadSpaceParam->walkingPattern);
+    threadSpace->GetDependency( dependency);
 
-    if(pDependency != nullptr)
+    if(dependency != nullptr)
     {
-        CmFastMemCopy(&pCmKernelThreadSpaceParam->dependencyInfo, pDependency, sizeof(CM_HAL_DEPENDENCY));
+        CmFastMemCopy(&kernelThreadSpaceParam->dependencyInfo, dependency, sizeof(CM_HAL_DEPENDENCY));
     }
 
-    if( pThreadSpace->CheckWalkingParametersSet( ) )
+    if( threadSpace->CheckWalkingParametersSet( ) )
     {
-        pCmKernelThreadSpaceParam->walkingParamsValid = 1;
-        CMCHK_HR(pThreadSpace->GetWalkingParameters(pCmKernelThreadSpaceParam->walkingParams));
-    }
-    else
-    {
-        pCmKernelThreadSpaceParam->walkingParamsValid = 0;
-    }
-
-    if( pThreadSpace->CheckDependencyVectorsSet( ) )
-    {
-        pCmKernelThreadSpaceParam->dependencyVectorsValid = 1;
-        CMCHK_HR(pThreadSpace->GetDependencyVectors(pCmKernelThreadSpaceParam->dependencyVectors));
+        kernelThreadSpaceParam->walkingParamsValid = 1;
+        CMCHK_HR(threadSpace->GetWalkingParameters(kernelThreadSpaceParam->walkingParams));
     }
     else
     {
-        pCmKernelThreadSpaceParam->dependencyVectorsValid = 0;
+        kernelThreadSpaceParam->walkingParamsValid = 0;
     }
 
-    pThreadSpace->GetThreadSpaceUnit(pThreadSpaceUnit);
-
-    if(pThreadSpaceUnit)
+    if( threadSpace->CheckDependencyVectorsSet( ) )
     {
-        pCmKernelThreadSpaceParam->threadCoordinates = MOS_NewArray(CM_HAL_SCOREBOARD, (TsWidth * TsHeight));
-        CMCHK_NULL_RETURN(pCmKernelThreadSpaceParam->threadCoordinates , CM_OUT_OF_HOST_MEMORY);
-        CmSafeMemSet(pCmKernelThreadSpaceParam->threadCoordinates, 0, TsHeight * TsWidth * sizeof(CM_HAL_SCOREBOARD));
+        kernelThreadSpaceParam->dependencyVectorsValid = 1;
+        CMCHK_HR(threadSpace->GetDependencyVectors(kernelThreadSpaceParam->dependencyVectors));
+    }
+    else
+    {
+        kernelThreadSpaceParam->dependencyVectorsValid = 0;
+    }
 
-        uint32_t *pBoardOrder = nullptr;
-        pThreadSpace->GetBoardOrder(pBoardOrder);
-        CMCHK_NULL(pBoardOrder);
+    threadSpace->GetThreadSpaceUnit(threadSpaceUnit);
 
-        pCmKernelThreadSpaceParam->reuseBBUpdateMask  = 0;
-        for(uint32_t i=0; i< TsWidth * TsHeight ; i++)
+    if(threadSpaceUnit)
+    {
+        kernelThreadSpaceParam->threadCoordinates = MOS_NewArray(CM_HAL_SCOREBOARD, (threadSpaceWidth * threadSpaceHeight));
+        CMCHK_NULL_RETURN(kernelThreadSpaceParam->threadCoordinates , CM_OUT_OF_HOST_MEMORY);
+        CmSafeMemSet(kernelThreadSpaceParam->threadCoordinates, 0, threadSpaceHeight * threadSpaceWidth * sizeof(CM_HAL_SCOREBOARD));
+
+        uint32_t *boardOrder = nullptr;
+        threadSpace->GetBoardOrder(boardOrder);
+        CMCHK_NULL(boardOrder);
+
+        kernelThreadSpaceParam->reuseBBUpdateMask  = 0;
+        for(uint32_t i=0; i< threadSpaceWidth * threadSpaceHeight ; i++)
         {
-            pCmKernelThreadSpaceParam->threadCoordinates[i].x = pThreadSpaceUnit[pBoardOrder[i]].scoreboardCoordinates.x;
-            pCmKernelThreadSpaceParam->threadCoordinates[i].y = pThreadSpaceUnit[pBoardOrder[i]].scoreboardCoordinates.y;
-            pCmKernelThreadSpaceParam->threadCoordinates[i].mask = pThreadSpaceUnit[pBoardOrder[i]].dependencyMask;
-            pCmKernelThreadSpaceParam->threadCoordinates[i].resetMask= pThreadSpaceUnit[pBoardOrder[i]].reset;
-            pCmKernelThreadSpaceParam->threadCoordinates[i].color = pThreadSpaceUnit[pBoardOrder[i]].scoreboardColor;
-            pCmKernelThreadSpaceParam->threadCoordinates[i].sliceSelect = pThreadSpaceUnit[pBoardOrder[i]].sliceDestinationSelect;
-            pCmKernelThreadSpaceParam->threadCoordinates[i].subSliceSelect = pThreadSpaceUnit[pBoardOrder[i]].subSliceDestinationSelect;
-            pCmKernelThreadSpaceParam->reuseBBUpdateMask |= pThreadSpaceUnit[pBoardOrder[i]].reset;
+            kernelThreadSpaceParam->threadCoordinates[i].x = threadSpaceUnit[boardOrder[i]].scoreboardCoordinates.x;
+            kernelThreadSpaceParam->threadCoordinates[i].y = threadSpaceUnit[boardOrder[i]].scoreboardCoordinates.y;
+            kernelThreadSpaceParam->threadCoordinates[i].mask = threadSpaceUnit[boardOrder[i]].dependencyMask;
+            kernelThreadSpaceParam->threadCoordinates[i].resetMask= threadSpaceUnit[boardOrder[i]].reset;
+            kernelThreadSpaceParam->threadCoordinates[i].color = threadSpaceUnit[boardOrder[i]].scoreboardColor;
+            kernelThreadSpaceParam->threadCoordinates[i].sliceSelect = threadSpaceUnit[boardOrder[i]].sliceDestinationSelect;
+            kernelThreadSpaceParam->threadCoordinates[i].subSliceSelect = threadSpaceUnit[boardOrder[i]].subSliceDestinationSelect;
+            kernelThreadSpaceParam->reuseBBUpdateMask |= threadSpaceUnit[boardOrder[i]].reset;
         }
 
-        if( pCmKernelThreadSpaceParam->patternType == CM_WAVEFRONT26Z )
+        if( kernelThreadSpaceParam->patternType == CM_WAVEFRONT26Z )
         {
             CM_HAL_WAVEFRONT26Z_DISPATCH_INFO dispatchInfo;
-            pThreadSpace->GetWavefront26ZDispatchInfo(dispatchInfo);
+            threadSpace->GetWavefront26ZDispatchInfo(dispatchInfo);
 
-            pCmKernelThreadSpaceParam->dispatchInfo.numWaves = dispatchInfo.numWaves;
-            pCmKernelThreadSpaceParam->dispatchInfo.numThreadsInWave = MOS_NewArray(uint32_t, dispatchInfo.numWaves);
-            CMCHK_NULL_RETURN(pCmKernelThreadSpaceParam->dispatchInfo.numThreadsInWave, CM_OUT_OF_HOST_MEMORY);
-            CmFastMemCopy(pCmKernelThreadSpaceParam->dispatchInfo.numThreadsInWave,
+            kernelThreadSpaceParam->dispatchInfo.numWaves = dispatchInfo.numWaves;
+            kernelThreadSpaceParam->dispatchInfo.numThreadsInWave = MOS_NewArray(uint32_t, dispatchInfo.numWaves);
+            CMCHK_NULL_RETURN(kernelThreadSpaceParam->dispatchInfo.numThreadsInWave, CM_OUT_OF_HOST_MEMORY);
+            CmFastMemCopy(kernelThreadSpaceParam->dispatchInfo.numThreadsInWave,
                 dispatchInfo.numThreadsInWave, dispatchInfo.numWaves*sizeof(uint32_t));
 
          }
     }
 
     //Get group select setting information
-    pThreadSpace->GetMediaWalkerGroupSelect(pCmKernelThreadSpaceParam->groupSelect);
+    threadSpace->GetMediaWalkerGroupSelect(kernelThreadSpaceParam->groupSelect);
 
     //Get color count
-    pThreadSpace->GetColorCountMinusOne(pCmKernelThreadSpaceParam->colorCountMinusOne);
+    threadSpace->GetColorCountMinusOne(kernelThreadSpaceParam->colorCountMinusOne);
 
-    dirtyStatus = pThreadSpace->GetDirtyStatus();
+    dirtyStatus = threadSpace->GetDirtyStatus();
     switch (dirtyStatus)
     {
     case CM_THREAD_SPACE_CLEAN:
-        pCmKernelThreadSpaceParam->bbDirtyStatus = CM_HAL_BB_CLEAN;
+        kernelThreadSpaceParam->bbDirtyStatus = CM_HAL_BB_CLEAN;
         break;
     default:
-        pCmKernelThreadSpaceParam->bbDirtyStatus = CM_HAL_BB_DIRTY;
+        kernelThreadSpaceParam->bbDirtyStatus = CM_HAL_BB_DIRTY;
         break;
     }
 
 finish:
     if( hr == CM_OUT_OF_HOST_MEMORY)
     {
-        if( pCmKernelThreadSpaceParam )
+        if( kernelThreadSpaceParam )
         {
-            MosSafeDeleteArray(pCmKernelThreadSpaceParam->dispatchInfo.numThreadsInWave);
-            MosSafeDeleteArray(pCmKernelThreadSpaceParam->threadCoordinates);
+            MosSafeDeleteArray(kernelThreadSpaceParam->dispatchInfo.numThreadsInWave);
+            MosSafeDeleteArray(kernelThreadSpaceParam->threadCoordinates);
         }
     }
 
@@ -3096,32 +3096,32 @@ finish:
 //*-----------------------------------------------------------------------------
 int32_t CmKernelRT::DestroyArgs( void )
 {
-    for( uint32_t i =0 ; i < m_ArgCount; i ++ )
+    for( uint32_t i =0 ; i < m_argCount; i ++ )
     {
-        CM_ARG& arg = m_Args[ i ];
-        MosSafeDeleteArray( arg.pValue );
+        CM_ARG& arg = m_args[ i ];
+        MosSafeDeleteArray( arg.value );
         MosSafeDeleteArray(arg.surfIndex);
-        MosSafeDeleteArray(arg.pSurfArrayArg);
+        MosSafeDeleteArray(arg.surfArrayArg);
         arg.unitCount = 0;
         arg.unitSize = 0;
         arg.unitKind = 0;
         arg.unitOffsetInPayload = 0;
-        arg.bIsDirty = true;
-        arg.bIsSet = false;
+        arg.isDirty = true;
+        arg.isSet = false;
     }
 
-    MosSafeDeleteArray( m_Args );
+    MosSafeDeleteArray( m_args );
 
-    m_AssociatedToTS        = false;
-    m_pThreadSpace          = nullptr;
+    m_threadSpaceAssociated        = false;
+    m_threadSpace          = nullptr;
 
-    m_blPerThreadArgExists  = false;
-    m_blPerKernelArgExists  = false;
+    m_perThreadArgExists  = false;
+    m_perKernelArgExists  = false;
 
-    m_SizeInCurbe = 0;
-    m_CurbeEnable = true;
+    m_sizeInCurbe = 0;
+    m_curbeEnabled = true;
 
-    m_SizeInPayload = 0;
+    m_sizeInPayload = 0;
     m_adjustScoreboardY = 0;
 
     ResetKernelSurfaces();
@@ -3135,43 +3135,43 @@ int32_t CmKernelRT::DestroyArgs( void )
 //*-----------------------------------------------------------------------------
 int32_t CmKernelRT::Reset( void )
 {
-    for( uint32_t i =0 ; i < m_ArgCount; i ++ )
+    for( uint32_t i =0 ; i < m_argCount; i ++ )
     {
-        CM_ARG& arg = m_Args[ i ];
-        MosSafeDeleteArray( arg.pValue );
+        CM_ARG& arg = m_args[ i ];
+        MosSafeDeleteArray( arg.value );
         MosSafeDeleteArray( arg.surfIndex);
-        MosSafeDeleteArray(arg.pSurfArrayArg);
-        arg.pValue = nullptr;
+        MosSafeDeleteArray(arg.surfArrayArg);
+        arg.value = nullptr;
         arg.unitCount = 0;
 
         arg.unitSize = arg.unitSizeOrig;
         arg.unitKind = arg.unitKindOrig;
         arg.unitOffsetInPayload = arg.unitOffsetInPayloadOrig;
 
-        arg.bIsDirty = true;
-        arg.bIsSet = false;
+        arg.isDirty = true;
+        arg.isSet = false;
         arg.unitVmeArraySize = 0;
     }
 
-    m_ThreadCount = 0;
+    m_threadCount = 0;
 
-    m_IndexInTask = 0;
+    m_indexInTask = 0;
 
-    m_blPerThreadArgExists = false;
-    m_blPerKernelArgExists = false;
+    m_perThreadArgExists = false;
+    m_perKernelArgExists = false;
 
-    m_SizeInCurbe = 0;
-    m_CurbeEnable = true;
+    m_sizeInCurbe = 0;
+    m_curbeEnabled = true;
 
-    m_SizeInPayload = 0;
+    m_sizeInPayload = 0;
 
-    m_AssociatedToTS = false;
-    m_pThreadSpace = nullptr;
+    m_threadSpaceAssociated = false;
+    m_threadSpace = nullptr;
     m_adjustScoreboardY = 0;
 
-    m_pThreadGroupSpace = nullptr;
+    m_threadGroupSpace = nullptr;
 
-    MosSafeDeleteArray(m_pKernelPayloadData);
+    MosSafeDeleteArray(m_kernelPayloadData);
     m_usKernelPayloadDataSize = 0;
 
     if (m_usKernelPayloadSurfaceCount)
@@ -3189,9 +3189,9 @@ int32_t CmKernelRT::Reset( void )
 //*-----------------------------------------------------------------------------
 //| Purpose:   Get the pointer to arguments array
 //*-----------------------------------------------------------------------------
-int32_t CmKernelRT::GetArgs( CM_ARG* & pArg )
+int32_t CmKernelRT::GetArgs( CM_ARG* & arg )
 {
-    pArg = m_Args;
+    arg = m_args;
     return CM_SUCCESS;
 }
 
@@ -3200,7 +3200,7 @@ int32_t CmKernelRT::GetArgs( CM_ARG* & pArg )
 //*-----------------------------------------------------------------------------
 int32_t CmKernelRT::GetArgCount( uint32_t & argCount )
 {
-    argCount = m_ArgCount;
+    argCount = m_argCount;
     return CM_SUCCESS;
 }
 
@@ -3209,7 +3209,7 @@ int32_t CmKernelRT::GetArgCount( uint32_t & argCount )
 //*-----------------------------------------------------------------------------
 int32_t CmKernelRT::GetCurbeEnable( bool& b )
 {
-    b = m_CurbeEnable;
+    b = m_curbeEnabled;
     return CM_SUCCESS;
 }
 
@@ -3218,7 +3218,7 @@ int32_t CmKernelRT::GetCurbeEnable( bool& b )
 //*-----------------------------------------------------------------------------
 int32_t CmKernelRT::SetCurbeEnable( bool b )
 {
-    m_CurbeEnable = b;
+    m_curbeEnabled = b;
     return CM_SUCCESS;
 }
 
@@ -3227,7 +3227,7 @@ int32_t CmKernelRT::SetCurbeEnable( bool b )
 //*-----------------------------------------------------------------------------
 int32_t CmKernelRT::GetSizeInCurbe( uint32_t& size )
 {
-    size = m_SizeInCurbe;
+    size = m_sizeInCurbe;
     return CM_SUCCESS;
 }
 
@@ -3236,84 +3236,84 @@ int32_t CmKernelRT::GetSizeInCurbe( uint32_t& size )
 //*-----------------------------------------------------------------------------
 int32_t CmKernelRT::GetSizeInPayload( uint32_t& size )
 {
-    size = m_SizeInPayload;
+    size = m_sizeInPayload;
     return CM_SUCCESS;
 }
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Get the pointer to CM device
 //*-----------------------------------------------------------------------------
-int32_t CmKernelRT::GetCmDevice(CmDeviceRT* &pCmDev)
+int32_t CmKernelRT::GetCmDevice(CmDeviceRT* &device)
 {
-    pCmDev = m_pCmDev;
+    device = m_device;
     return CM_SUCCESS;
 }
 
-int32_t CmKernelRT::GetCmProgram( CmProgramRT* & pProgram )
+int32_t CmKernelRT::GetCmProgram( CmProgramRT* & program )
 {
-    pProgram = m_pProgram;
+    program = m_program;
     return CM_SUCCESS;
 }
 
 int32_t CmKernelRT::CollectKernelSurface()
 {
-    m_VMESurfaceCount = 0;
-    m_MaxSurfaceIndexAllocated = 0;
+    m_vmeSurfaceCount = 0;
+    m_maxSurfaceIndexAllocated = 0;
 
-    for( uint32_t j = 0; j < m_ArgCount; j ++ )
+    for( uint32_t j = 0; j < m_argCount; j ++ )
     {
-        if ((m_Args[ j ].unitKind == ARG_KIND_SURFACE ) || // first time
-             ( m_Args[ j ].unitKind == ARG_KIND_SURFACE_1D ) ||
-             ( m_Args[ j ].unitKind == ARG_KIND_SURFACE_2D ) ||
-             ( m_Args[ j ].unitKind == ARG_KIND_SURFACE_2D_UP ) ||
-             ( m_Args[ j ].unitKind == ARG_KIND_SURFACE_SAMPLER ) ||
-             ( m_Args[ j ].unitKind == ARG_KIND_SURFACE2DUP_SAMPLER ) ||
-             ( m_Args[ j ].unitKind == ARG_KIND_SURFACE_3D ) ||
-             ( m_Args[ j ].unitKind == ARG_KIND_SURFACE_SAMPLER8X8_AVS) ||
-             ( m_Args[ j ].unitKind == ARG_KIND_SURFACE_SAMPLER8X8_VA) ||
-             ( m_Args[ j ].unitKind == ARG_KIND_SURFACE_VME ) ||
-             ( m_Args[ j ].unitKind == ARG_KIND_SURFACE_2D_SCOREBOARD) ||
-             ( m_Args[ j ].unitKind == ARG_KIND_STATE_BUFFER ) )
+        if ((m_args[ j ].unitKind == ARG_KIND_SURFACE ) || // first time
+             ( m_args[ j ].unitKind == ARG_KIND_SURFACE_1D ) ||
+             ( m_args[ j ].unitKind == ARG_KIND_SURFACE_2D ) ||
+             ( m_args[ j ].unitKind == ARG_KIND_SURFACE_2D_UP ) ||
+             ( m_args[ j ].unitKind == ARG_KIND_SURFACE_SAMPLER ) ||
+             ( m_args[ j ].unitKind == ARG_KIND_SURFACE2DUP_SAMPLER ) ||
+             ( m_args[ j ].unitKind == ARG_KIND_SURFACE_3D ) ||
+             ( m_args[ j ].unitKind == ARG_KIND_SURFACE_SAMPLER8X8_AVS) ||
+             ( m_args[ j ].unitKind == ARG_KIND_SURFACE_SAMPLER8X8_VA) ||
+             ( m_args[ j ].unitKind == ARG_KIND_SURFACE_VME ) ||
+             ( m_args[ j ].unitKind == ARG_KIND_SURFACE_2D_SCOREBOARD) ||
+             ( m_args[ j ].unitKind == ARG_KIND_STATE_BUFFER ) )
         {
-            int num_surfaces;
-            int num_valid_surfaces = 0;
+            int numSurfaces;
+            int numValidSurfaces = 0;
 
-            if (m_Args[ j ].unitKind == ARG_KIND_SURFACE_VME)
+            if (m_args[ j ].unitKind == ARG_KIND_SURFACE_VME)
             {
-                num_surfaces = getSurfNumFromArgArraySize(m_Args[j].unitSize, m_Args[j].unitVmeArraySize);
+                numSurfaces = getSurfNumFromArgArraySize(m_args[j].unitSize, m_args[j].unitVmeArraySize);
             }
             else
             {
-                num_surfaces = m_Args[j].unitSize/sizeof(int);
+                numSurfaces = m_args[j].unitSize/sizeof(int);
             }
 
-            for (uint32_t k = 0; k < num_surfaces * m_Args[j].unitCount; k ++)
+            for (uint32_t k = 0; k < numSurfaces * m_args[j].unitCount; k ++)
             {
                 uint16_t surfIndex = 0;
-                if (m_Args[j].surfIndex)
+                if (m_args[j].surfIndex)
                 {
-                    surfIndex = m_Args[j].surfIndex[k];
+                    surfIndex = m_args[j].surfIndex[k];
                 }
                 if (surfIndex != 0 && surfIndex != CM_NULL_SURFACE)
                 {
-                    m_SurfaceArray[surfIndex] = true;
-                    num_valid_surfaces ++;
-                    m_MaxSurfaceIndexAllocated = Max(m_MaxSurfaceIndexAllocated, surfIndex);
+                    m_surfaceArray[surfIndex] = true;
+                    numValidSurfaces ++;
+                    m_maxSurfaceIndexAllocated = Max(m_maxSurfaceIndexAllocated, surfIndex);
                 }
             }
-            if (m_Args[ j ].unitKind == ARG_KIND_SURFACE_VME)
+            if (m_args[ j ].unitKind == ARG_KIND_SURFACE_VME)
             {
-                m_VMESurfaceCount += num_valid_surfaces;
+                m_vmeSurfaceCount += numValidSurfaces;
             }
         }
     }
 
     for( int32_t i=0; i < CM_GLOBAL_SURFACE_NUMBER; ++i )
     {
-        if( m_GlobalSurfaces[i] != nullptr )
+        if( m_globalSurfaces[i] != nullptr )
         {
-            uint32_t surfIndex = m_GlobalCmIndex[i];
-            m_SurfaceArray[surfIndex] = true;
+            uint32_t surfIndex = m_globalCmIndex[i];
+            m_surfaceArray[surfIndex] = true;
         }
     }
 
@@ -3322,32 +3322,32 @@ int32_t CmKernelRT::CollectKernelSurface()
         if (m_pKernelPayloadSurfaceArray[i] != nullptr)
         {
             uint32_t surfIndex = m_pKernelPayloadSurfaceArray[i]->get_data();
-            m_SurfaceArray[surfIndex] = true;
+            m_surfaceArray[surfIndex] = true;
         }
     }
 
     return CM_SUCCESS;
 }
 
-int32_t CmKernelRT::IsKernelDataReusable( CmThreadSpaceRT* pTS)
+int32_t CmKernelRT::IsKernelDataReusable( CmThreadSpaceRT* threadSpace)
 {
-    if(pTS)
+    if(threadSpace)
     {
-        if(pTS->IsThreadAssociated() && (pTS->GetDirtyStatus()!= CM_THREAD_SPACE_CLEAN))
+        if(threadSpace->IsThreadAssociated() && (threadSpace->GetDirtyStatus()!= CM_THREAD_SPACE_CLEAN))
         {
             return false;
         }
     }
 
-    if(m_pThreadSpace)
+    if(m_threadSpace)
     {
-        if(m_pThreadSpace->GetDirtyStatus()!= CM_THREAD_SPACE_CLEAN)
+        if(m_threadSpace->GetDirtyStatus()!= CM_THREAD_SPACE_CLEAN)
         {
             return  false;
         }
     }
 
-    if(m_Dirty !=  CM_KERNEL_DATA_CLEAN)
+    if(m_dirty !=  CM_KERNEL_DATA_CLEAN)
     {
         return false;
     }
@@ -3360,147 +3360,147 @@ int32_t CmKernelRT::IsKernelDataReusable( CmThreadSpaceRT* pTS)
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 int32_t CmKernelRT::CreateKernelData(
-    CmKernelData* & pKernelData,  // out
+    CmKernelData* & kernelData,  // out
     uint32_t& kernelDataSize,         // out
-    const CmThreadSpaceRT* pTS )    // in
+    const CmThreadSpaceRT* threadSpace )    // in
 {
     int32_t              hr              = CM_SUCCESS;
-    PCM_HAL_KERNEL_PARAM pHalKernelParam = nullptr;
+    PCM_HAL_KERNEL_PARAM halKernelParam = nullptr;
 
-    if( (pTS != nullptr) && (m_pThreadSpace != nullptr) )
+    if( (threadSpace != nullptr) && (m_threadSpace != nullptr) )
     {
         // per-kernel threadspace and per-task threadspace cannot be set at the same time
         return CM_INVALID_THREAD_SPACE;
     }
 
-    if(m_pLastKernelData == nullptr)
+    if(m_lastKernelData == nullptr)
     {
-        CMCHK_HR(CreateKernelDataInternal(pKernelData, kernelDataSize, pTS));
+        CMCHK_HR(CreateKernelDataInternal(kernelData, kernelDataSize, threadSpace));
         CMCHK_HR(AcquireKernelProgram()); // increase kernel/program's ref count
-        CMCHK_HR(UpdateLastKernelData(pKernelData));
+        CMCHK_HR(UpdateLastKernelData(kernelData));
     }
     else
     {
-        if(IsKernelDataReusable(const_cast<CmThreadSpaceRT *>(pTS)))
+        if(IsKernelDataReusable(const_cast<CmThreadSpaceRT *>(threadSpace)))
         {
-            // nothing changed; Reuse m_pLastKernelData
-            pKernelData = m_pLastKernelData;
-            CMCHK_HR(AcquireKernelData(pKernelData));
+            // nothing changed; Reuse m_lastKernelData
+            kernelData = m_lastKernelData;
+            CMCHK_HR(AcquireKernelData(kernelData));
             CMCHK_HR(AcquireKernelProgram()); // increase kernel and program's ref count
-            kernelDataSize = pKernelData->GetKernelDataSize();
+            kernelDataSize = kernelData->GetKernelDataSize();
 
-            if (m_pThreadSpace)
+            if (m_threadSpace)
             {
-                pHalKernelParam = pKernelData->GetHalCmKernelData();
-                CMCHK_NULL(pHalKernelParam);
+                halKernelParam = kernelData->GetHalCmKernelData();
+                CMCHK_NULL(halKernelParam);
                 // need to set to clean here because CmThreadSpaceParam.BBdirtyStatus is only set in CreateKernelDataInternal
                 // flag used to re-use batch buffer, don't care if BB is busy if it is "clean"
-                pHalKernelParam->kernelThreadSpaceParam.bbDirtyStatus = CM_HAL_BB_CLEAN;
+                halKernelParam->kernelThreadSpaceParam.bbDirtyStatus = CM_HAL_BB_CLEAN;
             }
         }
         else
         {
-            if(m_pLastKernelData->IsInUse())
+            if(m_lastKernelData->IsInUse())
             { // Need to Create a new one , if the kernel data is in use
-                CMCHK_HR(CreateKernelDataInternal(pKernelData, kernelDataSize, pTS));
+                CMCHK_HR(CreateKernelDataInternal(kernelData, kernelDataSize, threadSpace));
                 CMCHK_HR(AcquireKernelProgram()); // increase kernel/program's ref count
-                CMCHK_HR(UpdateLastKernelData(pKernelData));
+                CMCHK_HR(UpdateLastKernelData(kernelData));
             }
-            else if(pTS && pTS->IsThreadAssociated() && (pTS->GetDirtyStatus() != CM_THREAD_SPACE_CLEAN))
+            else if(threadSpace && threadSpace->IsThreadAssociated() && (threadSpace->GetDirtyStatus() != CM_THREAD_SPACE_CLEAN))
             { // if thread space is assocaited , don't support reuse
-                CMCHK_HR(CreateKernelDataInternal(pKernelData, kernelDataSize, pTS));
+                CMCHK_HR(CreateKernelDataInternal(kernelData, kernelDataSize, threadSpace));
                 CMCHK_HR(AcquireKernelProgram()); // increase kernel/program's ref count
-                CMCHK_HR(UpdateLastKernelData(pKernelData));
+                CMCHK_HR(UpdateLastKernelData(kernelData));
             }
-            else if(m_Dirty < CM_KERNEL_DATA_THREAD_COUNT_DIRTY || // Kernel arg or thread arg dirty
-                (m_pThreadSpace && m_pThreadSpace->GetDirtyStatus() == CM_THREAD_SPACE_DEPENDENCY_MASK_DIRTY))
+            else if(m_dirty < CM_KERNEL_DATA_THREAD_COUNT_DIRTY || // Kernel arg or thread arg dirty
+                (m_threadSpace && m_threadSpace->GetDirtyStatus() == CM_THREAD_SPACE_DEPENDENCY_MASK_DIRTY))
             {
-                CMCHK_HR(UpdateKernelData(m_pLastKernelData,pTS));
-                pKernelData = m_pLastKernelData;
-                CMCHK_HR(AcquireKernelData(pKernelData));
+                CMCHK_HR(UpdateKernelData(m_lastKernelData,threadSpace));
+                kernelData = m_lastKernelData;
+                CMCHK_HR(AcquireKernelData(kernelData));
                 CMCHK_HR(AcquireKernelProgram()); // increase kernel and program's ref count
-                kernelDataSize = pKernelData->GetKernelDataSize();
+                kernelDataSize = kernelData->GetKernelDataSize();
 
             }
             else
             {
-               CMCHK_HR(CreateKernelDataInternal(pKernelData, kernelDataSize, pTS));
+               CMCHK_HR(CreateKernelDataInternal(kernelData, kernelDataSize, threadSpace));
                CMCHK_HR(AcquireKernelProgram()); // increase kernel/program's ref count
-               CMCHK_HR(UpdateLastKernelData(pKernelData));
+               CMCHK_HR(UpdateLastKernelData(kernelData));
             }
         }
     }
 
     CleanArgDirtyFlag();
-    if(pTS)
+    if(threadSpace)
     {
-        pTS->SetDirtyStatus(CM_THREAD_SPACE_CLEAN);
+        threadSpace->SetDirtyStatus(CM_THREAD_SPACE_CLEAN);
     }
-    if (m_pThreadSpace)
+    if (m_threadSpace)
     {
-        m_pThreadSpace->SetDirtyStatus(CM_THREAD_SPACE_CLEAN);
+        m_threadSpace->SetDirtyStatus(CM_THREAD_SPACE_CLEAN);
     }
 
 finish:
     return hr;
 }
 
-char* CmKernelRT::GetName() { return (char*)m_pKernelInfo->kernelName; }
+char* CmKernelRT::GetName() { return (char*)m_kernelInfo->kernelName; }
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Create Kernel Data
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 int32_t CmKernelRT::CreateKernelData(
-    CmKernelData* & pKernelData,  // out
+    CmKernelData* & kernelData,  // out
     uint32_t& kernelDataSize,         // out
-    const CmThreadGroupSpace* pTGS )    // in
+    const CmThreadGroupSpace* threadGroupSpace )    // in
 {
     int32_t     hr   = CM_SUCCESS;
-    CmThreadGroupSpace* pUsedTGS = nullptr;
+    CmThreadGroupSpace* usedThreadGroupSpace = nullptr;
 
     //If kernel has associated TGS, we will use it, instead of per-task TGS
-    if (m_pThreadGroupSpace)
+    if (m_threadGroupSpace)
     {
-        pUsedTGS = m_pThreadGroupSpace;
+        usedThreadGroupSpace = m_threadGroupSpace;
     }
     else
     {
-        pUsedTGS = const_cast<CmThreadGroupSpace*>(pTGS);
+        usedThreadGroupSpace = const_cast<CmThreadGroupSpace*>(threadGroupSpace);
     }
 
-    if(m_pLastKernelData == nullptr)
+    if(m_lastKernelData == nullptr)
     {
-        CMCHK_HR(CreateKernelDataInternal(pKernelData, kernelDataSize, pUsedTGS));
+        CMCHK_HR(CreateKernelDataInternal(kernelData, kernelDataSize, usedThreadGroupSpace));
         CMCHK_HR(AcquireKernelProgram()); // increase kernel/program's ref count
-        CMCHK_HR(UpdateLastKernelData(pKernelData));
+        CMCHK_HR(UpdateLastKernelData(kernelData));
     }
     else
     {
-        if(!(m_Dirty & CM_KERNEL_DATA_KERNEL_ARG_DIRTY))
+        if(!(m_dirty & CM_KERNEL_DATA_KERNEL_ARG_DIRTY))
         {
-            // nothing changed; Reuse m_pLastKernelData
-            pKernelData = m_pLastKernelData;
-            CMCHK_HR(AcquireKernelData(pKernelData));
+            // nothing changed; Reuse m_lastKernelData
+            kernelData = m_lastKernelData;
+            CMCHK_HR(AcquireKernelData(kernelData));
             CMCHK_HR(AcquireKernelProgram()); // increase kernel and program's ref count
-            kernelDataSize = pKernelData->GetKernelDataSize();
+            kernelDataSize = kernelData->GetKernelDataSize();
         }
         else
         {
-            if(m_pLastKernelData->IsInUse())
+            if(m_lastKernelData->IsInUse())
             { // Need to Clone a new one
-                CMCHK_HR(CreateKernelDataInternal(pKernelData, kernelDataSize, pUsedTGS));
+                CMCHK_HR(CreateKernelDataInternal(kernelData, kernelDataSize, usedThreadGroupSpace));
                 CMCHK_HR(AcquireKernelProgram()); // increase kernel/program's ref count
-                CMCHK_HR(UpdateLastKernelData(pKernelData));
+                CMCHK_HR(UpdateLastKernelData(kernelData));
             }
             else
             {
-                // change happend -> Reuse m_pLastKernelData but need to change its content accordingly
-                CMCHK_HR(UpdateKernelData(m_pLastKernelData, pUsedTGS));
-                pKernelData = m_pLastKernelData;
-                CMCHK_HR(AcquireKernelData(pKernelData));
+                // change happend -> Reuse m_lastKernelData but need to change its content accordingly
+                CMCHK_HR(UpdateKernelData(m_lastKernelData, usedThreadGroupSpace));
+                kernelData = m_lastKernelData;
+                CMCHK_HR(AcquireKernelData(kernelData));
                 CMCHK_HR(AcquireKernelProgram()); // increase kernel and program's ref count
-                kernelDataSize = pKernelData->GetKernelDataSize();
+                kernelDataSize = kernelData->GetKernelDataSize();
             }
         }
     }
@@ -3514,17 +3514,17 @@ finish:
 int32_t CmKernelRT::CleanArgDirtyFlag()
 {
 
-    for(uint32_t i =0 ; i< m_ArgCount; i++)
+    for(uint32_t i =0 ; i< m_argCount; i++)
     {
-        m_Args[i].bIsDirty = false;
+        m_args[i].isDirty = false;
     }
 
-    if(m_pThreadSpace && m_pThreadSpace->GetDirtyStatus())
+    if(m_threadSpace && m_threadSpace->GetDirtyStatus())
     {
-        m_pThreadSpace->SetDirtyStatus(CM_THREAD_SPACE_CLEAN);
+        m_threadSpace->SetDirtyStatus(CM_THREAD_SPACE_CLEAN);
     }
 
-    m_Dirty                 = CM_KERNEL_DATA_CLEAN;
+    m_dirty                 = CM_KERNEL_DATA_CLEAN;
 
     return CM_SUCCESS;
 }
@@ -3533,30 +3533,30 @@ int32_t CmKernelRT::CleanArgDirtyFlag()
 //| Purpose:    Update the global surface and gtpin surface info to kernel data
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmKernelRT::UpdateKernelDataGlobalSurfaceInfo( PCM_HAL_KERNEL_PARAM pHalKernelParam )
+int32_t CmKernelRT::UpdateKernelDataGlobalSurfaceInfo( PCM_HAL_KERNEL_PARAM halKernelParam )
 {
     int32_t hr = CM_SUCCESS;
 
     //global surface
     for ( uint32_t j = 0; j < CM_GLOBAL_SURFACE_NUMBER; j++ )
     {
-        if ( m_GlobalSurfaces[ j ] != nullptr )
+        if ( m_globalSurfaces[ j ] != nullptr )
         {
-            pHalKernelParam->globalSurface[ j ] = m_GlobalSurfaces[ j ]->get_data();
-            pHalKernelParam->globalSurfaceUsed = true;
+            halKernelParam->globalSurface[ j ] = m_globalSurfaces[ j ]->get_data();
+            halKernelParam->globalSurfaceUsed = true;
         }
         else
         {
-            pHalKernelParam->globalSurface[ j ] = CM_NULL_SURFACE;
+            halKernelParam->globalSurface[ j ] = CM_NULL_SURFACE;
         }
     }
 
     for ( uint32_t j = CM_GLOBAL_SURFACE_NUMBER; j < CM_MAX_GLOBAL_SURFACE_NUMBER; j++ )
     {
-        pHalKernelParam->globalSurface[ j ] = CM_NULL_SURFACE;
+        halKernelParam->globalSurface[ j ] = CM_NULL_SURFACE;
     }
 #if USE_EXTENSION_CODE
-    UpdateKernelDataGTPinSurfaceInfo(pHalKernelParam);
+    UpdateKernelDataGTPinSurfaceInfo(halKernelParam);
 #endif
 
     return hr;
@@ -3567,256 +3567,256 @@ int32_t CmKernelRT::UpdateKernelDataGlobalSurfaceInfo( PCM_HAL_KERNEL_PARAM pHal
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 int32_t CmKernelRT::CreateKernelDataInternal(
-    CmKernelData* & pKernelData,  // out
+    CmKernelData* & kernelData,  // out
     uint32_t& kernelDataSize,         // out
-    const CmThreadGroupSpace* pTGS)    // in
+    const CmThreadGroupSpace* threadGroupSpace)    // in
 {
-    PCM_HAL_KERNEL_PARAM  pHalKernelParam = nullptr;
+    PCM_HAL_KERNEL_PARAM  halKernelParam = nullptr;
     int32_t               hr = CM_SUCCESS;
     uint32_t              movInstNum = 0;
-    uint32_t              KrnCurbeSize = 0;
-    uint32_t              NumArgs = 0;
-    CM_ARG                *pTempArgs = nullptr;
-    uint32_t              ArgSize = 0;
+    uint32_t              kernelCurbeSize = 0;
+    uint32_t              numArgs = 0;
+    CM_ARG                *tempArgs = nullptr;
+    uint32_t              argSize = 0;
     uint32_t              surfNum = 0; //Pass needed BT entry numbers to HAL CM
-    CmKernelRT             *pCmKernel = nullptr;
+    CmKernelRT             *cmKernel = nullptr;
 
-    CMCHK_HR(CmKernelData::Create(this, pKernelData));
-    pHalKernelParam = pKernelData->GetHalCmKernelData();
-    CMCHK_NULL(pHalKernelParam);
+    CMCHK_HR(CmKernelData::Create(this, kernelData));
+    halKernelParam = kernelData->GetHalCmKernelData();
+    CMCHK_NULL(halKernelParam);
 
     //Get Num of args with surface array
-    CMCHK_HR(GetArgCountPlusSurfArray(ArgSize, NumArgs));
+    CMCHK_HR(GetArgCountPlusSurfArray(argSize, numArgs));
 
     //Create Temp args
-    CMCHK_HR(CreateTempArgs(NumArgs, pTempArgs));
+    CMCHK_HR(CreateTempArgs(numArgs, tempArgs));
 
     //Create move instructions
-    CMCHK_HR(CreateMovInstructions(movInstNum, pHalKernelParam->movInsData, pTempArgs, NumArgs));
-    CMCHK_HR(CalcKernelDataSize(movInstNum, NumArgs, ArgSize, kernelDataSize));
-    CMCHK_HR(pKernelData->SetKernelDataSize(kernelDataSize));
+    CMCHK_HR(CreateMovInstructions(movInstNum, halKernelParam->movInsData, tempArgs, numArgs));
+    CMCHK_HR(CalcKernelDataSize(movInstNum, numArgs, argSize, kernelDataSize));
+    CMCHK_HR(kernelData->SetKernelDataSize(kernelDataSize));
 
-    pHalKernelParam->clonedKernelParam.isClonedKernel = m_IsClonedKernel;
-    pHalKernelParam->clonedKernelParam.kernelID       = m_CloneKernelID;
-    pHalKernelParam->clonedKernelParam.hasClones      = m_HasClones;
+    halKernelParam->clonedKernelParam.isClonedKernel = m_isClonedKernel;
+    halKernelParam->clonedKernelParam.kernelID       = m_cloneKernelID;
+    halKernelParam->clonedKernelParam.hasClones      = m_hasClones;
 
-    pHalKernelParam->kernelId = m_Id++;
-    if ((m_pProgram->m_CISA_majorVersion >= 3 && m_pProgram->m_CISA_minorVersion >= 3))
-        pHalKernelParam->numArgs = NumArgs;
+    halKernelParam->kernelId = m_id++;
+    if ((m_program->m_cisaMajorVersion >= 3 && m_program->m_cisaMinorVersion >= 3))
+        halKernelParam->numArgs = numArgs;
     else
-        pHalKernelParam->numArgs = NumArgs + CM_GPUWALKER_IMPLICIT_ARG_NUM;
-    pHalKernelParam->numThreads = m_ThreadCount;
-    pHalKernelParam->kernelBinarySize = m_uiBinarySize + movInstNum * CM_MOVE_INSTRUCTION_SIZE;
-    pHalKernelParam->kernelDataSize = kernelDataSize;
-    pHalKernelParam->movInsDataSize = movInstNum * CM_MOVE_INSTRUCTION_SIZE;
-    pHalKernelParam->kernelDebugEnabled = m_blhwDebugEnable;
+        halKernelParam->numArgs = numArgs + CM_GPUWALKER_IMPLICIT_ARG_NUM;
+    halKernelParam->numThreads = m_threadCount;
+    halKernelParam->kernelBinarySize = m_binarySize + movInstNum * CM_MOVE_INSTRUCTION_SIZE;
+    halKernelParam->kernelDataSize = kernelDataSize;
+    halKernelParam->movInsDataSize = movInstNum * CM_MOVE_INSTRUCTION_SIZE;
+    halKernelParam->kernelDebugEnabled = m_blhwDebugEnable;
 
-    pHalKernelParam->cmFlags = m_CurbeEnable ? CM_FLAG_CURBE_ENABLED : 0;
-    pHalKernelParam->cmFlags |= m_NonstallingScoreboardEnable ? CM_FLAG_NONSTALLING_SCOREBOARD_ENABLED : 0;
+    halKernelParam->cmFlags = m_curbeEnabled ? CM_FLAG_CURBE_ENABLED : 0;
+    halKernelParam->cmFlags |= m_nonstallingScoreboardEnabled ? CM_FLAG_NONSTALLING_SCOREBOARD_ENABLED : 0;
 
-    pHalKernelParam->kernelBinary = (uint8_t*)m_pBinary;
+    halKernelParam->kernelBinary = (uint8_t*)m_binary;
 
-    CMCHK_HR(pKernelData->GetCmKernel(pCmKernel));
-    if (pCmKernel == nullptr)
+    CMCHK_HR(kernelData->GetCmKernel(cmKernel));
+    if (cmKernel == nullptr)
     {
         return CM_NULL_POINTER;
     }
-    MOS_SecureStrcpy(pHalKernelParam->kernelName, CM_MAX_KERNEL_NAME_SIZE_IN_BYTE, pCmKernel->GetName());
+    MOS_SecureStrcpy(halKernelParam->kernelName, CM_MAX_KERNEL_NAME_SIZE_IN_BYTE, cmKernel->GetName());
 
     uint32_t thrdSpaceWidth, thrdSpaceHeight, thrdSpaceDepth, grpSpaceWidth, grpSpaceHeight, grpSpaceDepth;
-    pTGS->GetThreadGroupSpaceSize(thrdSpaceWidth, thrdSpaceHeight, thrdSpaceDepth, grpSpaceWidth, grpSpaceHeight, grpSpaceDepth);
+    threadGroupSpace->GetThreadGroupSpaceSize(thrdSpaceWidth, thrdSpaceHeight, thrdSpaceDepth, grpSpaceWidth, grpSpaceHeight, grpSpaceDepth);
 
-    for (uint32_t i = 0; i < NumArgs; i++)
+    for (uint32_t i = 0; i < numArgs; i++)
     {
-        pHalKernelParam->argParams[i].unitCount = pTempArgs[i].unitCount;
-        pHalKernelParam->argParams[i].kind = (CM_HAL_KERNEL_ARG_KIND)(pTempArgs[i].unitKind);
-        pHalKernelParam->argParams[i].unitSize = pTempArgs[i].unitSize;
-        pHalKernelParam->argParams[i].payloadOffset = pTempArgs[i].unitOffsetInPayload;
-        pHalKernelParam->argParams[i].perThread = false;
-        pHalKernelParam->argParams[i].nCustomValue = pTempArgs[i].nCustomValue;
-        pHalKernelParam->argParams[i].isNull = pTempArgs[ i ].bIsNull;
+        halKernelParam->argParams[i].unitCount = tempArgs[i].unitCount;
+        halKernelParam->argParams[i].kind = (CM_HAL_KERNEL_ARG_KIND)(tempArgs[i].unitKind);
+        halKernelParam->argParams[i].unitSize = tempArgs[i].unitSize;
+        halKernelParam->argParams[i].payloadOffset = tempArgs[i].unitOffsetInPayload;
+        halKernelParam->argParams[i].perThread = false;
+        halKernelParam->argParams[i].nCustomValue = tempArgs[i].nCustomValue;
+        halKernelParam->argParams[i].isNull = tempArgs[ i ].isNull;
 
-        if (pTempArgs[i].unitKind == CM_ARGUMENT_IMPLICT_LOCALSIZE) {
-            CMCHK_HR(CreateKernelImplicitArgDataGroup(pHalKernelParam->argParams[i].firstValue, 3));
-            *(uint32_t *)pHalKernelParam->argParams[i].firstValue = thrdSpaceWidth;
-            *(uint32_t *)(pHalKernelParam->argParams[i].firstValue + 4) = thrdSpaceHeight;
-            *(uint32_t *)(pHalKernelParam->argParams[i].firstValue + 8) = thrdSpaceDepth;
+        if (tempArgs[i].unitKind == CM_ARGUMENT_IMPLICT_LOCALSIZE) {
+            CMCHK_HR(CreateKernelImplicitArgDataGroup(halKernelParam->argParams[i].firstValue, 3));
+            *(uint32_t *)halKernelParam->argParams[i].firstValue = thrdSpaceWidth;
+            *(uint32_t *)(halKernelParam->argParams[i].firstValue + 4) = thrdSpaceHeight;
+            *(uint32_t *)(halKernelParam->argParams[i].firstValue + 8) = thrdSpaceDepth;
         }
-        else if (pTempArgs[i].unitKind == CM_ARGUMENT_IMPLICT_GROUPSIZE) {
-            CMCHK_HR(CreateKernelImplicitArgDataGroup(pHalKernelParam->argParams[i].firstValue, 3));
-            *(uint32_t *)pHalKernelParam->argParams[i].firstValue = grpSpaceWidth;
-            *(uint32_t *)(pHalKernelParam->argParams[i].firstValue + 4) = grpSpaceHeight;
-            *(uint32_t *)(pHalKernelParam->argParams[i].firstValue + 8) = grpSpaceDepth;
+        else if (tempArgs[i].unitKind == CM_ARGUMENT_IMPLICT_GROUPSIZE) {
+            CMCHK_HR(CreateKernelImplicitArgDataGroup(halKernelParam->argParams[i].firstValue, 3));
+            *(uint32_t *)halKernelParam->argParams[i].firstValue = grpSpaceWidth;
+            *(uint32_t *)(halKernelParam->argParams[i].firstValue + 4) = grpSpaceHeight;
+            *(uint32_t *)(halKernelParam->argParams[i].firstValue + 8) = grpSpaceDepth;
         }
-        else if (pTempArgs[i].unitKind == ARG_KIND_IMPLICIT_LOCALID) {
-            CMCHK_HR(CreateKernelImplicitArgDataGroup(pHalKernelParam->argParams[i].firstValue, 3));
-            pHalKernelParam->localIdIndex = i;
+        else if (tempArgs[i].unitKind == ARG_KIND_IMPLICIT_LOCALID) {
+            CMCHK_HR(CreateKernelImplicitArgDataGroup(halKernelParam->argParams[i].firstValue, 3));
+            halKernelParam->localIdIndex = i;
         }
         else
-            CreateThreadArgData(&pHalKernelParam->argParams[i], i, nullptr, pTempArgs);
+            CreateThreadArgData(&halKernelParam->argParams[i], i, nullptr, tempArgs);
 
-        if (pHalKernelParam->cmFlags & CM_KERNEL_FLAGS_CURBE)
+        if (halKernelParam->cmFlags & CM_KERNEL_FLAGS_CURBE)
         {
-            if (IsKernelArg(pHalKernelParam->argParams[i]))
+            if (IsKernelArg(halKernelParam->argParams[i]))
             {
-                // Kernel Arg : calculate curbe size & adjust payloadoffset
-                pHalKernelParam->argParams[i].payloadOffset -= CM_PAYLOAD_OFFSET;
-                if ((m_pProgram->m_CISA_majorVersion == 3) && (m_pProgram->m_CISA_minorVersion < 3)) {
-                    if ((pHalKernelParam->argParams[i].payloadOffset + pHalKernelParam->argParams[i].unitSize > KrnCurbeSize))
+                // Kernel arg : calculate curbe size & adjust payloadoffset
+                halKernelParam->argParams[i].payloadOffset -= CM_PAYLOAD_OFFSET;
+                if ((m_program->m_cisaMajorVersion == 3) && (m_program->m_cisaMinorVersion < 3)) {
+                    if ((halKernelParam->argParams[i].payloadOffset + halKernelParam->argParams[i].unitSize > kernelCurbeSize))
                     {  // The largest one
-                        KrnCurbeSize = pHalKernelParam->argParams[i].payloadOffset + pHalKernelParam->argParams[i].unitSize;
+                        kernelCurbeSize = halKernelParam->argParams[i].payloadOffset + halKernelParam->argParams[i].unitSize;
                     }
                 }
                 else
                 {
-                    if ((pHalKernelParam->argParams[i].payloadOffset + pHalKernelParam->argParams[i].unitSize > KrnCurbeSize) && (pTempArgs[i].unitKind != ARG_KIND_IMPLICIT_LOCALID))
+                    if ((halKernelParam->argParams[i].payloadOffset + halKernelParam->argParams[i].unitSize > kernelCurbeSize) && (tempArgs[i].unitKind != ARG_KIND_IMPLICIT_LOCALID))
                     {  // The largest one
-                        KrnCurbeSize = pHalKernelParam->argParams[i].payloadOffset + pHalKernelParam->argParams[i].unitSize;
+                        kernelCurbeSize = halKernelParam->argParams[i].payloadOffset + halKernelParam->argParams[i].unitSize;
                     }
                 }
             }
         }
     }
 
-    if ( m_state_buffer_bounded != CM_STATE_BUFFER_NONE )
+    if ( m_stateBufferBounded != CM_STATE_BUFFER_NONE )
     {
-        PCM_CONTEXT_DATA pCmData = ( PCM_CONTEXT_DATA )m_pCmDev->GetAccelData();
-        PCM_HAL_STATE pState = pCmData->cmHalState;
-        KrnCurbeSize = pState->pfnGetStateBufferSizeForKernel( pState, this );
-        pHalKernelParam->stateBufferType = pState->pfnGetStateBufferTypeForKernel( pState, this );
+        PCM_CONTEXT_DATA cmData = ( PCM_CONTEXT_DATA )m_device->GetAccelData();
+        PCM_HAL_STATE state = cmData->cmHalState;
+        kernelCurbeSize = state->pfnGetStateBufferSizeForKernel( state, this );
+        halKernelParam->stateBufferType = state->pfnGetStateBufferTypeForKernel( state, this );
     }
 
-    if ((m_pProgram->m_CISA_majorVersion == 3) && (m_pProgram->m_CISA_minorVersion < 3))
+    if ((m_program->m_cisaMajorVersion == 3) && (m_program->m_cisaMinorVersion < 3))
     {
         // GPGPU walker - implicit args
-        for (uint32_t i = NumArgs; i < NumArgs + CM_GPUWALKER_IMPLICIT_ARG_NUM; i++)
+        for (uint32_t i = numArgs; i < numArgs + CM_GPUWALKER_IMPLICIT_ARG_NUM; i++)
         {
-            pHalKernelParam->argParams[i].unitCount = 1;
-            pHalKernelParam->argParams[i].kind = CM_ARGUMENT_GENERAL;
-            pHalKernelParam->argParams[i].unitSize = 4;
-            pHalKernelParam->argParams[i].payloadOffset = MOS_ALIGN_CEIL(KrnCurbeSize, 4) + (i - NumArgs) * sizeof(uint32_t);
-            pHalKernelParam->argParams[i].perThread = false;
+            halKernelParam->argParams[i].unitCount = 1;
+            halKernelParam->argParams[i].kind = CM_ARGUMENT_GENERAL;
+            halKernelParam->argParams[i].unitSize = 4;
+            halKernelParam->argParams[i].payloadOffset = MOS_ALIGN_CEIL(kernelCurbeSize, 4) + (i - numArgs) * sizeof(uint32_t);
+            halKernelParam->argParams[i].perThread = false;
         }
 
-        CMCHK_HR(CreateKernelArgDataGroup(pHalKernelParam->argParams[NumArgs + 0].firstValue, thrdSpaceWidth));
-        CMCHK_HR(CreateKernelArgDataGroup(pHalKernelParam->argParams[NumArgs + 1].firstValue, thrdSpaceHeight));
-        CMCHK_HR(CreateKernelArgDataGroup(pHalKernelParam->argParams[NumArgs + 2].firstValue, grpSpaceWidth));
-        CMCHK_HR(CreateKernelArgDataGroup(pHalKernelParam->argParams[NumArgs + 3].firstValue, grpSpaceHeight));
-        CMCHK_HR(CreateKernelArgDataGroup(pHalKernelParam->argParams[NumArgs + 4].firstValue, thrdSpaceWidth));
-        CMCHK_HR(CreateKernelArgDataGroup(pHalKernelParam->argParams[NumArgs + 5].firstValue, thrdSpaceHeight));
-        pHalKernelParam->localIdIndex = pHalKernelParam->numArgs - 2;
+        CMCHK_HR(CreateKernelArgDataGroup(halKernelParam->argParams[numArgs + 0].firstValue, thrdSpaceWidth));
+        CMCHK_HR(CreateKernelArgDataGroup(halKernelParam->argParams[numArgs + 1].firstValue, thrdSpaceHeight));
+        CMCHK_HR(CreateKernelArgDataGroup(halKernelParam->argParams[numArgs + 2].firstValue, grpSpaceWidth));
+        CMCHK_HR(CreateKernelArgDataGroup(halKernelParam->argParams[numArgs + 3].firstValue, grpSpaceHeight));
+        CMCHK_HR(CreateKernelArgDataGroup(halKernelParam->argParams[numArgs + 4].firstValue, thrdSpaceWidth));
+        CMCHK_HR(CreateKernelArgDataGroup(halKernelParam->argParams[numArgs + 5].firstValue, thrdSpaceHeight));
+        halKernelParam->localIdIndex = halKernelParam->numArgs - 2;
     }
-    pHalKernelParam->gpgpuWalkerParams.gpgpuEnabled = true;
-    pHalKernelParam->gpgpuWalkerParams.groupWidth = grpSpaceWidth;
-    pHalKernelParam->gpgpuWalkerParams.groupHeight = grpSpaceHeight;
-    pHalKernelParam->gpgpuWalkerParams.groupDepth = grpSpaceDepth;
-    pHalKernelParam->gpgpuWalkerParams.threadHeight = thrdSpaceHeight;
-    pHalKernelParam->gpgpuWalkerParams.threadWidth = thrdSpaceWidth;
-    pHalKernelParam->gpgpuWalkerParams.threadDepth = thrdSpaceDepth;
+    halKernelParam->gpgpuWalkerParams.gpgpuEnabled = true;
+    halKernelParam->gpgpuWalkerParams.groupWidth = grpSpaceWidth;
+    halKernelParam->gpgpuWalkerParams.groupHeight = grpSpaceHeight;
+    halKernelParam->gpgpuWalkerParams.groupDepth = grpSpaceDepth;
+    halKernelParam->gpgpuWalkerParams.threadHeight = thrdSpaceHeight;
+    halKernelParam->gpgpuWalkerParams.threadWidth = thrdSpaceWidth;
+    halKernelParam->gpgpuWalkerParams.threadDepth = thrdSpaceDepth;
     //Get SLM size
-    pHalKernelParam->slmSize = GetSLMSize();
+    halKernelParam->slmSize = GetSLMSize();
 
     //Get spill area to adjust scratch space
-    pHalKernelParam->spillSize = GetSpillMemUsed();
+    halKernelParam->spillSize = GetSpillMemUsed();
 
     //Set Barrier mode
-    pHalKernelParam->barrierMode = m_BarrierMode;
-    pHalKernelParam->numberThreadsInGroup = thrdSpaceWidth * thrdSpaceHeight * thrdSpaceDepth;
-    if ((m_pProgram->m_CISA_majorVersion == 3) && (m_pProgram->m_CISA_minorVersion < 3))
-        KrnCurbeSize = MOS_ALIGN_CEIL(KrnCurbeSize, 4) + CM_GPUWALKER_IMPLICIT_ARG_NUM * sizeof(uint32_t);
+    halKernelParam->barrierMode = m_barrierMode;
+    halKernelParam->numberThreadsInGroup = thrdSpaceWidth * thrdSpaceHeight * thrdSpaceDepth;
+    if ((m_program->m_cisaMajorVersion == 3) && (m_program->m_cisaMinorVersion < 3))
+        kernelCurbeSize = MOS_ALIGN_CEIL(kernelCurbeSize, 4) + CM_GPUWALKER_IMPLICIT_ARG_NUM * sizeof(uint32_t);
     else
-        KrnCurbeSize = MOS_ALIGN_CEIL(KrnCurbeSize, 4);
-    if ((KrnCurbeSize % 32) == 4) //The per-thread data occupy 2 GRF.
+        kernelCurbeSize = MOS_ALIGN_CEIL(kernelCurbeSize, 4);
+    if ((kernelCurbeSize % 32) == 4) //The per-thread data occupy 2 GRF.
     {
-        pHalKernelParam->curbeSizePerThread = 64;
+        halKernelParam->curbeSizePerThread = 64;
     }
     else
     {
-        pHalKernelParam->curbeSizePerThread = 32;
+        halKernelParam->curbeSizePerThread = 32;
     }
-    if ((m_pProgram->m_CISA_majorVersion == 3) && (m_pProgram->m_CISA_minorVersion < 3)) {
-        pHalKernelParam->totalCurbeSize = MOS_ALIGN_CEIL(KrnCurbeSize, 32) - pHalKernelParam->curbeSizePerThread + pHalKernelParam->curbeSizePerThread *
+    if ((m_program->m_cisaMajorVersion == 3) && (m_program->m_cisaMinorVersion < 3)) {
+        halKernelParam->totalCurbeSize = MOS_ALIGN_CEIL(kernelCurbeSize, 32) - halKernelParam->curbeSizePerThread + halKernelParam->curbeSizePerThread *
             thrdSpaceWidth * thrdSpaceHeight;
         //Since the CURBE is 32 bytes alignment, for GPGPU walker without the user specified thread argument, implicit per-thread id arguments will occupy at most 32 bytes
-        pHalKernelParam->crossThreadConstDataLen = MOS_ALIGN_CEIL(KrnCurbeSize, 32) - pHalKernelParam->curbeSizePerThread;
+        halKernelParam->crossThreadConstDataLen = MOS_ALIGN_CEIL(kernelCurbeSize, 32) - halKernelParam->curbeSizePerThread;
     }
     else {
-        pHalKernelParam->totalCurbeSize = MOS_ALIGN_CEIL(KrnCurbeSize, 32) + pHalKernelParam->curbeSizePerThread *
+        halKernelParam->totalCurbeSize = MOS_ALIGN_CEIL(kernelCurbeSize, 32) + halKernelParam->curbeSizePerThread *
             thrdSpaceWidth * thrdSpaceHeight * thrdSpaceDepth;
         //Since the CURBE is 32 bytes alignment, for GPGPU walker without the user specified thread argument, implicit per-thread id arguments will occupy at most 32 bytes
-        pHalKernelParam->crossThreadConstDataLen = MOS_ALIGN_CEIL(KrnCurbeSize, 32);
+        halKernelParam->crossThreadConstDataLen = MOS_ALIGN_CEIL(kernelCurbeSize, 32);
     }
-    pHalKernelParam->payloadSize = 0; // no thread arg allowed
+    halKernelParam->payloadSize = 0; // no thread arg allowed
 
-    m_SizeInCurbe = GetAlignedCurbeSize(pHalKernelParam->totalCurbeSize);
+    m_sizeInCurbe = GetAlignedCurbeSize(halKernelParam->totalCurbeSize);
 
-    CMCHK_HR(CreateKernelIndirectData(&pHalKernelParam->indirectDataParam));
+    CMCHK_HR(CreateKernelIndirectData(&halKernelParam->indirectDataParam));
 
-    if (m_SamplerBTICount != 0)
+    if (m_samplerBtiCount != 0)
     {
-        CmFastMemCopy((void*)pHalKernelParam->samplerBTIParam.samplerInfo, (void*)m_SamplerBTIEntry, sizeof(m_SamplerBTIEntry));
-        pHalKernelParam->samplerBTIParam.samplerCount = m_SamplerBTICount;
+        CmFastMemCopy((void*)halKernelParam->samplerBTIParam.samplerInfo, (void*)m_samplerBtiEntry, sizeof(m_samplerBtiEntry));
+        halKernelParam->samplerBTIParam.samplerCount = m_samplerBtiCount;
 
-        CmSafeMemSet(m_SamplerBTIEntry, 0, sizeof(m_SamplerBTIEntry));
-        m_SamplerBTICount = 0;
+        CmSafeMemSet(m_samplerBtiEntry, 0, sizeof(m_samplerBtiEntry));
+        m_samplerBtiCount = 0;
     }
 
-    CalculateKernelSurfacesNum(surfNum, pHalKernelParam->numSurfaces);
+    CalculateKernelSurfacesNum(surfNum, halKernelParam->numSurfaces);
 
-    UpdateKernelDataGlobalSurfaceInfo(pHalKernelParam);
+    UpdateKernelDataGlobalSurfaceInfo(halKernelParam);
 
     //Destroy Temp Args
-    for (uint32_t j = 0; j < NumArgs; j++)
+    for (uint32_t j = 0; j < numArgs; j++)
     {
-        if (pTempArgs[j].unitOffsetInPayloadOrig == (uint16_t)-1)
+        if (tempArgs[j].unitOffsetInPayloadOrig == (uint16_t)-1)
         {
-            MosSafeDeleteArray(pTempArgs[j].pValue);
+            MosSafeDeleteArray(tempArgs[j].value);
         }
     }
-    MosSafeDeleteArray(pTempArgs);
+    MosSafeDeleteArray(tempArgs);
 
-    CMCHK_HR(UpdateSamplerHeap(pKernelData));
+    CMCHK_HR(UpdateSamplerHeap(kernelData));
 finish:
     if (hr != CM_SUCCESS)
     {
         //Clean allocated memory : need to count the implicit args
-        if ((m_pProgram->m_CISA_majorVersion == 3) && (m_pProgram->m_CISA_minorVersion < 3)) {
+        if ((m_program->m_cisaMajorVersion == 3) && (m_program->m_cisaMinorVersion < 3)) {
 
-            for (uint32_t i = 0; i < NumArgs + CM_GPUWALKER_IMPLICIT_ARG_NUM; i++)
+            for (uint32_t i = 0; i < numArgs + CM_GPUWALKER_IMPLICIT_ARG_NUM; i++)
             {
-                if (pHalKernelParam)
+                if (halKernelParam)
                 {
-                    if (pHalKernelParam->argParams[i].firstValue)
+                    if (halKernelParam->argParams[i].firstValue)
                     {
-                        MosSafeDeleteArray(pHalKernelParam->argParams[i].firstValue);
+                        MosSafeDeleteArray(halKernelParam->argParams[i].firstValue);
                     }
                 }
             }
         }
         else
         {
-            for (uint32_t i = 0; i < NumArgs; i++)
+            for (uint32_t i = 0; i < numArgs; i++)
             {
-                if (pHalKernelParam)
+                if (halKernelParam)
                 {
-                    if (pHalKernelParam->argParams[i].firstValue)
+                    if (halKernelParam->argParams[i].firstValue)
                     {
-                        MosSafeDeleteArray(pHalKernelParam->argParams[i].firstValue);
+                        MosSafeDeleteArray(halKernelParam->argParams[i].firstValue);
                     }
                 }
             }
         }
         //Destroy Temp Args in failing case
-        if (pTempArgs)
+        if (tempArgs)
         {
-            for (uint32_t j = 0; j < NumArgs; j++)
+            for (uint32_t j = 0; j < numArgs; j++)
             {
-                if (pTempArgs[j].unitOffsetInPayloadOrig == (uint16_t)-1)
+                if (tempArgs[j].unitOffsetInPayloadOrig == (uint16_t)-1)
                 {
-                    MosSafeDeleteArray(pTempArgs[j].pValue);
+                    MosSafeDeleteArray(tempArgs[j].value);
                 }
             }
-            MosSafeDeleteArray(pTempArgs);
+            MosSafeDeleteArray(tempArgs);
         }
     }
     return hr;
@@ -3826,37 +3826,37 @@ finish:
 //| Purpose:    Prepare Kernel Data including thread args, kernel args
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-bool CmKernelRT::IsBatchBufferReusable( CmThreadSpaceRT * pTaskThreadSpace )
+bool CmKernelRT::IsBatchBufferReusable( CmThreadSpaceRT * taskThreadSpace )
 {
-    bool Reusable = true;
-    //Update m_Id if the batch buffer is not reusable.
-    if (m_Dirty & CM_KERNEL_DATA_THREAD_ARG_DIRTY)
+    bool reusable = true;
+    //Update m_id if the batch buffer is not reusable.
+    if (m_dirty & CM_KERNEL_DATA_THREAD_ARG_DIRTY)
     {
-        Reusable = false; // if thread arg dirty
+        reusable = false; // if thread arg dirty
     }
-    else if ((m_Dirty & CM_KERNEL_DATA_KERNEL_ARG_DIRTY) && (m_CurbeEnable == false))
+    else if ((m_dirty & CM_KERNEL_DATA_KERNEL_ARG_DIRTY) && (m_curbeEnabled == false))
     {
-        Reusable = false; // if kernel arg dirty and curbe disabled
+        reusable = false; // if kernel arg dirty and curbe disabled
     }
-    else if (m_Dirty & CM_KERNEL_DATA_THREAD_COUNT_DIRTY)
+    else if (m_dirty & CM_KERNEL_DATA_THREAD_COUNT_DIRTY)
     {
-        Reusable = false; // if thread count dirty
+        reusable = false; // if thread count dirty
     }
-    else if (m_pThreadSpace)
+    else if (m_threadSpace)
     {
-       if (m_pThreadSpace->GetDirtyStatus() == CM_THREAD_SPACE_DATA_DIRTY)
+       if (m_threadSpace->GetDirtyStatus() == CM_THREAD_SPACE_DATA_DIRTY)
        {
-          Reusable = false; // if per kernel thread space exists and it is completely dirty
+          reusable = false; // if per kernel thread space exists and it is completely dirty
        }
     }
-    else if (pTaskThreadSpace)
+    else if (taskThreadSpace)
     {
-       if (pTaskThreadSpace->GetDirtyStatus() == CM_THREAD_SPACE_DATA_DIRTY)
+       if (taskThreadSpace->GetDirtyStatus() == CM_THREAD_SPACE_DATA_DIRTY)
        {
-          Reusable = false; // if per task thread space change and it is completely dirty
+          reusable = false; // if per task thread space change and it is completely dirty
        }
     }
-    return Reusable;
+    return reusable;
 
 }
 
@@ -3868,25 +3868,25 @@ bool CmKernelRT::IsPrologueDirty( void )
 {
     bool prologueDirty = false;
 
-    if( m_ThreadCount != m_LastThreadCount )
+    if( m_threadCount != m_lastThreadCount )
     {
-        if( m_LastThreadCount )
+        if( m_lastThreadCount )
         {
-            if( m_ThreadCount == 1 || m_LastThreadCount == 1 )
+            if( m_threadCount == 1 || m_lastThreadCount == 1 )
             {
                 prologueDirty = true;
             }
         }
-        m_LastThreadCount = m_ThreadCount;
+        m_lastThreadCount = m_threadCount;
     }
 
-    if( m_adjustScoreboardY != m_LastAdjustScoreboardY )
+    if( m_adjustScoreboardY != m_lastAdjustScoreboardY )
     {
-        if( m_LastAdjustScoreboardY )
+        if( m_lastAdjustScoreboardY )
         {
             prologueDirty = true;
         }
-        m_LastAdjustScoreboardY = m_adjustScoreboardY;
+        m_lastAdjustScoreboardY = m_adjustScoreboardY;
     }
 
     return prologueDirty;
@@ -3897,253 +3897,253 @@ bool CmKernelRT::IsPrologueDirty( void )
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 int32_t CmKernelRT::CreateKernelDataInternal(
-    CmKernelData* & pKernelData,  // out
+    CmKernelData* & kernelData,  // out
     uint32_t& kernelDataSize,         // out
-    const CmThreadSpaceRT* pTS )    // in
+    const CmThreadSpaceRT* threadSpace )    // in
 {
-    PCM_HAL_KERNEL_PARAM  pHalKernelParam       = nullptr;
+    PCM_HAL_KERNEL_PARAM  halKernelParam       = nullptr;
     int32_t               hr                    = CM_SUCCESS;
     uint32_t              movInstNum            = 0;
-    uint32_t              KrnCurbeSize          = 0;
-    uint32_t              NumArgs               = 0;
-    uint32_t              dwBottomRange         = 1024;
-    uint32_t              dwUpRange             = 0;
-    uint32_t              UnitSize              = 0;
+    uint32_t              kernelCurbeSize          = 0;
+    uint32_t              numArgs               = 0;
+    uint32_t              bottomRange         = 1024;
+    uint32_t              upRange             = 0;
+    uint32_t              unitSize              = 0;
     bool                  hasThreadArg          = false;
-    CmThreadSpaceRT         *pCmThreadSpace       = nullptr;
+    CmThreadSpaceRT         *cmThreadSpace       = nullptr;
     bool                  isKernelThreadSpace   = false;
-    CM_ARG                *pTempArgs            = nullptr;
-    uint32_t              ArgSize               = 0;
+    CM_ARG                *tempArgs            = nullptr;
+    uint32_t              argSize               = 0;
     uint32_t              surfNum               = 0; //Pass needed BT entry numbers to HAL CM
-    CmKernelRT             *pCmKernel             = nullptr;
+    CmKernelRT             *cmKernel             = nullptr;
 
-    if( pTS == nullptr && m_pThreadSpace!= nullptr)
+    if( threadSpace == nullptr && m_threadSpace!= nullptr)
     {
-        pCmThreadSpace = m_pThreadSpace;
+        cmThreadSpace = m_threadSpace;
         isKernelThreadSpace = true;
     }
     else
     {
-        pCmThreadSpace = const_cast<CmThreadSpaceRT*>(pTS);
+        cmThreadSpace = const_cast<CmThreadSpaceRT*>(threadSpace);
     }
 
-    CMCHK_HR(CmKernelData::Create( this, pKernelData ));
-    pHalKernelParam = pKernelData->GetHalCmKernelData();
-    CMCHK_NULL(pHalKernelParam);
+    CMCHK_HR(CmKernelData::Create( this, kernelData ));
+    halKernelParam = kernelData->GetHalCmKernelData();
+    CMCHK_NULL(halKernelParam);
 
     //Get Num of args with surface array
-    CMCHK_HR(GetArgCountPlusSurfArray(ArgSize, NumArgs));
+    CMCHK_HR(GetArgCountPlusSurfArray(argSize, numArgs));
 
-    if( NumArgs > 0)
+    if( numArgs > 0)
     {
         //Create Temp args
-        CMCHK_HR(CreateTempArgs(NumArgs, pTempArgs));
+        CMCHK_HR(CreateTempArgs(numArgs, tempArgs));
         //Create move instructions
-        CMCHK_HR(CreateMovInstructions(movInstNum,   pHalKernelParam->movInsData, pTempArgs, NumArgs));
+        CMCHK_HR(CreateMovInstructions(movInstNum,   halKernelParam->movInsData, tempArgs, numArgs));
     }
 
-    CMCHK_HR(CalcKernelDataSize(movInstNum, NumArgs, ArgSize, kernelDataSize));
-    CMCHK_HR(pKernelData->SetKernelDataSize(kernelDataSize));
+    CMCHK_HR(CalcKernelDataSize(movInstNum, numArgs, argSize, kernelDataSize));
+    CMCHK_HR(kernelData->SetKernelDataSize(kernelDataSize));
 
-    if(!IsBatchBufferReusable(const_cast<CmThreadSpaceRT *>(pTS)))
+    if(!IsBatchBufferReusable(const_cast<CmThreadSpaceRT *>(threadSpace)))
     {
-        m_Id ++;
+        m_id ++;
     }
 
     if( IsPrologueDirty( ) )
     {
         // can't re-use kernel binary in GSH
         // just update upper 16 bits
-        uint64_t tempID = m_Id;
+        uint64_t tempID = m_id;
         tempID >>= 48;
         tempID++;
         tempID <<= 48;
         // get rid of old values in upper 16 bits
-        m_Id <<= 16;
-        m_Id >>= 16;
-        m_Id |= tempID;
+        m_id <<= 16;
+        m_id >>= 16;
+        m_id |= tempID;
     }
 
-    pHalKernelParam->clonedKernelParam.isClonedKernel = m_IsClonedKernel;
-    pHalKernelParam->clonedKernelParam.kernelID       = m_CloneKernelID;
-    pHalKernelParam->clonedKernelParam.hasClones      = m_HasClones;
-    pHalKernelParam->kernelId           = m_Id; // kernel id , high 32-bit is kernel id, low 32-bit is kernel data id for batch buffer reuse
-    pHalKernelParam->numArgs             = NumArgs;
-    pHalKernelParam->numThreads          = m_ThreadCount;
-    pHalKernelParam->kernelBinarySize    = m_uiBinarySize + movInstNum * CM_MOVE_INSTRUCTION_SIZE;
-    pHalKernelParam->kernelDataSize      = kernelDataSize;
-    pHalKernelParam->movInsDataSize      = movInstNum * CM_MOVE_INSTRUCTION_SIZE;
+    halKernelParam->clonedKernelParam.isClonedKernel = m_isClonedKernel;
+    halKernelParam->clonedKernelParam.kernelID       = m_cloneKernelID;
+    halKernelParam->clonedKernelParam.hasClones      = m_hasClones;
+    halKernelParam->kernelId           = m_id; // kernel id , high 32-bit is kernel id, low 32-bit is kernel data id for batch buffer reuse
+    halKernelParam->numArgs             = numArgs;
+    halKernelParam->numThreads          = m_threadCount;
+    halKernelParam->kernelBinarySize    = m_binarySize + movInstNum * CM_MOVE_INSTRUCTION_SIZE;
+    halKernelParam->kernelDataSize      = kernelDataSize;
+    halKernelParam->movInsDataSize      = movInstNum * CM_MOVE_INSTRUCTION_SIZE;
 
-    pHalKernelParam->cmFlags             = m_CurbeEnable ? CM_FLAG_CURBE_ENABLED : 0;
-    pHalKernelParam->cmFlags            |= m_NonstallingScoreboardEnable ? CM_FLAG_NONSTALLING_SCOREBOARD_ENABLED : 0;
-    pHalKernelParam->kernelDebugEnabled  = m_blhwDebugEnable;
+    halKernelParam->cmFlags             = m_curbeEnabled ? CM_FLAG_CURBE_ENABLED : 0;
+    halKernelParam->cmFlags            |= m_nonstallingScoreboardEnabled ? CM_FLAG_NONSTALLING_SCOREBOARD_ENABLED : 0;
+    halKernelParam->kernelDebugEnabled  = m_blhwDebugEnable;
 
-    pHalKernelParam->kernelBinary        = (uint8_t*)m_pBinary;
+    halKernelParam->kernelBinary        = (uint8_t*)m_binary;
 
-    CMCHK_HR( pKernelData->GetCmKernel( pCmKernel ) );
-    if ( pCmKernel == nullptr )
+    CMCHK_HR( kernelData->GetCmKernel( cmKernel ) );
+    if ( cmKernel == nullptr )
     {
         return CM_NULL_POINTER;
     }
-    MOS_SecureStrcpy( pHalKernelParam->kernelName, CM_MAX_KERNEL_NAME_SIZE_IN_BYTE, pCmKernel->GetName() );
+    MOS_SecureStrcpy( halKernelParam->kernelName, CM_MAX_KERNEL_NAME_SIZE_IN_BYTE, cmKernel->GetName() );
 
-    if ( pCmThreadSpace )
+    if ( cmThreadSpace )
     {// either from per kernel thread space or per task thread space
-        CMCHK_HR(SortThreadSpace(pCmThreadSpace)); // must be called before CreateThreadArgData
+        CMCHK_HR(SortThreadSpace(cmThreadSpace)); // must be called before CreateThreadArgData
     }
 
-    for(uint32_t i =0 ; i< NumArgs; i++)
+    for(uint32_t i =0 ; i< numArgs; i++)
     {
-        pHalKernelParam->argParams[i].unitCount        = pTempArgs[ i ].unitCount;
-        pHalKernelParam->argParams[i].kind              = (CM_HAL_KERNEL_ARG_KIND)(pTempArgs[ i ].unitKind);
-        pHalKernelParam->argParams[i].unitSize         = pTempArgs[ i ].unitSize;
-        pHalKernelParam->argParams[i].payloadOffset    = pTempArgs[ i ].unitOffsetInPayload;
-        pHalKernelParam->argParams[i].perThread        = (pTempArgs[ i ].unitCount > 1) ? true :false;
-        pHalKernelParam->argParams[i].nCustomValue      = pTempArgs[ i ].nCustomValue;
-        pHalKernelParam->argParams[i].aliasIndex       = pTempArgs[ i ].aliasIndex;
-        pHalKernelParam->argParams[i].aliasCreated     = pTempArgs[ i ].bAliasCreated;
-        pHalKernelParam->argParams[i].isNull           = pTempArgs[ i ].bIsNull;
+        halKernelParam->argParams[i].unitCount        = tempArgs[ i ].unitCount;
+        halKernelParam->argParams[i].kind              = (CM_HAL_KERNEL_ARG_KIND)(tempArgs[ i ].unitKind);
+        halKernelParam->argParams[i].unitSize         = tempArgs[ i ].unitSize;
+        halKernelParam->argParams[i].payloadOffset    = tempArgs[ i ].unitOffsetInPayload;
+        halKernelParam->argParams[i].perThread        = (tempArgs[ i ].unitCount > 1) ? true :false;
+        halKernelParam->argParams[i].nCustomValue      = tempArgs[ i ].nCustomValue;
+        halKernelParam->argParams[i].aliasIndex       = tempArgs[ i ].aliasIndex;
+        halKernelParam->argParams[i].aliasCreated     = tempArgs[ i ].aliasCreated;
+        halKernelParam->argParams[i].isNull           = tempArgs[ i ].isNull;
 
-        CreateThreadArgData(&pHalKernelParam->argParams[i], i, pCmThreadSpace, pTempArgs);
+        CreateThreadArgData(&halKernelParam->argParams[i], i, cmThreadSpace, tempArgs);
 
-        if(CHECK_SURFACE_TYPE ( pHalKernelParam->argParams[i].kind,
+        if(CHECK_SURFACE_TYPE ( halKernelParam->argParams[i].kind,
             ARG_KIND_SURFACE_VME,
             ARG_KIND_SURFACE_SAMPLER,
             ARG_KIND_SURFACE2DUP_SAMPLER))
         {
-            UnitSize = CM_ARGUMENT_SURFACE_SIZE;
+            unitSize = CM_ARGUMENT_SURFACE_SIZE;
         }
         else
         {
-            UnitSize = pHalKernelParam->argParams[i].unitSize;
+            unitSize = halKernelParam->argParams[i].unitSize;
         }
 
-        if (pHalKernelParam->cmFlags & CM_KERNEL_FLAGS_CURBE)
+        if (halKernelParam->cmFlags & CM_KERNEL_FLAGS_CURBE)
         {
-            if(IsKernelArg(pHalKernelParam->argParams[i]))
+            if(IsKernelArg(halKernelParam->argParams[i]))
             {
-                // Kernel Arg : calculate curbe size & adjust payloadoffset
+                // Kernel arg : calculate curbe size & adjust payloadoffset
                 // Note: Here the payloadOffset may be different from original value
-                uint32_t dwOffset = pHalKernelParam->argParams[i].payloadOffset - CM_PAYLOAD_OFFSET;
-                if (dwOffset >= KrnCurbeSize)
+                uint32_t offset = halKernelParam->argParams[i].payloadOffset - CM_PAYLOAD_OFFSET;
+                if (offset >= kernelCurbeSize)
                 {
-                    KrnCurbeSize = dwOffset + UnitSize;
+                    kernelCurbeSize = offset + unitSize;
                 }
-                pHalKernelParam->argParams[i].payloadOffset -= CM_PAYLOAD_OFFSET;
+                halKernelParam->argParams[i].payloadOffset -= CM_PAYLOAD_OFFSET;
             }
         }
 
-        if(!IsKernelArg(pHalKernelParam->argParams[i]))
-        {   //Thread Arg : Calculate payload size & adjust payloadoffset
+        if(!IsKernelArg(halKernelParam->argParams[i]))
+        {   //Thread arg : Calculate payload size & adjust payloadoffset
             hasThreadArg  = true;
-            pHalKernelParam->argParams[i].payloadOffset -= CM_PAYLOAD_OFFSET;
+            halKernelParam->argParams[i].payloadOffset -= CM_PAYLOAD_OFFSET;
 
-            if(pHalKernelParam->argParams[i].payloadOffset < dwBottomRange)
+            if(halKernelParam->argParams[i].payloadOffset < bottomRange)
             {
-               dwBottomRange = pHalKernelParam->argParams[i].payloadOffset;
+               bottomRange = halKernelParam->argParams[i].payloadOffset;
             }
-            if(pHalKernelParam->argParams[i].payloadOffset >=  dwUpRange)
+            if(halKernelParam->argParams[i].payloadOffset >=  upRange)
             {
-               dwUpRange = pHalKernelParam->argParams[i].payloadOffset + UnitSize;
+               upRange = halKernelParam->argParams[i].payloadOffset + unitSize;
             }
         }
     }
 
-    if ( m_state_buffer_bounded != CM_STATE_BUFFER_NONE )
+    if ( m_stateBufferBounded != CM_STATE_BUFFER_NONE )
     {
-        PCM_CONTEXT_DATA pCmData = ( PCM_CONTEXT_DATA )m_pCmDev->GetAccelData();
-        PCM_HAL_STATE pState = pCmData->cmHalState;
-        KrnCurbeSize = pState->pfnGetStateBufferSizeForKernel( pState, this );
-        pHalKernelParam->stateBufferType = pState->pfnGetStateBufferTypeForKernel( pState, this );
+        PCM_CONTEXT_DATA cmData = ( PCM_CONTEXT_DATA )m_device->GetAccelData();
+        PCM_HAL_STATE state = cmData->cmHalState;
+        kernelCurbeSize = state->pfnGetStateBufferSizeForKernel( state, this );
+        halKernelParam->stateBufferType = state->pfnGetStateBufferTypeForKernel( state, this );
     }
 
-    pHalKernelParam->payloadSize         = hasThreadArg ? MOS_ALIGN_CEIL(dwUpRange -  dwBottomRange, 4): 0;
-    pHalKernelParam->totalCurbeSize      = MOS_ALIGN_CEIL(KrnCurbeSize, 32);
-    pHalKernelParam->curbeSizePerThread  = pHalKernelParam->totalCurbeSize;
+    halKernelParam->payloadSize         = hasThreadArg ? MOS_ALIGN_CEIL(upRange -  bottomRange, 4): 0;
+    halKernelParam->totalCurbeSize      = MOS_ALIGN_CEIL(kernelCurbeSize, 32);
+    halKernelParam->curbeSizePerThread  = halKernelParam->totalCurbeSize;
 
-    pHalKernelParam->perThreadArgExisted = hasThreadArg;
+    halKernelParam->perThreadArgExisted = hasThreadArg;
 
-    m_SizeInCurbe = GetAlignedCurbeSize( KrnCurbeSize );
+    m_sizeInCurbe = GetAlignedCurbeSize( kernelCurbeSize );
 
-    if ( pHalKernelParam->cmFlags & CM_KERNEL_FLAGS_CURBE )
+    if ( halKernelParam->cmFlags & CM_KERNEL_FLAGS_CURBE )
     {
-        for(uint32_t i=0; i< NumArgs; i++)
+        for(uint32_t i=0; i< numArgs; i++)
         {
-            if(!IsKernelArg(pHalKernelParam->argParams[i]))
+            if(!IsKernelArg(halKernelParam->argParams[i]))
             {  // thread arg: need to minus curbe size
-                pHalKernelParam->argParams[i].payloadOffset -= pHalKernelParam->curbeSizePerThread;
+                halKernelParam->argParams[i].payloadOffset -= halKernelParam->curbeSizePerThread;
             }
         }
     }
 
     //Create indirect data
-    CMCHK_HR(CreateKernelIndirectData(&pHalKernelParam->indirectDataParam));
+    CMCHK_HR(CreateKernelIndirectData(&halKernelParam->indirectDataParam));
 
-    if ( m_SamplerBTICount != 0 )
+    if ( m_samplerBtiCount != 0 )
     {
-        CmFastMemCopy( ( void* )pHalKernelParam->samplerBTIParam.samplerInfo, ( void* )m_SamplerBTIEntry, sizeof( m_SamplerBTIEntry ) );
-        pHalKernelParam->samplerBTIParam.samplerCount = m_SamplerBTICount;
+        CmFastMemCopy( ( void* )halKernelParam->samplerBTIParam.samplerInfo, ( void* )m_samplerBtiEntry, sizeof( m_samplerBtiEntry ) );
+        halKernelParam->samplerBTIParam.samplerCount = m_samplerBtiCount;
 
-        CmSafeMemSet(m_SamplerBTIEntry, 0, sizeof(m_SamplerBTIEntry));
-        m_SamplerBTICount = 0;
+        CmSafeMemSet(m_samplerBtiEntry, 0, sizeof(m_samplerBtiEntry));
+        m_samplerBtiCount = 0;
     }
 
-    CalculateKernelSurfacesNum(surfNum, pHalKernelParam->numSurfaces);
+    CalculateKernelSurfacesNum(surfNum, halKernelParam->numSurfaces);
 
     //Create thread space param: only avaliable if per kernel ts exists
-    if(m_pThreadSpace)
+    if(m_threadSpace)
     {
-        CMCHK_HR(CreateThreadSpaceParam(&pHalKernelParam->kernelThreadSpaceParam, m_pThreadSpace));
+        CMCHK_HR(CreateThreadSpaceParam(&halKernelParam->kernelThreadSpaceParam, m_threadSpace));
     }
 
     //Get SLM size
-    pHalKernelParam->slmSize = GetSLMSize();
+    halKernelParam->slmSize = GetSLMSize();
 
     //Get Spill mem used
-    pHalKernelParam->spillSize = GetSpillMemUsed();
+    halKernelParam->spillSize = GetSpillMemUsed();
 
     //Set Barrier mode
-    pHalKernelParam->barrierMode = m_BarrierMode;
+    halKernelParam->barrierMode = m_barrierMode;
 
-    CMCHK_HR(UpdateKernelDataGlobalSurfaceInfo( pHalKernelParam ));
+    CMCHK_HR(UpdateKernelDataGlobalSurfaceInfo( halKernelParam ));
 
     //Destroy Temp Args
-    for (uint32_t j = 0; j < NumArgs; j++)
+    for (uint32_t j = 0; j < numArgs; j++)
     {
-        if (pTempArgs[j].unitOffsetInPayloadOrig == (uint16_t)-1)
+        if (tempArgs[j].unitOffsetInPayloadOrig == (uint16_t)-1)
         {
-            MosSafeDeleteArray(pTempArgs[j].pValue);
+            MosSafeDeleteArray(tempArgs[j].value);
         }
     }
-    MosSafeDeleteArray( pTempArgs );
+    MosSafeDeleteArray( tempArgs );
 
-    CMCHK_HR(UpdateSamplerHeap(pKernelData));
+    CMCHK_HR(UpdateSamplerHeap(kernelData));
 finish:
     if(hr != CM_SUCCESS)
     {
-         if(pHalKernelParam)
+         if(halKernelParam)
          {
              //Clean allocated memory
-             for(uint32_t i =0 ; i< NumArgs; i++)
+             for(uint32_t i =0 ; i< numArgs; i++)
              {
-                if( pHalKernelParam->argParams[i].firstValue )
+                if( halKernelParam->argParams[i].firstValue )
                 {
-                    MosSafeDeleteArray(pHalKernelParam->argParams[i].firstValue);
+                    MosSafeDeleteArray(halKernelParam->argParams[i].firstValue);
                 }
              }
          }
 
          //Destroy Temp Args
-         if (pTempArgs)
+         if (tempArgs)
          {
-             for (uint32_t j = 0; j < NumArgs; j++)
+             for (uint32_t j = 0; j < numArgs; j++)
              {
-                 if (pTempArgs[j].unitOffsetInPayloadOrig == (uint16_t)-1)
+                 if (tempArgs[j].unitOffsetInPayloadOrig == (uint16_t)-1)
                  {
-                     MosSafeDeleteArray(pTempArgs[j].pValue);
+                     MosSafeDeleteArray(tempArgs[j].value);
                  }
              }
-             MosSafeDeleteArray(pTempArgs);
+             MosSafeDeleteArray(tempArgs);
          }
     }
     return hr;
@@ -4154,46 +4154,46 @@ finish:
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 int32_t CmKernelRT::UpdateKernelData(
-    CmKernelData*   pKernelData,  // in
-    const CmThreadSpaceRT* pTS)
+    CmKernelData*   kernelData,  // in
+    const CmThreadSpaceRT* threadSpace)
 {
     int32_t               hr                      = CM_SUCCESS;
-    PCM_HAL_KERNEL_PARAM  pHalKernelParam         = nullptr;
-    bool                  bBBresuable             = true;
-    CmThreadSpaceRT         *pCmThreadSpace         = nullptr;
+    PCM_HAL_KERNEL_PARAM  halKernelParam         = nullptr;
+    bool                  bbResuable             = true;
+    CmThreadSpaceRT         *cmThreadSpace         = nullptr;
     bool                  isKernelThreadSpace     = false;
-    uint32_t              ArgIndexStep            = 0;
-    uint32_t              ArgIndex                = 0;
+    uint32_t              argIndexStep            = 0;
+    uint32_t              argIndex                = 0;
     uint32_t              surfNum                 = 0; //Update Number of surface used by kernel
 
-    if( pTS == nullptr && m_pThreadSpace!= nullptr)
+    if( threadSpace == nullptr && m_threadSpace!= nullptr)
     {
-        pCmThreadSpace = m_pThreadSpace;
+        cmThreadSpace = m_threadSpace;
         isKernelThreadSpace = true;
     }
     else
     {
-        pCmThreadSpace = const_cast<CmThreadSpaceRT*>(pTS);
+        cmThreadSpace = const_cast<CmThreadSpaceRT*>(threadSpace);
     }
 
-    CMCHK_NULL(pKernelData);
-    CM_ASSERT(pKernelData->IsInUse() == false);
+    CMCHK_NULL(kernelData);
+    CM_ASSERT(kernelData->IsInUse() == false);
 
-    pHalKernelParam = pKernelData->GetHalCmKernelData();
-    CMCHK_NULL(pHalKernelParam);
+    halKernelParam = kernelData->GetHalCmKernelData();
+    CMCHK_NULL(halKernelParam);
 
-    if(!IsBatchBufferReusable(const_cast<CmThreadSpaceRT *>(pTS)))
+    if(!IsBatchBufferReusable(const_cast<CmThreadSpaceRT *>(threadSpace)))
     {
-        m_Id ++;
-        pHalKernelParam->kernelId = m_Id;
+        m_id ++;
+        halKernelParam->kernelId = m_id;
     }
 
     //Update arguments
-    for(uint32_t OrgArgIndex =0 ; OrgArgIndex< m_ArgCount; OrgArgIndex++)
+    for(uint32_t orgArgIndex =0 ; orgArgIndex< m_argCount; orgArgIndex++)
     {
-        ArgIndexStep = 1;
+        argIndexStep = 1;
 
-        if ( CHECK_SURFACE_TYPE( m_Args[ OrgArgIndex ].unitKind,
+        if ( CHECK_SURFACE_TYPE( m_args[ orgArgIndex ].unitKind,
                         ARG_KIND_SURFACE,
                         ARG_KIND_SURFACE_1D,
                         ARG_KIND_SURFACE_2D,
@@ -4206,21 +4206,21 @@ int32_t CmKernelRT::UpdateKernelData(
                         ARG_KIND_SURFACE_2D_SCOREBOARD,
                         ARG_KIND_STATE_BUFFER ) )
         {
-            ArgIndexStep = m_Args[OrgArgIndex].unitSize/sizeof(int); // Surface array exists
+            argIndexStep = m_args[orgArgIndex].unitSize/sizeof(int); // Surface array exists
         }
-        else if (CHECK_SURFACE_TYPE(m_Args[OrgArgIndex].unitKind,  ARG_KIND_SURFACE_VME))
+        else if (CHECK_SURFACE_TYPE(m_args[orgArgIndex].unitKind,  ARG_KIND_SURFACE_VME))
         {
-            ArgIndexStep = m_Args[OrgArgIndex].unitVmeArraySize;
+            argIndexStep = m_args[orgArgIndex].unitVmeArraySize;
         }
 
-        if(m_Args[ OrgArgIndex ].bIsDirty)
+        if(m_args[ orgArgIndex ].isDirty)
         {
-            if(m_Args[ OrgArgIndex ].unitCount > 1)
+            if(m_args[ orgArgIndex ].unitCount > 1)
             { // thread arg is dirty
-                bBBresuable          = false;
+                bbResuable          = false;
             }
 
-            if ( CHECK_SURFACE_TYPE( m_Args[ OrgArgIndex ].unitKind,
+            if ( CHECK_SURFACE_TYPE( m_args[ orgArgIndex ].unitKind,
                         ARG_KIND_SURFACE,
                         ARG_KIND_SURFACE_1D,
                         ARG_KIND_SURFACE_2D,
@@ -4234,210 +4234,210 @@ int32_t CmKernelRT::UpdateKernelData(
                         ARG_KIND_STATE_BUFFER ) )
             {  // for surface args
 
-                uint32_t num_surfaces = m_Args[OrgArgIndex].unitSize/sizeof(int); // Surface array
-                if(m_Args[ OrgArgIndex ].unitCount ==  1) // kernel arg
+                uint32_t numSurfaces = m_args[orgArgIndex].unitSize/sizeof(int); // Surface array
+                if(m_args[ orgArgIndex ].unitCount ==  1) // kernel arg
                 {
-                    if (num_surfaces > 1)
+                    if (numSurfaces > 1)
                     {
-                        for (uint32_t kk = 0; kk < num_surfaces; kk++)
+                        for (uint32_t kk = 0; kk < numSurfaces; kk++)
                         {
-                            CM_ASSERT(pHalKernelParam->argParams[ArgIndex + kk].firstValue != nullptr);
-                            CmFastMemCopy(pHalKernelParam->argParams[ArgIndex + kk].firstValue,
-                                m_Args[OrgArgIndex].pValue + kk*sizeof(uint32_t), sizeof(uint32_t));
-                            pHalKernelParam->argParams[ArgIndex + kk].aliasIndex = m_Args[OrgArgIndex].aliasIndex;
-                            pHalKernelParam->argParams[ArgIndex + kk].aliasCreated = m_Args[OrgArgIndex].bAliasCreated;
-                            pHalKernelParam->argParams[ArgIndex + kk].isNull = m_Args[OrgArgIndex].bIsNull;
+                            CM_ASSERT(halKernelParam->argParams[argIndex + kk].firstValue != nullptr);
+                            CmFastMemCopy(halKernelParam->argParams[argIndex + kk].firstValue,
+                                m_args[orgArgIndex].value + kk*sizeof(uint32_t), sizeof(uint32_t));
+                            halKernelParam->argParams[argIndex + kk].aliasIndex = m_args[orgArgIndex].aliasIndex;
+                            halKernelParam->argParams[argIndex + kk].aliasCreated = m_args[orgArgIndex].aliasCreated;
+                            halKernelParam->argParams[argIndex + kk].isNull = m_args[orgArgIndex].isNull;
 
-                            if (!m_Args[OrgArgIndex].surfIndex[kk])
+                            if (!m_args[orgArgIndex].surfIndex[kk])
                             {
                                 //if surfIndex is 0, set kind to be CM_ARGUMENT_SURFACE2D
                                 //This is for special usage if there is empty element in surface array.
-                                pHalKernelParam->argParams[ArgIndex + kk].kind = CM_ARGUMENT_SURFACE2D;
+                                halKernelParam->argParams[argIndex + kk].kind = CM_ARGUMENT_SURFACE2D;
                                 continue;
                             }
 
-                            pHalKernelParam->argParams[ArgIndex + kk].kind = (CM_HAL_KERNEL_ARG_KIND)m_Args[OrgArgIndex].pSurfArrayArg[kk].argKindForArray;
-                            pHalKernelParam->argParams[ArgIndex + kk].nCustomValue = m_Args[OrgArgIndex].pSurfArrayArg[kk].addressModeForArray;
+                            halKernelParam->argParams[argIndex + kk].kind = (CM_HAL_KERNEL_ARG_KIND)m_args[orgArgIndex].surfArrayArg[kk].argKindForArray;
+                            halKernelParam->argParams[argIndex + kk].nCustomValue = m_args[orgArgIndex].surfArrayArg[kk].addressModeForArray;
                         }
                     }
                     else
                     {
-                        CM_ASSERT(pHalKernelParam->argParams[ArgIndex].firstValue != nullptr);
-                        CmFastMemCopy(pHalKernelParam->argParams[ArgIndex].firstValue,
-                                m_Args[ OrgArgIndex ].pValue, sizeof(uint32_t));
-                        pHalKernelParam->argParams[ArgIndex].kind = (CM_HAL_KERNEL_ARG_KIND)m_Args[ OrgArgIndex ].unitKind;
-                        pHalKernelParam->argParams[ArgIndex].aliasIndex   = m_Args[OrgArgIndex].aliasIndex;
-                        pHalKernelParam->argParams[ArgIndex].aliasCreated = m_Args[OrgArgIndex].bAliasCreated;
-                        pHalKernelParam->argParams[ArgIndex].isNull = m_Args[OrgArgIndex].bIsNull;
+                        CM_ASSERT(halKernelParam->argParams[argIndex].firstValue != nullptr);
+                        CmFastMemCopy(halKernelParam->argParams[argIndex].firstValue,
+                                m_args[ orgArgIndex ].value, sizeof(uint32_t));
+                        halKernelParam->argParams[argIndex].kind = (CM_HAL_KERNEL_ARG_KIND)m_args[ orgArgIndex ].unitKind;
+                        halKernelParam->argParams[argIndex].aliasIndex   = m_args[orgArgIndex].aliasIndex;
+                        halKernelParam->argParams[argIndex].aliasCreated = m_args[orgArgIndex].aliasCreated;
+                        halKernelParam->argParams[argIndex].isNull = m_args[orgArgIndex].isNull;
                     }
 
                  }
                  else // thread arg
                  {
-                    uint32_t num_surfaces = m_Args[OrgArgIndex].unitSize/sizeof(int); // Surface array
-                    uint32_t *surfaces = (uint32_t *)MOS_NewArray(uint8_t, (sizeof(uint32_t) * m_Args[OrgArgIndex].unitCount));
+                    uint32_t numSurfaces = m_args[orgArgIndex].unitSize/sizeof(int); // Surface array
+                    uint32_t *surfaces = (uint32_t *)MOS_NewArray(uint8_t, (sizeof(uint32_t) * m_args[orgArgIndex].unitCount));
                     CMCHK_NULL_RETURN(surfaces, CM_OUT_OF_HOST_MEMORY);
-                    for (uint32_t kk=0;  kk< num_surfaces ; kk++)
+                    for (uint32_t kk=0;  kk< numSurfaces ; kk++)
                     {
-                        for (uint32_t s = 0; s < m_Args[OrgArgIndex].unitCount; s++)
+                        for (uint32_t s = 0; s < m_args[orgArgIndex].unitCount; s++)
                         {
-                            surfaces[s] = *(uint32_t *)((uint32_t *)m_Args[OrgArgIndex].pValue + kk + num_surfaces * s);
+                            surfaces[s] = *(uint32_t *)((uint32_t *)m_args[orgArgIndex].value + kk + numSurfaces * s);
                         }
-                        CmFastMemCopy(pHalKernelParam->argParams[ArgIndex + kk].firstValue,
-                            surfaces, sizeof(uint32_t) * m_Args[OrgArgIndex].unitCount);
+                        CmFastMemCopy(halKernelParam->argParams[argIndex + kk].firstValue,
+                            surfaces, sizeof(uint32_t) * m_args[orgArgIndex].unitCount);
 
-                        pHalKernelParam->argParams[ArgIndex + kk].kind = (CM_HAL_KERNEL_ARG_KIND)m_Args[ OrgArgIndex ].unitKind;
+                        halKernelParam->argParams[argIndex + kk].kind = (CM_HAL_KERNEL_ARG_KIND)m_args[ orgArgIndex ].unitKind;
 
-                        pHalKernelParam->argParams[ArgIndex + kk].aliasIndex = m_Args[OrgArgIndex].aliasIndex;
-                        pHalKernelParam->argParams[ArgIndex + kk].aliasCreated = m_Args[OrgArgIndex].bAliasCreated;
-                        pHalKernelParam->argParams[ArgIndex + kk].isNull = m_Args[OrgArgIndex].bIsNull;
+                        halKernelParam->argParams[argIndex + kk].aliasIndex = m_args[orgArgIndex].aliasIndex;
+                        halKernelParam->argParams[argIndex + kk].aliasCreated = m_args[orgArgIndex].aliasCreated;
+                        halKernelParam->argParams[argIndex + kk].isNull = m_args[orgArgIndex].isNull;
 
                     }
                     MosSafeDeleteArray(surfaces);
                  }
 
             }
-            else if (CHECK_SURFACE_TYPE(m_Args[OrgArgIndex].unitKind, ARG_KIND_SURFACE_VME))
+            else if (CHECK_SURFACE_TYPE(m_args[orgArgIndex].unitKind, ARG_KIND_SURFACE_VME))
             {
-                uint32_t num_surfaces = m_Args[OrgArgIndex].unitVmeArraySize;
-                if (m_Args[OrgArgIndex].unitCount == 1) // kernel arg
+                uint32_t numSurfaces = m_args[orgArgIndex].unitVmeArraySize;
+                if (m_args[orgArgIndex].unitCount == 1) // kernel arg
                 {
-                    uint32_t VmeSurfoffset = 0;
-                    for (uint32_t kk = 0; kk< num_surfaces; kk++)
+                    uint32_t vmeSurfOffset = 0;
+                    for (uint32_t kk = 0; kk< numSurfaces; kk++)
                     {
-                        uint16_t VmeSize = (uint16_t)getVmeArgValueSize((PCM_HAL_VME_ARG_VALUE)(m_Args[OrgArgIndex].pValue + VmeSurfoffset));
+                        uint16_t vmeSize = (uint16_t)getVmeArgValueSize((PCM_HAL_VME_ARG_VALUE)(m_args[orgArgIndex].value + vmeSurfOffset));
 
                         // reallocate the firstValue for VME surface every time
                         // since the number of surfaces may vary
-                        MosSafeDeleteArray(pHalKernelParam->argParams[ArgIndex + kk].firstValue);
-                        pHalKernelParam->argParams[ArgIndex + kk].firstValue = MOS_NewArray(uint8_t, VmeSize);
-                        CM_ASSERT(pHalKernelParam->argParams[ArgIndex + kk].firstValue != nullptr);
-                        CmFastMemCopy(pHalKernelParam->argParams[ArgIndex + kk].firstValue,
-                            m_Args[OrgArgIndex].pValue + VmeSurfoffset, VmeSize);
+                        MosSafeDeleteArray(halKernelParam->argParams[argIndex + kk].firstValue);
+                        halKernelParam->argParams[argIndex + kk].firstValue = MOS_NewArray(uint8_t, vmeSize);
+                        CM_ASSERT(halKernelParam->argParams[argIndex + kk].firstValue != nullptr);
+                        CmFastMemCopy(halKernelParam->argParams[argIndex + kk].firstValue,
+                            m_args[orgArgIndex].value + vmeSurfOffset, vmeSize);
 
-                        pHalKernelParam->argParams[ArgIndex + kk].kind = (CM_HAL_KERNEL_ARG_KIND)m_Args[OrgArgIndex].unitKind;
+                        halKernelParam->argParams[argIndex + kk].kind = (CM_HAL_KERNEL_ARG_KIND)m_args[orgArgIndex].unitKind;
 
-                        pHalKernelParam->argParams[ArgIndex + kk].aliasIndex = m_Args[OrgArgIndex].aliasIndex;
-                        pHalKernelParam->argParams[ArgIndex + kk].aliasCreated = m_Args[OrgArgIndex].bAliasCreated;
-                        pHalKernelParam->argParams[ArgIndex + kk].isNull = m_Args[OrgArgIndex].bIsNull;
-                        pHalKernelParam->argParams[ArgIndex + kk].unitSize = VmeSize;
-                        VmeSurfoffset += VmeSize;
+                        halKernelParam->argParams[argIndex + kk].aliasIndex = m_args[orgArgIndex].aliasIndex;
+                        halKernelParam->argParams[argIndex + kk].aliasCreated = m_args[orgArgIndex].aliasCreated;
+                        halKernelParam->argParams[argIndex + kk].isNull = m_args[orgArgIndex].isNull;
+                        halKernelParam->argParams[argIndex + kk].unitSize = vmeSize;
+                        vmeSurfOffset += vmeSize;
                     }
                 }
             }
             else
             {
-                CMCHK_HR(CreateThreadArgData(&pHalKernelParam->argParams[ArgIndex ], OrgArgIndex, pCmThreadSpace, m_Args));
+                CMCHK_HR(CreateThreadArgData(&halKernelParam->argParams[argIndex ], orgArgIndex, cmThreadSpace, m_args));
             }
         }
-        ArgIndex += ArgIndexStep;
+        argIndex += argIndexStep;
     }
 
     //Update Thread space param
-    if(m_pThreadSpace && m_pThreadSpace->GetDirtyStatus())
+    if(m_threadSpace && m_threadSpace->GetDirtyStatus())
     {
 
-        CMCHK_HR(SortThreadSpace(m_pThreadSpace));
+        CMCHK_HR(SortThreadSpace(m_threadSpace));
 
-        uint32_t TsWidth, TsHeight;
-        PCM_HAL_KERNEL_THREADSPACE_PARAM  pCmKernelThreadSpaceParam = &pHalKernelParam->kernelThreadSpaceParam;
-        m_pThreadSpace->GetThreadSpaceSize(TsWidth, TsHeight);
+        uint32_t threadSpaceWidth, threadSpaceHeight;
+        PCM_HAL_KERNEL_THREADSPACE_PARAM  cmKernelThreadSpaceParam = &halKernelParam->kernelThreadSpaceParam;
+        m_threadSpace->GetThreadSpaceSize(threadSpaceWidth, threadSpaceHeight);
 
-        pCmKernelThreadSpaceParam->threadSpaceWidth  = (uint16_t)TsWidth;
-        pCmKernelThreadSpaceParam->threadSpaceHeight = (uint16_t)TsHeight;
-        m_pThreadSpace->GetDependencyPatternType(pCmKernelThreadSpaceParam->patternType);
-        m_pThreadSpace->GetWalkingPattern(pCmKernelThreadSpaceParam->walkingPattern);
+        cmKernelThreadSpaceParam->threadSpaceWidth  = (uint16_t)threadSpaceWidth;
+        cmKernelThreadSpaceParam->threadSpaceHeight = (uint16_t)threadSpaceHeight;
+        m_threadSpace->GetDependencyPatternType(cmKernelThreadSpaceParam->patternType);
+        m_threadSpace->GetWalkingPattern(cmKernelThreadSpaceParam->walkingPattern);
 
-        CM_HAL_DEPENDENCY*     pDependency;
-        m_pThreadSpace->GetDependency( pDependency);
+        CM_HAL_DEPENDENCY*     dependency;
+        m_threadSpace->GetDependency( dependency);
 
-        if(pDependency != nullptr)
+        if(dependency != nullptr)
         {
-            CmFastMemCopy(&pCmKernelThreadSpaceParam->dependencyInfo, pDependency, sizeof(CM_HAL_DEPENDENCY));
+            CmFastMemCopy(&cmKernelThreadSpaceParam->dependencyInfo, dependency, sizeof(CM_HAL_DEPENDENCY));
         }
 
-        if( m_pThreadSpace->CheckWalkingParametersSet() )
+        if( m_threadSpace->CheckWalkingParametersSet() )
         {
-            CMCHK_HR(m_pThreadSpace->GetWalkingParameters(pCmKernelThreadSpaceParam->walkingParams));
+            CMCHK_HR(m_threadSpace->GetWalkingParameters(cmKernelThreadSpaceParam->walkingParams));
         }
 
-        if( m_pThreadSpace->CheckDependencyVectorsSet() )
+        if( m_threadSpace->CheckDependencyVectorsSet() )
         {
-            CMCHK_HR(m_pThreadSpace->GetDependencyVectors(pCmKernelThreadSpaceParam->dependencyVectors));
+            CMCHK_HR(m_threadSpace->GetDependencyVectors(cmKernelThreadSpaceParam->dependencyVectors));
         }
 
-        if(m_pThreadSpace->IsThreadAssociated())
+        if(m_threadSpace->IsThreadAssociated())
         {// media object only
-            uint32_t *pBoardOrder = nullptr;
-            m_pThreadSpace->GetBoardOrder(pBoardOrder);
-            CMCHK_NULL(pBoardOrder);
+            uint32_t *boardOrder = nullptr;
+            m_threadSpace->GetBoardOrder(boardOrder);
+            CMCHK_NULL(boardOrder);
 
-            CM_THREAD_SPACE_UNIT *pThreadSpaceUnit = nullptr;
-            m_pThreadSpace->GetThreadSpaceUnit(pThreadSpaceUnit);
-            CMCHK_NULL(pThreadSpaceUnit);
+            CM_THREAD_SPACE_UNIT *threadSpaceUnit = nullptr;
+            m_threadSpace->GetThreadSpaceUnit(threadSpaceUnit);
+            CMCHK_NULL(threadSpaceUnit);
 
-            pCmKernelThreadSpaceParam->reuseBBUpdateMask = 0;
-            for(uint32_t i=0; i< TsWidth * TsHeight ; i++)
+            cmKernelThreadSpaceParam->reuseBBUpdateMask = 0;
+            for(uint32_t i=0; i< threadSpaceWidth * threadSpaceHeight ; i++)
             {
-                pCmKernelThreadSpaceParam->threadCoordinates[i].x = pThreadSpaceUnit[pBoardOrder[i]].scoreboardCoordinates.x;
-                pCmKernelThreadSpaceParam->threadCoordinates[i].y = pThreadSpaceUnit[pBoardOrder[i]].scoreboardCoordinates.y;
-                pCmKernelThreadSpaceParam->threadCoordinates[i].mask = pThreadSpaceUnit[pBoardOrder[i]].dependencyMask;
-                pCmKernelThreadSpaceParam->threadCoordinates[i].resetMask = pThreadSpaceUnit[pBoardOrder[i]].reset;
-                pCmKernelThreadSpaceParam->threadCoordinates[i].color = pThreadSpaceUnit[pBoardOrder[i]].scoreboardColor;
-                pCmKernelThreadSpaceParam->threadCoordinates[i].sliceSelect = pThreadSpaceUnit[pBoardOrder[i]].sliceDestinationSelect;
-                pCmKernelThreadSpaceParam->threadCoordinates[i].subSliceSelect = pThreadSpaceUnit[pBoardOrder[i]].subSliceDestinationSelect;
-                pCmKernelThreadSpaceParam->reuseBBUpdateMask |= pThreadSpaceUnit[pBoardOrder[i]].reset;
+                cmKernelThreadSpaceParam->threadCoordinates[i].x = threadSpaceUnit[boardOrder[i]].scoreboardCoordinates.x;
+                cmKernelThreadSpaceParam->threadCoordinates[i].y = threadSpaceUnit[boardOrder[i]].scoreboardCoordinates.y;
+                cmKernelThreadSpaceParam->threadCoordinates[i].mask = threadSpaceUnit[boardOrder[i]].dependencyMask;
+                cmKernelThreadSpaceParam->threadCoordinates[i].resetMask = threadSpaceUnit[boardOrder[i]].reset;
+                cmKernelThreadSpaceParam->threadCoordinates[i].color = threadSpaceUnit[boardOrder[i]].scoreboardColor;
+                cmKernelThreadSpaceParam->threadCoordinates[i].sliceSelect = threadSpaceUnit[boardOrder[i]].sliceDestinationSelect;
+                cmKernelThreadSpaceParam->threadCoordinates[i].subSliceSelect = threadSpaceUnit[boardOrder[i]].subSliceDestinationSelect;
+                cmKernelThreadSpaceParam->reuseBBUpdateMask |= threadSpaceUnit[boardOrder[i]].reset;
             }
 
-            if( pCmKernelThreadSpaceParam->patternType == CM_WAVEFRONT26Z )
+            if( cmKernelThreadSpaceParam->patternType == CM_WAVEFRONT26Z )
             {
                 CM_HAL_WAVEFRONT26Z_DISPATCH_INFO dispatchInfo;
-                m_pThreadSpace->GetWavefront26ZDispatchInfo(dispatchInfo);
+                m_threadSpace->GetWavefront26ZDispatchInfo(dispatchInfo);
 
-                if (pCmKernelThreadSpaceParam->dispatchInfo.numWaves >= dispatchInfo.numWaves)
+                if (cmKernelThreadSpaceParam->dispatchInfo.numWaves >= dispatchInfo.numWaves)
                 {
-                    pCmKernelThreadSpaceParam->dispatchInfo.numWaves = dispatchInfo.numWaves;
-                    CmFastMemCopy(pCmKernelThreadSpaceParam->dispatchInfo.numThreadsInWave, dispatchInfo.numThreadsInWave, dispatchInfo.numWaves*sizeof(uint32_t));
+                    cmKernelThreadSpaceParam->dispatchInfo.numWaves = dispatchInfo.numWaves;
+                    CmFastMemCopy(cmKernelThreadSpaceParam->dispatchInfo.numThreadsInWave, dispatchInfo.numThreadsInWave, dispatchInfo.numWaves*sizeof(uint32_t));
                 }
                 else
                 {
-                    pCmKernelThreadSpaceParam->dispatchInfo.numWaves = dispatchInfo.numWaves;
-                    MosSafeDeleteArray(pCmKernelThreadSpaceParam->dispatchInfo.numThreadsInWave);
-                    pCmKernelThreadSpaceParam->dispatchInfo.numThreadsInWave = MOS_NewArray(uint32_t, dispatchInfo.numWaves);
-                    CMCHK_NULL_RETURN(pCmKernelThreadSpaceParam->dispatchInfo.numThreadsInWave, CM_OUT_OF_HOST_MEMORY);
-                    CmFastMemCopy(pCmKernelThreadSpaceParam->dispatchInfo.numThreadsInWave, dispatchInfo.numThreadsInWave, dispatchInfo.numWaves*sizeof(uint32_t));
+                    cmKernelThreadSpaceParam->dispatchInfo.numWaves = dispatchInfo.numWaves;
+                    MosSafeDeleteArray(cmKernelThreadSpaceParam->dispatchInfo.numThreadsInWave);
+                    cmKernelThreadSpaceParam->dispatchInfo.numThreadsInWave = MOS_NewArray(uint32_t, dispatchInfo.numWaves);
+                    CMCHK_NULL_RETURN(cmKernelThreadSpaceParam->dispatchInfo.numThreadsInWave, CM_OUT_OF_HOST_MEMORY);
+                    CmFastMemCopy(cmKernelThreadSpaceParam->dispatchInfo.numThreadsInWave, dispatchInfo.numThreadsInWave, dispatchInfo.numWaves*sizeof(uint32_t));
                 }
             }
         }
     }
 
     // Update indirect data
-    if( m_Dirty & CM_KERNEL_DATA_PAYLOAD_DATA_DIRTY)
+    if( m_dirty & CM_KERNEL_DATA_PAYLOAD_DATA_DIRTY)
     {
-        pHalKernelParam->indirectDataParam.indirectDataSize = m_usKernelPayloadDataSize;
-        pHalKernelParam->indirectDataParam.surfaceCount     = m_usKernelPayloadSurfaceCount;
+        halKernelParam->indirectDataParam.indirectDataSize = m_usKernelPayloadDataSize;
+        halKernelParam->indirectDataParam.surfaceCount     = m_usKernelPayloadSurfaceCount;
 
         if(m_usKernelPayloadDataSize != 0)
         {
-            if(m_Dirty & CM_KERNEL_DATA_PAYLOAD_DATA_SIZE_DIRTY)
+            if(m_dirty & CM_KERNEL_DATA_PAYLOAD_DATA_SIZE_DIRTY)
             { // size change, need to reallocate
-                MosSafeDeleteArray(pHalKernelParam->indirectDataParam.indirectData);
-                pHalKernelParam->indirectDataParam.indirectData = MOS_NewArray(uint8_t, m_usKernelPayloadDataSize);
-                CMCHK_NULL_RETURN(pHalKernelParam->indirectDataParam.indirectData, CM_OUT_OF_HOST_MEMORY);
+                MosSafeDeleteArray(halKernelParam->indirectDataParam.indirectData);
+                halKernelParam->indirectDataParam.indirectData = MOS_NewArray(uint8_t, m_usKernelPayloadDataSize);
+                CMCHK_NULL_RETURN(halKernelParam->indirectDataParam.indirectData, CM_OUT_OF_HOST_MEMORY);
             }
-            CmFastMemCopy(pHalKernelParam->indirectDataParam.indirectData, (void *)m_pKernelPayloadData, m_usKernelPayloadDataSize);
+            CmFastMemCopy(halKernelParam->indirectDataParam.indirectData, (void *)m_kernelPayloadData, m_usKernelPayloadDataSize);
         }
 
         if(m_usKernelPayloadSurfaceCount != 0)
         {
-            if(m_Dirty & CM_KERNEL_DATA_PAYLOAD_DATA_SIZE_DIRTY)
+            if(m_dirty & CM_KERNEL_DATA_PAYLOAD_DATA_SIZE_DIRTY)
             { // size change, need to reallocate
-                MosSafeDeleteArray(pHalKernelParam->indirectDataParam.surfaceInfo);
-                pHalKernelParam->indirectDataParam.surfaceInfo = MOS_NewArray(CM_INDIRECT_SURFACE_INFO, m_usKernelPayloadSurfaceCount);
-                CMCHK_NULL_RETURN(pHalKernelParam->indirectDataParam.surfaceInfo, CM_OUT_OF_HOST_MEMORY);
+                MosSafeDeleteArray(halKernelParam->indirectDataParam.surfaceInfo);
+                halKernelParam->indirectDataParam.surfaceInfo = MOS_NewArray(CM_INDIRECT_SURFACE_INFO, m_usKernelPayloadSurfaceCount);
+                CMCHK_NULL_RETURN(halKernelParam->indirectDataParam.surfaceInfo, CM_OUT_OF_HOST_MEMORY);
 
             }
-            CmFastMemCopy((void*)pHalKernelParam->indirectDataParam.surfaceInfo, (void*)m_IndirectSurfaceInfoArray,
+            CmFastMemCopy((void*)halKernelParam->indirectDataParam.surfaceInfo, (void*)m_IndirectSurfaceInfoArray,
                              m_usKernelPayloadSurfaceCount * sizeof(CM_INDIRECT_SURFACE_INFO));
             //clear m_IndirectSurfaceInfoArray every enqueue
             CmSafeMemSet(m_IndirectSurfaceInfoArray, 0, m_usKernelPayloadSurfaceCount * sizeof(CM_INDIRECT_SURFACE_INFO));
@@ -4445,30 +4445,30 @@ int32_t CmKernelRT::UpdateKernelData(
         }
     }
 
-    if (m_Dirty & CM_KERNEL_DATA_SAMPLER_BTI_DIRTY)
+    if (m_dirty & cMKERNELDATASAMPLERBTIDIRTY)
     {
-        if ( m_SamplerBTICount != 0 )
+        if ( m_samplerBtiCount != 0 )
         {
-            CmFastMemCopy( ( void* )pHalKernelParam->samplerBTIParam.samplerInfo, ( void* )m_SamplerBTIEntry, sizeof( m_SamplerBTIEntry ) );
-            pHalKernelParam->samplerBTIParam.samplerCount = m_SamplerBTICount;
+            CmFastMemCopy( ( void* )halKernelParam->samplerBTIParam.samplerInfo, ( void* )m_samplerBtiEntry, sizeof( m_samplerBtiEntry ) );
+            halKernelParam->samplerBTIParam.samplerCount = m_samplerBtiCount;
 
-            CmSafeMemSet(m_SamplerBTIEntry, 0, sizeof(m_SamplerBTIEntry));
-            m_SamplerBTICount = 0;
+            CmSafeMemSet(m_samplerBtiEntry, 0, sizeof(m_samplerBtiEntry));
+            m_samplerBtiCount = 0;
         }
     }
-    CMCHK_HR(UpdateKernelDataGlobalSurfaceInfo( pHalKernelParam ));
+    CMCHK_HR(UpdateKernelDataGlobalSurfaceInfo( halKernelParam ));
 
-    CMCHK_HR(CalculateKernelSurfacesNum(surfNum, pHalKernelParam->numSurfaces));
+    CMCHK_HR(CalculateKernelSurfacesNum(surfNum, halKernelParam->numSurfaces));
 
-    CMCHK_HR(UpdateSamplerHeap(pKernelData));
+    CMCHK_HR(UpdateSamplerHeap(kernelData));
 
 finish:
     if( hr != CM_SUCCESS)
     {
-        if( pHalKernelParam )
+        if( halKernelParam )
         {
-            MosSafeDeleteArray(pHalKernelParam->indirectDataParam.indirectData);
-            MosSafeDeleteArray(pHalKernelParam->indirectDataParam.surfaceInfo);
+            MosSafeDeleteArray(halKernelParam->indirectDataParam.indirectData);
+            MosSafeDeleteArray(halKernelParam->indirectDataParam.surfaceInfo);
         }
     }
     return hr;
@@ -4479,30 +4479,30 @@ finish:
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 int32_t CmKernelRT::UpdateKernelData(
-    CmKernelData*   pKernelData,  // in
-    const CmThreadGroupSpace* pTGS )    // in
+    CmKernelData*   kernelData,  // in
+    const CmThreadGroupSpace* threadGroupSpace )    // in
 {
     int32_t               hr                      = CM_SUCCESS;
-    PCM_HAL_KERNEL_PARAM  pHalKernelParam         = nullptr;
-    uint32_t              ArgIndexStep            = 0;
-    uint32_t              ArgIndex                = 0;
+    PCM_HAL_KERNEL_PARAM  halKernelParam         = nullptr;
+    uint32_t              argIndexStep            = 0;
+    uint32_t              argIndex                = 0;
     uint32_t              surfNum                 = 0;
     auto getVersionAsInt = [](int major, int minor) { return major * 100 + minor; };
 
-    CMCHK_NULL(pKernelData);
-    CM_ASSERT(pKernelData->IsInUse() == false);
+    CMCHK_NULL(kernelData);
+    CM_ASSERT(kernelData->IsInUse() == false);
 
-    pHalKernelParam = pKernelData->GetHalCmKernelData();
-    CMCHK_NULL(pHalKernelParam);
+    halKernelParam = kernelData->GetHalCmKernelData();
+    CMCHK_NULL(halKernelParam);
 
-    CMCHK_NULL(pTGS);
+    CMCHK_NULL(threadGroupSpace);
 
     //Update arguments
-    for(uint32_t OrgArgIndex =0 ; OrgArgIndex< m_ArgCount; OrgArgIndex++)
+    for(uint32_t orgArgIndex =0 ; orgArgIndex< m_argCount; orgArgIndex++)
     {
-        ArgIndexStep = 1;
+        argIndexStep = 1;
 
-        if ( CHECK_SURFACE_TYPE( m_Args[ OrgArgIndex ].unitKind,
+        if ( CHECK_SURFACE_TYPE( m_args[ orgArgIndex ].unitKind,
                         ARG_KIND_SURFACE,
                         ARG_KIND_SURFACE_1D,
                         ARG_KIND_SURFACE_2D,
@@ -4515,23 +4515,23 @@ int32_t CmKernelRT::UpdateKernelData(
                         ARG_KIND_SURFACE_2D_SCOREBOARD,
                         ARG_KIND_STATE_BUFFER ) )
         {
-            ArgIndexStep = m_Args[OrgArgIndex].unitSize/sizeof(int); // Surface array exists
+            argIndexStep = m_args[orgArgIndex].unitSize/sizeof(int); // Surface array exists
         }
-        else if (CHECK_SURFACE_TYPE(m_Args[OrgArgIndex].unitKind, ARG_KIND_SURFACE_VME))
+        else if (CHECK_SURFACE_TYPE(m_args[orgArgIndex].unitKind, ARG_KIND_SURFACE_VME))
         {
-            ArgIndexStep = m_Args[OrgArgIndex].unitVmeArraySize;
+            argIndexStep = m_args[orgArgIndex].unitVmeArraySize;
         }
 
-        if(m_Args[ OrgArgIndex ].bIsDirty)
+        if(m_args[ orgArgIndex ].isDirty)
         {
-            if(m_Args[ OrgArgIndex ].unitCount > 1)
+            if(m_args[ orgArgIndex ].unitCount > 1)
             { // thread arg is dirty
                 CM_ASSERTMESSAGE("Error: Thread arg is not allowed in GPGPU walker.");
                 hr = CM_FAILURE; // Thread arg is not allowed in GPGPU walker
                 goto finish;
             }
 
-            if ( CHECK_SURFACE_TYPE( m_Args[ OrgArgIndex ].unitKind,
+            if ( CHECK_SURFACE_TYPE( m_args[ orgArgIndex ].unitKind,
                         ARG_KIND_SURFACE,
                         ARG_KIND_SURFACE_1D,
                         ARG_KIND_SURFACE_2D,
@@ -4544,108 +4544,108 @@ int32_t CmKernelRT::UpdateKernelData(
                         ARG_KIND_SURFACE_2D_SCOREBOARD,
                         ARG_KIND_STATE_BUFFER ) )
             {  // for surface args
-                uint32_t num_surfaces = m_Args[OrgArgIndex].unitSize/sizeof(int); // Surface array
-                if(m_Args[ OrgArgIndex ].unitCount ==  1) // kernel arg
+                uint32_t numSurfaces = m_args[orgArgIndex].unitSize/sizeof(int); // Surface array
+                if(m_args[ orgArgIndex ].unitCount ==  1) // kernel arg
                 {
-                    if (num_surfaces > 1 )
+                    if (numSurfaces > 1 )
                     {
-                        for(uint32_t kk=0;  kk< num_surfaces ; kk++)
+                        for(uint32_t kk=0;  kk< numSurfaces ; kk++)
                         {
-                            CM_ASSERT(pHalKernelParam->argParams[ArgIndex + kk].firstValue != nullptr);
-                            CmFastMemCopy(pHalKernelParam->argParams[ArgIndex + kk].firstValue,
-                            m_Args[ OrgArgIndex ].pValue + kk*sizeof(uint32_t), sizeof(uint32_t));
+                            CM_ASSERT(halKernelParam->argParams[argIndex + kk].firstValue != nullptr);
+                            CmFastMemCopy(halKernelParam->argParams[argIndex + kk].firstValue,
+                            m_args[ orgArgIndex ].value + kk*sizeof(uint32_t), sizeof(uint32_t));
 
-                            if (!m_Args[OrgArgIndex].surfIndex[kk])
+                            if (!m_args[orgArgIndex].surfIndex[kk])
                             {
                                 //if surfIndex is 0, set kind to be CM_ARGUMENT_SURFACE2D
                                 //This is for special usage if there is empty element in surface array.
-                                pHalKernelParam->argParams[ArgIndex + kk].kind = CM_ARGUMENT_SURFACE2D;
+                                halKernelParam->argParams[argIndex + kk].kind = CM_ARGUMENT_SURFACE2D;
                                 continue;
                             }
-                            pHalKernelParam->argParams[ArgIndex + kk].isNull = m_Args[OrgArgIndex].bIsNull;
-                            pHalKernelParam->argParams[ArgIndex + kk].kind = (CM_HAL_KERNEL_ARG_KIND)m_Args[OrgArgIndex].pSurfArrayArg[kk].argKindForArray;
-                            pHalKernelParam->argParams[ArgIndex + kk].nCustomValue = m_Args[OrgArgIndex].pSurfArrayArg[kk].addressModeForArray;
+                            halKernelParam->argParams[argIndex + kk].isNull = m_args[orgArgIndex].isNull;
+                            halKernelParam->argParams[argIndex + kk].kind = (CM_HAL_KERNEL_ARG_KIND)m_args[orgArgIndex].surfArrayArg[kk].argKindForArray;
+                            halKernelParam->argParams[argIndex + kk].nCustomValue = m_args[orgArgIndex].surfArrayArg[kk].addressModeForArray;
 
                         }
                     }
                     else
                     {
-                        CM_ASSERT(pHalKernelParam->argParams[ArgIndex].firstValue != nullptr);
-                        CmFastMemCopy(pHalKernelParam->argParams[ArgIndex].firstValue,
-                            m_Args[OrgArgIndex].pValue, sizeof(uint32_t));
+                        CM_ASSERT(halKernelParam->argParams[argIndex].firstValue != nullptr);
+                        CmFastMemCopy(halKernelParam->argParams[argIndex].firstValue,
+                            m_args[orgArgIndex].value, sizeof(uint32_t));
 
-                        pHalKernelParam->argParams[ArgIndex].kind = (CM_HAL_KERNEL_ARG_KIND)m_Args[OrgArgIndex].unitKind;
-                        pHalKernelParam->argParams[ArgIndex].isNull = m_Args[OrgArgIndex].bIsNull;
+                        halKernelParam->argParams[argIndex].kind = (CM_HAL_KERNEL_ARG_KIND)m_args[orgArgIndex].unitKind;
+                        halKernelParam->argParams[argIndex].isNull = m_args[orgArgIndex].isNull;
                     }
                  }
             }
-            else if (CHECK_SURFACE_TYPE(m_Args[OrgArgIndex].unitKind, ARG_KIND_SURFACE_VME))
+            else if (CHECK_SURFACE_TYPE(m_args[orgArgIndex].unitKind, ARG_KIND_SURFACE_VME))
             {
-                uint32_t num_surfaces = m_Args[OrgArgIndex].unitVmeArraySize;
-                if (m_Args[OrgArgIndex].unitCount == 1) // kernel arg
+                uint32_t numSurfaces = m_args[orgArgIndex].unitVmeArraySize;
+                if (m_args[orgArgIndex].unitCount == 1) // kernel arg
                 {
-                    uint32_t VmeSurfoffset = 0;
-                    for (uint32_t kk = 0; kk< num_surfaces; kk++)
+                    uint32_t vmeSurfOffset = 0;
+                    for (uint32_t kk = 0; kk< numSurfaces; kk++)
                     {
-                        uint32_t VmeSize = getVmeArgValueSize((PCM_HAL_VME_ARG_VALUE)(m_Args[OrgArgIndex].pValue + VmeSurfoffset));
+                        uint32_t vmeSize = getVmeArgValueSize((PCM_HAL_VME_ARG_VALUE)(m_args[orgArgIndex].value + vmeSurfOffset));
 
                         // reallocate the firstValue for VME surface every time
                         // since the number of surfaces may vary
-                        MosSafeDeleteArray(pHalKernelParam->argParams[ArgIndex + kk].firstValue);
-                        pHalKernelParam->argParams[ArgIndex + kk].firstValue = MOS_NewArray(uint8_t, VmeSize);
-                        CM_ASSERT(pHalKernelParam->argParams[ArgIndex + kk].firstValue != nullptr);
-                        CmFastMemCopy(pHalKernelParam->argParams[ArgIndex + kk].firstValue,
-                            m_Args[OrgArgIndex].pValue + VmeSurfoffset, VmeSize);
+                        MosSafeDeleteArray(halKernelParam->argParams[argIndex + kk].firstValue);
+                        halKernelParam->argParams[argIndex + kk].firstValue = MOS_NewArray(uint8_t, vmeSize);
+                        CM_ASSERT(halKernelParam->argParams[argIndex + kk].firstValue != nullptr);
+                        CmFastMemCopy(halKernelParam->argParams[argIndex + kk].firstValue,
+                            m_args[orgArgIndex].value + vmeSurfOffset, vmeSize);
 
-                        pHalKernelParam->argParams[ArgIndex + kk].kind = (CM_HAL_KERNEL_ARG_KIND)m_Args[OrgArgIndex].unitKind;
+                        halKernelParam->argParams[argIndex + kk].kind = (CM_HAL_KERNEL_ARG_KIND)m_args[orgArgIndex].unitKind;
 
-                        pHalKernelParam->argParams[ArgIndex + kk].aliasIndex = m_Args[OrgArgIndex].aliasIndex;
-                        pHalKernelParam->argParams[ArgIndex + kk].aliasCreated = m_Args[OrgArgIndex].bAliasCreated;
-                        pHalKernelParam->argParams[ArgIndex + kk].isNull = m_Args[OrgArgIndex].bIsNull;
-                        pHalKernelParam->argParams[ArgIndex + kk].unitSize = m_Args[OrgArgIndex].unitSize;
-                        VmeSurfoffset += VmeSize;
+                        halKernelParam->argParams[argIndex + kk].aliasIndex = m_args[orgArgIndex].aliasIndex;
+                        halKernelParam->argParams[argIndex + kk].aliasCreated = m_args[orgArgIndex].aliasCreated;
+                        halKernelParam->argParams[argIndex + kk].isNull = m_args[orgArgIndex].isNull;
+                        halKernelParam->argParams[argIndex + kk].unitSize = m_args[orgArgIndex].unitSize;
+                        vmeSurfOffset += vmeSize;
                     }
                 }
             }
             else
             {
-                CMCHK_HR(CreateThreadArgData(&pHalKernelParam->argParams[ArgIndex ], OrgArgIndex, nullptr, m_Args));
+                CMCHK_HR(CreateThreadArgData(&halKernelParam->argParams[argIndex ], orgArgIndex, nullptr, m_args));
             }
         }
-        ArgIndex += ArgIndexStep;
+        argIndex += argIndexStep;
     }
 
-    if (m_Dirty & CM_KERNEL_DATA_SAMPLER_BTI_DIRTY)
+    if (m_dirty & cMKERNELDATASAMPLERBTIDIRTY)
     {
-        if ( m_SamplerBTICount != 0 )
+        if ( m_samplerBtiCount != 0 )
         {
-            CmFastMemCopy( ( void* )pHalKernelParam->samplerBTIParam.samplerInfo, ( void* )m_SamplerBTIEntry, sizeof( m_SamplerBTIEntry ) );
-            pHalKernelParam->samplerBTIParam.samplerCount = m_SamplerBTICount;
+            CmFastMemCopy( ( void* )halKernelParam->samplerBTIParam.samplerInfo, ( void* )m_samplerBtiEntry, sizeof( m_samplerBtiEntry ) );
+            halKernelParam->samplerBTIParam.samplerCount = m_samplerBtiCount;
 
-            CmSafeMemSet(m_SamplerBTIEntry, 0, sizeof(m_SamplerBTIEntry));
-            m_SamplerBTICount = 0;
+            CmSafeMemSet(m_samplerBtiEntry, 0, sizeof(m_samplerBtiEntry));
+            m_samplerBtiCount = 0;
         }
     }
 
-    CMCHK_HR(UpdateKernelDataGlobalSurfaceInfo( pHalKernelParam ));
+    CMCHK_HR(UpdateKernelDataGlobalSurfaceInfo( halKernelParam ));
 
-    CMCHK_HR(CalculateKernelSurfacesNum(surfNum, pHalKernelParam->numSurfaces));
+    CMCHK_HR(CalculateKernelSurfacesNum(surfNum, halKernelParam->numSurfaces));
 
     // GPGPU walker - implicit args
     uint32_t thrdSpaceWidth, thrdSpaceHeight, thrdSpaceDepth, grpSpaceWidth, grpSpaceHeight, grpSpaceDepth;
-    pTGS->GetThreadGroupSpaceSize(thrdSpaceWidth, thrdSpaceHeight, thrdSpaceDepth, grpSpaceWidth, grpSpaceHeight, grpSpaceDepth);
+    threadGroupSpace->GetThreadGroupSpaceSize(thrdSpaceWidth, thrdSpaceHeight, thrdSpaceDepth, grpSpaceWidth, grpSpaceHeight, grpSpaceDepth);
 
-    if (getVersionAsInt(m_pProgram->m_CISA_majorVersion, m_pProgram->m_CISA_minorVersion) < getVersionAsInt(3, 3))
+    if (getVersionAsInt(m_program->m_cisaMajorVersion, m_program->m_cisaMinorVersion) < getVersionAsInt(3, 3))
     {
-        CMCHK_HR(CreateKernelArgDataGroup (pHalKernelParam->argParams[ArgIndex + 0].firstValue, thrdSpaceWidth));
-        CMCHK_HR(CreateKernelArgDataGroup (pHalKernelParam->argParams[ArgIndex + 1].firstValue, thrdSpaceHeight));
-        CMCHK_HR(CreateKernelArgDataGroup (pHalKernelParam->argParams[ArgIndex + 2].firstValue, grpSpaceWidth));
-        CMCHK_HR(CreateKernelArgDataGroup (pHalKernelParam->argParams[ArgIndex + 3].firstValue, grpSpaceHeight));
-        CMCHK_HR(CreateKernelArgDataGroup (pHalKernelParam->argParams[ArgIndex + 4].firstValue, thrdSpaceWidth));
-        CMCHK_HR(CreateKernelArgDataGroup (pHalKernelParam->argParams[ArgIndex + 5].firstValue, thrdSpaceHeight));
+        CMCHK_HR(CreateKernelArgDataGroup (halKernelParam->argParams[argIndex + 0].firstValue, thrdSpaceWidth));
+        CMCHK_HR(CreateKernelArgDataGroup (halKernelParam->argParams[argIndex + 1].firstValue, thrdSpaceHeight));
+        CMCHK_HR(CreateKernelArgDataGroup (halKernelParam->argParams[argIndex + 2].firstValue, grpSpaceWidth));
+        CMCHK_HR(CreateKernelArgDataGroup (halKernelParam->argParams[argIndex + 3].firstValue, grpSpaceHeight));
+        CMCHK_HR(CreateKernelArgDataGroup (halKernelParam->argParams[argIndex + 4].firstValue, thrdSpaceWidth));
+        CMCHK_HR(CreateKernelArgDataGroup (halKernelParam->argParams[argIndex + 5].firstValue, thrdSpaceHeight));
     }
 
-    CMCHK_HR(UpdateSamplerHeap(pKernelData));
+    CMCHK_HR(UpdateSamplerHeap(kernelData));
 finish:
     return hr;
 }
@@ -4655,34 +4655,34 @@ finish:
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 int32_t CmKernelRT::CreateKernelIndirectData(
-    PCM_HAL_INDIRECT_DATA_PARAM  pHalIndreictData )    // in/out
+    PCM_HAL_INDIRECT_DATA_PARAM  halIndirectData )    // in/out
 {
     int32_t hr = CM_SUCCESS;
 
-    pHalIndreictData->indirectDataSize = m_usKernelPayloadDataSize;
-    pHalIndreictData->surfaceCount     = m_usKernelPayloadSurfaceCount;
+    halIndirectData->indirectDataSize = m_usKernelPayloadDataSize;
+    halIndirectData->surfaceCount     = m_usKernelPayloadSurfaceCount;
 
-    if( pHalIndreictData->indirectData == nullptr &&  m_usKernelPayloadDataSize != 0)
+    if( halIndirectData->indirectData == nullptr &&  m_usKernelPayloadDataSize != 0)
     {
-        pHalIndreictData->indirectData = MOS_NewArray(uint8_t, pHalIndreictData->indirectDataSize);
-        CMCHK_NULL_RETURN(pHalIndreictData->indirectData, CM_OUT_OF_HOST_MEMORY);
+        halIndirectData->indirectData = MOS_NewArray(uint8_t, halIndirectData->indirectDataSize);
+        CMCHK_NULL_RETURN(halIndirectData->indirectData, CM_OUT_OF_HOST_MEMORY);
     }
 
     // For future kernel data, pKbyte is starting point
-    if( pHalIndreictData->surfaceInfo == nullptr &&  m_usKernelPayloadSurfaceCount != 0)
+    if( halIndirectData->surfaceInfo == nullptr &&  m_usKernelPayloadSurfaceCount != 0)
     {
-        pHalIndreictData->surfaceInfo = MOS_NewArray(CM_INDIRECT_SURFACE_INFO, pHalIndreictData->surfaceCount);
-        CMCHK_NULL_RETURN(pHalIndreictData->surfaceInfo, CM_OUT_OF_HOST_MEMORY);
+        halIndirectData->surfaceInfo = MOS_NewArray(CM_INDIRECT_SURFACE_INFO, halIndirectData->surfaceCount);
+        CMCHK_NULL_RETURN(halIndirectData->surfaceInfo, CM_OUT_OF_HOST_MEMORY);
     }
 
     if(m_usKernelPayloadDataSize != 0)
     {
-        CmFastMemCopy(pHalIndreictData->indirectData, (void *)m_pKernelPayloadData, m_usKernelPayloadDataSize);
+        CmFastMemCopy(halIndirectData->indirectData, (void *)m_kernelPayloadData, m_usKernelPayloadDataSize);
     }
 
     if(m_usKernelPayloadSurfaceCount != 0)
     {
-        CmFastMemCopy((void*)pHalIndreictData->surfaceInfo, (void*)m_IndirectSurfaceInfoArray,
+        CmFastMemCopy((void*)halIndirectData->surfaceInfo, (void*)m_IndirectSurfaceInfoArray,
                     m_usKernelPayloadSurfaceCount * sizeof(CM_INDIRECT_SURFACE_INFO));
         //clear m_IndirectSurfaceInfoArray every enqueue
         CmSafeMemSet(m_IndirectSurfaceInfoArray, 0, m_usKernelPayloadSurfaceCount * sizeof(CM_INDIRECT_SURFACE_INFO));
@@ -4691,8 +4691,8 @@ int32_t CmKernelRT::CreateKernelIndirectData(
 finish:
     if( hr != CM_SUCCESS)
     {
-        if(pHalIndreictData->indirectData)                 MosSafeDeleteArray(pHalIndreictData->indirectData);
-        if(pHalIndreictData->surfaceInfo)                  MosSafeDeleteArray(pHalIndreictData->surfaceInfo);
+        if(halIndirectData->indirectData)                 MosSafeDeleteArray(halIndirectData->indirectData);
+        if(halIndirectData->surfaceInfo)                  MosSafeDeleteArray(halIndirectData->surfaceInfo);
     }
     return hr;
 }
@@ -4702,25 +4702,25 @@ finish:
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 int32_t CmKernelRT::UpdateLastKernelData(
-    CmKernelData* & pKernelData)    // in
+    CmKernelData* & kernelData)    // in
 {
     int32_t hr = CM_SUCCESS;
 
-    if( pKernelData == nullptr || m_pLastKernelData == pKernelData )
+    if( kernelData == nullptr || m_lastKernelData == kernelData )
     {
         CM_ASSERTMESSAGE("Error: Invalid kernel data handle.");
         return CM_NULL_POINTER;
     }
 
-    if(m_pLastKernelData)
+    if(m_lastKernelData)
     {
-        CmKernelData::Destroy(m_pLastKernelData); // reduce ref count or delete it
+        CmKernelData::Destroy(m_lastKernelData); // reduce ref count or delete it
     }
-    CSync* pKernelLock = m_pCmDev->GetProgramKernelLock();
-    CLock locker(*pKernelLock);
-    m_pLastKernelData = pKernelData;
-    m_pLastKernelData->Acquire();
-    m_LastKernelDataSize = m_pLastKernelData->GetKernelDataSize();
+    CSync* kernelLock = m_device->GetProgramKernelLock();
+    CLock locker(*kernelLock);
+    m_lastKernelData = kernelData;
+    m_lastKernelData->Acquire();
+    m_lastKernelDataSize = m_lastKernelData->GetKernelDataSize();
 
     return hr;
 }
@@ -4730,28 +4730,28 @@ int32_t CmKernelRT::UpdateLastKernelData(
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 int32_t CmKernelRT::ReleaseKernelData(
-    CmKernelData* & pKernelData)
+    CmKernelData* & kernelData)
 {
     int32_t hr = CM_SUCCESS;
 
-    if( pKernelData == nullptr)
+    if( kernelData == nullptr)
     {
         CM_ASSERTMESSAGE("Error: Invalid kernel data handle.");
         return CM_NULL_POINTER;
     }
 
-    CSync* pKernelLock = m_pCmDev->GetProgramKernelLock();
-    CLock locker(*pKernelLock);
+    CSync* kernelLock = m_device->GetProgramKernelLock();
+    CLock locker(*kernelLock);
 
-    if(m_pLastKernelData == pKernelData)
+    if(m_lastKernelData == kernelData)
     {
         // If the kernel data is the last kernel data
-        // Need to update m_pLastKernelData.
-        hr = CmKernelData::Destroy(m_pLastKernelData);
+        // Need to update m_lastKernelData.
+        hr = CmKernelData::Destroy(m_lastKernelData);
     }
     else
     {
-        hr = CmKernelData::Destroy(pKernelData);
+        hr = CmKernelData::Destroy(kernelData);
     }
 
     return hr;
@@ -4762,11 +4762,11 @@ int32_t CmKernelRT::ReleaseKernelData(
 //*-----------------------------------------------------------------------------
 int32_t CmKernelRT::AcquireKernelProgram()
 {
-    CSync* pKernelLock = m_pCmDev->GetProgramKernelLock();
-    CLock locker(*pKernelLock);
+    CSync* kernelLock = m_device->GetProgramKernelLock();
+    CLock locker(*kernelLock);
 
     this->Acquire(); // increase kernel's ref count
-    m_pProgram->Acquire(); // increase program's ref count
+    m_program->Acquire(); // increase program's ref count
 
     return CM_SUCCESS;
 }
@@ -4775,34 +4775,34 @@ int32_t CmKernelRT::AcquireKernelProgram()
 //| Purpose:   Acquire KenrelData, Kernel and Program
 //*-----------------------------------------------------------------------------
 int32_t CmKernelRT::AcquireKernelData(
-    CmKernelData * &pKernelData)
+    CmKernelData * &kernelData)
 {
     int32_t hr = CM_SUCCESS;
 
-    if (pKernelData == nullptr)
+    if (kernelData == nullptr)
     {
         CM_ASSERTMESSAGE("Error: Invalid kernel data handle.");
         return CM_NULL_POINTER;
     }
 
-    CSync* pKernelLock = m_pCmDev->GetProgramKernelLock();
-    CLock locker(*pKernelLock);
-    pKernelData->Acquire(); // increase kernel data's ref count
+    CSync* kernelLock = m_device->GetProgramKernelLock();
+    CLock locker(*kernelLock);
+    kernelData->Acquire(); // increase kernel data's ref count
 
     return hr;
 }
 
 void CmKernelRT::SetAsClonedKernel(uint32_t cloneKernelID)
 {
-    m_IsClonedKernel = true;
-    m_CloneKernelID = cloneKernelID;
+    m_isClonedKernel = true;
+    m_cloneKernelID = cloneKernelID;
 }
 
 bool CmKernelRT::GetCloneKernelID(uint32_t& cloneKernelID)
 {
-    if (m_IsClonedKernel)
+    if (m_isClonedKernel)
     {
-        cloneKernelID = m_CloneKernelID;
+        cloneKernelID = m_cloneKernelID;
         return true;
     }
 
@@ -4811,31 +4811,31 @@ bool CmKernelRT::GetCloneKernelID(uint32_t& cloneKernelID)
 
 void CmKernelRT::SetHasClones()
 {
-    m_HasClones = true;
+    m_hasClones = true;
 }
 
 //*-----------------------------------------------------------------------------
 //| Purpose:   Clone/copy current kernel
 //| Returns:   New kernel with content of source kernel
 //*-----------------------------------------------------------------------------
-int32_t CmKernelRT::CloneKernel(CmKernelRT *& pKernelOut, uint32_t id)
+int32_t CmKernelRT::CloneKernel(CmKernelRT *& kernelOut, uint32_t id)
 {
     int32_t hr = CM_SUCCESS;
 
-    CSync* pKernelLock = m_pCmDev->GetProgramKernelLock();
-    CLock locker(*pKernelLock);
+    CSync* kernelLock = m_device->GetProgramKernelLock();
+    CLock locker(*kernelLock);
 
-    CmDynamicArray * pKernelArray = m_pCmDev->GetKernelArray();
+    CmDynamicArray * kernelArray = m_device->GetKernelArray();
 
-    uint32_t freeSlotinKernelArray = pKernelArray->GetFirstFreeIndex();
+    uint32_t freeSlotinKernelArray = kernelArray->GetFirstFreeIndex();
 
-    hr = Create(m_pCmDev, m_pProgram, (char*)GetName(), freeSlotinKernelArray, id, pKernelOut, m_Options);
+    hr = Create(m_device, m_program, (char*)GetName(), freeSlotinKernelArray, id, kernelOut, m_options);
 
     if (hr == CM_SUCCESS)
     {
-        pKernelOut->SetAsClonedKernel(m_Id >> 32);
-        pKernelArray->SetElement(freeSlotinKernelArray, pKernelOut);
-        uint32_t *kernelCount = m_pCmDev->GetKernelCount();
+        kernelOut->SetAsClonedKernel(m_id >> 32);
+        kernelArray->SetElement(freeSlotinKernelArray, kernelOut);
+        uint32_t *kernelCount = m_device->GetKernelCount();
         *kernelCount = *kernelCount + 1;
 
         SetHasClones();
@@ -4850,7 +4850,7 @@ int32_t CmKernelRT::CloneKernel(CmKernelRT *& pKernelOut, uint32_t id)
 //*-----------------------------------------------------------------------------
 int32_t CmKernelRT::SetIndexInTask(uint32_t index)
 {
-    m_IndexInTask = index;
+    m_indexInTask = index;
     return CM_SUCCESS;
 }
 
@@ -4860,7 +4860,7 @@ int32_t CmKernelRT::SetIndexInTask(uint32_t index)
 //*-----------------------------------------------------------------------------
 uint32_t CmKernelRT::GetIndexInTask(void)
 {
-    return m_IndexInTask;
+    return m_indexInTask;
 }
 
 //*-----------------------------------------------------------------------------
@@ -4869,7 +4869,7 @@ uint32_t CmKernelRT::GetIndexInTask(void)
 //*-----------------------------------------------------------------------------
 int32_t CmKernelRT::SetAssociatedToTSFlag(bool b)
 {
-    m_AssociatedToTS = b;
+    m_threadSpaceAssociated = b;
     return CM_SUCCESS;
 }
 
@@ -4878,51 +4878,51 @@ int32_t CmKernelRT::SetAssociatedToTSFlag(bool b)
 //| Returns: Result of the operation.
 //| Note: It's exclusive with AssociateThreadGroupSpace()
 //*-----------------------------------------------------------------------------
-CM_RT_API int32_t CmKernelRT::AssociateThreadSpace(CmThreadSpace *&pThreadSpace)
+CM_RT_API int32_t CmKernelRT::AssociateThreadSpace(CmThreadSpace *&threadSpace)
 {
-    if( pThreadSpace == nullptr )
+    if( threadSpace == nullptr )
     {
         CM_ASSERTMESSAGE("Error: Pointer to thread space is null.");
         return CM_INVALID_ARG_VALUE;
     }
-    if (m_pThreadGroupSpace != nullptr)
+    if (m_threadGroupSpace != nullptr)
     {
         CM_ASSERTMESSAGE("Error: It's exclusive with AssociateThreadGroupSpace().");
         return CM_INVALID_KERNEL_THREADSPACE;
     }
 
-    bool TSChanged = false;
-    if( m_pThreadSpace )
+    bool threadSpaceChanged = false;
+    if( m_threadSpace )
     {
-        if( m_pThreadSpace != static_cast<CmThreadSpaceRT *>(pThreadSpace) )
+        if( m_threadSpace != static_cast<CmThreadSpaceRT *>(threadSpace) )
         {
-            TSChanged = true;
+            threadSpaceChanged = true;
         }
     }
 
-    m_pThreadSpace = static_cast<CmThreadSpaceRT *>(pThreadSpace);
+    m_threadSpace = static_cast<CmThreadSpaceRT *>(threadSpace);
 
     uint32_t threadSpaceWidth = 0;
     uint32_t threadSpaceHeight = 0;
-    m_pThreadSpace->GetThreadSpaceSize(threadSpaceWidth, threadSpaceHeight);
+    m_threadSpace->GetThreadSpaceSize(threadSpaceWidth, threadSpaceHeight);
     uint32_t threadCount = threadSpaceWidth * threadSpaceHeight;
-    if (m_ThreadCount)
+    if (m_threadCount)
     {
         // Setting threadCount twice with different values will cause reset of kernels
-        if (m_ThreadCount != threadCount)
+        if (m_threadCount != threadCount)
         {
-            m_ThreadCount = threadCount;
-            m_Dirty |= CM_KERNEL_DATA_THREAD_COUNT_DIRTY;
+            m_threadCount = threadCount;
+            m_dirty |= CM_KERNEL_DATA_THREAD_COUNT_DIRTY;
         }
     }
     else // first time
     {
-        m_ThreadCount = threadCount;
+        m_threadCount = threadCount;
     }
 
-    if( TSChanged )
+    if( threadSpaceChanged )
     {
-        m_pThreadSpace->SetDirtyStatus( CM_THREAD_SPACE_DATA_DIRTY);
+        m_threadSpace->SetDirtyStatus( CM_THREAD_SPACE_DATA_DIRTY);
     }
 
     return CM_SUCCESS;
@@ -4933,21 +4933,21 @@ CM_RT_API int32_t CmKernelRT::AssociateThreadSpace(CmThreadSpace *&pThreadSpace)
 //| Returns: Result of the operation.
 //| Note: It's exclusive with AssociateThreadSpace()
 //*-----------------------------------------------------------------------------
-CM_RT_API int32_t CmKernelRT::AssociateThreadGroupSpace(CmThreadGroupSpace *&pTGS)
+CM_RT_API int32_t CmKernelRT::AssociateThreadGroupSpace(CmThreadGroupSpace *&threadGroupSpace)
 {
-    if( pTGS == nullptr )
+    if( threadGroupSpace == nullptr )
     {
         CM_ASSERTMESSAGE("Error: Invalid null pointer.");
         return CM_INVALID_ARG_VALUE;
     }
 
-    if (m_pThreadSpace != nullptr)
+    if (m_threadSpace != nullptr)
     {
         CM_ASSERTMESSAGE("Error: It's exclusive with AssociateThreadSpace().");
         return CM_INVALID_KERNEL_THREADGROUPSPACE;
     }
 
-    m_pThreadGroupSpace = pTGS;
+    m_threadGroupSpace = threadGroupSpace;
 
     return CM_SUCCESS;
 }
@@ -4956,44 +4956,44 @@ CM_RT_API int32_t CmKernelRT::AssociateThreadGroupSpace(CmThreadGroupSpace *&pTG
 //| Purpose: Create a surface in the surface manager array, return the surface index
 //| Returns: Result of the operation.
 //*-----------------------------------------------------------------------------
-CM_RT_API CM_RETURN_CODE CmKernelRT::GetIndexForCurbeData( uint32_t curbe_data_size, SurfaceIndex *surface_index )
+CM_RT_API CM_RETURN_CODE CmKernelRT::GetIndexForCurbeData( uint32_t curbeDataSize, SurfaceIndex *surfaceIndex )
 {
     CM_RETURN_CODE hr = CM_SUCCESS;
 
-    PCM_CONTEXT_DATA pCmData = ( PCM_CONTEXT_DATA )m_pCmDev->GetAccelData();
-    PCM_HAL_STATE pState = pCmData->cmHalState;
-    PRENDERHAL_MEDIA_STATE media_state_ptr = nullptr;
-    void  *temp_ptr = nullptr;
-    CmStateBuffer *state_buffer = nullptr;
+    PCM_CONTEXT_DATA cmData = ( PCM_CONTEXT_DATA )m_device->GetAccelData();
+    PCM_HAL_STATE state = cmData->cmHalState;
+    PRENDERHAL_MEDIA_STATE mediaStatePtr = nullptr;
+    void  *tempPtr = nullptr;
+    CmStateBuffer *stateBuffer = nullptr;
 
-    if ( pState->dshEnabled == false )
+    if ( state->dshEnabled == false )
     {
         // Currently only support it when dynamic state heap is enabled
         return CM_FAILED_TO_CREATE_CURBE_SURFACE;
     }
 
-    CMCHK_HR( m_pSurfaceMgr->CreateMediaStateByCurbeSize( temp_ptr, curbe_data_size ) );
-    media_state_ptr = static_cast< PRENDERHAL_MEDIA_STATE >( temp_ptr );
-    CMCHK_HR( m_pSurfaceMgr->CreateStateBuffer( CM_STATE_BUFFER_CURBE, curbe_data_size, media_state_ptr, this, state_buffer ) );
+    CMCHK_HR( m_surfaceMgr->CreateMediaStateByCurbeSize( tempPtr, curbeDataSize ) );
+    mediaStatePtr = static_cast< PRENDERHAL_MEDIA_STATE >( tempPtr );
+    CMCHK_HR( m_surfaceMgr->CreateStateBuffer( CM_STATE_BUFFER_CURBE, curbeDataSize, mediaStatePtr, this, stateBuffer ) );
 
-    if ( ( state_buffer != nullptr ) && ( media_state_ptr != nullptr ) )
+    if ( ( stateBuffer != nullptr ) && ( mediaStatePtr != nullptr ) )
     {
         // Get curbe address, ideally the DSH should provide the API to get all of the GFX VA of different part of the heap
-        uint64_t curbe_gfx_va = pState->osInterface->pfnGetResourceGfxAddress( pState->osInterface, &( media_state_ptr->pDynamicState->pMemoryBlock->pStateHeap->resHeap ) ) +
-            media_state_ptr->pDynamicState->pMemoryBlock->dwDataOffset + media_state_ptr->pDynamicState->Curbe.dwOffset;
+        uint64_t curbeGfxVa = state->osInterface->pfnGetResourceGfxAddress( state->osInterface, &( mediaStatePtr->pDynamicState->pMemoryBlock->pStateHeap->resHeap ) ) +
+            mediaStatePtr->pDynamicState->pMemoryBlock->dwDataOffset + mediaStatePtr->pDynamicState->Curbe.dwOffset;
 
-        SurfaceIndex *temp_index = nullptr;
+        SurfaceIndex *tempIndex = nullptr;
         uint32_t handle = 0;
-        state_buffer->GetIndex( temp_index );
-        state_buffer->GetHandle( handle );
-        if ( temp_index != nullptr )
+        stateBuffer->GetIndex( tempIndex );
+        stateBuffer->GetHandle( handle );
+        if ( tempIndex != nullptr )
         {
-            *surface_index = *temp_index;
-            pState->pfnInsertToStateBufferList( pState, this, handle, CM_STATE_BUFFER_CURBE, curbe_data_size, curbe_gfx_va, media_state_ptr );
+            *surfaceIndex = *tempIndex;
+            state->pfnInsertToStateBufferList( state, this, handle, CM_STATE_BUFFER_CURBE, curbeDataSize, curbeGfxVa, mediaStatePtr );
         }
         else
         {
-            // it means the state_buffer was not created successfully, null pointer failure
+            // it means the stateBuffer was not created successfully, null pointer failure
             return CM_FAILED_TO_CREATE_CURBE_SURFACE;
         }
     }
@@ -5003,7 +5003,7 @@ CM_RT_API CM_RETURN_CODE CmKernelRT::GetIndexForCurbeData( uint32_t curbe_data_s
         return CM_FAILED_TO_CREATE_CURBE_SURFACE;
     }
 
-    m_state_buffer_bounded = CM_STATE_BUFFER_CURBE;
+    m_stateBufferBounded = CM_STATE_BUFFER_CURBE;
 finish:
     return hr;
 }
@@ -5012,19 +5012,19 @@ finish:
 //| Purpose: Clear threadspace for kernel
 //| Returns: Result of the operation.
 //*-----------------------------------------------------------------------------
-CM_RT_API int32_t CmKernelRT::DeAssociateThreadSpace(CmThreadSpace * &pThreadSpace)
+CM_RT_API int32_t CmKernelRT::DeAssociateThreadSpace(CmThreadSpace * &threadSpace)
 {
-    if (pThreadSpace == nullptr)
+    if (threadSpace == nullptr)
     {
         CM_ASSERTMESSAGE("Error: Pointer to thread space is null.");
         return CM_NULL_POINTER;
     }
-    if (m_pThreadSpace != static_cast<CmThreadSpaceRT *>(pThreadSpace))
+    if (m_threadSpace != static_cast<CmThreadSpaceRT *>(threadSpace))
     {
         CM_ASSERTMESSAGE("Error: Invalid thread space handle.");
         return CM_INVALID_ARG_VALUE;
     }
-    m_pThreadSpace = nullptr;
+    m_threadSpace = nullptr;
 
     return CM_SUCCESS;
 }
@@ -5035,15 +5035,15 @@ CM_RT_API int32_t CmKernelRT::DeAssociateThreadSpace(CmThreadSpace * &pThreadSpa
 
 CM_RT_API int32_t CmKernelRT::QuerySpillSize(uint32_t &spillMemorySize)
 {
-    CM_KERNEL_INFO  *pKernelInfo;
+    CM_KERNEL_INFO  *kernelInfo;
 
-    int32_t hr = m_pProgram->GetKernelInfo(m_kernelIndex, pKernelInfo);
-    if (hr != CM_SUCCESS || pKernelInfo == nullptr)
+    int32_t hr = m_program->GetKernelInfo(m_kernelIndex, kernelInfo);
+    if (hr != CM_SUCCESS || kernelInfo == nullptr)
         return hr;
 
-    if (m_pProgram->IsJitterEnabled()) {
-        if (pKernelInfo->jitInfo != nullptr) {
-            spillMemorySize = (pKernelInfo->jitInfo)->spillMemUsed;
+    if (m_program->IsJitterEnabled()) {
+        if (kernelInfo->jitInfo != nullptr) {
+            spillMemorySize = (kernelInfo->jitInfo)->spillMemUsed;
             return hr;
         }
         else
@@ -5057,19 +5057,19 @@ CM_RT_API int32_t CmKernelRT::QuerySpillSize(uint32_t &spillMemorySize)
 //| Purpose: Clear threadgroupspace for kernel
 //| Returns: Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmKernelRT::DeAssociateThreadGroupSpace(CmThreadGroupSpace * &pThreadGroupSpace)
+int32_t CmKernelRT::DeAssociateThreadGroupSpace(CmThreadGroupSpace * &threadGroupSpace)
 {
-    if (pThreadGroupSpace == nullptr)
+    if (threadGroupSpace == nullptr)
     {
         CM_ASSERTMESSAGE("Error: Invalid null pointer.");
         return CM_NULL_POINTER;
     }
-    if (m_pThreadGroupSpace != pThreadGroupSpace)
+    if (m_threadGroupSpace != threadGroupSpace)
     {
         CM_ASSERTMESSAGE("Error: Invalid thread group space handle.");
         return CM_INVALID_ARG_VALUE;
     }
-    m_pThreadGroupSpace = nullptr;
+    m_threadGroupSpace = nullptr;
 
     return CM_SUCCESS;
 }
@@ -5080,7 +5080,7 @@ int32_t CmKernelRT::DeAssociateThreadGroupSpace(CmThreadGroupSpace * &pThreadGro
 //*-----------------------------------------------------------------------------
 bool CmKernelRT::IsThreadArgExisted()
 {
-    return m_blPerThreadArgExists;
+    return m_perThreadArgExists;
 }
 
 //*-----------------------------------------------------------------------------
@@ -5089,7 +5089,7 @@ bool CmKernelRT::IsThreadArgExisted()
 //*-----------------------------------------------------------------------------
 uint32_t CmKernelRT::GetSLMSize()
 {
-    return (uint32_t)m_pKernelInfo->kernelSLMSize;
+    return (uint32_t)m_kernelInfo->kernelSLMSize;
 }
 
 //*-----------------------------------------------------------------------------
@@ -5098,27 +5098,27 @@ uint32_t CmKernelRT::GetSLMSize()
 //*-----------------------------------------------------------------------------
 uint32_t CmKernelRT::GetSpillMemUsed()
 {
-    uint32_t uiSpillSize;
+    uint32_t spillSize;
 
-    if (m_pProgram->IsJitterEnabled() && m_pKernelInfo->jitInfo != nullptr)
+    if (m_program->IsJitterEnabled() && m_kernelInfo->jitInfo != nullptr)
     {
-        uiSpillSize = (m_pKernelInfo->jitInfo)->spillMemUsed;
+        spillSize = (m_kernelInfo->jitInfo)->spillMemUsed;
     }
     else
     {
         // kernel uses "--nojitter" option, use spill size indicated by client during device creation
-        uiSpillSize = m_pHalMaxValues->maxSpillSizePerHwThread;
+        spillSize = m_halMaxValues->maxSpillSizePerHwThread;
     }
 
-    return uiSpillSize;
+    return spillSize;
 }
 
-int32_t CmKernelRT::SearchAvailableIndirectSurfInfoTableEntry(uint16_t kind, uint32_t surfaceIndex, uint32_t BTIndex)
+int32_t CmKernelRT::SearchAvailableIndirectSurfInfoTableEntry(uint16_t kind, uint32_t surfaceIndex, uint32_t bti)
 {
     uint16_t i = 0;
     for ( i = 0; i < CM_MAX_STATIC_SURFACE_STATES_PER_BT; i++ )
     {
-        if ( ( ( m_IndirectSurfaceInfoArray[ i ].surfaceIndex == surfaceIndex ) && ( m_IndirectSurfaceInfoArray[ i ].kind == kind ) && ( m_IndirectSurfaceInfoArray[ i ].bindingTableIndex == BTIndex ) ) ||
+        if ( ( ( m_IndirectSurfaceInfoArray[ i ].surfaceIndex == surfaceIndex ) && ( m_IndirectSurfaceInfoArray[ i ].kind == kind ) && ( m_IndirectSurfaceInfoArray[ i ].bindingTableIndex == bti ) ) ||
             ( ( m_IndirectSurfaceInfoArray[ i ].surfaceIndex == 0 ) && ( m_IndirectSurfaceInfoArray[ i ].kind == 0 ) ) )
         {
             return i;
@@ -5137,9 +5137,9 @@ int32_t CmKernelRT::SearchAvailableIndirectSurfInfoTableEntry(uint16_t kind, uin
 //! OUTPUT:
 //!     binding table index count
 //-----------------------------------------------------------------------------------------------------------------
-int32_t CmKernelRT::SetSurfBTINumForIndirectData(CM_SURFACE_FORMAT format, CM_ENUM_CLASS_TYPE SurfaceType)
+int32_t CmKernelRT::SetSurfBTINumForIndirectData(CM_SURFACE_FORMAT format, CM_ENUM_CLASS_TYPE surfaceType)
 {
-    if (SurfaceType == CM_ENUM_CLASS_TYPE_CMBUFFER_RT)
+    if (surfaceType == CM_ENUM_CLASS_TYPE_CMBUFFER_RT)
     {
         return 1;
     }
@@ -5183,18 +5183,18 @@ int32_t CmKernelRT::SetSurfBTINumForIndirectData(CM_SURFACE_FORMAT format, CM_EN
 //!     CM_KERNELPAYLOAD_SURFACE_INVALID_BTINDEX if the surface index is not a valid binding table index (valid: 1~242)
 //!     CM_FAILURE otherwise
 //-----------------------------------------------------------------------------------------------------------------
-CM_RT_API int32_t CmKernelRT::SetSurfaceBTI(SurfaceIndex* pSurface, uint32_t BTIndex)
+CM_RT_API int32_t CmKernelRT::SetSurfaceBTI(SurfaceIndex* surface, uint32_t btIndex)
 {
 
     uint32_t                    width, height, bytesPerPixel;
     CM_SURFACE_FORMAT           format = CM_SURFACE_FORMAT_INVALID;
     //Sanity check
-    if (pSurface == nullptr)
+    if (surface == nullptr)
     {
         CM_ASSERTMESSAGE("Error: Pointer to surface is null.");
         return CM_NULL_POINTER;
     }
-    if (!m_pSurfaceMgr->IsValidSurfaceIndex(BTIndex))
+    if (!m_surfaceMgr->IsValidSurfaceIndex(btIndex))
     {
         CM_ASSERTMESSAGE("Error: Invalid binding table index.");
         return CM_KERNELPAYLOAD_SURFACE_INVALID_BTINDEX;
@@ -5204,178 +5204,178 @@ CM_RT_API int32_t CmKernelRT::SetSurfaceBTI(SurfaceIndex* pSurface, uint32_t BTI
     uint32_t i = 0;
     for (i = 0; i < m_usKernelPayloadSurfaceCount; i++)
     {
-        if (m_IndirectSurfaceInfoArray[i].bindingTableIndex == (uint16_t)BTIndex)
+        if (m_IndirectSurfaceInfoArray[i].bindingTableIndex == (uint16_t)btIndex)
         {
             CM_ASSERTMESSAGE("Error: Binding table index has been used once enqueue.");
             return CM_KERNELPAYLOAD_SURFACE_INVALID_BTINDEX;
         }
     }
 
-    uint32_t index = pSurface->get_data();
+    uint32_t index = surface->get_data();
     uint32_t handle = 0;
 
-    CmSurface* pSurface_RT = nullptr;
-    m_pSurfaceMgr->GetSurface( index, pSurface_RT );
-    if(pSurface_RT == nullptr)
+    CmSurface* surfaceRT = nullptr;
+    m_surfaceMgr->GetSurface( index, surfaceRT );
+    if(surfaceRT == nullptr)
     {
         CM_ASSERTMESSAGE("Error: Invalid surface.");
         return CM_NULL_POINTER;
     }
 
-    CmSurface2DRT* pSurf2D = nullptr;
-    uint32_t IndirectSurfInfoEntry = 0;
-    if ( pSurface_RT->Type() == CM_ENUM_CLASS_TYPE_CMSURFACE2D )
+    CmSurface2DRT* surf2D = nullptr;
+    uint32_t indirectSurfInfoEntry = 0;
+    if ( surfaceRT->Type() == CM_ENUM_CLASS_TYPE_CMSURFACE2D )
     {
-        pSurf2D = static_cast< CmSurface2DRT* >( pSurface_RT );
-        pSurf2D->GetHandle( handle );
-        IndirectSurfInfoEntry = SearchAvailableIndirectSurfInfoTableEntry(ARG_KIND_SURFACE_2D, handle, BTIndex);
-        if (IndirectSurfInfoEntry == CM_FAILURE)
+        surf2D = static_cast< CmSurface2DRT* >( surfaceRT );
+        surf2D->GetHandle( handle );
+        indirectSurfInfoEntry = SearchAvailableIndirectSurfInfoTableEntry(ARG_KIND_SURFACE_2D, handle, btIndex);
+        if (indirectSurfInfoEntry == CM_FAILURE)
         {
             CM_ASSERTMESSAGE("Error: Can not get available indirect surface info table entry.");
             return CM_FAILURE;
         }
-        m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].kind = ARG_KIND_SURFACE_2D;
-        m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].surfaceIndex = (uint16_t)handle;
-        pSurf2D->GetSurfaceDesc(width, height, format, bytesPerPixel);
+        m_IndirectSurfaceInfoArray[indirectSurfInfoEntry].kind = ARG_KIND_SURFACE_2D;
+        m_IndirectSurfaceInfoArray[indirectSurfInfoEntry].surfaceIndex = (uint16_t)handle;
+        surf2D->GetSurfaceDesc(width, height, format, bytesPerPixel);
     }
     else
     {
-        CmBuffer_RT* pCmBuffer = nullptr;
-        if ( pSurface_RT->Type() == CM_ENUM_CLASS_TYPE_CMBUFFER_RT )
+        CmBuffer_RT* cmBuffer = nullptr;
+        if ( surfaceRT->Type() == CM_ENUM_CLASS_TYPE_CMBUFFER_RT )
         {
-            pCmBuffer = static_cast< CmBuffer_RT* >( pSurface_RT );
-            pCmBuffer->GetHandle( handle );
-            IndirectSurfInfoEntry = SearchAvailableIndirectSurfInfoTableEntry(ARG_KIND_SURFACE_1D, handle, BTIndex);
-            if (IndirectSurfInfoEntry == CM_FAILURE)
+            cmBuffer = static_cast< CmBuffer_RT* >( surfaceRT );
+            cmBuffer->GetHandle( handle );
+            indirectSurfInfoEntry = SearchAvailableIndirectSurfInfoTableEntry(ARG_KIND_SURFACE_1D, handle, btIndex);
+            if (indirectSurfInfoEntry == CM_FAILURE)
             {
                 CM_ASSERTMESSAGE("Error: Can not get available indirect surface info table entry.");
                 return CM_FAILURE;
             }
-            m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].kind = ARG_KIND_SURFACE_1D;
-            m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].surfaceIndex = (uint16_t)handle;
+            m_IndirectSurfaceInfoArray[indirectSurfInfoEntry].kind = ARG_KIND_SURFACE_1D;
+            m_IndirectSurfaceInfoArray[indirectSurfInfoEntry].surfaceIndex = (uint16_t)handle;
         }
         else
         {
-            CmSurface2DUPRT* pSurf2DUP = nullptr;
-            if ( pSurface_RT->Type() == CM_ENUM_CLASS_TYPE_CMSURFACE2DUP )
+            CmSurface2DUPRT* surf2DUP = nullptr;
+            if ( surfaceRT->Type() == CM_ENUM_CLASS_TYPE_CMSURFACE2DUP )
             {
-                pSurf2DUP = static_cast< CmSurface2DUPRT* >( pSurface_RT );
-                pSurf2DUP->GetHandle( handle );
-                IndirectSurfInfoEntry = SearchAvailableIndirectSurfInfoTableEntry(ARG_KIND_SURFACE_2D_UP, handle, BTIndex);
-                if (IndirectSurfInfoEntry == CM_FAILURE)
+                surf2DUP = static_cast< CmSurface2DUPRT* >( surfaceRT );
+                surf2DUP->GetHandle( handle );
+                indirectSurfInfoEntry = SearchAvailableIndirectSurfInfoTableEntry(ARG_KIND_SURFACE_2D_UP, handle, btIndex);
+                if (indirectSurfInfoEntry == CM_FAILURE)
                 {
                     CM_ASSERTMESSAGE("Error: Can not get available indirect surface info table entry.");
                     return CM_FAILURE;
                 }
-                m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].kind = ARG_KIND_SURFACE_2D_UP;
-                m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].surfaceIndex = (uint16_t)handle;
-                pSurf2DUP->GetSurfaceDesc(width, height, format, bytesPerPixel);
+                m_IndirectSurfaceInfoArray[indirectSurfInfoEntry].kind = ARG_KIND_SURFACE_2D_UP;
+                m_IndirectSurfaceInfoArray[indirectSurfInfoEntry].surfaceIndex = (uint16_t)handle;
+                surf2DUP->GetSurfaceDesc(width, height, format, bytesPerPixel);
             }
             else
             {
-                CmSurfaceSampler* pSurfSampler = nullptr;
-                if ( pSurface_RT->Type() == CM_ENUM_CLASS_TYPE_CMSURFACESAMPLER )
+                CmSurfaceSampler* surfSampler = nullptr;
+                if ( surfaceRT->Type() == CM_ENUM_CLASS_TYPE_CMSURFACESAMPLER )
                 {
-                    pSurfSampler = static_cast< CmSurfaceSampler* >(pSurface_RT);
+                    surfSampler = static_cast< CmSurfaceSampler* >(surfaceRT);
 
                     //Get  actually SurfaceIndex ID for 2D
-                    uint16_t SurfIndexForCurrent = 0;
-                    pSurfSampler->GetCmIndexCurrent(SurfIndexForCurrent);
-                    CmSurface* pSurfSamp_RT= nullptr;
-                    m_pSurfaceMgr->GetSurface(SurfIndexForCurrent, pSurfSamp_RT);
-                    if(pSurfSamp_RT == nullptr)
+                    uint16_t surfIndexForCurrent = 0;
+                    surfSampler->GetCmIndexCurrent(surfIndexForCurrent);
+                    CmSurface* surfSampRT= nullptr;
+                    m_surfaceMgr->GetSurface(surfIndexForCurrent, surfSampRT);
+                    if(surfSampRT == nullptr)
                     {
                         CM_ASSERTMESSAGE("Error: Invalid surface.");
                         return CM_NULL_POINTER;
                     }
 
-                    SAMPLER_SURFACE_TYPE SurfaceType;
-                    pSurfSampler->GetSurfaceType(SurfaceType);
-                    pSurfSampler->GetHandle( handle );
-                    if ( SurfaceType == SAMPLER_SURFACE_TYPE_2D )
+                    SAMPLER_SURFACE_TYPE surfaceType;
+                    surfSampler->GetSurfaceType(surfaceType);
+                    surfSampler->GetHandle( handle );
+                    if ( surfaceType == SAMPLER_SURFACE_TYPE_2D )
                     {
-                        CmSurface2DRT* pSurfSamp_2D = nullptr;
-                        pSurfSamp_2D = static_cast<CmSurface2DRT*>(pSurfSamp_RT);
-                        pSurfSamp_2D->GetSurfaceDesc(width, height, format, bytesPerPixel);
+                        CmSurface2DRT* surfSamp2D = nullptr;
+                        surfSamp2D = static_cast<CmSurface2DRT*>(surfSampRT);
+                        surfSamp2D->GetSurfaceDesc(width, height, format, bytesPerPixel);
 
-                        IndirectSurfInfoEntry = SearchAvailableIndirectSurfInfoTableEntry(ARG_KIND_SURFACE_SAMPLER, handle, BTIndex);
-                        if (IndirectSurfInfoEntry == CM_FAILURE)
+                        indirectSurfInfoEntry = SearchAvailableIndirectSurfInfoTableEntry(ARG_KIND_SURFACE_SAMPLER, handle, btIndex);
+                        if (indirectSurfInfoEntry == CM_FAILURE)
                         {
                             CM_ASSERTMESSAGE("Error: Can not get available indirect surface info table entry.");
                             return CM_FAILURE;
                         }
-                        m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].kind = ARG_KIND_SURFACE_SAMPLER;
+                        m_IndirectSurfaceInfoArray[indirectSurfInfoEntry].kind = ARG_KIND_SURFACE_SAMPLER;
                     }
-                    else if ( SurfaceType == SAMPLER_SURFACE_TYPE_2DUP )
+                    else if ( surfaceType == SAMPLER_SURFACE_TYPE_2DUP )
                     {
-                        CmSurface2DUPRT* pSurfSamp2DUP = nullptr;
-                        pSurfSamp2DUP = static_cast<CmSurface2DUPRT*>(pSurfSamp_RT);
-                        pSurfSamp2DUP->GetSurfaceDesc(width, height, format, bytesPerPixel);
+                        CmSurface2DUPRT* surfSamp2DUP = nullptr;
+                        surfSamp2DUP = static_cast<CmSurface2DUPRT*>(surfSampRT);
+                        surfSamp2DUP->GetSurfaceDesc(width, height, format, bytesPerPixel);
 
-                        IndirectSurfInfoEntry = SearchAvailableIndirectSurfInfoTableEntry(ARG_KIND_SURFACE2DUP_SAMPLER, handle, BTIndex);
-                        if (IndirectSurfInfoEntry == CM_FAILURE)
+                        indirectSurfInfoEntry = SearchAvailableIndirectSurfInfoTableEntry(ARG_KIND_SURFACE2DUP_SAMPLER, handle, btIndex);
+                        if (indirectSurfInfoEntry == CM_FAILURE)
                         {
                             CM_ASSERTMESSAGE("Error: Can not get available indirect surface info table entry.");
                             return CM_FAILURE;
                         }
-                        m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].kind = ARG_KIND_SURFACE2DUP_SAMPLER;
+                        m_IndirectSurfaceInfoArray[indirectSurfInfoEntry].kind = ARG_KIND_SURFACE2DUP_SAMPLER;
                     }
-                    else if ( SurfaceType == SAMPLER_SURFACE_TYPE_3D )
+                    else if ( surfaceType == SAMPLER_SURFACE_TYPE_3D )
                     {
-                        IndirectSurfInfoEntry = SearchAvailableIndirectSurfInfoTableEntry(ARG_KIND_SURFACE_3D, handle, BTIndex);
-                        if (IndirectSurfInfoEntry == CM_FAILURE)
+                        indirectSurfInfoEntry = SearchAvailableIndirectSurfInfoTableEntry(ARG_KIND_SURFACE_3D, handle, btIndex);
+                        if (indirectSurfInfoEntry == CM_FAILURE)
                         {
                             CM_ASSERTMESSAGE("Error: Can not get available indirect surface info table entry.");
                             return CM_FAILURE;
                         }
-                        m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].kind = ARG_KIND_SURFACE_3D;
+                        m_IndirectSurfaceInfoArray[indirectSurfInfoEntry].kind = ARG_KIND_SURFACE_3D;
                     }
-                    m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].surfaceIndex = (uint16_t)handle;
+                    m_IndirectSurfaceInfoArray[indirectSurfInfoEntry].surfaceIndex = (uint16_t)handle;
                 }
                 else
                 {
-                    CmSurfaceSampler8x8* pSurfSampler8x8 = nullptr;
-                    if ( pSurface_RT->Type() == CM_ENUM_CLASS_TYPE_CMSURFACESAMPLER8X8 )
+                    CmSurfaceSampler8x8* surfSampler8x8 = nullptr;
+                    if ( surfaceRT->Type() == CM_ENUM_CLASS_TYPE_CMSURFACESAMPLER8X8 )
                     {
-                        pSurfSampler8x8 = static_cast< CmSurfaceSampler8x8* >( pSurface_RT );
-                        pSurfSampler8x8->GetIndexCurrent( handle );
+                        surfSampler8x8 = static_cast< CmSurfaceSampler8x8* >( surfaceRT );
+                        surfSampler8x8->GetIndexCurrent( handle );
 
                         //Get  actually SurfaceIndex ID for 2D
-                        uint16_t SurfIndexForCurrent = 0;
-                        pSurfSampler8x8->GetCmIndex(SurfIndexForCurrent);
-                        CmSurface* pSurfSamp8x8_RT = nullptr;
-                        m_pSurfaceMgr->GetSurface(SurfIndexForCurrent, pSurfSamp8x8_RT);
-                        if(pSurfSamp8x8_RT == nullptr)
+                        uint16_t surfIndexForCurrent = 0;
+                        surfSampler8x8->GetCmIndex(surfIndexForCurrent);
+                        CmSurface* surfSamp8x8RT = nullptr;
+                        m_surfaceMgr->GetSurface(surfIndexForCurrent, surfSamp8x8RT);
+                        if(surfSamp8x8RT == nullptr)
                         {
                             CM_ASSERTMESSAGE("Error: Invalid surface.");
                             return CM_NULL_POINTER;
                         }
 
-                        CmSurface2DRT* pSurfSamp8x8_2D = nullptr;
-                        pSurfSamp8x8_2D = static_cast<CmSurface2DRT*>(pSurfSamp8x8_RT);
-                        pSurfSamp8x8_2D->GetSurfaceDesc(width, height, format, bytesPerPixel);
+                        CmSurface2DRT* surfSamp8x82D = nullptr;
+                        surfSamp8x82D = static_cast<CmSurface2DRT*>(surfSamp8x8RT);
+                        surfSamp8x82D->GetSurfaceDesc(width, height, format, bytesPerPixel);
 
-                        if ( pSurfSampler8x8->GetSampler8x8SurfaceType() == CM_AVS_SURFACE )
+                        if ( surfSampler8x8->GetSampler8x8SurfaceType() == CM_AVS_SURFACE )
                         {
-                            IndirectSurfInfoEntry = SearchAvailableIndirectSurfInfoTableEntry(ARG_KIND_SURFACE_SAMPLER8X8_AVS, handle, BTIndex);
-                            if (IndirectSurfInfoEntry == CM_FAILURE)
+                            indirectSurfInfoEntry = SearchAvailableIndirectSurfInfoTableEntry(ARG_KIND_SURFACE_SAMPLER8X8_AVS, handle, btIndex);
+                            if (indirectSurfInfoEntry == CM_FAILURE)
                             {
                                 CM_ASSERTMESSAGE("Error: Can not get available indirect surface info table entry.");
                                 return CM_FAILURE;
                             }
-                            m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].kind = ARG_KIND_SURFACE_SAMPLER8X8_AVS;
+                            m_IndirectSurfaceInfoArray[indirectSurfInfoEntry].kind = ARG_KIND_SURFACE_SAMPLER8X8_AVS;
                         }
-                        else if ( pSurfSampler8x8->GetSampler8x8SurfaceType() == CM_VA_SURFACE )
+                        else if ( surfSampler8x8->GetSampler8x8SurfaceType() == CM_VA_SURFACE )
                         {
-                            IndirectSurfInfoEntry = SearchAvailableIndirectSurfInfoTableEntry(ARG_KIND_SURFACE_SAMPLER8X8_VA, handle, BTIndex);
-                            if (IndirectSurfInfoEntry == CM_FAILURE)
+                            indirectSurfInfoEntry = SearchAvailableIndirectSurfInfoTableEntry(ARG_KIND_SURFACE_SAMPLER8X8_VA, handle, btIndex);
+                            if (indirectSurfInfoEntry == CM_FAILURE)
                             {
                                 CM_ASSERTMESSAGE("Error: Can not get available indirect surface info table entry.");
                                 return CM_FAILURE;
                             }
-                            m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].kind = ARG_KIND_SURFACE_SAMPLER8X8_VA;
+                            m_IndirectSurfaceInfoArray[indirectSurfInfoEntry].kind = ARG_KIND_SURFACE_SAMPLER8X8_VA;
                         }
-                        m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].surfaceIndex = (uint16_t)handle;
+                        m_IndirectSurfaceInfoArray[indirectSurfInfoEntry].surfaceIndex = (uint16_t)handle;
                     }
                     else
                     {
@@ -5386,23 +5386,23 @@ CM_RT_API int32_t CmKernelRT::SetSurfaceBTI(SurfaceIndex* pSurface, uint32_t BTI
         }
     }
 
-    m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].bindingTableIndex = (uint16_t)BTIndex;
-    if (SetSurfBTINumForIndirectData(format, pSurface_RT->Type())== 0)
+    m_IndirectSurfaceInfoArray[indirectSurfInfoEntry].bindingTableIndex = (uint16_t)btIndex;
+    if (SetSurfBTINumForIndirectData(format, surfaceRT->Type())== 0)
     {
         CM_ASSERTMESSAGE("Error: Set surface binding table index count failure.");
         return CM_FAILURE;
     }
-    m_IndirectSurfaceInfoArray[IndirectSurfInfoEntry].numBTIPerSurf = (uint16_t)SetSurfBTINumForIndirectData(format, pSurface_RT->Type());
+    m_IndirectSurfaceInfoArray[indirectSurfInfoEntry].numBTIPerSurf = (uint16_t)SetSurfBTINumForIndirectData(format, surfaceRT->Type());
 
     //Copy it to surface index array
-    if (m_pKernelPayloadSurfaceArray[IndirectSurfInfoEntry] == nullptr)
+    if (m_pKernelPayloadSurfaceArray[indirectSurfInfoEntry] == nullptr)
     {
-        m_pKernelPayloadSurfaceArray[IndirectSurfInfoEntry] = pSurface;
+        m_pKernelPayloadSurfaceArray[indirectSurfInfoEntry] = surface;
     }
 
     // count is actally one larger than the actual index
-    m_usKernelPayloadSurfaceCount = IndirectSurfInfoEntry + 1;
-    m_Dirty |= (CM_KERNEL_DATA_PAYLOAD_DATA_DIRTY | CM_KERNEL_DATA_PAYLOAD_DATA_SIZE_DIRTY);
+    m_usKernelPayloadSurfaceCount = indirectSurfInfoEntry + 1;
+    m_dirty |= (CM_KERNEL_DATA_PAYLOAD_DATA_DIRTY | CM_KERNEL_DATA_PAYLOAD_DATA_SIZE_DIRTY);
     return CM_SUCCESS;
 }
 
@@ -5412,25 +5412,25 @@ uint32_t CmKernelRT::GetKernelIndex()
 }
 uint32_t CmKernelRT::GetKernelGenxBinarySize(void)
 {
-    if(m_pKernelInfo == nullptr)
+    if(m_kernelInfo == nullptr)
     {
         CM_ASSERTMESSAGE("Error: Invalid kernel genx binary size.");
         return 0;
     }
     else
     {
-        return m_pKernelInfo->genxBinarySize;
+        return m_kernelInfo->genxBinarySize;
     }
 }
 
 //-----------------------------------------------------------------------------------------------------------------
-//! Map Surface type to Kernel Arg Kind.
+//! Map Surface type to Kernel arg Kind.
 //! INPUT:  Surface type    :CM_ENUM_CLASS_TYPE
-//! OUTPUT: Kernel Arg Kind :CM_ARG_KIND
+//! OUTPUT: Kernel arg Kind :CM_ARG_KIND
 //-----------------------------------------------------------------------------------------------------------------
-CM_ARG_KIND CmKernelRT::SurfTypeToArgKind(CM_ENUM_CLASS_TYPE SurfType)
+CM_ARG_KIND CmKernelRT::SurfTypeToArgKind(CM_ENUM_CLASS_TYPE surfType)
 {
-    switch(SurfType)
+    switch(surfType)
     {
         case CM_ENUM_CLASS_TYPE_CMBUFFER_RT          :return ARG_KIND_SURFACE_1D;
         case CM_ENUM_CLASS_TYPE_CMSURFACE2D          :return ARG_KIND_SURFACE_2D;
@@ -5453,28 +5453,28 @@ CM_ARG_KIND CmKernelRT::SurfTypeToArgKind(CM_ENUM_CLASS_TYPE SurfType)
 int32_t CmKernelRT::CalculateKernelSurfacesNum(uint32_t& kernelSurfaceNum, uint32_t& neededBTEntryNum)
 {
     uint32_t            surfaceArraySize = 0;
-    CmSurface*          pSurf = nullptr;
-    CmSurface2DRT*        pSurf2D = nullptr;
-    CmSurface2DUPRT*      pSurf2D_UP = nullptr;
+    CmSurface*          surf = nullptr;
+    CmSurface2DRT*        surf2D = nullptr;
+    CmSurface2DUPRT*      surf2DUP = nullptr;
     uint32_t              width, height, bytesPerPixel;
     CM_SURFACE_FORMAT     format;
-    uint32_t              uiMaxBTIndex = 0;
+    uint32_t              maxBTIndex = 0;
 
     kernelSurfaceNum = 0;
     neededBTEntryNum = 0;
 
-    surfaceArraySize = m_pSurfaceMgr->GetSurfacePoolSize();
+    surfaceArraySize = m_surfaceMgr->GetSurfacePoolSize();
 
     //Calculate surface number and needed binding table entries
-    for (uint32_t surfIndex = 0; surfIndex <= m_MaxSurfaceIndexAllocated; surfIndex ++)
+    for (uint32_t surfIndex = 0; surfIndex <= m_maxSurfaceIndexAllocated; surfIndex ++)
     {
-        if (m_SurfaceArray[surfIndex])
+        if (m_surfaceArray[surfIndex])
         {
-            pSurf = nullptr;
-            m_pSurfaceMgr->GetSurface(surfIndex, pSurf);
-            if (pSurf)
+            surf = nullptr;
+            m_surfaceMgr->GetSurface(surfIndex, surf);
+            if (surf)
             {
-                switch(pSurf->Type())
+                switch(surf->Type())
                 {
                     case CM_ENUM_CLASS_TYPE_CMBUFFER_RT:
                     case CM_ENUM_CLASS_TYPE_CMSURFACE3D:
@@ -5490,9 +5490,9 @@ int32_t CmKernelRT::CalculateKernelSurfacesNum(uint32_t& kernelSurfaceNum, uint3
 
                     case CM_ENUM_CLASS_TYPE_CMSURFACE2D:
                         kernelSurfaceNum++;
-                        pSurf2D = static_cast<CmSurface2DRT*>(pSurf);
+                        surf2D = static_cast<CmSurface2DRT*>(surf);
                         format = CM_SURFACE_FORMAT_INVALID;
-                        pSurf2D->GetSurfaceDesc(width, height, format, bytesPerPixel);
+                        surf2D->GetSurfaceDesc(width, height, format, bytesPerPixel);
                         if ((format == CM_SURFACE_FORMAT_NV12) ||
                             (format == CM_SURFACE_FORMAT_P010) ||
                             (format == CM_SURFACE_FORMAT_P208) ||
@@ -5516,9 +5516,9 @@ int32_t CmKernelRT::CalculateKernelSurfacesNum(uint32_t& kernelSurfaceNum, uint3
 
                     case CM_ENUM_CLASS_TYPE_CMSURFACE2DUP:
                         kernelSurfaceNum++;
-                        pSurf2D_UP = static_cast<CmSurface2DUPRT*>(pSurf);
+                        surf2DUP = static_cast<CmSurface2DUPRT*>(surf);
                         format = CM_SURFACE_FORMAT_INVALID;
-                        pSurf2D_UP->GetSurfaceDesc(width, height, format, bytesPerPixel);
+                        surf2DUP->GetSurfaceDesc(width, height, format, bytesPerPixel);
                         if ((format == CM_SURFACE_FORMAT_NV12) ||
                             (format == CM_SURFACE_FORMAT_P010) ||
                             (format == CM_SURFACE_FORMAT_P208) ||
@@ -5547,13 +5547,13 @@ int32_t CmKernelRT::CalculateKernelSurfacesNum(uint32_t& kernelSurfaceNum, uint3
         }
     }
 
-    if ((uiMaxBTIndex + 1) > neededBTEntryNum)
+    if ((maxBTIndex + 1) > neededBTEntryNum)
     {
-        neededBTEntryNum = uiMaxBTIndex + 1;
+        neededBTEntryNum = maxBTIndex + 1;
     }
 
     //Wordaround: the calculation maybe not accurate if the VME surfaces are existed
-    neededBTEntryNum += m_VMESurfaceCount;
+    neededBTEntryNum += m_vmeSurfaceCount;
 
     return CM_SUCCESS;
 }
@@ -5564,10 +5564,10 @@ int32_t CmKernelRT::CalculateKernelSurfacesNum(uint32_t& kernelSurfaceNum, uint3
 //*-----------------------------------------------------------------------------
 uint32_t CmKernelRT::GetAlignedCurbeSize(uint32_t value)
 {
-    uint32_t CurbeAlignedSize    = 0;
+    uint32_t curbeAlignedSize    = 0;
 
-    CurbeAlignedSize = MOS_ALIGN_CEIL(value, RENDERHAL_CURBE_BLOCK_ALIGN);
-    return CurbeAlignedSize;
+    curbeAlignedSize = MOS_ALIGN_CEIL(value, RENDERHAL_CURBE_BLOCK_ALIGN);
+    return curbeAlignedSize;
 }
 
 #if CM_LOG_ON
@@ -5576,52 +5576,52 @@ std::string CmKernelRT::Log()
 
     std::ostringstream  oss;
 
-    oss << " Kernel Name:"         << m_pKernelInfo->kernelName << std::endl
-        << " Kernel Binary Size:"  << m_pKernelInfo->jitBinarySize
-        << " Index In Task:"       << m_IndexInTask
-        << " Thread Count:"        << m_ThreadCount
-        << " Curbe Size:"          << m_SizeInCurbe
-        << " Kernel Arg Count:"    << m_ArgCount
+    oss << " Kernel Name:"         << m_kernelInfo->kernelName << std::endl
+        << " Kernel Binary Size:"  << m_kernelInfo->jitBinarySize
+        << " Index In Task:"       << m_indexInTask
+        << " Thread Count:"        << m_threadCount
+        << " Curbe Size:"          << m_sizeInCurbe
+        << " Kernel arg Count:"    << m_argCount
         << std::endl;
 
      // Per Kernel Thread Space Log
-    if(m_pThreadSpace)
+    if(m_threadSpace)
     {
-        oss << m_pThreadSpace->Log();
+        oss << m_threadSpace->Log();
     }
 
     // Per Kernel Thread Group Space Log
-    if(m_pThreadGroupSpace)
+    if(m_threadGroupSpace)
     {
-        oss << m_pThreadGroupSpace->Log();
+        oss << m_threadGroupSpace->Log();
     }
 
     // Arguments Log
-    for (uint32_t ArgIndex= 0; ArgIndex< m_ArgCount; ArgIndex++ )
+    for (uint32_t argIndex= 0; argIndex< m_argCount; argIndex++ )
     {
-        if (m_Args[ArgIndex].pValue) // filter out the implicit arguments
+        if (m_args[argIndex].value) // filter out the implicit arguments
         {
-            ArgLog(oss, ArgIndex, m_Args[ArgIndex]);
+            ArgLog(oss, argIndex, m_args[argIndex]);
         }
     }
 
     return oss.str();
 }
 
-void CmKernelRT::ArgLog(std::ostringstream &oss, uint32_t index, CM_ARG Arg)
+void CmKernelRT::ArgLog(std::ostringstream &oss, uint32_t index, CM_ARG arg)
 {
 
     oss << "[" << index << "] th Argument"
-        << " Type :" << Arg.unitKind
-        << " Count:" << Arg.unitCount
-        << " Size:" << Arg.unitSize
-        << " Surface Kind:" << (int)Arg.s_k
-        << " OffsetInPayload:" << Arg.unitOffsetInPayload
-        << " OffsetInPayloadOrig:" << Arg.unitOffsetInPayloadOrig << "";
+        << " Type :" << arg.unitKind
+        << " Count:" << arg.unitCount
+        << " Size:" << arg.unitSize
+        << " Surface Kind:" << (int)arg.surfaceKind
+        << " OffsetInPayload:" << arg.unitOffsetInPayload
+        << " OffsetInPayloadOrig:" << arg.unitOffsetInPayloadOrig << "";
 
-    CmLogger::LogDataArrayHex( oss, Arg.pValue, Arg.unitSize * Arg.unitCount);
+    CmLogger::LogDataArrayHex( oss, arg.value, arg.unitSize * arg.unitCount);
 
-    if (CHECK_SURFACE_TYPE(Arg.unitKind,
+    if (CHECK_SURFACE_TYPE(arg.unitKind,
                            ARG_KIND_SURFACE_1D,
                            ARG_KIND_SURFACE_2D,
                            ARG_KIND_SURFACE_2D_UP,
@@ -5632,25 +5632,25 @@ void CmKernelRT::ArgLog(std::ostringstream &oss, uint32_t index, CM_ARG Arg)
                            ARG_KIND_SURFACE_SAMPLER8X8_VA,
                            ARG_KIND_SURFACE2DUP_SAMPLER))
     {
-        uint16_t numSurfaces = Arg.unitSize / sizeof(uint32_t);
-        if (Arg.unitKind == ARG_KIND_SURFACE_VME)
+        uint16_t numSurfaces = arg.unitSize / sizeof(uint32_t);
+        if (arg.unitKind == ARG_KIND_SURFACE_VME)
         {
-            numSurfaces = (Arg.unitSize - sizeof(CM_HAL_VME_ARG_VALUE) * Arg.unitVmeArraySize) / sizeof(uint32_t) + Arg.unitVmeArraySize;
+            numSurfaces = (arg.unitSize - sizeof(CM_HAL_VME_ARG_VALUE) * arg.unitVmeArraySize) / sizeof(uint32_t) + arg.unitVmeArraySize;
         }
         for (uint16_t i = 0; i < numSurfaces; i++)
         {
-            uint32_t SurfaceIndex = *(uint16_t *)(Arg.surfIndex + i);
+            uint32_t surfaceIndex = *(uint16_t *)(arg.surfIndex + i);
 
-            if(SurfaceIndex == CM_NULL_SURFACE)
+            if(surfaceIndex == CM_NULL_SURFACE)
                 continue;
 
-            CmSurface *pSurf = nullptr;
-            m_pSurfaceMgr->GetSurface(SurfaceIndex, pSurf);
-            if (pSurf == nullptr)
+            CmSurface *surf = nullptr;
+            m_surfaceMgr->GetSurface(surfaceIndex, surf);
+            if (surf == nullptr)
             {
                 continue;
             }
-            pSurf->Log(oss);
+            surf->Log(oss);
         }
     }
 }
@@ -5661,9 +5661,9 @@ void CmKernelRT::SurfaceDump(uint32_t kernelNumber, int32_t taskId)
 #if MDF_SURFACE_CONTENT_DUMP
     CM_ARG arg;
 
-    for (uint32_t argIndex = 0; argIndex< m_ArgCount; argIndex++)
+    for (uint32_t argIndex = 0; argIndex< m_argCount; argIndex++)
     {
-        arg = m_Args[argIndex];
+        arg = m_args[argIndex];
         if (CHECK_SURFACE_TYPE(arg.unitKind,
             ARG_KIND_SURFACE_1D,
             ARG_KIND_SURFACE_2D,
@@ -5683,23 +5683,23 @@ void CmKernelRT::SurfaceDump(uint32_t kernelNumber, int32_t taskId)
 
             for (uint16_t i = 0; i < numSurfaces; i++)
             {
-                uint32_t SurfaceIndex = *(uint16_t *)(arg.surfIndex + i);
-                CmSurface *pSurf = nullptr;
-                m_pSurfaceMgr->GetSurface(SurfaceIndex, pSurf);
-                if (pSurf == nullptr)
+                uint32_t surfaceIndex = *(uint16_t *)(arg.surfIndex + i);
+                CmSurface *surf = nullptr;
+                m_surfaceMgr->GetSurface(surfaceIndex, surf);
+                if (surf == nullptr)
                 {
                     return;
                 }
-                pSurf->DumpContent(kernelNumber, taskId, argIndex);
+                surf->DumpContent(kernelNumber, taskId, argIndex);
             }
         }
     }
 #endif
 }
 
-CM_RT_API int32_t CmKernelRT::SetSamplerBTI(SamplerIndex* pSampler, uint32_t nIndex)
+CM_RT_API int32_t CmKernelRT::SetSamplerBTI(SamplerIndex* sampler, uint32_t nIndex)
 {
-    if (!pSampler)
+    if (!sampler)
     {
         return CM_NULL_POINTER;
     }
@@ -5708,26 +5708,26 @@ CM_RT_API int32_t CmKernelRT::SetSamplerBTI(SamplerIndex* pSampler, uint32_t nIn
         return CM_KERNELPAYLOAD_SAMPLER_INVALID_BTINDEX;
     }
 
-    uint32_t        samplerIndex   = pSampler->get_data();
-    PCM_HAL_STATE   pCmHalState    = ((PCM_CONTEXT_DATA)m_pCmDev->GetAccelData())->cmHalState;
+    uint32_t        samplerIndex   = sampler->get_data();
+    PCM_HAL_STATE   cmHalState    = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
 
     uint32_t i = 0;
-    for (i = 0; i < m_SamplerBTICount; i++)
+    for (i = 0; i < m_samplerBtiCount; i++)
     {
-        if ((m_SamplerBTIEntry[i].samplerIndex == samplerIndex) && (m_SamplerBTIEntry[i].samplerBTI == nIndex))
+        if ((m_samplerBtiEntry[i].samplerIndex == samplerIndex) && (m_samplerBtiEntry[i].samplerBTI == nIndex))
         {
             break;
         }
-        if (m_Dirty & CM_KERNEL_DATA_SAMPLER_BTI_DIRTY)
+        if (m_dirty & cMKERNELDATASAMPLERBTIDIRTY)
         {
-            if ((m_SamplerBTIEntry[i].samplerIndex != samplerIndex) && (m_SamplerBTIEntry[i].samplerBTI == nIndex))
+            if ((m_samplerBtiEntry[i].samplerIndex != samplerIndex) && (m_samplerBtiEntry[i].samplerBTI == nIndex))
             {
-                if (pCmHalState->useNewSamplerHeap)
+                if (cmHalState->useNewSamplerHeap)
                 {
                     SamplerParam sampler1 = {};
                     SamplerParam sampler2 = {};
-                    pCmHalState->cmHalInterface->GetSamplerParamInfoForSamplerType(&pCmHalState->samplerTable[m_SamplerBTIEntry[i].samplerIndex], sampler1);
-                    pCmHalState->cmHalInterface->GetSamplerParamInfoForSamplerType(&pCmHalState->samplerTable[samplerIndex], sampler2);
+                    cmHalState->cmHalInterface->GetSamplerParamInfoForSamplerType(&cmHalState->samplerTable[m_samplerBtiEntry[i].samplerIndex], sampler1);
+                    cmHalState->cmHalInterface->GetSamplerParamInfoForSamplerType(&cmHalState->samplerTable[samplerIndex], sampler2);
 
                     if (sampler1.elementType== sampler2.elementType)
                     {
@@ -5742,16 +5742,16 @@ CM_RT_API int32_t CmKernelRT::SetSamplerBTI(SamplerIndex* pSampler, uint32_t nIn
             }
 
             CmSampler8x8State_RT *sampler8x8 = nullptr;
-            CmSampler8x8State_RT *tmp_sampler8x8 = nullptr;
-            m_pCmDev->GetSampler8x8(samplerIndex, sampler8x8);
-            m_pCmDev->GetSampler8x8(m_SamplerBTIEntry[i].samplerIndex, tmp_sampler8x8);
+            CmSampler8x8State_RT *tmpSampler8x8 = nullptr;
+            m_device->GetSampler8x8(samplerIndex, sampler8x8);
+            m_device->GetSampler8x8(m_samplerBtiEntry[i].samplerIndex, tmpSampler8x8);
 
-            if (sampler8x8 && tmp_sampler8x8 && (sampler8x8->GetStateType() == CM_SAMPLER8X8_AVS)
-                && (tmp_sampler8x8->GetStateType() == CM_SAMPLER8X8_AVS) &&
-                pCmHalState->cmHalInterface->IsAdjacentSamplerIndexRequiredbyHw())
+            if (sampler8x8 && tmpSampler8x8 && (sampler8x8->GetStateType() == CM_SAMPLER8X8_AVS)
+                && (tmpSampler8x8->GetStateType() == CM_SAMPLER8X8_AVS) &&
+                cmHalState->cmHalInterface->IsAdjacentSamplerIndexRequiredbyHw())
             {
-                if ((m_SamplerBTIEntry[i].samplerIndex != samplerIndex) &&
-                    ((m_SamplerBTIEntry[i].samplerBTI == nIndex + 1) || (m_SamplerBTIEntry[i].samplerBTI == nIndex - 1)))
+                if ((m_samplerBtiEntry[i].samplerIndex != samplerIndex) &&
+                    ((m_samplerBtiEntry[i].samplerBTI == nIndex + 1) || (m_samplerBtiEntry[i].samplerBTI == nIndex - 1)))
                     return CM_FAILURE;
             }
         }
@@ -5763,23 +5763,23 @@ CM_RT_API int32_t CmKernelRT::SetSamplerBTI(SamplerIndex* pSampler, uint32_t nIn
         return CM_FAILURE;
     }
 
-    if (i == m_SamplerBTICount)
+    if (i == m_samplerBtiCount)
     {
-        m_SamplerBTIEntry[i].samplerIndex = samplerIndex;
-        m_SamplerBTIEntry[i].samplerBTI = nIndex;
+        m_samplerBtiEntry[i].samplerIndex = samplerIndex;
+        m_samplerBtiEntry[i].samplerBTI = nIndex;
 
-        m_SamplerBTICount = i + 1;
+        m_samplerBtiCount = i + 1;
 
-        m_Dirty |= CM_KERNEL_DATA_SAMPLER_BTI_DIRTY;
+        m_dirty |= cMKERNELDATASAMPLERBTIDIRTY;
     }
     return CM_SUCCESS;
 }
 
 CMRT_UMD_API int32_t CmKernelRT::GetBinary(std::vector<char>& binary)
 {
-    binary.resize(m_uiBinarySize);
+    binary.resize(m_binarySize);
 
-    CmSafeMemCopy((void *)&binary[0], (void *)m_pBinary, m_uiBinarySize);
+    CmSafeMemCopy((void *)&binary[0], (void *)m_binary, m_binarySize);
 
     return CM_SUCCESS;
 }
@@ -5793,69 +5793,69 @@ CMRT_UMD_API int32_t CmKernelRT::ReplaceBinary(std::vector<char>& binary)
         return CM_INVALID_ARG_VALUE;
     }
 
-    if(m_pBinaryOrig == nullptr)
+    if(m_binaryOrig == nullptr)
     {
         //Store the orignal binary once.
-        m_pBinaryOrig = m_pBinary;
-        m_uiBinarySizeOrig = m_uiBinarySize;
+        m_binaryOrig = m_binary;
+        m_binarySizeOrig = m_binarySize;
     }
 
-    m_pBinary = MOS_NewArray(char, size);
-    CmSafeMemCopy((void *)m_pBinary, (void *)&binary[0], size);
+    m_binary = MOS_NewArray(char, size);
+    CmSafeMemCopy((void *)m_binary, (void *)&binary[0], size);
 
-    m_uiBinarySize = size;
+    m_binarySize = size;
 
     return CM_SUCCESS;
 }
 
 CMRT_UMD_API int32_t CmKernelRT::ResetBinary()
 {
-    if (m_pBinaryOrig == nullptr)
+    if (m_binaryOrig == nullptr)
     {
         //ReplaceBinary is never called
         return CM_SUCCESS;
     }
-    if(m_pBinary!= m_pBinaryOrig)
+    if(m_binary!= m_binaryOrig)
     {
-        MosSafeDeleteArray(m_pBinary);
+        MosSafeDeleteArray(m_binary);
     }
-    m_pBinary = m_pBinaryOrig;
-    m_uiBinarySize = m_uiBinarySizeOrig;
+    m_binary = m_binaryOrig;
+    m_binarySize = m_binarySizeOrig;
 
     return CM_SUCCESS;
 }
 
-int CmKernelRT::UpdateSamplerHeap(CmKernelData *pCmKernelData)
+int CmKernelRT::UpdateSamplerHeap(CmKernelData *kernelData)
 {
     // Get sampler bti & offset
-    PCM_HAL_KERNEL_PARAM pCmKernel = nullptr;
-    PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)m_pCmDev->GetAccelData();
-    PCM_HAL_STATE pState = pCmData->cmHalState;
+    PCM_HAL_KERNEL_PARAM cmKernel = nullptr;
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
+    PCM_HAL_STATE state = cmData->cmHalState;
     std::list<SamplerParam>::iterator iter;
-    unsigned int heap_offset = 0;
+    unsigned int heapOffset = 0;
 
-    if (pState->useNewSamplerHeap == false)
+    if (state->useNewSamplerHeap == false)
     {
         return CM_SUCCESS;
     }
 
-    heap_offset = 0;
-    pCmKernel = pCmKernelData->GetHalCmKernelData();
-    std::list<SamplerParam> *sampler_heap = pCmKernel->samplerHeap;
+    heapOffset = 0;
+    cmKernel = kernelData->GetHalCmKernelData();
+    std::list<SamplerParam> *sampler_heap = cmKernel->samplerHeap;
 
     // First pass, inserts sampler with user-defined BTI to the list. Sorts by element order low to high, then by BTI order low to high.
-    for (unsigned int sampler_element_type = MHW_Sampler1Element; sampler_element_type < MHW_SamplerTotalElements; sampler_element_type++)
+    for (unsigned int samplerElementType = MHW_Sampler1Element; samplerElementType < MHW_SamplerTotalElements; samplerElementType++)
     {
-        for (unsigned int n = 0; n < pCmKernel->samplerBTIParam.samplerCount; ++n)
+        for (unsigned int n = 0; n < cmKernel->samplerBTIParam.samplerCount; ++n)
         {
             SamplerParam sampler = {};
-            sampler.samplerTableIndex = pCmKernel->samplerBTIParam.samplerInfo[n].samplerIndex;
+            sampler.samplerTableIndex = cmKernel->samplerBTIParam.samplerInfo[n].samplerIndex;
 
-            if (pState->samplerTable[sampler.samplerTableIndex].ElementType == sampler_element_type)
+            if (state->samplerTable[sampler.samplerTableIndex].ElementType == samplerElementType)
             {
-                sampler.bti = pCmKernel->samplerBTIParam.samplerInfo[n].samplerBTI;
+                sampler.bti = cmKernel->samplerBTIParam.samplerInfo[n].samplerBTI;
                 sampler.userDefinedBti = true;
-                pState->cmHalInterface->GetSamplerParamInfoForSamplerType(&pState->samplerTable[sampler.samplerTableIndex], sampler);
+                state->cmHalInterface->GetSamplerParamInfoForSamplerType(&state->samplerTable[sampler.samplerTableIndex], sampler);
 
                 // Guarantees each user-defined BTI has a spacing between each other user-defined BTIs larger than the stepping
                 for (iter = sampler_heap->begin(); iter != sampler_heap->end(); iter++)
@@ -5891,51 +5891,51 @@ int CmKernelRT::UpdateSamplerHeap(CmKernelData *pCmKernelData)
 
     // Second pass, loops over all kernel/thread args, find regular sampler and insert to sampler heap.
     // Follows the existing sorted order.
-    for (unsigned int sampler_element_type = MHW_Sampler1Element; sampler_element_type < MHW_SamplerTotalElements; sampler_element_type++)
+    for (unsigned int samplerElementType = MHW_Sampler1Element; samplerElementType < MHW_SamplerTotalElements; samplerElementType++)
     {
-        for (unsigned int index = 0; index < pCmKernel->numArgs; index++)
+        for (unsigned int index = 0; index < cmKernel->numArgs; index++)
         {
-            PCM_HAL_KERNEL_ARG_PARAM arg_param = &pCmKernel->argParams[index];
-            if (arg_param->isNull)
+            PCM_HAL_KERNEL_ARG_PARAM argParam = &cmKernel->argParams[index];
+            if (argParam->isNull)
             {
                 continue;
             }
 
-            for (unsigned int thread_index = 0; thread_index < arg_param->unitCount; thread_index++)
+            for (unsigned int threadIndex = 0; threadIndex < argParam->unitCount; threadIndex++)
             {
-                if (arg_param->kind == CM_ARGUMENT_SAMPLER)
+                if (argParam->kind == CM_ARGUMENT_SAMPLER)
                 {
-                    unsigned char *arg = arg_param->firstValue + (thread_index * arg_param->unitSize);
-                    unsigned int sampler_table_index = *((uint32_t *)arg);
+                    unsigned char *arg = argParam->firstValue + (threadIndex * argParam->unitSize);
+                    unsigned int samplerTableIndex = *((uint32_t *)arg);
 
                     SamplerParam sampler = {};
-                    sampler.samplerTableIndex = sampler_table_index;
-                    pState->cmHalInterface->GetSamplerParamInfoForSamplerType(&pState->samplerTable[sampler.samplerTableIndex], sampler);
+                    sampler.samplerTableIndex = samplerTableIndex;
+                    state->cmHalInterface->GetSamplerParamInfoForSamplerType(&state->samplerTable[sampler.samplerTableIndex], sampler);
                     sampler.regularBti = true;
 
-                    if (sampler.elementType != sampler_element_type)
+                    if (sampler.elementType != samplerElementType)
                     {
                         continue;
                     }
 
                     // if the sampler is already in the heap, skip
-                    bool is_duplicate = false;
+                    bool isDuplicate = false;
                     for (iter = sampler_heap->begin(); iter != sampler_heap->end(); iter++)
                     {
                         if (iter->samplerTableIndex == sampler.samplerTableIndex)
                         {
-                            is_duplicate = true;
+                            isDuplicate = true;
                             iter->regularBti = true;
                             break;
                         }
                     }
-                    if (is_duplicate == true)
+                    if (isDuplicate == true)
                     {
                         continue;
                     }
 
                     // insert the new sampler to the heap
-                    heap_offset = 0;
+                    heapOffset = 0;
                     for (iter = sampler_heap->begin(); iter != sampler_heap->end(); iter++)
                     {
                         if (iter->elementType == sampler.elementType)
@@ -5944,8 +5944,8 @@ int CmKernelRT::UpdateSamplerHeap(CmKernelData *pCmKernelData)
                             // Only insert before user-defined BTI
                             if (iter->userDefinedBti == true)
                             {
-                                unsigned int cur_offset = iter->heapOffset;
-                                if (heap_offset > cur_offset)
+                                unsigned int curOffset = iter->heapOffset;
+                                if (heapOffset > curOffset)
                                 {
                                     // Confliction, which means that sampler heap in smaller
                                     // element type has excced the position which is supposed
@@ -5956,19 +5956,19 @@ int CmKernelRT::UpdateSamplerHeap(CmKernelData *pCmKernelData)
                                 }
                                 else
                                 {
-                                    if (cur_offset - heap_offset >= sampler.btiStepping * sampler.btiMultiplier)
+                                    if (curOffset - heapOffset >= sampler.btiStepping * sampler.btiMultiplier)
                                     {
                                         break;
                                     }
                                     else
                                     {
-                                        heap_offset = cur_offset + iter->btiStepping * iter->btiMultiplier;
+                                        heapOffset = curOffset + iter->btiStepping * iter->btiMultiplier;
                                     }
                                 }
                             }
                             else
                             {
-                                heap_offset += iter->btiStepping * iter->btiMultiplier;
+                                heapOffset += iter->btiStepping * iter->btiMultiplier;
                             }
                         }
                         else if (iter->elementType > sampler.elementType)
@@ -5977,22 +5977,22 @@ int CmKernelRT::UpdateSamplerHeap(CmKernelData *pCmKernelData)
                         }
                         else
                         {
-                            heap_offset = iter->heapOffset + iter->size;
+                            heapOffset = iter->heapOffset + iter->size;
                             std::list<SamplerParam>::iterator iter_next = std::next(iter, 1);
                             if ((iter_next != sampler_heap->end()) && (iter_next->elementType > iter->elementType))
                             {
-                                // Aligns heap_offset to next nearest multiple of sampler size if next sampler is a different element type
-                                heap_offset = (heap_offset + iter_next->btiStepping * iter_next->btiMultiplier - 1) / (iter_next->btiStepping * iter_next->btiMultiplier) * (iter_next->btiStepping * iter_next->btiMultiplier);
+                                // Aligns heapOffset to next nearest multiple of sampler size if next sampler is a different element type
+                                heapOffset = (heapOffset + iter_next->btiStepping * iter_next->btiMultiplier - 1) / (iter_next->btiStepping * iter_next->btiMultiplier) * (iter_next->btiStepping * iter_next->btiMultiplier);
                             }
                         }
                     }
 
                     if (iter == sampler_heap->end())
                     {
-                        // Aligns heap_offset to next nearest multiple of sampler size if next sampler is a different element type
-                        heap_offset = (heap_offset + sampler.btiStepping * sampler.btiMultiplier - 1) / (sampler.btiStepping * sampler.btiMultiplier) * (sampler.btiStepping * sampler.btiMultiplier);
+                        // Aligns heapOffset to next nearest multiple of sampler size if next sampler is a different element type
+                        heapOffset = (heapOffset + sampler.btiStepping * sampler.btiMultiplier - 1) / (sampler.btiStepping * sampler.btiMultiplier) * (sampler.btiStepping * sampler.btiMultiplier);
                     }
-                    sampler.heapOffset = heap_offset;
+                    sampler.heapOffset = heapOffset;
                     sampler.bti = sampler.heapOffset / sampler.btiMultiplier;
                     sampler_heap->insert(iter, sampler);
                 }

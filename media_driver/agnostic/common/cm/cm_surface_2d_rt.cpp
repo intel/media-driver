@@ -32,7 +32,7 @@
 #include "cm_mem.h"
 #include "cm_queue_rt.h"
 
-#define COPY_OPTION(uiOption)    (uiOption & 0x1)
+#define COPY_OPTION(option)    (option & 0x1)
 
 namespace CMRT_UMD
 {
@@ -47,8 +47,8 @@ namespace CMRT_UMD
 //|               format            [out]    format of CmSurface2D
 //|               isCmCreated       [out]    ture,if the surface created by CM;
 //|                                          false,if the surface created externally
-//|               pSurfaceManager   [out]    Pointer to CmSurfaceManager
-//|               pSurface          [out]    Reference to the Pointer to CmSurface2D
+//|               surfaceManager   [out]    Pointer to CmSurfaceManager
+//|               surface          [out]    Reference to the Pointer to CmSurface2D
 
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
@@ -60,19 +60,19 @@ int32_t CmSurface2DRT::Create(
                            uint32_t pitch,
                            CM_SURFACE_FORMAT format,
                            bool isCmCreated,
-                           CmSurfaceManager* pSurfaceManager,
-                           CmSurface2DRT* &pSurface )
+                           CmSurfaceManager* surfaceManager,
+                           CmSurface2DRT* &surface )
 {
     int32_t result = CM_SUCCESS;
 
-    pSurface = new (std::nothrow) CmSurface2DRT( handle,width,height, pitch,format,pSurfaceManager, isCmCreated);
-    if( pSurface )
+    surface = new (std::nothrow) CmSurface2DRT( handle,width,height, pitch,format,surfaceManager, isCmCreated);
+    if( surface )
     {
-        result = pSurface->Initialize( index );
+        result = surface->Initialize( index );
         if( result != CM_SUCCESS )
         {
-            CmSurface* pBaseSurface = pSurface;
-            CmSurface::Destroy( pBaseSurface );
+            CmSurface* baseSurface = surface;
+            CmSurface::Destroy( baseSurface );
         }
     }
     else
@@ -93,28 +93,28 @@ int32_t CmSurface2DRT::Initialize( uint32_t index )
     return CmSurface::Initialize( index );
 }
 
-bool CmSurface2DRT::IsGPUCopy(void *pSysMem, uint32_t iWidthInBytes, uint32_t iHeight, uint32_t iWidthStrideInBytes)
+bool CmSurface2DRT::IsGPUCopy(void *sysMem, uint32_t widthInBytes, uint32_t height, uint32_t widthStrideInBytes)
 {
-    return ( (iWidthInBytes <= CM_MAX_THREADSPACE_WIDTH_FOR_MW*128) && (iHeight <= CM_MAX_THREADSPACE_HEIGHT_FOR_MW*32) && (uintptr_t(pSysMem) & 0xF) == 0 && (iWidthStrideInBytes & 0xF) == 0 );
+    return ( (widthInBytes <= CM_MAX_THREADSPACE_WIDTH_FOR_MW*128) && (height <= CM_MAX_THREADSPACE_HEIGHT_FOR_MW*32) && (uintptr_t(sysMem) & 0xF) == 0 && (widthStrideInBytes & 0xF) == 0 );
 }
 
-bool CmSurface2DRT::IsUnalignedGPUCopy(uint32_t iWidthInBytes, uint32_t iHeight)
+bool CmSurface2DRT::IsUnalignedGPUCopy(uint32_t widthInBytes, uint32_t height)
 {
-    return (iWidthInBytes <= CM_MAX_THREADSPACE_WIDTH_FOR_MW*64) && (iHeight <= CM_MAX_THREADSPACE_HEIGHT_FOR_MW*8);
+    return (widthInBytes <= CM_MAX_THREADSPACE_WIDTH_FOR_MW*64) && (height <= CM_MAX_THREADSPACE_HEIGHT_FOR_MW*8);
 }
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Hybrid memory copy from  system memory to Surface 2D to with stride
 //| Arguments :
-//|               pSysMem      [in]       Pointer to system memory
-//|               pEvent       [in]       Pointer to CmEvent
-//|               iWidthStride [in]       Stride in system memory in bytes
-//|               iHeightStride[in]       Height Stride in system memory in rows
+//|               sysMem      [in]       Pointer to system memory
+//|               event       [in]       Pointer to CmEvent
+//|               widthStride [in]       Stride in system memory in bytes
+//|               heightStride[in]       Height Stride in system memory in rows
 //|               sysMemSize   [in]       Size of Memory need to read
-//|               uiOption     [in]       Option to disable/enable hybrid memory copy
+//|               option     [in]       Option to disable/enable hybrid memory copy
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-CM_RT_API int32_t CmSurface2DRT::WriteSurfaceHybridStrides( const unsigned char* pSysMem, CmEvent* pEvent, const uint32_t iWidthStride, const uint32_t iHeightStride, uint64_t sysMemSize, uint32_t uiOption )
+CM_RT_API int32_t CmSurface2DRT::WriteSurfaceHybridStrides( const unsigned char* sysMem, CmEvent* event, const uint32_t widthStride, const uint32_t heightStride, uint64_t sysMemSize, uint32_t option )
 {
     INSERT_API_CALL_LOG();
 
@@ -122,14 +122,14 @@ CM_RT_API int32_t CmSurface2DRT::WriteSurfaceHybridStrides( const unsigned char*
     uint32_t    sizePerPixel        = 0;
     uint32_t    updatedHeight       = 0;
     uint32_t    widthInBytes        = 0;
-    CmQueue    *pCmQueue            = nullptr;
-    CmDeviceRT *pCmDevice           = nullptr;
-    CmQueueRT  *pCmQueueRT          = nullptr;
-    bool        bForceCPUCopy       = COPY_OPTION(uiOption);
+    CmQueue    *cmQueue            = nullptr;
+    CmDeviceRT *cmDevice           = nullptr;
+    CmQueueRT  *cmQueueRT          = nullptr;
+    bool        forceCPUCopy       = COPY_OPTION(option);
     CM_STATUS   status;
 
-    m_SurfaceMgr->GetCmDevice(pCmDevice);
-    int32_t result = m_SurfaceMgr->GetPixelBytesAndHeight(m_Width, m_Height, m_Format, sizePerPixel, updatedHeight);
+    m_surfaceMgr->GetCmDevice(cmDevice);
+    int32_t result = m_surfaceMgr->GetPixelBytesAndHeight(m_Width, m_Height, m_Format, sizePerPixel, updatedHeight);
     if (result != CM_SUCCESS)
     {
         CM_ASSERTMESSAGE("Error: Failed to get correct surface info.")
@@ -137,32 +137,32 @@ CM_RT_API int32_t CmSurface2DRT::WriteSurfaceHybridStrides( const unsigned char*
     }
 
     widthInBytes = m_Width * sizePerPixel;
-    if(pSysMem == nullptr || iWidthStride < widthInBytes || iHeightStride < m_Height)
+    if(sysMem == nullptr || widthStride < widthInBytes || heightStride < m_Height)
     {
         CM_ASSERTMESSAGE("Error: Invalid input arguments.")
         return CM_INVALID_ARG_VALUE;
     }
 
-    if( pEvent )
+    if( event )
     {
-        CmEventRT *pEventRT = static_cast<CmEventRT *>(pEvent);
-        FlushDeviceQueue( pEventRT ); //wait specific task finished
+        CmEventRT *eventRT = static_cast<CmEventRT *>(event);
+        FlushDeviceQueue( eventRT ); //wait specific task finished
     }
     WaitForReferenceFree();   // wait all owner task finished
 
-    if (bForceCPUCopy)
+    if (forceCPUCopy)
     {
-        CMCHK_HR(WriteSurfaceFullStride(pSysMem, pEvent, iWidthStride, iHeightStride, sysMemSize));
+        CMCHK_HR(WriteSurfaceFullStride(sysMem, event, widthStride, heightStride, sysMemSize));
     }
     else
     {
-        CMCHK_HR(pCmDevice->CreateQueue(pCmQueue));
-        if(IsGPUCopy((void*)pSysMem, widthInBytes, m_Height, iWidthStride))
+        CMCHK_HR(cmDevice->CreateQueue(cmQueue));
+        if(IsGPUCopy((void*)sysMem, widthInBytes, m_Height, widthStride))
         {
-            CMCHK_HR(pCmQueue->EnqueueCopyCPUToGPUFullStride(this, pSysMem, iWidthStride, iHeightStride, 0, pEvent));
-            if(pEvent)
+            CMCHK_HR(cmQueue->EnqueueCopyCPUToGPUFullStride(this, sysMem, widthStride, heightStride, 0, event));
+            if(event)
             {
-                CMCHK_HR(pEvent->GetStatus(status));
+                CMCHK_HR(event->GetStatus(status));
                 while(status != CM_STATUS_FINISHED)
                 {
                     if (status == CM_STATUS_RESET)
@@ -170,7 +170,7 @@ CM_RT_API int32_t CmSurface2DRT::WriteSurfaceHybridStrides( const unsigned char*
                         hr = CM_TASK_MEDIA_RESET;
                         goto finish;
                     }
-                    CMCHK_HR(pEvent->GetStatus(status));
+                    CMCHK_HR(event->GetStatus(status));
                 }
             }
             else
@@ -181,12 +181,12 @@ CM_RT_API int32_t CmSurface2DRT::WriteSurfaceHybridStrides( const unsigned char*
         }
         else if (IsUnalignedGPUCopy(widthInBytes, m_Height))
         {
-            pCmQueueRT = static_cast<CmQueueRT *>(pCmQueue);
-            CMCHK_HR(pCmQueueRT->EnqueueUnalignedCopyInternal(this, (unsigned char*)pSysMem, iWidthStride, iHeightStride, CM_FASTCOPY_CPU2GPU, pEvent));
+            cmQueueRT = static_cast<CmQueueRT *>(cmQueue);
+            CMCHK_HR(cmQueueRT->EnqueueUnalignedCopyInternal(this, (unsigned char*)sysMem, widthStride, heightStride, CM_FASTCOPY_CPU2GPU, event));
         }
         else
         {
-            CMCHK_HR(WriteSurfaceFullStride(pSysMem, pEvent, iWidthStride, iHeightStride, sysMemSize));
+            CMCHK_HR(WriteSurfaceFullStride(sysMem, event, widthStride, heightStride, sysMemSize));
         }
     }
 
@@ -197,19 +197,19 @@ finish:
 //*-----------------------------------------------------------------------------
 //| Purpose:    Write data from system memory to Surface 2D
 //| Arguments :
-//|               pSysMem      [in]       Pointer to system memory
-//|               pEvent       [in]       Pointer to CmEvent
+//|               sysMem      [in]       Pointer to system memory
+//|               event       [in]       Pointer to CmEvent
 //|               sysMemSize   [out]      Size of Memory need to write
 //|
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-CM_RT_API int32_t CmSurface2DRT::WriteSurface( const unsigned char* pSysMem, CmEvent* pEvent, uint64_t sysMemSize )
+CM_RT_API int32_t CmSurface2DRT::WriteSurface( const unsigned char* sysMem, CmEvent* event, uint64_t sysMemSize )
 {
     INSERT_API_CALL_LOG();
 
     CM_RETURN_CODE  hr              = CM_SUCCESS;
-    uint8_t         *pDst            = nullptr;
-    uint8_t         *pSurf           = nullptr;
+    uint8_t         *dst            = nullptr;
+    uint8_t         *surf           = nullptr;
     uint32_t        sizePerPixel    = 0;
     uint32_t        updatedHeight   = 0;
     uint32_t        size            = 0;
@@ -217,28 +217,28 @@ CM_RT_API int32_t CmSurface2DRT::WriteSurface( const unsigned char* pSysMem, CmE
     uint32_t        row             = 0;
     UNUSED(sysMemSize);
 
-    if(pSysMem == nullptr)
+    if(sysMem == nullptr)
     {
         CM_ASSERTMESSAGE("Error: Pointer to system memory is null.")
         return CM_INVALID_ARG_VALUE;
     }
 
-    if( pEvent )
+    if( event )
     {
-        CmEventRT *pEventRT = static_cast<CmEventRT *>(pEvent);
-        FlushDeviceQueue( pEventRT ); //wait specific task finished
+        CmEventRT *eventRT = static_cast<CmEventRT *>(event);
+        FlushDeviceQueue( eventRT ); //wait specific task finished
     }
     WaitForReferenceFree();   // wait all owner task finished
 
-    CmDeviceRT * pCmDevice = nullptr;
-    m_SurfaceMgr->GetCmDevice(pCmDevice);
+    CmDeviceRT * cmDevice = nullptr;
+    m_surfaceMgr->GetCmDevice(cmDevice);
 
     //Lock for surface read/write
-    CSync* pSurfaceLock = pCmDevice->GetSurfaceLock();
-    CM_ASSERT(pSurfaceLock);
-    CLock locker(*pSurfaceLock);
+    CSync* surfaceLock = cmDevice->GetSurfaceLock();
+    CM_ASSERT(surfaceLock);
+    CLock locker(*surfaceLock);
 
-    PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)pCmDevice->GetAccelData();
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)cmDevice->GetAccelData();
 
     CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM ) );
@@ -250,15 +250,15 @@ CM_RT_API int32_t CmSurface2DRT::WriteSurface( const unsigned char* pSysMem, CmE
     // Lock Surface Resource:
     // Lock may fail due to the out of memory/out of page-in in KMD.
     // Touch queue for the buffer/surface data release
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->cmHalState->pfnLock2DResource(pCmData->cmHalState, &inParam));
+    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnLock2DResource(cmData->cmHalState, &inParam));
     CMCHK_NULL(inParam.data);
 
     //Copy data
-    pDst  = ( uint8_t *)(inParam.data);
-    pSurf = ( uint8_t *)pSysMem;
+    dst  = ( uint8_t *)(inParam.data);
+    surf = ( uint8_t *)sysMem;
 
     // Get the memory size according to the format
-    CMCHK_HR(m_SurfaceMgr->GetPixelBytesAndHeight(m_Width, m_Height, m_Format, sizePerPixel, updatedHeight));
+    CMCHK_HR(m_surfaceMgr->GetPixelBytesAndHeight(m_Width, m_Height, m_Format, sizePerPixel, updatedHeight));
 
     size = m_Width * sizePerPixel;
     pitch = m_Pitch;
@@ -266,20 +266,20 @@ CM_RT_API int32_t CmSurface2DRT::WriteSurface( const unsigned char* pSysMem, CmE
     {
         for (row = 0; row < updatedHeight; row ++)
         {
-            CmFastMemCopyWC(pDst, pSurf, size);
+            CmFastMemCopyWC(dst, surf, size);
 
-            pSurf += size;
-            pDst += pitch;
+            surf += size;
+            dst += pitch;
         }
     }
     else
     {
-        CmFastMemCopyWC(pDst, pSurf, pitch * updatedHeight);
+        CmFastMemCopyWC(dst, surf, pitch * updatedHeight);
     }
 
     //Unlock Surface2D
     inParam.data = nullptr;
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->cmHalState->pfnUnlock2DResource(pCmData->cmHalState, &inParam));
+    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnUnlock2DResource(cmData->cmHalState, &inParam));
 
 finish:
     return hr;
@@ -288,15 +288,15 @@ finish:
 //*-----------------------------------------------------------------------------
 //| Purpose:    Hybrid memory copy from  Surface 2D to system memory with stride
 //| Arguments :
-//|               pSysMem      [out]       Pointer to system memory
-//|               pEvent       [in]       Pointer to CmEvent
-//|               iWidthStride [in]       Width  Stride in system memory in bytes
-//|               iHeightStride[in]       Height Stride in system memory in rows
+//|               sysMem      [out]       Pointer to system memory
+//|               event       [in]       Pointer to CmEvent
+//|               widthStride [in]       Width  Stride in system memory in bytes
+//|               heightStride[in]       Height Stride in system memory in rows
 //|               sysMemSize   [in]       Size of Memory need to read
-//|               uiOption     [in]       Option to disable/enable hybrid memory copy
+//|               option     [in]       Option to disable/enable hybrid memory copy
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-CM_RT_API int32_t CmSurface2DRT::ReadSurfaceHybridStrides( unsigned char* pSysMem, CmEvent* pEvent, const uint32_t iWidthStride, const uint32_t iHeightStride, uint64_t sysMemSize, uint32_t uiOption )
+CM_RT_API int32_t CmSurface2DRT::ReadSurfaceHybridStrides( unsigned char* sysMem, CmEvent* event, const uint32_t widthStride, const uint32_t heightStride, uint64_t sysMemSize, uint32_t option )
 {
     INSERT_API_CALL_LOG();
 
@@ -304,14 +304,14 @@ CM_RT_API int32_t CmSurface2DRT::ReadSurfaceHybridStrides( unsigned char* pSysMe
     uint32_t    sizePerPixel        = 0;
     uint32_t    updatedHeight       = 0;
     uint32_t    widthInBytes        = 0;
-    CmQueue    *pCmQueue            = nullptr;
-    CmDeviceRT *pCmDevice           = nullptr;
-    CmQueueRT  *pCmQueueRT          = nullptr;
-    bool        bForceCPUCopy       = COPY_OPTION(uiOption);
+    CmQueue    *cmQueue            = nullptr;
+    CmDeviceRT *cmDevice           = nullptr;
+    CmQueueRT  *cmQueueRT          = nullptr;
+    bool        forceCPUCopy       = COPY_OPTION(option);
     CM_STATUS   status;
 
-    m_SurfaceMgr->GetCmDevice(pCmDevice);
-    int32_t result = m_SurfaceMgr->GetPixelBytesAndHeight(m_Width, m_Height, m_Format, sizePerPixel, updatedHeight);
+    m_surfaceMgr->GetCmDevice(cmDevice);
+    int32_t result = m_surfaceMgr->GetPixelBytesAndHeight(m_Width, m_Height, m_Format, sizePerPixel, updatedHeight);
     if (result != CM_SUCCESS)
     {
         CM_ASSERTMESSAGE("Error: Failed to get correct surface info.")
@@ -319,33 +319,33 @@ CM_RT_API int32_t CmSurface2DRT::ReadSurfaceHybridStrides( unsigned char* pSysMe
     }
 
     widthInBytes = m_Width * sizePerPixel;
-    if(pSysMem == nullptr || iWidthStride < widthInBytes || iHeightStride < m_Height)
+    if(sysMem == nullptr || widthStride < widthInBytes || heightStride < m_Height)
     {
         CM_ASSERTMESSAGE("Error: Invalid input arguments.")
         return CM_INVALID_ARG_VALUE;
     }
 
-    if( pEvent )
+    if( event )
     {
-        CmEventRT *pEventRT = static_cast<CmEventRT *>(pEvent);
-        FlushDeviceQueue( pEventRT );
+        CmEventRT *eventRT = static_cast<CmEventRT *>(event);
+        FlushDeviceQueue( eventRT );
     }
 
     WaitForReferenceFree();   // wait all owner task finished
 
-    if (bForceCPUCopy)
+    if (forceCPUCopy)
     {
-        CMCHK_HR(ReadSurfaceFullStride(pSysMem, pEvent, iWidthStride, iHeightStride, sysMemSize));
+        CMCHK_HR(ReadSurfaceFullStride(sysMem, event, widthStride, heightStride, sysMemSize));
     }
     else
     {
-        CMCHK_HR(pCmDevice->CreateQueue(pCmQueue));
-        if(IsGPUCopy((void*)pSysMem, widthInBytes, m_Height, iWidthStride))
+        CMCHK_HR(cmDevice->CreateQueue(cmQueue));
+        if(IsGPUCopy((void*)sysMem, widthInBytes, m_Height, widthStride))
         {
-            CMCHK_HR(pCmQueue->EnqueueCopyGPUToCPUFullStride(this, pSysMem, iWidthStride, iHeightStride, 0, pEvent));
-            if(pEvent)
+            CMCHK_HR(cmQueue->EnqueueCopyGPUToCPUFullStride(this, sysMem, widthStride, heightStride, 0, event));
+            if(event)
             {
-                CMCHK_HR(pEvent->GetStatus(status));
+                CMCHK_HR(event->GetStatus(status));
                 while(status != CM_STATUS_FINISHED)
                 {
                     if (status == CM_STATUS_RESET)
@@ -353,7 +353,7 @@ CM_RT_API int32_t CmSurface2DRT::ReadSurfaceHybridStrides( unsigned char* pSysMe
                         hr = CM_TASK_MEDIA_RESET;
                         goto finish;
                     }
-                    CMCHK_HR(pEvent->GetStatus(status));
+                    CMCHK_HR(event->GetStatus(status));
                 }
             }
             else
@@ -364,12 +364,12 @@ CM_RT_API int32_t CmSurface2DRT::ReadSurfaceHybridStrides( unsigned char* pSysMe
         }
         else if (IsUnalignedGPUCopy(widthInBytes, m_Height))
         {
-            pCmQueueRT = static_cast<CmQueueRT *>(pCmQueue);
-            CMCHK_HR(pCmQueueRT->EnqueueUnalignedCopyInternal(this, (unsigned char*)pSysMem, iWidthStride, iHeightStride, CM_FASTCOPY_GPU2CPU, pEvent));
+            cmQueueRT = static_cast<CmQueueRT *>(cmQueue);
+            CMCHK_HR(cmQueueRT->EnqueueUnalignedCopyInternal(this, (unsigned char*)sysMem, widthStride, heightStride, CM_FASTCOPY_GPU2CPU, event));
         }
         else
         {
-            CMCHK_HR(ReadSurfaceFullStride(pSysMem, pEvent, iWidthStride, iHeightStride, sysMemSize));
+            CMCHK_HR(ReadSurfaceFullStride(sysMem, event, widthStride, heightStride, sysMemSize));
         }
     }
 
@@ -380,19 +380,19 @@ finish:
 //*-----------------------------------------------------------------------------
 //| Purpose:    Read data from  Surface 2D to system memory
 //| Arguments :
-//|               pSysMem      [in]       Pointer to system memory
-//|               pEvent       [in]       Pointer to CmEvent
+//|               sysMem      [in]       Pointer to system memory
+//|               event       [in]       Pointer to CmEvent
 //|               sysMemSize   [out]      Size of Memory need to read
 //|
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-CM_RT_API int32_t CmSurface2DRT::ReadSurface( unsigned char* pSysMem, CmEvent* pEvent, uint64_t sysMemSize )
+CM_RT_API int32_t CmSurface2DRT::ReadSurface( unsigned char* sysMem, CmEvent* event, uint64_t sysMemSize )
 {
     INSERT_API_CALL_LOG();
 
     CM_RETURN_CODE  hr              = CM_SUCCESS;
-    uint8_t         *pDst            = nullptr;
-    uint8_t         *pSurf           = nullptr;
+    uint8_t         *dst            = nullptr;
+    uint8_t         *surf           = nullptr;
     uint32_t        sizePerPixel    = 0;
     uint32_t        updatedHeight   = 0;
     uint32_t        widthInByte     = 0;
@@ -400,29 +400,29 @@ CM_RT_API int32_t CmSurface2DRT::ReadSurface( unsigned char* pSysMem, CmEvent* p
     uint32_t        row             = 0;
     UNUSED(sysMemSize);
 
-    if(pSysMem == nullptr)
+    if(sysMem == nullptr)
     {
         CM_ASSERTMESSAGE("Error: Pointer to system memory is null.")
         return CM_INVALID_ARG_VALUE;
     }
 
-    if( pEvent )
+    if( event )
     {
-        CmEventRT *pEventRT = static_cast<CmEventRT *>(pEvent);
-        FlushDeviceQueue( pEventRT );
+        CmEventRT *eventRT = static_cast<CmEventRT *>(event);
+        FlushDeviceQueue( eventRT );
     }
 
     WaitForReferenceFree();   // wait all owner task finished
 
-    CmDeviceRT * pCmDevice = nullptr;
-    m_SurfaceMgr->GetCmDevice(pCmDevice);
+    CmDeviceRT * cmDevice = nullptr;
+    m_surfaceMgr->GetCmDevice(cmDevice);
 
     //Lock for surface read/write
-    CSync* pSurfaceLock = pCmDevice->GetSurfaceLock();
-    CM_ASSERT(pSurfaceLock);
-    CLock locker(*pSurfaceLock);
+    CSync* surfaceLock = cmDevice->GetSurfaceLock();
+    CM_ASSERT(surfaceLock);
+    CLock locker(*surfaceLock);
 
-    PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)pCmDevice->GetAccelData();
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)cmDevice->GetAccelData();
 
     CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM ) );
@@ -434,14 +434,14 @@ CM_RT_API int32_t CmSurface2DRT::ReadSurface( unsigned char* pSysMem, CmEvent* p
     // Lock Surface Resource:
     // Lock may fail due to the out of memory/out of page-in in KMD.
     // Touch queue for the buffer/surface data release
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->cmHalState->pfnLock2DResource(pCmData->cmHalState, &inParam));
+    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnLock2DResource(cmData->cmHalState, &inParam));
     CMCHK_NULL(inParam.data);
 
     //Copy data
-    pDst = ( uint8_t *)pSysMem;
-    pSurf= ( uint8_t *)(inParam.data);
+    dst = ( uint8_t *)sysMem;
+    surf= ( uint8_t *)(inParam.data);
 
-    CMCHK_HR(m_SurfaceMgr->GetPixelBytesAndHeight(m_Width, m_Height, m_Format, sizePerPixel, updatedHeight));
+    CMCHK_HR(m_surfaceMgr->GetPixelBytesAndHeight(m_Width, m_Height, m_Format, sizePerPixel, updatedHeight));
 
     widthInByte = m_Width * sizePerPixel;
     pitch = m_Pitch;
@@ -449,19 +449,19 @@ CM_RT_API int32_t CmSurface2DRT::ReadSurface( unsigned char* pSysMem, CmEvent* p
     {
         for (row = 0; row < updatedHeight; row ++)
         {
-            CmFastMemCopyFromWC(pDst, pSurf, widthInByte, GetCpuInstructionLevel());
-            pSurf += pitch;
-            pDst += widthInByte;
+            CmFastMemCopyFromWC(dst, surf, widthInByte, GetCpuInstructionLevel());
+            surf += pitch;
+            dst += widthInByte;
         }
     }
     else
     {
-        CmFastMemCopyFromWC(pDst, pSurf, pitch * updatedHeight, GetCpuInstructionLevel());
+        CmFastMemCopyFromWC(dst, surf, pitch * updatedHeight, GetCpuInstructionLevel());
     }
 
     //Unlock
     inParam.data = nullptr;
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->cmHalState->pfnUnlock2DResource(pCmData->cmHalState, &inParam));
+    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnUnlock2DResource(cmData->cmHalState, &inParam));
 
 finish:
     return hr;
@@ -471,29 +471,29 @@ finish:
 //| Purpose:    Get the index of CmSurface2D
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-CM_RT_API int32_t CmSurface2DRT::GetIndex( SurfaceIndex*& pIndex )
+CM_RT_API int32_t CmSurface2DRT::GetIndex( SurfaceIndex*& index )
 {
-    pIndex = m_pIndex;
+    index = m_index;
     return CM_SUCCESS;
 }
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Write data from  system memory to Surface 2D to with stride
 //| Arguments :
-//|               pSysMem      [in]       Pointer to system memory
-//|               pEvent       [in]       Pointer to CmEvent
+//|               sysMem      [in]       Pointer to system memory
+//|               event       [in]       Pointer to CmEvent
 //|               Stride       [in]       Stride in system memory in bytes
 //|               sysMemSize   [out]      Size of Memory need to read
 //|
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-CM_RT_API int32_t CmSurface2DRT::WriteSurfaceStride( const unsigned char* pSysMem, CmEvent* pEvent, const uint32_t stride, uint64_t sysMemSize )
+CM_RT_API int32_t CmSurface2DRT::WriteSurfaceStride( const unsigned char* sysMem, CmEvent* event, const uint32_t stride, uint64_t sysMemSize )
 {
     INSERT_API_CALL_LOG();
 
     CM_RETURN_CODE  hr              = CM_SUCCESS;
-    uint8_t         *pDst            = nullptr;
-    uint8_t         *pSrc            = nullptr;
+    uint8_t         *dst            = nullptr;
+    uint8_t         *src            = nullptr;
     uint32_t        sizePerPixel    = 0;
     uint32_t        updatedHeight   = 0;
     uint32_t        widthInByte     = 0;
@@ -501,29 +501,29 @@ CM_RT_API int32_t CmSurface2DRT::WriteSurfaceStride( const unsigned char* pSysMe
     uint32_t        row             = 0;
     UNUSED(sysMemSize);
 
-    if(pSysMem == nullptr)
+    if(sysMem == nullptr)
     {
         CM_ASSERTMESSAGE("Error: Pointer to system memory is null.")
         return CM_INVALID_ARG_VALUE;
     }
 
-    if( pEvent )
+    if( event )
     {
-        CmEventRT *pEventRT = static_cast<CmEventRT *>(pEvent);
-        FlushDeviceQueue( pEventRT ); // wait specific owner task finished
+        CmEventRT *eventRT = static_cast<CmEventRT *>(event);
+        FlushDeviceQueue( eventRT ); // wait specific owner task finished
     }
 
     WaitForReferenceFree();   // wait all owner tasks finished
 
-    CmDeviceRT * pCmDevice = nullptr;
-    m_SurfaceMgr->GetCmDevice(pCmDevice);
+    CmDeviceRT * cmDevice = nullptr;
+    m_surfaceMgr->GetCmDevice(cmDevice);
 
     //Lock for surface read/write
-    CSync* pSurfaceLock = pCmDevice->GetSurfaceLock();
-    CM_ASSERT(pSurfaceLock);
-    CLock locker(*pSurfaceLock);
+    CSync* surfaceLock = cmDevice->GetSurfaceLock();
+    CM_ASSERT(surfaceLock);
+    CLock locker(*surfaceLock);
 
-    PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)pCmDevice->GetAccelData();
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)cmDevice->GetAccelData();
 
     CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM ) );
@@ -535,15 +535,15 @@ CM_RT_API int32_t CmSurface2DRT::WriteSurfaceStride( const unsigned char* pSysMe
     // Lock Surface Resource:
     // Lock may fail due to the out of memory/out of page-in in KMD.
     // Touch queue for the buffer/surface data release
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->cmHalState->pfnLock2DResource(pCmData->cmHalState, &inParam));
+    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnLock2DResource(cmData->cmHalState, &inParam));
     CMCHK_NULL(inParam.data);
 
     //Copy data
-    pDst = ( uint8_t *)(inParam.data);
-    pSrc = ( uint8_t *)pSysMem;
+    dst = ( uint8_t *)(inParam.data);
+    src = ( uint8_t *)sysMem;
 
     // Get the memory size according to the format
-    CMCHK_HR(m_SurfaceMgr->GetPixelBytesAndHeight(m_Width, m_Height, m_Format, sizePerPixel, updatedHeight));
+    CMCHK_HR(m_surfaceMgr->GetPixelBytesAndHeight(m_Width, m_Height, m_Format, sizePerPixel, updatedHeight));
 
     widthInByte = m_Width * sizePerPixel;
     pitch = m_Pitch;
@@ -551,38 +551,38 @@ CM_RT_API int32_t CmSurface2DRT::WriteSurfaceStride( const unsigned char* pSysMe
     {
         for (row = 0; row < updatedHeight; row ++)
         {
-            CmFastMemCopyWC(pDst, pSrc, widthInByte);
-            pSrc += stride;
-            pDst += pitch;
+            CmFastMemCopyWC(dst, src, widthInByte);
+            src += stride;
+            dst += pitch;
         }
     }
     else
     {
-        CmFastMemCopyWC(pDst, pSrc, pitch * updatedHeight);
+        CmFastMemCopyWC(dst, src, pitch * updatedHeight);
     }
 
     //Unlock Surface2D
     inParam.data = nullptr; //Set pData to Null to differentiate route from app or cmrt@umd
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->cmHalState->pfnUnlock2DResource(pCmData->cmHalState, &inParam));
+    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnUnlock2DResource(cmData->cmHalState, &inParam));
 
 finish:
     return hr;
 }
 
-CM_RT_API int32_t CmSurface2DRT::SetCompressionMode(MEMCOMP_STATE MmcMode)
+CM_RT_API int32_t CmSurface2DRT::SetCompressionMode(MEMCOMP_STATE mmcMode)
 {
     INSERT_API_CALL_LOG();
 
     CM_RETURN_CODE  hr = CM_SUCCESS;
-    CM_HAL_SURFACE2D_COMPRESSIOM_PARAM MmCModeParam;
-    CmDeviceRT * pCmDevice = nullptr;
-    m_SurfaceMgr->GetCmDevice(pCmDevice);
-    CM_ASSERT(pCmDevice);
-    MmCModeParam.handle = m_Handle;
-    MmCModeParam.mmcMode = MmcMode;
-    PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)pCmDevice->GetAccelData();
-    CM_ASSERT(pCmData);
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->cmHalState->pfnSetCompressionMode(pCmData->cmHalState, MmCModeParam));
+    CM_HAL_SURFACE2D_COMPRESSIOM_PARAM mmcModeParam;
+    CmDeviceRT * cmDevice = nullptr;
+    m_surfaceMgr->GetCmDevice(cmDevice);
+    CM_ASSERT(cmDevice);
+    mmcModeParam.handle = m_Handle;
+    mmcModeParam.mmcMode = mmcMode;
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)cmDevice->GetAccelData();
+    CM_ASSERT(cmData);
+    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnSetCompressionMode(cmData->cmHalState, mmcModeParam));
 
 finish:
     return hr;
@@ -590,66 +590,66 @@ finish:
 //*-----------------------------------------------------------------------------
 //| Purpose:    Read data from  Surface 2D to system memory with stride
 //| Arguments :
-//|               pSysMem      [in]       Pointer to system memory
-//|               pEvent       [in]       Pointer to CmEvent
+//|               sysMem      [in]       Pointer to system memory
+//|               event       [in]       Pointer to CmEvent
 //|               Stride       [in]       Stride in system memory in bytes
 //|               sysMemSize   [out]      Size of Memory need to read
 //|
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-CM_RT_API int32_t CmSurface2DRT::ReadSurfaceStride( unsigned char* pSysMem, CmEvent* pEvent, const uint32_t stride, uint64_t sysMemSize )
+CM_RT_API int32_t CmSurface2DRT::ReadSurfaceStride( unsigned char* sysMem, CmEvent* event, const uint32_t stride, uint64_t sysMemSize )
 {
     INSERT_API_CALL_LOG();
 
-    return ReadSurfaceFullStride(pSysMem, pEvent, stride, m_Height, sysMemSize);
+    return ReadSurfaceFullStride(sysMem, event, stride, m_Height, sysMemSize);
 }
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Read data from  Surface 2D to system memory with stride
 //| Arguments :
-//|               pSysMem      [in]       Pointer to system memory
-//|               pEvent       [in]       Pointer to CmEvent
-//|               iWidthStride [in]       Width  Stride in system memory in bytes
-//|               iHeightStride[in]       Height Stride in system memory in rows
+//|               sysMem      [in]       Pointer to system memory
+//|               event       [in]       Pointer to CmEvent
+//|               widthStride [in]       Width  Stride in system memory in bytes
+//|               heightStride[in]       Height Stride in system memory in rows
 //|               sysMemSize   [out]      Size of Memory need to read
 //|
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-CM_RT_API int32_t CmSurface2DRT::ReadSurfaceFullStride( unsigned char* pSysMem, CmEvent* pEvent,
-                    const uint32_t iWidthStride, const uint32_t iHeightStride, uint64_t sysMemSize )
+CM_RT_API int32_t CmSurface2DRT::ReadSurfaceFullStride( unsigned char* sysMem, CmEvent* event,
+                    const uint32_t widthStride, const uint32_t heightStride, uint64_t sysMemSize )
 {
     INSERT_API_CALL_LOG();
 
     CM_RETURN_CODE  hr              = CM_SUCCESS;
-    uint8_t         *pDst            = nullptr;
-    uint8_t         *pSrc            = nullptr;
+    uint8_t         *dst            = nullptr;
+    uint8_t         *src            = nullptr;
     uint32_t        sizePerPixel    = 0;
     uint32_t        updatedHeight   = 0;
     UNUSED(sysMemSize);
 
-    if(pSysMem == nullptr)
+    if(sysMem == nullptr)
     {
         CM_ASSERTMESSAGE("Error: Pointer to system memory is null.")
         return CM_INVALID_ARG_VALUE;
     }
 
-    if( pEvent )
+    if( event )
     {
-        CmEventRT *pEventRT = static_cast<CmEventRT *>(pEvent);
-        FlushDeviceQueue( pEventRT ); //wait specific task finished
+        CmEventRT *eventRT = static_cast<CmEventRT *>(event);
+        FlushDeviceQueue( eventRT ); //wait specific task finished
     }
 
     WaitForReferenceFree();   // wait all owner task finished
 
-    CmDeviceRT * pCmDevice = nullptr;
-    m_SurfaceMgr->GetCmDevice(pCmDevice);
+    CmDeviceRT * cmDevice = nullptr;
+    m_surfaceMgr->GetCmDevice(cmDevice);
 
     //Lock for surface read/write
-    CSync* pSurfaceLock = pCmDevice->GetSurfaceLock();
-    CM_ASSERT(pSurfaceLock);
-    CLock locker(*pSurfaceLock);
+    CSync* surfaceLock = cmDevice->GetSurfaceLock();
+    CM_ASSERT(surfaceLock);
+    CLock locker(*surfaceLock);
 
-    PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)pCmDevice->GetAccelData();
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)cmDevice->GetAccelData();
 
     CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM ) );
@@ -659,60 +659,60 @@ CM_RT_API int32_t CmSurface2DRT::ReadSurfaceFullStride( unsigned char* pSysMem, 
     inParam.lockFlag = CM_HAL_LOCKFLAG_READONLY;
 
     // Lock Data
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->cmHalState->pfnLock2DResource(pCmData->cmHalState, &inParam));
+    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnLock2DResource(cmData->cmHalState, &inParam));
     CMCHK_NULL(inParam.data);
 
     //Copy data
-    pDst = ( uint8_t *)pSysMem;
-    pSrc = ( uint8_t *)(inParam.data);
+    dst = ( uint8_t *)sysMem;
+    src = ( uint8_t *)(inParam.data);
 
     // Get the memory size according to the format
-    CMCHK_HR(m_SurfaceMgr->GetPixelBytesAndHeight(m_Width, m_Height, m_Format, sizePerPixel, updatedHeight));
+    CMCHK_HR(m_surfaceMgr->GetPixelBytesAndHeight(m_Width, m_Height, m_Format, sizePerPixel, updatedHeight));
 
     if( m_Format == CM_SURFACE_FORMAT_NV12)
     {
         for( uint32_t i=0 ; i< m_Height ; i++)
         { // Y plane
-          CmFastMemCopyFromWC(pDst, pSrc, m_Width, GetCpuInstructionLevel());
-          pSrc  += m_Pitch;
-          pDst  += iWidthStride;
+          CmFastMemCopyFromWC(dst, src, m_Width, GetCpuInstructionLevel());
+          src  += m_Pitch;
+          dst  += widthStride;
         }
 
-        pSrc  = ( uint8_t *)(inParam.data) + m_Height * m_Pitch;
-        pDst  = ( uint8_t *)pSysMem + iWidthStride * iHeightStride;
+        src  = ( uint8_t *)(inParam.data) + m_Height * m_Pitch;
+        dst  = ( uint8_t *)sysMem + widthStride * heightStride;
 
         //To support NV12 format with odd height here.
         //if original height is even, the UV plane's height is set as m_Height/2, which equals to (m_Height+1)/2
         //if original height is odd, the UV plane's height is set as roundup(m_Height/2), which equals to (m_Height+1)/2 too
         for (uint32_t i = 0; i< (m_Height + 1) / 2; i++)
         { // UV plane
-          CmFastMemCopyFromWC(pDst, pSrc, m_Width, GetCpuInstructionLevel());
-          pSrc  += m_Pitch;
-          pDst  += iWidthStride;
+          CmFastMemCopyFromWC(dst, src, m_Width, GetCpuInstructionLevel());
+          src  += m_Pitch;
+          dst  += widthStride;
         }
     }
     else
     {
         uint32_t size = m_Width * sizePerPixel;
         uint32_t pitch = m_Pitch;
-        if((pitch != size)||(iWidthStride != size))
+        if((pitch != size)||(widthStride != size))
         {
            for (uint32_t i=0; i < updatedHeight; i++)
            {
-              CmFastMemCopyFromWC(pDst, pSrc, size, GetCpuInstructionLevel());
-              pSrc  += pitch;
-              pDst  += iWidthStride;
+              CmFastMemCopyFromWC(dst, src, size, GetCpuInstructionLevel());
+              src  += pitch;
+              dst  += widthStride;
            }
          }
          else
          {
-             CmFastMemCopyFromWC(pDst, pSrc, pitch * updatedHeight, GetCpuInstructionLevel());
+             CmFastMemCopyFromWC(dst, src, pitch * updatedHeight, GetCpuInstructionLevel());
          }
     }
 
     //Unlock
     inParam.data = nullptr; //Set pData to Null to differentiate route from app or cmrt@umd
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->cmHalState->pfnUnlock2DResource(pCmData->cmHalState, &inParam));
+    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnUnlock2DResource(cmData->cmHalState, &inParam));
 
 finish:
     return hr;
@@ -721,48 +721,48 @@ finish:
 //*-----------------------------------------------------------------------------
 //| Purpose:    Write data from  system memory to Surface 2D to with stride
 //| Arguments :
-//|               pSysMem      [in]       Pointer to system memory
-//|               pEvent       [in]       Pointer to CmEvent
-//|               iWidthStride [in]       Stride in system memory in bytes
-//|               iHeightStride[in]       Height Stride in system memory in rows
+//|               sysMem      [in]       Pointer to system memory
+//|               event       [in]       Pointer to CmEvent
+//|               widthStride [in]       Stride in system memory in bytes
+//|               heightStride[in]       Height Stride in system memory in rows
 //|               sysMemSize   [out]      Size of Memory need to read
 //|
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-CM_RT_API int32_t CmSurface2DRT::WriteSurfaceFullStride( const unsigned char* pSysMem, CmEvent* pEvent, const uint32_t iWidthStride, const uint32_t iHeightStride, uint64_t sysMemSize )
+CM_RT_API int32_t CmSurface2DRT::WriteSurfaceFullStride( const unsigned char* sysMem, CmEvent* event, const uint32_t widthStride, const uint32_t heightStride, uint64_t sysMemSize )
 {
     INSERT_API_CALL_LOG();
 
     CM_RETURN_CODE  hr              = CM_SUCCESS;
-    uint8_t         *pDst            = nullptr;
-    uint8_t         *pSrc            = nullptr;
+    uint8_t         *dst            = nullptr;
+    uint8_t         *src            = nullptr;
     uint32_t        sizePerPixel    = 0;
     uint32_t        updatedHeight   = 0;
     UNUSED(sysMemSize);
 
-    if(pSysMem == nullptr)
+    if(sysMem == nullptr)
     {
         CM_ASSERTMESSAGE("Error: Pointer to system memory is null.")
         return CM_INVALID_ARG_VALUE;
     }
 
-    if( pEvent )
+    if( event )
     {
-        CmEventRT *pEventRT = static_cast<CmEventRT *>(pEvent);
-        FlushDeviceQueue( pEventRT ); // wait specific owner task finished
+        CmEventRT *eventRT = static_cast<CmEventRT *>(event);
+        FlushDeviceQueue( eventRT ); // wait specific owner task finished
     }
 
     WaitForReferenceFree();   // wait all owner tasks finished
 
-    CmDeviceRT * pCmDevice = nullptr;
-    m_SurfaceMgr->GetCmDevice(pCmDevice);
+    CmDeviceRT * cmDevice = nullptr;
+    m_surfaceMgr->GetCmDevice(cmDevice);
 
     //Lock for surface read/write
-    CSync* pSurfaceLock = pCmDevice->GetSurfaceLock();
-    CM_ASSERT(pSurfaceLock);
-    CLock locker(*pSurfaceLock);
+    CSync* surfaceLock = cmDevice->GetSurfaceLock();
+    CM_ASSERT(surfaceLock);
+    CLock locker(*surfaceLock);
 
-    PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)pCmDevice->GetAccelData();
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)cmDevice->GetAccelData();
 
     CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM ) );
@@ -774,60 +774,60 @@ CM_RT_API int32_t CmSurface2DRT::WriteSurfaceFullStride( const unsigned char* pS
     // Lock Surface Resource:
     // Lock may fail due to the out of memory/out of page-in in KMD.
     // Touch queue for the buffer/surface data release
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->cmHalState->pfnLock2DResource(pCmData->cmHalState, &inParam));
+    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnLock2DResource(cmData->cmHalState, &inParam));
     CMCHK_NULL(inParam.data);
 
     //Copy data
-    pDst = ( uint8_t *)(inParam.data);
-    pSrc = ( uint8_t *)pSysMem;
+    dst = ( uint8_t *)(inParam.data);
+    src = ( uint8_t *)sysMem;
 
     // Get the memory size according to the format
-    CMCHK_HR(m_SurfaceMgr->GetPixelBytesAndHeight(m_Width, m_Height, m_Format, sizePerPixel, updatedHeight));
+    CMCHK_HR(m_surfaceMgr->GetPixelBytesAndHeight(m_Width, m_Height, m_Format, sizePerPixel, updatedHeight));
 
     if( m_Format == CM_SURFACE_FORMAT_NV12)
     {
         for( uint32_t i=0 ; i< m_Height ; i++)
         { // Y plane
-          CmFastMemCopyFromWC(pDst, pSrc, m_Width, GetCpuInstructionLevel());
-          pSrc  += iWidthStride ;
-          pDst  += m_Pitch;
+          CmFastMemCopyFromWC(dst, src, m_Width, GetCpuInstructionLevel());
+          src  += widthStride ;
+          dst  += m_Pitch;
         }
 
-        pDst  = ( uint8_t *)(inParam.data) + m_Height * m_Pitch;
-        pSrc  = ( uint8_t *)pSysMem + iWidthStride * iHeightStride;
+        dst  = ( uint8_t *)(inParam.data) + m_Height * m_Pitch;
+        src  = ( uint8_t *)sysMem + widthStride * heightStride;
 
         //To support NV12 format with odd height here.
         //if original height is even, the UV plane's height is set as m_Height/2, which equals to (m_Height+1)/2
         //if original height is odd, the UV plane's height is set as roundup(m_Height/2), which equals to (m_Height+1)/2 too
         for( uint32_t i=0 ; i< ( m_Height + 1) /2 ; i++)
         { // UV plane
-          CmFastMemCopyFromWC(pDst, pSrc, m_Width, GetCpuInstructionLevel());
-          pSrc  += iWidthStride ;
-          pDst  += m_Pitch;
+          CmFastMemCopyFromWC(dst, src, m_Width, GetCpuInstructionLevel());
+          src  += widthStride ;
+          dst  += m_Pitch;
         }
     }
     else
     {
         uint32_t size = m_Width * sizePerPixel;
         uint32_t pitch = m_Pitch;
-        if((pitch != size)||(iWidthStride != pitch))
+        if((pitch != size)||(widthStride != pitch))
         {
             for (uint32_t i=0; i < updatedHeight; i++)
             {
-                CmFastMemCopyWC(pDst, pSrc, size);
-                pSrc += iWidthStride;
-                pDst += pitch;
+                CmFastMemCopyWC(dst, src, size);
+                src += widthStride;
+                dst += pitch;
             }
         }
         else
         {
-            CmFastMemCopyWC(pDst, pSrc, pitch * updatedHeight);
+            CmFastMemCopyWC(dst, src, pitch * updatedHeight);
         }
     }
 
     //Unlock Surface2D
     inParam.data = nullptr; //Set pData to Null to differentiate route from app or cmrt@umd
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->cmHalState->pfnUnlock2DResource(pCmData->cmHalState, &inParam));
+    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnUnlock2DResource(cmData->cmHalState, &inParam));
 
 finish:
     return hr;
@@ -846,7 +846,7 @@ finish:
 //|                                     before the CmSurface2D.
 //|             updateMosResource [in]  1: will update the MosResource.
 //|                                     0: will not update the MosResource.
-//|             pMosResource      [in]  Pointer to the new valid MosResource
+//|             mosResource      [in]  Pointer to the new valid MosResource
 //|                                     that the CMSurface2D will be based on.
 //|                                     Do not set this parameter if the
 //|                                     MosResource is already deleted.
@@ -855,14 +855,14 @@ finish:
 CMRT_UMD_API int32_t
 CmSurface2DRT::NotifyUmdResourceChanged(UMD_RESOURCE umdResource,
                                         int updateMosResource,
-                                        PMOS_RESOURCE pMosResource)
+                                        PMOS_RESOURCE mosResource)
 {
     m_pUMDResource = umdResource;
 
     //
     if ( updateMosResource )
     {
-        m_SurfaceMgr->UpdateSurface2DTableMosResource( m_Handle, pMosResource );
+        m_surfaceMgr->UpdateSurface2DTableMosResource( m_Handle, mosResource );
     }
 
     return CM_SUCCESS;
@@ -922,37 +922,37 @@ CM_RT_API int32_t CmSurface2DRT::GetSurfaceDesc(uint32_t &width, uint32_t &heigh
     format = m_Format;
 
     // Get size per pixel
-    ret = m_SurfaceMgr->GetPixelBytesAndHeight(width,  height,  format,  sizeperpixel, updatedHeight);
+    ret = m_surfaceMgr->GetPixelBytesAndHeight(width,  height,  format,  sizeperpixel, updatedHeight);
 
     return CM_SUCCESS;
 }
 
-CM_RT_API int32_t CmSurface2DRT::InitSurface(const unsigned int pInitValue, CmEvent* pEvent)
+CM_RT_API int32_t CmSurface2DRT::InitSurface(const unsigned int initValue, CmEvent* event)
 {
     INSERT_API_CALL_LOG();
 
     CM_RETURN_CODE                      hr          = CM_SUCCESS;
-    CmDeviceRT*                         pCmDevice   = nullptr;
-    PCM_CONTEXT_DATA                    pCmData     = nullptr;
+    CmDeviceRT*                         cmDevice   = nullptr;
+    PCM_CONTEXT_DATA                    cmData     = nullptr;
     CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM  inParam;
     uint32_t                            pitch       = 0;
-    uint32_t                            *pSurf       = nullptr;
+    uint32_t                            *surf       = nullptr;
     uint32_t                            widthInBytes = 0;
 
-    if( pEvent )
+    if( event )
     {
-        CmEventRT *pEventRT = static_cast<CmEventRT *>(pEvent);
-        FlushDeviceQueue( pEventRT );
+        CmEventRT *eventRT = static_cast<CmEventRT *>(event);
+        FlushDeviceQueue( eventRT );
     }
 
     WaitForReferenceFree();   // wait all owner task finished
 
     uint32_t sizePerPixel  = 0;
     uint32_t updatedHeight = 0;
-    CMCHK_HR(m_SurfaceMgr->GetPixelBytesAndHeight(m_Width, m_Height, m_Format, sizePerPixel, updatedHeight));
+    CMCHK_HR(m_surfaceMgr->GetPixelBytesAndHeight(m_Width, m_Height, m_Format, sizePerPixel, updatedHeight));
 
-    m_SurfaceMgr->GetCmDevice(pCmDevice);
-    pCmData = (PCM_CONTEXT_DATA)pCmDevice->GetAccelData();
+    m_surfaceMgr->GetCmDevice(cmDevice);
+    cmData = (PCM_CONTEXT_DATA)cmDevice->GetAccelData();
 
     CmSafeMemSet( &inParam, 0, sizeof( CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM ) );
     inParam.width = m_Width;
@@ -960,11 +960,11 @@ CM_RT_API int32_t CmSurface2DRT::InitSurface(const unsigned int pInitValue, CmEv
     inParam.handle = m_Handle;
     inParam.lockFlag = CM_HAL_LOCKFLAG_WRITEONLY;
 
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->cmHalState->pfnLock2DResource(pCmData->cmHalState, &inParam));
+    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnLock2DResource(cmData->cmHalState, &inParam));
     CMCHK_NULL(inParam.data);
 
     pitch = inParam.pitch;
-    pSurf = ( uint32_t *)inParam.data;
+    surf = ( uint32_t *)inParam.data;
 
     widthInBytes = m_Width * sizePerPixel;
     if(widthInBytes != pitch)
@@ -973,57 +973,57 @@ CM_RT_API int32_t CmSurface2DRT::InitSurface(const unsigned int pInitValue, CmEv
         {
             if (widthInBytes % sizeof(uint32_t) == 0)
             {
-                CmDwordMemSet(pSurf, pInitValue, widthInBytes);
+                CmDwordMemSet(surf, initValue, widthInBytes);
             }
             else
             {
-                CmDwordMemSet(pSurf, pInitValue, widthInBytes + sizeof(uint32_t));
+                CmDwordMemSet(surf, initValue, widthInBytes + sizeof(uint32_t));
             }
 
-           pSurf += (pitch >> 2); // divide by 4 byte to dword
+           surf += (pitch >> 2); // divide by 4 byte to dword
         }
     }
     else
     {
-        CmDwordMemSet(pSurf, pInitValue, pitch * updatedHeight);
+        CmDwordMemSet(surf, initValue, pitch * updatedHeight);
     }
 
     //Unlock Surface2D
     inParam.data = nullptr;
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->cmHalState->pfnUnlock2DResource(pCmData->cmHalState, &inParam));
+    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnUnlock2DResource(cmData->cmHalState, &inParam));
 
 finish:
     return hr;
 }
 
-int32_t CmSurface2DRT::SetMemoryObjectControl( MEMORY_OBJECT_CONTROL mem_ctrl, MEMORY_TYPE mem_type, uint32_t age)
+int32_t CmSurface2DRT::SetMemoryObjectControl( MEMORY_OBJECT_CONTROL memCtrl, MEMORY_TYPE memType, uint32_t age)
 {
     INSERT_API_CALL_LOG();
 
     CM_RETURN_CODE  hr = CM_SUCCESS;
     uint16_t mocs = 0;
 
-    CmSurface::SetMemoryObjectControl( mem_ctrl, mem_type, age );
+    CmSurface::SetMemoryObjectControl( memCtrl, memType, age );
 
-    CmDeviceRT *pCmDevice = nullptr;
-    m_SurfaceMgr->GetCmDevice(pCmDevice);
-    PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)pCmDevice->GetAccelData();
-    CMCHK_NULL(pCmData);
+    CmDeviceRT *cmDevice = nullptr;
+    m_surfaceMgr->GetCmDevice(cmDevice);
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)cmDevice->GetAccelData();
+    CMCHK_NULL(cmData);
 
-    mocs = (m_MemObjCtrl.mem_ctrl << 8) | (m_MemObjCtrl.mem_type<<4) | m_MemObjCtrl.age;
+    mocs = (m_memObjCtrl.mem_ctrl << 8) | (m_memObjCtrl.mem_type<<4) | m_memObjCtrl.age;
 
-    CHK_MOSSTATUS_RETURN_CMERROR(pCmData->cmHalState->pfnSetSurfaceMOCS(pCmData->cmHalState, m_Handle, mocs, ARG_KIND_SURFACE_2D));
+    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnSetSurfaceMOCS(cmData->cmHalState, m_Handle, mocs, ARG_KIND_SURFACE_2D));
 
 finish:
     return hr;
 }
 
-CM_RT_API int32_t CmSurface2DRT::SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL mem_ctrl)
+CM_RT_API int32_t CmSurface2DRT::SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL memCtrl)
 {
-    return SetMemoryObjectControl(mem_ctrl, CM_USE_PTE, 0);
+    return SetMemoryObjectControl(memCtrl, CM_USE_PTE, 0);
 }
 
-int32_t CmSurface2DRT::Create2DAlias(SurfaceIndex* & pAliasIndex)
+int32_t CmSurface2DRT::Create2DAlias(SurfaceIndex* & aliasIndex)
 {
     INSERT_API_CALL_LOG();
 
@@ -1033,13 +1033,13 @@ int32_t CmSurface2DRT::Create2DAlias(SurfaceIndex* & pAliasIndex)
 
     if( m_numAliases < CM_HAL_MAX_NUM_2D_ALIASES )
     {
-        origIndex = m_pIndex->get_data();
-        m_SurfaceMgr->GetSurfaceArraySize(surfArraySize);
+        origIndex = m_index->get_data();
+        m_surfaceMgr->GetSurfaceArraySize(surfArraySize);
         newIndex = origIndex + ( (m_numAliases + 1) * surfArraySize);
         m_pAliasIndexes[m_numAliases] = MOS_New(SurfaceIndex, newIndex);
         if( m_pAliasIndexes[m_numAliases] )
         {
-            pAliasIndex = m_pAliasIndexes[m_numAliases];
+            aliasIndex = m_pAliasIndexes[m_numAliases];
             m_numAliases++;
             return CM_SUCCESS;
         }
@@ -1061,54 +1061,54 @@ CM_RT_API int32_t CmSurface2DRT::GetNumAliases(uint32_t& numAliases)
     return CM_SUCCESS;
 }
 
-CM_RT_API int32_t CmSurface2DRT::SetSurfaceStateParam( SurfaceIndex *pSurfIndex, const CM_SURFACE2D_STATE_PARAM *pSSParam )
+CM_RT_API int32_t CmSurface2DRT::SetSurfaceStateParam( SurfaceIndex *surfIndex, const CM_SURFACE2D_STATE_PARAM *surfStateParam )
 {
     CM_RETURN_CODE  hr = CM_SUCCESS;
-    CmDeviceRT * pCmDevice = nullptr;
-    PCM_CONTEXT_DATA pCmData = nullptr;
+    CmDeviceRT * cmDevice = nullptr;
+    PCM_CONTEXT_DATA cmData = nullptr;
     CM_HAL_SURFACE2D_SURFACE_STATE_PARAM inParam;
-    uint32_t iAliasIndex = 0;
+    uint32_t aliasIndex = 0;
 
-    m_SurfaceMgr->GetCmDevice( pCmDevice );
-    CMCHK_NULL(pCmDevice);
-    pCmData = ( PCM_CONTEXT_DATA )pCmDevice->GetAccelData();
-    CMCHK_NULL(pCmData);
-    CMCHK_NULL(pCmData->cmHalState);
+    m_surfaceMgr->GetCmDevice( cmDevice );
+    CMCHK_NULL(cmDevice);
+    cmData = ( PCM_CONTEXT_DATA )cmDevice->GetAccelData();
+    CMCHK_NULL(cmData);
+    CMCHK_NULL(cmData->cmHalState);
 
     CmSafeMemSet( &inParam, 0, sizeof( inParam ) );
-    inParam.width       = pSSParam->width;
-    inParam.height      = pSSParam->height;
-    inParam.format      = pSSParam->format;
-    inParam.depth       = pSSParam->depth;
-    inParam.pitch       = pSSParam->pitch;
-    inParam.memoryObjectControl   = pSSParam->memory_object_control;
-    inParam.surfaceXOffset        = pSSParam->surface_x_offset;
-    inParam.surfaceYOffset        = pSSParam->surface_y_offset;
+    inParam.width       = surfStateParam->width;
+    inParam.height      = surfStateParam->height;
+    inParam.format      = surfStateParam->format;
+    inParam.depth       = surfStateParam->depth;
+    inParam.pitch       = surfStateParam->pitch;
+    inParam.memoryObjectControl   = surfStateParam->memory_object_control;
+    inParam.surfaceXOffset        = surfStateParam->surface_x_offset;
+    inParam.surfaceYOffset        = surfStateParam->surface_y_offset;
 
-    if (pSurfIndex)
+    if (surfIndex)
     {
-        iAliasIndex = pSurfIndex->get_data();
+        aliasIndex = surfIndex->get_data();
     }
     else
     {
-        iAliasIndex = m_pIndex->get_data();
+        aliasIndex = m_index->get_data();
     }
 
-    CHK_MOSSTATUS_RETURN_CMERROR( pCmData->cmHalState->pfnSet2DSurfaceStateParam(pCmData->cmHalState, &inParam, iAliasIndex, m_Handle) );
+    CHK_MOSSTATUS_RETURN_CMERROR( cmData->cmHalState->pfnSet2DSurfaceStateParam(cmData->cmHalState, &inParam, aliasIndex, m_Handle) );
 
 finish:
     return hr;
 }
 
-CMRT_UMD_API int32_t CmSurface2DRT::SetReadSyncFlag(bool bReadSync)
+CMRT_UMD_API int32_t CmSurface2DRT::SetReadSyncFlag(bool readSync)
 {
     int32_t hr = CM_SUCCESS;
 
-    CmDeviceRT *pCmDevice = nullptr;
-    m_SurfaceMgr->GetCmDevice(pCmDevice);
-    PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)pCmDevice->GetAccelData();
+    CmDeviceRT *cmDevice = nullptr;
+    m_surfaceMgr->GetCmDevice(cmDevice);
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)cmDevice->GetAccelData();
 
-    hr = pCmData->cmHalState->pfnSetSurfaceReadFlag(pCmData->cmHalState, m_Handle, bReadSync);
+    hr = cmData->cmHalState->pfnSetSurfaceReadFlag(cmData->cmHalState, m_Handle, readSync);
 
     if( FAILED(hr) )
     {
@@ -1128,8 +1128,8 @@ void CmSurface2DRT::Log(std::ostringstream &oss)
         << " Format:"<< GetFormatString(m_Format)
         << " Pitch:" << m_Pitch
         << " Handle:" << m_Handle
-        << " SurfaceIndex:" << m_pIndex->get_data()
-        << " IsCmCreated:"<<m_IsCmCreated
+        << " SurfaceIndex:" << m_index->get_data()
+        << " IsCmCreated:"<<m_isCmCreated
         << std::endl;
 #endif
 }
@@ -1142,7 +1142,7 @@ void CmSurface2DRT::DumpContent(uint32_t kernelNumber, int32_t taskId, uint32_t 
     outputFileName << "t_" << taskId
         << "_k_" << kernelNumber
         << "_argi_" << argIndex
-        << "_surf2d_surfi_"<< m_pIndex->get_data()
+        << "_surf2d_surfi_"<< m_index->get_data()
         << "_w_" << m_Width
         << "_h_" << m_Height
         << "_p_" << m_Pitch
@@ -1152,50 +1152,50 @@ void CmSurface2DRT::DumpContent(uint32_t kernelNumber, int32_t taskId, uint32_t 
     std::ofstream outputFileStream;
     outputFileStream.open(outputFileName.str().c_str(), std::ofstream::binary);
 
-    CmDeviceRT * pCmDevice = nullptr;
-    m_SurfaceMgr->GetCmDevice(pCmDevice);
-    CSync* pSurfaceLock = pCmDevice->GetSurfaceLock();
-    CM_ASSERT(pSurfaceLock);
-    CLock locker(*pSurfaceLock);
+    CmDeviceRT * cmDevice = nullptr;
+    m_surfaceMgr->GetCmDevice(cmDevice);
+    CSync* surfaceLock = cmDevice->GetSurfaceLock();
+    CM_ASSERT(surfaceLock);
+    CLock locker(*surfaceLock);
     uint32_t        sizePerPixel = 0;
     uint32_t        updatedHeight = 0;
     uint32_t        surfaceSize = 0;
     uint32_t        widthInByte = 0;
-    uint8_t         *pDst = nullptr;
-    uint8_t         *pSurf = nullptr;
-    m_SurfaceMgr->GetPixelBytesAndHeight(m_Width, m_Height, m_Format, sizePerPixel, updatedHeight);
+    uint8_t         *dst = nullptr;
+    uint8_t         *surf = nullptr;
+    m_surfaceMgr->GetPixelBytesAndHeight(m_Width, m_Height, m_Format, sizePerPixel, updatedHeight);
     surfaceSize = m_Width*sizePerPixel*updatedHeight;
     widthInByte = m_Width * sizePerPixel;
 
     std::vector<char>surface(surfaceSize);
 
-    PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)pCmDevice->GetAccelData();
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)cmDevice->GetAccelData();
     CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM inParam;
     CmSafeMemSet(&inParam, 0, sizeof(CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM));
     inParam.width = m_Width;
     inParam.height = m_Height;
     inParam.handle = m_Handle;
     inParam.lockFlag = CM_HAL_LOCKFLAG_READONLY;
-    pCmData->cmHalState->pfnLock2DResource(pCmData->cmHalState, &inParam);
+    cmData->cmHalState->pfnLock2DResource(cmData->cmHalState, &inParam);
     if (inParam.data == nullptr)
         return;
-    pDst = (uint8_t *)&surface[0];
-    pSurf = (uint8_t *)(inParam.data);
+    dst = (uint8_t *)&surface[0];
+    surf = (uint8_t *)(inParam.data);
     if (m_Pitch != widthInByte)
     {
         for (uint32_t row = 0; row < updatedHeight; row++)
         {
-            CmFastMemCopyFromWC(pDst, pSurf, widthInByte, GetCpuInstructionLevel());
-            pSurf += m_Pitch;
-            pDst += widthInByte;
+            CmFastMemCopyFromWC(dst, surf, widthInByte, GetCpuInstructionLevel());
+            surf += m_Pitch;
+            dst += widthInByte;
         }
     }
     else
     {
-        CmFastMemCopyFromWC((unsigned char *)&surface[0], pSurf, m_Pitch * updatedHeight, GetCpuInstructionLevel());
+        CmFastMemCopyFromWC((unsigned char *)&surface[0], surf, m_Pitch * updatedHeight, GetCpuInstructionLevel());
     }
     inParam.data = nullptr;
-    pCmData->cmHalState->pfnUnlock2DResource(pCmData->cmHalState, &inParam);
+    cmData->cmHalState->pfnUnlock2DResource(cmData->cmHalState, &inParam);
 
     outputFileStream.write(&surface[0], surfaceSize);
     outputFileStream.close();
@@ -1206,7 +1206,7 @@ void CmSurface2DRT::DumpContent(uint32_t kernelNumber, int32_t taskId, uint32_t 
 CM_RT_API int32_t CmSurface2DRT::SetProperty(CM_FRAME_TYPE frameType)
 {
     m_frameType = frameType;
-    m_SurfaceMgr->UpdateSurface2DTableFrameType(m_Handle, frameType);
+    m_surfaceMgr->UpdateSurface2DTableFrameType(m_Handle, frameType);
     return CM_SUCCESS;
 }
 }

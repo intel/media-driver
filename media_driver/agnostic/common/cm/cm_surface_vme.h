@@ -41,23 +41,23 @@ public:
         uint32_t indexForCurrent,
         uint32_t indexForForward,
         uint32_t indexForBackward,
-        CmSurfaceManager* pSurfaceManager,
-        CmSurfaceVme* &pSurface );
+        CmSurfaceManager* surfaceManager,
+        CmSurfaceVme* &surface );
 
     static int32_t Create(
         uint32_t index,
         uint32_t indexFor2DCurSurface,
-        uint32_t *pForwardSurface,
-        uint32_t *pBackwardSurface,
-       uint32_t indexCurrent,
-       uint32_t *pForward,
-       uint32_t *pBackward,
-        const uint32_t surfaceFCount,
-        const uint32_t surfaceBCount,
-        CmSurfaceManager* pSurfaceManager,
-        CmSurfaceVme* &pSurface );
+        uint32_t *forwardSurface,
+        uint32_t *backwardSurface,
+        uint32_t currentIndex,
+        uint32_t *forwardCmIndex,
+        uint32_t *backwardCmIndex,
+        const uint32_t forwardSurfaceCount,
+        const uint32_t backSurfaceCount,
+        CmSurfaceManager* surfaceManager,
+        CmSurfaceVme* &surface );
 
-    int32_t GetIndex(SurfaceIndex*& pIndex);
+    int32_t GetIndex(SurfaceIndex*& index);
     int32_t GetIndexCurrent( uint32_t& index );
     int32_t GetIndexForward( uint32_t& index );
     int32_t GetIndexBackward( uint32_t& index );
@@ -92,41 +92,41 @@ protected:
         uint32_t indexForCurrent,
         uint32_t indexForForward,
         uint32_t indexForBackward,
-        CmSurfaceManager* pSurfaceManager );
+        CmSurfaceManager* surfaceManager );
 
     CmSurfaceVme(
         const uint32_t surfaceFCount,
         const uint32_t surfaceBCount,
         uint32_t indexFor2DCurSurface,
-        uint32_t *pForwardSurface,
-        uint32_t *pBackwardSurface,
-        uint32_t indexCurrent,
-        uint32_t *pForward,
-        uint32_t *pBackward,
-        CmSurfaceManager* pSurfaceManager);
+        uint32_t *forwardSurface,
+        uint32_t *backwardSurface,
+        uint32_t currentIndex,
+        uint32_t *forwardCmIndex,
+        uint32_t *backwardCmIndex,
+        CmSurfaceManager* surfaceManager);
 
     ~CmSurfaceVme( void );
 
     int32_t Initialize( uint32_t index );
 
-    uint32_t m_IndexFor2DCurrent;
-    uint32_t m_IndexFor2DForward;
-    uint32_t m_IndexFor2DBackward;
-    uint32_t *m_pForwardSurfaceArray;
-    uint32_t *m_pBackwardSurfaceArray;
+    uint32_t m_indexFor2DCurrent;
+    uint32_t m_indexFor2DForward;
+    uint32_t m_indexFor2DBackward;
+    uint32_t *m_forwardSurfaceArray;
+    uint32_t *m_backwardSurfaceArray;
 
-    uint32_t m_CmIndexForCurrent;
-    uint32_t m_CmIndexForForward;
-    uint32_t m_CmIndexForBackward;
-    uint32_t *m_pForwardCmIndexArray;
-    uint32_t *m_pBackwardCmIndexArray;
+    uint32_t m_cmIndexForCurrent;
+    uint32_t m_cmIndexForForward;
+    uint32_t m_cmIndexForBackward;
+    uint32_t *m_forwardCmIndexArray;
+    uint32_t *m_backwardCmIndexArray;
 
-    uint32_t m_SurfaceFCount;
-    uint32_t m_SurfaceBCount;
+    uint32_t m_surfaceFCount;
+    uint32_t m_surfaceBCount;
 
     uint32_t m_surfStateWidth;
     uint32_t m_surfStateHeight;
 
-    bool m_IsGen7_5;
+    bool m_isGen75;
 };
 }; //namespace
