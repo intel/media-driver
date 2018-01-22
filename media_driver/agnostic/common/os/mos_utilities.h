@@ -119,6 +119,18 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_VALUE_SIM_IN_USE_ID,
     __MEDIA_USER_FEATURE_VALUE_FORCE_VDBOX_ID,
     __MEDIA_USER_FEATURE_VALUE_LINUX_PERFORMANCETAG_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_ENABLE_ID,
+    __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_OUTPUT_FILE,
+    __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_BUFFER_SIZE,
+    __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_TIMER_REG,
+    __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_REGISTER_1,
+    __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_REGISTER_2,
+    __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_REGISTER_3,
+    __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_REGISTER_4,
+    __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_REGISTER_5,
+    __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_REGISTER_6,
+    __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_REGISTER_7,
+    __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_REGISTER_8,
     __MEDIA_USER_FEATURE_VALUE_DISABLE_KMD_WATCHDOG_ID,
     __MEDIA_USER_FEATURE_VALUE_SINGLE_TASK_PHASE_ENABLE_ID,
     __MEDIA_USER_FEATURE_VALUE_MFE_MBENC_ENABLE_ID,
@@ -628,14 +640,14 @@ typedef struct
 //template<class _Ty, class... _Types> inline
 //std::shared_ptr<_Ty> MOS_MakeShared(_Types&&... _Args)
 //{
-//	try
-//	{
-//		return std::make_shared<_Ty>(std::forward<_Types>(_Args)...);
-//	}
-//	catch (const std::bad_alloc&)
-//	{
-//		return nullptr;
-//	}
+//    try
+//    {
+//        return std::make_shared<_Ty>(std::forward<_Types>(_Args)...);
+//    }
+//    catch (const std::bad_alloc&)
+//    {
+//        return nullptr;
+//    }
 //}
 
 #if MOS_MESSAGES_ENABLED
@@ -1242,7 +1254,7 @@ MOS_STATUS MOS_GenerateUserFeatureKeyXML();
 //!
 //! \brief    Get the User Feature Value from Table
 //! \details  Get the related User Feature Value item according to Filter rules , and pass the item
-//! 		   into return callback function
+//!            into return callback function
 //! \param    [in] descTable
 //!           The user feature key description table
 //! \param    [in] numOfItems
@@ -1281,7 +1293,7 @@ MOS_STATUS MOS_GetItemFromMOSUserFeatureDescField(
 //!           else MOS_STATUS_SUCCESS
 //!
 MOS_STATUS MOS_UserFeature_SetDefaultValues(
-    PMOS_USER_FEATURE_INTERFACE	            pOsUserFeatureInterface,
+    PMOS_USER_FEATURE_INTERFACE             pOsUserFeatureInterface,
     PMOS_USER_FEATURE_VALUE_WRITE_DATA      pWriteValues,
     uint32_t                                uiNumOfValues);
 
@@ -1365,9 +1377,9 @@ MOS_STATUS MOS_DestroyUserFeatureKeysForAllDescFields();
 //!           else MOS_STATUS_SUCCESS
 //!
 MOS_STATUS MOS_CopyUserFeatureValueData(
-	PMOS_USER_FEATURE_VALUE_DATA pSrcData,
-	PMOS_USER_FEATURE_VALUE_DATA pDstData,
-	MOS_USER_FEATURE_VALUE_TYPE ValueType
+    PMOS_USER_FEATURE_VALUE_DATA pSrcData,
+    PMOS_USER_FEATURE_VALUE_DATA pDstData,
+    MOS_USER_FEATURE_VALUE_TYPE ValueType
 );
 
 //!
@@ -1382,8 +1394,8 @@ MOS_STATUS MOS_CopyUserFeatureValueData(
 //!           else MOS_STATUS_SUCCESS
 //!
 MOS_STATUS MOS_DestroyUserFeatureData(
-	PMOS_USER_FEATURE_VALUE_DATA pData,
-	MOS_USER_FEATURE_VALUE_TYPE  ValueType);
+    PMOS_USER_FEATURE_VALUE_DATA pData,
+    MOS_USER_FEATURE_VALUE_TYPE  ValueType);
 
 #ifdef  __MOS_USER_FEATURE_WA_
 MOS_STATUS MOS_UserFeature_ReadValue (

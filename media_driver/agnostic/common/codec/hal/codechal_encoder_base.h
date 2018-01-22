@@ -39,6 +39,7 @@
 #include "codechal_mmc.h"
 #include "codechal_utilities.h"
 #include "cm_rt_umd.h"
+#include "media_perf_profiler.h"
 #include <algorithm> // std::reverse
 
 //------------------------------------------------------------------------------
@@ -1740,6 +1741,7 @@ public:
     uint32_t                        m_sizeCurrSkipFrame = 0;    //!< size of curr skipped frame for skipflag = 2
 
     MHW_VDBOX_NODE_IND              m_vdboxIndex;               //!< Index of vdbox
+    MediaPerfProfiler               *m_perfProfiler = nullptr;  //!< Performance data profiler
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     bool m_mmcUserFeatureUpdated;  //!< indicate if the user feature is updated with MMC state
