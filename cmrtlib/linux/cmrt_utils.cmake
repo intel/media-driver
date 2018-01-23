@@ -46,13 +46,13 @@ function(custom_build_add configName copyConfigName)
 endfunction()
 
 function( setup_configurations )
-	set(CMAKE_CONFIGURATION_TYPES
-		"Debug"
-		"Release Internal"
-		"Release"
-	  )
-	custom_build_add("Release Internal"       "Release")
-	set(CMAKE_CONFIGURATION_TYPES ${CMAKE_CONFIGURATION_TYPES} CACHE STRING "Available build configurations." FORCE)
+    set(CMAKE_CONFIGURATION_TYPES
+        "Debug"
+        "Release Internal"
+        "Release"
+      )
+    custom_build_add("Release Internal"       "Release")
+    set(CMAKE_CONFIGURATION_TYPES ${CMAKE_CONFIGURATION_TYPES} CACHE STRING "Available build configurations." FORCE)
 endfunction( setup_configurations )
 
 # If you update this function - make sure you also update the copy of this for the IGC build that is

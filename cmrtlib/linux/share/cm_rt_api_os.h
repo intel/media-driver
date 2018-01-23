@@ -144,7 +144,7 @@ class SurfaceIndex
 {
 public:
     CM_NOINLINE SurfaceIndex() { index = 0; };
-	CM_NOINLINE SurfaceIndex(const SurfaceIndex& _src) { index = _src.index; };
+    CM_NOINLINE SurfaceIndex(const SurfaceIndex& _src) { index = _src.index; };
     CM_NOINLINE SurfaceIndex(const unsigned int& _n) { index = _n; };
     CM_NOINLINE SurfaceIndex& operator = (const unsigned int& _n) { this->index = _n; return *this; };
     CM_NOINLINE SurfaceIndex& operator + (const unsigned int& _n) { this->index += _n; return *this; };
