@@ -526,6 +526,13 @@ MOS_STATUS CodechalEncoderState::Allocate(CodechalSetting * codecHalSettings)
             m_renderContext));
     }
 
+    if (!m_perfProfiler)
+    {
+        m_perfProfiler = MediaPerfProfiler::Instance();
+        CODECHAL_ENCODE_CHK_NULL_RETURN(m_perfProfiler);
+
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_perfProfiler->Initialize((void*)this, m_osInterface));
+    }
     return MOS_STATUS_SUCCESS;
 }
 
@@ -2904,6 +2911,8 @@ MOS_STATUS CodechalEncoderState::StartStatusReport(
         }
     }
 
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectStartCmd((void*)this, m_osInterface, m_miInterface, cmdBuffer));
+    
     return eStatus;
 }
 
@@ -3016,6 +3025,8 @@ MOS_STATUS CodechalEncoderState::EndStatusReport(
         }
     }
 
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectEndCmd((void*)this, m_osInterface, m_miInterface, cmdBuffer));
+    
     return eStatus;
 }
 
@@ -4462,6 +4473,12 @@ CodechalEncoderState::CodechalEncoderState(
 CodechalEncoderState::~CodechalEncoderState()
 {
     DestroyMDFResources();
+
+    if (m_perfProfiler)
+    {
+        MediaPerfProfiler::Destroy(m_perfProfiler, (void*)this, m_osInterface);
+        m_perfProfiler = nullptr;
+    }
 }
 
 #if USE_CODECHAL_DEBUG_TOOL

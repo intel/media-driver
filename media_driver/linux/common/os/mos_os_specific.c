@@ -1594,7 +1594,7 @@ MOS_STATUS Mos_Specific_AllocateResource(
     int32_t                 iPitch;
     unsigned long           ulPitch;
     MOS_STATUS              eStatus;
-    MOS_LINUX_BO        *bo;
+    MOS_LINUX_BO            *bo;
     MOS_TILE_TYPE           tileformat;
     uint32_t                tileformat_linux;
     int32_t                 iHeight;
@@ -3306,8 +3306,8 @@ MOS_STATUS Mos_Specific_SubmitCommandBuffer(
 
     //dwComponentTag 3: decode,5: vpp,6: encode
     //dwCallType     8: PAK(CODECHAL_ENCODE_PERFTAG_CALL_PAK_ENGINE)
-    //             34: PREENC
-    //             5: VPP
+    //               34:PREENC
+    //               5: VPP
     dwComponentTag = (PerfData & 0xF000) >> 12;
     dwCallType     = (PerfData & 0xFC) >> 2;
 
@@ -3861,11 +3861,17 @@ void Mos_Specific_IncPerfFrameID(
 uint32_t Mos_Specific_GetPerfTag(
     PMOS_INTERFACE pOsInterface)
 {
-    uint32_t                dwPerfTag;
-    MOS_UNUSED(pOsInterface);
-    dwPerfTag = 0;
+    uint32_t                perfTag;
 
-    return dwPerfTag;
+    PMOS_CONTEXT osContext = (pOsInterface) ? (PMOS_CONTEXT)pOsInterface->pOsContext : nullptr;
+
+    if (osContext == nullptr || !osContext->uEnablePerfTag)
+    {
+        return 0;
+    }
+
+    perfTag = *(uint32_t *)(osContext->pPerfData);
+    return perfTag;
 }
 
 //!
