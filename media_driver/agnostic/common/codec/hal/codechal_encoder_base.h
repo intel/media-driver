@@ -2353,8 +2353,8 @@ public:
     uint8_t GetNumBrcPakPasses(uint16_t usBRCPrecision);
 
 #if USE_CODECHAL_DEBUG_TOOL
-    virtual MOS_STATUS DumpMbEncPakOutput(PCODEC_REF_LIST currRefList);
-    virtual MOS_STATUS DumpFrameStatsBuffer() { return MOS_STATUS_SUCCESS; }
+    virtual MOS_STATUS DumpMbEncPakOutput(PCODEC_REF_LIST currRefList, CodechalDebugInterface* debugInterface);
+    virtual MOS_STATUS DumpFrameStatsBuffer(CodechalDebugInterface* debugInterface) { return MOS_STATUS_SUCCESS; }
 #endif
 };
 

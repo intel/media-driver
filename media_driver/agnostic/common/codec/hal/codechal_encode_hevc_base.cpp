@@ -3426,11 +3426,13 @@ MOS_STATUS CodechalEncodeHevcBase::DumpSliceParams(
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS CodechalEncodeHevcBase::DumpMbEncPakOutput(PCODEC_REF_LIST currRefList)
+MOS_STATUS CodechalEncodeHevcBase::DumpMbEncPakOutput(PCODEC_REF_LIST currRefList, CodechalDebugInterface* debugInterface)
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
     CODECHAL_ENCODE_CHK_NULL_RETURN(currRefList);
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+    CODECHAL_ENCODE_CHK_NULL_RETURN(debugInterface);
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBuffer(
         &currRefList->resRefMbCodeBuffer,
         CodechalDbgAttr::attrOutput,
         "MbCode",
@@ -3438,7 +3440,7 @@ MOS_STATUS CodechalEncodeHevcBase::DumpMbEncPakOutput(PCODEC_REF_LIST currRefLis
         0,
         CODECHAL_MEDIA_STATE_ENC_NORMAL));
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBuffer(
         &currRefList->resRefMbCodeBuffer,
         CodechalDbgAttr::attrOutput,
         "CuRecord",
@@ -3449,11 +3451,13 @@ MOS_STATUS CodechalEncodeHevcBase::DumpMbEncPakOutput(PCODEC_REF_LIST currRefLis
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS CodechalEncodeHevcBase::DumpFrameStatsBuffer()
+MOS_STATUS CodechalEncodeHevcBase::DumpFrameStatsBuffer(CodechalDebugInterface* debugInterface)
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
+    CODECHAL_ENCODE_CHK_NULL_RETURN(debugInterface);
+
     uint8_t numTiles = 1;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBuffer(
         &m_resFrameStatStreamOutBuffer,
         CodechalDbgAttr::attrFrameState,
         "FrameStatus",

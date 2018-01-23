@@ -1986,9 +1986,9 @@ public:
         PCODEC_HEVC_ENCODE_SLICE_PARAMS   sliceParams,
         PCODEC_HEVC_ENCODE_PICTURE_PARAMS picParams);
 
-    MOS_STATUS DumpMbEncPakOutput(PCODEC_REF_LIST currRefList);
+    MOS_STATUS DumpMbEncPakOutput(PCODEC_REF_LIST currRefList, CodechalDebugInterface* debugInterface);
 
-    MOS_STATUS DumpFrameStatsBuffer();
+    MOS_STATUS DumpFrameStatsBuffer(CodechalDebugInterface* debugInterface);
 #endif
 };
 
