@@ -3667,6 +3667,7 @@ MOS_STATUS CodechalEncodeAvcBase::DumpPicParams(
     oss << "# bDisableSubMBPartition = " << +picParams->UserFlags.bDisableSubMBPartition << std::endl;
     oss << "# bEmulationByteInsertion = " << +picParams->UserFlags.bEmulationByteInsertion << std::endl;
     oss << "# bEnableRollingIntraRefresh = " << +picParams->UserFlags.bEnableRollingIntraRefresh << std::endl;
+    oss << "ForceRepartitionCheck =" << +picParams->UserFlags.ForceRepartitionCheck << std::endl;
     oss << "UserFlags = " << +picParams->UserFlags.Value << std::endl;
     oss << "StatusReportFeedbackNumber = " << +picParams->StatusReportFeedbackNumber << std::endl;
     oss << "bIdrPic = " << +picParams->bIdrPic << std::endl;

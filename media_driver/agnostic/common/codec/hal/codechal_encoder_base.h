@@ -981,6 +981,12 @@ struct EncodeStatusReport
     uint32_t                        SizeOfTileInfoBuffer;   //!< Store the size of tile info buffer
     CodechalTileInfo*               pHEVCTileinfo;          //!< Pointer to the tile info buffer
     uint32_t                        NumTileReported;        //!< The number of tiles reported in status
+
+    /*! \brief indicate whether it is single stream encoder or MFE.
+    *
+    *    For single stream encoder (regular), this value should be set to default 0. For Multi-Frame-Encoder (MFE), this value is the StreamId that is set by application.  
+    */
+    uint32_t                        StreamId;               
 };
 
 //!

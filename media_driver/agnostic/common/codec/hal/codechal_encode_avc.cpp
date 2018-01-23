@@ -5598,9 +5598,9 @@ MOS_STATUS CodechalEncodeAvcEnc::SetPictureStructs()
     // Force RepartitionCheck
     CODECHAL_ENCODE_AVC_RPC forceRepartitionCheck;
 
-    if (m_avcQCParams  != nullptr)
+    if (picParams != nullptr)
     {
-        forceRepartitionCheck = (CODECHAL_ENCODE_AVC_RPC)m_avcQCParams ->ForceRepartitionCheck;
+        forceRepartitionCheck = (CODECHAL_ENCODE_AVC_RPC)picParams->ForceRepartitionCheck;
     }
     else
     {

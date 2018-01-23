@@ -474,6 +474,24 @@ typedef struct _CODEC_AVC_ENCODE_SEQUENCE_PARAMS
     */
     ENCODE_FRAMESIZE_TOLERANCE  FrameSizeTolerance;
 
+    /*! \brief Indicates BRC Sliding window size in terms of number of frames.
+    *
+    *   Defined for CBR and VBR. For other BRC modes or CQP, values are ignored. 
+    */
+    uint16_t  SlidingWindowSize;
+
+	/*! \brief Indicates maximun bit rate Kbit per second within the sliding window during. 
+    *
+    *  Defined for CBR and VBR. For other BRC modes or CQP, values are ignored. 
+    */
+    uint32_t  MaxBitRatePerSlidingWindow;
+
+    /*! \brief Indicates minimun bit rate Kbit per second within the sliding window during. 
+    *
+    *  Defined for CBR and VBR. For other BRC modes or CQP, values are ignored. 
+    */
+    uint32_t  MinBitRatePerSlidingWindow;
+
     uint8_t            constraint_set0_flag               : 1;    //!< Same as AVC syntax element.
     uint8_t            constraint_set1_flag               : 1;    //!< Same as AVC syntax element.
     uint8_t            constraint_set2_flag               : 1;    //!< Same as AVC syntax element.
@@ -522,7 +540,39 @@ typedef struct _CODEC_AVC_ENCODE_USER_FLAGS
             *        \n - 3 : enabled in region
             */
             uint32_t    bEnableRollingIntraRefresh              : 2;
-            uint32_t                                            : 21;
+
+            /*! \brief Specifies if Slice Level Reporitng may be requested for this frame
+            *
+            *    If this flag is set, then slice level parameter reporting will be set up for this frame.  Only valid if SliceLevelReportSupport is reported in ENCODE_CAPS, else this flag is ignored.  
+            *
+            */
+            uint32_t    bEnableSliceLevelReport                 : 1;
+
+            /*! \brief Specifies if integer mode searching is performed
+            *
+            *    when set to 1, integer mode searching is performed
+            *
+            */
+            uint32_t    bDisableSubpixel                        : 1;
+
+            /*! \brief Specifies if the overlapped operation of intra refresh is disabled
+            *
+            *    It is valid only when bEnableRollingIntraRefresh is on.
+	        *    \n - 0 : default, overlapped Intra refresh is applied
+	        *    \n - 1 : intra refresh without overlap operation
+            *
+            */
+            uint32_t    bDisableRollingIntraRefreshOverlap      : 1;
+
+            /*! \brief Specifies whether extra partition decision refinement is done after the initial partition decision candidate is determined.  
+            *
+            *    It has performance tradeoff for better quality.  
+            *    \n - 0 : DEFAULT - Follow driver default settings.
+            *    \n - 1 : FORCE_ENABLE - Enable this feature totally for all cases.
+            *    \n - 2 : FORCE_DISABLE - Disable this feature totally for all cases.
+            */
+            uint32_t    ForceRepartitionCheck                   : 2;
+            uint32_t    bReserved                               : 16;
         };
         uint32_t        Value;
     };
@@ -777,6 +827,15 @@ typedef struct _CODEC_AVC_ENCODE_PIC_PARAMS
     */
     bool            bEnableSubPelMode;
     uint8_t         SubPelMode;
+
+    /*! \brief Specifies whether extra partition decision refinement is done after the initial partition decision candidate is determined.
+    *
+    *    It has performance tradeoff for better quality.
+    *    \n - 0 : DEFAULT - Follow driver default settings.
+    *    \n - 1 : FORCE_ENABLE - Enable this feature totally for all cases.
+    *    \n - 2 : FORCE_DISABLE - Disable this feature totally for all cases.
+    */
+    uint32_t        ForceRepartitionCheck;
 
 } CODEC_AVC_ENCODE_PIC_PARAMS, *PCODEC_AVC_ENCODE_PIC_PARAMS;
 
