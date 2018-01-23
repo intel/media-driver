@@ -49,7 +49,7 @@ public:
     virtual MOS_STATUS Initialize() {return MOS_STATUS_SUCCESS;}
 
 private:
-    static MosUtilUserInterface* m_inst;                
+    static MosUtilUserInterface* m_inst;
     static uint32_t              m_refCount;    // UMD entry could be multi-threaded, need reference count to keep only do initialization once.
     static std::map<uint32_t, PMOS_USER_FEATURE_VALUE>  m_userFeatureKeyMap;
 
@@ -74,6 +74,5 @@ MOS_STATUS MosUtilUserInterfaceInit(PRODUCT_FAMILY productFamily = IGFX_MAX_PROD
 //!           else MOS_STATUS_SUCCESS
 //!
 MOS_STATUS MosUtilUserInterfaceClose();
-
 
 #endif // __MOS_UTIL_USER_INTERFACE_H__

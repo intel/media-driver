@@ -30,7 +30,6 @@
 #include <stdint.h>
 #include "GmmLib.h"
 
-
 using SHADOW_MEDIA_FEATURE_TABLE = SKU_FEATURE_TABLE;
 using SHADOW_MEDIA_WA_TABLE      = WA_TABLE;
 using MEDIA_GT_SYSTEM_INFO       = GT_SYSTEM_INFO;

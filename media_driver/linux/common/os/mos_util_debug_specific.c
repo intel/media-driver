@@ -57,12 +57,12 @@ static MOS_MUTEX gMosMsgMutex = PTHREAD_MUTEX_INITIALIZER;
 
 /*----------------------------------------------------------------------------
 | Name      : MOS_HltpCopyFile
-| Purpose   : Copy all file content from the source file to the target file. 
+| Purpose   : Copy all file content from the source file to the target file.
 | Arguments : szFileName - source file name to copy from
-|             pFile - target file 
-| Returns   : Returns one of the MOS_STATUS error codes if failed, 
+|             pFile - target file
+| Returns   : Returns one of the MOS_STATUS error codes if failed,
 |             else MOS_STATUS_SUCCESS
-| Comments  : 
+| Comments  :
 \---------------------------------------------------------------------------*/
 #define HLT_COPY_BUFFER_LENGTH 200
 static MOS_STATUS MOS_HltpCopyFile(PFILE pFile, const PCCHAR szFileName)
@@ -96,7 +96,7 @@ static MOS_STATUS MOS_HltpCopyFile(PFILE pFile, const PCCHAR szFileName)
 | Purpose   : Add preface information to the HLT log when initialized
 | Arguments : pFile - Pointer to the log file
 | Returns   : None
-| Comments  : 
+| Comments  :
 \---------------------------------------------------------------------------*/
 void MOS_HltpPreface(PFILE pFile)
 {
@@ -125,9 +125,9 @@ void MOS_HltpPreface(PFILE pFile)
     fprintf(pFile, "\n"
                    "// PID=%d; Process name=",
                    getpid());
-    
+
     MOS_HltpCopyFile(pFile, "/proc/self/cmdline");
-    */        
+    */
 
     fwrite("\n", 1, 1, pFile);
 
@@ -174,7 +174,7 @@ MOS_STATUS MOS_LogFileNamePrefix(char  *fileNamePrefix)
     if (eStatus != MOS_STATUS_SUCCESS)
     {
         iRet = MOS_SecureStringPrint(
-                     fileNamePrefix, 
+                     fileNamePrefix,
                      MOS_MAX_HLT_FILENAME_LEN,
                      MOS_MAX_HLT_FILENAME_LEN,
                      MosLogPathPrefix);
@@ -243,11 +243,11 @@ void MOS_Message(
     // Proceed to print the message
     if (functionName == nullptr)
     {
-        MOS_SecureStringPrint(g_MosMsgParams.g_MosMsgBuffer, 
-                MOS_MAX_MSG_BUF_SIZE, 
-                (MOS_MAX_MSG_BUF_SIZE-1), 
-                "%s%s - ", 
-                MOS_ComponentName[compID], 
+        MOS_SecureStringPrint(g_MosMsgParams.g_MosMsgBuffer,
+                MOS_MAX_MSG_BUF_SIZE,
+                (MOS_MAX_MSG_BUF_SIZE-1),
+                "%s%s - ",
+                MOS_ComponentName[compID],
                 MOS_LogLevelName[level]);
         nLen = strlen(g_MosMsgParams.g_MosMsgBuffer);
     }
@@ -256,36 +256,36 @@ void MOS_Message(
 #if USE_PRETTY_FUNCTION
         PCCHAR MOS_getClassMethod(PCCHAR pcPrettyFunction);
         // call MOS_getClassMethod to convert pretty function to class::function
-        // return string locate in static memory, mutex should be hold. 
+        // return string locate in static memory, mutex should be hold.
         func = MOS_getClassMethod(functionName);
 #endif //USE_PRETTY_FUNCTION
         if (lineNum < 0)
         {
             // no line number output
-            MOS_SecureStringPrint(g_MosMsgParams.g_MosMsgBuffer, 
-                MOS_MAX_MSG_BUF_SIZE, 
-                (MOS_MAX_MSG_BUF_SIZE-1), 
+            MOS_SecureStringPrint(g_MosMsgParams.g_MosMsgBuffer,
+                MOS_MAX_MSG_BUF_SIZE,
+                (MOS_MAX_MSG_BUF_SIZE-1),
                 "%s%s - %s",
-                MOS_ComponentName[compID], 
+                MOS_ComponentName[compID],
                 MOS_LogLevelName[level],
                 func);
             nLen = strlen(g_MosMsgParams.g_MosMsgBuffer);
         }
         else
         {
-            MOS_SecureStringPrint(g_MosMsgParams.g_MosMsgBuffer, 
-                    MOS_MAX_MSG_BUF_SIZE, 
-                    (MOS_MAX_MSG_BUF_SIZE-1), 
-                    "%s%s - %s:%d: ", 
-                    MOS_ComponentName[compID], 
-                    MOS_LogLevelName[level], 
+            MOS_SecureStringPrint(g_MosMsgParams.g_MosMsgBuffer,
+                    MOS_MAX_MSG_BUF_SIZE,
+                    (MOS_MAX_MSG_BUF_SIZE-1),
+                    "%s%s - %s:%d: ",
+                    MOS_ComponentName[compID],
+                    MOS_LogLevelName[level],
                     func,
                     lineNum);
             nLen = strlen(g_MosMsgParams.g_MosMsgBuffer);
         }
     }
-    MOS_SecureVStringPrint(g_MosMsgParams.g_MosMsgBuffer + nLen, 
-                MOS_MAX_MSG_BUF_SIZE - nLen, 
+    MOS_SecureVStringPrint(g_MosMsgParams.g_MosMsgBuffer + nLen,
+                MOS_MAX_MSG_BUF_SIZE - nLen,
                 (MOS_MAX_MSG_BUF_SIZE - 1 - nLen),
                 message,
                 var_args);
@@ -310,7 +310,7 @@ void MOS_Message(
             case MOS_MESSAGE_LVL_FUNCTION_EXIT:
             case MOS_MESSAGE_LVL_FUNCTION_ENTRY_VERBOSE:
             case MOS_MESSAGE_LVL_FUNCTION_EXIT_VERBOSE:
-            default: 
+            default:
                 android_level = ANDROID_LOG_INFO;
                 break;
         }
@@ -321,7 +321,7 @@ void MOS_Message(
 
         printf("%s\n", g_MosMsgParams.g_MosMsgBuffer);
 
-#endif // ANDROID 
+#endif // ANDROID
     }
 
     // Write to log file if HLT enabled. File already open to add preface information
@@ -339,7 +339,7 @@ void MOS_Message(
             __android_log_print(ANDROID_LOG_ERROR, logtag, "ERROR: g_MosMsgParams.pLogFile is NULL!");
 #else // ANDROID
             printf("ERROR: g_MosMsgParams.pLogFile is NULL!\n");
-#endif // ANDROID 
+#endif // ANDROID
         }
     }
     MOS_UnlockMutex(&gMosMsgMutex);
@@ -368,7 +368,7 @@ static char gFunctionName[256]; // 256 is an arbitrary long enough size.
 //! \return   PCCHAR in the form of [CLASS::]FUNCTION
 //!
 PCCHAR MOS_getClassMethod(PCCHAR pcPrettyFunction)
-{   
+{
     PCCHAR end  = nullptr;
     uint32_t len  = 0;
 

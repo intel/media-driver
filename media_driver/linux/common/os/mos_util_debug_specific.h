@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file        mos_util_debug_specific.h  
-//! \brief      
+//! \file        mos_util_debug_specific.h 
+//! \brief 
 //!
 //!
 

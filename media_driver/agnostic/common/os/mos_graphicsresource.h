@@ -100,7 +100,7 @@ public:
 
         //!
         //! \brief  Whether SVM is in use.
-        //! 
+        //!
         bool m_svm = false;
 
         //!
@@ -118,7 +118,7 @@ public:
         //! \brief   Flags to describe attributes
         //!
         MOS_GFXRES_FLAGS m_flags = {};
- 
+
         //!
         //! \brief   width in pixels
         //!
@@ -127,7 +127,7 @@ public:
         //!
         //! \brief   Create the graphics buffer from a PMOS_ALLOC_GFXRES_PARAMS, for wrapper usage, to be deleted
         //!
-        CreateParams(PMOS_ALLOC_GFXRES_PARAMS pParams) 
+        CreateParams(PMOS_ALLOC_GFXRES_PARAMS pParams)
         {
             m_arraySize       = pParams->dwArraySize;
             m_compressionMode = pParams->CompressionMode;
@@ -147,7 +147,7 @@ public:
             m_width           = pParams->dwWidth;
         };
 
-        CreateParams() 
+        CreateParams()
         {
         };
     };
@@ -180,7 +180,7 @@ public:
             m_noOverWrite  = pLockFlags->NoOverWrite;
         };
 
-        LockParams() 
+        LockParams()
         {
         };
     };
@@ -216,7 +216,7 @@ public:
             m_disableLockForTranscode = (pParams->bDisableLockForTranscode == 1) ? true : false;
         };
 
-        SyncParams() 
+        SyncParams()
         {
         };
     } ;

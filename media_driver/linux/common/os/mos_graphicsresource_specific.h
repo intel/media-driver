@@ -152,7 +152,7 @@ protected:
     GMM_RESOURCE_FORMAT ConvertMosFmtToGmmFmt(MOS_FORMAT format);
 
 private:
-    
+
     //!
     //! \brief  Pointer to the GMM info structure
     //!

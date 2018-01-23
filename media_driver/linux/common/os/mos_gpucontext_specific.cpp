@@ -253,7 +253,7 @@ MOS_STATUS GpuContextSpecific::GetCommandBuffer(
         // zero comamnd buffer
         MOS_ZeroMemory(comamndBuffer->pCmdBase, comamndBuffer->iRemaining);
 
-        // update command buffer relared filed in GPU context 
+        // update command buffer relared filed in GPU context
         m_cmdBufFlushed = false;
 
         // keep a copy in GPU context
@@ -298,7 +298,7 @@ MOS_STATUS GpuContextSpecific::ResetCommandBuffer()
 }
 
 MOS_STATUS GpuContextSpecific::SetIndirectStateSize(const uint32_t size)
-{ 
+{
     if(size < m_commandBufferSize)
     {
         m_IndirectHeapSize = size;
@@ -554,8 +554,8 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
 
     //dwComponentTag 3: decode,5: vpp,6: encode
     //dwCallType     8: PAK(CODECHAL_ENCODE_PERFTAG_CALL_PAK_ENGINE)
-    //		     34: PREENC
-    //		     5: VPP
+    //             34: PREENC
+    //             5: VPP
     dwComponentTag = (perfData & 0xF000) >> 12;
     dwCallType     = (perfData & 0xFC) >> 2;
 

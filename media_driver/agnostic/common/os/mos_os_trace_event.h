@@ -37,7 +37,7 @@ typedef enum _MEDIA_EVENT
     EVENT_RESOURCE_REGISTER,        //! event for register MOS resource to gpu command
     EVENT_RESOURCE_PATCH,           //! event for patch MOS resource
     EVENT_PPED_HUC,                 //! event for PPED HuC path
-    EVENT_PPED_FW,                  //! event for PPED FW path 
+    EVENT_PPED_FW,                  //! event for PPED FW path
     EVENT_PPED_AUDIO,               //! event for PPED audio path
     EVENT_BLT_ENC,                  //! event for blt enc mode
     EVENT_BLT_DEC,                  //! event for blt dec mode
@@ -49,7 +49,7 @@ typedef enum _MEDIA_EVENT
     EVENT_CODEC_DECODE,             //! event for Decoder decode
     EVENT_CODEC_ENCODE_DDI,         //! event for Decoder encode DDI level
     EVENT_ENCODER_CREATE,           //! event for encoder create
-    EVENT_ENCODER_DESTROY,          //! event for encoder destory. 
+    EVENT_ENCODER_DESTROY,          //! event for encoder destory.
     EVENT_CODECHAL_CREATE,          //! event for codechal create.
     EVENT_CODECHAL_EXECUTE,         //! event for codechal execute.
     EVENT_CODECHAL_DESTROY,         //! event for codechal destory.

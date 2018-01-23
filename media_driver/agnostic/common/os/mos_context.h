@@ -38,7 +38,7 @@ public:
         MOS_S3D_LEFT,        //!< Left eye channel
         MOS_S3D_RIGHT        //!< Right eye channel
     };
-    
+
     struct MOS_PLANE_OFFSET
     {
         int    iSurfaceOffset;              //!< Plane surface offset
@@ -50,13 +50,13 @@ public:
 protected:
     //!
     //! \brief Constructor for the OsContext
-    //!            
+    //!
     OsContext(){};
 
 public:
     //!
     //! \brief Destructor for the OsContext
-    //!            
+    //!
     virtual ~OsContext(){};
 
     //!
@@ -203,21 +203,21 @@ protected:
     bool                            m_usesGfxAddress = false;
 
     //! \brief   For limited GPU VA resource can not be mapped during creation
-    bool                            m_mapOnCreate = false; 
+    bool                            m_mapOnCreate = false;
 
     //! \brief  check whether use inline codec status update or seperate BB
     bool                            m_inlineCodecStatusUpdate = false;
-    
+
     //! \brief   Component info
     MOS_COMPONENT                   m_component = COMPONENT_UNKNOWN;
 
     //! \brief   Flag to indicate if HAS is enabled
-    bool                            m_simIsActive = false;                                  
+    bool                            m_simIsActive = false;
 
 #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
     //! \brief   Command buffer dump.
     //! \brief   Flag to indicate if Dump command buffer is enabled
-    bool                            m_dumpCommandBuffer = false; 
+    bool                            m_dumpCommandBuffer = false;
 
     //! \brief   Indicates that the command buffer should be dumped to a file
     bool                            m_dumpCommandBufferToFile = false;
@@ -226,7 +226,7 @@ protected:
     bool                            m_dumpCommandBufferAsMessages = false;
 
     //! \brief   Platform name - maximum 4 bytes length
-    char                            m_platformName[MOS_COMMAND_BUFFER_PLATFORM_LEN] = {0};    
+    char                            m_platformName[MOS_COMMAND_BUFFER_PLATFORM_LEN] = {0};
 #endif // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
 };
 #endif // #ifndef __MOS_CONTEXT_H__

@@ -164,7 +164,7 @@ void MOS_SetSubCompMessageLevel(MOS_COMPONENT_ID compID, uint8_t subCompID, MOS_
 //!
 void MOS_SetCompMessageLevel(MOS_COMPONENT_ID compID, MOS_MESSAGE_LEVEL msgLevel)
 {
-    if (compID >= MOS_COMPONENT_COUNT) 
+    if (compID >= MOS_COMPONENT_COUNT)
     {
         MOS_OS_ASSERTMESSAGE("Invalid component %d.", compID);
         return;
@@ -353,7 +353,7 @@ MOS_STATUS MOS_HLTInit()
     char                                        fileNamePrefix[MOS_MAX_HLT_FILENAME_LEN];
     int32_t                                     bUseHybridLogTrace = false;
     MOS_USER_FEATURE_VALUE_DATA                 UserFeatureData;
-    MOS_USER_FEATURE_VALUE_WRITE_DATA           UserFeatureWriteData;       
+    MOS_USER_FEATURE_VALUE_WRITE_DATA           UserFeatureWriteData;
     MOS_STATUS                                  eStatus;
 
     if (g_MosMsgParams.uiCounter != 0)
@@ -436,7 +436,7 @@ MOS_STATUS MOS_HLTInit()
     {
         MOS_OS_NORMALMESSAGE("Failed to open trace file '%s'.", hltFileName);
     }
-  
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -449,7 +449,7 @@ MOS_STATUS MOS_HLTInit()
 //!           else MOS_STATUS_SUCCESS
 //!
 MOS_STATUS MOS_DDIDumpInit()
-{    
+{
     char                                        fileNamePrefix[MOS_MAX_HLT_FILENAME_LEN];
     MOS_USER_FEATURE_VALUE_DATA                 UserFeatureData;
     char                                        cDDIDumpFilePath[MOS_MAX_HLT_FILENAME_LEN] = { 0 };
@@ -536,7 +536,7 @@ void MOS_MessageInit()
         MOS_HLTInit();
         MOS_DDIDumpInit();
 
-        // all above action should not be covered by memninja since its destroy is behind memninja counter report to test result. 
+        // all above action should not be covered by memninja since its destroy is behind memninja counter report to test result.
         MosMemAllocCounter  = 0;
         MosMemAllocCounterGfx = 0;
     }

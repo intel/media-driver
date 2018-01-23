@@ -57,7 +57,6 @@
         MOS_OS_ASSERT(false);                                    \
     }                                                            \
 
-
 //!
 //! \brief User Feature Type maximum and minimum data size
 //!
@@ -73,7 +72,7 @@
 #define  __NULL_USER_FEATURE_VALUE__ { __MOS_USER_FEATURE_KEY_INVALID_ID, nullptr, nullptr, nullptr, nullptr, MOS_USER_FEATURE_TYPE_INVALID, MOS_USER_FEATURE_VALUE_TYPE_INVALID, nullptr, nullptr, false, 0, nullptr, nullptr, MOS_USER_FEATURE_EFFECT_ALWAYS, {0} , {{0},0}}
 #define  MOS_DECLARE_UF_KEY(Id,ValueName,Readpath,Writepath,Group,Type,ValueType,DefaultValue,Description)  { Id, ValueName, Group, Readpath, Writepath, Type, ValueType , DefaultValue, Description, false, 1, nullptr, nullptr, MOS_USER_FEATURE_EFFECT_ALWAYS, {0}, {{0},0}}
 // The MOS_DECLARE_UF_KEY_DBGONLY macro will make the user feature key read only return default value in release build without accessing user setting
-// it is an alternative way for removing the key defintion entirely in release driver, and still provide an unified place for default values of the 
+// it is an alternative way for removing the key defintion entirely in release driver, and still provide an unified place for default values of the
 // user feature key read request that is needed for release driver
 #define  MOS_DECLARE_UF_KEY_DBGONLY(Id,ValueName,Readpath,Writepath,Group,Type,ValueType,DefaultValue,Description)  { Id, ValueName, Group, Readpath, Writepath, Type, ValueType , DefaultValue, Description, false, 1, nullptr, nullptr, MOS_USER_FEATURE_EFFECT_DEBUGONLY, {0}, {{0},0}}
 #define  MOS_DECLARE_UF_KEY_SETFN(Id,ValueName,Readpath,Writepath,Group,Type,ValueType,pfn,Description)  { Id, ValueName, Group, Readpath, Writepath, Type, ValueType, "0", Description, false, 1, nullptr, pfn, MOS_USER_FEATURE_EFFECT_ALWAYS, {0}, {{0}}}
@@ -352,7 +351,7 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __VPHAL_DBG_STATE_DUMP_LOCATION_KEY_NAME_ID,
     __VPHAL_DBG_STATE_DUMP_START_FRAME_KEY_NAME_ID,
     __VPHAL_DBG_STATE_DUMP_END_FRAME_KEY_NAME_ID,
-    __VPHAL_DBG_PARAM_DUMP_OUTFILE_KEY_NAME_ID, 
+    __VPHAL_DBG_PARAM_DUMP_OUTFILE_KEY_NAME_ID,
     __VPHAL_DBG_PARAM_DUMP_START_FRAME_KEY_NAME_ID,
     __VPHAL_DBG_PARAM_DUMP_END_FRAME_KEY_NAME_ID,
 #endif
@@ -427,7 +426,6 @@ typedef enum
     MOS_USER_FEATURE_VALUE_DATA_FLAG_NONE_CUSTOM_DEFAULT_VALUE_TYPE = 0,
     MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE,
 } MOS_USER_FEATURE_VALUE_DATA_FLAG_TYPE, *PMOS_USER_FEATURE_VALUE_DATA_FLAG_TYPE;
-
 
 //!
 //! \brief User Feature Key Effective Range type
@@ -628,14 +626,14 @@ typedef struct
 //template<class _Ty, class... _Types> inline
 //std::shared_ptr<_Ty> MOS_MakeShared(_Types&&... _Args)
 //{
-//	try
-//	{
-//		return std::make_shared<_Ty>(std::forward<_Types>(_Args)...);
-//	}
-//	catch (const std::bad_alloc&)
-//	{
-//		return nullptr;
-//	}
+//    try
+//    {
+//        return std::make_shared<_Ty>(std::forward<_Types>(_Args)...);
+//    }
+//    catch (const std::bad_alloc&)
+//    {
+//        return nullptr;
+//    }
 //}
 
 #if MOS_MESSAGES_ENABLED
@@ -673,7 +671,7 @@ _Ty* MOS_NewArrayUtil(int32_t numElements)
             MOS_MEMNINJA_ALLOC_MESSAGE(ptr, numElements*sizeof(_Ty), functionName, filename, line);
             MosMemAllocCounter++;
         }
-        return ptr; 
+        return ptr;
 }
 
 #if MOS_MESSAGES_ENABLED
@@ -1242,7 +1240,7 @@ MOS_STATUS MOS_GenerateUserFeatureKeyXML();
 //!
 //! \brief    Get the User Feature Value from Table
 //! \details  Get the related User Feature Value item according to Filter rules , and pass the item
-//! 		   into return callback function
+//!            into return callback function
 //! \param    [in] descTable
 //!           The user feature key description table
 //! \param    [in] numOfItems
@@ -1281,7 +1279,7 @@ MOS_STATUS MOS_GetItemFromMOSUserFeatureDescField(
 //!           else MOS_STATUS_SUCCESS
 //!
 MOS_STATUS MOS_UserFeature_SetDefaultValues(
-    PMOS_USER_FEATURE_INTERFACE	            pOsUserFeatureInterface,
+    PMOS_USER_FEATURE_INTERFACE                pOsUserFeatureInterface,
     PMOS_USER_FEATURE_VALUE_WRITE_DATA      pWriteValues,
     uint32_t                                uiNumOfValues);
 
@@ -1365,9 +1363,9 @@ MOS_STATUS MOS_DestroyUserFeatureKeysForAllDescFields();
 //!           else MOS_STATUS_SUCCESS
 //!
 MOS_STATUS MOS_CopyUserFeatureValueData(
-	PMOS_USER_FEATURE_VALUE_DATA pSrcData,
-	PMOS_USER_FEATURE_VALUE_DATA pDstData,
-	MOS_USER_FEATURE_VALUE_TYPE ValueType
+    PMOS_USER_FEATURE_VALUE_DATA pSrcData,
+    PMOS_USER_FEATURE_VALUE_DATA pDstData,
+    MOS_USER_FEATURE_VALUE_TYPE ValueType
 );
 
 //!
@@ -1382,8 +1380,8 @@ MOS_STATUS MOS_CopyUserFeatureValueData(
 //!           else MOS_STATUS_SUCCESS
 //!
 MOS_STATUS MOS_DestroyUserFeatureData(
-	PMOS_USER_FEATURE_VALUE_DATA pData,
-	MOS_USER_FEATURE_VALUE_TYPE  ValueType);
+    PMOS_USER_FEATURE_VALUE_DATA pData,
+    MOS_USER_FEATURE_VALUE_TYPE  ValueType);
 
 #ifdef  __MOS_USER_FEATURE_WA_
 MOS_STATUS MOS_UserFeature_ReadValue (
@@ -1448,7 +1446,7 @@ MOS_STATUS MOS_UserFeature_ReadValue (
 //!                 MOS_STATUS_USER_FEATURE_KEY_READ_FAILED: pValueData is from default value
 //!                 MOS_STATUS_NULL_POINTER: NO USER FEATURE KEY DEFINITION in corresponding user feature key Desc Field table, 
 //!                                          No default value or User Feature Key value return
-//!                 
+//! 
 //!
 #ifdef  __MOS_USER_FEATURE_WA_
 MOS_STATUS MOS_UserFeature_ReadValue_ID(
@@ -2267,7 +2265,7 @@ float MOS_Sinc(
 //! \param    [in] dwNumEntries
 //!           dword
 //! \param    [in] fLanczosT
-//!           
+//! 
 //! \return   float
 //!           lanczos(x)
 //!
@@ -2285,7 +2283,7 @@ float MOS_Lanczos(
 //! \param    [in] dwNumEntries
 //!           dword
 //! \param    [in]fLanczosT
-//!           
+//! 
 //! \return   float
 //!           lanczos(x)
 //!

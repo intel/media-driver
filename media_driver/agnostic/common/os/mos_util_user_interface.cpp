@@ -52,7 +52,7 @@ MOS_STATUS MosUtilUserInterface::AddEntry(const uint32_t keyId, PMOS_USER_FEATUR
         m_userFeatureKeyMap.insert(std::make_pair(keyId, userFeatureKey));
         return MOS_STATUS_SUCCESS;
     }
-    
+
     return MOS_STATUS_SUCCESS;
 }
 

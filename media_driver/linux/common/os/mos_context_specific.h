@@ -307,7 +307,7 @@ private:
     void*               m_shm = nullptr;
     //!
     //! \brief  Enable/Disable dynamic slice shutdown and static slice config
-    //!         -1	Use timer-based dynamic slice shutdown
+    //!         -1    Use timer-based dynamic slice shutdown
     //!         0   [default] Use default slices count
     //!         >0  Static slice shutdown, N for N slices
     //!
@@ -357,7 +357,7 @@ private:
     //!
     //! \brief  ptr to mos context(kept for memory decompression function, to be cleaned up)
     //!
-    PMOS_CONTEXT        m_mosContext = nullptr; 
+    PMOS_CONTEXT        m_mosContext = nullptr;
 
     //!
     //! \brief  the function ptr for memory decompression function
@@ -384,10 +384,10 @@ private:
     //!
     uint32_t            m_fd             = 0;
 
-	//!
-	//!UMD specific ClientContext object in GMM
-	//!
-	GMM_CLIENT_CONTEXT   *m_pGmmClientContext = nullptr;
+    //!
+    //!UMD specific ClientContext object in GMM
+    //!
+    GMM_CLIENT_CONTEXT   *m_pGmmClientContext = nullptr;
 
     GPU_CONTEXT_HANDLE  m_GpuContextHandle[MOS_GPU_CONTEXT_MAX]; // Index to GPU Context (GpuContextHandles)
 

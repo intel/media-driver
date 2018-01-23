@@ -742,15 +742,15 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MA
      MOS_USER_FEATURE_VALUE_TYPE_INT32,
      "1",
      "Enables/Disables HEVC Encode."),
-	MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_SECURE_INPUT_ID,
-		"Secure HEVC Encode",
-		__MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
-		__MEDIA_USER_FEATURE_SUBKEY_REPORT,
-		"Secure HEVC Encode",
-		MOS_USER_FEATURE_TYPE_USER,
-		MOS_USER_FEATURE_VALUE_TYPE_INT32,
-		"0",
-		"Secure HEVC Encode."),
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_SECURE_INPUT_ID,
+        "Secure HEVC Encode",
+        __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+        __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+        "Secure HEVC Encode",
+        MOS_USER_FEATURE_TYPE_USER,
+        MOS_USER_FEATURE_VALUE_TYPE_INT32,
+        "0",
+        "Secure HEVC Encode."),
     MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_ENABLE_MEDIARESET_TEST_ID,
      "Enable MediaReset Test",
      __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
@@ -759,7 +759,7 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MA
      MOS_USER_FEATURE_TYPE_USER,
      MOS_USER_FEATURE_VALUE_TYPE_INT32,
      "0",
-     "Enable HEVC Encode Media Reset Test, by default:0(disabled)."),   
+     "Enable HEVC Encode Media Reset Test, by default:0(disabled)."),
     MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_ENABLE_WP_SUPPORT_ID,
      "Enable WP Support",
      __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
@@ -768,7 +768,7 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MA
      MOS_USER_FEATURE_TYPE_USER,
      MOS_USER_FEATURE_VALUE_TYPE_INT32,
      "1",
-     "Enable Weighted Prediction support in HEVC Encoder."),     
+     "Enable Weighted Prediction support in HEVC Encoder."),
     MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_MODE_ID,
      "HEVC Encode Mode",
      __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
@@ -1056,7 +1056,7 @@ MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_ID,
      MOS_USER_FEATURE_TYPE_USER,
      MOS_USER_FEATURE_VALUE_TYPE_INT32,
      "1",
-     "Media Encode Used VDBOX Number."),     
+     "Media Encode Used VDBOX Number."),
     MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_ENCODE_ENABLE_COMPUTE_CONTEXT_ID,
      "Enable Compute Context",
      __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
@@ -1227,7 +1227,7 @@ MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_ID,
         MOS_USER_FEATURE_TYPE_USER,
         MOS_USER_FEATURE_VALUE_TYPE_INT32,
         "1",
-        "Enables VP8 Encode HW Scoreboard Feature."),     
+        "Enables VP8 Encode HW Scoreboard Feature."),
     MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_VP8_ENCODE_ME_ENABLE_ID,
         "VP8 Encode HME",
         __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
@@ -1236,7 +1236,7 @@ MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_ID,
         MOS_USER_FEATURE_TYPE_USER,
         MOS_USER_FEATURE_VALUE_TYPE_INT32,
         "1",
-        "Enables VP8 Encode HME Feature."),     
+        "Enables VP8 Encode HME Feature."),
     MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_VP8_ENCODE_16xME_ENABLE_ID,
         "VP8 Encode SuperHME",
         __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
@@ -1263,7 +1263,7 @@ MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_ID,
         MOS_USER_FEATURE_TYPE_USER,
         MOS_USER_FEATURE_VALUE_TYPE_INT32,
         "1",
-        "Enables VP8 Encode Multipass BRC."),     
+        "Enables VP8 Encode Multipass BRC."),
     MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_VP8_ENCODE_ADAPTIVE_REPAK_ENABLE_ID,
         "VP8 Encode Adpative Repak Enable",
         __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
@@ -1272,7 +1272,7 @@ MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_ID,
         MOS_USER_FEATURE_TYPE_USER,
         MOS_USER_FEATURE_VALUE_TYPE_INT32,
         "1",
-        "Enables VP8 Encode Adaptive Repak Feature."),        
+        "Enables VP8 Encode Adaptive Repak Feature."),
 #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
      MOS_DECLARE_UF_KEY(__MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_BUFFER_ENABLE_ID,
      "Dump Command Buffer Enable",
@@ -1302,7 +1302,7 @@ MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_ID,
      MOS_USER_FEATURE_TYPE_USER,
      MOS_USER_FEATURE_VALUE_TYPE_INT32,
      "0",
-     "Sets the value of Group ID"),    
+     "Sets the value of Group ID"),
     MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_ENCODE_VFE_MAX_THREADS_ID,
      "Encode VFE Max Threads",
      __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
@@ -2143,7 +2143,7 @@ MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_ID,
      "VP",
      MOS_USER_FEATURE_TYPE_USER,
      MOS_USER_FEATURE_VALUE_TYPE_BOOL,
-     "0",                                               
+     "0",
      "For debugging purpose. Enable Vebox In-Place decompression"),
     MOS_DECLARE_UF_KEY_DBGONLY(__VPHAL_ENABLE_MMC_ID,
      "Enable VP MMC",
@@ -2298,7 +2298,7 @@ MOS_STATUS MOS_utilities_close()
     // MOS_OS_Utilitlies_Close must be called right before end of function
     // Because Memninja will calc mem leak here.
     // Any memory allocation release after MOS_OS_Utilities_Close() will be treated as mem leak.
-    eStatus = MOS_OS_Utilities_Close(); 
+    eStatus = MOS_OS_Utilities_Close();
 
     return eStatus;
 }
@@ -2741,12 +2741,12 @@ MOS_STATUS MOS_AppendFileFromPtr(
 //!
 MOS_FUNC_EXPORT MOS_STATUS MOS_EXPORT_DECL DumpUserFeatureKeyDefinitionsMedia()
 {
-    MOS_STATUS							eStatus = MOS_STATUS_SUCCESS;
+    MOS_STATUS                            eStatus = MOS_STATUS_SUCCESS;
     // Init MOS User Feature Key from mos desc table
     MOS_OS_CHK_STATUS( MOS_DeclareUserFeatureKeysForAllDescFields() );
     MOS_OS_CHK_STATUS( MOS_GenerateUserFeatureKeyXML() );
 finish:
-    return	eStatus;
+    return    eStatus;
 }
 
 #endif
@@ -2985,7 +2985,7 @@ MOS_STATUS MOS_GenerateUserFeatureKeyXML()
         UserFeatureData.StringData.pStringData,
         sOutBuf,
         (uint32_t)strlen(sOutBuf));
-    return	eStatus;
+    return    eStatus;
 }
 
 //!
@@ -3793,7 +3793,7 @@ MOS_STATUS MOS_DestroyUserFeatureKeysForAllDescFields()
 static MOS_STATUS MOS_UserFeature_ReadValueInit(
     PMOS_USER_FEATURE_INTERFACE   pOsUserFeatureInterface,
     uint32_t                      uiNumValues,
-    MOS_USER_FEATURE_VALUE_DATA	  Value,
+    MOS_USER_FEATURE_VALUE_DATA      Value,
     const char                    *pValueName,
     MOS_USER_FEATURE_VALUE_TYPE   ValueType)
 {
@@ -4490,7 +4490,7 @@ MOS_STATUS MOS_UserFeature_ReadValue (
     uint32_t                                ui;
     void                                    *UFKey = nullptr;
     PMOS_USER_FEATURE_VALUE                 pSettingsValue = nullptr;
-    MOS_USER_FEATURE_VALUE_DATA	            UserFeatureData;
+    MOS_USER_FEATURE_VALUE_DATA                UserFeatureData;
     MOS_USER_FEATURE_VALUE_ID               ValueID = __MOS_USER_FEATURE_KEY_INVALID_ID;
     PMOS_USER_FEATURE_VALUE                 pUserFeatureValue=NULL;
     PMOS_USER_FEATURE_VALUE_STRING          pSrcString = nullptr;
@@ -4507,7 +4507,7 @@ MOS_STATUS MOS_UserFeature_ReadValue (
     MOS_OS_ASSERT(ValueType != MOS_USER_FEATURE_VALUE_TYPE_INVALID);
     //--------------------------------------------------
 
-    //--------------------------------------------------    
+    //--------------------------------------------------
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
 
     for (ui = (__MOS_USER_FEATURE_KEY_INVALID_ID+1); ui < __MOS_USER_FEATURE_KEY_MAX_ID; ui++)
@@ -4640,7 +4640,7 @@ MOS_STATUS MOS_UserFeature_ReadValue (
 //!                 MOS_STATUS_USER_FEATURE_KEY_READ_FAILED: pValueData is from default value
 //!                 MOS_STATUS_NULL_POINTER: NO USER FEATURE KEY DEFINITION in corresponding user feature key Desc Field table, 
 //!                                          No default value or User Feature Key value return
-//!                 
+//! 
 //!
 MOS_STATUS MOS_UserFeature_ReadValue_FromMap_ID(
     MOS_USER_FEATURE_VALUE_MAP      *keyValueMap,
@@ -4666,7 +4666,7 @@ MOS_STATUS MOS_UserFeature_ReadValue_FromMap_ID(
         pUserFeature = keyValueMap[ValueID].pUserFeatureValue;
     }
     else
-    {   
+    {
         MOS_ASSERTMESSAGE("Not supported null key value map in C code");
     }
 #endif
@@ -4806,7 +4806,7 @@ finish:
 //!                 MOS_STATUS_USER_FEATURE_KEY_READ_FAILED: pValueData is from default value
 //!                 MOS_STATUS_NULL_POINTER: NO USER FEATURE KEY DEFINITION in corresponding user feature key Desc Field table, 
 //!                                          No default value or User Feature Key value return
-//!                 
+//! 
 //!
 #ifdef  __MOS_USER_FEATURE_WA_
 MOS_STATUS MOS_UserFeature_ReadValue_ID(
@@ -5067,7 +5067,7 @@ MOS_STATUS MOS_UserFeature_EnableNotification(
     int32_t                                 bResult;
     MOS_STATUS                              eStatus;
     MOS_UNUSED(pOsUserFeatureInterface);
-    
+
     //---------------------------------------
     MOS_OS_ASSERT(pNotification);
     MOS_OS_ASSERT(pNotification->NotifyType != MOS_USER_FEATURE_NOTIFY_TYPE_INVALID);
@@ -5312,7 +5312,6 @@ uint32_t MOS_GCD(uint32_t a, uint32_t b)
     }
 }
 
-
 //!
 //! \brief    Swizzles the given linear offset via the specified tiling params.
 //! \details  Swizzles the given linear offset via the specified tiling parameters. 
@@ -5337,43 +5336,43 @@ static __inline int32_t Mos_SwizzleOffset(
     MOS_TILE_TYPE   TileFormat,
     int32_t         CsxSwizzle)
 {
-    // When dealing with a tiled surface, logical linear accesses to the 
+    // When dealing with a tiled surface, logical linear accesses to the
     // surface (y * pitch + x) must be translated into appropriate tile-
-    // formated accesses--This is done by swizzling (rearranging/translating) 
-    // the given access address--though it is important to note that the 
-    // swizzling is actually done on the accessing OFFSET into a TILED 
+    // formated accesses--This is done by swizzling (rearranging/translating)
+    // the given access address--though it is important to note that the
+    // swizzling is actually done on the accessing OFFSET into a TILED
     // REGION--not on the absolute address itself.
 
-    // (!) Y-MAJOR TILING, REINTERPRETATION: For our purposes here, Y-Major 
+    // (!) Y-MAJOR TILING, REINTERPRETATION: For our purposes here, Y-Major
     // tiling will be thought of in a different way, we will deal with
     // the 16-byte-wide columns individually--i.e., we will treat a single
     // Y-Major tile as 8 separate, thinner tiles--Doing so allows us to
     // deal with both X- and Y-Major tile formats in the same "X-Major"
-    // way--just with different dimensions: either 512B x 8 rows, or 
+    // way--just with different dimensions: either 512B x 8 rows, or
     // 16B x 32 rows, respectively.
 
-    // A linear offset into a surface is of the form 
+    // A linear offset into a surface is of the form
     //     y * pitch + x   =   y:x (Shorthand, meaning: y * (x's per y) + x)
-    // 
-    // To treat a surface as being composed of tiles (though still being 
-    // linear), just as a linear offset has a y:x composition--its y and x 
-    // components can be thought of as having Row:Line and Column:X 
-    // compositions, respectively, where Row specifies a row of tiles, Line 
-    // specifies a row of pixels within a tile, Column specifies a column 
-    // of tiles, and X in this context refers to a byte within a Line--i.e., 
+    //
+    // To treat a surface as being composed of tiles (though still being
+    // linear), just as a linear offset has a y:x composition--its y and x
+    // components can be thought of as having Row:Line and Column:X
+    // compositions, respectively, where Row specifies a row of tiles, Line
+    // specifies a row of pixels within a tile, Column specifies a column
+    // of tiles, and X in this context refers to a byte within a Line--i.e.,
     //     offset = y:x
     //     y = Row:Line
     //     x = Col:X
     //     offset = y:x = Row:Line:Col:X
 
-    // Given the Row:Line:Col:X composition of a linear offset, all that 
-    // tile swizzling does is swap the Line and Col components--i.e., 
+    // Given the Row:Line:Col:X composition of a linear offset, all that
+    // tile swizzling does is swap the Line and Col components--i.e.,
     //     Linear Offset:   Row:Line:Col:X
     //     Swizzled Offset: Row:Col:Line:X
-    // And with our reinterpretation of the Y-Major tiling format, we can now 
-    // describe both the X- and Y-Major tiling formats in two simple terms: 
-    // (1) The bit-depth of their Lines component--LBits, and (2) the 
-    // swizzled bit-position of the Lines component (after it swaps with the 
+    // And with our reinterpretation of the Y-Major tiling format, we can now
+    // describe both the X- and Y-Major tiling formats in two simple terms:
+    // (1) The bit-depth of their Lines component--LBits, and (2) the
+    // swizzled bit-position of the Lines component (after it swaps with the
     // Col component)--LPos.
 
     int32_t Row, Line, Col, x; // Linear Offset Components
@@ -5389,7 +5388,7 @@ static __inline int32_t Mos_SwizzleOffset(
         LBits = 5; // Log2(TileY.Height = 32)
         LPos = 4;  // Log2(TileY.PseudoWidth = 16)
     }
-    else //if (TileFormat == MOS_TILE_X) 
+    else //if (TileFormat == MOS_TILE_X)
     {
         LBits = 3; // Log2(TileX.Height = 8)
         LPos = 9;  // Log2(TileX.Width = 512)

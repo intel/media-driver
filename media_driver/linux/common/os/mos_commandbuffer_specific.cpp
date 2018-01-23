@@ -171,6 +171,6 @@ MOS_STATUS CommandBufferSpecific:: ReSize(uint32_t newSize)
 
     MOS_OS_CHK_STATUS_RETURN(BindToGpuContext(m_gpuContext));
 
-    return MOS_STATUS_SUCCESS; 
+    return MOS_STATUS_SUCCESS;
 }
 

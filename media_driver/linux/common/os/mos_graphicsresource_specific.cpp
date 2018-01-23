@@ -121,10 +121,10 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
 
     MOS_STATUS         status          = MOS_STATUS_SUCCESS;
     uint32_t           tileFormatLinux = I915_TILING_NONE;
-    uint32_t           alignedHeight   = params.m_height; 
+    uint32_t           alignedHeight   = params.m_height;
     uint32_t           bufHeight       = params.m_height;
     GMM_RESOURCE_TYPE  resourceType    = RESOURCE_2D;
-    
+
     GMM_RESCREATE_PARAMS    gmmParams;
     MOS_ZeroMemory(&gmmParams, sizeof(gmmParams));
 
@@ -216,7 +216,7 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
     switch (gmmResourceInfoPtr->GetTileType())
     {
         case GMM_TILED_X:
-            tileformat      = MOS_TILE_X;  
+            tileformat      = MOS_TILE_X;
             tileFormatLinux = I915_TILING_X;
             break;
         case GMM_TILED_Y:
@@ -242,7 +242,7 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
     MOS_LINUX_BO* boPtr      = nullptr;
 
     char bufName[m_maxBufNameLength];
-    MOS_SecureStrcpy(bufName, m_maxBufNameLength, params.m_name.c_str()); 
+    MOS_SecureStrcpy(bufName, m_maxBufNameLength, params.m_name.c_str());
 
 #if defined(I915_PARAM_CREATE_VERSION)
     drm_i915_getparam_t gp;
@@ -254,14 +254,13 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
     gp.value = &gpvalue;
     gp.param = I915_PARAM_CREATE_VERSION;
 
-    
     ret = drmIoctl(pOsContextSpecific->m_fd, DRM_IOCTL_I915_GETPARAM, &gp );
 
     if ((0 == ret) && ( tileFormatLinux != I915_TILING_NONE))
     {
         boPtr = mos_bo_alloc_tiled(pOsContextSpecific->m_bufmgr, bufName, bufPitch, bufSize/bufPitch, 1,
                  &tileFormatLinux, &linuxPitch, BO_ALLOC_STOLEN);
-        if (nullptr == boPtr) 
+        if (nullptr == boPtr)
         {
             boPtr = mos_bo_alloc_tiled(pOsContextSpecific->m_bufmgr, bufName, bufPitch, bufSize/bufPitch, 1, &tileFormatLinux, &linuxPitch, 0);
         }
@@ -270,9 +269,9 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
             MOS_OS_VERBOSEMESSAGE("Stolen memory is created sucessfully on Mos");
         }
         bufPitch = (uint32_t)linuxPitch;
-    } 
+    }
     else
-#endif 
+#endif
     {
         // Only Linear and Y TILE supported
         if( tileFormatLinux == I915_TILING_NONE )
@@ -286,7 +285,7 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
         }
 
     }
-    
+
     m_mapped = false;
     if (boPtr)
     {
@@ -298,7 +297,7 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
         m_count    = 0;
         m_bo       = boPtr;
         m_name     = params.m_name;
-        m_pData    = (uint8_t*) boPtr->virt; 
+        m_pData    = (uint8_t*) boPtr->virt;
 
         m_gmmResInfo    = gmmResourceInfoPtr;
         m_mapped        = false;
@@ -344,13 +343,13 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
 }
 
 void GraphicsResourceSpecific::Free(OsContext* osContextPtr, uint32_t  freeFlag)
-{   
+{
     MOS_OS_FUNCTION_ENTER;
 
     MOS_UNUSED(osContextPtr);
     MOS_UNUSED(freeFlag);
 
-	OsContextSpecific *pOsContextSpecific = static_cast<OsContextSpecific *>(osContextPtr);
+    OsContextSpecific *pOsContextSpecific = static_cast<OsContextSpecific *>(osContextPtr);
 
     MOS_LINUX_BO* boPtr = m_bo;
 
@@ -360,7 +359,7 @@ void GraphicsResourceSpecific::Free(OsContext* osContextPtr, uint32_t  freeFlag)
         m_bo = nullptr;
         if (nullptr != m_gmmResInfo)
         {
-			pOsContextSpecific->GetGmmClientContext()->DestroyResInfoObject(m_gmmResInfo);
+            pOsContextSpecific->GetGmmClientContext()->DestroyResInfoObject(m_gmmResInfo);
             m_gmmResInfo = nullptr;
             m_memAllocCounterGfx--;
         }
@@ -399,7 +398,7 @@ MOS_STATUS GraphicsResourceSpecific::ConvertToMosResource(MOS_RESOURCE* pMosReso
     pMosResource->iDepth   = m_depth;
     pMosResource->TileType = m_tileType;
     pMosResource->iCount   = 0;
-    pMosResource->pData    = m_pData; 
+    pMosResource->pData    = m_pData;
     pMosResource->bufname  = m_name.c_str();
     pMosResource->bo       = m_bo;
     pMosResource->bMapped  = m_mapped;
@@ -407,7 +406,7 @@ MOS_STATUS GraphicsResourceSpecific::ConvertToMosResource(MOS_RESOURCE* pMosReso
     pMosResource->pGmmResInfo   = m_gmmResInfo;
 
     pMosResource->user_provided_va    = m_userProvidedVA;
-    
+
     pMosResource->pGfxResource    = this;
 
     return  MOS_STATUS_SUCCESS;
@@ -486,7 +485,7 @@ void* GraphicsResourceSpecific::Lock(OsContext* osContextPtr, LockParams& params
                     mos_bo_map(boPtr, ( OSKM_LOCKFLAG_WRITEONLY & params.m_writeRequest ));
                     m_mmapOperation = MOS_MMAP_OPERATION_MMAP;
                 }
-#endif       
+#endif
             }
             m_mapped = true;
             m_pData  = (uint8_t *)boPtr->virt;
@@ -529,7 +528,7 @@ MOS_STATUS GraphicsResourceSpecific::Unlock(OsContext* osContextPtr)
            else
            {
 #ifdef ANDROID
-               
+
                if (m_tileType == MOS_TILE_LINEAR)
                {
                    mos_bo_unmap(boPtr);

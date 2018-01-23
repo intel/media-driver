@@ -31,7 +31,7 @@
 #include "media_skuwa_specific.h"
 #include "mos_utilities.h"
 #include "mos_os_hw.h"         //!< HW specific details that flow through OS pathes
-#include "mos_os_cp_specific.h"         //!< CP specific OS functionality 
+#include "mos_os_cp_specific.h"         //!< CP specific OS functionality
 
 //!
 //! \brief OS specific includes and definitions
@@ -47,7 +47,7 @@
 
 #define MOS_INVALID_APPID                   0xFFFFFFFF
 
-#define MOS_GPU_CONTEXT_CREATE_DEFAULT      1    
+#define MOS_GPU_CONTEXT_CREATE_DEFAULT      1
 
 #define MOS_VCS_ENGINE_USED(GpuContext) (              \
     ((GpuContext) == MOS_GPU_CONTEXT_VIDEO)         || \
@@ -197,7 +197,7 @@ typedef struct _MOS_LOCK_PARAMS
             uint32_t NoOverWrite         : 1;                                    //!< No Over write for async locks
             uint32_t NoDecompress        : 1;                                    //!< No decompression for memory compressed surface
             uint32_t Uncached            : 1;                                    //!< Use uncached lock
-            uint32_t ForceCached         : 1;                                    //!< Prefer normal map to global GTT map(Uncached) if both can work 
+            uint32_t ForceCached         : 1;                                    //!< Prefer normal map to global GTT map(Uncached) if both can work
             uint32_t Reserved            : 25;                                   //!< Reserved for expansion.
         };
         uint32_t    Value;
@@ -222,9 +222,9 @@ typedef struct _MOS_ALLOC_GFXRES_PARAMS
 {
     MOS_GFXRES_TYPE     Type;                                                   //!< [in] Basic resource geometry
     MOS_GFXRES_FLAGS    Flags;                                                  //!< [in] Flags to describe attributes
-    union 
+    union
     {
-        uint32_t        dwWidth;                                                //!< [in] Type == 2D || VOLUME, width in pixels. 
+        uint32_t        dwWidth;                                                //!< [in] Type == 2D || VOLUME, width in pixels.
         uint32_t        dwBytes;                                                //!< [in] Type == BUFFER, # of bytes
     };
     uint32_t            dwHeight;                                               //!< [in] Type == 2D || VOLUME, height in rows. Type == BUFFER, n/a
@@ -234,7 +234,7 @@ typedef struct _MOS_ALLOC_GFXRES_PARAMS
     MOS_FORMAT          Format;                                                 //!< [in] Pixel format
     void                *pSystemMemory;                                         //!< [in] Optional parameter. If non null, TileType must be set to linear.
     const char          *pBufName;                                              //!< [in] Optional parameter only used in Linux. A string indicates the buffer name and is used for debugging. nullptr is OK.
-    int32_t             bIsCompressed;                                          //!< [in] Resource is compressed or not. 
+    int32_t             bIsCompressed;                                          //!< [in] Resource is compressed or not.
     MOS_RESOURCE_MMC_MODE   CompressionMode;                                        //!< [in] Compression mode.
     int32_t             bIsPersistent;                                          //!< [in] Optional parameter. Used to indicate that resource can not be evicted
     int32_t             bBypassMODImpl;
@@ -320,7 +320,7 @@ typedef struct _MOS_INTERFACE
 
     // for MODS Wrapper
     int32_t                         modulizedMosEnabled;
-    int32_t                         modularizedGpuCtxEnabled; 
+    int32_t                         modularizedGpuCtxEnabled;
     OsContext*                      osContextPtr;
 
     // used for media reset enabling/disabling in UMD
@@ -383,31 +383,31 @@ typedef struct _MOS_INTERFACE
         PMOS_INTERFACE              pOsInterface,
         MOS_GPU_CONTEXT             GpuContext);
 
-    void (* pfnSyncOnResource) ( 
+    void (* pfnSyncOnResource) (
         PMOS_INTERFACE              pOsInterface,
         PMOS_RESOURCE               pOsResource,
         MOS_GPU_CONTEXT             requestorGPUCtx,
         int32_t                     bWriteOperation);
 
-    void (* pfnSyncOnOverlayResource) ( 
+    void (* pfnSyncOnOverlayResource) (
         PMOS_INTERFACE              pOsInterface,
         PMOS_RESOURCE               pOsResource,
         MOS_GPU_CONTEXT             requestorGPUCtx);
 
-    void (* pfnSetResourceSyncTag) ( 
-        PMOS_INTERFACE              pOsInterface, 
+    void (* pfnSetResourceSyncTag) (
+        PMOS_INTERFACE              pOsInterface,
         PMOS_SYNC_PARAMS            pParams);
 
-    MOS_STATUS (* pfnPerformOverlaySync) ( 
-        PMOS_INTERFACE              pOsInterface, 
+    MOS_STATUS (* pfnPerformOverlaySync) (
+        PMOS_INTERFACE              pOsInterface,
         PMOS_SYNC_PARAMS            pParams);
 
     MOS_STATUS (* pfnResourceSignal) (
         PMOS_INTERFACE              pOsInterface,
         PMOS_SYNC_PARAMS            pParams);
 
-    MOS_STATUS (* pfnResourceWait) ( 
-        PMOS_INTERFACE              pOsInterface, 
+    MOS_STATUS (* pfnResourceWait) (
+        PMOS_INTERFACE              pOsInterface,
         PMOS_SYNC_PARAMS            pParams);
 
     MOS_STATUS (* pfnEngineSignal) (
@@ -503,7 +503,7 @@ typedef struct _MOS_INTERFACE
         int32_t                     line,
         PMOS_RESOURCE               pOsResource);
 
-    MOS_STATUS (* pfnDumpCommandBuffer) ( 
+    MOS_STATUS (* pfnDumpCommandBuffer) (
         PMOS_INTERFACE              pOsInterface,
         PMOS_COMMAND_BUFFER         pCmdBuffer);
 #else
@@ -812,7 +812,7 @@ typedef struct _MOS_INTERFACE
         PMOS_RESOURCE           osResource);
 
     //!< os interface extension
-    void                            *pOsExt;                                      
+    void                            *pOsExt;
 } MOS_INTERFACE;
 
 #ifdef __cplusplus

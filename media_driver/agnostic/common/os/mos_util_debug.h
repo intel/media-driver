@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file        mos_util_debug.h  
-//! \brief      
+//! \file        mos_util_debug.h 
+//! \brief 
 //!
 //!
 //! \file     mos_util_debug.h
@@ -498,7 +498,7 @@ void _MOS_Assert(
 //!
 //! \def MOS_CHK_COND(_compID, _subCompID, _condition, _str)
 //!  Check if \a _condition is true, if so assert and return an error
-//!  
+//!
 #define MOS_CHK_COND(_compID, _subCompID, _condition,  _message, ...)                       \
 {                                                                                           \
     if (_condition)                                                                         \
@@ -512,7 +512,7 @@ void _MOS_Assert(
 //!
 //! \def MOS_CHK_COND_RETURN(_compID, _subCompID, _condition, _str)
 //!  Check if \a _condition is true, if so assert and return an error
-//!  
+//!
 #define MOS_CHK_COND_RETURN(_compID, _subCompID, _condition,  _message, ...)                \
 {                                                                                           \
     if (_condition)                                                                         \
@@ -525,7 +525,7 @@ void _MOS_Assert(
 //!
 //! \def MOS_CHK_COND_RETURN_VALUE(_compID, _subCompID, _condition, retVal, _str)
 //!  Check if \a _condition is true, if so assert and return \a retVal
-//!  
+//!
 #define MOS_CHK_COND_RETURN_VALUE(_compID, _subCompID, _condition, retVal,  _message, ...)  \
 {                                                                                           \
     if (_condition)                                                                         \
@@ -648,7 +648,7 @@ void _MOS_Assert(
 //!
 #define MOS_OS_CHK_HR_MESSAGE(_ptr, _message, ...)                                          \
     MOS_CHK_HR_MESSAGE(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, _ptr, _message, ##__VA_ARGS__)
-    
+
 //!
 //! \def MOS_OS_CHK_NULL_WITH_HR(_ptr)
 //!  MOS_CHK_NULL_WITH_HR \a _ptr with MOS utility comp/subcomp info
@@ -683,7 +683,6 @@ void _MOS_Assert(
 //!
 #define MOS_OS_CHK_STATUS_RETURN(_stmt)                                                            \
     MOS_CHK_STATUS_RETURN(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, _stmt)
-
 
 //!
 //! \def MOS_OS_ASSERTMESSAGE(_message, ...)

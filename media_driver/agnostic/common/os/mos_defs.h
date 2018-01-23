@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file        mos_defs.h  
-//! \brief      
+//! \file        mos_defs.h 
+//! \brief 
 //!
 //!
 //! \file     mos_defs.h
@@ -198,7 +198,7 @@ typedef char**                  PPCHAR;                     //!< Pointer to a PC
 #define MOS_UF_ROUND(a)          ((uint32_t) ((a) + 0.5F))
 
 //!
-//! \def MOS_F_ROUND(a)  
+//! \def MOS_F_ROUND(a) 
 //!  Rounds float \a a to a int32_t
 //!
 #define MOS_F_ROUND(a)           ((int32_t) ((a) + ((a) < 0 ? -0.5F : 0.5F)))
@@ -209,7 +209,7 @@ typedef char**                  PPCHAR;                     //!< Pointer to a PC
 //!
 #define MOS_MASK(_low, _high)    ((((uint32_t)1) << (_high)) |    \
                                  ((((uint32_t)1) << (_high)) -    \
-                                  (((uint32_t)1) << (_low))))  
+                                  (((uint32_t)1) << (_low))))
 //!
 //! \def MOS_MASKBITS32(_low, _high)
 //!  Returns a mask of bits set in the range from \a _low to \a _high

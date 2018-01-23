@@ -118,14 +118,14 @@ MOS_STATUS GraphicsResource::Dump(OsContext* osContextPtr, uint32_t overrideOffs
     if (eStatus != MOS_STATUS_SUCCESS)
     {
         MOS_OS_ASSERTMESSAGE("Failed to unlock the gpu resource");
-    }    
+    }
 
     if (hFile != nullptr)
     {
         MOS_CloseHandle(hFile);
     }
 
-    return eStatus;   
+    return eStatus;
 }
 
 class GraphicsResource* GraphicsResource::CreateGraphicResource(GraphicsResource::ResourceType resourceType)

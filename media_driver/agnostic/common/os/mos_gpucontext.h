@@ -184,9 +184,9 @@ public:
     //! \brief    Set Gpu context handle
     //! \details  Register the index in gpucontext mgr pool for current gpu context 
     //!
-    void SetGpuContextHandle(GPU_CONTEXT_HANDLE gpuContextHandle) 
-    { 
-        m_gpuContextHandle = gpuContextHandle; 
+    void SetGpuContextHandle(GPU_CONTEXT_HANDLE gpuContextHandle)
+    {
+        m_gpuContextHandle = gpuContextHandle;
     }
 
     //!

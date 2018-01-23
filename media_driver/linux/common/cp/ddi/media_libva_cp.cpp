@@ -36,7 +36,6 @@ static void DdiStubMessage()
     DDI_NORMALMESSAGE("This function is stubbed as CP is not enabled.");
 }
 
-
 DdiCpInterface::DdiCpInterface(MOS_CONTEXT& mosCtx)
 {
     DdiStubMessage();
@@ -87,7 +86,6 @@ VAStatus DdiCpInterface::CreateBuffer(
     DdiStubMessage();
     return VA_STATUS_ERROR_UNSUPPORTED_BUFFERTYPE;
 }
-
 
 bool DdiCpInterface::CheckSupportedBufferForCodec(VABufferType type)
 {

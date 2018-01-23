@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file        mos_utilities_specific.c  
-//! \brief        This module implements the MOS wrapper functions for Linux/Android  
+//! \file        mos_utilities_specific.c 
+//! \brief        This module implements the MOS wrapper functions for Linux/Android 
 //!
 
 #include "mos_utilities_specific.h"
@@ -1732,7 +1732,6 @@ finish:
     return eStatus;
 }
 
-
 /*----------------------------------------------------------------------------
 | Name      : MOS_UserFeatureGetValue_AndroidProp
 | Purpose   : Retrieves the type and data for the specified user feature value.
@@ -1923,7 +1922,6 @@ finish:
     return eStatus;
 }
 #endif
-
 
 /*----------------------------------------------------------------------------
 | Name      : MOS_UserFeatureOpenKey_File
@@ -2570,9 +2568,9 @@ MOS_STATUS MOS_DestroyMutex(PMOS_MUTEX pMutex)
     {
         if (pthread_mutex_destroy(pMutex))
         {
-		    eStatus = MOS_STATUS_UNKNOWN;
+            eStatus = MOS_STATUS_UNKNOWN;
         }
-		MOS_FreeMemory(pMutex);
+        MOS_FreeMemory(pMutex);
     }
 
     return eStatus;
@@ -2608,7 +2606,7 @@ PMOS_SEMAPHORE MOS_CreateSemaphore(
 {
     PMOS_SEMAPHORE pSemaphore = nullptr;
     MOS_UNUSED(uiMaximumCount);
-    
+
     pSemaphore = (PMOS_SEMAPHORE)MOS_AllocMemory(sizeof(*pSemaphore));
     if (sem_init(pSemaphore, 0, uiInitialCount))
     {
@@ -2686,7 +2684,7 @@ uint32_t MOS_WaitForSingleObject(
     uint32_t WaitSignal = 0;
     MOS_UNUSED(pObject);
     MOS_UNUSED(uiMilliseconds);
-    
+
     return WaitSignal;
 }
 
@@ -2750,7 +2748,7 @@ MOS_STATUS MOS_GetLocalTime(
     }
 
     eStatus = MOS_SecureMemcpy(Tm, sizeof(struct tm), pTm, sizeof(struct tm));
-    return eStatus;    
+    return eStatus;
 }
 
 void MOS_TraceEventInit()
@@ -2762,7 +2760,7 @@ void MOS_TraceEventInit()
         MosTraceFd = -1;
     }
     MosTraceFd = open(MosTracePath, O_WRONLY);
-    return; 
+    return;
 }
 
 void MOS_TraceEventClose()
@@ -2792,16 +2790,16 @@ void MOS_TraceEvent(
         if (pTraceBuf)
         {
             MOS_SecureStringPrint(pTraceBuf,
-                        TRACE_EVENT_MAX_SIZE, 
-                        (TRACE_EVENT_MAX_SIZE-1), 
+                        TRACE_EVENT_MAX_SIZE,
+                        (TRACE_EVENT_MAX_SIZE-1),
                         "IMTE|%d|%d", // magic number IMTE (IntelMediaTraceEvent)
-                        usId, 
+                        usId,
                         ucType);
             nLen = strlen(pTraceBuf);
             if (pArg1)
             {
-                // convert raw event data to string. native raw data will be supported 
-                // from linux kernel 4.10, hopefully we can skip this convert in the future. 
+                // convert raw event data to string. native raw data will be supported
+                // from linux kernel 4.10, hopefully we can skip this convert in the future.
                 const static char n2c[] = "0123456789ABCDEF";
                 char  *pData = (char *)pArg1;
 
@@ -2813,7 +2811,7 @@ void MOS_TraceEvent(
                 }
                 if (pArg2)
                 {
-                    pData = (char *)pArg2; 
+                    pData = (char *)pArg2;
                     while(dwSize2-- > 0 && nLen < TRACE_EVENT_MAX_SIZE-2)
                     {
                         pTraceBuf[nLen++] = n2c[(*pData) >> 4];

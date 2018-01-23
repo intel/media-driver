@@ -70,7 +70,6 @@ struct LinuxCodecInfo
     uint32_t vp9Vdenc      : 1;
 };
 
-
 struct GfxDeviceInfo
 {
     uint32_t  platformType;

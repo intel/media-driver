@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file        hwinfo_linux.c  
-//! \brief     The purpose of the file is to get the sku/wa table according to platform information.     
+//! \file        hwinfo_linux.c 
+//! \brief     The purpose of the file is to get the sku/wa table according to platform information. 
 //!
 
 #include "hwinfo_linux.h"

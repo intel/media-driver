@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file        linux_skuwa_debug.h  
-//! \brief          
+//! \file        linux_skuwa_debug.h 
+//! \brief 
 //!
 
 #ifndef __LINUX_SKUWA_DEBUG_H__
@@ -49,6 +49,5 @@
 #define DEVINFO_WARNING(msg)
 #define DEVINFO_ERROR(msg)
 #endif
-
 
 #endif //__LINUX_SKUWA_DEBUG_H__

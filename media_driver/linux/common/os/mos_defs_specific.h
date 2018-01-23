@@ -103,7 +103,7 @@ typedef struct _TP_CALLBACK_INSTANCE TP_CALLBACK_INSTANCE, *PTP_CALLBACK_INSTANC
 #define __MEDIA_PORTABLE_DATAYPE_DEFINED__
 
 #define _stprintf                                           sprintf
-#define _sntprintf                                          snprintf 
+#define _sntprintf                                          snprintf
 
 #if defined(__ANDROID__)
 #define vsprintf_s(pBuffer, size, format, arg)              vsnprintf(pBuffer, size, format, arg)

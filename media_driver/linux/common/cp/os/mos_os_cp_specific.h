@@ -62,7 +62,7 @@ public:
     bool IsIDMEnabled();
 
     bool IsSMEnabled();
-        
+
     bool IsTearDownHappen();
 
     MOS_STATUS SetResourceEncryption(

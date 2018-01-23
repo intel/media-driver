@@ -59,12 +59,12 @@ MOS_STATUS MhwCpInterface::AddProlog(
 }
 
 MOS_STATUS MhwCpInterface::IsHWCounterAutoIncrementEnforced(
-	PMOS_INTERFACE osInterface)
+    PMOS_INTERFACE osInterface)
 {
-	MOS_UNUSED(osInterface);
+    MOS_UNUSED(osInterface);
 
-	MhwStubMessage();
-	return MOS_STATUS_SUCCESS;
+    MhwStubMessage();
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS MhwCpInterface::AddEpilog(

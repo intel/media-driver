@@ -67,7 +67,7 @@ typedef struct _MHW_CP_COPY_PARAMS
     PMOS_RESOURCE presSrc;
     PMOS_RESOURCE presDst;
     uint32_t      size;
-    uint16_t      lengthOfTable; 
+    uint16_t      lengthOfTable;
     bool          isEncodeInUse;
 } MHW_CP_COPY_PARAMS, *PMHW_CP_COPY_PARAMS;
 
@@ -86,8 +86,8 @@ public:
         PMOS_INTERFACE      osInterface,
         PMOS_COMMAND_BUFFER cmdBuffer);
 
-	MOS_STATUS IsHWCounterAutoIncrementEnforced(
-		PMOS_INTERFACE osInterface);
+    MOS_STATUS IsHWCounterAutoIncrementEnforced(
+        PMOS_INTERFACE osInterface);
 
     MOS_STATUS AddEpilog(
         PMOS_INTERFACE      osInterface,
@@ -112,7 +112,7 @@ public:
     MOS_STATUS SetProtectionSettingsForMiFlushDw(
         PMOS_INTERFACE osInterface,
         void           *cmd);
-        
+
     MOS_STATUS SetProtectionSettingsForMfxWait(
         PMOS_INTERFACE osInterface,
         void           *cmd);
@@ -145,7 +145,7 @@ public:
     bool isHMEnabled() const;
 
     CP_MODE GetHostEncryptMode() const;
-    
+
     void SetCpSecurityType(CP_SECURITY_TYPE type = CP_SECURITY_NONE);
 
     void SetCpForceDisabled(bool disabled);

@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file        hwinfo_linux.h  
-//! \brief          
+//! \file        hwinfo_linux.h 
+//! \brief 
 //!
 #ifndef __HWINFO_LINUX_H__
 #define __HWINFO_LINUX_H__

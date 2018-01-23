@@ -45,7 +45,7 @@ public:
     {
         return false;
     }
-    
+
     //!
     //! \brief    Get the supported decode encrytion types 
     //!

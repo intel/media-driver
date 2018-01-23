@@ -67,7 +67,7 @@ enum DdiSurfaceFormat
     DDI_FORMAT_YUY2         = MAKEFOURCC('Y', 'U', 'Y', '2'),
     DDI_FORMAT_P8           = 41,
     DDI_FORMAT_A8P8         = 40,
-    DDI_FORMAT_A8           = 28,   
+    DDI_FORMAT_A8           = 28,
     DDI_FORMAT_L8           = 50,
     DDI_FORMAT_L16          = 81,
     DDI_FORMAT_A4L4         = 52,
@@ -151,13 +151,12 @@ typedef struct _MOS_INTERFACE      *PMOS_INTERFACE;
 typedef struct _MOS_COMMAND_BUFFER *PMOS_COMMAND_BUFFER;
 typedef struct _MOS_LOCK_PARAMS    *PMOS_LOCK_PARAMS;
 
-
 //!
 //! \brief enum to video device operations 
 //!
 typedef enum _MOS_MEDIA_OPERATION
 {
-    MOS_MEDIA_OPERATION_NONE    = 0, 
+    MOS_MEDIA_OPERATION_NONE    = 0,
     MOS_MEDIA_OPERATION_DECODE,
     MOS_MEDIA_OPERATION_ENCODE,
     MOS_MEDIA_OPERATION_MAX
@@ -168,7 +167,7 @@ typedef enum _MOS_MEDIA_OPERATION
 //!
 typedef enum _MOS_GPU_NODE
 {
-    MOS_GPU_NODE_3D      = I915_EXEC_RENDER,        
+    MOS_GPU_NODE_3D      = I915_EXEC_RENDER,
     MOS_GPU_NODE_COMPUTE = I915_EXEC_RENDER, //To change to compute CS later when linux define the name
     MOS_GPU_NODE_VE      = I915_EXEC_VEBOX,
     MOS_GPU_NODE_VIDEO   = I915_EXEC_BSD,
@@ -218,7 +217,7 @@ static inline MOS_GPU_NODE OSKMGetGpuNode(MOS_GPU_CONTEXT uiGpuContext)
 //!
 typedef enum _MOS_MMAP_OPERATION
 {
-    MOS_MMAP_OPERATION_NONE    = 0, 
+    MOS_MMAP_OPERATION_NONE    = 0,
     MOS_MMAP_OPERATION_MMAP,
     MOS_MMAP_OPERATION_MMAP_GTT,
     MOS_MMAP_OPERATION_MMAP_WC
@@ -269,7 +268,7 @@ struct _MOS_SPECIFIC_RESOURCE
     int32_t                 bPermaLocked;
 #endif // MOS_MEDIASOLO_SUPPORTED
 
-    // This is used by MDF when a wrapper/virtual MOS Resource is used to set surface state for a given VA, not necessary from start, in an actual MOS resource 
+    // This is used by MDF when a wrapper/virtual MOS Resource is used to set surface state for a given VA, not necessary from start, in an actual MOS resource
     uint64_t                user_provided_va;
     // for MODS Wrapper
     GraphicsResource*       pGfxResource;
@@ -285,7 +284,7 @@ struct MOS_SURFACE
     MOS_RESOURCE        OsResource;                                             //Surface Resource
 
     uint32_t            dwArraySlice;                                           //!< [in]
-    uint32_t            dwMipSlice;                                             //!< [in] 
+    uint32_t            dwMipSlice;                                             //!< [in]
     MOS_S3D_CHANNEL     S3dChannel;                                             //!< [in]
 
     MOS_GFXRES_TYPE     Type;                                                   //!< [out] Basic resource geometry
@@ -307,13 +306,13 @@ struct MOS_SURFACE
     int32_t             bCompressible;                                          //!< [out] Memory compression
 
     uint32_t            dwOffset;                                               // Surface Offset (Y/Base)
-    MOS_PLANE_OFFSET    YPlaneOffset;                                           // Y surface plane offset 
-    MOS_PLANE_OFFSET    UPlaneOffset;                                           // U surface plane offset 
+    MOS_PLANE_OFFSET    YPlaneOffset;                                           // Y surface plane offset
+    MOS_PLANE_OFFSET    UPlaneOffset;                                           // U surface plane offset
     MOS_PLANE_OFFSET    VPlaneOffset;                                           // V surface plane
 
-    union 
+    union
     {
-        struct 
+        struct
         {
             MOS_RESOURCE_OFFSETS Y;
             MOS_RESOURCE_OFFSETS U;
@@ -323,9 +322,9 @@ struct MOS_SURFACE
         MOS_RESOURCE_OFFSETS RGB;                                               //!< [out] Valid non planar RGB formats. Invalid for YUV and planar RGB formats.
     } RenderOffset;                                                             //!< [out] Offsets request by input parameters. Used to program HW.
 
-    union 
+    union
     {
-        struct 
+        struct
         {
             uint32_t Y;
             uint32_t U;
@@ -383,7 +382,7 @@ typedef struct _COMMAND_BUFFER
 
     int64_t             *pSyncTag;
     int64_t             qSyncTag;
- 
+
     // Status
     int32_t             bActive;        //!< Active / Inactive flag
     int32_t             bRunning;       //!< CB is running in Gfx Device
@@ -433,9 +432,9 @@ typedef struct _CODECHAL_OS_GPU_CONTEXT
     int32_t                     iResIndex[CODECHAL_MAX_REGS];  //!< Resource indices
     PMOS_RESOURCE                pResources;                   //!< Pointer to resources list
     int32_t                     *pbWriteMode;                  //!< Write mode
-    
+
     // GPU Status
-	uint32_t                    uiGPUStatusTag;
+    uint32_t                    uiGPUStatusTag;
 } MOS_OS_GPU_CONTEXT, *PMOS_OS_GPU_CONTEXT;
 
 //!
@@ -452,7 +451,7 @@ struct MOS_CONTEXT_OFFSET
 {
     MOS_LINUX_CONTEXT *intel_context;
     MOS_LINUX_BO      *target_bo;
-    uint64_t          offset64;	
+    uint64_t          offset64;
 };
 #endif
 
@@ -472,7 +471,7 @@ struct _MOS_OS_CONTEXT
     // Buffer rendering
     LARGE_INTEGER       Frequency;                //!< Frequency
     LARGE_INTEGER       LastCB;                   //!< End time for last CB
- 
+
     CMD_BUFFER_BO_POOL  CmdBufferPool;
 
     // Emulated platform, sku, wa tables
@@ -482,7 +481,7 @@ struct _MOS_OS_CONTEXT
     MEDIA_SYSTEM_INFO      gtSystemInfo;
 
     // Controlled OS resources (for analysis)
-    MOS_BUFMGR   	*bufmgr;
+    MOS_BUFMGR       *bufmgr;
     MOS_LINUX_CONTEXT   *intel_context;
     uint32_t            uEnablePerfTag;           //!< 0: Do not pass PerfTag to KMD, perf data collection disabled;
                                                   //!< 1: Pass PerfTag to MVP driver, perf data collection enabled;
@@ -519,15 +518,15 @@ struct _MOS_OS_CONTEXT
     int32_t             cmDevRefCount;
     void                *pCmDev;
 
-	GMM_CLIENT_CONTEXT  *pGmmClientContext;   //UMD specific ClientContext object in GMM
+    GMM_CLIENT_CONTEXT  *pGmmClientContext;   //UMD specific ClientContext object in GMM
 
     // GPU Status Buffer
     PMOS_RESOURCE   pGPUStatusBuffer;
 
 #ifndef ANDROID
-    std::vector< struct MOS_CONTEXT_OFFSET> contextOffsetList;   
+    std::vector< struct MOS_CONTEXT_OFFSET> contextOffsetList;
 #endif
- 
+
     // Media memory decompression function
     void (* pfnMemoryDecompress)(
         PMOS_CONTEXT                pOsContext,
@@ -564,14 +563,14 @@ struct _MOS_OS_CONTEXT
         struct _MOS_OS_CONTEXT      *pOsContext,
         int32_t                     index);
 
-    uint32_t (* GetDmaBufID ) ( 
+    uint32_t (* GetDmaBufID ) (
         struct _MOS_OS_CONTEXT      *pOsContext);
 
-    void (* SetDmaBufID ) ( 
+    void (* SetDmaBufID ) (
         struct _MOS_OS_CONTEXT      *pOsContext,
         uint32_t                    dwDmaBufID);
 
-    void (* SetPerfHybridKernelID ) ( 
+    void (* SetPerfHybridKernelID ) (
         struct _MOS_OS_CONTEXT      *pOsContext,
         uint32_t                    KernelID);
 

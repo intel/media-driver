@@ -294,7 +294,7 @@ void OsContextSpecific::DestroyIPC()
             m_shmId = MOS_LINUX_IPC_INVALID_ID;
             m_shm   = MOS_LINUX_SHM_INVALID;
 
-            if (iAttachedNum) 
+            if (iAttachedNum)
             {
                 --iAttachedNum;
             }
@@ -320,7 +320,7 @@ MOS_STATUS OsContextSpecific::CreateSSEUIPC()
         &UserFeatureData);
     m_enableDSS = UserFeatureData.i32Data;
 
-    if (m_enableDSS < 0 && m_enableDSS < -1 || 
+    if (m_enableDSS < 0 && m_enableDSS < -1 ||
         m_enableDSS > 0 && (uint32_t) m_enableDSS > m_gtSystemInfo.SliceCount)
     {
         m_enableDSS = m_gtSystemInfo.SliceCount;
@@ -376,7 +376,7 @@ void OsContextSpecific::SetSliceCount(uint32_t *pSliceCount)
         MOS_OS_ASSERTMESSAGE("pSliceCount is NULL.");
         goto finish;
     }
-    
+
     if (m_enableDSS == 0)
     {
         // m_enableDSS == 0, default slice count
@@ -387,7 +387,7 @@ void OsContextSpecific::SetSliceCount(uint32_t *pSliceCount)
         // m_enableDSS > 0, static slice shutdown
         rulingSliceCount = (m_enableDSS < m_gtSystemInfo.SliceCount)? m_enableDSS:m_gtSystemInfo.SliceCount;
     }
-    else 
+    else
     {
         // m_enableDSS = -1, dynamic slice shutdown
         //
@@ -492,18 +492,18 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
     MOS_SecureMemcpy(&m_perfData, sizeof(PERF_DATA), pOsDriverContext->pPerfData, sizeof(PERF_DATA));
     mos_bufmgr_gem_enable_reuse(pOsDriverContext->bufmgr);
     m_cpContext = pOsDriverContext->pCpContext;
-	m_pGmmClientContext = pOsDriverContext->pGmmClientContext;
+    m_pGmmClientContext = pOsDriverContext->pGmmClientContext;
 
     // DDI layer can pass over the DeviceID.
     iDeviceId = pOsDriverContext->iDeviceId;
-    if (0 == iDeviceId) 
-    {   
+    if (0 == iDeviceId)
+    {
         PLATFORM           platformInfo;
         MEDIA_FEATURE_TABLE  skuTable;
         MEDIA_WA_TABLE       waTable;
         MEDIA_SYSTEM_INFO    gtSystemInfo;
 
-        eStatus = HWInfo_GetGfxInfo(pOsDriverContext->fd, &platformInfo, &skuTable, &waTable, &gtSystemInfo);                                                          
+        eStatus = HWInfo_GetGfxInfo(pOsDriverContext->fd, &platformInfo, &skuTable, &waTable, &gtSystemInfo);
         if (eStatus != MOS_STATUS_SUCCESS)
         {
             MOS_OS_ASSERTMESSAGE("Fatal error - unsuccesfull Sku/Wa/GtSystemInfo initialization");
@@ -542,8 +542,8 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
 
     if (m_intelContext == nullptr)
     {
-       	MOS_OS_ASSERTMESSAGE("Failed to create drm intel context");
-       	return MOS_STATUS_UNKNOWN;
+        MOS_OS_ASSERTMESSAGE("Failed to create drm intel context");
+        return MOS_STATUS_UNKNOWN;
     }
 #else
     m_intelContext                   = nullptr;
@@ -569,7 +569,7 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
         {
             MOS_OS_ASSERTMESSAGE("Fatal error - create IPC failed");
             return eStatus;
-        }     
+        }
     }
 
     eStatus = CreateSSEUIPC();
@@ -600,7 +600,7 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
 
     m_usesPatchList             = true;
     m_usesGfxAddress            = false;
-   
+
     m_inlineCodecStatusUpdate   = true;
 
 #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
@@ -621,7 +621,7 @@ void OsContextSpecific::Destroy()
     DestroySSEUIPC();
  #endif
     m_skuTable.reset();
-    m_waTable.reset(); 
+    m_waTable.reset();
     if (m_intelContext)
     {
         mos_gem_context_destroy(m_intelContext);
