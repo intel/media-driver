@@ -109,19 +109,20 @@ MediaPerfProfiler::MediaPerfProfiler()
     m_perfDataIndex = 0;
     m_ref           = 0;
     m_initialized   = false;
-
-    m_mutex         = MOS_CreateMutex();
 }
 
 MediaPerfProfiler::~MediaPerfProfiler()
 {
-    MOS_DestroyMutex(m_mutex);
-    m_mutex = nullptr;
 }
 
 MediaPerfProfiler* MediaPerfProfiler::Instance()
 {
     static MediaPerfProfiler instance;
+
+    if (instance.m_mutex == nullptr)
+    {
+        instance.m_mutex = MOS_CreateMutex();
+    }
 
     if (instance.m_mutex == nullptr)
     {
@@ -137,7 +138,7 @@ MediaPerfProfiler* MediaPerfProfiler::Instance()
 
 void MediaPerfProfiler::Destroy(MediaPerfProfiler* profiler, void* context, MOS_INTERFACE *osInterface)
 {
-    if (profiler->m_initialized == false)
+    if (profiler->m_mutex == nullptr)
     {
         return;
     }
@@ -149,16 +150,26 @@ void MediaPerfProfiler::Destroy(MediaPerfProfiler* profiler, void* context, MOS_
 
     if (profiler->m_ref == 0)
     {
-        profiler->SavePerfData(osInterface);
+        if (profiler->m_initialized == true)
+        {
+            profiler->SavePerfData(osInterface);
+    
+            osInterface->pfnFreeResource(
+                osInterface,
+                &profiler->m_perfStoreBuffer);
+    
+            profiler->m_initialized = false;
+        }
 
-        osInterface->pfnFreeResource(
-            osInterface,
-            &profiler->m_perfStoreBuffer);
+        MOS_UnlockMutex(profiler->m_mutex);
 
-        profiler->m_initialized = false;
+        MOS_DestroyMutex(profiler->m_mutex);
+        profiler->m_mutex = nullptr;
     }
-
-    MOS_UnlockMutex(profiler->m_mutex);
+    else
+    {
+        MOS_UnlockMutex(profiler->m_mutex);
+    }
 }
 
 MOS_STATUS MediaPerfProfiler::Initialize(void* context, MOS_INTERFACE *osInterface)
