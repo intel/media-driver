@@ -138,7 +138,6 @@ CODEC_AVC_PROFILE_IDC DdiEncodeAvc::GetAVCProfileFromVAProfile()
 {
     switch (m_encodeCtx->vaProfile)
     {
-    case VAProfileH264Baseline:
     case VAProfileH264ConstrainedBaseline:
         return CODEC_AVC_BASE_PROFILE;
     case VAProfileH264Main:
@@ -1647,20 +1646,10 @@ VAStatus DdiEncodeAvc::ParsePackedHeaderParams(void *ptr)
         m_encodeCtx->pSliceHeaderData[m_encodeCtx->uiSliceHeaderCnt].BitSize                = encPackedHeaderParamBuf->bit_length;
         m_encodeCtx->pSliceHeaderData[m_encodeCtx->uiSliceHeaderCnt].SkipEmulationByteCount = (encPackedHeaderParamBuf->has_emulation_bytes) ? (encPackedHeaderParamBuf->bit_length + 7) / 8 : 4;
     }
-    else if (encPackedHeaderParamBuf->type == VAEncPackedHeaderH264_SEI)
-    {
-        nalUnitType = CODECHAL_ENCODE_AVC_NAL_UT_SEI;
-        if (m_encodeCtx->pSEIFromApp->pSEIBuffer)
-            MOS_FreeMemory(m_encodeCtx->pSEIFromApp->pSEIBuffer);
-        uint32_t size                           = (encPackedHeaderParamBuf->bit_length + 7) / 8;
-        m_encodeCtx->pSEIFromApp->pSEIBuffer    = (uint8_t *)MOS_AllocAndZeroMemory(size);
-        m_encodeCtx->pSEIFromApp->dwSEIBufSize  = size;
-        m_encodeCtx->pSEIFromApp->dwSEIDataSize = 0;
-        m_encodeCtx->pSEIFromApp->newSEIData   = true;
-    }
     else if (encPackedHeaderParamBuf->type == VAEncPackedHeaderRawData)
     {
-        // currently RawData is only for AUD, although it can be other types in VAAPI
+        // currently RawData is packed nal unit beside SPS,PPS,SLICE HEADER etc.
+        // use AUD just because we need a Type to distinguish with Slice header
         nalUnitType = CODECHAL_ENCODE_AVC_NAL_UT_AUD;
     }
     else

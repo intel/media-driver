@@ -761,19 +761,7 @@ VAStatus DdiEncodeHevc::ParsePackedHeaderParams(void *ptr)
         m_encodeCtx->pSliceHeaderData[m_encodeCtx->uiSliceHeaderCnt].BitSize                = encPackedHeaderParamBuf->bit_length;
         m_encodeCtx->pSliceHeaderData[m_encodeCtx->uiSliceHeaderCnt].SkipEmulationByteCount = (encPackedHeaderParamBuf->has_emulation_bytes) ? (encPackedHeaderParamBuf->bit_length + 7) / 8 : 4;
     }
-    else if (encPackedHeaderParamBuf->type == VAEncPackedHeaderHEVC_SEI)
-    {
-        if (m_encodeCtx->pSEIFromApp->pSEIBuffer)
-            MOS_FreeMemory(m_encodeCtx->pSEIFromApp->pSEIBuffer);
-
-        uint32_t size                         = (encPackedHeaderParamBuf->bit_length + 7) / 8;
-        m_encodeCtx->pSEIFromApp->pSEIBuffer    = (uint8_t *)MOS_AllocAndZeroMemory(size);
-        m_encodeCtx->pSEIFromApp->dwSEIBufSize  = size;
-        m_encodeCtx->pSEIFromApp->dwSEIDataSize = 0;
-        m_encodeCtx->pSEIFromApp->newSEIData   = true;
-    }
-
-    if (encPackedHeaderParamBuf->type != VAEncPackedHeaderHEVC_Slice)
+    else 
     {
         /* App does not indicate the type, using PPS in general for headers */
         m_encodeCtx->ppNALUnitParams[m_encodeCtx->indexNALUnit]->uiNalUnitType             = HEVC_NAL_UT_PPS;
