@@ -30,6 +30,8 @@
 class CmTest: public testing::Test
 {
 public:
+    CmTest(): m_currentPlatform(igfx_MAX) {}
+    
     template<typename T, class Function>
     bool RunEach(T expected_return, Function func)
     {
@@ -42,6 +44,7 @@ public:
         {
             int va_status = m_driverLoader.InitDriver(platforms[i]);
             EXPECT_EQ(VA_STATUS_SUCCESS, va_status);
+            m_currentPlatform = platforms[i];
 
             int32_t function_return = func();
             EXPECT_EQ(function_return, expected_return);
@@ -55,6 +58,8 @@ public:
 
 protected:
     DriverDllLoader m_driverLoader;
+
+    Platform_t m_currentPlatform;
 };
 
 #endif  // #ifndef MEDIADRIVER_LINUX_CODECHAL_ULT_ULTAPP_CMTEST_H_

@@ -1518,7 +1518,7 @@ CM_RT_API int32_t CmDeviceRT::LoadProgram(void* commonISACode,
 
     if ((commonISACode == nullptr) || (size == 0))
     {
-        CM_ASSERTMESSAGE("Error: Invalid vistual isa.");
+        CM_ASSERTMESSAGE("Error: Invalid common isa code.");
         return CM_INVALID_COMMON_ISA;
     }
 

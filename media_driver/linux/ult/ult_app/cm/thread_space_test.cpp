@@ -79,11 +79,11 @@ TEST_F(ThreadSpaceTest, MultipleSizes)
     RunEach(CM_SUCCESS,
             [this]() { return CreateDestroy(WIDTH, HEIGHT); });
 
-    uint32_t max_width = CM_MAX_THREADSPACE_WIDTH_SKLUP_FOR_MW;
-    uint32_t max_height = CM_MAX_THREADSPACE_HEIGHT_SKLUP_FOR_MW;
-    RunEach(CM_SUCCESS,
-            [this, max_width, max_height]()
-                { return CreateDestroy(max_width, max_height);});
+    auto CreateWithMaxSize
+            = [this]()
+            { return CreateDestroy(CM_MAX_THREADSPACE_WIDTH_SKLUP_FOR_MW,
+                                   CM_MAX_THREADSPACE_HEIGHT_SKLUP_FOR_MW); };
+    RunEach(CM_SUCCESS, CreateWithMaxSize);
     return;
 }//========
 
