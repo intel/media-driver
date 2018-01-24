@@ -400,7 +400,7 @@ MOS_STATUS CodecHalSetRcsSurfaceState(
             surfaceRcsParams.dwHeightToUse[MHW_U_PLANE]           = (surfaceCodecParams->bUseHalfHeight) ?
                 (surfaceCodecParams->psSurface->dwHeight / 4) : (surfaceCodecParams->psSurface->dwHeight / 2);
 
-            if (surfaceCodecParams->psSurface->Format == Format_YUY2V || surfaceCodecParams->psSurface->Format == Format_Y216V)
+            if (surfaceCodecParams->psSurface->Format == Format_YUY2V || surfaceCodecParams->psSurface->Format == Format_Y216V || surfaceCodecParams->psSurface->Format == Format_P208)
             {
                 surfaceRcsParams.dwHeightToUse[MHW_U_PLANE] = surfaceRcsParams.dwHeightToUse[MHW_U_PLANE] * 2;
             }

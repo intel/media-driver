@@ -42,20 +42,6 @@ MOS_STATUS CodechalEncodeCscDs::AllocateSurfaceCsc()
     {
         auto cscSurface = m_encoder->m_trackedBuf->GetCurrCscSurface();
 
-        if (m_cscAllocFormat == Format_YUY2)
-        {
-            if (cscColorYUY2 == m_colorRawSurface)
-            {
-                cscSurface->Format = Format_YUY2V;
-                cscSurface->dwWidth <<= 1;
-                cscSurface->dwHeight >>= 1;
-            }
-            else if (cscColorY210 == m_colorRawSurface)
-            {
-                cscSurface->Format = Format_Y216V;
-                cscSurface->dwHeight >>= 1;
-            }
-        }
         eStatus = MOS_STATUS_SUCCESS;
     }
     else
@@ -922,21 +908,16 @@ void CodechalEncodeCscDs::GetCscAllocation(uint32_t &width, uint32_t &height, MO
         surfaceHeight = MOS_ALIGN_CEIL(m_encoder->m_oriFrameHeight, m_rawSurfAlignment);
     }
 
-    if (cscColorYUY2 == m_colorRawSurface && m_cscRequireConvTo8bPlanar)
+    if ( (uint8_t)HCP_CHROMA_FORMAT_YUV422 == m_outputChromaFormat)
     {
-        format = m_cscAllocFormat = Format_YUY2;
-        width = surfaceWidth >> 1;
-        height = surfaceHeight << 1;
-    }
-    else if (cscColorY210 == m_colorRawSurface)
-    {
-        format = m_cscAllocFormat = Format_YUY2;
+        //P208 is 422 8 bit planar with UV interleaved. It has the same memory layout as YUY2V
+        format = Format_P208;
         width = surfaceWidth;
-        height = surfaceHeight << 1;
+        height = surfaceHeight;
     }
     else
     {
-        format = m_cscAllocFormat = Format_NV12;
+        format = Format_NV12;
         width = surfaceWidth;
         height = surfaceHeight;
     }

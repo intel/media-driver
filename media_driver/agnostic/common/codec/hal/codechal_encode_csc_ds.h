@@ -592,7 +592,6 @@ protected:
     uint8_t*                    m_kernelBase = nullptr;                                     //!< kernel binary base address
     uint8_t*                    m_dsKernelBase = nullptr;                                   //!< kernel binary base address for DS kernel
     CscColor                    m_colorRawSurface = cscColorNv12TileY;                      //!< Raw surface color format
-    MOS_FORMAT                  m_cscAllocFormat = Format_NV12;                             //!< CSC surface allocation format
     CurbeParams                 m_curbeParams;                                              //!< Curbe param (shared by CSC and DS kernel)
     SurfaceParamsCsc            m_surfaceParamsCsc;                                         //!< CSC surface param
     SurfaceParamsDS             m_surfaceParamsDS;                                          //!< DS surface param
