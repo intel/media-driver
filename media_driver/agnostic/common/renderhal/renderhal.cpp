@@ -4530,6 +4530,52 @@ finish:
 }
 
 //!
+//! \brief    Adds marker attributes in command buffer
+//! \param    PRENDERHAL_INTERFACE pRenderHal
+//!           [in] Pointer to RenderHal Interface Structure
+//! \param    PMOS_COMMAND_BUFFER pcmdBuffer
+//!           [in] Pointer to Command Buffer
+//! \param    bool isRender
+//!           [in] Flag of Render Engine
+//! \return   MOS_STATUS 
+//!
+MOS_STATUS RenderHal_SendMarkerCommand(
+    PRENDERHAL_INTERFACE    pRenderHal,
+    PMOS_COMMAND_BUFFER     cmdBuffer,
+    bool                    isRender)
+{
+    MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
+
+    if (isRender)
+    {
+        // Send pipe_control to get the timestamp
+        MHW_PIPE_CONTROL_PARAMS             pipeControlParams;
+        MOS_ZeroMemory(&pipeControlParams, sizeof(pipeControlParams));
+        pipeControlParams.presDest          = pRenderHal->SetMarkerParams.pSetMarkerResource;
+        pipeControlParams.dwResourceOffset  = 0;
+        pipeControlParams.dwPostSyncOp      = MHW_FLUSH_WRITE_TIMESTAMP_REG;
+        pipeControlParams.dwFlushMode       = MHW_FLUSH_WRITE_CACHE;
+
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddPipeControl(cmdBuffer, NULL, &pipeControlParams));
+    }
+    else
+    {
+        // Send flush_dw to get the timestamp 
+        MHW_MI_FLUSH_DW_PARAMS  flushDwParams;
+        MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
+        flushDwParams.pOsResource           = pRenderHal->SetMarkerParams.pSetMarkerResource;
+        flushDwParams.dwResourceOffset      = 0;
+        flushDwParams.postSyncOperation     = MHW_FLUSH_WRITE_TIMESTAMP_REG;
+        flushDwParams.bQWordEnable          = 1;
+
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiFlushDwCmd(cmdBuffer, &flushDwParams));
+    }
+
+finish:
+    return eStatus;
+}
+
+//!
 //! \brief    Initializes command buffer attributes and inserts prolog
 //! \param    PRENDERHAL_INTERFACE pRenderHal
 //!           [in] Pointer to RenderHal Interface Structure
@@ -4548,6 +4594,7 @@ MOS_STATUS RenderHal_InitCommandBuffer(
     MHW_GENERIC_PROLOG_PARAMS   genericPrologParams;
     MOS_STATUS                  eStatus;
     MEDIA_SYSTEM_INFO           *pGtSystemInfo;
+    bool                        isRender;
 
     //---------------------------------------------
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
@@ -4562,6 +4609,14 @@ MOS_STATUS RenderHal_InitCommandBuffer(
     pOsInterface    = pRenderHal->pOsInterface;
     pGtSystemInfo   = pOsInterface->pfnGetGtSystemInfo(pOsInterface);
     MHW_RENDERHAL_CHK_NULL(pGtSystemInfo);
+
+    // Send Start Marker command
+    isRender = MOS_RCS_ENGINE_USED(pOsInterface->pfnGetGpuContext(pOsInterface));
+    if (pRenderHal->SetMarkerParams.setMarkerEnabled)
+    {
+        MHW_RENDERHAL_CHK_STATUS(RenderHal_SendMarkerCommand(
+            pRenderHal, pCmdBuffer, isRender));
+    }
 
     // Init Cmd Buffer
 #ifdef _MMC_SUPPORTED
@@ -6264,6 +6319,9 @@ MOS_STATUS RenderHal_InitInterface(
     pRenderHal->iMaxPalettes                  = RENDERHAL_PALETTE_COUNT;
     pRenderHal->iMaxPaletteEntries            = RENDERHAL_PALETTE_ENTRIES;
     pRenderHal->iMaxChromaKeys                = RENDERHAL_CHROMA_KEY_COUNT;
+
+    MOS_ZeroMemory(&pRenderHal->PredicationParams, sizeof(pRenderHal->PredicationParams));
+    MOS_ZeroMemory(&pRenderHal->SetMarkerParams, sizeof(pRenderHal->SetMarkerParams));
 
     // Initialization/Cleanup function
     pRenderHal->pfnInitialize                 = RenderHal_Initialize;

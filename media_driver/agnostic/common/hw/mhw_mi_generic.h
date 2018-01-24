@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2017, Intel Corporation
+* Copyright (c) 2015-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -119,6 +119,42 @@ private:
         return formattedOpCode;
     }
 
+    MOS_STATUS SendMarkerCommand(
+        PMOS_COMMAND_BUFFER cmdBuffer,
+        bool isRender)
+    {
+        MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
+
+        MHW_FUNCTION_ENTER;
+
+        if (isRender)
+        {
+            // Send pipe_control to get the timestamp
+            MHW_PIPE_CONTROL_PARAMS             pipeControlParams;
+            MOS_ZeroMemory(&pipeControlParams, sizeof(pipeControlParams));
+            pipeControlParams.presDest          = m_osInterface->pfnGetMarkerResource(m_osInterface);
+            pipeControlParams.dwResourceOffset  = sizeof(uint64_t);
+            pipeControlParams.dwPostSyncOp      = MHW_FLUSH_WRITE_TIMESTAMP_REG;
+            pipeControlParams.dwFlushMode       = MHW_FLUSH_WRITE_CACHE;
+
+            MHW_MI_CHK_STATUS(AddPipeControl(cmdBuffer, NULL, &pipeControlParams));
+        }
+        else
+        {
+            // Send flush_dw to get the timestamp 
+            MHW_MI_FLUSH_DW_PARAMS  flushDwParams;
+            MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
+            flushDwParams.pOsResource           = m_osInterface->pfnGetMarkerResource(m_osInterface);
+            flushDwParams.dwResourceOffset      = sizeof(uint64_t);
+            flushDwParams.postSyncOperation     = MHW_FLUSH_WRITE_TIMESTAMP_REG;
+            flushDwParams.bQWordEnable          = 1;
+
+            MHW_MI_CHK_STATUS(AddMiFlushDwCmd(cmdBuffer, &flushDwParams));
+        }
+
+        return eStatus;
+    }
+
 protected:
     MhwMiInterfaceGeneric(
         MhwCpInterface      *cpInterface,
@@ -199,6 +235,13 @@ public:
     #endif
         }
 
+        // Send End Marker command
+        if (m_osInterface->pfnIsSetMarkerEnabled(m_osInterface))
+        {
+            MHW_MI_CHK_STATUS(SendMarkerCommand(
+                cmdBuffer, MOS_RCS_ENGINE_USED(m_osInterface->pfnGetGpuContext(m_osInterface))));
+        }
+
         return MOS_STATUS_SUCCESS;
     }
 
@@ -236,6 +279,13 @@ public:
     #if (_DEBUG || _RELEASE_INTERNAL)
             batchBuffer->iLastCurrent = batchBuffer->iCurrent;
     #endif
+        }
+
+        // Send End Marker command
+        if (m_osInterface->pfnIsSetMarkerEnabled(m_osInterface))
+        {
+            MHW_MI_CHK_STATUS(SendMarkerCommand(
+                cmdBuffer, MOS_RCS_ENGINE_USED(m_osInterface->pfnGetGpuContext(m_osInterface))));
         }
 
         return MOS_STATUS_SUCCESS;

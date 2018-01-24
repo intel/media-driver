@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -779,6 +779,28 @@ void Mos_Specific_SetResourceWidth(
 void Mos_Specific_SetResourceFormat(
     PMOS_RESOURCE               pOsResource,
     MOS_FORMAT                  mosFormat);
+
+//!
+//! \brief    Get SetMarker enabled flag
+//! \details  Get SetMarker enabled flag from OsInterface
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] OS Interface
+//! \return   bool
+//!           SetMarker enabled flag
+//!
+bool Mos_Specific_IsSetMarkerEnabled(
+    PMOS_INTERFACE         pOsInterface);
+
+//!
+//! \brief    Get SetMarker resource address
+//! \details  Get SetMarker resource address from OsInterface
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] OS Interface
+//! \return   PMOS_RESOURCE
+//!           SetMarker resource address
+//!
+PMOS_RESOURCE Mos_Specific_GetMarkerResource(
+    PMOS_INTERFACE         pOsInterface);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 MOS_LINUX_BO * Mos_GetNopCommandBuffer_Linux(
