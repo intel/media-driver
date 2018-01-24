@@ -30,6 +30,7 @@
 #define NUM_MBENC_PB_32X32_IC_SURFACES       10
 #define NUM_MBENC_PB_PAK_SURFACES            11
 #define NUM_MBENC_PB_MB_SURFACES             27
+#define NUM_MBENC_P_MB_SURFACES              26
 
 #define CURBEDATA_SIZE_PB_32X32_IC           32
 #define CURBEDATA_SIZE_PB_PAK                (32 * 2)
@@ -39,6 +40,7 @@
 #define HEVCENCKERNELNAME_PB_32x32           "Hevc_LCUEnc_PB_32x32_IntraCheck"
 #define HEVCENCKERNELNAME_PB_PAK             "HEVC_LCUEnc_PB_PAK"
 #define HEVCENCKERNELNAME_PB_MB              "HEVC_LCUEnc_PB_MB"
+#define HEVCENCKERNELNAME_P_MB               "HEVC_LCUEnc_P_MB"
 
 typedef struct
 {

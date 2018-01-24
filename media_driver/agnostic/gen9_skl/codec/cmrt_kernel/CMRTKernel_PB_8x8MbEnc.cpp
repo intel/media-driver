@@ -27,11 +27,19 @@
 #include "CMRTKernel_PB_8x8MbEnc.h"
 #include "CMRTKernel_PB_Kernel_def.h"
 
-CMRTKernelPB8x8MbEnc::CMRTKernelPB8x8MbEnc()
+CMRTKernelPB8x8MbEnc::CMRTKernelPB8x8MbEnc(uint16_t picCodingType): m_pictureCodingType(picCodingType)
 {
 
     m_isaName           = HEVC_PB_ISA_FILE_NAME_G9;
-    m_kernelName        = HEVCENCKERNELNAME_PB_MB;
+
+    if (m_pictureCodingType == P_TYPE)
+    {
+        m_kernelName     = HEVCENCKERNELNAME_P_MB;
+    }
+    else if (m_pictureCodingType == B_TYPE)
+    {
+        m_kernelName     = HEVCENCKERNELNAME_PB_MB;
+    }
 
     m_cmSurface2DCount   = 17;
     m_cmBufferCount      = 10;
@@ -125,7 +133,7 @@ CM_RETURN_CODE CMRTKernelPB8x8MbEnc::CreateAndDispatchKernel(CmEvent *&cmEvent, 
 {
     CM_RETURN_CODE r = CM_SUCCESS;
     int32_t result;
-    uint8_t i, idx = 0;
+    uint8_t i, numSurfaces, idx = 0;
     uint8_t *curbe = (uint8_t *)m_curbe;
     uint32_t width, height, width_padded, height_padded, threadSpaceWidth, threadSpaceHeight, colorCount, splitCount, tempHeight;
     PBMbEncWalkParams mbEncWalkParams;
@@ -149,7 +157,9 @@ CM_RETURN_CODE CMRTKernelPB8x8MbEnc::CreateAndDispatchKernel(CmEvent *&cmEvent, 
 
     CM_CHK_STATUS_RETURN(m_cmKernel->SetKernelArg(idx++, CURBEDATA_SIZE_PB_MB, m_curbe));
 
-    for (i = 0; i < NUM_MBENC_PB_MB_SURFACES; i++)
+    numSurfaces = m_pictureCodingType == P_TYPE ? NUM_MBENC_P_MB_SURFACES: NUM_MBENC_PB_MB_SURFACES; 
+
+    for (i = 0; i < numSurfaces; i++)
     {
         CM_CHK_STATUS_RETURN(m_cmKernel->SetKernelArg(idx++, sizeof(SurfaceIndex), m_surfIndex[i]));
     }
@@ -395,11 +405,11 @@ void CMRTKernelPB8x8MbEnc::SetupMwScoreboard26Zig(CM_WALKING_PARAMETERS& walkPar
     scoreboardParams.deltaY[7] = -3;
 }
 
-CM_RETURN_CODE CMRTKernelPB8x8MbEncUMD::AllocateSurfaces(void *params)
+CM_RETURN_CODE CMRTKernelB8x8MbEncUMD::AllocateSurfaces(void *params)
 {
     PBFrameKernelParams *PB8x8MbEncParams = (PBFrameKernelParams *)params;
 
-    uint8_t i;
+    uint8_t i, idx = 0;
 
     CM_VME_SURFACE_STATE_PARAM surfaceParams;
     memset(&surfaceParams, 0, sizeof(CM_VME_SURFACE_STATE_PARAM));
@@ -412,41 +422,41 @@ CM_RETURN_CODE CMRTKernelPB8x8MbEncUMD::AllocateSurfaces(void *params)
     bufParams.uiBaseAddressOffset = PB8x8MbEncParams->m_bufOffset;
 
     CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfPOCDbuf, m_cmBuffer[0]));
-    CM_CHK_STATUS_RETURN(m_cmDev->CreateBufferAlias(m_cmBuffer[0], m_surfIndex[0]));
+    CM_CHK_STATUS_RETURN(m_cmDev->CreateBufferAlias(m_cmBuffer[0], m_surfIndex[idx++]));
     CM_CHK_STATUS_RETURN(m_cmBuffer[0]->SetSurfaceStateParam(m_surfIndex[0], &bufParams));
-    CM_CHK_STATUS_RETURN(m_cmBuffer[0]->GetIndex(m_surfIndex[1]));
+    CM_CHK_STATUS_RETURN(m_cmBuffer[0]->GetIndex(m_surfIndex[idx++]));
     CM_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfCurrY, m_cmSurface2D[0]));
-    CM_CHK_STATUS_RETURN(m_cmSurface2D[0]->GetIndex(m_surfIndex[2]));
+    CM_CHK_STATUS_RETURN(m_cmSurface2D[0]->GetIndex(m_surfIndex[idx++]));
     CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfIntraDist, m_cmBuffer[1]));
-    CM_CHK_STATUS_RETURN(m_cmBuffer[1]->GetIndex(m_surfIndex[3]));
+    CM_CHK_STATUS_RETURN(m_cmBuffer[1]->GetIndex(m_surfIndex[idx++]));
     CM_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfMinDist, m_cmSurface2D[1]));
-    CM_CHK_STATUS_RETURN(m_cmSurface2D[1]->GetIndex(m_surfIndex[4]));
-    m_surfIndex[5] = (SurfaceIndex *)CM_NULL_SURFACE;
-    m_surfIndex[6] = (SurfaceIndex *)CM_NULL_SURFACE;
+    CM_CHK_STATUS_RETURN(m_cmSurface2D[1]->GetIndex(m_surfIndex[idx++]));
+    m_surfIndex[idx++] = (SurfaceIndex *)CM_NULL_SURFACE;
+    m_surfIndex[idx++] = (SurfaceIndex *)CM_NULL_SURFACE;
     CM_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfSliceMap, m_cmSurface2D[4]));
-    CM_CHK_STATUS_RETURN(m_cmSurface2D[4]->GetIndex(m_surfIndex[7]));
+    CM_CHK_STATUS_RETURN(m_cmSurface2D[4]->GetIndex(m_surfIndex[idx++]));
     CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfVMEIN, m_cmBuffer[2]));
-    CM_CHK_STATUS_RETURN(m_cmBuffer[2]->GetIndex(m_surfIndex[8]));
+    CM_CHK_STATUS_RETURN(m_cmBuffer[2]->GetIndex(m_surfIndex[idx++]));
     CM_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfSIF, m_cmSurface2D[5]));
-    CM_CHK_STATUS_RETURN(m_cmSurface2D[5]->GetIndex(m_surfIndex[9]));
+    CM_CHK_STATUS_RETURN(m_cmSurface2D[5]->GetIndex(m_surfIndex[idx++]));
 
     if (PB8x8MbEncParams->m_cmSurfColRefData == nullptr)
     {
-        m_surfIndex[10] = (SurfaceIndex *)CM_NULL_SURFACE;
+        m_surfIndex[idx++] = (SurfaceIndex *)CM_NULL_SURFACE;
     }
     else
     {
         CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfColRefData, m_cmBuffer[3]));
-        CM_CHK_STATUS_RETURN(m_cmBuffer[3]->GetIndex(m_surfIndex[10]));
+        CM_CHK_STATUS_RETURN(m_cmBuffer[3]->GetIndex(m_surfIndex[idx++]));
     }
 
-    m_surfIndex[11] = (SurfaceIndex *)CM_NULL_SURFACE;
+    m_surfIndex[idx++] = (SurfaceIndex *)CM_NULL_SURFACE;
     CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfCombinedQP, m_cmBuffer[4]));
-    CM_CHK_STATUS_RETURN(m_cmBuffer[4]->GetIndex(m_surfIndex[12]));
+    CM_CHK_STATUS_RETURN(m_cmBuffer[4]->GetIndex(m_surfIndex[idx++]));
     CM_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D((MOS_RESOURCE *)PB8x8MbEncParams->m_cmLCUQPSurf, m_cmSurface2D[6]));
-    CM_CHK_STATUS_RETURN(m_cmSurface2D[6]->GetIndex(m_surfIndex[13]));
+    CM_CHK_STATUS_RETURN(m_cmSurface2D[6]->GetIndex(m_surfIndex[idx++]));
     CM_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D((MOS_RESOURCE *)PB8x8MbEncParams->m_cmBRCConstSurf, m_cmSurface2D[7]));
-    CM_CHK_STATUS_RETURN(m_cmSurface2D[7]->GetIndex(m_surfIndex[14]));
+    CM_CHK_STATUS_RETURN(m_cmSurface2D[7]->GetIndex(m_surfIndex[idx++]));
 
     for (i = 0; i < PB8x8MbEncParams->m_ucRefNum0; i++)
     {
@@ -462,44 +472,152 @@ CM_RETURN_CODE CMRTKernelPB8x8MbEncUMD::AllocateSurfaces(void *params)
                                                  PB8x8MbEncParams->m_ucRefNum0, PB8x8MbEncParams->m_ucRefNum1,
                                                  m_cmVmeSurf[0]));
     CM_CHK_STATUS_RETURN(m_cmDev->SetVmeSurfaceStateParam(m_cmVmeSurf[0], &surfaceParams));
-    m_surfIndex[15] = m_cmVmeSurf[0];
+    m_surfIndex[idx++] = m_cmVmeSurf[0];
+
     CM_CHK_STATUS_RETURN(m_cmDev->CreateVmeSurfaceG7_5(m_cmSurface2D[0],
                                                  m_cmSurfaceRef1, m_cmSurfaceRef1,
                                                  PB8x8MbEncParams->m_ucRefNum1, PB8x8MbEncParams->m_ucRefNum1,
                                                  m_cmVmeSurf[1]));
     CM_CHK_STATUS_RETURN(m_cmDev->SetVmeSurfaceStateParam(m_cmVmeSurf[1], &surfaceParams));
-    m_surfIndex[16] = m_cmVmeSurf[1];
+    m_surfIndex[idx++] = m_cmVmeSurf[1];
+
     CM_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D((MOS_RESOURCE *)PB8x8MbEncParams->m_cmWaveFrontMap, m_cmSurface2D[8]));
-    CM_CHK_STATUS_RETURN(m_cmSurface2D[8]->GetIndex(m_surfIndex[17]));
+    CM_CHK_STATUS_RETURN(m_cmSurface2D[8]->GetIndex(m_surfIndex[idx++]));
     CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfMVIndex, m_cmBuffer[5]));
-    CM_CHK_STATUS_RETURN(m_cmBuffer[5]->GetIndex(m_surfIndex[18]));
+    CM_CHK_STATUS_RETURN(m_cmBuffer[5]->GetIndex(m_surfIndex[idx++]));
     CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfMVPred, m_cmBuffer[6]));
-    CM_CHK_STATUS_RETURN(m_cmBuffer[6]->GetIndex(m_surfIndex[19]));
-    m_surfIndex[20] = (SurfaceIndex *)CM_NULL_SURFACE;
-    m_surfIndex[21] = (SurfaceIndex *)CM_NULL_SURFACE;
-    m_surfIndex[22] = (SurfaceIndex *)CM_NULL_SURFACE;
+    CM_CHK_STATUS_RETURN(m_cmBuffer[6]->GetIndex(m_surfIndex[idx++]));
+    m_surfIndex[idx++] = (SurfaceIndex *)CM_NULL_SURFACE;
+    m_surfIndex[idx++] = (SurfaceIndex *)CM_NULL_SURFACE;
+    m_surfIndex[idx++] = (SurfaceIndex *)CM_NULL_SURFACE;
     if (PB8x8MbEncParams->m_cmSurfMVPredictor == nullptr)
     {
-        m_surfIndex[23] = (SurfaceIndex *)CM_NULL_SURFACE;
+        m_surfIndex[idx++] = (SurfaceIndex *)CM_NULL_SURFACE;
     }
     else
     {
         CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfMVPredictor, m_cmBuffer[8]));
-        CM_CHK_STATUS_RETURN(m_cmBuffer[8]->GetIndex(m_surfIndex[23]));
+        CM_CHK_STATUS_RETURN(m_cmBuffer[8]->GetIndex(m_surfIndex[idx++]));
     }
     if (PB8x8MbEncParams->m_cmSurfPerCTBInput == nullptr)
     {
-        m_surfIndex[24] = (SurfaceIndex *)CM_NULL_SURFACE;
+        m_surfIndex[idx++] = (SurfaceIndex *)CM_NULL_SURFACE;
     }
     else
     {
         CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE*)PB8x8MbEncParams->m_cmSurfPerCTBInput, m_cmBuffer[9]));
-        CM_CHK_STATUS_RETURN(m_cmBuffer[9]->GetIndex(m_surfIndex[24]));
+        CM_CHK_STATUS_RETURN(m_cmBuffer[9]->GetIndex(m_surfIndex[idx++]));
     }
 
-    m_surfIndex[25] = (SurfaceIndex *)CM_NULL_SURFACE;
-    m_surfIndex[26] = (SurfaceIndex *)CM_NULL_SURFACE;
+    for (; idx < NUM_MBENC_PB_MB_SURFACES; idx++)
+    {
+        m_surfIndex[idx] = (SurfaceIndex *)CM_NULL_SURFACE;
+    }
 
     return CM_SUCCESS;
 }
 
+CM_RETURN_CODE CMRTKernelP8x8MbEncUMD::AllocateSurfaces(void *params)
+{
+    PBFrameKernelParams *PB8x8MbEncParams = (PBFrameKernelParams *)params;
+
+    uint8_t i, idx = 0;
+
+    CM_VME_SURFACE_STATE_PARAM surfaceParams;
+    memset(&surfaceParams, 0, sizeof(CM_VME_SURFACE_STATE_PARAM));
+    surfaceParams.width = PB8x8MbEncParams->m_width;
+    surfaceParams.height = PB8x8MbEncParams->m_height; 
+
+    CM_BUFFER_STATE_PARAM bufParams;
+    memset(&bufParams, 0, sizeof(CM_BUFFER_STATE_PARAM));
+    bufParams.uiSize = PB8x8MbEncParams->m_bufSize;
+    bufParams.uiBaseAddressOffset = PB8x8MbEncParams->m_bufOffset;
+
+    CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfPOCDbuf, m_cmBuffer[0]));
+    CM_CHK_STATUS_RETURN(m_cmDev->CreateBufferAlias(m_cmBuffer[0], m_surfIndex[idx++]));
+    CM_CHK_STATUS_RETURN(m_cmBuffer[0]->SetSurfaceStateParam(m_surfIndex[0], &bufParams));
+    CM_CHK_STATUS_RETURN(m_cmBuffer[0]->GetIndex(m_surfIndex[idx++]));
+    CM_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfCurrY, m_cmSurface2D[0]));
+    CM_CHK_STATUS_RETURN(m_cmSurface2D[0]->GetIndex(m_surfIndex[idx++]));
+    CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfIntraDist, m_cmBuffer[1]));
+    CM_CHK_STATUS_RETURN(m_cmBuffer[1]->GetIndex(m_surfIndex[idx++]));
+    CM_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfMinDist, m_cmSurface2D[1]));
+    CM_CHK_STATUS_RETURN(m_cmSurface2D[1]->GetIndex(m_surfIndex[idx++]));
+    m_surfIndex[idx++] = (SurfaceIndex *)CM_NULL_SURFACE;
+    m_surfIndex[idx++] = (SurfaceIndex *)CM_NULL_SURFACE;
+    CM_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfSliceMap, m_cmSurface2D[4]));
+    CM_CHK_STATUS_RETURN(m_cmSurface2D[4]->GetIndex(m_surfIndex[idx++]));
+    CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfVMEIN, m_cmBuffer[2]));
+    CM_CHK_STATUS_RETURN(m_cmBuffer[2]->GetIndex(m_surfIndex[idx++]));
+    CM_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfSIF, m_cmSurface2D[5]));
+    CM_CHK_STATUS_RETURN(m_cmSurface2D[5]->GetIndex(m_surfIndex[idx++]));
+
+    if (PB8x8MbEncParams->m_cmSurfColRefData == nullptr)
+    {
+        m_surfIndex[idx++] = (SurfaceIndex *)CM_NULL_SURFACE;
+    }
+    else
+    {
+        CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfColRefData, m_cmBuffer[3]));
+        CM_CHK_STATUS_RETURN(m_cmBuffer[3]->GetIndex(m_surfIndex[idx++]));
+    }
+
+    m_surfIndex[idx++] = (SurfaceIndex *)CM_NULL_SURFACE;
+    CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfCombinedQP, m_cmBuffer[4]));
+    CM_CHK_STATUS_RETURN(m_cmBuffer[4]->GetIndex(m_surfIndex[idx++]));
+    CM_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D((MOS_RESOURCE *)PB8x8MbEncParams->m_cmLCUQPSurf, m_cmSurface2D[6]));
+    CM_CHK_STATUS_RETURN(m_cmSurface2D[6]->GetIndex(m_surfIndex[idx++]));
+    CM_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D((MOS_RESOURCE *)PB8x8MbEncParams->m_cmBRCConstSurf, m_cmSurface2D[7]));
+    CM_CHK_STATUS_RETURN(m_cmSurface2D[7]->GetIndex(m_surfIndex[idx++]));
+
+    for (i = 0; i < PB8x8MbEncParams->m_ucRefNum0; i++)
+    {
+         CM_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfRef0[i], m_cmSurfaceRef0[i]));
+    }
+    for (i = 0; i < PB8x8MbEncParams->m_ucRefNum1; i++)
+    {
+         CM_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfRef1[i], m_cmSurfaceRef1[i]));
+    }
+
+    CM_CHK_STATUS_RETURN(m_cmDev->CreateVmeSurfaceG7_5(m_cmSurface2D[0],
+                                                 m_cmSurfaceRef0, m_cmSurfaceRef1,
+                                                 PB8x8MbEncParams->m_ucRefNum0, PB8x8MbEncParams->m_ucRefNum1,
+                                                 m_cmVmeSurf[0]));
+    CM_CHK_STATUS_RETURN(m_cmDev->SetVmeSurfaceStateParam(m_cmVmeSurf[0], &surfaceParams));
+    m_surfIndex[idx++] = m_cmVmeSurf[0];
+
+    CM_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D((MOS_RESOURCE *)PB8x8MbEncParams->m_cmWaveFrontMap, m_cmSurface2D[8]));
+    CM_CHK_STATUS_RETURN(m_cmSurface2D[8]->GetIndex(m_surfIndex[idx++]));
+    CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfMVIndex, m_cmBuffer[5]));
+    CM_CHK_STATUS_RETURN(m_cmBuffer[5]->GetIndex(m_surfIndex[idx++]));
+    CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfMVPred, m_cmBuffer[6]));
+    CM_CHK_STATUS_RETURN(m_cmBuffer[6]->GetIndex(m_surfIndex[idx++]));
+    m_surfIndex[idx++] = (SurfaceIndex *)CM_NULL_SURFACE;
+    m_surfIndex[idx++] = (SurfaceIndex *)CM_NULL_SURFACE;
+    m_surfIndex[idx++] = (SurfaceIndex *)CM_NULL_SURFACE;
+    if (PB8x8MbEncParams->m_cmSurfMVPredictor == nullptr)
+    {
+        m_surfIndex[idx++] = (SurfaceIndex *)CM_NULL_SURFACE;
+    }
+    else
+    {
+        CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfMVPredictor, m_cmBuffer[8]));
+        CM_CHK_STATUS_RETURN(m_cmBuffer[8]->GetIndex(m_surfIndex[idx++]));
+    }
+    if (PB8x8MbEncParams->m_cmSurfPerCTBInput == nullptr)
+    {
+        m_surfIndex[idx++] = (SurfaceIndex *)CM_NULL_SURFACE;
+    }
+    else
+    {
+        CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE*)PB8x8MbEncParams->m_cmSurfPerCTBInput, m_cmBuffer[9]));
+        CM_CHK_STATUS_RETURN(m_cmBuffer[9]->GetIndex(m_surfIndex[idx++]));
+    }
+
+    for (; idx < NUM_MBENC_P_MB_SURFACES; idx++)
+    {
+        m_surfIndex[idx] = (SurfaceIndex *)CM_NULL_SURFACE;
+    }
+
+    return CM_SUCCESS;
+}

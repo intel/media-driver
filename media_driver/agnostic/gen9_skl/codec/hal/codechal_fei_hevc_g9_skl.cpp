@@ -2857,8 +2857,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PUKernel()
 
     curbe->DW0.FrameWidth          = MOS_ALIGN_CEIL(m_frameWidth, CODECHAL_MACROBLOCK_WIDTH);
     curbe->DW0.FrameHeight         = MOS_ALIGN_CEIL(m_frameHeight, CODECHAL_MACROBLOCK_HEIGHT);
-
-    curbe->DW1.SliceType       = (m_hevcPicParams->CodingType == I_TYPE)? CODECHAL_ENCODE_HEVC_I_SLICE : CODECHAL_ENCODE_HEVC_B_SLICE;
+    curbe->DW1.SliceType       = PicCodingTypeToSliceType(m_hevcPicParams->CodingType);
     curbe->DW1.PuType          = 2; // 8x8
     curbe->DW1.DcFilterFlag    = true;
     curbe->DW1.AngleRefineFlag = true;
@@ -4832,7 +4831,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PUKernel()
     curbe->DW0.FrameWidth          = MOS_ALIGN_CEIL(m_frameWidth, CODECHAL_MACROBLOCK_WIDTH);
     curbe->DW0.FrameHeight         = MOS_ALIGN_CEIL(m_frameHeight, CODECHAL_MACROBLOCK_HEIGHT);
 
-    curbe->DW1.SliceType                 = (m_hevcPicParams->CodingType == I_TYPE) ? CODECHAL_ENCODE_HEVC_I_SLICE : CODECHAL_ENCODE_HEVC_B_SLICE;
+    curbe->DW1.SliceType           = PicCodingTypeToSliceType(m_hevcPicParams->CodingType);
     curbe->DW1.PuType          = 2; // 8x8
     curbe->DW1.DcFilterFlag    = true;
     curbe->DW1.AngleRefineFlag = true;
@@ -5553,13 +5552,29 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PBMbEncKernel()
         PB8x8MbEncParams.m_cmSurfPerCTBInput = nullptr;
     }
 
-    if (m_cmKernelMap.count("PB_8x8_MBENC") == 0)
+    if (m_pictureCodingType == B_TYPE)
     {
-        m_cmKernelMap["PB_8x8_MBENC"] = new CMRTKernelPB8x8MbEncUMD();
-        m_cmKernelMap["PB_8x8_MBENC"]->Init(nullptr, m_cmKernelMap["2xScaling"]->m_cmDev, m_cmKernelMap["2xScaling"]->m_cmQueue, m_cmKernelMap["2xScaling"]->m_cmTask, m_cmKernelMap["PB_32x32"]->m_cmProgram);
-    }
+        if (m_cmKernelMap.count("B_8x8_MBENC") == 0)
+        {
+            m_cmKernelMap["B_8x8_MBENC"] = new CMRTKernelB8x8MbEncUMD();
+            m_cmKernelMap["B_8x8_MBENC"]->Init(nullptr, m_cmKernelMap["2xScaling"]->m_cmDev, m_cmKernelMap["2xScaling"]->m_cmQueue, m_cmKernelMap["2xScaling"]->m_cmTask, m_cmKernelMap["PB_32x32"]->m_cmProgram);
+        }
 
-    m_cmKernelMap["PB_8x8_MBENC"]->SetupCurbe(curbe);
+        m_cmKernelMap["B_8x8_MBENC"]->SetupCurbe(curbe);
+        m_cmKernelMap["B_8x8_MBENC"]->AllocateSurfaces(&PB8x8MbEncParams);
+        m_cmKernelMap["B_8x8_MBENC"]->CreateAndDispatchKernel(m_cmEvent, false, (!m_singleTaskPhaseSupported));
+    }
+    else if (m_pictureCodingType == P_TYPE)
+    {
+        if (m_cmKernelMap.count("P_8x8_MBENC") == 0)
+        {
+            m_cmKernelMap["P_8x8_MBENC"] = new CMRTKernelP8x8MbEncUMD();
+            m_cmKernelMap["P_8x8_MBENC"]->Init(nullptr, m_cmKernelMap["2xScaling"]->m_cmDev, m_cmKernelMap["2xScaling"]->m_cmQueue, m_cmKernelMap["2xScaling"]->m_cmTask, m_cmKernelMap["PB_32x32"]->m_cmProgram);
+        }
+        m_cmKernelMap["P_8x8_MBENC"]->SetupCurbe(curbe);
+        m_cmKernelMap["P_8x8_MBENC"]->AllocateSurfaces(&PB8x8MbEncParams);
+        m_cmKernelMap["P_8x8_MBENC"]->CreateAndDispatchKernel(m_cmEvent, false, (!m_singleTaskPhaseSupported));
+    }
 
     CODECHAL_MEDIA_STATE_TYPE encFunctionType = CODECHAL_MEDIA_STATE_HEVC_B_MBENC;
     if (m_pictureCodingType == P_TYPE)
@@ -5580,12 +5595,8 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PBMbEncKernel()
         )
     }
 
-    m_cmKernelMap["PB_8x8_MBENC"]->AllocateSurfaces(&PB8x8MbEncParams);
-    m_cmKernelMap["PB_8x8_MBENC"]->CreateAndDispatchKernel(m_cmEvent, false, (!m_singleTaskPhaseSupported));
-
     m_lastTaskInPhase = true;
     eStatus = Encode8x8BPakKernel(curbe);
-
     return eStatus;
 }
 
@@ -5834,7 +5845,6 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::EncodeKernelFunctions()
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(Encode8x8PBMbEncKernel());
     }
-
 #ifdef HEVC_FEI_ENABLE_CMRT
 
     if (m_cmEvent != nullptr)
