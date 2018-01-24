@@ -113,7 +113,7 @@ MOS_STATUS VpHal_InitVeboxSurfaceParams(
     pMhwVeboxSurface->rcMaxSrc               = pVpHalVeboxSurface->rcMaxSrc;
     pMhwVeboxSurface->pOsResource            = &pVpHalVeboxSurface->OsResource;
     pMhwVeboxSurface->bIsCompressed          = pVpHalVeboxSurface->bIsCompressed;
-    
+
     if (pVpHalVeboxSurface->dwPitch > 0)
     {
         pMhwVeboxSurface->dwUYoffset = pVpHalVeboxSurface->UPlaneOffset.iLockSurfaceOffset / pVpHalVeboxSurface->dwPitch;

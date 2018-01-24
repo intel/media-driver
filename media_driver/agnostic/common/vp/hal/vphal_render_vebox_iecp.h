@@ -29,7 +29,7 @@
 
 #include "mhw_vebox.h"
 
-#define VPHAL_MAX_IECP_FILTERS          16                                      //!< Max number of IECP filters 
+#define VPHAL_MAX_IECP_FILTERS          16                                      //!< Max number of IECP filters
 
 typedef struct VPHAL_VEBOX_RENDER_DATA       *PVPHAL_VEBOX_RENDER_DATA;
 typedef class  VPHAL_VEBOX_STATE             *PVPHAL_VEBOX_STATE;

@@ -77,7 +77,6 @@ finish:
     return eStatus;
 }
 
-
 //!
 //! \brief    Get SFC Rotation mode parameter
 //! \details  Get MHW SFC Rotation mode parameter
@@ -200,7 +199,7 @@ void VphalSfcState::AdjustBoundary(
     VPHAL_RENDER_CHK_NULL_NO_STATUS(pdwSurfaceWidth);
     VPHAL_RENDER_CHK_NULL_NO_STATUS(pdwSurfaceHeight);
 
-    // For the VEBOX output to SFC, the width is multiple of 16 and height 
+    // For the VEBOX output to SFC, the width is multiple of 16 and height
     // is multiple of 4
     dwVeboxHeight = pSurface->dwHeight;
     dwVeboxWidth  = pSurface->dwWidth;
@@ -261,7 +260,7 @@ VPHAL_OUTPUT_PIPE_MODE VphalSfcState::GetOutputPipe(
     PVPHAL_SURFACE              pRenderTarget,
     PCVPHAL_RENDER_PARAMS       pcRenderParams)
 {
-    float                       fScaleX; 
+    float                       fScaleX;
     float                       fScaleY;
     uint32_t                    dwSurfaceWidth;
     uint32_t                    dwSurfaceHeight;
@@ -358,7 +357,7 @@ VPHAL_OUTPUT_PIPE_MODE VphalSfcState::GetOutputPipe(
 
     // Calculate the scaling ratio
     // Both source region and scaled region are pre-rotated
-    if (pSrc->Rotation == VPHAL_ROTATION_IDENTITY || 
+    if (pSrc->Rotation == VPHAL_ROTATION_IDENTITY ||
         pSrc->Rotation == VPHAL_ROTATION_180      ||
         pSrc->Rotation == VPHAL_MIRROR_HORIZONTAL ||
         pSrc->Rotation == VPHAL_MIRROR_VERTICAL)
@@ -403,10 +402,10 @@ VPHAL_OUTPUT_PIPE_MODE VphalSfcState::GetOutputPipe(
         return OutputPipe;
     }
 
-    bColorFill = (pcRenderParams->pColorFillParams && 
+    bColorFill = (pcRenderParams->pColorFillParams &&
                   (!RECT1_CONTAINS_RECT2(pSrc->rcDst, pRenderTarget->rcDst))) ?
                  true : false;
-    
+
     if (IsOutputCapable(bColorFill, pSrc, pRenderTarget))
     {
         OutputPipe = VPHAL_OUTPUT_PIPE_MODE_SFC;
@@ -478,7 +477,7 @@ void VphalSfcState::SetRenderingFlags(
     PVPHAL_VEBOX_RENDER_DATA        pRenderData)
 {
     PRENDERHAL_INTERFACE    pRenderHal;
-    float                   fScaleX; 
+    float                   fScaleX;
     float                   fScaleY;
     uint32_t                dwSurfaceWidth;
     uint32_t                dwSurfaceHeight;
@@ -521,7 +520,7 @@ void VphalSfcState::SetRenderingFlags(
         default:
             break;
     }
-    
+
     if(pSrc->bDirectionalScalar)
     {
         dwVeboxBottom *= 2;
@@ -546,7 +545,7 @@ void VphalSfcState::SetRenderingFlags(
 
     // Calculate the scaling ratio
     // Both source region and scaled region are pre-rotated
-    if (pSrc->Rotation == VPHAL_ROTATION_IDENTITY || 
+    if (pSrc->Rotation == VPHAL_ROTATION_IDENTITY ||
         pSrc->Rotation == VPHAL_ROTATION_180      ||
         pSrc->Rotation == VPHAL_MIRROR_HORIZONTAL ||
         pSrc->Rotation == VPHAL_MIRROR_VERTICAL)
@@ -565,11 +564,11 @@ void VphalSfcState::SetRenderingFlags(
     m_renderData.bScaling   = ((fScaleX == 1.0F) && (fScaleY == 1.0F)) ?
                                  false : true;
 
-    m_renderData.bColorFill = (pColorFillParams && 
+    m_renderData.bColorFill = (pColorFillParams &&
                                   (!RECT1_CONTAINS_RECT2(pSrc->rcDst, pRenderTarget->rcDst))) ?
                                  true : false;
 
-    m_renderData.bIEF       = (pSrc->pIEFParams              && 
+    m_renderData.bIEF       = (pSrc->pIEFParams              &&
                                   pSrc->pIEFParams->bEnabled    &&
                                   (pSrc->pIEFParams->fIEFFactor > 0.0f)) ?
                                  true : false;
@@ -596,7 +595,7 @@ void VphalSfcState::SetRenderingFlags(
     // In SFC, we have a lot of HW restrictions on Chroma Sitting Programming.
     // So prevent any invalid input for SFC to avoid HW problems.
     // Prevent invalid input for input surface and format.
-    m_renderData.SfcSrcChromaSiting = pSrc->ChromaSiting;    
+    m_renderData.SfcSrcChromaSiting = pSrc->ChromaSiting;
     if (m_renderData.SfcSrcChromaSiting == MHW_CHROMA_SITING_NONE)
     {
         m_renderData.SfcSrcChromaSiting = (CHROMA_SITING_HORZ_LEFT | CHROMA_SITING_VERT_CENTER);
@@ -616,7 +615,7 @@ void VphalSfcState::SetRenderingFlags(
     if (pRenderTarget->ChromaSiting == MHW_CHROMA_SITING_NONE)
     {
         pRenderTarget->ChromaSiting = (CHROMA_SITING_HORZ_LEFT | CHROMA_SITING_VERT_CENTER);
-    }   
+    }
     switch (dstColorPack)
     {
         case VPHAL_COLORPACK_422:
@@ -856,7 +855,7 @@ MOS_STATUS VphalSfcState::SetSfcStateParams(
     }
     else
     {
-        if (m_renderData.SfcInputFormat == Format_NV12   || 
+        if (m_renderData.SfcInputFormat == Format_NV12   ||
             (m_renderData.SfcInputFormat == Format_P010) ||
             (m_renderData.SfcInputFormat == Format_P016))
         {
@@ -882,7 +881,7 @@ MOS_STATUS VphalSfcState::SetSfcStateParams(
 
     // Default to Horizontal Left, Vertical Top
     pSfcStateParams->dwChromaDownSamplingVerticalCoef   = (pOutSurface->ChromaSiting & MHW_CHROMA_SITING_VERT_CENTER) ?
-                                                          MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_4_OVER_8 : 
+                                                          MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_4_OVER_8 :
                                                           MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_0_OVER_8;
     pSfcStateParams->dwChromaDownSamplingHorizontalCoef = (pOutSurface->ChromaSiting & MHW_CHROMA_SITING_HORZ_CENTER) ?
                                                           MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_4_OVER_8 :
@@ -1086,7 +1085,7 @@ MOS_STATUS VphalSfcState::SetSfcStateParams(
                 pSfcStateParams->fColorFillYRPixel = (float)m_colorFillColorDst.R / 255.0F;
                 pSfcStateParams->fColorFillUGPixel = (float)m_colorFillColorDst.G / 255.0F;
                 pSfcStateParams->fColorFillVBPixel = (float)m_colorFillColorDst.B / 255.0F;
-            } 
+            }
         }
         pSfcStateParams->fColorFillAPixel  = (float)Src.A / 255.0F;
     }
@@ -1101,10 +1100,10 @@ MOS_STATUS VphalSfcState::SetSfcStateParams(
             case VPHAL_ALPHA_FILL_MODE_NONE:
                 pSfcStateParams->fAlphaPixel      = pAlphaParams->fAlpha;
                 pSfcStateParams->fColorFillAPixel = pAlphaParams->fAlpha;
-                break; 
+                break;
 
             case VPHAL_ALPHA_FILL_MODE_BACKGROUND:
-                pSfcStateParams->fAlphaPixel = m_renderData.bColorFill ? 
+                pSfcStateParams->fAlphaPixel = m_renderData.bColorFill ?
                     pSfcStateParams->fColorFillAPixel : 1.0F;
                 break;
 
@@ -1166,7 +1165,7 @@ finish:
 }
 
 MOS_STATUS VphalSfcState::SetSfcMmcStatus(
-    PVPHAL_VEBOX_RENDER_DATA renderData, 
+    PVPHAL_VEBOX_RENDER_DATA renderData,
     PVPHAL_SURFACE           outSurface,
     PMHW_SFC_STATE_PARAMS    sfcStateParams)
 {
@@ -1210,14 +1209,14 @@ MOS_STATUS VphalSfcState::SetAvsStateParams()
 
     VPHAL_RENDER_CHK_NULL(m_sfcInterface);
 
-    pMhwAvsState    = &m_avsState.AvsStateParams; 
+    pMhwAvsState    = &m_avsState.AvsStateParams;
 
     pMhwAvsState->dwInputHorizontalSiting = (m_renderData.SfcSrcChromaSiting  & MHW_CHROMA_SITING_HORZ_CENTER) ? SFC_AVS_INPUT_SITING_COEF_4_OVER_8 :
-                                            ((m_renderData.SfcSrcChromaSiting & MHW_CHROMA_SITING_HORZ_RIGHT)  ? SFC_AVS_INPUT_SITING_COEF_8_OVER_8 : 
+                                            ((m_renderData.SfcSrcChromaSiting & MHW_CHROMA_SITING_HORZ_RIGHT)  ? SFC_AVS_INPUT_SITING_COEF_8_OVER_8 :
                                             SFC_AVS_INPUT_SITING_COEF_0_OVER_8);
 
     pMhwAvsState->dwInputVerticalSitting  = (m_renderData.SfcSrcChromaSiting  & MHW_CHROMA_SITING_VERT_CENTER) ? SFC_AVS_INPUT_SITING_COEF_4_OVER_8 :
-                                            ((m_renderData.SfcSrcChromaSiting & MHW_CHROMA_SITING_VERT_BOTTOM) ? SFC_AVS_INPUT_SITING_COEF_8_OVER_8 : 
+                                            ((m_renderData.SfcSrcChromaSiting & MHW_CHROMA_SITING_VERT_BOTTOM) ? SFC_AVS_INPUT_SITING_COEF_8_OVER_8 :
                                             SFC_AVS_INPUT_SITING_COEF_0_OVER_8);
 
     if (m_renderData.SfcSrcChromaSiting == MHW_CHROMA_SITING_NONE)
@@ -1228,7 +1227,7 @@ MOS_STATUS VphalSfcState::SetAvsStateParams()
         {
             pMhwAvsState->dwInputVerticalSitting = SFC_AVS_INPUT_SITING_COEF_4_OVER_8;
         }
-    }    
+    }
 
     VPHAL_RENDER_CHK_STATUS(m_sfcInterface->SetSfcSamplerTable(
         &m_avsState.LumaCoeffs,
@@ -1261,8 +1260,8 @@ void VphalSfcState::SetIefStateCscParams(
         {
             // Get the matrix to use for conversion
             VpHal_GetCscMatrix(
-                m_renderData.SfcInputCspace, 
-                m_renderData.pSfcPipeOutSurface->ColorSpace, 
+                m_renderData.SfcInputCspace,
+                m_renderData.pSfcPipeOutSurface->ColorSpace,
                 m_cscCoeff,
                 m_cscInOffset,
                 m_cscOutOffset);
@@ -1290,7 +1289,7 @@ void VphalSfcState::SetIefStateParams(
     MOS_UNUSED(veboxRenderData);
     VPHAL_RENDER_CHK_NULL_NO_STATUS(sfcStateParams);
     VPHAL_RENDER_CHK_NULL_NO_STATUS(inputSurface);
-    
+
     iefStateParams = &m_renderData.IEFStateParams;
     MOS_ZeroMemory(iefStateParams, sizeof(*iefStateParams));
 
@@ -1320,7 +1319,7 @@ MOS_STATUS VphalSfcState::UpdateRenderingFlags(
     PVPHAL_VEBOX_RENDER_DATA        pRenderData)
 {
     MOS_STATUS                      eStatus;
-    
+
     MOS_UNUSED(pSrcSurface);
     MOS_UNUSED(pOutSurface);
     MOS_UNUSED(pRenderData);
@@ -1355,8 +1354,8 @@ MOS_STATUS VphalSfcState::SetupSfcState(
 
     // Setup params related to SFC_STATE
     VPHAL_RENDER_CHK_STATUS(SetSfcStateParams(
-            pRenderData, 
-            pSrcSurface, 
+            pRenderData,
+            pSrcSurface,
             pOutSurface));
 
     // Setup params related to SFC_AVS_STATE
@@ -1371,8 +1370,8 @@ MOS_STATUS VphalSfcState::SetupSfcState(
         m_renderData.bCSC)
     {
         SetIefStateParams(
-            pRenderData, 
-            m_renderData.SfcStateParams, 
+            pRenderData,
+            m_renderData.SfcStateParams,
             pSrcSurface);
     }
 
@@ -1399,7 +1398,7 @@ MOS_STATUS VphalSfcState::SendSfcCmd(
 
     // Ensure VEBOX can write
     m_osInterface->pfnSyncOnResource(
-        m_osInterface, 
+        m_osInterface,
         &m_renderData.pSfcPipeOutSurface->OsResource,
         MOS_GPU_CONTEXT_VEBOX,
         true);

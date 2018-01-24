@@ -240,7 +240,6 @@ protected:
         CM_HAL_STATE *pCmState);
 };
 
-
 class MosUtilDeviceG10Cnl : public MosUtilDevice
 {
 public:

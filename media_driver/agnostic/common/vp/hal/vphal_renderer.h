@@ -110,14 +110,14 @@ C_ASSERT(VPHAL_RENDER_ID_COUNT == 3);      //!< When adding, update assert
 //!
 class VphalRenderer
 {
-public: 
+public:
     // Rendering engines
     VPHAL_VEBOX_EXEC_STATE      VeboxExecState[VPHAL_MAX_CHANNELS];             //!< Vebox Execution State
 
     RenderState                 *pRender[VPHAL_RENDER_ID_COUNT];
 
     // VpHal surfaces
-    PVPHAL_SURFACE              pPrimaryFwdRef[VPHAL_MAX_FUTURE_FRAMES];   
+    PVPHAL_SURFACE              pPrimaryFwdRef[VPHAL_MAX_FUTURE_FRAMES];
 
     bool                        bVeboxUsedForCapPipe;                           //!< VEBOX used for CapPipe
 
@@ -185,7 +185,6 @@ public:
     VphalRenderer(
         PRENDERHAL_INTERFACE                pRenderHal,
         MOS_STATUS                          *pStatus);
-
 
     //!
     //! \brief    VPHAL renderer destructor

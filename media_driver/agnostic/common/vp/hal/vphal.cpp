@@ -130,8 +130,8 @@ MOS_STATUS VphalState::Allocate(
     RenderHalSettings.iMediaStates  = pVpHalSettings->mediaStates;
     VPHAL_PUBLIC_CHK_STATUS(m_renderHal->pfnInitialize(m_renderHal, &RenderHalSettings));
 
-    if (m_veboxInterface && 
-        m_veboxInterface->m_veboxSettings.uiNumInstances > 0 && 
+    if (m_veboxInterface &&
+        m_veboxInterface->m_veboxSettings.uiNumInstances > 0 &&
         m_veboxInterface->m_veboxHeap == nullptr)
     {
         // Allocate VEBOX Heap
@@ -298,7 +298,7 @@ VphalState::~VphalState()
             // Deallocate OS interface structure (except if externally provided)
             MOS_FreeMemory(m_osInterface);
         }
-    }       
+    }
 }
 
 VphalState* VphalState::VphalStateFactory(
@@ -343,16 +343,16 @@ MOS_STATUS VphalState::GetStatusReport(
 
     pOsContext           = m_osInterface->pOsContext;
     pStatusTable         = &m_renderer->StatusTable;
-    uiNewHead            = pStatusTable->uiHead; // uiNewHead start from previous head value 
-    // entry length from head to tail 
+    uiNewHead            = pStatusTable->uiHead; // uiNewHead start from previous head value
+    // entry length from head to tail
     uiTableLen           = (pStatusTable->uiCurrent - pStatusTable->uiHead) & (VPHAL_STATUS_TABLE_MAX_SIZE - 1);
 
     // step 1 - update pStatusEntry from driver if command associated with the dwTag is done by gpu
     for (i = 0; i < wStatusNum && i < uiTableLen; i++)
     {
-        uint32_t	dwGpuTag; // hardware tag updated by gpu command pipectl
-        bool		bDoneByGpu;
-        bool		bFailedOnSubmitCmd;
+        uint32_t    dwGpuTag; // hardware tag updated by gpu command pipectl
+        bool        bDoneByGpu;
+        bool        bFailedOnSubmitCmd;
 
         uiIndex            = (pStatusTable->uiHead + i) & (VPHAL_STATUS_TABLE_MAX_SIZE - 1);
         pStatusEntry       = &pStatusTable->aTableEntries[uiIndex];
@@ -412,7 +412,7 @@ MOS_STATUS VphalState::GetStatusReport(
 
     // step 2 - mark VPREP_NOTAVAILABLE for unused entry
     for (/* continue from previous i */; i < wStatusNum; i++)
-    {  
+    {
         pQueryReport[i].dwStatus         = VPREP_NOTAVAILABLE;
         pQueryReport[i].StatusFeedBackID = 0;
     }
@@ -445,7 +445,7 @@ MOS_STATUS VphalState::GetStatusReportEntryLength(
 
     pStatusTable = &m_renderer->StatusTable;
 
-    // entry length from head to tail 
+    // entry length from head to tail
     *puiLength = (pStatusTable->uiCurrent - pStatusTable->uiHead) & (VPHAL_STATUS_TABLE_MAX_SIZE - 1);
 finish:
 #else

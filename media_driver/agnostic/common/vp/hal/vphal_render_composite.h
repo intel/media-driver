@@ -158,7 +158,7 @@ struct VPHAL_COMPOSITE_MO_INLINE_DATA
 typedef struct _VPHAL_COMPOSITE_PARAMS
 {
     // Pointer to target and source surfaces
-    uint32_t                uSourceCount;       				//!< Number of sources
+    uint32_t                uSourceCount;                       //!< Number of sources
     PVPHAL_SURFACE          pSource[VPHAL_COMP_MAX_LAYERS];
     uint32_t                uTargetCount;                       //!< Number of targets
     VPHAL_SURFACE           Target[VPHAL_MAX_TARGETS];          //!< Render targets
@@ -333,7 +333,7 @@ public:
     //!
     //! \brief    set Report data
     //! \details  set Report data for this render
-    //! \param    [in] pSource    
+    //! \param    [in] pSource 
     //!           pointer to the surface
     //!
     virtual void SetReporting(PVPHAL_SURFACE pSource);
@@ -341,7 +341,7 @@ public:
     //!
     //! \brief    copy Report data
     //! \details  copy Report data from this render
-    //! \param    [out] pReporting    
+    //! \param    [out] pReporting 
     //!           pointer to the Report data to copy data to
     //!
     virtual void CopyReporting(VphalFeatureReport* pReporting);
@@ -621,7 +621,6 @@ protected:
     uint32_t GetOutputChromaSitting(
         PVPHAL_SURFACE                      pTarget);
 
-
     //!
     //! \brief    Set Surface Compressed Parameters
     //! \details  Set Surface Compressed Parameters, and compression mode
@@ -782,7 +781,7 @@ private:
         PVPHAL_SURFACE                  pSource,
         PRENDERHAL_SURFACE              pRenderHalSurfaceSrc,
         PRENDERHAL_SURFACE              pRenderHalSurfaceSrcField);
-        
+
     //!
     //! \brief    Set Composite Render Target Layer
     //! \details  Set Composite Render Target Layer, setup surface state and binding table
@@ -979,7 +978,7 @@ protected:
     float                           m_fSamplerLinearBiasY;        //!< Linear sampler bias Y
     bool                            m_bFtrMediaWalker;            //!< Media Object Walker enabled
     bool                            m_bFtrCSCCoeffPatchMode;      //!< Set CSC Coeff using patch mode
-    bool                            m_bSamplerSupportRotation;    //!< Use sampler for Rotation 
+    bool                            m_bSamplerSupportRotation;    //!< Use sampler for Rotation
     bool                            m_bChromaUpSampling;          //!< Chroma Up Sampling needed
     bool                            m_bChromaDownSampling;        //!< Chroma Down Sampling needed
     bool                            m_bFallbackIefPatch;          //!< Fall back IEF path from AVS to SFC

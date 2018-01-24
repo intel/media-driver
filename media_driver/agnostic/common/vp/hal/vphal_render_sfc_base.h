@@ -492,7 +492,6 @@ protected:
         PVPHAL_VEBOX_RENDER_DATA    veboxRenderData,
         PMHW_SFC_STATE_PARAMS       sfcStateParams);
 
-
     //!
     //! \brief    Send SFC pipe commands
     //! \details  Register the surfaces and send the commands needed by SFC pipe
@@ -542,8 +541,6 @@ private:
     //! \return   MOS_STATUS
     //!
     MOS_STATUS SetAvsStateParams();
-
-
 
 protected:
     bool                            disableSFC    = false;                      //!< Disable SFC for validation purposes
@@ -609,7 +606,7 @@ public:
     //! \return   void
     void SetSfcOutputMmcStatus(bool enable)
     {
-        
+
     }
     //!
     //! \brief    Check if SFC functionality is disabled
@@ -626,7 +623,7 @@ public:
     //! \return   void
     void SetStereoChannel(uint32_t currentChannel)
     {
-        
+
     }
 
     MOS_FORMAT GetInputFormat()

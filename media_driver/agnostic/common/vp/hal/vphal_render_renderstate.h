@@ -234,7 +234,7 @@ public:
     //!
     //! \brief    copy Report data
     //! \details  copy Report data from this render
-    //! \param    [out] pReporting    
+    //! \param    [out] pReporting 
     //!           pointer to the Report data to copy data to
     //!
     virtual void CopyReporting(VphalFeatureReport* pReporting)

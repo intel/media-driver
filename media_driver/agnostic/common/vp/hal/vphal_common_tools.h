@@ -51,7 +51,7 @@ typedef struct _VPHAL_STATUS_TABLE
 {
     VPHAL_STATUS_ENTRY  aTableEntries[VPHAL_STATUS_TABLE_MAX_SIZE];
     uint32_t            uiHead;
-    uint32_t            uiCurrent;  
+    uint32_t            uiCurrent;
 } VPHAL_STATUS_TABLE, *PVPHAL_STATUS_TABLE;
 
 //!
@@ -127,21 +127,21 @@ typedef struct _VP_CONFIG
     uint32_t   dwFFDNCompressible;         // FFDN Compressible flag
     uint32_t   dwFFDNCompressMode;         // FFDN Compression mode
     uint32_t   dwSTMMCompressible;         // STMM Compressible flag
-    uint32_t   dwSTMMCompressMode;         // STMM Compression mode  
+    uint32_t   dwSTMMCompressMode;         // STMM Compression mode
     uint32_t   dwScalerCompressible;       // Scaler Compressible flag for Gen10
     uint32_t   dwScalerCompressMode;       // Scaler Compression mode for Gen10
     uint32_t   dwPrimaryCompressible;      // Input Primary Surface Compressible flag
-    uint32_t   dwPrimaryCompressMode;      // Input Primary Surface Compression mode  
+    uint32_t   dwPrimaryCompressMode;      // Input Primary Surface Compression mode
     uint32_t   dwFFDICompressibleReported; // FFDI Reported Compressible flag
     uint32_t   dwFFDICompressModeReported; // FFDI Reported Compression mode
     uint32_t   dwFFDNCompressibleReported; // FFDN Reported Compressible flag
     uint32_t   dwFFDNCompressModeReported; // FFDN Reported Compression mode
     uint32_t   dwSTMMCompressibleReported; // STMM Reported Compressible flag
-    uint32_t   dwSTMMCompressModeReported; // STMM Reported Compression mode  
+    uint32_t   dwSTMMCompressModeReported; // STMM Reported Compression mode
     uint32_t   dwScalerCompressibleReported;   // Scaler Reported Compressible flag for Gen10
     uint32_t   dwScalerCompressModeReported;   // Scaler Reported Compression mode for Gen10
     uint32_t   dwPrimaryCompressibleReported;  // Input Primary Surface Reported Compressible flag
-    uint32_t   dwPrimaryCompressModeReported;  // Input Primary Surface Reported Compression mode  
+    uint32_t   dwPrimaryCompressModeReported;  // Input Primary Surface Reported Compression mode
     uint32_t   dwCapturePipeInUse;         // Capture pipe
     uint32_t   dwCapturePipeInUseReported; // Reported Capture pipe
     uint32_t   dwCurrentCompositionMode;   // In Place or Legacy Composition
@@ -167,7 +167,7 @@ typedef struct _VP_CONFIG
 //!
 //! \brief status query param
 //!
-typedef struct _VPHAL_STATUS_PARAM 
+typedef struct _VPHAL_STATUS_PARAM
 {
     uint32_t            FrameId;
     VPREP_STATUS        BltStatus;

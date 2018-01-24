@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     
-//! \brief    
+//! \file 
+//! \brief 
 //!
 //!
 //! \file     vphal_render_vebox_util_base.h

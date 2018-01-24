@@ -241,7 +241,7 @@
 //!
 enum VpKernelID
 {
-    // FC     
+    // FC
     kernelCombinedFc = 0,
 
     // 2 VEBOX KERNELS
@@ -263,7 +263,7 @@ struct VphalSseuSetting
 };
 
 //-----------------------------------------------------------------------------
-// Forward declaration - 
+// Forward declaration -
 // IMPORTANT - DDI interfaces are NOT to access internal VPHAL states
 //-----------------------------------------------------------------------------
 typedef struct _RENDERHAL_INTERFACE     *PRENDERHAL_INTERFACE;
@@ -344,11 +344,11 @@ struct VphalFeatureReport
     bool                            FFDNCompressible;   //!< FFDN MMC Compressible flag
     uint8_t                         FFDNCompressMode;   //!< FFDN MMC Compression mode
     bool                            STMMCompressible;   //!< STMM MMC Compressible flag
-    uint8_t                         STMMCompressMode;   //!< STMM MMC Compression mode  
+    uint8_t                         STMMCompressMode;   //!< STMM MMC Compression mode
     bool                            ScalerCompressible; //!< Scaler MMC Compressible flag for Gen10
     uint8_t                         ScalerCompressMode; //!< Scaler MMC Compression mode for Gen10
     bool                            PrimaryCompressible;//!< Input Primary Surface Compressible flag
-    uint8_t                         PrimaryCompressMode;//!< Input Primary Surface Compression mode  
+    uint8_t                         PrimaryCompressMode;//!< Input Primary Surface Compression mode
     VPHAL_COMPOSITION_REPORT_MODE   CompositionMode;    //!< Inplace/Legacy Compostion flag
     bool                            VEFeatureInUse;     //!< If any VEBOX feature is in use, excluding pure bypass for SFC
 };
@@ -374,7 +374,7 @@ struct VPHAL_SURFACE
     PVPHAL_PROCAMP_PARAMS       pProcampParams;     //!< Procamp parameters
     PVPHAL_IEF_PARAMS           pIEFParams;         //!< IEF parameters
     bool                        bCalculatingAlpha;  //!< Alpha calculation parameters
-    bool                        bInterlacedScaling; //!< Interlaced scaling 
+    bool                        bInterlacedScaling; //!< Interlaced scaling
     bool                        bFieldWeaving;      //!< Field Weaving
     bool                        bQueryVariance;     //!< enable variance query
     bool                        bDirectionalScalar; //!< Vebox Directional Scalar
@@ -412,7 +412,7 @@ struct VPHAL_SURFACE
     VPHAL_SCALING_MODE          ScalingMode;        //!<  Scaling Mode
     VPHAL_SCALING_PREFERENCE    ScalingPreference;  //!<  Scaling preference
     bool                        bIEF;               //!<  IEF flag
-    uint32_t                    dwSlicePitch;       //!<  SlicePitch of a 3D surface(GT-PIN support) 
+    uint32_t                    dwSlicePitch;       //!<  SlicePitch of a 3D surface(GT-PIN support)
 
     //--------------------------------------
     // FIELDS TO BE PROVIDED BY DDI
@@ -445,7 +445,7 @@ struct VPHAL_SURFACE
 struct VPHAL_PREDICATION_PARAMS
 {
     MOS_RESOURCE            *pPredicationResource;    // Resource for predication
-    MOS_RESOURCE            *ptempPredicationBuffer;  // Additional temp buffer for Predication due to the limitation of Cond_BB_End 
+    MOS_RESOURCE            *ptempPredicationBuffer;  // Additional temp buffer for Predication due to the limitation of Cond_BB_End
     uint64_t                predicationResOffset;     // Offset for Predication resource
     bool                    predicationNotEqualZero;  // Predication mode
     bool                    predicationEnabled;       // Indicates whether or not Predication is enabled
@@ -482,11 +482,11 @@ struct VPHAL_RENDER_PARAMS
 #if (_DEBUG || _RELEASE_INTERNAL)
     bool                                    bTriggerGPUHang;            //!< Trigger GPU HANG
 #endif
-    
+
     bool                                    bCalculatingAlpha;          //!< Alpha calculation parameters
 
-    // Predicaiton 
-    VPHAL_PREDICATION_PARAMS                PredicationParams;          //!< Predication 
+    // Predicaiton
+    VPHAL_PREDICATION_PARAMS                PredicationParams;          //!< Predication
 
     // extension parameters
     void                                    *pExtensionData;            //!< Extension data

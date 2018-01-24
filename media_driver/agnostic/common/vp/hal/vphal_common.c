@@ -59,7 +59,7 @@ bool VpHal_CSC(
     VPHAL_CSPACE            dstCspace,
     int32_t*                piCscMatrix)
 {
-    bool		bResult;
+    bool        bResult;
     int32_t     A, R, G, B;
     int32_t     Y1, U1, V1;
 
@@ -162,9 +162,9 @@ bool VpHal_CSC_8(
     VPHAL_CSPACE            srcCspace,
     VPHAL_CSPACE            dstCspace)
 {
-    float	pfCscMatrix[12] = {0};
+    float    pfCscMatrix[12] = {0};
     int32_t piCscMatrix[12] = {0};
-    bool	bResult;
+    bool    bResult;
     int32_t i;
 
     KernelDll_GetCSCMatrix(srcCspace, dstCspace, pfCscMatrix);
@@ -246,9 +246,9 @@ void VpHal_GetCscMatrix(
             pfCscInOffset[1] = -16.0F;
             pfCscInOffset[2] = -16.0F;
             break;
-        
+
         //BT2020 YUV->RGB
-        case CSpace_BT2020:      
+        case CSpace_BT2020:
             pfCscInOffset[0] = -16.0F;
             pfCscInOffset[1] = -128.0F;
             pfCscInOffset[2] = -128.0F;
@@ -306,10 +306,10 @@ void VpHal_GetCscMatrix(
             break;
 
         //BT2020 RGB->YUV
-        case CSpace_BT2020:  
-            pfCscOutOffset[0] = 16.0F;    
-            pfCscOutOffset[1] = 128.0F;   
-            pfCscOutOffset[2] = 128.0F;   
+        case CSpace_BT2020:
+            pfCscOutOffset[0] = 16.0F;
+            pfCscOutOffset[1] = 128.0F;
+            pfCscOutOffset[2] = 128.0F;
             break;
 
         case CSpace_BT2020_FullRange:
@@ -317,13 +317,13 @@ void VpHal_GetCscMatrix(
             pfCscOutOffset[1] = 128.0F;
             pfCscOutOffset[2] = 128.0F;
             break;
-        
+
         case CSpace_BT2020_RGB:
             pfCscOutOffset[0] = 0.0F;
             pfCscOutOffset[1] = 0.0F;
             pfCscOutOffset[2] = 0.0F;
             break;
-        
+
         case CSpace_BT2020_stRGB:
             pfCscOutOffset[0] = 16.0F;
             pfCscOutOffset[1] = 16.0F;
@@ -357,7 +357,7 @@ float VpHal_Sinc(float x)
 //! \param    [in] dwNumEntries
 //!           dword
 //! \param    [in] fLanczosT
-//!            
+//! 
 //! \return   float
 //!           lanczos(x)
 //!
@@ -437,14 +437,14 @@ MOS_STATUS VpHal_ReAllocateSurface(
     *pbAllocated = false;
 
     // bCompressed should be compared with bCompressible since it is inited by bCompressible in previous call
-	// TileType of surface should be compared since we need to reallocate surface if TileType changes
-    if (!Mos_ResourceIsNull(&pSurface->OsResource)		&&
-        (pSurface->dwWidth         == dwWidth)			&&
-        (pSurface->dwHeight        == dwHeight)			&&
-        (pSurface->Format          == Format)			&&
-        (pSurface->bCompressible   == bCompressed)		&&
+    // TileType of surface should be compared since we need to reallocate surface if TileType changes
+    if (!Mos_ResourceIsNull(&pSurface->OsResource)        &&
+        (pSurface->dwWidth         == dwWidth)            &&
+        (pSurface->dwHeight        == dwHeight)            &&
+        (pSurface->Format          == Format)            &&
+        (pSurface->bCompressible   == bCompressed)        &&
         (pSurface->CompressionMode == CompressionMode)  &&
-		(pSurface->TileType        == DefaultTileType))
+        (pSurface->TileType        == DefaultTileType))
     {
         goto finish;
     }
@@ -532,8 +532,8 @@ MOS_STATUS VpHal_ReadSurface (
     LockFlags.ReadOnly = 1;
 
     pSrc = (uint8_t*)pOsInterface->pfnLockResource(
-                    pOsInterface, 
-                    &pSurface->OsResource, 
+                    pOsInterface,
+                    &pSurface->OsResource,
                     &LockFlags);
     VPHAL_PUBLIC_CHK_NULL(pSrc);
 
@@ -615,8 +615,8 @@ MOS_STATUS VpHal_WriteSurface (
     LockFlags.WriteOnly = 1;
 
     pDst = (uint8_t*)pOsInterface->pfnLockResource(
-                pOsInterface, 
-                &pSurface->OsResource, 
+                pOsInterface,
+                &pSurface->OsResource,
                 &LockFlags);
     VPHAL_PUBLIC_CHK_NULL(pDst);
 
@@ -913,7 +913,7 @@ void VpHal_GetScalingRatio(
     }
     else
     {
-        // VPHAL_ROTATION_90 || VPHAL_ROTATION_270 || 
+        // VPHAL_ROTATION_90 || VPHAL_ROTATION_270 ||
         // VPHAL_ROTATE_90_MIRROR_HORIZONTAL || VPHAL_ROTATE_90_MIRROR_VERTICAL
         fScaleX = (float)(pSource->rcDst.right - pSource->rcDst.left) /
                   (float)(pSource->rcSrc.bottom - pSource->rcSrc.top);

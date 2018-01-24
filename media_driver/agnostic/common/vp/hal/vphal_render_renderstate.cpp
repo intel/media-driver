@@ -58,7 +58,6 @@ RenderState::RenderState(
     *peStatus   = MOS_STATUS_SUCCESS;
 }
 
-
 //!
 //! \brief    Render function for the pass
 //! \details  The render function coordinates the advanced renderers and basic

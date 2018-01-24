@@ -77,7 +77,7 @@ MOS_STATUS VpHal_RenderInitAVSParams(
         goto finish;
     }
 
-    pAVS_Params->piYCoefsX = (int32_t*)ptr; 
+    pAVS_Params->piYCoefsX = (int32_t*)ptr;
 
     ptr += uiYCoeffTableSize;
     pAVS_Params->piUVCoefsX = (int32_t*)ptr;
@@ -216,8 +216,8 @@ MOS_STATUS VpHal_RndrRectSurfaceAlignment(
 
     VpHal_RndrGetAlignUnit(&wWidthAlignUnit, &wHeightAlignUnit, pSurface->Format);
 
-    // The source rectangle is floored to the aligned unit to 
-    // get rid of invalid data(ex: an odd numbered src rectangle with NV12 format 
+    // The source rectangle is floored to the aligned unit to
+    // get rid of invalid data(ex: an odd numbered src rectangle with NV12 format
     // will have invalid UV data for the last line of Y data).
     pSurface->rcSrc.bottom = MOS_ALIGN_FLOOR((uint32_t)pSurface->rcSrc.bottom, wHeightAlignUnit);
     pSurface->rcSrc.right  = MOS_ALIGN_FLOOR((uint32_t)pSurface->rcSrc.right, wWidthAlignUnit);
@@ -225,7 +225,7 @@ MOS_STATUS VpHal_RndrRectSurfaceAlignment(
     pSurface->rcSrc.top    = MOS_ALIGN_CEIL((uint32_t)pSurface->rcSrc.top, wHeightAlignUnit);
     pSurface->rcSrc.left   = MOS_ALIGN_CEIL((uint32_t)pSurface->rcSrc.left, wWidthAlignUnit);
 
-    // The Destination rectangle is rounded to the upper alignment unit to prevent the loss of 
+    // The Destination rectangle is rounded to the upper alignment unit to prevent the loss of
     // data which was present in the source rectangle
     pSurface->rcDst.bottom = MOS_ALIGN_CEIL((uint32_t)pSurface->rcDst.bottom, wHeightAlignUnit);
     pSurface->rcDst.right  = MOS_ALIGN_CEIL((uint32_t)pSurface->rcDst.right, wWidthAlignUnit);
@@ -243,7 +243,7 @@ MOS_STATUS VpHal_RndrRectSurfaceAlignment(
         pSurface->dwHeight = MOS_ALIGN_FLOOR(pSurface->dwHeight, wHeightAlignUnit);
         pSurface->dwWidth  = MOS_ALIGN_FLOOR(pSurface->dwWidth, wWidthAlignUnit);
     }
-    
+
     if ((pSurface->rcSrc.top  == pSurface->rcSrc.bottom) ||
         (pSurface->rcSrc.left == pSurface->rcSrc.right)  ||
         (pSurface->rcDst.top  == pSurface->rcDst.bottom) ||
@@ -252,9 +252,9 @@ MOS_STATUS VpHal_RndrRectSurfaceAlignment(
         (pSurface->dwHeight   == 0))
     {
         VPHAL_RENDER_ASSERTMESSAGE("Surface Parameter is invalid.");
-        eStatus = MOS_STATUS_INVALID_PARAMETER;	
+        eStatus = MOS_STATUS_INVALID_PARAMETER;
     }
-    
+
     return eStatus;
 }
 
@@ -438,7 +438,7 @@ MOS_STATUS VphalRenderer::AdjustSurfaceParam(
     bool                    bHybridDecoderFlag)
 {
     MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
- 
+
     VPHAL_RENDER_CHK_NULL(pSrcSurface);
     VPHAL_RENDER_CHK_NULL(pRenderParams);
     VPHAL_RENDER_CHK_NULL(pGtSystemInfo);
@@ -611,7 +611,7 @@ MOS_STATUS VphalRenderer::ProcessRenderParameter(
         AdjustSurfaceParam(pRenderParams, pSrcSurface, pGtSystemInfo, bHybridDecoderFlag);
     }
 
-        // Check if Slice Shutdown can be enabled  
+        // Check if Slice Shutdown can be enabled
         // Vebox performance is not impacted by slice shutdown
         if (!(pPrimarySurface == nullptr ||                                      // Valid Layer
             pRenderParams->Component == COMPONENT_VPreP))                        // VpostP usage
@@ -822,7 +822,7 @@ MOS_STATUS VphalRenderer::RenderComposite(
 
     //------------------------------------------
     VPHAL_RNDR_DUMP_SURF_PTR_ARRAY(
-        this, pRenderParams->pSrc, VPHAL_MAX_SOURCES, 
+        this, pRenderParams->pSrc, VPHAL_MAX_SOURCES,
         pRenderParams->uSrcCount, VPHAL_DBG_DUMP_TYPE_PRE_COMP);
     //------------------------------------------
 
@@ -966,7 +966,7 @@ MOS_STATUS VphalRenderer::Render(
         goto finish;
     }
 
-    // Protection mechanism, Only KBL+ support P010 output. 
+    // Protection mechanism, Only KBL+ support P010 output.
     if (IsFormatSupported(pcRenderParams) == false)
     {
         VPHAL_RENDER_ASSERTMESSAGE("Invalid Render Target Output Format.");
@@ -1027,10 +1027,10 @@ MOS_STATUS VphalRenderer::Render(
     // align rectangle and source surface
     VPHAL_RENDER_CHK_STATUS(VpHal_RndrRectSurfaceAlignment(RenderParams.pTarget[0]));
 
-    // Predication 
+    // Predication
     if (RenderParams.PredicationParams.predicationEnabled)
     {
-        pRenderHal->PredicationParams.pPredicationResource      = 
+        pRenderHal->PredicationParams.pPredicationResource      =
             RenderParams.PredicationParams.pPredicationResource;
         pRenderHal->PredicationParams.ptempPredicationBuffer =
             RenderParams.PredicationParams.ptempPredicationBuffer;
@@ -1042,13 +1042,13 @@ MOS_STATUS VphalRenderer::Render(
             RenderParams.PredicationParams.predicationResOffset;
     }
 
-    for (uiCurrentRenderPass = 0; 
-         uiCurrentRenderPass < uiRenderPasses; 
+    for (uiCurrentRenderPass = 0;
+         uiCurrentRenderPass < uiRenderPasses;
          uiCurrentRenderPass++)
     {
         // Assign source surfaces for current rendering pass
         MOS_SecureMemcpy(
-            RenderParams.pSrc, 
+            RenderParams.pSrc,
             sizeof(PVPHAL_SURFACE) * VPHAL_MAX_SOURCES,
             (uiCurrentRenderPass == 0) ? pSrcLeft : pSrcRight,
             sizeof(PVPHAL_SURFACE) * VPHAL_MAX_SOURCES);
@@ -1124,8 +1124,8 @@ MOS_STATUS VphalRenderer::Initialize(
 
     // Current KDLL expects a writable memory for kernel binary. For that reason,
     // we need to copy the memory to a new location so that KDLL can overwrite.
-    // !!! WARNING !!! 
-    // We MUST NOT create a writable global memory since it can cause issues 
+    // !!! WARNING !!!
+    // We MUST NOT create a writable global memory since it can cause issues
     // in multi-device cases (multiple threads operating on the memory)
     // NOTE: KDLL will release the allocated memory.
     pKernelBin = MOS_AllocMemory(dwKernelBinSize);
@@ -1236,7 +1236,7 @@ VphalRenderer::~VphalRenderer()
             pRender[i] = nullptr;
         }
     }
-  
+
     // Destroy Kernel DLL objects (cache, hash table, states)
     if (pKernelDllState)
     {
@@ -1429,7 +1429,6 @@ VphalRenderer::VphalRenderer(
 
     MOS_ZeroMemory(&pRender, sizeof(pRender));
 
-
     // Read Slice Shutdown (SSD Control) User Feature Key once during initialization
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
     eStatus = MOS_UserFeature_ReadValue_ID(
@@ -1579,8 +1578,8 @@ MOS_STATUS VpHal_RenderAllocateBB(
 
         case VPHAL_BB_TYPE_ADVANCED:
             VPHAL_RENDER_CHK_STATUS(VpHal_RenderGetBestMatchBB(
-                        pBatchBufferTable, 
-                        pInputBbParams, 
+                        pBatchBufferTable,
+                        pInputBbParams,
                         iBbSize,
                         &pBatchBuffer));
             break;
@@ -1641,7 +1640,7 @@ MOS_STATUS VpHal_RenderAllocateBB(
         iBbSize = MOS_ALIGN_CEIL(iBbSize, VPHAL_BB_ALIGN_SIZE);
 
         if (pOldest == nullptr ||
-            (pOldest->bBusy && 
+            (pOldest->bBusy &&
              iBbCount < pBatchBufferTable->iBbCountMax))
         {
             pOldest = nullptr;
@@ -1759,10 +1758,10 @@ void VphalRenderer::AllocateDebugDumper()
     // Allocate feature report
     m_reporting = MOS_New(VphalFeatureReport);
 
-    // Initialize Surface Dumper 
+    // Initialize Surface Dumper
     VPHAL_DBG_SURF_DUMP_CREATE();
 
-    // Initialize State Dumper 
+    // Initialize State Dumper
     VPHAL_DBG_STATE_DUMPPER_CREATE();
 
     VPHAL_DBG_PARAMETERS_DUMPPER_CREATE();

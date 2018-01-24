@@ -247,7 +247,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::Initialize(
             return MOS_STATUS_NO_SPACE;
         }
     }
-    
+
     for (uint32_t i = 0; i < VPHAL_NUM_FFDN_SURFACES; i++)
     {
         if (!FFDNSurfaces[i])
@@ -409,7 +409,7 @@ void VPHAL_VEBOX_STATE::VeboxCopySurfaceParams(
         pOutSurface->bQueryVariance = false;
     }
 
-    // Use original input as AdvProc's output (may occur in Variance) 
+    // Use original input as AdvProc's output (may occur in Variance)
     if (pSrcSurface == pTempSurface)
     {
         goto finish;
@@ -440,7 +440,7 @@ void VPHAL_VEBOX_STATE::VeboxCopySurfaceParams(
 
     // Reset Allocations
     pOsInterface->pfnResetResourceAllocationIndex(
-        pOsInterface, 
+        pOsInterface,
         &pOutSurface->OsResource);
 
 finish:
@@ -470,7 +470,7 @@ PVPHAL_SURFACE VPHAL_VEBOX_STATE::VeboxSetReference(
         {
             // Vebox defines reference as previous input frame.
             // In this mode, treat current as the previous
-            pRefSurface = pSrcSurface; 
+            pRefSurface = pSrcSurface;
         }
         else
         {
@@ -481,7 +481,7 @@ PVPHAL_SURFACE VPHAL_VEBOX_STATE::VeboxSetReference(
         // Discontinuity - hence can't reuse previous surfaces
         if (!pRenderData->bSameSamples && pRenderData->bOutOfBound)
         {
-            if (pRenderData->bDenoise && 
+            if (pRenderData->bDenoise &&
                 !Mos_ResourceIsNull(&pVeboxState->m_currentSurface->OsResource))
             {
                 // Save prev call's current sample as prev sample for current call
@@ -495,7 +495,7 @@ PVPHAL_SURFACE VPHAL_VEBOX_STATE::VeboxSetReference(
             {
                 // In WHCK test, there is a special test.Test app will set future / post reference frame for frame 0.
                 // Then, frame 0 will do deinterlace using uncompressed reference frame instead of denoised compressed frames if MMC on.
-                // If using reference frame to do ADI deinterlace, there is corruption with previous DI frame of the VEBOX output which output by SFC.   
+                // If using reference frame to do ADI deinterlace, there is corruption with previous DI frame of the VEBOX output which output by SFC.
                 pRenderData->bRefValid = false;
             }
             else
@@ -539,11 +539,11 @@ PVPHAL_SURFACE VPHAL_VEBOX_STATE::VeboxSetReference(
             pVeboxState->VeboxClearFmdStates();
         }
 
-        if (pRenderData->bDenoise && 
+        if (pRenderData->bDenoise &&
             (pSrcSurface->SampleType == SAMPLE_PROGRESSIVE))
         {
 
-            //  The first "current" frame may not have a resource (i.e. no 
+            //  The first "current" frame may not have a resource (i.e. no
             //  memory has been allocated for this image surface.
             //  All subsequent frames should have a resource.
             if (!Mos_ResourceIsNull(&pVeboxState->m_currentSurface->OsResource))
@@ -553,7 +553,7 @@ PVPHAL_SURFACE VPHAL_VEBOX_STATE::VeboxSetReference(
                 CopySurfaceValue(pVeboxState->m_previousSurface, pVeboxState->m_currentSurface);
 
                 pRefSurface = pVeboxState->m_previousSurface;
-                pRenderData->bRefValid = true; 
+                pRenderData->bRefValid = true;
             }
         }
         else if (pRenderData->bDeinterlace)
@@ -604,44 +604,44 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSetDiOutput(
             iFrame1 = 3;
         }
 
-		// for 30i->60fps + Comp
-		if (pRenderData->b60fpsDi)
-		{
-			// Output 1st field of current frame according to DDI flag
-			if (pRenderData->bSingleField                                               ||
-				(pSrcSurface->SampleType == SAMPLE_INTERLEAVED_ODD_FIRST_TOP_FIELD)     ||
-				(pSrcSurface->SampleType == SAMPLE_INTERLEAVED_EVEN_FIRST_BOTTOM_FIELD) ||
-				(pSrcSurface->SampleType == SAMPLE_SINGLE_BOTTOM_FIELD)                 ||
-				(pSrcSurface->SampleType == SAMPLE_PROGRESSIVE))
-			{
-				pDstSurface = pVeboxState->FFDISurfaces[iFrame1];
-			}
-			else
-			{
-				// First sample output - 2nd field of the previous frame
-				pDstSurface = pVeboxState->FFDISurfaces[iFrame0];
-			}
-		}
-		// for 30i->30fps + Comp, which differentiates from 30i->60fps for the correct
-		// output according to SampleType input
-		// eg. TF/BF matches with {0,2,4,6...}/{0,1,3,5...} output
-		else
-		{
-			// Output 1st field of current frame according to DDI flag
-			if (pRenderData->bSingleField                                              ||
-				(pSrcSurface->SampleType == SAMPLE_INTERLEAVED_ODD_FIRST_BOTTOM_FIELD) ||
-				(pSrcSurface->SampleType == SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD)   ||
-				(pSrcSurface->SampleType == SAMPLE_SINGLE_TOP_FIELD)                   ||
-				(pSrcSurface->SampleType == SAMPLE_PROGRESSIVE))
-			{
-				pDstSurface = pVeboxState->FFDISurfaces[iFrame1];
-			}
-			else
-			{
-				// First sample output - 2nd field of the previous frame
-				pDstSurface = pVeboxState->FFDISurfaces[iFrame0];
-			}
-		}
+        // for 30i->60fps + Comp
+        if (pRenderData->b60fpsDi)
+        {
+            // Output 1st field of current frame according to DDI flag
+            if (pRenderData->bSingleField                                               ||
+                (pSrcSurface->SampleType == SAMPLE_INTERLEAVED_ODD_FIRST_TOP_FIELD)     ||
+                (pSrcSurface->SampleType == SAMPLE_INTERLEAVED_EVEN_FIRST_BOTTOM_FIELD) ||
+                (pSrcSurface->SampleType == SAMPLE_SINGLE_BOTTOM_FIELD)                 ||
+                (pSrcSurface->SampleType == SAMPLE_PROGRESSIVE))
+            {
+                pDstSurface = pVeboxState->FFDISurfaces[iFrame1];
+            }
+            else
+            {
+                // First sample output - 2nd field of the previous frame
+                pDstSurface = pVeboxState->FFDISurfaces[iFrame0];
+            }
+        }
+        // for 30i->30fps + Comp, which differentiates from 30i->60fps for the correct
+        // output according to SampleType input
+        // eg. TF/BF matches with {0,2,4,6...}/{0,1,3,5...} output
+        else
+        {
+            // Output 1st field of current frame according to DDI flag
+            if (pRenderData->bSingleField                                              ||
+                (pSrcSurface->SampleType == SAMPLE_INTERLEAVED_ODD_FIRST_BOTTOM_FIELD) ||
+                (pSrcSurface->SampleType == SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD)   ||
+                (pSrcSurface->SampleType == SAMPLE_SINGLE_TOP_FIELD)                   ||
+                (pSrcSurface->SampleType == SAMPLE_PROGRESSIVE))
+            {
+                pDstSurface = pVeboxState->FFDISurfaces[iFrame1];
+            }
+            else
+            {
+                // First sample output - 2nd field of the previous frame
+                pDstSurface = pVeboxState->FFDISurfaces[iFrame0];
+            }
+        }
      }
      else if (pRenderData->bIECP)
      {
@@ -934,7 +934,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSetPerfTag(
             // RGB Input Support for SFC
             *pPerfTag = VPHAL_NONE;
             break;
-            
+
         case Format_P010:
             // P010 Input Support for VEBOX, SFC
             *pPerfTag = VPHAL_VEBOX_P010;
@@ -943,7 +943,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSetPerfTag(
         case Format_P016:
             // P016 Input Support for VEBOX, SFC
             *pPerfTag = VPHAL_VEBOX_P016;
-            break;        
+            break;
 
         case Format_P210:
             // P210 Input Support for VEBOX, SFC
@@ -1032,7 +1032,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxPopulateDNDIParams(
         pVeboxDNDIParams->bDNDITopFirst                 = pLumaParams->bDNDITopFirst;
     }
 
-    // Only need to reverse bDNDITopFirst for no reference case, no need to reverse it for having refrenece case 
+    // Only need to reverse bDNDITopFirst for no reference case, no need to reverse it for having refrenece case
     if (!pRenderData->bRefValid)
     {
         pVeboxDNDIParams->bDNDITopFirst                 = pRenderData->bTopField;
@@ -1042,8 +1042,8 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxPopulateDNDIParams(
     if (pRenderData->bChromaDenoise && pChromaParams != nullptr)
     {
         pVeboxDNDIParams->dwChromaSTADThreshold     = pChromaParams->dwSTADThresholdU; // Use U threshold for now
-        pVeboxDNDIParams->dwChromaLTDThreshold      = pChromaParams->dwLTDThresholdU;  // Use U threshold for now 
-        pVeboxDNDIParams->dwChromaTDThreshold       = pChromaParams->dwTDThresholdU;   // Use U threshold for now 
+        pVeboxDNDIParams->dwChromaLTDThreshold      = pChromaParams->dwLTDThresholdU;  // Use U threshold for now
+        pVeboxDNDIParams->dwChromaTDThreshold       = pChromaParams->dwTDThresholdU;   // Use U threshold for now
         pVeboxDNDIParams->bChromaDNEnable           = pRenderData->bChromaDenoise;
     }
 
@@ -1065,7 +1065,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSetFMDParams(
 {
     PVPHAL_VEBOX_RENDER_DATA         pRenderData = GetLastExecRenderData();
     MOS_STATUS                       eStatus = MOS_STATUS_SUCCESS;
-    
+
     VPHAL_RENDER_CHK_NULL(pLumaParams);
 
 #if VEBOX_AUTO_DENOISE_SUPPORTED
@@ -1080,7 +1080,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSetFMDParams(
     }
     else
 #endif
-    {   
+    {
         pLumaParams->dwFMDFirstFieldCurrFrame =
             MEDIASTATE_DNDI_DEINTERLACE;
         pLumaParams->dwFMDSecondFieldPrevFrame =
@@ -1116,8 +1116,8 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSetDNDIParams(
 
     // Set Luma and Chroma DNDI params
     VPHAL_RENDER_CHK_STATUS(pVeboxState->SetDNDIParams(
-        pSrcSurface, 
-        pLumaParams, 
+        pSrcSurface,
+        pLumaParams,
         pChromaParams));
 
     if (!pRenderData->bRefValid)
@@ -1127,7 +1127,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSetDNDIParams(
         pLumaParams->dwTDThreshold    = 0;
     }
 
-    if (pRenderData->bDenoise) 
+    if (pRenderData->bDenoise)
     {
         pLumaParams->bDNEnable = true;
 
@@ -1221,7 +1221,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxFlushUpdateStateCmdBuffer()
     IdLoadParams.dwInterfaceDescriptorLength      = pRenderHal->StateHeapSettings.iMediaIDs * pStateHeap->dwSizeMediaID;
     VPHAL_RENDER_CHK_STATUS(pMhwRender->AddMediaIDLoadCmd(&CmdBuffer, &IdLoadParams));
 
-    // Each media obj include header (no inline data is needed, 
+    // Each media obj include header (no inline data is needed,
     // however add 1 DW dummy inline to avoid HW Hang)
     iInlineSize = 1 * sizeof(uint32_t);
     InlineData  = g_cInit_MEDIA_OBJECT_KA2_INLINE_DATA;
@@ -1534,7 +1534,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxUpdateVeboxStates(
             &MhwKernelParam,
             nullptr);
 
-        if (iKrnAllocation < 0) 
+        if (iKrnAllocation < 0)
         {
             eStatus = MOS_STATUS_UNKNOWN;
             goto finish;
@@ -1552,7 +1552,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxUpdateVeboxStates(
             0,
             nullptr);
 
-        if (pRenderData->iMediaID0 < 0) 
+        if (pRenderData->iMediaID0 < 0)
         {
             eStatus = MOS_STATUS_UNKNOWN;
             goto finish;
@@ -1602,7 +1602,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSetupIndirectStates(
     //----------------------------------
     // Allocate and reset VEBOX state
     //----------------------------------
-    VPHAL_RENDER_CHK_STATUS(pVeboxInterface->AssignVeboxState()); 
+    VPHAL_RENDER_CHK_STATUS(pVeboxInterface->AssignVeboxState());
 
     // Set VEBOX State Params
     if (pRenderData->bDeinterlace       ||
@@ -1768,11 +1768,11 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderVeboxCmd(
     bDiVarianceEnable = pRenderData->bDeinterlace || IsQueryVarianceEnabled();
 
     pVeboxState->SetupSurfaceStates(
-        bDiVarianceEnable, 
+        bDiVarianceEnable,
         &VeboxSurfaceStateCmdParams);
 
     pVeboxState->SetupVeboxState(
-        bDiVarianceEnable, 
+        bDiVarianceEnable,
         &VeboxStateCmdParams);
 
     // Ensure LACE LUT table is ready to be written
@@ -1786,14 +1786,14 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderVeboxCmd(
     }
 
     VPHAL_RENDER_CHK_STATUS(pVeboxState->SetupDiIecpState(
-        bDiVarianceEnable, 
+        bDiVarianceEnable,
         &VeboxDiIecpCmdParams));
 
     // Ensure output is ready to be written
     if (VeboxDiIecpCmdParams.pOsResCurrOutput)
     {
         pOsInterface->pfnSyncOnResource(
-            pOsInterface, 
+            pOsInterface,
             VeboxDiIecpCmdParams.pOsResCurrOutput,
             MOS_GPU_CONTEXT_VEBOX,
             true);
@@ -1812,7 +1812,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderVeboxCmd(
     if (VeboxDiIecpCmdParams.pOsResPrevOutput)
     {
         pOsInterface->pfnSyncOnResource(
-            pOsInterface, 
+            pOsInterface,
             VeboxDiIecpCmdParams.pOsResPrevOutput,
             MOS_GPU_CONTEXT_VEBOX,
             true);
@@ -1821,7 +1821,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderVeboxCmd(
     if (VeboxDiIecpCmdParams.pOsResDenoisedCurrOutput)
     {
         pOsInterface->pfnSyncOnResource(
-            pOsInterface, 
+            pOsInterface,
             VeboxDiIecpCmdParams.pOsResDenoisedCurrOutput,
             MOS_GPU_CONTEXT_VEBOX,
             true);
@@ -1830,7 +1830,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderVeboxCmd(
     if (VeboxDiIecpCmdParams.pOsResStatisticsOutput)
     {
         pOsInterface->pfnSyncOnResource(
-            pOsInterface, 
+            pOsInterface,
             VeboxDiIecpCmdParams.pOsResStatisticsOutput,
             MOS_GPU_CONTEXT_VEBOX,
             true);
@@ -1851,10 +1851,10 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderVeboxCmd(
         &(MhwVeboxSurfaceStateCmdParams.SurfInput),
         &VeboxDiIecpCmdParams,
         &CmdBuffer));
-    
+
     //---------------------------------
     // Send CMD: Vebox_State
-    //--------------------------------- 
+    //---------------------------------
     VPHAL_RENDER_CHK_STATUS(pVeboxInterface->AddVeboxState(
         &CmdBuffer,
         &VeboxStateCmdParams,
@@ -2113,9 +2113,8 @@ void VPHAL_VEBOX_STATE::VeboxSetCommonRenderingFlags(
                                    pVeboxState->IsDnFormatSupported(pSrc));
 #endif
 
-
     // Free dDenoiseParams when DN don`t support source format
-    // to avoid the possible using by mistake, 8 alignement for DN in renderhal 
+    // to avoid the possible using by mistake, 8 alignement for DN in renderhal
     if ((!pRenderData->bDenoise) && (pSrc->pDenoiseParams != nullptr))
     {
         MOS_FreeMemAndSetNull(pSrc->pDenoiseParams);
@@ -2137,26 +2136,26 @@ void VPHAL_VEBOX_STATE::VeboxSetCommonRenderingFlags(
     // Flags needs to be set if the reference sample is valid
     if (pRenderData->bRefValid)
     {
-        pRenderData->bSameSamples   = 
+        pRenderData->bSameSamples   =
                WITHIN_BOUNDS(
                       pCurSurf->FrameID - pVeboxState->iCurFrameID,
                       -iSameSampleThreshold,
-                      iSameSampleThreshold) && 
+                      iSameSampleThreshold) &&
                WITHIN_BOUNDS(
                       pPrvSurf->FrameID - pVeboxState->iPrvFrameID,
                       -iSameSampleThreshold,
                       iSameSampleThreshold);
 
-        pRenderData->bOutOfBound    = 
+        pRenderData->bOutOfBound    =
                OUT_OF_BOUNDS(
                       pPrvSurf->FrameID - pVeboxState->iCurFrameID,
                       -iSameSampleThreshold,
                       iSameSampleThreshold);
     }
     // bSameSamples flag also needs to be set for no reference case
-    else 
+    else
     {
-         pRenderData->bSameSamples  = 
+         pRenderData->bSameSamples  =
                WITHIN_BOUNDS(
                       pCurSurf->FrameID - pVeboxState->iCurFrameID,
                       -iSameSampleThreshold,
@@ -2227,7 +2226,7 @@ void VPHAL_VEBOX_STATE::VeboxSetRenderingFlags(
         pRenderData->bDeinterlace = false;
     }
 
-    // surface height should be a multiple of 2 for all format 
+    // surface height should be a multiple of 2 for all format
     // when Denoise is enabled and progressiveDN is disabled
     if (IS_VEBOX_SURFACE_HEIGHT_UNALIGNED(pSrc, 2) &&
         pRenderData->bDenoise                      &&
@@ -2251,7 +2250,7 @@ void VPHAL_VEBOX_STATE::VeboxSetRenderingFlags(
     }
 
     // Need to refine later
-    // Actually, behind CSC can do nothing which is related to degamma/gamma 
+    // Actually, behind CSC can do nothing which is related to degamma/gamma
     pRenderData->bBeCsc             = (IS_VPHAL_OUTPUT_PIPE_VEBOX(pRenderData) &&
                                         pSrc->ColorSpace != pRenderTarget->ColorSpace);
 
@@ -2463,7 +2462,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::UpdateVeboxExecutionState(
         {
             SET_VEBOX_EXECUTION_MODE(pVeboxState->m_pVeboxExecState, VEBOX_EXEC_MODE_0);
         }
-        else if (pSrcSurface->uFwdRefCount == 0) 
+        else if (pSrcSurface->uFwdRefCount == 0)
         {
             // Transition Mode2 to Mode0
             if (IS_VEBOX_EXECUTION_MODE_2(pVeboxState->m_pVeboxExecState))
@@ -2489,7 +2488,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::UpdateVeboxExecutionState(
             else // Steady Mode0 state
             {
                 VPHAL_RENDER_ASSERT(
-                    IS_VEBOX_EXECUTION_MODE_0(pVeboxState->m_pVeboxExecState) || 
+                    IS_VEBOX_EXECUTION_MODE_0(pVeboxState->m_pVeboxExecState) ||
                     IS_VEBOX_EXECUTION_MODE_2_TO_0(pVeboxState->m_pVeboxExecState));
             }
         }
@@ -2504,18 +2503,18 @@ MOS_STATUS VPHAL_VEBOX_STATE::UpdateVeboxExecutionState(
                 // When previous blt is Mode0,
                 // pVeboxState->iCurFrameID are previous blt's current frame
                 // pVeboxState->iPrvFrameID are previous blt's bwd frame
-                bSameSamples   = 
+                bSameSamples   =
                     (pSrcSurface->uBwdRefCount > 0 && pSrcSurface->pBwdRef) &&
                     WITHIN_BOUNDS(
                             pSrcSurface->FrameID - pVeboxState->iCurFrameID,
                             -iSameSampleThreshold,
-                            iSameSampleThreshold) && 
+                            iSameSampleThreshold) &&
                     WITHIN_BOUNDS(
                             pSrcSurface->pBwdRef->FrameID - pVeboxState->iPrvFrameID,
                             -iSameSampleThreshold,
                             iSameSampleThreshold);
 
-                bOutOfBound    = 
+                bOutOfBound    =
                     (pSrcSurface->uBwdRefCount > 0 && pSrcSurface->pBwdRef) &&
                     OUT_OF_BOUNDS(
                             pSrcSurface->pBwdRef->FrameID - pVeboxState->iCurFrameID,
@@ -2543,11 +2542,11 @@ MOS_STATUS VPHAL_VEBOX_STATE::UpdateVeboxExecutionState(
                 //    Blt1    F1     F2    F3       Bot       true -> No render
                 // 2. Frame Reapt case in both progressive/interlaced modes.
                 //    Future frame might stay future for a while and not in use
-                //    as next blt's current. 
+                //    as next blt's current.
                 //    And, in mode 2 driver will output the previous blt's future frame.
                 //    In repeating frame scene it is not expected to do so.
                 //    Keep in mode 0 until new frames are received.
-                // 3. Frame-drop case, the player or hw resource might not 
+                // 3. Frame-drop case, the player or hw resource might not
                 //    rich enough yet, another frame drop might occur immediately.
                 //    To help smooth playback, only switch to mode2 when the player
                 //    can provide consecutive two blts without frame drop.
@@ -2567,17 +2566,17 @@ MOS_STATUS VPHAL_VEBOX_STATE::UpdateVeboxExecutionState(
                 // When previous blt is Mode2,
                 // pVeboxState->iCurFrameID are previous blt's future frame
                 // pVeboxState->iPrvFrameID are previous blt's current frame
-                bSameSamples   = 
+                bSameSamples   =
                     WITHIN_BOUNDS(
                             pSrcSurface->pFwdRef->FrameID - pVeboxState->iCurFrameID,
                             -iSameSampleThreshold,
-                            iSameSampleThreshold) && 
+                            iSameSampleThreshold) &&
                     WITHIN_BOUNDS(
                             pSrcSurface->FrameID - pVeboxState->iPrvFrameID,
                             -iSameSampleThreshold,
                             iSameSampleThreshold);
 
-                bOutOfBound    = 
+                bOutOfBound    =
                     OUT_OF_BOUNDS(
                             pSrcSurface->FrameID - pVeboxState->iCurFrameID,
                             -iSameSampleThreshold,
@@ -2600,7 +2599,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::UpdateVeboxExecutionState(
                 //         as well as new future frame.
                 //         But such abnormal condition often due to player's intended bahavior.
                 //         It may outputing static menu, or wrong reference frame given.
-                //         The extra render of furture frame in Mode0To2 might not be 
+                //         The extra render of furture frame in Mode0To2 might not be
                 //         used in next blt.
                 //         So switch to mode0 to save bandwidth.
                 //         If the player can keep providing future frame without repeating
@@ -2642,8 +2641,8 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxCopyAndUpdateVeboxState(
     // Setup VEBOX State
     VPHAL_RENDER_CHK_STATUS(pVeboxState->VeboxSetupIndirectStates(
             pSrcSurface,
-            IS_VPHAL_OUTPUT_PIPE_VEBOX(pRenderData) ? 
-            pRenderData->pRenderTarget              : 
+            IS_VPHAL_OUTPUT_PIPE_VEBOX(pRenderData) ?
+            pRenderData->pRenderTarget              :
             pVeboxState->FFDISurfaces[0]));
 
     // Copy VEBOX State
@@ -2693,7 +2692,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderMode2(
 
     // Ensure the input is ready to be read
     pOsInterface->pfnSyncOnResource(
-        pOsInterface, 
+        pOsInterface,
         &pSrcSurface->OsResource,
         MOS_GPU_CONTEXT_VEBOX,
         false);
@@ -2701,7 +2700,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderMode2(
     if (pRenderData->bRefValid)
     {
         pOsInterface->pfnSyncOnResource(
-            pOsInterface, 
+            pOsInterface,
             &pSrcSurface->pFwdRef->OsResource,
             MOS_GPU_CONTEXT_VEBOX,
             false);
@@ -2746,7 +2745,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderMode2(
     // update Vebox heap, speculative copy has already been done in previous
     // blt call to increase the Vebox & Render engine parallelism.
     // For LM, CPU can lock & update the resource quickly here because
-    // previous blt's Vebox workload should be already done. 
+    // previous blt's Vebox workload should be already done.
     // Thus, here we do the copy & update only for LM.
     if (!pOsInterface->osCpInterface->IsHMEnabled())
     {
@@ -2823,7 +2822,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderMode0To2(
 
     // Ensure the input is ready to be read
     pOsInterface->pfnSyncOnResource(
-        pOsInterface, 
+        pOsInterface,
         &pSrcSurface->OsResource,
         MOS_GPU_CONTEXT_VEBOX,
         false);
@@ -2831,7 +2830,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderMode0To2(
     if (pRenderData->bRefValid)
     {
         pOsInterface->pfnSyncOnResource(
-            pOsInterface, 
+            pOsInterface,
             &pSrcSurface->pBwdRef->OsResource,
             MOS_GPU_CONTEXT_VEBOX,
             false);
@@ -2916,21 +2915,21 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderMode0To2(
     // Switch state
     SET_VEBOX_EXECUTION_MODE(pVeboxState->m_pVeboxExecState, VEBOX_EXEC_MODE_2);
 
-    // In VpHal_VeboxGetStatisticsSurfaceOffsets, the offset of vebox statistics surface 
+    // In VpHal_VeboxGetStatisticsSurfaceOffsets, the offset of vebox statistics surface
     // address is based on whether bDN/DIEnabled in the previous function call. We get
     // bDN/DIEnabled here, so that bDN/DIEnabled can be used at the beginning of the next
-    // function call. 
+    // function call.
     // When Spatial DI enabled and Temporal DI disabled, the vebox statistics surface
     // layout is same as the case when only DN enabled, so use DNEnabled to include the
-    // case when Spatial DI enabled. 
+    // case when Spatial DI enabled.
     pVeboxState->bDNEnabled = pRenderData->bDenoise         ||
                              pRenderData->bChromaDenoise    ||
                              ((pRenderData->bDeinterlace    ||
-                               pVeboxState->IsQueryVarianceEnabled()) && 
+                               pVeboxState->IsQueryVarianceEnabled()) &&
                               !pRenderData->bRefValid);
 
-    pVeboxState->bDIEnabled = (pRenderData->bDeinterlace   || 
-                              pVeboxState->IsQueryVarianceEnabled()) && 
+    pVeboxState->bDIEnabled = (pRenderData->bDeinterlace   ||
+                              pVeboxState->IsQueryVarianceEnabled()) &&
                              pRenderData->bRefValid;
 
     // =========================================================================
@@ -2946,7 +2945,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderMode0To2(
     {
         // Ensure the input is ready to be read
         pOsInterface->pfnSyncOnResource(
-            pOsInterface, 
+            pOsInterface,
             &pSrcSurface->pFwdRef->OsResource,
             MOS_GPU_CONTEXT_VEBOX,
             false);
@@ -3073,7 +3072,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderMode0(
 
     // Ensure the input is ready to be read
     pOsInterface->pfnSyncOnResource(
-        pOsInterface, 
+        pOsInterface,
         &pSrcSurface->OsResource,
         MOS_GPU_CONTEXT_VEBOX,
         false);
@@ -3081,7 +3080,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderMode0(
     if (pRenderData->bRefValid)
     {
         pOsInterface->pfnSyncOnResource(
-            pOsInterface, 
+            pOsInterface,
             &pSrcSurface->pBwdRef->OsResource,
             MOS_GPU_CONTEXT_VEBOX,
             false);
@@ -3097,7 +3096,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderMode0(
     pRenderData->iFrame0   = 0;
     pRenderData->iFrame1   = 1;
 
-    // Always use 01 pair in mode0. In Mode2, may fall back to Mode0 so need to reset. 
+    // Always use 01 pair in mode0. In Mode2, may fall back to Mode0 so need to reset.
     pVeboxState->m_pVeboxExecState->bDIOutputPair01 = true;
 
     // Setup Motion history for DI
@@ -3239,7 +3238,7 @@ PVPHAL_SURFACE VPHAL_VEBOX_STATE::GetOutputSurfForDiSameSampleWithSFC(
         pVeboxState->FFDISurfaces[1]->rcDst    = pSrcSurface->rcDst;
         pVeboxState->FFDISurfaces[1]->rcMaxSrc = pSrcSurface->rcMaxSrc;
     }
-            
+
     // Update IEF parameters in FFDI surface
     pVeboxState->FFDISurfaces[0]->pIEFParams   = pSrcSurface->pIEFParams;
     pVeboxState->FFDISurfaces[1]->pIEFParams   = pSrcSurface->pIEFParams;
@@ -3256,9 +3255,9 @@ PVPHAL_SURFACE VPHAL_VEBOX_STATE::GetOutputSurfForDiSameSampleWithSFC(
     {
         pOutputSurface = pVeboxState->FFDISurfaces[1];
     }
-    else             
+    else
     {
-        // First sample output - 2nd field of the previous frame             
+        // First sample output - 2nd field of the previous frame
         pOutputSurface = pVeboxState->FFDISurfaces[0];
     }
 
@@ -3312,7 +3311,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::Render(
     VPHAL_RENDER_ASSERT(pOutputSurface);
 
     // Initialize Variables
-    pRenderHal              = pVeboxState->m_pRenderHal; 
+    pRenderHal              = pVeboxState->m_pRenderHal;
     pOsInterface            = pVeboxState->m_pOsInterface;
     eStatus                 = MOS_STATUS_SUCCESS;
     bRender                 = false;
@@ -3322,7 +3321,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::Render(
 
     // Check bSameSamples only when reference is avaliable, DI, Variance Query is enabled
     if (pRenderData->bRefValid     &&
-        pRenderData->bSameSamples  && 
+        pRenderData->bSameSamples  &&
         (pRenderData->bDeinterlace || pVeboxState->IsQueryVarianceEnabled()))
     {
         // No frames to generate -> output frames already in buffer
@@ -3340,7 +3339,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::Render(
 
     if (IS_VEBOX_EXECUTION_MODE_0_TO_2(pVeboxState->m_pVeboxExecState))
     {
-        // Transition from serial to parallel mode. 2 vebox operations, current 
+        // Transition from serial to parallel mode. 2 vebox operations, current
         // and future frames
         VPHAL_RENDER_CHK_STATUS(VeboxRenderMode0To2(
             pSrcSurface,
@@ -3426,13 +3425,13 @@ vebox_out_in_RT:
     VPHAL_RENDER_EXITMESSAGE("Exit VEBOX with CSC output.");
 
 finish:
-    // In VpHal_VeboxGetStatisticsSurfaceOffsets, the offset of vebox statistics surface 
+    // In VpHal_VeboxGetStatisticsSurfaceOffsets, the offset of vebox statistics surface
     // address is based on whether bDN/DIEnabled in the previous function call. We get
     // bDN/DIEnabled here, so that bDN/DIEnabled can be used at the beginning of the next
-    // function call. 
+    // function call.
     // When Spatial DI enabled and Temporal DI disabled, the vebox statistics surface
     // layout is same as the case when only DN enabled, so use DNEnabled to include the
-    // case when Spatial DI enabled. 
+    // case when Spatial DI enabled.
     if (pRenderData->bSameSamples  &&
         IS_VPHAL_OUTPUT_PIPE_SFC(pRenderData))
     {
@@ -3443,11 +3442,11 @@ finish:
         pVeboxState->bDNEnabled = pRenderData->bDenoise         ||
                                   pRenderData->bChromaDenoise   ||
                                   ((pRenderData->bDeinterlace   ||
-                                   pVeboxState->IsQueryVarianceEnabled()) && 
+                                   pVeboxState->IsQueryVarianceEnabled()) &&
                                   !pRenderData->bRefValid);
 
-        pVeboxState->bDIEnabled = (pRenderData->bDeinterlace    || 
-                                   pVeboxState->IsQueryVarianceEnabled()) && 
+        pVeboxState->bDIEnabled = (pRenderData->bDeinterlace    ||
+                                   pVeboxState->IsQueryVarianceEnabled()) &&
                                    pRenderData->bRefValid;
     }
 
@@ -3474,36 +3473,36 @@ finish:
 //!           Return Previous/Current/Both frames
 //!
 GFX_MEDIA_VEBOX_DI_OUTPUT_MODE VPHAL_VEBOX_STATE::SetDIOutputFrame(
-	PVPHAL_VEBOX_RENDER_DATA pRenderData,
-	PVPHAL_VEBOX_STATE       pVeboxState,
-	PMHW_VEBOX_MODE          pVeboxMode)
+    PVPHAL_VEBOX_RENDER_DATA pRenderData,
+    PVPHAL_VEBOX_STATE       pVeboxState,
+    PMHW_VEBOX_MODE          pVeboxMode)
 {
-	// for 30i->30fps + SFC
-	if (IS_VPHAL_OUTPUT_PIPE_SFC(pRenderData) && !pRenderData->b60fpsDi)
-	{
-		// Set BLT1's Current DI Output as BLT2's input, it is always under Mode0
-		// BLT1 output 1st field of current frame for the following cases:
-		if (pVeboxMode->DNDIFirstFrame                                                            ||
-			(pVeboxState->m_currentSurface->SampleType == SAMPLE_INTERLEAVED_ODD_FIRST_BOTTOM_FIELD) ||
-			(pVeboxState->m_currentSurface->SampleType == SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD)   ||
-			(pVeboxState->m_currentSurface->SampleType == SAMPLE_SINGLE_TOP_FIELD)                   ||
-			(pVeboxState->m_currentSurface->SampleType == SAMPLE_PROGRESSIVE))
-		{
-			return MEDIA_VEBOX_DI_OUTPUT_CURRENT;
-		}
-		else
-		{
-			// First sample output - 2nd field of the previous frame             
-			return MEDIA_VEBOX_DI_OUTPUT_PREVIOUS;
-		}
-	}
-	// for 30i->60fps or other 30i->30fps cases
-	else
-	{
-		return pVeboxMode->DNDIFirstFrame ?
-			MEDIA_VEBOX_DI_OUTPUT_CURRENT :
-			MEDIA_VEBOX_DI_OUTPUT_BOTH;
-	}
+    // for 30i->30fps + SFC
+    if (IS_VPHAL_OUTPUT_PIPE_SFC(pRenderData) && !pRenderData->b60fpsDi)
+    {
+        // Set BLT1's Current DI Output as BLT2's input, it is always under Mode0
+        // BLT1 output 1st field of current frame for the following cases:
+        if (pVeboxMode->DNDIFirstFrame                                                            ||
+            (pVeboxState->m_currentSurface->SampleType == SAMPLE_INTERLEAVED_ODD_FIRST_BOTTOM_FIELD) ||
+            (pVeboxState->m_currentSurface->SampleType == SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD)   ||
+            (pVeboxState->m_currentSurface->SampleType == SAMPLE_SINGLE_TOP_FIELD)                   ||
+            (pVeboxState->m_currentSurface->SampleType == SAMPLE_PROGRESSIVE))
+        {
+            return MEDIA_VEBOX_DI_OUTPUT_CURRENT;
+        }
+        else
+        {
+            // First sample output - 2nd field of the previous frame
+            return MEDIA_VEBOX_DI_OUTPUT_PREVIOUS;
+        }
+    }
+    // for 30i->60fps or other 30i->30fps cases
+    else
+    {
+        return pVeboxMode->DNDIFirstFrame ?
+            MEDIA_VEBOX_DI_OUTPUT_CURRENT :
+            MEDIA_VEBOX_DI_OUTPUT_BOTH;
+    }
 }
 
 //!
@@ -3529,7 +3528,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::PostCompRender(
     eStatus             = MOS_STATUS_SUCCESS;
     pOsInterface        = pVeboxState->m_pOsInterface;
 
-    // In Mode0To2 or Mode2, speculatively copy vebox state information for use 
+    // In Mode0To2 or Mode2, speculatively copy vebox state information for use
     // in next vebox op based on last vebox op's state info.
     if (IS_VEBOX_SPECULATIVE_COPY_REQUESTED(pVeboxExecState))
     {
@@ -3569,7 +3568,7 @@ bool VPHAL_VEBOX_STATE::VeboxIs2PassesCSCNeeded(
     MOS_OS_CHK_NULL_NO_STATUS(pRenderData);
 
     // 2 Passes CSC is used in BT2020YUV->BT601/709YUV
-    // Isolate decoder require SFC output, but SFC can not support RGB input, 
+    // Isolate decoder require SFC output, but SFC can not support RGB input,
     // so sRGB need two pass, that same as original logic.
     if (IS_COLOR_SPACE_BT2020_YUV(pSrc->ColorSpace))
     {
@@ -3598,7 +3597,7 @@ finish:
 //!
 //! \brief    copy Report data about features
 //! \details  copy Report data from this render
-//! \param    [out] pReporting    
+//! \param    [out] pReporting 
 //!           pointer to the Report data to copy data to
 //!
 void VPHAL_VEBOX_STATE::CopyFeatureReporting(VphalFeatureReport* pReporting)
@@ -3614,7 +3613,7 @@ void VPHAL_VEBOX_STATE::CopyFeatureReporting(VphalFeatureReport* pReporting)
 //!
 //! \brief    copy Report data about resources
 //! \details  copy Report data from this render
-//! \param    [out] pReporting    
+//! \param    [out] pReporting 
 //!           pointer to the Report data to copy data to
 //!
 void VPHAL_VEBOX_STATE::CopyResourceReporting(VphalFeatureReport* pReporting)
@@ -3633,7 +3632,7 @@ void VPHAL_VEBOX_STATE::CopyResourceReporting(VphalFeatureReport* pReporting)
 //!
 //! \brief    copy Report data
 //! \details  copy Report data from this render
-//! \param    [out] pReporting    
+//! \param    [out] pReporting 
 //!           pointer to the Report data to copy data to
 //!
 void VPHAL_VEBOX_STATE::CopyReporting(VphalFeatureReport* pReporting)
@@ -3694,7 +3693,6 @@ MOS_STATUS VpHal_RndrRenderVebox(
 
         pRenderPassData->bCompNeeded = false;
 
-
         // Check if DNDI Render can be applied
         if (!pRenderState->IsNeeded(
             pcRenderParams,
@@ -3725,13 +3723,11 @@ MOS_STATUS VpHal_RndrRenderVebox(
 
 finish:
     if (pRenderPassData->bOutputGenerated)
-    {   
+    {
         pRenderPassData->pOutSurface = pRenderPassData->pOutSurface;
     }
     return eStatus;
 }
-
-
 
 VPHAL_VEBOX_STATE::VPHAL_VEBOX_STATE(
     PMOS_INTERFACE                  pOsInterface,
@@ -3843,7 +3839,6 @@ VPHAL_VEBOX_STATE::VPHAL_VEBOX_STATE(
     dwGlobalNoiseLevelV = 0;                        //!< Global Noise Level for V
     bFirstFrame         = false;                    //!< First frame case for Chroma DN
 
-
     // timestamps for DI output control
     iCurFrameID = 0;                                //!< Current Frame ID
     iPrvFrameID = 0;                                //!< Previous Frame ID
@@ -3864,7 +3859,7 @@ VPHAL_VEBOX_STATE::VPHAL_VEBOX_STATE(
 
     // Debug parameters
     pKernelName                          = nullptr; //!< Kernel Used for current rendering
-    bNullHwRenderDnDi                    = false;   //!< Null rendering for DnDi function 
+    bNullHwRenderDnDi                    = false;   //!< Null rendering for DnDi function
 
     bEnableMMC                           = false;   //!< Memory compression enbale flag - read from User feature keys
     bDisableTemporalDenoiseFilter        = false;   //!< Temporal denoise filter disable flag - read from User feature keys
@@ -3942,7 +3937,7 @@ VPHAL_VEBOX_RENDER_DATA::~VPHAL_VEBOX_RENDER_DATA()
 }
 
 MOS_STATUS VPHAL_VEBOX_RENDER_DATA::Init()
-{   
+{
     // Vebox State Parameters
     // m_pVeboxStateParams needs to be set to nullptr in constructor
 
@@ -3997,7 +3992,7 @@ MOS_STATUS VPHAL_VEBOX_RENDER_DATA::Init()
     bTopField       = false;
     bBeCsc          = false;
     bVeboxBypass    = false;
-	b60fpsDi        = false;
+    b60fpsDi        = false;
 
     // Surface Information
     iFrame0     = 0;

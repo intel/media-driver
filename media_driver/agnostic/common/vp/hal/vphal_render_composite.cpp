@@ -28,7 +28,7 @@
 #include "vphal_render_composite.h"
 #include "vphal_renderer.h"         // for VpHal_RenderAllocateBB
 #include "vphal_render_common.h"    // for VPHAL_RENDER_CACHE_CNTL
-#include "vphal_render_ief.h"       
+#include "vphal_render_ief.h"
 
 // Compositing surface binding table index
 #define VPHAL_COMP_BTINDEX_LAYER0          0
@@ -470,7 +470,7 @@ static const MEDIA_WALKER_KA2_STATIC_DATA g_cInit_MEDIA_WALKER_KA2_STATIC_DATA =
        0                                        //  DestYTopLeftLayer0
     },
 
-   // DWORD 49 
+   // DWORD 49
    {
        0,                                      //  DestXTopLeftLayer1
        0                                       //  DestYTopLeftLayer1
@@ -482,7 +482,7 @@ static const MEDIA_WALKER_KA2_STATIC_DATA g_cInit_MEDIA_WALKER_KA2_STATIC_DATA =
        0                                       //  DestYTopLeftLayer2
    },
 
-   // DWORD 51 
+   // DWORD 51
    {
        0,                                      //  DestXTopLeftLayer3
        0                                       //  DestYTopLeftLayer3
@@ -554,7 +554,7 @@ static const MEDIA_WALKER_KA2_STATIC_DATA g_cInit_MEDIA_WALKER_KA2_STATIC_DATA =
        0                                      // DestYBottomRightLayer6
    },
 
-   // DWORD 63 
+   // DWORD 63
    {
        0,                                     // DestXBottomRightLayer7
        0                                      // DestYBottomRightLayer7
@@ -563,7 +563,7 @@ static const MEDIA_WALKER_KA2_STATIC_DATA g_cInit_MEDIA_WALKER_KA2_STATIC_DATA =
    // DWORD 64
    0,                                         // MainVideoXScalingStepLeft
 
-   // DWORD 65 
+   // DWORD 65
    0,                                         // VideoStepDeltaForNonLinearRegion
 
    // DWORD 66
@@ -652,7 +652,7 @@ static uint16_t ReverseWord(uint16_t x)
     x = (((x & 0xaaaa) >> 1) | ((x & 0x5555) << 1));
     x = (((x & 0xcccc) >> 2) | ((x & 0x3333) << 2));
     x = (((x & 0xf0f0) >> 4) | ((x & 0x0f0f) << 4));
-    return ((x >> 8) | (x << 8)); 
+    return ((x >> 8) | (x << 8));
 }
 
 //!
@@ -665,7 +665,7 @@ static uint16_t ReverseWord(uint16_t x)
 //!           Return true if Bob DI should be enabled, otherwise false
 //!
 bool CompositeState::IsBobDiEnabled(PVPHAL_SURFACE pSrc)
-{    
+{
     bool  bRet = false;
 
     VPHAL_RENDER_CHK_NULL_NO_STATUS(m_pOsInterface);
@@ -720,9 +720,9 @@ bool CompositeState::Is8TapAdaptiveEnabled(
 //! \return   void
 //!
 static void SetInline16x16Mask(
-    VPHAL_ROTATION                      rotation, 
-    PVPHAL_16X16BLOCK_COMPOSITE_MASK    pInlineDword, 
-    uint16_t                            wMask, 
+    VPHAL_ROTATION                      rotation,
+    PVPHAL_16X16BLOCK_COMPOSITE_MASK    pInlineDword,
+    uint16_t                            wMask,
     uint32_t                            maskDirection)
 {
     if (VPHAL_VERTICAL_16X16BLOCK_MASK == maskDirection)
@@ -761,7 +761,7 @@ static void SetInline16x16Mask(
             case VPHAL_MIRROR_VERTICAL:
                 pInlineDword->HorizontalBlockCompositeMask = wMask;
                 break;
-            case VPHAL_ROTATION_90: 
+            case VPHAL_ROTATION_90:
             case VPHAL_ROTATE_90_MIRROR_VERTICAL:
                 // reverse bits and swap vertical/horizontal
                 pInlineDword->VerticalBlockCompositeMask = ReverseWord(wMask);
@@ -830,7 +830,7 @@ static MOS_STATUS LoadPaletteData(
     }
 
     bHasAlpha = pInPalette->bHasAlpha;
-    
+
     // Obtain pointer to in/out color entries
     pSrcColor   = pInPalette->pPalette8;
     pDstColor   = (PVPHAL_COLOR_SAMPLE_8)pPaletteData;
@@ -917,7 +917,7 @@ static MOS_STATUS LoadPaletteData(
                          piCscMatrix[10] * B + piCscMatrix[11]     + 0x00080000) >> 20;
 
                     pDstColor->a = (bHasAlpha) ? pSrcColor->Alpha : 255;
-                    if ((dstCspace == CSpace_BT601) || 
+                    if ((dstCspace == CSpace_BT601) ||
                         (dstCspace == CSpace_BT709))
                     {
                         pDstColor->V = MOS_MIN(MOS_MAX(16,V),240);
@@ -1161,7 +1161,7 @@ MOS_STATUS CompositeState::SetSamplerAvsTableParam(
 
     bIsUpScaleAndYuvFormat = ((fScaleX > 1.0F || fScaleY > 1.0F) && IS_YUV_FORMAT(SrcFormat));
     if (SrcFormat == Format_Y410 ||
-		SrcFormat == Format_AYUV)
+        SrcFormat == Format_AYUV)
     {
         bIsUpScaleAndYuvFormat = false;
     }
@@ -1269,7 +1269,7 @@ finish:
 //! \return   VPHAL_CSPACE
 //!           Return intermediate colorspace
 //!
-VPHAL_CSPACE CompositeState::PrepareCSC(    
+VPHAL_CSPACE CompositeState::PrepareCSC(
     PCVPHAL_RENDER_PARAMS   pcRenderParams,
     PVPHAL_SURFACE          *ppSources,
     int32_t                 iSources)
@@ -1482,7 +1482,7 @@ bool CompositeState::PreparePhases(
                 &AllocParams,
                 &OsResource);
 
-            // Get Allocation index of source for rendering 
+            // Get Allocation index of source for rendering
             pOsInterface->pfnRegisterResource(
                 pOsInterface,
                 &OsResource,
@@ -1531,7 +1531,7 @@ bool CompositeState::PreparePhases(
             // Allocate buffer in fixed increments
             dwTempWidth  = MOS_ALIGN_CEIL(dwTempWidth , VPHAL_BUFFER_SIZE_INCREMENT);
             dwTempHeight = MOS_ALIGN_CEIL(dwTempHeight, VPHAL_BUFFER_SIZE_INCREMENT);
-            
+
             MOS_ZeroMemory(&AllocParams, sizeof(MOS_ALLOC_GFXRES_PARAMS));
 
             AllocParams.Type     = MOS_GFXRES_2D;
@@ -1553,7 +1553,7 @@ bool CompositeState::PreparePhases(
 
                 // Set new resource
                 pIntermediate->OsResource = OsResource;
-                
+
                 // Get resource info (width, height, pitch, tiling, etc)
                 MOS_ZeroMemory(&Info, sizeof(VPHAL_GET_SURFACE_INFO));
 
@@ -1618,12 +1618,12 @@ bool CompositeState::AddCompLayer(
     bool                bResult;
     PVPHAL_SURFACE      pPrevSource;
     bool                bSinglePhaseRotate;
-	VPHAL_SCALING_MODE  scalingMode;
+    VPHAL_SCALING_MODE  scalingMode;
 
     bResult            = false;
     pPrevSource        = nullptr;
     bSinglePhaseRotate = false;
-	scalingMode		   = pSource->ScalingMode;
+    scalingMode           = pSource->ScalingMode;
 
     // On Gen9+, Rotation is done in sampler. Multiple phases are not required.
     if (!m_bSamplerSupportRotation)
@@ -1636,8 +1636,8 @@ bool CompositeState::AddCompLayer(
         }
         else if (pComposite->uSourceCount == 1)
         {
-            // Single phase if: L0 (angle) + L1 (no rotation) OR L1 angle == L0 angle 
-            bSinglePhaseRotate = (pSource->Rotation == VPHAL_ROTATION_IDENTITY || 
+            // Single phase if: L0 (angle) + L1 (no rotation) OR L1 angle == L0 angle
+            bSinglePhaseRotate = (pSource->Rotation == VPHAL_ROTATION_IDENTITY ||
                                   pSource->Rotation == pComposite->Rotation) ? true : false;
         }
         else
@@ -1673,24 +1673,24 @@ bool CompositeState::AddCompLayer(
     if (pSource->pLumaKeyParams)
     {
         pComposite->nLumaKeys--;
-		if (pComposite->nLumaKeys < 0 || pComposite->uSourceCount > 1)
-		{
-			bResult = false;
-			goto finish;
-		}
-		if (pComposite->uSourceCount == 1)
-		{
-			// This layer requires 3d sampler to perform luma key.
-			// So set previous layer's scaling mode to AVS and reset the nSampler.
-			if (pComposite->pSource[0]->ScalingMode != VPHAL_SCALING_AVS)
-			{
-				pComposite->pSource[0]->ScalingMode = VPHAL_SCALING_AVS;
-				pComposite->nAVS--;
-			}
-			pComposite->nSampler = VPHAL_COMP_MAX_SAMPLER;
-		}
+        if (pComposite->nLumaKeys < 0 || pComposite->uSourceCount > 1)
+        {
+            bResult = false;
+            goto finish;
+        }
+        if (pComposite->uSourceCount == 1)
+        {
+            // This layer requires 3d sampler to perform luma key.
+            // So set previous layer's scaling mode to AVS and reset the nSampler.
+            if (pComposite->pSource[0]->ScalingMode != VPHAL_SCALING_AVS)
+            {
+                pComposite->pSource[0]->ScalingMode = VPHAL_SCALING_AVS;
+                pComposite->nAVS--;
+            }
+            pComposite->nSampler = VPHAL_COMP_MAX_SAMPLER;
+        }
     }
-	
+
     // Number of AVS, but lumaKey and BOB DI needs 3D sampler instead of AVS sampler.
     if (pSource->ScalingMode == VPHAL_SCALING_AVS  && !pSource->pLumaKeyParams && !IsBobDiEnabled(pSource))
     {
@@ -1702,43 +1702,43 @@ bool CompositeState::AddCompLayer(
              (pSource->rcDst.bottom - pSource->rcDst.top) == (pSource->rcSrc.bottom - pSource->rcSrc.top) &&
              !IS_PL3_FORMAT(pSource->Format))
     {
-		// Use sampler luma key feature only if this is not the bottom most layer
-		if (pSource->pLumaKeyParams && pComposite->uSourceCount)
-		{
-			scalingMode           = VPHAL_SCALING_NEAREST;
-			pComposite->nSampler &= VPHAL_COMP_SAMPLER_LUMAKEY;
-		}
-		else if (pComposite->nSampler & VPHAL_COMP_SAMPLER_NEAREST)
-		{
-			scalingMode           = VPHAL_SCALING_NEAREST;
-			pComposite->nSampler &= VPHAL_COMP_SAMPLER_NEAREST;
-		}
-		else
-		{
-			// switch to AVS if AVS sampler is not used, decrease the count of comp phase
-			scalingMode = VPHAL_SCALING_AVS;
-			pComposite->nAVS--;
-		}
+        // Use sampler luma key feature only if this is not the bottom most layer
+        if (pSource->pLumaKeyParams && pComposite->uSourceCount)
+        {
+            scalingMode           = VPHAL_SCALING_NEAREST;
+            pComposite->nSampler &= VPHAL_COMP_SAMPLER_LUMAKEY;
+        }
+        else if (pComposite->nSampler & VPHAL_COMP_SAMPLER_NEAREST)
+        {
+            scalingMode           = VPHAL_SCALING_NEAREST;
+            pComposite->nSampler &= VPHAL_COMP_SAMPLER_NEAREST;
+        }
+        else
+        {
+            // switch to AVS if AVS sampler is not used, decrease the count of comp phase
+            scalingMode = VPHAL_SCALING_AVS;
+            pComposite->nAVS--;
+        }
     }
     else if (!IS_PL3_FORMAT(pSource->Format))
     {
-		// Use sampler luma key feature only if this is not the bottom most layer
-		if (pSource->pLumaKeyParams && pComposite->uSourceCount)
-		{
-			scalingMode           = VPHAL_SCALING_BILINEAR;
-			pComposite->nSampler &= VPHAL_COMP_SAMPLER_LUMAKEY;
-		}
-		else if (pComposite->nSampler & VPHAL_COMP_SAMPLER_BILINEAR)
-		{
-			scalingMode           = VPHAL_SCALING_BILINEAR;
-			pComposite->nSampler &= VPHAL_COMP_SAMPLER_BILINEAR;
-		}
-		else
-		{
-			// switch to AVS if AVS sampler is not used, decrease the count of comp phase
-			scalingMode = VPHAL_SCALING_AVS;
-			pComposite->nAVS--;
-		}
+        // Use sampler luma key feature only if this is not the bottom most layer
+        if (pSource->pLumaKeyParams && pComposite->uSourceCount)
+        {
+            scalingMode           = VPHAL_SCALING_BILINEAR;
+            pComposite->nSampler &= VPHAL_COMP_SAMPLER_LUMAKEY;
+        }
+        else if (pComposite->nSampler & VPHAL_COMP_SAMPLER_BILINEAR)
+        {
+            scalingMode           = VPHAL_SCALING_BILINEAR;
+            pComposite->nSampler &= VPHAL_COMP_SAMPLER_BILINEAR;
+        }
+        else
+        {
+            // switch to AVS if AVS sampler is not used, decrease the count of comp phase
+            scalingMode = VPHAL_SCALING_AVS;
+            pComposite->nAVS--;
+        }
     }
 
     // Fails if any of the limits are reached
@@ -1746,10 +1746,10 @@ bool CompositeState::AddCompLayer(
     // multi-passes if rotation is not the same as Layer 0 rotation
     // single pass if Primary layer needs rotation and remaining layer does not need rotation
     if (pComposite->nLayers   < 0 ||
-		pComposite->nPalettes < 0 ||
+        pComposite->nPalettes < 0 ||
         pComposite->nProcamp  < 0 ||
         pComposite->nLumaKeys < 0 ||
-		pComposite->nAVS      < 0 ||
+        pComposite->nAVS      < 0 ||
         pComposite->nSampler == 0 ||
         bSinglePhaseRotate   == false)
     {
@@ -1758,7 +1758,7 @@ bool CompositeState::AddCompLayer(
     }
 
     // Append source to compositing operation
-	pSource->ScalingMode = scalingMode;
+    pSource->ScalingMode = scalingMode;
     pComposite->pSource[pComposite->uSourceCount] = pSource;
     pComposite->uSourceCount++;
     bResult = true;
@@ -1832,7 +1832,7 @@ MOS_STATUS CompositeState::RenderMultiPhase(
     int32_t              phase;                         // Current phase
     int32_t              i;                             // Auxiliary integer
     uint32_t             index;                         // Current source index
-    PVPHAL_SURFACE       pSrc                = nullptr; // Current source surface 
+    PVPHAL_SURFACE       pSrc                = nullptr; // Current source surface
     PRENDERHAL_INTERFACE pRenderHal          = m_pRenderHal;
     PMOS_INTERFACE       pOsInterface        = m_pOsInterface;
     bool                 bLastPhase          = false;
@@ -1892,7 +1892,7 @@ MOS_STATUS CompositeState::RenderMultiPhase(
             else if (i == 1 && bExtraRotationPhase)
             {
                 // bExtraRotationPhase == true means that Intermediate2 was used as a
-                // temp output resource in the previous phase and now is to be 
+                // temp output resource in the previous phase and now is to be
                 // used as an input
                 pSrc = &m_Intermediate2;
                 pSrc->SurfType = SURF_IN_SUBSTREAM; // set the surface type to substream
@@ -1953,7 +1953,7 @@ MOS_STATUS CompositeState::RenderMultiPhase(
         // Force output as "render target" surface type
         CompositeParams.Target[0].SurfType = SURF_OUT_RENDERTARGET;
 
-        // Reset states before rendering (clear allocations, get GSH allocation index 
+        // Reset states before rendering (clear allocations, get GSH allocation index
         //                                + any additional housekeeping)
         pOsInterface->pfnResetOsStates(pOsInterface);
         VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnReset(pRenderHal));
@@ -1965,7 +1965,7 @@ MOS_STATUS CompositeState::RenderMultiPhase(
         }
 
         // Set performance tag for current phase
-        // Set rotation perftag if there is a layer that needs to be rotated in 
+        // Set rotation perftag if there is a layer that needs to be rotated in
         // the current phase, regardless of primary or non-primary.
         if (bRotation)
         {
@@ -2027,10 +2027,10 @@ MOS_STATUS CompositeState::RenderMultiPhase(
                 CompositeParams.bForceSkipColorFill = true;
 
                 CompositeParams.pConstriction   = nullptr;
-                // process the next sample, cannot group more samples here because 
-                // the temporary output will be the input of next phase and we need 
-                // new kernel to deal with the transparent area of the bigger rectangle 
-                // of the temporary output. 
+                // process the next sample, cannot group more samples here because
+                // the temporary output will be the input of next phase and we need
+                // new kernel to deal with the transparent area of the bigger rectangle
+                // of the temporary output.
                 pSrc = ppSources[index];
                 index++;
                 pSrc->iLayerID = 0;
@@ -2067,7 +2067,7 @@ MOS_STATUS CompositeState::RenderMultiPhase(
                 // Force output as "render target" surface type
                 CompositeParams.Target[0].SurfType = SURF_OUT_RENDERTARGET;
 
-                // Reset states before rendering (clear allocations, get GSH allocation index 
+                // Reset states before rendering (clear allocations, get GSH allocation index
                 //                                + any additional housekeeping)
                 pOsInterface->pfnResetOsStates(pOsInterface);
                 VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnReset(pRenderHal));
@@ -2147,13 +2147,13 @@ MOS_STATUS CompositeState::Render(
     // Reset reporting
     m_reporting->InitReportValue();
 
-    // Reset states before rendering (clear allocations, get GSH allocation index 
+    // Reset states before rendering (clear allocations, get GSH allocation index
     //                                + any additional housekeeping)
     pOsInterface->pfnResetOsStates(pOsInterface);
     VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnReset(pRenderHal));
     pOsInterface->pfnResetPerfBufferID(pOsInterface);   // reset once per frame
 
-    // Configure cache settings for this render operation 
+    // Configure cache settings for this render operation
     pCacheSettings      = &pRenderHal->L3CacheSettings;
     MOS_ZeroMemory(pCacheSettings, sizeof(*pCacheSettings));
     pCacheSettings->bOverride                  = true;
@@ -2192,7 +2192,7 @@ MOS_STATUS CompositeState::Render(
     while (iSources < (int)pcRenderParams->uSrcCount)
     {
         VPHAL_GET_SURFACE_INFO Info;
-        PVPHAL_SURFACE         pSrc;    // Current source surface 
+        PVPHAL_SURFACE         pSrc;    // Current source surface
 
         pSrc = pcRenderParams->pSrc[index++];
         if (pSrc == nullptr)
@@ -2212,7 +2212,7 @@ MOS_STATUS CompositeState::Render(
 
         // Ensure the input is ready to be read
         pOsInterface->pfnSyncOnResource(
-            pOsInterface, 
+            pOsInterface,
             &pSrc->OsResource,
             pOsInterface->CurrentGpuContextOrdinal,
             false);
@@ -2229,7 +2229,7 @@ MOS_STATUS CompositeState::Render(
 
             // Ensure the input is ready to be read
             pOsInterface->pfnSyncOnResource(
-                pOsInterface, 
+                pOsInterface,
                 &pSrc->pBwdRef->OsResource,
                 pOsInterface->CurrentGpuContextOrdinal,
                 false);
@@ -2349,11 +2349,11 @@ MOS_STATUS CompositeState::Render(
 
         AddCompTarget(&CompositeParams, pTarget);
 
-        // Reset states before rendering (clear allocations, get GSH allocation index 
+        // Reset states before rendering (clear allocations, get GSH allocation index
         //                                + any additional housekeeping)
         pOsInterface->pfnResetOsStates(pOsInterface);
         VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnReset(pRenderHal));
-        
+
         // Raise the flag to indicate the last comp render phase
         m_bLastPhase = true;
 
@@ -2395,9 +2395,9 @@ void CompositeState::SetScalingMode(
     pSource->bIEF = false;
 
     // Source rectangle is pre-rotated, destination rectangle is post-rotated.
-    if (pSource->Rotation == VPHAL_ROTATION_IDENTITY    || 
-        pSource->Rotation == VPHAL_ROTATION_180         || 
-        pSource->Rotation == VPHAL_MIRROR_HORIZONTAL    || 
+    if (pSource->Rotation == VPHAL_ROTATION_IDENTITY    ||
+        pSource->Rotation == VPHAL_ROTATION_180         ||
+        pSource->Rotation == VPHAL_MIRROR_HORIZONTAL    ||
         pSource->Rotation == VPHAL_MIRROR_VERTICAL)
     {
         fScaleX      = (float)(pSource->rcDst.right  - pSource->rcDst.left) /
@@ -2407,7 +2407,7 @@ void CompositeState::SetScalingMode(
     }
     else
     {
-        // VPHAL_ROTATION_90 || VPHAL_ROTATION_270 || 
+        // VPHAL_ROTATION_90 || VPHAL_ROTATION_270 ||
         // VPHAL_ROTATE_90_MIRROR_HORIZONTAL || VPHAL_ROTATE_90_MIRROR_VERTICAL
         fScaleX      = (float)(pSource->rcDst.right  - pSource->rcDst.left) /
                        (float)(pSource->rcSrc.bottom  - pSource->rcSrc.top);
@@ -2428,7 +2428,7 @@ void CompositeState::SetScalingMode(
             pSource->ScalingMode = VPHAL_SCALING_BILINEAR;
         }
         // Enable IEF
-        else if (pSource->pIEFParams             && 
+        else if (pSource->pIEFParams             &&
                  pSource->pIEFParams->bEnabled   &&
                  pSource->pIEFParams->fIEFFactor > 0.0f)
         {
@@ -2457,7 +2457,7 @@ void CompositeState::SetScalingMode(
          !MOS_IS_ALIGNED(pSource->dwHeight, 4)))
     {
         pSource->ScalingMode = VPHAL_SCALING_BILINEAR;
-    }    
+    }
 }
 
 //!
@@ -2525,7 +2525,7 @@ MOS_STATUS CompositeState::RenderInit(
     AlignedRect.bottom -= AlignedRect.bottom % uiMediaWalkerBlockSize;
 
     // Set number of blocks
-    pRenderingData->iBlocksX = 
+    pRenderingData->iBlocksX =
         (AlignedRect.right  - AlignedRect.left) / uiMediaWalkerBlockSize;
     pRenderingData->iBlocksY =
         (AlignedRect.bottom - AlignedRect.top ) / uiMediaWalkerBlockSize;
@@ -2809,7 +2809,7 @@ static void GetOffsetChromasiting(
     float  VertGap  = 0.0f;
 
     VPHAL_RENDER_CHK_NULL_NO_STATUS(pSource);
-    
+
     // If there is no DDI setting, we use the Horizontal Left Vertical Center as default for PL2 surface.
     if (pSource->ChromaSiting == CHROMA_SITING_NONE)
     {
@@ -2886,7 +2886,7 @@ MOS_STATUS CompositeState::SetSamplerAvsParams(
     PVPHAL_SURFACE                  pSource,
     PRENDERHAL_SURFACE_STATE_ENTRY  pSurfaceEntry,
     PMHW_SAMPLER_STATE_PARAM        pSamplerStateParams,
-    float                           fScaleX, 
+    float                           fScaleX,
     float                           fScaleY)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
@@ -2962,7 +2962,7 @@ MOS_STATUS CompositeState::CalculateCropParams(
 
     *pfCropX = 0.0;
     *pfCropY = 0.0;
-    
+
     return eStatus;
 }
 
@@ -3026,7 +3026,7 @@ int32_t CompositeState::SetLayer(
     PRECT       pTargetRect;                        // Clipping rectangle (RT)
     RECT        DestRect;                           // Clipped dest rectangle
     int32_t     iResult;
-    float       fHorizgap, fVertgap;                // horizontal gap and vertical gap: based on Sampler need 
+    float       fHorizgap, fVertgap;                // horizontal gap and vertical gap: based on Sampler need
 
     // cropping
     float       fCropX, fCropY;
@@ -3053,7 +3053,7 @@ int32_t CompositeState::SetLayer(
     iLayer       = pRenderingData->iLayers;
     if(m_bFtrMediaWalker)
     {
-        pStatic      = (MEDIA_OBJECT_KA2_STATIC_DATA*)&pRenderingData->WalkerStatic; 
+        pStatic      = (MEDIA_OBJECT_KA2_STATIC_DATA*)&pRenderingData->WalkerStatic;
     }
     else
     {
@@ -3085,9 +3085,9 @@ int32_t CompositeState::SetLayer(
     }
 
     // Source rectangle is pre-rotated, destination rectangle is post-rotated.
-    if (pSource->Rotation == VPHAL_ROTATION_IDENTITY    || 
-        pSource->Rotation == VPHAL_ROTATION_180         || 
-        pSource->Rotation == VPHAL_MIRROR_HORIZONTAL    || 
+    if (pSource->Rotation == VPHAL_ROTATION_IDENTITY    ||
+        pSource->Rotation == VPHAL_ROTATION_180         ||
+        pSource->Rotation == VPHAL_MIRROR_HORIZONTAL    ||
         pSource->Rotation == VPHAL_MIRROR_VERTICAL)
     {
         fScaleX      = (float)(pSource->rcDst.right  - pSource->rcDst.left) /
@@ -3097,7 +3097,7 @@ int32_t CompositeState::SetLayer(
     }
     else
     {
-        // VPHAL_ROTATION_90 || VPHAL_ROTATION_270 || 
+        // VPHAL_ROTATION_90 || VPHAL_ROTATION_270 ||
         // VPHAL_ROTATE_90_MIRROR_HORIZONTAL || VPHAL_ROTATE_90_MIRROR_VERTICAL
         fScaleX      = (float)(pSource->rcDst.right  - pSource->rcDst.left) /
                        (float)(pSource->rcSrc.bottom  - pSource->rcSrc.top);
@@ -3170,8 +3170,8 @@ int32_t CompositeState::SetLayer(
         }
     }
 
-    SurfaceParams.MemObjCtl = (pSource->SurfType == SURF_IN_PRIMARY) ? 
-                                m_SurfMemObjCtl.PrimaryInputSurfMemObjCtl : 
+    SurfaceParams.MemObjCtl = (pSource->SurfType == SURF_IN_PRIMARY) ?
+                                m_SurfMemObjCtl.PrimaryInputSurfMemObjCtl :
                                 m_SurfMemObjCtl.InputSurfMemObjCtl ;
 
     eStatus = VpHal_RndrCommonInitRenderHalSurface(pSource, pRenderHalSurfaceSrc);
@@ -3208,9 +3208,9 @@ int32_t CompositeState::SetLayer(
     //--------------------------------------------------------
     iSurfaceEntries2 = 0;
     if (pSource->bInterlacedScaling || pSource->bFieldWeaving)
-    { 
-        SurfaceParams2.MemObjCtl = (pSource->SurfType == SURF_IN_PRIMARY) ? 
-                                    m_SurfMemObjCtl.PrimaryInputSurfMemObjCtl : 
+    {
+        SurfaceParams2.MemObjCtl = (pSource->SurfType == SURF_IN_PRIMARY) ?
+                                    m_SurfMemObjCtl.PrimaryInputSurfMemObjCtl :
                                     m_SurfMemObjCtl.InputSurfMemObjCtl ;
 
         // For Interlaced scaling 2nd field is part of the same frame
@@ -3244,7 +3244,7 @@ int32_t CompositeState::SetLayer(
         }
     }
 
-    if (iSurfaceEntries <= 0         || 
+    if (iSurfaceEntries <= 0         ||
         (pSource->bInterlacedScaling &&
          pSource->bFieldWeaving      &&
          iSurfaceEntries2            != iSurfaceEntries))
@@ -3393,11 +3393,11 @@ int32_t CompositeState::SetLayer(
     }
 
     //-----------------------------------
-    // Alpha blending optimization. 
+    // Alpha blending optimization.
     // If Constant blending and one of the following is true, disable blending.
     // If Src+Constant blending and one of the following is true, fall back to Src blending.
     // Condition; alpha <= 0. Layer is 100% transparent.
-    // Condition; alpha >= 1. Layer is 100% opaque. 
+    // Condition; alpha >= 1. Layer is 100% opaque.
     //-----------------------------------
     if (pSource->pBlendingParams &&
         ((pSource->pBlendingParams->BlendType == BLEND_CONSTANT) ||
@@ -3442,7 +3442,7 @@ int32_t CompositeState::SetLayer(
     dwSurfStateHt = pSurfaceEntry->dwHeight;
     dwSurfStateWd = pSurfaceEntry->dwWidth;
 
-    // if 1:1 scaling and interlaced scaling or field weaving 
+    // if 1:1 scaling and interlaced scaling or field weaving
     // do not adjust offsets since it uses Nearest sampling
     if (fScaleX == 1.0F &&
         fScaleY == 1.0F &&
@@ -3477,30 +3477,30 @@ int32_t CompositeState::SetLayer(
         }
     }
 
-    // Normalize source co-ordinates using the width and height programmed 
+    // Normalize source co-ordinates using the width and height programmed
     // in surface state. step X, Y pre-rotated
     // Source rectangle is pre-rotated, destination rectangle is post-rotated.
-    if (pSource->Rotation == VPHAL_ROTATION_IDENTITY    || 
-        pSource->Rotation == VPHAL_ROTATION_180         || 
-        pSource->Rotation == VPHAL_MIRROR_HORIZONTAL    || 
+    if (pSource->Rotation == VPHAL_ROTATION_IDENTITY    ||
+        pSource->Rotation == VPHAL_ROTATION_180         ||
+        pSource->Rotation == VPHAL_MIRROR_HORIZONTAL    ||
         pSource->Rotation == VPHAL_MIRROR_VERTICAL)
     {
-        fStepX = ((pSource->rcSrc.right - pSource->rcSrc.left - fCropX) * 1.0f) / 
-                  ((pSource->rcDst.right - pSource->rcDst.left) > 0 ? 
+        fStepX = ((pSource->rcSrc.right - pSource->rcSrc.left - fCropX) * 1.0f) /
+                  ((pSource->rcDst.right - pSource->rcDst.left) > 0 ?
                    (pSource->rcDst.right - pSource->rcDst.left) : 1);
-        fStepY = ((pSource->rcSrc.bottom - pSource->rcSrc.top - fCropY) * fDiScaleY) / 
-                  ((pSource->rcDst.bottom - pSource->rcDst.top) > 0 ? 
+        fStepY = ((pSource->rcSrc.bottom - pSource->rcSrc.top - fCropY) * fDiScaleY) /
+                  ((pSource->rcDst.bottom - pSource->rcDst.top) > 0 ?
                    (pSource->rcDst.bottom - pSource->rcDst.top) : 1);
     }
     else
     {
-        // VPHAL_ROTATION_90 || VPHAL_ROTATION_270 || 
+        // VPHAL_ROTATION_90 || VPHAL_ROTATION_270 ||
         // VPHAL_ROTATE_90_MIRROR_HORIZONTAL || VPHAL_ROTATE_90_MIRROR_VERTICAL
-        fStepX = ((pSource->rcSrc.right - pSource->rcSrc.left - fCropX) * 1.0f) / 
-                  ((pSource->rcDst.bottom - pSource->rcDst.top) > 0 ? 
+        fStepX = ((pSource->rcSrc.right - pSource->rcSrc.left - fCropX) * 1.0f) /
+                  ((pSource->rcDst.bottom - pSource->rcDst.top) > 0 ?
                    (pSource->rcDst.bottom - pSource->rcDst.top) : 1);
-        fStepY = ((pSource->rcSrc.bottom - pSource->rcSrc.top - fCropY) * fDiScaleY) / 
-                  ((pSource->rcDst.right - pSource->rcDst.left) > 0 ? 
+        fStepY = ((pSource->rcSrc.bottom - pSource->rcSrc.top - fCropY) * fDiScaleY) /
+                  ((pSource->rcDst.right - pSource->rcDst.left) > 0 ?
                    (pSource->rcDst.right - pSource->rcDst.left) : 1);
     }
 
@@ -3576,38 +3576,38 @@ int32_t CompositeState::SetLayer(
             case VPHAL_ROTATION_90:
                 // Coordinate adjustment for 90 degree rotation
                 fShiftX  -= (float)pSource->rcDst.top  - (float)pRenderingData->ConstrictionOriginY;
-                fShiftY  -= (float)dwDestRectWidth - 
-                            (float)(pSource->rcSrc.bottom - pSource->rcSrc.top) * fScaleX - 
+                fShiftY  -= (float)dwDestRectWidth -
+                            (float)(pSource->rcSrc.bottom - pSource->rcSrc.top) * fScaleX -
                             (float)pSource->rcDst.left - (float)pRenderingData->ConstrictionOriginX;
                 break;
             case VPHAL_ROTATION_180:
                 // Coordinate adjustment for 180 degree rotation
-                fShiftX  -= (float)dwDestRectWidth - 
-                            (float)(pSource->rcSrc.right - pSource->rcSrc.left) * fScaleX - 
+                fShiftX  -= (float)dwDestRectWidth -
+                            (float)(pSource->rcSrc.right - pSource->rcSrc.left) * fScaleX -
                             (float)pSource->rcDst.left - (float)pRenderingData->ConstrictionOriginX;
-                fShiftY  -= (float)dwDestRectHeight - 
-                            (float)(pSource->rcSrc.bottom - pSource->rcSrc.top) * fScaleY - 
+                fShiftY  -= (float)dwDestRectHeight -
+                            (float)(pSource->rcSrc.bottom - pSource->rcSrc.top) * fScaleY -
                             (float)pSource->rcDst.top  - (float)pRenderingData->ConstrictionOriginY;
                 break;
             case VPHAL_ROTATION_270:
                 // Coordinate adjustment for 270 degree rotation
-                fShiftX  -= (float)dwDestRectHeight - 
-                            (float)(pSource->rcSrc.right - pSource->rcSrc.left) * fScaleY - 
+                fShiftX  -= (float)dwDestRectHeight -
+                            (float)(pSource->rcSrc.right - pSource->rcSrc.left) * fScaleY -
                             (float)pSource->rcDst.top - (float)pRenderingData->ConstrictionOriginY;
                 fShiftY  -= (float)pSource->rcDst.left  - (float)pRenderingData->ConstrictionOriginX;
                 break;
             case VPHAL_MIRROR_HORIZONTAL:
                 // Coordinate adjustment for horizontal mirroring
-                fShiftX  -= (float)dwDestRectWidth - 
-                            (float)(pSource->rcSrc.right - pSource->rcSrc.left) * fScaleX - 
+                fShiftX  -= (float)dwDestRectWidth -
+                            (float)(pSource->rcSrc.right - pSource->rcSrc.left) * fScaleX -
                             (float)pSource->rcDst.left - (float)pRenderingData->ConstrictionOriginX;
                 fShiftY  -= pSource->rcDst.top  - pRenderingData->ConstrictionOriginY;
                 break;
             case VPHAL_MIRROR_VERTICAL:
                 // Coordinate adjustment for vertical mirroring
                 fShiftX  -= pSource->rcDst.left - pRenderingData->ConstrictionOriginX;
-                fShiftY  -= (float)dwDestRectHeight - 
-                            (float)(pSource->rcSrc.bottom - pSource->rcSrc.top) * fScaleY - 
+                fShiftY  -= (float)dwDestRectHeight -
+                            (float)(pSource->rcSrc.bottom - pSource->rcSrc.top) * fScaleY -
                             (float)pSource->rcDst.top  - (float)pRenderingData->ConstrictionOriginY;
                 break;
             case VPHAL_ROTATE_90_MIRROR_HORIZONTAL:
@@ -3618,11 +3618,11 @@ int32_t CompositeState::SetLayer(
             case VPHAL_ROTATE_90_MIRROR_VERTICAL:
             default:
                 // Coordinate adjustment for rotating 90 and vertical mirroring
-                fShiftX  -= (float)dwDestRectHeight - 
-                            (float)(pSource->rcSrc.right - pSource->rcSrc.left) * fScaleY - 
+                fShiftX  -= (float)dwDestRectHeight -
+                            (float)(pSource->rcSrc.right - pSource->rcSrc.left) * fScaleY -
                             (float)pSource->rcDst.top - (float)pRenderingData->ConstrictionOriginY;
-                fShiftY  -= (float)dwDestRectWidth - 
-                            (float)(pSource->rcSrc.bottom - pSource->rcSrc.top) * fScaleX - 
+                fShiftY  -= (float)dwDestRectWidth -
+                            (float)(pSource->rcSrc.bottom - pSource->rcSrc.top) * fScaleX -
                             (float)pSource->rcDst.left - (float)pRenderingData->ConstrictionOriginX;
                 break;
         } // switch
@@ -3644,13 +3644,13 @@ int32_t CompositeState::SetLayer(
     fStepY /= dwSurfStateHt;
 
     // Clip source rectangle
-    DestRect.left   = MOS_MIN(MOS_MAX(pTargetRect->left, DestRect.left  ), 
+    DestRect.left   = MOS_MIN(MOS_MAX(pTargetRect->left, DestRect.left  ),
                             pTargetRect->right);
-    DestRect.right  = MOS_MIN(MOS_MAX(pTargetRect->left, DestRect.right ), 
+    DestRect.right  = MOS_MIN(MOS_MAX(pTargetRect->left, DestRect.right ),
                             pTargetRect->right);
-    DestRect.top    = MOS_MIN(MOS_MAX(pTargetRect->top , DestRect.top   ), 
+    DestRect.top    = MOS_MIN(MOS_MAX(pTargetRect->top , DestRect.top   ),
                             pTargetRect->bottom);
-    DestRect.bottom = MOS_MIN(MOS_MAX(pTargetRect->top , DestRect.bottom), 
+    DestRect.bottom = MOS_MIN(MOS_MAX(pTargetRect->top , DestRect.bottom),
                             pTargetRect->bottom);
 
     if (pRenderingData->pConstriction)
@@ -3725,13 +3725,13 @@ int32_t CompositeState::SetLayer(
         case 1:
             // if L0 and L1 have the same rotation, set for all layers.
             // L1 onwards must have the same rotation in a single rendering phase.
-            // pStatic->DW09.RotationMirrorAllLayer is initialized to 0 by default 
-            // through RenderData init outside this function. 
+            // pStatic->DW09.RotationMirrorAllLayer is initialized to 0 by default
+            // through RenderData init outside this function.
             if (!m_bSamplerSupportRotation)
             {
                 if (pRenderingData->pLayers[0]->Rotation == pSource->Rotation)
                 {
-                    pStatic->DW09.RotationMirrorAllLayer    = 1; 
+                    pStatic->DW09.RotationMirrorAllLayer    = 1;
                 }
             }
             else // Gen9+ uses HW based Rotation
@@ -3934,7 +3934,7 @@ int32_t CompositeState::SetLayerRT(
                 if(m_bFtrMediaWalker)
                 {
                     ((MEDIA_OBJECT_KA2_STATIC_DATA*)
-                        &pRenderingData->WalkerStatic)->DW09.DualOutputMode = 1; 
+                        &pRenderingData->WalkerStatic)->DW09.DualOutputMode = 1;
                 }
                 else
                 {
@@ -3957,7 +3957,7 @@ int32_t CompositeState::SetLayerRT(
             VPHAL_RENDER_ASSERTMESSAGE("Only Render Target is present, colorfill must be enabled.");
             goto finish;
         }
-        
+
         uTargetIndex++;
     } while (uTargetIndex < VPHAL_MAX_TARGETS && pRenderingData->pTarget[uTargetIndex]);
 
@@ -4052,7 +4052,7 @@ finish:
 //! \return   void
 //!
 int32_t CompositeState::CalculateInlineDataSize(
-    PVPHAL_RENDERING_DATA_COMPOSITE pRenderingData, 
+    PVPHAL_RENDERING_DATA_COMPOSITE pRenderingData,
     MEDIA_OBJECT_KA2_STATIC_DATA    *pStatic)
 {
     // Set inline pointer
@@ -4263,13 +4263,13 @@ bool CompositeState::SubmitStates(
         src_cspace = pRenderingData->pColorFill->CSpace;
 
         // if iscale enabled, set colorspace to render target color space
-        if ( pFilter->sampler == Sample_iScaling || pFilter->sampler == Sample_iScaling_034x || pFilter->sampler == Sample_iScaling_AVS ) 
+        if ( pFilter->sampler == Sample_iScaling || pFilter->sampler == Sample_iScaling_034x || pFilter->sampler == Sample_iScaling_AVS )
         {
             dst_cspace = CSpace_None;
             // find the filter of render target and set dst_cspace to render target color space
             for (i = 0; i < iFilterSize; i++)
             {
-                if ((pFilter + i)->layer == Layer_RenderTarget) 
+                if ((pFilter + i)->layer == Layer_RenderTarget)
                 {
                     dst_cspace = (pFilter + i)->cspace;
                 }
@@ -4749,7 +4749,6 @@ MOS_STATUS CompositeState::AllocateBuffer(
     iMobjSize = CalculateMediaObjectSize(pRenderingData);
     iBbSize   = iMobjSize * pRenderingData->iBlocksX * pRenderingData->iBlocksY;
 
-    
     iBbSize = iBbSize + pRenderHal->pMhwMiInterface->GetMiBatchBufferEndCmdSize();;
 
     InputBbParams.iSize              = sizeof(VPHAL_BB_COMP_ARGS);
@@ -4843,7 +4842,7 @@ bool CompositeState::RenderBuffer(
     pInlineNLAS                 = &MOInlineData.NLASInline;
     pStatic                     = &pRenderingData->Static;
 
-    // Traverse blocks in the render target area. If destination is not 16x16 
+    // Traverse blocks in the render target area. If destination is not 16x16
     // pixel aligned, the top-most row and left-most column will launch MO cmds
     // starting from non-16x16 aligned dest coords. But the rest of the MO cmds
     // are aligned to 16x16 pixel boundary. Worst-case we would process 15 pixel
@@ -4879,16 +4878,16 @@ bool CompositeState::RenderBuffer(
                 wCombinedMask |= wMask;
 
                 // Gen9+ Possible HW Rotation, kernels not available yet.
-                // DW09 bits 2:0 indicate RotationMirrorMode, 
-                // bit 3 indicates if RotationMirrorMode applies to all layers, 
+                // DW09 bits 2:0 indicate RotationMirrorMode,
+                // bit 3 indicates if RotationMirrorMode applies to all layers,
                 // =1 means to apply for all layers, =0 means only for Layer0
-                // In case of RatationMirrorAllLayer(bit3) = 0, all layers from 
+                // In case of RatationMirrorAllLayer(bit3) = 0, all layers from
                 // layer 1 onwards must be no rotation in a single rendering phase.
                 SetInline16x16Mask(
-                    (VPHAL_ROTATION)((pStatic->DW09.RotationMirrorMode * 
+                    (VPHAL_ROTATION)((pStatic->DW09.RotationMirrorMode *
                     pStatic->DW09.RotationMirrorAllLayer) & applyRotation),
-                    (PVPHAL_16X16BLOCK_COMPOSITE_MASK)&pInline->DW12, 
-                    wMask, 
+                    (PVPHAL_16X16BLOCK_COMPOSITE_MASK)&pInline->DW12,
+                    wMask,
                     VPHAL_VERTICAL_16X16BLOCK_MASK);
             case 7:
                 yt = rcDst[6].top    - y;
@@ -4898,10 +4897,10 @@ bool CompositeState::RenderBuffer(
                 wMask = (0xffff << yt) & ((0x0001 << yb) - 1);
                 wCombinedMask |= wMask;
                 SetInline16x16Mask(
-                    (VPHAL_ROTATION)((pStatic->DW09.RotationMirrorMode * 
+                    (VPHAL_ROTATION)((pStatic->DW09.RotationMirrorMode *
                     pStatic->DW09.RotationMirrorAllLayer) & applyRotation),
-                    (PVPHAL_16X16BLOCK_COMPOSITE_MASK)&pInline->DW11, 
-                    wMask, 
+                    (PVPHAL_16X16BLOCK_COMPOSITE_MASK)&pInline->DW11,
+                    wMask,
                     VPHAL_VERTICAL_16X16BLOCK_MASK);
             case 6:
                 yt = rcDst[5].top    - y;
@@ -4911,10 +4910,10 @@ bool CompositeState::RenderBuffer(
                 wMask = (0xffff << yt) & ((0x0001 << yb) - 1);
                 wCombinedMask |= wMask;
                 SetInline16x16Mask(
-                    (VPHAL_ROTATION)((pStatic->DW09.RotationMirrorMode * 
+                    (VPHAL_ROTATION)((pStatic->DW09.RotationMirrorMode *
                     pStatic->DW09.RotationMirrorAllLayer) & applyRotation),
-                    (PVPHAL_16X16BLOCK_COMPOSITE_MASK)&pInline->DW10, 
-                    wMask, 
+                    (PVPHAL_16X16BLOCK_COMPOSITE_MASK)&pInline->DW10,
+                    wMask,
                     VPHAL_VERTICAL_16X16BLOCK_MASK);
             case 5:
                 yt = rcDst[4].top    - y;
@@ -4924,10 +4923,10 @@ bool CompositeState::RenderBuffer(
                 wMask = (0xffff << yt) & ((0x0001 << yb) - 1);
                 wCombinedMask |= wMask;
                 SetInline16x16Mask(
-                    (VPHAL_ROTATION)((pStatic->DW09.RotationMirrorMode * 
+                    (VPHAL_ROTATION)((pStatic->DW09.RotationMirrorMode *
                     pStatic->DW09.RotationMirrorAllLayer) & applyRotation),
-                    (PVPHAL_16X16BLOCK_COMPOSITE_MASK)&pInline->DW09, 
-                    wMask, 
+                    (PVPHAL_16X16BLOCK_COMPOSITE_MASK)&pInline->DW09,
+                    wMask,
                     VPHAL_VERTICAL_16X16BLOCK_MASK);
             case 4:
                 yt = rcDst[3].top    - y;
@@ -4937,10 +4936,10 @@ bool CompositeState::RenderBuffer(
                 wMask = (0xffff << yt) & ((0x0001 << yb) - 1);
                 wCombinedMask |= wMask;
                 SetInline16x16Mask(
-                    (VPHAL_ROTATION)((pStatic->DW09.RotationMirrorMode * 
+                    (VPHAL_ROTATION)((pStatic->DW09.RotationMirrorMode *
                     pStatic->DW09.RotationMirrorAllLayer) & applyRotation),
-                    (PVPHAL_16X16BLOCK_COMPOSITE_MASK)&pInline->DW08, 
-                    wMask, 
+                    (PVPHAL_16X16BLOCK_COMPOSITE_MASK)&pInline->DW08,
+                    wMask,
                     VPHAL_VERTICAL_16X16BLOCK_MASK);
             case 3:
                 yt = rcDst[2].top    - y;
@@ -4950,10 +4949,10 @@ bool CompositeState::RenderBuffer(
                 wMask = (0xffff << yt) & ((0x0001 << yb) - 1);
                 wCombinedMask |= wMask;
                 SetInline16x16Mask(
-                    (VPHAL_ROTATION)((pStatic->DW09.RotationMirrorMode * 
+                    (VPHAL_ROTATION)((pStatic->DW09.RotationMirrorMode *
                     pStatic->DW09.RotationMirrorAllLayer) & applyRotation),
-                    (PVPHAL_16X16BLOCK_COMPOSITE_MASK)&pInline->DW03, 
-                    wMask, 
+                    (PVPHAL_16X16BLOCK_COMPOSITE_MASK)&pInline->DW03,
+                    wMask,
                     VPHAL_VERTICAL_16X16BLOCK_MASK);
             case 2:
                 yt = rcDst[1].top    - y;
@@ -4963,10 +4962,10 @@ bool CompositeState::RenderBuffer(
                 wMask = (0xffff << yt) & ((0x0001 << yb) - 1);
                 wCombinedMask |= wMask;
                 SetInline16x16Mask(
-                    (VPHAL_ROTATION)((pStatic->DW09.RotationMirrorMode * 
+                    (VPHAL_ROTATION)((pStatic->DW09.RotationMirrorMode *
                     pStatic->DW09.RotationMirrorAllLayer) & applyRotation),
-                    (PVPHAL_16X16BLOCK_COMPOSITE_MASK)&pInline->DW02, 
-                    wMask, 
+                    (PVPHAL_16X16BLOCK_COMPOSITE_MASK)&pInline->DW02,
+                    wMask,
                     VPHAL_VERTICAL_16X16BLOCK_MASK);
             case 1:
                 yt = rcDst[0].top    - y;
@@ -4976,9 +4975,9 @@ bool CompositeState::RenderBuffer(
                 wMask = (0xffff << yt) & ((0x0001 << yb) - 1);
                 wCombinedMask |= wMask;
                 SetInline16x16Mask((VPHAL_ROTATION)
-                    (pStatic->DW09.RotationMirrorMode & applyRotation), 
-                    (PVPHAL_16X16BLOCK_COMPOSITE_MASK)&pInline->DW01, 
-                    wMask, 
+                    (pStatic->DW09.RotationMirrorMode & applyRotation),
+                    (PVPHAL_16X16BLOCK_COMPOSITE_MASK)&pInline->DW01,
+                    wMask,
                     VPHAL_VERTICAL_16X16BLOCK_MASK);
                 break;
             case 0:
@@ -5048,11 +5047,11 @@ bool CompositeState::RenderBuffer(
                     xr = MOS_MIN(MOS_MAX(0, xr), VPHAL_COMP_BLOCK_WIDTH);
                     wMask = (0xffff << xl) & ((0x0001 << xr) - 1);
                     wCombinedMask |= wMask;
-                    SetInline16x16Mask( 
-                        (VPHAL_ROTATION)((pStatic->DW09.RotationMirrorMode * 
+                    SetInline16x16Mask(
+                        (VPHAL_ROTATION)((pStatic->DW09.RotationMirrorMode *
                         pStatic->DW09.RotationMirrorAllLayer) & applyRotation),
-                        (PVPHAL_16X16BLOCK_COMPOSITE_MASK)&pInline->DW12, 
-                        wMask, 
+                        (PVPHAL_16X16BLOCK_COMPOSITE_MASK)&pInline->DW12,
+                        wMask,
                         VPHAL_HORIZONTAL_16X16BLOCK_MASK);
                 case 7:
                     xl = rcDst[6].left  - x;
@@ -5062,10 +5061,10 @@ bool CompositeState::RenderBuffer(
                     wMask = (0xffff << xl) & ((0x0001 << xr) - 1);
                     wCombinedMask |= wMask;
                     SetInline16x16Mask(
-                        (VPHAL_ROTATION)((pStatic->DW09.RotationMirrorMode * 
+                        (VPHAL_ROTATION)((pStatic->DW09.RotationMirrorMode *
                         pStatic->DW09.RotationMirrorAllLayer) & applyRotation),
-                        (PVPHAL_16X16BLOCK_COMPOSITE_MASK)&pInline->DW11, 
-                        wMask, 
+                        (PVPHAL_16X16BLOCK_COMPOSITE_MASK)&pInline->DW11,
+                        wMask,
                         VPHAL_HORIZONTAL_16X16BLOCK_MASK);
                 case 6:
                     xl = rcDst[5].left  - x;
@@ -5075,10 +5074,10 @@ bool CompositeState::RenderBuffer(
                     wMask = (0xffff << xl) & ((0x0001 << xr) - 1);
                     wCombinedMask |= wMask;
                     SetInline16x16Mask(
-                        (VPHAL_ROTATION)((pStatic->DW09.RotationMirrorMode * 
+                        (VPHAL_ROTATION)((pStatic->DW09.RotationMirrorMode *
                         pStatic->DW09.RotationMirrorAllLayer) & applyRotation),
-                        (PVPHAL_16X16BLOCK_COMPOSITE_MASK)&pInline->DW10, 
-                        wMask, 
+                        (PVPHAL_16X16BLOCK_COMPOSITE_MASK)&pInline->DW10,
+                        wMask,
                         VPHAL_HORIZONTAL_16X16BLOCK_MASK);
                 case 5:
                     xl = rcDst[4].left  - x;
@@ -5088,10 +5087,10 @@ bool CompositeState::RenderBuffer(
                     wMask = (0xffff << xl) & ((0x0001 << xr) - 1);
                     wCombinedMask |= wMask;
                     SetInline16x16Mask(
-                        (VPHAL_ROTATION)((pStatic->DW09.RotationMirrorMode * 
+                        (VPHAL_ROTATION)((pStatic->DW09.RotationMirrorMode *
                         pStatic->DW09.RotationMirrorAllLayer) & applyRotation),
-                        (PVPHAL_16X16BLOCK_COMPOSITE_MASK)&pInline->DW09, 
-                        wMask, 
+                        (PVPHAL_16X16BLOCK_COMPOSITE_MASK)&pInline->DW09,
+                        wMask,
                         VPHAL_HORIZONTAL_16X16BLOCK_MASK);
                 case 4:
                     xl = rcDst[3].left  - x;
@@ -5101,10 +5100,10 @@ bool CompositeState::RenderBuffer(
                     wMask = (0xffff << xl) & ((0x0001 << xr) - 1);
                     wCombinedMask |= wMask;
                     SetInline16x16Mask(
-                        (VPHAL_ROTATION)((pStatic->DW09.RotationMirrorMode * 
+                        (VPHAL_ROTATION)((pStatic->DW09.RotationMirrorMode *
                         pStatic->DW09.RotationMirrorAllLayer) & applyRotation),
-                        (PVPHAL_16X16BLOCK_COMPOSITE_MASK)&pInline->DW08, 
-                        wMask, 
+                        (PVPHAL_16X16BLOCK_COMPOSITE_MASK)&pInline->DW08,
+                        wMask,
                         VPHAL_HORIZONTAL_16X16BLOCK_MASK);
                 case 3:
                     xl = rcDst[2].left  - x;
@@ -5114,10 +5113,10 @@ bool CompositeState::RenderBuffer(
                     wMask = (0xffff << xl) & ((0x0001 << xr) - 1);
                     wCombinedMask |= wMask;
                     SetInline16x16Mask(
-                        (VPHAL_ROTATION)((pStatic->DW09.RotationMirrorMode * 
+                        (VPHAL_ROTATION)((pStatic->DW09.RotationMirrorMode *
                         pStatic->DW09.RotationMirrorAllLayer) & applyRotation),
-                        (PVPHAL_16X16BLOCK_COMPOSITE_MASK)&pInline->DW03, 
-                        wMask, 
+                        (PVPHAL_16X16BLOCK_COMPOSITE_MASK)&pInline->DW03,
+                        wMask,
                         VPHAL_HORIZONTAL_16X16BLOCK_MASK);
                 case 2:
                     xl = rcDst[1].left  - x;
@@ -5127,10 +5126,10 @@ bool CompositeState::RenderBuffer(
                     wMask = (0xffff << xl) & ((0x0001 << xr) - 1);
                     wCombinedMask |= wMask;
                     SetInline16x16Mask(
-                        (VPHAL_ROTATION)((pStatic->DW09.RotationMirrorMode * 
+                        (VPHAL_ROTATION)((pStatic->DW09.RotationMirrorMode *
                         pStatic->DW09.RotationMirrorAllLayer) & applyRotation),
-                        (PVPHAL_16X16BLOCK_COMPOSITE_MASK)&pInline->DW02, 
-                        wMask, 
+                        (PVPHAL_16X16BLOCK_COMPOSITE_MASK)&pInline->DW02,
+                        wMask,
                         VPHAL_HORIZONTAL_16X16BLOCK_MASK);
                 case 1:
                     xl = rcDst[0].left  - x;
@@ -5152,7 +5151,7 @@ bool CompositeState::RenderBuffer(
             }
 
             ModifyInlineData(pBbArgs, pRenderingData, pStatic, pInline, pInlineNLAS, x, fSrcX);
-            
+
             if (wCombinedMask)
             {
                 if (pBbArgs->bEnableNLAS)
@@ -5216,17 +5215,16 @@ bool CompositeState::MediaWalkerVertical(
     bool            bVertical     = false;
 
     pSource     = pRenderingData->pLayers[0];
-   
-    if (pRenderingData->iLayers == 1 &&                                                   
+
+    if (pRenderingData->iLayers == 1 &&
         pSource->TileType == MOS_TILE_LINEAR &&
-       (pSource->Rotation == VPHAL_ROTATION_90 || pSource->Rotation == VPHAL_ROTATION_270)) 
-    { 
+       (pSource->Rotation == VPHAL_ROTATION_90 || pSource->Rotation == VPHAL_ROTATION_270))
+    {
         bVertical = true;
     }
 
     return bVertical;
 }
-
 
 //!
 //! \brief    Modify MediaWalker Static Data
@@ -5283,18 +5281,18 @@ bool CompositeState::RenderBufferMediaWalker(
     pdwDestXYBottomRight = (uint32_t*)(&pWalkerStatic->DW56);
 
     // GRF7.0-7, GRF8.0-7
-    for (iLayers = 0; 
-         iLayers < pBbArgs->iLayers; 
+    for (iLayers = 0;
+         iLayers < pBbArgs->iLayers;
          iLayers++, pdwDestXYBottomRight++, pdwDestXYTopLeft++)
     {
-        *pdwDestXYTopLeft     = (pBbArgs->rcDst[iLayers].top    << 16 ) | 
+        *pdwDestXYTopLeft     = (pBbArgs->rcDst[iLayers].top    << 16 ) |
                                  pBbArgs->rcDst[iLayers].left;
-        *pdwDestXYBottomRight = ((pBbArgs->rcDst[iLayers].bottom - 1) << 16 ) | 
+        *pdwDestXYBottomRight = ((pBbArgs->rcDst[iLayers].bottom - 1) << 16 ) |
                                  (pBbArgs->rcDst[iLayers].right - 1);
     }
 
     // GRF 9.0-4
-    pWalkerStatic->DW64.MainVideoXScalingStepLeft                   = 
+    pWalkerStatic->DW64.MainVideoXScalingStepLeft                   =
         (float)pRenderingData->Inline.DW04.VideoXScalingStep;
     pWalkerStatic->DW65.VideoStepDeltaForNonLinearRegion            = 0;
     pWalkerStatic->DW66.StartofLinearScalingInPixelPositionC0       = 0;
@@ -5304,9 +5302,9 @@ bool CompositeState::RenderBufferMediaWalker(
 
     if (pRenderingData->pTarget[1] == nullptr)
     {
-        pWalkerStatic->DW69.DestHorizontalBlockOrigin                  = 
+        pWalkerStatic->DW69.DestHorizontalBlockOrigin                  =
              (uint16_t)pRenderingData->pTarget[0]->rcDst.left;
-        pWalkerStatic->DW69.DestVerticalBlockOrigin                    = 
+        pWalkerStatic->DW69.DestVerticalBlockOrigin                    =
              (uint16_t)pRenderingData->pTarget[0]->rcDst.top;
 
         AlignedRect   = pRenderingData->pTarget[0]->rcDst;
@@ -5314,9 +5312,9 @@ bool CompositeState::RenderBufferMediaWalker(
     else
     {
         // Horizontal and Vertical base on non-rotated in case of dual output
-        pWalkerStatic->DW69.DestHorizontalBlockOrigin                   = 
+        pWalkerStatic->DW69.DestHorizontalBlockOrigin                   =
             (uint16_t)pRenderingData->pTarget[1]->rcDst.left;
-        pWalkerStatic->DW69.DestVerticalBlockOrigin                     = 
+        pWalkerStatic->DW69.DestVerticalBlockOrigin                     =
              (uint16_t)pRenderingData->pTarget[1]->rcDst.top;
 
          AlignedRect   = pRenderingData->pTarget[1]->rcDst;
@@ -5354,11 +5352,11 @@ bool CompositeState::RenderBufferMediaWalker(
     if (AlignedRect.left !=0 || AlignedRect.top !=0)
     {
         // if the rect starts from any other macro  block other than the first
-        // then the global resolution should be the whole frame and the global 
+        // then the global resolution should be the whole frame and the global
         // start should be the rect start.
-        pWalkerParams->GlobalResolution.x           = 
+        pWalkerParams->GlobalResolution.x           =
             (AlignedRect.right / uiMediaWalkerBlockSize);
-        pWalkerParams->GlobalResolution.y           = 
+        pWalkerParams->GlobalResolution.y           =
             (AlignedRect.bottom / uiMediaWalkerBlockSize);
     }
     else
@@ -5367,9 +5365,9 @@ bool CompositeState::RenderBufferMediaWalker(
         pWalkerParams->GlobalResolution.y           = pRenderingData->iBlocksY;
     }
 
-    pWalkerParams->GlobalStart.x                = 
+    pWalkerParams->GlobalStart.x                =
         (AlignedRect.left / uiMediaWalkerBlockSize);
-    pWalkerParams->GlobalStart.y                = 
+    pWalkerParams->GlobalStart.y                =
         (AlignedRect.top / uiMediaWalkerBlockSize);
 
     pWalkerParams->GlobalOutlerLoopStride.x     = pRenderingData->iBlocksX;
@@ -5509,7 +5507,6 @@ MOS_STATUS CompositeState::RenderPhase(
     pRenderHal      = m_pRenderHal;
     pKernelDllState = m_pKernelDllState;
 
-
     //VPHAL_DBG_STATE_DUMPPER_SET_CURRENT_STAGE(VPHAL_DBG_STAGE_COMP);
 
     if (pCompParams->uSourceCount > VPHAL_COMP_MAX_LAYERS)
@@ -5527,7 +5524,7 @@ MOS_STATUS CompositeState::RenderPhase(
         &RenderingData));
 
     // Allocate and reset media state
-    RenderingData.pMediaState = pMediaState = 
+    RenderingData.pMediaState = pMediaState =
                             pRenderHal->pfnAssignMediaState(pRenderHal, RENDERHAL_COMPONENT_COMP);
     VPHAL_RENDER_CHK_NULL(pMediaState);
 
@@ -5582,7 +5579,7 @@ MOS_STATUS CompositeState::RenderPhase(
                 m_bChromaDownSampling = VpHal_IsChromaDownSamplingNeeded(
                                                     pSource,
                                                     &pCompParams->Target[0]);
-            }            
+            }
             else
             {
                 m_bChromaUpSampling   = false;
@@ -5594,7 +5591,7 @@ MOS_STATUS CompositeState::RenderPhase(
                 pCompParams->uSourceCount);
         }
 
-        // Get Allocation index of source for rendering 
+        // Get Allocation index of source for rendering
         if (pOsInterface->pfnRegisterResource(
                 pOsInterface,
                 &pSource->OsResource,
@@ -5619,7 +5616,7 @@ MOS_STATUS CompositeState::RenderPhase(
             pSource->bInterlacedScaling = false;
         }
 
-        // Get Allocation index of reference for rendering 
+        // Get Allocation index of reference for rendering
         if (pSource->bFieldWeaving && pSource->pBwdRef)
         {
             if (pOsInterface->pfnRegisterResource(
@@ -6050,7 +6047,7 @@ bool CompositeState::BuildFilter(
         pSrc = pCompParams->pSource[i];
 
         //--------------------------------
-        // Skip non-visible layers 
+        // Skip non-visible layers
         //--------------------------------
         if (pSrc->iLayerID < 0)
         {
@@ -6060,17 +6057,17 @@ bool CompositeState::BuildFilter(
         //--------------------------------
         // Composition path does not support conversion from BT2020 RGB to BT2020 YUV, BT2020->BT601/BT709, BT601/BT709 -> BT2020
         //--------------------------------
-        if (IS_COLOR_SPACE_BT2020_RGB(pSrc->ColorSpace)   && 
+        if (IS_COLOR_SPACE_BT2020_RGB(pSrc->ColorSpace)   &&
             IS_COLOR_SPACE_BT2020_YUV(pCompParams->Target[0].ColorSpace))  //BT2020 RGB->BT2020 YUV
         {
             eStatus = MOS_STATUS_UNIMPLEMENTED;
         }
-        else if (IS_COLOR_SPACE_BT2020(pSrc->ColorSpace) && 
+        else if (IS_COLOR_SPACE_BT2020(pSrc->ColorSpace) &&
                  !IS_COLOR_SPACE_BT2020(pCompParams->Target[0].ColorSpace)) //BT2020->BT601/BT709
         {
             eStatus = MOS_STATUS_UNIMPLEMENTED;
         }
-        else if (!IS_COLOR_SPACE_BT2020(pSrc->ColorSpace) && 
+        else if (!IS_COLOR_SPACE_BT2020(pSrc->ColorSpace) &&
                  IS_COLOR_SPACE_BT2020(pCompParams->Target[0].ColorSpace))  //BT601/BT709 -> BT2020
         {
             eStatus = MOS_STATUS_UNIMPLEMENTED;
@@ -6175,26 +6172,26 @@ bool CompositeState::BuildFilter(
         // Set sampling mode
         //--------------------------------
         // Calculate scaling factor for X and Y (include BOB DI)
-        if (pFilter->rotation == VPHAL_ROTATION_IDENTITY || 
+        if (pFilter->rotation == VPHAL_ROTATION_IDENTITY ||
             pFilter->rotation == VPHAL_ROTATION_180      ||
             pFilter->rotation == VPHAL_MIRROR_HORIZONTAL ||
             pFilter->rotation == VPHAL_MIRROR_VERTICAL)
         {
             fStepX = (pSrc->rcSrc.right  - pSrc->rcSrc.left) * fAdjustX /
-                     ((pSrc->rcDst.right  - pSrc->rcDst.left) > 0 ? 
+                     ((pSrc->rcDst.right  - pSrc->rcDst.left) > 0 ?
                      (pSrc->rcDst.right  - pSrc->rcDst.left) : 1);
             fStepY = (pSrc->rcSrc.bottom - pSrc->rcSrc.top ) * fAdjustY /
-                     ((pSrc->rcDst.bottom - pSrc->rcDst.top ) > 0 ? 
+                     ((pSrc->rcDst.bottom - pSrc->rcDst.top ) > 0 ?
                      (pSrc->rcDst.bottom - pSrc->rcDst.top ) : 1);
         }
         else
         {
             // VPHAL_ROTATION_90 || VPHAL_ROTATION_270 ||
             fStepX = (pSrc->rcSrc.right  - pSrc->rcSrc.left) * fAdjustX /
-                     ((pSrc->rcDst.bottom - pSrc->rcDst.top ) > 0 ? 
+                     ((pSrc->rcDst.bottom - pSrc->rcDst.top ) > 0 ?
                      (pSrc->rcDst.bottom - pSrc->rcDst.top ) : 1);
             fStepY = (pSrc->rcSrc.bottom - pSrc->rcSrc.top ) * fAdjustY /
-                     ((pSrc->rcDst.right  - pSrc->rcDst.left) > 0 ? 
+                     ((pSrc->rcDst.right  - pSrc->rcDst.left) > 0 ?
                      (pSrc->rcDst.right  - pSrc->rcDst.left) : 1);
         }
         if (IsBobDiEnabled(pSrc) &&
@@ -6205,7 +6202,7 @@ bool CompositeState::BuildFilter(
 
         bLumaKey = (pSrc->pLumaKeyParams != nullptr);
 
-        // Progressive main video (except RGB format) or for RGB10, use AVS 
+        // Progressive main video (except RGB format) or for RGB10, use AVS
         if ((pSrc->ScalingMode == VPHAL_SCALING_AVS) &&
             !IsBobDiEnabled(pSrc))
         {
@@ -6270,7 +6267,7 @@ bool CompositeState::BuildFilter(
         {
             pFilter->bWaEnableDscale = MEDIA_IS_WA(m_pWaTable, WaEnableDscale);
         }
-        
+
         //--------------------------------
         // Set Luma key
         //--------------------------------
@@ -6525,7 +6522,7 @@ MOS_STATUS CompositeState::Initialize(
     NullRenderingFlags = m_pOsInterface->pfnGetNullHWRenderFlags(
                         m_pOsInterface);
 
-    m_bNullHwRenderComp = 
+    m_bNullHwRenderComp =
                     NullRenderingFlags.VPComp ||
                     NullRenderingFlags.VPGobal;
 
@@ -6724,7 +6721,7 @@ CompositeState::CompositeState(
     // Constructor completed, set status to success
     eStatus = MOS_STATUS_SUCCESS;
 
-    // copy status to output argument to pass status to caller 
+    // copy status to output argument to pass status to caller
     *peStatus = eStatus;
 }
 
@@ -6764,7 +6761,7 @@ bool CompositeState::IsMultipleStreamSupported()
 //!
 //! \brief    set Report data
 //! \details  set Report data for this render
-//! \param    [in] pSource    
+//! \param    [in] pSource 
 //!           pointer to the surface
 //!
 void CompositeState::SetReporting(PVPHAL_SURFACE pSource)
@@ -6779,7 +6776,7 @@ void CompositeState::SetReporting(PVPHAL_SURFACE pSource)
 //!
 //! \brief    copy Report data
 //! \details  copy Report data from this render
-//! \param    [out] pReporting    
+//! \param    [out] pReporting 
 //!           pointer to the Report data to copy data to
 //!
 void CompositeState::CopyReporting(VphalFeatureReport* pReporting)

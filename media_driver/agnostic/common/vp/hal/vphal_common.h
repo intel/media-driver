@@ -199,7 +199,7 @@ typedef enum _VPHAL_ROTATION
     VPHAL_ROTATION_90                        ,   //!< Rotation 90 degrees
     VPHAL_ROTATION_180                       ,   //!< Rotation 180 degrees
     VPHAL_ROTATION_270                       ,   //!< Rotation 270 degrees
-    VPHAL_MIRROR_HORIZONTAL                  ,   //!< Horizontal Mirror 
+    VPHAL_MIRROR_HORIZONTAL                  ,   //!< Horizontal Mirror
     VPHAL_MIRROR_VERTICAL                    ,   //!< Vertical Mirror
     VPHAL_ROTATE_90_MIRROR_VERTICAL          ,   //!< 90 + V Mirror
     VPHAL_ROTATE_90_MIRROR_HORIZONTAL            //!< 90 + H Mirror
@@ -303,8 +303,8 @@ typedef enum _VPHAL_CSPACE
     CSpace_BT601Gray            ,   //!< BT.601 Y[16,235]
     CSpace_BT601Gray_FullRange  ,   //!< BT.601 Y[0,255]
     CSpace_BT2020               ,   //!< BT.2020 YUV Limited Range 10bit Y[64, 940] UV[64, 960]
-    CSpace_BT2020_FullRange     ,   //!< BT.2020 YUV Full Range 10bit [0, 1023] 
-    CSpace_BT2020_RGB           ,   //!< BT.2020 RGB Full Range 10bit [0, 1023]  
+    CSpace_BT2020_FullRange     ,   //!< BT.2020 YUV Full Range 10bit [0, 1023]
+    CSpace_BT2020_RGB           ,   //!< BT.2020 RGB Full Range 10bit [0, 1023]
     CSpace_BT2020_stRGB         ,   //!< BT.2020 RGB Studio Range 10bit [64, 940]
     CSpace_Count                    //!< Keep this at the end
 } VPHAL_CSPACE;
@@ -702,14 +702,14 @@ float VpHal_Sinc(float x);
 //! \param    [in] dwNumEntries
 //!           dword
 //! \param    [in] fLanczosT
-//!            
+//! 
 //! \return   float
 //!           lanczos(x)
 //!
 float VpHal_Lanczos(
-    float		x, 
-    uint32_t	dwNumEntries, 
-    float		fLanczosT);
+    float        x,
+    uint32_t    dwNumEntries,
+    float        fLanczosT);
 
 typedef struct VPHAL_SURFACE           *PVPHAL_SURFACE;
 typedef struct VPHAL_GET_SURFACE_INFO  *PVPHAL_GET_SURFACE_INFO;
@@ -726,7 +726,7 @@ typedef struct VPHAL_GET_SURFACE_INFO  *PVPHAL_GET_SURFACE_INFO;
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
-MOS_STATUS VpHal_GetSurfaceInfo( 
+MOS_STATUS VpHal_GetSurfaceInfo(
     PMOS_INTERFACE           pOsInterface,
     PVPHAL_GET_SURFACE_INFO  pInfo,
     PVPHAL_SURFACE           pSurface);
@@ -765,7 +765,7 @@ MOS_STATUS VpHal_ReAllocateSurface(
     PMOS_INTERFACE          pOsInterface,                                       // [in]    Pointer to OS Interface
     PVPHAL_SURFACE          pSurface,                                           // [in/out]Pointer to surface
     PCCHAR                  pSurfaceName,                                       // [in]    Pointer to surface name
-    MOS_FORMAT              Format,                                             // [in]    Surface Format 
+    MOS_FORMAT              Format,                                             // [in]    Surface Format
     MOS_GFXRES_TYPE         DefaultResType,                                     // [in]    Default Resource Type to use if resource has not be allocated yet
     MOS_TILE_TYPE           DefaultTileType,                                    // [in]    Default Resource Tile Type to use if resource has not be allocated yet
     uint32_t                dwWidth,                                            // [in]    Resource Width

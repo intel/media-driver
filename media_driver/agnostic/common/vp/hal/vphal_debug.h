@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      vphal_debug.h  
-//! \brief      
+//! \file      vphal_debug.h 
+//! \brief 
 //!
 //!
 //! \file     vphal_debug.h
@@ -149,7 +149,7 @@
 //! Structure VPHAL_DBG_SURF_DUMP_SURFACE_DEF
 //! \brief    Plane definition
 //! \details  Plane information including offset, height, width, pitch
-//! 
+//!
 struct VPHAL_DBG_SURF_DUMP_SURFACE_DEF
 {
     uint32_t   dwOffset;                                                           //!< Offset from start of the plane
@@ -160,7 +160,7 @@ struct VPHAL_DBG_SURF_DUMP_SURFACE_DEF
 
 //! 
 //! \brief Dump locations as enum
-//! 
+//!
 enum VPHAL_DBG_SURF_DUMP_LOCATION
 {
     VPHAL_DBG_DUMP_TYPE_PRE_ALL,
@@ -204,8 +204,8 @@ struct VPHAL_DBG_SURF_DUMP_SPEC
 struct VPHAL_DBG_FIELD_LAYOUT
 {
     char                     pcName[MAX_NAME_LEN];
-    uint32_t                 dwOffset; 
-    uint32_t                 dwSize; 
+    uint32_t                 dwOffset;
+    uint32_t                 dwSize;
     uint32_t                 uiNumber;
     char                     pcStructName[MAX_NAME_LEN];
     VPHAL_DBG_FIELD_LAYOUT   *pChildLayout;
@@ -215,7 +215,7 @@ struct VPHAL_DBG_FIELD_LAYOUT
 
 //! 
 //! \brief Render stage in VPHAL
-//! 
+//!
 enum  VPHAL_DEBUG_STAGE
 {
     VPHAL_DBG_STAGE_NULL,
@@ -226,7 +226,7 @@ enum  VPHAL_DEBUG_STAGE
 
 //! 
 //! \brief HW state buffer in VPHAL
-//! 
+//!
 enum VPHAL_DBG_DUMP_TYPE
 {
     VPHAL_DBG_DUMP_TYPE_GSH,

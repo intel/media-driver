@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      hal_kerneldll.h  
-//! \brief         Fast Compositing dynamic kernel linking/loading definitions  
+//! \file      hal_kerneldll.h 
+//! \brief         Fast Compositing dynamic kernel linking/loading definitions 
 //!
 #ifndef __HAL_KERNELDLL_H__
 #define __HAL_KERNELDLL_H__
@@ -192,7 +192,6 @@ typedef enum tagKdll_Processing
     Process_DNDI                  // DNDI
 } Kdll_Processing;
 
-
 typedef enum tagKdll_CSCType
 {
     CSC_YUV_RGB    = 0,          // YUV to RGB color space conversion
@@ -231,7 +230,7 @@ typedef enum tagKdll_ParserState
     Parser_SetParamsTarget ,        // setup parameters for render target
     Parser_SampleLayer0    ,        // sample layer 0
     Parser_SampleLayer0Mix ,        // sample layer 0 need inter mix (interlaced scaling)
-    Parser_SampleLayer0ColorFill,   // sample layer 0 colorfill 
+    Parser_SampleLayer0ColorFill,   // sample layer 0 colorfill
     Parser_RotateLayer0Check,       // check if layer 0 needs preComp rotation
     Parser_RotateLayer0    ,        // PreComp layer 0 rotate
     Parser_SampleLayer0Done,        // sample layer 0 is complete
@@ -280,19 +279,19 @@ typedef enum tagKdll_RuleID
     RID_IsParserState    ,     // Match Parser State
     RID_IsRenderMethod   ,     // Match rendering mode, media object or media walker
     RID_IsShuffling      ,     // Match Shuffling
-    RID_IsDualOutput     ,     // Match Dual Output 
-    RID_IsLayerRotation  ,     // Match Rotation 
+    RID_IsDualOutput     ,     // Match Dual Output
+    RID_IsLayerRotation  ,     // Match Rotation
     RID_IsRTRotate       ,     // Match if RT rotates
     RID_IsSrc0Format     ,     // Current Src0 source (surface) format
     RID_IsSrc0Sampling   ,     // Current Src0 sampling mode
-    RID_IsSrc0Rotation ,       // Match Layer0 Rotation 
+    RID_IsSrc0Rotation ,       // Match Layer0 Rotation
     RID_IsSrc0ColorFill  ,     // Current Src0 Colorfill flag
     RID_IsSrc0LumaKey    ,     // Current Src0 LumaKey flag
     RID_IsSrc0Procamp    ,     // Match Src0 Procamp flag
     RID_IsSrc0Internal   ,     // Current Src0 internal pixel format
     RID_IsSrc0Coeff      ,     // Current Src0 CSC coefficients
     RID_IsSrc0Processing ,     // Current Src0 processing mode
-	RID_IsSrc0Chromasiting,    // Current Src0 Chromasiting mode
+    RID_IsSrc0Chromasiting,    // Current Src0 Chromasiting mode
     RID_IsSrc1Format     ,     // Current Src1 source (surface) format
     RID_IsSrc1Sampling   ,     // Current Src1 sampling mode
     RID_IsSrc1LumaKey    ,     // Current Src1 LumaKey flag
@@ -300,7 +299,7 @@ typedef enum tagKdll_RuleID
     RID_IsSrc1Internal   ,     // Current Src1 internal pixel format
     RID_IsSrc1Coeff      ,     // Current Src1 CSC coefficients
     RID_IsSrc1Processing ,     // Current Src1 processing mode
-	RID_IsSrc1Chromasiting,    // Current Src1 Chromasiting mode
+    RID_IsSrc1Chromasiting,    // Current Src1 Chromasiting mode
     RID_IsLayerNumber    ,     // Current Layer number
     RID_IsQuadrant       ,     // Current Quadrant
     RID_IsCSCBeforeMix   ,     // CSC needed before Mix
@@ -428,7 +427,7 @@ typedef struct tagKdll_FilterEntry
     int             matrix;           // index to CSC matrix entry   (-1 if CSC not required)
     VPHAL_ROTATION  rotation;         // rotation angle
     MOS_TILE_TYPE   tiletype;         // Tiling Type
-    bool            dualout;    	  // dual output mode
+    bool            dualout;          // dual output mode
     bool            bWaEnableDscale;  // enable DScale kernels for sampler-unrom issue
     int32_t         chromasiting;     // chromasiting        (-1 if Chromasiting is disabled)
 
@@ -459,7 +458,6 @@ typedef struct tagKdll_Linking
     uint32_t         dwOffset        : 16;  // Instruction offset
 } Kdll_Linking, *pKdll_Linking;
 
-
 // Kernel patches
 typedef enum tagKdll_PatchKind
 {
@@ -467,7 +465,6 @@ typedef enum tagKdll_PatchKind
     PatchKind_CSC_Coeff_Src0 = 1,
     PatchKind_CSC_Coeff_Src1 = 2,
 } Kdll_PatchKind;
-
 
 typedef struct tagKdll_PatchBlock
 {
@@ -552,7 +549,7 @@ typedef struct tagKdll_CacheEntry
     int               iKCID;             // kernel cache id (dynamically linked kernel)
     uint32_t          dwLoaded;          // kernel loaded flag
     uint32_t          dwRefresh;         // refresh counter (for expiration control)
-    
+
     struct tagKdll_CacheEntry *pNextEntry;    // Next cache entry;
 } Kdll_CacheEntry;
 

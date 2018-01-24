@@ -498,21 +498,21 @@ typedef struct VPHAL_VEBOX_STATE_PARAMS *PVPHAL_VEBOX_STATE_PARAMS;
 typedef struct VPHAL_VEBOX_STATE_PARAMS_EXT *PVPHAL_VEBOX_STATE_PARAMS_EXT;
 struct VPHAL_VEBOX_STATE_PARAMS
 {
-                                    VPHAL_VEBOX_STATE_PARAMS() 
-									{ 
-										pVphalVeboxIecpParams = nullptr;
-										pVphalVeboxDndiParams = nullptr;
-									}
-    virtual                         ~VPHAL_VEBOX_STATE_PARAMS() 
-									{ 
-										pVphalVeboxIecpParams = nullptr;
-										pVphalVeboxDndiParams = nullptr; 
-									}
-    virtual void                    Init() 
-									{ 
-										pVphalVeboxIecpParams = nullptr;
-										pVphalVeboxDndiParams = nullptr; 
-									}
+                                    VPHAL_VEBOX_STATE_PARAMS()
+                                    {
+                                        pVphalVeboxIecpParams = nullptr;
+                                        pVphalVeboxDndiParams = nullptr;
+                                    }
+    virtual                         ~VPHAL_VEBOX_STATE_PARAMS()
+                                    {
+                                        pVphalVeboxIecpParams = nullptr;
+                                        pVphalVeboxDndiParams = nullptr;
+                                    }
+    virtual void                    Init()
+                                    {
+                                        pVphalVeboxIecpParams = nullptr;
+                                        pVphalVeboxDndiParams = nullptr;
+                                    }
     virtual PVPHAL_VEBOX_STATE_PARAMS_EXT   GetExtParams()  {return nullptr;}
 
     PMHW_VEBOX_DNDI_PARAMS          pVphalVeboxDndiParams;
@@ -575,12 +575,12 @@ typedef struct VPHAL_VEBOX_RENDER_DATA_EXT *PVPHAL_VEBOX_RENDER_DATA_EXT;
 struct VPHAL_VEBOX_RENDER_DATA
 {
 public:
-                                        VPHAL_VEBOX_RENDER_DATA()  
-                                        { 
+                                        VPHAL_VEBOX_RENDER_DATA()
+                                        {
                                             m_pVeboxStateParams = nullptr;
                                             m_pVeboxIecpParams  = nullptr;
                                         }
-    virtual                             ~VPHAL_VEBOX_RENDER_DATA(); 
+    virtual                             ~VPHAL_VEBOX_RENDER_DATA();
     virtual MOS_STATUS                  Init();
     PVPHAL_VEBOX_STATE_PARAMS           GetVeboxStateParams()   { return m_pVeboxStateParams;}
     PVPHAL_VEBOX_IECP_PARAMS            GetVeboxIECPParams()    { return m_pVeboxIecpParams; }
@@ -609,7 +609,7 @@ public:
     bool                                bTopField;
     bool                                bBeCsc;
     bool                                bVeboxBypass;
-	bool                                b60fpsDi;
+    bool                                b60fpsDi;
 
     // Surface Information
     int32_t                             iFrame0;
@@ -633,9 +633,9 @@ public:
     PRENDERHAL_MEDIA_STATE              pMediaState;
     PMHW_VEBOX_HEAP_STATE               pVeboxState;
     PVPHAL_SURFACE                      pRenderTarget;
-    
+
     MHW_SAMPLER_STATE_PARAM             SamplerStateParams;
-    
+
     MHW_VEBOX_DNDI_PARAMS               VeboxDNDIParams;
 
     PVPHAL_ALPHA_PARAMS                 pAlphaParams;
@@ -711,7 +711,7 @@ public:
     //!
     //! \brief    copy Report data
     //! \details  copy Report data from this render
-    //! \param    [out] pReporting    
+    //! \param    [out] pReporting 
     //!           pointer to the Report data to copy data to
     //!
     void CopyReporting(VphalFeatureReport *pReporting);
@@ -719,7 +719,7 @@ public:
     //!
     //! \brief    copy Report data about features
     //! \details  copy Report data from this render
-    //! \param    [out] pReporting    
+    //! \param    [out] pReporting 
     //!           pointer to the Report data to copy data to
     //!
     void CopyFeatureReporting(VphalFeatureReport *pReporting);
@@ -727,9 +727,9 @@ public:
     //!
     //! \brief    copy Report data about resources
     //! \details  copy Report data from this render
-    //! \param    [out] pReporting    
+    //! \param    [out] pReporting 
     //!           pointer to the Report data to copy data to
-    //! 
+    //!
     void CopyResourceReporting(VphalFeatureReport *pReporting);
 
     // External components
@@ -766,7 +766,7 @@ public:
     union
     {
         //  DNDI/VEBOX
-        struct 
+        struct
         {
             VPHAL_SURFACE           *FFDISurfaces[VPHAL_MAX_NUM_FFDI_SURFACES];  //!< FFDI output surface structure
         };
@@ -795,7 +795,7 @@ public:
     // BNE system memory pointer
     uint8_t*                        pBNEData;                                   //!< System memory for GNE calculating
     uint32_t                        dwBNESize;                                  //!< System memory size for BNE surface
-    
+
     // Statistics
     uint32_t                        dwVeboxPerBlockStatisticsWidth;             //!< Per block statistics width
     uint32_t                        dwVeboxPerBlockStatisticsHeight;            //!< Per block statistics height
@@ -840,7 +840,7 @@ public:
 
     // Platform dependent states
     PRENDERHAL_KERNEL_PARAM         pKernelParamTable;                          //!< Kernel Parameter table
-  
+
     // HW Params
     uint32_t                        dwKernelUpdate;                             //!< Enable/Disable kernel update
 
@@ -848,7 +848,7 @@ public:
 
     // Debug parameters
     char*                           pKernelName;                                //!< Kernel Used for current rendering
-    bool                            bNullHwRenderDnDi;                          //!< Null rendering for DnDi function 
+    bool                            bNullHwRenderDnDi;                          //!< Null rendering for DnDi function
 
     bool                            bEnableMMC;                                 //!< Memory compression enbale flag - read from User feature keys
     bool                            bDisableTemporalDenoiseFilter;              //!< Temporal denoise filter disable flag - read from User feature keys
@@ -858,7 +858,7 @@ public:
     uint32_t                         uiCurrentChannel;                           //!< 0=StereoLeft or nonStereo, 1=StereoRight. N/A in nonStereo
 
     MOS_GPU_CONTEXT                  RenderGpuContext;                           //!< Render GPU context
-    
+
 protected:
     PVPHAL_VEBOX_IECP_RENDERER      m_IECP;                                     //!< pointer to IECP Renderer module, which contains more filters like TCC, STE.
 
@@ -892,23 +892,23 @@ public:
         PCVPHAL_RENDER_PARAMS  pcRenderParams,
         RenderpassData         *pRenderPassData);
 
-	//!
-	//! \brief    Set DI output frame
-	//! \details  Choose 2nd Field of Previous frame or 1st Field of Current frame
-	//!           or both frames
-	//! \param    [in] pRenderData
-	//!           Pointer to Render data
-	//! \param    [in] pVeboxState
-	//!           Pointer to Vebox State
-	//! \param    [in] pVeboxMode
-	//!           Pointer to Vebox Mode
-	//! \return   GFX_MEDIA_VEBOX_DI_OUTPUT_MODE
-	//!           Return Previous/Current/Both frames
-	//!
-	virtual GFX_MEDIA_VEBOX_DI_OUTPUT_MODE SetDIOutputFrame(
-		PVPHAL_VEBOX_RENDER_DATA pRenderData,
-		PVPHAL_VEBOX_STATE       pVeboxState,
-		PMHW_VEBOX_MODE          pVeboxMode);
+    //!
+    //! \brief    Set DI output frame
+    //! \details  Choose 2nd Field of Previous frame or 1st Field of Current frame
+    //!           or both frames
+    //! \param    [in] pRenderData
+    //!           Pointer to Render data
+    //! \param    [in] pVeboxState
+    //!           Pointer to Vebox State
+    //! \param    [in] pVeboxMode
+    //!           Pointer to Vebox Mode
+    //! \return   GFX_MEDIA_VEBOX_DI_OUTPUT_MODE
+    //!           Return Previous/Current/Both frames
+    //!
+    virtual GFX_MEDIA_VEBOX_DI_OUTPUT_MODE SetDIOutputFrame(
+        PVPHAL_VEBOX_RENDER_DATA pRenderData,
+        PVPHAL_VEBOX_STATE       pVeboxState,
+        PMHW_VEBOX_MODE          pVeboxMode);
 
     //!
     //! \brief    Judge if render is needed
@@ -937,7 +937,7 @@ public:
     }
 
     virtual MOS_STATUS AllocateResources() = 0;
-    
+
     virtual void FreeResources() = 0;
 
     //!
@@ -958,7 +958,7 @@ public:
 
     virtual void SetupSurfaceStates(
         bool                        bDiVarianceEnable,
-        PVPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS   
+        PVPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS
                                     pVeboxSurfaceStateCmdParams) = 0;
 
     virtual MOS_STATUS VeboxQueryStatLayout(
@@ -1004,7 +1004,7 @@ public:
         PVPHAL_SURFACE              pSrcSurface) = 0;
 
     virtual bool UseKernelResource()=0;
-    
+
     virtual void VeboxGetBeCSCMatrix(
         PVPHAL_SURFACE                  pSrcSurface,
         PVPHAL_SURFACE                  pOutSurface) = 0;
@@ -1477,7 +1477,7 @@ protected:
     virtual MOS_STATUS VeboxFlushUpdateStateAddExtraKernels(
         MOS_COMMAND_BUFFER&                 CmdBuffer,
         MHW_MEDIA_OBJECT_PARAMS&            MediaObjectParams)
-    {  
+    {
         MOS_UNUSED(CmdBuffer);
         MOS_UNUSED(MediaObjectParams);
         return MOS_STATUS_SUCCESS;
@@ -1575,7 +1575,7 @@ protected:
 
     //!
     //! \brief    Check if 2 passes CSC are supported on the platform
-    //!               
+    //!
     virtual bool Is2PassesCscPlatformSupported()
     {
         return false;
