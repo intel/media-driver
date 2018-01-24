@@ -31,7 +31,7 @@
 
 mhw_vdbox_huc_g9_skl::MEMORYADDRESSATTRIBUTES_CMD::MEMORYADDRESSATTRIBUTES_CMD()
 {
-    DW0.Value                                        = 0x00000000;        
+    DW0.Value                                        = 0x00000000;
     //DW0.BaseAddressRowStoreScratchBufferCacheSelect  = BASE_ADDRESS_ROW_STORE_SCRATCH_BUFFER_CACHE_SELECT_UNNAMED0;
     //DW0.BaseAddressTiledResourceMode                 = BASE_ADDRESS_TILED_RESOURCE_MODE_TRMODENONE;
 
@@ -39,147 +39,147 @@ mhw_vdbox_huc_g9_skl::MEMORYADDRESSATTRIBUTES_CMD::MEMORYADDRESSATTRIBUTES_CMD()
 
 mhw_vdbox_huc_g9_skl::SPLITBASEADDRESS64BYTEALIGNED_CMD::SPLITBASEADDRESS64BYTEALIGNED_CMD()
 {
-    DW0_1.Value[0] = DW0_1.Value[1]                  = 0x00000000;        
+    DW0_1.Value[0] = DW0_1.Value[1]                  = 0x00000000;
 
 }
 
 mhw_vdbox_huc_g9_skl::SPLITBASEADDRESS4KBYTEALIGNED_CMD::SPLITBASEADDRESS4KBYTEALIGNED_CMD()
 {
-    DW0_1.Value[0] = DW0_1.Value[1]                  = 0x00000000;        
+    DW0_1.Value[0] = DW0_1.Value[1]                  = 0x00000000;
 
 }
 
 mhw_vdbox_huc_g9_skl::HUC_PIPE_MODE_SELECT_CMD::HUC_PIPE_MODE_SELECT_CMD()
 {
-    DW0.Value                                        = 0x75800001;        
+    DW0.Value                                        = 0x75800001;
     //DW0.DwordLength                                  = GetOpLength(dwSize);
     //DW0.MediaInstructionCommand                      = MEDIA_INSTRUCTION_COMMAND_HUCPIPEMODESELECT;
     //DW0.MediaInstructionOpcode                       = MEDIA_INSTRUCTION_OPCODE_CODECENGINENAME;
     //DW0.PipelineType                                 = PIPELINE_TYPE_UNNAMED2;
     //DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0x00000000;        
+    DW1.Value                                        = 0x00000000;
     //DW1.IndirectStreamOutEnable                      = INDIRECT_STREAM_OUT_ENABLE_DISABLEINDIRECTSTREAMOUT;
 
-    DW2.Value                                        = 0x00000000;        
+    DW2.Value                                        = 0x00000000;
     //DW2.MediaSoftResetCounterPer1000Clocks           = MEDIA_SOFT_RESET_COUNTER_PER_1000_CLOCKS_DISABLE;
 
 }
 
 mhw_vdbox_huc_g9_skl::HUC_IMEM_STATE_CMD::HUC_IMEM_STATE_CMD()
 {
-    DW0.Value                                        = 0x75810003;        
+    DW0.Value                                        = 0x75810003;
     //DW0.DwordLength                                  = GetOpLength(dwSize);
     //DW0.MediaInstructionCommand                      = MEDIA_INSTRUCTION_COMMAND_HUCIMEMSTATE;
     //DW0.MediaInstructionOpcode                       = MEDIA_INSTRUCTION_OPCODE_CODECENGINENAME;
     //DW0.PipelineType                                 = PIPELINE_TYPE_UNNAMED2;
     //DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0x00000000;        
+    DW1.Value                                        = 0x00000000;
 
-    DW2.Value                                        = 0x00000000;        
+    DW2.Value                                        = 0x00000000;
 
-    DW3.Value                                        = 0x00000000;        
+    DW3.Value                                        = 0x00000000;
 
-    DW4.Value                                        = 0x00000000;        
+    DW4.Value                                        = 0x00000000;
     //DW4.HucFirmwareDescriptor                        = HUC_FIRMWARE_DESCRIPTOR_UNNAMED0;
 
 }
 
 mhw_vdbox_huc_g9_skl::HUC_DMEM_STATE_CMD::HUC_DMEM_STATE_CMD()
 {
-    DW0.Value                                        = 0x75820004;        
+    DW0.Value                                        = 0x75820004;
     //DW0.DwordLength                                  = GetOpLength(dwSize);
     //DW0.MediaInstructionCommand                      = MEDIA_INSTRUCTION_COMMAND_HUCDMEMSTATE;
     //DW0.MediaInstructionOpcode                       = MEDIA_INSTRUCTION_OPCODE_CODECENGINENAME;
     //DW0.PipelineType                                 = PIPELINE_TYPE_UNNAMED2;
     //DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    memset(&HucDataSourceBaseAddress, 0, sizeof(HucDataSourceBaseAddress));        
+    memset(&HucDataSourceBaseAddress, 0, sizeof(HucDataSourceBaseAddress));
 
-    memset(&HucDataSourceAttributes, 0, sizeof(HucDataSourceAttributes));        
+    memset(&HucDataSourceAttributes, 0, sizeof(HucDataSourceAttributes));
 
-    DW4.Value                                        = 0x00000000;        
+    DW4.Value                                        = 0x00000000;
 
-    DW5.Value                                        = 0x00000000;        
+    DW5.Value                                        = 0x00000000;
 
 }
 
 mhw_vdbox_huc_g9_skl::HUC_CFG_STATE_CMD::HUC_CFG_STATE_CMD()
 {
-    DW0.Value                                        = 0x75830000;        
+    DW0.Value                                        = 0x75830000;
     //DW0.DwordLength                                  = GetOpLength(dwSize);
     //DW0.MediaInstructionCommand                      = MEDIA_INSTRUCTION_COMMAND_HUCCFGSTATE;
     //DW0.MediaInstructionOpcode                       = MEDIA_INSTRUCTION_OPCODE_CODECENGINENAME;
     //DW0.PipelineType                                 = PIPELINE_TYPE_UNNAMED2;
     //DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0x00000000;        
+    DW1.Value                                        = 0x00000000;
     //DW1.P24CMinuteia                                 = P24C_MINUTEIA_NORMALOPERATION;
 
 }
 
 mhw_vdbox_huc_g9_skl::HUC_VIRTUAL_ADDR_REGION_CMD::HUC_VIRTUAL_ADDR_REGION_CMD()
 {
-    memset(&HucSurfaceBaseAddressVirtualaddrregion015, 0, sizeof(HucSurfaceBaseAddressVirtualaddrregion015));        
+    memset(&HucSurfaceBaseAddressVirtualaddrregion015, 0, sizeof(HucSurfaceBaseAddressVirtualaddrregion015));
 
-    memset(&HucSurfaceVirtualaddrregion015, 0, sizeof(HucSurfaceVirtualaddrregion015));        
+    memset(&HucSurfaceVirtualaddrregion015, 0, sizeof(HucSurfaceVirtualaddrregion015));
 
 }
 
 mhw_vdbox_huc_g9_skl::HUC_VIRTUAL_ADDR_STATE_CMD::HUC_VIRTUAL_ADDR_STATE_CMD()
 {
-    DW0.Value                                        = 0x7584002f;        
+    DW0.Value                                        = 0x7584002f;
     //DW0.DwordLength                                  = GetOpLength(dwSize);
     //DW0.MediaInstructionCommand                      = MEDIA_INSTRUCTION_COMMAND_HUCVIRTUALADDRSTATE;
     //DW0.MediaInstructionOpcode                       = MEDIA_INSTRUCTION_OPCODE_CODECENGINENAME;
     //DW0.PipelineType                                 = PIPELINE_TYPE_UNNAMED2;
     //DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    memset(&HucVirtualAddressRegion, 0, sizeof(HucVirtualAddressRegion));        
+    memset(&HucVirtualAddressRegion, 0, sizeof(HucVirtualAddressRegion));
 
 }
 
 mhw_vdbox_huc_g9_skl::HUC_IND_OBJ_BASE_ADDR_STATE_CMD::HUC_IND_OBJ_BASE_ADDR_STATE_CMD()
 {
-    DW0.Value                                        = 0x75850009;        
+    DW0.Value                                        = 0x75850009;
     //DW0.DwordLength                                  = GetOpLength(dwSize);
     //DW0.MediaInstructionCommand                      = MEDIA_INSTRUCTION_COMMAND_HUCINDOBJBASEADDRSTATE;
     //DW0.MediaInstructionOpcode                       = MEDIA_INSTRUCTION_OPCODE_CODECENGINENAME;
     //DW0.PipelineType                                 = PIPELINE_TYPE_UNNAMED2;
     //DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    memset(&HucIndirectStreamInObjectbaseAddress, 0, sizeof(HucIndirectStreamInObjectbaseAddress));        
+    memset(&HucIndirectStreamInObjectbaseAddress, 0, sizeof(HucIndirectStreamInObjectbaseAddress));
 
-    memset(&HucIndirectStreamInObjectbaseAttributes, 0, sizeof(HucIndirectStreamInObjectbaseAttributes));        
+    memset(&HucIndirectStreamInObjectbaseAttributes, 0, sizeof(HucIndirectStreamInObjectbaseAttributes));
 
-    memset(&HucIndirectStreamInObjectaccessUpperBound, 0, sizeof(HucIndirectStreamInObjectaccessUpperBound));        
+    memset(&HucIndirectStreamInObjectaccessUpperBound, 0, sizeof(HucIndirectStreamInObjectaccessUpperBound));
 
-    memset(&HucIndirectStreamOutObjectbaseAddress, 0, sizeof(HucIndirectStreamOutObjectbaseAddress));        
+    memset(&HucIndirectStreamOutObjectbaseAddress, 0, sizeof(HucIndirectStreamOutObjectbaseAddress));
 
-    memset(&HucIndirectStreamOutObjectbaseAttributes, 0, sizeof(HucIndirectStreamOutObjectbaseAttributes));        
+    memset(&HucIndirectStreamOutObjectbaseAttributes, 0, sizeof(HucIndirectStreamOutObjectbaseAttributes));
 
-    memset(&HucIndirectStreamOutObjectaccessUpperBound, 0, sizeof(HucIndirectStreamOutObjectaccessUpperBound));        
+    memset(&HucIndirectStreamOutObjectaccessUpperBound, 0, sizeof(HucIndirectStreamOutObjectaccessUpperBound));
 
 }
 
 mhw_vdbox_huc_g9_skl::HUC_STREAM_OBJECT_CMD::HUC_STREAM_OBJECT_CMD()
 {
-    DW0.Value                                        = 0x75a00003;        
+    DW0.Value                                        = 0x75a00003;
     //DW0.DwordLength                                  = GetOpLength(dwSize);
     //DW0.MediaInstructionCommand                      = MEDIA_INSTRUCTION_COMMAND_HUCSTREAMOBJECT;
     //DW0.MediaInstructionOpcode                       = MEDIA_INSTRUCTION_OPCODE_CODECENGINENAME;
     //DW0.PipelineType                                 = PIPELINE_TYPE_UNNAMED2;
     //DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0x00000000;        
+    DW1.Value                                        = 0x00000000;
 
-    DW2.Value                                        = 0x00000000;        
+    DW2.Value                                        = 0x00000000;
     //DW2.HucProcessing                                = 0;
 
-    DW3.Value                                        = 0x00000000;        
+    DW3.Value                                        = 0x00000000;
 
-    DW4.Value                                        = 0x00000000;        
+    DW4.Value                                        = 0x00000000;
     //DW4.StartCodeSearchEngine                        = START_CODE_SEARCH_ENGINE_DISABLE;
     //DW4.EmulationPreventionByteRemoval               = EMULATION_PREVENTION_BYTE_REMOVAL_DISABLE;
     //DW4.StreamOut                                    = STREAM_OUT_DISABLE;
@@ -190,14 +190,14 @@ mhw_vdbox_huc_g9_skl::HUC_STREAM_OBJECT_CMD::HUC_STREAM_OBJECT_CMD()
 
 mhw_vdbox_huc_g9_skl::HUC_START_CMD::HUC_START_CMD()
 {
-    DW0.Value                                        = 0x75a10000;        
+    DW0.Value                                        = 0x75a10000;
     //DW0.DwordLength                                  = GetOpLength(dwSize);
     //DW0.MediaInstructionCommand                      = MEDIA_INSTRUCTION_COMMAND_HUCSTART;
     //DW0.MediaInstructionOpcode                       = MEDIA_INSTRUCTION_OPCODE_CODECENGINENAME;
     //DW0.PipelineType                                 = PIPELINE_TYPE_UNNAMED2;
     //DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0x00000000;        
+    DW1.Value                                        = 0x00000000;
     //DW1.Laststreamobject                             = LASTSTREAMOBJECT_NOTLASTSTREAMOBJECT;
 
 }

@@ -48,8 +48,8 @@ public:
     //!
     //! \brief VDENC_64B_Aligned_Lower_Address
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct VDENC_64B_Aligned_Lower_Address_CMD
     {
         union
@@ -77,8 +77,8 @@ public:
     //!
     //! \brief VDENC_64B_Aligned_Upper_Address
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct VDENC_64B_Aligned_Upper_Address_CMD
     {
         union
@@ -106,8 +106,8 @@ public:
     //!
     //! \brief VDENC_Surface_Control_Bits
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct VDENC_Surface_Control_Bits_CMD
     {
         union
@@ -176,8 +176,8 @@ public:
         enum TILED_RESOURCE_MODE
         {
             TILED_RESOURCE_MODE_TRMODENONE                                   = 0, //!< No tiled resource.
-            TILED_RESOURCE_MODE_TRMODETILEYF                                 = 1, //!< 4KB tiled resources 
-            TILED_RESOURCE_MODE_TRMODETILEYS                                 = 2, //!< 64KB tiled resources 
+            TILED_RESOURCE_MODE_TRMODETILEYF                                 = 1, //!< 4KB tiled resources
+            TILED_RESOURCE_MODE_TRMODETILEYS                                 = 2, //!< 64KB tiled resources
         };
 
         //! \name Initializations
@@ -192,8 +192,8 @@ public:
     //!
     //! \brief VDENC_Sub_Mb_Pred_Mode
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct VDENC_Sub_Mb_Pred_Mode_CMD
     {
         union
@@ -223,8 +223,8 @@ public:
     //!
     //! \brief VDENC_Block_8x8_4
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct VDENC_Block_8x8_4_CMD
     {
         union
@@ -254,14 +254,14 @@ public:
     //!
     //! \brief VDENC_Delta_MV_XY
     //! \details
-    //!     
-    //!     
+    //! 
+    //! 
     //!     Calculates the difference between the actual MV for the Sub Macroblock
     //!     and the predicted MV based on the availability of the neighbors.
-    //!     
+    //! 
     //!     This is calculated and populated for Inter frames only. In case of an
     //!     Intra MB in Inter frames, this value should be 0.
-    //!     
+    //!
     struct VDENC_Delta_MV_XY_CMD
     {
         union
@@ -375,8 +375,8 @@ public:
     //!
     //! \brief VDENC_Colocated_MV_Picture
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct VDENC_Colocated_MV_Picture_CMD
     {
                 VDENC_64B_Aligned_Lower_Address_CMD LowerAddress                                                                     ; //!< Lower Address
@@ -397,8 +397,8 @@ public:
     //!
     //! \brief VDENC_Down_Scaled_Reference_Picture
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct VDENC_Down_Scaled_Reference_Picture_CMD
     {
                 VDENC_64B_Aligned_Lower_Address_CMD LowerAddress                                                                     ; //!< Lower Address
@@ -419,8 +419,8 @@ public:
     //!
     //! \brief VDENC_FRAME_BASED_STATISTICS_STREAMOUT
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct VDENC_FRAME_BASED_STATISTICS_STREAMOUT_CMD
     {
         union
@@ -518,8 +518,8 @@ public:
     //!
     //! \brief VDENC_Mode_StreamOut_Data
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct VDENC_Mode_StreamOut_Data_CMD
     {
         union
@@ -619,8 +619,8 @@ public:
         //! \brief INTERMBMODECHROMA_PREDICTION_MODE
         //! \details
         //!     This field indicates the InterMB Parition type for Inter MB.
-        //!     					<br>OR</br>
-        //!     					This field indicates Chroma Prediction Mode for Intra MB.
+        //!                         <br>OR</br>
+        //!                         This field indicates Chroma Prediction Mode for Intra MB.
         enum INTERMBMODECHROMA_PREDICTION_MODE
         {
             INTERMBMODECHROMA_PREDICTION_MODE_UNNAMED0                       = 0, //!< 16x16
@@ -667,8 +667,8 @@ public:
     //!
     //! \brief VDENC_Original_Uncompressed_Picture
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct VDENC_Original_Uncompressed_Picture_CMD
     {
                 VDENC_64B_Aligned_Lower_Address_CMD LowerAddress                                                                     ; //!< Lower Address
@@ -689,8 +689,8 @@ public:
     //!
     //! \brief VDENC_Reference_Picture
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct VDENC_Reference_Picture_CMD
     {
                 VDENC_64B_Aligned_Lower_Address_CMD LowerAddress                                                                     ; //!< Lower Address
@@ -711,8 +711,8 @@ public:
     //!
     //! \brief VDENC_Row_Store_Scratch_Buffer_Picture
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct VDENC_Row_Store_Scratch_Buffer_Picture_CMD
     {
                 VDENC_64B_Aligned_Lower_Address_CMD LowerAddress                                                                     ; //!< Lower Address
@@ -733,8 +733,8 @@ public:
     //!
     //! \brief VDENC_Statistics_Streamout
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct VDENC_Statistics_Streamout_CMD
     {
                 VDENC_64B_Aligned_Lower_Address_CMD LowerAddress                                                                     ; //!< Lower Address
@@ -755,8 +755,8 @@ public:
     //!
     //! \brief VDENC_Streamin_Data_Picture
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct VDENC_Streamin_Data_Picture_CMD
     {
                 VDENC_64B_Aligned_Lower_Address_CMD LowerAddress                                                                     ; //!< Lower Address
@@ -777,8 +777,8 @@ public:
     //!
     //! \brief VDENC_STREAMIN_STATE
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct VDENC_STREAMIN_STATE_CMD
     {
         union
@@ -839,7 +839,6 @@ public:
 
         uint32_t                         Reserved160[11];                                                                 //!< Reserved
 
-
         //! \name Local enumerations
 
         //! \brief FORCEINTRA
@@ -892,8 +891,8 @@ public:
     //!
     //! \brief VDENC_HEVC_VP9_FRAME_BASED_STATISTICS_STREAMOUT
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct VDENC_HEVC_VP9_FRAME_BASED_STATISTICS_STREAMOUT_CMD
     {
         union
@@ -1188,7 +1187,7 @@ public:
     //!     Normal Mode without force mv or force intra: 4321 [64x64 --> 16x16].
     //!     Speed Mode without force mv or force intra: 2220, 2110, 1210, 2200, 1110
     //!     [64x64 --> 16x16].
-    //!     
+    //!
     struct VDENC_HEVC_VP9_STREAMIN_STATE_CMD
     {
         union
@@ -1391,8 +1390,8 @@ public:
     //!
     //! \brief VDENC_Surface_State_Fields
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct VDENC_Surface_State_Fields_CMD
     {
         union
@@ -1402,7 +1401,7 @@ public:
             {
                 uint32_t                 CrVCbUPixelOffsetVDirection                      : __CODEGEN_BITFIELD( 0,  1)    ; //!< Cr(V)/Cb(U) Pixel Offset V Direction
                 uint32_t                 SurfaceFormatByteSwizzle                         : __CODEGEN_BITFIELD( 2,  2)    ; //!< Surface Format Byte Swizzle
-                uint32_t                 ColorSpaceSelection                              : __CODEGEN_BITFIELD( 3,  3)    ; //!< Color space selection 
+                uint32_t                 ColorSpaceSelection                              : __CODEGEN_BITFIELD( 3,  3)    ; //!< Color space selection
                 uint32_t                 Width                                            : __CODEGEN_BITFIELD( 4, 17)    ; //!< Width
                 uint32_t                 Height                                           : __CODEGEN_BITFIELD(18, 31)    ; //!< Height
             };
@@ -1454,11 +1453,11 @@ public:
         //! \details
         //!     (This field must be set to 1: TILEWALK_YMAJOR.) This field specifies the
         //!     type of memory tiling
-        //!     					(XMajor or YMajor) employed to tile this surface. See Memory
+        //!                         (XMajor or YMajor) employed to tile this surface. See Memory
         //!     Interface Functions for details
-        //!     					on memory tiling and restrictions.This field is ignored when the
+        //!                         on memory tiling and restrictions.This field is ignored when the
         //!     surface is linear. Internally
-        //!     					H/W always treats this as set to 1 for all VDEnc usage.
+        //!                         H/W always treats this as set to 1 for all VDEnc usage.
         enum TILE_WALK
         {
             TILE_WALK_XMAJOR                                                 = 0, //!< TILEWALK_XMAJOR
@@ -1469,7 +1468,7 @@ public:
         //! \details
         //!     (This field must be set to TRUE: Tiled.) This field specifies whether
         //!     the surface is tiled.
-        //!     					This field is ignored by VDEnc usage.
+        //!                         This field is ignored by VDEnc usage.
         enum TILED_SURFACE
         {
             TILED_SURFACE_FALSE                                              = 0, //!< Linear
@@ -1480,9 +1479,9 @@ public:
         //! \details
         //!     (This field must be set to Disable.) This field indicates that the
         //!     chroma plane(s) will use a pitch equal
-        //!     					to half the value specified in the Surface Pitch field. This field
+        //!                         to half the value specified in the Surface Pitch field. This field
         //!     is only used for PLANAR surface formats.
-        //!     					This field is igored by VDEnc (unless we support YV12).
+        //!                         This field is igored by VDEnc (unless we support YV12).
         enum HALF_PITCH_FOR_CHROMA
         {
             HALF_PITCH_FOR_CHROMA_DISABLE                                    = 0, //!< No additional details
@@ -1493,7 +1492,7 @@ public:
         //! \details
         //!     This field indicates that the chroma fields are interleaved in a single
         //!     plane rather than stored as
-        //!     					two separate planes. This field is only used for PLANAR surface
+        //!                         two separate planes. This field is only used for PLANAR surface
         //!     formats.
         enum INTERLEAVE_CHROMA_
         {
@@ -1510,7 +1509,7 @@ public:
             SURFACE_FORMAT_RGBA4444                                          = 1, //!< RGBA 32-bit 4:4:4:4 packed (8:8:8:8 MSB-X:B:G:R)
             SURFACE_FORMAT_YUV444                                            = 2, //!< YUV 32-bit 4:4:4 packed (8:8:8:8 MSB-A:Y:U:V)
             SURFACE_FORMAT_Y8UNORM                                           = 3, //!< No additional details
-            SURFACE_FORMAT_PLANAR_420_8                                      = 4, //!< (NV12, IMC1,2,3,4, YV12) 
+            SURFACE_FORMAT_PLANAR_420_8                                      = 4, //!< (NV12, IMC1,2,3,4, YV12)
             SURFACE_FORMAT_YCRCB_SWAPY_422                                   = 5, //!< UYVY (8:8:8:8 MSB Y1 V0 Y0 U0)
             SURFACE_FORMAT_YCRCB_SWAPUV_422                                  = 6, //!< YVYU (8:8:8:8 MSB U0 Y1 V0 Y0)
             SURFACE_FORMAT_YCRCB_SWAPUVY_422                                 = 7, //!< VYUY (8:8:8:8 MSB Y1 U0 Y0 V0)
@@ -1533,8 +1532,8 @@ public:
     //!
     //! \brief VD_PIPELINE_FLUSH
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct VD_PIPELINE_FLUSH_CMD
     {
         union
@@ -1619,8 +1618,8 @@ public:
     //!
     //! \brief VDENC_WEIGHTSOFFSETS_STATE
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct VDENC_WEIGHTSOFFSETS_STATE_CMD
     {
         union
@@ -1740,7 +1739,7 @@ public:
     //!     costs) has 42 entires. Skip Threshold tables has 27 entries. 7 FTQ
     //!     thresholds [0-6] are programmed using  4 sets of tables with 27 entires
     //!     each.
-    //!     
+    //!
     struct VDENC_CONST_QPT_STATE_CMD
     {
         union
@@ -1897,7 +1896,7 @@ public:
     //! \details
     //!     This command specifies the surface state parameters for the downscaled
     //!     reference surfaces.
-    //!     
+    //!
     struct VDENC_DS_REF_SURFACE_STATE_CMD
     {
         union
@@ -1963,14 +1962,12 @@ public:
         static const size_t byteSize = 40;
     };
 
-
-
     //!
     //! \brief VDENC_IMG_STATE
     //! \details
     //!     This command programs the frame level parameters required by the VDEnc
     //!     pipeline.
-    //!     
+    //!
     struct VDENC_IMG_STATE_CMD
     {
         union
@@ -2459,7 +2456,7 @@ public:
         //! \brief TIME_BUDGET_OVERFLOW_CHECK
         //! \details
         //!     <p>This bit enables the frame time budget detection in VDEnc.</p>
-        //!     							 <p>To detect if a Time Budget Overflow happened in a frame, SW
+        //!                                  <p>To detect if a Time Budget Overflow happened in a frame, SW
         //!     can read "PAK_Stream-Out Report (Errors)" register in MFX. When Time
         //!     budget overflow condition happens in the frame, this register bits 15:8
         //!     indicate MB y position and bits 7:0 indicate MB x position where Time
@@ -2486,7 +2483,7 @@ public:
         //! \details
         //!     8x8 IDCT Transform Mode Flag, trans8x8_mode_flag specifies 8x8 IDCT
         //!     transform may be used in this
-        //!     					picture. It is set to the value of the syntax element in the
+        //!                         picture. It is set to the value of the syntax element in the
         //!     current active PPS.
         enum TRANSFORM_8X8_FLAG
         {
@@ -2498,7 +2495,7 @@ public:
         //! \details
         //!     L1 Cache inside VDEnc has 3 clients - IME, CRE and VMC. These bits
         //!     indicate the priority order for
-        //!     					L1 cache to service the client requests.
+        //!                         L1 cache to service the client requests.
         enum VDENC_L1_CACHE_PRIORITY
         {
             VDENC_L1_CACHE_PRIORITY_UNNAMED0                                 = 0, //!< CRE High Priority, VMC and IME round robin.
@@ -2535,7 +2532,7 @@ public:
         //! \details
         //!     This field enables the forward transform calculation for skip check. It
         //!     does not override the other
-        //!     					skip calculations but it does decrease the performance marginally
+        //!                         skip calculations but it does decrease the performance marginally
         //!     so don't enable it unless the transform is necessary.
         enum FORWARD_TRANSFORM_SKIP_CHECK_ENABLE
         {
@@ -2547,11 +2544,11 @@ public:
         //! \details
         //!     FBR messages that do not want bidirectional motion estimation performed
         //!     will set this bit and VME will
-        //!     					only perform fractional refinement on the shapes identified by
+        //!                         only perform fractional refinement on the shapes identified by
         //!     subpredmode. Note: only the LSB of the
-        //!     					subpredmode for each shape will be considered in FBR (a shape is
+        //!                         subpredmode for each shape will be considered in FBR (a shape is
         //!     either FWD or BWD as input of FBR,
-        //!     					output however could change to BI if BME is enabled).
+        //!                         output however could change to BI if BME is enabled).
         enum BME_DISABLE_FOR_FBR_MESSAGE
         {
             BME_DISABLE_FOR_FBR_MESSAGE_BMEENABLED                           = 0, //!< No additional details
@@ -2562,7 +2559,7 @@ public:
         //! \details
         //!     When this field is set on the skip thresholding passing criterion will
         //!     be based on the maximal distortion
-        //!     					of individual blocks (8x8's or 4x4's) instead of their sum (i.e.
+        //!                         of individual blocks (8x8's or 4x4's) instead of their sum (i.e.
         //!     the distortion of 16x16).
         enum BLOCK_BASED_SKIP_ENABLED
         {
@@ -2574,7 +2571,7 @@ public:
         //! \details
         //!     This field specifies distortion measure adjustments used for the motion
         //!     search SAD comparison.
-        //!     					This field applies to both luma and chroma inter measurement.
+        //!                         This field applies to both luma and chroma inter measurement.
         enum INTER_SAD_MEASURE_ADJUSTMENT
         {
             INTER_SAD_MEASURE_ADJUSTMENT_NONE                                = 0, //!< No additional details
@@ -2585,7 +2582,7 @@ public:
         //! \details
         //!     This field specifies distortion measure adjustments used for the motion
         //!     search SAD comparison.
-        //!     					This field applies to both luma and chroma intra measurement.
+        //!                         This field applies to both luma and chroma intra measurement.
         enum INTRA_SAD_MEASURE_ADJUSTMENT
         {
             INTRA_SAD_MEASURE_ADJUSTMENT_NONE                                = 0, //!< No additional details
@@ -2595,10 +2592,10 @@ public:
         //! \brief SUB_MACROBLOCK_SUB_PARTITION_MASK
         //! \details
         //!     This field defines the bit-mask for disabling
-        //!     					<ul>
-        //!     						<li>sub-partition (minor partition [30:28]) modes</li>
-        //!     						<li>sub-macroblock (major partition [27:24]) modes</li>
-        //!     					</ul>
+        //!                         <ul>
+        //!                             <li>sub-partition (minor partition [30:28]) modes</li>
+        //!                             <li>sub-macroblock (major partition [27:24]) modes</li>
+        //!                         </ul>
         enum SUB_MACROBLOCK_SUB_PARTITION_MASK
         {
             SUB_MACROBLOCK_SUB_PARTITION_MASK_UNNAMED113                     = 113, //!< 16x16 sub-macroblock disabled
@@ -2611,9 +2608,9 @@ public:
         //! \details
         //!     The skip thresholding passing criterion will be based on the maximal
         //!     distortion of individual blocks
-        //!     					(8x8's or 4x4's) instead of their sum (i.e. the distortion of
+        //!                         (8x8's or 4x4's) instead of their sum (i.e. the distortion of
         //!     16x16). This field is only valid when
-        //!     					<b>Block-Based Skip Enabled</b> = 1.
+        //!                         <b>Block-Based Skip Enabled</b> = 1.
         enum BLOCK_BASED_SKIP_TYPE
         {
             BLOCK_BASED_SKIP_TYPE_UNNAMED0                                   = 0, //!< 4x4 block-based skip threshold check.
@@ -2624,9 +2621,9 @@ public:
         //! \details
         //!     This field determines if IME will prefetch the fractional CLs that are
         //!     required by CRE ahead of time
-        //!     					while fetching the reference windows around the IME predictors. The
+        //!                         while fetching the reference windows around the IME predictors. The
         //!     recommendation for driver is to 
-        //!     					always program this bit to 1 unless some usages restrict SubPelMode
+        //!                         always program this bit to 1 unless some usages restrict SubPelMode
         //!     to be "<i>Integer mode searching</i>".
         enum CRE_PREFETCH_ENABLE
         {
@@ -2641,7 +2638,7 @@ public:
         enum HME_REF1_DISABLE
         {
             HME_REF1_DISABLE_UNNAMED0                                        = 0, //!< HME search is performed on forward reference 1.
-            HME_REF1_DISABLE_UNNAMED1                                        = 1, //!< HME search is disabled on forward reference 1. 
+            HME_REF1_DISABLE_UNNAMED1                                        = 1, //!< HME search is disabled on forward reference 1.
         };
 
         enum CONSTRAINED_INTRA_PREDICTION_FLAG
@@ -2715,7 +2712,7 @@ public:
         //! \details
         //!     <p>This parameter indicates if the IntraRefresh is enabled or
         //!     disabled.</p>
-        //!     
+        //! 
         //!     <p>This must be disabled on I-Frames.</p>
         enum INTRAREFRESHENABLE_ROLLING_I_ENABLE
         {
@@ -2737,9 +2734,9 @@ public:
         //! \details
         //!     When the reference windows of the HME refinement VME call and the
         //!     regular VME call are overlapped
-        //!     					and the difference of the locations is within this threshold in
+        //!                         and the difference of the locations is within this threshold in
         //!     quarter pixel unit, the two calls
-        //!     					are merged to a single call.
+        //!                         are merged to a single call.
         enum HME_REF_WINDOWS_COMBINING_THRESHOLD
         {
             HME_REF_WINDOWS_COMBINING_THRESHOLD_UNNAMED0                     = 0, //!< No additional details
@@ -2750,7 +2747,7 @@ public:
         //! \details
         //!     Horizontal MV component range. The MV range is restricted to
         //!     [-MaxHmvR+1, MaxHmvR-1] in luma quarter pel unit,
-        //!     					which corresponds to [-MaxHmvR/4 + 0.25, MaxHmvR/4-0.25] in luma
+        //!                         which corresponds to [-MaxHmvR/4 + 0.25, MaxHmvR/4-0.25] in luma
         //!     integer pel unit.
         enum MAXHMVR
         {
@@ -2766,7 +2763,7 @@ public:
         //! \details
         //!     Vertical MV component range defined in the AVC Spec Annex A. The MV
         //!     range is restricted to [-MaxVmvR+1, MaxVmvR-1]
-        //!     					in luma quarter pel unit, which corresponds to [-MaxVmvR/4 + 0.25,
+        //!                         in luma quarter pel unit, which corresponds to [-MaxVmvR/4 + 0.25,
         //!     MaxVmvR/4-0.25] in luma integer pel unit.
         enum MAXVMVR
         {
@@ -2854,7 +2851,7 @@ public:
     //!     [10:9] of the MOCS DW). Driver needs to ensure that the other bits need
     //!     to be the same across the different DS ref frames. The same is
     //!     applicable for the normal reference frames.
-    //!     
+    //!
     struct VDENC_PIPE_BUF_ADDR_STATE_CMD
     {
         union
@@ -2947,7 +2944,7 @@ public:
     //!     the video data, on a per-frame basis. It also configures the hardware
     //!     pipeline according to the active encoder/decoder operating mode for
     //!     encoding/decoding the current picture. 
-    //!     
+    //!
     struct VDENC_PIPE_MODE_SELECT_CMD
     {
         union
@@ -3109,7 +3106,7 @@ public:
     //! \details
     //!     This command specifies the surface state parameters for the normal
     //!     reference surfaces.
-    //!     
+    //!
     struct VDENC_REF_SURFACE_STATE_CMD
     {
         union
@@ -3196,7 +3193,7 @@ public:
     //!     is chosen over the pixel surface type because of their variable record
     //!     sizes. All row store surfaces are linear surface. Their addresses are
     //!     programmed in VDEnc_Pipe_Buf_Base_State.
-    //!     
+    //!
     struct VDENC_SRC_SURFACE_STATE_CMD
     {
         union
@@ -3270,13 +3267,13 @@ public:
     //!     always start at frame origin. Once the hardware receives this command
     //!     packet, it internally starts the VDEnc pipeline. This should be the last
     //!     command that is programmed for the VDEnc pipeline.
-    //!     
+    //! 
     //!     This command is programmed per super-slice. The X location always needs
     //!     to be programmed to 0. The Y location needs to be programmed to the
     //!     starting point of the current super-slice. The programming needs to
     //!     ensure that all super-slices are contiguous. It is illegal to have gaps
     //!     between the super-slices.
-    //!     
+    //!
     struct VDENC_WALKER_STATE_CMD
     {
         union
@@ -3327,7 +3324,7 @@ public:
             {
                 uint32_t                 Log2WeightDenomLuma                              : __CODEGEN_BITFIELD( 0,  2)    ; //!< Log 2 Weight Denom Luma
                 uint32_t                 Reserved99                                       : __CODEGEN_BITFIELD( 3,  3)    ; //!< Reserved
-				uint32_t                 HevcLog2WeightDemonLuma	                      : __CODEGEN_BITFIELD( 4,  6)    ; //!< HevcLog2WeightDemonLuma
+                uint32_t                 HevcLog2WeightDemonLuma                          : __CODEGEN_BITFIELD( 4,  6)    ; //!< HevcLog2WeightDemonLuma
                 uint32_t                 Reserved107                                      : __CODEGEN_BITFIELD( 7, 31)    ; //!< Reserved
             };
             uint32_t                     Value;

@@ -50,7 +50,7 @@ public:
     //! \details
     //!     This state structure contains the IECP State Table Contents for ACE
     //!     state.
-    //!     
+    //!
     struct VEBOX_ACE_LACE_STATE_CMD
     {
         union
@@ -528,7 +528,7 @@ public:
     //! \details
     //!     This state structure contains the IECP State Table Contents for Fixed
     //!     Alpha State and Area of Interest State.
-    //!     
+    //!
     struct VEBOX_ALPHA_AOI_STATE_CMD
     {
         union
@@ -641,7 +641,7 @@ public:
     //! \details
     //!     This command  contains variables for controlling Demosaic and the White
     //!     Balance Statistics.
-    //!     
+    //!
     struct VEBOX_CAPTURE_PIPE_STATE_CMD
     {
         union
@@ -838,7 +838,7 @@ public:
         //!     can have to be considered a gray point.
         enum UV_THRESHOLD_VALUE
         {
-            UV_THRESHOLD_VALUE_UNNAMED64                                     = 64, //!< 0.25 * 255 = 64 
+            UV_THRESHOLD_VALUE_UNNAMED64                                     = 64, //!< 0.25 * 255 = 64
         };
 
         //! \brief Y_OUTLIER_VALUE
@@ -915,7 +915,7 @@ public:
     //! \details
     //!     This state structure contains the IECP State Table Contents for the
     //!     Color Correction Matrix State.
-    //!     
+    //!
     struct VEBOX_CCM_STATE_CMD
     {
         union
@@ -1098,7 +1098,7 @@ public:
     //! \details
     //!     This state structure contains the IECP State Table Contents for CSC
     //!     state.
-    //!     
+    //!
     struct VEBOX_CSC_STATE_CMD
     {
         union
@@ -1240,9 +1240,9 @@ public:
         //!     is set, the YUV channels are swapped into the output RGB channels as
         //!     shown in the following table to support B8G8R8A8 output on surface
         //!     format R8G8B8A8:
-        //!                         <table>                   
+        //!                         <table> 
         //!                             <tr>
-        //!                                 <td></td>  
+        //!                                 <td></td> 
         //!                                 <td>YUV_Channel_Swap</td>
         //!                             </tr>
         //!                             <tr>
@@ -1398,7 +1398,7 @@ public:
     //!
     //! \brief VEBOX_DNDI_STATE
     //! \details
-    //!     This state table is used by the Denoise and Deinterlacer functions.  
+    //!     This state table is used by the Denoise and Deinterlacer functions. 
     //!     DW0 to 2 are for Temporal Denoise
     //!      DW3 is for global noise estimate and hot pixel detection
     //!      DW4 is for Chroma Denoise
@@ -1406,8 +1406,8 @@ public:
     //!      DW12 to 17 are for Deinterlacer
     //!      DW18 to 24 [CNL+] Added controls for Deinterlace. Added Deflicker
     //!     filter at output of DI.
-    //!      
-    //!     
+    //! 
+    //!
     struct VEBOX_DNDI_STATE_CMD
     {
         union
@@ -1656,7 +1656,7 @@ public:
         //! \brief DENOISE_HISTORY_INCREASE
         //! \details
         //!     Amount that denoise_history is increased by.
-        //!     					MAX:15
+        //!                         MAX:15
         enum DENOISE_HISTORY_INCREASE
         {
             DENOISE_HISTORY_INCREASE_UNNAMED8                                = 8, //!< No additional details
@@ -1799,7 +1799,7 @@ public:
     //! \details
     //!     This state structure contains the IECP State Table Contents for
     //!     Front-end CSC state.
-    //!     
+    //!
     struct VEBOX_FRONT_END_CSC_STATE_CMD
     {
         union
@@ -2031,8 +2031,8 @@ public:
     //!
     //! \brief VEBOX_GAMUT_STATE
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct VEBOX_GAMUT_STATE_CMD
     {
         union
@@ -2976,7 +2976,7 @@ public:
     //! \brief VEBOX_STD_STE_STATE
     //! \details
     //!     This state structure contains the state used by the STD/STE function.
-    //!     
+    //!
     struct VEBOX_STD_STE_STATE_CMD
     {
         union
@@ -3369,11 +3369,11 @@ public:
         };
         enum SIN
         {
-            SIN_UNNAMED101                                                  = 101, ///< 
+            SIN_UNNAMED101                                                  = 101, ///<
         };
         enum COS
         {
-            COS_UNNAMED79                                                   = 79, ///< 
+            COS_UNNAMED79                                                   = 79, ///<
         };
 
         //! \brief HS_MARGIN
@@ -3418,7 +3418,7 @@ public:
         //! \brief DIAMOND_ALPHA
         //! \details
         //!     1/tan(ß)
-        //!     					The default is 100/64
+        //!                         The default is 100/64
         enum DIAMOND_ALPHA
         {
             DIAMOND_ALPHA_UNNAMED100                                         = 100, //!< No additional details
@@ -3691,8 +3691,8 @@ public:
         //! \brief SKIN_TYPES_THRESH
         //! \details
         //!     Skin types Y margin
-        //!     					Restrict Skin_types_thresh &gt;= Skin_types_margin &gt; 0
-        //!     					Restrict (Skin_types_thresh + Skin_types_margin) &lt;= 255
+        //!                         Restrict Skin_types_thresh &gt;= Skin_types_margin &gt; 0
+        //!                         Restrict (Skin_types_thresh + Skin_types_margin) &lt;= 255
         enum SKIN_TYPES_THRESH
         {
             SKIN_TYPES_THRESH_UNNAMED120                                     = 120, //!< No additional details
@@ -3701,8 +3701,8 @@ public:
         //! \brief SKIN_TYPES_MARGIN
         //! \details
         //!     Skin types Y margin
-        //!     						Restrict Skin_types_thresh &gt;= Skin_types_margin &gt; 0
-        //!     						Restrict (Skin_types_thresh + Skin_types_margin) &lt;= 255
+        //!                             Restrict Skin_types_thresh &gt;= Skin_types_margin &gt; 0
+        //!                             Restrict (Skin_types_thresh + Skin_types_margin) &lt;= 255
         enum SKIN_TYPES_MARGIN
         {
             SKIN_TYPES_MARGIN_UNNAMED20                                      = 20, //!< No additional details
@@ -3871,7 +3871,7 @@ public:
         //! \brief SATP1_DARK
         //! \details
         //!     First point for the saturation PWLF (dark skin)
-        //!     					Default Value: -11
+        //!                         Default Value: -11
         enum SATP1_DARK
         {
             SATP1_DARK_UNNAMED4085                                           = 4085, //!< No additional details
@@ -4043,7 +4043,7 @@ public:
     //! \details
     //!     This state structure contains the IECP State Table Contents for TCC
     //!     state.
-    //!     
+    //!
     struct VEBOX_TCC_STATE_CMD
     {
         union
@@ -4434,7 +4434,7 @@ public:
     //! \details
     //!     This state structure contains the IECP State Table Contents for ProcAmp
     //!     state.
-    //!     
+    //!
     struct VEBOX_PROCAMP_STATE_CMD
     {
         union
@@ -4509,12 +4509,11 @@ public:
         static const size_t byteSize = 8;
     };
 
-
     //!
     //! \brief VEBOX_IECP_STATE
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct VEBOX_IECP_STATE_CMD
     {
         VEBOX_STD_STE_STATE_CMD       StdSteState                                                                      ; ///< VEBOX_STD_STE_STATE
@@ -4527,7 +4526,6 @@ public:
         VEBOX_FRONT_END_CSC_STATE_CMD FrontEndCsc                                                                      ; ///< VEBOX_FRONT_END_CSC_STATE
 
         //! \name Local enumerations
-
 
         //! \name Initializations
 
@@ -4547,10 +4545,10 @@ public:
     //!      IECP Gamut Expansion/Compression state
     //!      IECP Gamut Vertex Table state
     //!      Capture Pipe state
-    //!      
-    //!     
+    //! 
+    //! 
     //!     [DevSKL+]: Adds the LACE LUT Table as an indirect state buffer.
-    //!     
+    //!
     struct VEBOX_STATE_CMD
     {
         union
@@ -4584,7 +4582,7 @@ public:
                 uint32_t                 DiOutputFrames                                   : __CODEGEN_BITFIELD( 8,  9)    ; //!< DI_OUTPUT_FRAMES
                 uint32_t                 DemosaicEnable                                   : __CODEGEN_BITFIELD(10, 10)    ; //!< Demosaic Enable
                 uint32_t                 VignetteEnable                                   : __CODEGEN_BITFIELD(11, 11)    ; //!< Vignette Enable
-                uint32_t                 AlphaPlaneEnable                                 : __CODEGEN_BITFIELD(12, 12)    ; //!< Alpha Plane Enable 
+                uint32_t                 AlphaPlaneEnable                                 : __CODEGEN_BITFIELD(12, 12)    ; //!< Alpha Plane Enable
                 uint32_t                 HotPixelFilteringEnable                          : __CODEGEN_BITFIELD(13, 13)    ; //!< Hot Pixel Filtering Enable
                 uint32_t                 SingleSliceVeboxEnable                           : __CODEGEN_BITFIELD(14, 15)    ; //!< SINGLE_SLICE_VEBOX_ENABLE
                 uint32_t                 LaceCorrectionEnable                             : __CODEGEN_BITFIELD(16, 16)    ; //!< LACE Correction Enable
@@ -4772,7 +4770,7 @@ public:
         //! \details
         //!     Deinterlacer is bypassed if this is disabled:  the output is the same as
         //!     the input (same as a 2:2 cadence). 
-        //!     					FMD and STMM are not calculated and the values in the response
+        //!                         FMD and STMM are not calculated and the values in the response
         //!     message are 0.
         enum DI_ENABLE
         {
@@ -4803,32 +4801,32 @@ public:
         //! \brief _444__422_DOWNSAMPLE_METHOD
         //! \details
         //!     <table border="1">
-        //!     						<tr>
-        //!     							<td>444-&gt;422</td>
-        //!     							<td>422-&gt;420</td>
-        //!     							<td>Description</td>
-        //!     						</tr>
-        //!     						<tr>
-        //!     							<td>0</td>
-        //!     							<td>0</td>
-        //!     							<td>No averaging, only down sampling</td>
-        //!     						</tr>
-        //!     						<tr>
-        //!     							<td>0</td>
-        //!     							<td>1</td>
-        //!     							<td>Not Supported</td>
-        //!     						</tr>
-        //!     						<tr>
-        //!     							<td>1</td>
-        //!     							<td>0</td>
-        //!     							<td>Only Horizontal averaging</td>
-        //!     						</tr>
-        //!     						<tr>
-        //!     							<td>1</td>
-        //!     							<td>1</td>
-        //!     							<td>Horizontal and Vertical averaging</td>
-        //!     						</tr>
-        //!     					</table>
+        //!                             <tr>
+        //!                                 <td>444-&gt;422</td>
+        //!                                 <td>422-&gt;420</td>
+        //!                                 <td>Description</td>
+        //!                             </tr>
+        //!                             <tr>
+        //!                                 <td>0</td>
+        //!                                 <td>0</td>
+        //!                                 <td>No averaging, only down sampling</td>
+        //!                             </tr>
+        //!                             <tr>
+        //!                                 <td>0</td>
+        //!                                 <td>1</td>
+        //!                                 <td>Not Supported</td>
+        //!                             </tr>
+        //!                             <tr>
+        //!                                 <td>1</td>
+        //!                                 <td>0</td>
+        //!                                 <td>Only Horizontal averaging</td>
+        //!                             </tr>
+        //!                             <tr>
+        //!                                 <td>1</td>
+        //!                                 <td>1</td>
+        //!                                 <td>Horizontal and Vertical averaging</td>
+        //!                             </tr>
+        //!                         </table>
         enum _444__422_DOWNSAMPLE_METHOD
         {
             _444_422_DOWNSAMPLE_METHOD_DROPRIGHTCHROMAOFTHEPAIR              = 0, //!< No additional details
@@ -4899,35 +4897,35 @@ public:
     //!     Despite having multiple input and output surfaces, we limit the number
     //!     of surface states to one for input surfaces and one for output surfaces.
     //!     The other surfaces are derived from the input/output surface states.
-    //!     
+    //! 
     //!     The Current Frame Input surface uses the Input SURFACE_STATE
-    //!     
+    //! 
     //!     The Previous Denoised Input surface uses the Input SURFACE_STATE. (For
     //!     16-bit Bayer pattern inputs this will be 16-bit.)
-    //!     
+    //! 
     //!     The Current Denoised Output surface uses the Input SURFACE_STATE. (For
     //!     16-bit Bayer pattern inputs this will be 16-bit.)
-    //!     
+    //! 
     //!     The STMM/Noise History Input surface uses the Input SURFACE_STATE with
     //!     Tile-Y and Width/Height a multiple of 4.
-    //!     
+    //! 
     //!     The STMM/Noise History Output surface uses the Input SURFACE_STATE with
     //!     Tile-Y and Width/Height a multiple of 4.
-    //!     
+    //! 
     //!     The Current Deinterlaced/IECP Frame Output surface uses the Output
     //!     SURFACE_STATE.
-    //!     
+    //! 
     //!     The Previous Deinterlaced/IECP Frame Output surface uses the Output
     //!     SURFACE_STATE.
-    //!     
+    //! 
     //!     The FMD per block output / per Frame Output surface uses the Linear
     //!     SURFACE_STATE (see note below).
-    //!     
+    //! 
     //!     The Alpha surface uses the Linear A8 SURFACE_STATE with Width/Height
     //!     equal to Input Surface. Pitch is width rounded to next 64.
-    //!     
+    //! 
     //!     The Skin Score surface uses the Output SURFACE_STATE.
-    //!     
+    //! 
     //!     The STMM height is the same as the Input Surface height except when the
     //!     input Surface Format is Bayer Pattern and the Bayer Pattern Offset is 10
     //!     or 11, in  which case the height is the input height + 4. For Bayer
@@ -4935,7 +4933,7 @@ public:
     //!     Denoised Output/Previous Denoised Input will also have a height which is
     //!     the input height + 4. For Bayer pattern inputs only the Current Denoised
     //!     Output/Previous Denoised Input are in Tile-Y.
-    //!     
+    //! 
     //!     The linear surface for FMD statistics is linear (not tiled). The height
     //!     of the per block statistics is (Input Height +3)/4 - the Input Surface
     //!     height in pixels is rounded up to the next even 4 and divided by 4. The
@@ -4943,37 +4941,37 @@ public:
     //!     Input Surface in pixels rounded up to the next 16 bytes. The pitch of
     //!     the per block section in bytes is equal to the width of the Input
     //!     Surface in pixels rounded up to the next 64 bytes.
-    //!     
+    //! 
     //!     The STMM surfaces must be identical to the Input surface except for the
     //!     tiling mode must be Tile-Y and the pitch is specified in DW7. The pitch
     //!     for the Current Denoised Output/Previous Denoised Input is specified in
     //!     DW7. The width and height must be a multiple of 4 rounded up from the
     //!     input height.
-    //!     
+    //! 
     //!     The Vignette Correction surface uses the Linear 16-bit SURFACE_STATE
     //!     with :
     //!     Width=(Ceil(Image Width / 4) +1) * 4
     //!     Height= Ceil(Image Height / 4) +1
     //!     Pitch in bytes is (vignette width *2) rounded to the next 64
-    //!     
+    //! 
     //!     VEBOX may write to memory between the surface width and the surface
     //!     pitch for output surfaces.
-    //!     
+    //! 
     //!     VEBOX can support a frame level X/Y offset which allows processing of 2
     //!     side-by-side frames for certain 3D video formats.
-    //!     
+    //! 
     //!     The X/Y Offset for Frame state applies only to the Current Frame Input
     //!     and the Current Deinterlaced/IECP Frame Output and Previous
     //!     Deinterlaced/IECP Frame Output. The statistics surfaces, the denoise
     //!     feedback surfaces and the alpha/vignette surfaces have no X/Y offsets.
-    //!     
+    //! 
     //!     For 8bit Alpha input, when converted to 16bit output, the 8 bit alpha
     //!     value is replicated to both the upper and lower 8 bits to form the 16
     //!     bit alpha value.
-    //!     
+    //! 
     //!     Skin Score Output Surface uses the same tiling format as the Output
     //!     surface.
-    //!     
+    //!
     struct VEBOX_SURFACE_STATE_CMD
     {
         union
@@ -5127,7 +5125,7 @@ public:
         //!     This field specifies the type of memory tiling (XMajor or YMajor)
         //!     employed to tile this surface. See <em>Memory Interface Functions</em>
         //!     for details on memory tiling and restrictions.
-        //!     					This field is ignored when the surface is linear.
+        //!                         This field is ignored when the surface is linear.
         enum TILE_WALK
         {
             TILE_WALK_TILEWALKXMAJOR                                         = 0, //!< No additional details
@@ -5203,7 +5201,7 @@ public:
     //!     This command takes the input surface and writes directly to the output
     //!     surface at high speed.  The surface format and width/height of the input
     //!     and output must be the same, only the tiling mode and pitch can change.
-    //!     
+    //!
     struct VEBOX_TILING_CONVERT_CMD
     {
         union
@@ -5248,23 +5246,23 @@ public:
 
         enum SUBOPCODE_B
         {
-            SUBOPCODE_B_UNNAMED1                                             = 1, ///< 
+            SUBOPCODE_B_UNNAMED1                                             = 1, ///<
         };
         enum SUBOPCODE_A
         {
-            SUBOPCODE_A_UNNAMED0                                             = 0, ///< 
+            SUBOPCODE_A_UNNAMED0                                             = 0, ///<
         };
         enum COMMAND_OPCODE
         {
-            COMMAND_OPCODE_VEBOX                                             = 4, ///< 
+            COMMAND_OPCODE_VEBOX                                             = 4, ///<
         };
         enum PIPELINE
         {
-            PIPELINE_MEDIA                                                   = 2, ///< 
+            PIPELINE_MEDIA                                                   = 2, ///<
         };
         enum COMMAND_TYPE
         {
-            COMMAND_TYPE_PARALLELVIDEOPIPE                                   = 3, ///< 
+            COMMAND_TYPE_PARALLELVIDEOPIPE                                   = 3, ///<
         };
 
         //! \name Initializations
@@ -5287,10 +5285,10 @@ public:
     //!     sections.
     //!     Each VEB_DI_IECP command should be preceded by a VEB_STATE command and
     //!     the input/output VEB_SURFACE_STATE commands.
-    //!     
+    //! 
     //!     When DI is enabled, only the Current Frame skin scores are outputted to
     //!     the Skin Score Output surface.
-    //!     
+    //!
     struct VEB_DI_IECP_CMD
     {
         union
@@ -5778,8 +5776,8 @@ public:
     //!
     //! \brief VEB_DI_IECP_COMMAND_SURFACE_CONTROL_BITS
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct VEB_DI_IECP_COMMAND_SURFACE_CONTROL_BITS_CMD
     {
         union
@@ -5830,8 +5828,8 @@ public:
     //!
     //! \brief VEBOX_VERTEX_TABLE_ENTRY
     //! \details
-    //!     
-    //!  
+    //! 
+    //!
     struct VEBOX_VERTEX_TABLE_ENTRY
     {
         union
@@ -5855,8 +5853,8 @@ public:
     //!
     //! \brief VEBOX_VERTEX_TABLE
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct VEBOX_VERTEX_TABLE_CMD
     {
         VEBOX_VERTEX_TABLE_ENTRY        VertexTableEntry[512];

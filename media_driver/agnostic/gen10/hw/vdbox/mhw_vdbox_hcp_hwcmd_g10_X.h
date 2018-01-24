@@ -51,7 +51,7 @@ public:
     //!     The HCP is selected with the Media Instruction Opcode "7h" for all HCP
     //!     Commands. Each HCP command has assigned a media instruction command as
     //!     defined in DWord 0, BitField 22:16.
-    //!     
+    //! 
     //!     The workload for the HCP is based upon a single frame decode. There are
     //!     no states saved between frame decodes in the HCP. Once the bit stream
     //!     DMA is configured with the HCP_BSD_OBJECT command, and the bit stream is
@@ -61,7 +61,7 @@ public:
     //!     or decode and would not be modified on a frame workload basis. This is a
     //!     picture level state command and is shared by both encoding and decoding
     //!     processes.
-    //!     
+    //!
     struct HCP_PIPE_MODE_SELECT_CMD
     {
         union
@@ -120,7 +120,7 @@ public:
         {
             //!< DWORD 4
             struct
-            {                
+            {
                 uint32_t                 Reserved128                                      : __CODEGEN_BITFIELD( 0,  31)    ; //!< Reserved
             };
             uint32_t                     Value;
@@ -207,12 +207,12 @@ public:
         //! \details
         //!     In decoder modes, this counter value specifies the number of clocks (per
         //!     1000) of GAC inactivity
-        //!     					before a media soft-reset is applied to the HCP and HuC. If counter
+        //!                         before a media soft-reset is applied to the HCP and HuC. If counter
         //!     value is set to 0, the media
-        //!     					soft-reset feature is disabled and no reset will occur.
-        //!     					<p>In encoder modes, this counter must be set to 0 to disable media
+        //!                         soft-reset feature is disabled and no reset will occur.
+        //!                         <p>In encoder modes, this counter must be set to 0 to disable media
         //!     soft reset. This feature is not
-        //!     						supported for the encoder.</p>
+        //!                             supported for the encoder.</p>
         enum MEDIA_SOFT_RESET_COUNTER_PER_1000_CLOCKS
         {
             MEDIA_SOFT_RESET_COUNTER_PER_1000_CLOCKS_DISABLE                 = 0, //!< No additional details
@@ -222,7 +222,7 @@ public:
         //! \details
         //!     The Pic Status/Error Report ID is a unique 32-bit unsigned integer
         //!     assigned to each picture
-        //!     					status/error output. Must be zero for encoder mode.
+        //!                         status/error output. Must be zero for encoder mode.
         enum PIC_STATUSERROR_REPORT_ID
         {
             PIC_STATUSERROR_REPORT_ID_32_BITUNSIGNED                         = 0, //!< Unique ID Number
@@ -238,7 +238,7 @@ public:
             VP9_FLUSH_HANDLING_FLUSHUSINGUNITDONE                            = 0, //!< No additional details
             VP9_FLUSH_HANDLING_FLUSHUSINGFRAMEDONE                           = 1, //!< No additional details
         };
-        
+
         //! \name Initializations
 
         //! \brief Explicit member initialization function
@@ -254,7 +254,7 @@ public:
     //!     The HCP is selected with the Media Instruction Opcode "7h" for all HCP
     //!     Commands. Each HCP command has assigned a media instruction command as
     //!     defined in DWord 0, BitField 22:16.
-    //!     
+    //! 
     //!     The HCP_SURFACE_STATE command is responsible for defining the frame
     //!     buffer pitch and the offset of the chroma component. This is a picture
     //!     level state command and is shared by both encoding and decoding
@@ -262,7 +262,7 @@ public:
     //!     Hence full pitch and interleaved UV is always in use. U and V Xoffset
     //!     must be set to 0; U and V Yoffset must be 16-pixel aligned. This Surface
     //!     State is not the same as that of the 3D engine and of the MFX pipeline.
-    //!     
+    //!
     struct HCP_SURFACE_STATE_CMD
     {
         union
@@ -329,8 +329,8 @@ public:
 
         enum SURFACE_ID
         {
-            SURFACE_ID_HEVCFORCURRENTDECODEDPICTURE                          = 0, //!< 8-bit uncompressed data 
-            SURFACE_ID_SOURCEINPUTPICTUREENCODER                             = 1, //!< 8-bit uncompressed data 
+            SURFACE_ID_HEVCFORCURRENTDECODEDPICTURE                          = 0, //!< 8-bit uncompressed data
+            SURFACE_ID_SOURCEINPUTPICTUREENCODER                             = 1, //!< 8-bit uncompressed data
             SURFACE_ID_PREVREFERENCEPICTURE                                  = 2, //!< (VP9 only) Previous Reference
             SURFACE_ID_GOLDENREFERENCEPICTURE                                = 3, //!< (VP9 only) Golden Reference
             SURFACE_ID_ALTREFREFERENCEPICTURE                                = 4, //!< (VP9 only) AltRef Reference
@@ -362,7 +362,7 @@ public:
     //!     GraphicsAddress, when bits 5:0 are already defined in the referring
     //!     register. So bit 0 of this structure should correspond to bit 6 of the
     //!     full GraphicsAddress.
-    //!     
+    //!
     struct GRAPHICSADDRESS63_6_CMD
     {
         union
@@ -394,16 +394,16 @@ public:
     //!     The HCP is selected with the Media Instruction Opcode "7h" for all HCP
     //!     Commands. Each HCP command has assigned a media instruction command as
     //!     defined in DWord 0, BitField 22:16.
-    //!     
+    //! 
     //!     This state command provides the memory base addresses for the row store
     //!     buffer and reconstructed picture output buffers required by the HCP.
     //!     This is a picture level state command and is shared by both encoding and
     //!     decoding processes.
-    //!     
+    //! 
     //!     All pixel surface addresses must be 4K byte aligned. There is a max of 8
     //!     Reference Picture Buffer Addresses, and all share the same third address
     //!     DW in specifying 48-bit address.
-    //!     
+    //!
     struct HCP_PIPE_BUF_ADDR_STATE_CMD
     {
         union
@@ -959,17 +959,17 @@ public:
     //!     The HCP is selected with the Media Instruction Opcode "7h" for all HCP
     //!     Commands. Each HCP command has assigned a media instruction command as
     //!     defined in DWord 0, BitField 22:16.
-    //!     
+    //! 
     //!     The HCP_IND_OBJ_BASE_ADDR_STATE command is used to define the indirect
     //!     object base address of the stream in graphics memory. This is a frame
     //!     level command. (Is it frame or picture level?)
     //!     This is a picture level state command and is issued in both encoding and
     //!     decoding processes.
-    //!     
+    //! 
     //!     Compressed Header Format 
-    //!     
-    //!     
-    //!     
+    //! 
+    //! 
+    //!
     struct HCP_IND_OBJ_BASE_ADDR_STATE_CMD
     {
         union
@@ -1217,7 +1217,7 @@ public:
     //!     The HCP is selected with the Media Instruction Opcode "7h" for all HCP
     //!     Commands. Each HCP command has assigned a media instruction command as
     //!     defined in DWord 0, BitField 22:16.
-    //!     
+    //! 
     //!     The HCP_QM_STATE command loads the custom HEVC quantization tables into
     //!     local RAM and may be issued up to 20 times: 3x Colour Component plus 2x
     //!     intra/inter plus 4x SizeID minus 4 for the 32x32 chroma components. When
@@ -1225,14 +1225,14 @@ public:
     //!     still sent to the decoder, and with all entries programmed to the same
     //!     value = 16. This is a picture level state command and is issued in both
     //!     encoding and decoding processes.
-    //!     
+    //! 
     //!     Dwords 2-17 form a table for the DCT coefficients, 4 8-bit
     //!     coefficients/DWord.  Size 4x4 for SizeID0, DWords 2-5.
     //!      Size 8x8 for SizeID1/2/3, DWords 2-17.
-    //!      
-    //!     
+    //! 
+    //! 
     //!     SizeID 0 (Table 4-10) 
-    //!     
+    //!
     struct HCP_QM_STATE_CMD
     {
         union
@@ -1264,7 +1264,6 @@ public:
         } DW1;
 
         uint32_t                         Quantizermatrix[16];                                                             //!< QuantizerMatrix
-
 
         //! \name Local enumerations
 
@@ -1331,10 +1330,10 @@ public:
     //!     The HCP is selected with the Media Instruction Opcode "7h" for all HCP
     //!     Commands. Each HCP command has assigned a media instruction command as
     //!     defined in DWord 0, BitField 22:16.
-    //!     
+    //! 
     //!     This is a picture level command and is issued only once per workload for
     //!     both encoding and decoding processes.
-    //!     
+    //!
     struct HCP_PIC_STATE_CMD
     {
         union
@@ -1356,7 +1355,7 @@ public:
             //!< DWORD 1
             struct
             {
-                uint32_t                 Framewidthinmincbminus1                          : __CODEGEN_BITFIELD( 0, 10)    ; //!< FrameWidthInMinCbMinus1 
+                uint32_t                 Framewidthinmincbminus1                          : __CODEGEN_BITFIELD( 0, 10)    ; //!< FrameWidthInMinCbMinus1
                 uint32_t                 Reserved43                                       : __CODEGEN_BITFIELD(11, 14)    ; //!< Reserved
                 uint32_t                 PakTransformSkipEnable                           : __CODEGEN_BITFIELD(15, 15)    ; //!< PAK Transform Skip Enable
                 uint32_t                 Frameheightinmincbminus1                         : __CODEGEN_BITFIELD(16, 26)    ; //!< FrameHeightInMinCbMinus1
@@ -1551,9 +1550,9 @@ public:
                 uint32_t                 Rhodomainframelevelqp                            : __CODEGEN_BITFIELD( 8, 13)    ; //!< RhoDomainFrameLevelQP
                 uint32_t                 PakDynamicSliceModeEnable                        : __CODEGEN_BITFIELD(14, 14)    ; //!< PAK Dynamic Slice Mode Enable
                 uint32_t                 NoOutputOfPriorPicsFlag                          : __CODEGEN_BITFIELD(15, 15)    ; //!< no_output_of_prior_pics_flag
-                uint32_t                 FirstSliceSegmentInPicFlag                       : __CODEGEN_BITFIELD(16, 16)    ; //!< first_slice_segment_in_pic_flag 
+                uint32_t                 FirstSliceSegmentInPicFlag                       : __CODEGEN_BITFIELD(16, 16)    ; //!< first_slice_segment_in_pic_flag
                 uint32_t                 Nalunittypeflag                                  : __CODEGEN_BITFIELD(17, 17)    ; //!< NalUnitTypeFlag
-                uint32_t                 SlicePicParameterSetId                           : __CODEGEN_BITFIELD(18, 23)    ; //!< slice_pic_parameter_set_id  
+                uint32_t                 SlicePicParameterSetId                           : __CODEGEN_BITFIELD(18, 23)    ; //!< slice_pic_parameter_set_id
                 uint32_t                 SseEnable                                        : __CODEGEN_BITFIELD(24, 24)    ; //!< SSE Enable
                 uint32_t                 RdoqEnable                                       : __CODEGEN_BITFIELD(25, 25)    ; //!< RDOQ Enable
                 uint32_t                 NumberoflcusinnormalSliceSizeConformanceMode     : __CODEGEN_BITFIELD(26, 27)    ; //!< NumberOfLCUsInNormal Slice size conformance Mode
@@ -1796,13 +1795,13 @@ public:
         //!     Test Enable is set to 0.</p>
         //!     <pre>K = {[((96 * pic_bin_count()) - (RawMinCUBits * PicSizeInMinCUs *3)
         //!     + 1023) / 1024] - bytes_in_picture} / 3</pre>
-        //!     
+        //! 
         //!     <p>Modified equation when CABAC 0 Word Insertion Test Enable bit set to
         //!     1.</p>
-        //!     
+        //! 
         //!     <pre>K = {[((1536 * pic_bin_count()) - (RawMinCUBits * PicSizeInMinCUs
         //!     *3) + 1023) / 1024] - bytes_in_picture} / 3</pre>
-        //!     
+        //! 
         //!     <p>Encoder only feature.</p>
         enum INSERTTESTFLAG
         {
@@ -1962,7 +1961,7 @@ public:
         //!     This field is the Frame Bitrate Maximum Limit Units.
         enum FRAMEBITRATEMAXUNIT
         {
-            FRAMEBITRATEMAXUNIT_BYTE                                         = 0, //!< 32byte unit 
+            FRAMEBITRATEMAXUNIT_BYTE                                         = 0, //!< 32byte unit
             FRAMEBITRATEMAXUNIT_KILOBYTE                                     = 1, //!< 4kbyte unit
         };
 
@@ -1971,7 +1970,7 @@ public:
         //!     This field is the Frame Bitrate Minimum Limit Units.
         enum FRAMEBITRATEMINUNIT
         {
-            FRAMEBITRATEMINUNIT_BYTE                                         = 0, //!< 32byte unit 
+            FRAMEBITRATEMINUNIT_BYTE                                         = 0, //!< 32byte unit
             FRAMEBITRATEMINUNIT_KILOBYTE                                     = 1, //!< 4kbyte unit
         };
 
@@ -1979,7 +1978,7 @@ public:
         //! \details
         //!     This field is used to select the slice delta QP when FrameBitRateMin Is
         //!     exceeded. It shares the same
-        //!     					FrameBitrateMinUnit.
+        //!                         FrameBitrateMinUnit.
         enum FRAMEBITRATEMINDELTA
         {
             FRAMEBITRATEMINDELTA_UNNAMED0                                    = 0, //!< No additional details
@@ -1989,7 +1988,7 @@ public:
         //! \details
         //!     This field is used to select the slice delta QP when FrameBitRateMax Is
         //!     exceeded. It shares the same
-        //!     					FrameBitrateMaxUnit.
+        //!                         FrameBitrateMaxUnit.
         enum FRAMEBITRATEMAXDELTA
         {
             FRAMEBITRATEMAXDELTA_UNNAMED0                                    = 0, //!< No additional details
@@ -2031,8 +2030,8 @@ public:
     //!
     //! \brief COLUMN_POSITION_IN_CTB
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct COLUMN_POSITION_IN_CTB_CMD
     {
         union
@@ -2062,8 +2061,8 @@ public:
     //!
     //! \brief ROW_POSITION_IN_CTB
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct ROW_POSITION_IN_CTB_CMD
     {
         union
@@ -2096,7 +2095,7 @@ public:
     //!     The HCP is selected with the Media Instruction Opcode "7h" for all HCP
     //!     Commands. Each HCP command has assigned a media instruction command as
     //!     defined in DWord 0, BitField 22:16.
-    //!     
+    //!
     struct HCP_TILE_STATE_CMD
     {
         union
@@ -2126,7 +2125,6 @@ public:
         } DW1;
 
         mhw_vdbox_hcp_g10_X::COLUMN_POSITION_IN_CTB_CMD       ColumnPositionInCtb[5];                                     //!< COLUMN_POSITION_IN_CTB
-
 
         mhw_vdbox_hcp_g10_X::ROW_POSITION_IN_CTB_CMD          RowPositionInCtb[5];                                        //!< ROW_POSITION_IN_CTB
 
@@ -2179,8 +2177,8 @@ public:
     //!
     //! \brief HEVC_REF_LIST_WRITE
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct HEVC_REF_LIST_WRITE_CMD
     {
         union
@@ -2206,7 +2204,7 @@ public:
         //! \details
         //!     Where X is the RefPicListNum and i is the list entry number 0 through
         //!     15. DW2 corresponds to i=0,
-        //!     					DW17 corresponds to i=15.
+        //!                         DW17 corresponds to i=15.
         enum CHROMA_WEIGHT_LX_FLAG
         {
             CHROMA_WEIGHT_LX_FLAG_DEFAULTWEIGHTEDPREDICTIONFORCHROMA         = 0, //!< No additional details
@@ -2217,7 +2215,7 @@ public:
         //! \details
         //!     Where X is the RefPicListNum and i is the list entry number 0 through
         //!     15. DW2 corresponds to i=0,
-        //!     					DW17 corresponds to i=15.
+        //!                         DW17 corresponds to i=15.
         enum LUMA_WEIGHT_LX_FLAG
         {
             LUMA_WEIGHT_LX_FLAG_DEFAULTWEIGHTEDPREDICTIONFORLUMA             = 0, //!< No additional details
@@ -2228,7 +2226,7 @@ public:
         //! \details
         //!     Where X is the RefPicListNum and i is the list entry number 0 through
         //!     15. DW2 corresponds to i=0,
-        //!     					DW17 corresponds to i=15.
+        //!                         DW17 corresponds to i=15.
         enum LONGTERMREFERENCE
         {
             LONGTERMREFERENCE_SHORTTERMREFERENCE                             = 0, //!< No additional details
@@ -2239,7 +2237,7 @@ public:
         //! \details
         //!     Where X is the RefPicListNum and i is the list entry number 0 through
         //!     15. DW2 corresponds to i=0,
-        //!     					DW17 corresponds to i=15.
+        //!                         DW17 corresponds to i=15.
         enum FIELD_PIC_FLAG
         {
             FIELD_PIC_FLAG_VIDEOFRAME                                        = 0, //!< No additional details
@@ -2250,7 +2248,7 @@ public:
         //! \details
         //!     Where X is the RefPicListNum and i is the list entry number 0 through
         //!     15. DW2 corresponds to i=0,
-        //!     					DW17 corresponds to i=15.
+        //!                         DW17 corresponds to i=15.
         enum BOTTOM_FIELD_FLAG
         {
             BOTTOM_FIELD_FLAG_BOTTOMFIELD                                    = 0, //!< No additional details
@@ -2272,10 +2270,10 @@ public:
     //!     The HCP is selected with the Media Instruction Opcode "7h" for all HCP
     //!     Commands. Each HCP command has assigned a media instruction command as
     //!     defined in DWord 0, BitField 22:16.
-    //!     
+    //! 
     //!     This is a slice level command used in both encoding and decoding
     //!     processes. For decoder, it is issued with the HCP_BSD_OBJECT command.
-    //!     
+    //! 
     //!     Unlike AVC, HEVC allows 16 reference idx entries in each of the L0 and
     //!     L1 list for a progressive picture. Hence, a max total 32 reference idx
     //!     in both lists together.  The same when the picture is a field picture.
@@ -2283,11 +2281,11 @@ public:
     //!     reference pictures exist at any one time. Multiple reference idx can
     //!     point to the same reference picture and can optionally pic a top or
     //!     bottom field, or frame.
-    //!     
+    //! 
     //!     For P-Slice, this command is issued only once, representing L0 list. For
     //!     B-Slice, this command can be issued up to two times, one for L0 list and
     //!     one for L1 list.
-    //!     
+    //!
     struct HCP_REF_IDX_STATE_CMD
     {
         union
@@ -2317,7 +2315,6 @@ public:
         } DW1;
 
         mhw_vdbox_hcp_g10_X::HEVC_REF_LIST_WRITE_CMD          HcpRefValue[16];                                            //!< hcp_ref_value
-
 
         //! \name Local enumerations
 
@@ -2362,8 +2359,8 @@ public:
     //!
     //! \brief HEVC_LUMA_WEIGHT_OFFSET_WRITE
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct HEVC_LUMA_WEIGHT_OFFSET_WRITE_CMD
     {
         union
@@ -2392,8 +2389,8 @@ public:
     //!
     //! \brief HEVC_CHROMA_WEIGHT_OFFSET_WRITE
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct HEVC_CHROMA_WEIGHT_OFFSET_WRITE_CMD
     {
         union
@@ -2426,7 +2423,7 @@ public:
     //!     The HCP is selected with the Media Instruction Opcode "7h" for all HCP
     //!     Commands. Each HCP command has assigned a media instruction command as
     //!     defined in DWord 0, BitField 22:16.
-    //!     
+    //! 
     //!     This slice level command is issued in both the encoding and decoding
     //!     processes, if the weighted_pred_flag or weighted_bipred_flag equals one.
     //!     If zero, then this command is not issued. Weight Prediction Values are
@@ -2435,7 +2432,7 @@ public:
     //!     HCP_REF_IDX_STATE Command for L0 list. For B-Slice, this command can be
     //!     issued up to two times together with HCP_REF_IDX_STATE Command, one for
     //!     L0 list and one for L1 list.
-    //!     
+    //!
     struct HCP_WEIGHTOFFSET_STATE_CMD
     {
         union
@@ -2465,9 +2462,7 @@ public:
 
         mhw_vdbox_hcp_g10_X::HEVC_LUMA_WEIGHT_OFFSET_WRITE_CMD HevcLumaWeightOffsetWrite[16];                             //!< HEVC_LUMA_WEIGHT_OFFSET_WRITE
 
-
         mhw_vdbox_hcp_g10_X::HEVC_CHROMA_WEIGHT_OFFSET_WRITE_CMD HevcChromaWeightOffsetWrite[16];                         //!< HEVC_CHROMA_WEIGHT_OFFSET_WRITE
-
 
         //! \name Local enumerations
 
@@ -2515,10 +2510,10 @@ public:
     //!     The HCP is selected with the Media Instruction Opcode "7h" for all HCP
     //!     Commands. Each HCP command has assigned a media instruction command as
     //!     defined in DWord 0, BitField 22:16.
-    //!     
+    //! 
     //!     This is a slice level command used in both encoding and decoding
     //!     processes. For decoder, it is issued with the HCP_BSD_OBJECT command.
-    //!     
+    //!
     struct HCP_SLICE_STATE_CMD
     {
         union
@@ -2884,20 +2879,20 @@ public:
     //!      The HCP is selected with the Media Instruction Opcode "7h" for all HCP
     //!     Commands. Each HCP command has assigned a media instruction command as
     //!     defined in DWord 0, BitField 22:16.
-    //!     
+    //! 
     //!      The HCP_BSD_OBJECT command fetches the HEVC bit stream for a slice
     //!     starting with the first byte in the slice. The bit stream ends with the
     //!     last non-zero bit of the frame and does not include any zero-padding at
     //!     the end of the bit stream. There can be multiple slices in a HEVC frame
     //!     and thus this command can be issued multiple times per frame.
-    //!     
+    //! 
     //!      The HCP_BSD_OBJECT command must be the last command issued in the
     //!     sequence of batch commands before the HCP starts decoding. Prior to
     //!     issuing this command, it is assumed that all configuration parameters in
     //!     the HCP have been loaded including workload configuration registers and
     //!     configuration tables. When this command is issued, the HCP is waiting
     //!     for bit stream data to be presented to the shift register.
-    //!     
+    //!
     struct HCP_BSD_OBJECT_CMD
     {
         union
@@ -2971,8 +2966,8 @@ public:
     //!
     //! \brief HCP_VP9_SEGMENT_STATE
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct HCP_VP9_SEGMENT_STATE_CMD
     {
         union
@@ -3116,33 +3111,33 @@ public:
     //!     The HCP_FQM_STATE command loads the custom HEVC quantization tables into
     //!     local RAM and may be issued up to 8 times: 4 scaling list per intra and
     //!     inter.
-    //!     
+    //! 
     //!     Driver is responsible for performing the Scaling List division. So, save
     //!     the division HW cost in HW. The 1/x value is provided in 16-bit
     //!     fixed-point precision as ((1<<17)/QM +1) >> 1.  .
-    //!     
+    //! 
     //!     Note: FQM is computed as (2^16)/QM. If QM=1, FQM=all 1's.
-    //!     
+    //! 
     //!     To simplify the design, only a limited number of scaling lists are
     //!     provided at the PAK interface: default two SizeID0 and two SizeID123
     //!     (one set for inter and the other set for intra), and the encoder only
     //!     allows custom entries for these four matrices.  The DC value of SizeID2
     //!     and SizeID3 will be provided.
-    //!     
+    //! 
     //!     When the scaling_list_enable_flag is set to disable, the scaling matrix
     //!     is still sent to the PAK, and with all entries programmed to the same
     //!     value of 16.
-    //!     
+    //! 
     //!     This is a picture level state command and is issued in encoding
     //!     processes only.
-    //!     
+    //! 
     //!     Dwords 2-33 form a table for the DCT coefficients, 2 16-bit
     //!     coefficients/DWord.  Size 4x4 for SizeID0, DWords 2-9.
     //!      Size 8x8 for SizeID1/2/3, DWords 2-33.
-    //!      
-    //!     
+    //! 
+    //! 
     //!     SizeID 0 (Table 4-13) 
-    //!     
+    //!
     struct HCP_FQM_STATE_CMD
     {
         union
@@ -3174,7 +3169,6 @@ public:
         } DW1;
 
         uint32_t                         Quantizermatrix[32];                                                             //!< QuantizerMatrix
-
 
         //! \name Local enumerations
 
@@ -3246,7 +3240,7 @@ public:
     //!     present flags in the Slice State command. If these flags are set and no
     //!     subsequent PAK_INSERT_OBJECT commands are issued, the pipeline will
     //!     hang.
-    //!     
+    //! 
     //!     The HCP_ PAK_ INSERT _OBJECT command supports both inline and indirect
     //!     data payload, but only one can be active at any time. It is issued to
     //!     insert a chunk of bits (payload) into the current compressed bitstream
@@ -3254,30 +3248,30 @@ public:
     //!     the HCP_IND_OBJ_BASE_ADDR_STATE command) starting at its current write
     //!     pointer bit position. Hardware will keep track of this write pointer's
     //!     byte position and the associated next bit insertion position index.
-    //!     
+    //! 
     //!     It is a variable length command when the payload (data to be inserted)
     //!     is presented as inline data within the command itself. The inline
     //!     payload is a multiple of 32-bit (1 DW), as the data bus to the
     //!     compressed bitstream output buffer is 32-bit wide.
-    //!     
+    //! 
     //!     The payload data is required to be byte aligned on the left (first
     //!     transmitted bit order) and may or may not be byte aligned on the right
     //!     (last transmitted bits). The command will specify the bit offset of the
     //!     last valid DW. Note that : Stitch Command is used if the beginning
     //!     position of data is in bit position. When PAK Insert Command is used the
     //!     beginning position must be in byte position.
-    //!     
+    //! 
     //!     Multiple insertion commands can be issued back to back in a series. It
     //!     is host software's responsibility to make sure their corresponding data
     //!     will properly stitch together to form a valid bitstream.
-    //!     
+    //! 
     //!     Internally, HCP hardware will keep track of the very last two bytes'
     //!     (the very last byte can be a partial byte) values of the previous
     //!     insertion. It is required that the next Insertion Object Command or the
     //!     next PAK Object Command to perform the start code emulation sequence
     //!     check and prevention 0x03 byte insertion with this end condition of the
     //!     previous insertion.
-    //!     
+    //! 
     //!     The payload data may have already been processed for start code
     //!     emulation byte insertion, except the possibility of the last 2 bytes
     //!     plus the very last partial byte (if any). Hence, when hardware
@@ -3285,7 +3279,7 @@ public:
     //!     or concatenation of an insertion command and a PAK object command, it
     //!     must check and perform the necessary start code emulation byte insert at
     //!     the junction.
-    //!     
+    //! 
     //!     Data to be inserted can be a valid NAL units or a partial NAL unit. It
     //!     can be any encoded syntax elements bit data before the encoded Slice
     //!     Data (PAK Object Command) of the current Slice - SPS NAL, PPS NAL, SEI
@@ -3295,7 +3289,7 @@ public:
     //!     and prior to  the next encoded Slice Data of the next Slice or prior to
     //!     the end of the bitstream, whichever comes first Cabac_Zero_Word or
     //!     Trailing_Zero_8bits (as many bytes as there is).
-    //!     
+    //! 
     //!     Certain NAL unit has a minimum byte size requirement. As such the
     //!     hardware will optionally (enabled by SLICE STATE Command) determines the
     //!     number of CABAC_ZERO_WORD to be inserted to the end of the current NAL,
@@ -3303,9 +3297,9 @@ public:
     //!     encoded Slice. Since prior to the CABAC_ZERO_WORD insertion, the RBSP or
     //!     EBSP is already byte-aligned, so each CABAC_ZERO_WORD insertion is
     //!     actually a 3-byte sequence 0x00 00 03.
-    //!     
+    //! 
     //!     Context switch interrupt is not supported by this command.
-    //!     
+    //!
     struct HCP_PAK_INSERT_OBJECT_CMD
     {
         union
@@ -3388,29 +3382,29 @@ public:
         //!     DWORD1 of HCP_PAK_INSERT_OBJECT).</p>
         //!     <table border="1" cellpadding="0" cellspacing="0" style="width: 100%;"
         //!     width="100%">
-        //!     	<tbody>
-        //!     		<tr>
-        //!     			<td>
-        //!     			<p align="center"><b>Value</b></p></td>
-        //!     			<td>
-        //!     			<p align="center"><b style="text-align:
+        //!         <tbody>
+        //!             <tr>
+        //!                 <td>
+        //!                 <p align="center"><b>Value</b></p></td>
+        //!                 <td>
+        //!                 <p align="center"><b style="text-align:
         //!     -webkit-center;">Description</b></p></td>
-        //!     		</tr>
-        //!     		<tr>
-        //!     			<td>
-        //!     			<p>0</p></td>
-        //!     			<td>
-        //!     			<p>All bits accumulated</p></td>
-        //!     		</tr>
-        //!     		<tr>
-        //!     			<td>
-        //!     			<p>1</p></td>
-        //!     			<td>
-        //!     			<p>Bits during current call are not accumulated</p></td>
-        //!     		</tr>
-        //!     	</tbody>
+        //!             </tr>
+        //!             <tr>
+        //!                 <td>
+        //!                 <p>0</p></td>
+        //!                 <td>
+        //!                 <p>All bits accumulated</p></td>
+        //!             </tr>
+        //!             <tr>
+        //!                 <td>
+        //!                 <p>1</p></td>
+        //!                 <td>
+        //!                 <p>Bits during current call are not accumulated</p></td>
+        //!             </tr>
+        //!         </tbody>
         //!     </table>
-        //!     
+        //! 
         //!     <p></p>
         enum HEADERLENGTHEXCLUDEFRMSIZE_
         {
@@ -3441,8 +3435,8 @@ public:
     //!
     //! \brief HCP_VP9_PIC_STATE
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct HCP_VP9_PIC_STATE_CMD
     {
         union
@@ -3512,9 +3506,9 @@ public:
                 uint32_t                 Log2TileRow                                      : __CODEGEN_BITFIELD( 8,  9)    ; //!< LOG2_TILE_ROW
                 uint32_t                 Reserved106                                      : __CODEGEN_BITFIELD(10, 20)    ; //!< Reserved
                 uint32_t                 SseEnable                                        : __CODEGEN_BITFIELD(21, 21)    ; //!< SSE Enable
-                uint32_t                 ChromaSamplingFormat                             : __CODEGEN_BITFIELD(22, 23)    ; //!< CHROMA_SAMPLING_FORMAT, 
-                uint32_t                 Bitdepthminus8                                   : __CODEGEN_BITFIELD(24, 27)    ; //!< BITDEPTHMINUS8, 
-                uint32_t                 ProfileLevel                                     : __CODEGEN_BITFIELD(28, 31)    ; //!< PROFILE_LEVEL, 
+                uint32_t                 ChromaSamplingFormat                             : __CODEGEN_BITFIELD(22, 23)    ; //!< CHROMA_SAMPLING_FORMAT,
+                uint32_t                 Bitdepthminus8                                   : __CODEGEN_BITFIELD(24, 27)    ; //!< BITDEPTHMINUS8,
+                uint32_t                 ProfileLevel                                     : __CODEGEN_BITFIELD(28, 31)    ; //!< PROFILE_LEVEL,
             };
             uint32_t                     Value;
         } DW3;
@@ -3601,8 +3595,8 @@ public:
             struct
             {
                 uint32_t                 Reserved352                                      : __CODEGEN_BITFIELD( 0,  0)    ; //!< Reserved
-                uint32_t                 MotionCompScaling                                : __CODEGEN_BITFIELD( 1,  1)    ; //!< MOTION_COMP_SCALING                
-                uint32_t                 Reserved354                                      : __CODEGEN_BITFIELD( 2,  31)    ; //!< Reserved                
+                uint32_t                 MotionCompScaling                                : __CODEGEN_BITFIELD( 1,  1)    ; //!< MOTION_COMP_SCALING
+                uint32_t                 Reserved354                                      : __CODEGEN_BITFIELD( 2,  31)    ; //!< Reserved
             };
             uint32_t                     Value;
         } DW11;
@@ -3814,7 +3808,6 @@ public:
         } DW33;
 
         uint32_t                         SseThresholdsForClass18[8];                                                      //!< SSE thresholds for Class1-8
-
 
         //! \name Local enumerations
 
@@ -4105,8 +4098,8 @@ public:
     //!
     //! \brief HEVC_VP9_RDOQ_LAMBDA_FIELDS
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct HEVC_VP9_RDOQ_LAMBDA_FIELDS_CMD
     {
         union
@@ -4140,7 +4133,7 @@ public:
     //!     costs) has 42 entires. Skip Threshold tables has 27 entries. 7 FTQ
     //!     thresholds [0-6] are programmed using 4 sets of tables with 27 entires
     //!     each.
-    //!     
+    //!
     struct HEVC_VP9_RDOQ_STATE_CMD
     {
         union
@@ -4172,15 +4165,11 @@ public:
 
         mhw_vdbox_hcp_g10_X::HEVC_VP9_RDOQ_LAMBDA_FIELDS_CMD  Intralumalambda[32];                                        //!< IntraLumaLambda
 
-
         mhw_vdbox_hcp_g10_X::HEVC_VP9_RDOQ_LAMBDA_FIELDS_CMD  Intrachromalambda[32];                                      //!< IntraChromaLambda
-
 
         mhw_vdbox_hcp_g10_X::HEVC_VP9_RDOQ_LAMBDA_FIELDS_CMD  Interlumalambda[32];                                        //!< InterLumaLambda
 
-
         mhw_vdbox_hcp_g10_X::HEVC_VP9_RDOQ_LAMBDA_FIELDS_CMD  Interchromalambda[32];                                      //!< InterChromaLambda
-
 
         //! \name Local enumerations
 

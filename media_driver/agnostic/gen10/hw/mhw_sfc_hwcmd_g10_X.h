@@ -50,7 +50,7 @@ public:
     //! \details
     //!     This command is sent from VDBOX/VEBOX to SFC pipeline at the start of
     //!     each frame once the lock request is granted.
-    //!     
+    //!
     struct SFC_AVS_STATE_CMD
     {
         union
@@ -145,7 +145,7 @@ public:
     //! \details
     //!     This command is sent from VDBOX/VEBOX to SFC pipeline at the start of
     //!     each frame once the lock request is granted.
-    //!     
+    //!
     struct SFC_IEF_STATE_CMD
     {
         union
@@ -197,8 +197,8 @@ public:
             //!< DWORD 3
             struct
             {
-                uint32_t                 StdSinAlpha                                      : __CODEGEN_BITFIELD( 0,  7)    ; //!< STD Sin(alpha) 
-                uint32_t                 StdCosAlpha                                      : __CODEGEN_BITFIELD( 8, 15)    ; //!< STD Cos(alpha) 
+                uint32_t                 StdSinAlpha                                      : __CODEGEN_BITFIELD( 0,  7)    ; //!< STD Sin(alpha)
+                uint32_t                 StdCosAlpha                                      : __CODEGEN_BITFIELD( 8, 15)    ; //!< STD Cos(alpha)
                 uint32_t                 SatMax                                           : __CODEGEN_BITFIELD(16, 21)    ; //!< SAT_MAX
                 uint32_t                 HueMax                                           : __CODEGEN_BITFIELD(22, 27)    ; //!< HUE_MAX
                 uint32_t                 Reserved124                                      : __CODEGEN_BITFIELD(28, 31)    ; //!< Reserved
@@ -638,16 +638,16 @@ public:
         //! \details
         //!     This flag bit is in operation only when one of the following conditions
         //!     exists:
-        //!     				<ul>
-        //!     					<li>when the control bit <b>SkinToneTunedIEF_Enable</b> is on.
+        //!                     <ul>
+        //!                         <li>when the control bit <b>SkinToneTunedIEF_Enable</b> is on.
         //!     </li>
-        //!     					<Li>When <b>SkinDetailFactor</b> is equal to 0,
+        //!                         <Li>When <b>SkinDetailFactor</b> is equal to 0,
         //!     sign(<b>SkinDetailFactor</b>) is equal to +1, and the content of the
         //!     detected skin tone area is detail revealed.</Li>
-        //!     					<li>When <b>SkinDetailFactor</b> is equal to 1,
+        //!                         <li>When <b>SkinDetailFactor</b> is equal to 1,
         //!     sign(<b>SkinDetailFactor</b>) is equal to -1, and the content of the
         //!     detected skin tone area is not detail revealed.</li>
-        //!     				</ul>
+        //!                     </ul>
         enum SKIN_DETAIL_FACTOR
         {
             SKIN_DETAIL_FACTOR_DETAILREVEALED                                = 0, //!< No additional details
@@ -948,7 +948,7 @@ public:
     //! \details
     //!     This command is sent from VDBOX/VEBOX to SFC pipeline at the start of
     //!     each frame once the lock request is granted.
-    //!     
+    //!
     struct SFC_FRAME_START_CMD
     {
         union
@@ -1015,8 +1015,8 @@ public:
     //!
     //! \brief SFC_LOCK
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct SFC_LOCK_CMD
     {
         union
@@ -1087,7 +1087,7 @@ public:
     //! \details
     //!     This command is sent from VDBOX/VEBOX to SFC pipeline at the start of
     //!     each frame once the lock request is granted.
-    //!     
+    //!
     struct SFC_STATE_CMD
     {
         union
@@ -1530,12 +1530,12 @@ public:
         //! \brief SFC_PIPE_MODE
         //! \details
         //!     Note: for SFC Pipe mode set to VE-to-SFC AVS mode. 
-        //!     					IECP pipeline mode MUST be enabled. 
-        //!     					However, each sub-IECP feature can be turned on/off independently.
+        //!                         IECP pipeline mode MUST be enabled. 
+        //!                         However, each sub-IECP feature can be turned on/off independently.
         enum SFC_PIPE_MODE
         {
             SFC_PIPE_MODE_UNNAMED0                                           = 0, //!< VD-to-SFC AVS
-            SFC_PIPE_MODE_UNNAMED1                                           = 1, //!< VE-to-SFC AVS + IEF + Rotation 
+            SFC_PIPE_MODE_UNNAMED1                                           = 1, //!< VE-to-SFC AVS + IEF + Rotation
             SFC_PIPE_MODE_UNNAMED_4                                          = 4, //!< VE-to-SFC Integral Image
         };
 
@@ -1628,7 +1628,7 @@ public:
         //!     </table>
         //!     This field shall be programmed according to Image enhancement modes used
         //!     in VEBOX.
-        //!     
+        //! 
         //!     <table border="1">
         //!         <tbody>
         //!             <tr>
@@ -1698,10 +1698,10 @@ public:
         //! \brief VDVE_INPUT_ORDERING_MODE
         //! \details
         //!     <ul>
-        //!     						<li>VD mode: (SFC pipe mode set as "0")</li>
-        //!     						<li> VE mode:  (pipe mode set as "1 and 4")</li>
-        //!     					</ul>
-        //!     					For values for each mode, please refer to the table below:
+        //!                             <li>VD mode: (SFC pipe mode set as "0")</li>
+        //!                             <li> VE mode:  (pipe mode set as "1 and 4")</li>
+        //!                         </ul>
+        //!                         For values for each mode, please refer to the table below:
         enum VDVE_INPUT_ORDERING_MODE
         {
             VDVE_INPUT_ORDERING_MODE_UNNAMED0                                = 0, //!< 16x16 block z-scan order - no shift
@@ -1735,34 +1735,34 @@ public:
         //! \details
         //!     This bit should only be used with RGB output formats and CSC conversion
         //!     is turned on. When this bit is set,
-        //!     					the R and B channels are swapped into the output RGB channels as
+        //!                         the R and B channels are swapped into the output RGB channels as
         //!     shown in the following table:
-        //!     					<table>
-        //!     						<tr>
-        //!     							<th>Name</th>
-        //!     							<th>Bits</th>
-        //!     							<th>MSB Color Order</th>
-        //!     							<th>Swapped</th>
-        //!     						</tr>
-        //!     						<tr>
-        //!     							<td>RGBA8</td>
-        //!     							<td>8:8:8:8</td>
-        //!     							<td>A:B:G:R</td>
-        //!     							<td>A:R:G:B</td>
-        //!     						</tr>
-        //!     						<tr>
-        //!     							<td>RGBA10</td>
-        //!     							<td>2:10:10:10</td>
-        //!     							<td>A:R:G:B</td>
-        //!     							<td>A:B:G:R</td>
-        //!     						</tr>
-        //!     						<tr>
-        //!     							<td>RGB 5:6:5</td>
-        //!     							<td>5:6:5</td>
-        //!     							<td>R:G:B</td>
-        //!     							<td>B:G:R</td>
-        //!     						</tr>
-        //!     					</table>
+        //!                         <table>
+        //!                             <tr>
+        //!                                 <th>Name</th>
+        //!                                 <th>Bits</th>
+        //!                                 <th>MSB Color Order</th>
+        //!                                 <th>Swapped</th>
+        //!                             </tr>
+        //!                             <tr>
+        //!                                 <td>RGBA8</td>
+        //!                                 <td>8:8:8:8</td>
+        //!                                 <td>A:B:G:R</td>
+        //!                                 <td>A:R:G:B</td>
+        //!                             </tr>
+        //!                             <tr>
+        //!                                 <td>RGBA10</td>
+        //!                                 <td>2:10:10:10</td>
+        //!                                 <td>A:R:G:B</td>
+        //!                                 <td>A:B:G:R</td>
+        //!                             </tr>
+        //!                             <tr>
+        //!                                 <td>RGB 5:6:5</td>
+        //!                                 <td>5:6:5</td>
+        //!                                 <td>R:G:B</td>
+        //!                                 <td>B:G:R</td>
+        //!                             </tr>
+        //!                         </table>
         enum RGBA_CHANNEL_SWAP_ENABLE
         {
             RGBA_CHANNEL_SWAP_ENABLE_UNNAMED0                                = 0, //!< No additional details
@@ -1825,13 +1825,13 @@ public:
         //! \details
         //!     <p>SFC rotation (90, 180 and 270) should be set only on VEBox input mode
         //!     and SFC output set to TileY.</p>
-        //!     					Restriction: 
-        //!     					<ul>
-        //!     						<li>For Integral Image Mode, this field is Reserved and MBZ.</li>
-        //!     						<li>For VDBox Mode, this field is Reserved and MBZ.</li>
-        //!     						<li>For linear or TileX SFC output, this field is Reserved and
+        //!                         Restriction: 
+        //!                         <ul>
+        //!                             <li>For Integral Image Mode, this field is Reserved and MBZ.</li>
+        //!                             <li>For VDBox Mode, this field is Reserved and MBZ.</li>
+        //!                             <li>For linear or TileX SFC output, this field is Reserved and
         //!     MBZ.</li>
-        //!     					</ul>
+        //!                         </ul>
         enum ROTATION_MODE
         {
             ROTATION_MODE_0_DEGREES                                          = 0, //!< No additional details
@@ -1844,9 +1844,9 @@ public:
         //! \details
         //!     <p>This field specifies the scaling ratio of the vertical sizes between
         //!     the crop/source region and the scaled region.
-        //!     					The destination pixel coordinate, y-axis, is multiplied with this
+        //!                         The destination pixel coordinate, y-axis, is multiplied with this
         //!     scaling factor to mapping back to the source input pixel coordinate.</p>
-        //!     					<p>The field specifies the ratio of crop height resolution/ scaled
+        //!                         <p>The field specifies the ratio of crop height resolution/ scaled
         //!     height resolution. This implies 1/<i>sf<sub>u</sub></i> in the
         //!     equation.</p>
         enum SCALING_FACTOR_HEIGHT
@@ -1858,10 +1858,10 @@ public:
         //! \details
         //!     <p>This field specifies the scaling ratio of the horizontal sizes
         //!     between the crop/source region and the scaled region.
-        //!     					The destination pixel coordinate, x-axis, is multiplied with this
+        //!                         The destination pixel coordinate, x-axis, is multiplied with this
         //!     scaling factor to mapping back to the source input pixel coordinate.
         //!     </p>
-        //!     					<p>The field specifies the ratio of crop width resolution/ scaled
+        //!                         <p>The field specifies the ratio of crop width resolution/ scaled
         //!     width resolution. This implies 1/<i>sf<sub>u</sub></i> in the equations
         //!     above.</p>
         enum SCALING_FACTOR_WIDTH
@@ -1896,7 +1896,7 @@ public:
         //! \brief OUTPUT_SURFACE_TILED_MODE
         //! \details
         //!     <b>For Media Surfaces:</b>
-        //!     					This field specifies the tiled resource mode.
+        //!                         This field specifies the tiled resource mode.
         enum OUTPUT_SURFACE_TILED_MODE
         {
             OUTPUT_SURFACE_TILED_MODE_TRMODENONE                             = 0, //!< No tiled resource
@@ -1941,7 +1941,7 @@ public:
         //! \brief AVS_LINE_BUFFER_TILED_MODE
         //! \details
         //!     <b>For Media Surfaces:</b>
-        //!     					This field specifies the tiled resource mode.
+        //!                         This field specifies the tiled resource mode.
         enum AVS_LINE_BUFFER_TILED_MODE
         {
             AVS_LINE_BUFFER_TILED_MODE_TRMODENONE                            = 0, //!< No tiled resource
@@ -1992,7 +1992,7 @@ public:
         //! \brief IEF_LINE_BUFFER_TILED_MODE
         //! \details
         //!     <b>For Media Surfaces:</b>
-        //!     					This field specifies the tiled resource mode.
+        //!                         This field specifies the tiled resource mode.
         enum IEF_LINE_BUFFER_TILED_MODE
         {
             IEF_LINE_BUFFER_TILED_MODE_TRMODENONE                            = 0, //!< No tiled resource
@@ -2034,7 +2034,7 @@ public:
     //! \details
     //!     This command is sent from VDBOX/VEBOX to SFC pipeline at the start of
     //!     each frame once the lock request is granted.
-    //!     
+    //!
     struct SFC_AVS_LUMA_Coeff_Table_CMD
     {
         union
@@ -2103,7 +2103,6 @@ public:
 
         uint32_t                         FilterCoefficients[124];                                                         //!< Filter Coefficients
 
-
         //! \name Local enumerations
 
         enum SUBOPCODEB
@@ -2145,7 +2144,7 @@ public:
     //! \details
     //!     This command is sent from VDBOX/VEBOX to SFC pipeline at the start of
     //!     each frame once the lock request is granted.
-    //!     
+    //!
     struct SFC_AVS_CHROMA_Coeff_Table_CMD
     {
         union
@@ -2189,7 +2188,6 @@ public:
         } DW2;
 
         uint32_t                         FilterCoefficients[62];                                                          //!< Filter Coefficients
-
 
         //! \name Local enumerations
 

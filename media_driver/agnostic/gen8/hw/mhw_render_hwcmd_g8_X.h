@@ -48,8 +48,8 @@ public:
     //!
     //! \brief MEDIA_OBJECT
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct MEDIA_OBJECT_CMD
     {
         union
@@ -209,13 +209,13 @@ public:
     //!     be considered the 'current'  active pipeline. Issuing
     //!     3D-pipeline-specific commands when the Media pipeline is selected, or
     //!     vice versa, is UNDEFINED.
-    //!     
+    //! 
     //!     Issuing 3D-pipeline-specific commands when the GPGPU pipeline is
     //!     selected, or vice versa, is UNDEFINED.
-    //!     
+    //! 
     //!     Programming common non pipeline commands (e.g., STATE_BASE_ADDRESS) is
     //!     allowed in all pipeline modes.
-    //!     
+    //! 
     //!     Software must ensure all the write caches are flushed through a stalling
     //!     PIPE_CONTROL command followed by another PIPE_CONTROL command to
     //!     invalidate read only caches prior to programming MI_PIPELINE_SELECT
@@ -224,11 +224,11 @@ public:
     //!     Flush Enable, DC Flush Enable) PIPE_CONTROL  (Constant Cache Invalidate,
     //!     Texture Cache Invalidate, Instruction Cache Invalidate, State Cache
     //!     invalidate) PIPELINE_SELECT ( GPGPU)
-    //!     
+    //! 
     //!     Software must clear the COLOR_CALC_STATE Valid field in
     //!     3DSTATE_CC_STATE_POINTERS command prior to send a PIPELINE_SELECT with
     //!     Pipeline Select set to GPGPU.
-    //!     
+    //! 
     //!     Render CS Only: SW must always program PIPE_CONTROL with CS Stall and
     //!     Render Target Cache Flush Enable set prior to programming
     //!     PIPELINE_SELECT command for GPGPU workloads i.e when pipeline mode is
@@ -236,7 +236,7 @@ public:
     //!     latencies for certain programming sequences. If programming PIPE_CONTROL
     //!     has performance implications then preemption latencies can be trade off
     //!     against performance by not implementing this programming note.
-    //!     
+    //! 
     //!     Hardware Binding Tables are only supported for 3D workloads. Resource
     //!     streamer must be enabled only for 3D workloads. Resource streamer must
     //!     be disabled for Media and GPGPU workloads. Batch buffer containing both
@@ -254,7 +254,7 @@ public:
     //!     PIPELINE_SELECT (GPGPU) GPGPU Workload 3DSTATE_BINDING_TABLE_POOL_ALLOC
     //!     (Binding Table Pool Enabled) MI_RS_CONTROL (Enable Resource Streamer) 3D
     //!     WORKLOAD MI_BATCH_BUFFER_END
-    //!     
+    //! 
     //!     Render command streamer (RCS) does Fixed Function DOP CG for media and
     //!     gpgpu workloads. During context restore 3D semi pipeline state is
     //!     restored to WM, which triggers implicit flush. Theoretically under
@@ -269,7 +269,7 @@ public:
     //!     when this issue occurs. Validation teams are requested to triage any
     //!     GPGPU workload hangs with WM no done with FFDOP CG disabled to eliminate
     //!     this scenario.
-    //!     
+    //!
     struct PIPELINE_SELECT_CMD
     {
         union
@@ -332,7 +332,7 @@ public:
     //!     state, instruction, and media indirect object accesses by the GPE.
     //!     For more information see the Base Address Utilization table in the
     //!     Memory Access Indirection narrative topic.
-    //!     
+    //! 
     //!     The following commands must be reissued following any change to the base
     //!     addresses:  3DSTATE_CC_POINTERS
     //!      3DSTATE_BINDING_TABLE_POINTERS
@@ -341,7 +341,7 @@ public:
     //!      MEDIA_STATE_POINTERS
     //!        Execution of this command causes a full pipeline flush, thus its use
     //!     should be minimized for higher performance.
-    //!     
+    //! 
     //!     SW must always program PIPE_CONTROL with "CS Stall" and "Render Target
     //!     Cache Flush Enable" set before programming STATE_BASE_ADDRESS command
     //!     for GPGPU workloads i.e when pipeline select is GPGPU via
@@ -350,7 +350,7 @@ public:
     //!     programming PIPE_CONTROL has performance implications then preemption
     //!     latencies can be traded off against performance by not implementing this
     //!     programming note.
-    //!     
+    //!
     struct STATE_BASE_ADDRESS_CMD
     {
         union
@@ -611,13 +611,13 @@ public:
     //!     only bits that are changed are scoreboard related: Scoreboard Enable,
     //!     Scoreboard Type, Scoreboard Mask, Scoreboard * Delta. For these
     //!     scoreboard related states, a MEDIA_STATE_FLUSH is sufficient.
-    //!     
+    //! 
     //!     MEDIA_STATE_FLUSH (optional, only if barrier dependency is needed)
-    //!     
+    //! 
     //!     MEDIA_INTERFACE_DESCRIPTOR_LOAD (optional)
-    //!     
-    //!     
-    //!     
+    //! 
+    //! 
+    //!
     struct MEDIA_VFE_STATE_CMD
     {
         union
@@ -818,7 +818,7 @@ public:
 
     //!
     //! \brief MEDIA_CURBE_LOAD
-    //!     
+    //!
     struct MEDIA_CURBE_LOAD_CMD
     {
         union
@@ -977,8 +977,8 @@ public:
     //!
     //! \brief MEDIA_OBJECT_WALKER
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct MEDIA_OBJECT_WALKER_CMD
     {
         union
@@ -1260,7 +1260,7 @@ public:
     //!     writes performed by threads spawned from a previous command, software
     //!     must precede this command with a command that performs a memory flush
     //!     (e.g., MI_FLUSH).
-    //!     
+    //!
     struct GPGPU_WALKER_CMD
     {
         union
@@ -1469,7 +1469,7 @@ public:
     //!     functions are enabled and controlled via use of the ChromaKey Enable
     //!     texture sampler state variable.Texture Color Key (keying on a paletted
     //!     texture index) is not supported.
-    //!     
+    //!
     struct _3DSTATE_CHROMA_KEY_CMD
     {
         union
@@ -1553,11 +1553,11 @@ public:
     //!     values into the first texture palette. The texture palette is used
     //!     whenever a texture with a paletted format (containing "Px [palette0]")
     //!     is referenced by the sampler.
-    //!     
+    //! 
     //!     This instruction is used to load all or a subset of the 256 entries of
     //!     the first palette. Partial loads always start from the first (index 0)
     //!     entry.
-    //!     
+    //!
     struct _3DSTATE_SAMPLER_PALETTE_LOAD0_CMD
     {
         union
@@ -1615,7 +1615,7 @@ public:
     //!     "Px...[palette1]") is referenced by the sampler.This instruction is used
     //!     to load all or a subset of the 256 entries of the second palette.
     //!     Partial loads always start from the first (index 0) entry.
-    //!     
+    //!
     struct _3DSTATE_SAMPLER_PALETTE_LOAD1_CMD
     {
         union
@@ -1667,8 +1667,8 @@ public:
     //!
     //! \brief PALETTE_ENTRY
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct PALETTE_ENTRY_CMD
     {
         union
@@ -1700,7 +1700,7 @@ public:
     //! \details
     //!     The STATE_SIP command specifies the starting instruction location of the
     //!     System Routine that is shared by all threads in execution.
-    //!     
+    //!
     struct STATE_SIP_CMD
     {
         union
@@ -1765,11 +1765,11 @@ public:
     //!     The GPGPU_CSR_BASE_ADDRESS command sets the base pointers for EU and L3
     //!     to Context Save and Restore EU State and SLM for GPGPU mid-thread
     //!     preemption.
-    //!     
+    //! 
     //!     Execution of this command causes a full pipeline flush, thus its use
     //!     should be minimized for higher performance. State and instruction caches
     //!     are flushed on completion of the flush.
-    //!     
+    //! 
     //!     SW must always program PIPE_CONTROL with "CS Stall" and "Render Target
     //!     Cache Flush Enable" set prior to programming GPGPU_CSR_BASE_ADDRESS
     //!     command for GPGPU workloads i.e when pipeline select is GPGPU via
@@ -1778,7 +1778,7 @@ public:
     //!     PIPE_CONTROL has performance implications then preemption latencies can
     //!     be trade off against performance by not implementing this programming
     //!     note.
-    //!     
+    //!
     struct GPGPU_CSR_BASE_ADDRESS_CMD
     {
         union

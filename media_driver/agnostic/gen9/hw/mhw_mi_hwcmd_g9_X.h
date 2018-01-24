@@ -51,7 +51,7 @@ public:
     //!     The MI_BATCH_BUFFER_END command is used to terminate the execution of
     //!     commands stored in a batch buffer initiated using a
     //!     MI_BATCH_BUFFER_START command.
-    //!     
+    //!
     struct MI_BATCH_BUFFER_END_CMD
     {
         union
@@ -97,7 +97,7 @@ public:
     //!     be loaded into the MI NOPID register. This provides a general-purpose
     //!     command stream tagging ("breadcrumb") mechanism (e.g., to provide
     //!     sequencing information for a subsequent breakpoint interrupt).
-    //!     
+    //!
     struct MI_NOOP_CMD
     {
         union
@@ -151,13 +151,13 @@ public:
     //!     executed as part of a Ring Buffer the command checks the UHPTR valid bit
     //!     and if set the head of the ring will jump to the value of the head
     //!     pointer programmed in the UHPTR.
-    //!     
+    //! 
     //!     This instruction cannot be placed in a batch buffer.
-    //!     
+    //! 
     //!     If execlist is enabled, there is a pending execution list and this
     //!     command is parsed, then the command streamer will preempt the current
     //!     context and start executing the new execution list.
-    //!     
+    //!
     struct MI_ARB_CHECK_CMD
     {
         union
@@ -203,25 +203,25 @@ public:
     //!     the parser to continue once the cycle is at the GT boundry and not
     //!     destination.  Any other address will ensure the destination is updated
     //!     prior to parsing the next command
-    //!     
+    //! 
     //!     When executed from a non-privileged batch buffer, MMIO writes are only
     //!     allowed to the registers listed in User Mode Non-Privileged Registers
     //!     for the corresponding engine, any writes targeting the register not
     //!     listed in the User Mode Non-Privileged Register will convert this
     //!     command to a NOOP.
-    //!     
+    //! 
     //!     The following addresses should NOT be used for LRIs:
-    //!     
+    //! 
     //!     0x8800 - 0x88FF
-    //!     
+    //! 
     //!     >= 0xC0000
-    //!     
-    //!     
-    //!     
+    //! 
+    //! 
+    //! 
     //!     Limited LRI cycles to the Display Engine (0x40000-0xBFFFF) are allowed,
     //!     but must be spaced to allow only one pending at a time. This can be done
     //!     by issuing an SRM to the same address immediately after each LRI.
-    //!     
+    //!
     struct MI_LOAD_REGISTER_IMM_CMD
     {
         union
@@ -284,32 +284,32 @@ public:
     //! \details
     //!     The MI_LOAD_REGISTER_MEM command requests from a memory location and
     //!     stores that DWord to a register.
-    //!     
+    //! 
     //!     The command temporarily halts commands that will cause cycles down the
     //!     3D pipeline.
-    //!     
+    //! 
     //!     The following addresses should NOT be used for MMIO writes:
-    //!     
+    //! 
     //!     0x8800 - 0x88FF
-    //!     
+    //! 
     //!     >= 0xC0000
-    //!     
-    //!     
-    //!     
+    //! 
+    //! 
+    //! 
     //!     Limited MMIO writes cycles to the Display Engine 0x40000-0xBFFFF) are
     //!     allowed, but must be spaced to allow only one pending at a time. This
     //!     can be done by issuing an SRM to the same address immediately after each
     //!     MMIO write.
-    //!     
+    //! 
     //!     This command should not be used within a non-privilege batch buffer to
     //!     access global virtual space, doing so will be treated as privilege
     //!     access violation. Refer "User Mode Privilege Command" in
     //!     MI_BATCH_BUFFER_START command section to know HW behavior on
     //!     encountering privilege access violation.
-    //!     
+    //! 
     //!     This command is not allowed to update the privilege register range when
     //!     executed from a non-privilege batch buffer.
-    //!     
+    //!
     struct MI_LOAD_REGISTER_MEM_CMD
     {
         union
@@ -378,10 +378,10 @@ public:
     //!     the parser to continue once the cycle is at the GT boundry and not
     //!     destination.  Any other address will ensure the destination is updated
     //!     prior to parsing the next command
-    //!     
+    //! 
     //!     The command temporarily halts commands that will cause cycles down the
     //!     3D pipeline.
-    //!     
+    //! 
     //!     Destination register with mask implemented (Ex: some
     //!     registers have bits [31:16] as mask bits and bits[15:0] as data) will
     //!     not get updated unless the  value read from source register has the bits
@@ -390,10 +390,10 @@ public:
     //!     location. When the source and destination are mask implemented
     //!     registers, destination register will not get updated with the source
     //!     register contents.
-    //!     
+    //! 
     //!     This command is not allowed to update the privilege register range when
     //!     executed from a non-privilege batch buffer.
-    //!     
+    //!
     struct MI_LOAD_REGISTER_REG_CMD
     {
         union
@@ -459,12 +459,12 @@ public:
     //!     specified memory mapped register location in the device and store of
     //!     that DWord to memory. The register address is specified along with the
     //!     command to perform the read.
-    //!     
-    //!     
+    //! 
+    //! 
     //!     The command temporarily halts command execution.
-    //!     
+    //! 
     //!     The memory address for the write is snooped on the host bus.
-    //!     
+    //! 
     //!     This command should not be used from within a "non-privilege" batch
     //!     buffer to access global virtual space. doing so will be treated as
     //!     privilege access violation. Refer "User Mode Privilege Command" in
@@ -472,10 +472,10 @@ public:
     //!     encountering privilege access violation. This command can be used within
     //!     ring buffers and/or "privilege" batch buffers to access global virtual
     //!     space.
-    //!     
+    //! 
     //!     This command will cause undefined data to be written to memory if given
     //!     register addresses for the PGTBL_CTL_0 or FENCE registers.
-    //!     
+    //!
     struct MI_STORE_REGISTER_MEM_CMD
     {
         union
@@ -545,7 +545,7 @@ public:
     //!     initiated from within the buffer and any attached (chained) batch
     //!     buffers. See Batch Buffer Protection in the Device Programming Interface
     //!     chapter of MI Functions. 
-    //!     
+    //! 
     //!      A batch buffer initiated with this command must end either with a
     //!     MI_BATCH_BUFFER_END command or by chaining to another batch buffer with
     //!     an MI_BATCH_BUFFER_START command.
@@ -553,9 +553,9 @@ public:
     //!     populated inside the GTT. HW performs over-fetch of the command
     //!     addresses and any over-fetch requires a valid TLB entry. A single extra
     //!     page beyond the batch buffer is sufficient.
-    //!     
-    //!     
-    //!     
+    //! 
+    //! 
+    //! 
     //!     SW must ensure to reset the state of the second level batch buffer prior
     //!     to programming second level batch buffer. This must be done by
     //!     programming MI_LOAD_REGISTER_IMM command to program SBB_STATE register
@@ -563,16 +563,16 @@ public:
     //!     the second level batch buffer. SBB_STATE register seleected must be the
     //!     offset belonging to the command streamer on which the second level batch
     //!     buffer will be executed.  OR
-    //!     
+    //! 
     //!     Above programming is not required if second level batch buffer
     //!     programmed in a given batch buffer chain is always non-privileged OR
-    //!     
+    //! 
     //!     Above programming is not required if the second level batch buffer is
     //!     being called from a non-privileged batch buffer. 
-    //!     
+    //! 
     //!     A batch buffer is treated as non-privileged if the Address Space
     //!     Indicator is set to PPGTT.
-    //!     
+    //!
     struct MI_BATCH_BUFFER_START_CMD
     {
         union
@@ -613,9 +613,9 @@ public:
         //!     Space Indicator" and this field determine the "Address Space Indicator"
         //!     of the next buffer in the chain.</p>
         //!     <ul>
-        //!     	<li>Chained or Second level batch buffer can be in GGTT or PPGTT if the
+        //!         <li>Chained or Second level batch buffer can be in GGTT or PPGTT if the
         //!     parent batch buffer is in GGTT.</li>
-        //!     	<li>Chained or Second level batch buffer can only be in PPGTT if the
+        //!         <li>Chained or Second level batch buffer can only be in PPGTT if the
         //!     parent batch buffer is in PPGTT. This is enforced by Hardware.</li>
         //!     </ul>
         enum ADDRESS_SPACE_INDICATOR
@@ -670,10 +670,10 @@ public:
     //!     status.  Resource Streamer doesn't take any action of parsing
     //!     MI_SET_PREDICATE, this command is similar to any other command which is
     //!     not meant for resource streamer.
-    //!     
+    //! 
     //!     Executing MI_SET_PREDICATE command sets PREDICATE_ENABLE bits in MI_MODE
     //!     register, MI_MODE register gets render context save restored.
-    //!     
+    //! 
     //!      MI_SET_PREDICATE predication scope must be confined within a Batch
     //!     Buffer to set of commands.
     //!       MI_SET_PREDICATE with Predicate Enable Must always have a
@@ -683,8 +683,8 @@ public:
     //!     MI_SET_PREDICATE.
     //!      MI_SET_PREDICATE Predication Scope must not involve any RC6 triggering
     //!     events.
-    //!      
-    //!     
+    //! 
+    //! 
     //!     Only the following command(s) can be programmed between the
     //!     MI_SET_PREDICATE command enabled for predication: 3DSTATE_URB_VS
     //!     3DSTATE_URB_HS 3DSTATE_URB_DS 3DSTATE_URB_GS
@@ -693,7 +693,7 @@ public:
     //!     3DSTATE_PUSH_CONSTANT_ALLOC_PS MI_LOAD_REGISTER_IMM MEDIA_VFE_STATE
     //!     MEDIA_OBJECT MEDIA_OBJJECT_WALKER MEDIA_INTERFACE_DESCRIPTOR_LOAD
     //!     3DSTATE_WM_HZ_OP
-    //!     
+    //!
     struct MI_SET_PREDICATE_CMD
     {
         union
@@ -754,16 +754,16 @@ public:
     //!     value of that DWord to back to memory.   The source and destination
     //!     addresses are specified in the command. The command temporarily halts
     //!     command execution.
-    //!     
+    //! 
     //!     This command should not be used within a "non-privileged" batch buffer
     //!     to access global virtual space; doing so will be treated as privilege
     //!     access violation. Refer to the "User Mode Privilege Command" in
     //!     MI_BATCH_BUFFER_START command section to learn more about HW behavior on
     //!     encountering a privilege access violation.
-    //!     
+    //! 
     //!     This command can be used within ring buffers and/or privilege batch
     //!     buffers to access global virtual space.
-    //!     
+    //!
     struct MI_COPY_MEM_MEM_CMD
     {
         union
@@ -853,10 +853,10 @@ public:
     //!     supplied in the packet to the specified Memory Address. As the write
     //!     targets a System Memory Address, the write operation is coherent with
     //!     the CPU cache (i.e., the processor cache is snooped).
-    //!     
+    //! 
     //!     This command supports writing to multiple consecutive dwords or qwords
     //!     memory locations from the starting address.
-    //!     
+    //! 
     //!      This command should not be used within a "non-privilege" batch buffer
     //!     to access global virtual space, doing so will be treated as privilege
     //!     access violation. Refer "User Mode Privilege Command" in
@@ -872,9 +872,9 @@ public:
     //!     guaranteed to complete eventually, there is no mechanism to synchronize
     //!     command execution with the completion (or even initiation) of these
     //!     operations.
-    //!     
-    //!     
-    //!     
+    //! 
+    //! 
+    //!
     struct MI_STORE_DATA_IMM_CMD
     {
         union
@@ -950,7 +950,7 @@ public:
     //!     ID. MI_SEMPHORE_SIGNAL and MI_SEMAPHORE_WAIT together replace the
     //!     MI_SEMAPHORE_MBOX command on BDW. MI_ATOMIC (non-posted) command will be
     //!     programmed prior to this command to update the semaphore data in memory.
-    //!     
+    //!
     struct MI_SEMAPHORE_SIGNAL_CMD
     {
         union
@@ -1022,32 +1022,32 @@ public:
     //!     Command Streamer on parsing this command fetches data from the Semaphore
     //!     Address mentioned in this command and compares it with the inline
     //!     Semaphore Data Dword.
-    //!     
+    //! 
     //!     If comparison passes, the command streamer moves to the next command.
-    //!     
+    //! 
     //!     When execlists are enabled, if comparison fails Command streamer
     //!     switches out the context. Context switch can be inhibited by setting
     //!     "Inhibit Synchronous Context Switch" in CTXT_SR_CTL register.
-    //!     
+    //! 
     //!     In ring buffer mode of scheduling or Execlist with "Inhibit Synchronous
     //!     context Switch", if comparison fails, Command Streamer evaluates the
     //!     Compare Operation based on the Wait Mode until the compare operation is
     //!     true or Wait is canceled by SW.
-    //!     
+    //! 
     //!     Exec-List Scheduling: CS generates semaphore wait interrupt to the
     //!     scheduler when MI_SEMAPHORE_WAIT command is un-successful and when
     //!     "Inhibit Synchronous Context Switch" is set. Scheduler can use this
     //!     interrupt to preempt the context waiting on semaphore wait.
-    //!     
+    //! 
     //!     Ring Buffer Scheduling: CS generates semaphore wait interrupt to the
     //!     scheduler when MI_SEMAPHORE_WAIT command is un-successful. This is for
     //!     debug mode
-    //!     
-    //!     
-    //!     
+    //! 
+    //! 
+    //! 
     //!     MI_SEMPHORE_SIGNAL and MI_SEMAPHORE_WAIT together replace the
     //!     MI_SEMAPHORE_MBOX command on DevBDW.
-    //!     
+    //! 
     //!     MI_SEMAPHORE_WAIT command also supports register based Semaphore WAIT.
     //!     Command Streamer on parsing this command fetches data from the MMIO
     //!     offset mentioned in this command and compares it with the inline
@@ -1055,22 +1055,22 @@ public:
     //!     Poll” bit is set in the command header. In register poll mode of
     //!     operation “Wait Mode” supported is always Poll mode and no Signal mode
     //!     is supported.
-    //!     
+    //! 
     //!     If comparison passes, the command streamer moves to the next command.
-    //!     
+    //! 
     //!     Unlike in Memory based semaphore, there is no context switch or
     //!     preemption supported in Register Poll mode of operation. Semaphore wait
     //!     interrupt is not generated by default on wait un-successful in “Register
     //!     Poll” mode. However interrupt generation can be enabled by setting debug
     //!     mode bit “Semaphore Interrupt Enable in Register Poll Mode” in specified
     //!     register
-    //!     
+    //! 
     //!     Register Poll mode of Semaphore Wait command operation is privileged and
     //!     will not be supported from PPGTT batch buffers.
-    //!     
+    //! 
     //!     HW will not trigger Render DOP CG on semaphore wait unsuccessful in
     //!     register poll mode of operation.
-    //!     
+    //!
     struct MI_SEMAPHORE_WAIT_CMD
     {
         union
@@ -1185,8 +1185,8 @@ public:
     //!     using a MI_BATCH_BUFFER_START command. Termination of second level batch
     //!     buffer due to this command will also terminate the parent/first level
     //!     batch buffer.
-    //!     
-    //!     
+    //! 
+    //!
     struct MI_CONDITIONAL_BATCH_BUFFER_END_CMD
     {
         union
@@ -1301,23 +1301,23 @@ public:
     //!     Note: Any references to CS_GPR registers in the command should be
     //!     understood as the CS_GPR registers belonging to the corresponding
     //!     engines *CS_GPR registers.
-    //!     
-    //!     
+    //! 
+    //! 
     //!     Indirect Source Operands:
-    //!     
+    //! 
     //!     Operand1 is sourced from [CS_GPR1, CS_GPR0]
-    //!     
+    //! 
     //!     Operand2 is sourced from [CS_GPR3, CS_GPR2]
-    //!     
+    //! 
     //!     Read return Data is stored in [CS_GPR_5, CS_GPR4]
-    //!     
+    //! 
     //!     When "Data Size" is DWORD lower dword of CS_GPR4 (Qword) is updated with
     //!     the dword data returned from memory. When "Data Size" is QWORD only
     //!     CS_GPR4 (Qword) is updated with the qword data returned from memory.
     //!     When the data size is OCTWORD CS_GPR4/5 are updated with the OCTWORD
     //!     data returned from memory. CS_GPR4 is loaded with lower qword returned
     //!     from memory and CS_GPR5 is loaded with upper qword returned from memory.
-    //!     
+    //! 
     //!      When Inline Data mode is not set, Dwords 3..10 must not be included as
     //!     part of the command. Dword Length field in the header must be programmed
     //!     accordingly.
@@ -1326,13 +1326,13 @@ public:
     //!     be programmed based on the Data Size field. Operand-2 must be programmed
     //!     to 0x0 if the atomic operation doesn't require it. Dword Length field in
     //!     the header must be programmed accordingly.
-    //!     
-    //!     
-    //!     
+    //! 
+    //! 
+    //! 
     //!     Engines must be IDLE prior to command stream parsing MI_ATOMIC command.
     //!     MI_FLUSH_DW prior to the MI_ATOMIC command would ensure the engine is
     //!     IDLE prior to the atomic operation.
-    //!     
+    //!
     struct MI_ATOMIC_CMD
     {
         union
@@ -1503,7 +1503,7 @@ public:
     //!     an MI_MATH command, it sends the included ALU instructions to the ALU.
     //!     The ALU processes any instruction in a single clock. See the ALU section
     //!     for more details.
-    //!     
+    //!
     struct MI_MATH_CMD
     {
         union
@@ -1550,7 +1550,7 @@ public:
     //!     cache inside the hardware Usage note: After this command is completed
     //!     with a Store DWord enabled, CPU access to graphics memory will be
     //!     coherent (assuming the Render Cache flush is not inhibited).
-    //!     
+    //!
     struct MI_FLUSH_DW_CMD
     {
         union
@@ -1642,7 +1642,7 @@ public:
     //! \details
     //!     The PIPE_CONTROL command is used to effect the synchronization described
     //!     above.
-    //!     
+    //!
     struct PIPE_CONTROL_CMD
     {
         union
@@ -1851,8 +1851,8 @@ public:
     //!     until the object package is sent down the pipelineThis command should be
     //!     used to ensure the preemption enable window occurs during the time the
     //!     object command is being executed down the pipeline.
-    //!      
-    //!     
+    //! 
+    //!
     struct MFX_WAIT_CMD
     {
         union
@@ -1902,14 +1902,14 @@ public:
     //! \details
     //!     This command updates the Message Gateway state. In particular, it
     //!     updates the state for a selected Interface Descriptor.
-    //!     
+    //! 
     //!     This command can be considered same as a MI_Flush except that only media
     //!     parser will get flushed instead of the entire 3D/media render pipeline.
     //!     The command should be programmed prior to new Media state, curbe and/or
     //!     interface descriptor commands when switching to a new context or
     //!     programming new state for the same context. With this command, pipelined
     //!     state change is allowed for the media pipe.
-    //!     
+    //! 
     //!     Be cautious when using this command when child_present flag in the media
     //!     state is enabled. This is because that CURBE state as well as Interface
     //!     Descriptor state are shared between root threads and child threads.
@@ -1917,12 +1917,12 @@ public:
     //!     cause unexpected behavior. Combining with MI_ARB_ON/OFF command, it is
     //!     possible to support interruptability with the following command sequence
     //!     where interrupt may be allowed only when MI_ARB_ON_OFF is ON:
-    //!     
+    //! 
     //!     <pre>MEDIA_STATE_FLUSH 
     //!     VFE_STATE  VFE will hold CS if watermark isn't met 
     //!     MI_ARB_OFF  There must be at least one VFE command before this one
     //!     MEDIA_OBJECT ... MI_ARB_ON</pre>
-    //!     
+    //! 
     //!     Due to the known HW issue MEDIA_STATE_FLUSH command is not preemptable
     //!     in GPGPU workloads. This might result in reduced frequency of preempting
     //!     GPGPU walker in below programming sequence.
@@ -1933,13 +1933,13 @@ public:
     //!     GPGPU_WALKER 
     //!     MEDIA_STATE_FLUSH 
     //!     State Commands</pre>
-    //!     
+    //! 
     //!     MI_ARB_CHK command must be programmed following MEDIA_STATE_FLUSH
     //!     command. PIPECONTROL (“Command Streamer Stall Enable” set and “Render
     //!     Target Cache Flush Enable” set) must be programmed prior to
     //!     MEDIA_STATE_FLUSH command with “Flush to GO” bit set. “Water Mark
     //!     Required” field must not be set in “MEDIA_STATE_FLUSH” command.
-    //!     
+    //!
     struct MEDIA_STATE_FLUSH_CMD
     {
         union

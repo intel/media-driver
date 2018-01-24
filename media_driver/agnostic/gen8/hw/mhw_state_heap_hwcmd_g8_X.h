@@ -48,8 +48,8 @@ public:
     //!
     //! \brief INTERFACE_DESCRIPTOR_DATA
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct INTERFACE_DESCRIPTOR_DATA_CMD
     {
         union
@@ -193,8 +193,8 @@ public:
         //! \details
         //!     Specifies how many samplers (in multiples of 4) the kernel uses.  Used
         //!     only for prefetching the associated sampler state entries. 
-        //!     					<i>This field is ignored for child threads.</i>
-        //!     					<i>If this field is not zero, sampler state is prefetched for the
+        //!                         <i>This field is ignored for child threads.</i>
+        //!                         <i>If this field is not zero, sampler state is prefetched for the
         //!     first instance of a root thread upon the startup of the media
         //!     pipeline.</i>
         enum SAMPLER_COUNT
@@ -249,7 +249,7 @@ public:
     //!     indexes beyond 256 will automatically be mapped to entry 0 by the HW, w/
     //!     the exception of any messages which support the special indexes 240
     //!     through 255, inclusive.
-    //!     
+    //!
     struct BINDING_TABLE_STATE_CMD
     {
         union
@@ -279,7 +279,7 @@ public:
     //! \details
     //!     This is the normal surface state used by all messages that use
     //!     SURFACE_STATE except those that use MEDIA_SURFACE_STATE.
-    //!     
+    //!
     struct RENDER_SURFACE_STATE_CMD
     {
         union
@@ -364,15 +364,15 @@ public:
             //!< DWORD 5
             struct
             {
-                uint32_t                 MipCountLod                                      : __CODEGEN_BITFIELD( 0,  3)    ; //!< MIP Count / LOD, 
-                uint32_t                 SurfaceMinLod                                    : __CODEGEN_BITFIELD( 4,  7)    ; //!< Surface Min LOD, 
-                uint32_t                 Reserved168                                      : __CODEGEN_BITFIELD( 8, 13)    ; //!< Reserved, 
-                uint32_t                 CoherencyType                                    : __CODEGEN_BITFIELD(14, 14)    ; //!< COHERENCY_TYPE, 
-                uint32_t                 Reserved175                                      : __CODEGEN_BITFIELD(15, 19)    ; //!< Reserved, 
-                uint32_t                 EwaDisableForCube                                : __CODEGEN_BITFIELD(20, 20)    ; //!< EWA_DISABLE_FOR_CUBE, 
-                uint32_t                 YOffset                                          : __CODEGEN_BITFIELD(21, 23)    ; //!< Y Offset, 
-                uint32_t                 Reserved184                                      : __CODEGEN_BITFIELD(24, 24)    ; //!< Reserved, 
-                uint32_t                 XOffset                                          : __CODEGEN_BITFIELD(25, 31)    ; //!< X Offset, 
+                uint32_t                 MipCountLod                                      : __CODEGEN_BITFIELD( 0,  3)    ; //!< MIP Count / LOD,
+                uint32_t                 SurfaceMinLod                                    : __CODEGEN_BITFIELD( 4,  7)    ; //!< Surface Min LOD,
+                uint32_t                 Reserved168                                      : __CODEGEN_BITFIELD( 8, 13)    ; //!< Reserved,
+                uint32_t                 CoherencyType                                    : __CODEGEN_BITFIELD(14, 14)    ; //!< COHERENCY_TYPE,
+                uint32_t                 Reserved175                                      : __CODEGEN_BITFIELD(15, 19)    ; //!< Reserved,
+                uint32_t                 EwaDisableForCube                                : __CODEGEN_BITFIELD(20, 20)    ; //!< EWA_DISABLE_FOR_CUBE,
+                uint32_t                 YOffset                                          : __CODEGEN_BITFIELD(21, 23)    ; //!< Y Offset,
+                uint32_t                 Reserved184                                      : __CODEGEN_BITFIELD(24, 24)    ; //!< Reserved,
+                uint32_t                 XOffset                                          : __CODEGEN_BITFIELD(25, 31)    ; //!< X Offset,
             };
             uint32_t                     Value;
         } DW5;
@@ -429,12 +429,12 @@ public:
             //!< DWORD 10..11
             struct
             {
-                uint64_t                 Reserved320                                      : __CODEGEN_BITFIELD( 0, 11)    ; //!< Reserved, 
+                uint64_t                 Reserved320                                      : __CODEGEN_BITFIELD( 0, 11)    ; //!< Reserved,
                 uint64_t                 AuxiliarySurfaceBaseAddress                      : __CODEGEN_BITFIELD(12, 63)    ; //!< Auxiliary Surface Base Address, ([Surface Format] != 'PLANAR') AND [Memory Compression Enable] == 0
             } Obj0;
             struct
             {
-                uint64_t                 Reserved320                                      : __CODEGEN_BITFIELD( 0, 20)    ; //!< Reserved, 
+                uint64_t                 Reserved320                                      : __CODEGEN_BITFIELD( 0, 20)    ; //!< Reserved,
                 uint64_t                 AuxiliaryTableIndexForMediaCompressedSurface     : __CODEGEN_BITFIELD(21, 31)    ; //!< Auxiliary Table Index for Media Compressed Surface, [Memory Compression Enable] ==1
                 uint64_t                 Reserved352                                      : __CODEGEN_BITFIELD(32, 63)    ; //!< Reserved, [Memory Compression Enable] ==1
             } Obj1;
@@ -832,7 +832,7 @@ public:
         //! \brief RENDER_TARGET_AND_SAMPLE_UNORM_ROTATION
         //! \details
         //!     <b>For Render Target Surfaces:</b>
-        //!     					This field specifies the rotation of this render target surface
+        //!                         This field specifies the rotation of this render target surface
         //!     when being written to memory.
         enum RENDER_TARGET_AND_SAMPLE_UNORM_ROTATION
         {
@@ -931,11 +931,11 @@ public:
         //! \details
         //!     <p><b>For Sampling Engine Multisampled Surfaces and Render
         //!     Targets:</b><br />
-        //!     					Specifies the clear value for the alpha channel.
-        //!     					</p>
-        //!     					<p><b>For Other Surfaces:</b><br />
-        //!     					This field is ignored.
-        //!     					</p>
+        //!                         Specifies the clear value for the alpha channel.
+        //!                         </p>
+        //!                         <p><b>For Other Surfaces:</b><br />
+        //!                         This field is ignored.
+        //!                         </p>
         enum ALPHA_CLEAR_COLOR
         {
             ALPHA_CLEAR_COLOR_CCZERO                                         = 0, //!< No additional details
@@ -946,11 +946,11 @@ public:
         //! \details
         //!     <p><b>For Sampling Engine Multisampled Surfaces and Render
         //!     Targets:</b><br />
-        //!     					Specifies the clear value for the blue channel.
-        //!     					</p>
-        //!     					<p><b>For Other Surfaces:</b><br />
-        //!     					This field is ignored.
-        //!     					</p>
+        //!                         Specifies the clear value for the blue channel.
+        //!                         </p>
+        //!                         <p><b>For Other Surfaces:</b><br />
+        //!                         This field is ignored.
+        //!                         </p>
         enum BLUE_CLEAR_COLOR
         {
             BLUE_CLEAR_COLOR_CCZERO                                          = 0, //!< No additional details
@@ -961,11 +961,11 @@ public:
         //! \details
         //!     <p><b>For Sampling Engine Multisampled Surfaces and Render
         //!     Targets:</b><br />
-        //!     					Specifies the clear value for the green channel.
-        //!     					</p>
-        //!     					<p><b>For Other Surfaces:</b><br />
-        //!     					This field is ignored.
-        //!     					</p>
+        //!                         Specifies the clear value for the green channel.
+        //!                         </p>
+        //!                         <p><b>For Other Surfaces:</b><br />
+        //!                         This field is ignored.
+        //!                         </p>
         enum GREEN_CLEAR_COLOR
         {
             GREEN_CLEAR_COLOR_CCZERO                                         = 0, //!< No additional details
@@ -976,10 +976,10 @@ public:
         //! \details
         //!     <p><b>For Sampling Engine Multisampled Surfaces and Render
         //!     Targets:</b><br />
-        //!     					Specifies the clear value for the red channel.</p>
-        //!     					<p><b>For Other Surfaces:</b><br />
-        //!     					This field is ignored.
-        //!     					</p>
+        //!                         Specifies the clear value for the red channel.</p>
+        //!                         <p><b>For Other Surfaces:</b><br />
+        //!                         This field is ignored.
+        //!                         </p>
         enum RED_CLEAR_COLOR
         {
             RED_CLEAR_COLOR_CCZERO                                           = 0, //!< No additional details
@@ -1000,7 +1000,7 @@ public:
     //! \details
     //!     This is the SURFACE_STATE used by only deinterlace, sample_8x8, and VME
     //!     messages.
-    //!     
+    //!
     struct MEDIA_SURFACE_STATE_CMD
     {
         union
@@ -1189,7 +1189,7 @@ public:
     //!     dwords described here. The start of each element is spaced 4 dwords
     //!     apart. The first element of the sampler state array is aligned to a
     //!     32-byte boundary.
-    //!     
+    //!
     struct SAMPLER_STATE_CMD
     {
         union
@@ -1314,7 +1314,7 @@ public:
         //! \details
         //!     <p>This field determines whether the computed LOD is clamped to
         //!     [max,min] mip level
-        //!     					before the mag-vs-min determination is performed.</p>
+        //!                         before the mag-vs-min determination is performed.</p>
         enum LOD_PRECLAMP_MODE
         {
             LOD_PRECLAMP_MODE_NONE                                           = 0, //!< LOD PreClamp disabled
@@ -1478,7 +1478,7 @@ public:
     //! \brief SAMPLER_STATE_8x8_AVS_COEFFICIENTS
     //! \details
     //!     ExistsIf = AVS
-    //!     
+    //!
     struct SAMPLER_STATE_8x8_AVS_COEFFICIENTS_CMD
     {
         union
@@ -1589,7 +1589,7 @@ public:
     //! \brief SAMPLER_STATE_8x8_AVS
     //! \details
     //!     ExistsIf = AVS
-    //!     
+    //!
     struct SAMPLER_STATE_8x8_AVS_CMD
     {
         union
@@ -2200,7 +2200,7 @@ public:
         //! \details
         //!     This should be always set to 0 for YUV input and can be enabled/disabled
         //!     for RGB input.
-        //!     					This should be enabled only if we enable 8-tap adaptive filter for
+        //!                         This should be enabled only if we enable 8-tap adaptive filter for
         //!     RGB input.
         enum RGB_ADAPTIVE
         {
@@ -2254,7 +2254,7 @@ public:
     //! \details
     //!     Function: 0001b ExistsIf: [Convolve] &amp;&amp; [(Kernel Size) =<
     //!     (15x15)]
-    //!     
+    //!
     struct SAMPLER_STATE_8x8_CONVOLVE_COEFFICIENTS_CMD
     {
         union
@@ -2354,7 +2354,7 @@ public:
     //! \details
     //!     Function: 0001b ExistsIf: [Convolve] &amp;&amp; [(Kernel Size) =<
     //!     (15x15)]
-    //!     
+    //!
     struct SAMPLER_STATE_8x8_CONVOLVE_CMD
     {
         union
@@ -2373,12 +2373,9 @@ public:
 
         uint32_t                         Reserved32[15];                                                                  //!< Reserved
 
-
         mhw_state_heap_g8_X::SAMPLER_STATE_8x8_CONVOLVE_COEFFICIENTS_CMD FilterCoefficient150150[16];                     //!< Filter Coefficient[15:0,15:0]
 
-
         uint32_t                         Reserved4608[368];                                                               //!< Reserved
-
 
         //! \name Local enumerations
 
@@ -2402,10 +2399,10 @@ public:
     //! \details
     //!     The table is valid for the following funstions: 0100 - Erode 0101 -
     //!     Dilate 0011 - MinMaxFilter
-    //!     
+    //! 
     //!     Max kernel size is 15x15. For sizes less than 15x15 the coefficients not
     //!     used should be zeroed out.
-    //!     
+    //!
     struct SAMPLER_STATE_8x8_ERODE_DILATE_MINMAXFILTER_CMD
     {
         union
@@ -2414,7 +2411,7 @@ public:
             struct
             {
                 uint32_t                 HeightOfTheKernel                                : __CODEGEN_BITFIELD( 0,  3)    ; //!< Height Of The Kernel
-                uint32_t                 WidthOfTheKernel                                 : __CODEGEN_BITFIELD( 4,  7)    ; //!< Width Of The Kernel 
+                uint32_t                 WidthOfTheKernel                                 : __CODEGEN_BITFIELD( 4,  7)    ; //!< Width Of The Kernel
                 uint32_t                 Reserved8                                        : __CODEGEN_BITFIELD( 8, 15)    ; //!< Reserved
                 uint32_t                 BitMask16ForRow0150                              : __CODEGEN_BITFIELD(16, 31)    ; //!< 16bit Mask for Row0 [15:0]
             };
@@ -2511,13 +2508,13 @@ public:
     //!     This structure is pointed to by Indirect State Pointer (SAMPLER_STATE).
     //!     The interpretation of the border color depends on the Texture Border
     //!     Color Mode field in SAMPLER_STATE as follows:
-    //!     
+    //! 
     //!     In 8BIT mode, the border color is 8-bit UNORM format, regardless of the
     //!     surface format chosen. For surface formats with one or more channels
     //!     missing (i.e. R5G6R5_UNORM is missing the alpha channel), the value from
     //!     the border color, if selected, will be used even for the missing
     //!     channels.
-    //!     
+    //! 
     //!     In OGL mode, the format of the border color is R32G32B32A32_FLOAT,
     //!     R32G32B32A32_SINT, or R32G32B32A32_UINT, depending on the surface format
     //!     chosen. For surface formats with one or more channels missing, the value
@@ -2529,13 +2526,13 @@ public:
     //!     (RGB for "L" formats and RGBA for "I" formats) comes from the red
     //!     channel of border color. In these cases, the green and blue channels,
     //!     and also alpha for "I", of the border color are ignored.
-    //!     
-    //!     
-    //!     
-    //!     
-    //!     
+    //! 
+    //! 
+    //! 
+    //! 
+    //! 
     //!     The format of this state depends on the Texture Border Color Mode field.
-    //!     
+    //! 
     //!      8BIT mode is not supported for surfaces with more than 16 bits in any
     //!     channel, other than 32-bit float formats which are supported.
     //!      The conditions under which this color is used depend on the Surface
@@ -2548,8 +2545,8 @@ public:
     //!     cache does not need to be invalidated.
     //!      MAPFILTER_MONO:  The border color is ignored.  Border color is fixed at
     //!     a value of 0 by hardware.
-    //!      
-    //!     
+    //! 
+    //!
     struct SAMPLER_INDIRECT_STATE_CMD
     {
         union
@@ -2597,7 +2594,6 @@ public:
         } DW3;
 
         uint32_t                         Reserved128[12];                                                                 //!< Reserved
-
 
         //! \name Local enumerations
 

@@ -29,7 +29,7 @@
 
 mhw_vdbox_mfx_g8_bdw::MFX_QM_STATE_CMD::MFX_QM_STATE_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.SubopcodeB                                   = SUBOPCODE_B_UNNAMED7;
     DW0.SubopcodeA                                   = SUBOPCODE_A_UNNAMED0;
@@ -37,16 +37,16 @@ mhw_vdbox_mfx_g8_bdw::MFX_QM_STATE_CMD::MFX_QM_STATE_CMD()
     DW0.Pipeline                                     = PIPELINE_MFXMULTIDW;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
     DW1.Obj0.Avc                                     = AVC_AVC_4X_4INTRAMATRIX_Y_4DWS_CB_4DWS_CR_4DWS_RESERVED_4DWS;
     DW1.Obj1.Mpeg2                                   = MPEG2_MPEGINTRAQUANTIZERMATRIX;
 
-    MOS_ZeroMemory(&ForwardQuantizerMatrix, sizeof(ForwardQuantizerMatrix));        
+    MOS_ZeroMemory(&ForwardQuantizerMatrix, sizeof(ForwardQuantizerMatrix));
 }
 
 mhw_vdbox_mfx_g8_bdw::MFX_FQM_STATE_CMD::MFX_FQM_STATE_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.SubopcodeB                                   = SUBOPCODE_B_UNNAMED8;
     DW0.SubopcodeA                                   = SUBOPCODE_A_UNNAMED0;
@@ -54,16 +54,16 @@ mhw_vdbox_mfx_g8_bdw::MFX_FQM_STATE_CMD::MFX_FQM_STATE_CMD()
     DW0.Pipeline                                     = PIPELINE_MFXMULTIDW;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
     DW1.Obj0.Avc                                     = AVC_AVC_4X_4INTRAMATRIX_Y_4DWS_CB_4DWS_CR_4DWS_RESERVED_4DWS;
     DW1.Obj1.Mpeg2                                   = MPEG2_MPEGINTRAQUANTIZERMATRIX;
 
-    MOS_ZeroMemory(&ForwardQuantizerMatrix, sizeof(ForwardQuantizerMatrix));        
+    MOS_ZeroMemory(&ForwardQuantizerMatrix, sizeof(ForwardQuantizerMatrix));
 }
 
 mhw_vdbox_mfx_g8_bdw::MFX_PIPE_MODE_SELECT_CMD::MFX_PIPE_MODE_SELECT_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.Subopb                                       = SUBOPB_MFXPIPEMODESELECT;
     DW0.Subopa                                       = SUBOPA_UNNAMED0;
@@ -71,7 +71,7 @@ mhw_vdbox_mfx_g8_bdw::MFX_PIPE_MODE_SELECT_CMD::MFX_PIPE_MODE_SELECT_CMD()
     DW0.Pipeline                                     = PIPELINE_MFXCOMMON;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
     DW1.StandardSelect                               = STANDARD_SELECT_MPEG2;
     DW1.CodecSelect                                  = CODEC_SELECT_DECODE;
     DW1.StitchMode                                   = STITCH_MODE_NOTINSTITCHMODE;
@@ -83,7 +83,7 @@ mhw_vdbox_mfx_g8_bdw::MFX_PIPE_MODE_SELECT_CMD::MFX_PIPE_MODE_SELECT_CMD()
     DW1.DecoderModeSelect                            = DECODER_MODE_SELECT_VLDMODE;
     DW1.DecoderShortFormatMode                       = DECODER_SHORT_FORMAT_MODE_SHORTFORMATDRIVERINTERFACE;
 
-    DW2.Value                                        = 0;        
+    DW2.Value                                        = 0;
     DW2.VdsIldbCalculation                           = VDS_ILDB_CALCULATION_DISABLE;
     DW2.ClockGateEnableAtSliceLevel                  = CLOCK_GATE_ENABLE_AT_SLICE_LEVEL_DISABLE;
     DW2.MpcPref08X8DisableFlagDefault0               = MPC_PREF08X8_DISABLE_FLAG_DEFAULT_0_DISABLE;
@@ -92,16 +92,16 @@ mhw_vdbox_mfx_g8_bdw::MFX_PIPE_MODE_SELECT_CMD::MFX_PIPE_MODE_SELECT_CMD()
     DW2.VmbSvcTlbDummyFetchDisableForPerformance     = VMB_SVC_TLB_DUMMY_FETCH_DISABLE_FOR_PERFORMANCE_ENABLE;
     DW2.VmbSvcMvReplicationFor8X8EnableErrorHandling = VMB_SVC_MV_REPLICATION_FOR_8X8_ENABLE_ERROR_HANDLING_DISABLE;
 
-    DW3.Value                                        = 0;        
+    DW3.Value                                        = 0;
     DW3.PicStatusErrorReportId                       = PIC_STATUSERROR_REPORT_ID_32_BITUNSIGNED;
 
-    DW4.Value                                        = 0;        
+    DW4.Value                                        = 0;
 
 }
 
 mhw_vdbox_mfx_g8_bdw::MFX_SURFACE_STATE_CMD::MFX_SURFACE_STATE_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.Subopb                                       = SUBOPB_UNNAMED1;
     DW0.Subopa                                       = SUBOPA_UNNAMED0;
@@ -109,26 +109,26 @@ mhw_vdbox_mfx_g8_bdw::MFX_SURFACE_STATE_CMD::MFX_SURFACE_STATE_CMD()
     DW0.Pipeline                                     = PIPELINE_MFXCOMMON;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
     DW1.SurfaceId                                    = SURFACE_ID_DECODEDPICTUREANDREFERENCEPICTURES_SVCUPSAMPLINGSTREAMOUTRECONSTRUCTEDPIXELSCOEFFPREDUPPERLAYERSIZE;
 
-    DW2.Value                                        = 0;        
+    DW2.Value                                        = 0;
 
-    DW3.Value                                        = 0;        
+    DW3.Value                                        = 0;
     DW3.TileWalk                                     = TILE_WALK_XMAJOR;
     DW3.TiledSurface                                 = TILED_SURFACE_FALSE;
     DW3.InterleaveChroma                             = INTERLEAVE_CHROMA_DISABLE;
     DW3.SurfaceFormat                                = SURFACE_FORMAT_YCRCBNORMAL;
 
-    DW4.Value                                        = 0;        
+    DW4.Value                                        = 0;
 
-    DW5.Value                                        = 0;        
+    DW5.Value                                        = 0;
 
 }
 
 mhw_vdbox_mfx_g8_bdw::MFX_IND_OBJ_BASE_ADDR_STATE_CMD::MFX_IND_OBJ_BASE_ADDR_STATE_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.Subopcodeb                                   = SUBOPCODEB_MFXINDOBJBASEADDRSTATE;
     DW0.SubOpcodea                                   = SUB_OPCODEA_MFXINDOBJBASEADDRSTATE;
@@ -136,66 +136,66 @@ mhw_vdbox_mfx_g8_bdw::MFX_IND_OBJ_BASE_ADDR_STATE_CMD::MFX_IND_OBJ_BASE_ADDR_STA
     DW0.Pipeline                                     = PIPELINE_MFXINDOBJBASEADDRSTATE;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
 
-    DW2.Value                                        = 0;        
+    DW2.Value                                        = 0;
 
-    DW3.Value                                        = 0;        
+    DW3.Value                                        = 0;
     DW3.MfxIndirectBitstreamObjectbaseArbitrationPriorityControl = MFX_INDIRECT_BITSTREAM_OBJECTBASE_ARBITRATION_PRIORITY_CONTROL_HIGHESTPRIORITY;
 
-    DW4.Value                                        = 0;        
+    DW4.Value                                        = 0;
 
-    DW5.Value                                        = 0;        
+    DW5.Value                                        = 0;
 
-    DW6.Value                                        = 0;        
+    DW6.Value                                        = 0;
 
-    DW7.Value                                        = 0;        
+    DW7.Value                                        = 0;
 
-    DW8.Value                                        = 0;        
+    DW8.Value                                        = 0;
     DW8.MfxIndirectMvObjectArbitrationPriorityControl = MFX_INDIRECT_MV_OBJECT_ARBITRATION_PRIORITY_CONTROL_HIGHESTPRIORITY;
 
-    DW9.Value                                        = 0;        
+    DW9.Value                                        = 0;
 
-    DW10.Value                                       = 0;        
+    DW10.Value                                       = 0;
 
-    DW11.Value                                       = 0;        
+    DW11.Value                                       = 0;
 
-    DW12.Value                                       = 0;        
+    DW12.Value                                       = 0;
 
-    DW13.Value                                       = 0;        
+    DW13.Value                                       = 0;
     DW13.MfdIndirectItCoeffObjectDesitnationArbitrationPriorityControl = MFD_INDIRECT_IT_COEFF_OBJECT_DESITNATION_ARBITRATION_PRIORITY_CONTROL_HIGHESTPRIORITY;
 
-    DW14.Value                                       = 0;        
+    DW14.Value                                       = 0;
 
-    DW15.Value                                       = 0;        
+    DW15.Value                                       = 0;
 
-    DW16.Value                                       = 0;        
+    DW16.Value                                       = 0;
 
-    DW17.Value                                       = 0;        
+    DW17.Value                                       = 0;
 
-    DW18.Value                                       = 0;        
+    DW18.Value                                       = 0;
     DW18.MfdIndirectItDblkObjectArbitrationPriorityControl = MFD_INDIRECT_IT_DBLK_OBJECT_ARBITRATION_PRIORITY_CONTROL_HIGHESTPRIORITY;
 
-    DW19.Value                                       = 0;        
+    DW19.Value                                       = 0;
 
-    DW20.Value                                       = 0;        
+    DW20.Value                                       = 0;
 
-    DW21.Value                                       = 0;        
+    DW21.Value                                       = 0;
 
-    DW22.Value                                       = 0;        
+    DW22.Value                                       = 0;
 
-    DW23.Value                                       = 0;        
+    DW23.Value                                       = 0;
     DW23.MfcIndirectPakBseObjectDesitnationArbitrationPriorityControl = MFC_INDIRECT_PAK_BSE_OBJECT_DESITNATION_ARBITRATION_PRIORITY_CONTROL_HIGHESTPRIORITY;
 
-    DW24.Value                                       = 0;        
+    DW24.Value                                       = 0;
 
-    DW25.Value                                       = 0;        
+    DW25.Value                                       = 0;
 
 }
 
 mhw_vdbox_mfx_g8_bdw::MFX_BSP_BUF_BASE_ADDR_STATE_CMD::MFX_BSP_BUF_BASE_ADDR_STATE_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.SubopcodeB                                   = SUBOPCODE_B_UNNAMED_4;
     DW0.SubopcodeA                                   = SUBOPCODE_A_UNNAMED0;
@@ -203,32 +203,32 @@ mhw_vdbox_mfx_g8_bdw::MFX_BSP_BUF_BASE_ADDR_STATE_CMD::MFX_BSP_BUF_BASE_ADDR_STA
     DW0.Pipeline                                     = PIPELINE_PIPELINE;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
 
-    DW2.Value                                        = 0;        
+    DW2.Value                                        = 0;
 
-    DW3.Value                                        = 0;        
+    DW3.Value                                        = 0;
     DW3.BsdMpcRowStoreScratchBufferArbitrationPriorityControl = BSDMPC_ROW_STORE_SCRATCH_BUFFER_ARBITRATION_PRIORITY_CONTROL_HIGHESTPRIORITY;
 
-    DW4.Value                                        = 0;        
+    DW4.Value                                        = 0;
 
-    DW5.Value                                        = 0;        
+    DW5.Value                                        = 0;
 
-    DW6.Value                                        = 0;        
+    DW6.Value                                        = 0;
     DW6.MprRowStoreScratchBufferArbitrationPriorityControl = MPR_ROW_STORE_SCRATCH_BUFFER_ARBITRATION_PRIORITY_CONTROL_HIGHESTPRIORITY;
 
-    DW7.Value                                        = 0;        
+    DW7.Value                                        = 0;
 
-    DW8.Value                                        = 0;        
+    DW8.Value                                        = 0;
 
-    DW9.Value                                        = 0;        
+    DW9.Value                                        = 0;
     DW9.BitplaneReadBufferArbitrationPriorityControl = BITPLANE_READ_BUFFER_ARBITRATION_PRIORITY_CONTROL_HIGHESTPRIORITY;
 
 }
 
 mhw_vdbox_mfx_g8_bdw::MFD_AVC_PICID_STATE_CMD::MFD_AVC_PICID_STATE_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.SubopcodeB                                   = SUBOPCODE_B_MEDIA;
     DW0.SubopcodeA                                   = SUBOPCODE_A_DEC;
@@ -236,15 +236,15 @@ mhw_vdbox_mfx_g8_bdw::MFD_AVC_PICID_STATE_CMD::MFD_AVC_PICID_STATE_CMD()
     DW0.Pipeline                                     = PIPELINE_MFXMULTIDW;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
     DW1.PictureidRemappingDisable                    = PICTUREID_REMAPPING_DISABLE_AVCDECODERWILLUSE16BITSPICTUREIDTOHANDLEDMVANDIDENTIFYTHEREFERENCEPICTURE;
 
-    MOS_ZeroMemory(&Pictureidlist1616Bits, sizeof(Pictureidlist1616Bits));        
+    MOS_ZeroMemory(&Pictureidlist1616Bits, sizeof(Pictureidlist1616Bits));
 }
 
 mhw_vdbox_mfx_g8_bdw::MFX_AVC_IMG_STATE_CMD::MFX_AVC_IMG_STATE_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.SubopcodeB                                   = SUBOPCODE_B_UNNAMED0;
     DW0.SubopcodeA                                   = SUBOPCODE_A_UNNAMED0;
@@ -252,16 +252,16 @@ mhw_vdbox_mfx_g8_bdw::MFX_AVC_IMG_STATE_CMD::MFX_AVC_IMG_STATE_CMD()
     DW0.Pipeline                                     = PIPELINE_MFXAVCIMGSTATE;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
 
-    DW2.Value                                        = 0;        
+    DW2.Value                                        = 0;
 
-    DW3.Value                                        = 0;        
+    DW3.Value                                        = 0;
     DW3.ImgstructImageStructureImgStructure10        = IMGSTRUCT_IMAGE_STRUCTURE_IMG_STRUCTURE10_FRAMEPICTURE;
     DW3.WeightedBipredIdc                            = WEIGHTED_BIPRED_IDC_DEFAULT;
     DW3.WeightedPredFlag                             = WEIGHTED_PRED_FLAG_DISABLE;
 
-    DW4.Value                                        = 0;        
+    DW4.Value                                        = 0;
     DW4.Fieldpicflag                                 = FIELDPICFLAG_FRAME;
     DW4.Mbaffflameflag                               = MBAFFFLAMEFLAG_FALSE;
     DW4.Framembonlyflag                              = FRAMEMBONLYFLAG_FALSE;
@@ -277,7 +277,7 @@ mhw_vdbox_mfx_g8_bdw::MFX_AVC_IMG_STATE_CMD::MFX_AVC_IMG_STATE_CMD()
     DW4.Mbstatenabled                                = MBSTATENABLED_DISABLE;
     DW4.Minframewsize                                = MINFRAMEWSIZE_UNNAMED0;
 
-    DW5.Value                                        = 0;        
+    DW5.Value                                        = 0;
     DW5.IntrambmaxbitflagIntrambmaxsizereportmask    = INTRAMBMAXBITFLAG_INTRAMBMAXSIZEREPORTMASK_DISABLE;
     DW5.IntermbmaxbitflagIntermbmaxsizereportmask    = INTERMBMAXBITFLAG_INTERMBMAXSIZEREPORTMASK_DISABLE;
     DW5.FrameszoverflagFramebitratemaxreportmask     = FRAMESZOVERFLAG_FRAMEBITRATEMAXREPORTMASK_DISABLE;
@@ -290,40 +290,40 @@ mhw_vdbox_mfx_g8_bdw::MFX_AVC_IMG_STATE_CMD::MFX_AVC_IMG_STATE_CMD()
     DW5.TrellisQuantizationRoundingTqr               = TRELLIS_QUANTIZATION_ROUNDING_TQR_UNNAMED0;
     DW5.TrellisQuantizationEnabledTqenb              = TRELLIS_QUANTIZATION_ENABLED_TQENB_DISABLE;
 
-    DW6.Value                                        = 0;        
+    DW6.Value                                        = 0;
 
-    DW7.Value                                        = 0;        
+    DW7.Value                                        = 0;
     DW7.VslTopMbTrans8X8Flag                         = VSL_TOP_MB_TRANS8X8FLAG_DISABLE;
 
-    DW8.Value                                        = 0;        
+    DW8.Value                                        = 0;
 
-    DW9.Value                                        = 0;        
+    DW9.Value                                        = 0;
 
-    DW10.Value                                       = 0;        
+    DW10.Value                                       = 0;
     DW10.Framebitrateminunitmode                     = FRAMEBITRATEMINUNITMODE_COMPATIBILITYMODE;
     DW10.Framebitrateminunit                         = FRAMEBITRATEMINUNIT_BYTE;
     DW10.Framebitratemaxunitmode                     = FRAMEBITRATEMAXUNITMODE_COMPATIBILITYMODE;
     DW10.Framebitratemaxunit                         = FRAMEBITRATEMAXUNIT_BYTE;
 
-    DW11.Value                                       = 0;        
+    DW11.Value                                       = 0;
     DW11.Framebitratemaxdelta                        = FRAMEBITRATEMAXDELTA_UNNAMED0;
 
-    DW12.Value                                       = 0;        
+    DW12.Value                                       = 0;
 
-    DW13.Value                                       = 0;        
+    DW13.Value                                       = 0;
 
-    DW14.Value                                       = 0;        
+    DW14.Value                                       = 0;
 
-    DW15.Value                                       = 0;        
+    DW15.Value                                       = 0;
 
-    DW16.Value                                       = 0;        
+    DW16.Value                                       = 0;
     DW16.InterViewOrderDisable                       = INTER_VIEW_ORDER_DISABLE_DEFAULT;
 
 }
 
 mhw_vdbox_mfx_g8_bdw::MFX_AVC_REF_IDX_STATE_CMD::MFX_AVC_REF_IDX_STATE_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.Subopcodeb                                   = SUBOPCODEB_MFXAVCREFIDXSTATE;
     DW0.Subopcodea                                   = SUBOPCODEA_MFXAVCREFIDXSTATE;
@@ -331,15 +331,15 @@ mhw_vdbox_mfx_g8_bdw::MFX_AVC_REF_IDX_STATE_CMD::MFX_AVC_REF_IDX_STATE_CMD()
     DW0.Pipeline                                     = PIPELINE_MFXAVCREFIDXSTATE;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
     DW1.RefpiclistSelect                             = REFPICLIST_SELECT_REFPICLIST0;
 
-    MOS_ZeroMemory(&ReferenceListEntry, sizeof(ReferenceListEntry));        
+    MOS_ZeroMemory(&ReferenceListEntry, sizeof(ReferenceListEntry));
 }
 
 mhw_vdbox_mfx_g8_bdw::MFX_AVC_WEIGHTOFFSET_STATE_CMD::MFX_AVC_WEIGHTOFFSET_STATE_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.SubopcodeB                                   = SUBOPCODE_B_UNNAMED5;
     DW0.SubopcodeA                                   = SUBOPCODE_A_UNNAMED0;
@@ -347,15 +347,15 @@ mhw_vdbox_mfx_g8_bdw::MFX_AVC_WEIGHTOFFSET_STATE_CMD::MFX_AVC_WEIGHTOFFSET_STATE
     DW0.Pipeline                                     = PIPELINE_MFXAVCWEIGHTOFFSETSTATE;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
     DW1.WeightAndOffsetSelect                        = WEIGHT_AND_OFFSET_SELECT_WEIGHTANDOFFSETL0TABLE;
 
-    MOS_ZeroMemory(&Weightoffset, sizeof(Weightoffset));        
+    MOS_ZeroMemory(&Weightoffset, sizeof(Weightoffset));
 }
 
 mhw_vdbox_mfx_g8_bdw::MFX_AVC_SLICE_STATE_CMD::MFX_AVC_SLICE_STATE_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.CommandSubopcodeb                            = COMMAND_SUBOPCODEB_MFXAVCSLICESTATE;
     DW0.Subopcodea                                   = SUBOPCODEA_MFXAVCSLICESTATE;
@@ -363,20 +363,20 @@ mhw_vdbox_mfx_g8_bdw::MFX_AVC_SLICE_STATE_CMD::MFX_AVC_SLICE_STATE_CMD()
     DW0.Pipeline                                     = PIPELINE_MFXAVCSLICESTATE;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
     DW1.SliceType                                    = SLICE_TYPE_PSLICE;
 
-    DW2.Value                                        = 0;        
+    DW2.Value                                        = 0;
 
-    DW3.Value                                        = 0;        
+    DW3.Value                                        = 0;
     DW3.DisableDeblockingFilterIndicator             = DISABLE_DEBLOCKING_FILTER_INDICATOR_UNNAMED0;
     DW3.DirectPredictionType                         = DIRECT_PREDICTION_TYPE_TEMPORAL;
 
-    DW4.Value                                        = 0;        
+    DW4.Value                                        = 0;
 
-    DW5.Value                                        = 0;        
+    DW5.Value                                        = 0;
 
-    DW6.Value                                        = 0;        
+    DW6.Value                                        = 0;
     DW6.Cabaczerowordinsertionenable                 = CABACZEROWORDINSERTIONENABLE_UNNAMED0;
     DW6.Emulationbytesliceinsertenable               = EMULATIONBYTESLICEINSERTENABLE_UNNAMED0;
     DW6.TailInsertionPresentInBitstream              = TAIL_INSERTION_PRESENT_IN_BITSTREAM_UNNAMED0;
@@ -391,21 +391,21 @@ mhw_vdbox_mfx_g8_bdw::MFX_AVC_SLICE_STATE_CMD::MFX_AVC_SLICE_STATE_CMD()
     DW6.Resetratecontrolcounter                      = RESETRATECONTROLCOUNTER_NOTRESET;
     DW6.RateControlCounterEnable                     = RATE_CONTROL_COUNTER_ENABLE_DISABLE;
 
-    DW7.Value                                        = 0;        
+    DW7.Value                                        = 0;
 
-    DW8.Value                                        = 0;        
+    DW8.Value                                        = 0;
 
-    DW9.Value                                        = 0;        
+    DW9.Value                                        = 0;
     DW9.Roundintra                                   = ROUNDINTRA_116;
     DW9.Roundinter                                   = ROUNDINTER_116;
 
-    DW10.Value                                       = 0;        
+    DW10.Value                                       = 0;
 
 }
 
 mhw_vdbox_mfx_g8_bdw::MFD_AVC_DPB_STATE_CMD::MFD_AVC_DPB_STATE_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.SubopcodeB                                   = SUBOPCODE_B_UNNAMED6;
     DW0.SubopcodeA                                   = SUBOPCODE_A_UNNAMED1;
@@ -413,22 +413,22 @@ mhw_vdbox_mfx_g8_bdw::MFD_AVC_DPB_STATE_CMD::MFD_AVC_DPB_STATE_CMD()
     DW0.Pipeline                                     = PIPELINE_MFXMULTIDW;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
     DW1.NonExistingframeFlag161Bit                   = NON_EXISTINGFRAME_FLAG161_BIT_VALID;
     DW1.LongtermframeFlag161Bit                      = LONGTERMFRAME_FLAG161_BIT_THEPICTUREISASHORTTERMREFERENCEPICTURE;
 
-    DW2.Value                                        = 0;        
+    DW2.Value                                        = 0;
     DW2.UsedforreferenceFlag162Bits                  = USEDFORREFERENCE_FLAG162_BITS_NOTREFERENCE;
 
-    MOS_ZeroMemory(&Ltstframenumlist1616Bits, sizeof(Ltstframenumlist1616Bits));       
-    MOS_ZeroMemory(&Viewidlist1616Bits, sizeof(Viewidlist1616Bits));        
-    MOS_ZeroMemory(&Vieworderlistl0168Bits, sizeof(Vieworderlistl0168Bits));        
-    MOS_ZeroMemory(&Vieworderlistl1168Bits, sizeof(Vieworderlistl1168Bits));        
+    MOS_ZeroMemory(&Ltstframenumlist1616Bits, sizeof(Ltstframenumlist1616Bits));
+    MOS_ZeroMemory(&Viewidlist1616Bits, sizeof(Viewidlist1616Bits));
+    MOS_ZeroMemory(&Vieworderlistl0168Bits, sizeof(Vieworderlistl0168Bits));
+    MOS_ZeroMemory(&Vieworderlistl1168Bits, sizeof(Vieworderlistl1168Bits));
 }
 
 mhw_vdbox_mfx_g8_bdw::MFD_AVC_SLICEADDR_CMD::MFD_AVC_SLICEADDR_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.SubopcodeB                                   = SUBOPCODE_B_UNNAMED7;
     DW0.SubopcodeA                                   = SUBOPCODE_A_UNNAMED1;
@@ -436,15 +436,15 @@ mhw_vdbox_mfx_g8_bdw::MFD_AVC_SLICEADDR_CMD::MFD_AVC_SLICEADDR_CMD()
     DW0.Pipeline                                     = PIPELINE_MFDAVCSLICEADDR;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
 
-    DW2.Value                                        = 0;        
+    DW2.Value                                        = 0;
 
 }
 
 mhw_vdbox_mfx_g8_bdw::MFD_AVC_BSD_OBJECT_CMD::MFD_AVC_BSD_OBJECT_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.SubopcodeB                                   = SUBOPCODE_B_UNNAMED8;
     DW0.SubopcodeA                                   = SUBOPCODE_A_UNNAMED1;
@@ -452,11 +452,11 @@ mhw_vdbox_mfx_g8_bdw::MFD_AVC_BSD_OBJECT_CMD::MFD_AVC_BSD_OBJECT_CMD()
     DW0.Pipeline                                     = PIPELINE_MFDAVCBSDOBJECT;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
 
-    DW2.Value                                        = 0;        
+    DW2.Value                                        = 0;
 
-    DW3.Value                                        = 0;        
+    DW3.Value                                        = 0;
     DW3.MbErrorConcealmentPSliceWeightPredictionDisableFlag = MB_ERROR_CONCEALMENT_P_SLICE_WEIGHT_PREDICTION_DISABLE_FLAG_UNNAMED0;
     DW3.MbErrorConcealmentPSliceMotionVectorsOverrideDisableFlag = MB_ERROR_CONCEALMENT_P_SLICE_MOTION_VECTORS_OVERRIDE_DISABLE_FLAG_UNNAMED0;
     DW3.MbErrorConcealmentBSpatialWeightPredictionDisableFlag = MB_ERROR_CONCEALMENT_B_SPATIAL_WEIGHT_PREDICTION_DISABLE_FLAG_UNNAMED0;
@@ -472,11 +472,11 @@ mhw_vdbox_mfx_g8_bdw::MFD_AVC_BSD_OBJECT_CMD::MFD_AVC_BSD_OBJECT_CMD()
     DW3.IntraPredmode4X48X8LumaErrorControlBit       = INTRA_PREDMODE_4X48X8_LUMA_ERROR_CONTROL_BIT_UNNAMED0;
     DW3.ConcealmentMethod                            = CONCEALMENT_METHOD_UNNAMED0;
 
-    DW4.Value                                        = 0;        
+    DW4.Value                                        = 0;
     DW4.LastsliceFlag                                = LASTSLICE_FLAG_UNNAMED0;
     DW4.EmulationPreventionBytePresent               = EMULATION_PREVENTION_BYTE_PRESENT_UNNAMED0;
 
-    DW5.Value                                        = 0;        
+    DW5.Value                                        = 0;
     DW5.IntraPredictionErrorControlBitAppliedToIntra16X16Intra8X8Intra4X4LumaAndChroma = INTRA_PREDICTION_ERROR_CONTROL_BIT_APPLIED_TO_INTRA16X16INTRA8X8INTRA4X4_LUMA_AND_CHROMA_UNNAMED0;
     DW5.Intra8X84X4PredictionErrorConcealmentControlBit = INTRA_8X84X4_PREDICTION_ERROR_CONCEALMENT_CONTROL_BIT_UNNAMED0;
     DW5.BSliceTemporalInterConcealmentMode           = B_SLICE_TEMPORAL_INTER_CONCEALMENT_MODE_UNNAMED0;
@@ -491,7 +491,7 @@ mhw_vdbox_mfx_g8_bdw::MFD_AVC_BSD_OBJECT_CMD::MFD_AVC_BSD_OBJECT_CMD()
 
 mhw_vdbox_mfx_g8_bdw::MFX_PAK_INSERT_OBJECT_CMD::MFX_PAK_INSERT_OBJECT_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.SubopcodeB                                   = SUBOPCODE_B_UNNAMED8;
     DW0.SubopcodeA                                   = SUBOPCODE_A_UNNAMED2;
@@ -499,7 +499,7 @@ mhw_vdbox_mfx_g8_bdw::MFX_PAK_INSERT_OBJECT_CMD::MFX_PAK_INSERT_OBJECT_CMD()
     DW0.Pipeline                                     = PIPELINE_MFXPAKINSERTOBJECT;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
     DW1.BitstreamstartresetResetbitstreamstartingpos = BITSTREAMSTARTRESET_RESETBITSTREAMSTARTINGPOS_INSERT;
     DW1.EmulationflagEmulationbytebitsinsertenable   = EMULATIONFLAG_EMULATIONBYTEBITSINSERTENABLE_NONE;
     DW1.SliceHeaderIndicator                         = SLICE_HEADER_INDICATOR_LEGACY;
@@ -509,7 +509,7 @@ mhw_vdbox_mfx_g8_bdw::MFX_PAK_INSERT_OBJECT_CMD::MFX_PAK_INSERT_OBJECT_CMD()
 
 mhw_vdbox_mfx_g8_bdw::MFX_MPEG2_PIC_STATE_CMD::MFX_MPEG2_PIC_STATE_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.SubopcodeB                                   = SUBOPCODE_B_UNNAMED0;
     DW0.SubopcodeA                                   = SUBOPCODE_A_UNNAMED0;
@@ -517,11 +517,11 @@ mhw_vdbox_mfx_g8_bdw::MFX_MPEG2_PIC_STATE_CMD::MFX_MPEG2_PIC_STATE_CMD()
     DW0.Pipeline                                     = PIPELINE_MFXMPEG2PICSTATE;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
     DW1.ScanOrder                                    = SCAN_ORDER_UNNAMED0;
     DW1.QuantizerScaleType                           = QUANTIZER_SCALE_TYPE_UNNAMED0;
 
-    DW2.Value                                        = 0;        
+    DW2.Value                                        = 0;
     DW2.Mismatchcontroldisabled                      = MISMATCHCONTROLDISABLED_UNNAMED0;
     DW2.PictureCodingType                            = PICTURE_CODING_TYPE_MPEGIPICTURE;
     DW2.LoadslicepointerflagLoadbitstreampointerperslice = LOADSLICEPOINTERFLAG_LOADBITSTREAMPOINTERPERSLICE_UNNAMED0;
@@ -530,13 +530,13 @@ mhw_vdbox_mfx_g8_bdw::MFX_MPEG2_PIC_STATE_CMD::MFX_MPEG2_PIC_STATE_CMD()
     DW2.PBSliceConcealmentMode                       = PB_SLICE_CONCEALMENT_MODE_INTER;
     DW2.ISliceConcealmentMode                        = I_SLICE_CONCEALMENT_MODE_INTRACONCEALMENT;
 
-    DW3.Value                                        = 0;        
+    DW3.Value                                        = 0;
     DW3.SliceConcealmentDisableBit                   = SLICE_CONCEALMENT_DISABLE_BIT_ENABLE;
 
-    DW4.Value                                        = 0;        
+    DW4.Value                                        = 0;
     DW4.Minframewsize                                = MINFRAMEWSIZE_UNNAMED0;
 
-    DW5.Value                                        = 0;        
+    DW5.Value                                        = 0;
     DW5.Intrambmaxsizereportmask                     = INTRAMBMAXSIZEREPORTMASK_UNNAMED0;
     DW5.Intermbmaxsizereportmask                     = INTERMBMAXSIZEREPORTMASK_UNNAMED0;
     DW5.Framebitratemaxreportmask                    = FRAMEBITRATEMAXREPORTMASK_DISABLE;
@@ -546,25 +546,25 @@ mhw_vdbox_mfx_g8_bdw::MFX_MPEG2_PIC_STATE_CMD::MFX_MPEG2_PIC_STATE_CMD()
     DW5.Intermbforcecbpzerocontrolmask               = INTERMBFORCECBPZEROCONTROLMASK_UNNAMED0;
     DW5.Framesizecontrolmask                         = FRAMESIZECONTROLMASK_UNNAMED0;
 
-    DW6.Value                                        = 0;        
+    DW6.Value                                        = 0;
     DW6.Intrambmaxsize                               = INTRAMBMAXSIZE_UNNAMED_4095;
     DW6.Intermbmaxsize                               = INTERMBMAXSIZE_UNNAMED_4095;
 
-    DW7.Value                                        = 0;        
+    DW7.Value                                        = 0;
     DW7.VslTopMbTrans8X8Flag                         = VSL_TOP_MB_TRANS8X8FLAG_DISABLE;
 
-    DW8.Value                                        = 0;        
+    DW8.Value                                        = 0;
     DW8.Slicedeltaqpmax3                             = SLICEDELTAQPMAX3_DISABLE;
 
-    DW9.Value                                        = 0;        
+    DW9.Value                                        = 0;
 
-    DW10.Value                                       = 0;        
+    DW10.Value                                       = 0;
     DW10.Framebitrateminunitmode                     = FRAMEBITRATEMINUNITMODE_COMPATIBILITYMODE;
     DW10.Framebitrateminunit                         = FRAMEBITRATEMINUNIT_BYTE;
     DW10.Framebitratemaxunitmode                     = FRAMEBITRATEMAXUNITMODE_COMPATIBILITYMODE;
     DW10.Framebitratemaxunit                         = FRAMEBITRATEMAXUNIT_BYTE;
 
-    DW11.Value                                       = 0;        
+    DW11.Value                                       = 0;
     DW11.Framebitratemaxdelta                        = FRAMEBITRATEMAXDELTA_UNNAMED0;
 
     DW12.Value                                       = 0;
@@ -572,7 +572,7 @@ mhw_vdbox_mfx_g8_bdw::MFX_MPEG2_PIC_STATE_CMD::MFX_MPEG2_PIC_STATE_CMD()
 
 mhw_vdbox_mfx_g8_bdw::MFD_MPEG2_BSD_OBJECT_CMD::MFD_MPEG2_BSD_OBJECT_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.SubopcodeB                                   = SUBOPCODE_B_UNNAMED8;
     DW0.SubopcodeA                                   = SUBOPCODE_A_UNNAMED1;
@@ -580,44 +580,44 @@ mhw_vdbox_mfx_g8_bdw::MFD_MPEG2_BSD_OBJECT_CMD::MFD_MPEG2_BSD_OBJECT_CMD()
     DW0.Pipeline                                     = PIPELINE_MFDMPEG2BSDOBJECT;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
 
-    DW2.Value                                        = 0;        
+    DW2.Value                                        = 0;
 
-    DW3.Value                                        = 0;        
+    DW3.Value                                        = 0;
     DW3.IsLastMb                                     = IS_LAST_MB_UNNAMED0;
     DW3.LastPicSlice                                 = LAST_PIC_SLICE_UNNAMED0;
     DW3.SliceConcealmentTypeBit                      = SLICE_CONCEALMENT_TYPE_BIT_UNNAMED0;
     DW3.SliceConcealmentOverrideBit                  = SLICE_CONCEALMENT_OVERRIDE_BIT_UNNAMED0;
 
-    DW4.Value                                        = 0;        
+    DW4.Value                                        = 0;
 
 }
 
 mhw_vdbox_mfx_g8_bdw::MFD_IT_OBJECT_MPEG2_INLINE_DATA_CMD::MFD_IT_OBJECT_MPEG2_INLINE_DATA_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.MacroblockIntraType                          = MACROBLOCK_INTRA_TYPE_NON_INTRAMACROBLOCK;
     DW0.MacroblockMotionForward                      = MACROBLOCK_MOTION_FORWARD_NOFORWARDMOTIONVECTOR;
     DW0.MacroblockMotionBackward                     = MACROBLOCK_MOTION_BACKWARD_NOBACKWARDMOTIONVECTOR;
     DW0.DctType                                      = DCT_TYPE_MCFRAMEDCT;
     DW0.MotionVerticalFieldSelect                    = MOTION_VERTICAL_FIELD_SELECT_TOPFIELD;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
 
-    DW2.Value                                        = 0;        
+    DW2.Value                                        = 0;
 
-    DW3.Value                                        = 0;        
+    DW3.Value                                        = 0;
 
-    DW4.Value                                        = 0;        
+    DW4.Value                                        = 0;
 
-    DW5.Value                                        = 0;        
+    DW5.Value                                        = 0;
 
 }
 
 mhw_vdbox_mfx_g8_bdw::MFD_IT_OBJECT_VC1_INLINE_DATA_CMD::MFD_IT_OBJECT_VC1_INLINE_DATA_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.MacroblockIntraType                          = MACROBLOCK_INTRA_TYPE_NON_INTRAMACROBLOCK;
     DW0.MacroblockMotionForward                      = MACROBLOCK_MOTION_FORWARD_NOFORWARDMOTIONVECTOR;
     DW0.MacroblockMotionBackward                     = MACROBLOCK_MOTION_BACKWARD_NOBACKWARDMOTIONVECTOR;
@@ -626,31 +626,31 @@ mhw_vdbox_mfx_g8_bdw::MFD_IT_OBJECT_VC1_INLINE_DATA_CMD::MFD_IT_OBJECT_VC1_INLIN
     DW0.DctType                                      = DCT_TYPE_MCFRAMEDCT;
     DW0.MotionVerticalFieldSelect                    = MOTION_VERTICAL_FIELD_SELECT_TOPFIELD;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
 
-    DW2.Value                                        = 0;        
+    DW2.Value                                        = 0;
 
-    DW3.Value                                        = 0;        
+    DW3.Value                                        = 0;
 
-    DW4.Value                                        = 0;        
+    DW4.Value                                        = 0;
 
-    DW5.Value                                        = 0;        
+    DW5.Value                                        = 0;
 
-    DW6.Value                                        = 0;        
+    DW6.Value                                        = 0;
 
-    DW7.Value                                        = 0;        
+    DW7.Value                                        = 0;
 
-    DW8.Value                                        = 0;        
+    DW8.Value                                        = 0;
 
-    DW9.Value                                        = 0;        
+    DW9.Value                                        = 0;
 
-    DW10.Value                                       = 0;        
+    DW10.Value                                       = 0;
 
 }
 
 mhw_vdbox_mfx_g8_bdw::MFD_IT_OBJECT_CMD::MFD_IT_OBJECT_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.SubopcodeB                                   = SUBOPCODE_B_UNNAMED9;
     DW0.SubopcodeA                                   = SUBOPCODE_A_UNNAMED1;
@@ -658,23 +658,23 @@ mhw_vdbox_mfx_g8_bdw::MFD_IT_OBJECT_CMD::MFD_IT_OBJECT_CMD()
     DW0.Pipeline                                     = PIPELINE_MFDITOBJECT;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
 
-    DW2.Value                                        = 0;        
+    DW2.Value                                        = 0;
 
-    DW3.Value                                        = 0;        
+    DW3.Value                                        = 0;
 
-    DW4.Value                                        = 0;        
+    DW4.Value                                        = 0;
 
-    DW5.Value                                        = 0;        
+    DW5.Value                                        = 0;
 
-    DW6.Value                                        = 0;        
+    DW6.Value                                        = 0;
 
 }
 
 mhw_vdbox_mfx_g8_bdw::MFC_MPEG2_SLICEGROUP_STATE_CMD::MFC_MPEG2_SLICEGROUP_STATE_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.SubopcodeB                                   = SUBOPCODE_B_MEDIA;
     DW0.SubopcodeA                                   = SUBOPCODE_A_MEDIA;
@@ -682,7 +682,7 @@ mhw_vdbox_mfx_g8_bdw::MFC_MPEG2_SLICEGROUP_STATE_CMD::MFC_MPEG2_SLICEGROUP_STATE
     DW0.Pipeline                                     = PIPELINE_MFXMPEG2SLICEGROUPSTATE;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
     DW1.TailpresentflagTailInsertionPresentInBitstreamEncoderOnly = TAILPRESENTFLAG_TAIL_INSERTION_PRESENT_IN_BITSTREAM_ENCODER_ONLY_UNNAMED0;
     DW1.SlicedataPresentflagSlicedataInsertionPresentInBitstreamEncoderOnly = SLICEDATA_PRESENTFLAG_SLICEDATA_INSERTION_PRESENT_IN_BITSTREAM_ENCODER_ONLY_DISABLE;
     DW1.HeaderpresentflagHeaderInsertionPresentInBitstreamEncoderOnly = HEADERPRESENTFLAG_HEADER_INSERTION_PRESENT_IN_BITSTREAM_ENCODER_ONLY_DISABLE;
@@ -694,23 +694,23 @@ mhw_vdbox_mfx_g8_bdw::MFC_MPEG2_SLICEGROUP_STATE_CMD::MFC_MPEG2_SLICEGROUP_STATE
     DW1.MbratectrlresetResetratecontrolcounterEncoderOnly = MBRATECTRLRESET_RESETRATECONTROLCOUNTER_ENCODER_ONLY_DISABLE;
     DW1.MbratectrlflagRatecontrolcounterenableEncoderOnly = MBRATECTRLFLAG_RATECONTROLCOUNTERENABLE_ENCODER_ONLY_DISABLE;
 
-    DW2.Value                                        = 0;        
+    DW2.Value                                        = 0;
 
-    DW3.Value                                        = 0;        
+    DW3.Value                                        = 0;
 
-    DW4.Value                                        = 0;        
+    DW4.Value                                        = 0;
 
-    DW5.Value                                        = 0;        
+    DW5.Value                                        = 0;
 
-    DW6.Value                                        = 0;        
+    DW6.Value                                        = 0;
 
-    DW7.Value                                        = 0;        
+    DW7.Value                                        = 0;
 
 }
 
 mhw_vdbox_mfx_g8_bdw::MFX_VC1_PRED_PIPE_STATE_CMD::MFX_VC1_PRED_PIPE_STATE_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.SubopcodeB                                   = SUBOPCODE_B_UNNAMED1;
     DW0.SubopcodeA                                   = SUBOPCODE_A_UNNAMED0;
@@ -718,21 +718,21 @@ mhw_vdbox_mfx_g8_bdw::MFX_VC1_PRED_PIPE_STATE_CMD::MFX_VC1_PRED_PIPE_STATE_CMD()
     DW0.Pipeline                                     = PIPELINE_MFXVC1PREDPIPESTATE;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
 
-    DW2.Value                                        = 0;        
+    DW2.Value                                        = 0;
 
-    DW3.Value                                        = 0;        
+    DW3.Value                                        = 0;
 
-    DW4.Value                                        = 0;        
+    DW4.Value                                        = 0;
 
-    DW5.Value                                        = 0;        
+    DW5.Value                                        = 0;
 
 }
 
 mhw_vdbox_mfx_g8_bdw::MFD_VC1_LONG_PIC_STATE_CMD::MFD_VC1_LONG_PIC_STATE_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.SubopcodeB                                   = SUBOPCODE_B_UNNAMED1;
     DW0.SubopcodeA                                   = SUBOPCODE_A_UNNAMED1;
@@ -740,9 +740,9 @@ mhw_vdbox_mfx_g8_bdw::MFD_VC1_LONG_PIC_STATE_CMD::MFD_VC1_LONG_PIC_STATE_CMD()
     DW0.Pipeline                                     = PIPELINE_MFDVC1LONGPICSTATE;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
 
-    DW2.Value                                        = 0;        
+    DW2.Value                                        = 0;
     DW2.Vc1Profile                                   = VC1_PROFILE_DISABLE;
     DW2.OverlapSmoothingEnableFlag                   = OVERLAP_SMOOTHING_ENABLE_FLAG_DISABLE;
     DW2.LoopfilterEnableFlag                         = LOOPFILTER_ENABLE_FLAG_DISABLE;
@@ -751,11 +751,11 @@ mhw_vdbox_mfx_g8_bdw::MFD_VC1_LONG_PIC_STATE_CMD::MFD_VC1_LONG_PIC_STATE_CMD()
     DW2.MotionVectorMode                             = MOTION_VECTOR_MODE_UNNAMED0;
     DW2.Syncmarker                                   = SYNCMARKER_NOTPRESENT;
 
-    DW3.Value                                        = 0;        
+    DW3.Value                                        = 0;
     DW3.FcmFrameCodingMode                           = FCM_FRAME_CODING_MODE_DISABLE;
     DW3.Condover                                     = CONDOVER_UNNAMED0;
 
-    DW4.Value                                        = 0;        
+    DW4.Value                                        = 0;
     DW4.Pquantuniform                                = PQUANTUNIFORM_UNNAMED0;
     DW4.AltpquantconfigAlternativePictureQuantizationConfiguration = ALTPQUANTCONFIG_ALTERNATIVE_PICTURE_QUANTIZATION_CONFIGURATION_UNNAMED0;
     DW4.ExtendedmvrangeExtendedMotionVectorRangeFlag = EXTENDEDMVRANGE_EXTENDED_MOTION_VECTOR_RANGE_FLAG_UNNAMED0;
@@ -766,7 +766,7 @@ mhw_vdbox_mfx_g8_bdw::MFD_VC1_LONG_PIC_STATE_CMD::MFD_VC1_LONG_PIC_STATE_CMD()
     DW4.FourmvswitchFourMotionVectorSwitch           = FOURMVSWITCH_FOUR_MOTION_VECTOR_SWITCH_DISABLE;
     DW4.UnifiedmvmodeUnifiedMotionVectorMode         = UNIFIEDMVMODE_UNIFIED_MOTION_VECTOR_MODE_UNNAMED0;
 
-    DW5.Value                                        = 0;        
+    DW5.Value                                        = 0;
     DW5.TransdctabIntraTransformDcTable              = TRANSDCTAB_INTRA_TRANSFORM_DC_TABLE_UNNAMED0;
     DW5.TranstypembflagMacroblockTransformTypeFlag   = TRANSTYPEMBFLAG_MACROBLOCK_TRANSFORM_TYPE_FLAG_UNNAMED0;
     DW5.Fieldtxraw                                   = FIELDTXRAW_DISABLE;
@@ -782,7 +782,7 @@ mhw_vdbox_mfx_g8_bdw::MFD_VC1_LONG_PIC_STATE_CMD::MFD_VC1_LONG_PIC_STATE_CMD()
 
 mhw_vdbox_mfx_g8_bdw::MFD_VC1_SHORT_PIC_STATE_CMD::MFD_VC1_SHORT_PIC_STATE_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.SubopcodeB                                   = SUBOPCODE_B_UNNAMED0;
     DW0.SubopcodeA                                   = SUBOPCODE_A_UNNAMED1;
@@ -790,14 +790,14 @@ mhw_vdbox_mfx_g8_bdw::MFD_VC1_SHORT_PIC_STATE_CMD::MFD_VC1_SHORT_PIC_STATE_CMD()
     DW0.Pipeline                                     = PIPELINE_MFDVC1SHORTPICSTATE;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
 
-    DW2.Value                                        = 0;        
+    DW2.Value                                        = 0;
     DW2.PictureStructure                             = PICTURE_STRUCTURE_UNNAMED0;
     DW2.IntraPictureFlag                             = INTRA_PICTURE_FLAG_UNNAMED0;
     DW2.Vc1Profile                                   = VC1_PROFILE_UNNAMED0;
 
-    DW3.Value                                        = 0;        
+    DW3.Value                                        = 0;
     DW3.VstransformFlag                              = VSTRANSFORM_FLAG_DISABLE;
     DW3.Dquant                                       = DQUANT_UNNAMED0;
     DW3.ExtendedMvPresentFlag                        = EXTENDED_MV_PRESENT_FLAG_UNNAMED0;
@@ -814,7 +814,7 @@ mhw_vdbox_mfx_g8_bdw::MFD_VC1_SHORT_PIC_STATE_CMD::MFD_VC1_SHORT_PIC_STATE_CMD()
     DW3.RangeReductionScale                          = RANGE_REDUCTION_SCALE_DISABLE;
     DW3.OverlapSmoothingEnableFlag                   = OVERLAP_SMOOTHING_ENABLE_FLAG_DISABLE;
 
-    DW4.Value                                        = 0;        
+    DW4.Value                                        = 0;
     DW4.ExtendedDmvPresentFlag                       = EXTENDED_DMV_PRESENT_FLAG_UNNAMED0;
     DW4.RefpicFlag                                   = REFPIC_FLAG_UNNAMED0;
 
@@ -822,7 +822,7 @@ mhw_vdbox_mfx_g8_bdw::MFD_VC1_SHORT_PIC_STATE_CMD::MFD_VC1_SHORT_PIC_STATE_CMD()
 
 mhw_vdbox_mfx_g8_bdw::MFX_VC1_DIRECTMODE_STATE_CMD::MFX_VC1_DIRECTMODE_STATE_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.SubopcodeB                                   = SUBOPCODE_B_UNNAMED2;
     DW0.SubopcodeA                                   = SUBOPCODE_A_UNNAMED0;
@@ -830,25 +830,25 @@ mhw_vdbox_mfx_g8_bdw::MFX_VC1_DIRECTMODE_STATE_CMD::MFX_VC1_DIRECTMODE_STATE_CMD
     DW0.Pipeline                                     = PIPELINE_MFXVC1DIRECTMODESTATE;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
 
-    DW2.Value                                        = 0;        
+    DW2.Value                                        = 0;
 
-    DW3.Value                                        = 0;        
+    DW3.Value                                        = 0;
     DW3.DirectMvWriteBufferBaseAddressForTheCurrentPictureArbitrationPriorityControl = DIRECT_MV_WRITE_BUFFER_BASE_ADDRESS_FOR_THE_CURRENT_PICTURE_ARBITRATION_PRIORITY_CONTROL_HIGHESTPRIORITY;
 
-    DW4.Value                                        = 0;        
+    DW4.Value                                        = 0;
 
-    DW5.Value                                        = 0;        
+    DW5.Value                                        = 0;
 
-    DW6.Value                                        = 0;        
+    DW6.Value                                        = 0;
     DW6.DirectMvReadBufferBaseAddressForTheCurrentPictureArbitrationPriorityControl = DIRECT_MV_READ_BUFFER_BASE_ADDRESS_FOR_THE_CURRENT_PICTURE_ARBITRATION_PRIORITY_CONTROL_HIGHESTPRIORITY;
 
 }
 
 mhw_vdbox_mfx_g8_bdw::MFD_VC1_BSD_OBJECT_CMD::MFD_VC1_BSD_OBJECT_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.SubopcodeB                                   = SUBOPCODE_B_UNNAMED8;
     DW0.SubopcodeA                                   = SUBOPCODE_A_UNNAMED1;
@@ -856,20 +856,20 @@ mhw_vdbox_mfx_g8_bdw::MFD_VC1_BSD_OBJECT_CMD::MFD_VC1_BSD_OBJECT_CMD()
     DW0.Pipeline                                     = PIPELINE_MFXMULTIDW;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
 
-    DW2.Value                                        = 0;        
+    DW2.Value                                        = 0;
 
-    DW3.Value                                        = 0;        
+    DW3.Value                                        = 0;
 
-    DW4.Value                                        = 0;        
+    DW4.Value                                        = 0;
     DW4.EmulationPreventionBytePresent               = EMULATION_PREVENTION_BYTE_PRESENT_UNNAMED0;
 
 }
 
 mhw_vdbox_mfx_g8_bdw::MFX_JPEG_PIC_STATE_CMD::MFX_JPEG_PIC_STATE_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.SubopcodeB                                   = SUBOPCODE_B_MEDIA;
     DW0.SubopcodeA                                   = SUBOPCODE_A_COMMON;
@@ -877,7 +877,7 @@ mhw_vdbox_mfx_g8_bdw::MFX_JPEG_PIC_STATE_CMD::MFX_JPEG_PIC_STATE_CMD()
     DW0.Pipeline                                     = PIPELINE_MFXMULTIDW;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
     DW1.InputFormatYuv                               = INPUT_FORMAT_YUV_UNNAMED0;
     DW1.Rotation                                     = ROTATION_UNNAMED0;
     DW1.OutputFormatYuv                              = OUTPUT_FORMAT_YUV_UNNAMED0;
@@ -886,13 +886,13 @@ mhw_vdbox_mfx_g8_bdw::MFX_JPEG_PIC_STATE_CMD::MFX_JPEG_PIC_STATE_CMD()
     DW1.HorizontalDownSamplingEnable                 = HORIZONTAL_DOWN_SAMPLING_ENABLE_UNNAMED0;
     DW1.VerticalUpSamplingEnable                     = VERTICAL_UP_SAMPLING_ENABLE_UNNAMED0;
 
-    DW2.Value                                        = 0;        
+    DW2.Value                                        = 0;
 
 }
 
 mhw_vdbox_mfx_g8_bdw::MFD_JPEG_BSD_OBJECT_CMD::MFD_JPEG_BSD_OBJECT_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.SubopcodeB                                   = SUBOPCODE_B_UNNAMED8;
     DW0.SubopcodeA                                   = SUBOPCODE_A_UNNAMED1;
@@ -900,22 +900,22 @@ mhw_vdbox_mfx_g8_bdw::MFD_JPEG_BSD_OBJECT_CMD::MFD_JPEG_BSD_OBJECT_CMD()
     DW0.Pipeline                                     = PIPELINE_MFDJPEGBSDOBJECT;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
 
-    DW2.Value                                        = 0;        
+    DW2.Value                                        = 0;
 
-    DW3.Value                                        = 0;        
+    DW3.Value                                        = 0;
 
-    DW4.Value                                        = 0;        
+    DW4.Value                                        = 0;
     DW4.Interleaved                                  = INTERLEAVED_NON_INTERLEAVED;
 
-    DW5.Value                                        = 0;        
+    DW5.Value                                        = 0;
 
 }
 
 mhw_vdbox_mfx_g8_bdw::MFD_VP8_BSD_OBJECT_CMD::MFD_VP8_BSD_OBJECT_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.Subopcodeb                                   = SUBOPCODEB_UNNAMED8;
     DW0.Subopcodea                                   = SUBOPCODEA_UNNAMED1;
@@ -923,47 +923,47 @@ mhw_vdbox_mfx_g8_bdw::MFD_VP8_BSD_OBJECT_CMD::MFD_VP8_BSD_OBJECT_CMD()
     DW0.Pipeline                                     = PIPELINE_MFDVP8BSDOBJECT;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
 
-    DW2.Value                                        = 0;        
+    DW2.Value                                        = 0;
 
-    DW3.Value                                        = 0;        
+    DW3.Value                                        = 0;
 
-    DW4.Value                                        = 0;        
+    DW4.Value                                        = 0;
 
-    DW5.Value                                        = 0;        
+    DW5.Value                                        = 0;
 
-    DW6.Value                                        = 0;        
+    DW6.Value                                        = 0;
 
-    DW7.Value                                        = 0;        
+    DW7.Value                                        = 0;
 
-    DW8.Value                                        = 0;        
+    DW8.Value                                        = 0;
 
-    DW9.Value                                        = 0;        
+    DW9.Value                                        = 0;
 
-    DW10.Value                                       = 0;        
+    DW10.Value                                       = 0;
 
-    DW11.Value                                       = 0;        
+    DW11.Value                                       = 0;
 
-    DW12.Value                                       = 0;        
+    DW12.Value                                       = 0;
 
-    DW13.Value                                       = 0;        
+    DW13.Value                                       = 0;
 
-    DW14.Value                                       = 0;        
+    DW14.Value                                       = 0;
 
-    DW15.Value                                       = 0;        
+    DW15.Value                                       = 0;
 
-    DW16.Value                                       = 0;        
+    DW16.Value                                       = 0;
 
-    DW17.Value                                       = 0;        
+    DW17.Value                                       = 0;
 
-    DW18.Value                                       = 0;        
+    DW18.Value                                       = 0;
 
-    DW19.Value                                       = 0;        
+    DW19.Value                                       = 0;
 
-    DW20.Value                                       = 0;        
+    DW20.Value                                       = 0;
 
-    DW21.Value                                       = 0;        
+    DW21.Value                                       = 0;
     DW21.MbHeaderErrorHandling                       = MB_HEADER_ERROR_HANDLING_IGNORETHEERRORANDCONTINUEMASKEDTHEINTERRUPT_ASSUMETHEHARDWAREAUTOMATICALLYPERFORMTHEERRORHANDLING;
     DW21.EntropyErrorHandling                        = ENTROPY_ERROR_HANDLING_IGNORETHEERRORANDCONTINUEMASKEDTHEINTERRUPT_ASSUMETHEHARDWAREAUTOMATICALLYPERFORMTHEERRORHANDLING;
     DW21.MprErrorMvOutOfRangeHandling                = MPR_ERROR_MV_OUT_OF_RANGE_HANDLING_IGNORETHEERRORANDCONTINUEMASKEDTHEINTERRUPT_ASSUMETHEHARDWAREAUTOMATICALLYPERFORMTHEERRORHANDLING;
@@ -974,7 +974,7 @@ mhw_vdbox_mfx_g8_bdw::MFD_VP8_BSD_OBJECT_CMD::MFD_VP8_BSD_OBJECT_CMD()
 
 mhw_vdbox_mfx_g8_bdw::MFX_VP8_PIC_STATE_CMD::MFX_VP8_PIC_STATE_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.SubOpcodeB                                   = SUB_OPCODE_B_MFXVP8PICSTATE;
     DW0.SubOpcodeA                                   = SUB_OPCODE_A_VP8COMMON;
@@ -982,9 +982,9 @@ mhw_vdbox_mfx_g8_bdw::MFX_VP8_PIC_STATE_CMD::MFX_VP8_PIC_STATE_CMD()
     DW0.Pipeline                                     = PIPELINE_VIDEOCODEC;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
 
-    DW2.Value                                        = 0;        
+    DW2.Value                                        = 0;
     DW2.McFilterSelect                               = MC_FILTER_SELECT_UNNAMED0;
     DW2.ChromaFullPixelMcFilterMode                  = CHROMA_FULL_PIXEL_MC_FILTER_MODE_UNNAMED0;
     DW2.Dblkfiltertype                               = DBLKFILTERTYPE_UNNAMED0;
@@ -997,83 +997,83 @@ mhw_vdbox_mfx_g8_bdw::MFX_VP8_PIC_STATE_CMD::MFX_VP8_PIC_STATE_CMD()
     DW2.ModeReferenceLoopFilterDeltaEnabled          = MODE_REFERENCE_LOOP_FILTER_DELTA_ENABLED_UNNAMED0;
     DW2.Log2NumOfPartition                           = LOG2_NUM_OF_PARTITION_1TOKENPARTITION;
 
-    DW3.Value                                        = 0;        
+    DW3.Value                                        = 0;
     DW3.DblkfilterlevelForSegment0                   = DBLKFILTERLEVEL_FOR_SEGMENT0_SIGNIFIESDISABLEINLOOPDEBLOCKINGOPERATION;
     DW3.DblkfilterlevelForSegment1                   = DBLKFILTERLEVEL_FOR_SEGMENT1_SIGNIFIESDISABLEINLOOPDEBLOCKINGOPERATION;
     DW3.DblkfilterlevelForSegment2                   = DBLKFILTERLEVEL_FOR_SEGMENT2_SIGNIFIESDISABLEINLOOPDEBLOCKINGOPERATION;
     DW3.DblkfilterlevelForSegment3                   = DBLKFILTERLEVEL_FOR_SEGMENT3_SIGNIFIESDISABLEINLOOPDEBLOCKINGOPERATION;
 
-    DW4.Value                                        = 0;        
+    DW4.Value                                        = 0;
 
-    DW5.Value                                        = 0;        
+    DW5.Value                                        = 0;
 
-    DW6.Value                                        = 0;        
+    DW6.Value                                        = 0;
 
-    DW7.Value                                        = 0;        
+    DW7.Value                                        = 0;
 
-    DW8.Value                                        = 0;        
+    DW8.Value                                        = 0;
 
-    DW9.Value                                        = 0;        
+    DW9.Value                                        = 0;
 
-    DW10.Value                                       = 0;        
+    DW10.Value                                       = 0;
 
-    DW11.Value                                       = 0;        
+    DW11.Value                                       = 0;
 
-    DW12.Value                                       = 0;        
+    DW12.Value                                       = 0;
 
-    DW13.Value                                       = 0;        
+    DW13.Value                                       = 0;
 
-    DW14.Value                                       = 0;        
+    DW14.Value                                       = 0;
 
-    DW15.Value                                       = 0;        
+    DW15.Value                                       = 0;
 
-    DW16.Value                                       = 0;        
+    DW16.Value                                       = 0;
 
-    DW17.Value                                       = 0;        
+    DW17.Value                                       = 0;
 
-    DW18.Value                                       = 0;        
+    DW18.Value                                       = 0;
     DW18.CoeffprobabilityStreaminAddressAgeForQuadlruAge = COEFFPROBABILITY_STREAMIN_ADDRESS_AGE_FOR_QUADLRU_AGE_POORCHANCEOFGENERATINGHITS;
     DW18.CoeffprobabilityStreaminAddressTargetCacheTc = COEFFPROBABILITY_STREAMIN_ADDRESS_TARGET_CACHE_TC_ELLCONLY_NOTSNOOPEDINGT;
     DW18.MemoryTypeLlcEllcCacheabilityControlLellcccForCoeffprobabilityStreaminAddress = MEMORY_TYPE_LLCELLC_CACHEABILITY_CONTROL_LELLCCC_FOR_COEFFPROBABILITY_STREAMIN_ADDRESS_USECACHEABILITYCONTROLSFROMPAGETABLEUCWITHFENCEIFCOHERENTCYCLE;
     DW18.CoeffprobabilityStreaminArbitrationPriorityControl = COEFFPROBABILITY_STREAMIN_ARBITRATION_PRIORITY_CONTROL_HIGHESTPRIORITY;
 
-    DW19.Value                                       = 0;        
+    DW19.Value                                       = 0;
 
-    DW20.Value                                       = 0;        
+    DW20.Value                                       = 0;
 
-    DW21.Value                                       = 0;        
+    DW21.Value                                       = 0;
 
-    DW22.Value                                       = 0;        
+    DW22.Value                                       = 0;
 
-    DW23.Value                                       = 0;        
+    DW23.Value                                       = 0;
 
-    DW24.Value                                       = 0;        
+    DW24.Value                                       = 0;
 
-    DW25.Value                                       = 0;        
+    DW25.Value                                       = 0;
 
-    DW26.Value                                       = 0;        
+    DW26.Value                                       = 0;
 
-    DW27.Value                                       = 0;        
+    DW27.Value                                       = 0;
 
-    DW28.Value                                       = 0;        
+    DW28.Value                                       = 0;
 
-    DW29.Value                                       = 0;        
+    DW29.Value                                       = 0;
 
-    DW30.Value                                       = 0;        
+    DW30.Value                                       = 0;
 
-    DW31.Value                                       = 0;        
+    DW31.Value                                       = 0;
 
-    DW32.Value                                       = 0;        
+    DW32.Value                                       = 0;
 
-    DW33.Value                                       = 0;        
+    DW33.Value                                       = 0;
 
-    DW34.Value                                       = 0;        
+    DW34.Value                                       = 0;
 
-    DW35.Value                                       = 0;        
+    DW35.Value                                       = 0;
 
-    DW36.Value                                       = 0;        
+    DW36.Value                                       = 0;
 
-    DW37.Value                                       = 0;        
+    DW37.Value                                       = 0;
     DW37.AgeForQuadlruAgeSegmentationIdStreamBaseAddress = AGE_FOR_QUADLRU_AGE_SEGMENTATION_ID_STREAM_BASE_ADDRESS_POORCHANCEOFGENERATINGHITS;
     DW37.TargetCacheTcSegmentationIdStreamBaseAddress = TARGET_CACHE_TC_SEGMENTATION_ID_STREAM_BASE_ADDRESS_ELLCONLY_NOTSNOOPEDINGT;
     DW37.MemoryTypeLlcEllcCacheabilityControlLellcccForSegmentationIdStreamBaseAddress = MEMORY_TYPE_LLCELLC_CACHEABILITY_CONTROL_LELLCCC_FOR_SEGMENTATION_ID_STREAM_BASE_ADDRESS_USECACHEABILITYCONTROLSFROMPAGETABLEUCWITHFENCEIFCOHERENTCYCLE;
@@ -1083,7 +1083,7 @@ mhw_vdbox_mfx_g8_bdw::MFX_VP8_PIC_STATE_CMD::MFX_VP8_PIC_STATE_CMD()
 
 mhw_vdbox_mfx_g8_bdw::MFX_JPEG_HUFF_TABLE_STATE_CMD::MFX_JPEG_HUFF_TABLE_STATE_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.SubopcodeB                                   = SUBOPCODE_B_UNNAMED2;
     DW0.SubopcodeA                                   = SUBOPCODE_A_UNNAMED0;
@@ -1091,7 +1091,7 @@ mhw_vdbox_mfx_g8_bdw::MFX_JPEG_HUFF_TABLE_STATE_CMD::MFX_JPEG_HUFF_TABLE_STATE_C
     DW0.Pipeline                                     = PIPELINE_MFXMULTIDW;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
     DW1.Hufftableid1Bit                              = HUFFTABLEID_1_BIT_Y;
 
     MOS_ZeroMemory(&DcBits128BitArray, sizeof(DcBits128BitArray));
@@ -1103,13 +1103,13 @@ mhw_vdbox_mfx_g8_bdw::MFX_JPEG_HUFF_TABLE_STATE_CMD::MFX_JPEG_HUFF_TABLE_STATE_C
 
 mhw_vdbox_mfx_g8_bdw::GRAPHICSADDRESS63_6_CMD::GRAPHICSADDRESS63_6_CMD()
 {
-    DW0_1.Value[0] = DW0_1.Value[1]                  = 0;        
+    DW0_1.Value[0] = DW0_1.Value[1]                  = 0;
 
 }
 
 mhw_vdbox_mfx_g8_bdw::MFX_PIPE_BUF_ADDR_STATE_CMD::MFX_PIPE_BUF_ADDR_STATE_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.SubopcodeB                                   = SUBOPCODE_B_UNNAMED2;
     DW0.SubopcodeA                                   = SUBOPCODE_A_UNNAMED0;
@@ -1117,76 +1117,76 @@ mhw_vdbox_mfx_g8_bdw::MFX_PIPE_BUF_ADDR_STATE_CMD::MFX_PIPE_BUF_ADDR_STATE_CMD()
     DW0.Pipeline                                     = PIPELINE_MFXPIPEBUFADDRSTATE;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW1.Value                                        = 0;        
+    DW1.Value                                        = 0;
 
-    DW2.Value                                        = 0;        
+    DW2.Value                                        = 0;
 
-    DW3.Value                                        = 0;        
+    DW3.Value                                        = 0;
     DW3.PreDeblockingArbitrationPriorityControl      = PRE_DEBLOCKING_ARBITRATION_PRIORITY_CONTROL_HIGHESTPRIORITY;
 
-    DW4.Value                                        = 0;        
+    DW4.Value                                        = 0;
 
-    DW5.Value                                        = 0;        
+    DW5.Value                                        = 0;
 
-    DW6.Value                                        = 0;        
+    DW6.Value                                        = 0;
     DW6.PostDeblockingArbitrationPriorityControl     = POST_DEBLOCKING_ARBITRATION_PRIORITY_CONTROL_HIGHESTPRIORITY;
 
-    DW7.Value                                        = 0;        
+    DW7.Value                                        = 0;
 
-    DW8.Value                                        = 0;        
+    DW8.Value                                        = 0;
 
-    DW9.Value                                        = 0;        
+    DW9.Value                                        = 0;
     DW9.OriginalUncompressedPictureSourceArbitrationPriorityControl = ORIGINAL_UNCOMPRESSED_PICTURE_SOURCE_ARBITRATION_PRIORITY_CONTROL_HIGHESTPRIORITY;
 
-    DW10.Value                                       = 0;        
+    DW10.Value                                       = 0;
 
-    DW11.Value                                       = 0;        
+    DW11.Value                                       = 0;
 
-    DW12.Value                                       = 0;        
+    DW12.Value                                       = 0;
     DW12.StreamoutDataDestinationArbitrationPriorityControl = STREAMOUT_DATA_DESTINATION_ARBITRATION_PRIORITY_CONTROL_HIGHESTPRIORITY;
 
-    DW13.Value                                       = 0;        
+    DW13.Value                                       = 0;
 
-    DW14.Value                                       = 0;        
+    DW14.Value                                       = 0;
 
-    DW15.Value                                       = 0;        
+    DW15.Value                                       = 0;
     DW15.IntraRowStoreScratchBufferArbitrationPriorityControl = INTRA_ROW_STORE_SCRATCH_BUFFER_ARBITRATION_PRIORITY_CONTROL_HIGHESTPRIORITY;
 
-    DW16.Value                                       = 0;        
+    DW16.Value                                       = 0;
 
-    DW17.Value                                       = 0;        
+    DW17.Value                                       = 0;
 
-    DW18.Value                                       = 0;        
+    DW18.Value                                       = 0;
     DW18.DeblockingFilterRowStoreScratchArbitrationPriorityControl = DEBLOCKING_FILTER_ROW_STORE_SCRATCH_ARBITRATION_PRIORITY_CONTROL_HIGHESTPRIORITY;
 
-    DW51.Value                                       = 0;        
+    DW51.Value                                       = 0;
     DW51.ReferencePictureArbitrationPriorityControl  = REFERENCE_PICTURE_ARBITRATION_PRIORITY_CONTROL_HIGHESTPRIORITY;
 
-    DW52.Value                                       = 0;        
+    DW52.Value                                       = 0;
 
-    DW53.Value                                       = 0;        
+    DW53.Value                                       = 0;
 
-    DW54.Value                                       = 0;        
+    DW54.Value                                       = 0;
     DW54.MacroblockStatusBufferArbitrationPriorityControl = MACROBLOCK_STATUS_BUFFER_ARBITRATION_PRIORITY_CONTROL_HIGHESTPRIORITY;
 
-    DW55.Value                                       = 0;        
+    DW55.Value                                       = 0;
 
-    DW56.Value                                       = 0;        
+    DW56.Value                                       = 0;
 
-    DW57.Value                                       = 0;        
+    DW57.Value                                       = 0;
     DW57.MacroblockIldbStreamoutBufferArbitrationPriorityControl = MACROBLOCK_ILDB_STREAMOUT_BUFFER_ARBITRATION_PRIORITY_CONTROL_HIGHESTPRIORITY;
 
-    DW58.Value                                       = 0;        
+    DW58.Value                                       = 0;
 
-    DW59.Value                                       = 0;        
+    DW59.Value                                       = 0;
 
-    DW60.Value                                       = 0;        
+    DW60.Value                                       = 0;
 
 }
 
 mhw_vdbox_mfx_g8_bdw::MFX_AVC_DIRECTMODE_STATE_CMD::MFX_AVC_DIRECTMODE_STATE_CMD()
 {
-    DW0.Value                                        = 0;        
+    DW0.Value                                        = 0;
     DW0.DwordLength                                  = GetOpLength(dwSize);
     DW0.Subopcodeb                                   = SUBOPCODEB_UNNAMED2;
     DW0.Subopcodea                                   = SUBOPCODEA_UNNAMED0;
@@ -1194,12 +1194,12 @@ mhw_vdbox_mfx_g8_bdw::MFX_AVC_DIRECTMODE_STATE_CMD::MFX_AVC_DIRECTMODE_STATE_CMD
     DW0.Pipeline                                     = PIPELINE_MFXSINGLEDW;
     DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
 
-    DW33.Value                                       = 0;        
+    DW33.Value                                       = 0;
     DW33.DirectMvBufferBaseAddressForReferenceFrameArbitrationPriorityControl = DIRECT_MV_BUFFER_BASE_ADDRESS_FOR_REFERENCE_FRAME_ARBITRATION_PRIORITY_CONTROL_HIGHESTPRIORITY;
 
-    DW36.Value                                       = 0;        
+    DW36.Value                                       = 0;
     DW36.DirectMvBufferBaseAddressForWriteArbitrationPriorityControl = DIRECT_MV_BUFFER_BASE_ADDRESS_FOR_WRITE_ARBITRATION_PRIORITY_CONTROL_HIGHESTPRIORITY;
 
-    MOS_ZeroMemory(&PocList, sizeof(PocList));        
+    MOS_ZeroMemory(&PocList, sizeof(PocList));
 }
 

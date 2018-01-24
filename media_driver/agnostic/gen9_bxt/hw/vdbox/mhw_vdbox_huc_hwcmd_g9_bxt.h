@@ -54,7 +54,7 @@ public:
     //!     This field controls the priority of arbitration used in the GAC/GAM
     //!     pipeline for this surface. It defines the CHV/SKL+ 32-bit memory address
     //!     attributes for the third DWord of the HCP command buffer address.
-    //!     
+    //!
     struct MEMORYADDRESSATTRIBUTES_CMD
     {
         union
@@ -108,7 +108,7 @@ public:
     //! \details
     //!     Specifies a 64-bit (48-bit canonical) 64-byte aligned memory base
     //!     address.
-    //!     
+    //!
     struct SPLITBASEADDRESS64BYTEALIGNED_CMD
     {
         union
@@ -139,7 +139,7 @@ public:
     //!     Specifies a 64-bit (48-bit canonical) 4K-byte aligned memory base
     //!     address. GraphicsAddress is a 64-bit value [63:0], but only a portion of
     //!     it is used by hardware. The upper reserved bits are ignored and MBZ.
-    //!     
+    //!
     struct SPLITBASEADDRESS4KBYTEALIGNED_CMD
     {
         union
@@ -170,11 +170,11 @@ public:
     //!     The HUC is selected with the Media Instruction Opcode "Bh" for all HUC
     //!     Commands. Each HUC command has assigned a media instruction command as
     //!     defined in DWord 0, BitField 22:16.
-    //!     
+    //! 
     //!     The HUC_PIPE_MODE_SELECT command is responsible for general pipeline
     //!     level configuration that would normally be set once for a single stream
     //!     decode and would not be modified on a frame workload basis.
-    //!     
+    //!
     struct HUC_PIPE_MODE_SELECT_CMD
     {
         union
@@ -275,12 +275,12 @@ public:
         //! \details
         //!     In decoder modes, this counter value specifies the number of clocks (per
         //!     1000) of GAC inactivity
-        //!     					before a media soft-reset is applied to the HCP and HuC. If counter
+        //!                         before a media soft-reset is applied to the HCP and HuC. If counter
         //!     value is set to 0, the media
-        //!     					soft-reset feature is disabled and no reset will occur.
-        //!     					<p>In encoder modes, this counter must be set to 0 to disable media
+        //!                         soft-reset feature is disabled and no reset will occur.
+        //!                         <p>In encoder modes, this counter must be set to 0 to disable media
         //!     soft reset. This feature is not
-        //!     						supported for the encoder.</p>
+        //!                             supported for the encoder.</p>
         enum MEDIA_SOFT_RESET_COUNTER_PER_1000_CLOCKS
         {
             MEDIA_SOFT_RESET_COUNTER_PER_1000_CLOCKS_DISABLE                 = 0, //!< No additional details
@@ -301,7 +301,7 @@ public:
     //!     The HUC is selected with the Media Instruction Opcode "Bh" for all HUC
     //!     Commands. Each HUC command has assigned a media instruction command as
     //!     defined in DWord 0, BitField 22:16.
-    //!     
+    //! 
     //!     The HUC_IMEM_STATE command is used to fetch the HUC firmware from the
     //!     WOPCM region and load it into the HUC 96KB L2 storage RAM. The
     //!     HUC_IMEM_STATE specifies the firmware's offset in WOPCM which is a cache
@@ -317,7 +317,7 @@ public:
     //!     register is asserted high in the. If the authentication signal is not
     //!     asserted, the DMA aborts the HUC_IMEM_STATE command, the firmware is not
     //!     loaded, and the VALID IMEM LOADED bit remains low.
-    //!     
+    //!
     struct HUC_IMEM_STATE_CMD
     {
         union
@@ -417,18 +417,18 @@ public:
     //!      The HUC is selected with the Media Instruction Opcode "Bh" for all HUC
     //!     Commands. Each HUC command has assigned a media instruction command as
     //!     defined in DWord 0, BitField 22:16.
-    //!     
+    //! 
     //!     The HUC_DMEM_STATE command is used to fetch the HUC data from the
     //!     graphics memory and load it into the HUC 96KB L2 storage RAM. The
     //!     HUC_DMEM_STATE specifies the data source base address in graphics
     //!     memory.
-    //!     
+    //! 
     //!     When the HUC_DMEM_STATE command is received, the data is loaded by the
     //!     HUC DMA into the 96KB L2 storage RAM at the location provided in the
     //!     HUC_DMEM_STATE command. This command also specifies the length of the
     //!     data, which is specified in bytes but must be in increments of 64 byte
     //!     cache lines.
-    //!     
+    //!
     struct HUC_DMEM_STATE_CMD
     {
         union
@@ -507,13 +507,13 @@ public:
     //!     The HUC is selected with the Media Instruction Opcode "Bh" for all HUC
     //!     Commands. Each HUC command has assigned a media instruction command as
     //!     defined in DWord 0, BitField 22:16.
-    //!     
+    //! 
     //!     The HUC_CFG_STATE command is used to force the P24C (MinuteIA) into a
     //!     reset condition as well as forcing it out of a reset condition. This
     //!     command is not normally required since the hardware will handle placing
     //!     the P24C into a reset condition and releasing it from reset, but there
     //!     may be conditions that require a forced reset.
-    //!     
+    //!
     struct HUC_CFG_STATE_CMD
     {
         union
@@ -582,8 +582,8 @@ public:
     //!
     //! \brief HUC_VIRTUAL_ADDR_REGION
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct HUC_VIRTUAL_ADDR_REGION_CMD
     {
         SPLITBASEADDRESS4KBYTEALIGNED_CMD        HucSurfaceBaseAddressVirtualaddrregion015;                               //!< HUC Surface Base Address (VirtualAddrRegion[0-15])
@@ -606,10 +606,10 @@ public:
     //!     HUC is selected with the Media Instruction Opcode "Bh" for all HUC
     //!     Commands. Each HUC command has assigned a media instruction command as
     //!     defined in DWord 0, BitField 22:16.
-    //!     
+    //! 
     //!     The HUC_VIRTUAL_ADDR_STATE command is used to define the 48-bit HUC
     //!     Surface Base Address and HUC Surface for each region.
-    //!     
+    //!
     struct HUC_VIRTUAL_ADDR_STATE_CMD
     {
         union
@@ -667,11 +667,11 @@ public:
     //!     The HUC is selected with the Media Instruction Opcode "Bh" for all HUC
     //!     Commands. Each HUC command has assigned a media instruction command as
     //!     defined in DWord 0, BitField 22:16.
-    //!     
+    //! 
     //!     The HUC_IND_OBJ_BASE_ADDR_STATE command is used to define the indirect
     //!     object base address of the stream in graphics memory. This is a frame
     //!     level command.
-    //!     
+    //!
     struct HUC_IND_OBJ_BASE_ADDR_STATE_CMD
     {
         union
@@ -734,12 +734,12 @@ public:
     //!     The HUC is selected with the Media Instruction Opcode "Bh" for all HUC
     //!     Commands. Each HUC command has assigned a media instruction command as
     //!     defined in DWord 0, BitField 22:16.
-    //!     
+    //! 
     //!     The HUC_STREAM_OBJECT command is used to define the bit stream address
     //!     offset to the Stream Indirect Object base Address and the length of the
     //!     bit stream.  The bitstream buffer the HUC operates upon is specified
     //!     through indirect addressing.
-    //!     
+    //!
     struct HUC_STREAM_OBJECT_CMD
     {
         union
@@ -886,7 +886,7 @@ public:
     //!     The HUC is selected with the Media Instruction Opcode "Bh" for all HUC
     //!     Commands. Each HUC command has assigned a media instruction command as
     //!     defined in DWord 0, BitField 22:16.
-    //!     
+    //!
     struct HUC_START_CMD
     {
         union

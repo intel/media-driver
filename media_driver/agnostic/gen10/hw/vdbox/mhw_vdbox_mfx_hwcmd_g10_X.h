@@ -59,7 +59,7 @@ public:
     //!     order. But the Forward Q scaling lists are sent in column-wise raster
     //!     order (column-by-column) to simplify the H/W. Driver will perform all
     //!     the scan order conversion for both ForwardQ and IQ.
-    //!     
+    //!
     struct MFX_QM_STATE_CMD
     {
         union
@@ -99,7 +99,6 @@ public:
         } DW1;
 
         uint32_t                         ForwardQuantizerMatrix[16];                                                      //!< Forward Quantizer Matrix
-
 
         //! \name Local enumerations
 
@@ -184,7 +183,7 @@ public:
     //!     order. But the Forward Q scaling lists are sent in column-wise raster
     //!     order (column-by-column) to simplify the H/W. Driver will perform all
     //!     the scan order conversion for both ForwardQ and IQ.
-    //!     
+    //!
     struct MFX_FQM_STATE_CMD
     {
         union
@@ -224,7 +223,6 @@ public:
         } DW1;
 
         uint32_t                         ForwardQuantizerMatrix[32];                                                      //!< Forward Quantizer Matrix
-
 
         //! \name Local enumerations
 
@@ -305,7 +303,7 @@ public:
     //!     pipeline according to the active encoder/decoder operating mode for
     //!     encoding/decoding the current picture. Commands issued specifically for
     //!     AVC and MPEG2 are ignored when VC1 is the active codec.
-    //!     
+    //!
     struct MFX_PIPE_MODE_SELECT_CMD
     {
         union
@@ -439,9 +437,9 @@ public:
         //! \brief FRAME_STATISTICS_STREAMOUT_ENABLE
         //! \details
         //!     This field controls the frame level statistics streamout from the PAK. 
-        //!     					<p><b>Note</b>: This field needs to be always "Enabled" in VD_Enc
+        //!                         <p><b>Note</b>: This field needs to be always "Enabled" in VD_Enc
         //!     mode. In case of non-VDEnc mode,
-        //!     						this can be used to control the frame statistics output from the
+        //!                             this can be used to control the frame statistics output from the
         //!     PAK.</p>
         enum FRAME_STATISTICS_STREAMOUT_ENABLE
         {
@@ -452,7 +450,7 @@ public:
         //! \brief SCALED_SURFACE_ENABLE
         //! \details
         //!     This field indicates if the scaled surface is enabled. This field
-        //!     					enables the 4x HME downscalar of the reconstructed image. Only
+        //!                         enables the 4x HME downscalar of the reconstructed image. Only
         //!     supported for AVC and VP8 formats.
         enum SCALED_SURFACE_ENABLE
         {
@@ -515,11 +513,11 @@ public:
         //! \details
         //!     This field indicates if Deblocker information is going to be streamout
         //!     during VLD decoding.
-        //!     					For AVC, it is needed to enable the deblocker streamout as the AVC
+        //!                         For AVC, it is needed to enable the deblocker streamout as the AVC
         //!     Disable_DLKFilterIdc is a slice level parameters.  Driver needs to
         //!     determine ahead of time if at least one slice of the current frame/ has
-        //!     deblocker ON.  
-        //!     					For SVC, there are two deblocking control streamout buffers
+        //!     deblocker ON. 
+        //!                         For SVC, there are two deblocking control streamout buffers
         //!     (specified in MFX_BUF_ADDR State Command).  This field is still
         //!     associated with the slice level SVC Disable.DLK_Filter_Idc.
         enum DEBLOCKER_STREAM_OUT_ENABLE
@@ -712,7 +710,7 @@ public:
     //!     chosen over the pixel surface type because of their variable record
     //!     sizes. All row store surfaces are linear surface. Their addresses are
     //!     programmed in Pipe_Buf_Base_State or Bsp_Buf_Base_Addr_State
-    //!     
+    //! 
     //!     VC1 I picture scaling: Even though VC1 allows I reconstructed picture
     //!     scaling (via RESPIC), as such scaling is only allowed at I picture. All
     //!     subsequent P (and B) pictures must have the same picture dimensions with
@@ -722,17 +720,17 @@ public:
     //!     expecting intel decoder pipelineand kernel to perform this function, it
     //!     is going to be done in the video post-processing scaler or display
     //!     controller scale as a separate step and controller.
-    //!     
+    //! 
     //!     All video codec surfaces must be NV12 Compliant, except JPEG. U/V
     //!     vertical must be MB aligned for all video codec (further contrained for
     //!     field picture), but JPEG can be block aligned. All video codec and JPEG
     //!     uses Tiled - Y format only, for uncompressed pixel surfaces.
-    //!     
+    //! 
     //!     Even for JPEG planar 420 surface, application may provide only 1
     //!     buffers, but there is still only one single surface state for all of
     //!     them. If IMC equal to 1, 2, 3 or 4, U and V have the pitch same as Y.
     //!     And U and V will have different offset, each offset is block aligned.
-    //!     
+    //!
     struct MFX_SURFACE_STATE_CMD
     {
         union
@@ -765,7 +763,7 @@ public:
             //!< DWORD 2
             struct
             {
-                uint32_t                 CrVCbUPixelOffsetVDirection                      : __CODEGEN_BITFIELD( 0,  1)    ; //!< Cr(V)/Cb(U) Pixel Offset V Direction 
+                uint32_t                 CrVCbUPixelOffsetVDirection                      : __CODEGEN_BITFIELD( 0,  1)    ; //!< Cr(V)/Cb(U) Pixel Offset V Direction
                 uint32_t                 Reserved66                                       : __CODEGEN_BITFIELD( 2,  3)    ; //!< Reserved
                 uint32_t                 Width                                            : __CODEGEN_BITFIELD( 4, 17)    ; //!< Width
                 uint32_t                 Height                                           : __CODEGEN_BITFIELD(18, 31)    ; //!< Height
@@ -794,7 +792,7 @@ public:
             {
                 uint32_t                 YOffsetForUCb                                    : __CODEGEN_BITFIELD( 0, 14)    ; //!< Y Offset for U(Cb)
                 uint32_t                 Reserved143                                      : __CODEGEN_BITFIELD(15, 15)    ; //!< Reserved
-                uint32_t                 XOffsetForUCb                                    : __CODEGEN_BITFIELD(16, 30)    ; //!< X Offset for U(Cb) 
+                uint32_t                 XOffsetForUCb                                    : __CODEGEN_BITFIELD(16, 30)    ; //!< X Offset for U(Cb)
                 uint32_t                 Reserved159                                      : __CODEGEN_BITFIELD(31, 31)    ; //!< Reserved
             };
             uint32_t                     Value;
@@ -938,14 +936,14 @@ public:
     //!     address. In the tile format, there is no need to provide buffer offset
     //!     for each slice; since from each MB address, the hardware can calculated
     //!     the corresponding memory location within the frame buffer directly.
-    //!     
+    //! 
     //!     The MFX_IND_OBJ_BASE_ADDR command sets the memory base address pointers
     //!     for the corresponding Indirect Object Data Start Addresses (Offsets)
     //!     specified in each OBJECT commands. The characteristic of these indirect
     //!     object data is their variable size (per MB or per Slice). Hence, each
     //!     OBJECT command must specify the indirect object data offset from the
     //!     base address to start fetching or writing object data.
-    //!     
+    //! 
     //!     While the use of base address is unconditional, the indirection can be
     //!     effectively disabled by setting the base address to zero. For decoder,
     //!     there are:  1 read-only per-slice indirect object in the BSD_OBJECT
@@ -969,7 +967,7 @@ public:
     //!     graphics memory byte address (not mapped by a GTT) GraphicsAddress[n:m]
     //!     Corresponding bits of an absolute, virtual graphics memory byte address
     //!     (mapped by a GTT).
-    //!     
+    //!
     struct MFX_IND_OBJ_BASE_ADDR_STATE_CMD
     {
         union
@@ -1295,7 +1293,7 @@ public:
         //! \brief MFX_INDIRECT_BITSTREAM_OBJECT__TILED_RESOURCE_MODE
         //! \details
         //!     <b>For Media Surfaces:</b>
-        //!     					This field specifies the tiled resource mode.
+        //!                         This field specifies the tiled resource mode.
         enum MFX_INDIRECT_BITSTREAM_OBJECT__TILED_RESOURCE_MODE
         {
             MFX_INDIRECT_BITSTREAM_OBJECT_TILED_RESOURCE_MODE_TRMODENONE     = 0, //!< No tiled resource
@@ -1318,7 +1316,7 @@ public:
         //! \brief MFX_INDIRECT_MV_OBJECT_DESTINATION__TILED_RESOURCE_MODE
         //! \details
         //!     <b>For Media Surfaces:</b>
-        //!     					This field specifies the tiled resource mode.
+        //!                         This field specifies the tiled resource mode.
         enum MFX_INDIRECT_MV_OBJECT_DESTINATION__TILED_RESOURCE_MODE
         {
             MFX_INDIRECT_MV_OBJECT_DESTINATION_TILED_RESOURCE_MODE_TRMODENONE = 0, //!< No tiled resource
@@ -1341,7 +1339,7 @@ public:
         //! \brief MFD_INDIRECT_IT_COEFF__TILED_RESOURCE_MODE
         //! \details
         //!     <b>For Media Surfaces:</b>
-        //!     					This field specifies the tiled resource mode.
+        //!                         This field specifies the tiled resource mode.
         enum MFD_INDIRECT_IT_COEFF__TILED_RESOURCE_MODE
         {
             MFD_INDIRECT_IT_COEFF_TILED_RESOURCE_MODE_TRMODENONE             = 0, //!< No tiled resource
@@ -1364,7 +1362,7 @@ public:
         //! \brief MFD_INDIRECT_IT_DBLK_OBJECT_DESTINATION__TILED_RESOURCE_MODE
         //! \details
         //!     <b>For Media Surfaces:</b>
-        //!     					This field specifies the tiled resource mode.
+        //!                         This field specifies the tiled resource mode.
         enum MFD_INDIRECT_IT_DBLK_OBJECT_DESTINATION__TILED_RESOURCE_MODE
         {
             MFD_INDIRECT_IT_DBLK_OBJECT_DESTINATION_TILED_RESOURCE_MODE_TRMODENONE = 0, //!< No tiled resource
@@ -1387,7 +1385,7 @@ public:
         //! \brief MFC_INDIRECT_PAK_BSE_OBJECT_DESTINATION__TILED_RESOURCE_MODE
         //! \details
         //!     <b>For Media Surfaces:</b>
-        //!     					This field specifies the tiled resource mode.
+        //!                         This field specifies the tiled resource mode.
         enum MFC_INDIRECT_PAK_BSE_OBJECT_DESTINATION__TILED_RESOURCE_MODE
         {
             MFC_INDIRECT_PAK_BSE_OBJECT_DESTINATION_TILED_RESOURCE_MODE_TRMODENONE = 0, //!< No tiled resource
@@ -1423,7 +1421,7 @@ public:
     //!     Construction (MPC) are combined into one single row store. The row
     //!     stores specified in this command do not combine with those specified in
     //!     the MFC_PIPE_BUF_ADDR_STATE command for hardware simplification reason.
-    //!     
+    //!
     struct MFX_BSP_BUF_BASE_ADDR_STATE_CMD
     {
         union
@@ -1595,7 +1593,7 @@ public:
         //! \brief BSDMPC_ROW_STORE_SCRATCH_BUFFER__TILED_RESOURCE_MODE
         //! \details
         //!     <b>For Media Surfaces:</b>
-        //!     					This field specifies the tiled resource mode.
+        //!                         This field specifies the tiled resource mode.
         enum BSDMPC_ROW_STORE_SCRATCH_BUFFER__TILED_RESOURCE_MODE
         {
             BSDMPC_ROW_STORE_SCRATCH_BUFFER_TILED_RESOURCE_MODE_TRMODENONE   = 0, //!< No tiled resource
@@ -1628,7 +1626,7 @@ public:
         //! \brief MPR_ROW_STORE_SCRATCH_BUFFER__TILED_RESOURCE_MODE
         //! \details
         //!     <b>For Media Surfaces:</b>
-        //!     					This field specifies the tiled resource mode.
+        //!                         This field specifies the tiled resource mode.
         enum MPR_ROW_STORE_SCRATCH_BUFFER__TILED_RESOURCE_MODE
         {
             MPR_ROW_STORE_SCRATCH_BUFFER_TILED_RESOURCE_MODE_TRMODENONE      = 0, //!< No tiled resource
@@ -1651,7 +1649,7 @@ public:
         //! \brief BITPLANE_READ_BUFFER__TILED_RESOURCE_MODE
         //! \details
         //!     <b>For Media Surfaces:</b>
-        //!     					This field specifies the tiled resource mode.
+        //!                         This field specifies the tiled resource mode.
         enum BITPLANE_READ_BUFFER__TILED_RESOURCE_MODE
         {
             BITPLANE_READ_BUFFER_TILED_RESOURCE_MODE_TRMODENONE              = 0, //!< No tiled resource
@@ -1676,7 +1674,7 @@ public:
     //!     reference picture (16 maximum) so hardware can uniquely identify the
     //!     reference picture across frames (this will be used for DMV
     //!     operation).This command will be needed for both short and long format.
-    //!     
+    //!
     struct MFD_AVC_PICID_STATE_CMD
     {
         union
@@ -1706,7 +1704,6 @@ public:
         } DW1;
 
         uint32_t                         Pictureidlist1616Bits[8];                                                        //!< PictureIDList[16][16 bits]
-
 
         //! \name Local enumerations
 
@@ -1759,7 +1756,7 @@ public:
     //!     This must be the very first command to issue after the surface state,
     //!     the pipe select and base address setting commands. This command supports
     //!     both Long and Short VLD and IT AVC Decoding Interface.
-    //!     
+    //!
     struct MFX_AVC_IMG_STATE_CMD
     {
         union
@@ -1896,7 +1893,7 @@ public:
                 uint32_t                 Slicedeltaqppmax0                                : __CODEGEN_BITFIELD( 0,  7)    ; //!< SliceDeltaQpPMax[0]
                 uint32_t                 Slicedeltaqpmax1                                 : __CODEGEN_BITFIELD( 8, 15)    ; //!< SliceDeltaQpMax[1]
                 uint32_t                 Slicedeltaqpmax2                                 : __CODEGEN_BITFIELD(16, 23)    ; //!< SliceDeltaQpMax[2]
-                uint32_t                 Slicedeltaqpmax3                                 : __CODEGEN_BITFIELD(24, 31)    ; //!< SliceDeltaQpMax[3] 
+                uint32_t                 Slicedeltaqpmax3                                 : __CODEGEN_BITFIELD(24, 31)    ; //!< SliceDeltaQpMax[3]
             };
             uint32_t                     Value;
         } DW8;
@@ -1905,10 +1902,10 @@ public:
             //!< DWORD 9
             struct
             {
-                uint32_t                 Slicedeltaqpmin0                                 : __CODEGEN_BITFIELD( 0,  7)    ; //!< SliceDeltaQpMin[0] 
+                uint32_t                 Slicedeltaqpmin0                                 : __CODEGEN_BITFIELD( 0,  7)    ; //!< SliceDeltaQpMin[0]
                 uint32_t                 Slicedeltaqpmin1                                 : __CODEGEN_BITFIELD( 8, 15)    ; //!< SliceDeltaQpMin[1]
                 uint32_t                 Slicedeltaqpmin2                                 : __CODEGEN_BITFIELD(16, 23)    ; //!< SliceDeltaQpMin[2]
-                uint32_t                 Slicedeltaqpmin3                                 : __CODEGEN_BITFIELD(24, 31)    ; //!< SliceDeltaQpMin[3] 
+                uint32_t                 Slicedeltaqpmin3                                 : __CODEGEN_BITFIELD(24, 31)    ; //!< SliceDeltaQpMin[3]
             };
             uint32_t                     Value;
         } DW9;
@@ -2279,25 +2276,25 @@ public:
         //! \brief MINFRAMEWSIZE
         //! \details
         //!     <p><b>Minimum Frame Size [15:0] (in Word, 16-bit)(Encoder Only)</b>
-        //!     					Mininum Frame Size is specified to compensate for intel Rate
-        //!     					Control Currently zero fill (no need to perform emulation byte
+        //!                         Mininum Frame Size is specified to compensate for intel Rate
+        //!                         Control Currently zero fill (no need to perform emulation byte
         //!     insertion) is done
-        //!     					only to the end of the CABAC_ZERO_WORD insertion (if any) at the
+        //!                         only to the end of the CABAC_ZERO_WORD insertion (if any) at the
         //!     last slice of a
-        //!     					picture. Intel encoder parameter. The caller
+        //!                         picture. Intel encoder parameter. The caller
         //!     should always make
-        //!     					sure that the value, represented by  Mininum Frame Size, is always
+        //!                         sure that the value, represented by  Mininum Frame Size, is always
         //!     less than maximum
-        //!     					frame size <b>FrameBitRateMax (DWORD 10 bits</b> 29:16).This field
+        //!                         frame size <b>FrameBitRateMax (DWORD 10 bits</b> 29:16).This field
         //!     is reserved in
-        //!     					Decode mode.</p>					
-        //!     					<p>The programmable range 0…2^18-1</p>
-        //!     					<p>When MinFrameWSizeUnits is 00.</p>
-        //!     					<p>Programmable range is 0…2^20-1 when MinFrameWSizeUnits is
+        //!                         Decode mode.</p> 
+        //!                         <p>The programmable range 0…2^18-1</p>
+        //!                         <p>When MinFrameWSizeUnits is 00.</p>
+        //!                         <p>Programmable range is 0…2^20-1 when MinFrameWSizeUnits is
         //!     01.</p>
-        //!     					<p>Programmable range is 0…2^26-1 when MinFrameWSizeUnits is
+        //!                         <p>Programmable range is 0…2^26-1 when MinFrameWSizeUnits is
         //!     10.</p>
-        //!     					<p>Programmable range is 0…2^32-1 when MinFrameWSizeUnits is
+        //!                         <p>Programmable range is 0…2^32-1 when MinFrameWSizeUnits is
         //!     11.</p>
         enum MINFRAMEWSIZE
         {
@@ -2488,7 +2485,7 @@ public:
         {
             FRAMEBITRATEMAXDELTA_UNNAMED0                                    = 0, //!< No additional details
         };
-        
+
         enum VAD_ERROR_LOGIC
         {
             VAD_ERROR_LOGIC_ENABLE                                           = 0, //!< Error reporting ON in case of premature Slice done
@@ -2534,7 +2531,7 @@ public:
     //!     codec. For P-MB, only L0 list is used; for B-MB both L0 and L1 lists are
     //!     needed.  For a B-MB that is coded in L1-only Prediction, only L1 list is
     //!     used.
-    //!     
+    //! 
     //!     An application will create the RefPicList L0 and L1
     //!     and pass onto the driver.  The content of each entry of RefPicList
     //!     L0/L1[ ] is a 7-bit picture index.  This picture index is the same as
@@ -2544,7 +2541,7 @@ public:
     //!     convert between picture index and intel frame store ID.   As such,
     //!     the final RefPicList L0/L1[ ] that the driver passes onto the H/W is not
     //!     the same as that defined.
-    //!     
+    //!
     struct MFX_AVC_REF_IDX_STATE_CMD
     {
         union
@@ -2574,7 +2571,6 @@ public:
         } DW1;
 
         uint32_t                         ReferenceListEntry[8];                                                           //!< Reference List Entry
-
 
         //! \name Local enumerations
 
@@ -2644,7 +2640,7 @@ public:
     //!     L1-only Prediction, only L1 list is sent.The content of this command
     //!     matches with the AVC API data structure for explicit prediction
     //!     mode only : Weights[2][32][3][2] (L0:L1, 0:31 RefPic, Y:Cb:Cr, W:0)
-    //!     
+    //!
     struct MFX_AVC_WEIGHTOFFSET_STATE_CMD
     {
         union
@@ -2674,7 +2670,6 @@ public:
         } DW1;
 
         uint32_t                         Weightoffset[96];                                                                //!< WeightOffset
-
 
         //! \name Local enumerations
 
@@ -2731,14 +2726,14 @@ public:
     //!     This is a slice level command and can be issued multiple times within a
     //!     picture that is comprised of multiple slices.  The same command is used
     //!     for AVC encoder (PAK mode) and decoder (VLD and IT modes).
-    //!     
+    //! 
     //!     In VDEnc mode, this command is programmed for every super-slice. However
     //!     not all parameters are allowed to change across super-slices.
-    //!     
+    //! 
     //!     MFX_AVC_SLICE_STATE command is not issued for AVC Short Format
     //!     Bitstream decode, instead MFD_AVC_SLICEADDR command is executed to
     //!     retrieve the next slice MB Start Address X and Y by H/W itself.
-    //!     
+    //!
     struct MFX_AVC_SLICE_STATE_CMD
     {
         union
@@ -3089,7 +3084,7 @@ public:
         //! \brief RATE_CONTROL_COUNTER_ENABLE
         //! \details
         //!     To enable the accumulation of bit allocation for rate control
-        //!     						This field enables hardware Rate Control logic. The rest of the RC
+        //!                             This field enables hardware Rate Control logic. The rest of the RC
         //!     control fields are only valid when this field is set to 1. Otherwise,
         //!     hardware ignores these fields.
         enum RATE_CONTROL_COUNTER_ENABLE
@@ -3147,7 +3142,7 @@ public:
     //!     all reference pictures are collected into LongTermPic_Flag[16].
     //!     FieldOrderCntList[16][2] and CurrFieldOrderCnt[2] of interface are
     //!     replaced with intel POCList[34] of MFX_AVC_DIRECTMODE_STATE command.
-    //!     
+    //!
     struct MFD_AVC_DPB_STATE_CMD
     {
         union
@@ -3187,15 +3182,11 @@ public:
 
         uint32_t                         Ltstframenumlist1616Bits[8];                                                     //!< LTSTFRAMENUMLIST1616_BITS
 
-
         uint32_t                         Viewidlist1616Bits[8];                                                           //!< ViewIDList[16][16 bits]
-
 
         uint32_t                         Vieworderlistl0168Bits[4];                                                       //!< ViewOrderListL0[16][8 bits]
 
-
         uint32_t                         Vieworderlistl1168Bits[4];                                                       //!< ViewOrderListL1[16][8 bits]
-
 
         //! \name Local enumerations
 
@@ -3305,7 +3296,7 @@ public:
     //!     (first_mb_in_slice) is a linear MB address count; but it is translated
     //!     into the corresponding 2D MB X and Y raster position, and are stored
     //!     internally as NextSliceMbY and NextSliceMbX.
-    //!     
+    //!
     struct MFD_AVC_SLICEADDR_CMD
     {
         union
@@ -3411,9 +3402,9 @@ public:
     //!     of the MFD Engine need to be valid. Therefore the commands used to set
     //!     these states need to have been issued prior to the issue of a
     //!     MFD_AVC_BSD_OBJECT command.
-    //!     
+    //! 
     //!     Context switch interrupt is not supported by this command.
-    //!     
+    //!
     struct MFD_AVC_BSD_OBJECT_CMD
     {
         union
@@ -3515,7 +3506,7 @@ public:
                 uint32_t                 PSliceInterConcealmentMode                       : __CODEGEN_BITFIELD(16, 18)    ; //!< P_SLICE_INTER_CONCEALMENT_MODE
                 uint32_t                 Reserved179                                      : __CODEGEN_BITFIELD(19, 22)    ; //!< Reserved
                 uint32_t                 PSliceConcealmentMode                            : __CODEGEN_BITFIELD(23, 23)    ; //!< P_SLICE_CONCEALMENT_MODE
-                uint32_t                 ConcealmentReferencePictureFieldBit              : __CODEGEN_BITFIELD(24, 29)    ; //!< Concealment Reference Picture + Field Bit 
+                uint32_t                 ConcealmentReferencePictureFieldBit              : __CODEGEN_BITFIELD(24, 29)    ; //!< Concealment Reference Picture + Field Bit
                 uint32_t                 Reserved190                                      : __CODEGEN_BITFIELD(30, 30)    ; //!< Reserved
                 uint32_t                 ISliceConcealmentMode                            : __CODEGEN_BITFIELD(31, 31)    ; //!< I_SLICE_CONCEALMENT_MODE
             };
@@ -3564,8 +3555,8 @@ public:
         //! \details
         //!     During MB Error Concealment on P slice, weight prediction is disabled to
         //!     improve image quality.
-        //!     					This bit can be set to preserve the original weight prediction.  
-        //!     					This bit does not affect normal decoded MB.
+        //!                         This bit can be set to preserve the original weight prediction. 
+        //!                         This bit does not affect normal decoded MB.
         enum MB_ERROR_CONCEALMENT_P_SLICE_WEIGHT_PREDICTION_DISABLE_FLAG
         {
             MB_ERROR_CONCEALMENT_P_SLICE_WEIGHT_PREDICTION_DISABLE_FLAG_UNNAMED0 = 0, //!< Weight Prediction is Disabled during MB Concealment.
@@ -3576,8 +3567,8 @@ public:
         //! \details
         //!     During MB Error Concealment on P slice, motion vectors are forced to 0
         //!     to improve image quality. 
-        //!     					This bit can be set to use the predicted motion vectors instead.  
-        //!     					This bit does not affect normal decoded MB.
+        //!                         This bit can be set to use the predicted motion vectors instead. 
+        //!                         This bit does not affect normal decoded MB.
         enum MB_ERROR_CONCEALMENT_P_SLICE_MOTION_VECTORS_OVERRIDE_DISABLE_FLAG
         {
             MB_ERROR_CONCEALMENT_P_SLICE_MOTION_VECTORS_OVERRIDE_DISABLE_FLAG_UNNAMED0 = 0, //!< Motion Vectors are Overridden to 0 during MB Concealment
@@ -3588,8 +3579,8 @@ public:
         //! \details
         //!     During MB Error Concealment on B slice with Spatial Direct Prediction,
         //!     weight prediction is disabled to improve image quality.
-        //!     					This bit can be set to preserve the original weight prediction.  
-        //!     					This bit does not affect normal decoded MB.
+        //!                         This bit can be set to preserve the original weight prediction. 
+        //!                         This bit does not affect normal decoded MB.
         enum MB_ERROR_CONCEALMENT_B_SPATIAL_WEIGHT_PREDICTION_DISABLE_FLAG
         {
             MB_ERROR_CONCEALMENT_B_SPATIAL_WEIGHT_PREDICTION_DISABLE_FLAG_UNNAMED0 = 0, //!< Weight Prediction is Disabled during MB Concealment.
@@ -3600,8 +3591,8 @@ public:
         //! \details
         //!     During MB Error Concealment on B slice with Spatial Direct Prediction,
         //!     motion vectors are forced to 0 to improve image quality. 
-        //!     					This bit can be set to use the predicted motion vectors instead.  
-        //!     					This bit does not affect normal decoded MB.
+        //!                         This bit can be set to use the predicted motion vectors instead. 
+        //!                         This bit does not affect normal decoded MB.
         enum MB_ERROR_CONCEALMENT_B_SPATIAL_MOTION_VECTORS_OVERRIDE_DISABLE_FLAG
         {
             MB_ERROR_CONCEALMENT_B_SPATIAL_MOTION_VECTORS_OVERRIDE_DISABLE_FLAG_UNNAMED0 = 0, //!< Motion Vectors are Overridden to 0 during MB Concealment
@@ -3660,7 +3651,7 @@ public:
         //! \details
         //!     During MB Error Concealment on B slice with Temporal Direct Prediction,
         //!     weight prediction is disabled to improve image quality.
-        //!     					This bit can be set to preserve the original weight prediction.
+        //!                         This bit can be set to preserve the original weight prediction.
         enum MB_ERROR_CONCEALMENT_B_TEMPORAL_WEIGHT_PREDICTION_DISABLE_FLAG
         {
             MB_ERROR_CONCEALMENT_B_TEMPORAL_WEIGHT_PREDICTION_DISABLE_FLAG_UNNAMED0 = 0, //!< Weight Prediction is Disabled during MB Concealment
@@ -3671,7 +3662,7 @@ public:
         //! \details
         //!     During MB Error Concealment on B slice with Temporal Direct Prediction,
         //!     motion vectors are forced to 0 to improve image quality.
-        //!     					This bit can be set to preserve the original weight prediction.
+        //!                         This bit can be set to preserve the original weight prediction.
         enum MB_ERROR_CONCEALMENT_B_TEMPORAL_MOTION_VECTORS_OVERRIDE_ENABLE_FLAG
         {
             MB_ERROR_CONCEALMENT_B_TEMPORAL_MOTION_VECTORS_OVERRIDE_ENABLE_FLAG_UNNAMED0 = 0, //!< Predicted Motion Vectors are used during MB Concealment
@@ -3777,8 +3768,8 @@ public:
 
         //! \brief B_SLICE_INTER_DIRECT_TYPE_CONCEALMENT_MODE
         //! \details
-        //!     AVC decoder can use Spatial or Temporal Direct for B Skip/Direct.  
-        //!     					This field determine can override the mode on how AVC decoder
+        //!     AVC decoder can use Spatial or Temporal Direct for B Skip/Direct. 
+        //!                         This field determine can override the mode on how AVC decoder
         //!     handles MB concealment in B slice.
         enum B_SLICE_INTER_DIRECT_TYPE_CONCEALMENT_MODE
         {
@@ -3853,7 +3844,7 @@ public:
     //! \details
     //!     The MFX_PAK_INSERT_OBJECT command is the first primitive command for the
     //!     AVC, MPEG2, JPEG, SVC and VP8 Encoding Pipeline.
-    //!     
+    //! 
     //!     This command is issued to setup the control and parameters of inserting
     //!     a chunk of compressed/encoded bits into the current bitstream output
     //!     buffer starting at the specified bit locationto perform the actual
@@ -3905,7 +3896,7 @@ public:
     //!     Trailing_Zero_8bits (as many bytes as there is). Anything listed above
     //!     before a Slice DataContext switch interrupt is not supported by this
     //!     command.
-    //!     
+    //!
     struct MFX_PAK_INSERT_OBJECT_CMD
     {
         union
@@ -4004,7 +3995,7 @@ public:
         //!     In case this flag is on, bits are NOT accumulated during current access
         //!     unit coding neither for Cabac Zero Word insertion bits counting or  for
         //!     output in MMIO register MFC_BITSTREAM_BYTECOUNT_FRAME_NO_HEADER. 
-        //!     					When using HeaderLenghtExcludeFrmSize for header insertion, the
+        //!                         When using HeaderLenghtExcludeFrmSize for header insertion, the
         //!     software needs to make sure that data comes already with inserted start
         //!     code emulation bytes. SW shouldn't set EmulationFlag bit ( Bit 3 of
         //!     DWORD1 of MFX_PAK_INSERT_OBJECT).
@@ -4031,7 +4022,7 @@ public:
     //!     encoder is called per slice-group, however the picture state is called
     //!     per picture.Notice that a slice-group is a group of consecutive slices
     //!     that no non-trivial slice headers are inserted in between.
-    //!     
+    //!
     struct MFX_MPEG2_PIC_STATE_CMD
     {
         union
@@ -4096,9 +4087,9 @@ public:
             //!< DWORD 3
             struct
             {
-                uint32_t                 Framewidthinmbsminus170PictureWidthInMacroblocks : __CODEGEN_BITFIELD( 0,  7)    ; //!< FrameWidthInMBsMinus1[7:0] (Picture Width in Macroblocks) 
+                uint32_t                 Framewidthinmbsminus170PictureWidthInMacroblocks : __CODEGEN_BITFIELD( 0,  7)    ; //!< FrameWidthInMBsMinus1[7:0] (Picture Width in Macroblocks)
                 uint32_t                 Reserved104                                      : __CODEGEN_BITFIELD( 8, 15)    ; //!< Reserved
-                uint32_t                 Frameheightinmbsminus170PictureHeightInMacroblocks : __CODEGEN_BITFIELD(16, 23)    ; //!< FrameHeightInMBsMinus1[7:0] (Picture Height in Macroblocks) 
+                uint32_t                 Frameheightinmbsminus170PictureHeightInMacroblocks : __CODEGEN_BITFIELD(16, 23)    ; //!< FrameHeightInMBsMinus1[7:0] (Picture Height in Macroblocks)
                 uint32_t                 Reserved120                                      : __CODEGEN_BITFIELD(24, 30)    ; //!< Reserved
                 uint32_t                 SliceConcealmentDisableBit                       : __CODEGEN_BITFIELD(31, 31)    ; //!< SLICE_CONCEALMENT_DISABLE_BIT
             };
@@ -4168,9 +4159,9 @@ public:
             //!< DWORD 8
             struct
             {
-                uint32_t                 Slicedeltaqpmax0                                 : __CODEGEN_BITFIELD( 0,  7)    ; //!< SliceDeltaQPMax[0] 
+                uint32_t                 Slicedeltaqpmax0                                 : __CODEGEN_BITFIELD( 0,  7)    ; //!< SliceDeltaQPMax[0]
                 uint32_t                 Slicedeltaqpmax1                                 : __CODEGEN_BITFIELD( 8, 15)    ; //!< SliceDeltaQPMax[1]
-                uint32_t                 Slicedeltaqpmax2                                 : __CODEGEN_BITFIELD(16, 23)    ; //!< SliceDeltaQPMax[2] 
+                uint32_t                 Slicedeltaqpmax2                                 : __CODEGEN_BITFIELD(16, 23)    ; //!< SliceDeltaQPMax[2]
                 uint32_t                 Slicedeltaqpmax3                                 : __CODEGEN_BITFIELD(24, 31)    ; //!< SLICEDELTAQPMAX3
             };
             uint32_t                     Value;
@@ -4180,10 +4171,10 @@ public:
             //!< DWORD 9
             struct
             {
-                uint32_t                 Slicedeltaqpmin0                                 : __CODEGEN_BITFIELD( 0,  7)    ; //!< SliceDeltaQPMin[0] 
-                uint32_t                 Slicedeltaqpmin1                                 : __CODEGEN_BITFIELD( 8, 15)    ; //!< SliceDeltaQPMin[1] 
-                uint32_t                 Slicedeltaqpmin2                                 : __CODEGEN_BITFIELD(16, 23)    ; //!< SliceDeltaQPMin[2] 
-                uint32_t                 Slicedeltaqpmin3                                 : __CODEGEN_BITFIELD(24, 31)    ; //!< SliceDeltaQPMin[3] 
+                uint32_t                 Slicedeltaqpmin0                                 : __CODEGEN_BITFIELD( 0,  7)    ; //!< SliceDeltaQPMin[0]
+                uint32_t                 Slicedeltaqpmin1                                 : __CODEGEN_BITFIELD( 8, 15)    ; //!< SliceDeltaQPMin[1]
+                uint32_t                 Slicedeltaqpmin2                                 : __CODEGEN_BITFIELD(16, 23)    ; //!< SliceDeltaQPMin[2]
+                uint32_t                 Slicedeltaqpmin3                                 : __CODEGEN_BITFIELD(24, 31)    ; //!< SliceDeltaQPMin[3]
             };
             uint32_t                     Value;
         } DW9;
@@ -4192,7 +4183,7 @@ public:
             //!< DWORD 10
             struct
             {
-                uint32_t                 Framebitratemin                                  : __CODEGEN_BITFIELD( 0, 13)    ; //!< FrameBitRateMin 
+                uint32_t                 Framebitratemin                                  : __CODEGEN_BITFIELD( 0, 13)    ; //!< FrameBitRateMin
                 uint32_t                 Framebitrateminunitmode                          : __CODEGEN_BITFIELD(14, 14)    ; //!< FRAMEBITRATEMINUNITMODE
                 uint32_t                 Framebitrateminunit                              : __CODEGEN_BITFIELD(15, 15)    ; //!< FRAMEBITRATEMINUNIT
                 uint32_t                 Framebitratemax                                  : __CODEGEN_BITFIELD(16, 29)    ; //!< FrameBitRateMax
@@ -4313,7 +4304,7 @@ public:
         //! \details
         //!     This field is only applicable if the Concealment Motion Vectors are
         //!     non-zero.
-        //!     					It is only possible  if "P/B Slice Concealment Mode" is set to "00"
+        //!                         It is only possible  if "P/B Slice Concealment Mode" is set to "00"
         //!     or "01" and left MB has non-zero motion vectors).
         enum PB_SLICE_PREDICTED_MOTION_VECTOR_OVERRIDE_FINAL_MV_VALUE_OVERRIDE
         {
@@ -4325,7 +4316,7 @@ public:
         //! \details
         //!     This field is only applicable if the Concealment Motion Type is
         //!     predicted to be Bi-directional. 
-        //!     					(It is only possible if "P/B Slice Concealment Mode" is set to "00"
+        //!                         (It is only possible if "P/B Slice Concealment Mode" is set to "00"
         //!     or "01" and left MB is a bi-directional MB).
         enum PB_SLICE_PREDICTED_BIDIR_MOTION_TYPE_OVERRIDE__BI_DIRECTION_MV_TYPE_OVERRIDE
         {
@@ -4361,7 +4352,7 @@ public:
         //!     out-of-bound or smaller than or equal to the current slice starting
         //!     position, VIN will set the current slice to be 1 MB and force VMDunit to
         //!     do slice concealment on the next slice.
-        //!     					This bit will disable this feature and the MB data from the next
+        //!                         This bit will disable this feature and the MB data from the next
         //!     slice will be decoded from bitstream.
         enum SLICE_CONCEALMENT_DISABLE_BIT
         {
@@ -4492,16 +4483,16 @@ public:
         //! \brief SLICEDELTAQPMAX3
         //! \details
         //!     This field is the Slice level delta QP for total
-        //!     					bit-count above FrameBitRateMax - first 1/8 regionThis field is
+        //!                         bit-count above FrameBitRateMax - first 1/8 regionThis field is
         //!     used to
-        //!     					calculate the suggested slice QP into the MFC_IMAGE_STATUS control
+        //!                         calculate the suggested slice QP into the MFC_IMAGE_STATUS control
         //!     register when
-        //!     					total bit count for the entire frame exceeds FrameBitRateMax but is
+        //!                         total bit count for the entire frame exceeds FrameBitRateMax but is
         //!     within 1/8
-        //!     					of FrameBitRateMaxDelta above FrameBitRateMax, i.e., in the range
+        //!                         of FrameBitRateMaxDelta above FrameBitRateMax, i.e., in the range
         //!     of
-        //!     					(FrameBitRateMax, (FrameBitRateMax+
-        //!     					FrameBitRateMaxDelta&gt;&gt;3).
+        //!                         (FrameBitRateMax, (FrameBitRateMax+
+        //!                         FrameBitRateMaxDelta&gt;&gt;3).
         enum SLICEDELTAQPMAX3
         {
             SLICEDELTAQPMAX3_DISABLE                                         = 0, //!< No additional details
@@ -4549,7 +4540,7 @@ public:
         //! \details
         //!     This field is used to select the slice delta QP when FrameBitRateMax Is
         //!     exceeded. It shares the same FrameBitrateMaxUnit.
-        //!     				The programmable range is either 0- 512KB or 4MBB in
+        //!                     The programmable range is either 0- 512KB or 4MBB in
         //!     FrameBitrateMaxUnit of 128 Bytes or 16KB respectively.
         enum FRAMEBITRATEMAXDELTA
         {
@@ -4577,7 +4568,7 @@ public:
     //!     location within the destination picture of the first macroblock in the
     //!     slice. The content in this command is identical to that in the
     //!     MEDIA_OBJECT command in VLD mode described in the Media Chapter.
-    //!     
+    //!
     struct MFD_MPEG2_BSD_OBJECT_CMD
     {
         union
@@ -4727,7 +4718,7 @@ public:
     //!     parameters are passed in as inline data and the non-zero DCT coefficient
     //!     data for the macroblock is passed in as indirect data.  Inline data
     //!     starts at dword 7 of MFD_IT_OBJECT command. There are 7 dwords total.
-    //!     
+    //!
     struct MFD_IT_OBJECT_MPEG2_INLINE_DATA_CMD
     {
         union
@@ -4853,19 +4844,19 @@ public:
         //! \details
         //!     A bit-wise representation of a long [2][2] array as defined in
         //!     #167;6.3.17.2 of the ISO/IEC 13818-2 (see also #167;7.6.4).
-        //!     						<table>
-        //!     							<thead>
-        //!     
-        //!     								<tr><td>Bit</td><td>MVector[r]</td><td>MVector[s]</td><td>MotionVerticalFieldSelect
+        //!                             <table>
+        //!                                 <thead>
+        //! 
+        //!                                     <tr><td>Bit</td><td>MVector[r]</td><td>MVector[s]</td><td>MotionVerticalFieldSelect
         //!     Index</td></tr>
-        //!     							</thead>
-        //!     							<tbody>
-        //!     								<tr><td>28</td><td>0</td><td>0</td><td>0</td></tr>
-        //!     								<tr><td>29</td><td>0</td><td>1</td><td>1</td></tr>
-        //!     								<tr><td>30</td><td>1</td><td>0</td><td>2</td></tr>
-        //!     								<tr><td>31</td><td>1</td><td>1</td><td>3</td></tr>
-        //!     							</tbody>
-        //!     						</table>
+        //!                                 </thead>
+        //!                                 <tbody>
+        //!                                     <tr><td>28</td><td>0</td><td>0</td><td>0</td></tr>
+        //!                                     <tr><td>29</td><td>0</td><td>1</td><td>1</td></tr>
+        //!                                     <tr><td>30</td><td>1</td><td>0</td><td>2</td></tr>
+        //!                                     <tr><td>31</td><td>1</td><td>1</td><td>3</td></tr>
+        //!                                 </tbody>
+        //!                             </table>
         enum MOTION_VERTICAL_FIELD_SELECT
         {
             MOTION_VERTICAL_FIELD_SELECT_TOPFIELD                            = 0, //!< The prediction is taken from the top reference field.
@@ -4890,7 +4881,7 @@ public:
     //!     parameters are passed in as inline data and the non-zero DCT coefficient
     //!     data for the macroblock is passed in as indirect data.  Inline data
     //!     starts at dword 7 of MFD_IT_OBJECT command. There are 7 dwords total.
-    //!     
+    //!
     struct MFD_IT_OBJECT_VC1_INLINE_DATA_CMD
     {
         union
@@ -5089,19 +5080,19 @@ public:
         //! \details
         //!     A bit-wise representation of a long [2][2] array as defined in
         //!     #167;6.3.17.2 of the ISO/IEC 13818-2 (see also #167;7.6.4).
-        //!     						<table>
-        //!     							<thead>
-        //!     
-        //!     								<tr><td>Bit</td><td>MVector[r]</td><td>MVector[s]</td><td>MotionVerticalFieldSelect
+        //!                             <table>
+        //!                                 <thead>
+        //! 
+        //!                                     <tr><td>Bit</td><td>MVector[r]</td><td>MVector[s]</td><td>MotionVerticalFieldSelect
         //!     Index</td></tr>
-        //!     							</thead>
-        //!     							<tbody>
-        //!     								<tr><td>28</td><td>0</td><td>0</td><td>0</td></tr>
-        //!     								<tr><td>29</td><td>0</td><td>1</td><td>1</td></tr>
-        //!     								<tr><td>30</td><td>1</td><td>0</td><td>2</td></tr>
-        //!     								<tr><td>31</td><td>1</td><td>1</td><td>3</td></tr>
-        //!     							</tbody>
-        //!     						</table>
+        //!                                 </thead>
+        //!                                 <tbody>
+        //!                                     <tr><td>28</td><td>0</td><td>0</td><td>0</td></tr>
+        //!                                     <tr><td>29</td><td>0</td><td>1</td><td>1</td></tr>
+        //!                                     <tr><td>30</td><td>1</td><td>0</td><td>2</td></tr>
+        //!                                     <tr><td>31</td><td>1</td><td>1</td><td>3</td></tr>
+        //!                                 </tbody>
+        //!                             </table>
         enum MOTION_VERTICAL_FIELD_SELECT
         {
             MOTION_VERTICAL_FIELD_SELECT_TOPFIELD                            = 0, //!< The prediction is taken from the top reference field.
@@ -5122,7 +5113,7 @@ public:
     //! \details
     //!     All weight mode (default and implicit) are mapped to explicit mode. But
     //!     the weights come in either as explicit or implicit.
-    //!     
+    //!
     struct MFD_IT_OBJECT_CMD
     {
         union
@@ -5244,7 +5235,7 @@ public:
     //!     within a picture that is comprised of multiple slice groups. The same
     //!     command is used for AVC encoder (PAK mode) and decoder (VLD and IT
     //!     modes).
-    //!     
+    //!
     struct MFC_MPEG2_SLICEGROUP_STATE_CMD
     {
         union
@@ -5447,9 +5438,9 @@ public:
         //! \brief RATECTRLPANICFLAG__RC_PANIC_ENABLE_ENCODER_ONLY
         //! \details
         //!     If this field is set to 1, RC enters panic mode
-        //!     					when sum_act &gt; sum_max. RC Panic Type field controls what type
+        //!                         when sum_act &gt; sum_max. RC Panic Type field controls what type
         //!     of panic
-        //!     					behavior is invoked.
+        //!                         behavior is invoked.
         enum RATECTRLPANICFLAG__RC_PANIC_ENABLE_ENCODER_ONLY
         {
             RATECTRLPANICFLAG_RC_PANIC_ENABLE_ENCODER_ONLY_DISABLE           = 0, //!< No additional details
@@ -5512,7 +5503,7 @@ public:
     //!     derivation of iScale and iShift) for remapping the reference frame
     //!     pixels, as well as perfoming the actual pixel remapping
     //!     calculations/process.
-    //!     
+    //!
     struct MFX_VC1_PRED_PIPE_STATE_CMD
     {
         union
@@ -5663,7 +5654,7 @@ public:
     //!     MFX_VC1_PRED_PIPE_STATE command.This Long interface format is intel
     //!     proprietary interface. Driver will need to perform addition operations
     //!     to generate all the fields in this command.
-    //!     
+    //!
     struct MFD_VC1_LONG_PIC_STATE_CMD
     {
         union
@@ -5958,20 +5949,20 @@ public:
         //! \brief PQUANTUNIFORM
         //! \details
         //!     Indicating if uniform quantization applies to the
-        //!     					picture. It is used for inverse quantization of the AC
+        //!                         picture. It is used for inverse quantization of the AC
         //!     coefficients.QUANTIZER
-        //!     					001123PQUANTIZER -
-        //!     					-01--PQINDEX&gt;=9&lt;=8----PQuantUniform010201ImplicitQuantizer =
+        //!                         001123PQUANTIZER -
+        //!                         -01--PQINDEX&gt;=9&lt;=8----PQuantUniform010201ImplicitQuantizer =
         //!     0, and
-        //!     					PQuantUniform = 0 is used to represent 2 cases : 1) QUANTIZER=01
+        //!                         PQuantUniform = 0 is used to represent 2 cases : 1) QUANTIZER=01
         //!     and
-        //!     					PQUANTIZER=0; and 2) QUANTIZER = 10b.ImplicitQuantizer = 0, and
+        //!                         PQUANTIZER=0; and 2) QUANTIZER = 10b.ImplicitQuantizer = 0, and
         //!     PQuantUniform =
-        //!     					1 is used to represent 2 cases : 1) QUANTIZER=01 and PQUANTIZER=1;
+        //!                         1 is used to represent 2 cases : 1) QUANTIZER=01 and PQUANTIZER=1;
         //!     and 2)
-        //!     					QUANTIZER = 11bThis field is unique to intel VC1 VLD Long format
+        //!                         QUANTIZER = 11bThis field is unique to intel VC1 VLD Long format
         //!     mode, and is
-        //!     					not used in IT and VC1 modes.
+        //!                         not used in IT and VC1 modes.
         enum PQUANTUNIFORM
         {
             PQUANTUNIFORM_UNNAMED0                                           = 0, //!< Non-uniform
@@ -6057,14 +6048,14 @@ public:
         //! \brief FASTUVMCFLAG_FAST_UV_MOTION_COMPENSATION_FLAG
         //! \details
         //!     This field specifies whether the motion vectors for
-        //!     					UV is rounded to half or full pel position. It is identical to the
+        //!                         UV is rounded to half or full pel position. It is identical to the
         //!     variable
-        //!     					FASTUVMC in VC1 standard.This field is used in both VLD and IT
+        //!                         FASTUVMC in VC1 standard.This field is used in both VLD and IT
         //!     modes.It is
-        //!     					derived from FASTUVMC = (bPicSpatialResid8 &gt;&gt; 4) &amp; 1 in
+        //!                         derived from FASTUVMC = (bPicSpatialResid8 &gt;&gt; 4) &amp; 1 in
         //!     both VLD and
-        //!     					IT modes, and should have the same value as Motion Vector Mode
-        //!     					LSBit.
+        //!                         IT modes, and should have the same value as Motion Vector Mode
+        //!                         LSBit.
         enum FASTUVMCFLAG_FAST_UV_MOTION_COMPENSATION_FLAG
         {
             FASTUVMCFLAG_FAST_UV_MOTION_COMPENSATION_FLAG_UNNAMED0           = 0, //!< no rounding
@@ -6238,8 +6229,8 @@ public:
     //!
     //! \brief MFD_VC1_SHORT_PIC_STATE
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct MFD_VC1_SHORT_PIC_STATE_CMD
     {
         union
@@ -6396,10 +6387,10 @@ public:
         //! \brief VC1_PROFILE
         //! \details
         //!     specifies the bitstream profile.
-        //!     					Note: This is required because 128 is added for intra blocks post
+        //!                         Note: This is required because 128 is added for intra blocks post
         //!     inverse transform in advanced profile and also to find out if Motion
         //!     vectors are adjusted or not.
-        //!     					This field is used in both VLD and IT modes.
+        //!                         This field is used in both VLD and IT modes.
         enum VC1_PROFILE
         {
             VC1_PROFILE_UNNAMED0                                             = 0, //!< current picture is in Simple or Main Profile (No need to distinguish Simple and Main Profile)
@@ -6434,14 +6425,14 @@ public:
         //! \brief FASTUVMCFLAG_FAST_UV_MOTION_COMPENSATION_FLAG
         //! \details
         //!     This field specifies whether the motion vectors for
-        //!     					UV is rounded to half or full pel position. It is identical to the
+        //!                         UV is rounded to half or full pel position. It is identical to the
         //!     variable
-        //!     					FASTUVMC in VC1 standard.This field is used in both VLD and IT
+        //!                         FASTUVMC in VC1 standard.This field is used in both VLD and IT
         //!     modes.It is
-        //!     					derived from FASTUVMC = (bPicSpatialResid8 &gt;&gt; 4) &amp; 1 in
+        //!                         derived from FASTUVMC = (bPicSpatialResid8 &gt;&gt; 4) &amp; 1 in
         //!     both VLD and
-        //!     					IT modes, and should have the same value as Motion Vector Mode
-        //!     					LSBit.
+        //!                         IT modes, and should have the same value as Motion Vector Mode
+        //!                         LSBit.
         enum FASTUVMCFLAG_FAST_UV_MOTION_COMPENSATION_FLAG
         {
             FASTUVMCFLAG_FAST_UV_MOTION_COMPENSATION_FLAG_UNNAMED0           = 0, //!< no rounding
@@ -6535,31 +6526,31 @@ public:
         //! \brief RANGE_REDUCTION_ENABLE
         //! \details
         //!     This field specifies whether on-the-fly pixel value
-        //!     					range reduction should be performed for the preceding (or forward)
+        //!                         range reduction should be performed for the preceding (or forward)
         //!     reference
-        //!     					picture. Along with RangeReductionScale to specify whether scale up
+        //!                         picture. Along with RangeReductionScale to specify whether scale up
         //!     or down
-        //!     					should be performed. It is not the same value as RANGEREDFRM Syntax
+        //!                         should be performed. It is not the same value as RANGEREDFRM Syntax
         //!     Element
-        //!     					(PictureParameters bPicDeblocked bit 5) in the Picture
+        //!                         (PictureParameters bPicDeblocked bit 5) in the Picture
         //!     Header.This field is
-        //!     					for Main Profile only. Simple Profile is always disable, and not
+        //!                         for Main Profile only. Simple Profile is always disable, and not
         //!     applicable to
-        //!     					Advanced Profile. This field is used in both VLD and IT modes.This
+        //!                         Advanced Profile. This field is used in both VLD and IT modes.This
         //!     is derived by
-        //!     					driver from the history of RANGERED and RANGEREDFRM syntax elements
+        //!                         driver from the history of RANGERED and RANGEREDFRM syntax elements
         //!     (i.e. of
-        //!     					forward/preceding reference picture) and those of the current
+        //!                         forward/preceding reference picture) and those of the current
         //!     picture.RANGERED
-        //!     					is the same as (bPicOverflowBlocks &gt;&gt; 3) &amp; 1. RANGEREDFRM
+        //!                         is the same as (bPicOverflowBlocks &gt;&gt; 3) &amp; 1. RANGEREDFRM
         //!     is the same
-        //!     					as (bPicDeblocked &gt;&gt; 5) &amp; 1.For the current picture is a
+        //!                         as (bPicDeblocked &gt;&gt; 5) &amp; 1.For the current picture is a
         //!     B picture,
-        //!     					this field represents the state of the forward/preceding reference
+        //!                         this field represents the state of the forward/preceding reference
         //!     picture
-        //!     					onlyDriver is responsible to keep RangeReductionScale,
+        //!                         onlyDriver is responsible to keep RangeReductionScale,
         //!     RangeReduction Enable and
-        //!     					RANGERED Present Flag of current picture coherent.
+        //!                         RANGERED Present Flag of current picture coherent.
         enum RANGE_REDUCTION_ENABLE
         {
             RANGE_REDUCTION_ENABLE_DISABLE                                   = 0, //!< Range reduction is not performed
@@ -6569,26 +6560,26 @@ public:
         //! \brief RANGE_REDUCTION_SCALE
         //! \details
         //!     This field specifies whether the reference picture
-        //!     					pixel values should be scaled up or scaled down on-the-fly, if
+        //!                         pixel values should be scaled up or scaled down on-the-fly, if
         //!     RangeReduction is
-        //!     					Enabled.NOTE: This bit is derived by driver for Main Profile only.
+        //!                         Enabled.NOTE: This bit is derived by driver for Main Profile only.
         //!     Ignored in
-        //!     					Simple and Advanced Profiles. This field is used in both VLD and IT
+        //!                         Simple and Advanced Profiles. This field is used in both VLD and IT
         //!     modes.This
-        //!     					is derived by driver from the history of RANGERED and RANGEREDFRM
+        //!                         is derived by driver from the history of RANGERED and RANGEREDFRM
         //!     syntax
-        //!     					elements (i.e. of forward/preceding reference picture) and those of
+        //!                         elements (i.e. of forward/preceding reference picture) and those of
         //!     the current
-        //!     					picture. RANGERED is the same as (bPicOverflowBlocks &gt;&gt; 3)
+        //!                         picture. RANGERED is the same as (bPicOverflowBlocks &gt;&gt; 3)
         //!     &amp; 1.
-        //!     					RANGEREDFRM is the same as (bPicDeblocked &gt;&gt; 5) &amp; 1. For
+        //!                         RANGEREDFRM is the same as (bPicDeblocked &gt;&gt; 5) &amp; 1. For
         //!     the current
-        //!     					picture is a B picture, this field represents the state of the
+        //!                         picture is a B picture, this field represents the state of the
         //!     forward/preceding
-        //!     					reference picture onlyDriver is responsible to keep
+        //!                         reference picture onlyDriver is responsible to keep
         //!     RangeReductionScale,
-        //!     					RangeReduction Enable and RANGERED Present Flag of current picture
-        //!     					coherent.
+        //!                         RangeReduction Enable and RANGERED Present Flag of current picture
+        //!                         coherent.
         enum RANGE_REDUCTION_SCALE
         {
             RANGE_REDUCTION_SCALE_DISABLE                                    = 0, //!< Scale down reference picture by factor of 2
@@ -6648,7 +6639,7 @@ public:
     //!     processing a B-picture) and one for write (when processing a P-Picture).
     //!      Each DMV record is 64 bits per MB, to store the top and bottom field
     //!     MVs (32-bit MVx,y each).
-    //!     
+    //!
     struct MFX_VC1_DIRECTMODE_STATE_CMD
     {
         union
@@ -6780,7 +6771,7 @@ public:
         //! \details
         //!     Distinguishes Vertical from Horizontal compression. Please refer to
         //!     vol1a
-        //!     					<b>Memory Data Formats</b> chapter, <b>Media Memory Compression</b>
+        //!                         <b>Memory Data Formats</b> chapter, <b>Media Memory Compression</b>
         //!     section for more details.
         enum DIRECT_MV_WRITE_BUFFER__MEMORY_COMPRESSION_MODE
         {
@@ -6791,7 +6782,7 @@ public:
         //! \brief DIRECT_MV_WRITE_BUFFER__TILED_RESOURCE_MODE
         //! \details
         //!     <b>For Media Surfaces:</b>
-        //!     					This field specifies the tiled resource mode.
+        //!                         This field specifies the tiled resource mode.
         enum DIRECT_MV_WRITE_BUFFER__TILED_RESOURCE_MODE
         {
             DIRECT_MV_WRITE_BUFFER_TILED_RESOURCE_MODE_TRMODENONE            = 0, //!< No tiled resource
@@ -6815,7 +6806,7 @@ public:
         //! \details
         //!     Distinguishes Vertical from Horizontal compression. Please refer to
         //!     vol1a
-        //!     					<b>Memory Data Formats</b> chapter, <b>Media Memory Compression</b>
+        //!                         <b>Memory Data Formats</b> chapter, <b>Media Memory Compression</b>
         //!     section for more details.
         enum DIRECT_MV_READ_BUFFER__MEMORY_COMPRESSION_MODE
         {
@@ -6826,7 +6817,7 @@ public:
         //! \brief DIRECT_MV_READ_BUFFER__TILED_RESOURCE_MODE
         //! \details
         //!     <b>For Media Surfaces:</b>
-        //!     					This field specifies the tiled resource mode.
+        //!                         This field specifies the tiled resource mode.
         enum DIRECT_MV_READ_BUFFER__TILED_RESOURCE_MODE
         {
             DIRECT_MV_READ_BUFFER_TILED_RESOURCE_MODE_TRMODENONE             = 0, //!< No tiled resource
@@ -6859,7 +6850,7 @@ public:
     //!     driver will program both start MB address in the current slice and the
     //!     start MB address of the next slice. As a result, we can also support
     //!     multiple picture state commands in between slices.
-    //!     
+    //!
     struct MFD_VC1_BSD_OBJECT_CMD
     {
         union
@@ -6968,8 +6959,8 @@ public:
     //!
     //! \brief MFX_JPEG_PIC_STATE
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct MFX_JPEG_PIC_STATE_CMD
     {
         union
@@ -7068,26 +7059,26 @@ public:
         //! \brief OUTPUT_MCU_STRUCTURE
         //! \details
         //!     <p></p>
-        //!     					Output MCU Structure(<b>OutputMcuStructure</b>) should be set
+        //!                         Output MCU Structure(<b>OutputMcuStructure</b>) should be set
         //!     accordingly for each Input Surface Format
         //!     YUV(<b>InputSurfaceFormatYUV</b>):
-        //!     					<ul>
-        //!     						<li>If <b>InputSurfaceFormatYUV</b> is set to NV12,
+        //!                         <ul>
+        //!                             <li>If <b>InputSurfaceFormatYUV</b> is set to NV12,
         //!     <b>OutputMCUStructure</b> is set to YUV420.</li>
-        //!     						<li>If <b>InputSurfaceFormatYUV</b> is set to UYVY or YUY2,
+        //!                             <li>If <b>InputSurfaceFormatYUV</b> is set to UYVY or YUY2,
         //!     <b>OutputMCUStructure</b> is set to YUV422H_2Y.</li>
-        //!     						<li>If <b>InputSurfaceFormatYUV</b> is set to Y8,
+        //!                             <li>If <b>InputSurfaceFormatYUV</b> is set to Y8,
         //!     <b>OutputMCuStructure</b> is set to YUV400.</li>
-        //!     						<li>If <b>InputSurfaceFormatYUV</b> is set to RGB (or GBR, BGR,
+        //!                             <li>If <b>InputSurfaceFormatYUV</b> is set to RGB (or GBR, BGR,
         //!     YUV), <b>OutputMCuStructure</b> is set to RGB.</li>
-        //!     						<li>If <b>InputSurfaceFormatYUV</b> is set to RGB, the order of
+        //!                             <li>If <b>InputSurfaceFormatYUV</b> is set to RGB, the order of
         //!     encoded blocks in MCU will be same as the order of input image
         //!     components. 
-        //!     							If the order of input image components is RGB (or GBR, BGR, YUV),
+        //!                                 If the order of input image components is RGB (or GBR, BGR, YUV),
         //!     then the order of blocks will be RGB (or GBR, BGR, YUV
         //!     respectively).</li>
-        //!     					</ul>
-        //!     					<p></p>
+        //!                         </ul>
+        //!                         <p></p>
         enum OUTPUT_MCU_STRUCTURE
         {
             OUTPUT_MCU_STRUCTURE_YUV_400                                     = 0, //!< Grayscale Image
@@ -7243,7 +7234,7 @@ public:
     //!     and shall be used in the remaining Scans of the current image.  Two
     //!     Huffman tables for luma and chroma will be sent to H/W, and chroma table
     //!     is used for both U and V.
-    //!     
+    //!
     struct MFC_JPEG_HUFF_TABLE_STATE_CMD
     {
         union
@@ -7274,9 +7265,7 @@ public:
 
         uint32_t                         DcTable[12];                                                                     //!< DC_TABLE
 
-
         uint32_t                         AcTable[162];                                                                    //!< AC_TABLE
-
 
         //! \name Local enumerations
 
@@ -7327,8 +7316,8 @@ public:
     //!
     //! \brief MFD_JPEG_BSD_OBJECT
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct MFD_JPEG_BSD_OBJECT_CMD
     {
         union
@@ -7447,7 +7436,7 @@ public:
     //! \brief MFC_JPEG_SCAN_OBJECT
     //! \details
     //!     Encoder Only
-    //!     
+    //!
     struct MFC_JPEG_SCAN_OBJECT_CMD
     {
         union
@@ -7524,7 +7513,7 @@ public:
         //!     encoded bitstream.
         enum IS_LAST_SCAN
         {
-            IS_LAST_SCAN_UNNAMED0                                            = 0, //!< Not the last Scan. 
+            IS_LAST_SCAN_UNNAMED0                                            = 0, //!< Not the last Scan.
             IS_LAST_SCAN_UNNAMED1                                            = 1, //!< Indicates that the current Scan is the last one.
         };
 
@@ -7532,7 +7521,7 @@ public:
         //! \details
         //!     If this flag is set to 0, then no MFC_JPEG_PAK_INSERT_OBJECT commands
         //!     will be sent. 
-        //!     					If this flag is set to 1, then one or more
+        //!                         If this flag is set to 1, then one or more
         //!     MFC_JPEG_PAK_INSERT_OBJECT commands will be sent after
         //!     MFC_JPEG_SCAN_OBJECT command.
         enum HEAD_PRESENT_FLAG
@@ -7545,7 +7534,7 @@ public:
         //! \details
         //!     DC Huffman table destination selector specifies one of two possible DC
         //!     table destinations for each Y, U, V, or R, G, B.
-        //!     					The DC Huffman tables shall have been loaded in destination 0 and 1
+        //!                         The DC Huffman tables shall have been loaded in destination 0 and 1
         //!     by the time of issuing MFC_JPEG_HUFF_TABLE_STATE Command.
         enum HUFFMAN_DC_TABLE
         {
@@ -7561,7 +7550,7 @@ public:
         //! \details
         //!     AC Huffman table destination selector specifies one of two possible AC
         //!     table destinations for each Y, U, V, or R, G, B.
-        //!     					The AC Huffman tables must have been loaded in destination 0 and 1
+        //!                         The AC Huffman tables must have been loaded in destination 0 and 1
         //!     by the time of issuing MFC_JPEG_HUFF_TABLE_STATE Command.
         enum HUFFMAN_AC_TABLE
         {
@@ -7588,7 +7577,7 @@ public:
     //!     This must be the very first command to issue after the surface state,
     //!     the pipe select and base address setting commands and must be issued
     //!     before MFX_VP8_PIC_STATE.
-    //!     
+    //!
     struct MFX_VP8_Encoder_CFG_CMD
     {
         union
@@ -7635,7 +7624,7 @@ public:
                 uint32_t                 MinFrameBitCountRateControlEnableMask            : __CODEGEN_BITFIELD( 1,  1)    ; //!< MIN_FRAME_BIT_COUNT_RATE_CONTROL_ENABLE_MASK
                 uint32_t                 MaxInterMbBitCountCheckEnableMask                : __CODEGEN_BITFIELD( 2,  2)    ; //!< Max Inter MB Bit Count Check Enable Mask
                 uint32_t                 MaxIntraMbBitCountCheckEnableMask                : __CODEGEN_BITFIELD( 3,  3)    ; //!< Max Intra MB Bit Count Check Enable Mask
-                uint32_t                 IntermediateBitBufferOverrunEnableMask           : __CODEGEN_BITFIELD( 4,  4)    ; //!< Intermediate Bit Buffer Overrun Enable Mask 
+                uint32_t                 IntermediateBitBufferOverrunEnableMask           : __CODEGEN_BITFIELD( 4,  4)    ; //!< Intermediate Bit Buffer Overrun Enable Mask
                 uint32_t                 FinalBistreamBufferOverrunEnableMask             : __CODEGEN_BITFIELD( 5,  5)    ; //!< Final Bistream Buffer Overrun Enable Mask
                 uint32_t                 QindexClampHighMaskForUnderflow                  : __CODEGEN_BITFIELD( 6,  6)    ; //!< Qindex_Clamp_High_mask for underflow
                 uint32_t                 QindexClampHighMaskForOverflow                   : __CODEGEN_BITFIELD( 7,  7)    ; //!< Qindex_Clamp_High_mask for overflow
@@ -7959,7 +7948,7 @@ public:
         //! \brief MAX_FRAME_BIT_COUNT_RATE_CONTROL_ENABLE_MASK
         //! \details
         //!     Enable Max. Frame Rate Control.
-        //!     					This is a mask bit controlling if the condition of frame level bit
+        //!                         This is a mask bit controlling if the condition of frame level bit
         //!     count is greater than or equal to FrameBitRateMax.
         enum MAX_FRAME_BIT_COUNT_RATE_CONTROL_ENABLE_MASK
         {
@@ -7970,7 +7959,7 @@ public:
         //! \brief MIN_FRAME_BIT_COUNT_RATE_CONTROL_ENABLE_MASK
         //! \details
         //!     Enable Min. Frame Rate Control. 
-        //!     					This is a mask bit controlling if the condition of frame level bit
+        //!                         This is a mask bit controlling if the condition of frame level bit
         //!     count is less than or equal to FrameBitRateMin.
         enum MIN_FRAME_BIT_COUNT_RATE_CONTROL_ENABLE_MASK
         {
@@ -8032,8 +8021,8 @@ public:
     //!
     //! \brief MFX_VP8_BSP_BUF_BASE_ADDR_STATE
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct MFX_VP8_BSP_BUF_BASE_ADDR_STATE_CMD
     {
         union
@@ -8091,7 +8080,7 @@ public:
             struct
             {
                 uint32_t                 Reserved128                                      : __CODEGEN_BITFIELD( 0,  5)    ; //!< Reserved
-                uint32_t                 IntermediateBufferBaseAddr                       : __CODEGEN_BITFIELD( 6, 31)    ; //!< Intermediate Buffer Base Addr 
+                uint32_t                 IntermediateBufferBaseAddr                       : __CODEGEN_BITFIELD( 6, 31)    ; //!< Intermediate Buffer Base Addr
             };
             uint32_t                     Value;
         } DW4;
@@ -8206,7 +8195,7 @@ public:
             struct
             {
                 uint32_t                 Reserved512                                      : __CODEGEN_BITFIELD( 0,  5)    ; //!< Reserved
-                uint32_t                 FinalFrameBaseAddr                               : __CODEGEN_BITFIELD( 6, 31)    ; //!< Final Frame Base Addr 
+                uint32_t                 FinalFrameBaseAddr                               : __CODEGEN_BITFIELD( 6, 31)    ; //!< Final Frame Base Addr
             };
             uint32_t                     Value;
         } DW16;
@@ -8253,7 +8242,7 @@ public:
                 uint32_t                 StreamoutBaseAddrGraphicsDataTypeGfdt            : __CODEGEN_BITFIELD( 2,  2)    ; //!< Streamout Base Addr - Graphics Data Type (GFDT)
                 uint32_t                 Reserved643                                      : __CODEGEN_BITFIELD( 3,  3)    ; //!< Reserved
                 uint32_t                 StreamoutBaseAddrArbitrationPriorityControl      : __CODEGEN_BITFIELD( 4,  5)    ; //!< STREAMOUT_BASE_ADDR__ARBITRATION_PRIORITY_CONTROL_
-                uint32_t                 StreamoutBaseAddr                                : __CODEGEN_BITFIELD( 6, 31)    ; //!< Streamout Base Addr 
+                uint32_t                 StreamoutBaseAddr                                : __CODEGEN_BITFIELD( 6, 31)    ; //!< Streamout Base Addr
             };
             uint32_t                     Value;
         } DW20;
@@ -8414,10 +8403,10 @@ public:
         //! \details
         //!     This field allows the selection of AGE parameter for a given surface in
         //!     LLC or eLLC. .
-        //!     					If a particular allocation is done at youngest age ("3") it tends
+        //!                         If a particular allocation is done at youngest age ("3") it tends
         //!     to stay longer in the cache as compared to older age allocations ("2",
         //!     "1", or "0").
-        //!     					This option is given to driver to be able to decide which surfaces
+        //!                         This option is given to driver to be able to decide which surfaces
         //!     are more likely to generate HITs, hence need to be replaced least often
         //!     in caches.
         enum FRAME_HEADER_BASE_ADDR__AGE_FOR_QUADLRU_AGE
@@ -8443,7 +8432,7 @@ public:
         //! \details
         //!     This is the field used in GT interface block to determine what type of
         //!     access need to be generated to uncore.
-        //!     					For the cases where the LeLLCCC is set, cacheable transaction are
+        //!                         For the cases where the LeLLCCC is set, cacheable transaction are
         //!     generated to enable LLC usage for particular stream.
         enum FOR_FRAMEHEADERBASEADDR__LLCELLC_CACHEABILITY_CONTROL_LELLCCC
         {
@@ -8469,10 +8458,10 @@ public:
         //! \details
         //!     This field allows the selection of AGE parameter for a given surface in
         //!     LLC or eLLC. . 
-        //!     					If a particular allocation is done at youngest age ("3") it tends
+        //!                         If a particular allocation is done at youngest age ("3") it tends
         //!     to stay longer in the cache as compared to older age allocations ("2",
         //!     "1", or "0").
-        //!     					This option is given to driver to be able to decide which surfaces
+        //!                         This option is given to driver to be able to decide which surfaces
         //!     are more likely to generate HITs, hence need to be replaced least often
         //!     in caches.
         enum INTERMEDIATE_BUFFER_BASE_ADDR_AGE_FOR_QUADLRU_AGE
@@ -8498,7 +8487,7 @@ public:
         //! \details
         //!     This is the field used in GT interface block to determine what type of
         //!     access need to be generated to uncore.
-        //!     					For the cases where the LeLLCCC is set, cacheable transaction are
+        //!                         For the cases where the LeLLCCC is set, cacheable transaction are
         //!     generated to enable LLC usage for particular stream.
         enum INTERMEDIATE_BUFFER_BASE_ADDR__LLCELLC_CACHEABILITY_CONTROL_LELLCCC
         {
@@ -8524,10 +8513,10 @@ public:
         //! \details
         //!     This field allows the selection of AGE parameter for a given surface in
         //!     LLC or eLLC. . 
-        //!     					If a particular allocation is done at youngest age ("3") it tends
+        //!                         If a particular allocation is done at youngest age ("3") it tends
         //!     to stay longer in the cache as compared to older age allocations ("2",
         //!     "1", or "0").
-        //!     					This option is given to driver to be able to decide which surfaces
+        //!                         This option is given to driver to be able to decide which surfaces
         //!     are more likely to generate HITs, hence need to be replaced least often
         //!     in caches.
         enum FINAL_FRAME_BASE_ADDR__AGE_FOR_QUADLRU_AGE
@@ -8553,7 +8542,7 @@ public:
         //! \details
         //!     This is the field used in GT interface block to determine what type of
         //!     access need to be generated to uncore.
-        //!     					For the cases where the LeLLCCC is set, cacheable transaction are
+        //!                         For the cases where the LeLLCCC is set, cacheable transaction are
         //!     generated to enable LLC usage for particular stream.
         enum FINAL_FRAME_BASE_ADDR__LLCELLC_CACHEABILITY_CONTROL_LELLCCC
         {
@@ -8599,10 +8588,10 @@ public:
         //! \details
         //!     This field allows the selection of AGE parameter for a given surface in
         //!     LLC or eLLC. . 
-        //!     					If a particular allocation is done at youngest age ("3") it tends
+        //!                         If a particular allocation is done at youngest age ("3") it tends
         //!     to stay longer in the cache as compared to older age allocations ("2",
         //!     "1", or "0").
-        //!     					This option is given to driver to be able to decide which surfaces
+        //!                         This option is given to driver to be able to decide which surfaces
         //!     are more likely to generate HITs, hence need to be replaced least often
         //!     in caches.
         enum STREAMOUT_BASE_ADDR__AGE_FOR_QUADLRU_AGE
@@ -8628,7 +8617,7 @@ public:
         //! \details
         //!     This is the field used in GT interface block to determine what type of
         //!     access need to be generated to uncore.
-        //!     					For the cases where the LeLLCCC is set, cacheable transaction are
+        //!                         For the cases where the LeLLCCC is set, cacheable transaction are
         //!     generated to enable LLC usage for particular stream.
         enum STREAMOUT_BASE_ADDR__LLCELLC_CACHEABILITY_CONTROL_LELLCCC
         {
@@ -8666,10 +8655,10 @@ public:
         //! \details
         //!     This field allows the selection of AGE parameter for a given surface in
         //!     LLC or eLLC. . 
-        //!     					If a particular allocation is done at youngest age ("3") it tends
+        //!                         If a particular allocation is done at youngest age ("3") it tends
         //!     to stay longer in the cache as compared to older age allocations ("2",
         //!     "1", or "0").
-        //!     					This option is given to driver to be able to decide which surfaces
+        //!                         This option is given to driver to be able to decide which surfaces
         //!     are more likely to generate HITs, hence need to be replaced least often
         //!     in caches.
         enum COEFF_PROBS_STREAMIN_SURFACE__AGE_FOR_QUADLRU_AGE
@@ -8695,7 +8684,7 @@ public:
         //! \details
         //!     This is the field used in GT interface block to determine what type of
         //!     access need to be generated to uncore.
-        //!     					For the cases where the LeLLCCC is set, cacheable transaction are
+        //!                         For the cases where the LeLLCCC is set, cacheable transaction are
         //!     generated to enable LLC usage for particular stream.
         enum COEFF_PROBS_STREAMIN_SURFACE__LLCELLC_CACHEABILITY_CONTROL_LELLCCC
         {
@@ -8723,7 +8712,7 @@ public:
         //!     LLC or eLLC. . If a particular allocation is done at youngest age ("3")
         //!     it tends to stay longer in the cache as compared to older age
         //!     allocations ("2", "1", or "0").
-        //!     					This option is given to driver to be able to decide which surfaces
+        //!                         This option is given to driver to be able to decide which surfaces
         //!     are more likely to generate HITs, hence need to be replaced least often
         //!     in caches.
         enum TOKEN_STATISTICS_SURFACE__AGE_FOR_QUADLRU_AGE
@@ -8749,7 +8738,7 @@ public:
         //! \details
         //!     This is the field used in GT interface block to determine what type of
         //!     access need to be generated to uncore.
-        //!     					For the cases where the LeLLCCC is set, cacheable transaction are
+        //!                         For the cases where the LeLLCCC is set, cacheable transaction are
         //!     generated to enable LLC usage for particular stream.
         enum MEMORY_TYPE_LLCELLC_CACHEABILITY_CONTROL_LELLCCC_FOR_COEFFPROBS_STREAMIN_SURFACE
         {
@@ -8801,7 +8790,7 @@ public:
         //!     in LLC or eLLC. . If a particular allocation is done at youngest age
         //!     ("3") it tends to stay longer in the cache as compared to older age
         //!     allocations ("2", "1", or "0").
-        //!     					This option is given to driver to be able to decide which surfaces
+        //!                         This option is given to driver to be able to decide which surfaces
         //!     are more likely to generate HITs, hence need to be replaced least often
         //!     in caches.</b>
         enum MPC_ROWSTORE_SURFACE__AGE_FOR_QUADLRU_AGE
@@ -8867,7 +8856,7 @@ public:
     //!     used to set these states need to have been issued prior to the issue of
     //!     a MFD_VP8_BSD_OBJECT command. Context switch interrupt is not supported
     //!     by this command.
-    //!     
+    //!
     struct MFD_VP8_BSD_OBJECT_CMD
     {
         union
@@ -9182,7 +9171,7 @@ public:
     //!     This must be the very first command to issue after the surface state,
     //!     the pipe select and base address setting commands and must be issued
     //!     before MFX_VP8_IMG_STATE.
-    //!     
+    //!
     struct MFX_VP8_PIC_STATE_CMD
     {
         union
@@ -9878,7 +9867,7 @@ public:
         //! \details
         //!     Distinguishes Vertical from Horizontal compression. Please refer to
         //!     vol1a
-        //!     					<b>Memory Data Formats</b> chapter, <b>Media Memory Compression</b>
+        //!                         <b>Memory Data Formats</b> chapter, <b>Media Memory Compression</b>
         //!     section for more details.
         enum COEFFPROBABILITY_STREAMIN__MEMORY_COMPRESSION_MODE
         {
@@ -9889,7 +9878,7 @@ public:
         //! \brief COEFFPROBABILITY_STREAMIN__TILED_RESOURCE_MODE
         //! \details
         //!     <b>For Media Surfaces:</b>
-        //!     					This field specifies the tiled resource mode.
+        //!                         This field specifies the tiled resource mode.
         enum COEFFPROBABILITY_STREAMIN__TILED_RESOURCE_MODE
         {
             COEFFPROBABILITY_STREAMIN_TILED_RESOURCE_MODE_TRMODENONE         = 0, //!< No tiled resource
@@ -9913,7 +9902,7 @@ public:
         //! \details
         //!     Distinguishes Vertical from Horizontal compression. Please refer to
         //!     vol1a
-        //!     					<b>Memory Data Formats</b> chapter, <b>Media Memory Compression</b>
+        //!                         <b>Memory Data Formats</b> chapter, <b>Media Memory Compression</b>
         //!     section for more details.
         enum SEGMENTATION_ID_STREAM__MEMORY_COMPRESSION_MODE
         {
@@ -9924,7 +9913,7 @@ public:
         //! \brief SEGMENTATION_ID_STREAM__TILED_RESOURCE_MODE
         //! \details
         //!     <b>For Media Surfaces:</b>
-        //!     					This field specifies the tiled resource mode.
+        //!                         This field specifies the tiled resource mode.
         enum SEGMENTATION_ID_STREAM__TILED_RESOURCE_MODE
         {
             SEGMENTATION_ID_STREAM_TILED_RESOURCE_MODE_TRMODENONE            = 0, //!< No tiled resource
@@ -9949,7 +9938,7 @@ public:
     //!     destination, it replaces the previous tables stored in that destination
     //!     and shall be used in the remaining Scans of the current image. A Huffman
     //!     table will be sent to H/W only when it is loaded from bitstream.
-    //!     
+    //!
     struct MFX_JPEG_HUFF_TABLE_STATE_CMD
     {
         union
@@ -9980,12 +9969,9 @@ public:
 
         uint32_t                         DcBits128BitArray[3];                                                            //!< DC_BITS (12 8-bit array)
 
-
         uint32_t                         DcHuffval128BitArray[3];                                                         //!< DC_HUFFVAL (12 8-bit array)
 
-
         uint32_t                         AcBits168BitArray[4];                                                            //!< AC_BITS (16 8-bit array)
-
 
         uint32_t                         AcHuffval1608BitArray[40];                                                       //!< AC_HUFFVAL (160 8-bit array)
 
@@ -10051,7 +10037,7 @@ public:
     //!     GraphicsAddress, when bits 5:0 are already defined in the referring
     //!     register. So bit 0 of this structure should correspond to bit 6 of the
     //!     full GraphicsAddress.
-    //!     
+    //!
     struct GRAPHICSADDRESS63_6_CMD
     {
         union
@@ -10094,7 +10080,7 @@ public:
     //!     format, there is no need to provide buffer offset for each slice; since
     //!     from each MB address, the hardware can calculated the corresponding
     //!     memory location within the frame buffer directly.
-    //!     
+    //!
     struct MFX_PIPE_BUF_ADDR_STATE_CMD
     {
         union
@@ -10609,7 +10595,7 @@ public:
         //! \brief PRE_DEBLOCKING__TILED_RESOURCE_MODE
         //! \details
         //!     <b>For Media Surfaces:</b>
-        //!     					This field specifies the tiled resource mode.
+        //!                         This field specifies the tiled resource mode.
         enum PRE_DEBLOCKING__TILED_RESOURCE_MODE
         {
             PRE_DEBLOCKING_TILED_RESOURCE_MODE_TRMODENONE                    = 0, //!< No tiled resource
@@ -10651,7 +10637,7 @@ public:
         //! \brief POST_DEBLOCKING__TILED_RESOURCE_MODE
         //! \details
         //!     <b>For Media Surfaces:</b>
-        //!     					This field specifies the tiled resource mode.
+        //!                         This field specifies the tiled resource mode.
         enum POST_DEBLOCKING__TILED_RESOURCE_MODE
         {
             POST_DEBLOCKING_TILED_RESOURCE_MODE_TRMODENONE                   = 0, //!< No tiled resource
@@ -10696,7 +10682,7 @@ public:
         //! \brief ORIGINAL_UNCOMPRESSED_PICTURE__TILED_RESOURCE_MODE
         //! \details
         //!     <b>For Media Surfaces:</b>
-        //!     					This field specifies the tiled resource mode.
+        //!                         This field specifies the tiled resource mode.
         enum ORIGINAL_UNCOMPRESSED_PICTURE__TILED_RESOURCE_MODE
         {
             ORIGINAL_UNCOMPRESSED_PICTURE_TILED_RESOURCE_MODE_TRMODENONE     = 0, //!< No tiled resource
@@ -10741,7 +10727,7 @@ public:
         //! \brief STREAMOUT_DATA_DESTINATION__TILED_RESOURCE_MODE
         //! \details
         //!     <b>For Media Surfaces:</b>
-        //!     					This field specifies the tiled resource mode.
+        //!                         This field specifies the tiled resource mode.
         enum STREAMOUT_DATA_DESTINATION__TILED_RESOURCE_MODE
         {
             STREAMOUT_DATA_DESTINATION_TILED_RESOURCE_MODE_TRMODENONE        = 0, //!< No tiled resource
@@ -10795,7 +10781,7 @@ public:
         //! \brief INTRA_ROW_STORE_SCRATCH_BUFFER__TILED_RESOURCE_MODE
         //! \details
         //!     <b>For Media Surfaces:</b>
-        //!     					This field specifies the tiled resource mode.
+        //!                         This field specifies the tiled resource mode.
         enum INTRA_ROW_STORE_SCRATCH_BUFFER__TILED_RESOURCE_MODE
         {
             INTRA_ROW_STORE_SCRATCH_BUFFER_TILED_RESOURCE_MODE_TRMODENONE    = 0, //!< No tiled resource
@@ -10850,7 +10836,7 @@ public:
         //! \brief DEBLOCKING_FILTER_ROW_STORE__TILED_RESOURCE_MODE
         //! \details
         //!     <b>For Media Surfaces:</b>
-        //!     					This field specifies the tiled resource mode.
+        //!                         This field specifies the tiled resource mode.
         enum DEBLOCKING_FILTER_ROW_STORE__TILED_RESOURCE_MODE
         {
             DEBLOCKING_FILTER_ROW_STORE_TILED_RESOURCE_MODE_TRMODENONE       = 0, //!< No tiled resource
@@ -10873,7 +10859,7 @@ public:
         //! \brief REFERENCE_PICTURE__TILED_RESOURCE_MODE
         //! \details
         //!     <b>For Media Surfaces:</b>
-        //!     					This field specifies the tiled resource mode.
+        //!                         This field specifies the tiled resource mode.
         enum REFERENCE_PICTURE__TILED_RESOURCE_MODE
         {
             REFERENCE_PICTURE_TILED_RESOURCE_MODE_TRMODENONE                 = 0, //!< No tiled resource
@@ -10918,7 +10904,7 @@ public:
         //! \brief MACROBLOCK_STATUS_BUFFER__TILED_RESOURCE_MODE
         //! \details
         //!     <b>For Media Surfaces:</b>
-        //!     					This field specifies the tiled resource mode.
+        //!                         This field specifies the tiled resource mode.
         enum MACROBLOCK_STATUS_BUFFER__TILED_RESOURCE_MODE
         {
             MACROBLOCK_STATUS_BUFFER_TILED_RESOURCE_MODE_TRMODENONE          = 0, //!< No tiled resource
@@ -10963,7 +10949,7 @@ public:
         //! \brief MACROBLOCK_ILDB_STREAMOUT__TILED_RESOURCE_MODE
         //! \details
         //!     <b>For Media Surfaces:</b>
-        //!     					This field specifies the tiled resource mode.
+        //!                         This field specifies the tiled resource mode.
         enum MACROBLOCK_ILDB_STREAMOUT__TILED_RESOURCE_MODE
         {
             MACROBLOCK_ILDB_STREAMOUT_TILED_RESOURCE_MODE_TRMODENONE         = 0, //!< No tiled resource
@@ -10996,7 +10982,7 @@ public:
         //! \brief SECOND_MACROBLOCK_ILDB_STREAMOUT_BUFFER__TILED_RESOURCE_MODE
         //! \details
         //!     <b>For Media Surfaces:</b>
-        //!     					This field specifies the tiled resource mode.
+        //!                         This field specifies the tiled resource mode.
         enum SECOND_MACROBLOCK_ILDB_STREAMOUT_BUFFER__TILED_RESOURCE_MODE
         {
             SECOND_MACROBLOCK_ILDB_STREAMOUT_BUFFER_TILED_RESOURCE_MODE_TRMODENONE = 0, //!< No tiled resource
@@ -11224,9 +11210,9 @@ public:
         //!     Distinguishes Vertical from Horizontal compression. Please refer to
         //!     vol1a Memory Data Formats chapter -section Media Memory Compression for
         //!     more details.
-        //!     					Note:  This bit is not used unless Memory Compression Enable is set
+        //!                         Note:  This bit is not used unless Memory Compression Enable is set
         //!     to "1"
-        //!     					Note:  This is a READ Surface.  The setting of this bit should
+        //!                         Note:  This is a READ Surface.  The setting of this bit should
         //!     match the settings on how this is written out before.
         enum REFERENCE_PICTURE_11__MEMORY_COMPRESSION_MODE
         {
@@ -11336,7 +11322,7 @@ public:
         //! \brief SCALED_REFERENCE_SURFACE__TILED_RESOURCE_MODE
         //! \details
         //!     For Media Surfaces:
-        //!     					This field specifies the tiled resource mode
+        //!                         This field specifies the tiled resource mode
         enum SCALED_REFERENCE_SURFACE__TILED_RESOURCE_MODE
         {
             SCALED_REFERENCE_SURFACE_TILED_RESOURCE_MODE_TRMODENONE          = 0, //!< No tiled resource
@@ -11377,7 +11363,6 @@ public:
             SLICESIZE_STREAMOUT_DATA_DESTINATION_TILED_RESOURCE_MODE_TRMODETILEYS = 2, //!< No tiled resource
         };
 
-
         //! \name Initializations
 
         //! \brief Explicit member initialization function
@@ -11398,7 +11383,7 @@ public:
     //!     decoding in VLD and IT modes, and AVC encoder mode. The same command
     //!     supports both Long and Short AVC Interface. The DMV buffers are
     //!     not required to be programmed for encoder mode.
-    //!     
+    //!
     struct MFX_AVC_DIRECTMODE_STATE_CMD
     {
         union
@@ -11455,7 +11440,6 @@ public:
 
         uint32_t                         PocList[34];                                                                     //!< POC List
 
-
         //! \name Local enumerations
 
         enum SUBOPCODEB
@@ -11509,9 +11493,9 @@ public:
         //!     Distinguishes Vertical from Horizontal compression. Please refer to
         //!     vol1a Memory Data Formats chapter -section Media Memory Compression for
         //!     more details.
-        //!     					Note:  This bit is not used unless Memory Compression Enable is set
+        //!                         Note:  This bit is not used unless Memory Compression Enable is set
         //!     to "1"
-        //!     					Note:  This is a READ Surface.  The setting of this bit should
+        //!                         Note:  This is a READ Surface.  The setting of this bit should
         //!     match the settings on how this is written out before.
         enum DIRECT_MV_BUFFER_BASE_ADDRESS_FOR_REFERENCE_FRAME__MEMORY_COMPRESSION_MODE
         {
@@ -11522,7 +11506,7 @@ public:
         //! \brief DIRECT_MV_BUFFER_BASE_ADDRESS_FOR_REFERENCE_FRAME__TILED_RESOURCE_MODE
         //! \details
         //!     <b>For Media Surfaces:</b>
-        //!     					This field specifies the tiled resource mode.
+        //!                         This field specifies the tiled resource mode.
         enum DIRECT_MV_BUFFER_BASE_ADDRESS_FOR_REFERENCE_FRAME__TILED_RESOURCE_MODE
         {
             DIRECT_MV_BUFFER_BASE_ADDRESS_FOR_REFERENCE_FRAME_TILED_RESOURCE_MODE_TRMODENONE = 0, //!< No tiled resource
@@ -11556,9 +11540,9 @@ public:
         //!     Distinguishes Vertical from Horizontal compression. Please refer to
         //!     vol1a Memory Data Formats chapter -section Media Memory Compression for
         //!     more details.
-        //!     					Note:  This bit is not used unless Memory Compression Enable is set
+        //!                         Note:  This bit is not used unless Memory Compression Enable is set
         //!     to "1"
-        //!     					Note:  This is a READ Surface.  The setting of this bit should
+        //!                         Note:  This is a READ Surface.  The setting of this bit should
         //!     match the settings on how this is written out before.
         enum DIRECT_MV_BUFFER_BASE_ADDRESS_FOR_WRITE__MEMORY_COMPRESSION_MODE
         {
@@ -11569,7 +11553,7 @@ public:
         //! \brief DIRECT_MV_BUFFER_BASE_ADDRESS_FOR_WRITE__TILED_RESOURCE_MODE
         //! \details
         //!     <b>For Media Surfaces:</b>
-        //!     					This field specifies the tiled resource mode.
+        //!                         This field specifies the tiled resource mode.
         enum DIRECT_MV_BUFFER_BASE_ADDRESS_FOR_WRITE__TILED_RESOURCE_MODE
         {
             DIRECT_MV_BUFFER_BASE_ADDRESS_FOR_WRITE_TILED_RESOURCE_MODE_TRMODENONE = 0, //!< No tiled resource

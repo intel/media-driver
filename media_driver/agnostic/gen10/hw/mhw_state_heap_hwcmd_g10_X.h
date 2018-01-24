@@ -48,8 +48,8 @@ public:
     //!
     //! \brief INTERFACE_DESCRIPTOR_DATA
     //! \details
-    //!     
-    //!     
+    //! 
+    //!
     struct INTERFACE_DESCRIPTOR_DATA_CMD
     {
         union
@@ -206,8 +206,8 @@ public:
         //! \details
         //!     Specifies how many samplers (in multiples of 4) the kernel uses.  Used
         //!     only for prefetching the associated sampler state entries. 
-        //!     					<i>This field is ignored for child threads.</i>
-        //!     					<i>If this field is not zero, sampler state is prefetched for the
+        //!                         <i>This field is ignored for child threads.</i>
+        //!                         <i>If this field is not zero, sampler state is prefetched for the
         //!     first instance of a root thread upon the startup of the media
         //!     pipeline.</i>
         enum SAMPLER_COUNT
@@ -264,7 +264,7 @@ public:
     //!     indexes beyond 256 will automatically be mapped to entry 0 by the HW, w/
     //!     the exception of any messages which support the special indexes 240
     //!     through 255, inclusive.
-    //!     
+    //!
     struct BINDING_TABLE_STATE_CMD
     {
         union
@@ -294,7 +294,7 @@ public:
     //! \details
     //!     This is the normal surface state used by all messages that use
     //!     SURFACE_STATE except those that use MEDIA_SURFACE_STATE.
-    //!     
+    //!
     struct RENDER_SURFACE_STATE_CMD
     {
         union
@@ -446,19 +446,19 @@ public:
             //!< DWORD 10..11
             struct
             {
-                uint64_t                 QuiltWidth                                       : __CODEGEN_BITFIELD( 0,  4)    ; //!< Quilt Width, 
-                uint64_t                 QuiltHeight                                      : __CODEGEN_BITFIELD( 5,  9)    ; //!< Quilt Height, 
-                uint64_t                 ClearValueAddressEnable                          : __CODEGEN_BITFIELD(10, 10)    ; //!< CLEAR_VALUE_ADDRESS_ENABLE, 
-                uint64_t                 Reserved331                                      : __CODEGEN_BITFIELD(11, 63)    ; //!< Reserved, 
+                uint64_t                 QuiltWidth                                       : __CODEGEN_BITFIELD( 0,  4)    ; //!< Quilt Width,
+                uint64_t                 QuiltHeight                                      : __CODEGEN_BITFIELD( 5,  9)    ; //!< Quilt Height,
+                uint64_t                 ClearValueAddressEnable                          : __CODEGEN_BITFIELD(10, 10)    ; //!< CLEAR_VALUE_ADDRESS_ENABLE,
+                uint64_t                 Reserved331                                      : __CODEGEN_BITFIELD(11, 63)    ; //!< Reserved,
             } Obj0;
             struct
             {
-                uint64_t                 Reserved320                                      : __CODEGEN_BITFIELD( 0, 11)    ; //!< Reserved, 
+                uint64_t                 Reserved320                                      : __CODEGEN_BITFIELD( 0, 11)    ; //!< Reserved,
                 uint64_t                 AuxiliarySurfaceBaseAddress                      : __CODEGEN_BITFIELD(12, 63)    ; //!< Auxiliary Surface Base Address, ([Surface Format] != 'PLANAR') AND [Memory Compression Enable] == 0
             } Obj1;
             struct
             {
-                uint64_t                 Reserved320                                      : __CODEGEN_BITFIELD( 0, 20)    ; //!< Reserved, 
+                uint64_t                 Reserved320                                      : __CODEGEN_BITFIELD( 0, 20)    ; //!< Reserved,
                 uint64_t                 AuxiliaryTableIndexForMediaCompressedSurface     : __CODEGEN_BITFIELD(21, 31)    ; //!< Auxiliary Table Index for Media Compressed Surface, [Memory Compression Enable] ==1
                 uint64_t                 Reserved352                                      : __CODEGEN_BITFIELD(32, 63)    ; //!< Reserved, [Memory Compression Enable] ==1
             } Obj2;
@@ -878,7 +878,7 @@ public:
         //! \brief RENDER_TARGET_AND_SAMPLE_UNORM_ROTATION
         //! \details
         //!     <b>For Render Target Surfaces:</b>
-        //!     					This field specifies the rotation of this render target surface
+        //!                         This field specifies the rotation of this render target surface
         //!     when being written to memory.
         enum RENDER_TARGET_AND_SAMPLE_UNORM_ROTATION
         {
@@ -900,10 +900,10 @@ public:
         //! \brief TILED_RESOURCE_MODE
         //! \details
         //!     <b>For Sampling Engine, Render Target, and Typed/Untyped Surfaces:</b>
-        //!     					This field specifies the tiled resource mode.
-        //!     					
-        //!     					<b>For other surfaces:</b>
-        //!     					This field is ignored.
+        //!                         This field specifies the tiled resource mode.
+        //! 
+        //!                         <b>For other surfaces:</b>
+        //!                         This field is ignored.
         enum TILED_RESOURCE_MODE
         {
             TILED_RESOURCE_MODE_NONE                                         = 0, //!< No tiled resource
@@ -1025,7 +1025,7 @@ public:
     //! \details
     //!     This is the SURFACE_STATE used by only deinterlace, sample_8x8, and VME
     //!     messages.
-    //!     
+    //!
     struct MEDIA_SURFACE_STATE_CMD
     {
         union
@@ -1257,9 +1257,9 @@ public:
         //! \brief TILED_RESOURCE_MODE
         //! \details
         //!     <b>For Sampling Engine, Render Target, and Typed/Untyped Surfaces:</b>
-        //!     					This field specifies the tiled resource mode.
-        //!     					<b>For other surfaces:</b>
-        //!     					This field is ignored.
+        //!                         This field specifies the tiled resource mode.
+        //!                         <b>For other surfaces:</b>
+        //!                         This field is ignored.
         enum TILED_RESOURCE_MODE
         {
             TILED_RESOURCE_MODE_TRMODENONE                                   = 0, //!< No tiled resource
@@ -1285,7 +1285,7 @@ public:
     //!     dwords described here. The start of each element is spaced 4 dwords
     //!     apart. The first element of the sampler state array is aligned to a
     //!     32-byte boundary.
-    //!     
+    //!
     struct SAMPLER_STATE_CMD
     {
         union
@@ -1423,7 +1423,7 @@ public:
         //! \details
         //!     <p>This field determines whether the computed LOD is clamped to
         //!     [max,min] mip level
-        //!     					before the mag-vs-min determination is performed.</p>
+        //!                         before the mag-vs-min determination is performed.</p>
         enum LOD_PRECLAMP_MODE
         {
             LOD_PRECLAMP_MODE_NONE                                           = 0, //!< LOD PreClamp disabled
@@ -1553,7 +1553,7 @@ public:
         enum TRILINEAR_FILTER_QUALITY
         {
             TRILINEAR_FILTER_QUALITY_FULL                                    = 0, //!< Full Quality. Both mip maps are sampled under all circumstances.
-            TRILINEAR_FILTER_QUALITY_TRIQUALHIGHMAGCLAMPMIPFILTER            = 1, //!< High Quality. 
+            TRILINEAR_FILTER_QUALITY_TRIQUALHIGHMAGCLAMPMIPFILTER            = 1, //!< High Quality.
             TRILINEAR_FILTER_QUALITY_MED                                     = 2, //!< Medium Quality.
             TRILINEAR_FILTER_QUALITY_LOW                                     = 3, //!< Low Quality.
         };
@@ -1601,7 +1601,7 @@ public:
     //! \brief SAMPLER_STATE_8x8_AVS_COEFFICIENTS
     //! \details
     //!     ExistsIf = AVS &amp;&amp; (Function_mode = 0)
-    //!     
+    //!
     struct SAMPLER_STATE_8x8_AVS_COEFFICIENTS_CMD
     {
         union
@@ -1712,7 +1712,7 @@ public:
     //! \brief SAMPLER_STATE_8x8_AVS
     //! \details
     //!     ExistsIf = AVS &amp;&amp; (Function_mode = 0)
-    //!     
+    //!
     struct SAMPLER_STATE_8x8_AVS_CMD
     {
         union
@@ -1946,9 +1946,7 @@ public:
 
         uint32_t                         Reserved4928[6];                                                                 //!< Reserved
 
-
         mhw_state_heap_g10_X::SAMPLER_STATE_8x8_AVS_COEFFICIENTS_CMD FilterCoefficient1731[15];                           //!< Filter Coefficient[17..31]
-
 
         //! \name Local enumerations
 
@@ -2335,7 +2333,7 @@ public:
         //! \details
         //!     This should be always set to 0 for YUV input and can be enabled/disabled
         //!     for RGB input.
-        //!     					This should be enabled only if we enable 8-tap adaptive filter for
+        //!                         This should be enabled only if we enable 8-tap adaptive filter for
         //!     RGB input.
         enum RGB_ADAPTIVE
         {
@@ -2389,13 +2387,13 @@ public:
     //! \details
     //!     Function: 0001b ExistsIf: [Convolve] &amp;&amp; [SKL_mode==0] &amp;&amp;
     //!     [(Kernel Size) =< (15x15)]
-    //!     
+    //! 
     //!     Function: 1010b ExistsIf: "[1Pixel Convolution ] &amp;&amp; [(Kernel
     //!     Size) =< (15x15)]
-    //!     
+    //! 
     //!     Function: 0001b ExistsIf: [Convolve] &amp;&amp; [SKL_mode==1] &amp;&amp;
     //!     [(Kernel Size) > (15x15)]
-    //!     
+    //!
     struct SAMPLER_STATE_8x8_CONVOLVE_COEFFICIENTS_CMD
     {
         union
@@ -2495,13 +2493,13 @@ public:
     //! \details
     //!     Function: 0001b ExistsIf: [Convolve] &amp;&amp; [SKL_mode==0] &amp;&amp;
     //!     [(Kernel Size) =< (15x15)]
-    //!     
+    //! 
     //!     Function: 1010b ExistsIf: "[1Pixel Convolution ] &amp;&amp; [(Kernel
     //!     Size) =< (15x15)]
-    //!     
+    //! 
     //!     Function: 0001b ExistsIf: [Convolve] &amp;&amp; [SKL_mode==1] &amp;&amp;
     //!     [(Kernel Size) > (15x15)]
-    //!     
+    //!
     struct SAMPLER_STATE_8x8_CONVOLVE_CMD
     {
         union
@@ -2524,9 +2522,7 @@ public:
 
         uint32_t                         Reserved32[15];                                                                  //!< Reserved
 
-
         mhw_state_heap_g10_X::SAMPLER_STATE_8x8_CONVOLVE_COEFFICIENTS_CMD FilterCoefficient300310[62];                    //!< Filter Coefficient[30:0,31:0]
-
 
         //! \name Local enumerations
 
@@ -2540,7 +2536,7 @@ public:
         //! \details
         //!     It contains the MSB HEIGHT of the kernel and is used to extend the
         //!     kernel width range to 31.
-        //!     					Used along with bits[3:0] which represents the LSB for the kernel
+        //!                         Used along with bits[3:0] which represents the LSB for the kernel
         //!     Height.
         enum MSB_HEIGHT
         {
@@ -2552,7 +2548,7 @@ public:
         //! \details
         //!     It contains the MSB Width of the kernel and is used to extend the kernel
         //!     width range to 31.
-        //!     					Used along with bits[3:0] which represents the LSB for the kernel
+        //!                         Used along with bits[3:0] which represents the LSB for the kernel
         //!     Height.
         enum MSB_WIDTH
         {
@@ -2574,14 +2570,14 @@ public:
     //! \details
     //!     The table is valid for the following funstions: 0100 - Erode 0101 -
     //!     Dilate 0011 - MinMaxFilter
-    //!     
+    //! 
     //!     The table is valid for the following funstions: 0100 - Erode &amp;&amp;
     //!     (Function_mode==0) 0101 - Dilate &amp;&amp; (Function_mode==0) 0011 -
     //!     MinMaxFilter &amp;&amp; (Function_mode==0)
-    //!     
+    //! 
     //!     Max kernel size is 15x15. For sizes less than 15x15 the coefficients not
     //!     used should be zeroed out.
-    //!     
+    //!
     struct SAMPLER_STATE_8x8_ERODE_DILATE_MINMAXFILTER_CMD
     {
         union
@@ -2590,7 +2586,7 @@ public:
             struct
             {
                 uint32_t                 HeightOfTheKernel                                : __CODEGEN_BITFIELD( 0,  3)    ; //!< Height Of The Kernel
-                uint32_t                 WidthOfTheKernel                                 : __CODEGEN_BITFIELD( 4,  7)    ; //!< Width Of The Kernel 
+                uint32_t                 WidthOfTheKernel                                 : __CODEGEN_BITFIELD( 4,  7)    ; //!< Width Of The Kernel
                 uint32_t                 Reserved8                                        : __CODEGEN_BITFIELD( 8, 15)    ; //!< Reserved
                 uint32_t                 BitMask16ForRow0150                              : __CODEGEN_BITFIELD(16, 31)    ; //!< 16bit Mask for Row0 [15:0]
             };
@@ -2687,13 +2683,13 @@ public:
     //!     This structure is pointed to by Indirect State Pointer (SAMPLER_STATE).
     //!     The interpretation of the border color depends on the Texture Border
     //!     Color Mode field in SAMPLER_STATE as follows:
-    //!     
+    //! 
     //!     In 8BIT mode, the border color is 8-bit UNORM format, regardless of the
     //!     surface format chosen. For surface formats with one or more channels
     //!     missing (i.e. R5G6R5_UNORM is missing the alpha channel), the value from
     //!     the border color, if selected, will be used even for the missing
     //!     channels.
-    //!     
+    //! 
     //!     In OGL mode, the format of the border color is R32G32B32A32_FLOAT,
     //!     R32G32B32A32_SINT, or R32G32B32A32_UINT, depending on the surface format
     //!     chosen. For surface formats with one or more channels missing, the value
@@ -2705,13 +2701,13 @@ public:
     //!     (RGB for "L" formats and RGBA for "I" formats) comes from the red
     //!     channel of border color. In these cases, the green and blue channels,
     //!     and also alpha for "I", of the border color are ignored.
-    //!     
-    //!     
-    //!     
-    //!     
-    //!     
+    //! 
+    //! 
+    //! 
+    //! 
+    //! 
     //!     The format of this state depends on the Texture Border Color Mode field.
-    //!     
+    //! 
     //!      8BIT mode is not supported for surfaces with more than 16 bits in any
     //!     channel, other than 32-bit float formats which are supported.
     //!      The conditions under which this color is used depend on the Surface
@@ -2724,8 +2720,8 @@ public:
     //!     cache does not need to be invalidated.
     //!      MAPFILTER_MONO:  The border color is ignored.  Border color is fixed at
     //!     a value of 0 by hardware.
-    //!      
-    //!     
+    //! 
+    //!
     struct SAMPLER_INDIRECT_STATE_CMD
     {
         union
@@ -2773,7 +2769,6 @@ public:
         } DW3;
 
         uint32_t                         Reserved128[12];                                                                 //!< Reserved
-
 
         //! \name Local enumerations
 
