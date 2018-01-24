@@ -794,8 +794,10 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
     surfaceCodecParams.ChromaType                 = MHW_GFX3DSTATE_SURFACEFORMAT_R8G8_UNORM;
 
 #ifdef _MMC_SUPPORTED
-    CODECHAL_DECODE_CHK_NULL_RETURN(m_mmcState);
-    CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceParams(&surfaceCodecParams));
+    if (m_mmcState)
+    {
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceParams(&surfaceCodecParams));
+    }
 #endif
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
@@ -833,7 +835,10 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
     }
 
 #ifdef _MMC_SUPPORTED
-    CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceParams(&surfaceCodecParams));
+    if (m_mmcState)
+    {
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceParams(&surfaceCodecParams));
+    }
 #endif
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
