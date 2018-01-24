@@ -167,7 +167,7 @@ VAStatus DdiEncodeJpeg::RenderPicture(
             break;
 
         case VAEncPackedHeaderDataBufferType:
-        case VAEncPackedHeaderMiscMask:
+        case VAEncPackedHeaderRawData:
             vaStatus = ParseAppData(data, buf->iSize);
             break;
 
