@@ -1288,229 +1288,232 @@ struct MediaObjectVp8MeStaticDataG10
         };
     } DW15;
 
-    // DW16
-    union
+    struct
     {
-        struct
+        // DW16
+        union
         {
-            SearchPathDelta   SPDelta_0;
-            SearchPathDelta   SPDelta_1;
-            SearchPathDelta   SPDelta_2;
-            SearchPathDelta   SPDelta_3;
-        };
-        struct
-        {
-            uint32_t       Value;
-        };
-    } DW16;
+            struct
+            {
+                SearchPathDelta   SPDelta_0;
+                SearchPathDelta   SPDelta_1;
+                SearchPathDelta   SPDelta_2;
+                SearchPathDelta   SPDelta_3;
+            };
+            struct
+            {
+                uint32_t       Value;
+            };
+        } DW16;
 
-    // DW17
-    union
-    {
-        struct
+        // DW17
+        union
         {
-            SearchPathDelta   SPDelta_4;
-            SearchPathDelta   SPDelta_5;
-            SearchPathDelta   SPDelta_6;
-            SearchPathDelta   SPDelta_7;
-        };
-        struct
-        {
-            uint32_t       Value;
-        };
-    } DW17;
+            struct
+            {
+                SearchPathDelta   SPDelta_4;
+                SearchPathDelta   SPDelta_5;
+                SearchPathDelta   SPDelta_6;
+                SearchPathDelta   SPDelta_7;
+            };
+            struct
+            {
+                uint32_t       Value;
+            };
+        } DW17;
 
-    // DW18
-    union
-    {
-        struct
+        // DW18
+        union
         {
-            SearchPathDelta   SPDelta_8;
-            SearchPathDelta   SPDelta_9;
-            SearchPathDelta   SPDelta_10;
-            SearchPathDelta   SPDelta_11;
-        };
-        struct
-        {
-            uint32_t       Value;
-        };
-    } DW18;
+            struct
+            {
+                SearchPathDelta   SPDelta_8;
+                SearchPathDelta   SPDelta_9;
+                SearchPathDelta   SPDelta_10;
+                SearchPathDelta   SPDelta_11;
+            };
+            struct
+            {
+                uint32_t       Value;
+            };
+        } DW18;
 
-    // DW19
-    union
-    {
-        struct
+        // DW19
+        union
         {
-            SearchPathDelta   SPDelta_12;
-            SearchPathDelta   SPDelta_13;
-            SearchPathDelta   SPDelta_14;
-            SearchPathDelta   SPDelta_15;
-        };
-        struct
-        {
-            uint32_t       Value;
-        };
-    } DW19;
+            struct
+            {
+                SearchPathDelta   SPDelta_12;
+                SearchPathDelta   SPDelta_13;
+                SearchPathDelta   SPDelta_14;
+                SearchPathDelta   SPDelta_15;
+            };
+            struct
+            {
+                uint32_t       Value;
+            };
+        } DW19;
 
-    // DW20
-    union
-    {
-        struct
+        // DW20
+        union
         {
-            SearchPathDelta   SPDelta_16;
-            SearchPathDelta   SPDelta_17;
-            SearchPathDelta   SPDelta_18;
-            SearchPathDelta   SPDelta_19;
-        };
-        struct
-        {
-            uint32_t       Value;
-        };
-    } DW20;
+            struct
+            {
+                SearchPathDelta   SPDelta_16;
+                SearchPathDelta   SPDelta_17;
+                SearchPathDelta   SPDelta_18;
+                SearchPathDelta   SPDelta_19;
+            };
+            struct
+            {
+                uint32_t       Value;
+            };
+        } DW20;
 
-    // DW21
-    union
-    {
-        struct
+        // DW21
+        union
         {
-            SearchPathDelta   SPDelta_20;
-            SearchPathDelta   SPDelta_21;
-            SearchPathDelta   SPDelta_22;
-            SearchPathDelta   SPDelta_23;
-        };
-        struct
-        {
-            uint32_t       Value;
-        };
-    } DW21;
+            struct
+            {
+                SearchPathDelta   SPDelta_20;
+                SearchPathDelta   SPDelta_21;
+                SearchPathDelta   SPDelta_22;
+                SearchPathDelta   SPDelta_23;
+            };
+            struct
+            {
+                uint32_t       Value;
+            };
+        } DW21;
 
-    // DW22
-    union
-    {
-        struct
+        // DW22
+        union
         {
-            SearchPathDelta   SPDelta_24;
-            SearchPathDelta   SPDelta_25;
-            SearchPathDelta   SPDelta_26;
-            SearchPathDelta   SPDelta_27;
-        };
-        struct
-        {
-            uint32_t       Value;
-        };
-    } DW22;
+            struct
+            {
+                SearchPathDelta   SPDelta_24;
+                SearchPathDelta   SPDelta_25;
+                SearchPathDelta   SPDelta_26;
+                SearchPathDelta   SPDelta_27;
+            };
+            struct
+            {
+                uint32_t       Value;
+            };
+        } DW22;
 
-    // DW23
-    union
-    {
-        struct
+        // DW23
+        union
         {
-            SearchPathDelta   SPDelta_28;
-            SearchPathDelta   SPDelta_29;
-            SearchPathDelta   SPDelta_30;
-            SearchPathDelta   SPDelta_31;
-        };
-        struct
-        {
-            uint32_t       Value;
-        };
-    } DW23;
+            struct
+            {
+                SearchPathDelta   SPDelta_28;
+                SearchPathDelta   SPDelta_29;
+                SearchPathDelta   SPDelta_30;
+                SearchPathDelta   SPDelta_31;
+            };
+            struct
+            {
+                uint32_t       Value;
+            };
+        } DW23;
 
-    // DW24
-    union
-    {
-        struct
+        // DW24
+        union
         {
-            SearchPathDelta   SPDelta_32;
-            SearchPathDelta   SPDelta_33;
-            SearchPathDelta   SPDelta_34;
-            SearchPathDelta   SPDelta_35;
-        };
-        struct
-        {
-            uint32_t       Value;
-        };
-    } DW24;
+            struct
+            {
+                SearchPathDelta   SPDelta_32;
+                SearchPathDelta   SPDelta_33;
+                SearchPathDelta   SPDelta_34;
+                SearchPathDelta   SPDelta_35;
+            };
+            struct
+            {
+                uint32_t       Value;
+            };
+        } DW24;
 
-    // DW25
-    union
-    {
-        struct
+        // DW25
+        union
         {
-            SearchPathDelta   SPDelta_36;
-            SearchPathDelta   SPDelta_37;
-            SearchPathDelta   SPDelta_38;
-            SearchPathDelta   SPDelta_39;
-        };
-        struct
-        {
-            uint32_t       Value;
-        };
-    } DW25;
+            struct
+            {
+                SearchPathDelta   SPDelta_36;
+                SearchPathDelta   SPDelta_37;
+                SearchPathDelta   SPDelta_38;
+                SearchPathDelta   SPDelta_39;
+            };
+            struct
+            {
+                uint32_t       Value;
+            };
+        } DW25;
 
-    // DW26
-    union
-    {
-        struct
+        // DW26
+        union
         {
-            SearchPathDelta   SPDelta_40;
-            SearchPathDelta   SPDelta_41;
-            SearchPathDelta   SPDelta_42;
-            SearchPathDelta   SPDelta_43;
-        };
-        struct
-        {
-            uint32_t       Value;
-        };
-    } DW26;
+            struct
+            {
+                SearchPathDelta   SPDelta_40;
+                SearchPathDelta   SPDelta_41;
+                SearchPathDelta   SPDelta_42;
+                SearchPathDelta   SPDelta_43;
+            };
+            struct
+            {
+                uint32_t       Value;
+            };
+        } DW26;
 
-    // DW27
-    union
-    {
-        struct
+        // DW27
+        union
         {
-            SearchPathDelta   SPDelta_44;
-            SearchPathDelta   SPDelta_45;
-            SearchPathDelta   SPDelta_46;
-            SearchPathDelta   SPDelta_47;
-        };
-        struct
-        {
-            uint32_t       Value;
-        };
-    } DW27;
+            struct
+            {
+                SearchPathDelta   SPDelta_44;
+                SearchPathDelta   SPDelta_45;
+                SearchPathDelta   SPDelta_46;
+                SearchPathDelta   SPDelta_47;
+            };
+            struct
+            {
+                uint32_t       Value;
+            };
+        } DW27;
 
-    // DW28
-    union
-    {
-        struct
+        // DW28
+        union
         {
-            SearchPathDelta   SPDelta_48;
-            SearchPathDelta   SPDelta_49;
-            SearchPathDelta   SPDelta_50;
-            SearchPathDelta   SPDelta_51;
-        };
-        struct
-        {
-            uint32_t       Value;
-        };
-    } DW28;
+            struct
+            {
+                SearchPathDelta   SPDelta_48;
+                SearchPathDelta   SPDelta_49;
+                SearchPathDelta   SPDelta_50;
+                SearchPathDelta   SPDelta_51;
+            };
+            struct
+            {
+                uint32_t       Value;
+            };
+        } DW28;
 
-    // DW29
-    union
-    {
-        struct
+        // DW29
+        union
         {
-            SearchPathDelta   SPDelta_52;
-            SearchPathDelta   SPDelta_53;
-            SearchPathDelta   SPDelta_54;
-            SearchPathDelta   SPDelta_55;
-        };
-        struct
-        {
-            uint32_t       Value;
-        };
-    } DW29;
+            struct
+            {
+                SearchPathDelta   SPDelta_52;
+                SearchPathDelta   SPDelta_53;
+                SearchPathDelta   SPDelta_54;
+                SearchPathDelta   SPDelta_55;
+            };
+            struct
+            {
+                uint32_t       Value;
+            };
+        } DW29;
+    } SpDelta;
 
     // DW30
     union
@@ -7767,7 +7770,7 @@ MOS_STATUS CodechalEncodeVp8G10::SetMeCurbe(struct CodechalVp8MeCurbeParams* par
 
     tableIdx = 0; /* Only P pictures in VP8, no B pictures */
     meMethod = (params->ucKernelMode == encodeNormalMode) ? 6 : 4;
-    status = MOS_SecureMemcpy((uint32_t*)(&cmd.DW16),
+    status = MOS_SecureMemcpy((uint32_t*)(&cmd.SpDelta),
                             14 * sizeof(uint32_t),
                             m_encodeSearchPath[tableIdx][meMethod],
                             14 * sizeof(uint32_t));

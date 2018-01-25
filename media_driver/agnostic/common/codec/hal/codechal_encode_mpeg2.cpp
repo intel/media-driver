@@ -1139,9 +1139,10 @@ CodechalEncodeMpeg2::CodechalEncodeMpeg2(
     m_vdencInterface = m_hwInterface->GetVdencInterface();
     CODECHAL_ENCODE_ASSERT(m_hwInterface->GetMiInterface());
     m_miInterface = m_hwInterface->GetMiInterface();
-    CODECHAL_ENCODE_ASSERT(m_hwInterface->GetRenderInterface());
-    CODECHAL_ENCODE_ASSERT(m_hwInterface->GetRenderInterface()->m_stateHeapInterface);
-    m_stateHeapInterface = m_hwInterface->GetRenderInterface()->m_stateHeapInterface;
+    auto renderInterface = m_hwInterface->GetRenderInterface();
+    CODECHAL_ENCODE_ASSERT(renderInterface);
+    m_stateHeapInterface = renderInterface->m_stateHeapInterface;
+    CODECHAL_ENCODE_ASSERT(m_stateHeapInterface);
 
     MOS_ZeroMemory(&m_picIdx, sizeof(m_picIdx));
     MOS_ZeroMemory(&m_refList, sizeof(m_refList));
@@ -1490,8 +1491,6 @@ MOS_STATUS CodechalEncodeMpeg2::AllocateEncResources()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    uint32_t fieldNumMBs = m_picWidthInMb * ((m_picHeightInMb + 1) >> 1);
-    uint32_t picWidthHeightInMB = fieldNumMBs << 1;
     uint32_t downscaledFieldHeightInMB4x = (m_downscaledHeightInMb4x + 1) >> 1;
 
     if (m_hmeSupported)
@@ -3386,8 +3385,12 @@ MOS_STATUS CodechalEncodeMpeg2::EncodeMbEncKernel(bool mbEncIFrameDistEnabled)
 
             if (m_codecFunction == CODECHAL_FUNCTION_ENC_PAK)
             {
-                m_refList[Index]->resRefMbCodeBuffer =
-                    *(MOS_RESOURCE*)m_allocator->GetResource(m_standard, mbCodeBuffer, m_refList[Index]->ucMbCodeIdx);
+                auto pResRefMbCodeBuffer = (MOS_RESOURCE*)m_allocator->GetResource(m_standard, mbCodeBuffer, m_refList[Index]->ucMbCodeIdx);
+
+                if (pResRefMbCodeBuffer)
+                {
+                    m_refList[Index]->resRefMbCodeBuffer = *pResRefMbCodeBuffer;
+                }
             }
 
             CodecHalGetResourceInfo(m_osInterface, &m_refList[Index]->sRefBuffer);

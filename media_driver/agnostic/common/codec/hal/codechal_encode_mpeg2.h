@@ -44,6 +44,17 @@ class CodechalEncodeMpeg2 : public CodechalEncoderState
 public:
 
     //!
+    //! \brief    Copy construtor
+    //!
+    CodechalEncodeMpeg2(const CodechalEncodeMpeg2&) = delete;
+
+
+    //!
+    //! \brief    Copy assignment construtor
+    //!
+    CodechalEncodeMpeg2& operator=(const CodechalEncodeMpeg2&) = delete;
+
+    //!
     //! \brief    Destructor
     //!
     virtual ~CodechalEncodeMpeg2();
