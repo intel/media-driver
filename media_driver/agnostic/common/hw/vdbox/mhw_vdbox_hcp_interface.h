@@ -55,6 +55,11 @@ typedef struct _MHW_VDBOX_HEVC_PIC_STATE
     bool                                    bRDOQIntraTUDisable;
     uint16_t                                wRDOQIntraTUThreshold;
     uint32_t                                brcNumPakPasses;
+
+    //FEI multiple passes PAK ---max frame size
+    uint8_t                                 currPass;
+    uint8_t                                *deltaQp;
+    uint32_t                                maxFrameSize;
 } MHW_VDBOX_HEVC_PIC_STATE, *PMHW_VDBOX_HEVC_PIC_STATE;
 
 typedef struct _MHW_VDBOX_HEVC_TILE_STATE

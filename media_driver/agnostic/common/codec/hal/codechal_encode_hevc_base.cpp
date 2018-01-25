@@ -2337,6 +2337,13 @@ void CodechalEncodeHevcBase::SetHcpPicStateParams(MHW_VDBOX_HEVC_PIC_STATE& picS
     picStateParams.bHevcRdoqEnabled      = m_hevcRdoqEnabled;
     picStateParams.bRDOQIntraTUDisable   = m_hevcRdoqEnabled && (1 != m_hevcSeqParams->TargetUsage);
     picStateParams.wRDOQIntraTUThreshold = (uint16_t)m_rdoqIntraTuThreshold;
+
+    picStateParams.currPass = m_currPass;
+    if (CodecHalIsFeiEncode(m_codecFunction) && m_hevcFeiPicParams && m_hevcFeiPicParams->dwMaxFrameSize)
+    {
+        picStateParams.deltaQp = m_hevcFeiPicParams->pDeltaQp;
+        picStateParams.maxFrameSize = m_hevcFeiPicParams->dwMaxFrameSize;
+    }
 }
 
 MOS_STATUS CodechalEncodeHevcBase::SetBatchBufferForPakSlices()

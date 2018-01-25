@@ -101,5 +101,8 @@ public:
 
     virtual VAStatus ParseMiscParams(void *ptr);
 
+private:
+    //! \brief    Max passes number for HEVC FEI
+    static const uint8_t feiHevcMaxPassesNum = 8;
 };
 #endif /* __MEDIA_DDI_ENCODE_FEI_HEVC_H__ */

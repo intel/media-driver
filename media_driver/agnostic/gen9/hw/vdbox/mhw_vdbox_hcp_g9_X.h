@@ -1439,7 +1439,67 @@ protected:
         cmd.DW5.PcmSampleBitDepthChromaMinus1   = 7;
         cmd.DW5.PcmSampleBitDepthLumaMinus1     = 7;
 
-        cmd.DW6.LcuMaxBitsizeAllowed            = hevcPicParams->LcuMaxBitsizeAllowed;
+        cmd.DW6.LcuMaxBitsizeAllowed                          = hevcPicParams->LcuMaxBitsizeAllowed;
+        if (params->maxFrameSize && params->currPass)
+        {
+            cmd.DW6.Nonfirstpassflag                          = 1;
+        }
+        else
+        {
+            cmd.DW6.Nonfirstpassflag                          = 0;
+        }
+        cmd.DW6.LcumaxbitstatusenLcumaxsizereportmask         = 1;
+        cmd.DW6.FrameszoverstatusenFramebitratemaxreportmask  = 1;
+        cmd.DW6.FrameszunderstatusenFramebitrateminreportmask = 1;
+
+        // Set this to max value
+        cmd.DW7.Framebitratemax                               = (1 << 14) - 1;
+
+        // Set this to Kilo Byte (=1) - Framebitratemax is in units of 4KBytes
+        cmd.DW7.Framebitratemaxunit                           = 1;
+
+        // Set this to min available value
+        cmd.DW8.Framebitratemin                               = 0;
+
+        // Set this to Kilo Byte (=1) - Framebitratemin is in units of 4KBytes
+        cmd.DW8.Framebitrateminunit                           = 1;
+
+        // Set frame bitrate max and min delta to 0
+        cmd.DW9.Framebitratemindelta                          = 0;
+        cmd.DW9.Framebitratemaxdelta                          = 0;
+
+        cmd.DW10_11.Framedeltaqpmax                           = 0;
+        cmd.DW12_13.Framedeltaqpmin                           = 0;
+
+        // Set frame delta QP max and min range array as [0, 1, 2, 4, 8, 16, 32, 255]
+        // Delta QP range = [Framebitratemaxdelta*(FramedeltaQpmaxrange[n]>>5), Framebitratemaxdelta*(FramedeltaQpmaxrange[n]>>5)]
+        cmd.DW14_15.Value[0]                                  =
+            cmd.DW16_17.Value[0]                              = (4 << 24) | (2 << 16) | (1 << 8);
+        cmd.DW14_15.Value[1]                                  =
+            cmd.DW16_17.Value[1]                              = (255 << 24) | (32 << 16) | (16 << 8) | 8;
+
+        // Add for multiple pass
+        if (params->maxFrameSize > 0 && params->deltaQp)
+        {
+            cmd.DW10_11.Value[0] = (params->deltaQp[3] << 24) | (params->deltaQp[2] << 16) |
+                (params->deltaQp[1] << 8) | params->deltaQp[0];
+            cmd.DW10_11.Value[1] = (params->deltaQp[7] << 24) | (params->deltaQp[6] << 16) |
+                (params->deltaQp[5] << 8) | params->deltaQp[4];
+
+            // If the calculated value of max frame size exceeded 14 bits, need set the unit as 4K byte. Else, set the unit as 32 byte.
+            if (params->maxFrameSize >= (0x1 << 14) * 32)
+            {
+                cmd.DW7.Framebitratemaxunit = 1;
+                cmd.DW7.Framebitratemax = params->maxFrameSize >> 12;
+                cmd.DW9.Framebitratemaxdelta = params->maxFrameSize >> 13;
+            }
+            else
+            {
+                cmd.DW7.Framebitratemaxunit = 0;
+                cmd.DW7.Framebitratemax = params->maxFrameSize >> 5;
+                cmd.DW9.Framebitratemaxdelta = params->maxFrameSize >> 6;
+            }
+        }
 
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
 

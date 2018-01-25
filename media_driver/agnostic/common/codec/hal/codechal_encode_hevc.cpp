@@ -236,6 +236,16 @@ MOS_STATUS CodechalEncHevcState::SetPictureStructs()
         m_numPasses = 0;  // no IPCM for HEVC
     }
 
+    //add for FEI multiple Pass Pak
+    if (CodecHalIsFeiEncode(m_codecFunction))
+    {
+        CODECHAL_ENCODE_CHK_NULL_RETURN(m_hevcFeiPicParams);
+        if (m_hevcFeiPicParams->dwMaxFrameSize != 0)
+        {
+            m_numPasses = (uint8_t)m_hevcFeiPicParams->dwNumPasses;
+        }
+    }
+
     return eStatus;
 }
 

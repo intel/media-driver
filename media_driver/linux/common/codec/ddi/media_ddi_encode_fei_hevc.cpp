@@ -34,8 +34,6 @@
 #include "media_ddi_encode_const.h"
 #include "media_ddi_factory.h"
 
-static const uint8_t feiHevcMaxPassesNum = 4;
-
 extern template class MediaDdiFactoryNoArg<DdiEncodeBase>;
 
 static bool isEncodeHevcFeiRegistered =
