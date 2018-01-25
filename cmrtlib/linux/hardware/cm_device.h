@@ -24,6 +24,7 @@
 
 #include "cm_device_base.h"
 #include "cm_def_hw.h"
+#include "cm_kernel_debugger.h"
 
 class CmQueue_RT;
 class CmSurfaceManager;
@@ -205,6 +206,9 @@ protected:
 
     uint32_t       m_createOption;
     uint32_t       m_driverStoreEnabled;
+
+    // Kernel debugger
+    CmKernelDebugger *m_kernelDebugger;
 };
 
 #endif  // #ifndef CMRTLIB_LINUX_HARDWARE_CM_DEVICE_H_

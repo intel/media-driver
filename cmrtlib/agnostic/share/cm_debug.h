@@ -98,11 +98,4 @@ inline void CmAssertMessage(const char *message) {
 }
 #endif
 
-typedef void* Handle;
-typedef Handle CmDeviceHandle;
-typedef Handle CmUmdDeviceHandle;
-
-int NotifyNewDevice(CmDeviceHandle deviceHandle, CmUmdDeviceHandle umdHandle, uint32_t driverStoreEnabled);
-int NotifyDeviceDestruction(CmDeviceHandle deviceHandle, uint32_t driverStoreEnabled);
-
 #endif  // #ifndef CMRTLIB_AGNOSTIC_SHARE_CMDEBUG_H_

@@ -29,6 +29,7 @@
 #include "cm_queue.h"
 #include "cm_timer.h"
 #include "cm_debug.h"
+#include "cm_extension_creator.h"
 
 #if USE_EXTENSION_CODE
 #include "cm_gtpin_external_interface.h"
@@ -154,6 +155,9 @@ CmDevice_RT::CmDevice_RT(
     // New Surface Manager
     m_surfaceManager = new CmSurfaceManager(this);
 
+    // New Kernel Debugger
+    m_kernelDebugger = CmExtensionCreator<CmKernelDebugger>::CreateClass();
+    
     //Initialize L3 cache config
     CmSafeMemSet(&m_l3Config, 0, sizeof(L3ConfigRegisterValues));
 
@@ -161,7 +165,7 @@ CmDevice_RT::CmDevice_RT(
 
 CmDevice_RT::~CmDevice_RT( void )
 {
-    if( m_cmCreated )
+    if (m_cmCreated)
     {
         VAStatus vaStatus = vaTerminate(m_vaDisplay);
 #ifndef ANDROID
@@ -169,6 +173,11 @@ CmDevice_RT::~CmDevice_RT( void )
 #else
         free(m_display); //Android
 #endif
+    }
+
+    if (m_kernelDebugger != nullptr)
+    {
+        delete m_kernelDebugger;
     }
 }
 
@@ -236,9 +245,10 @@ int32_t CmDevice_RT::Initialize( bool isCmCreated )
 
     }
 #endif
-#if USE_EXTENSION_CODE
-    NotifyNewDevice( this, m_deviceInUmd, m_driverStoreEnabled);
-#endif
+    if (m_kernelDebugger != nullptr)
+    {
+        m_kernelDebugger->NotifyNewDevice(this, m_deviceInUmd, m_driverStoreEnabled);
+    }
 
 finish:
     return result;
