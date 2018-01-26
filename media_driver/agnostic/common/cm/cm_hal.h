@@ -29,6 +29,7 @@
 #include "renderhal.h"
 #include "cm_common.h"
 #include "cm_debug.h"
+#include "cm_csync.h"
 #include "mhw_vebox.h"
 #include "cm_hal_generic.h"
 #include <string>
@@ -1522,6 +1523,7 @@ typedef struct _CM_HAL_STATE
     bool                        mockRuntimeEnabled;
 #endif
 
+    CMRT_UMD::CSync             criticalSectionDSH;
 //------------------------------------------------------------------------------
 // Macros to replace HR macros in oscl.h
 //------------------------------------------------------------------------------
