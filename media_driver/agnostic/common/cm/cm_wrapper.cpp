@@ -39,11 +39,14 @@
 #include "cm_sampler8x8.h"
 #include "cm_surface_2d_rt.h"
 #include "cm_vebox_rt.h"
+#include "cm_extension_creator.h"
 
 #if USE_EXTENSION_CODE
-#include "cm_ult.h"
 #include "cm_gtpin.h"
 #endif
+
+using CMRT_UMD::CmWrapperEx;
+static bool cmWrapperExRegistered = CmExtensionCreator<CmWrapperEx>::RegisterClass<CmWrapperEx>();
 
 struct CM_ENQUEUE_GPUCOPY_PARAM
 {
@@ -67,6 +70,33 @@ struct CM_CREATEBUFFER_PARAM
     void *bufferHandle;      // [out] pointer to CmBuffer object in CMRT@UMD
     int32_t returnValue;       // [out] the return value from CMRT@UMD
     uint32_t reserved;        // Reserved field to ensure sizeof(CM_CREATEBUFFER_PARAM_V2) is different from sizeof(CM_CREATEBUFFER_PARAM_V1) in x64 mode
+};
+
+namespace CMRT_UMD
+{
+void CmWrapperEx::Initialize(void *context)
+{
+    UNUSED(context);
+}
+
+int CmWrapperEx::Execute(
+            CmDevice *device,
+            CM_FUNCTION_ID cmFunctionID,
+            void *inputData,
+            uint32_t inputDataLen)
+{
+    UNUSED(device);
+    UNUSED(cmFunctionID);
+    UNUSED(inputData);
+    UNUSED(inputDataLen);
+
+    // currently, there is no extended functionality in this class
+    // This interface is for future usage
+    CM_ASSERTMESSAGE("Error: Invalid Function code '0x%x'.", cmFunctionID);
+    // since there is no extended functionality now, it should return invalid function ID because
+    // the function ID is not supported for now
+    return CM_INVALID_PRIVATE_DATA;
+}
 };
 
 //*-----------------------------------------------------------------------------
@@ -147,7 +177,7 @@ using CMRT_UMD::CmSampler8x8;
 //| Purpose:    CMRT thin layer library supported function execution
 //| Return:     CM_SUCCESS if successful
 //*-----------------------------------------------------------------------------
-int32_t CmThinExecuteEx(CmDevice *device,
+int32_t CmThinExecuteInternal(CmDevice *device,
                         CM_FUNCTION_ID cmFunctionID,
                         void *cmPrivateInputData,
                         uint32_t cmPrivateInputDataSize)
@@ -185,7 +215,7 @@ int32_t CmThinExecuteEx(CmDevice *device,
         return CM_INVALID_PRIVATE_DATA;
     }
 
-    if ((cmFunctionID != CM_FN_RT_ULT_INFO)&&(device == nullptr))
+    if ((cmFunctionID != CM_FN_RT_ULT_INFO && cmFunctionID != CM_FN_RT_ULT)&&(device == nullptr))
     {
         CM_ASSERTMESSAGE("Error: Null pointer.");
         return CM_NULL_POINTER;
@@ -1014,13 +1044,6 @@ int32_t CmThinExecuteEx(CmDevice *device,
         destroyVeboxParam->returnValue = cmRet;
         break;
 
-#if USE_EXTENSION_CODE
-        //Get MDF UMD ULT information
-    case CM_FN_RT_ULT_INFO:
-        hr = CmThinExecuteUltInfo(cmPrivateInputData);
-        break;
-#endif
-
     case CM_FN_CMDEVICE_GETVISAVERSION:
         CM_GET_VISA_VERSION_PARAM *getVisaVersionParam;
         getVisaVersionParam = (CM_GET_VISA_VERSION_PARAM *)(cmPrivateInputData);
@@ -1029,9 +1052,7 @@ int32_t CmThinExecuteEx(CmDevice *device,
         break;
 
     default:
-        CM_ASSERTMESSAGE("Error: Invalid Function code '%d'.", cmFunctionID);
-        hr = CM_INVALID_PRIVATE_DATA;
-        break;
+        return CM_INVALID_PRIVATE_DATA;
 
     }
 finish:

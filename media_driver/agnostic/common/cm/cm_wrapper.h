@@ -548,7 +548,7 @@ enum CM_FUNCTION_ID
 //| Return:     CM_SUCCESS if successful
 //*-----------------------------------------------------------------------------
 using CMRT_UMD::CmDevice;
-int32_t CmThinExecuteEx(CmDevice *device,
+int32_t CmThinExecuteInternal(CmDevice *device,
                         CM_FUNCTION_ID cmFunctionID,
                         void *inputData,
                         uint32_t inputDataLen);
@@ -560,4 +560,21 @@ extern int32_t CreateCmDevice(MOS_CONTEXT *mosContext,
 
 extern int32_t DestroyCmDevice(MOS_CONTEXT *mosContext);
 
+namespace CMRT_UMD
+{
+// class of CmWrapperEx for functionality extention in cm wrapper
+class CmWrapperEx
+{
+public:
+    CmWrapperEx(){}
+    virtual ~CmWrapperEx(){}
+
+    virtual void Initialize(void *context);
+    virtual int Execute(
+                CmDevice *device,
+                CM_FUNCTION_ID cmFunctionID,
+                void *inputData,
+                uint32_t inputDataLen);
+};
+};
 #endif  // #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMWRAPPER_H_

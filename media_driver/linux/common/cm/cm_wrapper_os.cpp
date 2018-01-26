@@ -30,11 +30,7 @@
 #include "cm_device_rt.h"
 #include "cm_surface_2d_rt.h"
 #include "media_libva_util.h"
-
-#if USE_EXTENSION_CODE
-#include "cm_ult.h"
-#endif
-
+#include "cm_extension_creator.h"
 #include "mos_os_specific.h"
 
 extern MOS_FORMAT Mos_Specific_FmtOsToMos(
@@ -263,6 +259,7 @@ CM_OSAL_SURFACE_FORMAT  CmMosFmtToOSFmt(MOS_FORMAT format)
 }
 
 using CMRT_UMD::CmSurface2DRT;
+using CMRT_UMD::CmWrapperEx;
 //*-----------------------------------------------------------------------------
 //| Purpose:    CMRT thin layer library supported function execution
 //| Return:     CM_SUCCESS if successful
@@ -369,36 +366,22 @@ int32_t CmThinExecute(VADriverContextP pVaDrvCtx,
             pCmCreate2DParam->iReturnValue          = cmRet;
             break;
 
-#if USE_EXTENSION_CODE
-#if CM_ULT
-        case CM_FN_RT_ULT:
-        {
-            PDDI_MEDIA_CONTEXT                pMediaCtx;
-            MOS_CONTEXT                       mosCtx;
-
-            pMediaCtx = DdiMedia_GetMediaContext(pVaDrvCtx);
-
-            MOS_ZeroMemory(&mosCtx, sizeof(MOS_CONTEXT));
-
-            // init pCmCtx
-            mosCtx.bufmgr          = pMediaCtx->pDrmBufMgr;
-            mosCtx.m_gpuContextMgr = pMediaCtx->m_gpuContextMgr;
-            mosCtx.m_cmdBufMgr     = pMediaCtx->m_cmdBufMgr;
-            mosCtx.fd              = pMediaCtx->fd;
-            mosCtx.wRevision       = 0;
-            mosCtx.iDeviceId       = pMediaCtx->iDeviceId;
-            mosCtx.SkuTable        = pMediaCtx->SkuTable;
-            mosCtx.WaTable         = pMediaCtx->WaTable;
-            mosCtx.gtSystemInfo    = *(pMediaCtx->pGtSystemInfo);
-            mosCtx.platform        = pMediaCtx->platform;
-            hr                     = CmThinExecuteUlt(&mosCtx, pCmPrivateInputData);
-            break;
-        }
-#endif
-#endif
-
         default:
-            hr = CmThinExecuteEx(pDevice, CmFunctionID, pCmPrivateInputData, CmPrivateInputDataSize);
+            hr = CmThinExecuteInternal(pDevice, CmFunctionID, pCmPrivateInputData, CmPrivateInputDataSize);
+            if (hr == CM_INVALID_PRIVATE_DATA)
+            {
+                CmWrapperEx *wrapperEx = CmExtensionCreator<CmWrapperEx>::CreateClass();
+                if (wrapperEx != nullptr)
+                {
+                    wrapperEx->Initialize((void *)pVaDrvCtx);
+                    hr = wrapperEx->Execute(pDevice, CmFunctionID, pCmPrivateInputData, CmPrivateInputDataSize);
+                    delete wrapperEx;
+                }
+                else
+                {
+                    hr = CM_OUT_OF_HOST_MEMORY;
+                }
+            }
     }
 
     return hr;
