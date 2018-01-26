@@ -696,8 +696,18 @@ VAStatus DdiEncodeVp9::Qmatrix(void *ptr)
 
     for (int32_t i = 0; i < 8; ++i)
     {
-        m_segParams->SegData[i].SegmentQIndexDelta  = segParams->seg_data[i].segment_qindex_delta;
-        m_segParams->SegData[i].SegmentLFLevelDelta = segParams->seg_data[i].segment_lf_level_delta;
+        m_segParams->SegData[i].SegmentFlags.fields.SegmentReferenceEnabled =
+            segParams->seg_data[i].seg_flags.bits.segment_reference_enabled;
+        m_segParams->SegData[i].SegmentFlags.fields.SegmentReference =
+            segParams->seg_data[i].seg_flags.bits.segment_reference;
+        m_segParams->SegData[i].SegmentFlags.fields.SegmentSkipped =
+            segParams->seg_data[i].seg_flags.bits.segment_reference_skipped;
+
+        m_segParams->SegData[i].SegmentQIndexDelta  =
+            MOS_CLAMP_MIN_MAX(segParams->seg_data[i].segment_qindex_delta, -255, 255);
+
+        m_segParams->SegData[i].SegmentLFLevelDelta =
+            MOS_CLAMP_MIN_MAX(segParams->seg_data[i].segment_lf_level_delta, -63, 63);
     }
 
     return VA_STATUS_SUCCESS;
