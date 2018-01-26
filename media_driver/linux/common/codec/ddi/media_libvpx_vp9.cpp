@@ -86,7 +86,7 @@ void write_bitdepth_colorspace_sampling(uint32_t codecProfile,
     {
         /* Profile 2 can support 10/12 bits */
         /* Currently it is 10 bits */
-        vp9_wb_write_literal(wb, 0, 0);
+        vp9_wb_write_literal(wb, 0, 1);
     }
 
     /* Add the default color-space */
