@@ -306,14 +306,18 @@ public:
     //!           Pointer to Hardware Interface
     //! \param    [in,out] PlaneDefinition
     //!           Pointer to PlaneDefinition
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual void GetPlaneDefForFormatY216(
+    virtual MOS_STATUS GetPlaneDefForFormatY216(
         bool                       isRenderTarget,
         PRENDERHAL_INTERFACE       pRenderHal,
         RENDERHAL_PLANE_DEFINITION &PlaneDefinition)
     {
         PlaneDefinition = isRenderTarget ? RENDERHAL_PLANES_Y210_RT : (pRenderHal->bIsAVS ? RENDERHAL_PLANES_Y210_ADV : RENDERHAL_PLANES_Y210);
+        return MOS_STATUS_SUCCESS;
     };
+
     //! \brief      Set L3 cache override config parameters
     //! \param      [in] pRenderHal
     //!             Pointer to RenderHal Interface Structure

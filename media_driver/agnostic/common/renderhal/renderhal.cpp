@@ -3520,10 +3520,10 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
 
             case Format_Y210:
             case Format_Y216:
-                pRenderHal->pRenderHalPltInterface->GetPlaneDefForFormatY216(
+                MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->GetPlaneDefForFormatY216(
                     (pRenderHalSurface->SurfType == RENDERHAL_SURF_OUT_RENDERTARGET),
                     pRenderHal,
-                    PlaneDefinition);
+                    PlaneDefinition));
                 break;
 
             case Format_B10G10R10A2:
