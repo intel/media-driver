@@ -247,7 +247,31 @@ public:
     //! \brief  Get the size of the graphic resource
     //! \return buf size of the graphic resource
     //!
-    uint32_t GetSize() { return  this->m_size; };
+    uint32_t GetSize() { return m_size; };
+
+    //!
+    //! \brief  Get the locked address of resource
+    //! \return address locked
+    //!
+    uint8_t* GetLockedAddr() {return m_pData; };
+
+    //!
+    //! \brief  Get allocation index of resource
+    //! \param  [in] gpuContextHandle
+    //!         Gpu context handle used to get the alloc index
+    //! \return index got from current resource
+    //!
+    int32_t GetAllocationIndex(GPU_CONTEXT_HANDLE gpuContextHandle);
+
+    //!
+    //! \brief  Set allocation index of resource
+    //! \param  [in] gpuContextHandle
+    //!         Gpu context handle corresponding to the alloc index to set
+    //! \param  [in] allocationIndex
+    //!         Alloc index value to set
+    //! \return void
+    //!
+    void SetAllocationIndex(GPU_CONTEXT_HANDLE gpuContextHandle, int32_t allocationIndex);
 
     //!
     //! \brief  Dump the content of the graphic resource into a specific file
@@ -354,6 +378,12 @@ public:
     //! \return Global memory alloction counter
     //!
     static void  SetMemAllocCounterGfx(uint32_t memAllocCounterGfx) { m_memAllocCounterGfx = memAllocCounterGfx; };
+
+    //!
+    //! \brief  Reset allocation index of all Gpu context in the resource
+    //! \return void
+    //!
+    void ResetResourceAllocationIndex();
 
 protected:
     //!
@@ -482,6 +512,11 @@ protected:
     //!         in another actual MOS resource
     //!
     uint64_t                m_userProvidedVA = 0;
+
+    //!
+    //! \brief  Array of Gpu context and alloctaion index tuple.
+    //!
+    std::vector <std::tuple<GPU_CONTEXT_HANDLE, int32_t>>  m_allocationIndexArray;
 };
 #endif // #ifndef __MOS_GRAPHICS_RESOURCE_H__
 

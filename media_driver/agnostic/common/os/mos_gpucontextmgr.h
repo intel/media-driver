@@ -125,6 +125,16 @@ public:
     //!
     OsContext* GetOsContext() { return m_osContext; }
 
+    //!
+    //! \brief    Get Gpu context number
+    //! \return   uint32_t
+    //!           Number of all Gpu contexts, include the node which was already destroyed
+    //!
+    uint32_t GetGpuContextNumber()
+    {
+        return m_gpuContextArray.size();
+    }
+
 protected:
     //! \brief    Gt system info 
     //! \detail   reserve to reuse gpu context

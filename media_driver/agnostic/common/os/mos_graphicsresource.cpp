@@ -30,6 +30,7 @@
 #include "mos_utilities.h"
 #include <string>
 #include <fcntl.h>
+#include <tuple>
 
 uint32_t GraphicsResource::m_memAllocCounterGfx;
 
@@ -145,5 +146,58 @@ class GraphicsResource* GraphicsResource::CreateGraphicResource(GraphicsResource
     }
 
     return pResource;
+}
+
+int32_t GraphicsResource::GetAllocationIndex(GPU_CONTEXT_HANDLE gpuContextHandle)
+{
+   MOS_OS_FUNCTION_ENTER;
+
+    GPU_CONTEXT_HANDLE curGpuContext;
+    int32_t curAllocIndex ;
+    int32_t ret = MOS_INVALID_ALLOC_INDEX; 
+    for (auto& curAllocationIndexTp : m_allocationIndexArray)
+    {
+        std::tie(curGpuContext, curAllocIndex) = curAllocationIndexTp ;
+        if (curGpuContext == gpuContextHandle)
+        {
+             ret = curAllocIndex;
+             break;
+        }
+    }
+
+    return ret;
+}
+
+void GraphicsResource::SetAllocationIndex(GPU_CONTEXT_HANDLE gpuContextHandle, int32_t allocationIndex)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    GPU_CONTEXT_HANDLE curGpuContext;
+    int32_t curAllocIndex ;
+    bool   found = false;
+    for (auto& curAllocationIndexTp : m_allocationIndexArray)
+    {
+        std::tie(curGpuContext, curAllocIndex) = curAllocationIndexTp ;
+        if (curGpuContext == gpuContextHandle)
+        {
+             found = true;
+             curAllocationIndexTp = std::tie( gpuContextHandle, allocationIndex );
+             return;
+        }
+    }
+
+    if (!found)
+    {
+        // not found
+        m_allocationIndexArray.push_back(std::tie(gpuContextHandle, allocationIndex));
+    }
+    return;
+}
+
+void GraphicsResource::ResetResourceAllocationIndex()
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    m_allocationIndexArray.clear();
 }
 
