@@ -88,6 +88,7 @@ VAStatus DdiEncodeVp9::EncodeInCodecHal(uint32_t numSlices)
     DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_encodeCtx->RTtbl);
 
     CODEC_VP9_ENCODE_SEQUENCE_PARAMS *seqParams = (PCODEC_VP9_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams);
+    CODEC_VP9_ENCODE_PIC_PARAMS *vp9PicParam = (PCODEC_VP9_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams);
 
     EncoderParams encodeParams;
     MOS_ZeroMemory(&encodeParams, sizeof(EncoderParams));
@@ -187,6 +188,16 @@ VAStatus DdiEncodeVp9::EncodeInCodecHal(uint32_t numSlices)
 
     seqParams->TargetUsage = vp9TargetUsage;
 
+    /* If the segmentation is not enabled, the SegData will be reset */
+    if (vp9PicParam->PicFlags.fields.segmentation_enabled == 0)
+    {
+        DDI_CHK_NULL(m_segParams, "nullptr m_segParams", VA_STATUS_ERROR_INVALID_PARAMETER);
+        for (int i = 0; i < 8; i++)
+        {
+            MOS_ZeroMemory(&(m_segParams->SegData[i]), sizeof(CODEC_VP9_ENCODE_SEG_PARAMS));
+        }
+    }
+
     encodeParams.pSeqParams      = m_encodeCtx->pSeqParams;
     encodeParams.pPicParams      = m_encodeCtx->pPicParams;
     encodeParams.pSliceParams    = m_encodeCtx->pSliceParams;
@@ -217,8 +228,6 @@ VAStatus DdiEncodeVp9::EncodeInCodecHal(uint32_t numSlices)
                                    m_encodeCtx->pbsBuffer->pBase,
                                    &headerLen,
                                    &picBitOffset);
-
-        CODEC_VP9_ENCODE_PIC_PARAMS *vp9PicParam = (PCODEC_VP9_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams);
 
         vp9PicParam->BitOffsetForFirstPartitionSize = picBitOffset.bit_offset_first_partition_size;
         vp9PicParam->BitOffsetForQIndex             = picBitOffset.bit_offset_qindex;
