@@ -4339,7 +4339,7 @@ bool KernelDll_BuildKernel(Kdll_State *pState, Kdll_SearchState *pSearchState)
     pSearchState->KernelLeft         = sizeof(pSearchState->Kernel);
     pSearchState->KernelLink.dwCount = 0;
 
-#if EMUL || VPHAL_LIB || _DEBUG
+#if EMUL || VPHAL_LIB || _DEBUG || _RELEASE_INTERNAL
     VPHAL_RENDER_NORMALMESSAGE("Component Kernels:");
 #endif // EMUL || VPHAL_LIB || _DEBUG
 
@@ -4367,6 +4367,11 @@ bool KernelDll_BuildKernel(Kdll_State *pState, Kdll_SearchState *pSearchState)
         {
             VPHAL_RENDER_ASSERTMESSAGE("Failed to build kernel ID %d.", pSearchState->KernelID[offset]);
             return false;
+        }
+        else
+        {
+            Kdll_CacheEntry *kernels = (*pGroupID == GROUP_CUSTOM) ? &pCustomCache->pCacheEntries[*pKernelID] : &pKernelCache->pCacheEntries[*pKernelID];
+            VPHAL_RENDER_NORMALMESSAGE("Component kernels [%d]: %s", *pKernelID, kernels->szName);
         }
     }
 
