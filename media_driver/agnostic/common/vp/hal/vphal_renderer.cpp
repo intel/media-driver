@@ -719,10 +719,6 @@ MOS_STATUS VphalRenderer::RenderPass(
 
     //------------------------------------------
     VPHAL_RNDR_DUMP_SURF_PTR_ARRAY(
-        this, pRenderParams->pSrc, VPHAL_MAX_SOURCES,
-        pRenderParams->uSrcCount, VPHAL_DBG_DUMP_TYPE_POST_ALL);
-
-    VPHAL_RNDR_DUMP_SURF_PTR_ARRAY(
         this, pRenderParams->pTarget, VPHAL_MAX_TARGETS,
         pRenderParams->uDstCount, VPHAL_DBG_DUMP_TYPE_POST_ALL);
     //------------------------------------------
