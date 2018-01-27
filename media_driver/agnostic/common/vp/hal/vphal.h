@@ -439,6 +439,19 @@ struct VPHAL_SURFACE
 };
 
 //!
+//! Structure VPHAL_PREDICATION_PARAMS
+//! \brief VPHAL Predication Parameters
+//!
+struct VPHAL_PREDICATION_PARAMS
+{
+    MOS_RESOURCE            *pPredicationResource;    // Resource for predication
+    MOS_RESOURCE            *ptempPredicationBuffer;  // Additional temp buffer for Predication due to the limitation of Cond_BB_End
+    uint64_t                predicationResOffset;     // Offset for Predication resource
+    bool                    predicationNotEqualZero;  // Predication mode
+    bool                    predicationEnabled;       // Indicates whether or not Predication is enabled
+};
+
+//!
 //! Structure VPHAL_RENDER_PARAMS
 //! \brief VPHAL Rendering Parameters
 //!
@@ -472,6 +485,9 @@ struct VPHAL_RENDER_PARAMS
 
     bool                                    bCalculatingAlpha;          //!< Alpha calculation parameters
 
+    // Predicaiton
+    VPHAL_PREDICATION_PARAMS                PredicationParams;          //!< Predication
+
     // extension parameters
     void                                    *pExtensionData;            //!< Extension data
 
@@ -497,6 +513,11 @@ struct VPHAL_RENDER_PARAMS
         bCalculatingAlpha(false),
         pExtensionData(nullptr)
     {
+        PredicationParams.pPredicationResource      = nullptr;
+        PredicationParams.ptempPredicationBuffer    = nullptr;
+        PredicationParams.predicationResOffset      = 0;
+        PredicationParams.predicationNotEqualZero   = false;
+        PredicationParams.predicationEnabled        = false;
     }
 
 };

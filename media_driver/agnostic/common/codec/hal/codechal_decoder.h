@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2018, Intel Corporation
+* Copyright (c) 2011-2017, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -359,13 +359,6 @@ struct CodechalDecodeParams
     bool                    m_bitstreamLockingInUse = false;
     //! \brief [VP8] Indicates whether or not the bitstream buffer may be directly locked to perform header parsing.
     bool                    m_bitstreamLockable = false;
-
-    //! \brief [SetMarker] Indicates whether or not SetMarker is enabled
-    bool                    m_setMarkerEnabled = false;
-    //! \brief [SetMarker] Resource for SetMarker
-    PMOS_RESOURCE           m_presSetMarker = nullptr;
-    //! \brief [SetMarker] Number Timestamp for SetMarker
-    uint32_t                setMarkerNumTs = 0;
 };
 
 //!
@@ -563,19 +556,6 @@ public:
     //!
     MOS_STATUS SendPredicationCommand(
         PMOS_COMMAND_BUFFER cmdBuffer);
-
-    //!
-    //! \brief  Inserts marker commands for a command buffer
-    //! \param  [in] cmdBuffer
-    //!         Command buffer
-    //! \param  [in] isRender
-    //!         Whether render engine workload or not
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS SendMarkerCommand(
-        PMOS_COMMAND_BUFFER cmdBuffer,
-        bool isRender);
 
     //!
     //! \brief  The entry to get status report.

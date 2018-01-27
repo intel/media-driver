@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2018, Intel Corporation
+* Copyright (c) 2009-2017, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -5710,9 +5710,6 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnGetAuxTableBaseAddr                    = Mos_Specific_GetAuxTableBaseAddr;
     pOsInterface->pfnSetSliceCount                          = Mos_Specific_SetSliceCount;
     pOsInterface->pfnGetResourceIndex                       = Mos_Specific_GetResourceIndex;
-    pOsInterface->pfnSetSliceCount                          = Mos_Specific_SetSliceCount;
-    pOsInterface->pfnIsSetMarkerEnabled                     = Mos_Specific_IsSetMarkerEnabled;
-    pOsInterface->pfnGetMarkerResource                      = Mos_Specific_GetMarkerResource;
 
     pOsUserFeatureInterface->bIsNotificationSupported   = false;
     pOsUserFeatureInterface->pOsInterface               = pOsInterface;
@@ -5927,32 +5924,4 @@ void Mos_Specific_SetResourceFormat(
     MOS_OS_ASSERT(pOsResource);
 
     pOsResource->Format = mosFormat;
-}
-
-//!
-//! \brief    Get SetMarker enabled flag
-//! \details  Get SetMarker enabled flag from OsInterface
-//! \param    PMOS_INTERFACE pOsInterface
-//!           [in] OS Interface
-//! \return   bool
-//!           SetMarker enabled flag
-//!
-bool Mos_Specific_IsSetMarkerEnabled(
-    PMOS_INTERFACE         pOsInterface)
-{
-    return false;
-}
-
-//!
-//! \brief    Get SetMarker resource address
-//! \details  Get SetMarker resource address from OsInterface
-//! \param    PMOS_INTERFACE pOsInterface
-//!           [in] OS Interface
-//! \return   PMOS_RESOURCE
-//!           SetMarker resource address
-//!
-PMOS_RESOURCE Mos_Specific_GetMarkerResource(
-    PMOS_INTERFACE         pOsInterface)
-{
-    return 0;
 }
