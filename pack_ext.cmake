@@ -18,23 +18,17 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-include_directories(${BS_DIR_SKUWA}/linux)
-
-if(NOT "${LIBVA_INSTALL_PATH}" STREQUAL "")
-    include_directories(BEFORE ${LIBVA_INSTALL_PATH})
-elseif(DEFINED ENV{LIBVA_INSTALL_PATH} AND NOT "$ENV{LIBVA_INSTALL_PATH}" STREQUAL "")
-    include_directories(BEFORE $ENV{LIBVA_INSTALL_PATH})
-else()
-    include(FindPkgConfig)
-    pkg_check_modules(LIBVA REQUIRED libva>=1.0.0)
-    if(LIBVA_FOUND)
-        include_directories(BEFORE ${LIBVA_INCLUDE_DIRS})
-        if("${LIBVA_DRIVERS_PATH}" STREQUAL "")
-            pkg_get_variable(LIBVA_DRIVERS_PATH libva driverdir)
-            set(LIBVA_DRIVERS_PATH ${LIBVA_DRIVERS_PATH} PARENT_SCOPE)
-        endif()
-    endif()
+if (IS_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../libva-install/usr/bin)
+    install (DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../libva-install/usr/bin DESTINATION ${CMAKE_INSTALL_PREFIX}
+             FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE COMPONENT media)
+endif()
+if (IS_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../libva-install/usr/include)
+    install (DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../libva-install/usr/include DESTINATION ${CMAKE_INSTALL_PREFIX} COMPONENT media)
+endif()
+if (IS_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../libva-install/usr/lib)
+    install (DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../libva-install/usr/lib DESTINATION ${CMAKE_INSTALL_PREFIX} COMPONENT media)
 endif()
 
-
-include(${MEDIA_DRIVER_CMAKE}/ext/linux/media_include_paths_linux_ext.cmake OPTIONAL)
+if (IS_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../libdrm-install/usr/lib)
+    install (DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../libdrm-install/usr/lib DESTINATION ${CMAKE_INSTALL_PREFIX} COMPONENT media)
+endif()

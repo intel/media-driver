@@ -62,6 +62,11 @@ add_executable(drvult ${SOURCES})
 LINK_DIRECTORIES(/usr/lib/x86_64-linux-gnu/)
 TARGET_LINK_LIBRARIES(drvult libgtest libdl.so)
 
+if (DEFINED BYPASS_MEDIA_ULT AND "${BYPASS_MEDIA_ULT}" STREQUAL "yes")
+    # must explictly pass along BYPASS_MEDIA_ULT as yes then could bypass the running of media ult
+    message("-- media -- BYPASS_MEDIA_ULT = ${BYPASS_MEDIA_ULT}")
+else ()
+
 if (NOT "${Full_Open_Source_Support}" STREQUAL "yes")
 add_custom_target(RunULT ALL DEPENDS iHD_drv_video drvult)
 add_custom_command(
@@ -71,4 +76,6 @@ add_custom_command(
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMENT "Running drvult..."
 )
+endif ()
+
 endif ()

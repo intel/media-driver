@@ -194,4 +194,6 @@ endif()
 
 if (DEFINED MEDIA_VERSION)
     add_definitions(-DUFO_VERSION="${MEDIA_VERSION}")
+elseif (DEFINED ENV{MEDIA_VERSION})
+    add_definitions(-DUFO_VERSION="ENV{MEDIA_VERSION}")
 endif()

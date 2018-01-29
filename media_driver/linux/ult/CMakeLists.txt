@@ -29,6 +29,8 @@ include(${MEDIA_DRIVER_CMAKE}/linux/media_gen_flags_linux.cmake)
 
 if(NOT "${LIBVA_INSTALL_PATH}" STREQUAL "")
     include_directories(BEFORE ${LIBVA_INSTALL_PATH})
+elseif(DEFINED ENV{LIBVA_INSTALL_PATH} AND NOT "$ENV{LIBVA_INSTALL_PATH}" STREQUAL "")
+    include_directories(BEFORE $ENV{LIBVA_INSTALL_PATH})
 else()
     include(FindPkgConfig)
     pkg_check_modules(LIBVA REQUIRED libva>=1.0.0)
