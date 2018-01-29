@@ -103,9 +103,16 @@ public:
     //!
     //! \return the current CSC surface
     //!
-    inline MOS_SURFACE* GetCurrCscSurface()
+    MOS_SURFACE* GetCscSurface(uint8_t bufIndex)
     {
-        return m_trackedBufCurrCsc;
+        if (bufIndex == CODEC_CURR_TRACKED_BUFFER)
+        {
+            return m_trackedBufCurrCsc;
+        }
+        else
+        {
+            return (MOS_SURFACE*)m_allocator->GetResource(m_standard, cscSurface, bufIndex);
+        }
     }
 
     //!

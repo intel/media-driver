@@ -36,20 +36,7 @@ MOS_STATUS CodechalEncodeCscDs::AllocateSurfaceCsc()
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS eStatus = m_encoder->m_trackedBuf->AllocateSurfaceCsc();
-
-    if (eStatus == MOS_STATUS_MORE_DATA)
-    {
-        auto cscSurface = m_encoder->m_trackedBuf->GetCurrCscSurface();
-
-        eStatus = MOS_STATUS_SUCCESS;
-    }
-    else
-    {
-        CODECHAL_ENCODE_ASSERTMESSAGE("AllocateSurfaceCsc: error = %d", eStatus);
-    }
-
-    return eStatus;
+    return m_encoder->m_trackedBuf->AllocateSurfaceCsc();
 }
 
 MOS_STATUS CodechalEncodeCscDs::CheckRawColorFormat(MOS_FORMAT format)
@@ -129,7 +116,7 @@ MOS_STATUS CodechalEncodeCscDs::SetParamsSfc(CODECHAL_ENCODE_SFC_PARAMS* sfcPara
 
     // color space parameters have been set to pSfcState already, no need set here
     sfcParams->pInputSurface = m_rawSurfaceToEnc;
-    sfcParams->pOutputSurface = m_encoder->m_trackedBuf->GetCurrCscSurface();
+    sfcParams->pOutputSurface = m_encoder->m_trackedBuf->GetCscSurface(CODEC_CURR_TRACKED_BUFFER);
     sfcParams->rcInputSurfaceRegion.X = 0;
     sfcParams->rcInputSurfaceRegion.Y = 0;
     sfcParams->rcInputSurfaceRegion.Width = m_cscRawSurfWidth;
@@ -222,7 +209,7 @@ MOS_STATUS CodechalEncodeCscDs::SetKernelParamsCsc(KernelParams* params)
 
     // setup surface states
     m_surfaceParamsCsc.psInputSurface = m_rawSurfaceToEnc;
-    m_surfaceParamsCsc.psOutputCopiedSurface = m_cscFlag ? m_encoder->m_trackedBuf->GetCurrCscSurface() : nullptr;
+    m_surfaceParamsCsc.psOutputCopiedSurface = m_cscFlag ? m_encoder->m_trackedBuf->GetCscSurface(CODEC_CURR_TRACKED_BUFFER) : nullptr;
     m_surfaceParamsCsc.psOutput4xDsSurface =
         m_scalingEnabled ? m_encoder->m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER) : nullptr;
 
@@ -420,7 +407,7 @@ MOS_STATUS CodechalEncodeCscDs::SetSurfacesToEncPak()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    auto cscSurface = m_encoder->m_trackedBuf->GetCurrCscSurface();
+    auto cscSurface = m_encoder->m_trackedBuf->GetCscSurface(CODEC_CURR_TRACKED_BUFFER);
 
     // assign CSC output surface according to different operation
     if (RenderConsumesCscSurface())
@@ -1062,7 +1049,7 @@ MOS_STATUS CodechalEncodeCscDs::WaitCscSurface(MOS_GPU_CONTEXT gpuContext, bool 
     auto syncParams = g_cInitSyncParams;
     syncParams.GpuContext = gpuContext;
     syncParams.bReadOnly = readOnly;
-    syncParams.presSyncResource = &m_encoder->m_trackedBuf->GetCurrCscSurface()->OsResource;
+    syncParams.presSyncResource = &m_encoder->m_trackedBuf->GetCscSurface(CODEC_CURR_TRACKED_BUFFER)->OsResource;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnResourceWait(m_osInterface, &syncParams));
     m_osInterface->pfnSetResourceSyncTag(m_osInterface, &syncParams);

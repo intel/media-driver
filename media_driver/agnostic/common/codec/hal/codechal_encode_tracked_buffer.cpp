@@ -380,7 +380,7 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateSurfaceCsc()
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, m_trackedBufCurrCsc));
 
-    return MOS_STATUS_MORE_DATA;
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS CodechalEncodeTrackedBuffer::AllocateSurfaceDS()
