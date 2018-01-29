@@ -70,7 +70,7 @@ MOS_STATUS VpHal_InitMhwOutSurfParams(
 
     if (pSfcPipeOutSurface->dwPitch > 0)
     {
-        pMhwOutSurfParams->dwUYoffset = pSfcPipeOutSurface->UPlaneOffset.iLockSurfaceOffset / pSfcPipeOutSurface->dwPitch;
+        pMhwOutSurfParams->dwUYoffset = ((pSfcPipeOutSurface->UPlaneOffset.iSurfaceOffset - pSfcPipeOutSurface->YPlaneOffset.iSurfaceOffset) / pSfcPipeOutSurface->dwPitch) + pSfcPipeOutSurface->UPlaneOffset.iYOffset;
     }
 
 finish:

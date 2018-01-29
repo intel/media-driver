@@ -116,7 +116,7 @@ MOS_STATUS VpHal_InitVeboxSurfaceParams(
 
     if (pVpHalVeboxSurface->dwPitch > 0)
     {
-        pMhwVeboxSurface->dwUYoffset = pVpHalVeboxSurface->UPlaneOffset.iLockSurfaceOffset / pVpHalVeboxSurface->dwPitch;
+        pMhwVeboxSurface->dwUYoffset = ((pVpHalVeboxSurface->UPlaneOffset.iSurfaceOffset - pVpHalVeboxSurface->YPlaneOffset.iSurfaceOffset) / pVpHalVeboxSurface->dwPitch) + pVpHalVeboxSurface->UPlaneOffset.iYOffset;
     }
 
 finish:
