@@ -315,6 +315,8 @@ VAStatus DdiEncodeHevc::EncodeInCodecHal(uint32_t numSlices)
         encodeParams.bMbQpDataEnabled  = true;
     }
 
+    PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS hevcSeqParams = (PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS)((uint8_t *)m_encodeCtx->pSeqParams);
+    hevcSeqParams->TargetUsage = m_encodeCtx->targetUsage;
     encodeParams.pSeqParams   = m_encodeCtx->pSeqParams;
     encodeParams.pVuiParams   = m_encodeCtx->pVuiParams;
     encodeParams.pPicParams   = m_encodeCtx->pPicParams;
@@ -416,7 +418,6 @@ VAStatus DdiEncodeHevc::ParseSeqParams(void *ptr)
     hevcSeqParams->GopRefDist                = seqParams->ip_period;
     hevcSeqParams->chroma_format_idc         = seqParams->seq_fields.bits.chroma_format_idc;
 
-    hevcSeqParams->TargetUsage       = TARGETUSAGE_RT_SPEED;
     hevcSeqParams->RateControlMethod = VARC2HalRC(m_encodeCtx->uiRCMethod);
 
     hevcSeqParams->TargetBitRate = MOS_ROUNDUP_DIVIDE(seqParams->bits_per_second, CODECHAL_ENCODE_BRC_KBPS);
@@ -841,7 +842,7 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
     case VAEncMiscParameterTypeQualityLevel:
     {
         VAEncMiscParameterBufferQualityLevel *vaEncMiscParamQualityLevel = (VAEncMiscParameterBufferQualityLevel *)miscParamBuf->data;
-        seqParams->TargetUsage                                           = (uint8_t)vaEncMiscParamQualityLevel->quality_level;
+        m_encodeCtx->targetUsage                                         = (uint8_t)vaEncMiscParamQualityLevel->quality_level;
 
 #ifdef _FULL_OPEN_SOURCE
         if(seqParams->TargetUsage >= 1 && seqParams->TargetUsage <= 2)
@@ -860,7 +861,7 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
 #endif
 
         // HEVC only supports TU=1, 4, and 7
-        if (1 != seqParams->TargetUsage && 4 != seqParams->TargetUsage && 7 != seqParams->TargetUsage)
+        if (1 != m_encodeCtx->targetUsage && 4 != m_encodeCtx->targetUsage && 7 != m_encodeCtx->targetUsage)
         {
             DDI_ASSERTMESSAGE("unsupported target usage in HEVC encoder.");
             return VA_STATUS_ERROR_INVALID_PARAMETER;

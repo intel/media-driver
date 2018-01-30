@@ -168,6 +168,8 @@ typedef struct _DDI_ENCODE_CONTEXT
     DDI_CODEC_COM_BUFFER_MGR          BufMgr;
     PDDI_MEDIA_CONTEXT                pMediaCtx;
 
+    uint8_t                           targetUsage;
+
 } DDI_ENCODE_CONTEXT, *PDDI_ENCODE_CONTEXT;
 
 typedef struct _DDI_ENCODE_MFE_CONTEXT

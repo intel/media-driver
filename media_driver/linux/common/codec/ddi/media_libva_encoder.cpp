@@ -334,6 +334,7 @@ VAStatus DdiEncode_CreateContext(
     encCtx->wContextPicHeightInMB = encCtx->wPicHeightInMB;
     encCtx->wOriPicWidthInMB      = encCtx->wPicWidthInMB;
     encCtx->wOriPicHeightInMB     = encCtx->wPicHeightInMB;
+    encCtx->targetUsage           = TARGETUSAGE_RT_SPEED;
     // Attach PMEDIDA_DRIVER_CONTEXT
     encCtx->pMediaCtx = mediaDrvCtx;
 

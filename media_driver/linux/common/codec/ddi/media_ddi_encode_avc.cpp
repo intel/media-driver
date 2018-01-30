@@ -498,35 +498,31 @@ VAStatus DdiEncodeAvc::ParseMiscParameterRIR(void *data)
 VAStatus DdiEncodeAvc::ParseMiscParamQualityLevel(void *data)
 {
     // Assume only one SPS here, modify when enable multiple SPS support
-    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS     seqParams                  = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams);
     VAEncMiscParameterBufferQualityLevel *vaEncMiscParamQualityLevel = (VAEncMiscParameterBufferQualityLevel *)data;
 
-    DDI_CHK_NULL(seqParams, "nullptr seqParams", VA_STATUS_ERROR_INVALID_PARAMETER);
-
-    seqParams->TargetUsage = (uint8_t)vaEncMiscParamQualityLevel->quality_level;
+    m_encodeCtx->targetUsage = (uint8_t)vaEncMiscParamQualityLevel->quality_level;
+    uint8_t qualityUpperBoundary = TARGETUSAGE_BEST_SPEED;
 #ifdef _FULL_OPEN_SOURCE
-    if(seqParams->TargetUsage >= 1 && seqParams->TargetUsage <= 2)
+    qualityUpperBoundary = 5;
+#endif
+    // check if TU setting is valid, otherwise change to default
+    if ((m_encodeCtx->targetUsage > qualityUpperBoundary) || (0 == m_encodeCtx->targetUsage))
     {
-        seqParams->TargetUsage = 4;
-    }
-    else if(seqParams->TargetUsage >= 3 && seqParams->TargetUsage <= 5)
-    {
-        seqParams->TargetUsage = 7;
-    }
-    else
-    {
-        DDI_ASSERTMESSAGE("Quality Level setting from application is not correct, should be in (0,5]. Force it to 5.");
-        seqParams->TargetUsage = TARGETUSAGE_RT_SPEED;
+        m_encodeCtx->targetUsage = TARGETUSAGE_RT_SPEED;
+        DDI_ASSERTMESSAGE("Quality Level setting from application is not correct, should be in (0,%d].", qualityUpperBoundary);
         return VA_STATUS_SUCCESS;
     }
-#endif
 
-    // check if TU setting is valid, otherwise change to default
-    if ((seqParams->TargetUsage > TARGETUSAGE_BEST_SPEED) || (0 == seqParams->TargetUsage))
+#ifdef _FULL_OPEN_SOURCE
+    if(m_encodeCtx->targetUsage >= 1 && m_encodeCtx->targetUsage <= 2)
     {
-        seqParams->TargetUsage = TARGETUSAGE_RT_SPEED;
-        DDI_ASSERTMESSAGE("Quality Level setting from application is not correct, should be in (0,7].");
+        m_encodeCtx->targetUsage = 4;
     }
+    else if(m_encodeCtx->targetUsage >= 3 &&m_encodeCtx->targetUsage <= 5)
+    {
+        m_encodeCtx->targetUsage = 7;
+    }
+#endif
 
     return VA_STATUS_SUCCESS;
 }
@@ -980,7 +976,7 @@ VAStatus DdiEncodeAvc::EncodeInCodecHal(uint32_t numSlices)
 
     vuiParam  = (CODECHAL_ENCODE_AVC_VUI_PARAMS *)m_encodeCtx->pVuiParams;
     seqParams = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams);
-
+    seqParams->TargetUsage = m_encodeCtx->targetUsage;
     if (VA_RC_CQP == m_encodeCtx->uiRCMethod)
     {
         vuiParam->bit_rate_value_minus1[0]    = 0;
@@ -1212,7 +1208,6 @@ VAStatus DdiEncodeAvc::ParseSeqParams(void *ptr)
 
     seqParams->GopPicSize = seq->intra_period;
     seqParams->GopRefDist = seq->ip_period;
-    seqParams->TargetUsage       = TARGETUSAGE_BEST_QUALITY;
     seqParams->RateControlMethod = VARC2HalRC(m_encodeCtx->uiRCMethod);
 
     seqParams->TargetBitRate = seq->bits_per_second;
