@@ -1579,35 +1579,10 @@ MOS_STATUS CodechalVdencHevcStateG10::SetDmemHuCBrcInitReset()
         {
             hucVdencBrcInitDmem->BRCFlag = 5;
         }
-
-		switch (m_hevcSeqParams->MBBRC)
-		{
-		case mbBrcInternal:
-		case mbBrcEnabled:
-			hucVdencBrcInitDmem->CuQpCtrl_U8 = 3;
-			break;
-		case mbBrcDisabled:
-			hucVdencBrcInitDmem->CuQpCtrl_U8 = 0;
-			break;
-		default:
-			break;
-		}
-	}
+    }
     else if (m_hevcVdencAcqpEnabled)
     {
-		hucVdencBrcInitDmem->BRCFlag = 0;
-		
-		// 0=No CUQP; 1=CUQP for I-frame; 2=CUQP for P/B-frame
-		// bit operation, bit 1 for I-frame, bit 2 for P/B frame
-		// In VDENC mode, the field "Cu_Qp_Delta_Enabled_Flag" should always be set to 1.
-		if (m_hevcSeqParams->QpAdjustment)
-		{
-			hucVdencBrcInitDmem->CuQpCtrl_U8 = 3;  // wPictureCodingType I:0, P:1, B:2
-		}
-		else
-		{
-			hucVdencBrcInitDmem->CuQpCtrl_U8 = 0;  // wPictureCodingType I:0, P:1, B:2
-		}
+        hucVdencBrcInitDmem->BRCFlag = 0;
     }
 
     hucVdencBrcInitDmem->SSCFlag = m_hevcSeqParams->SliceSizeControl;
@@ -1638,9 +1613,22 @@ MOS_STATUS CodechalVdencHevcStateG10::SetDmemHuCBrcInitReset()
     // checking SAO flag for first slice is enough since this flag has the same value for all slices within a picture
     hucVdencBrcInitDmem->ASAO_U8 = (m_hevcSeqParams->SAO_enabled_flag && m_hevcSliceParams->slice_sao_luma_flag) ? 2 : 0;
 
-    if (hucVdencBrcInitDmem->LowDelayMode_U8 = (m_hevcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_EXTREMELY_LOW))  // Low Delay BRC
+    // 0=No CUQP; 1=CUQP for I-frame; 2=CUQP for P/B-frame
+    // bit operation, bit 1 for I-frame, bit 2 for P/B frame
+    // In VDENC mode, this field "Cu_Qp_Delta_Enabled_Flag" should always be set to 1.
+
+    if (m_hevcSeqParams->QpAdjustment)
     {
-        MOS_SecureMemcpy(hucVdencBrcInitDmem->DevThreshPB0_S8, 8 * sizeof(int8_t), (void *)m_devThreshPB0LowDelay, 8 * sizeof(int8_t));
+        hucVdencBrcInitDmem->CuQpCtrl_U8 = 3;  // wPictureCodingType I:0, P:1, B:2
+    }
+    else
+    {
+        hucVdencBrcInitDmem->CuQpCtrl_U8 = 0;  // wPictureCodingType I:0, P:1, B:2
+    }
+
+        if (hucVdencBrcInitDmem->LowDelayMode_U8 = (m_hevcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_EXTREMELY_LOW))  // Low Delay BRC
+        {
+            MOS_SecureMemcpy(hucVdencBrcInitDmem->DevThreshPB0_S8, 8 * sizeof(int8_t), (void *)m_devThreshPB0LowDelay, 8 * sizeof(int8_t));
     }
     else
     {
