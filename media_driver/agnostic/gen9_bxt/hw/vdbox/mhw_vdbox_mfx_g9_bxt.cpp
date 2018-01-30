@@ -259,6 +259,8 @@ MOS_STATUS MhwVdboxMfxInterfaceG9Bxt::AddMfxPipeBufAddrCmd(
 
     if (params->presMacroblockIldbStreamOutBuffer1 != nullptr)
     {
+        cmd.DW57.MemoryObjectControlState =
+            m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_MACROBLOCK_ILDB_STREAM_OUT_BUFFER_CODEC].Value;
         cmd.DW57.MacroblockIldbStreamoutBufferMemoryCompressionEnable = MHW_MEDIA_MEMCOMP_DISABLED;
         resourceParams.presResource = params->presMacroblockIldbStreamOutBuffer1;
         resourceParams.dwOffset = 0;
@@ -274,6 +276,8 @@ MOS_STATUS MhwVdboxMfxInterfaceG9Bxt::AddMfxPipeBufAddrCmd(
 
     if (params->presMacroblockIldbStreamOutBuffer2 != nullptr)
     {
+        cmd.DW60.MemoryObjectControlState =
+            m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_MACROBLOCK_ILDB_STREAM_OUT_BUFFER_CODEC].Value;
         cmd.DW60.SecondMacroblockIldbStreamoutBufferMemoryCompressionEnable = MHW_MEDIA_MEMCOMP_DISABLED;
         resourceParams.presResource = params->presMacroblockIldbStreamOutBuffer2;
         resourceParams.dwOffset = 0;
@@ -310,6 +314,9 @@ MOS_STATUS MhwVdboxMfxInterfaceG9Bxt::AddMfxPipeBufAddrCmd(
         }
         cmd.DW64.ScaledReferenceSurfaceMemoryCompressionMode = (params->Ps4xDsSurfMmcState == MOS_MEMCOMP_HORIZONTAL) ?
             MHW_MEDIA_MEMCOMP_MODE_HORIZONTAL : MHW_MEDIA_MEMCOMP_MODE_VERTICAL;
+
+        cmd.DW64.ScaledReferenceSurfaceIndexToMemoryObjectControlStateMocsTables =
+            m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SURFACE_HME_DOWNSAMPLED_ENCODE].Value >> 1;
 
         MHW_MI_CHK_STATUS(AddResourceToCmd(
             m_osInterface,

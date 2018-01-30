@@ -1034,6 +1034,9 @@ MOS_STATUS MhwVdboxMfxInterfaceG10::AddMfxPipeBufAddrCmd(
         cmd.DW64.ScaledReferenceSurfaceMemoryCompressionMode = (params->Ps4xDsSurfMmcState == MOS_MEMCOMP_HORIZONTAL) ?
             MHW_MEDIA_MEMCOMP_MODE_HORIZONTAL : MHW_MEDIA_MEMCOMP_MODE_VERTICAL;
 
+        cmd.DW64.ScaledReferenceSurfaceIndexToMemoryObjectControlStateMocsTables =
+            m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SURFACE_HME_DOWNSAMPLED_ENCODE].Value >> 1; 
+
         cmd.DW64.ScaledReferenceSurfaceTiledResourceMode = Mhw_ConvertToTRMode(params->ps4xDsSurface->TileType);
 
         MHW_MI_CHK_STATUS(AddResourceToCmd(

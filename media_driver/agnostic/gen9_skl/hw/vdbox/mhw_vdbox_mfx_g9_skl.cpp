@@ -272,6 +272,8 @@ MOS_STATUS MhwVdboxMfxInterfaceG9Skl::AddMfxPipeBufAddrCmd(
 
     if (params->presMacroblockIldbStreamOutBuffer1 != nullptr)
     {
+        cmd.DW57.MemoryObjectControlState =
+            m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_MACROBLOCK_ILDB_STREAM_OUT_BUFFER_CODEC].Value;
         cmd.DW57.MacroblockIldbStreamoutBufferMemoryCompressionEnable = MHW_MEDIA_MEMCOMP_DISABLED;
         resourceParams.presResource = params->presMacroblockIldbStreamOutBuffer1;
         resourceParams.dwOffset = 0;
@@ -287,6 +289,8 @@ MOS_STATUS MhwVdboxMfxInterfaceG9Skl::AddMfxPipeBufAddrCmd(
 
     if (params->presMacroblockIldbStreamOutBuffer2 != nullptr)
     {
+        cmd.DW60.MemoryObjectControlState =
+            m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_MACROBLOCK_ILDB_STREAM_OUT_BUFFER_CODEC].Value;
         cmd.DW60.SecondMacroblockIldbStreamoutBufferMemoryCompressionEnable = MHW_MEDIA_MEMCOMP_DISABLED;
         resourceParams.presResource = params->presMacroblockIldbStreamOutBuffer2;
         resourceParams.dwOffset = 0;
