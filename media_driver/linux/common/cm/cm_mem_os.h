@@ -112,18 +112,18 @@ Inline Function:
 Description:
     Retrieves cpu information and capabilities supported
 Input:
-    int InfoType - type of information requested
+    int infoType - type of information requested
 Output:
-    int CPUInfo[4] - requested info
+    int cpuInfo[4] - requested info
 \*****************************************************************************/
-inline void GetCPUID(int CPUInfo[4], int InfoType)
+inline void GetCPUID(int cpuInfo[4], int infoType)
 {
 #ifndef NO_EXCEPTION_HANDLING
     __try
     {
 #endif //NO_EXCEPTION_HANDLING
 
-    __get_cpuid(InfoType, (unsigned int*)CPUInfo, (unsigned int*)CPUInfo + 1, (unsigned int*)CPUInfo + 2, (unsigned int*)CPUInfo + 3);
+    __get_cpuid(infoType, (unsigned int*)cpuInfo, (unsigned int*)cpuInfo + 1, (unsigned int*)cpuInfo + 2, (unsigned int*)cpuInfo + 3);
 
 #ifndef NO_EXCEPTION_HANDLING
     }
@@ -150,8 +150,8 @@ inline void CmFastMemCopyFromWC( void* dst, const void* src, const size_t bytes,
     if( cpuInstructionLevel >= CPU_INSTRUCTION_LEVEL_SSE4_1 )
     {
         // Cache pointers to memory
-        uint8_t *p_dst = (uint8_t*)dst;
-        uint8_t *p_src = (uint8_t*)src;
+        uint8_t *tempDst = (uint8_t*)dst;
+        uint8_t *tempSrc = (uint8_t*)src;
 
         size_t count = bytes;
 
@@ -160,75 +160,75 @@ inline void CmFastMemCopyFromWC( void* dst, const void* src, const size_t bytes,
             //Streaming Load must be 16-byte aligned but should
             //be 64-byte aligned for optimal performance
             const size_t doubleHexWordAlignBytes =
-                GetAlignmentOffset( p_src, sizeof(DHWORD) );
+                GetAlignmentOffset( tempSrc, sizeof(DHWORD) );
 
             // Copy portion of the source memory that is not aligned
             if( doubleHexWordAlignBytes )
             {
-                CmSafeMemCopy( p_dst, p_src, doubleHexWordAlignBytes );
+                CmSafeMemCopy( tempDst, tempSrc, doubleHexWordAlignBytes );
 
-                p_dst += doubleHexWordAlignBytes;
-                p_src += doubleHexWordAlignBytes;
+                tempDst += doubleHexWordAlignBytes;
+                tempSrc += doubleHexWordAlignBytes;
                 count -= doubleHexWordAlignBytes;
             }
 
-            CM_ASSERT( IsAligned( p_src, sizeof(DHWORD) ) == true );
+            CM_ASSERT( IsAligned( tempSrc, sizeof(DHWORD) ) == true );
 
             // Get the number of bytes to be copied (rounded down to nearets DHWORD)
-            const size_t DoubleHexWordsToCopy = count / sizeof(DHWORD);
+            const size_t doubleHexWordsToCopy = count / sizeof(DHWORD);
 
-            if( DoubleHexWordsToCopy )
+            if( doubleHexWordsToCopy )
             {
                 // Determine if the destination address is aligned
                 const bool isDstDoubleQuadWordAligned =
-                    IsAligned( p_dst, sizeof(DQWORD) );
+                    IsAligned( tempDst, sizeof(DQWORD) );
 
-                __m128i* pMMSrc = (__m128i*)(p_src);
-                __m128i* pMMDest = reinterpret_cast<__m128i*>(p_dst);
+                __m128i* mmSrc = (__m128i*)(tempSrc);
+                __m128i* mmDst = reinterpret_cast<__m128i*>(tempDst);
                 __m128i  xmm0, xmm1, xmm2, xmm3;
 
                 if( isDstDoubleQuadWordAligned )
                 {
-                    for( size_t i=0; i<DoubleHexWordsToCopy; i++ )
+                    for( size_t i=0; i<doubleHexWordsToCopy; i++ )
                     {
                         // Sync the WC memory data before issuing the MOVNTDQA instruction.
                         _mm_mfence();
-                        xmm0 = _mm_stream_load_si128(pMMSrc);
-                        xmm1 = _mm_stream_load_si128(pMMSrc + 1);
-                        xmm2 = _mm_stream_load_si128(pMMSrc + 2);
-                        xmm3 = _mm_stream_load_si128(pMMSrc + 3);
-                        pMMSrc += 4;
+                        xmm0 = _mm_stream_load_si128(mmSrc);
+                        xmm1 = _mm_stream_load_si128(mmSrc + 1);
+                        xmm2 = _mm_stream_load_si128(mmSrc + 2);
+                        xmm3 = _mm_stream_load_si128(mmSrc + 3);
+                        mmSrc += 4;
 
-                        _mm_store_si128(pMMDest, xmm0);
-                        _mm_store_si128(pMMDest + 1, xmm1);
-                        _mm_store_si128(pMMDest + 2, xmm2);
-                        _mm_store_si128(pMMDest + 3, xmm3);
-                        pMMDest += 4;
+                        _mm_store_si128(mmDst, xmm0);
+                        _mm_store_si128(mmDst + 1, xmm1);
+                        _mm_store_si128(mmDst + 2, xmm2);
+                        _mm_store_si128(mmDst + 3, xmm3);
+                        mmDst += 4;
 
-                        p_dst += sizeof(DHWORD);
-                        p_src += sizeof(DHWORD);
+                        tempDst += sizeof(DHWORD);
+                        tempSrc += sizeof(DHWORD);
                         count -= sizeof(DHWORD);
                     }
                 }
                 else
                 {
-                    for( size_t i=0; i<DoubleHexWordsToCopy; i++ )
+                    for( size_t i=0; i<doubleHexWordsToCopy; i++ )
                     {
                         // Sync the WC memory data before issuing the MOVNTDQA instruction.
                         _mm_mfence();
-                        xmm0 = _mm_stream_load_si128(pMMSrc);
-                        xmm1 = _mm_stream_load_si128(pMMSrc + 1);
-                        xmm2 = _mm_stream_load_si128(pMMSrc + 2);
-                        xmm3 = _mm_stream_load_si128(pMMSrc + 3);
-                        pMMSrc += 4;
+                        xmm0 = _mm_stream_load_si128(mmSrc);
+                        xmm1 = _mm_stream_load_si128(mmSrc + 1);
+                        xmm2 = _mm_stream_load_si128(mmSrc + 2);
+                        xmm3 = _mm_stream_load_si128(mmSrc + 3);
+                        mmSrc += 4;
 
-                        _mm_storeu_si128(pMMDest, xmm0);
-                        _mm_storeu_si128(pMMDest + 1, xmm1);
-                        _mm_storeu_si128(pMMDest + 2, xmm2);
-                        _mm_storeu_si128(pMMDest + 3, xmm3);
-                        pMMDest += 4;
-                        p_dst += sizeof(DHWORD);
-                        p_src += sizeof(DHWORD);
+                        _mm_storeu_si128(mmDst, xmm0);
+                        _mm_storeu_si128(mmDst + 1, xmm1);
+                        _mm_storeu_si128(mmDst + 2, xmm2);
+                        _mm_storeu_si128(mmDst + 3, xmm3);
+                        mmDst += 4;
+                        tempDst += sizeof(DHWORD);
+                        tempSrc += sizeof(DHWORD);
                         count -= sizeof(DHWORD);
                     }
                 }
@@ -238,7 +238,7 @@ inline void CmFastMemCopyFromWC( void* dst, const void* src, const size_t bytes,
         // Copy remaining uint8_t(s)
         if( count )
         {
-            CmSafeMemCopy( p_dst, p_src, count );
+            CmSafeMemCopy( tempDst, tempSrc, count );
         }
     }
     else

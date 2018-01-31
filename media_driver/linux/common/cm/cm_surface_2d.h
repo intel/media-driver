@@ -37,12 +37,12 @@ class CmSurface2D
 public:
     //!
     //! \brief Retrieves surface index of this CmSurface2D.
-    //! \param [out] pIndex
+    //! \param [out] index
     //!        Reference to the pointer to an SurfaceIndex.
     //!        It will point to the internal SurfaceIndex.
     //! \retval CM_SUECCESS.
     //!
-    CM_RT_API virtual int32_t GetIndex(SurfaceIndex* &pIndex) = 0;
+    CM_RT_API virtual int32_t GetIndex(SurfaceIndex* &index) = 0;
 
     //!
     //! \brief Copies data in this CmSurface2D to system memory.
@@ -56,9 +56,9 @@ public:
     //!          this fuction call.
     //!          If sysMemSize is given, it will be checked against the size of
     //!          the surface data.
-    //! \param [out] pSysMem
+    //! \param [out] sysMem
     //!        Pointer to the system memory receiving surface data.
-    //! \param [in] pEvent
+    //! \param [in] event
     //!        Pointer to the dependent event used for sychronization.
     //! \param [in] sysMemSize
     //!        Size of the system memory.
@@ -69,8 +69,8 @@ public:
     //! \retval CM_FAILURE otherwise.
     //!
     CM_RT_API virtual int32_t
-    ReadSurface(unsigned char *pSysMem,
-                CmEvent *pEvent,
+    ReadSurface(unsigned char *sysMem,
+                CmEvent *event,
                 uint64_t sysMemSize = 0xFFFFFFFFFFFFFFFFULL) = 0;
 
     //!
@@ -82,9 +82,9 @@ public:
     //!          becomes CM_STATUS_FINISHED.
     //!          If sysMemSize is given, it will be checked against the size of
     //!          the surface data.
-    //! \param [in] pSysMem
+    //! \param [in] sysMem
     //!        Pointer to the system memory storing surface data.
-    //! \param [in] pEvent
+    //! \param [in] event
     //!        Pointer to the dependent event used for sychronization.
     //! \param [in] sysMemSize
     //!        Size of the system memory.
@@ -95,8 +95,8 @@ public:
     //! \retval CM_FAILURE otherwise.
     //!
     CM_RT_API virtual int32_t
-    WriteSurface(const unsigned char *pSysMem,
-                 CmEvent *pEvent,
+    WriteSurface(const unsigned char *sysMem,
+                 CmEvent *event,
                  uint64_t sysMemSize = 0xFFFFFFFFFFFFFFFFULL) = 0;
 
     //!
@@ -112,9 +112,9 @@ public:
     //!          this fuction call.
     //!          If sysMemSize is given, it will be checked against the size of
     //!          the surface data.
-    //! \param [out] pSysMem
+    //! \param [out] sysMem
     //!        Pointer to the system memory receiving surface data.
-    //! \param [in] pEvent
+    //! \param [in] event
     //!        Pointer to the dependent event used for sychronization.
     //! \param [in] stride
     //!        System memory stride in bytes.
@@ -128,8 +128,8 @@ public:
     //! \retval CM_FAILURE otherwise.
     //!
     CM_RT_API virtual int32_t
-    ReadSurfaceStride(unsigned char *pSysMem,
-                      CmEvent *pEvent,
+    ReadSurfaceStride(unsigned char *sysMem,
+                      CmEvent *event,
                       const unsigned int stride,
                       uint64_t sysMemSize = 0xFFFFFFFFFFFFFFFFULL) = 0;
 
@@ -143,9 +143,9 @@ public:
     //!          becomes CM_STATUS_FINISHED.
     //!          If sysMemSize is given, it will be checked against the size of
     //!          the surface data.
-    //! \param [in] pSysMem
+    //! \param [in] sysMem
     //!        Pointer to the system memory storing surface data.
-    //! \param [in] pEvent
+    //! \param [in] event
     //!        Pointer to the dependent event used for sychronization.
     //! \param [in] stride
     //!        System memory stride in bytes.
@@ -159,8 +159,8 @@ public:
     //! \retval CM_FAILURE otherwise.
     //!
     CM_RT_API virtual int32_t
-    WriteSurfaceStride(const unsigned char *pSysMem,
-                       CmEvent *pEvent,
+    WriteSurfaceStride(const unsigned char *sysMem,
+                       CmEvent *event,
                        const unsigned int stride,
                        uint64_t sysMemSize = 0xFFFFFFFFFFFFFFFFULL) = 0;
 
@@ -172,23 +172,23 @@ public:
     //!          dependent event becomes CM_STATUS_FINISHED.
     //! \param [in] initValue
     //!        The value for initialization.
-    //! \param [in] pEvent
+    //! \param [in] event
     //!        Pointer to the dependent event used for sychronization.
     //! \retval CM_SUCCESS if initialization is successful.
     //! \retval CM_LOCK_SURFACE_FAIL if surface locking fails.
     //! \retval CM_FAILURE otherwise.
     //!
     CM_RT_API virtual int32_t InitSurface(const unsigned int initValue,
-                                          CmEvent *pEvent) = 0;
+                                          CmEvent *event) = 0;
 
     //!
     //! \brief Retrieves libva surface ID.
     //! \note This function is a Linux-only API.
-    //! \param [out] iVASurface
+    //! \param [out] vaSurface
     //!        Reference to a VASurfaceID receiving libva surface ID.
     //! \retval CM_SUCCESS.
     //!
-    CM_RT_API virtual int32_t GetVaSurfaceID(VASurfaceID &iVASurface) = 0;
+    CM_RT_API virtual int32_t GetVaSurfaceID(VASurfaceID &vaSurface) = 0;
 
     //!
     //! \brief Hybrid memory copy from this CmSurface2D to system memory with system
@@ -200,17 +200,17 @@ public:
     //!          becomes CM_STATUS_FINISHED.
     //!          If sysMemSize is given, it will be checked against the size of
     //!          the surface data.
-    //! \param [out] pSysMem
+    //! \param [out] sysMem
     //!        Pointer to the system memory receiving surface data.
-    //! \param [in] pEvent
+    //! \param [in] event
     //!        Pointer to the dependent event used for sychronization.
-    //! \param [in] iWidthStride
+    //! \param [in] horizontalStride
     //!        Horizontal stride of system memory in bytes.
-    //! \param [in] iHeightStride
+    //! \param [in] verticalStride
     //!        Vertical stride of system memory in rows.
     //! \param [in] sysMemSize
     //!        Size of the system memory.
-    //! \param [in] uiOption
+    //! \param [in] option
     //!        Option to disable/enable hybrid memory copy.
     //! \retval CM_SUCCESS if this function succeeds.
     //! \retval CM_INVALID_ARG_VALUE if sysMemSize is given but less than what
@@ -219,12 +219,12 @@ public:
     //! \retval CM_FAILURE otherwise.
     //!
     CM_RT_API virtual int32_t
-    ReadSurfaceHybridStrides(unsigned char *pSysMem,
-                             CmEvent *pEvent,
-                             const unsigned int iWidthStride,
-                             const unsigned int iHeightStride,
+    ReadSurfaceHybridStrides(unsigned char *sysMem,
+                             CmEvent *event,
+                             const unsigned int horizontalStride,
+                             const unsigned int verticalStride,
                              uint64_t sysMemSize = 0xFFFFFFFFFFFFFFFFULL,
-                             unsigned int uiOption = 0) = 0;
+                             unsigned int option = 0) = 0;
 
     //!
     //! \brief Hybrid memory copy from system memory to this CmSurface2D with
@@ -237,17 +237,17 @@ public:
     //!          becomes CM_STATUS_FINISHED.
     //!          If sysMemSize is given, it will be checked against the size of
     //!          the surface data.
-    //! \param [in] pSysMem
+    //! \param [in] sysMem
     //!        Pointer to the system memory storing surface data.
-    //! \param [in] pEvent
+    //! \param [in] event
     //!        Pointer to the dependent event used for sychronization.
-    //! \param [in] iWidthStride
+    //! \param [in] horizontalStride
     //!        Horizontal stride of system memory in bytes.
-    //! \param [in] iHeightStride
+    //! \param [in] verticalStride
     //!        Vertical stride of system memory in rows.
     //! \param [in] sysMemSize
     //!        Size of the system memory.
-    //! \param [in] uiOption
+    //! \param [in] option
     //!        Option to disable/enable hybrid memory copy.
     //! \retval CM_SUCCESS if copy is successful.
     //! \retval CM_INVALID_ARG_VALUE if sysMemSize is given but less than what
@@ -256,24 +256,24 @@ public:
     //! \retval CM_FAILURE otherwise.
     //!
     CM_RT_API virtual int32_t
-    WriteSurfaceHybridStrides(const unsigned char *pSysMem,
-                              CmEvent *pEvent,
-                              const unsigned int iWidthStride,
-                              const unsigned int iHeightStride,
+    WriteSurfaceHybridStrides(const unsigned char *sysMem,
+                              CmEvent *event,
+                              const unsigned int horizontalStride,
+                              const unsigned int verticalStride,
                               uint64_t sysMemSize = 0xFFFFFFFFFFFFFFFFULL,
-                              unsigned int uiOption = 0) = 0;
+                              unsigned int option = 0) = 0;
 
     //!
     //! \brief Selects one of the pre-defined memory object control settings for
     //!        this CmSurface2D.
     //! \note This function only works on Gen9+ paltforms.
-    //! \param [in] mem_ctrl
+    //! \param [in] memCtrl
     //!        The selected pre-defined memory object control setting.
     //! \retval CM_SUCCESS if the given parameter is valid
     //! \retval CM_FAILURE otherwise.
     //!
     CM_RT_API virtual int32_t
-    SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL mem_ctrl) = 0;
+    SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL memCtrl) = 0;
 
     //!
     //! \brief Sets frame type of this CmSurface2D.
@@ -288,19 +288,19 @@ public:
 
     //!
     //! \brief Sets surface state parameters for an alias of this CmSurface2D.
-    //! \details If pSurfIndex is nullptr, default state of this CmSurface2D
+    //! \details If surfIndex is nullptr, default state of this CmSurface2D
     //!          is changed.
-    //! \param [in] pSurfIndex
+    //! \param [in] surfIndex
     //!        Pointer to the surface index of an alias of this CmSurface2D. A new
     //!        surface state is created for this alias or the existing state is updated.
-    //! \param [in] pSSParam
+    //! \param [in] surfStateParam
     //!        Pointer to a new state parameter.
     //! \retval CM_INVALID_ARG_VALUE if any parameter is invalid.
     //! \retval CM_SUCCESS if successful.
     //!
     CM_RT_API virtual int32_t
-    SetSurfaceStateParam(SurfaceIndex *pSurfIndex,
-                         const CM_SURFACE2D_STATE_PARAM *pSSParam) = 0;
+    SetSurfaceStateParam(SurfaceIndex *surfIndex,
+                         const CM_SURFACE2D_STATE_PARAM *surfStateParam) = 0;
 
 // Pay Attention: below APIs only used in UMD. If you add an API exposed to application, please add it BEFORE this line.
 public:
@@ -314,12 +314,12 @@ public:
     //!          is not set (or set to false), then the next engine should assume the 
     //!          render engine is writing to this surface and wait till the kernel execution
     //!          ends.
-    //! \param [in] bReadSync
+    //! \param [in] readSync
     //!        value of read sync flag to be set to the surface
     //! \retval CM_INVALID_ARG_VALUE if any parameter is invalid.
     //! \retval CM_SUCCESS if successful.
     //!
-    CMRT_UMD_API virtual int32_t SetReadSyncFlag(bool bReadSync) = 0;
+    CMRT_UMD_API virtual int32_t SetReadSyncFlag(bool readSync) = 0;
 
     //!
     //! \brief Set the UMD Resource and MOS Resource in the CmSurface2D
@@ -329,16 +329,16 @@ public:
     //!        the UMD Resource set to the CmSurface2D
     //! \param [in] updateMosResource
     //!        a flag indicating whether MOS resource needs updating. 0 mean keeping it
-    //!        unchanged. Otherwise, set the MOS resource to parameter pMosResource. Default
+    //!        unchanged. Otherwise, set the MOS resource to parameter mosResource. Default
     //!        is 0.
-    //! \param [in] pMosResource
+    //! \param [in] mosResource
     //!        the MOS Resource set to the CmSurface2D
     //! \retval CM_SUCCESS always.
     //!
     CMRT_UMD_API virtual int32_t
     NotifyUmdResourceChanged(UMD_RESOURCE umdResource,
                              int updateMosResource = 0,
-                             PMOS_RESOURCE pMosResource = nullptr) = 0;
+                             PMOS_RESOURCE mosResource = nullptr) = 0;
 };
 }; //namespace
 

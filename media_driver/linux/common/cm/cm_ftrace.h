@@ -35,7 +35,7 @@ class CmFtrace
 {
 public:
     static CmFtrace* GetInstance();
-    void   WriteTaskProfilingInfo(CM_PROFILING_INFO *pTaskInfo);
+    void   WriteTaskProfilingInfo(CM_PROFILING_INFO *taskInfo);
 
 private:
 

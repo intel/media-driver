@@ -41,40 +41,40 @@
 
 typedef struct _CM_CREATECMDEVICE_PARAM
 {
-    uint32_t                    DevCreateOption;            // [in]  Dev create option
-    pCallBackReleaseVaSurface   pCallBackReleaseVaSurf;        // [in]  Function Pointer to free Libva surface
-    void                        *pCmDeviceHandle;           // [out] pointer to handle in driver
-    uint32_t                    iVersion;                   // [out] the Cm version
-    uint32_t                    iDriverStoreEnabled;        // [out] DriverStoreEnable flag
-    int32_t                     iReturnValue;               // [out] the return value from CMRT@UMD
+    uint32_t                    devCreateOption;            // [in]  Dev create option
+    pCallBackReleaseVaSurface   callbackReleaseVaSurf;        // [in]  Function Pointer to free Libva surface
+    void                        *deviceHandle;           // [out] pointer to handle in driver
+    uint32_t                    version;                   // [out] the Cm version
+    uint32_t                    driverStoreEnabled;        // [out] DriverStoreEnable flag
+    int32_t                     returnValue;               // [out] the return value from CMRT@UMD
 }CM_CREATECMDEVICE_PARAM, *PCM_CREATECMDEVICE_PARAM;
 
 typedef struct _CM_CREATESURFACE2D_PARAM
 {
-    uint32_t    iWidth;                     // [in] width of 2D texture in pixel
-    uint32_t    iHeight;                    // [in] height of 2D texture in pixel
-    CM_OSAL_SURFACE_FORMAT Format;          // [in] 2D texture format in OS layer.
+    uint32_t    width;                     // [in] width of 2D texture in pixel
+    uint32_t    height;                    // [in] height of 2D texture in pixel
+    CM_OSAL_SURFACE_FORMAT format;          // [in] 2D texture format in OS layer.
 
     union
     {
-        uint32_t    index2DinLookupTable;   // [in] surface 2d's index in look up table. Not used on Linux.
-        uint32_t    uiVASurfaceID;          // [in] libva-surface 2d's index in media driver
+        uint32_t    indexInLookupTable;   // [in] surface 2d's index in look up table.
+        uint32_t    vaSurfaceID;          // [in] libva-surface 2d's index in media driver
     };
 
     void        *vaSurface;                   // [in] Pointer to Libva Surface
-    void        *pCmSurface2DHandle;         // [out] pointer of CmSurface2D used in driver
-    bool        bIsCmCreated;               // [in] Is the 2D surface created by CM?
-    int32_t     iReturnValue;               // [out] the return value from driver
+    void        *cmSurface2DHandle;         // [out] pointer of CmSurface2D used in driver
+    bool        isCmCreated;               // [in] Is the 2D surface created by CM?
+    int32_t     returnValue;               // [out] the return value from driver
 
-    bool        bIsLibvaCreated;            // [in] if the surface created via libva
-    void        *pVaDpy;                     // [in] VaDisplay used to free va sruface
+    bool        isLibvaCreated;            // [in] if the surface created via libva
+    void        *vaDisplay;                     // [in] VaDisplay used to free va sruface
 }CM_CREATESURFACE2D_PARAM, *PCM_CREATESURFACE2D_PARAM;
 
 #if defined(__cplusplus)
 extern "C" {
 #endif
-int32_t CmThinExecute(VADriverContextP pVaDrvCtx,
-                      void *pCmDeviceHandle,
+int32_t CmThinExecute(VADriverContextP vaDriverCtx,
+                      void *deviceHandle,
                       uint32_t inputFunctionId,
                       void *inputData,
                       uint32_t inputDataLen);
@@ -82,9 +82,9 @@ int32_t CmThinExecute(VADriverContextP pVaDrvCtx,
 };
 #endif
 
-int32_t CmFillMosResource(VASurfaceID iVASurfaceID,
-                          VADriverContext *pUMDCtx,
-                          PMOS_RESOURCE pOsResource);
+int32_t CmFillMosResource(VASurfaceID vaSurfaceID,
+                          VADriverContext *vaDriverCtx,
+                          PMOS_RESOURCE osResource);
 
 MOS_FORMAT              CmOSFmtToMosFmt(CM_OSAL_SURFACE_FORMAT format);
 CM_OSAL_SURFACE_FORMAT  CmMosFmtToOSFmt(MOS_FORMAT format);

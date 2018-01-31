@@ -30,7 +30,7 @@
 #include "cm_device_rt.h"
 #include "cm_mem.h"
 
-#define COPY_OPTION(uiOption)    (uiOption & 0x1)
+#define COPY_OPTION(option)    (option & 0x1)
 
 namespace CMRT_UMD
 {
@@ -44,22 +44,22 @@ CmSurface2DRT::CmSurface2DRT(
     uint32_t height,
     uint32_t pitch,
     CM_SURFACE_FORMAT format,
-    CmSurfaceManager* pSurfaceManager ,
+    CmSurfaceManager* surfaceManager ,
     bool isCmCreated):
-    CmSurface( pSurfaceManager,isCmCreated ),
-    m_Width( width ),
-    m_Height( height ),
-    m_Handle( handle ),
-    m_Pitch(pitch),
-    m_Format(format),
+    CmSurface( surfaceManager,isCmCreated ),
+    m_width( width ),
+    m_height( height ),
+    m_handle( handle ),
+    m_pitch(pitch),
+    m_format(format),
     m_numAliases( 0 ),
-    m_VaSurfaceID( 0 ),
-    m_bVaCreated ( false ),
-    m_pUMDResource( nullptr ),
+    m_vaSurfaceID( 0 ),
+    m_vaCreated ( false ),
+    m_umdResource( nullptr ),
     m_frameType(CM_FRAME)
 {
     CmSurface::SetMemoryObjectControl(MEMORY_OBJECT_CONTROL_UNKNOW, CM_USE_PTE, 0);
-    CmSafeMemSet(m_pAliasIndexes, 0, sizeof(SurfaceIndex*) * CM_HAL_MAX_NUM_2D_ALIASES);
+    CmSafeMemSet(m_aliasIndexes, 0, sizeof(SurfaceIndex*) * CM_HAL_MAX_NUM_2D_ALIASES);
 }
 
 //*-----------------------------------------------------------------------------
@@ -70,29 +70,29 @@ CmSurface2DRT::~CmSurface2DRT( void )
 {
     for( uint32_t i = 0; i < CM_HAL_MAX_NUM_2D_ALIASES; ++i )
     {
-        MosSafeDelete(m_pAliasIndexes[i]);
+        MosSafeDelete(m_aliasIndexes[i]);
     }
-    if(m_bVaCreated && IsCmCreated())
-   // if(m_bVaCreated )
+    if(m_vaCreated && IsCmCreated())
+   // if(m_vaCreated )
     {
         // Release VA Surface created in thin layer via call back
-        CmDeviceRT *pCmDev;
-        m_surfaceMgr->GetCmDevice(pCmDev);
-        pCmDev->ReleaseVASurface(m_pVaDpy, &m_VaSurfaceID);
+        CmDeviceRT *device;
+        m_surfaceMgr->GetCmDevice(device);
+        device->ReleaseVASurface(m_vaDisplay, &m_vaSurfaceID);
     }
 }
 
-int32_t CmSurface2DRT::SetVaSurfaceID( VASurfaceID  iVASurface, void  *pVaDpy)
+int32_t CmSurface2DRT::SetVaSurfaceID( VASurfaceID  vaSurface, void  *vaDisplay)
 {
-    m_VaSurfaceID = iVASurface;
-    m_bVaCreated  = true;
-    m_pVaDpy      = pVaDpy;
+    m_vaSurfaceID = vaSurface;
+    m_vaCreated  = true;
+    m_vaDisplay      = vaDisplay;
 
     return CM_SUCCESS;
 }
-CM_RT_API int32_t CmSurface2DRT::GetVaSurfaceID( VASurfaceID  &iVASurface)
+CM_RT_API int32_t CmSurface2DRT::GetVaSurfaceID( VASurfaceID  &vaSurface)
 {
-   iVASurface = m_VaSurfaceID;
+   vaSurface = m_vaSurfaceID;
    return CM_SUCCESS;
 }
 }  // namespace

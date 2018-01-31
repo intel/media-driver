@@ -60,7 +60,7 @@ public:
     //!             layout.
     //! \param      [in] size
     //!             Buffer size in bytes.
-    //! \param      [out] pSurface
+    //! \param      [out] surface
     //!             Reference to the pointer to the CmBuffer.
     //! \retval     CM_SUCCESS if the CmBuffer is successfully created.
     //! \retval     CM_OUT_OF_HOST_MEMORY if out of system memory.
@@ -75,24 +75,24 @@ public:
     //! \retval     CM_FAILURE otherwise.
     //!
     CM_RT_API virtual int32_t CreateBuffer(uint32_t size,
-                                           CmBuffer* &pSurface) = 0;
+                                           CmBuffer* &surface) = 0;
 
     //!
     //! \brief    Creates a CmBuffer from an existing MOS Resource.
     //! \details  CmBuffer is a wrapper of that MOS resource. This Mos resource is
     //!            owned by caller.
-    //! \param    [in] pMosResource
+    //! \param    [in] mosResource
     //!           pointer to MOS resource.
-    //! \param    [in,out] pSurface
+    //! \param    [in,out] surface
     //!           reference to pointer of surface to be created.
     //! \retval   CM_SUCCESS if the CmBuffer is successfully created.
-    //! \retval   CM_INVALID_MOS_RESOURCE_HANDLE if pMosResource is nullptr.
+    //! \retval   CM_INVALID_MOS_RESOURCE_HANDLE if mosResource is nullptr.
     //! \retval   CM_OUT_OF_HOST_MEMORY if out of system memory
     //! \retval   CM_EXCEED_SURFACE_AMOUNT if maximum amount of 1D surfaces is exceeded.
     //! \retval   CM_FAILURE otherwise
     //!
-    CM_RT_API virtual int32_t CreateBuffer(PMOS_RESOURCE pMosResource,
-                                           CmBuffer* &pSurface) = 0;
+    CM_RT_API virtual int32_t CreateBuffer(PMOS_RESOURCE mosResource,
+                                           CmBuffer* &surface) = 0;
 
     //!
     //! \brief      Creates a CmSurface2D with given width, height, and format.
@@ -104,7 +104,7 @@ public:
     //!             Surface height in pixel.
     //! \param      [in] format
     //!             Surface format.
-    //! \param      [out] pSurface
+    //! \param      [out] surface
     //!             Reference to the pointer to the CmSurface2D.
     //! \retval     CM_SUCCESS if the CmSurface2D is successfully created.
     //! \retval     CM_OUT_OF_HOST_MEMORY if out of system memory.
@@ -154,15 +154,15 @@ public:
     CM_RT_API virtual int32_t CreateSurface2D(uint32_t width,
                                               uint32_t height,
                                               CM_SURFACE_FORMAT format,
-                                              CmSurface2D* &pSurface) = 0;
+                                              CmSurface2D* &surface) = 0;
 
     //!
     //! \brief    Creates a CmSurface2D from an existing MOS Resource.
     //! \details  CmSurface2D is a wrapper of that MOS resource. This Mos resource is
     //!            owned by caller.
-    //! \param    [in] pMosResource
+    //! \param    [in] mosResource
     //!           pointer to MOS resource.
-    //! \param    [in,out] pSurface
+    //! \param    [in,out] surface
     //!           reference to pointer of surface to be created.
     //! \retval   CM_SUCCESS if the CmSurface2D is successfully created.
     //! \retval   CM_INVALID_MOS_RESOURCE_HANDLE if pMosResrouce is nullptr.
@@ -170,8 +170,8 @@ public:
     //!           is exceeded.
     //! \retval   CM_FAILURE otherwise.
     //!
-    CM_RT_API virtual int32_t CreateSurface2D(PMOS_RESOURCE pMosResource,
-                                              CmSurface2D* &pSurface) = 0;
+    CM_RT_API virtual int32_t CreateSurface2D(PMOS_RESOURCE mosResource,
+                                              CmSurface2D* &surface) = 0;
 
     //!
     //! \brief    Creates a CmSurface2D from an existing VA surface.
@@ -179,20 +179,20 @@ public:
     //!           VADriverContext used to create CmDevice. The VA surface format
     //!           should be within the supported format set which can be obtained
     //!           by querying cap CAP_SURFACE2D_FORMAT_COUNT and CAP_SURFACE2D_FORMATS.
-    //! \param    [in] iVASurface
+    //! \param    [in] vaSurface
     //!           indext to VA surface.
-    //! \param    [in] pUMDCtx
+    //! \param    [in] vaDriverCtx
     //!           pointer to VA driver context.
-    //! \param    [in,out] pSurface
+    //! \param    [in,out] surface
     //!           reference to pointer of surface to be created.
     //! \retval   CM_SUCCESS if the CmSurface2D is successfully created.
     //! \retval   CM_EXCEED_SURFACE_AMOUNT if maximum amount of 2D surfaces
     //!           is exceeded.
     //! \retval   CM_FAILURE otherwise.
     //!
-    CM_RT_API virtual int32_t CreateSurface2D(VASurfaceID iVASurface,
-                                              VADriverContext *pUMDCtx,
-                                              CmSurface2D* &pSurface) = 0;
+    CM_RT_API virtual int32_t CreateSurface2D(VASurfaceID vaSurface,
+                                              VADriverContext *vaDriverCtx,
+                                              CmSurface2D* &surface) = 0;
 
     //!
     //! \brief      Creates a CmSurface3D with given width, height, depth and
@@ -207,7 +207,7 @@ public:
     //!             Surface depth.
     //! \param      [in] format
     //!             Surface format.
-    //! \param      [out] pSurface
+    //! \param      [out] surface
     //!             Reference to the pointer to the CmSurface3D.
     //! \retval     CM_SUCCESS if the CmSurface3D is successfully created.
     //! \retval     CM_OUT_OF_HOST_MEMORY if out of system memory.
@@ -236,7 +236,7 @@ public:
                                               uint32_t height,
                                               uint32_t depth,
                                               CM_SURFACE_FORMAT format,
-                                              CmSurface3D* &pSurface) = 0;
+                                              CmSurface3D* &surface) = 0;
 
     //!
     //! \brief      Destroys CmBuffer object.
@@ -245,13 +245,13 @@ public:
     //!             there is any Enqueue is being executed when this function
     //!             is called, the actual destroy will be postponed internally
     //!             by the runtime, and user doens't need to worry about it.
-    //! \param      [in,out] pSurface
+    //! \param      [in,out] surface
     //!             Reference to the pointer pointing to CmBuffer, it will be
     //!             assigned to nullptr after destroy.
     //! \retval     CM_SUCCESS if CmBuffer is successfully destroyed.
     //! \retval     CM_FAILURE otherwise.
     //!
-    CM_RT_API virtual int32_t DestroySurface(CmBuffer* &pSurface) = 0;
+    CM_RT_API virtual int32_t DestroySurface(CmBuffer* &surface) = 0;
 
     //!
     //! \brief      Destroys CmSurface2D type surface.
@@ -263,13 +263,13 @@ public:
     //!             exception is that if the CmSurface2D was created by a third
     //!             party VA surface, user has to keep the VA surface until the
     //!             kernel using it finishes execution.
-    //! \param      [in,out] pSurface
+    //! \param      [in,out] surface
     //!             Reference to the pointer pointing to CmSurface2D. It will
     //!             be assigned to nullptr after destroy.
     //! \retval     CM_SUCCESS if CmSurface2D is successfully destroyed.
     //! \retval     CM_FAILURE otherwise.
     //!
-    CM_RT_API virtual int32_t DestroySurface(CmSurface2D* &pSurface) = 0;
+    CM_RT_API virtual int32_t DestroySurface(CmSurface2D* &surface) = 0;
 
     //!
     //! \brief      Destroys CmSurface3D object.
@@ -279,13 +279,13 @@ public:
     //!             function is called, the actual destroy will be postponed
     //!             internally by the runtime, and user doens't need to worry
     //!             about it.
-    //! \param      [in,out] pSurface
+    //! \param      [in,out] surface
     //!             Reference to the pointer pointing to CmSurface3D. It will
     //!             be assigned to nullptr after destroy.
     //! \retval     CM_SUCCESS if CmSurface3D is successfully destroyed.
     //! \retval     CM_FAILURE otherwise.
     //!
-    CM_RT_API virtual int32_t DestroySurface(CmSurface3D* &pSurface) = 0;
+    CM_RT_API virtual int32_t DestroySurface(CmSurface3D* &surface) = 0;
 
     //!
     //! \brief      Creates a task queue.
@@ -295,17 +295,17 @@ public:
     //!             multiple threads. Only one CmQueue is supported per CmDevice for now.
     //!             Trying to create a second CmQueue will return a previously
     //!             created CmQueue object.
-    //! \param      [in,out] pQueue
+    //! \param      [in,out] queue
     //!             Reference to the pointer to the CmQueue.
     //! \retval     CM_SUCCESS if the CmQueue is successfully created.
     //! \retval     CM_OUT_OF_HOST_MEMORY if out of system memory.
     //! \retval     CM_FAILURE otherwise.
     //!
-    CM_RT_API virtual int32_t CreateQueue(CmQueue* &pQueue) = 0;
+    CM_RT_API virtual int32_t CreateQueue(CmQueue* &queue) = 0;
 
     //!
     //! \brief      Creates a CmProgram object consisting of kernels loaded from
-    //!             the pCommonISACode code.
+    //!             the commonIsaCode code.
     //! \details    Common ISA code is offline generated as a file with a .isa suffix
     //!             by the CM compiler when it is used to compile one or more
     //!             kernels. It contains ISA code common for all Intel platforms.
@@ -315,14 +315,14 @@ public:
     //!             In the emulation mode JIT doesn't happen.
     //!             In the simulation mode JIT doesn't happen but paltform specfic
     //!             ISA need to be offline generated together with common ISA by
-    //!             CM compiler and to be included in pCommonISACode.
+    //!             CM compiler and to be included in commonIsaCode.
     //!             How to generate common ISA and platform specific ISA can be
     //!             found in CM compiler manual.
-    //! \param      [in] pCommonISACode
+    //! \param      [in] commonIsaCode
     //!             Pointer pointing to code in common ISA.
     //! \param      [in] size
     //!             Size in bytes of the common ISA code.
-    //! \param      [in,out] pProgram
+    //! \param      [in,out] program
     //!             Reference to the pointer to the CmProgram.
     //! \param      [in] options
     //!             JIT options for all kernels in the code. This argument
@@ -346,9 +346,9 @@ public:
     //!             CreateCmDeviceEx.
     //! \retval     CM_FAILURE otherwise.
     //!
-    CM_RT_API virtual int32_t LoadProgram(void *pCommonISACode,
+    CM_RT_API virtual int32_t LoadProgram(void *commonIsaCode,
                                           const uint32_t size,
-                                          CmProgram* &pProgram,
+                                          CmProgram* &program,
                                           const char *options = nullptr) = 0;
 
     //!
@@ -361,12 +361,12 @@ public:
     //!             CAP_KERNEL_BINARY_SIZE bytes. The kernelName should be no
     //!             more than 256 (CM_MAX_KERNEL_NAME_SIZE_IN_BYTE) bytes
     //!             including the null terminator.
-    //! \param      [in] pProgram
+    //! \param      [in] program
     //!             CmProgram object from which the kernel is created.
     //! \param      [in] kernelName
     //!             CM kernel function (genx_main) name.  A CM_KERNEL_FUNCTION
     //!             macro MUST be used to specify this argument.
-    //! \param      [in,out] pKernel
+    //! \param      [in,out] kernel
     //!             Reference to the pointer to the CmKernel object.
     //! \param      [in] options
     //!             JIT options for this specific kernel, overwriting the JIT
@@ -376,7 +376,7 @@ public:
     //!             null terminator. No options available for now.
     //! \retval     CM_SUCCESS if the CmKernel is successfully created or
     //!             returned.
-    //! \retval     CM_INVALID_ARG_VALUE if the pProgram is an invalid pointer.
+    //! \retval     CM_INVALID_ARG_VALUE if the program is an invalid pointer.
     //! \retval     CM_OUT_OF_HOST_MEMORY if out of system memory.
     //! \retval     CM_EXCEED_KERNEL_ARG_AMOUNT if the argument number of the
     //!             kernel fucntion is larger than CAP_ARG_COUNT_PER_KERNEL.
@@ -384,9 +384,9 @@ public:
     //!             the kernel fucntion is larger than CAP_ARG_SIZE_PER_KERNEL.
     //! \retval     CM_FAILURE otherwise.
     //!
-    CM_RT_API virtual int32_t CreateKernel(CmProgram *pProgram,
+    CM_RT_API virtual int32_t CreateKernel(CmProgram *program,
                                            const char *kernelName,
-                                           CmKernel* &pKernel,
+                                           CmKernel* &kernel,
                                            const char *options = nullptr) = 0;
 
     //!
@@ -397,7 +397,7 @@ public:
     //!             Const reference to a CM_SAMPLER_STATE specifying the
     //!             characteristics of the sampler to be created. The structure
     //!             is defined below.
-    //! \param      [out] pSampler
+    //! \param      [out] sampler
     //!             Reference to the pointer to the CmSampler object.
     //! \retval     CM_SUCCESS if the CmSampler is successfully created.
     //! \retval     CM_OUT_OF_HOST_MEMORY if out of system memory.
@@ -423,74 +423,74 @@ public:
     //!
     CM_RT_API virtual int32_t
     CreateSampler(const CM_SAMPLER_STATE &sampleState,
-                  CmSampler* &pSampler) = 0;
+                  CmSampler* &sampler) = 0;
 
     //!
     //! \brief      Destroys a CmKernel.
     //! \details    A CmKernel that is not destroyed by calling this function
     //!             will be destroyed when the CmDevice is destroyed.
-    //! \param      [in,out] pKernel
+    //! \param      [in,out] kernel
     //!             CmKernel object to be destroyed. It will be assigned to
     //!             nullptr once the fuction is return.
     //! \retval     CM_SUCCESS if the CmKernel is successfully destroyed.
     //! \retval     CM_FAILURE otherwise.
     //!
-    CM_RT_API virtual int32_t DestroyKernel(CmKernel* &pKernel) = 0;
+    CM_RT_API virtual int32_t DestroyKernel(CmKernel* &kernel) = 0;
 
     //!
     //! \brief      Destroys a CmSampler.
     //! \details    A CmSampler that is not destroyed by calling this function
     //!             will be destroyed when the CmDevice is destroyed.
-    //! \param      [in,out] pSampler
+    //! \param      [in,out] sampler
     //!             A reference to the CmSampler pointer.
     //! \retval     CM_SUCCESS if the CmSampler is successfully destroyed.
     //! \retval     CM_FAILURE otherwise.
     //!
-    CM_RT_API virtual int32_t DestroySampler(CmSampler* &pSampler) = 0;
+    CM_RT_API virtual int32_t DestroySampler(CmSampler* &sampler) = 0;
 
     //!
     //! \brief      Destroys a CmProgram.
     //! \details    A CmProgram that is not destroyed by calling this function
     //!             will be destroyed when the CmDevice is destroyed.
-    //! \param      [in,out] pProgram
+    //! \param      [in,out] program
     //!             Reference to the pointer to the CmProgram. It will be assigned to
     //!             nullptr once the fuction is return.
     //! \retval     CM_SUCCESS if the CmProgram is successfully destroyed.
     //! \retval     CM_FAILURE otherwise.
     //!
-    CM_RT_API virtual int32_t DestroyProgram(CmProgram* &pProgram) = 0;
+    CM_RT_API virtual int32_t DestroyProgram(CmProgram* &program) = 0;
 
     //!
     //! \brief      Destroys a CmThreadSpace instance.
     //! \details    A CmThreadSpace that is not destroyed by calling this
     //!             function will be destroyed when the CmDevice is destroyed.
-    //! \param      [in,out] pTS
+    //! \param      [in,out] threadSpace
     //!             Reference to the pointer to the CmThreadSpace. It will be
     //!             assigned to nullptr once the fuction is return.
     //! \retval     CM_SUCCESS if the CmThreadSpace is successfully destroyed.
     //! \retval     CM_FAILURE if the input is nullptr or not valid.
     //!
-    CM_RT_API virtual int32_t DestroyThreadSpace(CmThreadSpace* &pTS) = 0;
+    CM_RT_API virtual int32_t DestroyThreadSpace(CmThreadSpace* &threadSpace) = 0;
 
     //!
     //! \brief      Creates a CmTask object
     //! \details    This object is a container for one or multiple CmKernel objects, and used
     //!             to enqueue the kernels for concurrent execution.
-    //! \param      [out] pTask Reference to the pointer to the CmTask
+    //! \param      [out] task Reference to the pointer to the CmTask
     //! \retval     CM_SUCCESS if the CmTask is successfully created
     //! \retval     CM_OUT_OF_HOST_MEMORY if out of system memory
     //!
-    CM_RT_API virtual int32_t CreateTask(CmTask* &pTask) = 0;
+    CM_RT_API virtual int32_t CreateTask(CmTask* &task) = 0;
 
     //!
     //! \brief      Destroy a CmTask object
     //! \details    A CmTask that is not destroyed by calling this
     //!             function will be destroyed when the CmDevice is destroyed
-    //! \param      [in, out] pTask Reference to the pointer to the CmTask.
+    //! \param      [in, out] task Reference to the pointer to the CmTask.
     //! \retval     CM_SUCCESS if the CmTaskis successfully destroyed
     //! \retval     CM_FAILURE otherwise
     //!
-    CM_RT_API virtual int32_t DestroyTask(CmTask* &pTask) = 0;
+    CM_RT_API virtual int32_t DestroyTask(CmTask* &task) = 0;
 
     //!
     //! \brief    This function can be used to get HW capability.
@@ -505,7 +505,7 @@ public:
     //!           make sure this size is large enough to hold the Cap value
     //!           requested. On return from this function the actual size of
     //!           cap value is returned
-    //! \param    [out] pCapValue Pointer pointing to memory where the
+    //! \param    [out] capValue Pointer pointing to memory where the
     //!           cap value should be returned
     //! \retval   CM_SUCCESS if the input capValueSize equals or
     //!           is larger than required Cap size and Cap Value
@@ -685,7 +685,7 @@ public:
     //!
     CM_RT_API virtual int32_t GetCaps(CM_DEVICE_CAP_NAME capName,
                                       uint32_t &capValueSize,
-                                      void *pCapValue) = 0;
+                                      void *capValue) = 0;
 
     //!
     //! \brief      Creates a CmThreadSpace object.
@@ -700,7 +700,7 @@ public:
     //!             Thread space width.
     //! \param      [in] height
     //!             Thread space height.
-    //! \param      [out] pTS
+    //! \param      [out] threadSpace
     //!             Reference to pointer to CmThreadSpace object to be created.
     //! \retval     CM_SUCCESS if the CmThreadSpace is successfully created.
     //! \retval     CM_INVALID_THREAD_SPACE if the width or(and) height are
@@ -713,7 +713,7 @@ public:
     //!
     CM_RT_API virtual int32_t CreateThreadSpace(uint32_t width,
                                                 uint32_t height,
-                                                CmThreadSpace* &pTS) = 0;
+                                                CmThreadSpace* &threadSpace) = 0;
 
     //!
     //! \brief      Creates a CmBufferUP object.
@@ -725,7 +725,7 @@ public:
     //!             > CM_MIN_SURF_WIDTH, and < CM_MAX_1D_SURF_WIDTH.
     //! \param      [in] pSystMem
     //!             Pointer to the system memory.
-    //! \param      [out] pSurface
+    //! \param      [out] surface
     //!             Reference to the pointer to the CmBufferUP.
     //! \retval     CM_SUCCESS if the CmBufferUP is successfully created.
     //! \retval     CM_SURFACE_ALLOCATION_FAILURE if creating the underneath 1D
@@ -746,30 +746,30 @@ public:
     //! \note       Refer to "MDF Host Programming Guide" for detailed usages.
     //!
     CM_RT_API virtual int32_t CreateBufferUP(uint32_t size,
-                                             void *pSystMem,
-                                             CmBufferUP* &pSurface) = 0;
+                                             void *sysMem,
+                                             CmBufferUP* &surface) = 0;
 
     //!
     //! \brief      Destroys CmBufferUP object.
     //! \details    The UP (User Provided) memory is still existing after the
     //!             CmBufferUP object is destroyed.
-    //! \param      [in, out] pSurface
+    //! \param      [in, out] surface
     //!             Reference to the pointer pointing to CmBufferUP. It will be
     //!             assigned to nullptr once the function is returned.
     //! \retval     CM_SUCCESS if CmBufferUP is successfully destroyed.
     //! \retval     CM_FAILURE otherwise.
     //!
-    CM_RT_API virtual int32_t DestroyBufferUP(CmBufferUP* &pSurface) = 0;
+    CM_RT_API virtual int32_t DestroyBufferUP(CmBufferUP* &surface) = 0;
 
     //!
     //! \brief      Forces the BufferUP object to be destroyed.
-    //! \param      [in, out] pSurface
+    //! \param      [in, out] surface
     //!             Reference to the pointer pointing to CmBufferUP. It will be
     //!             assigned to nullptr once the function is returned.
     //! \retval     CM_SUCCESS if CmBufferUP is successfully destroyed.
     //! \retval     CM_FAILURE otherwise.
     //!
-    CM_RT_API virtual int32_t ForceDestroyBufferUP(CmBufferUP* &pSurface) = 0;
+    CM_RT_API virtual int32_t ForceDestroyBufferUP(CmBufferUP* &surface) = 0;
 
     //!
     //! \brief      Gets Surface2D allocation information by given width,
@@ -813,13 +813,13 @@ public:
     //!             Height in pixel.
     //! \param      [in] format
     //!             Format.
-    //! \param      [in] pSysMem
+    //! \param      [in] sysMem
     //!             Reference to the pointer to the system memory which is CPU
     //!             accessible.
-    //! \param      [out] pSurface
+    //! \param      [out] surface
     //!             Reference to the pointer to the CmSurface2DUP.
     //! \retval     CM_SUCCESS if the CmSurface2DUPis successfully created.
-    //! \retval     CM_INVALID_ARG_VALUE if pSysMem is nullptr.
+    //! \retval     CM_INVALID_ARG_VALUE if sysMem is nullptr.
     //! \retval     CM_OUT_OF_HOST_MEMORY if out of system memory.
     //! \retval     CM_INVALID_WIDTH if width is less than CM_MIN_SURF_WIDTH or
     //!             larger than CM_MAX_2D_SURF_WIDTH, or for YUY2 or NV12
@@ -850,21 +850,21 @@ public:
     CM_RT_API virtual int32_t CreateSurface2DUP(uint32_t width,
                                                 uint32_t height,
                                                 CM_SURFACE_FORMAT format,
-                                                void *pSysMem,
-                                                CmSurface2DUP* &pSurface) = 0;
+                                                void *sysMem,
+                                                CmSurface2DUP* &surface) = 0;
 
     //!
     //! \brief      Destroys CmSurface2DUP surface.
     //! \details    The UP (User Provided) memory is still existing after the
     //!             CmSurface2DUP object is destroyed.
-    //! \param      [in] pSurface
+    //! \param      [in] surface
     //!             Reference to the pointer pointing to CmSurface2DUP. It will
     //!             be assigned to nullptr once this function is returned.
     //! \retval     CM_SUCCESS if CmSurface2DUPis successfully destroyed.
     //! \retval     CM_FAILURE otherwise.
     //!
     CM_RT_API virtual int32_t
-    DestroySurface2DUP(CmSurface2DUP* &pSurface) = 0;
+    DestroySurface2DUP(CmSurface2DUP* &surface) = 0;
 
     //!
     //! \brief      Creates a VME surface for AVC messages in kernel.
@@ -877,22 +877,22 @@ public:
     //!             as argument to indicate the frame surface. Please see VME
     //!             examples in "MDF Host Programming Guide" document and CM
     //!             language specification for details.
-    //! \param      [in] pCurSurface
+    //! \param      [in] currentSurface
     //!             Pointer to current surface (can't be nullptr).
-    //! \param      [in] pForwardSurface
+    //! \param      [in] forwardSurfaces
     //!             Array of forward surfaces (can be nullptr).
-    //! \param      [in] pBackwardSurface
+    //! \param      [in] backwardSurfaces
     //!             Array of backward surfaces (can be nullptr).
-    //! \param      [in] surfaceCountForward
+    //! \param      [in] forwardSurfaceCount
     //!             Count of forward surfaces, up to 16 forward surfaces can be
     //!             used.
-    //! \param      [in] surfaceCountBackward
+    //! \param      [in] backwardSurfaceCount
     //!             Count of backward surfaces, up to 16 backward surfaces can
     //!             be used.
-    //! \param      [out] pVmeIndex
+    //! \param      [out] vmeIndex
     //!             Reference to pointer to SurfaceIndex object to be created.
     //! \retval     CM_SUCCESS if the SurfaceIndex is successfully created.
-    //! \retval     CM_NULL_POINTER if pCurSurface is nullptr.
+    //! \retval     CM_NULL_POINTER if currentSurface is nullptr.
     //! \retval     CM_INVALID_ARG_VALUE if any parameter is not valid.
     //! \retval     CM_OUT_OF_HOST_MEMORY if out of system memory.
     //! \retval     CM_EXCEED_SURFACE_AMOUNT if maximum amount of VME surfaces
@@ -903,18 +903,18 @@ public:
     //! \note       This can be used for all Gen7_5 and plus platforms.
     //!
     CM_RT_API virtual int32_t
-    CreateVmeSurfaceG7_5(CmSurface2D *pCurSurface,
-                         CmSurface2D **pForwardSurface,
-                         CmSurface2D **pBackwardSurface,
-                         const uint32_t surfaceCountForward,
-                         const uint32_t surfaceCountBackward,
-                         SurfaceIndex* &pVmeIndex) = 0;
+    CreateVmeSurfaceG7_5(CmSurface2D *currentSurface,
+                         CmSurface2D **forwardSurfaces,
+                         CmSurface2D **backwardSurfaces,
+                         const uint32_t forwardSurfaceCount,
+                         const uint32_t backwardSurfaceCount,
+                         SurfaceIndex* &vmeIndex) = 0;
 
     //!
     //! \brief      Destroys a VME surface object.
     //! \details    Any VME surface not destroyed by calling this function
     //!             explicitly will be destroyed when CmDevice is destroyed.
-    //! \param      [in] pVmeIndex
+    //! \param      [in] vmeIndex
     //!             Pointer to the SurfaceIndex of the VME surface. It will be
     //!             assigned to nullptr once destroy is done.
     //! \retval     CM_SUCCESS if the VME surface is successfully destroyed.
@@ -922,16 +922,16 @@ public:
     //! \note       This can be used for all Gen7_5 and plus platforms.
     //!
     CM_RT_API virtual int32_t
-    DestroyVmeSurfaceG7_5(SurfaceIndex* &pVmeIndex) = 0;
+    DestroyVmeSurfaceG7_5(SurfaceIndex* &vmeIndex) = 0;
 
     //!
     //! \brief      Creates a CmSampler8x8 object.
-    //! \param      [in] smplDescr
+    //! \param      [in] sampler8x8Descriptor
     //!             Const reference to a CM_SAMPLER_8X8_DESCR specifying the
     //!             characteristics of the Sampler8x8 state to be created.
     //!             Currently, AVS, VA Convolve and VA Misc( including MinMax
     //!             Filter/Erode/Dilate ) states are supported.
-    //! \param      [out] psmplrState
+    //! \param      [out] sampler8x8
     //!             Reference to the pointer to the CmSampler8x8 object.
     //! \retval     CM_SUCCESS if the CmSampler8x8is successfully created.
     //! \retval     CM_INVALID_ARG_VALUE wrong sampler8x8 type.
@@ -939,20 +939,20 @@ public:
     //!             maximum count which can be queried by CAP_SAMPLER_COUNT cap.
     //!
     CM_RT_API virtual int32_t
-    CreateSampler8x8(const CM_SAMPLER_8X8_DESCR &smplDescr,
-                     CmSampler8x8* &psmplrState) = 0;
+    CreateSampler8x8(const CM_SAMPLER_8X8_DESCR &sampler8x8Descriptor,
+                     CmSampler8x8* &sampler8x8) = 0;
 
     //!
     //! \brief      Destroys a CmSampler8x8 object.
     //! \details    A CmSampler8x8 which is not destroyed by calling this
     //!             function will be destroyed when the CmDevice is destroyed.
-    //! \param      [in, out] ps8x8State
+    //! \param      [in, out] sampler8x8State
     //!             Reference to a sampler of CmSampler8x8. It will be assigned
     //!             to nullptr once destroy is done.
     //! \retval     CM_SUCCESS if the CmSampler8x8 is successfully destroyed.
     //! \retval     CM_FAILURE otherwise.
     //!
-    CM_RT_API virtual int32_t DestroySampler8x8(CmSampler8x8* &ps8x8State) = 0;
+    CM_RT_API virtual int32_t DestroySampler8x8(CmSampler8x8* &sampler8x8State) = 0;
 
     //!
     //! \brief      Creates a CmSampler8x8 surface.
@@ -962,11 +962,11 @@ public:
     //!             object is created instead, which is passed to CM kernel
     //!             function (genx_main) as argument to indicate the surface
     //!             for sampler 8x8.
-    //! \param      [in] p2DSurface
+    //! \param      [in] surface2d
     //!             Pointer to CmSurface2D.
-    //! \param      [out] pDIIndex
+    //! \param      [out] sampler8x8SurfIndex
     //!             Reference to pointer to SurfaceIndex.
-    //! \param      [in] surf_type
+    //! \param      [in] surfType
     //!             Enumeration data type of CM_SAMPLER8x8_SURFACE.
     //! \param      [in] mode
     //!             Enumeration data type of CM_SURFACE_ADDRESS_CONTROL_MODE.
@@ -979,9 +979,9 @@ public:
     //! \retval     CM_FAILURE otherwise.
     //!
     CM_RT_API virtual int32_t
-    CreateSampler8x8Surface(CmSurface2D *p2DSurface,
-                            SurfaceIndex* &pDIIndex,
-                            CM_SAMPLER8x8_SURFACE surf_type,
+    CreateSampler8x8Surface(CmSurface2D *surface2d,
+                            SurfaceIndex* &sampler8x8SurfIndex,
+                            CM_SAMPLER8x8_SURFACE surfType,
                             CM_SURFACE_ADDRESS_CONTROL_MODE mode) = 0;
 
     //!
@@ -989,7 +989,7 @@ public:
     //! \details    A CmSampler8x8 surface which is not destroyed by calling
     //!             this function will be destroyed when the CmDevice is
     //!             destroyed.
-    //! \param      [in] pDIIndex
+    //! \param      [in] sampler8x8SurfIndex
     //!             Reference to SurfaceIndex. It will be assigned to nullptr
     //!             once destroy is done.
     //! \retval     CM_SUCCESS if the CmSampler8x8 surface is successfully
@@ -997,7 +997,7 @@ public:
     //! \retval     CM_FAILURE otherwise.
     //!
     CM_RT_API virtual int32_t
-    DestroySampler8x8Surface(SurfaceIndex* &pDIIndex) = 0;
+    DestroySampler8x8Surface(SurfaceIndex* &sampler8x8SurfIndex) = 0;
 
     //!
     //! \brief      Creates a 2-dimensional thread group space object.
@@ -1007,15 +1007,15 @@ public:
     //!             group. This information is used to execute a kernel in GPGPU pipe
     //!             (https://01.org/sites/default/files/documentation/intel-gfx-prm-osrc-skl-vol07-3d_media_gpgpu.pdf).
     //!             Relevant sample code is shown in "MDF Host Programming Guide"
-    //! \param      [in] thrdSpaceWidth
+    //! \param      [in] threadSpaceWidth
     //!             width in unit of threads of each thread group.
-    //! \param      [in] thrdSpaceHeight
+    //! \param      [in] threadSpaceHeight
     //!             height in unit of threads of each thread group.
-    //! \param      [in] grpSpaceWidth
+    //! \param      [in] groupSpaceWidth
     //!             width in unit of groups of thread group space.
-    //! \param      [in] grpSpaceHeight
+    //! \param      [in] groupSpaceHeight
     //!             height in unit of groups of thread group space.
-    //! \param      [out] pTGS
+    //! \param      [out] threadGroupSpace
     //!             Reference to the pointer to CmThreadGroupSpace object to be
     //!             created.
     //! \retval     CM_SUCCESS if the CmThreadGroupSpace is successfully
@@ -1034,16 +1034,16 @@ public:
     //!             and depth.
     //!
     CM_RT_API virtual int32_t
-    CreateThreadGroupSpace(uint32_t thrdSpaceWidth,
-                           uint32_t thrdSpaceHeight,
-                           uint32_t grpSpaceWidth,
-                           uint32_t grpSpaceHeight,
-                           CmThreadGroupSpace* &pTGS) = 0;
+    CreateThreadGroupSpace(uint32_t threadSpaceWidth,
+                           uint32_t threadSpaceHeight,
+                           uint32_t groupSpaceWidth,
+                           uint32_t groupSpaceHeight,
+                           CmThreadGroupSpace* &threadGroupSpace) = 0;
 
     //!
     //! \brief      Destroys the created thread group space object.
     //! \details    Caller provides the reference of thread group space pointer
-    //! \param      [in] pTGS
+    //! \param      [in] threadGroupSpace
     //!             Pointer to a CmThreadGroupSpace. It will be assigned to
     //!             nullptr once destroy is done.
     //! \retval     CM_SUCCESS if the CmThreadGroupSpace pointer is
@@ -1053,12 +1053,12 @@ public:
     //!             takes care of all of such instances release.
     //!
     CM_RT_API virtual int32_t
-    DestroyThreadGroupSpace(CmThreadGroupSpace* &pTGS) = 0;
+    DestroyThreadGroupSpace(CmThreadGroupSpace* &threadGroupSpace) = 0;
 
     //!
     //! \brief      Sets the configuration for L3 cache.
     //! \details    This API allows users to configure L3 cach by themselves.
-    //! \param      [in] l3_c
+    //! \param      [in] l3Config
     //!             L3ConfigRegisterValues contains the values of L3 control
     //!             registers. The registers are different from platform to
     //!             platform. \n
@@ -1075,11 +1075,11 @@ public:
     //! \note       This function is implemented for both hardware mode and
     //!             simulation mode.
     //!
-    CM_RT_API virtual int32_t SetL3Config(const L3ConfigRegisterValues *l3_c) = 0;
+    CM_RT_API virtual int32_t SetL3Config(const L3ConfigRegisterValues *l3Config) = 0;
 
     //!
     //! \brief      Sets the suggested configuration for L3 cache.
-    //! \param      [in] l3_s_c
+    //! \param      [in] l3SuggestConfig
     //!             The configuration plan which represents a suggested L3
     //!             configuration. These configurations are defined in
     //!             ::L3_SUGGEST_CONFIG which is a enumeration definition.
@@ -1090,7 +1090,7 @@ public:
     //!             simulation modes.
     //!
     CM_RT_API virtual int32_t
-    SetSuggestedL3Config(L3_SUGGEST_CONFIG l3_s_c) = 0;
+    SetSuggestedL3Config(L3_SUGGEST_CONFIG l3SuggestConfig) = 0;
 
     //!
     //! \brief      This function can be used to set/limit hardware
@@ -1170,9 +1170,9 @@ public:
     //!                 CM_SURFACE_FORMAT_444P \n
     //!                 CM_SURFACE_FORMAT_RGBP \n
     //!                 CM_SURFACE_FORMAT_BGRP \n
-    //! \param      [in] p2DSurface
+    //! \param      [in] surface2d
     //!             Pointer to CmSurface2D object.
-    //! \param      [out] pSamplerSurfaceIndex
+    //! \param      [out] samplerSurfaceIndex
     //!             Reference to the pointer to SurfaceIndex object to be
     //!             created.
     //! \retval     CM_SUCCESS if the new sampler surface index is successfully
@@ -1185,8 +1185,8 @@ public:
     //! \retval     CM_FAILURE otherwise.
     //!
     CM_RT_API virtual int32_t
-    CreateSamplerSurface2D(CmSurface2D *p2DSurface,
-                           SurfaceIndex* &pSamplerSurfaceIndex) = 0;
+    CreateSamplerSurface2D(CmSurface2D *surface2d,
+                           SurfaceIndex* &samplerSurfaceIndex) = 0;
 
     //!
     //! \brief      This function creates a sampler surface index by a given
@@ -1199,9 +1199,9 @@ public:
     //!             index. For the 3D surface format, for now only supports the
     //!             CM_SURFACE_FORMAT_A8R8G8B8 and CM_SURFACE_FORMAT_A16B16G16R16
     //!             formats.
-    //! \param      [in] p3DSurface
+    //! \param      [in] surface3d
     //!             Pointer to CmSurface3D object.
-    //! \param      [out] pSamplerSurfaceIndex
+    //! \param      [out] samplerSurfaceIndex
     //!             Reference to the pointer to SurfaceIndex object to be
     //!             created.
     //! \retval     CM_SUCCESS if the sampler surface index is successfully
@@ -1214,8 +1214,8 @@ public:
     //! \retval     CM_FAILURE otherwise.
     //!
     CM_RT_API virtual int32_t
-    CreateSamplerSurface3D(CmSurface3D *p3DSurface,
-                           SurfaceIndex* &pSamplerSurfaceIndex) = 0;
+    CreateSamplerSurface3D(CmSurface3D *surface3d,
+                           SurfaceIndex* &samplerSurfaceIndex) = 0;
 
     //!
     //! \brief      This function destroys a sampler surface index created by
@@ -1223,7 +1223,7 @@ public:
     //!             CreateSamplerSurface3D().
     //! \details    Caller provides the reference of a pointer to the surface
     //!             index needs t be destoryed.
-    //! \param      [in] pSamplerSurfaceIndex
+    //! \param      [in] samplerSurfaceIndex
     //!             Reference to the pointer to SurfaceIndex object to be
     //!             destroyed.
     //! \retval     CM_SUCCESS if the sampler surface index is successfully
@@ -1231,7 +1231,7 @@ public:
     //! \retval     CM_FAILURE otherwise.
     //!
     CM_RT_API virtual int32_t
-    DestroySamplerSurface(SurfaceIndex* &pSamplerSurfaceIndex) = 0;
+    DestroySamplerSurface(SurfaceIndex* &samplerSurfaceIndex) = 0;
 
     //!
     //! \brief      This function creates a buffer to store the message printed
@@ -1274,25 +1274,25 @@ public:
     //!             operations (https://01.org/sites/default/files/documentation/intel-gfx-prm-osrc-skl-vol09-media_vebox.pdf).
     //! \details    Caller provides a reference of CmVebox pointer to get the
     //!             CmVebox object created from this function.
-    //! \param      [in, out] pVebox
+    //! \param      [in, out] vebox
     //!             the created VEBOX object.
     //! \retval     CM_SUCCESS if creation is successfully.
     //! \retval     CM_OUT_OF_HOST_MEMORY if out of host memory.
     //! \retval     CM_FAILURE otherwise.
     //!
-    CM_RT_API virtual int32_t CreateVebox(CmVebox* &pVebox) = 0;
+    CM_RT_API virtual int32_t CreateVebox(CmVebox* &vebox) = 0;
 
     //!
     //! \brief      This function destroys a VEBOX object.
     //! \details    Caller provides a reference of CmVebox pointer to destroy.
-    //! \param      [in, out] pVebox
+    //! \param      [in, out] vebox
     //!             The VEBOX object to be destroyed. It will be assigned to
     //!             nullptr once destroy is done.
     //! \retval     CM_SUCCESS if creation is successfully.
-    //! \retval     CM_NULL_POINTER if the pVebox pointer is nullptr.
+    //! \retval     CM_NULL_POINTER if the vebox pointer is nullptr.
     //! \retval     CM_FAILURE otherwise.
     //!
-    CM_RT_API virtual int32_t DestroyVebox(CmVebox* &pVebox) = 0;
+    CM_RT_API virtual int32_t DestroyVebox(CmVebox* &vebox) = 0;
 
     //!
     //! \brief      It creates a CmBufferSVM of the specified size in bytes by
@@ -1307,9 +1307,9 @@ public:
     //!             SVM buffer size in bytes.
     //! \param      [in,out] pSystMem
     //!             Pointer to the SVM memory starting address.
-    //! \param      [in] access_flag
+    //! \param      [in] accessFlag
     //!             Buffer access flags.
-    //! \param      [out] pBufferSVM
+    //! \param      [out] bufferSVM
     //!             Reference to the pointer to the CmBufferSVM.
     //! \retval     CM_SUCCESS if the CmBufferSVM is successfully created.
     //! \retval     CM_SURFACE_ALLOCATION_FAILURE if creating the underneath 1D
@@ -1326,20 +1326,20 @@ public:
     //! \note       This API is not implemented in Linux for now.
     //!
     CM_RT_API virtual int32_t CreateBufferSVM(uint32_t size,
-                                              void* &pSystMem,
-                                              uint32_t access_flag,
-                                              CmBufferSVM* &pBufferSVM) = 0;
+                                              void* &sysMem,
+                                              uint32_t accessFlag,
+                                              CmBufferSVM* &bufferSVM) = 0;
 
     //!
     //! \brief      Destroys CmBufferSVM object and associated SVM memory.
-    //! \param      [in,out] pBufferSVM
+    //! \param      [in,out] bufferSVM
     //!             Reference to the pointer pointing to CmBufferSVM, will be
     //!             assigned to nullptr once it is destroyed successfully.
     //! \retval     CM_SUCCESS if CmBufferSVM and associated SVM meory are
     //!             successfully destroyed.
     //! \retval     CM_FAILURE otherwise.
     //!
-    CM_RT_API virtual int32_t DestroyBufferSVM(CmBufferSVM* &pBufferSVM) = 0;
+    CM_RT_API virtual int32_t DestroyBufferSVM(CmBufferSVM* &bufferSVM) = 0;
 
     //!
     //! \brief      This function creates a sampler surface index by a
@@ -1378,9 +1378,9 @@ public:
     //!                 CM_SURFACE_FORMAT_444P \n
     //!                 CM_SURFACE_FORMAT_RGBP \n
     //!                 CM_SURFACE_FORMAT_BGRP \n
-    //! \param      [in] p2DUPSurface
+    //! \param      [in] surface2dUP
     //!             Pointer to CmSurface2DUP object.
-    //! \param      [out] pSamplerSurfaceIndex
+    //! \param      [out] samplerSurfaceIndex
     //!             Reference to the pointer to SurfaceIndex object to be
     //!             created.
     //! \retval     CM_SUCCESS if the new sampler surface index is
@@ -1392,22 +1392,22 @@ public:
     //! \note       This API is supported for HW mode only.
     //!
     CM_RT_API virtual int32_t
-    CreateSamplerSurface2DUP(CmSurface2DUP *p2DUPSurface,
-                             SurfaceIndex* &pSamplerSurfaceIndex) = 0;
+    CreateSamplerSurface2DUP(CmSurface2DUP *surface2dUP,
+                             SurfaceIndex* &samplerSurfaceIndex) = 0;
 
     //!
     //! \brief      Copies the content of source kernel to a new kernel.
-    //! \param      [out] pKernelDest
+    //! \param      [out] kernelDst
     //!             pointer to the destination kernel. The new pointer will be
-    //!             returned to pKernelDest.
-    //! \param      [in] pKernelSrc
+    //!             returned to kernelDst.
+    //! \param      [in] kernelSrc
     //!             pointer to the source kernel.
     //! \retval     CM_SUCCESS If the clone operation is successful.
     //! \retval     CM_FAILURE If the clone operation is failed.
     //! \note       This API is not supported in emulation mode.
     //!
-    CM_RT_API virtual int32_t CloneKernel(CmKernel* &pKernelDest,
-                                          CmKernel *pKernelSrc) = 0;
+    CM_RT_API virtual int32_t CloneKernel(CmKernel* &kernelDst,
+                                          CmKernel *kernelSrc) = 0;
 
     //!
     //! \brief      Creates an alias to CmSurface2D.
@@ -1440,24 +1440,24 @@ public:
     //!             object is created instead, which is passed to CM kernel
     //!             function (genx_main) as argument to indicate the frame
     //!             surface. This can be used for Gen10 and plus platforms.
-    //! \param      [in] pCurSurface
+    //! \param      [in] currentSurface
     //!             Pointer to current surface (can't be nullptr).
-    //! \param      [in] pForwardSurface
+    //! \param      [in] forwardSurfaces
     //!             Array of forward surfaces (can be nullptr if backward
     //!             surfaces not a nullptr).
-    //! \param      [in] pBackwardSurface
+    //! \param      [in] backwardSurfaces
     //!             Array of backward surfaces (can be nullptr if  forward
     //!             surfaces not a nullptr).
-    //! \param      [in] surfaceCountForward
+    //! \param      [in] forwardSurfaceCount
     //!             Count of forward surfaces, up to 4 forward surfaces can
     //!             be used.
-    //! \param      [in] surfaceCountBackward
+    //! \param      [in] backwardSurfaceCount
     //!             Count of backward surfaces, up to 4 backward surfaces can
     //!             be used.
-    //! \param      [out] pVmeIndex
+    //! \param      [out] vmeIndex
     //!             Reference to pointer to SurfaceIndex object to be created.
     //! \retval     CM_SUCCESS if the SurfaceIndex is successfully created.
-    //! \retval     CM_NULL_POINTER if pCurSurface is nullptr.
+    //! \retval     CM_NULL_POINTER if currentSurface is nullptr.
     //! \retval     CM_INVALID_ARG_VALUE if invalid surface pointers for forward
     //!             and backward surfaces.
     //! \retval     CM_EXCEED_SURFACE_AMOUNT if there is too much co-existed
@@ -1468,16 +1468,16 @@ public:
     //! \note       This API is only supported for Gen10 and plus platforms.
     //!
     CM_RT_API virtual int32_t
-    CreateHevcVmeSurfaceG10(CmSurface2D *pCurSurface,
-                            CmSurface2D **pForwardSurface,
-                            CmSurface2D **pBackwardSurface,
-                            const uint32_t surfaceCountForward,
-                            const uint32_t surfaceCountBackward,
-                            SurfaceIndex* &pVmeIndex) = 0;
+    CreateHevcVmeSurfaceG10(CmSurface2D *currentSurface,
+                            CmSurface2D **forwardSurfaces,
+                            CmSurface2D **backwardSurfaces,
+                            const uint32_t forwardSurfaceCount,
+                            const uint32_t backwardSurfaceCount,
+                            SurfaceIndex* &vmeIndex) = 0;
 
     //!
     //! \brief      Destroys an HEVC VME surface. This can be used for Gen10.
-    //! \param      [in] pVmeIndex
+    //! \param      [in] vmeIndex
     //!             Pointer to the SurfaceIndex of the VME surface. It will be
     //!             assigned to nullptr once destroy is done.
     //! \retval     CM_SUCCESS if the HEVC VME surface is successfully destroyed
@@ -1487,14 +1487,14 @@ public:
     //!             explicitly will be destroyed when CmDevice is destroyed.
     //!
     CM_RT_API virtual int32_t
-    DestroyHevcVmeSurfaceG10(SurfaceIndex* &pVmeIndex) = 0;
+    DestroyHevcVmeSurfaceG10(SurfaceIndex* &vmeIndex) = 0;
 
     //!
     //! \brief      Creates a CmSampler object with border color setting.
     //! \param      [in] sampleState
     //!             Const reference to a CM_SAMPLER_STATE_EX specifying the
     //!             characteristics of the sampler to be created.
-    //! \param      [out] pSampler
+    //! \param      [out] sampler
     //!             Reference to the pointer to the CmSampler object.
     //! \retval     CM_SUCCESS if the CmSampler is successfully created.
     //! \retval     CM_OUT_OF_HOST_MEMORY if out of system memory.
@@ -1511,7 +1511,7 @@ public:
     //!
     CM_RT_API virtual int32_t
     CreateSamplerEx(const CM_SAMPLER_STATE_EX &sampleState,
-                    CmSampler* &pSampler) = 0;
+                    CmSampler* &sampler) = 0;
 
     //!
     //! \brief      This function prints the message dumped by kernel into file
@@ -1547,7 +1547,7 @@ public:
     //!             height in unit of groups of thread group space.
     //! \param      [in] grpSpaceDepth
     //!             depth in unit of groups of thread group space.
-    //! \param      [out] pTGS
+    //! \param      [out] threadGroupSpace
     //!             Reference to the pointer to CmThreadGroupSpace object to be
     //!             created.
     //! \retval     CM_SUCCESS if the CmThreadGroupSpace is successfully
@@ -1571,7 +1571,7 @@ public:
                              uint32_t grpSpaceWidth,
                              uint32_t grpSpaceHeight,
                              uint32_t grpSpaceDepth,
-                             CmThreadGroupSpace* &pTGS) = 0;
+                             CmThreadGroupSpace* &threadGroupSpace) = 0;
 
     //!
     //! \brief      Creates a CmSampler8x8 surface by using given 2D surface
@@ -1583,15 +1583,15 @@ public:
     //!             sampler 8x8. Compared to CmDeive::CreateSampler8x8Surface,
     //!             this API is used to support rotation and chroma siting for
     //!             MediaSampler.
-    //! \param      [in] p2DSurface
+    //! \param      [in] surface2d
     //!             Pointer to CmSurface2D.
-    //! \param      [out] pDIIndex
+    //! \param      [out] sampler8x8SurfIndex
     //!             Reference to pointer to SurfaceIndex.
-    //! \param      [in] surf_type
+    //! \param      [in] surfType
     //!             Enumeration data type of CM_SAMPLER8x8_SURFACE.
-    //! \param      [in] address_control
+    //! \param      [in] addressControl
     //!             Enumeration data type of CM_SURFACE_ADDRESS_CONTROL_MODE.
-    //! \param      [in] pFlag
+    //! \param      [in] flag
     //!             Pointer to CM_FLAG.
     //! \retval     CM_SUCCESS if the CmSampler8x8 surface is successfully
     //!             created.
@@ -1603,12 +1603,12 @@ public:
     //! \note       This API is not supported in emulation mode.
     //!
     CM_RT_API virtual int32_t
-    CreateSampler8x8SurfaceEx(CmSurface2D *p2DSurface,
-                              SurfaceIndex* &pDIIndex,
-                              CM_SAMPLER8x8_SURFACE surf_type = CM_VA_SURFACE,
-                              CM_SURFACE_ADDRESS_CONTROL_MODE address_control
+    CreateSampler8x8SurfaceEx(CmSurface2D *surface2d,
+                              SurfaceIndex* &sampler8x8SurfIndex,
+                              CM_SAMPLER8x8_SURFACE surfType = CM_VA_SURFACE,
+                              CM_SURFACE_ADDRESS_CONTROL_MODE addressControl
                                   = CM_SURFACE_CLAMP,
-                              CM_FLAG *pFlag = nullptr) = 0;
+                              CM_FLAG *flag = nullptr) = 0;
 
     //!
     //! \brief      Creates sampler surface by using given 2D surface and flags.
@@ -1649,12 +1649,12 @@ public:
     //!                 CM_SURFACE_FORMAT_444P \n
     //!                 CM_SURFACE_FORMAT_RGBP \n
     //!                 CM_SURFACE_FORMAT_BGRP \n
-    //! \param      [in] p2DSurface
+    //! \param      [in] surface2d
     //!             Pointer to CmSurface2D object.
-    //! \param      [out] pSamplerSurfaceIndex
+    //! \param      [out] samplerSurfaceIndex
     //!             Reference to the pointer to SurfaceIndex object to be
     //!             created.
-    //! \param      [in] pFlag
+    //! \param      [in] flag
     //!             Pointer to CM_FLAG.
     //! \retval     CM_SUCCESS if the new sampler surface index is
     //!             successfully created.
@@ -1667,9 +1667,9 @@ public:
     //! \note       This API is not supported in emulation mode.
     //!
     CM_RT_API virtual int32_t
-    CreateSamplerSurface2DEx(CmSurface2D *p2DSurface,
-                             SurfaceIndex* &pSamplerSurfaceIndex,
-                             CM_FLAG *pFlag = nullptr) = 0;
+    CreateSamplerSurface2DEx(CmSurface2D *surface2d,
+                             SurfaceIndex* &samplerSurfaceIndex,
+                             CM_FLAG *flag = nullptr) = 0;
 
     //!
     //! \brief      Creates an alias to CmBuffer.
@@ -1678,9 +1678,9 @@ public:
     //!             to reinterpret buffer for different surface states,
     //!             i.e., the same memory is used but different size
     //!             can be programmed through the surface state.
-    //! \param      [in] pBuffer
+    //! \param      [in] buffer
     //!             pointer to CmBuffer object used to create an alias.
-    //! \param      [out] pAliasIndex
+    //! \param      [out] aliasIndex
     //! \retval     CM_SUCCESS if alias is created successfully.
     //!             new surface index pointing to CmBuffer.
     //! \retval     CM_EXCEED_MAX_NUM_BUFFER_ALIASES if try to create more
@@ -1690,14 +1690,14 @@ public:
     //! \note       This API is not implemented for EMU mode.
     //!
     CM_RT_API virtual int32_t
-    CreateBufferAlias(CmBuffer *pBuffer,
-                      SurfaceIndex* &pAliasIndex) = 0;
+    CreateBufferAlias(CmBuffer *buffer,
+                      SurfaceIndex* &aliasIndex) = 0;
 
     //!
     //! \brief      Sets the width and height values in the VME surface state.
-    //! \param      [in] pVmeIndex
+    //! \param      [in] vmeIndex
     //!             Pointer to VME surface index.
-    //! \param      [in] pSSParam
+    //! \param      [in] surfStateParam
     //!             Pointer to CM_VME_SURFACE_STATE_PARAM to set width and
     //!             height of this surface
     //! \retval     CM_SUCCESS if setting VME surface state values successfully.
@@ -1705,8 +1705,8 @@ public:
     //! \note       This API will work on HW and SIM modes.
     //!
     CM_RT_API virtual int32_t
-    SetVmeSurfaceStateParam(SurfaceIndex *pVmeIndex,
-                            CM_VME_SURFACE_STATE_PARAM *pSSParam) = 0;
+    SetVmeSurfaceStateParam(SurfaceIndex *vmeIndex,
+                            CM_VME_SURFACE_STATE_PARAM *surfStateParam) = 0;
 
     //!
     //! \brief      Gets the VISA version up-to which IGC supports.
@@ -1724,7 +1724,7 @@ public:
 
     //!
     //! \brief      Creates a CmQueue object with option.
-    //! \param      [out] pQueue
+    //! \param      [out] queue
     //!             Pointer to the CmQueue object created.
     //! \param      [in] QueueCreateOption
     //!             The option to create a queue. The sturcture of the
@@ -1765,7 +1765,7 @@ public:
     //!             implemented at this moment.
     //!
     CM_RT_API virtual int32_t
-    CreateQueueEx(CmQueue *&pQueue,
+    CreateQueueEx(CmQueue *&queue,
                   CM_QUEUE_CREATE_OPTION QueueCreateOption
                       = CM_DEFAULT_QUEUE_CREATE_OPTION) = 0;
 };

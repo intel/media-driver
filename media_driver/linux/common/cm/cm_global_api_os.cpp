@@ -33,49 +33,49 @@ using CMRT_UMD::CmDeviceRT;
 //! \details  If an existing CmDevice has already associated to the MOS context,
 //!           the existing CmDevice will be returned. Otherwise, a new CmDevice
 //!           instance will be created and associatied with that MOS context.
-//! \param    pMosContext
+//! \param    mosContext
 //!           [in] pointer to MOS conetext.
-//! \param    pDevice
+//! \param    device
 //!           [in,out] reference to the pointer to the CmDevice.
 //! \param    devCreateOption
 //!           [in] option to customize CmDevice.
 //! \retval   CM_SUCCESS if the CmDevice is successfully created.
-//! \retval   CM_NULL_POINTER if pMosContext is null.
+//! \retval   CM_NULL_POINTER if mosContext is null.
 //! \retval   CM_FAILURE otherwise.
 //!
-CM_RT_API int32_t CreateCmDevice(MOS_CONTEXT *pMosContext,
-                                 CmDevice* &pDevice,
+CM_RT_API int32_t CreateCmDevice(MOS_CONTEXT *mosContext,
+                                 CmDevice* &device,
                                  uint32_t devCreateOption)
 {
-    if (pMosContext == nullptr)
+    if (mosContext == nullptr)
     {
         return CM_NULL_POINTER;
     }
-    CmDeviceRT* pDeviceRT = nullptr;
+    CmDeviceRT* deviceRT = nullptr;
     //Check reference count
-    if(pMosContext->cmDevRefCount > 0)
+    if(mosContext->cmDevRefCount > 0)
     {
-        pDevice = (CmDevice *)pMosContext->pCmDev;
-        if (pDevice == nullptr)
+        device = (CmDevice *)mosContext->pCmDev;
+        if (device == nullptr)
         {
             return CM_NULL_POINTER;
         }
-        pMosContext->cmDevRefCount ++;
-        pDeviceRT = static_cast<CmDeviceRT*>(pDevice);
-        return pDeviceRT->RegisterSyncEvent(nullptr);
+        mosContext->cmDevRefCount ++;
+        deviceRT = static_cast<CmDeviceRT*>(device);
+        return deviceRT->RegisterSyncEvent(nullptr);
     }
 
-    int32_t ret = CmDeviceRT::Create(pMosContext, pDeviceRT, devCreateOption);
+    int32_t ret = CmDeviceRT::Create(mosContext, deviceRT, devCreateOption);
     if(ret == CM_SUCCESS)
     {
-        pDevice = pDeviceRT;
-        pMosContext->pCmDev = pDeviceRT;
-        pMosContext->cmDevRefCount ++;
-        return pDeviceRT->RegisterSyncEvent(nullptr);
+        device = deviceRT;
+        mosContext->pCmDev = deviceRT;
+        mosContext->cmDevRefCount ++;
+        return deviceRT->RegisterSyncEvent(nullptr);
     }
 
     return CM_FAILURE;
-}//===================
+}
 
 //!
 //! \brief    Destroys the CmDevice associated with MOS context. 
@@ -83,39 +83,39 @@ CM_RT_API int32_t CreateCmDevice(MOS_CONTEXT *pMosContext,
 //!           threadspaces, tasks and the queues that were created using this
 //!           device instance but haven't explicitly been destroyed by calling
 //!           respective destroy functions. 
-//! \param    pMosContext
+//! \param    mosContext
 //!           [in] pointer to MOS conetext.
 //! \retval   CM_SUCCESS if CmDevice is successfully destroyed.
 //! \retval   CM_NULL_POINTER if MOS context is null.
 //! \retval   CM_FAILURE otherwise.
 //!
-CM_RT_API int32_t DestroyCmDevice(MOS_CONTEXT *pMosContext)
+CM_RT_API int32_t DestroyCmDevice(MOS_CONTEXT *mosContext)
 {
-    if (pMosContext == nullptr)
+    if (mosContext == nullptr)
     {
         return CM_NULL_POINTER;
     }
 
-    if(pMosContext->cmDevRefCount > 1)
+    if(mosContext->cmDevRefCount > 1)
     {
-       pMosContext->cmDevRefCount --;
+       mosContext->cmDevRefCount --;
        return CM_SUCCESS;
     }
 
-    pMosContext->cmDevRefCount -- ;
+    mosContext->cmDevRefCount -- ;
 
-    pMosContext->SkuTable.reset();
-    pMosContext->WaTable.reset();
+    mosContext->SkuTable.reset();
+    mosContext->WaTable.reset();
 
-    CmDevice *pDevice =  (CmDevice *)(pMosContext->pCmDev);
-    CmDeviceRT* pDeviceRT = static_cast<CmDeviceRT*>(pDevice);
-    int32_t ret = CmDeviceRT::Destroy(pDeviceRT);
+    CmDevice *device =  (CmDevice *)(mosContext->pCmDev);
+    CmDeviceRT* deviceRT = static_cast<CmDeviceRT*>(device);
+    int32_t ret = CmDeviceRT::Destroy(deviceRT);
     if (ret != CM_SUCCESS)
     {
         return ret;
     }
 
-    pMosContext->pCmDev = nullptr;
+    mosContext->pCmDev = nullptr;
 
     return CM_SUCCESS;
-}//===================
+}

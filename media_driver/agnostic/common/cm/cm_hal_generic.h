@@ -203,14 +203,14 @@ public:
     //! \details  Convert Memory Object Control bits to RenderHal Surface State
     //! \param    [in]  memObjCtl
     //!           memObjCtl passed by caller
-    //! \param    [in] params
+    //! \param    [in] surfStateParams
     //!           pointer to surface state param
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS HwSetSurfaceMemoryObjectControl(
                         uint16_t                        memObjCtl,
-                        PRENDERHAL_SURFACE_STATE_PARAMS params) = 0;
+                        PRENDERHAL_SURFACE_STATE_PARAMS surfStateParams) = 0;
 
     //!
     //! \brief    Register Sampler8x8
@@ -230,7 +230,7 @@ public:
     //!           pointer to mhw batch buffer to submit
     //! \param    [in]  taskId
     //!           id of task
-    //! \param    [in]  kernels
+    //! \param    [in]  kernelParam
     //!           pointer to array of kernel param
     //! \param    [out]  cmdBuffer
     //!           pointer cmd buffer returned to cm event
@@ -240,7 +240,7 @@ public:
     virtual MOS_STATUS SubmitCommands(
                         PMHW_BATCH_BUFFER       batchBuffer,
                         int32_t                 taskId,
-                        PCM_HAL_KERNEL_PARAM    *kernels,
+                        PCM_HAL_KERNEL_PARAM    *kernelParam,
                         void                    **cmdBuffer) = 0;
 
     //!
@@ -249,14 +249,14 @@ public:
     //!           to adjust platform info (EU numbers/Slice number) accordingly.
     //! \param    [in]  platformInfo
     //!           pointer to platform info
-    //! \param    [in]  euSaturation
+    //! \param    [in]  euSaturated
     //!           if EU Saturation required.
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS UpdatePlatformInfoFromPower(
                         PCM_PLATFORM_INFO platformInfo,
-                        bool              euSaturation) = 0;
+                        bool              euSaturated) = 0;
 
     //!
     //! \brief    Get media walker's max width
@@ -286,12 +286,12 @@ public:
     //!
     //! \brief    Set Suggested L3 Configuration to RenderHal
     //! \details  Set Suggested L3 Configuration to RenderHal
-    //! \param    [in]  l3Conf
+    //! \param    [in]  l3Config
     //!           index of selected configuration
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     virtual MOS_STATUS SetSuggestedL3Conf(
-                       L3_SUGGEST_CONFIG l3Conf) = 0;
+                       L3_SUGGEST_CONFIG l3Config) = 0;
 
     //!
     //! \brief    Allocate SIP/CSR Resource for Preemption and Debug
@@ -303,11 +303,11 @@ public:
     //!
     //! \brief    Get the stepping string of Gen platform
     //! \details  Get the stepping string of Gen platform
-    //! \param    [in,out]  stepinfostr
+    //! \param    [in,out]  stepInfoStr
     //!           reference to stepping information string
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
-    virtual MOS_STATUS GetGenStepInfo(char*& stepinfostr) = 0;
+    virtual MOS_STATUS GetGenStepInfo(char*& stepInfoStr) = 0;
 
     //!
     //! \brief    Get the platform code and GT type of Gen platform
@@ -497,21 +497,21 @@ public:
     //!
     //! \brief    Set L3 values in CM hal layer.
     //! \details  Use the L3 struct to set L3 to different platforms.
-    //! \param    [in]  valuesPtr
+    //! \param    [in]  values
     //!           pointer to input L3 config values
-    //! \param    [in]  cmhalL3CachePtr
+    //! \param    [in]  cmHalL3Setting
     //!           pointer to hal layer L3 config values
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     virtual MOS_STATUS SetL3CacheConfig(
-            const L3ConfigRegisterValues *valuesPtr,
-            PCmHalL3Settings cmhalL3CachePtr) = 0;
+            const L3ConfigRegisterValues *values,
+            PCmHalL3Settings cmHalL3Setting) = 0;
 
     //!
     //! \brief    Get sampler element count for a given sampler type.
     //! \details  Convert the sampler type to how many element for this sampler
     //!           type for current platform.
-    //! \param    [in]  samplerParamPtr
+    //! \param    [in]  mhwSamplerParam
     //!           pointer to the sampler param defined by MHW
     //! \param    [in,out]  samplerParam
     //!           Will get sampler size, sampler element type, sampler bti
@@ -519,7 +519,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     virtual MOS_STATUS GetSamplerParamInfoForSamplerType(
-            PMHW_SAMPLER_STATE_PARAM samplerParamPtr,
+            PMHW_SAMPLER_STATE_PARAM mhwSamplerParam,
             SamplerParam  &samplerParam) = 0;
 
     //!

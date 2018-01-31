@@ -49,7 +49,7 @@ class CmSurfaceManager
 {
 public:
     static int32_t Create(
-        CmDeviceRT* pCmDevice,
+        CmDeviceRT* device,
         CM_HAL_MAX_VALUES halMaxValues,
         CM_HAL_MAX_VALUES_EX lalMaxValuesEx,
         CmSurfaceManager* &manager );

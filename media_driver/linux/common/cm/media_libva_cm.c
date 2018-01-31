@@ -44,10 +44,10 @@
 //! \returns VA_STATUS_SUCCESS if call succeeds
 /////////////////////////////////////////////////////////////////////////////
 VAStatus DdiDestroyContextCM (
-    VADriverContextP    pVaDrvCtx,
+    VADriverContextP    vaDriverCtx,
     VAContextID         vaCtxID)
 {
-    DDI_UNUSED(pVaDrvCtx);
+    DDI_UNUSED(vaDriverCtx);
     DDI_UNUSED(vaCtxID);
     return VA_STATUS_SUCCESS;
 }
@@ -69,7 +69,7 @@ VAStatus DdiDestroyContextCM (
 //! returns VA_STATUS_SUCCESS if call succeeds
 /////////////////////////////////////////////////////////////////////////////
 VAStatus vaCmExtSendReqMsg(
-     VADisplay dpy,
+     VADisplay display,
      void      *moduleType,
      uint32_t  *inputFunId,
      void      *inputData,
@@ -78,29 +78,29 @@ VAStatus vaCmExtSendReqMsg(
      void      *outputData,
      uint32_t  *outputDataLen)
 {
-    VADriverContextP pVaDrvCtx;
+    VADriverContextP vaDriverCtx;
     VAStatus         hr;
     int32_t          funcID;
     VAContextID      vaCtxID;
-    void *           pCmDeviceHandle;
+    void *           deviceHandle;
     DDI_UNUSED(outputFunId);
     DDI_UNUSED(outputDataLen);
 
     CM_DDI_FUNCTION_ENTER;
 
     hr        = VA_STATUS_ERROR_UNKNOWN;
-    CM_DDI_CHK_NULL(dpy, "Null VADisplay!", VA_STATUS_ERROR_INVALID_PARAMETER);
-    pVaDrvCtx = CTX(dpy);
-    CM_DDI_CHK_NULL(pVaDrvCtx, "Null pVaDrvCtx!", VA_STATUS_ERROR_INVALID_PARAMETER);
+    CM_DDI_CHK_NULL(display, "Null VADisplay!", VA_STATUS_ERROR_INVALID_PARAMETER);
+    vaDriverCtx = CTX(display);
+    CM_DDI_CHK_NULL(vaDriverCtx, "Null vaDriverCtx!", VA_STATUS_ERROR_INVALID_PARAMETER);
     funcID    = *(int *)inputFunId;
 
-    pCmDeviceHandle  = outputData;
+    deviceHandle  = outputData;
     if ( *(int *)moduleType != VAExtModuleCMRT)
     {
         return VA_STATUS_ERROR_UNKNOWN;
     }
 
-    hr = CmThinExecute(pVaDrvCtx, pCmDeviceHandle, *inputFunId, inputData, *inputDataLen);
+    hr = CmThinExecute(vaDriverCtx, deviceHandle, *inputFunId, inputData, *inputDataLen);
     if(hr != VA_STATUS_SUCCESS)
     {
         CM_DDI_ASSERTMESSAGE("CmThinExecute Failed FunctionID %x, ret %d \n", *inputFunId, hr);

@@ -222,13 +222,13 @@ int32_t CmSurfaceManager::Surface2DSanityCheck(uint32_t width, uint32_t height, 
 //!
 int32_t CmSurfaceManager::GetSurfaceInfo( MOS_RESOURCE * mosResource, uint32_t &width, uint32_t &height, uint32_t &pitch, CM_SURFACE_FORMAT &format)
 {
-    PCM_CONTEXT_DATA pCmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
-    PCM_HAL_STATE pState  = pCmData->cmHalState;
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
+    PCM_HAL_STATE state  = cmData->cmHalState;
 
     MOS_SURFACE          surfaceDetails;
     MOS_ZeroMemory(&surfaceDetails, sizeof(surfaceDetails));
     surfaceDetails.Format = CM_SURFACE_FORMAT_INVALID;
-    pState->osInterface->pfnGetResourceInfo(pState->osInterface, mosResource, &surfaceDetails);
+    state->osInterface->pfnGetResourceInfo(state->osInterface, mosResource, &surfaceDetails);
 
     width    = surfaceDetails.dwWidth;
     height   = surfaceDetails.dwHeight;

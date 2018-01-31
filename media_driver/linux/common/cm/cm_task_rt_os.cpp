@@ -32,9 +32,9 @@ namespace CMRT_UMD
 //| Purpose:    Insert batch buffer conditional end before next kernel
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-CM_RT_API int32_t CmTaskRT::SetPowerOption(PCM_POWER_OPTION pPowerOption)
+CM_RT_API int32_t CmTaskRT::SetPowerOption(PCM_POWER_OPTION powerOption)
 {
-    UNUSED(pPowerOption);
+    UNUSED(powerOption);
     return CM_NOT_IMPLEMENTED;
 }
 }  // namespace

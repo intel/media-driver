@@ -57,12 +57,12 @@ int32_t CmTaskInternal::VtuneWriteEventInfo()
     //Get HW start/end Time
     m_taskEvent->GetHWStartTime(&m_taskProfilingInfo.hwStartTime);
     m_taskEvent->GetHWEndTime(&m_taskProfilingInfo.hwEndTime);
-    CmFtrace *pCmFtrace = CmFtrace::GetInstance();
-    if (pCmFtrace == nullptr)
+    CmFtrace *ftrace = CmFtrace::GetInstance();
+    if (ftrace == nullptr)
     {
         return CM_NULL_POINTER;
     }
-    pCmFtrace->WriteTaskProfilingInfo(&m_taskProfilingInfo);
+    ftrace->WriteTaskProfilingInfo(&m_taskProfilingInfo);
 
     return CM_SUCCESS;
 }

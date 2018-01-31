@@ -78,10 +78,10 @@ typedef struct _SYSTEMTIME
 
 inline void GetLocalTime(PSYSTEMTIME psystime)
 {
-    time_t Tm;
+    time_t temp;
     struct tm *ltime;
-    time(&Tm);
-    ltime=localtime(&Tm);
+    time(&temp);
+    ltime=localtime(&temp);
     psystime->wYear = ltime->tm_year;
     psystime->wMonth = ltime->tm_mon;
     psystime->wDayOfWeek = ltime->tm_wday;

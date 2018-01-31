@@ -44,133 +44,133 @@ using CMRT_UMD::CmDeviceRT;
 //! \brief    Create Cm Device from VA Driver Context.
 //! \details  Create a CmCtx and a associated MOS_CONTEXT. Put the CmCtx into
 //!           the heap of VA Context.
-//! \param    pVaDrvCtx
+//! \param    vaDriverCtx
 //!           [in] pointer to va drv conetext.
-//! \param    pCmDev
+//! \param    device
 //!           [in,out] reference to cm device pointer.
-//! \param    DevOption
+//! \param    devOption
 //!           [in] cm device creation option.
 //! \return   int32_t
 //!           CM_SUCCESS if success, else fail reason.
 //!
-int32_t CreateCmDeviceFromVA(VADriverContextP pVaDrvCtx,
-                             CmDevice* &pCmDev,
-                             uint32_t DevOption)
+int32_t CreateCmDeviceFromVA(VADriverContextP vaDriverCtx,
+                             CmDevice* &device,
+                             uint32_t devOption)
 {
     int32_t                           hRes = CM_SUCCESS;
-    PDDI_MEDIA_CONTEXT                pMediaCtx;
-    PCM_CONTEXT                       pCmCtx;
-    uint32_t                          uiCtxIndex;
-    PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT pVaCtxHeapElmt;
-    VAContextID                       VaContextID;
+    PDDI_MEDIA_CONTEXT                mediaCtx;
+    PCM_CONTEXT                       cmCtx;
+    uint32_t                          ctxIndex;
+    PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT vaCtxHeapElement;
+    VAContextID                       vaContextID;
 
-    pMediaCtx = DdiMedia_GetMediaContext(pVaDrvCtx);
+    mediaCtx = DdiMedia_GetMediaContext(vaDriverCtx);
 
-    // allocate pCmCtx
-    pCmCtx = (PCM_CONTEXT)MOS_AllocAndZeroMemory(sizeof(CM_CONTEXT));
-    CM_DDI_CHK_NULL(pCmCtx, "Null pCmCtx!", CM_OUT_OF_HOST_MEMORY);
+    // allocate cmCtx
+    cmCtx = (PCM_CONTEXT)MOS_AllocAndZeroMemory(sizeof(CM_CONTEXT));
+    CM_DDI_CHK_NULL(cmCtx, "Null cmCtx!", CM_OUT_OF_HOST_MEMORY);
 
-    // init pCmCtx
-    pCmCtx->mosCtx.bufmgr          = pMediaCtx->pDrmBufMgr;
-    pCmCtx->mosCtx.m_gpuContextMgr = pMediaCtx->m_gpuContextMgr;
-    pCmCtx->mosCtx.m_cmdBufMgr     = pMediaCtx->m_cmdBufMgr;
-    pCmCtx->mosCtx.fd              = pMediaCtx->fd;
-    pCmCtx->mosCtx.wRevision       = 0;
-    pCmCtx->mosCtx.iDeviceId       = pMediaCtx->iDeviceId;
-    pCmCtx->mosCtx.SkuTable        = pMediaCtx->SkuTable;
-    pCmCtx->mosCtx.WaTable         = pMediaCtx->WaTable;
-    pCmCtx->mosCtx.gtSystemInfo    = *(pMediaCtx->pGtSystemInfo);
-    pCmCtx->mosCtx.platform        = pMediaCtx->platform;
+    // init cmCtx
+    cmCtx->mosCtx.bufmgr          = mediaCtx->pDrmBufMgr;
+    cmCtx->mosCtx.m_gpuContextMgr = mediaCtx->m_gpuContextMgr;
+    cmCtx->mosCtx.m_cmdBufMgr     = mediaCtx->m_cmdBufMgr;
+    cmCtx->mosCtx.fd              = mediaCtx->fd;
+    cmCtx->mosCtx.wRevision       = 0;
+    cmCtx->mosCtx.iDeviceId       = mediaCtx->iDeviceId;
+    cmCtx->mosCtx.SkuTable        = mediaCtx->SkuTable;
+    cmCtx->mosCtx.WaTable         = mediaCtx->WaTable;
+    cmCtx->mosCtx.gtSystemInfo    = *(mediaCtx->pGtSystemInfo);
+    cmCtx->mosCtx.platform        = mediaCtx->platform;
 
     // Create Cm Device
-    hRes = CreateCmDevice(&(pCmCtx->mosCtx), pCmDev, DevOption);
+    hRes = CreateCmDevice(&(cmCtx->mosCtx), device, devOption);
     if(hRes != CM_SUCCESS)
     {
-        MOS_FreeMemAndSetNull(pCmCtx); // free cm ctx
+        MOS_FreeMemAndSetNull(cmCtx); // free cm ctx
         CM_DDI_ASSERTMESSAGE("Failed to call CmDevice::Create Error %d \n",hRes);
         return hRes;
     }
-    CmDeviceRT* pCmDevRT = static_cast<CmDeviceRT*>(pCmDev);
-    DdiMediaUtil_LockMutex(&pMediaCtx->CmMutex);
+    CmDeviceRT* deviceRT = static_cast<CmDeviceRT*>(device);
+    DdiMediaUtil_LockMutex(&mediaCtx->CmMutex);
 
     // get Free Cm context index
-    pVaCtxHeapElmt = DdiMediaUtil_AllocPVAContextFromHeap(pMediaCtx->pCmCtxHeap);
-    if (nullptr == pVaCtxHeapElmt)
+    vaCtxHeapElement = DdiMediaUtil_AllocPVAContextFromHeap(mediaCtx->pCmCtxHeap);
+    if (nullptr == vaCtxHeapElement)
     {
-        CmDeviceRT::Destroy(pCmDevRT); // destroy cm device
-        pCmDev = nullptr;
-        MOS_FreeMemAndSetNull(pCmCtx); // free cm ctx
-        DdiMediaUtil_UnLockMutex(&pMediaCtx->CmMutex);
+        CmDeviceRT::Destroy(deviceRT); // destroy cm device
+        device = nullptr;
+        MOS_FreeMemAndSetNull(cmCtx); // free cm ctx
+        DdiMediaUtil_UnLockMutex(&mediaCtx->CmMutex);
         CM_DDI_ASSERTMESSAGE("CM Context number exceeds maximum.");
         return VA_STATUS_ERROR_INVALID_CONTEXT;
     }
 
-    // store pCmCtx in pMedia
-    pVaCtxHeapElmt->pVaContext    = (void *)pCmCtx;
-    VaContextID = (VAContextID)(pVaCtxHeapElmt->uiVaContextID + DDI_MEDIA_VACONTEXTID_OFFSET_CM);
+    // store cmCtx in pMedia
+    vaCtxHeapElement->pVaContext    = (void *)cmCtx;
+    vaContextID = (VAContextID)(vaCtxHeapElement->uiVaContextID + DDI_MEDIA_VACONTEXTID_OFFSET_CM);
 
     //Set VaCtx ID to Cm device
-    pCmDevRT->SetVaCtxID(VaContextID);
+    deviceRT->SetVaCtxID(vaContextID);
 
     // increate CM context number
-    pMediaCtx->uiNumCMs++;
+    mediaCtx->uiNumCMs++;
 
-    DdiMediaUtil_UnLockMutex(&pMediaCtx->CmMutex);
+    DdiMediaUtil_UnLockMutex(&mediaCtx->CmMutex);
 
     return hRes;
 }
 
 //!
 //! \brief    Destroy Cm Device and free heap in VA context.
-//! \param    pVaDrvCtx
+//! \param    vaDriverCtx
 //!           [in] pointer to va drv conetext.
-//! \param    pCmDev
+//! \param    device
 //!           [in] pointer to cm device to release.
 //! \return   int32_t
 //!           CM_SUCCESS if success, else fail reason.
 //!
-int32_t DestroyCmDeviceFromVA(VADriverContextP pVaDrvCtx, CmDevice *pCmDev)
+int32_t DestroyCmDeviceFromVA(VADriverContextP vaDriverCtx, CmDevice *device)
 {
     int32_t               hr          = CM_SUCCESS;
     uint32_t              index;
-    PDDI_MEDIA_CONTEXT    pMediaCtx;
-    PCM_CONTEXT           pCmCtx;
-    VAContextID           VaContextID;
+    PDDI_MEDIA_CONTEXT    mediaCtx;
+    PCM_CONTEXT           cmCtx;
+    VAContextID           vaContextID;
     uint32_t              ctxType;
     VAStatus              vaStatus;
 
-    pMediaCtx = DdiMedia_GetMediaContext(pVaDrvCtx);
-    CM_DDI_CHK_NULL(pVaDrvCtx,
-                "Null pVaDrvCtx.",
+    mediaCtx = DdiMedia_GetMediaContext(vaDriverCtx);
+    CM_DDI_CHK_NULL(vaDriverCtx,
+                "Null vaDriverCtx.",
                 VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    CM_DDI_CHK_NULL(pCmDev,
-            "Null pCmDev.",
+    CM_DDI_CHK_NULL(device,
+            "Null device.",
             VA_STATUS_ERROR_INVALID_CONTEXT);
-    CmDeviceRT* pCmDevRT = static_cast<CmDeviceRT*>(pCmDev);
+    CmDeviceRT* deviceRT = static_cast<CmDeviceRT*>(device);
     //Get VaCtx ID in MediaCtx
-    pCmDevRT->GetVaCtxID(VaContextID);
+    deviceRT->GetVaCtxID(vaContextID);
 
     // Get Cm context index
-    index = VaContextID & DDI_MEDIA_MASK_VACONTEXTID;
+    index = vaContextID & DDI_MEDIA_MASK_VACONTEXTID;
 
     //Get Cm Context
-    pCmCtx    = (PCM_CONTEXT)DdiMedia_GetContextFromContextID(pVaDrvCtx, VaContextID, &ctxType);
-    CM_DDI_CHK_NULL(pCmCtx, "Null pCmCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
+    cmCtx    = (PCM_CONTEXT)DdiMedia_GetContextFromContextID(vaDriverCtx, vaContextID, &ctxType);
+    CM_DDI_CHK_NULL(cmCtx, "Null cmCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    CHK_HR(DestroyCmDevice(&(pCmCtx->mosCtx)));
+    CHK_HR(DestroyCmDevice(&(cmCtx->mosCtx)));
 
     // remove from context array
-    DdiMediaUtil_LockMutex(&pMediaCtx->CmMutex);
+    DdiMediaUtil_LockMutex(&mediaCtx->CmMutex);
 
     // destroy Cm context
-    MOS_FreeMemAndSetNull(pCmCtx);
+    MOS_FreeMemAndSetNull(cmCtx);
 
-    DdiMediaUtil_ReleasePVAContextFromHeap(pMediaCtx->pCmCtxHeap, index);
+    DdiMediaUtil_ReleasePVAContextFromHeap(mediaCtx->pCmCtxHeap, index);
 
-    pMediaCtx->uiNumCMs--;
+    mediaCtx->uiNumCMs--;
 
-    DdiMediaUtil_UnLockMutex(&pMediaCtx->CmMutex);
+    DdiMediaUtil_UnLockMutex(&mediaCtx->CmMutex);
 
 finish:
     return hr;
@@ -179,55 +179,55 @@ finish:
 extern MOS_FORMAT   VpGetFormatFromMediaFormat(DDI_MEDIA_FORMAT mf);
 //*-----------------------------------------------------------------------------
 //| Purpose:    Get resource information from LibVA-created surface and fill into OsResource
-//              iVASurfaceID is the index to VA's surface
+//              vaSurfaceID is the index to VA's surface
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmFillMosResource( VASurfaceID        iVASurfaceID,
-                       VADriverContext*   pUMDCtx,
-                       PMOS_RESOURCE      pOsResource)
+int32_t CmFillMosResource( VASurfaceID        vaSurfaceID,
+                       VADriverContext*   vaDriverCtx,
+                       PMOS_RESOURCE      osResource)
 {
-    PDDI_MEDIA_CONTEXT    pMediaCtx;
-    DDI_MEDIA_SURFACE     *pSurface;
-    CmDevice              *pCmDevice;
+    PDDI_MEDIA_CONTEXT    mediaCtx;
+    DDI_MEDIA_SURFACE     *surface;
+    CmDevice              *device;
 
-    CM_DDI_CHK_NULL(pUMDCtx, "Null pUMDCtx", CM_INVALID_UMD_CONTEXT);
+    CM_DDI_CHK_NULL(vaDriverCtx, "Null umdCtx", CM_INVALID_UMD_CONTEXT);
 
-    pMediaCtx = DdiMedia_GetMediaContext(pUMDCtx);
-    CM_DDI_CHK_NULL(pMediaCtx, "Null pMediaCtx", CM_INVALID_UMD_CONTEXT);
+    mediaCtx = DdiMedia_GetMediaContext(vaDriverCtx);
+    CM_DDI_CHK_NULL(mediaCtx, "Null mediaCtx", CM_INVALID_UMD_CONTEXT);
 
-    CM_DDI_CHK_NULL(pMediaCtx->pSurfaceHeap, "Null pMediaCtx->pSurfaceHeap", CM_INVALID_UMD_CONTEXT);
-    CM_CHK_LESS((uint32_t)iVASurfaceID, pMediaCtx->pSurfaceHeap->uiAllocatedHeapElements, "Invalid surface", CM_INVALID_LIBVA_SURFACE);
+    CM_DDI_CHK_NULL(mediaCtx->pSurfaceHeap, "Null mediaCtx->pSurfaceHeap", CM_INVALID_UMD_CONTEXT);
+    CM_CHK_LESS((uint32_t)vaSurfaceID, mediaCtx->pSurfaceHeap->uiAllocatedHeapElements, "Invalid surface", CM_INVALID_LIBVA_SURFACE);
 
-    pSurface = DdiMedia_GetSurfaceFromVASurfaceID(pMediaCtx, iVASurfaceID);
-    CM_DDI_CHK_NULL(pSurface, "Null pSurface", CM_INVALID_LIBVA_SURFACE);
-    CM_ASSERT(pSurface->iPitch == GFX_ULONG_CAST(pSurface->pGmmResourceInfo->GetRenderPitch()));
-    CM_DDI_CHK_NULL(pSurface->bo, "Null BO", CM_INVALID_LIBVA_SURFACE);
-    CM_DDI_CHK_NULL(pSurface->pGmmResourceInfo, "Null GMMResInfo", CM_INVALID_LIBVA_SURFACE);
+    surface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, vaSurfaceID);
+    CM_DDI_CHK_NULL(surface, "Null surface", CM_INVALID_LIBVA_SURFACE);
+    CM_ASSERT(surface->iPitch == GFX_ULONG_CAST(surface->pGmmResourceInfo->GetRenderPitch()));
+    CM_DDI_CHK_NULL(surface->bo, "Null BO", CM_INVALID_LIBVA_SURFACE);
+    CM_DDI_CHK_NULL(surface->pGmmResourceInfo, "Null GMMResInfo", CM_INVALID_LIBVA_SURFACE);
 
     // Resets the Resource
-    Mos_ResetResource(pOsResource);
+    Mos_ResetResource(osResource);
 
-    pOsResource->iWidth   = pSurface->iWidth;
-    pOsResource->iHeight  = pSurface->iHeight;
-    pOsResource->iDepth   = 1;
-    pOsResource->iPitch   = pSurface->iPitch;
+    osResource->iWidth   = surface->iWidth;
+    osResource->iHeight  = surface->iHeight;
+    osResource->iDepth   = 1;
+    osResource->iPitch   = surface->iPitch;
 
-    pOsResource->iCount   = 0;
-    pOsResource->bufname  = (char *)"Libva2DSurface";
+    osResource->iCount   = 0;
+    osResource->bufname  = (char *)"Libva2DSurface";
 
-    pOsResource->Format   = VpGetFormatFromMediaFormat(pSurface->format);
-    pOsResource->bo       = pSurface->bo;
+    osResource->Format   = VpGetFormatFromMediaFormat(surface->format);
+    osResource->bo       = surface->bo;
 
-    pOsResource->TileType = LinuxToMosTileType(pSurface->TileType);
-    pOsResource->isTiled  = pSurface->isTiled;
+    osResource->TileType = LinuxToMosTileType(surface->TileType);
+    osResource->isTiled  = surface->isTiled;
 
-    pOsResource->bMapped  = pSurface->bMapped;
-    pOsResource->pData    = (uint8_t*) pSurface->bo->virt;
+    osResource->bMapped  = surface->bMapped;
+    osResource->pData    = (uint8_t*) surface->bo->virt;
 
-    pOsResource->pGmmResInfo = pSurface->pGmmResourceInfo;
+    osResource->pGmmResInfo = surface->pGmmResourceInfo;
 
     // for wrapper to new MOS MODS interface
-    pOsResource->bConvertedFromDDIResource = true;
+    osResource->bConvertedFromDDIResource = true;
 
     return CM_SUCCESS;
 }
@@ -264,117 +264,117 @@ using CMRT_UMD::CmWrapperEx;
 //| Purpose:    CMRT thin layer library supported function execution
 //| Return:     CM_SUCCESS if successful
 //*-----------------------------------------------------------------------------
-int32_t CmThinExecute(VADriverContextP pVaDrvCtx,
-                      void *pCmDeviceHandle,
+int32_t CmThinExecute(VADriverContextP vaDriverCtx,
+                      void *deviceHandle,
                       uint32_t inputFunctionId,
                       void *inputData,
                       uint32_t inputDataLen)
 {
-    CmDevice             *pDevice           = nullptr;
-    CmDeviceRT           *pDeviceRT         = nullptr;
+    CmDevice             *device           = nullptr;
+    CmDeviceRT           *deviceRT         = nullptr;
     VADriverContextP     hUMDevice          = nullptr;
-    void                 *pCmPrivateInputData = nullptr;
-    uint32_t             CmPrivateInputDataSize = 0 ;
+    void                 *cmPrivateInputData = nullptr;
+    uint32_t             cmPrivateInputDataSize = 0 ;
     CMRT_UMD::CmSurface2D *pCmSurface2d       = nullptr;
-    SurfaceIndex         *pSurfaceIndex      = nullptr;
-    CM_FUNCTION_ID       CmFunctionID;
+    SurfaceIndex         *surfaceIndex      = nullptr;
+    CM_FUNCTION_ID       cmFunctionID;
     int32_t              hr                  = CM_SUCCESS;
     int32_t              cmRet               = CM_INVALID_PRIVATE_DATA;
 
-    hUMDevice               = pVaDrvCtx;
-    pCmPrivateInputData     = inputData;
-    CmPrivateInputDataSize  = inputDataLen;
-    CmFunctionID            = (CM_FUNCTION_ID)inputFunctionId;
-    pDevice                 = (CmDevice *)pCmDeviceHandle;
-    pDeviceRT               = static_cast<CmDeviceRT*>(pDevice);
-    switch(CmFunctionID)
+    hUMDevice               = vaDriverCtx;
+    cmPrivateInputData     = inputData;
+    cmPrivateInputDataSize  = inputDataLen;
+    cmFunctionID            = (CM_FUNCTION_ID)inputFunctionId;
+    device                 = (CmDevice *)deviceHandle;
+    deviceRT               = static_cast<CmDeviceRT*>(device);
+    switch(cmFunctionID)
     {
         case CM_FN_CREATECMDEVICE:
-            PCM_CREATECMDEVICE_PARAM pCmDeviceParam;
-            pCmDeviceParam = (PCM_CREATECMDEVICE_PARAM)(pCmPrivateInputData);
+            PCM_CREATECMDEVICE_PARAM cmDeviceParam;
+            cmDeviceParam = (PCM_CREATECMDEVICE_PARAM)(cmPrivateInputData);
             //Create Cm Device
-            cmRet = CreateCmDeviceFromVA(pVaDrvCtx, pDevice, pCmDeviceParam->DevCreateOption);
+            cmRet = CreateCmDeviceFromVA(vaDriverCtx, device, cmDeviceParam->devCreateOption);
             if ( cmRet == CM_SUCCESS)
             {
-                CM_DDI_CHK_NULL(pDevice, "Null pDevice.", VA_STATUS_ERROR_INVALID_CONTEXT);
-                pDeviceRT = static_cast<CmDeviceRT*>(pDevice);
-                pDeviceRT->RegisterCallBack(pCmDeviceParam->pCallBackReleaseVaSurf);
-                pCmDeviceParam->iDriverStoreEnabled = pDeviceRT->GetDriverStoreFlag();
+                CM_DDI_CHK_NULL(device, "Null device.", VA_STATUS_ERROR_INVALID_CONTEXT);
+                deviceRT = static_cast<CmDeviceRT*>(device);
+                deviceRT->RegisterCallBack(cmDeviceParam->callbackReleaseVaSurf);
+                cmDeviceParam->driverStoreEnabled = deviceRT->GetDriverStoreFlag();
             }
             //Fill the output message
-            pCmDeviceParam->pCmDeviceHandle = pDevice;
-            pCmDeviceParam->iReturnValue    = cmRet;
-            pCmDeviceParam->iVersion        = CM_VERSION;
+            cmDeviceParam->deviceHandle = device;
+            cmDeviceParam->returnValue  = cmRet;
+            cmDeviceParam->version      = CM_VERSION;
             break;
 
         case CM_FN_DESTROYCMDEVICE:
-            PCM_DESTROYCMDEVICE_PARAM pCmDevDestroyParam;
-            pCmDevDestroyParam = (PCM_DESTROYCMDEVICE_PARAM)(pCmPrivateInputData);
-            pDevice            = (CmDevice *)(pCmDevDestroyParam->deviceHandle);
-            cmRet = DestroyCmDeviceFromVA(pVaDrvCtx,pDevice);
+            PCM_DESTROYCMDEVICE_PARAM cmDevDestroyParam;
+            cmDevDestroyParam = (PCM_DESTROYCMDEVICE_PARAM)(cmPrivateInputData);
+            device            = (CmDevice *)(cmDevDestroyParam->deviceHandle);
+            cmRet = DestroyCmDeviceFromVA(vaDriverCtx,device);
             //Fill the output message
-            pCmDevDestroyParam->deviceHandle = nullptr;
-            pCmDevDestroyParam->returnValue    = cmRet;
+            cmDevDestroyParam->deviceHandle = nullptr;
+            cmDevDestroyParam->returnValue    = cmRet;
             break;
 
         case CM_FN_CMDEVICE_CREATESURFACE2D:
-            PCM_CREATESURFACE2D_PARAM   pCmCreate2DParam;
-            MOS_RESOURCE                MosResource ;
-            MOS_ZeroMemory(&MosResource, sizeof(MOS_RESOURCE));
-            pCmCreate2DParam    = (PCM_CREATESURFACE2D_PARAM)(pCmPrivateInputData);
-            if ( pCmCreate2DParam->bIsLibvaCreated )
+            PCM_CREATESURFACE2D_PARAM   cmCreate2DParam;
+            MOS_RESOURCE                mosResource ;
+            MOS_ZeroMemory(&mosResource, sizeof(MOS_RESOURCE));
+            cmCreate2DParam    = (PCM_CREATESURFACE2D_PARAM)(cmPrivateInputData);
+            if ( cmCreate2DParam->isLibvaCreated )
             {
                 //LibVA-created Surface2D
-                cmRet = CmFillMosResource(pCmCreate2DParam->uiVASurfaceID,
-                                       pVaDrvCtx,
-                                       &MosResource);
+                cmRet = CmFillMosResource(cmCreate2DParam->vaSurfaceID,
+                                       vaDriverCtx,
+                                       &mosResource);
 
                 if( cmRet != CM_SUCCESS)
                 {
                     CM_ASSERTMESSAGE("Error: Failed to fill MOS resource.");
-                    pCmCreate2DParam->iReturnValue          = cmRet;
+                    cmCreate2DParam->returnValue          = cmRet;
                     return cmRet;
                 }
 
-                cmRet = pDeviceRT->CreateSurface2D(&MosResource, pCmCreate2DParam->bIsCmCreated ,pCmSurface2d);
+                cmRet = deviceRT->CreateSurface2D(&mosResource, cmCreate2DParam->isCmCreated, pCmSurface2d);
                 if( cmRet != CM_SUCCESS)
                 {
                     CM_ASSERTMESSAGE("Error: Failed to create surface 2D from MOS resource.");
-                    pCmCreate2DParam->iReturnValue          = cmRet;
+                    cmCreate2DParam->returnValue          = cmRet;
                     return cmRet;
                 }
 
-                CmSurface2DRT *pCmSurface2dRT = static_cast<CmSurface2DRT *>(pCmSurface2d);
-                pCmSurface2dRT->SetVaSurfaceID(pCmCreate2DParam->uiVASurfaceID, pCmCreate2DParam->pVaDpy);
+                CmSurface2DRT *surface2dRT = static_cast<CmSurface2DRT *>(pCmSurface2d);
+                surface2dRT->SetVaSurfaceID(cmCreate2DParam->vaSurfaceID, cmCreate2DParam->vaDisplay);
             }
             else
             {
                 // CM Created Surface2D
-                cmRet = pDevice->CreateSurface2D(
-                        pCmCreate2DParam->iWidth,
-                        pCmCreate2DParam->iHeight,
-                        CmOSFmtToMosFmt(pCmCreate2DParam->Format),
+                cmRet = device->CreateSurface2D(
+                        cmCreate2DParam->width,
+                        cmCreate2DParam->height,
+                        CmOSFmtToMosFmt(cmCreate2DParam->format),
                         pCmSurface2d);
             }
             //Create Surface Index
             if( cmRet == CM_SUCCESS)
             {
-                pCmCreate2DParam->pCmSurface2DHandle    = pCmSurface2d;
+                cmCreate2DParam->cmSurface2DHandle    = pCmSurface2d;
             }
 
             //Fill output message
-            pCmCreate2DParam->iReturnValue          = cmRet;
+            cmCreate2DParam->returnValue          = cmRet;
             break;
 
         default:
-            hr = CmThinExecuteInternal(pDevice, CmFunctionID, pCmPrivateInputData, CmPrivateInputDataSize);
+            hr = CmThinExecuteInternal(device, cmFunctionID, cmPrivateInputData, cmPrivateInputDataSize);
             if (hr == CM_INVALID_PRIVATE_DATA)
             {
                 CmWrapperEx *wrapperEx = CmExtensionCreator<CmWrapperEx>::CreateClass();
                 if (wrapperEx != nullptr)
                 {
-                    wrapperEx->Initialize((void *)pVaDrvCtx);
-                    hr = wrapperEx->Execute(pDevice, CmFunctionID, pCmPrivateInputData, CmPrivateInputDataSize);
+                    wrapperEx->Initialize((void *)vaDriverCtx);
+                    hr = wrapperEx->Execute(device,cmFunctionID, cmPrivateInputData, cmPrivateInputDataSize);
                     delete wrapperEx;
                 }
                 else

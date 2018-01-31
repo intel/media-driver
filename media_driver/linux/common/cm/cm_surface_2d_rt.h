@@ -45,47 +45,47 @@ public:
                           unsigned int pitch,
                           MOS_FORMAT format,
                           bool isCmCreated,
-                          CmSurfaceManager *pSurfaceManager,
-                          CmSurface2DRT* &pSurface);
+                          CmSurfaceManager *surfaceManager,
+                          CmSurface2DRT* &surface);
 
     CM_RT_API int32_t
-    ReadSurface(unsigned char *pSysMem,
-                CmEvent *pEvent,
+    ReadSurface(unsigned char *sysMem,
+                CmEvent *event,
                 uint64_t sysMemSize = 0xFFFFFFFFFFFFFFFFULL);
 
-    CM_RT_API int32_t WriteSurface(const unsigned char *pSysMem,
-                                   CmEvent *pEvent,
+    CM_RT_API int32_t WriteSurface(const unsigned char *sysMem,
+                                   CmEvent *event,
                                    uint64_t sysMemSize = 0xFFFFFFFFFFFFFFFFULL);
 
     CM_RT_API int32_t
-    ReadSurfaceStride(unsigned char *pSysMem,
-                      CmEvent *pEvent,
+    ReadSurfaceStride(unsigned char *sysMem,
+                      CmEvent *event,
                       const unsigned int stride,
                       uint64_t sysMemSize = 0xFFFFFFFFFFFFFFFFULL);
 
     CM_RT_API int32_t
-    WriteSurfaceStride(const unsigned char *pSysMem,
-                       CmEvent *pEvent,
+    WriteSurfaceStride(const unsigned char *sysMem,
+                       CmEvent *event,
                        const unsigned int stride,
                        uint64_t sysMemSize = 0xFFFFFFFFFFFFFFFFULL);
 
     CM_RT_API int32_t
-    ReadSurfaceHybridStrides(unsigned char *pSysMem,
-                             CmEvent *pEvent,
-                             const unsigned int iWidthStride,
-                             const unsigned int iHeightStride,
+    ReadSurfaceHybridStrides(unsigned char *sysMem,
+                             CmEvent *event,
+                             const unsigned int horizontalStride,
+                             const unsigned int verticalStride,
                              uint64_t sysMemSize = 0xFFFFFFFFFFFFFFFFULL,
-                             unsigned int uiOption = 0);
+                             unsigned int option = 0);
 
     CM_RT_API int32_t
-    WriteSurfaceHybridStrides(const unsigned char *pSysMem,
-                              CmEvent *pEvent,
-                              const unsigned int iWidthStride,
-                              const unsigned int iHeightStride,
+    WriteSurfaceHybridStrides(const unsigned char *sysMem,
+                              CmEvent *event,
+                              const unsigned int horizontalStride,
+                              const unsigned int verticalStride,
                               uint64_t sysMemSize = 0xFFFFFFFFFFFFFFFFULL,
-                              unsigned int uiOption = 0);
+                              unsigned int option = 0);
 
-    CM_RT_API int32_t GetIndex(SurfaceIndex* &pIndex);
+    CM_RT_API int32_t GetIndex(SurfaceIndex* &index);
 
     CM_RT_API int32_t GetSurfaceDesc(unsigned int &width,
                                      unsigned int &height,
@@ -93,34 +93,34 @@ public:
                                      unsigned int &sizeperpixel);
 
     CM_RT_API int32_t InitSurface(const unsigned int initValue,
-                                  CmEvent *pEvent);
+                                  CmEvent *event);
 
     CM_RT_API int32_t
-    SetSurfaceStateParam(SurfaceIndex *pSurfIndex,
-                         const CM_SURFACE2D_STATE_PARAM *pSSParam);
+    SetSurfaceStateParam(SurfaceIndex *surfaceIndex,
+                         const CM_SURFACE2D_STATE_PARAM *surfStateParam);
 
-    CM_RT_API int32_t ReadSurfaceFullStride(unsigned char *pSysMem,
-                                            CmEvent *pEvent,
-                                            const unsigned int iWidthStride,
-                                            const unsigned int iHeightStride,
+    CM_RT_API int32_t ReadSurfaceFullStride(unsigned char *sysMem,
+                                            CmEvent *event,
+                                            const unsigned int horizontalStride,
+                                            const unsigned int verticalStride,
                                             uint64_t sysMemSize);
 
-    CM_RT_API int32_t WriteSurfaceFullStride(const unsigned char *pSysMem,
-                                             CmEvent *pEvent,
-                                             const unsigned int iWidthStride,
-                                             const unsigned int iHeightStride,
+    CM_RT_API int32_t WriteSurfaceFullStride(const unsigned char *sysMem,
+                                             CmEvent *event,
+                                             const unsigned int horizontalStride,
+                                             const unsigned int verticalStride,
                                              uint64_t sysMemSize);
 
-    int32_t SetMemoryObjectControl(MEMORY_OBJECT_CONTROL mem_ctrl,
-                                   MEMORY_TYPE mem_type,
+    int32_t SetMemoryObjectControl(MEMORY_OBJECT_CONTROL memCtrl,
+                                   MEMORY_TYPE memType,
                                    unsigned int age);
 
     CM_RT_API int32_t
-    SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL mem_ctrl);
+    SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL memCtrl);
 
-    CM_RT_API int32_t SetCompressionMode(MEMCOMP_STATE MmcMode);
+    CM_RT_API int32_t SetCompressionMode(MEMCOMP_STATE mmcMode);
 
-    CM_RT_API int32_t GetVaSurfaceID(VASurfaceID  &iVASurface);
+    CM_RT_API int32_t GetVaSurfaceID(VASurfaceID  &vaSurface);
 
     CM_RT_API int32_t SetProperty(CM_FRAME_TYPE frameType);
 
@@ -136,22 +136,22 @@ public:
     CM_ENUM_CLASS_TYPE Type() const
     { return CM_ENUM_CLASS_TYPE_CMSURFACE2D; }
 
-    bool IsGPUCopy(void *pSysMem,
-                   uint32_t iWidth,
-                   uint32_t iHeight,
-                   uint32_t iWidthStride)
-;
-    bool IsUnalignedGPUCopy(uint32_t iWidthInBytes,
-                            uint32_t iHeight);
+    bool IsGPUCopy(void *sysMem,
+                   uint32_t width,
+                   uint32_t height,
+                   uint32_t horizontalStride);
+    
+    bool IsUnalignedGPUCopy(uint32_t widthInBytes,
+                            uint32_t height);
 
-    CMRT_UMD_API int32_t SetReadSyncFlag(bool bReadSync);
+    CMRT_UMD_API int32_t SetReadSyncFlag(bool readSync);
 
     CMRT_UMD_API int32_t
     NotifyUmdResourceChanged(UMD_RESOURCE umdResource,
                              int updateMosResource = 0,
-                             PMOS_RESOURCE pMosResource = nullptr);
+                             PMOS_RESOURCE mosResource = nullptr);
 
-    int32_t Create2DAlias(SurfaceIndex* &pAliasSurfIndex);
+    int32_t Create2DAlias(SurfaceIndex* &aliasSurfIndex);
 
     int32_t GetNumAliases(unsigned int &numAliases);
 
@@ -161,7 +161,7 @@ public:
                      int32_t taskId,
                      uint32_t argIndex);
 
-    int32_t SetVaSurfaceID(VASurfaceID iVaSurface, void *pVaDpy);
+    int32_t SetVaSurfaceID(VASurfaceID vaSurface, void *vaDisplay);
 
 protected:
     CmSurface2DRT(unsigned int handle,
@@ -169,32 +169,32 @@ protected:
                   unsigned int height,
                   unsigned int pitch,
                   MOS_FORMAT format,
-                  CmSurfaceManager *pSurfaceManager,
+                  CmSurfaceManager *surfaceManager,
                   bool isCmCreated);
 
     ~CmSurface2DRT();
 
     int32_t Initialize(unsigned int index);
 
-    unsigned int m_Width;
-    unsigned int m_Height;
-    unsigned int m_Handle;
-    unsigned int m_Pitch;
-    MOS_FORMAT m_Format;
+    unsigned int m_width;
+    unsigned int m_height;
+    unsigned int m_handle;
+    unsigned int m_pitch;
+    MOS_FORMAT m_format;
 
     // a pointer to UMD resource, set to nullptr if no resource related to
-    UMD_RESOURCE m_pUMDResource;
+    UMD_RESOURCE m_umdResource;
 
     // number of surfaces created as an alias
     unsigned int m_numAliases;
 
-    SurfaceIndex* m_pAliasIndexes[CM_HAL_MAX_NUM_2D_ALIASES];
+    SurfaceIndex* m_aliasIndexes[CM_HAL_MAX_NUM_2D_ALIASES];
 
-    VASurfaceID m_VaSurfaceID;
+    VASurfaceID m_vaSurfaceID;
 
-    int m_bVaCreated;
+    int m_vaCreated;
 
-    void *m_pVaDpy;
+    void *m_vaDisplay;
 
     CM_FRAME_TYPE m_frameType;
 };

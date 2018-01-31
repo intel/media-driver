@@ -37,7 +37,7 @@ public:
     CSync()
     {
         int32_t ret = 0;
-        ret = pthread_mutex_init(&m_CriticalSection, nullptr);
+        ret = pthread_mutex_init(&m_criticalSection, nullptr);
         if (ret != 0)
         {
             CM_ASSERTMESSAGE("Error: Failed in pthread_mutex_init.");
@@ -47,7 +47,7 @@ public:
     ~CSync()
     {
         int32_t ret = 0 ;
-        ret = pthread_mutex_destroy(&m_CriticalSection);
+        ret = pthread_mutex_destroy(&m_criticalSection);
         if (ret != 0)
         {
             CM_ASSERTMESSAGE("Error: Failed in pthread_mutex_destroy.");
@@ -57,7 +57,7 @@ public:
     void Acquire()
     {
         int32_t ret = 0;
-        ret = pthread_mutex_lock(&m_CriticalSection);
+        ret = pthread_mutex_lock(&m_criticalSection);
         if (ret != 0)
         {
             CM_ASSERTMESSAGE("Error: Failed in pthread_mutex_lock.");
@@ -67,7 +67,7 @@ public:
     void Release()
     {
         int32_t ret = 0;
-        ret = pthread_mutex_unlock(&m_CriticalSection);
+        ret = pthread_mutex_unlock(&m_criticalSection);
         if (ret != 0)
         {
             CM_ASSERTMESSAGE("Error: Failed in pthread_mutex_unlock.");
@@ -75,7 +75,7 @@ public:
     }
 
 private:
-    pthread_mutex_t m_CriticalSection;
+    pthread_mutex_t m_criticalSection;
 };
 
 class CLock

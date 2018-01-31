@@ -106,10 +106,10 @@ class SurfaceIndex
 {
 public:
     CM_NOINLINE SurfaceIndex() { index = 0; };
-    CM_NOINLINE SurfaceIndex(const SurfaceIndex& _src) { index = _src.index; };
-    CM_NOINLINE SurfaceIndex(const unsigned int& _n) { index = _n; };
-    CM_NOINLINE SurfaceIndex& operator = (const unsigned int& _n) { this->index = _n; return *this; };
-    CM_NOINLINE SurfaceIndex& operator + (const unsigned int& _n) { this->index += _n; return *this; };
+    CM_NOINLINE SurfaceIndex(const SurfaceIndex& src) { index = src.index; };
+    CM_NOINLINE SurfaceIndex(const unsigned int& n) { index = n; };
+    CM_NOINLINE SurfaceIndex& operator = (const unsigned int& n) { this->index = n; return *this; };
+    CM_NOINLINE SurfaceIndex& operator + (const unsigned int& n) { this->index += n; return *this; };
     CM_NOINLINE SurfaceIndex& operator= (const SurfaceIndex& other) { this->index = other.index; return *this; };
     virtual unsigned int get_data(void) { return index; };
 
@@ -125,19 +125,19 @@ private:
      * It has virutal table and has copy constructor, so GNU calling convention will pass the object's pointer to kernel function.
      * This is different from MSVC, which always copies the entire object transferred on the callee's stack.
      *
-     * Depending on the special object size after adding below "extra_byte",
+     * Depending on the special object size after adding below "extraByte",
      * SetKernelArg and SetThreadArg can recognize this object and follow GNU's convention to construct kernel function's stack.
      */
-    unsigned char extra_byte;
+    unsigned char extraByte;
 };
 
 class SamplerIndex
 {
 public:
     CM_NOINLINE SamplerIndex() { index = 0; };
-    CM_NOINLINE SamplerIndex(SamplerIndex& _src) { index = _src.get_data(); };
-    CM_NOINLINE SamplerIndex(const unsigned int& _n) { index = _n; };
-    CM_NOINLINE SamplerIndex& operator = (const unsigned int& _n) { this->index = _n; return *this; };
+    CM_NOINLINE SamplerIndex(SamplerIndex& src) { index = src.get_data(); };
+    CM_NOINLINE SamplerIndex(const unsigned int& n) { index = n; };
+    CM_NOINLINE SamplerIndex& operator = (const unsigned int& n) { this->index = n; return *this; };
     virtual unsigned int get_data(void) { return index; };
     virtual ~SamplerIndex(){};
 
@@ -148,7 +148,7 @@ private:
      * Do not delete this line:
      * Same reason as SurfaceIndex.
      */
-    unsigned char extra_byte;
+    unsigned char extraByte;
     SamplerIndex& operator= (const SamplerIndex& other);
 };
 }
@@ -167,20 +167,20 @@ typedef struct _SYSTEMTIME
     uint16_t wMilliseconds;
 } SYSTEMTIME, *PSYSTEMTIME;
 
-inline void GetLocalTime(PSYSTEMTIME psystime)
+inline void GetLocalTime(PSYSTEMTIME sysTime)
 {
-    time_t Tm;
-    struct tm *ltime;
-    time(&Tm);
-    ltime=localtime(&Tm);
-    psystime->wYear = ltime->tm_year;
-    psystime->wMonth = ltime->tm_mon;
-    psystime->wDayOfWeek = ltime->tm_wday;
-    psystime->wDay = ltime->tm_mday;
-    psystime->wHour = ltime->tm_hour;
-    psystime->wMinute = ltime->tm_min;
-    psystime->wSecond = ltime->tm_sec;
-    psystime->wMilliseconds = 0;
+    time_t temp;
+    struct tm *localTime;
+    time(&temp);
+    localTime=localtime(&temp);
+    sysTime->wYear = localTime->tm_year;
+    sysTime->wMonth = localTime->tm_mon;
+    sysTime->wDayOfWeek = localTime->tm_wday;
+    sysTime->wDay = localTime->tm_mday;
+    sysTime->wHour = localTime->tm_hour;
+    sysTime->wMinute = localTime->tm_min;
+    sysTime->wSecond = localTime->tm_sec;
+    sysTime->wMilliseconds = 0;
 }
 #endif
 
