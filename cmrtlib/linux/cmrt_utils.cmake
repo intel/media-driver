@@ -48,10 +48,10 @@ endfunction()
 function( setup_configurations )
     set(CMAKE_CONFIGURATION_TYPES
         "Debug"
-        "Release Internal"
+        "ReleaseInternal"
         "Release"
       )
-    custom_build_add("Release Internal"       "Release")
+    custom_build_add("ReleaseInternal"       "Release")
     set(CMAKE_CONFIGURATION_TYPES ${CMAKE_CONFIGURATION_TYPES} CACHE STRING "Available build configurations." FORCE)
 endfunction( setup_configurations )
 
