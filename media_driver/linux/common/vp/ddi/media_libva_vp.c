@@ -67,7 +67,7 @@ VAStatus     DdiVp_DestroyVpHalSurface(PVPHAL_SURFACE pSurf);
 VAStatus     DdiVp_DestroySrcParams(PDDI_VP_CONTEXT pVpCtx);
 VAStatus     DdiVp_DestroyTargetParams(PDDI_VP_CONTEXT pVpCtx);
 VAStatus     DdiVp_DestroyRenderParams(PDDI_VP_CONTEXT pVpCtx);
-#ifdef ANDROID
+#if (VA_MAJOR_VERSION < 1)
 VPHAL_CSPACE DdiVp_GetColorSpace(VAProcColorStandardType, uint32_t);
 #else
 VPHAL_CSPACE DdiVp_GetColorSpace(VAProcColorStandardType, uint8_t);
@@ -694,7 +694,7 @@ VpSetRenderTargetParams(
             pVpHalTgtSurf->rcDst.bottom = pMediaSrcSurf->iHeight;
         }
     }
-#ifdef ANDROID
+#if (VA_MAJOR_VERSION < 1)
     VpUpdateProcChromaSittingState(pVpHalTgtSurf, (uint8_t)(pPipelineParam->output_surface_flag & 0xff));
 #else
     VpUpdateProcChromaSittingState(pVpHalTgtSurf, pPipelineParam->output_color_properties.chroma_sample_location);
@@ -863,7 +863,7 @@ DdiVp_SetProcPipelineParams(
     //---------------------------------------
     // Set color space for src
     //---------------------------------------
-#ifdef ANDROID
+#if (VA_MAJOR_VERSION < 1)
     pVpHalSrcSurf->ColorSpace = DdiVp_GetColorSpace(pPipelineParam->surface_color_standard, pPipelineParam->input_surface_flag);
 #else
     pVpHalSrcSurf->ColorSpace = DdiVp_GetColorSpace(pPipelineParam->surface_color_standard, pPipelineParam->input_color_properties.color_range);
@@ -1073,7 +1073,7 @@ DdiVp_SetProcPipelineParams(
     // Note: the alpha blending region cannot overlay
     vaStatus = DdiVp_SetProcPipelineBlendingParams(pVpCtx, uSurfIndex, pPipelineParam);
     DDI_CHK_RET(vaStatus, "Failed to update Alpha Blending parameter!");
-#ifdef ANDROID
+#if (VA_MAJOR_VERSION < 1)
     VpUpdateProcChromaSittingState(pVpHalSrcSurf, (uint8_t)(pPipelineParam->input_surface_flag&0xff));
     VpUpdateProcChromaSittingState(pVpHalTgtSurf, (uint8_t)(pPipelineParam->output_surface_flag&0xff));
 #else
@@ -1359,7 +1359,7 @@ DdiVp_InitVpHal(
 ////! [out] None
 ////! \returns appropriate VPHAL_CSPACE if call succeeds
 ///////////////////////////////////////////////////////////////////////////////////////////////
-#ifdef ANDROID
+#if (VA_MAJOR_VERSION < 1)
 VPHAL_CSPACE
 DdiVp_GetColorSpace(VAProcColorStandardType ColorStandard, uint32_t flag)
 #else
@@ -1378,7 +1378,7 @@ DdiVp_GetColorSpace(VAProcColorStandardType ColorStandard, uint8_t color_range)
     switch (ColorStandard)
     {
         case VAProcColorStandardBT709:
-#ifdef ANDROID
+#if (VA_MAJOR_VERSION < 1)
             if (flag & VA_SOURCE_RANGE_FULL)
 #else
             if (color_range == VA_SOURCE_RANGE_FULL)
@@ -1392,7 +1392,7 @@ DdiVp_GetColorSpace(VAProcColorStandardType ColorStandard, uint8_t color_range)
             }
             break;
         case VAProcColorStandardBT601:
-#ifdef ANDROID
+#if (VA_MAJOR_VERSION < 1)
             if (flag & VA_SOURCE_RANGE_FULL)
 #else
             if (color_range == VA_SOURCE_RANGE_FULL)
@@ -1492,7 +1492,7 @@ DdiVp_UpdateVphalTargetSurfColorSpace(
                     VA_STATUS_ERROR_INVALID_SURFACE);
 
     // update target surface color standard
-#ifdef ANDROID
+#if (VA_MAJOR_VERSION < 1)
     pVpHalTgtSurf->ColorSpace = DdiVp_GetColorSpace(pPipelineParam->output_color_standard, pPipelineParam->output_surface_flag);
 #else
     pVpHalTgtSurf->ColorSpace = DdiVp_GetColorSpace(pPipelineParam->output_color_standard, pPipelineParam->output_color_properties.color_range);

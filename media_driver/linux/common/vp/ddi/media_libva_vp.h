@@ -44,7 +44,7 @@
 #define VP_MIN_PIC_HEIGHT   16
 
 // surface flag : 1 secure;  0 clear
-#ifdef ANDROID
+#if (VA_MAJOR_VERSION < 1)
 #define VPHAL_SURFACE_ENCRYPTION_FLAG 0x80000000
 #else
 #define VPHAL_SURFACE_ENCRYPTION_FLAG 0x00000001

@@ -2113,7 +2113,11 @@ DdiMedia_CreateSurfaces2(
 
             // The surface height is 736, but App pass 720 to driver.
             externalBufDesc->height        = height;
+#if VA_MAJOR_VERSION < 1
             externalBufDesc->buffers       = (unsigned long *)bo_names;
+#else
+            externalBufDesc->buffers       = bo_names;
+#endif
             externalBufDesc->data_size     = size;
 
             height                          = externalBufDesc->height;
@@ -5460,7 +5464,7 @@ VAStatus DdiMedia_ReleaseBufferHandle(
 //! \return VAStatus
 //!     VA_STATUS_SUCCESS if success, else fail reason
 //!
-VAStatus __vaDriverInit_0_31(VADriverContextP ctx )
+VAStatus __vaDriverInit(VADriverContextP ctx )
 {
     DDI_CHK_NULL(ctx,         "nullptr ctx",          VA_STATUS_ERROR_INVALID_CONTEXT);
 
@@ -5555,15 +5559,14 @@ VAStatus __vaDriverInit_0_31(VADriverContextP ctx )
 #ifdef __cplusplus
 extern "C" {
 #endif
-#ifndef ANDROID
-#if VA_MINOR_VERSION
-#define VA_DRV_INIT_FUC_NAME __vaDriverInit_1_1
-#else
-#define VA_DRV_INIT_FUC_NAME __vaDriverInit_1_0
-#endif
-#else
-#define VA_DRV_INIT_FUC_NAME __vaDriverInit_0_32
-#endif
+
+//! 
+//! \brief Get VA_MAJOR_VERSION and VA_MINOR_VERSION from libva
+//!  	   To form the function name in the format of _vaDriverInit_[VA_MAJOR_VERSION]_[VA_MINOR_VERSION]
+//!
+#define VA_DRV_INIT_DEF(_major,_minor) __vaDriverInit_##_major##_##_minor
+#define VA_DRV_INIT_FUNC(va_major_version, va_minor_version) VA_DRV_INIT_DEF(va_major_version,va_minor_version)
+#define VA_DRV_INIT_FUC_NAME VA_DRV_INIT_FUNC(VA_MAJOR_VERSION,VA_MINOR_VERSION)
 
 //!
 //! \brief  VA driver init function name
@@ -5576,7 +5579,7 @@ extern "C" {
 //!
 MEDIAAPI_EXPORT VAStatus VA_DRV_INIT_FUC_NAME(VADriverContextP ctx )
 {
-    return __vaDriverInit_0_31(ctx);
+    return __vaDriverInit(ctx);
 }
 
 //!

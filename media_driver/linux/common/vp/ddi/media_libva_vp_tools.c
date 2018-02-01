@@ -585,7 +585,7 @@ VAStatus VpDumpProcPipelineParams(
                 fprintf(fpLog, "\t  mirror_state = %d\n", p->mirror_state);
                 //fprintf(fpLog, "\t  additional_outputs = 0x%08x\n", (unsigned int32_t)(*(p->additional_outputs)));
                 fprintf(fpLog, "\t  num_additional_outputs = %d\n", p->num_additional_outputs);
-#ifdef ANDROID
+#if (VA_MAJOR_VERSION < 1)
                 fprintf(fpLog, "\t  chroma_siting_flag = %d\n", p->input_surface_flag & 0x3);
 #else
                 fprintf(fpLog, "\t  chroma_siting_flag = %d\n", p->input_color_properties.chroma_sample_location & 0x3);

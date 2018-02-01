@@ -880,7 +880,13 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
     {
         VAEncMiscParameterFrameRate *vaEncMiscParamFR = (VAEncMiscParameterFrameRate *)miscParamBuf->data;
         uint32_t vaFRnumerator = vaEncMiscParamFR->framerate & 0xffff;
+
+#if (VA_MAJOR_VERSION < 1)
+        uint32_t vaFRDenominator = 100;
+#else
         uint32_t vaFRDenominator = (vaEncMiscParamFR->framerate >> 16) & 0xffff;
+#endif
+
         if(vaFRDenominator == 0)
         {
             vaFRDenominator = 1;

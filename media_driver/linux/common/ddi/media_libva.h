@@ -39,9 +39,11 @@
 #include <va/va_enc_hevc.h>
 #include <va/va_vpp.h>
 #include <va/va_backend_vpp.h>
-#ifdef ANDROID
+#ifdef ANDROID 
+#if VA_MAJOR_VERSION < 1
 #include "va_internal_android.h"
 #endif
+#endif // ANDROID
 #include <va/va_dec_hevc.h>
 #include "codechal.h"
 #include "codechal_decoder.h"
