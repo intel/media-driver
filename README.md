@@ -35,7 +35,7 @@ GmmLib - https://github.com/intel/gmmlib
 
 ## Building
 
-1. Build and install libva master [commit df544cd5a31e54d4cbd33a391795a8747ddaf789](https://github.com/01org/libva/commit/df544cd5a31e54d4cbd33a391795a8747ddaf789)
+1. Build and install libva master [commit f2f9956f1dd871af59f2fd9bc6fdfc6c0992f0d1](https://github.com/01org/libva/commit/df544cd5a31e54d4cbd33a391795a8747ddaf789)
 2. Get gmmlib and media repo and format the workspace folder as below:
 ```
 <workspace>
