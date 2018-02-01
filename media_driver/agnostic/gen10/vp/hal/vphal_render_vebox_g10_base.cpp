@@ -1368,7 +1368,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G10_BASE::SetDIParams(
         pRenderData->VeboxDNDIParams.bTDMChromaSmallerWindow        = false;
         pRenderData->VeboxDNDIParams.dwLumaTDMCoringThreshold       = VPHAL_VEBOX_DI_LUMA_TDM_CORING_THRESHOLD_NATUAL;
         pRenderData->VeboxDNDIParams.dwChromaTDMCoringThreshold     = VPHAL_VEBOX_DI_CHROMA_TDM_CORING_THRESHOLD_NATUAL;
-        pRenderData->VeboxDNDIParams.bBypassDeflickerFilter         = false;
+        pRenderData->VeboxDNDIParams.bBypassDeflickerFilter         = true;
         pRenderData->VeboxDNDIParams.bUseSyntheticContentMedian     = false;
         pRenderData->VeboxDNDIParams.bLocalCheck                    = true;
         pRenderData->VeboxDNDIParams.bSyntheticContentCheck         = false;
