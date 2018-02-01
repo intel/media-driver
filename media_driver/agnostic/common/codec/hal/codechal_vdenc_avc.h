@@ -1128,7 +1128,7 @@ MOS_STATUS CodechalVdencAvcState::SetDmemHuCBrcUpdateImpl(CODECHAL_VDENC_AVC_BRC
         m_dBrcTargetSize -= avcSeqParams->VBVBufferSizeInBit;
     }
 
-    hucVDEncBrcDmem->UPD_FRAMENUM_U32 = m_storeData - 1;    // frame number
+    hucVDEncBrcDmem->UPD_FRAMENUM_U32           = m_avcSliceParams->frame_num;
     hucVDEncBrcDmem->UPD_TARGETSIZE_U32         = (uint32_t)(m_dBrcTargetSize);
     hucVDEncBrcDmem->UPD_PeakTxBitsPerFrame_U32 = (uint32_t)(m_dBrcInitCurrentTargetBufFullInBits - m_brcInitPreviousTargetBufFullInBits);
 
