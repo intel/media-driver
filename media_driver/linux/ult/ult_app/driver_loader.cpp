@@ -94,7 +94,7 @@ VAStatus DriverDllLoader::InitDriver(int platform_id)
 
     if (!umdhandle)
     {
-        printf("ERROR: dlopen of %s failed: %s.\n", driver_path, dlerror());
+        printf("ERROR: dlopen of %s failed.\n", driver_path);
         return VA_STATUS_ERROR_UNKNOWN;
     }
     else
