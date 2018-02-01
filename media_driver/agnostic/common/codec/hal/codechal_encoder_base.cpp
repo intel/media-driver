@@ -3585,12 +3585,6 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
 
     uint16_t index = 0;
 
-    CODECHAL_DEBUG_TOOL(
-        CodechalDebugInterface debugInterface;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(
-            debugInterface.Initialize(m_hwInterface, m_codecFunction));
-    )
-    
     for (auto i = 0; i < numStatus; i++)
     {
         if(codecStatus->bSequential)
@@ -3614,7 +3608,7 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
         if (localCount == 0 || localCount > globalCount)
         {
             CODECHAL_DEBUG_TOOL(
-                debugInterface.m_bufferDumpFrameNum = encodeStatus->dwStoredData;
+                m_statusReportDebugInterface->m_bufferDumpFrameNum = encodeStatus->dwStoredData;
             )
             
             // Current command is executed
@@ -3629,8 +3623,8 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                 if(encodeStatusReport->Func == CODECHAL_ENCODE_FEI_PRE_ENC_ID)
                 {
                     CODECHAL_DEBUG_TOOL(
-                        debugInterface.m_scaledBottomFieldOffset = m_scaledBottomFieldOffset;
-                        CODECHAL_ENCODE_CHK_STATUS_RETURN(debugInterface.DumpYUVSurface(
+                        m_statusReportDebugInterface->m_scaledBottomFieldOffset = m_scaledBottomFieldOffset;
+                        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_statusReportDebugInterface->DumpYUVSurface(
                             m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER),
                             CodechalDbgAttr::attrReconstructedSurface,
                             "4xScaledSurf"));
@@ -3641,7 +3635,7 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
 
                         // dump EncodeFeiPreproc
                         FeiPreEncParams PreEncParams;
-                        CODECHAL_ENCODE_CHK_STATUS_RETURN(debugInterface.DumpBuffer(
+                        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_statusReportDebugInterface->DumpBuffer(
                             CodecHal_PictureIsBottomField(m_currOriginalPic) ? &PreEncParams.resStatsBotFieldBuffer
                                                                              : &PreEncParams.resStatsBotFieldBuffer,
                             CodechalDbgAttr::attrOutput,
@@ -3797,15 +3791,15 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                     CODEC_REF_LIST currRefList = *refList;
                     currRefList.RefPic         = encodeStatusReport->CurrOriginalPic;
 
-                    debugInterface.m_currPic            = encodeStatusReport->CurrOriginalPic;
-                    debugInterface.m_bufferDumpFrameNum = encodeStatus->dwStoredData;
-                    debugInterface.m_frameType          = encodeStatus->wPictureCodingType;
+                    m_statusReportDebugInterface->m_currPic            = encodeStatusReport->CurrOriginalPic;
+                    m_statusReportDebugInterface->m_bufferDumpFrameNum = encodeStatus->dwStoredData;
+                    m_statusReportDebugInterface->m_frameType          = encodeStatus->wPictureCodingType;
 
                     if (!m_vdencEnabled) {
                         if (currRefList.bMADEnabled)
                         {
                             CODECHAL_ENCODE_CHK_STATUS_RETURN(
-                                debugInterface.DumpBuffer(
+                                m_statusReportDebugInterface->DumpBuffer(
                                 &m_resMadDataBuffer[currRefList.ucMADBufferIdx],
                                 CodechalDbgAttr::attrInput,
                                 "MADWrite",
@@ -3814,12 +3808,12 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                                 CODECHAL_MEDIA_STATE_ENC_NORMAL));
                         }
 
-                        DumpMbEncPakOutput(refList, &debugInterface);
+                        DumpMbEncPakOutput(refList, m_statusReportDebugInterface);
                     }
 
                     if (CodecHalUsesVideoEngine(m_codecFunction)) {
                         /*  Only where the MFX engine is used the bitstream surface will be available */
-                        CODECHAL_ENCODE_CHK_STATUS_RETURN(debugInterface.DumpBuffer(
+                        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_statusReportDebugInterface->DumpBuffer(
                             &currRefList.resBitstreamBuffer,
                             CodechalDbgAttr::attrBitstream,
                             "_PAK",
@@ -3827,13 +3821,13 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                             0,
                             CODECHAL_NUM_MEDIA_STATES));
 
-                        CODECHAL_ENCODE_CHK_STATUS_RETURN(debugInterface.DumpData(
+                        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_statusReportDebugInterface->DumpData(
                             encodeStatusReport,
                             sizeof(EncodeStatusReport),
                             CodechalDbgAttr::attrStatusReport,
                             "EncodeStatusReport_Buffer"));
 
-                        CODECHAL_ENCODE_CHK_STATUS_RETURN(DumpFrameStatsBuffer(&debugInterface));
+                        CODECHAL_ENCODE_CHK_STATUS_RETURN(DumpFrameStatsBuffer(m_statusReportDebugInterface));
 
                         if (m_vdencEnabled)
                         {
@@ -3849,8 +3843,8 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                     }
 
                     if (currRefList.b32xScalingUsed) {
-                        debugInterface.m_scaledBottomFieldOffset = m_scaled32xBottomFieldOffset;
-                        CODECHAL_ENCODE_CHK_STATUS_RETURN(debugInterface.DumpYUVSurface(
+                        m_statusReportDebugInterface->m_scaledBottomFieldOffset = m_scaled32xBottomFieldOffset;
+                        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_statusReportDebugInterface->DumpYUVSurface(
                             m_trackedBuf->Get32xDsSurface(currRefList.ucScalingIdx),
                             CodechalDbgAttr::attrReconstructedSurface,
                             "32xScaledSurf"))
@@ -3858,24 +3852,24 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
 
                     if (currRefList.b2xScalingUsed)  // Currently only used for Gen10 Hevc Encode
                     {
-                        debugInterface.m_scaledBottomFieldOffset = 0;  // No bottom field offset for Hevc
-                        CODECHAL_ENCODE_CHK_STATUS_RETURN(debugInterface.DumpYUVSurface(
+                        m_statusReportDebugInterface->m_scaledBottomFieldOffset = 0;  // No bottom field offset for Hevc
+                        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_statusReportDebugInterface->DumpYUVSurface(
                             m_trackedBuf->Get2xDsSurface(currRefList.ucScalingIdx),
                             CodechalDbgAttr::attrReconstructedSurface,
                             "2xScaledSurf"))
                     }
 
                     if (currRefList.b16xScalingUsed) {
-                        debugInterface.m_scaledBottomFieldOffset = m_scaled16xBottomFieldOffset;
-                        CODECHAL_ENCODE_CHK_STATUS_RETURN(debugInterface.DumpYUVSurface(
+                        m_statusReportDebugInterface->m_scaledBottomFieldOffset = m_scaled16xBottomFieldOffset;
+                        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_statusReportDebugInterface->DumpYUVSurface(
                             m_trackedBuf->Get16xDsSurface(currRefList.ucScalingIdx),
                             CodechalDbgAttr::attrReconstructedSurface,
                             "16xScaledSurf"))
                     }
 
                     if (currRefList.b4xScalingUsed) {
-                        debugInterface.m_scaledBottomFieldOffset = m_scaledBottomFieldOffset;
-                        CODECHAL_ENCODE_CHK_STATUS_RETURN(debugInterface.DumpYUVSurface(
+                        m_statusReportDebugInterface->m_scaledBottomFieldOffset = m_scaledBottomFieldOffset;
+                        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_statusReportDebugInterface->DumpYUVSurface(
                             m_trackedBuf->Get4xDsSurface(currRefList.ucScalingIdx),
                             CodechalDbgAttr::attrReconstructedSurface,
                             "4xScaledSurf"))
@@ -3884,10 +3878,10 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                     if (!(m_codecFunction == CODECHAL_FUNCTION_ENC || m_codecFunction == CODECHAL_FUNCTION_FEI_ENC)) {
                         if (m_codecFunction == CODECHAL_FUNCTION_HYBRIDPAK)
                         {
-                            debugInterface.m_hybridPakP1 = false;
+                            m_statusReportDebugInterface->m_hybridPakP1 = false;
                         }
 
-                        CODECHAL_ENCODE_CHK_STATUS_RETURN(debugInterface.DumpYUVSurface(
+                        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_statusReportDebugInterface->DumpYUVSurface(
                             &currRefList.sRefReconBuffer,
                             CodechalDbgAttr::attrReconstructedSurface,
                             "ReconSurf"))

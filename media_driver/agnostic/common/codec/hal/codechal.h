@@ -339,6 +339,10 @@ protected:
     //! \details  This interface is only valid for release internal and debug builds.
     CodechalDebugInterface  *m_debugInterface   = nullptr;
 
+    //! \brief    Interface used for debug dumps in GetStatusReport.
+    //! \details  This interface is only valid for release internal and debug builds.
+    CodechalDebugInterface  *m_statusReportDebugInterface   = nullptr;
+
     /*! \brief CENC interface used by Huc, such as 2nd level BB, extra surface to eStatus register.
     *
     *   The decypt interface is only valid for a particular codec standard/funciton/mode combination and may not be re-used for something else. If pDecoder is valid, pEncoder should be nullptr.

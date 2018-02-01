@@ -62,6 +62,12 @@ Codechal::~Codechal()
         MOS_Delete(m_debugInterface);
         m_debugInterface = nullptr;
     }
+
+    if (m_statusReportDebugInterface != nullptr)
+    {
+        MOS_Delete(m_statusReportDebugInterface);
+        m_statusReportDebugInterface = nullptr;
+    }
 #endif // USE_CODECHAL_DEBUG_TOOL
 
     // Destroy decypting objects (intermediate surfaces, BBs, etc)
@@ -107,6 +113,11 @@ MOS_STATUS Codechal::Allocate(CodechalSetting * codecHalSettings)
     nullHWAccelerationEnable.Value = 0;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
+    m_statusReportDebugInterface = MOS_New(CodechalDebugInterface);
+    CODECHAL_PUBLIC_CHK_NULL_RETURN(m_statusReportDebugInterface);
+    CODECHAL_PUBLIC_CHK_STATUS_RETURN(
+        m_statusReportDebugInterface->Initialize(m_hwInterface, codecHalSettings->codecFunction));
+
     MOS_USER_FEATURE_VALUE_DATA userFeatureData;
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
