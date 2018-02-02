@@ -72,13 +72,12 @@ VAStatus DriverDllLoader::CloseDriver()
     }
     return vaStatus;
 }
-
 VAStatus DriverDllLoader::InitDriver(int platform_id)
 {
-
     void *handle;
     VAStatus vaStatus;
-    char init_func_s[] = "__vaDriverInit_1_0";
+    char init_func_s[256];
+    sprintf(init_func_s, "__vaDriverInit_%d_%d", VA_MAJOR_VERSION,VA_MINOR_VERSION);
     const char *cm_entry_name = "vaCmExtSendReqMsg";
     VADriverInit init_func = NULL;
 
