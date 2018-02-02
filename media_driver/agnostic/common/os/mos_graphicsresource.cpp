@@ -152,9 +152,10 @@ int32_t GraphicsResource::GetAllocationIndex(GPU_CONTEXT_HANDLE gpuContextHandle
 {
    MOS_OS_FUNCTION_ENTER;
 
-    GPU_CONTEXT_HANDLE curGpuContext;
-    int32_t curAllocIndex ;
-    int32_t ret = MOS_INVALID_ALLOC_INDEX; 
+    GPU_CONTEXT_HANDLE curGpuContext = 0;
+    int32_t curAllocIndex            = MOS_INVALID_ALLOC_INDEX;
+    int32_t ret                      = MOS_INVALID_ALLOC_INDEX; 
+
     for (auto& curAllocationIndexTp : m_allocationIndexArray)
     {
         std::tie(curGpuContext, curAllocIndex) = curAllocationIndexTp ;
@@ -172,9 +173,10 @@ void GraphicsResource::SetAllocationIndex(GPU_CONTEXT_HANDLE gpuContextHandle, i
 {
     MOS_OS_FUNCTION_ENTER;
 
-    GPU_CONTEXT_HANDLE curGpuContext;
-    int32_t curAllocIndex ;
-    bool   found = false;
+    GPU_CONTEXT_HANDLE curGpuContext = 0;
+    int32_t            curAllocIndex = MOS_INVALID_ALLOC_INDEX;
+    bool               found         = false;
+
     for (auto& curAllocationIndexTp : m_allocationIndexArray)
     {
         std::tie(curGpuContext, curAllocIndex) = curAllocationIndexTp ;

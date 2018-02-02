@@ -176,16 +176,18 @@ CommandBuffer *CmdBufMgr::PickupOneCmdBuf(uint32_t size)
             {
                 MOS_OS_ASSERTMESSAGE("input nullptr returned by CommandBuffer::CreateCmdBuf.");
             }
-
-            eStatus = cmdBuf->Allocate(m_osContext, size);
-            if (eStatus != MOS_STATUS_SUCCESS)
+            else
             {
-                MOS_OS_ASSERTMESSAGE("Allocate CmdBuf failed");
-            }
+                eStatus = cmdBuf->Allocate(m_osContext, size);
+                if (eStatus != MOS_STATUS_SUCCESS)
+                {
+                    MOS_OS_ASSERTMESSAGE("Allocate CmdBuf failed");
+                }
 
-            // directly push into inuse pool
-            m_inUseCmdBufPool.push_back(cmdBuf);
-            m_cmdBufTotalNum++;
+                // directly push into inuse pool
+                m_inUseCmdBufPool.push_back(cmdBuf);
+                m_cmdBufTotalNum++;
+            }
         }
 
         retbuf = cmdBuf;
