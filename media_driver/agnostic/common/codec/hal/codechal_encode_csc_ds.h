@@ -369,7 +369,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS CscKernel(KernelParams* params);
+    virtual MOS_STATUS CscKernel(KernelParams* params);
 
     //!
     //! \brief    DS kernel function
@@ -538,6 +538,15 @@ protected:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS SetCurbeDS4x();
+
+    //!
+    //! \brief    Set-up surface sent to ENC/PAK
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS SetSurfacesToEncPak();
+
 
     CodechalEncoderState*                   m_encoder = nullptr;                            //!< Pointer to ENCODER base class
     MOS_INTERFACE*                          m_osInterface = nullptr;                        //!< OS interface
@@ -1040,14 +1049,6 @@ private:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS SendSurfaceCsc(PMOS_COMMAND_BUFFER cmdBuffer);
-
-    //!
-    //! \brief    Set-up surface sent to ENC/PAK
-    //!
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS SetSurfacesToEncPak();
 
     //!
     //! \brief    Setup Curbe for DS kernel

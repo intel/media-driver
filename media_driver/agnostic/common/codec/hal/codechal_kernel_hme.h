@@ -285,9 +285,13 @@ public:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success
     //!
-    MOS_STATUS Execute(CurbeParam &curbeParam, SurfaceParams &surfaceParam, HmeLevel hmeLevel);
+    virtual MOS_STATUS Execute(CurbeParam &curbeParam, SurfaceParams &surfaceParam, HmeLevel hmeLevel);
 
-    MOS_STATUS AllocateResources() override;
+    virtual MOS_STATUS AllocateResources() override;
+
+    virtual MOS_STATUS ReleaseResources() override;
+
+
 
     uint32_t GetBTCount() override { return BindingTableOffset::meSurfaceNum; }
 
@@ -347,7 +351,6 @@ public:
 #endif
 
 protected:
-    MOS_STATUS ReleaseResources() override;
     MOS_STATUS AddPerfTag() override;
     MHW_KERNEL_STATE * GetActiveKernelState() override;
     CODECHAL_MEDIA_STATE_TYPE GetMediaStateType() override;

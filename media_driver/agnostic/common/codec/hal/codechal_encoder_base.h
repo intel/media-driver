@@ -2258,7 +2258,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS AllocateMDFResources();
+    virtual MOS_STATUS AllocateMDFResources();
 
     //!
     //! \brief    Function to destroy MDF required resources
