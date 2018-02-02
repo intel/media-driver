@@ -5580,6 +5580,7 @@ MOS_STATUS HalCm_FinishStatesForKernelMix(
     bool                               kernelFound            = false;
     bool                               updateCurrKernel       = false;
     bool                               noDependencyCase       = false;
+    bool                               sufficientSliceInfo    = true;
     uint32_t                           adjustedYCoord         = 0;
     uint32_t                           numKernelGroups         = CM_HINTS_DEFAULT_NUM_KERNEL_GRP;
     uint32_t                           totalNumThreads         = 0;
@@ -5596,6 +5597,7 @@ MOS_STATUS HalCm_FinishStatesForKernelMix(
     uint32_t                           difference              = 0;
     uint32_t                           curKernel               = 0;
     uint32_t                           numSet                  = 0;
+    uint32_t                           numSubSlicesEnabled     = 0;
     uint32_t                           sliceIndex              = 0;
     uint32_t                           tmpNumSubSlice          = 0;
     uint32_t                           tmpNumKernelsPerGrp     = 0;
@@ -5913,18 +5915,33 @@ MOS_STATUS HalCm_FinishStatesForKernelMix(
                 {
                     if (systemInfo.sliceInfo[i].SubSliceInfo[j].Enabled && systemInfo.sliceInfo[i].Enabled)
                     {
-                        if (kernelsSliceInfo[curKernel].numSubSlices == numSet)
+                        if (curKernel < numKernelGroups)
                         {
-                            curKernel++;
-                            numSet = 0;
+                            if (kernelsSliceInfo[curKernel].numSubSlices == numSet)
+                            {
+                                curKernel++;
+                                numSet = 0;
+                            }
                         }
 
-                        kernelsSliceInfo[curKernel].destination[numSet].slice = i;
-                        kernelsSliceInfo[curKernel].destination[numSet].subSlice = j;
+                        if (curKernel < numKernelGroups)
+                        {
+                            kernelsSliceInfo[curKernel].destination[numSet].slice = i;
+                            kernelsSliceInfo[curKernel].destination[numSet].subSlice = j;
 
-                        numSet++;
+                            numSet++;
+                        }
+
+                        numSubSlicesEnabled++;
                     }
                 }
+            }
+
+
+            if (numSubSlicesEnabled != platformInfo.numSubSlices)
+            {
+                // not enough slice information, do not assign sub-slice destination
+                sufficientSliceInfo = false;
             }
         }
 
@@ -6293,7 +6310,7 @@ MOS_STATUS HalCm_FinishStatesForKernelMix(
             mediaObjectParams[currentKernel].VfeScoreboard.ScoreboardEnable =
                     (kernelParams[currentKernel]->kernelThreadSpaceParam.dependencyInfo.count == 0) ? 0:1;
 
-            if( !singleSubSlice && systemInfo.isSliceInfoValid )
+            if( !singleSubSlice && systemInfo.isSliceInfoValid && sufficientSliceInfo )
             {
                 sliceIndex = kernelsSliceInfo[remapKrnToGrp[currentKernel]].counter % kernelsSliceInfo[remapKrnToGrp[currentKernel]].numSubSlices;
                 mediaObjectParams[currentKernel].dwSliceDestinationSelect = kernelsSliceInfo[remapKrnToGrp[currentKernel]].destination[sliceIndex].slice;
