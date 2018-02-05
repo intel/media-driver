@@ -521,6 +521,9 @@ public:
     //! \param    [in] rcMode 
     //!           Specify the rate control mode to query 
     //!
+    //! \param    [in] isVdenc
+    //!           Specify whether it is vdenc or not
+    //!
     //! \param    [in,out] maxNum 
     //!           Pointer to a integer that will return the maximum number of ROI.
     //!
@@ -530,7 +533,7 @@ public:
     //! \return   VAStatus 
     //!           VA_STATUS_SUCCESS if succeed 
     //! 
-    virtual VAStatus QueryAVCROIMaxNum(uint32_t rcMode, int32_t *maxNum, bool *isRoiInDeltaQP) = 0;
+    virtual VAStatus QueryAVCROIMaxNum(uint32_t rcMode, bool isVdenc, int32_t *maxNum, bool *isRoiInDeltaQP) = 0;
 
     //!
     //! \brief    Return the maxinum number of supported image formats 

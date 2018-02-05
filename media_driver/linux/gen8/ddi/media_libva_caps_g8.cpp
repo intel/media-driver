@@ -136,10 +136,11 @@ VAStatus MediaLibvaCapsG8::LoadProfileEntrypoints()
     return status;
 }
 
-VAStatus MediaLibvaCapsG8::QueryAVCROIMaxNum(uint32_t rcMode, int32_t *maxNum, bool *isRoiInDeltaQP)
+VAStatus MediaLibvaCapsG8::QueryAVCROIMaxNum(uint32_t rcMode, bool isVdenc, int32_t *maxNum, bool *isRoiInDeltaQP)
 {
     DDI_CHK_NULL(maxNum, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER); 
     DDI_CHK_NULL(isRoiInDeltaQP, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER); 
+    DDI_CHK_CONDITION(isVdenc == true, "VDEnc is not supported in Gen8", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     *maxNum = ENCODE_DP_AVC_MAX_ROI_NUMBER;
     *isRoiInDeltaQP =  false;

@@ -47,6 +47,8 @@
 #define ENCODE_DP_AVC_MAX_ROI_NUMBER               4
 #define ENCODE_DP_AVC_MAX_ROI_NUM_BRC              8
 
+#define ENCODE_VDENC_AVC_MAX_ROI_NUMBER            3
+
 #define ENCODE_AVC_MAX_SLICES_SUPPORTED      256 // Limted to 256 due to memory constraints.
 
 //AVC

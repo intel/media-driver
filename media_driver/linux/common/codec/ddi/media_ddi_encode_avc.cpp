@@ -605,7 +605,7 @@ VAStatus DdiEncodeAvc::ParseMiscParamROI(void *data)
 
     int32_t maxROIsupported = 0;
     bool isROIValueInDeltaQP = false;
-    m_encodeCtx->pMediaCtx->m_caps->QueryAVCROIMaxNum(m_encodeCtx->uiRCMethod, &maxROIsupported, &isROIValueInDeltaQP);
+    m_encodeCtx->pMediaCtx->m_caps->QueryAVCROIMaxNum(m_encodeCtx->uiRCMethod, m_encodeCtx->bVdencActive, &maxROIsupported, &isROIValueInDeltaQP);
     if (maxROIsupported == 0)
     {
         return MOS_STATUS_INVALID_PARAMETER;
