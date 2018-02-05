@@ -5629,10 +5629,9 @@ MOS_STATUS CodechalEncodeAvcEnc::SetPictureStructs()
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(GetATDEnabled());
 
-    // Flatness check is enabled only if scaling will be performed and CAF is enabled. Note that scaling is performed only once even if it is field coding case, that means flatness check cannot be
-    // disabled for the case when the top field is I_type since the flatness check data is required for the bottom field which may not be I_type. Hence a special check is needed for that.
+    // Flatness check is enabled only if scaling will be performed and CAF is enabled. Always enable Flatness for I_type to improve quality.
     m_flatnessCheckEnabled = m_flatnessCheckSupported ?
-        ((bCAFEnable || ((m_pictureCodingType == I_TYPE) && CodecHal_PictureIsField(picParams->CurrOriginalPic))) && (m_hmeSupported || bBrcEnabled)) : 0;
+        ((bCAFEnable || ((m_pictureCodingType == I_TYPE))) && (m_hmeSupported || bBrcEnabled)) : 0;
 
     //ATD enabled or BRC enabled for dual pipe AVC on KBL
     if (m_adaptiveTransformDecisionEnabled || (bBrcEnabled && m_forceBrcMbStatsEnabled))
