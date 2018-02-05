@@ -362,7 +362,6 @@ protected:
         _CODECHAL_STANDARD_INFO *standardInfo);
 
     //! \brief  the type of decode base class
-    uint32_t                    m_ctxType;              //!<Context type
     MOS_SURFACE                 m_destSurface;          //!<Destination Surface structure
     uint32_t                    m_groupIndex;           //!<global Group
     uint16_t                    m_picWidthInMB;         //!<Picture Width in MB width count

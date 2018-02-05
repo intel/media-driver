@@ -208,7 +208,7 @@ VAStatus DdiDecodeVP9::RenderPicture(
                 DDI_NORMALMESSAGE("Slice data is already rendered\n");
                 break;
             }
-            int32_t index = m_ddiDecodeCtx->m_ddiDecode->GetBitstreamBufIndexFromBuffer(&m_ddiDecodeCtx->BufMgr, buf);
+            int32_t index = GetBitstreamBufIndexFromBuffer(&m_ddiDecodeCtx->BufMgr, buf);
             if (index == DDI_CODEC_INVALID_BUFFER_INDEX)
             {
                 return VA_STATUS_ERROR_INVALID_BUFFER;
@@ -477,21 +477,12 @@ VAStatus DdiDecodeVP9::InitDecodeParams(
     VAContextID      context)
 {
     slcFlag = false;
-    if ((context & DDI_MEDIA_MASK_VACONTEXT_TYPE) == DDI_MEDIA_VACONTEXTID_OFFSET_CENC)
-    {
-        m_ctxType = DDI_MEDIA_CONTEXT_TYPE_CENC_DECODER;
-    }
     /* skip the mediaCtx check as it is checked in caller */
     PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);
     DDI_CHK_RET(DecodeCombineBitstream(mediaCtx),"DecodeCombineBitstream failed!");
     DDI_CODEC_COM_BUFFER_MGR *bufMgr = &(m_ddiDecodeCtx->BufMgr);
     bufMgr->dwNumSliceData    = 0;
     bufMgr->dwNumSliceControl = 0;
-
-    if (m_ctxType == DDI_MEDIA_CONTEXT_TYPE_CENC_DECODER)
-    {
-        DDI_CHK_RET(m_ddiDecodeCtx->pCpDdiInterface->EndPictureCenc(ctx, context),"EndPictureCenc failed!");
-    }
 
     DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_ddiDecodeCtx->RTtbl);
 

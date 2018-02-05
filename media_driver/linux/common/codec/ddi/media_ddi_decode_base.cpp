@@ -37,7 +37,6 @@ DdiMediaDecode::DdiMediaDecode(DDI_DECODE_CONFIG_ATTR *ddiDecodeAttr)
     : DdiMediaBase()
 {
     m_ddiDecodeAttr = ddiDecodeAttr;
-    m_ctxType       = DDI_MEDIA_CONTEXT_TYPE_DECODER;
     m_ddiDecodeCtx  = nullptr;
     m_codechalSettings = CodechalSetting::CreateCodechalSetting();
 }
@@ -561,11 +560,6 @@ VAStatus DdiMediaDecode::InitDecodeParams(
     VADriverContextP ctx,
     VAContextID      context)
 {
-    m_ctxType = DDI_MEDIA_CONTEXT_TYPE_DECODER;
-    if ((context & DDI_MEDIA_MASK_VACONTEXT_TYPE) == DDI_MEDIA_VACONTEXTID_OFFSET_CENC)
-    {
-        m_ctxType = DDI_MEDIA_CONTEXT_TYPE_CENC_DECODER;
-    }
     /* skip the mediaCtx check as it is checked in caller */
     PDDI_MEDIA_CONTEXT mediaCtx;
     mediaCtx = DdiMedia_GetMediaContext(ctx);
@@ -575,10 +569,7 @@ VAStatus DdiMediaDecode::InitDecodeParams(
     bufMgr->dwNumSliceControl = 0;
     memset(&m_destSurface, 0, sizeof(MOS_SURFACE));
     m_destSurface.dwOffset = 0;
-    if (m_ctxType == DDI_MEDIA_CONTEXT_TYPE_CENC_DECODER)
-    {
-        DDI_CHK_RET(m_ddiDecodeCtx->pCpDdiInterface->EndPictureCenc(ctx, context),"EndPictureCenc failed!");
-    }
+
     DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_ddiDecodeCtx->RTtbl);
 
     if ((rtTbl == nullptr) || (rtTbl->pCurrentRT == nullptr))
@@ -597,7 +588,7 @@ VAStatus DdiMediaDecode::SetDecodeParams()
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
-    MOS_FORMAT expectedFormat = m_ddiDecodeCtx->m_ddiDecode->GetFormat();
+    MOS_FORMAT expectedFormat = GetFormat();
     m_destSurface.Format   = expectedFormat;
     DdiMedia_MediaSurfaceToMosResource((&(m_ddiDecodeCtx->RTtbl))->pCurrentRT, &(m_destSurface.OsResource));
 
@@ -633,8 +624,18 @@ VAStatus DdiMediaDecode::EndPicture(
     VAContextID      context)
 {
     DDI_FUNCTION_ENTER();
-    DDI_CHK_RET(m_ddiDecodeCtx->m_ddiDecode->InitDecodeParams(ctx,context),"InitDecodeParams failed!");
-    DDI_CHK_RET(m_ddiDecodeCtx->m_ddiDecode->SetDecodeParams(), "SetDecodeParams failed!");
+    DDI_CHK_RET(InitDecodeParams(ctx,context),"InitDecodeParams failed!");
+
+    uint32_t ctxType;
+    DdiMedia_GetContextFromContextID(ctx, context, &ctxType);
+
+    if (ctxType == DDI_MEDIA_CONTEXT_TYPE_CENC_DECODER)
+    {
+        DDI_CHK_RET(m_ddiDecodeCtx->pCpDdiInterface->EndPictureCenc(ctx, context),"EndPictureCenc failed!");
+        return VA_STATUS_SUCCESS;
+    }
+    
+    DDI_CHK_RET(SetDecodeParams(), "SetDecodeParams failed!");
     DDI_CHK_RET(ClearRefList(&(m_ddiDecodeCtx->RTtbl), true), "ClearRefList failed!");
     if (m_ddiDecodeCtx->pCodecHal == nullptr)
     {
@@ -701,7 +702,7 @@ VAStatus DdiMediaDecode::CreateBuffer(
             break;
         case VASliceDataBufferType:
         case VAProtectedSliceDataBufferType:
-            va = m_ddiDecodeCtx->m_ddiDecode->AllocBsBuffer(&(m_ddiDecodeCtx->BufMgr), buf);
+            va = AllocBsBuffer(&(m_ddiDecodeCtx->BufMgr), buf);
             if(va != VA_STATUS_SUCCESS)
             {
                 goto CleanUpandReturn;
@@ -709,7 +710,7 @@ VAStatus DdiMediaDecode::CreateBuffer(
 
             break;
         case VASliceParameterBufferType:
-            va = m_ddiDecodeCtx->m_ddiDecode->AllocSliceControlBuffer(buf);
+            va = AllocSliceControlBuffer(buf);
         if(va != VA_STATUS_SUCCESS)
             {
                 goto CleanUpandReturn;
@@ -717,7 +718,7 @@ VAStatus DdiMediaDecode::CreateBuffer(
             buf->format     = Media_Format_CPU;
             break;
         case VAPictureParameterBufferType:
-            buf->pData      = m_ddiDecodeCtx->m_ddiDecode->GetPicParamBuf(&(m_ddiDecodeCtx->BufMgr));
+            buf->pData      = GetPicParamBuf(&(m_ddiDecodeCtx->BufMgr)); 
             buf->format     = Media_Format_CPU;
             break;
         case VAIQMatrixBufferType:

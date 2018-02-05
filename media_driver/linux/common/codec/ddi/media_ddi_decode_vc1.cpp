@@ -750,7 +750,7 @@ VAStatus DdiDecodeVC1::RenderPicture(
 
         case VASliceDataBufferType:
         {
-            int32_t index = m_ddiDecodeCtx->m_ddiDecode->GetBitstreamBufIndexFromBuffer(&m_ddiDecodeCtx->BufMgr, buf);
+            int32_t index = GetBitstreamBufIndexFromBuffer(&m_ddiDecodeCtx->BufMgr, buf);
             if (index == DDI_CODEC_INVALID_BUFFER_INDEX)
             {
                 return VA_STATUS_ERROR_INVALID_BUFFER;

@@ -495,7 +495,6 @@ VAStatus DdiDecodeJPEG::InitDecodeParams(
     VADriverContextP ctx,
     VAContextID      context)
 {
-    m_ctxType = DDI_MEDIA_CONTEXT_TYPE_DECODER;
     /* skip the mediaCtx check as it is checked in caller */
     PDDI_MEDIA_CONTEXT mediaCtx;
     mediaCtx = DdiMedia_GetMediaContext(ctx);
