@@ -863,11 +863,34 @@ DdiVp_SetProcPipelineParams(
     //---------------------------------------
     // Set color space for src
     //---------------------------------------
+    //Set colorspace by default to avoid application don't set ColorStandard 
+    if (IS_RGB_FORMAT(pVpHalSrcSurf->Format))
+    {
+        pVpHalSrcSurf->ColorSpace = CSpace_sRGB;
+    }
+	else
+	{
+		if ((pVpHalSrcSurf->rcSrc.right - pVpHalSrcSurf->rcSrc.top) <= 720 && (pVpHalSrcSurf->rcDst.bottom - pVpHalSrcSurf->rcDst.left) <= 480) 
+	    {
+	        pVpHalSrcSurf->ColorSpace = CSpace_BT601;
+	    }//720p
+	    else if((pVpHalSrcSurf->rcSrc.right - pVpHalSrcSurf->rcSrc.top) <= 1920 && (pVpHalSrcSurf->rcDst.bottom - pVpHalSrcSurf->rcDst.left) <= 720)
+	    {
+	        pVpHalSrcSurf->ColorSpace = CSpace_BT709;
+	    }//1080p
+		else 
+	    {
+	        pVpHalSrcSurf->ColorSpace = CSpace_BT2020;
+	    }//4K 
+	}
+	if (pPipelineParam->surface_color_standard)
+	{
 #if (VA_MAJOR_VERSION < 1)
-    pVpHalSrcSurf->ColorSpace = DdiVp_GetColorSpace(pPipelineParam->surface_color_standard, pPipelineParam->input_surface_flag);
+        pVpHalSrcSurf->ColorSpace = DdiVp_GetColorSpace(pPipelineParam->surface_color_standard, pPipelineParam->input_surface_flag);
 #else
-    pVpHalSrcSurf->ColorSpace = DdiVp_GetColorSpace(pPipelineParam->surface_color_standard, pPipelineParam->input_color_properties.color_range);
+        pVpHalSrcSurf->ColorSpace = DdiVp_GetColorSpace(pPipelineParam->surface_color_standard, pPipelineParam->input_color_properties.color_range);
 #endif
+	}
     DDI_CHK_CONDITION((CSpace_None == pVpHalSrcSurf->ColorSpace),
             "Invalid surface color standard", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_CONDITION(((CSpace_BT2020 == pVpHalSrcSurf->ColorSpace) && (Format_P010 != pVpHalSrcSurf->Format)),
@@ -1372,7 +1395,7 @@ DdiVp_GetColorSpace(VAProcColorStandardType ColorStandard, uint8_t color_range)
     VP_DDI_FUNCTION_ENTER;
 
     // Convert VAProcColorStandardType to VPHAL_CSPACE
-
+    
     ColorSpace = CSpace_sRGB;
 
     switch (ColorStandard)
