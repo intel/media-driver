@@ -158,11 +158,11 @@ bool output_dri_init(VADriverContextP ctx)
     mediaDrvCtx->dri_output = nullptr;
 
     static const struct dso_symbol symbols[] = {
-        { "dri_get_drawable",
+        { "va_dri_get_drawable",
           offsetof(struct dri_vtable, get_drawable) },
-        { "dri_get_rendering_buffer",
+        { "va_dri_get_rendering_buffer",
           offsetof(struct dri_vtable, get_rendering_buffer) },
-        { "dri_swap_buffer",
+        { "va_dri_swap_buffer",
           offsetof(struct dri_vtable, swap_buffer) },
         { nullptr, }
     };
