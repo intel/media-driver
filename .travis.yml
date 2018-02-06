@@ -1,0 +1,40 @@
+dist: trusty
+sudo: required
+language: cpp
+cache: ccache
+services:
+  - docker
+install:
+  - mkdir deps && cd deps
+  - git clone https://github.com/intel/gmmlib.git gmmlib
+  - cd ..
+
+script:
+  - rm -rf build && mkdir build
+  - mkdir -p $HOME/.ccache
+  - ccache -s
+  - ccache -z
+  - >
+      docker run
+      -v $HOME/.ccache:/opt/ccache
+      -v ${TRAVIS_BUILD_DIR}:/opt/src
+      -w /opt/src/build
+      -e CCACHE_DIR=/opt/ccache
+      intelmedia/media-driver-docker
+      cmake
+      -DBS_DIR_GMMLIB=/opt/src/deps/gmmlib/Source/GmmLib/
+      -DBS_DIR_COMMON=/opt/src/deps/gmmlib/Source/Common/
+      -DBS_DIR_INC=/opt/src/deps/gmmlib/Source/inc/
+      -DBS_DIR_MEDIA=/opt/src
+      -DMEDIA_VERSION="0.1.0"
+      -DBUILD_TYPE=Release
+      ..
+  - >
+      docker run
+      -v $HOME/.ccache:/opt/ccache
+      -v ${TRAVIS_BUILD_DIR}:/opt/src
+      -w /opt/src/build
+      -e CCACHE_DIR=/opt/ccache
+      intelmedia/media-driver-docker
+      cmake  --build . -- -j 8
+  - ccache -s
