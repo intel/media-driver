@@ -547,6 +547,11 @@ typedef struct _MOS_INTERFACE
         PMOS_INTERFACE              pOsInterface,
         PMOS_RESOURCE               pResource);
 
+    MOS_STATUS(*pfnDoubleBufferCopyResource) (
+        PMOS_INTERFACE        pOsInterface,
+        PMOS_RESOURCE         pInputOsResource,
+        PMOS_RESOURCE         pOutputOsResource);
+
     MOS_STATUS (* pfnFillResource) (
         PMOS_INTERFACE              pOsInterface,
         PMOS_RESOURCE               pResource,
