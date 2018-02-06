@@ -4209,6 +4209,15 @@ MOS_STATUS CodechalEncHevcStateG10::SendMbEncSurfacesBKernel(PMOS_COMMAND_BUFFER
                 cmdBuffer,
                 &surfaceCodecParams,
                 kernelState));
+
+            CODECHAL_DEBUG_TOOL(
+                m_debugInterface->m_refIndex = (uint16_t)refPic.FrameIdx;
+            std::string refSurfName = "RefSurf" + std::to_string(static_cast<uint32_t>(m_debugInterface->m_refIndex));
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
+                &m_refList[idx]->sRefBuffer,
+                CodechalDbgAttr::attrReferenceSurfaces,
+                refSurfName.data())));
+
         }
         else
         {
@@ -4244,6 +4253,15 @@ MOS_STATUS CodechalEncHevcStateG10::SendMbEncSurfacesBKernel(PMOS_COMMAND_BUFFER
                 cmdBuffer,
                 &surfaceCodecParams,
                 kernelState));
+
+            CODECHAL_DEBUG_TOOL(
+                m_debugInterface->m_refIndex = (uint16_t)refPic.FrameIdx;
+            std::string refSurfName = "RefSurf" + std::to_string(static_cast<uint32_t>(m_debugInterface->m_refIndex));
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
+                &m_refList[idx]->sRefBuffer,
+                CodechalDbgAttr::attrReferenceSurfaces,
+                refSurfName.data())));
+
         }
         else
         {
@@ -5183,42 +5201,6 @@ MOS_STATUS CodechalEncHevcStateG10::PerformScalingAndConversion()
     // Walker must be used for HME call and scaling one
     CODECHAL_ENCODE_ASSERT(m_hwWalker);
 
-    // If 10 bit then convert ref reconstructed surfaces to 8 bit as needed
-    if ((m_hevcSeqParams->bit_depth_luma_minus8))
-    {
-        for (auto i = 0; i < CODEC_MAX_NUM_REF_FRAME_HEVC; i++)
-        {
-            if (!m_picIdx[i].bValid || !m_currUsedRefPic[i])
-            {
-                continue;
-            }
-
-            uint8_t frameStoreId = (uint8_t)m_refIdxMapping[i];
-            if (frameStoreId >= CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC)
-            {
-                CODECHAL_ENCODE_ASSERT(false);
-                eStatus = MOS_STATUS_INVALID_PARAMETER;
-                return eStatus;
-            }
-
-            uint8_t idx = m_picIdx[i].ucPicIdx;
-            CODECHAL_ENCODE_ASSERT(idx < 127);
-            if (!m_refList[idx]->bFormatConversionDone)
-            {
-                CodechalEncodeCscDs::KernelParams params;
-                MOS_ZeroMemory(&params, sizeof(params));
-                params.psFormatConversionOnlyInputSurface = &m_refList[idx]->sRefReconBuffer;
-                params.psFormatConvertedSurface           = &m_formatConvertedSurface[frameStoreId + 1];
-                params.stageDsConversion = convFromOrig;
-
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(EncodeScalingAndConversionKernel(&params));
-                m_refList[idx]->bFormatConversionDone = true;
-                //Index 0 stores the current surface downconverted from 10 bit to 8 bit, Ref surface indices of 0, 1 and so on are stored in indices 1,2 etc.
-                m_refList[idx]->sRefBuffer = m_formatConvertedSurface[frameStoreId + 1];
-            }
-        }
-    }
-
     // Scaling occurs regardless of whether HME is in use for the current frame
     CodechalEncodeCscDs::KernelParams params;
     MOS_ZeroMemory(&params, sizeof(params));
@@ -5641,6 +5623,58 @@ MOS_STATUS CodechalEncHevcStateG10::EncodeBrcFrameUpdateKernel()
 
     // Send surfaces for BrcFrameUpdate Kernel
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SendBrcFrameUpdateSurfaces(&cmdBuffer));
+
+    CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+        &m_brcBuffers.resBrcHistoryBuffer,
+        CodechalDbgAttr::attrOutput,
+        "Input_HistoryBuffer",
+        m_brcHistoryBufferSize,
+        0,
+        CODECHAL_MEDIA_STATE_BRC_UPDATE)));
+
+    CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+        &m_brcBuffers.resBrcPakStatisticBuffer[m_brcBuffers.uiCurrBrcPakStasIdxForRead],
+        CodechalDbgAttr::attrOutput,
+        "Input_PakStats",
+        m_brcPakStatisticsSize,
+        0,
+        CODECHAL_MEDIA_STATE_BRC_UPDATE)));
+
+    CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+        &m_brcBuffers.resBrcImageStatesReadBuffer[m_currRecycledBufIdx],
+        CodechalDbgAttr::attrOutput,
+        "Input_ImgStateRead",
+        m_brcBuffers.dwBrcHcpPicStateSize,
+        0,
+        CODECHAL_MEDIA_STATE_BRC_UPDATE)));
+
+    CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+        &m_brcBuffers.resBrcImageStatesWriteBuffer[m_currRecycledBufIdx],
+        CodechalDbgAttr::attrOutput,
+        "Input_ImgStateWrite",
+        m_brcBuffers.dwBrcHcpPicStateSize,
+        0,
+        CODECHAL_MEDIA_STATE_BRC_UPDATE)));
+
+    CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+        (MOS_RESOURCE*)m_allocator->GetResource(m_standard, brcInputForEncKernel),
+        CodechalDbgAttr::attrOutput,
+        "Output_CombinedEnc",
+        m_brcCombinedEncBufferSize,
+        0,
+        CODECHAL_MEDIA_STATE_BRC_UPDATE)));
+
+    CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpSurface(
+        &m_brcBuffers.sBrcConstantDataBuffer[m_currRecycledBufIdx],
+        CodechalDbgAttr::attrOutput,
+        "Input_ConstData",
+        CODECHAL_MEDIA_STATE_BRC_UPDATE)));
+
+    CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpSurface(
+        &m_brcBuffers.sMeBrcDistortionBuffer,
+        CodechalDbgAttr::attrOutput,
+        "Input_Distortion",
+        CODECHAL_MEDIA_STATE_BRC_UPDATE)));
 
     MHW_MEDIA_OBJECT_PARAMS mediaObjectParams;
     MediaObjectInlineData mediaObjectInlineData;
@@ -6882,6 +6916,20 @@ MOS_STATUS CodechalEncHevcStateG10::EncodeKernelFunctions()
         m_brcInit = m_brcReset = false;
     }
 
+    CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+        &m_brcBuffers.resBrcHistoryBuffer,
+        CodechalDbgAttr::attrOutput,
+        "Output_History",
+        m_brcHistoryBufferSize,
+        0,
+        CODECHAL_MEDIA_STATE_BRC_INIT_RESET)));
+
+    CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpSurface(
+        &m_brcBuffers.sMeBrcDistortionBuffer,
+        CodechalDbgAttr::attrOutput,
+        "Output_Distortion",
+        CODECHAL_MEDIA_STATE_BRC_INIT_RESET)));
+
     // Scaled surfaces are required to run both HME and IFrameDist
     bool scalingEnabled = (m_scalingEnabled || m_isMaxLcu64);
 
@@ -7004,16 +7052,62 @@ MOS_STATUS CodechalEncHevcStateG10::EncodeKernelFunctions()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnEngineSignal(m_osInterface, &syncParams));
     }
 
+    CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+        &m_brcBuffers.resBrcHistoryBuffer,
+        CodechalDbgAttr::attrOutput,
+        "Output_HistoryBuffer",
+        m_brcHistoryBufferSize,
+        0,
+        CODECHAL_MEDIA_STATE_BRC_UPDATE)));
+
+    CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+        &m_brcBuffers.resBrcPakStatisticBuffer[m_brcBuffers.uiCurrBrcPakStasIdxForRead],
+        CodechalDbgAttr::attrOutput,
+        "Output_PakStats",
+        m_brcPakStatisticsSize,
+        0,
+        CODECHAL_MEDIA_STATE_BRC_UPDATE)));
+
+    CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+        &m_brcBuffers.resBrcImageStatesReadBuffer[m_currRecycledBufIdx],
+        CodechalDbgAttr::attrOutput,
+        "Output_ImgStateRead",
+        m_brcBuffers.dwBrcHcpPicStateSize,
+        0,
+        CODECHAL_MEDIA_STATE_BRC_UPDATE)));
+
+    CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+        &m_brcBuffers.resBrcImageStatesWriteBuffer[m_currRecycledBufIdx],
+        CodechalDbgAttr::attrOutput,
+        "Output_ImgStateWrite",
+        m_brcBuffers.dwBrcHcpPicStateSize,
+        0,
+        CODECHAL_MEDIA_STATE_BRC_UPDATE)));
+
+    CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+        (MOS_RESOURCE*)m_allocator->GetResource(m_standard, brcInputForEncKernel),
+        CodechalDbgAttr::attrOutput,
+        "Output_CombinedEnc",
+        m_brcCombinedEncBufferSize,
+        0,
+        CODECHAL_MEDIA_STATE_BRC_UPDATE)));
+
+    CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpSurface(
+        &m_brcBuffers.sBrcConstantDataBuffer[m_currRecycledBufIdx],
+        CodechalDbgAttr::attrOutput,
+        "Output_ConstData",
+        CODECHAL_MEDIA_STATE_BRC_UPDATE)));
+
+    CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpSurface(
+        &m_brcBuffers.sMeBrcDistortionBuffer,
+        CodechalDbgAttr::attrOutput,
+        "Output_Distortion",
+        CODECHAL_MEDIA_STATE_BRC_UPDATE)));
+
     CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpSurface(
         &m_cuSplitSurface,
         CodechalDbgAttr::attrOutput,
-        "HEVC_B_MBENC_CUSplitSurface",
-        CODECHAL_MEDIA_STATE_HEVC_B_MBENC)));
-
-    CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpSurface(
-        &m_jobQueueDataSurfaceForBLcu64Cu32,
-        CodechalDbgAttr::attrOutput,
-        "HEVC_B_MBENC_JobQueueSurfaceDataSurface_Lcu64_CU32",
+        "CUSplitSurface",
         CODECHAL_MEDIA_STATE_HEVC_B_MBENC)));
 
     CODECHAL_DEBUG_TOOL(
@@ -7028,11 +7122,11 @@ MOS_STATUS CodechalEncHevcStateG10::EncodeKernelFunctions()
         if (m_pictureCodingType == I_TYPE)
         {
             const char * bufNames[dumpBufNum];
-            bufNames[0] = "HEVC_I_MBENC_DIST_64x64";
-            bufNames[1] = "HEVC_I_MBENC_LUT_LCU32";
-            bufNames[2] = "HEVC_I_MBENC_JobQueueSurfaceHeader_LCU64";
-            bufNames[3] = "HEVC_I_MBENC_JobQueueSurfaceHeader_Lcu64_B";
-            bufNames[4] = "HEVC_I_MBENC_LUT_LCU64";
+            bufNames[0] = "DIST_64x64";
+            bufNames[1] = "LUT_LCU32";
+            bufNames[2] = "JobQueueSurfaceHeader_BLcu64";
+            bufNames[3] = "JobQueueSurfaceHeader_B";
+            bufNames[4] = "LUT_LCU64";
 
             for (uint8_t i = 0; i < dumpBufNum; i++)
             {
@@ -7048,18 +7142,18 @@ MOS_STATUS CodechalEncHevcStateG10::EncodeKernelFunctions()
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpSurface(
                 &m_jobQueueDataSurfaceForBLcu64,
                 CodechalDbgAttr::attrOutput,
-                "HEVC_I_MBENC_JobQueueDataSurface_Lcu64",
+                "JobQueueDataSurface_BLcu64",
                 CODECHAL_MEDIA_STATE_HEVC_I_MBENC));
         }
         else
         {
 
             const char * bufNames[dumpBufNum];
-            bufNames[0] = "HEVC_B_MBENC_DIST_64x64";
-            bufNames[1] = "HEVC_B_MBENC_LUT_LCU32";
-            bufNames[2] = "HEVC_B_MBENC_JobQueueSurfaceHeader_LCU64";
-            bufNames[3] = "HEVC_B_MBENC_JobQueueSurfaceHeader_Lcu64_B";
-            bufNames[4] = "HEVC_B_MBENC_LUT_LCU64";
+            bufNames[0] = "DIST_64x64";
+            bufNames[1] = "LUT_LCU32";
+            bufNames[2] = "JobQueueSurfaceHeader_BLcu64";
+            bufNames[3] = "JobQueueSurfaceHeader_B";
+            bufNames[4] = "LUT_LCU64";
 
             for (uint8_t i = 0; i < dumpBufNum; i++)
             {
@@ -7075,30 +7169,39 @@ MOS_STATUS CodechalEncHevcStateG10::EncodeKernelFunctions()
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpSurface(
                 &m_jobQueueDataSurfaceForBLcu64,
                 CodechalDbgAttr::attrOutput,
-                "HEVC_B_MBENC_JobQueueDataSurface_Lcu64",
+                "JobQueueDataSurface_BLcu64",
                 CODECHAL_MEDIA_STATE_HEVC_B_MBENC));
+
+            if (m_isMaxLcu64)
+            {
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpSurface(
+                    &m_jobQueueDataSurfaceForBLcu64Cu32,
+                    CodechalDbgAttr::attrOutput,
+                    "JobQueueDataSurface_Lcu64_Cu32",
+                    CODECHAL_MEDIA_STATE_HEVC_B_MBENC));
+            }
         }
     )
 
     CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpSurface(
         &m_mbStatisticsSurface,
         CodechalDbgAttr::attrOutput,
-        "BrcUpdate_lcubrc_mbstats",
-        CODECHAL_MEDIA_STATE_BRC_UPDATE)));
+        "Output_mbstats",
+        CODECHAL_MEDIA_STATE_HEVC_BRC_LCU_UPDATE)));
 
     CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpSurface(
         &m_mbSplitSurface,
         CodechalDbgAttr::attrOutput,
-        "BrcUpdate_lcubrc_mbsplit",
-        CODECHAL_MEDIA_STATE_BRC_UPDATE)));
+        "Output_mbsplit",
+        CODECHAL_MEDIA_STATE_HEVC_BRC_LCU_UPDATE)));
 
     CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
         &m_mvAndDistortionSumSurface.sResource,
         CodechalDbgAttr::attrOutput,
-        "BrcUpdate_lcubrc_hmemv",
+        "Output_hmemv",
         m_mvAndDistortionSumSurface.dwSize,
         0,
-        CODECHAL_MEDIA_STATE_BRC_UPDATE)));
+        CODECHAL_MEDIA_STATE_HEVC_BRC_LCU_UPDATE)));
 
     return eStatus;
 }
