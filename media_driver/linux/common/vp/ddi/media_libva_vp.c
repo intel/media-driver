@@ -864,25 +864,29 @@ DdiVp_SetProcPipelineParams(
     // Set color space for src
     //---------------------------------------
     //Set colorspace by default to avoid application don't set ColorStandard 
-    if (IS_RGB_FORMAT(pVpHalSrcSurf->Format))
+    if(pPipelineParam->surface_color_standard == 0)
     {
-        pVpHalSrcSurf->ColorSpace = CSpace_sRGB;
+        if (IS_RGB_FORMAT(pVpHalSrcSurf->Format))
+        {
+            pVpHalSrcSurf->ColorSpace = CSpace_sRGB;
+        }
+	    else
+	    {
+		    if ((pVpHalSrcSurf->rcSrc.right - pVpHalSrcSurf->rcSrc.left) <= 1280 && (pVpHalSrcSurf->rcDst.bottom - pVpHalSrcSurf->rcDst.top) <= 720) 
+	        {
+	            pVpHalSrcSurf->ColorSpace = CSpace_BT601;
+	        }//720p
+	        else if((pVpHalSrcSurf->rcSrc.right - pVpHalSrcSurf->rcSrc.left) <= 1920 && (pVpHalSrcSurf->rcDst.bottom - pVpHalSrcSurf->rcDst.top) <= 1080)
+	        {
+	            pVpHalSrcSurf->ColorSpace = CSpace_BT709;
+	        }//1080p
+		    else 
+	        {
+	            pVpHalSrcSurf->ColorSpace = CSpace_BT2020;
+	        }//4K 
+	    }
     }
-	else
-	{
-		if ((pVpHalSrcSurf->rcSrc.right - pVpHalSrcSurf->rcSrc.top) <= 720 && (pVpHalSrcSurf->rcDst.bottom - pVpHalSrcSurf->rcDst.left) <= 480) 
-	    {
-	        pVpHalSrcSurf->ColorSpace = CSpace_BT601;
-	    }//720p
-	    else if((pVpHalSrcSurf->rcSrc.right - pVpHalSrcSurf->rcSrc.top) <= 1920 && (pVpHalSrcSurf->rcDst.bottom - pVpHalSrcSurf->rcDst.left) <= 720)
-	    {
-	        pVpHalSrcSurf->ColorSpace = CSpace_BT709;
-	    }//1080p
-		else 
-	    {
-	        pVpHalSrcSurf->ColorSpace = CSpace_BT2020;
-	    }//4K 
-	}
+	
 	if (pPipelineParam->surface_color_standard)
 	{
 #if (VA_MAJOR_VERSION < 1)
