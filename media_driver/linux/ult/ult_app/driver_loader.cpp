@@ -77,7 +77,6 @@ VAStatus DriverDllLoader::InitDriver(int platform_id)
     void *handle;
     VAStatus vaStatus;
     char init_func_s[256];
-    sprintf(init_func_s, "__vaDriverInit_%d_%d", VA_MAJOR_VERSION,VA_MINOR_VERSION);
     const char *cm_entry_name = "vaCmExtSendReqMsg";
     VADriverInit init_func = NULL;
 
@@ -98,10 +97,15 @@ VAStatus DriverDllLoader::InitDriver(int platform_id)
     }
     else
     {
-        //printf("INFO: Load driver success\n");
-        init_func = (VADriverInit)dlsym(umdhandle, init_func_s);
-        vaCmExtSendReqMsg = (CmExtSendReqMsgFunc)dlsym(umdhandle,
-                                                       cm_entry_name);
+        for (int i = 0; i <= VA_MINOR_VERSION; i++) {
+            sprintf(init_func_s, "__vaDriverInit_%d_%d",VA_MAJOR_VERSION,i);
+            init_func = (VADriverInit)dlsym(umdhandle, init_func_s);
+            if (init_func){
+                vaCmExtSendReqMsg = (CmExtSendReqMsgFunc)dlsym(umdhandle,cm_entry_name);
+                break;
+            }
+        }
+
         if (!init_func || !vaCmExtSendReqMsg)
         {
             return VA_STATUS_ERROR_UNKNOWN;
