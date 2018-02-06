@@ -2991,7 +2991,7 @@ int32_t CmDeviceRT::RegisterSyncEvent(void *syncEventHandle)
     PCM_CONTEXT_DATA  cmData = (PCM_CONTEXT_DATA)GetAccelData();
     PCM_HAL_STATE  cmHalState = cmData->cmHalState;
     // Call HAL layer to wait for Task finished with event-driven mechanism
-    CHK_MOSSTATUS_RETURN_CMERROR(cmHalState->pfnRegisterKMDNotifyEventHandle(cmHalState, &syncParam));
+    CHK_MOSSTATUS_RETURN_CMERROR(cmHalState->pfnRegisterUMDNotifyEventHandle(cmHalState, &syncParam));
 
     m_osSyncEvent = syncParam.osSyncEvent;
 
