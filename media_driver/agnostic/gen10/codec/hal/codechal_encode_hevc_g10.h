@@ -392,6 +392,16 @@ public:
         HEVC_ME_DIST_TYPE           distType);
 
     //!
+    //! \brief    Check formats supported
+    //!
+    //! \param    [in]  surface
+    //!           Surface used
+    //!
+    //! \return   bool
+    //!
+    bool CheckSupportedFormat(PMOS_SURFACE surface);
+
+    //!
     //! \brief    Invoke HME kernel
     //!
     //! \param    [in]  hmeLevel

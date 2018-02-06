@@ -5227,6 +5227,37 @@ MOS_STATUS CodechalEncHevcStateG10::PerformScalingAndConversion()
     return eStatus;
 }
 
+bool CodechalEncHevcStateG10::CheckSupportedFormat(PMOS_SURFACE surface)
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    bool isColorFormatSupported = false;
+
+    if (nullptr == surface)
+    {
+        CODECHAL_ENCODE_ASSERTMESSAGE("Invalid (nullptr) Pointer.");
+        return isColorFormatSupported;
+    }
+
+    switch (surface->Format)
+    {
+    case Format_NV12:
+        isColorFormatSupported = IS_Y_MAJOR_TILE_FORMAT(surface->TileType);
+        break;
+    case Format_P010:
+        isColorFormatSupported = true;
+    case Format_YUY2:
+    case Format_YUYV:
+    case Format_A8R8G8B8:
+        break;
+    default:
+        CODECHAL_ENCODE_ASSERTMESSAGE("Input surface color format = %d not supported!", surface->Format);
+        break;
+    }
+
+    return isColorFormatSupported;
+}
+
 MOS_STATUS CodechalEncHevcStateG10::EncodeMeKernel(
     HmeLevel                    hmeLevel,
     HEVC_ME_DIST_TYPE           distType)
@@ -6893,6 +6924,16 @@ MOS_STATUS CodechalEncHevcStateG10::EncodeKernelFunctions()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
+    if (m_cscDsState->RequireCsc())
+    {
+        m_firstTaskInPhase = true;
+        CodechalEncodeCscDs::KernelParams cscScalingKernelParams;
+        // Csc ARGB linear to NV12 Tile Y studio range
+        MOS_ZeroMemory(&cscScalingKernelParams, sizeof(cscScalingKernelParams));
+        cscScalingKernelParams.cscOrCopyOnly = true;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->CscKernel(&cscScalingKernelParams));
+    }
+
     CODECHAL_DEBUG_TOOL(
         if (!m_is10BitHevc){
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
@@ -6911,7 +6952,11 @@ MOS_STATUS CodechalEncHevcStateG10::EncodeKernelFunctions()
     // BRC init is called even for CQP mode hence also checking for first frame flag
     if (m_brcInit || m_brcReset || m_firstFrame)
     {
-        m_firstTaskInPhase = m_lastTaskInPhase = true;
+        if (!m_cscDsState->RequireCsc())
+        {
+            m_firstTaskInPhase = m_lastTaskInPhase=true;
+        }
+
         CODECHAL_ENCODE_CHK_STATUS_RETURN(EncodeBrcInitResetKernel());
         m_brcInit = m_brcReset = false;
     }
@@ -7803,8 +7848,6 @@ MOS_STATUS CodechalEncHevcStateG10::Initialize(CodechalSetting * settings)
 
     // Common initialization
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncHevcState::Initialize(settings));
-
-    m_cscDsState->DisableCsc();
 
     m_b2NdSaoPassNeeded                     = true;
     m_brcBuffers.dwBrcConstantSurfaceWidth  = HEVC_BRC_CONSTANT_SURFACE_WIDTH_G9;

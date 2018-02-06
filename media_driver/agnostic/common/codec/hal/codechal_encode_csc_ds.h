@@ -122,6 +122,7 @@ public:
         DsStage                     stageDsConversion = dsDisabled;
         bool                        b16xScalingInUse = false;
         bool                        b32xScalingInUse = false;
+        bool                        cscOrCopyOnly = false;
         bool                        bLastTaskInPhaseCSC = false;
         bool                        bLastTaskInPhase4xDS = false;
         bool                        bLastTaskInPhase16xDS = false;

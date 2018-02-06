@@ -204,14 +204,14 @@ MOS_STATUS CodechalEncodeCscDs::SetKernelParamsCsc(KernelParams* params)
     m_curbeParams.bFlatnessCheckEnabled = m_flatnessCheckEnabled;
     m_curbeParams.bMBVarianceOutputEnabled = m_mbStatsEnabled;
     m_curbeParams.bMBPixelAverageOutputEnabled = m_mbStatsEnabled;
-    m_curbeParams.bCscOrCopyOnly = !m_scalingEnabled;
+    m_curbeParams.bCscOrCopyOnly = !m_scalingEnabled || params->cscOrCopyOnly;
     m_curbeParams.inputColorSpace = params->inputColorSpace;
 
     // setup surface states
     m_surfaceParamsCsc.psInputSurface = m_rawSurfaceToEnc;
     m_surfaceParamsCsc.psOutputCopiedSurface = m_cscFlag ? m_encoder->m_trackedBuf->GetCscSurface(CODEC_CURR_TRACKED_BUFFER) : nullptr;
     m_surfaceParamsCsc.psOutput4xDsSurface =
-        m_scalingEnabled ? m_encoder->m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER) : nullptr;
+        !m_curbeParams.bCscOrCopyOnly ? m_encoder->m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER) : nullptr;
 
     if (m_mbStatsSupported)
     {
