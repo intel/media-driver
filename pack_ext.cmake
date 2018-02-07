@@ -32,3 +32,7 @@ endif()
 if (IS_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../libdrm-install/usr/lib)
     install (DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../libdrm-install/usr/lib DESTINATION ${CMAKE_INSTALL_PREFIX} COMPONENT media)
 endif()
+
+if (IS_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../msdk-install/mediasdk)
+    install (DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../msdk-install/mediasdk DESTINATION /opt/intel COMPONENT media)
+endif()
