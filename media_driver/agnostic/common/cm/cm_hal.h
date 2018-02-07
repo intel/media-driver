@@ -201,7 +201,6 @@ struct CM_HAL_CREATE_PARAM
     bool dynamicStateHeap;             // Use Dynamic State Heap management
     bool disabledMidThreadPreemption;  // Flag to enable mid thread preemption for GPGPU
     bool enabledKernelDebug;           // Flag  to enable Kernel debug
-    bool mockRuntimeEnabled;           // Flag to enable mock runtime
 };
 typedef CM_HAL_CREATE_PARAM *PCM_HAL_CREATE_PARAM;
 
@@ -1519,9 +1518,6 @@ typedef struct _CM_HAL_STATE
     CmHalL3Settings             l3Settings;
 
     bool                        useNewSamplerHeap;
-#if USE_EXTENSION_CODE
-    bool                        mockRuntimeEnabled;
-#endif
 
     CMRT_UMD::CSync             criticalSectionDSH;
 //------------------------------------------------------------------------------

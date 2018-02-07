@@ -9899,9 +9899,6 @@ MOS_STATUS HalCm_Create(
     MOS_ZeroMemory(&state->hintIndexes.kernelIndexes, sizeof(uint32_t) * CM_MAX_TASKS_EU_SATURATION);
     MOS_ZeroMemory(&state->hintIndexes.dispatchIndexes, sizeof(uint32_t) * CM_MAX_TASKS_EU_SATURATION);
 
-#if USE_EXTENSION_CODE
-    state->mockRuntimeEnabled = param->mockRuntimeEnabled;
-#endif
     state->criticalSectionDSH = CMRT_UMD::CSync();
 
 

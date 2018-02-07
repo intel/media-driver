@@ -3387,12 +3387,6 @@ int32_t CmDeviceRT::InitDevCreateOption(CM_HAL_CREATE_PARAM & cmHalCreateParam,
     kernelBinarySizeInGSH = kernelBinarySizeInGSH * CM_KERNELBINARY_BLOCKSIZE_2MB;
     cmHalCreateParam.kernelBinarySizeinGSH = kernelBinarySizeInGSH;
 
-#if USE_EXTENSION_CODE
-    // [31] mock runtime
-    cmHalCreateParam.mockRuntimeEnabled = (option & CM_DEVICE_CONFIG_MOCK_RUNTIME_ENABLE) ? true : false;
-    m_isMockRuntime = cmHalCreateParam.mockRuntimeEnabled;
-#endif
-
     return CM_SUCCESS;
 }
 
