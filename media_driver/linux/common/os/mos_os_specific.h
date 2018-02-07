@@ -515,9 +515,6 @@ struct _MOS_OS_CONTEXT
     uint32_t            uiTranscryptedKernelsSize; //!< Size in bytes of the cached version of transcrypted and authenticated kernels
     void                *pLibdrmHandle;
 
-    int32_t             cmDevRefCount;
-    void                *pCmDev;
-
     GMM_CLIENT_CONTEXT  *pGmmClientContext;   //UMD specific ClientContext object in GMM
 
     // GPU Status Buffer

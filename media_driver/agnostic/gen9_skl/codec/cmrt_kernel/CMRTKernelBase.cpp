@@ -43,7 +43,6 @@ CMRTKernelBase::CMRTKernelBase()
     m_isaName            = nullptr;
     m_kernelName         = nullptr;
     m_curbe              = nullptr;
-    m_osContext          = nullptr;
     m_cmSurface2DCount   = 0;
     m_cmSurfaceRef0Count = 0;
     m_cmSurfaceRef1Count = 0;
@@ -126,8 +125,7 @@ CM_RETURN_CODE CMRTKernelBase::Init(void *osContext, CmDevice *cmDev, CmQueue *c
         uint32_t version = 0;
         result = CreateCmDevice(m_cmDev, version);
 #else
-        m_osContext = (PMOS_CONTEXT)osContext;
-        result = CreateCmDevice(m_osContext, m_cmDev, CM_DEVICE_CREATE_OPTION_FOR_HEVC);
+        result = CreateCmDevice((PMOS_CONTEXT)osContext, m_cmDev, CM_DEVICE_CREATE_OPTION_FOR_HEVC);
 #endif
         if (result != CM_SUCCESS)
         {
@@ -328,12 +326,7 @@ void CMRTKernelBase::Destroy()
 
     if(m_cmDev)
     {
-#ifdef ENABLE_CMRT_KERNEL_ULT
         DestroyCmDevice(m_cmDev);
-#else
-        DestroyCmDevice(m_osContext);
-        m_osContext = nullptr;
-#endif
         m_cmDev = nullptr;
     }
 }

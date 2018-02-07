@@ -49,9 +49,9 @@ using namespace CMRT_UMD;
 //! \details  If an existing CmDevice has already associated to the MOS context,
 //!           the existing CmDevice will be returned. Otherwise, a new CmDevice
 //!           instance will be created and associatied with that MOS context.
-//! \param    pMosContext
+//! \param    mosContext
 //!           [in] pointer to MOS conetext.
-//! \param    pDevice
+//! \param    device
 //!           [in,out] reference to the pointer to the CmDevice.
 //! \param    devCreateOption
 //!           [in] option to customize CmDevice.
@@ -59,23 +59,22 @@ using namespace CMRT_UMD;
 //! \retval   CM_NULL_POINTER if pMosContext is null.
 //! \retval   CM_FAILURE otherwise.
 //!
-CM_RT_API int32_t CreateCmDevice(MOS_CONTEXT *pMosContext,
-                                 CmDevice* &pDevice,
+CM_RT_API int32_t CreateCmDevice(MOS_CONTEXT *mosContext,
+                                 CmDevice* &device,
                                  uint32_t devCreateOption);
 
 //!
-//! \brief    Destroys the CmDevice associated with MOS context.
+//! \brief    Destroys the CmDevice. 
 //! \details  This function also destroys surfaces, kernels, programs, samplers,
 //!           threadspaces, tasks and the queues that were created using this
 //!           device instance but haven't explicitly been destroyed by calling
-//!           respective destroy functions.
-//! \param    pMosContext
-//!           [in] pointer to MOS conetext.
+//!           respective destroy functions. 
+//! \param    device
+//!           [in] reference to the pointer to the CmDevice.
 //! \retval   CM_SUCCESS if CmDevice is successfully destroyed.
-//! \retval   CM_NULL_POINTER if MOS context is null.
 //! \retval   CM_FAILURE otherwise.
 //!
-CM_RT_API int32_t DestroyCmDevice(MOS_CONTEXT *pMosContext);
+CM_RT_API int32_t DestroyCmDevice(CMRT_UMD::CmDevice* &device);
 
 //!
 //! \brief      Returns the corresponding CM_RETURN_CODE error string.

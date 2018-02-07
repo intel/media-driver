@@ -558,7 +558,7 @@ extern int32_t CreateCmDevice(MOS_CONTEXT *mosContext,
                               CmDevice* &device,
                               uint32_t devCreateOption);
 
-extern int32_t DestroyCmDevice(MOS_CONTEXT *mosContext);
+extern int32_t DestroyCmDevice(CmDevice* &device);
 
 namespace CMRT_UMD
 {

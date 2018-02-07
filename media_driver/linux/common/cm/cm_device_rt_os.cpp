@@ -41,6 +41,9 @@ namespace CMRT_UMD
 //*-----------------------------------------------------------------------------
 CmDeviceRT::~CmDeviceRT()
 {
+    m_mosContext->SkuTable.reset();
+    m_mosContext->WaTable.reset();
+
     DestructCommon();
 
     DestroyAuxDevice();

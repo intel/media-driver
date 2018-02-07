@@ -71,7 +71,6 @@ public:
     const char      *m_isaName;
     const char      *m_kernelName;
 
-    MOS_CONTEXT     *m_osContext;
     CMRTKernelBase();
     virtual ~CMRTKernelBase();
 

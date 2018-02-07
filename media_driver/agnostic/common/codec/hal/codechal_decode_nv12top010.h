@@ -30,7 +30,6 @@
 #define __CODECHAL_DECODE_NV12TOP010_H__
 
 #include "cm_rt_umd.h"
-#include "cm_device_rt.h"
 //!
 //! \class CodechalDecodeNV12ToP010
 //! \brief This class converts NV12 to P010 format.
@@ -79,7 +78,7 @@ protected:
 
 private:
     //! \brief Pointer to CM device
-    CmDeviceRT      *m_cmDevice = nullptr;
+    CmDevice        *m_cmDevice = nullptr;
     //! \brief Pointer to CM queue
     CmQueue         *m_cmQueue = nullptr;
     //! \brief Pointer to CM kernel

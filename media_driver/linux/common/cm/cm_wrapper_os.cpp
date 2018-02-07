@@ -158,7 +158,7 @@ int32_t DestroyCmDeviceFromVA(VADriverContextP vaDriverCtx, CmDevice *device)
     cmCtx    = (PCM_CONTEXT)DdiMedia_GetContextFromContextID(vaDriverCtx, vaContextID, &ctxType);
     CM_DDI_CHK_NULL(cmCtx, "Null cmCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    CHK_HR(DestroyCmDevice(&(cmCtx->mosCtx)));
+    CHK_HR(DestroyCmDevice(device));
 
     // remove from context array
     DdiMediaUtil_LockMutex(&mediaCtx->CmMutex);

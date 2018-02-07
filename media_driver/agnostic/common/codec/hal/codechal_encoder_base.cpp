@@ -926,7 +926,7 @@ MOS_STATUS CodechalEncoderState::DestroyMDFResources()
     }
     if (m_cmDev)
     {
-        DestroyCmDevice(m_osInterface->pOsContext);
+        DestroyCmDevice(m_cmDev);
         m_cmDev = nullptr;
     }
 

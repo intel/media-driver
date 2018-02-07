@@ -52,25 +52,11 @@ CM_RT_API int32_t CreateCmDevice(MOS_CONTEXT *mosContext,
         return CM_NULL_POINTER;
     }
     CmDeviceRT* deviceRT = nullptr;
-    //Check reference count
-    if(mosContext->cmDevRefCount > 0)
-    {
-        device = (CmDevice *)mosContext->pCmDev;
-        if (device == nullptr)
-        {
-            return CM_NULL_POINTER;
-        }
-        mosContext->cmDevRefCount ++;
-        deviceRT = static_cast<CmDeviceRT*>(device);
-        return deviceRT->RegisterSyncEvent(nullptr);
-    }
 
     int32_t ret = CmDeviceRT::Create(mosContext, deviceRT, devCreateOption);
     if(ret == CM_SUCCESS)
     {
         device = deviceRT;
-        mosContext->pCmDev = deviceRT;
-        mosContext->cmDevRefCount ++;
         return deviceRT->RegisterSyncEvent(nullptr);
     }
 
@@ -78,36 +64,23 @@ CM_RT_API int32_t CreateCmDevice(MOS_CONTEXT *mosContext,
 }
 
 //!
-//! \brief    Destroys the CmDevice associated with MOS context. 
+//! \brief    Destroys the CmDevice.
 //! \details  This function also destroys surfaces, kernels, programs, samplers,
 //!           threadspaces, tasks and the queues that were created using this
 //!           device instance but haven't explicitly been destroyed by calling
 //!           respective destroy functions. 
-//! \param    mosContext
-//!           [in] pointer to MOS conetext.
+//! \param    device
+//!           [in] reference to the pointer to the CmDevice.
 //! \retval   CM_SUCCESS if CmDevice is successfully destroyed.
-//! \retval   CM_NULL_POINTER if MOS context is null.
 //! \retval   CM_FAILURE otherwise.
 //!
-CM_RT_API int32_t DestroyCmDevice(MOS_CONTEXT *mosContext)
+CM_RT_API int32_t DestroyCmDevice(CmDevice* & device)
 {
-    if (mosContext == nullptr)
+    if (device == nullptr)
     {
-        return CM_NULL_POINTER;
+        return CM_SUCCESS;
     }
 
-    if(mosContext->cmDevRefCount > 1)
-    {
-       mosContext->cmDevRefCount --;
-       return CM_SUCCESS;
-    }
-
-    mosContext->cmDevRefCount -- ;
-
-    mosContext->SkuTable.reset();
-    mosContext->WaTable.reset();
-
-    CmDevice *device =  (CmDevice *)(mosContext->pCmDev);
     CmDeviceRT* deviceRT = static_cast<CmDeviceRT*>(device);
     int32_t ret = CmDeviceRT::Destroy(deviceRT);
     if (ret != CM_SUCCESS)
@@ -115,7 +88,7 @@ CM_RT_API int32_t DestroyCmDevice(MOS_CONTEXT *mosContext)
         return ret;
     }
 
-    mosContext->pCmDev = nullptr;
+    device = nullptr;
 
     return CM_SUCCESS;
 }
