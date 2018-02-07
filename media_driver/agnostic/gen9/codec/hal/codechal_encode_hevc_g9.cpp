@@ -9297,7 +9297,10 @@ MOS_STATUS CodechalEncHevcStateG9::EncodeKernelFunctions()
         m_firstTaskInPhase = true;
         m_lastTaskInPhase  = false;
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(EncodeDSKernel());
+        if(m_hevcSeqParams->GopPicSize != 1 || m_brcEnabled || m_cscDsState->RequireCsc())
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(EncodeDSKernel());
+        }
 
         if (m_brcEnabled)
         {
