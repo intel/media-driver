@@ -375,7 +375,7 @@ int32_t CmThinExecute(VADriverContextP vaDriverCtx,
                 {
                     wrapperEx->Initialize((void *)vaDriverCtx);
                     hr = wrapperEx->Execute(device,cmFunctionID, cmPrivateInputData, cmPrivateInputDataSize);
-                    delete wrapperEx;
+                    MOS_Delete(wrapperEx);
                 }
                 else
                 {

@@ -39,10 +39,6 @@
 #include "cm_surface_manager.h"
 #include "cm_surface_2d_rt.h"
 
-#if USE_EXTENSION_CODE
-#include "cm_thread_space_ext.h"
-#endif
-
 namespace CMRT_UMD
 {
 //*-----------------------------------------------------------------------------
@@ -369,22 +365,22 @@ int32_t CmTaskInternal::Initialize(const CmThreadSpaceRT* threadSpace, bool isWi
                 }
             }
         }
-#if USE_EXTENSION_CODE
+        
         if (threadSpace == nullptr)
         {
             CmThreadSpaceRT* kernelThreadSpace = nullptr;
             kernel->GetThreadSpace(kernelThreadSpace);
-            if (kernelThreadSpace && kernelThreadSpace->m_threadSpaceExt)
+            if (kernelThreadSpace)
             {
-                kernelThreadSpace->m_threadSpaceExt->SetPrivateArgToKernel(kernel);
+                kernelThreadSpace->SetDependencyArgToKernel(kernel);
             }
         }
 
-        if (threadSpace != nullptr && threadSpace->m_threadSpaceExt != nullptr)
+        if (threadSpace != nullptr)
         {
-            threadSpace->m_threadSpaceExt->SetPrivateArgToKernel(kernel);
+            threadSpace->SetDependencyArgToKernel(kernel);
         }
-#endif
+
         kernel->CollectKernelSurface();
         result = kernel->CreateKernelData( kernelData, totalSize, threadSpace );
         if( (kernelData == nullptr) || (result != CM_SUCCESS))

@@ -23,6 +23,8 @@
 #ifndef _CM_EXTENSION_CREATOR_H_
 #define _CM_EXTENSION_CREATOR_H_
 
+#include "mos_utilities.h"
+
 static const int priorityNum = 4;
 
 template <class T>
@@ -66,7 +68,7 @@ private:
     template <class C>
     static T* Create()
     {
-        return new C;
+        return MOS_New(C);
     }
 };
 #endif

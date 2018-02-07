@@ -58,10 +58,33 @@ class CmKernel;
 class CmKernelRT;
 class CmTaskRT;
 class CmSurface2D;
+class CmThreadSpaceRT;
+class CmThreadSpaceEx;
 
-#if USE_EXTENSION_CODE
-class CmThreadSpaceExt;
-#endif
+class CmThreadSpaceEx
+{
+public:
+    CmThreadSpaceEx() {}
+    virtual ~CmThreadSpaceEx() {}
+
+    virtual int32_t Initialize(CmThreadSpaceRT *threadspace)
+    {
+        // reserved for future implementation
+        return 0;
+    }
+
+    virtual int32_t UpdateDependency()
+    {
+        // reserved for future implementation
+        return 0;
+    }
+
+    virtual int32_t SetDependencyArgToKernel(CmKernelRT *pKernel)
+    {
+        // reserved for future implementation
+        return 0;
+    }
+};
 
 class CmThreadSpaceRT: public CmThreadSpace
 {
@@ -184,10 +207,14 @@ public:
 
     int32_t GetMediaWalkerGroupSelect(CM_MW_GROUP_SELECT &groupSelect);
 
-#if USE_EXTENSION_CODE
-    friend class CmThreadSpaceExt;
-    CmThreadSpaceExt *m_threadSpaceExt;
-#endif
+    int32_t SetDependencyArgToKernel(CmKernelRT *pKernel) const
+    {
+        if (m_threadSpaceEx != nullptr)
+        {
+            return m_threadSpaceEx->SetDependencyArgToKernel(pKernel);
+        }
+        return -1;
+    }
 
 #if CM_LOG_ON
     std::string Log();
@@ -239,6 +266,9 @@ protected:
     CM_HAL_DEPENDENCY m_dependencyVectors;
     bool m_dependencyVectorsSet;
     bool m_threadSpaceOrderSet;
+
+    friend class CmThreadSpaceExPriv;
+    CmThreadSpaceEx *m_threadSpaceEx;
 
 private:
     CmThreadSpaceRT(const CmThreadSpaceRT &other);

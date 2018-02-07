@@ -30,10 +30,7 @@
 #include "cm_task_rt.h"
 #include "cm_mem.h"
 #include "cm_device_rt.h"
-
-#if USE_EXTENSION_CODE
-#include "cm_thread_space_ext.h"
-#endif
+#include "cm_extension_creator.h"
 
 enum CM_TS_FLAG
 {
@@ -100,6 +97,8 @@ static CM_DEPENDENCY waveFront26ZIGPattern =
 
 namespace CMRT_UMD
 {
+static bool threadSpaceExRegistered = CmExtensionCreator<CmThreadSpaceEx>::RegisterClass<CmThreadSpaceEx>();
+
 //*-----------------------------------------------------------------------------
 //| Purpose:    Reset task and clear all the kernel
 //| Returns:    Result of the operation.
@@ -191,9 +190,7 @@ CmThreadSpaceRT::~CmThreadSpaceRT( void )
     MosSafeDeleteArray(m_boardOrderList);
     CmSafeDelete( m_dirtyStatus );
     CmSafeDelete(m_kernel);
-#if USE_EXTENSION_CODE
-    MosSafeDelete(m_threadSpaceExt);
-#endif
+    MosSafeDelete(m_threadSpaceEx);
 
     if (m_wavefront26ZDispatchInfo.numThreadsInWave)
     {
@@ -223,14 +220,13 @@ int32_t CmThreadSpaceRT::Initialize( void )
     }
     *m_kernel = nullptr;
 
-#if USE_EXTENSION_CODE
-    m_threadSpaceExt = MOS_New(CmThreadSpaceExt, this);
-    if (m_threadSpaceExt == nullptr)
+    m_threadSpaceEx = CmExtensionCreator<CmThreadSpaceEx>::CreateClass();
+    if (m_threadSpaceEx == nullptr)
     {
-        CM_ASSERTMESSAGE("Error: Failed to initialize CmThreadSpace due to out of system memory.");
+        CM_ASSERTMESSAGE("Error: Failed to initialize CmThreadSpace extension.");
         return CM_OUT_OF_HOST_MEMORY;
     }
-#endif
+    m_threadSpaceEx->Initialize(this);
 
     return CM_SUCCESS;
 }
@@ -517,9 +513,7 @@ CM_RT_API int32_t CmThreadSpaceRT::SelectThreadDependencyPattern (CM_DEPENDENCY_
             break;
     }
 
-#if USE_EXTENSION_CODE
-    m_threadSpaceExt->UpdateDependency();
-#endif
+    m_threadSpaceEx->UpdateDependency();
 
     if( m_dependencyPatternType != m_currentDependencyPattern )
     {
@@ -745,9 +739,7 @@ CM_RT_API int32_t CmThreadSpaceRT::Set26ZIMacroBlockSize( uint32_t width, uint32
     int32_t hr = CM_SUCCESS;
     m_26ZIBlockWidth = width;
     m_26ZIBlockHeight = height;
-#if USE_EXTENSION_CODE
-    hr = m_threadSpaceExt->UpdateDependency();
-#endif
+    hr = m_threadSpaceEx->UpdateDependency();
     return hr;
 }
 

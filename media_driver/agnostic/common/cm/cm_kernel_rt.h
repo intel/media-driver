@@ -495,9 +495,7 @@ protected:
     bool m_hasClones;
     CM_STATE_BUFFER_TYPE m_stateBufferBounded;
 
-#if USE_EXTENSION_CODE
-    friend class CmThreadSpaceExt;
-#endif
+    friend class CmThreadSpaceExPriv;
 
 private:
     CmKernelRT(const CmKernelRT &other);
