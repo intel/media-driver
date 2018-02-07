@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2017, Intel Corporation
+* Copyright (c) 2011-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1542,6 +1542,12 @@ MOS_STATUS CodechalDecode::SendPrologWithFrameTracking(
 
     MOS_GPU_CONTEXT gpuContext = m_osInterface->pfnGetGpuContext(m_osInterface);
 
+    // Send Start Marker command
+    if (m_decodeParams.m_setMarkerEnabled)
+    {
+        CODECHAL_DECODE_CHK_STATUS_RETURN(SendMarkerCommand(cmdBuffer, MOS_RCS_ENGINE_USED(gpuContext)));
+    }
+
     if (frameTrackingRequested)
     {
         // initialize command buffer attributes
@@ -1690,6 +1696,45 @@ MOS_STATUS CodechalDecode::SendPredicationCommand(
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiConditionalBatchBufferEndCmd(
             cmdBuffer,
             &condBBEndParams));
+    }
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalDecode::SendMarkerCommand(
+    PMOS_COMMAND_BUFFER cmdBuffer,
+    bool isRender)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_DECODE_FUNCTION_ENTER;
+
+    CODECHAL_DECODE_CHK_NULL_RETURN(cmdBuffer);
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_miInterface);
+
+    if (isRender)
+    {
+        // Send pipe_control to get the timestamp
+        MHW_PIPE_CONTROL_PARAMS             pipeControlParams;
+        MOS_ZeroMemory(&pipeControlParams, sizeof(pipeControlParams));
+        pipeControlParams.presDest          = (PMOS_RESOURCE)m_decodeParams.m_presSetMarker;
+        pipeControlParams.dwResourceOffset  = 0;
+        pipeControlParams.dwPostSyncOp      = MHW_FLUSH_WRITE_TIMESTAMP_REG;
+        pipeControlParams.dwFlushMode       = MHW_FLUSH_WRITE_CACHE;
+
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddPipeControl(cmdBuffer, NULL, &pipeControlParams));
+    }
+    else
+    {
+        // Send flush_dw to get the timestamp 
+        MHW_MI_FLUSH_DW_PARAMS  flushDwParams;
+        MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
+        flushDwParams.pOsResource           = (PMOS_RESOURCE)m_decodeParams.m_presSetMarker;
+        flushDwParams.dwResourceOffset      = 0;
+        flushDwParams.postSyncOperation     = MHW_FLUSH_WRITE_TIMESTAMP_REG;
+        flushDwParams.bQWordEnable          = 1;
+
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(cmdBuffer, &flushDwParams));
     }
 
     return eStatus;

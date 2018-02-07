@@ -1023,21 +1023,6 @@ MOS_STATUS VphalRenderer::Render(
     // align rectangle and source surface
     VPHAL_RENDER_CHK_STATUS(VpHal_RndrRectSurfaceAlignment(RenderParams.pTarget[0]));
 
-    // Predication
-    if (RenderParams.PredicationParams.predicationEnabled)
-    {
-        pRenderHal->PredicationParams.pPredicationResource      =
-            RenderParams.PredicationParams.pPredicationResource;
-        pRenderHal->PredicationParams.ptempPredicationBuffer =
-            RenderParams.PredicationParams.ptempPredicationBuffer;
-        pRenderHal->PredicationParams.predicationEnabled =
-            RenderParams.PredicationParams.predicationEnabled;
-        pRenderHal->PredicationParams.predicationNotEqualZero =
-            RenderParams.PredicationParams.predicationNotEqualZero;
-        pRenderHal->PredicationParams.predicationResOffset =
-            RenderParams.PredicationParams.predicationResOffset;
-    }
-
     for (uiCurrentRenderPass = 0;
          uiCurrentRenderPass < uiRenderPasses;
          uiCurrentRenderPass++)

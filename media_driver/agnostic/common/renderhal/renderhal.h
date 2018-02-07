@@ -1098,6 +1098,16 @@ typedef struct _RENDERHAL_PREDICATION_SETTINGS
     bool                    predicationEnabled;       // Indicates whether or not Predication is enabled
 } RENDERHAL_PREDICATION_SETTINGS;
 
+//!
+// \brief   Settings of SetMarker
+//!
+typedef struct _RENDERHAL_SETMARKER_SETTINGS
+{
+    MOS_RESOURCE            *pSetMarkerResource;      // Resource for SetMarker
+    bool                    setMarkerEnabled;         // Indicates whether or not SetMarker is enabled
+    uint32_t                setMarkerNumTs;           // Number Timestamp for SetMarker
+} RENDERHAL_SETMARKER_SETTINGS;
+
 typedef MhwMiInterface *PMHW_MI_INTERFACE;
 //!
 // \brief   Hardware dependent render engine interface
@@ -1207,6 +1217,9 @@ typedef struct _RENDERHAL_INTERFACE
 
     // Predication
     RENDERHAL_PREDICATION_SETTINGS PredicationParams;   //!< Predication
+
+    // SetMarker
+    RENDERHAL_SETMARKER_SETTINGS SetMarkerParams;   //!< SetMarker
 
     // Indicates whether it's AVS or not
     bool                        bIsAVS;

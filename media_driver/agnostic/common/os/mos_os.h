@@ -816,6 +816,28 @@ typedef struct _MOS_INTERFACE
     uint32_t(*pfnGetResourceIndex)(
         PMOS_RESOURCE           osResource);
 
+    //!
+    //! \brief    Get SetMarker enabled flag
+    //! \details  Get SetMarker enabled flag from OsInterface
+    //! \param    PMOS_INTERFACE pOsInterface
+    //!           [in] OS Interface
+    //! \return   bool
+    //!           SetMarker enabled flag
+    //!
+    bool (*pfnIsSetMarkerEnabled)(
+        PMOS_INTERFACE              pOsInterface);
+
+    //!
+    //! \brief    Get SetMarker resource address
+    //! \details  Get SetMarker resource address from OsInterface
+    //! \param    PMOS_INTERFACE pOsInterface
+    //!           [in] OS Interface
+    //! \return   PMOS_RESOURCE
+    //!           SetMarker resource address
+    //!
+    PMOS_RESOURCE (*pfnGetMarkerResource)(
+        PMOS_INTERFACE              pOsInterface);
+
     //!< os interface extension
     void                            *pOsExt;
 } MOS_INTERFACE;
