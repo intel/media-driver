@@ -393,10 +393,10 @@ MOS_STATUS HalCm_GetSurface2DPitchAndSize_Linux(
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Register APP/Runtime-level created Event Handle as a KMD Object;
+//| Purpose:    Register APP/Runtime-level created Event Handle as a UMD Object;
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-MOS_STATUS HalCm_RegisterKMDNotifyEventHandle_Linux(
+MOS_STATUS HalCm_RegisterUMDNotifyEventHandle_Linux(
     PCM_HAL_STATE             state,
     PCM_HAL_OSSYNC_PARAM      syncParam)
 {
@@ -1359,7 +1359,7 @@ void HalCm_OsInitInterface(
     CM_ASSERT(cmState);
 
     cmState->pfnGetSurface2DPitchAndSize            = HalCm_GetSurface2DPitchAndSize_Linux;
-    cmState->pfnRegisterKMDNotifyEventHandle        = HalCm_RegisterKMDNotifyEventHandle_Linux;
+    cmState->pfnRegisterUMDNotifyEventHandle        = HalCm_RegisterUMDNotifyEventHandle_Linux;
     cmState->pfnAllocateBuffer                      = HalCm_AllocateBuffer_Linux;
     cmState->pfnAllocateSurface2DUP                 = HalCm_AllocateSurface2DUP_Linux;
     cmState->pfnAllocate3DResource                  = HalCm_Allocate3DResource_Linux;
