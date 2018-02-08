@@ -356,7 +356,7 @@ private:
     //!
     bool IsSfcInUse(CodechalSetting * codecHalSettings) override
     {
-        return (codecHalSettings->downsamplingHinted && MEDIA_IS_SKU(m_skuTable, FtrSFCPipe));
+        return (codecHalSettings->downsamplingHinted && (MEDIA_IS_SKU(m_skuTable, FtrSFCPipe) && !MEDIA_IS_SKU(m_skuTable, FtrDisableVDBox2SFC)));
     }
 
 public:
