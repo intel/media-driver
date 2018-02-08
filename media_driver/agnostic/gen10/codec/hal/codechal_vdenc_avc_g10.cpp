@@ -669,7 +669,7 @@ MOS_STATUS CodechalVdencAvcStateG10::LoadHmeMvCostTable(PCODEC_AVC_ENCODE_SEQUEN
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     const uint32_t(*vdencHmeCostTable)[CODEC_AVC_NUM_QP];
-    if (m_avcSeqParam->ScenarioInfo == ESCENARIO_DISPLAYREMOTING)
+    if ((m_avcSeqParam->ScenarioInfo == ESCENARIO_DISPLAYREMOTING) || (m_avcSeqParam->RateControlMethod == RATECONTROL_QVBR))
     {
         vdencHmeCostTable = m_hmeCostDisplayRemote;
     }
