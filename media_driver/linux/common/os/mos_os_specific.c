@@ -5545,7 +5545,6 @@ MOS_STATUS Mos_Specific_InitInterface(
     MOS_OS_CHK_NULL(pOsDriverContext);
 
     pOsInterface->modularizedGpuCtxEnabled    = true;
-    pOsDriverContext->pGmmClientContext       = GmmCreateClientContext((GMM_CLIENT)GMM_LIBVA_LINUX);
 
     // Create Linux OS Context
     pOsContext = (PMOS_OS_CONTEXT)MOS_AllocAndZeroMemory(sizeof(MOS_OS_CONTEXT));
@@ -5595,7 +5594,7 @@ MOS_STATUS Mos_Specific_InitInterface(
 
     iDeviceId                                 = pOsDriverContext->iDeviceId;
     pOsContext->bFreeContext                  = true;
-    pOsContext->pGmmClientContext             = pOsDriverContext->pGmmClientContext;
+    pOsContext->pGmmClientContext = GmmCreateClientContext((GMM_CLIENT)GMM_LIBVA_LINUX);
     pOsInterface->pOsContext                  = pOsContext;
     pOsInterface->bUsesPatchList              = true;
     pOsInterface->bUsesGfxAddress             = false;
