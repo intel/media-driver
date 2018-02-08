@@ -4296,43 +4296,40 @@ MOS_STATUS CodechalEncodeAvcBase::PopulateDdiParam(
 
         if (CodecHalIsRateControlBrc(avcSeqParams->RateControlMethod, CODECHAL_AVC))
         {
+            brcMethod = 2;
+
             switch (avcSeqParams->RateControlMethod)
             {
             case RATECONTROL_ICQ:
-                brcMethod = 3;
-                brcType   = 0;
+                brcMethod = m_vdencEnabled ? 2 : 3;
+                brcType = 16;
                 break;
             case RATECONTROL_QVBR:
-                brcMethod = 4;
-                brcType   = 2;
+                brcMethod = m_vdencEnabled ? 2 : 4;
+                brcType = 2;
                 break;
             case RATECONTROL_CBR:
-                brcMethod = 2;
                 brcType   = 1;
                 break;
             case RATECONTROL_VBR:
-                brcMethod = 2;
                 brcType   = 2;
                 break;
             case RATECONTROL_VCM:
-                brcMethod = 2;
-                brcType   = 3;
-                break;
-            case RATECONTROL_AVBR:
-                brcMethod = 2;
-                brcType   = 4;
+                brcType = m_vdencEnabled ? 4 : 3;
                 break;
             default:
-                brcMethod = 2;
+                brcMethod = 0;
                 brcType   = 0;
                 break;
             }
+
+            if (avcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_EXTREMELY_LOW)
+            {
+                // low delay mode
+                brcType = 8;
+            }
         }
-        if (avcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_EXTREMELY_LOW)
-        {
-            // low delay mode
-            brcType = 8;
-        }
+
         m_avcPar->BRCMethod = brcMethod;
         m_avcPar->BRCType   = brcType;
 
