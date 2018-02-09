@@ -360,7 +360,19 @@ MOS_STATUS CodechalEncHevcState::ExecutePictureLevel()
             m_firstTaskInPhase :
             m_lastTaskInPhase;
 
+        // When brc + 2 pass sao is enabled need to disable frame tracking for first cmd buffer
+        if (m_brcEnabled && m_hevcSeqParams->SAO_enabled_flag)
+        {
+            requestFrameTracking = false;
+        }
+
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(&cmdBuffer, requestFrameTracking));
+    }
+
+    // Enable frame tracking for the last cmd buffer when brc + 2 pass sao is on
+    if (m_brcEnabled && m_hevcSeqParams->SAO_enabled_flag && m_currPass == m_uc2NdSaoPass)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(&cmdBuffer, true));
     }
 
     if (m_brcEnabled &&
@@ -448,18 +460,25 @@ MOS_STATUS CodechalEncHevcState::ExecutePictureLevel()
 
     if (m_brcEnabled)
     {
-        uint32_t picStateCmdOffset;
-        picStateCmdOffset = GetCurrentPass();
+        if (m_hevcSeqParams->SAO_enabled_flag && m_currPass == m_uc2NdSaoPass)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(AddHcpPictureStateCmd(&cmdBuffer));
+        }
+        else
+        {
+            uint32_t picStateCmdOffset;
+            picStateCmdOffset = GetCurrentPass();
 
-        MHW_BATCH_BUFFER batchBuffer;
-        MOS_ZeroMemory(&batchBuffer, sizeof(batchBuffer));
-        batchBuffer.OsResource   = m_brcBuffers.resBrcImageStatesWriteBuffer[m_currRecycledBufIdx];
-        batchBuffer.dwOffset     = picStateCmdOffset * (m_brcBuffers.dwBrcHcpPicStateSize / CODECHAL_ENCODE_BRC_MAXIMUM_NUM_PASSES);
-        batchBuffer.bSecondLevel = true;
+            MHW_BATCH_BUFFER batchBuffer;
+            MOS_ZeroMemory(&batchBuffer, sizeof(batchBuffer));
+            batchBuffer.OsResource = m_brcBuffers.resBrcImageStatesWriteBuffer[m_currRecycledBufIdx];
+            batchBuffer.dwOffset = picStateCmdOffset * (m_brcBuffers.dwBrcHcpPicStateSize / CODECHAL_ENCODE_BRC_MAXIMUM_NUM_PASSES);
+            batchBuffer.bSecondLevel = true;
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(
-            &cmdBuffer,
-            &batchBuffer));
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(
+                &cmdBuffer,
+                &batchBuffer));
+        }
     }
     else
     {
