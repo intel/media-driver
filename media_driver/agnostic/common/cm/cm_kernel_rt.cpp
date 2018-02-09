@@ -44,10 +44,7 @@
 #include "cm_surface_2d_rt.h"
 #include "cm_sampler8x8_state_rt.h"
 #include "cm_visa.h"
-
-#if USE_EXTENSION_CODE
-#include "cm_mov_inst_ext.h"
-#endif
+#include "cm_extension_creator.h"
 
 #define GENERATE_GLOBAL_SURFACE_INDEX
 
@@ -155,6 +152,16 @@ void QuickSort( PCM_ARG* args, int32_t p, int32_t r )
 
 namespace CMRT_UMD
 {
+static bool bCmMovInstRegistered = CmExtensionCreator<CmMovInstConstructor>::RegisterClass<CmMovInstConstructor>();
+//*-----------------------------------------------------------------------------
+//| Purpose:   Create object for mov instructions
+//|            instructions will be copied into DstMem
+//*-----------------------------------------------------------------------------
+uint32_t CmMovInstConstructor::ConstructObjMovs(uint32_t dstOffset, uint32_t srcOffset, uint32_t size, CmDynamicArray &movInsts, uint32_t index, bool isBdw, bool isHwDebug)
+{
+    return MovInst_RT::CreateMoves(dstOffset, srcOffset, size, movInsts, index, isBdw, isHwDebug);
+}
+
 //*-----------------------------------------------------------------------------
 //| Purpose:     Create CM Kernel
 //| Arguments :
@@ -313,7 +320,8 @@ CmKernelRT::CmKernelRT(CmDeviceRT *device,
     m_hasClones( false ),
     m_stateBufferBounded( CM_STATE_BUFFER_NONE ),
     m_binaryOrig(nullptr),
-    m_binarySizeOrig(0)
+    m_binarySizeOrig(0),
+    m_movInstConstructor(nullptr)
 {
     program->Acquire();
     m_program = program;
@@ -380,6 +388,7 @@ CmKernelRT::~CmKernelRT( void )
 
     MosSafeDeleteArray(m_kernelPayloadData);
     MosSafeDeleteArray(m_surfaceArray);
+    MosSafeDelete(m_movInstConstructor);
 }
 
 //*-----------------------------------------------------------------------------
@@ -815,6 +824,13 @@ int32_t CmKernelRT::Initialize( const char* kernelName, const char* options )
     if (m_kernelInfo->blNoBarrier)
     {
         m_barrierMode = CM_NO_BARRIER;
+    }
+
+    m_movInstConstructor = CmExtensionCreator<CmMovInstConstructor>::CreateClass();
+    if (m_movInstConstructor == nullptr)
+    {
+        CM_ASSERTMESSAGE("Error: Failed to allocate movInstConstructor due to out of system memory.");
+        return CM_OUT_OF_HOST_MEMORY;
     }
 
     return CM_SUCCESS;
@@ -2308,18 +2324,6 @@ int32_t CmKernelRT::CalcKernelDataSize(
     return hr;
 }
 
-#if !USE_EXTENSION_CODE
-//*-----------------------------------------------------------------------------
-//| Purpose:   Create object for mov instructions
-//|            instructions will be copied into DstMem
-//*-----------------------------------------------------------------------------
-int32_t CmKernelRT::ConstructObjMovs(InstructionDistanceConfig *instDist, uint32_t dstOffset, uint32_t srcOffset, uint32_t size, CmDynamicArray &movInsts, uint32_t index, bool isBdw, bool isHwDebug)
-{
-    UNUSED(instDist);
-    return MovInst_RT::CreateMoves(dstOffset, srcOffset, size, movInsts, index, isBdw, isHwDebug);
-}
-#endif
-
 //*-----------------------------------------------------------------------------
 //| Purpose:   Create mov instructions
 //|            instructions will be copied into DstMem
@@ -2328,7 +2332,12 @@ int32_t CmKernelRT::CreateMovInstructions( uint32_t &movInstNum, uint8_t *&codeD
 {
     //Create Mov Instruction
     CmDynamicArray      movInsts( numArgs );
-    InstructionDistanceConfig InstDist(movInsts.GetMaxSize());
+    uint32_t renderGen = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState->platform.eRenderCoreFamily;
+    CM_RETURN_CODE ret = m_movInstConstructor->SetInstDistanceConfig(movInsts.GetMaxSize(), renderGen);
+    if (ret != CM_SUCCESS && ret != CM_NOT_IMPLEMENTED)
+    {
+        return ret;
+    }
 
     movInstNum = 0;
 
@@ -2423,7 +2432,7 @@ int32_t CmKernelRT::CreateMovInstructions( uint32_t &movInstNum, uint8_t *&codeD
 
                 // move all arguments starting from R1 (32 ) through threadArgEnd to R64 (R0 reserved for media dispatch)
                 uint32_t nextIndex = 0;
-                nextIndex += ConstructObjMovs(&InstDist, R64_OFFSET, 32, size, movInsts, nextIndex, true, m_blhwDebugEnable);
+                nextIndex += m_movInstConstructor->ConstructObjMovs(R64_OFFSET, 32, size, movInsts, nextIndex, true, m_blhwDebugEnable);
 
                 beforeFirstThreadArg = true;
                 for (uint32_t j = 0; j < numArgs; j++)
@@ -2434,7 +2443,7 @@ int32_t CmKernelRT::CreateMovInstructions( uint32_t &movInstNum, uint8_t *&codeD
                         if (beforeFirstThreadArg == false)
                         {
                             // add move inst to move from sortedArgs[j]->unitOffsetInPayload + R64 to unitOffsetInPayloadSorted[j]
-                            nextIndex += ConstructObjMovs(&InstDist, unitOffsetInPayloadSorted[j],
+                            nextIndex += m_movInstConstructor->ConstructObjMovs(unitOffsetInPayloadSorted[j],
                                 R64_OFFSET + sortedArgs[j]->unitOffsetInPayload - 32,
                                 sortedArgs[j]->unitSize, movInsts, nextIndex, true, m_blhwDebugEnable);
                         }
@@ -2447,7 +2456,7 @@ int32_t CmKernelRT::CreateMovInstructions( uint32_t &movInstNum, uint8_t *&codeD
                         }
 
                         // add move inst to move from sortedArgs[j]->unitOffsetInPayload + R64 to unitOffsetInPayloadSorted[j]
-                        nextIndex += ConstructObjMovs(&InstDist, unitOffsetInPayloadSorted[j],
+                        nextIndex += m_movInstConstructor->ConstructObjMovs(unitOffsetInPayloadSorted[j],
                             R64_OFFSET + sortedArgs[j]->unitOffsetInPayload - CM_PAYLOAD_OFFSET,
                             sortedArgs[j]->unitSize, movInsts, nextIndex, true, m_blhwDebugEnable);
                     }

@@ -31,12 +31,6 @@
 #include "cm_hal.h"
 #include "cm_log.h"
 
-#if USE_EXTENSION_CODE
-struct InstructionDistanceConfig;
-#else
-typedef int InstructionDistanceConfig;
-#endif
-
 enum SURFACE_KIND
 {
     DATA_PORT_SURF,
@@ -117,6 +111,29 @@ class CmSurface;
 class CmSurfaceManager;
 class CmProgramRT;
 class CmDynamicArray;
+
+class CmMovInstConstructor
+{
+public:
+    CmMovInstConstructor() {}
+    virtual ~CmMovInstConstructor() {}
+
+    virtual CM_RETURN_CODE SetInstDistanceConfig(uint32_t size, uint32_t renderGen)
+    {
+        // not implemented in currect platforms
+        // reserved for future platforms
+        return CM_NOT_IMPLEMENTED;
+    }
+
+    virtual uint32_t ConstructObjMovs(uint32_t dstOffset,
+                             uint32_t srcOffset,
+                             uint32_t size,
+                             CmDynamicArray &movInsts,
+                             uint32_t index,
+                             bool isBdw,
+                             bool isHwDebug);
+    
+};
 
 //*-----------------------------------------------------------------------------
 //! CM Kernel
@@ -295,15 +312,6 @@ protected:
     int32_t IsKernelDataReusable(CmThreadSpaceRT *threadSpace);
 
     int32_t CreateKernelArgDataGroup(uint8_t *&data, uint32_t value);
-
-    int32_t ConstructObjMovs(InstructionDistanceConfig *instDist,
-                             uint32_t dstOffset,
-                             uint32_t srcOffset,
-                             uint32_t size,
-                             CmDynamicArray &movInsts,
-                             uint32_t index,
-                             bool isBdw,
-                             bool isHwDebug);
 
     int32_t CreateMovInstructions(uint32_t &movInstNum,
                                   uint8_t *&codeDst,
@@ -494,6 +502,8 @@ protected:
     uint32_t m_cloneKernelID;
     bool m_hasClones;
     CM_STATE_BUFFER_TYPE m_stateBufferBounded;
+
+    CmMovInstConstructor *m_movInstConstructor;
 
     friend class CmThreadSpaceExPriv;
 
