@@ -47,6 +47,7 @@
 #include <signal.h>
 #include <time.h>
 #include <sys/types.h>
+#include <sys/sysmacros.h>
 #include <sys/stat.h>
 #define stat_t struct stat
 #include <sys/ioctl.h>
