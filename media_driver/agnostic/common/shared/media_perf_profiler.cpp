@@ -452,19 +452,23 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectStartCmd(void* context,
         }
     }
 
+    // The address of timestamp must be 8 bytes aligned.
+    uint32_t offset = BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, beginTimeClockValue);
+    offset = MOS_ALIGN_CEIL(offset, 8);
+
     if (rcsEngineUsed)
     {
         CHK_STATUS_RETURN(StoreTSByPipeCtrl(
             miInterface,
             cmdBuffer, 
-            BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, beginTimeClockValue)));
+            offset));
     }
     else
     {
         CHK_STATUS_RETURN(StoreTSByMiFlush(
             miInterface,
             cmdBuffer,
-            BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, beginTimeClockValue)));
+            offset));
     }
     
     return status;
@@ -508,19 +512,23 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectEndCmd(void* context,
         }
     }
 
+    // The address of timestamp must be 8 bytes aligned.
+    uint32_t offset = BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, endTimeClockValue);
+    offset = MOS_ALIGN_CEIL(offset, 8);
+
     if (rcsEngineUsed)
     {
         CHK_STATUS_RETURN(StoreTSByPipeCtrl(
             miInterface,
             cmdBuffer,
-            BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, endTimeClockValue)));
+            offset));
     }
     else
     {
         CHK_STATUS_RETURN(StoreTSByMiFlush(
             miInterface,
             cmdBuffer,
-            BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, endTimeClockValue)));
+            offset));
     }
 
     return status;
