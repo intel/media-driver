@@ -3167,15 +3167,37 @@ void CodechalEncodeAvcEncG9Skl::UpdateSSDSliceCount()
     CodechalEncodeAvcBase::UpdateSSDSliceCount();
 
     uint32_t sliceCount;
-    if (m_frameHeight * m_frameWidth >= 1920*1080 && m_targetUsage <= 4 ||
-        m_frameHeight * m_frameWidth >= 1280*720 && m_targetUsage <= 2 ||
-        m_frameHeight * m_frameWidth >= 3840*2160)
+
+    // Adjust DSS (Dynamic Slice Shutdown) policy for multi-frame encode cases
+    if (m_mfeEnabled  && m_mfeEncodeParams.submitNumber > 1)
     {
-        sliceCount = 2;
+        if (m_frameHeight * m_frameWidth >= 1920*1080 && m_targetUsage <= 4)
+        {
+            sliceCount = 3;
+        }
+        else if (m_frameHeight * m_frameWidth >= 3840*2160 ||
+            m_frameHeight * m_frameWidth >= 1920*1080 && m_targetUsage > 4 ||
+            m_frameHeight * m_frameWidth >= 1280*720 && m_targetUsage <= 4)
+        {
+            sliceCount = 2;
+        }
+        else
+        {
+            sliceCount = 1;
+        }
     }
     else
     {
-        sliceCount = 1;
+        if (m_frameHeight * m_frameWidth >= 1920*1080 && m_targetUsage <= 4 ||
+            m_frameHeight * m_frameWidth >= 1280*720 && m_targetUsage <= 2 ||
+            m_frameHeight * m_frameWidth >= 3840*2160)
+        {
+            sliceCount = 2;
+        }
+        else
+        {
+            sliceCount = 1;
+        }
     }
 
     if (m_osInterface->pfnSetSliceCount)
