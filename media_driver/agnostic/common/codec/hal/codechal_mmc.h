@@ -209,24 +209,6 @@ public:
         return MOS_STATUS_SUCCESS;
     };
 
-    //!
-    //! \brief  Check MMC Status for raw surface
-    //! \param  [in] cmdBuffer
-    //!         Pointer to current command buffer
-    //! \param  [in] pipeBufAddrParams
-    //!         Pointer to PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    virtual MOS_STATUS CheckMmcStatusForRaw(
-        PMOS_COMMAND_BUFFER cmdBuffer,
-        PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams)
-    {
-        MHW_FUNCTION_ENTER;
-
-        return MOS_STATUS_SUCCESS;
-    }
-
 #if (_DEBUG || _RELEASE_INTERNAL)
     //!
     //! \brief    Update mmc user feature key 
@@ -245,6 +227,7 @@ protected:
 
     static bool             m_mmcEnabled;                           //!< Indicate if media memory compression is enabled
     PMOS_INTERFACE          m_osInterface = nullptr;                //!< Os Inteface
+    CodechalHwInterface     *m_hwInterface = nullptr;               //!< Pointer to HW Interface
     bool                    m_hcpMmcEnabled = false;                //!< Inidate if hcp mmc is enabled
     bool                    m_10bitMmcEnabled = false;              //!< Inidate if 10bit mmc is enabled
     bool                    m_gpuMmuPageFaultEnabled = false;       //!< Inidate if page fault is enabled

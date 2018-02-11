@@ -34,6 +34,7 @@ CodecHalMmcState::CodecHalMmcState(CodechalHwInterface  *hwInterface)
     CODECHAL_HW_FUNCTION_ENTER;
 
     CODECHAL_HW_ASSERT(hwInterface);
+    m_hwInterface   = hwInterface;
     CODECHAL_HW_ASSERT(hwInterface->GetOsInterface());
     m_osInterface   = hwInterface->GetOsInterface();
     CODECHAL_HW_ASSERT(hwInterface->GetSkuTable());

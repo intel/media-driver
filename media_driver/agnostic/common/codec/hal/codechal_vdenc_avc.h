@@ -699,30 +699,6 @@ protected:
     //!
     virtual PMHW_VDBOX_VDENC_WALKER_STATE_PARAMS CreateMhwVdboxVdencWalkerStateParams();
 
-    //!
-    //! \brief    Add MFX pipe buffer address command
-    //! \param    [in] cmdBuffer
-    //!           Pointer to current command buffer
-    //! \param    [in] params
-    //!           Pointer to VDBox pipe buffer address params
-    //! \return   MOS_STATUS
-    //!
-    virtual MOS_STATUS AddMfxPipeBufAddrCmd(
-        PMOS_COMMAND_BUFFER cmdBuffer,
-        PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS params);
-
-    //!
-    //! \brief    Add VDENC pipe buffer address command
-    //! \param    [in] cmdBuffer
-    //!           Pointer to current command buffer
-    //! \param    [in] params
-    //!           Pointer to VDBox pipe buffer address params
-    //! \return   MOS_STATUS
-    //!
-    virtual MOS_STATUS AddVdencPipeBufAddrCmd(
-        PMOS_COMMAND_BUFFER cmdBuffer,
-        PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS  params);
-
 protected:
     bool                                        m_vdencSinglePassEnable = false;   //!< Enable VDEnc single pass
 
