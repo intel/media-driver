@@ -30,7 +30,8 @@
 CMRTKernelPB32x32::CMRTKernelPB32x32()
 {
 
-    m_isaName         = HEVC_PB_ISA_FILE_NAME_G9;
+    m_isaName         = HEVCENCFEI_PB_GEN9;
+    m_isaSize         = HEVCENCFEI_PB_GEN9_SIZE;
     m_kernelName      = HEVCENCKERNELNAME_PB_32x32;
 
     m_cmSurface2DCount = 7;

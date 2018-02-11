@@ -30,7 +30,8 @@
 CMRTKernelI16x16Mode::CMRTKernelI16x16Mode()
 {
 
-    m_isaName          = HEVC_I_ISA_FILE_NAME_G9;
+    m_isaName          = HEVCENCFEI_I_GEN9;
+    m_isaSize          = HEVCENCFEI_I_GEN9_SIZE;
     m_kernelName       = HEVCENCKERNELNAME_I_16x16MODE;
 
     m_cmSurface2DCount = 5;

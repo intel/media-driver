@@ -23,7 +23,7 @@ set(TMP_3_SOURCES_ "")
 
 set(TMP_3_HEADERS_ "")
 
-if(${HEVC_Encode_Supported} STREQUAL "yes")
+if((${HEVC_Encode_Supported} STREQUAL "yes") AND (${CMRT_HEVC_ENC_FEI_Supported} STREQUAL "yes"))
     set(TMP_3_SOURCES_
         ${TMP_3_SOURCES_}
         ${CMAKE_CURRENT_LIST_DIR}/CMRTKernelBase.cpp
@@ -36,6 +36,9 @@ if(${HEVC_Encode_Supported} STREQUAL "yes")
         ${CMAKE_CURRENT_LIST_DIR}/CMRTKernel_I_8x8Mode.cpp
         ${CMAKE_CURRENT_LIST_DIR}/CMRTKernel_PB_8x8MbEnc.cpp
         ${CMAKE_CURRENT_LIST_DIR}/CMRTKernel_PB_8x8Pak.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/Hme_Downscale_gen9.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/HevcEncFei_I_gen9.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/HevcEncFei_PB_gen9.cpp 
     )
     set(TMP_3_HEADERS_
         ${TMP_3_HEADERS_}
@@ -52,7 +55,10 @@ if(${HEVC_Encode_Supported} STREQUAL "yes")
         ${CMAKE_CURRENT_LIST_DIR}/CMRTKernel_DS_Kernel_def.h
         ${CMAKE_CURRENT_LIST_DIR}/CMRTKernel_I_Kernel_def.h
         ${CMAKE_CURRENT_LIST_DIR}/CMRTKernel_PB_Kernel_def.h
-        ${CMAKE_CURRENT_LIST_DIR}/CMRTKernel_header_file.h 
+        ${CMAKE_CURRENT_LIST_DIR}/CMRTKernel_header_file.h
+        ${CMAKE_CURRENT_LIST_DIR}/Hme_Downscale_gen9.h
+        ${CMAKE_CURRENT_LIST_DIR}/HevcEncFei_I_gen9.h
+        ${CMAKE_CURRENT_LIST_DIR}/HevcEncFei_PB_gen9.h
     )
 endif()
 

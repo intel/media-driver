@@ -30,7 +30,8 @@
 CMRTKernelDownScaling::CMRTKernelDownScaling()
 {
 
-    m_isaName           = HEVC_DS_ISA_FILE_NAME_G9;
+    m_isaName           = HME_DOWNSCALE_GEN9;
+    m_isaSize           = HME_DOWNSCALE_GEN9_SIZE;
     m_kernelName        = HEVCENCKERNELNAME_2xDS_FRAME;
 
     m_cmSurface2DCount  = 2;

@@ -1667,7 +1667,11 @@ MOS_STATUS CodechalEncodeAvcEnc::Initialize(CodechalSetting * settings)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateMe());
         CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateMbEnc());
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateMfeMbEnc());
+        if (m_feiEnable == false)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateMfeMbEnc());
+        }
+
         if(!CodecHalIsFeiEncode(m_codecFunction))
         {
             CODECHAL_ENCODE_CHK_NULL_RETURN(pMbEncKernelStates);

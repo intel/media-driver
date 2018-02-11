@@ -30,7 +30,8 @@
 CMRTKernelPB8x8MbEnc::CMRTKernelPB8x8MbEnc(uint16_t picCodingType): m_pictureCodingType(picCodingType)
 {
 
-    m_isaName           = HEVC_PB_ISA_FILE_NAME_G9;
+    m_isaName         = HEVCENCFEI_PB_GEN9;
+    m_isaSize         = HEVCENCFEI_PB_GEN9_SIZE;
 
     if (m_pictureCodingType == P_TYPE)
     {

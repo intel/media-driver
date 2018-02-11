@@ -30,7 +30,8 @@
 CMRTKernelPB8x8Pak::CMRTKernelPB8x8Pak()
 {
 
-    m_isaName         = HEVC_PB_ISA_FILE_NAME_G9;
+    m_isaName         = HEVCENCFEI_PB_GEN9;
+    m_isaSize         = HEVCENCFEI_PB_GEN9_SIZE;
     m_kernelName      = HEVCENCKERNELNAME_PB_PAK;
 
     m_cmSurface2DCount = 7;
