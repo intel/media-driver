@@ -23,7 +23,7 @@
 
 #include "driver_loader.h"
 #include "test_data_caps.h"
-
+#include "memory_leak_detector.h"
 #include "gtest/gtest.h"
 
 class MediaCapsDdiTest : public testing::Test

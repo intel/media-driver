@@ -75,6 +75,10 @@ typedef VAStatus (*CmExtSendReqMsgFunc)(VADisplay dpy,
                                         void *outputData,
                                         uint32_t *outputDataLen);
 
+typedef void (*MOS_SetUltFlagFunc)(uint8_t ultFlag);
+
+typedef int32_t (*GetMemNinjaCounter)();
+
 class DriverDllLoader
 {
 public:
@@ -92,6 +96,9 @@ public:
     VADriverVTable vtable;
     VADriverVTableVPP vtable_vpp;
     CmExtSendReqMsgFunc vaCmExtSendReqMsg;
+    MOS_SetUltFlagFunc Mos_SetUltFlag;
+    GetMemNinjaCounter Mos_GetMemNinjaCounter;
+    GetMemNinjaCounter Mos_GetMemNinjaCounterGfx;
 
 private:
     const char *driver_path;

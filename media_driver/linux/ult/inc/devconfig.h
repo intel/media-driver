@@ -19,8 +19,15 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
+#ifndef DEVCONFIG_H
+#define DEVCONFIG_H
+
 #include <string.h>
+#include <stdint.h>
+
 #define LOCAL_I915_PARAM_HAS_HUC 42
+#define TEST_COUT   std::cout << "[ INFO     ] "
+
 struct DeviceConfig
 {
     uint64_t  aperture_size; //DRM_IOCTL_I915_GEM_GET_APERTURE
@@ -81,3 +88,5 @@ typedef enum{
     igfxCANNONLAKE  = 3,
     igfx_MAX
 }Platform_t;
+
+#endif //DEVCONFIG_H

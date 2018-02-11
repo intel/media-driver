@@ -88,5 +88,7 @@ TEST_F(MediaCapsDdiTest, DecodeEncodeProfile)
        ret = driverLoader.CloseDriver();
        //ret = driverLoader.ctx.vtable->vaTerminate(&driverLoader.ctx);
        EXPECT_EQ (VA_STATUS_SUCCESS , ret ) << "Platform = " << platforms[i] << ", Failed function = driverLoader.CloseDriver" << endl;
+
+       MemoryLeakDetector::detect(driverLoader, platforms[i]);
     }
 }

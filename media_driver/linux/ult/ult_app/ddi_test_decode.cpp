@@ -114,6 +114,7 @@ void MediaDecodeDdiTest::DecodeExecute(DecTestData* pDecData, Platform_t platfor
     //ret = driverLoader.ctx.vtable->vaTerminate(&driverLoader.ctx );
     EXPECT_EQ (VA_STATUS_SUCCESS , ret ) << "Platform = " << platform << ", Failed function = driverLoader.CloseDriver" << endl;
 
+    MemoryLeakDetector::detect(driverLoader, platform);
 }
 
 DecodeTestConfig::DecodeTestConfig()
