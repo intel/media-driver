@@ -32,6 +32,9 @@
 
 extern int32_t MosMemAllocCounter; //!< Counter to check system memory leaks
 extern int32_t MosMemAllocCounterGfx; //!< Counter to check graphics memory leaks
+extern int32_t MosMemAllocCounterNoUserFeature;
+extern int32_t MosMemAllocCounterNoUserFeatureGfx;
+extern uint8_t MosUltFlag;
 
 //!
 //! \brief HLT file name template
@@ -381,7 +384,7 @@ MOS_STATUS MOS_HLTInit()
         MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);
     }
 
-    bUseHybridLogTrace = UserFeatureData.u32Data;
+    bUseHybridLogTrace = MosUltFlag ? 1 : UserFeatureData.u32Data;
 
     // Dumping memory mapped regions to trace file disabled for now
     // Need to add new user feature key or derive from the above key.
@@ -393,7 +396,7 @@ MOS_STATUS MOS_HLTInit()
         return MOS_STATUS_SUCCESS;               //[SH]: Check this.
     }
 
-    nPID = MOS_GetPid();
+    nPID = MosUltFlag ? 0 : MOS_GetPid();
 
     // Get logfile directory.
     MOS_LogFileNamePrefix(fileNamePrefix);
@@ -533,12 +536,21 @@ void MOS_MessageInit()
 
         g_MosMsgParams.bUseOutputDebugString = UserFeatureData.i32Data;
 
+        if (MosUltFlag)
+        {
+            MOS_SetCompMessageLevelAll(MOS_MESSAGE_LVL_DISABLED);
+            MOS_SetCompMessageLevel(MOS_COMPONENT_OS, MOS_MESSAGE_LVL_VERBOSE);
+            g_MosMsgParams.bUseOutputDebugString = 0;
+            g_MosMsgParams.components[MOS_COMPONENT_OS].bBySubComponent = 0;
+        }
+
         MOS_HLTInit();
         MOS_DDIDumpInit();
 
         // all above action should not be covered by memninja since its destroy is behind memninja counter report to test result.
         MosMemAllocCounter  = 0;
         MosMemAllocCounterGfx = 0;
+        MOS_OS_VERBOSEMESSAGE("MemNinja leak detection begin");
     }
 
     // uiCounter's thread safety depends on global_lock in VPG_Initialize

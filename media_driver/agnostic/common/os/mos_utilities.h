@@ -89,22 +89,25 @@ extern int32_t MosMemAllocCounter;
 extern int32_t MosMemAllocCounterGfx;
 
 //! Helper Macros for MEMNINJA debug messages
-#define MOS_MEMNINJA_ALLOC_MESSAGE(ptr, size, functionName, filename, line)                            \
-   MOS_OS_VERBOSEMESSAGE(                                                                              \
-       "<MemNinjaSysAllocPtr memPtr = \"%d\" size = \"%d\" memType = \"Sys\"/>.", ptr, size);          \
-   MOS_OS_VERBOSEMESSAGE(                                                                              \
-       "<MemNinjaSysLastFuncCall memPtr = \"%d\" functionName = \"%s\" filename = \"%s\" "             \
-       "memType = \"Sys\" line = \"%d\"/>.", ptr, functionName, filename, line);                       \
-   MOS_OS_VERBOSEMESSAGE(                                                                              \
-       "MemNinjaCounter = %d, Addr = 0x%x, size = \"%d\", memType = \"Sys\", functionName = \"%s\",    \
-       line = \"%d\", filename = \"%s\"/", MosMemAllocCounter, ptr, size, functionName, line, filename);
+#define MOS_MEMNINJA_ALLOC_MESSAGE(ptr, size, functionName, filename, line)                             \
+    MOS_OS_VERBOSEMESSAGE(                                                                              \
+        "MemNinjaSysAlloc: MemNinjaCounter = %d, memPtr = 0x%x, size = %d, functionName = \"%s\", "     \
+        "filename = \"%s\", line = %d/", MosMemAllocCounter, ptr, size, functionName, filename, line)
 
-#define MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line)                                   \
-   MOS_OS_VERBOSEMESSAGE("MosMemAllocCounter = %d, Addr = 0x%x.", MosMemAllocCounter, ptr);            \
-   MOS_OS_VERBOSEMESSAGE("<MemNinjaSysFreePtr memPtr = \"%d\" memType = \"Sys\"/>.", ptr);             \
-   MOS_OS_VERBOSEMESSAGE(                                                                              \
-       "MemNinjaCounter = %d, Addr = 0x%x, memType = \"Sys\", functionName = \"%s\", line = \"%d\",    \
-       filename = \"%s\"/", MosMemAllocCounter, ptr, functionName, line, filename);
+#define MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line)                                    \
+    MOS_OS_VERBOSEMESSAGE(                                                                              \
+       "MemNinjaSysFree: MemNinjaCounter = %d, memPtr = 0x%x, functionName = \"%s\", "                  \
+       "filename = \"%s\", line = %d/", MosMemAllocCounter, ptr, functionName, filename, line)
+
+#define MOS_MEMNINJA_GFX_ALLOC_MESSAGE(ptr, size, functionName, filename, line)                         \
+    MOS_OS_VERBOSEMESSAGE(                                                                              \
+        "MemNinjaGfxAlloc: MemNinjaCounterGfx = %d, memPtr = 0x%x, size = %d, functionName = \"%s\", "  \
+        "filename = \"%s\", line = %d/", MosMemAllocCounterGfx, ptr, size, functionName, filename, line)
+
+#define MOS_MEMNINJA_GFX_FREE_MESSAGE(ptr, functionName, filename, line)                                \
+    MOS_OS_VERBOSEMESSAGE(                                                                              \
+        "MemNinjaGfxFree: MemNinjaCounterGfx = %d, memPtr = 0x%x, functionName = \"%s\", "              \
+        "filename = \"%s\", line = %d/", MosMemAllocCounterGfx, ptr, functionName, filename, line)
 
 //!
 //! \brief User Feature Value IDs
@@ -661,8 +664,8 @@ _Ty* MOS_NewUtil(_Types&&... _Args)
         _Ty* ptr = new (std::nothrow) _Ty(std::forward<_Types>(_Args)...);
         if (ptr != nullptr)
         {
-            MOS_MEMNINJA_ALLOC_MESSAGE(ptr, sizeof(_Ty), functionName, filename, line);
             MosMemAllocCounter++;
+            MOS_MEMNINJA_ALLOC_MESSAGE(ptr, sizeof(_Ty), functionName, filename, line);
         }
         return ptr;
 }
@@ -680,8 +683,8 @@ _Ty* MOS_NewArrayUtil(int32_t numElements)
         _Ty* ptr = new (std::nothrow) _Ty[numElements]();
         if (ptr != nullptr)
         {
-            MOS_MEMNINJA_ALLOC_MESSAGE(ptr, numElements*sizeof(_Ty), functionName, filename, line);
             MosMemAllocCounter++;
+            MOS_MEMNINJA_ALLOC_MESSAGE(ptr, numElements*sizeof(_Ty), functionName, filename, line);
         }
         return ptr;
 }

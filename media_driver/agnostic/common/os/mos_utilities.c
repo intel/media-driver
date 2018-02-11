@@ -39,6 +39,32 @@
 
 int32_t MosMemAllocCounter;      //!< Counter to check memory leaks
 int32_t MosMemAllocCounterGfx;
+int32_t MosMemAllocCounterNoUserFeature;
+int32_t MosMemAllocCounterNoUserFeatureGfx;
+uint8_t MosUltFlag;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+    MOS_FUNC_EXPORT void Mos_SetUltFlag(uint8_t ultFlag)
+    {
+        MosUltFlag = ultFlag;
+    }
+
+    MOS_FUNC_EXPORT int32_t MOS_GetMemNinjaCounter()
+    {
+        return MosMemAllocCounterNoUserFeature;
+    }
+
+    MOS_FUNC_EXPORT int32_t MOS_GetMemNinjaCounterGfx()
+    {
+        return MosMemAllocCounterNoUserFeatureGfx;
+    }
+
+#ifdef __cplusplus
+}
+#endif
 
 #define __MOS_USER_FEATURE_VALUE_SINGLE_SLICE_VEBOX_DEFAULT_VALUE "1"
 #define __MAX_MULTI_STRING_COUNT         128
@@ -2463,8 +2489,8 @@ void  *MOS_AlignedAllocMemory(
 
     if(ptr != nullptr)
     {
-       MOS_MEMNINJA_ALLOC_MESSAGE(ptr, size, functionName, filename, line);
-       MosMemAllocCounter++;
+        MosMemAllocCounter++;
+        MOS_MEMNINJA_ALLOC_MESSAGE(ptr, size, functionName, filename, line);
     }
 
     return ptr;
@@ -2530,8 +2556,8 @@ void  *MOS_AllocMemory(size_t size)
 
     if(ptr != nullptr)
     {
-        MOS_MEMNINJA_ALLOC_MESSAGE(ptr, size, functionName, filename, line);
         MosMemAllocCounter++;
+        MOS_MEMNINJA_ALLOC_MESSAGE(ptr, size, functionName, filename, line);
     }
 
     return ptr;
@@ -2568,9 +2594,8 @@ void  *MOS_AllocAndZeroMemory(size_t size)
     {
         MOS_ZeroMemory(ptr, size);
 
-        MOS_MEMNINJA_ALLOC_MESSAGE(ptr, size, functionName, filename, line);
-
         MosMemAllocCounter++;
+        MOS_MEMNINJA_ALLOC_MESSAGE(ptr, size, functionName, filename, line);
     }
 
     return ptr;

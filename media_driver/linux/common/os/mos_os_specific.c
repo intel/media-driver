@@ -1661,11 +1661,7 @@ MOS_STATUS Mos_Specific_AllocateResource(
         }
 
         MosMemAllocCounterGfx = GraphicsResource::GetMemAllocCounterGfx();
-
-        MOS_OS_VERBOSEMESSAGE("<MemNinjaLastFuncCall osInterface = \"%d\" memPtr = \"%d\" functionName = \"%s\" filename = \"%s\" memType = \"Gfx\" line = \"%d\"/>.",
-            pOsInterface, pOsResource->pGmmResInfo, functionName, filename, line);
-        MOS_OS_VERBOSEMESSAGE("<MemNinjaAlloc osInterface = \"%d\" component = \"%d\" memType = \"Gfx\" size = \"%d\" memPtr = \"%d\" bufName = \"%s\"/>.",
-            pOsInterface, pOsInterface->Component, GmmResGetRenderSize(pOsResource->pGmmResInfo), pOsResource->pGmmResInfo, pParams->pBufName);
+        MOS_MEMNINJA_GFX_ALLOC_MESSAGE(pOsResource->pGmmResInfo, GmmResGetRenderSize(pOsResource->pGmmResInfo), functionName, filename, line);
 
         return eStatus;
     }
@@ -1864,13 +1860,8 @@ MOS_STATUS Mos_Specific_AllocateResource(
         eStatus = MOS_STATUS_NO_SPACE;
     }
 
-    MOS_OS_VERBOSEMESSAGE("<MemNinjaLastFuncCall osInterface = \"%d\" memPtr = \"%d\" functionName = \"%s\" filename = \"%s\" memType = \"Gfx\" line = \"%d\"/>.",
-        pOsInterface, pOsResource->pGmmResInfo, functionName, filename, line);
-
-    MOS_OS_VERBOSEMESSAGE("<MemNinjaAlloc osInterface = \"%d\" component = \"%d\" memType = \"Gfx\" size = \"%d\" memPtr = \"%d\" bufName = \"%s\"/>.",
-        pOsInterface, pOsInterface->Component, GmmResGetRenderSize(pOsResource->pGmmResInfo), pGmmResourceInfo, pParams->pBufName);
-
     MosMemAllocCounterGfx++;
+    MOS_MEMNINJA_GFX_ALLOC_MESSAGE(pOsResource->pGmmResInfo, GmmResGetRenderSize(pOsResource->pGmmResInfo), functionName, filename, line);
 
 finish:
     return eStatus;
@@ -2031,6 +2022,11 @@ finish:
 //!
 void Mos_Specific_FreeResource(
     PMOS_INTERFACE   pOsInterface,
+#if MOS_MESSAGES_ENABLED
+    PCCHAR           functionName,
+    PCCHAR           filename,
+    int32_t          line,
+#endif // MOS_MESSAGES_ENABLED
     PMOS_RESOURCE    pOsResource)
 {
     MOS_OS_FUNCTION_ENTER;
@@ -2081,10 +2077,8 @@ void Mos_Specific_FreeResource(
         MOS_Delete(pOsResource->pGfxResource);
         pOsResource->pGfxResource = nullptr;
 
-        MOS_OS_NORMALMESSAGE("<MemNinjaFree osInterface = \"%d\" component = \"%d\" memType = \"Gfx\" memPtr = \"%d\" />.",
-            pOsInterface, pOsInterface->Component, pOsResource->pGmmResInfo);
-
         MosMemAllocCounterGfx = GraphicsResource::GetMemAllocCounterGfx();
+        MOS_MEMNINJA_GFX_FREE_MESSAGE(pOsResource->pGmmResInfo, functionName, filename, line);
         MOS_ZeroMemory(pOsResource, sizeof(*pOsResource));
         return;
     }
@@ -2110,12 +2104,11 @@ void Mos_Specific_FreeResource(
         pOsResource->bo = nullptr;
         if (nullptr != pOsResource->pGmmResInfo)
         {
-            MOS_OS_NORMALMESSAGE("<MemNinjaFree osInterface = \"%d\" component = \"%d\" memType = \"Gfx\" memPtr = \"%d\" />.",
-                pOsInterface, pOsInterface->Component, pOsResource->pGmmResInfo);
+            MosMemAllocCounterGfx--;
+            MOS_MEMNINJA_GFX_FREE_MESSAGE(pOsResource->pGmmResInfo, functionName, filename, line);
+
             pOsInterface->pOsContext->pGmmClientContext->DestroyResInfoObject(pOsResource->pGmmResInfo);
             pOsResource->pGmmResInfo = nullptr;
-
-            MosMemAllocCounterGfx--;
         }
     }
 
@@ -2135,10 +2128,20 @@ void Mos_Specific_FreeResource(
 void Mos_Specific_FreeResourceWithFlag(
     PMOS_INTERFACE    pOsInterface,
     PMOS_RESOURCE     pOsResource,
+#if MOS_MESSAGES_ENABLED
+    PCCHAR            functionName,
+    PCCHAR            filename,
+    int32_t           line,
+#endif // MOS_MESSAGES_ENABLED
     uint32_t          uiFlag)
 {
     MOS_UNUSED(uiFlag);
+
+#if MOS_MESSAGES_ENABLED
+    Mos_Specific_FreeResource(pOsInterface, functionName, filename, line, pOsResource);
+#else
     Mos_Specific_FreeResource(pOsInterface, pOsResource);
+#endif // MOS_MESSAGES_ENABLED
 }
 
 //!

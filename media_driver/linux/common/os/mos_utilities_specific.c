@@ -58,6 +58,9 @@
 #define MOS_UFKEY_INT     "UFKEY_INTERNAL"
 PUFKEYOPS      pUFKeyOps = nullptr;
 
+extern int32_t MosMemAllocCounterNoUserFeature;
+extern int32_t MosMemAllocCounterNoUserFeatureGfx;
+
 //!
 //! \brief Linux specific trace entry path and file description.
 //!
@@ -2129,6 +2132,9 @@ MOS_STATUS MOS_OS_Utilities_Close()
     if (uiMOSUtilInitCount == 0 )
     {
         MOS_TraceEventClose();
+        MosMemAllocCounterNoUserFeature = MosMemAllocCounter;
+        MosMemAllocCounterNoUserFeatureGfx = MosMemAllocCounterGfx;
+        MOS_OS_VERBOSEMESSAGE("MemNinja leak detection end");
         eStatus = MOS_DestroyUserFeatureKeysForAllDescFields();
 #if _MEDIA_RESERVED
         if (utilUserInterface) delete utilUserInterface;

@@ -50,9 +50,11 @@ extern int32_t MOS_ShouldPrintMessage(
 //!
 //! \brief HLT log file prefix
 //!
-const PCCHAR MosLogPathPrefix = "/etc/log";
+const PCCHAR MosLogPathPrefix    = "/etc/log";
+const PCCHAR MosUltLogPathPrefix = "./";
 
 extern MOS_MESSAGE_PARAMS g_MosMsgParams;
+extern uint8_t            MosUltFlag;
 static MOS_MUTEX gMosMsgMutex = PTHREAD_MUTEX_INITIALIZER;
 
 /*----------------------------------------------------------------------------
@@ -162,6 +164,22 @@ MOS_STATUS MOS_LogFileNamePrefix(char  *fileNamePrefix)
     MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;
     MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData;
     MOS_STATUS                          eStatus = MOS_STATUS_UNKNOWN;
+
+    if (MosUltFlag)
+    {
+        iRet =  MOS_SecureStringPrint(
+                     fileNamePrefix,
+                     MOS_MAX_HLT_FILENAME_LEN,
+                     MOS_MAX_HLT_FILENAME_LEN,
+                     MosUltLogPathPrefix);
+
+        if (iRet == 0)
+        {
+            eStatus = MOS_STATUS_SUCCESS;
+        }
+
+        return eStatus;
+    }
 
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
     UserFeatureData.StringData.pStringData = fileNamePrefix;

@@ -525,19 +525,34 @@ typedef struct _MOS_INTERFACE
     MOS_STATUS (* pfnDumpCommandBuffer) (
         PMOS_INTERFACE              pOsInterface,
         PMOS_COMMAND_BUFFER         pCmdBuffer);
+
+    #define pfnFreeResource(pOsInterface, pResource) \
+       pfnFreeResource(pOsInterface, __FUNCTION__, __FILE__, __LINE__, pResource)
+
+    void (* pfnFreeResource) (
+        PMOS_INTERFACE              pOsInterface,
+        const char                  *functionName,
+        const char                  *filename,
+        int32_t                     line,
+        PMOS_RESOURCE               pResource);
+    
+    #define pfnFreeResourceWithFlag(pOsInterface, pResource, uiFlag) \
+       pfnFreeResourceWithFlag(pOsInterface, pResource, __FUNCTION__, __FILE__, __LINE__, uiFlag)
+
+    void (* pfnFreeResourceWithFlag) (
+        PMOS_INTERFACE              pOsInterface,
+        PMOS_RESOURCE               pResource,
+        const char                  *functionName,
+        const char                  *filename,
+        int32_t                     line,
+        uint32_t                    uiFlag);
+
 #else
 
     MOS_STATUS (* pfnAllocateResource) (
         PMOS_INTERFACE              pOsInterface,
         PMOS_ALLOC_GFXRES_PARAMS    pParams,
         PMOS_RESOURCE               pOsResource);
-
-#endif // MOS_MESSAGES_ENABLED
-
-    MOS_STATUS (* pfnGetResourceInfo) (
-        PMOS_INTERFACE              pOsInterface,
-        PMOS_RESOURCE               pOsResource,
-        PMOS_SURFACE                pDetails);
 
     void (* pfnFreeResource) (
         PMOS_INTERFACE              pOsInterface,
@@ -547,6 +562,13 @@ typedef struct _MOS_INTERFACE
         PMOS_INTERFACE              pOsInterface,
         PMOS_RESOURCE               pResource,
         uint32_t                    uiFlag);
+
+#endif // MOS_MESSAGES_ENABLED
+
+    MOS_STATUS (* pfnGetResourceInfo) (
+        PMOS_INTERFACE              pOsInterface,
+        PMOS_RESOURCE               pOsResource,
+        PMOS_SURFACE                pDetails);
 
     MOS_STATUS (* pfnLockSyncRequest) (
         PMOS_INTERFACE              pOsInterface,
