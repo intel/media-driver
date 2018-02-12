@@ -727,6 +727,7 @@ MEMORY_OBJECT_CONTROL_STATE Mos_CachePolicyGetMemoryObject(
         CM_RESOURCE_USAGE_NO_LLC_L3_SurfaceState,
         CM_RESOURCE_USAGE_NO_ELLC_L3_SurfaceState,
         CM_RESOURCE_USAGE_NO_CACHE_SurfaceState,
+        CM_RESOURCE_USAGE_L1_Enabled_SurfaceState,
 
         //
         // MP USAGES
