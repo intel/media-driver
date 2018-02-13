@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2018, Intel Corporation
+* Copyright (c) 2014-2017, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -593,11 +593,6 @@ typedef struct _MHW_RESOURCE_PARAMS
     MOS_HW_COMMAND                      HwCommandType;
     uint32_t                            dwSharedMocsOffset;
     bool                                bIsWritable;
-
-    // If the patching location does not start at bit 0 then the value to be patched needs to be shifted
-    uint32_t                            shiftAmount;
-    uint32_t                            shiftDirection;
-    MOS_PATCH_TYPE                      patchType;
 }MHW_RESOURCE_PARAMS, *PMHW_RESOURCE_PARAMS;
 
 typedef struct _MHW_GENERIC_PROLOG_PARAMS
