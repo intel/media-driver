@@ -425,10 +425,10 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
 
         auto alloc_bo = (resource->bo) ? resource->bo : cmd_bo;
 
-        MOS_OS_CHK_STATUS_RETURN(osInterface->osCpInterface->PermeatePatchForHM(
-            cmd_bo->virt,
-            currentPatch,
-            resource))
+		MOS_OS_CHK_STATUS_RETURN(osInterface->osCpInterface->PermeatePatchForHM(
+			cmd_bo->virt,
+			currentPatch,
+			resource));
 
 #ifndef ANDROID
         uint64_t boOffset = alloc_bo->offset64;

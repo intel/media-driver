@@ -193,16 +193,16 @@ private:
 
     //! \brief    Allcoation List related struct
     ALLOCATION_LIST *m_allocationList = nullptr;
-    uint32_t         m_numAllocations;  //!< number of registered allocation list
+    uint32_t         m_numAllocations = 0;  //!< number of registered allocation list
     uint32_t         m_maxNumAllocations;  //!< max number of allocation list
 
     //! \brief    Pathc List related struct
     PATCHLOCATIONLIST *m_patchLocationList = nullptr;
-    uint32_t           m_currentNumPatchLocations; //!< number of registered patch list
+    uint32_t           m_currentNumPatchLocations = 0; //!< number of registered patch list
     uint32_t           m_maxPatchLocationsize; //!< max number of patch list
 
    //! \brief    Resource registrations
-    uint32_t      m_resCount;  //!< number of resources registered
+    uint32_t      m_resCount = 0;  //!< number of resources registered
     PMOS_RESOURCE m_attachedResources = nullptr;  //!< Pointer to resources list
     bool         *m_writeModeList     = nullptr;  //!< Write mode
 
