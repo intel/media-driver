@@ -5530,6 +5530,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     PMOS_OS_CONTEXT                 pOsContext;
     PMOS_USER_FEATURE_INTERFACE     pOsUserFeatureInterface;
     MOS_STATUS                      eStatus;
+    MediaFeatureTable              *pSkuTable;
     MOS_USER_FEATURE_VALUE_DATA     UserFeatureData;
     int32_t                         iDeviceId;
     uint32_t                        dwResetCount;
@@ -5748,16 +5749,12 @@ MOS_STATUS Mos_Specific_InitInterface(
     }
     pOsInterface->pOsExt            = nullptr;
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-    // user feature detect if simulation environment (HAS) is enabled
-    pOsInterface->bSimIsActive = 0;
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_CODEC_SIM_ENABLE_ID,
-        &UserFeatureData);
-    pOsInterface->bSimIsActive = (int32_t)UserFeatureData.i32Data;
+    // Check SKU table to detect if simulation environment (HAS) is enabled
+    pSkuTable = pOsInterface->pfnGetSkuTable(pOsInterface);
+    MOS_OS_CHK_NULL(pSkuTable);
+    pOsInterface->bSimIsActive = MEDIA_IS_SKU(pSkuTable, FtrSimulationMode);
 
+#if (_DEBUG || _RELEASE_INTERNAL)
     // read the "Force VDBOX" user feature key
     // 0: not force
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
