@@ -7986,6 +7986,28 @@ MOS_STATUS HalCm_ExecuteTask(
         uint16_t perfTag = HalCm_GetKernelPerfTag(state, execParam->kernels, execParam->numKernels);
         osInterface->pfnSetPerfTag(osInterface, perfTag);
     }
+#if (_RELEASE_INTERNAL || _DEBUG)
+#if defined(CM_DIRECT_GUC_SUPPORT)
+    // Update the task ID table
+    state->taskStatusTable[taskId] = (char)taskId;
+
+    //for GuC direct submission, need to send out dummy command buffer to make sure PDP table got binded
+    CM_CHK_MOSSTATUS(state->cmHalInterface->SubmitDummyCommands(
+        batchBuffer, taskId, execParam->kernels, &cmdBuffer));
+
+    /* make sure Dummy submission is done */
+
+    CM_HAL_QUERY_TASK_PARAM queryParam;
+
+    queryParam.taskId = taskId;
+    queryParam.status = CM_TASK_IN_PROGRESS;
+
+    do {
+        state->pfnQueryTask(state, &queryParam);
+    } while (queryParam.status != CM_TASK_FINISHED);
+
+#endif
+#endif
 
     // Submit HW commands and states
     CM_CHK_MOSSTATUS(state->cmHalInterface->SubmitCommands(
@@ -9758,6 +9780,11 @@ MOS_STATUS HalCm_Create(
     CM_CHK_NULL_RETURN_MOSSTATUS(state->osInterface);
     state->osInterface->bDeallocateOnExit = true;
     CM_HRESULT2MOSSTATUS_AND_CHECK(Mos_InitInterface(state->osInterface, osDriverContext, COMPONENT_CM));
+#if (_RELEASE_INTERNAL || _DEBUG)
+#if defined(CM_DIRECT_GUC_SUPPORT)
+    state->osInterface->m_pWorkQueueMngr = new CMRTWorkQueueMngr();
+#endif
+#endif
 
     state->osInterface->pfnGetPlatform(state->osInterface, &state->platform);
     state->skuTable = state->osInterface->pfnGetSkuTable(state->osInterface);
@@ -9781,7 +9808,14 @@ MOS_STATUS HalCm_Create(
         CM_HRESULT2MOSSTATUS_AND_CHECK(state->osInterface->pfnSetGpuContext(
             state->osInterface,
             state->gpuContext));
-
+#if (_RELEASE_INTERNAL || _DEBUG)
+#if defined(CM_DIRECT_GUC_SUPPORT)
+    //init GuC
+    CM_HRESULT2MOSSTATUS_AND_CHECK(state->osInterface->pfnInitGuC(
+        state->osInterface,
+        MOS_GPU_NODE_3D));
+#endif
+#endif
         // Register Render GPU context with the event
         CM_HRESULT2MOSSTATUS_AND_CHECK(state->osInterface->pfnRegisterBBCompleteNotifyEvent(
             state->osInterface,

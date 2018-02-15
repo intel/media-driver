@@ -242,7 +242,27 @@ public:
                         int32_t                 taskId,
                         PCM_HAL_KERNEL_PARAM    *kernelParam,
                         void                    **cmdBuffer) = 0;
-
+#if (_RELEASE_INTERNAL ||_DEBUG)
+#if defined(CM_DIRECT_GUC_SUPPORT)
+    //!
+    //! \brief    Submit dummy commmand to kernel mode driver to set up page table for Direct submission
+    //! \details  Submit commmand to kernel mode driver
+    //! \param    [in]  pBatchBuffer
+    //!           pointer to mhw batch buffer to submit
+    //! \param    [in]  iTaskId
+    //!           id of task
+    //! \param    [out]  ppCmdBuffer
+    //!           pointer cmd buffer returned to cm event
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SubmitDummyCommands(
+        PMHW_BATCH_BUFFER       batchBuffer,
+        int32_t                 taskId,
+        PCM_HAL_KERNEL_PARAM    *kernelParam,
+        void                    **cmdBuffer) = 0;
+#endif
+#endif
     //!
     //! \brief    Update platform information from power option
     //! \details  Power option can be used to do slice shutdown. This function is

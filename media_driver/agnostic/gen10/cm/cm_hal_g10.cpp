@@ -44,7 +44,19 @@ struct PACKET_SURFACE_STATE
         mhw_state_heap_g10_X::MEDIA_SURFACE_STATE_CMD cmdSurfaceStateAdv;
     };
 };
+#if (_RELEASE_INTERNAL || _DEBUG)
+#if defined(CM_DIRECT_GUC_SUPPORT)
+MOS_STATUS CM_HAL_G10_X::SubmitDummyCommands(
+    PMHW_BATCH_BUFFER       batchBuffer,
+    int32_t                 taskId,
+    PCM_HAL_KERNEL_PARAM    *kernelParam,
+    void                    **cmdBuffer) 
+{
+    return MOS_STATUS_UNIMPLEMENTED;
 
+}
+#endif
+#endif
 MOS_STATUS CM_HAL_G10_X::SubmitCommands(
     PMHW_BATCH_BUFFER       batchBuffer,
     int32_t                 taskId,

@@ -106,7 +106,15 @@ public:
                         int32_t                 taskId,
                         PCM_HAL_KERNEL_PARAM    *kernelParam,
                         void                    **cmdBuffer);
-
+#if (_RELEASE_INTERNAL ||_DEBUG)
+#if defined (CM_DIRECT_GUC_SUPPORT)
+    MOS_STATUS SubmitDummyCommands(
+        PMHW_BATCH_BUFFER       batchBuffer,
+        int32_t                 taskId,
+        PCM_HAL_KERNEL_PARAM    *kernelParam,
+        void                    **cmdBuffer);
+#endif
+#endif
     MOS_STATUS UpdatePlatformInfoFromPower(
                         PCM_PLATFORM_INFO platformInfo,
                         bool              euSaturated);

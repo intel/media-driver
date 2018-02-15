@@ -31,7 +31,13 @@
 #include "media_skuwa_specific.h"
 #include "mos_utilities.h"
 #include "mos_os_hw.h"         //!< HW specific details that flow through OS pathes
-#include "mos_os_cp_specific.h"         //!< CP specific OS functionality
+#include "mos_os_cp_specific.h"         //!< CP specific OS functionality 
+#if (_RELEASE_INTERNAL || _DEBUG)
+#if defined(CM_DIRECT_GUC_SUPPORT)
+#include "work_queue_mngr.h"
+#include "KmGucClientInterface.h"
+#endif
+#endif
 
 //!
 //! \brief OS specific includes and definitions
@@ -344,6 +350,13 @@ typedef struct _MOS_INTERFACE
     char                            sPlatformName[MOS_COMMAND_BUFFER_PLATFORM_LEN];    //!< Platform name - maximum 4 bytes length
 #endif // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
 
+#if (_RELEASE_INTERNAL||_DEBUG)
+#if defined(CM_DIRECT_GUC_SUPPORT)
+    CMRTWorkQueueMngr          *m_pWorkQueueMngr;
+    CMRT_WORK_QUEUE_INFO       m_WorkQueueInfo[5];  //IGFX_ABSOLUTE_MAX_ENGINES
+#endif
+#endif
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_FORCE_VDBOX                 eForceVdbox;                                  //!< Force select Vdbox
     uint32_t                        dwForceTileYfYs;                              // force to allocate Yf (=1) or Ys (=2), remove after full validation
@@ -367,6 +380,19 @@ typedef struct _MOS_INTERFACE
     MOS_STATUS (* pfnSetGpuContext) (
         PMOS_INTERFACE              pOsInterface,
         MOS_GPU_CONTEXT             GpuContext);
+#if (_RELEASE_INTERNAL || _DEBUG)
+#if defined(CM_DIRECT_GUC_SUPPORT)
+    MOS_STATUS(*pfnDestroyGuC) (
+        PMOS_INTERFACE              pOsInterface);
+    MOS_STATUS(*pfnInitGuC) (
+        PMOS_INTERFACE              pOsInterface,
+        MOS_GPU_NODE                 Engine);
+    MOS_STATUS(*pfnSubmitWorkQueue) (
+        PMOS_INTERFACE pOsInterface,
+        MOS_GPU_NODE Engine,
+        uint64_t BatchBufferAddress);
+#endif
+#endif
 
     MOS_GPU_CONTEXT (* pfnGetGpuContext) (
         PMOS_INTERFACE              pOsInterface);
