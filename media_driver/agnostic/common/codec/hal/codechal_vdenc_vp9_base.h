@@ -2071,7 +2071,7 @@ public:
     //! \return     MOS_STATUS
     //!             MOS_STATUS_SUCCESS if success, else fail reason 
     //!
-    MOS_STATUS DysKernel(
+    virtual MOS_STATUS DysKernel(
         DysKernelParams*  dysKernelParams);
 
     //!
@@ -2334,6 +2334,16 @@ public:
     //!           MOS_STATUS_SUCCESS if success
     //!
     virtual MOS_STATUS InitMmcState();
+
+    virtual MOS_STATUS VerifyCommandBufferSize();
+
+    virtual MOS_STATUS GetCommandBuffer(PMOS_COMMAND_BUFFER cmdBuffer);
+
+    virtual MOS_STATUS ReturnCommandBuffer(PMOS_COMMAND_BUFFER cmdBuffer);
+
+    virtual MOS_STATUS SubmitCommandBuffer(
+        PMOS_COMMAND_BUFFER cmdBuffer,
+        bool nullRendering);
 
 #if USE_CODECHAL_DEBUG_TOOL
     MOS_STATUS DumpSegmentParams(

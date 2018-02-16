@@ -2561,10 +2561,10 @@ MOS_STATUS CodechalVdencVp9State::DysKernel(
     )
 
     m_vmeStatesSize = m_hwInterface->GetKernelLoadCommandSize(kernelState->KernelParams.iBTCount);
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(VerifySpaceAvailable());
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(VerifyCommandBufferSize());
 
     MOS_COMMAND_BUFFER cmdBuffer;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(GetCommandBuffer(&cmdBuffer));
 
     SendKernelCmdsParams sendKernelCmdsParams = SendKernelCmdsParams();
     sendKernelCmdsParams.EncFunctionType = encFunctionType;
@@ -2662,9 +2662,9 @@ MOS_STATUS CodechalVdencVp9State::DysKernel(
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->UpdateSSEuForCmdBuffer(&cmdBuffer, m_singleTaskPhaseSupported, m_lastTaskInPhase));
 
-    m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBuffer, 0);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(ReturnCommandBuffer(&cmdBuffer));
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_renderContextUsesNullHw));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(SubmitCommandBuffer(&cmdBuffer, m_renderContextUsesNullHw));
 
     return eStatus;
 }
@@ -4344,6 +4344,56 @@ MOS_STATUS CodechalVdencVp9State::SetHcpPipeBufAddrParams(MHW_VDBOX_PIPE_BUF_ADD
     return eStatus;
 }
 
+MOS_STATUS CodechalVdencVp9State::VerifyCommandBufferSize()
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(VerifySpaceAvailable());
+    return eStatus;
+}
+
+MOS_STATUS CodechalVdencVp9State::GetCommandBuffer(
+    PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, cmdBuffer, 0));
+    return eStatus;
+}
+
+MOS_STATUS CodechalVdencVp9State::ReturnCommandBuffer(
+    PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
+    
+    m_osInterface->pfnReturnCommandBuffer(m_osInterface, cmdBuffer, 0);
+ 
+    return eStatus;
+}
+
+MOS_STATUS CodechalVdencVp9State::SubmitCommandBuffer(
+    PMOS_COMMAND_BUFFER cmdBuffer,
+    bool nullRendering)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
+   
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, cmdBuffer, nullRendering));   
+
+    return eStatus;
+}
+
 void CodechalVdencVp9State::SetHcpIndObjBaseAddrParams(MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS& indObjBaseAddrParams)
 {
     MOS_ZeroMemory(&indObjBaseAddrParams, sizeof(indObjBaseAddrParams));
@@ -4673,7 +4723,7 @@ MOS_STATUS CodechalVdencVp9State::ExecuteDysPictureLevel()
     }
 
     MOS_COMMAND_BUFFER cmdBuffer;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(GetCommandBuffer(&cmdBuffer));
 
     if (!m_singleTaskPhaseSupported || m_firstTaskInPhase)
     {
@@ -4968,7 +5018,7 @@ MOS_STATUS CodechalVdencVp9State::ExecuteDysPictureLevel()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpVp9SegmentStateCmd(&cmdBuffer, nullptr, &segmentState));
     }
 
-    m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBuffer, 0);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(ReturnCommandBuffer(&cmdBuffer));
 
     return eStatus;
 }
