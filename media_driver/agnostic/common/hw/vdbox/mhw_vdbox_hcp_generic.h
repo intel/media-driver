@@ -622,7 +622,11 @@ protected:
 
         uint8_t isLowDelay = 1;
 
-        if (hevcSliceParams->LongSliceFlags.fields.slice_type != cmd.SLICE_TYPE_I_SLICE)
+        if (hevcSliceParams->LongSliceFlags.fields.slice_type == cmd.SLICE_TYPE_I_SLICE)
+        {
+            isLowDelay = 0;
+        }
+        else
         {
             for (uint8_t i = 0; i < hevcSliceParams->num_ref_idx_l0_active_minus1 + 1; i++)
             {
@@ -633,17 +637,17 @@ protected:
                     break;
                 }
             }
-        }
 
-        if (hevcSliceParams->LongSliceFlags.fields.slice_type == cmd.SLICE_TYPE_B_SLICE)
-        {
-            for (uint8_t i = 0; i < hevcSliceParams->num_ref_idx_l1_active_minus1 + 1; i++)
+            if (hevcSliceParams->LongSliceFlags.fields.slice_type == cmd.SLICE_TYPE_B_SLICE)
             {
-                uint8_t  refFrameID = hevcSliceParams->RefPicList[1][i].FrameIdx;
-                if (hevcPicParams->PicOrderCntValList[refFrameID] > hevcPicParams->CurrPicOrderCntVal)
+                for (uint8_t i = 0; i < hevcSliceParams->num_ref_idx_l1_active_minus1 + 1; i++)
                 {
-                    isLowDelay = 0;
-                    break;
+                    uint8_t  refFrameID = hevcSliceParams->RefPicList[1][i].FrameIdx;
+                    if (hevcPicParams->PicOrderCntValList[refFrameID] > hevcPicParams->CurrPicOrderCntVal)
+                    {
+                        isLowDelay = 0;
+                        break;
+                    }
                 }
             }
         }
