@@ -45,7 +45,6 @@ media_include_subdirectory(agnostic)
 media_include_subdirectory(linux)
 include(${CMAKE_CURRENT_LIST_DIR}/media_srcs_ext.cmake OPTIONAL)
 
-
 include(${MEDIA_DRIVER_CMAKE}/media_include_paths.cmake)
 
 include(${MEDIA_DRIVER_CMAKE}/media_compile_flags.cmake)
@@ -82,6 +81,8 @@ if (NOT DEFINED INCLUDED_LIBS OR "${INCLUDED_LIBS}" STREQUAL "")
             gmm_umd
         )
     endif()
+
+include(${MEDIA_DRIVER_CMAKE}/ext/media_feature_include_ext.cmake OPTIONAL)
 
 endif(NOT DEFINED INCLUDED_LIBS OR "${INCLUDED_LIBS}" STREQUAL "")
 
