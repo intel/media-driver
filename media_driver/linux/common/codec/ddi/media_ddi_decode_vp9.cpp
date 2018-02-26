@@ -141,12 +141,12 @@ VAStatus DdiDecodeVP9::ParsePicParams(
     picVp9Params->FirstPartitionSize              = picParam->first_partition_size;
     picVp9Params->profile                         = picParam->profile;
 
-    /* Only 8bit depth is supported on VAProfileVP9Profile0.
-     * If it is VAProfileVP9Profile2/3, it is possible to support the 10/12 bit-depth.
+    /* Only 8bit depth is supported on picParam->profile=0.
+     * If picParam->profile=2,3, it is possible to support the 10/12 bit-depth.
      * otherwise the bit_depth is 8.
      */
-    if (((picParam->profile == VAProfileVP9Profile2) ||
-            (picParam->profile == VAProfileVP9Profile3)) &&
+    if (((picParam->profile == CODEC_PROFILE_VP9_PROFILE2) ||
+            (picParam->profile == CODEC_PROFILE_VP9_PROFILE3)) &&
         (picParam->bit_depth >= 8))
     {
         picVp9Params->BitDepthMinus8 = picParam->bit_depth - 8;
@@ -500,8 +500,8 @@ MOS_FORMAT DdiDecodeVP9::GetFormat()
     CodechalDecodeParams *decodeParams = &m_ddiDecodeCtx->DecodeParams;
 
     CODEC_VP9_PIC_PARAMS *picParams = (CODEC_VP9_PIC_PARAMS *)decodeParams->m_picParams;
-    if (((picParams->profile == VAProfileVP9Profile2) ||
-        (picParams->profile == VAProfileVP9Profile3)) &&
+    if (((picParams->profile == CODEC_PROFILE_VP9_PROFILE2) ||
+        (picParams->profile == CODEC_PROFILE_VP9_PROFILE3)) &&
         (picParams->BitDepthMinus8 > 0))
     {
         Format = Format_P010;
