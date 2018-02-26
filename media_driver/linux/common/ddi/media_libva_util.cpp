@@ -1250,7 +1250,7 @@ PDDI_MEDIA_SURFACE_HEAP_ELEMENT DdiMediaUtil_AllocPMediaSurfaceFromHeap(PDDI_MED
 
     if (nullptr == surfaceHeap->pFirstFreeHeapElement)
     {
-        void *newHeapBase = realloc(surfaceHeap->pHeapBase, (surfaceHeap->uiAllocatedHeapElements + DDI_MEDIA_HEAP_INCREMENTAL_SIZE) * sizeof(DDI_MEDIA_SURFACE_HEAP_ELEMENT));
+        void *newHeapBase = MOS_ReallocMemory(surfaceHeap->pHeapBase, (surfaceHeap->uiAllocatedHeapElements + DDI_MEDIA_HEAP_INCREMENTAL_SIZE) * sizeof(DDI_MEDIA_SURFACE_HEAP_ELEMENT));
 
         if (nullptr == newHeapBase)
         {
@@ -1294,7 +1294,7 @@ PDDI_MEDIA_BUFFER_HEAP_ELEMENT DdiMediaUtil_AllocPMediaBufferFromHeap(PDDI_MEDIA
     PDDI_MEDIA_BUFFER_HEAP_ELEMENT  mediaBufferHeapElmt;
     if (nullptr == bufferHeap->pFirstFreeHeapElement)
     {
-        void *newHeapBase = realloc(bufferHeap->pHeapBase, (bufferHeap->uiAllocatedHeapElements + DDI_MEDIA_HEAP_INCREMENTAL_SIZE) * sizeof(DDI_MEDIA_BUFFER_HEAP_ELEMENT));
+        void *newHeapBase = MOS_ReallocMemory(bufferHeap->pHeapBase, (bufferHeap->uiAllocatedHeapElements + DDI_MEDIA_HEAP_INCREMENTAL_SIZE) * sizeof(DDI_MEDIA_BUFFER_HEAP_ELEMENT));
         if (nullptr == newHeapBase)
         {
             DDI_ASSERTMESSAGE("DDI: realloc failed.");
@@ -1336,7 +1336,7 @@ PDDI_MEDIA_IMAGE_HEAP_ELEMENT DdiMediaUtil_AllocPVAImageFromHeap(PDDI_MEDIA_HEAP
 
     if (nullptr == imageHeap->pFirstFreeHeapElement)
     {
-        void *newHeapBase = realloc(imageHeap->pHeapBase, (imageHeap->uiAllocatedHeapElements + DDI_MEDIA_HEAP_INCREMENTAL_SIZE) * sizeof(DDI_MEDIA_IMAGE_HEAP_ELEMENT));
+        void *newHeapBase = MOS_ReallocMemory(imageHeap->pHeapBase, (imageHeap->uiAllocatedHeapElements + DDI_MEDIA_HEAP_INCREMENTAL_SIZE) * sizeof(DDI_MEDIA_IMAGE_HEAP_ELEMENT));
 
         if (nullptr == newHeapBase)
         {
@@ -1383,7 +1383,7 @@ PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT DdiMediaUtil_AllocPVAContextFromHeap(PDDI_MEDI
     PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT   vacontextHeapElmt;
     if (nullptr == vaContextHeap->pFirstFreeHeapElement)
     {
-        void *newHeapBase = realloc(vaContextHeap->pHeapBase, (vaContextHeap->uiAllocatedHeapElements + DDI_MEDIA_HEAP_INCREMENTAL_SIZE) * sizeof(DDI_MEDIA_VACONTEXT_HEAP_ELEMENT));
+        void *newHeapBase = MOS_ReallocMemory(vaContextHeap->pHeapBase, (vaContextHeap->uiAllocatedHeapElements + DDI_MEDIA_HEAP_INCREMENTAL_SIZE) * sizeof(DDI_MEDIA_VACONTEXT_HEAP_ELEMENT));
 
         if (nullptr == newHeapBase)
         {

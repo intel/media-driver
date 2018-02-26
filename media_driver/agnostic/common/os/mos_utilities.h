@@ -904,6 +904,35 @@ void  *MOS_AllocAndZeroMemory(
 #endif // MOS_MESSAGES_ENABLED
 
 //!
+//! \brief    Reallocate memory
+//! \details  Wrapper for realloc(). Performs error checking.
+//!           It modifies memory allocation counter variable
+//!           MosMemAllocCounter for checking memory leaks.
+//! \param    [in] ptr
+//!           Pointer to be reallocated
+//! \param    [in] new_size
+//!           Size of memory to be allocated
+//! \return   void *
+//!           Pointer to allocated memory
+//!
+#if MOS_MESSAGES_ENABLED
+void *MOS_ReallocMemoryUtils(
+    void       *ptr,
+    size_t     newSize,
+    const char *functionName,
+    const char *filename,
+    int32_t    line);
+
+#define MOS_ReallocMemory(ptr, newSize) \
+    MOS_ReallocMemoryUtils(ptr, newSize, __FUNCTION__, __FILE__, __LINE__)
+
+#else // !MOS_MESSAGES_ENABLED
+void *MOS_ReallocMemory(
+    void       *ptr,
+    size_t     newSize);
+#endif // MOS_MESSAGES_ENABLED
+
+//!
 //! \brief    Wrapper for free(). Performs error checking.
 //! \details  Wrapper for free(). Performs error checking.
 //!           It decreases memory allocation counter variable

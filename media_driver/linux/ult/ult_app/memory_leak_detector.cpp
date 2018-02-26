@@ -17,15 +17,23 @@ void MemoryLeakDetector::detect(const DriverDllLoader &drvLoader, Platform_t pla
     int32_t memNinjaCntGfx = drvLoader.Mos_GetMemNinjaCounterGfx();
     if (memNinjaCnt != 0 || memNinjaCntGfx != 0)
     {
+        ifstream log(LOG_PATH);
+        if (!log)
+        {
+            return;
+        }
+        log.close();
+
         const ::testing::TestInfo* curTest = ::testing::UnitTest::GetInstance()->current_test_info();
         string title(curTest->test_case_name());
-        title = title + "." + curTest->name() + " Platform: " + to_string(platform);
+        title = title + "." + curTest->name() + " Platform: " + to_string(platform) + " System memory counter: "
+            + to_string(memNinjaCnt) + " Graphic memory counter: "+ to_string(memNinjaCntGfx);
 
         auto detector = MemoryLeakDetectorIpl::getInstance();
         detector->detect(LOG_PATH);
         detector->generateReport(MEM_LEAK_REPORT_PATH, title);
-        /*EXPECT_TRUE(false) << "Memory leak detected, system memory counter = " << memNinjaCnt
-            << ", graphic memory counter = " << memNinjaCntGfx << ", platform = " << platform << endl;*/
+        EXPECT_TRUE(false) << "Memory leak detected, system memory counter = " << memNinjaCnt
+            << ", graphic memory counter = " << memNinjaCntGfx << ", platform = " << platform << endl;
     }
 
     remove(LOG_PATH);
@@ -68,7 +76,7 @@ void MemoryLeakDetectorIpl::detect(const string &logPath)
     map<uint64_t, int32_t>::iterator pos;
     while(getline(log, line))
     {
-        if (parseLine(line, memInfo))
+        if (parseLine(line, memInfo) < line.size())
         {
             if (memInfo.type == MEM_INFO_TYPE_COUNT)
             {
@@ -113,7 +121,7 @@ void MemoryLeakDetectorIpl::generateReport(const string &reportPath, const strin
         }
 
         line += to_string(getHitNum(idx));
-        //TEST_COUT << "Memory leak: " << line << endl;
+        TEST_COUT << "Memory leak: " << line << endl;
         report << line << endl;
     }
     report << endl;

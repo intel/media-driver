@@ -2602,6 +2602,54 @@ void  *MOS_AllocAndZeroMemory(size_t size)
 }
 
 //!
+//! \brief    Reallocate memory
+//! \details  Wrapper for realloc(). Performs error checking.
+//!           It modifies memory allocation counter variable
+//!           MosMemAllocCounter for checking memory leaks.
+//! \param    [in] ptr
+//!           Pointer to be reallocated
+//! \param    [in] new_size
+//!           Size of memory to be allocated
+//! \return   void *
+//!           Pointer to allocated memory
+//!
+#if MOS_MESSAGES_ENABLED
+void *MOS_ReallocMemoryUtils(
+    void       *ptr,
+    size_t     newSize,
+    const char *functionName,
+    const char *filename,
+    int32_t    line)
+#else
+void *MOS_ReallocMemory(
+    void       *ptr,
+    size_t     newSize)
+#endif // MOS_MESSAGES_ENABLED
+{
+    void *oldPtr = ptr;
+    void *newPtr = realloc(ptr, newSize);
+
+    MOS_OS_ASSERT(newPtr != nullptr);
+
+    if (newPtr != oldPtr)
+    {
+        if (oldPtr != nullptr)
+        {
+            MosMemAllocCounter--;
+            MOS_MEMNINJA_FREE_MESSAGE(oldPtr, functionName, filename, line);
+        }
+
+        if (newPtr != nullptr)
+        {
+            MosMemAllocCounter++;
+            MOS_MEMNINJA_ALLOC_MESSAGE(newPtr, newSize, functionName, filename, line);
+        }
+    }
+
+    return newPtr;
+}
+
+//!
 //! \brief    Wrapper for free(). Performs error checking.
 //! \details  Wrapper for free(). Performs error checking.
 //!           It decreases memory allocation counter variable
