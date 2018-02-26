@@ -36,3 +36,5 @@ endif()
 if (IS_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../msdk-install/mediasdk)
     install (DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../msdk-install/mediasdk DESTINATION /opt/intel COMPONENT media)
 endif()
+
+include(${CMAKE_CURRENT_LIST_DIR}/media_driver/cmake/ext/linux/pack_ext_cp.cmake OPTIONAL)
