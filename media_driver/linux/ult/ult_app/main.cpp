@@ -22,28 +22,86 @@
 // main.cpp : Defines the entry point for the console application.
 //
 #include <stdio.h>
+#include <cctype>
+#include <string>
 #include "gtest/gtest.h"
+#include "devconfig.h"
 
-char* DirverPath;
+using namespace std;
+
+const char* DirverPath;
+vector<Platform_t> g_platform;
+
+bool parseCmd(int argc, char* argv[]);
 
 int main(int argc, char* argv[])
 {
     testing::InitGoogleTest(&argc, argv);
 
-    if (argc == 1 )
+    if (parseCmd(argc, argv) == false)
     {
-        DirverPath = NULL;
-    }
-    else if (argc == 2)
-    {
-        DirverPath = argv[1];
-    }
-    else
-    {
-        printf("\nERROR: bad command line parameter!\n");
-        printf("Usage: drvult.exe <driver_path> (note: use default driver relative path if not specify driver_path)\n");
         return -1;
     }
 
     return RUN_ALL_TESTS();
+}
+
+bool parsePlatform(const char *str);
+bool parseDriverPath(const char *str);
+
+bool parseCmd(int argc, char* argv[])
+{
+    DirverPath = nullptr;
+    g_platform.clear();
+
+    for (int i = 1; i < argc; i++)
+    {
+        if (parseDriverPath(argv[i]) == false && parsePlatform(argv[i]) == false)
+        {
+            printf("ERROR\n    Bad command line parameter!\n\n");
+            printf("USAGE\n    drvult.exe [driver_path] [platform_name...]\n\n");
+            printf("DESCRIPTION\n    [driver_path]     : Use default driver relative path if not specify driver_path.\n"
+                "    [platform_name...]: Select zero or more items from {SKL, BXT, BDW, CNL}.\n\n");
+            printf("EXAMPLE\n    drvult.exe\n"
+                "    drvult.exe ./build/media_driver/iHD_drv_video.so\n"
+                "    drvult.exe skl\n"
+                "    drvult.exe ./build/media_driver/iHD_drv_video.so skl\n"
+                "    drvult.exe ./build/media_driver/iHD_drv_video.so skl cnl\n\n");
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool parsePlatform(const char *str)
+{
+    string tmpStr(str);
+
+    for (auto i = tmpStr.begin(); i != tmpStr.end(); i++)
+    {
+        *i = toupper(*i);
+    }
+
+    for (int i = 0; i < (int)igfx_MAX; i++)
+    {
+        if (tmpStr.compare(g_platformName[i]) == 0)
+        {
+            g_platform.push_back((Platform_t)i);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool parseDriverPath(const char *str)
+{
+    if (DirverPath == nullptr && strstr(str, "iHD_drv_video.so") != nullptr)
+    {
+        DirverPath = str;
+        return true;
+    }
+
+    return false;
 }

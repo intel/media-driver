@@ -27,6 +27,14 @@
 
 #include "driver_loader.h"
 extern char* DirverPath;
+extern vector<Platform_t> g_platform;
+
+const char *g_platformName[] = {
+    "SKL",
+    "BXT",
+    "BDW",
+    "CNL",
+};
 
 DriverDllLoader::DriverDllLoader()
 {
@@ -48,6 +56,11 @@ DriverDllLoader::DriverDllLoader()
         igfxCANNONLAKE
 #endif
     };
+
+    if (g_platform.size() > 0)
+    {
+        platformArray = g_platform;
+    }
 }
 
 DriverDllLoader::DriverDllLoader(char* path)
