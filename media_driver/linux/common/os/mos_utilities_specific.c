@@ -2124,7 +2124,9 @@ finish:
 
 MOS_STATUS MOS_OS_Utilities_Close()
 {
-    MOS_STATUS     eStatus = MOS_STATUS_SUCCESS;
+    int32_t                             MemoryCounter = 0;
+    MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
+    MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
 
     // lock mutex to avoid multi close in multi-threading env
     MOS_LockMutex(&gMosUtilMutex);
@@ -2132,9 +2134,15 @@ MOS_STATUS MOS_OS_Utilities_Close()
     if (uiMOSUtilInitCount == 0 )
     {
         MOS_TraceEventClose();
+        MemoryCounter = MosMemAllocCounter + MosMemAllocCounterGfx;
         MosMemAllocCounterNoUserFeature = MosMemAllocCounter;
         MosMemAllocCounterNoUserFeatureGfx = MosMemAllocCounterGfx;
         MOS_OS_VERBOSEMESSAGE("MemNinja leak detection end");
+
+        UserFeatureWriteData.Value.i32Data    =   MemoryCounter;
+        UserFeatureWriteData.ValueID          = __MEDIA_USER_FEATURE_VALUE_MEMNINJA_COUNTER_ID;
+        MOS_UserFeature_WriteValues_ID(NULL, &UserFeatureWriteData, 1);
+
         eStatus = MOS_DestroyUserFeatureKeysForAllDescFields();
 #if _MEDIA_RESERVED
         if (utilUserInterface) delete utilUserInterface;
