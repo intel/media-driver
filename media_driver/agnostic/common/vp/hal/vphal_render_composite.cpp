@@ -1692,7 +1692,8 @@ bool CompositeState::AddCompLayer(
     }
 
     // Number of AVS, but lumaKey and BOB DI needs 3D sampler instead of AVS sampler.
-    if (pSource->ScalingMode == VPHAL_SCALING_AVS  && !pSource->pLumaKeyParams && !IsBobDiEnabled(pSource))
+    if (pSource->ScalingMode == VPHAL_SCALING_AVS  && !pSource->pLumaKeyParams && !IsBobDiEnabled(pSource) &&
+        pComposite->nLumaKeys)
     {
         pComposite->nAVS--;
     }
