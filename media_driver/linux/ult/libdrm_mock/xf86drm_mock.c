@@ -55,6 +55,7 @@
 #ifdef HAVE_SYS_MKDEV_H
 # include <sys/mkdev.h> /* defines major(), minor(), and makedev() on Solaris */
 #endif
+#include <sys/sysmacros.h>
 
 /* Not all systems have MAP_FAILED defined */
 #ifndef MAP_FAILED
