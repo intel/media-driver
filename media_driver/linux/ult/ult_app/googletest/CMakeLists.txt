@@ -19,7 +19,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 cmake_minimum_required(VERSION 2.8)
 
-project(drvult)
+project(devult)
 
 set(INC_PATH ./include ./)
 include_directories(${INC_PATH})

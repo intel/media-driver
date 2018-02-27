@@ -19,7 +19,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 cmake_minimum_required(VERSION 3.1)
 
-project(drvult)
+project(devult)
 
 add_subdirectory(googletest)
 
@@ -57,10 +57,10 @@ set(CMAKE_C_COMPILER "g++")
 SET(CMAKE_C_FLAGS "-g -O0")
 SET(CMAKE_CXX_FLAGS "-g -O0")
 
-add_executable(drvult ${SOURCES})
+add_executable(devult ${SOURCES})
 
 LINK_DIRECTORIES(/usr/lib/x86_64-linux-gnu/)
-TARGET_LINK_LIBRARIES(drvult libgtest libdl.so)
+TARGET_LINK_LIBRARIES(devult libgtest libdl.so)
 
 
 if (DEFINED BUILD_TYPE AND "${BUILD_TYPE}" STREQUAL "debug")
@@ -73,7 +73,7 @@ if (DEFINED BYPASS_MEDIA_ULT AND "${BYPASS_MEDIA_ULT}" STREQUAL "yes")
 else ()
 
 if (NOT "${Full_Open_Source_Support}" STREQUAL "yes")
-add_custom_target(RunULT ALL DEPENDS iHD_drv_video drvult)
+add_custom_target(RunULT ALL DEPENDS iHD_drv_video devult)
 
 if(${Use_CP_Stub} STREQUAL "no")
 add_custom_command(
@@ -87,9 +87,9 @@ endif()
 add_custom_command(
     TARGET RunULT
     POST_BUILD
-    COMMAND LD_PRELOAD=../libdrm_mock/libdrm_mock.so ./drvult ../../../iHD_drv_video.so
+    COMMAND LD_PRELOAD=../libdrm_mock/libdrm_mock.so ./devult ../../../iHD_drv_video.so
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    COMMENT "Running drvult..."
+    COMMENT "Running devult..."
 )
 endif ()
 

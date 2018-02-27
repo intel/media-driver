@@ -43,7 +43,7 @@ ADD_SUBDIRECTORY(libdrm_mock)
 ADD_SUBDIRECTORY(ult_app)
 
 enable_testing()  
-ADD_TEST(NAME test_devult COMMAND drvult ${UMD_PATH})   
+ADD_TEST(NAME test_devult COMMAND devult ${UMD_PATH})   
 SET_TESTS_PROPERTIES(test_devult  
     PROPERTIES PASS_REGULAR_EXPRESSION "PASS")  
 SET_TESTS_PROPERTIES(test_devult  

@@ -59,14 +59,14 @@ bool parseCmd(int argc, char* argv[])
         if (parseDriverPath(argv[i]) == false && parsePlatform(argv[i]) == false)
         {
             printf("ERROR\n    Bad command line parameter!\n\n");
-            printf("USAGE\n    drvult.exe [driver_path] [platform_name...]\n\n");
+            printf("USAGE\n    devult [driver_path] [platform_name...]\n\n");
             printf("DESCRIPTION\n    [driver_path]     : Use default driver relative path if not specify driver_path.\n"
                 "    [platform_name...]: Select zero or more items from {SKL, BXT, BDW, CNL}.\n\n");
-            printf("EXAMPLE\n    drvult.exe\n"
-                "    drvult.exe ./build/media_driver/iHD_drv_video.so\n"
-                "    drvult.exe skl\n"
-                "    drvult.exe ./build/media_driver/iHD_drv_video.so skl\n"
-                "    drvult.exe ./build/media_driver/iHD_drv_video.so skl cnl\n\n");
+            printf("EXAMPLE\n    devult\n"
+                "    devult ./build/media_driver/iHD_drv_video.so\n"
+                "    devult skl\n"
+                "    devult ./build/media_driver/iHD_drv_video.so skl\n"
+                "    devult ./build/media_driver/iHD_drv_video.so skl cnl\n\n");
             return false;
         }
     }
