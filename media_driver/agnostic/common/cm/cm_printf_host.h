@@ -90,8 +90,7 @@ typedef struct _CM_PRINT_HEADER{
     unsigned int  height;
     unsigned int  tid;
     unsigned int  reserved3;
-    unsigned int  scalarLow32;
-    unsigned int  scalarHigh32;
+    unsigned long long scalar64;
 }CM_PRINT_HEADER, *PCM_PRINT_HEADER;
 
 enum  PRINT_FMT_STATUS

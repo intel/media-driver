@@ -626,22 +626,22 @@ bool PFParser::outputToken(const char *tkn, PCM_PRINT_HEADER header)
             switch (header->dataType)
             {
                 case CM_PRINT_DATA_TYPE_INT:
-                    m_args[m_numMultArg - m_argsExpected] = *((int*            )&(header->scalarLow32));
+                    m_args[m_numMultArg - m_argsExpected] = *((int*            )&(header->scalar64));
                     break;
                 case CM_PRINT_DATA_TYPE_UINT:
-                    m_args[m_numMultArg - m_argsExpected] = *((unsigned int*   )&(header->scalarLow32));
+                    m_args[m_numMultArg - m_argsExpected] = *((unsigned int*   )&(header->scalar64));
                     break;
                 case CM_PRINT_DATA_TYPE_CHAR:
-                    m_args[m_numMultArg - m_argsExpected] = *((char*           )&(header->scalarLow32));
+                    m_args[m_numMultArg - m_argsExpected] = *((char*           )&(header->scalar64));
                     break;
                 case CM_PRINT_DATA_TYPE_UCHAR:
-                    m_args[m_numMultArg - m_argsExpected] = *((unsigned char*  )&(header->scalarLow32));
+                    m_args[m_numMultArg - m_argsExpected] = *((unsigned char*  )&(header->scalar64));
                     break;
                 case CM_PRINT_DATA_TYPE_SHORT:
-                    m_args[m_numMultArg - m_argsExpected] = *((short*         )&(header->scalarLow32));
+                    m_args[m_numMultArg - m_argsExpected] = *((short*         )&(header->scalar64));
                     break;
                 case CM_PRINT_DATA_TYPE_USHORT:
-                    m_args[m_numMultArg - m_argsExpected] = *((unsigned short*)&(header->scalarLow32));
+                    m_args[m_numMultArg - m_argsExpected] = *((unsigned short*)&(header->scalar64));
                     break;
             }
             m_argsExpected -= 1;
@@ -677,43 +677,43 @@ bool PFParser::outputToken(const char *tkn, PCM_PRINT_HEADER header)
         switch (header->dataType)
         {
         case CM_PRINT_DATA_TYPE_INT:
-            CM_PRINTF(m_streamOut, tkn, *((int*)&(header->scalarLow32)));
+            CM_PRINTF(m_streamOut, tkn, *((int*)&(header->scalar64)));
             break;
 
         case CM_PRINT_DATA_TYPE_UINT:
-            CM_PRINTF(m_streamOut, tkn, *((unsigned int*)&(header->scalarLow32)));
+            CM_PRINTF(m_streamOut, tkn, *((unsigned int*)&(header->scalar64)));
             break;
 
         case CM_PRINT_DATA_TYPE_CHAR:
-            CM_PRINTF(m_streamOut, tkn, *((char*)&(header->scalarLow32)));
+            CM_PRINTF(m_streamOut, tkn, *((char*)&(header->scalar64)));
             break;
 
         case CM_PRINT_DATA_TYPE_UCHAR:
-            CM_PRINTF(m_streamOut, tkn, *((unsigned char*)&(header->scalarLow32)));
+            CM_PRINTF(m_streamOut, tkn, *((unsigned char*)&(header->scalar64)));
             break;
 
         case CM_PRINT_DATA_TYPE_FLOAT:
-            CM_PRINTF(m_streamOut, tkn, *((float*)&(header->scalarLow32)));
+            CM_PRINTF(m_streamOut, tkn, *((float*)&(header->scalar64)));
             break;
 
         case CM_PRINT_DATA_TYPE_SHORT:
-            CM_PRINTF(m_streamOut, tkn, *((short*)&(header->scalarLow32)));
+            CM_PRINTF(m_streamOut, tkn, *((short*)&(header->scalar64)));
             break;
 
         case CM_PRINT_DATA_TYPE_USHORT:
-            CM_PRINTF(m_streamOut, tkn, *((unsigned short*)&(header->scalarLow32)));
+            CM_PRINTF(m_streamOut, tkn, *((unsigned short*)&(header->scalar64)));
             break;
 
         case CM_PRINT_DATA_TYPE_DOUBLE:
-            CM_PRINTF(m_streamOut, tkn, *((double*)&(header->scalarLow32)));
+            CM_PRINTF(m_streamOut, tkn, *((double*)&(header->scalar64)));
             break;
 
         case CM_PRINT_DATA_TYPE_QWORD:
-            CM_PRINTF(m_streamOut, tkn, *((long long*)&(header->scalarLow32)));
+            CM_PRINTF(m_streamOut, tkn, *((long long*)&(header->scalar64)));
             break;
 
         case CM_PRINT_DATA_TYPE_UQWORD:
-            CM_PRINTF(m_streamOut, tkn, *((unsigned long long*)&(header->scalarLow32)));
+            CM_PRINTF(m_streamOut, tkn, *((unsigned long long*)&(header->scalar64)));
             break;
         }
     }
@@ -722,43 +722,43 @@ bool PFParser::outputToken(const char *tkn, PCM_PRINT_HEADER header)
         switch (header->dataType)
         {
         case CM_PRINT_DATA_TYPE_INT:
-            CM_PRINTF(m_streamOut,tkn, m_args[0], *((int*            )&(header->scalarLow32)));
+            CM_PRINTF(m_streamOut,tkn, m_args[0], *((int*            )&(header->scalar64)));
             break;
 
         case CM_PRINT_DATA_TYPE_UINT:
-            CM_PRINTF(m_streamOut,tkn, m_args[0], *((unsigned int*   )&(header->scalarLow32)));
+            CM_PRINTF(m_streamOut,tkn, m_args[0], *((unsigned int*   )&(header->scalar64)));
             break;
 
         case CM_PRINT_DATA_TYPE_CHAR:
-            CM_PRINTF(m_streamOut,tkn, m_args[0], *((char*           )&(header->scalarLow32)));
+            CM_PRINTF(m_streamOut,tkn, m_args[0], *((char*           )&(header->scalar64)));
             break;
 
         case CM_PRINT_DATA_TYPE_UCHAR:
-            CM_PRINTF(m_streamOut,tkn, m_args[0], *((unsigned char*  )&(header->scalarLow32)));
+            CM_PRINTF(m_streamOut,tkn, m_args[0], *((unsigned char*  )&(header->scalar64)));
             break;
 
         case CM_PRINT_DATA_TYPE_FLOAT:
-            CM_PRINTF(m_streamOut,tkn, m_args[0], *((float*          )&(header->scalarLow32)));
+            CM_PRINTF(m_streamOut,tkn, m_args[0], *((float*          )&(header->scalar64)));
             break;
 
         case CM_PRINT_DATA_TYPE_SHORT:
-            CM_PRINTF(m_streamOut,tkn, m_args[0], *((short*          )&(header->scalarLow32)));
+            CM_PRINTF(m_streamOut,tkn, m_args[0], *((short*          )&(header->scalar64)));
             break;
 
         case CM_PRINT_DATA_TYPE_USHORT:
-            CM_PRINTF(m_streamOut,tkn, m_args[0], *((unsigned short* )&(header->scalarLow32)));
+            CM_PRINTF(m_streamOut,tkn, m_args[0], *((unsigned short* )&(header->scalar64)));
             break;
 
         case CM_PRINT_DATA_TYPE_DOUBLE:
-            CM_PRINTF(m_streamOut,tkn, m_args[0], *((double*         )&(header->scalarLow32)));
+            CM_PRINTF(m_streamOut,tkn, m_args[0], *((double*         )&(header->scalar64)));
             break;
 
         case CM_PRINT_DATA_TYPE_QWORD:
-            CM_PRINTF(m_streamOut,tkn, m_args[0], *((long long*          )&(header->scalarLow32)));
+            CM_PRINTF(m_streamOut,tkn, m_args[0], *((long long*          )&(header->scalar64)));
             break;
 
         case CM_PRINT_DATA_TYPE_UQWORD:
-            CM_PRINTF(m_streamOut,tkn, m_args[0], *((unsigned long long* )&(header->scalarLow32)));
+            CM_PRINTF(m_streamOut,tkn, m_args[0], *((unsigned long long* )&(header->scalar64)));
             break;
         }
     }
@@ -767,43 +767,43 @@ bool PFParser::outputToken(const char *tkn, PCM_PRINT_HEADER header)
         switch (header->dataType)
         {
         case CM_PRINT_DATA_TYPE_INT:
-            CM_PRINTF(m_streamOut,tkn, m_args[0], m_args[1], *((int*            )&(header->scalarLow32)));
+            CM_PRINTF(m_streamOut,tkn, m_args[0], m_args[1], *((int*            )&(header->scalar64)));
             break;
 
         case CM_PRINT_DATA_TYPE_UINT:
-            CM_PRINTF(m_streamOut,tkn, m_args[0], m_args[1], *((unsigned int*   )&(header->scalarLow32)));
+            CM_PRINTF(m_streamOut,tkn, m_args[0], m_args[1], *((unsigned int*   )&(header->scalar64)));
             break;
 
         case CM_PRINT_DATA_TYPE_CHAR:
-            CM_PRINTF(m_streamOut,tkn, m_args[0], m_args[1], *((char*           )&(header->scalarLow32)));
+            CM_PRINTF(m_streamOut,tkn, m_args[0], m_args[1], *((char*           )&(header->scalar64)));
             break;
 
         case CM_PRINT_DATA_TYPE_UCHAR:
-            CM_PRINTF(m_streamOut,tkn, m_args[0], m_args[1], *((unsigned char*  )&(header->scalarLow32)));
+            CM_PRINTF(m_streamOut,tkn, m_args[0], m_args[1], *((unsigned char*  )&(header->scalar64)));
             break;
 
         case CM_PRINT_DATA_TYPE_FLOAT:
-            CM_PRINTF(m_streamOut,tkn, m_args[0], m_args[1], *((float*          )&(header->scalarLow32)));
+            CM_PRINTF(m_streamOut,tkn, m_args[0], m_args[1], *((float*          )&(header->scalar64)));
             break;
 
         case CM_PRINT_DATA_TYPE_SHORT:
-            CM_PRINTF(m_streamOut,tkn, m_args[0], m_args[1], *((short*          )&(header->scalarLow32)));
+            CM_PRINTF(m_streamOut,tkn, m_args[0], m_args[1], *((short*          )&(header->scalar64)));
             break;
 
         case CM_PRINT_DATA_TYPE_USHORT:
-            CM_PRINTF(m_streamOut,tkn, m_args[0], m_args[1], *((unsigned short* )&(header->scalarLow32)));
+            CM_PRINTF(m_streamOut,tkn, m_args[0], m_args[1], *((unsigned short* )&(header->scalar64)));
             break;
 
         case CM_PRINT_DATA_TYPE_DOUBLE:
-            CM_PRINTF(m_streamOut,tkn, m_args[0], m_args[1], *((double*         )&(header->scalarLow32)));
+            CM_PRINTF(m_streamOut,tkn, m_args[0], m_args[1], *((double*         )&(header->scalar64)));
             break;
 
         case CM_PRINT_DATA_TYPE_QWORD:
-            CM_PRINTF(m_streamOut,tkn, m_args[0], m_args[1], *((long long*          )&(header->scalarLow32)));
+            CM_PRINTF(m_streamOut,tkn, m_args[0], m_args[1], *((long long*          )&(header->scalar64)));
             break;
 
         case CM_PRINT_DATA_TYPE_UQWORD:
-            CM_PRINTF(m_streamOut,tkn, m_args[0], m_args[1], *((unsigned long long* )&(header->scalarLow32)));
+            CM_PRINTF(m_streamOut,tkn, m_args[0], m_args[1], *((unsigned long long* )&(header->scalar64)));
             break;
         }
     }
