@@ -218,5 +218,11 @@ CodechalEncHevcStateG9Bxt::CodechalEncHevcStateG9Bxt(
     m_noMeKernelForPFrame = false;
 
     m_numRegionsInSlice = 2;
+
+    MOS_STATUS eStatus = InitMhw();
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        CODECHAL_ENCODE_ASSERTMESSAGE("HEVC encoder MHW initialization failed.");
+    }
 }
 

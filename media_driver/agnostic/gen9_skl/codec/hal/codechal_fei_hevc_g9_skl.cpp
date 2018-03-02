@@ -6763,5 +6763,11 @@ CodechalFeiHevcStateG9Skl::CodechalFeiHevcStateG9Skl(CodechalHwInterface* hwInte
     pfnGetKernelHeaderAndSize = GetKernelHeaderAndSize;
     m_noMeKernelForPFrame = false;
     m_feiEnable = true;
+
+    MOS_STATUS eStatus = InitMhw();
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        CODECHAL_ENCODE_ASSERTMESSAGE("HEVC FEI encoder MHW initialization failed.");
+    }
 }
 

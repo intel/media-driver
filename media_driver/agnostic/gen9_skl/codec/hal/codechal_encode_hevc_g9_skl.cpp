@@ -230,5 +230,11 @@ CodechalEncHevcStateG9Skl::CodechalEncHevcStateG9Skl(
     m_kernelBase = (uint8_t *)IGCODECKRN_G9;
     pfnGetKernelHeaderAndSize = GetKernelHeaderAndSize;
     m_noMeKernelForPFrame = false;
+
+    MOS_STATUS eStatus = InitMhw();
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        CODECHAL_ENCODE_ASSERTMESSAGE("HEVC encoder MHW initialization failed.");
+    }
 }
 

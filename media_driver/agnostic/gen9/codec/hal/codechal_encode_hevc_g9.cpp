@@ -9788,12 +9788,6 @@ CodechalEncHevcStateG9::CodechalEncHevcStateG9(
     MOS_ZeroMemory(&m_mvpIndex, sizeof(m_mvpIndex));
 
     m_numRegionsInSlice = 4;
-
-    MOS_STATUS eStatus = InitMhw();
-    if (eStatus != MOS_STATUS_SUCCESS)
-    {
-        CODECHAL_ENCODE_ASSERTMESSAGE("HEVC encoder MHW initialization failed.");
-    }
 }
 
 MOS_STATUS CodechalEncHevcStateG9::InitMhw()
