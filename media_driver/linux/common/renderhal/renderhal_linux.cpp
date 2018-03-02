@@ -46,7 +46,7 @@ bool RenderHal_WaitFrameId(PRENDERHAL_INTERFACE pRenderHal, MOS_GPU_CONTEXT GpuC
 {
     PRENDERHAL_STATE_HEAP pStateHeap = pRenderHal->pStateHeap;
     uint32_t gpuTag = pStateHeap->pSync[0] - 1;
-    while ((int32_t)(gpuTag - dwFrameId) < 0) 
+    while ((int32_t)(gpuTag - dwFrameId) < 0)
     {
         gpuTag = pStateHeap->pSync[0] - 1;
     }
@@ -121,7 +121,7 @@ MOS_STATUS RenderHal_GetSurfaceInfo(
         case Format_NV12:
             pSurface->UPlaneOffset.iSurfaceOffset     = ResDetails.RenderOffset.YUV.U.BaseOffset;
             pSurface->UPlaneOffset.iYOffset           = ResDetails.RenderOffset.YUV.U.YOffset;
-            break;            
+            break;
         case Format_P010:
         case Format_P016:
             pSurface->UPlaneOffset.iSurfaceOffset = (pSurface->dwHeight - pSurface->dwHeight % 32) * pSurface->dwPitch;
@@ -263,8 +263,8 @@ finish:
 //! \details  Set surface state token
 //! \param    [in] pRenderHal
 //!           pointer to render hal 
-//! \param    [in] Surface token parameters   
-//!           Surface token parameters   
+//! \param    [in] Surface token parameters 
+//!           Surface token parameters 
 //! \param    void  *pSurfaceStateToken
 //!           [in/out] pointer to surface state token
 //! \return   MOS_STATUS

@@ -244,7 +244,6 @@ VAStatus DdiCodec_PutSurfaceLinuxVphalExt(
     TypeXDestroyImage         pfn_XDestroyImage = nullptr;
     TypeXPutImage             pfn_XPutImage = nullptr;
 
-
     if (nullptr == draw)
     {
         return VA_STATUS_ERROR_UNKNOWN;
@@ -283,7 +282,7 @@ VAStatus DdiCodec_PutSurfaceLinuxVphalExt(
     gc     = (*pfn_XCreateGC)((Display*)ctx->native_dpy, (Drawable)draw, 0, nullptr);
     depth  = DefaultDepth(ctx->native_dpy, ctx->x11_screen);
 
-    if (TrueColor != visual->c_class) 
+    if (TrueColor != visual->c_class)
     {
         DDI_ASSERTMESSAGE("Default visual of X display must be TrueColor.");
         (*pfn_XFreeGC)((Display*)ctx->native_dpy, gc);
@@ -292,12 +291,12 @@ VAStatus DdiCodec_PutSurfaceLinuxVphalExt(
 
     ximg = (*pfn_XCreateImage)((Display*)ctx->native_dpy, visual, depth, ZPixmap, 0, nullptr,surf_width, surf_height, 32, 0 );
 
-    if (nullptr == ximg) 
+    if (nullptr == ximg)
     {
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
 
-    if (ximg->bits_per_pixel != 32) 
+    if (ximg->bits_per_pixel != 32)
     {
         DDI_ASSERTMESSAGE("Display uses %d bits/pixel this not supported.",ximg->bits_per_pixel);
         (*pfn_XDestroyImage)(ximg);
@@ -307,7 +306,7 @@ VAStatus DdiCodec_PutSurfaceLinuxVphalExt(
 
     ximg->data = (char *)DdiMediaUtil_LockSurface(dstSurfBuffObj, (MOS_LOCKFLAG_READONLY | MOS_LOCKFLAG_WRITEONLY));
 
-    if (nullptr == ximg->data) 
+    if (nullptr == ximg->data)
     {
         DdiMediaUtil_UnlockSurface(dstSurfBuffObj);
         (*pfn_XDestroyImage)(ximg);
@@ -369,7 +368,6 @@ VAStatus DdiCodec_PutSurfaceLinuxHW(
     struct dri_drawable*    dri_drawable;
     union dri_buffer*       buffer;
 
-
     GMM_RESCREATE_PARAMS    gmmParams;
 
     mediaCtx     = DdiMedia_GetMediaContext(ctx);
@@ -388,7 +386,7 @@ VAStatus DdiCodec_PutSurfaceLinuxHW(
     DDI_CHK_NULL(bufferObject, "Null bufferObject", VA_STATUS_ERROR_INVALID_SURFACE);
     DdiMediaUtil_MediaPrintFps();
     pitch = bufferObject->iPitch;
-   
+
     vpCtx         = nullptr;
     if (nullptr != mediaCtx->pVpCtxHeap->pHeapBase)
     {
@@ -413,7 +411,7 @@ VAStatus DdiCodec_PutSurfaceLinuxHW(
    //Init source rectagle
     Rect_init(&rect, 0, 0, srcw, srch);
     Rect_init(&dstRect, dri_drawable->x, dri_drawable->y, dri_drawable->width, dri_drawable->height);
-    
+
     // Source Surface Information
     Surf.Format               = VpGetFormatFromMediaFormat(bufferObject->format);           // Surface format
     Surf.SurfType             = SURF_IN_PRIMARY;       // Surface type (context)
@@ -447,7 +445,7 @@ VAStatus DdiCodec_PutSurfaceLinuxHW(
         {
         case I915_TILING_Y:
            tileType = MOS_TILE_Y;
-           gmmParams.Flags.Info.TiledY    = true; 
+           gmmParams.Flags.Info.TiledY    = true;
            break;
         case I915_TILING_X:
            tileType = MOS_TILE_X;
@@ -568,7 +566,6 @@ static void DdiMedia_yuv2pixel(uint32_t *pixel, int32_t y, int32_t u, int32_t v,
 
     *pixel = (uint32_t)(((r << rshift) & rmask) | ((g << gshift) & gmask) |((b << bshift) & bmask));
 }
-
 
 #define YUV_444P_TO_ARGB() \
     srcY = umdContextY + pitch * srcy;\

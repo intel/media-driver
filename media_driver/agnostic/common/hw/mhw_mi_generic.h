@@ -144,7 +144,7 @@ private:
         }
         else
         {
-            // Send flush_dw to get the timestamp 
+            // Send flush_dw to get the timestamp
             MHW_MI_FLUSH_DW_PARAMS  flushDwParams;
             MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
             flushDwParams.pOsResource           = pResMarker;

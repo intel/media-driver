@@ -175,7 +175,7 @@ static bool InitSklMediaSku(struct GfxDeviceInfo *devInfo,
     {
         MEDIA_WR_SKU(skuTable, FtrSingleVeboxSlice, 1);
     }
-    //SFC enabled/disabled 
+    //SFC enabled/disabled
     MEDIA_WR_SKU(skuTable, FtrSFCPipe, 1);
 
     MEDIA_WR_SKU(skuTable, FtrSSEUPowerGating, 1);

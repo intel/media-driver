@@ -41,7 +41,7 @@ MediaLibvaCapsG9Skl::MediaLibvaCapsG9Skl(DDI_MEDIA_CONTEXT *mediaCtx) : MediaLib
     };
     m_encodeFormatTable = (struct EncodeFormatTable*)(&encodeFormatTableSKL[0]);
     m_encodeFormatCount = sizeof(encodeFormatTableSKL)/sizeof(struct EncodeFormatTable);
-    
+
     return;
 }
 
@@ -87,7 +87,7 @@ VAStatus MediaLibvaCapsG9Skl::GetMbProcessingRateEnc(
     {
         const uint32_t mbRate[7][5] =
         {
-            // GT4 | GT3 |  GT2   | GT1.5  |  GT1 
+            // GT4 | GT3 |  GT2   | GT1.5  |  GT1
             {    0,   0,   750000,  750000,   676280 },
             {    0,   0,   750000,  750000,  661800 },
             {    0,   0,   750000,  750000,  640000 },
@@ -107,7 +107,7 @@ VAStatus MediaLibvaCapsG9Skl::GetMbProcessingRateEnc(
     {
         const uint32_t mbRate[7][5] =
         {
-            // GT4    | GT3   |  GT2   | GT1.5   |  GT1 
+            // GT4    | GT3   |  GT2   | GT1.5   |  GT1
             { 1544090, 1544090, 1544090, 1029393, 676280 },
             { 1462540, 1462540, 1462540,  975027, 661800 },
             { 1165381, 1165381, 1165381,  776921, 640000 },
@@ -141,4 +141,4 @@ VAStatus MediaLibvaCapsG9Skl::GetMbProcessingRateEnc(
 extern template class MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>;
 
 static bool sklRegistered = MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>::
-    RegisterCaps<MediaLibvaCapsG9Skl>((uint32_t)IGFX_SKYLAKE); 
+    RegisterCaps<MediaLibvaCapsG9Skl>((uint32_t)IGFX_SKYLAKE);

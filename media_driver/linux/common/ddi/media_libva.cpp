@@ -37,7 +37,6 @@
 #include <ufo/gralloc.h>
 #endif
 
-
 #ifndef ANDROID
 #include <X11/Xutil.h>
 #endif
@@ -110,7 +109,7 @@ VAStatus DdiMedia_UnmapBuffer (
 );
 
 //!
-//! \brief  Destroy buffer  
+//! \brief  Destroy buffer 
 //! 
 //! \param  [in] ctx
 //!         Pointer to VA driver context
@@ -342,7 +341,7 @@ DdiMedia_HybridQueryBufferAttributes (
 }
 
 //!
-//! \brief  Set Frame ID  
+//! \brief  Set Frame ID 
 //! 
 //! \param  [in] dpy
 //!         VA display
@@ -403,7 +402,7 @@ static DDI_MEDIA_FORMAT  DdiMedia_VaFmtToMediaFmt (int32_t format, int32_t fourc
 }
 
 //!
-//! \brief  Convert media format to OS format  
+//! \brief  Convert media format to OS format 
 //! 
 //! \param  [in] format
 //!         Ddi media format
@@ -465,7 +464,7 @@ int32_t DdiMedia_MediaFormatToOsFormat(DDI_MEDIA_FORMAT format)
 }
 
 //!
-//! \brief  Convert Os format to media format  
+//! \brief  Convert Os format to media format 
 //! 
 //! \param  [in] fourcc
 //!         FourCC
@@ -546,7 +545,7 @@ DDI_MEDIA_FORMAT DdiMedia_OsFormatToMediaFormat(int32_t fourcc, int32_t rtformat
 }
 
 //!
-//! \brief  Apply Os format alpha mask to media format  
+//! \brief  Apply Os format alpha mask to media format 
 //! 
 //! \param  [in] fourcc
 //!         FourCC
@@ -856,7 +855,7 @@ static void DdiMedia_FreeContextHeapElements(VADriverContextP    ctx)
     // Free media memory decompression data structure
     if (mediaCtx->pMediaMemDecompState)
     {
-        MediaMemDecompState *mediaMemCompState = 
+        MediaMemDecompState *mediaMemCompState =
             static_cast<MediaMemDecompState*>(mediaCtx->pMediaMemDecompState);
         MOS_Delete(mediaMemCompState);
         mediaCtx->pMediaMemDecompState = nullptr;
@@ -918,7 +917,7 @@ VAImage* DdiMedia_GetVAImageFromVAImageID (PDDI_MEDIA_CONTEXT mediaCtx, VAImageI
 //!
 //! \return void*
 //!     Pointer to buffer heap element context
-//!     
+//!
 void* DdiMedia_GetCtxFromVABufferID (PDDI_MEDIA_CONTEXT mediaCtx, VABufferID bufferID)
 {
     uint32_t i      = (uint32_t)bufferID;
@@ -958,7 +957,7 @@ uint32_t DdiMedia_GetCtxTypeFromVABufferID (PDDI_MEDIA_CONTEXT mediaCtx, VABuffe
 }
 
 //!
-//! \brief  Destroy image from VA image ID  
+//! \brief  Destroy image from VA image ID 
 //! 
 //! \param  [in] mediaCtx
 //!         Pointer to ddi media context
@@ -978,7 +977,7 @@ bool DdiMedia_DestroyImageFromVAImageID (PDDI_MEDIA_CONTEXT mediaCtx, VAImageID 
 }
 #ifdef _MMC_SUPPORTED
 //!
-//! \brief  Decompress internal media memory  
+//! \brief  Decompress internal media memory 
 //! 
 //! \param  [in] mosCtx
 //!         Pointer to mos context
@@ -1016,7 +1015,7 @@ void DdiMedia_MediaMemoryDecompressInternal(PMOS_CONTEXT mosCtx, PMOS_RESOURCE o
 //! \param  [in]     mediaCtx
 //!     Pointer to ddi media context
 //! \param  [in]     mediaSurface
-//!     Ddi media surface        
+//!     Ddi media surface 
 //!
 //! \return     VAStatus
 //!     VA_STATUS_SUCCESS if success, else fail reason
@@ -1730,7 +1729,6 @@ static VAStatus DdiMedia_GetConfigAttributes(
     return mediaCtx->m_caps->GetConfigAttributes(
             profile, entrypoint, attrib_list, num_attribs);
 }
-
 
 static VAStatus DdiMedia_CreateSurfaces (
     VADriverContextP    ctx,
@@ -2888,7 +2886,6 @@ VAStatus DdiMedia_MapBufferInternal (
     return VA_STATUS_SUCCESS;
 }
 
-
 VAStatus DdiMedia_MapBuffer (
     VADriverContextP    ctx,
     VABufferID          buf_id,
@@ -3186,7 +3183,6 @@ VAStatus DdiMedia_DestroyBuffer (
     return VA_STATUS_SUCCESS;
 }
 
-
 /*
  * Get ready to decode a picture to a target surface
  */
@@ -3281,7 +3277,6 @@ static VAStatus DdiMedia_RenderPicture (
     }
 
 }
-
 
 /*
  * Make the end of rendering for a picture.
@@ -3408,8 +3403,8 @@ static VAStatus DdiMedia_SyncSurface (
                         int32_t j = 0;
                         for (j = 0; j < mediaCtx->pSurfaceHeap->uiAllocatedHeapElements; j++, mediaSurfaceHeapElmt++)
                         {
-                            if (mediaSurfaceHeapElmt != nullptr && 
-                                    mediaSurfaceHeapElmt->pSurface != nullptr && 
+                            if (mediaSurfaceHeapElmt != nullptr &&
+                                    mediaSurfaceHeapElmt->pSurface != nullptr &&
                                     bo == mediaSurfaceHeapElmt->pSurface->bo)
                             {
                                 mediaSurfaceHeapElmt->pSurface->curStatusReport.decode.status = (uint32_t)tempNewReport.m_codecStatus;
@@ -4290,7 +4285,6 @@ VAStatus DdiMedia_SetImagePalette(
 
     return VA_STATUS_ERROR_UNIMPLEMENTED;
 }
-
 
 //!
 //! \brief  Retrive surface data into a VAImage
@@ -5502,7 +5496,7 @@ VAStatus __vaDriverInit(VADriverContextP ctx )
     pVTable->vaCreateBuffer                  = DdiMedia_CreateBuffer;
     pVTable->vaBufferSetNumElements          = DdiMedia_BufferSetNumElements;
     pVTable->vaMapBuffer                     = DdiMedia_MapBuffer;
-    pVTable->vaUnmapBuffer                   = DdiMedia_UnmapBuffer; 
+    pVTable->vaUnmapBuffer                   = DdiMedia_UnmapBuffer;
     pVTable->vaDestroyBuffer                 = DdiMedia_DestroyBuffer;
     pVTable->vaBeginPicture                  = DdiMedia_BeginPicture;
     pVTable->vaRenderPicture                 = DdiMedia_RenderPicture;
@@ -5547,12 +5541,12 @@ VAStatus __vaDriverInit(VADriverContextP ctx )
     //Export PRIMEFD/FLINK to application for buffer sharing with OpenCL/GL
     pVTable->vaAcquireBufferHandle           = DdiMedia_AcquireBufferHandle;
     pVTable->vaReleaseBufferHandle           = DdiMedia_ReleaseBufferHandle;
-#ifndef ANDROID    
+#ifndef ANDROID
     pVTable->vaCreateMFContext               = DdiMedia_CreateMfeContextInternal;
     pVTable->vaMFAddContext                  = DdiMedia_AddContextInternal;
     pVTable->vaMFReleaseContext              = DdiMedia_ReleaseContextInternal;
     pVTable->vaMFSubmit                      = DdiEncode_MfeSubmit;
-#endif    
+#endif
     return DdiMedia__Initialize(ctx, nullptr, nullptr);
 }
 
@@ -5562,7 +5556,7 @@ extern "C" {
 
 //! 
 //! \brief Get VA_MAJOR_VERSION and VA_MINOR_VERSION from libva
-//!  	   To form the function name in the format of _vaDriverInit_[VA_MAJOR_VERSION]_[VA_MINOR_VERSION]
+//!         To form the function name in the format of _vaDriverInit_[VA_MAJOR_VERSION]_[VA_MINOR_VERSION]
 //!
 #define VA_DRV_INIT_DEF(_major,_minor) __vaDriverInit_##_major##_##_minor
 #define VA_DRV_INIT_FUNC(va_major_version, va_minor_version) VA_DRV_INIT_DEF(va_major_version,va_minor_version)
@@ -5670,5 +5664,4 @@ MEDIAAPI_EXPORT VAStatus DdiMedia_MapBuffer2(
 #ifdef __cplusplus
 }
 #endif
-
 

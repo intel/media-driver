@@ -634,7 +634,7 @@ VAStatus DdiMediaDecode::EndPicture(
         DDI_CHK_RET(m_ddiDecodeCtx->pCpDdiInterface->EndPictureCenc(ctx, context),"EndPictureCenc failed!");
         return VA_STATUS_SUCCESS;
     }
-    
+
     DDI_CHK_RET(SetDecodeParams(), "SetDecodeParams failed!");
     DDI_CHK_RET(ClearRefList(&(m_ddiDecodeCtx->RTtbl), true), "ClearRefList failed!");
     if (m_ddiDecodeCtx->pCodecHal == nullptr)
@@ -718,7 +718,7 @@ VAStatus DdiMediaDecode::CreateBuffer(
             buf->format     = Media_Format_CPU;
             break;
         case VAPictureParameterBufferType:
-            buf->pData      = GetPicParamBuf(&(m_ddiDecodeCtx->BufMgr)); 
+            buf->pData      = GetPicParamBuf(&(m_ddiDecodeCtx->BufMgr));
             buf->format     = Media_Format_CPU;
             break;
         case VAIQMatrixBufferType:

@@ -48,7 +48,7 @@ public:
     {
         LoadProfileEntrypoints();
         return VA_STATUS_SUCCESS;
-    }   
+    }
 protected:
     virtual VAStatus GetPlatformSpecificAttrib(VAProfile profile,
             VAEntrypoint entrypoint,

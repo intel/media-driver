@@ -32,7 +32,7 @@
 MediaLibvaCapsG10Cnl::MediaLibvaCapsG10Cnl(DDI_MEDIA_CONTEXT *mediaCtx) : MediaLibvaCapsG10(mediaCtx)
 {
     // CNL supported Encode format
-    static struct EncodeFormatTable encodeFormatTableCNL[] = 
+    static struct EncodeFormatTable encodeFormatTableCNL[] =
     {
         {AVC, DualPipe, VA_RT_FORMAT_YUV420},
         {AVC, Vdenc, VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV444},
@@ -59,11 +59,11 @@ VAStatus MediaLibvaCapsG10Cnl::GetMbProcessingRateEnc(
 
     uint32_t gtIdx = 0;
 
-    if (vdencActive)            
+    if (vdencActive)
     {
         // For AVC Vdenc
         if (codecMode == CODECHAL_ENCODE_MODE_AVC)
-        {   
+        {
             if (MEDIA_IS_SKU(skuTable, FtrULX))
             {
                 const uint32_t mbRate[7] =
@@ -141,7 +141,7 @@ VAStatus MediaLibvaCapsG10Cnl::GetMbProcessingRateEnc(
         {
             return VA_STATUS_ERROR_INVALID_PARAMETER;
         }
-        // AVC Dual pipe mode. Data obtained from regular KBL 
+        // AVC Dual pipe mode. Data obtained from regular KBL
         if (codecMode == CODECHAL_ENCODE_MODE_AVC)
         {
             if (MEDIA_IS_SKU(skuTable, FtrULX))
@@ -197,7 +197,7 @@ VAStatus MediaLibvaCapsG10Cnl::GetMbProcessingRateEnc(
         }
         else
         {
-            return VA_STATUS_ERROR_INVALID_PARAMETER; 
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
         }
     }
     return VA_STATUS_SUCCESS;
@@ -206,4 +206,4 @@ VAStatus MediaLibvaCapsG10Cnl::GetMbProcessingRateEnc(
 extern template class MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>;
 
 static bool cnlRegistered = MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>::
-    RegisterCaps<MediaLibvaCapsG10Cnl>((uint32_t)IGFX_CANNONLAKE); 
+    RegisterCaps<MediaLibvaCapsG10Cnl>((uint32_t)IGFX_CANNONLAKE);

@@ -39,7 +39,7 @@
 #include <va/va_enc_hevc.h>
 #include <va/va_vpp.h>
 #include <va/va_backend_vpp.h>
-#ifdef ANDROID 
+#ifdef ANDROID
 #if VA_MAJOR_VERSION < 1
 #include "va_internal_android.h"
 #endif
@@ -62,7 +62,7 @@
 #endif
 #define DDI_CODEC_GEN_MAX_ATTRIBS_TYPE             4    //VAConfigAttribRTFormat,    VAConfigAttribRateControl,    VAConfigAttribDecSliceMode,    VAConfigAttribEncPackedHeaders
 
-#define DDI_CODEC_GEN_MAX_SURFACE_ATTRIBUTES       17   // Use the same value as I965  
+#define DDI_CODEC_GEN_MAX_SURFACE_ATTRIBUTES       17   // Use the same value as I965
 #define DDI_CODEC_GEN_STR_VENDOR                   "Intel iHD driver - " UFO_VERSION
 
 #define DDI_CODEC_GET_VTABLE(ctx)                  (ctx->vtable)
@@ -123,7 +123,7 @@ typedef struct _DDI_CODEC_VC1BITPLANE_OBJECT
 typedef struct _DDI_CODEC_BITSTREAM_BUFFER_INFO
 {
     uint8_t            *pBaseAddress; // For JPEG it is a memory address when allocate slice data from CPU.
-    uint32_t            uiOffset; 
+    uint32_t            uiOffset;
     uint32_t            uiLength;
     VABufferID          vaBufferId;
     bool                bRendered; // whether this slice data will be rendered.
@@ -134,37 +134,37 @@ typedef struct _DDI_CODEC_BITSTREAM_BUFFER_INFO
 
 typedef struct _DDI_CODEC_BUFFER_PARAM_H264
 {
-    // slice control buffer 
+    // slice control buffer
     VASliceParameterBufferH264                  *pVASliceParaBufH264;
     VASliceParameterBufferBase                  *pVASliceParaBufH264Base;
-    
+
     // one picture buffer
     VAPictureParameterBufferH264                 PicParam264;
-        
+
     // one IQ buffer
     VAIQMatrixBufferH264                         IQm264;
 } DDI_CODEC_BUFFER_PARAM_H264;
 
 typedef struct _DDI_CODEC_BUFFER_PARAM_MPEG2
 {
-    // slice control buffer 
+    // slice control buffer
     VASliceParameterBufferMPEG2                  *pVASliceParaBufMPEG2;
-    
+
     // one picture buffer
     VAPictureParameterBufferMPEG2                 PicParamMPEG2;
-        
+
     // one IQ buffer
     VAIQMatrixBufferMPEG2                         IQmMPEG2;
 } DDI_CODEC_BUFFER_PARAM_MPEG2;
 
 typedef struct _DDI_CODEC_BUFFER_PARAM_VC1
 {
-    // slice control buffer 
+    // slice control buffer
     VASliceParameterBufferVC1                     *pVASliceParaBufVC1;
-    
+
     // one picture buffer
-    VAPictureParameterBufferVC1                   PicParamVC1; 
-    uint8_t                                      *pBitPlaneBuffer; 
+    VAPictureParameterBufferVC1                   PicParamVC1;
+    uint8_t                                      *pBitPlaneBuffer;
     DDI_MEDIA_BUFFER                             *pVC1BitPlaneBuffObject[DDI_CODEC_MAX_BITSTREAM_BUFFER];
     DDI_CODEC_VC1BITPLANE_OBJECT                  VC1BitPlane[DDI_CODEC_MAX_BITSTREAM_BUFFER];
     uint32_t                                      dwVC1BitPlaneIndex;
@@ -173,9 +173,9 @@ typedef struct _DDI_CODEC_BUFFER_PARAM_VC1
 
 typedef struct _DDI_CODEC_BUFFER_PARAM_JPEG
 {
-    // slice parameter buffer 
+    // slice parameter buffer
     VASliceParameterBufferJPEGBaseline                    *pVASliceParaBufJPEG;
-    
+
     // picture parameter buffer
     VAPictureParameterBufferJPEGBaseline                  PicParamJPEG;
 
@@ -183,18 +183,17 @@ typedef struct _DDI_CODEC_BUFFER_PARAM_JPEG
     VAIQMatrixBufferJPEGBaseline                          IQmJPEG;
 } DDI_CODEC_BUFFER_PARAM_JPEG;
 
-
 typedef struct _DDI_CODEC_BUFFER_PARAM_VP8
 {
-    // slice control buffer 
+    // slice control buffer
     VASliceParameterBufferVP8                   *pVASliceParaBufVP8;
-    
+
     // one picture buffer
     VAPictureParameterBufferVP8                  PicParamVP8;
-        
+
     // one IQ buffer
     VAIQMatrixBufferVP8                          IQmVP8;
-    
+
     // Probability data
     DDI_MEDIA_BUFFER                            *pVP8ProbabilityDataBuffObject;
     MOS_RESOURCE                                 resProbabilityDataBuffer;
@@ -207,13 +206,13 @@ typedef struct _DDI_CODEC_BUFFER_PARAM_VP8
 
 typedef struct _DDI_CODEC_BUFFER_PARAM_HEVC
 {
-    // slice control buffer 
+    // slice control buffer
     VASliceParameterBufferHEVC                  *pVASliceParaBufHEVC;
     VASliceParameterBufferBase                  *pVASliceParaBufBaseHEVC;
 
     // one picture buffer
     VAPictureParameterBufferHEVC                 PicParamHEVC;
-        
+
     // one IQ buffer
     VAIQMatrixBufferHEVC                         IQmHEVC;
 } DDI_CODEC_BUFFER_PARAM_HEVC;
@@ -224,7 +223,7 @@ typedef struct _DDI_CODEC_BUFFER_PARAM_VP9
     VADecPictureParameterBufferVP9               PicParamVP9;
 
     // slice control buffer: 8 * sizeof(VASegmentParameterVP9)
-    VASliceParameterBufferVP9                   *pVASliceParaBufVP9;    
+    VASliceParameterBufferVP9                   *pVASliceParaBufVP9;
 } DDI_CODEC_BUFFER_PARAM_VP9;
 
 typedef struct _DDI_CODEC_COM_BUFFER_MGR
@@ -267,7 +266,7 @@ typedef struct _DDI_CODEC_COM_BUFFER_MGR
     VACodedBufferSegment                        *pCodedBufferSegment; // For bitstream output
     VAProcPipelineParameterBuffer                ProcPipelineParamBuffer;
     VAProcFilterParameterBuffer                  ProcFilterParamBuffer;
-    VACodedBufferSegment                        *pCodedBufferSegmentForStatusReport; // for extended Status report such as long-term reference for VP8-F encode 
+    VACodedBufferSegment                        *pCodedBufferSegmentForStatusReport; // for extended Status report such as long-term reference for VP8-F encode
 
     // for External decode StreamOut Buffer
     MOS_RESOURCE                                 resExternalStreamOutBuffer;

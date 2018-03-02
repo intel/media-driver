@@ -210,7 +210,7 @@ typedef union _DDI_MEDIA_SURFACE_STATUS_REPORT
     //!
     //! \struct _DDI_MEDIA_SURFACE_DECODE_STATUS
     //! \brief  Ddi media surface decode status
-    //! 
+    //!
     struct _DDI_MEDIA_SURFACE_DECODE_STATUS
     {
         uint32_t                   status;    // indicate latest decode status for current surface, refer to CODECHAL_STATUS in CodechalDecodeStatusReport.
@@ -220,7 +220,7 @@ typedef union _DDI_MEDIA_SURFACE_STATUS_REPORT
     //!
     //! \struct _DDI_MEDIA_SURFACE_VPP_STATUS
     //! \brief  Ddi media surface vpp status
-    //! 
+    //!
     struct _DDI_MEDIA_SURFACE_VPP_STATUS
     {
         uint32_t                   status;    // indicate latest vpp status for current surface.
@@ -424,8 +424,8 @@ struct DDI_MEDIA_CONTEXT
     PLATFORM            platform;
 
     MediaLibvaCaps     *m_caps;
-    
-	GMM_CLIENT_CONTEXT  *pGmmClientContext;
+
+    GMM_CLIENT_CONTEXT  *pGmmClientContext;
 
 #ifndef ANDROID
     // X11 Func table, for vpgPutSurface (Linux)

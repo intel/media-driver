@@ -35,7 +35,7 @@ VAStatus MediaLibvaCapsG10::GetPlatformSpecificAttrib(VAProfile profile,
         VAConfigAttribType type,
         uint32_t *value)
 {
-    DDI_CHK_NULL(value, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER); 
+    DDI_CHK_NULL(value, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     VAStatus status = VA_STATUS_SUCCESS;
     switch ((int)type)
     {
@@ -128,14 +128,14 @@ VAStatus MediaLibvaCapsG10::LoadHevcEncLpProfileEntrypoints()
     {
         uint32_t configStartIdx = m_encConfigs.size();
         AddEncConfig(VA_RC_CQP);
-		if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels))
-		{
-		    for (int32_t j = 3; j < 7; j++)
+        if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels))
+        {
+            for (int32_t j = 3; j < 7; j++)
             {
                 AddEncConfig(m_encRcMode[j]);
                 AddEncConfig(m_encRcMode[j] | VA_RC_PARALLEL);
             }
-		}
+        }
         AddProfileEntry(VAProfileHEVCMain, VAEntrypointEncSliceLP, attributeList,
                 configStartIdx, m_encConfigs.size() - configStartIdx);
     }
@@ -144,14 +144,14 @@ VAStatus MediaLibvaCapsG10::LoadHevcEncLpProfileEntrypoints()
     {
         uint32_t configStartIdx = m_encConfigs.size();
         AddEncConfig(VA_RC_CQP);
-		if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels))
-		{
-		    for (int32_t j = 3; j < 7; j++)
+        if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels))
+        {
+            for (int32_t j = 3; j < 7; j++)
             {
                 AddEncConfig(m_encRcMode[j]);
                 AddEncConfig(m_encRcMode[j] | VA_RC_PARALLEL);
             }
-		}
+        }
         AddProfileEntry(VAProfileHEVCMain10, VAEntrypointEncSliceLP, attributeList,
                 configStartIdx, m_encConfigs.size() - configStartIdx);
     }
@@ -229,9 +229,9 @@ VAStatus MediaLibvaCapsG10::CheckEncodeResolution(
     switch (profile)
     {
         case VAProfileJPEGBaseline:
-            if (width > m_encJpegMaxWidth 
+            if (width > m_encJpegMaxWidth
                     || width < m_encJpegMinWidth
-                    || height > m_encJpegMaxHeight 
+                    || height > m_encJpegMaxHeight
                     || height < m_encJpegMinHeight)
             {
                 return VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED;
@@ -239,9 +239,9 @@ VAStatus MediaLibvaCapsG10::CheckEncodeResolution(
             break;
         case VAProfileHEVCMain:
         case VAProfileHEVCMain10:
-            if (width > m_maxHevcEncWidth 
+            if (width > m_maxHevcEncWidth
                     || width < m_encMinWidth
-                    || height > m_maxHevcEncHeight 
+                    || height > m_maxHevcEncHeight
                     || height < m_encMinHeight
                     || (width % CODECHAL_MACROBLOCK_WIDTH)
                     || (height % CODECHAL_MACROBLOCK_HEIGHT))
@@ -261,9 +261,9 @@ VAStatus MediaLibvaCapsG10::CheckEncodeResolution(
             }
             break;
         default:
-            if (width > m_encMax4kWidth 
+            if (width > m_encMax4kWidth
                     || width < m_encMinWidth
-                    || height > m_encMax4kHeight 
+                    || height > m_encMax4kHeight
                     || height < m_encMinHeight
                     || (width % CODECHAL_MACROBLOCK_WIDTH)
                     || (height % CODECHAL_MACROBLOCK_HEIGHT))
@@ -272,7 +272,7 @@ VAStatus MediaLibvaCapsG10::CheckEncodeResolution(
             }
             break;
     }
-	return VA_STATUS_SUCCESS;
+    return VA_STATUS_SUCCESS;
 }
 
 VAStatus MediaLibvaCapsG10::CheckDecodeResolution(
@@ -286,28 +286,28 @@ VAStatus MediaLibvaCapsG10::CheckDecodeResolution(
     switch (codecMode)
     {
         case CODECHAL_DECODE_MODE_MPEG2VLD:
-            maxWidth = m_decMpeg2MaxWidth; 
-            maxHeight = m_decMpeg2MaxHeight; 
+            maxWidth = m_decMpeg2MaxWidth;
+            maxHeight = m_decMpeg2MaxHeight;
             break;
         case CODECHAL_DECODE_MODE_VC1VLD:
-            maxWidth = m_decVc1MaxWidth; 
-            maxHeight = m_decVc1MaxHeight; 
+            maxWidth = m_decVc1MaxWidth;
+            maxHeight = m_decVc1MaxHeight;
             break;
         case CODECHAL_DECODE_MODE_JPEG:
-            maxWidth = m_decJpegMaxWidth; 
-            maxHeight = m_decJpegMaxHeight; 
+            maxWidth = m_decJpegMaxWidth;
+            maxHeight = m_decJpegMaxHeight;
             break;
         case CODECHAL_DECODE_MODE_HEVCVLD:
-            maxWidth = m_decHevcMaxWidth; 
-            maxHeight = m_decHevcMaxHeight; 
+            maxWidth = m_decHevcMaxWidth;
+            maxHeight = m_decHevcMaxHeight;
             break;
         case CODECHAL_DECODE_MODE_VP9VLD:
-			maxWidth = m_decVp9MaxWidth; 
-            maxHeight = m_decVp9MaxHeight; 
+            maxWidth = m_decVp9MaxWidth;
+            maxHeight = m_decVp9MaxHeight;
             break;
         default:
-            maxWidth = m_decDefaultMaxWidth; 
-            maxHeight = m_decDefaultMaxHeight; 
+            maxWidth = m_decDefaultMaxWidth;
+            maxHeight = m_decDefaultMaxHeight;
             break;
     }
 
@@ -331,8 +331,8 @@ VAStatus MediaLibvaCapsG10::CheckDecodeResolution(
     }
 }
 
-VAStatus MediaLibvaCapsG10::QueryAVCROIMaxNum(uint32_t rcMode, bool isVdenc, int32_t *maxNum, bool *isRoiInDeltaQP)  
-{ 
+VAStatus MediaLibvaCapsG10::QueryAVCROIMaxNum(uint32_t rcMode, bool isVdenc, int32_t *maxNum, bool *isRoiInDeltaQP)
+{
     DDI_CHK_NULL(maxNum, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(isRoiInDeltaQP, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
 

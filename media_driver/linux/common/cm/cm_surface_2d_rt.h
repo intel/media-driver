@@ -140,7 +140,7 @@ public:
                    uint32_t width,
                    uint32_t height,
                    uint32_t horizontalStride);
-    
+
     bool IsUnalignedGPUCopy(uint32_t widthInBytes,
                             uint32_t height);
 

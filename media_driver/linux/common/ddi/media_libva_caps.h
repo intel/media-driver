@@ -74,7 +74,7 @@ public:
     //!
     //! \return   VAStatus 
     //!           VA_STATUS_SUCCESS if success
-    //!    
+    //!
     VAStatus GetConfigAttributes(
             VAProfile profile,
             VAEntrypoint entrypoint,
@@ -86,10 +86,10 @@ public:
     //!
     //! \param    [in] profile 
     //!           VA profile
-    //!    
+    //! 
     //! \return   VAStatus 
     //!           VA_STATUS_SUCCESS if success
-    //!    
+    //!
     VAStatus CheckProfile(VAProfile profile);
     //!
     //!
@@ -114,7 +114,7 @@ public:
     //!
     //! \return   VAStatus 
     //!           VA_STATUS_SUCCESS if success
-    //!    
+    //!
     VAStatus CreateConfig(
             VAProfile profile,
             VAEntrypoint entrypoint,
@@ -133,7 +133,7 @@ public:
     //!
     //! \return   VAStatus 
     //!           VA_STATUS_SUCCESS if success
-    //!    
+    //!
     VAStatus QueryConfigProfiles(
             VAProfile *profileList,
             int32_t *numProfiles);
@@ -152,7 +152,7 @@ public:
     //!
     //! \return   VAStatus 
     //!           VA_STATUS_SUCCESS if success
-    //!    
+    //!
     VAStatus QueryConfigEntrypoints(
             VAProfile profile,
             VAEntrypoint *entrypointList,
@@ -172,14 +172,14 @@ public:
     //!
     //! \param    [in,out] attribList 
     //!           Pointer to VAConfigAttrib array that can hold at least
-    //!           vaMaxNumConfigAttributes() entries.  
+    //!           vaMaxNumConfigAttributes() entries. 
     //!
     //! \param    [in,out] numAttribs 
     //!           The actual number of VAConfigAttrib returned in the array attribList 
     //!
     //! \return   VAStatus 
     //!           VA_STATUS_SUCCESS if success
-    //!    
+    //!
     VAStatus QueryConfigAttributes(
             VAConfigID configId,
             VAProfile *profile,
@@ -200,12 +200,12 @@ public:
     //!           Pointer to VAEntrypoint of the configuration
     //!
     //! \param    [in,out] rcMode 
-    //!           Return the rcMode for the config ID.  
+    //!           Return the rcMode for the config ID. 
     //!
     //!
     //! \return   VAStatus 
     //!           VA_STATUS_SUCCESS if success
-    //!    
+    //!
     VAStatus GetEncConfigAttr(
             VAConfigID configId,
             VAProfile *profile,
@@ -225,13 +225,13 @@ public:
     //!           Pointer to VAEntrypoint of the configuration
     //!
     //! \param    [in,out] slicemode 
-    //!           Return the slice mode for the config ID.  
+    //!           Return the slice mode for the config ID. 
     //!
     //! \param    [in,out] encrypttype 
-    //!           Return the encryption type for the config ID.  
+    //!           Return the encryption type for the config ID. 
     //!
     //! \param    [in,out] processmode
-    //!           Return the process mode for the config ID.  
+    //!           Return the process mode for the config ID. 
     //!
     //! \return   VAStatus 
     //!           VA_STATUS_SUCCESS if success
@@ -324,7 +324,7 @@ public:
     //!
     //! \return   VAStatus 
     //!           VA_STATUS_SUCCESS if the resolution is supported 
-    //!           VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED if the resolution isn't valid  
+    //!           VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED if the resolution isn't valid 
     //!
     virtual VAStatus CheckDecodeResolution(
             int32_t codecMode,
@@ -346,7 +346,7 @@ public:
     //!
     //! \return   VAStatus 
     //!           VA_STATUS_SUCCESS if the resolution is supported 
-    //!           VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED if the resolution isn't valid  
+    //!           VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED if the resolution isn't valid 
     //!
     virtual VAStatus CheckEncodeResolution(
             VAProfile profile,
@@ -441,7 +441,7 @@ public:
     //!
     bool IsEncFei(VAEntrypoint entrypoint);
 
-    //!    
+    //! 
     //! \brief    Return the CODECHAL_FUNCTION type for give profile and entrypoint 
     //!
     //! \param    [in] profile 
@@ -499,7 +499,7 @@ public:
     //! \return   Std::string encode codec key 
     //!
     std::string GetEncodeCodecKey(VAProfile profile, VAEntrypoint entrypoint);
-    
+
     //!
     //! \brief    Query the suppported image formats 
     //!
@@ -512,7 +512,7 @@ public:
     //!
     //! \return   VAStatus 
     //!           VA_STATUS_SUCCESS if succeed 
-    //! 
+    //!
     VAStatus QueryImageFormats(VAImageFormat *formatList, int32_t *num_formats);
 
     //!
@@ -532,14 +532,14 @@ public:
     //!
     //! \return   VAStatus 
     //!           VA_STATUS_SUCCESS if succeed 
-    //! 
+    //!
     virtual VAStatus QueryAVCROIMaxNum(uint32_t rcMode, bool isVdenc, int32_t *maxNum, bool *isRoiInDeltaQP) = 0;
 
     //!
     //! \brief    Return the maxinum number of supported image formats 
     //!
     //! \return   The maxinum number of supported image formats 
-    //! 
+    //!
     static uint32_t GetImageFormatsMaxNum();
 
     //!
@@ -549,7 +549,7 @@ public:
     //!           Specify the VAConfigID 
     //!
     //! \return   True if the configID is a valid decode config, otherwise false 
-    //! 
+    //!
     bool IsDecConfigId(VAConfigID configId);
 
     //!
@@ -559,7 +559,7 @@ public:
     //!           Specify the VAConfigID 
     //!
     //! \return   True if the configID is a valid encode config, otherwise false 
-    //! 
+    //!
     bool IsEncConfigId(VAConfigID configId);
 
     //!
@@ -569,7 +569,7 @@ public:
     //!           Specify the VAConfigID 
     //!
     //! \return   True if the configID is a valid vp config, otherwise false 
-    //! 
+    //!
     bool IsVpConfigId(VAConfigID configId);
 
     //!
@@ -601,7 +601,7 @@ public:
     //! \return   VAStatus
     //!       VA_STATUS_SUCCESS if succeed 
     //!           VA_STATUS_ERROR_INVALID_CONFIG if the conifgId is invalid
-    //! 
+    //!
     VAStatus DestroyConfig(VAConfigID configId);
 
     //!
@@ -612,7 +612,7 @@ public:
     //!
     //! \return   MediaLibvaCaps * 
     //!           Pointer to Gen specific MediaLibvaCaps if success, otherwise return nullptr
-    //!    
+    //!
     static MediaLibvaCaps * CreateMediaLibvaCaps(DDI_MEDIA_CONTEXT *mediaCtx);
 
     //!
@@ -620,7 +620,7 @@ public:
     //!
     //! \return   VAStatus 
     //!           return VA_STATUS_SUCCESS for success
-    //!    
+    //!
     virtual VAStatus Init()
     {
         // do nothing by default
@@ -638,16 +638,16 @@ protected:
             VAProfile m_profile = VAProfileNone; //!< Profile
             VAEntrypoint m_entrypoint = (VAEntrypoint)0; //!< Entrypoint
             AttribMap *m_attributes = nullptr; //!< Pointer to attributes map
-            int32_t m_configStartIdx = 0; //!< Config Id offset to the decode or encode or vp config Id base            
+            int32_t m_configStartIdx = 0; //!< Config Id offset to the decode or encode or vp config Id base
             //! \brief  The number of config Id that this profile & entrypoint combination supports
             //!
             int32_t m_configNum = 0; //!< Number of configs that above profile & entrypoint combination supports
     };
-    
+
     //!
     //! \struct   DecConfig
     //! \brief    Decode configuration
-    //! 
+    //!
     struct DecConfig
     {
         uint32_t m_sliceMode; //!< Decode slice mode
@@ -658,7 +658,7 @@ protected:
     //!
     //! \enum     CodecType
     //! \brief    Codec type
-    //!     
+    //!
     enum CodecType
     {
         videoEncode, //!< Video encode
@@ -669,7 +669,7 @@ protected:
     enum EncodeFormat
     {
         AVC = 0,
-        HEVC, 
+        HEVC,
         VP9,
         Others = 0xff,
     };
@@ -693,7 +693,7 @@ protected:
     static const uint32_t m_numJpegSurfaceAttr = 7; //!< Number of JPEG surface attributes
     static const uint32_t m_numJpegEncSurfaceAttr = 4; //!< Number of JPEG encode surface attributes
     static const uint16_t m_maxEntrypoints = 7; //!<  Maximum number of supported entrypoints
-    static const uint32_t m_decSliceMode[2]; //!< Store 2 decode slices modes 
+    static const uint32_t m_decSliceMode[2]; //!< Store 2 decode slices modes
     static const uint32_t m_decProcessMode[2]; //!< Store 2 decode process modes
     static const uint32_t m_encRcMode[7]; //!< Store 7 encode rate control modes
     static const uint32_t m_vpSurfaceAttr[m_numVpSurfaceAttr]; //!< Store the VP surface attributes
@@ -716,7 +716,7 @@ protected:
 
     static const uint32_t m_encMinWidth = 32; //!< Minimum width for encoding
     static const uint32_t m_encMinHeight = 32; //!< Minimum height for encoding
-    static const uint32_t m_encMax4kWidth = 
+    static const uint32_t m_encMax4kWidth =
         CODEC_4K_MAX_PIC_WIDTH; //!< Minimum width for encoding
     static const uint32_t m_encMax4kHeight =
         CODEC_4K_MAX_PIC_HEIGHT; //!< Minimum height for encoding
@@ -724,7 +724,7 @@ protected:
     static const uint32_t m_encJpegMinHeight = 16; //!< Minimum height for encoding
     static const uint32_t m_encJpegMaxWidth =
         ENCODE_JPEG_MAX_PIC_WIDTH; //!< Maximum width for JPEG encoding
-    static const uint32_t m_encJpegMaxHeight = 
+    static const uint32_t m_encJpegMaxHeight =
         ENCODE_JPEG_MAX_PIC_HEIGHT; //!< Maximum height for JPEG encoding
     DDI_MEDIA_CONTEXT *m_mediaCtx; //!< Pointer to media context
 
@@ -777,7 +777,7 @@ protected:
     //!
     //! \return   VAStatus 
     //!           VA_STATUS_SUCCESS if success
-    //!    
+    //!
     VAStatus AddDecConfig(uint32_t slicemode, uint32_t encryptType, uint32_t processType);
 
     //!
@@ -819,7 +819,7 @@ protected:
     //!
     //! \return   VAStatus 
     //!           VA_STATUS_SUCCESS if success
-    //!    
+    //!
     VAStatus GetProfileEntrypointFromConfigId(VAConfigID configId,
             VAProfile *profile,
             VAEntrypoint *entrypoint,
@@ -845,8 +845,8 @@ protected:
     //!
     //! \return   VAStatus 
     //!           VA_STATUS_SUCCESS if success
-    //!    
-    VAStatus AddProfileEntry(VAProfile profile, 
+    //!
+    VAStatus AddProfileEntry(VAProfile profile,
             VAEntrypoint entrypoint,
             AttribMap *attributeList,
             int32_t configIdxStart,
@@ -863,7 +863,7 @@ protected:
     //!
     //! \return   int32_t 
     //!           Equal or bigger than zero if success, otherwise return -1
-    //!    
+    //!
     int32_t GetProfileTableIdx(VAProfile profile, VAEntrypoint entrypoint);
 
     //!
@@ -874,7 +874,7 @@ protected:
     //!
     //! \return   VAStatus 
     //!           VA_STATUS_SUCCESS if success
-    //!    
+    //!
     VAStatus CreateAttributeList(AttribMap **attributeList);
 
     //!
@@ -890,7 +890,7 @@ protected:
     //!
     //! \return   VAStatus 
     //!           VA_STATUS_SUCCESS if success
-    //!    
+    //!
     VAStatus InitAttributeTypes(std::vector<VAConfigAttrib> *attribList);
 
     //!
@@ -1148,7 +1148,7 @@ protected:
     //! \brief    Return if image format P010 supported on current platform
     //!
     //! \return   True if P010 is supported, otherwise false 
-    //! 
+    //!
     virtual bool IsP010Supported() = 0;
 
     //!

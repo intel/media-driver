@@ -32,7 +32,7 @@
 const VphalSseuSetting VpHalDefaultSSEUTableG10[baseKernelMaxNumID] =
 {
     // Slice    Sub-Slice       EU      Rsvd(freq)
-    { 2,            3,          8,          0 },     // COMBINED_FC_KERNEL Default  
+    { 2,            3,          8,          0 },     // COMBINED_FC_KERNEL Default
 
     // 2 VEBOX KERNELS
     { 2,            3,          8,          0 },     // VEBOX_SECUREBLOCKCOPY_KERNEL,
@@ -58,7 +58,7 @@ public:
         PRENDERHAL_INTERFACE                pRenderHal,
         MOS_STATUS                          *pStatus) :
         VphalRenderer(pRenderHal, pStatus)
-    {        
+    {
         // Set SSEUTable
         pRenderHal->sseuTable = VpHalDefaultSSEUTableG10;
     }

@@ -123,7 +123,7 @@ void DdiMedia_MediaSurfaceToMosResource(DDI_MEDIA_SURFACE *mediaSurface, MOS_RES
     mosResource->TileType  = LinuxToMosTileType(mediaSurface->TileType);
     mosResource->bo        = mediaSurface->bo;
     mosResource->name      = mediaSurface->name;
-    
+
     mosResource->ppCurrentFrameSemaphore   = &mediaSurface->pCurrentFrameSemaphore;
     mosResource->ppReferenceFrameSemaphore = &mediaSurface->pReferenceFrameSemaphore;
     mosResource->bSemInitialized           = false;
@@ -199,7 +199,7 @@ void DdiMedia_MediaBufferToMosResource(DDI_MEDIA_BUFFER *mediaBuffer, MOS_RESOUR
     mosResource->pGmmResInfo   = mediaBuffer->pGmmResourceInfo;
 
     // for MOS wrapper
-    mosResource->bConvertedFromDDIResource = true;	
+    mosResource->bConvertedFromDDIResource = true;
 
     Mos_Solo_SetOsResource(mediaBuffer->pGmmResourceInfo, mosResource);
 }
@@ -211,7 +211,7 @@ void* DdiMedia_GetContextFromContextID (VADriverContextP ctx, VAContextID vaCtxI
 
     mediaCtx  = DdiMedia_GetMediaContext(ctx);
     index    = vaCtxID & DDI_MEDIA_MASK_VACONTEXTID;
-    
+
     if (index >= DDI_MEDIA_MAX_INSTANCE_NUMBER)
         return nullptr;
     if ((vaCtxID&DDI_MEDIA_MASK_VACONTEXT_TYPE) == DDI_MEDIA_VACONTEXTID_OFFSET_CENC)
@@ -297,6 +297,4 @@ bool DdiMedia_DestroyBufFromVABufferID (PDDI_MEDIA_CONTEXT mediaCtx, VABufferID 
     DdiMediaUtil_UnLockMutex(&mediaCtx->BufferMutex);
     return true;
 }
-
-
 

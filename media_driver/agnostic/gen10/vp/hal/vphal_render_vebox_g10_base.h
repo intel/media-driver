@@ -43,7 +43,7 @@
 //! \brief Temporal Denoise Definitions for CNL
 //!
 #define NOISE_HISTORY_MAX_DEFAULT_G10                            208
-#define NOISE_NUMMOTIONPIXELS_THRESHOLD_LOW_G10                  0 
+#define NOISE_NUMMOTIONPIXELS_THRESHOLD_LOW_G10                  0
 #define NOISE_NUMMOTIONPIXELS_THRESHOLD_HIGH_G10                 2
 #define NOISE_NUMMOTIONPIXELS_THRESHOLD_DEFAULT_G10              2
 #define NOISE_CHROMA_LOWTEMPORALPIXELDIFF_THRESHOLD_LOW_G10      4
@@ -174,7 +174,6 @@
 #define VPHAL_VEBOX_CHROMA_DOWNSAMPLING_422_TYPE3_HORZ_OFFSET           1
 #define VPHAL_VEBOX_CHROMA_DOWNSAMPLING_422_TYPE2_VERT_OFFSET           0
 #define VPHAL_VEBOX_CHROMA_DOWNSAMPLING_422_TYPE3_VERT_OFFSET           0
-
 
 struct VEBOX_STATE_UPDATE_STATIC_DATA_G10
 {
@@ -317,7 +316,7 @@ public:
     virtual bool IsNeeded(
         PCVPHAL_RENDER_PARAMS       pcRenderParams,
         RenderpassData              *pRenderPassData);
-    
+
 #if VEBOX_AUTO_DENOISE_SUPPORTED
     virtual MOS_STATUS LoadUpdateDenoiseKernelStaticData(
         int32_t*                        iCurbeOffsetOutDN);
@@ -450,7 +449,7 @@ protected:
 
     //!
     //! \brief    Check if 2 passes CSC are supported on the platform
-    //!               
+    //!
     virtual bool Is2PassesCscPlatformSupported()
     {
         return true;

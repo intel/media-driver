@@ -263,7 +263,6 @@ static struct GfxDeviceInfo cnlGt3eInfo = {
     .InitShadowWa     = InitGen10ShadowWa,
 };
 
-
 static bool cnlDevice5a4a = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x5a4a, &cnlGt1Info);
 

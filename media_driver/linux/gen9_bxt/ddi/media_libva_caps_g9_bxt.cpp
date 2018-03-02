@@ -51,4 +51,4 @@ VAStatus MediaLibvaCapsG9Bxt::GetMbProcessingRateEnc(
 extern template class MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>;
 
 static bool bxtRegistered = MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>::
-    RegisterCaps<MediaLibvaCapsG9Bxt>((uint32_t)IGFX_BROXTON); 
+    RegisterCaps<MediaLibvaCapsG9Bxt>((uint32_t)IGFX_BROXTON);

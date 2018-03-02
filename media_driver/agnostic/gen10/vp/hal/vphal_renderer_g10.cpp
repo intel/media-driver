@@ -75,7 +75,7 @@ void VphalRendererG10::GetCacheCntl(
     }
 }
 
-MOS_STATUS VphalRendererG10::AllocateRenderComponents(   
+MOS_STATUS VphalRendererG10::AllocateRenderComponents(
     PMHW_VEBOX_INTERFACE                pVeboxInterface,
     PMHW_SFC_INTERFACE                  pSfcInterface)
 {

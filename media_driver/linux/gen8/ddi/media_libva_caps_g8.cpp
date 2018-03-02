@@ -36,7 +36,7 @@ VAStatus MediaLibvaCapsG8::GetPlatformSpecificAttrib(
         VAConfigAttribType type,
         uint32_t *value)
 {
-    DDI_CHK_NULL(value, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER); 
+    DDI_CHK_NULL(value, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     VAStatus status = VA_STATUS_SUCCESS;
     switch ((int32_t)type)
     {
@@ -138,8 +138,8 @@ VAStatus MediaLibvaCapsG8::LoadProfileEntrypoints()
 
 VAStatus MediaLibvaCapsG8::QueryAVCROIMaxNum(uint32_t rcMode, bool isVdenc, int32_t *maxNum, bool *isRoiInDeltaQP)
 {
-    DDI_CHK_NULL(maxNum, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER); 
-    DDI_CHK_NULL(isRoiInDeltaQP, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER); 
+    DDI_CHK_NULL(maxNum, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(isRoiInDeltaQP, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_CONDITION(isVdenc == true, "VDEnc is not supported in Gen8", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     *maxNum = ENCODE_DP_AVC_MAX_ROI_NUMBER;
@@ -184,7 +184,7 @@ VAStatus MediaLibvaCapsG8::GetMbProcessingRateEnc(
     {
         const uint32_t mbRate[7][4] =
         {
-            // GT3 |  GT2   | GT1.5  |  GT1 
+            // GT3 |  GT2   | GT1.5  |  GT1
             { 0, 750000, 750000, 676280 },
             { 0, 750000, 750000, 661800 },
             { 0, 750000, 750000, 640000 },
@@ -204,7 +204,7 @@ VAStatus MediaLibvaCapsG8::GetMbProcessingRateEnc(
     {
         const uint32_t mbRate[7][4] =
         {
-            // GT3   |  GT2   | GT1.5  |  GT1 
+            // GT3   |  GT2   | GT1.5  |  GT1
             { 1544090, 1544090, 1029393, 676280 },
             { 1462540, 1462540, 975027, 661800 },
             { 1165381, 1165381, 776921, 640000 },
@@ -239,4 +239,4 @@ VAStatus MediaLibvaCapsG8::GetMbProcessingRateEnc(
 extern template class MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>;
 
 static bool bdwRegistered = MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>::
-    RegisterCaps<MediaLibvaCapsG8>((uint32_t)IGFX_BROADWELL); 
+    RegisterCaps<MediaLibvaCapsG8>((uint32_t)IGFX_BROADWELL);

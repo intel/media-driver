@@ -95,7 +95,6 @@ static bool InitBdwMediaSysInfo(struct GfxDeviceInfo *devInfo, MEDIA_GT_SYSTEM_I
     return true;
 }
 
-
 static bool InitBdwShadowSku(struct GfxDeviceInfo *devInfo,
                              SHADOW_MEDIA_FEATURE_TABLE *skuTable,
                              struct LinuxDriverInfo *drvInfo)
@@ -270,7 +269,6 @@ static bool bdwDevice161e = DeviceInfoFactory<GfxDeviceInfo>::
 
 static bool bdwDevice161b = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x161b, &bdwGt2Info);
-
 
 static bool bdwDevice1622 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x1622, &bdwGt3eInfo);

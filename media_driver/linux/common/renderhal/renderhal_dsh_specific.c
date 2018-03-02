@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      renderhal_dsh_specific.c  
-//! \brief     OS-specific implements for renderhal_dsh module.  
+//! \file      renderhal_dsh_specific.c 
+//! \brief     OS-specific implements for renderhal_dsh module. 
 //!
 #include "renderhal.h"
 

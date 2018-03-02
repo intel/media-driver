@@ -52,9 +52,9 @@ public:
     VphalStateG10(
         PMOS_INTERFACE          pOsInterface,
         PMOS_CONTEXT            pOsDriverContext,
-        MOS_STATUS              *peStatus) : 
+        MOS_STATUS              *peStatus) :
         VphalState(pOsInterface, pOsDriverContext, peStatus)
-    {        
+    {
     }
 
     //!
@@ -63,7 +63,7 @@ public:
     //! \return   VOID
     //!
     virtual ~VphalStateG10()
-    {        
+    {
     }
 
 protected:

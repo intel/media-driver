@@ -142,7 +142,7 @@ VphalState* VphalDevice::CreateFactory(
     vphalState = vphalDevice->m_vphalState;
     MOS_Delete(vphalDevice);
 
-    if (MEDIA_IS_SKU(vphalState->GetSkuTable(), FtrVERing) || 
+    if (MEDIA_IS_SKU(vphalState->GetSkuTable(), FtrVERing) ||
         MEDIA_IS_SKU(vphalState->GetSkuTable(), FtrSFCPipe))
     {
         MhwInterfaces *mhwInterfaces = nullptr;
@@ -157,7 +157,7 @@ VphalState* VphalDevice::CreateFactory(
             vphalState->SetMhwVeboxInterface(mhwInterfaces->m_veboxInterface);
             vphalState->SetMhwSfcInterface(mhwInterfaces->m_sfcInterface);
 
-            // MhwInterfaces always create CP and MI interfaces, so we have to delete those we don't need. 
+            // MhwInterfaces always create CP and MI interfaces, so we have to delete those we don't need.
             MOS_Delete(mhwInterfaces->m_miInterface);
             MOS_Delete(mhwInterfaces->m_cpInterface);
             MOS_Delete(mhwInterfaces);
@@ -368,7 +368,7 @@ void* MmdDevice::CreateFactory(
     void *mmdDevice = device->m_mmdDevice;
     MOS_Delete(mhwInterfaces);
     MOS_Delete(device);
-    
+
     return mmdDevice;
 }
 
@@ -402,9 +402,9 @@ CodechalDecodeNV12ToP010* Nv12ToP010Device::CreateFactory(
         device->Initialize(osInterface);
         nv12ToP01Device = device->m_nv12ToP010device;
     }
-    
+
     MOS_Delete(device);
-    
+
     return nv12ToP01Device;
 }
 

@@ -413,7 +413,6 @@ static struct GfxDeviceInfo sklGt4eInfo = {
     .InitShadowWa     = InitGen9ShadowWa,
 };
 
-
 static struct GfxDeviceInfo bxtGt1Info = {
     .platformType  = PLATFORM_MOBILE,
     .productFamily = IGFX_BROXTON,
@@ -634,7 +633,6 @@ static struct GfxDeviceInfo cflGt3eInfo = {
     .InitShadowWa     = InitGen9ShadowWa,
 };
 
-
 static bool sklDevice1902 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x1902, &sklGt1Info);
 
@@ -680,7 +678,6 @@ static bool sklDevice191e = DeviceInfoFactory<GfxDeviceInfo>::
 static bool sklDevice1921 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x1921, &sklGt2Info);
 
-
 static bool sklDevice1923 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x1923, &sklGt3Info);
 
@@ -711,7 +708,6 @@ static bool sklDevice193b = DeviceInfoFactory<GfxDeviceInfo>::
 
 static bool sklDevice193d = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x193d, &sklGt4eInfo);
-
 
 static bool bxtDevice1a84 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x1a84, &bxtGt1Info);
@@ -821,7 +817,6 @@ static bool cflDevice3e96 = DeviceInfoFactory<GfxDeviceInfo>::
 static bool cflDevice3e9b = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x3e9b, &cflGt2Info);
 
-
 static bool cflDevice3ea5 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x3ea5, &cflGt3eInfo);
 
@@ -833,6 +828,4 @@ static bool cflDevice3ea7 = DeviceInfoFactory<GfxDeviceInfo>::
 
 static bool cflDevice3ea8 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x3ea8, &cflGt3eInfo);
-
-
 

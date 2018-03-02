@@ -48,7 +48,7 @@ public:
     {
         LoadProfileEntrypoints();
         return VA_STATUS_SUCCESS;
-    }   
+    }
 protected:
     static const uint32_t m_maxHevcEncWidth =
         CODEC_8K_MAX_PIC_WIDTH; //!< maxinum width for HEVC encode

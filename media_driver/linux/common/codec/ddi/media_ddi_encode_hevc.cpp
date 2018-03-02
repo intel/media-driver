@@ -761,7 +761,7 @@ VAStatus DdiEncodeHevc::ParsePackedHeaderParams(void *ptr)
         m_encodeCtx->pSliceHeaderData[m_encodeCtx->uiSliceHeaderCnt].BitSize                = encPackedHeaderParamBuf->bit_length;
         m_encodeCtx->pSliceHeaderData[m_encodeCtx->uiSliceHeaderCnt].SkipEmulationByteCount = (encPackedHeaderParamBuf->has_emulation_bytes) ? (encPackedHeaderParamBuf->bit_length + 7) / 8 : 4;
     }
-    else 
+    else
     {
         /* App does not indicate the type, using PPS in general for headers */
         m_encodeCtx->ppNALUnitParams[m_encodeCtx->indexNALUnit]->uiNalUnitType             = HEVC_NAL_UT_PPS;
