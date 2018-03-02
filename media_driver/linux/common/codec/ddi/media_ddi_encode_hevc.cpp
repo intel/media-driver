@@ -329,7 +329,8 @@ VAStatus DdiEncodeHevc::EncodeInCodecHal(uint32_t numSlices)
     encodeParams.bNewVuiData = m_encodeCtx->bNewVuiData;
 
     // Slice level data
-    encodeParams.dwNumSlices = numSlices;
+    encodeParams.dwNumSlices = numSlices > ENCODE_HEVC_VDENC_NUM_MAX_SLICES ? 
+            ENCODE_HEVC_VDENC_NUM_MAX_SLICES : numSlices;
 
     // IQmatrix params
     encodeParams.bNewQmatrixData = m_encodeCtx->bNewQmatrixData;
