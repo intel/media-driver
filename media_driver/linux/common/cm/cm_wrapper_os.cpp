@@ -139,14 +139,17 @@ int32_t DestroyCmDeviceFromVA(VADriverContextP vaDriverCtx, CmDevice *device)
     uint32_t              ctxType;
     VAStatus              vaStatus;
 
-    mediaCtx = DdiMedia_GetMediaContext(vaDriverCtx);
-    CM_DDI_CHK_NULL(vaDriverCtx,
-                "Null vaDriverCtx.",
-                VA_STATUS_ERROR_INVALID_CONTEXT);
+    if (nullptr == vaDriverCtx)
+    {
+        CM_ASSERTMESSAGE("Pointer to VADriverContext is invalid.");
+        return CM_NULL_POINTER;
+    }
+    if (nullptr == device) 
+    {
+        CM_ASSERTMESSAGE("Pointer to CmDevice is invalid.");
+        return CM_NULL_POINTER;
+    }
 
-    CM_DDI_CHK_NULL(device,
-            "Null device.",
-            VA_STATUS_ERROR_INVALID_CONTEXT);
     CmDeviceRT* deviceRT = static_cast<CmDeviceRT*>(device);
     //Get VaCtx ID in MediaCtx
     deviceRT->GetVaCtxID(vaContextID);
@@ -161,6 +164,7 @@ int32_t DestroyCmDeviceFromVA(VADriverContextP vaDriverCtx, CmDevice *device)
     CHK_HR(DestroyCmDevice(device));
 
     // remove from context array
+    mediaCtx = DdiMedia_GetMediaContext(vaDriverCtx);
     DdiMediaUtil_LockMutex(&mediaCtx->CmMutex);
 
     // destroy Cm context
@@ -369,14 +373,14 @@ int32_t CmThinExecute(VADriverContextP vaDriverCtx,
         default:
             hr = CmThinExecuteInternal(device, cmFunctionID, cmPrivateInputData, cmPrivateInputDataSize);
             if (hr == CM_INVALID_PRIVATE_DATA)
-            {
+        {
                 CmWrapperEx *wrapperEx = CmExtensionCreator<CmWrapperEx>::CreateClass();
                 if (wrapperEx != nullptr)
                 {
                     wrapperEx->Initialize((void *)vaDriverCtx);
                     hr = wrapperEx->Execute(device,cmFunctionID, cmPrivateInputData, cmPrivateInputDataSize);
                     MOS_Delete(wrapperEx);
-                }
+        }
                 else
                 {
                     hr = CM_OUT_OF_HOST_MEMORY;

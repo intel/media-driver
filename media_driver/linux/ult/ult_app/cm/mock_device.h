@@ -37,9 +37,11 @@ namespace CMRT_UMD
 typedef int32_t (*ReleaseSurfaceCallback)(void *va_display,
                                           void *surface);
 
-typedef    VAStatus (*vaDestroySurfacesFunc)(VADriverContextP ctx,
+typedef VAStatus (*vaDestroySurfacesFunc)(VADriverContextP ctx,
                                           VASurfaceID *surface_list,
                                           int num_surfaces);
+
+int32_t ReleaseVaSurface(void *va_display, void *surface);
 
 struct CreateDeviceParam
 {
@@ -87,20 +89,34 @@ public:
         : vaCmExtSendReqMsg(driver_loader->vaCmExtSendReqMsg),
           m_cmDevice(nullptr)
     {
-        Create(driver_loader, creation_option);
+        bool successful = Create(driver_loader, creation_option);
+        if (!successful)
+        {
+            assert(0);
+        }
         return;
     }//========
 
-    ~MockDevice() { Release(); }
+    ~MockDevice()
+    {
+        if (!Release())
+        {
+            assert(0);
+        };
+        return;
+    }//========
 
     CmDevice* operator-> () { return m_cmDevice; }
+
+    template<class InputData>
+    int32_t SendRequestMessage(InputData *input, uint32_t function_id);
 
 private:
     bool Create(DriverDllLoader *driver_loader, uint32_t additinal_options);
 
     bool Release();
 
-    VADisplayContext m_va_display;
+    VADisplayContext m_vaDisplay;
     CmExtSendReqMsgFunc vaCmExtSendReqMsg;
     CmDevice *m_cmDevice;
 };//=====================

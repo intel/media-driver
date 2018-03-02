@@ -39,6 +39,19 @@ int32_t ReleaseVaSurface(void *va_display, void *surface)
                                          1);
 }//=========================================
 
+template<class InputData>
+int32_t MockDevice::SendRequestMessage(InputData *input, uint32_t function_id)
+{
+    uint32_t va_module_id = 2;  // VAExtModuleCMRT.
+    uint32_t input_size = sizeof(InputData);
+    int32_t output = 0;
+    uint32_t output_size = sizeof(output_size);
+    return vaCmExtSendReqMsg(&m_vaDisplay, &va_module_id,
+                             &function_id, input,
+                             &input_size, nullptr, &output,
+                             &output_size);   
+}//========================================
+
 bool MockDevice::Create(DriverDllLoader *driver_loader,
                         uint32_t additinal_options)
 {
@@ -46,42 +59,25 @@ bool MockDevice::Create(DriverDllLoader *driver_loader,
     {
         vaDestroySurfaces = driver_loader->vtable.vaDestroySurfaces;
     }
-
-    m_va_display.pDriverContext = &driver_loader->ctx;
+    m_vaDisplay.pDriverContext = &driver_loader->ctx;
 
     CreateDeviceParam creation_param;
     creation_param.release_surface_func = ReleaseVaSurface;
     creation_param.create_option |= additinal_options;
-
-    uint32_t va_module_id = 2;  // VAExtModuleCMRT.
     uint32_t function_id = 0x1000;  // CM_FN_CREATECMDEVICE;
-    uint32_t input_data_size = sizeof(creation_param);
-    void *output_data = nullptr;
-    uint32_t output_data_size = sizeof(output_data);
+    SendRequestMessage(&creation_param, function_id);
 
-    int32_t result = vaCmExtSendReqMsg(&m_va_display, &va_module_id,
-                                       &function_id, &creation_param,
-                                       &input_data_size, 0, output_data,
-                                       &output_data_size);
     m_cmDevice = reinterpret_cast<CmDevice*>(creation_param.device_in_umd);
-    return result? false: true;
-}//============================
+    return CM_SUCCESS == creation_param.return_value;
+}//==================================================
 
 bool MockDevice::Release()
 {
     DestroyDeviceParam destroy_param;
     destroy_param.device_in_umd = m_cmDevice;
-
-    uint32_t va_module_id = 2;
     uint32_t function_id = 0x1001;  // CM_FN_DESTROYCMDEVICE;
-    uint32_t input_data_size = sizeof(destroy_param);
-    void *output_data = m_cmDevice;
-    uint32_t output_data_size = sizeof(output_data);
-
-    int32_t result = vaCmExtSendReqMsg(&m_va_display, &va_module_id,
-                                       &function_id, &destroy_param,
-                                       &input_data_size, 0, output_data,
-                                       &output_data_size);
-    return result? false: true;
-}//============================
+    SendRequestMessage(&destroy_param, function_id);
+    vaDestroySurfaces = nullptr;
+    return CM_SUCCESS == destroy_param.return_value;
+}//=================================================
 }  // namespace
