@@ -285,13 +285,12 @@ public:
     //! \retval     CM_FAILURE otherwise.
     CM_RT_API virtual int32_t DestroySurface( CmSurface3D* &surface3d) = 0;
 
-    //! \brief      Creates a task queue.
+    //! \brief      Creates a task queue corresponding to the render context.
     //! \details    CmQueue is an in-order queue of tasks. Each task is 
     //!             essentially a CmTask object containing kernels that are to 
     //!             be run concurrently. Each kernel can be executed with 
-    //!             multiple threads. Only one CmQueue is supported per CmDevice for now. 
-    //!             Trying to create a second CmQueue will return a previously
-    //!             created CmQueue object.
+    //!             multiple threads. Trying to create a second CmQueue will
+    //!             return an existing object.
     //! \param      [in,out] queue
     //!             Reference to the pointer to the CmQueue.
     //! \retval     CM_SUCCESS if the CmQueue is successfully created.
@@ -1734,8 +1733,7 @@ public:
     //!
     CM_RT_API virtual int32_t
     CreateQueueEx(CmQueue *&queue,
-                  CM_QUEUE_CREATE_OPTION queueCreateOption =
-                  CM_DEFAULT_QUEUE_CREATE_OPTION) = 0;
+                  CM_QUEUE_CREATE_OPTION queueCreateOption) = 0;
 };
 
 #endif  // #ifndef CMRTLIB_LINUX_SHARE_CM_DEVICE_BASE_H_
