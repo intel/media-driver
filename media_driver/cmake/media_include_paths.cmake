@@ -32,6 +32,6 @@ include_directories(${BS_DIR_SOURCE}/huc/inc)
 
 if(${PLATFORM} STREQUAL "linux")
     include(${MEDIA_DRIVER_CMAKE}/linux/media_include_paths_linux.cmake)
+else()
+    include(${MEDIA_DRIVER_CMAKE}/ext/media_include_paths_ext.cmake OPTIONAL)
 endif()
-
-include(${MEDIA_DRIVER_CMAKE}/ext/media_include_paths_ext.cmake OPTIONAL)
