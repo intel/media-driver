@@ -66,7 +66,7 @@ void MemoryLeakDetectorIpl::detect(const string &logPath)
     string line;
     while(getline(log, line))
     {
-        if (line.find("MemNinja leak detection begin"))
+        if (line.find("MemNinja leak detection begin") < line.size())
         {
             break;
         }
@@ -76,7 +76,7 @@ void MemoryLeakDetectorIpl::detect(const string &logPath)
     map<uint64_t, int32_t>::iterator pos;
     while(getline(log, line))
     {
-        if (parseLine(line, memInfo) < line.size())
+        if (parseLine(line, memInfo))
         {
             if (memInfo.type == MEM_INFO_TYPE_COUNT)
             {
