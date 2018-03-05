@@ -86,6 +86,9 @@ VAStatus DdiEncodeAvcFei::ContextInitialize(CodechalSetting * codecHalSettings)
 
 VAStatus DdiEncodeAvcFei::EncodeInCodecHal(uint32_t numSlices)
 {
+    uint8_t   ppsIdx, spsIdx;
+    PCODEC_AVC_ENCODE_PIC_PARAMS      picParams;
+
     DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CHK_NULL(m_encodeCtx->pCodecHal, "nullptr m_encodeCtx->pCodecHal", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CHK_NULL(m_encodeCtx->pMediaCtx, "nullptr m_encodeCtx->pMediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
@@ -93,7 +96,7 @@ VAStatus DdiEncodeAvcFei::EncodeInCodecHal(uint32_t numSlices)
     FeiPreEncParams *preEncParams = (FeiPreEncParams*)(m_encodeCtx->pPreEncParams);
 
     DDI_CODEC_RENDER_TARGET_TABLE *rtTbl     = &(m_encodeCtx->RTtbl);
-    PCODEC_AVC_ENCODE_PIC_PARAMS   picParams = (PCODEC_AVC_ENCODE_PIC_PARAMS)((uint8_t *)m_encodeCtx->pPicParams + m_encodeCtx->PicParamId * sizeof(CODEC_AVC_ENCODE_PIC_PARAMS));
+
     MOS_STATUS status;
 
     EncoderParams *encodeParams = &m_encodeCtx->EncodeParams;
@@ -194,9 +197,12 @@ VAStatus DdiEncodeAvcFei::EncodeInCodecHal(uint32_t numSlices)
             encodeParams->uiSlcStructCaps = CODECHAL_SLICE_STRUCT_ARBITRARYMBSLICE;
         }
 
-        encodeParams->pSeqParams         = m_encodeCtx->pSeqParams;
+        ppsIdx                           = ((PCODEC_AVC_ENCODE_SLICE_PARAMS)(m_encodeCtx->pSliceParams))->pic_parameter_set_id;
+        picParams                        = (PCODEC_AVC_ENCODE_PIC_PARAMS)m_encodeCtx->pPicParams + ppsIdx;
+        spsIdx                           = picParams->seq_parameter_set_id;
+        encodeParams->pSeqParams         = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)m_encodeCtx->pSeqParams + spsIdx;
+        encodeParams->pPicParams         = picParams;
         encodeParams->pVuiParams         = m_encodeCtx->pVuiParams;
-        encodeParams->pPicParams         = m_encodeCtx->pPicParams;
         encodeParams->pSliceParams       = m_encodeCtx->pSliceParams;
         encodeParams->pAVCQCParams       = m_qcParams;
         encodeParams->pAVCRoundingParams = m_roundingParams;
