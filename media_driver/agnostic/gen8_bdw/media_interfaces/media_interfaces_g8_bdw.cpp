@@ -400,7 +400,7 @@ MOS_STATUS MosUtilDeviceG8Bdw::Initialize()
     MosUtil *device = nullptr;
 
     device = MOS_New(MosUtil);
-	
+    
     if (device == nullptr)
     {
         MOSUTIL_FAILURE();

@@ -64,7 +64,7 @@ TARGET_LINK_LIBRARIES(devult libgtest libdl.so)
 
 
 if (DEFINED BUILD_TYPE AND "${BUILD_TYPE}" STREQUAL "debug")
-	set(BYPASS_MEDIA_ULT "yes")
+    set(BYPASS_MEDIA_ULT "yes")
 endif ()
 
 if (DEFINED BYPASS_MEDIA_ULT AND "${BYPASS_MEDIA_ULT}" STREQUAL "yes")

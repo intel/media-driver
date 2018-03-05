@@ -98,7 +98,7 @@ class LinuxKernel2Source(object):
                 os.remove(hexfp)
  
                 print("Compiled %s" % fp);
-		
+        
     def kernel2bin(self):
         cmd = './compile/GenKrnBin component_release vp'
         os.system(cmd)

@@ -720,7 +720,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     CM_HAL_MI_REG_OFFSETS  miRegG9 = { REG_TIMESTAMP_BASE_G9, REG_GPR_BASE_G9 };
 #if (_RELEASE_INTERNAL || _DEBUG)
 #if defined (CM_DIRECT_GUC_SUPPORT)
-	uint64_t                    batchbufferaddress;
+    uint64_t                    batchbufferaddress;
 #endif
 #endif
 
@@ -1122,7 +1122,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
 
     // Submit command buffer
 #if (_RELEASE_INTERNAL || _DEBUG)
-#if defined (CM_DIRECT_GUC_SUPPORT)	
+#if defined (CM_DIRECT_GUC_SUPPORT)    
     CM_HRESULT2MOSSTATUS_AND_CHECK(osInterface->pfnSubmitWorkQueue(osInterface, MOS_GPU_NODE_3D, batchbufferaddress));
 #endif
 #endif

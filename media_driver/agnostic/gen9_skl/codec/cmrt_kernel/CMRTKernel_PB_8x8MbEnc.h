@@ -40,7 +40,7 @@ public:
     void SetupMwScoreboard26Zig(CM_WALKING_PARAMETERS& mwParams, CM_DEPENDENCY& scoreboardParams, uint32_t width, uint32_t height, uint32_t splitCount, uint32_t color);
 
 private:
-	uint16_t m_pictureCodingType = -1; //invalid picture coding type
+    uint16_t m_pictureCodingType = -1; //invalid picture coding type
 };
 
 class CMRTKernelB8x8MbEncUMD:public CMRTKernelPB8x8MbEnc
@@ -53,8 +53,8 @@ public:
 class CMRTKernelP8x8MbEncUMD:public CMRTKernelPB8x8MbEnc
 {
 public:
-	CMRTKernelP8x8MbEncUMD(): CMRTKernelPB8x8MbEnc(P_TYPE){};
-	CM_RETURN_CODE AllocateSurfaces(void *params);
+    CMRTKernelP8x8MbEncUMD(): CMRTKernelPB8x8MbEnc(P_TYPE){};
+    CM_RETURN_CODE AllocateSurfaces(void *params);
 };
 #endif
 

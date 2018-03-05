@@ -296,7 +296,7 @@ private:
     MemoryBlockInternal *m_statePrev = nullptr;
     //! \brief Next block in sorted list, nullptr if this block is last in the sorted list
     MemoryBlockInternal *m_stateNext = nullptr;
-	//! \brief State type for the sorted list to which this block belongs, if between lists type is stateCount
+    //! \brief State type for the sorted list to which this block belongs, if between lists type is stateCount
     State m_stateListType = State::stateCount;
 };
 

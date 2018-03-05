@@ -482,7 +482,7 @@ typedef struct _CODEC_AVC_ENCODE_SEQUENCE_PARAMS
     */
     uint16_t  SlidingWindowSize;
 
-	/*! \brief Indicates maximun bit rate Kbit per second within the sliding window during. 
+    /*! \brief Indicates maximun bit rate Kbit per second within the sliding window during. 
     *
     *  Defined for CBR and VBR. For other BRC modes or CQP, values are ignored. 
     */
@@ -560,8 +560,8 @@ typedef struct _CODEC_AVC_ENCODE_USER_FLAGS
             /*! \brief Specifies if the overlapped operation of intra refresh is disabled
             *
             *    It is valid only when bEnableRollingIntraRefresh is on.
-	        *    \n - 0 : default, overlapped Intra refresh is applied
-	        *    \n - 1 : intra refresh without overlap operation
+            *    \n - 0 : default, overlapped Intra refresh is applied
+            *    \n - 1 : intra refresh without overlap operation
             *
             */
             uint32_t    bDisableRollingIntraRefreshOverlap      : 1;

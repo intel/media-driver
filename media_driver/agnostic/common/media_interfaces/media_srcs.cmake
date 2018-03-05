@@ -29,7 +29,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_mosutil.h
     ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_renderhal.h
     ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_vphal.h
-	${CMAKE_CURRENT_LIST_DIR}/media_interfaces_decode_histogram.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_decode_histogram.h
     ${CMAKE_CURRENT_LIST_DIR}/skuwa_factory.h
 )
 

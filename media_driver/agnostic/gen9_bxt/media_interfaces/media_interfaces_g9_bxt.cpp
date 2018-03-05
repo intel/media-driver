@@ -205,7 +205,7 @@ MOS_STATUS Nv12ToP010DeviceG9Bxt::Initialize(
         MHW_ASSERTMESSAGE("Create Nv12 to P010 interfaces failed.")
         return MOS_STATUS_NO_SPACE;
     }
-	
+    
     return MOS_STATUS_SUCCESS;
 }
 
@@ -498,7 +498,7 @@ MOS_STATUS MosUtilDeviceG9Bxt::Initialize()
     MosUtil *device = nullptr;
 
     device = MOS_New(MosUtil);
-	
+    
     if (device == nullptr)
     {
         MOSUTIL_FAILURE();

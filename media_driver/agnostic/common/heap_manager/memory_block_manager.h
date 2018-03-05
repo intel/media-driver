@@ -379,7 +379,7 @@ private:
     //! \brief Pools of memory blocks sorted by their states based on the state indicated
     //!        by the latest TrackerId. The free pool is sorted in ascending order.
     MemoryBlockInternal *m_sortedBlockList[MemoryBlockInternal::State::stateCount] = {nullptr};
-	//! \brief Number of entries in each sorted block list.
+    //! \brief Number of entries in each sorted block list.
     uint32_t m_sortedBlockListNumEntries[MemoryBlockInternal::State::stateCount] = {0};
     //! \brief Sizes of each block pool.
     //! \brief MemoryBlockInternal::State::pool type blocks have no size, and thus that pool also is expected to be size 0.
@@ -396,7 +396,7 @@ private:
     uint32_t *m_trackerData = nullptr;
     PMOS_INTERFACE m_osInterface = nullptr; //!< OS interface used for managing graphics resources
     bool m_lockHeapsOnAllocate;             //!< All heaps allocated with the keep locked flag.
-	
+    
     //! \brief Persistent storage for the sorted sizes used during AcquireSpace()
     std::list<SortedSizePair> m_sortedSizes;
 };

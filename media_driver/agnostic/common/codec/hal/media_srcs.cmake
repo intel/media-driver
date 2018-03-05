@@ -66,15 +66,15 @@ set(TMP_1_HEADERS_
 set(TMP_2_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_nv12top010.cpp
     ${CMAKE_CURRENT_LIST_DIR}/codechal_decoder.cpp
-	${CMAKE_CURRENT_LIST_DIR}/codechal_decode_histogram.cpp
-	${CMAKE_CURRENT_LIST_DIR}/codechal_decode_histogram_vebox.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_histogram.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_histogram_vebox.cpp
 )
 
 set(TMP_2_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_nv12top010.h
     ${CMAKE_CURRENT_LIST_DIR}/codechal_decoder.h
-	${CMAKE_CURRENT_LIST_DIR}/codechal_decode_histogram.h
-	${CMAKE_CURRENT_LIST_DIR}/codechal_decode_histogram_vebox.h
+    ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_histogram.h
+    ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_histogram_vebox.h
 )
 if(${Decode_Processing_Supported} STREQUAL "yes")
     set(TMP_2_SOURCES_
@@ -164,7 +164,7 @@ if(${JPEG_Decode_Supported} STREQUAL "yes")
         ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_jpeg.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_decode_jpeg.h
     )
-	if(${Decode_Processing_Supported} STREQUAL "yes")
+    if(${Decode_Processing_Supported} STREQUAL "yes")
         set(TMP_2_SOURCES_
             ${TMP_2_SOURCES_}
             ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_sfc_jpeg.cpp
@@ -288,7 +288,7 @@ if(${Common_Encode_Supported} STREQUAL "yes")
         ${CMAKE_CURRENT_LIST_DIR}/codechal_kernel_intra_dist.cpp
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_wp.cpp
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encoder_base.cpp
-		${CMAKE_CURRENT_LIST_DIR}/codechal_encode_tracked_buffer.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_tracked_buffer.cpp
         ${CMAKE_CURRENT_LIST_DIR}/codechal_huc_cmd_initializer.cpp
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_allocator.cpp
     )
@@ -302,7 +302,7 @@ if(${Common_Encode_Supported} STREQUAL "yes")
         ${CMAKE_CURRENT_LIST_DIR}/codechal_kernel_intra_dist.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_wp.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encoder_base.h
-		${CMAKE_CURRENT_LIST_DIR}/codechal_encode_tracked_buffer.h
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_tracked_buffer.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_huc_cmd_initializer.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_allocator.h
     )

@@ -176,7 +176,7 @@ MOS_STATUS MmdDeviceG9Skl::Initialize(
     renderInterface = mhwInterfaces->m_renderInterface;
 
     device = MOS_New(Mmd);
-	
+    
     if (device == nullptr)
     {
         MMD_FAILURE();
@@ -210,7 +210,7 @@ MOS_STATUS Nv12ToP010DeviceG9Skl::Initialize(
         MHW_ASSERTMESSAGE("Create Nv12 to P010 interfaces failed.")
         return MOS_STATUS_NO_SPACE;
     }
-	
+    
     return MOS_STATUS_SUCCESS;
 }
 
@@ -543,7 +543,7 @@ MOS_STATUS MosUtilDeviceG9Skl::Initialize()
     MosUtil *device = nullptr;
 
     device = MOS_New(MosUtil);
-	
+    
     if (device == nullptr)
     {
         MOSUTIL_FAILURE();
