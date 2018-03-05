@@ -619,15 +619,40 @@ VAStatus DdiEncode_MfeSubmit(
         validContextNumber++;
     }
 
+    CmDevice *device = encodeMfeContext->mfeEncodeSharedState->pCmDev;
+    CmTask   *task   = encodeMfeContext->mfeEncodeSharedState->pCmTask;
+    CmQueue  *queue  = encodeMfeContext->mfeEncodeSharedState->pCmQueue;
+    CodechalEncodeMdfKernelResource *resMbencKernel = encodeMfeContext->mfeEncodeSharedState->resMbencKernel;
+    SurfaceIndex *vmeSurface    = encodeMfeContext->mfeEncodeSharedState->vmeSurface;
+    SurfaceIndex *commonSurface = encodeMfeContext->mfeEncodeSharedState->commonSurface;
+
+
     MOS_ZeroMemory(encodeMfeContext->mfeEncodeSharedState, sizeof(MfeSharedState));
+
+    encodeMfeContext->mfeEncodeSharedState->pCmDev   = device;
+    encodeMfeContext->mfeEncodeSharedState->pCmTask  = task;
+    encodeMfeContext->mfeEncodeSharedState->pCmQueue = queue;
+    encodeMfeContext->mfeEncodeSharedState->resMbencKernel = resMbencKernel;
+    encodeMfeContext->mfeEncodeSharedState->vmeSurface     = vmeSurface;
+    encodeMfeContext->mfeEncodeSharedState->commonSurface  = commonSurface;
 
     // Call Enc functions for all the sub contexts
     MOS_STATUS status = MOS_STATUS_SUCCESS;
     for (int32_t i = 0; i < validContextNumber; i++)
     {
         encodeContext  = encodeContexts[i];
-        encodeContext->EncodeParams.ExecCodecFunction = CODECHAL_FUNCTION_ENC;
-        status = encodeContext->pCodecHal->Execute(&encodeContext->EncodeParams);
+        if (encodeContext->vaEntrypoint != VAEntrypointFEI )
+        {
+            encodeContext->EncodeParams.ExecCodecFunction = CODECHAL_FUNCTION_ENC;
+        }
+        else
+        {
+            encodeContext->EncodeParams.ExecCodecFunction = CODECHAL_FUNCTION_FEI_ENC;
+        }
+
+        CodechalEncoderState *encoder = dynamic_cast<CodechalEncoderState *>(encodeContext->pCodecHal);
+
+        status = encoder->Execute(&encodeContext->EncodeParams);
         if (MOS_STATUS_SUCCESS != status)
         {
             DDI_ASSERTMESSAGE("DDI:Failed in Execute Enc!");
@@ -639,8 +664,17 @@ VAStatus DdiEncode_MfeSubmit(
     for (int32_t i = 0; i < validContextNumber; i++)
     {
         encodeContext  = encodeContexts[i];
-        encodeContext->EncodeParams.ExecCodecFunction = CODECHAL_FUNCTION_PAK;
-        status = encodeContext->pCodecHal->Execute(&encodeContext->EncodeParams);
+        if (encodeContext->vaEntrypoint != VAEntrypointFEI )
+        {
+            encodeContext->EncodeParams.ExecCodecFunction = CODECHAL_FUNCTION_PAK;
+        }
+        else
+        {
+            encodeContext->EncodeParams.ExecCodecFunction = CODECHAL_FUNCTION_FEI_PAK;
+        }
+
+        CodechalEncoderState *encoder = dynamic_cast<CodechalEncoderState *>(encodeContext->pCodecHal);
+        status = encoder->Execute(&encodeContext->EncodeParams);
         if (MOS_STATUS_SUCCESS != status)
         {
             DDI_ASSERTMESSAGE("DDI:Failed in Execute Pak!");

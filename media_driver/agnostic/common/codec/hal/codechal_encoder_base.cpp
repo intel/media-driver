@@ -885,7 +885,10 @@ MOS_STATUS CodechalEncoderState::Initialize(
         Destroy();
     }
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateMDFResources());
+    if (!m_feiEnable)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateMDFResources());
+    }
 
     return eStatus;
 }
@@ -919,7 +922,7 @@ MOS_STATUS CodechalEncoderState::DestroyMDFResources()
 {
     uint32_t i;
 
-    if (m_cmTask)
+    if (m_cmDev && m_cmTask)
     {
         m_cmDev->DestroyTask(m_cmTask);
         m_cmTask = nullptr;
@@ -4083,7 +4086,8 @@ MOS_STATUS CodechalEncoderState::ExecuteEnc(
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_hwInterface->GetCpInterface());
 
-    if (m_mfeEnabled == false || encodeParams->ExecCodecFunction == CODECHAL_FUNCTION_ENC)
+    if (m_mfeEnabled == false || encodeParams->ExecCodecFunction == CODECHAL_FUNCTION_ENC
+        || encodeParams->ExecCodecFunction == CODECHAL_FUNCTION_FEI_ENC)
     {
         // No need to wait if the driver is executing on a simulator
         EncodeStatusBuffer* pencodeStatusBuf = CodecHalUsesOnlyRenderEngine(m_codecFunction) ? &m_encodeStatusBufRcs : &m_encodeStatusBuf;
@@ -4274,7 +4278,8 @@ MOS_STATUS CodechalEncoderState::ExecuteEnc(
         }
     }
 
-    if (m_mfeEnabled == false || encodeParams->ExecCodecFunction == CODECHAL_FUNCTION_PAK)
+    if (m_mfeEnabled == false || encodeParams->ExecCodecFunction == CODECHAL_FUNCTION_PAK
+        || encodeParams->ExecCodecFunction == CODECHAL_FUNCTION_FEI_PAK)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(Mos_Solo_PreProcessEncode(m_osInterface, &m_resBitstreamBuffer, &m_reconSurface));
 

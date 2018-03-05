@@ -2147,8 +2147,11 @@ CodechalEncodeAvcEncFeiG9::~CodechalEncodeAvcEncFeiG9()
     DestroyMDFKernelResource(&m_resMeKernel);
     DestroyMDFKernelResource(&resDSKernel);
 #endif
-    DestroyMDFKernelResource(m_resMbencKernel);
-    MOS_FreeMemory(m_resMbencKernel);
+    if (m_resMbencKernel)
+    {
+        DestroyMDFKernelResource(m_resMbencKernel);
+        MOS_FreeMemory(m_resMbencKernel);
+    }
 
     if(nullptr != m_cmSurfIdx)
     {
@@ -2158,10 +2161,12 @@ CodechalEncodeAvcEncFeiG9::~CodechalEncodeAvcEncFeiG9()
     if(nullptr != m_vmeSurface)
     {
         delete [] m_vmeSurface;
+        m_vmeSurface = nullptr;
     }
     if(nullptr != m_commonSurface)
     {
         delete [] m_commonSurface;
+        m_commonSurface = nullptr;
     }
 }
 
@@ -6253,8 +6258,13 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::InitMfe()
         CODECHAL_DEBUG_TOOL(
             m_debugInterface->m_streamId = m_mfeEncodeParams.streamId;)
 
+        //save original MDF resource for each stream
         m_origCmDev          = m_cmDev;
         m_origResMbencKernel = m_resMbencKernel;
+        m_origCmQueue        = m_cmQueue;
+        m_origCmTask         = m_cmTask;
+        m_origVmeSurface     = m_vmeSurface;
+        m_origCommonSurface  = m_commonSurface;
 
         // Whether mfe mbenc kernel is enabled or not
         MOS_USER_FEATURE_VALUE_DATA userFeatureData;
@@ -6277,29 +6287,40 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::InitKernelStateMfeMbEnc()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    CODECHAL_ENCODE_CHK_NULL_RETURN(m_cmDev);
-    m_resMbencKernel = (CodechalEncodeMdfKernelResource*)MOS_AllocAndZeroMemory(
-        sizeof(CodechalEncodeMdfKernelResource));
-    CODECHAL_ENCODE_CHK_NULL_RETURN(m_resMbencKernel);
+    if (m_cmDev)
+    {
+        CODECHAL_ENCODE_CHK_NULL_RETURN(m_cmDev);
+        m_resMbencKernel = (CodechalEncodeMdfKernelResource*)MOS_AllocAndZeroMemory(
+            sizeof(CodechalEncodeMdfKernelResource));
+        CODECHAL_ENCODE_CHK_NULL_RETURN(m_resMbencKernel);
 
-    m_vmeSurface = new (std::nothrow) SurfaceIndex[m_vmeSurfaceSize];
-    CODECHAL_ENCODE_CHK_NULL_RETURN(m_vmeSurface);
+        m_vmeSurface = new (std::nothrow) SurfaceIndex[m_vmeSurfaceSize];
+        CODECHAL_ENCODE_CHK_NULL_RETURN(m_vmeSurface);
 
-    m_commonSurface = new (std::nothrow) SurfaceIndex[m_commonSurfaceSize];
-    CODECHAL_ENCODE_CHK_NULL_RETURN(m_commonSurface);
+        m_commonSurface = new (std::nothrow) SurfaceIndex[m_commonSurfaceSize];
+        CODECHAL_ENCODE_CHK_NULL_RETURN(m_commonSurface);
 
-    auto kernelRes = m_resMbencKernel;
+        auto kernelRes = m_resMbencKernel;
 
-    CreateMDFKernelResource(kernelRes, 1,
-                m_mdfMbencBufSize * CODECHAL_ENCODE_AVC_MFE_MAX_FRAMES_G9,
-                m_mdfMbencSurfSize * CODECHAL_ENCODE_AVC_MFE_MAX_FRAMES_G9,
-                m_mdfMbencVmeSurfSize * CODECHAL_ENCODE_AVC_MFE_MAX_FRAMES_G9,
-                0);
+        CreateMDFKernelResource(kernelRes, 1,
+                    m_mdfMbencBufSize * CODECHAL_ENCODE_AVC_MFE_MAX_FRAMES_G9,
+                    m_mdfMbencSurfSize * CODECHAL_ENCODE_AVC_MFE_MAX_FRAMES_G9,
+                    m_mdfMbencVmeSurfSize * CODECHAL_ENCODE_AVC_MFE_MAX_FRAMES_G9,
+                    0);
 
-    uint32_t codeSize;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(MOS_ReadFileToPtr(strMbEncIsaName, (uint32_t*)&codeSize, &kernelRes->pCommonISA));
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->LoadProgram(kernelRes->pCommonISA, codeSize, kernelRes->pCmProgram, "-nojitter"));
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateKernel(kernelRes->pCmProgram, "AVCEncMB_MFE", kernelRes->ppKernel[0]));
+        uint32_t codeSize;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(MOS_ReadFileToPtr(strMbEncIsaName, (uint32_t*)&codeSize, &kernelRes->pCommonISA));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->LoadProgram(kernelRes->pCommonISA, codeSize, kernelRes->pCmProgram, "-nojitter"));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateKernel(kernelRes->pCmProgram, "AVCEncMB_MFE", kernelRes->ppKernel[0]));
+
+        //save original MDF resource for the stream that created shared MDF device
+        m_origCmDev          = m_cmDev;
+        m_origCmQueue        = m_cmQueue;
+        m_origCmTask         = m_cmTask;
+        m_origResMbencKernel = m_resMbencKernel;
+        m_origVmeSurface     = m_vmeSurface;
+        m_origCommonSurface  = m_commonSurface;
+    }
 
     return eStatus;
 }
@@ -6444,6 +6465,16 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::SendAvcMfeMbEncSurfaces(PMOS_COMMAND_BUFFE
     auto cmBuf          = kernelRes->ppCmBuf;
     auto cmVmeSurfIdx   = kernelRes->ppCmVmeSurf;
 
+    uint32_t surfIdx    = 0;
+    uint32_t bufIdx     = 0;
+    uint32_t vmeIdx     = 0;
+    if (IsMfeMbEncEnabled())
+    {
+        surfIdx = m_mfeEncodeParams.submitIndex * m_mdfMbencSurfSize;
+        bufIdx  = m_mfeEncodeParams.submitIndex * m_mdfMbencBufSize;
+        vmeIdx  = m_mfeEncodeParams.submitIndex * m_mdfMbencVmeSurfSize;
+    }
+
     uint32_t refMbCodeBottomFieldOffset;
     uint32_t refMvBottomFieldOffset;
 
@@ -6465,57 +6496,57 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::SendAvcMfeMbEncSurfaces(PMOS_COMMAND_BUFFE
     // PAK Obj command buffer
     //dwSize = params->dwFrameWidthInMb * params->dwFrameFieldHeightInMb * 16 * 4;  // 11DW + 5DW padding
     // mb code offset     SurfaceCodecParams.dwOffset = params->dwMbCodeBottomFieldOffset;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateBuffer(mbCodeBuffer, cmBuf[mbEncMbCodeBuffer]));
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateBuffer(mvDataBuffer, cmBuf[mbEncMvDataBuffer]));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateBuffer(mbCodeBuffer, cmBuf[mbEncMbCodeBuffer + bufIdx]));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateBuffer(mvDataBuffer, cmBuf[mbEncMvDataBuffer + bufIdx]));
     if((feiPicParams->MbCodeMvEnable) || ((params->dwMbCodeBottomFieldOffset == 0) && (params->dwMvBottomFieldOffset == 0)))
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmBuf[mbEncMbCodeBuffer]->GetIndex(cmSurfaces->MBDataSurfIndex));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmBuf[mbEncMbCodeBuffer + bufIdx]->GetIndex(cmSurfaces->MBDataSurfIndex));
         //MV data offset SurfaceCodecParams.dwOffset = params->dwMvBottomFieldOffset;
         //dwSize = params->dwFrameWidthInMb * params->dwFrameFieldHeightInMb * 32 * 4;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmBuf[mbEncMvDataBuffer]->GetIndex(cmSurfaces->MVDataSurfIndex));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmBuf[mbEncMvDataBuffer + bufIdx]->GetIndex(cmSurfaces->MVDataSurfIndex));
     }
     else
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmBuf[mbEncMbCodeBuffer]->GetIndex(cmSurfaces->MBDataSurfIndex));
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmBuf[mbEncMvDataBuffer]->GetIndex(cmSurfaces->MVDataSurfIndex));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmBuf[mbEncMbCodeBuffer + bufIdx]->GetIndex(cmSurfaces->MBDataSurfIndex));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmBuf[mbEncMvDataBuffer + bufIdx]->GetIndex(cmSurfaces->MVDataSurfIndex));
 
         CM_BUFFER_STATE_PARAM param;
         MOS_ZeroMemory(&param,sizeof(param));
         param.uiSize    = mbCodeSize;
         param.uiBaseAddressOffset  = params->dwMbCodeBottomFieldOffset;
-        cmBuf[mbEncMbCodeBuffer]->SetSurfaceStateParam(cmSurfaces->MBDataSurfIndex, &param);
+        cmBuf[mbEncMbCodeBuffer + bufIdx]->SetSurfaceStateParam(cmSurfaces->MBDataSurfIndex, &param);
 
         param.uiSize    = mvSize;
         param.uiBaseAddressOffset  = params->dwMvBottomFieldOffset;
-        cmBuf[mbEncMvDataBuffer]->SetSurfaceStateParam(cmSurfaces->MVDataSurfIndex, &param);
+        cmBuf[mbEncMvDataBuffer + bufIdx]->SetSurfaceStateParam(cmSurfaces->MVDataSurfIndex, &param);
     }
 
     // Current picture Y    2D, and offset = params->dwCurrPicSurfaceOffset;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D(&params->psCurrPicSurface->OsResource, cmSurf[mbEncSrcYSurf]));
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(cmSurf[mbEncSrcYSurf]->GetIndex(cmSurfaces->SrcYSurfIndex));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D(&params->psCurrPicSurface->OsResource, cmSurf[mbEncSrcYSurf + surfIdx]));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(cmSurf[mbEncSrcYSurf + surfIdx]->GetIndex(cmSurfaces->SrcYSurfIndex));
 
     if(currFieldPicture)
     {
         if(CodecHal_PictureIsBottomField((*params->pCurrOriginalPic)))
         {
-            cmSurf[mbEncSrcYSurf]->SetProperty(CM_BOTTOM_FIELD);
+            cmSurf[mbEncSrcYSurf + surfIdx]->SetProperty(CM_BOTTOM_FIELD);
         }
         else
         {
-            cmSurf[mbEncSrcYSurf]->SetProperty(CM_TOP_FIELD);
+            cmSurf[mbEncSrcYSurf + surfIdx]->SetProperty(CM_TOP_FIELD);
         }
     }
     // AVC_ME MV data buffer
     if (params->bHmeEnabled)
     {
         //2D, and offset  = params->dwMeMvBottomFieldOffset;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D(&params->ps4xMeMvDataBuffer->OsResource, cmSurf[mbEncHMEMVPredFwdBwdSurf]));
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmSurf[mbEncHMEMVPredFwdBwdSurf]->GetIndex(cmSurfaces->HMEMVPredFwdBwdSurfIndex));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D(&params->ps4xMeMvDataBuffer->OsResource, cmSurf[mbEncHMEMVPredFwdBwdSurf + surfIdx]));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmSurf[mbEncHMEMVPredFwdBwdSurf + surfIdx]->GetIndex(cmSurfaces->HMEMVPredFwdBwdSurfIndex));
 
         //HMEdistortion 2D, offset = params->dwMeDistortionBottomFieldOffset;
         CODECHAL_ENCODE_CHK_NULL_RETURN(params->ps4xMeDistortionBuffer);
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D(&params->ps4xMeDistortionBuffer->OsResource, cmSurf[mbEncHMEDistSurf]));
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmSurf[mbEncHMEDistSurf]->GetIndex(cmSurfaces->HMEDistSurfIndex));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D(&params->ps4xMeDistortionBuffer->OsResource, cmSurf[mbEncHMEDistSurf + surfIdx]));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmSurf[mbEncHMEDistSurf + surfIdx]->GetIndex(cmSurfaces->HMEDistSurfIndex));
     }
     //current piture Y take  two binding table offset , dwAvcMBEncCurrPicFrame[0] dwAvcMBEncCurrPicFrame[1] dwAvcMBEncFieldCurrPic[0] dwAvcMBEncFieldCurrPic[1]
 
@@ -6532,7 +6563,7 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::SendAvcMfeMbEncSurfaces(PMOS_COMMAND_BUFFE
     CmSurface2D                             *surfArrayL0[8];
     CmSurface2D                             *surfArrayL1[8];
 
-    cmSurfForVME = cmSurf[0];
+    cmSurfForVME = cmSurf[0 + surfIdx];
     MOS_ZeroMemory(&surfArrayL0[0],8 * sizeof(CmSurface2D *));
     MOS_ZeroMemory(&surfArrayL1[0],8 * sizeof(CmSurface2D *));
     for (refIdx = 0; refIdx <= params->pAvcSlcParams->num_ref_idx_l0_active_minus1; refIdx++)
@@ -6547,14 +6578,14 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::SendAvcMfeMbEncSurfaces(PMOS_COMMAND_BUFFE
                (params->pAvcSlcParams->luma_weight_flag[LIST_0] & (1 << refIdx)) &&
                (refIdx < CODEC_AVC_MAX_FORWARD_WP_FRAME))
             {
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D(&params->pWeightedPredOutputPicSelectList[CODEC_AVC_WP_OUTPUT_L0_START + refIdx].sBuffer.OsResource, cmSurf[mbEncVMEInterPredictionSurf + refIdx]));
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D(&params->pWeightedPredOutputPicSelectList[CODEC_AVC_WP_OUTPUT_L0_START + refIdx].sBuffer.OsResource, cmSurf[mbEncVMEInterPredictionSurf + surfIdx + refIdx]));
             }
             else
             {
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D(&params->ppRefList[refPicIdx]->sRefBuffer.OsResource, cmSurf[mbEncVMEInterPredictionSurf + refIdx]))
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D(&params->ppRefList[refPicIdx]->sRefBuffer.OsResource, cmSurf[mbEncVMEInterPredictionSurf + surfIdx + refIdx]))
             }
 
-            surfArrayL0[refIdx] = (CmSurface2D *)cmSurf[mbEncVMEInterPredictionSurf + refIdx];
+            surfArrayL0[refIdx] = (CmSurface2D *)cmSurf[mbEncVMEInterPredictionSurf + surfIdx + refIdx];
 
         }
     }
@@ -6570,13 +6601,13 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::SendAvcMfeMbEncSurfaces(PMOS_COMMAND_BUFFE
                (params->pAvcSlcParams->luma_weight_flag[LIST_1] & (1<<refIdx1)) &&
                (refIdx1 < CODEC_AVC_MAX_BACKWARD_WP_FRAME))
             {
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D(&params->pWeightedPredOutputPicSelectList[CODEC_AVC_WP_OUTPUT_L1_START + refIdx1].sBuffer.OsResource, cmSurf[mbEncVMEInterPredictionMRSurf + refIdx1]));
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D(&params->pWeightedPredOutputPicSelectList[CODEC_AVC_WP_OUTPUT_L1_START + refIdx1].sBuffer.OsResource, cmSurf[mbEncVMEInterPredictionMRSurf + surfIdx + refIdx1]));
             }
             else
             {
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D(&params->ppRefList[refPicIdx]->sRefBuffer.OsResource, cmSurf[mbEncVMEInterPredictionMRSurf + refIdx1]))
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D(&params->ppRefList[refPicIdx]->sRefBuffer.OsResource, cmSurf[mbEncVMEInterPredictionMRSurf + surfIdx + refIdx1]))
             }
-            surfArrayL1[refIdx1] = (CmSurface2D *)cmSurf[mbEncVMEInterPredictionMRSurf + refIdx1];
+            surfArrayL1[refIdx1] = (CmSurface2D *)cmSurf[mbEncVMEInterPredictionMRSurf + surfIdx + refIdx1];
 
             refNum1 ++;
             if (refIdx1 == 0)
@@ -6586,18 +6617,18 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::SendAvcMfeMbEncSurfaces(PMOS_COMMAND_BUFFE
                 {
                     if(refBottomField)
                     {
-                        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateBuffer(&params->ppRefList[refPicIdx]->resRefBotFieldMbCodeBuffer, cmBuf[mbEncFwdMbCodeBuffer]));
+                        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateBuffer(&params->ppRefList[refPicIdx]->resRefBotFieldMbCodeBuffer, cmBuf[mbEncFwdMbCodeBuffer + bufIdx]));
                     }
                     else
                     {
-                        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateBuffer(&params->ppRefList[refPicIdx]->resRefTopFieldMbCodeBuffer, cmBuf[mbEncFwdMbCodeBuffer]));
+                        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateBuffer(&params->ppRefList[refPicIdx]->resRefTopFieldMbCodeBuffer, cmBuf[mbEncFwdMbCodeBuffer + bufIdx]));
                     }
-                    CODECHAL_ENCODE_CHK_STATUS_RETURN(cmBuf[mbEncFwdMbCodeBuffer]->GetIndex(cmSurfaces->FwdFrmMBDataSurfIndex));
+                    CODECHAL_ENCODE_CHK_STATUS_RETURN(cmBuf[mbEncFwdMbCodeBuffer + bufIdx]->GetIndex(cmSurfaces->FwdFrmMBDataSurfIndex));
                 }
                 else
                 {
-                    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateBuffer(&params->ppRefList[refPicIdx]->resRefMbCodeBuffer, cmBuf[mbEncFwdMbCodeBuffer]));
-                    CODECHAL_ENCODE_CHK_STATUS_RETURN(cmBuf[mbEncFwdMbCodeBuffer]->GetIndex(cmSurfaces->FwdFrmMBDataSurfIndex));
+                    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateBuffer(&params->ppRefList[refPicIdx]->resRefMbCodeBuffer, cmBuf[mbEncFwdMbCodeBuffer + bufIdx]));
+                    CODECHAL_ENCODE_CHK_STATUS_RETURN(cmBuf[mbEncFwdMbCodeBuffer + bufIdx]->GetIndex(cmSurfaces->FwdFrmMBDataSurfIndex));
 
                     if(currFieldPicture && refBottomField)
                     {
@@ -6605,11 +6636,11 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::SendAvcMfeMbEncSurfaces(PMOS_COMMAND_BUFFE
                         MOS_ZeroMemory(&param,sizeof(param));
                         param.uiSize    = mbCodeSize;
                         param.uiBaseAddressOffset  = refMbCodeBottomFieldOffset;
-                        cmBuf[mbEncFwdMbCodeBuffer]->SetSurfaceStateParam(cmSurfaces->FwdFrmMBDataSurfIndex, &param);
+                        cmBuf[mbEncFwdMbCodeBuffer + bufIdx]->SetSurfaceStateParam(cmSurfaces->FwdFrmMBDataSurfIndex, &param);
                     }
                     else
                     {
-                        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmBuf[mbEncFwdMbCodeBuffer]->GetIndex(cmSurfaces->FwdFrmMBDataSurfIndex));
+                        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmBuf[mbEncFwdMbCodeBuffer + bufIdx]->GetIndex(cmSurfaces->FwdFrmMBDataSurfIndex));
                     }
                 }
 
@@ -6618,19 +6649,19 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::SendAvcMfeMbEncSurfaces(PMOS_COMMAND_BUFFE
                 {
                     if(refBottomField)
                     {
-                        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateBuffer(&params->ppRefList[refPicIdx]->resRefBotFieldMvDataBuffer, cmBuf[mbEncFwdMvDataBuffer]));
+                        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateBuffer(&params->ppRefList[refPicIdx]->resRefBotFieldMvDataBuffer, cmBuf[mbEncFwdMvDataBuffer + bufIdx]));
                     }
                     else
                     {
-                        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateBuffer(&params->ppRefList[refPicIdx]->resRefTopFieldMvDataBuffer, cmBuf[mbEncFwdMvDataBuffer]));
+                        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateBuffer(&params->ppRefList[refPicIdx]->resRefTopFieldMvDataBuffer, cmBuf[mbEncFwdMvDataBuffer + bufIdx]));
                     }
-                    CODECHAL_ENCODE_CHK_STATUS_RETURN(cmBuf[mbEncFwdMvDataBuffer]->GetIndex(cmSurfaces->FwdFrmMVSurfIndex));
+                    CODECHAL_ENCODE_CHK_STATUS_RETURN(cmBuf[mbEncFwdMvDataBuffer + bufIdx]->GetIndex(cmSurfaces->FwdFrmMVSurfIndex));
 
                 }
                 else
                 {
-                    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateBuffer(&params->ppRefList[refPicIdx]->resRefMvDataBuffer, cmBuf[mbEncFwdMvDataBuffer]));
-                    CODECHAL_ENCODE_CHK_STATUS_RETURN(cmBuf[mbEncFwdMvDataBuffer]->GetIndex(cmSurfaces->FwdFrmMVSurfIndex));
+                    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateBuffer(&params->ppRefList[refPicIdx]->resRefMvDataBuffer, cmBuf[mbEncFwdMvDataBuffer + bufIdx]));
+                    CODECHAL_ENCODE_CHK_STATUS_RETURN(cmBuf[mbEncFwdMvDataBuffer + bufIdx]->GetIndex(cmSurfaces->FwdFrmMVSurfIndex));
 
                     if(currFieldPicture && refBottomField)
                     {
@@ -6638,21 +6669,22 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::SendAvcMfeMbEncSurfaces(PMOS_COMMAND_BUFFE
                         MOS_ZeroMemory(&param,sizeof(param));
                         param.uiSize    = mvSize;
                         param.uiBaseAddressOffset  = refMvBottomFieldOffset;
-                        cmBuf[mbEncFwdMvDataBuffer]->SetSurfaceStateParam(cmSurfaces->FwdFrmMVSurfIndex, &param);
+                        cmBuf[mbEncFwdMvDataBuffer + bufIdx]->SetSurfaceStateParam(cmSurfaces->FwdFrmMVSurfIndex, &param);
                     }
                     else
                     {
-                        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmBuf[mbEncFwdMvDataBuffer]->GetIndex(cmSurfaces->FwdFrmMVSurfIndex));
+                        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmBuf[mbEncFwdMvDataBuffer + bufIdx]->GetIndex(cmSurfaces->FwdFrmMVSurfIndex));
                     }
                 }
             }
         }
     }
-    m_cmDev->CreateVmeSurfaceG7_5(cmSurfForVME, &surfArrayL0[0], &surfArrayL1[0], refNum0, refNum1, cmVmeSurfIdx[0]);
-    cmSurfaces->MBVMEInterPredictionSurfIndex = cmVmeSurfIdx[0];
 
-    m_cmDev->CreateVmeSurfaceG7_5(cmSurfForVME, &surfArrayL1[0], &surfArrayL1[0], refNum1, refNum1, cmVmeSurfIdx[1]);
-    cmSurfaces->MBVMEInterPredictionMRSurfIndex = cmVmeSurfIdx[1];
+    m_cmDev->CreateVmeSurfaceG7_5(cmSurfForVME, &surfArrayL0[0], &surfArrayL1[0], refNum0, refNum1, cmVmeSurfIdx[0 + vmeIdx]);
+    cmSurfaces->MBVMEInterPredictionSurfIndex = cmVmeSurfIdx[0 + vmeIdx];
+
+    m_cmDev->CreateVmeSurfaceG7_5(cmSurfForVME, &surfArrayL1[0], &surfArrayL1[0], refNum1, refNum1, cmVmeSurfIdx[1 + vmeIdx]);
+    cmSurfaces->MBVMEInterPredictionMRSurfIndex = cmVmeSurfIdx[1 + vmeIdx];
 
     CM_VME_SURFACE_STATE_PARAM vmeDimensionParam;
     vmeDimensionParam.width = params->dwFrameWidthInMb * 16;
@@ -6663,59 +6695,59 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::SendAvcMfeMbEncSurfaces(PMOS_COMMAND_BUFFE
     // BRC distortion data buffer for I frame
     if (params->bMbEncIFrameDistInUse)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D(&params->psMeBrcDistortionBuffer->OsResource, cmSurf[mbEncMBDistSurf]));
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmSurf[mbEncMBDistSurf]->GetIndex(cmSurfaces->MBDistIndex));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D(&params->psMeBrcDistortionBuffer->OsResource, cmSurf[mbEncMBDistSurf + surfIdx]));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmSurf[mbEncMBDistSurf + surfIdx]->GetIndex(cmSurfaces->MBDistIndex));
     }
     // RefPicSelect of Current picture
     if (params->bUsedAsRef)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D(&currPicRefListEntry->pRefPicSelectListEntry->sBuffer.OsResource, cmSurf[mbEncCurrRefPicSelSurf]));
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmSurf[mbEncCurrRefPicSelSurf]->GetIndex(cmSurfaces->CurrRefPicSelSurfIndex));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D(&currPicRefListEntry->pRefPicSelectListEntry->sBuffer.OsResource, cmSurf[mbEncCurrRefPicSelSurf + surfIdx]));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmSurf[mbEncCurrRefPicSelSurf + surfIdx]->GetIndex(cmSurfaces->CurrRefPicSelSurfIndex));
     }
     if (params->bFlatnessCheckEnabled)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D(&params->psFlatnessCheckSurface->OsResource, cmSurf[mbEncMBstatsSurf]));
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmSurf[mbEncMBstatsSurf]->GetIndex(cmSurfaces->MBstats));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D(&params->psFlatnessCheckSurface->OsResource, cmSurf[mbEncMBstatsSurf + surfIdx]));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmSurf[mbEncMBstatsSurf + surfIdx]->GetIndex(cmSurfaces->MBstats));
     }
     if (params->bMADEnabled)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateBuffer(params->presMADDataBuffer, cmBuf[mbEncMADDataBuffer]));
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmBuf[mbEncMADDataBuffer]->GetIndex(cmSurfaces->MADSurfIndex));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateBuffer(params->presMADDataBuffer, cmBuf[mbEncMADDataBuffer + bufIdx]));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmBuf[mbEncMADDataBuffer + bufIdx]->GetIndex(cmSurfaces->MADSurfIndex));
     }
     if (params->bArbitraryNumMbsInSlice)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D(&params->psSliceMapSurface->OsResource, cmSurf[mbEncSliceMapSurf]));
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmSurf[mbEncSliceMapSurf]->GetIndex(cmSurfaces->SliceMapSurfIndex));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateSurface2D(&params->psSliceMapSurface->OsResource, cmSurf[mbEncSliceMapSurf + surfIdx]));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmSurf[mbEncSliceMapSurf + surfIdx]->GetIndex(cmSurfaces->SliceMapSurfIndex));
     }
     if (feiPicParams->bPerMBInput)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateBuffer(&(feiPicParams->resMBCtrl), cmBuf[mbEncMBSpecficDataBuffer]));
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmBuf[mbEncMBSpecficDataBuffer]->GetIndex(cmSurfaces->MBSpecficDataSurfIndex));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateBuffer(&(feiPicParams->resMBCtrl), cmBuf[mbEncMBSpecficDataBuffer + bufIdx]));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmBuf[mbEncMBSpecficDataBuffer + bufIdx]->GetIndex(cmSurfaces->MBSpecficDataSurfIndex));
     }
     if (feiPicParams->MVPredictorEnable)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateBuffer(&(feiPicParams->resMVPredictor), cmBuf[mbEncMVPredictorBuffer]));
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmBuf[mbEncMVPredictorBuffer]->GetIndex(cmSurfaces->FEI_MVPredSurfIndex));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateBuffer(&(feiPicParams->resMVPredictor), cmBuf[mbEncMVPredictorBuffer + bufIdx]));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmBuf[mbEncMVPredictorBuffer + bufIdx]->GetIndex(cmSurfaces->FEI_MVPredSurfIndex));
     }
     if (feiPicParams->DistortionEnable)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateBuffer(&(feiPicParams->resDistortion), cmBuf[mbEncAuxVmeOutBuffer]));
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmBuf[mbEncAuxVmeOutBuffer]->GetIndex(cmSurfaces->AuxVmeOutSurfIndex));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateBuffer(&(feiPicParams->resDistortion), cmBuf[mbEncAuxVmeOutBuffer + bufIdx]));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmBuf[mbEncAuxVmeOutBuffer + bufIdx]->GetIndex(cmSurfaces->AuxVmeOutSurfIndex));
     }
 
     if (feiPicParams->bMBQp)
     {
         // 16 DWs per QP value
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateBuffer(params->presMbBrcConstDataBuffer, cmBuf[mbEncMBBRCLutBuffer]));
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmBuf[mbEncMBBRCLutBuffer]->GetIndex(cmSurfaces->MBBRCLut));
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateBuffer(&(feiPicParams->resMBQp), cmBuf[mbEncMBQPBuffer]));
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmBuf[mbEncMBQPBuffer]->GetIndex(cmSurfaces->MBQPBuffer));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateBuffer(params->presMbBrcConstDataBuffer, cmBuf[mbEncMBBRCLutBuffer + bufIdx]));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmBuf[mbEncMBBRCLutBuffer + bufIdx]->GetIndex(cmSurfaces->MBBRCLut));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateBuffer(&(feiPicParams->resMBQp), cmBuf[mbEncMBQPBuffer + bufIdx]));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmBuf[mbEncMBQPBuffer + bufIdx]->GetIndex(cmSurfaces->MBQPBuffer));
     }
 
     if (params->dwMbEncBRCBufferSize > 0)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateBuffer(params->presMbEncBRCBuffer, cmBuf[mbEncBRCCurbeBuffer]));
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmBuf[mbEncBRCCurbeBuffer]->GetIndex(cmSurfaces->BRCCurbeSurfIndex));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateBuffer(params->presMbEncBRCBuffer, cmBuf[mbEncBRCCurbeBuffer + bufIdx]));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmBuf[mbEncBRCCurbeBuffer + bufIdx]->GetIndex(cmSurfaces->BRCCurbeSurfIndex));
     }
 
     return eStatus;
@@ -6733,23 +6765,40 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::EncodeMbEncKernelFunctions()
 
     if (IsMfeMbEncEnabled())
     {
+        if (!m_mfeEncodeSharedState->pCmDev)
+        {
+            AllocateMDFResources();
+            InitKernelStateMfeMbEnc();
+
+            m_mfeEncodeSharedState->pCmDev         = m_cmDev;
+            m_mfeEncodeSharedState->pCmQueue       = m_cmQueue;
+            m_mfeEncodeSharedState->pCmTask        = m_cmTask;
+            m_mfeEncodeSharedState->resMbencKernel = m_resMbencKernel;
+            m_mfeEncodeSharedState->vmeSurface     = m_vmeSurface;
+            m_mfeEncodeSharedState->commonSurface  = m_commonSurface;
+        }
+
+        // All the streams share the Cm device and Mbenc kernel state from first stream
+        m_cmDev          = m_mfeEncodeSharedState->pCmDev;
+        m_cmQueue        = m_mfeEncodeSharedState->pCmQueue;
+        m_cmTask         = m_mfeEncodeSharedState->pCmTask;
+        m_resMbencKernel = m_mfeEncodeSharedState->resMbencKernel;
+        m_vmeSurface     = m_mfeEncodeSharedState->vmeSurface;
+        m_commonSurface  = m_mfeEncodeSharedState->commonSurface;
+
         if (m_mfeFirstStream)
         {
             for (int i = 0; i < m_vmeSurfaceSize; i++)
             {
                 m_vmeSurface[i] = CM_NULL_SURFACE;
             }
-            m_mfeEncodeSharedState->pCmDev         = m_cmDev;
-            m_mfeEncodeSharedState->resMbencKernel = m_resMbencKernel;
-            m_mfeEncodeSharedState->vmeSurface = m_vmeSurface;
-            m_mfeEncodeSharedState->commonSurface = m_commonSurface;
+
+            for (int i = 0; i < m_commonSurfaceSize; i++)
+            {
+                m_commonSurface[i] = CM_NULL_SURFACE;
+            }
         }
-        else
-        {
-            // All the streams share the Cm device and Mbenc kernel state from first stream
-            m_cmDev          = m_mfeEncodeSharedState->pCmDev;
-            m_resMbencKernel = m_mfeEncodeSharedState->resMbencKernel;
-        }
+
         // Set maximum width/height, it is used for initializing media walker parameters
         // during submitting the command buffer at the last stream.
         if (m_picWidthInMb > m_mfeEncodeSharedState->dwPicWidthInMB)
@@ -7034,6 +7083,7 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::EncodeMbEncKernelFunctions()
         if (IsMfeMbEncEnabled())
         {
             CodechalEncoderState *encoder = m_mfeEncodeSharedState->encoders[0];
+
             // The owner stream is responsible for destroying the shared event
             if (encoder->m_sharedCmEvent[encoder->m_sharedCmEventIdx])
             {
@@ -7042,6 +7092,10 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::EncodeMbEncKernelFunctions()
             encoder->m_sharedCmEvent[encoder->m_cmEventIdx] = kernelRes->e;
             encoder->m_sharedCmEventIdx++;
             encoder->m_sharedCmEventIdx %= CM_EVENT_NUM;
+
+            int32_t dwTimeOutMs = -1;
+            encoder->m_sharedCmEvent[encoder->m_cmEventIdx]->WaitForTaskFinished(dwTimeOutMs);
+
             // All the Mfe streams wait for the same event
             for (uint32_t i = 0; i < m_mfeEncodeSharedState->encoders.size(); i++)
             {
@@ -7051,6 +7105,7 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::EncodeMbEncKernelFunctions()
                 encoder->m_cmEventIdx %= CM_EVENT_NUM;
             }
             m_mfeEncodeSharedState->encoders.clear();
+            m_mfeEncodeSharedState->encoders.shrink_to_fit();
         }
         else
         {
@@ -7073,6 +7128,9 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::EncodeMbEncKernelFunctions()
     {
         m_cmDev           = m_origCmDev;
         m_resMbencKernel  = m_origResMbencKernel;
+        m_cmTask          = m_origCmTask;
+        m_vmeSurface      = m_origVmeSurface;
+        m_commonSurface   = m_origCommonSurface;
     }
 
     return eStatus;

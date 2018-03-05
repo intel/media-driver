@@ -153,6 +153,12 @@ public:
     CodechalEncodeMdfKernelResource    *m_resMbencKernel;
     CodechalEncodeMdfKernelResource    *m_origResMbencKernel;
 
+    CmQueue *m_origCmQueue            = nullptr;
+    CmTask  *m_origCmTask             = nullptr;
+
+    SurfaceIndex *m_origVmeSurface    = nullptr;
+    SurfaceIndex *m_origCommonSurface = nullptr;
+
     SurfaceIndex *m_vmeSurface;
     SurfaceIndex *m_commonSurface;
 

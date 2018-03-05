@@ -2738,9 +2738,9 @@ MOS_STATUS CodechalEncodeAvcEncG9::GetStatusReport(
     {
         if (m_cmEvent[m_cmEventCheckIdx] != nullptr)
         {
-            m_cmEvent[m_cmEventCheckIdx]->WaitForTaskFinished();
             if (!m_mfeEnabled)
             {
+                m_cmEvent[m_cmEventCheckIdx]->WaitForTaskFinished();
                 m_cmQueue->DestroyEvent(m_cmEvent[m_cmEventCheckIdx]);
             }
             m_cmEvent[m_cmEventCheckIdx] = nullptr;

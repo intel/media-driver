@@ -284,11 +284,17 @@ VAStatus DdiEncodeAvcFei::EncodeInCodecHal(uint32_t numSlices)
         DDI_CHK_RET(ClearRefList(&m_encodeCtx->RTtbl, true), "ClearRefList failed!");
     }
 
-    status = m_encodeCtx->pCodecHal->Execute(encodeParams);
-    if (MOS_STATUS_SUCCESS != status)
+    CodechalEncoderState *encoder = dynamic_cast<CodechalEncoderState *>(m_encodeCtx->pCodecHal);
+    DDI_CHK_NULL(encoder, "nullptr Codechal encode", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    if (!encoder->m_mfeEnabled)
     {
-        DDI_ASSERTMESSAGE("DDI:Failed in Codechal!");
-        return VA_STATUS_ERROR_ENCODING_ERROR;
+        status = m_encodeCtx->pCodecHal->Execute(encodeParams);
+        if (MOS_STATUS_SUCCESS != status)
+        {
+            DDI_ASSERTMESSAGE("DDI:Failed in Codechal!");
+            return VA_STATUS_ERROR_ENCODING_ERROR;
+        }
     }
 
     return VA_STATUS_SUCCESS;

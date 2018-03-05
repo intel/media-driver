@@ -368,6 +368,8 @@ struct MfeSharedState
     uint16_t                        sliceHeight;              //!< Keep the maximum slice height
 
     CmDevice                                *pCmDev;          //!< Set in the first stream, Used by the rest streams
+    CmTask                                  *pCmTask;
+    CmQueue                                 *pCmQueue;
     CodechalEncodeMdfKernelResource         *resMbencKernel;
     SurfaceIndex                            *vmeSurface;
     SurfaceIndex                            *commonSurface;
