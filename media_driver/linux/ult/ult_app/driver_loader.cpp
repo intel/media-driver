@@ -115,20 +115,20 @@ VAStatus DriverDllLoader::InitDriver(int platform_id)
             init_func = (VADriverInit)dlsym(umdhandle, init_func_s);
             if (init_func){
                 vaCmExtSendReqMsg = (CmExtSendReqMsgFunc)dlsym(umdhandle,cm_entry_name);
-                Mos_SetUltFlag = (MOS_SetUltFlagFunc)dlsym(umdhandle, "Mos_SetUltFlag");
-                Mos_GetMemNinjaCounter = (GetMemNinjaCounter)dlsym(umdhandle, "MOS_GetMemNinjaCounter");
-                Mos_GetMemNinjaCounterGfx = (GetMemNinjaCounter)dlsym(umdhandle, "MOS_GetMemNinjaCounterGfx");
+                MOS_SetUltFlag = (MOS_SetUltFlagFunc)dlsym(umdhandle, "MOS_SetUltFlag");
+                MOS_GetMemNinjaCounter = (GetMemNinjaCounter)dlsym(umdhandle, "MOS_GetMemNinjaCounter");
+                MOS_GetMemNinjaCounterGfx = (GetMemNinjaCounter)dlsym(umdhandle, "MOS_GetMemNinjaCounterGfx");
                 break;
             }
         }
 
-        if (!init_func || !vaCmExtSendReqMsg || !Mos_SetUltFlag || !Mos_GetMemNinjaCounter || !Mos_GetMemNinjaCounterGfx)
+        if (!init_func || !vaCmExtSendReqMsg || !MOS_SetUltFlag || !MOS_GetMemNinjaCounter || !MOS_GetMemNinjaCounterGfx)
         {
             return VA_STATUS_ERROR_UNKNOWN;
         }
         //printf("INFO: Found init function %s and CM entry point %s.\n", init_func_s, cm_entry_name);
 
-        Mos_SetUltFlag(1);
+        MOS_SetUltFlag(1);
 
         ctx.vtable = &vtable;
         ctx.vtable_vpp = &vtable_vpp;

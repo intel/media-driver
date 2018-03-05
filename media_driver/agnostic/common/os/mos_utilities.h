@@ -91,22 +91,22 @@ extern int32_t MosMemAllocCounterGfx;
 //! Helper Macros for MEMNINJA debug messages
 #define MOS_MEMNINJA_ALLOC_MESSAGE(ptr, size, functionName, filename, line)                             \
     MOS_OS_VERBOSEMESSAGE(                                                                              \
-        "MemNinjaSysAlloc: MemNinjaCounter = %d, memPtr = 0x%x, size = %d, functionName = \"%s\", "     \
+        "MemNinjaSysAlloc: MemNinjaCounter = %d, memPtr = 0x%llx, size = %d, functionName = \"%s\", "   \
         "filename = \"%s\", line = %d/", MosMemAllocCounter, ptr, size, functionName, filename, line)
 
 #define MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line)                                    \
     MOS_OS_VERBOSEMESSAGE(                                                                              \
-       "MemNinjaSysFree: MemNinjaCounter = %d, memPtr = 0x%x, functionName = \"%s\", "                  \
+       "MemNinjaSysFree: MemNinjaCounter = %d, memPtr = 0x%llx, functionName = \"%s\", "                \
        "filename = \"%s\", line = %d/", MosMemAllocCounter, ptr, functionName, filename, line)
 
 #define MOS_MEMNINJA_GFX_ALLOC_MESSAGE(ptr, size, functionName, filename, line)                         \
     MOS_OS_VERBOSEMESSAGE(                                                                              \
-        "MemNinjaGfxAlloc: MemNinjaCounterGfx = %d, memPtr = 0x%x, size = %d, functionName = \"%s\", "  \
+        "MemNinjaGfxAlloc: MemNinjaCounterGfx = %d, memPtr = 0x%llx, size = %d, functionName = \"%s\", "\
         "filename = \"%s\", line = %d/", MosMemAllocCounterGfx, ptr, size, functionName, filename, line)
 
 #define MOS_MEMNINJA_GFX_FREE_MESSAGE(ptr, functionName, filename, line)                                \
     MOS_OS_VERBOSEMESSAGE(                                                                              \
-        "MemNinjaGfxFree: MemNinjaCounterGfx = %d, memPtr = 0x%x, functionName = \"%s\", "              \
+        "MemNinjaGfxFree: MemNinjaCounterGfx = %d, memPtr = 0x%llx, functionName = \"%s\", "            \
         "filename = \"%s\", line = %d/", MosMemAllocCounterGfx, ptr, functionName, filename, line)
 
 //!

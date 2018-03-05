@@ -47,7 +47,7 @@ uint8_t MosUltFlag;
 extern "C" {
 #endif
 
-    MOS_FUNC_EXPORT void Mos_SetUltFlag(uint8_t ultFlag)
+    MOS_FUNC_EXPORT void MOS_SetUltFlag(uint8_t ultFlag)
     {
         MosUltFlag = ultFlag;
     }

@@ -13,8 +13,8 @@ void MemoryLeakDetector::detect(const DriverDllLoader &drvLoader, Platform_t pla
         delReport = false;
     }
 
-    int32_t memNinjaCnt = drvLoader.Mos_GetMemNinjaCounter();
-    int32_t memNinjaCntGfx = drvLoader.Mos_GetMemNinjaCounterGfx();
+    int32_t memNinjaCnt = drvLoader.MOS_GetMemNinjaCounter();
+    int32_t memNinjaCntGfx = drvLoader.MOS_GetMemNinjaCounterGfx();
     if (memNinjaCnt != 0 || memNinjaCntGfx != 0)
     {
         ifstream log(LOG_PATH);

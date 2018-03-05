@@ -96,9 +96,9 @@ public:
     VADriverVTable vtable;
     VADriverVTableVPP vtable_vpp;
     CmExtSendReqMsgFunc vaCmExtSendReqMsg;
-    MOS_SetUltFlagFunc Mos_SetUltFlag;
-    GetMemNinjaCounter Mos_GetMemNinjaCounter;
-    GetMemNinjaCounter Mos_GetMemNinjaCounterGfx;
+    MOS_SetUltFlagFunc MOS_SetUltFlag;
+    GetMemNinjaCounter MOS_GetMemNinjaCounter;
+    GetMemNinjaCounter MOS_GetMemNinjaCounterGfx;
 
 private:
     const char *driver_path;
