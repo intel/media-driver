@@ -87,11 +87,15 @@ struct HucInputCmd1
 {
     // Shared
     uint32_t FrameWidthInMinCbMinus1;
+
     uint32_t FrameHeightInMinCbMinus1;
+
     uint32_t log2_min_coding_block_size_minus3;
+
     uint8_t  VdencStreamInEnabled;
     uint8_t  PakOnlyMultipassEnable;
     uint16_t num_ref_idx_l0_active_minus1;
+
     uint16_t SADQPLambda;
     uint16_t RDQPLambda;
 
@@ -99,34 +103,46 @@ struct HucInputCmd1
     uint16_t num_ref_idx_l1_active_minus1;
     uint8_t  RSVD0;
     uint8_t  ROIStreamInEnabled;
+
     int8_t   ROIDeltaQp[8]; // [-3..3] or [-51..51]
+
     uint8_t  FwdPocNumForRefId0inL0;
     uint8_t  FwdPocNumForRefId0inL1;
     uint8_t  FwdPocNumForRefId1inL0;
     uint8_t  FwdPocNumForRefId1inL1;
+
     uint8_t  FwdPocNumForRefId2inL0;
     uint8_t  FwdPocNumForRefId2inL1;
     uint8_t  FwdPocNumForRefId3inL0;
     uint8_t  FwdPocNumForRefId3inL1;
+
     uint8_t  EnableRollingIntraRefresh;
     int8_t   QpDeltaForInsertedIntra;
     uint16_t IntraInsertionSize;
+
+    uint32_t  IntraInsertionReferenceLocation[3];
+
     uint16_t IntraInsertionLocation;
     int8_t   QpY;
     uint8_t  RoundingEnabled;
+
     uint8_t  UseDefaultQpDeltas;
     uint8_t  PanicEnabled;
-    uint8_t  RSVD[2];
+    uint8_t  TemporalMvpEnableFlag;
+    uint8_t  RSVD[1];
 
     // VP9
     uint16_t DstFrameWidthMinus1;
     uint16_t DstFrameHeightMinus1;
+
     uint8_t  SegmentationEnabled;
     uint8_t  PrevFrameSegEnabled;
     uint8_t  SegMapStreamInEnabled;
     uint8_t  LumaACQIndex;
+
     int8_t   LumaDCQIndexDelta;
     uint8_t  RESERVED[3];
+
     int16_t  SegmentQIndexDelta[8];
 };
 
@@ -137,6 +153,8 @@ struct HucInputCmd1
 struct HucInputCmd2
 {
     uint32_t SADQPLambda;
+    uint8_t RoiEnabled;
+    uint8_t RSVD[3];
 };
 
 #ifdef _VP9_ENCODE_SUPPORTED

@@ -273,7 +273,7 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerSetConstData(
 
     // Command ID 2
     hucConstData->InputCOM[0].ID = 2;
-    hucConstData->InputCOM[0].SizeOfData = 1;
+    hucConstData->InputCOM[0].SizeOfData = 2;
 
     auto qpPrimeYAC = 10; //This is constant from Arch C Model
 
@@ -282,10 +282,11 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerSetConstData(
 
     // SADQPLambda
     hucConstData->InputCOM[0].data[0] = (uint32_t)(lambdaInputCom * 4 + 0.5);
+    hucConstData->InputCOM[0].data[1] = m_roiStreamInEnabled;
 
     // Command ID 1
     hucConstData->InputCOM[1].ID = 1;
-    hucConstData->InputCOM[1].SizeOfData = 0x14;
+    hucConstData->InputCOM[1].SizeOfData = 0x17;
 
     HucInputCmd1  hucInputCmd1;
     // Shared HEVC/VP9
@@ -306,6 +307,7 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerSetConstData(
     hucInputCmd1.num_ref_idx_l1_active_minus1 = sliceParams->num_ref_idx_l1_active_minus1;
     hucInputCmd1.ROIStreamInEnabled           = (uint8_t)m_roiStreamInEnabled;
     hucInputCmd1.UseDefaultQpDeltas           = 0;
+    hucInputCmd1.TemporalMvpEnableFlag        = seqParams->sps_temporal_mvp_enable_flag;
     hucInputCmd1.PanicEnabled                 = m_panicEnabled;
 
     if (m_roiStreamInEnabled)
@@ -333,22 +335,28 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerSetConstData(
 
         refFrameID = sliceParams->RefPicList[0][0].FrameIdx;
         diff_poc     = picParams->RefFramePOCList[refFrameID] - picParams->CurrPicOrderCnt;
-        hucInputCmd1.FwdPocNumForRefId0inL0 = diff_poc;
-        hucInputCmd1.FwdPocNumForRefId0inL1 = diff_poc;
+        hucInputCmd1.FwdPocNumForRefId0inL0 = -diff_poc;
+        hucInputCmd1.FwdPocNumForRefId0inL1 = -diff_poc;
 
         refFrameID = sliceParams->RefPicList[0][1].FrameIdx;
         diff_poc     = picParams->RefFramePOCList[refFrameID] - picParams->CurrPicOrderCnt;
-        hucInputCmd1.FwdPocNumForRefId1inL0 = diff_poc;
-        hucInputCmd1.FwdPocNumForRefId1inL1 = diff_poc;
+        hucInputCmd1.FwdPocNumForRefId1inL0 = -diff_poc;
+        hucInputCmd1.FwdPocNumForRefId1inL1 = -diff_poc;
 
-        hucInputCmd1.FwdPocNumForRefId2inL0 = hucInputCmd1.FwdPocNumForRefId2inL1;
+        refFrameID = sliceParams->RefPicList[0][2].FrameIdx;
+        diff_poc = picParams->RefFramePOCList[refFrameID] - picParams->CurrPicOrderCnt;
+        hucInputCmd1.FwdPocNumForRefId2inL0 = -diff_poc;
+        hucInputCmd1.FwdPocNumForRefId2inL1 = -diff_poc;
     }
 
     hucInputCmd1.EnableRollingIntraRefresh = picParams->bEnableRollingIntraRefresh;
     hucInputCmd1.QpDeltaForInsertedIntra   = picParams->QpDeltaForInsertedIntra;
     hucInputCmd1.IntraInsertionSize        = picParams->IntraInsertionSize;
+    hucInputCmd1.IntraInsertionLocation    = picParams->IntraInsertionLocation;
+    hucInputCmd1.IntraInsertionReferenceLocation[0] = picParams->RollingIntraReferenceLocation[0];
+    hucInputCmd1.IntraInsertionReferenceLocation[1] = picParams->RollingIntraReferenceLocation[1];
+    hucInputCmd1.IntraInsertionReferenceLocation[2] = picParams->RollingIntraReferenceLocation[2];
 
-    hucInputCmd1.IntraInsertionLocation = picParams->IntraInsertionLocation;
     hucInputCmd1.QpY                    = picParams->QpY + sliceParams->slice_qp_delta;
     hucInputCmd1.RoundingEnabled        = (uint8_t)m_roundingEnabled;
 
@@ -617,7 +625,7 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerVp9SetDmem()
 
     // Command ID 2
     hucConstData->InputCOM[0].ID = 2;
-    hucConstData->InputCOM[0].SizeOfData = 1;
+    hucConstData->InputCOM[0].SizeOfData = 2;
 
     double qpScale = (m_vp9Params.pictureCodingType == I_TYPE) ? 0.31 : 0.33;
     uint8_t qp = m_vp9Params.picParams->LumaACQIndex;
@@ -628,7 +636,7 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerVp9SetDmem()
 
     // Command ID 1
     hucConstData->InputCOM[1].ID = 1;
-    hucConstData->InputCOM[1].SizeOfData = 0x14;
+    hucConstData->InputCOM[1].SizeOfData = 0x17;
 
     HucInputCmd1  hucInputCmd1;
     MOS_ZeroMemory(&hucInputCmd1, sizeof(hucInputCmd1));

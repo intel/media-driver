@@ -1264,7 +1264,6 @@ void CodechalVdencHevcState::SetVdencPipeBufAddrParams(
     pipeBufAddrParams.presVdencPakObjCmdStreamOutBuffer = m_resVdencPakObjCmdStreamOutBuffer = &m_resMbCodeSurface;
     pipeBufAddrParams.dwNumRefIdxL0ActiveMinus1                                              = m_hevcSliceParams->num_ref_idx_l0_active_minus1;
     pipeBufAddrParams.dwNumRefIdxL1ActiveMinus1                                              = m_hevcSliceParams->num_ref_idx_l1_active_minus1;
-    pipeBufAddrParams.presColMvTempBuffer[0] = m_trackedBuf->GetMvTemporalBuffer(CODEC_CURR_TRACKED_BUFFER);
 
     if (m_vdencStreamInEnabled)
     {
@@ -1296,6 +1295,25 @@ void CodechalVdencHevcState::SetVdencPipeBufAddrParams(
 
             m_hevcPicParams->RollingIntraReferenceLocation[refIdx] = m_refList[refPicIdx]->rollingIntraRefreshedPosition;
         }
+    }
+
+    uint8_t idxForTempMVP = 0xFF;
+
+    if (m_hevcPicParams->CollocatedRefPicIndex != 0xFF && m_hevcPicParams->CollocatedRefPicIndex < CODEC_MAX_NUM_REF_FRAME_HEVC)
+    {
+        uint8_t frameIdx = m_hevcPicParams->RefFrameList[m_hevcPicParams->CollocatedRefPicIndex].FrameIdx;
+        idxForTempMVP = m_refList[frameIdx]->ucScalingIdx;
+    }
+
+    if (idxForTempMVP == 0xFF && m_hevcSliceParams->slice_temporal_mvp_enable_flag)
+    {
+        // Temporal reference MV index is invalid and so disable the temporal MVP
+        CODECHAL_ENCODE_ASSERT(false);
+        m_hevcSliceParams->slice_temporal_mvp_enable_flag = false;
+    }
+    else
+    {
+        pipeBufAddrParams.presColMvTempBuffer[0] = m_trackedBuf->GetMvTemporalBuffer(idxForTempMVP);
     }
 }
 
