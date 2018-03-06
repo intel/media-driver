@@ -1912,9 +1912,15 @@ MOS_STATUS Mos_Specific_GetResourceInfo(
     pResDetails->dwHeight        = pGmmResourceInfo->GetBaseHeight();
     pResDetails->dwPitch         = GFX_ULONG_CAST(pGmmResourceInfo->GetRenderPitch());
     pResDetails->dwDepth         = MOS_MAX(1, pGmmResourceInfo->GetBaseDepth());
-    pResDetails->bArraySpacing   = GmmResIsArraySpacingSingleLod(pGmmResourceInfo);
-    pResDetails->dwQPitch        = pGmmResourceInfo->GetQPitch();
     pResDetails->dwLockPitch     = GmmResGetLockPitch(pGmmResourceInfo);
+    if (GFX_GET_CURRENT_RENDERCORE(pGmmGlobalContext->GetPlatformInfo().Platform) < IGFX_GEN8_CORE)
+    {
+        pResDetails->bArraySpacing = GmmResIsArraySpacingSingleLod(pGmmResourceInfo);
+    }
+    if (GFX_GET_CURRENT_RENDERCORE(pGmmGlobalContext->GetPlatformInfo().Platform) >= IGFX_GEN9_CORE)
+    {
+        pResDetails->dwQPitch = pGmmResourceInfo->GetQPitch();
+    }
 
 #ifdef ANDROID
     if(pOsResource->bo)
@@ -1979,7 +1985,7 @@ MOS_STATUS Mos_Specific_GetResourceInfo(
     reqInfo[2].Plane     = GMM_PLANE_Y;
     reqInfo[2].Frame     = gmmChannel;
     reqInfo[2].CubeFace  = __GMM_NO_CUBE_MAP;
-    reqInfo[2].ArrayIndex = 1;
+    reqInfo[2].ArrayIndex = 0;
     pGmmResourceInfo->GetOffset(reqInfo[2]);
     pResDetails->RenderOffset.YUV.Y.BaseOffset = reqInfo[2].Render.Offset;
 
@@ -1988,7 +1994,7 @@ MOS_STATUS Mos_Specific_GetResourceInfo(
     reqInfo[0].Plane     = GMM_PLANE_U;
     reqInfo[0].Frame     = gmmChannel;
     reqInfo[0].CubeFace  = __GMM_NO_CUBE_MAP;
-    reqInfo[0].ArrayIndex = 1;
+    reqInfo[0].ArrayIndex = 0;
     pGmmResourceInfo->GetOffset(reqInfo[0]);
 
     pResDetails->RenderOffset.YUV.U.BaseOffset = reqInfo[0].Render.Offset;
@@ -2000,7 +2006,7 @@ MOS_STATUS Mos_Specific_GetResourceInfo(
     reqInfo[1].Plane     = GMM_PLANE_V;
     reqInfo[1].Frame     = gmmChannel;
     reqInfo[1].CubeFace  = __GMM_NO_CUBE_MAP;
-    reqInfo[1].ArrayIndex = 1;
+    reqInfo[1].ArrayIndex = 0;
     pGmmResourceInfo->GetOffset(reqInfo[1]);
 
     pResDetails->RenderOffset.YUV.V.BaseOffset = reqInfo[1].Render.Offset;
