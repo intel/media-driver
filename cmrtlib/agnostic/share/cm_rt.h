@@ -1236,9 +1236,9 @@ class SurfaceIndex;
 class SamplerIndex;
 
 //**********************************************************************
-// Embargoed definitions if any
+// Extended definitions if any
 //**********************************************************************
-#include "cm_rt_embargoed.h"
+#include "cm_rt_extension.h"
 
 //**********************************************************************
 // Classes

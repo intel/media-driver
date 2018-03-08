@@ -4049,7 +4049,6 @@ MOS_STATUS HalCm_Setup2DSurfaceStateBasic(
                   surfaceEntries,
                   nullptr));
 
-    //add this to avoid klocwork warning
     nSurfaceEntries = MOS_MIN( nSurfaceEntries, MHW_MAX_SURFACE_PLANES );
 
     btIndex = HalCm_GetFreeBindingIndex(state, indexParam, nSurfaceEntries);
