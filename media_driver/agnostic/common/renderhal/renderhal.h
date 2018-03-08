@@ -1217,6 +1217,7 @@ typedef struct _RENDERHAL_INTERFACE
 
     // Predication
     RENDERHAL_PREDICATION_SETTINGS PredicationParams;   //!< Predication
+    MOS_RESOURCE                   PredicationBuffer;   //!< Predication buffer
 
     // SetMarker
     RENDERHAL_SETMARKER_SETTINGS SetMarkerParams;   //!< SetMarker

@@ -4071,6 +4071,7 @@ MOS_STATUS RenderHal_Destroy(PRENDERHAL_INTERFACE pRenderHal)
 
     //------------------------------------------------
     MHW_RENDERHAL_ASSERT(pRenderHal);
+    MHW_RENDERHAL_ASSERT(pRenderHal->pOsInterface);
     //------------------------------------------------
     eStatus      = MOS_STATUS_UNKNOWN;
 
@@ -4091,11 +4092,19 @@ MOS_STATUS RenderHal_Destroy(PRENDERHAL_INTERFACE pRenderHal)
         pRenderHal->pMhwMiInterface = nullptr;
     }
 
-    //Release pBatchBufferMemPool
-    if(pRenderHal->pBatchBufferMemPool)
+    // Release pBatchBufferMemPool
+    if (pRenderHal->pBatchBufferMemPool)
     {
         MOS_Delete(pRenderHal->pBatchBufferMemPool);
         pRenderHal->pBatchBufferMemPool = nullptr;
+    }
+
+    // Release PredicationBuffer
+    if (!Mos_ResourceIsNull(&pRenderHal->PredicationBuffer))
+    {
+        pRenderHal->pOsInterface->pfnFreeResource(
+            pRenderHal->pOsInterface,
+            &pRenderHal->PredicationBuffer);
     }
 
     // Destruct Platform Interface
@@ -4424,6 +4433,20 @@ MOS_STATUS RenderHal_SendPredicationCommand(
     MHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS  condBBEndParams;
     MOS_ZeroMemory(&condBBEndParams, sizeof(condBBEndParams));
 
+    MOS_SYNC_PARAMS syncParams;
+    MOS_ZeroMemory(&syncParams, sizeof(syncParams));
+    syncParams.uiSemaphoreCount         = 1;
+    // Currently only sync between VEBOX and 3D, also need to consider sync between Render Engine and 3D
+    // low priority since current VP Predication test case does not cover this scenario.
+    syncParams.GpuContext               = MOS_GPU_CONTEXT_VEBOX;
+    syncParams.presSyncResource         = pRenderHal->PredicationParams.pPredicationResource;
+    syncParams.bReadOnly                = true;
+    syncParams.bDisableDecodeSyncLock   = false;
+    syncParams.bDisableLockForTranscode = false;
+
+    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pOsInterface->pfnPerformOverlaySync(pRenderHal->pOsInterface, &syncParams));
+    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pOsInterface->pfnResourceWait(pRenderHal->pOsInterface, &syncParams));
+
     // Keep implementation same between Render and VEBox engines - for Render it is highly inefficient
     // Skip current frame if presPredication is not equal to zero
     if (pRenderHal->PredicationParams.predicationNotEqualZero)
@@ -4496,28 +4519,112 @@ MOS_STATUS RenderHal_SendPredicationCommand(
         // if zero, the zero flag will be 0xFFFFFFFF, else zero flag will be 0x0.
         MHW_MI_STORE_REGISTER_MEM_PARAMS    storeRegParams;
         MOS_ZeroMemory(&storeRegParams, sizeof(storeRegParams));
-        storeRegParams.presStoreBuffer  = pRenderHal->PredicationParams.pPredicationResource;
-        storeRegParams.dwOffset         = 0;
+        storeRegParams.presStoreBuffer  = &pRenderHal->PredicationBuffer;
+        storeRegParams.dwOffset         = 0x10;
         storeRegParams.dwRegister       = mmioRegistersRender->generalPurposeRegister0LoOffset;
         MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiStoreRegisterMemCmd(
             pCmdBuffer,
             &storeRegParams));
 
-        condBBEndParams.presSemaphoreBuffer = pRenderHal->PredicationParams.pPredicationResource;
-        condBBEndParams.dwOffset            = 0;
+        // Programming of 4 dummy MI_STORE_DATA_IMM commands prior to programming of MiConditionalBatchBufferEnd
+        MHW_MI_STORE_DATA_PARAMS dataParams;
+        MOS_ZeroMemory(&dataParams, sizeof(dataParams));
+        dataParams.pOsResource = &pRenderHal->PredicationBuffer;
+        dataParams.dwValue = 1;
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiStoreDataImmCmd(
+            pCmdBuffer,
+            &dataParams));
+
+        dataParams.dwValue = 2;
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiStoreDataImmCmd(
+            pCmdBuffer,
+            &dataParams));
+
+        dataParams.dwValue = 3;
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiStoreDataImmCmd(
+            pCmdBuffer,
+            &dataParams));
+
+        dataParams.dwValue = 4;
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiStoreDataImmCmd(
+            pCmdBuffer,
+            &dataParams));
+
+        MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
+        flushDwParams.postSyncOperation = 1;
+        flushDwParams.pOsResource = &pRenderHal->PredicationBuffer;
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiFlushDwCmd(pCmdBuffer, &flushDwParams));
+
+        condBBEndParams.presSemaphoreBuffer = &pRenderHal->PredicationBuffer;
+        condBBEndParams.dwOffset            = 0x10;
         condBBEndParams.dwValue             = 0;
         condBBEndParams.bDisableCompareMask = true;
         MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiConditionalBatchBufferEndCmd(
             pCmdBuffer,
             &condBBEndParams));
 
-        pRenderHal->PredicationParams.ptempPredicationBuffer = pRenderHal->PredicationParams.pPredicationResource;
+        pRenderHal->PredicationParams.ptempPredicationBuffer = &pRenderHal->PredicationBuffer;
     }
     else
     {
+        auto mmioRegistersRender = pRenderHal->pMhwMiInterface->GetMmioRegisters();
+
+        MHW_MI_FLUSH_DW_PARAMS  flushDwParams;
+        MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiFlushDwCmd(pCmdBuffer, &flushDwParams));
+
+        // load presPredication to general purpose register0
+        MHW_MI_STORE_REGISTER_MEM_PARAMS    loadRegisterMemParams;
+        MOS_ZeroMemory(&loadRegisterMemParams, sizeof(loadRegisterMemParams));
+        loadRegisterMemParams.presStoreBuffer = pRenderHal->PredicationParams.pPredicationResource;
+        loadRegisterMemParams.dwOffset        = (uint32_t)pRenderHal->PredicationParams.predicationResOffset;
+        loadRegisterMemParams.dwRegister      = mmioRegistersRender->generalPurposeRegister0LoOffset;
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiLoadRegisterMemCmd(
+            pCmdBuffer,
+            &loadRegisterMemParams));
+
+        // if zero, the zero flag will be 0xFFFFFFFF, else zero flag will be 0x0.
+        MHW_MI_STORE_REGISTER_MEM_PARAMS    storeRegParams;
+        MOS_ZeroMemory(&storeRegParams, sizeof(storeRegParams));
+        storeRegParams.presStoreBuffer = &pRenderHal->PredicationBuffer;
+        storeRegParams.dwOffset        = 0x10;
+        storeRegParams.dwRegister      = mmioRegistersRender->generalPurposeRegister0LoOffset;
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiStoreRegisterMemCmd(
+            pCmdBuffer,
+            &storeRegParams));
+
+        // Programming of 4 dummy MI_STORE_DATA_IMM commands prior to programming of MiConditionalBatchBufferEnd
+        MHW_MI_STORE_DATA_PARAMS dataParams;
+        MOS_ZeroMemory(&dataParams, sizeof(dataParams));
+        dataParams.pOsResource = &pRenderHal->PredicationBuffer;
+        dataParams.dwValue     = 1;
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiStoreDataImmCmd(
+            pCmdBuffer,
+            &dataParams));
+
+        dataParams.dwValue = 2;
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiStoreDataImmCmd(
+            pCmdBuffer,
+            &dataParams));
+
+        dataParams.dwValue = 3;
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiStoreDataImmCmd(
+            pCmdBuffer,
+            &dataParams));
+
+        dataParams.dwValue = 4;
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiStoreDataImmCmd(
+            pCmdBuffer,
+            &dataParams));
+
+        MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
+        flushDwParams.postSyncOperation = 1;
+        flushDwParams.pOsResource       = &pRenderHal->PredicationBuffer;
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiFlushDwCmd(pCmdBuffer, &flushDwParams));
+
         // Skip current frame if presPredication is equal to zero
-        condBBEndParams.presSemaphoreBuffer = pRenderHal->PredicationParams.pPredicationResource;
-        condBBEndParams.dwOffset            = (uint32_t)pRenderHal->PredicationParams.predicationResOffset;
+        condBBEndParams.presSemaphoreBuffer = &pRenderHal->PredicationBuffer;
+        condBBEndParams.dwOffset            = 0x10;
         condBBEndParams.bDisableCompareMask = true;
         condBBEndParams.dwValue             = 0;
         MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiConditionalBatchBufferEndCmd(
@@ -4786,6 +4893,8 @@ MOS_STATUS RenderHal_Initialize(
     MOS_STATUS          eStatus;
     PMOS_INTERFACE      pOsInterface;
     MHW_STATE_BASE_ADDR_PARAMS *pStateBaseParams;
+    MOS_ALLOC_GFXRES_PARAMS     AllocParams;
+
     //------------------------------------------------
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface);
@@ -4809,6 +4918,19 @@ MOS_STATUS RenderHal_Initialize(
 
     // If ASM debug is enabled, allocate debug resource
     MHW_RENDERHAL_CHK_STATUS(RenderHal_AllocateDebugSurface(pRenderHal));
+
+    // Allocate Predication buffer
+    MOS_ZeroMemory(&AllocParams, sizeof(AllocParams));
+    AllocParams.Type        = MOS_GFXRES_BUFFER;
+    AllocParams.TileType    = MOS_TILE_LINEAR;
+    AllocParams.Format      = Format_Buffer;
+    AllocParams.dwBytes     = MHW_PAGE_SIZE;
+    AllocParams.pBufName    = "PredicationBuffer";
+
+    MHW_RENDERHAL_CHK_STATUS(pOsInterface->pfnAllocateResource(
+        pOsInterface,
+        &AllocParams,
+        &pRenderHal->PredicationBuffer));
 
     // Setup State Base Address command
     pStateBaseParams   = &pRenderHal->StateBaseAddressParams;
