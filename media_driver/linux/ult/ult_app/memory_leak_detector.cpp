@@ -205,7 +205,7 @@ uint32_t MemoryLeakDetectorIpl::getHitNum(int32_t idx) const
 
     for (int32_t i = idx - 1; i >= 0; i--)
     {
-        if (m_memInfoTable[i].functionName == m_memInfoTable[idx].functionName
+        if (m_memInfoTable[i].filename == m_memInfoTable[idx].filename
             && m_memInfoTable[i].line == m_memInfoTable[idx].line)
         {
             ++hitNum;

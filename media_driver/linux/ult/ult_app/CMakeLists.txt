@@ -62,11 +62,6 @@ add_executable(devult ${SOURCES})
 LINK_DIRECTORIES(/usr/lib/x86_64-linux-gnu/)
 TARGET_LINK_LIBRARIES(devult libgtest libdl.so)
 
-
-if (DEFINED BUILD_TYPE AND "${BUILD_TYPE}" STREQUAL "debug")
-    set(BYPASS_MEDIA_ULT "yes")
-endif ()
-
 if (DEFINED BYPASS_MEDIA_ULT AND "${BYPASS_MEDIA_ULT}" STREQUAL "yes")
     # must explictly pass along BYPASS_MEDIA_ULT as yes then could bypass the running of media ult
     message("-- media -- BYPASS_MEDIA_ULT = ${BYPASS_MEDIA_ULT}")

@@ -87,6 +87,7 @@
 
 extern int32_t MosMemAllocCounter;
 extern int32_t MosMemAllocCounterGfx;
+extern uint8_t MosUltFlag;
 
 //! Helper Macros for MEMNINJA debug messages
 #define MOS_MEMNINJA_ALLOC_MESSAGE(ptr, size, functionName, filename, line)                             \
