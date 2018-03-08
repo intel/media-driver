@@ -101,6 +101,10 @@ protected:
     uint32_t m_height;
     uint32_t m_depth;
     CM_SURFACE_FORMAT m_format;
+
+private:
+    CmSurface3DRT(const CmSurface3DRT& other);
+    CmSurface3DRT& operator=(const CmSurface3DRT& other);
 };
 };  //namespace
 

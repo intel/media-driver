@@ -67,6 +67,10 @@ protected:
     CM_SAMPLER8x8_SURFACE m_sampler8x8Type;
     CM_SURFACE_ADDRESS_CONTROL_MODE m_nAddressMode;
     CM_FLAG m_flag;
+
+private:
+    CmSurfaceSampler8x8(const CmSurfaceSampler8x8& other);
+    CmSurfaceSampler8x8& operator=(const CmSurfaceSampler8x8& other);
 };
 }; //namespace
 

@@ -209,6 +209,10 @@ protected:
 
     // Kernel debugger
     CmKernelDebugger *m_kernelDebugger;
+
+private:
+    CmDevice_RT(const CmDevice_RT &other);
+    CmDevice_RT &operator=(const CmDevice_RT &other);
 };
 
 #endif  // #ifndef CMRTLIB_LINUX_HARDWARE_CM_DEVICE_H_

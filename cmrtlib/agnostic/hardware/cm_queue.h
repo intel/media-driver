@@ -162,6 +162,11 @@ protected:
     void  *m_cmQueueHandle;  //pointer used in driver
 
     CSync m_criticalSection;
+
+private:
+    CmQueue_RT(const CmQueue_RT &other);
+    CmQueue_RT &operator=(const CmQueue_RT &other);
+
 };
 
 #endif  // #ifndef CMRTLIB_AGNOSTIC_HARDWARE_CM_QUEUE_H_

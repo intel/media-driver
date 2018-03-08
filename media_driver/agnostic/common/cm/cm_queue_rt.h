@@ -109,7 +109,7 @@ public:
 
     int GetCount() { return mQueue.size(); }
 
- private:
+private:
     std::queue<CmTaskInternal*> mQueue;
     CSync mCriticalSection;
 };
@@ -330,6 +330,10 @@ protected:
 
     CM_HAL_MAX_VALUES *m_halMaxValues;
     CM_QUEUE_CREATE_OPTION m_queueOption;
+
+private:
+    CmQueueRT(const CmQueueRT& other);
+    CmQueueRT& operator=(const CmQueueRT& other);
 };
 };  //namespace
 

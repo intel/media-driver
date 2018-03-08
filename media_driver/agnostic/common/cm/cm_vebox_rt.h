@@ -253,6 +253,10 @@ protected:
     CmSurface2DRT *m_surface2D[VEBOX_MAX_SURFACE_COUNT];
     uint16_t m_surfaceCtrlBits[VEBOX_MAX_SURFACE_COUNT];
     uint32_t m_indexInVeboxArray;
+
+private:
+    CmVeboxRT(const CmVeboxRT& other);
+    CmVeboxRT& operator=(const CmVeboxRT& other);
 };
 };  //namespace
 

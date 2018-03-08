@@ -125,6 +125,11 @@ protected:
 
 private:
     CmDevice_RT *m_device;
+
+private:
+    CmSurfaceManager(const CmSurfaceManager &other);
+    CmSurfaceManager &operator=(const CmSurfaceManager &other);
+
 };
 
 #endif  // #ifndef CMRTLIB_LINUX_HARDWARE_CM_SURFACE_MANAGER_H_

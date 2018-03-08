@@ -169,6 +169,10 @@ protected:
     //Vtune call back
     EventCallBackFunction m_callbackFunction;  //CallBack Function
     void *m_callbackUserData;                  //Pdata for Callback
+
+private:
+    CmEventRT(const CmEventRT& other);
+    CmEventRT& operator=(const CmEventRT& other);
 };
 }
 

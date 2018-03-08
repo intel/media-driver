@@ -128,5 +128,9 @@ protected:
     uint32_t m_surfStateHeight;
 
     bool m_isGen75;
+
+private:
+    CmSurfaceVme(const CmSurfaceVme& other);
+    CmSurfaceVme& operator=(const CmSurfaceVme& other);
 };
 }; //namespace

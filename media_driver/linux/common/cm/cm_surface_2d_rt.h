@@ -197,6 +197,10 @@ protected:
     void *m_vaDisplay;
 
     CM_FRAME_TYPE m_frameType;
+
+private:
+    CmSurface2DRT(const CmSurface2DRT& other);
+    CmSurface2DRT& operator=(const CmSurface2DRT& other);
 };
 }; //namespace
 

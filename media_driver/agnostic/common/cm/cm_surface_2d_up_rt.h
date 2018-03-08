@@ -90,6 +90,10 @@ protected:
     CM_FRAME_TYPE m_frameType;
     CM_SURFACE_FORMAT m_format;
     void *m_sysMem;
+
+private:
+    CmSurface2DUPRT(const CmSurface2DUPRT& other);
+    CmSurface2DUPRT& operator=(const CmSurface2DUPRT& other);
 };
 };  //namespace
 

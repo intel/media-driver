@@ -61,6 +61,10 @@ protected:
 
     SAMPLER_SURFACE_TYPE m_surfaceType; //0-Surface 2D, 1-Surface 3D
     CM_FLAG m_flag;
+
+private:
+    CmSurfaceSampler(const CmSurfaceSampler& other);
+    CmSurfaceSampler& operator=(const CmSurfaceSampler& other);
 };
 };//namespace
 

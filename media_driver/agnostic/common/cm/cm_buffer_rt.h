@@ -146,6 +146,10 @@ protected:
     uint32_t m_numAliases;  // number of alias indexes
 
     SurfaceIndex *m_aliasIndexes[CM_HAL_MAX_NUM_BUFFER_ALIASES];
+
+private:
+    CmBuffer_RT(const CmBuffer_RT& other);
+    CmBuffer_RT& operator=(const CmBuffer_RT& other);
 };
 };
 

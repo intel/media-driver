@@ -58,6 +58,7 @@ protected:
     int32_t m_refCount;
 
 private:
+    CmVeboxData(const CmVeboxData& other);
     CmVeboxData& operator= (const CmVeboxData& other);
 };
 }; //namespace

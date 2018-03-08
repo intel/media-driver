@@ -126,6 +126,11 @@ private:
 
     PerfLogLevel m_profilerLevel; // profiler level
     bool m_profilerOn;   // profiler on or off
+
+private:
+    CmPerfStatistics(const CmPerfStatistics &other);
+    CmPerfStatistics &operator=(const CmPerfStatistics &other);
+
 };
 
 #endif
