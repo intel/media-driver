@@ -316,6 +316,18 @@ MOS_STATUS OsContextSpecific::CreateSSEUIPC()
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
+        __MEDIA_USER_FEATURE_VALUE_SLICE_COUNT_SET_SUPPORT_ID,
+        &UserFeatureData);
+    m_sliceCountSetSupported = (UserFeatureData.i32Data) ? true : false;
+
+    if (!m_sliceCountSetSupported)
+    {
+      // return directly if slice count set unsupport in KMD
+      return eStatus;
+    }
+
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
         __MEDIA_USER_FEATURE_VALUE_DYNAMIC_SLICE_SHUTDOWN_ID,
         &UserFeatureData);
     m_enableDSS = UserFeatureData.i32Data;
@@ -368,24 +380,30 @@ void OsContextSpecific::DestroySSEUIPC()
 
 void OsContextSpecific::SetSliceCount(uint32_t *pSliceCount)
 {
-    uint32_t rulingSliceCount;
-    void *value;
+    uint32_t sliceCount;
+    uint32_t sliceMask;
 
     if (pSliceCount == nullptr)
     {
         MOS_OS_ASSERTMESSAGE("pSliceCount is NULL.");
-        goto finish;
+        return ;
+    }
+
+    if (!m_sliceCountSetSupported)
+    {
+        // m_sliceCountSetSupported == false, SSEU is unsupport in KMD
+        return ;
     }
 
     if (m_enableDSS == 0)
     {
         // m_enableDSS == 0, default slice count
-        rulingSliceCount = m_gtSystemInfo.SliceCount;
+        sliceCount = m_gtSystemInfo.SliceCount;
     }
     else if (m_enableDSS > 0)
     {
         // m_enableDSS > 0, static slice shutdown
-        rulingSliceCount = (m_enableDSS < m_gtSystemInfo.SliceCount)? m_enableDSS:m_gtSystemInfo.SliceCount;
+        sliceCount = (m_enableDSS < m_gtSystemInfo.SliceCount)? m_enableDSS:m_gtSystemInfo.SliceCount;
     }
     else
     {
@@ -399,22 +417,18 @@ void OsContextSpecific::SetSliceCount(uint32_t *pSliceCount)
         // When both ctx1 and ctx2 are running, 2 slices are configured for both ctx1 and ctx2.
         // When ctx2 exited, ctx1 will be re-configured as 1 slice after 1 second.
 
-        uint32_t sliceCount = *pSliceCount;
-        if (sliceCount == 0)
+        uint32_t sliceNum = *pSliceCount;
+        if (sliceNum == 0 || sliceNum > m_gtSystemInfo.SliceCount)
         {
-            sliceCount = m_gtSystemInfo.SliceCount;
+            sliceNum = m_gtSystemInfo.SliceCount;
         }
-        else if (sliceCount > m_gtSystemInfo.SliceCount)
-        {
-            sliceCount = m_gtSystemInfo.SliceCount;
-        }
-        rulingSliceCount = sliceCount;
+        sliceCount = sliceNum;
 
         struct timespec ts;
         if (clock_gettime( CLOCK_MONOTONIC, &ts))
         {
             MOS_OS_ASSERTMESSAGE("Failed to get time.");
-            goto finish;
+            return ;
         }
         uint64_t timestamp = ts.tv_sec*1000 + ts.tv_nsec/1000000; //milliseconds
 
@@ -422,46 +436,42 @@ void OsContextSpecific::SetSliceCount(uint32_t *pSliceCount)
         {
             uint64_t* pTimestampShm = (uint64_t*)m_sseuShm + sliceCountShm;
             uint64_t   timestampShm = __atomic_load_8(pTimestampShm, __ATOMIC_SEQ_CST);
-            if (sliceCount == sliceCountShm)
+            if (sliceNum == sliceCountShm)
             {
                 __atomic_store_8(pTimestampShm, timestamp, __ATOMIC_SEQ_CST);
                 break;
             }
-            else if (sliceCount < sliceCountShm
+            else if (sliceNum < sliceCountShm
                         && timestamp - timestampShm < m_sliceCountTimeoutMS
-                        && rulingSliceCount < sliceCountShm)
+                        && sliceCount < sliceCountShm)
             {
-                rulingSliceCount = sliceCountShm;
+                sliceCount = sliceCountShm;
             }
         }
     }
 
-    union drm_i915_gem_context_param_sseu sseu;
+    struct drm_i915_gem_context_param_sseu sseu = { .flags = I915_EXEC_RENDER };
     sseu.value = m_sseu;
+    sliceMask = mos_get_slice_mask(sliceCount);
 
-    value = &sseu.value;
-
-    if (rulingSliceCount != sseu.packed.slice_mask)
+    if (sliceMask != sseu.packed.slice_mask)
     {
-        if (mos_get_context_param(m_intelContext, 0,
-                        I915_CONTEXT_PARAM_SSEU, (uint64_t*)value))
+        if (mos_get_context_param_sseu(m_intelContext, &sseu))
         {
             MOS_OS_ASSERTMESSAGE("Failed to get context parameter.");
-            goto finish;
+            return ;
         };
-        sseu.packed.slice_mask = rulingSliceCount;
-        if (mos_set_context_param(m_intelContext, 0,
-                       I915_CONTEXT_PARAM_SSEU, sseu.value))
+        sseu.packed.slice_mask = sliceMask;
+        if (mos_set_context_param_sseu(m_intelContext, sseu))
         {
             MOS_OS_ASSERTMESSAGE("Failed to set context parameter.");
-            goto finish;
+            return ;
         }
         m_sseu = sseu.value;
     }
 
-    *pSliceCount = rulingSliceCount;
+    *pSliceCount = sliceCount;
 
-finish:
     return ;
 }
 

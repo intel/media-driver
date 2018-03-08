@@ -4701,6 +4701,71 @@ mos_get_reset_stats(struct mos_linux_context *ctx,
     return ret;
 }
 
+int mos_get_slice_mask(uint32_t slice_count)
+{
+    uint32_t bitflag = 1;
+    uint32_t bitmask = 0;
+    int count = 0;
+
+    while (count < slice_count)
+    {
+        bitmask = bitflag;
+        bitflag = bitmask | (bitflag << 1);
+        count++;
+    }
+
+    return bitmask;
+}
+
+int
+mos_get_context_param_sseu(struct mos_linux_context *ctx,
+                struct drm_i915_gem_context_param_sseu *sseu)
+{
+    struct mos_bufmgr_gem *bufmgr_gem;
+    struct drm_i915_gem_context_param context_param;
+    int ret;
+
+    if (ctx == nullptr)
+        return -EINVAL;
+
+    bufmgr_gem = (struct mos_bufmgr_gem *)ctx->bufmgr;
+    memset(&context_param, 0, sizeof(context_param));
+    context_param.ctx_id = ctx->ctx_id;
+    context_param.param = I915_CONTEXT_PARAM_SSEU;
+    context_param.value = (uint64_t) sseu;
+
+    ret = drmIoctl(bufmgr_gem->fd,
+            DRM_IOCTL_I915_GEM_CONTEXT_GETPARAM,
+            &context_param);
+    sseu->value = context_param.value;
+
+    return ret;
+}
+
+int
+mos_set_context_param_sseu(struct mos_linux_context *ctx,
+                struct drm_i915_gem_context_param_sseu sseu)
+{
+    struct mos_bufmgr_gem *bufmgr_gem;
+    struct drm_i915_gem_context_param context_param;
+    int ret;
+
+    if (ctx == nullptr)
+        return -EINVAL;
+
+    bufmgr_gem = (struct mos_bufmgr_gem *)ctx->bufmgr;
+    memset(&context_param, 0, sizeof(context_param));
+    context_param.ctx_id = ctx->ctx_id;
+    context_param.param = I915_CONTEXT_PARAM_SSEU;
+    context_param.value = (uint64_t) &sseu;
+
+    ret = drmIoctl(bufmgr_gem->fd,
+               DRM_IOCTL_I915_GEM_CONTEXT_SETPARAM,
+               &context_param);
+
+    return ret;
+}
+
 int
 mos_get_context_param(struct mos_linux_context *ctx,
                 uint32_t size,

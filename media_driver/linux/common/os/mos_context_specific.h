@@ -306,6 +306,10 @@ private:
     //!
     void*               m_shm = nullptr;
     //!
+    //! \brief  Support slice count set in KMD
+    //!
+    bool               m_sliceCountSetSupported = 0;
+    //!
     //! \brief  Enable/Disable dynamic slice shutdown and static slice config
     //!         -1    Use timer-based dynamic slice shutdown
     //!         0   [default] Use default slices count
