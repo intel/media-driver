@@ -38,13 +38,6 @@ void MemoryLeakDetector::detect(const DriverDllLoader &drvLoader, Platform_t pla
     int32_t memNinjaCntGfx = drvLoader.MOS_GetMemNinjaCounterGfx();
     if (memNinjaCnt != 0 || memNinjaCntGfx != 0)
     {
-        ifstream log(LOG_PATH);
-        if (!log)
-        {
-            return;
-        }
-        log.close();
-
         const ::testing::TestInfo* curTest = ::testing::UnitTest::GetInstance()->current_test_info();
         string title(curTest->test_case_name());
         title = title + "." + curTest->name() + " Platform: " + to_string(platform) + " System memory counter: "

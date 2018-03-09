@@ -2113,6 +2113,8 @@ MOS_STATUS MOS_OS_Utilities_Init()
         // Initialize MOS message params structure and HLT
         MOS_MessageInit();
 #endif // MOS_MESSAGES_ENABLED
+        MosMemAllocCounter    = 0;
+        MosMemAllocCounterGfx = 0;
         MOS_TraceEventInit();
     }
     uiMOSUtilInitCount++;
