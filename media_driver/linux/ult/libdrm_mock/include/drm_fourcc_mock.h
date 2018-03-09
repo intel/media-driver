@@ -138,14 +138,6 @@
  * below.  The lower 56 bits are assigned as vendor sees fit.
  */
 
-/* Vendor Ids: */
-#define DRM_FORMAT_MOD_NONE           0
-#define DRM_FORMAT_MOD_VENDOR_INTEL   0x01
-#define DRM_FORMAT_MOD_VENDOR_AMD     0x02
-#define DRM_FORMAT_MOD_VENDOR_NV      0x03
-#define DRM_FORMAT_MOD_VENDOR_SAMSUNG 0x04
-#define DRM_FORMAT_MOD_VENDOR_QCOM    0x05
-/* add more to the end as needed */
 
 #define fourcc_mod_code(vendor, val) \
     ((((__u64)DRM_FORMAT_MOD_VENDOR_## vendor) << 56) | (val & 0x00ffffffffffffffULL))
@@ -217,6 +209,5 @@
  *
  * For more information: see http://linuxtv.org/downloads/v4l-dvb-apis/re32.html
  */
-#define DRM_FORMAT_MOD_SAMSUNG_64_32_TILE    fourcc_mod_code(SAMSUNG, 1)
 
 #endif /* DRM_FOURCC_H */
