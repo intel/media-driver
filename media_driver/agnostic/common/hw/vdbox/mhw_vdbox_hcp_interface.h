@@ -1183,7 +1183,7 @@ public:
     //!
     virtual MOS_STATUS AddHcpHevcPicBrcBuffer(
         PMOS_RESOURCE                    hcpImgStates,
-        MHW_VDBOX_HEVC_PIC_STATE         hevcPicState) = 0;
+        PMHW_VDBOX_HEVC_PIC_STATE         hevcPicState) = 0;
 
     //!
     //! \brief    Get OsResLaceOrAceOrRgbHistogramBuffer Size

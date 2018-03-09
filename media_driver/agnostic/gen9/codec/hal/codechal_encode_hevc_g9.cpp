@@ -6430,7 +6430,7 @@ MOS_STATUS CodechalEncHevcStateG9::EncodeBrcUpdateKernel()
     mhwHevcPicState.pHevcEncPicParams = m_hevcPicParams;
     mhwHevcPicState.brcNumPakPasses = m_mfxInterface->GetBrcNumPakPasses();
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpHevcPicBrcBuffer(brcHcpStateReadBuffer, mhwHevcPicState));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpHevcPicBrcBuffer(brcHcpStateReadBuffer, &mhwHevcPicState));
 
     auto brcConstantData = &m_brcBuffers.sBrcConstantDataBuffer[m_currRecycledBufIdx];
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupBrcConstantTable(brcConstantData));

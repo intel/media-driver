@@ -452,5 +452,13 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS AddHcpPictureStateCmd(MOS_COMMAND_BUFFER* cmdBuffer);
+
+    //!
+    //! \brief    Create ROI surfaces for BRC LCU Update kernel
+    //!           
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS SetupROISurface();
 };
 #endif  // __CODECHAL_ENCODE_HEVC_H__

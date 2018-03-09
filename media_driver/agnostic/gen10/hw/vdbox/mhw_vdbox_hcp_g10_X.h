@@ -295,7 +295,7 @@ public:
 
     MOS_STATUS AddHcpHevcPicBrcBuffer(
         PMOS_RESOURCE                   hcpImgStates,
-        MHW_VDBOX_HEVC_PIC_STATE        hevcPicState);
+        PMHW_VDBOX_HEVC_PIC_STATE        hevcPicState);
 
     MOS_STATUS GetOsResLaceOrAceOrRgbHistogramBufferSize(
         uint32_t                        width,

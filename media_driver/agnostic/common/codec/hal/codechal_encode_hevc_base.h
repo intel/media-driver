@@ -81,6 +81,7 @@
 #define HEVC_BRC_CONSTANT_SURFACE_HEIGHT_G9         (53)
 #define HEVC_BRC_HISTORY_BUFFER_SIZE_G9             (576)
 #define HEVC_BRC_HISTORY_BUFFER_SIZE_G10            (832)
+#define HEVC_BRC_HISTORY_BUFFER_SIZE_G12            (1088)
 #define HEVC_BRC_CONSTANT_SURFACE_HEIGHT_G10        (35)
 
 #define CODECHAL_HEVC_NUM_PAK_SLICE_BATCH_BUFFERS   (3)
@@ -971,6 +972,7 @@ public:
     bool     m_lcuBrcEnabled                      = false;  //!< LCU BRC enable flag
     bool     m_brcInit                            = true;   //!< BRC init flag
     bool     m_brcReset                           = false;  //!< BRC reset flag
+    bool     m_brcRoiEnabled                      = false;  //!< BRC Roi flag
     bool     m_roiValueInDeltaQp                  = true;   //!< ROI Value in deltaQP or priority flag
 
     CODECHAL_ENCODE_BUFFER m_resPakcuLevelStreamoutData;  //!< PAK LCU level stream out data buffer

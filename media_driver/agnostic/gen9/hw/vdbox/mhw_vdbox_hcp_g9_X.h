@@ -1788,7 +1788,7 @@ protected:
 
     MOS_STATUS AddHcpHevcPicBrcBuffer(
         PMOS_RESOURCE                   hcpImgStates,
-        MHW_VDBOX_HEVC_PIC_STATE        hevcPicState)
+        PMHW_VDBOX_HEVC_PIC_STATE        hevcPicState)
     {
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -1800,7 +1800,7 @@ protected:
         typename THcpCmds::HCP_PIC_STATE_CMD  cmd;
         uint32_t* insertion = nullptr;
         MOS_LOCK_PARAMS lockFlags;
-        this->m_brcNumPakPasses = hevcPicState.brcNumPakPasses;
+        this->m_brcNumPakPasses = hevcPicState->brcNumPakPasses;
 
         MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
         lockFlags.WriteOnly = 1;
@@ -1812,7 +1812,7 @@ protected:
         constructedCmdBuf.iOffset       = 0;
         constructedCmdBuf.iRemaining    = BRC_IMG_STATE_SIZE_PER_PASS * (this->m_brcNumPakPasses);
 
-        MHW_MI_CHK_STATUS(this->AddHcpPicStateCmd(&constructedCmdBuf, &hevcPicState));
+        MHW_MI_CHK_STATUS(this->AddHcpPicStateCmd(&constructedCmdBuf, hevcPicState));
 
         cmd = *(typename THcpCmds::HCP_PIC_STATE_CMD *)data;
 

@@ -1239,6 +1239,48 @@ MOS_STATUS CodechalEncHevcState::AllocateBrcResources()
         m_osInterface,
         &m_brcBuffers.sBrcMbQpBuffer.OsResource);
 
+    // Use the Mb QP buffer in BrcBuffer for LCU-based Qp surface in HEVC
+    MOS_ZeroMemory(&m_brcBuffers.sBrcRoiSurface, sizeof(m_brcBuffers.sBrcRoiSurface));
+
+    // original picture size in MB units aligned to 64 bytes along width and 8 bytes along height
+    width = MOS_ALIGN_CEIL((m_downscaledWidthInMb4x * SCALE_FACTOR_16x), 64);
+    height = MOS_ALIGN_CEIL((m_downscaledHeightInMb4x * SCALE_FACTOR_4x), 8) << 2;
+    size = width * height;
+
+    allocParamsForBuffer2D.dwWidth = width;
+    allocParamsForBuffer2D.dwHeight = height;
+    allocParamsForBuffer2D.pBufName = "BRC ROI Surface";
+
+    eStatus = (MOS_STATUS)m_osInterface->pfnAllocateResource(
+        m_osInterface,
+        &allocParamsForBuffer2D,
+        &m_brcBuffers.sBrcRoiSurface.OsResource);
+
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        CODECHAL_ENCODE_ASSERTMESSAGE("Failed to allocate BRC ROI Surface.");
+        return eStatus;
+    }
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, &m_brcBuffers.sBrcRoiSurface));
+    m_brcBuffers.sBrcRoiSurface.bArraySpacing = true;
+
+    data = (uint8_t*)m_osInterface->pfnLockResource(
+        m_osInterface,
+        &(m_brcBuffers.sBrcRoiSurface.OsResource),
+        &lockFlagsWriteOnly);
+
+    if (data == nullptr)
+    {
+        CODECHAL_ENCODE_ASSERTMESSAGE("Failed to Lock BRC ROI Surface.");
+        eStatus = MOS_STATUS_UNKNOWN;
+        return eStatus;
+    }
+
+    MOS_ZeroMemory(data, size);
+    m_osInterface->pfnUnlockResource(
+        m_osInterface,
+        &m_brcBuffers.sBrcRoiSurface.OsResource);
     return eStatus;
 }
 
@@ -1276,6 +1318,10 @@ MOS_STATUS CodechalEncHevcState::FreeBrcResources()
     m_osInterface->pfnFreeResource(
         m_osInterface,
         &m_brcBuffers.sBrcMbQpBuffer.OsResource);
+
+    m_osInterface->pfnFreeResource(
+        m_osInterface,
+        &m_brcBuffers.sBrcRoiSurface.OsResource);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -1553,6 +1599,84 @@ MOS_STATUS CodechalEncHevcState::EncodeMeKernel()
                 }
             }
         })
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalEncHevcState::SetupROISurface()
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    MOS_LOCK_PARAMS ReadOnly;
+    MOS_ZeroMemory(&ReadOnly, sizeof(ReadOnly));
+    ReadOnly.ReadOnly = 1;
+    uint32_t * dataPtr = (uint32_t *)m_osInterface->pfnLockResource(m_osInterface, &m_brcBuffers.sBrcRoiSurface.OsResource, &ReadOnly);
+    if (!dataPtr)
+    {
+        eStatus = MOS_STATUS_INVALID_HANDLE;
+        return eStatus;
+    }
+
+    uint32_t bufferWidthInByte = MOS_ALIGN_CEIL((m_downscaledWidthInMb4x << 4), 64);
+    uint32_t bufferHeightInByte = MOS_ALIGN_CEIL((m_downscaledHeightInMb4x << 2), 8);
+    uint32_t numMBs = m_picWidthInMb * m_picHeightInMb;
+    for (uint32_t uMB = 0; uMB <= numMBs; uMB++)
+    {
+        int32_t curMbY = uMB / m_picWidthInMb;
+        int32_t curMbX = uMB - curMbY * m_picHeightInMb;
+
+        uint32_t outdata = 0;
+        for (int32_t roiIdx = 1; roiIdx >= 0; roiIdx--)
+        {
+            int32_t qpLevel;
+            if (m_roiValueInDeltaQp)
+            {
+                qpLevel = 0; // -m_avcPicParam->ROI[roiIdx].PriorityLevelOrDQp;
+            }
+            else
+            {
+                // QP Level sent to ROI surface is (priority * 6), according to design
+                //qpLevel = m_avcPicParam->ROI[roiIdx].PriorityLevelOrDQp * 6;
+                qpLevel = 0; // m_avcPicParam->ROI[roiIdx].PriorityLevelOrDQp * 6;
+            }
+
+            if (qpLevel == 0)
+            {
+                continue;
+            }
+
+            //if ((curMbX >= (int32_t)m_HevcPicParam->ROI[roiIdx].Left) && (curMbX < (int32_t)m_avcPicParam->ROI[roiIdx].Right) &&
+            //    (curMbY >= (int32_t)m_avcPicParam->ROI[roiIdx].Top) && (curMbY < (int32_t)m_avcPicParam->ROI[roiIdx].Bottom))
+            if (1)
+            {
+                outdata = 15 | ((qpLevel & 0xFF) << 8);
+            }
+            //else if (bROISmoothEnabled)
+            //           else if (1)
+            //           {
+            //              if ((curMbX >= (int32_t)m_avcPicParam->ROI[roiIdx].Left - 1) && (curMbX < (int32_t)m_avcPicParam->ROI[roiIdx].Right + 1) &&
+            //                  (curMbY >= (int32_t)m_avcPicParam->ROI[roiIdx].Top - 1) && (curMbY < (int32_t)m_avcPicParam->ROI[roiIdx].Bottom + 1))
+            //              {
+            //                  outdata = 14 | ((qpLevel & 0xFF) << 8);
+            //              }
+            //              else if ((curMbX >= (int32_t)m_avcPicParam->ROI[roiIdx].Left - 2) && (curMbX < (int32_t)m_avcPicParam->ROI[roiIdx].Right + 2) &&
+            //                  (curMbY >= (int32_t)m_avcPicParam->ROI[roiIdx].Top - 2) && (curMbY < (int32_t)m_avcPicParam->ROI[roiIdx].Bottom + 2))
+            //              {
+            //                  outdata = 13 | ((qpLevel & 0xFF) << 8);
+            //              }
+            //              else if ((curMbX >= (int32_t)m_avcPicParam->ROI[roiIdx].Left - 3) && (curMbX < (int32_t)m_avcPicParam->ROI[roiIdx].Right + 3) &&
+            //                  (curMbY >= (int32_t)m_avcPicParam->ROI[roiIdx].Top - 3) && (curMbY < (int32_t)m_avcPicParam->ROI[roiIdx].Bottom + 3))
+            //              {
+            //                  outdata = 12 | ((qpLevel & 0xFF) << 8);
+            //              }
+            //           }
+        }
+        dataPtr[(curMbY * (bufferWidthInByte >> 2)) + curMbX] = outdata;
+    }
+
+    m_osInterface->pfnUnlockResource(m_osInterface, &m_brcBuffers.sBrcRoiSurface.OsResource);
 
     return eStatus;
 }

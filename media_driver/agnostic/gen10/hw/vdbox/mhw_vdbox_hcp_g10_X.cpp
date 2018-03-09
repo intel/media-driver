@@ -2470,7 +2470,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpHevcVp9RdoqStateCmd(
 
 MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpHevcPicBrcBuffer(
     PMOS_RESOURCE                   hcpImgStates,
-    MHW_VDBOX_HEVC_PIC_STATE        hevcPicState)
+    PMHW_VDBOX_HEVC_PIC_STATE        hevcPicState)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -2482,7 +2482,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpHevcPicBrcBuffer(
     mhw_vdbox_hcp_g10_X::HCP_PIC_STATE_CMD cmd;
     uint32_t*                              insertion = nullptr;
     MOS_LOCK_PARAMS                        lockFlags;
-    m_brcNumPakPasses = hevcPicState.brcNumPakPasses;
+    m_brcNumPakPasses = hevcPicState->brcNumPakPasses;
 
     MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
     lockFlags.WriteOnly = 1;
@@ -2494,7 +2494,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpHevcPicBrcBuffer(
     constructedCmdBuf.iOffset       = 0;
     constructedCmdBuf.iRemaining    = BRC_IMG_STATE_SIZE_PER_PASS_G10 * (m_brcNumPakPasses);
 
-    MHW_MI_CHK_STATUS(AddHcpPicStateCmd(&constructedCmdBuf, &hevcPicState));
+    MHW_MI_CHK_STATUS(AddHcpPicStateCmd(&constructedCmdBuf, hevcPicState));
 
     cmd = *(mhw_vdbox_hcp_g10_X::HCP_PIC_STATE_CMD *)data;
 
