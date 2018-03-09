@@ -29,13 +29,13 @@
 #include "codechal_fei_avc_g9_skl.h"
 #include "igcodeckrn_g9.h"
 #include "codeckrnheader.h"
+#include "AvcEncFei_Mfe_gen9.h"
 
 #ifdef FEI_ENABLE_CMRT
 static const char *                 strDsIsaName        = "/opt/intel/mediasdk/lib64/hme_downscale_gen9.isa";
 static const char *                 strPreProcIsaName   = "/opt/intel/mediasdk/lib64/FEI_gen9.isa";
 static const char *                 strMeIsaName        = "/opt/intel/mediasdk/lib64/hme_gen9.isa";
 #endif
-static const char *                 strMbEncIsaName     = "/opt/intel/mediasdk/lib64/AVCEncKernel_SKL_genx.isa";
 
 typedef enum _CODECHAL_BINDING_TABLE_OFFSET_2xSCALING_CM_G9
 {
@@ -6308,9 +6308,7 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::InitKernelStateMfeMbEnc()
                     m_mdfMbencVmeSurfSize * CODECHAL_ENCODE_AVC_MFE_MAX_FRAMES_G9,
                     0);
 
-        uint32_t codeSize;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(MOS_ReadFileToPtr(strMbEncIsaName, (uint32_t*)&codeSize, &kernelRes->pCommonISA));
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->LoadProgram(kernelRes->pCommonISA, codeSize, kernelRes->pCmProgram, "-nojitter"));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->LoadProgram((void *)AVCENCFEI_MFE_GEN9, AVCENCFEI_MFE_GEN9_SIZE, kernelRes->pCmProgram, "-nojitter"));
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateKernel(kernelRes->pCmProgram, "AVCEncMB_MFE", kernelRes->ppKernel[0]));
 
         //save original MDF resource for the stream that created shared MDF device
