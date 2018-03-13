@@ -1390,7 +1390,8 @@ void Mos_Specific_Destroy(
 
     if (pOsInterface &&
         pOsInterface->pOsContext &&
-        pOsInterface->pOsContext->bFreeContext)
+        pOsInterface->pOsContext->bFreeContext &&
+        !Mos_Solo_IsEnabled())
     {
         pOsInterface->pOsContext->SkuTable.reset();
         pOsInterface->pOsContext->WaTable.reset();
@@ -5595,7 +5596,7 @@ MOS_STATUS Mos_Specific_InitInterface(
 
     // Initialize
     modularizedGpuCtxEnabled = pOsInterface->modularizedGpuCtxEnabled && !Mos_Solo_IsEnabled();
-    eStatus = Linux_InitContext(pOsContext, pOsDriverContext, pOsInterface->modulizedMosEnabled, modularizedGpuCtxEnabled);
+    eStatus = Linux_InitContext(pOsContext, pOsDriverContext, pOsInterface->modulizedMosEnabled && !Mos_Solo_IsEnabled(), modularizedGpuCtxEnabled);
     if( MOS_STATUS_SUCCESS != eStatus )
     {
         MOS_OS_ASSERTMESSAGE("Unable to initialize context.");
