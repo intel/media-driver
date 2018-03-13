@@ -547,7 +547,7 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
         }
         else if (IsHevcProfile(profile))
         {
-            attrib.value = ENCODE_HEVC_VDENC_NUM_MAX_SLICES;
+            attrib.value = ENCODE_VDENC_HEVC_MAX_SLICE_NUM;
         }
     }
     else
