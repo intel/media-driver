@@ -599,6 +599,8 @@ DDI_MEDIA_FORMAT DdiMedia_OsFormatAlphaMaskToMediaFormat(int32_t fourcc, int32_t
             return Media_Format_YV12;
         case VA_FOURCC_IYUV:
             return Media_Format_IYUV;
+        case VA_FOURCC_I420:
+            return Media_Format_I420;
         case VA_FOURCC_422H:
             return Media_Format_422H;
         case VA_FOURCC_422V:
@@ -3908,6 +3910,22 @@ VAStatus DdiMedia_CreateImage(
         vaimg->pitches[2]               = pitch;
         vaimg->offsets[1]               = MOS_ALIGN_CEIL(height,32) * pitch * 2;
         vaimg->offsets[2]               = vaimg->offsets[1] + 2;
+    }
+    else if(vaimg->format.fourcc == VA_FOURCC_I420)
+    {
+        pitch = width;
+        vaimg->format.byte_order        = VA_LSB_FIRST;
+        vaimg->format.bits_per_pixel    = format->bits_per_pixel;
+        vaimg->width                    = width;
+        vaimg->height                   = height;
+        vaimg->data_size                = pitch * height * 3 / 2;
+        vaimg->num_planes               = 3;
+        vaimg->pitches[0]               = pitch;
+        vaimg->pitches[1]               = pitch/2;
+        vaimg->pitches[2]               = pitch/2;
+        vaimg->offsets[0]               = 0;
+        vaimg->offsets[1]               = pitch * height;
+        vaimg->offsets[2]               = vaimg->offsets[1] + pitch * height / 4;
     }
     else
     {
