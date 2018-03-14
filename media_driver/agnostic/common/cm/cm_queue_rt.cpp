@@ -198,7 +198,7 @@ int32_t CmQueueRT::Initialize()
         else
         {
             // Returns failure
-            CM_ASSERTMESSAGE("Error: The QueueType is note supported by MDF.");
+            CM_ASSERTMESSAGE("Error: The QueueType is not supported by MDF.");
             return CM_NOT_IMPLEMENTED;
         }
     }
