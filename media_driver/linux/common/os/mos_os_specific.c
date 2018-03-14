@@ -993,6 +993,8 @@ void Linux_Destroy(
         mos_gem_context_destroy(pOsContext->intel_context);
     }
 
+    GmmDeleteClientContext(pOsContext->pGmmClientContext);
+
     MOS_FreeMemAndSetNull(pOsContext);
 }
 
@@ -1369,7 +1371,6 @@ void Mos_Specific_Destroy(
     if (pOsInterface->modulizedMosEnabled && !Mos_Solo_IsEnabled())
     {
         OsContext* pOsContext = pOsInterface->osContextPtr;
-        GmmDeleteClientContext(pOsInterface->pOsContext->pGmmClientContext);
         if (pOsContext == nullptr)
         {
             MOS_OS_ASSERTMESSAGE("Unable to get the active OS context.");
@@ -5581,6 +5582,7 @@ MOS_STATUS Mos_Specific_InitInterface(
 
         if (pOsInterface->osContextPtr->GetOsContextValid() == false)
         {
+            pOsDriverContext->pGmmClientContext = GmmCreateClientContext((GMM_CLIENT)GMM_LIBVA_LINUX);
             eStatus = pOsInterface->osContextPtr->Init(pOsDriverContext);
             if( MOS_STATUS_SUCCESS != eStatus )
             {
@@ -5605,7 +5607,7 @@ MOS_STATUS Mos_Specific_InitInterface(
 
     iDeviceId                                 = pOsDriverContext->iDeviceId;
     pOsContext->bFreeContext                  = true;
-    pOsContext->pGmmClientContext = GmmCreateClientContext((GMM_CLIENT)GMM_LIBVA_LINUX);
+    pOsContext->pGmmClientContext             = GmmCreateClientContext((GMM_CLIENT)GMM_LIBVA_LINUX);
     pOsInterface->pOsContext                  = pOsContext;
     pOsInterface->bUsesPatchList              = true;
     pOsInterface->bUsesGfxAddress             = false;

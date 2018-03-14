@@ -256,7 +256,7 @@ VAStatus DdiEncode_CreateContext(
     encCtx->m_encode           = ddiEncode;
 
     //initialize DDI level cp interface
-    MOS_CONTEXT mosCtx;
+    MOS_CONTEXT mosCtx = { };
     encCtx->pCpDdiInterface = MOS_New(DdiCpInterface, mosCtx);
     if (nullptr == encCtx->pCpDdiInterface)
     {

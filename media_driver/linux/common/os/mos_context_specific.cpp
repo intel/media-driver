@@ -636,7 +636,7 @@ void OsContextSpecific::Destroy()
     {
         mos_gem_context_destroy(m_intelContext);
     }
-
+    GmmDeleteClientContext(m_pGmmClientContext);
     SetOsContextValid(false);
 }
 
