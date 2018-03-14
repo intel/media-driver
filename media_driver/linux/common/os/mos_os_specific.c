@@ -3810,7 +3810,7 @@ void Mos_Specific_ResetPerfBufferID(
 {
     PMOS_CONTEXT pOsContext = (pOsInterface) ? (PMOS_CONTEXT)pOsInterface->pOsContext : nullptr;
 
-    if (pOsContext == nullptr || !pOsContext->uEnablePerfTag)
+    if (pOsContext == nullptr)
         return;
 
     if (pOsContext->pPerfData != nullptr)
@@ -3831,7 +3831,7 @@ void Mos_Specific_IncPerfBufferID(
 {
     PMOS_CONTEXT pOsContext = (pOsInterface) ? (PMOS_CONTEXT)pOsInterface->pOsContext : nullptr;
 
-    if (pOsContext == nullptr || !pOsContext->uEnablePerfTag)
+    if (pOsContext == nullptr)
         return;
 
     if (pOsContext->pPerfData != nullptr)
@@ -3852,7 +3852,7 @@ void Mos_Specific_IncPerfFrameID(
 {
     PMOS_CONTEXT pOsContext = (pOsInterface) ? (PMOS_CONTEXT)pOsInterface->pOsContext : nullptr;
 
-    if (pOsContext == nullptr || !pOsContext->uEnablePerfTag)
+    if (pOsContext == nullptr)
         return;
 
     if (pOsContext->pPerfData != nullptr)
@@ -3876,7 +3876,7 @@ uint32_t Mos_Specific_GetPerfTag(
 
     PMOS_CONTEXT osContext = (pOsInterface) ? (PMOS_CONTEXT)pOsInterface->pOsContext : nullptr;
 
-    if (osContext == nullptr || !osContext->uEnablePerfTag)
+    if (osContext == nullptr)
     {
         return 0;
     }
