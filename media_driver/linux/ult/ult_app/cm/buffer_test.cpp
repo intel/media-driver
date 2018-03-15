@@ -34,8 +34,7 @@ public:
 
     int32_t CreateDestroy(uint32_t size)
     {
-        CMRT_UMD::MockDevice mock_device(&m_driverLoader);
-        int32_t result = mock_device->CreateBuffer(size, m_buffer);
+        int32_t result = m_mockDevice->CreateBuffer(size, m_buffer);
         if (result != CM_SUCCESS)
         {
             return result;
@@ -44,8 +43,8 @@ public:
         result = m_buffer->GetIndex(surface_index);
         EXPECT_EQ(CM_SUCCESS, result);
         EXPECT_GT(surface_index->get_data(), 0);
-        return mock_device->DestroySurface(m_buffer);
-    }//==============================================
+        return m_mockDevice->DestroySurface(m_buffer);
+    }//===============================================
 
     int32_t ReadWrite()
     {
@@ -55,8 +54,7 @@ public:
         {
             to_buffer[i] = i;
         }
-        CMRT_UMD::MockDevice mock_device(&m_driverLoader);
-        int32_t result = mock_device->CreateBuffer(SIZE, m_buffer);
+        int32_t result = m_mockDevice->CreateBuffer(SIZE, m_buffer);
         EXPECT_EQ(CM_SUCCESS, result);
 
         result = m_buffer->WriteSurface(reinterpret_cast<uint8_t*>(to_buffer),
@@ -70,13 +68,12 @@ public:
         result = memcmp(to_buffer, from_buffer, sizeof(to_buffer));
         EXPECT_EQ(0, result);
 
-        return mock_device->DestroySurface(m_buffer);
-    }//==============================================
+        return m_mockDevice->DestroySurface(m_buffer);
+    }//===============================================
 
     int32_t Initialize()
     {
-        CMRT_UMD::MockDevice mock_device(&m_driverLoader);
-        int32_t result = mock_device->CreateBuffer(SIZE, m_buffer);
+        int32_t result = m_mockDevice->CreateBuffer(SIZE, m_buffer);
         EXPECT_EQ(CM_SUCCESS, result);
 
         result = m_buffer->InitSurface(0x42434445, nullptr);
@@ -88,8 +85,8 @@ public:
         EXPECT_EQ(CM_SUCCESS, result);
         EXPECT_EQ(0x42434445, data[0]);
         EXPECT_EQ(0x42434445, data[ELEMENT_COUNT - 1]);
-        return mock_device->DestroySurface(m_buffer);
-    }//==============================================
+        return m_mockDevice->DestroySurface(m_buffer);
+    }//===============================================
 
 protected:
     CMRT_UMD::CmBuffer *m_buffer;
@@ -97,38 +94,39 @@ protected:
 
 TEST_F(BufferTest, MultipleSizes)
 {
-    RunEach(CM_SUCCESS,
-            [this]() { return CreateDestroy(SIZE); });
+    RunEach<int32_t>(CM_SUCCESS,
+                     [this]() { return CreateDestroy(SIZE); });
 
-    RunEach(CM_INVALID_WIDTH,
-            [this]() { return CreateDestroy(0); });
+    RunEach<int32_t>(CM_INVALID_WIDTH,
+                     [this]() { return CreateDestroy(0); });
 
-    RunEach(CM_SUCCESS,
-            [this]() { return CreateDestroy(1); });
+    RunEach<int32_t>(CM_SUCCESS,
+                     [this]() { return CreateDestroy(1); });
 
-    RunEach(CM_SUCCESS,
-            [this]() { return CreateDestroy(16*1024*1024); });
+    RunEach<int32_t>(CM_SUCCESS,
+                     [this]() { return CreateDestroy(16*1024*1024); });
 
-    RunEach(CM_SUCCESS,
-            [this]() { return CreateDestroy(64*1024*1024); });
+    RunEach<int32_t>(CM_SUCCESS,
+                     [this]() { return CreateDestroy(64*1024*1024); });
 
     uint32_t large_size = 0x40000001;  // 1-byte larger than maximum size.
-    RunEach(CM_INVALID_WIDTH,
-            [this, large_size]() { return CreateDestroy(large_size); });
+    RunEach<int32_t>(
+        CM_INVALID_WIDTH,
+        [this, large_size]() { return CreateDestroy(large_size); });
     
     return;
 }//========
 
 TEST_F(BufferTest, ReadWrite)
 {
-    RunEach(CM_SUCCESS,
-            [this]() { return ReadWrite(); });
+    RunEach<int32_t>(CM_SUCCESS,
+                     [this]() { return ReadWrite(); });
     return;
 }//========
 
 TEST_F(BufferTest, Initialization)
 {
-    RunEach(CM_SUCCESS,
-            [this]() { return Initialize(); });
+    RunEach<int32_t>(CM_SUCCESS,
+                     [this]() { return Initialize(); });
     return;
 }//========

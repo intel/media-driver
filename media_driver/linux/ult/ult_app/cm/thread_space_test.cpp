@@ -34,38 +34,35 @@ public:
 
     int32_t CreateDestroy(uint32_t width, uint32_t height)
     {
-        CMRT_UMD::MockDevice mock_device(&m_driverLoader);
-        int32_t result = mock_device->CreateThreadSpace(width, height,
+        int32_t result = m_mockDevice->CreateThreadSpace(width, height,
                                                         m_thread_space);
         if (result != CM_SUCCESS)
         {
             return result;
         }
-        return mock_device->DestroyThreadSpace(m_thread_space);
-    }//========================================================
+        return m_mockDevice->DestroyThreadSpace(m_thread_space);
+    }//=========================================================
 
     int32_t SelectDependencyPattern(CM_DEPENDENCY_PATTERN pattern)
     {
-        CMRT_UMD::MockDevice mock_device(&m_driverLoader);
-        int32_t result = mock_device->CreateThreadSpace(WIDTH, HEIGHT,
+        int32_t result = m_mockDevice->CreateThreadSpace(WIDTH, HEIGHT,
                                                         m_thread_space);
         EXPECT_EQ(CM_SUCCESS, result);
         result = m_thread_space->SelectThreadDependencyPattern(pattern);
         int32_t destroy_result
-            = mock_device->DestroyThreadSpace(m_thread_space);
+            = m_mockDevice->DestroyThreadSpace(m_thread_space);
         EXPECT_EQ(CM_SUCCESS, destroy_result);
         return result;
     }//===============
 
     int32_t SelectMediaWalkingPattern(CM_WALKING_PATTERN pattern)
     {
-        CMRT_UMD::MockDevice mock_device(&m_driverLoader);
-        int32_t result = mock_device->CreateThreadSpace(WIDTH, HEIGHT,
+        int32_t result = m_mockDevice->CreateThreadSpace(WIDTH, HEIGHT,
                                                         m_thread_space);
         EXPECT_EQ(CM_SUCCESS, result);
         result = m_thread_space->SelectMediaWalkingPattern(pattern);
         int32_t destroy_result
-            = mock_device->DestroyThreadSpace(m_thread_space);
+            = m_mockDevice->DestroyThreadSpace(m_thread_space);
         EXPECT_EQ(CM_SUCCESS, destroy_result);
         return result;
     }//===============
@@ -76,35 +73,39 @@ private:
 
 TEST_F(ThreadSpaceTest, MultipleSizes)
 {
-    RunEach(CM_SUCCESS,
-            [this]() { return CreateDestroy(WIDTH, HEIGHT); });
+    RunEach<int32_t>(CM_SUCCESS,
+                     [this]() { return CreateDestroy(WIDTH, HEIGHT); });
 
     auto CreateWithMaxSize
             = [this]()
             { return CreateDestroy(CM_MAX_THREADSPACE_WIDTH_SKLUP_FOR_MW,
                                    CM_MAX_THREADSPACE_HEIGHT_SKLUP_FOR_MW); };
-    RunEach(CM_SUCCESS, CreateWithMaxSize);
+    RunEach<int32_t>(CM_SUCCESS, CreateWithMaxSize);
     return;
 }//========
 
 TEST_F(ThreadSpaceTest, DependencyPattern)
 {
     CM_DEPENDENCY_PATTERN pattern = static_cast<CM_DEPENDENCY_PATTERN>(39);
-    RunEach(CM_FAILURE,
-            [this, pattern]() { return SelectDependencyPattern(pattern); });
+    RunEach<int32_t>(
+        CM_FAILURE,
+        [this, pattern]() { return SelectDependencyPattern(pattern); });
 
-    RunEach(CM_SUCCESS,
-            [this]() { return SelectDependencyPattern(CM_NONE_DEPENDENCY); });
+    RunEach<int32_t>(
+        CM_SUCCESS,
+        [this]() { return SelectDependencyPattern(CM_NONE_DEPENDENCY); });
     return;
 }//========
 
 TEST_F(ThreadSpaceTest, MediaWalkingPattern)
 {
     CM_WALKING_PATTERN pattern = static_cast<CM_WALKING_PATTERN>(39);
-    RunEach(CM_INVALID_MEDIA_WALKING_PATTERN,
-            [this, pattern]() { return SelectMediaWalkingPattern(pattern); });
+    RunEach<int32_t>(
+        CM_INVALID_MEDIA_WALKING_PATTERN,
+        [this, pattern]() { return SelectMediaWalkingPattern(pattern); });
 
-    RunEach(CM_SUCCESS,
-            [this]() { return SelectMediaWalkingPattern(CM_WALK_DEFAULT); });
+    RunEach<int32_t>(
+        CM_SUCCESS,
+        [this]() { return SelectMediaWalkingPattern(CM_WALK_DEFAULT); });
     return;
 }//========

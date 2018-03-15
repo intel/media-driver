@@ -77,44 +77,30 @@ class MockDevice
 public:
     static vaDestroySurfacesFunc vaDestroySurfaces;
 
-    explicit MockDevice(DriverDllLoader *driver_loader)
-        : vaCmExtSendReqMsg(driver_loader->vaCmExtSendReqMsg),
-          m_cmDevice(nullptr)
-    {
-        Create(driver_loader, 0);
-        return;
-    }//========
-
-    MockDevice(DriverDllLoader *driver_loader, uint32_t creation_option)
-        : vaCmExtSendReqMsg(driver_loader->vaCmExtSendReqMsg),
-          m_cmDevice(nullptr)
-    {
-        bool successful = Create(driver_loader, creation_option);
-        if (!successful)
-        {
-            assert(0);
-        }
-        return;
-    }//========
+    MockDevice(): vaCmExtSendReqMsg(nullptr),
+                  m_cmDevice(nullptr) {}
+    //==================================
 
     ~MockDevice()
     {
-        if (!Release())
-        {
-            assert(0);
-        };
+        Release();
         return;
     }//========
 
-    CmDevice* operator-> () { return m_cmDevice; }
+    CmDevice* operator->() { return m_cmDevice; }
 
     template<class InputData>
     int32_t SendRequestMessage(InputData *input, uint32_t function_id);
 
-private:
     bool Create(DriverDllLoader *driver_loader, uint32_t additinal_options);
 
+    bool Create(DriverDllLoader *driver_loader)
+    { return Create(driver_loader, 0); }
+    //==================================
+
     bool Release();
+
+private:
 
     VADisplayContext m_vaDisplay;
     CmExtSendReqMsgFunc vaCmExtSendReqMsg;

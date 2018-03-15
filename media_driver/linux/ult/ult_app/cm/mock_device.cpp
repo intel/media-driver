@@ -46,15 +46,16 @@ int32_t MockDevice::SendRequestMessage(InputData *input, uint32_t function_id)
     uint32_t input_size = sizeof(InputData);
     int32_t output = 0;
     uint32_t output_size = sizeof(output_size);
-    return vaCmExtSendReqMsg(&m_vaDisplay, &va_module_id,
-                             &function_id, input,
-                             &input_size, nullptr, &output,
-                             &output_size);   
-}//========================================
+    return this->vaCmExtSendReqMsg(&m_vaDisplay, &va_module_id,
+                                   &function_id, input,
+                                   &input_size, nullptr, &output,
+                                   &output_size);
+}//==============================================
 
 bool MockDevice::Create(DriverDllLoader *driver_loader,
                         uint32_t additinal_options)
 {
+    this->vaCmExtSendReqMsg = driver_loader->vaCmExtSendReqMsg;
     if (nullptr == vaDestroySurfaces)
     {
         vaDestroySurfaces = driver_loader->vtable.vaDestroySurfaces;
@@ -73,11 +74,16 @@ bool MockDevice::Create(DriverDllLoader *driver_loader,
 
 bool MockDevice::Release()
 {
+    if (nullptr == m_cmDevice)
+    {
+        return true;
+    }
     DestroyDeviceParam destroy_param;
     destroy_param.device_in_umd = m_cmDevice;
     uint32_t function_id = 0x1001;  // CM_FN_DESTROYCMDEVICE;
     SendRequestMessage(&destroy_param, function_id);
     vaDestroySurfaces = nullptr;
+    m_cmDevice = nullptr;
     return CM_SUCCESS == destroy_param.return_value;
 }//=================================================
 }  // namespace

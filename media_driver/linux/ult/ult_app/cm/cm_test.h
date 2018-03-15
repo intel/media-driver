@@ -33,7 +33,7 @@ public:
     CmTest(): m_currentPlatform(igfx_MAX) {}
     
     template<typename T, class Function>
-    bool RunEach(T expected_return, Function func)
+    bool RunEach(T expected_return, Function RunTest)
     {
         bool result = true;
 
@@ -42,22 +42,38 @@ public:
 
         for (int i = 0; i < platform_count; ++i)
         {
-            int va_status = m_driverLoader.InitDriver(platforms[i]);
-            EXPECT_EQ(VA_STATUS_SUCCESS, va_status);
-            m_currentPlatform = platforms[i];
+            CreateMockDevice(platforms[i]);
 
-            int32_t function_return = func();
+            T function_return = RunTest();
             EXPECT_EQ(function_return, expected_return);
             result &= (function_return == expected_return);
 
-            va_status = m_driverLoader.CloseDriver();
-            EXPECT_EQ(VA_STATUS_SUCCESS, va_status);
+            ReleaseMockDevice();
         }
         return result;
-    }
+    }//===============
 
 protected:
+    bool CreateMockDevice(const Platform_t &current_platform)
+    {
+        int va_status = m_driverLoader.InitDriver(current_platform);
+        EXPECT_EQ(VA_STATUS_SUCCESS, va_status);
+        m_currentPlatform = current_platform;
+        m_mockDevice.Create(&m_driverLoader);
+        return true;
+    }//=============
+
+    bool ReleaseMockDevice()
+    {
+        m_mockDevice.Release();
+        int va_status = m_driverLoader.CloseDriver();
+        EXPECT_EQ(VA_STATUS_SUCCESS, va_status);
+        return true;
+    }//=============
+    
     DriverDllLoader m_driverLoader;
+
+    CMRT_UMD::MockDevice m_mockDevice;
 
     Platform_t m_currentPlatform;
 };

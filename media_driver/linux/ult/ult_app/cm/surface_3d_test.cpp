@@ -38,8 +38,7 @@ public:
                           uint32_t height,
                           uint32_t depth)
     {
-        CMRT_UMD::MockDevice mock_device(&m_driverLoader);
-        int32_t result = mock_device->CreateSurface3D(width, height, depth,
+        int32_t result = m_mockDevice->CreateSurface3D(width, height, depth,
                                                       format, m_surface);
         if (result != CM_SUCCESS)
         {
@@ -49,8 +48,8 @@ public:
         result = m_surface->GetIndex(surface_index);
         EXPECT_EQ(CM_SUCCESS, result);
         EXPECT_GT(surface_index->get_data(), 0);
-        return mock_device->DestroySurface(m_surface);
-    }//===============================================
+        return m_mockDevice->DestroySurface(m_surface);
+    }//================================================
 
     int32_t ReadWrite()
     {
@@ -62,8 +61,7 @@ public:
                 = to_surface[4*i + 3] = i%255;
         }
 
-        CMRT_UMD::MockDevice mock_device(&m_driverLoader);
-        int32_t result = mock_device->CreateSurface3D(
+        int32_t result = m_mockDevice->CreateSurface3D(
             WIDTH, HEIGHT, DEPTH, CM_SURFACE_FORMAT_A8R8G8B8, m_surface);
         EXPECT_EQ(CM_SUCCESS, result);
 
@@ -76,14 +74,13 @@ public:
         result = memcmp(to_surface, from_surface, sizeof(to_surface));
         EXPECT_EQ(0, result);
 
-        return mock_device->DestroySurface(m_surface);
-    }//===============================================
+        return m_mockDevice->DestroySurface(m_surface);
+    }//================================================
 
     int32_t Initialize()
     {
-        CMRT_UMD::MockDevice mock_device(&m_driverLoader);
         int32_t result
-                = mock_device->CreateSurface3D(WIDTH, HEIGHT, DEPTH,
+                = m_mockDevice->CreateSurface3D(WIDTH, HEIGHT, DEPTH,
                                                CM_SURFACE_FORMAT_A8R8G8B8,
                                                m_surface);
         EXPECT_EQ(CM_SUCCESS, result);
@@ -96,8 +93,8 @@ public:
         EXPECT_EQ(CM_SUCCESS, result);
         EXPECT_EQ(0x42, data[0]);
         EXPECT_EQ(0x42, data[4*WIDTH*HEIGHT*DEPTH - 1]);
-        return mock_device->DestroySurface(m_surface);
-    }//===============================================
+        return m_mockDevice->DestroySurface(m_surface);
+    }//================================================
 
 private:
     CMRT_UMD::CmSurface3D *m_surface;
@@ -105,80 +102,88 @@ private:
 
 TEST_F(Surface3DTest, MultipleSizes)
 {
-    RunEach(CM_SUCCESS,
-            [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8,
-                                            WIDTH, HEIGHT, DEPTH); });
+    RunEach<int32_t>(CM_SUCCESS,
+                     [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8,
+                                                     WIDTH, HEIGHT, DEPTH); });
 
-    RunEach(CM_SUCCESS,
-            [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8,
-                                            CM_MIN_SURF_WIDTH,
-                                            CM_MIN_SURF_HEIGHT,
-                                            CM_MIN_SURF_DEPTH); });
+    RunEach<int32_t>(CM_SUCCESS,
+                     [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8,
+                                                     CM_MIN_SURF_WIDTH,
+                                                     CM_MIN_SURF_HEIGHT,
+                                                     CM_MIN_SURF_DEPTH); });
 
-    RunEach(CM_SUCCESS,
-            [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8,
-                                            CM_MAX_3D_SURF_WIDTH, HEIGHT,
-                                            DEPTH); });
+    RunEach<int32_t>(
+        CM_SUCCESS,
+        [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8,
+                                        CM_MAX_3D_SURF_WIDTH, HEIGHT,
+                                        DEPTH); });
 
-    RunEach(CM_SUCCESS,
-            [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8,
-                                            WIDTH, CM_MAX_3D_SURF_HEIGHT,
-                                            DEPTH); });
+    RunEach<int32_t>(
+        CM_SUCCESS,
+        [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8,
+                                        WIDTH, CM_MAX_3D_SURF_HEIGHT,
+                                        DEPTH); });
 
-    RunEach(CM_SUCCESS,
-            [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8,
-                                            WIDTH, HEIGHT,
-                                            CM_MAX_3D_SURF_DEPTH); });
+    RunEach<int32_t>(CM_SUCCESS,
+                     [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8,
+                                                     WIDTH, HEIGHT,
+                                                     CM_MAX_3D_SURF_DEPTH); });
 
-    RunEach(CM_INVALID_WIDTH,
-            [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8, 0,
-                                            HEIGHT, DEPTH); });
+    RunEach<int32_t>(
+        CM_INVALID_WIDTH,
+        [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8, 0,
+                                        HEIGHT, DEPTH); });
 
-    RunEach(CM_INVALID_HEIGHT,
-            [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8, WIDTH,
-                                            0, DEPTH); });
+    RunEach<int32_t>(
+        CM_INVALID_HEIGHT,
+        [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8, WIDTH,
+                                        0, DEPTH); });
 
-    RunEach(CM_INVALID_DEPTH,
-            [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8, WIDTH,
-                                            HEIGHT, 0); });
+    RunEach<int32_t>(
+        CM_INVALID_DEPTH,
+        [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8, WIDTH,
+                                        HEIGHT, 0); });
 
-    RunEach(CM_INVALID_DEPTH,
-            [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8, WIDTH,
-                                            HEIGHT,
-                                            CM_MAX_3D_SURF_DEPTH + 1); });
+    RunEach<int32_t>(
+        CM_INVALID_DEPTH,
+        [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8, WIDTH,
+                                        HEIGHT,
+                                        CM_MAX_3D_SURF_DEPTH + 1); });
 
     // Tests size in odd numbers.
-    RunEach(CM_SUCCESS,
-            [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8,
-                                            WIDTH + 1, HEIGHT + 3,
-                                            DEPTH + 5); });
+    RunEach<int32_t>(CM_SUCCESS,
+                     [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A8R8G8B8,
+                                                     WIDTH + 1, HEIGHT + 3,
+                                                     DEPTH + 5); });
 
     return;
 }//========
 
 TEST_F(Surface3DTest, Abgr16Format)
 {
-    RunEach(CM_SUCCESS,
-            [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A16B16G16R16,
-                                            WIDTH, HEIGHT, DEPTH); });
+    RunEach<int32_t>(
+        CM_SUCCESS,
+        [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A16B16G16R16,
+                                        WIDTH, HEIGHT, DEPTH); });
 
-    RunEach(CM_SUCCESS,
-            [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A16B16G16R16,
-                                            WIDTH + 1, HEIGHT + 3,
-                                            DEPTH + 5); });
+    RunEach<int32_t>(
+        CM_SUCCESS,
+        [this]() { return CreateDestroy(CM_SURFACE_FORMAT_A16B16G16R16,
+                                        WIDTH + 1, HEIGHT + 3,
+                                        DEPTH + 5); });
     return;
 }//========
 
 TEST_F(Surface3DTest, ReadWrite)
 {
-    RunEach(CM_SUCCESS,
-            [this]() { return ReadWrite(); });
+    RunEach<int32_t>(CM_SUCCESS,
+                     [this]() { return ReadWrite(); });
     return;
 }//========
 
 TEST_F(Surface3DTest, Initialization)
 {
-    RunEach(CM_SUCCESS,
-            [this]() { return Initialize(); });
+    RunEach<int32_t>(CM_SUCCESS,
+                     [this]() { return Initialize(); });
     return;
 }//========

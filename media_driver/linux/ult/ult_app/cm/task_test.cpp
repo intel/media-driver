@@ -31,11 +31,10 @@ public:
 
     int32_t CreateDestroy(CMRT_UMD::CmKernel *kernel)
     {
-        CMRT_UMD::MockDevice mock_device(&m_driverLoader);
-        int32_t result = mock_device->CreateTask(m_task);
+        int32_t result = m_mockDevice->CreateTask(m_task);
         EXPECT_EQ(CM_SUCCESS, result);
         result = m_task->AddKernel(kernel);
-        int32_t destroy_result =  mock_device->DestroyTask(m_task);
+        int32_t destroy_result =  m_mockDevice->DestroyTask(m_task);
         EXPECT_EQ(CM_SUCCESS, destroy_result);
         return result;
     }//===============
@@ -46,7 +45,7 @@ private:
 
 TEST_F(TaskTest, CreateDestroy)
 {
-    RunEach(CM_INVALID_ARG_VALUE,
-            [this]() { return CreateDestroy(nullptr); });
+    RunEach<int32_t>(CM_INVALID_ARG_VALUE,
+                     [this]() { return CreateDestroy(nullptr); });
     return;
 }//========

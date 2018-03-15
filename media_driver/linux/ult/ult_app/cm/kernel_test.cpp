@@ -69,7 +69,6 @@ public:
                                bool fix_isa,
                                const char *options)
     {
-        MockDevice mock_device(&m_driverLoader);
         if (fix_isa)
         {
             FixIsaBinary(isa_code);
@@ -78,14 +77,14 @@ public:
         {
             options = "nojitter";
         }
-        int32_t result = mock_device->LoadProgram(isa_code, size, m_program,
-                                                  options);
+        int32_t result = m_mockDevice->LoadProgram(isa_code, size, m_program,
+                                                   options);
         if (result != CM_SUCCESS)
         {
             return result;
         }
-        return mock_device->DestroyProgram(m_program);
-    }//===============================================
+        return m_mockDevice->DestroyProgram(m_program);
+    }//================================================
 
     int32_t LoadDestroyProgram(uint8_t *isa_code, uint32_t size)
     {
@@ -104,20 +103,19 @@ public:
 
     int32_t CreateKernel(const char *kernel_name)
     {
-        MockDevice mock_device(&m_driverLoader);
         if (nullptr == kernel_name)
         {
-            return mock_device->CreateKernel(nullptr, "kernel", m_kernel,
+            return m_mockDevice->CreateKernel(nullptr, "kernel", m_kernel,
                                              nullptr);
         }
-        int32_t result = CreateKernel(&mock_device, kernel_name);
+        int32_t result = CreateKernelFromCommonIsa(kernel_name);
         if (CM_SUCCESS == result)
         {
             uint32_t spill_size = 0;
             int32_t temp_result = m_kernel->QuerySpillSize(spill_size);
             EXPECT_EQ(CM_FAILURE, temp_result);
         }
-        DestroyKernel(&mock_device);
+        DestroyKernel();
         return result;
     }//===============
 
@@ -125,12 +123,11 @@ public:
                         size_t size,
                         const void *value)
     {
-        MockDevice mock_device(&m_driverLoader);
-        int32_t result = CreateKernel(&mock_device, "kernel");
+        int32_t result = CreateKernelFromCommonIsa("kernel");
         EXPECT_EQ(CM_SUCCESS, result);
 
         result = m_kernel->SetKernelArg(index, size, value);
-        DestroyKernel(&mock_device);
+        DestroyKernel();
         return result;
     }//===============
 
@@ -159,28 +156,28 @@ private:
         return true;
     }//=============
 
-    int32_t CreateKernel(MockDevice *device, const char *kernel_name)
+    int32_t CreateKernelFromCommonIsa(const char *kernel_name)
     {
         FixIsaBinary(COMMOM_ISA_CODE);
-        int32_t result = (*device)->LoadProgram(COMMOM_ISA_CODE,
-                                                sizeof(COMMOM_ISA_CODE),
-                                                m_program, "nojitter");
+        int32_t result = m_mockDevice->LoadProgram(COMMOM_ISA_CODE,
+                                                   sizeof(COMMOM_ISA_CODE),
+                                                   m_program, "nojitter");
         EXPECT_EQ(CM_SUCCESS, result);
-        return (*device)->CreateKernel(m_program, kernel_name, m_kernel,
-                                       nullptr);
-    }//=========================================
+        return m_mockDevice->CreateKernel(m_program, kernel_name, m_kernel,
+                                          nullptr);
+    }//============================================
 
-    int32_t DestroyKernel(MockDevice *device)
+    int32_t DestroyKernel()
     {
         int32_t result = CM_SUCCESS;
         if (nullptr != m_kernel)
         {
-            result = (*device)->DestroyKernel(m_kernel);
+            result = m_mockDevice->DestroyKernel(m_kernel);
             EXPECT_EQ(CM_SUCCESS, result);
         }
         if (nullptr != m_program)
         {
-            result = (*device)->DestroyProgram(m_program);
+            result = m_mockDevice->DestroyProgram(m_program);
             EXPECT_EQ(CM_SUCCESS, result);
         }
         return result;
@@ -192,21 +189,24 @@ private:
 
 TEST_F(KernelTest, LoadDestroyProgram)
 {
-    RunEach(CM_INVALID_COMMON_ISA,
+    int32_t invalid_common_isa = static_cast<int32_t>(CM_INVALID_COMMON_ISA);
+    
+    RunEach(invalid_common_isa,
             [this]() { return LoadDestroyProgram(nullptr, 0); });
 
     uint8_t *isa_code = COMMOM_ISA_CODE;
-
-    RunEach(CM_INVALID_COMMON_ISA,
+    RunEach(invalid_common_isa,
             [this, isa_code]() { return LoadDestroyProgram(isa_code, 0); });
 
     uint32_t size = sizeof(COMMOM_ISA_CODE);
 
-    RunEach(CM_SUCCESS,
+    int32_t success = static_cast<int32_t>(CM_SUCCESS);
+
+    RunEach(success,
             [this, isa_code, size]() { return LoadDestroyProgram(isa_code,
                                                                  size - 1); });
 
-    RunEach(CM_SUCCESS,
+    RunEach(success,
             [this, isa_code, size]() { return LoadDestroyProgram(isa_code,
                                                                  size); });
 
@@ -222,7 +222,7 @@ TEST_F(KernelTest, LoadDestroyProgram)
             { return LoadDestroyProgram(isa_code, sizeof(COMMOM_ISA_CODE),
                                         options); };
 
-    RunEach(CM_INVALID_ARG_VALUE, LoadWithOption);
+    RunEach(static_cast<int32_t>(CM_INVALID_ARG_VALUE), LoadWithOption);
 
     return;
 }//========
@@ -239,16 +239,16 @@ TEST_F(KernelTest, LoadWrongIsa)
             = [this, wrong_isa_code_ptr]()
             { return LoadDestroyProgram(wrong_isa_code_ptr, CODE_SIZE, false,
                                         nullptr); };
-    RunEach(CM_INVALID_GENX_BINARY, LoadWrongIsa);
+    RunEach(static_cast<int32_t>(CM_INVALID_GENX_BINARY), LoadWrongIsa);
     return;
 }//========
 
 TEST_F(KernelTest, CreateKernel)
 {
-    RunEach(CM_FAILURE,
+    RunEach(static_cast<int32_t>(CM_FAILURE),
             [this]() { return CreateKernel("wrong_name"); });
 
-    RunEach(CM_NULL_POINTER,
+    RunEach(static_cast<int32_t>(CM_NULL_POINTER),
             [this]() { return CreateKernel(nullptr); });
     return;
 }//========
@@ -258,26 +258,25 @@ TEST_F(KernelTest, SetArgument)
     int arg0_value = 10;
     void *arg0_ptr = &arg0_ptr;
 
-    RunEach(CM_SUCCESS,
+    RunEach(static_cast<int32_t>(CM_SUCCESS),
             [this, arg0_ptr]() { return SetArgument(0, sizeof(arg0_value),
                                                     arg0_ptr); });
 
-    RunEach(CM_INVALID_ARG_INDEX,
+    RunEach(static_cast<int32_t>(CM_INVALID_ARG_INDEX),
             [this, arg0_ptr]() { return SetArgument(2, sizeof(arg0_value),
                                                     arg0_ptr); });
 
-    RunEach(CM_INVALID_ARG_SIZE,
+    int32_t invalid_arg_size = static_cast<int32_t>(CM_INVALID_ARG_SIZE);
+    RunEach(invalid_arg_size,
             [this, arg0_ptr]() { return SetArgument(0, sizeof(arg0_value) + 1,
                                                     arg0_ptr); });
-
-    RunEach(CM_INVALID_ARG_SIZE,
+    RunEach(invalid_arg_size,
             [this, arg0_ptr]() { return SetArgument(0, sizeof(arg0_value) - 1,
                                                     arg0_ptr); });
-
-    RunEach(CM_INVALID_ARG_SIZE,
+    RunEach(invalid_arg_size,
             [this, arg0_ptr]() { return SetArgument(0, 0, arg0_ptr); });
 
-    RunEach(CM_INVALID_ARG_VALUE,
+    RunEach(static_cast<int32_t>(CM_INVALID_ARG_VALUE),
             [this, arg0_ptr]() { return SetArgument(0, sizeof(arg0_value),
                                                     nullptr); });
 

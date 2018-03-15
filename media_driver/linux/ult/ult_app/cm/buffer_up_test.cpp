@@ -38,11 +38,10 @@ public:
 
     int32_t CreateDestroy(uint32_t size)
     {
-        CMRT_UMD::MockDevice mock_device(&m_driverLoader);
         uint32_t real_size = size? size: SIZE;
         m_sys_mem = memalign(0x1000, real_size);
 
-        int32_t result = mock_device->CreateBufferUP(size, m_sys_mem, m_buffer);
+        int32_t result = m_mockDevice->CreateBufferUP(size, m_sys_mem, m_buffer);
         if (CM_SUCCESS != result)
         {
             Release();
@@ -53,20 +52,19 @@ public:
         result = m_buffer->GetIndex(surface_index);
         EXPECT_EQ(CM_SUCCESS, result);
         EXPECT_GT(surface_index->get_data(), 0);
-        result = mock_device->DestroyBufferUP(m_buffer);
+        result = m_mockDevice->DestroyBufferUP(m_buffer);
         Release();
         return result;
     }//===============
 
     int32_t CreateDestroy(void *sys_mem)
     {
-        CMRT_UMD::MockDevice mock_device(&m_driverLoader);
-        int32_t result = mock_device->CreateBufferUP(SIZE, sys_mem, m_buffer);
+        int32_t result = m_mockDevice->CreateBufferUP(SIZE, sys_mem, m_buffer);
         if (CM_SUCCESS != result)
         {
             return result;
         }
-        return mock_device->DestroyBufferUP(m_buffer);
+        return m_mockDevice->DestroyBufferUP(m_buffer);
     }//===============================================
 
     bool Release()
@@ -87,24 +85,24 @@ private:
 
 TEST_F(BufferUPTest, MultipleSizes)
 {
-    RunEach(CM_SUCCESS,
-            [this]() { return CreateDestroy(SIZE); });
+    RunEach<int32_t>(CM_SUCCESS,
+                     [this]() { return CreateDestroy(SIZE); });
 
-    RunEach(CM_INVALID_WIDTH,
-            [this]() { return CreateDestroy(SIZE + 1); });
+    RunEach<int32_t>(CM_INVALID_WIDTH,
+                     [this]() { return CreateDestroy(SIZE + 1); });
 
-    RunEach(CM_SUCCESS,
-            [this]() { return CreateDestroy(4); });  // 4-byte is the minimum size.
+    RunEach<int32_t>(CM_SUCCESS,
+                     [this]() { return CreateDestroy(4); });  // 4-byte is the minimum size.
 
-    RunEach(CM_SUCCESS,
-            [this]() { return CreateDestroy(16); });
+    RunEach<int32_t>(CM_SUCCESS,
+                     [this]() { return CreateDestroy(16); });
 
-    RunEach(CM_SUCCESS,
-            [this]() { return CreateDestroy(512*1024*1024); });  // The maximum size.
+    RunEach<int32_t>(CM_SUCCESS,
+                     [this]() { return CreateDestroy(512*1024*1024); });  // The maximum size.
 
     uint32_t zero_size = 0;
-    RunEach(CM_INVALID_WIDTH,
-            [this, zero_size]() { return CreateDestroy(zero_size); });
+    RunEach<int32_t>(CM_INVALID_WIDTH,
+                     [this, zero_size]() { return CreateDestroy(zero_size); });
 
     return;
 }//========
@@ -112,8 +110,8 @@ TEST_F(BufferUPTest, MultipleSizes)
 TEST_F(BufferUPTest, InvalidSystemMemory)
 {
     uint8_t *sys_mem = nullptr;
-    RunEach(CM_INVALID_ARG_VALUE,
-            [this, sys_mem]() { return CreateDestroy(sys_mem); });
+    RunEach<int32_t>(CM_INVALID_ARG_VALUE,
+                     [this, sys_mem]() { return CreateDestroy(sys_mem); });
 
     sys_mem = new uint8_t[SIZE];
     uint8_t *sys_mem_for_surface = sys_mem;
@@ -124,7 +122,7 @@ TEST_F(BufferUPTest, InvalidSystemMemory)
     auto CreateWithNonalignedPointer
         = [this, sys_mem_for_surface]()
           { return CreateDestroy(sys_mem_for_surface); };
-    RunEach(CM_INVALID_ARG_VALUE, CreateWithNonalignedPointer);
+    RunEach<int32_t>(CM_INVALID_ARG_VALUE, CreateWithNonalignedPointer);
     delete[] sys_mem;
     return;
 }//========
