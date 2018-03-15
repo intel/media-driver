@@ -224,8 +224,8 @@ VAStatus DdiEncodeAvc::ParseMiscParamRC(void *data)
     CODECHAL_ENCODE_AVC_VUI_PARAMS *vuiParam = (CODECHAL_ENCODE_AVC_VUI_PARAMS *)m_encodeCtx->pVuiParams;
 
     // Assume only one SPS here, modify when enable multiple SPS support
-    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS seqParams      = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams);
-    PCODEC_AVC_ENCODE_PIC_PARAMS      picParams      = (PCODEC_AVC_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams);
+    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS seqParams      = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams) + current_seq_parameter_set_id;
+    PCODEC_AVC_ENCODE_PIC_PARAMS      picParams      = (PCODEC_AVC_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams) + current_pic_parameter_set_id;
     VAEncMiscParameterRateControl    *encMiscParamRC = (VAEncMiscParameterRateControl *)data;
     DDI_CHK_NULL(vuiParam, "nullptr vuiParam", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(seqParams, "nullptr seqParams", VA_STATUS_ERROR_INVALID_PARAMETER);
@@ -296,7 +296,7 @@ VAStatus DdiEncodeAvc::ParseMiscParamSkipFrame(void *data)
     DDI_CHK_NULL(data, "nullptr data", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     // Assume only one PPS here, modify when enable multiple PPS support
-    PCODEC_AVC_ENCODE_PIC_PARAMS picParams               = (PCODEC_AVC_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams);
+    PCODEC_AVC_ENCODE_PIC_PARAMS picParams               = (PCODEC_AVC_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams) + current_pic_parameter_set_id;
     VAEncMiscParameterSkipFrame *vaEncMiscParamSkipFrame = (VAEncMiscParameterSkipFrame *)data;
     DDI_CHK_NULL(picParams, "nullptr picParams", VA_STATUS_ERROR_INVALID_PARAMETER);
 
@@ -333,10 +333,10 @@ VAStatus DdiEncodeAvc::ParseMiscParamEncQuality(void *data)
     DDI_CHK_NULL(data, "nullptr data", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     // Assume only one SPS here, modify when enable multiple SPS support
-    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS        seqParams             = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams);
+    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS seqParams                = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams) + current_seq_parameter_set_id;
 
-    VAEncMiscParameterEncQuality *              vaEncMiscParamEncQuality = (VAEncMiscParameterEncQuality *)data;
-    PCODEC_AVC_ENCODE_PIC_PARAMS             picParams             = (PCODEC_AVC_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams);
+    VAEncMiscParameterEncQuality     *vaEncMiscParamEncQuality = (VAEncMiscParameterEncQuality *)data;
+    PCODEC_AVC_ENCODE_PIC_PARAMS      picParams                = (PCODEC_AVC_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams) + current_pic_parameter_set_id;
 
     DDI_CHK_NULL(seqParams, "nullptr seqParams", VA_STATUS_ERROR_INVALID_PARAMETER);
 
@@ -417,8 +417,8 @@ VAStatus DdiEncodeAvc::ParseMiscParameterRIR(void *data)
 {
     DDI_CHK_NULL(data, "nullptr data", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    PCODEC_AVC_ENCODE_PIC_PARAMS      picParams         = (PCODEC_AVC_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams);
-    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS seqParams         = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams);
+    PCODEC_AVC_ENCODE_PIC_PARAMS      picParams         = (PCODEC_AVC_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams) + current_pic_parameter_set_id;
+    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS seqParams         = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams) + current_seq_parameter_set_id;
     VAEncMiscParameterRIR            *vaEncMiscParamRIR = (VAEncMiscParameterRIR *)data;
     DDI_CHK_NULL(picParams, "nullptr picParams", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(seqParams, "nullptr seqParams", VA_STATUS_ERROR_INVALID_PARAMETER);
@@ -528,8 +528,8 @@ VAStatus DdiEncodeAvc::ParseMiscParamQualityLevel(void *data)
 
 VAStatus DdiEncodeAvc::ParseMiscParamDirtyROI(void *data)
 {
-    PCODEC_AVC_ENCODE_PIC_PARAMS      picParams = (PCODEC_AVC_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams);
-    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS seqParams = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams);
+    PCODEC_AVC_ENCODE_PIC_PARAMS      picParams = (PCODEC_AVC_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams) + current_pic_parameter_set_id;
+    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS seqParams = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams) + current_seq_parameter_set_id;
     VAEncMiscParameterBufferDirtyRect *dirtyRect = (VAEncMiscParameterBufferDirtyRect *)data;
     DDI_CHK_NULL(picParams, "nullptr picParams", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(seqParams, "nullptr seqParams", VA_STATUS_ERROR_INVALID_PARAMETER);
@@ -591,8 +591,8 @@ VAStatus DdiEncodeAvc::ParseMiscParamROI(void *data)
     DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(data, "nullptr data", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    PCODEC_AVC_ENCODE_PIC_PARAMS      picParams = (PCODEC_AVC_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams);
-    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS seqParams = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams);
+    PCODEC_AVC_ENCODE_PIC_PARAMS      picParams = (PCODEC_AVC_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams) + current_pic_parameter_set_id;
+    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS seqParams = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams) + current_seq_parameter_set_id;
     DDI_CHK_NULL(picParams, "nullptr picParams", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(seqParams, "nullptr seqParams", VA_STATUS_ERROR_INVALID_PARAMETER);
 
@@ -655,8 +655,8 @@ VAStatus DdiEncodeAvc::ParseMiscParamMaxSliceSize(void *data)
 
     m_encodeCtx->EnableSliceLevelRateCtrl = true;
 
-    PCODEC_AVC_ENCODE_PIC_PARAMS      picParams = (PCODEC_AVC_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams);
-    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS seqParams = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams);
+    PCODEC_AVC_ENCODE_PIC_PARAMS      picParams = (PCODEC_AVC_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams) + current_pic_parameter_set_id;
+    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS seqParams = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams) + current_seq_parameter_set_id;
     DDI_CHK_NULL(picParams, "nullptr picParams", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(seqParams, "nullptr seqParams", VA_STATUS_ERROR_INVALID_PARAMETER);
 
@@ -694,7 +694,7 @@ VAStatus DdiEncodeAvc::ParseMiscParamSubMbPartPel(void *data)
     DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(data, "nullptr data", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    PCODEC_AVC_ENCODE_PIC_PARAMS picParams = (PCODEC_AVC_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams);
+    PCODEC_AVC_ENCODE_PIC_PARAMS picParams = (PCODEC_AVC_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams) + current_pic_parameter_set_id;
     DDI_CHK_NULL(picParams, "nullptr picParams", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     VAEncMiscParameterSubMbPartPelH264 *vaEncMiscParamSubMbPartPel = (VAEncMiscParameterSubMbPartPelH264*)data;
@@ -1296,6 +1296,8 @@ VAStatus DdiEncodeAvc::ParsePicParams(
     PCODEC_AVC_ENCODE_PIC_PARAMS     picParams = (PCODEC_AVC_ENCODE_PIC_PARAMS)((uint8_t *)m_encodeCtx->pPicParams + pic->pic_parameter_set_id * sizeof(CODEC_AVC_ENCODE_PIC_PARAMS));
     DDI_CHK_NULL(picParams, "nullptr picParams", VA_STATUS_ERROR_INVALID_PARAMETER);
 
+    current_pic_parameter_set_id = pic->pic_parameter_set_id;
+    current_seq_parameter_set_id = pic->seq_parameter_set_id;
     MOS_ZeroMemory(picParams, sizeof(CODEC_AVC_ENCODE_PIC_PARAMS));
 
     PCODEC_AVC_ENCODE_SEQUENCE_PARAMS seqParams = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)((uint8_t *)m_encodeCtx->pSeqParams + pic->seq_parameter_set_id * sizeof(CODEC_AVC_ENCODE_SEQUENCE_PARAMS));

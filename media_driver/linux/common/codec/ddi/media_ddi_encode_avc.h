@@ -418,6 +418,12 @@ protected:
     uint16_t                                m_previousFRper100sec = 0;   //!< For saving FR value to be used in case of dynamic BRC reset.
 
 private:
+    //! \brief H.264 current picture parameter set id
+    uint8_t current_pic_parameter_set_id = 0;
+
+    //! \brief H.264 current sequence parameter set id
+    uint8_t current_seq_parameter_set_id = 0;
+
     //! \brief H.264 Inverse Quantization Matrix Buffer.
     PCODEC_AVC_IQ_MATRIX_PARAMS iqMatrixParams = nullptr;
 
