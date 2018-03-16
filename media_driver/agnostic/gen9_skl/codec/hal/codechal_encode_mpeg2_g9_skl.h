@@ -52,7 +52,7 @@ public:
     ~CodechalEncodeMpeg2G9Skl() {};
 
     //!
-    //! \brief    Update the slice count according to the DSS policy
+    //! \brief    Update the slice count according to the DymanicSliceShutdown policy
     //!
     void UpdateSSDSliceCount();
 };

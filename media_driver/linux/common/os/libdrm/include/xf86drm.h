@@ -265,17 +265,6 @@ typedef struct _drmBufMap {
 typedef struct _drmLock {
     volatile unsigned int lock;
     char                      padding[60];
-    /* This is big enough for most current (and future?) architectures:
-       DEC Alpha:              32 bytes
-       Intel Merced:           ?
-       Intel P5/PPro/PII/PIII: 32 bytes
-       Intel StrongARM:        32 bytes
-       Intel i386/i486:        16 bytes
-       MIPS:                   32 bytes (?)
-       Motorola 68k:           16 bytes
-       Motorola PowerPC:       32 bytes
-       Sun SPARC:              32 bytes
-    */
 } drmLock, *drmLockPtr;
 
 /**

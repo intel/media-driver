@@ -51,7 +51,7 @@ public:
     ~CodechalEncodeMpeg2G8() {};
 
     //!
-    //! \brief    Update the slice count according to the DSS policy
+    //! \brief    Update the slice count according to the DymanicSliceShutdown policy
     //!
     void UpdateSSDSliceCount();
 

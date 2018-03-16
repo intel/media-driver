@@ -600,7 +600,7 @@ protected:
     virtual MOS_STATUS InitKernelStateBrc();
 
     //!
-    //! \brief    Update the slice count according to the DSS policy
+    //! \brief    Update the slice count according to the DymanicSliceShutdown policy
     //!
     virtual void UpdateSSDSliceCount();
 

@@ -315,7 +315,7 @@ private:
     //!         0   [default] Use default slices count
     //!         >0  Static slice shutdown, N for N slices
     //!
-    int                m_enableDSS = 0;
+    int                m_enableDymanicSliceShutdown = 0;
     //!
     //! \brief  sseu for current context
     //!

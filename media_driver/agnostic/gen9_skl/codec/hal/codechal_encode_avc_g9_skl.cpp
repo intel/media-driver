@@ -3168,7 +3168,7 @@ void CodechalEncodeAvcEncG9Skl::UpdateSSDSliceCount()
 
     uint32_t sliceCount;
 
-    // Adjust DSS (Dynamic Slice Shutdown) policy for multi-frame encode cases
+    // Adjust DymanicSliceShutdown policy for multi-frame encode cases
     if (m_mfeEnabled  && m_mfeEncodeParams.submitNumber > 1)
     {
         if (m_frameHeight * m_frameWidth >= 1920*1080 && m_targetUsage <= 4)

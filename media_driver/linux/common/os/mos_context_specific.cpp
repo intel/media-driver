@@ -330,12 +330,12 @@ MOS_STATUS OsContextSpecific::CreateSSEUIPC()
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_DYNAMIC_SLICE_SHUTDOWN_ID,
         &UserFeatureData);
-    m_enableDSS = UserFeatureData.i32Data;
+    m_enableDymanicSliceShutdown = UserFeatureData.i32Data;
 
-    if (m_enableDSS < 0 && m_enableDSS < -1 ||
-        m_enableDSS > 0 && (uint32_t) m_enableDSS > m_gtSystemInfo.SliceCount)
+    if (m_enableDymanicSliceShutdown < 0 && m_enableDymanicSliceShutdown < -1 ||
+        m_enableDymanicSliceShutdown > 0 && (uint32_t) m_enableDymanicSliceShutdown > m_gtSystemInfo.SliceCount)
     {
-        m_enableDSS = m_gtSystemInfo.SliceCount;
+        m_enableDymanicSliceShutdown = m_gtSystemInfo.SliceCount;
     }
 
     eStatus = ConnectCreateSemaphore(m_sseuKey, &m_sseuSemId);
@@ -345,7 +345,7 @@ MOS_STATUS OsContextSpecific::CreateSSEUIPC()
     eStatus = ConnectCreateShm(m_sseuKey, m_sseuShmSize, &m_sseuShmId, &m_sseuShm);
     if(m_sseuShm)
     {
-        *(int32_t*)m_sseuShm = m_enableDSS;
+        *(int32_t*)m_sseuShm = m_enableDymanicSliceShutdown;
         *((uint32_t*)m_sseuShm+1) = m_gtSystemInfo.SliceCount;
     }
     UnLockSemaphore(m_sseuSemId);
@@ -395,19 +395,19 @@ void OsContextSpecific::SetSliceCount(uint32_t *pSliceCount)
         return ;
     }
 
-    if (m_enableDSS == 0)
+    if (m_enableDymanicSliceShutdown == 0)
     {
-        // m_enableDSS == 0, default slice count
+        // m_enableDymanicSliceShutdown == 0, default slice count
         sliceCount = m_gtSystemInfo.SliceCount;
     }
-    else if (m_enableDSS > 0)
+    else if (m_enableDymanicSliceShutdown > 0)
     {
-        // m_enableDSS > 0, static slice shutdown
-        sliceCount = (m_enableDSS < m_gtSystemInfo.SliceCount)? m_enableDSS:m_gtSystemInfo.SliceCount;
+        // m_enableDymanicSliceShutdown > 0, static slice shutdown
+        sliceCount = (m_enableDymanicSliceShutdown < m_gtSystemInfo.SliceCount)? m_enableDymanicSliceShutdown:m_gtSystemInfo.SliceCount;
     }
     else
     {
-        // m_enableDSS = -1, dynamic slice shutdown
+        // m_enableDymanicSliceShutdown = -1, dynamic slice shutdown
         //
         // Use the highest slice number of all the contexts as the rulling slice number.
         // A context's slice count expires after it is inactive for 1 second.
