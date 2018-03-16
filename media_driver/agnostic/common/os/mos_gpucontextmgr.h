@@ -111,6 +111,16 @@ public:
     bool ContextReuseNeeded();
 
     //!
+    //! \brief    Find a gpu context to reuse in stream level
+    //! \detail   Find the the GPU context which meet the requirments for reusing in stream range
+    //! \param    [in] reqGpuContextOptions
+    //!           Gpu context options required, check if there are existing instance meet the requirements to reuse.
+    //! \return   GpuContext*
+    //!           GPU context selected to reuse if needed, otherwise nullptr
+    //!
+    GpuContext* FindStreamLevelContextToReuse(PMOS_GPUCTX_CREATOPTIONS reqGpuContextOptions);
+
+    //!
     //! \brief    Select one gpu context to be reused
     //! \detail   Implementation to be added after reuse scheme is nailed down
     //! \return   GpuContext*
