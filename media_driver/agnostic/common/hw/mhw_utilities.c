@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -201,13 +201,26 @@ MOS_STATUS Mhw_AddResourceToCmd_PatchList(
 
     MOS_ZeroMemory(&PatchEntryParams, sizeof(PatchEntryParams));
     PatchEntryParams.uiAllocationIndex = iAllocationIndex;
-    PatchEntryParams.uiResourceOffset = dwOffset;
+    if(pParams->patchType == MOS_PATCH_TYPE_UV_Y_OFFSET ||
+       pParams->patchType == MOS_PATCH_TYPE_PITCH ||
+       pParams->patchType == MOS_PATCH_TYPE_V_Y_OFFSET)
+    {
+        PatchEntryParams.uiResourceOffset = *pParams->pdwCmd;
+    }
+    else
+    {
+        PatchEntryParams.uiResourceOffset = dwOffset;
+    }
     PatchEntryParams.uiPatchOffset    = uiPatchOffset;
     PatchEntryParams.bWrite           = pParams->bIsWritable;
     PatchEntryParams.HwCommandType    = pParams->HwCommandType;
     PatchEntryParams.forceDwordOffset = pParams->dwSharedMocsOffset;
     PatchEntryParams.cmdBufBase       = (uint8_t*)pCmdBuffer->pCmdBase;
     PatchEntryParams.presResource     = pParams->presResource;
+    PatchEntryParams.patchType        = pParams->patchType;
+    PatchEntryParams.shiftAmount      = pParams->shiftAmount;
+    PatchEntryParams.shiftDirection   = pParams->shiftDirection;
+    PatchEntryParams.offsetInSSH      = pParams->dwOffsetInSSH;
 
     // Add patch entry to patch the address field for this command
     MHW_CHK_STATUS(pOsInterface->pfnSetPatchEntry(
@@ -232,6 +245,16 @@ MOS_STATUS Mhw_AddResourceToCmd_PatchList(
         PatchEntryParams.uiPatchOffset    = uiPatchOffset;
         PatchEntryParams.bUpperBoundPatch = true;
         PatchEntryParams.presResource     = pParams->presResource;
+        PatchEntryParams.patchType        = pParams->patchType;
+        PatchEntryParams.shiftAmount      = pParams->shiftAmount;
+        PatchEntryParams.shiftDirection   = pParams->shiftDirection;
+        PatchEntryParams.offsetInSSH      = pParams->dwOffsetInSSH;
+
+        if(dwLsbNum)
+        {
+            PatchEntryParams.shiftAmount = dwLsbNum;
+            PatchEntryParams.shiftDirection = 0;
+        }
 
         // Add patch entry to patch the address field for this command
         MHW_CHK_STATUS(pOsInterface->pfnSetPatchEntry(

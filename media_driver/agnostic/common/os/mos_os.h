@@ -247,6 +247,20 @@ typedef struct _MOS_ALLOC_GFXRES_PARAMS
 } MOS_ALLOC_GFXRES_PARAMS, *PMOS_ALLOC_GFXRES_PARAMS;
 
 //!
+//! \brief Enum for MOS patch type
+//!
+typedef enum _MOS_PATCH_TYPE
+{
+    MOS_PATCH_TYPE_BASE_ADDRESS = 0,
+    MOS_PATCH_TYPE_PITCH,
+    MOS_PATCH_TYPE_UV_Y_OFFSET,
+    MOS_PATCH_TYPE_BIND_ONLY,
+    MOS_PATCH_TYPE_UV_BASE_ADDRESS,
+    MOS_PATCH_TYPE_V_BASE_ADDRESS,
+    MOS_PATCH_TYPE_V_Y_OFFSET
+} MOS_PATCH_TYPE;
+
+//!
 //! \brief Structure to OS sync parameters
 //!
 typedef struct _MOS_PATCH_ENTRY_PARAMS
@@ -260,6 +274,10 @@ typedef struct _MOS_PATCH_ENTRY_PARAMS
     MOS_HW_COMMAND              HwCommandType;     //!< hw cmd type
     uint32_t                    forceDwordOffset;  //!< force dword offset
     uint8_t                     *cmdBufBase; //!< cmd buffer base address
+    uint32_t                    offsetInSSH; //!< patch offset in SSH
+    uint32_t                    shiftAmount; //!< shift amount for patch
+    uint32_t                    shiftDirection; //!< shift direction for patch
+    MOS_PATCH_TYPE              patchType;   //!< patch type
 } MOS_PATCH_ENTRY_PARAMS, *PMOS_PATCH_ENTRY_PARAMS;
 
 typedef struct _MOS_GPUCTX_CREATOPTIONS MOS_GPUCTX_CREATOPTIONS, *PMOS_GPUCTX_CREATOPTIONS;
@@ -296,6 +314,7 @@ typedef struct _MOS_INTERFACE
     int32_t                         bUsesCmdBufHeaderInResize;
     int32_t                         bEnableKmdMediaFrameTracking;
     int32_t                         bNoParsingAssistanceInKmd;
+    bool                            bPitchAndUVPatchingNeeded;
     uint32_t                        dwCommandBufferReservedSpace;
     uint32_t                        dwNumNalUnitBytesIncluded;
 
