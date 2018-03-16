@@ -42,6 +42,16 @@ class FieldScalingInterface
 {
 public:
     //!
+    //! \brief    Copy constructor
+    //!
+    FieldScalingInterface(const FieldScalingInterface&) = delete;
+
+    //!
+    //! \brief    Copy assignment operator
+    //!
+    FieldScalingInterface& operator=(const FieldScalingInterface&) = delete;
+
+    //!
     //! \brief    Destructor
     //!
     virtual ~FieldScalingInterface();

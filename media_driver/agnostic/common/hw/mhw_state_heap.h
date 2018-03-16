@@ -882,6 +882,10 @@ public:
     //!
     XMHW_STATE_HEAP_INTERFACE(PMOS_INTERFACE pInputOSInterface, int8_t bDynamicMode=0);
 
+    XMHW_STATE_HEAP_INTERFACE(const XMHW_STATE_HEAP_INTERFACE&) = delete;
+
+    XMHW_STATE_HEAP_INTERFACE& operator=(const XMHW_STATE_HEAP_INTERFACE&) = delete;
+
     virtual ~XMHW_STATE_HEAP_INTERFACE();
 
     PMHW_STATE_HEAP GetDSHPointer(){ return   m_pDynamicStateHeaps; };

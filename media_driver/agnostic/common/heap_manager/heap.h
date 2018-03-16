@@ -69,6 +69,16 @@ public:
     Heap();
 
     //!
+    //! \brief    Copy constructor
+    //!
+    Heap(const Heap&) = delete;
+
+    //!
+    //! \brief    Copy assignment operator
+    //!
+    Heap& operator=(const Heap&) = delete;
+
+    //!
     //! \brief  Constructor
     //! \param  [in] id
     //!         Identifier for the heap

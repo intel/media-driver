@@ -188,6 +188,16 @@ public:
         PCODECHAL_STANDARD_INFO standardInfo);
 
     //!
+    //! \brief    Copy constructor
+    //!
+    CodechalDecodeHevc(const CodechalDecodeHevc&) = delete;
+
+    //!
+    //! \brief    Copy assignment operator
+    //!
+    CodechalDecodeHevc& operator=(const CodechalDecodeHevc&) = delete;
+
+    //!
     //! \brief    Destructor
     //!
     ~CodechalDecodeHevc ();

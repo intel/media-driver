@@ -176,6 +176,16 @@ public:
         PCODECHAL_STANDARD_INFO standardInfo);
 
     //!
+    //! \brief    Copy constructor
+    //!
+    CodechalVdencAvcState(const CodechalVdencAvcState&) = delete;
+
+    //!
+    //! \brief    Copy assignment operator
+    //!
+    CodechalVdencAvcState& operator=(const CodechalVdencAvcState&) = delete;
+
+    //!
     //! \brief    Destructor
     //!
     virtual ~CodechalVdencAvcState();

@@ -78,6 +78,16 @@ public:
         PCODECHAL_STANDARD_INFO standardInfo);
 
     //!
+    //! \brief    Copy constructor
+    //!
+    CodechalDecodeJpeg(const CodechalDecodeJpeg&) = delete;
+
+    //!
+    //! \brief    Copy assignment operator
+    //!
+    CodechalDecodeJpeg& operator=(const CodechalDecodeJpeg&) = delete;
+
+    //!
     //! \brief    Destructor
     //!
     ~CodechalDecodeJpeg();

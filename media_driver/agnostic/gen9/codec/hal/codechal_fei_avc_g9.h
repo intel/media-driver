@@ -167,6 +167,10 @@ public:
         CodechalDebugInterface *debugInterface,
         PCODECHAL_STANDARD_INFO standardInfo);
 
+    CodechalEncodeAvcEncFeiG9(const CodechalEncodeAvcEncFeiG9&) = delete;
+
+    CodechalEncodeAvcEncFeiG9& operator=(const CodechalEncodeAvcEncFeiG9&) = delete;
+
     ~CodechalEncodeAvcEncFeiG9();
 
     //!

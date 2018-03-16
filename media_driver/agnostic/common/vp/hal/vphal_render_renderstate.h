@@ -144,6 +144,16 @@ public:
         MOS_STATUS                  *peStatus);
 
     //!
+    //! \brief    Copy constructor
+    //!
+    RenderState(const RenderState&) = delete;
+
+    //!
+    //! \brief    Copy assignment operator
+    //!
+    RenderState& operator=(const RenderState&) = delete;
+
+    //!
     //! \brief    RenderState Destructor
     //! \details  Destroy RenderState and release all related RenderState resources
     //!

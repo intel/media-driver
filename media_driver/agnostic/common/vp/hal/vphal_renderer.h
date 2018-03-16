@@ -187,6 +187,16 @@ public:
         MOS_STATUS                          *pStatus);
 
     //!
+    //! \brief    Copy constructor
+    //!
+    VphalRenderer(const VphalRenderer&) = delete;
+
+    //!
+    //! \brief    Copy assignment operator
+    //!
+    VphalRenderer& operator=(const VphalRenderer&) = delete;
+
+    //!
     //! \brief    VPHAL renderer destructor
     //! \details  Destory the resources allocated for the renderers
     //!           including VEBOX and Composite.

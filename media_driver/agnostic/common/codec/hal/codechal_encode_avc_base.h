@@ -1319,6 +1319,16 @@ public:
         PCODECHAL_STANDARD_INFO standardInfo);
 
     //!
+    //! \brief    Copy constructor
+    //!
+    CodechalEncodeAvcBase(const CodechalEncodeAvcBase&) = delete;
+
+    //!
+    //! \brief    Copy assignment operator
+    //!
+    CodechalEncodeAvcBase& operator=(const CodechalEncodeAvcBase&) = delete;
+
+    //!
     //! \brief    Destructor
     //!
     virtual ~CodechalEncodeAvcBase();

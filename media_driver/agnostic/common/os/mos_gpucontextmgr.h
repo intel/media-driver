@@ -42,6 +42,16 @@ public:
     GpuContextMgr(GT_SYSTEM_INFO *gtSystemInfo, OsContext *osContext);
 
     //!
+    //! \brief    Copy constructor
+    //!
+    GpuContextMgr(const GpuContextMgr&) = delete;
+
+    //!
+    //! \brief    Copy assignment operator
+    //!
+    GpuContextMgr& operator=(const GpuContextMgr&) = delete;
+
+    //!
     //! \brief  Destructor
     //!
     virtual ~GpuContextMgr();

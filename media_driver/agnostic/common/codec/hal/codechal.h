@@ -229,6 +229,16 @@ public:
         CodechalDebugInterface* debugInterface);
 
     //!
+    //! \brief    Copy constructor
+    //!
+    Codechal(const Codechal&) = delete;
+
+    //!
+    //! \brief    Copy assignment operator
+    //!
+    Codechal& operator=(const Codechal&) = delete;
+
+    //!
     //! \brief    Destructor
     //!
     virtual ~Codechal();

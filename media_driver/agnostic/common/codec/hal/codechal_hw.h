@@ -296,7 +296,7 @@ This class defines the interfaces for hardware dependent settings and functions 
 */
 class CodechalHwInterface
 {
-protected:
+protected: 
     // Slice Shutdown Threshold
     static const uint32_t m_sliceShutdownAvcTargetUsageThreshold = 2;         //!< slice shutdown AVC target usage threshold
     static const uint32_t m_sliceShutdownAvcResolutionThreshold = 2073600;    //!< slice shutdown AVC resolution threshold: 1080p - 1920x1080
@@ -384,6 +384,16 @@ public:
         MhwInterfaces     *mhwInterfaces);
 
     //!
+    //! \brief    Copy constructor
+    //!
+    CodechalHwInterface(const CodechalHwInterface&) = delete;
+
+    //!
+    //! \brief    Copy assignment operator
+    //!
+    CodechalHwInterface& operator=(const CodechalHwInterface&) = delete;
+
+    //!
     //! \brief    Destructor
     //!
     virtual ~CodechalHwInterface()
@@ -405,7 +415,7 @@ public:
 
         m_osInterface->pfnFreeResource(m_osInterface, &m_conditionalBbEndDummy);
 
-        MOS_Delete(m_cpInterface);
+        MOS_Delete(m_cpInterface); 
         m_cpInterface = nullptr;
 
         if (m_miInterface)
@@ -1188,7 +1198,6 @@ public:
         uint32_t                    forcedDshSize,
         bool                        noSshSpaceRequested,
         uint32_t                    currCmdBufId);
-
 };
 
 extern const MOS_SYNC_PARAMS                        g_cInitSyncParams;

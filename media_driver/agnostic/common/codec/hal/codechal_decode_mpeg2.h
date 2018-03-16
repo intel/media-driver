@@ -106,6 +106,16 @@ public:
         PCODECHAL_STANDARD_INFO standardInfo);
 
     //!
+    //! \brief    Copy constructor
+    //!
+    CodechalDecodeMpeg2(const CodechalDecodeMpeg2&) = delete;
+
+    //!
+    //! \brief    Copy assignment operator
+    //!
+    CodechalDecodeMpeg2& operator=(const CodechalDecodeMpeg2&) = delete;
+
+    //!
     //! \brief    Destructor
     //!
     ~CodechalDecodeMpeg2 ();

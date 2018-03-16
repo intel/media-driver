@@ -281,6 +281,16 @@ public:
     //! \endcond
 
     //!
+    //! \brief    Copy constructor
+    //!
+    CodechalEncodeCscDs(const CodechalEncodeCscDs&) = delete;
+
+    //!
+    //! \brief    Copy assignment operator
+    //!
+    CodechalEncodeCscDs& operator=(const CodechalEncodeCscDs&) = delete;
+
+    //!
     //! \brief    Destructor
     //!
     virtual ~CodechalEncodeCscDs();

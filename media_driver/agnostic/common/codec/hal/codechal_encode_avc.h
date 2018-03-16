@@ -675,6 +675,16 @@ struct CodechalEncodeAvcEnc : public CodechalEncodeAvcBase
         PCODECHAL_STANDARD_INFO standardInfo);
 
     //!
+    //! \brief    Copy constructor
+    //!
+    CodechalEncodeAvcEnc(const CodechalEncodeAvcEnc&) = delete;
+
+    //!
+    //! \brief    Copy assignment operator
+    //!
+    CodechalEncodeAvcEnc& operator=(const CodechalEncodeAvcEnc&) = delete;
+
+    //!
     //! \brief    Destructor
     //!
     virtual ~CodechalEncodeAvcEnc();

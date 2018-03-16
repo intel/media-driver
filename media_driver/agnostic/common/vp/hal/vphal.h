@@ -547,6 +547,16 @@ public:
         MOS_STATUS              *peStatus);
 
     //!
+    //! \brief    Copy constructor
+    //!
+    VphalState(const VphalState&) = delete;
+
+    //!
+    //! \brief    Copy assignment operator
+    //!
+    VphalState& operator=(const VphalState&) = delete;
+
+    //!
     //! \brief    VphalState Destuctor
     //! \details  Destroys VPHAL and all internal states and objects
     //!

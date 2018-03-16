@@ -447,6 +447,16 @@ public:
         PCODECHAL_STANDARD_INFO standardInfo);
 
     //!
+    //! \brief    Copy constructor
+    //!
+    CodechalDecode(const CodechalDecode&) = delete;
+
+    //!
+    //! \brief    Copy assignment operator
+    //!
+    CodechalDecode& operator=(const CodechalDecode&) = delete;
+
+    //!
     //! \brief  Destructor
     //!
     virtual ~CodechalDecode();

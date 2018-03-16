@@ -131,6 +131,16 @@ public:
     PMOS_SURFACE GetWPOutputPicList(uint8_t index) { return &m_surfaceParams.weightedPredOutputPicList[index]; }
 
     //!
+    //! \brief    Copy constructor
+    //!
+    CodechalEncodeWP(const CodechalEncodeWP&) = delete;
+
+    //!
+    //! \brief    Copy assignment operator
+    //!
+    CodechalEncodeWP& operator=(const CodechalEncodeWP&) = delete;
+
+    //!
     //! \brief    Destructor
     //!
     virtual ~CodechalEncodeWP();

@@ -160,6 +160,16 @@ protected:
 
 public:
     //!
+    //! \brief    Copy constructor
+    //!
+    CodechalEncHevcState(const CodechalEncHevcState&) = delete;
+
+    //!
+    //! \brief    Copy assignment operator
+    //!
+    CodechalEncHevcState& operator=(const CodechalEncHevcState&) = delete;
+
+    //!
     //! \brief    Destructor
     //!
     virtual ~CodechalEncHevcState();

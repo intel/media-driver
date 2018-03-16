@@ -45,6 +45,16 @@ public:
     MediaMemDecompState();
 
     //!
+    //! \brief    Copy constructor
+    //!
+    MediaMemDecompState(const MediaMemDecompState&) = delete;
+
+    //!
+    //! \brief    Copy assignment operator
+    //!
+    MediaMemDecompState& operator=(const MediaMemDecompState&) = delete;
+
+    //!
     //! \brief    Destructor
     //!
     virtual ~MediaMemDecompState();

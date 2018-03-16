@@ -580,6 +580,8 @@ public:
                                             m_pVeboxStateParams = nullptr;
                                             m_pVeboxIecpParams  = nullptr;
                                         }
+                                        VPHAL_VEBOX_RENDER_DATA(const VPHAL_VEBOX_RENDER_DATA&) = delete;
+                                        VPHAL_VEBOX_RENDER_DATA& operator=(const VPHAL_VEBOX_RENDER_DATA&) = delete;
     virtual                             ~VPHAL_VEBOX_RENDER_DATA();
     virtual MOS_STATUS                  Init();
     PVPHAL_VEBOX_STATE_PARAMS           GetVeboxStateParams()   { return m_pVeboxStateParams;}
@@ -690,7 +692,8 @@ public:
                                             PVPHAL_RNDR_PERF_DATA           pPerfData,
                                             const VPHAL_DNDI_CACHE_CNTL     &dndiCacheCntl,
                                             MOS_STATUS                      *peStatus);
-
+                                        VPHAL_VEBOX_STATE(const VPHAL_VEBOX_STATE&) = delete;
+                                        VPHAL_VEBOX_STATE& operator=(const VPHAL_VEBOX_STATE&) = delete;
     virtual                             ~VPHAL_VEBOX_STATE();
 
     virtual MOS_STATUS                  AllocateExecRenderData()
