@@ -109,19 +109,6 @@ GpuContext *GpuContextMgr::SelectContextToReuse()
     return nullptr;
 }
 
-GpuContext* GpuContextMgr::FindStreamLevelContextToReuse(PMOS_GPUCTX_CREATOPTIONS reqGpuContextOptions)
-{
-    for (auto& curGpuContext : m_gpuContextArray)
-    {
-        if (curGpuContext && curGpuContext->IsSameCreateOptions(reqGpuContextOptions))
-        {
-            return curGpuContext;
-        }
-    }
-
-    return nullptr;
-}
-
 GpuContext *GpuContextMgr::CreateGpuContext(
     const MOS_GPU_NODE gpuNode,
     CmdBufMgr         *cmdBufMgr,

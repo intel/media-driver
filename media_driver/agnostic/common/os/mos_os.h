@@ -280,59 +280,12 @@ typedef struct _MOS_PATCH_ENTRY_PARAMS
     MOS_PATCH_TYPE              patchType;   //!< patch type
 } MOS_PATCH_ENTRY_PARAMS, *PMOS_PATCH_ENTRY_PARAMS;
 
-#define INVALIDGPUCTXOPTIONID   0xfffffffc
-
-typedef class _MOS_GPUCTX_CREATOPTIONS MOS_GPUCTX_CREATOPTIONS, *PMOS_GPUCTX_CREATOPTIONS;
-class _MOS_GPUCTX_CREATOPTIONS
+typedef struct _MOS_GPUCTX_CREATOPTIONS MOS_GPUCTX_CREATOPTIONS, *PMOS_GPUCTX_CREATOPTIONS;
+struct _MOS_GPUCTX_CREATOPTIONS
 {
-public:
-    bool      reusingContext = false;
-    uint32_t  CmdBufferNumScale = MOS_GPU_CONTEXT_CREATE_DEFAULT;
-
+    uint32_t  CmdBufferNumScale;
     _MOS_GPUCTX_CREATOPTIONS() : CmdBufferNumScale(MOS_GPU_CONTEXT_CREATE_DEFAULT) {}
     virtual ~_MOS_GPUCTX_CREATOPTIONS(){}
-
-    _MOS_GPUCTX_CREATOPTIONS(const _MOS_GPUCTX_CREATOPTIONS& input)
-    {
-        this->reusingContext = input.reusingContext;
-        this->CmdBufferNumScale = input.CmdBufferNumScale;
-
-        this->streamId = input.streamId;
-        this->nodeId = input.nodeId;
-        this->functionId = input.functionId;
-    }
-
-    _MOS_GPUCTX_CREATOPTIONS& operator=(const _MOS_GPUCTX_CREATOPTIONS& input)
-    {
-        this->reusingContext = input.reusingContext;
-        this->CmdBufferNumScale = input.CmdBufferNumScale;
-
-        this->streamId = input.streamId;
-        this->nodeId = input.nodeId;
-        this->functionId = input.functionId;
-        return *this;
-    }
-
-    bool IsEqualTo(const _MOS_GPUCTX_CREATOPTIONS& input)
-    {
-        return reusingContext == input.reusingContext &&
-            CmdBufferNumScale == input.CmdBufferNumScale &&
-            streamId == input.streamId &&
-            nodeId == input.nodeId &&
-            functionId == input.functionId;
-    }
-
-    void SetupOptionsId(uint64_t stream, uint32_t node, uint32_t function)
-    {
-        streamId = stream;
-        nodeId = node;
-        functionId = function;
-    }
-
-private:
-    uint64_t  streamId = INVALIDGPUCTXOPTIONID;
-    uint32_t  nodeId = INVALIDGPUCTXOPTIONID;
-    uint32_t  functionId = INVALIDGPUCTXOPTIONID;
 };
 
 class OsContext;

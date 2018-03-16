@@ -217,19 +217,6 @@ public:
     //!
     GraphicsResource* GetStatusBufferResource() { return m_statusBufferResource; }
 
-    //!
-    //! \brief    Check if current GPU context's options match the requirments
-    //!
-    //! \param    [in] createOptionsToCompare
-    //!           Input create options to compare.
-    //! 
-    //! \return   GraphicsResource*
-    //!
-    virtual bool IsSameCreateOptions(PMOS_GPUCTX_CREATOPTIONS createOptionsToCompare)
-    {
-        return false;
-    }
-
 protected:
     //! \brief    Hardware node for current gpu context
     MOS_GPU_NODE m_nodeOrdinal;
