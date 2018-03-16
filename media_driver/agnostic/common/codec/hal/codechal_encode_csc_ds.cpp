@@ -1425,12 +1425,12 @@ MOS_STATUS CodechalEncodeCscDs::DsKernel(
             downscaledHeightInMb = (downscaledHeightInMb + 1) >> 1 << 1;
         }
 
-        inputSurface = m_encoder->m_trackedBuf->Get16xDsSurface(CODEC_CURR_TRACKED_BUFFER);
+        inputSurface = m_encoder->m_trackedBuf->Get16xDsSurface(m_encoder->m_currRefList->ucScalingIdx);
         inputFrameWidth = m_downscaledWidth16x;
         inputFrameHeight = m_downscaledHeight16x;
         inputBottomFieldOffset = m_scaled16xBottomFieldOffset;
 
-        outputSurface = m_encoder->m_trackedBuf->Get32xDsSurface(CODEC_CURR_TRACKED_BUFFER);
+        outputSurface = m_encoder->m_trackedBuf->Get32xDsSurface(m_encoder->m_currRefList->ucScalingIdx);
         outputFrameWidth = m_downscaledWidth32x;
         outputFrameHeight = downscaledHeightInMb * CODECHAL_MACROBLOCK_HEIGHT;
         outputBottomFieldOffset = m_scaled32xBottomFieldOffset;
@@ -1447,12 +1447,12 @@ MOS_STATUS CodechalEncodeCscDs::DsKernel(
             downscaledHeightInMb = (downscaledHeightInMb + 1) >> 1 << 1;
         }
 
-        inputSurface = m_encoder->m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER);
+        inputSurface = m_encoder->m_trackedBuf->Get4xDsSurface(m_encoder->m_currRefList->ucScalingIdx);
         inputFrameWidth = m_downscaledWidth4x;
         inputFrameHeight = m_downscaledHeight4x;
         inputBottomFieldOffset = m_scaledBottomFieldOffset;
 
-        outputSurface = m_encoder->m_trackedBuf->Get16xDsSurface(CODEC_CURR_TRACKED_BUFFER);
+        outputSurface = m_encoder->m_trackedBuf->Get16xDsSurface(m_encoder->m_currRefList->ucScalingIdx);
         outputFrameWidth = m_downscaledWidth16x;
         outputFrameHeight = downscaledHeightInMb * CODECHAL_MACROBLOCK_HEIGHT;
         outputBottomFieldOffset = m_scaled16xBottomFieldOffset;
@@ -1474,7 +1474,7 @@ MOS_STATUS CodechalEncodeCscDs::DsKernel(
         inputFrameHeight = m_encoder->m_oriFrameHeight;
         inputBottomFieldOffset = 0;
 
-        outputSurface = m_encoder->m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER);
+        outputSurface = m_encoder->m_trackedBuf->Get4xDsSurface(m_encoder->m_currRefList->ucScalingIdx);
         outputFrameWidth = m_downscaledWidth4x;
         outputFrameHeight = downscaledHeightInMb * CODECHAL_MACROBLOCK_HEIGHT;
         outputBottomFieldOffset = m_scaledBottomFieldOffset;
