@@ -149,6 +149,7 @@ public:
     bool m_pakOnlyTest                                       = false;  //!< PAK only test enable flag
     char m_pakOnlyDataFolder[MOS_USER_CONTROL_MAX_DATA_SIZE] = {0};    //!< Pak only test data folder name
     bool m_cqpEnabled                                        = false;  //!< CQP Rate Control
+    bool m_sseSupported                                      = false;  //!< PAK SSE support flag
 
 protected:
     //!

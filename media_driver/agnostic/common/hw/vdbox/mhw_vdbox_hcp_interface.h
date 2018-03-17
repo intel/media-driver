@@ -50,6 +50,7 @@ typedef struct _MHW_VDBOX_HEVC_PIC_STATE
     bool                                    bNotFirstPass;
     bool                                    bHevcRdoqEnabled;
     bool                                    bUseVDEnc;
+    bool                                    sseEnabledInVmeEncode;
     PMHW_BATCH_BUFFER                       pBatchBuffer;
     bool                                    bBatchBufferInUse;
     bool                                    bRDOQIntraTUDisable;
