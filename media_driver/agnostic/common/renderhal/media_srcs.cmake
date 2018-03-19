@@ -21,14 +21,12 @@
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/renderhal.cpp
     ${CMAKE_CURRENT_LIST_DIR}/renderhal_dsh.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/renderhal_hashtable.cpp
     ${CMAKE_CURRENT_LIST_DIR}/renderhal_common.cpp
 )
 
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/renderhal.h
     ${CMAKE_CURRENT_LIST_DIR}/renderhal_dsh.h
-    ${CMAKE_CURRENT_LIST_DIR}/renderhal_hashtable.h
     ${CMAKE_CURRENT_LIST_DIR}/renderhal_platform_interface.h
     ${CMAKE_CURRENT_LIST_DIR}/vphal_renderhal_common.h
 )

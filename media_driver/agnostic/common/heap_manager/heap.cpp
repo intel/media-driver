@@ -47,8 +47,11 @@ Heap::~Heap()
         {
             m_osInterface->pfnUnlockResource(m_osInterface, m_resource);
         }
-        m_osInterface->pfnFreeResource(m_osInterface, m_resource);
-        MOS_FreeMemory(m_resource);
+        if (!Mos_ResourceIsNull(m_resource))
+        {
+            m_osInterface->pfnFreeResource(m_osInterface, m_resource);
+            MOS_FreeMemory(m_resource);
+        }
     }
 }
 

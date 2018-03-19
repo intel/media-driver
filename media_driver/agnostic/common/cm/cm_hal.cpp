@@ -171,7 +171,7 @@ MOS_STATUS HalCm_AllocateTsResource(
     hr              = MOS_STATUS_SUCCESS;
     osInterface    = state->osInterface;
 
-    size = ((sizeof(uint64_t)* CM_SYNC_QWORD_PER_TASK) + (sizeof(uint64_t)* CM_FRAME_TRACKING_QWORD_PER_TASK)) * state->cmDeviceParam.maxTasks;    // 2 QWORDs for each kernel in the task
+    size = ((sizeof(uint64_t)* CM_SYNC_QWORD_PER_TASK) + (sizeof(uint64_t)* CM_TRACKER_ID_QWORD_PER_TASK)) * state->cmDeviceParam.maxTasks;
     // allocate render engine Ts Resource
     MOS_ZeroMemory(&allocParams, sizeof(MOS_ALLOC_GFXRES_PARAMS));
     allocParams.Type    = MOS_GFXRES_BUFFER;
@@ -233,6 +233,125 @@ finish:
     return hr;
 }
 
+//! \brief    Allocate tracker resource
+//! \param    [in] state
+//!           Pointer to CM_HAL_STATE structure
+//! \return   MOS_STATUS
+MOS_STATUS HalCm_AllocateTrackerResource(
+    PCM_HAL_STATE           state)
+{
+    MOS_STATUS                          hr = MOS_STATUS_SUCCESS;
+    MOS_ALLOC_GFXRES_PARAMS             allocParamsLinearBuffer;
+    MOS_LOCK_PARAMS                     lockFlags;
+    PMOS_INTERFACE                      osInterface;
+    PRENDERHAL_INTERFACE                renderHal;
+
+    osInterface = state->osInterface;
+    renderHal   = state->renderHal;
+
+    // Tracker resource for RENDER engine
+    Mos_ResetResource(&renderHal->trackerResource.osResource);
+
+    MOS_ZeroMemory(&allocParamsLinearBuffer, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+    allocParamsLinearBuffer.Type     = MOS_GFXRES_BUFFER;
+    allocParamsLinearBuffer.TileType = MOS_TILE_LINEAR;
+    allocParamsLinearBuffer.Format   = Format_Buffer;
+    allocParamsLinearBuffer.dwBytes  = MHW_CACHELINE_SIZE;
+    allocParamsLinearBuffer.pBufName = "TrackerResource";
+
+    CM_HRESULT2MOSSTATUS_AND_CHECK(osInterface->pfnAllocateResource(
+        osInterface,
+        &allocParamsLinearBuffer,
+        &renderHal->trackerResource.osResource));
+
+    // Lock the Resource
+    MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+
+    lockFlags.ReadOnly = 1;
+    lockFlags.ForceCached = true;
+
+    renderHal->trackerResource.data = (uint32_t*)osInterface->pfnLockResource(
+        osInterface,
+        &renderHal->trackerResource.osResource,
+        &lockFlags);
+
+    CM_CHK_NULL_RETURN_MOSSTATUS(renderHal->trackerResource.data);
+
+    *(renderHal->trackerResource.data) = MemoryBlock::m_invalidTrackerId;
+
+    renderHal->trackerResource.currentTrackerId = 1;
+
+    renderHal->trackerResource.locked = true;
+
+    // Tracker resource for VeBox engine
+    Mos_ResetResource(&renderHal->veBoxTrackerRes.osResource);
+
+    MOS_ZeroMemory(&allocParamsLinearBuffer, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+    allocParamsLinearBuffer.Type = MOS_GFXRES_BUFFER;
+    allocParamsLinearBuffer.TileType = MOS_TILE_LINEAR;
+    allocParamsLinearBuffer.Format = Format_Buffer;
+    allocParamsLinearBuffer.dwBytes = MHW_CACHELINE_SIZE;
+    allocParamsLinearBuffer.pBufName = "VeboxTrackerRes";
+
+    CM_HRESULT2MOSSTATUS_AND_CHECK(osInterface->pfnAllocateResource(
+        osInterface,
+        &allocParamsLinearBuffer,
+        &renderHal->veBoxTrackerRes.osResource));
+
+    // Lock the Resource
+    MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+
+    lockFlags.ReadOnly = 1;
+    lockFlags.ForceCached = true;
+
+    renderHal->veBoxTrackerRes.data = (uint32_t*)osInterface->pfnLockResource(
+        osInterface,
+        &renderHal->veBoxTrackerRes.osResource,
+        &lockFlags);
+
+    CM_CHK_NULL_RETURN_MOSSTATUS(renderHal->veBoxTrackerRes.data);
+
+    *(renderHal->veBoxTrackerRes.data) = MemoryBlock::m_invalidTrackerId;
+
+    renderHal->veBoxTrackerRes.currentTrackerId = 1;
+
+    renderHal->veBoxTrackerRes.locked = true;
+
+finish:
+    return hr;
+}
+
+//! \brief    Initialize dynamic state heap
+//! \param    [in] state
+//!           Pointer to CM_HAL_STATE structure
+//! \param    [in] heapParam
+//!           Pointer to CM_HAL_HEAP_PARAM structure
+//! \return   MOS_STATUS
+MOS_STATUS HalCm_InitializeDynamicStateHeaps(
+    PCM_HAL_STATE           state,
+    CM_HAL_HEAP_PARAM       *heapParam)
+{
+    MOS_STATUS   hr        = MOS_STATUS_SUCCESS;
+    HeapManager* dgsHeap   = state->renderHal->dgsheapManager;
+
+    CM_CHK_NULL_RETURN_MOSSTATUS(heapParam);
+
+    dgsHeap = MOS_New(HeapManager);
+    CM_CHK_NULL_RETURN_MOSSTATUS(dgsHeap);
+    CM_CHK_MOSSTATUS(dgsHeap->RegisterOsInterface(state->osInterface));
+
+    dgsHeap->SetDefaultBehavior(heapParam->behaviorGSH);
+    CM_CHK_MOSSTATUS(dgsHeap->SetInitialHeapSize(heapParam->initialSizeGSH));
+    CM_CHK_MOSSTATUS(dgsHeap->SetExtendHeapSize(heapParam->extendSizeGSH));
+    CM_CHK_MOSSTATUS(dgsHeap->RegisterTrackerResource(heapParam->trackerResourceGSH));
+
+    state->renderHal->dgsheapManager = dgsHeap;
+
+finish:
+    return hr;
+}
+
+
 //*-----------------------------------------------------------------------------
 //| Purpose:    Free Timestamp Resource
 //| Returns:    Result of the operation
@@ -278,6 +397,53 @@ __inline void HalCm_FreeTsResource(
         osInterface->pfnFreeResourceWithFlag(
             osInterface,
             &state->veboxTimeStampResource.osResource,
+            SURFACE_FLAG_ASSUME_NOT_IN_USE);
+    }
+}
+
+//! \brief    Free tracker resource
+//! \param    PCM_HAL_STATE state
+//!           [in] Pointer to CM_HAL_STATE structure
+//! \return   void
+__inline void HalCm_FreeTrackerResources(
+    PCM_HAL_STATE state)                                                       // [in] Pointer to CM HAL State
+{
+    PMOS_INTERFACE      osInterface;
+    MOS_STATUS          hr;
+
+    osInterface = state->osInterface;
+
+    if (!Mos_ResourceIsNull(&state->renderHal->trackerResource.osResource))
+    {
+        if(state->renderHal->trackerResource.locked)
+        {
+            hr = (MOS_STATUS)osInterface->pfnUnlockResource(
+                osInterface,
+                &state->renderHal->trackerResource.osResource);
+
+            CM_ASSERT(hr == MOS_STATUS_SUCCESS);
+        }
+
+        osInterface->pfnFreeResourceWithFlag(
+            osInterface,
+            &state->renderHal->trackerResource.osResource,
+            SURFACE_FLAG_ASSUME_NOT_IN_USE);
+    }
+
+    if (!Mos_ResourceIsNull(&state->renderHal->veBoxTrackerRes.osResource))
+    {
+        if (state->renderHal->veBoxTrackerRes.locked)
+        {
+            hr = (MOS_STATUS)osInterface->pfnUnlockResource(
+                osInterface,
+                &state->renderHal->veBoxTrackerRes.osResource);
+
+            CM_ASSERT(hr == MOS_STATUS_SUCCESS);
+        }
+
+        osInterface->pfnFreeResourceWithFlag(
+            osInterface,
+            &state->renderHal->veBoxTrackerRes.osResource,
             SURFACE_FLAG_ASSUME_NOT_IN_USE);
     }
 }
@@ -2345,13 +2511,11 @@ int32_t HalCm_LoadKernel(
         }
     }
 
-    // JG need to integrate cloneKernel to DSH
     if (isClonedKernel || hasClones)
     {
         hr = HalCm_InsertCloneKernel(state, kernelParam, kernelAllocation);
         goto finish;
     }
-    // JG
 
     // here is the algorithm
     // 1) search for free slot which is big enough to load current kerenel
@@ -2498,8 +2662,8 @@ finish:
 }
 
 //!
-//! \brief    Get offset and/or pointer to sampler state
-//! \details  Get offset and/or pointer to sampler state in General State Heap,
+//! \brief    Get offset to sampler state
+//! \details  Get offset to sampler state in General State Heap,
 //!           (Cm customized version of the RenderHal function which calculates 
 //!           the sampler offset by MDF owned parameters).
 //! \param    PCM_HAL_STATE state
@@ -2514,41 +2678,32 @@ finish:
 //!           [in] sampler BTI
 //! \param    unsigned long *pdwSamplerOffset
 //!           [out] optional; offset of sampler state from GSH base
-//! \param    void **sampler
-//!           [out] optional; pointer to sampler state in GSH
 //! \return   MOS_STATUS
 //!
-MOS_STATUS HalCm_GetSamplerOffsetAndPtr(
+MOS_STATUS HalCm_GetSamplerOffset(
     PCM_HAL_STATE            state,
     PRENDERHAL_INTERFACE     renderHal,
     int                      mediaID,
     unsigned int             samplerOffset,
     unsigned int             samplerBTI,
     PMHW_SAMPLER_STATE_PARAM samplerParam,
-    unsigned long           *pdwSamplerOffset,
-    void                   **sampler)
+    uint32_t                *pdwSamplerOffset)
 {
-    unsigned int tmpSamplerOffset = renderHal->pStateHeap->pCurMediaState->pDynamicState->pMemoryBlock->dwDataOffset +
-                                  renderHal->pStateHeap->pCurMediaState->pDynamicState->Sampler3D.dwOffset +
+    unsigned int tmpSamplerOffset = renderHal->pStateHeap->pCurMediaState->pDynamicState->Sampler3D.dwOffset +
                                   state->taskParam->samplerOffsetsByKernel[mediaID] +
                                   samplerOffset;
+
     if (pdwSamplerOffset != nullptr)
     {
         *pdwSamplerOffset = tmpSamplerOffset;
     }
 
-    *sampler = (void *)((unsigned char *)renderHal->pStateHeap->pCurMediaState->pDynamicState->pMemoryBlock->pStateHeap->pvLockedHeap +
-                                tmpSamplerOffset);
-
     if (samplerParam->SamplerType == MHW_SAMPLER_TYPE_3D)
     {
-        samplerParam->Unorm.IndirectStateOffset = MOS_ALIGN_CEIL(renderHal->pStateHeap->pCurMediaState->pDynamicState->pMemoryBlock->dwDataOffset +
-                                                                  renderHal->pStateHeap->pCurMediaState->pDynamicState->Sampler3D.dwOffset +
+        samplerParam->Unorm.IndirectStateOffset = MOS_ALIGN_CEIL( renderHal->pStateHeap->pCurMediaState->pDynamicState->Sampler3D.dwOffset +
                                                                   state->taskParam->samplerIndirectOffsetsByKernel[mediaID] +
                                                                   samplerBTI * renderHal->pHwSizes->dwSizeSamplerIndirectState,
                                                                   1 << MHW_SAMPLER_INDIRECT_SHIFT);
-        samplerParam->Unorm.pIndirectState = (void *)((unsigned char *)renderHal->pStateHeap->pCurMediaState->pDynamicState->pMemoryBlock->pStateHeap->pvLockedHeap +
-                                                             samplerParam->Unorm.IndirectStateOffset);
     }
     return MOS_STATUS_SUCCESS;
 }
@@ -2590,16 +2745,13 @@ MOS_STATUS HalCm_SetupInterfaceDescriptor(
     MHW_RENDERHAL_CHK_NULL(renderHal->pMhwStateHeap);
     MHW_RENDERHAL_CHK_NULL(mediaState);
     MHW_RENDERHAL_CHK_NULL(mediaState->pDynamicState);
-    MHW_RENDERHAL_CHK_NULL(mediaState->pDynamicState->pMemoryBlock);
-    MHW_RENDERHAL_CHK_NULL(kernelAllocation);
-    MHW_RENDERHAL_CHK_NULL(kernelAllocation->pMemoryBlock);
     MHW_RENDERHAL_CHK_NULL(interfaceDescriptorParams);
     //-----------------------------------------
 
     // Get states, params
     stateHeap = renderHal->pStateHeap;
     dynamicState = mediaState->pDynamicState;
-    mediaStateOffset = dynamicState->pMemoryBlock->dwDataOffset;
+    mediaStateOffset = dynamicState->memoryBlock.GetOffset();
 
     params.dwMediaIdOffset = mediaStateOffset + dynamicState->MediaID.dwOffset;
     params.iMediaId = interfaceDescriptorParams->iMediaID;
@@ -2616,9 +2768,9 @@ MOS_STATUS HalCm_SetupInterfaceDescriptor(
     params.dwNumberofThreadsInGPGPUGroup = interfaceDescriptorParams->iNumberThreadsInGroup;
     params.dwSharedLocalMemorySize = renderHal->pfnEncodeSLMSize(renderHal, interfaceDescriptorParams->iSLMSize);
     params.iCrsThdConDataRdLn = interfaceDescriptorParams->iCrsThrdConstDataLn;
-    params.pGeneralStateHeap = dynamicState->pMemoryBlock->pStateHeap;
+    params.memoryBlock = &dynamicState->memoryBlock;
 
-    MHW_RENDERHAL_CHK_STATUS(renderHal->pMhwStateHeap->SetInterfaceDescriptorEntry(&params));
+    MHW_RENDERHAL_CHK_STATUS(renderHal->pMhwStateHeap->AddInterfaceDescriptorData(&params));
     dynamicState->MediaID.iCurrent++;
 
 finish:
@@ -2817,8 +2969,8 @@ int32_t HalCm_DSH_LoadKernelArray(
     uint32_t                     currId, nextId;
 
     renderHal = state->renderHal;
-    nextId = renderHal->pfnGetNextFrameId(renderHal, MOS_GPU_CONTEXT_INVALID_HANDLE);
-    currId = renderHal->pfnGetCurrentFrameId(renderHal, MOS_GPU_CONTEXT_INVALID_HANDLE);
+    nextId = renderHal->pfnGetNextTrackerId(renderHal);
+    currId = renderHal->pfnGetCurrentTrackerId(renderHal);
     state->criticalSectionDSH.Acquire();
     do
     {
@@ -3167,6 +3319,7 @@ MOS_STATUS HalCm_SetupSamplerState(
     uint32_t                    index;
     uint32_t                    samplerIndex = 0;
     void                        *sampler = nullptr;
+    uint32_t                    samplerOffset = 0;
 
     hr = MOS_STATUS_SUCCESS;
 
@@ -3221,7 +3374,7 @@ MOS_STATUS HalCm_SetupSamplerState(
             CM_ERROR_ASSERT( "BTI calculation error in cm_hal\n");
             return MOS_STATUS_UNKNOWN;
         }
-        HalCm_GetSamplerOffsetAndPtr(state, renderHal, mediaID, iter->heapOffset, iter->bti, samplerParam, nullptr, &sampler);
+        HalCm_GetSamplerOffset(state, renderHal, mediaID, iter->heapOffset, iter->bti, samplerParam, &samplerOffset);
     }
     else
     {
@@ -3301,9 +3454,18 @@ MOS_STATUS HalCm_SetupSamplerState(
             }
         }
 
-        CM_CHK_MOSSTATUS(renderHal->pfnGetSamplerOffsetAndPtr(renderHal, mediaID, samplerIndex, samplerParam, nullptr, &sampler));
+        CM_CHK_MOSSTATUS(renderHal->pfnGetSamplerOffsetAndPtr(
+            renderHal, 
+            mediaID, 
+            samplerIndex, 
+            samplerParam, 
+            &samplerOffset, 
+            &sampler));
     }
-    CM_CHK_MOSSTATUS(renderHal->pMhwStateHeap->SetSamplerState(sampler, samplerParam));
+    CM_CHK_MOSSTATUS(renderHal->pMhwStateHeap->AddSamplerStateData(
+        samplerOffset, 
+        &(renderHal->pStateHeap->pCurMediaState->pDynamicState->memoryBlock), 
+        samplerParam));
 
     state->samplerIndexTable[index] = (unsigned char)samplerIndex;
 
@@ -3335,6 +3497,7 @@ MOS_STATUS HalCm_SetupSamplerStateWithBTIndex(
     uint32_t                        index;
     uint32_t                        samplerIndex;
     void                            *sampler = nullptr;
+    uint32_t                        samplerOffset = 0;
 
     renderHal = state->renderHal;
 
@@ -3380,14 +3543,17 @@ MOS_STATUS HalCm_SetupSamplerStateWithBTIndex(
             CM_ERROR_ASSERT("BTI calculation error in cm_hal\n");
             return MOS_STATUS_UNKNOWN;
         }
-        HalCm_GetSamplerOffsetAndPtr(state, renderHal, mediaID, iter->heapOffset, iter->bti, samplerParam, nullptr, &sampler);
+        HalCm_GetSamplerOffset(state, renderHal, mediaID, iter->heapOffset, iter->bti, samplerParam, &samplerOffset);
     }
     else
     {
-        CM_CHK_MOSSTATUS(renderHal->pfnGetSamplerOffsetAndPtr(renderHal, mediaID, samplerIndex, samplerParam, nullptr, &sampler));
+        CM_CHK_MOSSTATUS(renderHal->pfnGetSamplerOffsetAndPtr(renderHal, mediaID, samplerIndex, samplerParam, &samplerOffset, &sampler));
     }
 
-    CM_CHK_MOSSTATUS( renderHal->pMhwStateHeap->SetSamplerState(sampler, samplerParam ) );
+    CM_CHK_MOSSTATUS(renderHal->pMhwStateHeap->AddSamplerStateData(
+        samplerOffset,
+        &(renderHal->pStateHeap->pCurMediaState->pDynamicState->memoryBlock),
+        samplerParam));
 
 finish:
     return hr;
@@ -7632,6 +7798,17 @@ MOS_STATUS HalCm_Allocate(
     // Allocate TimeStamp Buffer
     CM_CHK_MOSSTATUS(HalCm_AllocateTsResource(state));
 
+    // Allocate tracker resources
+    CM_CHK_MOSSTATUS(HalCm_AllocateTrackerResource(state));
+
+    // Initialize dynamic general state heap
+    CM_HAL_HEAP_PARAM heapParams;
+    heapParams.behaviorGSH        = HeapManager::Behavior::destructiveExtend;
+    heapParams.initialSizeGSH     = 0x0080000;
+    heapParams.extendSizeGSH      = 0x0080000;
+    heapParams.trackerResourceGSH = state->renderHal->trackerResource.data;
+    CM_CHK_MOSSTATUS(HalCm_InitializeDynamicStateHeaps(state, &heapParams));
+
     CM_CHK_MOSSTATUS(HalCm_AllocateTables(state));
 
     // Allocate Task Param to hold max tasks
@@ -10097,6 +10274,13 @@ void HalCm_Destroy(
             HalCm_FreeSipResource(state);
 
         }
+
+        // Delete tracker resource
+        HalCm_FreeTrackerResources(state);
+
+        // Delete heap manager
+        MOS_Delete(state->renderHal->dgsheapManager);
+
         if (state->hLibModule)
         {
             MOS_FreeLibrary(state->hLibModule);
@@ -11215,7 +11399,7 @@ int32_t HalCm_GetTaskSyncLocation(
     int32_t             taskId)        // [in] Task ID
 {
     return (taskId * (CM_SYNC_QWORD_PER_TASK * sizeof(uint64_t)
-            +(CM_FRAME_TRACKING_QWORD_PER_TASK * sizeof(uint64_t))));
+            +(CM_TRACKER_ID_QWORD_PER_TASK * sizeof(uint64_t))));
 }
 
 void HalCm_GetLegacyRenderHalL3Setting( CmHalL3Settings *l3SettingsPtr, RENDERHAL_L3_CACHE_SETTINGS *l3SettingsLegacyPtr )

@@ -57,7 +57,7 @@ typedef int  (__cdecl *pCallBackReleaseVaSurface)( void *VaDpy, void *pVaSurfID)
 
 #define CM_INVALID_TAG              (LONG_LONG_MAX)
 
-#define CM_FRAME_TRACKING_QWORD_PER_TASK    0
+#define CM_TRACKER_ID_QWORD_PER_TASK     0
 
 #define CM_ERROR_NULL_POINTER CM_NULL_POINTER
 

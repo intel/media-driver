@@ -27,40 +27,59 @@
 #include "mos_os.h"
 #include "renderhal.h"
 
-uint32_t RenderHal_GetNextFrameId(PRENDERHAL_INTERFACE pRenderHal, MOS_GPU_CONTEXT GpuContext)
+void RenderHal_IncTrackerId(PRENDERHAL_INTERFACE renderHal)
 {
-    return pRenderHal->pStateHeap->dwNextTag;
-}
+    MOS_GPU_CONTEXT gpuContext = MOS_GPU_CONTEXT_INVALID_HANDLE;
+    gpuContext = renderHal->pOsInterface->CurrentGpuContextOrdinal;
 
-void RenderHal_IncNextFrameId(PRENDERHAL_INTERFACE pRenderHal, MOS_GPU_CONTEXT GpuContext)
-{
-    pRenderHal->pStateHeap->dwNextTag++;
-}
 
-uint32_t RenderHal_GetCurrentFrameId(PRENDERHAL_INTERFACE pRenderHal, MOS_GPU_CONTEXT GpuContext)
-{
-    return (pRenderHal->pStateHeap->pSync[0] - 1);
-}
-
-bool RenderHal_WaitFrameId(PRENDERHAL_INTERFACE pRenderHal, MOS_GPU_CONTEXT GpuContext, uint32_t dwFrameId)
-{
-    PRENDERHAL_STATE_HEAP pStateHeap = pRenderHal->pStateHeap;
-    uint32_t gpuTag = pStateHeap->pSync[0] - 1;
-    while ((int32_t)(gpuTag - dwFrameId) < 0)
+    if (gpuContext == MOS_GPU_CONTEXT_VEBOX)
     {
-        gpuTag = pStateHeap->pSync[0] - 1;
+        renderHal->veBoxTrackerRes.currentTrackerId++;
     }
-
-    return true;
+    else
+    {
+        renderHal->trackerResource.currentTrackerId++;
+    }
 }
 
-uint32_t RenderHal_EnableFrameTracking(
-    PRENDERHAL_INTERFACE              pRenderHal,
-    MOS_GPU_CONTEXT                   GpuContext,
-    RENDERHAL_GENERIC_PROLOG_PARAMS  *pPrologParams,
-    PMOS_RESOURCE                     pOsResource)
+uint32_t RenderHal_GetNextTrackerId(PRENDERHAL_INTERFACE renderHal)
 {
-    return pRenderHal->pStateHeap->dwNextTag;
+    MOS_GPU_CONTEXT gpuContext = MOS_GPU_CONTEXT_INVALID_HANDLE;
+    gpuContext = renderHal->pOsInterface->CurrentGpuContextOrdinal;
+
+    if (gpuContext == MOS_GPU_CONTEXT_VEBOX)
+    {
+        return renderHal->veBoxTrackerRes.currentTrackerId;
+    }
+    else
+    {
+        return renderHal->trackerResource.currentTrackerId;
+    }
+}
+
+uint32_t RenderHal_GetCurrentTrackerId(PRENDERHAL_INTERFACE renderHal)
+{
+    MOS_GPU_CONTEXT gpuContext = MOS_GPU_CONTEXT_INVALID_HANDLE;
+    gpuContext = renderHal->pOsInterface->CurrentGpuContextOrdinal;
+
+    if (gpuContext == MOS_GPU_CONTEXT_VEBOX)
+    {
+        return *(renderHal->veBoxTrackerRes.data);
+    }
+    else
+    {
+        return *(renderHal->trackerResource.data);
+    }
+}
+
+void RenderHal_SetupPrologParams(
+    PRENDERHAL_INTERFACE              renderHal,
+    RENDERHAL_GENERIC_PROLOG_PARAMS  *prologParams,
+    PMOS_RESOURCE                     osResource,
+    uint32_t                          tag)
+{
+    return;
 }
 
 //!

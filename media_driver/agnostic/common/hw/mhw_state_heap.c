@@ -742,7 +742,7 @@ XMHW_STATE_HEAP_INTERFACE::XMHW_STATE_HEAP_INTERFACE(
     PMOS_INTERFACE pInputOSInterface,
     int8_t         bDynamicMode):
     m_pOsInterface(pInputOSInterface),
-    m_bDynmaicMode(bDynamicMode),
+    m_bDynamicMode(bDynamicMode),
     m_pWaTable(nullptr),
     m_pSyncTags(nullptr),
     m_pdwCmdBufIdGlobal(nullptr),
@@ -776,7 +776,7 @@ XMHW_STATE_HEAP_INTERFACE::~XMHW_STATE_HEAP_INTERFACE()
 {
     MHW_FUNCTION_ENTER;
 
-    if (m_bDynmaicMode == 2)
+    if (m_bDynamicMode == MHW_DGSH_MODE)
     {
         // heap manager destructors called automatically
         return;
@@ -789,7 +789,7 @@ XMHW_STATE_HEAP_INTERFACE::~XMHW_STATE_HEAP_INTERFACE()
     MOS_FreeMemory(m_pSyncTags);
 
     // Destroy all memory block objects and block manager objects for ISH, DSH
-    if(m_bDynmaicMode == 1)
+    if(m_bDynamicMode == MHW_DSH_MODE)
     {
         MOS_Delete(m_pIshBlockManager);
         MOS_Delete(m_pDshBlockManager);
@@ -817,7 +817,7 @@ XMHW_STATE_HEAP_INTERFACE::~XMHW_STATE_HEAP_INTERFACE()
             m_pOsInterface->pfnFreeResource(m_pOsInterface, &pStateHeapPtr->resHeap);
         }
 
-        if(m_bDynmaicMode == 0)
+        if(m_bDynamicMode == MHW_RENDER_HAL_MODE)
         {
             pMemBlkPtr = pStateHeapPtr->pMemoryHead;
             while (pMemBlkPtr)
@@ -846,7 +846,7 @@ XMHW_STATE_HEAP_INTERFACE::~XMHW_STATE_HEAP_INTERFACE()
             m_pOsInterface->pfnFreeResource(m_pOsInterface, &pStateHeapPtr->resHeap);
         }
 
-        if(m_bDynmaicMode == 0)
+        if(m_bDynamicMode == MHW_RENDER_HAL_MODE)
         {
             pMemBlkPtr = pStateHeapPtr->pMemoryHead;
             while (pMemBlkPtr)
@@ -893,7 +893,7 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::InitializeInterface(
         goto finish;
     }
 
-    if (m_bDynmaicMode == 2)
+    if (m_bDynamicMode == MHW_DGSH_MODE)
     {
         m_ishManager.RegisterOsInterface(m_pOsInterface);
         m_ishManager.SetDefaultBehavior(StateHeapSettings.m_ishBehavior);
@@ -926,25 +926,34 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::InitializeInterface(
         return MOS_STATUS_SUCCESS;
     }
 
-    //Sync tagas and sync tag id
+    //Sync tags and sync tag id
     m_pSyncTags = (PMHW_SYNC_TAG)MOS_AllocAndZeroMemory(sizeof(MHW_SYNC_TAG) *
                         StateHeapSettings.dwNumSyncTags);
     MHW_CHK_NULL(m_pSyncTags);
 
-    if(m_bDynmaicMode == 1)
+    if(m_bDynamicMode == MHW_DSH_MODE)
     {
         m_dwInvalidSyncTagId = 0;
 
-        //Allocate block manager for dsh and ish
+        //Allocate block manager for ISH
         m_pIshBlockManager = MOS_New(MHW_BLOCK_MANAGER, nullptr);
         MHW_CHK_NULL(m_pIshBlockManager);
 
-        m_pDshBlockManager = MOS_New(MHW_BLOCK_MANAGER, nullptr);
-        MHW_CHK_NULL(m_pDshBlockManager);
+
     }
-    else // m_bDynmaicMode == 0
+    else // m_bDynamicMode == MHW_RENDER_HAL_MODE
     {
         m_dwInvalidSyncTagId = StateHeapSettings.dwNumSyncTags;
+
+        //Extend state heap for DSH
+        MHW_CHK_STATUS(ExtendStateHeap(
+            MHW_DSH_TYPE,
+            StateHeapSettings.dwDshSize));
+        if (StateHeapSettings.m_keepDshLocked)
+        {
+            MHW_CHK_STATUS(LockStateHeap(m_pDynamicStateHeaps));
+            m_pDynamicStateHeaps->bKeepLocked = true;
+        }
     }
 
     //Allocate resCmdBufIdGlobal
@@ -978,16 +987,6 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::InitializeInterface(
     {
         MHW_CHK_STATUS(LockStateHeap(m_pInstructionStateHeaps));
         m_pInstructionStateHeaps->bKeepLocked = true;
-    }
-
-    //Extend state heap for DSH
-    MHW_CHK_STATUS(ExtendStateHeap(
-        MHW_DSH_TYPE,
-        StateHeapSettings.dwDshSize));
-    if (StateHeapSettings.m_keepDshLocked)
-    {
-        MHW_CHK_STATUS(LockStateHeap(m_pDynamicStateHeaps));
-        m_pDynamicStateHeaps->bKeepLocked = true;
     }
 
 finish:
@@ -1282,11 +1281,11 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::ExtendStateHeap(
     MHW_STATE_HEAP_TYPE         StateHeapType,
     uint32_t                    dwSizeRequested)
 {
-    if (m_bDynmaicMode == 1)
+    if (m_bDynamicMode == MHW_DSH_MODE)
     {
         return ExtendStateHeapDyn(StateHeapType,dwSizeRequested);
     }
-    else if (m_bDynmaicMode == 0)
+    else if (m_bDynamicMode == MHW_RENDER_HAL_MODE)
     {
         return ExtendStateHeapSta(StateHeapType,dwSizeRequested);
     }

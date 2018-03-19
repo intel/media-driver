@@ -4865,15 +4865,14 @@ finish:
     return eStatus;
 }
 
-uint32_t RenderHal_GetNextFrameId(PRENDERHAL_INTERFACE pRenderHal, MOS_GPU_CONTEXT GpuContext);
-void RenderHal_IncNextFrameId(PRENDERHAL_INTERFACE pRenderHal, MOS_GPU_CONTEXT GpuContext);
-uint32_t RenderHal_GetCurrentFrameId(PRENDERHAL_INTERFACE pRenderHal, MOS_GPU_CONTEXT GpuContext);
-bool RenderHal_WaitFrameId(PRENDERHAL_INTERFACE pRenderHal, MOS_GPU_CONTEXT GpuContext, uint32_t dwFrameId);
-uint32_t RenderHal_EnableFrameTracking(
-    PRENDERHAL_INTERFACE              pRenderHal,
-    MOS_GPU_CONTEXT                   GpuContext,
-    RENDERHAL_GENERIC_PROLOG_PARAMS  *pPrologParams,
-    PMOS_RESOURCE                     pOsResource);
+uint32_t RenderHal_GetNextTrackerId(PRENDERHAL_INTERFACE renderHal);
+void RenderHal_IncTrackerId(PRENDERHAL_INTERFACE renderHal);
+uint32_t RenderHal_GetCurrentTrackerId(PRENDERHAL_INTERFACE renderHal);
+void RenderHal_SetupPrologParams(
+    PRENDERHAL_INTERFACE              renderHal,
+    RENDERHAL_GENERIC_PROLOG_PARAMS  *prologParams,
+    PMOS_RESOURCE                     osResource,
+    uint32_t                          tag);
 
 //!
 //! \brief    Initialize
@@ -6522,12 +6521,11 @@ MOS_STATUS RenderHal_InitInterface(
     pRenderHal->pfnSendRcsStatusTag           = RenderHal_SendRcsStatusTag;
     pRenderHal->pfnSendSyncTag                = RenderHal_SendSyncTag;
 
-    // Frame tracking
-    pRenderHal->pfnGetNextFrameId             = RenderHal_GetNextFrameId;
-    pRenderHal->pfnIncNextFrameId             = RenderHal_IncNextFrameId;
-    pRenderHal->pfnGetCurrentFrameId          = RenderHal_GetCurrentFrameId;
-    pRenderHal->pfnWaitFrameId                = RenderHal_WaitFrameId;
-    pRenderHal->pfnEnableFrameTracking        = RenderHal_EnableFrameTracking;
+    // Tracker tag
+    pRenderHal->pfnIncTrackerId               = RenderHal_IncTrackerId;
+    pRenderHal->pfnGetNextTrackerId           = RenderHal_GetNextTrackerId;
+    pRenderHal->pfnGetCurrentTrackerId        = RenderHal_GetCurrentTrackerId;
+    pRenderHal->pfnSetupPrologParams          = RenderHal_SetupPrologParams;
 
     // InterfaceDescriptor
     pRenderHal->pfnSetupInterfaceDescriptor   = RenderHal_SetupInterfaceDescriptor;

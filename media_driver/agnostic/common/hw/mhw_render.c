@@ -42,8 +42,8 @@ MOS_STATUS MhwRenderInterface::AllocateHeaps(
 
     MHW_FUNCTION_ENTER;
 
-    if (stateHeapSettings.dwIshSize > 0 &&
-        stateHeapSettings.dwDshSize > 0 &&
+    if ((stateHeapSettings.dwIshSize > 0 ||
+        stateHeapSettings.dwDshSize > 0 ) &&
         stateHeapSettings.dwNumSyncTags > 0)
     {
         MHW_MI_CHK_STATUS(m_stateHeapInterface->pfnCreate(

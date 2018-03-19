@@ -310,8 +310,8 @@ MOS_STATUS MemoryBlockManager::UnregisterHeap(uint32_t heapId)
             }
 
             m_deletedHeaps.push_back((*iterator));
-            HEAP_CHK_STATUS(CompleteHeapDeletion());
             m_heaps.erase(iterator);
+            HEAP_CHK_STATUS(CompleteHeapDeletion());
             return MOS_STATUS_SUCCESS;
         }
     }
@@ -397,6 +397,7 @@ MOS_STATUS MemoryBlockManager::IsSpaceAvailable(
             {
                 // The requested size is larger than the largest free block size
                 spaceNeeded += (*requestIterator).m_blockSize;
+                continue;
             }
             else
             {
@@ -413,7 +414,6 @@ MOS_STATUS MemoryBlockManager::IsSpaceAvailable(
                     else
                     {
                         // if the aligned size does not fit within the curret free block, continue for loop
-                        block = block->m_stateNext;
                         break;
                     }
                 }
@@ -608,6 +608,7 @@ MOS_STATUS MemoryBlockManager::AddBlockToSortedList(
         }
         case MemoryBlockInternal::State::allocated:
         case MemoryBlockInternal::State::submitted:
+        case MemoryBlockInternal::State::deleted:
             block->m_stateNext = curr;
             if (curr)
             {
@@ -618,8 +619,7 @@ MOS_STATUS MemoryBlockManager::AddBlockToSortedList(
             m_sortedBlockListNumEntries[state]++;
             m_sortedBlockListSizes[state] += block->GetSize();
             break;
-        case MemoryBlockInternal::State::pool:
-        case MemoryBlockInternal::State::deleted:
+        case MemoryBlockInternal::State::pool: 
             block->m_stateNext = curr;
             if (curr)
             {
@@ -650,6 +650,7 @@ MOS_STATUS MemoryBlockManager::RemoveBlockFromSortedList(
         case MemoryBlockInternal::State::free:
         case MemoryBlockInternal::State::allocated:
         case MemoryBlockInternal::State::submitted:
+        case MemoryBlockInternal::State::deleted:
         {
             if (block->m_statePrev)
             {
@@ -710,24 +711,24 @@ MOS_STATUS MemoryBlockManager::RemoveHeapFromSortedBlockList(uint32_t heapId)
 {
     for (auto state = 0; state < MemoryBlockInternal::State::stateCount; ++state)
     {
-        if (state == MemoryBlockInternal::State::pool ||
-            state == MemoryBlockInternal::State::deleted)
+        if (state == MemoryBlockInternal::State::pool)
         {
             continue;
         }
 
         auto curr = m_sortedBlockList[state];
         Heap *heap = nullptr;
+        MemoryBlockInternal *nextBlock = nullptr;
         while (curr != nullptr)
         {
+            nextBlock = curr->m_stateNext;
             heap = curr->GetHeap();
             HEAP_CHK_NULL(heap);
             if (heap->GetId() == heapId)
             {
                 HEAP_CHK_STATUS(RemoveBlockFromSortedList(curr, curr->GetState()));
-                curr->Delete();
             }
-            curr = curr->m_stateNext;
+            curr = nextBlock;
         }
     }
 

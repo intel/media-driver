@@ -273,6 +273,7 @@ int32_t HalCm_DumpCurbeData(PCM_HAL_STATE state)
     uint32_t        numberOfDwords = 0;
     uint32_t        sizeToAllocate = 0;
     PMOS_INTERFACE osInterface = state->osInterface;
+    uint32_t        *curbeData = nullptr;
     PRENDERHAL_STATE_HEAP stateHeap = state->renderHal->pStateHeap;
 
     MOS_OS_ASSERT(state);
@@ -285,17 +286,22 @@ int32_t HalCm_DumpCurbeData(PCM_HAL_STATE state)
     // write curbe data dwords.
     if (state->dshEnabled)
     {
-        numberOfDwords = stateHeap->pCurMediaState->pDynamicState->Curbe.dwSize;
+        numberOfDwords = stateHeap->pCurMediaState->pDynamicState->Curbe.dwSize / sizeof(uint32_t);
         sizeToAllocate = numberOfDwords*SIZE_OF_DWORD_PLUS_ONE+2;
         outputBuffer = (char *)MOS_AllocAndZeroMemory(sizeToAllocate);
+        curbeData = (uint32_t *)MOS_AllocAndZeroMemory(stateHeap->pCurMediaState->pDynamicState->Curbe.dwSize);
+        stateHeap->pCurMediaState->pDynamicState->memoryBlock.ReadData(curbeData,
+            stateHeap->pCurMediaState->pDynamicState->Curbe.dwOffset,
+            stateHeap->pCurMediaState->pDynamicState->Curbe.dwSize);
+
         bytesWritten += HalCm_CopyHexDwordLine(outputBuffer,
                           sizeToAllocate - bytesWritten,
-                          (uint32_t*)stateHeap->pCurMediaState->pDynamicState->pMemoryBlock->pDataPtr + stateHeap->pCurMediaState->pDynamicState->Curbe.dwOffset,
+                          curbeData,
                           numberOfDwords);
     }
     else
     {
-        numberOfDwords = stateHeap->pCurMediaState->iCurbeOffset;
+        numberOfDwords = stateHeap->pCurMediaState->iCurbeOffset / sizeof(uint32_t);
         sizeToAllocate = numberOfDwords*SIZE_OF_DWORD_PLUS_ONE+2;
         outputBuffer = (char *)MOS_AllocAndZeroMemory(sizeToAllocate);
         bytesWritten += HalCm_CopyHexDwordLine(outputBuffer,
@@ -315,6 +321,11 @@ finish:
     if (outputBuffer)
     {
         MOS_FreeMemAndSetNull(outputBuffer);
+    }
+    
+    if (curbeData)
+    {
+        MOS_FreeMemAndSetNull(curbeData);
     }
 
     return hr;

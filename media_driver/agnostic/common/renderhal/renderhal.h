@@ -37,6 +37,7 @@
 
 #include "renderhal_dsh.h"
 #include "mhw_memory_pool.h"
+#include "cm_hal_hashtable.h"
 
 class XRenderHal_Platform_Interface;
 
@@ -811,6 +812,13 @@ typedef struct _RENDERHAL_MEDIA_STATE_LIST
     int32_t                 iCount;                                             // Number of objects
 } RENDERHAL_MEDIA_STATE_LIST, *PRENDERHAL_MEDIA_STATE_LIST;
 
+struct RENDERHAL_TR_RESOURCE {
+    MOS_RESOURCE    osResource;
+    bool            locked;
+    uint32_t        *data;
+    uint32_t        currentTrackerId;
+};
+
 typedef struct _RENDERHAL_STATE_HEAP_SETTINGS
 {
     // Global GSH Allocation parameters
@@ -954,8 +962,8 @@ typedef struct _RENDERHAL_STATE_HEAP
     PMHW_MEMORY_POOL               pKernelAllocMemPool;                         // Kernel states memory pool (mallocs)
     RENDERHAL_KRN_ALLOC_LIST       KernelAllocationPool;                        // Pool of kernel allocation objects
     RENDERHAL_KRN_ALLOC_LIST       KernelsSubmitted;                            // Kernel submission list
-    RENDERHAL_KRN_ALLOC_LIST       KernelsAllocated;                            // kernel allocation list (kernels in ISH not currently being executed)
-    RENDERHAL_COALESCED_HASH_TABLE KernelHashTable;                             // Kernel hash table for faster kernel search
+    RENDERHAL_KRN_ALLOC_LIST       KernelsAllocated;                            // kernel allocation list (kernels in ISH not currently being executed)                         
+    CmHashTable                    kernelHashTable;                             // Kernel hash table for faster kernel search
 
 } RENDERHAL_STATE_HEAP, *PRENDERHAL_STATE_HEAP;
 
@@ -1210,6 +1218,12 @@ typedef struct _RENDERHAL_INTERFACE
 
     bool                        bDynamicStateHeap;        //!< Indicates that DSH is in use
 
+
+    RENDERHAL_TR_RESOURCE       trackerResource;        // Resource to mark command buffer completion
+    RENDERHAL_TR_RESOURCE       veBoxTrackerRes;        // Resource to mark command buffer completion
+
+    HeapManager                 *dgsheapManager;        // Dynamic general state heap manager
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     // Dump state for VP debugging
     void                        *pStateDumper;
@@ -1442,6 +1456,12 @@ typedef struct _RENDERHAL_INTERFACE
     //---------------------------
     // New Dynamic State Heap interfaces
     //---------------------------
+    MOS_STATUS(*pfnAssignSpaceInStateHeap)(
+        RENDERHAL_TR_RESOURCE *trackerInfo,
+        HeapManager           *heapManager,
+        MemoryBlock           *block,
+        uint32_t               size);
+
     PRENDERHAL_MEDIA_STATE (* pfnAssignDynamicState) (
                 PRENDERHAL_INTERFACE                  pRenderHal,
                 PRENDERHAL_DYNAMIC_MEDIA_STATE_PARAMS pParams,
@@ -1557,29 +1577,20 @@ typedef struct _RENDERHAL_INTERFACE
                 PRENDERHAL_INTERFACE        pRenderHal,
                 PMOS_COMMAND_BUFFER         pCmdBuffer);
 
-    // Frame tracking
-    uint32_t   (* pfnGetNextFrameId) (
-                PRENDERHAL_INTERFACE        pRenderHal,
-                MOS_GPU_CONTEXT             GpuContext);
+    void       (* pfnIncTrackerId) (
+                PRENDERHAL_INTERFACE        renderHal);
 
-    void       (* pfnIncNextFrameId) (
-                PRENDERHAL_INTERFACE        pRenderHal,
-                MOS_GPU_CONTEXT             GpuContext);
+    uint32_t   (* pfnGetNextTrackerId) (
+                PRENDERHAL_INTERFACE        renderHal);
 
-    uint32_t   (* pfnGetCurrentFrameId) (
-                PRENDERHAL_INTERFACE        pRenderHal,
-                MOS_GPU_CONTEXT             GpuContext);
+    uint32_t   (* pfnGetCurrentTrackerId) (
+                PRENDERHAL_INTERFACE        renderHal);
 
-    bool       (* pfnWaitFrameId) (
-                PRENDERHAL_INTERFACE        pRenderHal,
-                MOS_GPU_CONTEXT             GpuContext,
-                uint32_t                    dwFrameId);
-
-    uint32_t   (* pfnEnableFrameTracking) (
-                PRENDERHAL_INTERFACE             pRenderHal,
-                MOS_GPU_CONTEXT                  GpuContext,
-                RENDERHAL_GENERIC_PROLOG_PARAMS  *pPrologParams,
-                PMOS_RESOURCE                    pOsResource);
+    void       (* pfnSetupPrologParams) (
+                PRENDERHAL_INTERFACE             renderHal,
+                RENDERHAL_GENERIC_PROLOG_PARAMS  *prologParams,
+                PMOS_RESOURCE                    osResource,
+                uint32_t                         tag);
 
     // Samplers and other states
     MOS_STATUS (*pfnGetSamplerOffsetAndPtr) (

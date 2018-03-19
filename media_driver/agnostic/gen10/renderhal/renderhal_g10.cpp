@@ -561,12 +561,10 @@ MOS_STATUS XRenderHal_Interface_g10::GetSamplerOffsetAndPtr_DSH(
     pDynamicState = pStateHeap->pCurMediaState->pDynamicState;
 
     MHW_RENDERHAL_CHK_NULL(pDynamicState);
-    MHW_RENDERHAL_CHK_NULL(pDynamicState->pMemoryBlock);
 
     MHW_RENDERHAL_ASSERT(iMediaID   < pDynamicState->MediaID.iCount);
 
-    dwOffset = pDynamicState->pMemoryBlock->dwDataOffset  +              // Offset to current media state base
-               iMediaID * pDynamicState->dwSizeSamplers;                 // Go to Media ID sampler offset
+    dwOffset    = iMediaID * pDynamicState->dwSizeSamplers;                 // Go to Media ID sampler offset
 
     SamplerType = (pSamplerParams) ? pSamplerParams->SamplerType : MHW_SAMPLER_TYPE_3D;
 
@@ -614,7 +612,6 @@ MOS_STATUS XRenderHal_Interface_g10::GetSamplerOffsetAndPtr_DSH(
                 dwSamplerIndirect += pDynamicState->SamplerInd.dwOffset +                              // offset to indirect sampler area
                                      iSamplerID * pRenderHal->pHwSizes->dwSizeSamplerIndirectState;   // Goto to "samplerID" indirect state
                 pSamplerParams->Unorm.IndirectStateOffset = dwSamplerIndirect;
-                pSamplerParams->Unorm.pIndirectState      = (void *)((uint8_t*)pDynamicState->pMemoryBlock->pStateHeap->pvLockedHeap + dwSamplerIndirect);
             }
 
             break;
@@ -623,11 +620,6 @@ MOS_STATUS XRenderHal_Interface_g10::GetSamplerOffsetAndPtr_DSH(
     if (pdwSamplerOffset)
     {
         *pdwSamplerOffset = dwOffset;
-    }
-
-    if (ppSampler)
-    {
-        *ppSampler = (void *)((uint8_t*)pDynamicState->pMemoryBlock->pStateHeap->pvLockedHeap + dwOffset);
     }
 
 finish:

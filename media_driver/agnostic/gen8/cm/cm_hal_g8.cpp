@@ -80,7 +80,6 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
     bool                            enableGpGpu     = state->taskParam->blGpGpuWalkerEnabled;
     MOS_COMMAND_BUFFER              mosCmdBuffer;
     uint32_t                        syncTag;
-    uint32_t                        frameId;
     int64_t                         *taskSyncLocation;
     int32_t                         syncOffset;
     int32_t                         tmp;
@@ -89,6 +88,7 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
     PCM_HAL_BB_ARGS                 bbCmArgs;
     RENDERHAL_GENERIC_PROLOG_PARAMS genericPrologParams;
     MOS_RESOURCE                    osResource;
+    uint32_t                        tag;
     bool                            slmUsed = false;
 
     MOS_ZeroMemory(&mosCmdBuffer, sizeof(MOS_COMMAND_BUFFER));
@@ -103,7 +103,7 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
     *(taskSyncLocation + 1)          = CM_INVALID_INDEX;
     if(state->cbbEnabled)
     {
-        *(taskSyncLocation + 2) = CM_INVALID_TAG;
+    *(taskSyncLocation + 2)      = renderHal->trackerResource.currentTrackerId;
     }
 
     // Update power option of this command;
@@ -140,10 +140,12 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
         }
     }
 
-    // use frame tracking to write the GPU status Tag to GPU status buffer.
-    // On Linux, it just returns next sync tag here since currently there's no frame tracking support.
-    frameId = renderHal->pfnEnableFrameTracking(renderHal, osInterface->CurrentGpuContextOrdinal, &genericPrologParams, &osResource);
-    stateHeap->pCurMediaState->dwSyncTag = frameId;
+    // use frame tracking to write the tracker ID to CM tracker resource
+    osResource = renderHal->trackerResource.osResource;
+    tag        = renderHal->trackerResource.currentTrackerId;
+
+    renderHal->pfnSetupPrologParams(renderHal, &genericPrologParams, &osResource, tag);
+    stateHeap->pCurMediaState->dwSyncTag = tag;
 
     // Initialize command buffer and insert prolog
     CM_CHK_MOSSTATUS(renderHal->pfnInitCommandBuffer(renderHal, &mosCmdBuffer, &genericPrologParams));
@@ -156,11 +158,8 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
     pipeCtrlParams.dwFlushMode       = MHW_FLUSH_WRITE_CACHE;
     CM_CHK_MOSSTATUS(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeCtrlParams));
 
-    // Use pipe control to write GPU status tag to CM TS resource so can compare against tag in GPU status buffer
-    CM_CHK_MOSSTATUS(state->pfnWriteGPUStatusTagToCMTSResource(state, &mosCmdBuffer, taskId, false));
-
-    // update GPU sync tag
-    renderHal->pfnIncNextFrameId(renderHal, osInterface->CurrentGpuContextOrdinal);
+    // update tracker tag used with CM tracker resource
+    renderHal->pfnIncTrackerId(state->renderHal);
 
     // Increment sync tag
     syncTag = renderHal->pStateHeap->dwNextTag++;
@@ -246,7 +245,7 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
     if (state->dshEnabled)
     {
         PRENDERHAL_DYNAMIC_STATE dynamicState = stateHeap->pCurMediaState->pDynamicState;
-        idLoadParams.dwInterfaceDescriptorStartOffset = dynamicState->pMemoryBlock->dwDataOffset +
+        idLoadParams.dwInterfaceDescriptorStartOffset = dynamicState->memoryBlock.GetOffset() +
                                                         dynamicState->MediaID.dwOffset;
         idLoadParams.dwInterfaceDescriptorLength      = dynamicState->MediaID.iCount * stateHeap->dwSizeMediaID;
     }
@@ -439,6 +438,9 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
 
     // Send Sync Tag
     CM_CHK_MOSSTATUS( renderHal->pfnSendSyncTag( renderHal, &mosCmdBuffer ) );
+
+    // Update tracker resource
+    CM_CHK_MOSSTATUS(state->pfnUpdateTrackerResource(state, &mosCmdBuffer, tag));
 
     //Couple to the BB_START , otherwise GPU Hang without it in KMD.
     CM_CHK_MOSSTATUS(mhwMiInterface->AddMiBatchBufferEnd(&mosCmdBuffer, nullptr));

@@ -67,6 +67,23 @@ public:
         uint32_t dataSize,
         bool zeroBlock = false);
 
+    //!
+    //! \brief  Read data from the memory block.
+    //! \param  [out] data
+    //!         Pointer to data returned from memory block, must be valid
+    //! \param  [in] dataOffset
+    //!         Relative offset where the data will be read from within the
+    //!         memory block.
+    //! \param  [in] dataSize
+    //!         Size of the data to be copied to \a data.
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!       
+    MOS_STATUS ReadData(
+        void* data,
+        uint32_t dataOffset,
+        uint32_t dataSize);
+
     //!  
     //! \brief  Dumps the contents of this memory block
     //! \param  [in] filename
@@ -309,7 +326,7 @@ public:
     MemoryBlock()
     {
         HEAP_FUNCTION_ENTER_VERBOSE;
-        memset(&m_resource, 0, sizeof(m_resource));
+        m_resource = nullptr;
     }
 
     virtual ~MemoryBlock() { HEAP_FUNCTION_ENTER_VERBOSE; }
@@ -340,6 +357,32 @@ public:
             return MOS_STATUS_INVALID_PARAMETER;
         }
         return m_block->AddData(data, dataOffset, dataSize, zeroBlock);
+    }
+
+    //!
+    //! \brief  Read data from the memory block.
+    //! \param  [out] data
+    //!         Pointer to data returned from memory block, must be valid
+    //! \param  [in] dataOffset
+    //!         Relative offset where the data will be read from within the
+    //!         memory block.
+    //! \param  [in] dataSize
+    //!         Size of the data to be copied to \a data.
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!       
+    MOS_STATUS ReadData(
+        void* data,
+        uint32_t dataOffset,
+        uint32_t dataSize)
+    {
+        if (!m_valid || m_block == nullptr)
+        {
+            HEAP_ASSERTMESSAGE("The memory block is not valid!");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        return m_block->ReadData(data, dataOffset, dataSize);
     }
 
     //!  

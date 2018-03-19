@@ -46,6 +46,9 @@ public:
     MOS_STATUS SetInterfaceDescriptorEntry(
         PMHW_ID_ENTRY_PARAMS      pParams);
 
+    MOS_STATUS AddInterfaceDescriptorData(
+        PMHW_ID_ENTRY_PARAMS      pParams);
+
     MOS_STATUS SetSurfaceStateEntry(
         PMHW_SURFACE_STATE_PARAMS   pParams);
 
@@ -57,6 +60,11 @@ public:
 
     MOS_STATUS SetSamplerState(
         void                        *pSampler,
+        PMHW_SAMPLER_STATE_PARAM    pParam);
+
+    MOS_STATUS AddSamplerStateData(
+        uint32_t                    samplerOffset,
+        MemoryBlock                 *memoryBlock,
         PMHW_SAMPLER_STATE_PARAM    pParam);
 
     MOS_STATUS InitSamplerStates(

@@ -4988,8 +4988,8 @@ CM_RT_API CM_RETURN_CODE CmKernelRT::GetIndexForCurbeData( uint32_t curbeDataSiz
     if ( ( stateBuffer != nullptr ) && ( mediaStatePtr != nullptr ) )
     {
         // Get curbe address, ideally the DSH should provide the API to get all of the GFX VA of different part of the heap
-        uint64_t curbeGfxVa = state->osInterface->pfnGetResourceGfxAddress( state->osInterface, &( mediaStatePtr->pDynamicState->pMemoryBlock->pStateHeap->resHeap ) ) +
-            mediaStatePtr->pDynamicState->pMemoryBlock->dwDataOffset + mediaStatePtr->pDynamicState->Curbe.dwOffset;
+        uint64_t curbeGfxVa = state->osInterface->pfnGetResourceGfxAddress( state->osInterface, mediaStatePtr->pDynamicState->memoryBlock.GetResource() ) +
+            mediaStatePtr->pDynamicState->memoryBlock.GetOffset() + mediaStatePtr->pDynamicState->Curbe.dwOffset;
 
         SurfaceIndex *tempIndex = nullptr;
         uint32_t handle = 0;
@@ -5112,6 +5112,10 @@ uint32_t CmKernelRT::GetSpillMemUsed()
     if (m_program->IsJitterEnabled() && m_kernelInfo->jitInfo != nullptr)
     {
         spillSize = (m_kernelInfo->jitInfo)->spillMemUsed;
+    }
+    else if (m_blCreatingGPUCopyKernel)
+    {
+        spillSize = 0;
     }
     else
     {

@@ -310,6 +310,48 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G8_X::SetInterfaceDescriptorEntry(
     return eStatus;
 }
 
+MOS_STATUS MHW_STATE_HEAP_INTERFACE_G8_X::AddInterfaceDescriptorData(
+    PMHW_ID_ENTRY_PARAMS      pParams)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    MHW_FUNCTION_ENTER;
+
+    //------------------------------------
+    MHW_MI_CHK_NULL(pParams);
+    //------------------------------------
+
+    // Ensures that the Media ID base is correct
+    MHW_ASSERT(MOS_IS_ALIGNED(pParams->dwMediaIdOffset, m_wIdAlignment));
+
+    uint32_t offset = pParams->dwMediaIdOffset + pParams->iMediaId * m_wSizeOfInterfaceDescriptor;
+
+    mhw_state_heap_g8_X::INTERFACE_DESCRIPTOR_DATA_CMD   *pInterfaceDescriptor;
+    pInterfaceDescriptor = (mhw_state_heap_g8_X::INTERFACE_DESCRIPTOR_DATA_CMD  *)MOS_AllocMemory(sizeof(mhw_state_heap_g8_X::INTERFACE_DESCRIPTOR_DATA_CMD));
+    MHW_MI_CHK_NULL(pInterfaceDescriptor);
+    *pInterfaceDescriptor = mhw_state_heap_g8_X::INTERFACE_DESCRIPTOR_DATA_CMD();
+
+    pInterfaceDescriptor->DW0.KernelStartPointer = pParams->dwKernelOffset >> MHW_KERNEL_OFFSET_SHIFT;
+    pInterfaceDescriptor->DW3.SamplerStatePointer = pParams->dwSamplerOffset >> MHW_SAMPLER_SHIFT;
+    pInterfaceDescriptor->DW3.SamplerCount = pParams->dwSamplerCount;
+    pInterfaceDescriptor->DW4.BindingTablePointer = MOS_ROUNDUP_SHIFT(pParams->dwBindingTableOffset, MHW_BINDING_TABLE_ID_SHIFT);
+    pInterfaceDescriptor->DW5.ConstantUrbEntryReadOffset = pParams->iCurbeOffset >> MHW_CURBE_SHIFT;
+    pInterfaceDescriptor->DW5.ConstantIndirectUrbEntryReadLength = MOS_ROUNDUP_SHIFT(pParams->iCurbeLength, MHW_CURBE_SHIFT);
+    pInterfaceDescriptor->DW6.BarrierEnable = pParams->bBarrierEnable;
+    pInterfaceDescriptor->DW6.NumberOfThreadsInGpgpuThreadGroup = pParams->dwNumberofThreadsInGPGPUGroup;
+    pInterfaceDescriptor->DW6.SharedLocalMemorySize = pParams->dwSharedLocalMemorySize;
+    pInterfaceDescriptor->DW7.CrossThreadConstantDataReadLength = pParams->iCrsThdConDataRdLn >> MHW_THRD_CON_DATA_RD_SHIFT;
+
+    // need to subtract memory block's offset in current state heap for AddData API
+    offset -= pParams->memoryBlock->GetOffset();
+    pParams->memoryBlock->AddData(pInterfaceDescriptor, offset,
+        sizeof(mhw_state_heap_g8_X::INTERFACE_DESCRIPTOR_DATA_CMD));
+
+    MOS_SafeFreeMemory(pInterfaceDescriptor);
+
+    return eStatus;
+}
+
 MOS_STATUS MHW_STATE_HEAP_INTERFACE_G8_X::SetSurfaceStateEntry(
     PMHW_SURFACE_STATE_PARAMS   pParams)
 {
@@ -764,6 +806,87 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G8_X::SetSamplerState(
         }
     }
     eStatus = MOS_STATUS_SUCCESS;
+
+    return eStatus;
+}
+
+MOS_STATUS MHW_STATE_HEAP_INTERFACE_G8_X::AddSamplerStateData(
+    uint32_t                    samplerOffset,
+    MemoryBlock                 *memoryBlock,
+    PMHW_SAMPLER_STATE_PARAM    pParam)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    if (pParam->SamplerType == MHW_SAMPLER_TYPE_3D)
+    {
+        mhw_state_heap_g8_X::SAMPLER_STATE_CMD          unormSampler;
+        mhw_state_heap_g8_X::SAMPLER_INDIRECT_STATE_CMD indirectState;
+
+        pParam->Unorm.pIndirectState = &indirectState;
+
+        MHW_MI_CHK_STATUS(SetSamplerState(&unormSampler, pParam));
+
+        // Add sampler state data to heap
+        MHW_MI_CHK_STATUS(memoryBlock->AddData(
+            &unormSampler,
+            samplerOffset,
+            sizeof(mhw_state_heap_g8_X::SAMPLER_STATE_CMD)));
+
+        // Add indirect state to heap if necessary
+        if (pParam->Unorm.bBorderColorIsValid)
+        {
+            // adjust unormSampler->DW2.IndirectStatePointer
+            // to include memoryBlock's offset from base of state heap
+            unormSampler.DW2.IndirectStatePointer =
+                (pParam->Unorm.IndirectStateOffset + memoryBlock->GetOffset())
+                >> MHW_SAMPLER_INDIRECT_SHIFT;
+
+            MHW_MI_CHK_STATUS(memoryBlock->AddData(
+                &indirectState,
+                pParam->Unorm.IndirectStateOffset,
+                sizeof(mhw_state_heap_g8_X::SAMPLER_INDIRECT_STATE_CMD)));
+        }
+    }
+    else if (pParam->SamplerType == MHW_SAMPLER_TYPE_AVS)
+    {
+        mhw_state_heap_g8_X::SAMPLER_STATE_8x8_AVS_CMD samplerState8x8;
+
+        MHW_MI_CHK_STATUS(SetSamplerState(&samplerState8x8, pParam));
+
+        // Add sampler data to heap
+        MHW_MI_CHK_STATUS(memoryBlock->AddData(
+            &samplerState8x8,
+            samplerOffset,
+            sizeof(mhw_state_heap_g8_X::SAMPLER_STATE_8x8_AVS_CMD)));
+    }
+    else if (pParam->SamplerType == MHW_SAMPLER_TYPE_CONV)
+    {
+        mhw_state_heap_g8_X::SAMPLER_STATE_8x8_CONVOLVE_CMD samplerConvolve;
+
+        MHW_MI_CHK_STATUS(SetSamplerState(&samplerConvolve, pParam));
+
+        MHW_MI_CHK_STATUS(memoryBlock->AddData(
+            &samplerConvolve,
+            samplerOffset,
+            sizeof(mhw_state_heap_g8_X::SAMPLER_STATE_8x8_CONVOLVE_CMD)));
+    }
+    else if (pParam->SamplerType == MHW_SAMPLER_TYPE_MISC)
+    {
+        mhw_state_heap_g8_X::SAMPLER_STATE_8x8_ERODE_DILATE_MINMAXFILTER_CMD samplerMisc;
+
+        MHW_MI_CHK_STATUS(SetSamplerState(&samplerMisc, pParam));
+
+        MHW_MI_CHK_STATUS(memoryBlock->AddData(
+            &samplerMisc,
+            samplerOffset,
+            sizeof(mhw_state_heap_g8_X::SAMPLER_STATE_8x8_ERODE_DILATE_MINMAXFILTER_CMD)));
+
+    }
+    else
+    {
+        MHW_ASSERTMESSAGE("Invalid sampler type '%d'", pParam->SamplerType);
+        eStatus = MOS_STATUS_INVALID_PARAMETER;
+    }
 
     return eStatus;
 }

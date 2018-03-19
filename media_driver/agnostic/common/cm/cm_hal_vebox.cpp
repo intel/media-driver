@@ -51,6 +51,8 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
     uint32_t                            index;
     int32_t                             taskId, i, remaining, syncOffset;
     int64_t                             *taskSyncLocation;
+    uint32_t                            tag;
+
     RENDERHAL_GENERIC_PROLOG_PARAMS     genericPrologParams;
     MOS_RESOURCE                        osResource;
     CM_VEBOX_SURFACE_DATA               cmVeboxSurfaceData;
@@ -113,7 +115,7 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
     *(taskSyncLocation + 1) = CM_INVALID_INDEX;
     if (state->cbbEnabled)
     {
-        *(taskSyncLocation + 2) = CM_INVALID_TAG;
+        *(taskSyncLocation + 2) = state->renderHal->veBoxTrackerRes.currentTrackerId;
     }
 
     // register Timestamp Buffer
@@ -193,17 +195,9 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
     //---------------------------------
     // Get the OS resource
     //---------------------------------
-    osInterface->pfnGetGpuStatusBufferResource(osInterface, &osResource);
-
-    //---------------------------------
-    // register the buffer
-    //---------------------------------
-    osInterface->pfnRegisterResource(osInterface, &osResource, true, true);
-
-    genericPrologParams.presMediaFrameTrackingSurface = &osResource;
-    genericPrologParams.dwMediaFrameTrackingAddrOffset = osInterface->pfnGetGpuStatusTagOffset(osInterface, MOS_GPU_CONTEXT_VEBOX);
-    genericPrologParams.dwMediaFrameTrackingTag = osInterface->pfnGetGpuStatusTag(osInterface, MOS_GPU_CONTEXT_VEBOX);
-    genericPrologParams.bEnableMediaFrameTracking = true;
+    osResource = state->renderHal->veBoxTrackerRes.osResource;
+    tag = state->renderHal->veBoxTrackerRes.currentTrackerId;
+    state->renderHal->pfnSetupPrologParams(state->renderHal, &genericPrologParams, &osResource, tag);
 
     //---------------------------------
     // send command buffer header at the beginning (OS dependent)
@@ -228,14 +222,9 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
         &miFlushDwParams));
 
     //---------------------------------
-    // issue MI_FLUSH_DW cmd to write GPU status tag to CM resource
+    // update tracker tag
     //---------------------------------
-    CM_CHK_MOSSTATUS(state->pfnWriteGPUStatusTagToCMTSResource(state, &cmdBuffer, taskId, true));
-
-    //---------------------------------
-    // update GPU sync tag
-    //---------------------------------
-    osInterface->pfnIncrementGpuStatusTag(osInterface, MOS_GPU_CONTEXT_VEBOX);
+    state->renderHal->pfnIncTrackerId(state->renderHal);
 
     //---------------------------------
     // send vebox state commands
@@ -285,6 +274,9 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
     CM_CHK_MOSSTATUS(renderHal->pMhwMiInterface->AddMiFlushDwCmd(
         &cmdBuffer,
         &miFlushDwParams));
+
+    // Update tracker resource
+    CM_CHK_MOSSTATUS(state->pfnUpdateTrackerResource(state, &cmdBuffer, tag));
 
     //---------------------------------
     // Make sure copy kernel and update kernels are finished before submitting

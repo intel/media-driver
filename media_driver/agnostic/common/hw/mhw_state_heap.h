@@ -112,6 +112,13 @@ typedef enum _MHW_STATE_HEAP_TYPE
     MHW_SSH_TYPE      //!< Note SSH is currently managed by MOS
 } MHW_STATE_HEAP_TYPE;
 
+typedef enum _MHW_STATE_HEAP_MODE
+{
+    MHW_RENDER_HAL_MODE = 0,     //!< 0 - RenderHal handles
+    MHW_DSH_MODE,                //!< 1 - MDF dynamic heap management
+    MHW_DGSH_MODE                //!< 2 - Ddynamic generic heap management 
+}MHW_STATE_HEAP_MODE;
+
 typedef enum _MHW_PLANE
 {
     MHW_GENERIC_PLANE = 0,  // 1D Surface: MHW_GENERIC_PLANE, 2D Surface: MHW_Y_PLANE
@@ -420,6 +427,7 @@ typedef struct _MHW_ID_ENTRY_PARAMS
     uint32_t            dwSharedLocalMemorySize;        //! Size of Shared Local Memory (SLM)
     int32_t             iCrsThdConDataRdLn;             //!
     PMHW_STATE_HEAP     pGeneralStateHeap;              //! General state heap in use
+    MemoryBlock         *memoryBlock;                   //! Memory block associated with the state heap
 } MHW_ID_ENTRY_PARAMS, *PMHW_ID_ENTRY_PARAMS;
 
 typedef struct _MHW_PLANE_SETTING
@@ -851,7 +859,7 @@ private:
     uint32_t                m_dwNumIsh;
     uint32_t                m_dwNumDsh;
     PMHW_STATE_HEAP         m_pDynamicStateHeaps;
-    int8_t                  m_bDynmaicMode;     //!< To be deprecated, 0 - RenderHal handles, 1 - MDF heap management, 2 - generic hep
+    int8_t                  m_bDynamicMode;     //!< To be deprecated, 0 - RenderHal handles, 1 - MDF heap management, 2 - generic hep
     PMHW_BLOCK_MANAGER      m_pIshBlockManager; //!< ISH block management object
     PMHW_BLOCK_MANAGER      m_pDshBlockManager; //!< DSH block management object
 
@@ -1094,6 +1102,15 @@ public:
         PMHW_ID_ENTRY_PARAMS                pParams) = 0;
 
     //!
+    //! \brief    Adds media interface descriptor data to dynamic GSH
+    //! \param    PMHW_ID_ENTRY_PARAMS pParams
+    //!           [in] Interface descriptor parameters
+    //! \return   MOS_STATUS
+    //!
+    virtual MOS_STATUS AddInterfaceDescriptorData(
+        PMHW_ID_ENTRY_PARAMS                pParams) = 0;
+
+    //!
     //! \brief    Adds a binding table to the SSH
     //! \details  Client facing function to add binding table to SSH
     //! \param    PMHW_KERNEL_STATE pKernelState
@@ -1158,6 +1175,21 @@ public:
     //!
     virtual MOS_STATUS SetSamplerState(
         void                        *pSampler,
+        PMHW_SAMPLER_STATE_PARAM    pParam) = 0;
+
+    //!
+    //! \brief    Adds sampler state data to dynamic GSH
+    //! \param    uint32_t samplerOffset
+    //!           [in] sampler offset
+    //! \param    MemoryBlock memoryBlock
+    //!           [in,out] Pointer to memory block
+    //! \param    PMHW_SAMPLER_STATE_PARAM pParam
+    //!           [in] sampler state parameters
+    //! \return   MOS_STATUS
+    //!
+    virtual MOS_STATUS AddSamplerStateData(
+        uint32_t                    samplerOffset,
+        MemoryBlock                 *memoryBlock,
         PMHW_SAMPLER_STATE_PARAM    pParam) = 0;
 
     //!

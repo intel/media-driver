@@ -162,6 +162,8 @@ MOS_STATUS HalCm_GetSurfaceAndRegister(
     {
         case CM_ARGUMENT_STATE_BUFFER:
             mediaState = state->pfnGetMediaStatePtrForSurfaceIndex( state, index );
+            CM_HRESULT2MOSSTATUS_AND_CHECK(renderHal->pOsInterface->pfnRegisterResource(
+                renderHal->pOsInterface, mediaState->pDynamicState->memoryBlock.GetResource(), true, true));
             surface->OsResource.user_provided_va = state->pfnGetStateBufferVAPtrForSurfaceIndex( state, index );
             surface->dwWidth = mediaState->pDynamicState->Curbe.dwSize;
             surface->dwHeight = 1;
@@ -1353,6 +1355,44 @@ MOS_STATUS HalCm_EnableTurboBoost_Linux(
     return MOS_STATUS_SUCCESS;
 }
 
+//!
+//! \brief    Updates tracker resource used in state heap management
+//! \param    [in] state
+//!           CM HAL State
+//! \param    [in,out] cmdBuffer
+//!           Command buffer containing the workload
+//! \param    [in] tag
+//|           Tag to write to tracker resource
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+MOS_STATUS HalCm_UpdateTrackerResource_Linux(
+    PCM_HAL_STATE       state,
+    PMOS_COMMAND_BUFFER cmdBuffer,
+    uint32_t            tag)
+{
+    MHW_MI_STORE_DATA_PARAMS storeDataParams;
+    MOS_RESOURCE             osResource;
+    MOS_GPU_CONTEXT          gpuContext = MOS_GPU_CONTEXT_INVALID_HANDLE;
+    MOS_STATUS               hr = MOS_STATUS_SUCCESS;
+
+    MOS_ZeroMemory(&storeDataParams, sizeof(storeDataParams));
+    gpuContext = state->renderHal->pOsInterface->CurrentGpuContextOrdinal;
+    if (gpuContext == MOS_GPU_CONTEXT_VEBOX)
+    {
+        osResource = state->renderHal->veBoxTrackerRes.osResource;
+    }
+    else
+    {
+        osResource = state->renderHal->trackerResource.osResource;
+    }
+
+    storeDataParams.pOsResource = &osResource;
+    storeDataParams.dwValue = tag;
+    hr = state->renderHal->pMhwMiInterface->AddMiStoreDataImmCmd(cmdBuffer, &storeDataParams);
+    return hr;
+}
+
 void HalCm_OsInitInterface(
     PCM_HAL_STATE           cmState)          // [out]  pointer to CM State
 {
@@ -1370,9 +1410,9 @@ void HalCm_OsInitInterface(
     cmState->pfnReferenceCommandBuffer              = HalCm_ReferenceCommandBuf_Linux;
     cmState->pfnSetCommandBufferResource            = HalCm_SetCommandBufResource_Linux;
     cmState->pfnQueryTask                           = HalCm_QueryTask_Linux;
-    cmState->pfnWriteGPUStatusTagToCMTSResource     = HalCm_WriteGPUStatusTagToCMTSResource_Linux;
     cmState->pfnIsWASLMinL3Cache                    = HalCm_IsWaSLMinL3Cache_Linux;
     cmState->pfnEnableTurboBoost                    = HalCm_EnableTurboBoost_Linux;
+    cmState->pfnUpdateTrackerResource               = HalCm_UpdateTrackerResource_Linux;
 
     HalCm_GetLibDrmVMapFnt(cmState);
     return;
@@ -1391,7 +1431,8 @@ MOS_STATUS HalCm_OsAddArtifactConditionalPipeControl(
     PCM_HAL_STATE state,
     PMOS_COMMAND_BUFFER cmdBuffer, //commmand buffer
     int32_t syncOffset,   //offset to syncation of time stamp
-    PMHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS conditionalParams)    //comparing Params
+    PMHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS conditionalParams, //comparing Params
+    uint32_t trackerTag)    
 {
     MOS_STATUS                   hr = MOS_STATUS_SUCCESS;
     MHW_MI_LOAD_REGISTER_REG_PARAMS     loadRegRegParams;
@@ -1408,8 +1449,8 @@ MOS_STATUS HalCm_OsAddArtifactConditionalPipeControl(
 
     PMHW_MI_INTERFACE  mhwMiInterface = state->renderHal->pMhwMiInterface;
 
-    MOS_ZeroMemory(&loadRegRegParams, sizeof(loadRegRegParams));
-    loadRegRegParams.dwSrcRegister = offsets->timeStampOffset;                                                  //read time stamp
+    MOS_ZeroMemory(&loadRegRegParams, sizeof(loadRegRegParams));                                                
+    loadRegRegParams.dwSrcRegister = offsets->timeStampOffset;         //read time stamp 
     loadRegRegParams.dwDstRegister = offsets->gprOffset + 0;
     CM_CHK_MOSSTATUS(mhwMiInterface->AddMiLoadRegisterRegCmd(cmdBuffer, &loadRegRegParams));
     loadRegRegParams.dwSrcRegister = offsets->timeStampOffset + 4;
@@ -1443,6 +1484,20 @@ MOS_STATUS HalCm_OsAddArtifactConditionalPipeControl(
     loadRegMemParams.dwOffset = conditionalParams->dwOffset;
     loadRegMemParams.dwRegister = offsets->gprOffset + 8 * 1;
     CM_CHK_MOSSTATUS(mhwMiInterface->AddMiLoadRegisterMemCmd(cmdBuffer, &loadRegMemParams));    //R1: compared value 32bits, in coditional surface
+                                                                                                  // Load current tracker tag from resource to R8
+    MOS_ZeroMemory(&loadRegMemParams, sizeof(loadRegMemParams));
+    loadRegMemParams.presStoreBuffer = &state->renderHal->trackerResource.osResource;
+    loadRegMemParams.dwOffset = 0;
+    loadRegMemParams.dwRegister = offsets->gprOffset+ 8 * 8;
+    CM_CHK_MOSSTATUS(mhwMiInterface->AddMiLoadRegisterMemCmd(cmdBuffer, &loadRegMemParams));  // R8: current tracker tag
+
+                                                                                                // Load new tag passed to this function to R9
+    MOS_ZeroMemory(&loadRegImmParams, sizeof(loadRegImmParams));
+    loadRegImmParams.dwData = trackerTag;
+    loadRegImmParams.dwRegister = offsets->gprOffset+ 8 * 9;
+    CM_CHK_MOSSTATUS(mhwMiInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &loadRegImmParams));  // R9: new tracker tag
+                                                                                                //
+
     if (!conditionalParams->bDisableCompareMask)
     {
         loadRegMemParams.dwOffset = conditionalParams->dwOffset + 4;
@@ -1542,6 +1597,82 @@ MOS_STATUS HalCm_OsAddArtifactConditionalPipeControl(
     mathParams.pAluPayload = aluParams;
     mathParams.dwNumAluParams = 16;
     CM_CHK_MOSSTATUS(mhwMiInterface->AddMiMathCmd(cmdBuffer, &mathParams));            //set artifact time stamp (-1 or TS) per condition in GPR R7
+
+    // Add R3 (has value 1) to R4 (~CF) and store result in R10
+    aluParams[0].AluOpcode = MHW_MI_ALU_LOAD;
+    aluParams[0].Operand1 = MHW_MI_ALU_SRCA;
+    aluParams[0].Operand2 = MHW_MI_ALU_GPREG3;
+
+    aluParams[1].AluOpcode = MHW_MI_ALU_LOAD;
+    aluParams[1].Operand1 = MHW_MI_ALU_SRCB;
+    aluParams[1].Operand2 = MHW_MI_ALU_GPREG4;
+
+    aluParams[2].AluOpcode = MHW_MI_ALU_ADD;
+
+    aluParams[3].AluOpcode = MHW_MI_ALU_STORE;
+    aluParams[3].Operand1 = MHW_MI_ALU_GPREG10;
+    aluParams[3].Operand2 = MHW_MI_ALU_ACCU;
+
+    // AND R8 (current tracker tag) with R10 (~CF + 1) and store in R11
+    aluParams[4].AluOpcode = MHW_MI_ALU_LOAD;
+    aluParams[4].Operand1 = MHW_MI_ALU_SRCA;
+    aluParams[4].Operand2 = MHW_MI_ALU_GPREG8;
+
+    aluParams[5].AluOpcode = MHW_MI_ALU_LOAD;
+    aluParams[5].Operand1 = MHW_MI_ALU_SRCB;
+    aluParams[5].Operand2 = MHW_MI_ALU_GPREG10;
+
+    aluParams[6].AluOpcode = MHW_MI_ALU_AND;
+
+    aluParams[7].AluOpcode = MHW_MI_ALU_STORE;
+    aluParams[7].Operand1 = MHW_MI_ALU_GPREG11;
+    aluParams[7].Operand2 = MHW_MI_ALU_ACCU;
+
+    // Store inverse of R10 (-1 --> continue, 0 --> terminate) to R12
+    aluParams[8].AluOpcode = MHW_MI_ALU_STOREINV;
+    aluParams[8].Operand1 = MHW_MI_ALU_GPREG12;
+    aluParams[8].Operand2 = MHW_MI_ALU_GPREG10;
+
+    // AND R9 (new tracker tag) and R12 and store in R13
+    aluParams[9].AluOpcode = MHW_MI_ALU_LOAD;
+    aluParams[9].Operand1 = MHW_MI_ALU_SRCA;
+    aluParams[9].Operand2 = MHW_MI_ALU_GPREG9;
+
+    aluParams[10].AluOpcode = MHW_MI_ALU_LOAD;
+    aluParams[10].Operand1 = MHW_MI_ALU_SRCB;
+    aluParams[10].Operand2 = MHW_MI_ALU_GPREG12;
+
+    aluParams[11].AluOpcode = MHW_MI_ALU_AND;
+
+    aluParams[12].AluOpcode = MHW_MI_ALU_STORE;
+    aluParams[12].Operand1 = MHW_MI_ALU_GPREG13;
+    aluParams[12].Operand2 = MHW_MI_ALU_ACCU;
+
+    // ADD R11 and R13 and store in R15
+    aluParams[13].AluOpcode = MHW_MI_ALU_LOAD;
+    aluParams[13].Operand1 = MHW_MI_ALU_SRCA;
+    aluParams[13].Operand2 = MHW_MI_ALU_GPREG11;
+
+    aluParams[14].AluOpcode = MHW_MI_ALU_LOAD;
+    aluParams[14].Operand1 = MHW_MI_ALU_SRCB;
+    aluParams[14].Operand2 = MHW_MI_ALU_GPREG13;
+
+    aluParams[15].AluOpcode = MHW_MI_ALU_ADD;
+
+    aluParams[16].AluOpcode = MHW_MI_ALU_STORE;
+    aluParams[16].Operand1 = MHW_MI_ALU_GPREG15;
+    aluParams[16].Operand2 = MHW_MI_ALU_ACCU;
+
+    mathParams.pAluPayload = aluParams;
+    mathParams.dwNumAluParams = 17;
+    CM_CHK_MOSSTATUS(mhwMiInterface->AddMiMathCmd(cmdBuffer, &mathParams));
+
+    // Store R15 to trackerResource
+    MOS_ZeroMemory(&storeRegMemParams, sizeof(storeRegMemParams));
+    storeRegMemParams.presStoreBuffer = &state->renderHal->trackerResource.osResource;
+    storeRegMemParams.dwOffset = 0;
+    storeRegMemParams.dwRegister = offsets->gprOffset+ 8 * 15;
+    CM_CHK_MOSSTATUS(mhwMiInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &storeRegMemParams));
 
     //store R6 to synclocation
     MOS_ZeroMemory(&storeRegMemParams, sizeof(storeRegMemParams));

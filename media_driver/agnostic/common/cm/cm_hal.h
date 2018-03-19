@@ -1264,6 +1264,14 @@ typedef struct _CM_HAL_TS_RESOURCE
     uint8_t                     *data;                                          // [in] Linear Data
 } CM_HAL_TS_RESOURCE, *PCM_HAL_TS_RESOURCE;
 
+struct CM_HAL_HEAP_PARAM
+{
+    uint32_t initialSizeGSH;
+    uint32_t extendSizeGSH;
+    uint32_t *trackerResourceGSH;
+    HeapManager::Behavior behaviorGSH;
+};
+
 //------------------------------------------------------------------------------
 //| HAL CM Struct for a multiple usage mapping from OSResource to BTI states
 //------------------------------------------------------------------------------
@@ -1796,12 +1804,6 @@ typedef struct _CM_HAL_STATE
     (   PMOS_RESOURCE               osResource,
         void                        **cmdBuffer);
 
-    MOS_STATUS(*pfnWriteGPUStatusTagToCMTSResource)
-    (   PCM_HAL_STATE               state,
-        PMOS_COMMAND_BUFFER         cmdBuffer,
-        int32_t                     taskID,
-        bool                        isVebox);
-
     MOS_STATUS(*pfnEnableTurboBoost)
     (   PCM_HAL_STATE               state);
 
@@ -1863,6 +1865,12 @@ typedef struct _CM_HAL_STATE
         PCM_HAL_STATE               state,
         MOS_GPU_CONTEXT             gpuContext,
         MOS_GPU_NODE                gpuNode );
+
+    MOS_STATUS (*pfnUpdateTrackerResource)
+        (
+        PCM_HAL_STATE               state,
+        PMOS_COMMAND_BUFFER         cmdBuffer,
+        uint32_t                    tag);
 
     //********************************************************************************
     // Internal interface methods called by CM HAL only <END>
@@ -1965,6 +1973,13 @@ MOS_STATUS HalCm_GetSurfaceDetails(
     CM_HAL_KERNEL_ARG_KIND          argKind);
 
 MOS_STATUS HalCm_AllocateTsResource(
+    PCM_HAL_STATE           state);
+
+MOS_STATUS HalCm_InitializeDynamicStateHeaps(
+    PCM_HAL_STATE           state,
+    CM_HAL_HEAP_PARAM       *heapParam);
+
+MOS_STATUS HalCm_AllocateTrackerResource(
     PCM_HAL_STATE           state);
 
 MOS_STATUS HalCm_AllocateTables(
@@ -2121,7 +2136,8 @@ MOS_STATUS HalCm_OsAddArtifactConditionalPipeControl(
     PCM_HAL_STATE state,
     PMOS_COMMAND_BUFFER cmdBuffer,
     int32_t syncOffset,
-    PMHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS conditionalParams);
+    PMHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS conditionalParams,
+    uint32_t trackerTag);
 
 //!
 //! \brief    Get the number of command buffers according to the max task number
