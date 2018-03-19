@@ -29,14 +29,14 @@ Equivalents for other distributions should work.
 
 ## Dependencies
 
-Libva - https://github.com/01org/libva
+Libva - https://github.com/intel/libva
 
 GmmLib - https://github.com/intel/gmmlib (please check https://github.com/intel/media-driver/wiki/Comparability-with-GmmLib)
 
 ## Building
 
-1. Build and install libva master [commit f2f9956f1dd871af59f2fd9bc6fdfc6c0992f0d1](https://github.com/01org/libva/commit/f2f9956f1dd871af59f2fd9bc6fdfc6c0992f0d1)
-2. Get gmmlib and media repo and format the workspace folder as below:
+1. Build and install libva master
+2. Get gmmlib and media repo and format the workspace folder as below (suggest the workspace to be a dedicated one for media driver build):
 ```
 <workspace>
     |- gmmlib
@@ -44,11 +44,11 @@ GmmLib - https://github.com/intel/gmmlib (please check https://github.com/intel/
 ```
 3. 
 ```
-$ mkdir <workspace>/build
+$ mkdir <workspace>/build_media
 ```
 4. 
 ```
-$ cd <workspace>/build
+$ cd <workspace>/build_media
 ```
 5. 
 ```
@@ -67,7 +67,7 @@ Alternatively, copy
 ```
 into
 ```
-<workspace>/build
+<workspace>/build_media
 ```
 then run
 ```
