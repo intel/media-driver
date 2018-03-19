@@ -412,6 +412,19 @@ typedef enum _MOS_GPU_CONTEXT
     MOS_GPU_CONTEXT_INVALID_HANDLE  = MOS_GPU_CONTEXT_MAX
 } MOS_GPU_CONTEXT, *PMOS_GPU_CONTEXT;
 
+/*****************************************************************************\
+ENUM: MOS_GPU_COMPONENT_ID
+\*****************************************************************************/
+typedef enum _MOS_GPU_COMPONENT_ID
+{
+    MOS_GPU_COMPONENT_VP,
+    MOS_GPU_COMPONENT_CM,
+    MOS_GPU_COMPONENT_DECODE,
+    MOS_GPU_COMPONENT_ENCODE,
+    MOS_GPU_COMPONENT_DEFAULT,
+    MOS_GPU_COMPONENT_ID_MAX
+} MOS_GPU_COMPONENT_ID;
+
 //!
 //! \brief Enum for Stereoscopic 3D channel
 //!

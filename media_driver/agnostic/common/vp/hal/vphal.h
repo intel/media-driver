@@ -643,6 +643,9 @@ public:
     {
         m_sfcInterface = sfcInterface;
     }
+
+    HANDLE                      m_gpuAppTaskEvent;
+
 protected:
     // Internals
     PLATFORM                    m_platform;
