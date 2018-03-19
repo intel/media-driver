@@ -89,6 +89,7 @@ static const char *attrSliceSizeStreamout    = "SliceSizeStreamout";
 static const char *attrCoeffProb             = "PakHwCoeffProbs";
 static const char *attrStatusReport          = "StatusReport";
 static const char *attrPakObjStreamout       = "PakObjStreamOut";
+static const char *attrTileBasedStats        = "TileBasedStats";
 
 // MD5 attributes
 static const char *attrMD5HashEnable    = "MD5HasEnable";

@@ -244,6 +244,7 @@ void CodechalDebugConfigMgr::GenerateDefaultConfig()
     ofs << "##" << CodechalDbgAttr::attrCoeffPredCs << ":0" << std::endl;
     ofs << "##" << CodechalDbgAttr::attrMbRecord << ":0" << std::endl;
     ofs << "##" << CodechalDbgAttr::attrPakObjStreamout << ":0" << std::endl;
+    ofs << "##" << CodechalDbgAttr::attrTileBasedStats << ":0" << std::endl;    
     ofs << "##" << CodechalDbgAttr::attrOverwriteCommands << ":0" << std::endl;
     ofs << "##" << CodechalDbgAttr::attrForceCmdDumpLvl << ":0" << std::endl;
     ofs << "##" << CodechalDbgAttr::attrForceCurbeDumpLvl << ":0" << std::endl;
