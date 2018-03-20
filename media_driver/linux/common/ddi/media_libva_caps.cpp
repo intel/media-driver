@@ -1320,7 +1320,7 @@ VAStatus MediaLibvaCaps::LoadHevcEncProfileEntrypoints()
     {
         uint32_t configStartIdx = m_encConfigs.size();
         AddEncConfig(VA_RC_CQP);
-        for (int32_t j = 3; j < 7; j++)
+        for (int32_t j = 1; j < 7; j++)
         {
             AddEncConfig(m_encRcMode[j]);
             AddEncConfig(m_encRcMode[j] | VA_RC_PARALLEL);
@@ -1344,7 +1344,7 @@ VAStatus MediaLibvaCaps::LoadHevcEncProfileEntrypoints()
     {
         uint32_t configStartIdx = m_encConfigs.size();
         AddEncConfig(VA_RC_CQP);
-        for (int32_t j = 3; j < 7; j++)
+        for (int32_t j = 1; j < 7; j++)
         {
             AddEncConfig(m_encRcMode[j]);
             AddEncConfig(m_encRcMode[j] | VA_RC_PARALLEL);
@@ -1480,7 +1480,12 @@ VAStatus MediaLibvaCaps::CreateEncConfig(
     {
         if (VAConfigAttribRateControl == attribList[j].type)
         {
-            rcMode = attribList[j].value;
+            //do not set VA_RC_MB without other BRC mode
+            //if it happend, just set it to default RC mode
+            if(attribList[j].value != VA_RC_MB)
+            {
+                rcMode = attribList[j].value;
+            }
         }
         if(VAConfigAttribFEIFunctionType == attribList[j].type)
         {
