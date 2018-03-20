@@ -2175,13 +2175,6 @@ DdiMedia_CreateSurfaces2(
                 MOS_FreeMemory(gmmParams);
                 return VA_STATUS_ERROR_ALLOCATION_FAILED;
             }
-            else
-            {
-                DDI_VERBOSEMESSAGE("Internal media format is invalid");
-                MOS_FreeMemory(bo_names);
-                MOS_FreeMemory(gmmParams);
-                return VA_STATUS_ERROR_INVALID_PARAMETER;
-            }
         }
     }
 #endif
