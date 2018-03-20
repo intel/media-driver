@@ -481,6 +481,14 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     {
         attrib.value |= VA_RC_ICQ | VA_RC_VCM;
     }
+    if(entrypoint == VAEntrypointFEI)
+    {
+        attrib.value = VA_RC_CQP;
+    }
+    else if(entrypoint == VAEntrypointStats)
+    {
+        attrib.value = VA_RC_NONE;
+    }
     (*attribList)[attrib.type] = attrib.value;
 
     attrib.type = VAConfigAttribEncPackedHeaders;
