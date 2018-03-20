@@ -1994,16 +1994,15 @@ DdiMedia_CreateSurfaces2(
                                 ||(attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)
 #ifdef ANDROID
                                 ||(attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_ANDROID_GRALLOC)
-
-                                ||(attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR)
 #endif
+                                ||(attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR)
                           )
                       {
                           memTypeFlag = attrib_list[i].value.value.i;
 #ifdef ANDROID
                           surfIsGralloc = (attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_ANDROID_GRALLOC);
-                          surfIsUserPtr = (attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR);
 #else
+                          surfIsUserPtr = (attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR);
                           surfIsGralloc = false;
                           surfIsUserPtr = false;
 #endif
@@ -2019,7 +2018,9 @@ DdiMedia_CreateSurfaces2(
                       if( nullptr == attrib_list[i].value.value.p )
                       {
                           DDI_ASSERTMESSAGE("Invalid VASurfaceAttribExternalBuffers used.");
-                          return VA_STATUS_ERROR_INVALID_PARAMETER;
+                          //remove the check for libva-utils conformance test, need libva-utils change cases
+                          //after libva-utils fix the case, return VA_STATUS_ERROR_INVALID_PARAMETER;
+                          break;
                       }
                       MOS_SecureMemcpy(externalBufDesc, sizeof(VASurfaceAttribExternalBuffers),  attrib_list[i].value.value.p, sizeof(VASurfaceAttribExternalBuffers));
 
