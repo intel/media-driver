@@ -277,15 +277,22 @@ VAStatus MediaLibvaCaps::AddProfileEntry(
 
 int32_t MediaLibvaCaps::GetProfileTableIdx(VAProfile profile, VAEntrypoint entrypoint)
 {
+    // initialize ret value to "invalid profile"
+    int32_t ret = -1;
     for (int32_t i = 0; i < m_profileEntryCount; i++)
     {
-        if (m_profileEntryTbl[i].m_profile == profile && m_profileEntryTbl[i].m_entrypoint == entrypoint)
+        if (m_profileEntryTbl[i].m_profile == profile)
         {
-            return i;
+            //there are such profile , but no such entrypoint
+            ret = -2;
+            if(m_profileEntryTbl[i].m_entrypoint == entrypoint)
+            {
+                return i;
+            }
         }
     }
 
-    return -1;
+    return ret;
 }
 
 VAStatus MediaLibvaCaps::CreateAttributeList(AttribMap **attributeList)
@@ -1663,7 +1670,14 @@ VAStatus MediaLibvaCaps::CreateConfig(
 
     if (i < 0)
     {
-        return VA_STATUS_ERROR_UNSUPPORTED_PROFILE;
+        if(i == -2)
+        {
+            return VA_STATUS_ERROR_UNSUPPORTED_ENTRYPOINT;
+        }
+        else
+        {
+            return VA_STATUS_ERROR_UNSUPPORTED_PROFILE;
+        }
     }
 
     if (CheckEntrypointCodecType(entrypoint, videoDecode))
