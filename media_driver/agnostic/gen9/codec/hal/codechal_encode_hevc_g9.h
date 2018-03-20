@@ -161,17 +161,14 @@ struct CODECHAL_ENC_HEVC_I_32x32_PU_MODE_DECISION_CURBE_G9
         struct {
             uint32_t       SliceType                    : MOS_BITFIELD_RANGE(0, 1);
             uint32_t       PuType                       : MOS_BITFIELD_RANGE(2, 3);
-            uint32_t       EnableStatsDataDump              : MOS_BITFIELD_BIT(4);
+            uint32_t       ReservedMBZ                  : MOS_BITFIELD_BIT(4);
             uint32_t       LCUType                      : MOS_BITFIELD_BIT(5);
-            uint32_t       Res_6_15                     : MOS_BITFIELD_RANGE(6, 15);
-            uint32_t       SliceQP                      : MOS_BITFIELD_RANGE(16, 23);
+            uint32_t       Res_6_23                     : MOS_BITFIELD_RANGE(6, 23);
             uint32_t       BRCEnable                    : MOS_BITFIELD_BIT(24);
             uint32_t       LCUBRCEnable                 : MOS_BITFIELD_BIT(25);
             uint32_t       ROIEnable                    : MOS_BITFIELD_BIT(26);
             uint32_t       FASTSurveillanceFlag         : MOS_BITFIELD_BIT(27);
-            uint32_t       Res_28                       : MOS_BITFIELD_BIT(28);
-            uint32_t       EnableFlexibleParam          : MOS_BITFIELD_BIT(29);
-            uint32_t       EnableQualityImprovement     : MOS_BITFIELD_BIT(30);
+            uint32_t       Res_28_30                    : MOS_BITFIELD_RANGE(28, 30);
             uint32_t       EnableDebugDump              : MOS_BITFIELD_BIT(31);
         };
         uint32_t Value;
@@ -277,21 +274,14 @@ struct CODECHAL_ENC_HEVC_I_32x32_PU_MODE_DECISION_CURBE_G9
 
     union {
         struct {
-            uint32_t       BTI_Stats_Data;
-        };
-        uint32_t Value;
-    } DW16;
-
-    union {
-        struct {
             uint32_t       BTI_Kernel_Debug;
         };
         uint32_t Value;
-    } DW17;
+    } DW16;
 };
 
 using PCODECHAL_ENC_HEVC_I_32x32_PU_MODE_DECISION_CURBE_G9 = struct CODECHAL_ENC_HEVC_I_32x32_PU_MODE_DECISION_CURBE_G9*;
-C_ASSERT(MOS_BYTES_TO_DWORDS(sizeof(CODECHAL_ENC_HEVC_I_32x32_PU_MODE_DECISION_CURBE_G9)) == 18);
+C_ASSERT(MOS_BYTES_TO_DWORDS(sizeof(CODECHAL_ENC_HEVC_I_32x32_PU_MODE_DECISION_CURBE_G9)) == 17);
 
 //! HEVC encoder intra 16x16 SAD kernel curbe for GEN9
 struct CODECHAL_ENC_HEVC_I_16x16_SAD_CURBE_G9
@@ -448,9 +438,7 @@ struct CODECHAL_ENC_HEVC_I_16x16_PU_MODEDECISION_CURBE_G9
             uint32_t       LCUBRCEnable                 : MOS_BITFIELD_BIT(26);
             uint32_t       ROIEnable                    : MOS_BITFIELD_BIT(27);
             uint32_t       FASTSurveillanceFlag         : MOS_BITFIELD_BIT(28);
-            uint32_t       EnableQualityImprovement     : MOS_BITFIELD_BIT(29);
-            uint32_t       EnableFlexibleParam          : MOS_BITFIELD_BIT(30);
-            uint32_t       Reserved_31                  : MOS_BITFIELD_BIT(31);
+            uint32_t       Reserved_29_31               : MOS_BITFIELD_RANGE(29, 31);
         };
         uint32_t Value;
     } DW3;
@@ -667,8 +655,7 @@ struct CODECHAL_ENC_HEVC_I_8x8_PU_CURBE_G9
             uint32_t       LCUBRCEnable                 : MOS_BITFIELD_BIT(26);
             uint32_t       ROIEnable                    : MOS_BITFIELD_BIT(27);
             uint32_t       FASTSurveillanceFlag         : MOS_BITFIELD_BIT(28);
-            uint32_t       EnableFlexibleParam          : MOS_BITFIELD_BIT(29);
-            uint32_t       EnableQualityImprovement     : MOS_BITFIELD_BIT(30);
+            uint32_t       Reserved_29_30               : MOS_BITFIELD_RANGE(29, 30);
             uint32_t       EnableDebugDump              : MOS_BITFIELD_BIT(31);
         };
         uint32_t Value;
@@ -815,8 +802,7 @@ struct CODECHAL_ENC_HEVC_I_8x8_PU_FMODE_CURBE_G9
             uint32_t       LCUBRCEnable                 : MOS_BITFIELD_BIT(26);
             uint32_t       ROIEnable                    : MOS_BITFIELD_BIT(27);
             uint32_t       FASTSurveillanceFlag         : MOS_BITFIELD_BIT(28);
-            uint32_t       EnableFlexibleParam          : MOS_BITFIELD_BIT(29);
-            uint32_t       EnableQualityImprovement     : MOS_BITFIELD_BIT(30);
+            uint32_t       Reserved_29_30               : MOS_BITFIELD_RANGE(29, 30);
             uint32_t       EnableDebugDump              : MOS_BITFIELD_BIT(31);
         };
         uint32_t Value;
@@ -869,8 +855,7 @@ struct CODECHAL_ENC_HEVC_I_8x8_PU_FMODE_CURBE_G9
     union {
         struct {
             uint32_t       SimplifiedFlagForInter       : MOS_BITFIELD_BIT(0);
-            uint32_t       EnableStatsDataDump          : MOS_BITFIELD_BIT(1);
-            uint32_t       Reserved_2_7                 : MOS_BITFIELD_RANGE(2, 7);
+            uint32_t       Reserved_1_7                 : MOS_BITFIELD_RANGE(1, 7);
             uint32_t       KBLControlFlag               : MOS_BITFIELD_BIT(8);
             uint32_t       Reserved_9_31                : MOS_BITFIELD_RANGE(9, 31);
         };
@@ -1000,35 +985,14 @@ struct CODECHAL_ENC_HEVC_I_8x8_PU_FMODE_CURBE_G9
 
     union {
         struct {
-            uint32_t       BTI_Haar_Dist16x16;
-        };
-        uint32_t Value;
-    } DW26;
-
-    union {
-        struct {
-            uint32_t       BTI_Stats_Data;
-        };
-        uint32_t Value;
-    } DW27;
-
-    union {
-        struct {
-            uint32_t       BTI_Frame_Stats_Data;
-        };
-        uint32_t Value;
-    } DW28;
-
-    union {
-        struct {
             uint32_t       BTI_Debug;
         };
         uint32_t Value;
-    } DW29;
+    } DW26;
 };
 
 using PCODECHAL_ENC_HEVC_I_8x8_PU_FMODE_CURBE_G9 = struct CODECHAL_ENC_HEVC_I_8x8_PU_FMODE_CURBE_G9*;
-C_ASSERT(MOS_BYTES_TO_DWORDS(sizeof(CODECHAL_ENC_HEVC_I_8x8_PU_FMODE_CURBE_G9)) == 30);
+C_ASSERT(MOS_BYTES_TO_DWORDS(sizeof(CODECHAL_ENC_HEVC_I_8x8_PU_FMODE_CURBE_G9)) == 27);
 
 //! HEVC encoder B 32x32 PU intra check kernel curbe for GEN9
 struct CODECHAL_ENC_HEVC_B_32x32_PU_INTRA_CHECK_CURBE_G9
@@ -1208,16 +1172,14 @@ struct CODECHAL_ENC_HEVC_B_PAK_CURBE_G9
         struct
         {
             uint32_t   SliceType                        : MOS_BITFIELD_RANGE(0, 1);
-            uint32_t   EnableEmptyCURecordsDump         : MOS_BITFIELD_BIT(2);
-            uint32_t   Res_3_7                          : MOS_BITFIELD_RANGE(3, 7);
+            uint32_t   Res_2_7                          : MOS_BITFIELD_RANGE(2, 7);
             uint32_t   SimplestIntraEnable              : MOS_BITFIELD_BIT(8);
             uint32_t   BrcEnable                        : MOS_BITFIELD_BIT(9);
             uint32_t   LcuBrcEnable                     : MOS_BITFIELD_BIT(10);
             uint32_t   ROIEnable                        : MOS_BITFIELD_BIT(11);
             uint32_t   FASTSurveillanceFlag             : MOS_BITFIELD_BIT(12);
             uint32_t   EnableRollingIntra               : MOS_BITFIELD_BIT(13);
-            uint32_t   Res_14                           : MOS_BITFIELD_BIT(14);
-            uint32_t   EnableQualityImprovement         : MOS_BITFIELD_BIT(15);
+            uint32_t   Res_14_15                        : MOS_BITFIELD_RANGE(14, 15);
             uint32_t   KBLControlFlag                   : MOS_BITFIELD_BIT(16);
             uint32_t   Res_17_30                        : MOS_BITFIELD_RANGE(17, 30);
             uint32_t   ScreenContent                    : MOS_BITFIELD_BIT(31);
@@ -1354,7 +1316,7 @@ struct CODECHAL_ENC_HEVC_B_PAK_CURBE_G9
     {
         struct
         {
-            uint32_t  BTI_WA_PAK_Data;
+            uint32_t  BTI_Debug;
         };
         struct
         {
@@ -1362,34 +1324,10 @@ struct CODECHAL_ENC_HEVC_B_PAK_CURBE_G9
         };
     } DW24;
 
-    union
-    {
-        struct
-        {
-            uint32_t  BTI_WA_PAK_Obj;
-        };
-        struct
-        {
-            uint32_t   Value;
-        };
-    } DW25;
-
-    union
-    {
-        struct
-        {
-            uint32_t  BTI_Debug;
-        };
-        struct
-        {
-            uint32_t   Value;
-        };
-    } DW26;
-
 };
 
 using PCODECHAL_ENC_HEVC_B_PAK_CURBE_G9 = struct CODECHAL_ENC_HEVC_B_PAK_CURBE_G9*;
-C_ASSERT(MOS_BYTES_TO_DWORDS(sizeof(CODECHAL_ENC_HEVC_B_PAK_CURBE_G9)) == 27);
+C_ASSERT(MOS_BYTES_TO_DWORDS(sizeof(CODECHAL_ENC_HEVC_B_PAK_CURBE_G9)) == 25);
 
 struct CODECHAL_ENC_HEVC_DS_COMBINED_CURBE_G9
 {
