@@ -5582,7 +5582,6 @@ MOS_STATUS Mos_Specific_InitInterface(
 
         if (pOsInterface->osContextPtr->GetOsContextValid() == false)
         {
-            pOsDriverContext->pGmmClientContext = GmmCreateClientContext((GMM_CLIENT)GMM_LIBVA_LINUX);
             eStatus = pOsInterface->osContextPtr->Init(pOsDriverContext);
             if( MOS_STATUS_SUCCESS != eStatus )
             {
@@ -5592,8 +5591,13 @@ MOS_STATUS Mos_Specific_InitInterface(
             }
         }
 
-        OsContextSpecific *pOsContextSpecific  = static_cast<OsContextSpecific *>(pOsInterface->osContextPtr);
-        pOsContext->intel_context = pOsContextSpecific->GetDrmContext();
+        OsContextSpecific *pOsContextSpecific = static_cast<OsContextSpecific *>(pOsInterface->osContextPtr);
+        pOsContext->intel_context             = pOsContextSpecific->GetDrmContext();
+        pOsContext->pGmmClientContext         = nullptr;
+    }
+    else
+    {
+        pOsContext->pGmmClientContext = GmmCreateClientContext((GMM_CLIENT)GMM_LIBVA_LINUX);
     }
 
     // Initialize
@@ -5607,7 +5611,6 @@ MOS_STATUS Mos_Specific_InitInterface(
 
     iDeviceId                                 = pOsDriverContext->iDeviceId;
     pOsContext->bFreeContext                  = true;
-    pOsContext->pGmmClientContext             = GmmCreateClientContext((GMM_CLIENT)GMM_LIBVA_LINUX);
     pOsInterface->pOsContext                  = pOsContext;
     pOsInterface->bUsesPatchList              = true;
     pOsInterface->bUsesGfxAddress             = false;
