@@ -439,17 +439,20 @@ MOS_STATUS CM_HAL_G10_X::SubmitCommands(
     pipeCtlParams.dwFlushMode   = MHW_FLUSH_WRITE_CACHE;
     CM_CHK_MOSSTATUS(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeCtlParams));
 
-    // Find the SVM slot, patch it into this dummy pipe_control
-    for (i = 0; i < state->cmDeviceParam.maxBufferTableSize; i++)
+    if (state->svmBufferUsed)
     {
-        //Only register SVM resource here
-        if (state->bufferTable[i].address)
+        // Find the SVM slot, patch it into this dummy pipe_control
+        for (i = 0; i < state->cmDeviceParam.maxBufferTableSize; i++)
         {
-            CM_HRESULT2MOSSTATUS_AND_CHECK(osInterface->pfnRegisterResource(
-                    osInterface,
-                    &state->bufferTable[i].osResource,
-                    true,
-                    false));
+            //Only register SVM resource here
+            if (state->bufferTable[i].address)
+            {
+                CM_HRESULT2MOSSTATUS_AND_CHECK(osInterface->pfnRegisterResource(
+                        osInterface,
+                        &state->bufferTable[i].osResource,
+                        true,
+                        false));
+            }
         }
     }
 

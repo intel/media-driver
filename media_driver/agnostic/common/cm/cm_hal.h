@@ -1527,6 +1527,8 @@ typedef struct _CM_HAL_STATE
 
     bool                        useNewSamplerHeap;
 
+    bool                        svmBufferUsed;
+
     CMRT_UMD::CSync             criticalSectionDSH;
 //------------------------------------------------------------------------------
 // Macros to replace HR macros in oscl.h
