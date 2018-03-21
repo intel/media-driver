@@ -1262,6 +1262,11 @@ int32_t CmQueueRT::EnqueueCopyInternal_1Plane(CmSurface2DRT* surface,
 
         kernel = nullptr;
         CMCHK_HR( m_device->CreateBufferUP(  sliceCopyBufferUPSize, ( void * )linearAddressAligned, cmbufferUP ));
+        //Configure memory object control for BufferUP to solve the cache-line issue.
+        if (cmHalState->cmHalInterface->IsGPUCopySurfaceNoCacheWARequired())
+        {
+            CMCHK_HR(cmbufferUP->SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL_SKL_NO_LLC_L3));
+        }
         CMCHK_HR(CreateGPUCopyKernel(copyWidthByte, sliceCopyHeightRow, format, direction, gpuCopyKernelParam));
         CMCHK_NULL(gpuCopyKernelParam);
         kernel = gpuCopyKernelParam->kernel;
