@@ -34,6 +34,7 @@
 #include "cm_hal.h"
 #include "cm_log.h"
 #include "cm_program.h"
+#include "cm_notifier.h"
 
 #if USE_EXTENSION_CODE
 #include "cm_gtpin.h"
@@ -382,6 +383,8 @@ public:
 
     int32_t DestroyVmeSurface(SurfaceIndex* &vmeIndex);
 
+    CmNotifierGroup* GetNotifiers() {return m_notifierGroup;}
+
 protected:
     int32_t Initialize(MOS_CONTEXT *mosContext);
 
@@ -565,6 +568,8 @@ protected:
     bool m_vtuneOn;
 
     uint32_t m_isDriverStoreEnabled;
+
+    CmNotifierGroup *m_notifierGroup;
 
 private:
     CmDeviceRT(const CmDeviceRT& other);

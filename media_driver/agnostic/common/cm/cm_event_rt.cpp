@@ -570,6 +570,12 @@ int32_t CmEventRT::Query( void )
 
         UnreferenceIfNeeded(m_osData);
 
+        CmNotifierGroup *notifiers = m_device->GetNotifiers();
+        if (notifiers != nullptr)
+        {
+            notifiers->NotifyTaskCompleted(m_task);
+        }
+
         m_globalSubmitTimeCpu = param.taskGlobalSubmitTimeCpu;
         m_submitTimeGpu = param.taskSubmitTimeGpu;
         m_hwStartTimeStamp = param.taskHWStartTimeStamp;

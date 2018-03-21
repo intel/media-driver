@@ -2829,6 +2829,12 @@ int32_t CmQueueRT::FlushTaskWithoutSync( bool flushBlocked )
         task = (CmTaskInternal*)m_enqueuedTasks.Pop();
         CMCHK_NULL( task );
 
+        CmNotifierGroup *notifiers = m_device->GetNotifiers();
+        if (notifiers != nullptr)
+        {
+            notifiers->NotifyTaskFlushed(m_device, task);
+        }
+
         task->GetTaskType(taskType);
 
         switch(taskType)

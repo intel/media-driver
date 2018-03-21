@@ -373,8 +373,6 @@ CmKernelRT::~CmKernelRT( void )
         MosSafeDeleteArray(m_binary);
     }
 
-    MosSafeDeleteArray(m_binaryOrig);
-
     if( CM_INVALID_KERNEL_INDEX != m_kernelIndexInProgram )
     {
         m_program->ReleaseKernelInfo(m_kernelIndexInProgram);
@@ -831,6 +829,12 @@ int32_t CmKernelRT::Initialize( const char* kernelName, const char* options )
     {
         CM_ASSERTMESSAGE("Error: Failed to allocate movInstConstructor due to out of system memory.");
         return CM_OUT_OF_HOST_MEMORY;
+    }
+
+    CmNotifierGroup *notifiers = m_device->GetNotifiers();
+    if (notifiers != nullptr)
+    {
+        notifiers->NotifyKernelCreated(this);
     }
 
     return CM_SUCCESS;

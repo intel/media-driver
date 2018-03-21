@@ -5676,6 +5676,7 @@ MOS_STATUS HalCm_FinishStatesForKernel(
              tempArgParam.perThread = false;
              tempArgParam.firstValue = (uint8_t*)&kernelParam->globalSurface[i];
              tempArgParam.aliasIndex = 0;
+             tempArgParam.aliasCreated = false;
 
              CM_CHK_MOSSTATUS(HalCm_SetupBufferSurfaceState(
                        state, argParam, indexParam, bindingTable, (int16_t)i, 0, nullptr));

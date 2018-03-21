@@ -206,6 +206,9 @@ CmDeviceRT::CmDeviceRT(uint32_t options):
 
     // Initialize the OS-Specific fields
     ConstructOSSpecific(options);
+
+    // Create the notifers
+    m_notifierGroup = MOS_New(CmNotifierGroup);
 }
 
 //*-----------------------------------------------------------------------------
@@ -214,6 +217,12 @@ CmDeviceRT::CmDeviceRT(uint32_t options):
 //*-----------------------------------------------------------------------------
 void CmDeviceRT::DestructCommon()
 {
+    // Notify the listeners
+    if (m_notifierGroup != nullptr)
+    {
+        m_notifierGroup->NotifyDeviceDestroyed(this);
+    }
+
     // Delete Predefined Program
     if(m_gpuCopyKernelProgram)
     {
@@ -370,6 +379,12 @@ void CmDeviceRT::DestructCommon()
     }
     m_criticalSectionQueue.Release();
 
+    //Free the notifiers
+    if (m_notifierGroup != nullptr)
+    {
+        MOS_Delete(m_notifierGroup);
+    }
+
     //Free DLL handle if it is there
     if (m_hJITDll)
     {
@@ -431,6 +446,11 @@ int32_t CmDeviceRT::Initialize(MOS_CONTEXT *mosContext)
     if (ret != CM_SUCCESS)
     {
         return ret;
+    }
+
+    if (m_notifierGroup != nullptr)
+    {
+        m_notifierGroup->NotifyDeviceCreated(this);
     }
 
     DEVICE_LOG(this);
