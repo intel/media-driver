@@ -559,7 +559,8 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
         }
         else if (IsHevcProfile(profile))
         {
-            attrib.value = 256; // There is no macro, it is because we use the slice map strcture whose entry is 8 bit int32_t
+            GetPlatformSpecificAttrib(profile, entrypoint,
+                    VAConfigAttribEncMaxSlices, &attrib.value);
         }
     }
     (*attribList)[attrib.type] = attrib.value;

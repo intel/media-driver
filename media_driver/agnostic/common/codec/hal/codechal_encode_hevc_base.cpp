@@ -1181,8 +1181,7 @@ MOS_STATUS CodechalEncodeHevcBase::SetSliceStructs()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    // Number of slices cannot be greather than 256
-    if (m_numSlices >= m_maxNumSlicesSupported)
+    if (m_numSlices > m_maxNumSlicesSupported)
     {
         CODECHAL_ENCODE_ASSERTMESSAGE("Number of slice exceeds limit!");
         return MOS_STATUS_INVALID_PARAMETER;

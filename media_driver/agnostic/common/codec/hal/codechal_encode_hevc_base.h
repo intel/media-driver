@@ -34,9 +34,6 @@
 //*------------------------------------------------------------------------------
 #define CODECHAL_HEVC_MAX_SPS_NUM       16
 #define CODECHAL_HEVC_MAX_PPS_NUM       64
-#define CODECHAL_HEVC_MAX_SLICE_NUM         201
-#define CODECHAL_HEVC_MAX_SLICE_NUM_G11     601
-#define CODECHAL_HEVC_MAX_SLICE_NUM_G12     601
 #define CODECHAL_VDENC_HEVC_MAX_SLICE_NUM   70
 
 #define CODECHAL_HEVC_MAX_LCU_SIZE_G9          32
@@ -927,7 +924,7 @@ public:
     bool          m_is10BitHevc                           = false;                        //!< 10bit encoding flag
     unsigned char m_chromaFormat                          = HCP_CHROMA_FORMAT_YUV420;     //!< Chroma format(420, 422 etc)
     unsigned char m_bitDepth                              = 8;                            //!< Bit depth
-    uint32_t      m_maxNumSlicesSupported                 = CODECHAL_HEVC_MAX_SLICE_NUM;  //!< Maximal number of slices supported
+    uint32_t      m_maxNumSlicesSupported                 = CODECHAL_HEVC_MAX_NUM_SLICES_LVL_5;  //!< Maximal number of slices supported
     uint32_t      m_sizeOfSseSrcPixelRowStoreBufferPerLcu = 0;                            //!< Size of SSE row store buffer per LCU
     uint32_t      m_sizeOfHcpPakFrameStats                = 0;                            //!> Size of HEVC PAK frame statistics
     uint8_t       m_roundingInter                         = 4;                            // the value is from prototype

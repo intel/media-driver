@@ -98,6 +98,11 @@ VAStatus MediaLibvaCapsG8::GetPlatformSpecificAttrib(
             }
             break;
         }
+        case VAConfigAttribEncMaxSlices:
+        {
+            *value = ENCODE_AVC_MAX_SLICES_SUPPORTED;
+            break;
+        }
         default:
             status = VA_STATUS_ERROR_INVALID_PARAMETER;
             break;

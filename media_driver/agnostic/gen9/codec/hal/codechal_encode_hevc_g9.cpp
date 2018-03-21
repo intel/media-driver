@@ -3441,7 +3441,7 @@ MOS_STATUS CodechalEncHevcStateG9::GenerateWalkingControlRegion()
     // THE FOLLOWING CODE FOR SLICE MERGING / CONCURRENT THREAD GENERATION IS PORTED FROM THE
     // SKL HEVC KRN CMODEL (v8992). FOR FIXES VERIFY THAT PROBLEM DOESN'T EXIST THERE TOO.
     bool isArbitrarySlices = false;
-    int32_t sliceStartY[CODECHAL_HEVC_MAX_SLICE_NUM + 1] = { 0 };
+    int32_t sliceStartY[CODECHAL_HEVC_MAX_NUM_SLICES_LVL_5 + 1] = { 0 };
     for (uint32_t slice = 0; slice < m_numSlices; slice++)
     {
         if (m_hevcSliceParams[slice].slice_segment_address % CODECHAL_ENCODE_HEVC_GET_SIZE_IN_LCU(m_frameWidth, 32))

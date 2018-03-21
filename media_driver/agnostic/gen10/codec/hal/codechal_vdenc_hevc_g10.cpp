@@ -2422,7 +2422,7 @@ CodechalVdencHevcStateG10::CodechalVdencHevcStateG10(
     m_vdencBrcConstDataBufferSize  = sizeof(CODECHAL_VDENC_HEVC_HUC_BRC_CONSTANT_DATA_G10);
     m_brcRoiBufferSize             = m_roiStreamInBufferSize;
     m_deltaQpRoiBufferSize         = m_deltaQpBufferSize;
-    m_maxNumSlicesSupported        = CODECHAL_HEVC_MAX_SLICE_NUM;
+    m_maxNumSlicesSupported        = CODECHAL_VDENC_HEVC_MAX_SLICE_NUM;
 #ifndef _FULL_OPEN_SOURCE
     m_kernelBase                   = (uint8_t*)IGCODECKRN_G10;
 #else

@@ -5928,7 +5928,7 @@ MOS_STATUS CodechalEncHevcStateG10::GenerateWalkingControlRegion()
         copyBlockSize = 22;
     }
 
-    int32_t sliceStartY[CODECHAL_HEVC_MAX_SLICE_NUM + 1] = { 0 }; // Allocate +1 of max num slices
+    int32_t sliceStartY[CODECHAL_HEVC_MAX_NUM_SLICES_LVL_5 + 1] = { 0 }; // Allocate +1 of max num slices
     bool isArbitrarySlices = false;
     for (uint32_t slice = 0; slice < m_numSlices; slice++)
     {
@@ -7852,7 +7852,7 @@ MOS_STATUS CodechalEncHevcStateG10::Initialize(CodechalSetting * settings)
     m_b2NdSaoPassNeeded                     = true;
     m_brcBuffers.dwBrcConstantSurfaceWidth  = HEVC_BRC_CONSTANT_SURFACE_WIDTH_G9;
     m_brcBuffers.dwBrcConstantSurfaceHeight = m_brcConstantSurfaceHeight;
-    m_maxNumSlicesSupported                 = CODECHAL_HEVC_MAX_SLICE_NUM;
+    m_maxNumSlicesSupported                 = CODECHAL_HEVC_MAX_NUM_SLICES_LVL_5;
     m_brcBuffers.dwBrcHcpPicStateSize       = BRC_IMG_STATE_SIZE_PER_PASS_G10 * CODECHAL_ENCODE_BRC_MAXIMUM_NUM_PASSES;
     m_brcBuffers.pMbStatisticsSurface       = &m_mbStatisticsSurface;
     m_brcBuffers.pMvAndDistortionSumSurface = &m_mvAndDistortionSumSurface;
