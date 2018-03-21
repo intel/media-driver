@@ -207,8 +207,10 @@ typedef struct _MHW_VEBOX_STATE_CMD_PARAMS
     bool                                bUseVeboxHeapKernelResource;
     PMOS_RESOURCE                       pLaceLookUpTables;
     PMOS_RESOURCE                       pVeboxParamSurf;
+    PMOS_RESOURCE                       pVebox3DLookUpTables;
     MOS_RESOURCE                        DummyIecpResource;
     MHW_MEMORY_OBJECT_CONTROL_PARAMS    LaceLookUpTablesSurfCtrl;
+    MHW_MEMORY_OBJECT_CONTROL_PARAMS    Vebox3DLookUpTablesSurfCtrl;
     bool                                bNoUseVeboxHeap;
 } MHW_VEBOX_STATE_CMD_PARAMS, *PMHW_VEBOX_STATE_CMD_PARAMS;
 

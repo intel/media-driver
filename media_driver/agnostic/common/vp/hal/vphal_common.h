@@ -160,6 +160,7 @@ typedef struct _VPHAL_DNDI_CACHE_CNTL
     VPHAL_MEMORY_OBJECT_CONTROL     AlphaOrVignetteSurfMemObjCtl;
     VPHAL_MEMORY_OBJECT_CONTROL     SkinScoreSurfMemObjCtl;
     VPHAL_MEMORY_OBJECT_CONTROL     LaceLookUpTablesSurfMemObjCtl;
+    VPHAL_MEMORY_OBJECT_CONTROL     Vebox3DLookUpTablesSurfMemObjCtl;
 } VPHAL_DNDI_CACHE_CNTL, *PVPHAL_DNDI_CACHE_CNTL;
 
 typedef struct _VPHAL_LACE_CACHE_CNTL

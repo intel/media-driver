@@ -774,26 +774,44 @@ MOS_STATUS MhwVeboxInterfaceG10::AddVeboxState(
             pCmdBuffer,
             &ResourceParams));
 
-        MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
-        if (bCmBuffer)
+        if (pVeboxStateCmdParams->pVebox3DLookUpTables)
         {
-            ResourceParams.presResource = pVeboxParamResource;
-            ResourceParams.dwOffset     = pVeboxHeap->ui3DLUTStateOffset;
+            MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
+            ResourceParams.presResource         = pVeboxStateCmdParams->pVebox3DLookUpTables;
+            ResourceParams.dwOffset             = 0;
+            ResourceParams.pdwCmd               = &(cmd.DW16.Value);
+            ResourceParams.dwLocationInCmd      = 16;
+            ResourceParams.HwCommandType        = MOS_VEBOX_STATE;
+            ResourceParams.dwSharedMocsOffset   = 1 - ResourceParams.dwLocationInCmd;
+
+            MHW_CHK_STATUS(pfnAddResourceToCmd(
+                pOsInterface,
+                pCmdBuffer,
+                &ResourceParams));
         }
         else
         {
-            ResourceParams.presResource = pVeboxHeapResource;
-            ResourceParams.dwOffset     = pVeboxHeap->ui3DLUTStateOffset + uiInstanceBaseAddr;
-        }
-        ResourceParams.pdwCmd             = & (cmd.DW16.Value);
-        ResourceParams.dwLocationInCmd    = 16;
-        ResourceParams.HwCommandType      = MOS_VEBOX_STATE;
-        ResourceParams.dwSharedMocsOffset = 1 - ResourceParams.dwLocationInCmd;
+            MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
+            if (bCmBuffer)
+            {
+                ResourceParams.presResource     = pVeboxParamResource;
+                ResourceParams.dwOffset         = pVeboxHeap->ui3DLUTStateOffset;
+            }
+            else
+            {
+                ResourceParams.presResource     = pVeboxHeapResource;
+                ResourceParams.dwOffset         = pVeboxHeap->ui3DLUTStateOffset + uiInstanceBaseAddr;
+            }
+            ResourceParams.pdwCmd               = &(cmd.DW16.Value);
+            ResourceParams.dwLocationInCmd      = 16;
+            ResourceParams.HwCommandType        = MOS_VEBOX_STATE;
+            ResourceParams.dwSharedMocsOffset   = 1 - ResourceParams.dwLocationInCmd;
 
-        MHW_CHK_STATUS(pfnAddResourceToCmd(
-            pOsInterface,
-            pCmdBuffer,
-            &ResourceParams));
+            MHW_CHK_STATUS(pfnAddResourceToCmd(
+                pOsInterface,
+                pCmdBuffer,
+                &ResourceParams));
+        }
     }
     else
     {
