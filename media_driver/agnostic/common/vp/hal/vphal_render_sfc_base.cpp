@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2012-2017, Intel Corporation
+* Copyright (c) 2012-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -925,10 +925,6 @@ MOS_STATUS VphalSfcState::SetSfcStateParams(
                                        MEDIASTATE_SFC_AVS_FILTER_BILINEAR                         :
                                        MEDIASTATE_SFC_AVS_FILTER_8x8;
 
-    // Scaling ratios in the X and Y direction
-    pSfcStateParams->fAVSXScalingRatio              = m_renderData.fScaleX;
-    pSfcStateParams->fAVSYScalingRatio              = m_renderData.fScaleY;
-
     // Get the SFC input surface size from Vebox
     AdjustBoundary(
         pSrcSurface,
@@ -990,6 +986,12 @@ MOS_STATUS VphalSfcState::SetSfcStateParams(
         pSfcStateParams->dwScaledRegionHeight = MOS_MIN(pSfcStateParams->dwScaledRegionHeight, pSfcStateParams->dwOutputFrameWidth);
         pSfcStateParams->dwScaledRegionWidth  = MOS_MIN(pSfcStateParams->dwScaledRegionWidth, pSfcStateParams->dwOutputFrameHeight);
     }
+
+    // Refine the Scaling ratios in the X and Y direction. SFC output Scaled size may be changed based on the restriction of SFC alignment.
+    // The scaling ratio could be changed and not equal to the fScaleX/Y.
+    // Driver must make sure that the scaling ratio should be matched with the output/input size before send to HW  
+    pSfcStateParams->fAVSXScalingRatio              = (float)pSfcStateParams->dwScaledRegionWidth / (float)pSfcStateParams->dwSourceRegionWidth;
+    pSfcStateParams->fAVSYScalingRatio              = (float)pSfcStateParams->dwScaledRegionHeight / (float)pSfcStateParams->dwSourceRegionHeight;
 
     pSfcStateParams->dwScaledRegionVerticalOffset   = MOS_ALIGN_FLOOR((uint32_t)pSrcSurface->rcDst.top,  wOutputHeightAlignUnit);
     pSfcStateParams->dwScaledRegionHorizontalOffset = MOS_ALIGN_FLOOR((uint32_t)pSrcSurface->rcDst.left, wOutputWidthAlignUnit);
