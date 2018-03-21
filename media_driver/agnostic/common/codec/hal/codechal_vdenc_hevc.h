@@ -126,7 +126,6 @@ public:
     //Resources for VDEnc
     MOS_RESOURCE                            m_sliceCountBuffer;                                //!< Slice count buffer
     MOS_RESOURCE                            m_vdencModeTimerBuffer;                            //!< VDEnc mode timer buffer
-    MOS_RESOURCE                            m_resSliceReport[CODECHAL_ENCODE_STATUS_NUM];      //!< Slice size report buffer to be saved across passes
     uint8_t                                 m_maxNumROI = CODECHAL_ENCODE_HEVC_MAX_NUM_ROI;    //!< VDEnc maximum number of ROI supported
     uint8_t                                 m_maxNumNativeROI = ENCODE_VDENC_HEVC_MAX_STREAMINROI_G10;  //!< Number of native ROI supported by VDEnc HW
     uint8_t                                 m_imgStateImePredictors = 8;                       //!< Number of predictors for IME
@@ -517,33 +516,11 @@ public:
     //!
     //! \brief    Read slice size info from PAK
     //!
-    //! \param    [in] cmdBuffer
-    //!            Pointer to command buffer
-    //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS ReadSliceSize(PMOS_COMMAND_BUFFER cmdBuffer);
+    virtual MOS_STATUS ReadSliceSize();
 
-    //! \brief    Copies a page aligned chunk of memory using HuC
-    //!
-    //! \param    [in] cmdBuffer
-    //!           Pointer to command buffer
-    //! \param    [in] Source/ Dest surfaces/ offsets page aligned
-    //!            Pointer to surfaces
-    //! \param    [in] copySize
-    //!            Size in bytes of data to be copied
-    //!
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    virtual MOS_STATUS CopyDataBlock(
-        PMOS_COMMAND_BUFFER cmdBuffer,
-        PMOS_RESOURCE sourceSurface,
-        uint32_t sourceOffset,
-        PMOS_RESOURCE destSurface,
-        uint32_t destOffset,
-        uint32_t copySize);
     //!
     //! \brief    Get maximal number of slices allowed for specific LevelId
     //! 

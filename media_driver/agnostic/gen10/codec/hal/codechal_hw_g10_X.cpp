@@ -30,7 +30,6 @@
 #include "mhw_mi_hwcmd_g10_X.h"
 #include "mhw_vdbox_hcp_hwcmd_g10_X.h"  // temporary include for calculating size of various hardware commands
 #include "mhw_vdbox_vdenc_hwcmd_g10_X.h"  // temporary include for calculating size of various hardware commands
-#include "mhw_vdbox_huc_hwcmd_g10_X.h"
 
 // Currently initialized with dummy values, just as an example. Will be updated later.
 const CODECHAL_SSEU_SETTING CodechalHwInterfaceG10::m_defaultSsEuLutG10[CODECHAL_NUM_MEDIA_STATES] =
@@ -136,21 +135,6 @@ CodechalHwInterfaceG10::CodechalHwInterfaceG10(
     m_vdencBatchBufferPerSliceConstSize = mhw_vdbox_hcp_g10_X::HCP_SLICE_STATE_CMD::byteSize
         + mhw_vdbox_hcp_g10_X::HCP_PAK_INSERT_OBJECT_CMD::byteSize         // 1st PakInsertObject cmd is not always inserted for each slice, 2nd PakInsertObject cmd is always inserted for each slice
         + mhw_vdbox_vdenc_g10_X::VDENC_WEIGHTSOFFSETS_STATE_CMD::byteSize
-        + mhw_mi_g10_X::MI_BATCH_BUFFER_END_CMD::byteSize;
-
-    // Set to size of the BRC update command buffer, since it is larger than BRC Init/ PAK integration commands
-    m_hucCommandBufferSize = mhw_vdbox_huc_g10_X::HUC_IMEM_STATE_CMD::byteSize
-        + mhw_vdbox_huc_g10_X::HUC_PIPE_MODE_SELECT_CMD::byteSize
-        + mhw_vdbox_huc_g10_X::HUC_DMEM_STATE_CMD::byteSize
-        + mhw_vdbox_huc_g10_X::HUC_VIRTUAL_ADDR_STATE_CMD::byteSize
-        + mhw_vdbox_huc_g10_X::HUC_STREAM_OBJECT_CMD::byteSize
-        + mhw_mi_g10_X::MI_STORE_DATA_IMM_CMD::byteSize
-        + mhw_mi_g10_X::MI_STORE_REGISTER_MEM_CMD::byteSize
-        + mhw_vdbox_huc_g10_X::HUC_START_CMD::byteSize
-        + mhw_vdbox_vdenc_g10_X::VD_PIPELINE_FLUSH_CMD::byteSize
-        + mhw_mi_g10_X::MI_FLUSH_DW_CMD::byteSize
-        + mhw_mi_g10_X::MI_STORE_DATA_IMM_CMD::byteSize * 2
-        + mhw_mi_g10_X::MI_STORE_REGISTER_MEM_CMD::byteSize * 2
         + mhw_mi_g10_X::MI_BATCH_BUFFER_END_CMD::byteSize;
 
     m_maxKernelLoadCmdSize =

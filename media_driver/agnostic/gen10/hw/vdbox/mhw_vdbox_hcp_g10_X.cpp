@@ -508,8 +508,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::GetHcpStateCommandSize(
                 2 * mhw_mi_g10_X::MI_FLUSH_DW_CMD::byteSize + // need for Status report, Mfc Status and
                 10 * mhw_mi_g10_X::MI_STORE_REGISTER_MEM_CMD::byteSize + // 8 for BRCStatistics and 2 for RC6 WAs
                 mhw_mi_g10_X::MI_LOAD_REGISTER_MEM_CMD::byteSize + // 1 for RC6
-                2 * mhw_vdbox_hcp_g10_X::HCP_PAK_INSERT_OBJECT_CMD::byteSize + // Two PAK insert object commands are for headers before the slice header and the header for the end of stream
-                8 * mhw_mi_g10_X::MI_COPY_MEM_MEM_CMD::byteSize; // Need to copy SSE statistics/ Slice Size overflow into memory
+                2 * mhw_vdbox_hcp_g10_X::HCP_PAK_INSERT_OBJECT_CMD::byteSize; // Two PAK insert object commands are for headers before the slice header and the header for the end of stream
 
             patchListMaxSize +=
                 20 * PATCH_LIST_COMMAND(HCP_QM_STATE_CMD) +
@@ -518,8 +517,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::GetHcpStateCommandSize(
                 PATCH_LIST_COMMAND(MI_BATCH_BUFFER_START_CMD) + // When BRC is on, HCP_PIC_STATE_CMD command is in the BB
                 2 * PATCH_LIST_COMMAND(MI_STORE_DATA_IMM_CMD) + // Slice level commands
                 2 * PATCH_LIST_COMMAND(MI_FLUSH_DW_CMD) + // need for Status report, Mfc Status and
-                11 * PATCH_LIST_COMMAND(MI_STORE_REGISTER_MEM_CMD) +// 8 for BRCStatistics and 3 for RC6 WAs
-                8 * PATCH_LIST_COMMAND(MI_COPY_MEM_MEM_CMD); // Need to copy SSE statistics/ Slice Size overflow into memory
+                11 * PATCH_LIST_COMMAND(MI_STORE_REGISTER_MEM_CMD);// 8 for BRCStatistics and 3 for RC6 WAs
         }
         else
         {
