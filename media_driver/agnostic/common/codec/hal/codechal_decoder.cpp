@@ -1490,7 +1490,7 @@ MOS_STATUS CodechalDecode::GetStatusReport(
                 {
                     // BB_END data not written. Media reset might have occurred.
                     CODECHAL_DECODE_NORMALMESSAGE("Media reset may have occured.");
-                    codecStatus[j].m_codecStatus = CODECHAL_STATUS_INCOMPLETE;
+                    codecStatus[j].m_codecStatus = CODECHAL_STATUS_ERROR;
                 }
 
                 if (m_standard == CODECHAL_HEVC)
