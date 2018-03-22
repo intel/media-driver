@@ -759,7 +759,7 @@ VAStatus MediaLibvaCaps::CreateDecAttributes(
             attrib.value |= VA_DEC_SLICE_MODE_NORMAL;
             vp9Profile2Supported = true;
         }
-        if (!vp9Profile0Supported || !vp9Profile2Supported)
+        if (!vp9Profile0Supported && !vp9Profile2Supported)
         {
             attrib.value = VA_ATTRIB_NOT_SUPPORTED;
         }
