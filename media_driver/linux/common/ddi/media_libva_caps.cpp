@@ -486,11 +486,12 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
 
     attrib.type = VAConfigAttribEncPackedHeaders;
     attrib.value = VA_ATTRIB_NOT_SUPPORTED;
-    if (IsAvcProfile(profile))
+    if ((IsAvcProfile(profile))||(IsHevcProfile(profile)))
     {
         attrib.value = VA_ENC_PACKED_HEADER_PICTURE    |
             VA_ENC_PACKED_HEADER_SEQUENCE   |
             VA_ENC_PACKED_HEADER_SLICE      |
+            VA_ENC_PACKED_HEADER_RAW_DATA   |
             VA_ENC_PACKED_HEADER_MISC;
     }
     else if (IsMpeg2Profile(profile))
