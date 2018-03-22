@@ -2475,6 +2475,7 @@ int32_t CmQueueRT::FlushGeneralTask(CmTaskInternal* task)
 
     CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnSetPowerOption(cmData->cmHalState, task->GetPowerOption()));
 
+    m_device->RegisterSyncEvent(nullptr);
     CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnExecuteTask(cmData->cmHalState, &param));
 
     if( param.taskIdOut < 0 )
@@ -2594,6 +2595,7 @@ int32_t CmQueueRT::FlushGroupTask(CmTaskInternal* task)
 
     CHK_MOSSTATUS_RETURN_CMERROR( cmData->cmHalState->pfnSetPowerOption( cmData->cmHalState, task->GetPowerOption() ) );
 
+    m_device->RegisterSyncEvent(nullptr);
     CHK_MOSSTATUS_RETURN_CMERROR( cmData->cmHalState->pfnExecuteGroupTask( cmData->cmHalState, &param ) );
 
     if( param.taskIdOut < 0 )
@@ -2667,6 +2669,7 @@ int32_t CmQueueRT::FlushVeboxTask(CmTaskInternal* task)
     param.taskIdOut = -1;
 
     cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
+    m_device->RegisterSyncEvent(nullptr);
     CHK_MOSSTATUS_RETURN_CMERROR( cmData->cmHalState->pfnExecuteVeboxTask( cmData->cmHalState, &param ) );
 
     if( param.taskIdOut < 0 )
@@ -2750,6 +2753,7 @@ int32_t CmQueueRT::FlushEnqueueWithHintsTask( CmTaskInternal* task )
 
     CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnSetPowerOption(cmData->cmHalState, task->GetPowerOption()));
 
+    m_device->RegisterSyncEvent(nullptr);
     CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnExecuteHintsTask(cmData->cmHalState, &param));
 
     if( param.taskIdOut < 0 )

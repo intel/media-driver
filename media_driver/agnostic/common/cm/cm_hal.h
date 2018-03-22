@@ -1407,7 +1407,7 @@ typedef CM_HAL_EXEC_VEBOX_TASK_PARAM *PCM_HAL_EXEC_VEBOX_TASK_PARAM;
 //------------------------------------------------------------------------------
 struct CM_HAL_OSSYNC_PARAM
 {
-    HANDLE osSyncEvent;  //KMD Notification
+    HANDLE osSyncEvent;  //BB complete Notification
 };
 typedef CM_HAL_OSSYNC_PARAM *PCM_HAL_OSSYNC_PARAM;
 
@@ -1630,7 +1630,7 @@ typedef struct _CM_HAL_STATE
     (   PCM_HAL_STATE               state,
         PCM_HAL_QUERY_TASK_PARAM    param);
 
-    MOS_STATUS (* pfnRegisterKMDNotifyEventHandle)
+    MOS_STATUS (* pfnRegisterUMDNotifyEventHandle)
     (   PCM_HAL_STATE               state,
         PCM_HAL_OSSYNC_PARAM        param);
 
