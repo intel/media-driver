@@ -844,6 +844,35 @@ CM_RT_API int32_t CmDeviceRT::DestroySurface2DUP( CmSurface2DUP* & surface)
     }
 }
 
+//*----------------------------------------------------------------
+//| Purpose: Destroys a CmSurface2D object and returns the status.
+//*----------------------------------------------------------------
+CM_RT_API int32_t CmDeviceRT::DestroySurface(CmSurface2D* &surface)
+{
+    INSERT_API_CALL_LOG();
+    CLock locker(m_criticalSectionSurface);
+
+    CmSurface2DRT *surfaceRT = static_cast<CmSurface2DRT*>(surface);
+    if (nullptr == surfaceRT)
+    {
+        return CM_NULL_POINTER;
+    }
+    int32_t status = m_surfaceMgr->DestroySurface(surfaceRT, APP_DESTROY);
+
+    if (status != CM_FAILURE)  // CM_SURFACE_IN_USE may be returned, which should be treated as SUCCESS.
+    {
+        surface = nullptr;
+        return CM_SUCCESS;
+    }
+    else
+    {
+        return CM_FAILURE;
+    }
+}
+
+//*------------------------------------------------------------------
+//| Purpose: Destroys a CmSurface3D object and returns the status.
+//*------------------------------------------------------------------
 CM_RT_API int32_t CmDeviceRT::DestroySurface( CmSurface3D* & surface)
 {
     INSERT_API_CALL_LOG();

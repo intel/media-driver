@@ -157,34 +157,6 @@ CM_RT_API int32_t CmDeviceRT::CreateSurface2D(VASurfaceID vaSurface,
     return hr;
 }
 
-CM_RT_API int32_t CmDeviceRT::DestroySurface(CmSurface2D* & surface)
-{
-    INSERT_API_CALL_LOG();
-
-    CLock locker(m_criticalSectionSurface);
-
-    int32_t status = CM_SUCCESS;
-
-    CmSurface2DRT *surfaceRT = static_cast<CmSurface2DRT *>(surface);
-    if (nullptr == surfaceRT)
-    {
-        return CM_NULL_POINTER;
-    }
-    status = m_surfaceMgr->DestroySurface( surfaceRT, APP_DESTROY);
-
-    if (status != CM_FAILURE) //CM_SURFACE_IN_USE may be returned, which should be treated as SUCCESS.
-    {
-        surface = nullptr;
-        return CM_SUCCESS;
-    }
-    else
-    {
-        return CM_FAILURE;
-    }
-
-    return status;
-}
-
 //*----------------------------------------------------------------------------
 //| Purpose:    Get JIT Compiler function from igfxcmjit64/32.dll
 //| Returns:    Result of the operation.
