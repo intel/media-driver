@@ -61,29 +61,45 @@ bool MockDevice::Create(DriverDllLoader *driver_loader,
         vaDestroySurfaces = driver_loader->vtable.vaDestroySurfaces;
     }
     m_vaDisplay.pDriverContext = &driver_loader->ctx;
-
-    CreateDeviceParam creation_param;
-    creation_param.release_surface_func = ReleaseVaSurface;
-    creation_param.create_option |= additinal_options;
-    uint32_t function_id = 0x1000;  // CM_FN_CREATECMDEVICE;
-    SendRequestMessage(&creation_param, function_id);
-
-    m_cmDevice = reinterpret_cast<CmDevice*>(creation_param.device_in_umd);
-    return CM_SUCCESS == creation_param.return_value;
-}//==================================================
+    m_cmDevice = CreateNewDevice(additinal_options);
+    return nullptr != m_cmDevice;
+}//==============================
 
 bool MockDevice::Release()
 {
-    if (nullptr == m_cmDevice)
+    int32_t result = ReleaseNewDevice(m_cmDevice);
+    if (CM_SUCCESS == result)
     {
+        vaDestroySurfaces = nullptr;
+        m_cmDevice = nullptr;
         return true;
     }
+    return false;
+}//==============
+
+CmDevice* MockDevice::CreateNewDevice(uint32_t additional_options)
+{
+    CreateDeviceParam create_param;
+    create_param.release_surface_func = ReleaseVaSurface;
+    create_param.create_option |= additional_options;
+    uint32_t function_id = 0x1000;  // CM_FN_CREATECMDEVICE;
+    SendRequestMessage(&create_param, function_id);
+    CmDevice *new_device = reinterpret_cast<CmDevice*>(
+        create_param.device_in_umd);
+    if (CM_SUCCESS != create_param.return_value || nullptr == new_device)
+    {
+        assert(0);
+        printf("Failed to create a CM device!\n");
+    }
+    return new_device;
+}//===================
+
+int32_t MockDevice::ReleaseNewDevice(CmDevice *device)
+{
     DestroyDeviceParam destroy_param;
-    destroy_param.device_in_umd = m_cmDevice;
+    destroy_param.device_in_umd = device;
     uint32_t function_id = 0x1001;  // CM_FN_DESTROYCMDEVICE;
     SendRequestMessage(&destroy_param, function_id);
-    vaDestroySurfaces = nullptr;
-    m_cmDevice = nullptr;
-    return CM_SUCCESS == destroy_param.return_value;
-}//=================================================
+    return destroy_param.return_value;
+}//===================================
 }  // namespace

@@ -30,16 +30,12 @@ public:
 
     BufferUPTest(): m_buffer(nullptr), m_sys_mem(nullptr) {}
 
-    ~BufferUPTest()
-    {
-        Release();
-        return;
-    }//========
+    ~BufferUPTest() { Release(); }
 
     int32_t CreateDestroy(uint32_t size)
     {
         uint32_t real_size = size? size: SIZE;
-        m_sys_mem = memalign(0x1000, real_size);
+        m_sys_mem = AllocateAlignedMemory(real_size, 0x1000);
 
         int32_t result = m_mockDevice->CreateBufferUP(size, m_sys_mem, m_buffer);
         if (CM_SUCCESS != result)
@@ -51,7 +47,7 @@ public:
         SurfaceIndex *surface_index = nullptr;
         result = m_buffer->GetIndex(surface_index);
         EXPECT_EQ(CM_SUCCESS, result);
-        EXPECT_GT(surface_index->get_data(), 0);
+        EXPECT_GT(surface_index->get_data(), static_cast<uint32_t>(0));
         result = m_mockDevice->DestroyBufferUP(m_buffer);
         Release();
         return result;
@@ -71,9 +67,9 @@ public:
     {
         if (nullptr == m_sys_mem)
         {
-            return false;
+            return true;
         }
-        free(m_sys_mem);
+        FreeAlignedMemory(m_sys_mem);
         m_sys_mem = nullptr;
         return true;
     }//=============

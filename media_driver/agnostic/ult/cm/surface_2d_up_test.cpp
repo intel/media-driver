@@ -21,7 +21,6 @@
 */
 
 #include "cm_test.h"
-#include <malloc.h>
 
 class Surface2DUPTest: public CmTest
 {
@@ -31,11 +30,7 @@ public:
 
     Surface2DUPTest(): m_surface(nullptr), m_sys_mem(nullptr) {}
 
-    ~Surface2DUPTest()
-    {
-        Release();
-        return;
-    }//========
+    ~Surface2DUPTest() { Release(); }
 
     int32_t CreateDestroy(CM_SURFACE_FORMAT format,
                           uint32_t width,
@@ -45,11 +40,11 @@ public:
         if (CM_SUCCESS == m_mockDevice->GetSurface2DInfo(width, height, format,
                                                          pitch, alloc_size))
         {
-            m_sys_mem = memalign(0x1000, alloc_size);
+            m_sys_mem = AllocateAlignedMemory(alloc_size, 0x1000);
         }
         else  // In case width or height is invalid. This pointer will not be referenced anyway.
         {
-            m_sys_mem = memalign(0x1000, 4*WIDTH*HEIGHT);
+            m_sys_mem = AllocateAlignedMemory(4*WIDTH*HEIGHT, 0x1000);
         }
         int32_t result = m_mockDevice->CreateSurface2DUP(width, height, format,
                                                          m_sys_mem, m_surface);
@@ -61,7 +56,7 @@ public:
         SurfaceIndex *surface_index = nullptr;
         result = m_surface->GetIndex(surface_index);
         EXPECT_EQ(CM_SUCCESS, result);
-        EXPECT_GT(surface_index->get_data(), 0);
+        EXPECT_GT(surface_index->get_data(), static_cast<uint32_t>(0));
         result = m_mockDevice->DestroySurface2DUP(m_surface);
         Release();
         return result;
@@ -82,9 +77,9 @@ public:
     {
         if (nullptr == m_sys_mem)
         {
-            return false;
+            return true;
         }
-        free(m_sys_mem);
+        FreeAlignedMemory(m_sys_mem);
         m_sys_mem = nullptr;
         return true;
     }//=============

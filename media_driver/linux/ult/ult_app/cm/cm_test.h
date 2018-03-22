@@ -23,6 +23,8 @@
 #ifndef MEDIADRIVER_LINUX_CODECHAL_ULT_ULTAPP_CMTEST_H_
 #define MEDIADRIVER_LINUX_CODECHAL_ULT_ULTAPP_CMTEST_H_
 
+#include <malloc.h>
+
 #include "gtest/gtest.h"
 
 #include "mock_device.h"
@@ -30,6 +32,11 @@
 class CmTest: public testing::Test
 {
 public:
+    static void* AllocateAlignedMemory(size_t size, size_t alignment)
+    { return memalign(alignment, size); }
+
+    static void FreeAlignedMemory(void *memory) { free(memory); }
+
     CmTest(): m_currentPlatform(igfx_MAX) {}
     
     template<typename T, class Function>

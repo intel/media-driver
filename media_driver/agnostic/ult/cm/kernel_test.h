@@ -132,29 +132,7 @@ public:
     }//===============
 
 private:
-    bool FixIsaBinary(uint8_t *isa_code)
-    {
-        switch (m_currentPlatform)
-        {
-            case igfxBROADWELL:
-                isa_code[32] = 0x03;
-                isa_code[403] = 0x3a;
-                break;
-            case igfxBROXTON:
-                isa_code[32] = 0x06;
-                isa_code[403] = 0x02;
-                break;
-            case igfxCANNONLAKE:
-                isa_code[32] = 0x07;
-                isa_code[403] = 0x3a;
-                break;
-            default:
-                isa_code[32] = 0x05;
-                isa_code[403] = 0x0002;
-                break;
-        }
-        return true;
-    }//=============
+    bool FixIsaBinary(uint8_t *isa_code);
 
     int32_t CreateKernelFromCommonIsa(const char *kernel_name)
     {
@@ -189,26 +167,21 @@ private:
 
 TEST_F(KernelTest, LoadDestroyProgram)
 {
-    int32_t invalid_common_isa = static_cast<int32_t>(CM_INVALID_COMMON_ISA);
-    
-    RunEach(invalid_common_isa,
+    RunEach<int32_t>(CM_INVALID_COMMON_ISA,
             [this]() { return LoadDestroyProgram(nullptr, 0); });
 
     uint8_t *isa_code = COMMOM_ISA_CODE;
-    RunEach(invalid_common_isa,
-            [this, isa_code]() { return LoadDestroyProgram(isa_code, 0); });
+    RunEach<int32_t>(CM_INVALID_COMMON_ISA,
+                     [this, isa_code]() { return LoadDestroyProgram(isa_code,
+                                                                    0); });
 
     uint32_t size = sizeof(COMMOM_ISA_CODE);
-
-    int32_t success = static_cast<int32_t>(CM_SUCCESS);
-
-    RunEach(success,
-            [this, isa_code, size]() { return LoadDestroyProgram(isa_code,
-                                                                 size - 1); });
-
-    RunEach(success,
-            [this, isa_code, size]() { return LoadDestroyProgram(isa_code,
-                                                                 size); });
+    RunEach<int32_t>(CM_SUCCESS,
+                     [this, isa_code, size]()
+                     { return LoadDestroyProgram(isa_code, size - 1); });
+    RunEach<int32_t>(CM_SUCCESS,
+                     [this, isa_code, size]()
+                     { return LoadDestroyProgram(isa_code, size); });
 
     char options[CM_MAX_OPTION_SIZE_IN_BYTE + 1];
     for (int i = 0; i < CM_MAX_OPTION_SIZE_IN_BYTE; ++i)
@@ -216,39 +189,38 @@ TEST_F(KernelTest, LoadDestroyProgram)
         options[i] = '0';
     }
     options[CM_MAX_OPTION_SIZE_IN_BYTE] = 0;
-
+    char *options_ptr = options;  // Uses a pointer instead if an array name.
     auto LoadWithOption
-            = [this, isa_code, options]()
+            = [this, isa_code, options_ptr]()
             { return LoadDestroyProgram(isa_code, sizeof(COMMOM_ISA_CODE),
-                                        options); };
-
-    RunEach(static_cast<int32_t>(CM_INVALID_ARG_VALUE), LoadWithOption);
+                                          options_ptr); };
+    RunEach<int32_t>(CM_INVALID_ARG_VALUE, LoadWithOption);
 
     return;
 }//========
 
 TEST_F(KernelTest, LoadWrongIsa)
 {
-    const size_t CODE_SIZE = sizeof(COMMOM_ISA_CODE);
+    const uint32_t CODE_SIZE = sizeof(COMMOM_ISA_CODE);
     uint8_t wrong_isa_code[CODE_SIZE];
     memcpy(wrong_isa_code, COMMOM_ISA_CODE, CODE_SIZE);
     wrong_isa_code[32] = 0xff;
     uint8_t *wrong_isa_code_ptr = wrong_isa_code;
 
     auto LoadWrongIsa
-            = [this, wrong_isa_code_ptr]()
+            = [this, wrong_isa_code_ptr, CODE_SIZE]()
             { return LoadDestroyProgram(wrong_isa_code_ptr, CODE_SIZE, false,
                                         nullptr); };
-    RunEach(static_cast<int32_t>(CM_INVALID_GENX_BINARY), LoadWrongIsa);
+    RunEach<int32_t>(CM_INVALID_GENX_BINARY, LoadWrongIsa);
     return;
 }//========
 
 TEST_F(KernelTest, CreateKernel)
 {
-    RunEach(static_cast<int32_t>(CM_FAILURE),
+    RunEach<int32_t>(CM_FAILURE,
             [this]() { return CreateKernel("wrong_name"); });
 
-    RunEach(static_cast<int32_t>(CM_NULL_POINTER),
+    RunEach<int32_t>(CM_NULL_POINTER,
             [this]() { return CreateKernel(nullptr); });
     return;
 }//========
@@ -258,27 +230,23 @@ TEST_F(KernelTest, SetArgument)
     int arg0_value = 10;
     void *arg0_ptr = &arg0_ptr;
 
-    RunEach(static_cast<int32_t>(CM_SUCCESS),
-            [this, arg0_ptr]() { return SetArgument(0, sizeof(arg0_value),
+    RunEach<int32_t>(CM_SUCCESS,
+                     [this, arg0_ptr]() { return SetArgument(0, sizeof(int),
                                                     arg0_ptr); });
-
-    RunEach(static_cast<int32_t>(CM_INVALID_ARG_INDEX),
-            [this, arg0_ptr]() { return SetArgument(2, sizeof(arg0_value),
+    RunEach<int32_t>(CM_INVALID_ARG_INDEX,
+                     [this, arg0_ptr]() { return SetArgument(2, sizeof(int),
                                                     arg0_ptr); });
-
-    int32_t invalid_arg_size = static_cast<int32_t>(CM_INVALID_ARG_SIZE);
-    RunEach(invalid_arg_size,
-            [this, arg0_ptr]() { return SetArgument(0, sizeof(arg0_value) + 1,
+    RunEach<int32_t>(CM_INVALID_ARG_SIZE,
+                     [this, arg0_ptr]() { return SetArgument(0, sizeof(int) + 1,
                                                     arg0_ptr); });
-    RunEach(invalid_arg_size,
-            [this, arg0_ptr]() { return SetArgument(0, sizeof(arg0_value) - 1,
+    RunEach<int32_t>(CM_INVALID_ARG_SIZE,
+                     [this, arg0_ptr]() { return SetArgument(0, sizeof(int) - 1,
                                                     arg0_ptr); });
-    RunEach(invalid_arg_size,
-            [this, arg0_ptr]() { return SetArgument(0, 0, arg0_ptr); });
-
-    RunEach(static_cast<int32_t>(CM_INVALID_ARG_VALUE),
-            [this, arg0_ptr]() { return SetArgument(0, sizeof(arg0_value),
+    RunEach<int32_t>(CM_INVALID_ARG_SIZE,
+                     [this, arg0_ptr]()
+                     { return SetArgument(0, 0, arg0_ptr); });
+    RunEach<int32_t>(CM_INVALID_ARG_VALUE,
+                     [this, arg0_ptr]() { return SetArgument(0, sizeof(int),
                                                     nullptr); });
-
     return;    
 }//========

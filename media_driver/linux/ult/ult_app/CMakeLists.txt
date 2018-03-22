@@ -24,8 +24,10 @@ project(devult)
 add_subdirectory(googletest)
 
 set(INC_PATH ./googletest/include ../inc ../../../linux/common/ddi)
+set(agnostic_cm_tests ../../../agnostic/ult/cm)
 include_directories(${INC_PATH} ${LIBVA_PATH})
 include_directories(cm
+  ${agnostic_cm_tests}
   ../../../../../GmmLib/inc
   ../../../../../inc/common
   ../../../agnostic/common/cm
@@ -51,6 +53,7 @@ endif()
 
 aux_source_directory(. SOURCES)
 aux_source_directory(cm SOURCES)
+aux_source_directory(${agnostic_cm_tests} SOURCES)
 add_compile_options(-std=c++11)
 set(CMAKE_C_COMPILER "g++")
 

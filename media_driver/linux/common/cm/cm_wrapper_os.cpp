@@ -144,13 +144,11 @@ int32_t DestroyCmDeviceFromVA(VADriverContextP vaDriverCtx, CmDevice *device)
         CM_ASSERTMESSAGE("Pointer to VADriverContext is invalid.");
         return CM_NULL_POINTER;
     }
-    if (nullptr == device) 
-    {
-        CM_ASSERTMESSAGE("Pointer to CmDevice is invalid.");
-        return CM_NULL_POINTER;
-    }
-
     CmDeviceRT* deviceRT = static_cast<CmDeviceRT*>(device);
+    if (nullptr == deviceRT) 
+    {
+        return CM_SUCCESS;
+    }
     //Get VaCtx ID in MediaCtx
     deviceRT->GetVaCtxID(vaContextID);
 

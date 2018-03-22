@@ -29,33 +29,22 @@ public:
     ~DeviceTest() {}
 
     int32_t Destroy(CmDevice *device)
-    {
-        CMRT_UMD::DestroyDeviceParam destroy_param;
-        destroy_param.device_in_umd = device;
-        uint32_t function_id = 0x1001;
-        m_mockDevice.SendRequestMessage(&destroy_param, function_id);
-        return destroy_param.return_value;
-    }//===================================
+    { return m_mockDevice.ReleaseNewDevice(device); }
 
-    int32_t CreateWithOptions(uint32_t options)
+    int32_t CreateWithOptions(uint32_t additional_options)
     {
-        CMRT_UMD::CreateDeviceParam create_param;
-        create_param.release_surface_func = ReleaseVaSurface;
-        create_param.create_option |= options;
-        uint32_t function_id = 0x1000;
-        m_mockDevice.SendRequestMessage(&create_param, function_id);
-
-        CMRT_UMD::DestroyDeviceParam destroy_param;
-        destroy_param.device_in_umd = create_param.device_in_umd;
-        function_id = 0x1001;
-        m_mockDevice.SendRequestMessage(&destroy_param, function_id);
-        return create_param.return_value;
-    }//==================================
+        CmDevice *new_device = m_mockDevice.CreateNewDevice(additional_options);
+        if (nullptr == new_device)
+        {
+            return CM_FAILURE;
+        }
+        return m_mockDevice.ReleaseNewDevice(new_device);
+    }//==================================================
 };
 
 TEST_F(DeviceTest, Destroy)
 {
-    RunEach<int32_t>(CM_NULL_POINTER,
+    RunEach<int32_t>(CM_SUCCESS,
                      [this]() { return Destroy(nullptr); });
     return;
 }//========

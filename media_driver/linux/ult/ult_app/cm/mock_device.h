@@ -79,33 +79,32 @@ public:
 
     MockDevice(): vaCmExtSendReqMsg(nullptr),
                   m_cmDevice(nullptr) {}
-    //==================================
 
-    ~MockDevice()
-    {
-        Release();
-        return;
-    }//========
-
-    CmDevice* operator->() { return m_cmDevice; }
-
-    template<class InputData>
-    int32_t SendRequestMessage(InputData *input, uint32_t function_id);
+    ~MockDevice() { Release(); }
 
     bool Create(DriverDllLoader *driver_loader, uint32_t additinal_options);
 
     bool Create(DriverDllLoader *driver_loader)
     { return Create(driver_loader, 0); }
-    //==================================
 
     bool Release();
 
-private:
+    CmDevice* operator->() { return m_cmDevice; }
 
+    CmDevice* CreateNewDevice(uint32_t additional_options);
+
+    CmDevice* CreateNewDevice() { return CreateNewDevice(0); }
+
+    int32_t ReleaseNewDevice(CmDevice *device);
+
+private:
+    template<class InputData>
+    int32_t SendRequestMessage(InputData *input, uint32_t function_id);
+    
     VADisplayContext m_vaDisplay;
     CmExtSendReqMsgFunc vaCmExtSendReqMsg;
     CmDevice *m_cmDevice;
-};//=====================
+};
 };  // namespace
 
 #endif  // #ifndef MEDIADRIVER_LINUX_CODECHAL_ULT_ULTAPP_CMMOCKDEVICE_H_

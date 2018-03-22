@@ -42,7 +42,7 @@ public:
         SurfaceIndex *surface_index = nullptr;
         result = m_buffer->GetIndex(surface_index);
         EXPECT_EQ(CM_SUCCESS, result);
-        EXPECT_GT(surface_index->get_data(), 0);
+        EXPECT_GT(surface_index->get_data(), static_cast<uint32_t>(0));
         return m_mockDevice->DestroySurface(m_buffer);
     }//===============================================
 
