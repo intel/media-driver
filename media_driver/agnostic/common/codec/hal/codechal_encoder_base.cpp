@@ -1333,6 +1333,7 @@ MOS_STATUS CodechalEncoderState::AllocateResources()
     m_encodeStatusBuf.dwImageStatusCtrlOfLastBRCPassOffset = CODECHAL_OFFSETOF(EncodeStatus, ImageStatusCtrlOfLastBRCPass);
     m_encodeStatusBuf.dwSceneChangedOffset    = CODECHAL_OFFSETOF(EncodeStatus, dwSceneChangedFlag);
     m_encodeStatusBuf.dwSumSquareErrorOffset  = CODECHAL_OFFSETOF(EncodeStatus, sumSquareError[0]);
+    m_encodeStatusBuf.dwSliceReportOffset     = CODECHAL_OFFSETOF(EncodeStatus, sliceReport);
     m_encodeStatusBuf.dwHuCStatusMaskOffset   = CODECHAL_OFFSETOF(EncodeStatus, HuCStatusRegMask);
     m_encodeStatusBuf.dwHuCStatusRegOffset    = CODECHAL_OFFSETOF(EncodeStatus, HuCStatusReg);
 
@@ -1958,24 +1959,6 @@ void CodechalEncoderState::FreeResources()
     // Release eStatus buffer
     if (!Mos_ResourceIsNull(&m_encodeStatusBuf.resStatusBuffer))
     {
-        MOS_LOCK_PARAMS lockFlags;
-        MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
-        lockFlags.ReadOnly = true;
-
-        uint8_t* data = (uint8_t*)m_osInterface->pfnLockResource(
-            m_osInterface,
-            (&m_encodeStatusBuf.resStatusBuffer),
-            &lockFlags);
-
-        EncodeStatus* dataStatus = nullptr;
-
-        for (int i = 0; i < CODECHAL_ENCODE_STATUS_NUM; i++)
-        {
-            uint32_t baseOffset = (i * m_encodeStatusBuf.dwReportSize + sizeof(uint32_t) * 2);  // encodeStatus is offset by 2 DWs in the resource
-            dataStatus = (EncodeStatus*)(data + baseOffset);
-            MOS_FreeMemory(dataStatus->sliceReport.pSliceSize);
-        }
-
         m_osInterface->pfnUnlockResource(
             m_osInterface,
             &(m_encodeStatusBuf.resStatusBuffer));
