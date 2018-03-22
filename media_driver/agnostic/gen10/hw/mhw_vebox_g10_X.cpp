@@ -38,7 +38,7 @@ const MHW_VEBOX_SETTINGS g_Vebox_Settings_g10 =
     MHW_PAGE_SIZE,                                                            //!< uiVertexTableSize
     MHW_PAGE_SIZE,                                                            //!< uiCapturePipeStateSize
     MHW_PAGE_SIZE * 2,                                                        //!< uiGammaCorrectionStateSize
-    MHW_PAGE_SIZE * 67                                                        //!< ui3DLUTSize Max: 65 * 65 *128 * 8
+    0                                                                         //!< ui3DLUTSize
 };
 
 // H2S Manual Mode Coef
@@ -779,29 +779,6 @@ MOS_STATUS MhwVeboxInterfaceG10::AddVeboxState(
             MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
             ResourceParams.presResource         = pVeboxStateCmdParams->pVebox3DLookUpTables;
             ResourceParams.dwOffset             = 0;
-            ResourceParams.pdwCmd               = &(cmd.DW16.Value);
-            ResourceParams.dwLocationInCmd      = 16;
-            ResourceParams.HwCommandType        = MOS_VEBOX_STATE;
-            ResourceParams.dwSharedMocsOffset   = 1 - ResourceParams.dwLocationInCmd;
-
-            MHW_CHK_STATUS(pfnAddResourceToCmd(
-                pOsInterface,
-                pCmdBuffer,
-                &ResourceParams));
-        }
-        else
-        {
-            MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
-            if (bCmBuffer)
-            {
-                ResourceParams.presResource     = pVeboxParamResource;
-                ResourceParams.dwOffset         = pVeboxHeap->ui3DLUTStateOffset;
-            }
-            else
-            {
-                ResourceParams.presResource     = pVeboxHeapResource;
-                ResourceParams.dwOffset         = pVeboxHeap->ui3DLUTStateOffset + uiInstanceBaseAddr;
-            }
             ResourceParams.pdwCmd               = &(cmd.DW16.Value);
             ResourceParams.dwLocationInCmd      = 16;
             ResourceParams.HwCommandType        = MOS_VEBOX_STATE;
@@ -1888,21 +1865,6 @@ MOS_STATUS MhwVeboxInterfaceG10::AddVeboxIecpState(
             sizeof(MHW_FORWARD_GAMMA_SEG) * MHW_FORWARD_GAMMA_SEGMENT_CONTROL_POINT,
             &pVeboxIecpParams->CapPipeParams.FwdGammaParams.Segment[0],
             sizeof(MHW_FORWARD_GAMMA_SEG) * MHW_FORWARD_GAMMA_SEGMENT_CONTROL_POINT);
-    }
-
-    if (pVeboxIecpParams &&
-        pVeboxIecpParams->CapPipeParams.ICCColorConversionParams.bActive)
-    {
-        p3DLUT =
-            (uint8_t*)(pVeboxHeap->pLockedDriverResourceMem +
-                    pVeboxHeap->ui3DLUTStateOffset +
-                    uiOffset);
-
-        MOS_SecureMemcpy(
-            p3DLUT,
-            pVeboxIecpParams->CapPipeParams.ICCColorConversionParams.LUTLength,
-            pVeboxIecpParams->CapPipeParams.ICCColorConversionParams.pLUT,
-            pVeboxIecpParams->CapPipeParams.ICCColorConversionParams.LUTLength);
     }
 
 finish:
