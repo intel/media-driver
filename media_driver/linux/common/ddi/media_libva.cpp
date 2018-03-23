@@ -1358,16 +1358,6 @@ VAStatus DdiMedia__Initialize (
                                      &gmmGtInfo,
                                      (GMM_CLIENT)GMM_LIBVA_LINUX);
 
-    // initialize all cache policy usage to void assert at GMM
-    if (MosUltFlag)
-    {
-        GMM_CACHE_POLICY_ELEMENT *CachePolicy = pGmmGlobalContext->GetCachePolicyUsage();
-        for (int usage = GMM_RESOURCE_USAGE_UNKNOWN; usage < GMM_RESOURCE_USAGE_MAX; usage++)
-        {
-            CachePolicy[usage].Initialized = 1;
-        }
-    }
-
     if(gmmStatus != GMM_SUCCESS)
     {
         DDI_ASSERTMESSAGE("gmm init failed.");

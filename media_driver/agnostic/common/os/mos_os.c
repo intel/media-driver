@@ -755,6 +755,15 @@ MEMORY_OBJECT_CONTROL_STATE Mos_CachePolicyGetMemoryObject(
 
     MOS_OS_ASSERT(pGmmGlobalContext);
     MOS_OS_ASSERT(pGmmGlobalContext->GetCachePolicyObj());
-    return pGmmGlobalContext->GetCachePolicyObj()->CachePolicyGetMemoryObject(nullptr, GmmResourceUsage[MosUsage]);
+
+    GMM_RESOURCE_USAGE_TYPE usage = GmmResourceUsage[MosUsage];
+    if (pGmmGlobalContext->GetCachePolicyElement(usage).Initialized)
+    {
+        return pGmmGlobalContext->GetCachePolicyObj()->CachePolicyGetMemoryObject(nullptr, usage);
+    }
+    else
+    {
+        return pGmmGlobalContext->GetCachePolicyUsage()[GMM_RESOURCE_USAGE_UNKNOWN].MemoryObjectOverride;
+    }
 }
 #endif
