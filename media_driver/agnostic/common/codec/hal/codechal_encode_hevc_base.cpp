@@ -350,7 +350,7 @@ MOS_STATUS CodechalEncodeHevcBase::AllocatePakResources()
     // HEVC Encoder Mode: Slice size is written to this buffer when slice size conformance is enabled.
     // 1 CL (= 16 DWs = 64 bytes) per slice * Maximum number of dynamic slice = 600
     // Note that simulation is assigning much larger space for this.
-    allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6 * CODECHAL_CACHELINE_SIZE, CODECHAL_PAGE_SIZE);
+    allocParamsForBufferLinear.dwBytes = CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6 * CODECHAL_CACHELINE_SIZE;
     allocParamsForBufferLinear.pBufName = "LcuBaseAddressBuffer";
 
     eStatus = (MOS_STATUS)m_osInterface->pfnAllocateResource(

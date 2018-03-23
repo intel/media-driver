@@ -2310,6 +2310,11 @@ MOS_STATUS CodechalVdencHevcStateG10::GetStatusReport(
     // common initilization
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalVdencHevcState::GetStatusReport(encodeStatus, encodeStatusReport));
 
+    encodeStatusReport->NumberSlices      = encodeStatus->sliceReport.NumberSlices;
+    encodeStatusReport->SizeOfSliceSizesBuffer = encodeStatus->sliceReport.SizeOfSliceSizesBuffer;
+    encodeStatusReport->pSliceSizes       = encodeStatus->sliceReport.pSliceSize;
+    encodeStatusReport->SliceSizeOverflow = encodeStatus->sliceReport.SliceSizeOverflow;
+
     return eStatus;
 }
 
