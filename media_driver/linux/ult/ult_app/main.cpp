@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -19,26 +19,24 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
-// main.cpp : Defines the entry point for the console application.
-//
-#include <stdio.h>
 #include <cctype>
 #include <string>
-#include "gtest/gtest.h"
+#include <stdio.h>
 #include "devconfig.h"
+#include "gtest/gtest.h"
 
 using namespace std;
 
-const char* DirverPath;
+const char*        g_dirverPath;
 vector<Platform_t> g_platform;
 
-bool parseCmd(int argc, char* argv[]);
+static bool ParseCmd(int argc, char *argv[]);
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
     testing::InitGoogleTest(&argc, argv);
 
-    if (parseCmd(argc, argv) == false)
+    if (ParseCmd(argc, argv) == false)
     {
         return -1;
     }
@@ -46,17 +44,17 @@ int main(int argc, char* argv[])
     return RUN_ALL_TESTS();
 }
 
-bool parsePlatform(const char *str);
-bool parseDriverPath(const char *str);
+static bool ParsePlatform(const char *str);
+static bool ParseDriverPath(const char *str);
 
-bool parseCmd(int argc, char* argv[])
+static bool ParseCmd(int argc, char *argv[])
 {
-    DirverPath = nullptr;
+    g_dirverPath = nullptr;
     g_platform.clear();
 
     for (int i = 1; i < argc; i++)
     {
-        if (parseDriverPath(argv[i]) == false && parsePlatform(argv[i]) == false)
+        if (ParseDriverPath(argv[i]) == false && ParsePlatform(argv[i]) == false)
         {
             printf("ERROR\n    Bad command line parameter!\n\n");
             printf("USAGE\n    devult [driver_path] [platform_name...]\n\n");
@@ -74,7 +72,7 @@ bool parseCmd(int argc, char* argv[])
     return true;
 }
 
-bool parsePlatform(const char *str)
+static bool ParsePlatform(const char *str)
 {
     string tmpStr(str);
 
@@ -95,11 +93,11 @@ bool parsePlatform(const char *str)
     return false;
 }
 
-bool parseDriverPath(const char *str)
+static bool ParseDriverPath(const char *str)
 {
-    if (DirverPath == nullptr && strstr(str, "iHD_drv_video.so") != nullptr)
+    if (g_dirverPath == nullptr && strstr(str, "iHD_drv_video.so") != nullptr)
     {
-        DirverPath = str;
+        g_dirverPath = str;
         return true;
     }
 

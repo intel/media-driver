@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -19,132 +19,191 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
-#pragma once
+#ifndef __TEST_DATA_ENCODE_H__
+#define __TEST_DATA_ENCODE_H__
 
-#include "driver_loader.h"
-#include<string>
-#include<string.h>
 #include <map>
 #include <memory>
-
-using std::shared_ptr;
+#include <string>
+#include <string.h>
+#include "driver_loader.h"
 
 #define ENC_FRAME_NUM 3
 
-const FeatureID TEST_Intel_Encode_HEVC  = {VAProfileHEVCMain, VAEntrypointEncSlice};
-const FeatureID TEST_Intel_Encode_AVC   = {VAProfileH264Main, VAEntrypointEncSlice};
-const FeatureID TEST_Intel_Encode_MPEG2 = {VAProfileMPEG2Main, VAEntrypointEncSlice};
-const FeatureID TEST_Intel_Encode_JPEG  = {VAProfileJPEGBaseline, VAEntrypointEncPicture};
+const FeatureID TEST_Intel_Encode_HEVC  = { VAProfileHEVCMain    , VAEntrypointEncSlice  , };
+const FeatureID TEST_Intel_Encode_AVC   = { VAProfileH264Main    , VAEntrypointEncSlice  , };
+const FeatureID TEST_Intel_Encode_MPEG2 = { VAProfileMPEG2Main   , VAEntrypointEncSlice  , };
+const FeatureID TEST_Intel_Encode_JPEG  = { VAProfileJPEGBaseline, VAEntrypointEncPicture, };
 
 class HevcEncBufs
 {
 public:
+
     HevcEncBufs();
 
-    uint32_t GetSpsSize() { return sizeof(VAEncSequenceParameterBufferHEVC); };
-    uint32_t GetPpsSize() { return sizeof(VAEncPictureParameterBufferHEVC); };
-    uint32_t GetSlcSize() { return sizeof(VAEncSliceParameterBufferHEVC); };
+    uint32_t GetSpsSize() { return sizeof(VAEncSequenceParameterBufferHEVC); }
 
-    VAEncSequenceParameterBufferHEVC* GetSpsBuf() { return sps.get(); };
-    VAEncPictureParameterBufferHEVC* GetPpsBuf() { return pps.get(); }
-    VAEncSliceParameterBufferHEVC* GetSlcBuf() { return slc.get(); };
+    uint32_t GetPpsSize() { return sizeof(VAEncPictureParameterBufferHEVC); }
+
+    uint32_t GetSlcSize() { return sizeof(VAEncSliceParameterBufferHEVC); }
+
+    VAEncSequenceParameterBufferHEVC *GetSpsBuf() { return m_sps.get(); }
+
+    VAEncPictureParameterBufferHEVC *GetPpsBuf() { return m_pps.get(); }
+
+    VAEncSliceParameterBufferHEVC *GetSlcBuf() { return m_slc.get(); }
 
 private:
-    shared_ptr<VAEncSequenceParameterBufferHEVC> sps;
-    shared_ptr<VAEncPictureParameterBufferHEVC> pps;
-    shared_ptr<VAEncSliceParameterBufferHEVC> slc;
+
+    std::shared_ptr<VAEncSequenceParameterBufferHEVC> m_sps;
+    std::shared_ptr<VAEncPictureParameterBufferHEVC>  m_pps;
+    std::shared_ptr<VAEncSliceParameterBufferHEVC>    m_slc;
 };
 
 class AvcEncBufs
 {
 public:
+
     AvcEncBufs();
 
-    uint32_t GetSpsSize() { return sizeof(VAEncSequenceParameterBufferH264); };
-    uint32_t GetPpsSize() { return sizeof(VAEncPictureParameterBufferH264); };
-    uint32_t GetSlcSize() { return sizeof(VAEncSliceParameterBufferH264); };
+    uint32_t GetSpsSize() { return sizeof(VAEncSequenceParameterBufferH264); }
 
-    VAEncSequenceParameterBufferH264* GetSpsBuf() { return sps.get(); };
-    VAEncPictureParameterBufferH264* GetPpsBuf() { return pps.get(); };
-    VAEncSliceParameterBufferH264* GetSlcBuf() { return slc.get(); };
+    uint32_t GetPpsSize() { return sizeof(VAEncPictureParameterBufferH264); }
+
+    uint32_t GetSlcSize() { return sizeof(VAEncSliceParameterBufferH264); }
+
+    VAEncSequenceParameterBufferH264 *GetSpsBuf() { return m_sps.get(); }
+
+    VAEncPictureParameterBufferH264 *GetPpsBuf() { return m_pps.get(); }
+
+    VAEncSliceParameterBufferH264 *GetSlcBuf() { return m_slc.get(); }
 
 private:
-    shared_ptr<VAEncSequenceParameterBufferH264> sps;
-    shared_ptr<VAEncPictureParameterBufferH264> pps;
-    shared_ptr<VAEncSliceParameterBufferH264> slc;
+
+    std::shared_ptr<VAEncSequenceParameterBufferH264> m_sps;
+    std::shared_ptr<VAEncPictureParameterBufferH264>  m_pps;
+    std::shared_ptr<VAEncSliceParameterBufferH264>    m_slc;
 };
 
 class EncTestData
 {
 public:
-    EncTestData(){};
-    virtual ~EncTestData(){};
-    FeatureID GetFeatureID() { return featureId; };
-    uint32_t GetWidth() { return picWidth; };
-    uint32_t GetHeight() { return picHeight; };
-    vector<vector<CompBufConif>> & GetCompBuffers() { return compBufs; };
-    vector<VASurfaceID> & GetResources() { return resources; };
-    vector <VAConfigAttrib> & GetConfAttrib() { return ConfAttrib; };
-    vector <VASurfaceAttrib>& GetSurfAttrib() { return SurfAttrib; };
 
-    virtual void UpdateCompBuffers(int frameId){};
-    int num_frames;
+    virtual ~EncTestData() { }
+
+    FeatureID GetFeatureID() { return m_featureId; }
+
+    uint32_t GetWidth() { return m_picWidth; }
+
+    uint32_t GetHeight() { return m_picHeight; }
+
+    std::vector<std::vector<CompBufConif>> &GetCompBuffers() { return m_compBufs; }
+
+    std::vector<VASurfaceID> &GetResources() { return m_resources; }
+
+    std::vector<VAConfigAttrib> &GetConfAttrib() { return m_confAttrib; }
+
+    std::vector<VASurfaceAttrib> &GetSurfAttrib() { return m_surfAttrib; }
+
+    virtual void UpdateCompBuffers(int frameId) { }
+
+public:
+
+    int                                    m_num_frames;
+
 protected:
-    FeatureID featureId;
-    uint32_t picWidth;
-    uint32_t picHeight;
-    uint32_t SurfacesNum;
-    vector<vector<CompBufConif>> compBufs;
-    vector<VASurfaceID> resources;
-    vector <VAConfigAttrib> ConfAttrib;
-    vector <VASurfaceAttrib>SurfAttrib;
+
+    FeatureID                              m_featureId;
+    uint32_t                               m_picWidth;
+    uint32_t                               m_picHeight;
+    uint32_t                               m_surfacesNum;
+    std::vector<std::vector<CompBufConif>> m_compBufs;
+    std::vector<VASurfaceID>               m_resources;
+    std::vector<VAConfigAttrib>            m_confAttrib;
+    std::vector<VASurfaceAttrib>           m_surfAttrib;
 };
 
 class EncTestDataHEVC : public EncTestData
 {
 public:
-    EncTestDataHEVC(){};
+
     EncTestDataHEVC(FeatureID testFeatureID);
+
     void UpdateCompBuffers(int frameId) override;
 
     struct EncFrameDataHEVC
     {
-        vector<uint8_t> spsData;
-        vector<uint8_t> ppsData;
-        vector<uint8_t> sliceData;
+        std::vector<uint8_t> spsData;
+        std::vector<uint8_t> ppsData;
+        std::vector<uint8_t> sliceData;
     };
-    const vector<uint8_t> headerData={0x00,0x00,0x00,0x01};
-protected:
-    void InitCompBuffers();
-    vector<EncFrameDataHEVC> frameArray;
-    VAEncPackedHeaderParameterBuffer packedsps;
-    VAEncPackedHeaderParameterBuffer packedpps;
-    VAEncPackedHeaderParameterBuffer packedsh;
-    shared_ptr<HevcEncBufs> pBufs = nullptr;
-};
-class EncTestDataAVC: public EncTestDataHEVC
-{
+
 public:
-    //EncTestDataAVC(FeatureID testFeatureID):EncTestDataHEVC(testFeatureID){};
-    EncTestDataAVC(){};
-    EncTestDataAVC(FeatureID testFeatureID);
-    void UpdateCompBuffers(int frameId) override;
+
+    const std::vector<uint8_t> m_headerData = { 0x00, 0x00, 0x00, 0x01 };
 
 protected:
+
     void InitCompBuffers();
-    shared_ptr<AvcEncBufs> pBufs = nullptr;
+
+protected:
+
+    std::vector<EncFrameDataHEVC>    m_frameArray;
+    VAEncPackedHeaderParameterBuffer m_packedsps;
+    VAEncPackedHeaderParameterBuffer m_packedpps;
+    VAEncPackedHeaderParameterBuffer m_packedsh;
+    std::shared_ptr<HevcEncBufs>     m_pBufs = nullptr;
+};
+
+class EncTestDataAVC: public EncTestData
+{
+public:
+
+    EncTestDataAVC(FeatureID testFeatureID);
+
+    void UpdateCompBuffers(int frameId) override;
+
+    struct EncFrameDataAVC
+    {
+        std::vector<uint8_t> spsData;
+        std::vector<uint8_t> ppsData;
+        std::vector<uint8_t> sliceData;
+    };
+
+public:
+
+    const std::vector<uint8_t> m_headerData = { 0x00, 0x00, 0x00, 0x01 };
+
+protected:
+
+    void InitCompBuffers();
+
+protected:
+
+    std::vector<EncFrameDataAVC>     m_frameArray;
+    VAEncPackedHeaderParameterBuffer m_packedsps;
+    VAEncPackedHeaderParameterBuffer m_packedpps;
+    VAEncPackedHeaderParameterBuffer m_packedsh;
+    std::shared_ptr<AvcEncBufs>      m_pBufs = nullptr;
 };
 
 class EncTestDataFactory
 {
 public:
+
     static EncTestData *GetEncTestData(const std::string &description)
     {
         if (description == "HEVC-DualPipe")
+        {
             return new EncTestDataHEVC(TEST_Intel_Encode_HEVC);
+        }
         if (description == "AVC-DualPipe")
+        {
             return new EncTestDataAVC(TEST_Intel_Encode_AVC);
-        return NULL;
+        }
+
+        return nullptr;
     }
 };
 
+#endif // __TEST_DATA_ENCODE_H__

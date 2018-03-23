@@ -19,13 +19,13 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
-#include "memory_leak_detector.h"
-#include "gtest/gtest.h"
 #include <fstream>
+#include "gtest/gtest.h"
+#include "memory_leak_detector.h"
 
 using namespace std;
 
-void MemoryLeakDetector::detect(const DriverDllLoader &drvLoader, Platform_t platform)
+void MemoryLeakDetector::Detect(const DriverDllLoader &drvLoader, Platform_t platform)
 {
     static bool delReport = true;
     if (delReport)
@@ -34,7 +34,7 @@ void MemoryLeakDetector::detect(const DriverDllLoader &drvLoader, Platform_t pla
         delReport = false;
     }
 
-    int32_t memNinjaCnt = drvLoader.MOS_GetMemNinjaCounter();
+    int32_t memNinjaCnt    = drvLoader.MOS_GetMemNinjaCounter();
     int32_t memNinjaCntGfx = drvLoader.MOS_GetMemNinjaCounterGfx();
     if (memNinjaCnt != 0 || memNinjaCntGfx != 0)
     {
@@ -43,9 +43,9 @@ void MemoryLeakDetector::detect(const DriverDllLoader &drvLoader, Platform_t pla
         title = title + "." + curTest->name() + " Platform: " + to_string(platform) + " System memory counter: "
             + to_string(memNinjaCnt) + " Graphic memory counter: "+ to_string(memNinjaCntGfx);
 
-        auto detector = MemoryLeakDetectorIpl::getInstance();
-        detector->detect(LOG_PATH);
-        detector->generateReport(MEM_LEAK_REPORT_PATH, title);
+        auto detector = MemoryLeakDetectorIpl::GetInstance();
+        detector->Detect(LOG_PATH);
+        detector->GenerateReport(MEM_LEAK_REPORT_PATH, title);
         EXPECT_TRUE(false) << "Memory leak detected, system memory counter = " << memNinjaCnt
             << ", graphic memory counter = " << memNinjaCntGfx << ", platform = " << platform << endl;
     }
@@ -54,19 +54,19 @@ void MemoryLeakDetector::detect(const DriverDllLoader &drvLoader, Platform_t pla
     remove(HLT_PATH);
 }
 
-MemoryLeakDetectorIpl *MemoryLeakDetectorIpl::instance = nullptr;
+MemoryLeakDetectorIpl *MemoryLeakDetectorIpl::m_instance = nullptr;
 
-MemoryLeakDetectorIpl * MemoryLeakDetectorIpl::getInstance()
+MemoryLeakDetectorIpl * MemoryLeakDetectorIpl::GetInstance()
 {
-    if (instance == nullptr)
+    if (m_instance == nullptr)
     {
-        instance = new MemoryLeakDetectorIpl();
+        m_instance = new MemoryLeakDetectorIpl();
     }
 
-    return instance;
+    return m_instance;
 }
 
-void MemoryLeakDetectorIpl::detect(const string &logPath)
+void MemoryLeakDetectorIpl::Detect(const string &logPath)
 {
     m_memPtr.clear();
     m_memInfoTable.clear();
@@ -86,17 +86,17 @@ void MemoryLeakDetectorIpl::detect(const string &logPath)
         }
     }
 
-    MemInfo memInfo;
+    MemInfo                          memInfo;
     map<uint64_t, int32_t>::iterator pos;
     while(getline(log, line))
     {
-        if (parseLine(line, memInfo))
+        if (ParseLine(line, memInfo))
         {
             if (memInfo.type == MEM_INFO_TYPE_COUNT)
             {
                 break;
             }
-            
+
             uint64_t ptr = stoull(memInfo.ptr, 0, 16);
             if (memInfo.type == MEM_INFO_TYPE_ALLOC_SYS || memInfo.type == MEM_INFO_TYPE_ALLOC_GFX
                 || (pos = m_memPtr.find(ptr)) == m_memPtr.end())
@@ -107,23 +107,23 @@ void MemoryLeakDetectorIpl::detect(const string &logPath)
             {
                 m_memPtr.erase(pos);
             }
-            
+
             m_memInfoTable.push_back(memInfo);
         }
     }
 }
 
-void MemoryLeakDetectorIpl::generateReport(const string &reportPath, const string &title) const
+void MemoryLeakDetectorIpl::GenerateReport(const string &reportPath, const string &title) const
 {
     ofstream report(reportPath, ios_base::app);
-    string line;
+    string   line;
 
     report << title << endl;
     for (auto it = m_memPtr.cbegin(); it != m_memPtr.cend(); it++)
     {
         auto idx = it->second;
-        line = m_memInfoTable[idx].ptr + ", " + m_memInfoTable[idx].functionName +
-            ", " + m_memInfoTable[idx].filename + ", " + m_memInfoTable[idx].line;
+        line = m_memInfoTable[idx].ptr + ", " + m_memInfoTable[idx].functionName + ", "
+            + m_memInfoTable[idx].filename + ", " + m_memInfoTable[idx].line;
 
         if (m_memInfoTable[idx].type == MEM_INFO_TYPE_ALLOC_SYS || m_memInfoTable[idx].type == MEM_INFO_TYPE_ALLOC_GFX)
         {
@@ -134,14 +134,14 @@ void MemoryLeakDetectorIpl::generateReport(const string &reportPath, const strin
             line += ", no alloc, ";
         }
 
-        line += to_string(getHitNum(idx));
+        line += to_string(GetHitNum(idx));
         TEST_COUT << "Memory leak: " << line << endl;
         report << line << endl;
     }
     report << endl;
 }
 
-bool MemoryLeakDetectorIpl::parseLine(const string &line, MemInfo& memInfo) const
+bool MemoryLeakDetectorIpl::ParseLine(const string &line, MemInfo &memInfo) const
 {
     if (line.find("MemNinjaSysAlloc") < line.size())
     {
@@ -169,33 +169,32 @@ bool MemoryLeakDetectorIpl::parseLine(const string &line, MemInfo& memInfo) cons
         return false;
     }
     
-    auto beg = line.find("memPtr = ");
-    beg += strlen("memPtr = ");
-    auto end = line.find(",", beg);
-    memInfo.ptr = line.substr(beg, end - beg);
+    auto beg             =  line.find("memPtr = ");
+    beg                  += strlen("memPtr = ");
+    auto end             =  line.find(",", beg);
+    memInfo.ptr          =  line.substr(beg, end - beg);
 
-    beg = line.find("functionName = \"");
-    beg += strlen("functionName = \"");
-    end = line.find("\"", beg);
-    memInfo.functionName = line.substr(beg, end - beg);
+    beg                  =  line.find("functionName = \"");
+    beg                  += strlen("functionName = \"");
+    end                  =  line.find("\"", beg);
+    memInfo.functionName =  line.substr(beg, end - beg);
 
-    beg = line.find("filename = \"");
-    beg += strlen("filename = \"");
-    end = line.find("\"", beg);
-    memInfo.filename = line.substr(beg, end - beg);
+    beg                  =  line.find("filename = \"");
+    beg                  += strlen("filename = \"");
+    end                  =  line.find("\"", beg);
+    memInfo.filename     =  line.substr(beg, end - beg);
 
-    beg = line.find("line = ");
-    beg += strlen("line = ");
-    end = line.find("/", beg);
-    memInfo.line = line.substr(beg, end - beg);
+    beg                  =  line.find("line = ");
+    beg                  += strlen("line = ");
+    end                  =  line.find("/", beg);
+    memInfo.line         =  line.substr(beg, end - beg);
 
     return true;
 }
 
-uint32_t MemoryLeakDetectorIpl::getHitNum(int32_t idx) const
+uint32_t MemoryLeakDetectorIpl::GetHitNum(int32_t idx) const
 {
     uint32_t hitNum = 1;
-
     for (int32_t i = idx - 1; i >= 0; i--)
     {
         if (m_memInfoTable[i].filename == m_memInfoTable[idx].filename

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -19,14 +19,16 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
-#include <stdlib.h>
-#include <stdio.h>
 #include <dlfcn.h>
 #include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
-
 #include "driver_loader.h"
-extern char* DirverPath;
+
+using namespace std;
+
+extern char               *g_dirverPath;
 extern vector<Platform_t> g_platform;
 
 const char *g_platformName[] = {
@@ -38,11 +40,16 @@ const char *g_platformName[] = {
 
 DriverDllLoader::DriverDllLoader()
 {
-    if (DirverPath)
-        driver_path = DirverPath;
+    if (g_dirverPath)
+    {
+        m_driver_path = g_dirverPath;
+    }
     else
-        driver_path = "/opt/intel/mediasdk/lib64/iHD_drv_video.so";
-    platformArray = {
+    {
+        m_driver_path = "/opt/intel/mediasdk/lib64/iHD_drv_video.so";
+    }
+
+    m_platformArray = {
 #ifdef IGFX_GEN9_SKL_SUPPORTED
         igfxSKLAKE,
 #endif
@@ -53,71 +60,62 @@ DriverDllLoader::DriverDllLoader()
         igfxBROADWELL,
 #endif
 #ifdef IGFX_GEN10_CNL_SUPPORTED
-        igfxCANNONLAKE
+        igfxCANNONLAKE,
 #endif
     };
 
     if (g_platform.size() > 0)
     {
-        platformArray = g_platform;
+        m_platformArray = g_platform;
     }
 }
 
-DriverDllLoader::DriverDllLoader(char* path)
+DriverDllLoader::DriverDllLoader(char *path)
 {
     DriverDllLoader();
-    driver_path = path;
-
-}
-
-DriverDllLoader::~DriverDllLoader()
-{
+    m_driver_path = path;
 }
 
 VAStatus DriverDllLoader::CloseDriver()
 {
-    VAStatus vaStatus;
-    vaStatus = ctx.vtable->vaTerminate(&ctx);
+    VAStatus vaStatus = m_ctx.vtable->vaTerminate(&m_ctx);
     vaCmExtSendReqMsg = nullptr;
-    if(umdhandle)
+
+    if(m_umdhandle)
     {
-        dlclose(umdhandle);
+        dlclose(m_umdhandle);
     }
+
     return vaStatus;
 }
+
 VAStatus DriverDllLoader::InitDriver(int platform_id)
 {
-    void *handle;
-    VAStatus vaStatus;
-    char init_func_s[256];
-    const char *cm_entry_name = "vaCmExtSendReqMsg";
-    VADriverInit init_func = NULL;
+    const char   *cm_entry_name   = "vaCmExtSendReqMsg";
+    char         init_func_s[256] = { };
+    int          drm_fd           = platform_id + 1 < 0 ? 1 : platform_id + 1;
+    VADriverInit init_func        = nullptr;
+    m_drmstate.fd                 = drm_fd;
+    m_drmstate.auth_type          = 3;
 
-    //printf("Load driver from %s.\n", driver_path);
-    int drm_fd = platform_id+1;//open("/dev/dri/renderD128", O_RDONLY);
-    if(drm_fd<0)
-        drm_fd = 1;
-    drmstate.fd = drm_fd;
-    drmstate.auth_type = 3;
-    //putenv("DRMMode=1");
-
-    umdhandle = dlopen(driver_path, RTLD_NOW | RTLD_GLOBAL | RTLD_NODELETE);
-
-    if (!umdhandle)
+    m_umdhandle = dlopen(m_driver_path, RTLD_NOW | RTLD_GLOBAL | RTLD_NODELETE);
+    if (!m_umdhandle)
     {
-        printf("ERROR: dlopen of %s failed.\n", driver_path);
+        printf("ERROR: dlopen of %s failed.\n", m_driver_path);
         return VA_STATUS_ERROR_UNKNOWN;
     }
     else
     {
-        for (int i = 0; i <= VA_MINOR_VERSION; i++) {
-            sprintf(init_func_s, "__vaDriverInit_%d_%d",VA_MAJOR_VERSION,i);
-            init_func = (VADriverInit)dlsym(umdhandle, init_func_s);
-            if (init_func){
-                vaCmExtSendReqMsg = (CmExtSendReqMsgFunc)dlsym(umdhandle,cm_entry_name);
-                MOS_SetUltFlag = (MOS_SetUltFlagFunc)dlsym(umdhandle, "MOS_SetUltFlag");
-                MOS_GetMemNinjaCounter = (GetMemNinjaCounter)dlsym(umdhandle, "MOS_GetMemNinjaCounter");
-                MOS_GetMemNinjaCounterGfx = (GetMemNinjaCounter)dlsym(umdhandle, "MOS_GetMemNinjaCounterGfx");
+        for (int i = 0; i <= VA_MINOR_VERSION; i++)
+        {
+            sprintf(init_func_s, "__vaDriverInit_%d_%d", VA_MAJOR_VERSION, i);
+            init_func = (VADriverInit)dlsym(m_umdhandle, init_func_s);
+            if (init_func)
+            {
+                vaCmExtSendReqMsg         = (CmExtSendReqMsgFunc)dlsym(m_umdhandle, cm_entry_name);
+                MOS_SetUltFlag            = (MOS_SetUltFlagFunc)dlsym(m_umdhandle, "MOS_SetUltFlag");
+                MOS_GetMemNinjaCounter    = (MOS_GetMemNinjaCounterFunc)dlsym(m_umdhandle, "MOS_GetMemNinjaCounter");
+                MOS_GetMemNinjaCounterGfx = (MOS_GetMemNinjaCounterFunc)dlsym(m_umdhandle, "MOS_GetMemNinjaCounterGfx");
                 break;
             }
         }
@@ -126,18 +124,12 @@ VAStatus DriverDllLoader::InitDriver(int platform_id)
         {
             return VA_STATUS_ERROR_UNKNOWN;
         }
-        //printf("INFO: Found init function %s and CM entry point %s.\n", init_func_s, cm_entry_name);
+
+        m_ctx.vtable     = &m_vtable;
+        m_ctx.vtable_vpp = &m_vtable_vpp;
+        m_ctx.drm_state  = &m_drmstate;
 
         MOS_SetUltFlag(1);
-
-        ctx.vtable = &vtable;
-        ctx.vtable_vpp = &vtable_vpp;
-        ctx.drm_state = &drmstate;
-        vaStatus = (*init_func)(&ctx);
-        //if (VA_STATUS_SUCCESS == vaStatus)
-        //{
-        //    printf("INFO: Get driver DDI functions\n");
-        //}
-        return vaStatus;
+        return (*init_func)(&m_ctx);
     }
 }

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -19,29 +19,32 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
-#pragma once
+#ifndef __REF_CAPS_TABLE_BDW_H__
+#define __REF_CAPS_TABLE_BDW_H__
+
 #include "driver_loader.h"
 
-vector<FeatureID> refFeatureIDTable_BDW = {
-    {VAProfileH264Main, VAEntrypointVLD},
-    {VAProfileH264Main, VAEntrypointEncSlice},
-    {VAProfileH264Main, (VAEntrypoint)VAEntrypointFEI},
-    {VAProfileH264High, VAEntrypointVLD},
-    {VAProfileH264High, VAEntrypointEncSlice},
-    {VAProfileH264High, (VAEntrypoint)VAEntrypointFEI},
-    {VAProfileH264ConstrainedBaseline, VAEntrypointVLD},
-    {VAProfileH264ConstrainedBaseline, VAEntrypointEncSlice},
-    {VAProfileH264ConstrainedBaseline, (VAEntrypoint)VAEntrypointFEI},
-    {VAProfileMPEG2Simple, VAEntrypointVLD},
-    {VAProfileMPEG2Simple, VAEntrypointEncSlice},
-    {VAProfileMPEG2Main, VAEntrypointVLD},
-    {VAProfileMPEG2Main, VAEntrypointEncSlice},
-    {VAProfileVC1Advanced, VAEntrypointVLD},
-    {VAProfileVC1Main, VAEntrypointVLD},
-    {VAProfileVC1Simple, VAEntrypointVLD},
-    {VAProfileJPEGBaseline, VAEntrypointVLD},
-    {VAProfileVP8Version0_3, VAEntrypointVLD},
-    {VAProfileNone, VAEntrypointVideoProc},
-    {VAProfileNone, (VAEntrypoint)VAEntrypointStats}
+std::vector<FeatureID> refFeatureIDTable_BDW = {
+    {VAProfileH264Main               , VAEntrypointVLD}                ,
+    {VAProfileH264Main               , VAEntrypointEncSlice}           ,
+    {VAProfileH264Main               , (VAEntrypoint)VAEntrypointFEI}  ,
+    {VAProfileH264High               , VAEntrypointVLD}                ,
+    {VAProfileH264High               , VAEntrypointEncSlice}           ,
+    {VAProfileH264High               , (VAEntrypoint)VAEntrypointFEI}  ,
+    {VAProfileH264ConstrainedBaseline, VAEntrypointVLD}                ,
+    {VAProfileH264ConstrainedBaseline, VAEntrypointEncSlice}           ,
+    {VAProfileH264ConstrainedBaseline, (VAEntrypoint)VAEntrypointFEI}  ,
+    {VAProfileMPEG2Simple            , VAEntrypointVLD}                ,
+    {VAProfileMPEG2Simple            , VAEntrypointEncSlice}           ,
+    {VAProfileMPEG2Main              , VAEntrypointVLD}                ,
+    {VAProfileMPEG2Main              , VAEntrypointEncSlice}           ,
+    {VAProfileVC1Advanced            , VAEntrypointVLD}                ,
+    {VAProfileVC1Main                , VAEntrypointVLD}                ,
+    {VAProfileVC1Simple              , VAEntrypointVLD}                ,
+    {VAProfileJPEGBaseline           , VAEntrypointVLD}                ,
+    {VAProfileVP8Version0_3          , VAEntrypointVLD}                ,
+    {VAProfileNone                   , VAEntrypointVideoProc}          ,
+    {VAProfileNone                   , (VAEntrypoint)VAEntrypointStats},
 };
 
+#endif // __REF_CAPS_TABLE_BDW_H__

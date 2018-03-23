@@ -44,7 +44,7 @@ public:
     {
         bool result = true;
 
-        const vector<Platform_t> &platforms = m_driverLoader.GetPlatforms();
+        const std::vector<Platform_t> &platforms = m_driverLoader.GetPlatforms();
         int platform_count = static_cast<int>(platforms.size());
 
         for (int i = 0; i < platform_count; ++i)

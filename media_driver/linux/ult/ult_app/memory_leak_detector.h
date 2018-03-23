@@ -19,12 +19,12 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef MEMORY_LEAK_DETECTOR_H
-#define MEMORY_LEAK_DETECTOR_H
+#ifndef __MEMORY_LEAK_DETECTOR_H__
+#define __MEMORY_LEAK_DETECTOR_H__
 
-#include "driver_loader.h"
 #include <map>
 #include <vector>
+#include "driver_loader.h"
 
 #define LOG_PATH             "./igd_0.log"
 #define HLT_PATH             "./igd_0.hlt"
@@ -52,27 +52,30 @@ class MemoryLeakDetector
 {
 public:
 
-    static void detect(const DriverDllLoader &drvLoader, Platform_t platform);
+    static void Detect(const DriverDllLoader &drvLoader, Platform_t platform);
 };
 
 class MemoryLeakDetectorIpl
 {
 public:
 
-    static MemoryLeakDetectorIpl * getInstance();
-    void detect(const std::string &logPath);
-    void generateReport(const std::string &reportPath, const std::string &title) const;
+    static MemoryLeakDetectorIpl *GetInstance();
+
+    void Detect(const std::string &logPath);
+
+    void GenerateReport(const std::string &reportPath, const std::string &title) const;
 
 private:
 
-    bool parseLine(const std::string &line, MemInfo& memInfo) const;
-    uint32_t getHitNum(int32_t idx) const;
+    bool ParseLine(const std::string &line, MemInfo &memInfo) const;
+    
+    uint32_t GetHitNum(int32_t idx) const;
 
 private:
 
-    static MemoryLeakDetectorIpl *instance;
-    std::map<uint64_t, int32_t> m_memPtr;
-    std::vector<MemInfo> m_memInfoTable;
+    static MemoryLeakDetectorIpl *m_instance;
+    std::map<uint64_t, int32_t>  m_memPtr;
+    std::vector<MemInfo>         m_memInfoTable;
 };
 
-#endif //MEMORY_LEAK_DETECTOR_H
+#endif // __MEMORY_LEAK_DETECTOR_H__

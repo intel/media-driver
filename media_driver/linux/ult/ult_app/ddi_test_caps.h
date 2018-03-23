@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -19,24 +19,26 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
-#pragma once
+#ifndef __DDI_TEST_CAPS_H__
+#define __DDI_TEST_CAPS_H__
 
 #include "driver_loader.h"
-#include "test_data_caps.h"
-#include "memory_leak_detector.h"
 #include "gtest/gtest.h"
+#include "memory_leak_detector.h"
+#include "test_data_caps.h"
 
 class MediaCapsDdiTest : public testing::Test
 {
 protected:
-    virtual void SetUp()
-    {
-    }
 
-    virtual void TearDown()
-    {
-    }
+    virtual void SetUp() { }
 
-    DriverDllLoader driverLoader;
-    CapsTestData capsData;
+    virtual void TearDown() { }
+
+protected:
+
+    DriverDllLoader m_driverLoader;
+    CapsTestData    m_capsData;
 };
+
+#endif // __DDI_TEST_CAPS_H__

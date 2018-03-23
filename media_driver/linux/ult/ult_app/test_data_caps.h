@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -19,14 +19,13 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
-#pragma once
+#ifndef __TEST_DATA_CAPS_H__
+#define __TEST_DATA_CAPS_H__
 
-#include "driver_loader.h"
-#include<string>
-#include<string.h>
 #include <map>
-
-using std::string;
+#include <string>
+#include <string.h>
+#include "driver_loader.h"
 
 struct MapFeatureIDComparer
 {
@@ -39,16 +38,21 @@ struct MapFeatureIDComparer
 class CapsTestData
 {
 public:
+
     CapsTestData();
-    ~CapsTestData();
-    vector<FeatureID>& GetRefFeatureIDTable(DeviceConfig platform)
+
+    std::vector<FeatureID>& GetRefFeatureIDTable(DeviceConfig platform)
     {
-        return mapPlatformRefFeatureIDs[platform];
-    };
+        return m_mapPlatformRefFeatureIDs[platform];
+    }
+
 private:
+
     void InitRefFeatureIDMap();
 
 private:
-    map<DeviceConfig, vector<FeatureID>, MapFeatureIDComparer> mapPlatformRefFeatureIDs;
+
+    std::map<DeviceConfig, std::vector<FeatureID>, MapFeatureIDComparer> m_mapPlatformRefFeatureIDs;
 };
 
+#endif // __TEST_DATA_CAPS_H__

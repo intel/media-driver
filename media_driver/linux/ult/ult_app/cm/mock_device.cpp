@@ -58,9 +58,9 @@ bool MockDevice::Create(DriverDllLoader *driver_loader,
     this->vaCmExtSendReqMsg = driver_loader->vaCmExtSendReqMsg;
     if (nullptr == vaDestroySurfaces)
     {
-        vaDestroySurfaces = driver_loader->vtable.vaDestroySurfaces;
+        vaDestroySurfaces = driver_loader->m_vtable.vaDestroySurfaces;
     }
-    m_vaDisplay.pDriverContext = &driver_loader->ctx;
+    m_vaDisplay.pDriverContext = &driver_loader->m_ctx;
     m_cmDevice = CreateNewDevice(additinal_options);
     return nullptr != m_cmDevice;
 }//==============================

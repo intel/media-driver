@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -21,13 +21,11 @@
 */
 #include "test_data_caps.h"
 
+using namespace std;
+
 CapsTestData::CapsTestData()
 {
     InitRefFeatureIDMap();
-}
-
-CapsTestData::~CapsTestData()
-{
 }
 
 void CapsTestData::InitRefFeatureIDMap()
@@ -36,10 +34,8 @@ void CapsTestData::InitRefFeatureIDMap()
     #include "RefCapsTable_BXT.h"
     #include "RefCapsTable_BDW.h"
     #include "RefCapsTable_CNL.h"
-    mapPlatformRefFeatureIDs[DeviceConfigTable[igfxSKLAKE]] = refFeatureIDTable_SKL;
-    mapPlatformRefFeatureIDs[DeviceConfigTable[igfxBROXTON]] = refFeatureIDTable_BXT;
-    mapPlatformRefFeatureIDs[DeviceConfigTable[igfxBROADWELL]] = refFeatureIDTable_BDW;
-    mapPlatformRefFeatureIDs[DeviceConfigTable[igfxCANNONLAKE]] = refFeatureIDTable_CNL;
-
+    m_mapPlatformRefFeatureIDs[DeviceConfigTable[igfxSKLAKE]]     = refFeatureIDTable_SKL;
+    m_mapPlatformRefFeatureIDs[DeviceConfigTable[igfxBROXTON]]    = refFeatureIDTable_BXT;
+    m_mapPlatformRefFeatureIDs[DeviceConfigTable[igfxBROADWELL]]  = refFeatureIDTable_BDW;
+    m_mapPlatformRefFeatureIDs[DeviceConfigTable[igfxCANNONLAKE]] = refFeatureIDTable_CNL;
 }
-

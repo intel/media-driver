@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -19,39 +19,45 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
-#pragma once
+#ifndef __DDI_TEST_DECODE_H__
+#define __DDI_TEST_DECODE_H__
 
 #include "driver_loader.h"
-#include "test_data_decode.h"
-#include "test_data_caps.h"
-#include "memory_leak_detector.h"
 #include "gtest/gtest.h"
+#include "memory_leak_detector.h"
+#include "test_data_caps.h"
+#include "test_data_decode.h"
 
 class DecodeTestConfig
 {
 public:
+
     DecodeTestConfig();
-    ~DecodeTestConfig();
+
     bool IsDecTestEnabled(DeviceConfig platform, FeatureID featureId);
+
 private:
-    map<DeviceConfig, vector<FeatureID>, MapFeatureIDComparer> mapPlatformFeatureID;
+
+    std::map<DeviceConfig, std::vector<FeatureID>, MapFeatureIDComparer> m_mapPlatformFeatureID;
 };
 
 class MediaDecodeDdiTest : public testing::Test
 {
 protected:
-    virtual void SetUp()
-    {
-    }
 
-    virtual void TearDown()
-    {
-    }
+    virtual void SetUp() { }
 
-    void DecodeExecute(DecTestData* pDecData,Platform_t platform);
-    void ExectueDecodeTest(DecTestData* pDecData);
+    virtual void TearDown() { }
 
-    DriverDllLoader driverLoader;
-    DecTestDataFactory decDataFactory;
-    DecodeTestConfig decTestCfg;
+    void DecodeExecute(DecTestData *pDecData, Platform_t platform);
+
+    void ExectueDecodeTest(DecTestData *pDecData);
+
+protected:
+
+    DriverDllLoader    m_driverLoader;
+    DecTestDataFactory m_decDataFactory;
+    DecodeTestConfig   m_decTestCfg;
 };
+
+#endif // __DDI_TEST_DECODE_H__

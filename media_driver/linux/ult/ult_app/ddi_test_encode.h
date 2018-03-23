@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -19,39 +19,45 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
-#pragma once
+#ifndef __DDI_TEST_ENCODE_H__
+#define __DDI_TEST_ENCODE_H__
 
 #include "driver_loader.h"
-#include "test_data_encode.h"
-#include "test_data_caps.h"
-#include "memory_leak_detector.h"
 #include "gtest/gtest.h"
+#include "memory_leak_detector.h"
+#include "test_data_caps.h"
+#include "test_data_encode.h"
 
 class EncodeTestConfig
 {
 public:
+
     EncodeTestConfig();
-    ~EncodeTestConfig();
+
     bool IsEncTestEnabled(DeviceConfig platform, FeatureID featureId);
+
 private:
-    map<DeviceConfig, vector<FeatureID>, MapFeatureIDComparer> mapPlatformFeatureID;
+
+    std::map<DeviceConfig, std::vector<FeatureID>, MapFeatureIDComparer> m_mapPlatformFeatureID;
 };
 
 class MediaEncodeDdiTest : public testing::Test
 {
 protected:
-    virtual void SetUp()
-    {
-    };
 
-    virtual void TearDown()
-    {
-    };
+    virtual void SetUp() { }
 
-    void EncodeExecute(EncTestData* pDecData, Platform_t platform);
-    void ExectueEncodeTest(EncTestData* pDecData);
+    virtual void TearDown() { }
 
-    DriverDllLoader driverLoader;
-    EncTestDataFactory encTestFactory;
-    EncodeTestConfig encTestCfg;
+    void EncodeExecute(EncTestData *pDecData, Platform_t platform);
+
+    void ExectueEncodeTest(EncTestData *pDecData);
+
+protected:
+
+    DriverDllLoader    m_driverLoader;
+    EncTestDataFactory m_encTestFactory;
+    EncodeTestConfig   m_encTestCfg;
 };
+
+#endif // __DDI_TEST_ENCODE_H__
