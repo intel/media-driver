@@ -1481,10 +1481,16 @@ protected:
         // Add for multiple pass
         if (params->maxFrameSize > 0 && params->deltaQp)
         {
-            cmd.DW10_11.Value[0] = (params->deltaQp[3] << 24) | (params->deltaQp[2] << 16) |
-                (params->deltaQp[1] << 8) | params->deltaQp[0];
-            cmd.DW10_11.Value[1] = (params->deltaQp[7] << 24) | (params->deltaQp[6] << 16) |
-                (params->deltaQp[5] << 8) | params->deltaQp[4];
+            uint8_t hevcMaxPassNum = 8;
+
+            // When current pass is less than the max number of pass, set the delta QP.
+            if (params->currPass < hevcMaxPassNum)
+            {
+                cmd.DW10_11.Value[0] = (params->deltaQp[params->currPass] << 24) | (params->deltaQp[params->currPass] << 16) |
+                    (params->deltaQp[params->currPass] << 8) | params->deltaQp[params->currPass];
+                cmd.DW10_11.Value[1] = (params->deltaQp[params->currPass] << 24) | (params->deltaQp[params->currPass] << 16) |
+                    (params->deltaQp[params->currPass] << 8) | params->deltaQp[params->currPass];
+            }
 
             // If the calculated value of max frame size exceeded 14 bits, need set the unit as 4K byte. Else, set the unit as 32 byte.
             if (params->maxFrameSize >= (0x1 << 14) * 32)
