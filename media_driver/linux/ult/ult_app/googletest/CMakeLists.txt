@@ -1,4 +1,4 @@
-# Copyright (c) 2017, Intel Corporation
+# Copyright (c) 2018, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -28,15 +28,7 @@ aux_source_directory(./src GTEST_SOURCES)
 
 set(SOURCES ./src/gtest-all.cc ./src/gtest_main.cc)
 
-add_definitions(-DCMAKE_BUILD_TYPE=Debug)
-
-SET(CMAKE_C_FLAGS "-g -O0")
-SET(CMAKE_CXX_FLAGS "-g -O0")
-
-
-
 ADD_LIBRARY(libgtest ${SOURCES})
-
 LINK_DIRECTORIES(/usr/lib/x86_64-linux-gnu/)
 
 find_package(Threads)

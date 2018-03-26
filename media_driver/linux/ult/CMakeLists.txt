@@ -1,4 +1,4 @@
-# Copyright (c) 2017, Intel Corporation
+# Copyright (c) 2018, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -19,10 +19,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 cmake_minimum_required(VERSION 3.1)
 
-if(${PLATFORM} STREQUAL "yocto")
-    set (GEN8_BDW_Supported "no")
-    set (GEN10_CNL_Supported "no")
-endif()
+add_compile_options(-std=c++11)
 
 include(${MEDIA_DRIVER_CMAKE}/linux/media_feature_flags_linux.cmake)
 include(${MEDIA_DRIVER_CMAKE}/linux/media_gen_flags_linux.cmake)

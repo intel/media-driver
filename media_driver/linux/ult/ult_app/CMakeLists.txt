@@ -1,4 +1,4 @@
-# Copyright (c) 2017, Intel Corporation
+# Copyright (c) 2018, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -54,11 +54,6 @@ endif()
 aux_source_directory(. SOURCES)
 aux_source_directory(cm SOURCES)
 aux_source_directory(${agnostic_cm_tests} SOURCES)
-add_compile_options(-std=c++11)
-set(CMAKE_C_COMPILER "g++")
-
-SET(CMAKE_C_FLAGS "-g -O0")
-SET(CMAKE_CXX_FLAGS "-g -O0")
 
 add_executable(devult ${SOURCES})
 

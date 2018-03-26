@@ -1,4 +1,4 @@
-# Copyright (c) 2017, Intel Corporation
+# Copyright (c) 2018, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -21,13 +21,9 @@ cmake_minimum_required(VERSION 2.8)
 
 project(libdrm_mock)
 
-SET(CMAKE_C_FLAGS "-g -O0")
-SET(CMAKE_CXX_FLAGS "-g -O0")
-
 include_directories(./include ../inc)
 aux_source_directory(. SOURCES)
-add_compile_options(-std=c++11)
-set(CMAKE_C_COMPILER "g++")
+set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE "CXX")
 add_library(drm_mock SHARED ${SOURCES})
 
 set_target_properties(drm_mock PROPERTIES VERSION 2.4.0 SOVERSION 2)
