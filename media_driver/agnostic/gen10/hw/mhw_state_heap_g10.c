@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -245,6 +245,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G10_X::SetSurfaceStateEntry(
         pSurfaceState->DW4.RenderTargetAndSampleUnormRotation      = pParams->RotationMode;
         pSurfaceState->DW5.XOffset                                 = pParams->iXOffset >> 2;
         pSurfaceState->DW5.YOffset                                 = pParams->iYOffset >> 2;
+        pSurfaceState->DW6.Obj0.SeparateUvPlaneEnable              = pParams->bSeperateUVPlane;
         pSurfaceState->DW6.Obj0.XOffsetForUOrUvPlane               = pParams->dwXOffsetForU;
         pSurfaceState->DW6.Obj0.YOffsetForUOrUvPlane               = pParams->dwYOffsetForU;
 

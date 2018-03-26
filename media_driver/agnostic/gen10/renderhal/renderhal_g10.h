@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -162,8 +162,7 @@ public:
     inline bool IsEnableYV12SinglePass(
         PRENDERHAL_INTERFACE    pRenderHal)
     {
-        MOS_UNUSED(pRenderHal);
-        return false;
+        return MEDIA_IS_WA(pRenderHal->pWaTable, WaEnableYV12BugFixInHalfSliceChicken7);
     }
 
     //!
