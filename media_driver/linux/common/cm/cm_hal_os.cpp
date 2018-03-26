@@ -1082,7 +1082,7 @@ MOS_STATUS HalCm_QueryTask_Linux(
 
     renderHal = state->renderHal;
     stateHeap = renderHal->pStateHeap;
-    syncOffset = state->pfnGetTaskSyncLocation(queryParam->taskId);
+    syncOffset = state->pfnGetTaskSyncLocation(state, queryParam->taskId);
     piSyncStart = (int64_t*)(state->renderTimeStampResource.data + syncOffset);
     piSyncEnd = piSyncStart + 1;
     queryParam->taskDurationNs = CM_INVALID_INDEX;

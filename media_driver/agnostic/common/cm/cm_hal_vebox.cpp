@@ -100,7 +100,7 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
     CM_CHK_MOSSTATUS(HalCm_GetNewTaskId(state, &taskId));
 
     // get the task sync offset
-    syncOffset = state->pfnGetTaskSyncLocation(taskId);
+    syncOffset = state->pfnGetTaskSyncLocation(state, taskId);
 
     // set Perf Tag
     osInterface->pfnResetPerfBufferID(osInterface);

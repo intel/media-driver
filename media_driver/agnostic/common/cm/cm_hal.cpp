@@ -171,7 +171,7 @@ MOS_STATUS HalCm_AllocateTsResource(
     hr              = MOS_STATUS_SUCCESS;
     osInterface    = state->osInterface;
 
-    size = ((sizeof(uint64_t)* CM_SYNC_QWORD_PER_TASK) + (sizeof(uint64_t)* CM_TRACKER_ID_QWORD_PER_TASK)) * state->cmDeviceParam.maxTasks;
+    size = state->cmHalInterface->GetTimeStampResourceSize() * state->cmDeviceParam.maxTasks;    
     // allocate render engine Ts Resource
     MOS_ZeroMemory(&allocParams, sizeof(MOS_ALLOC_GFXRES_PARAMS));
     allocParams.Type    = MOS_GFXRES_BUFFER;
@@ -11397,10 +11397,10 @@ MOS_STATUS HalCm_SetVtuneProfilingFlag(
 //| Returns:    Sync Location
 //*-----------------------------------------------------------------------------
 int32_t HalCm_GetTaskSyncLocation(
+    PCM_HAL_STATE       state,
     int32_t             taskId)        // [in] Task ID
 {
-    return (taskId * (CM_SYNC_QWORD_PER_TASK * sizeof(uint64_t)
-            +(CM_TRACKER_ID_QWORD_PER_TASK * sizeof(uint64_t))));
+    return (taskId * state->cmHalInterface->GetTimeStampResourceSize());
 }
 
 void HalCm_GetLegacyRenderHalL3Setting( CmHalL3Settings *l3SettingsPtr, RENDERHAL_L3_CACHE_SETTINGS *l3SettingsLegacyPtr )

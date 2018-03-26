@@ -728,7 +728,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
 
     // Get the task sync offset
-    syncOffset = state->pfnGetTaskSyncLocation(taskId);
+    syncOffset = state->pfnGetTaskSyncLocation(state, taskId);
 
     // Initialize the location
     taskSyncLocation                 = (int64_t*)(state->renderTimeStampResource.data + syncOffset);

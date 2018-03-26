@@ -1750,7 +1750,8 @@ typedef struct _CM_HAL_STATE
     // Internal interface methods called by CM HAL only <START>
     //********************************************************************************
     int32_t (*pfnGetTaskSyncLocation)
-    (   int32_t                     taskId);
+    (   PCM_HAL_STATE               state,
+        int32_t                     taskId);
 
     MOS_STATUS (*pfnGetGpuTime)
     (   PCM_HAL_STATE               state,
@@ -2123,6 +2124,7 @@ MOS_STATUS HalCm_Lock2DResource(
     PCM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM     param);
 
 int32_t HalCm_GetTaskSyncLocation(
+    PCM_HAL_STATE       state,
     int32_t             taskId);
 
 MOS_STATUS HalCm_SetL3Cache(

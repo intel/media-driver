@@ -553,6 +553,18 @@ public:
     virtual MOS_STATUS GetExpectedGtSystemConfig(
         PCM_EXPECTED_GT_SYSTEM_INFO expectedConfig) = 0;
 
+    //!
+    //! \brief    Get the size of the timestamp resource for each task
+    //! \details  Get the size of the timestamp resource for each task
+    //! \return   int32_t
+    //!           Size of the timestamp resource for each task
+    //!
+    virtual int32_t GetTimeStampResourceSize()
+    {
+        // Default: 2 QWORDs for each kernel in the task + 1 QWORD for frame tracking
+        return (sizeof(uint64_t) * CM_SYNC_QWORD_PER_TASK) + (sizeof(uint64_t) * CM_TRACKER_ID_QWORD_PER_TASK);
+    }
+
 protected:
     uint32_t m_platformID;
     uint32_t m_genGT;
