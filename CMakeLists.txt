@@ -20,6 +20,17 @@
 
 cmake_minimum_required(VERSION 3.5)
 
+
+include(os_release_info.cmake)
+
+get_os_release_info(os_name os_version)
+
+if("${os_name}" STREQUAL "clear-linux-os")
+    # clear-linux-os distribution avoids /etc for distribution defaults.
+    # Set this variable explicitly before including GNUInstallDirs.
+    set(CMAKE_INSTALL_SYSCONFDIR "usr/share/defaults/etc")
+endif()
+
 include(GNUInstallDirs)
 
 add_subdirectory(cmrtlib)
