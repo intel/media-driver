@@ -7663,7 +7663,7 @@ MOS_STATUS HalCm_SetupStatesForKernelInitial(
             CM_POWER_OPTION  cmPower;
             cmPower.nSlice = 1;
             cmPower.nSubSlice = platformInfo.numSubSlices / 2;
-            cmPower.nEU = 0;
+            cmPower.nEU = (uint16_t)platformInfo.numEUsPerSubSlice;
             state->pfnSetPowerOption(state, &cmPower);
         }
     }
