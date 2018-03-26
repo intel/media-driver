@@ -267,7 +267,6 @@ struct drm_i915_cmd_parser_append {
 #define DRM_I915_GEM_USERPTR        0x33
 #define DRM_I915_GEM_CONTEXT_GETPARAM    0x34
 #define DRM_I915_GEM_CONTEXT_SETPARAM    0x35
-#define DRM_I915_GEM_CONTEXT_CREATE2    0x36
 #define DRM_I915_PERFMON        0x3e
 
 #ifndef ANDROID
@@ -324,7 +323,6 @@ struct drm_i915_cmd_parser_append {
 #define DRM_IOCTL_I915_GET_SPRITE_COLORKEY DRM_IOWR(DRM_COMMAND_BASE + DRM_I915_GET_SPRITE_COLORKEY, struct drm_intel_sprite_colorkey)
 #define DRM_IOCTL_I915_GEM_WAIT        DRM_IOWR(DRM_COMMAND_BASE + DRM_I915_GEM_WAIT, struct drm_i915_gem_wait)
 #define DRM_IOCTL_I915_GEM_CONTEXT_CREATE    DRM_IOWR (DRM_COMMAND_BASE + DRM_I915_GEM_CONTEXT_CREATE, struct drm_i915_gem_context_create)
-#define DRM_IOCTL_I915_GEM_CONTEXT_CREATE2    DRM_IOWR (DRM_COMMAND_BASE + DRM_I915_GEM_CONTEXT_CREATE2, struct drm_i915_gem_context_create2)
 #define DRM_IOCTL_I915_GEM_CONTEXT_DESTROY    DRM_IOW (DRM_COMMAND_BASE + DRM_I915_GEM_CONTEXT_DESTROY, struct drm_i915_gem_context_destroy)
 #define DRM_IOCTL_I915_REG_READ            DRM_IOWR (DRM_COMMAND_BASE + DRM_I915_REG_READ, struct drm_i915_reg_read)
 #define DRM_IOCTL_I915_GET_RESET_STATS        DRM_IOWR (DRM_COMMAND_BASE + DRM_I915_GET_RESET_STATS, struct drm_i915_reset_stats)
@@ -1280,15 +1278,6 @@ struct drm_i915_gem_wait {
 struct drm_i915_gem_context_create {
     /*  output: id of new context*/
     __u32 ctx_id;
-    __u32 pad;
-};
-
-#define I915_CTX_CREATE_SHARE_PPGTT (1 << 0)
-struct drm_i915_gem_context_create2 {
-    __u32 ctx_id;
-    __u32 flags;
-    /* input: id of context to share PPGTT, 0 for default context */
-    __u32 svm_ctx_id;
     __u32 pad;
 };
 

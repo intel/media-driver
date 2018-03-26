@@ -282,9 +282,6 @@ int mos_get_aperture_sizes(int fd, size_t *mappable, size_t *total);
 int mos_bufmgr_gem_get_devid(struct mos_bufmgr *bufmgr);
 
 struct mos_linux_context *mos_gem_context_create(struct mos_bufmgr *bufmgr);
-struct mos_linux_context *mos_gem_context_create2(struct mos_bufmgr *bufmgr,
-                         struct mos_linux_context *share_ctx,
-                         uint32_t flags);
 void mos_gem_context_destroy(struct mos_linux_context *ctx);
 int mos_gem_bo_context_exec(struct mos_linux_bo *bo, struct mos_linux_context *ctx,
                   int used, unsigned int flags);

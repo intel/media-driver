@@ -4612,38 +4612,6 @@ mos_gem_context_create(struct mos_bufmgr *bufmgr)
     return context;
 }
 
-struct mos_linux_context *
-mos_gem_context_create2(struct mos_bufmgr *bufmgr,
-                  struct mos_linux_context *share_ctx,
-                  uint32_t flags)
-{
-    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *)bufmgr;
-    struct drm_i915_gem_context_create2 create2;
-    struct mos_linux_context *context;
-    int ret;
-
-    context = (struct mos_linux_context *)calloc(1, sizeof(*context));
-    if (!context)
-        return nullptr;
-
-    memclear(create2);
-    create2.flags = flags;
-    create2.svm_ctx_id = share_ctx ? share_ctx->ctx_id : 0;
-    ret = drmIoctl(bufmgr_gem->fd,
-               DRM_IOCTL_I915_GEM_CONTEXT_CREATE2, &create2);
-    if (ret != 0) {
-        MOS_DBG("DRM_IOCTL_I915_GEM_CONTEXT_CREATE2 failed: %s\n",
-            strerror(errno));
-        free(context);
-        return nullptr;
-    }
-
-    context->ctx_id = create2.ctx_id;
-    context->bufmgr = bufmgr;
-
-    return context;
-}
-
 void
 mos_gem_context_destroy(struct mos_linux_context *ctx)
 {
