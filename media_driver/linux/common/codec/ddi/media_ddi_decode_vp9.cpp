@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2017, Intel Corporation
+* Copyright (c) 2015-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -129,7 +129,23 @@ VAStatus DdiDecodeVP9::ParsePicParams(
         }
         else
         {
-            picVp9Params->RefFrameList[i].FrameIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9 - 1;
+            PDDI_MEDIA_SURFACE refSurface          = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->reference_frames[i]);
+            if (refSurface != nullptr)
+            {
+                frameIdx = GetRenderTargetID(&m_ddiDecodeCtx->RTtbl, refSurface);
+                if (frameIdx != DDI_CODEC_INVALID_FRAME_INDEX)
+                {
+                    picVp9Params->RefFrameList[i].FrameIdx = ((uint32_t)frameIdx >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9) ? (CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9 - 1) : frameIdx;
+                }
+                else
+                {
+                    picVp9Params->RefFrameList[i].FrameIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9 - 1;
+                }
+            }
+            else
+            {
+                picVp9Params->RefFrameList[i].FrameIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9 - 1;
+            }
         }
     }
 
