@@ -992,14 +992,44 @@ MOS_STATUS CodechalDecodeAvc::AllocateStandard(
 
     if (settings->downsamplingHinted)
     {
-        // Create Render Context for field scaling
+        bool isComputeContextEnabled = false;
         MOS_GPUCTX_CREATOPTIONS createOption;
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
-            m_osInterface,
-            MOS_GPU_CONTEXT_RENDER,
-            MOS_GPU_NODE_3D,
-            &createOption));
-        m_renderContext = MOS_GPU_CONTEXT_RENDER;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+        MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_DECODE_ENABLE_COMPUTE_CONTEXT_ID,
+            &userFeatureData);
+        isComputeContextEnabled = (userFeatureData.u32Data) ? true : false;
+#endif
+
+        if (!MEDIA_IS_SKU(m_skuTable, FtrCCSNode))
+        {
+            isComputeContextEnabled = false;
+        }
+
+        if (isComputeContextEnabled)
+        {
+            // Create Render Context for field scaling
+            CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
+                m_osInterface,
+                MOS_GPU_CONTEXT_COMPUTE,
+                MOS_GPU_NODE_COMPUTE,
+                &createOption));
+            m_renderContext = MOS_GPU_CONTEXT_COMPUTE;
+        }
+        else
+        {
+            // Create Render Context for field scaling
+            CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
+                m_osInterface,
+                MOS_GPU_CONTEXT_RENDER,
+                MOS_GPU_NODE_3D,
+                &createOption));
+            m_renderContext = MOS_GPU_CONTEXT_RENDER;
+        }
     }
 
     m_intelEntrypointInUse = (settings->intelEntrypointInUse) ? true : false;
