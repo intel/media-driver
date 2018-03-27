@@ -1750,6 +1750,7 @@ public:
 
     MHW_VDBOX_NODE_IND              m_vdboxIndex;               //!< Index of vdbox
     MediaPerfProfiler               *m_perfProfiler = nullptr;  //!< Performance data profiler
+    PMOS_GPUCTX_CREATOPTIONS        m_gpuCtxCreatOpt = nullptr; //!< Used for creating GPU context
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     bool m_mmcUserFeatureUpdated;  //!< indicate if the user feature is updated with MMC state
@@ -1952,6 +1953,18 @@ public:
     virtual void PrepareNodes(
         MOS_GPU_NODE& videoGpuNode,
         bool&         setVideoNode);
+
+    //!
+    //! \brief  Set up params for gpu context creation
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SetGpuCtxCreatOption();
+
+    //!
+    //! \brief  Sets video gpu context
+    //!
+    void SetVideoContext(MOS_GPU_CONTEXT videoContext) { m_videoContext = videoContext; }
 
     //!
     //! \brief  Create Gpu Contexts
