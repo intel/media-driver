@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -109,24 +109,42 @@ MediaPerfProfiler::MediaPerfProfiler()
     m_perfDataIndex = 0;
     m_ref           = 0;
     m_initialized   = false;
+
+    m_profilerEnabled = 0;
+    
+    MOS_USER_FEATURE_VALUE_DATA     userFeatureData;
+    // Check whether profiler is enabled
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_ENABLE_ID,
+        &userFeatureData);
+    m_profilerEnabled = userFeatureData.bData;
+
+    if (m_profilerEnabled == 0)
+    {
+        return;
+    }
+
+    m_mutex = MOS_CreateMutex();
 }
 
 MediaPerfProfiler::~MediaPerfProfiler()
 {
+    if (m_mutex != nullptr)
+    {
+        MOS_DestroyMutex(m_mutex);
+        m_mutex = nullptr;
+    }
 }
 
 MediaPerfProfiler* MediaPerfProfiler::Instance()
 {
     static MediaPerfProfiler instance;
 
-    if (instance.m_mutex == nullptr)
+    if (instance.m_profilerEnabled == 0 || instance.m_mutex == nullptr)
     {
-        instance.m_mutex = MOS_CreateMutex();
-    }
-
-    if (instance.m_mutex == nullptr)
-    {
-        return nullptr;
+        return &instance;
     }
     
     MOS_LockMutex(instance.m_mutex);
@@ -138,7 +156,7 @@ MediaPerfProfiler* MediaPerfProfiler::Instance()
 
 void MediaPerfProfiler::Destroy(MediaPerfProfiler* profiler, void* context, MOS_INTERFACE *osInterface)
 {
-    if (profiler->m_mutex == nullptr)
+    if (profiler->m_profilerEnabled == 0 || profiler->m_mutex == nullptr)
     {
         return;
     }
@@ -162,9 +180,6 @@ void MediaPerfProfiler::Destroy(MediaPerfProfiler* profiler, void* context, MOS_
         }
 
         MOS_UnlockMutex(profiler->m_mutex);
-
-        MOS_DestroyMutex(profiler->m_mutex);
-        profiler->m_mutex = nullptr;
     }
     else
     {
@@ -174,7 +189,12 @@ void MediaPerfProfiler::Destroy(MediaPerfProfiler* profiler, void* context, MOS_
 
 MOS_STATUS MediaPerfProfiler::Initialize(void* context, MOS_INTERFACE *osInterface)
 {
-    MOS_STATUS                      status = MOS_STATUS_SUCCESS;
+    MOS_STATUS status = MOS_STATUS_SUCCESS;
+
+    if (m_profilerEnabled == 0 || m_mutex == nullptr)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
 
     CHK_NULL_RETURN(osInterface);
     CHK_NULL_RETURN(m_mutex);
@@ -189,24 +209,7 @@ MOS_STATUS MediaPerfProfiler::Initialize(void* context, MOS_INTERFACE *osInterfa
         return status;
     }
 
-    MOS_ZeroMemory(&m_perfStoreBuffer, sizeof(MOS_RESOURCE));
-
     MOS_USER_FEATURE_VALUE_DATA     userFeatureData;
-    int32_t                         profilerEnabled = 0;
-
-    // Check whether profiler is enabled
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_ENABLE_ID,
-        &userFeatureData);
-    profilerEnabled = userFeatureData.bData;
-
-    if (profilerEnabled == 0)
-    {
-        MOS_UnlockMutex(m_mutex);
-        return status;
-    }
 
     // Read output file name
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
@@ -255,6 +258,8 @@ MOS_STATUS MediaPerfProfiler::Initialize(void* context, MOS_INTERFACE *osInterfa
         m_registers[regIndex] = userFeatureData.u32Data;
     }
 
+    MOS_ZeroMemory(&m_perfStoreBuffer, sizeof(MOS_RESOURCE));
+    
     // Allocate the buffer which store the performance data
     MOS_ALLOC_GFXRES_PARAMS allocParams;
     MOS_ZeroMemory(&allocParams, sizeof(MOS_ALLOC_GFXRES_PARAMS));
@@ -389,7 +394,7 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectStartCmd(void* context,
     MhwMiInterface *miInterface,
     MOS_COMMAND_BUFFER *cmdBuffer)
 {
-    MOS_STATUS       status        = MOS_STATUS_SUCCESS;
+    MOS_STATUS status = MOS_STATUS_SUCCESS;
 
     if (m_initialized == false)
     {
@@ -401,7 +406,7 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectStartCmd(void* context,
     CHK_NULL_RETURN(cmdBuffer);
     CHK_NULL_RETURN(m_mutex);
 
-    uint32_t         perfDataIndex = 0;
+    uint32_t perfDataIndex = 0;
 
     MOS_LockMutex(m_mutex);
 
@@ -565,9 +570,9 @@ MOS_STATUS MediaPerfProfiler::SavePerfData(MOS_INTERFACE *osInterface)
     return status;
 }
 
-MOS_GPU_NODE MediaPerfProfiler::GpuContextToGpuNode(MOS_GPU_CONTEXT context)
+PerfGPUNode MediaPerfProfiler::GpuContextToGpuNode(MOS_GPU_CONTEXT context)
 {
-    MOS_GPU_NODE node = MOS_GPU_NODE_MAX;
+    PerfGPUNode node = PERF_GPU_NODE_UNKNOW;
 
     switch (context)
     {
@@ -576,28 +581,29 @@ MOS_GPU_NODE MediaPerfProfiler::GpuContextToGpuNode(MOS_GPU_CONTEXT context)
         case MOS_GPU_CONTEXT_RENDER3:
         case MOS_GPU_CONTEXT_RENDER4:
         case MOS_GPU_OVERLAY_CONTEXT:
-            node = MOS_GPU_NODE_3D;
+            node = PERF_GPU_NODE_3D;
             break;
         case MOS_GPU_CONTEXT_COMPUTE:
         case MOS_GPU_CONTEXT_CM_COMPUTE:
-            node = MOS_GPU_NODE_3D;
+            node = PERF_GPU_NODE_3D;
             break;
         case MOS_GPU_CONTEXT_VIDEO:
         case MOS_GPU_CONTEXT_VIDEO2:
         case MOS_GPU_CONTEXT_VIDEO3:
         case MOS_GPU_CONTEXT_VIDEO4:
-            node = MOS_GPU_NODE_VIDEO;
+            node = PERF_GPU_NODE_VIDEO;
             break;
         case MOS_GPU_CONTEXT_VDBOX2_VIDEO:
         case MOS_GPU_CONTEXT_VDBOX2_VIDEO2:
         case MOS_GPU_CONTEXT_VDBOX2_VIDEO3:
-            node = MOS_GPU_NODE_VIDEO2;
+            node = PERF_GPU_NODE_VIDEO2;
             break;
         case MOS_GPU_CONTEXT_VEBOX:
         case MOS_GPU_CONTEXT_VEBOX2:
-            node = MOS_GPU_NODE_VE;
+            node = PERF_GPU_NODE_VE;
             break;
         default:
+            node = PERF_GPU_NODE_UNKNOW;
             break;
     }
 
