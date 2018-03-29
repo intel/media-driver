@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -172,6 +172,8 @@ MOS_STATUS VphalRendererG10::InitKdllParam()
     pKernelDllRules         = g_KdllRuleTable_g10;
     pcKernelBin             = (const void*)IGVPKRN_G10;
     dwKernelBinSize         = IGVPKRN_G10_SIZE;
+
+    m_pRenderHal->bEnableP010SinglePass = true;
 
     return eStatus;
 }
