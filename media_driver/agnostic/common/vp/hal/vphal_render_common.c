@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2018, Intel Corporation
+* Copyright (c) 2015-2017, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -424,7 +424,6 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
     bool                                bEnableSLM;
     RENDERHAL_GENERIC_PROLOG_PARAMS     GenericPrologParams;
     MOS_RESOURCE                        GpuStatusBuffer;
-    MediaPerfProfiler                   *pPerfProfiler;
 
     eStatus             = MOS_STATUS_UNKNOWN;
     pOsInterface        = pRenderHal->pOsInterface;
@@ -433,7 +432,6 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
     iRemaining          = 0;
     FlushParam          = g_cRenderHal_InitMediaStateFlushParams;
     MOS_ZeroMemory(&CmdBuffer, sizeof(CmdBuffer));
-    pPerfProfiler       = pRenderHal->pPerfProfiler;
 
     // Allocate all available space, unused buffer will be returned later
     VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnGetCommandBuffer(pOsInterface, &CmdBuffer, 0));
@@ -470,7 +468,6 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
     VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnInitCommandBuffer(pRenderHal, &CmdBuffer, &GenericPrologParams));
     // Write timing data for 3P budget
     VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnSendTimingData(pRenderHal, &CmdBuffer, true));
-    VPHAL_RENDER_CHK_STATUS(pPerfProfiler->AddPerfCollectStartCmd((void*)pRenderHal, pOsInterface, pMhwMiInterface, &CmdBuffer));
 
     bEnableSLM = (pGpGpuWalkerParams && pGpGpuWalkerParams->SLMSize > 0)? true : false;
     VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnSetCacheOverrideParams(
@@ -485,7 +482,6 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
         pWalkerParams,
         pGpGpuWalkerParams));
 
-    VPHAL_RENDER_CHK_STATUS(pPerfProfiler->AddPerfCollectEndCmd((void*)pRenderHal, pOsInterface, pMhwMiInterface, &CmdBuffer));
     if (pBatchBuffer)
     {
         // Register batch buffer for rendering
@@ -656,7 +652,6 @@ MOS_STATUS VpHal_RndrSubmitCommands(
     bool                                bEnableSLM;
     RENDERHAL_GENERIC_PROLOG_PARAMS     GenericPrologParams;
     MOS_RESOURCE                        GpuStatusBuffer;
-    MediaPerfProfiler                   *pPerfProfiler;
 
     eStatus              = MOS_STATUS_UNKNOWN;
     pOsInterface         = pRenderHal->pOsInterface;
@@ -665,7 +660,6 @@ MOS_STATUS VpHal_RndrSubmitCommands(
     iRemaining           = 0;
     FlushParam           = g_cRenderHal_InitMediaStateFlushParams;
     MOS_ZeroMemory(&CmdBuffer, sizeof(CmdBuffer));
-    pPerfProfiler       = pRenderHal->pPerfProfiler;
 
     // Allocate all available space, unused buffer will be returned later
     VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnGetCommandBuffer(pOsInterface, &CmdBuffer, 0));
@@ -700,9 +694,6 @@ MOS_STATUS VpHal_RndrSubmitCommands(
 
     // Initialize command buffer and insert prolog
     VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnInitCommandBuffer(pRenderHal, &CmdBuffer, &GenericPrologParams));
-
-    VPHAL_RENDER_CHK_STATUS(pPerfProfiler->AddPerfCollectStartCmd((void*)pRenderHal, pOsInterface, pMhwMiInterface, &CmdBuffer));
-
     // Write timing data for 3P budget
     VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnSendTimingData(pRenderHal, &CmdBuffer, true));
 
@@ -739,8 +730,6 @@ MOS_STATUS VpHal_RndrSubmitCommands(
     {
         VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnSendRcsStatusTag(pRenderHal, &CmdBuffer));
     }
-
-    VPHAL_RENDER_CHK_STATUS(pPerfProfiler->AddPerfCollectEndCmd((void*)pRenderHal, pOsInterface, pMhwMiInterface, &CmdBuffer));
 
     // Write timing data for 3P budget
     VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnSendTimingData(pRenderHal, &CmdBuffer, false));

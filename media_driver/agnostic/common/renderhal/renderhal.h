@@ -38,7 +38,6 @@
 #include "renderhal_dsh.h"
 #include "mhw_memory_pool.h"
 #include "cm_hal_hashtable.h"
-#include "media_perf_profiler.h"
 
 class XRenderHal_Platform_Interface;
 
@@ -1239,8 +1238,6 @@ typedef struct _RENDERHAL_INTERFACE
 
     // Indicates whether it's AVS or not
     bool                        bIsAVS;
-
-    MediaPerfProfiler               *pPerfProfiler = nullptr;  //!< Performance data profiler
 
     //---------------------------
     // HW interface functions
