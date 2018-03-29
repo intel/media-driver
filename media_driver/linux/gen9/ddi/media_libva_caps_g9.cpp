@@ -93,7 +93,11 @@ VAStatus MediaLibvaCapsG9::GetPlatformSpecificAttrib(VAProfile profile,
             }
             else if (IsHevcProfile(profile))
             {
-                *value = ENCODE_DP_HEVC_MAX_NUM_ROI;
+                uint32_t roiBRCPriorityLevelSupport = 1;
+                uint32_t roiBRCQpDeltaSupport = 1;
+                *value = (roiBRCPriorityLevelSupport << 9)
+                    | (roiBRCQpDeltaSupport << 8)
+                    | ENCODE_DP_HEVC_MAX_NUM_ROI;
             }
             else
             {
