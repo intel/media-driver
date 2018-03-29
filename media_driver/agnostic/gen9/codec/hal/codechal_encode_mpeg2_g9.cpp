@@ -1892,6 +1892,11 @@ MOS_STATUS CodechalEncodeMpeg2G9::SetCurbeMe()
 
     uint32_t krnStateIdx =
         (m_pictureCodingType == P_TYPE) ? CODECHAL_ENCODE_ME_IDX_P : CODECHAL_ENCODE_ME_IDX_B;
+
+    if (m_pictureCodingType == B_TYPE && CodecHal_PictureIsInvalid(m_picParams->m_refFrameList[1]))
+    {
+        krnStateIdx = CODECHAL_ENCODE_ME_IDX_P;
+    }
     auto kernelState = &m_meKernelStates[krnStateIdx];
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(kernelState->m_dshRegion.AddData(
@@ -1926,6 +1931,11 @@ MOS_STATUS CodechalEncodeMpeg2G9::SendMeSurfaces(
 
     uint32_t krnStateIdx =
         (m_pictureCodingType == P_TYPE) ? CODECHAL_ENCODE_ME_IDX_P : CODECHAL_ENCODE_ME_IDX_B;
+
+    if (m_pictureCodingType == B_TYPE && CodecHal_PictureIsInvalid(m_picParams->m_refFrameList[1]))
+    {
+        krnStateIdx = CODECHAL_ENCODE_ME_IDX_P;
+    }
     auto kernelState = &m_meKernelStates[krnStateIdx];
 
     CODECHAL_SURFACE_CODEC_PARAMS   surfaceParams;

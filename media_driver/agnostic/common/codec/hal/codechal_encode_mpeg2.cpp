@@ -2818,6 +2818,12 @@ MOS_STATUS CodechalEncodeMpeg2::EncodeMeKernel()
 
     uint32_t krnStateIdx =
         (m_pictureCodingType == P_TYPE) ? CODECHAL_ENCODE_ME_IDX_P : CODECHAL_ENCODE_ME_IDX_B;
+
+    if (m_pictureCodingType == B_TYPE && CodecHal_PictureIsInvalid(m_picParams->m_refFrameList[1]))
+    {
+        krnStateIdx = CODECHAL_ENCODE_ME_IDX_P;
+    }
+
     auto kernelState = &m_meKernelStates[krnStateIdx];
 
     if (m_firstTaskInPhase || !m_singleTaskPhaseSupported)
