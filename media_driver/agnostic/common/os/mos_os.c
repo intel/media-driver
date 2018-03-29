@@ -324,6 +324,12 @@ MOS_STATUS Mos_GetPlatformName(
         case IGFX_SKYLAKE:
             MOS_SecureStrcpy(buffer, MOS_COMMAND_BUFFER_PLATFORM_LEN, "SKL");
             break;
+        case IGFX_KABYLAKE:
+            MOS_SecureStrcpy(buffer, MOS_COMMAND_BUFFER_PLATFORM_LEN, "KBL");
+            break;
+        case IGFX_COFFEELAKE:
+            MOS_SecureStrcpy(buffer, MOS_COMMAND_BUFFER_PLATFORM_LEN, "CFL");
+            break;
         case IGFX_BROXTON:
             MOS_SecureStrcpy(buffer, MOS_COMMAND_BUFFER_PLATFORM_LEN, "BXT");
             break;
