@@ -1198,6 +1198,25 @@ public:
         uint32_t                    forcedDshSize,
         bool                        noSshSpaceRequested,
         uint32_t                    currCmdBufId);
+    //!
+    //! \brief    Select Vdbox by index and get MMIO register 
+    //! \details  Uses input parameters to Select VDBOX from KMD and get MMIO register
+    //! \param    index
+    //!           [in] vdbox index interface
+    //! \param    pCmdBuffer
+    //!           [in] get mos vdbox id from cmd buffer
+    //! \return   MmioRegistersMfx
+    //!           return the vdbox mmio register
+    //!
+    MmioRegistersMfx * SelectVdboxAndGetMmioRegister(
+                       MHW_VDBOX_NODE_IND index,
+                       PMOS_COMMAND_BUFFER pCmdBuffer);
+
+    //! \brief    default disable vdbox balancing by UMD
+    bool bEnableVdboxBalancingbyUMD = false;
+    
+    //! \brief    default disable the get vdbox node by UMD, decided by MHW and MOS
+    bool m_getVdboxNodeByUMD = false;
 };
 
 extern const MOS_SYNC_PARAMS                        g_cInitSyncParams;

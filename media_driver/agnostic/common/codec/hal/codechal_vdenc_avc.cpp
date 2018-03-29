@@ -978,7 +978,7 @@ MOS_STATUS CodechalVdencAvcState::SetTLBAllocation(
     miInterface  = m_hwInterface->GetMiInterface();
 
     CODECHAL_ENCODE_CHK_COND_RETURN((m_vdboxIndex > m_hwInterface->GetMfxInterface()->GetMaxVdboxIndex()),"ERROR - vdbox index exceed the maximum");
-    mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
+    mmioRegisters = m_hwInterface->SelectVdboxAndGetMmioRegister(m_vdboxIndex, cmdBuffer);
 
     // Save MFX_LRA_0/1/2 registers to a temp buffer so we can restore registers after frame encoding
     MOS_ZeroMemory(&miStoreRegMemParams, sizeof(miStoreRegMemParams));
@@ -1041,7 +1041,7 @@ MOS_STATUS CodechalVdencAvcState::RestoreTLBAllocation(
     miInterface  = m_hwInterface->GetMiInterface();
 
     CODECHAL_ENCODE_CHK_COND_RETURN((m_vdboxIndex > m_hwInterface->GetMfxInterface()->GetMaxVdboxIndex()),"ERROR - vdbox index exceed the maximum");
-    mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
+    mmioRegisters = m_hwInterface->SelectVdboxAndGetMmioRegister(m_vdboxIndex, cmdBuffer);
 
     // Restore MFX_LRA_0/1/2 registers
     miLoadRegMemParams.presStoreBuffer  = tlbMmioBuffer;

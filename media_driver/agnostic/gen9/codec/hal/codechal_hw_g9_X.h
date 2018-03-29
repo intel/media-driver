@@ -89,6 +89,12 @@ public:
         m_sizeOfCmdMediaObject = mhw_render_g9_X::MEDIA_OBJECT_CMD::byteSize;
         m_sizeOfCmdMediaStateFlush = mhw_mi_g9_X::MEDIA_STATE_FLUSH_CMD::byteSize;
 
+        if (osInterface->bEnableVdboxBalancing)
+        {
+           bEnableVdboxBalancingbyUMD = true;
+           // Enabled VDbox Balancing, the HuC will be disabled.
+           m_noHuC = true;
+        }
     }
 
     //!

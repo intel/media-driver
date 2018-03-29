@@ -194,6 +194,7 @@ int32_t Linux_GetCommandBuffer(
     pCmdBuffer->iOffset     = 0;
     pCmdBuffer->iRemaining  = cmd_bo->size;
     pCmdBuffer->iCmdIndex   = -1;
+    pCmdBuffer->iVdboxNodeIndex = MOS_VDBOX_NODE_INVALID;
 
     MOS_ZeroMemory(pCmdBuffer->pCmdBase, cmd_bo->size);
     bResult = true;
@@ -234,6 +235,7 @@ void Linux_ReturnCommandBuffer(
     pOsGpuContext->pCB->iOffset    = pCmdBuffer->iOffset ;
     pOsGpuContext->pCB->iRemaining = pCmdBuffer->iRemaining;
     pOsGpuContext->pCB->pCmdPtr    = pCmdBuffer->pCmdPtr;
+    pOsGpuContext->pCB->iVdboxNodeIndex = pCmdBuffer->iVdboxNodeIndex;
 
 finish:
     return;
@@ -3081,6 +3083,37 @@ MOS_LINUX_BO * Mos_GetBadCommandBuffer_Linux(
 }
 #endif // _DEBUG || _RELEASE_INTERNAL
 
+uint32_t Mos_Specific_GetVcsExecFlag(PMOS_INTERFACE pOsInterface,
+                            PMOS_COMMAND_BUFFER pCmdBuffer,
+                            MOS_GPU_NODE GpuNode)
+{
+    uint32_t VcsExecFlag = I915_EXEC_BSD | I915_EXEC_BSD_RING1;
+
+    if (MOS_VDBOX_NODE_INVALID == pCmdBuffer->iVdboxNodeIndex)
+    {
+       // That's those case when BB did not have any VDBOX# specific commands.
+       // Thus, we need to select VDBOX# here. Alternatively we can rely on KMD
+       // to make balancing for us, i.e. rely on Virtual Engine support.
+       pCmdBuffer->iVdboxNodeIndex = pOsInterface->pfnGetVdboxNodeId(pOsInterface, pCmdBuffer);
+       if (MOS_VDBOX_NODE_INVALID == pCmdBuffer->iVdboxNodeIndex)
+       {
+           pCmdBuffer->iVdboxNodeIndex = (GpuNode == MOS_GPU_NODE_VIDEO)?
+               MOS_VDBOX_NODE_1: MOS_VDBOX_NODE_2;
+       }
+     }
+
+     if (MOS_VDBOX_NODE_1 == pCmdBuffer->iVdboxNodeIndex)
+     {
+         VcsExecFlag = I915_EXEC_BSD | I915_EXEC_BSD_RING1;
+     }
+     else if (MOS_VDBOX_NODE_2 == pCmdBuffer->iVdboxNodeIndex)
+     {
+         VcsExecFlag = I915_EXEC_BSD | I915_EXEC_BSD_RING2;
+     }
+
+     return VcsExecFlag;
+}
+
 //!
 //! \brief    Submit command buffer
 //! \details  Submit the command buffer
@@ -3300,7 +3333,11 @@ MOS_STATUS Mos_Specific_SubmitCommandBuffer(
     {
         if (pOsContext->bKMDHasVCS2)
         {
-            if (GpuNode == MOS_GPU_NODE_VIDEO)
+            if (pOsContext->bPerCmdBufferBalancing && pOsInterface->pfnGetVdboxNodeId)
+            {
+                ExecFlag = Mos_Specific_GetVcsExecFlag(pOsInterface, pCmdBuffer, GpuNode);
+            }
+            else if (GpuNode == MOS_GPU_NODE_VIDEO)
             {
                 ExecFlag = I915_EXEC_BSD | I915_EXEC_BSD_RING1;
             }
@@ -5228,16 +5265,29 @@ MOS_STATUS Mos_Specific_CreateVideoNodeAssociation(
         goto finish;
     }
 
+    // If node selection is forced or we have only one VDBox, turn balancing off.
+    // After that check debug flags.
+    if (pOsInterface->bEnableVdboxBalancing)
+    {
+        pOsContext->bPerCmdBufferBalancing = !bSetVideoNode && pOsContext->bKMDHasVCS2 && pOsInterface->pfnGetVdboxNodeId;
+    }
+    else 
+    {
+        pOsContext->bPerCmdBufferBalancing = 0;
+    }
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     if (pOsInterface->eForceVdbox == MOS_FORCE_VDBOX_1)
     {
         bSetVideoNode = true;
         *pVideoNodeOrdinal = MOS_GPU_NODE_VIDEO;
+        pOsContext->bPerCmdBufferBalancing = 0;
     }
     else if (pOsInterface->eForceVdbox == MOS_FORCE_VDBOX_2)
     {
         bSetVideoNode = true;
         *pVideoNodeOrdinal = MOS_GPU_NODE_VIDEO2;
+        pOsContext->bPerCmdBufferBalancing = 0;
     }
 #endif // _DEBUG || _RELEASE_INTERNAL
 
@@ -5337,6 +5387,73 @@ MOS_STATUS Mos_Specific_DestroyVideoNodeAssociation(
     return MOS_STATUS_SUCCESS;
 }
 #endif
+
+MOS_VDBOX_NODE_IND Mos_Specific_GetVdboxNodeId(
+    PMOS_INTERFACE pOsInterface,
+    PMOS_COMMAND_BUFFER pCmdBuffer)
+{
+    MOS_VDBOX_NODE_IND idx = MOS_VDBOX_NODE_INVALID;
+
+    MOS_OS_CHK_NULL_NO_STATUS(pCmdBuffer);
+    MOS_OS_CHK_NULL_NO_STATUS(pOsInterface);
+    MOS_OS_CHK_NULL_NO_STATUS(pOsInterface->pOsContext);
+
+    // If we have assigned vdbox index for the given cmdbuf, return it immediately
+    if (MOS_VDBOX_NODE_INVALID != pCmdBuffer->iVdboxNodeIndex) {
+        idx = pCmdBuffer->iVdboxNodeIndex;
+        return idx;
+    }
+
+#ifndef ANDROID
+    if (pOsInterface->pOsContext->bPerCmdBufferBalancing)
+    {
+        int32_t ret;
+
+        // Query KMD for VDBox load counters;
+        drm_i915_ring_load_info vdbox_load[] = {
+            {.ring_id = I915_EXEC_BSD | I915_EXEC_BSD_RING1, .load_cnt = 0},
+            {.ring_id = I915_EXEC_BSD | I915_EXEC_BSD_RING2, .load_cnt = 0},
+        };
+
+        drm_i915_ring_load_query vdbox_load_query = {
+            .query_size = sizeof(vdbox_load) / sizeof(vdbox_load[0]),
+            .load_info  = &vdbox_load[0],
+        };
+
+        ret = drmIoctl(pOsInterface->pOsContext->fd, DRM_IOCTL_I915_LOAD_BALANCING_HINT,
+            &vdbox_load_query);
+
+        if (ret) {
+            MOS_OS_ASSERTMESSAGE("Failed to query KMD for balancing hint:"
+                " error %d (falling back to ctx assigment)", ret);
+        } else {
+            int32_t cnt1 = vdbox_load[0].load_cnt;
+            int32_t cnt2 = vdbox_load[1].load_cnt;
+
+            // Assign task to VDBox with smaller load counter.
+            // Give small priority to VDBox 2;
+            if (0 == cnt2)
+            {
+                idx = MOS_VDBOX_NODE_2;
+            } else if (0 == cnt1)
+            {
+                idx = MOS_VDBOX_NODE_1;
+            } else if (cnt1 < cnt2)
+            {
+                idx = MOS_VDBOX_NODE_1;
+            } else {
+                idx = MOS_VDBOX_NODE_2;
+            }
+
+            // Save assigned VDBox number inside cmdbuf
+            pCmdBuffer->iVdboxNodeIndex = idx;
+        }
+    }
+#endif //#ifndef ANDROID
+
+finish:
+    return idx;
+}
 
 //!
 //! \brief    Get the memory object
@@ -5712,6 +5829,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnSetMemoryCompressionHint               = Mos_Specific_SetMemoryCompressionHint;
     pOsInterface->pfnCreateVideoNodeAssociation             = Mos_Specific_CreateVideoNodeAssociation;
     pOsInterface->pfnDestroyVideoNodeAssociation            = Mos_Specific_DestroyVideoNodeAssociation;
+    pOsInterface->pfnGetVdboxNodeId                         = Mos_Specific_GetVdboxNodeId;
 
     pOsInterface->pfnGetNullHWRenderFlags                   = Mos_Specific_GetNullHWRenderFlags;
     pOsInterface->pfnSetCmdBufferDebugInfo                  = Mos_Specific_SetCmdBufferDebugInfo;
@@ -5798,6 +5916,14 @@ MOS_STATUS Mos_Specific_InitInterface(
 #if MOS_MEDIASOLO_SUPPORTED
     Mos_Solo_Initialize(pOsInterface);
 #endif // MOS_MEDIASOLO_SUPPORTED
+
+    // read the "Disable VDBox load balancing" user feature key
+    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        NULL,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_VDBOX_BALANCING_ID,
+        &UserFeatureData);
+    pOsInterface->bEnableVdboxBalancing = (bool)UserFeatureData.u32Data;
 
     // read the "Disable KMD Watchdog" user feature key
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));

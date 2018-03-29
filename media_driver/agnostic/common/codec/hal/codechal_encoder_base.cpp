@@ -2553,7 +2553,7 @@ MOS_STATUS CodechalEncoderState::ReadBrcPakStatistics(
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->presStatusBuffer);
 
     CODECHAL_ENCODE_CHK_COND_RETURN((m_vdboxIndex > m_hwInterface->GetMfxInterface()->GetMaxVdboxIndex()),"ERROR - vdbox index exceed the maximum");
-    MmioRegistersMfx* mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
+    MmioRegistersMfx* mmioRegisters = m_hwInterface->SelectVdboxAndGetMmioRegister(m_vdboxIndex, cmdBuffer);
 
     MHW_MI_STORE_REGISTER_MEM_PARAMS miStoreRegMemParams;
     MOS_ZeroMemory(&miStoreRegMemParams, sizeof(miStoreRegMemParams));
@@ -2601,7 +2601,7 @@ MOS_STATUS CodechalEncoderState::ReadImageStatus(
     CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
 
     CODECHAL_ENCODE_CHK_COND_RETURN((m_vdboxIndex > m_hwInterface->GetMfxInterface()->GetMaxVdboxIndex()),"ERROR - vdbox index exceed the maximum");
-    MmioRegistersMfx* mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
+    MmioRegistersMfx* mmioRegisters = m_hwInterface->SelectVdboxAndGetMmioRegister(m_vdboxIndex, cmdBuffer);
 
     EncodeStatusBuffer*  encodeStatusBuf    = &m_encodeStatusBuf;
 
@@ -2682,7 +2682,7 @@ MOS_STATUS CodechalEncoderState::ReadMfcStatus(
     CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
 
     CODECHAL_ENCODE_CHK_COND_RETURN((m_vdboxIndex > m_hwInterface->GetMfxInterface()->GetMaxVdboxIndex()),"ERROR - vdbox index exceed the maximum");
-    MmioRegistersMfx* mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
+    MmioRegistersMfx* mmioRegisters = m_hwInterface->SelectVdboxAndGetMmioRegister(m_vdboxIndex, cmdBuffer);
 
     EncodeStatusBuffer* encodeStatusBuf    = &m_encodeStatusBuf;
 
@@ -3082,7 +3082,7 @@ MOS_STATUS CodechalEncoderState::UpdateEncodeStatus(
     CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
 
     CODECHAL_ENCODE_CHK_COND_RETURN((m_vdboxIndex > m_hwInterface->GetMfxInterface()->GetMaxVdboxIndex()),"ERROR - vdbox index exceed the maximum");
-    mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
+    mmioRegisters = m_hwInterface->SelectVdboxAndGetMmioRegister(m_vdboxIndex, cmdBuffer);
 
     // Get the right offset of EncodeStatusUpdate Operand scratch buffer
     uint32_t baseOffset        = m_atomicScratchBuf.dwOperandSetSize * m_atomicScratchBuf.wEncodeUpdateIndex;

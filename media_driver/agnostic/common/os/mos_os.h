@@ -171,6 +171,16 @@ typedef struct _MOS_COMMAND_BUFFER_ATTRIBUTES
 } MOS_COMMAND_BUFFER_ATTRIBUTES, *PMOS_COMMAND_BUFFER_ATTRIBUTES;
 
 //!
+//! \brief VDBOX indices
+//!
+typedef enum _MOS_VDBOX_NODE_IND
+{
+    MOS_VDBOX_NODE_INVALID     = -1,
+    MOS_VDBOX_NODE_1           = 0x0,
+    MOS_VDBOX_NODE_2           = 0x1
+} MOS_VDBOX_NODE_IND;
+
+//!
 //! \brief Structure to command buffer
 //!
 typedef struct _MOS_COMMAND_BUFFER
@@ -184,6 +194,7 @@ typedef struct _MOS_COMMAND_BUFFER
     int32_t             iRemaining;                 //!< Remaining size
     int32_t             iTokenOffsetInCmdBuf;       //!< Pointer to (Un)Secure token's next field Offset
     int32_t             iCmdIndex;                  //!< command buffer's index
+    MOS_VDBOX_NODE_IND  iVdboxNodeIndex;            //!< Which VDBOX buffer is binded to
 
     MOS_COMMAND_BUFFER_ATTRIBUTES Attributes;       //!< Attributes for the command buffer to be provided to KMD at submission
 } MOS_COMMAND_BUFFER;
@@ -375,6 +386,8 @@ typedef struct _MOS_INTERFACE
     CMRT_WORK_QUEUE_INFO       m_WorkQueueInfo[5];  //IGFX_ABSOLUTE_MAX_ENGINES
 #endif
 #endif
+
+    bool                            bEnableVdboxBalancing;                            //!< Enable per BB VDBox balancing
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_FORCE_VDBOX                 eForceVdbox;                                  //!< Force select Vdbox
@@ -824,6 +837,10 @@ typedef struct _MOS_INTERFACE
         PMOS_INTERFACE              pOsInterface,
         int32_t                     bSetVideoNode,
         MOS_GPU_NODE                *pVideoNodeOrdinal);
+
+    MOS_VDBOX_NODE_IND (* pfnGetVdboxNodeId)(
+        PMOS_INTERFACE              pOsInterface,
+        PMOS_COMMAND_BUFFER         pCmdBuffer);
 
     MOS_STATUS (* pfnDestroyVideoNodeAssociation)(
         PMOS_INTERFACE              pOsInterface,

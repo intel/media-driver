@@ -108,6 +108,13 @@ CodechalHwInterfaceG10::CodechalHwInterfaceG10(
 
     m_isVdencSuperSliceEnabled = true;
 
+    if (osInterface->bEnableVdboxBalancing)
+    {
+       bEnableVdboxBalancingbyUMD = true;
+       // Enabled VDbox Balancing, the HuC will be disabled.
+       m_noHuC = true;
+    }
+
     m_ssEuTable = m_defaultSsEuLutG10;
 
     // Set platform dependent parameters

@@ -1102,9 +1102,6 @@ protected:
     //!          modify this value in specific decoder files.
     uint8_t                     m_decodePassNum     = 1;
 
-    //! \brief MMIO Mfx Frame CRC report offset
-    uint32_t                    m_mfxFrameCrcRegOffset = 0;
-
     //! \brief MMIO Hcp Frame CRC report offset
     uint32_t                    m_hcpFrameCrcRegOffset = 0;
 

@@ -249,6 +249,7 @@ MOS_STATUS GpuContextSpecific::GetCommandBuffer(
         comamndBuffer->iOffset    = 0;
         comamndBuffer->iRemaining = cmdBuf->GetCmdBufSize();
         comamndBuffer->iCmdIndex  = m_nextFetchIndex;
+        comamndBuffer->iVdboxNodeIndex = MOS_VDBOX_NODE_INVALID;
 
         // zero comamnd buffer
         MOS_ZeroMemory(comamndBuffer->pCmdBase, comamndBuffer->iRemaining);
@@ -289,6 +290,7 @@ void GpuContextSpecific::ReturnCommandBuffer(
     m_commandBuffer->iOffset    = cmdBuffer->iOffset;
     m_commandBuffer->iRemaining = cmdBuffer->iRemaining;
     m_commandBuffer->pCmdPtr    = cmdBuffer->pCmdPtr;
+    m_commandBuffer->iVdboxNodeIndex = cmdBuffer->iVdboxNodeIndex;
 }
 
 MOS_STATUS GpuContextSpecific::ResetCommandBuffer()
@@ -375,6 +377,37 @@ MOS_STATUS GpuContextSpecific::ResizeCommandBuffer(uint32_t requestedSize)
     m_commandBufferSize = requestedSize;
 
     return MOS_STATUS_SUCCESS;
+}
+
+uint32_t GetVcsExecFlag(PMOS_INTERFACE osInterface,
+                            PMOS_COMMAND_BUFFER cmdBuffer,
+                            MOS_GPU_NODE gpuNode)
+{
+    uint32_t vcsExecFlag = I915_EXEC_BSD | I915_EXEC_BSD_RING1;
+
+    if (MOS_VDBOX_NODE_INVALID == cmdBuffer->iVdboxNodeIndex)
+    {
+       // That's those case when BB did not have any VDBOX# specific commands.
+       // Thus, we need to select VDBOX# here. Alternatively we can rely on KMD
+       // to make balancing for us, i.e. rely on Virtual Engine support.
+       cmdBuffer->iVdboxNodeIndex = osInterface->pfnGetVdboxNodeId(osInterface, cmdBuffer);
+       if (MOS_VDBOX_NODE_INVALID == cmdBuffer->iVdboxNodeIndex)
+       {
+           cmdBuffer->iVdboxNodeIndex = (gpuNode == MOS_GPU_NODE_VIDEO)?
+               MOS_VDBOX_NODE_1: MOS_VDBOX_NODE_2;
+       }
+     }
+
+     if (MOS_VDBOX_NODE_1 == cmdBuffer->iVdboxNodeIndex)
+     {
+         vcsExecFlag = I915_EXEC_BSD | I915_EXEC_BSD_RING1;
+     }
+     else if (MOS_VDBOX_NODE_2 == cmdBuffer->iVdboxNodeIndex)
+     {
+         vcsExecFlag = I915_EXEC_BSD | I915_EXEC_BSD_RING2;
+     }
+
+     return vcsExecFlag;
 }
 
 MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
@@ -531,7 +564,11 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
     {
         if (osContext->bKMDHasVCS2)
         {
-            if (gpuNode == MOS_GPU_NODE_VIDEO)
+            if (osContext->bPerCmdBufferBalancing && osInterface->pfnGetVdboxNodeId)
+            {
+                execFlag = GetVcsExecFlag(osInterface, cmdBuffer, gpuNode);
+            }
+            else if (gpuNode == MOS_GPU_NODE_VIDEO)
             {
                 execFlag = I915_EXEC_BSD | I915_EXEC_BSD_RING1;
             }
