@@ -30,8 +30,4 @@ set(SOURCES ./src/gtest-all.cc ./src/gtest_main.cc)
 
 ADD_LIBRARY(libgtest ${SOURCES})
 LINK_DIRECTORIES(/usr/lib/x86_64-linux-gnu/)
-
-find_package(Threads)
-if (CMAKE_USE_PTHREADS_INIT)
-    target_link_libraries(libgtest ${CMAKE_THREAD_LIBS_INIT})
-endif()
+TARGET_LINK_LIBRARIES(libgtest pthread)
