@@ -100,6 +100,31 @@ public:
         uint32_t          numSlices);
 
     //!
+    //! \brief    Find the NAL Unit Start Codes
+    //! \details  Find the NAL unit start codes offset and NAL Unit start codes 
+    //!           length in packed header NAL unit data buffer
+    //!
+    //! \param    [in] buf
+    //!           Pointer to packed header NAL unit data
+    //! \param    [in] size
+    //!           byte size of packed header NAL unit data
+    //! \param    [in] startCodesOffset
+    //!           Pointer to NAL unit start codes offset from the packed header
+    //!           NAL unit data buf
+    //! \param    [in] startCodesLength
+    //!           Pointer to NAL unit start codes length
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success, 
+    //!           else VA_STATUS_ERROR_INVALID_BUFFER if start codes doesn't exit
+    //!
+    VAStatus FindNalUnitStartCodes(
+        uint8_t * buf,
+        uint32_t size,
+        uint32_t * startCodesOffset,
+        uint32_t * startCodesLength);
+
+    //!
     //! \brief    Parse packedHeader paramters
     //! \details  Parse packedHeader parameters which called by RenderPicture
     //!

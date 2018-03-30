@@ -1619,6 +1619,49 @@ VAStatus DdiEncodeAvc::ParseSlcParams(
     return VA_STATUS_SUCCESS;
 }
 
+VAStatus DdiEncodeAvc::FindNalUnitStartCodes(
+    uint8_t * buf,
+    uint32_t size,
+    uint32_t * startCodesOffset,
+    uint32_t * startCodesLength)
+{
+    uint8_t i = 0;
+
+    while (((i + 3) < size) &&
+           (buf[i] != 0 || buf[i+1] != 0 || buf[i+2] != 0x01) &&
+           (buf[i] != 0 || buf[i+1] != 0 || buf[i+2] != 0 || buf[i+3] != 0x01))
+    {
+        i++;
+    }
+
+    if ((i + 3) == size)
+    {
+        if (buf[i] != 0 || buf[i+1] != 0 || buf[i+2] != 0x01)
+        {
+            return VA_STATUS_ERROR_INVALID_BUFFER; //NALU start codes doesn't exit
+        }
+        else
+        {
+            *startCodesOffset = size - 3;
+            *startCodesLength = 3;
+            return VA_STATUS_SUCCESS;
+        }
+    }
+
+    if (buf[i] != 0 || buf[i+1] != 0 || buf[i+2] != 0x01)
+    {
+        *startCodesOffset = i;
+        *startCodesLength = 4;
+    }
+    else
+    {
+        *startCodesOffset = i;
+        *startCodesLength = 3;
+    }
+
+    return VA_STATUS_SUCCESS;
+}
+
 VAStatus DdiEncodeAvc::ParsePackedHeaderParams(void *ptr)
 {
     DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
@@ -1652,6 +1695,7 @@ VAStatus DdiEncodeAvc::ParsePackedHeaderParams(void *ptr)
 
         // get the packed header size
         m_encodeCtx->pSliceHeaderData[m_encodeCtx->uiSliceHeaderCnt].BitSize                = encPackedHeaderParamBuf->bit_length;
+        //don't know NALU start codes now, assign to 4 here when has_emulation_bytes is 0 and later will correct it
         m_encodeCtx->pSliceHeaderData[m_encodeCtx->uiSliceHeaderCnt].SkipEmulationByteCount = (encPackedHeaderParamBuf->has_emulation_bytes) ? (encPackedHeaderParamBuf->bit_length + 7) / 8 : 4;
     }
     else if (encPackedHeaderParamBuf->type == VAEncPackedHeaderRawData)
@@ -1669,7 +1713,8 @@ VAStatus DdiEncodeAvc::ParsePackedHeaderParams(void *ptr)
     {
         m_encodeCtx->ppNALUnitParams[m_encodeCtx->indexNALUnit]->uiNalUnitType             = nalUnitType;
         m_encodeCtx->ppNALUnitParams[m_encodeCtx->indexNALUnit]->bInsertEmulationBytes     = (encPackedHeaderParamBuf->has_emulation_bytes) ? false : true;
-        m_encodeCtx->ppNALUnitParams[m_encodeCtx->indexNALUnit]->uiSkipEmulationCheckCount = 4;
+        //don't know NALU start codes now, assign to 4 here when has_emulation_bytes is 0 and later will correct it
+        m_encodeCtx->ppNALUnitParams[m_encodeCtx->indexNALUnit]->uiSkipEmulationCheckCount = (encPackedHeaderParamBuf->has_emulation_bytes) ? (encPackedHeaderParamBuf->bit_length + 7) / 8 : 4;
         m_encodeCtx->ppNALUnitParams[m_encodeCtx->indexNALUnit]->uiSize                    = (encPackedHeaderParamBuf->bit_length + 7) / 8;
         m_encodeCtx->ppNALUnitParams[m_encodeCtx->indexNALUnit]->uiOffset                  = 0;
     }
@@ -1694,9 +1739,7 @@ VAStatus DdiEncodeAvc::ParsePackedHeaderData(void *ptr)
         bsBuffer->BitSize     = 0;
     }
 
-    uint32_t hdrDataSize, scFound, scanCount;
-    uint8_t *header;
-    uint8_t  sc0, sc1, sc2;
+    uint32_t hdrDataSize;
     if (true == m_encodeCtx->bLastPackedHdrIsSlice)
     {
         hdrDataSize = (m_encodeCtx->pSliceHeaderData[m_encodeCtx->uiSliceHeaderCnt].BitSize + 7) / 8;
@@ -1713,33 +1756,21 @@ VAStatus DdiEncodeAvc::ParsePackedHeaderData(void *ptr)
 
         m_encodeCtx->pSliceHeaderData[m_encodeCtx->uiSliceHeaderCnt].SliceOffset = bsBuffer->pCurrent - bsBuffer->pBase;
 
-        // if header contains 2 Start Code, the first is the prefix NAL, the second is slice header.
-        // in this case we need to skip the prefix NAL for emul byte removal purpose
-        header    = (uint8_t *)ptr;
-        sc0       = *header++;
-        sc1       = *header++;
-        sc2       = *header++;
-        scFound   = 0;
-        scanCount = 3;  // get the first 3 bytes
-
-        while (scanCount <= hdrDataSize)
+        // correct SkipEmulationByteCount
+        // according to LibVA principle, one packed header buffer should only contain one NALU,
+        // so when has_emulation_bytes is 0, SkipEmulationByteCount only needs to skip the NALU start codes
+        if (m_encodeCtx->pSliceHeaderData[m_encodeCtx->uiSliceHeaderCnt].SkipEmulationByteCount != hdrDataSize)
         {
-            scFound += (sc0 == 0 && sc1 == 0 && sc2 == 1);
-            if (1 == scFound) {
-                // when the first nal is SVC nal, skip it.
-                uint32_t nalType = (*header)&0x1f;
-                if (nalType != 0xe) {
-                    break;
-                }
-            } else if (2 == scFound)
+            uint32_t startCodesOffset = 0;
+            uint32_t startCodesLength = 0;
+            VAStatus vaSts = VA_STATUS_SUCCESS;
+            vaSts = FindNalUnitStartCodes((uint8_t *)ptr, hdrDataSize, &startCodesOffset, &startCodesLength);
+            if (VA_STATUS_SUCCESS != vaSts)
             {
-                m_encodeCtx->pSliceHeaderData[m_encodeCtx->uiSliceHeaderCnt].SkipEmulationByteCount = MOS_MIN(15, scanCount);  // HW can only skip up to 15 bytes
-                break;
+                DDI_ASSERTMESSAGE("DDI: packed slice header doesn't include NAL unit start codes!");
+                return vaSts;
             }
-            sc0 = sc1;
-            sc1 = sc2;
-            sc2 = *header++;
-            scanCount++;
+            m_encodeCtx->pSliceHeaderData[m_encodeCtx->uiSliceHeaderCnt].SkipEmulationByteCount = MOS_MIN(15, (startCodesOffset + startCodesLength));
         }
 
         m_encodeCtx->uiSliceHeaderCnt++;
@@ -1755,8 +1786,25 @@ VAStatus DdiEncodeAvc::ParsePackedHeaderData(void *ptr)
             hdrDataSize);
         if (MOS_STATUS_SUCCESS != status)
         {
-            DDI_ASSERTMESSAGE("DDI:packed slice header size is too large to be supported!");
+            DDI_ASSERTMESSAGE("DDI:packed header size is too large to be supported!");
             return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
+
+        // correct uiSkipEmulationCheckCount
+        // according to LibVA principle, one packed header buffer should only contain one NALU,
+        // so when has_emulation_bytes is 0, uiSkipEmulationCheckCount only needs to skip the NALU start codes
+        if (m_encodeCtx->ppNALUnitParams[m_encodeCtx->indexNALUnit]->uiSkipEmulationCheckCount != hdrDataSize)
+        {
+            uint32_t startCodesOffset = 0;
+            uint32_t startCodesLength = 0;
+            VAStatus vaSts = VA_STATUS_SUCCESS;
+            vaSts = FindNalUnitStartCodes((uint8_t *)ptr, hdrDataSize, &startCodesOffset, &startCodesLength);
+            if (VA_STATUS_SUCCESS != vaSts)
+            {
+                DDI_ASSERTMESSAGE("DDI: packed header doesn't include NAL unit start codes!");
+                return vaSts;
+            }
+            m_encodeCtx->ppNALUnitParams[m_encodeCtx->indexNALUnit]->uiSkipEmulationCheckCount = MOS_MIN(15, (startCodesOffset + startCodesLength));
         }
 
         m_encodeCtx->ppNALUnitParams[m_encodeCtx->indexNALUnit]->uiOffset = bsBuffer->pCurrent - bsBuffer->pBase;
