@@ -3881,7 +3881,10 @@ VAStatus DdiMedia_CreateImage(
     int32_t pitch      = 0;
     int32_t halfwidth  = 0;
     int32_t halfheight = 0;
-    if(vaimg->format.fourcc == VA_FOURCC_RGBA || vaimg->format.fourcc == VA_FOURCC_BGRA)
+    if(vaimg->format.fourcc == VA_FOURCC_RGBA 
+       || vaimg->format.fourcc == VA_FOURCC_BGRA
+       || vaimg->format.fourcc == VA_FOURCC_BGRX
+       || vaimg->format.fourcc == VA_FOURCC_RGBX)
     {
         pitch = width * 4;
         vaimg->format.byte_order        = VA_LSB_FIRST;
