@@ -2881,14 +2881,6 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
     bIsChromaSitEnabled = 0;
 
     pRenderHal->bIsAVS  = pParams->bAVS;
-    if (!pRenderHal->bIsAVS)
-    {
-        pRenderHal->bEnableP010SinglePass = false;
-    }
-    else
-    {
-       pRenderHal->bEnableP010SinglePass = true;
-    }
 
     // Check palette allocations
     if (IS_PAL_FORMAT(pSurface->Format))
