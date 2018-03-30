@@ -444,9 +444,9 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Bxt::AddHcpVp9PicStateCmd(
         cmd.DW2.McompFilterType                 = vp9PicParams->PicFlags.fields.mcomp_filter_type;
         cmd.DW2.SegmentationTemporalUpdate      = cmd.DW2.SegmentationUpdateMap && vp9PicParams->PicFlags.fields.segmentation_temporal_update;
 
-        cmd.DW2.RefFrameSignBiasLast            = vp9PicParams->PicFlags.fields.LastRefSignBias;
-        cmd.DW2.RefFrameSignBiasGolden          = vp9PicParams->PicFlags.fields.GoldenRefSignBias;
-        cmd.DW2.RefFrameSignBiasAltref          = vp9PicParams->PicFlags.fields.AltRefSignBias;
+        cmd.DW2.RefFrameSignBias02              = vp9PicParams->PicFlags.fields.LastRefSignBias | 
+                                                  (vp9PicParams->PicFlags.fields.GoldenRefSignBias << 1) | 
+                                                  (vp9PicParams->PicFlags.fields.AltRefSignBias << 2);
 
         cmd.DW2.LastFrameType                   = !params->PrevFrameParams.fields.KeyFrame;
 
@@ -480,6 +480,72 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Bxt::AddHcpVp9PicStateCmd(
     }
 
     MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, cmd.byteSize));
+
+    return eStatus;
+}
+
+MOS_STATUS MhwVdboxHcpInterfaceG9Bxt::AddHcpVp9SegmentStateCmd(
+    PMOS_COMMAND_BUFFER              cmdBuffer,
+    PMHW_BATCH_BUFFER                batchBuffer,
+    PMHW_VDBOX_VP9_SEGMENT_STATE     params)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    MHW_MI_CHK_NULL(params);
+
+    mhw_vdbox_hcp_g9_bxt::HCP_VP9_SEGMENT_STATE_CMD  cmd;
+    void*  segData = nullptr;
+
+    cmd.DW1.SegmentId = params->ucCurrentSegmentId;
+
+    if (!this->m_decodeInUse)
+    {
+        CODEC_VP9_ENCODE_SEG_PARAMS             vp9SegData;
+
+        vp9SegData = params->pVp9EncodeSegmentParams->SegData[params->ucCurrentSegmentId];
+
+        if (params->pbSegStateBufferPtr)   // Use the seg data from this buffer (output of BRC)
+        {
+            segData = params->pbSegStateBufferPtr;
+        }
+        else    // Prepare the seg data
+        {
+            cmd.DW2.SegmentSkipped = vp9SegData.SegmentFlags.fields.SegmentSkipped;
+            cmd.DW2.SegmentReference = vp9SegData.SegmentFlags.fields.SegmentReference;
+            cmd.DW2.SegmentReferenceEnabled = vp9SegData.SegmentFlags.fields.SegmentReferenceEnabled;
+
+            segData = &cmd;
+        }
+    }
+    else
+    {
+        CODEC_VP9_SEG_PARAMS            vp9SegData;
+        vp9SegData = params->pVp9SegmentParams->SegData[params->ucCurrentSegmentId];
+
+        cmd.DW2.SegmentSkipped = vp9SegData.SegmentFlags.fields.SegmentReferenceSkipped;
+        cmd.DW2.SegmentReference = vp9SegData.SegmentFlags.fields.SegmentReference;
+        cmd.DW2.SegmentReferenceEnabled = vp9SegData.SegmentFlags.fields.SegmentReferenceEnabled;
+
+        cmd.DW3.Filterlevelref0Mode0 = vp9SegData.FilterLevel[0][0];
+        cmd.DW3.Filterlevelref0Mode1 = vp9SegData.FilterLevel[0][1];
+        cmd.DW3.Filterlevelref1Mode0 = vp9SegData.FilterLevel[1][0];
+        cmd.DW3.Filterlevelref1Mode1 = vp9SegData.FilterLevel[1][1];
+
+        cmd.DW4.Filterlevelref2Mode0 = vp9SegData.FilterLevel[2][0];
+        cmd.DW4.Filterlevelref2Mode1 = vp9SegData.FilterLevel[2][1];
+        cmd.DW4.Filterlevelref3Mode0 = vp9SegData.FilterLevel[3][0];
+        cmd.DW4.Filterlevelref3Mode1 = vp9SegData.FilterLevel[3][1];
+
+        cmd.DW5.LumaDcQuantScaleDecodeModeOnly = vp9SegData.LumaDCQuantScale;
+        cmd.DW5.LumaAcQuantScaleDecodeModeOnly = vp9SegData.LumaACQuantScale;
+
+        cmd.DW6.ChromaDcQuantScaleDecodeModeOnly = vp9SegData.ChromaDCQuantScale;
+        cmd.DW6.ChromaAcQuantScaleDecodeModeOnly = vp9SegData.ChromaACQuantScale;
+
+        segData = &cmd;
+    }
+
+    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, segData, cmd.byteSize));
 
     return eStatus;
 }
