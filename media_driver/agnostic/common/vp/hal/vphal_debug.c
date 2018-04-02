@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2017, Intel Corporation
+* Copyright (c) 2011-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -80,6 +80,7 @@
 #define VPHAL_DBG_STATISTICS_DUMP_TYPE               "Statistics"
 
 #define ALLOCLIST_SIZE                              15
+#define VPHAL_VEBOX_STATISTICS_SIZE_MAX             (288 * 4)        //!< Max Statistics size
 #define MAX_DW_STRLEN                               7
 #define KERNEL_FIELD_NAME                           "Kernel"
 #define VPDEBUG_VERSION                             "1.0"
