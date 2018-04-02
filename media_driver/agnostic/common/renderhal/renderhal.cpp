@@ -3030,10 +3030,27 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
 
             case Format_YUYV:
             case Format_YUY2:
-                PlaneDefinition     = RENDERHAL_PLANES_YUY2_ADV;
+                if (pParams->bVmeUse)
+                {
+                    //Since 422 planar is not supported on application side. 
+                    //App is using 422 packed as WA with w=w/2 and h=h*2
+                    pSurface->dwWidth = pSurface->dwWidth * 2;
+                    pSurface->dwHeight = pSurface->dwHeight / 2;
+                    pRenderHalSurface->rcSrc.right = pSurface->dwWidth;
+                    pRenderHalSurface->rcSrc.bottom = pSurface->dwHeight;
+                    pRenderHalSurface->rcDst = pRenderHalSurface->rcSrc;
+                    PlaneDefinition = RENDERHAL_PLANES_YUY2_ADV;
 
-                // Set up chroma direction
-                Direction = pRenderHal->pfnSetChromaDirection(pRenderHal, pRenderHalSurface);
+                    // Set up chroma direction
+                    Direction = pRenderHal->pfnSetChromaDirection(pRenderHal, pRenderHalSurface);
+                }
+                else
+                {
+                    PlaneDefinition = RENDERHAL_PLANES_YUY2_ADV;
+
+                    // Set up chroma direction
+                    Direction = pRenderHal->pfnSetChromaDirection(pRenderHal, pRenderHalSurface);
+                }
                 break;
 
             case Format_UYVY:
@@ -3185,8 +3202,16 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
                 }
                 break;
             case Format_Y210:
+            case Format_Y216:
                 if (pParams->bVmeUse)
                 {
+                    //Since 422 planar is not supported on application side. 
+                    //App is using 422 packed as WA with w=w/2 and h=h*2
+                    pSurface->dwWidth = pSurface->dwWidth * 2;
+                    pSurface->dwHeight = pSurface->dwHeight / 2;
+                    pRenderHalSurface->rcSrc.right = pSurface->dwWidth;
+                    pRenderHalSurface->rcSrc.bottom = pSurface->dwHeight;
+                    pRenderHalSurface->rcDst = pRenderHalSurface->rcSrc;
                     PlaneDefinition = RENDERHAL_PLANES_Y210_1PLANE_ADV;
                 }
                 else
