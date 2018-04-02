@@ -2155,7 +2155,11 @@ MOS_STATUS CodechalVdencHevcState::ExecuteSliceLevel()
                 m_mmcState->UpdateUserFeatureKey(&m_reconSurface);
             }
         )
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(ReadSliceSize());
+
+        if(m_hevcSeqParams->SliceSizeControl)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(ReadSliceSize());
+        }
 
         if (IsLastPass() &&
             m_signalEnc &&
