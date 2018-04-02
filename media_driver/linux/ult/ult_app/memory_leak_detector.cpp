@@ -40,14 +40,14 @@ void MemoryLeakDetector::Detect(const DriverDllLoader &drvLoader, Platform_t pla
     {
         const ::testing::TestInfo* curTest = ::testing::UnitTest::GetInstance()->current_test_info();
         string title(curTest->test_case_name());
-        title = title + "." + curTest->name() + " Platform: " + to_string(platform) + " System memory counter: "
+        title = title + "." + curTest->name() + " Platform: " + g_platformName[platform] + " System memory counter: "
             + to_string(memNinjaCnt) + " Graphic memory counter: "+ to_string(memNinjaCntGfx);
 
         auto detector = MemoryLeakDetectorIpl::GetInstance();
         detector->Detect(LOG_PATH);
         detector->GenerateReport(MEM_LEAK_REPORT_PATH, title);
-        EXPECT_TRUE(false) << "Memory leak detected, system memory counter = " << memNinjaCnt
-            << ", graphic memory counter = " << memNinjaCntGfx << ", platform = " << platform << endl;
+        EXPECT_TRUE(false) << "Memory leak detected, system memory counter = " << memNinjaCnt << ", graphic memory counter = "
+            << memNinjaCntGfx << ", platform = " << g_platformName[platform] << endl;
     }
 
     remove(LOG_PATH);

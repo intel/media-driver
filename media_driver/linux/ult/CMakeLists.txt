@@ -19,14 +19,17 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 cmake_minimum_required(VERSION 3.1)
 
+if("${BUILD_TYPE}" STREQUAL "release")
+    set(CMAKE_BUILD_TYPE "Release")
+elseif("${BUILD_TYPE}" STREQUAL "release-internal")
+    set(CMAKE_BUILD_TYPE "ReleaseInternal")
+elseif("${BUILD_TYPE}" STREQUAL "debug")
+    set(CMAKE_BUILD_TYPE "Debug")
+endif()
+
 #-fno-plt is a GCC option to disable the use of PLT for external function calls in position-independent code.
 #This option is by default enabled on some Linux distributions such as Arch Linux, which can cause link error.
 string(REPLACE "-fno-plt" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-
-add_compile_options(-std=c++11)
-
-include(${MEDIA_DRIVER_CMAKE}/linux/media_feature_flags_linux.cmake)
-include(${MEDIA_DRIVER_CMAKE}/linux/media_gen_flags_linux.cmake)
 
 if(NOT "${LIBVA_INSTALL_PATH}" STREQUAL "")
     include_directories(BEFORE ${LIBVA_INSTALL_PATH})

@@ -42,7 +42,8 @@ void MediaDecodeDdiTest::ExectueDecodeTest(DecTestData *pDecData)
     vector<Platform_t> platforms = m_driverLoader.GetPlatforms();
     for (int i = 0; i < m_driverLoader.GetPlatformNum(); i++)
     {
-        if (m_decTestCfg.IsDecTestEnabled(DeviceConfigTable[platforms[i]], pDecData->GetFeatureID()))
+        if (m_decTestCfg.IsDecTestEnabled(DeviceConfigTable[platforms[i]],
+            pDecData->GetFeatureID()))
         {
             DecodeExecute(pDecData, platforms[i]);
         }
@@ -55,67 +56,89 @@ void MediaDecodeDdiTest::DecodeExecute(DecTestData *pDecData, Platform_t platfor
     VAContextID     context_id;
     VASurfaceStatus surface_status;
 
-    int ret = m_driverLoader.InitDriver(platform); // So far we still use DeviceConfigTable to find the platform, as the libdrm mock use this. If we want to use vector Platforms, we would use vector in libdrm too.
-    EXPECT_EQ(VA_STATUS_SUCCESS, ret) << "Platform = " << platform << ", Failed function = m_driverLoader.InitDriver" << endl;
+    // So far we still use DeviceConfigTable to find the platform, as the libdrm mock use this.
+    // If we want to use vector Platforms, we would use vector in libdrm too.
+    int ret = m_driverLoader.InitDriver(platform);
+    EXPECT_EQ(VA_STATUS_SUCCESS, ret) << "Platform = " << g_platformName[platform]
+        << ", Failed function = m_driverLoader.InitDriver" << endl;
 
     // The attribute only use RCType and FEI function type in createconfig.
-    ret = m_driverLoader.m_ctx.vtable->vaCreateConfig(&m_driverLoader.m_ctx, pDecData->GetFeatureID().profile, pDecData->GetFeatureID().entrypoint, (VAConfigAttrib *)&(pDecData->GetConfAttrib()[0]), pDecData->GetConfAttrib().size(), &config_id);
-    EXPECT_EQ(VA_STATUS_SUCCESS, ret) << "Platform = " << platform << ", Failed function = m_driverLoader.m_ctx.vtable->vaCreateConfig" << endl;
+    ret = m_driverLoader.m_ctx.vtable->vaCreateConfig(&m_driverLoader.m_ctx,
+        pDecData->GetFeatureID().profile, pDecData->GetFeatureID().entrypoint,
+        (VAConfigAttrib *)&(pDecData->GetConfAttrib()[0]), pDecData->GetConfAttrib().size(), &config_id);
+    EXPECT_EQ(VA_STATUS_SUCCESS, ret) << "Platform = " << g_platformName[platform]
+        << ", Failed function = m_driverLoader.m_ctx.vtable->vaCreateConfig" << endl;
 
     vector<VASurfaceID> &resources = pDecData->GetResources();
-    ret = m_driverLoader.m_ctx.vtable->vaCreateSurfaces2(&m_driverLoader.m_ctx, VA_RT_FORMAT_YUV420,pDecData->GetWidth(), pDecData->GetHeight(), &resources[0], resources.size(), nullptr, 0);
-    EXPECT_EQ(VA_STATUS_SUCCESS, ret) << "Platform = " << platform << ", Failed function = m_driverLoader.m_ctx.vtable->vaCreateSurfaces2" << endl;
+    ret = m_driverLoader.m_ctx.vtable->vaCreateSurfaces2(&m_driverLoader.m_ctx, VA_RT_FORMAT_YUV420,
+        pDecData->GetWidth(), pDecData->GetHeight(), &resources[0], resources.size(), nullptr, 0);
+    EXPECT_EQ(VA_STATUS_SUCCESS, ret) << "Platform = " << g_platformName[platform]
+        << ", Failed function = m_driverLoader.m_ctx.vtable->vaCreateSurfaces2" << endl;
 
-    ret = m_driverLoader.m_ctx.vtable->vaCreateContext(&m_driverLoader.m_ctx, config_id, pDecData->GetWidth(), pDecData->GetHeight(),VA_PROGRESSIVE, &resources[0], resources.size(), &context_id);
-    EXPECT_EQ(VA_STATUS_SUCCESS, ret) << "Platform = " << platform << ", Failed function = m_driverLoader.m_ctx.vtable->vaCreateContext" << endl;
+    ret = m_driverLoader.m_ctx.vtable->vaCreateContext(&m_driverLoader.m_ctx, config_id, pDecData->GetWidth(),
+        pDecData->GetHeight(),VA_PROGRESSIVE, &resources[0], resources.size(), &context_id);
+    EXPECT_EQ(VA_STATUS_SUCCESS, ret) << "Platform = " << g_platformName[platform]
+        << ", Failed function = m_driverLoader.m_ctx.vtable->vaCreateContext" << endl;
 
     for (int i = 0; i < pDecData->m_num_frames; i++)
     {
         // As BeginPicture would reset some parameters, so it should be called before RenderPicture.
         ret = m_driverLoader.m_ctx.vtable->vaBeginPicture(&m_driverLoader.m_ctx, context_id, resources[0]);
-        EXPECT_EQ(VA_STATUS_SUCCESS, ret) << "Platform = " << platform << ", Failed function = m_driverLoader.m_ctx.vtable->vaBeginPicture" << endl;
+        EXPECT_EQ(VA_STATUS_SUCCESS, ret) << "Platform = " << g_platformName[platform]
+            << ", Failed function = m_driverLoader.m_ctx.vtable->vaBeginPicture" << endl;
 
         vector<vector<CompBufConif>> &compBufs = pDecData->GetCompBuffers();
         for (int j = 0; j < compBufs[i].size(); j++)
         {
-            ret = m_driverLoader.m_ctx.vtable->vaCreateBuffer(&m_driverLoader.m_ctx, context_id, compBufs[i][j].bufType, compBufs[i][j].bufSize, 1, compBufs[i][j].pData, &compBufs[i][j].bufID);
-            EXPECT_EQ(VA_STATUS_SUCCESS, ret) << "Platform = " << platform << ", Failed function = m_driverLoader.m_ctx.vtable->vaCreateBuffer" << endl;
+            ret = m_driverLoader.m_ctx.vtable->vaCreateBuffer(&m_driverLoader.m_ctx, context_id,
+                compBufs[i][j].bufType, compBufs[i][j].bufSize, 1, compBufs[i][j].pData, &compBufs[i][j].bufID);
+            EXPECT_EQ(VA_STATUS_SUCCESS, ret) << "Platform = " << g_platformName[platform]
+                << ", Failed function = m_driverLoader.m_ctx.vtable->vaCreateBuffer" << endl;
         }
 
         pDecData->UpdateCompBuffers(i);
         for (int j = 0; j < compBufs[i].size(); j++)
         {
             // In RenderPicture, it suppose all needed buffer has been created already.
-            ret = m_driverLoader.m_ctx.vtable->vaRenderPicture(&m_driverLoader.m_ctx, context_id, &compBufs[i][j].bufID, 1);
-            EXPECT_EQ(VA_STATUS_SUCCESS, ret) << "Platform = " << platform << ", Failed function = m_driverLoader.m_ctx.vtable->vaRenderPicture" << endl;
+            ret = m_driverLoader.m_ctx.vtable->vaRenderPicture(&m_driverLoader.m_ctx,
+                context_id, &compBufs[i][j].bufID, 1);
+            EXPECT_EQ(VA_STATUS_SUCCESS, ret) << "Platform = " << g_platformName[platform]
+                << ", Failed function = m_driverLoader.m_ctx.vtable->vaRenderPicture" << endl;
         }
 
         ret = m_driverLoader.m_ctx.vtable->vaEndPicture(&m_driverLoader.m_ctx, context_id);
-        EXPECT_EQ(VA_STATUS_SUCCESS, ret) << "Platform = " << platform << ", Failed function = m_driverLoader.m_ctx.vtable->vaEndPicture" << endl;
+        EXPECT_EQ(VA_STATUS_SUCCESS, ret) << "Platform = " << g_platformName[platform]
+            << ", Failed function = m_driverLoader.m_ctx.vtable->vaEndPicture" << endl;
 
         do
         {
-            ret = m_driverLoader.m_ctx.vtable->vaQuerySurfaceStatus(&m_driverLoader.m_ctx, resources[0], &surface_status);
+            ret = m_driverLoader.m_ctx.vtable->vaQuerySurfaceStatus(
+                &m_driverLoader.m_ctx, resources[0], &surface_status);
         } while (surface_status != VASurfaceReady);
 
         for (int j = 0; j < compBufs[i].size(); j++)
         {
             ret = m_driverLoader.m_ctx.vtable->vaDestroyBuffer(&m_driverLoader.m_ctx, compBufs[i][j].bufID);
-            EXPECT_EQ(VA_STATUS_SUCCESS, ret) << "Platform = " << platform << ", Failed function = m_driverLoader.m_ctx.vtable->vaDestroyBuffer" << endl;
+            EXPECT_EQ(VA_STATUS_SUCCESS, ret) << "Platform = " << g_platformName[platform]
+                << ", Failed function = m_driverLoader.m_ctx.vtable->vaDestroyBuffer" << endl;
         }
       }
 
     ret = m_driverLoader.m_ctx.vtable->vaDestroySurfaces(&m_driverLoader.m_ctx, &resources[0], resources.size());
-    EXPECT_EQ(VA_STATUS_SUCCESS, ret) << "Platform = " << platform << ", Failed function = m_driverLoader.m_ctx.vtable->vaDestroySurfaces" << endl;
+    EXPECT_EQ(VA_STATUS_SUCCESS, ret) << "Platform = " << g_platformName[platform]
+        << ", Failed function = m_driverLoader.m_ctx.vtable->vaDestroySurfaces" << endl;
 
     ret = m_driverLoader.m_ctx.vtable->vaDestroyContext(&m_driverLoader.m_ctx, context_id);
-    EXPECT_EQ(VA_STATUS_SUCCESS, ret) << "Platform = " << platform << ", Failed function = m_driverLoader.m_ctx.vtable->vaDestroyContext" << endl;
+    EXPECT_EQ(VA_STATUS_SUCCESS, ret) << "Platform = " << g_platformName[platform]
+        << ", Failed function = m_driverLoader.m_ctx.vtable->vaDestroyContext" << endl;
 
     ret = m_driverLoader.m_ctx.vtable->vaDestroyConfig(&m_driverLoader.m_ctx, config_id);
-    EXPECT_EQ(VA_STATUS_SUCCESS, ret) << "Platform = " << platform << ", Failed function = m_driverLoader.m_ctx.vtable->vaDestroyConfig" << endl;
+    EXPECT_EQ(VA_STATUS_SUCCESS, ret) << "Platform = " << g_platformName[platform]
+        << ", Failed function = m_driverLoader.m_ctx.vtable->vaDestroyConfig" << endl;
 
     ret = m_driverLoader.CloseDriver();
-    EXPECT_EQ(VA_STATUS_SUCCESS, ret) << "Platform = " << platform << ", Failed function = m_driverLoader.CloseDriver" << endl;
+    EXPECT_EQ(VA_STATUS_SUCCESS, ret) << "Platform = " << g_platformName[platform]
+        << ", Failed function = m_driverLoader.CloseDriver" << endl;
 
     MemoryLeakDetector::Detect(m_driverLoader, platform);
 }
@@ -144,7 +167,8 @@ bool DecodeTestConfig::IsDecTestEnabled(DeviceConfig platform, FeatureID feature
     const auto &featureIdArray = m_mapPlatformFeatureID[platform];
     for (int i = 0; i < featureIdArray.size(); i++)
     {
-        // In fact, we may need to call QueryEntroyPoint to make sure it does have this config. But we suppose this test is done in Caps test.
+        // In fact, we may need to call QueryEntroyPoint to make sure it does have this config.
+        // But we suppose this test is done in Caps test.
         // Otherwise, here is need to call QueryEntroyPoint to check if it's supported.
         if (featureId == featureIdArray[i])
         {

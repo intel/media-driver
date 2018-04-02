@@ -28,6 +28,8 @@
 #define LOCAL_I915_PARAM_HAS_HUC 42
 #define TEST_COUT std::cout << "[ INFO     ] "
 
+extern const char *g_platformName[];
+
 struct DeviceConfig
 {
     uint64_t aperture_size; // DRM_IOCTL_I915_GEM_GET_APERTURE
