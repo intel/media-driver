@@ -23,6 +23,9 @@ bs_set_if_undefined(GEN8_BDW_Supported "yes")
 bs_set_if_undefined(GEN9_Supported "yes")
 bs_set_if_undefined(GEN9_BXT_Supported "yes")
 bs_set_if_undefined(GEN9_SKL_Supported "yes")
+bs_set_if_undefined(GEN9_CFL_Supported "yes")
+bs_set_if_undefined(GEN9_GLK_Supported "yes")
+bs_set_if_undefined(GEN9_KBL_Supported "yes")
 bs_set_if_undefined(GEN10_Supported "yes")
 bs_set_if_undefined(GEN10_CNL_Supported "yes")
 
@@ -45,6 +48,18 @@ endif()
 
 if(${GEN9_SKL_Supported} STREQUAL "yes")
     add_definitions(-DIGFX_GEN9_SKL_SUPPORTED)
+endif()
+
+if(${GEN9_CFL_Supported} STREQUAL "yes")
+    add_definitions(-DIGFX_GEN9_CFL_SUPPORTED)
+endif()
+
+if(${GEN9_GLK_Supported} STREQUAL "yes")
+    add_definitions(-DIGFX_GEN9_GLK_SUPPORTED)
+endif()
+
+if(${GEN9_KBL_Supported} STREQUAL "yes")
+    add_definitions(-DIGFX_GEN9_KBL_SUPPORTED)
 endif()
 
 if(${GEN10_Supported} STREQUAL "yes")

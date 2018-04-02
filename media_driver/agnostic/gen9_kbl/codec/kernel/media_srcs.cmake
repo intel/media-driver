@@ -1,4 +1,4 @@
-# Copyright (c) 2017, Intel Corporation
+# Copyright (c) 2017-2018, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,46 +18,25 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(common)
+set(TMP_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/igcodeckrn_g9_kbl.c
+)
 
-if(${GEN8_Supported} STREQUAL "yes")
-    media_include_subdirectory(gen8)
-endif()
+set(TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/igcodeckrn_g9_kbl.h
+)
 
-if(${GEN8_BDW_Supported} STREQUAL "yes")
-    media_include_subdirectory(gen8_bdw)
-endif()
+set(SOURCES_
+    ${SOURCES_}
+    ${TMP_SOURCES_}
+)
 
-if(${GEN9_Supported} STREQUAL "yes")
-    media_include_subdirectory(gen9)
-endif()
+set(HEADERS_
+    ${HEADERS_}
+    ${TMP_HEADERS_}
+)
 
-if(${GEN9_BXT_Supported} STREQUAL "yes")
-    media_include_subdirectory(gen9_bxt)
-endif()
+source_group("Kernel\\CodecKernel" FILES ${TMP_SOURCES_} ${TMP_HEADERS_})
 
-if(${GEN9_SKL_Supported} STREQUAL "yes")
-    media_include_subdirectory(gen9_skl)
-endif()
 
-if(${GEN9_CFL_Supported} STREQUAL "yes")
-    media_include_subdirectory(gen9_cfl)
-endif()
-
-if(${GEN9_GLK_Supported} STREQUAL "yes")
-    media_include_subdirectory(gen9_glk)
-endif()
-
-if(${GEN9_KBL_Supported} STREQUAL "yes")
-    media_include_subdirectory(gen9_kbl)
-endif()
-
-if(${GEN10_Supported} STREQUAL "yes")
-    media_include_subdirectory(gen10)
-endif()
-
-if(${GEN10_CNL_Supported} STREQUAL "yes")
-    media_include_subdirectory(gen10_cnl)
-endif()
-
-include(${CMAKE_CURRENT_LIST_DIR}/media_srcs_ext.cmake OPTIONAL)
+media_add_curr_to_include_path()
