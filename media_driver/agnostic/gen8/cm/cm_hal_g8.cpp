@@ -440,7 +440,10 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
     }
 
     // Send Sync Tag
-    CM_CHK_MOSSTATUS( renderHal->pfnSendSyncTag( renderHal, &mosCmdBuffer ) );
+    if (!state->dshEnabled || !(enableWalker || enableGpGpu))
+    {
+        CM_CHK_MOSSTATUS( renderHal->pfnSendSyncTag( renderHal, &mosCmdBuffer ) );
+    }
 
     // Update tracker resource
     CM_CHK_MOSSTATUS(state->pfnUpdateTrackerResource(state, &mosCmdBuffer, tag));
