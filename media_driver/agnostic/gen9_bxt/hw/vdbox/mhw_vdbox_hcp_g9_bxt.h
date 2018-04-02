@@ -100,11 +100,6 @@ public:
         return mhw_vdbox_hcp_g9_bxt::HCP_VP9_PIC_STATE_CMD::byteSize;
     }
 
-    inline uint32_t GetHcpVp9SegmentStateCommandSize()
-    {
-        return mhw_vdbox_hcp_g9_bxt::HCP_VP9_SEGMENT_STATE_CMD::byteSize;
-    }
-
     void InitRowstoreUserFeatureSettings();
 
     MOS_STATUS GetHcpStateCommandSize(
@@ -143,11 +138,6 @@ public:
         PMOS_COMMAND_BUFFER              cmdBuffer,
         PMHW_BATCH_BUFFER                batchBuffer,
         PMHW_VDBOX_VP9_PIC_STATE         params);
-
-    MOS_STATUS AddHcpVp9SegmentStateCmd(
-        PMOS_COMMAND_BUFFER              cmdBuffer,
-        PMHW_BATCH_BUFFER                batchBuffer,
-        PMHW_VDBOX_VP9_SEGMENT_STATE     params);
 };
 
 #endif

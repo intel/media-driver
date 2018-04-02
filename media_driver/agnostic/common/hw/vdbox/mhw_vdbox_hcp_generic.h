@@ -144,12 +144,12 @@ protected:
         {
             MHW_MI_CHK_NULL(params->presDataBuffer);
 
-            cmd.HcpIndirectBitstreamObjectMemoryAddressAttributes.DW0.Value |=
+            cmd.DW3.MemoryObjectControlState =
                 m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_MFX_INDIRECT_BITSTREAM_OBJECT_DECODE].Value;
 
             resourceParams.presResource = params->presDataBuffer;
             resourceParams.dwOffset = params->dwDataOffset;
-            resourceParams.pdwCmd = cmd.HcpIndirectBitstreamObjectBaseAddress.DW0_1.Value;
+            resourceParams.pdwCmd = cmd.DW1_2.Value;
             resourceParams.dwLocationInCmd = 1;
             resourceParams.dwSize = params->dwDataSize;
             resourceParams.bIsWritable = false;
@@ -202,7 +202,7 @@ protected:
                         cmd.DW1.ColorComponent = color;
                         switch (sizeId)
                         {
-                        case cmd.SIZEID_4X4:
+                        case cmd.SIZEID_4X_4:
                         case cmd.SIZEID_8X8:
                         default:
                             cmd.DW1.DcCoefficient = 0;
@@ -215,7 +215,7 @@ protected:
                             break;
                         }
 
-                        if (sizeId == cmd.SIZEID_4X4)
+                        if (sizeId == cmd.SIZEID_4X_4)
                         {
                             for (uint8_t i = 0; i < 4; i++)
                             {
@@ -379,28 +379,28 @@ protected:
 
         for (uint8_t i = 0; i < 5; i++)
         {
-            cmd.CtbColumnPositionOfTileColumn[i].DW0.Ctbpos0I = colCumulativeValue;
+            cmd.ColumnPositionInCtb[i].DW0.Ctbcolposll = colCumulativeValue;
             if ((4 * i) == hevcPicParams->num_tile_columns_minus1)
             {
                 break;
             }
 
             colCumulativeValue += params->pTileColWidth[4 * i];
-            cmd.CtbColumnPositionOfTileColumn[i].DW0.Ctbpos1I = colCumulativeValue;
+            cmd.ColumnPositionInCtb[i].DW0.Ctbcolposlh = colCumulativeValue;
             if ((4 * i + 1) == hevcPicParams->num_tile_columns_minus1)
             {
                 break;
             }
 
             colCumulativeValue += params->pTileColWidth[4 * i + 1];
-            cmd.CtbColumnPositionOfTileColumn[i].DW0.Ctbpos2I = colCumulativeValue;
+            cmd.ColumnPositionInCtb[i].DW0.Ctbcolposhl = colCumulativeValue;
             if ((4 * i + 2) == hevcPicParams->num_tile_columns_minus1)
             {
                 break;
             }
 
             colCumulativeValue += params->pTileColWidth[4 * i + 2];
-            cmd.CtbColumnPositionOfTileColumn[i].DW0.Ctbpos3I = colCumulativeValue;
+            cmd.ColumnPositionInCtb[i].DW0.Ctbcolposhh = colCumulativeValue;
             if ((4 * i + 3) == hevcPicParams->num_tile_columns_minus1)
             {
                 break;
@@ -411,28 +411,28 @@ protected:
 
         for (uint8_t i = 0; i < 5; i++)
         {
-            cmd.CtbRowPositionOfTileRow[i].DW0.Ctbpos0I = rowCumulativeValue;
+            cmd.RowPositionInCtb[i].DW0.Ctbrowposll = rowCumulativeValue;
             if ((4 * i) == hevcPicParams->num_tile_rows_minus1)
             {
                 break;
             }
 
             rowCumulativeValue += params->pTileRowHeight[4 * i];
-            cmd.CtbRowPositionOfTileRow[i].DW0.Ctbpos1I = rowCumulativeValue;
+            cmd.RowPositionInCtb[i].DW0.Ctbrowposlh = rowCumulativeValue;
             if ((4 * i + 1) == hevcPicParams->num_tile_rows_minus1)
             {
                 break;
             }
 
             rowCumulativeValue += params->pTileRowHeight[4 * i + 1];
-            cmd.CtbRowPositionOfTileRow[i].DW0.Ctbpos2I = rowCumulativeValue;
+            cmd.RowPositionInCtb[i].DW0.Ctbrowposhl = rowCumulativeValue;
             if ((4 * i + 2) == hevcPicParams->num_tile_rows_minus1)
             {
                 break;
             }
 
             rowCumulativeValue += params->pTileRowHeight[4 * i + 2];
-            cmd.CtbRowPositionOfTileRow[i].DW0.Ctbpos3I = rowCumulativeValue;
+            cmd.RowPositionInCtb[i].DW0.Ctbrowposhh = rowCumulativeValue;
             if ((4 * i + 3) == hevcPicParams->num_tile_rows_minus1)
             {
                 break;
@@ -443,14 +443,14 @@ protected:
 
         if (hevcPicParams->num_tile_rows_minus1 == 20)
         {
-            cmd.CtbRowPositionOfTileRow[5].DW0.Ctbpos0I = rowCumulativeValue;
+            cmd.DW12.CtbRowPositionOfTileRow20 = rowCumulativeValue;
         }
 
         if (hevcPicParams->num_tile_rows_minus1 == 21)
         {
-            cmd.CtbRowPositionOfTileRow[5].DW0.Ctbpos0I = rowCumulativeValue;
+            cmd.DW12.CtbRowPositionOfTileRow20 = rowCumulativeValue;
             rowCumulativeValue += params->pTileRowHeight[20];
-            cmd.CtbRowPositionOfTileRow[5].DW0.Ctbpos1I = rowCumulativeValue;
+            cmd.DW12.CtbRowPositionOfTileRow21 = rowCumulativeValue;
         }
 
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
@@ -483,27 +483,27 @@ protected:
             {
                 MHW_ASSERT(*(params->pRefIdxMapping + refFrameIDx) >= 0);
 
-                cmd.Entries[i].DW0.ListEntryLxReferencePictureFrameIdRefaddr07 = *(params->pRefIdxMapping + refFrameIDx);
+                cmd.HcpRefValue[i].DW0.ListEntryLxReferencePictureFrameIdRefaddr07 = *(params->pRefIdxMapping + refFrameIDx);
                 int32_t pocDiff = params->poc_curr_pic - params->poc_list[refFrameIDx];
-                cmd.Entries[i].DW0.ReferencePictureTbValue = CodecHal_Clip3(-128, 127, pocDiff);
+                cmd.HcpRefValue[i].DW0.ReferencePictureTbValue = CodecHal_Clip3(-128, 127, pocDiff);
                 CODEC_REF_LIST** refList = (CODEC_REF_LIST**)params->hevcRefList;
-                cmd.Entries[i].DW0.Longtermreference = CodecHal_PictureIsLongTermRef(refList[params->CurrPic.FrameIdx]->RefList[refFrameIDx]);
-                cmd.Entries[i].DW0.FieldPicFlag = (params->RefFieldPicFlag >> refFrameIDx) & 0x01;
-                cmd.Entries[i].DW0.BottomFieldFlag = ((params->RefBottomFieldFlag >> refFrameIDx) & 0x01) ? 0 : 1;
+                cmd.HcpRefValue[i].DW0.Longtermreference = CodecHal_PictureIsLongTermRef(refList[params->CurrPic.FrameIdx]->RefList[refFrameIDx]);
+                cmd.HcpRefValue[i].DW0.FieldPicFlag = (params->RefFieldPicFlag >> refFrameIDx) & 0x01;
+                cmd.HcpRefValue[i].DW0.BottomFieldFlag = ((params->RefBottomFieldFlag >> refFrameIDx) & 0x01) ? 0 : 1;
             }
             else
             {
-                cmd.Entries[i].DW0.ListEntryLxReferencePictureFrameIdRefaddr07 = 0;
-                cmd.Entries[i].DW0.ReferencePictureTbValue = 0;
-                cmd.Entries[i].DW0.Longtermreference = false;
-                cmd.Entries[i].DW0.FieldPicFlag = 0;
-                cmd.Entries[i].DW0.BottomFieldFlag = 0;
+                cmd.HcpRefValue[i].DW0.ListEntryLxReferencePictureFrameIdRefaddr07 = 0;
+                cmd.HcpRefValue[i].DW0.ReferencePictureTbValue = 0;
+                cmd.HcpRefValue[i].DW0.Longtermreference = false;
+                cmd.HcpRefValue[i].DW0.FieldPicFlag = 0;
+                cmd.HcpRefValue[i].DW0.BottomFieldFlag = 0;
             }
         }
 
         for (uint8_t i = (uint8_t)params->ucNumRefForList; i < 16; i++)
         {
-            cmd.Entries[i].DW0.Value = 0x00;
+            cmd.HcpRefValue[i].DW0.Value = 0x00;
         }
 
         if (cmdBuffer == nullptr && batchBuffer == nullptr)
@@ -535,17 +535,17 @@ protected:
         // Luma
         for (uint8_t refIdx = 0; refIdx < CODEC_MAX_NUM_REF_FRAME_HEVC; refIdx++)
         {
-            cmd.Lumaoffsets[refIdx].DW0.DeltaLumaWeightLxI = params->LumaWeights[i][refIdx];
-            cmd.Lumaoffsets[refIdx].DW0.LumaOffsetLxI = params->LumaOffsets[i][refIdx];
+            cmd.HevcLumaWeightOffsetWrite[refIdx].DW0.DeltaLumaWeightLxI = params->LumaWeights[i][refIdx];
+            cmd.HevcLumaWeightOffsetWrite[refIdx].DW0.LumaOffsetLxI = params->LumaOffsets[i][refIdx];
         }
 
         // Chroma
         for (uint8_t refIdx = 0; refIdx < CODEC_MAX_NUM_REF_FRAME_HEVC; refIdx++)
         {
-            cmd.Chromaoffsets[refIdx].DW0.DeltaChromaWeightLxI0 = params->ChromaWeights[i][refIdx][0];
-            cmd.Chromaoffsets[refIdx].DW0.ChromaoffsetlxI0 = params->ChromaOffsets[i][refIdx][0];
-            cmd.Chromaoffsets[refIdx].DW0.DeltaChromaWeightLxI1 = params->ChromaWeights[i][refIdx][1];
-            cmd.Chromaoffsets[refIdx].DW0.ChromaoffsetlxI1 = params->ChromaOffsets[i][refIdx][1];
+            cmd.HevcChromaWeightOffsetWrite[refIdx].DW0.DeltaChromaWeightLxI0 = params->ChromaWeights[i][refIdx][0];
+            cmd.HevcChromaWeightOffsetWrite[refIdx].DW0.ChromaoffsetlxI0 = params->ChromaOffsets[i][refIdx][0];
+            cmd.HevcChromaWeightOffsetWrite[refIdx].DW0.DeltaChromaWeightLxI1 = params->ChromaWeights[i][refIdx][1];
+            cmd.HevcChromaWeightOffsetWrite[refIdx].DW0.ChromaoffsetlxI1 = params->ChromaOffsets[i][refIdx][1];
         }
 
         //cmd.DW2[15] and cmd.DW18[15] not be used

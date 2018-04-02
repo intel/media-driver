@@ -110,6 +110,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Skl::GetHcpStateCommandSize(
             mhw_vdbox_hcp_g9_skl::HCP_SURFACE_STATE_CMD::byteSize * 4 +
             mhw_vdbox_hcp_g9_skl::HCP_PIPE_BUF_ADDR_STATE_CMD::byteSize +
             mhw_vdbox_hcp_g9_skl::HCP_IND_OBJ_BASE_ADDR_STATE_CMD::byteSize +
+            mhw_vdbox_hcp_g9_skl::HCP_VP9_SEGMENT_STATE_CMD::byteSize * 8 +
             mhw_vdbox_hcp_g9_skl::HCP_BSD_OBJECT_CMD::byteSize;
 
         patchListMaxSize =
@@ -188,6 +189,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Skl::GetHcpPrimitiveCommandSize(
         if (modeSpecific)                  // VP9 DRM
         {
             maxSize +=
+                mhw_vdbox_hcp_g9_skl::HCP_VP9_SEGMENT_STATE_CMD::byteSize * 8 +
                 mhw_vdbox_hcp_g9_skl::HCP_BSD_OBJECT_CMD::byteSize +
                 mhw_mi_g9_X::MI_BATCH_BUFFER_END_CMD::byteSize;
 
@@ -289,12 +291,4 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Skl::AddHcpDecodeSliceStateCmd(
         hevcPicParams->init_qp_minus26 + 26;
 
     return eStatus;
-}
-
-MOS_STATUS MhwVdboxHcpInterfaceG9Skl::AddHcpVp9SegmentStateCmd(
-    PMOS_COMMAND_BUFFER              cmdBuffer,
-    PMHW_BATCH_BUFFER                batchBuffer,
-    PMHW_VDBOX_VP9_SEGMENT_STATE     params)
-{
-    return MOS_STATUS_SUCCESS;
 }
