@@ -819,27 +819,30 @@ MOS_STATUS CodechalEncodeHevcBase::SetSequenceStructs()
                 m_hwInterface->SetRowstoreCachingOffsets(&rowstoreParams);
     }
 
-        m_brcEnabled = IsRateControlBrc(m_hevcSeqParams->RateControlMethod);
+    m_brcEnabled = IsRateControlBrc(m_hevcSeqParams->RateControlMethod);
 
-        if (m_brcEnabled)
+    if (m_brcEnabled)
+    {
+        switch (m_hevcSeqParams->MBBRC)
         {
-            switch (m_hevcSeqParams->MBBRC)
-            {
-            case mbBrcInternal:
-                m_lcuBrcEnabled = (m_hevcSeqParams->TargetUsage == 1);
-                break;
-            case mbBrcDisabled:
-                m_lcuBrcEnabled = false;
-                break;
-            case mbBrcEnabled:
-                m_lcuBrcEnabled = true;
-                break;
-            }
+        case mbBrcInternal:
+            m_lcuBrcEnabled = (m_hevcSeqParams->TargetUsage == 1);
+            break;
+        case mbBrcDisabled:
+            m_lcuBrcEnabled = false;
+            break;
+        case mbBrcEnabled:
+            m_lcuBrcEnabled = true;
+            break;
+        }
 
-            if (m_hevcSeqParams->RateControlMethod == RATECONTROL_ICQ || m_hevcSeqParams->RateControlMethod == RATECONTROL_QVBR)
-            {
-                m_lcuBrcEnabled = true;  // ICQ must result in LCU-based BRC to be enabled.
-            }
+        if (m_hevcSeqParams->RateControlMethod == RATECONTROL_ICQ  || 
+            m_hevcSeqParams->RateControlMethod == RATECONTROL_QVBR ||
+            m_hevcPicParams->NumROI)
+        {
+            // ICQ or ROI must result in LCU-based BRC to be enabled.
+            m_lcuBrcEnabled = true;  
+        }
     }
 
     if (m_hevcSeqParams->RateControlMethod == RATECONTROL_VCM && m_lcuBrcEnabled)

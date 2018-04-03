@@ -135,7 +135,8 @@ public:
     HevcEncBrcBuffers                           m_brcBuffers;                                   //!< BRC buffers
     uint32_t                                    m_numBrcKrnStates;                              //!< Number of BRC kernel states
     uint8_t                                     m_slidingWindowSize = 0;                        //!< Sliding window size in number of frames
-
+    bool                                        m_roiRegionSmoothEnabled = false;               //!< ROI region smooth transition enable flag
+    
     // MBENC
     PMHW_KERNEL_STATE                           m_mbEncKernelStates       = nullptr;  //!< Pointer to MbEnc kernel state
     PCODECHAL_ENCODE_BINDING_TABLE_GENERIC      m_mbEncKernelBindingTable = nullptr;  //!< MbEnc kernel binding table
@@ -252,6 +253,13 @@ public:
         PMOS_SURFACE surface,
         uint32_t cacheabilityControl,
         uint32_t bindingTableOffset);
+
+    //!
+    //! \brief    Help function to calcuate ROI Ratio need by BRC Kernel
+    //!
+    //! \return   ROI ratio
+    //!
+    uint8_t CalculateROIRatio();
 
     //!
     //! \brief    Help function to calcuate the temporal difference between current and reference picture
