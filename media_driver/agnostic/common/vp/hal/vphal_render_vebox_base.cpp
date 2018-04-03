@@ -3947,10 +3947,8 @@ MOS_STATUS VPHAL_VEBOX_RENDER_DATA::Init()
             return MOS_STATUS_NO_SPACE;
         }
     }
-    else
-    {
-        m_pVeboxStateParams->Init();
-    }
+    m_pVeboxStateParams->Init();
+
 
     // Vebox IECP State Parameters
     // m_pVeboxIecpParams needs to be set to nullptr in constructor
@@ -3962,10 +3960,7 @@ MOS_STATUS VPHAL_VEBOX_RENDER_DATA::Init()
             return MOS_STATUS_NO_SPACE;
         }
     }
-    else
-    {
-        m_pVeboxIecpParams->Init();
-    }
+    m_pVeboxIecpParams->Init();
 
     bColorPipe      = false;
     bIECP           = false;
