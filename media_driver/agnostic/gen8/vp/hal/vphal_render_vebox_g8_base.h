@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2018, Intel Corporation
+* Copyright (c) 2011-2017, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -37,9 +37,6 @@
 #define VPHAL_VEBOX_STATISTICS_SURFACE_FMD_OFFSET_G8   0x400
 #define VPHAL_VEBOX_STATISTICS_SURFACE_GNE_OFFSET_G8   0x42C
 #define VPHAL_VEBOX_STATISTICS_SURFACE_STD_OFFSET_G8   0x444
-
-#define NOISE_ABSSUMTEMPORALDIFF_THRESHOLD_DEFAULT      32
-#define NOISE_SPATIALCOMPLEXITYMATRIX_THRESHOLD_DEFAULT 32
 
 struct VEBOX_STATE_UPDATE_STATIC_DATA_G8
 {
