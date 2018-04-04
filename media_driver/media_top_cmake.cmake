@@ -56,7 +56,9 @@ set_source_files_properties(${SOURCES_} PROPERTIES LANGUAGE "CXX")
 
 add_library( ${LIB_NAME} SHARED ${SOURCES_})
 
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/linux/ult)
+if(RUN_TEST_SUITE)
+    add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/linux/ult)
+endif(RUN_TEST_SUITE)
 
 option(MEDIA_BUILD_FATAL_WARNINGS "Turn compiler warnings into fatal errors" ON)
 if(MEDIA_BUILD_FATAL_WARNINGS)
