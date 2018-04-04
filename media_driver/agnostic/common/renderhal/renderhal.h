@@ -1577,6 +1577,14 @@ typedef struct _RENDERHAL_INTERFACE
                 PRENDERHAL_INTERFACE        pRenderHal,
                 PMOS_COMMAND_BUFFER         pCmdBuffer);
 
+    MOS_STATUS (*pfnSendCscCoeffSurface) (
+                PRENDERHAL_INTERFACE        pRenderHal,
+                PMOS_COMMAND_BUFFER         pCmdBuffer,
+                PMOS_RESOURCE               presCscCoeff,
+                uint64_t                    *pCscCoeff,
+                uint32_t                    dwCscCoeffOffset,
+                uint32_t                    dwCscCoeffCount);
+
     void       (* pfnIncTrackerId) (
                 PRENDERHAL_INTERFACE        renderHal);
 

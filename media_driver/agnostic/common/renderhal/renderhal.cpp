@@ -3133,6 +3133,7 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
                 break;
 
             case Format_A16B16G16R16:
+            case Format_Y416:
                 PlaneDefinition        = RENDERHAL_PLANES_A16B16G16R16_ADV;
                 break;
 
@@ -5027,6 +5028,80 @@ finish:
 }
 
 //!
+//! \brief    Send CSC Coefficient surface
+//! \details  Adds pipe control command in Command Buffer
+//! \param    PRENDERHAL_INTERFACE pRenderHal
+//!           [in] Pointer to RenderHal Interface Structure
+//! \param    PMOS_COMMAND_BUFFER pCmdBuffer
+//!           [in] Pointer to Command Buffer
+//! \param    PMOS_RESOURCE presCscCoeff
+//!           [in] Pointer to CSC Coefficient Surface
+//! \param    uint64_t *pCscCoeff
+//!           [in] Pointer to CSC Coefficient in system memory
+//! \param    uint32_t dwCscCoeffOffset
+//!           [in] Offset in CSC Coefficient Surface
+//! \param    uint32_t dwCscCoeffCount
+//!           [in] CSC Coefficient count in DWORD size
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS  if succeeded
+//!           MOS_STATUS_UNKNOWN if failed to allocate/initialize HW commands
+//!
+MOS_STATUS RenderHal_SendCscCoeffSurface(
+    PRENDERHAL_INTERFACE         pRenderHal,
+    PMOS_COMMAND_BUFFER          pCmdBuffer,
+    PMOS_RESOURCE                presCscCoeff,
+    uint64_t                     *pCscCoeff,
+    uint32_t                     dwCscCoeffOffset,
+    uint32_t                     dwCscCoeffCount)
+{
+    MOS_STATUS                   eStatus = MOS_STATUS_SUCCESS;
+    PMOS_INTERFACE               pOsInterface;
+    PMHW_MI_INTERFACE            pMhwMiInterface;
+    MHW_PIPE_CONTROL_PARAMS      PipeCtl;
+    MOS_RESOURCE                 OsResource;
+    uint64_t                     *pTempCoeff;
+    uint32_t                     dwLow;
+    uint32_t                     dwHigh;
+
+    //------------------------------------
+    MHW_RENDERHAL_CHK_NULL(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface);
+    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwMiInterface);
+    MHW_RENDERHAL_CHK_NULL(pCmdBuffer);
+    MHW_RENDERHAL_CHK_NULL(presCscCoeff);
+    MHW_RENDERHAL_CHK_NULL(pCscCoeff);
+    //------------------------------------
+
+    pOsInterface    = pRenderHal->pOsInterface;
+    pMhwMiInterface = pRenderHal->pMhwMiInterface;
+
+    // Register the buffer
+    MHW_RENDERHAL_CHK_STATUS(pOsInterface->pfnRegisterResource(pOsInterface, presCscCoeff, true, true));
+
+    PipeCtl              = g_cRenderHal_InitPipeControlParams;
+    PipeCtl.presDest     = presCscCoeff;
+    PipeCtl.dwPostSyncOp = MHW_FLUSH_WRITE_IMMEDIATE_DATA;
+    PipeCtl.dwFlushMode  = MHW_FLUSH_WRITE_CACHE;
+
+    pTempCoeff = pCscCoeff;
+
+    // Issue pipe control to write CSC Coefficient Surface
+    for (uint16_t i = 0; i < dwCscCoeffCount; i ++, pTempCoeff++)
+    {
+        dwLow                    = (uint32_t)((*pTempCoeff) & 0xFFFFFFFF);
+        dwHigh                   = (uint32_t)(((*pTempCoeff) >> 32) & 0xFFFFFFFF);
+        PipeCtl.dwResourceOffset = dwCscCoeffOffset + sizeof(uint64_t) * i;
+        PipeCtl.dwDataDW1        = dwLow;
+        PipeCtl.dwDataDW2        = dwHigh;
+
+        MHW_RENDERHAL_CHK_STATUS(pMhwMiInterface->AddPipeControl(pCmdBuffer, nullptr, &PipeCtl));
+    }
+
+finish:
+    return eStatus;
+}
+
+//!
 //! \brief    Issue command to write timestamp
 //! \param    [in] pRenderHal
 //! \param    [in] pCmdBuffer
@@ -6545,6 +6620,7 @@ MOS_STATUS RenderHal_InitInterface(
     pRenderHal->pfnSendTimingData             = RenderHal_SendTimingData;
     pRenderHal->pfnSendRcsStatusTag           = RenderHal_SendRcsStatusTag;
     pRenderHal->pfnSendSyncTag                = RenderHal_SendSyncTag;
+    pRenderHal->pfnSendCscCoeffSurface        = RenderHal_SendCscCoeffSurface;
 
     // Tracker tag
     pRenderHal->pfnIncTrackerId               = RenderHal_IncTrackerId;

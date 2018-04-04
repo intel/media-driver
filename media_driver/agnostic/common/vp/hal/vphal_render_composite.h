@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2017, Intel Corporation
+* Copyright (c) 2016-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -845,6 +845,17 @@ private:
     //!
     bool MediaWalkerVertical(
         PVPHAL_RENDERING_DATA_COMPOSITE pRenderingData);
+
+    //!
+    //! \brief    Update CMFC CSC Coefficient surface
+    //! \details  Submit PIPE_CONTROL commands to update CMFC CSC Coefficient surface
+    //! \param    [in] Kdll_CacheEntry
+    //!           Pointer to Current Kernel Cache Entry
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise fail
+    //!
+    MOS_STATUS UpdateCmfcCscCoeffSurface(
+        Kdll_CacheEntry                 *pKernelEntry);
 
     //!
     //! \brief    Submit Composite states
