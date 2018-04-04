@@ -597,6 +597,8 @@ typedef struct tagKdll_State
     int                     iSize;                  // Size of DL buffer
     uint32_t                dwRefresh;              // Refresh counter (for garbage collection)
     bool                    bEnableCMFC;            // Flag to enable CMFC
+    uint8_t                 *pCscCoeffCMFC;          // CMFC CSC Coeff surface
+    uint32_t                dwCscCoeffStride;       // CMFC CSC Coeff stride
 
     // Default kernel component cache and rule table
     Kdll_KernelCache        ComponentKernelCache;   // Component kernels cache
@@ -632,6 +634,10 @@ typedef struct tagKdll_State
     // Find best ColorSpace to use internally, allocate/calculate CSC matrices and arguments
     bool                 (* pfnSetupCSC)     (PKdll_State       pState,
                                               PKdll_SearchState pSearchState);
+
+    // Update patched CSC Coeff
+    bool                 (* pfnUpdatePatchedCSC) (PKdll_State       pState,
+                                                  Kdll_CacheEntry  *pKernelEntry);
 
     // Find rule that matches the current search state
     bool                 (* pfnFindRule)     (PKdll_State       pState,
