@@ -282,6 +282,9 @@ typedef struct _MHW_GPGPU_WALKER_PARAMS
     uint32_t                   GroupHeight;
     uint32_t                   GroupDepth;
     uint32_t                   SLMSize;
+
+    uint32_t                   IndirectDataLength;
+    uint32_t                   IndirectDataStartAddress;
 } MHW_GPGPU_WALKER_PARAMS, *PMHW_GPGPU_WALKER_PARAMS;
 
 typedef struct _MHW_MEDIA_OBJECT_PARAMS
