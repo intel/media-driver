@@ -539,31 +539,16 @@ CM_RT_API int32_t CmThreadSpaceRT::SelectMediaWalkingPattern( CM_WALKING_PATTERN
     switch( pattern )
     {
         case CM_WALK_DEFAULT:
-            m_walkingPattern = CM_WALK_DEFAULT;
-            break;
         case CM_WALK_HORIZONTAL:
-            m_walkingPattern = CM_WALK_HORIZONTAL;
-            break;
         case CM_WALK_VERTICAL:
-            m_walkingPattern = CM_WALK_VERTICAL;
-            break;
         case CM_WALK_WAVEFRONT:
-            m_walkingPattern = CM_WALK_WAVEFRONT;
-            break;
         case CM_WALK_WAVEFRONT26:
-            m_walkingPattern = CM_WALK_WAVEFRONT26;
-            break;
         case CM_WALK_WAVEFRONT26ZIG:
-            m_walkingPattern = CM_WALK_WAVEFRONT26ZIG;
-            break;
         case CM_WALK_WAVEFRONT26X:
-            m_walkingPattern = CM_WALK_WAVEFRONT26X;
-            break;
+        case CM_WALK_WAVEFRONT26XALT:
         case CM_WALK_WAVEFRONT45D:
-            m_walkingPattern = CM_WALK_WAVEFRONT45D;
-            break;
         case CM_WALK_WAVEFRONT45XD_2:
-            m_walkingPattern = CM_WALK_WAVEFRONT45XD_2;
+            m_walkingPattern = pattern;
             break;
         default:
             CM_ASSERTMESSAGE("Error: Invalid media walking pattern.");
