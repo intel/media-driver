@@ -2044,7 +2044,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpEncodeSliceStateCmd(
     cmd.DW4.SliceBetaOffsetDiv2OrFinalBetaOffsetDiv2Encoder
                                         = hevcSliceParams->beta_offset_div2;
     cmd.DW4.SliceLoopFilterAcrossSlicesEnabledFlag
-                                        = 0;
+                                        = (hevcSliceState->bVdencInUse) ? hevcPicParams->loop_filter_across_slices_flag : 0;
     cmd.DW4.SliceSaoChromaFlag          = hevcSliceState->bSaoChromaFlag;
     cmd.DW4.SliceSaoLumaFlag            = hevcSliceState->bSaoLumaFlag;
     cmd.DW4.MvdL1ZeroFlag               = 0; // Decoder only - set to 0 for encoder
