@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2017, Intel Corporation
+* Copyright (c) 2011-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1306,9 +1306,6 @@ MOS_STATUS VPHAL_VEBOX_STATE_G10_BASE::SetDNParams(
     // Set Chroma DN params
     if (pRenderData->bChromaDenoise)
     {
-        // initialize Chroma VEBOX parameters
-        MOS_ZeroMemory(pChromaParams, sizeof(VPHAL_DNUV_PARAMS));
-
         // Setup Denoise Params
         pChromaParams->dwHistoryDeltaUV = NOISE_HISTORY_DELTA_DEFAULT;
         pChromaParams->dwHistoryMaxUV   = NOISE_HISTORY_MAX_DEFAULT;
@@ -1431,9 +1428,6 @@ MOS_STATUS VPHAL_VEBOX_STATE_G10_BASE::SetDNDIParams(
     VPHAL_RENDER_ASSERT(pChromaParams);
 
     status             = MOS_STATUS_SUCCESS;
-
-    // initialize Luma VEBOX parameters
-    MOS_ZeroMemory(pLumaParams, sizeof(VPHAL_SAMPLER_STATE_DNDI_PARAM));
 
     status = SetDNParams(pSrcSurface, pLumaParams, pChromaParams);
 

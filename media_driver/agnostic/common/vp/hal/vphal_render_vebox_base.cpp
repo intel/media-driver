@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2017, Intel Corporation
+* Copyright (c) 2011-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1113,6 +1113,9 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSetDNDIParams(
     eStatus             = MOS_STATUS_SUCCESS;
     pLumaParams         = &lumaParams;     // Params for DI and LumaDN
     pChromaParams       = &chromaParams;   // Params for ChromaDN
+
+    MOS_ZeroMemory(pLumaParams, sizeof(VPHAL_SAMPLER_STATE_DNDI_PARAM));
+    MOS_ZeroMemory(pChromaParams, sizeof(VPHAL_DNUV_PARAMS));
 
     // Set Luma and Chroma DNDI params
     VPHAL_RENDER_CHK_STATUS(pVeboxState->SetDNDIParams(
