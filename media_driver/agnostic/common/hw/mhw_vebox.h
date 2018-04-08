@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -964,6 +964,38 @@ public:
     finish:
         return eStatus;
    }
+
+    //!
+    //! \brief    Create Gpu Context for Vebox
+    //! \details  Create Gpu Context for Vebox
+    //! \param    [in] pOsInterface
+    //!           OS interface
+    //! \param    [in] VeboxGpuContext
+    //!           Vebox Gpu Context
+    //! \param    [in] VeboxGpuNode
+    //!           Vebox Gpu Node
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS CreateGpuContext(
+        PMOS_INTERFACE  pOsInterface,
+        MOS_GPU_CONTEXT VeboxGpuContext,
+        MOS_GPU_NODE    VeboxGpuNode)
+    {
+        MOS_GPUCTX_CREATOPTIONS createOption;
+        MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
+
+        MHW_CHK_NULL(pOsInterface);
+
+        MHW_CHK_STATUS(pOsInterface->pfnCreateGpuContext(
+            pOsInterface,
+            VeboxGpuContext,
+            VeboxGpuNode,
+            &createOption));
+
+    finish:
+        return eStatus;
+    }
 
 protected:
     MhwVeboxInterface(PMOS_INTERFACE pOsInterface);

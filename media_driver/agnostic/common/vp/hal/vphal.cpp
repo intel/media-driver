@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -102,7 +102,6 @@ MOS_STATUS VphalState::Allocate(
 
     if (MEDIA_IS_SKU(m_skuTable, FtrVERing) && m_veboxInterface)
     {
-        MOS_GPUCTX_CREATOPTIONS createOption;
         GpuNodeLimit.bCpEnabled        = (m_osInterface->osCpInterface->IsCpEnabled())? true : false;
         GpuNodeLimit.bSfcInUse         = MEDIA_IS_SKU(m_skuTable, FtrSFCPipe);
 
@@ -113,11 +112,10 @@ MOS_STATUS VphalState::Allocate(
         VeboxGpuContext = (VeboxGpuNode == MOS_GPU_NODE_VE) ? MOS_GPU_CONTEXT_VEBOX : MOS_GPU_CONTEXT_VEBOX2;
 
         // Create VEBOX/VEBOX2 Context
-        VPHAL_PUBLIC_CHK_STATUS(m_osInterface->pfnCreateGpuContext(
+        VPHAL_PUBLIC_CHK_STATUS(m_veboxInterface->CreateGpuContext(
             m_osInterface,
             VeboxGpuContext,
-            VeboxGpuNode,
-            &createOption));
+            VeboxGpuNode));
 
         // Register Vebox GPU context with the Batch Buffer completion event
         // Ignore if creation fails
