@@ -2635,10 +2635,7 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcInitReset()
     virtualAddrParams.regionParams[0].isWritable = true;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucVirtualAddrStateCmd(&cmdBuffer, &virtualAddrParams));
 
-    if (MEDIA_IS_WA(m_waTable, WaHucStreamoutEnable))
-    {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(HuCBrcDummyStreamObject(&cmdBuffer));
-    }
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(HuCBrcDummyStreamObject(&cmdBuffer));
 
     // Store HUC_STATUS2 register bit 6 before HUC_Start command
     // BitField: VALID IMEM LOADED - This bit will be cleared by HW at the end of a HUC workload
@@ -2820,10 +2817,7 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcUpdate()
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucVirtualAddrStateCmd(&cmdBuffer, &virtualAddrParams));
 
-    if (MEDIA_IS_WA(m_waTable, WaHucStreamoutEnable))
-    {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(HuCBrcDummyStreamObject(&cmdBuffer));
-    }
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(HuCBrcDummyStreamObject(&cmdBuffer));
 
     // Store HUC_STATUS2 register bit 6 before HUC_Start command
     // BitField: VALID IMEM LOADED - This bit will be cleared by HW at the end of a HUC workload
