@@ -4515,6 +4515,8 @@ bool CompositeState::SubmitStates(
         goto finish;
     }
 
+    pRenderHal->iKernelAllocationID = iKrnAllocation;
+
     SubmitStatesFillGenSpecificStaticData(pRenderingData,
                                    pTarget,
                                    pStatic);
@@ -5721,38 +5723,6 @@ MOS_STATUS CompositeState::RenderPhase(
             pProcamp           = &(m_Procamp[pMatrix->iProcampID]);
             bKernelEntryUpdate = (pProcamp->iProcampVersion != pMatrix->iProcampVersion) ? true : false;
         }
-
-        if (pKernelDllState->bEnableCMFC)
-        {
-            if (!Mos_ResourceIsNull(&m_CmfcCoeff.OsResource))
-            {
-                MOS_LOCK_PARAMS                 LockFlags;
-                MOS_ZeroMemory(&LockFlags, sizeof(LockFlags));
-
-                LockFlags.WriteOnly = 1;
-
-                m_pKernelDllState->pCscCoeffCMFC = (uint8_t*)m_pOsInterface->pfnLockResource(
-                    m_pOsInterface,
-                    &m_CmfcCoeff.OsResource,
-                    &LockFlags);
-
-                m_pKernelDllState->dwCscCoeffStride = m_CmfcCoeff.dwPitch;
-
-                if (nullptr == m_pKernelDllState->pCscCoeffCMFC)
-                {
-                    m_pOsInterface->pfnUnlockResource(m_pOsInterface,
-                        &m_CmfcCoeff.OsResource);
-
-                    eStatus = MOS_STATUS_NULL_POINTER;
-                    goto finish;
-                }
-            }
-
-            pKernelDllState->pfnUpdatePatchedCSC(pKernelDllState, pKernelEntry);
-
-            m_pOsInterface->pfnUnlockResource(m_pOsInterface,
-                                              &m_CmfcCoeff.OsResource);
-        }
     }
 
     if (!pKernelEntry || bKernelEntryUpdate)
@@ -5782,51 +5752,12 @@ MOS_STATUS CompositeState::RenderPhase(
             goto finish;
         }
 
-        // Get CMFC CSC Coeff surface pointer
-        if (pKernelDllState->bEnableCMFC)
-        {
-            if (!Mos_ResourceIsNull(&m_CmfcCoeff.OsResource))
-            {
-                MOS_LOCK_PARAMS                 LockFlags;
-                MOS_ZeroMemory(&LockFlags, sizeof(LockFlags));
-
-                LockFlags.WriteOnly = 1;
-
-                m_pKernelDllState->pCscCoeffCMFC = (uint8_t*)m_pOsInterface->pfnLockResource(
-                    m_pOsInterface,
-                    &m_CmfcCoeff.OsResource,
-                    &LockFlags);
-
-                m_pKernelDllState->dwCscCoeffStride = m_CmfcCoeff.dwPitch;
-
-                if (nullptr == m_pKernelDllState->pCscCoeffCMFC)
-                {
-                    m_pOsInterface->pfnUnlockResource(m_pOsInterface,
-                                                      &m_CmfcCoeff.OsResource);
-
-                    eStatus = MOS_STATUS_NULL_POINTER;
-                    goto finish;
-                }
-            }
-            else
-            {
-                eStatus = MOS_STATUS_NULL_POINTER;
-                goto finish;
-            }
-        }
-
         // Build kernel
         if (!pKernelDllState->pfnBuildKernel(pKernelDllState, pSearchState))
         {
             VPHAL_RENDER_ASSERTMESSAGE("Failed to build kernel.");
             eStatus = MOS_STATUS_UNKNOWN;
             goto finish;
-        }
-
-        if (pKernelDllState->bEnableCMFC && m_pKernelDllState->pCscCoeffCMFC)
-        {
-            m_pOsInterface->pfnUnlockResource(m_pOsInterface,
-                                              &m_CmfcCoeff.OsResource);
         }
 
         // Load resulting kernel into kernel cache
@@ -5963,6 +5894,18 @@ MOS_STATUS CompositeState::RenderPhase(
         ((PVPHAL_BATCH_BUFFER_PARAMS)pBatchBuffer->pPrivateData)->iCallID = m_iCallID;
     }
 
+    // Enable extra PIPE_CONTROL in command buffer for CMFC Coeff Surface update
+    if (RenderingData.bCmFcEnable)
+    {
+        pRenderHal->bCmfcCoeffUpdate  = true;
+        pRenderHal->pCmfcCoeffSurface = &m_CmfcCoeff.OsResource;
+    }
+    else
+    {
+        pRenderHal->bCmfcCoeffUpdate  = false;
+        pRenderHal->pCmfcCoeffSurface = nullptr;
+    }
+
     VPHAL_DBG_STATE_DUMPPER_DUMP_GSH(pRenderHal);
     VPHAL_DBG_STATE_DUMPPER_DUMP_SSH(pRenderHal);
     VPHAL_DBG_STATE_DUMPPER_DUMP_BATCH_BUFFER(pRenderHal, pBatchBuffer);
@@ -5983,6 +5926,8 @@ finish:
     }
     // clean rendering data
     CleanRenderingData(&RenderingData);
+    pRenderHal->bCmfcCoeffUpdate  = false;
+    pRenderHal->pCmfcCoeffSurface = nullptr;
     return eStatus;
 }
 
@@ -6538,7 +6483,7 @@ MOS_STATUS CompositeState::Initialize(
             "CSCCoeffSurface",
             Format_L8,
             MOS_GFXRES_2D,
-            MOS_TILE_Y,
+            MOS_TILE_LINEAR,
             VPHAL_COMP_CMFC_COEFF_WIDTH,
             VPHAL_COMP_CMFC_COEFF_HEIGHT,
             false,

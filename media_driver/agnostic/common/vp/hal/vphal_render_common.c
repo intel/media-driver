@@ -703,6 +703,14 @@ MOS_STATUS VpHal_RndrSubmitCommands(
         &pRenderHal->L3CacheSettings,
         bEnableSLM));
 
+    if (pRenderHal->bCmfcCoeffUpdate)
+    {
+        VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnSendCscCoeffSurface(pRenderHal,
+            &CmdBuffer,
+            pRenderHal->pCmfcCoeffSurface,
+            pRenderHal->pStateHeap->pKernelAllocation[pRenderHal->iKernelAllocationID].pKernelEntry));
+    }
+
     // Flush media states
     VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnSendMediaStates(
         pRenderHal,

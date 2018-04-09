@@ -3133,6 +3133,7 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
                 break;
 
             case Format_A16B16G16R16:
+            case Format_Y416:
                 PlaneDefinition        = RENDERHAL_PLANES_A16B16G16R16_ADV;
                 break;
 
@@ -5027,6 +5028,93 @@ finish:
 }
 
 //!
+//! \brief    Send CSC Coefficient surface
+//! \details  Adds pipe control command in Command Buffer
+//! \param    PRENDERHAL_INTERFACE pRenderHal
+//!           [in] Pointer to RenderHal Interface Structure
+//! \param    PMOS_COMMAND_BUFFER pCmdBuffer
+//!           [in] Pointer to Command Buffer
+//! \param    PMOS_RESOURCE presCscCoeff
+//!           [in] Pointer to CSC Coefficient Surface
+//! \param    Kdll_CacheEntry *pKernelEntry
+//!           [in] Pointer to Kernel Entry
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS  if succeeded
+//!           MOS_STATUS_UNKNOWN if failed to allocate/initialize HW commands
+//!
+MOS_STATUS RenderHal_SendCscCoeffSurface(
+    PRENDERHAL_INTERFACE         pRenderHal,
+    PMOS_COMMAND_BUFFER          pCmdBuffer,
+    PMOS_RESOURCE                presCscCoeff,
+    Kdll_CacheEntry              *pKernelEntry)
+{
+    MOS_STATUS                   eStatus = MOS_STATUS_SUCCESS;
+    PMOS_INTERFACE               pOsInterface;
+    PMHW_MI_INTERFACE            pMhwMiInterface;
+    MHW_PIPE_CONTROL_PARAMS      PipeCtl;
+    MOS_SURFACE                  Surface;
+    uint64_t                     *pTempCoeff;
+    uint32_t                     dwLow;
+    uint32_t                     dwHigh;
+    uint32_t                     dwOffset;
+    uint32_t                     dwCount;
+
+    //------------------------------------
+    MHW_RENDERHAL_CHK_NULL(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface);
+    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwMiInterface);
+    MHW_RENDERHAL_CHK_NULL(pCmdBuffer);
+    MHW_RENDERHAL_CHK_NULL(presCscCoeff);
+    MHW_RENDERHAL_CHK_NULL(pKernelEntry);
+    MHW_RENDERHAL_CHK_NULL(pKernelEntry->pCscParams);
+    //------------------------------------
+
+    pOsInterface    = pRenderHal->pOsInterface;
+    pMhwMiInterface = pRenderHal->pMhwMiInterface;
+    dwOffset        = 0;
+    dwCount         = sizeof(pKernelEntry->pCscParams->Matrix[0].Coeff) / sizeof(uint64_t);
+    MOS_ZeroMemory(&Surface, sizeof(Surface));
+
+    // Register the buffer
+    MHW_RENDERHAL_CHK_STATUS(pOsInterface->pfnRegisterResource(pOsInterface, presCscCoeff, true, true));
+    MHW_RENDERHAL_CHK_STATUS(pOsInterface->pfnGetResourceInfo(pOsInterface, presCscCoeff, &Surface));
+
+    PipeCtl              = g_cRenderHal_InitPipeControlParams;
+    PipeCtl.presDest     = presCscCoeff;
+    PipeCtl.dwPostSyncOp = MHW_FLUSH_WRITE_IMMEDIATE_DATA;
+    PipeCtl.dwFlushMode  = MHW_FLUSH_READ_CACHE;
+
+    for (uint32_t j = 0; j < DL_CSC_MAX; j++)
+    {
+        if (!pKernelEntry->pCscParams->Matrix[j].bInUse)
+        {
+            continue;
+        }
+        else
+        {
+            pTempCoeff = (uint64_t *)pKernelEntry->pCscParams->Matrix[j].Coeff;
+
+            // Issue pipe control to write CSC Coefficient Surface
+            for (uint16_t i = 0; i < dwCount; i++, pTempCoeff++)
+            {
+                dwLow = (uint32_t)((*pTempCoeff) & 0xFFFFFFFF);
+                dwHigh = (uint32_t)(((*pTempCoeff) >> 32) & 0xFFFFFFFF);
+                PipeCtl.dwResourceOffset = dwOffset + sizeof(uint64_t) * i;
+                PipeCtl.dwDataDW1 = dwLow;
+                PipeCtl.dwDataDW2 = dwHigh;
+
+                MHW_RENDERHAL_CHK_STATUS(pMhwMiInterface->AddPipeControl(pCmdBuffer, nullptr, &PipeCtl));
+            }
+
+            dwOffset += Surface.dwPitch;
+        }
+    }
+
+finish:
+    return eStatus;
+}
+
+//!
 //! \brief    Issue command to write timestamp
 //! \param    [in] pRenderHal
 //! \param    [in] pCmdBuffer
@@ -6469,6 +6557,11 @@ MOS_STATUS RenderHal_InitInterface(
     MOS_ZeroMemory(&pRenderHal->PredicationParams, sizeof(pRenderHal->PredicationParams));
     MOS_ZeroMemory(&pRenderHal->SetMarkerParams, sizeof(pRenderHal->SetMarkerParams));
 
+    // CMFC CSC Coefficient Surface update
+    pRenderHal->bCmfcCoeffUpdate              = false;
+    pRenderHal->iKernelAllocationID           = RENDERHAL_KERNEL_LOAD_FAIL;
+    pRenderHal->pCmfcCoeffSurface             = nullptr;
+
     // Initialization/Cleanup function
     pRenderHal->pfnInitialize                 = RenderHal_Initialize;
     pRenderHal->pfnDestroy                    = RenderHal_Destroy;
@@ -6545,6 +6638,7 @@ MOS_STATUS RenderHal_InitInterface(
     pRenderHal->pfnSendTimingData             = RenderHal_SendTimingData;
     pRenderHal->pfnSendRcsStatusTag           = RenderHal_SendRcsStatusTag;
     pRenderHal->pfnSendSyncTag                = RenderHal_SendSyncTag;
+    pRenderHal->pfnSendCscCoeffSurface        = RenderHal_SendCscCoeffSurface;
 
     // Tracker tag
     pRenderHal->pfnIncTrackerId               = RenderHal_IncTrackerId;

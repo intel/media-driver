@@ -1233,6 +1233,11 @@ typedef struct _RENDERHAL_INTERFACE
     RENDERHAL_PREDICATION_SETTINGS PredicationParams;   //!< Predication
     MOS_RESOURCE                   PredicationBuffer;   //!< Predication buffer
 
+    // CSC Coefficient
+    bool                           bCmfcCoeffUpdate;    //!< CMFC CSC Coefficient Surface update flag
+    int32_t                        iKernelAllocationID; //!< CMFC CSC Kernel Allocation ID
+    PMOS_RESOURCE                  pCmfcCoeffSurface;   //!< CMFC CSC Coefficient Surface
+
     // SetMarker
     RENDERHAL_SETMARKER_SETTINGS SetMarkerParams;   //!< SetMarker
 
@@ -1576,6 +1581,12 @@ typedef struct _RENDERHAL_INTERFACE
     MOS_STATUS (* pfnSendSyncTag) (
                 PRENDERHAL_INTERFACE        pRenderHal,
                 PMOS_COMMAND_BUFFER         pCmdBuffer);
+
+    MOS_STATUS (*pfnSendCscCoeffSurface) (
+                PRENDERHAL_INTERFACE        pRenderHal,
+                PMOS_COMMAND_BUFFER         pCmdBuffer,
+                PMOS_RESOURCE               presCscCoeff,
+                Kdll_CacheEntry             *pKernelEntry);
 
     void       (* pfnIncTrackerId) (
                 PRENDERHAL_INTERFACE        renderHal);
