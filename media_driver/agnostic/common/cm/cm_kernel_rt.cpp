@@ -5999,32 +5999,42 @@ int CmKernelRT::UpdateSamplerHeap(CmKernelData *kernelData)
                             if ((iter_next != sampler_heap->end()) && (iter_next->elementType > iter->elementType))
                             {
                                 // Aligns heapOffset to next nearest multiple of sampler size if next sampler is a different element type
-                                heapOffset = (heapOffset + iter_next->btiStepping * iter_next->btiMultiplier - 1) / (iter_next->btiStepping * iter_next->btiMultiplier) * (iter_next->btiStepping * iter_next->btiMultiplier);
+                                unsigned int tmpdiv=iter_next->btiStepping * iter_next->btiMultiplier;
+                                if(tmpdiv==0)
+                                {
+                                        CM_ASSERTMESSAGE("Sampler BTI setting error. Multiplier cannot be zero!\n");
+                                        return MOS_STATUS_INVALID_PARAMETER;
+                                }
+                                tmpdiv*=tmpdiv;
+                                heapOffset = (heapOffset + iter_next->btiStepping * iter_next->btiMultiplier - 1) / tmpdiv;
                             }
                         }
                     }
 
                     if (iter == sampler_heap->end())
                     {
-                        // Aligns heapOffset to next nearest multiple of sampler size if next sampler is a different element type
-                        heapOffset = (heapOffset + sampler.btiStepping * sampler.btiMultiplier - 1) / (sampler.btiStepping * sampler.btiMultiplier) * (sampler.btiStepping * sampler.btiMultiplier);
+                            // Aligns heapOffset to next nearest multiple of sampler size if next sampler is a different element type
+                            unsigned int tmpdiv=sampler.btiStepping * sampler.btiMultiplier;
+                            if(tmpdiv==0)
+                            {
+                                    CM_ASSERTMESSAGE("Sampler BTI setting error. Multiplier cannot be zero!\n");
+                                    return MOS_STATUS_INVALID_PARAMETER;
+                            }
+                            tmpdiv*=tmpdiv;
+                            heapOffset = (heapOffset + sampler.btiStepping * sampler.btiMultiplier - 1) / tmpdiv;
                     }
                     sampler.heapOffset = heapOffset;
-
-                    if (sampler.btiMultiplier != 0) 
+                    if(sampler.btiMultiplier==0)
                     {
-                        sampler.bti = sampler.heapOffset / sampler.btiMultiplier;
+                            CM_ASSERTMESSAGE("Sampler BTI setting error. Multiplier cannot be zero!\n");
+                            return MOS_STATUS_INVALID_PARAMETER;
                     }
-                    else
-                    {
-                        CM_ASSERTMESSAGE("Sampler BTI setting error. Multiplier cannot be zero!\n");
-                        return MOS_STATUS_INVALID_PARAMETER;
-                    }
+                    sampler.bti = sampler.heapOffset / sampler.btiMultiplier;
                     sampler_heap->insert(iter, sampler);
                 }
             }
         }
-    }
+}
 
     return CM_SUCCESS;
 }
