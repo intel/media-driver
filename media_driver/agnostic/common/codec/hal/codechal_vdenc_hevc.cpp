@@ -1554,7 +1554,7 @@ MOS_STATUS CodechalVdencHevcState::ReadBrcPakStats(
     return eStatus;
 }
 
-MOS_STATUS CodechalVdencHevcState::ReadSliceSize()
+MOS_STATUS CodechalVdencHevcState::ReadSliceSize(PMOS_COMMAND_BUFFER cmdBuffer)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -1562,97 +1562,126 @@ MOS_STATUS CodechalVdencHevcState::ReadSliceSize()
 
     MOS_LOCK_PARAMS lockFlags;
     MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
-    lockFlags.ReadOnly = true;
+    lockFlags.WriteOnly = true;
 
     uint32_t baseOffset = (m_encodeStatusBuf.wCurrIndex * m_encodeStatusBuf.dwReportSize + sizeof(uint32_t) * 2);  // encodeStatus is offset by 2 DWs in the resource
 
-    uint8_t  numSlices;
-    uint16_t* sliceSize = nullptr;
-    uint32_t  sliceSizeOverflow;
-    uint32_t  sizeOfSliceSizesBuffer;
-
-    //Read Number of Slices from the buffer
-    uint8_t *data = (uint8_t *)m_osInterface->pfnLockResource(
-        m_osInterface,
-        m_resSliceCountBuffer,
-        &lockFlags);
-
-    CODECHAL_ENCODE_CHK_NULL_RETURN(data);
-    uint32_t* pointer = (uint32_t*)data;
-
-    numSlices = (uint8_t)pointer[0];
-
-    m_osInterface->pfnUnlockResource(
-        m_osInterface,
-        m_resSliceCountBuffer);
-
-    //Read slice size for each of the slice from the buffer if SSC enabled
-    data = (uint8_t *)m_osInterface->pfnLockResource(
-        m_osInterface,
-        &m_resLcuBaseAddressBuffer,
-        &lockFlags);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(data);
-
-    pointer = (uint32_t*)data;
-
-    sizeOfSliceSizesBuffer = sizeof(uint16_t) * numSlices;
-    sliceSize = (uint16_t*)MOS_AllocAndZeroMemory(sizeOfSliceSizesBuffer);
-
-    CODECHAL_ENCODE_CHK_NULL_RETURN(sliceSize);
-
-    for (uint32_t sliceCount = 0, loopCounter = 0; sliceCount < numSlices; sliceCount++)
+    // Report slice size to app only when dynamic slice is enabled
+    if (!m_hevcSeqParams->SliceSizeControl)
     {
-        sliceSize[sliceCount] = (uint16_t)pointer[loopCounter];
-        loopCounter += 16; // Every 16th dword gives SliceSize
+        // Clear slice size report in EncodeStatus buffer
+        uint8_t* data = (uint8_t*)m_osInterface->pfnLockResource(m_osInterface, &m_encodeStatusBuf.resStatusBuffer, &lockFlags);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(data);
+        EncodeStatus* dataStatus = (EncodeStatus*)(data + baseOffset);
+        MOS_ZeroMemory(&(dataStatus->sliceReport), sizeof(EncodeStatusSliceReport));
+        m_osInterface->pfnUnlockResource(m_osInterface, &m_encodeStatusBuf.resStatusBuffer);
+
+        return eStatus;
     }
 
-    //convert cummulative slice size to individual, first slice may have PPS/SPS,
-    for (auto sliceCount = numSlices - 1; sliceCount > 0; sliceCount--)
+    uint32_t sizeOfSliceSizesBuffer = MOS_ALIGN_CEIL(CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6 * CODECHAL_CACHELINE_SIZE, CODECHAL_PAGE_SIZE);
+
+    if (IsFirstPass())
     {
-        sliceSize[sliceCount] -= sliceSize[sliceCount - 1];
+        // Create/ Initialize slice report buffer once per frame, to be used across passes
+        if (Mos_ResourceIsNull(&m_resSliceReport[m_encodeStatusBuf.wCurrIndex]))
+        {
+            MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferLinear;
+            MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+            allocParamsForBufferLinear.Type = MOS_GFXRES_BUFFER;
+            allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
+            allocParamsForBufferLinear.Format = Format_Buffer;
+            allocParamsForBufferLinear.dwBytes = sizeOfSliceSizesBuffer;
+
+            CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
+                m_osInterface,
+                &allocParamsForBufferLinear,
+                &m_resSliceReport[m_encodeStatusBuf.wCurrIndex]),
+                "Failed to create HEVC VDEnc Slice Report Buffer ");
+        }
+
+        // Clear slice size structure to be sent in EncodeStatusReport buffer
+        uint8_t* data = (uint8_t*)m_osInterface->pfnLockResource(m_osInterface, &m_resSliceReport[m_encodeStatusBuf.wCurrIndex], &lockFlags);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(data);
+        MOS_ZeroMemory(data, sizeOfSliceSizesBuffer);
+        m_osInterface->pfnUnlockResource(m_osInterface, &m_resSliceReport[m_encodeStatusBuf.wCurrIndex]);
+
+        // Set slice size pointer in slice size structure
+        data = (uint8_t*)m_osInterface->pfnLockResource(m_osInterface,(&m_encodeStatusBuf.resStatusBuffer), &lockFlags);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(data);
+        EncodeStatus* dataStatus = (EncodeStatus*)(data + baseOffset);
+        (dataStatus)->sliceReport.pSliceSize             = &m_resSliceReport[m_encodeStatusBuf.wCurrIndex];
+        m_osInterface->pfnUnlockResource(m_osInterface, &m_encodeStatusBuf.resStatusBuffer);
     }
 
-    m_osInterface->pfnUnlockResource(
-        m_osInterface,
-        &m_resLcuBaseAddressBuffer);
+    // Copy Slize size data buffer from PAK to be sent back to App
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CopyDataBlock(cmdBuffer, 
+        &m_resLcuBaseAddressBuffer, 0, &m_resSliceReport[m_encodeStatusBuf.wCurrIndex], 0, sizeOfSliceSizesBuffer));
 
-    //Get Slice size overflow bit
-    data = (uint8_t *)m_osInterface->pfnLockResource(
-        m_osInterface,
-        &m_resFrameStatStreamOutBuffer,
-        &lockFlags);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(data);
+    MHW_MI_COPY_MEM_MEM_PARAMS miCpyMemMemParams;
+    MOS_ZeroMemory(&miCpyMemMemParams, sizeof(MHW_MI_COPY_MEM_MEM_PARAMS));
+    miCpyMemMemParams.presSrc       = &m_resFrameStatStreamOutBuffer; // Slice size overflow is in m_resFrameStatStreamOutBuffer DW0[16]
+    miCpyMemMemParams.dwSrcOffset   = 0;
+    miCpyMemMemParams.presDst       = &m_encodeStatusBuf.resStatusBuffer;
+    miCpyMemMemParams.dwDstOffset   = baseOffset + m_encodeStatusBuf.dwSliceReportOffset;     // Slice size overflow is at DW0 EncodeStatusSliceReport
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiCopyMemMemCmd(cmdBuffer, &miCpyMemMemParams));
 
-    pointer = (uint32_t*)data;
-    pointer[0] = pointer[0] >> 16;// PAK Frame Statistics 0 Dword 16 bit
 
-    sliceSizeOverflow = (uint32_t)pointer[0] & 1;
+    MOS_ZeroMemory(&miCpyMemMemParams, sizeof(MHW_MI_COPY_MEM_MEM_PARAMS));
+    miCpyMemMemParams.presSrc       = m_resSliceCountBuffer; // Number of slice sizes are stored in this buffer. Updated at runtime
+    miCpyMemMemParams.dwSrcOffset   = 0;
+    miCpyMemMemParams.presDst       = &m_encodeStatusBuf.resStatusBuffer;
+    miCpyMemMemParams.dwDstOffset   = baseOffset + m_encodeStatusBuf.dwSliceReportOffset + 1;     // Num slices is located at DW1 EncodeStatusSliceReport
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiCopyMemMemCmd(cmdBuffer, &miCpyMemMemParams));
 
-    m_osInterface->pfnUnlockResource(
-        m_osInterface,
-        &m_resFrameStatStreamOutBuffer);
+    return eStatus;
+}
 
-    //Write slicereport data to the EncodeStatus
-    data = (uint8_t*)m_osInterface->pfnLockResource(
-        m_osInterface,
-        (&m_encodeStatusBuf.resStatusBuffer),
-        &lockFlags);
+MOS_STATUS CodechalVdencHevcState::CopyDataBlock(
+    PMOS_COMMAND_BUFFER cmdBuffer,
+    PMOS_RESOURCE sourceSurface,
+    uint32_t sourceOffset,
+    PMOS_RESOURCE destSurface,
+    uint32_t destOffset,
+    uint32_t copySize)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
-    EncodeStatus* dataStatus = nullptr;
-    dataStatus = (EncodeStatus*)(data + baseOffset);
+    CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    (dataStatus)->sliceReport.NumberSlices      = numSlices;
-    if ((dataStatus)->sliceReport.pSliceSize != nullptr)
-    {
-        MOS_FreeMemory(dataStatus->sliceReport.pSliceSize);
-    }
-    (dataStatus)->sliceReport.pSliceSize        = sliceSize;
-    (dataStatus)->sliceReport.SizeOfSliceSizesBuffer = sizeOfSliceSizesBuffer;
-    (dataStatus)->sliceReport.SliceSizeOverflow = sliceSizeOverflow;
+    CodechalHucStreamoutParams hucStreamOutParams;
+    MOS_ZeroMemory(&hucStreamOutParams, sizeof(hucStreamOutParams));
 
-    m_osInterface->pfnUnlockResource(
-        m_osInterface,
-        &m_encodeStatusBuf.resStatusBuffer);
+    // Ind Obj Addr command
+    hucStreamOutParams.dataBuffer            = sourceSurface;
+    hucStreamOutParams.dataSize              = copySize + sourceOffset;
+    hucStreamOutParams.dataOffset            = MOS_ALIGN_FLOOR(sourceOffset, CODECHAL_PAGE_SIZE);
+    hucStreamOutParams.streamOutObjectBuffer = destSurface;
+    hucStreamOutParams.streamOutObjectSize   = copySize + destOffset;
+    hucStreamOutParams.streamOutObjectOffset = MOS_ALIGN_FLOOR(destOffset, CODECHAL_PAGE_SIZE);
+
+    // Stream object params
+    hucStreamOutParams.indStreamInLength     = copySize;
+    hucStreamOutParams.inputRelativeOffset   = sourceOffset - hucStreamOutParams.dataOffset;
+    hucStreamOutParams.outputRelativeOffset  = destOffset - hucStreamOutParams.streamOutObjectOffset;
+
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->PerformHucStreamOut(
+        &hucStreamOutParams,
+        cmdBuffer));
+
+    // wait Huc completion (use HEVC bit for now)
+    MHW_VDBOX_VD_PIPE_FLUSH_PARAMS vdPipeFlushParams;
+    MOS_ZeroMemory(&vdPipeFlushParams, sizeof(vdPipeFlushParams));
+    vdPipeFlushParams.Flags.bFlushHEVC       = 1;
+    vdPipeFlushParams.Flags.bWaitDoneHEVC    = 1;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdPipelineFlushCmd(cmdBuffer, &vdPipeFlushParams));
+
+    // Flush the engine to ensure memory written out
+    MHW_MI_FLUSH_DW_PARAMS flushDwParams;
+    MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
+    flushDwParams.bVideoPipelineCacheInvalidate = true;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(cmdBuffer, &flushDwParams));
 
     return eStatus;
 }
@@ -2126,6 +2155,7 @@ MOS_STATUS CodechalVdencHevcState::ExecuteSliceLevel()
     }
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(ReadSseStatistics(&cmdBuffer));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(ReadSliceSize(&cmdBuffer));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(EndStatusReport(&cmdBuffer, CODECHAL_NUM_MEDIA_STATES));
 
@@ -2155,11 +2185,6 @@ MOS_STATUS CodechalVdencHevcState::ExecuteSliceLevel()
                 m_mmcState->UpdateUserFeatureKey(&m_reconSurface);
             }
         )
-
-        if(m_hevcSeqParams->SliceSizeControl)
-        {
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(ReadSliceSize());
-        }
 
         if (IsLastPass() &&
             m_signalEnc &&
@@ -2546,6 +2571,37 @@ MOS_STATUS CodechalVdencHevcState::GetStatusReport(
         pakInfoBuffer = nullptr;
     }
 
+
+    MOS_LOCK_PARAMS lockFlags;
+    MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+    lockFlags.ReadOnly = 1;
+
+    uint32_t* sliceSize = nullptr;
+    // pSliceSize is set/ allocated only when dynamic slice is enabled. Cannot use SSC flag here, as it is an asynchronous call
+    if (encodeStatus->sliceReport.pSliceSize)
+    {
+        sliceSize = (uint32_t*)m_osInterface->pfnLockResource(m_osInterface, encodeStatus->sliceReport.pSliceSize, &lockFlags);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(sliceSize);
+
+        encodeStatusReport->NumberSlices            = encodeStatus->sliceReport.NumberSlices;
+        encodeStatusReport->SizeOfSliceSizesBuffer  = sizeof(uint16_t) * encodeStatus->sliceReport.NumberSlices;
+        encodeStatusReport->SliceSizeOverflow       = (encodeStatus->sliceReport.SliceSizeOverflow >> 16) & 1;
+        encodeStatusReport->pSliceSizes             = (uint16_t*)sliceSize;
+
+        uint16_t prevCumulativeSliceSize = 0;
+        // HW writes out a DW for each slice size. Copy in place the DW into 16bit fields expected by App
+        for (auto sliceCount = 0; sliceCount < encodeStatus->sliceReport.NumberSlices; sliceCount++)
+        {
+            // PAK output the sliceSize at 16DW intervals. 
+            CODECHAL_ENCODE_CHK_NULL_RETURN(&sliceSize[sliceCount * 16]);
+            uint32_t CurrAccumulatedSliceSize           = sliceSize[sliceCount * 16];
+
+            //convert cummulative slice size to individual, first slice may have PPS/SPS,
+            encodeStatusReport->pSliceSizes[sliceCount] = CurrAccumulatedSliceSize - prevCumulativeSliceSize;
+            prevCumulativeSliceSize += encodeStatusReport->pSliceSizes[sliceCount];
+        }
+        m_osInterface->pfnUnlockResource(m_osInterface, encodeStatus->sliceReport.pSliceSize);
+    }
     return eStatus;
 }
 
@@ -2609,6 +2665,14 @@ MOS_STATUS CodechalVdencHevcState::FreePakResources()
     m_osInterface->pfnFreeResource(m_osInterface, &m_resFrameStatStreamOutBuffer);
     m_osInterface->pfnFreeResource(m_osInterface, &m_sliceCountBuffer);
     m_osInterface->pfnFreeResource(m_osInterface, &m_vdencModeTimerBuffer);
+
+    for (uint32_t i = 0; i < CODECHAL_ENCODE_STATUS_NUM; i++)
+    {
+        if (!Mos_ResourceIsNull(&m_resSliceReport[i]))
+        {
+            m_osInterface->pfnFreeResource(m_osInterface, &m_resSliceReport[i]);
+        }
+    }  
 
     return CodechalEncodeHevcBase::FreePakResources();
 }
@@ -2909,6 +2973,7 @@ MOS_STATUS CodechalVdencHevcState::Initialize(CodechalSetting * settings)
 
     m_defaultPictureStatesSize += vdencPictureStatesSize;
     m_defaultPicturePatchListSize += vdencPicturePatchListSize;
+    m_extraPictureStatesSize += m_hwInterface->m_hucCommandBufferSize;  // For slice size reporting, add the HuC copy commands
 
     MOS_USER_FEATURE_VALUE_DATA userFeatureData;
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
@@ -3007,6 +3072,8 @@ CodechalVdencHevcState::CodechalVdencHevcState(
     MOS_ZeroMemory(&m_vdencReadBatchBuffer, sizeof(m_vdencReadBatchBuffer));
     MOS_ZeroMemory(&m_vdencBrcDbgBuffer, sizeof(m_vdencBrcDbgBuffer));
     MOS_ZeroMemory(&m_vdenc2ndLevelBatchBuffer, sizeof(m_vdenc2ndLevelBatchBuffer));
+    MOS_ZeroMemory(m_resSliceReport, sizeof(m_resSliceReport));
+
 }
 
 #if USE_CODECHAL_DEBUG_TOOL

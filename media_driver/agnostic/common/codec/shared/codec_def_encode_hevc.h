@@ -54,6 +54,9 @@
 #define ENCODE_DP_HEVC_NUM_MAX_VME_L0_REF_G9  3
 #define ENCODE_DP_HEVC_NUM_MAX_VME_L1_REF_G9  1
 #define ENCODE_DP_HEVC_MAX_NUM_ROI            16
+#define ENCODE_DP_HEVC_ROI_BLOCK_SIZE         1     //From DDI, 0:8x8, 1:16x16, 2:32x32, 3:64x64
+#define ENCODE_DP_HEVC_ROI_BLOCK_Width        16    
+#define ENCODE_DP_HEVC_ROI_BLOCK_HEIGHT       16
 
 //!
 //! \enum HEVC_NAL_UNIT_TYPE
