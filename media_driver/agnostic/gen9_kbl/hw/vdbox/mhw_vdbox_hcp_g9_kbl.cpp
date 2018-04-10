@@ -275,8 +275,8 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpPipeModeSelectCmd(
 
     m_cpInterface->SetProtectionSettingsForMfxPipeModeSelect((uint32_t *)cmd);
 
+    cmd->DW1.PakPipelineStreamoutEnable = params->bStreamOutEnabled;
     cmd->DW1.AdvancedRateControlEnable = params->bAdvancedRateControlEnable;
-    cmd->DW1.SaoFirstPass = params->bSaoFirstPass;
 
     return eStatus;
 }
@@ -358,28 +358,28 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpPipeBufAddrCmd(
         m_osInterface->osCpInterface->IsIDMEnabled() ||
         m_osInterface->osCpInterface->IsSMEnabled())
     {
-        cmd.DW3.MemoryObjectControlState =
+        cmd.DecodedPictureMemoryAddressAttributes.DW0.Value |=
             m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_PRE_DEBLOCKING_CODEC_PARTIALENCSURFACE].Value;
     }
     else
     {
-        cmd.DW3.MemoryObjectControlState =
+        cmd.DecodedPictureMemoryAddressAttributes.DW0.Value |=
             m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_PRE_DEBLOCKING_CODEC].Value;
     }
 
-    cmd.DW3.Memorycompressionenable =
+    cmd.DecodedPictureMemoryAddressAttributes.DW0.BaseAddressMemoryCompressionEnable =
         (params->PreDeblockSurfMmcState != MOS_MEMCOMP_DISABLED) ? MHW_MEDIA_MEMCOMP_ENABLED : MHW_MEDIA_MEMCOMP_DISABLED;
-    cmd.DW3.Memorycompressionmode =
+    cmd.DecodedPictureMemoryAddressAttributes.DW0.BaseAddressMemoryCompressionMode =
         (params->PreDeblockSurfMmcState == MOS_MEMCOMP_HORIZONTAL) ? MHW_MEDIA_MEMCOMP_MODE_HORIZONTAL : MHW_MEDIA_MEMCOMP_MODE_VERTICAL;
 
-    cmd.DW3.Tiledresourcemode = Mhw_ConvertToTRMode(params->psPreDeblockSurface->TileType);
+    cmd.DecodedPictureMemoryAddressAttributes.DW0.BaseAddressTiledResourceMode = Mhw_ConvertToTRMode(params->psPreDeblockSurface->TileType);
 
     // For HEVC 8bit/10bit mixed case, register App's RenderTarget for specific use case
     if (params->presP010RTSurface != nullptr)
     {
         resourceParams.presResource = &(params->presP010RTSurface->OsResource);
         resourceParams.dwOffset = params->presP010RTSurface->dwOffset;
-        resourceParams.pdwCmd = (cmd.DecodedPicture[0].DW0_1.Value);
+        resourceParams.pdwCmd = (cmd.DecodedPicture.DW0_1.Value);
         resourceParams.dwLocationInCmd = 1;
         resourceParams.bIsWritable = true;
 
@@ -391,7 +391,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpPipeBufAddrCmd(
 
     resourceParams.presResource = &(params->psPreDeblockSurface->OsResource);
     resourceParams.dwOffset = params->psPreDeblockSurface->dwOffset;
-    resourceParams.pdwCmd = (cmd.DecodedPicture[0].DW0_1.Value);
+    resourceParams.pdwCmd = (cmd.DecodedPicture.DW0_1.Value);
     resourceParams.dwLocationInCmd = 1;
     resourceParams.bIsWritable = true;
 
@@ -404,25 +404,25 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpPipeBufAddrCmd(
     MHW_MI_CHK_STATUS(m_osInterface->pfnSetMemoryCompressionMode(m_osInterface, resourceParams.presResource, params->PreDeblockSurfMmcState));
 
     // Deblocking Filter Line Buffer
-    cmd.DW6.MemoryObjectControlState =
+    cmd.DeblockingFilterLineBufferMemoryAddressAttributes.DW0.Value |=
         m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC].Value;
 
-    cmd.DeblockingFilterLineBuffer[0].DW0_1.Graphicsaddress476 = 0;
+    cmd.DeblockingFilterLineBuffer.DW0_1.Graphicsaddress476 = 0;
     if (m_hevcDfRowStoreCache.bEnabled)
     {
-        cmd.DW6.Rowstorescratchbuffercacheselect = cmd.ROWSTORESCRATCHBUFFERCACHESELECT_BUFFERTOINTERNALMEDIASTORAGE;
-        cmd.DeblockingFilterLineBuffer[0].DW0_1.Graphicsaddress476 = m_hevcDfRowStoreCache.dwAddress;
+        cmd.DeblockingFilterLineBufferMemoryAddressAttributes.DW0.BaseAddressRowStoreScratchBufferCacheSelect = cmd.DeblockingFilterLineBufferMemoryAddressAttributes.BASE_ADDRESS_ROW_STORE_SCRATCH_BUFFER_CACHE_SELECT_UNNAMED1;
+        cmd.DeblockingFilterLineBuffer.DW0_1.Graphicsaddress476 = m_hevcDfRowStoreCache.dwAddress;
     }
     else if (m_vp9DfRowStoreCache.bEnabled)
     {
-        cmd.DW6.Rowstorescratchbuffercacheselect = cmd.ROWSTORESCRATCHBUFFERCACHESELECT_BUFFERTOINTERNALMEDIASTORAGE;
-        cmd.DeblockingFilterLineBuffer[0].DW0_1.Graphicsaddress476 = m_vp9DfRowStoreCache.dwAddress;
+        cmd.DeblockingFilterLineBufferMemoryAddressAttributes.DW0.BaseAddressRowStoreScratchBufferCacheSelect = cmd.DeblockingFilterLineBufferMemoryAddressAttributes.BASE_ADDRESS_ROW_STORE_SCRATCH_BUFFER_CACHE_SELECT_UNNAMED1;
+        cmd.DeblockingFilterLineBuffer.DW0_1.Graphicsaddress476 = m_vp9DfRowStoreCache.dwAddress;
     }
     else if (params->presMfdDeblockingFilterRowStoreScratchBuffer != nullptr)
     {
         resourceParams.presResource = params->presMfdDeblockingFilterRowStoreScratchBuffer;
         resourceParams.dwOffset = 0;
-        resourceParams.pdwCmd = (cmd.DeblockingFilterLineBuffer[0].DW0_1.Value);
+        resourceParams.pdwCmd = (cmd.DeblockingFilterLineBuffer.DW0_1.Value);
         resourceParams.dwLocationInCmd = 4;
         resourceParams.bIsWritable = true;
 
@@ -433,14 +433,14 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpPipeBufAddrCmd(
     }
 
     // Deblocking Filter Tile Line Buffer
-    cmd.DW9.MemoryObjectControlState =
+    cmd.DeblockingFilterTileLineBufferMemoryAddressAttributes.DW0.Value |=
         m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC].Value;
 
     if (params->presDeblockingFilterTileRowStoreScratchBuffer != nullptr)
     {
         resourceParams.presResource = params->presDeblockingFilterTileRowStoreScratchBuffer;
         resourceParams.dwOffset = 0;
-        resourceParams.pdwCmd = (cmd.DeblockingFilterTileLineBuffer[0].DW0_1.Value);
+        resourceParams.pdwCmd = (cmd.DeblockingFilterTileLineBuffer.DW0_1.Value);
         resourceParams.dwLocationInCmd = 7;
         resourceParams.bIsWritable = true;
 
@@ -451,14 +451,14 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpPipeBufAddrCmd(
     }
 
     // Deblocking Filter Tile Column Buffer
-    cmd.DW12.MemoryObjectControlState =
+    cmd.DeblockingFilterTileColumnBufferMemoryAddressAttributes.DW0.Value |=
         m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC].Value;
 
     if (params->presDeblockingFilterColumnRowStoreScratchBuffer != nullptr)
     {
         resourceParams.presResource = params->presDeblockingFilterColumnRowStoreScratchBuffer;
         resourceParams.dwOffset = 0;
-        resourceParams.pdwCmd = (cmd.DeblockingFilterTileColumnBuffer[0].DW0_1.Value);
+        resourceParams.pdwCmd = (cmd.DeblockingFilterTileColumnBuffer.DW0_1.Value);
         resourceParams.dwLocationInCmd = 10;
         resourceParams.bIsWritable = true;
 
@@ -469,19 +469,19 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpPipeBufAddrCmd(
     }
 
     // Metadata Line Buffer
-    cmd.DW15.MemoryObjectControlState =
+    cmd.MetadataLineBufferMemoryAddressAttributes.DW0.Value |=
         m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_HCP_MD_CODEC].Value;
 
     if (m_hevcDatRowStoreCache.bEnabled)
     {
-        cmd.DW15.Rowstorescratchbuffercacheselect = cmd.ROWSTORESCRATCHBUFFERCACHESELECT_BUFFERTOINTERNALMEDIASTORAGE;
-        cmd.MetadataLineBuffer[0].DW0_1.Graphicsaddress476 = m_hevcDatRowStoreCache.dwAddress;
+        cmd.MetadataLineBufferMemoryAddressAttributes.DW0.BaseAddressRowStoreScratchBufferCacheSelect = cmd.MetadataLineBufferMemoryAddressAttributes.BASE_ADDRESS_ROW_STORE_SCRATCH_BUFFER_CACHE_SELECT_UNNAMED1;
+        cmd.MetadataLineBuffer.DW0_1.Graphicsaddress476 = m_hevcDatRowStoreCache.dwAddress;
     }
     else if (params->presMetadataLineBuffer != nullptr)
     {
         resourceParams.presResource = params->presMetadataLineBuffer;
         resourceParams.dwOffset = 0;
-        resourceParams.pdwCmd = (cmd.MetadataLineBuffer[0].DW0_1.Value);
+        resourceParams.pdwCmd = (cmd.MetadataLineBuffer.DW0_1.Value);
         resourceParams.dwLocationInCmd = 13;
         resourceParams.bIsWritable = true;
 
@@ -492,14 +492,14 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpPipeBufAddrCmd(
     }
 
     // Metadata Tile Line Buffer
-    cmd.DW18.MemoryObjectControlState =
+    cmd.MetadataTileLineBufferMemoryAddressAttributes.DW0.Value |=
         m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_HCP_MD_CODEC].Value;
 
     if (params->presMetadataTileLineBuffer != nullptr)
     {
         resourceParams.presResource = params->presMetadataTileLineBuffer;
         resourceParams.dwOffset = 0;
-        resourceParams.pdwCmd = (cmd.MetadataTileLineBuffer[0].DW0_1.Value);
+        resourceParams.pdwCmd = (cmd.MetadataTileLineBuffer.DW0_1.Value);
         resourceParams.dwLocationInCmd = 16;
         resourceParams.bIsWritable = true;
 
@@ -510,14 +510,14 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpPipeBufAddrCmd(
     }
 
     // Metadata Tile Column Buffer
-    cmd.DW21.MemoryObjectControlState =
+    cmd.MetadataTileColumnBufferMemoryAddressAttributes.DW0.Value |=
         m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_HCP_MD_CODEC].Value;
 
     if (params->presMetadataTileColumnBuffer != nullptr)
     {
         resourceParams.presResource = params->presMetadataTileColumnBuffer;
         resourceParams.dwOffset = 0;
-        resourceParams.pdwCmd = (cmd.MetadataTileColumnBuffer[0].DW0_1.Value);
+        resourceParams.pdwCmd = (cmd.MetadataTileColumnBuffer.DW0_1.Value);
         resourceParams.dwLocationInCmd = 19;
         resourceParams.bIsWritable = true;
 
@@ -528,19 +528,19 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpPipeBufAddrCmd(
     }
 
     // SAO Line Buffer
-    cmd.DW24.MemoryObjectControlState =
+    cmd.SaoLineBufferMemoryAddressAttributes.DW0.Value |=
         m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_HCP_SAO_CODEC].Value;
 
     if (m_hevcSaoRowStoreCache.bEnabled)
     {
-        cmd.DW24.Rowstorescratchbuffercacheselect = cmd.ROWSTORESCRATCHBUFFERCACHESELECT_BUFFERTOINTERNALMEDIASTORAGE;
-        cmd.SaoLineBuffer[0].DW0_1.Graphicsaddress476 = m_hevcSaoRowStoreCache.dwAddress;
+        cmd.SaoLineBufferMemoryAddressAttributes.DW0.BaseAddressRowStoreScratchBufferCacheSelect = cmd.SaoLineBufferMemoryAddressAttributes.BASE_ADDRESS_ROW_STORE_SCRATCH_BUFFER_CACHE_SELECT_UNNAMED1;
+        cmd.SaoLineBuffer.DW0_1.Graphicsaddress476 = m_hevcSaoRowStoreCache.dwAddress;
     }
     else if (params->presSaoLineBuffer != nullptr)
     {
         resourceParams.presResource = params->presSaoLineBuffer;
         resourceParams.dwOffset = 0;
-        resourceParams.pdwCmd = (cmd.SaoLineBuffer[0].DW0_1.Value);
+        resourceParams.pdwCmd = (cmd.SaoLineBuffer.DW0_1.Value);
         resourceParams.dwLocationInCmd = 22;
         resourceParams.bIsWritable = true;
 
@@ -551,14 +551,14 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpPipeBufAddrCmd(
     }
 
     // SAO Tile Line Buffer
-    cmd.DW27.MemoryObjectControlState =
+    cmd.SaoTileLineBufferMemoryAddressAttributes.DW0.Value |=
         m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_HCP_SAO_CODEC].Value;
 
     if (params->presSaoTileLineBuffer != nullptr)
     {
         resourceParams.presResource = params->presSaoTileLineBuffer;
         resourceParams.dwOffset = 0;
-        resourceParams.pdwCmd = (cmd.SaoTileLineBuffer[0].DW0_1.Value);
+        resourceParams.pdwCmd = (cmd.SaoTileLineBuffer.DW0_1.Value);
         resourceParams.dwLocationInCmd = 25;
         resourceParams.bIsWritable = true;
 
@@ -569,14 +569,14 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpPipeBufAddrCmd(
     }
 
     // SAO Tile Column Buffer
-    cmd.DW30.MemoryObjectControlState =
+    cmd.SaoTileColumnBufferMemoryAddressAttributes.DW0.Value |=
         m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_HCP_SAO_CODEC].Value;
 
     if (params->presSaoTileColumnBuffer != nullptr)
     {
         resourceParams.presResource = params->presSaoTileColumnBuffer;
         resourceParams.dwOffset = 0;
-        resourceParams.pdwCmd = (cmd.SaoTileColumnBuffer[0].DW0_1.Value);
+        resourceParams.pdwCmd = (cmd.SaoTileColumnBuffer.DW0_1.Value);
         resourceParams.dwLocationInCmd = 28;
         resourceParams.bIsWritable = true;
 
@@ -587,14 +587,14 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpPipeBufAddrCmd(
     }
 
     // Current Motion Vector Temporal Buffer
-    cmd.DW33.MemoryObjectControlState =
+    cmd.CurrentMotionVectorTemporalBufferMemoryAddressAttributes.DW0.Value |=
         m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_HCP_MV_CODEC].Value;
 
     if (params->presCurMvTempBuffer != nullptr)
     {
         resourceParams.presResource = params->presCurMvTempBuffer;
         resourceParams.dwOffset = 0;
-        resourceParams.pdwCmd = (cmd.CurrentMotionVectorTemporalBuffer[0].DW0_1.Value);
+        resourceParams.pdwCmd = (cmd.CurrentMotionVectorTemporalBuffer.DW0_1.Value);
         resourceParams.dwLocationInCmd = 31;
         resourceParams.bIsWritable = true;
 
@@ -605,7 +605,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpPipeBufAddrCmd(
     }
 
     // Reference Picture Buffer
-    cmd.DW53.MemoryObjectControlState =
+    cmd.ReferencePictureBaseAddressMemoryAddressAttributes.DW0.Value |=
         m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC].Value;
 
     MOS_MEMCOMP_STATE mmcMode = MOS_MEMCOMP_DISABLED;
@@ -624,7 +624,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpPipeBufAddrCmd(
             {
                 MHW_MI_CHK_STATUS(m_osInterface->pfnGetMemoryCompressionMode(m_osInterface, params->presReferences[i], &mmcMode));
 
-                cmd.DW53.Tiledresourcemode = Mhw_ConvertToTRMode(details.TileType);
+                cmd.ReferencePictureBaseAddressMemoryAddressAttributes.DW0.BaseAddressTiledResourceMode = Mhw_ConvertToTRMode(details.TileType);
                 firstRefPic = false;
             }
 
@@ -643,9 +643,9 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpPipeBufAddrCmd(
         }
     }
 
-    cmd.DW53.Memorycompressionenable =
+    cmd.ReferencePictureBaseAddressMemoryAddressAttributes.DW0.BaseAddressMemoryCompressionEnable =
         (mmcMode != MOS_MEMCOMP_DISABLED) ? MHW_MEDIA_MEMCOMP_ENABLED : MHW_MEDIA_MEMCOMP_DISABLED;
-    cmd.DW53.Memorycompressionmode =
+    cmd.ReferencePictureBaseAddressMemoryAddressAttributes.DW0.BaseAddressMemoryCompressionMode =
         (mmcMode == MOS_MEMCOMP_HORIZONTAL) ? MHW_MEDIA_MEMCOMP_MODE_HORIZONTAL : MHW_MEDIA_MEMCOMP_MODE_VERTICAL;
 
     // Reset dwSharedMocsOffset
@@ -656,18 +656,18 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpPipeBufAddrCmd(
     {
         MHW_MI_CHK_STATUS(m_osInterface->pfnGetMemoryCompressionMode(m_osInterface, &params->psRawSurface->OsResource, &mmcMode));
 
-        cmd.DW56.MemoryObjectControlState =
+        cmd.OriginalUncompressedPictureSourceMemoryAddressAttributes.DW0.Value |=
             m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_ORIGINAL_UNCOMPRESSED_PICTURE_ENCODE].Value;
-        cmd.DW56.Memorycompressionenable = (mmcMode != MOS_MEMCOMP_DISABLED) ?
+        cmd.OriginalUncompressedPictureSourceMemoryAddressAttributes.DW0.BaseAddressMemoryCompressionEnable = (mmcMode != MOS_MEMCOMP_DISABLED) ?
             MHW_MEDIA_MEMCOMP_ENABLED : MHW_MEDIA_MEMCOMP_DISABLED;
-        cmd.DW56.Memorycompressionmode = (mmcMode == MOS_MEMCOMP_HORIZONTAL) ?
+        cmd.OriginalUncompressedPictureSourceMemoryAddressAttributes.DW0.BaseAddressMemoryCompressionMode = (mmcMode == MOS_MEMCOMP_HORIZONTAL) ?
             MHW_MEDIA_MEMCOMP_MODE_HORIZONTAL : MHW_MEDIA_MEMCOMP_MODE_VERTICAL;
 
-        cmd.DW56.Tiledresourcemode = Mhw_ConvertToTRMode(params->psRawSurface->TileType);
+        cmd.OriginalUncompressedPictureSourceMemoryAddressAttributes.DW0.BaseAddressTiledResourceMode = Mhw_ConvertToTRMode(params->psRawSurface->TileType);
 
         resourceParams.presResource = &params->psRawSurface->OsResource;
         resourceParams.dwOffset = params->psRawSurface->dwOffset;
-        resourceParams.pdwCmd = (cmd.OriginalUncompressedPictureSource[0].DW0_1.Value);
+        resourceParams.pdwCmd = (cmd.OriginalUncompressedPictureSource.DW0_1.Value);
         resourceParams.dwLocationInCmd = 54;
         resourceParams.bIsWritable = false;
 
@@ -680,16 +680,16 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpPipeBufAddrCmd(
     // StreamOut Data Destination, Decoder only
     if (params->presStreamOutBuffer != nullptr)
     {
-        cmd.DW59.MemoryObjectControlState =
+        cmd.StreamoutDataDestinationMemoryAddressAttributes.DW0.Value |=
             m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_STREAMOUT_DATA_CODEC].Value;
-        cmd.DW59.Memorycompressionenable =
+        cmd.StreamoutDataDestinationMemoryAddressAttributes.DW0.BaseAddressMemoryCompressionEnable =
             (params->StreamOutBufMmcState != MOS_MEMCOMP_DISABLED) ? MHW_MEDIA_MEMCOMP_ENABLED : MHW_MEDIA_MEMCOMP_DISABLED;
-        cmd.DW59.Memorycompressionmode =
+        cmd.StreamoutDataDestinationMemoryAddressAttributes.DW0.BaseAddressMemoryCompressionMode =
             (params->StreamOutBufMmcState == MOS_MEMCOMP_HORIZONTAL) ? MHW_MEDIA_MEMCOMP_MODE_HORIZONTAL : MHW_MEDIA_MEMCOMP_MODE_VERTICAL;
 
         resourceParams.presResource = params->presStreamOutBuffer;
         resourceParams.dwOffset = 0;
-        resourceParams.pdwCmd = (cmd.StreamoutDataDestination[0].DW0_1.Value);
+        resourceParams.pdwCmd = (cmd.StreamoutDataDestination.DW0_1.Value);
         resourceParams.dwLocationInCmd = 57;
         resourceParams.bIsWritable = true;
 
@@ -702,12 +702,12 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpPipeBufAddrCmd(
     // Decoded Picture Status / Error Buffer Base Address
     if (params->presLcuBaseAddressBuffer != nullptr)
     {
-        cmd.DW62.MemoryObjectControlState =
+        cmd.DecodedPictureStatusErrorBufferBaseAddressMemoryAddressAttributes.DW0.Value |=
             m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_HCP_STATUS_ERROR_CODEC].Value;
 
         resourceParams.presResource = params->presLcuBaseAddressBuffer;
         resourceParams.dwOffset = 0;
-        resourceParams.pdwCmd = (cmd.DecodedPictureStatusErrorBufferBaseAddressOrEncodedSliceSizeStreamoutBaseAddress[0].DW0_1.Value);
+        resourceParams.pdwCmd = (cmd.DecodedPictureStatusErrorBufferBaseAddressOrEncodedSliceSizeStreamoutBaseAddress.DW0_1.Value);
         resourceParams.dwLocationInCmd = 60;
         resourceParams.bIsWritable = true;
 
@@ -720,12 +720,12 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpPipeBufAddrCmd(
     // LCU ILDB StreamOut Buffer
     if (params->presLcuILDBStreamOutBuffer != nullptr)
     {
-        cmd.DW65.MemoryObjectControlState =
+        cmd.LcuIldbStreamoutBufferMemoryAddressAttributes.DW0.Value |=
             m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_HCP_LCU_ILDB_STREAMOUT_CODEC].Value;
 
         resourceParams.presResource = params->presLcuILDBStreamOutBuffer;
         resourceParams.dwOffset = 0;
-        resourceParams.pdwCmd = (cmd.LcuIldbStreamoutBuffer[0].DW0_1.Value);
+        resourceParams.pdwCmd = (cmd.LcuIldbStreamoutBuffer.DW0_1.Value);
         resourceParams.dwLocationInCmd = 63;
         resourceParams.bIsWritable = true;
 
@@ -736,7 +736,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpPipeBufAddrCmd(
     }
 
     // Collocated Motion vector Temporal Buffer
-    cmd.DW82.MemoryObjectControlState =
+    cmd.CollocatedMotionVectorTemporalBuffer07MemoryAddressAttributes.DW0.Value |=
         m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_HCP_MV_CODEC].Value;
 
     for (uint32_t i = 0; i < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC; i++)
@@ -764,12 +764,12 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpPipeBufAddrCmd(
     // VP9 Probability Buffer
     if (params->presVp9ProbBuffer != nullptr)
     {
-        cmd.DW85.MemoryObjectControlState =
+        cmd.Vp9ProbabilityBufferReadWriteMemoryAddressAttributes.DW0.Value |=
             m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_VP9_PROBABILITY_BUFFER_CODEC].Value;
 
         resourceParams.presResource = params->presVp9ProbBuffer;
         resourceParams.dwOffset = 0;
-        resourceParams.pdwCmd = (cmd.Vp9ProbabilityBufferReadWrite[0].DW0_1.Value);
+        resourceParams.pdwCmd = (cmd.Vp9ProbabilityBufferReadWrite.DW0_1.Value);
         resourceParams.dwLocationInCmd = 83;
         resourceParams.bIsWritable = true;
 
@@ -784,7 +784,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpPipeBufAddrCmd(
     // VP9 Segment Id Buffer
     if (params->presVp9SegmentIdBuffer != nullptr)
     {
-        cmd.DW88.MemoryObjectControlState =
+        cmd.Vp9SegmentIdBufferReadWriteMemoryAddressAttributes.DW0.Value |=
             m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_VP9_SEGMENT_ID_BUFFER_CODEC].Value;
 
         resourceParams.presResource = params->presVp9SegmentIdBuffer;
@@ -804,17 +804,17 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpPipeBufAddrCmd(
     // HVD Line Row Store Buffer
     if (m_vp9HvdRowStoreCache.bEnabled)
     {
-        cmd.DW91.Rowstorescratchbuffercacheselect = cmd.ROWSTORESCRATCHBUFFERCACHESELECT_BUFFERTOINTERNALMEDIASTORAGE;
-        cmd.Vp9HvdLineRowstoreBufferReadWrite[0].DW0_1.Graphicsaddress476 = m_vp9HvdRowStoreCache.dwAddress;
+        cmd.Vp9HvdLineRowstoreBufferReadWriteMemoryAddressAttributes.DW0.BaseAddressRowStoreScratchBufferCacheSelect = cmd.Vp9HvdLineRowstoreBufferReadWriteMemoryAddressAttributes.BASE_ADDRESS_ROW_STORE_SCRATCH_BUFFER_CACHE_SELECT_UNNAMED1;
+        cmd.Vp9HvdLineRowstoreBufferReadWrite.DW0_1.Graphicsaddress476 = m_vp9HvdRowStoreCache.dwAddress;
     }
     else if (params->presHvdLineRowStoreBuffer != nullptr)
     {
-        cmd.DW91.MemoryObjectControlState =
+        cmd.Vp9HvdLineRowstoreBufferReadWriteMemoryAddressAttributes.DW0.Value |=
             m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_VP9_HVD_ROWSTORE_BUFFER_CODEC].Value;
 
         resourceParams.presResource = params->presHvdLineRowStoreBuffer;
         resourceParams.dwOffset = 0;
-        resourceParams.pdwCmd = (cmd.Vp9HvdLineRowstoreBufferReadWrite[0].DW0_1.Value);
+        resourceParams.pdwCmd = (cmd.Vp9HvdLineRowstoreBufferReadWrite.DW0_1.Value);
         resourceParams.dwLocationInCmd = 89;
         resourceParams.bIsWritable = true;
 
@@ -827,31 +827,13 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpPipeBufAddrCmd(
     // HVD Tile Row Store Buffer
     if (params->presHvdTileRowStoreBuffer != nullptr)
     {
-        cmd.DW94.MemoryObjectControlState =
+        cmd.Vp9HvdTileRowstoreBufferReadWriteMemoryAddressAttributes.DW0.Value |=
             m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_VP9_HVD_ROWSTORE_BUFFER_CODEC].Value;
 
         resourceParams.presResource = params->presHvdTileRowStoreBuffer;
         resourceParams.dwOffset = 0;
-        resourceParams.pdwCmd = (cmd.Vp9HvdTileRowstoreBufferReadWrite[0].DW0_1.Value);
+        resourceParams.pdwCmd = (cmd.Vp9HvdTileRowstoreBufferReadWrite.DW0_1.Value);
         resourceParams.dwLocationInCmd = 92;
-        resourceParams.bIsWritable = true;
-
-        MHW_MI_CHK_STATUS(pfnAddResourceToCmd(
-            m_osInterface,
-            cmdBuffer,
-            &resourceParams));
-    }
-
-    // HEVC SAO streamout
-    if (params->presSaoStreamOutBuffer != nullptr)
-    {
-        cmd.DW97.MemoryObjectControlState =
-            m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_STREAMOUT_DATA_CODEC].Value;
-
-        resourceParams.presResource = params->presSaoStreamOutBuffer;
-        resourceParams.dwOffset = 0;
-        resourceParams.pdwCmd = (cmd.SaoStreamoutDataDestinationBufferBaseAddress[0].DW0_1.Value);
-        resourceParams.dwLocationInCmd = 95;
         resourceParams.bIsWritable = true;
 
         MHW_MI_CHK_STATUS(pfnAddResourceToCmd(
@@ -887,12 +869,12 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpIndObjBaseAddrCmd(
     {
         MHW_MI_CHK_NULL(params->presDataBuffer);
 
-        cmd.DW3.MemoryObjectControlState =
+        cmd.HcpIndirectBitstreamObjectMemoryAddressAttributes.DW0.Value |=
             m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_MFX_INDIRECT_BITSTREAM_OBJECT_DECODE].Value;
 
         resourceParams.presResource = params->presDataBuffer;
         resourceParams.dwOffset = params->dwDataOffset;
-        resourceParams.pdwCmd = (cmd.DW1_2.Value);
+        resourceParams.pdwCmd = (cmd.HcpIndirectBitstreamObjectBaseAddress.DW0_1.Value);
         resourceParams.dwLocationInCmd = 1;
         resourceParams.dwSize = params->dwDataSize;
         resourceParams.bIsWritable = false;
@@ -913,8 +895,8 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpIndObjBaseAddrCmd(
     {
         if (params->presMvObjectBuffer)
         {
-            cmd.DW8.MemoryObjectControlState
-                = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_MFX_INDIRECT_MV_OBJECT_CODEC].Value;
+            cmd.HcpIndirectCuObjectObjectMemoryAddressAttributes.DW0.Value |= 
+                m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_MFX_INDIRECT_MV_OBJECT_CODEC].Value;
 
             resourceParams.presResource = params->presMvObjectBuffer;
             resourceParams.dwOffset = params->dwMvObjectOffset;
@@ -934,8 +916,8 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpIndObjBaseAddrCmd(
 
         if (params->presPakBaseObjectBuffer)
         {
-            cmd.DW11.MemoryObjectControlState
-                = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_MFC_INDIRECT_PAKBASE_OBJECT_CODEC].Value;
+            cmd.HcpPakBseObjectAddressMemoryAddressAttributes.DW0.Value |= 
+                m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_MFC_INDIRECT_PAKBASE_OBJECT_CODEC].Value;
 
             resourceParams.presResource = params->presPakBaseObjectBuffer;
             resourceParams.dwOffset = 0;
@@ -951,84 +933,6 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpIndObjBaseAddrCmd(
                 m_osInterface,
                 cmdBuffer,
                 &resourceParams));
-        }
-
-        resourceParams.dwUpperBoundLocationOffsetFromCmd = 0;
-        if (params->presCompressedHeaderBuffer)
-        {
-            resourceParams.presResource = params->presCompressedHeaderBuffer;
-            resourceParams.dwOffset = 0;
-            resourceParams.pdwCmd = (cmd.DW14_15.Value);
-            resourceParams.dwLocationInCmd = 14;
-            resourceParams.dwSize = params->dwCompressedHeaderSize;
-            resourceParams.bIsWritable = false;
-
-            MHW_MI_CHK_STATUS(pfnAddResourceToCmd(
-                m_osInterface,
-                cmdBuffer,
-                &resourceParams));
-        }
-
-        if (params->presProbabilityCounterBuffer)
-        {
-            resourceParams.presResource = params->presProbabilityCounterBuffer;
-            resourceParams.dwOffset = 0;
-            resourceParams.pdwCmd = (cmd.DW17_18.Value);
-            resourceParams.dwLocationInCmd = 17;
-            resourceParams.dwSize = params->dwProbabilityCounterSize;
-            resourceParams.bIsWritable = true;
-
-            MHW_MI_CHK_STATUS(pfnAddResourceToCmd(
-                m_osInterface,
-                cmdBuffer,
-                &resourceParams));
-        }
-
-        if (params->presProbabilityDeltaBuffer)
-        {
-            resourceParams.presResource = params->presProbabilityDeltaBuffer;
-            resourceParams.dwOffset = 0;
-            resourceParams.pdwCmd = (cmd.DW20_21.Value);
-            resourceParams.dwLocationInCmd = 20;
-            resourceParams.dwSize = params->dwProbabilityDeltaSize;
-            resourceParams.bIsWritable = false;
-
-            MHW_MI_CHK_STATUS(pfnAddResourceToCmd(
-                m_osInterface,
-                cmdBuffer,
-                &resourceParams));
-        }
-
-        if (params->presTileRecordBuffer)
-        {
-            resourceParams.presResource = params->presTileRecordBuffer;
-            resourceParams.dwOffset = 0;
-            resourceParams.pdwCmd = (cmd.DW23_24.Value);
-            resourceParams.dwLocationInCmd = 23;
-            resourceParams.dwSize = params->dwTileRecordSize;
-            resourceParams.bIsWritable = true;
-
-            MHW_MI_CHK_STATUS(pfnAddResourceToCmd(
-                m_osInterface,
-                cmdBuffer,
-                &resourceParams));
-
-        }
-
-        if (params->presCuStatsBuffer)
-        {
-            resourceParams.presResource = params->presCuStatsBuffer;
-            resourceParams.dwOffset = 0;
-            resourceParams.pdwCmd = (cmd.DW26_27.Value);
-            resourceParams.dwLocationInCmd = 26;
-            resourceParams.dwSize = params->dwCuStatsSize;
-            resourceParams.bIsWritable = true;
-
-            MHW_MI_CHK_STATUS(pfnAddResourceToCmd(
-                m_osInterface,
-                cmdBuffer,
-                &resourceParams));
-
         }
     }
 
@@ -1105,7 +1009,6 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpEncodePicStateCmd(
     cmd.DW4.ConstrainedIntraPredFlag                = 0; 
     cmd.DW4.Log2ParallelMergeLevelMinus2            = 0; 
     cmd.DW4.SignDataHidingFlag                      = 0; // currently not supported in encoder
-    cmd.DW4.LoopFilterAcrossTilesEnabledFlag        = 0; 
     cmd.DW4.EntropyCodingSyncEnabledFlag            = 0; // not supported as per Dimas notes. PAK restriction
     cmd.DW4.TilesEnabledFlag                        = 0; // not supported in encoder
     cmd.DW4.WeightedPredFlag                        = hevcPicParams->weighted_pred_flag;
@@ -1326,25 +1229,25 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpVp9PicStateCmd(
     cmd.DW2.LosslessMode                 = vp9PicParams->PicFlags.fields.LosslessFlag;
     cmd.DW2.SegmentIdStreamoutEnable     = cmd.DW2.SegmentationUpdateMap;
 
-    cmd.DW3.Obj1.Log2TileRow             = vp9PicParams->log2_tile_rows;        // No need to minus 1 here.
-    cmd.DW3.Obj1.Log2TileColumn          = vp9PicParams->log2_tile_columns;     // No need to minus 1 here.
+    cmd.DW3.Log2TileRow             = vp9PicParams->log2_tile_rows;        // No need to minus 1 here.
+    cmd.DW3.Log2TileColumn          = vp9PicParams->log2_tile_columns;     // No need to minus 1 here.
     if (vp9PicParams->subsampling_x == 1 && vp9PicParams->subsampling_y == 1)
     {
         //4:2:0
-        cmd.DW3.Obj1.ChromaSamplingFormat = 0;
+        cmd.DW3.ChromaSamplingFormat = 0;
     }
     else if (vp9PicParams->subsampling_x == 1 && vp9PicParams->subsampling_y == 0)
     {
         //4:2:2
-        cmd.DW3.Obj1.ChromaSamplingFormat = 1;
+        cmd.DW3.ChromaSamplingFormat = 1;
     }
     else if (vp9PicParams->subsampling_x == 0 && vp9PicParams->subsampling_y == 0)
     {
         //4:4:4
-        cmd.DW3.Obj1.ChromaSamplingFormat = 2;
+        cmd.DW3.ChromaSamplingFormat = 2;
     }
-    cmd.DW3.Obj1.Bitdepthminus8 = vp9PicParams->BitDepthMinus8;
-    cmd.DW3.Obj1.ProfileLevel   = vp9PicParams->profile;
+    cmd.DW3.Bitdepthminus8 = vp9PicParams->BitDepthMinus8;
+    cmd.DW3.ProfileLevel   = vp9PicParams->profile;
     
     cmd.DW10.UncompressedHeaderLengthInBytes70  = vp9PicParams->UncompressedHeaderLengthInBytes;
     cmd.DW10.FirstPartitionSizeInBytes150       = vp9PicParams->FirstPartitionSize;
@@ -1371,9 +1274,9 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpVp9PicStateCmd(
         cmd.DW2.McompFilterType                 = vp9PicParams->PicFlags.fields.mcomp_filter_type;
         cmd.DW2.SegmentationTemporalUpdate      = cmd.DW2.SegmentationUpdateMap && vp9PicParams->PicFlags.fields.segmentation_temporal_update;
 
-        cmd.DW2.RefFrameSignBiasLast            = vp9PicParams->PicFlags.fields.LastRefSignBias;
-        cmd.DW2.RefFrameSignBiasGolden          = vp9PicParams->PicFlags.fields.GoldenRefSignBias;
-        cmd.DW2.RefFrameSignBiasAltref          = vp9PicParams->PicFlags.fields.AltRefSignBias;
+        cmd.DW2.RefFrameSignBias02              = vp9PicParams->PicFlags.fields.LastRefSignBias | 
+                                                  (vp9PicParams->PicFlags.fields.GoldenRefSignBias << 1) | 
+                                                  (vp9PicParams->PicFlags.fields.AltRefSignBias << 2);
 
         cmd.DW2.LastFrameType                   = !params->PrevFrameParams.fields.KeyFrame;
 
@@ -1437,9 +1340,11 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpVp9PicStateEncCmd(
     cmd.DW2.IntraonlyFlag               = vp9PicParams->PicFlags.fields.intra_only;
     cmd.DW2.AllowHiPrecisionMv          = vp9PicParams->PicFlags.fields.allow_high_precision_mv;
     cmd.DW2.McompFilterType             = vp9PicParams->PicFlags.fields.mcomp_filter_type;
-    cmd.DW2.RefFrameSignBiasLast        = vp9PicParams->RefFlags.fields.LastRefSignBias;
-    cmd.DW2.RefFrameSignBiasGolden      = vp9PicParams->RefFlags.fields.GoldenRefSignBias;
-    cmd.DW2.RefFrameSignBiasAltref      = vp9PicParams->RefFlags.fields.AltRefSignBias;
+
+    cmd.DW2.RefFrameSignBias02          = vp9PicParams->RefFlags.fields.LastRefSignBias | 
+                                          (vp9PicParams->RefFlags.fields.GoldenRefSignBias << 1) | 
+                                          (vp9PicParams->RefFlags.fields.AltRefSignBias << 2);
+
     cmd.DW2.HybridPredictionMode        = vp9PicParams->PicFlags.fields.comp_prediction_mode == 2;
     cmd.DW2.SelectableTxMode            = params->ucTxMode == 4;
     cmd.DW2.RefreshFrameContext         = vp9PicParams->PicFlags.fields.refresh_frame_context;
@@ -1452,8 +1357,8 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpVp9PicStateEncCmd(
     cmd.DW2.SegmentationTemporalUpdate  = vp9PicParams->PicFlags.fields.segmentation_temporal_update;
     cmd.DW2.LosslessMode                = vp9PicParams->PicFlags.fields.LosslessFlag;
 
-    cmd.DW3.Obj1.Log2TileColumn         = vp9PicParams->log2_tile_columns;
-    cmd.DW3.Obj1.Log2TileRow            = vp9PicParams->log2_tile_rows;
+    cmd.DW3.Log2TileColumn         = vp9PicParams->log2_tile_columns;
+    cmd.DW3.Log2TileRow            = vp9PicParams->log2_tile_rows;
    
     if (vp9PicParams->PicFlags.fields.frame_type && !vp9PicParams->PicFlags.fields.intra_only)
     {
@@ -1518,7 +1423,6 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpVp9PicStateEncCmd(
     }
 
     cmd.DW13.BaseQIndexSameAsLumaAc = vp9PicParams->LumaACQIndex;
-    cmd.DW13.HeaderInsertionEnable  = 1;
 
     cmd.DW14.ChromaacQindexdelta    = Convert2SignMagnitude(vp9PicParams->ChromaACQIndexDelta, 5);
     cmd.DW14.ChromadcQindexdelta    = Convert2SignMagnitude(vp9PicParams->ChromaDCQIndexDelta, 5);
@@ -1537,13 +1441,6 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpVp9PicStateEncCmd(
 
     cmd.DW18.Bitoffsetforlflevel        = vp9PicParams->BitOffsetForLFLevel;
     cmd.DW18.Bitoffsetforqindex         = vp9PicParams->BitOffsetForQIndex;
-
-    // Setting these two bits in picState will set the corresponding bits in ImgStatusMask register, which is used in conditional BB end for multi-pass.
-    cmd.DW19.FrameszoverstatusenFramebitratemaxreportmask   =  true;
-    cmd.DW19.FrameszunderstatusenFramebitrateminreportmask  =  true;
-    cmd.DW19.Nonfirstpassflag                               =  params->bNonFirstPassFlag;
-
-    cmd.DW32.Bitoffsetforfirstpartitionsize                 = vp9PicParams->BitOffsetForFirstPartitionSize;
 
     MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, cmd.byteSize));
 
@@ -1579,12 +1476,6 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpVp9SegmentStateCmd(
             cmd.DW2.SegmentSkipped = vp9SegData.SegmentFlags.fields.SegmentSkipped;
             cmd.DW2.SegmentReference = vp9SegData.SegmentFlags.fields.SegmentReference;
             cmd.DW2.SegmentReferenceEnabled = vp9SegData.SegmentFlags.fields.SegmentReferenceEnabled;
-
-            // LF delta must be calculated using the QP->LF LUT
-            MHW_MI_CHK_NULL(params->pcucLfQpLookup);
-            cmd.DW7.SegmentLfLevelDeltaEncodeModeOnly = Convert2SignMagnitude((params->pcucLfQpLookup[params->ucQPIndexLumaAC + vp9SegData.SegmentQIndexDelta] -
-                params->pcucLfQpLookup[params->ucQPIndexLumaAC]), 7);
-            cmd.DW7.SegmentQindexDeltaEncodeModeOnly = Convert2SignMagnitude(vp9SegData.SegmentQIndexDelta, 9);
 
             segData = &cmd;
         }

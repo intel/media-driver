@@ -100,6 +100,11 @@ public:
         return 0;
     }
 
+    inline uint32_t GetHcpVp9SegmentStateCommandSize()
+    {
+        return 0;
+    }
+
     MOS_STATUS GetHcpStateCommandSize(
         uint32_t                        mode,
         uint32_t                        *commandsSize,
@@ -127,6 +132,11 @@ public:
     MOS_STATUS AddHcpDecodeSliceStateCmd(
         PMOS_COMMAND_BUFFER              cmdBuffer,
         PMHW_VDBOX_HEVC_SLICE_STATE      hevcSliceState);
+
+    MOS_STATUS AddHcpVp9SegmentStateCmd(
+        PMOS_COMMAND_BUFFER              cmdBuffer,
+        PMHW_BATCH_BUFFER                batchBuffer,
+        PMHW_VDBOX_VP9_SEGMENT_STATE     params);
 };
 
 #endif

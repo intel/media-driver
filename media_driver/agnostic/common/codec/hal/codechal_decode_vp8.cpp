@@ -1395,7 +1395,7 @@ MOS_STATUS CodechalDecodeVp8::DecodePrimitiveLevel()
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpCmdBuffer(
             &cmdBuffer,
             CODECHAL_NUM_MEDIA_STATES,
-            nullptr));
+            "_DEC"));
     )
 
     if (m_huCCopyInUse)

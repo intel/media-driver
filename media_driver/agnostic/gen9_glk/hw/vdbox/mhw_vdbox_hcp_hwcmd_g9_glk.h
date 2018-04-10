@@ -25,6 +25,9 @@
 //! \details  This file may not be included outside of g9_glk as other components
 //!           should use MHW interface to interact with MHW commands and states.
 //!
+
+// DO NOT EDIT
+
 #ifndef __MHW_VDBOX_HCP_HWCMD_G9_GLK_H__
 #define __MHW_VDBOX_HCP_HWCMD_G9_GLK_H__
 
@@ -41,9 +44,125 @@ public:
     #define __CODEGEN_MAX(_a, _b) (((_a) > (_b)) ? (_a) : (_b))
     #define __CODEGEN_BITFIELD(l, h) (h) - (l) + 1
     #define __CODEGEN_OP_LENGTH_BIAS 2
-    #define __CODEGEN_OP_LENGTH( x ) (uint32_t)((__CODEGEN_MAX(x, __CODEGEN_OP_LENGTH_BIAS)) - __CODEGEN_OP_LENGTH_BIAS)
+    #define __CODEGEN_OP_LENGTH(x) (uint32_t)((__CODEGEN_MAX(x, __CODEGEN_OP_LENGTH_BIAS)) - __CODEGEN_OP_LENGTH_BIAS)
 
     static uint32_t GetOpLength(uint32_t uiLength) { return __CODEGEN_OP_LENGTH(uiLength); }
+
+    //!
+    //! \brief MEMORYADDRESSATTRIBUTES
+    //! \details
+    //!     This field controls the priority of arbitration used in the GAC/GAM
+    //!     pipeline for this surface. It defines the attributes for VDBOX addresses
+    //!     on BDW+.
+    //!     
+    struct MEMORYADDRESSATTRIBUTES_CMD
+    {
+        union
+        {
+            struct
+            {
+                uint32_t                 Reserved0                                        : __CODEGEN_BITFIELD( 0,  0)    ; //!< Reserved
+                uint32_t                 BaseAddressIndexToMemoryObjectControlStateMocsTables : __CODEGEN_BITFIELD( 1,  6)    ; //!< Base Address - Index to Memory Object Control State (MOCS) Tables
+                uint32_t                 BaseAddressArbitrationPriorityControl            : __CODEGEN_BITFIELD( 7,  8)    ; //!< Base Address - Arbitration Priority Control
+                uint32_t                 Reserved9                                        : __CODEGEN_BITFIELD( 9, 11)    ; //!< Reserved
+                uint32_t                 BaseAddressRowStoreScratchBufferCacheSelect      : __CODEGEN_BITFIELD(12, 12)    ; //!< BASE_ADDRESS_ROW_STORE_SCRATCH_BUFFER_CACHE_SELECT
+                uint32_t                 BaseAddressTiledResourceMode                     : __CODEGEN_BITFIELD(13, 14)    ; //!< BASE_ADDRESS_TILED_RESOURCE_MODE
+                uint32_t                 Reserved15                                       : __CODEGEN_BITFIELD(15, 31)    ; //!< Reserved
+            };
+            uint32_t                     Value;
+        } DW0;
+
+        //! \name Local enumerations
+
+        //! \brief BASE_ADDRESS_ROW_STORE_SCRATCH_BUFFER_CACHE_SELECT
+        //! \details
+        //!     This field controls if the Row Store is going to store inside Media
+        //!     Cache (rowstore cache) or to LLC.
+        enum BASE_ADDRESS_ROW_STORE_SCRATCH_BUFFER_CACHE_SELECT
+        {
+            BASE_ADDRESS_ROW_STORE_SCRATCH_BUFFER_CACHE_SELECT_UNNAMED0      = 0, //!< Buffer going to LLC.
+            BASE_ADDRESS_ROW_STORE_SCRATCH_BUFFER_CACHE_SELECT_UNNAMED1      = 1, //!< Buffer going to Internal Media Storage.
+        };
+
+        //! \brief BASE_ADDRESS_TILED_RESOURCE_MODE
+        //! \details
+        //!     <b>For Media Surfaces:</b> This field specifies the tiled resource mode.
+        enum BASE_ADDRESS_TILED_RESOURCE_MODE
+        {
+            BASE_ADDRESS_TILED_RESOURCE_MODE_TRMODENONE                      = 0, //!< TileY resources
+            BASE_ADDRESS_TILED_RESOURCE_MODE_TRMODETILEYF                    = 1, //!< 4KB tiled resources
+            BASE_ADDRESS_TILED_RESOURCE_MODE_TRMODETILEYS                    = 2, //!< 64KB tiled resources
+        };
+
+        //! \name Initializations
+
+        //! \brief Explicit member initialization function
+        MEMORYADDRESSATTRIBUTES_CMD();
+
+        static const size_t dwSize = 1;
+        static const size_t byteSize = 4;
+    };
+
+    //!
+    //! \brief SPLITBASEADDRESS64BYTEALIGNED
+    //! \details
+    //!     Specifies a 64-bit (48-bit canonical) 64-byte aligned memory base
+    //!     address.
+    //!     
+    struct SPLITBASEADDRESS64BYTEALIGNED_CMD
+    {
+        union
+        {
+            struct
+            {
+                uint64_t                 Reserved0                                        : __CODEGEN_BITFIELD( 0,  5)    ; //!< Reserved
+                uint64_t                 Graphicsaddress476                               : __CODEGEN_BITFIELD( 6, 47)    ; //!< GraphicsAddress47-6
+                uint64_t                 Reserved48                                       : __CODEGEN_BITFIELD(48, 63)    ; //!< Reserved
+            };
+            uint32_t                     Value[2];
+        } DW0_1;
+
+        //! \name Local enumerations
+
+        //! \name Initializations
+
+        //! \brief Explicit member initialization function
+        SPLITBASEADDRESS64BYTEALIGNED_CMD();
+
+        static const size_t dwSize = 2;
+        static const size_t byteSize = 8;
+    };
+
+    //!
+    //! \brief SPLITBASEADDRESS4KBYTEALIGNED
+    //! \details
+    //!     Specifies a 64-bit (48-bit canonical) 4K-byte aligned memory base
+    //!     address. GraphicsAddress is a 64-bit value [63:0], but only a portion of
+    //!     it is used by hardware. The upper reserved bits are ignored and MBZ.
+    //!     
+    struct SPLITBASEADDRESS4KBYTEALIGNED_CMD
+    {
+        union
+        {
+            struct
+            {
+                uint64_t                 Reserved0                                        : __CODEGEN_BITFIELD( 0, 11)    ; //!< Reserved
+                uint64_t                 Graphicsaddress4712                              : __CODEGEN_BITFIELD(12, 47)    ; //!< GraphicsAddress47-12
+                uint64_t                 Reserved48                                       : __CODEGEN_BITFIELD(48, 63)    ; //!< Reserved
+            };
+            uint32_t                     Value[2];
+        } DW0_1;
+
+        //! \name Local enumerations
+
+        //! \name Initializations
+
+        //! \brief Explicit member initialization function
+        SPLITBASEADDRESS4KBYTEALIGNED_CMD();
+
+        static const size_t dwSize = 2;
+        static const size_t byteSize = 8;
+    };
 
     //!
     //! \brief HCP_PIPE_MODE_SELECT
@@ -66,7 +185,6 @@ public:
     {
         union
         {
-            //!< DWORD 0
             struct
             {
                 uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0, 11)    ; //!< DWORD_LENGTH
@@ -80,7 +198,6 @@ public:
         } DW0;
         union
         {
-            //!< DWORD 1
             struct
             {
                 uint32_t                 CodecSelect                                      : __CODEGEN_BITFIELD( 0,  0)    ; //!< CODEC_SELECT
@@ -89,6 +206,7 @@ public:
                 uint32_t                 PicStatusErrorReportEnable                       : __CODEGEN_BITFIELD( 3,  3)    ; //!< PIC_STATUSERROR_REPORT_ENABLE
                 uint32_t                 Reserved36                                       : __CODEGEN_BITFIELD( 4,  4)    ; //!< Reserved
                 uint32_t                 CodecStandardSelect                              : __CODEGEN_BITFIELD( 5,  7)    ; //!< CODEC_STANDARD_SELECT
+                uint32_t                 Reserved40                                       : __CODEGEN_BITFIELD( 8,  8)    ; //!< Reserved
                 uint32_t                 AdvancedRateControlEnable                        : __CODEGEN_BITFIELD( 9,  9)    ; //!< Advanced Rate Control Enable
                 uint32_t                 Reserved42                                       : __CODEGEN_BITFIELD(10, 11)    ; //!< Reserved
                 uint32_t                 PakFrameLevelStreamoutEnable                     : __CODEGEN_BITFIELD(12, 12)    ; //!< PAK Frame Level StreamOut enable
@@ -98,7 +216,6 @@ public:
         } DW1;
         union
         {
-            //!< DWORD 2
             struct
             {
                 uint32_t                 MediaSoftResetCounterPer1000Clocks                                               ; //!< MEDIA_SOFT_RESET_COUNTER_PER_1000_CLOCKS
@@ -107,7 +224,6 @@ public:
         } DW2;
         union
         {
-            //!< DWORD 3
             struct
             {
                 uint32_t                 PicStatusErrorReportId                                                           ; //!< PIC_STATUSERROR_REPORT_ID
@@ -116,16 +232,14 @@ public:
         } DW3;
         union
         {
-            //!< DWORD 4  
             struct
-            {                
-                uint32_t                 Reserved128                                      : __CODEGEN_BITFIELD( 0,  31)    ; //!< Reserved
+            {
+                uint32_t                 Reserved128                                                                      ; //!< Reserved
             };
             uint32_t                     Value;
         } DW4;
         union
         {
-            //!< DWORD 5
             struct
             {
                 uint32_t                 Reserved160                                                                      ; //!< Reserved
@@ -220,17 +334,6 @@ public:
             PIC_STATUSERROR_REPORT_ID_32_BITUNSIGNED                         = 0, //!< Unique ID Number
         };
 
-        //! \brief VP9_FLUSH_HANDLING
-        //! \details
-        //!     <p>This modifies how flush is handled</p>
-        //!     <p>"0"--In VP9 mode, all unit done is accounted for before flush;</p>
-        //!     <p>"1"--In VP9 mode, only frame done is accounted for before flush;</p>
-        enum VP9_FLUSH_HANDLING
-        {
-            VP9_FLUSH_HANDLING_FLUSHUSINGUNITDONE                            = 0, //!< No additional details
-            VP9_FLUSH_HANDLING_FLUSHUSINGFRAMEDONE                           = 1, //!< No additional details
-        };
-
         //! \name Initializations
 
         //! \brief Explicit member initialization function
@@ -259,7 +362,6 @@ public:
     {
         union
         {
-            //!< DWORD 0
             struct
             {
                 uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0, 11)    ; //!< DWORD_LENGTH
@@ -273,7 +375,6 @@ public:
         } DW0;
         union
         {
-            //!< DWORD 1
             struct
             {
                 uint32_t                 SurfacePitchMinus1                               : __CODEGEN_BITFIELD( 0, 16)    ; //!< Surface Pitch Minus1
@@ -282,6 +383,16 @@ public:
             };
             uint32_t                     Value;
         } DW1;
+        union
+        {
+            struct
+            {
+                uint32_t                 YOffsetForUCbInPixel                             : __CODEGEN_BITFIELD( 0, 14)    ; //!< Y Offset for U(Cb) in pixel
+                uint32_t                 Reserved79                                       : __CODEGEN_BITFIELD(15, 27)    ; //!< Reserved
+                uint32_t                 SurfaceFormat                                    : __CODEGEN_BITFIELD(28, 31)    ; //!< SURFACE_FORMAT
+            };
+            uint32_t                     Value;
+        } DW2;
 
         //! \name Local enumerations
 
@@ -311,10 +422,20 @@ public:
         enum SURFACE_ID
         {
             SURFACE_ID_HEVCFORCURRENTDECODEDPICTURE                          = 0, //!< 8-bit uncompressed data 
-            SURFACE_ID_SOURCEINPUTPICTUREENCODER                             = 1, //!< 8-bit uncompressed data 
+            SURFACE_ID_SOURCEINPUTPICTURE_ENCODER                            = 1, //!< 8-bit uncompressed data 
             SURFACE_ID_PREVREFERENCEPICTURE                                  = 2, //!< (VP9 only) Previous Reference
             SURFACE_ID_GOLDENREFERENCEPICTURE                                = 3, //!< (VP9 only) Golden Reference
             SURFACE_ID_ALTREFREFERENCEPICTURE                                = 4, //!< (VP9 only) AltRef Reference
+        };
+
+        //! \brief SURFACE_FORMAT
+        //! \details
+        //!     <p>Specifies the format of the surface.</p>
+        enum SURFACE_FORMAT
+        {
+            SURFACE_FORMAT_PLANAR4208                                        = 4, //!< No additional details
+            SURFACE_FORMAT_P010                                              = 13, //!< No additional details
+            SURFACE_FORMAT_P016                                              = 14, //!< No additional details
         };
 
         //! \name Initializations
@@ -322,41 +443,8 @@ public:
         //! \brief Explicit member initialization function
         HCP_SURFACE_STATE_CMD();
 
-        static const size_t dwSize = 2;
-        static const size_t byteSize = 8;
-    };
-
-    //!
-    //! \brief GRAPHICSADDRESS63_6
-    //! \details
-    //!     This structure is intended to define the upper bits of the
-    //!     GraphicsAddress, when bits 5:0 are already defined in the referring
-    //!     register. So bit 0 of this structure should correspond to bit 6 of the
-    //!     full GraphicsAddress.
-    //!     
-    struct GRAPHICSADDRESS63_6_CMD
-    {
-        union
-        {
-            //!< DWORD 0..1
-            struct
-            {
-                uint64_t                 Reserved0                                        : __CODEGEN_BITFIELD( 0,  5)    ; //!< Reserved
-                uint64_t                 Graphicsaddress476                               : __CODEGEN_BITFIELD( 6, 47)    ; //!< GraphicsAddress47-6
-                uint64_t                 Reserved48                                       : __CODEGEN_BITFIELD(48, 63)    ; //!< Reserved
-            };
-            uint32_t                     Value[2];
-        } DW0_1;
-
-        //! \name Local enumerations
-
-        //! \name Initializations
-
-        //! \brief Explicit member initialization function
-        GRAPHICSADDRESS63_6_CMD();
-
-        static const size_t dwSize = 2;
-        static const size_t byteSize = 8;
+        static const size_t dwSize = 3;
+        static const size_t byteSize = 12;
     };
 
     //!
@@ -379,7 +467,6 @@ public:
     {
         union
         {
-            //!< DWORD 0
             struct
             {
                 uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0, 11)    ; //!< DWORD_LENGTH
@@ -391,218 +478,30 @@ public:
             };
             uint32_t                     Value;
         } DW0;
-
-        mhw_vdbox_hcp_g9_glk::GRAPHICSADDRESS63_6_CMD          DecodedPicture[1];                                         //!< Decoded Picture
-
+        SPLITBASEADDRESS4KBYTEALIGNED_CMD        DecodedPicture;                                                          //!< DW1..2, Decoded Picture
+        MEMORYADDRESSATTRIBUTES_CMD              DecodedPictureMemoryAddressAttributes;                                   //!< DW3, Decoded Picture Memory Address Attributes
+        SPLITBASEADDRESS64BYTEALIGNED_CMD        DeblockingFilterLineBuffer;                                              //!< DW4..5, Deblocking Filter Line Buffer
+        MEMORYADDRESSATTRIBUTES_CMD              DeblockingFilterLineBufferMemoryAddressAttributes;                       //!< DW6, Deblocking Filter Line Buffer Memory Address Attributes
+        SPLITBASEADDRESS64BYTEALIGNED_CMD        DeblockingFilterTileLineBuffer;                                          //!< DW7..8, Deblocking Filter Tile Line Buffer
+        MEMORYADDRESSATTRIBUTES_CMD              DeblockingFilterTileLineBufferMemoryAddressAttributes;                   //!< DW9, Deblocking Filter Tile Line Buffer Memory Address Attributes
+        SPLITBASEADDRESS64BYTEALIGNED_CMD        DeblockingFilterTileColumnBuffer;                                        //!< DW10..11, Deblocking Filter Tile Column Buffer
+        MEMORYADDRESSATTRIBUTES_CMD              DeblockingFilterTileColumnBufferMemoryAddressAttributes;                 //!< DW12, Deblocking Filter Tile Column Buffer Memory Address Attributes
+        SPLITBASEADDRESS64BYTEALIGNED_CMD        MetadataLineBuffer;                                                      //!< DW13..14, Metadata Line Buffer
+        MEMORYADDRESSATTRIBUTES_CMD              MetadataLineBufferMemoryAddressAttributes;                               //!< DW15, Metadata Line Buffer Memory Address Attributes
+        SPLITBASEADDRESS64BYTEALIGNED_CMD        MetadataTileLineBuffer;                                                  //!< DW16..17, Metadata Tile Line Buffer
+        MEMORYADDRESSATTRIBUTES_CMD              MetadataTileLineBufferMemoryAddressAttributes;                           //!< DW18, Metadata Tile Line Buffer Memory Address Attributes
+        SPLITBASEADDRESS64BYTEALIGNED_CMD        MetadataTileColumnBuffer;                                                //!< DW19..20, Metadata Tile Column Buffer
+        MEMORYADDRESSATTRIBUTES_CMD              MetadataTileColumnBufferMemoryAddressAttributes;                         //!< DW21, Metadata Tile Column Buffer Memory Address Attributes
+        SPLITBASEADDRESS64BYTEALIGNED_CMD        SaoLineBuffer;                                                           //!< DW22..23, SAO Line Buffer
+        MEMORYADDRESSATTRIBUTES_CMD              SaoLineBufferMemoryAddressAttributes;                                    //!< DW24, SAO Line Buffer Memory Address Attributes
+        SPLITBASEADDRESS64BYTEALIGNED_CMD        SaoTileLineBuffer;                                                       //!< DW25..26, SAO Tile Line Buffer
+        MEMORYADDRESSATTRIBUTES_CMD              SaoTileLineBufferMemoryAddressAttributes;                                //!< DW27, SAO Tile Line Buffer Memory Address Attributes
+        SPLITBASEADDRESS64BYTEALIGNED_CMD        SaoTileColumnBuffer;                                                     //!< DW28..29, SAO Tile Column Buffer
+        MEMORYADDRESSATTRIBUTES_CMD              SaoTileColumnBufferMemoryAddressAttributes;                              //!< DW30, SAO Tile Column Buffer Memory Address Attributes
+        SPLITBASEADDRESS64BYTEALIGNED_CMD        CurrentMotionVectorTemporalBuffer;                                       //!< DW31..32, Current Motion Vector Temporal Buffer
+        MEMORYADDRESSATTRIBUTES_CMD              CurrentMotionVectorTemporalBufferMemoryAddressAttributes;                //!< DW33, Current Motion Vector Temporal Buffer Memory Address Attributes
         union
         {
-            //!< DWORD 3
-            struct
-            {
-                uint32_t                 MemoryObjectControlState                         : __CODEGEN_BITFIELD( 0,  6)    ; //!< Memory Object Control State
-                uint32_t                 ArbitrationPriorityControl                       : __CODEGEN_BITFIELD( 7,  8)    ; //!< ARBITRATION_PRIORITY_CONTROL
-                uint32_t                 Memorycompressionenable                          : __CODEGEN_BITFIELD( 9,  9)    ; //!< MemoryCompressionEnable
-                uint32_t                 Memorycompressionmode                            : __CODEGEN_BITFIELD(10, 10)    ; //!< MemoryCompressionMode
-                uint32_t                 Reserved107                                      : __CODEGEN_BITFIELD(11, 11)    ; //!< Reserved
-                uint32_t                 Rowstorescratchbuffercacheselect                 : __CODEGEN_BITFIELD(12, 12)    ; //!< ROWSTORESCRATCHBUFFERCACHESELECT
-                uint32_t                 Tiledresourcemode                                : __CODEGEN_BITFIELD(13, 14)    ; //!< TiledResourceMode
-                uint32_t                 Reserved111                                      : __CODEGEN_BITFIELD(15, 31)    ; //!< Reserved
-            };
-            uint32_t                     Value;
-        } DW3;
-
-        mhw_vdbox_hcp_g9_glk::GRAPHICSADDRESS63_6_CMD          DeblockingFilterLineBuffer[1];                             //!< Deblocking Filter Line Buffer
-
-        union
-        {
-            //!< DWORD 6
-            struct
-            {
-                uint32_t                 MemoryObjectControlState                         : __CODEGEN_BITFIELD( 0,  6)    ; //!< Memory Object Control State
-                uint32_t                 ArbitrationPriorityControl                       : __CODEGEN_BITFIELD( 7,  8)    ; //!< ARBITRATION_PRIORITY_CONTROL
-                uint32_t                 Memorycompressionenable                          : __CODEGEN_BITFIELD( 9,  9)    ; //!< MemoryCompressionEnable
-                uint32_t                 Memorycompressionmode                            : __CODEGEN_BITFIELD(10, 10)    ; //!< MemoryCompressionMode
-                uint32_t                 Reserved203                                      : __CODEGEN_BITFIELD(11, 11)    ; //!< Reserved
-                uint32_t                 Rowstorescratchbuffercacheselect                 : __CODEGEN_BITFIELD(12, 12)    ; //!< ROWSTORESCRATCHBUFFERCACHESELECT
-                uint32_t                 Tiledresourcemode                                : __CODEGEN_BITFIELD(13, 14)    ; //!< TiledResourceMode
-                uint32_t                 Reserved207                                      : __CODEGEN_BITFIELD(15, 31)    ; //!< Reserved
-            };
-            uint32_t                     Value;
-        } DW6;
-
-        mhw_vdbox_hcp_g9_glk::GRAPHICSADDRESS63_6_CMD          DeblockingFilterTileLineBuffer[1];                         //!< Deblocking Filter Tile Line Buffer
-
-        union
-        {
-            //!< DWORD 9
-            struct
-            {
-                uint32_t                 MemoryObjectControlState                         : __CODEGEN_BITFIELD( 0,  6)    ; //!< Memory Object Control State
-                uint32_t                 ArbitrationPriorityControl                       : __CODEGEN_BITFIELD( 7,  8)    ; //!< ARBITRATION_PRIORITY_CONTROL
-                uint32_t                 Memorycompressionenable                          : __CODEGEN_BITFIELD( 9,  9)    ; //!< MemoryCompressionEnable
-                uint32_t                 Memorycompressionmode                            : __CODEGEN_BITFIELD(10, 10)    ; //!< MemoryCompressionMode
-                uint32_t                 Reserved299                                      : __CODEGEN_BITFIELD(11, 11)    ; //!< Reserved
-                uint32_t                 Rowstorescratchbuffercacheselect                 : __CODEGEN_BITFIELD(12, 12)    ; //!< ROWSTORESCRATCHBUFFERCACHESELECT
-                uint32_t                 Tiledresourcemode                                : __CODEGEN_BITFIELD(13, 14)    ; //!< TiledResourceMode
-                uint32_t                 Reserved303                                      : __CODEGEN_BITFIELD(15, 31)    ; //!< Reserved
-            };
-            uint32_t                     Value;
-        } DW9;
-
-        mhw_vdbox_hcp_g9_glk::GRAPHICSADDRESS63_6_CMD          DeblockingFilterTileColumnBuffer[1];                       //!< Deblocking Filter Tile Column Buffer
-
-        union
-        {
-            //!< DWORD 12
-            struct
-            {
-                uint32_t                 MemoryObjectControlState                         : __CODEGEN_BITFIELD( 0,  6)    ; //!< Memory Object Control State
-                uint32_t                 ArbitrationPriorityControl                       : __CODEGEN_BITFIELD( 7,  8)    ; //!< ARBITRATION_PRIORITY_CONTROL
-                uint32_t                 Memorycompressionenable                          : __CODEGEN_BITFIELD( 9,  9)    ; //!< MemoryCompressionEnable
-                uint32_t                 Memorycompressionmode                            : __CODEGEN_BITFIELD(10, 10)    ; //!< MemoryCompressionMode
-                uint32_t                 Reserved395                                      : __CODEGEN_BITFIELD(11, 11)    ; //!< Reserved
-                uint32_t                 Rowstorescratchbuffercacheselect                 : __CODEGEN_BITFIELD(12, 12)    ; //!< ROWSTORESCRATCHBUFFERCACHESELECT
-                uint32_t                 Tiledresourcemode                                : __CODEGEN_BITFIELD(13, 14)    ; //!< TiledResourceMode
-                uint32_t                 Reserved399                                      : __CODEGEN_BITFIELD(15, 31)    ; //!< Reserved
-            };
-            uint32_t                     Value;
-        } DW12;
-
-        mhw_vdbox_hcp_g9_glk::GRAPHICSADDRESS63_6_CMD          MetadataLineBuffer[1];                                     //!< Metadata Line Buffer
-
-        union
-        {
-            //!< DWORD 15
-            struct
-            {
-                uint32_t                 MemoryObjectControlState                         : __CODEGEN_BITFIELD( 0,  6)    ; //!< Memory Object Control State
-                uint32_t                 ArbitrationPriorityControl                       : __CODEGEN_BITFIELD( 7,  8)    ; //!< ARBITRATION_PRIORITY_CONTROL
-                uint32_t                 Memorycompressionenable                          : __CODEGEN_BITFIELD( 9,  9)    ; //!< MemoryCompressionEnable
-                uint32_t                 Memorycompressionmode                            : __CODEGEN_BITFIELD(10, 10)    ; //!< MemoryCompressionMode
-                uint32_t                 Reserved491                                      : __CODEGEN_BITFIELD(11, 11)    ; //!< Reserved
-                uint32_t                 Rowstorescratchbuffercacheselect                 : __CODEGEN_BITFIELD(12, 12)    ; //!< ROWSTORESCRATCHBUFFERCACHESELECT
-                uint32_t                 Tiledresourcemode                                : __CODEGEN_BITFIELD(13, 14)    ; //!< TiledResourceMode
-                uint32_t                 Reserved495                                      : __CODEGEN_BITFIELD(15, 31)    ; //!< Reserved
-            };
-            uint32_t                     Value;
-        } DW15;
-
-        mhw_vdbox_hcp_g9_glk::GRAPHICSADDRESS63_6_CMD          MetadataTileLineBuffer[1];                                 //!< Metadata Tile Line Buffer
-
-        union
-        {
-            //!< DWORD 18
-            struct
-            {
-                uint32_t                 MemoryObjectControlState                         : __CODEGEN_BITFIELD( 0,  6)    ; //!< Memory Object Control State
-                uint32_t                 ArbitrationPriorityControl                       : __CODEGEN_BITFIELD( 7,  8)    ; //!< ARBITRATION_PRIORITY_CONTROL
-                uint32_t                 Memorycompressionenable                          : __CODEGEN_BITFIELD( 9,  9)    ; //!< MemoryCompressionEnable
-                uint32_t                 Memorycompressionmode                            : __CODEGEN_BITFIELD(10, 10)    ; //!< MemoryCompressionMode
-                uint32_t                 Reserved587                                      : __CODEGEN_BITFIELD(11, 11)    ; //!< Reserved
-                uint32_t                 Rowstorescratchbuffercacheselect                 : __CODEGEN_BITFIELD(12, 12)    ; //!< ROWSTORESCRATCHBUFFERCACHESELECT
-                uint32_t                 Tiledresourcemode                                : __CODEGEN_BITFIELD(13, 14)    ; //!< TiledResourceMode
-                uint32_t                 Reserved591                                      : __CODEGEN_BITFIELD(15, 31)    ; //!< Reserved
-            };
-            uint32_t                     Value;
-        } DW18;
-
-        mhw_vdbox_hcp_g9_glk::GRAPHICSADDRESS63_6_CMD          MetadataTileColumnBuffer[1];                               //!< Metadata Tile Column Buffer
-
-        union
-        {
-            //!< DWORD 21
-            struct
-            {
-                uint32_t                 MemoryObjectControlState                         : __CODEGEN_BITFIELD( 0,  6)    ; //!< Memory Object Control State
-                uint32_t                 ArbitrationPriorityControl                       : __CODEGEN_BITFIELD( 7,  8)    ; //!< ARBITRATION_PRIORITY_CONTROL
-                uint32_t                 Memorycompressionenable                          : __CODEGEN_BITFIELD( 9,  9)    ; //!< MemoryCompressionEnable
-                uint32_t                 Memorycompressionmode                            : __CODEGEN_BITFIELD(10, 10)    ; //!< MemoryCompressionMode
-                uint32_t                 Reserved683                                      : __CODEGEN_BITFIELD(11, 11)    ; //!< Reserved
-                uint32_t                 Rowstorescratchbuffercacheselect                 : __CODEGEN_BITFIELD(12, 12)    ; //!< ROWSTORESCRATCHBUFFERCACHESELECT
-                uint32_t                 Tiledresourcemode                                : __CODEGEN_BITFIELD(13, 14)    ; //!< TiledResourceMode
-                uint32_t                 Reserved687                                      : __CODEGEN_BITFIELD(15, 31)    ; //!< Reserved
-            };
-            uint32_t                     Value;
-        } DW21;
-
-        mhw_vdbox_hcp_g9_glk::GRAPHICSADDRESS63_6_CMD          SaoLineBuffer[1];                                          //!< SAO Line Buffer
-
-        union
-        {
-            //!< DWORD 24
-            struct
-            {
-                uint32_t                 MemoryObjectControlState                         : __CODEGEN_BITFIELD( 0,  6)    ; //!< Memory Object Control State
-                uint32_t                 ArbitrationPriorityControl                       : __CODEGEN_BITFIELD( 7,  8)    ; //!< ARBITRATION_PRIORITY_CONTROL
-                uint32_t                 Memorycompressionenable                          : __CODEGEN_BITFIELD( 9,  9)    ; //!< MemoryCompressionEnable
-                uint32_t                 Memorycompressionmode                            : __CODEGEN_BITFIELD(10, 10)    ; //!< MemoryCompressionMode
-                uint32_t                 Reserved779                                      : __CODEGEN_BITFIELD(11, 11)    ; //!< Reserved
-                uint32_t                 Rowstorescratchbuffercacheselect                 : __CODEGEN_BITFIELD(12, 12)    ; //!< ROWSTORESCRATCHBUFFERCACHESELECT
-                uint32_t                 Tiledresourcemode                                : __CODEGEN_BITFIELD(13, 14)    ; //!< TiledResourceMode
-                uint32_t                 Reserved783                                      : __CODEGEN_BITFIELD(15, 31)    ; //!< Reserved
-            };
-            uint32_t                     Value;
-        } DW24;
-
-        mhw_vdbox_hcp_g9_glk::GRAPHICSADDRESS63_6_CMD          SaoTileLineBuffer[1];                                      //!< SAO Tile Line Buffer
-
-        union
-        {
-            //!< DWORD 27
-            struct
-            {
-                uint32_t                 MemoryObjectControlState                         : __CODEGEN_BITFIELD( 0,  6)    ; //!< Memory Object Control State
-                uint32_t                 ArbitrationPriorityControl                       : __CODEGEN_BITFIELD( 7,  8)    ; //!< ARBITRATION_PRIORITY_CONTROL
-                uint32_t                 Memorycompressionenable                          : __CODEGEN_BITFIELD( 9,  9)    ; //!< MemoryCompressionEnable
-                uint32_t                 Memorycompressionmode                            : __CODEGEN_BITFIELD(10, 10)    ; //!< MemoryCompressionMode
-                uint32_t                 Reserved875                                      : __CODEGEN_BITFIELD(11, 11)    ; //!< Reserved
-                uint32_t                 Rowstorescratchbuffercacheselect                 : __CODEGEN_BITFIELD(12, 12)    ; //!< ROWSTORESCRATCHBUFFERCACHESELECT
-                uint32_t                 Tiledresourcemode                                : __CODEGEN_BITFIELD(13, 14)    ; //!< TiledResourceMode
-                uint32_t                 Reserved879                                      : __CODEGEN_BITFIELD(15, 31)    ; //!< Reserved
-            };
-            uint32_t                     Value;
-        } DW27;
-
-        mhw_vdbox_hcp_g9_glk::GRAPHICSADDRESS63_6_CMD          SaoTileColumnBuffer[1];                                    //!< SAO Tile Column Buffer
-
-        union
-        {
-            //!< DWORD 30
-            struct
-            {
-                uint32_t                 MemoryObjectControlState                         : __CODEGEN_BITFIELD( 0,  6)    ; //!< Memory Object Control State
-                uint32_t                 ArbitrationPriorityControl                       : __CODEGEN_BITFIELD( 7,  8)    ; //!< ARBITRATION_PRIORITY_CONTROL
-                uint32_t                 Memorycompressionenable                          : __CODEGEN_BITFIELD( 9,  9)    ; //!< MemoryCompressionEnable
-                uint32_t                 Memorycompressionmode                            : __CODEGEN_BITFIELD(10, 10)    ; //!< MemoryCompressionMode
-                uint32_t                 Reserved971                                      : __CODEGEN_BITFIELD(11, 11)    ; //!< Reserved
-                uint32_t                 Rowstorescratchbuffercacheselect                 : __CODEGEN_BITFIELD(12, 12)    ; //!< ROWSTORESCRATCHBUFFERCACHESELECT
-                uint32_t                 Tiledresourcemode                                : __CODEGEN_BITFIELD(13, 14)    ; //!< TiledResourceMode
-                uint32_t                 Reserved975                                      : __CODEGEN_BITFIELD(15, 31)    ; //!< Reserved
-            };
-            uint32_t                     Value;
-        } DW30;
-
-        mhw_vdbox_hcp_g9_glk::GRAPHICSADDRESS63_6_CMD          CurrentMotionVectorTemporalBuffer[1];                      //!< Current Motion Vector Temporal Buffer
-
-        union
-        {
-            //!< DWORD 33
-            struct
-            {
-                uint32_t                 MemoryObjectControlState                         : __CODEGEN_BITFIELD( 0,  6)    ; //!< Memory Object Control State
-                uint32_t                 ArbitrationPriorityControl                       : __CODEGEN_BITFIELD( 7,  8)    ; //!< ARBITRATION_PRIORITY_CONTROL
-                uint32_t                 Memorycompressionenable                          : __CODEGEN_BITFIELD( 9,  9)    ; //!< MemoryCompressionEnable
-                uint32_t                 Memorycompressionmode                            : __CODEGEN_BITFIELD(10, 10)    ; //!< MemoryCompressionMode
-                uint32_t                 Reserved1067                                     : __CODEGEN_BITFIELD(11, 11)    ; //!< Reserved
-                uint32_t                 Rowstorescratchbuffercacheselect                 : __CODEGEN_BITFIELD(12, 12)    ; //!< ROWSTORESCRATCHBUFFERCACHESELECT
-                uint32_t                 Tiledresourcemode                                : __CODEGEN_BITFIELD(13, 14)    ; //!< TiledResourceMode
-                uint32_t                 Reserved1071                                     : __CODEGEN_BITFIELD(15, 31)    ; //!< Reserved
-            };
-            uint32_t                     Value;
-        } DW33;
-        union
-        {
-            //!< DWORD 34..35
             struct
             {
                 uint64_t                 Reserved1088                                                                     ; //!< Reserved
@@ -611,256 +510,39 @@ public:
         } DW34_35;
         union
         {
-            //!< DWORD 36
             struct
             {
                 uint32_t                 Reserved1152                                                                     ; //!< Reserved
             };
             uint32_t                     Value;
         } DW36;
-
-        mhw_vdbox_hcp_g9_glk::GRAPHICSADDRESS63_6_CMD          ReferencePictureBaseAddressRefaddr07[8];                   //!< Reference Picture Base Address (RefAddr[0-7])
-
+        SPLITBASEADDRESS64BYTEALIGNED_CMD        ReferencePictureBaseAddressRefaddr07[8];                                 //!< DW37..52, Reference Picture Base Address (RefAddr[0-7])
+        MEMORYADDRESSATTRIBUTES_CMD              ReferencePictureBaseAddressMemoryAddressAttributes;                      //!< DW53, Reference Picture Base Address Memory Address Attributes
+        SPLITBASEADDRESS64BYTEALIGNED_CMD        OriginalUncompressedPictureSource;                                       //!< DW54..55, Original Uncompressed Picture Source
+        MEMORYADDRESSATTRIBUTES_CMD              OriginalUncompressedPictureSourceMemoryAddressAttributes;                //!< DW56, Original Uncompressed Picture Source Memory Address Attributes
+        SPLITBASEADDRESS64BYTEALIGNED_CMD        StreamoutDataDestination;                                                //!< DW57..58, Streamout Data Destination
+        MEMORYADDRESSATTRIBUTES_CMD              StreamoutDataDestinationMemoryAddressAttributes;                         //!< DW59, Streamout Data Destination Memory Address Attributes, Decoder Only
+        SPLITBASEADDRESS64BYTEALIGNED_CMD        DecodedPictureStatusErrorBufferBaseAddressOrEncodedSliceSizeStreamoutBaseAddress;//!< DW60..61, Decoded Picture Status/Error Buffer Base Address or Encoded slice size streamout  Base Address
+        MEMORYADDRESSATTRIBUTES_CMD              DecodedPictureStatusErrorBufferBaseAddressMemoryAddressAttributes;       //!< DW62, Decoded Picture Status/Error Buffer Base Address Memory Address Attributes
+        SPLITBASEADDRESS64BYTEALIGNED_CMD        LcuIldbStreamoutBuffer;                                                  //!< DW63..64, LCU ILDB Streamout Buffer
+        MEMORYADDRESSATTRIBUTES_CMD              LcuIldbStreamoutBufferMemoryAddressAttributes;                           //!< DW65, LCU ILDB Streamout Buffer Memory Address Attributes
+        SPLITBASEADDRESS64BYTEALIGNED_CMD        CollocatedMotionVectorTemporalBuffer07[8];                               //!< DW66..81, Collocated Motion Vector Temporal Buffer[0-7]
+        MEMORYADDRESSATTRIBUTES_CMD              CollocatedMotionVectorTemporalBuffer07MemoryAddressAttributes;           //!< DW82, Collocated Motion Vector Temporal Buffer[0-7] Memory Address Attributes
+        SPLITBASEADDRESS64BYTEALIGNED_CMD        Vp9ProbabilityBufferReadWrite;                                           //!< DW83..84, VP9 Probability Buffer Read/Write
+        MEMORYADDRESSATTRIBUTES_CMD              Vp9ProbabilityBufferReadWriteMemoryAddressAttributes;                    //!< DW85, VP9 Probability Buffer Read/Write Memory Address Attributes
         union
         {
-            //!< DWORD 53
-            struct
-            {
-                uint32_t                 MemoryObjectControlState                         : __CODEGEN_BITFIELD( 0,  6)    ; //!< Memory Object Control State
-                uint32_t                 ArbitrationPriorityControl                       : __CODEGEN_BITFIELD( 7,  8)    ; //!< ARBITRATION_PRIORITY_CONTROL
-                uint32_t                 Memorycompressionenable                          : __CODEGEN_BITFIELD( 9,  9)    ; //!< MemoryCompressionEnable
-                uint32_t                 Memorycompressionmode                            : __CODEGEN_BITFIELD(10, 10)    ; //!< MemoryCompressionMode
-                uint32_t                 Reserved1707                                     : __CODEGEN_BITFIELD(11, 11)    ; //!< Reserved
-                uint32_t                 Rowstorescratchbuffercacheselect                 : __CODEGEN_BITFIELD(12, 12)    ; //!< ROWSTORESCRATCHBUFFERCACHESELECT
-                uint32_t                 Tiledresourcemode                                : __CODEGEN_BITFIELD(13, 14)    ; //!< TiledResourceMode
-                uint32_t                 Reserved1711                                     : __CODEGEN_BITFIELD(15, 31)    ; //!< Reserved
-            };
-            uint32_t                     Value;
-        } DW53;
-
-        mhw_vdbox_hcp_g9_glk::GRAPHICSADDRESS63_6_CMD          OriginalUncompressedPictureSource[1];                      //!< Original Uncompressed Picture Source
-
-        union
-        {
-            //!< DWORD 56
-            struct
-            {
-                uint32_t                 MemoryObjectControlState                         : __CODEGEN_BITFIELD( 0,  6)    ; //!< Memory Object Control State
-                uint32_t                 ArbitrationPriorityControl                       : __CODEGEN_BITFIELD( 7,  8)    ; //!< ARBITRATION_PRIORITY_CONTROL
-                uint32_t                 Memorycompressionenable                          : __CODEGEN_BITFIELD( 9,  9)    ; //!< MemoryCompressionEnable
-                uint32_t                 Memorycompressionmode                            : __CODEGEN_BITFIELD(10, 10)    ; //!< MemoryCompressionMode
-                uint32_t                 Reserved1803                                     : __CODEGEN_BITFIELD(11, 11)    ; //!< Reserved
-                uint32_t                 Rowstorescratchbuffercacheselect                 : __CODEGEN_BITFIELD(12, 12)    ; //!< ROWSTORESCRATCHBUFFERCACHESELECT
-                uint32_t                 Tiledresourcemode                                : __CODEGEN_BITFIELD(13, 14)    ; //!< TiledResourceMode
-                uint32_t                 Reserved1807                                     : __CODEGEN_BITFIELD(15, 31)    ; //!< Reserved
-            };
-            uint32_t                     Value;
-        } DW56;
-
-        mhw_vdbox_hcp_g9_glk::GRAPHICSADDRESS63_6_CMD          StreamoutDataDestination[1];                               //!< Streamout Data Destination
-
-        union
-        {
-            //!< DWORD 59
-            struct
-            {
-                uint32_t                 MemoryObjectControlState                         : __CODEGEN_BITFIELD( 0,  6)    ; //!< Memory Object Control State
-                uint32_t                 ArbitrationPriorityControl                       : __CODEGEN_BITFIELD( 7,  8)    ; //!< ARBITRATION_PRIORITY_CONTROL
-                uint32_t                 Memorycompressionenable                          : __CODEGEN_BITFIELD( 9,  9)    ; //!< MemoryCompressionEnable
-                uint32_t                 Memorycompressionmode                            : __CODEGEN_BITFIELD(10, 10)    ; //!< MemoryCompressionMode
-                uint32_t                 Reserved1899                                     : __CODEGEN_BITFIELD(11, 11)    ; //!< Reserved
-                uint32_t                 Rowstorescratchbuffercacheselect                 : __CODEGEN_BITFIELD(12, 12)    ; //!< ROWSTORESCRATCHBUFFERCACHESELECT
-                uint32_t                 Tiledresourcemode                                : __CODEGEN_BITFIELD(13, 14)    ; //!< TiledResourceMode
-                uint32_t                 Reserved1903                                     : __CODEGEN_BITFIELD(15, 31)    ; //!< Reserved
-            };
-            uint32_t                     Value;
-        } DW59;
-
-        mhw_vdbox_hcp_g9_glk::GRAPHICSADDRESS63_6_CMD          DecodedPictureStatusErrorBufferBaseAddressOrEncodedSliceSizeStreamoutBaseAddress[1];//!< Decoded Picture Status/Error Buffer Base Address or Encoded slice size streamout  Base Address
-
-        union
-        {
-            //!< DWORD 62
-            struct
-            {
-                uint32_t                 MemoryObjectControlState                         : __CODEGEN_BITFIELD( 0,  6)    ; //!< Memory Object Control State
-                uint32_t                 ArbitrationPriorityControl                       : __CODEGEN_BITFIELD( 7,  8)    ; //!< ARBITRATION_PRIORITY_CONTROL
-                uint32_t                 Memorycompressionenable                          : __CODEGEN_BITFIELD( 9,  9)    ; //!< MemoryCompressionEnable
-                uint32_t                 Memorycompressionmode                            : __CODEGEN_BITFIELD(10, 10)    ; //!< MemoryCompressionMode
-                uint32_t                 Reserved1995                                     : __CODEGEN_BITFIELD(11, 11)    ; //!< Reserved
-                uint32_t                 Rowstorescratchbuffercacheselect                 : __CODEGEN_BITFIELD(12, 12)    ; //!< ROWSTORESCRATCHBUFFERCACHESELECT
-                uint32_t                 Tiledresourcemode                                : __CODEGEN_BITFIELD(13, 14)    ; //!< TiledResourceMode
-                uint32_t                 Reserved1999                                     : __CODEGEN_BITFIELD(15, 31)    ; //!< Reserved
-            };
-            uint32_t                     Value;
-        } DW62;
-
-        mhw_vdbox_hcp_g9_glk::GRAPHICSADDRESS63_6_CMD          LcuIldbStreamoutBuffer[1];                                 //!< LCU ILDB Streamout Buffer
-
-        union
-        {
-            //!< DWORD 65
-            struct
-            {
-                uint32_t                 MemoryObjectControlState                         : __CODEGEN_BITFIELD( 0,  6)    ; //!< Memory Object Control State
-                uint32_t                 ArbitrationPriorityControl                       : __CODEGEN_BITFIELD( 7,  8)    ; //!< ARBITRATION_PRIORITY_CONTROL
-                uint32_t                 Memorycompressionenable                          : __CODEGEN_BITFIELD( 9,  9)    ; //!< MemoryCompressionEnable
-                uint32_t                 Memorycompressionmode                            : __CODEGEN_BITFIELD(10, 10)    ; //!< MemoryCompressionMode
-                uint32_t                 Reserved2091                                     : __CODEGEN_BITFIELD(11, 11)    ; //!< Reserved
-                uint32_t                 Rowstorescratchbuffercacheselect                 : __CODEGEN_BITFIELD(12, 12)    ; //!< ROWSTORESCRATCHBUFFERCACHESELECT
-                uint32_t                 Tiledresourcemode                                : __CODEGEN_BITFIELD(13, 14)    ; //!< TiledResourceMode
-                uint32_t                 Reserved2095                                     : __CODEGEN_BITFIELD(15, 31)    ; //!< Reserved
-            };
-            uint32_t                     Value;
-        } DW65;
-
-        mhw_vdbox_hcp_g9_glk::GRAPHICSADDRESS63_6_CMD          CollocatedMotionVectorTemporalBuffer07[8];                 //!< Collocated Motion Vector Temporal Buffer[0-7]
-
-        union
-        {
-            //!< DWORD 82
-            struct
-            {
-                uint32_t                 MemoryObjectControlState                         : __CODEGEN_BITFIELD( 0,  6)    ; //!< Memory Object Control State
-                uint32_t                 ArbitrationPriorityControl                       : __CODEGEN_BITFIELD( 7,  8)    ; //!< ARBITRATION_PRIORITY_CONTROL
-                uint32_t                 Memorycompressionenable                          : __CODEGEN_BITFIELD( 9,  9)    ; //!< MemoryCompressionEnable
-                uint32_t                 Memorycompressionmode                            : __CODEGEN_BITFIELD(10, 10)    ; //!< MemoryCompressionMode
-                uint32_t                 Reserved2635                                     : __CODEGEN_BITFIELD(11, 11)    ; //!< Reserved
-                uint32_t                 Rowstorescratchbuffercacheselect                 : __CODEGEN_BITFIELD(12, 12)    ; //!< ROWSTORESCRATCHBUFFERCACHESELECT
-                uint32_t                 Tiledresourcemode                                : __CODEGEN_BITFIELD(13, 14)    ; //!< TiledResourceMode
-                uint32_t                 Reserved2639                                     : __CODEGEN_BITFIELD(15, 31)    ; //!< Reserved
-            };
-            uint32_t                     Value;
-        } DW82;
-
-        mhw_vdbox_hcp_g9_glk::GRAPHICSADDRESS63_6_CMD          Vp9ProbabilityBufferReadWrite[1];                          //!< VP9 Probability Buffer Read/Write
-
-        union
-        {
-            //!< DWORD 85
-            struct
-            {
-                uint32_t                 MemoryObjectControlState                         : __CODEGEN_BITFIELD( 0,  6)    ; //!< Memory Object Control State
-                uint32_t                 ArbitrationPriorityControl                       : __CODEGEN_BITFIELD( 7,  8)    ; //!< ARBITRATION_PRIORITY_CONTROL
-                uint32_t                 Memorycompressionenable                          : __CODEGEN_BITFIELD( 9,  9)    ; //!< MemoryCompressionEnable
-                uint32_t                 Memorycompressionmode                            : __CODEGEN_BITFIELD(10, 10)    ; //!< MemoryCompressionMode
-                uint32_t                 Reserved2731                                     : __CODEGEN_BITFIELD(11, 11)    ; //!< Reserved
-                uint32_t                 Rowstorescratchbuffercacheselect                 : __CODEGEN_BITFIELD(12, 12)    ; //!< ROWSTORESCRATCHBUFFERCACHESELECT
-                uint32_t                 Tiledresourcemode                                : __CODEGEN_BITFIELD(13, 14)    ; //!< TiledResourceMode
-                uint32_t                 Reserved2735                                     : __CODEGEN_BITFIELD(15, 31)    ; //!< Reserved
-            };
-            uint32_t                     Value;
-        } DW85;
-        union
-        {
-            //!< DWORD 86..87
             struct
             {
                 uint64_t                 Vp9SegmentIdBufferReadWrite                                                      ; //!< VP9 Segment ID Buffer Read/Write
             };
             uint32_t                     Value[2];
         } DW86_87;
-        union
-        {
-            //!< DWORD 88
-            struct
-            {
-                uint32_t                 MemoryObjectControlState                         : __CODEGEN_BITFIELD( 0,  6)    ; //!< Memory Object Control State
-                uint32_t                 ArbitrationPriorityControl                       : __CODEGEN_BITFIELD( 7,  8)    ; //!< ARBITRATION_PRIORITY_CONTROL
-                uint32_t                 Memorycompressionenable                          : __CODEGEN_BITFIELD( 9,  9)    ; //!< MemoryCompressionEnable
-                uint32_t                 Memorycompressionmode                            : __CODEGEN_BITFIELD(10, 10)    ; //!< MemoryCompressionMode
-                uint32_t                 Reserved2827                                     : __CODEGEN_BITFIELD(11, 11)    ; //!< Reserved
-                uint32_t                 Rowstorescratchbuffercacheselect                 : __CODEGEN_BITFIELD(12, 12)    ; //!< ROWSTORESCRATCHBUFFERCACHESELECT
-                uint32_t                 Tiledresourcemode                                : __CODEGEN_BITFIELD(13, 14)    ; //!< TiledResourceMode
-                uint32_t                 Reserved2831                                     : __CODEGEN_BITFIELD(15, 31)    ; //!< Reserved
-            };
-            uint32_t                     Value;
-        } DW88;
-
-        mhw_vdbox_hcp_g9_glk::GRAPHICSADDRESS63_6_CMD          Vp9HvdLineRowstoreBufferReadWrite[1];                      //!< VP9 HVD Line Rowstore Buffer Read/Write
-
-        union
-        {
-            //!< DWORD 91
-            struct
-            {
-                uint32_t                 MemoryObjectControlState                         : __CODEGEN_BITFIELD( 0,  6)    ; //!< Memory Object Control State
-                uint32_t                 ArbitrationPriorityControl                       : __CODEGEN_BITFIELD( 7,  8)    ; //!< ARBITRATION_PRIORITY_CONTROL
-                uint32_t                 Memorycompressionenable                          : __CODEGEN_BITFIELD( 9,  9)    ; //!< MemoryCompressionEnable
-                uint32_t                 Memorycompressionmode                            : __CODEGEN_BITFIELD(10, 10)    ; //!< MemoryCompressionMode
-                uint32_t                 Reserved2923                                     : __CODEGEN_BITFIELD(11, 11)    ; //!< Reserved
-                uint32_t                 Rowstorescratchbuffercacheselect                 : __CODEGEN_BITFIELD(12, 12)    ; //!< ROWSTORESCRATCHBUFFERCACHESELECT
-                uint32_t                 Tiledresourcemode                                : __CODEGEN_BITFIELD(13, 14)    ; //!< TiledResourceMode
-                uint32_t                 Reserved2927                                     : __CODEGEN_BITFIELD(15, 31)    ; //!< Reserved
-            };
-            uint32_t                     Value;
-        } DW91;
-
-        mhw_vdbox_hcp_g9_glk::GRAPHICSADDRESS63_6_CMD          Vp9HvdTileRowstoreBufferReadWrite[1];                      //!< VP9 HVD Tile Rowstore Buffer Read/Write
-
-        union
-        {
-            //!< DWORD 94
-            struct
-            {
-                uint32_t                 MemoryObjectControlState                         : __CODEGEN_BITFIELD( 0,  6)    ; //!< Memory Object Control State
-                uint32_t                 ArbitrationPriorityControl                       : __CODEGEN_BITFIELD( 7,  8)    ; //!< ARBITRATION_PRIORITY_CONTROL
-                uint32_t                 Memorycompressionenable                          : __CODEGEN_BITFIELD( 9,  9)    ; //!< MemoryCompressionEnable
-                uint32_t                 Memorycompressionmode                            : __CODEGEN_BITFIELD(10, 10)    ; //!< MemoryCompressionMode
-                uint32_t                 Reserved3019                                     : __CODEGEN_BITFIELD(11, 11)    ; //!< Reserved
-                uint32_t                 Rowstorescratchbuffercacheselect                 : __CODEGEN_BITFIELD(12, 12)    ; //!< ROWSTORESCRATCHBUFFERCACHESELECT
-                uint32_t                 Tiledresourcemode                                : __CODEGEN_BITFIELD(13, 14)    ; //!< TiledResourceMode
-                uint32_t                 Reserved3023                                     : __CODEGEN_BITFIELD(15, 31)    ; //!< Reserved
-            };
-            uint32_t                     Value;
-        } DW94;
-        union
-        {
-            //!< DWORD 95
-            struct
-            {
-                uint32_t                 MemoryObjectControlState                         : __CODEGEN_BITFIELD( 0,  6)    ; //!< Memory Object Control State
-                uint32_t                 ArbitrationPriorityControl                       : __CODEGEN_BITFIELD( 7,  8)    ; //!< ARBITRATION_PRIORITY_CONTROL
-                uint32_t                 Memorycompressionenable                          : __CODEGEN_BITFIELD( 9,  9)    ; //!< MemoryCompressionEnable
-                uint32_t                 Memorycompressionmode                            : __CODEGEN_BITFIELD(10, 10)    ; //!< MemoryCompressionMode
-                uint32_t                 Reserved3051                                     : __CODEGEN_BITFIELD(11, 11)    ; //!< Reserved
-                uint32_t                 Rowstorescratchbuffercacheselect                 : __CODEGEN_BITFIELD(12, 12)    ; //!< ROWSTORESCRATCHBUFFERCACHESELECT
-                uint32_t                 Tiledresourcemode                                : __CODEGEN_BITFIELD(13, 14)    ; //!< TiledResourceMode
-                uint32_t                 Reserved3055                                     : __CODEGEN_BITFIELD(15, 31)    ; //!< Reserved
-            };
-            uint32_t                     Value;
-        } DW95;
-
-        mhw_vdbox_hcp_g9_glk::GRAPHICSADDRESS63_6_CMD          FrameStatisticsStreamoutDataDestinationBufferBaseAddress[1];//!< Frame Statistics Streamout Data Destination Buffer Base Address
-
-        union
-        {
-            //!< DWORD 98
-            struct
-            {
-                uint32_t                 MemoryObjectControlState                         : __CODEGEN_BITFIELD( 0,  6)    ; //!< Memory Object Control State
-                uint32_t                 ArbitrationPriorityControl                       : __CODEGEN_BITFIELD( 7,  8)    ; //!< ARBITRATION_PRIORITY_CONTROL
-                uint32_t                 Memorycompressionenable                          : __CODEGEN_BITFIELD( 9,  9)    ; //!< MemoryCompressionEnable
-                uint32_t                 Memorycompressionmode                            : __CODEGEN_BITFIELD(10, 10)    ; //!< MemoryCompressionMode
-                uint32_t                 Reserved3147                                     : __CODEGEN_BITFIELD(11, 11)    ; //!< Reserved
-                uint32_t                 Rowstorescratchbuffercacheselect                 : __CODEGEN_BITFIELD(12, 12)    ; //!< ROWSTORESCRATCHBUFFERCACHESELECT
-                uint32_t                 Tiledresourcemode                                : __CODEGEN_BITFIELD(13, 14)    ; //!< TiledResourceMode
-                uint32_t                 Reserved3151                                     : __CODEGEN_BITFIELD(15, 31)    ; //!< Reserved
-            };
-            uint32_t                     Value;
-        } DW98;
-
-        mhw_vdbox_hcp_g9_glk::GRAPHICSADDRESS63_6_CMD          SseSourcePixelRowstoreBufferBaseAddress[1];                //!< SSE Source Pixel RowStore Buffer Base Address
-
-        union
-        {
-            //!< DWORD 101
-            struct
-            {
-                uint32_t                 SseSourcePixelRowstoreBufferAttributesReadWrite                                  ; //!< SSE Source Pixel RowStore buffer (attributes) Read/Write
-            };
-            uint32_t                     Value;
-        } DW101;
+        MEMORYADDRESSATTRIBUTES_CMD              Vp9SegmentIdBufferReadWriteMemoryAddressAttributes;                      //!< DW88, VP9 Segment ID buffer Read/Write Memory Address Attributes
+        SPLITBASEADDRESS64BYTEALIGNED_CMD        Vp9HvdLineRowstoreBufferReadWrite;                                       //!< DW89..90, VP9 HVD Line Rowstore Buffer Read/Write
+        MEMORYADDRESSATTRIBUTES_CMD              Vp9HvdLineRowstoreBufferReadWriteMemoryAddressAttributes;                //!< DW91, VP9 HVD Line Rowstore buffer Read/Write Memory Address Attributes
+        SPLITBASEADDRESS64BYTEALIGNED_CMD        Vp9HvdTileRowstoreBufferReadWrite;                                       //!< DW92..93, VP9 HVD Tile Rowstore Buffer Read/Write
+        MEMORYADDRESSATTRIBUTES_CMD              Vp9HvdTileRowstoreBufferReadWriteMemoryAddressAttributes;                //!< DW94, VP9 HVD Tile Rowstore buffer Read/Write Memory Address Attributes
 
         //! \name Local enumerations
 
@@ -887,31 +569,13 @@ public:
             COMMAND_TYPE_PARALLELVIDEOPIPE                                   = 3, //!< No additional details
         };
 
-        //! \brief ARBITRATION_PRIORITY_CONTROL
-        //! \details
-        //!     This field controls the priority of arbitration used in the GAC/GAM
-        //!     pipeline for this surface.
-        enum ARBITRATION_PRIORITY_CONTROL
-        {
-            ARBITRATION_PRIORITY_CONTROL_HIGHESTPRIORITY                     = 0, //!< No additional details
-            ARBITRATION_PRIORITY_CONTROL_SECONDHIGHESTPRIORITY               = 1, //!< No additional details
-            ARBITRATION_PRIORITY_CONTROL_THIRDHIGHESTPRIORITY                = 2, //!< No additional details
-            ARBITRATION_PRIORITY_CONTROL_LOWESTPRIORITY                      = 3, //!< No additional details
-        };
-
-        enum ROWSTORESCRATCHBUFFERCACHESELECT
-        {
-            ROWSTORESCRATCHBUFFERCACHESELECT_BUFFERTOLLC                     = 0, //!< No additional details
-            ROWSTORESCRATCHBUFFERCACHESELECT_BUFFERTOINTERNALMEDIASTORAGE    = 1, //!< No additional details
-        };
-
         //! \name Initializations
 
         //! \brief Explicit member initialization function
         HCP_PIPE_BUF_ADDR_STATE_CMD();
 
-        static const size_t dwSize = 102;
-        static const size_t byteSize = 408;
+        static const size_t dwSize = 95;
+        static const size_t byteSize = 380;
     };
 
     //!
@@ -935,7 +599,6 @@ public:
     {
         union
         {
-            //!< DWORD 0
             struct
             {
                 uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0, 11)    ; //!< DWORD_LENGTH
@@ -947,84 +610,28 @@ public:
             };
             uint32_t                     Value;
         } DW0;
+        SPLITBASEADDRESS4KBYTEALIGNED_CMD        HcpIndirectBitstreamObjectBaseAddress;                                   //!< DW1..2, HCP Indirect Bitstream Object Base Address
+        MEMORYADDRESSATTRIBUTES_CMD              HcpIndirectBitstreamObjectMemoryAddressAttributes;                       //!< DW3, HCP Indirect Bitstream Object Memory Address Attributes
+        SPLITBASEADDRESS4KBYTEALIGNED_CMD        HcpIndirectBitstreamObjectAccessUpperBound;                              //!< DW4..5, HCP Indirect Bitstream Object Access Upper Bound
         union
         {
-            //!< DWORD 1..2
-            struct
-            {
-                uint64_t                 HcpIndirectBitstreamObjectBaseAddress                                            ; //!< HCP Indirect Bitstream Object Base Address
-            };
-            uint32_t                     Value[2];
-        } DW1_2;
-        union
-        {
-            //!< DWORD 3
-            struct
-            {
-                uint32_t                 MemoryObjectControlState                         : __CODEGEN_BITFIELD( 0,  6)    ; //!< Memory Object Control State
-                uint32_t                 ArbitrationPriorityControl                       : __CODEGEN_BITFIELD( 7,  8)    ; //!< ARBITRATION_PRIORITY_CONTROL
-                uint32_t                 Reserved105                                      : __CODEGEN_BITFIELD( 9, 31)    ; //!< Reserved
-            };
-            uint32_t                     Value;
-        } DW3;
-        union
-        {
-            //!< DWORD 4..5
-            struct
-            {
-                uint64_t                 HcpIndirectBitstreamObjectAccessUpperBound                                       ; //!< HCP Indirect Bitstream Object Access Upper Bound
-            };
-            uint32_t                     Value[2];
-        } DW4_5;
-        union
-        {
-            //!< DWORD 6..7
             struct
             {
                 uint64_t                 HcpIndirectCuObjectBaseAddress                                                   ; //!< HCP Indirect CU Object Base Address
             };
             uint32_t                     Value[2];
         } DW6_7;
+        MEMORYADDRESSATTRIBUTES_CMD              HcpIndirectCuObjectObjectMemoryAddressAttributes;                        //!< DW8, HCP Indirect CU Object Object Memory Address Attributes
         union
         {
-            //!< DWORD 8
-            struct
-            {
-                uint32_t                 MemoryObjectControlState                         : __CODEGEN_BITFIELD( 0,  6)    ; //!< Memory Object Control State
-                uint32_t                 ArbitrationPriorityControl                       : __CODEGEN_BITFIELD( 7,  8)    ; //!< ARBITRATION_PRIORITY_CONTROL
-                uint32_t                 Reserved265                                      : __CODEGEN_BITFIELD( 9, 31)    ; //!< Reserved
-            };
-            uint32_t                     Value;
-        } DW8;
-        union
-        {
-            //!< DWORD 9..10
             struct
             {
                 uint64_t                 HcpPakBseObjectBaseAddress                                                       ; //!< HCP PAK-BSE Object Base Address
             };
             uint32_t                     Value[2];
         } DW9_10;
-        union
-        {
-            //!< DWORD 11
-            struct
-            {
-                uint32_t                 MemoryObjectControlState                         : __CODEGEN_BITFIELD( 0,  6)    ; //!< Memory Object Control State
-                uint32_t                 ArbitrationPriorityControl                       : __CODEGEN_BITFIELD( 7,  8)    ; //!< ARBITRATION_PRIORITY_CONTROL
-                uint32_t                 Reserved361                                      : __CODEGEN_BITFIELD( 9, 31)    ; //!< Reserved
-            };
-            uint32_t                     Value;
-        } DW11;
-        union
-        {
-            //!< DWORD 12..13
-            struct
-            {
-                uint64_t                 HcpPakBseObjectAccessUpperBound                                                  ; //!< HCP PAK-BSE Object Access Upper Bound
-            };
-            uint32_t                     Value[2];
-        } DW12_13;
+        MEMORYADDRESSATTRIBUTES_CMD              HcpPakBseObjectAddressMemoryAddressAttributes;                           //!< DW11, HCP PAK-BSE Object Address Memory Address Attributes
+        SPLITBASEADDRESS4KBYTEALIGNED_CMD        HcpPakBseObjectAccessUpperBound;                                         //!< DW12..13, HCP PAK-BSE Object Access Upper Bound
 
         //! \name Local enumerations
 
@@ -1049,18 +656,6 @@ public:
         enum COMMAND_TYPE
         {
             COMMAND_TYPE_PARALLELVIDEOPIPE                                   = 3, //!< No additional details
-        };
-
-        //! \brief ARBITRATION_PRIORITY_CONTROL
-        //! \details
-        //!     This field controls the priority of arbitration used in the GAC/GAM
-        //!     pipeline for this surface.
-        enum ARBITRATION_PRIORITY_CONTROL
-        {
-            ARBITRATION_PRIORITY_CONTROL_HIGHESTPRIORITY                     = 0, //!< No additional details
-            ARBITRATION_PRIORITY_CONTROL_SECONDHIGHESTPRIORITY               = 1, //!< No additional details
-            ARBITRATION_PRIORITY_CONTROL_THIRDHIGHESTPRIORITY                = 2, //!< No additional details
-            ARBITRATION_PRIORITY_CONTROL_LOWESTPRIORITY                      = 3, //!< No additional details
         };
 
         //! \name Initializations
@@ -1098,7 +693,6 @@ public:
     {
         union
         {
-            //!< DWORD 0
             struct
             {
                 uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0, 11)    ; //!< DWORD_LENGTH
@@ -1112,20 +706,17 @@ public:
         } DW0;
         union
         {
-            //!< DWORD 1
             struct
             {
                 uint32_t                 PredictionType                                   : __CODEGEN_BITFIELD( 0,  0)    ; //!< PREDICTION_TYPE
                 uint32_t                 Sizeid                                           : __CODEGEN_BITFIELD( 1,  2)    ; //!< SIZEID
                 uint32_t                 ColorComponent                                   : __CODEGEN_BITFIELD( 3,  4)    ; //!< COLOR_COMPONENT
                 uint32_t                 DcCoefficient                                    : __CODEGEN_BITFIELD( 5, 12)    ; //!< DC Coefficient
-                uint32_t                 Reserved45                                       : __CODEGEN_BITFIELD(13, 30)    ; //!< Reserved
+                uint32_t                 Reserved45                                       : __CODEGEN_BITFIELD(13, 31)    ; //!< Reserved
             };
             uint32_t                     Value;
         } DW1;
-
-        uint32_t                         Quantizermatrix[16];                                                             //!< QuantizerMatrix
-
+        uint32_t                                 Quantizermatrix[16];                                                     //!< QuantizerMatrix
 
         //! \name Local enumerations
 
@@ -1160,7 +751,7 @@ public:
 
         enum SIZEID
         {
-            SIZEID_4X_4                                                      = 0, //!< No additional details
+            SIZEID_4X4                                                       = 0, //!< No additional details
             SIZEID_8X8                                                       = 1, //!< No additional details
             SIZEID_16X16                                                     = 2, //!< No additional details
             SIZEID_32X32                                                     = 3, //!< (Illegal Value for Colour Component Chroma Cr and Cb.)
@@ -1176,7 +767,6 @@ public:
             COLOR_COMPONENT_CHROMACB                                         = 1, //!< No additional details
             COLOR_COMPONENT_CHROMACR                                         = 2, //!< No additional details
         };
-
 
         //! \name Initializations
 
@@ -1201,7 +791,6 @@ public:
     {
         union
         {
-            //!< DWORD 0
             struct
             {
                 uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0, 11)    ; //!< DWORD_LENGTH
@@ -1215,7 +804,6 @@ public:
         } DW0;
         union
         {
-            //!< DWORD 1
             struct
             {
                 uint32_t                 Framewidthinmincbminus1                          : __CODEGEN_BITFIELD( 0,  9)    ; //!< FrameWidthInMinCbMinus1
@@ -1228,7 +816,6 @@ public:
         } DW1;
         union
         {
-            //!< DWORD 2
             struct
             {
                 uint32_t                 Mincusize                                        : __CODEGEN_BITFIELD( 0,  1)    ; //!< MINCUSIZE
@@ -1243,7 +830,6 @@ public:
         } DW2;
         union
         {
-            //!< DWORD 3
             struct
             {
                 uint32_t                 Colpicisi                                        : __CODEGEN_BITFIELD( 0,  0)    ; //!< COLPICISI
@@ -1255,10 +841,9 @@ public:
         } DW3;
         union
         {
-            //!< DWORD 4
             struct
             {
-                uint32_t                 Reserved128                                      : __CODEGEN_BITFIELD( 0,  2)   ; //!< Reserved
+                uint32_t                 Reserved128                                      : __CODEGEN_BITFIELD( 0,  2)    ; //!< Reserved
                 uint32_t                 SampleAdaptiveOffsetEnabledFlag                  : __CODEGEN_BITFIELD( 3,  3)    ; //!< sample_adaptive_offset_enabled_flag
                 uint32_t                 PcmEnabledFlag                                   : __CODEGEN_BITFIELD( 4,  4)    ; //!< pcm_enabled_flag
                 uint32_t                 CuQpDeltaEnabledFlag                             : __CODEGEN_BITFIELD( 5,  5)    ; //!< CU_QP_DELTA_ENABLED_FLAG
@@ -1287,7 +872,6 @@ public:
         } DW4;
         union
         {
-            //!< DWORD 5
             struct
             {
                 uint32_t                 PicCbQpOffset                                    : __CODEGEN_BITFIELD( 0,  4)    ; //!< pic_cb_qp_offset
@@ -1304,25 +888,22 @@ public:
         } DW5;
         union
         {
-            //!< DWORD 6
             struct
             {
                 uint32_t                 LcuMaxBitsizeAllowed                             : __CODEGEN_BITFIELD( 0, 15)    ; //!< LCU Max BitSize Allowed
                 uint32_t                 Nonfirstpassflag                                 : __CODEGEN_BITFIELD(16, 16)    ; //!< NONFIRSTPASSFLAG
                 uint32_t                 Reserved209                                      : __CODEGEN_BITFIELD(17, 23)    ; //!< Reserved
-                uint32_t                 LcumaxbitstatusenLcumaxsizereportmask            : __CODEGEN_BITFIELD(24, 24)    ; //!< LCUMAXBITSTATUSEN__LCUMAXSIZEREPORTMASK
-                uint32_t                 FrameszoverstatusenFramebitratemaxreportmask     : __CODEGEN_BITFIELD(25, 25)    ; //!< FRAMESZOVERSTATUSEN__FRAMEBITRATEMAXREPORTMASK
-                uint32_t                 FrameszunderstatusenFramebitrateminreportmask    : __CODEGEN_BITFIELD(26, 26)    ; //!< FRAMESZUNDERSTATUSEN__FRAMEBITRATEMINREPORTMASK
+                uint32_t                 LcumaxbitstatusenLcumaxsizereportmask            : __CODEGEN_BITFIELD(24, 24)    ; //!< LCUMAXBITSTATUSEN_LCUMAXSIZEREPORTMASK
+                uint32_t                 FrameszoverstatusenFramebitratemaxreportmask     : __CODEGEN_BITFIELD(25, 25)    ; //!< FRAMESZOVERSTATUSEN_FRAMEBITRATEMAXREPORTMASK
+                uint32_t                 FrameszunderstatusenFramebitrateminreportmask    : __CODEGEN_BITFIELD(26, 26)    ; //!< FRAMESZUNDERSTATUSEN_FRAMEBITRATEMINREPORTMASK
                 uint32_t                 Reserved219                                      : __CODEGEN_BITFIELD(27, 28)    ; //!< Reserved
                 uint32_t                 LoadSlicePointerFlag                             : __CODEGEN_BITFIELD(29, 29)    ; //!< LOAD_SLICE_POINTER_FLAG
-                uint32_t                 Reserved222                                      : __CODEGEN_BITFIELD(30, 30)    ; //!< Reserved
-                uint32_t                 Lcustatisticoutputenableflag                     : __CODEGEN_BITFIELD(31, 31)    ; //!< LCUStatisticOutputEnableFlag
+                uint32_t                 Reserved222                                      : __CODEGEN_BITFIELD(30, 31)    ; //!< Reserved
             };
             uint32_t                     Value;
         } DW6;
         union
         {
-            //!< DWORD 7
             struct
             {
                 uint32_t                 Framebitratemax                                  : __CODEGEN_BITFIELD( 0, 13)    ; //!< FrameBitRateMax
@@ -1333,7 +914,6 @@ public:
         } DW7;
         union
         {
-            //!< DWORD 8
             struct
             {
                 uint32_t                 Framebitratemin                                  : __CODEGEN_BITFIELD( 0, 13)    ; //!< FrameBitRateMin
@@ -1344,7 +924,6 @@ public:
         } DW8;
         union
         {
-            //!< DWORD 9
             struct
             {
                 uint32_t                 Framebitratemindelta                             : __CODEGEN_BITFIELD( 0, 14)    ; //!< FRAMEBITRATEMINDELTA
@@ -1356,7 +935,6 @@ public:
         } DW9;
         union
         {
-            //!< DWORD 10..11
             struct
             {
                 uint64_t                 Framedeltaqpmax                                                                  ; //!< FrameDeltaQpMax
@@ -1365,7 +943,6 @@ public:
         } DW10_11;
         union
         {
-            //!< DWORD 12..13
             struct
             {
                 uint64_t                 Framedeltaqpmin                                                                  ; //!< FrameDeltaQpMin
@@ -1374,7 +951,6 @@ public:
         } DW12_13;
         union
         {
-            //!< DWORD 14..15
             struct
             {
                 uint64_t                 Framedeltaqpmaxrange                                                             ; //!< FrameDeltaQpMaxRange
@@ -1383,7 +959,6 @@ public:
         } DW14_15;
         union
         {
-            //!< DWORD 16..17
             struct
             {
                 uint64_t                 Framedeltaqpminrange                                                             ; //!< FrameDeltaQpMinRange
@@ -1392,7 +967,6 @@ public:
         } DW16_17;
         union
         {
-            //!< DWORD 18
             struct
             {
                 uint32_t                 Minframesize                                     : __CODEGEN_BITFIELD( 0, 15)    ; //!< MINFRAMESIZE
@@ -1435,7 +1009,7 @@ public:
             MINCUSIZE_8X8                                                    = 0, //!< No additional details
             MINCUSIZE_16X16                                                  = 1, //!< No additional details
             MINCUSIZE_32X32                                                  = 2, //!< No additional details
-            MINCUSIZE_6_4X6_4                                                = 3, //!< No additional details
+            MINCUSIZE_64X64                                                  = 3, //!< No additional details
         };
 
         //! \brief CTBSIZE_LCUSIZE
@@ -1446,7 +1020,7 @@ public:
             CTBSIZE_LCUSIZE_ILLEGALRESERVED                                  = 0, //!< No additional details
             CTBSIZE_LCUSIZE_16X16                                            = 1, //!< No additional details
             CTBSIZE_LCUSIZE_32X32                                            = 2, //!< No additional details
-            CTBSIZE_LCUSIZE_6_4X6_4                                          = 3, //!< No additional details
+            CTBSIZE_LCUSIZE_64X64                                            = 3, //!< No additional details
         };
 
         //! \brief MINTUSIZE
@@ -1454,7 +1028,7 @@ public:
         //!     Specifies the smallest allowed transform block size.
         enum MINTUSIZE
         {
-            MINTUSIZE_4X_4                                                   = 0, //!< No additional details
+            MINTUSIZE_4X4                                                    = 0, //!< No additional details
             MINTUSIZE_8X8                                                    = 1, //!< No additional details
             MINTUSIZE_16X16                                                  = 2, //!< No additional details
             MINTUSIZE_32X32                                                  = 3, //!< No additional details
@@ -1465,7 +1039,7 @@ public:
         //!     Specifies the largest allowed transform block size.
         enum MAXTUSIZE
         {
-            MAXTUSIZE_4X_4                                                   = 0, //!< No additional details
+            MAXTUSIZE_4X4                                                    = 0, //!< No additional details
             MAXTUSIZE_8X8                                                    = 1, //!< No additional details
             MAXTUSIZE_16X16                                                  = 2, //!< No additional details
             MAXTUSIZE_32X32                                                  = 3, //!< No additional details
@@ -1623,41 +1197,31 @@ public:
             BIT_DEPTH_LUMA_MINUS8_LUMA12BIT                                  = 4, //!< No additional details
         };
 
-        //! \brief NONFIRSTPASSFLAG
-        //! \details
-        //!     This signals the current pass is not the first pass. It will imply
-        //!     designate HW behavior.
-        enum NONFIRSTPASSFLAG
-        {
-            NONFIRSTPASSFLAG_DISABLE                                         = 0, //!< If it is initial-Pass, this bit is set to 0.
-            NONFIRSTPASSFLAG_ENABLE                                          = 1, //!< For subsequent passes, this bit is set to 1.
-        };
-
-        //! \brief LCUMAXBITSTATUSEN__LCUMAXSIZEREPORTMASK
+        //! \brief LCUMAXBITSTATUSEN_LCUMAXSIZEREPORTMASK
         //! \details
         //!     This is a mask bit controlling if the condition of any LCU in the frame
         //!     exceeds LCUMaxSize.
-        enum LCUMAXBITSTATUSEN__LCUMAXSIZEREPORTMASK
+        enum LCUMAXBITSTATUSEN_LCUMAXSIZEREPORTMASK
         {
             LCUMAXBITSTATUSEN_LCUMAXSIZEREPORTMASK_DISABLE                   = 0, //!< Do not update bit 0 of HCP_IMAGE_STATUS control register. NOTE: This bit MUST BE set to zero for the last BRC pass if SAO first pass also enabled. This will ensure that HW picks up right accumulated deltaQP for SAO sencond pass.
             LCUMAXBITSTATUSEN_LCUMAXSIZEREPORTMASK_ENABLE                    = 1, //!< HW does not use this bit to set the bit in HCP_IMAGE_STATUS_CONTROL register.
         };
 
-        //! \brief FRAMESZOVERSTATUSEN__FRAMEBITRATEMAXREPORTMASK
+        //! \brief FRAMESZOVERSTATUSEN_FRAMEBITRATEMAXREPORTMASK
         //! \details
         //!     This is a mask bit controlling if the condition of frame level bit count
         //!     exceeds FrameBitRateMax.
-        enum FRAMESZOVERSTATUSEN__FRAMEBITRATEMAXREPORTMASK
+        enum FRAMESZOVERSTATUSEN_FRAMEBITRATEMAXREPORTMASK
         {
             FRAMESZOVERSTATUSEN_FRAMEBITRATEMAXREPORTMASK_DISABLE            = 0, //!< Do not update bit 1 of HCP_IMAGE_STATUS control register. NOTE: This bit MUST BE set to zero for the last BRC pass if SAO first pass also enabled. This will ensure that HW picks up right accumulated deltaQP for SAO sencond pass.
             FRAMESZOVERSTATUSEN_FRAMEBITRATEMAXREPORTMASK_ENABLE             = 1, //!< HW does not use this bit to set the bit in HCP_IMAGE_STATUS_CONTROL register. It's used pass the bit inHCP_IMAGE_STATUS_MASK register
         };
 
-        //! \brief FRAMESZUNDERSTATUSEN__FRAMEBITRATEMINREPORTMASK
+        //! \brief FRAMESZUNDERSTATUSEN_FRAMEBITRATEMINREPORTMASK
         //! \details
         //!     This is a mask bit controlling if the condition of frame level bit count
         //!     is less than FrameBitRateMin.
-        enum FRAMESZUNDERSTATUSEN__FRAMEBITRATEMINREPORTMASK
+        enum FRAMESZUNDERSTATUSEN_FRAMEBITRATEMINREPORTMASK
         {
             FRAMESZUNDERSTATUSEN_FRAMEBITRATEMINREPORTMASK_DISABLE           = 0, //!< Do not update bit 2 (Frame Bit Count Violate -- under run) of HCP_IMAGE_STATUS control register. NOTE: This bit MUST BE set to zero for the last BRC pass if SAO first pass also enabled. This will ensure that HW picks up right accumulated deltaQP for SAO sencond pass.
             FRAMESZUNDERSTATUSEN_FRAMEBITRATEMINREPORTMASK_ENABLE            = 1, //!< Set bit 2 (Frame Bit Count Violate -- under run) of HCP_IMAGE_STATUS control register if the total frame level bit counter is less than or equal to Frame Bit Rate Minimum limit. HW does not use this bit to set the bit in HCP_IMAGE_STATUS_CONTROL register. It's used pass the bit in HCP_IMAGE_STATUS_MASK register
@@ -1725,9 +1289,9 @@ public:
         //!     Currently zero fill (no need to perform emulation byte insertion) is
         //!     done only to the end of the CABAC_ZERO_WORD insertion (if any) at the
         //!     last slice of a picture. It is needed for CBR. Intel encoder parameter.
-        //!     The caller should always make sure that the value,
-        //!     represented by Mininum Frame Size, is always less than maximum frame
-        //!     size FrameBitRateMax. This field is reserved in Decode mode.</p>
+        //!     The caller should always make sure that the value, represented by
+        //!     Mininum Frame Size, is always less than maximum frame size
+        //!     FrameBitRateMax. This field is reserved in Decode mode.</p>
         enum MINFRAMESIZE
         {
             MINFRAMESIZE_UNNAMED0                                            = 0, //!< No additional details
@@ -1752,21 +1316,20 @@ public:
     };
 
     //!
-    //! \brief COLUMN_POSITION_IN_CTB
+    //! \brief HCP_TILE_POSITION_IN_CTB
     //! \details
     //!     
     //!     
-    struct COLUMN_POSITION_IN_CTB_CMD
+    struct HCP_TILE_POSITION_IN_CTB_CMD
     {
         union
         {
-            //!< DWORD 0
             struct
             {
-                uint32_t                 Ctbcolposll                                      : __CODEGEN_BITFIELD( 0,  7)    ; //!< CtbColPosLL
-                uint32_t                 Ctbcolposlh                                      : __CODEGEN_BITFIELD( 8, 15)    ; //!< CtbColPosLH
-                uint32_t                 Ctbcolposhl                                      : __CODEGEN_BITFIELD(16, 23)    ; //!< CtbColPosHL
-                uint32_t                 Ctbcolposhh                                      : __CODEGEN_BITFIELD(24, 31)    ; //!< CtbColPosHH
+                uint32_t                 Ctbpos0I                                         : __CODEGEN_BITFIELD( 0,  7)    ; //!< CtbPos0+i
+                uint32_t                 Ctbpos1I                                         : __CODEGEN_BITFIELD( 8, 15)    ; //!< CtbPos1+i
+                uint32_t                 Ctbpos2I                                         : __CODEGEN_BITFIELD(16, 23)    ; //!< CtbPos2+i
+                uint32_t                 Ctbpos3I                                         : __CODEGEN_BITFIELD(24, 31)    ; //!< CtbPos3+i
             };
             uint32_t                     Value;
         } DW0;
@@ -1776,38 +1339,7 @@ public:
         //! \name Initializations
 
         //! \brief Explicit member initialization function
-        COLUMN_POSITION_IN_CTB_CMD();
-
-        static const size_t dwSize = 1;
-        static const size_t byteSize = 4;
-    };
-
-    //!
-    //! \brief ROW_POSITION_IN_CTB
-    //! \details
-    //!     
-    //!     
-    struct ROW_POSITION_IN_CTB_CMD
-    {
-        union
-        {
-            //!< DWORD 0
-            struct
-            {
-                uint32_t                 Ctbrowposll                                      : __CODEGEN_BITFIELD( 0,  7)    ; //!< CtbRowPosLL
-                uint32_t                 Ctbrowposlh                                      : __CODEGEN_BITFIELD( 8, 15)    ; //!< CtbRowPosLH
-                uint32_t                 Ctbrowposhl                                      : __CODEGEN_BITFIELD(16, 23)    ; //!< CtbRowPosHL
-                uint32_t                 Ctbrowposhh                                      : __CODEGEN_BITFIELD(24, 31)    ; //!< CtbRowPosHH
-            };
-            uint32_t                     Value;
-        } DW0;
-
-        //! \name Local enumerations
-
-        //! \name Initializations
-
-        //! \brief Explicit member initialization function
-        ROW_POSITION_IN_CTB_CMD();
+        HCP_TILE_POSITION_IN_CTB_CMD();
 
         static const size_t dwSize = 1;
         static const size_t byteSize = 4;
@@ -1824,7 +1356,6 @@ public:
     {
         union
         {
-            //!< DWORD 0
             struct
             {
                 uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0, 11)    ; //!< DWORD_LENGTH
@@ -1838,7 +1369,6 @@ public:
         } DW0;
         union
         {
-            //!< DWORD 1
             struct
             {
                 uint32_t                 Numtilerowsminus1                                : __CODEGEN_BITFIELD( 0,  4)    ; //!< NumTileRowsMinus1
@@ -1847,23 +1377,8 @@ public:
             };
             uint32_t                     Value;
         } DW1;
-
-        mhw_vdbox_hcp_g9_glk::COLUMN_POSITION_IN_CTB_CMD       ColumnPositionInCtb[5];                                    //!< COLUMN_POSITION_IN_CTB
-
-
-        mhw_vdbox_hcp_g9_glk::ROW_POSITION_IN_CTB_CMD          RowPositionInCtb[5];                                       //!< ROW_POSITION_IN_CTB
-
-        union
-        {
-            //!< DWORD 12
-            struct
-            {
-                uint32_t                 CtbRowPositionOfTileRow20                        : __CODEGEN_BITFIELD( 0,  7)    ; //!< Ctb row position of tile row 20
-                uint32_t                 CtbRowPositionOfTileRow21                        : __CODEGEN_BITFIELD( 8, 15)    ; //!< Ctb row position of tile row 21
-                uint32_t                 Reserved400                                      : __CODEGEN_BITFIELD(16, 31)    ; //!< Reserved
-            };
-            uint32_t                     Value;
-        } DW12;
+        HCP_TILE_POSITION_IN_CTB_CMD             CtbColumnPositionOfTileColumn[5];                                        //!< DW2..6, Ctb column position of tile column
+        HCP_TILE_POSITION_IN_CTB_CMD             CtbRowPositionOfTileRow[6];                                              //!< DW7..12, Ctb row position of tile row
 
         //! \name Local enumerations
 
@@ -1900,15 +1415,14 @@ public:
     };
 
     //!
-    //! \brief HEVC_REF_LIST_WRITE
+    //! \brief HCP_REF_LIST_ENTRY
     //! \details
     //!     
     //!     
-    struct HEVC_REF_LIST_WRITE_CMD
+    struct HCP_REF_LIST_ENTRY_CMD
     {
         union
         {
-            //!< DWORD 0
             struct
             {
                 uint32_t                 ReferencePictureTbValue                          : __CODEGEN_BITFIELD( 0,  7)    ; //!< Reference Picture tb Value
@@ -1983,7 +1497,7 @@ public:
         //! \name Initializations
 
         //! \brief Explicit member initialization function
-        HEVC_REF_LIST_WRITE_CMD();
+        HCP_REF_LIST_ENTRY_CMD();
 
         static const size_t dwSize = 1;
         static const size_t byteSize = 4;
@@ -2015,7 +1529,6 @@ public:
     {
         union
         {
-            //!< DWORD 0
             struct
             {
                 uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0, 11)    ; //!< DWORD_LENGTH
@@ -2029,7 +1542,6 @@ public:
         } DW0;
         union
         {
-            //!< DWORD 1
             struct
             {
                 uint32_t                 Refpiclistnum                                    : __CODEGEN_BITFIELD( 0,  0)    ; //!< REFPICLISTNUM
@@ -2038,9 +1550,7 @@ public:
             };
             uint32_t                     Value;
         } DW1;
-
-        mhw_vdbox_hcp_g9_glk::HEVC_REF_LIST_WRITE_CMD          HcpRefValue[16];                                           //!< hcp_ref_value
-
+        HCP_REF_LIST_ENTRY_CMD                   Entries[16];                                                             //!< DW2..17, Entries
 
         //! \name Local enumerations
 
@@ -2083,15 +1593,14 @@ public:
     };
 
     //!
-    //! \brief HEVC_LUMA_WEIGHT_OFFSET_WRITE
+    //! \brief HCP_WEIGHTOFFSET_LUMA_ENTRY
     //! \details
     //!     
     //!     
-    struct HEVC_LUMA_WEIGHT_OFFSET_WRITE_CMD
+    struct HCP_WEIGHTOFFSET_LUMA_ENTRY_CMD
     {
         union
         {
-            //!< DWORD 0
             struct
             {
                 uint32_t                 DeltaLumaWeightLxI                               : __CODEGEN_BITFIELD( 0,  7)    ; //!< delta_luma_weight_lX[i]
@@ -2106,22 +1615,21 @@ public:
         //! \name Initializations
 
         //! \brief Explicit member initialization function
-        HEVC_LUMA_WEIGHT_OFFSET_WRITE_CMD();
+        HCP_WEIGHTOFFSET_LUMA_ENTRY_CMD();
 
         static const size_t dwSize = 1;
         static const size_t byteSize = 4;
     };
 
     //!
-    //! \brief HEVC_CHROMA_WEIGHT_OFFSET_WRITE
+    //! \brief HCP_WEIGHTOFFSET_CHROMA_ENTRY
     //! \details
     //!     
     //!     
-    struct HEVC_CHROMA_WEIGHT_OFFSET_WRITE_CMD
+    struct HCP_WEIGHTOFFSET_CHROMA_ENTRY_CMD
     {
         union
         {
-            //!< DWORD 0
             struct
             {
                 uint32_t                 DeltaChromaWeightLxI0                            : __CODEGEN_BITFIELD( 0,  7)    ; //!< delta_chroma_weight_lX[i][0]
@@ -2137,7 +1645,7 @@ public:
         //! \name Initializations
 
         //! \brief Explicit member initialization function
-        HEVC_CHROMA_WEIGHT_OFFSET_WRITE_CMD();
+        HCP_WEIGHTOFFSET_CHROMA_ENTRY_CMD();
 
         static const size_t dwSize = 1;
         static const size_t byteSize = 4;
@@ -2163,7 +1671,6 @@ public:
     {
         union
         {
-            //!< DWORD 0
             struct
             {
                 uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0, 11)    ; //!< DWORD_LENGTH
@@ -2177,7 +1684,6 @@ public:
         } DW0;
         union
         {
-            //!< DWORD 1
             struct
             {
                 uint32_t                 Refpiclistnum                                    : __CODEGEN_BITFIELD( 0,  0)    ; //!< REFPICLISTNUM
@@ -2185,12 +1691,8 @@ public:
             };
             uint32_t                     Value;
         } DW1;
-
-        mhw_vdbox_hcp_g9_glk::HEVC_LUMA_WEIGHT_OFFSET_WRITE_CMD HevcLumaWeightOffsetWrite[16];                            //!< HEVC_LUMA_WEIGHT_OFFSET_WRITE
-
-
-        mhw_vdbox_hcp_g9_glk::HEVC_CHROMA_WEIGHT_OFFSET_WRITE_CMD HevcChromaWeightOffsetWrite[24];                        //!< HEVC_CHROMA_WEIGHT_OFFSET_WRITE
-
+        HCP_WEIGHTOFFSET_LUMA_ENTRY_CMD          Lumaoffsets[16];                                                         //!< DW2..17, LumaOffsets
+        HCP_WEIGHTOFFSET_CHROMA_ENTRY_CMD        Chromaoffsets[16];                                                       //!< DW18..33, ChromaOffsets
 
         //! \name Local enumerations
 
@@ -2228,8 +1730,8 @@ public:
         //! \brief Explicit member initialization function
         HCP_WEIGHTOFFSET_STATE_CMD();
 
-        static const size_t dwSize = 42;
-        static const size_t byteSize = 168;
+        static const size_t dwSize = 34;
+        static const size_t byteSize = 136;
     };
 
     //!
@@ -2246,7 +1748,6 @@ public:
     {
         union
         {
-            //!< DWORD 0
             struct
             {
                 uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0, 11)    ; //!< DWORD_LENGTH
@@ -2260,7 +1761,6 @@ public:
         } DW0;
         union
         {
-            //!< DWORD 1
             struct
             {
                 uint32_t                 SlicestartctbxOrSliceStartLcuXEncoder            : __CODEGEN_BITFIELD( 0,  8)    ; //!< SliceStartCtbX or (slice_start_lcu_x encoder)
@@ -2272,7 +1772,6 @@ public:
         } DW1;
         union
         {
-            //!< DWORD 2
             struct
             {
                 uint32_t                 NextslicestartctbxOrNextSliceStartLcuXEncoder    : __CODEGEN_BITFIELD( 0,  8)    ; //!< NextSliceStartCtbX or (next_slice_start_lcu_x encoder)
@@ -2284,7 +1783,6 @@ public:
         } DW2;
         union
         {
-            //!< DWORD 3
             struct
             {
                 uint32_t                 SliceType                                        : __CODEGEN_BITFIELD( 0,  1)    ; //!< SLICE_TYPE
@@ -2301,7 +1799,6 @@ public:
         } DW3;
         union
         {
-            //!< DWORD 4
             struct
             {
                 uint32_t                 SliceHeaderDisableDeblockingFilterFlag           : __CODEGEN_BITFIELD( 0,  0)    ; //!< slice_header_disable_deblocking_filter_flag
@@ -2325,7 +1822,6 @@ public:
         } DW4;
         union
         {
-            //!< DWORD 5
             struct
             {
                 uint32_t                 Sliceheaderlength                                : __CODEGEN_BITFIELD( 0, 15)    ; //!< SliceHeaderLength
@@ -2335,7 +1831,6 @@ public:
         } DW5;
         union
         {
-            //!< DWORD 6
             struct
             {
                 uint32_t                 Reserved192                                      : __CODEGEN_BITFIELD( 0, 19)    ; //!< Reserved
@@ -2348,7 +1843,6 @@ public:
         } DW6;
         union
         {
-            //!< DWORD 7
             struct
             {
                 uint32_t                 Reserved224                                      : __CODEGEN_BITFIELD( 0,  0)    ; //!< Reserved
@@ -2364,7 +1858,6 @@ public:
         } DW7;
         union
         {
-            //!< DWORD 8
             struct
             {
                 uint32_t                 Reserved256                                      : __CODEGEN_BITFIELD( 0,  5)    ; //!< Reserved
@@ -2375,7 +1868,6 @@ public:
         } DW8;
         union
         {
-            //!< DWORD 9
             struct
             {
                 uint32_t                 TransformskipLambda                              : __CODEGEN_BITFIELD( 0, 15)    ; //!< Transformskip_lambda
@@ -2385,7 +1877,6 @@ public:
         } DW9;
         union
         {
-            //!< DWORD 10
             struct
             {
                 uint32_t                 TransformskipNumzerocoeffsFactor0                : __CODEGEN_BITFIELD( 0,  7)    ; //!< Transformskip_numzerocoeffs_factor0
@@ -2461,6 +1952,18 @@ public:
             SLICE_CB_QP_OFFSET_10                                            = 10, //!< No additional details
             SLICE_CB_QP_OFFSET_11                                            = 11, //!< No additional details
             SLICE_CB_QP_OFFSET_12                                            = 12, //!< No additional details
+            SLICE_CB_QP_OFFSET_NEG_12                                        = 20, //!< No additional details
+            SLICE_CB_QP_OFFSET_NEG_11                                        = 21, //!< No additional details
+            SLICE_CB_QP_OFFSET_NEG_10                                        = 22, //!< No additional details
+            SLICE_CB_QP_OFFSET_NEG_9                                         = 23, //!< No additional details
+            SLICE_CB_QP_OFFSET_NEG_8                                         = 24, //!< No additional details
+            SLICE_CB_QP_OFFSET_NEG_7                                         = 25, //!< No additional details
+            SLICE_CB_QP_OFFSET_NEG_6                                         = 26, //!< No additional details
+            SLICE_CB_QP_OFFSET_NEG_5                                         = 27, //!< No additional details
+            SLICE_CB_QP_OFFSET_NEG_4                                         = 28, //!< No additional details
+            SLICE_CB_QP_OFFSET_NEG_3                                         = 29, //!< No additional details
+            SLICE_CB_QP_OFFSET_NEG_2                                         = 30, //!< No additional details
+            SLICE_CB_QP_OFFSET_NEG_1                                         = 31, //!< No additional details
         };
 
         //! \brief SLICE_CR_QP_OFFSET
@@ -2482,7 +1985,19 @@ public:
             SLICE_CR_QP_OFFSET_10                                            = 10, //!< No additional details
             SLICE_CR_QP_OFFSET_11                                            = 11, //!< No additional details
             SLICE_CR_QP_OFFSET_12                                            = 12, //!< No additional details
-         };
+            SLICE_CR_QP_OFFSET_NEG_12                                        = 20, //!< No additional details
+            SLICE_CR_QP_OFFSET_NEG_11                                        = 21, //!< No additional details
+            SLICE_CR_QP_OFFSET_NEG_10                                        = 22, //!< No additional details
+            SLICE_CR_QP_OFFSET_NEG_9                                         = 23, //!< No additional details
+            SLICE_CR_QP_OFFSET_NEG_8                                         = 24, //!< No additional details
+            SLICE_CR_QP_OFFSET_NEG_7                                         = 25, //!< No additional details
+            SLICE_CR_QP_OFFSET_NEG_6                                         = 26, //!< No additional details
+            SLICE_CR_QP_OFFSET_NEG_5                                         = 27, //!< No additional details
+            SLICE_CR_QP_OFFSET_NEG_4                                         = 28, //!< No additional details
+            SLICE_CR_QP_OFFSET_NEG_3                                         = 29, //!< No additional details
+            SLICE_CR_QP_OFFSET_NEG_2                                         = 30, //!< No additional details
+            SLICE_CR_QP_OFFSET_NEG_1                                         = 31, //!< No additional details
+        };
 
         //! \brief MAXMERGEIDX
         //! \details
@@ -2514,7 +2029,7 @@ public:
             ROUNDINTRA_1132                                                  = 10, //!< No additional details
             ROUNDINTRA_1232                                                  = 11, //!< No additional details
             ROUNDINTRA_1332                                                  = 12, //!< No additional details
-            ROUNDINTRA_1_432                                                 = 13, //!< No additional details
+            ROUNDINTRA_1432                                                  = 13, //!< No additional details
             ROUNDINTRA_1532                                                  = 14, //!< No additional details
             ROUNDINTRA_1632                                                  = 15, //!< No additional details
         };
@@ -2537,7 +2052,7 @@ public:
             ROUNDINTER_1132                                                  = 10, //!< No additional details
             ROUNDINTER_1232                                                  = 11, //!< No additional details
             ROUNDINTER_1332                                                  = 12, //!< No additional details
-            ROUNDINTER_1_432                                                 = 13, //!< No additional details
+            ROUNDINTER_1432                                                  = 13, //!< No additional details
             ROUNDINTER_1532                                                  = 14, //!< No additional details
             ROUNDINTER_1632                                                  = 15, //!< No additional details
         };
@@ -2624,7 +2139,6 @@ public:
     {
         union
         {
-            //!< DWORD 0
             struct
             {
                 uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0, 11)    ; //!< DWORD_LENGTH
@@ -2638,7 +2152,6 @@ public:
         } DW0;
         union
         {
-            //!< DWORD 1
             struct
             {
                 uint32_t                 IndirectBsdDataLength                                                            ; //!< Indirect BSD Data Length
@@ -2647,7 +2160,6 @@ public:
         } DW1;
         union
         {
-            //!< DWORD 2
             struct
             {
                 uint32_t                 IndirectDataStartAddress                         : __CODEGEN_BITFIELD( 0, 28)    ; //!< Indirect Data Start Address
@@ -2699,7 +2211,6 @@ public:
     {
         union
         {
-            //!< DWORD 0
             struct
             {
                 uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0, 11)    ; //!< DWORD_LENGTH
@@ -2713,7 +2224,6 @@ public:
         } DW0;
         union
         {
-            //!< DWORD 1
             struct
             {
                 uint32_t                 SegmentId                                        : __CODEGEN_BITFIELD( 0,  2)    ; //!< Segment ID
@@ -2723,7 +2233,6 @@ public:
         } DW1;
         union
         {
-            //!< DWORD 2
             struct
             {
                 uint32_t                 SegmentSkipped                                   : __CODEGEN_BITFIELD( 0,  0)    ; //!< Segment Skipped
@@ -2735,7 +2244,6 @@ public:
         } DW2;
         union
         {
-            //!< DWORD 3
             struct
             {
                 uint32_t                 Filterlevelref0Mode0                             : __CODEGEN_BITFIELD( 0,  5)    ; //!< FilterLevelRef0Mode0
@@ -2751,7 +2259,6 @@ public:
         } DW3;
         union
         {
-            //!< DWORD 4
             struct
             {
                 uint32_t                 Filterlevelref2Mode0                             : __CODEGEN_BITFIELD( 0,  5)    ; //!< FilterLevelRef2Mode0
@@ -2767,7 +2274,6 @@ public:
         } DW4;
         union
         {
-            //!< DWORD 5
             struct
             {
                 uint32_t                 LumaDcQuantScaleDecodeModeOnly                   : __CODEGEN_BITFIELD( 0, 15)    ; //!< Luma DC Quant Scale (Decode mode Only)
@@ -2777,7 +2283,6 @@ public:
         } DW5;
         union
         {
-            //!< DWORD 6
             struct
             {
                 uint32_t                 ChromaDcQuantScaleDecodeModeOnly                 : __CODEGEN_BITFIELD( 0, 15)    ; //!< Chroma DC Quant Scale (Decode mode Only)
@@ -2857,7 +2362,6 @@ public:
     {
         union
         {
-            //!< DWORD 0
             struct
             {
                 uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0, 11)    ; //!< DWORD_LENGTH
@@ -2871,7 +2375,6 @@ public:
         } DW0;
         union
         {
-            //!< DWORD 1
             struct
             {
                 uint32_t                 IntraInter                                       : __CODEGEN_BITFIELD( 0,  0)    ; //!< INTRAINTER
@@ -2882,9 +2385,7 @@ public:
             };
             uint32_t                     Value;
         } DW1;
-
-        uint32_t                         Quantizermatrix[32];                                                             //!< QuantizerMatrix
-
+        uint32_t                                 Quantizermatrix[32];                                                     //!< QuantizerMatrix
 
         //! \name Local enumerations
 
@@ -2922,10 +2423,10 @@ public:
 
         enum SIZEID
         {
-            SIZEID_SIZEID0_4X_4                                              = 0, //!< No additional details
-            SIZEID_SIZEID1_2_38X8_16X16_32X32                                = 1, //!< No additional details
-            SIZEID_SIZEID2FORDCVALUEIN16X16                                  = 2, //!< No additional details
-            SIZEID_SIZEID3FORDCVALUEIN32X32                                  = 3, //!< No additional details
+            SIZEID_SIZEID04X4                                                = 0, //!< No additional details
+            SIZEID_SIZEID1_2_3_8X8_16X16_32X32                               = 1, //!< No additional details
+            SIZEID_SIZEID2_FORDCVALUEIN16X16                                 = 2, //!< No additional details
+            SIZEID_SIZEID3_FORDCVALUEIN32X32                                 = 3, //!< No additional details
         };
 
         //! \brief COLOR_COMPONENT
@@ -3020,7 +2521,6 @@ public:
     {
         union
         {
-            //!< DWORD 0
             struct
             {
                 uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0, 11)    ; //!< Dword Length
@@ -3034,15 +2534,15 @@ public:
         } DW0;
         union
         {
-            //!< DWORD 1
             struct
             {
                 uint32_t                 Reserved32                                       : __CODEGEN_BITFIELD( 0,  0)    ; //!< Reserved
                 uint32_t                 EndofsliceflagLastdstdatainsertcommandflag       : __CODEGEN_BITFIELD( 1,  1)    ; //!< EndOfSliceFlag - LastDstDataInsertCommandFlag
                 uint32_t                 LastheaderflagLastsrcheaderdatainsertcommandflag : __CODEGEN_BITFIELD( 2,  2)    ; //!< LastHeaderFlag - LastSrcHeaderDataInsertCommandFlag
-                uint32_t                 EmulationflagEmulationbytebitsinsertenable       : __CODEGEN_BITFIELD( 3,  3)    ; //!< EMULATIONFLAG__EMULATIONBYTEBITSINSERTENABLE
+                uint32_t                 EmulationflagEmulationbytebitsinsertenable       : __CODEGEN_BITFIELD( 3,  3)    ; //!< EMULATIONFLAG_EMULATIONBYTEBITSINSERTENABLE
                 uint32_t                 SkipemulbytecntSkipEmulationByteCount            : __CODEGEN_BITFIELD( 4,  7)    ; //!< SkipEmulByteCnt - Skip Emulation Byte Count
                 uint32_t                 DatabitsinlastdwSrcdataendingbitinclusion50      : __CODEGEN_BITFIELD( 8, 13)    ; //!< DataBitsInLastDW - SrCDataEndingBitInclusion[5:0]
+                uint32_t                 Reserved46                                       : __CODEGEN_BITFIELD(14, 14)    ; //!< Reserved
                 uint32_t                 Headerlengthexcludefrmsize                       : __CODEGEN_BITFIELD(15, 15)    ; //!< HEADERLENGTHEXCLUDEFRMSIZE_
                 uint32_t                 DatabyteoffsetSrcdatastartingbyteoffset10        : __CODEGEN_BITFIELD(16, 17)    ; //!< DataByteOffset - SrcDataStartingByteOffset[1:0]
                 uint32_t                 Reserved50                                       : __CODEGEN_BITFIELD(18, 30)    ; //!< Reserved
@@ -3076,10 +2576,10 @@ public:
             COMMAND_TYPE_PARALLELVIDEOPIPE                                   = 3, //!< No additional details
         };
 
-        //! \brief EMULATIONFLAG__EMULATIONBYTEBITSINSERTENABLE
+        //! \brief EMULATIONFLAG_EMULATIONBYTEBITSINSERTENABLE
         //! \details
         //!     Only valid for HEVC and reserved for VP9.
-        enum EMULATIONFLAG__EMULATIONBYTEBITSINSERTENABLE
+        enum EMULATIONFLAG_EMULATIONBYTEBITSINSERTENABLE
         {
             EMULATIONFLAG_EMULATIONBYTEBITSINSERTENABLE_STARTCODEPREFIX      = 1, //!< Instruct the hardware to perform Start Code Prefix (0x 00 00 01/02/03/00) Search and Prevention Byte (0x 03) insertion on the insertion data of this command. It is required that hardware will handle a start code prefix crossing the boundary between.
             EMULATIONFLAG_EMULATIONBYTEBITSINSERTENABLE_INSERTIONCOMMAND     = 2, //!< Insertion commands, or an insertion command followed by a PAK Object command.
@@ -3156,7 +2656,6 @@ public:
     {
         union
         {
-            //!< DWORD 0
             struct
             {
                 uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0, 11)    ; //!< DWORD_LENGTH
@@ -3170,7 +2669,6 @@ public:
         } DW0;
         union
         {
-            //!< DWORD 1
             struct
             {
                 uint32_t                 FrameWidthInPixelsMinus1                         : __CODEGEN_BITFIELD( 0, 13)    ; //!< Frame Width In Pixels Minus 1
@@ -3182,7 +2680,6 @@ public:
         } DW1;
         union
         {
-            //!< DWORD 2
             struct
             {
                 uint32_t                 FrameType                                        : __CODEGEN_BITFIELD( 0,  0)    ; //!< FRAME_TYPE
@@ -3190,9 +2687,7 @@ public:
                 uint32_t                 IntraonlyFlag                                    : __CODEGEN_BITFIELD( 2,  2)    ; //!< IntraOnly Flag
                 uint32_t                 AllowHiPrecisionMv                               : __CODEGEN_BITFIELD( 3,  3)    ; //!< ALLOW_HI_PRECISION_MV
                 uint32_t                 McompFilterType                                  : __CODEGEN_BITFIELD( 4,  6)    ; //!< MCOMP_FILTER_TYPE
-                uint32_t                 RefFrameSignBiasLast                             : __CODEGEN_BITFIELD( 7,  7)    ; //!< ref_frame_sign_bias_last
-                uint32_t                 RefFrameSignBiasGolden                           : __CODEGEN_BITFIELD( 8,  8)    ; //!< ref_frame_sign_bias_golden
-                uint32_t                 RefFrameSignBiasAltref                           : __CODEGEN_BITFIELD( 9,  9)    ; //!< ref_frame_sign_bias_altref
+                uint32_t                 RefFrameSignBias02                               : __CODEGEN_BITFIELD( 7,  9)    ; //!< Ref Frame Sign Bias[0..2]
                 uint32_t                 UsePrevInFindMvReferences                        : __CODEGEN_BITFIELD(10, 10)    ; //!< Use Prev in Find MV References
                 uint32_t                 HybridPredictionMode                             : __CODEGEN_BITFIELD(11, 11)    ; //!< HYBRID_PREDICTION_MODE
                 uint32_t                 SelectableTxMode                                 : __CODEGEN_BITFIELD(12, 12)    ; //!< SELECTABLE_TX_MODE
@@ -3213,19 +2708,20 @@ public:
         } DW2;
         union
         {
-            //!< DWORD 3
             struct
             {
                 uint32_t                 Log2TileColumn                                   : __CODEGEN_BITFIELD( 0,  3)    ; //!< LOG2_TILE_COLUMN
                 uint32_t                 Reserved100                                      : __CODEGEN_BITFIELD( 4,  7)    ; //!< Reserved
                 uint32_t                 Log2TileRow                                      : __CODEGEN_BITFIELD( 8,  9)    ; //!< LOG2_TILE_ROW
-                uint32_t                 Reserved106                                      : __CODEGEN_BITFIELD(10, 31)    ; //!< Reserved
+                uint32_t                 Reserved106                                      : __CODEGEN_BITFIELD(10, 21)    ; //!< Reserved
+                uint32_t                 ChromaSamplingFormat                             : __CODEGEN_BITFIELD(22, 23)    ; //!< CHROMA_SAMPLING_FORMAT
+                uint32_t                 Bitdepthminus8                                   : __CODEGEN_BITFIELD(24, 27)    ; //!< BITDEPTHMINUS8
+                uint32_t                 ProfileLevel                                     : __CODEGEN_BITFIELD(28, 31)    ; //!< PROFILE_LEVEL
             };
             uint32_t                     Value;
         } DW3;
         union
         {
-            //!< DWORD 4
             struct
             {
                 uint32_t                 VerticalScaleFactorForLast                       : __CODEGEN_BITFIELD( 0, 15)    ; //!< Vertical Scale Factor for LAST
@@ -3235,7 +2731,6 @@ public:
         } DW4;
         union
         {
-            //!< DWORD 5
             struct
             {
                 uint32_t                 VerticalScaleFactorForGolden                     : __CODEGEN_BITFIELD( 0, 15)    ; //!< Vertical Scale Factor for GOLDEN
@@ -3245,7 +2740,6 @@ public:
         } DW5;
         union
         {
-            //!< DWORD 6
             struct
             {
                 uint32_t                 VerticalScaleFactorForAltref                     : __CODEGEN_BITFIELD( 0, 15)    ; //!< Vertical Scale Factor for ALTREF
@@ -3255,7 +2749,6 @@ public:
         } DW6;
         union
         {
-            //!< DWORD 7
             struct
             {
                 uint32_t                 LastFrameWidthInPixelsMinus1                     : __CODEGEN_BITFIELD( 0, 13)    ; //!< Last Frame Width In Pixels Minus 1
@@ -3267,7 +2760,6 @@ public:
         } DW7;
         union
         {
-            //!< DWORD 8
             struct
             {
                 uint32_t                 GoldenFrameWidthInPixelsMinus1                   : __CODEGEN_BITFIELD( 0, 13)    ; //!< Golden Frame Width In Pixels Minus 1
@@ -3279,7 +2771,6 @@ public:
         } DW8;
         union
         {
-            //!< DWORD 9
             struct
             {
                 uint32_t                 AltrefFrameWidthInPixelsMinus1                   : __CODEGEN_BITFIELD( 0, 13)    ; //!< Altref Frame Width In Pixels Minus 1
@@ -3291,7 +2782,6 @@ public:
         } DW9;
         union
         {
-            //!< DWORD 10
             struct
             {
                 uint32_t                 UncompressedHeaderLengthInBytes70                : __CODEGEN_BITFIELD( 0,  7)    ; //!< Uncompressed Header Length in Bytes [7:0]
@@ -3302,15 +2792,89 @@ public:
         } DW10;
         union
         {
-            //!< DWORD 11
             struct
             {
                 uint32_t                 Reserved352                                      : __CODEGEN_BITFIELD( 0,  0)    ; //!< Reserved
-                uint32_t                 MotionCompScaling                                : __CODEGEN_BITFIELD( 1,  1)    ; //!< MOTION_COMP_SCALING                
-                uint32_t                 Reserved354                                      : __CODEGEN_BITFIELD( 2,  31)    ; //!< Reserved                
+                uint32_t                 MotionCompScalingEnableBit                       : __CODEGEN_BITFIELD( 1,  1)    ; //!< MOTION_COMP_SCALING_ENABLE_BIT
+                uint32_t                 Reserved354                                      : __CODEGEN_BITFIELD( 2, 31)    ; //!< Reserved
             };
             uint32_t                     Value;
         } DW11;
+        union
+        {
+            struct
+            {
+                uint32_t                 Reserved384                                                                      ; //!< Reserved
+            };
+            uint32_t                     Value;
+        } DW12;
+        union
+        {
+            struct
+            {
+                uint32_t                 CompressedHeaderBinCount                         : __CODEGEN_BITFIELD( 0, 15)    ; //!< Compressed header BIN count
+                uint32_t                 BaseQIndexSameAsLumaAc                           : __CODEGEN_BITFIELD(16, 23)    ; //!< Base Q Index (Same as Luma AC)
+                uint32_t                 Reserved440                                      : __CODEGEN_BITFIELD(24, 31)    ; //!< Reserved
+            };
+            uint32_t                     Value;
+        } DW13;
+        union
+        {
+            struct
+            {
+                uint32_t                 ChromaacQindexdelta                              : __CODEGEN_BITFIELD( 0,  4)    ; //!< ChromaAC_QindexDelta
+                uint32_t                 Reserved453                                      : __CODEGEN_BITFIELD( 5,  7)    ; //!< Reserved
+                uint32_t                 ChromadcQindexdelta                              : __CODEGEN_BITFIELD( 8, 12)    ; //!< ChromaDC_QindexDelta
+                uint32_t                 Reserved461                                      : __CODEGEN_BITFIELD(13, 15)    ; //!< Reserved
+                uint32_t                 LumaDcQIndexDelta                                : __CODEGEN_BITFIELD(16, 20)    ; //!< Luma DC Q Index Delta
+                uint32_t                 Reserved469                                      : __CODEGEN_BITFIELD(21, 31)    ; //!< Reserved
+            };
+            uint32_t                     Value;
+        } DW14;
+        union
+        {
+            struct
+            {
+                uint32_t                 LfRefDelta0                                      : __CODEGEN_BITFIELD( 0,  6)    ; //!< LF_ref_delta0
+                uint32_t                 Reserved487                                      : __CODEGEN_BITFIELD( 7,  7)    ; //!< Reserved
+                uint32_t                 LfRefDelta1                                      : __CODEGEN_BITFIELD( 8, 14)    ; //!< LF_ref_delta1
+                uint32_t                 Reserved495                                      : __CODEGEN_BITFIELD(15, 15)    ; //!< Reserved
+                uint32_t                 LfRefDelta2                                      : __CODEGEN_BITFIELD(16, 22)    ; //!< LF_ref_delta2
+                uint32_t                 Reserved503                                      : __CODEGEN_BITFIELD(23, 23)    ; //!< Reserved
+                uint32_t                 LfRefDelta3                                      : __CODEGEN_BITFIELD(24, 30)    ; //!< LF_ref_delta3
+                uint32_t                 Reserved511                                      : __CODEGEN_BITFIELD(31, 31)    ; //!< Reserved
+            };
+            uint32_t                     Value;
+        } DW15;
+        union
+        {
+            struct
+            {
+                uint32_t                 LfModeDelta0                                     : __CODEGEN_BITFIELD( 0,  6)    ; //!< LF Mode Delta 0
+                uint32_t                 Reserved519                                      : __CODEGEN_BITFIELD( 7,  7)    ; //!< Reserved
+                uint32_t                 LfModeDelta1                                     : __CODEGEN_BITFIELD( 8, 14)    ; //!< LF Mode Delta 1
+                uint32_t                 Reserved527                                      : __CODEGEN_BITFIELD(15, 31)    ; //!< Reserved
+            };
+            uint32_t                     Value;
+        } DW16;
+        union
+        {
+            struct
+            {
+                uint32_t                 Bitoffsetforlfrefdelta                           : __CODEGEN_BITFIELD( 0, 15)    ; //!< BitOffsetForLFRefDelta
+                uint32_t                 Bitoffsetforlfmodedelta                          : __CODEGEN_BITFIELD(16, 31)    ; //!< BitOffsetForLFModeDelta
+            };
+            uint32_t                     Value;
+        } DW17;
+        union
+        {
+            struct
+            {
+                uint32_t                 Bitoffsetforqindex                               : __CODEGEN_BITFIELD( 0, 15)    ; //!< BitOffsetForQindex
+                uint32_t                 Bitoffsetforlflevel                              : __CODEGEN_BITFIELD(16, 31)    ; //!< BitOffsetForLFLevel
+            };
+            uint32_t                     Value;
+        } DW18;
 
         //! \name Local enumerations
 
@@ -3352,8 +2916,8 @@ public:
         //!     adapted
         enum ADAPT_PROBABILITIES_FLAG
         {
-            ADAPT_PROBABILITIES_FLAG_0DONOTADAPTERRORRESILIENTORFRAMEPARALLELMODEARESET = 0, //!< No additional details
-            ADAPT_PROBABILITIES_FLAG_1ADAPTNOTERRORRESILIENTANDNOTFRAMEPARALLELMODE = 1, //!< No additional details
+            ADAPT_PROBABILITIES_FLAG_0DONOTADAPT_ERRORRESILIENTORFRAMEPARALLELMODEARESET = 0, //!< No additional details
+            ADAPT_PROBABILITIES_FLAG_1ADAPT_NOTERRORRESILIENTANDNOTFRAMEPARALLELMODE = 1, //!< No additional details
         };
 
         //! \brief ALLOW_HI_PRECISION_MV
@@ -3407,7 +2971,7 @@ public:
 
         //! \brief REFRESH_FRAME_CONTEXT
         //! \details
-        //!     <p>Indicates if Frame Context should be refresh.� This bit should come
+        //!     <p>Indicates if Frame Context should be refresh.  This bit should come
         //!     from Uncompressed header</p>
         enum REFRESH_FRAME_CONTEXT
         {
@@ -3417,7 +2981,7 @@ public:
 
         //! \brief ERROR_RESILIENT_MODE
         //! \details
-        //!     <p>Indicates if error resilient mode is enabled.�This bit should come
+        //!     <p>Indicates if error resilient mode is enabled. This bit should come
         //!     from Uncompressed header.When error resilient is 1, Frame Parallel
         //!     Decoding Mode will be 1, and Refresh Frame Context will be 0.When error
         //!     resilient is 0, Frame Parallel Decoding Mode and Refresh Frame Context
@@ -3431,8 +2995,8 @@ public:
 
         //! \brief FRAME_PARALLEL_DECODING_MODE
         //! \details
-        //!     <p>Indicates if parallel decoding mode is enabled.� This bit should come
-        //!     from Uncompressed header.� Together with Error Resilient mode, they
+        //!     <p>Indicates if parallel decoding mode is enabled.  This bit should come
+        //!     from Uncompressed header.  Together with Error Resilient mode, they
         //!     decide the value of AdaptProbabilityFlag.</p>
         enum FRAME_PARALLEL_DECODING_MODE
         {
@@ -3508,7 +3072,7 @@ public:
             LOG2_TILE_COLUMN_8TILECOLUMN                                     = 3, //!< No additional details
             LOG2_TILE_COLUMN_16TILECOLUMN                                    = 4, //!< No additional details
             LOG2_TILE_COLUMN_32TILECOLUMN                                    = 5, //!< No additional details
-            LOG2_TILE_COLUMN_6_4TILECOLUMN                                   = 6, //!< No additional details
+            LOG2_TILE_COLUMN_64TILECOLUMN                                    = 6, //!< No additional details
         };
 
         //! \brief LOG2_TILE_ROW
@@ -3521,24 +3085,48 @@ public:
             LOG2_TILE_ROW_4TILEROW                                           = 2, //!< No additional details
         };
 
-        //! \brief MOTION_COMP_SCALING
+        //! \brief CHROMA_SAMPLING_FORMAT
         //! \details
-        //!     <p>This modifies how VP9 Motion Comp to handle scaling x/y
-        //!     calculation.</p>
-        //!     <p>0 -- Pre-Dec13 version; 1--Post-Dec13 version</p>
-        enum MOTION_COMP_SCALING
+        //!     This indicates the chroma sampling format of the bitstream
+        enum CHROMA_SAMPLING_FORMAT
         {
-            MOTION_COMP_SCALING_PRE_DEC13VERSION                 = 0, //!< No additional details
-            MOTION_COMP_SCALING_POST_DEC13VERSION                = 1, //!< No additional details
+            CHROMA_SAMPLING_FORMAT_FORMAT420                                 = 0, //!< No additional details
         };
-        
+
+        //! \brief BITDEPTHMINUS8
+        //! \details
+        //!     This indicates the bitdepth (minus 8) of the pixels
+        enum BITDEPTHMINUS8
+        {
+            BITDEPTHMINUS8_BITDEPTH8                                         = 0, //!< No additional details
+            BITDEPTHMINUS8_BITDEPTH10                                        = 2, //!< No additional details
+            BITDEPTHMINUS8_BITDEPTH12                                        = 4, //!< No additional details
+        };
+
+        //! \brief PROFILE_LEVEL
+        //! \details
+        //!     This indicates VP9 Profile level from bitstream
+        enum PROFILE_LEVEL
+        {
+            PROFILE_LEVEL_PROFILE0                                           = 0, //!< Profile 0 only supports 8 bit 420 only
+            PROFILE_LEVEL_PROFILE2                                           = 2, //!< Profile 2 only supports 10 bits 420 only
+        };
+
+        //! \brief MOTION_COMP_SCALING_ENABLE_BIT
+        //! \details
+        //!     This bit must be set to "1"
+        enum MOTION_COMP_SCALING_ENABLE_BIT
+        {
+            MOTION_COMP_SCALING_ENABLE_BIT_ENABLE                            = 1, //!< This enables Motion Comp Scaling
+        };
+
         //! \name Initializations
 
         //! \brief Explicit member initialization function
         HCP_VP9_PIC_STATE_CMD();
 
-        static const size_t dwSize = 12;
-        static const size_t byteSize = 48;
+        static const size_t dwSize = 19;
+        static const size_t byteSize = 76;
     };
 
     //!
@@ -3550,7 +3138,6 @@ public:
     {
         union
         {
-            //!< DWORD 0
             struct
             {
                 uint32_t                 Lambdavalue0                                     : __CODEGEN_BITFIELD( 0, 15)    ; //!< LambdaValue0
@@ -3573,18 +3160,12 @@ public:
     //!
     //! \brief HEVC_VP9_RDOQ_STATE
     //! \details
-    //!     This commands provides the tables for frame constants to the VDEnc HW.
-    //!     The specific parameter value is picked by the VDEnc HW based on the
-    //!     frame level QP. The QP Lambda array for costing (motion-vectors and mode
-    //!     costs) has 42 entires. Skip Threshold tables has 27 entries. 7 FTQ
-    //!     thresholds [0-6] are programmed using 4 sets of tables with 27 entires
-    //!     each.
+    //!     
     //!     
     struct HEVC_VP9_RDOQ_STATE_CMD
     {
         union
         {
-            //!< DWORD 0
             struct
             {
                 uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0, 11)    ; //!< DWORD_LENGTH
@@ -3599,27 +3180,18 @@ public:
         } DW0;
         union
         {
-            //!< DWORD 1
             struct
             {
                 uint32_t                 Reserved32                                       : __CODEGEN_BITFIELD( 0, 29)    ; //!< Reserved
-                uint32_t                 DisableHtqPerformance1                           : __CODEGEN_BITFIELD(30, 30)    ; //!< Disable HTQ performance fix1
-                uint32_t                 DisableHtqPerformance0                           : __CODEGEN_BITFIELD(31, 31)    ; //!< Disable HTQ performance fix0
+                uint32_t                 DisableHtqPerformanceFix1                        : __CODEGEN_BITFIELD(30, 30)    ; //!< Disable HTQ performance fix1
+                uint32_t                 DisableHtqPerformanceFix0                        : __CODEGEN_BITFIELD(31, 31)    ; //!< Disable HTQ performance fix0
             };
             uint32_t                     Value;
         } DW1;
-
-        mhw_vdbox_hcp_g9_glk::HEVC_VP9_RDOQ_LAMBDA_FIELDS_CMD  Intralumalambda[32];                                       //!< IntraLumaLambda
-
-
-        mhw_vdbox_hcp_g9_glk::HEVC_VP9_RDOQ_LAMBDA_FIELDS_CMD  Intrachromalambda[32];                                     //!< IntraChromaLambda
-
-
-        mhw_vdbox_hcp_g9_glk::HEVC_VP9_RDOQ_LAMBDA_FIELDS_CMD  Interlumalambda[32];                                       //!< InterLumaLambda
-
-
-        mhw_vdbox_hcp_g9_glk::HEVC_VP9_RDOQ_LAMBDA_FIELDS_CMD  Interchromalambda[32];                                     //!< InterChromaLambda
-
+        HEVC_VP9_RDOQ_LAMBDA_FIELDS_CMD          Intralumalambda[32];                                                     //!< DW2..33, IntraLumaLambda
+        HEVC_VP9_RDOQ_LAMBDA_FIELDS_CMD          Intrachromalambda[32];                                                   //!< DW34..65, IntraChromaLambda
+        HEVC_VP9_RDOQ_LAMBDA_FIELDS_CMD          Interlumalambda[32];                                                     //!< DW66..97, InterLumaLambda
+        HEVC_VP9_RDOQ_LAMBDA_FIELDS_CMD          Interchromalambda[32];                                                   //!< DW98..129, InterChromaLambda
 
         //! \name Local enumerations
 
