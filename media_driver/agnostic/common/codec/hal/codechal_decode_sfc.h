@@ -235,7 +235,7 @@ protected:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS AllocateResources();
+    MOS_STATUS AllocateResources();
 
     //!
     //! \brief    Set Vebox State Cmd Params

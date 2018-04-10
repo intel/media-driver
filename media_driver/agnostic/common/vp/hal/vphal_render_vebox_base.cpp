@@ -608,8 +608,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSetDiOutput(
         if (pRenderData->b60fpsDi)
         {
             // Output 1st field of current frame according to DDI flag
-            if (pRenderData->bSingleField                                               ||
-                (pSrcSurface->SampleType == SAMPLE_INTERLEAVED_ODD_FIRST_TOP_FIELD)     ||
+            if ((pSrcSurface->SampleType == SAMPLE_INTERLEAVED_ODD_FIRST_TOP_FIELD)     ||
                 (pSrcSurface->SampleType == SAMPLE_INTERLEAVED_EVEN_FIRST_BOTTOM_FIELD) ||
                 (pSrcSurface->SampleType == SAMPLE_SINGLE_BOTTOM_FIELD)                 ||
                 (pSrcSurface->SampleType == SAMPLE_PROGRESSIVE))
@@ -628,8 +627,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSetDiOutput(
         else
         {
             // Output 1st field of current frame according to DDI flag
-            if (pRenderData->bSingleField                                              ||
-                (pSrcSurface->SampleType == SAMPLE_INTERLEAVED_ODD_FIRST_BOTTOM_FIELD) ||
+            if ((pSrcSurface->SampleType == SAMPLE_INTERLEAVED_ODD_FIRST_BOTTOM_FIELD) ||
                 (pSrcSurface->SampleType == SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD)   ||
                 (pSrcSurface->SampleType == SAMPLE_SINGLE_TOP_FIELD)                   ||
                 (pSrcSurface->SampleType == SAMPLE_PROGRESSIVE))

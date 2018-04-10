@@ -7154,16 +7154,15 @@ MOS_STATUS HalCm_SetupMediaWalkerParams(
                     break;
 
                 case CM_WALK_WAVEFRONT26X:
-                case CM_WALK_WAVEFRONT26XALT:
-                    walkerParams->localLoopExecCount = 0x7ff;
+                    walkerParams->localLoopExecCount = adjWidth - 1 + (adjHeight - 4) / 2;
                     walkerParams->globalLoopExecCount = 0;
 
                     walkerParams->localOutLoopStride.x = 1;
                     walkerParams->localOutLoopStride.y = 0;
-                    walkerParams->localInnerLoopUnit.x = 0xFFFE;  // -2 in uint32_t:16
-                    walkerParams->localInnerLoopUnit.y = 2;
+                    walkerParams->localInnerLoopUnit.x = 0xFFFE;
+                    walkerParams->localInnerLoopUnit.y = 4;
 
-                    walkerParams->middleLoopExtraSteps = 1;
+                    walkerParams->middleLoopExtraSteps = 3;
                     walkerParams->midLoopUnitX = 0;
                     walkerParams->midLoopUnitY = 1;
                     break;

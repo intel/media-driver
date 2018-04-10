@@ -998,10 +998,10 @@ struct EncodeStatusReport
 //!
 struct EncodeStatusSliceReport
 {
-    uint32_t                        SliceSizeOverflow;
+    uint16_t*                       pSliceSize;
     uint8_t                         NumberSlices;
     uint32_t                        SizeOfSliceSizesBuffer;
-    PMOS_RESOURCE                   pSliceSize;
+    uint32_t                        SliceSizeOverflow : 1;
 };
 
 //!
@@ -1066,7 +1066,6 @@ struct EncodeStatusBuffer
     uint32_t                                dwImageStatusCtrlOfLastBRCPassOffset; //!> The offset of image status control of last bitrate control pass
     uint32_t                                dwSceneChangedOffset;           //!> The offset of the scene changed flag
     uint32_t                                dwSumSquareErrorOffset;         //!> The offset of list of sum square error
-    uint32_t                                dwSliceReportOffset;            //!> The offset of slice size report structure
     uint32_t                                dwSize;                         //!> Size of status buffer
     uint32_t                                dwReportSize;                   //!> Size of report
 };

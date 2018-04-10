@@ -350,7 +350,7 @@ MOS_STATUS CodechalEncodeHevcBase::AllocatePakResources()
     // HEVC Encoder Mode: Slice size is written to this buffer when slice size conformance is enabled.
     // 1 CL (= 16 DWs = 64 bytes) per slice * Maximum number of dynamic slice = 600
     // Note that simulation is assigning much larger space for this.
-    allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6 * CODECHAL_CACHELINE_SIZE, CODECHAL_PAGE_SIZE);
+    allocParamsForBufferLinear.dwBytes = CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6 * CODECHAL_CACHELINE_SIZE;
     allocParamsForBufferLinear.pBufName = "LcuBaseAddressBuffer";
 
     eStatus = (MOS_STATUS)m_osInterface->pfnAllocateResource(
@@ -819,30 +819,27 @@ MOS_STATUS CodechalEncodeHevcBase::SetSequenceStructs()
                 m_hwInterface->SetRowstoreCachingOffsets(&rowstoreParams);
     }
 
-    m_brcEnabled = IsRateControlBrc(m_hevcSeqParams->RateControlMethod);
+        m_brcEnabled = IsRateControlBrc(m_hevcSeqParams->RateControlMethod);
 
-    if (m_brcEnabled)
-    {
-        switch (m_hevcSeqParams->MBBRC)
+        if (m_brcEnabled)
         {
-        case mbBrcInternal:
-            m_lcuBrcEnabled = (m_hevcSeqParams->TargetUsage == 1);
-            break;
-        case mbBrcDisabled:
-            m_lcuBrcEnabled = false;
-            break;
-        case mbBrcEnabled:
-            m_lcuBrcEnabled = true;
-            break;
-        }
+            switch (m_hevcSeqParams->MBBRC)
+            {
+            case mbBrcInternal:
+                m_lcuBrcEnabled = (m_hevcSeqParams->TargetUsage == 1);
+                break;
+            case mbBrcDisabled:
+                m_lcuBrcEnabled = false;
+                break;
+            case mbBrcEnabled:
+                m_lcuBrcEnabled = true;
+                break;
+            }
 
-        if (m_hevcSeqParams->RateControlMethod == RATECONTROL_ICQ  || 
-            m_hevcSeqParams->RateControlMethod == RATECONTROL_QVBR ||
-            m_hevcPicParams->NumROI)
-        {
-            // ICQ or ROI must result in LCU-based BRC to be enabled.
-            m_lcuBrcEnabled = true;  
-        }
+            if (m_hevcSeqParams->RateControlMethod == RATECONTROL_ICQ || m_hevcSeqParams->RateControlMethod == RATECONTROL_QVBR)
+            {
+                m_lcuBrcEnabled = true;  // ICQ must result in LCU-based BRC to be enabled.
+            }
     }
 
     if (m_hevcSeqParams->RateControlMethod == RATECONTROL_VCM && m_lcuBrcEnabled)

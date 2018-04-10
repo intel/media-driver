@@ -1853,8 +1853,8 @@ MOS_STATUS CodechalVdencHevcStateG10::SetDmemHuCBrcUpdate()
     hucVdencBrcUpdateDmem->CurrentFrameType_U8 = (m_pictureCodingType == I_TYPE) ? 2 : 0;
 
     // Num_Ref_L1 should be always same as Num_Ref_L0
-    hucVdencBrcUpdateDmem->Num_Ref_L0_U8 = m_hevcSliceParams->num_ref_idx_l0_active_minus1 + 1;
-    hucVdencBrcUpdateDmem->Num_Ref_L1_U8 = m_hevcSliceParams->num_ref_idx_l1_active_minus1 + 1;
+    hucVdencBrcUpdateDmem->Num_Ref_L0_U8 = m_hevcPicParams->num_ref_idx_l0_default_active_minus1 + 1;
+    hucVdencBrcUpdateDmem->Num_Ref_L1_U8 = m_hevcPicParams->num_ref_idx_l1_default_active_minus1 + 1;
 
     hucVdencBrcUpdateDmem->Num_Slices = (uint8_t)m_hevcPicParams->NumSlices;
 
@@ -2309,6 +2309,11 @@ MOS_STATUS CodechalVdencHevcStateG10::GetStatusReport(
 
     // common initilization
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalVdencHevcState::GetStatusReport(encodeStatus, encodeStatusReport));
+
+    encodeStatusReport->NumberSlices      = encodeStatus->sliceReport.NumberSlices;
+    encodeStatusReport->SizeOfSliceSizesBuffer = encodeStatus->sliceReport.SizeOfSliceSizesBuffer;
+    encodeStatusReport->pSliceSizes       = encodeStatus->sliceReport.pSliceSize;
+    encodeStatusReport->SliceSizeOverflow = encodeStatus->sliceReport.SliceSizeOverflow;
 
     return eStatus;
 }

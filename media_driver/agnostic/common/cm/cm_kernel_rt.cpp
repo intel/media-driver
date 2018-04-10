@@ -6010,16 +6010,7 @@ int CmKernelRT::UpdateSamplerHeap(CmKernelData *kernelData)
                         heapOffset = (heapOffset + sampler.btiStepping * sampler.btiMultiplier - 1) / (sampler.btiStepping * sampler.btiMultiplier) * (sampler.btiStepping * sampler.btiMultiplier);
                     }
                     sampler.heapOffset = heapOffset;
-
-                    if (sampler.btiMultiplier != 0) 
-                    {
-                        sampler.bti = sampler.heapOffset / sampler.btiMultiplier;
-                    }
-                    else
-                    {
-                        CM_ASSERTMESSAGE("Sampler BTI setting error. Multiplier cannot be zero!\n");
-                        return MOS_STATUS_INVALID_PARAMETER;
-                    }
+                    sampler.bti = sampler.heapOffset / sampler.btiMultiplier;
                     sampler_heap->insert(iter, sampler);
                 }
             }
