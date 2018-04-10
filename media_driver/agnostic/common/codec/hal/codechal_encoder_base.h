@@ -719,6 +719,7 @@ struct MeCurbeParams
     HmeLevel                        hmeLvl;
     bool                            b16xMeEnabled;
     bool                            b32xMeEnabled;
+    bool                            segmapProvided;
     uint8_t                         TargetUsage;
     uint8_t                        *pMEMethodTable;
     uint8_t                        *pBMEMethodTable;
