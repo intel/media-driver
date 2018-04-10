@@ -1501,6 +1501,18 @@ int32_t CmKernelRT::SetArgsInternal( CM_KERNEL_INTERNAL_ARG_TYPE nArgType, uint3
             m_args[index].isNull = true;
             return CM_SUCCESS;
         }
+        else
+        {
+            // In case that CM_NULL_SURFACE was set at last time and will 
+            // set a read surface index this time. So need set isDirty as
+            // well to indicate update kernel data.
+            if (m_args[index].isNull == true)
+            {
+                m_args[index].isDirty = true;
+                m_args[index].isNull = false;
+            }
+        }
+        
         m_args[index].isNull = false;
         CM_SURFACE_MEM_OBJ_CTRL memCtl;
 
