@@ -751,6 +751,7 @@ public:
 
         bool                      b16xMeInUse;
         bool                      b4xMeInUse;
+        bool                      segmapProvided;
 
         //Sequence Params
         uint8_t                   TargetUsage;
