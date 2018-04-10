@@ -28,26 +28,46 @@
 
 #include "kernel_test.h"
 
-bool KernelTest::FixIsaBinary(uint8_t *isa_code)
+IsaData* KernelTest::FindIsaData(IsaArray *isa_array)
 {
-    switch (m_currentPlatform)
+    uint32_t index = static_cast<uint32_t>(m_currentPlatform);
+    return &((*isa_array)[index]);
+}
+
+//*-----------------------------
+//| Reset the dafault ISA array.
+//*------------------------------------
+bool KernelTest::ResetDefaultIsaArray()
+{
+    m_isaArray.clear();
+    m_isaArray.resize(static_cast<size_t>(igfx_MAX));
+    return true;
+}
+
+//*--------------------------------------------------------
+//| Sets pointers to ISA binaries in the dafault ISA array.
+//*------------------------------------------
+bool KernelTest::SetDefaultIsaArrayBinaries()
+{
+    m_isaArray[0] = IsaData(SKYLAKE_DONOTHING_ISA, 0, nullptr);
+    m_isaArray[1] = IsaData(BROXTON_DONOTHING_ISA, 0, nullptr);
+    m_isaArray[2] = IsaData(BROADWELL_DONOTHING_ISA, 0, nullptr);
+    m_isaArray[3] = IsaData(CANNONLAKE_DONOTHING_ISA, 0, nullptr);
+    return true;
+}
+
+//*----------------------------------------------------
+//| Sets sizs of ISA binaries in the dafault ISA array.
+//*---------------------------------------
+bool KernelTest::SetDefaultIsaArraySizes()
+{
+    size_t code_sizes[] = {sizeof(SKYLAKE_DONOTHING_ISA),
+                           sizeof(BROXTON_DONOTHING_ISA),
+                           sizeof(BROADWELL_DONOTHING_ISA),
+                           sizeof(CANNONLAKE_DONOTHING_ISA)};
+    for (size_t i = 0; i < m_isaArray.size(); ++i)
     {
-        case igfxBROADWELL:
-            isa_code[32] = 0x03;
-            isa_code[403] = 0x3a;
-            break;
-        case igfxBROXTON:
-            isa_code[32] = 0x06;
-            isa_code[403] = 0x02;
-            break;
-        case igfxCANNONLAKE:
-            isa_code[32] = 0x07;
-            isa_code[403] = 0x3a;
-            break;
-        default:
-            isa_code[32] = 0x05;
-            isa_code[403] = 0x0002;
-            break;
+        m_isaArray[i].size = code_sizes[i];
     }
     return true;
 }
