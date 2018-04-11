@@ -25,7 +25,8 @@
 //!
 
 #include "codechal_encode_hevc_g9_bxt.h"
-#include "igcodeckrn_g9_bxt.h"
+//#include "igcodeckrn_g9_bxt.h"
+#include "igcodeckrn_g9.h"
 
 //! HEVC encoder kernel header structure for G9 BXT
 struct CODECHAL_ENC_HEVC_KERNEL_HEADER_G9_BXT
@@ -213,7 +214,8 @@ CodechalEncHevcStateG9Bxt::CodechalEncHevcStateG9Bxt(
     PCODECHAL_STANDARD_INFO standardInfo)
     :CodechalEncHevcStateG9(hwInterface, debugInterface, standardInfo)
 {
-    m_kernelBase = (uint8_t *)IGCODECKRN_G9_BXT;
+    //m_kernelBase = (uint8_t *)IGCODECKRN_G9_BXT;
+    m_kernelBase = (uint8_t *)IGCODECKRN_G9; //IGCODECKRN_G9_BXT causes GPU HANG, use IGCODECKRN_G9.
     pfnGetKernelHeaderAndSize = GetKernelHeaderAndSize;
     m_noMeKernelForPFrame = false;
 
