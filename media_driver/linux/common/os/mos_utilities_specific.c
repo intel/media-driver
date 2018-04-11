@@ -2825,7 +2825,7 @@ void MOS_TraceEvent(
                 // convert raw event data to string. native raw data will be supported
                 // from linux kernel 4.10, hopefully we can skip this convert in the future.
                 const static char n2c[] = "0123456789ABCDEF";
-                char  *pData = (char *)pArg1;
+                unsigned char *pData = (unsigned char *)pArg1;
 
                 pTraceBuf[nLen++] = '|'; // prefix splite marker.
                 while(dwSize1-- > 0 && nLen < TRACE_EVENT_MAX_SIZE-2)
@@ -2835,7 +2835,7 @@ void MOS_TraceEvent(
                 }
                 if (pArg2)
                 {
-                    pData = (char *)pArg2;
+                    pData = (unsigned char *)pArg2;
                     while(dwSize2-- > 0 && nLen < TRACE_EVENT_MAX_SIZE-2)
                     {
                         pTraceBuf[nLen++] = n2c[(*pData) >> 4];
