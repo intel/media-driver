@@ -182,7 +182,9 @@ struct CODECHAL_VDENC_HEVC_HUC_BRC_UPDATE_DMEM_G10
     uint8_t     RDOQ_Enable_U8;             // 0-disabled, 1-enabled
     int8_t      ReEncodePositiveQPDeltaThr_S8;      // default: 4
     int8_t      ReEncodeNegativeQPDeltaThr_S8;      // default: -10
-    uint8_t     RSVD[32];                   // 64-byte alignment
+    int8_t      RESERVED;
+    int32_t     SliceHeaderSize;
+    uint8_t     RSVD[28];
 };
 C_ASSERT(192 == sizeof(CODECHAL_VDENC_HEVC_HUC_BRC_UPDATE_DMEM_G10));
 
@@ -1916,6 +1918,7 @@ MOS_STATUS CodechalVdencHevcStateG10::SetDmemHuCBrcUpdate()
 
     hucVdencBrcUpdateDmem->ReEncodePositiveQPDeltaThr_S8 = 4;
     hucVdencBrcUpdateDmem->ReEncodeNegativeQPDeltaThr_S8 = -10;
+    hucVdencBrcUpdateDmem->SliceHeaderSize = 0;
 
     // reset skip frame statistics
     m_numSkipFrames = 0;
