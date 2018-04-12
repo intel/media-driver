@@ -1609,9 +1609,7 @@ MOS_STATUS CodechalVdencHevcStateG10::SetDmemHuCBrcInitReset()
         hucVdencBrcInitDmem->ChromaBitDepth_U8 = 10;    // default: 8
     }
     // 0=No SAO 1=Disable 2nd pass SAO; 2=Enable 2nd pass SAO; 3=Adaptive SAO
-    // HuC FW suggested ASAO flag setting
-    // checking SAO flag for first slice is enough since this flag has the same value for all slices within a picture
-    hucVdencBrcInitDmem->ASAO_U8 = (m_hevcSeqParams->SAO_enabled_flag && m_hevcSliceParams->slice_sao_luma_flag) ? 2 : 0;
+    hucVdencBrcInitDmem->ASAO_U8 = m_hevcSeqParams->SAO_enabled_flag ? 2 : 0;
 
     // 0=No CUQP; 1=CUQP for I-frame; 2=CUQP for P/B-frame
     // bit operation, bit 1 for I-frame, bit 2 for P/B frame

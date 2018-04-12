@@ -1782,7 +1782,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpEncodePicStateCmd(
     cmd.DW3.Colpicisi                    = 0;
     cmd.DW3.Curpicisi                    = 0;
 
-    cmd.DW4.SampleAdaptiveOffsetEnabledFlag                 = hevcSeqParams->SAO_enabled_flag; // HW restriction, does not support SAO filtering for LCU size 16x16
+    cmd.DW4.SampleAdaptiveOffsetEnabledFlag                 = params->bSAOEnable;
     cmd.DW4.PcmEnabledFlag                                  = 0; // Not supported in CNL
     cmd.DW4.CuQpDeltaEnabledFlag                            = hevcPicParams->cu_qp_delta_enabled_flag; // In VDENC mode, this field should always be set to 1.
     cmd.DW4.DiffCuQpDeltaDepthOrNamedAsMaxDqpDepth          = hevcPicParams->diff_cu_qp_delta_depth;

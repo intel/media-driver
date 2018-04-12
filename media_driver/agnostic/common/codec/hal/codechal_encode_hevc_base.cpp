@@ -2335,7 +2335,7 @@ void CodechalEncodeHevcBase::SetHcpPicStateParams(MHW_VDBOX_HEVC_PIC_STATE& picS
     MOS_ZeroMemory(&picStateParams, sizeof(picStateParams));
     picStateParams.pHevcEncSeqParams     = m_hevcSeqParams;
     picStateParams.pHevcEncPicParams     = m_hevcPicParams;
-    picStateParams.bSAOEnable            = m_hevcSeqParams->SAO_enabled_flag;
+    picStateParams.bSAOEnable            = m_hevcSeqParams->SAO_enabled_flag ? (m_hevcSliceParams->slice_sao_luma_flag || m_hevcSliceParams->slice_sao_chroma_flag) : 0;
     picStateParams.bUseVDEnc = m_vdencEnabled;
     picStateParams.bNotFirstPass = m_vdencEnabled && !IsFirstPass() ;
     picStateParams.bHevcRdoqEnabled      = m_hevcRdoqEnabled;
