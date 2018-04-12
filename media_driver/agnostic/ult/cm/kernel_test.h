@@ -210,10 +210,10 @@ public:
         return m_mockDevice->DestroyProgram(m_program);
     }//================================================
 
-    //*---------------------------------------------------------------------
+    //*-------------------------------------------------------------------------
     //| Selects ISA code, size and options from an array and loads them as a
     //| CmProgram.
-    //*--------------------------------------------------------
+    //*-------------------------------------------------------------------------
     int32_t SelectLoadDestroyProgram(IsaArray *isa_array)
     {
         IsaData *isa_data = FindIsaData(isa_array);
@@ -222,9 +222,9 @@ public:
                                   isa_data->options);
     }
 
-    //*--------------------------------------------
+    //*-------------------------------------------------------------------------
     //| Creates a kernel from the default ISA code.
-    //*------------------------------------------
+    //*-------------------------------------------------------------------------
     int32_t CreateKernel(const char *kernel_name)
     {
         if (nullptr == kernel_name)  // Tests the return value if CmProgram is invalid.
@@ -256,28 +256,28 @@ public:
     }//===============
 
 protected:
-    //*-----------------------------
-    //| Reset the dafault ISA array.
-    //*-------------------------
+    //*-------------------------------------------------------------------------
+    //| Reset the default ISA array.
+    //*-------------------------------------------------------------------------
     bool ResetDefaultIsaArray();
 
-    //*--------------------------------------------------------
-    //| Sets pointers to ISA binaries in the dafault ISA array.
-    //*-------------------------------
+    //*-------------------------------------------------------------------------
+    //| Sets pointers to ISA binaries in the default ISA array.
+    //*-------------------------------------------------------------------------
     bool SetDefaultIsaArrayBinaries();
 
-    //*----------------------------------------------------
-    //| Sets sizs of ISA binaries in the dafault ISA array.
-    //*----------------------------
+    //*-------------------------------------------------------------------------
+    //| Sets sizs of ISA binaries in the default ISA array.
+    //*-------------------------------------------------------------------------
     bool SetDefaultIsaArraySizes();
 
     // Array of default ISA data.
     IsaArray m_isaArray;
 
 private:
-    //*-----------------------------------------------------------------------
+    //*-------------------------------------------------------------------------
     //| Finds the index of the ISA data corresponding to the platform in test.
-    //*--------------------------------------------------
+    //*-------------------------------------------------------------------------
     IsaData* FindIsaData(IsaArray *isa_array);
 
     int32_t CreateKernelFromDefaultIsa(const char *kernel_name)

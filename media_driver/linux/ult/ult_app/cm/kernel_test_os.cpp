@@ -34,9 +34,9 @@ IsaData* KernelTest::FindIsaData(IsaArray *isa_array)
     return &((*isa_array)[index]);
 }
 
-//*-----------------------------
-//| Reset the dafault ISA array.
-//*------------------------------------
+//*-----------------------------------------------------------------------------
+//| Reset the default ISA array.
+//*-----------------------------------------------------------------------------
 bool KernelTest::ResetDefaultIsaArray()
 {
     m_isaArray.clear();
@@ -44,9 +44,9 @@ bool KernelTest::ResetDefaultIsaArray()
     return true;
 }
 
-//*--------------------------------------------------------
-//| Sets pointers to ISA binaries in the dafault ISA array.
-//*------------------------------------------
+//*-----------------------------------------------------------------------------
+//| Sets pointers to ISA binaries in the default ISA array.
+//*-----------------------------------------------------------------------------
 bool KernelTest::SetDefaultIsaArrayBinaries()
 {
     m_isaArray[0] = IsaData(SKYLAKE_DONOTHING_ISA, 0, nullptr);
@@ -56,9 +56,9 @@ bool KernelTest::SetDefaultIsaArrayBinaries()
     return true;
 }
 
-//*----------------------------------------------------
-//| Sets sizs of ISA binaries in the dafault ISA array.
-//*---------------------------------------
+//*-----------------------------------------------------------------------------
+//| Sets sizs of ISA binaries in the default ISA array.
+//*-----------------------------------------------------------------------------
 bool KernelTest::SetDefaultIsaArraySizes()
 {
     size_t code_sizes[] = {sizeof(SKYLAKE_DONOTHING_ISA),
