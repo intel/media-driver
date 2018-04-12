@@ -4140,6 +4140,12 @@ MOS_STATUS RenderHal_Destroy(PRENDERHAL_INTERFACE pRenderHal)
         pRenderHal->pRenderHalPltInterface = nullptr;
     }
 
+    if (pRenderHal->pPerfProfiler)
+    {
+       MediaPerfProfiler::Destroy(pRenderHal->pPerfProfiler, (void*)pRenderHal, pRenderHal->pOsInterface);
+       pRenderHal->pPerfProfiler = nullptr;
+    }
+
     // Free Debug Surface
     RenderHal_FreeDebugSurface(pRenderHal);
 
@@ -4969,6 +4975,14 @@ MOS_STATUS RenderHal_Initialize(
     pStateBaseParams->dwIndirectObjectBufferSize    = pRenderHal->pStateHeap->dwSizeGSH;
     pStateBaseParams->presInstructionBuffer         = &pRenderHal->pStateHeap->IshOsResource;
     pStateBaseParams->dwInstructionBufferSize       = pRenderHal->pStateHeap->dwSizeISH;
+
+if (!pRenderHal->pPerfProfiler)
+{
+    pRenderHal->pPerfProfiler = MediaPerfProfiler::Instance();
+    MHW_RENDERHAL_CHK_NULL(pRenderHal->pPerfProfiler);
+
+    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pPerfProfiler->Initialize((void*)pRenderHal, pOsInterface));
+}
 
 finish:
     return eStatus;
