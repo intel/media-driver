@@ -368,7 +368,6 @@ VAStatus MediaLibvaCaps::CheckEncRTFormat(
         attrib->value = VA_RT_FORMAT_YUV420;
     }
 
-#ifdef _FULL_OPEN_SOURCE
     EncodeFormat format = Others;
     EncodeType type = entrypoint == VAEntrypointEncSliceLP ? Vdenc : DualPipe;
     struct EncodeFormatTable* encodeFormatTable = m_encodeFormatTable;
@@ -395,7 +394,6 @@ VAStatus MediaLibvaCaps::CheckEncRTFormat(
             break;
         }
     }
-#endif
 
     return VA_STATUS_SUCCESS;
 }
@@ -1499,25 +1497,11 @@ VAStatus MediaLibvaCaps::CreateEncConfig(
         }
         if(VAConfigAttribRTFormat == attribList[j].type)
         {
-            if(m_profileEntryTbl[profileTableIdx].m_profile == VAProfileJPEGBaseline)
+            VAConfigAttrib attribRT;
+            CheckEncRTFormat(m_profileEntryTbl[profileTableIdx].m_profile, entrypoint, &attribRT);
+            if((attribList[j].value | attribRT.value) == 0)
             {
-                if(VA_RT_FORMAT_YUV420 != attribList[j].value &&
-                   VA_RT_FORMAT_YUV422 != attribList[j].value &&
-                   VA_RT_FORMAT_YUV444 != attribList[j].value &&
-                   VA_RT_FORMAT_YUV400 != attribList[j].value &&
-                   VA_RT_FORMAT_YUV411 != attribList[j].value &&
-                   VA_RT_FORMAT_RGB16 != attribList[j].value &&
-                   VA_RT_FORMAT_RGB32 != attribList[j].value)
-                {
-                    return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
-                }
-            }
-            else
-            {
-                if(VA_RT_FORMAT_YUV420 != attribList[j].value)
-                {
-                    return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
-                }
+                return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
             }
         }
     }
