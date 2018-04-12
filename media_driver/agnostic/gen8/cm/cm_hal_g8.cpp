@@ -31,8 +31,6 @@
 #include "renderhal_platform_interface.h"
 #include "mhw_state_heap_hwcmd_g8_X.h"
 
-#define CM_NS_PER_TICK_RENDER_G8        (80)
-
 union CM_HAL_MEMORY_OBJECT_CONTROL_G8
 {
     struct
@@ -1111,9 +1109,3 @@ MOS_STATUS CM_HAL_G8_X::GetSamplerParamInfoForSamplerType(
 
     return MOS_STATUS_SUCCESS;
 }
-
-uint64_t CM_HAL_G8_X::ConvertTicksToNanoSeconds(uint64_t ticks)
-{
-    return (uint64_t)(ticks * CM_NS_PER_TICK_RENDER_G8);
-}
-

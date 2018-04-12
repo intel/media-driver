@@ -33,8 +33,7 @@
 #define CM_NUM_HW_POLYPHASE_TABLES_G10         17
 #define CM_NUM_HW_POLYPHASE_EXTRA_TABLES_G10   15
 
-#define CM_CNL_L3_CONFIG_NUM                   9
-#define CM_NS_PER_TICK_RENDER_G10_DEFAULT      (83.333)
+#define CM_CNL_L3_CONFIG_NUM                      9
 
 static const L3_CONFIG CNL_L3[CM_CNL_L3_CONFIG_NUM] =
 {  //8k unit
@@ -64,15 +63,8 @@ struct CM_HAL_G10_X:public CM_HAL_GENERIC
 {
 
 public:
-    CM_HAL_G10_X(PCM_HAL_STATE cmState):
-        CM_HAL_GENERIC(cmState),
-        m_timestampBaseStored(false),
-        m_nsPerTick(CM_NS_PER_TICK_RENDER_G10_DEFAULT)
-    {
-        MOS_ZeroMemory(&m_resTimestampBase, sizeof(m_resTimestampBase));
-    }
-        
-    ~CM_HAL_G10_X();
+    CM_HAL_G10_X(PCM_HAL_STATE cmState):CM_HAL_GENERIC(cmState){};
+    ~CM_HAL_G10_X(){};
 
     MOS_STATUS GetCopyKernelIsa(void  *&isa, uint32_t &isaSize);
 
@@ -107,7 +99,6 @@ public:
         void                    **cmdBuffer);
 #endif
 #endif
-    MOS_STATUS SubmitTimeStampBaseCommands();
     uint32_t   GetMediaWalkerMaxThreadWidth();
     uint32_t   GetMediaWalkerMaxThreadHeight();
 
@@ -142,8 +133,6 @@ public:
     MOS_STATUS GetExpectedGtSystemConfig(
         PCM_EXPECTED_GT_SYSTEM_INFO expectedConfig);
 
-    uint64_t ConvertTicksToNanoSeconds(uint64_t ticks);
-
 private:
     MOS_STATUS UpdatePlatformInfoFromPower(
                         PCM_PLATFORM_INFO platformInfo,
@@ -152,10 +141,6 @@ private:
     MOS_STATUS SetupHwDebugControl(
                         PRENDERHAL_INTERFACE   renderHal,
                         PMOS_COMMAND_BUFFER    cmdBuffer);
-
-    CM_HAL_TS_RESOURCE m_resTimestampBase;
-    bool m_timestampBaseStored;
-    double m_nsPerTick;
 
 };
 

@@ -1061,8 +1061,8 @@ MOS_STATUS HalCm_QueryTask_Linux(
     uint64_t                ticks;
     int32_t                 syncOffset;
     PRENDERHAL_STATE_HEAP   stateHeap;
-    uint64_t                hwStartNs;
-    uint64_t                hwEndNs;
+    uint64_t                hwStartTicks;
+    uint64_t                hwEndTicks;
     int32_t                 maxTasks;
 
     //-----------------------------------------
@@ -1099,18 +1099,28 @@ MOS_STATUS HalCm_QueryTask_Linux(
     {
         queryParam->status = CM_TASK_FINISHED;
 
-        hwStartNs = state->cmHalInterface->ConvertTicksToNanoSeconds(*piSyncStart);
-        hwEndNs = state->cmHalInterface->ConvertTicksToNanoSeconds(*piSyncEnd);
+        renderHal->pfnConvertToNanoSeconds(
+            renderHal,
+            *piSyncStart,
+            &hwStartTicks);
+
+        renderHal->pfnConvertToNanoSeconds(
+            renderHal,
+            *piSyncEnd,
+            &hwEndTicks);
 
         ticks = *piSyncEnd - *piSyncStart;
 
         // Convert ticks to Nanoseconds
-        queryParam->taskDurationNs = state->cmHalInterface->ConvertTicksToNanoSeconds(ticks);
+        renderHal->pfnConvertToNanoSeconds(
+            renderHal,
+            ticks,
+            &queryParam->taskDurationNs);
 
         queryParam->taskGlobalSubmitTimeCpu = state->taskTimeStamp->submitTimeInCpu[queryParam->taskId];
         CM_CHK_MOSSTATUS(state->pfnConvertToQPCTime(state->taskTimeStamp->submitTimeInGpu[queryParam->taskId], &queryParam->taskSubmitTimeGpu));
-        CM_CHK_MOSSTATUS(state->pfnConvertToQPCTime(hwStartNs, &queryParam->taskHWStartTimeStamp));
-        CM_CHK_MOSSTATUS(state->pfnConvertToQPCTime(hwEndNs, &queryParam->taskHWEndTimeStamp));
+        CM_CHK_MOSSTATUS(state->pfnConvertToQPCTime(hwStartTicks, &queryParam->taskHWStartTimeStamp));
+        CM_CHK_MOSSTATUS(state->pfnConvertToQPCTime(hwEndTicks, &queryParam->taskHWEndTimeStamp));
 
         state->taskStatusTable[queryParam->taskId] = CM_INVALID_INDEX;
     }
