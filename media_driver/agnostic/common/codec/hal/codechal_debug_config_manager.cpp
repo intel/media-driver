@@ -249,6 +249,7 @@ void CodechalDebugConfigMgr::GenerateDefaultConfig()
     ofs << "##" << CodechalDbgAttr::attrForceCmdDumpLvl << ":0" << std::endl;
     ofs << "##" << CodechalDbgAttr::attrForceCurbeDumpLvl << ":0" << std::endl;
     ofs << "##" << CodechalDbgAttr::attrFrameState << ":0" << std::endl;
+    ofs << "##" << CodechalDbgAttr::attrBrcPakStats<< ":0" << std::endl;
     ofs << "##" << CodechalDbgAttr::attrCUStreamout<< ":0" << std::endl;
     ofs << "##" << CodechalDbgAttr::attrImageState << ":0" << std::endl;
     ofs << "##" << CodechalDbgAttr::attrSliceSizeStreamout << ":0" << std::endl;

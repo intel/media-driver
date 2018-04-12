@@ -3447,12 +3447,13 @@ MOS_STATUS CodechalEncodeHevcBase::DumpFrameStatsBuffer(CodechalDebugInterface* 
     CODECHAL_ENCODE_FUNCTION_ENTER;
     CODECHAL_ENCODE_CHK_NULL_RETURN(debugInterface);
 
-    uint8_t numTiles = 1;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBuffer(
         &m_resFrameStatStreamOutBuffer,
         CodechalDbgAttr::attrFrameState,
         "FrameStatus",
-        CODECHAL_CACHELINE_SIZE * 8 * numTiles));
+        m_sizeOfHcpPakFrameStats,
+        0,
+        CODECHAL_NUM_MEDIA_STATES));
 
     return MOS_STATUS_SUCCESS;
 }
