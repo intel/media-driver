@@ -25,7 +25,8 @@
 //!
 
 #include "codechal_encode_hevc_g9_glk.h"
-#include "igcodeckrn_g9_bxt.h"
+//#include "igcodeckrn_g9_bxt.h"
+#include "igcodeckrn_g9.h"
 
 //! HEVC encoder kernel header structure for G9 GLK
 struct CODECHAL_ENC_HEVC_KERNEL_HEADER_G9_GLK
@@ -203,7 +204,8 @@ CodechalEncHevcStateG9Glk::CodechalEncHevcStateG9Glk(
     PCODECHAL_STANDARD_INFO standardInfo)
     :CodechalEncHevcStateG9(hwInterface, debugInterface, standardInfo)
 {
-    m_kernelBase = (uint8_t *)IGCODECKRN_G9_BXT;
+    //m_kernelBase = (uint8_t *)IGCODECKRN_G9_BXT;
+    m_kernelBase = (uint8_t *)IGCODECKRN_G9;
     pfnGetKernelHeaderAndSize = GetKernelHeaderAndSize;
     m_numRegionsInSlice       = 2;  // GLK has the same setting as BXT/APL
 
