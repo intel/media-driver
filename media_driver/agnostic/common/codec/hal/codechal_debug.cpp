@@ -541,6 +541,7 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
     case  Format_VYUY:
     case  Format_Y216: //422 16bit
     case  Format_Y210: //422 10bit
+    case  Format_P208: //422 8bit
         break;
     default:
         height = 0;
