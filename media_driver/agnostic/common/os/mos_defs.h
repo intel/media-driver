@@ -329,7 +329,8 @@ typedef enum _MOS_STATUS
     MOS_STATUS_PLATFORM_NOT_SUPPORTED            = 27,
     MOS_STATUS_CLIENT_AR_NO_SPACE                = 28,
     MOS_STATUS_HUC_KERNEL_FAILED                 = 29,
-    MOS_STATUS_UNKNOWN                           = 30
+    MOS_STATUS_NOT_ENOUGH_BUFFER                 = 30,
+    MOS_STATUS_UNKNOWN                           = 31
 } MOS_STATUS;
 
 //!

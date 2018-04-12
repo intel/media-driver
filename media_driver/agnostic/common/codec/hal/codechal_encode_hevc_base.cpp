@@ -1406,26 +1406,6 @@ MOS_STATUS CodechalEncodeHevcBase::UpdateYUY2SurfaceInfo(
     return eStatus;
 }
 
-uint32_t CodechalEncodeHevcBase::GetBitstreamBufferSize()
-{
-    CODECHAL_ENCODE_FUNCTION_ENTER;
-
-    // 4:2:0 uncompression buffer size
-    uint32_t frameWidth = MOS_ALIGN_CEIL(m_frameWidth, MAX_LCU_SIZE);
-    uint32_t frameHeight = (MOS_ALIGN_CEIL(m_frameHeight, MAX_LCU_SIZE) * 3) / (m_is10BitHevc ? 1 : 2);
-
-    if (m_hevcSeqParams->chroma_format_idc == HCP_CHROMA_FORMAT_YUV422)
-    {
-        frameWidth = (frameWidth * 8) / 6; //4:2:2 v.s 4:2:0
-    }
-    else if (m_hevcSeqParams->chroma_format_idc == HCP_CHROMA_FORMAT_YUV444)
-    {
-        frameWidth = (frameWidth * 12) / 6; //4:4:4 v.s 4:2:0
-    }
-
-    return frameWidth * frameHeight;
-}
-
 void CodechalEncodeHevcBase::CreateFlatScalingList()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
@@ -2182,7 +2162,7 @@ MOS_STATUS CodechalEncodeHevcBase::InitializePicture(const EncoderParams& params
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetStatusReportParams(
         m_refList[m_currReconstructedPic.FrameIdx]));
 
-    m_bitstreamUpperBound = GetBitstreamBufferSize();
+    m_bitstreamUpperBound = m_encodeParams.dwBitstreamSize;
 
     return eStatus;
 }

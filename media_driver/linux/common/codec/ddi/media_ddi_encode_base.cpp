@@ -194,7 +194,15 @@ VAStatus DdiEncodeBase::StatusReport(
         encodeStatusReport->bSequential = true;  //Query the encoded frame status in sequential.
 
         uint16_t numStatus = 1;
-        m_encodeCtx->pCodecHal->GetStatusReport(encodeStatusReport, numStatus);
+        MOS_STATUS mosStatus = MOS_STATUS_SUCCESS;
+        mosStatus = m_encodeCtx->pCodecHal->GetStatusReport(encodeStatusReport, numStatus);
+        if (MOS_STATUS_NOT_ENOUGH_BUFFER == mosStatus)
+        {
+            return VA_STATUS_ERROR_NOT_ENOUGH_BUFFER;
+        } else if (MOS_STATUS_SUCCESS != mosStatus)
+        {
+            return VA_STATUS_ERROR_ENCODING_ERROR;
+        }
 
         if (CODECHAL_STATUS_SUCCESSFUL == encodeStatusReport[0].CodecStatus)
         {
@@ -264,7 +272,7 @@ VAStatus DdiEncodeBase::StatusReport(
         }
     }
 
-    if (eStatus != MOS_STATUS_SUCCESS)
+    if (eStatus != VA_STATUS_SUCCESS)
     {
         return VA_STATUS_ERROR_OPERATION_FAILED;
     }
