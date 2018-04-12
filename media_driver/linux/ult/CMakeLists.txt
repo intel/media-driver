@@ -19,36 +19,36 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 cmake_minimum_required(VERSION 3.1)
 
-if("${BUILD_TYPE}" STREQUAL "release")
+if ("${BUILD_TYPE}" STREQUAL "release")
     set(CMAKE_BUILD_TYPE "Release")
-elseif("${BUILD_TYPE}" STREQUAL "release-internal")
+elseif ("${BUILD_TYPE}" STREQUAL "release-internal")
     set(CMAKE_BUILD_TYPE "ReleaseInternal")
-elseif("${BUILD_TYPE}" STREQUAL "debug")
+elseif ("${BUILD_TYPE}" STREQUAL "debug")
     set(CMAKE_BUILD_TYPE "Debug")
-endif()
+endif ()
 
 #-fno-plt is a GCC option to disable the use of PLT for external function calls in position-independent code.
 #This option is by default enabled on some Linux distributions such as Arch Linux, which can cause link error.
 string(REPLACE "-fno-plt" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
-if(NOT "${LIBVA_INSTALL_PATH}" STREQUAL "")
+if (NOT "${LIBVA_INSTALL_PATH}" STREQUAL "")
     include_directories(BEFORE ${LIBVA_INSTALL_PATH})
-elseif(DEFINED ENV{LIBVA_INSTALL_PATH} AND NOT "$ENV{LIBVA_INSTALL_PATH}" STREQUAL "")
+elseif (DEFINED ENV{LIBVA_INSTALL_PATH} AND NOT "$ENV{LIBVA_INSTALL_PATH}" STREQUAL "")
     include_directories(BEFORE $ENV{LIBVA_INSTALL_PATH})
-else()
+else ()
     include(FindPkgConfig)
     pkg_check_modules(LIBVA REQUIRED libva>=1.0.0)
-    if(LIBVA_FOUND)
+    if (LIBVA_FOUND)
         include_directories(BEFORE ${LIBVA_INCLUDE_DIRS})
-    endif()
-endif()
+    endif ()
+endif ()
 
-ADD_SUBDIRECTORY(libdrm_mock)
-ADD_SUBDIRECTORY(ult_app)
+add_subdirectory(libdrm_mock)
+add_subdirectory(ult_app)
 
-enable_testing()  
-ADD_TEST(NAME test_devult COMMAND devult ${UMD_PATH})   
-SET_TESTS_PROPERTIES(test_devult  
-    PROPERTIES PASS_REGULAR_EXPRESSION "PASS")  
-SET_TESTS_PROPERTIES(test_devult  
-    PROPERTIES FAIL_REGULAR_EXPRESSION "FAIL")  
+enable_testing()
+add_test(NAME test_devult COMMAND devult ${UMD_PATH})
+set_tests_properties(test_devult
+    PROPERTIES PASS_REGULAR_EXPRESSION "PASS")
+set_tests_properties(test_devult
+    PROPERTIES FAIL_REGULAR_EXPRESSION "FAIL")
