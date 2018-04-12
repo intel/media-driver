@@ -107,6 +107,7 @@ inline int CmSafeMemCompare(const void* dst, const void* src, const size_t bytes
     __except (EXCEPTION_EXECUTE_HANDLER)
     {
         CmAssert(0);
+        return 0x7FFFFFFF;  //  An unreasonably large value indicating errors.
     }
 #endif
 }
