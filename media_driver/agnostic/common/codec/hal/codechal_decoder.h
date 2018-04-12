@@ -655,6 +655,12 @@ public:
     MOS_GPU_CONTEXT GetVideoContext() { return m_videoContext; }
 
     //!
+    //! \brief  Sets video context
+    //! \return The video context \see m_videoContext
+    //!
+    void SetVideoContext(MOS_GPU_CONTEXT context) { m_videoContext = context; }
+
+    //!
     //! \brief  Gets video WA context
     //! \return The video WA context \see m_videoContextForWa
     //!
