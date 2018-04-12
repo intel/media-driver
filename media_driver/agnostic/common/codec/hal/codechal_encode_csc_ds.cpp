@@ -891,8 +891,8 @@ void CodechalEncodeCscDs::GetCscAllocation(uint32_t &width, uint32_t &height, MO
     }
     else
     {
-        surfaceWidth = MOS_ALIGN_CEIL(m_encoder->m_oriFrameWidth, m_rawSurfAlignment);
-        surfaceHeight = MOS_ALIGN_CEIL(m_encoder->m_oriFrameHeight, m_rawSurfAlignment);
+        surfaceWidth = MOS_ALIGN_CEIL(m_encoder->m_frameWidth, m_rawSurfAlignment);
+        surfaceHeight = MOS_ALIGN_CEIL(m_encoder->m_frameHeight, m_rawSurfAlignment);
     }
 
     if ( (uint8_t)HCP_CHROMA_FORMAT_YUV422 == m_outputChromaFormat)
