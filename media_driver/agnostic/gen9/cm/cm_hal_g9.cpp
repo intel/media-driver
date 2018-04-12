@@ -31,6 +31,12 @@
 #include "renderhal_platform_interface.h"
 #include "mhw_render.h"
 
+#define CM_NS_PER_TICK_RENDER_G9        (83.333)   // For SKL, 83.333 nano seconds per tick in render engine
+#define CM_NS_PER_TICK_RENDER_G9LP      (52.083)   //For BXT, 52.083 nano seconds per tick in render engine
+
+#define PLATFORM_INTEL_BXT 8
+#define PLATFORM_INTEL_GLK 16
+
 // Gen9 Surface state tokenized commands - a SURFACE_STATE_G9 command and
 // a surface state command, either SURFACE_STATE_G9 or SURFACE_STATE_ADV_G9
 struct PACKET_SURFACE_STATE
@@ -686,6 +692,7 @@ finish:
 }
 #endif
 #endif
+
 MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     PMHW_BATCH_BUFFER       batchBuffer,
     int32_t                 taskId,
@@ -1472,3 +1479,16 @@ MOS_STATUS CM_HAL_G9_X::GetExpectedGtSystemConfig(
 
     return MOS_STATUS_SUCCESS;
 }
+
+uint64_t CM_HAL_G9_X::ConvertTicksToNanoSeconds(uint64_t ticks)
+{
+    if (m_platformID == PLATFORM_INTEL_BXT || m_platformID == PLATFORM_INTEL_GLK)
+    {
+        return (uint64_t)(ticks * CM_NS_PER_TICK_RENDER_G9LP);
+    }
+    else
+    {
+        return (uint64_t)(ticks * CM_NS_PER_TICK_RENDER_G9);
+    }
+}
+

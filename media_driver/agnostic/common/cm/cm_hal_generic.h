@@ -263,6 +263,17 @@ public:
         void                    **cmdBuffer) = 0;
 #endif
 #endif
+
+    //!
+    //! \brief    Submit a commmand to get the time stamp base 
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SubmitTimeStampBaseCommands()
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
     //!
     //! \brief    Update platform information from power option
     //! \details  Power option can be used to do slice shutdown. This function is
@@ -565,6 +576,14 @@ public:
         return (sizeof(uint64_t) * CM_SYNC_QWORD_PER_TASK) + (sizeof(uint64_t) * CM_TRACKER_ID_QWORD_PER_TASK);
     }
 
+    //!
+    //! \brief    Covnert the ticks to nano seconds
+    //! \param    [in]  ticks
+    //!           input ticks
+    //! \return   uint64_t
+    //!           Nano seconds converted from the input ticks
+    //!
+    virtual uint64_t ConvertTicksToNanoSeconds(uint64_t ticks) = 0;
 protected:
     uint32_t m_platformID;
     uint32_t m_genGT;
