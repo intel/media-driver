@@ -2788,6 +2788,11 @@ void CompositeState::SetSurfaceParams(
             pSurfaceParams->bVertStrideOffs = 0;
             break;
     }
+
+    if (pSource->iLayerID && IsNV12SamplerLumakeyNeeded(pSource, m_pRenderHal))
+    {
+        pSurfaceParams->b2PlaneNV12NeededByKernel = true;
+    }
 }
 
 //!
@@ -3027,6 +3032,7 @@ int32_t CompositeState::SetLayer(
     RECT        DestRect;                           // Clipped dest rectangle
     int32_t     iResult;
     float       fHorizgap, fVertgap;                // horizontal gap and vertical gap: based on Sampler need
+    uint32_t    dwLow, dwHigh;
 
     // cropping
     float       fCropX, fCropY;
@@ -3352,6 +3358,32 @@ int32_t CompositeState::SetLayer(
             pSamplerStateParams->Unorm.AddressU = MHW_GFX3DSTATE_TEXCOORDMODE_CLAMP;
             pSamplerStateParams->Unorm.AddressV = MHW_GFX3DSTATE_TEXCOORDMODE_CLAMP;
             pSamplerStateParams->Unorm.AddressW = MHW_GFX3DSTATE_TEXCOORDMODE_CLAMP;
+
+            // Enable the sampler luma key feature only if this lumakey layer is not the bottom layer,
+            // and only on YUY2 and NV12 surfaces at this moment.
+            // The kernel difference b/w sampler luma key and EU computed luma key.
+            // Sampler based: IDR_VP_Prepare_LumaKey_SampleUnorm
+            // EU computed:   IDR_VP_Compute_Lumakey
+            if (iSamplerID == VPHAL_SAMPLER_Y   &&
+                pSource->pLumaKeyParams != NULL &&
+                (pSource->Format == Format_YUY2 || pSource->Format == Format_NV12) &&
+                iLayer)
+            {
+                if (IsNV12SamplerLumakeyNeeded(pSource, pRenderHal))
+                {
+                    dwLow  = pSource->pLumaKeyParams->LumaLow << 16;
+                    dwHigh = (pSource->pLumaKeyParams->LumaHigh << 16) | 0xFF00FFFF;
+                }
+                else
+                {
+                    dwLow  = pSource->pLumaKeyParams->LumaLow << 8;
+                    dwHigh = (pSource->pLumaKeyParams->LumaHigh << 8) | 0xFFFF00FF;
+                }
+
+                pSamplerStateParams->Unorm.bChromaKeyEnable = true;
+                pSamplerStateParams->Unorm.ChromaKeyMode    = MHW_CHROMAKEY_MODE_KILL_ON_ANY_MATCH;
+                pSamplerStateParams->Unorm.ChromaKeyIndex   = pRenderHal->pfnAllocateChromaKey(pRenderHal, dwLow, dwHigh);
+            }
         }
         else if (SamplerType == MHW_SAMPLER_TYPE_AVS)
         {
@@ -6054,6 +6086,7 @@ bool CompositeState::BuildFilter(
                 m_pRenderHal,
                 &RenderHalSurface,
                 RENDERHAL_SS_BOUNDARY_SRCRECT) ? true : false;
+        bNeed |= IsNV12SamplerLumakeyNeeded(pSrc, m_pRenderHal) && i;
         if (bNeed)
         {
             if (pFilter->format == Format_NV12)

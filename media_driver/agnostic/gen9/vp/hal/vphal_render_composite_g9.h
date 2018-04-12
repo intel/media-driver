@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -101,6 +101,24 @@ protected:
         PVPHAL_RENDERING_DATA_COMPOSITE     pRenderingData,
         PVPHAL_SURFACE                      pTarget,
         MEDIA_OBJECT_KA2_STATIC_DATA        *pStatic);
+
+    //!
+    //! \brief    Check NV12 luma key sampler solution is needed or not
+    //! \details  This WA is needed before Gen9 platforms
+    //! \param    pSrc
+    //!           [in] Pointer to Source Surface
+    //! \param    pRenderHal
+    //!           [in] Pointer to render hal
+    //! \return   bool
+    //!           Return TRUE if needed, otherwise FALSE
+    //!
+    virtual bool IsNV12SamplerLumakeyNeeded(PVPHAL_SURFACE pSrc, PRENDERHAL_INTERFACE pRenderHal)
+    {
+        MOS_UNUSED(pRenderHal);
+
+        return (pSrc->pLumaKeyParams  &&
+            pSrc->Format == Format_NV12) ? true : false;
+    }
 };
 
 #endif // __VPHAL_RENDER_COMPOSITE_G9_H__

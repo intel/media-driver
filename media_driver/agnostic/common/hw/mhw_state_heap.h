@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -668,6 +668,12 @@ typedef enum _MHW_GFX3DSTATE_TEXCOORDMODE
     MHW_GFX3DSTATE_TEXCOORDMODE_MIRROR_ONCE     = 5
 } MHW_GFX3DSTATE_TEXCOORDMODE;
 
+typedef enum _MHW_CHROMAKEY_MODE
+{
+    MHW_CHROMAKEY_MODE_KILL_ON_ANY_MATCH = 0,
+    MHW_CHROMAKEY_MODE_REPLACE_BLACK = 1
+} MHW_CHROMAKEY_MODE;
+
 typedef struct _MHW_SAMPLER_STATE_UNORM_PARAM
 {
     MHW_SAMPLER_FILTER_MODE      SamplerFilterMode;
@@ -705,6 +711,10 @@ typedef struct _MHW_SAMPLER_STATE_UNORM_PARAM
     uint32_t IndirectStateOffset;
     void  *pIndirectState;
     bool bBorderColorIsValid;
+
+    bool bChromaKeyEnable;
+    uint32_t ChromaKeyIndex;
+    MHW_CHROMAKEY_MODE ChromaKeyMode;
 } MHW_SAMPLER_STATE_UNORM_PARAM, *PMHW_SAMPLER_STATE_UNORM_PARAM;
 
 //!

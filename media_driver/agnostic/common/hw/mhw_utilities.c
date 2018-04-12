@@ -553,7 +553,8 @@ MOS_STATUS Mhw_CalcPolyphaseTablesY(
         dwPlane != MHW_U_PLANE    &&
         dwPlane != MHW_V_PLANE)   ||
         ((IS_RGB32_FORMAT(srcFmt) ||
-        srcFmt == Format_Y410)    &&
+        srcFmt == Format_Y410     ||
+        srcFmt == Format_AYUV)    &&
         dwPlane == MHW_Y_PLANE))
     {
         if (fScaleFactor < 1.0F)

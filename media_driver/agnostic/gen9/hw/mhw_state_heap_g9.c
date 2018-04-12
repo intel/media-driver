@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -814,6 +814,13 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G9_X::SetSamplerState(
                 pUnormSamplerBorderColor->DW3.BorderColorAlpha = pParam->Unorm.BorderColorAlphaU;
 
                 pUnormSampler->DW2.IndirectStatePointer = pParam->Unorm.IndirectStateOffset >> MHW_SAMPLER_INDIRECT_SHIFT;
+            }
+
+            if (pParam->Unorm.bChromaKeyEnable)
+            {
+                pUnormSampler->DW1.ChromakeyEnable = true;
+                pUnormSampler->DW1.ChromakeyIndex  = pParam->Unorm.ChromaKeyIndex;
+                pUnormSampler->DW1.ChromakeyMode   = pParam->Unorm.ChromaKeyMode;
             }
         }
         else if (pParam->SamplerType == MHW_SAMPLER_TYPE_AVS)

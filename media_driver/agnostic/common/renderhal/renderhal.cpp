@@ -5953,7 +5953,14 @@ bool RenderHal_Is2PlaneNV12Needed(
             break;
     }
 
-    return (!MOS_IS_ALIGNED(dwSurfaceHeight, 4) || !MOS_IS_ALIGNED(dwSurfaceWidth, 4));
+     if (!GFX_IS_GEN_10_OR_LATER(pRenderHal->Platform))
+     {
+         return (!MOS_IS_ALIGNED(dwSurfaceHeight, 4) || !MOS_IS_ALIGNED(dwSurfaceWidth, 4));
+     }
+     else
+     {
+         return (!MOS_IS_ALIGNED(dwSurfaceHeight, 2) || !MOS_IS_ALIGNED(dwSurfaceWidth, 2));
+     }
 }
 
 //!

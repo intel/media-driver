@@ -710,6 +710,13 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G10_X::SetSamplerState(
 
                 pUnormSampler->DW2.IndirectStatePointer = pParam->Unorm.IndirectStateOffset >> MHW_SAMPLER_INDIRECT_SHIFT;
             }
+
+            if (pParam->Unorm.bChromaKeyEnable)
+            {
+                pUnormSampler->DW1.ChromakeyEnable = true;
+                pUnormSampler->DW1.ChromakeyIndex  = pParam->Unorm.ChromaKeyIndex;
+                pUnormSampler->DW1.ChromakeyMode   = pParam->Unorm.ChromaKeyMode;
+            }
         }
 
         else if (pParam->SamplerType == MHW_SAMPLER_TYPE_AVS)
