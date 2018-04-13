@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2017, Intel Corporation
+* Copyright (c) 2011-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1709,7 +1709,7 @@ MOS_STATUS CodechalDecodeAvc::DecodePrimitiveLevel()
         uint8_t sliceBatchBufferIdx;
         sliceBatchBufferIdx = m_avcRefList[m_currPic.FrameIdx]->ucCencBufIdx[m_isSecondField];
 
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_cencDecoder->SetBatchBufferForDecode(m_debugInterface, sliceBatchBufferIdx, &cmdBuffer));
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_cencDecoder->SetBatchBufferForDecode(m_hwInterface, m_debugInterface, sliceBatchBufferIdx, &cmdBuffer));
     }
     else
     {

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2013-2017, Intel Corporation
+* Copyright (c) 2013-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -108,6 +108,7 @@ public:
     //! \return MOS_STATUS_UNIMPLEMENTED
     //!
     MOS_STATUS SetBatchBufferForDecode(
+        CodechalHwInterface          *hwInterface,
         CodechalDebugInterface       *debugInterface,
         uint8_t                      sliceBatchBufferIdx,
         PMOS_COMMAND_BUFFER          cmdBuffer)

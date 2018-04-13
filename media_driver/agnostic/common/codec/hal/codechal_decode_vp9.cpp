@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2012-2017, Intel Corporation
+* Copyright (c) 2012-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1577,7 +1577,7 @@ MOS_STATUS CodechalDecodeVp9 :: AddPicStateMhwCmds(
         frameIdx            = m_vp9PicParams->CurrPic.FrameIdx;
         sliceBatchBufferIdx = m_vp9RefList[frameIdx]->ucCencBufIdx[0];
 
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_cencDecoder->SetBatchBufferForDecode(m_debugInterface, sliceBatchBufferIdx, cmdBuffer));
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_cencDecoder->SetBatchBufferForDecode(m_hwInterface, m_debugInterface, sliceBatchBufferIdx, cmdBuffer));
     }
     else
     {

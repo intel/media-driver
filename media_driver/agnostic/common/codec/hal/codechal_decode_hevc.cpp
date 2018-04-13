@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2012-2017, Intel Corporation
+* Copyright (c) 2012-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -2164,6 +2164,7 @@ MOS_STATUS CodechalDecodeHevc::DecodePrimitiveLevel()
             sliceBatchBufferIdx = m_hevcRefList[m_currPic.FrameIdx]->ucCencBufIdx[0];
 
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_cencDecoder->SetBatchBufferForDecode(
+                m_hwInterface,
                 m_debugInterface,
                 sliceBatchBufferIdx,
                 cmdBufferInUse));
