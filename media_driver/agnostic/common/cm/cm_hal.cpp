@@ -9575,9 +9575,6 @@ MOS_STATUS HalCm_SetCompressionMode(
 {
     MOS_STATUS              hr = MOS_STATUS_SUCCESS;
     PMOS_INTERFACE          osInterface = state->osInterface;
-
-    CM_ASSERT(mmcParam.handle);
-
     PCM_HAL_SURFACE2D_ENTRY     entry;
 
     // Get the 2D Resource Entry
