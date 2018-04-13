@@ -1353,6 +1353,13 @@ public:
     uint32_t GetProfileLevelMaxFrameSize();
 
     //!
+    //! \brief    Help function to calculate bit stream buffer size
+    //!
+    //! \return   Calcuated bitstream buffer size
+    //!
+    uint32_t GetBitstreamBufferSize();
+
+    //!
     //! \brief    Help function to create a flat scaling list (when scaling list is not passed in sequence parameter)
     //!
     //! \return   void

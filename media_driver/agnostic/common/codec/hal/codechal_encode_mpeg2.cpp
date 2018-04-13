@@ -2709,7 +2709,7 @@ MOS_STATUS CodechalEncodeMpeg2::InitializePicture(const EncoderParams& params)
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetStatusReportParams(
         m_refList[m_currReconstructedPic.FrameIdx]));
 
-    m_bitstreamUpperBound = m_encodeParams.dwBitstreamSize;
+    m_bitstreamUpperBound = m_frameWidth * m_frameHeight * 3 / 2;
 
     return eStatus;
 }

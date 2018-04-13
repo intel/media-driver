@@ -3684,11 +3684,7 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                 if (m_codecGetStatusReportDefined)
                 {
                     // Call corresponding CODEC's status report function if existing
-                    eStatus = GetStatusReport(encodeStatus, encodeStatusReport);
-                    if (MOS_STATUS_SUCCESS != eStatus)
-                    {
-                        return eStatus;
-                    }
+                    GetStatusReport(encodeStatus, encodeStatusReport);
 
                     if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface) && m_skipFrameBasedHWCounterRead == false)
                     {
@@ -3750,14 +3746,6 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                         encodeStatusReport->NumSlicesNonCompliant = 1;
                     }
                     encodeStatusReport->NumberSlices = numSlices->NumberOfSlices;
-                }
-
-                if (encodeStatusReport->bitstreamSize > m_bitstreamUpperBound)
-                {
-                    encodeStatusReport->CodecStatus = CODECHAL_STATUS_ERROR;
-                    encodeStatusReport->bitstreamSize = 0;
-                    CODECHAL_ENCODE_ASSERTMESSAGE("Bit-stream size exceeds upper bound!");
-                    return MOS_STATUS_NOT_ENOUGH_BUFFER;
                 }
 
                 if(refList->bMADEnabled)
