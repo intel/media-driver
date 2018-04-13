@@ -7850,6 +7850,9 @@ MOS_STATUS HalCm_Allocate(
     //Turn Turbo boost on
     CM_CHK_MOSSTATUS(state->pfnEnableTurboBoost(state));
 
+    // Send a command to get the timestamp base if needed
+    CM_CHK_MOSSTATUS(state->cmHalInterface->SubmitTimeStampBaseCommands());
+
     hr = MOS_STATUS_SUCCESS;
 
 finish:

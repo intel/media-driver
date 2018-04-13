@@ -33,6 +33,11 @@
 #include "renderhal_platform_interface.h"
 #include "mhw_render.h"
 
+#define CM_TIMESTAMP_BASE_REGISTER_G10          (0x0D00)
+#define CM_TIMESTAMP_BASE_CONFIG_OFFSET_G10     (3)
+#define CM_TIMESTAMP_BASE_CONFIG_MASK_G10       (1<<CM_TIMESTAMP_BASE_CONFIG_OFFSET_G10)
+#define CM_TIMESTAMP_BASE_READ_MARK_G10         (0x5a5a5a5a)
+
 // Gen10 Surface state tokenized commands - a SURFACE_STATE_G10 command and
 // a surface state command, either SURFACE_STATE_G10 or SURFACE_STATE_ADV_G10
 struct PACKET_SURFACE_STATE
@@ -44,6 +49,29 @@ struct PACKET_SURFACE_STATE
         mhw_state_heap_g10_X::MEDIA_SURFACE_STATE_CMD cmdSurfaceStateAdv;
     };
 };
+
+CM_HAL_G10_X::~CM_HAL_G10_X()
+{
+    if (!Mos_ResourceIsNull(&m_resTimestampBase.osResource))
+    {
+        if (m_resTimestampBase.locked)
+        {
+            MOS_STATUS hr = (MOS_STATUS)m_cmState->osInterface->pfnUnlockResource(
+                    m_cmState->osInterface,
+                    &m_resTimestampBase.osResource);
+
+            CM_ASSERT(hr == MOS_STATUS_SUCCESS);
+            m_resTimestampBase.locked = false;
+        }
+        m_resTimestampBase.data = nullptr;
+
+        m_cmState->osInterface->pfnFreeResourceWithFlag(
+            m_cmState->osInterface,
+            &m_resTimestampBase.osResource,
+            SURFACE_FLAG_ASSUME_NOT_IN_USE);
+    }
+}
+
 #if (_RELEASE_INTERNAL || _DEBUG)
 #if defined(CM_DIRECT_GUC_SUPPORT)
 MOS_STATUS CM_HAL_G10_X::SubmitDummyCommands(
@@ -57,6 +85,112 @@ MOS_STATUS CM_HAL_G10_X::SubmitDummyCommands(
 }
 #endif
 #endif
+MOS_STATUS CM_HAL_G10_X::SubmitTimeStampBaseCommands()
+{
+    PMOS_INTERFACE          osInterface;
+    MOS_ALLOC_GFXRES_PARAMS allocParams;
+    MOS_LOCK_PARAMS         lockFlags;
+    MOS_COMMAND_BUFFER      mosCmdBuffer;
+    MHW_MI_STORE_REGISTER_MEM_PARAMS storeRegMemParams;
+    MHW_MI_STORE_DATA_PARAMS storeDataParams;
+    PRENDERHAL_INTERFACE    renderHal = m_cmState->renderHal;
+    PMHW_MI_INTERFACE       mhwMiInterface = renderHal->pMhwMiInterface;
+    MhwRenderInterface      *mhwRender  = renderHal->pMhwRenderInterface;
+    MHW_PIPE_CONTROL_PARAMS pipeControlParams;
+        
+    MOS_STATUS hr = MOS_STATUS_SUCCESS;
+    osInterface    = m_cmState->osInterface;
+    
+    CM_CHK_MOSSTATUS(osInterface->pfnSetGpuContext(osInterface, MOS_GPU_CONTEXT_RENDER3));
+    MOS_ZeroMemory(&mosCmdBuffer, sizeof(MOS_COMMAND_BUFFER)); 
+
+    if (m_resTimestampBase.locked == false || m_resTimestampBase.data == nullptr)
+    {
+        // allocate Time stamp base Resource
+        MOS_ZeroMemory(&allocParams, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+        allocParams.Type    = MOS_GFXRES_BUFFER;
+        allocParams.dwBytes = MHW_CACHELINE_SIZE;
+        allocParams.Format  = Format_Buffer;  //used in RenderHal_OsAllocateResource_Linux
+        allocParams.TileType= MOS_TILE_LINEAR;
+        allocParams.pBufName = "TsBaseResource";
+
+        CM_CHK_MOSSTATUS(osInterface->pfnAllocateResource(
+            osInterface,
+            &allocParams,
+            &m_resTimestampBase.osResource));
+
+        // Lock the Resource
+        MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+
+        lockFlags.ReadOnly = 1;
+        lockFlags.ForceCached = true;
+
+        m_resTimestampBase.data = (uint8_t*)osInterface->pfnLockResource(
+                                            osInterface,
+                                            &m_resTimestampBase.osResource,
+                                            &lockFlags);
+
+        CM_CHK_NULL_RETURN_MOSSTATUS(m_resTimestampBase.data);
+
+        MOS_ZeroMemory(m_resTimestampBase.data, MHW_CACHELINE_SIZE);
+
+        m_resTimestampBase.locked  = true;
+        
+
+        // Register Timestamp Base Buffer
+        CM_CHK_MOSSTATUS(osInterface->pfnRegisterResource(
+            osInterface,
+            &m_resTimestampBase.osResource,
+            true,
+            true));
+    }
+    
+    // Allocate all available space, unused buffer will be returned later
+    CM_CHK_MOSSTATUS(osInterface->pfnGetCommandBuffer(osInterface, &mosCmdBuffer, 0));
+
+    renderHal->pfnInitCommandBuffer(renderHal, &mosCmdBuffer, nullptr);
+
+    MOS_ZeroMemory(&storeRegMemParams, sizeof(storeRegMemParams));
+
+    storeRegMemParams.presStoreBuffer = &m_resTimestampBase.osResource;
+    storeRegMemParams.dwOffset        = 0;
+    storeRegMemParams.dwRegister      = CM_TIMESTAMP_BASE_REGISTER_G10;
+    CM_CHK_MOSSTATUS(mhwMiInterface->AddMiStoreRegisterMemCmd(&mosCmdBuffer, &storeRegMemParams));
+
+    MOS_ZeroMemory(&storeDataParams, sizeof(storeDataParams));
+
+    storeDataParams.pOsResource         = &m_resTimestampBase.osResource;
+    storeDataParams.dwResourceOffset    = sizeof(uint32_t);
+    storeDataParams.dwValue             = CM_TIMESTAMP_BASE_READ_MARK_G10; // to check whether timestamp base been written
+
+    CM_CHK_MOSSTATUS(mhwMiInterface->AddMiStoreDataImmCmd(&mosCmdBuffer, &storeDataParams));
+
+    MOS_ZeroMemory(&pipeControlParams, sizeof(pipeControlParams));
+    pipeControlParams.dwFlushMode = MHW_FLUSH_WRITE_CACHE;
+    pipeControlParams.bGenericMediaStateClear = true;
+    pipeControlParams.bIndirectStatePointersDisable = true;
+    pipeControlParams.bDisableCSStall = false;
+    CM_CHK_MOSSTATUS(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeControlParams));
+
+    if (MEDIA_IS_WA(renderHal->pWaTable, WaSendDummyVFEafterPipelineSelect))
+    {
+        MHW_VFE_PARAMS vfeStateParams;
+
+        MOS_ZeroMemory(&vfeStateParams, sizeof(vfeStateParams));
+        vfeStateParams.dwNumberofURBEntries = 1;
+        CM_CHK_MOSSTATUS(mhwRender->AddMediaVfeCmd(&mosCmdBuffer, &vfeStateParams));
+    }
+
+    CM_CHK_MOSSTATUS(mhwMiInterface->AddMiBatchBufferEnd(&mosCmdBuffer, nullptr));
+
+    osInterface->pfnReturnCommandBuffer(osInterface, &mosCmdBuffer, 0);
+
+    CM_CHK_MOSSTATUS(osInterface->pfnSubmitCommandBuffer(osInterface, &mosCmdBuffer, false));
+
+finish:
+    return hr;
+}
+
 MOS_STATUS CM_HAL_G10_X::SubmitCommands(
     PMHW_BATCH_BUFFER       batchBuffer,
     int32_t                 taskId,
@@ -1266,5 +1400,28 @@ MOS_STATUS CM_HAL_G10_X::GetExpectedGtSystemConfig(
     }
 
     return MOS_STATUS_SUCCESS;
+}
+
+uint64_t CM_HAL_G10_X::ConvertTicksToNanoSeconds(uint64_t ticks)
+{
+    if ((!m_timestampBaseStored) && m_resTimestampBase.locked && m_resTimestampBase.data
+        && *((uint32_t *)(m_resTimestampBase.data + sizeof(uint32_t))) == CM_TIMESTAMP_BASE_READ_MARK_G10)
+    {
+        uint32_t regValue = *((uint32_t *)m_resTimestampBase.data);
+        uint32_t tsConfig = (regValue & CM_TIMESTAMP_BASE_CONFIG_MASK_G10) >> CM_TIMESTAMP_BASE_CONFIG_OFFSET_G10;
+        switch(tsConfig)
+        {
+            case 0:
+                m_nsPerTick = 52.083;
+                break;
+            case 1:
+            default:
+                m_nsPerTick = 83.333;
+                break;
+        }
+        m_timestampBaseStored = true;
+    }
+
+    return (uint64_t)(ticks * m_nsPerTick);
 }
 

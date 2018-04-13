@@ -431,7 +431,6 @@ public:
         void                    **cmdBuffer);
 #endif
 #endif
-
     MOS_STATUS UpdatePlatformInfoFromPower(
                         PCM_PLATFORM_INFO platformInfo,
                         bool              euSaturated);
@@ -482,6 +481,8 @@ public:
             PMHW_SAMPLER_STATE_PARAM mhwSamplerParam,
             SamplerParam  &samplerParam);
 
+    uint64_t ConvertTicksToNanoSeconds(uint64_t ticks);
+
 private:
 
     MOS_STATUS RegisterSampler8x8AVSTable(
@@ -491,6 +492,7 @@ private:
     MOS_STATUS SetupHwDebugControl(
                         PRENDERHAL_INTERFACE   renderHal,
                         PMOS_COMMAND_BUFFER    cmdBuffer);
+
 };
 
 #endif  // __CM_HAL_G8_H__
