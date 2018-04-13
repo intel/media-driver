@@ -43,7 +43,7 @@ public:
     int32_t WaitForReferenceFree();
     int32_t SetMemoryObjectControl(MEMORY_OBJECT_CONTROL memCtrl, MEMORY_TYPE memType, uint32_t age);
     std::string GetFormatString(CM_SURFACE_FORMAT format);
-    virtual void DumpContent(uint32_t kernelNumber, int32_t taskId, uint32_t argIndex) { return; }
+    virtual void DumpContent(uint32_t kernelNumber, char *kernelName, int32_t taskId, uint32_t argIndex) { return; }
     virtual void Log(std::ostringstream &oss) { return; }
 
 protected:

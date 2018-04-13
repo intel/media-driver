@@ -245,7 +245,7 @@ MOS_STATUS MOS_CreateDirectory(
     MOS_OS_CHK_NULL(lpPathName);
 
     // Set read/write access right for usr/group.
-    mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP;
+    mode = S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP;
     if (mkdir(lpPathName, mode) < 0 &&
         errno != EEXIST) // Directory already exists, don't return failure in this case.
     {

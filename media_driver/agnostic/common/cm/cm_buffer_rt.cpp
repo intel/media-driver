@@ -448,13 +448,14 @@ void CmBuffer_RT::Log(std::ostringstream &oss)
 //| Returns:    None
 //| Notes:      Must be called after task finished.
 //*-----------------------------------------------------------------------------
-void CmBuffer_RT::DumpContent(uint32_t kernelNumber, int32_t taskId, uint32_t argIndex)
+void CmBuffer_RT::DumpContent(uint32_t kernelNumber, char *kernelName, int32_t taskId, uint32_t argIndex)
 {
 #if MDF_SURFACE_CONTENT_DUMP
     std::ostringstream outputFileName;
     static uint32_t bufferDumpNumber = 0;
     outputFileName << "t_" << taskId
         << "_k_" << kernelNumber
+        << "_" << kernelName
         <<"_argi_"<< argIndex
         << "_buffer_surfi_" << m_index->get_data()
         <<"_w_"<< m_size
