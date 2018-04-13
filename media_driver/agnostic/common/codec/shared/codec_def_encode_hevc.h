@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2017, Intel Corporation
+* Copyright (c) 2016-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -931,6 +931,7 @@ struct CodecEncodeHevcFeiPicParams
     uint32_t                    RefHeight;
     uint32_t                    SearchWindow;
     uint32_t                    MaxNumIMESearchCenter;
+    uint32_t                    FastIntraMode;
     uint32_t                    NumConcurrentEncFramePartition;
 
     /** \brief add for mutlple pass pak */
