@@ -2530,6 +2530,7 @@ MOS_STATUS CodechalEncHevcStateG10::SetCurbeBrcInitReset(CODECHAL_HEVC_BRC_KRNID
     curbe.DW25_ACQPBuffer           = 1;
     curbe.DW25_Log2MaxCuSize        = (m_isMaxLcu64) ? 6 : 5;
     curbe.DW25_SlidingWindowSize    = m_slidingWindowSize;
+    curbe.DW8_BRCFlag              |= BRCINIT_IGNORE_PICTURE_HEADER_SIZE;
 
     if (m_hevcSeqParams->RateControlMethod == RATECONTROL_CBR)
     {
