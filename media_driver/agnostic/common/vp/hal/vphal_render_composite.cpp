@@ -3033,6 +3033,7 @@ int32_t CompositeState::SetLayer(
     int32_t     iResult;
     float       fHorizgap, fVertgap;                // horizontal gap and vertical gap: based on Sampler need
     uint32_t    dwLow, dwHigh;
+    bool        bForceNearestForUV = false;
 
     // cropping
     float       fCropX, fCropY;
@@ -3373,6 +3374,7 @@ int32_t CompositeState::SetLayer(
                 {
                     dwLow  = pSource->pLumaKeyParams->LumaLow << 16;
                     dwHigh = (pSource->pLumaKeyParams->LumaHigh << 16) | 0xFF00FFFF;
+                    bForceNearestForUV = true;
                 }
                 else
                 {
@@ -3383,6 +3385,11 @@ int32_t CompositeState::SetLayer(
                 pSamplerStateParams->Unorm.bChromaKeyEnable = true;
                 pSamplerStateParams->Unorm.ChromaKeyMode    = MHW_CHROMAKEY_MODE_KILL_ON_ANY_MATCH;
                 pSamplerStateParams->Unorm.ChromaKeyIndex   = pRenderHal->pfnAllocateChromaKey(pRenderHal, dwLow, dwHigh);
+
+                if (iSamplerID != VPHAL_SAMPLER_Y && bForceNearestForUV)
+                {
+                    pSamplerStateParams->Unorm.SamplerFilterMode = MHW_SAMPLER_FILTER_NEAREST;
+                }
             }
         }
         else if (SamplerType == MHW_SAMPLER_TYPE_AVS)
