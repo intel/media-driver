@@ -35,14 +35,15 @@ class CmDevice;
 class CmKernel;
 class CmTaskInternal;
 
+const uint32_t NOTIFIER_NULL_ID = 0;
+
 class CmNotifier
 {
 public:
     CmNotifier() {};
     virtual ~CmNotifier() {};
     virtual bool Valid() {return false;}
-    virtual bool Registered() {return false;}
-    virtual void SetRegistered() {}
+    virtual unsigned int ID() {return NOTIFIER_NULL_ID;}
     virtual int NotifyDeviceCreated(CmDevice *device)
     {
         // if the derived class doesn't implement this, just return 0
@@ -80,16 +81,16 @@ public:
     typedef std::vector<Creator>  Creators;
     typedef typename Creators::iterator Iterator;
  
-    CmNotifierGroup()
+    CmNotifierGroup() : m_ids(0)
     {
         Creators &creators = GetCreators();
         for (Iterator iter = creators.begin(); iter != creators.end(); iter ++)
         {
             CmNotifier *notifier = (*iter)();
-            if (notifier != nullptr && notifier->Valid() && (!notifier->Registered()))
+            if (notifier != nullptr && notifier->Valid() && !IsAdded(notifier->ID()))
             {
                 m_notifiers.push_back(notifier);
-                notifier->SetRegistered();
+                m_ids = m_ids | (1 << notifier->ID());
             }
             else if (notifier != nullptr)
             {
@@ -181,6 +182,7 @@ public:
     
 protected:
     std::vector<CmNotifier *> m_notifiers;
+    uint32_t m_ids;
     
     static Creators& GetCreators()
     {
@@ -192,6 +194,11 @@ protected:
     static CmNotifier* Create()
     {
         return MOS_New(T);
+    }
+
+    bool IsAdded(uint32_t id)
+    {
+        return m_ids & (1<<id);
     }
   
 };

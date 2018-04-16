@@ -217,12 +217,6 @@ CmDeviceRT::CmDeviceRT(uint32_t options):
 //*-----------------------------------------------------------------------------
 void CmDeviceRT::DestructCommon()
 {
-    // Notify the listeners
-    if (m_notifierGroup != nullptr)
-    {
-        m_notifierGroup->NotifyDeviceDestroyed(this);
-    }
-
     // Delete Predefined Program
     if(m_gpuCopyKernelProgram)
     {
@@ -379,6 +373,12 @@ void CmDeviceRT::DestructCommon()
     }
     m_criticalSectionQueue.Release();
 
+    // Notify the listeners
+    if (m_notifierGroup != nullptr)
+    {
+        m_notifierGroup->NotifyDeviceDestroyed(this);
+    }
+    
     //Free the notifiers
     if (m_notifierGroup != nullptr)
     {
