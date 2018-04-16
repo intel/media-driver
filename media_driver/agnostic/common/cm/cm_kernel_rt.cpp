@@ -1419,6 +1419,11 @@ int32_t CmKernelRT::SetArgsInternalSurfArray(
                currentSurfIndex = value[offset].get_data();
            }
 
+           if(surfaceArraySize == 0)
+           {
+               CM_ASSERTMESSAGE("Error: No surface in surface array");
+               return CM_NO_AVAILABLE_SURFACE;
+           }
            if (currentSurfIndex > surfaceArraySize)
            {
                currentSurfIndex = currentSurfIndex % surfaceArraySize;
@@ -4364,7 +4369,7 @@ int32_t CmKernelRT::UpdateKernelData(
 
         CMCHK_HR(SortThreadSpace(m_threadSpace));
 
-        uint32_t threadSpaceWidth, threadSpaceHeight;
+        uint32_t threadSpaceWidth = 0, threadSpaceHeight = 0;
         PCM_HAL_KERNEL_THREADSPACE_PARAM  cmKernelThreadSpaceParam = &halKernelParam->kernelThreadSpaceParam;
         m_threadSpace->GetThreadSpaceSize(threadSpaceWidth, threadSpaceHeight);
 
@@ -4373,7 +4378,7 @@ int32_t CmKernelRT::UpdateKernelData(
         m_threadSpace->GetDependencyPatternType(cmKernelThreadSpaceParam->patternType);
         m_threadSpace->GetWalkingPattern(cmKernelThreadSpaceParam->walkingPattern);
 
-        CM_HAL_DEPENDENCY*     dependency;
+        CM_HAL_DEPENDENCY*     dependency = nullptr;
         m_threadSpace->GetDependency( dependency);
 
         if(dependency != nullptr)
@@ -5060,7 +5065,7 @@ CM_RT_API int32_t CmKernelRT::DeAssociateThreadSpace(CmThreadSpace * &threadSpac
 
 CM_RT_API int32_t CmKernelRT::QuerySpillSize(uint32_t &spillMemorySize)
 {
-    CM_KERNEL_INFO  *kernelInfo;
+    CM_KERNEL_INFO  *kernelInfo = nullptr;
 
     int32_t hr = m_program->GetKernelInfo(m_kernelIndex, kernelInfo);
     if (hr != CM_SUCCESS || kernelInfo == nullptr)
