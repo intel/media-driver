@@ -152,6 +152,12 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
     // Initialize command buffer and insert prolog
     CM_CHK_MOSSTATUS(renderHal->pfnInitCommandBuffer(renderHal, &mosCmdBuffer, &genericPrologParams));
 
+    // Record registers by unified media profiler in the beginning
+    if (state->perfProfiler != nullptr)
+    {
+        CM_CHK_MOSSTATUS(state->perfProfiler->AddPerfCollectStartCmd((void *)state, state->osInterface, mhwMiInterface, &mosCmdBuffer));
+    }
+    
     //Send the First PipeControl Command to indicate the beginning of execution
     pipeCtrlParams = g_cRenderHal_InitPipeControlParams;
     pipeCtrlParams.presDest          = &state->renderTimeStampResource.osResource;
@@ -431,6 +437,12 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
     pipeCtrlParams.dwPostSyncOp      = MHW_FLUSH_WRITE_TIMESTAMP_REG;
     pipeCtrlParams.dwFlushMode       = MHW_FLUSH_READ_CACHE;
     CM_CHK_MOSSTATUS(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeCtrlParams));
+
+    // Record registers by unified media profiler in the end
+    if (state->perfProfiler != nullptr)
+    {
+        CM_CHK_MOSSTATUS(state->perfProfiler->AddPerfCollectEndCmd((void *)state, state->osInterface, mhwMiInterface, &mosCmdBuffer));
+    }
 
     if ( slmUsed & state->pfnIsWASLMinL3Cache())
     {

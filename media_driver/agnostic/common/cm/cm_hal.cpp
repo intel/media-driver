@@ -10111,8 +10111,12 @@ MOS_STATUS HalCm_Create(
     MOS_ZeroMemory(&state->hintIndexes.kernelIndexes, sizeof(uint32_t) * CM_MAX_TASKS_EU_SATURATION);
     MOS_ZeroMemory(&state->hintIndexes.dispatchIndexes, sizeof(uint32_t) * CM_MAX_TASKS_EU_SATURATION);
 
-    state->criticalSectionDSH = CMRT_UMD::CSync();
+    // get the global media profiler
+    state->perfProfiler = MediaPerfProfiler::Instance();
+    CM_CHK_NULL_RETURN_MOSSTATUS(state->perfProfiler);
+    CM_CHK_MOSSTATUS(state->perfProfiler->Initialize((void*)state, state->osInterface));
 
+    state->criticalSectionDSH = CMRT_UMD::CSync();
 
     state->cmDeviceParam.maxKernelsPerTask        = CM_MAX_KERNELS_PER_TASK;
     state->cmDeviceParam.maxSamplerTableSize      = CM_MAX_SAMPLER_TABLE_SIZE;
@@ -10245,6 +10249,13 @@ void HalCm_Destroy(
         MosSafeDelete(state->cpInterface);
         MosSafeDelete(state->state_buffer_list_ptr);
 
+        // Delete the unified media profiler
+        if (state->perfProfiler)
+        {
+            MediaPerfProfiler::Destroy(state->perfProfiler, (void*)state, state->osInterface);
+            state->perfProfiler = nullptr;
+        }
+        
         // Delete Batch Buffers
         if (state->batchBuffers)
         {
