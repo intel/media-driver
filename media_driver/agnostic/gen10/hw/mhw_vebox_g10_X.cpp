@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -973,7 +973,7 @@ MOS_STATUS MhwVeboxInterfaceG10::AddVeboxDiIecp(
     {
         MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
         ResourceParams.presResource    = pVeboxDiIecpCmdParams->pOsResCurrOutput;
-        ResourceParams.dwOffset        = pVeboxDiIecpCmdParams->CurrOutputSurfCtrl.Value;
+        ResourceParams.dwOffset        = pVeboxDiIecpCmdParams->CurrOutputSurfCtrl.Value + pVeboxDiIecpCmdParams->dwCurrOutputSurfOffset;
         ResourceParams.pdwCmd          =  & (cmd.DW12.Value);
         ResourceParams.dwLocationInCmd = 12;
         ResourceParams.bIsWritable     = true;

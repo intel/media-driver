@@ -788,7 +788,6 @@ MOS_STATUS VPHAL_VEBOX_STATE_G10_BASE::SetupDiIecpStateForOutputSurf(
 {
     PMOS_INTERFACE                pOsInterface;
     PRENDERHAL_INTERFACE          pRenderHal;
-    MHW_VEBOX_SURFACE_PARAMS      MhwVeboxSurfaceParam;
     PMHW_VEBOX_INTERFACE          pVeboxInterface;
     PVPHAL_VEBOX_STATE_G10_BASE    pVeboxState = this;
     PVPHAL_VEBOX_RENDER_DATA      pRenderData = GetLastExecRenderData();
@@ -811,6 +810,8 @@ MOS_STATUS VPHAL_VEBOX_STATE_G10_BASE::SetupDiIecpStateForOutputSurf(
 
         pVeboxDiIecpCmdParams->pOsResCurrOutput   =
             &pRenderData->pRenderTarget->OsResource;
+        pVeboxDiIecpCmdParams->dwCurrOutputSurfOffset =
+            pRenderData->pRenderTarget->dwOffset;
         pVeboxDiIecpCmdParams->CurrOutputSurfCtrl.Value =
             pVeboxState->DnDiSurfMemObjCtl.CurrentOutputSurfMemObjCtl;
 

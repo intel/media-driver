@@ -149,6 +149,7 @@ MOS_STATUS VpHal_InitVeboxSurfaceStateCmdParams(
         VPHAL_RENDER_CHK_STATUS(VpHal_InitVeboxSurfaceParams(
                                 pVpHalVeboxSurfaceStateCmdParams->pSurfOutput,
                                 &pMhwVeboxSurfaceStateCmdParams->SurfOutput));
+        pMhwVeboxSurfaceStateCmdParams->SurfOutput.dwYoffset = pVpHalVeboxSurfaceStateCmdParams->pSurfOutput->YPlaneOffset.iYOffset;
     }
     if (pVpHalVeboxSurfaceStateCmdParams->pSurfSTMM)
     {

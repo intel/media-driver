@@ -652,6 +652,7 @@ typedef struct _MHW_VEBOX_DI_IECP_CMD_PARAMS
     uint32_t                            dwStartingX;
     uint32_t                            dwCurrInputSurfOffset;
     uint32_t                            dwPrevInputSurfOffset;
+    uint32_t                            dwCurrOutputSurfOffset;
     uint32_t                            dwStreamID;
 
     PMOS_RESOURCE                       pOsResCurrInput;
