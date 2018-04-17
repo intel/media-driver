@@ -1400,6 +1400,13 @@ MOS_STATUS CodechalVdencHevcStateG10::EncodeKernelFunctions()
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
 #ifndef _FULL_OPEN_SOURCE
+    if (m_pictureCodingType == P_TYPE)
+    {
+        CODECHAL_ENCODE_ASSERTMESSAGE("GEN10 HEVC VDENC does not support P slice");
+        eStatus = MOS_STATUS_INVALID_PARAMETER;
+        return eStatus;
+    }
+
     if (m_cscDsState->RequireCsc())
     {
         CODECHAL_ENCODE_CHK_NULL_RETURN(m_cscDsState);
