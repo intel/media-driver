@@ -31,7 +31,7 @@
 #include <va/va_dricommon.h>
 #include "mos_defs.h"
 
-#define LIBVA_X11_NAME "libva-x11.so"
+#define LIBVA_X11_NAME "libva-x11.so.2"
 typedef struct dri_drawable *(*dri_get_drawable_func)(
     VADriverContextP ctx, XID drawable);
 typedef union dri_buffer *(*dri_get_rendering_buffer_func)(
