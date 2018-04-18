@@ -762,8 +762,13 @@ VAStatus DdiMediaDecode::CreateBuffer(
             va = m_ddiDecodeCtx->pCpDdiInterface->CreateBuffer(type, buf, size, numElements);
             if (va  == VA_STATUS_ERROR_UNSUPPORTED_BUFFERTYPE)
             {
-                MOS_FreeMemory(buf);
-                return va;
+                DDI_ASSERTMESSAGE("DDI:Decode CreateBuffer unsuppoted buffer type.");
+                buf->pData      = (uint8_t*)MOS_AllocAndZeroMemory(size * numElements);
+                buf->format     = Media_Format_CPU;
+                if(buf->pData != NULL)
+                {
+                    va = VA_STATUS_SUCCESS;
+                }
             }
             break;
     }
