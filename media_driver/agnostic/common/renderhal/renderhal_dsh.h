@@ -72,7 +72,7 @@ typedef struct _RENDERHAL_DYNAMIC_STATE
     // State allocations
     int32_t                     iMaxScratchSpacePerThread;                      // Max per thread scratch space reported by JITTER
     uint32_t                    dwScratchSpace;                                 // Size of scratch space needed
-    uint32_t                    scratchSpaceOffset;                             // Offset to scratch space within the memory block
+    uint32_t                    scratchSpaceOffset;                             // Offset to scratch space which is relative to General State Base Address
     int32_t                     iCurrentBindingTable;                           // Current binding table
     int32_t                     iCurrentSurfaceState;                           // Current surface state
     PRENDERHAL_KRN_ALLOCATION   pKrnAllocations[RENDERHAL_DSH_MAX_MEDIA_IDs];   // Media Kernel Allocations (1:1 mapping with Media IDs)

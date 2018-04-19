@@ -1977,7 +1977,8 @@ PRENDERHAL_MEDIA_STATE RenderHal_DSH_AssignDynamicState(
 
     // Kernel Spill Area
     if (pParams->iMaxSpillSize > 0)
-    {   // per thread scratch space must be 1K*(2^n), (2K*(2^n) for BDW A0), alignment is 1kB
+    {   
+        // per thread scratch space must be 1K*(2^n), (2K*(2^n) for BDW A0), alignment is 1kB
         int iPerThreadScratchSpace;
         if (pRenderHal->pfnPerThreadScratchSpaceStart2K(pRenderHal))
             iPerThreadScratchSpace = 2048;
@@ -1988,13 +1989,12 @@ PRENDERHAL_MEDIA_STATE RenderHal_DSH_AssignDynamicState(
 
         pDynamicState->iMaxScratchSpacePerThread = pParams->iMaxSpillSize = iPerThreadScratchSpace;
         pDynamicState->dwScratchSpace = pRenderHal->pfnGetScratchSpaceSize(pRenderHal, iPerThreadScratchSpace);
-    }
+        pDynamicState->scratchSpaceOffset = dwSizeMediaState;
 
-    pDynamicState->scratchSpaceOffset = dwSizeMediaState;
-    dwSizeMediaState += pDynamicState->dwScratchSpace;
-    currentExtendSize = pRenderHal->dgsheapManager->GetExtendSize();
-    if (pParams->iMaxSpillSize > 0)
-    {
+        // Allocate more 1k space in state heap, which is used to make scratch space offset 1k-aligned.
+        dwSizeMediaState += pDynamicState->dwScratchSpace + MHW_SCRATCH_SPACE_ALIGN;
+
+        currentExtendSize = pRenderHal->dgsheapManager->GetExtendSize();
         if (currentExtendSize < pDynamicState->dwScratchSpace)
         {
             // update extend size for scratch space
@@ -2024,11 +2024,21 @@ PRENDERHAL_MEDIA_STATE RenderHal_DSH_AssignDynamicState(
         true,
         true));
 
-    // Restore original extend heap size
-    MHW_RENDERHAL_CHK_STATUS(
-        pRenderHal->dgsheapManager->SetExtendHeapSize(
-            currentExtendSize));
+    if (pParams->iMaxSpillSize > 0)
+    {
+        // Restore original extend heap size
+        MHW_RENDERHAL_CHK_STATUS(
+            pRenderHal->dgsheapManager->SetExtendHeapSize(
+                currentExtendSize));
 
+        // Specifies the 1k-byte aligned address offset to scratch space for
+        // use by the kernel.  This pointer is relative to the
+        // General State Base Address (1k aligned)
+        // Format = GeneralStateOffset[31:10]
+        pDynamicState->scratchSpaceOffset += pDynamicState->memoryBlock.GetOffset();
+        pDynamicState->scratchSpaceOffset = MOS_ALIGN_CEIL(pDynamicState->scratchSpaceOffset, MHW_SCRATCH_SPACE_ALIGN);
+    }
+ 
     // set the sync tag for the media state
     pMediaState->dwSyncTag = pRenderHal->pfnGetNextTrackerId(pRenderHal);
 

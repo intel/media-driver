@@ -5134,14 +5134,10 @@ uint32_t CmKernelRT::GetSpillMemUsed()
     {
         spillSize = (m_kernelInfo->jitInfo)->spillMemUsed;
     }
-    else if (m_blCreatingGPUCopyKernel)
-    {
-        spillSize = 0;
-    }
     else
     {
-        // kernel uses "--nojitter" option, use spill size indicated by client during device creation
-        spillSize = m_halMaxValues->maxSpillSizePerHwThread;
+        // kernel uses "--nojitter" option, don't allocate scratch space
+        spillSize = 0;
     }
 
     return spillSize;
