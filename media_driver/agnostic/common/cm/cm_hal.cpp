@@ -7835,15 +7835,13 @@ MOS_STATUS HalCm_Allocate(
     state->nullHwRenderCm          = nullHWAccelerationEnable.Cm || nullHWAccelerationEnable.VPGobal;
 
     //during initialization stage to allocate sip resource and Get sip binary.
-    if (state->platform.eRenderCoreFamily <= IGFX_GEN10_CORE)
+    if ((state->midThreadPreemptionDisabled == false)
+     || (state->kernelDebugEnabled == true))
     {
-        if ((state->midThreadPreemptionDisabled == false)
-            || (state->kernelDebugEnabled == true))
-        {
-            CM_CHK_MOSSTATUS(state->cmHalInterface->AllocateSIPCSRResource());
-            state->pfnGetSipBinary(state);
-        }
+        CM_CHK_MOSSTATUS(state->cmHalInterface->AllocateSIPCSRResource());
+        state->pfnGetSipBinary(state);
     }
+
     //Init flag for conditional batch buffer
     state->cbbEnabled = HalCm_IsCbbEnabled(state);
 
