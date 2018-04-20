@@ -108,36 +108,36 @@ CNL (Cannonlake)
 
 ## Supported Codecs
 
-| CODEC      | D/E | Platform(s)         |
-|------------|-----|---------------------|
-| H.264      |  D  | BDW/SKL/BXT/APL/CNL |
-| H.264      |  E  | BDW/SKL/BXT/APL/CNL |
-| MPEG-2     |  D  | BDW/SKL/BXT/APL/CNL |
-| MPEG-2     |  E  | BDW/SKL/CNL         |
-| VC-1       |  D  | BDW/SKL/BXT/APL/CNL |
-| JPEG       |  D  | BDW/SKL/BXT/APL/CNL |
-| JPEG       |  E  | SKL/BXT/APL/CNL     |
-| VP8        |  D  | BDW/SKL/BXT/APL/CNL |
-| VP8        |  E  | CNL                 |
-| HEVC       |  D  | SKL/BXT/APL/CNL     |
-| HEVC       |  E  | SKL/BXT/APL/CNL     |
-| HEVC 10bit |  D  | BXT/APL/CNL         |
-| HEVC 10bit |  E  | CNL                 |
-| VP9        |  D  | BXT/APL/CNL         |
-| VP9        |  E  | CNL                 |
-| VP9 10bit  |  D  | CNL                 |
+| CODEC      | BDW | SKL | BXT/APL | CNL |
+|------------|-----|-----|---------|-----|
+| H.264      | D/E | D/E |   D/E   | D/E |
+| MPEG-2     | D/E | D/E |    D    | D/E |
+| VC-1       |  D  |  D  |    D    |  D  |
+| JPEG       |  D  | D/E |   D/E   | D/E |
+| VP8        |  D  |  D  |    D    | D/E |
+| HEVC       |     | D/E |   D/E   | D/E |
+| HEVC 10bit |     |     |    D    | D/E |
+| VP9        |     |     |    D    | D/E |
+| VP9 10bit  |     |     |         |  D  |
 
 
 ## Known Issues and Limitations
 
-1. SKL: Green or other incorrect color will be observed in output frames when using
+1. Intel(R) Media Driver for VAAPI is recommended to be built against gcc compiler v6.1
+or later, which officially supported C++11.
+
+2. SKL: Green or other incorrect color will be observed in output frames when using
 YV12/I420 as input format for csc/scaling/blending/rotation, etc. on Ubuntu 16.04 stock
 (with kernel 4.10). The issue can be addressed with the kernel patch:
 WaEnableYV12BugFixInHalfSliceChicken7 [commit 0b71cea29fc29bbd8e9dd9c641fee6bd75f6827](https://cgit.freedesktop.org/drm-tip/commit/?id=0b71cea29fc29bbd8e9dd9c641fee6bd75f68274)
 
-2. CNL: Functionalities requiring HuC including AVC BRC for low power encoding, HEVC low power encoding, and VP9 low power encoding are pending on the kernel patch for GuC support which is expected in Q1’2018.
+3. APL: BRC functionalities requiring HuC for AVC low power encoding require 4.11 or
+later kernel to work.
 
-3. BXT/APL: Limited validation was performed; product quality expected in Q1’2018.
+4. CNL: Functionalities requiring HuC including AVC BRC for low power encoding, HEVC low
+power encoding, and VP9 low power encoding require the kernel patch for GuC support to work.
+
+5. CNL: HEVC encoding does not support P frame.
 
 ##### (*) Other names and brands may be claimed as property of others.
 
