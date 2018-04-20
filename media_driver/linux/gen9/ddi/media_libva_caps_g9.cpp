@@ -78,6 +78,8 @@ VAStatus MediaLibvaCapsG9::GetPlatformSpecificAttrib(VAProfile profile,
         }
         case VAConfigAttribEncROI:
         {
+            VAConfigAttribValEncROI roi_attr = { .value = 0 };
+
             if (entrypoint == VAEntrypointEncSliceLP)
             {
                 status = VA_STATUS_ERROR_INVALID_PARAMETER;
@@ -85,24 +87,18 @@ VAStatus MediaLibvaCapsG9::GetPlatformSpecificAttrib(VAProfile profile,
             else if (IsAvcProfile(profile))
             {
                 // the capacity is differnt for CQP and BRC mode, set it as larger one here
-                uint32_t roiBRCPriorityLevelSupport = 1;
-                uint32_t roiBRCQpDeltaSupport = 1;
-                *value = (roiBRCPriorityLevelSupport << 9)
-                    | (roiBRCQpDeltaSupport << 8)
-                    | ENCODE_DP_AVC_MAX_ROI_NUM_BRC;
+                roi_attr.bits.num_roi_regions = ENCODE_DP_AVC_MAX_ROI_NUM_BRC;
+                roi_attr.bits.roi_rc_priority_support = 1;
+                roi_attr.bits.roi_rc_qp_delta_support = 1;
             }
             else if (IsHevcProfile(profile))
             {
-                uint32_t roiBRCPriorityLevelSupport = 1;
-                uint32_t roiBRCQpDeltaSupport = 1;
-                *value = (roiBRCPriorityLevelSupport << 9)
-                    | (roiBRCQpDeltaSupport << 8)
-                    | ENCODE_DP_HEVC_MAX_NUM_ROI;
+                roi_attr.bits.num_roi_regions = ENCODE_DP_HEVC_MAX_NUM_ROI;
+                roi_attr.bits.roi_rc_priority_support = 1;
+                roi_attr.bits.roi_rc_qp_delta_support = 1;
             }
-            else
-            {
-                *value = 0;
-            }
+
+            *value = roi_attr.value;
             break;
         }
         case VAConfigAttribCustomRoundingControl:
