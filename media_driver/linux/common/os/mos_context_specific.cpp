@@ -48,6 +48,11 @@
 
 OsContextSpecific::OsContextSpecific()
 {
+    for (int i = 0; i < MOS_GPU_CONTEXT_MAX; i++)
+    {
+        m_GpuContextHandle[i] = MOS_GPU_CONTEXT_INVALID_HANDLE;
+    }
+
     MOS_OS_FUNCTION_ENTER;
 }
 
@@ -623,6 +628,22 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
 
 void OsContextSpecific::Destroy()
 {
+    MOS_OS_FUNCTION_ENTER;
+
+    for (auto i = 0; i < MOS_GPU_CONTEXT_MAX; i++)
+    {
+        if (m_GpuContextHandle[i] != MOS_GPU_CONTEXT_INVALID_HANDLE)
+        {
+            auto gpuContext = m_gpuContextMgr->GetGpuContext(m_GpuContextHandle[i]);
+            if (gpuContext == nullptr)
+            {
+                MOS_OS_ASSERTMESSAGE("cannot find the gpuContext corresponding to the active gpuContextHandle");
+                continue;
+            }
+            m_gpuContextMgr->DestroyGpuContext(gpuContext);
+        }
+    }
+
  #ifndef ANDROID
     if (m_kmdHasVCS2)
     {

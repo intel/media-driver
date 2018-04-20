@@ -1406,7 +1406,7 @@ VAStatus DdiMedia__Initialize (
             return VA_STATUS_ERROR_OPERATION_FAILED;
         }
 
-        MOS_STATUS ret = mediaCtx->m_cmdBufMgr->Initialize(mediaCtx->m_osContext, COMMAND_BUFFER_SIZE);
+        MOS_STATUS ret = mediaCtx->m_cmdBufMgr->Initialize(mediaCtx->m_osContext, COMMAND_BUFFER_SIZE/2);
         if (ret != MOS_STATUS_SUCCESS)
         {
             MOS_OS_ASSERTMESSAGE(" cmdBufMgr Initialization failed");
