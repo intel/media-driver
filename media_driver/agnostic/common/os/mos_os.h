@@ -343,6 +343,9 @@ typedef struct _MOS_INTERFACE
     // Component info
     MOS_COMPONENT                   Component;
 
+    // Stream info
+    uint32_t                        streamIndex = 0;
+
     // Synchronization
     int32_t                         bTagEngineSync;
     int32_t                         bTagResourceSync;
@@ -920,6 +923,16 @@ typedef struct _MOS_INTERFACE
     //!           SetMarker resource address
     //!
     PMOS_RESOURCE (*pfnGetMarkerResource)(
+        PMOS_INTERFACE              pOsInterface);
+
+    //!
+    //! \brief    Notify shared Stream index
+    //!
+    //! \param    PMOS_INTERFACE pOsInterface
+    //!           [in] OS Interface
+    //! \return   void
+    //!
+    void (*pfnNotifyStreamIndexSharing)(
         PMOS_INTERFACE              pOsInterface);
 
     //!< os interface extension

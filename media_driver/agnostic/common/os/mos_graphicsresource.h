@@ -295,9 +295,11 @@ public:
     //!         Pointer to the osContext handle
     //! \param  [in] params
     //!         Parameters to do the synchronization
+    //! \param  [in] streamIndex
+    //!         Stream index to indicate which stream this resource belongs to
     //! \return MOS_STATUS_SUCCESS on success case, MOS error status on fail cases
     //!
-    virtual MOS_STATUS SetSyncTag(OsContext* osContextPtr, SyncParams& params) = 0;
+    virtual MOS_STATUS SetSyncTag(OsContext* osContextPtr, SyncParams& params, uint32_t streamIndex) = 0;
 
     //!
     //! \brief  Check whether the resource is nullptr
