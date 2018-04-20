@@ -149,7 +149,9 @@ MOS_STATUS CM_HAL_G10_X::SubmitTimeStampBaseCommands()
     CM_CHK_MOSSTATUS(osInterface->pfnGetCommandBuffer(osInterface, &mosCmdBuffer, 0));
 
     renderHal->pfnInitCommandBuffer(renderHal, &mosCmdBuffer, nullptr);
-
+    // Disable frame tracking for this short cmd buffer
+    mosCmdBuffer.Attributes.bEnableMediaFrameTracking = 0;
+    
     MOS_ZeroMemory(&storeRegMemParams, sizeof(storeRegMemParams));
 
     storeRegMemParams.presStoreBuffer = &m_resTimestampBase.osResource;
