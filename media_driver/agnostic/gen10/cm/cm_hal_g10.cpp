@@ -101,7 +101,7 @@ MOS_STATUS CM_HAL_G10_X::SubmitTimeStampBaseCommands()
     MOS_STATUS hr = MOS_STATUS_SUCCESS;
     osInterface    = m_cmState->osInterface;
     
-    CM_CHK_MOSSTATUS(osInterface->pfnSetGpuContext(osInterface, MOS_GPU_CONTEXT_RENDER3));
+    CM_CHK_MOSSTATUS(osInterface->pfnSetGpuContext(osInterface, m_cmState->gpuContext));
     MOS_ZeroMemory(&mosCmdBuffer, sizeof(MOS_COMMAND_BUFFER)); 
 
     if (m_resTimestampBase.locked == false || m_resTimestampBase.data == nullptr)
