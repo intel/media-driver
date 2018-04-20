@@ -915,6 +915,7 @@ MOS_STATUS CodechalEncoderState::AllocateMDFResources()
 
         if (m_cmDev == nullptr)
         {
+            m_osInterface->pfnNotifyStreamIndexSharing(m_osInterface);
             CODECHAL_ENCODE_CHK_STATUS_RETURN(CreateCmDevice(m_osInterface->pOsContext, m_cmDev, devOp));
         }
         //just WA for issues in MDF null support

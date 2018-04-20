@@ -5639,6 +5639,12 @@ void Mos_Specific_LogData(
     return;
 }
 
+void Mos_Specific_NotifyStreamIndexSharing(
+    PMOS_INTERFACE              pOsInterface)
+{
+    MOS_UNUSED(pOsInterface);
+}
+
 //! \brief    Unified OS Initializes OS Linux Interface
 //! \details  Linux OS Interface initilization
 //! \param    PMOS_INTERFACE pOsInterface
@@ -5847,6 +5853,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnSetSliceCount                          = Mos_Specific_SetSliceCount;
     pOsInterface->pfnIsSetMarkerEnabled                     = Mos_Specific_IsSetMarkerEnabled;
     pOsInterface->pfnGetMarkerResource                      = Mos_Specific_GetMarkerResource;
+    pOsInterface->pfnNotifyStreamIndexSharing               = Mos_Specific_NotifyStreamIndexSharing;
 
     pOsUserFeatureInterface->bIsNotificationSupported   = false;
     pOsUserFeatureInterface->pOsInterface               = pOsInterface;

@@ -408,8 +408,8 @@ typedef enum _MOS_GPU_CONTEXT
     MOS_GPU_CONTEXT_VEBOX2          = 13, // Vebox2
     MOS_GPU_CONTEXT_COMPUTE         = 14, //Compute Context
     MOS_GPU_CONTEXT_CM_COMPUTE      = 15, // MDF Compute
-    MOS_GPU_CONTEXT_MAX,
-    MOS_GPU_CONTEXT_INVALID_HANDLE  = MOS_GPU_CONTEXT_MAX
+    MOS_GPU_CONTEXT_MAX             = 16,
+    MOS_GPU_CONTEXT_INVALID_HANDLE  = 0xFFFFA
 } MOS_GPU_CONTEXT, *PMOS_GPU_CONTEXT;
 
 /*****************************************************************************\

@@ -587,6 +587,8 @@ MOS_STATUS Mos_InitInterface(
     pOsInterface->modulizedMosEnabled   = true;
     pOsInterface->osContextPtr          = nullptr;
 
+    pOsInterface->streamIndex = 0;
+
     eStatus = Mos_Specific_InitInterface(pOsInterface, pOsDriverContext);
 
 #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
