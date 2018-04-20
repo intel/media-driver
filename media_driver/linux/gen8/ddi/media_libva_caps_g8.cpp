@@ -72,18 +72,18 @@ VAStatus MediaLibvaCapsG8::GetPlatformSpecificAttrib(
         }
         case VAConfigAttribEncROI:
         {
+            VAConfigAttribValEncROI roi_attr = { .value = 0 };
+
             if (entrypoint == VAEntrypointEncSliceLP)
             {
                 status = VA_STATUS_ERROR_INVALID_PARAMETER;
             }
             else if (IsAvcProfile(profile))
             {
-                *value = ENCODE_DP_AVC_MAX_ROI_NUMBER;
+                roi_attr.bits.num_roi_regions = ENCODE_DP_AVC_MAX_ROI_NUMBER;
             }
-            else
-            {
-                *value = 0;
-            }
+
+            *value = roi_attr.value;
             break;
         }
         case VAConfigAttribCustomRoundingControl:
