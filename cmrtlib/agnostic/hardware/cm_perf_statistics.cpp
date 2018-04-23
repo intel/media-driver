@@ -182,9 +182,4 @@ void CmPerfStatistics::DumpPerfStatisticRecords()
 
 }
 
-bool CmPerfStatistics::IsProfilerOn()
-{
-    return m_profilerOn;
-}
-
 #endif

@@ -120,57 +120,6 @@ int32_t CmSurfaceManager::Surface2DSanityCheck(uint32_t width,
     return CM_SUCCESS;
 }
 
-int32_t CmSurfaceManager::GetBytesPerPixel(CM_SURFACE_FORMAT format)
-{
-    uint32_t sizePerPixel = 0;
-    switch (format)
-    {
-    case CM_SURFACE_FORMAT_A16B16G16R16:
-    case CM_SURFACE_FORMAT_A16B16G16R16F:
-        sizePerPixel = 8;
-        break;
-
-    case CM_SURFACE_FORMAT_X8R8G8B8:
-    case CM_SURFACE_FORMAT_A8R8G8B8:
-    case CM_SURFACE_FORMAT_R32F:
-    case CM_SURFACE_FORMAT_R10G10B10A2:
-    case CM_SURFACE_FORMAT_A8B8G8R8:
-        sizePerPixel = 4;
-        break;
-
-    case CM_SURFACE_FORMAT_444P:
-    case CM_SURFACE_FORMAT_422H:
-    case CM_SURFACE_FORMAT_411P:
-        sizePerPixel = 3;
-        break;
-
-    case CM_SURFACE_FORMAT_YUY2:
-    case CM_SURFACE_FORMAT_UYVY:
-    case CM_SURFACE_FORMAT_V8U8:
-    case CM_SURFACE_FORMAT_IMC3:
-    case CM_SURFACE_FORMAT_422V:
-    case CM_SURFACE_FORMAT_L16:
-    case CM_SURFACE_FORMAT_D16:
-        sizePerPixel = 2;
-        break;
-
-    case CM_SURFACE_FORMAT_A8:
-    case CM_SURFACE_FORMAT_P8:
-        sizePerPixel = 1;
-        break;
-
-    case CM_SURFACE_FORMAT_NV12:
-        sizePerPixel = 1;
-        break;
-
-    default:
-        CmAssert(0);
-        CmDebugMessage((" Fail to get surface description! "));
-        return CM_SURFACE_FORMAT_NOT_SUPPORTED;
-    }
-
-    return sizePerPixel;
-}
 
 int32_t CmSurfaceManager::CreateSurface2D(uint32_t width,
                                       uint32_t height,

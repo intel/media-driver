@@ -115,8 +115,6 @@ protected:
                              VASurfaceID vaSurface,
                              CmSurface2D* &surface);
 
-    int32_t GetBytesPerPixel(CM_SURFACE_FORMAT format);
-
     int32_t Surface2DSanityCheck(uint32_t width,
                              uint32_t height,
                              CM_SURFACE_FORMAT format);
