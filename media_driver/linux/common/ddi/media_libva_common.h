@@ -562,6 +562,9 @@ struct DDI_MEDIA_CONTEXT
     MediaLibvaCapsNext    *m_capsNext = nullptr;
     bool                  m_apoDdiEnabled = false;
 #endif
+
+    /* VA/Wayland specific data */
+    struct va_wl_output *wl_output;
 };
 
 static __inline PDDI_MEDIA_CONTEXT DdiMedia_GetMediaContext (VADriverContextP ctx)
