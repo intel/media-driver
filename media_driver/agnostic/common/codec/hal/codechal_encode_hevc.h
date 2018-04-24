@@ -96,6 +96,9 @@ public:
         PMOS_SURFACE            pMbStatisticsSurface;
         PCODECHAL_ENCODE_BUFFER pMvAndDistortionSumSurface;
         PMHW_KERNEL_STATE       pMbEncKernelStateInUse;
+        CmSurface2D*            brcIntraDistortionSurface = nullptr;
+        CmSurface2D*            meBrcDistortionSurface    = nullptr;
+        CmBuffer*               mvAndDistortionSumSurface = nullptr;
     };
 
     //!

@@ -256,6 +256,7 @@ public:
         PCODEC_PICTURE        refL1List;
         PMOS_SURFACE          meBrcDistortionBuffer;
         PMOS_RESOURCE         meVdencStreamInBuffer;
+        CmSurface2D          *meBrcDistortionSurface;
     };
 
     //!
