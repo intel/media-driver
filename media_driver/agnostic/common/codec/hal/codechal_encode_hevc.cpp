@@ -500,15 +500,21 @@ MOS_STATUS CodechalEncHevcState::ExecutePictureLevel()
 }
 
 MOS_STATUS CodechalEncHevcState::AddHcpWeightOffsetStateCmd(
-    PMOS_COMMAND_BUFFER cmdBuffer,
+    PMOS_COMMAND_BUFFER             cmdBuffer,
+    PMHW_BATCH_BUFFER               batchBuffer,
     PCODEC_HEVC_ENCODE_SLICE_PARAMS hevcSlcParams)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
     CODECHAL_ENCODE_CHK_NULL_RETURN(hevcSlcParams);
+    
+    if (cmdBuffer == nullptr && batchBuffer == nullptr)
+    {
+        CODECHAL_ENCODE_ASSERTMESSAGE("There was no valid buffer to add the HW command to.");
+        return MOS_STATUS_NULL_POINTER;
+    }
 
     MHW_VDBOX_HEVC_WEIGHTOFFSET_PARAMS hcpWeightOffsetParams;
     MOS_ZeroMemory(&hcpWeightOffsetParams, sizeof(hcpWeightOffsetParams));
@@ -544,13 +550,13 @@ MOS_STATUS CodechalEncHevcState::AddHcpWeightOffsetStateCmd(
     if (hevcSlcParams->slice_type == CODECHAL_ENCODE_HEVC_P_SLICE || hevcSlcParams->slice_type == CODECHAL_ENCODE_HEVC_B_SLICE)
     {
         hcpWeightOffsetParams.ucList = LIST_0;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpWeightOffsetStateCmd(cmdBuffer, nullptr, &hcpWeightOffsetParams));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpWeightOffsetStateCmd(cmdBuffer, batchBuffer, &hcpWeightOffsetParams));
     }
 
     if (hevcSlcParams->slice_type == CODECHAL_ENCODE_HEVC_B_SLICE)
     {
         hcpWeightOffsetParams.ucList = LIST_1;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpWeightOffsetStateCmd(cmdBuffer, nullptr, &hcpWeightOffsetParams));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpWeightOffsetStateCmd(cmdBuffer, batchBuffer, &hcpWeightOffsetParams));
     }
 
     return eStatus;
@@ -595,7 +601,7 @@ MOS_STATUS CodechalEncHevcState::SendHwSliceEncodeCommand(
     if (params->bWeightedPredInUse)
     {
         //add weghtoffset command
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(AddHcpWeightOffsetStateCmd(cmdBufferInUse, m_hevcSliceParams));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(AddHcpWeightOffsetStateCmd(cmdBufferInUse, batchBufferInUse, m_hevcSliceParams));
     }
 
     // add HEVC Slice state commands
