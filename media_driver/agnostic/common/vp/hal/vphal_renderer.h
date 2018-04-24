@@ -150,6 +150,8 @@ public:
     // max src rectangle
     RECT                        maxSrcRect;
 
+    VPHAL_SURFACE               IntermediateSurface;                            //!< intermediate surface, only for viedo surveillance usage, when applying AVS for multiple surfaces.
+
 protected:
     // Renderer private data
     PRENDERHAL_INTERFACE        m_pRenderHal;
