@@ -322,7 +322,8 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS AddHcpWeightOffsetStateCmd(
-        PMOS_COMMAND_BUFFER cmdBuffer,
+        PMOS_COMMAND_BUFFER             cmdBuffer,      
+        PMHW_BATCH_BUFFER               batchBuffer,
         PCODEC_HEVC_ENCODE_SLICE_PARAMS hevcSlcParams);
 
     //!
