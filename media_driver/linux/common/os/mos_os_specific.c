@@ -2282,7 +2282,7 @@ void  *Mos_Specific_LockResource(
                     mos_bo_map(bo, (OSKM_LOCKFLAG_WRITEONLY&pLockFlags->WriteOnly));
                 }
 #else
-                if (pOsResource->TileType != MOS_TILE_LINEAR)
+                if (pOsResource->TileType != MOS_TILE_LINEAR && !pLockFlags->TiledAsTiled)
                 {
                     mos_gem_bo_map_gtt(bo);
                     pOsResource->MmapOperation = MOS_MMAP_OPERATION_MMAP_GTT;

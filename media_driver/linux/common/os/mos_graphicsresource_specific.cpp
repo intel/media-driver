@@ -471,7 +471,7 @@ void* GraphicsResourceSpecific::Lock(OsContext* osContextPtr, LockParams& params
                     mos_bo_map(boPtr, ( OSKM_LOCKFLAG_WRITEONLY & params.m_writeRequest ));
                 }
 #else
-                if (m_tileType != MOS_TILE_LINEAR)
+                if (m_tileType != MOS_TILE_LINEAR && !params.m_tileAsTiled)
                 {
                     mos_gem_bo_map_gtt(boPtr);
                     m_mmapOperation = MOS_MMAP_OPERATION_MMAP_GTT;
