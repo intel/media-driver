@@ -1553,60 +1553,69 @@ MOS_STATUS CodechalEncHevcState::EncodeMeKernel()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hmeKernel->Execute(curbeParam, surfaceParam, CodechalKernelHme::HmeLevel::hmeLevel4x));
     }
 
-    CODECHAL_DEBUG_TOOL(
-        if (m_hmeEnabled) {
-            PMOS_SURFACE dumpBuffer = m_hmeKernel->GetSurface(CodechalKernelHme::SurfaceId::me4xMvDataBuffer);
-            if (dumpBuffer)
-            {
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-                    &dumpBuffer->OsResource,
-                    CodechalDbgAttr::attrOutput,
-                    "MvData",
-                    dumpBuffer->dwHeight *dumpBuffer->dwPitch,
-                    CodecHal_PictureIsBottomField(m_currOriginalPic) ? MOS_ALIGN_CEIL((m_downscaledWidthInMb4x * 32), 64) * (m_downscaledFrameFieldHeightInMb4x * 4) : 0,
-                    CODECHAL_MEDIA_STATE_4X_ME));
-            }
-
-            dumpBuffer = m_hmeKernel->GetSurface(CodechalKernelHme::SurfaceId::me4xDistortionBuffer);
-            if (dumpBuffer)
-            {
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-                    &dumpBuffer->OsResource,
-                    CodechalDbgAttr::attrOutput,
-                    "MeDist",
-                    dumpBuffer->dwHeight * dumpBuffer->dwPitch,
-                    CodecHal_PictureIsBottomField(m_currOriginalPic) ? MOS_ALIGN_CEIL((m_downscaledWidthInMb4x * 8), 64) * MOS_ALIGN_CEIL((m_downscaledFrameFieldHeightInMb4x * 4), 8) : 0,
-                    CODECHAL_MEDIA_STATE_4X_ME));
-            }
-
-            if (m_b16XMeEnabled)
-            {
-                dumpBuffer = m_hmeKernel->GetSurface(CodechalKernelHme::SurfaceId::me16xMvDataBuffer);
-                //    &meOutputParams));
-
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-                    &dumpBuffer->OsResource,
-                    CodechalDbgAttr::attrOutput,
-                    "MvData",
-                    dumpBuffer->dwHeight *dumpBuffer->dwPitch,
-                    CodecHal_PictureIsBottomField(m_currOriginalPic) ? MOS_ALIGN_CEIL((m_downscaledWidthInMb16x * 32), 64) * (m_downscaledFrameFieldHeightInMb16x * 4) : 0,
-                    CODECHAL_MEDIA_STATE_16X_ME));
-
-                if (m_b32XMeEnabled)
-                {
-                    dumpBuffer = m_hmeKernel->GetSurface(CodechalKernelHme::SurfaceId::me32xMvDataBuffer);
-                    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-                        &dumpBuffer->OsResource,
-                        CodechalDbgAttr::attrOutput,
-                        "MvData",
-                        dumpBuffer->dwHeight *dumpBuffer->dwPitch,
-                        CodecHal_PictureIsBottomField(m_currOriginalPic) ? MOS_ALIGN_CEIL((m_downscaledWidthInMb32x * 32), 64) * (m_downscaledFrameFieldHeightInMb32x * 4) : 0,
-                        CODECHAL_MEDIA_STATE_32X_ME));
-                }
-            }
-        })
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(DumpHMESurfaces());
 
     return eStatus;
+}
+
+MOS_STATUS CodechalEncHevcState::DumpHMESurfaces()
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    CODECHAL_DEBUG_TOOL(
+    if (m_hmeEnabled) {
+        PMOS_SURFACE dumpBuffer = m_hmeKernel->GetSurface(CodechalKernelHme::SurfaceId::me4xMvDataBuffer);
+        if (dumpBuffer)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+                &dumpBuffer->OsResource,
+                CodechalDbgAttr::attrOutput,
+                "MvData",
+                dumpBuffer->dwHeight *dumpBuffer->dwPitch,
+                CodecHal_PictureIsBottomField(m_currOriginalPic) ? MOS_ALIGN_CEIL((m_downscaledWidthInMb4x * 32), 64) * (m_downscaledFrameFieldHeightInMb4x * 4) : 0,
+                CODECHAL_MEDIA_STATE_4X_ME));
+        }
+
+        dumpBuffer = m_hmeKernel->GetSurface(CodechalKernelHme::SurfaceId::me4xDistortionBuffer);
+        if (dumpBuffer)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+                &dumpBuffer->OsResource,
+                CodechalDbgAttr::attrOutput,
+                "MeDist",
+                dumpBuffer->dwHeight * dumpBuffer->dwPitch,
+                CodecHal_PictureIsBottomField(m_currOriginalPic) ? MOS_ALIGN_CEIL((m_downscaledWidthInMb4x * 8), 64) * MOS_ALIGN_CEIL((m_downscaledFrameFieldHeightInMb4x * 4), 8) : 0,
+                CODECHAL_MEDIA_STATE_4X_ME));
+        }
+
+        if (m_b16XMeEnabled)
+        {
+            dumpBuffer = m_hmeKernel->GetSurface(CodechalKernelHme::SurfaceId::me16xMvDataBuffer);
+            //    &meOutputParams));
+
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+                &dumpBuffer->OsResource,
+                CodechalDbgAttr::attrOutput,
+                "MvData",
+                dumpBuffer->dwHeight *dumpBuffer->dwPitch,
+                CodecHal_PictureIsBottomField(m_currOriginalPic) ? MOS_ALIGN_CEIL((m_downscaledWidthInMb16x * 32), 64) * (m_downscaledFrameFieldHeightInMb16x * 4) : 0,
+                CODECHAL_MEDIA_STATE_16X_ME));
+
+            if (m_b32XMeEnabled)
+            {
+                dumpBuffer = m_hmeKernel->GetSurface(CodechalKernelHme::SurfaceId::me32xMvDataBuffer);
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+                    &dumpBuffer->OsResource,
+                    CodechalDbgAttr::attrOutput,
+                    "MvData",
+                    dumpBuffer->dwHeight *dumpBuffer->dwPitch,
+                    CodecHal_PictureIsBottomField(m_currOriginalPic) ? MOS_ALIGN_CEIL((m_downscaledWidthInMb32x * 32), 64) * (m_downscaledFrameFieldHeightInMb32x * 4) : 0,
+                    CODECHAL_MEDIA_STATE_32X_ME));
+            }
+        }
+    })
+
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS CodechalEncHevcState::SetupROISurface()

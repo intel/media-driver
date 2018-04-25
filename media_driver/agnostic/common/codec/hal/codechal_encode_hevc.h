@@ -483,5 +483,12 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS SetupROISurface();
+    //!
+    //! \brief    Generate codechal dumps for HME kernel
+    //!           
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS DumpHMESurfaces();
 };
 #endif  // __CODECHAL_ENCODE_HEVC_H__
