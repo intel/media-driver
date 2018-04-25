@@ -210,7 +210,9 @@ public:
     //!
     struct CurbeParam
     {
+        bool          brcEnable = false;
         uint8_t       subPelMode = 3;
+        uint8_t       sumMVThreshold = 0;
         CODEC_PICTURE currOriginalPic;
         uint32_t      qpPrimeY;
         uint32_t      targetUsage;
@@ -256,6 +258,7 @@ public:
         PCODEC_PICTURE        refL1List;
         PMOS_SURFACE          meBrcDistortionBuffer;
         PMOS_RESOURCE         meVdencStreamInBuffer;
+        CODECHAL_ENCODE_BUFFER meSumMvandDistortionBuffer;
         CmSurface2D          *meBrcDistortionSurface;
     };
 
