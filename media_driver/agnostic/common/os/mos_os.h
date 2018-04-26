@@ -295,7 +295,25 @@ typedef struct _MOS_GPUCTX_CREATOPTIONS MOS_GPUCTX_CREATOPTIONS, *PMOS_GPUCTX_CR
 struct _MOS_GPUCTX_CREATOPTIONS
 {
     uint32_t  CmdBufferNumScale;
-    _MOS_GPUCTX_CREATOPTIONS() : CmdBufferNumScale(MOS_GPU_CONTEXT_CREATE_DEFAULT) {}
+
+    //For slice shutdown
+    union
+    {
+        struct
+        {
+            uint8_t SliceCount;
+            uint8_t SubSliceCount;          //Subslice count per slice
+            uint8_t MaxEUcountPerSubSlice;
+            uint8_t MinEUcountPerSubSlice;
+        }packed;
+
+        uint32_t SSEUValue;
+    };
+
+    _MOS_GPUCTX_CREATOPTIONS() : 
+        CmdBufferNumScale(MOS_GPU_CONTEXT_CREATE_DEFAULT),
+        SSEUValue(0) {}
+
     virtual ~_MOS_GPUCTX_CREATOPTIONS(){}
 };
 
