@@ -5582,6 +5582,7 @@ MOS_STATUS CodechalEncHevcStateG10::EncodeBrcFrameUpdateKernel()
     mhwHevcPicState.pHevcEncPicParams = m_hevcPicParams;
     mhwHevcPicState.bUseVDEnc = false;
     mhwHevcPicState.brcNumPakPasses = m_mfxInterface->GetBrcNumPakPasses();
+    mhwHevcPicState.bSAOEnable = m_hevcSeqParams->SAO_enabled_flag ? (m_hevcSliceParams->slice_sao_luma_flag || m_hevcSliceParams->slice_sao_chroma_flag) : 0;
 
     PMOS_RESOURCE brcHcpStateReadBuffer = &m_brcBuffers.resBrcImageStatesReadBuffer[m_currRecycledBufIdx];
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpHevcPicBrcBuffer(brcHcpStateReadBuffer, &mhwHevcPicState));
