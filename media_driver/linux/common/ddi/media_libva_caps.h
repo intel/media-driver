@@ -485,7 +485,7 @@ public:
     //!
     //! \return   Std::string decode codec key 
     //!
-    static std::string GetDecodeCodecKey(VAProfile profile);
+    virtual std::string GetDecodeCodecKey(VAProfile profile);
 
     //!
     //! \brief    Return the encode codec key for given profile and entrypoint 
