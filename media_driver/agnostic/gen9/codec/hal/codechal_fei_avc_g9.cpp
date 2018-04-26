@@ -2314,7 +2314,6 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::EncodePreEncInitialize(const EncoderParams
     m_scalingEnabled = m_firstField && preEncParams->bInputUpdated;
     m_useRawForRef = m_userFlags.bUseRawPicForRef;
 
-    m_singleTaskPhaseSupported = true;
     m_scalingEnabled = (m_hmeSupported || bBrcEnabled) && m_firstField;
 
     // PREENC doesn't differentiate picture by its "PictureCodingType". However in order to reuse the CODECHAL function,
