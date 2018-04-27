@@ -661,6 +661,7 @@ public:
     virtual MOS_STATUS DumpHucBrcInit();
     virtual MOS_STATUS DumpHucBrcUpdate(bool isInput);
     virtual MOS_STATUS DumpVdencOutputs();
+    virtual MOS_STATUS DumpSeqParFile();
 #endif
 
 };
