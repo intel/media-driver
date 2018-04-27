@@ -1682,7 +1682,8 @@ bool CompositeState::AddCompLayer(
         {
             // This layer requires 3d sampler to perform luma key.
             // So set previous layer's scaling mode to AVS and reset the nSampler.
-            if (pComposite->pSource[0]->ScalingMode != VPHAL_SCALING_AVS)
+            // Disable AVS scaling mode in cases AVS is not available
+            if (pComposite->pSource[0]->ScalingMode != VPHAL_SCALING_AVS && !m_need3DSampler)
             {
                 pComposite->pSource[0]->ScalingMode = VPHAL_SCALING_AVS;
                 pComposite->nAVS--;
@@ -3365,8 +3366,10 @@ int32_t CompositeState::SetLayer(
             // The kernel difference b/w sampler luma key and EU computed luma key.
             // Sampler based: IDR_VP_Prepare_LumaKey_SampleUnorm
             // EU computed:   IDR_VP_Compute_Lumakey
+            // Disable sampler luma key solution if there's no AVS as back up for layer 0
             if (iSamplerID == VPHAL_SAMPLER_Y   &&
                 pSource->pLumaKeyParams != NULL &&
+                !m_need3DSampler                &&
                 (pSource->Format == Format_YUY2 || pSource->Format == Format_NV12) &&
                 iLayer)
             {
