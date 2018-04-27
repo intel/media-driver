@@ -28,6 +28,7 @@
 #define __CODECHAL_VDENC_HEVC_G10_H__
 
 #include "codechal_vdenc_hevc.h"
+#include "codechal_debug_encode_par_g10.h"
 
 enum CODECHAL_BINDING_TABLE_OFFSET_HEVC_VP9_VDENC_KERNEL_G10
 {
@@ -1772,7 +1773,13 @@ public:
     //!
     //! \brief    Destructor
     //!
-    ~CodechalVdencHevcStateG10() {};
+    ~CodechalVdencHevcStateG10()
+    {
+        CODECHAL_DEBUG_TOOL(
+            DestroyHevcPar();
+            MOS_Delete(m_encodeParState);
+        )
+    }
 
     //!
     //! \brief    Get encoder kernel header and kernel size
