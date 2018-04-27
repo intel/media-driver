@@ -143,6 +143,7 @@ MOS_STATUS RenderHal_GetSurfaceInfo(
             break;
         case Format_P010:
         case Format_P016:
+        case Format_P208:
             pSurface->UPlaneOffset.iSurfaceOffset = (pSurface->dwHeight - pSurface->dwHeight % 32) * pSurface->dwPitch;
             pSurface->UPlaneOffset.iYOffset       = pSurface->dwHeight % 32;
             break;

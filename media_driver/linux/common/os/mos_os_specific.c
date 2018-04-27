@@ -1565,6 +1565,7 @@ GMM_RESOURCE_FORMAT Mos_Specific_ConvertMosFmtToGmmFmt(
         case Format_R8U         : return GMM_FORMAT_R8_UINT_TYPE;
         case Format_R16U        : return GMM_FORMAT_R16_UINT_TYPE;
         case Format_P010        : return GMM_FORMAT_P010_TYPE;
+        case Format_P208        : return GMM_FORMAT_P208_TYPE;
         default                 : return GMM_FORMAT_INVALID;
     }
 }
@@ -1726,6 +1727,7 @@ MOS_STATUS Mos_Specific_AllocateResource(
         case Format_R16U:
         case Format_R8U:
         case Format_P010:
+        case Format_P208:
             resourceType                = RESOURCE_2D;
             //indicate buffer Restriction is Planar surface restrictions.
             GmmParams.Flags.Gpu.Video   = true;

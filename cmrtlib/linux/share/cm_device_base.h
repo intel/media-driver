@@ -114,7 +114,8 @@ public:
     //!             CM_SURFACE_FORMAT_444P, \n
     //!             CM_SURFACE_FORMAT_YV12, \n
     //!             CM_SURFACE_FORMAT_R8_UINT, \n
-    //!             CM_SURFACE_FORMAT_R16_UINT. \n
+    //!             CM_SURFACE_FORMAT_R16_UINT, \n
+    //!             CM_SURFACE_FORMAT_P208 \n
     //! \retval     CM_EXCEED_SURFACE_AMOUNT if maximum amount of 2D surfaces 
     //!             is exceeded. The amount is the amount of the surfaces that 
     //!             can co-exist. The amount can be obtained by querying the 
@@ -208,7 +209,8 @@ public:
     //!             CM_SURFACE_FORMAT_444P, \n
     //!             CM_SURFACE_FORMAT_YV12, \n
     //!             CM_SURFACE_FORMAT_R8_UINT, \n
-    //!             CM_SURFACE_FORMAT_R16_UINT. \n
+    //!             CM_SURFACE_FORMAT_R16_UINT, \n
+    //!             CM_SURFACE_FORMAT_P208 \n
     //! \retval     CM_EXCEED_SURFACE_AMOUNT if maximum amount of 2D surfaces 
     //!             is exceeded. The amount is the amount of the surfaces that 
     //!             can co-exist. The amount can be obtained by querying the 
@@ -1120,8 +1122,7 @@ public:
     //!                 CM_SURFACE_FORMAT_422H \n
     //!                 CM_SURFACE_FORMAT_422V \n
     //!                 CM_SURFACE_FORMAT_444P \n
-    //!                 CM_SURFACE_FORMAT_RGBP \n
-    //!                 CM_SURFACE_FORMAT_BGRP \n
+    //!                 CM_SURFACE_FORMAT_P208 \n
     //! \param      [in] surface2d
     //!             Pointer to CmSurface2D object.
     //! \param      [out] samplerSurfaceIndex
@@ -1348,8 +1349,7 @@ public:
     //!                 CM_SURFACE_FORMAT_422H \n
     //!                 CM_SURFACE_FORMAT_422V \n
     //!                 CM_SURFACE_FORMAT_444P \n
-    //!                 CM_SURFACE_FORMAT_RGBP \n
-    //!                 CM_SURFACE_FORMAT_BGRP \n
+    //!                 CM_SURFACE_FORMAT_P208 \n
     //! \param      [in] surface2dUP
     //!             Pointer to CmSurface2DUP object.
     //! \param      [out] samplerSurfaceIndex
@@ -1622,8 +1622,7 @@ public:
     //!                 CM_SURFACE_FORMAT_422H \n
     //!                 CM_SURFACE_FORMAT_422V \n
     //!                 CM_SURFACE_FORMAT_444P \n
-    //!                 CM_SURFACE_FORMAT_RGBP \n
-    //!                 CM_SURFACE_FORMAT_BGRP \n
+    //!                 CM_SURFACE_FORMAT_P208 \n
     //! \param      [in] surface2d
     //!             Pointer to CmSurface2D object.
     //! \param      [out] samplerSurfaceIndex
