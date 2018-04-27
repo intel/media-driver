@@ -2371,16 +2371,19 @@ MOS_STATUS CodechalVdencHevcState::SetPictureStructs()
 
     if (m_brcEnabled)  // VDEnc BRC supports maximum 2 PAK passes
     {
-        // multi-pass BRC is supported
-        if (m_multipassBrcSupported)
+        if (m_hevcPicParams->BRCPrecision == 1)  // single-pass BRC, App requirment with first priority
+        {
+            m_numPasses = 0;
+            // There is no need of additional pass for SSC, violation rate could be high but ok
+        }
+        else if (m_multipassBrcSupported)   // multi-pass BRC is supported
         {
             m_numPasses = CODECHAL_VDENC_BRC_NUM_OF_PASSES - 1;
             m_vdencHuCConditional2ndPass = true;
         }
-        else if (m_hevcPicParams->BRCPrecision == 1)  // single-pass BRC
+        else
         {
             m_numPasses = 0;
-            // There is no need of additional pass for SSC, violation rate could be high but ok
         }
     }
     else   // CQP, ACQP
