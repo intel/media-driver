@@ -3388,11 +3388,11 @@ int32_t CompositeState::SetLayer(
                 pSamplerStateParams->Unorm.bChromaKeyEnable = true;
                 pSamplerStateParams->Unorm.ChromaKeyMode    = MHW_CHROMAKEY_MODE_KILL_ON_ANY_MATCH;
                 pSamplerStateParams->Unorm.ChromaKeyIndex   = pRenderHal->pfnAllocateChromaKey(pRenderHal, dwLow, dwHigh);
+            }
 
-                if (iSamplerID != VPHAL_SAMPLER_Y && bForceNearestForUV)
-                {
-                    pSamplerStateParams->Unorm.SamplerFilterMode = MHW_SAMPLER_FILTER_NEAREST;
-                }
+            if (iSamplerID != VPHAL_SAMPLER_Y && bForceNearestForUV)
+            {
+                pSamplerStateParams->Unorm.SamplerFilterMode = MHW_SAMPLER_FILTER_NEAREST;
             }
         }
         else if (SamplerType == MHW_SAMPLER_TYPE_AVS)
