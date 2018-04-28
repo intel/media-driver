@@ -6926,6 +6926,13 @@ MOS_STATUS CodechalEncHevcStateG10::EncodeKernelFunctions()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
+    if (m_pictureCodingType == P_TYPE)
+    {
+        CODECHAL_ENCODE_ASSERTMESSAGE("GEN10 HEVC VME does not support P slice");
+        eStatus = MOS_STATUS_INVALID_PARAMETER;
+        return eStatus;
+    }
+
     if (m_cscDsState->RequireCsc())
     {
         m_firstTaskInPhase = true;
