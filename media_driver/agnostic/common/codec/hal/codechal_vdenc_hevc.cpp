@@ -215,43 +215,31 @@ uint32_t CodechalVdencHevcState::GetMaxAllowedSlices(uint8_t levelIdc)
 
     switch (levelIdc)
     {
-    case 30:
+    case 10:
+    case 20:
         maxAllowedNumSlices = 16;
         break;
-    case 60:
-        maxAllowedNumSlices = 16;
-        break;
-    case 63:
+    case 21:
         maxAllowedNumSlices = 20;
         break;
-    case 90:
+    case 30:
         maxAllowedNumSlices = 30;
         break;
-    case 93:
+    case 31:
         maxAllowedNumSlices = 40;
         break;
-    case 120:
+    case 40:
+    case 41:
         maxAllowedNumSlices = 75;
         break;
-    case 123:
-        maxAllowedNumSlices = 75;
-        break;
-    case 150:
+    case 50:
+    case 51:
+    case 52:
         maxAllowedNumSlices = 200;
         break;
-    case 153:
-        maxAllowedNumSlices = 200;
-        break;
-    case 156:
-        maxAllowedNumSlices = 200;
-        break;
-    case 180:
-        maxAllowedNumSlices = 600;
-        break;
-    case 183:
-        maxAllowedNumSlices = 600;
-        break;
-    case 186:
+    case 60:
+    case 61:
+    case 62:
         maxAllowedNumSlices = 600;
         break;
     default:
