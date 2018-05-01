@@ -3409,7 +3409,8 @@ MOS_STATUS CodechalVdencHevcState::DumpSeqParFile()
     oss << "EnableMultipass                    = " << std::dec << m_hevcPar->EnableMultipass << std::endl;
     oss << "MaxNumPakPassesI                   = " << std::dec << m_hevcPar->MaxNumPakPassesI << std::endl;
     oss << "MaxNumPakPassesPB                  = " << std::dec << m_hevcPar->MaxNumPakPassesPB << std::endl;
-    oss << "UserMaxFrame                       = " << std::dec << m_hevcPar->UserMaxFrame << std::endl;
+    oss << "UserMaxIFrame                      = " << std::dec << m_hevcPar->UserMaxIFrame << std::endl;
+    oss << "UserMaxPBFrame                     = " << std::dec << m_hevcPar->UserMaxPBFrame << std::endl;
     oss << "FrameRateM                         = " << std::dec << m_hevcPar->FrameRateM << std::endl;
     oss << "FrameRateD                         = " << std::dec << m_hevcPar->FrameRateD << std::endl;
     oss << "IntraRefreshEnable                 = " << std::dec << m_hevcPar->IntraRefreshEnable << std::endl;

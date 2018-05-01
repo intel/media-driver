@@ -292,21 +292,16 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
         uint32_t    SeqFlags;
     };
 
-    /*! \brief Host defines the maximum frame size in bytes.
+    /*! \brief Framework defined maximum frame size in bytes for I frames.
     *
-    *    UserMaxFrameSize is applicable for all RateControlMethod values except CQP. It guarantees that the compressed frame size will be less than this value. Maximum allowed frame size per profile/level will be calculated in driver and be used when UserMaxFrameSize is set to 0.
+    *    Applicable for all RateControlMethod values except CQP; guarantees that the compressed frame size will be less than this value. If UserMaxPBFrameSize equals 0, UserMaxIFrameSize will be used for all frame types. Maximum allowed frame size per profile/level will be calculated in driver and be used when UserMaxIFrameSize and UserMaxPBFrameSize are both set to 0.
     */
-    uint32_t  UserMaxFrameSize;
-    /*! \brief Percentage of the required accuracy for AVBR.
+    uint32_t            UserMaxIFrameSize;
+    /*! \brief Framework defined maximum frame size in bytes for P & B frames.
     *
-    *    It is the target percentage multiplied by 10, e.g. 88 means 8.8%. The minimum value is 5 (0.5%).
+    *    Applicable for all RateControlMethod values except CQP; guarantees that the compressed frame size will be less than this value. If UserMaxPBFrameSize equals 0, UserMaxIFrameSize will be used for all frame types. Maximum allowed frame size per profile/level will be calculated in driver and be used when UserMaxIFrameSize and UserMaxPBFrameSize are both set to 0.
     */
-    uint16_t  AVBRAccuracy;
-    /*! \brief Number of frames for AVBR to converge.
-    *
-    *    Value is multiple of 100. The minimum value is 100. Default value is 200 frames.
-    */
-    uint16_t  AVBRConvergence;
+    uint32_t            UserMaxPBFrameSize;
     /*! \brief For Constant Rate Factor BRC method, it indicates the measure of quality.
     *
     *    The range is from 1 – 51, with 1 being the best quality.

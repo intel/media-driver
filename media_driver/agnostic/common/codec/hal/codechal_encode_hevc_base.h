@@ -244,7 +244,8 @@ struct EncodeHevcPar
     uint32_t MaxBitRate; // for VBR support  
     uint32_t VbvSzInBit;
     uint32_t InitVbvFullnessInBit;
-    uint32_t UserMaxFrame; //user defined frame rate
+    uint32_t UserMaxIFrame; //user defined frame rate
+    uint32_t UserMaxPBFrame; //user defined frame rate
     uint32_t EnableMultipass;
     uint32_t MaxNumPakPassesI;
     uint32_t MaxNumPakPassesPB;
