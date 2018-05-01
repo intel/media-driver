@@ -1666,10 +1666,16 @@ uint32_t CodechalEncodeHevcBase::GetProfileLevelMaxFrameSize()
     GetMaxMBPS(levelIdc, &maxMBPS, &maxBytePerPic);
     auto     maxBytePerPicNot0    = (uint64_t)((((float_t)maxMBPS * (float_t)m_hevcSeqParams->FrameRate.Denominator) / (float_t)m_hevcSeqParams->FrameRate.Numerator) * formatFactor);
     uint32_t profileLevelMaxFrame = 0;
-
-    if (m_hevcSeqParams->UserMaxFrameSize != 0)
+    
+    uint32_t userMaxFrameSize = m_hevcSeqParams->UserMaxIFrameSize;
+    if ((m_hevcPicParams->CodingType != I_TYPE) && (m_hevcSeqParams->UserMaxPBFrameSize > 0))
     {
-        profileLevelMaxFrame = (uint32_t)MOS_MIN(m_hevcSeqParams->UserMaxFrameSize, maxBytePerPic);
+        userMaxFrameSize = m_hevcSeqParams->UserMaxPBFrameSize;
+    }
+    
+    if (userMaxFrameSize != 0)
+    {
+        profileLevelMaxFrame = (uint32_t)MOS_MIN(userMaxFrameSize, maxBytePerPic);
         profileLevelMaxFrame = (uint32_t)MOS_MIN(maxBytePerPicNot0, profileLevelMaxFrame);
     }
     else {
@@ -3081,7 +3087,8 @@ MOS_STATUS CodechalEncodeHevcBase::DumpSeqParams(
     oss << "NumB = " << +seqParams->NumOfBInGop[0] << std::endl;
     oss << "NumB1 = " << +seqParams->NumOfBInGop[1] << std::endl;
     oss << "NumB2 = " << +seqParams->NumOfBInGop[2] << std::endl;
-    oss << "UserMaxFrameSize = " << +seqParams->UserMaxFrameSize << std::endl;
+    oss << "UserMaxIFrameSize = " << +seqParams->UserMaxIFrameSize << std::endl;
+    oss << "UserMaxPBFrameSize = " << +seqParams->UserMaxPBFrameSize << std::endl;
     oss << "ICQQualityFactor = " << +seqParams->ICQQualityFactor << std::endl;
     oss << "scaling_list_enable_flag = " << +seqParams->scaling_list_enable_flag << std::endl;
     oss << "sps_temporal_mvp_enable_flag = " << +seqParams->sps_temporal_mvp_enable_flag << std::endl;
@@ -3609,7 +3616,8 @@ MOS_STATUS CodechalEncodeHevcBase::PopulateDdiParam(
         m_hevcPar->EnableMultipass                      = 1;
         m_hevcPar->MaxNumPakPassesI                     = m_numPasses;
         m_hevcPar->MaxNumPakPassesPB                    = m_numPasses;
-        m_hevcPar->UserMaxFrame                         = hevcSeqParams->UserMaxFrameSize;
+        m_hevcPar->UserMaxIFrame                        = hevcSeqParams->UserMaxIFrameSize;
+        m_hevcPar->UserMaxPBFrame                       = hevcSeqParams->UserMaxPBFrameSize;
         m_hevcPar->FrameRateM                           = hevcSeqParams->FrameRate.Numerator;
         m_hevcPar->FrameRateD                           = hevcSeqParams->FrameRate.Denominator;
         m_hevcPar->IntraRefreshEnable                   = hevcPicParams->bEnableRollingIntraRefresh ? 1 : 0;
