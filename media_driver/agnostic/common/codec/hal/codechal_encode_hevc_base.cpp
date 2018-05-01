@@ -1540,7 +1540,7 @@ MOS_STATUS CodechalEncodeHevcBase::GetMaxMBPS(uint32_t levelIdc, uint32_t* maxMB
     CODECHAL_ENCODE_CHK_NULL_RETURN(maxMBPS);
     CODECHAL_ENCODE_CHK_NULL_RETURN(maxBytePerPic);
 
-    switch (levelIdc * 3)
+    switch (levelIdc)
     {
     case 30:
         *maxMBPS = 552960;
@@ -1601,7 +1601,7 @@ uint32_t CodechalEncodeHevcBase::GetProfileLevelMaxFrameSize()
     float_t         fminCrScale = 1.0;
     uint32_t        maxMBPS;
     uint64_t        maxBytePerPic;
-    int32_t         levelIdc = m_hevcSeqParams->Level;
+    int32_t         levelIdc = m_hevcSeqParams->Level * 3;
 
     if (levelIdc == 186 || levelIdc == 150)
     {
