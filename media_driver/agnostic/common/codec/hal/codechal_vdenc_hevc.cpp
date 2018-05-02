@@ -1280,8 +1280,6 @@ void CodechalVdencHevcState::SetVdencPipeBufAddrParams(
             uint8_t scaledIdx                              = m_refList[refPicIdx]->ucScalingIdx;
             pipeBufAddrParams.presVdenc4xDsSurface[refIdx] = &(m_trackedBuf->Get4xDsReconSurface(scaledIdx))->OsResource;
             pipeBufAddrParams.presVdenc8xDsSurface[refIdx] = &(m_trackedBuf->Get8xDsReconSurface(scaledIdx))->OsResource;
-
-            m_hevcPicParams->RollingIntraReferenceLocation[refIdx] = m_refList[refPicIdx]->rollingIntraRefreshedPosition;
         }
     }
 
@@ -1716,6 +1714,19 @@ MOS_STATUS CodechalVdencHevcState::ExecutePictureLevel()
 
     m_refList[m_currReconstructedPic.FrameIdx]->rollingIntraRefreshedPosition =
         CodecHal_Clip3(0, rollingILimit, m_hevcPicParams->IntraInsertionLocation + m_hevcPicParams->IntraInsertionSize);
+
+    // For ACQP / BRC, update pic params rolling intra reference location here before cmd buffer is prepared.
+    PCODEC_PICTURE l0RefFrameList = m_hevcSliceParams->RefPicList[LIST_0];
+    for (uint8_t refIdx = 0; refIdx <= m_hevcSliceParams->num_ref_idx_l0_active_minus1; refIdx++)
+    {
+        CODEC_PICTURE refPic = l0RefFrameList[refIdx];
+
+        if (!CodecHal_PictureIsInvalid(refPic) && m_picIdx[refPic.FrameIdx].bValid)
+        {
+            uint8_t refPicIdx = m_picIdx[refPic.FrameIdx].ucPicIdx;
+            m_hevcPicParams->RollingIntraReferenceLocation[refIdx] = m_refList[refPicIdx]->rollingIntraRefreshedPosition;
+        }
+    }
 
     // clean-up per VDBOX semaphore memory
     int32_t currentPass = GetCurrentPass();
