@@ -1640,7 +1640,7 @@ MOS_STATUS CodechalEncHevcState::SetupROISurface()
     for (uint32_t uMB = 0; uMB <= numMBs; uMB++)
     {
         int32_t curMbY = uMB / m_picWidthInMb;
-        int32_t curMbX = uMB - curMbY * m_picHeightInMb;
+        int32_t curMbX = uMB - curMbY * m_picWidthInMb;
 
         uint32_t outdata = 0;
         for (int32_t roiIdx = (m_hevcPicParams->NumROI - 1); roiIdx >= 0; roiIdx--)
