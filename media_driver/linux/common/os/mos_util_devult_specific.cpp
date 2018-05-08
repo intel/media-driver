@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2013-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -19,47 +19,12 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef __DDI_TEST_DECODE_H__
-#define __DDI_TEST_DECODE_H__
+//!
+//! \file        mos_util_devult_specific.cpp
+//! \brief 
+//!
+//!
 
-#include "cmd_validator.h"
-#include "driver_loader.h"
-#include "gtest/gtest.h"
-#include "memory_leak_detector.h"
-#include "test_data_caps.h"
-#include "test_data_decode.h"
+#include "mos_util_devult_specific.h"
 
-class DecodeTestConfig
-{
-public:
-
-    DecodeTestConfig();
-
-    bool IsDecTestEnabled(DeviceConfig platform, FeatureID featureId);
-
-private:
-
-    std::map<DeviceConfig, std::vector<FeatureID>, MapFeatureIDComparer> m_mapPlatformFeatureID;
-};
-
-class MediaDecodeDdiTest : public testing::Test
-{
-protected:
-
-    virtual void SetUp() { }
-
-    virtual void TearDown() { }
-
-    void DecodeExecute(DecTestData *pDecData, Platform_t platform);
-
-    void ExectueDecodeTest(DecTestData *pDecData);
-
-protected:
-
-    DriverDllLoader     m_driverLoader;
-    DecTestDataFactory  m_decDataFactory;
-    DecodeTestConfig    m_decTestCfg;
-    const GpuCmdFactory *m_GpuCmdFactory = nullptr;
-};
-
-#endif // __DDI_TEST_DECODE_H__
+MOS_DATA_EXPORT void (*pfnUltGetCmdBuf)(PMOS_COMMAND_BUFFER pCmdBuffer) = nullptr;

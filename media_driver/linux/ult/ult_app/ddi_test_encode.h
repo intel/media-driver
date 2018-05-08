@@ -22,6 +22,7 @@
 #ifndef __DDI_TEST_ENCODE_H__
 #define __DDI_TEST_ENCODE_H__
 
+#include "cmd_validator.h"
 #include "driver_loader.h"
 #include "gtest/gtest.h"
 #include "memory_leak_detector.h"
@@ -55,9 +56,10 @@ protected:
 
 protected:
 
-    DriverDllLoader    m_driverLoader;
-    EncTestDataFactory m_encTestFactory;
-    EncodeTestConfig   m_encTestCfg;
+    DriverDllLoader     m_driverLoader;
+    EncTestDataFactory  m_encTestFactory;
+    EncodeTestConfig    m_encTestCfg;
+    const GpuCmdFactory *m_GpuCmdFactory = nullptr;
 };
 
 #endif // __DDI_TEST_ENCODE_H__

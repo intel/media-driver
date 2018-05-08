@@ -19,47 +19,45 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef __DDI_TEST_DECODE_H__
-#define __DDI_TEST_DECODE_H__
-
 #include "cmd_validator.h"
-#include "driver_loader.h"
-#include "gtest/gtest.h"
-#include "memory_leak_detector.h"
-#include "test_data_caps.h"
-#include "test_data_decode.h"
 
-class DecodeTestConfig
+using namespace std;
+
+void UltGetCmdBuf(PMOS_COMMAND_BUFFER pCmdBuffer)
 {
-public:
+    auto cmdValidator = CmdValidator::GetInstance();
+    cmdValidator->Validate(pCmdBuffer);
+}
 
-    DecodeTestConfig();
+CmdValidator *CmdValidator::m_instance = nullptr;
 
-    bool IsDecTestEnabled(DeviceConfig platform, FeatureID featureId);
-
-private:
-
-    std::map<DeviceConfig, std::vector<FeatureID>, MapFeatureIDComparer> m_mapPlatformFeatureID;
-};
-
-class MediaDecodeDdiTest : public testing::Test
+CmdValidator *CmdValidator::GetInstance()
 {
-protected:
+    if (m_instance == nullptr)
+    {
+        m_instance = new CmdValidator();
+    }
 
-    virtual void SetUp() { }
+    return m_instance;
+}
 
-    virtual void TearDown() { }
+void CmdValidator::GpuCmdsValidationInit(const GpuCmdFactory *cmdFactory, Platform_t platform)
+{
+    auto cmdValidator = GetInstance();
+    cmdValidator->Reset();
+    cmdValidator->CreateGpuCmds(cmdFactory, platform);
+}
 
-    void DecodeExecute(DecTestData *pDecData, Platform_t platform);
-
-    void ExectueDecodeTest(DecTestData *pDecData);
-
-protected:
-
-    DriverDllLoader     m_driverLoader;
-    DecTestDataFactory  m_decDataFactory;
-    DecodeTestConfig    m_decTestCfg;
-    const GpuCmdFactory *m_GpuCmdFactory = nullptr;
-};
-
-#endif // __DDI_TEST_DECODE_H__
+void CmdValidator::Validate(const PMOS_COMMAND_BUFFER pCmdBuffer) const
+{
+    for (auto p = pCmdBuffer->pCmdBase; p != pCmdBuffer->pCmdPtr; p++)
+    {
+        for (const auto &e : m_gpuCmds)
+        {
+            if (e->GetOpCode() == *p)
+            {
+                e->Validate(static_cast<void *>(p));
+            }
+        }
+    }
+}

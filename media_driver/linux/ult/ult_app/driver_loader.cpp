@@ -28,6 +28,8 @@
 
 using namespace std;
 
+void UltGetCmdBuf(PMOS_COMMAND_BUFFER pCmdBuffer);
+
 extern char               *g_dirverPath;
 extern vector<Platform_t> g_platform;
 
@@ -79,7 +81,8 @@ DriverDllLoader::DriverDllLoader(char *path)
 VAStatus DriverDllLoader::CloseDriver()
 {
     VAStatus vaStatus = m_ctx.vtable->vaTerminate(&m_ctx);
-    vaCmExtSendReqMsg = nullptr;
+
+    m_drvSyms.Clear();
 
     if(m_umdhandle)
     {
@@ -91,12 +94,25 @@ VAStatus DriverDllLoader::CloseDriver()
 
 VAStatus DriverDllLoader::InitDriver(int platform_id)
 {
-    const char   *cm_entry_name   = "vaCmExtSendReqMsg";
-    char         init_func_s[256] = { };
-    int          drm_fd           = platform_id + 1 < 0 ? 1 : platform_id + 1;
-    VADriverInit init_func        = nullptr;
-    m_drmstate.fd                 = drm_fd;
-    m_drmstate.auth_type          = 3;
+    int drm_fd           = platform_id + 1 < 0 ? 1 : platform_id + 1;
+    m_drmstate.fd        = drm_fd;
+    m_drmstate.auth_type = 3;
+    m_ctx.vtable         = &m_vtable;
+    m_ctx.vtable_vpp     = &m_vtable_vpp;
+    m_ctx.drm_state      = &m_drmstate;
+
+    if (LoadDriverSymbols() != VA_STATUS_SUCCESS)
+    {
+        return VA_STATUS_ERROR_UNKNOWN;
+    }
+    m_drvSyms.MOS_SetUltFlag(1);
+    *m_drvSyms.ppfnUltGetCmdBuf = UltGetCmdBuf;
+    return m_drvSyms.__vaDriverInit_(&m_ctx);
+}
+
+VAStatus DriverDllLoader::LoadDriverSymbols()
+{
+    char init_func_s[256] = { };
 
     m_umdhandle = dlopen(m_driver_path, RTLD_NOW | RTLD_GLOBAL | RTLD_NODELETE);
     if (!m_umdhandle)
@@ -104,32 +120,27 @@ VAStatus DriverDllLoader::InitDriver(int platform_id)
         printf("ERROR: dlopen of %s failed.\n", m_driver_path);
         return VA_STATUS_ERROR_UNKNOWN;
     }
-    else
+
+    for (int i = 0; i <= VA_MINOR_VERSION; i++)
     {
-        for (int i = 0; i <= VA_MINOR_VERSION; i++)
+        sprintf(init_func_s, "__vaDriverInit_%d_%d", VA_MAJOR_VERSION, i);
+        m_drvSyms.__vaDriverInit_ = (VADriverInit)dlsym(m_umdhandle, init_func_s);
+        if (m_drvSyms.__vaDriverInit_)
         {
-            sprintf(init_func_s, "__vaDriverInit_%d_%d", VA_MAJOR_VERSION, i);
-            init_func = (VADriverInit)dlsym(m_umdhandle, init_func_s);
-            if (init_func)
-            {
-                vaCmExtSendReqMsg         = (CmExtSendReqMsgFunc)dlsym(m_umdhandle, cm_entry_name);
-                MOS_SetUltFlag            = (MOS_SetUltFlagFunc)dlsym(m_umdhandle, "MOS_SetUltFlag");
-                MOS_GetMemNinjaCounter    = (MOS_GetMemNinjaCounterFunc)dlsym(m_umdhandle, "MOS_GetMemNinjaCounter");
-                MOS_GetMemNinjaCounterGfx = (MOS_GetMemNinjaCounterFunc)dlsym(m_umdhandle, "MOS_GetMemNinjaCounterGfx");
-                break;
-            }
+            m_drvSyms.vaCmExtSendReqMsg         = (CmExtSendReqMsgFunc)dlsym(m_umdhandle, "vaCmExtSendReqMsg");
+            m_drvSyms.MOS_SetUltFlag            = (MOS_SetUltFlagFunc)dlsym(m_umdhandle, "MOS_SetUltFlag");
+            m_drvSyms.MOS_GetMemNinjaCounter    = (MOS_GetMemNinjaCounterFunc)dlsym(m_umdhandle, "MOS_GetMemNinjaCounter");
+            m_drvSyms.MOS_GetMemNinjaCounterGfx = (MOS_GetMemNinjaCounterFunc)dlsym(m_umdhandle, "MOS_GetMemNinjaCounterGfx");
+            m_drvSyms.ppfnUltGetCmdBuf          = (UltGetCmdBufFunc *)dlsym(m_umdhandle, "pfnUltGetCmdBuf");
+            break;
         }
-
-        if (!init_func || !vaCmExtSendReqMsg || !MOS_SetUltFlag || !MOS_GetMemNinjaCounter || !MOS_GetMemNinjaCounterGfx)
-        {
-            return VA_STATUS_ERROR_UNKNOWN;
-        }
-
-        m_ctx.vtable     = &m_vtable;
-        m_ctx.vtable_vpp = &m_vtable_vpp;
-        m_ctx.drm_state  = &m_drmstate;
-
-        MOS_SetUltFlag(1);
-        return (*init_func)(&m_ctx);
     }
+
+    if (!m_drvSyms.Initialized())
+    {
+        printf("ERROR: not all driver symbols are successfully loaded.\n");
+        return VA_STATUS_ERROR_UNKNOWN;
+    }
+
+    return VA_STATUS_SUCCESS;
 }

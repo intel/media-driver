@@ -27,6 +27,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_graphicsresource_specific.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_os_specific.c
     ${CMAKE_CURRENT_LIST_DIR}/mos_util_debug_specific.c
+    ${CMAKE_CURRENT_LIST_DIR}/mos_util_devult_specific.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_utilities_specific.c
     ${CMAKE_CURRENT_LIST_DIR}/mos_util_user_interface_specific.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_commandbuffer_specific.cpp
@@ -40,6 +41,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_graphicsresource_specific.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_os_specific.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_util_user_feature_keys_specific.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_util_devult_specific.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_utilities_specific.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_commandbuffer_specific.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext_specific.h

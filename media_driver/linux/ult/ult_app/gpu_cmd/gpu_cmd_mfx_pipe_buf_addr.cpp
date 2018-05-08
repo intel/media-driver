@@ -19,47 +19,47 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef __DDI_TEST_DECODE_H__
-#define __DDI_TEST_DECODE_H__
+#include "gpu_cmd_mfx_pipe_buf_addr.h"
 
-#include "cmd_validator.h"
-#include "driver_loader.h"
-#include "gtest/gtest.h"
-#include "memory_leak_detector.h"
-#include "test_data_caps.h"
-#include "test_data_decode.h"
-
-class DecodeTestConfig
+void GpuCmdMfxPipeBufAddrG9Bxt::InitCachePolicy()
 {
-public:
+    m_pCmd->DW3.Value  |= 2;
+    m_pCmd->DW6.Value  |= 2;
+    m_pCmd->DW9.Value  |= 2;
+    m_pCmd->DW12.Value |= 2;
+    m_pCmd->DW15.Value |= 2;
+    m_pCmd->DW18.Value |= 2;
+    m_pCmd->DW51.Value |= 2;
+    m_pCmd->DW57.Value |= 2;
+    m_pCmd->DW60.Value |= 2;
+    m_pCmd->DW64.Value |= 4;
+}
 
-    DecodeTestConfig();
-
-    bool IsDecTestEnabled(DeviceConfig platform, FeatureID featureId);
-
-private:
-
-    std::map<DeviceConfig, std::vector<FeatureID>, MapFeatureIDComparer> m_mapPlatformFeatureID;
-};
-
-class MediaDecodeDdiTest : public testing::Test
+void GpuCmdMfxPipeBufAddrG9Skl::InitCachePolicy()
 {
-protected:
+    m_pCmd->DW3.Value  |= 10;
+    m_pCmd->DW6.Value  |= 10;
+    m_pCmd->DW9.Value  |= 10;
+    m_pCmd->DW12.Value |= 10;
+    m_pCmd->DW15.Value |= 8;
+    m_pCmd->DW18.Value |= 8;
+    m_pCmd->DW51.Value |= 12;
+    m_pCmd->DW57.Value |= 0;
+    m_pCmd->DW60.Value |= 0;
+    m_pCmd->DW64.Value |= 4;
+}
 
-    virtual void SetUp() { }
-
-    virtual void TearDown() { }
-
-    void DecodeExecute(DecTestData *pDecData, Platform_t platform);
-
-    void ExectueDecodeTest(DecTestData *pDecData);
-
-protected:
-
-    DriverDllLoader     m_driverLoader;
-    DecTestDataFactory  m_decDataFactory;
-    DecodeTestConfig    m_decTestCfg;
-    const GpuCmdFactory *m_GpuCmdFactory = nullptr;
-};
-
-#endif // __DDI_TEST_DECODE_H__
+void GpuCmdMfxPipeBufAddrG10::InitCachePolicy()
+{
+    m_pCmd->DW3.Value  |= 8;
+    m_pCmd->DW6.Value  |= 8;
+    m_pCmd->DW9.Value  |= 8;
+    m_pCmd->DW12.Value |= 8;
+    m_pCmd->DW15.Value |= 6;
+    m_pCmd->DW18.Value |= 6;
+    m_pCmd->DW51.Value |= 6;
+    m_pCmd->DW57.Value |= 8;
+    m_pCmd->DW60.Value |= 8;
+    m_pCmd->DW64.Value |= 4;
+    m_pCmd->DW67.Value |= 8;
+}

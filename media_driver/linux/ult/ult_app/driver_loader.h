@@ -24,6 +24,7 @@
 
 #include <vector>
 #include "devconfig.h"
+#include "mos_os.h"
 #include "va/va_drmcommon.h"
 #include "va/va_backend.h"
 #include "va/va_backend_vpp.h"
@@ -73,6 +74,48 @@ typedef void (*MOS_SetUltFlagFunc)(uint8_t ultFlag);
 
 typedef int32_t (*MOS_GetMemNinjaCounterFunc)();
 
+typedef void (*UltGetCmdBufFunc)(PMOS_COMMAND_BUFFER pCmdBuffer);
+
+struct DriverSymbols
+{
+    DriverSymbols()
+    {
+        Clear();
+    }
+
+    void Clear()
+    {
+        auto p = (const void **)this;
+        for (auto i = 0; i < sizeof(this) / sizeof(const void *); i++)
+        {
+            p[i] = nullptr;
+        }
+    }
+
+    bool Initialized() const
+    {
+        auto p = (const void * const *)this;
+        for (auto i = 0; i < sizeof(this) / sizeof(const void *); i++)
+        {
+            if (p[i] == nullptr)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    // Functions
+    VADriverInit                __vaDriverInit_;
+    CmExtSendReqMsgFunc         vaCmExtSendReqMsg;
+    MOS_SetUltFlagFunc          MOS_SetUltFlag;
+    MOS_GetMemNinjaCounterFunc  MOS_GetMemNinjaCounter;
+    MOS_GetMemNinjaCounterFunc  MOS_GetMemNinjaCounterGfx;
+
+    // Data
+    UltGetCmdBufFunc            *ppfnUltGetCmdBuf;
+};
+
 class DriverDllLoader
 {
 public:
@@ -81,18 +124,15 @@ public:
 
     DriverDllLoader(char *path);
 
-    std::vector<Platform_t> &GetPlatforms() { return m_platformArray; }
+    const std::vector<Platform_t> &GetPlatforms() const { return m_platformArray; }
 
-    int GetPlatformNum() { return m_platformArray.size(); }
+    int GetPlatformNum() const { return m_platformArray.size(); }
+
+    const DriverSymbols &GetDriverSymbols() const { return m_drvSyms; }
 
     VAStatus InitDriver(int platform_id);
 
     VAStatus CloseDriver();
-
-    CmExtSendReqMsgFunc         vaCmExtSendReqMsg;
-    MOS_SetUltFlagFunc          MOS_SetUltFlag;
-    MOS_GetMemNinjaCounterFunc  MOS_GetMemNinjaCounter;
-    MOS_GetMemNinjaCounterFunc  MOS_GetMemNinjaCounterGfx;
 
 public:
 
@@ -102,8 +142,13 @@ public:
 
 private:
 
+    VAStatus LoadDriverSymbols();
+
+private:
+
     const char                  *m_driver_path;
     void                        *m_umdhandle;
+    DriverSymbols               m_drvSyms;
     std::vector<Platform_t>     m_platformArray;
     drm_state                   m_drmstate;
 };

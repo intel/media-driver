@@ -34,8 +34,8 @@ void MemoryLeakDetector::Detect(const DriverDllLoader &drvLoader, Platform_t pla
         delReport = false;
     }
 
-    int32_t memNinjaCnt    = drvLoader.MOS_GetMemNinjaCounter();
-    int32_t memNinjaCntGfx = drvLoader.MOS_GetMemNinjaCounterGfx();
+    int32_t memNinjaCnt    = drvLoader.GetDriverSymbols().MOS_GetMemNinjaCounter();
+    int32_t memNinjaCntGfx = drvLoader.GetDriverSymbols().MOS_GetMemNinjaCounterGfx();
     if (memNinjaCnt != 0 || memNinjaCntGfx != 0)
     {
         const ::testing::TestInfo* curTest = ::testing::UnitTest::GetInstance()->current_test_info();
@@ -56,7 +56,7 @@ void MemoryLeakDetector::Detect(const DriverDllLoader &drvLoader, Platform_t pla
 
 MemoryLeakDetectorIpl *MemoryLeakDetectorIpl::m_instance = nullptr;
 
-MemoryLeakDetectorIpl * MemoryLeakDetectorIpl::GetInstance()
+MemoryLeakDetectorIpl *MemoryLeakDetectorIpl::GetInstance()
 {
     if (m_instance == nullptr)
     {

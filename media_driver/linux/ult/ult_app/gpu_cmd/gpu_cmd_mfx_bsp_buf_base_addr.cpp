@@ -19,47 +19,25 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef __DDI_TEST_DECODE_H__
-#define __DDI_TEST_DECODE_H__
+#include "gpu_cmd_mfx_bsp_buf_base_addr.h"
 
-#include "cmd_validator.h"
-#include "driver_loader.h"
-#include "gtest/gtest.h"
-#include "memory_leak_detector.h"
-#include "test_data_caps.h"
-#include "test_data_decode.h"
-
-class DecodeTestConfig
+void GpuCmdMfxBspBufBaseAddrG9Bxt::InitCachePolicy()
 {
-public:
+    m_pCmd->DW3.Value |= 2;
+    m_pCmd->DW6.Value |= 2;
+    m_pCmd->DW9.Value |= 2;
+}
 
-    DecodeTestConfig();
-
-    bool IsDecTestEnabled(DeviceConfig platform, FeatureID featureId);
-
-private:
-
-    std::map<DeviceConfig, std::vector<FeatureID>, MapFeatureIDComparer> m_mapPlatformFeatureID;
-};
-
-class MediaDecodeDdiTest : public testing::Test
+void GpuCmdMfxBspBufBaseAddrG9Skl::InitCachePolicy()
 {
-protected:
+    m_pCmd->DW3.Value |= 8;
+    m_pCmd->DW6.Value |= 8;
+    m_pCmd->DW9.Value |= 10;
+}
 
-    virtual void SetUp() { }
-
-    virtual void TearDown() { }
-
-    void DecodeExecute(DecTestData *pDecData, Platform_t platform);
-
-    void ExectueDecodeTest(DecTestData *pDecData);
-
-protected:
-
-    DriverDllLoader     m_driverLoader;
-    DecTestDataFactory  m_decDataFactory;
-    DecodeTestConfig    m_decTestCfg;
-    const GpuCmdFactory *m_GpuCmdFactory = nullptr;
-};
-
-#endif // __DDI_TEST_DECODE_H__
+void GpuCmdMfxBspBufBaseAddrG10::InitCachePolicy()
+{
+    m_pCmd->DW3.Value |= 6;
+    m_pCmd->DW6.Value |= 6;
+    m_pCmd->DW9.Value |= 8;
+}
