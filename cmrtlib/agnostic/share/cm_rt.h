@@ -1247,6 +1247,8 @@ class CmSampler8x8
 {
 public:
     CM_RT_API virtual INT GetIndex( SamplerIndex* & pIndex ) = 0 ;
+protected:
+    ~CmSampler8x8(){}
 };
 
 class CmEvent
@@ -1258,6 +1260,8 @@ public:
     CM_RT_API virtual INT GetSurfaceDetails( UINT kernIndex, UINT surfBTI,CM_SURFACE_DETAILS& outDetails )=0;
     CM_RT_API virtual INT GetProfilingInfo(CM_EVENT_PROFILING_INFO infoType, size_t paramSize, PVOID pInputValue, PVOID pValue) = 0;
     CM_RT_API virtual INT GetExecutionTickTime(UINT64& ticks) = 0;
+protected:
+    ~CmEvent(){}
 };
 
 class CmKernel
@@ -1275,6 +1279,8 @@ public:
     CM_RT_API virtual INT DeAssociateThreadGroupSpace(CmThreadGroupSpace* & pTGS) = 0;
     CM_RT_API virtual INT QuerySpillSize(unsigned int &spillSize) = 0;
     CM_RT_API virtual INT GetIndexForCurbeData( UINT curbe_data_size, SurfaceIndex *pSurface ) = 0;
+protected:
+    ~CmKernel(){}
 };
 
 class CmTask
@@ -1286,6 +1292,8 @@ public:
     CM_RT_API virtual INT SetPowerOption( PCM_POWER_OPTION pCmPowerOption ) = 0;
     CM_RT_API virtual INT AddConditionalEnd(SurfaceIndex* pSurface, UINT offset, CM_CONDITIONAL_END_PARAM *pCondParam) = 0;
     CM_RT_API virtual INT SetProperty(const CM_TASK_CONFIG &taskConfig) = 0; 
+protected:
+    ~CmTask(){}
 }; 
 
 class CmBuffer
@@ -1297,6 +1305,8 @@ public:
     CM_RT_API virtual INT InitSurface(const DWORD initValue, CmEvent* pEvent) = 0;
     CM_RT_API virtual INT SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL option) = 0;
     CM_RT_API virtual INT SetSurfaceStateParam(SurfaceIndex *pSurfIndex, const CM_BUFFER_STATE_PARAM *pSSParam) = 0;
+protected:
+    ~CmBuffer(){}
 };
 
 class CmBufferUP
@@ -1304,6 +1314,8 @@ class CmBufferUP
 public:
     CM_RT_API virtual INT GetIndex( SurfaceIndex*& pIndex ) = 0; 
     CM_RT_API virtual INT SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL option) = 0;
+protected:
+    ~CmBufferUP(){}
 };
 
 class CmBufferSVM
@@ -1311,6 +1323,8 @@ class CmBufferSVM
 public:
     CM_RT_API virtual INT GetIndex( SurfaceIndex*& pIndex ) = 0; 
     CM_RT_API virtual INT GetAddress( void * &pAddr) = 0;
+protected:
+    ~CmBufferSVM(){}
 };
 
 class CmSurface2DUP  
@@ -1319,6 +1333,8 @@ public:
     CM_RT_API virtual INT GetIndex( SurfaceIndex*& pIndex ) = 0; 
     CM_RT_API virtual INT SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL option) = 0;
     CM_RT_API virtual INT SetProperty(CM_FRAME_TYPE frameType) = 0; 
+protected:
+    ~CmSurface2DUP(){}
 };
 
 class CmSurface3D  
@@ -1329,12 +1345,16 @@ public:
     CM_RT_API virtual INT WriteSurface( const unsigned char* pSysMem, CmEvent* pEvent, UINT64 sysMemSize = 0xFFFFFFFFFFFFFFFFULL ) = 0;
     CM_RT_API virtual INT InitSurface(const DWORD initValue, CmEvent* pEvent) = 0;
     CM_RT_API virtual INT SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL option) = 0;
+protected:
+    ~CmSurface3D(){}
 };
 
 class CmSampler
 {
 public:
     CM_RT_API virtual INT GetIndex( SamplerIndex* & pIndex ) = 0 ;
+protected:
+    ~CmSampler(){}
 };
 
 class CmThreadSpace
@@ -1351,6 +1371,8 @@ public:
     CM_RT_API virtual INT SelectMediaWalkingParameters( CM_WALKING_PARAMETERS paramaters ) = 0;
     CM_RT_API virtual INT SelectThreadDependencyVectors( CM_DEPENDENCY dependVectors ) = 0;
     CM_RT_API virtual INT SetThreadSpaceOrder(UINT threadCount, PCM_THREAD_PARAM pThreadSpaceOrder) = 0;
+protected:
+    ~CmThreadSpace(){}
 };
 
 class CmVebox
@@ -1382,6 +1404,8 @@ public:
     CM_RT_API virtual INT SetStatisticsOutputSurface( CmSurface2D* pSurf ) = 0;
     CM_RT_API virtual INT SetStatisticsOutputSurfaceControlBits( const WORD ctrlBits ) = 0;
     CM_RT_API virtual INT SetParam(CmBufferUP *pParamBuffer) = 0;
+protected:
+    ~CmVebox(){}
 };
 
 class CmQueue
@@ -1404,6 +1428,8 @@ public:
     
     CM_RT_API virtual INT EnqueueWithHints( CmTask* pTask, CmEvent* & pEvent, UINT hints = 0) = 0;
     CM_RT_API virtual INT EnqueueVebox( CmVebox* pVebox, CmEvent* & pEvent ) = 0;
+protected:
+    ~CmQueue(){}
 };
 
 //**********************************************************************
