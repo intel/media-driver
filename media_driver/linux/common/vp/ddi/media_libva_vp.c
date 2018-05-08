@@ -2809,7 +2809,7 @@ VAStatus DdiVp_EndPicture (
 
     //Add component tag for VP
     DDI_CHK_NULL(pVpCtx->pVpHalRenderParams, "Null pVpHalRenderParams.", VA_STATUS_ERROR_INVALID_PARAMETER);
-    pVpCtx->pVpHalRenderParams->Component = COMPONENT_LibVA;
+    pVpCtx->pVpHalRenderParams->Component = COMPONENT_VPCommon;
 
     pVpHal  = pVpCtx->pVpHal;
     DDI_CHK_NULL(pVpHal, "Null pVpHal.", VA_STATUS_ERROR_INVALID_PARAMETER);
