@@ -19,47 +19,44 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef __DDI_TEST_DECODE_H__
-#define __DDI_TEST_DECODE_H__
+#ifndef __GPU_CMD_HCP_IND_OBJ_BASE_ADDR_H__
+#define __GPU_CMD_HCP_IND_OBJ_BASE_ADDR_H__
 
-#include "cmd_validator.h"
-#include "driver_loader.h"
-#include "gtest/gtest.h"
-#include "memory_leak_detector.h"
-#include "test_data_caps.h"
-#include "test_data_decode.h"
+#include "gpu_cmd.h"
+#include "mhw_vdbox_hcp_hwcmd_g10_X.h"
 
-class DecodeTestConfig
+template<typename _CmdType>
+class GpuCmdHcpIndObjBaseAddr : public GpuCmd<_CmdType>
 {
 public:
 
-    DecodeTestConfig();
+    using typename GpuCmd<_CmdType>::cmd_t;
+    using GpuCmd<_CmdType>::CacheCheck1;
+    using GpuCmd<_CmdType>::CacheCheck2;
 
-    bool IsDecTestEnabled(DeviceConfig platform, FeatureID featureId);
+protected:
 
-private:
+    using GpuCmd<_CmdType>::m_pCmd;
 
-    std::map<DeviceConfig, std::vector<FeatureID>, MapFeatureIDComparer> m_mapPlatformFeatureID;
+    void ValidateCachePolicy(const cmd_t *pCmd) const override
+    {
+        CacheCheck1(m_pCmd->HcpIndirectBitstreamObjectMemoryAddressAttributes.DW0.Value,
+            pCmd->HcpIndirectBitstreamObjectMemoryAddressAttributes.DW0.Value);
+    }
 };
 
-class MediaDecodeDdiTest : public testing::Test
+class GpuCmdHcpIndObjBaseAddrG10 : public GpuCmdHcpIndObjBaseAddr<mhw_vdbox_hcp_g10_X::HCP_IND_OBJ_BASE_ADDR_STATE_CMD>
 {
-protected:
+public:
 
-    virtual void SetUp() { }
-
-    virtual void TearDown() { }
-
-    void DecodeExecute(DecTestData *pDecData, Platform_t platform);
-
-    void ExectueDecodeTest(DecTestData *pDecData);
+    GpuCmdHcpIndObjBaseAddrG10()
+    {
+        InitCachePolicy();
+    }
 
 protected:
 
-    DriverDllLoader     m_driverLoader;
-    DecTestDataFactory  m_decDataFactory;
-    DecodeTestConfig    m_decTestCfg;
-    const GpuCmdFactory *m_GpuCmdFactory = nullptr;
+    void InitCachePolicy();
 };
 
-#endif // __DDI_TEST_DECODE_H__
+#endif // __GPU_CMD_HCP_IND_OBJ_BASE_ADDR_H__

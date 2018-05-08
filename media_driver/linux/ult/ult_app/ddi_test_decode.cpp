@@ -25,6 +25,9 @@ using namespace std;
 
 TEST_F(MediaDecodeDdiTest, DecodeHEVCLong)
 {
+    #ifndef _FULL_OPEN_SOURCE
+    m_GpuCmdFactory = g_gpuCmdFactoryDecodeHEVCLong;
+    #endif // _FULL_OPEN_SOURCE
     DecTestData *pDecData = m_decDataFactory.GetDecTestData("HEVC-Long");
     ExectueDecodeTest(pDecData);
     delete pDecData;
@@ -32,6 +35,9 @@ TEST_F(MediaDecodeDdiTest, DecodeHEVCLong)
 
 TEST_F(MediaDecodeDdiTest, DecodeAVCLong)
 {
+    #ifndef _FULL_OPEN_SOURCE
+    m_GpuCmdFactory = g_gpuCmdFactoryDecodeAVCLong;
+    #endif // _FULL_OPEN_SOURCE
     DecTestData *pDecData = m_decDataFactory.GetDecTestData("AVC-Long");
     ExectueDecodeTest(pDecData);
     delete pDecData;
@@ -45,7 +51,9 @@ void MediaDecodeDdiTest::ExectueDecodeTest(DecTestData *pDecData)
         if (m_decTestCfg.IsDecTestEnabled(DeviceConfigTable[platforms[i]],
             pDecData->GetFeatureID()))
         {
+            CmdValidator::GpuCmdsValidationInit(m_GpuCmdFactory, platforms[i]);
             DecodeExecute(pDecData, platforms[i]);
+            MemoryLeakDetector::Detect(m_driverLoader, platforms[i]);
         }
     }
 }
@@ -139,8 +147,6 @@ void MediaDecodeDdiTest::DecodeExecute(DecTestData *pDecData, Platform_t platfor
     ret = m_driverLoader.CloseDriver();
     EXPECT_EQ(VA_STATUS_SUCCESS, ret) << "Platform = " << g_platformName[platform]
         << ", Failed function = m_driverLoader.CloseDriver" << endl;
-
-    MemoryLeakDetector::Detect(m_driverLoader, platform);
 }
 
 DecodeTestConfig::DecodeTestConfig()

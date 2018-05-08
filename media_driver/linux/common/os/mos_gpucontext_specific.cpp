@@ -28,7 +28,7 @@
 #include "mos_gpucontext_specific.h"
 #include "mos_graphicsresource_specific.h"
 #include "mos_commandbuffer_specific.h"
-
+#include "mos_util_devult_specific.h"
 #include "mos_cmdbufmgr.h"
 
 #define MI_BATCHBUFFER_END 0x05000000
@@ -696,6 +696,8 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
     {
         MOS_OS_ASSERTMESSAGE("Command buffer submission failed!");
     }
+
+    MOS_DEVULT_FuncCall(pfnUltGetCmdBuf, cmdBuffer);
 
 #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
 pthread_mutex_lock(&command_dump_mutex);

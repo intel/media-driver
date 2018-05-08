@@ -25,6 +25,9 @@ using namespace std;
 
 TEST_F(MediaEncodeDdiTest, EncodeHEVC_DualPipe)
 {
+    #ifndef _FULL_OPEN_SOURCE
+    m_GpuCmdFactory = g_gpuCmdFactoryEncodeHevcDualPipe;
+    #endif // _FULL_OPEN_SOURCE
     EncTestData *pEncData = m_encTestFactory.GetEncTestData("HEVC-DualPipe");
     ExectueEncodeTest(pEncData);
     delete pEncData;
@@ -32,6 +35,9 @@ TEST_F(MediaEncodeDdiTest, EncodeHEVC_DualPipe)
 
 TEST_F(MediaEncodeDdiTest, EncodeAVC_DualPipe)
 {
+    #ifndef _FULL_OPEN_SOURCE
+    m_GpuCmdFactory = g_gpuCmdFactoryEncodeAvcDualPipe;
+    #endif // _FULL_OPEN_SOURCE
     EncTestData *pEncData = m_encTestFactory.GetEncTestData("AVC-DualPipe");
     ExectueEncodeTest(pEncData);
     delete pEncData;
@@ -45,7 +51,9 @@ void MediaEncodeDdiTest::ExectueEncodeTest(EncTestData *pEncData)
         if (m_encTestCfg.IsEncTestEnabled(DeviceConfigTable[platforms[i]],
             pEncData->GetFeatureID()))
         {
+            CmdValidator::GpuCmdsValidationInit(m_GpuCmdFactory, platforms[i]);
             EncodeExecute(pEncData, platforms[i]);
+            MemoryLeakDetector::Detect(m_driverLoader, platforms[i]);
         }
     }
 }
@@ -95,7 +103,7 @@ void MediaEncodeDdiTest::EncodeExecute(EncTestData *pEncData, Platform_t platfor
         for (int j = 1; j < compBufs[i].size(); j++)
         {
             ret = m_driverLoader.m_ctx.vtable->vaCreateBuffer(&m_driverLoader.m_ctx, context_id,
-                compBufs[i][j].bufType, compBufs[i][j].bufSize, 1, compBufs[i][j].pData,&compBufs[i][j].bufID);
+                compBufs[i][j].bufType, compBufs[i][j].bufSize, 1, compBufs[i][j].pData, &compBufs[i][j].bufID);
             EXPECT_EQ(VA_STATUS_SUCCESS, ret) << "Platform = " << g_platformName[platform]
                 << ", Failed function = m_driverLoader.m_ctx.vtable->vaCreateBuffer" << endl;
 
@@ -136,7 +144,7 @@ void MediaEncodeDdiTest::EncodeExecute(EncTestData *pEncData, Platform_t platfor
     EXPECT_EQ(VA_STATUS_SUCCESS, ret) << "Platform = " << g_platformName[platform]
         << ", Failed function = m_driverLoader.m_ctx.vtable->vaDestroySurfaces" << endl;
 
-    ret = m_driverLoader.m_ctx.vtable->vaDestroyContext(&m_driverLoader.m_ctx , context_id);
+    ret = m_driverLoader.m_ctx.vtable->vaDestroyContext(&m_driverLoader.m_ctx, context_id);
     EXPECT_EQ(VA_STATUS_SUCCESS, ret) << "Platform = " << g_platformName[platform]
         << ", Failed function = m_driverLoader.m_ctx.vtable->vaDestroyContext" << endl;
 
@@ -147,8 +155,6 @@ void MediaEncodeDdiTest::EncodeExecute(EncTestData *pEncData, Platform_t platfor
     ret = m_driverLoader.CloseDriver();
     EXPECT_EQ(VA_STATUS_SUCCESS, ret) << "Platform = " << g_platformName[platform]
         << ", Failed function = m_driverLoader.CloseDriver" << endl;
-
-    MemoryLeakDetector::Detect(m_driverLoader, platform);
 }
 
 EncodeTestConfig::EncodeTestConfig()

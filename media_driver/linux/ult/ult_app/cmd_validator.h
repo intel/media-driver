@@ -19,47 +19,40 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef __DDI_TEST_DECODE_H__
-#define __DDI_TEST_DECODE_H__
+#ifndef __CMD_VALIDATOR_H__
+#define __CMD_VALIDATOR_H__
 
-#include "cmd_validator.h"
 #include "driver_loader.h"
-#include "gtest/gtest.h"
-#include "memory_leak_detector.h"
-#include "test_data_caps.h"
-#include "test_data_decode.h"
+#include "gpu_cmd_factory.h"
 
-class DecodeTestConfig
+class CmdValidator
 {
 public:
 
-    DecodeTestConfig();
+    static CmdValidator *GetInstance();
 
-    bool IsDecTestEnabled(DeviceConfig platform, FeatureID featureId);
+    static void GpuCmdsValidationInit(const GpuCmdFactory *cmdFactory, Platform_t platform);
+
+    void CreateGpuCmds(const GpuCmdFactory *cmdFactory, Platform_t platform)
+    {
+        if (cmdFactory)
+        {
+            cmdFactory->CreateGpuCmds(m_gpuCmds, platform);
+        }
+    }
+
+    void Reset()
+    {
+        m_gpuCmds.clear();
+    }
+
+    void Validate(const PMOS_COMMAND_BUFFER pCmdBuffer) const;
 
 private:
 
-    std::map<DeviceConfig, std::vector<FeatureID>, MapFeatureIDComparer> m_mapPlatformFeatureID;
+    static CmdValidator *m_instance;
+
+    std::vector<GpuCmdInterface::pcmditf_t> m_gpuCmds;
 };
 
-class MediaDecodeDdiTest : public testing::Test
-{
-protected:
-
-    virtual void SetUp() { }
-
-    virtual void TearDown() { }
-
-    void DecodeExecute(DecTestData *pDecData, Platform_t platform);
-
-    void ExectueDecodeTest(DecTestData *pDecData);
-
-protected:
-
-    DriverDllLoader     m_driverLoader;
-    DecTestDataFactory  m_decDataFactory;
-    DecodeTestConfig    m_decTestCfg;
-    const GpuCmdFactory *m_GpuCmdFactory = nullptr;
-};
-
-#endif // __DDI_TEST_DECODE_H__
+#endif // __CMD_VALIDATOR_H__
