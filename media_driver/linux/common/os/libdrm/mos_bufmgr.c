@@ -4705,7 +4705,6 @@ mos_get_context_param_sseu(struct mos_linux_context *ctx,
     ret = drmIoctl(bufmgr_gem->fd,
             DRM_IOCTL_I915_GEM_CONTEXT_GETPARAM,
             &context_param);
-    sseu->value = context_param.value;
 
     return ret;
 }
