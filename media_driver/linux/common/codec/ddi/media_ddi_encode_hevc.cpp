@@ -1128,6 +1128,11 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
 #ifndef ANDROID
         // support DeltaQP based ROI by default
         seqParams->ROIValueInDeltaQP = vaEncMiscParamROI->roi_flags.bits.roi_value_is_qp_delta;
+        if(picParams->NumROI != 0 && seqParams->ROIValueInDeltaQP == 0)
+        {
+            DDI_ASSERTMESSAGE("ROI does not support priority level now.");
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
 #endif
         break;
     }
