@@ -838,8 +838,10 @@ protected:
         }
 
         cmd.DW4.CollocatedFromL0Flag = hevcSliceParams->LongSliceFlags.fields.collocated_from_l0_flag;
-        cmd.DW4.Chromalog2Weightdenom = hevcSliceParams->luma_log2_weight_denom + hevcSliceParams->delta_chroma_log2_weight_denom;
-        cmd.DW4.LumaLog2WeightDenom = hevcSliceParams->luma_log2_weight_denom;
+        cmd.DW4.Chromalog2Weightdenom = (hevcPicParams->weighted_pred_flag || hevcPicParams->weighted_bipred_flag) ?
+            (hevcSliceParams->luma_log2_weight_denom + hevcSliceParams->delta_chroma_log2_weight_denom) : 0;
+        cmd.DW4.LumaLog2WeightDenom = (hevcPicParams->weighted_pred_flag || hevcPicParams->weighted_bipred_flag) ?
+            hevcSliceParams->luma_log2_weight_denom : 0;
         cmd.DW4.CabacInitFlag = hevcSliceParams->LongSliceFlags.fields.cabac_init_flag;
         cmd.DW4.Maxmergeidx = 5 - hevcSliceParams->five_minus_max_num_merge_cand - 1;
 
