@@ -154,8 +154,7 @@ public:
     CM_NOINLINE SurfaceIndex& operator + (const unsigned int& _n) { this->index += _n; return *this; };
     virtual unsigned int get_data(void) { return index; };
 
-protected:
-    ~SurfaceIndex(){};
+    virtual ~SurfaceIndex(){};
 private:
     unsigned int index;
     unsigned char extra_byte; // an extra byte to align the object size among OSes
@@ -169,8 +168,8 @@ public:
     CM_NOINLINE SamplerIndex(const unsigned int& _n) { index = _n; };
     CM_NOINLINE SamplerIndex& operator = (const unsigned int& _n) { this->index = _n; return *this; };
     virtual unsigned int get_data(void) { return index; };
-protected:
-    ~SamplerIndex(){};
+
+    virtual ~SamplerIndex(){};
 private:
     unsigned int index;
     unsigned char extra_byte; // an extra byte to align the object size among OSes
