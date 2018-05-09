@@ -536,8 +536,8 @@ VAStatus DdiEncodeHevc::ParsePicParams(
     hevcPicParams->weighted_bipred_flag           = picParams->pic_fields.bits.weighted_bipred_flag;
     hevcPicParams->loop_filter_across_slices_flag = picParams->pic_fields.bits.pps_loop_filter_across_slices_enabled_flag;
     hevcPicParams->loop_filter_across_tiles_flag  = picParams->pic_fields.bits.loop_filter_across_tiles_enabled_flag;
-    hevcPicParams->bLastPicInSeq                  = (picParams->last_picture == HEVC_LAST_PICTURE_EOSEQ) ? 1 : 0;
-    hevcPicParams->bLastPicInStream               = (picParams->last_picture == HEVC_LAST_PICTURE_EOSTREAM) ? 1 : 0;
+    hevcPicParams->bLastPicInSeq                  = (picParams->last_picture & HEVC_LAST_PICTURE_EOSEQ) ? 1 : 0;
+    hevcPicParams->bLastPicInStream               = (picParams->last_picture & HEVC_LAST_PICTURE_EOSTREAM) ? 1 : 0;
     hevcPicParams->bUseRawPicForRef               = false;
     hevcPicParams->bScreenContent                 = picParams->pic_fields.bits.screen_content_flag;
     hevcPicParams->bEmulationByteInsertion        = true;
