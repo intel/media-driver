@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -496,7 +496,7 @@ mhw_vebox_g10_X::VEBOX_STD_STE_STATE_CMD::VEBOX_STD_STE_STATE_CMD()
     DW8.Value                                        = 0;
     DW8.B2L                                          = B2L_UNNAMED130;
     DW8.B3L                                          = B3L_UNNAMED130;
-    DW8.S0L                                          = S0L_UNNAMED4091;
+    DW8.S0L                                          = S0L_UNNAMED2043;
 
     DW9.Value                                        = 0;
     DW9.S1L                                          = S1L_UNNAMED0;
@@ -520,7 +520,7 @@ mhw_vebox_g10_X::VEBOX_STD_STE_STATE_CMD::VEBOX_STD_STE_STATE_CMD()
 
     DW13.Value                                       = 0;
     DW13.S1U                                         = S1U_UNNAMED113;
-    DW13.S2U                                         = S2U_UNNAMED3917;
+    DW13.S2U                                         = S2U_UNNAMED1869;
 
     DW14.Value                                       = 0;
     DW14.S3U                                         = S3U_UNNAMED0;
@@ -562,7 +562,7 @@ mhw_vebox_g10_X::VEBOX_STD_STE_STATE_CMD::VEBOX_STD_STE_STATE_CMD()
     DW21.Hues3                                       = HUES3_UNNAMED256;
 
     DW22.Value                                       = 0;
-    DW22.Satp1Dark                                   = SATP1_DARK_UNNAMED4085;
+    DW22.Satp1Dark                                   = SATP1_DARK_UNNAMED123;
     DW22.Satp2Dark                                   = SATP2_DARK_UNNAMED31;
     DW22.Satp3Dark                                   = SATP3_DARK_UNNAMED31;
     DW22.Satb1Dark                                   = SATB1_DARK_UNNAMED0;
