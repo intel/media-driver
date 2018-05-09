@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -2656,7 +2656,6 @@ public:
     {
         union
         {
-            //!< DWORD 0
             struct
             {
                 uint32_t                 StdEnable                                        : __CODEGEN_BITFIELD( 0,  0)    ; //!< STD Enable
@@ -2672,12 +2671,11 @@ public:
         } DW0;
         union
         {
-            //!< DWORD 1
             struct
             {
-                uint32_t                 Sin                                              : __CODEGEN_BITFIELD( 0,  7)    ; //!< SIN?
+                uint32_t                 Sin                                              : __CODEGEN_BITFIELD( 0,  7)    ; //!< SIN
                 uint32_t                 Reserved40                                       : __CODEGEN_BITFIELD( 8,  9)    ; //!< Reserved
-                uint32_t                 Cos                                              : __CODEGEN_BITFIELD(10, 17)    ; //!< COS?
+                uint32_t                 Cos                                              : __CODEGEN_BITFIELD(10, 17)    ; //!< COS
                 uint32_t                 HsMargin                                         : __CODEGEN_BITFIELD(18, 20)    ; //!< HS_MARGIN
                 uint32_t                 DiamondDu                                        : __CODEGEN_BITFIELD(21, 27)    ; //!< DIAMOND_DU
                 uint32_t                 DiamondMargin                                    : __CODEGEN_BITFIELD(28, 30)    ; //!< DIAMOND_MARGIN
@@ -2687,7 +2685,6 @@ public:
         } DW1;
         union
         {
-            //!< DWORD 2
             struct
             {
                 uint32_t                 DiamondDv                                        : __CODEGEN_BITFIELD( 0,  6)    ; //!< DIAMOND_DV
@@ -2699,7 +2696,6 @@ public:
         } DW2;
         union
         {
-            //!< DWORD 3
             struct
             {
                 uint32_t                 Reserved96                                       : __CODEGEN_BITFIELD( 0,  6)    ; //!< Reserved
@@ -2712,7 +2708,6 @@ public:
         } DW3;
         union
         {
-            //!< DWORD 4
             struct
             {
                 uint32_t                 YPoint4                                          : __CODEGEN_BITFIELD( 0,  7)    ; //!< Y_POINT_4
@@ -2724,7 +2719,6 @@ public:
         } DW4;
         union
         {
-            //!< DWORD 5
             struct
             {
                 uint32_t                 InvMarginVyl                                     : __CODEGEN_BITFIELD( 0, 15)    ; //!< INV_Margin_VYL
@@ -2734,7 +2728,6 @@ public:
         } DW5;
         union
         {
-            //!< DWORD 6
             struct
             {
                 uint32_t                 InvMarginVyu                                     : __CODEGEN_BITFIELD( 0, 15)    ; //!< INV_MARGIN_VYU
@@ -2745,7 +2738,6 @@ public:
         } DW6;
         union
         {
-            //!< DWORD 7
             struct
             {
                 uint32_t                 P2L                                              : __CODEGEN_BITFIELD( 0,  7)    ; //!< P2L
@@ -2757,7 +2749,6 @@ public:
         } DW7;
         union
         {
-            //!< DWORD 8
             struct
             {
                 uint32_t                 B2L                                              : __CODEGEN_BITFIELD( 0,  7)    ; //!< B2L
@@ -2769,7 +2760,6 @@ public:
         } DW8;
         union
         {
-            //!< DWORD 9
             struct
             {
                 uint32_t                 S1L                                              : __CODEGEN_BITFIELD( 0, 10)    ; //!< S1L
@@ -2780,7 +2770,6 @@ public:
         } DW9;
         union
         {
-            //!< DWORD 10
             struct
             {
                 uint32_t                 S3L                                              : __CODEGEN_BITFIELD( 0, 10)    ; //!< S3L
@@ -2792,7 +2781,6 @@ public:
         } DW10;
         union
         {
-            //!< DWORD 11
             struct
             {
                 uint32_t                 P2U                                              : __CODEGEN_BITFIELD( 0,  7)    ; //!< P2U
@@ -2804,7 +2792,6 @@ public:
         } DW11;
         union
         {
-            //!< DWORD 12
             struct
             {
                 uint32_t                 B2U                                              : __CODEGEN_BITFIELD( 0,  7)    ; //!< B2U
@@ -2816,7 +2803,6 @@ public:
         } DW12;
         union
         {
-            //!< DWORD 13
             struct
             {
                 uint32_t                 S1U                                              : __CODEGEN_BITFIELD( 0, 10)    ; //!< S1U
@@ -2827,7 +2813,6 @@ public:
         } DW13;
         union
         {
-            //!< DWORD 14
             struct
             {
                 uint32_t                 S3U                                              : __CODEGEN_BITFIELD( 0, 10)    ; //!< S3U
@@ -2840,7 +2825,6 @@ public:
         } DW14;
         union
         {
-            //!< DWORD 15
             struct
             {
                 uint32_t                 Satp1                                            : __CODEGEN_BITFIELD( 0,  6)    ; //!< SATP1
@@ -2853,7 +2837,6 @@ public:
         } DW15;
         union
         {
-            //!< DWORD 16
             struct
             {
                 uint32_t                 Satb2                                            : __CODEGEN_BITFIELD( 0,  9)    ; //!< SATB2
@@ -2865,7 +2848,6 @@ public:
         } DW16;
         union
         {
-            //!< DWORD 17
             struct
             {
                 uint32_t                 Sats1                                            : __CODEGEN_BITFIELD( 0, 10)    ; //!< SATS1
@@ -2876,7 +2858,6 @@ public:
         } DW17;
         union
         {
-            //!< DWORD 18
             struct
             {
                 uint32_t                 Sats3                                            : __CODEGEN_BITFIELD( 0, 10)    ; //!< SATS3
@@ -2888,7 +2869,6 @@ public:
         } DW18;
         union
         {
-            //!< DWORD 19
             struct
             {
                 uint32_t                 Hueb1                                            : __CODEGEN_BITFIELD( 0,  9)    ; //!< HUEB1
@@ -2900,7 +2880,6 @@ public:
         } DW19;
         union
         {
-            //!< DWORD 20
             struct
             {
                 uint32_t                 Hues0                                            : __CODEGEN_BITFIELD( 0, 10)    ; //!< HUES0
@@ -2911,7 +2890,6 @@ public:
         } DW20;
         union
         {
-            //!< DWORD 21
             struct
             {
                 uint32_t                 Hues2                                            : __CODEGEN_BITFIELD( 0, 10)    ; //!< HUES2
@@ -2922,7 +2900,6 @@ public:
         } DW21;
         union
         {
-            //!< DWORD 22
             struct
             {
                 uint32_t                 Satp1Dark                                        : __CODEGEN_BITFIELD( 0,  6)    ; //!< SATP1_DARK
@@ -2935,7 +2912,6 @@ public:
         } DW22;
         union
         {
-            //!< DWORD 23
             struct
             {
                 uint32_t                 Satb2Dark                                        : __CODEGEN_BITFIELD( 0,  9)    ; //!< SATB2_DARK
@@ -2947,7 +2923,6 @@ public:
         } DW23;
         union
         {
-            //!< DWORD 24
             struct
             {
                 uint32_t                 Sats1Dark                                        : __CODEGEN_BITFIELD( 0, 10)    ; //!< SATS1_DARK
@@ -2958,7 +2933,6 @@ public:
         } DW24;
         union
         {
-            //!< DWORD 25
             struct
             {
                 uint32_t                 Sats3Dark                                        : __CODEGEN_BITFIELD( 0, 10)    ; //!< SATS3_DARK
@@ -2970,7 +2944,6 @@ public:
         } DW25;
         union
         {
-            //!< DWORD 26
             struct
             {
                 uint32_t                 Hueb1Dark                                        : __CODEGEN_BITFIELD( 0,  9)    ; //!< HUEB1_DARK
@@ -2982,7 +2955,6 @@ public:
         } DW26;
         union
         {
-            //!< DWORD 27
             struct
             {
                 uint32_t                 Hues0Dark                                        : __CODEGEN_BITFIELD( 0, 10)    ; //!< HUES0_DARK
@@ -2993,7 +2965,6 @@ public:
         } DW27;
         union
         {
-            //!< DWORD 28
             struct
             {
                 uint32_t                 Hues2Dark                                        : __CODEGEN_BITFIELD( 0, 10)    ; //!< HUES2_DARK
@@ -3043,16 +3014,20 @@ public:
             V_MID_UNNAMED154                                                 = 154, //!< No additional details
         };
 
-        //! \brief SIN?
+        //! \brief SIN
         //! \details
         //!     The default is 101/128
         enum SIN
         {
-            SIN_UNNAMED101                                                  = 101, ///<
+            SIN_UNNAMED101                                                   = 101, //!< No additional details
         };
+
+        //! \brief COS
+        //! \details
+        //!     The default is 79/128
         enum COS
         {
-            COS_UNNAMED79                                                   = 79, ///<
+            COS_UNNAMED79                                                    = 79, //!< No additional details
         };
 
         //! \brief HS_MARGIN
@@ -3097,7 +3072,7 @@ public:
         //! \brief DIAMOND_ALPHA
         //! \details
         //!     1/tan(ﬂ)
-        //!                         The default is 100/64
+        //!     The default is 100/64
         enum DIAMOND_ALPHA
         {
             DIAMOND_ALPHA_UNNAMED100                                         = 100, //!< No additional details
@@ -3236,7 +3211,7 @@ public:
         //!     Slope 0 of the lower part of the detection PWLF.
         enum S0L
         {
-            S0L_UNNAMED4091                                                  = 4091, //!< No additional details
+            S0L_UNNAMED2043                                                  = 2043, //!< No additional details
         };
 
         //! \brief S1L
@@ -3348,7 +3323,7 @@ public:
         //!     Slope 2 of the upper part of the detection PWLF.
         enum S2U
         {
-            S2U_UNNAMED3917                                                  = 3917, //!< No additional details
+            S2U_UNNAMED1869                                                  = 1869, //!< No additional details
         };
 
         //! \brief S3U
@@ -3370,8 +3345,8 @@ public:
         //! \brief SKIN_TYPES_THRESH
         //! \details
         //!     Skin types Y margin
-        //!                         Restrict Skin_types_thresh &gt;= Skin_types_margin &gt; 0
-        //!                         Restrict (Skin_types_thresh + Skin_types_margin) &lt;= 255
+        //!     Restrict Skin_types_thresh >= Skin_types_margin > 0
+        //!     Restrict (Skin_types_thresh + Skin_types_margin) <= 255
         enum SKIN_TYPES_THRESH
         {
             SKIN_TYPES_THRESH_UNNAMED120                                     = 120, //!< No additional details
@@ -3380,8 +3355,8 @@ public:
         //! \brief SKIN_TYPES_MARGIN
         //! \details
         //!     Skin types Y margin
-        //!                             Restrict Skin_types_thresh &gt;= Skin_types_margin &gt; 0
-        //!                             Restrict (Skin_types_thresh + Skin_types_margin) &lt;= 255
+        //!     Restrict Skin_types_thresh >= Skin_types_margin > 0
+        //!     Restrict (Skin_types_thresh + Skin_types_margin) <= 255
         enum SKIN_TYPES_MARGIN
         {
             SKIN_TYPES_MARGIN_UNNAMED20                                      = 20, //!< No additional details
@@ -3549,11 +3524,10 @@ public:
 
         //! \brief SATP1_DARK
         //! \details
-        //!     First point for the saturation PWLF (dark skin)
-        //!                         Default Value: -11
+        //!     First point for the saturation PWLF (dark skin) Default Value: -5
         enum SATP1_DARK
         {
-            SATP1_DARK_UNNAMED4085                                           = 4085, //!< No additional details
+            SATP1_DARK_UNNAMED123                                            = 123, //!< No additional details
         };
 
         //! \brief SATP2_DARK
@@ -5451,7 +5425,7 @@ public:
         //! \details
         //!     <p style="margin-left:3.0pt;">This field allows the selection of AGE
         //!     parameter for a given surface in LLC or eLLC. If a particular allocation
-        //!     is done at youngest age (ì0,1,2î) it tends to stay longer in the cache.
+        //!     is done at youngest age ((ì0,1,2îù) it tends to stay longer in the cache.
         //!     This option is given to GFX software to be able to decide which surfaces
         //!     are more likely to generate HITs, hence need to be replaced least often
         //!     in caches.</p>
@@ -5484,7 +5458,7 @@ public:
         //!     <p style="margin-left:3.0pt;"></p>
         //!     <p style="margin-left:3.0pt;">For all system that does NOT use SVM (i.e.
         //!     coherent L3$ surfaces), back snoops from LLC has to be disabled
-        //!     (<b>Dis_GtCvUpdtOnRd = ì1î</b>). Than target Cache settings can be
+        //!     (<b>Dis_GtCvUpdtOnRd =  ì1îù</b>). Than target Cache settings can be
         //!     programmed as POR requirements of L3/LLC/eDRAM caching.</p>
         //!     <p style="margin-left:3.0pt;"></p>
         //!     <p style="margin-left:3.0pt;">For all systems that does use SVM (i.e.

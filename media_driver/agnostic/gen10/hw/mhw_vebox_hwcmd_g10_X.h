@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1113,7 +1113,7 @@ public:
         //!     Coefficient of 3x3 Transform matrix
         enum C5
         {
-            C5_83265536                                                      = 33553600, //!< No additional details
+            C5_83265536                                                        = 2096320, //!< No additional details
         };
 
         //! \brief C4
@@ -1137,7 +1137,7 @@ public:
         //!     Coefficient of 3x3 Transform matrix
         enum C6
         {
-            C6_19265536                                                      = 33554240, //!< No additional details
+            C6_19265536                                                        = 2096960, //!< No additional details
         };
 
         //! \brief C8
@@ -2614,7 +2614,7 @@ public:
         //!     Coefficient of 3x3 Transform matrix.
         enum C5
         {
-            C5_83265536                                                      = 33553600, //!< No additional details
+            C5_83265536                                                      = 2096320, //!< No additional details
         };
 
         //! \brief C4
@@ -2638,7 +2638,7 @@ public:
         //!     Coefficient of 3x3 Transform matrix.
         enum C6
         {
-            C6_19265536                                                      = 33554240, //!< No additional details
+            C6_19265536                                                      = 2096960, //!< No additional details
         };
 
         //! \brief C8
@@ -3368,7 +3368,7 @@ public:
         //!     Slope 0 of the lower part of the detection PWLF.
         enum S0L
         {
-            S0L_UNNAMED4091                                                  = 4091, //!< No additional details
+            S0L_UNNAMED2043                                                  = 2043, //!< No additional details
         };
 
         //! \brief S1L
@@ -3480,7 +3480,7 @@ public:
         //!     Slope 2 of the upper part of the detection PWLF.
         enum S2U
         {
-            S2U_UNNAMED3917                                                  = 3917, //!< No additional details
+            S2U_UNNAMED1869                                                  = 1869, //!< No additional details
         };
 
         //! \brief S3U
@@ -3685,7 +3685,7 @@ public:
         //!                         Default Value: -11
         enum SATP1_DARK
         {
-            SATP1_DARK_UNNAMED4085                                           = 4085, //!< No additional details
+            SATP1_DARK_UNNAMED123                                           = 123, //!< No additional details
         };
 
         //! \brief SATP2_DARK
