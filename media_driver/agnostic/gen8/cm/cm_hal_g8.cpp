@@ -31,6 +31,8 @@
 #include "renderhal_platform_interface.h"
 #include "mhw_state_heap_hwcmd_g8_X.h"
 
+#define CM_NS_PER_TICK_RENDER_G8        (80)
+
 union CM_HAL_MEMORY_OBJECT_CONTROL_G8
 {
     struct
@@ -95,7 +97,7 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
     MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
 
     // Get the task sync offset
-    syncOffset     = state->pfnGetTaskSyncLocation(taskId);
+    syncOffset     = state->pfnGetTaskSyncLocation(state, taskId);
 
     // Initialize the location
     taskSyncLocation                 = (int64_t*)(state->renderTimeStampResource.data + syncOffset);
@@ -150,6 +152,12 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
     // Initialize command buffer and insert prolog
     CM_CHK_MOSSTATUS(renderHal->pfnInitCommandBuffer(renderHal, &mosCmdBuffer, &genericPrologParams));
 
+    // Record registers by unified media profiler in the beginning
+    if (state->perfProfiler != nullptr)
+    {
+        CM_CHK_MOSSTATUS(state->perfProfiler->AddPerfCollectStartCmd((void *)state, state->osInterface, mhwMiInterface, &mosCmdBuffer));
+    }
+    
     //Send the First PipeControl Command to indicate the beginning of execution
     pipeCtrlParams = g_cRenderHal_InitPipeControlParams;
     pipeCtrlParams.presDest          = &state->renderTimeStampResource.osResource;
@@ -430,6 +438,12 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
     pipeCtrlParams.dwFlushMode       = MHW_FLUSH_READ_CACHE;
     CM_CHK_MOSSTATUS(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeCtrlParams));
 
+    // Record registers by unified media profiler in the end
+    if (state->perfProfiler != nullptr)
+    {
+        CM_CHK_MOSSTATUS(state->perfProfiler->AddPerfCollectEndCmd((void *)state, state->osInterface, mhwMiInterface, &mosCmdBuffer));
+    }
+
     if ( slmUsed & state->pfnIsWASLMinL3Cache())
     {
         //Disable SLM in L3 when command submitted
@@ -440,7 +454,10 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
     }
 
     // Send Sync Tag
-    CM_CHK_MOSSTATUS( renderHal->pfnSendSyncTag( renderHal, &mosCmdBuffer ) );
+    if (!state->dshEnabled || !(enableWalker || enableGpGpu))
+    {
+        CM_CHK_MOSSTATUS( renderHal->pfnSendSyncTag( renderHal, &mosCmdBuffer ) );
+    }
 
     // Update tracker resource
     CM_CHK_MOSSTATUS(state->pfnUpdateTrackerResource(state, &mosCmdBuffer, tag));
@@ -1106,3 +1123,9 @@ MOS_STATUS CM_HAL_G8_X::GetSamplerParamInfoForSamplerType(
 
     return MOS_STATUS_SUCCESS;
 }
+
+uint64_t CM_HAL_G8_X::ConvertTicksToNanoSeconds(uint64_t ticks)
+{
+    return (uint64_t)(ticks * CM_NS_PER_TICK_RENDER_G8);
+}
+

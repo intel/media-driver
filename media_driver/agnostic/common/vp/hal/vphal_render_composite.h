@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2017, Intel Corporation
+* Copyright (c) 2016-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -633,6 +633,21 @@ protected:
     virtual void SetSurfaceCompressionParams(
         PVPHAL_SURFACE                  pSource,
         bool                            isRenderTarget) {}
+
+    //!
+    //! \brief    Check NV12 luma key sampler solution is needed or not
+    //! \details  This func is needed for Gen9 platforms
+    //! \param    pSrc
+    //!           [in] Pointer to Source Surface
+    //! \param    pRenderHal
+    //!           [in] Pointer to render hal
+    //! \return   bool
+    //!           Return TRUE if needed, otherwise FALSE
+    //!
+    virtual bool IsNV12SamplerLumakeyNeeded(PVPHAL_SURFACE pSrc, PRENDERHAL_INTERFACE pRenderHal)
+    {
+        return false;
+    }
 
 private:
     //!

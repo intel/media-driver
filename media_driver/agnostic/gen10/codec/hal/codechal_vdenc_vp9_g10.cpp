@@ -966,19 +966,17 @@ MOS_STATUS CodechalVdencVp9StateG10::ExecuteKernelFunctions()
 
         if (m_16xMeSupported)
         {
-            if (m_hmeEnabled)
-            {
-                // P_HME kernel (16x HME)
-                vdencMeState.b16xMeInUse = true;
-                vdencMeState.b4xMeInUse = false;
-                m_lastTaskInPhase = false;
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(VdencHmeKernel(&vdencMeState));
-            }
+            // P_HME kernel (16x HME)
+            vdencMeState.b16xMeInUse = true;
+            vdencMeState.b4xMeInUse = false;
+            m_lastTaskInPhase = false;
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(VdencHmeKernel(&vdencMeState));
         }
 
         //StreamIn kernel, 4xME
         vdencMeState.b16xMeInUse = false;
         vdencMeState.b4xMeInUse = true;
+        vdencMeState.segmapProvided = m_segmentMapProvided;
         m_lastTaskInPhase = true;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(VdencHmeKernel(&vdencMeState));
     }

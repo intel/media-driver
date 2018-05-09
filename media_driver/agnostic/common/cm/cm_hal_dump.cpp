@@ -153,7 +153,7 @@ int32_t HalCm_DumpCommadBuffer(PCM_HAL_STATE state, PMOS_COMMAND_BUFFER cmdBuffe
     // Set the file name.
     PlatformSNPrintf(fileName, MOS_MAX_HLT_FILENAME_LEN, HALCM_COMMAND_BUFFER_OUTPUT_DIR);
     PlatformSNPrintf(fileName + strlen(fileName), MOS_MAX_HLT_FILENAME_LEN - strlen(fileName), PLATFORM_DIR_SEPERATOR);
-    PlatformSNPrintf(fileName + strlen(fileName), MOS_MAX_HLT_FILENAME_LEN - strlen(fileName), "%s_Pid%d_Tid%ld_%d.txt", HALCM_COMMAND_BUFFER_OUTPUT_FILE, CmGetCurProcessId(), CmGetCurThreadId(), commandBufferNumber);
+    PlatformSNPrintf(fileName + strlen(fileName), MOS_MAX_HLT_FILENAME_LEN - strlen(fileName), "%s_%d.txt", HALCM_COMMAND_BUFFER_OUTPUT_FILE, commandBufferNumber);
 
     numberOfDwords = cmdBuffer->iOffset / sizeof(uint32_t);
 
@@ -281,7 +281,7 @@ int32_t HalCm_DumpCurbeData(PCM_HAL_STATE state)
     // Set the file name.
     PlatformSNPrintf(fileName, MOS_MAX_HLT_FILENAME_LEN, HALCM_CURBE_DATA_OUTPUT_DIR);
     PlatformSNPrintf(fileName + strlen(fileName), MOS_MAX_HLT_FILENAME_LEN - strlen(fileName), PLATFORM_DIR_SEPERATOR);
-    PlatformSNPrintf(fileName + strlen(fileName), MOS_MAX_HLT_FILENAME_LEN - strlen(fileName), "%s_Pid%d_Tid%ld_%d.txt", HALCM_CURBE_DATA_OUTPUT_FILE, CmGetCurProcessId(), CmGetCurThreadId(), curbeDataNumber);
+    PlatformSNPrintf(fileName + strlen(fileName), MOS_MAX_HLT_FILENAME_LEN - strlen(fileName), "%s_%d.txt", HALCM_CURBE_DATA_OUTPUT_FILE, curbeDataNumber);
 
     // write curbe data dwords.
     if (state->dshEnabled)

@@ -350,7 +350,7 @@ MOS_STATUS CodechalEncodeHevcBase::AllocatePakResources()
     // HEVC Encoder Mode: Slice size is written to this buffer when slice size conformance is enabled.
     // 1 CL (= 16 DWs = 64 bytes) per slice * Maximum number of dynamic slice = 600
     // Note that simulation is assigning much larger space for this.
-    allocParamsForBufferLinear.dwBytes = CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6 * CODECHAL_CACHELINE_SIZE;
+    allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6 * CODECHAL_CACHELINE_SIZE, CODECHAL_PAGE_SIZE);
     allocParamsForBufferLinear.pBufName = "LcuBaseAddressBuffer";
 
     eStatus = (MOS_STATUS)m_osInterface->pfnAllocateResource(
@@ -819,27 +819,30 @@ MOS_STATUS CodechalEncodeHevcBase::SetSequenceStructs()
                 m_hwInterface->SetRowstoreCachingOffsets(&rowstoreParams);
     }
 
-        m_brcEnabled = IsRateControlBrc(m_hevcSeqParams->RateControlMethod);
+    m_brcEnabled = IsRateControlBrc(m_hevcSeqParams->RateControlMethod);
 
-        if (m_brcEnabled)
+    if (m_brcEnabled)
+    {
+        switch (m_hevcSeqParams->MBBRC)
         {
-            switch (m_hevcSeqParams->MBBRC)
-            {
-            case mbBrcInternal:
-                m_lcuBrcEnabled = (m_hevcSeqParams->TargetUsage == 1);
-                break;
-            case mbBrcDisabled:
-                m_lcuBrcEnabled = false;
-                break;
-            case mbBrcEnabled:
-                m_lcuBrcEnabled = true;
-                break;
-            }
+        case mbBrcInternal:
+            m_lcuBrcEnabled = (m_hevcSeqParams->TargetUsage == 1);
+            break;
+        case mbBrcDisabled:
+            m_lcuBrcEnabled = false;
+            break;
+        case mbBrcEnabled:
+            m_lcuBrcEnabled = true;
+            break;
+        }
 
-            if (m_hevcSeqParams->RateControlMethod == RATECONTROL_ICQ || m_hevcSeqParams->RateControlMethod == RATECONTROL_QVBR)
-            {
-                m_lcuBrcEnabled = true;  // ICQ must result in LCU-based BRC to be enabled.
-            }
+        if (m_hevcSeqParams->RateControlMethod == RATECONTROL_ICQ  || 
+            m_hevcSeqParams->RateControlMethod == RATECONTROL_QVBR ||
+            m_hevcPicParams->NumROI)
+        {
+            // ICQ or ROI must result in LCU-based BRC to be enabled.
+            m_lcuBrcEnabled = true;  
+        }
     }
 
     if (m_hevcSeqParams->RateControlMethod == RATECONTROL_VCM && m_lcuBrcEnabled)
@@ -1537,7 +1540,7 @@ MOS_STATUS CodechalEncodeHevcBase::GetMaxMBPS(uint32_t levelIdc, uint32_t* maxMB
     CODECHAL_ENCODE_CHK_NULL_RETURN(maxMBPS);
     CODECHAL_ENCODE_CHK_NULL_RETURN(maxBytePerPic);
 
-    switch (levelIdc * 3)
+    switch (levelIdc)
     {
     case 30:
         *maxMBPS = 552960;
@@ -1598,7 +1601,7 @@ uint32_t CodechalEncodeHevcBase::GetProfileLevelMaxFrameSize()
     float_t         fminCrScale = 1.0;
     uint32_t        maxMBPS;
     uint64_t        maxBytePerPic;
-    int32_t         levelIdc = m_hevcSeqParams->Level;
+    int32_t         levelIdc = m_hevcSeqParams->Level * 3;
 
     if (levelIdc == 186 || levelIdc == 150)
     {
@@ -1663,10 +1666,16 @@ uint32_t CodechalEncodeHevcBase::GetProfileLevelMaxFrameSize()
     GetMaxMBPS(levelIdc, &maxMBPS, &maxBytePerPic);
     auto     maxBytePerPicNot0    = (uint64_t)((((float_t)maxMBPS * (float_t)m_hevcSeqParams->FrameRate.Denominator) / (float_t)m_hevcSeqParams->FrameRate.Numerator) * formatFactor);
     uint32_t profileLevelMaxFrame = 0;
-
-    if (m_hevcSeqParams->UserMaxFrameSize != 0)
+    
+    uint32_t userMaxFrameSize = m_hevcSeqParams->UserMaxIFrameSize;
+    if ((m_hevcPicParams->CodingType != I_TYPE) && (m_hevcSeqParams->UserMaxPBFrameSize > 0))
     {
-        profileLevelMaxFrame = (uint32_t)MOS_MIN(m_hevcSeqParams->UserMaxFrameSize, maxBytePerPic);
+        userMaxFrameSize = m_hevcSeqParams->UserMaxPBFrameSize;
+    }
+    
+    if (userMaxFrameSize != 0)
+    {
+        profileLevelMaxFrame = (uint32_t)MOS_MIN(userMaxFrameSize, maxBytePerPic);
         profileLevelMaxFrame = (uint32_t)MOS_MIN(maxBytePerPicNot0, profileLevelMaxFrame);
     }
     else {
@@ -2332,7 +2341,7 @@ void CodechalEncodeHevcBase::SetHcpPicStateParams(MHW_VDBOX_HEVC_PIC_STATE& picS
     MOS_ZeroMemory(&picStateParams, sizeof(picStateParams));
     picStateParams.pHevcEncSeqParams     = m_hevcSeqParams;
     picStateParams.pHevcEncPicParams     = m_hevcPicParams;
-    picStateParams.bSAOEnable            = m_hevcSeqParams->SAO_enabled_flag;
+    picStateParams.bSAOEnable            = m_hevcSeqParams->SAO_enabled_flag ? (m_hevcSliceParams->slice_sao_luma_flag || m_hevcSliceParams->slice_sao_chroma_flag) : 0;
     picStateParams.bUseVDEnc = m_vdencEnabled;
     picStateParams.bNotFirstPass = m_vdencEnabled && !IsFirstPass() ;
     picStateParams.bHevcRdoqEnabled      = m_hevcRdoqEnabled;
@@ -3078,7 +3087,8 @@ MOS_STATUS CodechalEncodeHevcBase::DumpSeqParams(
     oss << "NumB = " << +seqParams->NumOfBInGop[0] << std::endl;
     oss << "NumB1 = " << +seqParams->NumOfBInGop[1] << std::endl;
     oss << "NumB2 = " << +seqParams->NumOfBInGop[2] << std::endl;
-    oss << "UserMaxFrameSize = " << +seqParams->UserMaxFrameSize << std::endl;
+    oss << "UserMaxIFrameSize = " << +seqParams->UserMaxIFrameSize << std::endl;
+    oss << "UserMaxPBFrameSize = " << +seqParams->UserMaxPBFrameSize << std::endl;
     oss << "ICQQualityFactor = " << +seqParams->ICQQualityFactor << std::endl;
     oss << "scaling_list_enable_flag = " << +seqParams->scaling_list_enable_flag << std::endl;
     oss << "sps_temporal_mvp_enable_flag = " << +seqParams->sps_temporal_mvp_enable_flag << std::endl;
@@ -3464,12 +3474,244 @@ MOS_STATUS CodechalEncodeHevcBase::DumpFrameStatsBuffer(CodechalDebugInterface* 
     CODECHAL_ENCODE_FUNCTION_ENTER;
     CODECHAL_ENCODE_CHK_NULL_RETURN(debugInterface);
 
-    uint8_t numTiles = 1;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBuffer(
         &m_resFrameStatStreamOutBuffer,
         CodechalDbgAttr::attrFrameState,
         "FrameStatus",
-        CODECHAL_CACHELINE_SIZE * 8 * numTiles));
+        m_sizeOfHcpPakFrameStats,
+        0,
+        CODECHAL_NUM_MEDIA_STATES));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalEncodeHevcBase::CreateHevcPar()
+{
+    CODECHAL_DEBUG_FUNCTION_ENTER;
+
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_debugInterface);
+
+    if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrDumpEncodePar))
+    {
+        CODECHAL_ENCODE_CHK_NULL_RETURN(m_hevcPar = MOS_New(EncodeHevcPar));
+        MOS_ZeroMemory(m_hevcPar, sizeof(EncodeHevcPar));
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalEncodeHevcBase::DestroyHevcPar()
+{
+    CODECHAL_DEBUG_FUNCTION_ENTER;
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(DumpSeqParFile());
+    MOS_Delete(m_hevcPar);
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalEncodeHevcBase::PopulateConstParam()
+{
+    CODECHAL_DEBUG_FUNCTION_ENTER;
+
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_debugInterface);
+
+    if (!m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrDumpEncodePar))
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    m_encodeParState->m_isConstDumped = true; //Not use this for now, force ture so it can return directly.
+
+    if (m_encodeParState->m_isConstDumped)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    std::ostringstream oss;
+    oss.setf(std::ios::showbase | std::ios::uppercase);
+    oss << "StartFrameNum                           = 0" << std::endl;
+    oss << "SliceStartLCU                           = 0" << std::endl;
+    oss << "LowDelay                                = 1" << std::endl;
+    oss << "EnableBAsRefs                           = 1" << std::endl;
+    oss << "HMECoarseRefPic                         = 0" << std::endl;
+    oss << "RefListModforWeightPred                 = 0" << std::endl;
+    oss << "EnableStatistics                        = 0xf00" << std::endl;
+    oss << "OutputQualityType                       = 3" << std::endl;
+    oss << "StaticFrameZMVPercent                   = 80" << std::endl;
+    oss << "HMEStreamInRefCost                      = 50" << std::endl;
+
+    m_encodeParState->m_isConstDumped = true;
+
+    const char *fileName = m_debugInterface->CreateFileName(
+        "EncodeSequence",
+        "EncodePar",
+        CodechalDbgExtType::par);
+
+    std::ofstream ofs(fileName, std::ios::app);
+    ofs << oss.str();
+    ofs.close();
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalEncodeHevcBase::PopulateDdiParam(
+    PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS hevcSeqParams,
+    PCODEC_HEVC_ENCODE_PICTURE_PARAMS  hevcPicParams,
+    PCODEC_HEVC_ENCODE_SLICE_PARAMS    hevcSlcParams)
+{
+    if (!m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrDumpEncodePar))
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    if (hevcSlcParams->slice_type == CODECHAL_ENCODE_HEVC_I_SLICE)
+    {
+        m_hevcPar->ISliceQP                             = hevcPicParams->QpY + hevcSlcParams->slice_qp_delta;
+        m_hevcPar->StartFrameNum                        = 0;
+        m_hevcPar->ProfileIDC                           = hevcSeqParams->general_profile_idc;
+        m_hevcPar->LevelIDC                             = hevcSeqParams->Level;        
+        m_hevcPar->NumP                                 = 0;
+        m_hevcPar->NumB                                 = hevcSeqParams->GopPicSize - 1;
+        m_hevcPar->NumSlices                            = hevcPicParams->NumSlices;
+        m_hevcPar->SliceStartLCU                        = 0;
+        m_hevcPar->Log2MaxCUSize                        = hevcSeqParams->log2_max_coding_block_size_minus3 + 3;
+        m_hevcPar->Log2MinCUSize                        = hevcSeqParams->log2_min_coding_block_size_minus3 + 3;
+        m_hevcPar->Log2MaxTUSize                        = hevcSeqParams->log2_max_transform_block_size_minus2 + 2;
+        m_hevcPar->Log2MinTUSize                        = hevcSeqParams->log2_min_transform_block_size_minus2 + 2;
+        m_hevcPar->InputBitDepthLuma                    = hevcSeqParams->SourceBitDepth ? 10 : 8;
+        m_hevcPar->InputBitDepthChroma                  = hevcSeqParams->SourceBitDepth ? 10 : 8;
+        m_hevcPar->OutputBitDepthLuma                   = hevcSeqParams->bit_depth_luma_minus8 + 8;
+        m_hevcPar->OutputBitDepthChroma                 = hevcSeqParams->bit_depth_chroma_minus8 + 8;
+        m_hevcPar->InternalBitDepthLuma                 = hevcSeqParams->bit_depth_luma_minus8 + 8;
+        m_hevcPar->InternalBitDepthChroma               = hevcSeqParams->bit_depth_chroma_minus8 + 8;
+        m_hevcPar->Log2TUMaxDepthInter                  = hevcSeqParams->max_transform_hierarchy_depth_inter;
+        m_hevcPar->Log2TUMaxDepthIntra                  = hevcSeqParams->max_transform_hierarchy_depth_intra;
+        m_hevcPar->Log2ParallelMergeLevel               = hevcPicParams->log2_parallel_merge_level_minus2 + 2;
+        m_hevcPar->TransquantBypassEnableFlag           = hevcPicParams->transquant_bypass_enabled_flag;
+        m_hevcPar->TransformSkipEnabledFlag             = hevcPicParams->transform_skip_enabled_flag;
+        m_hevcPar->TSDecisionEnabledFlag                = hevcPicParams->transform_skip_enabled_flag;
+        m_hevcPar->TemporalMvpEnableFlag                = hevcSeqParams->sps_temporal_mvp_enable_flag;
+        m_hevcPar->CollocatedFromL0Flag                 = hevcSlcParams->collocated_from_l0_flag;
+        m_hevcPar->CollocatedRefIdx                     = hevcPicParams->CollocatedRefPicIndex;
+        m_hevcPar->MvdL1ZeroFlag                        = hevcSlcParams->mvd_l1_zero_flag;
+        m_hevcPar->AmpEnabledFlag                       = hevcSeqParams->amp_enabled_flag;
+        m_hevcPar->CuQpDeltaEnabledFlag                 = hevcPicParams->cu_qp_delta_enabled_flag;
+        m_hevcPar->DiffCuQpDeltaDepth                   = hevcPicParams->diff_cu_qp_delta_depth;
+        m_hevcPar->ChromaCbQpOffset                     = hevcPicParams->pps_cb_qp_offset;
+        m_hevcPar->ChromaCrQpOffset                     = hevcPicParams->pps_cr_qp_offset;
+        m_hevcPar->DeblockingTc                         = hevcSlcParams->tc_offset_div2;
+        m_hevcPar->DeblockingIDC                        = hevcSlcParams->slice_deblocking_filter_disable_flag;
+        m_hevcPar->LoopFilterAcrossSlicesEnabledFlag    = hevcPicParams->loop_filter_across_slices_flag;
+        m_hevcPar->SignDataHidingFlag                   = hevcPicParams->sign_data_hiding_flag;
+        m_hevcPar->CabacInitFlag                        = hevcSlcParams->cabac_init_flag;
+        m_hevcPar->ConstrainedIntraPred                 = hevcPicParams->constrained_intra_pred_flag;
+        m_hevcPar->LowDelay                             = 1;
+        m_hevcPar->EnableBAsRefs                        = 1;
+        m_hevcPar->BitRate                              = hevcSeqParams->TargetBitRate * 1024;
+        m_hevcPar->MaxBitRate                           = hevcSeqParams->MaxBitRate * 1024;
+        m_hevcPar->VbvSzInBit                           = hevcSeqParams->VBVBufferSizeInBit;
+        m_hevcPar->InitVbvFullnessInBit                 = hevcSeqParams->InitVBVBufferFullnessInBit;
+        m_hevcPar->CuRC                                 = hevcSeqParams->MBBRC;
+        m_hevcPar->EnableMultipass                      = 1;
+        m_hevcPar->MaxNumPakPassesI                     = m_numPasses;
+        m_hevcPar->MaxNumPakPassesPB                    = m_numPasses;
+        m_hevcPar->UserMaxIFrame                        = hevcSeqParams->UserMaxIFrameSize;
+        m_hevcPar->UserMaxPBFrame                       = hevcSeqParams->UserMaxPBFrameSize;
+        m_hevcPar->FrameRateM                           = hevcSeqParams->FrameRate.Numerator;
+        m_hevcPar->FrameRateD                           = hevcSeqParams->FrameRate.Denominator;
+        m_hevcPar->IntraRefreshEnable                   = hevcPicParams->bEnableRollingIntraRefresh ? 1 : 0;
+        m_hevcPar->IntraRefreshMode                     = hevcPicParams->bEnableRollingIntraRefresh == 2 ? 1 : 0;
+        m_hevcPar->IntraRefreshSizeIn32x32              = hevcPicParams->IntraInsertionSize;
+        m_hevcPar->IntraRefreshDeltaQP                  = hevcPicParams->QpDeltaForInsertedIntra;
+        m_hevcPar->HMECoarseRefPic                      = 0;
+        //Weighted Prediction
+        m_hevcPar->FadeDetectionEnable                  = hevcPicParams->bEnableGPUWeightedPrediction;
+        m_hevcPar->WeightedPred                         = hevcPicParams->weighted_pred_flag;
+        m_hevcPar->WeightedBiPred                       = hevcPicParams->weighted_bipred_flag;
+        m_hevcPar->Log2LumaDenom                        = hevcSlcParams->luma_log2_weight_denom;
+        m_hevcPar->Log2ChromaDenom                      = hevcSlcParams->delta_chroma_log2_weight_denom;
+        m_hevcPar->RefListModforWeightPred              = hevcPicParams->bEnableGPUWeightedPrediction;
+
+        m_hevcPar->OutputQualityType                    = 3;
+        m_hevcPar->SliceSizeCtrl                        = hevcSeqParams->SliceSizeControl;
+        m_hevcPar->SliceSizeThreshold                   = hevcPicParams->MaxSliceSizeInBytes; //?
+        m_hevcPar->MaxSliceSize                         = hevcPicParams->MaxSliceSizeInBytes;
+        m_hevcPar->VDEncMode                            = m_vdencEnabled;
+        //TU related
+        m_hevcPar->DisableIntraLuma4x4Tu                = m_hevcSeqParams->TargetUsage == 7 ? 1 : 0;
+        m_hevcPar->HMERef1Disable                       = m_hevcSeqParams->TargetUsage == 7 ? 1 : 0;
+        m_hevcPar->NumBetaPreditors                     = m_hevcSeqParams->TargetUsage == 7 ? 2 : 4;
+        m_hevcPar->MaxNumImePredictor                   = m_hevcSeqParams->TargetUsage == 7 ? 4 : 8;
+        m_hevcPar->NumMergeCandidateCu8x8               = m_hevcSeqParams->TargetUsage == 7 ? 0 : 1;
+        m_hevcPar->NumMergeCandidateCu16x16             = 2;
+        m_hevcPar->NumMergeCandidateCu32x32             = m_hevcSeqParams->TargetUsage == 7 ? 2 : 3;
+        m_hevcPar->NumMergeCandidateCu64x64             = m_hevcSeqParams->TargetUsage == 7 ? 2 : 4;
+        m_hevcPar->MaxRefIdxL0                          = MOS_MAX(m_hevcPar->MaxRefIdxL0, hevcSlcParams->num_ref_idx_l0_active_minus1);
+        m_hevcPar->MaxRefIdxL1                          = MOS_MAX(m_hevcPar->MaxRefIdxL1, hevcSlcParams->num_ref_idx_l1_active_minus1);
+
+        uint8_t brcMethod = 0;
+        uint8_t brcType = 0;
+        if (CodecHalIsRateControlBrc(hevcSeqParams->RateControlMethod, CODECHAL_HEVC))
+        {
+            brcMethod = 2;
+
+            switch (hevcSeqParams->RateControlMethod)
+            {
+            case RATECONTROL_ICQ:
+                brcMethod = m_vdencEnabled ? 2 : 3;
+                brcType = 16;
+                break;
+            case RATECONTROL_QVBR:
+                brcMethod = m_vdencEnabled ? 2 : 4;
+                brcType = 2;
+                break;
+            case RATECONTROL_CBR:
+                brcType = 1;
+                break;
+            case RATECONTROL_VBR:
+                brcType = 2;
+                break;
+            case RATECONTROL_VCM:
+                brcType = m_vdencEnabled ? 4 : 3;
+                break;
+            default:
+                brcMethod = 0;
+                brcType = 0;
+                break;
+            }
+
+            if (hevcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_EXTREMELY_LOW)
+            {
+                // low delay mode
+                brcType = 8;
+            }
+        }
+        m_hevcPar->BRCMethod                            = brcMethod;
+        m_hevcPar->BRCType                              = brcType;
+        m_hevcPar->SAOEnabledFlag                       = hevcSlcParams->slice_sao_luma_flag | hevcSlcParams->slice_sao_chroma_flag;
+        m_hevcPar->IntraFrameRDOQEnabledFlag            = m_hevcRdoqEnabled;
+        m_hevcPar->InterFrameRDOQEnabledFlag            = m_hevcRdoqEnabled;
+        m_hevcPar->StreamInEn                           = m_vdencStreamInEnabled;
+        m_hevcPar->StreamInMvPredictorRef               = m_hevcSeqParams->TargetUsage == 1 ? 7 : 0;
+        m_hevcPar->StaticFrameZMVPercent                = 80;
+        m_hevcPar->HMEStreamInRefCost                   = 50;
+        m_hevcPar->IntraPeriod                          = hevcSeqParams->GopPicSize;
+        m_hevcPar->BGOPSize                             = 0; //Does not support BGOP yet.
+    }
+    else if (hevcSlcParams->slice_type == CODECHAL_ENCODE_HEVC_P_SLICE)
+    {
+        m_hevcPar->PSliceQP                             = hevcPicParams->QpY + hevcSlcParams->slice_qp_delta;
+        m_hevcPar->MaxRefIdxL0                          = MOS_MAX(m_hevcPar->MaxRefIdxL0, hevcSlcParams->num_ref_idx_l0_active_minus1);
+        m_hevcPar->MaxRefIdxL1                          = MOS_MAX(m_hevcPar->MaxRefIdxL1, hevcSlcParams->num_ref_idx_l1_active_minus1);
+
+    }
+    else if (hevcSlcParams->slice_type == CODECHAL_ENCODE_HEVC_B_SLICE)
+    {
+        m_hevcPar->BSliceQP                             = hevcPicParams->QpY + hevcSlcParams->slice_qp_delta;
+        m_hevcPar->MaxRefIdxL0                          = MOS_MAX(m_hevcPar->MaxRefIdxL0, hevcSlcParams->num_ref_idx_l0_active_minus1);
+        m_hevcPar->MaxRefIdxL1                          = MOS_MAX(m_hevcPar->MaxRefIdxL1, hevcSlcParams->num_ref_idx_l1_active_minus1);
+    }
 
     return MOS_STATUS_SUCCESS;
 }

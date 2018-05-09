@@ -163,6 +163,7 @@ void GpuContextMgr::DestroyGpuContext(GpuContext *gpuContext)
     GpuContext*       curGpuContext = nullptr;
     bool              found         = false;
 
+    MOS_LockMutex(m_gpuContextArrayMutex);
     for (auto& curGpuContext : m_gpuContextArray)
     {
         if (curGpuContext == gpuContext)
@@ -173,6 +174,7 @@ void GpuContextMgr::DestroyGpuContext(GpuContext *gpuContext)
             break;
         }
     }
+    MOS_UnlockMutex(m_gpuContextArrayMutex);
 
     if (!found)
     {

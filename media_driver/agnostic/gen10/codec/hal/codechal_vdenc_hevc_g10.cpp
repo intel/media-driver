@@ -182,7 +182,9 @@ struct CODECHAL_VDENC_HEVC_HUC_BRC_UPDATE_DMEM_G10
     uint8_t     RDOQ_Enable_U8;             // 0-disabled, 1-enabled
     int8_t      ReEncodePositiveQPDeltaThr_S8;      // default: 4
     int8_t      ReEncodeNegativeQPDeltaThr_S8;      // default: -10
-    uint8_t     RSVD[32];                   // 64-byte alignment
+    int8_t      RESERVED;
+    int32_t     SliceHeaderSize;
+    uint8_t     RSVD[28];
 };
 C_ASSERT(192 == sizeof(CODECHAL_VDENC_HEVC_HUC_BRC_UPDATE_DMEM_G10));
 
@@ -265,24 +267,75 @@ struct CODECHAL_VDENC_HEVC_HUC_BRC_CONSTANT_DATA_G10
 
 using PCODECHAL_VDENC_HEVC_HUC_BRC_CONSTANT_DATA_G10 = CODECHAL_VDENC_HEVC_HUC_BRC_CONSTANT_DATA_G10*;
 
-const int8_t CodechalVdencHevcStateG10::m_devThreshPB0[8] =
-{
-    -45, -33, -23, -15, 15, 23, 35, 45
+
+const double CodechalVdencHevcStateG10::m_devThreshIFPNEG[] = {
+    0.80, 0.60, 0.34, 0.2,
 };
 
-const int8_t CodechalVdencHevcStateG10::m_devThreshPB0LowDelay[8] =
-{
-    -45, -33, -23, -15, -8, 0, 15, 25
+const double CodechalVdencHevcStateG10::m_devThreshIFPPOS[] = {
+    0.2, 0.4 , 0.66, 0.9,
 };
 
-const int8_t CodechalVdencHevcStateG10::m_devThreshVBR0[8] =
-{
-    -45, -35, -25, -15, 40, 50, 75, 90
+const double CodechalVdencHevcStateG10::m_devThreshPBFPNEG[] = {
+    0.90, 0.66, 0.46, 0.3,
 };
 
-const int8_t CodechalVdencHevcStateG10::m_devThreshI0[8] =
-{
-    -40, -30, -17, -10, 10, 20, 33, 45
+const double CodechalVdencHevcStateG10::m_devThreshPBFPPOS[] = {
+    0.3, 0.46, 0.70, 0.90,
+};
+
+const double CodechalVdencHevcStateG10::m_devThreshVBRNEG[] = {
+    0.90, 0.70, 0.50, 0.3,
+};
+
+const double CodechalVdencHevcStateG10::m_devThreshVBRPOS[] = {
+    0.4, 0.5, 0.75, 0.90,
+};
+
+const int8_t CodechalVdencHevcStateG10::m_lowdelayDevThreshPB[] = {
+    -45, -33, -23, -15, -8, 0, 15, 25,
+};
+const int8_t CodechalVdencHevcStateG10::m_lowdelayDevThreshVBR[] = {
+    -45, -35, -25, -15, -8, 0, 20, 40,
+};
+const int8_t CodechalVdencHevcStateG10::m_lowdelayDevThreshI[] = {
+    -40, -30, -17, -10, -5, 0, 10, 20,
+};
+
+const int8_t CodechalVdencHevcStateG10::m_lowdelayDeltaFrmszI[][8] = {
+    { 0,  0, -8, -12, -16, -20, -28, -36 },
+    { 0,  0, -4, -8, -12,  -16, -24, -32 },
+    { 4,  2,  0, -1, -3,  -8, -16, -24 },
+    { 8,  4,  2,  0, -1,  -4,  -8, -16 },
+    { 20, 16,  4,  0, -1,  -4,  -8, -16 },
+    { 24, 20, 16,  8,  4,   0,  -4, -8 },
+    { 28, 24, 20, 16,  8,   4,  0, -8 },
+    { 32, 24, 20, 16, 8,   4,   0, -4 },
+    { 64, 48, 28, 20, 16,  12,  8,  4 },
+};
+
+const int8_t CodechalVdencHevcStateG10::m_lowdelayDeltaFrmszP[][8] = {
+    { -8,  -24, -32, -40, -44, -48, -52, -80 },
+    { -8,  -16, -32, -40, -40,  -44, -44, -56 },
+    { 0,    0,  -12, -20, -24,  -28, -32, -36 },
+    { 8,   4,  0,   0,    -8,   -16,  -24, -32 },
+    { 32,  16,  8, 4,    -4,   -8,  -16,  -20 },
+    { 36,  24,  16, 8,    4,    -2,  -4, -8 },
+    { 40, 36, 24,   20, 16,  8,  0, -8 },
+    { 48, 40, 28,  24, 20,  12,  0, -4 },
+    { 64, 48, 28, 20, 16,  12,  8,  4 },
+};
+
+const int8_t CodechalVdencHevcStateG10::m_lowdelayDeltaFrmszB[][8] = {
+    { 0, -4, -8, -16, -24, -32, -40, -48 },
+    { 1,  0, -4, -8, -16,  -24, -32, -40 },
+    { 4,  2,  0, -1, -3,  -8, -16, -24 },
+    { 8,  4,  2,  0, -1,  -4,  -8, -16 },
+    { 20, 16,  4,  0, -1,  -4,  -8, -16 },
+    { 24, 20, 16,  8,  4,   0,  -4, -8 },
+    { 28, 24, 20, 16,  8,   4,  0, -8 },
+    { 32, 24, 20, 16, 8,   4,   0, -4 },
+    { 64, 48, 28, 20, 16,  12,  8,  4 },
 };
 
 const uint32_t CodechalVdencHevcStateG10::m_hucConstantData[] = {
@@ -1398,6 +1451,13 @@ MOS_STATUS CodechalVdencHevcStateG10::EncodeKernelFunctions()
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
 #ifndef _FULL_OPEN_SOURCE
+    if (m_pictureCodingType == P_TYPE)
+    {
+        CODECHAL_ENCODE_ASSERTMESSAGE("GEN10 HEVC VDENC does not support P slice");
+        eStatus = MOS_STATUS_INVALID_PARAMETER;
+        return eStatus;
+    }
+
     if (m_cscDsState->RequireCsc())
     {
         CODECHAL_ENCODE_CHK_NULL_RETURN(m_cscDsState);
@@ -1567,8 +1627,8 @@ MOS_STATUS CodechalVdencHevcStateG10::SetDmemHuCBrcInitReset()
             hucVdencBrcInitDmem->BRCFlag = 3;
             break;
         case RATECONTROL_QVBR:
-            hucVdencBrcInitDmem->BRCFlag = 4;
-            hucVdencBrcInitDmem->ACQP_U32 = 1;
+            hucVdencBrcInitDmem->BRCFlag = 2;
+            hucVdencBrcInitDmem->ACQP_U32 = m_hevcSeqParams->ICQQualityFactor;
             break;
         default:
             break;
@@ -1609,9 +1669,7 @@ MOS_STATUS CodechalVdencHevcStateG10::SetDmemHuCBrcInitReset()
         hucVdencBrcInitDmem->ChromaBitDepth_U8 = 10;    // default: 8
     }
     // 0=No SAO 1=Disable 2nd pass SAO; 2=Enable 2nd pass SAO; 3=Adaptive SAO
-    // HuC FW suggested ASAO flag setting
-    // checking SAO flag for first slice is enough since this flag has the same value for all slices within a picture
-    hucVdencBrcInitDmem->ASAO_U8 = (m_hevcSeqParams->SAO_enabled_flag && m_hevcSliceParams->slice_sao_luma_flag) ? 2 : 0;
+    hucVdencBrcInitDmem->ASAO_U8 = m_hevcSeqParams->SAO_enabled_flag ? 2 : 0;
 
     // 0=No CUQP; 1=CUQP for I-frame; 2=CUQP for P/B-frame
     // bit operation, bit 1 for I-frame, bit 2 for P/B frame
@@ -1626,16 +1684,41 @@ MOS_STATUS CodechalVdencHevcStateG10::SetDmemHuCBrcInitReset()
         hucVdencBrcInitDmem->CuQpCtrl_U8 = 0;  // wPictureCodingType I:0, P:1, B:2
     }
 
-        if (hucVdencBrcInitDmem->LowDelayMode_U8 = (m_hevcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_EXTREMELY_LOW))  // Low Delay BRC
-        {
-            MOS_SecureMemcpy(hucVdencBrcInitDmem->DevThreshPB0_S8, 8 * sizeof(int8_t), (void *)m_devThreshPB0LowDelay, 8 * sizeof(int8_t));
+    if (hucVdencBrcInitDmem->LowDelayMode_U8 = (m_hevcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_EXTREMELY_LOW))  // Low Delay BRC
+    {
+
+        MOS_SecureMemcpy(hucVdencBrcInitDmem->DevThreshPB0_S8, 8 * sizeof(int8_t), (void *)m_lowdelayDevThreshPB, 8 * sizeof(int8_t));
+        MOS_SecureMemcpy(hucVdencBrcInitDmem->DevThreshVBR0_S8, 8 * sizeof(int8_t), (void*)m_lowdelayDevThreshVBR, 8 * sizeof(int8_t));
+        MOS_SecureMemcpy(hucVdencBrcInitDmem->DevThreshI0_S8, 8 * sizeof(int8_t), (void*)m_lowdelayDevThreshI, 8 * sizeof(int8_t));
     }
     else
     {
-        MOS_SecureMemcpy(hucVdencBrcInitDmem->DevThreshPB0_S8, 8 * sizeof(int8_t), (void*)m_devThreshPB0, 8 * sizeof(int8_t));
+        static int8_t DevThreshPB0_S8[8];
+        static int8_t DevThreshVBR0_S8[8];
+        static int8_t DevThreshI0_S8[8];
+
+        uint64_t inputbitsperframe = uint64_t(hucVdencBrcInitDmem->MaxRate_U32*100. / (hucVdencBrcInitDmem->FrameRateM_U32 * 100.0 / hucVdencBrcInitDmem->FrameRateD_U32));
+        uint64_t vbvsz = hucVdencBrcInitDmem->BufSize_U32;
+
+        double bps_ratio = inputbitsperframe / (vbvsz / m_devStdFPS);
+        if (bps_ratio < m_bpsRatioLow) bps_ratio = m_bpsRatioLow;
+        if (bps_ratio > m_bpsRatioHigh) bps_ratio = m_bpsRatioHigh;
+
+        for (int i = 0; i < m_numDevThreshlds / 2; i++) {
+            DevThreshPB0_S8[i] = (signed char)(m_negMultPB*pow(m_devThreshPBFPNEG[i], bps_ratio));
+            DevThreshPB0_S8[i + m_numDevThreshlds / 2] = (signed char)(m_postMultPB*pow(m_devThreshPBFPPOS[i], bps_ratio));
+
+            DevThreshI0_S8[i] = (signed char)(m_negMultPB*pow(m_devThreshIFPNEG[i], bps_ratio));
+            DevThreshI0_S8[i + m_numDevThreshlds / 2] = (signed char)(m_postMultPB*pow(m_devThreshIFPPOS[i], bps_ratio));
+
+            DevThreshVBR0_S8[i] = (signed char)(m_negMultPB*pow(m_devThreshVBRNEG[i], bps_ratio));
+            DevThreshVBR0_S8[i + m_numDevThreshlds / 2] = (signed char)(m_posMultVBR*pow(m_devThreshVBRPOS[i], bps_ratio));
+        }
+
+        MOS_SecureMemcpy(hucVdencBrcInitDmem->DevThreshPB0_S8, 8 * sizeof(int8_t), (void*)DevThreshPB0_S8, 8 * sizeof(int8_t));
+        MOS_SecureMemcpy(hucVdencBrcInitDmem->DevThreshVBR0_S8, 8 * sizeof(int8_t), (void*)DevThreshVBR0_S8, 8 * sizeof(int8_t));
+        MOS_SecureMemcpy(hucVdencBrcInitDmem->DevThreshI0_S8, 8 * sizeof(int8_t), (void*)DevThreshI0_S8, 8 * sizeof(int8_t));
     }
-    MOS_SecureMemcpy(hucVdencBrcInitDmem->DevThreshVBR0_S8, 8 * sizeof(int8_t), (void*)m_devThreshVBR0, 8 * sizeof(int8_t));
-    MOS_SecureMemcpy(hucVdencBrcInitDmem->DevThreshI0_S8, 8 * sizeof(int8_t), (void*)m_devThreshI0, 8 * sizeof(int8_t));
 
     MOS_SecureMemcpy(hucVdencBrcInitDmem->InstRateThreshP0_S8, 4 * sizeof(int8_t), (void*)m_instRateThreshP0, 4 * sizeof(int8_t));
     MOS_SecureMemcpy(hucVdencBrcInitDmem->InstRateThreshB0_S8, 4 * sizeof(int8_t), (void*)m_instRateThreshB0, 4 * sizeof(int8_t));
@@ -1699,6 +1782,21 @@ MOS_STATUS CodechalVdencHevcStateG10::SetConstDataHuCBrcUpdate()
         (PCODECHAL_VDENC_HEVC_HUC_BRC_CONSTANT_DATA_G10)m_osInterface->pfnLockResource(m_osInterface, &m_vdencBrcConstDataBuffer[m_currRecycledBufIdx], &lockFlagsWriteOnly);
     CODECHAL_ENCODE_CHK_NULL_RETURN(hucConstData);
     MOS_SecureMemcpy(hucConstData, sizeof(m_hucConstantData), m_hucConstantData, sizeof(m_hucConstantData));
+
+    if(m_hevcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_EXTREMELY_LOW)
+    {
+        const int numEstrateThreshlds = 7;
+
+        for (int i=0; i < numEstrateThreshlds +1; i++)
+        {
+            for (int j=0; j < m_numDevThreshlds +1; j++)
+            { 
+                hucConstData->FrmSzAdjTabI_S8[(numEstrateThreshlds +1)*j+i]= m_lowdelayDeltaFrmszI[j][i];
+                hucConstData->FrmSzAdjTabP_S8[(numEstrateThreshlds +1)*j+i]= m_lowdelayDeltaFrmszP[j][i];
+                hucConstData->FrmSzAdjTabB_S8[(numEstrateThreshlds +1)*j+i]= m_lowdelayDeltaFrmszB[j][i];
+            }
+        }
+    }
 
     // ModeCosts depends on frame type
     if (m_pictureCodingType == I_TYPE)
@@ -1853,8 +1951,8 @@ MOS_STATUS CodechalVdencHevcStateG10::SetDmemHuCBrcUpdate()
     hucVdencBrcUpdateDmem->CurrentFrameType_U8 = (m_pictureCodingType == I_TYPE) ? 2 : 0;
 
     // Num_Ref_L1 should be always same as Num_Ref_L0
-    hucVdencBrcUpdateDmem->Num_Ref_L0_U8 = m_hevcPicParams->num_ref_idx_l0_default_active_minus1 + 1;
-    hucVdencBrcUpdateDmem->Num_Ref_L1_U8 = m_hevcPicParams->num_ref_idx_l1_default_active_minus1 + 1;
+    hucVdencBrcUpdateDmem->Num_Ref_L0_U8 = m_hevcSliceParams->num_ref_idx_l0_active_minus1 + 1;
+    hucVdencBrcUpdateDmem->Num_Ref_L1_U8 = m_hevcSliceParams->num_ref_idx_l1_active_minus1 + 1;
 
     hucVdencBrcUpdateDmem->Num_Slices = (uint8_t)m_hevcPicParams->NumSlices;
 
@@ -1918,6 +2016,7 @@ MOS_STATUS CodechalVdencHevcStateG10::SetDmemHuCBrcUpdate()
 
     hucVdencBrcUpdateDmem->ReEncodePositiveQPDeltaThr_S8 = 4;
     hucVdencBrcUpdateDmem->ReEncodeNegativeQPDeltaThr_S8 = -10;
+    hucVdencBrcUpdateDmem->SliceHeaderSize = 0;
 
     // reset skip frame statistics
     m_numSkipFrames = 0;
@@ -2310,11 +2409,6 @@ MOS_STATUS CodechalVdencHevcStateG10::GetStatusReport(
     // common initilization
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalVdencHevcState::GetStatusReport(encodeStatus, encodeStatusReport));
 
-    encodeStatusReport->NumberSlices      = encodeStatus->sliceReport.NumberSlices;
-    encodeStatusReport->SizeOfSliceSizesBuffer = encodeStatus->sliceReport.SizeOfSliceSizesBuffer;
-    encodeStatusReport->pSliceSizes       = encodeStatus->sliceReport.pSliceSize;
-    encodeStatusReport->SliceSizeOverflow = encodeStatus->sliceReport.SliceSizeOverflow;
-
     return eStatus;
 }
 
@@ -2447,4 +2541,9 @@ CodechalVdencHevcStateG10::CodechalVdencHevcStateG10(
 
     m_hwInterface->GetStateHeapSettings()->dwIshSize +=
         MOS_ALIGN_CEIL(m_combinedKernelSize, (1 << MHW_KERNEL_OFFSET_SHIFT));
+
+    CODECHAL_DEBUG_TOOL(
+        CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(m_encodeParState = MOS_New(CodechalDebugEncodeParG10, this));
+        CreateHevcPar();
+    )
 }

@@ -710,6 +710,13 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G10_X::SetSamplerState(
 
                 pUnormSampler->DW2.IndirectStatePointer = pParam->Unorm.IndirectStateOffset >> MHW_SAMPLER_INDIRECT_SHIFT;
             }
+
+            if (pParam->Unorm.bChromaKeyEnable)
+            {
+                pUnormSampler->DW1.ChromakeyEnable = true;
+                pUnormSampler->DW1.ChromakeyIndex  = pParam->Unorm.ChromaKeyIndex;
+                pUnormSampler->DW1.ChromakeyMode   = pParam->Unorm.ChromaKeyMode;
+            }
         }
 
         else if (pParam->SamplerType == MHW_SAMPLER_TYPE_AVS)
@@ -919,12 +926,6 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G10_X::AddSamplerStateData(
 
         MHW_MI_CHK_STATUS(SetSamplerState(&unormSampler, pParam));
 
-        // Add sampler state data to heap
-        MHW_MI_CHK_STATUS(memoryBlock->AddData(
-            &unormSampler,
-            samplerOffset,
-            sizeof(mhw_state_heap_g10_X::SAMPLER_STATE_CMD)));
-
         // Add indirect state to heap if necessary
         if (pParam->Unorm.bBorderColorIsValid)
         {
@@ -939,6 +940,12 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G10_X::AddSamplerStateData(
                 pParam->Unorm.IndirectStateOffset,
                 sizeof(mhw_state_heap_g10_X::SAMPLER_INDIRECT_STATE_CMD)));
         }
+
+        // Add sampler state data to heap
+        MHW_MI_CHK_STATUS(memoryBlock->AddData(
+            &unormSampler,
+            samplerOffset,
+            sizeof(mhw_state_heap_g10_X::SAMPLER_STATE_CMD)));
     }
     else if (pParam->SamplerType == MHW_SAMPLER_TYPE_AVS)
     {

@@ -655,6 +655,12 @@ public:
     MOS_GPU_CONTEXT GetVideoContext() { return m_videoContext; }
 
     //!
+    //! \brief  Sets video context
+    //! \return The video context \see m_videoContext
+    //!
+    void SetVideoContext(MOS_GPU_CONTEXT context) { m_videoContext = context; }
+
+    //!
     //! \brief  Gets video WA context
     //! \return The video WA context \see m_videoContextForWa
     //!
@@ -1101,9 +1107,6 @@ protected:
     //! \details Initialize decode pass number to 1, for those decoder need more than 1 decoding pass, 
     //!          modify this value in specific decoder files.
     uint8_t                     m_decodePassNum     = 1;
-
-    //! \brief MMIO Mfx Frame CRC report offset
-    uint32_t                    m_mfxFrameCrcRegOffset = 0;
 
     //! \brief MMIO Hcp Frame CRC report offset
     uint32_t                    m_hcpFrameCrcRegOffset = 0;

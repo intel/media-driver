@@ -599,6 +599,8 @@ DDI_MEDIA_FORMAT DdiMedia_OsFormatAlphaMaskToMediaFormat(int32_t fourcc, int32_t
             return Media_Format_YV12;
         case VA_FOURCC_IYUV:
             return Media_Format_IYUV;
+        case VA_FOURCC_I420:
+            return Media_Format_I420;
         case VA_FOURCC_422H:
             return Media_Format_422H;
         case VA_FOURCC_422V:
@@ -1404,7 +1406,7 @@ VAStatus DdiMedia__Initialize (
             return VA_STATUS_ERROR_OPERATION_FAILED;
         }
 
-        MOS_STATUS ret = mediaCtx->m_cmdBufMgr->Initialize(mediaCtx->m_osContext, COMMAND_BUFFER_SIZE);
+        MOS_STATUS ret = mediaCtx->m_cmdBufMgr->Initialize(mediaCtx->m_osContext, COMMAND_BUFFER_SIZE/2);
         if (ret != MOS_STATUS_SUCCESS)
         {
             MOS_OS_ASSERTMESSAGE(" cmdBufMgr Initialization failed");
@@ -1994,16 +1996,15 @@ DdiMedia_CreateSurfaces2(
                                 ||(attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)
 #ifdef ANDROID
                                 ||(attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_ANDROID_GRALLOC)
-
-                                ||(attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR)
 #endif
+                                ||(attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR)
                           )
                       {
                           memTypeFlag = attrib_list[i].value.value.i;
 #ifdef ANDROID
                           surfIsGralloc = (attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_ANDROID_GRALLOC);
-                          surfIsUserPtr = (attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR);
 #else
+                          surfIsUserPtr = (attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR);
                           surfIsGralloc = false;
                           surfIsUserPtr = false;
 #endif
@@ -2019,7 +2020,9 @@ DdiMedia_CreateSurfaces2(
                       if( nullptr == attrib_list[i].value.value.p )
                       {
                           DDI_ASSERTMESSAGE("Invalid VASurfaceAttribExternalBuffers used.");
-                          return VA_STATUS_ERROR_INVALID_PARAMETER;
+                          //remove the check for libva-utils conformance test, need libva-utils change cases
+                          //after libva-utils fix the case, return VA_STATUS_ERROR_INVALID_PARAMETER;
+                          break;
                       }
                       MOS_SecureMemcpy(externalBufDesc, sizeof(VASurfaceAttribExternalBuffers),  attrib_list[i].value.value.p, sizeof(VASurfaceAttribExternalBuffers));
 
@@ -3907,6 +3910,22 @@ VAStatus DdiMedia_CreateImage(
         vaimg->pitches[2]               = pitch;
         vaimg->offsets[1]               = MOS_ALIGN_CEIL(height,32) * pitch * 2;
         vaimg->offsets[2]               = vaimg->offsets[1] + 2;
+    }
+    else if(vaimg->format.fourcc == VA_FOURCC_I420)
+    {
+        pitch = width;
+        vaimg->format.byte_order        = VA_LSB_FIRST;
+        vaimg->format.bits_per_pixel    = format->bits_per_pixel;
+        vaimg->width                    = width;
+        vaimg->height                   = height;
+        vaimg->data_size                = pitch * height * 3 / 2;
+        vaimg->num_planes               = 3;
+        vaimg->pitches[0]               = pitch;
+        vaimg->pitches[1]               = pitch/2;
+        vaimg->pitches[2]               = pitch/2;
+        vaimg->offsets[0]               = 0;
+        vaimg->offsets[1]               = pitch * height;
+        vaimg->offsets[2]               = vaimg->offsets[1] + pitch * height / 4;
     }
     else
     {

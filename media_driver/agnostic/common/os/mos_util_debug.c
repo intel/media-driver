@@ -542,6 +542,7 @@ void MOS_MessageInit()
             MOS_SetCompMessageLevel(MOS_COMPONENT_OS, MOS_MESSAGE_LVL_VERBOSE);
             g_MosMsgParams.bUseOutputDebugString = 0;
             g_MosMsgParams.components[MOS_COMPONENT_OS].bBySubComponent = 0;
+            MOS_CompAssertEnableDisable(MOS_COMPONENT_CM, 0);
         }
 
         MOS_HLTInit();

@@ -98,6 +98,11 @@
 
 static drmServerInfoPtr drm_server_info;
 
+int semctl(int semid, int semnum, int cmd, ...)
+{
+    return 0;
+}
+
 void drmSetServerInfo(drmServerInfoPtr info)
 {
     drm_server_info = info;

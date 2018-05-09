@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -302,11 +302,11 @@ public:
        cmd.DW6.SourceRegionHorizontalOffset = pSfcStateParams->dwSourceRegionHorizontalOffset;
        cmd.DW6.SourceRegionVerticalOffset   = pSfcStateParams->dwSourceRegionVerticalOffset;
        cmd.DW7.OutputFrameWidth             = pSfcStateParams->dwOutputFrameWidth - 1;
-       cmd.DW7.OutputFrameHeight            = pSfcStateParams->dwOutputFrameHeight - 1;
+       cmd.DW7.OutputFrameHeight            = pSfcStateParams->dwOutputFrameHeight + pSfcStateParams->dwOutputSurfaceOffset -1;
        cmd.DW8.ScaledRegionSizeWidth        = pSfcStateParams->dwScaledRegionWidth - 1;
        cmd.DW8.ScaledRegionSizeHeight       = pSfcStateParams->dwScaledRegionHeight - 1;
        cmd.DW9.ScaledRegionHorizontalOffset = pSfcStateParams->dwScaledRegionHorizontalOffset;
-       cmd.DW9.ScaledRegionVerticalOffset   = pSfcStateParams->dwScaledRegionVerticalOffset;
+       cmd.DW9.ScaledRegionVerticalOffset   = pSfcStateParams->dwScaledRegionVerticalOffset + pSfcStateParams->dwOutputSurfaceOffset;
 
        // Vertical line issue for SFC 270 degree rotation & NV12 output
        // HW requires Scaled Region Size Width < Output Frame Width && Scaled Region Size Height < Output Frame Height.

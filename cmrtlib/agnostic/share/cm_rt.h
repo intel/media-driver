@@ -1248,7 +1248,7 @@ class CmSampler8x8
 public:
     CM_RT_API virtual INT GetIndex( SamplerIndex* & pIndex ) = 0 ;
 protected:
-   ~CmSampler8x8(){};
+    ~CmSampler8x8(){};
 };
 
 class CmEvent
@@ -1324,7 +1324,7 @@ public:
     CM_RT_API virtual INT GetIndex( SurfaceIndex*& pIndex ) = 0; 
     CM_RT_API virtual INT GetAddress( void * &pAddr) = 0;
 protected:
-   ~CmBufferSVM(){};
+    ~CmBufferSVM(){};
 };
 
 class CmSurface2DUP
@@ -1334,7 +1334,7 @@ public:
     CM_RT_API virtual INT SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL option) = 0;
     CM_RT_API virtual INT SetProperty(CM_FRAME_TYPE frameType) = 0; 
 protected:
-   ~CmSurface2DUP(){};
+    ~CmSurface2DUP(){};
 };
 
 class CmSurface3D
@@ -1354,7 +1354,7 @@ class CmSampler
 public:
     CM_RT_API virtual INT GetIndex( SamplerIndex* & pIndex ) = 0 ;
 protected:
-   ~CmSampler(){};
+    ~CmSampler(){};
 };
 
 class CmThreadSpace
@@ -1372,7 +1372,7 @@ public:
     CM_RT_API virtual INT SelectThreadDependencyVectors( CM_DEPENDENCY dependVectors ) = 0;
     CM_RT_API virtual INT SetThreadSpaceOrder(UINT threadCount, PCM_THREAD_PARAM pThreadSpaceOrder) = 0;
 protected:
-   ~CmThreadSpace(){};
+    ~CmThreadSpace(){};
 };
 
 class CmVebox
@@ -1429,7 +1429,7 @@ public:
     CM_RT_API virtual INT EnqueueWithHints( CmTask* pTask, CmEvent* & pEvent, UINT hints = 0) = 0;
     CM_RT_API virtual INT EnqueueVebox( CmVebox* pVebox, CmEvent* & pEvent ) = 0;
 protected:
-   ~CmQueue(){};
+    ~CmQueue(){};
 };
 
 //**********************************************************************

@@ -265,6 +265,7 @@ typedef struct _MHW_VDBOX_SURFACE_PARAMS
     uint32_t                    dwActualHeight;
     uint32_t                    dwReconSurfHeight;
     MOS_MEMCOMP_STATE           mmcState;
+    uint8_t                     mmcSkipMask;
 } MHW_VDBOX_SURFACE_PARAMS, *PMHW_VDBOX_SURFACE_PARAMS;
 
 typedef struct _MHW_VDBOX_PIPE_BUF_ADDR_PARAMS

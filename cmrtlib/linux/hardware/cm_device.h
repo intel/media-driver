@@ -125,8 +125,6 @@ public:
 
     CM_RT_API int32_t GetVISAVersion(uint32_t& majorVersion, uint32_t& minorVersion);
     CM_RT_API int32_t CreateQueueEx(CmQueue *&queue, CM_QUEUE_CREATE_OPTION queueCreateOption = CM_DEFAULT_QUEUE_CREATE_OPTION);
-    int32_t Surface2DSanityCheck(uint32_t width, uint32_t height, CM_SURFACE_FORMAT format);
-    int32_t GetBytesPerPixel(CM_SURFACE_FORMAT format);
 
     int32_t CheckDdiVersionSupported(const uint32_t ddiVersion);
 

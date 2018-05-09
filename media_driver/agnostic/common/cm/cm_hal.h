@@ -32,6 +32,7 @@
 #include "cm_csync.h"
 #include "mhw_vebox.h"
 #include "cm_hal_generic.h"
+#include "media_perf_profiler.h"
 #include <string>
 #include <map>
 
@@ -1518,10 +1519,11 @@ typedef struct _CM_HAL_STATE
 
     uint32_t                    currentPerfTagIndex[MAX_COMBINE_NUM_IN_PERFTAG];
     std::map<std::string, int>  *perfTagIndexMap[MAX_COMBINE_NUM_IN_PERFTAG];  // mapping from kernel name to perf tag
+    MediaPerfProfiler           *perfProfiler;                                 // unified media perf profiler 
 
     PCM_HAL_GENERIC             cmHalInterface;                                // pointer to genX interfaces
 
-    std::map< void *, CM_HAL_STATE_BUFFER_ENTRY > *state_buffer_list_ptr;        // table of bounded state buffer and kernel ptr
+    std::map< void *, CM_HAL_STATE_BUFFER_ENTRY > *state_buffer_list_ptr;      // table of bounded state buffer and kernel ptr
 
     CmHalL3Settings             l3Settings;
 
@@ -1750,7 +1752,8 @@ typedef struct _CM_HAL_STATE
     // Internal interface methods called by CM HAL only <START>
     //********************************************************************************
     int32_t (*pfnGetTaskSyncLocation)
-    (   int32_t                     taskId);
+    (   PCM_HAL_STATE               state,
+        int32_t                     taskId);
 
     MOS_STATUS (*pfnGetGpuTime)
     (   PCM_HAL_STATE               state,
@@ -2123,6 +2126,7 @@ MOS_STATUS HalCm_Lock2DResource(
     PCM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM     param);
 
 int32_t HalCm_GetTaskSyncLocation(
+    PCM_HAL_STATE       state,
     int32_t             taskId);
 
 MOS_STATUS HalCm_SetL3Cache(

@@ -42,6 +42,7 @@ MOS_STATUS CodechalDecodeNV12ToP010::Init(PMOS_INTERFACE osInterface)
     uint32_t devCreateOption = CM_DEVICE_CREATE_OPTION_FOR_HEVC;
     devCreateOption &= (~CM_DEVICE_CONFIG_GPUCONTEXT_ENABLE);
 
+    osInterface->pfnNotifyStreamIndexSharing(osInterface);
     CODECHAL_DECODE_CHK_STATUS_RETURN(CreateCmDevice(
         osInterface->pOsContext,
         m_cmDevice,

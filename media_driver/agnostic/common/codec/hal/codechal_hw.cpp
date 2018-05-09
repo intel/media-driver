@@ -1266,3 +1266,34 @@ MOS_STATUS CodechalHwInterface::AssignDshAndSshSpace(
 
     return MOS_STATUS_SUCCESS;
 }
+
+MmioRegistersMfx * CodechalHwInterface::SelectVdboxAndGetMmioRegister(
+    MHW_VDBOX_NODE_IND index,
+    PMOS_COMMAND_BUFFER pCmdBuffer)
+{
+    if (m_getVdboxNodeByUMD)
+    {
+        pCmdBuffer->iVdboxNodeIndex = m_osInterface->pfnGetVdboxNodeId(m_osInterface, pCmdBuffer);
+        switch (pCmdBuffer->iVdboxNodeIndex)
+        {
+                case MOS_VDBOX_NODE_1:
+                    index = MHW_VDBOX_NODE_1;
+                    break;
+                case MOS_VDBOX_NODE_2:
+                    index = MHW_VDBOX_NODE_2;
+                    break;
+                case MOS_VDBOX_NODE_INVALID:
+                    // That's a legal case meaning that we were not assigned with per-bb index because
+                    // balancing algorithm can't work (forcedly diabled or miss kernel support).
+                    // If that's the case we just proceed with the further static context assignment.
+                    break;
+                default:
+                    // That's the case when MHW and MOS enumerations mismatch. We again proceed with the
+                    // best effort (static context assignment, but provide debug note).
+                    MHW_ASSERTMESSAGE("MOS and MHW VDBOX enumerations mismatch! Adjust HW description!");
+                    break;
+        }
+    } 
+
+    return m_mfxInterface->GetMmioRegisters(index);
+}

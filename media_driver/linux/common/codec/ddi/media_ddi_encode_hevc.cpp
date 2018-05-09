@@ -739,6 +739,49 @@ VAStatus DdiEncodeHevc::ParseSlcParams(
     return VA_STATUS_SUCCESS;
 }
 
+VAStatus DdiEncodeHevc::FindNalUnitStartCodes(
+    uint8_t * buf,
+    uint32_t size,
+    uint32_t * startCodesOffset,
+    uint32_t * startCodesLength)
+{
+    uint8_t i = 0;
+
+    while (((i + 3) < size) &&
+           (buf[i] != 0 || buf[i+1] != 0 || buf[i+2] != 0x01) &&
+           (buf[i] != 0 || buf[i+1] != 0 || buf[i+2] != 0 || buf[i+3] != 0x01))
+    {
+        i++;
+    }
+
+    if ((i + 3) == size)
+    {
+        if (buf[i] != 0 || buf[i+1] != 0 || buf[i+2] != 0x01)
+        {
+            return VA_STATUS_ERROR_INVALID_BUFFER; //NALU start codes doesn't exit
+        }
+        else
+        {
+            *startCodesOffset = size - 3;
+            *startCodesLength = 3;
+            return VA_STATUS_SUCCESS;
+        }
+    }
+
+    if (buf[i] != 0 || buf[i+1] != 0 || buf[i+2] != 0x01)
+    {
+        *startCodesOffset = i;
+        *startCodesLength = 4;
+    }
+    else
+    {
+        *startCodesOffset = i;
+        *startCodesLength = 3;
+    }
+
+    return VA_STATUS_SUCCESS;
+}
+
 VAStatus DdiEncodeHevc::ParsePackedHeaderParams(void *ptr)
 {
     DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx.", VA_STATUS_ERROR_INVALID_PARAMETER);
@@ -759,6 +802,7 @@ VAStatus DdiEncodeHevc::ParsePackedHeaderParams(void *ptr)
 
         // get the packed header size
         m_encodeCtx->pSliceHeaderData[m_encodeCtx->uiSliceHeaderCnt].BitSize                = encPackedHeaderParamBuf->bit_length;
+        // don't know NALU start codes now, assign to 4 here when has_emulation_bytes is 0 and later will correct it
         m_encodeCtx->pSliceHeaderData[m_encodeCtx->uiSliceHeaderCnt].SkipEmulationByteCount = (encPackedHeaderParamBuf->has_emulation_bytes) ? (encPackedHeaderParamBuf->bit_length + 7) / 8 : 4;
     }
     else
@@ -766,7 +810,8 @@ VAStatus DdiEncodeHevc::ParsePackedHeaderParams(void *ptr)
         /* App does not indicate the type, using PPS in general for headers */
         m_encodeCtx->ppNALUnitParams[m_encodeCtx->indexNALUnit]->uiNalUnitType             = HEVC_NAL_UT_PPS;
         m_encodeCtx->ppNALUnitParams[m_encodeCtx->indexNALUnit]->bInsertEmulationBytes     = (encPackedHeaderParamBuf->has_emulation_bytes) ? false : true;
-        m_encodeCtx->ppNALUnitParams[m_encodeCtx->indexNALUnit]->uiSkipEmulationCheckCount = 4;
+        // don't know NALU start codes now, assign to 4 here when has_emulation_bytes is 0 and later will correct it
+        m_encodeCtx->ppNALUnitParams[m_encodeCtx->indexNALUnit]->uiSkipEmulationCheckCount = (encPackedHeaderParamBuf->has_emulation_bytes) ? (encPackedHeaderParamBuf->bit_length + 7) / 8 : 4;
         m_encodeCtx->ppNALUnitParams[m_encodeCtx->indexNALUnit]->uiSize                    = (encPackedHeaderParamBuf->bit_length + 7) / 8;
         m_encodeCtx->ppNALUnitParams[m_encodeCtx->indexNALUnit]->uiOffset                  = 0;
     }
@@ -804,6 +849,24 @@ VAStatus DdiEncodeHevc::ParsePackedHeaderData(void *ptr)
         }
 
         m_encodeCtx->pSliceHeaderData[m_encodeCtx->uiSliceHeaderCnt].SliceOffset = bsBuffer->pCurrent - bsBuffer->pBase;
+
+        // correct SkipEmulationByteCount
+        // according to LibVA principle, one packed header buffer should only contain one NALU,
+        // so when has_emulation_bytes is 0, SkipEmulationByteCount only needs to skip the NALU start codes
+        if (m_encodeCtx->pSliceHeaderData[m_encodeCtx->uiSliceHeaderCnt].SkipEmulationByteCount != hdrDataSize)
+        {
+            uint32_t startCodesOffset = 0;
+            uint32_t startCodesLength = 0;
+            VAStatus vaSts = VA_STATUS_SUCCESS;
+            vaSts = FindNalUnitStartCodes((uint8_t *)ptr, hdrDataSize, &startCodesOffset, &startCodesLength);
+            if (VA_STATUS_SUCCESS != vaSts)
+            {
+                DDI_ASSERTMESSAGE("DDI: packed slice header doesn't include NAL unit start codes!");
+                return vaSts;
+            }
+            m_encodeCtx->pSliceHeaderData[m_encodeCtx->uiSliceHeaderCnt].SkipEmulationByteCount = MOS_MIN(15, (startCodesOffset + startCodesLength));
+        }
+
         m_encodeCtx->uiSliceHeaderCnt++;
         m_encodeCtx->bLastPackedHdrIsSlice = false;
     }
@@ -817,6 +880,23 @@ VAStatus DdiEncodeHevc::ParsePackedHeaderData(void *ptr)
         {
             DDI_ASSERTMESSAGE("DDI:packed header size is too large to be supported!");
             return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
+
+        // correct uiSkipEmulationCheckCount
+        // according to LibVA principle, one packed header buffer should only contain one NALU,
+        // so when has_emulation_bytes is 0, uiSkipEmulationCheckCount only needs to skip the NALU start codes
+        if (m_encodeCtx->ppNALUnitParams[m_encodeCtx->indexNALUnit]->uiSkipEmulationCheckCount != hdrDataSize)
+        {
+            uint32_t startCodesOffset = 0;
+            uint32_t startCodesLength = 0;
+            VAStatus vaSts = VA_STATUS_SUCCESS;
+            vaSts = FindNalUnitStartCodes((uint8_t *)ptr, hdrDataSize, &startCodesOffset, &startCodesLength);
+            if (VA_STATUS_SUCCESS != vaSts)
+            {
+                DDI_ASSERTMESSAGE("DDI: packed header doesn't include NAL unit start codes!");
+                return vaSts;
+            }
+            m_encodeCtx->ppNALUnitParams[m_encodeCtx->indexNALUnit]->uiSkipEmulationCheckCount = MOS_MIN(15, (startCodesOffset + startCodesLength));
         }
 
         m_encodeCtx->ppNALUnitParams[m_encodeCtx->indexNALUnit]->uiOffset = bsBuffer->pCurrent - bsBuffer->pBase;
@@ -931,24 +1011,24 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
             seqParams->RateControlMethod = RATECONTROL_CQP;
             seqParams->MBBRC             = 0;
         }
-        else if (VA_RC_CBR | m_encodeCtx->uiRCMethod )
+        else if (VA_RC_CBR & m_encodeCtx->uiRCMethod )
         {
             seqParams->MaxBitRate        = seqParams->TargetBitRate;
             seqParams->MinBitRate        = seqParams->TargetBitRate;
             seqParams->RateControlMethod = RATECONTROL_CBR;
         }
-        else if (VA_RC_ICQ | m_encodeCtx->uiRCMethod)
+        else if (VA_RC_ICQ & m_encodeCtx->uiRCMethod)
         {
             seqParams->ICQQualityFactor  = vaEncMiscParamRC->ICQ_quality_factor;
             seqParams->RateControlMethod = RATECONTROL_ICQ;
             seqParams->MBBRC             = 1;
         }
-        else if(VA_RC_VCM | m_encodeCtx->uiRCMethod)
+        else if(VA_RC_VCM & m_encodeCtx->uiRCMethod)
         {
             seqParams->RateControlMethod = RATECONTROL_VCM;
             seqParams->MBBRC             = 0;
         }
-        else if(VA_RC_VBR | m_encodeCtx->uiRCMethod)
+        else if(VA_RC_VBR & m_encodeCtx->uiRCMethod)
         {
             seqParams->RateControlMethod = RATECONTROL_VBR;
         }
@@ -1048,6 +1128,11 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
 #ifndef ANDROID
         // support DeltaQP based ROI by default
         seqParams->ROIValueInDeltaQP = vaEncMiscParamROI->roi_flags.bits.roi_value_is_qp_delta;
+        if(picParams->NumROI != 0 && seqParams->ROIValueInDeltaQP == 0)
+        {
+            DDI_ASSERTMESSAGE("ROI does not support priority level now.");
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
 #endif
         break;
     }

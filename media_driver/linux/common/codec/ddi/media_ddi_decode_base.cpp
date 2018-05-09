@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -636,7 +636,7 @@ VAStatus DdiMediaDecode::EndPicture(
     }
 
     DDI_CHK_RET(SetDecodeParams(), "SetDecodeParams failed!");
-    DDI_CHK_RET(ClearRefList(&(m_ddiDecodeCtx->RTtbl), true), "ClearRefList failed!");
+    DDI_CHK_RET(ClearRefList(&(m_ddiDecodeCtx->RTtbl), m_withDpb), "ClearRefList failed!");
     if (m_ddiDecodeCtx->pCodecHal == nullptr)
     {
         return VA_STATUS_ERROR_ALLOCATION_FAILED;

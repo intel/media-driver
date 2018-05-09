@@ -82,7 +82,7 @@ struct CM_HAL_G9_X:public CM_HAL_GENERIC
 
 public:
     CM_HAL_G9_X(PCM_HAL_STATE cmState):
-        CM_HAL_GENERIC(cmState) {};
+        CM_HAL_GENERIC(cmState){};
 
     ~CM_HAL_G9_X(){};
 
@@ -164,6 +164,8 @@ public:
 
     MOS_STATUS GetExpectedGtSystemConfig(
         PCM_EXPECTED_GT_SYSTEM_INFO expectedConfig);
+
+    uint64_t ConvertTicksToNanoSeconds(uint64_t ticks);
 
 private:
     MOS_STATUS RegisterSampler8x8AVSTable(

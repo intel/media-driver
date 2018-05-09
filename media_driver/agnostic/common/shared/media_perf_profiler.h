@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -31,6 +31,19 @@
 #include "mhw_mi.h"
 
 using Map = std::map<void*, uint32_t>;
+
+/*! \brief In order to align GPU node value for all of OS,
+*   we redifine the GPU node value here.
+*/
+typedef enum _PerfGPUNode
+{
+    PERF_GPU_NODE_3D     = 0,
+    PERF_GPU_NODE_VIDEO  = 1,
+    PERF_GPU_NODE_BLT    = 2,
+    PERF_GPU_NODE_VE     = 3,
+    PERF_GPU_NODE_VIDEO2 = 4,
+    PERF_GPU_NODE_UNKNOW = 0xFF
+}PerfGPUNode;
 
 class MediaPerfProfiler
 {
@@ -211,9 +224,9 @@ private:
     //! \param    [in] context
     //!           GPU context
     //!
-    //! \return   MOS_GPU_NODE
+    //! \return   PerfGPUNode
     //!
-    MOS_GPU_NODE GpuContextToGpuNode(MOS_GPU_CONTEXT context);
+    PerfGPUNode GpuContextToGpuNode(MOS_GPU_CONTEXT context);
 
     //!
     //! \brief    Check the performance mode 
@@ -229,8 +242,9 @@ private:
 protected:
     MOS_RESOURCE               m_perfStoreBuffer;       //!< Buffer for perf data collection
     Map                        m_contextIndexMap;       //!< Map between CodecHal/VPHal and PerfDataContext
-    PMOS_MUTEX                 m_mutex;                 //!< Mutex for protecting data of profiler when refereced multi times
+    PMOS_MUTEX                 m_mutex = nullptr;       //!< Mutex for protecting data of profiler when refereced multi times
 
+    int32_t                    m_profilerEnabled = 0;   //!< UMD Perf Profiler enable or not
     uint32_t                   m_perfDataIndex = 0;     //!< The index of performance data node in buffer
     uint32_t                   m_ref = 0;               //!< The number of refereces
     uint32_t                   m_bufferSize = 10000000; //!< The size of perf data buffer

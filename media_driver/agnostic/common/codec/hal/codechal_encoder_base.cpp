@@ -49,11 +49,19 @@ void CodechalEncoderState::PrepareNodes(
     }
 }
 
-MOS_STATUS CodechalEncoderState::CreateGpuContexts()
+MOS_STATUS CodechalEncoderState::SetGpuCtxCreatOption()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
-    MOS_GPUCTX_CREATOPTIONS createOption;
+    m_gpuCtxCreatOpt = MOS_New(MOS_GPUCTX_CREATOPTIONS);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_gpuCtxCreatOpt);
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalEncoderState::CreateGpuContexts()
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     if (CodecHalUsesVideoEngine(m_codecFunction))
     {
@@ -75,12 +83,15 @@ MOS_STATUS CodechalEncoderState::CreateGpuContexts()
         }
         m_videoGpuNode = videoGpuNode;
 
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetGpuCtxCreatOption());
+        CODECHAL_ENCODE_CHK_NULL_RETURN(m_gpuCtxCreatOpt);
+
         MOS_GPU_CONTEXT gpuContext = ((videoGpuNode == MOS_GPU_NODE_VIDEO2) ? MOS_GPU_CONTEXT_VDBOX2_VIDEO3 : MOS_GPU_CONTEXT_VIDEO3);
         eStatus = (MOS_STATUS)m_osInterface->pfnCreateGpuContext(
             m_osInterface,
             gpuContext,
             videoGpuNode,
-            &createOption);
+            m_gpuCtxCreatOpt);
 
         if (eStatus != MOS_STATUS_SUCCESS)
         {
@@ -182,6 +193,7 @@ MOS_STATUS CodechalEncoderState::CreateGpuContexts()
             gpuContext = MOS_GPU_CONTEXT_RENDER2;
             renderGpuNode = MOS_GPU_NODE_3D;
         }
+        MOS_GPUCTX_CREATOPTIONS createOption;
         eStatus = (MOS_STATUS)m_osInterface->pfnCreateGpuContext(m_osInterface, gpuContext, renderGpuNode, &createOption);
 
         if (eStatus != MOS_STATUS_SUCCESS)
@@ -903,6 +915,7 @@ MOS_STATUS CodechalEncoderState::AllocateMDFResources()
 
         if (m_cmDev == nullptr)
         {
+            m_osInterface->pfnNotifyStreamIndexSharing(m_osInterface);
             CODECHAL_ENCODE_CHK_STATUS_RETURN(CreateCmDevice(m_osInterface->pOsContext, m_cmDev, devOp));
         }
         //just WA for issues in MDF null support
@@ -1333,6 +1346,7 @@ MOS_STATUS CodechalEncoderState::AllocateResources()
     m_encodeStatusBuf.dwImageStatusCtrlOfLastBRCPassOffset = CODECHAL_OFFSETOF(EncodeStatus, ImageStatusCtrlOfLastBRCPass);
     m_encodeStatusBuf.dwSceneChangedOffset    = CODECHAL_OFFSETOF(EncodeStatus, dwSceneChangedFlag);
     m_encodeStatusBuf.dwSumSquareErrorOffset  = CODECHAL_OFFSETOF(EncodeStatus, sumSquareError[0]);
+    m_encodeStatusBuf.dwSliceReportOffset     = CODECHAL_OFFSETOF(EncodeStatus, sliceReport);
     m_encodeStatusBuf.dwHuCStatusMaskOffset   = CODECHAL_OFFSETOF(EncodeStatus, HuCStatusRegMask);
     m_encodeStatusBuf.dwHuCStatusRegOffset    = CODECHAL_OFFSETOF(EncodeStatus, HuCStatusReg);
 
@@ -1958,24 +1972,6 @@ void CodechalEncoderState::FreeResources()
     // Release eStatus buffer
     if (!Mos_ResourceIsNull(&m_encodeStatusBuf.resStatusBuffer))
     {
-        MOS_LOCK_PARAMS lockFlags;
-        MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
-        lockFlags.ReadOnly = true;
-
-        uint8_t* data = (uint8_t*)m_osInterface->pfnLockResource(
-            m_osInterface,
-            (&m_encodeStatusBuf.resStatusBuffer),
-            &lockFlags);
-
-        EncodeStatus* dataStatus = nullptr;
-
-        for (int i = 0; i < CODECHAL_ENCODE_STATUS_NUM; i++)
-        {
-            uint32_t baseOffset = (i * m_encodeStatusBuf.dwReportSize + sizeof(uint32_t) * 2);  // encodeStatus is offset by 2 DWs in the resource
-            dataStatus = (EncodeStatus*)(data + baseOffset);
-            MOS_FreeMemory(dataStatus->sliceReport.pSliceSize);
-        }
-
         m_osInterface->pfnUnlockResource(
             m_osInterface,
             &(m_encodeStatusBuf.resStatusBuffer));
@@ -2541,7 +2537,7 @@ MOS_STATUS CodechalEncoderState::ReadBrcPakStatistics(
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->presStatusBuffer);
 
     CODECHAL_ENCODE_CHK_COND_RETURN((m_vdboxIndex > m_hwInterface->GetMfxInterface()->GetMaxVdboxIndex()),"ERROR - vdbox index exceed the maximum");
-    MmioRegistersMfx* mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
+    MmioRegistersMfx* mmioRegisters = m_hwInterface->SelectVdboxAndGetMmioRegister(m_vdboxIndex, cmdBuffer);
 
     MHW_MI_STORE_REGISTER_MEM_PARAMS miStoreRegMemParams;
     MOS_ZeroMemory(&miStoreRegMemParams, sizeof(miStoreRegMemParams));
@@ -2589,7 +2585,7 @@ MOS_STATUS CodechalEncoderState::ReadImageStatus(
     CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
 
     CODECHAL_ENCODE_CHK_COND_RETURN((m_vdboxIndex > m_hwInterface->GetMfxInterface()->GetMaxVdboxIndex()),"ERROR - vdbox index exceed the maximum");
-    MmioRegistersMfx* mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
+    MmioRegistersMfx* mmioRegisters = m_hwInterface->SelectVdboxAndGetMmioRegister(m_vdboxIndex, cmdBuffer);
 
     EncodeStatusBuffer*  encodeStatusBuf    = &m_encodeStatusBuf;
 
@@ -2670,7 +2666,7 @@ MOS_STATUS CodechalEncoderState::ReadMfcStatus(
     CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
 
     CODECHAL_ENCODE_CHK_COND_RETURN((m_vdboxIndex > m_hwInterface->GetMfxInterface()->GetMaxVdboxIndex()),"ERROR - vdbox index exceed the maximum");
-    MmioRegistersMfx* mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
+    MmioRegistersMfx* mmioRegisters = m_hwInterface->SelectVdboxAndGetMmioRegister(m_vdboxIndex, cmdBuffer);
 
     EncodeStatusBuffer* encodeStatusBuf    = &m_encodeStatusBuf;
 
@@ -3070,7 +3066,7 @@ MOS_STATUS CodechalEncoderState::UpdateEncodeStatus(
     CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
 
     CODECHAL_ENCODE_CHK_COND_RETURN((m_vdboxIndex > m_hwInterface->GetMfxInterface()->GetMaxVdboxIndex()),"ERROR - vdbox index exceed the maximum");
-    mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
+    mmioRegisters = m_hwInterface->SelectVdboxAndGetMmioRegister(m_vdboxIndex, cmdBuffer);
 
     // Get the right offset of EncodeStatusUpdate Operand scratch buffer
     uint32_t baseOffset        = m_atomicScratchBuf.dwOperandSetSize * m_atomicScratchBuf.wEncodeUpdateIndex;
@@ -4471,6 +4467,12 @@ CodechalEncoderState::CodechalEncoderState(
 
 CodechalEncoderState::~CodechalEncoderState()
 {
+    if (m_gpuCtxCreatOpt)
+    {
+        MOS_Delete(m_gpuCtxCreatOpt);
+        m_gpuCtxCreatOpt = nullptr;
+    }
+
     DestroyMDFResources();
 
     if (m_perfProfiler)

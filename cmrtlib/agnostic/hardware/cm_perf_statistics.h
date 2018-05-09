@@ -83,14 +83,6 @@ public:
     //!
     void InsertPerfStatistic(ApiCallRecord *records);
 
-    //!
-    //! \brief    Check if this profiler on or not
-    //! \details  Check if this profiler on or not. 
-    //!           So far, it is turned on at Debug and Release-Internal configuration.
-    //! \retval   true if profiler is on; false, otherwise
-    //!
-    bool IsProfilerOn();
-
 private:
 
     //!

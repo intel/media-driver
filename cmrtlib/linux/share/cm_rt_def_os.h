@@ -118,7 +118,7 @@ typedef enum _VA_CM_FORMAT {
     VA_CM_FMT_YV12                 =  VA_FOURCC_YV12,
     VA_CM_FMT_P010                 =  VA_FOURCC_P010,
     VA_CM_FMT_P016                 =  VA_FOURCC_P016,
-
+    VA_CM_FMT_P208                  = VA_FOURCC_P208,
     VA_CM_FMT_MAX                   = 0xFFFFFFFF
 } VA_CM_FORMAT;
 
@@ -206,7 +206,7 @@ inline int CM_THREAD_JOIN(THREAD_HANDLE *handle_array, int thread_cnt)
 #define CM_SURFACE_FORMAT_YV12                  VA_CM_FMT_YV12
 #define CM_SURFACE_FORMAT_P010                  VA_CM_FMT_P010
 #define CM_SURFACE_FORMAT_P016                  VA_CM_FMT_P016
-
+#define CM_SURFACE_FORMAT_P208                  VA_CM_FMT_P208
 
 #define CM_TEXTURE_ADDRESS_TYPE                 VACMTEXTUREADDRESS
 #define CM_TEXTURE_ADDRESS_WRAP                 VACMTADDRESS_WRAP

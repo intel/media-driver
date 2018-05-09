@@ -36,6 +36,18 @@ if(${GEN9_SKL_Supported} STREQUAL "yes")
     media_include_subdirectory(gen9_skl)
 endif()
 
+if(${GEN9_KBL_Supported} STREQUAL "yes")
+    media_include_subdirectory(gen9_kbl)
+endif()
+
+if(${GEN9_GLK_Supported} STREQUAL "yes")
+    media_include_subdirectory(gen9_glk)
+endif()
+
+if(${GEN9_CFL_Supported} STREQUAL "yes")
+    media_include_subdirectory(gen9_cfl)
+endif()
+
 if(${GEN10_Supported} STREQUAL "yes")
     media_include_subdirectory(gen10)
 endif()

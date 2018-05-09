@@ -500,7 +500,6 @@ MOS_STATUS CodechalDecode::Allocate (CodechalSetting * codecHalSettings)
         m_vdboxIndex = (m_videoGpuNode == MOS_GPU_NODE_VIDEO2)? MHW_VDBOX_NODE_2 : MHW_VDBOX_NODE_1;
 
         // Set FrameCrc reg offset
-        m_mfxFrameCrcRegOffset = m_mfxInterface->GetMmioRegisters(m_vdboxIndex)->mfxFrameCrcRegOffset;
         if (m_standard == CODECHAL_HEVC)
         {
             m_hcpFrameCrcRegOffset = m_hcpInterface->GetMmioRegisters(m_vdboxIndex)->hcpFrameCrcRegOffset;
@@ -1207,7 +1206,7 @@ MOS_STATUS CodechalDecode::EndStatusReport(
 
     CODECHAL_DECODE_CHK_COND_RETURN((m_vdboxIndex > m_mfxInterface->GetMaxVdboxIndex()),
         "ERROR - vdbox index exceed the maximum");
-    auto mmioRegistersMfx = m_mfxInterface->GetMmioRegisters(m_vdboxIndex);
+    auto mmioRegistersMfx = m_hwInterface->SelectVdboxAndGetMmioRegister(m_vdboxIndex, cmdBuffer);
     auto mmioRegistersHcp = m_hcpInterface ? m_hcpInterface->GetMmioRegisters(m_vdboxIndex) : nullptr;
 
     uint32_t currIndex = m_decodeStatusBuf.m_currIndex;
@@ -1238,7 +1237,7 @@ MOS_STATUS CodechalDecode::EndStatusReport(
         regParams.dwOffset          = frameCrcOffset;
         if (m_standard == CODECHAL_AVC)
         {
-            regParams.dwRegister        = m_mfxFrameCrcRegOffset;
+            regParams.dwRegister        = mmioRegistersMfx->mfxFrameCrcRegOffset;
         }
         else if(m_standard == CODECHAL_HEVC)
         {
@@ -1603,7 +1602,7 @@ MOS_STATUS CodechalDecode::SendPredicationCommand(
     // Skip current frame if presPredication is not equal to zero
     if (m_decodeParams.m_predicationNotEqualZero)
     {
-        auto mmioRegistersMfx = m_mfxInterface->GetMmioRegisters(m_vdboxIndex);
+        auto mmioRegistersMfx = m_hwInterface->SelectVdboxAndGetMmioRegister(m_vdboxIndex, cmdBuffer);
         MHW_MI_FLUSH_DW_PARAMS  flushDwParams;
         MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(cmdBuffer, &flushDwParams));

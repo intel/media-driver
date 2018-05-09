@@ -2842,7 +2842,7 @@ MOS_STATUS CodechalVdencVp9State::VdencSetCurbeHmeKernel(
     {
         //StreamIn CURBE
         curbe.DW6.LCUSize                 = 1;//Only LCU64 supported by the VDEnc HW
-        curbe.DW6.InputStreamInEn         = 0;
+        curbe.DW6.InputStreamInEn         = state->segmapProvided;
         curbe.DW31.NumImePredictors       = CODECHAL_VDENC_NUMIMEPREDICTORS;
         curbe.DW31.MaxCuSize              = 3;
         curbe.DW31.MaxTuSize              = 3;

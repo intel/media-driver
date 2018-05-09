@@ -747,8 +747,6 @@ CM_RT_API int32_t CmDevice_RT::SetL3Config(const L3ConfigRegisterValues *registe
 {
     INSERT_PROFILER_RECORD();
 
-    uint32_t platform = 0;
-
     m_l3Config = *registerValues;
 
     SetCapsInternal(CAP_L3_CONFIG, sizeof(L3ConfigRegisterValues), &m_l3Config);

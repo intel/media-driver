@@ -3510,7 +3510,7 @@ MOS_STATUS CodechalEncodeVp8::SetPakStatsDebugBuffer(PMOS_COMMAND_BUFFER cmdBuff
     commonMiInterface = m_hwInterface->GetMiInterface();
 
     CODECHAL_ENCODE_CHK_COND_RETURN((m_vdboxIndex > m_hwInterface->GetMfxInterface()->GetMaxVdboxIndex()), "ERROR - vdbox index exceed the maximum");
-    mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
+    mmioRegisters = m_hwInterface->SelectVdboxAndGetMmioRegister(m_vdboxIndex, cmdBuffer);
 
     // this is just for dump purpose after each PAK pass
     // doesn't have to do with order in CodecHalVp8_EncodeReadPakStatistics
@@ -3989,7 +3989,7 @@ MOS_STATUS CodechalEncodeVp8::ReadImageStatus(PMOS_COMMAND_BUFFER cmdBuffer)
     commonMiInterface = m_hwInterface->GetMiInterface();
 
     CODECHAL_ENCODE_CHK_COND_RETURN((m_vdboxIndex > m_hwInterface->GetMfxInterface()->GetMaxVdboxIndex()), "ERROR - vdbox index exceed the maximum");
-    mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
+    mmioRegisters = m_hwInterface->SelectVdboxAndGetMmioRegister(m_vdboxIndex, cmdBuffer);
 
     commonMiInterface = m_hwInterface->GetMiInterface();
     encodeStatusBuf = &m_encodeStatusBuf;
@@ -4032,7 +4032,7 @@ MOS_STATUS CodechalEncodeVp8::ReadMfcStatus(PMOS_COMMAND_BUFFER cmdBuffer)
     commonMiInterface = m_hwInterface->GetMiInterface();
 
     CODECHAL_ENCODE_CHK_COND_RETURN((m_vdboxIndex > m_hwInterface->GetMfxInterface()->GetMaxVdboxIndex()), "ERROR - vdbox index exceed the maximum");
-    mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
+    mmioRegisters = m_hwInterface->SelectVdboxAndGetMmioRegister(m_vdboxIndex, cmdBuffer);
 
     encodeStatusBuf = &m_encodeStatusBuf;
 
@@ -4074,7 +4074,7 @@ MOS_STATUS CodechalEncodeVp8::ReadBrcPakStatistics(
     commonMiInterface = params->pHwInterface->GetMiInterface();
 
     CODECHAL_ENCODE_CHK_COND_RETURN((m_vdboxIndex > m_hwInterface->GetMfxInterface()->GetMaxVdboxIndex()), "ERROR - vdbox index exceed the maximum");
-    mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
+    mmioRegisters = m_hwInterface->SelectVdboxAndGetMmioRegister(m_vdboxIndex, cmdBuffer);
 
     // MI_FLUSH
     MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
@@ -5405,7 +5405,7 @@ MOS_STATUS CodechalEncodeVp8::SetPakStatsInTpuCurbe(PMOS_COMMAND_BUFFER cmdBuffe
     stateHeapInterface = m_hwInterface->GetRenderInterface()->m_stateHeapInterface;
 
     CODECHAL_ENCODE_CHK_COND_RETURN((m_vdboxIndex > m_hwInterface->GetMfxInterface()->GetMaxVdboxIndex()), "ERROR - vdbox index exceed the maximum");
-    mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
+    mmioRegisters = m_hwInterface->SelectVdboxAndGetMmioRegister(m_vdboxIndex, cmdBuffer);
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(dsh = m_tpuKernelState.m_dshRegion.GetResource());
     presTpuCurbeBuffer = dsh;

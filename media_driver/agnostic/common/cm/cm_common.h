@@ -470,7 +470,8 @@ typedef enum _CM_WALKING_PATTERN
     CM_WALK_WAVEFRONT26X = 5,
     CM_WALK_WAVEFRONT26ZIG = 6,
     CM_WALK_WAVEFRONT45D = 7,
-    CM_WALK_WAVEFRONT45XD_2 = 8
+    CM_WALK_WAVEFRONT45XD_2 = 8,
+    CM_WALK_WAVEFRONT26XALT = 9
 } CM_WALKING_PATTERN;
 
 //------------------------------------------------------------------------------

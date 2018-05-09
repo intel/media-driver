@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2017, Intel Corporation
+* Copyright (c) 2016-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -49,11 +49,15 @@
 #define ENCODE_VDENC_HEVC_ROI_BLOCKSIZE_G10     2        // 0:8x8, 1:16x16, 2:32x32, 3:64x64
 #define ENCODE_VDENC_HEVC_MIN_ROI_DELTA_QP_G10  -8
 #define ENCODE_VDENC_HEVC_MAX_ROI_DELTA_QP_G10  7        // Max delta QP for VDEnc ROI
+#define ENCODE_VDENC_HEVC_PADDING_DW_SIZE       8
 
 // HEVC DP
 #define ENCODE_DP_HEVC_NUM_MAX_VME_L0_REF_G9  3
 #define ENCODE_DP_HEVC_NUM_MAX_VME_L1_REF_G9  1
 #define ENCODE_DP_HEVC_MAX_NUM_ROI            16
+#define ENCODE_DP_HEVC_ROI_BLOCK_SIZE         1     //From DDI, 0:8x8, 1:16x16, 2:32x32, 3:64x64
+#define ENCODE_DP_HEVC_ROI_BLOCK_Width        16    
+#define ENCODE_DP_HEVC_ROI_BLOCK_HEIGHT       16
 
 //!
 //! \enum HEVC_NAL_UNIT_TYPE
@@ -288,21 +292,16 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
         uint32_t    SeqFlags;
     };
 
-    /*! \brief Host defines the maximum frame size in bytes.
+    /*! \brief Framework defined maximum frame size in bytes for I frames.
     *
-    *    UserMaxFrameSize is applicable for all RateControlMethod values except CQP. It guarantees that the compressed frame size will be less than this value. Maximum allowed frame size per profile/level will be calculated in driver and be used when UserMaxFrameSize is set to 0.
+    *    Applicable for all RateControlMethod values except CQP; guarantees that the compressed frame size will be less than this value. If UserMaxPBFrameSize equals 0, UserMaxIFrameSize will be used for all frame types. Maximum allowed frame size per profile/level will be calculated in driver and be used when UserMaxIFrameSize and UserMaxPBFrameSize are both set to 0.
     */
-    uint32_t  UserMaxFrameSize;
-    /*! \brief Percentage of the required accuracy for AVBR.
+    uint32_t            UserMaxIFrameSize;
+    /*! \brief Framework defined maximum frame size in bytes for P & B frames.
     *
-    *    It is the target percentage multiplied by 10, e.g. 88 means 8.8%. The minimum value is 5 (0.5%).
+    *    Applicable for all RateControlMethod values except CQP; guarantees that the compressed frame size will be less than this value. If UserMaxPBFrameSize equals 0, UserMaxIFrameSize will be used for all frame types. Maximum allowed frame size per profile/level will be calculated in driver and be used when UserMaxIFrameSize and UserMaxPBFrameSize are both set to 0.
     */
-    uint16_t  AVBRAccuracy;
-    /*! \brief Number of frames for AVBR to converge.
-    *
-    *    Value is multiple of 100. The minimum value is 100. Default value is 200 frames.
-    */
-    uint16_t  AVBRConvergence;
+    uint32_t            UserMaxPBFrameSize;
     /*! \brief For Constant Rate Factor BRC method, it indicates the measure of quality.
     *
     *    The range is from 1 – 51, with 1 being the best quality.
@@ -928,6 +927,7 @@ struct CodecEncodeHevcFeiPicParams
     uint32_t                    RefHeight;
     uint32_t                    SearchWindow;
     uint32_t                    MaxNumIMESearchCenter;
+    uint32_t                    FastIntraMode;
     uint32_t                    NumConcurrentEncFramePartition;
 
     /** \brief add for mutlple pass pak */

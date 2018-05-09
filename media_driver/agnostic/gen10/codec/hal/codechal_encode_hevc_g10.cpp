@@ -2530,6 +2530,7 @@ MOS_STATUS CodechalEncHevcStateG10::SetCurbeBrcInitReset(CODECHAL_HEVC_BRC_KRNID
     curbe.DW25_ACQPBuffer           = 1;
     curbe.DW25_Log2MaxCuSize        = (m_isMaxLcu64) ? 6 : 5;
     curbe.DW25_SlidingWindowSize    = m_slidingWindowSize;
+    curbe.DW8_BRCFlag              |= BRCINIT_IGNORE_PICTURE_HEADER_SIZE;
 
     if (m_hevcSeqParams->RateControlMethod == RATECONTROL_CBR)
     {
@@ -5581,6 +5582,7 @@ MOS_STATUS CodechalEncHevcStateG10::EncodeBrcFrameUpdateKernel()
     mhwHevcPicState.pHevcEncPicParams = m_hevcPicParams;
     mhwHevcPicState.bUseVDEnc = false;
     mhwHevcPicState.brcNumPakPasses = m_mfxInterface->GetBrcNumPakPasses();
+    mhwHevcPicState.bSAOEnable = m_hevcSeqParams->SAO_enabled_flag ? (m_hevcSliceParams->slice_sao_luma_flag || m_hevcSliceParams->slice_sao_chroma_flag) : 0;
 
     PMOS_RESOURCE brcHcpStateReadBuffer = &m_brcBuffers.resBrcImageStatesReadBuffer[m_currRecycledBufIdx];
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpHevcPicBrcBuffer(brcHcpStateReadBuffer, &mhwHevcPicState));
@@ -6923,6 +6925,13 @@ MOS_STATUS CodechalEncHevcStateG10::EncodeKernelFunctions()
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    if (m_pictureCodingType == P_TYPE)
+    {
+        CODECHAL_ENCODE_ASSERTMESSAGE("GEN10 HEVC VME does not support P slice");
+        eStatus = MOS_STATUS_INVALID_PARAMETER;
+        return eStatus;
+    }
 
     if (m_cscDsState->RequireCsc())
     {

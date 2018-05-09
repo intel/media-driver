@@ -249,11 +249,14 @@ void CodechalDebugConfigMgr::GenerateDefaultConfig()
     ofs << "##" << CodechalDbgAttr::attrForceCmdDumpLvl << ":0" << std::endl;
     ofs << "##" << CodechalDbgAttr::attrForceCurbeDumpLvl << ":0" << std::endl;
     ofs << "##" << CodechalDbgAttr::attrFrameState << ":0" << std::endl;
+    ofs << "##" << CodechalDbgAttr::attrBrcPakStats<< ":0" << std::endl;
     ofs << "##" << CodechalDbgAttr::attrCUStreamout<< ":0" << std::endl;
     ofs << "##" << CodechalDbgAttr::attrImageState << ":0" << std::endl;
     ofs << "##" << CodechalDbgAttr::attrSliceSizeStreamout << ":0" << std::endl;
     ofs << "##" << CodechalDbgAttr::attrCoeffProb << ":0" << std::endl;
-    // MD5 attributes
+    ofs << "##" << CodechalDbgAttr::attrROISurface << ":0" << std::endl;
+    
+   // MD5 attributes
     ofs << "##" << CodechalDbgAttr::attrMD5HashEnable << ":0" << std::endl;
     ofs << "##" << CodechalDbgAttr::attrMD5FlushInterval << ":0" << std::endl;
     ofs << "##" << CodechalDbgAttr::attrMD5PicWidth << ":0" << std::endl;

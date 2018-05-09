@@ -20,6 +20,17 @@
 
 cmake_minimum_required(VERSION 3.5)
 
+
+include(os_release_info.cmake)
+
+get_os_release_info(os_name os_version)
+
+if("${os_name}" STREQUAL "clear-linux-os")
+    # clear-linux-os distribution avoids /etc for distribution defaults.
+    # Set this variable explicitly before including GNUInstallDirs.
+    set(CMAKE_INSTALL_SYSCONFDIR "usr/share/defaults/etc")
+endif()
+
 include(GNUInstallDirs)
 
 add_subdirectory(cmrtlib)
@@ -49,6 +60,7 @@ set(CPACK_GENERATOR "DEB")
 set(CPACK_PACKAGE_NAME "intel-media")
 set(CPACK_PACKAGE_VENDOR "Intel")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "intel-media deb package for internal usage only")
+set(CPACK_RPM_PACKAGE_ARCHITECTURE "x86_64")
 
 if (DEFINED MEDIA_VERSION)
     string(REPLACE "." ";" MEDIA_VERSION_LIST ${MEDIA_VERSION})
@@ -61,5 +73,25 @@ if (DEFINED MEDIA_VERSION)
 endif()
 
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Intel")
+
+# Create Distro OS initial based on 1st-2nd letter of string
+# or label "generic" for unsupported/unknown distros for CPACK_PACKAGE_FILE_NAME
+if("${os_name}" STREQUAL "ubuntu")
+    set(DISTRO_INFO "u${os_version}")
+elseif("${os_name}" STREQUAL "fedora")
+    set(DISTRO_INFO "f${os_version}")
+elseif("${os_name}" STREQUAL "clear-linux-os")
+    set(DISTRO_INFO "cl${os_version}")
+elseif("${os_name}" STREQUAL "centos")
+    set(DISTRO_INFO "ce${os_version}")
+else()
+    set(DISTRO_INFO "generic")
+endif()
+
+# Format Package Version and Build Type Strings for CPACK_PACKAGE_FILE_NAME
+set(PACKAGE_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
+string(TOLOWER "${BUILD_TYPE}.${CPACK_RPM_PACKAGE_ARCHITECTURE}" PACKAGE_TYPE)
+
+set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${PACKAGE_VERSION}-${DISTRO_INFO}-${PACKAGE_TYPE}")
 
 include(CPack)

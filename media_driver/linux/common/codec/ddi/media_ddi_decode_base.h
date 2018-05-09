@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -301,6 +301,10 @@ protected:
     //!           referred by other component, it should be free explicitly
     //!           outside of the instance.
     DDI_DECODE_CONTEXT *m_ddiDecodeCtx = nullptr;
+
+    //! \brief    decoded picture buffer flag
+    bool m_withDpb                     = true;
+
     //!
     //! \brief    return the Buffer offset for sliceGroup
     //! \details  return the Base  offset for one given slice_data buffer.

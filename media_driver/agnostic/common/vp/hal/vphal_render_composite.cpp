@@ -1682,7 +1682,8 @@ bool CompositeState::AddCompLayer(
         {
             // This layer requires 3d sampler to perform luma key.
             // So set previous layer's scaling mode to AVS and reset the nSampler.
-            if (pComposite->pSource[0]->ScalingMode != VPHAL_SCALING_AVS)
+            // Disable AVS scaling mode in cases AVS is not available
+            if (pComposite->pSource[0]->ScalingMode != VPHAL_SCALING_AVS && !m_need3DSampler)
             {
                 pComposite->pSource[0]->ScalingMode = VPHAL_SCALING_AVS;
                 pComposite->nAVS--;
@@ -2788,6 +2789,11 @@ void CompositeState::SetSurfaceParams(
             pSurfaceParams->bVertStrideOffs = 0;
             break;
     }
+
+    if (pSource->iLayerID && IsNV12SamplerLumakeyNeeded(pSource, m_pRenderHal))
+    {
+        pSurfaceParams->b2PlaneNV12NeededByKernel = true;
+    }
 }
 
 //!
@@ -3027,6 +3033,8 @@ int32_t CompositeState::SetLayer(
     RECT        DestRect;                           // Clipped dest rectangle
     int32_t     iResult;
     float       fHorizgap, fVertgap;                // horizontal gap and vertical gap: based on Sampler need
+    uint32_t    dwLow, dwHigh;
+    bool        bForceNearestForUV = false;
 
     // cropping
     float       fCropX, fCropY;
@@ -3352,6 +3360,40 @@ int32_t CompositeState::SetLayer(
             pSamplerStateParams->Unorm.AddressU = MHW_GFX3DSTATE_TEXCOORDMODE_CLAMP;
             pSamplerStateParams->Unorm.AddressV = MHW_GFX3DSTATE_TEXCOORDMODE_CLAMP;
             pSamplerStateParams->Unorm.AddressW = MHW_GFX3DSTATE_TEXCOORDMODE_CLAMP;
+
+            // Enable the sampler luma key feature only if this lumakey layer is not the bottom layer,
+            // and only on YUY2 and NV12 surfaces at this moment.
+            // The kernel difference b/w sampler luma key and EU computed luma key.
+            // Sampler based: IDR_VP_Prepare_LumaKey_SampleUnorm
+            // EU computed:   IDR_VP_Compute_Lumakey
+            // Disable sampler luma key solution if there's no AVS as back up for layer 0
+            if (iSamplerID == VPHAL_SAMPLER_Y   &&
+                pSource->pLumaKeyParams != NULL &&
+                !m_need3DSampler                &&
+                (pSource->Format == Format_YUY2 || pSource->Format == Format_NV12) &&
+                iLayer)
+            {
+                if (IsNV12SamplerLumakeyNeeded(pSource, pRenderHal))
+                {
+                    dwLow  = pSource->pLumaKeyParams->LumaLow << 16;
+                    dwHigh = (pSource->pLumaKeyParams->LumaHigh << 16) | 0xFF00FFFF;
+                    bForceNearestForUV = true;
+                }
+                else
+                {
+                    dwLow  = pSource->pLumaKeyParams->LumaLow << 8;
+                    dwHigh = (pSource->pLumaKeyParams->LumaHigh << 8) | 0xFFFF00FF;
+                }
+
+                pSamplerStateParams->Unorm.bChromaKeyEnable = true;
+                pSamplerStateParams->Unorm.ChromaKeyMode    = MHW_CHROMAKEY_MODE_KILL_ON_ANY_MATCH;
+                pSamplerStateParams->Unorm.ChromaKeyIndex   = pRenderHal->pfnAllocateChromaKey(pRenderHal, dwLow, dwHigh);
+            }
+
+            if (iSamplerID != VPHAL_SAMPLER_Y && bForceNearestForUV)
+            {
+                pSamplerStateParams->Unorm.SamplerFilterMode = MHW_SAMPLER_FILTER_NEAREST;
+            }
         }
         else if (SamplerType == MHW_SAMPLER_TYPE_AVS)
         {
@@ -4514,6 +4556,8 @@ bool CompositeState::SubmitStates(
         VPHAL_RENDER_ASSERTMESSAGE("Failed to load kernel in GSH.");
         goto finish;
     }
+
+    pRenderHal->iKernelAllocationID = iKrnAllocation;
 
     SubmitStatesFillGenSpecificStaticData(pRenderingData,
                                    pTarget,
@@ -5721,38 +5765,6 @@ MOS_STATUS CompositeState::RenderPhase(
             pProcamp           = &(m_Procamp[pMatrix->iProcampID]);
             bKernelEntryUpdate = (pProcamp->iProcampVersion != pMatrix->iProcampVersion) ? true : false;
         }
-
-        if (pKernelDllState->bEnableCMFC)
-        {
-            if (!Mos_ResourceIsNull(&m_CmfcCoeff.OsResource))
-            {
-                MOS_LOCK_PARAMS                 LockFlags;
-                MOS_ZeroMemory(&LockFlags, sizeof(LockFlags));
-
-                LockFlags.WriteOnly = 1;
-
-                m_pKernelDllState->pCscCoeffCMFC = (uint8_t*)m_pOsInterface->pfnLockResource(
-                    m_pOsInterface,
-                    &m_CmfcCoeff.OsResource,
-                    &LockFlags);
-
-                m_pKernelDllState->dwCscCoeffStride = m_CmfcCoeff.dwPitch;
-
-                if (nullptr == m_pKernelDllState->pCscCoeffCMFC)
-                {
-                    m_pOsInterface->pfnUnlockResource(m_pOsInterface,
-                        &m_CmfcCoeff.OsResource);
-
-                    eStatus = MOS_STATUS_NULL_POINTER;
-                    goto finish;
-                }
-            }
-
-            pKernelDllState->pfnUpdatePatchedCSC(pKernelDllState, pKernelEntry);
-
-            m_pOsInterface->pfnUnlockResource(m_pOsInterface,
-                                              &m_CmfcCoeff.OsResource);
-        }
     }
 
     if (!pKernelEntry || bKernelEntryUpdate)
@@ -5782,51 +5794,12 @@ MOS_STATUS CompositeState::RenderPhase(
             goto finish;
         }
 
-        // Get CMFC CSC Coeff surface pointer
-        if (pKernelDllState->bEnableCMFC)
-        {
-            if (!Mos_ResourceIsNull(&m_CmfcCoeff.OsResource))
-            {
-                MOS_LOCK_PARAMS                 LockFlags;
-                MOS_ZeroMemory(&LockFlags, sizeof(LockFlags));
-
-                LockFlags.WriteOnly = 1;
-
-                m_pKernelDllState->pCscCoeffCMFC = (uint8_t*)m_pOsInterface->pfnLockResource(
-                    m_pOsInterface,
-                    &m_CmfcCoeff.OsResource,
-                    &LockFlags);
-
-                m_pKernelDllState->dwCscCoeffStride = m_CmfcCoeff.dwPitch;
-
-                if (nullptr == m_pKernelDllState->pCscCoeffCMFC)
-                {
-                    m_pOsInterface->pfnUnlockResource(m_pOsInterface,
-                                                      &m_CmfcCoeff.OsResource);
-
-                    eStatus = MOS_STATUS_NULL_POINTER;
-                    goto finish;
-                }
-            }
-            else
-            {
-                eStatus = MOS_STATUS_NULL_POINTER;
-                goto finish;
-            }
-        }
-
         // Build kernel
         if (!pKernelDllState->pfnBuildKernel(pKernelDllState, pSearchState))
         {
             VPHAL_RENDER_ASSERTMESSAGE("Failed to build kernel.");
             eStatus = MOS_STATUS_UNKNOWN;
             goto finish;
-        }
-
-        if (pKernelDllState->bEnableCMFC && m_pKernelDllState->pCscCoeffCMFC)
-        {
-            m_pOsInterface->pfnUnlockResource(m_pOsInterface,
-                                              &m_CmfcCoeff.OsResource);
         }
 
         // Load resulting kernel into kernel cache
@@ -5963,6 +5936,18 @@ MOS_STATUS CompositeState::RenderPhase(
         ((PVPHAL_BATCH_BUFFER_PARAMS)pBatchBuffer->pPrivateData)->iCallID = m_iCallID;
     }
 
+    // Enable extra PIPE_CONTROL in command buffer for CMFC Coeff Surface update
+    if (RenderingData.bCmFcEnable)
+    {
+        pRenderHal->bCmfcCoeffUpdate  = true;
+        pRenderHal->pCmfcCoeffSurface = &m_CmfcCoeff.OsResource;
+    }
+    else
+    {
+        pRenderHal->bCmfcCoeffUpdate  = false;
+        pRenderHal->pCmfcCoeffSurface = nullptr;
+    }
+
     VPHAL_DBG_STATE_DUMPPER_DUMP_GSH(pRenderHal);
     VPHAL_DBG_STATE_DUMPPER_DUMP_SSH(pRenderHal);
     VPHAL_DBG_STATE_DUMPPER_DUMP_BATCH_BUFFER(pRenderHal, pBatchBuffer);
@@ -5983,6 +5968,8 @@ finish:
     }
     // clean rendering data
     CleanRenderingData(&RenderingData);
+    pRenderHal->bCmfcCoeffUpdate  = false;
+    pRenderHal->pCmfcCoeffSurface = nullptr;
     return eStatus;
 }
 
@@ -6109,6 +6096,7 @@ bool CompositeState::BuildFilter(
                 m_pRenderHal,
                 &RenderHalSurface,
                 RENDERHAL_SS_BOUNDARY_SRCRECT) ? true : false;
+        bNeed |= IsNV12SamplerLumakeyNeeded(pSrc, m_pRenderHal) && i;
         if (bNeed)
         {
             if (pFilter->format == Format_NV12)
@@ -6538,7 +6526,7 @@ MOS_STATUS CompositeState::Initialize(
             "CSCCoeffSurface",
             Format_L8,
             MOS_GFXRES_2D,
-            MOS_TILE_Y,
+            MOS_TILE_LINEAR,
             VPHAL_COMP_CMFC_COEFF_WIDTH,
             VPHAL_COMP_CMFC_COEFF_HEIGHT,
             false,

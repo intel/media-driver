@@ -107,6 +107,7 @@ public:
     void Log(std::ostringstream &oss);
 
     void DumpContent(uint32_t kernelNumber,
+                     char *kernelName,
                      int32_t taskId,
                      uint32_t argIndex);
 

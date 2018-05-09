@@ -24,14 +24,6 @@ project(devult)
 set(INC_PATH ./include ./)
 include_directories(${INC_PATH})
 
-aux_source_directory(./src GTEST_SOURCES)
-
 set(SOURCES ./src/gtest-all.cc ./src/gtest_main.cc)
-
-ADD_LIBRARY(libgtest ${SOURCES})
-LINK_DIRECTORIES(/usr/lib/x86_64-linux-gnu/)
-
-find_package(Threads)
-if (CMAKE_USE_PTHREADS_INIT)
-    target_link_libraries(libgtest ${CMAKE_THREAD_LIBS_INIT})
-endif()
+add_library(libgtest ${SOURCES})
+target_link_libraries(libgtest pthread)

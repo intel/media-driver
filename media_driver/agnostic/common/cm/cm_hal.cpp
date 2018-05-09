@@ -171,7 +171,7 @@ MOS_STATUS HalCm_AllocateTsResource(
     hr              = MOS_STATUS_SUCCESS;
     osInterface    = state->osInterface;
 
-    size = ((sizeof(uint64_t)* CM_SYNC_QWORD_PER_TASK) + (sizeof(uint64_t)* CM_TRACKER_ID_QWORD_PER_TASK)) * state->cmDeviceParam.maxTasks;
+    size = state->cmHalInterface->GetTimeStampResourceSize() * state->cmDeviceParam.maxTasks;    
     // allocate render engine Ts Resource
     MOS_ZeroMemory(&allocParams, sizeof(MOS_ALLOC_GFXRES_PARAMS));
     allocParams.Type    = MOS_GFXRES_BUFFER;
@@ -7154,15 +7154,16 @@ MOS_STATUS HalCm_SetupMediaWalkerParams(
                     break;
 
                 case CM_WALK_WAVEFRONT26X:
-                    walkerParams->localLoopExecCount = adjWidth - 1 + (adjHeight - 4) / 2;
+                case CM_WALK_WAVEFRONT26XALT:
+                    walkerParams->localLoopExecCount = 0x7ff;
                     walkerParams->globalLoopExecCount = 0;
 
                     walkerParams->localOutLoopStride.x = 1;
                     walkerParams->localOutLoopStride.y = 0;
-                    walkerParams->localInnerLoopUnit.x = 0xFFFE;
-                    walkerParams->localInnerLoopUnit.y = 4;
+                    walkerParams->localInnerLoopUnit.x = 0xFFFE;  // -2 in uint32_t:16
+                    walkerParams->localInnerLoopUnit.y = 2;
 
-                    walkerParams->middleLoopExtraSteps = 3;
+                    walkerParams->middleLoopExtraSteps = 1;
                     walkerParams->midLoopUnitX = 0;
                     walkerParams->midLoopUnitY = 1;
                     break;
@@ -7834,20 +7835,21 @@ MOS_STATUS HalCm_Allocate(
     state->nullHwRenderCm          = nullHWAccelerationEnable.Cm || nullHWAccelerationEnable.VPGobal;
 
     //during initialization stage to allocate sip resource and Get sip binary.
-    if (state->platform.eRenderCoreFamily <= IGFX_GEN10_CORE)
+    if ((state->midThreadPreemptionDisabled == false)
+     || (state->kernelDebugEnabled == true))
     {
-        if ((state->midThreadPreemptionDisabled == false)
-            || (state->kernelDebugEnabled == true))
-        {
-            CM_CHK_MOSSTATUS(state->cmHalInterface->AllocateSIPCSRResource());
-            state->pfnGetSipBinary(state);
-        }
+        CM_CHK_MOSSTATUS(state->cmHalInterface->AllocateSIPCSRResource());
+        state->pfnGetSipBinary(state);
     }
+
     //Init flag for conditional batch buffer
     state->cbbEnabled = HalCm_IsCbbEnabled(state);
 
     //Turn Turbo boost on
     CM_CHK_MOSSTATUS(state->pfnEnableTurboBoost(state));
+
+    // Send a command to get the timestamp base if needed
+    CM_CHK_MOSSTATUS(state->cmHalInterface->SubmitTimeStampBaseCommands());
 
     hr = MOS_STATUS_SUCCESS;
 
@@ -9574,9 +9576,6 @@ MOS_STATUS HalCm_SetCompressionMode(
 {
     MOS_STATUS              hr = MOS_STATUS_SUCCESS;
     PMOS_INTERFACE          osInterface = state->osInterface;
-
-    CM_ASSERT(mmcParam.handle);
-
     PCM_HAL_SURFACE2D_ENTRY     entry;
 
     // Get the 2D Resource Entry
@@ -10110,8 +10109,12 @@ MOS_STATUS HalCm_Create(
     MOS_ZeroMemory(&state->hintIndexes.kernelIndexes, sizeof(uint32_t) * CM_MAX_TASKS_EU_SATURATION);
     MOS_ZeroMemory(&state->hintIndexes.dispatchIndexes, sizeof(uint32_t) * CM_MAX_TASKS_EU_SATURATION);
 
-    state->criticalSectionDSH = CMRT_UMD::CSync();
+    // get the global media profiler
+    state->perfProfiler = MediaPerfProfiler::Instance();
+    CM_CHK_NULL_RETURN_MOSSTATUS(state->perfProfiler);
+    CM_CHK_MOSSTATUS(state->perfProfiler->Initialize((void*)state, state->osInterface));
 
+    state->criticalSectionDSH = CMRT_UMD::CSync();
 
     state->cmDeviceParam.maxKernelsPerTask        = CM_MAX_KERNELS_PER_TASK;
     state->cmDeviceParam.maxSamplerTableSize      = CM_MAX_SAMPLER_TABLE_SIZE;
@@ -10244,6 +10247,13 @@ void HalCm_Destroy(
         MosSafeDelete(state->cpInterface);
         MosSafeDelete(state->state_buffer_list_ptr);
 
+        // Delete the unified media profiler
+        if (state->perfProfiler)
+        {
+            MediaPerfProfiler::Destroy(state->perfProfiler, (void*)state, state->osInterface);
+            state->perfProfiler = nullptr;
+        }
+        
         // Delete Batch Buffers
         if (state->batchBuffers)
         {
@@ -11397,10 +11407,10 @@ MOS_STATUS HalCm_SetVtuneProfilingFlag(
 //| Returns:    Sync Location
 //*-----------------------------------------------------------------------------
 int32_t HalCm_GetTaskSyncLocation(
+    PCM_HAL_STATE       state,
     int32_t             taskId)        // [in] Task ID
 {
-    return (taskId * (CM_SYNC_QWORD_PER_TASK * sizeof(uint64_t)
-            +(CM_TRACKER_ID_QWORD_PER_TASK * sizeof(uint64_t))));
+    return (taskId * state->cmHalInterface->GetTimeStampResourceSize());
 }
 
 void HalCm_GetLegacyRenderHalL3Setting( CmHalL3Settings *l3SettingsPtr, RENDERHAL_L3_CACHE_SETTINGS *l3SettingsLegacyPtr )

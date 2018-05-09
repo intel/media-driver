@@ -44,6 +44,11 @@ Codechal::Codechal(
     m_hwInterface       = hwInterface;
     m_osInterface       = hwInterface->GetOsInterface();
 
+    if (m_hwInterface->bEnableVdboxBalancingbyUMD && m_osInterface->bEnableVdboxBalancing)
+    {
+        m_hwInterface->m_getVdboxNodeByUMD = true;
+    }
+
 #if USE_CODECHAL_DEBUG_TOOL
     CODECHAL_DECODE_CHK_NULL_NO_STATUS_RETURN(debugInterface);
     m_debugInterface    = debugInterface;
@@ -191,4 +196,3 @@ void Codechal::Destroy()
 {
     CODECHAL_PUBLIC_FUNCTION_ENTER;
 }
-

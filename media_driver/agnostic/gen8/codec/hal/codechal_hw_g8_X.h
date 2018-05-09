@@ -61,6 +61,10 @@ public:
         m_ssdTargetUsageThreshold = m_sliceShutdownAvcTargetUsageThreshold;
         m_mpeg2SSDResolutionThreshold = m_sliceShutdownMpeg2ResolutionThreshold;
 
+        if (osInterface->bEnableVdboxBalancing)
+        {
+           bEnableVdboxBalancingbyUMD = true;
+        }
         m_noHuC = true;
 
         m_maxKernelLoadCmdSize =

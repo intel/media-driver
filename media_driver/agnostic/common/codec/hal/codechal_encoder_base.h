@@ -719,6 +719,7 @@ struct MeCurbeParams
     HmeLevel                        hmeLvl;
     bool                            b16xMeEnabled;
     bool                            b32xMeEnabled;
+    bool                            segmapProvided;
     uint8_t                         TargetUsage;
     uint8_t                        *pMEMethodTable;
     uint8_t                        *pBMEMethodTable;
@@ -998,10 +999,10 @@ struct EncodeStatusReport
 //!
 struct EncodeStatusSliceReport
 {
-    uint16_t*                       pSliceSize;
+    uint32_t                        SliceSizeOverflow;
     uint8_t                         NumberSlices;
     uint32_t                        SizeOfSliceSizesBuffer;
-    uint32_t                        SliceSizeOverflow : 1;
+    PMOS_RESOURCE                   pSliceSize;
 };
 
 //!
@@ -1066,6 +1067,7 @@ struct EncodeStatusBuffer
     uint32_t                                dwImageStatusCtrlOfLastBRCPassOffset; //!> The offset of image status control of last bitrate control pass
     uint32_t                                dwSceneChangedOffset;           //!> The offset of the scene changed flag
     uint32_t                                dwSumSquareErrorOffset;         //!> The offset of list of sum square error
+    uint32_t                                dwSliceReportOffset;            //!> The offset of slice size report structure
     uint32_t                                dwSize;                         //!> Size of status buffer
     uint32_t                                dwReportSize;                   //!> Size of report
 };
@@ -1750,6 +1752,7 @@ public:
 
     MHW_VDBOX_NODE_IND              m_vdboxIndex;               //!< Index of vdbox
     MediaPerfProfiler               *m_perfProfiler = nullptr;  //!< Performance data profiler
+    PMOS_GPUCTX_CREATOPTIONS        m_gpuCtxCreatOpt = nullptr; //!< Used for creating GPU context
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     bool m_mmcUserFeatureUpdated;  //!< indicate if the user feature is updated with MMC state
@@ -1952,6 +1955,18 @@ public:
     virtual void PrepareNodes(
         MOS_GPU_NODE& videoGpuNode,
         bool&         setVideoNode);
+
+    //!
+    //! \brief  Set up params for gpu context creation
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SetGpuCtxCreatOption();
+
+    //!
+    //! \brief  Sets video gpu context
+    //!
+    void SetVideoContext(MOS_GPU_CONTEXT videoContext) { m_videoContext = videoContext; }
 
     //!
     //! \brief  Create Gpu Contexts

@@ -43,10 +43,11 @@ GraphicsResourceSpecific::~GraphicsResourceSpecific()
     MOS_OS_FUNCTION_ENTER;
 }
 
-MOS_STATUS GraphicsResourceSpecific::SetSyncTag(OsContext* osContextPtr, SyncParams& params)
+MOS_STATUS GraphicsResourceSpecific::SetSyncTag(OsContext* osContextPtr, SyncParams& params, uint32_t streamIndex)
 {
     MOS_UNUSED(osContextPtr);
     MOS_UNUSED(params);
+    MOS_UNUSED(streamIndex);
     return MOS_STATUS_SUCCESS;
 }
 
@@ -97,6 +98,7 @@ GMM_RESOURCE_FORMAT GraphicsResourceSpecific::ConvertMosFmtToGmmFmt(MOS_FORMAT f
         case Format_R8U         : return GMM_FORMAT_R8_UINT_TYPE;
         case Format_R16U        : return GMM_FORMAT_R16_UINT_TYPE;
         case Format_P010        : return GMM_FORMAT_P010_TYPE;
+        case Format_P208        : return GMM_FORMAT_P208_TYPE;
         default                 : return GMM_FORMAT_INVALID;
     }
 }
@@ -168,6 +170,7 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
         case Format_R16U:
         case Format_R8U:
         case Format_P010:
+        case Format_P208:
             resourceType  = RESOURCE_2D;
             //indicate buffer Restriction is Planar surface restrictions.
             gmmParams.Flags.Gpu.Video = true;
@@ -470,7 +473,7 @@ void* GraphicsResourceSpecific::Lock(OsContext* osContextPtr, LockParams& params
                     mos_bo_map(boPtr, ( OSKM_LOCKFLAG_WRITEONLY & params.m_writeRequest ));
                 }
 #else
-                if (m_tileType != MOS_TILE_LINEAR)
+                if (m_tileType != MOS_TILE_LINEAR && !params.m_tileAsTiled)
                 {
                     mos_gem_bo_map_gtt(boPtr);
                     m_mmapOperation = MOS_MMAP_OPERATION_MMAP_GTT;

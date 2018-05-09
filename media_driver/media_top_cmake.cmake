@@ -20,10 +20,9 @@
 
 project( media )
 
-ADD_SUBDIRECTORY(${CMAKE_CURRENT_LIST_DIR}/linux/ult)
-
 bs_set_if_undefined(LIB_NAME iHD_drv_video)
 
+option (MEDIA_RUN_TEST_SUITE "run google test module after install" ON) 
 include(${MEDIA_DRIVER_CMAKE}/media_gen_flags.cmake)
 include(${MEDIA_DRIVER_CMAKE}/media_feature_flags.cmake)
 
@@ -57,6 +56,10 @@ bs_set_defines()
 set_source_files_properties(${SOURCES_} PROPERTIES LANGUAGE "CXX")
 
 add_library( ${LIB_NAME} SHARED ${SOURCES_})
+
+if(MEDIA_RUN_TEST_SUITE)
+	add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/linux/ult)
+endif(MEDIA_RUN_TEST_SUITE)
 
 option(MEDIA_BUILD_FATAL_WARNINGS "Turn compiler warnings into fatal errors" ON)
 if(MEDIA_BUILD_FATAL_WARNINGS)

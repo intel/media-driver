@@ -155,6 +155,29 @@ protected:
     VAStatus ParseSlcParams(DDI_MEDIA_CONTEXT *mediaCtx, void *ptr, uint32_t numSlices);
 
     //!
+    //! \brief    Find the NAL Unit Start Codes
+    //!
+    //! \param    [in] buf
+    //!           Pointer to packed header NAL unit data
+    //! \param    [in] size
+    //!           byte size of packed header NAL unit data
+    //! \param    [in] startCodesOffset
+    //!           Pointer to NAL unit start codes offset from the packed header
+    //!           NAL unit data buf
+    //! \param    [in] startCodesLength
+    //!           Pointer to NAL unit start codes length
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success,
+    //!           else VA_STATUS_ERROR_INVALID_BUFFER if start codes doesn't exit
+    //!
+    VAStatus FindNalUnitStartCodes(
+        uint8_t * buf,
+        uint32_t size,
+        uint32_t * startCodesOffset,
+        uint32_t * startCodesLength);
+
+    //!
     //! \brief    Parse Packed Header Parameter buffer to Encode Context
     //!
     //! \param    [in] ptr

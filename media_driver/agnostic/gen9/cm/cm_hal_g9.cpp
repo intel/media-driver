@@ -31,6 +31,12 @@
 #include "renderhal_platform_interface.h"
 #include "mhw_render.h"
 
+#define CM_NS_PER_TICK_RENDER_G9        (83.333)   // For SKL, 83.333 nano seconds per tick in render engine
+#define CM_NS_PER_TICK_RENDER_G9LP      (52.083)   //For BXT, 52.083 nano seconds per tick in render engine
+
+#define PLATFORM_INTEL_BXT 8
+#define PLATFORM_INTEL_GLK 16
+
 // Gen9 Surface state tokenized commands - a SURFACE_STATE_G9 command and
 // a surface state command, either SURFACE_STATE_G9 or SURFACE_STATE_ADV_G9
 struct PACKET_SURFACE_STATE
@@ -686,6 +692,7 @@ finish:
 }
 #endif
 #endif
+
 MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     PMHW_BATCH_BUFFER       batchBuffer,
     int32_t                 taskId,
@@ -728,7 +735,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
 
     // Get the task sync offset
-    syncOffset = state->pfnGetTaskSyncLocation(taskId);
+    syncOffset = state->pfnGetTaskSyncLocation(state, taskId);
 
     // Initialize the location
     taskSyncLocation                 = (int64_t*)(state->renderTimeStampResource.data + syncOffset);
@@ -781,6 +788,12 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
 
     // Initialize command buffer and insert prolog
     CM_CHK_MOSSTATUS(renderHal->pfnInitCommandBuffer(renderHal, &mosCmdBuffer, &genericPrologParams));
+    
+    // Record registers by unified media profiler in the beginning
+    if (state->perfProfiler != nullptr)
+    {
+        CM_CHK_MOSSTATUS(state->perfProfiler->AddPerfCollectStartCmd((void *)state, state->osInterface, mhwMiInterface, &mosCmdBuffer));
+    }
 
     //Send the First PipeControl Command to indicate the beginning of execution
     pipeCtlParams = g_cRenderHal_InitPipeControlParams;
@@ -1079,6 +1092,12 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     pipeCtlParams.dwPostSyncOp      = MHW_FLUSH_WRITE_TIMESTAMP_REG;
     pipeCtlParams.dwFlushMode       = MHW_FLUSH_READ_CACHE;
     CM_CHK_MOSSTATUS(mhwMiInterface->AddPipeControl(&mosCmdBuffer, nullptr, &pipeCtlParams));
+
+    // Record registers by unified media profiler in the end
+    if (state->perfProfiler != nullptr)
+    {
+        CM_CHK_MOSSTATUS(state->perfProfiler->AddPerfCollectEndCmd((void *)state, state->osInterface, mhwMiInterface, &mosCmdBuffer));
+    }
 
     // Send Sync Tag
     CM_CHK_MOSSTATUS( renderHal->pfnSendSyncTag( renderHal, &mosCmdBuffer ) );
@@ -1472,3 +1491,16 @@ MOS_STATUS CM_HAL_G9_X::GetExpectedGtSystemConfig(
 
     return MOS_STATUS_SUCCESS;
 }
+
+uint64_t CM_HAL_G9_X::ConvertTicksToNanoSeconds(uint64_t ticks)
+{
+    if (m_platformID == PLATFORM_INTEL_BXT || m_platformID == PLATFORM_INTEL_GLK)
+    {
+        return (uint64_t)(ticks * CM_NS_PER_TICK_RENDER_G9LP);
+    }
+    else
+    {
+        return (uint64_t)(ticks * CM_NS_PER_TICK_RENDER_G9);
+    }
+}
+

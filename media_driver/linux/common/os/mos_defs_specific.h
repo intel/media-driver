@@ -42,6 +42,7 @@ typedef uint32_t                UFKEY, *PUFKEY;                           //!< H
 typedef VAStatus                            MOS_OSRESULT;
 #include <stdarg.h>
 #define MOS_FUNC_EXPORT                     __attribute__((visibility("default")))
+#define MOS_DATA_EXPORT                     __attribute__((visibility("default")))
 #define MOS_EXPORT_DECL
 
 #ifndef __UFO_PORTABLE_DATATYPE_DEFINED__

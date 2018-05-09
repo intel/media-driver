@@ -96,6 +96,9 @@ public:
         PMOS_SURFACE            pMbStatisticsSurface;
         PCODECHAL_ENCODE_BUFFER pMvAndDistortionSumSurface;
         PMHW_KERNEL_STATE       pMbEncKernelStateInUse;
+        CmSurface2D*            brcIntraDistortionSurface = nullptr;
+        CmSurface2D*            meBrcDistortionSurface    = nullptr;
+        CmBuffer*               mvAndDistortionSumSurface = nullptr;
     };
 
     //!
@@ -135,7 +138,8 @@ public:
     HevcEncBrcBuffers                           m_brcBuffers;                                   //!< BRC buffers
     uint32_t                                    m_numBrcKrnStates;                              //!< Number of BRC kernel states
     uint8_t                                     m_slidingWindowSize = 0;                        //!< Sliding window size in number of frames
-
+    bool                                        m_roiRegionSmoothEnabled = false;               //!< ROI region smooth transition enable flag
+    
     // MBENC
     PMHW_KERNEL_STATE                           m_mbEncKernelStates       = nullptr;  //!< Pointer to MbEnc kernel state
     PCODECHAL_ENCODE_BINDING_TABLE_GENERIC      m_mbEncKernelBindingTable = nullptr;  //!< MbEnc kernel binding table
@@ -254,6 +258,13 @@ public:
         uint32_t bindingTableOffset);
 
     //!
+    //! \brief    Help function to calcuate ROI Ratio need by BRC Kernel
+    //!
+    //! \return   ROI ratio
+    //!
+    uint8_t CalculateROIRatio();
+
+    //!
     //! \brief    Help function to calcuate the temporal difference between current and reference picture
     //!
     //! \param    [in] refPic
@@ -314,7 +325,8 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS AddHcpWeightOffsetStateCmd(
-        PMOS_COMMAND_BUFFER cmdBuffer,
+        PMOS_COMMAND_BUFFER             cmdBuffer,      
+        PMHW_BATCH_BUFFER               batchBuffer,
         PCODEC_HEVC_ENCODE_SLICE_PARAMS hevcSlcParams);
 
     //!
@@ -471,5 +483,12 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS SetupROISurface();
+    //!
+    //! \brief    Generate codechal dumps for HME kernel
+    //!           
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS DumpHMESurfaces();
 };
 #endif  // __CODECHAL_ENCODE_HEVC_H__

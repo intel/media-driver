@@ -141,11 +141,12 @@ extern "C" CM_RT_API const char* GetCmErrorString(int code)
         ENUM_STRING(CM_SYSTEM_MEMORY_NOT_4PIXELS_ALIGNED),
         ENUM_STRING(CM_FAILED_TO_CREATE_CURBE_SURFACE),
         ENUM_STRING(CM_INVALID_CAP_NAME),
+        ENUM_STRING(CM_INVALID_PARAM_FOR_CREATE_QUEUE_EX),
 #undef ENUM_STRING
     };
 
     const char *errorString = "Internal Error";
-    if (code > CM_INTERNAL_ERROR_CODE_OFFSET && code >= CM_INVALID_CAP_NAME && code <= CM_SUCCESS)
+    if (code >= CM_INVALID_PARAM_FOR_CREATE_QUEUE_EX && code <= CM_SUCCESS)
     {
         errorString = errorStrings[-code];
     }

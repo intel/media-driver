@@ -1419,6 +1419,11 @@ int32_t CmKernelRT::SetArgsInternalSurfArray(
                currentSurfIndex = value[offset].get_data();
            }
 
+           if(surfaceArraySize == 0)
+           {
+               CM_ASSERTMESSAGE("Error: No surface in surface array");
+               return CM_NO_AVAILABLE_SURFACE;
+           }
            if (currentSurfIndex > surfaceArraySize)
            {
                currentSurfIndex = currentSurfIndex % surfaceArraySize;
@@ -1501,6 +1506,18 @@ int32_t CmKernelRT::SetArgsInternal( CM_KERNEL_INTERNAL_ARG_TYPE nArgType, uint3
             m_args[index].isNull = true;
             return CM_SUCCESS;
         }
+        else
+        {
+            // In case that CM_NULL_SURFACE was set at last time and will 
+            // set a read surface index this time. So need set isDirty as
+            // well to indicate update kernel data.
+            if (m_args[index].isNull == true)
+            {
+                m_args[index].isDirty = true;
+                m_args[index].isNull = false;
+            }
+        }
+        
         m_args[index].isNull = false;
         CM_SURFACE_MEM_OBJ_CTRL memCtl;
 
@@ -4352,7 +4369,7 @@ int32_t CmKernelRT::UpdateKernelData(
 
         CMCHK_HR(SortThreadSpace(m_threadSpace));
 
-        uint32_t threadSpaceWidth, threadSpaceHeight;
+        uint32_t threadSpaceWidth = 0, threadSpaceHeight = 0;
         PCM_HAL_KERNEL_THREADSPACE_PARAM  cmKernelThreadSpaceParam = &halKernelParam->kernelThreadSpaceParam;
         m_threadSpace->GetThreadSpaceSize(threadSpaceWidth, threadSpaceHeight);
 
@@ -4361,7 +4378,7 @@ int32_t CmKernelRT::UpdateKernelData(
         m_threadSpace->GetDependencyPatternType(cmKernelThreadSpaceParam->patternType);
         m_threadSpace->GetWalkingPattern(cmKernelThreadSpaceParam->walkingPattern);
 
-        CM_HAL_DEPENDENCY*     dependency;
+        CM_HAL_DEPENDENCY*     dependency = nullptr;
         m_threadSpace->GetDependency( dependency);
 
         if(dependency != nullptr)
@@ -5048,7 +5065,7 @@ CM_RT_API int32_t CmKernelRT::DeAssociateThreadSpace(CmThreadSpace * &threadSpac
 
 CM_RT_API int32_t CmKernelRT::QuerySpillSize(uint32_t &spillMemorySize)
 {
-    CM_KERNEL_INFO  *kernelInfo;
+    CM_KERNEL_INFO  *kernelInfo = nullptr;
 
     int32_t hr = m_program->GetKernelInfo(m_kernelIndex, kernelInfo);
     if (hr != CM_SUCCESS || kernelInfo == nullptr)
@@ -5117,14 +5134,10 @@ uint32_t CmKernelRT::GetSpillMemUsed()
     {
         spillSize = (m_kernelInfo->jitInfo)->spillMemUsed;
     }
-    else if (m_blCreatingGPUCopyKernel)
-    {
-        spillSize = 0;
-    }
     else
     {
-        // kernel uses "--nojitter" option, use spill size indicated by client during device creation
-        spillSize = m_halMaxValues->maxSpillSizePerHwThread;
+        // kernel uses "--nojitter" option, don't allocate scratch space
+        spillSize = 0;
     }
 
     return spillSize;
@@ -5707,7 +5720,7 @@ void CmKernelRT::SurfaceDump(uint32_t kernelNumber, int32_t taskId)
                 {
                     return;
                 }
-                surf->DumpContent(kernelNumber, taskId, argIndex);
+                surf->DumpContent(kernelNumber, m_kernelInfo->kernelName, taskId, argIndex);
             }
         }
     }
@@ -6010,7 +6023,16 @@ int CmKernelRT::UpdateSamplerHeap(CmKernelData *kernelData)
                         heapOffset = (heapOffset + sampler.btiStepping * sampler.btiMultiplier - 1) / (sampler.btiStepping * sampler.btiMultiplier) * (sampler.btiStepping * sampler.btiMultiplier);
                     }
                     sampler.heapOffset = heapOffset;
-                    sampler.bti = sampler.heapOffset / sampler.btiMultiplier;
+
+                    if (sampler.btiMultiplier != 0) 
+                    {
+                        sampler.bti = sampler.heapOffset / sampler.btiMultiplier;
+                    }
+                    else
+                    {
+                        CM_ASSERTMESSAGE("Sampler BTI setting error. Multiplier cannot be zero!\n");
+                        return MOS_STATUS_INVALID_PARAMETER;
+                    }
                     sampler_heap->insert(iter, sampler);
                 }
             }

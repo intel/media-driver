@@ -38,6 +38,7 @@
 #include "renderhal_dsh.h"
 #include "mhw_memory_pool.h"
 #include "cm_hal_hashtable.h"
+#include "media_perf_profiler.h"
 
 class XRenderHal_Platform_Interface;
 
@@ -1233,11 +1234,18 @@ typedef struct _RENDERHAL_INTERFACE
     RENDERHAL_PREDICATION_SETTINGS PredicationParams;   //!< Predication
     MOS_RESOURCE                   PredicationBuffer;   //!< Predication buffer
 
+    // CSC Coefficient
+    bool                           bCmfcCoeffUpdate;    //!< CMFC CSC Coefficient Surface update flag
+    int32_t                        iKernelAllocationID; //!< CMFC CSC Kernel Allocation ID
+    PMOS_RESOURCE                  pCmfcCoeffSurface;   //!< CMFC CSC Coefficient Surface
+
     // SetMarker
     RENDERHAL_SETMARKER_SETTINGS SetMarkerParams;   //!< SetMarker
 
     // Indicates whether it's AVS or not
     bool                        bIsAVS;
+
+    MediaPerfProfiler               *pPerfProfiler = nullptr;  //!< Performance data profiler
 
     //---------------------------
     // HW interface functions
@@ -1576,6 +1584,12 @@ typedef struct _RENDERHAL_INTERFACE
     MOS_STATUS (* pfnSendSyncTag) (
                 PRENDERHAL_INTERFACE        pRenderHal,
                 PMOS_COMMAND_BUFFER         pCmdBuffer);
+
+    MOS_STATUS (*pfnSendCscCoeffSurface) (
+                PRENDERHAL_INTERFACE        pRenderHal,
+                PMOS_COMMAND_BUFFER         pCmdBuffer,
+                PMOS_RESOURCE               presCscCoeff,
+                Kdll_CacheEntry             *pKernelEntry);
 
     void       (* pfnIncTrackerId) (
                 PRENDERHAL_INTERFACE        renderHal);

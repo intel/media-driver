@@ -215,43 +215,31 @@ uint32_t CodechalVdencHevcState::GetMaxAllowedSlices(uint8_t levelIdc)
 
     switch (levelIdc)
     {
-    case 30:
+    case 10:
+    case 20:
         maxAllowedNumSlices = 16;
         break;
-    case 60:
-        maxAllowedNumSlices = 16;
-        break;
-    case 63:
+    case 21:
         maxAllowedNumSlices = 20;
         break;
-    case 90:
+    case 30:
         maxAllowedNumSlices = 30;
         break;
-    case 93:
+    case 31:
         maxAllowedNumSlices = 40;
         break;
-    case 120:
+    case 40:
+    case 41:
         maxAllowedNumSlices = 75;
         break;
-    case 123:
-        maxAllowedNumSlices = 75;
-        break;
-    case 150:
+    case 50:
+    case 51:
+    case 52:
         maxAllowedNumSlices = 200;
         break;
-    case 153:
-        maxAllowedNumSlices = 200;
-        break;
-    case 156:
-        maxAllowedNumSlices = 200;
-        break;
-    case 180:
-        maxAllowedNumSlices = 600;
-        break;
-    case 183:
-        maxAllowedNumSlices = 600;
-        break;
-    case 186:
+    case 60:
+    case 61:
+    case 62:
         maxAllowedNumSlices = 600;
         break;
     default:
@@ -1292,8 +1280,6 @@ void CodechalVdencHevcState::SetVdencPipeBufAddrParams(
             uint8_t scaledIdx                              = m_refList[refPicIdx]->ucScalingIdx;
             pipeBufAddrParams.presVdenc4xDsSurface[refIdx] = &(m_trackedBuf->Get4xDsReconSurface(scaledIdx))->OsResource;
             pipeBufAddrParams.presVdenc8xDsSurface[refIdx] = &(m_trackedBuf->Get8xDsReconSurface(scaledIdx))->OsResource;
-
-            m_hevcPicParams->RollingIntraReferenceLocation[refIdx] = m_refList[refPicIdx]->rollingIntraRefreshedPosition;
         }
     }
 
@@ -1554,7 +1540,7 @@ MOS_STATUS CodechalVdencHevcState::ReadBrcPakStats(
     return eStatus;
 }
 
-MOS_STATUS CodechalVdencHevcState::ReadSliceSize()
+MOS_STATUS CodechalVdencHevcState::ReadSliceSize(PMOS_COMMAND_BUFFER cmdBuffer)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -1562,97 +1548,126 @@ MOS_STATUS CodechalVdencHevcState::ReadSliceSize()
 
     MOS_LOCK_PARAMS lockFlags;
     MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
-    lockFlags.ReadOnly = true;
+    lockFlags.WriteOnly = true;
 
     uint32_t baseOffset = (m_encodeStatusBuf.wCurrIndex * m_encodeStatusBuf.dwReportSize + sizeof(uint32_t) * 2);  // encodeStatus is offset by 2 DWs in the resource
 
-    uint8_t  numSlices;
-    uint16_t* sliceSize = nullptr;
-    uint32_t  sliceSizeOverflow;
-    uint32_t  sizeOfSliceSizesBuffer;
-
-    //Read Number of Slices from the buffer
-    uint8_t *data = (uint8_t *)m_osInterface->pfnLockResource(
-        m_osInterface,
-        m_resSliceCountBuffer,
-        &lockFlags);
-
-    CODECHAL_ENCODE_CHK_NULL_RETURN(data);
-    uint32_t* pointer = (uint32_t*)data;
-
-    numSlices = (uint8_t)pointer[0];
-
-    m_osInterface->pfnUnlockResource(
-        m_osInterface,
-        m_resSliceCountBuffer);
-
-    //Read slice size for each of the slice from the buffer if SSC enabled
-    data = (uint8_t *)m_osInterface->pfnLockResource(
-        m_osInterface,
-        &m_resLcuBaseAddressBuffer,
-        &lockFlags);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(data);
-
-    pointer = (uint32_t*)data;
-
-    sizeOfSliceSizesBuffer = sizeof(uint16_t) * numSlices;
-    sliceSize = (uint16_t*)MOS_AllocAndZeroMemory(sizeOfSliceSizesBuffer);
-
-    CODECHAL_ENCODE_CHK_NULL_RETURN(sliceSize);
-
-    for (uint32_t sliceCount = 0, loopCounter = 0; sliceCount < numSlices; sliceCount++)
+    // Report slice size to app only when dynamic slice is enabled
+    if (!m_hevcSeqParams->SliceSizeControl)
     {
-        sliceSize[sliceCount] = (uint16_t)pointer[loopCounter];
-        loopCounter += 16; // Every 16th dword gives SliceSize
+        // Clear slice size report in EncodeStatus buffer
+        uint8_t* data = (uint8_t*)m_osInterface->pfnLockResource(m_osInterface, &m_encodeStatusBuf.resStatusBuffer, &lockFlags);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(data);
+        EncodeStatus* dataStatus = (EncodeStatus*)(data + baseOffset);
+        MOS_ZeroMemory(&(dataStatus->sliceReport), sizeof(EncodeStatusSliceReport));
+        m_osInterface->pfnUnlockResource(m_osInterface, &m_encodeStatusBuf.resStatusBuffer);
+
+        return eStatus;
     }
 
-    //convert cummulative slice size to individual, first slice may have PPS/SPS,
-    for (auto sliceCount = numSlices - 1; sliceCount > 0; sliceCount--)
+    uint32_t sizeOfSliceSizesBuffer = MOS_ALIGN_CEIL(CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6 * CODECHAL_CACHELINE_SIZE, CODECHAL_PAGE_SIZE);
+
+    if (IsFirstPass())
     {
-        sliceSize[sliceCount] -= sliceSize[sliceCount - 1];
+        // Create/ Initialize slice report buffer once per frame, to be used across passes
+        if (Mos_ResourceIsNull(&m_resSliceReport[m_encodeStatusBuf.wCurrIndex]))
+        {
+            MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferLinear;
+            MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+            allocParamsForBufferLinear.Type = MOS_GFXRES_BUFFER;
+            allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
+            allocParamsForBufferLinear.Format = Format_Buffer;
+            allocParamsForBufferLinear.dwBytes = sizeOfSliceSizesBuffer;
+
+            CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
+                m_osInterface,
+                &allocParamsForBufferLinear,
+                &m_resSliceReport[m_encodeStatusBuf.wCurrIndex]),
+                "Failed to create HEVC VDEnc Slice Report Buffer ");
+        }
+
+        // Clear slice size structure to be sent in EncodeStatusReport buffer
+        uint8_t* data = (uint8_t*)m_osInterface->pfnLockResource(m_osInterface, &m_resSliceReport[m_encodeStatusBuf.wCurrIndex], &lockFlags);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(data);
+        MOS_ZeroMemory(data, sizeOfSliceSizesBuffer);
+        m_osInterface->pfnUnlockResource(m_osInterface, &m_resSliceReport[m_encodeStatusBuf.wCurrIndex]);
+
+        // Set slice size pointer in slice size structure
+        data = (uint8_t*)m_osInterface->pfnLockResource(m_osInterface,(&m_encodeStatusBuf.resStatusBuffer), &lockFlags);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(data);
+        EncodeStatus* dataStatus = (EncodeStatus*)(data + baseOffset);
+        (dataStatus)->sliceReport.pSliceSize             = &m_resSliceReport[m_encodeStatusBuf.wCurrIndex];
+        m_osInterface->pfnUnlockResource(m_osInterface, &m_encodeStatusBuf.resStatusBuffer);
     }
 
-    m_osInterface->pfnUnlockResource(
-        m_osInterface,
-        &m_resLcuBaseAddressBuffer);
+    // Copy Slize size data buffer from PAK to be sent back to App
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CopyDataBlock(cmdBuffer, 
+        &m_resLcuBaseAddressBuffer, 0, &m_resSliceReport[m_encodeStatusBuf.wCurrIndex], 0, sizeOfSliceSizesBuffer));
 
-    //Get Slice size overflow bit
-    data = (uint8_t *)m_osInterface->pfnLockResource(
-        m_osInterface,
-        &m_resFrameStatStreamOutBuffer,
-        &lockFlags);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(data);
+    MHW_MI_COPY_MEM_MEM_PARAMS miCpyMemMemParams;
+    MOS_ZeroMemory(&miCpyMemMemParams, sizeof(MHW_MI_COPY_MEM_MEM_PARAMS));
+    miCpyMemMemParams.presSrc       = &m_resFrameStatStreamOutBuffer; // Slice size overflow is in m_resFrameStatStreamOutBuffer DW0[16]
+    miCpyMemMemParams.dwSrcOffset   = 0;
+    miCpyMemMemParams.presDst       = &m_encodeStatusBuf.resStatusBuffer;
+    miCpyMemMemParams.dwDstOffset   = baseOffset + m_encodeStatusBuf.dwSliceReportOffset;     // Slice size overflow is at DW0 EncodeStatusSliceReport
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiCopyMemMemCmd(cmdBuffer, &miCpyMemMemParams));
 
-    pointer = (uint32_t*)data;
-    pointer[0] = pointer[0] >> 16;// PAK Frame Statistics 0 Dword 16 bit
 
-    sliceSizeOverflow = (uint32_t)pointer[0] & 1;
+    MOS_ZeroMemory(&miCpyMemMemParams, sizeof(MHW_MI_COPY_MEM_MEM_PARAMS));
+    miCpyMemMemParams.presSrc       = m_resSliceCountBuffer; // Number of slice sizes are stored in this buffer. Updated at runtime
+    miCpyMemMemParams.dwSrcOffset   = 0;
+    miCpyMemMemParams.presDst       = &m_encodeStatusBuf.resStatusBuffer;
+    miCpyMemMemParams.dwDstOffset   = baseOffset + m_encodeStatusBuf.dwSliceReportOffset + 1;     // Num slices is located at DW1 EncodeStatusSliceReport
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiCopyMemMemCmd(cmdBuffer, &miCpyMemMemParams));
 
-    m_osInterface->pfnUnlockResource(
-        m_osInterface,
-        &m_resFrameStatStreamOutBuffer);
+    return eStatus;
+}
 
-    //Write slicereport data to the EncodeStatus
-    data = (uint8_t*)m_osInterface->pfnLockResource(
-        m_osInterface,
-        (&m_encodeStatusBuf.resStatusBuffer),
-        &lockFlags);
+MOS_STATUS CodechalVdencHevcState::CopyDataBlock(
+    PMOS_COMMAND_BUFFER cmdBuffer,
+    PMOS_RESOURCE sourceSurface,
+    uint32_t sourceOffset,
+    PMOS_RESOURCE destSurface,
+    uint32_t destOffset,
+    uint32_t copySize)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
-    EncodeStatus* dataStatus = nullptr;
-    dataStatus = (EncodeStatus*)(data + baseOffset);
+    CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    (dataStatus)->sliceReport.NumberSlices      = numSlices;
-    if ((dataStatus)->sliceReport.pSliceSize != nullptr)
-    {
-        MOS_FreeMemory(dataStatus->sliceReport.pSliceSize);
-    }
-    (dataStatus)->sliceReport.pSliceSize        = sliceSize;
-    (dataStatus)->sliceReport.SizeOfSliceSizesBuffer = sizeOfSliceSizesBuffer;
-    (dataStatus)->sliceReport.SliceSizeOverflow = sliceSizeOverflow;
+    CodechalHucStreamoutParams hucStreamOutParams;
+    MOS_ZeroMemory(&hucStreamOutParams, sizeof(hucStreamOutParams));
 
-    m_osInterface->pfnUnlockResource(
-        m_osInterface,
-        &m_encodeStatusBuf.resStatusBuffer);
+    // Ind Obj Addr command
+    hucStreamOutParams.dataBuffer            = sourceSurface;
+    hucStreamOutParams.dataSize              = copySize + sourceOffset;
+    hucStreamOutParams.dataOffset            = MOS_ALIGN_FLOOR(sourceOffset, CODECHAL_PAGE_SIZE);
+    hucStreamOutParams.streamOutObjectBuffer = destSurface;
+    hucStreamOutParams.streamOutObjectSize   = copySize + destOffset;
+    hucStreamOutParams.streamOutObjectOffset = MOS_ALIGN_FLOOR(destOffset, CODECHAL_PAGE_SIZE);
+
+    // Stream object params
+    hucStreamOutParams.indStreamInLength     = copySize;
+    hucStreamOutParams.inputRelativeOffset   = sourceOffset - hucStreamOutParams.dataOffset;
+    hucStreamOutParams.outputRelativeOffset  = destOffset - hucStreamOutParams.streamOutObjectOffset;
+
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->PerformHucStreamOut(
+        &hucStreamOutParams,
+        cmdBuffer));
+
+    // wait Huc completion (use HEVC bit for now)
+    MHW_VDBOX_VD_PIPE_FLUSH_PARAMS vdPipeFlushParams;
+    MOS_ZeroMemory(&vdPipeFlushParams, sizeof(vdPipeFlushParams));
+    vdPipeFlushParams.Flags.bFlushHEVC       = 1;
+    vdPipeFlushParams.Flags.bWaitDoneHEVC    = 1;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdPipelineFlushCmd(cmdBuffer, &vdPipeFlushParams));
+
+    // Flush the engine to ensure memory written out
+    MHW_MI_FLUSH_DW_PARAMS flushDwParams;
+    MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
+    flushDwParams.bVideoPipelineCacheInvalidate = true;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(cmdBuffer, &flushDwParams));
 
     return eStatus;
 }
@@ -1699,6 +1714,19 @@ MOS_STATUS CodechalVdencHevcState::ExecutePictureLevel()
 
     m_refList[m_currReconstructedPic.FrameIdx]->rollingIntraRefreshedPosition =
         CodecHal_Clip3(0, rollingILimit, m_hevcPicParams->IntraInsertionLocation + m_hevcPicParams->IntraInsertionSize);
+
+    // For ACQP / BRC, update pic params rolling intra reference location here before cmd buffer is prepared.
+    PCODEC_PICTURE l0RefFrameList = m_hevcSliceParams->RefPicList[LIST_0];
+    for (uint8_t refIdx = 0; refIdx <= m_hevcSliceParams->num_ref_idx_l0_active_minus1; refIdx++)
+    {
+        CODEC_PICTURE refPic = l0RefFrameList[refIdx];
+
+        if (!CodecHal_PictureIsInvalid(refPic) && m_picIdx[refPic.FrameIdx].bValid)
+        {
+            uint8_t refPicIdx = m_picIdx[refPic.FrameIdx].ucPicIdx;
+            m_hevcPicParams->RollingIntraReferenceLocation[refIdx] = m_refList[refPicIdx]->rollingIntraRefreshedPosition;
+        }
+    }
 
     // clean-up per VDBOX semaphore memory
     int32_t currentPass = GetCurrentPass();
@@ -2126,6 +2154,7 @@ MOS_STATUS CodechalVdencHevcState::ExecuteSliceLevel()
     }
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(ReadSseStatistics(&cmdBuffer));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(ReadSliceSize(&cmdBuffer));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(EndStatusReport(&cmdBuffer, CODECHAL_NUM_MEDIA_STATES));
 
@@ -2155,7 +2184,6 @@ MOS_STATUS CodechalVdencHevcState::ExecuteSliceLevel()
                 m_mmcState->UpdateUserFeatureKey(&m_reconSurface);
             }
         )
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(ReadSliceSize());
 
         if (IsLastPass() &&
             m_signalEnc &&
@@ -2342,16 +2370,19 @@ MOS_STATUS CodechalVdencHevcState::SetPictureStructs()
 
     if (m_brcEnabled)  // VDEnc BRC supports maximum 2 PAK passes
     {
-        // multi-pass BRC is supported
-        if (m_multipassBrcSupported)
+        if (m_hevcPicParams->BRCPrecision == 1)  // single-pass BRC, App requirment with first priority
+        {
+            m_numPasses = 0;
+            // There is no need of additional pass for SSC, violation rate could be high but ok
+        }
+        else if (m_multipassBrcSupported)   // multi-pass BRC is supported
         {
             m_numPasses = CODECHAL_VDENC_BRC_NUM_OF_PASSES - 1;
             m_vdencHuCConditional2ndPass = true;
         }
-        else if (m_hevcPicParams->BRCPrecision == 1)  // single-pass BRC
+        else
         {
             m_numPasses = 0;
-            // There is no need of additional pass for SSC, violation rate could be high but ok
         }
     }
     else   // CQP, ACQP
@@ -2496,6 +2527,17 @@ MOS_STATUS CodechalVdencHevcState::InitializePicture(const EncoderParams& params
     m_resSliceCountBuffer = &m_sliceCountBuffer;
     m_resVdencModeTimerBuffer = &m_vdencModeTimerBuffer;
 
+    CODECHAL_DEBUG_TOOL(
+        if (m_newSeq) {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(PopulateConstParam());
+        }
+
+        for (uint32_t i = 0; i < m_numSlices; i++) {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(PopulateDdiParam(
+                m_hevcSeqParams,
+                m_hevcPicParams,
+                &m_hevcSliceParams[i]));
+    })
     return eStatus;
 }
 
@@ -2542,6 +2584,37 @@ MOS_STATUS CodechalVdencHevcState::GetStatusReport(
         pakInfoBuffer = nullptr;
     }
 
+
+    MOS_LOCK_PARAMS lockFlags;
+    MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+    lockFlags.ReadOnly = 1;
+
+    uint32_t* sliceSize = nullptr;
+    // pSliceSize is set/ allocated only when dynamic slice is enabled. Cannot use SSC flag here, as it is an asynchronous call
+    if (encodeStatus->sliceReport.pSliceSize)
+    {
+        sliceSize = (uint32_t*)m_osInterface->pfnLockResource(m_osInterface, encodeStatus->sliceReport.pSliceSize, &lockFlags);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(sliceSize);
+
+        encodeStatusReport->NumberSlices            = encodeStatus->sliceReport.NumberSlices;
+        encodeStatusReport->SizeOfSliceSizesBuffer  = sizeof(uint16_t) * encodeStatus->sliceReport.NumberSlices;
+        encodeStatusReport->SliceSizeOverflow       = (encodeStatus->sliceReport.SliceSizeOverflow >> 16) & 1;
+        encodeStatusReport->pSliceSizes             = (uint16_t*)sliceSize;
+
+        uint16_t prevCumulativeSliceSize = 0;
+        // HW writes out a DW for each slice size. Copy in place the DW into 16bit fields expected by App
+        for (auto sliceCount = 0; sliceCount < encodeStatus->sliceReport.NumberSlices; sliceCount++)
+        {
+            // PAK output the sliceSize at 16DW intervals. 
+            CODECHAL_ENCODE_CHK_NULL_RETURN(&sliceSize[sliceCount * 16]);
+            uint32_t CurrAccumulatedSliceSize           = sliceSize[sliceCount * 16];
+
+            //convert cummulative slice size to individual, first slice may have PPS/SPS,
+            encodeStatusReport->pSliceSizes[sliceCount] = CurrAccumulatedSliceSize - prevCumulativeSliceSize;
+            prevCumulativeSliceSize += encodeStatusReport->pSliceSizes[sliceCount];
+        }
+        m_osInterface->pfnUnlockResource(m_osInterface, encodeStatus->sliceReport.pSliceSize);
+    }
     return eStatus;
 }
 
@@ -2605,6 +2678,14 @@ MOS_STATUS CodechalVdencHevcState::FreePakResources()
     m_osInterface->pfnFreeResource(m_osInterface, &m_resFrameStatStreamOutBuffer);
     m_osInterface->pfnFreeResource(m_osInterface, &m_sliceCountBuffer);
     m_osInterface->pfnFreeResource(m_osInterface, &m_vdencModeTimerBuffer);
+
+    for (uint32_t i = 0; i < CODECHAL_ENCODE_STATUS_NUM; i++)
+    {
+        if (!Mos_ResourceIsNull(&m_resSliceReport[i]))
+        {
+            m_osInterface->pfnFreeResource(m_osInterface, &m_resSliceReport[i]);
+        }
+    }  
 
     return CodechalEncodeHevcBase::FreePakResources();
 }
@@ -2905,6 +2986,7 @@ MOS_STATUS CodechalVdencHevcState::Initialize(CodechalSetting * settings)
 
     m_defaultPictureStatesSize += vdencPictureStatesSize;
     m_defaultPicturePatchListSize += vdencPicturePatchListSize;
+    m_extraPictureStatesSize += m_hwInterface->m_hucCommandBufferSize;  // For slice size reporting, add the HuC copy commands
 
     MOS_USER_FEATURE_VALUE_DATA userFeatureData;
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
@@ -3003,6 +3085,8 @@ CodechalVdencHevcState::CodechalVdencHevcState(
     MOS_ZeroMemory(&m_vdencReadBatchBuffer, sizeof(m_vdencReadBatchBuffer));
     MOS_ZeroMemory(&m_vdencBrcDbgBuffer, sizeof(m_vdencBrcDbgBuffer));
     MOS_ZeroMemory(&m_vdenc2ndLevelBatchBuffer, sizeof(m_vdenc2ndLevelBatchBuffer));
+    MOS_ZeroMemory(m_resSliceReport, sizeof(m_resSliceReport));
+
 }
 
 #if USE_CODECHAL_DEBUG_TOOL
@@ -3269,4 +3353,124 @@ MOS_STATUS CodechalVdencHevcState::DumpVdencOutputs()
 
     return MOS_STATUS_SUCCESS;
 }
+
+MOS_STATUS CodechalVdencHevcState::DumpSeqParFile()
+{
+    CODECHAL_DEBUG_FUNCTION_ENTER;
+
+    CODECHAL_DEBUG_CHK_NULL(m_debugInterface);
+
+    if (!m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrDumpEncodePar))
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    std::ostringstream oss;
+    oss.setf(std::ios::showbase | std::ios::uppercase);
+
+    oss << "ISliceQP                           = " << std::dec << m_hevcPar->ISliceQP << std::endl;
+    oss << "PSliceQP                           = " << std::dec << m_hevcPar->PSliceQP << std::endl;
+    oss << "BSliceQP                           = " << std::dec << m_hevcPar->BSliceQP << std::endl;
+    oss << "StartFrameNum                      = " << std::dec << m_hevcPar->StartFrameNum << std::endl;
+    oss << "ProfileIDC                         = " << std::dec << m_hevcPar->ProfileIDC << std::endl;
+    oss << "LevelIDC                           = " << std::dec << m_hevcPar->LevelIDC << std::endl;
+    oss << "NumP                               = " << std::dec << m_hevcPar->NumP << std::endl;
+    oss << "NumB                               = " << std::dec << m_hevcPar->NumB << std::endl;
+    oss << "NumSlices                          = " << std::dec << m_hevcPar->NumSlices << std::endl;
+    oss << "SliceStartLCU                      = " << std::dec << m_hevcPar->SliceStartLCU << std::endl;
+    oss << "Log2MinCUSize                      = " << std::dec << m_hevcPar->Log2MinCUSize << std::endl;
+    oss << "Log2MaxCUSize                      = " << std::dec << m_hevcPar->Log2MaxCUSize << std::endl;
+    oss << "Log2MinTUSize                      = " << std::dec << m_hevcPar->Log2MinTUSize << std::endl;
+    oss << "Log2MaxTUSize                      = " << std::dec << m_hevcPar->Log2MaxTUSize << std::endl;
+    oss << "InputBitDepthLuma                  = " << std::dec << m_hevcPar->InputBitDepthLuma << std::endl;
+    oss << "InputBitDepthChroma                = " << std::dec << m_hevcPar->InputBitDepthChroma << std::endl;
+    oss << "OutputBitDepthLuma                 = " << std::dec << m_hevcPar->OutputBitDepthLuma << std::endl;
+    oss << "OutputBitDepthChroma               = " << std::dec << m_hevcPar->OutputBitDepthChroma << std::endl;
+    oss << "InternalBitDepthLuma               = " << std::dec << m_hevcPar->InternalBitDepthLuma << std::endl;
+    oss << "InternalBitDepthChroma             = " << std::dec << m_hevcPar->InternalBitDepthChroma << std::endl;
+    oss << "Log2TUMaxDepthInter                = " << std::dec << m_hevcPar->Log2TUMaxDepthInter << std::endl;
+    oss << "Log2TUMaxDepthIntra                = " << std::dec << m_hevcPar->Log2TUMaxDepthIntra << std::endl;
+    oss << "Log2ParallelMergeLevel             = " << std::dec << m_hevcPar->Log2ParallelMergeLevel << std::endl;
+    oss << "EnableTransquantBypass             = " << std::dec << m_hevcPar->TransquantBypassEnableFlag << std::endl;
+    oss << "EnableTransformSkip                = " << std::dec << m_hevcPar->TransformSkipEnabledFlag << std::endl;
+    oss << "TSDecisionEnabledFlag              = " << std::dec << m_hevcPar->TSDecisionEnabledFlag << std::endl;
+    oss << "EnableTemporalMvp                  = " << std::dec << m_hevcPar->TemporalMvpEnableFlag << std::endl;
+    oss << "CollocatedFromL0Flag               = " << std::dec << m_hevcPar->CollocatedFromL0Flag << std::endl;
+    oss << "CollocatedRefIdx                   = " << std::dec << m_hevcPar->CollocatedRefIdx << std::endl;
+    oss << "MvdL1ZeroFlag                      = " << std::dec << m_hevcPar->MvdL1ZeroFlag << std::endl;
+    oss << "AmpEnabledFlag                     = " << std::dec << m_hevcPar->AmpEnabledFlag << std::endl;
+    oss << "CuQpDeltaEnabledFlag               = " << std::dec << m_hevcPar->CuQpDeltaEnabledFlag << std::endl;
+    oss << "DiffCuQpDeltaDepth                 = " << std::dec << m_hevcPar->DiffCuQpDeltaDepth << std::endl;
+    oss << "ChromaCbQpOffset                   = " << std::dec << m_hevcPar->ChromaCbQpOffset << std::endl;
+    oss << "ChromaCrQpOffset                   = " << std::dec << m_hevcPar->ChromaCrQpOffset << std::endl;
+    oss << "DeblockingFilterTc                 = " << std::dec << m_hevcPar->DeblockingTc << std::endl;
+    oss << "DeblockingFilterBeta               = " << std::dec << m_hevcPar->DeblockingTc << std::endl;
+    oss << "DeblockingIDC                      = " << std::dec << m_hevcPar->DeblockingIDC << std::endl;
+    oss << "LoopFilterAcrossSlicesEnabledFlag  = " << std::dec << m_hevcPar->LoopFilterAcrossSlicesEnabledFlag << std::endl;
+    oss << "SignDataHidingFlag                 = " << std::dec << m_hevcPar->SignDataHidingFlag << std::endl;
+    oss << "CabacInitFlag                      = " << std::dec << m_hevcPar->CabacInitFlag << std::endl;
+    oss << "ConstrainedIntraPred               = " << std::dec << m_hevcPar->ConstrainedIntraPred << std::endl;
+    oss << "LowDelay                           = " << std::dec << m_hevcPar->LowDelay << std::endl;
+    oss << "EnableBAsRefs                      = " << std::dec << m_hevcPar->EnableBAsRefs << std::endl;
+    oss << "BitRate                            = " << std::dec << m_hevcPar->BitRate << std::endl;
+    oss << "MaxBitRate                         = " << std::dec << m_hevcPar->MaxBitRate << std::endl;
+    oss << "VbvSzInBit                         = " << std::dec << m_hevcPar->VbvSzInBit << std::endl;
+    oss << "InitVbvFullnessInBit               = " << std::dec << m_hevcPar->InitVbvFullnessInBit << std::endl;
+    oss << "CuRC                               = " << std::dec << m_hevcPar->CuRC << std::endl;
+    oss << "EnableMultipass                    = " << std::dec << m_hevcPar->EnableMultipass << std::endl;
+    oss << "MaxNumPakPassesI                   = " << std::dec << m_hevcPar->MaxNumPakPassesI << std::endl;
+    oss << "MaxNumPakPassesPB                  = " << std::dec << m_hevcPar->MaxNumPakPassesPB << std::endl;
+    oss << "UserMaxIFrame                      = " << std::dec << m_hevcPar->UserMaxIFrame << std::endl;
+    oss << "UserMaxPBFrame                     = " << std::dec << m_hevcPar->UserMaxPBFrame << std::endl;
+    oss << "FrameRateM                         = " << std::dec << m_hevcPar->FrameRateM << std::endl;
+    oss << "FrameRateD                         = " << std::dec << m_hevcPar->FrameRateD << std::endl;
+    oss << "IntraRefreshEnable                 = " << std::dec << m_hevcPar->IntraRefreshEnable << std::endl;
+    oss << "IntraRefreshMode                   = " << std::dec << m_hevcPar->IntraRefreshMode << std::endl;
+    oss << "IntraRefreshSizeIn32x32            = " << std::dec << m_hevcPar->IntraRefreshSizeIn32x32 << std::endl;
+    oss << "IntraRefreshDeltaQP                = " << std::dec << m_hevcPar->IntraRefreshDeltaQP << std::endl;
+    oss << "HMECoarseRefPic                    = " << std::dec << m_hevcPar->HMECoarseRefPic << std::endl;
+    oss << "FadeDetectionEnable                = " << std::dec << m_hevcPar->FadeDetectionEnable << std::endl;
+    oss << "WeightedPred                       = " << std::dec << m_hevcPar->WeightedPred << std::endl;
+    oss << "WeightedBiPred                     = " << std::dec << m_hevcPar->WeightedBiPred << std::endl;
+    oss << "RefListModforWeightPred            = " << std::dec << m_hevcPar->RefListModforWeightPred << std::endl;
+    oss << "EnableStatistics                   = " << std::dec << m_hevcPar->EnableStatistics << std::endl;
+    oss << "OutputQualityType                  = " << std::dec << m_hevcPar->OutputQualityType << std::endl;
+    oss << "SliceSizeCtrl                      = " << std::dec << m_hevcPar->SliceSizeCtrl << std::endl;
+    oss << "SliceSizeThreshold                 = " << std::dec << m_hevcPar->SliceSizeThreshold << std::endl;
+    oss << "MaxSliceSize                       = " << std::dec << m_hevcPar->MaxSliceSize << std::endl;
+    oss << "VDEncMode                          = " << std::dec << m_hevcPar->VDEncMode << std::endl;
+    oss << "DisableIntraLuma4x4Tu              = " << std::dec << m_hevcPar->DisableIntraLuma4x4Tu << std::endl;
+    oss << "HMERef1Disable                     = " << std::dec << m_hevcPar->HMERef1Disable << std::endl;
+    oss << "NumBetaPreditors                   = " << std::dec << m_hevcPar->NumBetaPreditors << std::endl;
+    oss << "MaxNumImePredictor                 = " << std::dec << m_hevcPar->MaxNumImePredictor << std::endl;
+    oss << "NumMergeCandidateCu8x8             = " << std::dec << m_hevcPar->NumMergeCandidateCu8x8 << std::endl;
+    oss << "NumMergeCandidateCu16x16           = " << std::dec << m_hevcPar->NumMergeCandidateCu16x16 << std::endl;
+    oss << "NumMergeCandidateCu32x32           = " << std::dec << m_hevcPar->NumMergeCandidateCu32x32 << std::endl;
+    oss << "NumMergeCandidateCu64x64           = " << std::dec << m_hevcPar->NumMergeCandidateCu64x64 << std::endl;
+    oss << "BRCMethod                          = " << std::dec << m_hevcPar->BRCMethod << std::endl;
+    oss << "BRCType                            = " << std::dec << m_hevcPar->BRCType << std::endl;
+    oss << "SAOEnabledFlag                     = " << std::dec << m_hevcPar->SAOEnabledFlag << std::endl;
+    oss << "IntraFrameRDOQEnabledFlag          = " << std::dec << m_hevcPar->IntraFrameRDOQEnabledFlag << std::endl;
+    oss << "InterFrameRDOQEnabledFlag          = " << std::dec << m_hevcPar->InterFrameRDOQEnabledFlag << std::endl;
+    oss << "StreamInEnable                     = " << std::dec << m_hevcPar->StreamInEn << std::endl;
+    oss << "StreamInMvPredictorRef             = " << std::dec << m_hevcPar->StreamInMvPredictorRef << std::endl;
+    oss << "StaticFrameZMVPercent              = " << std::dec << m_hevcPar->StaticFrameZMVPercent << std::endl;
+    oss << "HMEStreamInRefCost                 = " << std::dec << m_hevcPar->HMEStreamInRefCost << std::endl;
+    oss << "IntraPeriod                        = " << std::dec << m_hevcPar->IntraPeriod << std::endl;
+    oss << "BGOPSize                           = " << std::dec << m_hevcPar->BGOPSize << std::endl;
+    oss << "MaxRefIdxL0                        = " << std::dec << m_hevcPar->MaxRefIdxL0 << std::endl;
+    oss << "MaxRefIdxL1                        = " << std::dec << m_hevcPar->MaxRefIdxL1 << std::endl;
+
+    const char *fileName = m_debugInterface->CreateFileName(
+        "EncodeSequence",
+        "EncodePar",
+        CodechalDbgExtType::par);
+
+    std::ofstream ofs(fileName, std::ios::app);
+    ofs << oss.str();
+    ofs.close();
+
+    return MOS_STATUS_SUCCESS;
+}
+
 #endif

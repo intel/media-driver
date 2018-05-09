@@ -28,6 +28,7 @@
 #define __CODECHAL_VDENC_HEVC_G10_H__
 
 #include "codechal_vdenc_hevc.h"
+#include "codechal_debug_encode_par_g10.h"
 
 enum CODECHAL_BINDING_TABLE_OFFSET_HEVC_VP9_VDENC_KERNEL_G10
 {
@@ -1755,10 +1756,28 @@ public:
 
     // HuC tables.
     // These Values are diff for each Gen
-    static const int8_t         m_devThreshPB0[8];
-    static const int8_t         m_devThreshPB0LowDelay[8];
-    static const int8_t         m_devThreshVBR0[8];
-    static const int8_t         m_devThreshI0[8];
+    static constexpr uint32_t    m_numDevThreshlds = 8;
+    static constexpr double      m_devStdFPS = 30.0;
+    static constexpr double      m_bpsRatioLow = 0.1;
+    static constexpr double      m_bpsRatioHigh = 3.5;
+    static constexpr int32_t     m_postMultPB = 50;
+    static constexpr int32_t     m_negMultPB = -50;
+    static constexpr int32_t     m_posMultVBR = 100;
+    static constexpr int32_t     m_negMultVBR = -50;
+
+    static const double          m_devThreshIFPNEG[m_numDevThreshlds / 2];
+    static const double          m_devThreshIFPPOS[m_numDevThreshlds / 2];
+    static const double          m_devThreshPBFPNEG[m_numDevThreshlds / 2];
+    static const double          m_devThreshPBFPPOS[m_numDevThreshlds / 2];
+    static const double          m_devThreshVBRNEG[m_numDevThreshlds / 2];
+    static const double          m_devThreshVBRPOS[m_numDevThreshlds / 2];
+    static const int8_t          m_lowdelayDevThreshPB[m_numDevThreshlds];
+    static const int8_t          m_lowdelayDevThreshVBR[m_numDevThreshlds];
+    static const int8_t          m_lowdelayDevThreshI[m_numDevThreshlds];
+    static const int8_t          m_lowdelayDeltaFrmszI[][8];
+    static const int8_t          m_lowdelayDeltaFrmszP[][8];
+    static const int8_t          m_lowdelayDeltaFrmszB[][8];
+
     static const uint32_t       m_hucConstantData[];
     static const uint32_t       m_meCurbeInit[48];                      //!< Curbe initialization data for ME kernel
 
@@ -1772,7 +1791,13 @@ public:
     //!
     //! \brief    Destructor
     //!
-    ~CodechalVdencHevcStateG10() {};
+    ~CodechalVdencHevcStateG10()
+    {
+        CODECHAL_DEBUG_TOOL(
+            DestroyHevcPar();
+            MOS_Delete(m_encodeParState);
+        )
+    }
 
     //!
     //! \brief    Get encoder kernel header and kernel size

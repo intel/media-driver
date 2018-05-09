@@ -277,15 +277,22 @@ VAStatus MediaLibvaCaps::AddProfileEntry(
 
 int32_t MediaLibvaCaps::GetProfileTableIdx(VAProfile profile, VAEntrypoint entrypoint)
 {
+    // initialize ret value to "invalid profile"
+    int32_t ret = -1;
     for (int32_t i = 0; i < m_profileEntryCount; i++)
     {
-        if (m_profileEntryTbl[i].m_profile == profile && m_profileEntryTbl[i].m_entrypoint == entrypoint)
+        if (m_profileEntryTbl[i].m_profile == profile)
         {
-            return i;
+            //there are such profile , but no such entrypoint
+            ret = -2;
+            if(m_profileEntryTbl[i].m_entrypoint == entrypoint)
+            {
+                return i;
+            }
         }
     }
 
-    return -1;
+    return ret;
 }
 
 VAStatus MediaLibvaCaps::CreateAttributeList(AttribMap **attributeList)
@@ -354,7 +361,6 @@ VAStatus MediaLibvaCaps::CheckEncRTFormat(
     attrib->type = VAConfigAttribRTFormat;
     if (profile == VAProfileJPEGBaseline)
     {
-        // at present, latest libva have not support RGB24.
         attrib->value = VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV444 | VA_RT_FORMAT_YUV400 | VA_RT_FORMAT_YUV411 | VA_RT_FORMAT_RGB16 | VA_RT_FORMAT_RGB32;
     }
     else
@@ -362,7 +368,6 @@ VAStatus MediaLibvaCaps::CheckEncRTFormat(
         attrib->value = VA_RT_FORMAT_YUV420;
     }
 
-#ifdef _FULL_OPEN_SOURCE
     EncodeFormat format = Others;
     EncodeType type = entrypoint == VAEntrypointEncSliceLP ? Vdenc : DualPipe;
     struct EncodeFormatTable* encodeFormatTable = m_encodeFormatTable;
@@ -389,7 +394,6 @@ VAStatus MediaLibvaCaps::CheckEncRTFormat(
             break;
         }
     }
-#endif
 
     return VA_STATUS_SUCCESS;
 }
@@ -482,6 +486,14 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     {
         attrib.value |= VA_RC_ICQ | VA_RC_VCM;
     }
+    if(entrypoint == VAEntrypointFEI)
+    {
+        attrib.value = VA_RC_CQP;
+    }
+    else if(entrypoint == VAEntrypointStats)
+    {
+        attrib.value = VA_RC_NONE;
+    }
     (*attribList)[attrib.type] = attrib.value;
 
     attrib.type = VAConfigAttribEncPackedHeaders;
@@ -521,7 +533,7 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     }
     else
     {
-        // Currently only support 1 frame for each reference list
+        // default value: 1 frame for each reference list
         attrib.value = 1 | (1 << 16);
         if(IsAvcProfile(profile))
         {
@@ -1312,7 +1324,7 @@ VAStatus MediaLibvaCaps::LoadHevcEncProfileEntrypoints()
     {
         uint32_t configStartIdx = m_encConfigs.size();
         AddEncConfig(VA_RC_CQP);
-        for (int32_t j = 3; j < 7; j++)
+        for (int32_t j = 1; j < 7; j++)
         {
             AddEncConfig(m_encRcMode[j]);
             AddEncConfig(m_encRcMode[j] | VA_RC_PARALLEL);
@@ -1336,7 +1348,7 @@ VAStatus MediaLibvaCaps::LoadHevcEncProfileEntrypoints()
     {
         uint32_t configStartIdx = m_encConfigs.size();
         AddEncConfig(VA_RC_CQP);
-        for (int32_t j = 3; j < 7; j++)
+        for (int32_t j = 1; j < 7; j++)
         {
             AddEncConfig(m_encRcMode[j]);
             AddEncConfig(m_encRcMode[j] | VA_RC_PARALLEL);
@@ -1472,11 +1484,25 @@ VAStatus MediaLibvaCaps::CreateEncConfig(
     {
         if (VAConfigAttribRateControl == attribList[j].type)
         {
-            rcMode = attribList[j].value;
+            //do not set VA_RC_MB without other BRC mode
+            //if it happend, just set it to default RC mode
+            if(attribList[j].value != VA_RC_MB)
+            {
+                rcMode = attribList[j].value;
+            }
         }
         if(VAConfigAttribFEIFunctionType == attribList[j].type)
         {
             m_mediaCtx->FeiFunction = attribList[j].value;
+        }
+        if(VAConfigAttribRTFormat == attribList[j].type)
+        {
+            VAConfigAttrib attribRT;
+            CheckEncRTFormat(m_profileEntryTbl[profileTableIdx].m_profile, entrypoint, &attribRT);
+            if((attribList[j].value | attribRT.value) == 0)
+            {
+                return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
+            }
         }
     }
 
@@ -1597,9 +1623,7 @@ VAStatus MediaLibvaCaps::CheckEncodeResolution(
             if (width > m_encMax4kWidth
                     || width < m_encMinWidth
                     || height > m_encMax4kHeight
-                    || height < m_encMinHeight
-                    || (width % CODECHAL_MACROBLOCK_WIDTH)
-                    || (height % CODECHAL_MACROBLOCK_HEIGHT))
+                    || height < m_encMinHeight)
             {
                 return VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED;
             }
@@ -1651,7 +1675,14 @@ VAStatus MediaLibvaCaps::CreateConfig(
 
     if (i < 0)
     {
-        return VA_STATUS_ERROR_UNSUPPORTED_PROFILE;
+        if(i == -2)
+        {
+            return VA_STATUS_ERROR_UNSUPPORTED_ENTRYPOINT;
+        }
+        else
+        {
+            return VA_STATUS_ERROR_UNSUPPORTED_PROFILE;
+        }
     }
 
     if (CheckEntrypointCodecType(entrypoint, videoDecode))

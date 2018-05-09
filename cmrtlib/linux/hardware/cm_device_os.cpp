@@ -372,14 +372,13 @@ int32_t CmDevice_RT::InitializeLibvaDisplay()
     }
 #else
     m_display = (Display*)malloc(sizeof(Display));
-    *(m_display) = ANDROID_DISPLAY;
-
     if (m_display == nullptr)
     {
         fprintf(stderr, "Can't connect X server!\n");
         return CM_INVALID_LIBVA_INITIALIZE;
     }
 
+    *(m_display) = ANDROID_DISPLAY;
     m_vaDisplay = vaGetDisplay(m_display);
     if (m_vaDisplay == nullptr)
     {
@@ -419,7 +418,6 @@ int32_t CmDevice_RT::GetLibvaDisplayDrm(VADisplay & vaDisplay)
     pfVAGetDisplayDRM vaGetDisplayDRM = nullptr;
     char *dlSymErr = nullptr;
     void *hLibVaDRM = nullptr;
-    int32_t driFd    = -1;
 
     CLock locker(m_vaReferenceCountCriticalSection);
 

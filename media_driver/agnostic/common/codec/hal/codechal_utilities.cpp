@@ -266,6 +266,8 @@ void CodecHal_GetSurfaceWidthInBytes(
         case Format_P010:
             width = surface->dwWidth << 1;
             break;
+        case Format_Y210:
+        case Format_Y216:
         case Format_A8R8G8B8:
         case Format_X8R8G8B8:
         case Format_A8B8G8R8:

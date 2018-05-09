@@ -84,12 +84,14 @@ static const char *attrVdencOutput           = "VdencOutput";
 static const char *attrDecodeProcParams      = "DecodeProcParams";
 static const char *attrFrameState            = "FrameState";
 static const char *attrCUStreamout           = "CUStreamout";
+static const char *attrBrcPakStats           = "BrcPakStats";
 static const char *attrImageState            = "ImageState";
 static const char *attrSliceSizeStreamout    = "SliceSizeStreamout";
 static const char *attrCoeffProb             = "PakHwCoeffProbs";
 static const char *attrStatusReport          = "StatusReport";
 static const char *attrPakObjStreamout       = "PakObjStreamOut";
 static const char *attrTileBasedStats        = "TileBasedStats";
+static const char *attrROISurface            = "ROIInput";
 
 // MD5 attributes
 static const char *attrMD5HashEnable    = "MD5HasEnable";

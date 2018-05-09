@@ -87,16 +87,22 @@ TEST_F(MediaCapsDdiTest, DecodeEncodeProfile)
         vector<FeatureID> queriedFeatureIDTable;
         vector<FeatureID> refFeatureIDTable = m_capsData.GetRefFeatureIDTable(DeviceConfigTable[platforms[i]]);
 
-        int ret = m_driverLoader.InitDriver(platforms[i]); // So far we still use DeviceConfigTable to find the platform, as the libdrm mock use this. If we want to use vector Platforms, we would use vector in libdrm too.
-        EXPECT_EQ(VA_STATUS_SUCCESS , ret) << "Platform = " << platforms[i] << ", Failed function = m_driverLoader.InitDriver" << endl;
+        // So far we still use DeviceConfigTable to find the platform, as the libdrm mock use this.
+        // If we want to use vector Platforms, we would use vector in libdrm too.
+        int ret = m_driverLoader.InitDriver(platforms[i]);
+        EXPECT_EQ(VA_STATUS_SUCCESS , ret) << "Platform = " << g_platformName[platforms[i]]
+            << ", Failed function = m_driverLoader.InitDriver" << endl;
 
         ret = Test_QueryConfigProfiles(&m_driverLoader.m_ctx, queriedFeatureIDTable);
-        EXPECT_EQ(VA_STATUS_SUCCESS , ret) << "Platform = " << platforms[i] << ", Failed function = Test_QueryConfigProfiles" << endl;
+        EXPECT_EQ(VA_STATUS_SUCCESS , ret) << "Platform = " << g_platformName[platforms[i]]
+            << ", Failed function = Test_QueryConfigProfiles" << endl;
 
-        EXPECT_TRUE((CompareFeatureIDTable(queriedFeatureIDTable, refFeatureIDTable))) << "Platform = " << platforms[i] << ", Failed function = CompareFeatureIDTable" << endl;
+        EXPECT_TRUE((CompareFeatureIDTable(queriedFeatureIDTable, refFeatureIDTable))) << "Platform = "
+            << g_platformName[platforms[i]] << ", Failed function = CompareFeatureIDTable" << endl;
 
         ret = m_driverLoader.CloseDriver();
-        EXPECT_EQ (VA_STATUS_SUCCESS , ret) << "Platform = " << platforms[i] << ", Failed function = m_driverLoader.CloseDriver" << endl;
+        EXPECT_EQ (VA_STATUS_SUCCESS , ret) << "Platform = " << g_platformName[platforms[i]]
+            << ", Failed function = m_driverLoader.CloseDriver" << endl;
 
         MemoryLeakDetector::Detect(m_driverLoader, platforms[i]);
     }

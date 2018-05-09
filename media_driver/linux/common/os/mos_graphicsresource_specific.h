@@ -74,7 +74,7 @@ public:
     //!         Parameters to do the synchronization
     //! \return MOS_SUCCESS on success case
     //!
-    MOS_STATUS SetSyncTag(OsContext* osContextPtr, SyncParams& params);
+    MOS_STATUS SetSyncTag(OsContext* osContextPtr, SyncParams& params, uint32_t streamIndex);
 
     //!
     //! \brief  Check whether the resource is nullptr

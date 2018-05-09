@@ -141,6 +141,7 @@ int32_t CmSurfaceManager::Surface2DSanityCheck(uint32_t width, uint32_t height, 
         case CM_SURFACE_FORMAT_R16_FLOAT:
         case CM_SURFACE_FORMAT_L8:
         case CM_SURFACE_FORMAT_R32_SINT:
+        case CM_SURFACE_FORMAT_R32_UINT:
         case CM_SURFACE_FORMAT_BUFFER_2D:
             break;
 
@@ -185,6 +186,7 @@ int32_t CmSurfaceManager::Surface2DSanityCheck(uint32_t width, uint32_t height, 
         case CM_SURFACE_FORMAT_422H:
         case CM_SURFACE_FORMAT_422V:
         case CM_SURFACE_FORMAT_444P:
+        case CM_SURFACE_FORMAT_P208:
             if( width & 0x1 )
             {
                 CM_ASSERTMESSAGE("Error: Invalid surface width.");
