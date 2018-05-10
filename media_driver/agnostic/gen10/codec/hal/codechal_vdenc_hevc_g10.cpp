@@ -1662,7 +1662,7 @@ MOS_STATUS CodechalVdencHevcStateG10::SetDmemHuCBrcInitReset()
     hucVdencBrcInitDmem->MaxBRCLevel_U8 = 1;
     hucVdencBrcInitDmem->LumaBitDepth_U8 = 8;    // default: 8
     hucVdencBrcInitDmem->ChromaBitDepth_U8 = 8;    // default: 8
-    if (m_hevcSeqParams->SourceBitDepth == 1)
+    if (m_hevcSeqParams->SourceBitDepth == ENCODE_HEVC_BIT_DEPTH_10)
     {
 
         hucVdencBrcInitDmem->LumaBitDepth_U8 = 10;    // default: 8
