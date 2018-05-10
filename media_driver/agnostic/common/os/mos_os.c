@@ -556,6 +556,73 @@ finish:
 }
 #endif // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
 
+#if MOS_COMMAND_RESINFO_DUMP_SUPPORTED
+GpuCmdResInfoDump::GpuCmdResInfoDump()
+{
+    using std::string;
+    using std::to_string;
+
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_INFO_ENABLE_ID,
+        &userFeatureData);
+    m_dumpEnabled = userFeatureData.bData;
+
+    if (!m_dumpEnabled)
+    {
+        return;
+    }
+
+    char path[MOS_MAX_PATH_LENGTH + 1];
+    MOS_ZeroMemory(path, sizeof(path));
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    userFeatureData.StringData.pStringData = path;
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_INFO_PATH_ID,
+        &userFeatureData);
+    if (userFeatureData.StringData.uSize > MOS_MAX_PATH_LENGTH)
+    {
+        userFeatureData.StringData.uSize = 0;
+    }
+    if (userFeatureData.StringData.uSize > 0)
+    {
+        userFeatureData.StringData.pStringData[userFeatureData.StringData.uSize] = '\0';
+        userFeatureData.StringData.uSize++;
+    }
+    auto fullPath = string(path) + "gpuCmdResInfo_" + to_string(MOS_GetPid()) + ".txt";
+    m_outputFile.open(fullPath);
+    MOS_OS_ASSERT(m_outputFile.is_open());
+}
+
+GpuCmdResInfoDump::~GpuCmdResInfoDump()
+{
+    if (m_outputFile.is_open())
+    {
+        m_outputFile.close();
+    }
+}
+
+void GpuCmdResInfoDump::Dump(const std::vector<const void *> &cmdResInfoPtrs)
+{
+    using std::endl;
+    if (!m_outputFile.is_open())
+    {
+        return;
+    }
+
+    m_outputFile << m_title << " --Cmd Num " << cmdResInfoPtrs.size() << " --By Dumper " << this << " --Dump Count " << ++m_cnt << endl;
+    m_outputFile << "********************************CMD Paket Begin********************************" << endl;
+    for (auto e : cmdResInfoPtrs)
+    {
+        Dump(e);
+    }
+    m_outputFile << "********************************CMD Paket End**********************************" << endl << endl;
+}
+#endif // MOS_COMMAND_RESINFO_DUMP_SUPPORTED
+
 //! \brief    Unified OS Initializes OS Interface
 //! \details  OS Interface initilization
 //! \param    PMOS_INTERFACE pOsInterface
@@ -586,6 +653,9 @@ MOS_STATUS Mos_InitInterface(
     pOsInterface->Component             = component;
     pOsInterface->modulizedMosEnabled   = true;
     pOsInterface->osContextPtr          = nullptr;
+#if MOS_COMMAND_RESINFO_DUMP_SUPPORTED
+    pOsInterface->gpuCmdResInfoDump     = std::make_shared<GpuCmdResInfoDump>();
+#endif // MOS_COMMAND_RESINFO_DUMP_SUPPORTED
 
     pOsInterface->streamIndex = 0;
 

@@ -174,6 +174,12 @@ public:
     //!
     MOS_STATUS AllocateGPUStatusBuf();
 
+#if MOS_COMMAND_RESINFO_DUMP_SUPPORTED
+    void                PushCmdResPtr(const void *p) { m_cmdResPtrs.push_back(p); }
+    void                ClearCmdResPtrs() { m_cmdResPtrs.clear(); }
+    const std::vector<const void *> &GetCmdResPtrs() const { return m_cmdResPtrs; }
+#endif // MOS_COMMAND_RESINFO_DUMP_SUPPORTED
+
 private:
     //! \brief    internal command buffer pool per gpu context
     std::vector<CommandBuffer *> m_cmdBufPool;
@@ -211,5 +217,9 @@ private:
 
     //! \brief    Os context
     OsContext *m_osContext;
+
+#if MOS_COMMAND_RESINFO_DUMP_SUPPORTED
+    std::vector<const void *> m_cmdResPtrs; //!< Command OS resource pointers registered by pfnRegisterResource
+#endif // MOS_COMMAND_RESINFO_DUMP_SUPPORTED
 };
 #endif  // __GPU_CONTEXT_SPECIFIC_H__

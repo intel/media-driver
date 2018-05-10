@@ -2554,6 +2554,10 @@ MOS_STATUS Mos_Specific_RegisterResource (
         auto gpuContext = Linux_GetGpuContext(pOsInterface, pOsInterface->CurrentGpuContextHandle);
         MOS_OS_CHK_NULL_RETURN(gpuContext);
 
+    #if MOS_COMMAND_RESINFO_DUMP_SUPPORTED
+        gpuContext->PushCmdResPtr(static_cast<const void *>(pOsResource));
+    #endif // MOS_COMMAND_RESINFO_DUMP_SUPPORTED
+
         return (gpuContext->RegisterResource(pOsResource, bWrite));
     }
 
@@ -3142,6 +3146,13 @@ MOS_STATUS Mos_Specific_SubmitCommandBuffer(
     {
         auto gpuContext = Linux_GetGpuContext(pOsInterface, pOsInterface->CurrentGpuContextHandle);
         MOS_OS_CHK_NULL_RETURN(gpuContext);
+
+    #if MOS_COMMAND_RESINFO_DUMP_SUPPORTED
+        auto &cmdPtrs = gpuContext->GetCmdResPtrs();
+        pOsInterface->gpuCmdResInfoDump->SetTitle("PerfTag: " + std::to_string(pOsInterface->pfnGetPerfTag(pOsInterface)));
+        pOsInterface->gpuCmdResInfoDump->Dump(cmdPtrs);
+        gpuContext->ClearCmdResPtrs();
+    #endif // MOS_COMMAND_RESINFO_DUMP_SUPPORTED
 
         return (gpuContext->SubmitCommandBuffer(pOsInterface, pCmdBuffer, bNullRendering));
     }
@@ -6104,3 +6115,41 @@ PMOS_RESOURCE Mos_Specific_GetMarkerResource(
 {
     return 0;
 }
+
+#if MOS_COMMAND_RESINFO_DUMP_SUPPORTED
+void GpuCmdResInfoDump::Dump(const void *cmdResInfoPtr)
+{
+    using std::endl;
+
+    auto pRes = static_cast<const MOS_RESOURCE *>(cmdResInfoPtr);
+
+    m_outputFile << "Gpu Resource Pointer " << pRes << endl;
+    m_outputFile << "iWidth                    : " << pRes->iWidth << endl;
+    m_outputFile << "iHeight                   : " << pRes->iHeight << endl;
+    m_outputFile << "iSize                     : " << pRes->iSize << endl;
+    m_outputFile << "iPitch                    : " << pRes->iPitch << endl;
+    m_outputFile << "iDepth                    : " << pRes->iDepth << endl;
+    m_outputFile << "Format                    : " << (uint32_t)pRes->Format << endl;
+    m_outputFile << "iCount                    : " << pRes->iCount << endl;
+    m_outputFile << "iAllocationIndex          : ";
+    for (auto i = 0; i < MOS_GPU_CONTEXT_MAX; i++)
+    {
+        m_outputFile << pRes->iAllocationIndex[i] << " ";
+    }
+    m_outputFile << endl;
+    m_outputFile << "dwGfxAddress              : " << pRes->dwGfxAddress << endl;
+    m_outputFile << "pData                     : " << pRes->pData << endl;
+    m_outputFile << "bufname                   : " << pRes->bufname << endl;
+    m_outputFile << "isTiled                   : " << pRes->isTiled << endl;
+    m_outputFile << "TileType                  : " << (uint32_t)pRes->TileType << endl;
+    m_outputFile << "bMapped                   : " << pRes->bMapped << endl;
+    m_outputFile << "bo                        : " << pRes->bo << endl;
+    m_outputFile << "name                      : " << pRes->name << endl;
+    m_outputFile << "pGmmResInfo               : " << pRes->pGmmResInfo << endl;
+    m_outputFile << "MmapOperation             : " << (uint32_t)pRes->MmapOperation << endl;
+    m_outputFile << "user_provided_va          : " << pRes->user_provided_va << endl;
+    m_outputFile << "pGfxResource              : " << pRes->pGfxResource << endl;
+    m_outputFile << "bConvertedFromDDIResource : " << pRes->bConvertedFromDDIResource << endl;
+    m_outputFile << endl;
+}
+#endif // MOS_COMMAND_RESINFO_DUMP_SUPPORTED

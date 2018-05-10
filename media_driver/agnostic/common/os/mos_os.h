@@ -27,6 +27,10 @@
 #ifndef __MOS_OS_H__
 #define __MOS_OS_H__
 
+#include <string>
+#include <fstream>
+#include <vector>
+#include <memory>
 #include "mos_defs.h"
 #include "media_skuwa_specific.h"
 #include "mos_utilities.h"
@@ -319,6 +323,35 @@ struct _MOS_GPUCTX_CREATOPTIONS
 
 class OsContext;
 
+#if MOS_COMMAND_RESINFO_DUMP_SUPPORTED
+//!
+//! \brief Class to Dump GPU Command Info
+//!
+class GpuCmdResInfoDump
+{
+public:
+
+    GpuCmdResInfoDump();
+
+    ~GpuCmdResInfoDump();
+
+    void SetTitle(const std::string &title) { m_title = title; }
+
+    void Dump(const std::vector<const void *> &cmdResInfoPtrs);
+
+private:
+
+    void Dump(const void *cmdResInfoPtr);
+
+private:
+
+    uint32_t      m_cnt         = 0;
+    bool          m_dumpEnabled = false;
+    std::string   m_title;
+    std::ofstream m_outputFile;
+};
+#endif // MOS_COMMAND_RESINFO_DUMP_SUPPORTED
+
 //!
 //! \brief Structure to Unified HAL OS resources
 //!
@@ -400,6 +433,10 @@ typedef struct _MOS_INTERFACE
     int32_t                         bDumpCommandBufferAsMessages;                      //!< Indicates that the command buffer should be dumped via MOS normal messages
     char                            sPlatformName[MOS_COMMAND_BUFFER_PLATFORM_LEN];    //!< Platform name - maximum 4 bytes length
 #endif // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+
+#if MOS_COMMAND_RESINFO_DUMP_SUPPORTED
+    std::shared_ptr<GpuCmdResInfoDump> gpuCmdResInfoDump;
+#endif // MOS_COMMAND_RESINFO_DUMP_SUPPORTED
 
 #if (_RELEASE_INTERNAL||_DEBUG)
 #if defined(CM_DIRECT_GUC_SUPPORT)
