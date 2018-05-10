@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2017, Intel Corporation
+* Copyright (c) 2015-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -68,6 +68,7 @@ void DdiMedia_MediaSurfaceToMosResource(DDI_MEDIA_SURFACE *mediaSurface, MOS_RES
             mosResource->Format    = Format_X8B8G8R8;
             break;
         case Media_Format_A8B8G8R8:
+        case Media_Format_R8G8B8A8:
             mosResource->Format    = Format_A8B8G8R8;
             break;
         case Media_Format_A8R8G8B8:

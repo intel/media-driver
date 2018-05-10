@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -136,6 +136,26 @@ MediaLibvaCaps::MediaLibvaCaps(DDI_MEDIA_CONTEXT *mediaCtx)
 MediaLibvaCaps::~MediaLibvaCaps()
 {
     FreeAttributeList();
+}
+
+VAStatus MediaLibvaCaps::PopulateColorMaskInfo(VAImageFormat *vaImgFmt)
+{
+    uint32_t maxNum = GetImageFormatsMaxNum();
+
+    for (int32_t idx = 0; idx < maxNum; idx++)
+    {
+        if (m_supportedImageformats[idx].fourcc == vaImgFmt->fourcc)
+        {
+            vaImgFmt->red_mask = m_supportedImageformats[idx].red_mask;
+            vaImgFmt->green_mask = m_supportedImageformats[idx].green_mask;
+            vaImgFmt->blue_mask = m_supportedImageformats[idx].blue_mask;
+            vaImgFmt->alpha_mask = m_supportedImageformats[idx].alpha_mask;
+
+            return VA_STATUS_SUCCESS;
+        }
+    }
+
+    return VA_STATUS_SUCCESS;
 }
 
 bool MediaLibvaCaps::CheckEntrypointCodecType(VAEntrypoint entrypoint, CodecType codecType)
