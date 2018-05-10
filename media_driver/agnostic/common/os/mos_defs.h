@@ -64,9 +64,6 @@
 //! Command buffer dumps are a debug feature so should not be enabled in release builds
 #define MOS_COMMAND_BUFFER_DUMP_SUPPORTED   (_DEBUG || _RELEASE_INTERNAL)
 
-//! Command res info dumps are a debug feature so should not be enabled in release builds
-#define MOS_COMMAND_RESINFO_DUMP_SUPPORTED (_DEBUG || _RELEASE_INTERNAL)
-
 typedef FILE*                   PFILE;                      //!< Pointer to a File
 typedef FILE**                  PPFILE;                     //!< Pointer to a PFILE
 typedef HMODULE*                PHMODULE;                   //!< Pointer to an HMODULE
