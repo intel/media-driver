@@ -117,6 +117,30 @@ MOS_STATUS CodechalEncodeHevcBase::Initialize(CodechalSetting * settings)
             &m_defaultSlicePatchListSize,
             m_singleTaskPhaseSupported));
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_CODECHAL_RDOQ_INTRA_TU_OVERRIDE_ID,
+        &userFeatureData);
+    m_rdoqIntraTuOverride = (uint32_t)userFeatureData.u32Data;
+
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_CODECHAL_RDOQ_INTRA_TU_DISABLE_ID,
+        &userFeatureData);
+    m_rdoqIntraTuDisableOverride = (uint32_t)userFeatureData.u32Data;
+
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_CODECHAL_RDOQ_INTRA_TU_THRESHOLD_ID,
+        &userFeatureData);
+    m_rdoqIntraTuThresholdOverride = (uint32_t)userFeatureData.u32Data;
+#endif
     return eStatus;
 }
 
@@ -2347,6 +2371,14 @@ void CodechalEncodeHevcBase::SetHcpPicStateParams(MHW_VDBOX_HEVC_PIC_STATE& picS
     picStateParams.bHevcRdoqEnabled      = m_hevcRdoqEnabled;
     picStateParams.bRDOQIntraTUDisable   = m_hevcRdoqEnabled && (1 != m_hevcSeqParams->TargetUsage);
     picStateParams.wRDOQIntraTUThreshold = (uint16_t)m_rdoqIntraTuThreshold;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_rdoqIntraTuOverride)
+    {
+        picStateParams.bRDOQIntraTUDisable      = m_rdoqIntraTuDisableOverride;
+        picStateParams.wRDOQIntraTUThreshold    = m_rdoqIntraTuThresholdOverride;
+    }
+#endif
 
     picStateParams.currPass = m_currPass;
     if (CodecHalIsFeiEncode(m_codecFunction) && m_hevcFeiPicParams && m_hevcFeiPicParams->dwMaxFrameSize)
