@@ -2188,7 +2188,7 @@ MOS_STATUS CodechalEncodeHevcBase::InitializePicture(const EncoderParams& params
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetStatusReportParams(
         m_refList[m_currReconstructedPic.FrameIdx]));
 
-    m_bitstreamUpperBound = GetBitstreamBufferSize();
+    m_bitstreamUpperBound = m_encodeParams.dwBitstreamSize;
 
     return eStatus;
 }
