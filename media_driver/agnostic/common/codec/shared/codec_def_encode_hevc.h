@@ -59,6 +59,14 @@
 #define ENCODE_DP_HEVC_ROI_BLOCK_Width        16    
 #define ENCODE_DP_HEVC_ROI_BLOCK_HEIGHT       16
 
+typedef enum
+{
+    ENCODE_HEVC_BIT_DEPTH_8     = 0,
+    ENCODE_HEVC_BIT_DEPTH_10    = 1,
+    ENCODE_HEVC_BIT_DEPTH_12    = 2,
+    ENCODE_HEVC_BIT_DEPTH_16    = 3,
+} ENCODE_HEVC_BIT_DEPTH;
+
 //!
 //! \enum HEVC_NAL_UNIT_TYPE
 //! \brief HEVC NAL unit type
