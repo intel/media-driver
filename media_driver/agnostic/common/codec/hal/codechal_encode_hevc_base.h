@@ -1420,6 +1420,11 @@ public:
     bool          m_encode4KSequence                      = false;                        //!< Flag to specify if input sequence is 4k size
     bool          m_hevcRdoqEnabled                       = false;                        //!< RDOQ enable flag
     uint32_t      m_rdoqIntraTuThreshold                  = 0;                            //!< RDOQ intra threshold
+#if (_DEBUG || _RELEASE_INTERNAL)
+    bool          m_rdoqIntraTuOverride                   = false;                        //!< Override RDOQ intra TU or not
+    bool          m_rdoqIntraTuDisableOverride            = false;                        //!< Override RDOQ intra TU disable 
+    uint16_t      m_rdoqIntraTuThresholdOverride          = 0;                            //!< Override RDOQ intra TU threshold
+#endif
     bool          m_is10BitHevc                           = false;                        //!< 10bit encoding flag
     unsigned char m_chromaFormat                          = HCP_CHROMA_FORMAT_YUV420;     //!< Chroma format(420, 422 etc)
     unsigned char m_bitDepth                              = 8;                            //!< Bit depth
