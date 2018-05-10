@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -147,6 +147,7 @@ typedef enum _DDI_MEDIA_FORMAT
     Media_Format_A8R8G8B8    ,
     Media_Format_X8B8G8R8    ,
     Media_Format_A8B8G8R8    ,
+    Media_Format_R8G8B8A8    ,
     Media_Format_R5G6B5      ,
     Media_Format_R10G10B10A2 ,
     Media_Format_B10G10R10A2 ,

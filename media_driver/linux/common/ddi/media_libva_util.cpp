@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -282,6 +282,7 @@ static GMM_RESOURCE_FORMAT DdiMediaUtil_ConvertMediaFmtToGmmFmt(
         case Media_Format_A8R8G8B8   : return GMM_FORMAT_B8G8R8A8_UNORM_TYPE;
         case Media_Format_X8B8G8R8   : return GMM_FORMAT_R8G8B8X8_UNORM_TYPE;
         case Media_Format_A8B8G8R8   : return GMM_FORMAT_R8G8B8A8_UNORM_TYPE;
+        case Media_Format_R8G8B8A8   : return GMM_FORMAT_R8G8B8A8_UNORM_TYPE;
         case Media_Format_R5G6B5     : return GMM_FORMAT_B5G6R5_UNORM_TYPE;
         case Media_Format_R8G8B8     : return GMM_FORMAT_R8G8B8_UNORM;
         case Media_Format_NV12       : return GMM_FORMAT_NV12_TYPE;
@@ -348,6 +349,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case Media_Format_X8R8G8B8:
         case Media_Format_X8B8G8R8:
         case Media_Format_A8B8G8R8:
+        case Media_Format_R8G8B8A8:
         case Media_Format_R5G6B5:
         case Media_Format_R8G8B8:
         case Media_Format_R10G10B10A2:

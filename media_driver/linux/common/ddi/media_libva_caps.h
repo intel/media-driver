@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -515,6 +515,18 @@ public:
     //!
     VAStatus QueryImageFormats(VAImageFormat *formatList, int32_t *num_formats);
 
+    //!
+    //! \brief    Populate the color masks info 
+    //!
+    //! \param    [in,out] Image format
+    //!           Pointer to a VAImageFormat array. Color masks information will be populated to this
+    //!           structure.
+    //!
+    //! \return   VAStatus 
+    //!           VA_STATUS_SUCCESS if succeed 
+    //!
+    VAStatus PopulateColorMaskInfo(VAImageFormat *vaImgFmt);
+    
     //!
     //! \brief    Query AVC ROI maxinum numbers and if support ROI in delta QP 
     //!

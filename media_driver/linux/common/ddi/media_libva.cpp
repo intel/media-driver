@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -421,6 +421,8 @@ int32_t DdiMedia_MediaFormatToOsFormat(DDI_MEDIA_FORMAT format)
         case Media_Format_A8B8G8R8:
         case Media_Format_R10G10B10A2:
             return VA_FOURCC_ABGR;
+        case Media_Format_R8G8B8A8:
+            return VA_FOURCC_RGBA;
         case Media_Format_A8R8G8B8:
         case Media_Format_B10G10R10A2:
             return VA_FOURCC_ARGB;
@@ -488,6 +490,13 @@ DDI_MEDIA_FORMAT DdiMedia_OsFormatToMediaFormat(int32_t fourcc, int32_t rtformat
 #endif
             return Media_Format_A8R8G8B8;
         case VA_FOURCC_RGBA:
+#ifdef VA_RT_FORMAT_RGB32_10BPP
+            if(VA_RT_FORMAT_RGB32_10BPP == rtformatType)
+            {
+                return Media_Format_R10G10B10A2;
+            }
+#endif
+            return Media_Format_R8G8B8A8;
         case VA_FOURCC_ABGR:
 #ifdef VA_RT_FORMAT_RGB32_10BPP
             if(VA_RT_FORMAT_RGB32_10BPP == rtformatType)
@@ -570,6 +579,14 @@ DDI_MEDIA_FORMAT DdiMedia_OsFormatAlphaMaskToMediaFormat(int32_t fourcc, int32_t
                 return Media_Format_A8R8G8B8;
             }
         case VA_FOURCC_RGBA:
+            if(RGB_10BIT_ALPHAMASK == alphaMask)
+            {
+                return Media_Format_R10G10B10A2;
+            }
+            else
+            {
+                return Media_Format_R8G8B8A8;
+            }
         case VA_FOURCC_ABGR:
             if(RGB_10BIT_ALPHAMASK == alphaMask)
             {
@@ -4075,6 +4092,7 @@ VAStatus DdiMedia_DeriveImage (
         vaimg->offsets[2]               = mediaSurface->iHeight * mediaSurface->iPitch;
         break;
     case Media_Format_A8B8G8R8:
+    case Media_Format_R8G8B8A8:
     case Media_Format_A8R8G8B8:
         vaimg->format.bits_per_pixel    = 32;
         vaimg->format.alpha_mask        = RGB_8BIT_ALPHAMASK;
@@ -4192,6 +4210,8 @@ VAStatus DdiMedia_DeriveImage (
         vaimg->offsets[2]               = vaimg->offsets[1] + 1;
         break;
     }
+    
+    mediaCtx->m_caps->PopulateColorMaskInfo(&vaimg->format);
 
     DDI_MEDIA_BUFFER *buf               = (DDI_MEDIA_BUFFER *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_BUFFER));
     if (buf == nullptr)
