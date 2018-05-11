@@ -194,6 +194,12 @@ MOS_STATUS CodechalEncoderState::CreateGpuContexts()
             renderGpuNode = MOS_GPU_NODE_3D;
         }
         MOS_GPUCTX_CREATOPTIONS createOption;
+
+        if (m_hwInterface->m_slicePowerGate)
+        {
+            createOption.packed.SubSliceCount = (m_gtSystemInfo->SubSliceCount / m_gtSystemInfo->SliceCount) >> 1;
+        }
+
         eStatus = (MOS_STATUS)m_osInterface->pfnCreateGpuContext(m_osInterface, gpuContext, renderGpuNode, &createOption);
 
         if (eStatus != MOS_STATUS_SUCCESS)
@@ -2433,27 +2439,6 @@ MOS_STATUS CodechalEncoderState::SendGenericKernelCmds(
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pKernelState);
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetDefaultSSEuSetting(params->EncFunctionType, m_setRequestedEUSlices, m_setRequestedSubSlices, m_setRequestedEUs));
-
-    if (m_hwInterface->m_slicePowerGate && (!m_vdencEnabled || (m_vdencEnabled && m_16xMeSupported)))
-    {
-        if (m_gtSystemInfo->SliceCount && m_gtSystemInfo->SubSliceCount) // check if SliceCount and SubSliceCount are valid
-        {
-            m_hwInterface->m_numRequestedEuSlices = m_gtSystemInfo->SliceCount;
-            m_hwInterface->m_numRequestedSubSlices = (m_gtSystemInfo->SubSliceCount / m_gtSystemInfo->SliceCount) >> 1;
-        }
-        else
-        {
-            CODECHAL_ENCODE_ASSERTMESSAGE("Currently KMD reports a wrong setting of slice/subslice numbers.");
-            m_hwInterface->m_numRequestedEuSlices  = 1;
-            m_hwInterface->m_numRequestedSubSlices = 2;
-        }
-        // Only update LRI once to avoid extra KMD overhead due to HW context switch
-        cmdBuffer->Attributes.bUmdSSEUEnable   = m_firstFrame;
-    }
-    else
-    {
-        cmdBuffer->Attributes.bUmdSSEUEnable   = false;
-    }
 
     if (!m_singleTaskPhaseSupported || m_firstTaskInPhase)
     {
