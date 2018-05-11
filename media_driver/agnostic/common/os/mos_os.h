@@ -319,6 +319,33 @@ struct _MOS_GPUCTX_CREATOPTIONS
 
 class OsContext;
 
+#if MOS_COMMAND_RESINFO_DUMP_SUPPORTED
+//!
+//! \brief Class to Dump GPU Command Info
+//!
+class GpuCmdResInfoDump
+{
+public:
+
+    static GpuCmdResInfoDump *GetInstance();
+
+    GpuCmdResInfoDump();
+
+    void Dump(const std::vector<const void *> &cmdResInfoPtrs, std::string title = "");
+
+private:
+
+    void Dump(const void *cmdResInfoPtr, std::ofstream &outputFile);
+
+private:
+
+    static GpuCmdResInfoDump *m_instance;
+    uint32_t      m_cnt         = 0;
+    bool          m_dumpEnabled = false;
+    std::string   m_path;
+};
+#endif // MOS_COMMAND_RESINFO_DUMP_SUPPORTED
+
 //!
 //! \brief Structure to Unified HAL OS resources
 //!
