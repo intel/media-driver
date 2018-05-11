@@ -1880,6 +1880,8 @@ MOS_STATUS CodechalVdencAvcState::SetSequenceStructs()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_osInterface->osCpInterface);
+
     auto seqParams = m_avcSeqParam;
 
     if (m_targetUsageOverride)
@@ -1892,7 +1894,7 @@ MOS_STATUS CodechalVdencAvcState::SetSequenceStructs()
     // App does tail insertion in VDEnc dynamic slice non-CP case
     m_vdencNoTailInsertion =
         seqParams->EnableSliceLevelRateCtrl &&
-        (!m_hwInterface->GetCpInterface()->IsCpEnabled());
+        (!m_osInterface->osCpInterface->IsCpEnabled());
 
     // If 16xMe is supported then check if it is supported in the TU settings
     if (!m_16xMeUserfeatureControl && m_16xMeSupported)
@@ -3762,6 +3764,8 @@ MOS_STATUS CodechalVdencAvcState::ExecuteSliceLevel()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_osInterface->osCpInterface);
+
     auto cpInterface  = m_hwInterface->GetCpInterface();
     auto avcSlcParams = m_avcSliceParams;
     auto avcPicParams = m_avcPicParams[avcSlcParams->pic_parameter_set_id];
@@ -3810,7 +3814,7 @@ MOS_STATUS CodechalVdencAvcState::ExecuteSliceLevel()
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
 
-    if (cpInterface->IsCpEnabled())
+    if (m_osInterface->osCpInterface->IsCpEnabled())
     {
         MHW_CP_SLICE_INFO_PARAMS sliceInfoParam;
         sliceInfoParam.bLastPass = (m_currPass == m_numPasses) ? true : false;

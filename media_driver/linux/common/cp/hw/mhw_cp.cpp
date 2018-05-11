@@ -218,18 +218,6 @@ MOS_STATUS MhwCpInterface::UpdateParams(bool isInput)
     return MOS_STATUS_SUCCESS;
 }
 
-bool MhwCpInterface::IsCpEnabled() const
-{
-    MhwStubMessage();
-    return false;
-}
-
-bool MhwCpInterface::isHMEnabled() const
-{
-    MhwStubMessage();
-    return false;
-}
-
 CP_MODE MhwCpInterface::GetHostEncryptMode() const
 {
     MhwStubMessage();
@@ -239,13 +227,6 @@ CP_MODE MhwCpInterface::GetHostEncryptMode() const
 void MhwCpInterface::SetCpSecurityType(CP_SECURITY_TYPE type)
 {
     MOS_UNUSED(type);
-
-    MhwStubMessage();
-}
-
-void MhwCpInterface::SetCpForceDisabled(bool disabled)
-{
-    MOS_UNUSED(disabled);
 
     MhwStubMessage();
 }
