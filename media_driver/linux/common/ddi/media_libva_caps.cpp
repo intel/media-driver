@@ -167,7 +167,7 @@ bool MediaLibvaCaps::CheckEntrypointCodecType(VAEntrypoint entrypoint, CodecType
                     || (entrypoint == VAEntrypointEncSliceLP)
                     || (entrypoint == VAEntrypointEncPicture)
                     || (entrypoint == VAEntrypointFEI)
-                    || (entrypoint == (VAEntrypoint)VAEntrypointStats))
+                    || (entrypoint == VAEntrypointStats))
             {
                 return true;
             }
@@ -952,14 +952,12 @@ VAStatus MediaLibvaCaps::LoadAvcEncProfileEntrypoints()
             VAProfileH264High,
             VAProfileH264ConstrainedBaseline};
 
-        VAEntrypoint entrypoint[2] = {VAEntrypointEncSlice, (VAEntrypoint)VAEntrypointFEI};
+        VAEntrypoint entrypoint[2] = {VAEntrypointEncSlice, VAEntrypointFEI};
         uint32_t configStartIdx;
 
         for (int32_t e = 0; e < 2; e++)
         {
-            status = CreateEncAttributes(VAProfileH264ConstrainedBaseline,
-                    (VAEntrypoint)entrypoint[e],
-                    &attributeList);
+            status = CreateEncAttributes(VAProfileH264ConstrainedBaseline, entrypoint[e], &attributeList);
             DDI_CHK_RET(status, "Failed to initialize Caps!");
 
             for (int32_t i = 0; i < 3; i++)
@@ -970,7 +968,7 @@ VAStatus MediaLibvaCaps::LoadAvcEncProfileEntrypoints()
                 {
                     AddEncConfig(m_encRcMode[j]);
                 }
-                AddProfileEntry(profile[i], (VAEntrypoint)entrypoint[e], attributeList,
+                AddProfileEntry(profile[i], entrypoint[e], attributeList,
                         configStartIdx, m_encConfigs.size() - configStartIdx);
             }
         }
@@ -1353,14 +1351,14 @@ VAStatus MediaLibvaCaps::LoadHevcEncProfileEntrypoints()
         AddProfileEntry(VAProfileHEVCMain, VAEntrypointEncSlice, attributeList,
                 configStartIdx, m_encConfigs.size() - configStartIdx);
 
-        status = CreateEncAttributes(VAProfileHEVCMain, (VAEntrypoint)VAEntrypointFEI, &attributeList);
+        status = CreateEncAttributes(VAProfileHEVCMain, VAEntrypointFEI, &attributeList);
         DDI_CHK_RET(status, "Failed to initialize Caps!");
         DDI_CHK_NULL(attributeList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
 
         configStartIdx = m_encConfigs.size();
         AddEncConfig(VA_RC_CQP);
 
-        AddProfileEntry(VAProfileHEVCMain, (VAEntrypoint)VAEntrypointFEI, attributeList,
+        AddProfileEntry(VAProfileHEVCMain, VAEntrypointFEI, attributeList,
                 configStartIdx, m_encConfigs.size() - configStartIdx);
     }
 
@@ -1396,7 +1394,7 @@ VAStatus MediaLibvaCaps::LoadNoneProfileEntrypoints()
 
     configStartIdx = m_encConfigs.size();
     AddEncConfig(VA_RC_NONE);
-    AddProfileEntry(VAProfileNone, (VAEntrypoint)VAEntrypointStats, attributeList,
+    AddProfileEntry(VAProfileNone, VAEntrypointStats, attributeList,
             configStartIdx, 1);
     return status;
 }
@@ -1493,7 +1491,7 @@ VAStatus MediaLibvaCaps::CreateEncConfig(
         VAConfigID *configId)
 {
     uint32_t rcMode = VA_RC_CQP;
-    if((entrypoint == (VAEntrypoint)VAEntrypointStats) || (entrypoint == (VAEntrypoint)VAEntrypointEncPicture))
+    if((entrypoint == VAEntrypointStats) || (entrypoint == VAEntrypointEncPicture))
     {
         rcMode = VA_RC_NONE;
     }
@@ -2332,7 +2330,7 @@ bool MediaLibvaCaps::IsEncFei(VAEntrypoint entrypoint)
             (m_mediaCtx->FeiFunction == VA_FEI_FUNCTION_ENC) ||
             (m_mediaCtx->FeiFunction == VA_FEI_FUNCTION_PAK) ||
             (m_mediaCtx->FeiFunction == (VA_FEI_FUNCTION_ENC | VA_FEI_FUNCTION_PAK)) ||
-            (entrypoint == (VAEntrypoint)VAEntrypointStats))
+            (entrypoint == VAEntrypointStats))
     {
         return true;
     }
@@ -2381,7 +2379,7 @@ CODECHAL_FUNCTION MediaLibvaCaps::GetEncodeCodecFunction(VAProfile profile, VAEn
             // codecFunction in context keeps FEI_ENC_PAK if input is ENC|PAK
             codecFunction = CODECHAL_FUNCTION_FEI_ENC_PAK;
         }
-        else if (entrypoint == (VAEntrypoint)VAEntrypointStats)
+        else if (entrypoint == VAEntrypointStats)
         {
             codecFunction = CODECHAL_FUNCTION_FEI_PRE_ENC;
         }
@@ -2391,7 +2389,7 @@ CODECHAL_FUNCTION MediaLibvaCaps::GetEncodeCodecFunction(VAProfile profile, VAEn
 
 CODECHAL_MODE MediaLibvaCaps::GetEncodeCodecMode(VAProfile profile, VAEntrypoint entrypoint)
 {
-    if (entrypoint == (VAEntrypoint)VAEntrypointStats)
+    if (entrypoint == VAEntrypointStats)
     {
         return  CODECHAL_ENCODE_MODE_AVC;
     }
