@@ -140,15 +140,9 @@ public:
 
     MOS_STATUS UpdateParams(bool isInput);
 
-    bool IsCpEnabled() const;
-
-    bool isHMEnabled() const;
-
     CP_MODE GetHostEncryptMode() const;
 
     void SetCpSecurityType(CP_SECURITY_TYPE type = CP_SECURITY_NONE);
-
-    void SetCpForceDisabled(bool disabled);
 };
 
 MOS_STATUS Mhw_Cp_InitCpCmdProps(

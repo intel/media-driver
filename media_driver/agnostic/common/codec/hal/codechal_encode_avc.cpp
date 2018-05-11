@@ -6665,6 +6665,8 @@ MOS_STATUS CodechalEncodeAvcEnc::ExecuteSliceLevel()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_osInterface->osCpInterface);
+
     auto cpInterface = m_hwInterface->GetCpInterface();
     auto avcSlcParams = m_avcSliceParams;
     auto avcPicParams = m_avcPicParams[avcSlcParams->pic_parameter_set_id];
@@ -6713,7 +6715,7 @@ MOS_STATUS CodechalEncodeAvcEnc::ExecuteSliceLevel()
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
 
-    if (cpInterface->IsCpEnabled())
+    if (m_osInterface->osCpInterface->IsCpEnabled())
     {
         MHW_CP_SLICE_INFO_PARAMS sliceInfoParam;
         sliceInfoParam.bLastPass = (m_currPass == m_numPasses) ? true : false;

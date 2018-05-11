@@ -115,10 +115,13 @@ MOS_STATUS CodechalDecodeMpeg2::InsertDummySlices(
     uint16_t                        endMB)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    bool      cpEnable = false;
 
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     CODECHAL_DECODE_CHK_NULL_RETURN(batchBuffer);
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_osInterface);
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_osInterface->osCpInterface);
 
     //  A copied data buffer must be present
     if (m_nextCopiedDataOffset && !m_dummySliceDataPresent)
@@ -133,7 +136,12 @@ MOS_STATUS CodechalDecodeMpeg2::InsertDummySlices(
         m_dummySliceDataPresent = true;
     }
 
-    m_hwInterface->GetCpInterface()->SetCpForceDisabled(true);
+    // force disable cp for dummy slices
+    cpEnable = m_osInterface->osCpInterface->IsCpEnabled();
+    if (cpEnable)
+    {
+        m_osInterface->osCpInterface->SetCpEnabled(false);
+    }
 
     uint16_t intraVLDFormat                = m_picParams->W0.m_intraVlcFormat;
     uint16_t quantizerScaleType            = m_picParams->W0.m_quantizerScaleType;
@@ -176,7 +184,11 @@ MOS_STATUS CodechalDecodeMpeg2::InsertDummySlices(
         startMB++;
     }
 
-    m_hwInterface->GetCpInterface()->SetCpForceDisabled(false);
+    // restore Cp state
+    if (cpEnable)
+    {
+        m_osInterface->osCpInterface->SetCpEnabled(true);
+    }
 
     if (isLastSlice)
     {
