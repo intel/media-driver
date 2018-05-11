@@ -48,8 +48,6 @@
 #include "media_libva_encoder.h"
 #ifndef ANDROID
 #include "media_libva_putsurface_linux.h"
-#else
-#include "media_libva_putsurface_android.h"
 #endif
 #include "media_libva_vp.h"
 #include "mos_os.h"
@@ -2074,102 +2072,6 @@ DdiMedia_CreateSurfaces2(
 
     uintptr_t            *bo_names  = nullptr;
     GMM_RESCREATE_PARAMS *gmmParams = nullptr;
-#ifdef ANDROID
-    if( surfDescProvided == true )
-    {
-        // following code is ported from DdiCodec_CreateSurfacesWithAttribute to handle VA_SURFACE_ATTRIB_MEM_TYPE_ANDROID_GRALLOC
-        if( surfIsGralloc == true )
-        {
-            int32_t     flags  = 0;
-            uint32_t    height = 0;
-            uint32_t    size   = 0;
-
-            bo_names  = (uintptr_t*)MOS_AllocAndZeroMemory( sizeof(uintptr_t) * externalBufDesc->num_buffers);
-            gmmParams = (GMM_RESCREATE_PARAMS *)MOS_AllocAndZeroMemory( sizeof(GMM_RESCREATE_PARAMS) * externalBufDesc->num_buffers );
-            if( bo_names == nullptr || gmmParams == nullptr)
-            {
-                MOS_FreeMemory(bo_names);
-                MOS_FreeMemory(gmmParams);
-                return VA_STATUS_ERROR_ALLOCATION_FAILED;
-            }
-
-            for (int32_t i = 0; i < externalBufDesc->num_buffers; i++)
-            {
-                VAStatus vaStatus = android_get_buffer_info(externalBufDesc->buffers[i], &bo_names[i], &flags, &height, &size);
-                if (vaStatus != VA_STATUS_SUCCESS)
-                {
-                    MOS_FreeMemory(bo_names);
-                    MOS_FreeMemory(gmmParams);
-                    return vaStatus;
-                }
-
-                // get GmmResource from Gralloc
-                if( android_get_gralloc_gmm_params( externalBufDesc->buffers[i], &gmmParams[i] ) )
-                {
-                    MOS_FreeMemory(bo_names);
-                    MOS_FreeMemory(gmmParams);
-                    return VA_STATUS_ERROR_INVALID_BUFFER;
-                }
-            }
-
-            // The surface height is 736, but App pass 720 to driver.
-            externalBufDesc->height        = height;
-#if VA_MAJOR_VERSION < 1
-            externalBufDesc->buffers       = (unsigned long *)bo_names;
-#else
-            externalBufDesc->buffers       = bo_names;
-#endif
-            externalBufDesc->data_size     = size;
-
-            height                          = externalBufDesc->height;
-            num_surfaces                    = externalBufDesc->num_buffers;
-        }
-
-        if( surfIsUserPtr == true )
-        {
-            // only support NV12 Linear and P010 Linear usage for tiling and linear conversion
-            // Expect buffer  size = pitch * height * 3/2. so it can't be smaller thant the expeced size
-            if (VA_RT_FORMAT_YUV420 != format)
-            {
-                DDI_VERBOSEMESSAGE("Input color format doesn't support");
-                MOS_FreeMemory(bo_names);
-                MOS_FreeMemory(gmmParams);
-                return VA_STATUS_ERROR_ALLOCATION_FAILED;
-            }
-
-            mediaFmt  = DdiMedia_VaFmtToMediaFmt(format, expected_fourcc);
-            if ((Media_Format_NV12 != mediaFmt) && (Media_Format_P010 != mediaFmt))
-            {
-                DDI_VERBOSEMESSAGE("Internal media format is invalid");
-                MOS_FreeMemory(bo_names);
-                MOS_FreeMemory(gmmParams);
-                return VA_STATUS_ERROR_INVALID_PARAMETER;
-            }
-
-            if( !MOS_IS_ALIGNED(externalBufDesc->data_size, MOS_PAGE_SIZE) )
-            {
-                externalBufDesc->data_size = MOS_ALIGN_CEIL(externalBufDesc->data_size, MOS_PAGE_SIZE);
-            }
-
-            if ((Media_Format_NV12 == mediaFmt) &&
-                    (externalBufDesc->data_size < externalBufDesc->pitches[0] * height * 3/2))
-            {
-                DDI_VERBOSEMESSAGE("Buffer size is too small");
-                MOS_FreeMemory(bo_names);
-                MOS_FreeMemory(gmmParams);
-                return VA_STATUS_ERROR_ALLOCATION_FAILED;
-            }
-            else if ((Media_Format_P010 == mediaFmt) &&
-                        (externalBufDesc->data_size < externalBufDesc->pitches[0] * height * 3))
-            {
-                DDI_VERBOSEMESSAGE("Buffer size is too small");
-                MOS_FreeMemory(bo_names);
-                MOS_FreeMemory(gmmParams);
-                return VA_STATUS_ERROR_ALLOCATION_FAILED;
-            }
-        }
-    }
-#endif
 
     for(int32_t i = 0; i < num_surfaces; i++)
     {
@@ -3716,19 +3618,7 @@ static VAStatus DdiMedia_PutSurface(
         vpCtx = DdiMedia_GetContextFromContextID(ctx, (VAContextID)(0 + DDI_MEDIA_VACONTEXTID_OFFSET_VP), &ctxType);
     }
 
-#ifdef ANDROID
-    if(nullptr != vpCtx)
-    {
-        return DdiCodec_PutSurfaceAndroidExt(
-          ctx, surface, draw, srcx, srcy, srcw, srch, destx, desty, destw, desth, cliprects, number_cliprects, flags);
-
-    }
-    else
-    {
-        return DdiCodec_PutSurfaceAndroid(
-          ctx, surface, draw, srcx, srcy, srcw, srch, destx, desty, destw, desth, cliprects, number_cliprects, flags);
-    }
-#else
+#ifndef ANDROID
     if(nullptr != vpCtx)
     {
         return DdiCodec_PutSurfaceLinuxHW(
@@ -3740,6 +3630,8 @@ static VAStatus DdiMedia_PutSurface(
         return DdiMedia_PutSurfaceLinuxSW(
           ctx, surface, draw, srcx, srcy, srcw, srch, destx, desty, destw, desth, cliprects, number_cliprects, flags);
     }
+#else 
+    return VA_STATUS_SUCCESS;
 #endif
 
 }
