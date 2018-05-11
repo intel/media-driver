@@ -27,15 +27,15 @@
 std::vector<FeatureID> refFeatureIDTable_BXT = {
     { VAProfileH264Main               , VAEntrypointVLD                 },
     { VAProfileH264Main               , VAEntrypointEncSlice            },
-    { VAProfileH264Main               , (VAEntrypoint)VAEntrypointFEI   },
+    { VAProfileH264Main               , VAEntrypointFEI                 },
     { VAProfileH264Main               , VAEntrypointEncSliceLP          },
     { VAProfileH264High               , VAEntrypointVLD                 },
     { VAProfileH264High               , VAEntrypointEncSlice            },
-    { VAProfileH264High               , (VAEntrypoint)VAEntrypointFEI   },
+    { VAProfileH264High               , VAEntrypointFEI                 },
     { VAProfileH264High               , VAEntrypointEncSliceLP          },
     { VAProfileH264ConstrainedBaseline, VAEntrypointVLD                 },
     { VAProfileH264ConstrainedBaseline, VAEntrypointEncSlice            },
-    { VAProfileH264ConstrainedBaseline, (VAEntrypoint)VAEntrypointFEI   },
+    { VAProfileH264ConstrainedBaseline, VAEntrypointFEI                 },
     { VAProfileH264ConstrainedBaseline, VAEntrypointEncSliceLP          },
     { VAProfileMPEG2Simple            , VAEntrypointVLD                 },
     { VAProfileMPEG2Main              , VAEntrypointVLD                 },
@@ -48,10 +48,10 @@ std::vector<FeatureID> refFeatureIDTable_BXT = {
     { VAProfileHEVCMain               , VAEntrypointVLD                 },
     { VAProfileHEVCMain               , VAEntrypointEncSlice            },
     { VAProfileHEVCMain10             , VAEntrypointVLD                 },
-    { VAProfileHEVCMain               , (VAEntrypoint)VAEntrypointFEI   },
+    { VAProfileHEVCMain               , VAEntrypointFEI                 },
     { VAProfileVP9Profile0            , VAEntrypointVLD                 },
     { VAProfileNone                   , VAEntrypointVideoProc           },
-    { VAProfileNone                   , (VAEntrypoint)VAEntrypointStats },
+    { VAProfileNone                   , VAEntrypointStats               },
 };
 
 #endif // __REF_CAPS_TABLE_BXT_H__
