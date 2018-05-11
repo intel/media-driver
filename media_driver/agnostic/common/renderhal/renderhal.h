@@ -1321,6 +1321,10 @@ typedef struct _RENDERHAL_INTERFACE
                 PRENDERHAL_INTERFACE            pRenderHal,
                 uint32_t                        dwSurfacesPerBT);
 
+    uint16_t (* pfnCalculateYOffset) (
+                PMOS_INTERFACE                  pOsInterface, 
+                PMOS_RESOURCE                   pOsResource);
+
     MOS_STATUS (* pfnAssignBindingTable) (
                 PRENDERHAL_INTERFACE            pRenderHal,
                 int32_t                         *piBindingTable);

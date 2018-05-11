@@ -782,14 +782,14 @@ extern const MHW_SURFACE_PLANES g_cRenderHal_SurfacePlanes[RENDERHAL_PLANES_DEFI
 //!
 //! \brief    Get Y Offset according to the planeOffset struct and surface pitch
 //! \details  Get Y Offset according to the planeOffset struct and surface pitch
-//! \param   PMOS_PLANE_OFFSET pPlaneOffset
-//!           [in] pointer to the Plane offset
-//! \param    uint32_t pitch
-//!           [in] Pitch of the surface
+//! \param    pOsInterface
+//!           [in] pointer to OS Interface
+//! \param    pOsResource
+//!           [in] Pointers to Surface OsResource
 //! \return   uint16_t
-//!           [out] the Y offset
+//!           [out] the plane Y offset
 //!
-uint16_t RenderHal_CalculateYOffset(PMOS_INTERFACE pOsInterface, PMOS_SURFACE pSurface);
+uint16_t RenderHal_CalculateYOffset(PMOS_INTERFACE pOsInterface, PMOS_RESOURCE pOsResource);
 
 MOS_STATUS RenderHal_AllocateDebugSurface(
     PRENDERHAL_INTERFACE     pRenderHal);
@@ -2929,7 +2929,7 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
                 else
                 {
                     PlaneDefinition = RENDERHAL_PLANES_NV12_ADV;
-                    wUYOffset       = RenderHal_CalculateYOffset(pRenderHal->pOsInterface, pSurface);
+                    wUYOffset       = RenderHal_CalculateYOffset(pRenderHal->pOsInterface, &pSurface->OsResource);
                 }
 
                 bHalfPitchForChroma = false;
@@ -3169,7 +3169,7 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
                     PlaneDefinition     = RENDERHAL_PLANES_P010_1PLANE_ADV;
                     bHalfPitchForChroma = false;
                     bInterleaveChroma   = true;
-                    wUYOffset           = RenderHal_CalculateYOffset(pRenderHal->pOsInterface, pSurface);
+                    wUYOffset           = RenderHal_CalculateYOffset(pRenderHal->pOsInterface, &pSurface->OsResource);
 
                     // Set up chroma direction
                     Direction = pRenderHal->pfnSetChromaDirection(pRenderHal, pRenderHalSurface);
@@ -6615,6 +6615,7 @@ MOS_STATUS RenderHal_InitInterface(
     pRenderHal->pfnSendSurfaceStateEntry      = RenderHal_SendSurfaceStateEntry;
     pRenderHal->pfnSetSurfaceStateToken       = RenderHal_SetSurfaceStateToken;
     pRenderHal->pfnSetSurfaceStateBuffer      = RenderHal_SetSurfaceStateBuffer;
+    pRenderHal->pfnCalculateYOffset           = RenderHal_CalculateYOffset;
 
     // Media states management functions
     pRenderHal->pfnAllocateBB                 = RenderHal_AllocateBB;
