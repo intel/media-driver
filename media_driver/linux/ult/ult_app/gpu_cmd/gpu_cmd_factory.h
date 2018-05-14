@@ -23,50 +23,21 @@
 #define __GPU_CMD_FACTORY_H__
 
 #include <gpu_cmd.h>
-#ifndef _FULL_OPEN_SOURCE
-#include "gpu_cmd_hcp_ind_obj_base_addr.h"
-#include "gpu_cmd_hcp_pipe_buf_addr.h"
-#include "gpu_cmd_mfx_bsp_buf_base_addr.h"
-#include "gpu_cmd_mfx_ind_obj_base_addr.h"
-#include "gpu_cmd_mfx_pipe_buf_addr.h"
-#endif // _FULL_OPEN_SOURCE
 
 class GpuCmdFactory
 {
 public:
 
-    virtual void CreateGpuCmds(std::vector<GpuCmdInterface::pcmditf_t> &gpuCmds, Platform_t platform) const = 0;
+    using pcmditf_t = GpuCmdInterface::pcmditf_t;
+
+    virtual void CreateGpuCmds(std::vector<pcmditf_t> &gpuCmds, Platform_t platform) const = 0;
 
     virtual ~GpuCmdFactory() { }
-};
-
-#ifndef _FULL_OPEN_SOURCE
-
-class GpuCmdFactoryEncodeHevcDualPipe : public GpuCmdFactory
-{
-    void CreateGpuCmds(std::vector<GpuCmdInterface::pcmditf_t> &gpuCmds, Platform_t platform) const override;
-};
-
-class GpuCmdFactoryDecodeHEVCLong : public GpuCmdFactory
-{
-    void CreateGpuCmds(std::vector<GpuCmdInterface::pcmditf_t> &gpuCmds, Platform_t platform) const override;
-};
-
-class GpuCmdFactoryEncodeAvcDualPipe : public GpuCmdFactory
-{
-    void CreateGpuCmds(std::vector<GpuCmdInterface::pcmditf_t> &gpuCmds, Platform_t platform) const override;
-};
-
-class GpuCmdFactoryDecodeAVCLong : public GpuCmdFactory
-{
-    void CreateGpuCmds(std::vector<GpuCmdInterface::pcmditf_t> &gpuCmds, Platform_t platform) const override;
 };
 
 extern GpuCmdFactory *g_gpuCmdFactoryEncodeHevcDualPipe;
 extern GpuCmdFactory *g_gpuCmdFactoryDecodeHEVCLong;
 extern GpuCmdFactory *g_gpuCmdFactoryEncodeAvcDualPipe;
 extern GpuCmdFactory *g_gpuCmdFactoryDecodeAVCLong;
-
-#endif // _FULL_OPEN_SOURCE
 
 #endif // __GPU_CMD_FACTORY_H__

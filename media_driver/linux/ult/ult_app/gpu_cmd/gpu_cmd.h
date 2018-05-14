@@ -49,7 +49,7 @@ public:
 
     static void ExpectEqWithMask(uint32_t src, uint32_t dst, uint32_t msk = 0xffffffff)
     {
-        EXPECT_EQ(src & msk, dst & msk);
+        EXPECT_EQ(src & msk, dst & msk) << "Validating \"" << typeid(cmd_t).name() << "\" failed\n";
     }
 
     static void ExpectEqOrZeroWithMask(uint32_t src, uint32_t dst, uint32_t msk = 0xffffffff)
@@ -77,8 +77,6 @@ public:
 
     void Validate(const void *p) const override
     {
-        TEST_COUT << "Validating \"" << typeid(cmd_t).name() << "\"\n";
-        
         auto pCmd = static_cast<const cmd_t *>(p);
 
         ValidateCachePolicy(pCmd);

@@ -25,9 +25,7 @@ using namespace std;
 
 TEST_F(MediaDecodeDdiTest, DecodeHEVCLong)
 {
-    #ifndef _FULL_OPEN_SOURCE
     m_GpuCmdFactory = g_gpuCmdFactoryDecodeHEVCLong;
-    #endif // _FULL_OPEN_SOURCE
     DecTestData *pDecData = m_decDataFactory.GetDecTestData("HEVC-Long");
     ExectueDecodeTest(pDecData);
     delete pDecData;
@@ -35,9 +33,7 @@ TEST_F(MediaDecodeDdiTest, DecodeHEVCLong)
 
 TEST_F(MediaDecodeDdiTest, DecodeAVCLong)
 {
-    #ifndef _FULL_OPEN_SOURCE
     m_GpuCmdFactory = g_gpuCmdFactoryDecodeAVCLong;
-    #endif // _FULL_OPEN_SOURCE
     DecTestData *pDecData = m_decDataFactory.GetDecTestData("AVC-Long");
     ExectueDecodeTest(pDecData);
     delete pDecData;

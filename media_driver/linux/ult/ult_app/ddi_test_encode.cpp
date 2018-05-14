@@ -25,9 +25,7 @@ using namespace std;
 
 TEST_F(MediaEncodeDdiTest, EncodeHEVC_DualPipe)
 {
-    #ifndef _FULL_OPEN_SOURCE
     m_GpuCmdFactory = g_gpuCmdFactoryEncodeHevcDualPipe;
-    #endif // _FULL_OPEN_SOURCE
     EncTestData *pEncData = m_encTestFactory.GetEncTestData("HEVC-DualPipe");
     ExectueEncodeTest(pEncData);
     delete pEncData;
@@ -35,9 +33,7 @@ TEST_F(MediaEncodeDdiTest, EncodeHEVC_DualPipe)
 
 TEST_F(MediaEncodeDdiTest, EncodeAVC_DualPipe)
 {
-    #ifndef _FULL_OPEN_SOURCE
     m_GpuCmdFactory = g_gpuCmdFactoryEncodeAvcDualPipe;
-    #endif // _FULL_OPEN_SOURCE
     EncTestData *pEncData = m_encTestFactory.GetEncTestData("AVC-DualPipe");
     ExectueEncodeTest(pEncData);
     delete pEncData;

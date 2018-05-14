@@ -29,6 +29,8 @@ class CmdValidator
 {
 public:
 
+    using pcmditf_t = GpuCmdInterface::pcmditf_t;
+
     static CmdValidator *GetInstance();
 
     static void GpuCmdsValidationInit(const GpuCmdFactory *cmdFactory, Platform_t platform);
@@ -52,7 +54,7 @@ private:
 
     static CmdValidator *m_instance;
 
-    std::vector<GpuCmdInterface::pcmditf_t> m_gpuCmds;
+    std::vector<pcmditf_t> m_gpuCmds;
 };
 
 #endif // __CMD_VALIDATOR_H__
