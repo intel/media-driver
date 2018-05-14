@@ -776,6 +776,12 @@ extern const MHW_SURFACE_PLANES g_cRenderHal_SurfacePlanes[RENDERHAL_PLANES_DEFI
         {
             { MHW_GENERIC_PLANE, 1, 1, 2, 1, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_YCRCB_NORMAL }
         }
+    },
+    // RENDERHAL_PLANES_Y416_RT
+    { 1,
+        {
+            { MHW_GENERIC_PLANE, 1, 1, 1, 1, 1, 0, MHW_GFX3DSTATE_SURFACEFORMAT_R8G8B8A8_UNORM }
+        }
     }
 };
 
@@ -3523,8 +3529,17 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
                 break;
 
             case Format_A16B16G16R16:
-            case Format_Y416:
                 PlaneDefinition = RENDERHAL_PLANES_A16B16G16R16;
+                break;
+            case Format_Y416:
+                if (pRenderHalSurface->SurfType == RENDERHAL_SURF_OUT_RENDERTARGET)
+                {
+                    PlaneDefinition = RENDERHAL_PLANES_Y416_RT;
+                }
+                else
+                {
+                    PlaneDefinition = RENDERHAL_PLANES_A16B16G16R16;
+                }
                 break;
             case Format_A16B16G16R16F:
                 PlaneDefinition = RENDERHAL_PLANES_A16B16G16R16F;
@@ -3649,6 +3664,7 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
                 PlaneDefinition == RENDERHAL_PLANES_A16B16G16R16F    ||
                 PlaneDefinition == RENDERHAL_PLANES_A16R16G16B16F    ||
                 PlaneDefinition == RENDERHAL_PLANES_Y210_RT          ||
+                PlaneDefinition == RENDERHAL_PLANES_Y416_RT          ||
                 PlaneDefinition == RENDERHAL_PLANES_R32_FLOAT_X8X24_TYPELESS)
             {
                 dwSurfaceWidth = dwSurfaceWidth << 1;
@@ -5072,6 +5088,7 @@ MOS_STATUS RenderHal_SendCscCoeffSurface(
     uint32_t                     dwHigh;
     uint32_t                     dwOffset;
     uint32_t                     dwCount;
+    uint8_t                      uiPatchMatrixID;
 
     //------------------------------------
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
@@ -5098,30 +5115,24 @@ MOS_STATUS RenderHal_SendCscCoeffSurface(
     PipeCtl.dwPostSyncOp = MHW_FLUSH_WRITE_IMMEDIATE_DATA;
     PipeCtl.dwFlushMode  = MHW_FLUSH_READ_CACHE;
 
-    for (uint32_t j = 0; j < DL_CSC_MAX; j++)
+    for (uint32_t j = 0; j < pKernelEntry->pCscParams->PatchMatrixNum; j++)
     {
-        if (!pKernelEntry->pCscParams->Matrix[j].bInUse)
+        uiPatchMatrixID = pKernelEntry->pCscParams->PatchMatrixID[j];
+        pTempCoeff = (uint64_t *)pKernelEntry->pCscParams->Matrix[uiPatchMatrixID].Coeff;
+
+        // Issue pipe control to write CSC Coefficient Surface
+        for (uint16_t i = 0; i < dwCount; i++, pTempCoeff++)
         {
-            continue;
+            dwLow = (uint32_t)((*pTempCoeff) & 0xFFFFFFFF);
+            dwHigh = (uint32_t)(((*pTempCoeff) >> 32) & 0xFFFFFFFF);
+            PipeCtl.dwResourceOffset = dwOffset + sizeof(uint64_t) * i;
+            PipeCtl.dwDataDW1 = dwLow;
+            PipeCtl.dwDataDW2 = dwHigh;
+
+            MHW_RENDERHAL_CHK_STATUS(pMhwMiInterface->AddPipeControl(pCmdBuffer, nullptr, &PipeCtl));
         }
-        else
-        {
-            pTempCoeff = (uint64_t *)pKernelEntry->pCscParams->Matrix[j].Coeff;
 
-            // Issue pipe control to write CSC Coefficient Surface
-            for (uint16_t i = 0; i < dwCount; i++, pTempCoeff++)
-            {
-                dwLow = (uint32_t)((*pTempCoeff) & 0xFFFFFFFF);
-                dwHigh = (uint32_t)(((*pTempCoeff) >> 32) & 0xFFFFFFFF);
-                PipeCtl.dwResourceOffset = dwOffset + sizeof(uint64_t) * i;
-                PipeCtl.dwDataDW1 = dwLow;
-                PipeCtl.dwDataDW2 = dwHigh;
-
-                MHW_RENDERHAL_CHK_STATUS(pMhwMiInterface->AddPipeControl(pCmdBuffer, nullptr, &PipeCtl));
-            }
-
-            dwOffset += Surface.dwPitch;
-        }
+        dwOffset += Surface.dwPitch;
     }
 
 finish:
