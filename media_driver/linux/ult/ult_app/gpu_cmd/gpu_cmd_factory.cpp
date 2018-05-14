@@ -21,98 +21,127 @@
 */
 #include "gpu_cmd_factory.h"
 
+#ifndef _FULL_OPEN_SOURCE
+
+#include "gpu_cmd_hcp_ind_obj_base_addr.h"
+#include "gpu_cmd_hcp_pipe_buf_addr.h"
+#include "gpu_cmd_mfx_bsp_buf_base_addr.h"
+#include "gpu_cmd_mfx_ind_obj_base_addr.h"
+#include "gpu_cmd_mfx_pipe_buf_addr.h"
+
 using namespace std;
 
-void GpuCmdFactoryEncodeHevcDualPipe::CreateGpuCmds(vector<GpuCmdInterface::pcmditf_t> &gpuCmds, Platform_t platform) const
-{
-    switch(platform)
-    {
-    case igfxSKLAKE:
-        break;
-    case igfxBROXTON:
-        break;
-    case igfxBROADWELL:
-        break;
-    case igfxCANNONLAKE:
-        gpuCmds.push_back(make_shared<GpuCmdHcpPipeBufAddrG10>());
-        break;
-    default:
-        return;
-    }
-}
+#define PUSH(CMD_TYPE) gpuCmds.push_back(make_shared<CMD_TYPE>())
+#define GPU_CMD_FACTORY_CREATE(factory) (new factory())
 
-void GpuCmdFactoryDecodeHEVCLong::CreateGpuCmds(vector<GpuCmdInterface::pcmditf_t> &gpuCmds, Platform_t platform) const
+class GpuCmdFactoryEncodeHevcDualPipe : public GpuCmdFactory
 {
-    switch(platform)
+    void CreateGpuCmds(vector<pcmditf_t> &gpuCmds, Platform_t platform) const override
     {
-    case igfxSKLAKE:
-        break;
-    case igfxBROXTON:
-        break;
-    case igfxBROADWELL:
-        break;
-    case igfxCANNONLAKE:
-        gpuCmds.push_back(make_shared<GpuCmdHcpPipeBufAddrG10>());
-        gpuCmds.push_back(make_shared<GpuCmdHcpIndObjBaseAddrG10>());
-        break;
-    default:
-        return;
+        switch(platform)
+        {
+        case igfxSKLAKE:
+            break;
+        case igfxBROXTON:
+            break;
+        case igfxBROADWELL:
+            break;
+        case igfxCANNONLAKE:
+            PUSH(GpuCmdHcpPipeBufAddrG10);
+            break;
+        default:
+            return;
+        }
     }
-}
+};
 
-void GpuCmdFactoryEncodeAvcDualPipe::CreateGpuCmds(vector<GpuCmdInterface::pcmditf_t> &gpuCmds, Platform_t platform) const
+class GpuCmdFactoryDecodeHEVCLong : public GpuCmdFactory
 {
-    switch(platform)
+    void CreateGpuCmds(vector<pcmditf_t> &gpuCmds, Platform_t platform) const override
     {
-    case igfxSKLAKE:
-        //gpuCmds.push_back(make_shared<GpuCmdMfxPipeBufAddrG9Skl>());
-        //gpuCmds.push_back(make_shared<GpuCmdMfxIndObjBaseAddrG9Skl>());
-        //gpuCmds.push_back(make_shared<GpuCmdMfxBspBufBaseAddrG9Skl>());
-        break;
-    case igfxBROXTON:
-        //gpuCmds.push_back(make_shared<GpuCmdMfxPipeBufAddrG9Bxt>());
-        //gpuCmds.push_back(make_shared<GpuCmdMfxIndObjBaseAddrG9Bxt>());
-        //gpuCmds.push_back(make_shared<GpuCmdMfxBspBufBaseAddrG9Bxt>());
-        break;
-    case igfxBROADWELL:
-        break;
-    case igfxCANNONLAKE:
-        //gpuCmds.push_back(make_shared<GpuCmdMfxPipeBufAddrG10>());
-        //gpuCmds.push_back(make_shared<GpuCmdMfxIndObjBaseAddrG10>());
-        //gpuCmds.push_back(make_shared<GpuCmdMfxBspBufBaseAddrG10>());
-        break;
-    default:
-        return;
+        switch(platform)
+        {
+        case igfxSKLAKE:
+            break;
+        case igfxBROXTON:
+            break;
+        case igfxBROADWELL:
+            break;
+        case igfxCANNONLAKE:
+            PUSH(GpuCmdHcpPipeBufAddrG10);
+            PUSH(GpuCmdHcpIndObjBaseAddrG10);
+            break;
+        default:
+            return;
+        }
     }
-}
+};
 
-void GpuCmdFactoryDecodeAVCLong::CreateGpuCmds(vector<GpuCmdInterface::pcmditf_t> &gpuCmds, Platform_t platform) const
+class GpuCmdFactoryEncodeAvcDualPipe : public GpuCmdFactory
 {
-    switch(platform)
+    void CreateGpuCmds(vector<pcmditf_t> &gpuCmds, Platform_t platform) const override
     {
-    case igfxSKLAKE:
-        //gpuCmds.push_back(make_shared<GpuCmdMfxPipeBufAddrG9Skl>());
-        //gpuCmds.push_back(make_shared<GpuCmdMfxIndObjBaseAddrG9Skl>());
-        //gpuCmds.push_back(make_shared<GpuCmdMfxBspBufBaseAddrG9Skl>());
-        break;
-    case igfxBROXTON:
-        //gpuCmds.push_back(make_shared<GpuCmdMfxPipeBufAddrG9Bxt>());
-        //gpuCmds.push_back(make_shared<GpuCmdMfxIndObjBaseAddrG9Bxt>());
-        //gpuCmds.push_back(make_shared<GpuCmdMfxBspBufBaseAddrG9Bxt>());
-        break;
-    case igfxBROADWELL:
-        break;
-    case igfxCANNONLAKE:
-        //gpuCmds.push_back(make_shared<GpuCmdMfxPipeBufAddrG10>());
-        //gpuCmds.push_back(make_shared<GpuCmdMfxIndObjBaseAddrG10>());
-        //gpuCmds.push_back(make_shared<GpuCmdMfxBspBufBaseAddrG10>());
-        break;
-    default:
-        return;
+        switch(platform)
+        {
+        case igfxSKLAKE:
+            //PUSH(GpuCmdMfxPipeBufAddrG9Skl);
+            //PUSH(GpuCmdMfxIndObjBaseAddrG9Skl);
+            //PUSH(GpuCmdMfxBspBufBaseAddrG9Skl);
+            break;
+        case igfxBROXTON:
+            //PUSH(GpuCmdMfxPipeBufAddrG9Bxt);
+            //PUSH(GpuCmdMfxIndObjBaseAddrG9Bxt);
+            //PUSH(GpuCmdMfxBspBufBaseAddrG9Bxt);
+            break;
+        case igfxBROADWELL:
+            break;
+        case igfxCANNONLAKE:
+            //PUSH(GpuCmdMfxPipeBufAddrG10);
+            //PUSH(GpuCmdMfxIndObjBaseAddrG10);
+            //PUSH(GpuCmdMfxBspBufBaseAddrG10);
+            break;
+        default:
+            return;
+        }
     }
-}
+};
 
-GpuCmdFactory *g_gpuCmdFactoryEncodeHevcDualPipe = new GpuCmdFactoryEncodeHevcDualPipe();
-GpuCmdFactory *g_gpuCmdFactoryDecodeHEVCLong     = new GpuCmdFactoryDecodeHEVCLong();
-GpuCmdFactory *g_gpuCmdFactoryEncodeAvcDualPipe  = new GpuCmdFactoryEncodeAvcDualPipe();
-GpuCmdFactory *g_gpuCmdFactoryDecodeAVCLong      = new GpuCmdFactoryDecodeAVCLong();
+class GpuCmdFactoryDecodeAVCLong : public GpuCmdFactory
+{
+    void CreateGpuCmds(vector<pcmditf_t> &gpuCmds, Platform_t platform) const override
+    {
+        switch(platform)
+        {
+        case igfxSKLAKE:
+            //PUSH(GpuCmdMfxPipeBufAddrG9Skl);
+            //PUSH(GpuCmdMfxIndObjBaseAddrG9Skl);
+            //PUSH(GpuCmdMfxBspBufBaseAddrG9Skl);
+            break;
+        case igfxBROXTON:
+            //PUSH(GpuCmdMfxPipeBufAddrG9Bxt);
+            //PUSH(GpuCmdMfxIndObjBaseAddrG9Bxt);
+            //PUSH(GpuCmdMfxBspBufBaseAddrG9Bxt);
+            break;
+        case igfxBROADWELL:
+            break;
+        case igfxCANNONLAKE:
+            //PUSH(GpuCmdMfxPipeBufAddrG10);
+            //PUSH(GpuCmdMfxIndObjBaseAddrG10);
+            //PUSH(GpuCmdMfxBspBufBaseAddrG10);
+            break;
+        default:
+            return;
+        }
+    }
+};
+
+#else // not _FULL_OPEN_SOURCE
+
+#define GPU_CMD_FACTORY_CREATE(factory) nullptr
+
+#endif // _FULL_OPEN_SOURCE
+
+GpuCmdFactory *g_gpuCmdFactoryEncodeHevcDualPipe = GPU_CMD_FACTORY_CREATE(GpuCmdFactoryEncodeHevcDualPipe);
+GpuCmdFactory *g_gpuCmdFactoryDecodeHEVCLong     = GPU_CMD_FACTORY_CREATE(GpuCmdFactoryDecodeHEVCLong);
+GpuCmdFactory *g_gpuCmdFactoryEncodeAvcDualPipe  = GPU_CMD_FACTORY_CREATE(GpuCmdFactoryEncodeAvcDualPipe);
+GpuCmdFactory *g_gpuCmdFactoryDecodeAVCLong      = GPU_CMD_FACTORY_CREATE(GpuCmdFactoryDecodeAVCLong);

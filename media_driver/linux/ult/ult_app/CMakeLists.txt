@@ -35,10 +35,10 @@ set(INTERNAL_INC_PATH
 include_directories(${INTERNAL_INC_PATH} ${LIBVA_PATH})
 if (NOT "${BS_DIR_GMMLIB}" STREQUAL "")
     include_directories(${BS_DIR_GMMLIB}/inc)
-endif()
+endif ()
 if (NOT "${BS_DIR_INC}" STREQUAL "")
    include_directories(${BS_DIR_INC} ${BS_DIR_INC}/common)
-endif()
+endif ()
 
 aux_source_directory(. SOURCES)
 aux_source_directory(./cm SOURCES)
@@ -51,6 +51,11 @@ if (NOT "${Full_Open_Source_Support}" STREQUAL "yes")
         ../../../agnostic/gen9_skl/hw/vdbox/mhw_vdbox_mfx_hwcmd_g9_skl.cpp
         ../../../agnostic/gen10/hw/vdbox/mhw_vdbox_mfx_hwcmd_g10_X.cpp
         ../../../agnostic/gen10/hw/vdbox/mhw_vdbox_hcp_hwcmd_g10_X.cpp
+    )
+else ()
+    set(SOURCES
+        ${SOURCES}
+        ${CMAKE_CURRENT_LIST_DIR}/gpu_cmd/gpu_cmd_factory.cpp
     )
 endif ()
 
