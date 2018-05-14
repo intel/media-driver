@@ -2461,7 +2461,7 @@ static uint8_t *KernelDll_GetPatchData(
         iPatchKind == PatchKind_CSC_Coeff_Src1)
     {
         Kdll_CoeffID  coeffID  = CoeffID_None;
-        int32_t       matrixID = DL_CSC_DISABLED;
+        int8_t       matrixID = DL_CSC_DISABLED;
 
         // Get matrix id
         if (iPatchKind == PatchKind_CSC_Coeff_Src0)
@@ -2485,6 +2485,20 @@ static uint8_t *KernelDll_GetPatchData(
             Kdll_CSC_Matrix *pMatrix = &(pSearchState->CscParams.Matrix[matrixID]);
 
             *pSize = 12 * sizeof(uint16_t);
+
+            if (pState->bEnableCMFC)
+            {
+                if (pSearchState->CscParams.PatchMatrixNum < DL_CSC_MAX)
+                {
+                    pSearchState->CscParams.PatchMatrixID[pSearchState->CscParams.PatchMatrixNum] = matrixID;
+                    pSearchState->CscParams.PatchMatrixNum ++;
+                }
+                else
+                {
+                    VPHAL_RENDER_NORMALMESSAGE("Patch CSC coefficient exceed limitation");
+                }
+            }
+
             return ((uint8_t *)pMatrix->Coeff);
         }
     }
@@ -4544,6 +4558,8 @@ bool KernelDll_SetupCSC(
     // Clear all CSC matrices
     MOS_ZeroMemory(matrix, sizeof(pCSC->Matrix));
     memset(matrixID, DL_CSC_DISABLED, sizeof(pCSC->MatrixID));
+    memset(pCSC->PatchMatrixID, DL_CSC_DISABLED, sizeof(pCSC->PatchMatrixID));
+    pCSC->PatchMatrixNum = 0;
 
     // Clear array of color spaces in use
     MOS_ZeroMemory(cspace_in_use, sizeof(cspace_in_use));
