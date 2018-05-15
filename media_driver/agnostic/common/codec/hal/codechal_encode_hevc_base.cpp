@@ -82,20 +82,22 @@ MOS_STATUS CodechalEncodeHevcBase::Initialize(CodechalSetting * settings)
     m_bitDepth     = (settings->lumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_8_BITS) ? 8 : ((settings->lumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_10_BITS) ? 10 : 12);
     m_frameNum = 0;
 
-    const uint32_t picWidthInLCU = MOS_ROUNDUP_DIVIDE(m_frameWidth, CODECHAL_HEVC_MIN_LCU_SIZE);        //assume smallest LCU to get max width
-    const uint32_t picHeightInLCU = MOS_ROUNDUP_DIVIDE(m_frameHeight, CODECHAL_HEVC_MIN_LCU_SIZE);      //assume smallest LCU to get max height                                                                                            // MaxNumLcu is when LCU size is min lcu size(16)
+    const uint32_t minLcuSize = 16;
+    const uint32_t picWidthInLCU = MOS_ROUNDUP_DIVIDE(m_frameWidth, minLcuSize);        //assume smallest LCU to get max width
+    const uint32_t picHeightInLCU = MOS_ROUNDUP_DIVIDE(m_frameHeight, minLcuSize);      //assume smallest LCU to get max height                                                                                            // MaxNumLcu is when LCU size is min lcu size(16)
     const uint32_t maxNumLCUs = picWidthInLCU *  picHeightInLCU;
     m_mvOffset = MOS_ALIGN_CEIL((maxNumLCUs * (m_hcpInterface->GetHcpPakObjSize()) * sizeof(uint32_t)), CODECHAL_PAGE_SIZE);
 
     // MaxNumCuRecords is when LCU size is max lcu size(64)
-    const uint32_t maxNumCuRecords = maxNumLCUs * 64;
+    const uint32_t maxNumCuRecords = MOS_ROUNDUP_DIVIDE(m_frameWidth, MAX_LCU_SIZE) *
+        MOS_ROUNDUP_DIVIDE(m_frameHeight, MAX_LCU_SIZE) * 64;
     m_mbCodeSize =
         m_mvOffset + MOS_ALIGN_CEIL((maxNumCuRecords * m_hcpInterface->GetHevcEncCuRecordSize()), CODECHAL_PAGE_SIZE);
 
     m_widthAlignedMaxLcu  = MOS_ALIGN_CEIL(m_frameWidth, MAX_LCU_SIZE);
     m_heightAlignedMaxLcu = MOS_ALIGN_CEIL(m_frameHeight, MAX_LCU_SIZE);
 
-    m_hevcBrcPakStatisticsSize = HEVC_BRC_PAK_STATISTCS_SIZE; // size for sturcture: CODECHAL_ENCODE_HEVC_PAK_STATS_BUFFER
+    m_hevcBrcPakStatisticsSize = HEVC_BRC_PAK_STATISTCS_SIZE;
     m_sizeOfHcpPakFrameStats   = 8 * CODECHAL_CACHELINE_SIZE;
 
     // Initialize kernel State
@@ -1426,6 +1428,26 @@ MOS_STATUS CodechalEncodeHevcBase::UpdateYUY2SurfaceInfo(
     surface->VPlaneOffset.iYOffset = surface->dwHeight;
 
     return eStatus;
+}
+
+uint32_t CodechalEncodeHevcBase::GetBitstreamBufferSize()
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    // 4:2:0 uncompression buffer size
+    uint32_t frameWidth = MOS_ALIGN_CEIL(m_frameWidth, MAX_LCU_SIZE);
+    uint32_t frameHeight = (MOS_ALIGN_CEIL(m_frameHeight, MAX_LCU_SIZE) * 3) / (m_is10BitHevc ? 1 : 2);
+
+    if (m_hevcSeqParams->chroma_format_idc == HCP_CHROMA_FORMAT_YUV422)
+    {
+        frameWidth = (frameWidth * 8) / 6; //4:2:2 v.s 4:2:0
+    }
+    else if (m_hevcSeqParams->chroma_format_idc == HCP_CHROMA_FORMAT_YUV444)
+    {
+        frameWidth = (frameWidth * 12) / 6; //4:4:4 v.s 4:2:0
+    }
+
+    return frameWidth * frameHeight;
 }
 
 void CodechalEncodeHevcBase::CreateFlatScalingList()
