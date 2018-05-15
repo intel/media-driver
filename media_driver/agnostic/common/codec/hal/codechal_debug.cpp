@@ -515,7 +515,7 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
     }
 
     const char *funcName = m_codecFunction == CODECHAL_FUNCTION_DECODE ? "_DEC" : "_ENC";
-    std::string bufName  = std::string(surfName) + "_w[" + std::to_string(width) + "]_h[" + std::to_string(height) + "]_p[" + std::to_string(pitch) + "]";
+    std::string bufName  = std::string(surfName) + "_w[" + std::to_string(surface->dwWidth) + "]_h[" + std::to_string(surface->dwHeight) + "]_p[" + std::to_string(pitch) + "]";
 
     const char *filePath = CreateFileName(funcName, bufName.c_str(), CodechalDbgExtType::yuv);
 
