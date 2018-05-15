@@ -271,13 +271,13 @@ void CodechalDebugConfigMgr::GenerateDefaultConfig()
     ofs << "#@Frame ALL" << std::endl;
     ofs << std::endl;
 
-    ofs << "#" << CodechalDbgAttr::attrMvcExtPicParams << ":0" << std::endl;
     ofs << "#" << CodechalDbgAttr::attrSegmentParams << ":0" << std::endl;
     ofs << "#" << CodechalDbgAttr::attrMbParams << ":0" << std::endl;
     ofs << "#" << CodechalDbgAttr::attrVc1Bitplane << ":0" << std::endl;
     ofs << "#" << CodechalDbgAttr::attrCoefProb << ":0" << std::endl;
     ofs << "#" << CodechalDbgAttr::attrSegId << ":0" << std::endl;
     ofs << "#" << CodechalDbgAttr::attrDecodeOutputSurface << ":0" << std::endl;
+    ofs << "#" << CodechalDbgAttr::attrDecodeAuxSurface << ":0" << std::endl;
     ofs << "#" << CodechalDbgAttr::attrDecodeProcParams << ":0" << std::endl;
     ofs << std::endl;
 
