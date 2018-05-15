@@ -2137,6 +2137,7 @@ MOS_STATUS MOS_OS_Utilities_Close()
     int32_t                             MemoryCounter = 0;
     MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
     MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
+    extern int32_t                      MosMemAllocFakeCounter;
 
     // lock mutex to avoid multi close in multi-threading env
     MOS_LockMutex(&gMosUtilMutex);
@@ -2144,6 +2145,7 @@ MOS_STATUS MOS_OS_Utilities_Close()
     if (uiMOSUtilInitCount == 0 )
     {
         MOS_TraceEventClose();
+        MosMemAllocCounter -= MosMemAllocFakeCounter;
         MemoryCounter = MosMemAllocCounter + MosMemAllocCounterGfx;
         MosMemAllocCounterNoUserFeature = MosMemAllocCounter;
         MosMemAllocCounterNoUserFeatureGfx = MosMemAllocCounterGfx;

@@ -38,6 +38,7 @@
 #include <math.h>
 
 int32_t MosMemAllocCounter;      //!< Counter to check memory leaks
+int32_t MosMemAllocFakeCounter;
 int32_t MosMemAllocCounterGfx;
 int32_t MosMemAllocCounterNoUserFeature;
 int32_t MosMemAllocCounterNoUserFeatureGfx;
@@ -4299,6 +4300,7 @@ static MOS_STATUS MOS_UserFeature_ReadValueString(
     {
         MOS_SafeFreeMemory(pFeatureValue->Value.StringData.pStringData);
         pFeatureValue->Value.StringData.pStringData = (char *)MOS_AllocAndZeroMemory(strlen(pcTmpStr) + 1);
+        MosMemAllocFakeCounter++;
         MOS_SecureMemcpy(pFeatureValue->Value.StringData.pStringData, strlen(pcTmpStr), pcTmpStr, strlen(pcTmpStr));
         pFeatureValue->Value.StringData.uSize = dwUFSize;
     }
@@ -4370,6 +4372,7 @@ static MOS_STATUS MOS_UserFeature_ReadValueMultiString(
     {
         MOS_SafeFreeMemory(pFeatureValue->Value.MultiStringData.pMultStringData);
         pFeatureValue->Value.MultiStringData.pMultStringData = (char *)MOS_AllocAndZeroMemory(strlen(pcTmpStr) + 1);
+        MosMemAllocFakeCounter++;
         if (pFeatureValue->Value.MultiStringData.pMultStringData == nullptr)
         {
             MOS_OS_ASSERTMESSAGE("Failed to allocate memory.");
