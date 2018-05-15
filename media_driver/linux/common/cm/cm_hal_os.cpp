@@ -788,20 +788,11 @@ MOS_STATUS HalCm_Allocate3DResource_Linux(
     PCM_HAL_STATE               state,                                         // [in]  Pointer to CM State
     PCM_HAL_3DRESOURCE_PARAM    param)                                         // [in]  Pointer to Buffer Param
 {
-    MOS_STATUS                  hr;
-    PMOS_INTERFACE              osInterface;
-    PCM_HAL_3DRESOURCE_ENTRY    entry;
-    uint32_t                    i;
+    MOS_STATUS hr = MOS_STATUS_SUCCESS;
+    PMOS_INTERFACE osInterface = state->renderHal->pOsInterface;
+    PCM_HAL_3DRESOURCE_ENTRY entry = nullptr;
 
-    PMOS_RESOURCE               osResource;
-    MOS_FORMAT                  format;
-    uint32_t                    tileformat;
-    int32_t                     height;
-    int32_t                     width;
-    int32_t                     depth;
-    int32_t                     size  = 0;
-    int32_t                     pitch = 0;
-    MOS_LINUX_BO                *bo    = nullptr;
+    PMOS_RESOURCE osResource = nullptr;
 
     //-----------------------------------------------
     CM_ASSERT(state);
@@ -810,12 +801,8 @@ MOS_STATUS HalCm_Allocate3DResource_Linux(
     CM_ASSERT(param->height > 0);
     //-----------------------------------------------
 
-    hr              = MOS_STATUS_SUCCESS;
-    osInterface    = state->renderHal->pOsInterface;
-    entry          = nullptr;
-
     // Find a free slot
-    for (i = 0; i < state->cmDeviceParam.max3DSurfaceTableSize; i++)
+    for (uint32_t i = 0; i < state->cmDeviceParam.max3DSurfaceTableSize; i++)
     {
         if (Mos_ResourceIsNull(&state->surf3DTable[i].osResource))
         {
@@ -824,75 +811,35 @@ MOS_STATUS HalCm_Allocate3DResource_Linux(
             break;
         }
     }
-
     if (!entry)
     {
         CM_ERROR_ASSERT("3D surface table is full");
-        goto finish;
+        return hr;
     }
-
-    format  = param->format;
-    width  = param->width;
-    height = param->height;
-    depth  = param->depth;
 
     osResource = &(entry->osResource);
     // Resets the Resource
     Mos_ResetResource(osResource);
 
-    if ((depth < 1) || \
-        ((format != Format_A8R8G8B8) && \
-         (format != Format_X8R8G8B8) && \
-         (format != Format_A16B16G16R16)))
-    {
-        CM_ERROR_ASSERT("Invalid Argument for 3D surface!");
-        goto finish;
-    }
+    MOS_ALLOC_GFXRES_PARAMS alloc_params;
+    MOS_ZeroMemory(&alloc_params, sizeof(alloc_params));
+    alloc_params.Type          = MOS_GFXRES_VOLUME;
+    alloc_params.TileType      = MOS_TILE_Y;
+    alloc_params.dwWidth       = param->width;
+    alloc_params.dwHeight      = param->height;
+    alloc_params.dwDepth       = param->depth;
+    alloc_params.pSystemMemory = param->data;
+    alloc_params.Format        = param->format;
+    alloc_params.pBufName      = "CmSurface3D";
 
-    switch (format)
-    {
-        case Format_A8R8G8B8:
-            pitch = 4 * width;
-            tileformat = I915_TILING_NONE;
-            break;
-        case Format_X8R8G8B8:
-            pitch = 4 * width;
-            tileformat = I915_TILING_NONE;
-            break;
-        case Format_A16B16G16R16:
-            pitch = 8 * width;
-            tileformat = I915_TILING_NONE;
-            break;
-        default:
-            pitch = width;
-            tileformat = I915_TILING_NONE;
-    }
-
-    size = height * pitch * depth;
-
-    if( tileformat == I915_TILING_NONE ){
-        bo = mos_bo_alloc(osInterface->pOsContext->bufmgr, "CM 3D surface", size, 4096);
-    }
-
-    osResource->bMapped = false;
-
-    if (bo)
-    {
-        osResource->Format  = format;
-        osResource->iWidth  = width;
-        osResource->iHeight = height;
-        osResource->iPitch  = pitch;
-        osResource->iDepth  = depth;
-        osResource->bo      = bo;
-        osResource->TileType = LinuxToMosTileType(tileformat);
-        osResource->pData    = (uint8_t*) bo->virt;
-        HalCm_CreateGmmResInfo3D(osResource);
-    }
-    else
-    {
-        CM_DDI_ASSERTMESSAGE("Fail to Alloc %7d bytes (%d x %d resource)\n", size, width, height);
-        hr = MOS_STATUS_UNKNOWN;
-    }
+    CM_HRESULT2MOSSTATUS_AND_CHECK(osInterface->pfnAllocateResource(
+        osInterface,
+        &alloc_params,
+        &entry->osResource));
+    entry->width = param->width;
+    entry->height = param->height;
+    entry->depth = param->depth;
+    entry->format = param->format;
 
 finish:
     return hr;
