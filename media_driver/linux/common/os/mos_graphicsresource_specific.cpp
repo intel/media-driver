@@ -99,6 +99,7 @@ GMM_RESOURCE_FORMAT GraphicsResourceSpecific::ConvertMosFmtToGmmFmt(MOS_FORMAT f
         case Format_R16U        : return GMM_FORMAT_R16_UINT_TYPE;
         case Format_P010        : return GMM_FORMAT_P010_TYPE;
         case Format_P208        : return GMM_FORMAT_P208_TYPE;
+        case Format_A16B16G16R16: return GMM_FORMAT_R16G16B16A16_UNORM_TYPE;
         default                 : return GMM_FORMAT_INVALID;
     }
 }
@@ -130,67 +131,40 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
     GMM_RESCREATE_PARAMS    gmmParams;
     MOS_ZeroMemory(&gmmParams, sizeof(gmmParams));
 
-    switch (params.m_format)
+    switch (params.m_type)
     {
-        case Format_Buffer:
-        case Format_RAW:
-            resourceType    = RESOURCE_BUFFER;
-            alignedHeight   = 1;
-            //indicate buffer Restriction is Vertex.
-            gmmParams.Flags.Gpu.State = true;
-            break;
-        case Format_L8:
-        case Format_L16:
-        case Format_STMM:
-        case Format_AI44:
-        case Format_IA44:
-        case Format_R5G6B5:
-        case Format_X8R8G8B8:
-        case Format_A8R8G8B8:
-        case Format_X8B8G8R8:
-        case Format_A8B8G8R8:
-        case Format_R32S:
-        case Format_R32F:
-        case Format_V8U8:
-        case Format_YUY2:
-        case Format_UYVY:
-        case Format_P8:
-        case Format_A8:
-        case Format_AYUV:
-        case Format_NV12:
-        case Format_NV21:
-        case Format_YV12:
-        case Format_Buffer_2D:
-        case Format_R32U:
-        case Format_444P:
-        case Format_422H:
-        case Format_422V:
-        case Format_IMC3:
-        case Format_411P:
-        case Format_R16U:
-        case Format_R8U:
-        case Format_P010:
-        case Format_P208:
-            resourceType  = RESOURCE_2D;
-            //indicate buffer Restriction is Planar surface restrictions.
+        case MOS_GFXRES_BUFFER:
+          gmmParams.Type = RESOURCE_BUFFER;
+          gmmParams.Flags.Gpu.State = true;
+          alignedHeight = 1;
+          break;
+
+        case MOS_GFXRES_2D:
+            gmmParams.Type = RESOURCE_2D;
             gmmParams.Flags.Gpu.Video = true;
             break;
+
+        case MOS_GFXRES_VOLUME:
+            gmmParams.Type = RESOURCE_3D;
+            gmmParams.Flags.Gpu.Video = true;
+            gmmParams.Depth = params.m_depth;
+            break;
+
         default:
-            MOS_OS_ASSERTMESSAGE("Unsupported format");
-            status = MOS_STATUS_UNIMPLEMENTED;
-            return status;
+            MOS_OS_ASSERTMESSAGE("Unknown surface type");
+            return MOS_STATUS_UNKNOWN;
     }
 
     // Create GmmResourceInfo
-    gmmParams.BaseWidth    = params.m_width;
-    gmmParams.BaseHeight   = alignedHeight;
-    gmmParams.ArraySize    = 1;
-    gmmParams.Type         = resourceType;
-    gmmParams.Format       = ConvertMosFmtToGmmFmt(params.m_format);
-
-    MOS_OS_CHECK_CONDITION(gmmParams.Format == GMM_FORMAT_INVALID,
-                         "Unsupported format",
-                         MOS_STATUS_UNKNOWN);
+    gmmParams.Format = ConvertMosFmtToGmmFmt(params.m_format);
+    if (gmmParams.Format == GMM_FORMAT_INVALID)
+    {
+        MOS_OS_ASSERTMESSAGE("Unsupported format");
+        return MOS_STATUS_UNIMPLEMENTED;
+    }
+    gmmParams.BaseWidth = params.m_width;
+    gmmParams.BaseHeight = alignedHeight;
+    gmmParams.ArraySize = 1;
 
     MOS_TILE_TYPE tileformat = params.m_tileType;
     switch(tileformat)
@@ -296,7 +270,6 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
         m_width    = params.m_width;
         m_height   = bufHeight;
         m_pitch    = bufPitch;
-        m_qPitch   = gmmResourceInfoPtr->GetQPitch();
         m_count    = 0;
         m_bo       = boPtr;
         m_name     = params.m_name;
