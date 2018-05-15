@@ -1254,6 +1254,11 @@ MOS_STATUS CodechalEncodeHevcBase::SetSliceStructs()
             startLCU += slcParams->NumLCUsInSlice;
         }
     }
+    
+    if (m_lowDelay && !m_sameRefList)
+    {
+        CODECHAL_ENCODE_ASSERTMESSAGE("Attention: LDB frame but with different L0/L1 list !");
+    }
 
     if (m_hevcSeqParams->RateControlMethod == RATECONTROL_VCM && m_pictureCodingType == B_TYPE && !m_lowDelay)
     {
