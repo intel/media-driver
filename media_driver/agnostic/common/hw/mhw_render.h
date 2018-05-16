@@ -598,7 +598,6 @@ protected:
         m_miInterface = miInterface;
         m_stateHeapInterface = nullptr;
 
-        memset(&m_l3CacheConfig, 0, sizeof(m_l3CacheConfig));
         memset(&m_hwCaps, 0, sizeof(m_hwCaps));
 
         if (m_osInterface->bUsesGfxAddress)
