@@ -35,11 +35,6 @@
 #include <dlfcn.h>
 #include <errno.h>
 
-#ifdef ANDROID
-#include <va/va_android.h>
-#include <ufo/gralloc.h>
-#endif
-
 #include "media_libva_util.h"
 #include "mos_utilities.h"
 #include "mos_os.h"
@@ -333,7 +328,6 @@ VAStatus DdiMediaUtil_AllocateSurface(
     MOS_LINUX_BO               *bo = nullptr;
     GMM_RESCREATE_PARAMS        gmmParams;
     GMM_RESOURCE_INFO          *gmmResourceInfo;
-    bool                        grallocAllocation;
 
     DDI_CHK_NULL(mediaSurface, "mediaSurface is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
     DDI_CHK_NULL(mediaDrvCtx, "mediaDrvCtx is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
@@ -409,25 +403,12 @@ VAStatus DdiMediaUtil_AllocateSurface(
         // DRM buffer allocated by Application, No need to re-allocate new DRM buffer
          if( (mediaSurface->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM)
              || (mediaSurface->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)
-#ifdef ANDROID
-             ||(mediaSurface->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_ANDROID_GRALLOC)
-#endif 
            )
         {
             if (mediaSurface->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM)
             {
                 bo = mos_bo_gem_create_from_name(mediaDrvCtx->pDrmBufMgr, "MEDIA", mediaSurface->pSurfDesc->ulBuffer);
             }
-#ifdef ANDROID
-            else if (mediaSurface->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_ANDROID_GRALLOC)
-            {
-#if INTEL_UFO_GRALLOC_HAVE_PRIME
-                bo = mos_bo_gem_create_from_prime(mediaDrvCtx->pDrmBufMgr, mediaSurface->pSurfDesc->ulBuffer, mediaSurface->pSurfDesc->uiSize);
-#else
-                bo = mos_bo_gem_create_from_name(mediaDrvCtx->pDrmBufMgr, "MEDIA", mediaSurface->pSurfDesc->ulBuffer);
-#endif
-            }
-#endif
             else
             {
                 bo = mos_bo_gem_create_from_prime(mediaDrvCtx->pDrmBufMgr, mediaSurface->pSurfDesc->ulBuffer, mediaSurface->pSurfDesc->uiSize);
@@ -497,51 +478,33 @@ VAStatus DdiMediaUtil_AllocateSurface(
         }
     }
 
-    grallocAllocation = false;
-    if( DdiMediaUtil_IsExternalSurface(mediaSurface) )
-    {        
-        grallocAllocation = mediaSurface->pSurfDesc->bIsGralloc;
-    }
-    
-    if( grallocAllocation )    
-    {
-        gmmParams = mediaSurface->pSurfDesc->GmmParam;
-    }    
-    else    
-    {  
-        // Create GmmResourceInfo
-        MOS_ZeroMemory(&gmmParams, sizeof(gmmParams));
-        if (DdiMediaUtil_IsExternalSurface(mediaSurface))
-        {
-            gmmParams.BaseWidth         = mediaSurface->iWidth;
-            gmmParams.BaseHeight        = mediaSurface->iHeight;
-        }
-        else
-        {
-            gmmParams.BaseWidth         = width;
-            gmmParams.BaseHeight        = alignedHeight;
-        }
-        
-        gmmParams.ArraySize             = 1;
-        gmmParams.Type                  = RESOURCE_2D;
-        gmmParams.Format                = DdiMediaUtil_ConvertMediaFmtToGmmFmt(format);
-        
-        DDI_CHK_CONDITION(gmmParams.Format == GMM_FORMAT_INVALID, 
-                             "Unsupported format", 
-                             VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT);
-    }
+	// Create GmmResourceInfo
+	MOS_ZeroMemory(&gmmParams, sizeof(gmmParams));
+	if (DdiMediaUtil_IsExternalSurface(mediaSurface))
+	{
+		gmmParams.BaseWidth         = mediaSurface->iWidth;
+		gmmParams.BaseHeight        = mediaSurface->iHeight;
+	}
+	else
+	{
+		gmmParams.BaseWidth         = width;
+		gmmParams.BaseHeight        = alignedHeight;
+	}
+
+	gmmParams.ArraySize             = 1;
+	gmmParams.Type                  = RESOURCE_2D;
+	gmmParams.Format                = DdiMediaUtil_ConvertMediaFmtToGmmFmt(format);
+
+	DDI_CHK_CONDITION(gmmParams.Format == GMM_FORMAT_INVALID, 
+		                 "Unsupported format", 
+		                 VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT);
     
     switch (tileformat)
     {
         case I915_TILING_Y:
             gmmParams.Flags.Info.TiledY    = true;
-
-            // For surface allocated by Gralloc, we use intel_ufo_bo_type_t to store mmc state.
-            if (!grallocAllocation)
-            {
-                // Disable MMC for application required surfaces, because some cases' output streams have corruption.
-                gmmParams.Flags.Gpu.MMC    = false;
-            }
+            // Disable MMC for application required surfaces, because some cases' output streams have corruption.
+            gmmParams.Flags.Gpu.MMC    = false;
             break;
         case I915_TILING_X:
             gmmParams.Flags.Info.TiledX    = true;
@@ -648,19 +611,6 @@ VAStatus DdiMediaUtil_AllocateSurface(
     mediaSurface->bMapped = false;
     if (bo)
     {
-#ifdef ANDROID
-        if (!grallocAllocation)
-        {
-            intel_ufo_bo_datatype_t datatype;
-            
-            datatype.value = 0;
-            mos_bo_get_datatype(bo, &datatype.value);
-            datatype.is_mmc_capable   = (uint32_t)gmmParams.Flags.Gpu.MMC;
-            datatype.compression_hint = INTEL_UFO_BUFFER_HINT_MMC_COMPRESSED;
-            mos_bo_set_datatype(bo, datatype.value);
-        }
-#endif
-
         mediaSurface->format      = format;
         mediaSurface->iWidth      = width;
         mediaSurface->iHeight     = gmmHeight;
