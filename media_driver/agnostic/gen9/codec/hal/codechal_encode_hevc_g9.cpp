@@ -3909,16 +3909,17 @@ MOS_STATUS CodechalEncHevcStateG9::AllocateEncResources()
     if (m_hmeKernel && m_hmeSupported)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hmeKernel->AllocateResources());
-
-        // BRC Distortion Surface which will be used in ME as the output, too
-        width = MOS_ALIGN_CEIL((m_downscaledWidthInMb4x * 8), 64);
-        height = MOS_ALIGN_CEIL((m_downscaledHeightInMb4x * 4), 8);
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateBuffer2D(
-            &m_brcBuffers.sMeBrcDistortionBuffer,
-            width,
-            height,
-            "BRC distortion surface"));
     }
+  
+    // BRC Distortion Surface which will be used in ME as the output, too
+    // In addition, this surface should also be allocated as BRC resource once ENC is enabled
+    width = MOS_ALIGN_CEIL((m_downscaledWidthInMb4x * 8), 64);
+    height = MOS_ALIGN_CEIL((m_downscaledHeightInMb4x * 4), 8);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateBuffer2D(
+        &m_brcBuffers.sMeBrcDistortionBuffer,
+        width,
+        height,
+        "BRC distortion surface"));
 
     if (MEDIA_IS_SKU(m_skuTable, FtrEncodeHEVC10bit))
     {
@@ -4060,7 +4061,7 @@ MOS_STATUS CodechalEncHevcStateG9::FreeEncResources()
         m_osInterface,
         &m_simplestIntraSurface.OsResource);
 
-    if (m_hmeSupported)
+    if (m_encEnabled)
     {
         m_osInterface->pfnFreeResource(
             m_osInterface,
