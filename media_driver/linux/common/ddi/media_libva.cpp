@@ -37,20 +37,11 @@
 #include <ufo/gralloc.h>
 #endif
 
-#ifndef ANDROID
-#include <X11/Xutil.h>
-#endif
-
 #include <linux/fb.h>
 
 #include "media_libva_util.h"
 #include "media_libva_decoder.h"
 #include "media_libva_encoder.h"
-#ifndef ANDROID
-#include "media_libva_putsurface_linux.h"
-#else
-#include "media_libva_putsurface_android.h"
-#endif
 #include "media_libva_vp.h"
 #include "mos_os.h"
 
@@ -641,77 +632,6 @@ DDI_MEDIA_FORMAT DdiMedia_OsFormatAlphaMaskToMediaFormat(int32_t fourcc, int32_t
             return Media_Format_Count;
     }
 }
-
-#ifndef ANDROID
-
-#define X11_LIB_NAME "libX11.so"
-
-/*
- * Close opened libX11.so lib, free related function table.
- */
-static void DdiMedia_DestroyX11Connection(
-    PDDI_MEDIA_CONTEXT mediaCtx
-)
-{
-    if (nullptr == mediaCtx || nullptr == mediaCtx->X11FuncTable)
-    {
-        return;
-    }
-
-    MOS_FreeLibrary(mediaCtx->X11FuncTable->pX11LibHandle);
-    MOS_FreeMemory(mediaCtx->X11FuncTable);
-    mediaCtx->X11FuncTable = nullptr;
-
-    return;
-}
-
-/*
- * dlopen libX11.so, setup the function table, which is used by
- * DdiCodec_PutSurface (Linux) so far.
- */
-static VAStatus DdiMedia_ConnectX11(
-    PDDI_MEDIA_CONTEXT mediaCtx
-)
-{
-    DDI_CHK_NULL(mediaCtx, "nullptr mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
-
-    mediaCtx->X11FuncTable = (PDDI_X11_FUNC_TABLE)MOS_AllocAndZeroMemory(sizeof(DDI_X11_FUNC_TABLE));
-    DDI_CHK_NULL(mediaCtx->X11FuncTable, "Allocation Failed for X11FuncTable", VA_STATUS_ERROR_ALLOCATION_FAILED);
-
-    HMODULE    h_module   = nullptr;
-    MOS_STATUS mos_status = MOS_LoadLibrary(X11_LIB_NAME, &h_module);
-    if (MOS_STATUS_SUCCESS != mos_status || nullptr == h_module)
-    {
-        DdiMedia_DestroyX11Connection(mediaCtx);
-        return VA_STATUS_ERROR_OPERATION_FAILED;
-    }
-
-    mediaCtx->X11FuncTable->pX11LibHandle = h_module;
-
-    mediaCtx->X11FuncTable->pfnXCreateGC =
-        MOS_GetProcAddress(h_module, "XCreateGC");
-    mediaCtx->X11FuncTable->pfnXFreeGC =
-        MOS_GetProcAddress(h_module, "XFreeGC");
-    mediaCtx->X11FuncTable->pfnXCreateImage =
-        MOS_GetProcAddress(h_module, "XCreateImage");
-    mediaCtx->X11FuncTable->pfnXDestroyImage =
-        MOS_GetProcAddress(h_module, "XDestroyImage");
-    mediaCtx->X11FuncTable->pfnXPutImage =
-        MOS_GetProcAddress(h_module, "XPutImage");
-
-    if (nullptr == mediaCtx->X11FuncTable->pfnXCreateGC     ||
-        nullptr == mediaCtx->X11FuncTable->pfnXFreeGC       ||
-        nullptr == mediaCtx->X11FuncTable->pfnXCreateImage  ||
-        nullptr == mediaCtx->X11FuncTable->pfnXDestroyImage ||
-        nullptr == mediaCtx->X11FuncTable->pfnXPutImage)
-    {
-        DdiMedia_DestroyX11Connection(mediaCtx);
-        return VA_STATUS_ERROR_OPERATION_FAILED;
-    }
-
-    return VA_STATUS_SUCCESS;
-}
-#endif
 
 /////////////////////////////////////////////////////////////////////////////
 //! \Free allocated surfaceheap elements
@@ -1319,27 +1239,9 @@ VAStatus DdiMedia__Initialize (
     DdiMediaUtil_InitMutex(&mediaCtx->VpMutex);
     DdiMediaUtil_InitMutex(&mediaCtx->CmMutex);
     DdiMediaUtil_InitMutex(&mediaCtx->MfeMutex);
-#ifndef ANDROID
-    DdiMediaUtil_InitMutex(&mediaCtx->PutSurfaceRenderMutex);
-    DdiMediaUtil_InitMutex(&mediaCtx->PutSurfaceSwapBufferMutex);
-
-    // try to open X11 lib, if fail, assume no X11 environment
-    if (VA_STATUS_SUCCESS != DdiMedia_ConnectX11(mediaCtx))
-    {
-        // assume no X11 environment. In current implementation,
-        // PutSurface (Linux) needs X11 support, so just replace
-        // it with a dummy version. DdiCodec_PutSurfaceDummy() will
-        // return VA_STATUS_ERROR_UNIMPLEMENTED directly.
-        ctx->vtable->vaPutSurface = DdiMedia_PutSurfaceDummy;
-    }
-#endif
 
     ctx->pDriverData  = (void*)mediaCtx;
     mediaCtx->bIsAtomSOC = IS_ATOMSOC(mediaCtx->iDeviceId);
-
-#ifndef ANDROID
-    output_dri_init(ctx);
-#endif
 
     eStatus = Mos_Solo_DdiInitializeDeviceId(
                  (void*)mediaCtx->pDrmBufMgr,
@@ -1471,21 +1373,6 @@ static VAStatus DdiMedia_Terminate (
         mediaCtx->m_osContext->CleanUp();
         MOS_Delete(mediaCtx->m_osContext);
     }
-
-#ifndef ANDROID
-    DdiMedia_DestroyX11Connection(mediaCtx);
-
-    if (mediaCtx->m_caps)
-    {
-        if (mediaCtx->dri_output != nullptr) {
-            if (mediaCtx->dri_output->handle)
-                dso_close(mediaCtx->dri_output->handle);
-
-            free(mediaCtx->dri_output);
-            mediaCtx->dri_output = nullptr;
-        }
-    }
-#endif
 
     //destory resources
     DdiMedia_FreeSurfaceHeapElements(mediaCtx);
@@ -3694,73 +3581,6 @@ DdiMedia_QuerySurfaceAttributes(
             attrib_list, num_attribs);
 }
 
-static VAStatus DdiMedia_PutSurface(
-    VADriverContextP ctx,
-    VASurfaceID      surface,
-    void*            draw,             /* Drawable of window system */
-    int16_t          srcx,
-    int16_t          srcy,
-    uint16_t         srcw,
-    uint16_t         srch,
-    int16_t          destx,
-    int16_t          desty,
-    uint16_t         destw,
-    uint16_t         desth,
-    VARectangle     *cliprects,        /* client supplied clip list */
-    uint32_t         number_cliprects, /* number of clip rects in the clip list */
-    uint32_t         flags             /* de-interlacing flags */
-)
-{
-    DDI_FUNCTION_ENTER();
-
-    DDI_CHK_NULL(ctx, "nullptr ctx", VA_STATUS_ERROR_INVALID_PARAMETER);
-    if(number_cliprects > 0)
-    {
-        DDI_CHK_NULL(cliprects, "nullptr cliprects", VA_STATUS_ERROR_INVALID_PARAMETER);
-    }
-
-    void               *vpCtx        = nullptr;
-    PDDI_MEDIA_CONTEXT mediaDrvCtx   = DdiMedia_GetMediaContext(ctx);
-
-    DDI_CHK_NULL(mediaDrvCtx,               "nullptr mediaDrvCtx",               VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(mediaDrvCtx->pSurfaceHeap, "nullptr mediaDrvCtx->pSurfaceHeap", VA_STATUS_ERROR_INVALID_CONTEXT);
-
-    DDI_CHK_LESS((uint32_t)surface, mediaDrvCtx->pSurfaceHeap->uiAllocatedHeapElements, "Invalid surface", VA_STATUS_ERROR_INVALID_SURFACE);
-
-    if (nullptr != mediaDrvCtx->pVpCtxHeap->pHeapBase)
-    {
-        uint32_t ctxType = DDI_MEDIA_CONTEXT_TYPE_NONE;
-        vpCtx = DdiMedia_GetContextFromContextID(ctx, (VAContextID)(0 + DDI_MEDIA_VACONTEXTID_OFFSET_VP), &ctxType);
-    }
-
-#ifdef ANDROID
-    if(nullptr != vpCtx)
-    {
-        return DdiCodec_PutSurfaceAndroidExt(
-          ctx, surface, draw, srcx, srcy, srcw, srch, destx, desty, destw, desth, cliprects, number_cliprects, flags);
-
-    }
-    else
-    {
-        return DdiCodec_PutSurfaceAndroid(
-          ctx, surface, draw, srcx, srcy, srcw, srch, destx, desty, destw, desth, cliprects, number_cliprects, flags);
-    }
-#else
-    if(nullptr != vpCtx)
-    {
-        return DdiCodec_PutSurfaceLinuxHW(
-                ctx, surface, draw, srcx, srcy, srcw, srch, destx, desty, destw, desth, cliprects, number_cliprects, flags);
-
-    }
-    else
-    {
-        return DdiMedia_PutSurfaceLinuxSW(
-          ctx, surface, draw, srcx, srcy, srcw, srch, destx, desty, destw, desth, cliprects, number_cliprects, flags);
-    }
-#endif
-
-}
-
 /* List all the VAImageFormats supported during vaCreateSurfaces
  *  It can be used by vaQueryImageFormats and other functions
  */
@@ -5537,7 +5357,6 @@ VAStatus __vaDriverInit(VADriverContextP ctx )
     pVTable->vaQuerySurfaceStatus            = DdiMedia_QuerySurfaceStatus;
     pVTable->vaQuerySurfaceError             = DdiMedia_QuerySurfaceError;
     pVTable->vaQuerySurfaceAttributes        = DdiMedia_QuerySurfaceAttributes;
-    pVTable->vaPutSurface                    = DdiMedia_PutSurface;
     pVTable->vaQueryImageFormats             = DdiMedia_QueryImageFormats;
 
     pVTable->vaCreateImage                   = DdiMedia_CreateImage;

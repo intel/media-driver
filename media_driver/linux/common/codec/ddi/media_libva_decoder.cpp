@@ -41,10 +41,6 @@
 #include "media_interfaces.h"
 #include "media_ddi_decode_const.h"
 
-#ifndef ANDROID
-#include <X11/Xutil.h>
-#endif
-
 #include <linux/fb.h>
 
 typedef MediaDdiFactory<DdiMediaDecode, DDI_DECODE_CONFIG_ATTR> DdiDecodeFactory;

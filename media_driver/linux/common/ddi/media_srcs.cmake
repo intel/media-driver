@@ -37,18 +37,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/media_libva_util.h
 )
 
-if(NOT ${PLATFORM} STREQUAL "android")
- set(TMP_SOURCES_
-    ${TMP_SOURCES_}
-    ${CMAKE_CURRENT_LIST_DIR}/media_libva_putsurface_linux.cpp
-)
-
-set(TMP_HEADERS_
-    ${TMP_HEADERS_}
-    ${CMAKE_CURRENT_LIST_DIR}/media_libva_putsurface_linux.h
-)
-endif()
-
 set(SOURCES_
     ${SOURCES_}
     ${TMP_SOURCES_}
