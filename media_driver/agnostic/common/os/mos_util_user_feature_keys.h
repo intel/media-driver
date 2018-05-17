@@ -216,6 +216,7 @@
 #define __MEDIA_USER_FEATURE_VALUE_MDF_UMD_ULT_ENABLE                       "MDF UMD ULT Enable"
 #define __MEDIA_USER_FEATURE_VALUE_MDF_CURBE_DUMP_ENABLE                    "MDF Curbe Dump Enable"
 #define __MEDIA_USER_FEATURE_VALUE_MDF_SURFACE_DUMP_ENABLE                  "MDF Surface Dump Enable"
+#define __MEDIA_USER_FEATURE_VALUE_MDF_EMU_MODE_ENABLE                      "MDF EMU Enable"
 //User feature key for VP
 #define __MEDIA_USER_FEATURE_VALUE_VP_3P_DUMP_UFKEY_LOCATION                "Software\\Intel\\VPPDPI"
 
