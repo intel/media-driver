@@ -132,7 +132,6 @@ CmDevice_RT::CmDevice_RT(
         VADisplay vaDisplay,
         uint32_t createOption
 ):
-    m_queue(nullptr),
     m_cmVersion(0),
     m_deviceInUmd(nullptr),
     m_cmCreated ( true ),
@@ -184,10 +183,16 @@ CmDevice_RT::~CmDevice_RT( void )
 int32_t CmDevice_RT::FreeResources()
 {
     //Destroy Queue
-    if (m_queue)
+    m_criticalSectionQueue.Acquire();
+    for (auto iter = m_queue.begin(); iter != m_queue.end();)
     {
-        CmQueue_RT::Destroy(m_queue);
+        if (*iter != nullptr)
+        {
+            CmQueue_RT::Destroy(*iter);
+        }
+        iter = m_queue.erase(iter);
     }
+    m_criticalSectionQueue.Release();
 
     //Destroy GTPin Used BufferUp
     if( m_gtpinBufferUP0 != nullptr)
@@ -234,8 +239,6 @@ int32_t CmDevice_RT::Initialize( bool isCmCreated )
     CHK_RET(CreateDeviceInUmd());
 
     CHK_RET(CheckDdiVersionSupported(m_cmVersion));
-
-    CHK_RET(CreateQueue_Internel( ));
 
 #if USE_EXTENSION_CODE
     if(GTpinVariables.GTPinEnabled)
