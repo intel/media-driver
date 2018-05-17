@@ -117,7 +117,7 @@ struct CM_ENQUEUE_VEBOX_PARAM
 int32_t CmQueue_RT::Create(CmDevice_RT *device, CmQueue_RT *&queue, CM_QUEUE_CREATE_OPTION queueCreateOption)
 {
     int32_t result = CM_SUCCESS;
-    queue = new(std::nothrow) CmQueue_RT(device);
+    queue = new(std::nothrow) CmQueue_RT(device, queueCreateOption);
     if (queue)
     {
         result = queue->Initialize(queueCreateOption);
@@ -140,9 +140,10 @@ int32_t CmQueue_RT::Destroy(CmQueue_RT *&queue)
     return CM_SUCCESS;
 }
 
-CmQueue_RT::CmQueue_RT(CmDevice_RT *device):
+CmQueue_RT::CmQueue_RT(CmDevice_RT *device, CM_QUEUE_CREATE_OPTION queueCreateOption):
     m_cmDev(device),
-    m_cmQueueHandle(nullptr) {}
+    m_cmQueueHandle(nullptr),
+    m_queueOption(queueCreateOption) {}
 
 CmQueue_RT::~CmQueue_RT() {}
 
@@ -735,4 +736,9 @@ CM_RT_API int32_t CmQueue_RT::EnqueueVebox(CmVebox *vebox, CmEvent *&event)
     event = static_cast<CmEvent *>(inParam.cmEventHandle);
     m_criticalSection.Release();
     return hr;
+}
+
+CM_QUEUE_CREATE_OPTION CmQueue_RT::GetQueueOption()
+{
+    return m_queueOption;
 }
