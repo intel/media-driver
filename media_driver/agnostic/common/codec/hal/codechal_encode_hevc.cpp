@@ -153,6 +153,8 @@ MOS_STATUS CodechalEncHevcState::SetSequenceStructs()
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncodeHevcBase::SetSequenceStructs());
 
+    m_cqpEnabled = (m_hevcSeqParams->RateControlMethod == RATECONTROL_CQP);
+
     if (m_hevcSeqParams->ParallelBRC == false)
     {
         m_brcBuffers.uiCurrBrcPakStasIdxForRead = m_brcBuffers.uiCurrBrcPakStasIdxForWrite = 0;
