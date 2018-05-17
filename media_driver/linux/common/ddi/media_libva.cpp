@@ -2448,6 +2448,7 @@ static VAStatus DdiMedia_AddContextInternal(
     if ((encodeContext->vaEntrypoint != VAEntrypointFEI && encodeMfeContext->isFEI) ||
         (encodeContext->vaEntrypoint == VAEntrypointFEI && !encodeMfeContext->isFEI))
     {
+        DdiMediaUtil_UnLockMutex(&encodeMfeContext->encodeMfeMutex);
         return VA_STATUS_ERROR_INVALID_CONTEXT;
     }
 
@@ -2497,6 +2498,7 @@ static VAStatus DdiMedia_ReleaseContextInternal(
 
     if (!contextErased)
     {
+        DdiMediaUtil_UnLockMutex(&encodeMfeContext->encodeMfeMutex);
         return VA_STATUS_ERROR_OPERATION_FAILED;
     }
 
@@ -3690,6 +3692,7 @@ VAStatus DdiMedia_QuerySurfaceError(
             DDI_CHK_NULL(decoder, "nullptr codechal decoder", VA_STATUS_ERROR_INVALID_CONTEXT);
             if (decoder->GetStandard() != CODECHAL_AVC)
             {
+                DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
                 return VA_STATUS_ERROR_UNIMPLEMENTED;
             }
             *error_info = (void *)&surface->curStatusReport.decode.crcValue;
