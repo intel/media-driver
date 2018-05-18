@@ -325,53 +325,52 @@ CM_RT_API int32_t CmDevice_RT::CreateQueue( CmQueue* & queue )
 {
     INSERT_PROFILER_RECORD();
 
-    CmQueue *tmpQueue = nullptr;
-
-    // For legacy CreateQueue API, we will only return the same queue
-    m_criticalSectionQueue.Acquire();
-    for (auto iter = m_queue.begin(); iter != m_queue.end(); iter++)
-    {
-        CM_QUEUE_TYPE queueType = (*iter)->GetQueueOption().QueueType;
-        if (queueType == CM_QUEUE_TYPE_RENDER)
-        {
-            queue = (*iter);
-            m_criticalSectionQueue.Release();
-            return CM_SUCCESS;
-        }
-    }
-    m_criticalSectionQueue.Release();
-
-    int32_t result = CreateQueueEx( queue, CM_DEFAULT_QUEUE_CREATE_OPTION);
+    queue = static_cast< CmQueue* >(m_queue);
 
 #if USE_EXTENSION_CODE
     GTPIN_MAKER_FUNCTION(CmrtCodeMarkerForGTPin_CreateQueue(this, queue));
 #endif
 
-    return result;
+    return CM_SUCCESS;
 }
 
 CM_RT_API int32_t CmDevice_RT::CreateQueueEx(CmQueue *&queue, CM_QUEUE_CREATE_OPTION queueCreateOption)
 {
     INSERT_PROFILER_RECORD();
 
-    m_criticalSectionQueue.Acquire();
     CmQueue_RT *queueRT = nullptr;
     int32_t result = CmQueue_RT::Create(this, queueRT, queueCreateOption);
     if (result != CM_SUCCESS)
     {
         CmAssert(0);
         CmDebugMessage(("Failed to create queue!"));
-        m_criticalSectionQueue.Release();
         return result;
     }
-
-    m_queue.push_back(queueRT);
-    m_criticalSectionQueue.Release();
 
     if (queueRT != nullptr)
     {
         queue = static_cast< CmQueue* >(queueRT);
     }
+    return result;
+}
+
+int32_t CmDevice_RT::CreateQueue_Internel( void )
+{
+
+    if( m_queue )
+    {
+        CmAssert( 0 );
+        CmDebugMessage( ("Failed to create more than one queue!") );
+        return CM_FAILURE;
+    }
+
+    int32_t result = CmQueue_RT::Create(this, m_queue, CM_DEFAULT_QUEUE_CREATE_OPTION);
+    if( result != CM_SUCCESS )
+    {
+        CmAssert( 0 )
+        CmDebugMessage( ( "Failed to create queue!" ) );
+    }
+
     return result;
 }
 
