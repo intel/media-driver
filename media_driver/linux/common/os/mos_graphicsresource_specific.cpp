@@ -167,7 +167,7 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
     gmmParams.ArraySize = 1;
 
     MOS_TILE_TYPE tileformat = params.m_tileType;
-    switch(tileformat)
+    switch (tileformat)
     {
         case MOS_TILE_Y:
             gmmParams.Flags.Info.TiledY   = true;
@@ -181,6 +181,30 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
         default:
             gmmParams.Flags.Info.Linear   = true;
             tileFormatLinux               = I915_TILING_NONE;
+    }
+
+    if (nullptr != params.m_pSystemMemory)
+    {
+        // If user provides a system memory pointer, the gfx resource is backed
+        // by the system memory pages. The resource is required to be linear.
+        gmmParams.Flags.Info.Linear     = true;
+        gmmParams.Flags.Info.Cacheable  = true;
+        gmmParams.NoGfxMemory           = true;
+        GMM_RESOURCE_INFO *tmpGmmResInfoPtr = pOsContextSpecific
+                ->GetGmmClientContext()->CreateResInfoObject(&gmmParams);
+        if (tmpGmmResInfoPtr == nullptr)
+        {
+            MOS_OS_ASSERTMESSAGE("Create GmmResInfo failed");
+            return MOS_STATUS_UNKNOWN;
+        }
+
+        gmmParams.ExistingSysMemSize = GmmResGetRenderSize(tmpGmmResInfoPtr);
+        gmmParams.pExistingSysMem = (GMM_VOIDPTR64)params.m_pSystemMemory;
+        gmmParams.NoGfxMemory = false;
+        gmmParams.Flags.Info.ExistingSysMem = true;
+
+        pOsContextSpecific->GetGmmClientContext()
+                ->DestroyResInfoObject(tmpGmmResInfoPtr);
     }
 
     GMM_RESOURCE_INFO*  gmmResourceInfoPtr = pOsContextSpecific->GetGmmClientContext()->CreateResInfoObject(&gmmParams);
@@ -250,8 +274,18 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
     else
 #endif
     {
+        if (nullptr != params.m_pSystemMemory)
+        {
+            boPtr = mos_bo_alloc_userptr(pOsContextSpecific->m_bufmgr,
+                                         bufName,
+                                         params.m_pSystemMemory,
+                                         tileFormatLinux,
+                                         bufPitch,
+                                         bufSize,
+                                         0);
+        }
         // Only Linear and Y TILE supported
-        if( tileFormatLinux == I915_TILING_NONE )
+        else if (tileFormatLinux == I915_TILING_NONE)
         {
             boPtr = mos_bo_alloc(pOsContextSpecific->m_bufmgr, bufName, bufSize, 4096);
         }
