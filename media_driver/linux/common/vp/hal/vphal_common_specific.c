@@ -130,7 +130,6 @@ MOS_STATUS VpHal_GetSurfaceInfo(
             pSurface->VPlaneOffset.iYOffset       = 0;
             break;
         case Format_444P:
-        case Format_RGBP:
             pSurface->UPlaneOffset.iSurfaceOffset = pSurface->dwHeight * pSurface->dwPitch;
             pSurface->UPlaneOffset.iYOffset       = 0;
             pSurface->VPlaneOffset.iSurfaceOffset = pSurface->dwHeight * pSurface->dwPitch * 2;

@@ -285,7 +285,6 @@ static GMM_RESOURCE_FORMAT DdiMediaUtil_ConvertMediaFmtToGmmFmt(
         case Media_Format_R8G8B8A8   : return GMM_FORMAT_R8G8B8A8_UNORM_TYPE;
         case Media_Format_R5G6B5     : return GMM_FORMAT_B5G6R5_UNORM_TYPE;
         case Media_Format_R8G8B8     : return GMM_FORMAT_R8G8B8_UNORM;
-        case Media_Format_RGBP       : return GMM_FORMAT_RGBP;
         case Media_Format_NV12       : return GMM_FORMAT_NV12_TYPE;
         case Media_Format_NV21       : return GMM_FORMAT_NV21_TYPE;
         case Media_Format_YUY2       : return GMM_FORMAT_YUY2;
@@ -370,7 +369,6 @@ VAStatus DdiMediaUtil_AllocateSurface(
                  break;
             }
         case Media_Format_YUY2:
-        case Media_Format_RGBP:
         case Media_Format_UYVY:
         case Media_Format_A8R8G8B8:
             if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint &&
