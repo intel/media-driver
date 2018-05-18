@@ -327,22 +327,34 @@ class GpuCmdResInfoDump
 {
 public:
 
-    static GpuCmdResInfoDump *GetInstance();
+    static const GpuCmdResInfoDump *GetInstance();
 
     GpuCmdResInfoDump();
 
-    void Dump(const std::vector<const void *> &cmdResInfoPtrs, std::string title = "");
+    void Dump(PMOS_INTERFACE pOsInterface) const;
+
+    void StoreCmdResPtr(PMOS_INTERFACE pOsInterface, const void *pRes) const;
+
+    void ClearCmdResPtrs(PMOS_INTERFACE pOsInterface) const;
 
 private:
 
-    void Dump(const void *cmdResInfoPtr, std::ofstream &outputFile);
+    struct GpuCmdResInfo;
+
+    void Dump(const void *pRes, std::ofstream &outputFile) const;
+
+    const std::vector<const void *> &GetCmdResPtrs(PMOS_INTERFACE pOsInterface) const;
+
+    const char *GetResType(MOS_GFXRES_TYPE resType) const;
+
+    const char *GetTileType(MOS_TILE_TYPE tileType) const;
 
 private:
 
     static GpuCmdResInfoDump *m_instance;
-    uint32_t      m_cnt         = 0;
-    bool          m_dumpEnabled = false;
-    std::string   m_path;
+    mutable uint32_t         m_cnt         = 0;
+    bool                     m_dumpEnabled = false;
+    std::string              m_path;
 };
 #endif // MOS_COMMAND_RESINFO_DUMP_SUPPORTED
 

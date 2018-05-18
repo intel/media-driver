@@ -89,6 +89,7 @@
 #endif
 
 extern int32_t MosMemAllocCounter;
+extern int32_t MosMemAllocFakeCounter;
 extern int32_t MosMemAllocCounterGfx;
 extern uint8_t MosUltFlag;
 
