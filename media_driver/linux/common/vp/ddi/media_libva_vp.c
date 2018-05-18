@@ -1182,15 +1182,17 @@ VAStatus DdiVp_InitCtx(VADriverContextP pVaDrvCtx, PDDI_VP_CONTEXT pVpCtx)
     {
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
-    DDI_CHK_RET(DdiVp_InitVpHal(pVpCtx), "Call DdiVp_InitVpHal failed");
 
     // initialize DDI level cp interface
     pVpCtx->pCpDdiInterface = MOS_New(DdiCpInterface, pVpCtx->MosDrvCtx);
     if (nullptr == pVpCtx->pCpDdiInterface)
     {
-        vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
-        goto FINISH;
+         vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
+         goto FINISH;
     }
+
+
+    DDI_CHK_RET(DdiVp_InitVpHal(pVpCtx), "Call DdiVp_InitVpHal failed");
 
     // allocate vphal render param
     pVpHalRenderParams = (PVPHAL_RENDER_PARAMS)(MOS_AllocAndZeroMemory(sizeof(VPHAL_RENDER_PARAMS)));
