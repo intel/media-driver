@@ -560,7 +560,7 @@ finish:
 
 GpuCmdResInfoDump *GpuCmdResInfoDump::m_instance = nullptr;
 
-GpuCmdResInfoDump *GpuCmdResInfoDump::GetInstance()
+const GpuCmdResInfoDump *GpuCmdResInfoDump::GetInstance()
 {
     if (m_instance == nullptr)
     {
@@ -571,9 +571,6 @@ GpuCmdResInfoDump *GpuCmdResInfoDump::GetInstance()
 
 GpuCmdResInfoDump::GpuCmdResInfoDump()
 {
-    using std::string;
-    using std::to_string;
-
     MOS_USER_FEATURE_VALUE_DATA userFeatureData;
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
@@ -604,27 +601,79 @@ GpuCmdResInfoDump::GpuCmdResInfoDump()
         userFeatureData.StringData.pStringData[userFeatureData.StringData.uSize] = '\0';
         userFeatureData.StringData.uSize++;
     }
-    m_path = string(path) + "gpuCmdResInfo_" + to_string(MOS_GetPid()) + ".txt";
+
+    auto tmpPath = std::string(path);
+    if (tmpPath.back() != '/' && tmpPath.back() != '\\')
+    {
+        tmpPath += '/';
+    }
+    m_path = tmpPath + "gpuCmdResInfo_" + std::to_string(MOS_GetPid()) + ".txt";
 }
 
-void GpuCmdResInfoDump::Dump(const std::vector<const void *> &cmdResInfoPtrs, std::string title)
+void GpuCmdResInfoDump::Dump(PMOS_INTERFACE pOsInterface) const
 {
-    using std::endl;
     if (!m_dumpEnabled)
     {
         return;
     }
 
+    using std::endl;
+
     std::ofstream outputFile;
-    outputFile.open(m_path);
-    outputFile << title << " --Cmd Num " << cmdResInfoPtrs.size() << " --By Dumper " << this << " --Dump Count " << ++m_cnt << endl;
+    outputFile.open(m_path, std::ios_base::app);
+    MOS_OS_ASSERT(outputFile.is_open());
+
+    auto &cmdResInfoPtrs = GetCmdResPtrs(pOsInterface);
+
+    outputFile << "--PerfTag: " << std::to_string(pOsInterface->pfnGetPerfTag(pOsInterface)) << " --Cmd Num: "
+        << cmdResInfoPtrs.size() << " --Dump Count: " << ++m_cnt << endl;
+
     outputFile << "********************************CMD Paket Begin********************************" << endl;
     for (auto e : cmdResInfoPtrs)
     {
         Dump(e, outputFile);
     }
     outputFile << "********************************CMD Paket End**********************************" << endl << endl;
+
     outputFile.close();
+}
+
+const char *GpuCmdResInfoDump::GetResType(MOS_GFXRES_TYPE resType) const
+{
+    switch (resType)
+    {
+    case MOS_GFXRES_INVALID:
+        return "MOS_GFXRES_INVALID";
+    case MOS_GFXRES_BUFFER:
+        return "MOS_GFXRES_BUFFER";
+    case MOS_GFXRES_2D:
+        return "MOS_GFXRES_2D";
+    case MOS_GFXRES_VOLUME:
+        return "MOS_GFXRES_VOLUME";
+    default:
+        return "";
+    }
+}
+
+const char *GpuCmdResInfoDump::GetTileType(MOS_TILE_TYPE tileType) const
+{
+    switch (tileType)
+    {
+    case MOS_TILE_X:
+        return "MOS_TILE_X";
+    case MOS_TILE_Y:
+        return "MOS_TILE_Y";
+    case MOS_TILE_YF:
+        return "MOS_TILE_YF";
+    case MOS_TILE_YS:
+        return "MOS_TILE_YS";
+    case MOS_TILE_LINEAR:
+        return "MOS_TILE_LINEAR";
+    case MOS_TILE_INVALID:
+        return "MOS_TILE_INVALID";
+    default:
+        return "";
+    }
 }
 #endif // MOS_COMMAND_RESINFO_DUMP_SUPPORTED
 

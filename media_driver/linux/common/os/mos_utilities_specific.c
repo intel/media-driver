@@ -2121,8 +2121,9 @@ MOS_STATUS MOS_OS_Utilities_Init()
         // Initialize MOS message params structure and HLT
         MOS_MessageInit();
 #endif // MOS_MESSAGES_ENABLED
-        MosMemAllocCounter    = 0;
-        MosMemAllocCounterGfx = 0;
+        MosMemAllocCounter     = 0;
+        MosMemAllocFakeCounter = 0;
+        MosMemAllocCounterGfx  = 0;
         MOS_TraceEventInit();
     }
     uiMOSUtilInitCount++;
@@ -2137,7 +2138,6 @@ MOS_STATUS MOS_OS_Utilities_Close()
     int32_t                             MemoryCounter = 0;
     MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
     MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
-    extern int32_t                      MosMemAllocFakeCounter;
 
     // lock mutex to avoid multi close in multi-threading env
     MOS_LockMutex(&gMosUtilMutex);
