@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -561,6 +561,7 @@ uint32_t DdiEncodeJpeg::ConvertMediaFormatToInputSurfaceFormat(DDI_MEDIA_FORMAT 
     case Media_Format_X8R8G8B8:
     case Media_Format_A8R8G8B8:
     case Media_Format_X8B8G8R8:
+    case Media_Format_R8G8B8A8:
     case Media_Format_A8B8G8R8:
     case Media_Format_444P:
         return DDI_ENCODE_JPEG_INPUTFORMAT_RGB;
