@@ -388,7 +388,7 @@ MOS_STATUS CodechalSfcState::SetSfcAvsStateParams()
         m_scaleX,
         m_scaleY,
         m_chromaSiting,
-        (m_sfcPipeMode == MhwSfcInterface::SFC_PIPE_MODE_VEBOX) ? true : false));
+        (m_sfcPipeMode != MhwSfcInterface::SFC_PIPE_MODE_VDBOX) ? true : false));
 
     m_lumaTable.sfcPipeMode   = m_sfcPipeMode;
     m_chromaTable.sfcPipeMode = m_sfcPipeMode;
