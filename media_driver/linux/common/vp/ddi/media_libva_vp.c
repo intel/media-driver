@@ -186,6 +186,9 @@ MOS_FORMAT VpGetFormatFromMediaFormat(DDI_MEDIA_FORMAT mf)
     case Media_Format_B10G10R10A2:
         format =Format_B10G10R10A2;
         break;
+    case Media_Format_RGBP:
+        format = Format_RGBP;
+        break;
     default:
         VP_DDI_ASSERTMESSAGE("ERROR media format to vphal format.");
         format = Format_Invalid;
