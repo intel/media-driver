@@ -67,11 +67,17 @@ bool MockDevice::Create(DriverDllLoader *driver_loader,
 
 bool MockDevice::Release()
 {
+    if (nullptr == m_cmDevice)
+    {
+        return true;
+    }
     int32_t result = ReleaseNewDevice(m_cmDevice);
     if (CM_SUCCESS == result)
     {
         vaDestroySurfaces = nullptr;
         m_cmDevice = nullptr;
+        vaCmExtSendReqMsg = nullptr;
+        m_vaDisplay.pDriverContext = nullptr;
         return true;
     }
     return false;
