@@ -209,10 +209,15 @@ typedef struct _DDI_CODEC_BUFFER_PARAM_HEVC
     // slice control buffer
     VASliceParameterBufferHEVC                  *pVASliceParaBufHEVC;
     VASliceParameterBufferBase                  *pVASliceParaBufBaseHEVC;
+    //slice control buffe for range extension
+    VASliceParameterBufferHEVCExtension          *pVASliceParaBufHEVCRext;
 
     // one picture buffer
     VAPictureParameterBufferHEVC                 PicParamHEVC;
 
+    //one picture buffer for range extension
+    VAPictureParameterBufferHEVCExtension        PicParamHEVCRext;
+        
     // one IQ buffer
     VAIQMatrixBufferHEVC                         IQmHEVC;
 } DDI_CODEC_BUFFER_PARAM_HEVC;

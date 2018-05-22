@@ -170,6 +170,13 @@ typedef enum _DDI_MEDIA_FORMAT
     Media_Format_R8G8B8      ,
     Media_Format_RGBP        ,
 
+    Media_Format_P016        ,
+    Media_Format_Y210        ,
+    Media_Format_Y216        ,
+    Media_Format_AYUV        ,
+    Media_Format_Y410        ,
+    Media_Format_Y416        ,
+
     Media_Format_Count
 } DDI_MEDIA_FORMAT;
 

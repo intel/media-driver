@@ -103,6 +103,24 @@ void DdiMedia_MediaSurfaceToMosResource(DDI_MEDIA_SURFACE *mediaSurface, MOS_RES
         case Media_Format_P010:
             mosResource->Format    = Format_P010;
             break;
+        case Media_Format_P016:
+            mosResource->Format    = Format_P016;
+            break;
+        case Media_Format_Y210:
+            mosResource->Format    = Format_Y210;
+            break;
+        case Media_Format_Y216:
+            mosResource->Format    = Format_Y216;
+            break;
+        case Media_Format_AYUV:
+            mosResource->Format    = Format_AYUV;
+            break;
+        case Media_Format_Y410:
+            mosResource->Format    = Format_Y410;
+            break;
+        case Media_Format_Y416:
+            mosResource->Format    = Format_Y416;
+            break;
         case Media_Format_R10G10B10A2:
             mosResource->Format    = Format_R10G10B10A2;
             break;

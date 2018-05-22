@@ -628,6 +628,17 @@ public:
     static MediaLibvaCaps * CreateMediaLibvaCaps(DDI_MEDIA_CONTEXT *mediaCtx);
 
     //!
+    //! \brief convert Media Format to Gmm Format for GmmResCreate parameter.
+    //!
+    //! \param    [in] format
+    //!         Pointer to DDI_MEDIA_FORMAT
+    //!
+    //! \return GMM_RESOURCE_FORMAT
+    //!         Pointer to gmm format type
+    //!
+    virtual GMM_RESOURCE_FORMAT ConvertMediaFmtToGmmFmt(DDI_MEDIA_FORMAT format);
+
+    //!
     //! \brief    Initialize the MediaLibvaCaps instance for current platform 
     //!
     //! \return   VAStatus 
@@ -1043,6 +1054,11 @@ protected:
     //! \brief    Initialize HEVC decode profiles, entrypoints and attributes
     //!
     VAStatus LoadHevcDecProfileEntrypoints();
+
+    //!
+    //! \brief    Initialize HEVC decode profiles, entrypoints and attributes for specified hevc profile
+    //!
+    VAStatus LoadDecProfileEntrypoints(VAProfile profile);
 
     //!
     //! \brief    Initialize HEVC encode profiles, entrypoints and attributes
