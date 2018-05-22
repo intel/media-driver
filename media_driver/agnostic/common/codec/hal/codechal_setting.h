@@ -56,6 +56,8 @@ public:
 
     // Decode Downsampling
     bool                    downsamplingHinted = false;    //!< Applies to decode only, application may request field scaling.
+    // Decode SFC enabling
+    bool                    sfcEnablingHinted = false;     //!< Applies to decode only, application may request field sfc.
 
     //!
     //! \brief    Destructor 
