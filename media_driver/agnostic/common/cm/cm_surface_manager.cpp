@@ -518,6 +518,10 @@ int32_t CmSurfaceManager::TouchSurfaceInPoolForDestroy()
     std::vector<CmQueueRT*> &pCmQueue = m_device->GetQueue();
 
     DestroySurfaceInPool(freeNum, GC_DESTROY);
+    if (pCmQueue.size() == 0)
+    {
+        return freeNum;
+    }
     while (!freeNum)
     {
         CSync *lock = m_device->GetQueueLock();
