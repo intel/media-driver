@@ -48,6 +48,7 @@
 #include "media_ddi_encode_base.h"
 #include "media_libva_decoder.h"
 #include "media_libva_encoder.h"
+#include "media_libva_caps.h"
 
 #ifdef DEBUG
 static int32_t         frameCountFps   = -1;
@@ -269,44 +270,6 @@ bool DdiMediaUtil_IsExternalSurface(PDDI_MEDIA_SURFACE surface)
     return true;
 }
 
-/*
- * DdiMediaUtil_ConvertMediaFmtToGmmFmt
- *    Descripion: convert Media Format to Gmm Format for GmmResCreate parameter.
-*/
-static GMM_RESOURCE_FORMAT DdiMediaUtil_ConvertMediaFmtToGmmFmt(
-    DDI_MEDIA_FORMAT format)
-{
-    switch (format)
-    {
-        case Media_Format_X8R8G8B8   : return GMM_FORMAT_B8G8R8X8_UNORM_TYPE;
-        case Media_Format_A8R8G8B8   : return GMM_FORMAT_B8G8R8A8_UNORM_TYPE;
-        case Media_Format_X8B8G8R8   : return GMM_FORMAT_R8G8B8X8_UNORM_TYPE;
-        case Media_Format_A8B8G8R8   : return GMM_FORMAT_R8G8B8A8_UNORM_TYPE;
-        case Media_Format_R8G8B8A8   : return GMM_FORMAT_R8G8B8A8_UNORM_TYPE;
-        case Media_Format_R5G6B5     : return GMM_FORMAT_B5G6R5_UNORM_TYPE;
-        case Media_Format_R8G8B8     : return GMM_FORMAT_R8G8B8_UNORM;
-        case Media_Format_RGBP       : return GMM_FORMAT_RGBP;
-        case Media_Format_NV12       : return GMM_FORMAT_NV12_TYPE;
-        case Media_Format_NV21       : return GMM_FORMAT_NV21_TYPE;
-        case Media_Format_YUY2       : return GMM_FORMAT_YUY2;
-        case Media_Format_UYVY       : return GMM_FORMAT_UYVY;
-        case Media_Format_YV12       : return GMM_FORMAT_YV12_TYPE;
-        case Media_Format_IYUV       : return GMM_FORMAT_IYUV_TYPE;
-        case Media_Format_I420       : return GMM_FORMAT_I420_TYPE;
-        case Media_Format_444P       : return GMM_FORMAT_MFX_JPEG_YUV444_TYPE;
-        case Media_Format_422H       : return GMM_FORMAT_MFX_JPEG_YUV422H_TYPE;
-        case Media_Format_411P       : return GMM_FORMAT_MFX_JPEG_YUV411_TYPE;
-        case Media_Format_422V       : return GMM_FORMAT_MFX_JPEG_YUV422V_TYPE;
-        case Media_Format_IMC3       : return GMM_FORMAT_IMC3_TYPE;
-        case Media_Format_400P       : return GMM_FORMAT_GENERIC_8BIT;
-        case Media_Format_Buffer     : return GMM_FORMAT_RENDER_8BIT;
-        case Media_Format_P010       : return GMM_FORMAT_P010_TYPE;
-        case Media_Format_R10G10B10A2: return GMM_FORMAT_R10G10B10A2_UNORM_TYPE;
-        case Media_Format_B10G10R10A2: return GMM_FORMAT_B10G10R10A2_UNORM_TYPE;   
-        default                      : return GMM_FORMAT_INVALID;
-    }
-}
-
 //!
 //! \brief  Allocate surface
 //! 
@@ -369,7 +332,6 @@ VAStatus DdiMediaUtil_AllocateSurface(
                  tileformat = I915_TILING_NONE;
                  break;
             }
-        case Media_Format_YUY2:
         case Media_Format_RGBP:
         case Media_Format_UYVY:
         case Media_Format_A8R8G8B8:
@@ -387,6 +349,13 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case Media_Format_IMC3:
         case Media_Format_400P:
         case Media_Format_P010:
+        case Media_Format_P016:
+        case Media_Format_YUY2:
+        case Media_Format_Y210:
+        case Media_Format_Y216:
+        case Media_Format_AYUV:
+        case Media_Format_Y410:
+        case Media_Format_Y416:     
             if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint)
             {
 #if UFO_GRALLOC_NEW_FORMAT
@@ -528,7 +497,8 @@ VAStatus DdiMediaUtil_AllocateSurface(
         
         gmmParams.ArraySize             = 1;
         gmmParams.Type                  = RESOURCE_2D;
-        gmmParams.Format                = DdiMediaUtil_ConvertMediaFmtToGmmFmt(format);
+        //gmmParams.Format                = DdiMediaUtil_ConvertMediaFmtToGmmFmt(format);
+        gmmParams.Format                = mediaDrvCtx->m_caps->ConvertMediaFmtToGmmFmt(format);
         
         DDI_CHK_CONDITION(gmmParams.Format == GMM_FORMAT_INVALID, 
                              "Unsupported format", 

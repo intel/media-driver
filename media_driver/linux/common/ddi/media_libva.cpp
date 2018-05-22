@@ -208,7 +208,8 @@ static bool DdiMedia_ReleaseSliceControlBuffer(
                     }
                     else
                     {
-                        if(bufMgr->Codec_Param.Codec_Param_HEVC.pVASliceParaBufHEVC == nullptr)
+                        if(bufMgr->Codec_Param.Codec_Param_HEVC.pVASliceParaBufHEVC == nullptr &&
+                            bufMgr->Codec_Param.Codec_Param_HEVC.pVASliceParaBufHEVCRext == nullptr)
                         {
                             return false;
                         }
@@ -461,7 +462,19 @@ int32_t DdiMedia_MediaFormatToOsFormat(DDI_MEDIA_FORMAT format)
         case Media_Format_Buffer:
             return VA_FOURCC_P208;
         case Media_Format_P010:
-            return VA_FOURCC('P','0','1','0');
+            return VA_FOURCC_P010;
+        case Media_Format_P016:
+            return VA_FOURCC_P016;
+        case Media_Format_Y210:
+            return VA_FOURCC_Y210;
+        case Media_Format_Y216:
+            return VA_FOURCC_Y216;
+        case Media_Format_AYUV:
+            return VA_FOURCC_AYUV;
+        case Media_Format_Y410:
+            return VA_FOURCC_Y410;
+        case Media_Format_Y416:
+            return VA_FOURCC_Y416;
         default:
             return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
     }
@@ -549,8 +562,20 @@ DDI_MEDIA_FORMAT DdiMedia_OsFormatToMediaFormat(int32_t fourcc, int32_t rtformat
             return Media_Format_RGBP;
         case VA_FOURCC_P208:
             return Media_Format_Buffer;
-        case VA_FOURCC('P','0','1','0'):
+        case VA_FOURCC_P010:
             return Media_Format_P010;
+        case VA_FOURCC_P016:
+            return Media_Format_P016;
+        case VA_FOURCC_Y210:
+            return Media_Format_Y210;
+        case VA_FOURCC_Y216:
+            return Media_Format_Y216;
+        case VA_FOURCC_AYUV:
+            return Media_Format_AYUV;
+        case VA_FOURCC_Y410:
+            return Media_Format_Y410;
+        case VA_FOURCC_Y416:
+            return Media_Format_Y416;
         default:
             return Media_Format_Count;
     }
@@ -1975,8 +2000,26 @@ DdiMedia_CreateSurfaces2(
         case VA_FOURCC_P208:
             expected_fourcc = VA_FOURCC_P208;
             break;
-        case VA_FOURCC('P','0','1','0'):
-            expected_fourcc = VA_FOURCC('P','0','1','0');
+        case VA_FOURCC_P010:
+            expected_fourcc = VA_FOURCC_P010;
+            break;
+        case VA_FOURCC_P016:
+            expected_fourcc = VA_FOURCC_P016;
+            break;
+        case VA_FOURCC_Y210:
+            expected_fourcc = VA_FOURCC_Y210;
+            break;
+        case VA_FOURCC_Y216:
+            expected_fourcc = VA_FOURCC_Y216;
+            break;
+        case VA_FOURCC_AYUV:
+            expected_fourcc = VA_FOURCC_AYUV;
+            break;
+        case VA_FOURCC_Y410:
+            expected_fourcc = VA_FOURCC_Y410;
+            break;
+        case VA_FOURCC_Y416:
+            expected_fourcc = VA_FOURCC_Y416;
             break;
 #endif
         default:
@@ -2742,7 +2785,12 @@ VAStatus DdiMedia_MapBufferInternal (
                     if(decCtx->bShortFormatInUse)
                         *pbuf = (void *)((uint8_t*)(bufMgr->Codec_Param.Codec_Param_HEVC.pVASliceParaBufBaseHEVC) + buf->uiOffset);
                     else
-                        *pbuf = (void *)((uint8_t*)(bufMgr->Codec_Param.Codec_Param_HEVC.pVASliceParaBufHEVC) + buf->uiOffset);
+                    {
+                        if(!decCtx->m_ddiDecode->IsRextProfile())
+                           *pbuf = (void *)((uint8_t*)(bufMgr->Codec_Param.Codec_Param_HEVC.pVASliceParaBufHEVC) + buf->uiOffset);
+                        else
+                           *pbuf = (void *)((uint8_t*)(bufMgr->Codec_Param.Codec_Param_HEVC.pVASliceParaBufHEVCRext) + buf->uiOffset);
+                     }
                     break;
                 case CODECHAL_DECODE_MODE_VP9VLD:
                     *pbuf = (void *)((uint8_t*)(bufMgr->Codec_Param.Codec_Param_VP9.pVASliceParaBufVP9) + buf->uiOffset);

@@ -516,14 +516,34 @@ MOS_FORMAT DdiDecodeVP9::GetFormat()
     CodechalDecodeParams *decodeParams = &m_ddiDecodeCtx->DecodeParams;
 
     CODEC_VP9_PIC_PARAMS *picParams = (CODEC_VP9_PIC_PARAMS *)decodeParams->m_picParams;
+    if((picParams->profile == CODEC_PROFILE_VP9_PROFILE1) &&
+        (picParams->BitDepthMinus8 == 0))
+    {
+        Format = Format_AYUV;
+    }
     if (((picParams->profile == CODEC_PROFILE_VP9_PROFILE2) ||
         (picParams->profile == CODEC_PROFILE_VP9_PROFILE3)) &&
         (picParams->BitDepthMinus8 > 0))
     {
         Format = Format_P010;
-        if ((picParams->subsampling_x == 0) || (picParams->subsampling_y == 0))
+        if(picParams->BitDepthMinus8 > 2)
+        {
+            Format = Format_P016;
+        }
+        if ((picParams->subsampling_x == 1) && (picParams->subsampling_y == 0))
         {
             Format = Format_Y210;
+        }
+        else if ((picParams->subsampling_x == 0) && (picParams->subsampling_y == 0))
+        {
+            if(picParams->BitDepthMinus8 == 2)
+            {
+                Format = Format_Y410;
+            }
+            else if(picParams->BitDepthMinus8 > 2)
+            {
+                Format = Format_Y416;
+            }
         }
     }
     return Format;

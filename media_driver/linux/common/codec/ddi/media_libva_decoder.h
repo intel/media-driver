@@ -29,6 +29,7 @@
 
 #include "media_libva.h"
 #include "media_libva_cp.h"
+#include "media_ddi_decode_base.h"
 
 #define DDI_DECODE_SFC_MAX_WIDTH                    4096
 #define DDI_DECODE_SFC_MAX_HEIGHT                   4096
