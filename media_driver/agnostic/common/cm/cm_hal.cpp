@@ -10290,7 +10290,10 @@ void HalCm_Destroy(
         HalCm_FreeTrackerResources(state);
 
         // Delete heap manager
-        MOS_Delete(state->renderHal->dgsheapManager);
+        if (state->renderHal)
+        {
+            MOS_Delete(state->renderHal->dgsheapManager);
+        }
 
         if (state->hLibModule)
         {

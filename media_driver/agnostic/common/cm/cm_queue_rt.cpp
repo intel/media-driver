@@ -1262,6 +1262,8 @@ int32_t CmQueueRT::EnqueueCopyInternal_1Plane(CmSurface2DRT* surface,
 
         kernel = nullptr;
         CMCHK_HR( m_device->CreateBufferUP(  sliceCopyBufferUPSize, ( void * )linearAddressAligned, cmbufferUP ));
+        CMCHK_NULL(cmbufferUP);
+        
         //Configure memory object control for BufferUP to solve the cache-line issue.
         if (cmHalState->cmHalInterface->IsGPUCopySurfaceNoCacheWARequired())
         {
@@ -1521,8 +1523,10 @@ int32_t CmQueueRT::EnqueueCopyInternal_2Planes(CmSurface2DRT* surface,
 
     kernel = nullptr;
     CMCHK_HR(m_device->CreateBufferUP(bufferUPYSize, (void *)linearAddressAlignedY, cmbufferUPY));
+    CMCHK_NULL(cmbufferUPY);
     CMCHK_HR(m_device->CreateBufferUP(bufferUPUVSize, (void *)linearAddressAlignedUV, cmbufferUPUV));
-
+    CMCHK_NULL(cmbufferUPUV);
+    
     //Configure memory object control for the two BufferUP to solve the same cache-line coherency issue.
     if (cmHalState->cmHalInterface->IsGPUCopySurfaceNoCacheWARequired())
     {
