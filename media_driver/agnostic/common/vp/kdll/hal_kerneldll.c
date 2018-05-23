@@ -2461,7 +2461,7 @@ static uint8_t *KernelDll_GetPatchData(
         iPatchKind == PatchKind_CSC_Coeff_Src1)
     {
         Kdll_CoeffID  coeffID  = CoeffID_None;
-        int8_t       matrixID = DL_CSC_DISABLED;
+        uint8_t       matrixID = DL_CSC_DISABLED;
 
         // Get matrix id
         if (iPatchKind == PatchKind_CSC_Coeff_Src0)
@@ -2480,7 +2480,7 @@ static uint8_t *KernelDll_GetPatchData(
         }
 
         // Found matrix
-        if (matrixID != DL_CSC_DISABLED)
+        if (matrixID < DL_CSC_MAX)
         {
             Kdll_CSC_Matrix *pMatrix = &(pSearchState->CscParams.Matrix[matrixID]);
 
