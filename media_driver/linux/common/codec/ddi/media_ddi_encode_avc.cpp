@@ -259,6 +259,12 @@ VAStatus DdiEncodeAvc::ParseMiscParamRC(void *data)
     {
         seqParams->ICQQualityFactor = encMiscParamRC->ICQ_quality_factor;
     }
+    else if (VA_RC_QVBR == m_encodeCtx->uiRCMethod)
+    {
+        seqParams->ICQQualityFactor = encMiscParamRC->ICQ_quality_factor;
+        seqParams->MaxBitRate = seqParams->TargetBitRate;
+        seqParams->TargetBitRate = (uint32_t)((uint64_t)seqParams->TargetBitRate * encMiscParamRC->target_percentage / 100);
+    }
     else
     {
         seqParams->MaxBitRate    = seqParams->TargetBitRate;
