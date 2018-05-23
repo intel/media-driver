@@ -1166,9 +1166,7 @@ MOS_STATUS RenderHal_AllocateStateHeaps(
     PMHW_STATE_HEAP              pDshHeap;
     PMHW_STATE_HEAP              pIshHeap;
     int32_t                      i;
-    int32_t                      j;
     uint8_t                      *ptr;
-    uint32_t                     dwOffsetMediaState;
     MOS_STATUS                   eStatus;
 
     // Initialize locals
@@ -1799,7 +1797,6 @@ MOS_STATUS RenderHal_RefreshSync(PRENDERHAL_INTERFACE pRenderHal)
     uint64_t                    uiNS;
     double                      TimeMS;
     uint32_t                    uiComponent;
-    char                        LogData[256];
 
     //----------------------------------
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
@@ -2380,7 +2377,6 @@ int32_t RenderHal_AllocateMediaID(
     PRENDERHAL_STATE_HEAP             pStateHeap;
     PRENDERHAL_KRN_ALLOCATION         pKernelAllocation;
     PRENDERHAL_MEDIA_STATE            pCurMediaState;
-    int32_t                           *Allocation;
     int32_t                           iCurbeSize;
     int32_t                           iInterfaceDescriptor;
     RENDERHAL_INTERFACE_DESCRIPTOR_PARAMS InterfaceDescriptorParams;
@@ -4108,7 +4104,6 @@ finish:
 //!
 MOS_STATUS RenderHal_Destroy(PRENDERHAL_INTERFACE pRenderHal)
 {
-    PMOS_INTERFACE        pOsInterface;
     MOS_STATUS            eStatus;
 
     //------------------------------------------------
@@ -4355,7 +4350,6 @@ MOS_STATUS RenderHal_SendPalette(
 {
     MhwRenderInterface           *pMhwRender;
     PMHW_PALETTE_PARAMS          pPaletteLoadParams;
-    int32_t                      iCmdSize;
     int32_t                      i;
     MOS_STATUS                   eStatus;
 
@@ -6484,7 +6478,6 @@ MOS_STATUS RenderHal_InitInterface(
     MOS_USER_FEATURE                UserFeature;
     MOS_USER_FEATURE_VALUE          UserFeatureValue;
     MOS_STATUS                      eStatus = MOS_STATUS_SUCCESS;
-    MOS_USER_FEATURE_VALUE_DATA     UserFeatureData;
     MHW_VFE_PARAMS                  *pVfeStateParams = nullptr;
 
     //---------------------------------------
