@@ -673,7 +673,9 @@ bool CompositeState::IsBobDiEnabled(PVPHAL_SURFACE pSrc)
     // Kernel don't support inderlaced Y410/Y210 as input format
     bRet = (pSrc->pDeinterlaceParams     &&
            (pSrc->Format != Format_Y410  &&
-            pSrc->Format != Format_Y210) &&
+            pSrc->Format != Format_Y210  &&
+            pSrc->Format != Format_Y216  &&
+            pSrc->Format != Format_Y416) &&
             !VpHal_RndrCommonIsAlignmentWANeeded(pSrc, m_pOsInterface->CurrentGpuContextOrdinal));
 
 finish:
@@ -702,7 +704,8 @@ bool CompositeState::Is8TapAdaptiveEnabled(
             (IS_RGB32_FORMAT(pSrc->Format)        ||
              pSrc->Format == Format_A16R16G16B16  ||
              pSrc->Format == Format_AYUV          ||
-             pSrc->Format == Format_Y410));
+             pSrc->Format == Format_Y410          ||
+             pSrc->Format == Format_Y416));
 }
 
 //!
@@ -1013,7 +1016,7 @@ static MOS_STATUS SamplerAvsCalcScalingTable(
         MOS_ZeroMemory(piUVCoefsParam, UVCoefTableSize);
 
         // 4-tap filtering for RGB format G-channel if 8tap adaptive filter is not enabled.
-        Plane = ((IS_RGB32_FORMAT(SrcFormat) || (SrcFormat == Format_Y410) || (SrcFormat == Format_AYUV)) && !b8TapAdaptiveEnable) ? MHW_U_PLANE : MHW_Y_PLANE;
+        Plane = ((IS_RGB32_FORMAT(SrcFormat) || (SrcFormat == Format_Y410) || (SrcFormat == Format_AYUV) || (SrcFormat == Format_Y416)) && !b8TapAdaptiveEnable) ? MHW_U_PLANE : MHW_Y_PLANE;
         if (bVertical)
         {
             pAvsParams->fScaleY = fScale;
@@ -1161,7 +1164,8 @@ MOS_STATUS CompositeState::SetSamplerAvsTableParam(
 
     bIsUpScaleAndYuvFormat = ((fScaleX > 1.0F || fScaleY > 1.0F) && IS_YUV_FORMAT(SrcFormat));
     if (SrcFormat == Format_Y410 ||
-        SrcFormat == Format_AYUV)
+        SrcFormat == Format_AYUV ||
+        SrcFormat == Format_Y416)
     {
         bIsUpScaleAndYuvFormat = false;
     }
@@ -1249,7 +1253,7 @@ MOS_STATUS CompositeState::SetSamplerAvsTableParam(
         m_AvsCoeffsCache.Insert(tag, *pAvsParams);
     }
 
-    pMhwSamplerAvsTableParam->b4TapGY   = ((IS_RGB32_FORMAT(SrcFormat) || SrcFormat == Format_Y410 || SrcFormat == Format_AYUV) && !pMhwSamplerAvsTableParam->b8TapAdaptiveEnable);
+    pMhwSamplerAvsTableParam->b4TapGY   = ((IS_RGB32_FORMAT(SrcFormat) || SrcFormat == Format_Y410 || SrcFormat == Format_AYUV || SrcFormat == Format_Y416) && !pMhwSamplerAvsTableParam->b8TapAdaptiveEnable);
     pMhwSamplerAvsTableParam->b4TapRBUV = (!pMhwSamplerAvsTableParam->b8TapAdaptiveEnable);
 
     VPHAL_RENDER_CHK_STATUS(VpHal_RenderCommonSetAVSTableParam(pAvsParams, pMhwSamplerAvsTableParam));
@@ -4459,7 +4463,8 @@ bool CompositeState::SubmitStates(
 
     // Set output format
     if (IS_PA_FORMAT(pTarget->Format)  &&
-        pTarget->Format != Format_Y410)
+        pTarget->Format != Format_Y410 &&
+        pTarget->Format != Format_Y416)
     {
         VpHal_RndrSetYUVComponents(
             pTarget->Format,
@@ -4477,7 +4482,8 @@ bool CompositeState::SubmitStates(
                     pFilter->format == Format_R10G10B10A2 ||
                     pFilter->format == Format_B10G10R10A2 ||
                     pFilter->format == Format_AYUV        ||
-                    pFilter->format == Format_Y410)
+                    pFilter->format == Format_Y410        ||
+                    pFilter->format == Format_Y416)
                 {
                     pStatic->DW15.DestinationRGBFormat = (uint8_t)(0xff * pRenderingData->pCompAlpha->fAlpha);
                 }
@@ -6218,7 +6224,8 @@ bool CompositeState::BuildFilter(
                 fStepY >= 3.0f                       ||
                 pSrc->Format == Format_R10G10B10A2   ||
                 pSrc->Format == Format_B10G10R10A2   ||
-                pSrc->Format == Format_Y410)
+                pSrc->Format == Format_Y410          ||
+                pSrc->Format == Format_Y416)
             {
                 pFilter->sampler = Sample_iScaling_034x;
             }
@@ -6233,7 +6240,8 @@ bool CompositeState::BuildFilter(
                 fStepY >= 3.0f                     ||
                 pSrc->Format == Format_R10G10B10A2 ||
                 pSrc->Format == Format_B10G10R10A2 ||
-                pSrc->Format == Format_Y410)
+                pSrc->Format == Format_Y410        ||
+                pSrc->Format == Format_Y416)
             {
                 pFilter->sampler = Sample_Scaling_034x;
             }
@@ -6247,7 +6255,8 @@ bool CompositeState::BuildFilter(
         // Dscale kernel should be used
         if (pSrc->Format == Format_R10G10B10A2 ||
             pSrc->Format == Format_B10G10R10A2 ||
-            pSrc->Format == Format_Y410)
+            pSrc->Format == Format_Y410        ||
+            pSrc->Format == Format_Y416)
         {
             pFilter->bWaEnableDscale = true;
         }
