@@ -474,7 +474,15 @@ VAStatus DdiEncodeBase::RemoveFromPreEncStatusReportQueue(
         return eStatus;
     }
 
-    if (index >= 0)
+    bool bufferIsUpdated = m_encodeCtx->statusReportBuf.ulUpdatePosition < m_encodeCtx->statusReportBuf.ulHeadPosition ?
+                            (index < m_encodeCtx->statusReportBuf.ulUpdatePosition)
+                            : (m_encodeCtx->statusReportBuf.ulUpdatePosition == m_encodeCtx->statusReportBuf.ulHeadPosition ?
+                                true
+                                : ((index < m_encodeCtx->statusReportBuf.ulUpdatePosition)
+                                  &&(index > m_encodeCtx->statusReportBuf.ulHeadPosition)));
+
+    // Remove updated status report buffer
+    if (index >= 0 && bufferIsUpdated)
     {
         m_encodeCtx->statusReportBuf.preencInfos[index].pPreEncBuf[typeIdx] = nullptr;
         m_encodeCtx->statusReportBuf.preencInfos[index].uiBuffers = 0;
