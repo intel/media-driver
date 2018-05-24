@@ -1666,7 +1666,8 @@ MOS_STATUS Mos_Specific_AllocateResource(
         }
 
         MosMemAllocCounterGfx = GraphicsResource::GetMemAllocCounterGfx();
-        MOS_MEMNINJA_GFX_ALLOC_MESSAGE(pOsResource->pGmmResInfo, GmmResGetRenderSize(pOsResource->pGmmResInfo), functionName, filename, line);
+        MOS_OS_CHK_NULL(pOsResource->pGmmResInfo);
+        MOS_MEMNINJA_GFX_ALLOC_MESSAGE(pOsResource->pGmmResInfo, (uint32_t)pOsResource->pGmmResInfo->GetSizeSurface(), functionName, filename, line);
 
         return eStatus;
     }
@@ -1788,11 +1789,11 @@ MOS_STATUS Mos_Specific_AllocateResource(
 
     if (pParams->TileType == MOS_TILE_Y)
     {
-        GmmResSetMmcMode(pGmmResourceInfo, (GMM_RESOURCE_MMC_INFO)pParams->CompressionMode, 0);
+        pGmmResourceInfo->SetMmcMode((GMM_RESOURCE_MMC_INFO)pParams->CompressionMode, 0);
     }
 
     iPitch      = GFX_ULONG_CAST(pGmmResourceInfo->GetRenderPitch());
-    iSize       = GmmResGetRenderSize(pGmmResourceInfo);
+    iSize       = GFX_ULONG_CAST(pGmmResourceInfo->GetSizeSurface());
     iHeight     = pGmmResourceInfo->GetBaseHeight();
 
 #if defined(I915_PARAM_CREATE_VERSION)
@@ -1867,7 +1868,7 @@ MOS_STATUS Mos_Specific_AllocateResource(
     }
 
     MosMemAllocCounterGfx++;
-    MOS_MEMNINJA_GFX_ALLOC_MESSAGE(pOsResource->pGmmResInfo, GmmResGetRenderSize(pOsResource->pGmmResInfo), functionName, filename, line);
+    MOS_MEMNINJA_GFX_ALLOC_MESSAGE(pOsResource->pGmmResInfo, (uint32_t)pOsResource->pGmmResInfo->GetSizeSurface(), functionName, filename, line);
 
 finish:
     return eStatus;
@@ -1918,10 +1919,10 @@ MOS_STATUS Mos_Specific_GetResourceInfo(
     pResDetails->dwHeight        = pGmmResourceInfo->GetBaseHeight();
     pResDetails->dwPitch         = GFX_ULONG_CAST(pGmmResourceInfo->GetRenderPitch());
     pResDetails->dwDepth         = MOS_MAX(1, pGmmResourceInfo->GetBaseDepth());
-    pResDetails->dwLockPitch     = GmmResGetLockPitch(pGmmResourceInfo);
+    pResDetails->dwLockPitch     = GFX_ULONG_CAST(pGmmResourceInfo->GetRenderPitch());
     if (GFX_GET_CURRENT_RENDERCORE(pGmmGlobalContext->GetPlatformInfo().Platform) < IGFX_GEN8_CORE)
     {
-        pResDetails->bArraySpacing = GmmResIsArraySpacingSingleLod(pGmmResourceInfo);
+        pResDetails->bArraySpacing = pGmmResourceInfo->IsArraySpacingSingleLod();
     }
     if (GFX_GET_CURRENT_RENDERCORE(pGmmGlobalContext->GetPlatformInfo().Platform) >= IGFX_GEN9_CORE)
     {
@@ -1946,9 +1947,9 @@ MOS_STATUS Mos_Specific_GetResourceInfo(
     }
 #else
     pResDetails->bCompressible   = GmmFlags.Gpu.MMC ?
-        (GmmResGetMmcHint(pGmmResourceInfo, 0) == GMM_MMC_HINT_ON) : false;
-    pResDetails->bIsCompressed   = GmmResIsMediaMemoryCompressed(pGmmResourceInfo, 0);
-    pResDetails->CompressionMode = (MOS_RESOURCE_MMC_MODE)GmmResGetMmcMode(pGmmResourceInfo, 0);
+        (pGmmResourceInfo->GetMmcHint(0) == GMM_MMC_HINT_ON) : false;
+    pResDetails->bIsCompressed   = pGmmResourceInfo->IsMediaMemoryCompressed(0);
+    pResDetails->CompressionMode = (MOS_RESOURCE_MMC_MODE)pGmmResourceInfo->GetMmcMode(0);
 #endif
 
     if (0 == pResDetails->dwPitch)
@@ -2250,13 +2251,13 @@ void  *Mos_Specific_LockResource(
     }
 
     pContext = pOsInterface->pOsContext;
-    if (pOsResource && pOsResource->bo)
+    if (pOsResource && pOsResource->bo && pOsResource->pGmmResInfo)
     {
         MOS_LINUX_BO *bo = pOsResource->bo;
 
         // Do decompression for a compressed surface before lock
         if (!pLockFlags->NoDecompress &&
-             GmmResIsMediaMemoryCompressed(pOsResource->pGmmResInfo, 0))
+             pOsResource->pGmmResInfo->IsMediaMemoryCompressed(0))
         {
             PMOS_CONTEXT pOsContext = pOsInterface->pOsContext;
 
@@ -2446,10 +2447,10 @@ MOS_STATUS Mos_Specific_DecompResource(
 
     pContext = pOsInterface->pOsContext;
 
-    if (pOsResource && pOsResource->bo)
+    if (pOsResource && pOsResource->bo && pOsResource->pGmmResInfo)
     {
         MOS_LINUX_BO *bo = pOsResource->bo;
-        if (GmmResIsMediaMemoryCompressed(pOsResource->pGmmResInfo, 0))
+        if (pOsResource->pGmmResInfo->IsMediaMemoryCompressed(0))
         {
             PMOS_CONTEXT pOsContext = pOsInterface->pOsContext;
 
@@ -5056,7 +5057,7 @@ MOS_STATUS Mos_Specific_GetMemoryCompressionMode(
     pGmmResourceInfo = (GMM_RESOURCE_INFO*)pOsResource->pGmmResInfo;
     MOS_OS_CHK_NULL(pGmmResourceInfo);
 
-    switch (GmmResGetMmcMode(pGmmResourceInfo, 0))
+    switch (pGmmResourceInfo->GetMmcMode(0))
     {
         case GMM_MMC_HORIZONTAL:
             *pResMmcMode = MOS_MEMCOMP_HORIZONTAL;
@@ -5133,7 +5134,7 @@ MOS_STATUS Mos_Specific_SetMemoryCompressionMode(
             break;
     }
 
-    GmmResSetMmcMode(pGmmResourceInfo, GmmResMmcMode, 0);
+    pGmmResourceInfo->SetMmcMode(GmmResMmcMode, 0);
 #endif
 
     eStatus = MOS_STATUS_SUCCESS;
@@ -5185,7 +5186,7 @@ MOS_STATUS Mos_Specific_SetMemoryCompressionHint(
     pGmmResourceInfo = (GMM_RESOURCE_INFO*)pOsResource->pGmmResInfo;
     MOS_OS_CHK_NULL(pGmmResourceInfo);
 
-    GmmResSetMmcHint(pGmmResourceInfo, bHintOn ? GMM_MMC_HINT_ON : GMM_MMC_HINT_OFF, uiArrayIndex);
+    pGmmResourceInfo->SetMmcHint(bHintOn ? GMM_MMC_HINT_ON : GMM_MMC_HINT_OFF, uiArrayIndex);
 #endif
 
     eStatus = MOS_STATUS_SUCCESS;

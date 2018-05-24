@@ -366,8 +366,8 @@ MOS_STATUS HalCm_GetSurfPitchSize(
     gmmResInfo = GmmResCreate( &gmmParams );
     if (gmmResInfo != nullptr)
     {
-        *pitch             = GmmResGetLockPitch( gmmResInfo );
-        *physicalSize      = static_cast<uint32_t>( GmmResGetSizeSurface( gmmResInfo ) );
+        *pitch             = static_cast<uint32_t>( gmmResInfo->GetRenderPitch() );
+        *physicalSize      = static_cast<uint32_t>( gmmResInfo->GetSizeSurface() );
         GmmResFree( gmmResInfo );
     }
     else

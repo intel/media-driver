@@ -233,11 +233,11 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
 
     if (params.m_tileType== MOS_TILE_Y)
     {
-        GmmResSetMmcMode(gmmResourceInfoPtr, (GMM_RESOURCE_MMC_INFO)params.m_compressionMode, 0);
+        gmmResourceInfoPtr->SetMmcMode((GMM_RESOURCE_MMC_INFO)params.m_compressionMode, 0);
     }
 
     uint32_t bufPitch        = GFX_ULONG_CAST(gmmResourceInfoPtr->GetRenderPitch());
-    uint32_t bufSize         = GmmResGetRenderSize(gmmResourceInfoPtr);
+    uint32_t bufSize         = GFX_ULONG_CAST(gmmResourceInfoPtr->GetSizeSurface());
     bufHeight                = gmmResourceInfoPtr->GetBaseHeight();
     unsigned long linuxPitch = 0;
     MOS_LINUX_BO* boPtr      = nullptr;
@@ -315,7 +315,7 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
 
         m_arraySize = 1;
         m_depth     = MOS_MAX(1, gmmResourceInfoPtr->GetBaseDepth());
-        m_size      = GmmResGetRenderSize(gmmResourceInfoPtr);
+        m_size      = (uint32_t)gmmResourceInfoPtr->GetSizeSurface();
         m_tileType  = tileformat;
 
 #ifdef ANDROID
@@ -335,9 +335,9 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
         m_compressionMode = (MOS_RESOURCE_MMC_MODE)datatype.compression_mode;
 #else
         m_compressible    = gmmParams.Flags.Gpu.MMC ?
-            (GmmResGetMmcHint(gmmResourceInfoPtr, 0) == GMM_MMC_HINT_ON) : false;
-        m_isCompressed    = GmmResIsMediaMemoryCompressed(gmmResourceInfoPtr, 0);
-        m_compressionMode = (MOS_RESOURCE_MMC_MODE)GmmResGetMmcMode(gmmResourceInfoPtr, 0);
+            (gmmResourceInfoPtr->GetMmcHint(0) == GMM_MMC_HINT_ON) : false;
+        m_isCompressed    = gmmResourceInfoPtr->IsMediaMemoryCompressed(0);
+        m_compressionMode = (MOS_RESOURCE_MMC_MODE)gmmResourceInfoPtr->GetMmcMode(0);
 #endif
 
         MOS_OS_VERBOSEMESSAGE("Alloc %7d bytes (%d x %d resource).",bufSize, params.m_width, bufHeight);
@@ -447,8 +447,9 @@ void* GraphicsResourceSpecific::Lock(OsContext* osContextPtr, LockParams& params
     {
         // Do decompression for a compressed surface before lock
         const auto pGmmResInfo = m_gmmResInfo;
+         MOS_OS_ASSERT(pGmmResInfo);
         if (!params.m_noDecompress &&
-             GmmResIsMediaMemoryCompressed(pGmmResInfo, 0))
+             pGmmResInfo->IsMediaMemoryCompressed(0))
         {
             if ((pOsContextSpecific->m_mediaMemDecompState == nullptr) ||
                 (pOsContextSpecific->m_memoryDecompress    == nullptr))
