@@ -223,7 +223,7 @@ static bool NeedSwizzleData(PDDI_MEDIA_SURFACE surface, bool lock)
     DDI_CHK_NULL(surface, "nullptr surface", false);
     DDI_CHK_NULL(surface->pGmmResourceInfo, "nullptr pGmmResourceInfo", false);
     uint32_t pitch = (uint32_t)surface->pGmmResourceInfo->GetRenderPitch();
-    uint32_t size  = GmmResGetRenderSize(surface->pGmmResourceInfo);
+    uint32_t size  = (uint32_t)surface->pGmmResourceInfo->GetSizeSurface();
     GMM_RESOURCE_FLAG gmmFlags = surface->pGmmResourceInfo->GetResFlags();
 
     if (gmmFlags.Gpu.RenderTarget      &&
@@ -538,7 +538,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
     uint32_t    gmmSize;
     uint32_t    gmmHeight;
     gmmPitch    = (uint32_t)gmmResourceInfo->GetRenderPitch();
-    gmmSize     = GmmResGetRenderSize(gmmResourceInfo);
+    gmmSize     = (uint32_t)gmmResourceInfo->GetSizeSurface();
     gmmHeight   = gmmResourceInfo->GetBaseHeight();
 
     if ( 0 == gmmPitch || 0 == gmmSize || 0 == gmmHeight)
@@ -780,7 +780,7 @@ VAStatus DdiMediaUtil_Allocate2DBuffer(
     uint32_t    gmmSize;
     uint32_t    gmmHeight;
     gmmPitch    = (uint32_t)gmmResourceInfo->GetRenderPitch();
-    gmmSize     = GmmResGetRenderSize(gmmResourceInfo);
+    gmmSize     = (uint32_t)gmmResourceInfo->GetSizeSurface();
     gmmHeight   = gmmResourceInfo->GetBaseHeight();
 
     MOS_LINUX_BO  *bo;

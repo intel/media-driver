@@ -1079,7 +1079,8 @@ VAStatus DdiMedia_MediaMemoryDecompress(PDDI_MEDIA_CONTEXT mediaCtx, DDI_MEDIA_S
     mos_bo_get_datatype(mediaSurface->bo, &datatype.value);
     if ((MOS_MEMCOMP_STATE)datatype.compression_mode != MOS_MEMCOMP_DISABLED)
 #else
-    if (GmmResIsMediaMemoryCompressed(mediaSurface->pGmmResourceInfo, 0))
+    DDI_ASSERT(mediaSurface->pGmmResourceInfo);
+    if (mediaSurface->pGmmResourceInfo->IsMediaMemoryCompressed(0))
 #endif
     {
 #ifdef _MMC_SUPPORTED
