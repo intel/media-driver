@@ -1311,6 +1311,19 @@ VAStatus DdiMedia__Initialize (
         return VA_STATUS_ERROR_OPERATION_FAILED;
     }
 
+    eStatus = Mos_Solo_DdiInitializeDeviceId(
+                 (void*)mediaCtx->pDrmBufMgr,
+                 &mediaCtx->SkuTable,
+                 &mediaCtx->WaTable,
+                 &mediaCtx->iDeviceId,
+                 &mediaCtx->fd,
+                 &platform);
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        FreeForMediaContext(mediaCtx);
+        return VA_STATUS_ERROR_OPERATION_FAILED;
+    }
+
     MosUtilUserInterfaceInit(platform.eProductFamily);
 
     mediaCtx->platform = platform;
@@ -1370,18 +1383,6 @@ VAStatus DdiMedia__Initialize (
 #ifndef ANDROID
     output_dri_init(ctx);
 #endif
-
-    eStatus = Mos_Solo_DdiInitializeDeviceId(
-                 (void*)mediaCtx->pDrmBufMgr,
-                 &mediaCtx->SkuTable,
-                 &mediaCtx->WaTable,
-                 &mediaCtx->iDeviceId,
-                 &mediaCtx->fd);
-    if (eStatus != MOS_STATUS_SUCCESS)
-    {
-        FreeForMediaContext(mediaCtx);
-        return VA_STATUS_ERROR_OPERATION_FAILED;
-    }
 
     GMM_SKU_FEATURE_TABLE        gmmSkuTable;
     memset(&gmmSkuTable, 0, sizeof(gmmSkuTable));
