@@ -3515,6 +3515,7 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
                 break;
 
             case Format_R8U:
+            case Format_R8UN:
                 PlaneDefinition = RENDERHAL_PLANES_R8;
                 break;
 
