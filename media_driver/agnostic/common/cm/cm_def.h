@@ -99,6 +99,7 @@
 #define CM_SURFACE_FORMAT_R24G8_TYPELESS        Format_R24G8
 #define CM_SURFACE_FORMAT_R32_TYPELESS          Format_R32
 #define CM_SURFACE_FORMAT_R32G8X24_TYPELESS     Format_R32G8X24
+#define CM_SURFACE_FORMAT_R8_UNORM              Format_R8UN
 
 typedef unsigned char byte;
 
