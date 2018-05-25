@@ -1652,18 +1652,6 @@ public:
         uint32_t semValue);
 
     //!
-    //! \brief      Send watchdog timer start command
-    //!
-    //! \param    [in] cmdBuffer
-    //!           Pointer to command buffer
-    //!
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    virtual MOS_STATUS SendWatchdogTimerStartCmd(
-        PMOS_COMMAND_BUFFER cmdBuffer);
-
-    //!
     //! \brief      Send MI atomic command
     //!
     //! \param    [in] semaMem
