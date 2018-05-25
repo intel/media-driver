@@ -168,6 +168,21 @@ MOS_STATUS MhwMiInterfaceG10::SetWatchdogTimerThreshold(uint32_t frameWidth, uin
         MediaResetParam.watchdogCountThreshold = MHW_MI_FHD_WATCHDOG_THRESHOLD_IN_MS;
     }
 
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // User feature config of watchdog timer threshold
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_MEDIA_RESET_TH_ID,
+        &userFeatureData);
+    if (userFeatureData.u32Data != 0)
+    {
+        MediaResetParam.watchdogCountThreshold = userFeatureData.u32Data;
+    }
+#endif
+
     return MOS_STATUS_SUCCESS;
 }
 

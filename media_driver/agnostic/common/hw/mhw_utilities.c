@@ -359,9 +359,23 @@ MOS_STATUS Mhw_SendGenericPrologCmd (
 
     if ( pOsInterface->Component != COMPONENT_CM )
     {
-        MHW_CHK_STATUS(pMiInterface->SetWatchdogTimerRegisterOffset(GpuContext));
+        if ( GpuContext == MOS_GPU_CONTEXT_RENDER        ||
+             GpuContext == MOS_GPU_CONTEXT_RENDER2       ||
+             GpuContext == MOS_GPU_CONTEXT_RENDER3       ||
+             GpuContext == MOS_GPU_CONTEXT_RENDER4       ||
+             GpuContext == MOS_GPU_CONTEXT_VIDEO         ||
+             GpuContext == MOS_GPU_CONTEXT_VIDEO2        ||
+             GpuContext == MOS_GPU_CONTEXT_VIDEO3        ||
+             GpuContext == MOS_GPU_CONTEXT_VIDEO4        ||
+             GpuContext == MOS_GPU_CONTEXT_VDBOX2_VIDEO  ||
+             GpuContext == MOS_GPU_CONTEXT_VDBOX2_VIDEO2 ||
+             GpuContext == MOS_GPU_CONTEXT_VDBOX2_VIDEO3 ||
+             GpuContext == MOS_GPU_CONTEXT_VEBOX)
+        {
+            MHW_CHK_STATUS(pMiInterface->SetWatchdogTimerRegisterOffset(GpuContext));
 
-        MHW_CHK_STATUS(pMiInterface->AddWatchdogTimerStartCmd(pCmdBuffer));
+            MHW_CHK_STATUS(pMiInterface->AddWatchdogTimerStartCmd(pCmdBuffer));
+        }
     }
 
     bRcsEngineUsed = MOS_RCS_ENGINE_USED(GpuContext);
