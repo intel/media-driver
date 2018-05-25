@@ -3906,7 +3906,11 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::SendMeSurfaces(PMOS_COMMAND_BUFFER cmdBuff
             refPicIdx = params->pPicIdx[refPic.FrameIdx].ucPicIdx;
             scaledIdx = params->ppRefList[refPicIdx]->ucScalingIdx;
 
-            refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
+            MOS_SURFACE* p4xSurface = m_trackedBuf->Get4xDsSurface(scaledIdx);
+            if (p4xSurface != nullptr)
+            {
+                refScaledSurface.OsResource = p4xSurface->OsResource;
+            }
             refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
 
             // L0 Reference Picture Y - VME
@@ -3967,7 +3971,11 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::SendMeSurfaces(PMOS_COMMAND_BUFFER cmdBuff
             refPicIdx = params->pPicIdx[refPic.FrameIdx].ucPicIdx;
             scaledIdx = params->ppRefList[refPicIdx]->ucScalingIdx;
 
-            refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
+            MOS_SURFACE* p4xSurface = m_trackedBuf->Get4xDsSurface(scaledIdx);
+            if (p4xSurface != nullptr)
+            {
+                refScaledSurface.OsResource = p4xSurface->OsResource;
+            }
             refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
 
             // L1 Reference Picture Y - VME

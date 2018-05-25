@@ -3015,11 +3015,19 @@ MOS_STATUS CodechalVdencVp9State::VdencSendHmeSurfaces(
             uint8_t scaledIdx    = state->pRefList[refPicIdx]->ucScalingIdx;
             if (state->b16xMeInUse)
             {
-                refScaledSurface.OsResource = m_trackedBuf->Get16xDsSurface(scaledIdx)->OsResource;
+                MOS_SURFACE* p16xSurface = m_trackedBuf->Get16xDsSurface(scaledIdx);
+                if (p16xSurface != nullptr)
+                {
+                    refScaledSurface.OsResource = p16xSurface->OsResource;
+                }
             }
             else
             {
-                refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
+                MOS_SURFACE* p4xSurface = m_trackedBuf->Get4xDsSurface(scaledIdx);
+                if (p4xSurface != nullptr)
+                {
+                    refScaledSurface.OsResource = p4xSurface->OsResource;
+                }
             }
             uint32_t refScaledBottomFieldOffset = isRefBottomField ? currScaledBottomFieldOffset : 0;
 

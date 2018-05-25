@@ -4378,6 +4378,7 @@ CodechalEncoderState::CodechalEncoderState(
     m_vdencInterface = m_hwInterface->GetVdencInterface();
     m_miInterface = hwInterface->GetMiInterface();
     m_renderEngineInterface = hwInterface->GetRenderInterface();
+    CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(m_renderEngineInterface);
     m_stateHeapInterface = m_renderEngineInterface->m_stateHeapInterface;
     CODECHAL_ENCODE_ASSERT(m_renderEngineInterface->GetHwCaps());
 
