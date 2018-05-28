@@ -552,16 +552,6 @@ VAStatus DdiEncodeVp9::ParsePicParams(DDI_MEDIA_CONTEXT *mediaCtx, void *ptr)
     vp9PicParam->RefFlags.fields.AltRefSignBias    = picParam->ref_flags.bits.ref_arf_sign_bias;
 
     vp9PicParam->RefFlags.fields.ref_frame_ctrl_l0   = picParam->ref_flags.bits.ref_frame_ctrl_l0;
-    if ((picParam->pic_flags.bits.frame_type == 0) ||
-        (picParam->pic_flags.bits.intra_only))
-    {
-        vp9PicParam->RefFlags.fields.ref_frame_ctrl_l0   = 0;
-    }
-    else
-    {
-        vp9PicParam->RefFlags.fields.ref_frame_ctrl_l0   = 0x07;
-    }
-
     vp9PicParam->RefFlags.fields.ref_frame_ctrl_l1   = picParam->ref_flags.bits.ref_frame_ctrl_l1;
     vp9PicParam->RefFlags.fields.refresh_frame_flags = picParam->refresh_frame_flags;
     vp9PicParam->temporal_id                         = picParam->ref_flags.bits.temporal_id;
@@ -742,7 +732,8 @@ VAStatus DdiEncodeVp9::ParseMiscParamVBV(void *data)
     seqParams->VBVBufferSizeInBit         = vaEncMiscParamHRD->buffer_size;
     seqParams->InitVBVBufferFullnessInBit = vaEncMiscParamHRD->initial_buffer_fullness;
 
-    seqParams->RateControlMethod = RATECONTROL_CBR;
+    seqParams->UpperVBVBufferLevelThresholdInBit = 800000;
+    seqParams->LowerVBVBufferLevelThresholdInBit = 320000;
 
     if ((savedHrdSize != seqParams->VBVBufferSizeInBit) ||
         (savedHrdBufFullness != seqParams->InitVBVBufferFullnessInBit))
@@ -811,9 +802,11 @@ VAStatus DdiEncodeVp9::ParseMiscParamRC(void *data)
     }
     else if (VA_RC_VBR == m_encodeCtx->uiRCMethod)
     {
-        seqParams->MinBitRate        = seqParams->MaxBitRate * (2 * vaEncMiscParamRC->target_percentage - 100) / 100;
         seqParams->TargetBitRate[0]  = seqParams->MaxBitRate * vaEncMiscParamRC->target_percentage / 100;  // VBR target bits
+        seqParams->MinBitRate        = seqParams->MaxBitRate * abs((int32_t)(2 * vaEncMiscParamRC->target_percentage) - 100) / 100;
+        seqParams->MinBitRate        = MOS_MIN(seqParams->TargetBitRate[0], seqParams->MinBitRate);
         seqParams->RateControlMethod = RATECONTROL_VBR;
+
         if ((m_encodeCtx->uiTargetBitRate != seqParams->TargetBitRate[0]) ||
             (m_encodeCtx->uiMaxBitRate != seqParams->MaxBitRate))
         {
