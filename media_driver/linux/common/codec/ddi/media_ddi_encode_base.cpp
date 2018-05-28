@@ -827,8 +827,12 @@ VAStatus DdiEncodeBase::CreateBuffer(
 
     DDI_CHK_NULL(m_encodeCtx, "Null m_encodeCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    // only for VAEncSliceParameterBufferType of buffer, the number of elements can be greater than 1
-    if ((type != VAEncSliceParameterBufferType) && (type != VAEncQPBufferType) && (elementsNum > 1))
+    // for VAEncSliceParameterBufferType buffer, VAEncQPBufferType buffer and 
+    // VAEncMacroblockMapBufferType buffer, the number of elements can be greater than 1
+    if ((type != VAEncSliceParameterBufferType) &&
+        (type != VAEncQPBufferType) &&
+        (type != VAEncMacroblockMapBufferType) &&
+        (elementsNum > 1))
     {
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
@@ -892,6 +896,29 @@ VAStatus DdiEncodeBase::CreateBuffer(
         break;
     }
     case VAEncMacroblockMapBufferType:
+    {
+        buf->iWidth = MOS_ALIGN_CEIL(size, 64);
+        if (size != buf->iWidth)
+        {
+            va = VA_STATUS_ERROR_INVALID_PARAMETER;
+            CleanUpBufferandReturn(buf);
+            return va;
+        }
+        bufSize           = size * elementsNum;
+        buf->iHeight      = elementsNum;
+        buf->iPitch       = buf->iWidth;
+        buf->iSize        = bufSize;
+        buf->format       = Media_Format_2DBuffer;
+        buf->iNumElements = 1;
+
+        va = DdiMediaUtil_CreateBuffer(buf, mediaCtx->pDrmBufMgr);
+        if (va != VA_STATUS_SUCCESS)
+        {
+            MOS_FreeMemory(buf);
+            return VA_STATUS_ERROR_ALLOCATION_FAILED;
+        }
+        break;
+    }
     case VAEncMacroblockDisableSkipMapBufferType:
     {
         buf->iHeight = m_encodeCtx->wPicHeightInMB;
