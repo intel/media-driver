@@ -50,7 +50,7 @@
 #include "codechal_encoder_base.h"
 #include "media_libva_common.h"
 
-#define DDI_CODEC_GEN_MAX_PROFILES                 17   //  the number of va profiles, some profiles in va_private.h
+#define DDI_CODEC_GEN_MAX_PROFILES                 26   //  the number of va profiles, some profiles in va_private.h
 #define DDI_CODEC_GEN_MAX_ENTRYPOINTS              7    // VAEntrypointVLD, VAEntrypointEncSlice, VAEntrypointEncSliceLP, VAEntrypointVideoProc
 
 #define DDI_CODEC_GEN_MAX_IMAGE_FORMATS            2    // NV12 and P010
