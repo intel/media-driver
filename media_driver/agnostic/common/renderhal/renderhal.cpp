@@ -6702,6 +6702,9 @@ MOS_STATUS RenderHal_InitInterface(
     // Set default / advanced surface types
     pRenderHal->pRenderHalPltInterface->InitSurfaceTypes(pRenderHal);
 
+    // Set MMC Enabled status
+    pRenderHal->pRenderHalPltInterface->IsRenderHalMMCEnabled(pRenderHal);
+
     // Set platform dependent parameters
     pRenderHal->bHasCombinedAVSSamplerState   = true;
     pRenderHal->bEnableYV12SinglePass         = pRenderHal->pRenderHalPltInterface->IsEnableYV12SinglePass(pRenderHal);
