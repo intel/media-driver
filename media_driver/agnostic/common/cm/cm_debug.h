@@ -172,6 +172,19 @@
 }
 
 //*-----------------------------------------------------------------------------
+//| Macro checks for nullptr and returns
+//*-----------------------------------------------------------------------------
+#define CMCHK_NULL_AND_RETURN(ptr)                                              \
+{                                                                               \
+    if ((ptr) == nullptr)                                                       \
+    {                                                                           \
+        CM_ASSERTMESSAGE("Invalid (nullptr) Pointer.");                         \
+        return CM_NULL_POINTER;                                                 \
+    }                                                                           \
+}
+
+
+//*-----------------------------------------------------------------------------
 //| Macro checks for nullptr and return a specific value
 //*-----------------------------------------------------------------------------
 #define CMCHK_NULL_RETURN(ptr, returnValue)                                     \
