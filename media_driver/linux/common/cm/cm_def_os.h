@@ -50,6 +50,14 @@
 #define FAILED(hr)      (hr != VA_STATUS_SUCCESS)
 #endif // !FAILED
 
+#define CM_DRIVER_EXPOSED __attribute__ ((visibility ("default")))
+
+#ifdef __cplusplus
+#define EXTERN_C     extern "C"
+#else
+#define EXTERN_C
+#endif
+
 static inline char *
 strtok_s(char *strToken, const char *strDelimit, char **context)
 {
