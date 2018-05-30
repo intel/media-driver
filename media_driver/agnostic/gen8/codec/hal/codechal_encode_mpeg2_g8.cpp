@@ -2070,11 +2070,7 @@ MOS_STATUS CodechalEncodeMpeg2G8::SendMeSurfaces(
         uint8_t scaledIdx = m_refList[refPicIdx]->ucScalingIdx;
 
         // for 4xMe
-        MOS_SURFACE* p4xSurface = m_trackedBuf->Get4xDsSurface(scaledIdx);
-        if (p4xSurface != nullptr)
-        {
-            refScaledSurface.OsResource = p4xSurface->OsResource;
-        }
+        refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
         refScaledBottomFieldOffset = refBottomField ? (uint32_t)m_scaledBottomFieldOffset : 0;
 
         // L1 Reference Picture Y - VME

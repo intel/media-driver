@@ -3810,7 +3810,6 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::SendMeSurfaces(PMOS_COMMAND_BUFFER cmdBuff
         ((currBottomField) ? CODECHAL_VDIRECTION_BOT_FIELD : CODECHAL_VDIRECTION_TOP_FIELD);
     uint8_t scaledIdx = params->ppRefList[m_currReconstructedPic.FrameIdx]->ucScalingIdx;
     auto currScaledSurface = m_trackedBuf->Get4xDsSurface(scaledIdx);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(currScaledSurface);
     auto meMvDataBuffer = params->ps4xMeMvDataBuffer;
     uint32_t meMvBottomFieldOffset = params->dw4xMeMvBottomFieldOffset;
     uint32_t currScaledBottomFieldOffset = params->dw4xScaledBottomFieldOffset;

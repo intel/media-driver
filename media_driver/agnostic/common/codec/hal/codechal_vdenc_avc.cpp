@@ -4991,31 +4991,20 @@ MOS_STATUS CodechalVdencAvcState::SendMeSurfaces(PMOS_COMMAND_BUFFER cmdBuffer, 
             uint8_t scaledIdx = params->ppRefList[refPicIdx]->ucScalingIdx;
             if (params->b32xMeInUse)
             {
-                MOS_SURFACE* p32xSurface = m_trackedBuf->Get32xDsSurface(scaledIdx);
-                if (p32xSurface != nullptr)
-                {
-                    refScaledSurface.OsResource = p32xSurface->OsResource;
-                }
+                refScaledSurface.OsResource = m_trackedBuf->Get32xDsSurface(scaledIdx)->OsResource;
                 refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
             }
             else if (params->b16xMeInUse)
             {
-                MOS_SURFACE* p16xSurface = m_trackedBuf->Get16xDsSurface(scaledIdx);
-                if (p16xSurface != nullptr)
-                {
-                    refScaledSurface.OsResource = p16xSurface->OsResource;
-                }
+                refScaledSurface.OsResource = m_trackedBuf->Get16xDsSurface(scaledIdx)->OsResource;
                 refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
             }
             else
             {
-                MOS_SURFACE* p4xSurface = m_trackedBuf->Get4xDsSurface(scaledIdx);
-                if (p4xSurface != nullptr)
-                {
-                    refScaledSurface.OsResource = p4xSurface->OsResource;
-                }
+                refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
                 refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
             }
+
             // L0 Reference Picture Y - VME
             MOS_ZeroMemory(&surfaceParams, sizeof(surfaceParams));
             surfaceParams.bUseAdvState = true;
@@ -5064,31 +5053,20 @@ MOS_STATUS CodechalVdencAvcState::SendMeSurfaces(PMOS_COMMAND_BUFFER cmdBuffer, 
             uint8_t scaledIdx = params->ppRefList[refPicIdx]->ucScalingIdx;
             if (params->b32xMeInUse)
             {
-                MOS_SURFACE* p32xSurface = m_trackedBuf->Get32xDsSurface(scaledIdx);
-                if (p32xSurface != nullptr)
-                {
-                    refScaledSurface.OsResource = p32xSurface->OsResource;
-                }
+                refScaledSurface.OsResource = m_trackedBuf->Get32xDsSurface(scaledIdx)->OsResource;
                 refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
             }
             else if (params->b16xMeInUse)
             {
-                MOS_SURFACE* p16xSurface = m_trackedBuf->Get16xDsSurface(scaledIdx);
-                if (p16xSurface != nullptr)
-                {
-                    refScaledSurface.OsResource = p16xSurface->OsResource;
-                }
+                refScaledSurface.OsResource = m_trackedBuf->Get16xDsSurface(scaledIdx)->OsResource;
                 refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
             }
             else
             {
-                MOS_SURFACE* p4xSurface = m_trackedBuf->Get4xDsSurface(scaledIdx);
-                if (p4xSurface != nullptr)
-                {
-                    refScaledSurface.OsResource = p4xSurface->OsResource;
-                }
+                refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
                 refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
             }
+
             // L1 Reference Picture Y - VME
             MOS_ZeroMemory(&surfaceParams, sizeof(surfaceParams));
             surfaceParams.bUseAdvState = true;

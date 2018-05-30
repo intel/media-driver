@@ -6749,11 +6749,7 @@ MOS_STATUS CodechalEncodeAvcEncFeiG8::SendMeSurfaces(PMOS_COMMAND_BUFFER cmdBuff
             uint8_t refPicIdx = params->pPicIdx[refPic.FrameIdx].ucPicIdx;
             scaledIdx = params->ppRefList[refPicIdx]->ucScalingIdx;
 
-            MOS_SURFACE* p4xSurface = m_trackedBuf->Get4xDsSurface(scaledIdx);
-            if (p4xSurface != nullptr)
-            {
-                refScaledSurface.OsResource = p4xSurface->OsResource;
-            }
+            refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
             uint32_t refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
 
             // L1 Reference Picture Y - VME
