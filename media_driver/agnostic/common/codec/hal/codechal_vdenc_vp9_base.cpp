@@ -3076,23 +3076,15 @@ MOS_STATUS CodechalVdencVp9State::VdencSendHmeSurfaces(
             bool isRefBottomField              = (CodecHal_PictureIsBottomField(refPic)) ? 1 : 0;
             uint8_t refPicIdx                  = state->PicIdx[refPic.FrameIdx].ucPicIdx;
             uint8_t scaledIdx                  = state->pRefList[refPicIdx]->ucScalingIdx;
+
             if (state->b16xMeInUse)
             {
-                MOS_SURFACE* p16xSurface = m_trackedBuf->Get16xDsSurface(scaledIdx);
-                if (p16xSurface != nullptr)
-                {
-                    refScaledSurface.OsResource = p16xSurface->OsResource;
-                }
+                refScaledSurface.OsResource = m_trackedBuf->Get16xDsSurface(scaledIdx)->OsResource;
             }
             else
             {
-                MOS_SURFACE* p4xSurface = m_trackedBuf->Get4xDsSurface(scaledIdx);
-                if (p4xSurface != nullptr)
-                {
-                    refScaledSurface.OsResource = p4xSurface->OsResource;
-                }
+                refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
             }
-            
             uint32_t refScaledBottomFieldOffset = isRefBottomField ? currScaledBottomFieldOffset : 0;
 
             // L1 Reference Picture Y - VME
