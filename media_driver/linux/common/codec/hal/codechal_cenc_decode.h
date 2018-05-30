@@ -48,7 +48,7 @@ public:
     //! \brief  Create Cenc Decode
     //! \return MOS_STATUS
     //!
-    static MOS_STATUS CreateCencDecode(
+    static MOS_STATUS Create(
         CODECHAL_STANDARD           standard,
         CodechalCencDecode          **cencDecoder)
     {

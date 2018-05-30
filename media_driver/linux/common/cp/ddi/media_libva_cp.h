@@ -39,7 +39,7 @@ public:
 
     ~DdiCpInterface();
 
-    void SetEncryptionType(uint32_t encryptionType, CODECHAL_FUNCTION *codecFunction);
+    void SetCpParams(uint32_t encryptionType, CodechalSetting *setting);
 
     VAStatus EndPictureCenc(
         VADriverContextP vaDrvCtx,
@@ -82,8 +82,6 @@ public:
 
     void ResetCpContext();
 
-    void SetCodechalSetting(CodechalSetting *codechalSetting);
-
     VAStatus RenderPictureForVp(
         VADriverContextP      vaDrvCtx,
         VAContextID           vpCtxID,
@@ -91,6 +89,11 @@ public:
         void                  *data);
 
     static bool CheckSupportedBufferForVp(VABufferType type);
+
+    VAStatus CreateCencDecode(
+        CodechalDecode              *decoder,
+        PMOS_CONTEXT                osContext,
+        CodechalSetting *           settings);
 };
 #endif
 

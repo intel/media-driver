@@ -339,8 +339,8 @@ VAStatus DdiEncode_CreateContext(
     encCtx->pMediaCtx = mediaDrvCtx;
 
     encCtx->pCpDdiInterface->SetHdcp2Enabled(flag);
+    encCtx->pCpDdiInterface->SetCpParams(CP_TYPE_NONE, encCtx->m_encode->m_codechalSettings);
 
-    encCtx->pCpDdiInterface->SetCodechalSetting(encCtx->m_encode->m_codechalSettings);
     vaStatus = encCtx->m_encode->ContextInitialize(encCtx->m_encode->m_codechalSettings);
 
     if (vaStatus != VA_STATUS_SUCCESS)

@@ -75,13 +75,6 @@ Codechal::~Codechal()
     }
 #endif // USE_CODECHAL_DEBUG_TOOL
 
-    // Destroy decypting objects (intermediate surfaces, BBs, etc)
-    if (m_cencDecoder != nullptr)
-    {
-        MOS_Delete(m_cencDecoder);
-        m_cencDecoder = nullptr;
-    }
-
     // Destroy HW interface objects (GSH, SSH, etc)
     if (m_hwInterface != nullptr)
     {
