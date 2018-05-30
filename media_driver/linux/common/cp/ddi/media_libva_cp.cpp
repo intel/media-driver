@@ -45,7 +45,7 @@ DdiCpInterface::~DdiCpInterface()
 {
 }
 
-void DdiCpInterface::SetEncryptionType(uint32_t encryptionType, CODECHAL_FUNCTION *codecFunction)
+void DdiCpInterface::SetCpParams(uint32_t encryptionType, CodechalSetting *setting)
 {
     DdiStubMessage();
 }
@@ -158,8 +158,11 @@ bool DdiCpInterface::CheckSupportedBufferForVp(VABufferType type)
     return false;
 }
 
-void DdiCpInterface::SetCodechalSetting(CodechalSetting *codechalSetting)
+VAStatus DdiCpInterface::CreateCencDecode(
+    CodechalDecode              *decoder,
+    PMOS_CONTEXT                osContext,
+    CodechalSetting *           settings)
 {
     DdiStubMessage();
-    return;
+    return VA_STATUS_SUCCESS;
 }

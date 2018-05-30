@@ -862,8 +862,6 @@ VAStatus DdiMediaDecode::CreateCodecHal(
     MOS_CONTEXT    *mosCtx   = (MOS_CONTEXT *)ptr;
     VAStatus        vaStatus = VA_STATUS_SUCCESS;
 
-    m_ddiDecodeCtx->pCpDdiInterface->SetCodechalSetting(m_codechalSettings);
-
     Codechal *codecHal = CodechalDevice::CreateFactory(
         nullptr,
         mosCtx,
@@ -878,18 +876,7 @@ VAStatus DdiMediaDecode::CreateCodecHal(
     }
     m_ddiDecodeCtx->pCodecHal = codecHal;
 
-    CodechalCencDecode *cencDecoder = nullptr;
-    if (m_codechalSettings->codecFunction == CODECHAL_FUNCTION_CENC_DECODE)
-    {
-        CodechalCencDecode::CreateCencDecode((CODECHAL_STANDARD)m_codechalSettings->standard, &cencDecoder);
-        if (nullptr == cencDecoder)
-        {
-            DDI_ASSERTMESSAGE("Failure in CreateCencDecode create.\n");
-            vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
-            return vaStatus;
-        }
-        decoder->SetCencDecoder(cencDecoder);
-    }
+    m_ddiDecodeCtx->pCpDdiInterface->CreateCencDecode(decoder, mosCtx, m_codechalSettings);
 
     if (codecHal->Allocate(m_codechalSettings) != MOS_STATUS_SUCCESS)
     {
@@ -914,16 +901,5 @@ VAStatus DdiMediaDecode::CreateCodecHal(
             static_cast<MediaMemDecompState *>(MmdDevice::CreateFactory(mosCtx));
     }
 #endif
-
-    if (m_codechalSettings->codecFunction == CODECHAL_FUNCTION_CENC_DECODE)
-    {
-        if (cencDecoder->Initialize(decoder, osInterface->pOsContext, m_codechalSettings) != MOS_STATUS_SUCCESS)
-        {
-            DDI_ASSERTMESSAGE("Failure in CreateCencDecode create.\n");
-            vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
-            return vaStatus;
-        }
-    }
-
     return vaStatus;
 }
