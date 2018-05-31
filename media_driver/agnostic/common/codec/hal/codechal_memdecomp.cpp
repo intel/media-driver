@@ -303,6 +303,38 @@ MOS_STATUS MediaMemDecompState::MemoryDecompress(
     auto kernelState = &m_kernelStates[kernelStateIdx];
     kernelState->m_currTrackerId = m_currCmdBufId;
 
+    bool overrideKernel = false;
+    bool cpState = false;
+    if (m_osInterface->osCpInterface->IsSMEnabled() &&
+        kernelStateIdx == decompKernelStatePl2)
+    {
+        if (m_osInterface->osCpInterface->IsHardwareProtectionRequired((void **)&targetResource, 1, true))
+        {
+            uint32_t *kernelBase;
+            uint32_t kernelSize;
+            m_osInterface->osCpInterface->GetTK(
+                    &kernelBase, 
+                    &kernelSize,
+                    nullptr);
+            if (nullptr == kernelBase || 0 == kernelSize)
+            {
+                MHW_ASSERT("Could not get TK kernels for MMC!");
+                eStatus = MOS_STATUS_INVALID_PARAMETER;
+                return eStatus;
+            }
+
+            overrideKernel = true;
+
+            kernelState->KernelParams.pBinary = (uint8_t *)kernelBase;
+            kernelState->KernelParams.iSize   = kernelSize;
+        }
+        else
+        {
+            cpState = true;
+            m_osInterface->osCpInterface->SetCpEnabled(false);
+        }
+    }
+    
     MHW_CHK_STATUS_RETURN(m_stateHeapInterface->pfnRequestSshSpaceForCmdBuf(
         m_stateHeapInterface,
         kernelState->KernelParams.iBTCount));
@@ -636,6 +668,18 @@ MOS_STATUS MediaMemDecompState::MemoryDecompress(
     if (gpuContext != m_renderContext)
     {
         m_osInterface->pfnSetGpuContext(m_osInterface, gpuContext);
+    }
+
+    if (overrideKernel)
+    {
+        //restore kernel state
+        kernelState->KernelParams.pBinary = m_kernelBinary[kernelStateIdx];
+        kernelState->KernelParams.iSize   = m_kernelSize[kernelStateIdx];
+    }
+
+    if (cpState)
+    {
+        m_osInterface->osCpInterface->SetCpEnabled(true);
     }
 
     return eStatus;
