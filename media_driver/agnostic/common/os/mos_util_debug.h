@@ -95,6 +95,7 @@ typedef enum
     MOS_CODEC_SUBCOMP_HW           = 3,        // HW interface
     MOS_CODEC_SUBCOMP_PUBLIC       = 4,        // Public interface
     MOS_CODEC_SUBCOMP_DEBUG        = 5,        // Debug interface
+    MOS_CODEC_SUBCOMP_CENC         = 6,        // CencDecoders
     MOS_CODEC_SUBCOMP_COUNT                    // Must be last in the list
 } MOS_CODEC_SUBCOMP_ID;
 
