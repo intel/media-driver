@@ -418,70 +418,6 @@ VAStatus MediaLibvaCaps::CheckEncRTFormat(
     return VA_STATUS_SUCCESS;
 }
 
-VAStatus MediaLibvaCaps::CheckAttribList(
-            VAProfile profile,
-            VAEntrypoint entrypoint,
-            VAConfigAttrib* attrib,
-            int32_t numAttribs)
-{
-    int32_t idx = GetProfileTableIdx(profile, entrypoint);
-    if(idx < 0)
-    {
-        return VA_STATUS_ERROR_INVALID_VALUE;
-    }
-    for(int32_t j = 0; j < numAttribs; j ++)
-    {
-        int32_t flag = 0;
-        if (m_profileEntryTbl[idx].m_attributes->find(attrib[j].type) !=
-            m_profileEntryTbl[idx].m_attributes->end())
-        {
-            flag = 1;
-
-            if(0 == attrib[j].value)
-            {
-                flag = 2;
-                continue;
-            }
-            if(attrib[j].type == VAConfigAttribRTFormat
-             ||attrib[j].type == VAConfigAttribDecSliceMode
-             ||attrib[j].type == VAConfigAttribDecJPEG
-             ||attrib[j].type == VAConfigAttribRateControl
-             ||attrib[j].type == VAConfigAttribEncPackedHeaders
-             ||attrib[j].type == VAConfigAttribFEIFunctionType)
-            {
-                if(((*m_profileEntryTbl[idx].m_attributes)[attrib[j].type] & attrib[j].value) == attrib[j].value) 
-                {
-                    flag = 2; //the attributes is supported
-                    continue;
-                }
-                else if(attrib[j].type == VAConfigAttribRTFormat)
-                {
-                    return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
-                }
-            }
-            else if((*m_profileEntryTbl[idx].m_attributes)[attrib[j].type] == attrib[j].value)
-            {
-                flag = 2;
-                continue;
-            }
-        }
-        //should be removed after msdk remove VAConfigAttribSpatialResidual attributes for VPP
-        else if((profile == VAProfileNone)
-               && (entrypoint == VAEntrypointVideoProc)
-               && (attrib[j].type == VAConfigAttribSpatialClipping))
-        {
-            flag = 2;
-            continue;
-        }
-
-        if(flag == 0 || flag == 1)
-        {
-           return VA_STATUS_ERROR_INVALID_VALUE;
-        }
-    }
-    return VA_STATUS_SUCCESS;
-}
-
 VAStatus MediaLibvaCaps::CreateEncAttributes(
         VAProfile profile,
         VAEntrypoint entrypoint,
@@ -960,32 +896,6 @@ VAStatus MediaLibvaCaps::CreateDecAttributes(
             (VAConfigAttribType)VAConfigAttribCustomRoundingControl, &attrib.value);
     (*attribList)[attrib.type] = attrib.value;
 
-    return status;
-}
-
-VAStatus MediaLibvaCaps::CreateVpAttributes(
-        VAProfile profile,
-        VAEntrypoint entrypoint,
-        AttribMap **attributeList)
-{
-    DDI_CHK_NULL(attributeList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
-
-    VAStatus status = CreateAttributeList(attributeList);
-    DDI_CHK_RET(status, "Failed to initialize Caps!");
-
-    auto attribList = *attributeList;
-    DDI_CHK_NULL(attribList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
-
-    VAConfigAttrib attrib;
-    attrib.type = VAConfigAttribRTFormat;
-    attrib.value = VA_RT_FORMAT_YUV420 |
-                   VA_RT_FORMAT_YUV422 |
-                   VA_RT_FORMAT_YUV444 |
-                   VA_RT_FORMAT_YUV400 |
-                   VA_RT_FORMAT_YUV411 |
-                   VA_RT_FORMAT_RGB16 |
-                   VA_RT_FORMAT_RGB32;
-    (*attribList)[attrib.type] = attrib.value;
     return status;
 }
 
@@ -1566,7 +1476,7 @@ VAStatus MediaLibvaCaps::LoadNoneProfileEntrypoints()
 
     AttribMap *attributeList;
 
-    status = CreateVpAttributes(VAProfileNone, VAEntrypointVideoProc, &attributeList);
+    status = CreateDecAttributes(VAProfileNone, VAEntrypointVideoProc, &attributeList);
     DDI_CHK_RET(status, "Failed to initialize Caps!");
 
     uint32_t configStartIdx = m_vpConfigs.size();
@@ -1882,12 +1792,6 @@ VAStatus MediaLibvaCaps::CreateConfig(
         {
             return VA_STATUS_ERROR_UNSUPPORTED_PROFILE;
         }
-    }
-
-    VAStatus ret = CheckAttribList(profile,entrypoint,attribList, numAttribs);
-    if(ret != VA_STATUS_SUCCESS)
-    {
-        return ret;
     }
 
     if (CheckEntrypointCodecType(entrypoint, videoDecode))
