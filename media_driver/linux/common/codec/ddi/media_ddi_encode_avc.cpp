@@ -1224,7 +1224,11 @@ VAStatus DdiEncodeAvc::ParseSeqParams(void *ptr)
     seqParams->MaxBitRate    = seq->bits_per_second;
     seqParams->MinBitRate    = seq->bits_per_second;
     // fps it set to 30 by default, can be overwritten by misc paramter
-    seqParams->FramesPer100Sec = 3000;
+    if(!seqParams->FramesPer100Sec)
+    {
+        seqParams->FramesPer100Sec = 3000;
+    }
+
 
     // set default same as MSDK, can be overwritten by HRD params
     seqParams->InitVBVBufferFullnessInBit = seq->bits_per_second;
