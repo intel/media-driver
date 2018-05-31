@@ -1584,6 +1584,12 @@ int32_t CmSurfaceManager::DestroySurface( CmSurfaceVme* & vmeSurface )
 //*-----------------------------------------------------------------------------
 int32_t CmSurfaceManager::GetSurface( const uint32_t index, CmSurface* & surface )
 {
+    if( index == CM_NULL_SURFACE)
+    {
+        surface = nullptr;
+        return CM_FAILURE;
+    }
+
     if( index < m_surfaceArraySize )
     {
         surface = m_surfaceArray[ index ];
