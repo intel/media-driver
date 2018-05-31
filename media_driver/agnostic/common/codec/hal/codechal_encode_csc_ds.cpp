@@ -74,6 +74,12 @@ MOS_STATUS CodechalEncodeCscDs::CheckRawColorFormat(MOS_FORMAT format)
     case Format_A8B8G8R8:
         m_colorRawSurface = cscColorABGR;
         m_cscRequireColor = 1;
+        m_cscUsingSfc = m_cscEnableSfc ? 1 : 0;
+        // Use EU for better performance in big resolution cases or TU1
+        if ((m_cscRawSurfWidth * m_cscRawSurfHeight > 1920 * 1088) || m_16xMeSupported)
+        {
+            m_cscUsingSfc = 0;
+        }
         m_threadTraverseSizeX = 3;    // for ABGR, thread space is 8x4
         break;
     case Format_P010:
