@@ -4372,7 +4372,7 @@ CodechalEncoderState::CodechalEncoderState(
     Codechal(hwInterface, debugInterface)
 {
     // Add Null checks here for all interfaces.
-    CODECHAL_PUBLIC_CHK_NULL_NO_STATUS_RETURN(m_hwInterface);
+    CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(m_hwInterface);
     m_mfxInterface = m_hwInterface->GetMfxInterface();
     m_hcpInterface = m_hwInterface->GetHcpInterface();
     m_hucInterface = m_hwInterface->GetHucInterface();
@@ -4383,7 +4383,7 @@ CodechalEncoderState::CodechalEncoderState(
     m_stateHeapInterface = m_renderEngineInterface->m_stateHeapInterface;
     CODECHAL_ENCODE_ASSERT(m_renderEngineInterface->GetHwCaps());
 
-    CODECHAL_PUBLIC_CHK_NULL_NO_STATUS_RETURN(m_osInterface);
+    CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(m_osInterface);
     m_osInterface->pfnGetPlatform(m_osInterface, &m_platform);
     m_skuTable     = m_osInterface->pfnGetSkuTable(m_osInterface);
     m_waTable      = m_osInterface->pfnGetWaTable(m_osInterface);
