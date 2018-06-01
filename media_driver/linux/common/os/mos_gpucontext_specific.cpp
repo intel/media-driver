@@ -428,6 +428,7 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
     uint32_t     addCb2   = 0xffffffff;
     MOS_STATUS   eStatus  = MOS_STATUS_SUCCESS;
     int32_t      ret      = 0;
+    PLATFORM     platform;
 
     // Command buffer object DRM pointer
     m_cmdBufFlushed = true;
@@ -556,8 +557,12 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
     {
         if (true == osInterface->osCpInterface->IsHMEnabled())
         {
-            cliprects     = (drm_clip_rect *)(&addCb2);
-            num_cliprects = sizeof(addCb2);
+            osInterface->pfnGetPlatform(osInterface,&platform);
+            if (platform.eProductFamily < IGFX_BROXTON)
+            {
+                cliprects     = (drm_clip_rect *)(&addCb2);
+                num_cliprects = sizeof(addCb2);
+            }
         }
     }
     else
