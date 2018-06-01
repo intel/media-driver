@@ -1379,11 +1379,11 @@ VAStatus DdiVp_GetColorSpace(PVPHAL_SURFACE pVpHalSurf, VAProcColorStandardType 
         }
         else
         {
-            if ((pVpHalSurf->rcSrc.right - pVpHalSurf->rcSrc.left) <= 1280 && (pVpHalSurf->rcDst.bottom - pVpHalSurf->rcDst.top) <= 720)
+            if ((pVpHalSurf->rcSrc.right - pVpHalSurf->rcSrc.left) <= 1280 && (pVpHalSurf->rcSrc.bottom - pVpHalSurf->rcSrc.top) <= 720)
             {
                 pVpHalSurf->ColorSpace = CSpace_BT601;
             }//720p
-            else if ((pVpHalSurf->rcSrc.right - pVpHalSurf->rcSrc.left) <= 1920 && (pVpHalSurf->rcDst.bottom - pVpHalSurf->rcDst.top) <= 1080)
+            else if ((pVpHalSurf->rcSrc.right - pVpHalSurf->rcSrc.left) <= 1920 && (pVpHalSurf->rcSrc.bottom - pVpHalSurf->rcSrc.top) <= 1080)
             {
                 pVpHalSurf->ColorSpace = CSpace_BT709;
             }//1080p
