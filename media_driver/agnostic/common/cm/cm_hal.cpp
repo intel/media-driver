@@ -9456,6 +9456,65 @@ finish:
 }
 
 //*-----------------------------------------------------------------------------
+//| Purpose:    Allocate 3D resource
+//| Returns:    Result of the operation.
+//*-----------------------------------------------------------------------------
+MOS_STATUS HalCm_AllocateSurface3D(CM_HAL_STATE *state, // [in]  Pointer to CM State
+                                   CM_HAL_3DRESOURCE_PARAM *param) // [in]  Pointer to Buffer Param)
+{
+    MOS_STATUS hr = MOS_STATUS_SUCCESS;
+
+    //-----------------------------------------------
+    CM_ASSERT(state);
+    CM_ASSERT(param->depth  > 1);
+    CM_ASSERT(param->width  > 0);
+    CM_ASSERT(param->height > 0);
+    //-----------------------------------------------
+
+    // Finds a free slot.
+    CM_HAL_3DRESOURCE_ENTRY *entry = nullptr;
+    for (uint32_t i = 0; i < state->cmDeviceParam.max3DSurfaceTableSize; i++)
+    {
+        if (Mos_ResourceIsNull(&state->surf3DTable[i].osResource))
+        {
+            entry = &state->surf3DTable[i];
+            param->handle = (uint32_t)i;
+            break;
+        }
+    }
+    if (!entry)
+    {
+        CM_ERROR_ASSERT("3D surface table is full");
+        return hr;
+    }
+    Mos_ResetResource(&entry->osResource);  // Resets the Resource
+
+    MOS_ALLOC_GFXRES_PARAMS alloc_params;
+    MOS_ZeroMemory(&alloc_params, sizeof(alloc_params));
+    alloc_params.Type          = MOS_GFXRES_VOLUME;
+    alloc_params.TileType      = MOS_TILE_Y;
+    alloc_params.dwWidth       = param->width;
+    alloc_params.dwHeight      = param->height;
+    alloc_params.dwDepth       = param->depth;
+    alloc_params.pSystemMemory = param->data;
+    alloc_params.Format        = param->format;
+    alloc_params.pBufName      = "CmSurface3D";
+
+    MOS_INTERFACE *osInterface = state->renderHal->pOsInterface;
+    CM_HRESULT2MOSSTATUS_AND_CHECK(osInterface->pfnAllocateResource(
+        osInterface,
+        &alloc_params,
+        &entry->osResource));
+    entry->width = param->width;
+    entry->height = param->height;
+    entry->depth = param->depth;
+    entry->format = param->format;
+
+finish:
+    return hr;
+}
+
+//*-----------------------------------------------------------------------------
 //| Purpose:    Frees the resource and removes from the table
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
@@ -10155,6 +10214,7 @@ MOS_STATUS HalCm_Create(
     state->pfnSetSurfaceMOCS              = HalCm_SetSurfaceMOCS;
     /************************************************************/
     state->pfnAllocateSurface2D           = HalCm_AllocateSurface2D;
+    state->pfnAllocate3DResource          = HalCm_AllocateSurface3D;
     state->pfnFreeSurface2D               = HalCm_FreeSurface2D;
     state->pfnLock2DResource              = HalCm_Lock2DResource;
     state->pfnUnlock2DResource            = HalCm_Unlock2DResource;

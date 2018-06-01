@@ -451,78 +451,6 @@ uint32_t HalCm_GetSurf2DUPBaseWidth( uint32_t width, uint32_t pitch, MOS_FORMAT 
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Create Gmm Resource info for 2DUP
-//| Returns:    Result of the operation.
-//*-----------------------------------------------------------------------------
-MOS_STATUS HalCm_CreateGmmResInfo2DUP( PMOS_RESOURCE osResource, void  *sysMem, uint32_t sysMemSize)
-{
-    MOS_STATUS              eStatus;
-    GMM_RESCREATE_PARAMS    gmmParams;
-
-    eStatus               = MOS_STATUS_SUCCESS;
-    MOS_ZeroMemory(&gmmParams, sizeof(gmmParams));
-
-    CM_ASSERT(osResource);
-
-    // Set GmmParam
-    gmmParams.BaseWidth             = osResource->iWidth;
-    gmmParams.BaseHeight            = osResource->iHeight;
-    gmmParams.ArraySize             = 1;
-    gmmParams.Type                  = RESOURCE_2D;
-
-    gmmParams.Format                = HalCm_ConvertMosFmtToGmmFmt(osResource->Format);
-
-    gmmParams.Flags.Gpu.Video      = true;
-    gmmParams.Flags.Info.Linear    = true;
-    gmmParams.Flags.Info.ExistingSysMem = true;
-
-    gmmParams.ExistingSysMemSize   = sysMemSize;
-    gmmParams.pExistingSysMem      = (GMM_VOIDPTR64)sysMem;
-
-    //Create GmmResourceInfo
-    osResource->pGmmResInfo = GmmResCreate(&gmmParams);
-
-    MOS_OS_CHK_NULL(osResource->pGmmResInfo);
-
-finish:
-    return eStatus;
-}
-
-//*-----------------------------------------------------------------------------
-//| Purpose:    Create Gmm Resource info for 3D
-//| Returns:    Result of the operation.
-//*-----------------------------------------------------------------------------
-MOS_STATUS HalCm_CreateGmmResInfo3D( PMOS_RESOURCE osResource)
-{
-    MOS_STATUS              eStatus;
-    GMM_RESCREATE_PARAMS    gmmParams;
-
-    eStatus               = MOS_STATUS_SUCCESS;
-    MOS_ZeroMemory(&gmmParams, sizeof(gmmParams));
-
-    CM_ASSERT(osResource);
-
-    // Set GmmParam
-    gmmParams.BaseWidth             = osResource->iWidth;
-    gmmParams.BaseHeight            = osResource->iHeight;
-    gmmParams.Depth                 = osResource->iDepth;
-    gmmParams.ArraySize             = 1;
-    gmmParams.Type                  = RESOURCE_3D;
-    gmmParams.Format                = HalCm_ConvertMosFmtToGmmFmt(osResource->Format);
-
-    gmmParams.Flags.Gpu.Video      = true;
-    gmmParams.Flags.Info.Linear    = true;
-
-    //Create GmmResourceInfo
-    osResource->pGmmResInfo = GmmResCreate(&gmmParams);
-
-    MOS_OS_CHK_NULL(osResource->pGmmResInfo);
-
-finish:
-    return eStatus;
-}
-
-//*-----------------------------------------------------------------------------
 //| Purpose:    Allocate Linear Buffer or BufferUP
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
@@ -715,71 +643,6 @@ MOS_STATUS HalCm_AllocateSurface2DUP_Linux(
     entry->width  = param->width;
     entry->height = param->height;
     entry->format  = param->format;
-
-finish:
-    return hr;
-}
-
-//*-----------------------------------------------------------------------------
-//| Purpose:    Allocate 3D resource
-//| Returns:    Result of the operation.
-//*-----------------------------------------------------------------------------
-MOS_STATUS HalCm_Allocate3DResource_Linux(
-    PCM_HAL_STATE               state,                                         // [in]  Pointer to CM State
-    PCM_HAL_3DRESOURCE_PARAM    param)                                         // [in]  Pointer to Buffer Param
-{
-    MOS_STATUS hr = MOS_STATUS_SUCCESS;
-    PMOS_INTERFACE osInterface = state->renderHal->pOsInterface;
-    PCM_HAL_3DRESOURCE_ENTRY entry = nullptr;
-
-    PMOS_RESOURCE osResource = nullptr;
-
-    //-----------------------------------------------
-    CM_ASSERT(state);
-    CM_ASSERT(param->depth  > 1);
-    CM_ASSERT(param->width  > 0);
-    CM_ASSERT(param->height > 0);
-    //-----------------------------------------------
-
-    // Find a free slot
-    for (uint32_t i = 0; i < state->cmDeviceParam.max3DSurfaceTableSize; i++)
-    {
-        if (Mos_ResourceIsNull(&state->surf3DTable[i].osResource))
-        {
-            entry              = &state->surf3DTable[i];
-            param->handle      = (uint32_t)i;
-            break;
-        }
-    }
-    if (!entry)
-    {
-        CM_ERROR_ASSERT("3D surface table is full");
-        return hr;
-    }
-
-    osResource = &(entry->osResource);
-    // Resets the Resource
-    Mos_ResetResource(osResource);
-
-    MOS_ALLOC_GFXRES_PARAMS alloc_params;
-    MOS_ZeroMemory(&alloc_params, sizeof(alloc_params));
-    alloc_params.Type          = MOS_GFXRES_VOLUME;
-    alloc_params.TileType      = MOS_TILE_Y;
-    alloc_params.dwWidth       = param->width;
-    alloc_params.dwHeight      = param->height;
-    alloc_params.dwDepth       = param->depth;
-    alloc_params.pSystemMemory = param->data;
-    alloc_params.Format        = param->format;
-    alloc_params.pBufName      = "CmSurface3D";
-
-    CM_HRESULT2MOSSTATUS_AND_CHECK(osInterface->pfnAllocateResource(
-        osInterface,
-        &alloc_params,
-        &entry->osResource));
-    entry->width = param->width;
-    entry->height = param->height;
-    entry->depth = param->depth;
-    entry->format = param->format;
 
 finish:
     return hr;
@@ -1279,7 +1142,6 @@ void HalCm_OsInitInterface(
     cmState->pfnRegisterUMDNotifyEventHandle        = HalCm_RegisterUMDNotifyEventHandle_Linux;
     cmState->pfnAllocateBuffer                      = HalCm_AllocateBuffer_Linux;
     cmState->pfnAllocateSurface2DUP                 = HalCm_AllocateSurface2DUP_Linux;
-    cmState->pfnAllocate3DResource                  = HalCm_Allocate3DResource_Linux;
     cmState->pfnGetGPUCurrentFrequency              = HalCm_GetGPUCurrentFrequency_Linux;
     cmState->pfnGetGpuTime                          = HalCm_GetGpuTime_Linux;
     cmState->pfnGetPlatformInfo                     = HalCm_GetPlatformInfo_Linux;
