@@ -37,6 +37,7 @@
 namespace CodechalDbgAttr
 {
 static const char *attrPicParams             = "PicParams";
+static const char *attrSubsetsParams         = "SubsetsParams";
 static const char *attrFeiPicParams          = "FeiPicParams";
 static const char *attrMvcExtPicParams       = "MvcExtPicParams";
 static const char *attrSegmentParams         = "SegmentParams";
