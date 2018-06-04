@@ -212,6 +212,7 @@ void CodechalDebugConfigMgr::GenerateDefaultConfig()
 
     ofs << "#" << CodechalDbgAttr::attrPicParams <<":0"<< std::endl;
     ofs << "#" << CodechalDbgAttr::attrSlcParams << ":0" << std::endl;
+    ofs << "#" << CodechalDbgAttr::attrSubsetsParams << ":0" << std::endl;
     ofs << "#" << CodechalDbgAttr::attrIqParams << ":0" << std::endl;
     ofs << "#" << CodechalDbgAttr::attrBitstream << ":0" << std::endl;
     ofs << "#" << CodechalDbgAttr::attrHucRegions << ":0" << std::endl;

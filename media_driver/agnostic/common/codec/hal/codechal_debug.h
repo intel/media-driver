@@ -116,6 +116,7 @@ static const char *bufSSH           = "SSH";
 static const char *bufSeqParams     = "SeqParams";
 static const char *bufPicParams     = "PicParams";
 static const char *bufSlcParams     = "SlcParams";
+static const char *bufSubsetsParams = "SubsetsParams";
 static const char *bufVuiParams     = "VuiParams";
 static const char *bufBitstream     = "Bitstream";
 static const char *bufFeiPicParams  = "FeiPicParams";
