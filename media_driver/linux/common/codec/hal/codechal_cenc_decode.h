@@ -122,6 +122,7 @@ public:
     //!
     MOS_STATUS CheckStatusReportNum(
         void                         *state,
+        CodechalHwInterface          *hwInterface,
         PMOS_COMMAND_BUFFER          cmdBuffer,
         MHW_VDBOX_NODE_IND           vdboxIndex)
     {

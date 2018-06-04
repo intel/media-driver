@@ -1500,7 +1500,7 @@ MOS_STATUS CodechalDecodeAvc::DecodeStateLevel()
 
     if (m_cencDecoder)
     {
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_cencDecoder->CheckStatusReportNum(this, &cmdBuffer, m_vdboxIndex));
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_cencDecoder->CheckStatusReportNum(this, m_hwInterface, &cmdBuffer, m_vdboxIndex));
     }
 
     if (m_statusQueryReportingEnabled)
