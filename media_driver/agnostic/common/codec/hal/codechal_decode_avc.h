@@ -393,7 +393,7 @@ public:
     bool                            m_deblockingEnabled;                                //!< Indicate Deblocking is enabled
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
-    CodechalAvcSfcState *m_sfcState;  //!< Avc Sfc State
+    CodechalAvcSfcState *m_sfcState = nullptr;  //!< Avc Sfc State
 #endif
 
     CODEC_PICTURE            m_currPic;                                       //!< Current Picture Struct
