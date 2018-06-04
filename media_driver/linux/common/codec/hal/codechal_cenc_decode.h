@@ -61,7 +61,7 @@ public:
     //! \return MOS_STATUS_UNIMPLEMENTED
     //!
     MOS_STATUS Initialize(
-        CodechalDecode               *decoder,
+        CodechalDebugInterface      *debugInterface,
         PMOS_CONTEXT                 osContext,
         CodechalSetting              *settings)
     {
