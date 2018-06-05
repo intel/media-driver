@@ -5345,8 +5345,16 @@ DdiMedia_QueryVideoProcPipelineCaps(
         pipeline_caps->input_pixel_format[0]      = VA_FOURCC_NV12;
         pipeline_caps->num_output_pixel_formats   = 1;
         pipeline_caps->output_pixel_format[0]     = VA_FOURCC_NV12;
-        pipeline_caps->max_input_width            = DDI_DECODE_SFC_MAX_WIDTH;
-        pipeline_caps->max_input_height           = DDI_DECODE_SFC_MAX_HEIGHT;
+        if((MEDIA_IS_SKU(&(mediaCtx->SkuTable), FtrHCP2SFCPipe)))
+        {
+            pipeline_caps->max_input_width            = DDI_DECODE_HCP_SFC_MAX_WIDTH;
+            pipeline_caps->max_input_height           = DDI_DECODE_HCP_SFC_MAX_HEIGHT;
+        }
+        else
+        {
+            pipeline_caps->max_input_width            = DDI_DECODE_SFC_MAX_WIDTH;
+            pipeline_caps->max_input_height           = DDI_DECODE_SFC_MAX_HEIGHT;
+        }
         pipeline_caps->min_input_width            = DDI_DECODE_SFC_MIN_WIDTH;
         pipeline_caps->min_input_height           = DDI_DECODE_SFC_MIN_HEIGHT;
         pipeline_caps->max_output_width           = DDI_DECODE_SFC_MAX_WIDTH;
