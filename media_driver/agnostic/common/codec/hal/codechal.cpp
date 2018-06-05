@@ -105,6 +105,13 @@ MOS_STATUS Codechal::Allocate(CodechalSetting * codecHalSettings)
     CODECHAL_PUBLIC_CHK_NULL_RETURN(m_hwInterface);
     CODECHAL_PUBLIC_CHK_NULL_RETURN(m_osInterface);
 
+    MOS_TraceEvent(EVENT_CODECHAL_CREATE,
+                   EVENT_TYPE_INFO,
+                   &codecHalSettings->codecFunction,
+                   sizeof(uint32_t),
+                   nullptr,
+                   0);
+
     CODECHAL_PUBLIC_CHK_STATUS_RETURN(m_hwInterface->Initialize(codecHalSettings));
 
     MOS_NULL_RENDERING_FLAGS nullHWAccelerationEnable;
