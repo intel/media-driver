@@ -181,6 +181,26 @@ VAStatus DdiDecodeVP9::ParsePicParams(
     return VA_STATUS_SUCCESS;
 }
 
+VAStatus DdiDecodeVP9::SetDecodeParams()
+{
+     DDI_CHK_RET(DdiMediaDecode::SetDecodeParams(),"SetDecodeParams failed!");
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    // Bridge the SFC input with vdbox output
+    if (m_decProcessingType == VA_DEC_PROCESSING)
+    {
+        PCODECHAL_DECODE_PROCESSING_PARAMS procParams = nullptr;
+        procParams                  = (&m_ddiDecodeCtx->DecodeParams)->m_procParams;
+        procParams->pInputSurface = (&m_ddiDecodeCtx->DecodeParams)->m_destSurface;
+        // codechal_decode_sfc.c expects Input Width/Height information.
+        procParams->pInputSurface->dwWidth    = procParams->pInputSurface->OsResource.iWidth;
+        procParams->pInputSurface->dwHeight = procParams->pInputSurface->OsResource.iHeight;
+        procParams->pInputSurface->dwPitch    = procParams->pInputSurface->OsResource.iPitch;
+        procParams->pInputSurface->Format    = procParams->pInputSurface->OsResource.Format;
+    }
+#endif
+     return VA_STATUS_SUCCESS;
+}
+
 VAStatus DdiDecodeVP9::RenderPicture(
     VADriverContextP ctx,
     VAContextID      context,
@@ -266,7 +286,7 @@ VAStatus DdiDecodeVP9::RenderPicture(
 
         case VAProcPipelineParameterBufferType:
         {
-            DDI_NORMALMESSAGE("ProcPipeline is not supported for VP9 decoding\n");
+            DDI_CHK_RET(ParseProcessingBuffer(mediaCtx, data),"ParseProcessingBuffer failed!");
             break;
         }
         case VADecodeStreamoutBufferType:
@@ -450,7 +470,29 @@ VAStatus DdiDecodeVP9::CodecHalInit(
         vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
         goto CleanUpandReturn;
     }
-
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    if (m_decProcessingType == VA_DEC_PROCESSING)
+    {
+        PCODECHAL_DECODE_PROCESSING_PARAMS procParams = nullptr;
+        
+        m_codechalSettings->downsamplingHinted = true;
+        
+        procParams = (PCODECHAL_DECODE_PROCESSING_PARAMS)MOS_AllocAndZeroMemory(sizeof(CODECHAL_DECODE_PROCESSING_PARAMS));
+        if (procParams == nullptr)
+        {
+            vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
+            goto CleanUpandReturn;
+        }
+        
+        m_ddiDecodeCtx->DecodeParams.m_procParams = procParams;
+        procParams->pOutputSurface = (PMOS_SURFACE)MOS_AllocAndZeroMemory(sizeof(MOS_SURFACE));
+        if (procParams->pOutputSurface == nullptr)
+        {
+            vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
+            goto CleanUpandReturn;
+        }
+    }
+#endif
     vaStatus = CreateCodecHal(mediaCtx,
         ptr,
         &standardInfo);
@@ -484,6 +526,18 @@ CleanUpandReturn:
     m_ddiDecodeCtx->DecodeParams.m_picParams = nullptr;
     MOS_FreeMemory(m_ddiDecodeCtx->DecodeParams.m_sliceParams);
     m_ddiDecodeCtx->DecodeParams.m_sliceParams = nullptr;
+#ifdef _DECODE_PROCESSING_SUPPORTED
+        if (m_ddiDecodeCtx->DecodeParams.m_procParams)
+        {
+            PCODECHAL_DECODE_PROCESSING_PARAMS procParams;
+            
+            procParams = m_ddiDecodeCtx->DecodeParams.m_procParams;
+            MOS_FreeMemory(procParams->pOutputSurface);
+            
+            MOS_FreeMemory(m_ddiDecodeCtx->DecodeParams.m_procParams);
+            m_ddiDecodeCtx->DecodeParams.m_procParams = nullptr;
+        }
+#endif
 
     return vaStatus;
 }

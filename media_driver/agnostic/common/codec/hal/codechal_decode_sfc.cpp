@@ -301,6 +301,10 @@ MOS_STATUS CodechalSfcState::SetSfcStateParams(
     uint16_t widthAlignUnit  = 1;
     uint16_t heightAlignUnit = 1;
 
+    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(
+    m_osInterface,
+    m_sfcOutputSurface));
+
     switch (m_sfcOutputSurface->Format)
     {
         case Format_NV12:

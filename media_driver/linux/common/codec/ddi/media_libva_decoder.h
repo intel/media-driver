@@ -35,7 +35,8 @@
 #define DDI_DECODE_SFC_MAX_HEIGHT                   4096
 #define DDI_DECODE_SFC_MIN_WIDTH                    128
 #define DDI_DECODE_SFC_MIN_HEIGHT                   128
-
+#define DDI_DECODE_HCP_SFC_MAX_WIDTH                (16*1024)
+#define DDI_DECODE_HCP_SFC_MAX_HEIGHT               (16*1024)
 //!
 //! \struct DDI_DECODE_CONFIG_ATTR
 //! \brief  Ddi decode configuration attribute

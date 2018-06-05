@@ -1203,7 +1203,7 @@ VAStatus MediaLibvaCaps::LoadVp9DecProfileEntrypoints()
         uint32_t configStartIdx = m_decConfigs.size();
         for (int32_t i = 0; i < 2; i++)
         {
-            AddDecConfig(m_decSliceMode[i], VA_CENC_TYPE_NONE, VA_DEC_PROCESSING_NONE);
+            AddDecConfig(m_decSliceMode[i], VA_CENC_TYPE_NONE, m_decProcessMode[i]);
         }
 
         if (m_isEntryptSupported)
@@ -1218,7 +1218,7 @@ VAStatus MediaLibvaCaps::LoadVp9DecProfileEntrypoints()
                 for (int32_t l = 0; l < numTypes; l++)
                 {
                     AddDecConfig(VA_DEC_SLICE_MODE_NORMAL, encrytTypes[l],
-                            VA_DEC_PROCESSING_NONE);
+                            m_decProcessMode[l]);
                 }
             }
         }
@@ -1391,7 +1391,7 @@ VAStatus MediaLibvaCaps::LoadDecProfileEntrypoints(VAProfile profile)
     uint32_t configStartIdx = m_decConfigs.size();
     for (int32_t j = 0; j < 2; j++)
     {
-        AddDecConfig(m_decSliceMode[j], VA_CENC_TYPE_NONE, VA_DEC_PROCESSING_NONE); 
+          AddDecConfig(m_decSliceMode[j], VA_CENC_TYPE_NONE, m_decProcessMode[j]); 
         if (m_isEntryptSupported)
         {
             uint32_t encrytTypes[3];
@@ -1404,7 +1404,7 @@ VAStatus MediaLibvaCaps::LoadDecProfileEntrypoints(VAProfile profile)
                 for (int32_t l = 0; l < numTypes; l++)
                 {
                     AddDecConfig(m_decSliceMode[j], encrytTypes[l],
-                            VA_DEC_PROCESSING_NONE); 
+                            m_decProcessMode[l]); 
                 }
             }
         }
