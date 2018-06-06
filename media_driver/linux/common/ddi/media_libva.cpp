@@ -670,7 +670,7 @@ DDI_MEDIA_FORMAT DdiMedia_OsFormatAlphaMaskToMediaFormat(int32_t fourcc, int32_t
 
 #ifndef ANDROID
 
-#define X11_LIB_NAME "libX11.so"
+#define X11_LIB_NAME "libX11.so.6"
 
 /*
  * Close opened libX11.so lib, free related function table.
