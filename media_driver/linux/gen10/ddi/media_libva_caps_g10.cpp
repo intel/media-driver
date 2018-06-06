@@ -253,9 +253,7 @@ VAStatus MediaLibvaCapsG10::CheckEncodeResolution(
             if (width > m_maxHevcEncWidth
                     || width < m_encMinWidth
                     || height > m_maxHevcEncHeight
-                    || height < m_encMinHeight
-                    || (width % CODECHAL_MACROBLOCK_WIDTH)
-                    || (height % CODECHAL_MACROBLOCK_HEIGHT))
+                    || height < m_encMinHeight)
             {
                 return VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED;
             }
@@ -275,9 +273,7 @@ VAStatus MediaLibvaCapsG10::CheckEncodeResolution(
             if (width > m_encMax4kWidth
                     || width < m_encMinWidth
                     || height > m_encMax4kHeight
-                    || height < m_encMinHeight
-                    || (width % CODECHAL_MACROBLOCK_WIDTH)
-                    || (height % CODECHAL_MACROBLOCK_HEIGHT))
+                    || height < m_encMinHeight)
             {
                 return VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED;
             }
