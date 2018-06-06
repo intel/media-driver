@@ -155,6 +155,9 @@ protected:
 
     //! \brief    Gpu context array mutex
     PMOS_MUTEX m_gpuContextArrayMutex = nullptr;
+    
+    //! \brief    Gpu context count
+    uint32_t m_gpuContextCount = 0;
 
     //! \brief    Maintained gpu context array
     std::vector<GpuContext *> m_gpuContextArray;
