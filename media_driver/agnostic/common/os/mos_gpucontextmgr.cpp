@@ -135,6 +135,7 @@ GpuContext *GpuContextMgr::CreateGpuContext(
     GPU_CONTEXT_HANDLE gpuContextHandle = m_gpuContextArray.size();
     gpuContext->SetGpuContextHandle(gpuContextHandle);
     m_gpuContextArray.push_back(gpuContext);
+    m_gpuContextCount++;
 
     MOS_UnlockMutex(m_gpuContextArrayMutex);
 
@@ -171,9 +172,16 @@ void GpuContextMgr::DestroyGpuContext(GpuContext *gpuContext)
             found = true;
             // to keep original order, here should not erase gpucontext, replace with nullptr in array.
             MOS_Delete(curGpuContext); // delete gpu context.
+            m_gpuContextCount--;
             break;
         }
     }
+    
+    if(m_gpuContextCount == 0)
+    {
+       m_gpuContextArray.clear(); // clear whole array     
+    }
+
     MOS_UnlockMutex(m_gpuContextArrayMutex);
 
     if (!found)
