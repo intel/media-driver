@@ -4671,8 +4671,8 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode16x16SadPuComputationKernel()
     I16x16SadParams.m_cmSurfSliceMap = &m_sliceMapSurface.OsResource;
     I16x16SadParams.m_cmSurfSIF = &m_simplestIntraSurface.OsResource;
 
-    //in case I_32x32 isn't initialized when using FastIntraMode for per-frame control
-    if (m_feiPicParams->FastIntraMode == 0 && m_cmKernelMap.count("I_32X32") == 0)
+    //in case I_32x32 isn't initialized when using FastIntraMode for per-frame control (I: enable; P/B: disable)
+    if (m_cmKernelMap.count("I_32X32") == 0)
     {
         m_cmKernelMap["I_32X32"] = new CMRTKernelI32x32UMD();
         m_cmKernelMap["I_32X32"]->Init(nullptr, m_cmKernelMap["2xScaling"]->m_cmDev, m_cmKernelMap["2xScaling"]->m_cmQueue, m_cmKernelMap["2xScaling"]->m_cmTask, nullptr);
@@ -5143,14 +5143,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8BPakKernel(
     if (m_cmKernelMap.count("PB_8x8_PAK") == 0)
     {
         m_cmKernelMap["PB_8x8_PAK"] = new CMRTKernelPB8x8PakUMD();
-        if (m_feiPicParams->FastIntraMode)
-        {
-            m_cmKernelMap["PB_8x8_PAK"]->Init(nullptr, m_cmKernelMap["I_8x8_MBENC"]->m_cmDev, m_cmKernelMap["I_8x8_MBENC"]->m_cmQueue, m_cmKernelMap["I_8x8_MBENC"]->m_cmTask, m_cmKernelMap["I_8x8_MBENC"]->m_cmProgram);
-        }
-        else
-        {
-            m_cmKernelMap["PB_8x8_PAK"]->Init(nullptr, m_cmKernelMap["2xScaling"]->m_cmDev, m_cmKernelMap["2xScaling"]->m_cmQueue, m_cmKernelMap["2xScaling"]->m_cmTask, m_cmKernelMap["PB_32x32"]->m_cmProgram);
-        }
+        m_cmKernelMap["PB_8x8_PAK"]->Init(nullptr, m_cmKernelMap["2xScaling"]->m_cmDev, m_cmKernelMap["2xScaling"]->m_cmQueue, m_cmKernelMap["2xScaling"]->m_cmTask, m_cmKernelMap["PB_32x32"]->m_cmProgram);
     }
 
     m_cmKernelMap["PB_8x8_PAK"]->SetupCurbe(curbe);
@@ -5590,12 +5583,26 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PBMbEncKernel()
         PB8x8MbEncParams.m_cmSurfPerCTBInput = nullptr;
     }
 
+    //to avoid multi contexts in case per-frame control of FastIntraMode, always use 2xScaling kernel to initialize the context.
+    if (m_cmKernelMap.count("2xScaling") == 0)
+    {
+        m_cmKernelMap["2xScaling"] = new CMRTKernelDownScalingUMD();
+        m_cmKernelMap["2xScaling"]->Init((void *)m_osInterface->pOsContext);
+    }
+
+    //in case PB_32x32 isn't initialized when using FastIntraMode for per-frame control (I: disable; P/B: enable)
+    if (m_cmKernelMap.count("PB_32x32") == 0)
+    {
+        m_cmKernelMap["PB_32x32"] = new CMRTKernelPB32x32UMD();
+        m_cmKernelMap["PB_32x32"]->Init(nullptr, m_cmKernelMap["2xScaling"]->m_cmDev, m_cmKernelMap["2xScaling"]->m_cmQueue, m_cmKernelMap["2xScaling"]->m_cmTask, nullptr);
+    }
+
     if (m_pictureCodingType == I_TYPE && m_feiPicParams->FastIntraMode)
     {
         if (m_cmKernelMap.count("I_8x8_MBENC") == 0)
         {
             m_cmKernelMap["I_8x8_MBENC"] = new CMRTKernelB8x8MbEncUMD();
-            m_cmKernelMap["I_8x8_MBENC"]->Init((void *)m_osInterface->pOsContext);
+            m_cmKernelMap["I_8x8_MBENC"]->Init(nullptr, m_cmKernelMap["2xScaling"]->m_cmDev, m_cmKernelMap["2xScaling"]->m_cmQueue, m_cmKernelMap["2xScaling"]->m_cmTask, m_cmKernelMap["PB_32x32"]->m_cmProgram);
         }
 
         m_cmKernelMap["I_8x8_MBENC"]->SetupCurbe(curbe);
@@ -5607,14 +5614,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PBMbEncKernel()
         if (m_cmKernelMap.count("B_8x8_MBENC") == 0)
         {
             m_cmKernelMap["B_8x8_MBENC"] = new CMRTKernelB8x8MbEncUMD();
-            if (m_feiPicParams->FastIntraMode)
-            {
-                m_cmKernelMap["B_8x8_MBENC"]->Init(nullptr, m_cmKernelMap["I_8x8_MBENC"]->m_cmDev, m_cmKernelMap["I_8x8_MBENC"]->m_cmQueue, m_cmKernelMap["I_8x8_MBENC"]->m_cmTask, m_cmKernelMap["I_8x8_MBENC"]->m_cmProgram);
-            }
-            else
-            {
-                m_cmKernelMap["B_8x8_MBENC"]->Init(nullptr, m_cmKernelMap["2xScaling"]->m_cmDev, m_cmKernelMap["2xScaling"]->m_cmQueue, m_cmKernelMap["2xScaling"]->m_cmTask, m_cmKernelMap["PB_32x32"]->m_cmProgram);
-            }
+            m_cmKernelMap["B_8x8_MBENC"]->Init(nullptr, m_cmKernelMap["2xScaling"]->m_cmDev, m_cmKernelMap["2xScaling"]->m_cmQueue, m_cmKernelMap["2xScaling"]->m_cmTask, m_cmKernelMap["PB_32x32"]->m_cmProgram);
         }
 
         m_cmKernelMap["B_8x8_MBENC"]->SetupCurbe(curbe);
@@ -5626,14 +5626,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PBMbEncKernel()
         if (m_cmKernelMap.count("P_8x8_MBENC") == 0)
         {
             m_cmKernelMap["P_8x8_MBENC"] = new CMRTKernelP8x8MbEncUMD();
-            if (m_feiPicParams->FastIntraMode)
-            {
-                m_cmKernelMap["P_8x8_MBENC"]->Init(nullptr, m_cmKernelMap["I_8x8_MBENC"]->m_cmDev, m_cmKernelMap["I_8x8_MBENC"]->m_cmQueue, m_cmKernelMap["I_8x8_MBENC"]->m_cmTask, m_cmKernelMap["I_8x8_MBENC"]->m_cmProgram);
-            }
-            else
-            {
-                m_cmKernelMap["P_8x8_MBENC"]->Init(nullptr, m_cmKernelMap["2xScaling"]->m_cmDev, m_cmKernelMap["2xScaling"]->m_cmQueue, m_cmKernelMap["2xScaling"]->m_cmTask, m_cmKernelMap["PB_32x32"]->m_cmProgram);
-            }
+            m_cmKernelMap["P_8x8_MBENC"]->Init(nullptr, m_cmKernelMap["2xScaling"]->m_cmDev, m_cmKernelMap["2xScaling"]->m_cmQueue, m_cmKernelMap["2xScaling"]->m_cmTask, m_cmKernelMap["PB_32x32"]->m_cmProgram);
         }
         m_cmKernelMap["P_8x8_MBENC"]->SetupCurbe(curbe);
         m_cmKernelMap["P_8x8_MBENC"]->AllocateSurfaces(&PB8x8MbEncParams);
@@ -5923,14 +5916,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::EncodeKernelFunctions()
 
     if (m_cmEvent != nullptr)
     {
-        if (m_feiPicParams->FastIntraMode)
-        {
-            m_cmKernelMap["I_8x8_MBENC"]->WaitAndDestroyEvent(m_cmEvent);
-        }
-        else
-        {
-            m_cmKernelMap["2xScaling"]->WaitAndDestroyEvent(m_cmEvent);
-        }
+        m_cmKernelMap["2xScaling"]->WaitAndDestroyEvent(m_cmEvent);
     }
 
     for (CmKernelMapType::iterator it = m_cmKernelMap.begin(); it != m_cmKernelMap.end(); it++)
