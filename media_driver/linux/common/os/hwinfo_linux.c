@@ -30,6 +30,8 @@
 #include "skuwa_factory.h"
 #include "linux_system_info.h"
 #include "linux_shadow_skuwa.h"
+#include "mos_solo_generic.h"
+
 
 typedef DeviceInfoFactory<struct GfxDeviceInfo> DeviceInfoFact;
 typedef DeviceInfoFactory<struct LinuxDeviceInit> DeviceInitFact;
@@ -93,9 +95,8 @@ MOS_STATUS HWInfo_GetGfxInfo(int32_t           fd,
     MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;
 #endif
 
-    LinuxDriverInfo drvInfo;
-    memset(&drvInfo, 0, sizeof(drvInfo));
-    if (HWInfoGetLinuxDrvInfo(fd, &drvInfo) != MOS_STATUS_SUCCESS)
+    LinuxDriverInfo drvInfo = {18, 3, 0, 23172, 3, 1, 0, 1, 0, 0, 1, 0};
+    if (!Mos_Solo_IsEnabled() && HWInfoGetLinuxDrvInfo(fd, &drvInfo) != MOS_STATUS_SUCCESS)
     {
         MOS_OS_ASSERTMESSAGE("Failed to get the chipset id\n");
         return MOS_STATUS_INVALID_HANDLE;
@@ -315,13 +316,12 @@ MOS_STATUS HWInfo_GetGmmInfo(int32_t                 fd,
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
-    LinuxDriverInfo drvInfo;
+    LinuxDriverInfo drvInfo = {18, 3, 0, 23172, 3, 1, 0, 1, 0, 0, 1, 0};
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;
 #endif
 
-    memset(&drvInfo, 0, sizeof(drvInfo));
-    if (HWInfoGetLinuxDrvInfo(fd, &drvInfo) != MOS_STATUS_SUCCESS)
+    if (!Mos_Solo_IsEnabled() && HWInfoGetLinuxDrvInfo(fd, &drvInfo) != MOS_STATUS_SUCCESS)
     {
         MOS_OS_ASSERTMESSAGE("Failed to get the chipset id\n");
         return MOS_STATUS_INVALID_HANDLE;
