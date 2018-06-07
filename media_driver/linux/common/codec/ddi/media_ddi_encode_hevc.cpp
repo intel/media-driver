@@ -1037,7 +1037,9 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
             DDI_ASSERTMESSAGE("invalid RC method.");
             return VA_STATUS_ERROR_INVALID_PARAMETER;
         }
-        if((RATECONTROL_VCM == seqParams->RateControlMethod) || (RATECONTROL_VBR == seqParams->RateControlMethod))
+        if((RATECONTROL_VCM == seqParams->RateControlMethod)
+            || (RATECONTROL_VBR == seqParams->RateControlMethod)
+            || (RATECONTROL_CBR == seqParams->RateControlMethod))
         {
             seqParams->MaxBitRate    = seqParams->TargetBitRate;
             seqParams->MinBitRate    = seqParams->TargetBitRate * (2 * vaEncMiscParamRC->target_percentage - 100) / 100;
