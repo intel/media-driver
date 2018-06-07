@@ -912,10 +912,9 @@ MOS_STATUS CodechalEncodeHevcBase::SetSequenceStructs()
 
     if (m_brcReset &&
         (!m_brcEnabled ||
-            m_hevcSeqParams->RateControlMethod == RATECONTROL_CBR ||
             m_hevcSeqParams->RateControlMethod == RATECONTROL_ICQ))
     {
-        CODECHAL_ENCODE_ASSERTMESSAGE("BRC Reset cannot be trigerred in CQP/CBR/ICQ modes - invalid BRC parameters.");
+        CODECHAL_ENCODE_ASSERTMESSAGE("BRC Reset cannot be trigerred in CQP/ICQ modes - invalid BRC parameters.");
         m_brcReset = false;
     }
 
