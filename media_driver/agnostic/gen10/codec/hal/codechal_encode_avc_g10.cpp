@@ -6153,21 +6153,6 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
                 kernelState));
         }
 
-        if (params->bStaticFrameDetectionEnabled)
-        {
-            // static frame cost table surface
-            memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
-            surfaceCodecParams.presBuffer = params->presSFDCostTableBuffer;
-            surfaceCodecParams.dwSize = MOS_BYTES_TO_DWORDS(m_sfdCostTableBufferSize);
-            surfaceCodecParams.dwOffset = 0;
-            surfaceCodecParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ME_DISTORTION_ENCODE].Value;
-            surfaceCodecParams.dwBindingTableOffset = bindingTable->dwAvcMBEncStaticDetectionCostTable;
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
-                m_hwInterface,
-                cmdBuffer,
-                &surfaceCodecParams,
-                kernelState));
-        }
     }
 
     return eStatus;
@@ -6621,13 +6606,6 @@ MOS_STATUS CodechalEncodeAvcEncG10::ExecuteKernelFunctions()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(GenericEncodeMeKernel(&BrcBuffers, HME_LEVEL_4x));
     }
 
-    // call SFD kernel after HME in same command buffer
-    if (staticFrameDetectionInUse)
-    {
-        m_lastTaskInPhase = true;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(SFDKernel());
-    }
-
     // Scaling and HME are not dependent on the output from PAK
     if (m_waitForPak && m_semaphoreObjCount && !Mos_ResourceIsNull(&m_resSyncObjectVideoContextInUse))
     {
@@ -6850,18 +6828,6 @@ MOS_STATUS CodechalEncodeAvcEncG10::KernelDebugDumps()
             }
         }
     }
-
-       auto staticFrameDetectionInUse = bStaticFrameDetectionEnable && m_hmeEnabled;
-        if (staticFrameDetectionInUse)
-        {
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-                &resSFDOutputBuffer[0],
-                CodechalDbgAttr::attrOutput,
-                "Out",
-                m_sfdOutputBufferSize,
-                0,
-                CODECHAL_MEDIA_STATE_STATIC_FRAME_DETECTION));
-        }
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
             &BrcBuffers.resBrcImageStatesReadBuffer[m_currRecycledBufIdx],
