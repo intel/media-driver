@@ -1748,7 +1748,7 @@ MOS_STATUS CodechalVdencHevcState::ExecutePictureLevel()
         currentPass));
 
     // Send HuC BRC Init/ Update only on first pipe.
-    if (m_vdencHucUsed )
+    if (m_vdencHucUsed)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucCmdInitializer->CmdInitializerExecute(true, &m_vdencReadBatchBuffer[m_currRecycledBufIdx][currentPass]));
 
@@ -2155,6 +2155,20 @@ MOS_STATUS CodechalVdencHevcState::ExecuteSliceLevel()
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(ReadSseStatistics(&cmdBuffer));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(ReadSliceSize(&cmdBuffer));
+
+#if USE_CODECHAL_DEBUG_TOOL
+    if (m_brcEnabled && m_enableFakeHrdSize)
+    {
+        uint32_t sizeInByte = (m_pictureCodingType == I_TYPE) ? m_fakeIFrameHrdSize : m_fakePBFrameHrdSize;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(ModifyEncodedFrameSizeWithFakeHeaderSize(
+            &cmdBuffer,
+            sizeInByte,
+            m_resVdencBrcUpdateDmemBufferPtr[0],
+            0,
+            &m_resFrameStatStreamOutBuffer,
+            sizeof(uint32_t) * 4));
+    }
+#endif
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(EndStatusReport(&cmdBuffer, CODECHAL_NUM_MEDIA_STATES));
 
@@ -3473,4 +3487,51 @@ MOS_STATUS CodechalVdencHevcState::DumpSeqParFile()
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS CodechalVdencHevcState::ModifyEncodedFrameSizeWithFakeHeaderSize(
+    PMOS_COMMAND_BUFFER                 cmdBuffer,
+    uint32_t                            fakeHeaderSizeInByte,
+    PMOS_RESOURCE                       resBrcUpdateCurbe,
+    uint32_t                            targetSizePos,
+    PMOS_RESOURCE                       resPakStat,
+    uint32_t                            slcHrdSizePos
+)
+{
+    MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    //calculate slice headers size
+    PCODEC_ENCODER_SLCDATA slcData = m_slcData;
+    CODECHAL_ENCODE_CHK_NULL_RETURN(slcData);
+    uint32_t totalSliceHeaderSize = 0;
+    for (uint32_t slcCount = 0; slcCount < m_numSlices; slcCount++)
+    {
+        totalSliceHeaderSize += (slcData->BitSize + 7) >> 3;
+        slcData++;
+    }
+
+    uint32_t firstHdrSz = 0;
+    for (uint32_t i = 0; i < m_encodeParams.uiNumNalUnits; i++)
+    {
+        firstHdrSz += m_encodeParams.ppNALUnitParams[i]->uiSize;
+    }
+
+    totalSliceHeaderSize += firstHdrSz;
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(AddBufferWithIMMValue(
+        cmdBuffer,
+        resBrcUpdateCurbe,
+        targetSizePos,
+        fakeHeaderSizeInByte - totalSliceHeaderSize,
+        true));
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(AddBufferWithIMMValue(
+        cmdBuffer,
+        resPakStat,
+        slcHrdSizePos,
+        fakeHeaderSizeInByte * 8,
+        true));
+
+    return eStatus;
+}
 #endif
