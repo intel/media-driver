@@ -1710,7 +1710,8 @@ MOS_STATUS CodechalEncodeAvcEnc::Initialize(CodechalSetting * settings)
             }
         }
 
-        if ((bStaticFrameDetectionEnable) && (!m_feiEnable))
+        // SFD kernel don't been used on SKL+ platforms
+        if ((bStaticFrameDetectionEnable) && (!bPerMbSFD) && (!m_feiEnable))
         {
             // init Static frame detection kernel
             CODECHAL_ENCODE_CHK_STATUS_RETURN(InitKernelStateSFD());

@@ -2292,21 +2292,6 @@ MOS_STATUS CodechalEncodeAvcEncG9::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmdB
                 kernelState));
         }
 
-        if (params->bStaticFrameDetectionEnabled)
-        {
-            // static frame cost table surface
-            MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
-            surfaceCodecParams.presBuffer = params->presSFDCostTableBuffer;
-            surfaceCodecParams.dwSize = MOS_BYTES_TO_DWORDS(CODECHAL_ENCODE_AVC_SFD_COST_TABLE_BUFFER_SIZE_G9);
-            surfaceCodecParams.dwOffset = 0;
-            surfaceCodecParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ME_DISTORTION_ENCODE].Value;
-            surfaceCodecParams.dwBindingTableOffset = avcMbEncBindingTable->dwAvcMBEncStaticDetectionCostTable;
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
-                m_hwInterface,
-                cmdBuffer,
-                &surfaceCodecParams,
-                kernelState));
-        }
     }
 
     return eStatus;
