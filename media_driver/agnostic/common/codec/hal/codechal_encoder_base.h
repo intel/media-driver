@@ -2380,6 +2380,34 @@ public:
 #if USE_CODECHAL_DEBUG_TOOL
     virtual MOS_STATUS DumpMbEncPakOutput(PCODEC_REF_LIST currRefList, CodechalDebugInterface* debugInterface);
     virtual MOS_STATUS DumpFrameStatsBuffer(CodechalDebugInterface* debugInterface) { return MOS_STATUS_SUCCESS; }
+
+    //!
+    //! \brief  Add/Subtract a value to specified gfx memory
+    //!
+    //! \param  [in] cmdBuffer
+    //!         command buffer
+    //! \param  [in] presStoreBuffer
+    //!         buffer to modify
+    //! \param  [in] offset
+    //!         member offset in the buffer
+    //! \param  [in] value
+    //!         value to add/subtract
+    //! \param  [in] bAdd
+    //!         add or subtract
+    //!
+    //! \return MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS AddBufferWithIMMValue(
+        PMOS_COMMAND_BUFFER         cmdBuffer,
+        PMOS_RESOURCE               presStoreBuffer,
+        uint32_t                    offset,
+        uint32_t                    value,
+        bool                        bAdd);
+
+    bool          m_enableFakeHrdSize   = false;
+    int32_t       m_fakeIFrameHrdSize   = 0;
+    int32_t       m_fakePBFrameHrdSize  = 0;
 #endif
 };
 
