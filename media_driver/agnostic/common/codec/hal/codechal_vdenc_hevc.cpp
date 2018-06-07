@@ -3205,18 +3205,17 @@ MOS_STATUS CodechalVdencHevcState::DumpHucBrcUpdate(bool isInput)
             currentPass,
             hucRegionDumpUpdate));
 
-        // Temporarily commenting out debug dumps for these regions
         // Region 9 - Streamin Buffer for ROI (Input)
-        /*CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucRegion(
+        auto streamInBufferSize = (MOS_ALIGN_CEIL(m_frameWidth, 64) / 32) * (MOS_ALIGN_CEIL(m_frameHeight, 64) / 32) * CODECHAL_CACHELINE_SIZE;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucRegion(
             &m_resVdencStreamInBuffer[m_currRecycledBufIdx],
             0,
-            m_brcRoiBufferSize,
+            streamInBufferSize,
             9,
             "_RoiStreamin",
             true,
             currentPass,
             hucRegionDumpUpdate));
-
         // Region 10 - Delta QP for ROI Buffer
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucRegion(
             &m_vdencDeltaQpBuffer[m_currRecycledBufIdx],
@@ -3226,7 +3225,7 @@ MOS_STATUS CodechalVdencHevcState::DumpHucBrcUpdate(bool isInput)
             "_DeltaQp",
             true,
             currentPass,
-            hucRegionDumpUpdate));*/
+            hucRegionDumpUpdate));
     }
     else
     {
@@ -3241,17 +3240,16 @@ MOS_STATUS CodechalVdencHevcState::DumpHucBrcUpdate(bool isInput)
             currentPass,
             hucRegionDumpUpdate));
 
-        // Temporarily commenting out debug dumps for these regions
         // Region 11 - Output ROI Streamin Buffer
-        /*CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucRegion(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucRegion(
             &m_vdencOutputROIStreaminBuffer,
             0,
-            m_brcRoiBufferSize,
+            m_roiStreamInBufferSize,
             11,
             "_RoiStreamin",
             false,
             currentPass,
-            hucRegionDumpUpdate));*/
+            hucRegionDumpUpdate));
     }
 
     // Region 0 - History Buffer dump (Input/Output)
