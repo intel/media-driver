@@ -383,7 +383,11 @@ VAStatus MediaLibvaCaps::CheckEncRTFormat(
     {
         attrib->value = VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV444 | VA_RT_FORMAT_YUV400 | VA_RT_FORMAT_YUV411 | VA_RT_FORMAT_RGB16 | VA_RT_FORMAT_RGB32;
     }
-    else
+    else if(profile == VAProfileHEVCMain10)
+    {
+        attrib->value = VA_RT_FORMAT_YUV420_10;
+    }
+    else    
     {
         attrib->value = VA_RT_FORMAT_YUV420;
     }
@@ -1431,16 +1435,12 @@ VAStatus MediaLibvaCaps::LoadHevcEncProfileEntrypoints()
 #ifdef _HEVC_ENCODE_SUPPORTED
     AttribMap *attributeList = nullptr;
 
-    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVC)
-            || MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVC10bit))
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVC))
     {
         status = CreateEncAttributes(VAProfileHEVCMain, VAEntrypointEncSlice, &attributeList);
         DDI_CHK_RET(status, "Failed to initialize Caps!");
         DDI_CHK_NULL(attributeList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
-    }
-
-    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVC))
-    {
+    
         uint32_t configStartIdx = m_encConfigs.size();
         AddEncConfig(VA_RC_CQP);
         for (int32_t j = 1; j < 7; j++)
@@ -1465,6 +1465,10 @@ VAStatus MediaLibvaCaps::LoadHevcEncProfileEntrypoints()
 
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVC10bit))
     {
+        status = CreateEncAttributes(VAProfileHEVCMain10, VAEntrypointEncSlice, &attributeList);
+        DDI_CHK_RET(status, "Failed to initialize Caps!");
+        DDI_CHK_NULL(attributeList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+    
         uint32_t configStartIdx = m_encConfigs.size();
         AddEncConfig(VA_RC_CQP);
         for (int32_t j = 1; j < 7; j++)
