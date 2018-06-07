@@ -8904,10 +8904,17 @@ MOS_STATUS CodechalEncodeAvcEnc::ExecutePreEnc(EncoderParams* encodeParams)
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(encodeParams->pPreEncParams);
+    FeiPreEncParams *preEncParams = (FeiPreEncParams *)encodeParams->pPreEncParams;
+
     m_encodeParams           = *encodeParams;
     m_newSeqHeader           = encodeParams->newSeqHeader;
     m_newPpsHeader           = encodeParams->newPpsHeader;
     m_arbitraryNumMbsInSlice = encodeParams->arbitraryNumMbsInSlice;
+
+    if (preEncParams->bDisableMVOutput && preEncParams->bDisableStatisticsOutput)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
 
     m_osInterface->pfnIncPerfFrameID(m_osInterface);
 
