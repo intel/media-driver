@@ -934,8 +934,9 @@ MOS_STATUS CodechalVdencVp9State::SetDmemHuCVp9Prob()
     dmem->FrameCtrl.log2TileCols = m_vp9PicParams->log2_tile_columns;
 
     dmem->PrevFrameInfo = m_prevFrameInfo;
-    //For DyS CQP or BRC case there is no Repak on las pass. So disable the Repak flag here
-    dmem->RePak = (m_numPasses > 0 && IsLastPass() &&  !(m_dysCqp || m_dysBrc ) );
+    // For DyS CQP or BRC case there is no Repak on last pass. So disable the Repak flag here
+    // We also disable repak pass in TU7 speed mode usage for performance reasons.
+    dmem->RePak = (m_numPasses > 0 && IsLastPass() && !(m_dysCqp || m_dysBrc) && (m_vp9SeqParams->TargetUsage != TU_PERFORMANCE));
     if (dmem->RePak && m_adaptiveRepakSupported)
     {
         MOS_SecureMemcpy(dmem->RePakThreshold, sizeof(uint32_t) * CODEC_VP9_QINDEX_RANGE, m_rePakThreshold, sizeof(uint32_t) * CODEC_VP9_QINDEX_RANGE);
