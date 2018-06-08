@@ -1782,6 +1782,25 @@ protected:
         CodechalDebugInterface* debugInterface,
         PCODECHAL_STANDARD_INFO standardInfo);
 
+    //!
+    //! \brief    Set pipe buffer address parameter
+    //! \details  Set pipe buffer address parameter in MMC case
+    //!
+    //! \param    [in,out] pipeBufAddrParams
+    //!           Pointer to PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS
+    //! \param    [in] refSurface
+    //!           Pointer to reference surfaces
+    //! \param    [in] cmdBuffer
+    //!           Pointer to MOS command buffer
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SetPipeBufAddr(
+        PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams,
+        PMOS_SURFACE refSurface[3],
+        PMOS_COMMAND_BUFFER cmdBuffer);
+
 public:
     //!
     //! \brief    Destructor
@@ -2015,6 +2034,18 @@ public:
     //!             MOS_STATUS_SUCCESS if success, else fail reason 
     //!
     MOS_STATUS DysSrcFrame();
+
+    //!
+    //! \brief      Return if this surface has to be compressed
+    //!
+    //! \param      [in] isDownScaledSurface
+    //!             indicating if surface is downscaled
+    //!
+    //! \return     int32_t
+    //!             1 if to be compressed
+    //!             0 if not
+    //!
+    virtual bool IsToBeCompressed(bool isDownScaledSurface);
 
     //!
     //! \brief      Dys Reference frames

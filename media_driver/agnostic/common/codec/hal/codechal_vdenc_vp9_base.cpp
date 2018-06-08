@@ -2128,6 +2128,13 @@ MOS_STATUS CodechalVdencVp9State::DysSrcFrame()
     return eStatus;
 }
 
+bool CodechalVdencVp9State::IsToBeCompressed(bool isDownScaledSurface)
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+    // For regular encoding, we always compress this surface regardless of downscaling
+    return CodecHalMmcState::IsMmcEnabled();
+}
+
 MOS_STATUS CodechalVdencVp9State::DysRefFrames()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
@@ -2174,7 +2181,7 @@ MOS_STATUS CodechalVdencVp9State::DysRefFrames()
     allocParamsForBufferNV12.Type = MOS_GFXRES_2D;
     allocParamsForBufferNV12.TileType = MOS_TILE_Y;
     allocParamsForBufferNV12.Format = Format_NV12;
-    allocParamsForBufferNV12.bIsCompressed = CodecHalMmcState::IsMmcEnabled();
+    allocParamsForBufferNV12.bIsCompressed = IsToBeCompressed(true);
 
     PCODEC_REF_LIST *refList = &m_refList[0];
     if (Mos_ResourceIsNull(&refList[idx]->sDysSurface.OsResource) ||
@@ -2291,6 +2298,7 @@ MOS_STATUS CodechalVdencVp9State::DysRefFrames()
     bool origWaitForENC = m_waitForEnc;
     m_waitForEnc = false;
     MOS_SURFACE origReconSurface = m_reconSurface;
+    // Set the downscaled surface as the recon output surface
     m_reconSurface = refList[idx]->sDysSurface;
     // save the ucNumPasses and set the ucNumPasses = ucCurrPass + 1. otherwise SliceLevel will mistakenly treat current pass as last pass
     uint8_t origNumPasses = m_numPasses;
@@ -4027,7 +4035,7 @@ MOS_STATUS CodechalVdencVp9State::ExecutePictureLevel()
     if (pipeBufAddrParams)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SetHcpPipeBufAddrParams(*pipeBufAddrParams, refSurface, refSurfaceNonScaled, dsRefSurface4x, dsRefSurface8x));
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetPipeBufAddr(pipeBufAddrParams));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetPipeBufAddr(pipeBufAddrParams, refSurface, &cmdBuffer));
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpPipeBufAddrCmd(&cmdBuffer, pipeBufAddrParams));
     }
 
@@ -4267,6 +4275,17 @@ PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS CodechalVdencVp9State::CreateHcpPipeBufAddrParam
     MOS_ZeroMemory(pipeBufAddrParams, sizeof(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS));
 
     return pipeBufAddrParams;
+}
+
+MOS_STATUS CodechalVdencVp9State::SetPipeBufAddr(
+    PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams,
+    PMOS_SURFACE refSurface[3],
+    PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
+    return m_mmcState->SetPipeBufAddr(pipeBufAddrParams, cmdBuffer);
 }
 
 MOS_STATUS CodechalVdencVp9State::SetHcpPipeBufAddrParams(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS& pipeBufAddrParams,
@@ -4958,9 +4977,19 @@ MOS_STATUS CodechalVdencVp9State::ExecuteDysPictureLevel()
         pipeBufAddrParams->presMetadataTileLineBuffer   = &m_resMetadataTileLineBuffer;
         pipeBufAddrParams->presMetadataTileColumnBuffer = &m_resMetadataTileColumnBuffer;
         pipeBufAddrParams->presCurMvTempBuffer = m_trackedBuf->GetMvTemporalBuffer(m_currMvTemporalBufferIndex);
+        if (m_pictureCodingType != I_TYPE)
+        {
+            for (auto i = 0; i < 3; i++)
+            {
+                CODECHAL_ENCODE_CHK_NULL_RETURN(refSurface[i]);
+                pipeBufAddrParams->presReferences[i] = &refSurface[i]->OsResource;
+            }
+        }
 
-        CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetPipeBufAddr(pipeBufAddrParams));
+
+        pipeBufAddrParams->pRawSurfParam      = &surfaceParams[CODECHAL_HCP_SRC_SURFACE_ID];
+        pipeBufAddrParams->pDecodedReconParam = &surfaceParams[CODECHAL_HCP_DECODED_SURFACE_ID];
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetPipeBufAddr(pipeBufAddrParams, refSurface, &cmdBuffer));
 
         //Huc is disabled for ref frame scaling, use input region
         uint8_t frameCtxIdx = m_vp9PicParams->PicFlags.fields.frame_context_idx;
@@ -4970,15 +4999,8 @@ MOS_STATUS CodechalVdencVp9State::ExecuteDysPictureLevel()
 
         if (m_pictureCodingType != I_TYPE)
         {
-            for (auto i = 0; i < 3; i++)
-            {
-                CODECHAL_ENCODE_CHK_NULL_RETURN(refSurface[i]);
-
-                pipeBufAddrParams->presReferences[i] = &refSurface[i]->OsResource;
-            }
-
             pipeBufAddrParams->presColMvTempBuffer[0] = m_trackedBuf->GetMvTemporalBuffer(m_currMvTemporalBufferIndex ^ 0x01);
-    }
+        }
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpPipeBufAddrCmd(&cmdBuffer, pipeBufAddrParams));
 
         MOS_Delete(pipeBufAddrParams);
