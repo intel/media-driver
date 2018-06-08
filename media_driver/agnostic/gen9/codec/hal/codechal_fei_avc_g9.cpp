@@ -2151,6 +2151,7 @@ CodechalEncodeAvcEncFeiG9::~CodechalEncodeAvcEncFeiG9()
     {
         DestroyMDFKernelResource(m_resMbencKernel);
         MOS_FreeMemory(m_resMbencKernel);
+        m_resMbencKernel = nullptr;
     }
 
     if(nullptr != m_cmSurfIdx)
