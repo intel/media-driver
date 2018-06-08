@@ -37,6 +37,8 @@ message("-- media -- LIBVA_INSTALL_PATH = ${LIBVA_INSTALL_PATH}")
 message("-- media -- BUILD_ALONG_WITH_CMRTLIB = ${BUILD_ALONG_WITH_CMRTLIB}")
 Message("-- media -- MEDIA_VERSION = ${MEDIA_VERSION}")
 
+set(LIB_NAME_OBJ    "${LIB_NAME}_OBJ")
+set(LIB_NAME_STATIC "${LIB_NAME}_STATIC")
 set(SOURCES_ "")
 
 # add source
@@ -56,21 +58,23 @@ bs_set_defines()
 
 set_source_files_properties(${SOURCES_} PROPERTIES LANGUAGE "CXX")
 
-add_library( ${LIB_NAME} SHARED ${SOURCES_})
+add_library(${LIB_NAME_OBJ} OBJECT ${SOURCES_})
+set_property(TARGET ${LIB_NAME_OBJ} PROPERTY POSITION_INDEPENDENT_CODE 1)
 
-if(MEDIA_RUN_TEST_SUITE)
-	add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/linux/ult)
-endif(MEDIA_RUN_TEST_SUITE)
+add_library(${LIB_NAME}        SHARED $<TARGET_OBJECTS:${LIB_NAME_OBJ}>)
+add_library(${LIB_NAME_STATIC} STATIC $<TARGET_OBJECTS:${LIB_NAME_OBJ}>)
+set_target_properties(${LIB_NAME_STATIC} PROPERTIES OUTPUT_NAME ${LIB_NAME})
 
 option(MEDIA_BUILD_FATAL_WARNINGS "Turn compiler warnings into fatal errors" ON)
 if(MEDIA_BUILD_FATAL_WARNINGS)
-    set_target_properties(${LIB_NAME} PROPERTIES COMPILE_FLAGS "-Werror")
+    set_target_properties(${LIB_NAME_OBJ} PROPERTIES COMPILE_FLAGS "-Werror")
 endif()
 
 set_target_properties(${LIB_NAME} PROPERTIES LINK_FLAGS "-Wl,--no-as-needed -Wl,--gc-sections -z relro -z now -fstack-protector -fPIC")
-set_target_properties(${LIB_NAME} PROPERTIES PREFIX "")
+set_target_properties(${LIB_NAME}        PROPERTIES PREFIX "")
+set_target_properties(${LIB_NAME_STATIC} PROPERTIES PREFIX "")
 
-MediaAddCommonTargetDefines(${LIB_NAME})
+MediaAddCommonTargetDefines(${LIB_NAME_OBJ})
 
 bs_ufo_link_libraries_noBsymbolic(
     ${LIB_NAME}
@@ -96,3 +100,8 @@ endif(NOT DEFINED INCLUDED_LIBS OR "${INCLUDED_LIBS}" STREQUAL "")
 
 # post target attributes
 bs_set_post_target()
+
+if(MEDIA_RUN_TEST_SUITE)
+    add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/linux/ult)
+    include(${CMAKE_CURRENT_LIST_DIR}/../media_driver_next/ult/ult_top_cmake_linux.cmake OPTIONAL)
+endif(MEDIA_RUN_TEST_SUITE)
