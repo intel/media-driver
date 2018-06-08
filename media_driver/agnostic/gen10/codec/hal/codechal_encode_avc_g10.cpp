@@ -6153,6 +6153,21 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
                 kernelState));
         }
 
+        if (params->bStaticFrameDetectionEnabled)
+        {
+            // static frame cost table surface
+            memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+            surfaceCodecParams.presBuffer = params->presSFDCostTableBuffer;
+            surfaceCodecParams.dwSize = MOS_BYTES_TO_DWORDS(m_sfdCostTableBufferSize);
+            surfaceCodecParams.dwOffset = 0;
+            surfaceCodecParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ME_DISTORTION_ENCODE].Value;
+            surfaceCodecParams.dwBindingTableOffset = bindingTable->dwAvcMBEncStaticDetectionCostTable;
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
+                m_hwInterface,
+                cmdBuffer,
+                &surfaceCodecParams,
+                kernelState));
+        }
     }
 
     return eStatus;
