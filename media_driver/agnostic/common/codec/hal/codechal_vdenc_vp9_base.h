@@ -262,7 +262,7 @@ class CodechalVdencVp9State : public CodechalEncoderState
 {
 public:
     //!
-    //! \struct    CompressedHeader
+    //! \struct    Compressed Header
     //! \brief     Compressed header
     //!
     struct CompressedHeader
