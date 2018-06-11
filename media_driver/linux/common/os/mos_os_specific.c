@@ -1079,8 +1079,8 @@ MOS_STATUS Linux_InitContext(
     if (nullptr == pContext ||
         nullptr == pOsDriverContext ||
         nullptr == pOsDriverContext->bufmgr ||
-        nullptr == pOsDriverContext->m_gpuContextMgr ||
-        nullptr == pOsDriverContext->m_cmdBufMgr ||
+        nullptr == pOsDriverContext->m_gpuContextMgr && modularizedGpuCtxEnabled ||
+        nullptr == pOsDriverContext->m_cmdBufMgr && modularizedGpuCtxEnabled ||
         0 >= pOsDriverContext->fd)
     {
         MOS_OS_ASSERT(false);
