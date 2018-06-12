@@ -129,7 +129,7 @@ public:
         return MOS_STATUS_UNIMPLEMENTED;
     };
 
-    PMOS_INTERFACE                  osInterface = nullptr;
+    PMOS_INTERFACE                  m_osInterface = nullptr;
 
 protected:
 
