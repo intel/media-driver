@@ -5074,7 +5074,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SetCurbeAvcMbEnc(
         }
 
         MHW_VDBOX_AVC_SLICE_STATE sliceState;
-        memset(&sliceState, 0, sizeof(MHW_VDBOX_AVC_SLICE_STATE));
+        memset((void *)&sliceState, 0, sizeof(MHW_VDBOX_AVC_SLICE_STATE));
         sliceState.pEncodeAvcSeqParams = seqParams;
         sliceState.pEncodeAvcPicParams = picParams;
         sliceState.pEncodeAvcSliceParams = slcParams;
@@ -5430,7 +5430,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SetCurbeAvcFrameBrcUpdate(PCODECHAL_ENCODE_A
     cmd.m_dw15.EnableROI = params->ucEnableROI;
 
     MHW_VDBOX_AVC_SLICE_STATE sliceState;
-    memset(&sliceState, 0, sizeof(MHW_VDBOX_AVC_SLICE_STATE));
+    memset((void *)&sliceState, 0, sizeof(MHW_VDBOX_AVC_SLICE_STATE));
     sliceState.pEncodeAvcSeqParams = seqParams;
     sliceState.pEncodeAvcPicParams = picParams;
     sliceState.pEncodeAvcSliceParams = slcParams;
@@ -5612,7 +5612,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
     // PAK Obj command buffer
     uint32_t size = params->dwFrameWidthInMb * params->dwFrameFieldHeightInMb * 16 * 4;  // 11DW + 5DW padding
     CODECHAL_SURFACE_CODEC_PARAMS surfaceCodecParams;
-    memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+    memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
     surfaceCodecParams.presBuffer = mbCodeBuffer;
     surfaceCodecParams.dwSize = size;
     surfaceCodecParams.dwOffset = params->dwMbCodeBottomFieldOffset;
@@ -5628,7 +5628,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
 
     // MV data buffer
     size = params->dwFrameWidthInMb * params->dwFrameFieldHeightInMb * 32 * 4;
-    memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+    memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
     surfaceCodecParams.presBuffer = mvDataBuffer;
     surfaceCodecParams.dwSize = size;
     surfaceCodecParams.dwOffset = params->dwMvBottomFieldOffset;
@@ -5643,7 +5643,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
         kernelState));
 
     // Current Picture Y
-    memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+    memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
     surfaceCodecParams.bIs2DSurface = true;
     surfaceCodecParams.bMediaBlockRW = true; // Use media block RW for DP 2D surface access
     surfaceCodecParams.bUseUVPlane = true;
@@ -5666,7 +5666,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
     {
         CODECHAL_ENCODE_CHK_NULL_RETURN(params->ps4xMeMvDataBuffer);
 
-        memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+        memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
         surfaceCodecParams.bIs2DSurface = true;
         surfaceCodecParams.bMediaBlockRW = true;
         surfaceCodecParams.psSurface = params->ps4xMeMvDataBuffer;
@@ -5681,7 +5681,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
 
         CODECHAL_ENCODE_CHK_NULL_RETURN(params->ps4xMeDistortionBuffer);
 
-        memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+        memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
         surfaceCodecParams.bIs2DSurface = true;
         surfaceCodecParams.bMediaBlockRW = true;
         surfaceCodecParams.psSurface = params->ps4xMeDistortionBuffer;
@@ -5700,7 +5700,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
         // 16 DWs per QP value
         size = 16 * 52 * sizeof(uint32_t);
 
-        memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+        memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
         surfaceCodecParams.presBuffer = params->presMbBrcConstDataBuffer;
         surfaceCodecParams.dwSize = size;
         surfaceCodecParams.dwBindingTableOffset = bindingTable->dwAvcMBEncMbBrcConstData;
@@ -5714,7 +5714,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
     if (params->bMbQpBufferInUse)
     {
         // AVC MB BRC QP buffer
-        memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+        memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
         surfaceCodecParams.bIs2DSurface = true;
         surfaceCodecParams.bMediaBlockRW = true;
         surfaceCodecParams.psSurface = params->psMbQpBuffer;
@@ -5732,7 +5732,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
     {
         size = params->dwFrameWidthInMb * params->dwFrameFieldHeightInMb * sizeof(CODECHAL_ENCODE_AVC_MB_SPECIFIC_PARAMS);
         CODECHAL_ENCODE_VERBOSEMESSAGE("Send MB specific surface, size = %d", size);
-        memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+        memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
         surfaceCodecParams.dwSize = size;
         surfaceCodecParams.presBuffer = params->presMbSpecificDataBuffer;
         surfaceCodecParams.dwBindingTableOffset = bindingTable->dwAvcMBEncMbSpecificData;
@@ -5744,7 +5744,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
     }
 
     // Current Picture Y - VME
-    memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+    memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
     surfaceCodecParams.bUseAdvState = true;
     surfaceCodecParams.psSurface = params->psCurrPicSurface;
     surfaceCodecParams.dwOffset = params->dwCurrPicSurfaceOffset;
@@ -5800,7 +5800,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
             }
 
             // Picture Y VME
-            memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+            memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
             surfaceCodecParams.bUseAdvState = true;
             if ((params->bUseWeightedSurfaceForL0) &&
                 (params->pAvcSlcParams->luma_weight_flag[LIST_0] & (1 << refIdx)) &&
@@ -5872,7 +5872,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
             }
 
             // Picture Y VME
-            memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+            memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
             surfaceCodecParams.bUseAdvState = true;
             if ((params->bUseWeightedSurfaceForL1) &&
                 (params->pAvcSlcParams->luma_weight_flag[LIST_1] & (1 << refIdx)) &&
@@ -5906,7 +5906,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
                 }
                 // MB data buffer
                 size = params->dwFrameWidthInMb * params->dwFrameFieldHeightInMb * 16 * 4;
-                memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+                memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
                 surfaceCodecParams.dwSize = size;
                 surfaceCodecParams.presBuffer = &params->ppRefList[refPicIdx]->resRefMbCodeBuffer;
                 surfaceCodecParams.dwOffset = refMbCodeBottomFieldOffsetUsed;
@@ -5920,7 +5920,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
 
                 // MV data buffer
                 size = params->dwFrameWidthInMb * params->dwFrameFieldHeightInMb * 32 * 4;
-                memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+                memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
                 surfaceCodecParams.dwSize = size;
                 surfaceCodecParams.presBuffer = &params->ppRefList[refPicIdx]->resRefMvDataBuffer;
                 surfaceCodecParams.dwOffset = refMvBottomFieldOffsetUsed;
@@ -5953,7 +5953,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
                 }
 
                 // Picture Y VME
-                memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+                memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
                 surfaceCodecParams.bUseAdvState = true;
                 surfaceCodecParams.dwWidthInUse = params->dwFrameWidthInMb * 16;
                 surfaceCodecParams.dwHeightInUse = params->dwFrameHeightInMb * 16;
@@ -5974,7 +5974,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
     // BRC distortion data buffer for I frame
     if (params->bMbEncIFrameDistInUse)
     {
-        memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+        memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
         surfaceCodecParams.bIs2DSurface = true;
         surfaceCodecParams.bMediaBlockRW = true;
         surfaceCodecParams.psSurface = params->psMeBrcDistortionBuffer;
@@ -5992,7 +5992,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
     // RefPicSelect of Current Picture
     if (params->bUsedAsRef)
     {
-        memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+        memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
         surfaceCodecParams.bIs2DSurface = true;
         surfaceCodecParams.bMediaBlockRW = true;
         surfaceCodecParams.psSurface = &currPicRefListEntry->pRefPicSelectListEntry->sBuffer;
@@ -6013,7 +6013,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
     {
         size = (currFieldPicture ? 1 : 2) * params->dwFrameWidthInMb * params->dwFrameFieldHeightInMb * 16 * sizeof(uint32_t);
 
-        memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+        memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
         surfaceCodecParams.dwSize = size;
         surfaceCodecParams.presBuffer = params->presMBVProcStatsBuffer;
         surfaceCodecParams.dwOffset = currBottomField ? params->dwMBVProcStatsBottomFieldOffset : 0;
@@ -6026,7 +6026,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
     }
     else if (params->bFlatnessCheckEnabled)
     {
-        memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+        memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
         surfaceCodecParams.bIs2DSurface = true;
         surfaceCodecParams.bMediaBlockRW = true;
         surfaceCodecParams.psSurface = params->psFlatnessCheckSurface;
@@ -6044,7 +6044,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
     {
         size = CODECHAL_MAD_BUFFER_SIZE;
 
-        memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+        memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
         surfaceCodecParams.bRawSurface = true;
         surfaceCodecParams.dwSize = size;
         surfaceCodecParams.presBuffer = params->presMADDataBuffer;
@@ -6060,7 +6060,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
 
     if (params->dwMbEncBRCBufferSize > 0)
     {
-        memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+        memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
         surfaceCodecParams.presBuffer = params->presMbEncBRCBuffer;
         surfaceCodecParams.dwSize = MOS_BYTES_TO_DWORDS(params->dwMbEncBRCBufferSize);
         surfaceCodecParams.dwBindingTableOffset = bindingTable->dwAvcMbEncBRCCurbeData;
@@ -6079,7 +6079,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
             // For BRC the new BRC surface is used
             if (params->bUseAdvancedDsh)
             {
-                memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+                memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
                 surfaceCodecParams.presBuffer = params->presMbEncCurbeBuffer;
                 curbeSize = MOS_ALIGN_CEIL(
                     params->pKernelState->KernelParams.iCurbeLength,
@@ -6097,7 +6097,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
             {
                 MOS_RESOURCE *dsh = nullptr;
                 CODECHAL_ENCODE_CHK_NULL_RETURN(dsh = params->pKernelState->m_dshRegion.GetResource());
-                memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+                memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
                 surfaceCodecParams.presBuffer = dsh;
                 surfaceCodecParams.dwOffset =
                     params->pKernelState->m_dshRegion.GetOffset() +
@@ -6119,7 +6119,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
 
     if (params->bArbitraryNumMbsInSlice)
     {
-        memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+        memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
         surfaceCodecParams.bIs2DSurface = true;
         surfaceCodecParams.bMediaBlockRW = true;
         surfaceCodecParams.psSurface = params->psSliceMapSurface;
@@ -6139,7 +6139,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
     {
         if (params->bMbDisableSkipMapEnabled)
         {
-            memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+            memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
             surfaceCodecParams.bIs2DSurface = true;
             surfaceCodecParams.bMediaBlockRW = true;
             surfaceCodecParams.psSurface = params->psMbDisableSkipMapSurface;
@@ -6156,7 +6156,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
         if (params->bStaticFrameDetectionEnabled)
         {
             // static frame cost table surface
-            memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+            memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
             surfaceCodecParams.presBuffer = params->presSFDCostTableBuffer;
             surfaceCodecParams.dwSize = MOS_BYTES_TO_DWORDS(m_sfdCostTableBufferSize);
             surfaceCodecParams.dwOffset = 0;
@@ -6186,7 +6186,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcBrcFrameUpdateSurfaces(PMOS_COMMAND_B
     CODECHAL_SURFACE_CODEC_PARAMS surfaceCodecParams;
     auto kernelState = params->pKernelState;
     auto brcUpdateBindingTable = params->pBrcUpdateBindingTable;
-    memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+    memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
     surfaceCodecParams.presBuffer = &params->pBrcBuffers->resBrcHistoryBuffer;
     surfaceCodecParams.dwSize = MOS_BYTES_TO_DWORDS(params->dwBrcHistoryBufferSize);
     surfaceCodecParams.dwBindingTableOffset = brcUpdateBindingTable->dwFrameBrcHistoryBuffer;
@@ -6199,7 +6199,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcBrcFrameUpdateSurfaces(PMOS_COMMAND_B
         kernelState));
 
     // PAK Statistics buffer
-    memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+    memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
     surfaceCodecParams.presBuffer = &params->pBrcBuffers->resBrcPakStatisticBuffer[0];
     surfaceCodecParams.dwSize = MOS_BYTES_TO_DWORDS(params->dwBrcPakStatisticsSize);
     surfaceCodecParams.dwBindingTableOffset = brcUpdateBindingTable->dwFrameBrcPakStatisticsOutputBuffer;
@@ -6211,7 +6211,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcBrcFrameUpdateSurfaces(PMOS_COMMAND_B
 
     // PAK IMG_STATEs buffer - read only
     uint32_t size = MOS_BYTES_TO_DWORDS(BRC_IMG_STATE_SIZE_PER_PASS * m_hwInterface->GetMfxInterface()->GetBrcNumPakPasses());
-    memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+    memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
     surfaceCodecParams.presBuffer =
         &params->pBrcBuffers->resBrcImageStatesReadBuffer[params->ucCurrRecycledBufIdx];
     surfaceCodecParams.dwSize = size;
@@ -6223,7 +6223,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcBrcFrameUpdateSurfaces(PMOS_COMMAND_B
         kernelState));
 
     // PAK IMG_STATEs buffer - write only
-    memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+    memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
     surfaceCodecParams.presBuffer = &params->pBrcBuffers->resBrcImageStatesWriteBuffer;
     surfaceCodecParams.dwSize = size;
     surfaceCodecParams.dwBindingTableOffset = brcUpdateBindingTable->dwFrameBrcImageStateWriteBuffer;
@@ -6237,7 +6237,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcBrcFrameUpdateSurfaces(PMOS_COMMAND_B
 
     if (params->dwMbEncBRCBufferSize > 0)
     {
-        memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+        memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
         surfaceCodecParams.presBuffer = &params->pBrcBuffers->resMbEncBrcBuffer;
         surfaceCodecParams.dwSize = MOS_BYTES_TO_DWORDS(params->dwMbEncBRCBufferSize);
         surfaceCodecParams.dwBindingTableOffset = brcUpdateBindingTable->dwFrameBrcMbEncCurbeWriteData;
@@ -6260,7 +6260,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcBrcFrameUpdateSurfaces(PMOS_COMMAND_B
         size = MOS_ALIGN_CEIL(
             mbEncKernelState->KernelParams.iCurbeLength,
             m_renderEngineInterface->m_stateHeapInterface->pStateHeapInterface->GetCurbeAlignment());
-        memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+        memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
         surfaceCodecParams.presBuffer = dsh;
         surfaceCodecParams.dwOffset =
             mbEncKernelState->m_dshRegion.GetOffset() +
@@ -6274,7 +6274,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcBrcFrameUpdateSurfaces(PMOS_COMMAND_B
             kernelState));
 
         // BRC ENC CURBE Buffer - write only
-        memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+        memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
         if (params->bUseAdvancedDsh)
         {
             surfaceCodecParams.presBuffer = params->presMbEncCurbeBuffer;
@@ -6298,7 +6298,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcBrcFrameUpdateSurfaces(PMOS_COMMAND_B
     }
 
     // AVC_ME BRC Distortion data buffer - input/output
-    memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+    memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
     surfaceCodecParams.bIs2DSurface = true;
     surfaceCodecParams.bMediaBlockRW = true;
     surfaceCodecParams.psSurface = &params->pBrcBuffers->sMeBrcDistortionBuffer;
@@ -6313,7 +6313,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcBrcFrameUpdateSurfaces(PMOS_COMMAND_B
         kernelState));
 
     // BRC Constant Data Surface
-    memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+    memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
     surfaceCodecParams.bIs2DSurface = true;
     surfaceCodecParams.bMediaBlockRW = true;
     surfaceCodecParams.psSurface =
@@ -6326,7 +6326,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcBrcFrameUpdateSurfaces(PMOS_COMMAND_B
         kernelState));
 
     // MBStat buffer - input
-    memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+    memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
     surfaceCodecParams.presBuffer = params->presMbStatBuffer;
     surfaceCodecParams.dwSize = MOS_BYTES_TO_DWORDS(m_hwInterface->m_avcMbStatBufferSize);
     surfaceCodecParams.dwBindingTableOffset = brcUpdateBindingTable->dwFrameBrcMbStatBuffer;
@@ -6338,7 +6338,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcBrcFrameUpdateSurfaces(PMOS_COMMAND_B
 
     if (params->psMvDataBuffer)
     {
-        memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+        memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
         surfaceCodecParams.bIs2DSurface = true;
         surfaceCodecParams.bMediaBlockRW = true;
         surfaceCodecParams.psSurface = params->psMvDataBuffer;
@@ -6367,7 +6367,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcBrcMbUpdateSurfaces(PMOS_COMMAND_BUFF
     auto kernelState = params->pKernelState;
     auto bindingTable = params->pBrcUpdateBindingTable;
     CODECHAL_SURFACE_CODEC_PARAMS surfaceCodecParams;
-    memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+    memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
     surfaceCodecParams.presBuffer = &params->pBrcBuffers->resBrcHistoryBuffer;
     surfaceCodecParams.dwSize = MOS_BYTES_TO_DWORDS(params->dwBrcHistoryBufferSize);
     surfaceCodecParams.bIsWritable = true;
@@ -6384,7 +6384,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcBrcMbUpdateSurfaces(PMOS_COMMAND_BUFF
     {
         params->pBrcBuffers->sBrcMbQpBuffer.dwHeight = MOS_ALIGN_CEIL((params->dwDownscaledFrameFieldHeightInMb4x << 2), 8);
 
-        memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+        memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
         surfaceCodecParams.bIs2DSurface = true;
         surfaceCodecParams.bMediaBlockRW = true;
         surfaceCodecParams.bIsWritable = true;
@@ -6404,7 +6404,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcBrcMbUpdateSurfaces(PMOS_COMMAND_BUFF
     {
         params->psRoiSurface->dwHeight = MOS_ALIGN_CEIL((params->dwDownscaledFrameFieldHeightInMb4x << 2), 8);
 
-        memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+        memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
         surfaceCodecParams.bIs2DSurface = true;
         surfaceCodecParams.bMediaBlockRW = true;
         surfaceCodecParams.bIsWritable = false;
@@ -6420,7 +6420,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcBrcMbUpdateSurfaces(PMOS_COMMAND_BUFF
     }
 
     // MBStat buffer
-    memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+    memset((void *)&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
     surfaceCodecParams.presBuffer = params->presMbStatBuffer;
     surfaceCodecParams.dwSize = MOS_BYTES_TO_DWORDS(m_hwInterface->m_avcMbStatBufferSize);
     surfaceCodecParams.dwBindingTableOffset = bindingTable->dwMbBrcMbStatBuffer;
@@ -6444,7 +6444,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcWPSurfaces(PMOS_COMMAND_BUFFER cmdBuf
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->psOutputScaledBuffer);
 
     CODECHAL_SURFACE_CODEC_PARAMS surfaceParams;
-    memset(&surfaceParams, 0, sizeof(surfaceParams));
+    memset((void *)&surfaceParams, 0, sizeof(surfaceParams));
     surfaceParams.bIs2DSurface = true;
     surfaceParams.bMediaBlockRW = true;
     surfaceParams.psSurface = params->psInputRefBuffer;// Input surface
@@ -6460,7 +6460,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::SendAvcWPSurfaces(PMOS_COMMAND_BUFFER cmdBuf
         &surfaceParams,
         params->pKernelState));
 
-    memset(&surfaceParams, 0, sizeof(surfaceParams));
+    memset((void *)&surfaceParams, 0, sizeof(surfaceParams));
     surfaceParams.bIs2DSurface = true;
     surfaceParams.bMediaBlockRW = true;
     surfaceParams.psSurface = params->psOutputScaledBuffer;// output surface
@@ -6591,7 +6591,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::ExecuteKernelFunctions()
     {
         // Csc, Downscaling, and/or 10-bit to 8-bit conversion
         CodechalEncodeCscDs::KernelParams cscScalingKernelParams;
-        memset(&cscScalingKernelParams, 0, sizeof(cscScalingKernelParams));
+        memset((void *)&cscScalingKernelParams, 0, sizeof(cscScalingKernelParams));
         cscScalingKernelParams.bLastTaskInPhaseCSC =
             cscScalingKernelParams.bLastTaskInPhase4xDS = !(m_16xMeSupported || m_hmeEnabled);
         cscScalingKernelParams.bLastTaskInPhase16xDS = !(m_32xMeSupported || m_hmeEnabled);
@@ -6773,7 +6773,7 @@ MOS_STATUS CodechalEncodeAvcEncG10::KernelDebugDumps()
       if (m_hmeEnabled)
       {
         CODECHAL_ME_OUTPUT_PARAMS meOutputParams;
-        memset(&meOutputParams, 0, sizeof(meOutputParams));
+        memset((void *)&meOutputParams, 0, sizeof(meOutputParams));
         meOutputParams.psMeMvBuffer = &m_4xMeMvDataBuffer;
         meOutputParams.psMeBrcDistortionBuffer =
             bBrcDistortionBufferSupported ? &BrcBuffers.sMeBrcDistortionBuffer : nullptr;
