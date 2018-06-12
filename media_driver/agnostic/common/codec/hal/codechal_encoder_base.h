@@ -2190,7 +2190,7 @@ public:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS ExecuteMeKernel(
+    MOS_STATUS ExecuteMeKernel(
         MeCurbeParams *meParams,
         MeSurfaceParams *meSurfaceParams,
         HmeLevel hmeLevel);
