@@ -41,8 +41,8 @@ CodechalKernelHme::CodechalKernelHme(
           m_useNonLegacyStreamIn(encoder->m_useNonLegacyStreamin),
           m_4xMeDistortionBufferSupported(me4xDistBufferSupported)
 {
-    memset(&m_curbeParam, 0, sizeof(m_curbeParam));
-    memset(&m_surfaceParam, 0, sizeof(m_surfaceParam));
+    memset((void*)&m_curbeParam, 0, sizeof(m_curbeParam));
+    memset((void*)&m_surfaceParam, 0, sizeof(m_surfaceParam));
 }
 
 CodechalKernelHme::~CodechalKernelHme()
@@ -56,13 +56,13 @@ MOS_STATUS CodechalKernelHme::AllocateResources()
     PMOS_SURFACE allocSurface = nullptr;
     if (m_4xMeSupported)
     {
-        memset(&allocParamsForBuffer2D, 0, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+        memset((void*)&allocParamsForBuffer2D, 0, sizeof(MOS_ALLOC_GFXRES_PARAMS));
         allocParamsForBuffer2D.Type     = MOS_GFXRES_2D;
         allocParamsForBuffer2D.TileType = MOS_TILE_LINEAR;
         allocParamsForBuffer2D.Format   = Format_Buffer_2D;
 
         CODECHAL_ENCODE_CHK_NULL_RETURN(allocSurface = MOS_New(MOS_SURFACE));
-        memset(allocSurface, 0, sizeof(MOS_SURFACE));
+        memset((void*)allocSurface, 0, sizeof(MOS_SURFACE));
 
         allocSurface->TileType      = MOS_TILE_LINEAR;
         allocSurface->bArraySpacing = true;
@@ -84,7 +84,7 @@ MOS_STATUS CodechalKernelHme::AllocateResources()
             uint32_t downscaledFieldHeightInMB4x =
                 CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(((ajustedHeight + 1) >> 1) / 4);
             CODECHAL_ENCODE_CHK_NULL_RETURN(allocSurface = MOS_New(MOS_SURFACE));
-            memset(allocSurface, 0, sizeof(MOS_SURFACE));
+            memset((void*)allocSurface, 0, sizeof(MOS_SURFACE));
             MOS_ZeroMemory(allocSurface, sizeof(MOS_SURFACE));
             allocSurface->TileType      = MOS_TILE_LINEAR;
             allocSurface->bArraySpacing = true;
@@ -104,7 +104,7 @@ MOS_STATUS CodechalKernelHme::AllocateResources()
     if (m_16xMeSupported)
     {
         CODECHAL_ENCODE_CHK_NULL_RETURN(allocSurface = MOS_New(MOS_SURFACE));
-        memset(allocSurface, 0, sizeof(MOS_SURFACE));
+        memset((void*)allocSurface, 0, sizeof(MOS_SURFACE));
         MOS_ZeroMemory(allocSurface, sizeof(MOS_SURFACE));
 
         allocSurface->TileType      = MOS_TILE_LINEAR;
@@ -124,7 +124,7 @@ MOS_STATUS CodechalKernelHme::AllocateResources()
     if (m_32xMeSupported)
     {
         CODECHAL_ENCODE_CHK_NULL_RETURN(allocSurface = MOS_New(MOS_SURFACE));
-        memset(allocSurface, 0, sizeof(MOS_SURFACE));
+        memset((void*)allocSurface, 0, sizeof(MOS_SURFACE));
         MOS_ZeroMemory(allocSurface, sizeof(MOS_SURFACE));
 
         allocSurface->TileType      = MOS_TILE_LINEAR;
