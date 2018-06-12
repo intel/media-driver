@@ -405,7 +405,7 @@ VAStatus DdiEncodeHevc::ParseSeqParams(void *ptr)
 
     PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS hevcSeqParams = (PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS)((uint8_t *)m_encodeCtx->pSeqParams);
     DDI_CHK_NULL(hevcSeqParams, "nullptr hevcSeqParams", VA_STATUS_ERROR_INVALID_PARAMETER);
-    MOS_ZeroMemory(hevcSeqParams, sizeof(CODEC_HEVC_ENCODE_SEQUENCE_PARAMS));
+    //MOS_ZeroMemory(hevcSeqParams, sizeof(CODEC_HEVC_ENCODE_SEQUENCE_PARAMS));
 
     uint8_t log2MinCUSize = seqParams->log2_min_luma_coding_block_size_minus3 + 3;
 
@@ -423,9 +423,11 @@ VAStatus DdiEncodeHevc::ParseSeqParams(void *ptr)
     hevcSeqParams->TargetBitRate = MOS_ROUNDUP_DIVIDE(seqParams->bits_per_second, CODECHAL_ENCODE_BRC_KBPS);
     hevcSeqParams->MaxBitRate    = MOS_ROUNDUP_DIVIDE(seqParams->bits_per_second, CODECHAL_ENCODE_BRC_KBPS);
     hevcSeqParams->MinBitRate    = MOS_ROUNDUP_DIVIDE(seqParams->bits_per_second, CODECHAL_ENCODE_BRC_KBPS);
-    // fps it set to 30 by default, can be overwritten by misc paramter
-    hevcSeqParams->FrameRate.Numerator   = 3000;
-    hevcSeqParams->FrameRate.Denominator = 100;
+    // if didn't setting FrameRate, set to 30 by default, can be overwritten by misc paramter
+    if (!hevcSeqParams->FrameRate.Numerator) {
+        hevcSeqParams->FrameRate.Numerator   = 3000;
+        hevcSeqParams->FrameRate.Denominator = 100;
+    }
 
     // set default same as application, can be overwritten by HRD params
     hevcSeqParams->InitVBVBufferFullnessInBit = (uint32_t)seqParams->bits_per_second;
