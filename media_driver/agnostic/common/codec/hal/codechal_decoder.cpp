@@ -956,7 +956,7 @@ MOS_STATUS CodechalDecode::Execute(void *params)
             m_osInterface,
             m_firstExecuteCall));
         CODECHAL_DECODE_CHK_STATUS_RETURN(Mos_Solo_DisableAubcaptureOptimizations(
-            m_cencDecoder->osInterface,
+            m_cencDecoder->m_osInterface,
             m_firstExecuteCall));
     }
 
