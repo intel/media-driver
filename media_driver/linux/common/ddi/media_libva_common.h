@@ -502,6 +502,31 @@ void* DdiMedia_GetContextFromContextID (VADriverContextP ctx, VAContextID vaCtxI
 //!
 DDI_MEDIA_SURFACE* DdiMedia_GetSurfaceFromVASurfaceID (PDDI_MEDIA_CONTEXT mediaCtx, VASurfaceID surfaceID);
 
+
+//!
+//! \brief  replace the surface with given format
+//!
+//! \param  [in] surface
+//!     Pointer to the old surface
+//! \param  [in] expectedFormat
+//!     VA surface ID
+//!
+//! \return DDI_MEDIA_SURFACE*
+//!     Pointer to new ddi media surface
+//!
+PDDI_MEDIA_SURFACE DdiMedia_ReplaceSurfaceWithNewFormat(PDDI_MEDIA_SURFACE surface, DDI_MEDIA_FORMAT expectedFormat);
+
+//!
+//! \brief  Get VA surface ID  from surface
+//!
+//! \param  [in] surface
+//!     surface
+//!
+//! \return VASurfaceID
+//!     VA Surface ID
+//!
+VASurfaceID DdiMedia_GetVASurfaceIDFromSurface(PDDI_MEDIA_SURFACE surface);
+
 //!
 //! \brief  Get buffer from VA buffer ID
 //!
