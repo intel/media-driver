@@ -291,6 +291,72 @@ DDI_MEDIA_SURFACE* DdiMedia_GetSurfaceFromVASurfaceID (PDDI_MEDIA_CONTEXT mediaC
     return surface;
 }
 
+VASurfaceID DdiMedia_GetVASurfaceIDFromSurface(PDDI_MEDIA_SURFACE surface)
+{
+    PDDI_MEDIA_SURFACE_HEAP_ELEMENT  surfaceElement = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)surface->pMediaCtx->pSurfaceHeap->pHeapBase;
+    for(uint32_t i = 0; i < surface->pMediaCtx->pSurfaceHeap->uiAllocatedHeapElements; i ++)
+    {
+        if(surface == surfaceElement->pSurface)
+        {
+            return surfaceElement->uiVaSurfaceID;
+        }
+        surfaceElement ++;
+    }
+    return VA_INVALID_SURFACE;
+}
+
+PDDI_MEDIA_SURFACE DdiMedia_ReplaceSurfaceWithNewFormat(PDDI_MEDIA_SURFACE surface, DDI_MEDIA_FORMAT expectedFormat)
+{
+    PDDI_MEDIA_SURFACE_HEAP_ELEMENT  surfaceElement = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)surface->pMediaCtx->pSurfaceHeap->pHeapBase;
+    PDDI_MEDIA_CONTEXT mediaCtx = surface->pMediaCtx;
+
+    //check some conditions
+    if(expectedFormat == surface->format)
+    {
+        return surface;
+    }
+    //create new dst surface and copy the structure
+    PDDI_MEDIA_SURFACE dstSurface = (DDI_MEDIA_SURFACE *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_SURFACE));
+    if (nullptr == surfaceElement)
+    {
+        return nullptr;
+    }
+    MOS_SecureMemcpy(dstSurface,sizeof(DDI_MEDIA_SURFACE),surface,sizeof(DDI_MEDIA_SURFACE));
+    dstSurface->format = expectedFormat;
+    dstSurface->uiLockedBufID = VA_INVALID_ID;
+    dstSurface->uiLockedImageID = VA_INVALID_ID;
+    dstSurface->pSurfDesc = nullptr;
+    //lock surface heap
+    DdiMediaUtil_LockMutex(&mediaCtx->SurfaceMutex);
+    uint32_t i;
+    //get current element heap and index
+    for(i = 0; i < mediaCtx->pSurfaceHeap->uiAllocatedHeapElements; i ++)
+    {
+        if(surface == surfaceElement->pSurface)
+        {
+            break;
+        }
+        surfaceElement ++;
+    }
+    //if cant find
+    if(i == surface->pMediaCtx->pSurfaceHeap->uiAllocatedHeapElements)
+    {
+        DdiMediaUtil_LockMutex(&mediaCtx->SurfaceMutex);
+        MOS_FreeMemory(dstSurface);
+        return nullptr;
+    }
+    //FreeSurface
+    DdiMediaUtil_FreeSurface(surface);
+    MOS_FreeMemory(surface);
+    //CreateNewSurface
+    DdiMediaUtil_CreateSurface(dstSurface,mediaCtx);
+    surfaceElement->pSurface = dstSurface;
+
+    DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
+
+    return dstSurface;
+}
+
 DDI_MEDIA_BUFFER* DdiMedia_GetBufferFromVABufferID (PDDI_MEDIA_CONTEXT mediaCtx, VABufferID bufferID)
 {
     uint32_t                       i;
