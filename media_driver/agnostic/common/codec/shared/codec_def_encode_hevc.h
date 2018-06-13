@@ -294,8 +294,38 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
             *        \n - 1 : ROI[] value is in delta QP.
             *        \n Note: ROIValueInDeltaQP must be set to 1 for CQP. Currently only ROIValueInDeltaQP equal 1 is validated.
             */
-            uint32_t        ROIValueInDeltaQP   : 1;
-            uint32_t                            : 11;
+            uint32_t        ROIValueInDeltaQP        : 1;
+            /*! \brief Indicates block level absolute QP value is provided.
+            *
+            *        \n - 0 : block level absolute QP value is not provided.
+            *        \n - 1 : block level absolute QP value is provided.
+            */
+            uint32_t        BlockQPforNonRectROI     : 1;
+            /*! \brief Enables tile based encoding.
+            *
+            *        \n - 0 : tile based encoding disabled.
+            *        \n - 1 : tile based encoding enabled.
+            */
+            uint32_t        EnableTileBasedEncode    : 1;
+            /*! \brief Indicates if BRC can use larger P/B frame size than UserMaxPBFrameSize 
+            *
+            *        \n - 0 : BRC can not use larger P/B frame size  than UserMaxPBFrameSize.
+            *        \n - 1 : BRC can use larger P/B frame size  than UserMaxPBFrameSize.
+            */
+            uint32_t        bAutoMaxPBFrameSizeForSceneChange : 1;
+            /*! \brief Enables streaming buffer in LLC
+            *
+            *        \n - 0 : streaming buffer by LLC is disabled.
+            *        \n - 1 : streaming buffer by LLC is enabled.
+            */
+            uint32_t        EnableStreamingBufferLLC : 1;
+            /*! \brief Enables streaming buffer in DDR
+            *
+            *        \n - 0 : streaming buffer by DDR is disabled.
+            *        \n - 1 : streaming buffer by DDR is enabled.
+            */
+            uint32_t        EnableStreamingBufferDDR : 1;
+            uint32_t        ReservedBits             : 6;
         };
         uint32_t    SeqFlags;
     };
