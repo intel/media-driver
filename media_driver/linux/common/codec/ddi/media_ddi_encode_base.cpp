@@ -187,6 +187,13 @@ VAStatus DdiEncodeBase::StatusReport(
 
             break;
         }
+        else if ((index >= 0) && (size == 0) && (status & VA_CODED_BUF_STATUS_BAD_BITSTREAM))
+        {
+            m_encodeCtx->BufMgr.pCodedBufferSegment->buf    = DdiMediaUtil_LockBuffer(mediaBuf, MOS_LOCKFLAG_READONLY);
+            m_encodeCtx->BufMgr.pCodedBufferSegment->size   = size;
+            m_encodeCtx->BufMgr.pCodedBufferSegment->status = status;
+            break;
+        }
 
         mos_bo_wait_rendering(mediaBuf->bo);
 
@@ -232,7 +239,7 @@ VAStatus DdiEncodeBase::StatusReport(
                 m_encodeCtx->BufMgr.pCodedBufferSegment->buf  = DdiMediaUtil_LockBuffer(mediaBuf, MOS_LOCKFLAG_READONLY);
                 m_encodeCtx->BufMgr.pCodedBufferSegment->size = 0;
                 m_encodeCtx->BufMgr.pCodedBufferSegment->status |= VA_CODED_BUF_STATUS_BAD_BITSTREAM;
-                m_encodeCtx->statusReportBuf.ulUpdatePosition = (m_encodeCtx->statusReportBuf.ulUpdatePosition + 1) % DDI_ENCODE_MAX_STATUS_REPORT_BUFFER;
+                UpdateStatusReportBuffer(encodeStatusReport[0].bitstreamSize, m_encodeCtx->BufMgr.pCodedBufferSegment->status);
                 DDI_ASSERTMESSAGE("Something unexpected happened in HW, return error to application");
                 break;
             }
@@ -252,7 +259,7 @@ VAStatus DdiEncodeBase::StatusReport(
                 m_encodeCtx->BufMgr.pCodedBufferSegment->buf  = DdiMediaUtil_LockBuffer(mediaBuf, MOS_LOCKFLAG_READONLY);
                 m_encodeCtx->BufMgr.pCodedBufferSegment->size = 0;
                 m_encodeCtx->BufMgr.pCodedBufferSegment->status |= VA_CODED_BUF_STATUS_BAD_BITSTREAM;
-                m_encodeCtx->statusReportBuf.ulUpdatePosition = (m_encodeCtx->statusReportBuf.ulUpdatePosition + 1) % DDI_ENCODE_MAX_STATUS_REPORT_BUFFER;
+                UpdateStatusReportBuffer(encodeStatusReport[0].bitstreamSize, m_encodeCtx->BufMgr.pCodedBufferSegment->status);
                 DDI_ASSERTMESSAGE("Something unexpected happened in HW, return error to application");
                 break;
             }
@@ -263,7 +270,7 @@ VAStatus DdiEncodeBase::StatusReport(
             m_encodeCtx->BufMgr.pCodedBufferSegment->buf  = DdiMediaUtil_LockBuffer(mediaBuf, MOS_LOCKFLAG_READONLY);
             m_encodeCtx->BufMgr.pCodedBufferSegment->size = 0;
             m_encodeCtx->BufMgr.pCodedBufferSegment->status |= VA_CODED_BUF_STATUS_BAD_BITSTREAM;
-            m_encodeCtx->statusReportBuf.ulUpdatePosition = (m_encodeCtx->statusReportBuf.ulUpdatePosition + 1) % DDI_ENCODE_MAX_STATUS_REPORT_BUFFER;
+            UpdateStatusReportBuffer(encodeStatusReport[0].bitstreamSize, m_encodeCtx->BufMgr.pCodedBufferSegment->status);
             break;
         }
         else
