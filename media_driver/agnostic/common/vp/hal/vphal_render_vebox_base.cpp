@@ -3742,17 +3742,6 @@ finish:
     }
     VPHAL_RENDER_NORMALMESSAGE("VPOutputPipe = %d, VEFeatureInUse = %d", 
         pRenderer->GetReport()->OutputPipeMode, pRenderer->GetReport()->VEFeatureInUse);    
-#if defined(LINUX)
-        MOS_USER_FEATURE_VALUE_WRITE_DATA   userFeatureWriteData;
-        MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
-        userFeatureWriteData.Value.i32Data  = pRenderer->GetReport()->OutputPipeMode;
-        userFeatureWriteData.ValueID        = __VPHAL_VEBOX_OUTPUTPIPE_MODE_ID;
-        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
-        MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
-        userFeatureWriteData.Value.bData  = pRenderer->GetReport()->VEFeatureInUse;
-        userFeatureWriteData.ValueID        = __VPHAL_VEBOX_FEATURE_INUSE_ID;
-        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
-#endif
 
     return eStatus;
 }
