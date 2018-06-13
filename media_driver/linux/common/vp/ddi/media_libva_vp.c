@@ -753,7 +753,7 @@ DdiVp_SetProcPipelineParams(
     uSurfIndex          = 0;
     pOsInterface        = pVpCtx->pVpHal->GetOsInterface();
 
-    memset(&vpStateFlags,0,sizeof(vpStateFlags));
+    memset((void*)&vpStateFlags, 0, sizeof(vpStateFlags));
 
     DDI_CHK_NULL(pMediaSrcSurf, "Null pMediaSrcSurf.", VA_STATUS_ERROR_INVALID_BUFFER);
     DDI_CHK_NULL(pOsInterface, "Null pOsInterface.", VA_STATUS_ERROR_INVALID_BUFFER);
