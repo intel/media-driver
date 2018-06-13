@@ -3469,6 +3469,7 @@ finish:
     // Vebox feature report -- set the output pipe
     m_reporting->OutputPipeMode = pRenderData->OutputPipe;
     m_reporting->VEFeatureInUse = !pRenderData->bVeboxBypass;
+    m_reporting->DiScdMode      = pRenderData->VeboxDNDIParams.bSyntheticFrame;
 
     return eStatus;
 }
@@ -3641,6 +3642,7 @@ void VPHAL_VEBOX_STATE::CopyResourceReporting(VphalFeatureReport* pReporting)
     pReporting->STMMCompressMode   = m_reporting->STMMCompressMode;
     pReporting->ScalerCompressible = m_reporting->ScalerCompressible;
     pReporting->ScalerCompressMode = m_reporting->ScalerCompressMode;
+    pReporting->DiScdMode          = m_reporting->DiScdMode;
 }
 
 //!

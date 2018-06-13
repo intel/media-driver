@@ -351,6 +351,7 @@ struct VphalFeatureReport
     uint8_t                         PrimaryCompressMode;//!< Input Primary Surface Compression mode
     VPHAL_COMPOSITION_REPORT_MODE   CompositionMode;    //!< Inplace/Legacy Compostion flag
     bool                            VEFeatureInUse;     //!< If any VEBOX feature is in use, excluding pure bypass for SFC
+    bool                            DiScdMode;          //!< Scene change detection
 };
 
 //!
