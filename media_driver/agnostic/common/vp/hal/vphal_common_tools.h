@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2017, Intel Corporation
+* Copyright (c) 2016-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -148,6 +148,8 @@ typedef struct _VP_CONFIG
     uint32_t   dwReportedCompositionMode;  // Reported Composition Mode
     uint32_t   dwCurrentHdrMode;           // Current Hdr Mode
     uint32_t   dwReportedHdrMode;          // Reported Hdr Mode
+    uint32_t   dwCurrentScdMode;           // Current Scd Mode
+    uint32_t   dwReportedScdMode;          // Reported Scd Mode
 
     // Configurations for cache control
     uint32_t   dwDndiReferenceBuffer;

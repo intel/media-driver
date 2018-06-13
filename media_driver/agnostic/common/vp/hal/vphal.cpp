@@ -56,6 +56,7 @@ void VphalFeatureReport::InitReportValue()
     PrimaryCompressible =   false;
     PrimaryCompressMode =   0;
     CompositionMode     =   VPHAL_NO_COMPOSITION;
+    DiScdMode           =   false;
 }
 
 //!
