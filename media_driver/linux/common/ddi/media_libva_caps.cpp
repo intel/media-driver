@@ -2027,8 +2027,6 @@ VAStatus MediaLibvaCaps::QueryProcessingRate(
     MEDIA_FEATURE_TABLE skuTable;
     MEDIA_WA_TABLE waTable;
     memset(&platform, 0, sizeof(platform));
-    memset(&skuTable, 0, sizeof(skuTable));
-    memset(&waTable, 0, sizeof(waTable));
 
     if (MOS_STATUS_SUCCESS != HWInfo_GetGfxInfo(m_mediaCtx->fd, &platform, &skuTable, &waTable, m_mediaCtx->pGtSystemInfo))
     {
