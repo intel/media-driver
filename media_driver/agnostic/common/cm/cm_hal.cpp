@@ -344,6 +344,8 @@ MOS_STATUS HalCm_InitializeDynamicStateHeaps(
     CM_CHK_MOSSTATUS(dgsHeap->SetInitialHeapSize(heapParam->initialSizeGSH));
     CM_CHK_MOSSTATUS(dgsHeap->SetExtendHeapSize(heapParam->extendSizeGSH));
     CM_CHK_MOSSTATUS(dgsHeap->RegisterTrackerResource(heapParam->trackerResourceGSH));
+    // lock the heap in the beginning, so cpu doesn't need to wait gpu finishing occupying it to lock it again
+    CM_CHK_MOSSTATUS(dgsHeap->LockHeapsOnAllocate());
 
     state->renderHal->dgsheapManager = dgsHeap;
 
