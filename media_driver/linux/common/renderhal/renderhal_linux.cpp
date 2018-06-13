@@ -123,6 +123,7 @@ MOS_STATUS RenderHal_GetSurfaceInfo(
     pSurface->dwQPitch        = ResDetails.dwQPitch;
     pSurface->TileType        = ResDetails.TileType;
     pSurface->dwDepth         = ResDetails.dwDepth;
+    pSurface->Format          = ResDetails.Format;
     pSurface->bCompressible   = ResDetails.bCompressible;
     pSurface->bIsCompressed   = ResDetails.bIsCompressed;
     pSurface->CompressionMode = ResDetails.CompressionMode;

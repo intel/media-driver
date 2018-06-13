@@ -1565,6 +1565,9 @@ GMM_RESOURCE_FORMAT Mos_Specific_ConvertMosFmtToGmmFmt(
         case Format_R8U         : return GMM_FORMAT_R8_UINT_TYPE;
         case Format_R16U        : return GMM_FORMAT_R16_UINT_TYPE;
         case Format_P010        : return GMM_FORMAT_P010_TYPE;
+        case Format_P016        : return GMM_FORMAT_P016_TYPE;
+        case Format_Y216        : return GMM_FORMAT_Y216_TYPE;
+        case Format_Y416        : return GMM_FORMAT_Y416_TYPE;
         case Format_P208        : return GMM_FORMAT_P208_TYPE;
         default                 : return GMM_FORMAT_INVALID;
     }
@@ -1728,6 +1731,9 @@ MOS_STATUS Mos_Specific_AllocateResource(
         case Format_R16U:
         case Format_R8U:
         case Format_P010:
+        case Format_P016:
+        case Format_Y216:
+        case Format_Y416:
         case Format_P208:
             resourceType                = RESOURCE_2D;
             //indicate buffer Restriction is Planar surface restrictions.
@@ -4057,6 +4063,9 @@ MOS_FORMAT Mos_Specific_FmtOsToMos(
         case FOURCC_RGBP             : return Format_RGBP;
         case FOURCC_BGRP             : return Format_BGRP;
         case FOURCC_P010             : return Format_P010;
+        case FOURCC_P016             : return Format_P016;
+        case FOURCC_Y216             : return Format_Y216;
+        case FOURCC_Y416             : return Format_Y416;
         default                      : return Format_Invalid;
     }
 }
@@ -4117,6 +4126,9 @@ MOS_OS_FORMAT Mos_Specific_FmtMosToOs(
     case Format_BGRP         : return (MOS_OS_FORMAT)FOURCC_BGRP;
     case Format_STMM         : return (MOS_OS_FORMAT)DDI_FORMAT_P8;
     case Format_P010         : return (MOS_OS_FORMAT)FOURCC_P010;
+    case Format_P016         : return (MOS_OS_FORMAT)FOURCC_P016;
+    case Format_Y216         : return (MOS_OS_FORMAT)FOURCC_Y216;
+    case Format_Y416         : return (MOS_OS_FORMAT)FOURCC_Y416;
     case Format_A16B16G16R16 : return (MOS_OS_FORMAT)DDI_FORMAT_A16B16G16R16;
     default                  : return (MOS_OS_FORMAT)DDI_FORMAT_UNKNOWN;
     }

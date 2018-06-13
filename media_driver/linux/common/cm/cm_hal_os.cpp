@@ -126,6 +126,9 @@ GMM_RESOURCE_FORMAT HalCm_ConvertMosFmtToGmmFmt(
         case Format_R32U        : return GMM_FORMAT_R32_UINT_TYPE;
         case Format_RAW         : return GMM_FORMAT_GENERIC_8BIT;
         case Format_P010        : return GMM_FORMAT_P010_TYPE;
+        case Format_P016        : return GMM_FORMAT_P016_TYPE;
+        case Format_Y216        : return GMM_FORMAT_Y216_TYPE;
+        case Format_Y416        : return GMM_FORMAT_Y416_TYPE;
         case Format_A16B16G16R16: return GMM_FORMAT_R16G16B16A16_UNORM_TYPE;
         default                 : return GMM_FORMAT_INVALID;
     }
@@ -217,7 +220,7 @@ MOS_STATUS HalCm_GetSurfaceAndRegister(
                 &info,
                 surface));
 
-            if ( (surface->Format == Format_NV12 || surface->Format == Format_YV12)
+            if ( (surface->Format == Format_NV12 || surface->Format == Format_YV12 || surface->Format == Format_Y216)
                   && (!pixelPitch))
             {
                 renderHalSurface->SurfType = RENDERHAL_SURF_OUT_RENDERTARGET;
