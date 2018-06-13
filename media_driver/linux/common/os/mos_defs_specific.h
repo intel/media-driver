@@ -106,12 +106,7 @@ typedef struct _TP_CALLBACK_INSTANCE TP_CALLBACK_INSTANCE, *PTP_CALLBACK_INSTANC
 #define _stprintf                                           sprintf
 #define _sntprintf                                          snprintf
 
-#if defined(__ANDROID__)
 #define vsprintf_s(pBuffer, size, format, arg)              vsnprintf(pBuffer, size, format, arg)
 #define sprintf_s(pBuffer, size, format, arg)               snprintf(pBuffer, size, format, arg)
-#else
-#define vsprintf_s(pBuffer, size, format, arg)              vsprintf(pBuffer, format, arg)
-#define sprintf_s(pBuffer, size, format, arg)               sprintf(pBuffer, format, arg)
-#endif
 
 #endif // __MOS_DEFS_SPECIFIC_H__
