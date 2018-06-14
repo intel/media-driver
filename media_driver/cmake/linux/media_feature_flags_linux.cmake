@@ -63,8 +63,6 @@ bs_set_if_undefined(JPEG_Encode_Supported "yes")
 # so no definitions passed to source codes inside for now.
 bs_set_if_undefined(Use_CP_Stub "yes")
 
-bs_set_if_undefined(USE_OPEN_KERNEL_ID "yes")
-
 
 if(${Common_Encode_Supported} STREQUAL "yes")
     add_definitions(-D_COMMON_ENCODE_SUPPORTED)
