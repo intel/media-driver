@@ -890,9 +890,15 @@ uint32_t Linux_GetGPUTag(
 {
     MOS_OS_FUNCTION_ENTER;
 
+    if (pOsInterface == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("invalid input parameters!");
+        return 0;
+    }
+
     if (pOsInterface->modularizedGpuCtxEnabled && !Mos_Solo_IsEnabled())
     {
-        if (pOsInterface == nullptr || pOsInterface->osContextPtr == nullptr)
+        if (pOsInterface->osContextPtr == nullptr)
         {
             MOS_OS_ASSERTMESSAGE("invalid input parameters!");
             return 0;
@@ -927,8 +933,7 @@ uint32_t Linux_GetGPUTag(
 
     MOS_GPU_STATUS_DATA  *pGPUStatusData = nullptr;
 
-    if ( pOsInterface == nullptr ||
-         pOsInterface->pOsContext == nullptr ||
+    if ( pOsInterface->pOsContext == nullptr ||
          pOsInterface->pOsContext->pGPUStatusBuffer == nullptr ||
          pOsInterface->pOsContext->pGPUStatusBuffer->pData == nullptr)
     {
@@ -2121,7 +2126,9 @@ void Mos_Specific_FreeResource(
         }
 #endif
         pOsResource->bo = nullptr;
-        if (nullptr != pOsResource->pGmmResInfo)
+        if (pOsResource->pGmmResInfo != nullptr && 
+            pOsInterface->pOsContext != nullptr &&
+            pOsInterface->pOsContext->pGmmClientContext != nullptr)
         {
             MosMemAllocCounterGfx--;
             MOS_MEMNINJA_GFX_FREE_MESSAGE(pOsResource->pGmmResInfo, functionName, filename, line);
