@@ -112,7 +112,8 @@ VAStatus DriverDllLoader::InitDriver(int platform_id)
 
 VAStatus DriverDllLoader::LoadDriverSymbols()
 {
-    char init_func_s[256] = { };
+    const int buf_len         = 256;
+    char init_func_s[buf_len] = {};
 
     m_umdhandle = dlopen(m_driver_path, RTLD_NOW | RTLD_GLOBAL | RTLD_NODELETE);
     if (!m_umdhandle)
@@ -123,7 +124,7 @@ VAStatus DriverDllLoader::LoadDriverSymbols()
 
     for (int i = 0; i <= VA_MINOR_VERSION; i++)
     {
-        sprintf(init_func_s, "__vaDriverInit_%d_%d", VA_MAJOR_VERSION, i);
+        sprintf_s(init_func_s, buf_len, "__vaDriverInit_%d_%d", VA_MAJOR_VERSION, i);
         m_drvSyms.__vaDriverInit_ = (VADriverInit)dlsym(m_umdhandle, init_func_s);
         if (m_drvSyms.__vaDriverInit_)
         {

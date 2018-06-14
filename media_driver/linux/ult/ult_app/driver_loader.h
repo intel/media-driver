@@ -24,6 +24,7 @@
 
 #include <vector>
 #include "devconfig.h"
+#include "mos_defs_specific.h"
 #include "mos_os.h"
 #include "va/va_drmcommon.h"
 #include "va/va_backend.h"
