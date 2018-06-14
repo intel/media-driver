@@ -53,7 +53,7 @@ VAStatus DdiMediaDecode::BasicInit(
         sizeof(DDI_DECODE_CONFIG_ATTR));
     if (m_ddiDecodeAttr && ddiConfAttr)
     {
-        memcpy(m_ddiDecodeAttr, ddiConfAttr, sizeof(DDI_DECODE_CONFIG_ATTR));
+        memcpy_s(m_ddiDecodeAttr, sizeof(DDI_DECODE_CONFIG_ATTR), ddiConfAttr, sizeof(DDI_DECODE_CONFIG_ATTR));
     }
 
     m_ddiDecodeCtx = (DDI_DECODE_CONTEXT *)MOS_AllocAndZeroMemory(
@@ -273,7 +273,8 @@ VAStatus DdiMediaDecode::DecodeCombineBitstream(DDI_MEDIA_CONTEXT *mediaCtx)
         {
             if (bufMgr->pSliceData[slcInd].pSliceBuf)
             {
-                memcpy(newBitStreamBase + bufMgr->pSliceData[slcInd].uiOffset,
+                memcpy_s(newBitStreamBase + bufMgr->pSliceData[slcInd].uiOffset,
+                    bufMgr->pSliceData[slcInd].uiLength,
                     bufMgr->pSliceData[slcInd].pSliceBuf,
                     bufMgr->pSliceData[slcInd].uiLength);
                 MOS_FreeMemory(bufMgr->pSliceData[slcInd].pSliceBuf);
@@ -283,7 +284,8 @@ VAStatus DdiMediaDecode::DecodeCombineBitstream(DDI_MEDIA_CONTEXT *mediaCtx)
         }
         else
         {
-            memcpy(newBitStreamBase + bufMgr->pSliceData[slcInd].uiOffset,
+            memcpy_s(newBitStreamBase + bufMgr->pSliceData[slcInd].uiOffset,
+                bufMgr->pSliceData[slcInd].uiLength,
                 bufMgr->pBitStreamBase[bufMgr->dwBitstreamIndex] + bufMgr->pSliceData[slcInd].uiOffset,
                 bufMgr->pSliceData[slcInd].uiLength);
         }
