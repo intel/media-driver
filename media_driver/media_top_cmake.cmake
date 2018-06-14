@@ -34,7 +34,6 @@ message("-- media -- LIB_NAME = ${LIB_NAME}")
 message("-- media -- OUTPUT_NAME = ${OUTPUT_NAME}")
 message("-- media -- BUILD_TYPE/UFO_BUILD_TYPE/CMAKE_BUILD_TYPE = ${BUILD_TYPE}/${UFO_BUILD_TYPE}/${CMAKE_BUILD_TYPE}")
 message("-- media -- LIBVA_INSTALL_PATH = ${LIBVA_INSTALL_PATH}")
-message("-- media -- BUILD_ALONG_WITH_CMRTLIB = ${BUILD_ALONG_WITH_CMRTLIB}")
 Message("-- media -- MEDIA_VERSION = ${MEDIA_VERSION}")
 
 set(LIB_NAME_OBJ    "${LIB_NAME}_OBJ")
