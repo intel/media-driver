@@ -105,9 +105,9 @@ protected:
 
     static const uint32_t  m_hucStatusReEncodeMask = 0x80000000;  //! HUC PAK Integration kernel reEncode mask.
 
-    MmioRegistersHuc       m_mmioRegisters[MHW_VDBOX_NODE_MAX];  //!< HuC mmio registers
+    MmioRegistersHuc       m_mmioRegisters[MHW_VDBOX_NODE_MAX] = { };  //!< HuC mmio registers
 
-    MHW_MEMORY_OBJECT_CONTROL_PARAMS m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_END_CODEC]; //!< Cacheability settings
+    MHW_MEMORY_OBJECT_CONTROL_PARAMS m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_END_CODEC] = { }; //!< Cacheability settings
     //!
     //! \brief    Constructor
     //!
