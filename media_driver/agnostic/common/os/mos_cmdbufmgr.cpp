@@ -56,8 +56,12 @@ MOS_STATUS CmdBufMgr::Initialize(OsContext *osContext, uint32_t cmdBufSize)
     if (!m_initialized)
     {
         m_osContext          = osContext;
+
         m_inUsePoolMutex     = MOS_CreateMutex();
+        MOS_OS_CHK_NULL_RETURN(m_inUsePoolMutex);
+
         m_availablePoolMutex = MOS_CreateMutex();
+        MOS_OS_CHK_NULL_RETURN(m_availablePoolMutex);
 
         for (int i = 0; i < m_initBufNum; i++)
         {

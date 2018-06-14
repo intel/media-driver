@@ -33,6 +33,7 @@ GpuContextMgr::GpuContextMgr(GT_SYSTEM_INFO *gtSystemInfo, OsContext *osContext)
     MOS_OS_FUNCTION_ENTER;
 
     m_gpuContextArrayMutex = MOS_CreateMutex();
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(m_gpuContextArrayMutex);
 
     MOS_LockMutex(m_gpuContextArrayMutex);
     m_gpuContextArray.clear();

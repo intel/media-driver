@@ -225,6 +225,7 @@ MOS_STATUS GpuContextSpecific::GetCommandBuffer(
         if (m_cmdBufPool.size() < MAX_CMD_BUF_NUM)
         {
             cmdBuf = m_cmdBufMgr->PickupOneCmdBuf(m_commandBufferSize);
+            MOS_OS_CHK_NULL_RETURN(cmdBuf);
             MOS_OS_CHK_STATUS_RETURN(cmdBuf->BindToGpuContext(this));
             m_cmdBufPool.push_back(cmdBuf);
         }
@@ -237,7 +238,8 @@ MOS_STATUS GpuContextSpecific::GetCommandBuffer(
             m_cmdBufMgr->ReleaseCmdBuf(cmdBufOld);  // here just return old command buffer to available pool
 
             //pick up new comamnd buffer
-            cmdBuf         = m_cmdBufMgr->PickupOneCmdBuf(m_commandBufferSize);
+            cmdBuf = m_cmdBufMgr->PickupOneCmdBuf(m_commandBufferSize);
+            MOS_OS_CHK_NULL_RETURN(cmdBuf);
             MOS_OS_CHK_STATUS_RETURN(cmdBuf->BindToGpuContext(this));
             m_cmdBufPool[m_nextFetchIndex] = cmdBuf;
         }
