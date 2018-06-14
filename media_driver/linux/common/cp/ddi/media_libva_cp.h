@@ -28,6 +28,7 @@
 #ifndef  __MEDIA_LIBVA_CP_H__
 #define  __MEDIA_LIBVA_CP_H__
 #include "media_libva.h"
+#include "codechal_encoder_base.h"
 
 typedef struct _DDI_ENCODE_STATUS_REPORT_INFO *PDDI_ENCODE_STATUS_REPORT_INFO;
 class CodechalSetting;
@@ -67,7 +68,7 @@ public:
 
     VAStatus StatusReportForHdcp2Buffer(
         DDI_CODEC_COM_BUFFER_MGR*       bufMgr,
-        PDDI_ENCODE_STATUS_REPORT_INFO  info);
+        void*              encodeStatusReport);
 
     void FreeHdcp2Buffer(DDI_CODEC_COM_BUFFER_MGR* bufMgr);
 
