@@ -622,11 +622,8 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
 
     attrib.type = VAConfigAttribEncIntraRefresh;
     attrib.value = VA_ENC_INTRA_REFRESH_NONE;
-    if(IsAvcProfile(profile))
-    {
-        GetPlatformSpecificAttrib(profile, entrypoint,
-                VAConfigAttribEncIntraRefresh, &attrib.value);
-    }
+    GetPlatformSpecificAttrib(profile, entrypoint,
+        VAConfigAttribEncIntraRefresh, &attrib.value);
     (*attribList)[attrib.type] = attrib.value;
 
     attrib.type = VAConfigAttribEncSkipFrame;
