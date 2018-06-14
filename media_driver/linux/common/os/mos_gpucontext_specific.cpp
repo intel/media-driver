@@ -440,10 +440,7 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
     for (uint32_t patchIndex = 0; patchIndex < m_currentNumPatchLocations; patchIndex++)
     {
         auto currentPatch = &m_patchLocationList[patchIndex];
-        if (nullptr == currentPatch)
-        {
-            MOS_OS_ASSERTMESSAGE("Unexpected, found null entry in patch list!");
-        }
+        MOS_OS_CHK_NULL_RETURN(currentPatch);
 
         auto allocationIndex = currentPatch->AllocationIndex;
         auto resourceOffset  = currentPatch->AllocationOffset;
