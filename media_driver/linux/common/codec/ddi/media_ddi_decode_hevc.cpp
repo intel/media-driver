@@ -321,22 +321,28 @@ VAStatus DdiDecodeHEVC::ParseIQMatrix(
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
-    memcpy((void *)iqMatrix->ucScalingLists0,
+    memcpy_s((void *)iqMatrix->ucScalingLists0,
+        6 * 16 * sizeof(uint8_t),
         (void *)matrix->ScalingList4x4,
         6 * 16 * sizeof(uint8_t));
-    memcpy((void *)iqMatrix->ucScalingLists1,
+    memcpy_s((void *)iqMatrix->ucScalingLists1,
+        6 * 64 * sizeof(uint8_t),
         (void *)matrix->ScalingList8x8,
         6 * 64 * sizeof(uint8_t));
-    memcpy((void *)iqMatrix->ucScalingLists2,
+    memcpy_s((void *)iqMatrix->ucScalingLists2,
+        6 * 64 * sizeof(uint8_t),
         (void *)matrix->ScalingList16x16,
         6 * 64 * sizeof(uint8_t));
-    memcpy((void *)iqMatrix->ucScalingLists3,
+    memcpy_s((void *)iqMatrix->ucScalingLists3,
+        2 * 64 * sizeof(uint8_t),
         (void *)matrix->ScalingList32x32,
         2 * 64 * sizeof(uint8_t));
-    memcpy((void *)iqMatrix->ucScalingListDCCoefSizeID2,
+    memcpy_s((void *)iqMatrix->ucScalingListDCCoefSizeID2,
+        6 * sizeof(uint8_t),
         (void *)matrix->ScalingListDC16x16,
         6 * sizeof(uint8_t));
-    memcpy((void *)iqMatrix->ucScalingListDCCoefSizeID3,
+    memcpy_s((void *)iqMatrix->ucScalingListDCCoefSizeID3,
+        2 * sizeof(uint8_t),
         (void *)matrix->ScalingListDC32x32,
         2 * sizeof(uint8_t));
 

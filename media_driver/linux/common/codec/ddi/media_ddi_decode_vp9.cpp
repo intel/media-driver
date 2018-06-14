@@ -175,8 +175,8 @@ VAStatus DdiDecodeVP9::ParsePicParams(
     picVp9Params->subsampling_x = picParam->pic_fields.bits.subsampling_x;
     picVp9Params->subsampling_y = picParam->pic_fields.bits.subsampling_y;
 
-    memcpy(picVp9Params->SegTreeProbs, picParam->mb_segment_tree_probs, 7);
-    memcpy(picVp9Params->SegPredProbs, picParam->segment_pred_probs, 3);
+    memcpy_s(picVp9Params->SegTreeProbs, 7, picParam->mb_segment_tree_probs, 7);
+    memcpy_s(picVp9Params->SegPredProbs, 3, picParam->segment_pred_probs, 3);
 
     return VA_STATUS_SUCCESS;
 }
