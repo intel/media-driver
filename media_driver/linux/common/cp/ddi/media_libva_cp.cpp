@@ -101,7 +101,7 @@ VAStatus DdiCpInterface::InitHdcp2Buffer(DDI_CODEC_COM_BUFFER_MGR* bufMgr)
 
 VAStatus DdiCpInterface::StatusReportForHdcp2Buffer(
     DDI_CODEC_COM_BUFFER_MGR*       bufMgr,
-    PDDI_ENCODE_STATUS_REPORT_INFO  info)
+    void*               encodeStatusReport)
 {
     DdiStubMessage();
     return VA_STATUS_SUCCESS;

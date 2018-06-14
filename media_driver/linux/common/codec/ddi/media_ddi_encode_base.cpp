@@ -181,10 +181,6 @@ VAStatus DdiEncodeBase::StatusReport(
             m_encodeCtx->BufMgr.pCodedBufferSegment->buf    = DdiMediaUtil_LockBuffer(mediaBuf, MOS_LOCKFLAG_READONLY);
             m_encodeCtx->BufMgr.pCodedBufferSegment->size   = size;
             m_encodeCtx->BufMgr.pCodedBufferSegment->status = status;
-
-            // fill hdcp related buffer
-            DDI_CHK_RET(m_encodeCtx->pCpDdiInterface->StatusReportForHdcp2Buffer(&m_encodeCtx->BufMgr, &m_encodeCtx->statusReportBuf.infos[index]), "fail to get hdcp2 status report!");
-
             break;
         }
         else if ((index >= 0) && (size == 0) && (status & VA_CODED_BUF_STATUS_BAD_BITSTREAM))
@@ -216,6 +212,8 @@ VAStatus DdiEncodeBase::StatusReport(
             // Only AverageQP is reported at this time. Populate other bits with relevant informaiton later;
             status = (encodeStatusReport[0].AverageQp & VA_CODED_BUF_STATUS_PICTURE_AVE_QP_MASK);
             status = status | ((encodeStatusReport[0].NumberPasses) & 0xf)<<24;
+            // fill hdcp related buffer
+            DDI_CHK_RET(m_encodeCtx->pCpDdiInterface->StatusReportForHdcp2Buffer(&m_encodeCtx->BufMgr, encodeStatusReport), "fail to get hdcp2 status report!");
             if (UpdateStatusReportBuffer(encodeStatusReport[0].bitstreamSize, status) != VA_STATUS_SUCCESS)
             {
                 m_encodeCtx->BufMgr.pCodedBufferSegment->buf  = DdiMediaUtil_LockBuffer(mediaBuf, MOS_LOCKFLAG_READONLY);
