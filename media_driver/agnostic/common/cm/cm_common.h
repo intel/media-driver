@@ -223,7 +223,7 @@ typedef enum _CM_RETURN_CODE
 #define CM_HAL_MAX_NUM_2D_ALIASES           10                                  // maximum number of aliases for one 2D surface. Arbitrary - can be increased
 #define CM_HAL_MAX_NUM_BUFFER_ALIASES       10                                  // maximum number of aliases for one Buffer. Arbitrary - can be increased
 
-#define CM_MAX_SIP_SIZE                     0x2000                              // 8k system routine size
+#define CM_MAX_SIP_SIZE                     0x4000                              // 16k system routine size
 #define CM_DEBUG_SURFACE_INDEX              252                                 // reserved for tools
 #define CM_DEBUG_SURFACE_SIZE               0x10000                             // 64k for all threads
 #define CM_CSR_SURFACE_SIZE                 0x800000                            // 8 M Bytes for CSR surface
