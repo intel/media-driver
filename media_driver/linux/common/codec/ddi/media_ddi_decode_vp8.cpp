@@ -85,7 +85,7 @@ VAStatus DdiDecodeVP8::ParseSliceParams(
     //macroblock_offset is in unit of bit.
     picParams->uiFirstMbByteOffset = slcParam->slice_data_offset + slcParam->macroblock_offset >> 3;
 
-    memcpy(picParams->uiPartitionSize, slcParam->partition_size, sizeof(picParams->uiPartitionSize));
+    memcpy_s(picParams->uiPartitionSize, sizeof(picParams->uiPartitionSize), slcParam->partition_size, sizeof(picParams->uiPartitionSize));
 
     //partition 0 size in command buffer includes the one byte in bool decoder if remaining bits of bool decoder is not zero.
     picParams->uiPartitionSize[0] += (slcParam->macroblock_offset & 0x7) ? 1 : 0;
@@ -222,13 +222,15 @@ VAStatus DdiDecodeVP8::ParsePicParams(
     codecPicParams->ucUvModeProbs[2]            = picParam->uv_mode_probs[2];
     if (codecPicParams->ucMvUpdateProb[0] && picParam->mv_probs[0])
     {
-        memcpy(codecPicParams->ucMvUpdateProb[0],
+        memcpy_s(codecPicParams->ucMvUpdateProb[0],
+            sizeof(codecPicParams->ucMvUpdateProb[0]),
             picParam->mv_probs[0],
             sizeof(codecPicParams->ucMvUpdateProb[0]));
     }
     if (codecPicParams->ucMvUpdateProb[1] && picParam->mv_probs[1])
     {
-        memcpy(codecPicParams->ucMvUpdateProb[1],
+        memcpy_s(codecPicParams->ucMvUpdateProb[1],
+            sizeof(codecPicParams->ucMvUpdateProb[1]),
             picParam->mv_probs[1],
             sizeof(codecPicParams->ucMvUpdateProb[1]));
     }

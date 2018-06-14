@@ -1344,9 +1344,9 @@ VAStatus DdiMedia__Initialize (
     if(mediaCtx->m_caps->Init() != VA_STATUS_SUCCESS)
     {
         DDI_ASSERTMESSAGE("Caps init failed. Not supported GFX device.");
-        FreeForMediaContext(mediaCtx);
         MOS_Delete(mediaCtx->m_caps);
         mediaCtx->m_caps = nullptr;
+        FreeForMediaContext(mediaCtx);
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
 
