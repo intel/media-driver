@@ -103,6 +103,8 @@ extern int32_t HalCm_DumpCurbeData(PCM_HAL_STATE state);
 extern int32_t HalCm_InitSurfaceDump(PCM_HAL_STATE state);
 #endif
 
+extern uint64_t HalCm_GetTsFrequency(PMOS_INTERFACE pOsInterface);
+
 //===============<Private Functions>============================================
 //*-----------------------------------------------------------------------------
 //| Purpose:    Align to the next power of 2
@@ -7850,9 +7852,8 @@ MOS_STATUS HalCm_Allocate(
     //Turn Turbo boost on
     CM_CHK_MOSSTATUS(state->pfnEnableTurboBoost(state));
 
-    // Send a command to get the timestamp base if needed
-    CM_CHK_MOSSTATUS(state->cmHalInterface->SubmitTimeStampBaseCommands());
-
+    state->tsFrequency = HalCm_GetTsFrequency(state->osInterface);
+    
     hr = MOS_STATUS_SUCCESS;
 
 finish:
@@ -11504,3 +11505,16 @@ void HalCm_GetLegacyRenderHalL3Setting( CmHalL3Settings *l3SettingsPtr, RENDERHA
 
     return;
 }
+
+uint64_t HalCm_ConvertTicksToNanoSeconds(
+    PCM_HAL_STATE               state,
+    uint64_t                    ticks)
+{
+    if (state->tsFrequency == 0)
+    {
+        // if KMD doesn't report an valid value, fall back to default configs
+        return state->cmHalInterface->ConverTicksToNanoSecondsDefault(ticks);
+    }
+    return (ticks * 1000000000) / (state->tsFrequency);
+}
+

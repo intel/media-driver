@@ -1532,6 +1532,8 @@ typedef struct _CM_HAL_STATE
     bool                        svmBufferUsed;
 
     CMRT_UMD::CSync             criticalSectionDSH;
+
+    uint64_t                    tsFrequency;
 //------------------------------------------------------------------------------
 // Macros to replace HR macros in oscl.h
 //------------------------------------------------------------------------------
@@ -2267,6 +2269,10 @@ MOS_STATUS HalCm_SetupSampler8x8SurfaceState(
     int32_t                     bindingTable,
     uint32_t                    threadIndex,
     uint8_t                     *buffer);
+
+uint64_t HalCm_ConvertTicksToNanoSeconds(
+    PCM_HAL_STATE               state,
+    uint64_t                    ticks);
 
 //*-----------------------------------------------------------------------------
 //| Helper functions for EnqueueWithHints

@@ -577,13 +577,14 @@ public:
     }
 
     //!
-    //! \brief    Covnert the ticks to nano seconds
+    //! \brief    Covnert the ticks to nano seconds with default config if KMD querying failed
     //! \param    [in]  ticks
     //!           input ticks
     //! \return   uint64_t
     //!           Nano seconds converted from the input ticks
     //!
-    virtual uint64_t ConvertTicksToNanoSeconds(uint64_t ticks) = 0;
+    virtual uint64_t ConverTicksToNanoSecondsDefault(uint64_t ticks) = 0;
+
 protected:
     uint32_t m_platformID;
     uint32_t m_genGT;

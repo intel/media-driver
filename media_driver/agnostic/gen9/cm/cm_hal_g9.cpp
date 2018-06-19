@@ -1492,7 +1492,7 @@ MOS_STATUS CM_HAL_G9_X::GetExpectedGtSystemConfig(
     return MOS_STATUS_SUCCESS;
 }
 
-uint64_t CM_HAL_G9_X::ConvertTicksToNanoSeconds(uint64_t ticks)
+uint64_t CM_HAL_G9_X::ConverTicksToNanoSecondsDefault(uint64_t ticks)
 {
     if (m_platformID == PLATFORM_INTEL_BXT || m_platformID == PLATFORM_INTEL_GLK)
     {
