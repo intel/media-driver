@@ -49,7 +49,7 @@ struct VME_STATE_G6;
 class CmDevice
 {
 public:
-
+    virtual ~CmDevice() = default;
     //! \brief      Creates a CmBuffer with specified size in bytes.
     //! \details    This function creates a buffer in video memory with linear
     //!             layout.
