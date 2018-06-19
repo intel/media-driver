@@ -184,7 +184,6 @@ int32_t CmSurfaceManager::CreateVaSurface2D(uint32_t width,
 {
     int32_t hr = CM_SUCCESS;
     VAStatus vaStatus = VA_STATUS_SUCCESS;
-    VASurfaceID vaSurfaceId = 0;
     VADisplay *dpy = nullptr;
     uint32_t vaFormat = 0;
 
