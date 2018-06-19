@@ -26,6 +26,7 @@
 #include "mos_os.h"
 #include "cm_hal.h"
 #include "cm_def_os.h"
+#include "i915_drm.h"
 
 #define Y_TILE_WIDTH  128
 #define Y_TILE_HEIGHT 32
@@ -852,13 +853,13 @@ MOS_STATUS HalCm_QueryTask_Linux(
     {
         queryParam->status = CM_TASK_FINISHED;
 
-        hwStartNs = state->cmHalInterface->ConvertTicksToNanoSeconds(*piSyncStart);
-        hwEndNs = state->cmHalInterface->ConvertTicksToNanoSeconds(*piSyncEnd);
+        hwStartNs = HalCm_ConvertTicksToNanoSeconds(state, *piSyncStart);
+        hwEndNs = HalCm_ConvertTicksToNanoSeconds(state, *piSyncEnd);
 
         ticks = *piSyncEnd - *piSyncStart;
 
         // Convert ticks to Nanoseconds
-        queryParam->taskDurationNs = state->cmHalInterface->ConvertTicksToNanoSeconds(ticks);
+        queryParam->taskDurationNs = HalCm_ConvertTicksToNanoSeconds(state, ticks);
 
         queryParam->taskGlobalSubmitTimeCpu = state->taskTimeStamp->submitTimeInCpu[queryParam->taskId];
         CM_CHK_MOSSTATUS(state->pfnConvertToQPCTime(state->taskTimeStamp->submitTimeInGpu[queryParam->taskId], &queryParam->taskSubmitTimeGpu));
@@ -1463,5 +1464,24 @@ MOS_STATUS HalCm_SetupSipSurfaceState(
     UNUSED(bindingTable);
     // Function not implemented on Linux, just return success for sanity check
     return MOS_STATUS_SUCCESS;
+}
+
+uint64_t HalCm_GetTsFrequency(PMOS_INTERFACE osInterface)
+{
+    int32_t freq = 0;
+    drm_i915_getparam_t gp;
+    MOS_ZeroMemory(&gp, sizeof(gp));
+    gp.param = I915_PARAM_CS_TIMESTAMP_FREQUENCY;
+    gp.value = &freq;
+    int ret = drmIoctl(osInterface->pOsContext->fd, DRM_IOCTL_I915_GETPARAM, &gp);
+    if(ret == 0)
+    {
+        return freq;
+    }
+    else
+    {
+        // fail to query it from KMD
+        return 0;
+    }
 }
 

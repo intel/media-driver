@@ -481,7 +481,8 @@ public:
             PMHW_SAMPLER_STATE_PARAM mhwSamplerParam,
             SamplerParam  &samplerParam);
 
-    uint64_t ConvertTicksToNanoSeconds(uint64_t ticks);
+    uint64_t ConverTicksToNanoSecondsDefault(uint64_t ticks);
+
 
 private:
 

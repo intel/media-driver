@@ -1124,7 +1124,7 @@ MOS_STATUS CM_HAL_G8_X::GetSamplerParamInfoForSamplerType(
     return MOS_STATUS_SUCCESS;
 }
 
-uint64_t CM_HAL_G8_X::ConvertTicksToNanoSeconds(uint64_t ticks)
+uint64_t CM_HAL_G8_X::ConverTicksToNanoSecondsDefault(uint64_t ticks)
 {
     return (uint64_t)(ticks * CM_NS_PER_TICK_RENDER_G8);
 }

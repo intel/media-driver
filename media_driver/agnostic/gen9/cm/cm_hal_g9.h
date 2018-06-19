@@ -165,7 +165,7 @@ public:
     MOS_STATUS GetExpectedGtSystemConfig(
         PCM_EXPECTED_GT_SYSTEM_INFO expectedConfig);
 
-    uint64_t ConvertTicksToNanoSeconds(uint64_t ticks);
+    uint64_t ConverTicksToNanoSecondsDefault(uint64_t ticks);
 
 private:
     MOS_STATUS RegisterSampler8x8AVSTable(
