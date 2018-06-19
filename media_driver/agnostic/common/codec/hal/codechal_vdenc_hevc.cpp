@@ -473,6 +473,8 @@ MOS_STATUS CodechalVdencHevcState::SetupBRCROIStreamIn(PMOS_RESOURCE streamIn, P
         &lockFlags);
     CODECHAL_ENCODE_CHK_NULL_RETURN(deltaQpData);
 
+    MOS_ZeroMemory(deltaQpData, m_deltaQpRoiBufferSize);
+
     uint32_t streamInWidth = (MOS_ALIGN_CEIL(m_frameWidth, 64) / 32);
     uint32_t streamInHeight = (MOS_ALIGN_CEIL(m_frameHeight, 64) / 32);
     uint32_t deltaQpBufWidth = (MOS_ALIGN_CEIL(m_frameWidth, 32) / 32);
