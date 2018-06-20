@@ -183,6 +183,19 @@
     }                                                                           \
 }
 
+//*-----------------------------------------------------------------------------
+//| Macro checks status and returns
+//*-----------------------------------------------------------------------------
+#define CMCHK_STATUS_AND_RETURN(stmt)                                          \
+{                                                                               \
+    CM_RETURN_CODE _tmp = (CM_RETURN_CODE)(stmt);                               \
+    if (_tmp != CM_SUCCESS)                                                     \
+    {                                                                           \
+      CM_ASSERT(0);                                                             \
+      return _tmp;                                                              \
+    }                                                                           \
+}
+
 
 //*-----------------------------------------------------------------------------
 //| Macro checks for nullptr and return a specific value
