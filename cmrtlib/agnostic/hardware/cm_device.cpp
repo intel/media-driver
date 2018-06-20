@@ -325,8 +325,6 @@ CM_RT_API int32_t CmDevice_RT::CreateQueue( CmQueue* & queue )
 {
     INSERT_PROFILER_RECORD();
 
-    CmQueue *tmpQueue = nullptr;
-
     // For legacy CreateQueue API, we will only return the same queue
     m_criticalSectionQueue.Acquire();
     for (auto iter = m_queue.begin(); iter != m_queue.end(); iter++)

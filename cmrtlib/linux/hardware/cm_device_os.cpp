@@ -166,7 +166,7 @@ CmDevice_RT::~CmDevice_RT( void )
 {
     if (m_cmCreated)
     {
-        VAStatus vaStatus = vaTerminate(m_vaDisplay);
+        vaTerminate(m_vaDisplay);
 #ifndef ANDROID
         FreeLibvaDrm();
 #else
@@ -223,7 +223,7 @@ static int32_t CmrtVaSurfaceRelease(void *vaDisplay, void *vaSurface)
     //Destroy VaSurface
     vaStatus = vaDestroySurfaces(*display, (VASurfaceID *)vaSurface, 1);
 
-    return CM_SUCCESS;
+    return vaStatus;
 }
 
 int32_t CmDevice_RT::Initialize( bool isCmCreated )

@@ -175,8 +175,8 @@ protected:
 #endif
     int32_t InitializeLibvaDisplay( void );
     
-    pvaCmExtSendReqMsg    m_fvaCmExtSendReqMsg;
     VADisplay m_vaDisplay;
+    pvaCmExtSendReqMsg    m_fvaCmExtSendReqMsg;
 
 #if !defined(ANDROID)
     static uint32_t m_vaReferenceCount;
