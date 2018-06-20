@@ -103,7 +103,7 @@ VAStatus DdiDecodeMPEG2::ParseSliceParams(
     for (slcCount = 0; slcCount < numSlices; slcCount++)
     {
         codecSlcParams->m_sliceHorizontalPosition = slcParam->slice_horizontal_position;
-        codecSlcParams->m_sliceVerticalPosition   = slcParam->slice_vertical_position / (1 + isField);
+        codecSlcParams->m_sliceVerticalPosition   = slcParam->slice_vertical_position;
 
         codecSlcParams->m_sliceDataSize   = (slcParam->slice_data_size) * 8;
         codecSlcParams->m_sliceDataOffset = slcParam->slice_data_offset + sliceBaseOffset;
