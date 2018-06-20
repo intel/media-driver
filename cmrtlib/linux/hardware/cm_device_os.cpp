@@ -166,6 +166,7 @@ CmDevice_RT::~CmDevice_RT( void )
 {
     if (m_cmCreated)
     {
+        vaTerminate(m_vaDisplay);
 #ifndef ANDROID
         FreeLibvaDrm();
 #else

@@ -59,7 +59,6 @@ const CM_QUEUE_CREATE_OPTION CM_DEFAULT_QUEUE_CREATE_OPTION = { CM_QUEUE_TYPE_RE
 class CmQueue
 {
 public:
-    virtual ~CmQueue() = default;
     //!
     //! \brief   Enqueue a task for execution with per-task thread space.
     //! \details This function enqueues a task represented by the CmTask object.
@@ -453,6 +452,9 @@ public:
     //! \retval  CM_FAILURE otherwise
     //!
     CM_RT_API virtual int32_t EnqueueVebox(CmVebox *vebox, CmEvent *&event) = 0;
+
+protected:
+    virtual ~CmQueue() = default;
 };
 
 #endif  // #ifndef CMRTLIB_AGNOSTIC_SHARE_CM_QUEUE_BASE_H_
