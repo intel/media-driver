@@ -3233,7 +3233,7 @@ MOS_STATUS CodechalEncodeAvcBase::SetSliceStructs()
 }
 
 void CodechalEncodeAvcBase::SetMfxPipeModeSelectParams(
-    CODECHAL_ENCODE_AVC_GENERIC_PICTURE_LEVEL_PARAMS genericParam,
+    const CODECHAL_ENCODE_AVC_GENERIC_PICTURE_LEVEL_PARAMS& genericParam,
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS& param)
 {
     // set MFX_PIPE_MODE_SELECT values
