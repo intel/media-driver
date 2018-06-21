@@ -839,6 +839,14 @@ typedef struct _CODEC_AVC_ENCODE_PIC_PARAMS
     */
     uint32_t        ForceRepartitionCheck;
 
+    /*! \brief Specifies force-to-skip for HRD compliance in BRC kernel that will be disabled.
+    *
+    *    bDisableFrameSkip is only valid for P/B frames
+    *    0: force-to-skip will be enabled as required in BRC kernel. Default value.
+    *    1: force-to-skip will be disabled in BRC kernel.
+    */
+    bool            bDisableFrameSkip;
+
 } CODEC_AVC_ENCODE_PIC_PARAMS, *PCODEC_AVC_ENCODE_PIC_PARAMS;
 
 /*! \brief Slice-level parameters of a compressed picture for AVC encoding.
