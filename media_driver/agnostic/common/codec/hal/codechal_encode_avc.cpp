@@ -3687,7 +3687,7 @@ MOS_STATUS CodechalEncodeAvcEnc::MbEncKernel(bool mbEncIFrameDistInUse)
         // dump MbBrcLut
         CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
             initMbBrcConstantDataBufferParams.presBrcConstantDataBuffer,
-            CodechalDbgAttr::attrOutput,
+            CodechalDbgAttr::attrInput,
             "MbBrcLut",
             16 * (CODEC_AVC_NUM_QP) * sizeof(uint32_t),
             0,
@@ -3928,6 +3928,14 @@ MOS_STATUS CodechalEncodeAvcEnc::MbEncKernel(bool mbEncIFrameDistInUse)
             m_lastTaskInPhase = false;
         }
     }
+        
+    CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+        &BrcBuffers.sBrcMbQpBuffer.OsResource,
+        CodechalDbgAttr::attrInput,
+        "MbQp",
+        BrcBuffers.sBrcMbQpBuffer.dwPitch*BrcBuffers.sBrcMbQpBuffer.dwHeight,
+        BrcBuffers.dwBrcMbQpBottomFieldOffset,
+        CODECHAL_MEDIA_STATE_ENC_NORMAL)));
 
     currRefList->ucMADBufferIdx = m_currMadBufferIdx;
     currRefList->bMADEnabled    = m_madEnabled;
@@ -4716,6 +4724,16 @@ MOS_STATUS CodechalEncodeAvcEnc::BrcMbUpdateKernel()
         SetupROISurface();
     }
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+        &BrcBuffers.resBrcHistoryBuffer,
+        CodechalDbgAttr::attrInput,
+        "HistoryRead",
+        m_brcHistoryBufferSize,
+        0,
+        CODECHAL_MEDIA_STATE_MB_BRC_UPDATE));
+#endif
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
 
@@ -6496,12 +6514,22 @@ MOS_STATUS CodechalEncodeAvcEnc::DumpEncodeKernelOutput()
         if (!Mos_ResourceIsNull(&BrcBuffers.sBrcMbQpBuffer.OsResource))
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-                &BrcBuffers.resBrcPakStatisticBuffer[m_brcPakStatisticsSize],
+                &BrcBuffers.sBrcMbQpBuffer.OsResource,
                 CodechalDbgAttr::attrOutput,
                 "MbQp",
-                BrcBuffers.dwBrcMbQpBottomFieldOffset,
                 BrcBuffers.sBrcMbQpBuffer.dwPitch*BrcBuffers.sBrcMbQpBuffer.dwHeight,
-                CODECHAL_MEDIA_STATE_BRC_UPDATE));
+                BrcBuffers.dwBrcMbQpBottomFieldOffset,
+                CODECHAL_MEDIA_STATE_MB_BRC_UPDATE));
+        }
+        if (bMbBrcEnabled)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+                &BrcBuffers.resBrcHistoryBuffer,
+                CodechalDbgAttr::attrOutput,
+                "HistoryWrite",
+                m_brcHistoryBufferSize,
+                0,
+                CODECHAL_MEDIA_STATE_MB_BRC_UPDATE));
         }
         if (BrcBuffers.pMbEncKernelStateInUse)
         {
@@ -6621,6 +6649,29 @@ MOS_STATUS CodechalEncodeAvcEnc::DumpEncodeKernelOutput()
             0,
             CODECHAL_MEDIA_STATE_ENC_QUALITY));
      }
+
+    auto refList = &m_refList[0];
+    auto currRefList = m_refList[m_currReconstructedPic.FrameIdx];
+    // Dump MBEnc output buffer "MbCodebuffer"
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+        &currRefList->resRefMbCodeBuffer,
+        CodechalDbgAttr::attrOutput,
+        "EncMbCode",
+        m_picWidthInMb * m_frameFieldHeightInMb * 64,
+        CodecHal_PictureIsBottomField(currRefList->RefPic) ? m_frameFieldHeightInMb * m_picWidthInMb * 64 : 0,
+        CODECHAL_MEDIA_STATE_ENC_NORMAL));
+
+    // Dump MBEnc output buffer "MVdatabuffer"
+    if (m_mvDataSize)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+            &currRefList->resRefMvDataBuffer,
+            CodechalDbgAttr::attrOutput,
+            "MbData",
+            m_picWidthInMb * m_frameFieldHeightInMb * (32 * 4),
+            CodecHal_PictureIsBottomField(currRefList->RefPic) ? MOS_ALIGN_CEIL(m_frameFieldHeightInMb * m_picWidthInMb * (32 * 4), 0x1000) : 0,
+            CODECHAL_MEDIA_STATE_ENC_NORMAL));
+    }
      )
     return eStatus;
 }

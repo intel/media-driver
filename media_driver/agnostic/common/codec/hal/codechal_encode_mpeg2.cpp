@@ -4218,8 +4218,8 @@ MOS_STATUS CodechalEncodeMpeg2::ExecuteKernelFunctions()
                 &m_brcBuffers.resBrcPakStatisticBuffer[m_brcPakStatisticsSize],
                 CodechalDbgAttr::attrOutput,
                 "MbQp",
-                m_brcBuffers.dwBrcMbQpBottomFieldOffset,
                 m_brcBuffers.sBrcMbQpBuffer.dwPitch*m_brcBuffers.sBrcMbQpBuffer.dwHeight,
+                m_brcBuffers.dwBrcMbQpBottomFieldOffset,
                 CODECHAL_MEDIA_STATE_BRC_UPDATE));
         }
 
