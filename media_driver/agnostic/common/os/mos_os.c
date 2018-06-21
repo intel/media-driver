@@ -31,6 +31,7 @@
 
 #include "mos_os.h"
 #include "mos_util_debug.h"
+#include "mos_util_user_interface.h"
 
 //!
 //! \brief GLOBAL INITIALIZERS
@@ -890,3 +891,79 @@ MEMORY_OBJECT_CONTROL_STATE Mos_CachePolicyGetMemoryObject(
     }
 }
 #endif
+
+#ifndef SKIP_VE_DEFINE
+MOS_STATUS Mos_CheckVirtualEngineSupported(
+    PMOS_INTERFACE      osInterface,
+    bool                isDecode,
+    bool                veDefaultEnable)
+{
+    MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
+    PLATFORM                    platform;
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+
+    MOS_OS_ASSERT(osInterface);
+
+    osInterface->pfnGetPlatform(osInterface, &platform);
+
+    if (isDecode)
+    {
+        //UMD Decode Virtual Engine Override
+        // 0: disable. can set to 1 only when KMD VE is enabled.
+        // Default value is 1 if not set this key
+        memset(&userFeatureData, 0, sizeof(userFeatureData));
+        eStatus = MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_ENABLE_DECODE_VIRTUAL_ENGINE_ID,
+            &userFeatureData);
+        osInterface->bSupportVirtualEngine = userFeatureData.u32Data ? true : false;
+
+        // force bSupportVirtualEngine to false when virtual engine not enabled by default
+        if (!veDefaultEnable && eStatus == MOS_STATUS_USER_FEATURE_KEY_READ_FAILED)
+        {
+            osInterface->bSupportVirtualEngine = false;
+        }
+
+        auto skuTable = osInterface->pfnGetSkuTable(osInterface);
+        MOS_OS_CHK_NULL_RETURN(skuTable);
+        if (osInterface->bSupportVirtualEngine && MEDIA_IS_SKU(skuTable, FtrContextBasedScheduling))
+        {
+            memset(&userFeatureData, 0, sizeof(userFeatureData));
+            eStatus = MOS_UserFeature_ReadValue_ID(
+                nullptr,
+                __MEDIA_USER_FEATURE_VALUE_ENABLE_DECODE_VE_CTXSCHEDULING_ID,
+                &userFeatureData);
+            osInterface->ctxBasedScheduling = userFeatureData.u32Data ? true : false;
+        }
+    }
+    else
+    {
+        //UMD Encode Virtual Engine Override
+        memset(&userFeatureData, 0, sizeof(userFeatureData));
+        eStatus = MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_ENABLE_ENCODE_VIRTUAL_ENGINE_ID,
+            &userFeatureData);
+        osInterface->bSupportVirtualEngine = userFeatureData.u32Data ? true : false;
+
+        auto skuTable = osInterface->pfnGetSkuTable(osInterface);
+        MOS_OS_CHK_NULL_RETURN(skuTable);
+        if (osInterface->bSupportVirtualEngine && MEDIA_IS_SKU(skuTable, FtrContextBasedScheduling))
+        {
+            memset(&userFeatureData, 0, sizeof(userFeatureData));
+            eStatus = MOS_UserFeature_ReadValue_ID(
+                nullptr,
+                __MEDIA_USER_FEATURE_VALUE_ENABLE_ENCODE_VE_CTXSCHEDULING_ID,
+                &userFeatureData);
+            osInterface->ctxBasedScheduling = userFeatureData.u32Data ? true : false;
+        }
+    }
+
+    MOS_OS_VERBOSEMESSAGE("Virtual Engine Context based SCheduling enabled:%d.\n", osInterface->ctxBasedScheduling);
+
+    return eStatus;
+}
+#endif // !SKIP_VE_DEFINE
+
+
+
