@@ -47,6 +47,23 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext_specific.h
 )
 
+if(${Media_Scalability_Supported} STREQUAL "yes")
+
+set(TMP_SOURCES_
+    ${TMP_SOURCES_}
+    ${CMAKE_CURRENT_LIST_DIR}/mos_os_virtualengine_scalability_specific.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_os_virtualengine_singlepipe_specific.cpp
+)
+
+set(TMP_HEADERS_
+    ${TMP_HEADERS_}
+    ${CMAKE_CURRENT_LIST_DIR}/mos_os_virtualengine_scalability_specific.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_os_virtualengine_singlepipe_specific.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_os_virtualengine_specific.h
+)
+
+endif()
+
 set(SOURCES_
     ${SOURCES_}
     ${TMP_SOURCES_}

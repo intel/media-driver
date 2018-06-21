@@ -5916,7 +5916,6 @@ MOS_STATUS Mos_Specific_InitInterface(
         MOS_OS_ASSERTMESSAGE("fail to create osCpInterface.");
         return MOS_STATUS_UNKNOWN;
     }
-    pOsInterface->pOsExt            = nullptr;
 
     // Check SKU table to detect if simulation environment (HAS) is enabled
     pSkuTable = pOsInterface->pfnGetSkuTable(pOsInterface);

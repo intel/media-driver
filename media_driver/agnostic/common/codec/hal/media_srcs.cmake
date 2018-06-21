@@ -68,6 +68,8 @@ set(TMP_2_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/codechal_decoder.cpp
     ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_histogram.cpp
     ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_histogram_vebox.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_singlepipe_virtualengine.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_scalability.cpp
 )
 
 set(TMP_2_HEADERS_
@@ -75,6 +77,8 @@ set(TMP_2_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/codechal_decoder.h
     ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_histogram.h
     ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_histogram_vebox.h
+    ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_singlepipe_virtualengine.h
+    ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_scalability.h
 )
 if(${Decode_Processing_Supported} STREQUAL "yes")
     set(TMP_2_SOURCES_
@@ -291,6 +295,8 @@ if(${Common_Encode_Supported} STREQUAL "yes")
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_tracked_buffer.cpp
         ${CMAKE_CURRENT_LIST_DIR}/codechal_huc_cmd_initializer.cpp
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_allocator.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_singlepipe_virtualengine.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_scalability.cpp
     )
 
     set(TMP_3_HEADERS_
@@ -305,6 +311,8 @@ if(${Common_Encode_Supported} STREQUAL "yes")
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_tracked_buffer.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_huc_cmd_initializer.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_allocator.h
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_singlepipe_virtualengine.h
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_scalability.h
     )
 endif()
 

@@ -475,4 +475,6 @@ enum MOS_MEMCOMP_STATE
 typedef enum MOS_MEMCOMP_STATE *PMOS_MEMCOMP_STATE;
 typedef uint32_t               GPU_CONTEXT_HANDLE;
 
+#define MOS_MAX_ENGINE_INSTANCE_PER_CLASS   4
+
 #endif // __MOS_DEFS_H__
