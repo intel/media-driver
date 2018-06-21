@@ -438,7 +438,20 @@ typedef struct _CODEC_AVC_ENCODE_SEQUENCE_PARAMS
             /* Control the force panic mode through DDI other than user feature key */
             uint32_t           bForcePanicModeControl       : 1;
             uint32_t           bPanicModeDisable            : 1;
-            uint32_t           Reserved1                    : 7;
+
+            /*! \brief Enables streaming buffer in LLC
+            *
+            *        \n - 0 : streaming buffer by LLC is disabled.
+            *        \n - 1 : streaming buffer by LLC is enabled.
+            */
+            uint32_t           EnableStreamingBufferLLC     : 1;
+            /*! \brief Enables streaming buffer in DDR
+            *
+            *        \n - 0 : streaming buffer by DDR is disabled.
+            *        \n - 1 : streaming buffer by DDR is enabled.
+            */
+            uint32_t           EnableStreamingBufferDDR     : 1;
+            uint32_t           Reserved1                    : 5;
         };
         uint32_t            sFlags;
     };
