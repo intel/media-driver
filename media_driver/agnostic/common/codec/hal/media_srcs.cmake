@@ -297,6 +297,7 @@ if(${Common_Encode_Supported} STREQUAL "yes")
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_allocator.cpp
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_singlepipe_virtualengine.cpp
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_scalability.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_sw_scoreboard.cpp
     )
 
     set(TMP_3_HEADERS_
@@ -313,6 +314,7 @@ if(${Common_Encode_Supported} STREQUAL "yes")
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_allocator.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_singlepipe_virtualengine.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_scalability.h
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_sw_scoreboard.h
     )
 endif()
 
