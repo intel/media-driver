@@ -2515,6 +2515,19 @@ MOS_STATUS CodechalEncodeVp8::MbEncKernel(bool isEncPhase1NotRun, bool isEncPhas
             encFunctionType,
             MHW_SSH_TYPE,
             kernelState));
+
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+            &m_resModeCostUpdateSurface,
+            CodechalDbgAttr::attrInput,
+            "ModeCostUpdate",
+            16 * sizeof(uint32_t),
+            0,
+            CODECHAL_NUM_MEDIA_STATES));
+
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
+            &m_s4XMeDistortionBuffer,
+            "MBEncInterPredDistSurf",
+            "InterDistSurf"));
     )
 
     resolutionX = mbEncIFrameDistInUse ?
@@ -2997,6 +3010,14 @@ MOS_STATUS CodechalEncodeVp8::MpuKernel()
             encFunctionType,
             MHW_SSH_TYPE,
             kernelState));
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+            &m_resModeCostUpdateSurface,
+            CodechalDbgAttr::attrInput,
+            "ModeCostUpdate",
+            16 * sizeof(uint32_t),
+            0,
+            CODECHAL_NUM_MEDIA_STATES));
     )
 
     MOS_ZeroMemory(&mediaObjectParams, sizeof(mediaObjectParams));

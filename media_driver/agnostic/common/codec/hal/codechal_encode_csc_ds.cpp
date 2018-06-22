@@ -1070,7 +1070,8 @@ MOS_STATUS CodechalEncodeCscDs::KernelFunctions(
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(params);
 
-    bool useDsConvInCombinedKernel = m_useCommonKernel && !(CODECHAL_AVC == m_standard || CODECHAL_MPEG2 == m_standard);
+    bool useDsConvInCombinedKernel = m_useCommonKernel
+        && !(CODECHAL_AVC == m_standard || CODECHAL_MPEG2 == m_standard || CODECHAL_VP8 == m_standard);
 
     // call Ds+Copy
     if (m_cscFlag || useDsConvInCombinedKernel)
