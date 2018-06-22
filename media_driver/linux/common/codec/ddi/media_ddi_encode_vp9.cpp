@@ -600,9 +600,13 @@ VAStatus DdiEncodeVp9::ParsePicParams(DDI_MEDIA_CONTEXT *mediaCtx, void *ptr)
         if (picParam->reference_frames[i] != VA_INVALID_SURFACE)
         {
             UpdateRegisteredRTSurfaceFlag(rtTbl, DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->reference_frames[i]));
-            SetupCodecPicture(mediaCtx, rtTbl, &vp9PicParam->RefFrameList[i],
-                                         picParam->reference_frames[i], true);
         }
+        SetupCodecPicture(
+            mediaCtx,
+            rtTbl,
+            &vp9PicParam->RefFrameList[i],
+            picParam->reference_frames[i],
+            true);
     }
 
     DDI_MEDIA_BUFFER *buf = nullptr;
