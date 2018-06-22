@@ -5480,6 +5480,7 @@ MOS_STATUS CodechalEncodeAvcEnc::SetPictureStructs()
     auto avcPicIdx = &m_picIdx[0];
 
     uint8_t prevRefIdx = m_currReconstructedPic.FrameIdx;
+    CODECHAL_ENCODE_CHK_NULL_RETURN(picParams);
     uint8_t currRefIdx = picParams->CurrReconstructedPic.FrameIdx;
 
     int16_t prevFrameNum = m_frameNum;
