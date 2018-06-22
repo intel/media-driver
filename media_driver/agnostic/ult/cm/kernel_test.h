@@ -487,7 +487,7 @@ TEST_F(KernelTest, LoadWrongIsa)
 {
     const uint32_t CODE_SIZE = sizeof(SKYLAKE_DONOTHING_ISA);
     uint8_t wrong_isa_code[CODE_SIZE];
-    memcpy(wrong_isa_code, SKYLAKE_DONOTHING_ISA, CODE_SIZE);
+    memcpy_s(wrong_isa_code, CODE_SIZE, SKYLAKE_DONOTHING_ISA, CODE_SIZE);
     wrong_isa_code[0x23] = 0xff;
     uint8_t *wrong_isa_code_ptr = wrong_isa_code;
 

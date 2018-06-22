@@ -99,30 +99,38 @@ VAStatus DdiDecodeHEVC::ParseSliceParams(
             codecSlcParams->luma_log2_weight_denom         = slc->luma_log2_weight_denom;
             codecSlcParams->delta_chroma_log2_weight_denom = slc->delta_chroma_log2_weight_denom;
 
-            memcpy(codecSlcParams->luma_offset_l0,
-                slc->luma_offset_l0,
-                15);
-            memcpy(codecSlcParams->luma_offset_l1,
-                slc->luma_offset_l1,
-                15);
-            memcpy(codecSlcParams->delta_luma_weight_l0,
-                slc->delta_luma_weight_l0,
-                15);
-            memcpy(codecSlcParams->delta_luma_weight_l1,
-                slc->delta_luma_weight_l1,
-                15);
-            memcpy(codecSlcParams->ChromaOffsetL0,
-                slc->ChromaOffsetL0,
-                15 * 2);
-            memcpy(codecSlcParams->ChromaOffsetL1,
-                slc->ChromaOffsetL1,
-                15 * 2);
-            memcpy(codecSlcParams->delta_chroma_weight_l0,
-                slc->delta_chroma_weight_l0,
-                15 * 2);
-            memcpy(codecSlcParams->delta_chroma_weight_l1,
-                slc->delta_chroma_weight_l1,
-                15 * 2);
+            memcpy_s(codecSlcParams->luma_offset_l0,
+                    15,
+                    slc->luma_offset_l0,
+                    15);
+            memcpy_s(codecSlcParams->luma_offset_l1,
+                    15,
+                    slc->luma_offset_l1,
+                    15);
+            memcpy_s(codecSlcParams->delta_luma_weight_l0,
+                    15,
+                    slc->delta_luma_weight_l0,
+                    15);
+            memcpy_s(codecSlcParams->delta_luma_weight_l1,
+                    15,
+                    slc->delta_luma_weight_l1,
+                    15);
+            memcpy_s(codecSlcParams->ChromaOffsetL0,
+                    15*2,
+                    slc->ChromaOffsetL0,
+                    15 * 2);
+            memcpy_s(codecSlcParams->ChromaOffsetL1,
+                    15*2,
+                    slc->ChromaOffsetL1,
+                    15 * 2);
+            memcpy_s(codecSlcParams->delta_chroma_weight_l0,
+                    15*2,
+                    slc->delta_chroma_weight_l0,
+                    15 * 2);
+            memcpy_s(codecSlcParams->delta_chroma_weight_l1,
+                    15*2,
+                    slc->delta_chroma_weight_l1,
+                    15 * 2);
 
             codecSlcParams->five_minus_max_num_merge_cand = slc->five_minus_max_num_merge_cand;
 
