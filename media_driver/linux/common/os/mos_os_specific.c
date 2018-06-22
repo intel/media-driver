@@ -4346,11 +4346,11 @@ uint32_t Mos_Specific_GetGpuStatusTag(
 {
     MOS_OS_FUNCTION_ENTER;
 
-    MOS_OS_CHK_NULL_RETURN(pOsInterface);
+    MOS_OS_ASSERT(pOsInterface);
 
     if (pOsInterface->modularizedGpuCtxEnabled && !Mos_Solo_IsEnabled())
     {
-        if (pOsInterface == nullptr || pOsInterface->osContextPtr == nullptr)
+        if (pOsInterface->osContextPtr == nullptr)
         {
             MOS_OS_ASSERTMESSAGE("invalid input parameters!");
             return 0;
@@ -4368,7 +4368,6 @@ uint32_t Mos_Specific_GetGpuStatusTag(
 
     PMOS_CONTEXT pOsContext;
 
-    MOS_OS_ASSERT(pOsInterface);
     MOS_OS_ASSERT(pOsInterface->pOsContext);
     //------------------------------------
 
@@ -4396,7 +4395,7 @@ void Mos_Specific_IncrementGpuStatusTag(
 
     if (pOsInterface->modularizedGpuCtxEnabled && !Mos_Solo_IsEnabled())
     {
-        if (pOsInterface == nullptr || pOsInterface->osContextPtr == nullptr)
+        if (pOsInterface->osContextPtr == nullptr)
         {
             MOS_OS_ASSERTMESSAGE("invalid input parameters!");
             return;
