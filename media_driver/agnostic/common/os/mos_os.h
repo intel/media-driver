@@ -1019,10 +1019,11 @@ typedef struct _MOS_INTERFACE
         PMOS_INTERFACE              pOsInterface);
 
     // Virtual Engine related
-    int32_t                         bSupportVirtualEngine;                        //!< Keep this flag as False if KMD has not enabled VE by default.
+    int32_t                         bSupportVirtualEngine;                        //!< Enable virtual engine flag
     int32_t                         bUseHwSemaForResSyncInVE;                     //!< Flag to indicate if UMD need to send HW sema cmd under this OS when there is a resource sync need with Virtual Engine interface 
     PMOS_VIRTUALENGINE_INTERFACE    pVEInterf;
     bool                            ctxBasedScheduling;                           //!< Flag to indicate if context based scheduling enabled for virtual engine, that is VE2.0.
+    bool                            veDefaultEnable = true;                       //!< Flag to indicate if virtual engine is enabled by default
 
     MOS_CMD_BUF_ATTRI_VE            bufAttriVe[MOS_GPU_CONTEXT_MAX];
 
@@ -1142,7 +1143,7 @@ struct _MOS_GPUCTX_CREATOPTIONS_ENHANCED : public _MOS_GPUCTX_CREATOPTIONS
 
 __inline void Mos_SetVirtualEngineSupported(PMOS_INTERFACE pOsInterface, bool bEnabled)
 {
-    if (pOsInterface)
+    if (pOsInterface && pOsInterface->veDefaultEnable)
     {
         pOsInterface->bSupportVirtualEngine = bEnabled;
     }

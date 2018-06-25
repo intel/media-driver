@@ -708,6 +708,7 @@ MOS_STATUS Mos_InitInterface(
     pOsInterface->Component             = component;
     pOsInterface->modulizedMosEnabled   = true;
     pOsInterface->osContextPtr          = nullptr;
+    pOsInterface->veDefaultEnable       = true;
 
     pOsInterface->streamIndex = 0;
 
@@ -919,7 +920,7 @@ MOS_STATUS Mos_CheckVirtualEngineSupported(
         osInterface->bSupportVirtualEngine = userFeatureData.u32Data ? true : false;
 
         // force bSupportVirtualEngine to false when virtual engine not enabled by default
-        if (!veDefaultEnable && eStatus == MOS_STATUS_USER_FEATURE_KEY_READ_FAILED)
+        if ((!veDefaultEnable || !osInterface->veDefaultEnable) && eStatus == MOS_STATUS_USER_FEATURE_KEY_READ_FAILED)
         {
             osInterface->bSupportVirtualEngine = false;
         }
@@ -945,6 +946,12 @@ MOS_STATUS Mos_CheckVirtualEngineSupported(
             __MEDIA_USER_FEATURE_VALUE_ENABLE_ENCODE_VIRTUAL_ENGINE_ID,
             &userFeatureData);
         osInterface->bSupportVirtualEngine = userFeatureData.u32Data ? true : false;
+
+        // force bSupportVirtualEngine to false when virtual engine not enabled by default
+        if (!osInterface->veDefaultEnable && eStatus == MOS_STATUS_USER_FEATURE_KEY_READ_FAILED)
+        {
+            osInterface->bSupportVirtualEngine = false;
+        }
 
         auto skuTable = osInterface->pfnGetSkuTable(osInterface);
         MOS_OS_CHK_NULL_RETURN(skuTable);

@@ -5711,6 +5711,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     MOS_OS_CHK_NULL(pOsDriverContext);
 
     pOsInterface->modularizedGpuCtxEnabled    = true;
+    pOsInterface->veDefaultEnable             = false;
 
     // Create Linux OS Context
     pOsContext = (PMOS_OS_CONTEXT)MOS_AllocAndZeroMemory(sizeof(MOS_OS_CONTEXT));
