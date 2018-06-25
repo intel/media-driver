@@ -29,6 +29,7 @@
 #include "mos_utilities_specific.h"
 #ifdef __cplusplus
 #include "mos_util_user_interface.h"
+#include <sstream>
 #endif
 #include <fcntl.h>     //open
 
@@ -36,6 +37,148 @@
 #include <string.h>    // memset
 #include <stdlib.h>    // atoi atol
 #include <math.h>
+
+#ifdef __cplusplus
+
+PerfUtility::PerfUtility()
+{
+}
+
+PerfUtility::~PerfUtility()
+{
+    for (const auto data : records)
+    {
+        if (data.second)
+        {
+            delete data.second;
+        }
+    }
+    records.clear();
+}
+
+void PerfUtility::savePerfData()
+{
+    printPerfSummary();
+
+    printPerfDetails();
+}
+
+void PerfUtility::printPerfSummary()
+{
+    std::ofstream fout;
+    fout.open("perf_summary.txt");
+
+    printHeader(fout);
+    printBody(fout);
+    printFooter(fout);
+
+    fout.close();
+}
+
+void PerfUtility::printPerfDetails()
+{
+    std::ofstream fout;
+    fout.open("perf_details.txt");
+
+    for (auto data : records)
+    {
+        fout << getDashString((uint32_t)data.first.length());
+        fout << data.first << std::endl;
+        fout << getDashString((uint32_t)data.first.length());
+        for (auto t : *data.second)
+        {
+            fout << t.time << std::endl;
+        }
+        fout << std::endl;
+    }
+
+    fout.close();
+}
+
+void PerfUtility::printHeader(std::ofstream& fout)
+{
+    fout << "Summary: " << std::endl;
+    fout << getDashString(80);
+    std::stringstream ss;
+    ss.width(16);
+    ss << "CPU Latency Tag";
+    ss.width(16);
+    ss << "Hit Count";
+    ss.width(16);
+    ss << "Average (ms)";
+    ss.width(16);
+    ss << "Minimum (ms)";
+    ss.width(16);
+    ss << "Maximum (ms)" << std::endl;
+    fout << ss.str();
+    fout << getDashString(80);
+}
+
+void PerfUtility::printBody(std::ofstream& fout)
+{
+    for (const auto& data : records)
+    {
+        fout << formatPerfData(data.first, *data.second);
+    }
+}
+
+std::string PerfUtility::formatPerfData(std::string tag, std::vector<Tick>& record)
+{
+    std::stringstream ss;
+    PerfInfo info = {};
+    getPerfInfo(record, &info);
+
+    ss.width(16);
+    ss << tag;
+
+    ss.precision(2);
+    ss.setf(std::ios::fixed, std::ios::floatfield);
+
+    ss.width(16);
+    ss << info.count;
+    ss.width(16);
+    ss << info.avg;
+    ss.width(16);
+    ss << info.min;
+    ss.width(16);
+    ss << info.max << std::endl;
+
+    return ss.str();
+}
+
+void PerfUtility::getPerfInfo(std::vector<Tick>& record, PerfInfo* info)
+{
+    if (record.size() <= 0)
+        return;
+
+    info->count = (uint32_t)record.size();
+    double sum = 0, max = 0, min = 10000000.0;
+    for (auto t : record)
+    {
+        sum += t.time;
+        max = (max < t.time) ? t.time : max;
+        min = (min > t.time) ? t.time : min;
+    }
+    info->avg = sum / info->count;
+    info->max = max;
+    info->min = min;
+}
+
+void PerfUtility::printFooter(std::ofstream& fout)
+{
+    fout << getDashString(80);
+}
+
+std::string PerfUtility::getDashString(uint32_t num)
+{
+    std::stringstream ss;
+    ss.width(num);
+    ss.fill('-');
+    ss << std::left << "" << std::endl;
+    return ss.str();
+}
+
+#endif // __cplusplus
 
 int32_t MosMemAllocCounter;      //!< Counter to check memory leaks
 int32_t MosMemAllocFakeCounter;
