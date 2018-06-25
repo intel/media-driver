@@ -49,6 +49,18 @@
 #include <cutils/properties.h>
 #endif // ANDROID
 
+#ifdef __cplusplus
+
+void PerfUtility::startTick(std::string tag)
+{
+}
+
+void PerfUtility::stopTick(std::string tag)
+{
+}
+
+#endif // __cplusplus
+
 //!
 //! \brief Linux specific user feature define, used in MOS_UserFeature_ParsePath
 //!        They can be unified with the win definitions, since they are identical.
