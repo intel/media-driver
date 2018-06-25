@@ -657,6 +657,8 @@ public:
         PMHW_BATCH_BUFFER batchBuffer,
         PMHW_VDBOX_HEVC_SLICE_STATE params);
 
+    void MotionEstimationDisableCheck();
+
 #if USE_CODECHAL_DEBUG_TOOL
     virtual MOS_STATUS DumpHucBrcInit();
     virtual MOS_STATUS DumpHucBrcUpdate(bool isInput);

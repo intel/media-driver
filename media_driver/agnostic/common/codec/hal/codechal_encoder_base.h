@@ -1951,7 +1951,7 @@ public:
     //!
     //! \return void
     //!
-    void MotionEstimationDisableCheck();
+    virtual void MotionEstimationDisableCheck();
 
     //!
     //! \brief  Execute the encode
