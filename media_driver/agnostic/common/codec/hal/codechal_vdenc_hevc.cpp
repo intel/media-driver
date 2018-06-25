@@ -3072,6 +3072,27 @@ MOS_STATUS CodechalVdencHevcState::Initialize(CodechalSetting * settings)
         m_vdencPakObjCmdStreamOutEnabled = userFeatureData.i32Data ? true : false;
     }
 
+    m_minScaledDimension = CODECHAL_ENCODE_HEVC_MIN_SCALED_SURFACE_SIZE;
+    m_minScaledDimensionInMb = (CODECHAL_ENCODE_HEVC_MIN_SCALED_SURFACE_SIZE + 15) >> 4;
+
+    if (m_frameWidth < 128 || m_frameHeight < 128)
+    {
+        m_16xMeSupported = false;
+        m_32xMeSupported = false;
+    }
+
+    else if (m_frameWidth < 512 || m_frameHeight < 512)
+    {
+        m_16xMeSupported = true;
+        m_32xMeSupported = false;
+    }
+
+    else
+    {
+        m_16xMeSupported = true;
+        m_32xMeSupported = true;
+    }
+
     return eStatus;
 }
 
@@ -3103,6 +3124,53 @@ CodechalVdencHevcState::CodechalVdencHevcState(
     MOS_ZeroMemory(&m_vdenc2ndLevelBatchBuffer, sizeof(m_vdenc2ndLevelBatchBuffer));
     MOS_ZeroMemory(m_resSliceReport, sizeof(m_resSliceReport));
 
+}
+
+void CodechalVdencHevcState::MotionEstimationDisableCheck()
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    if (m_downscaledWidth4x < m_minScaledDimension || m_downscaledWidthInMb4x < m_minScaledDimensionInMb ||
+        m_downscaledHeight4x < m_minScaledDimension || m_downscaledHeightInMb4x < m_minScaledDimensionInMb)
+    {
+        if (m_downscaledWidth4x < m_minScaledDimension || m_downscaledWidthInMb4x < m_minScaledDimensionInMb)
+        {
+            m_downscaledWidth4x = m_minScaledDimension;
+            m_downscaledWidthInMb4x = CODECHAL_GET_WIDTH_IN_MACROBLOCKS(m_downscaledWidth4x);
+        }
+        if (m_downscaledHeight4x < m_minScaledDimension || m_downscaledHeightInMb4x < m_minScaledDimensionInMb)
+        {
+            m_downscaledHeight4x = m_minScaledDimension;
+            m_downscaledHeightInMb4x = CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(m_downscaledHeight4x);
+        }
+    }
+    else if (m_downscaledWidth16x < m_minScaledDimension || m_downscaledWidthInMb16x < m_minScaledDimensionInMb ||
+        m_downscaledHeight16x < m_minScaledDimension || m_downscaledHeightInMb16x < m_minScaledDimensionInMb)
+    {
+        if (m_downscaledWidth16x < m_minScaledDimension || m_downscaledWidthInMb16x < m_minScaledDimensionInMb)
+        {
+            m_downscaledWidth16x = m_minScaledDimension;
+            m_downscaledWidthInMb16x = CODECHAL_GET_WIDTH_IN_MACROBLOCKS(m_downscaledWidth16x);
+        }
+        if (m_downscaledHeight16x < m_minScaledDimension || m_downscaledHeightInMb16x < m_minScaledDimensionInMb)
+        {
+            m_downscaledHeight16x = m_minScaledDimension;
+            m_downscaledHeightInMb16x = CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(m_downscaledHeight16x);
+        }
+    }
+    else
+    {
+        if (m_downscaledWidth32x < m_minScaledDimension || m_downscaledWidthInMb32x < m_minScaledDimensionInMb)
+        {
+            m_downscaledWidth32x = m_minScaledDimension;
+            m_downscaledWidthInMb32x = CODECHAL_GET_WIDTH_IN_MACROBLOCKS(m_downscaledWidth32x);
+        }
+        if (m_downscaledHeight32x < m_minScaledDimension || m_downscaledHeightInMb32x < m_minScaledDimensionInMb)
+        {
+            m_downscaledHeight32x = m_minScaledDimension;
+            m_downscaledHeightInMb32x = CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(m_downscaledHeight32x);
+        }
+    }
 }
 
 #if USE_CODECHAL_DEBUG_TOOL
