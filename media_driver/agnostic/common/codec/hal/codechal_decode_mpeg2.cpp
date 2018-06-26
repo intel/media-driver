@@ -427,6 +427,8 @@ MOS_STATUS CodechalDecodeMpeg2::AllocateResources ()
 
         CodechalResLock DummyBitstreamLock(m_osInterface, &m_resMpeg2DummyBistream);
         auto data = DummyBitstreamLock.Lock(CodechalResLock::writeOnly);
+        
+        CODECHAL_DECODE_CHK_NULL_RETURN(data);
 
         MOS_ZeroMemory(data, size);
         CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(MOS_SecureMemcpy(
@@ -435,6 +437,7 @@ MOS_STATUS CodechalDecodeMpeg2::AllocateResources ()
             (void *)CODECHAL_DECODE_MPEG2_WaDummyBitstream,
             sizeof(CODECHAL_DECODE_MPEG2_WaDummyBitstream)),
             "Failed to copy memory.");
+
     }
 
     if (m_mode == CODECHAL_DECODE_MODE_MPEG2IDCT)
