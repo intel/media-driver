@@ -3683,6 +3683,8 @@ MOS_STATUS VpHal_RndrRenderVebox(
     VphalFeatureReport*      pReport;
     PVPHAL_SURFACE           pOutSurface = nullptr;
     RECT                     rcTemp;
+    PVPHAL_VEBOX_STATE       pVeboxState;
+    PVPHAL_VEBOX_RENDER_DATA pRenderData;
 
     //------------------------------------------------------
     VPHAL_RENDER_ASSERT(pRenderer);
@@ -3695,10 +3697,13 @@ MOS_STATUS VpHal_RndrRenderVebox(
     pReport                 = pRenderer->GetReport();
     pRenderState            = pRenderer->pRender[VPHAL_RENDER_ID_VEBOX + pRenderer->uiCurrentChannel];
     pOutSurface             = pRenderPassData->GetTempOutputSurface();
+    pVeboxState             = (PVPHAL_VEBOX_STATE)pRenderState;
+    pRenderData             = pVeboxState->GetLastExecRenderData();
 
     pRenderPassData->bOutputGenerated  = false;
 
     VPHAL_RENDER_CHK_NULL(pRenderState);
+    VPHAL_RENDER_CHK_NULL(pVeboxState);
     VPHAL_RENDER_ASSERT(pRenderState->GetRenderHalInterface());
 
     pRenderPassData->bCompNeeded  = true;
@@ -3724,6 +3729,14 @@ MOS_STATUS VpHal_RndrRenderVebox(
         }
 
         pRenderPassData->pOutSurface    = pOutSurface;
+
+        //Disable cache for output surface in vebox only condition
+        if (IS_VPHAL_OUTPUT_PIPE_VEBOX(pRenderData))
+        {
+            MOS_HW_RESOURCE_DEF                 Usage;
+            MEMORY_OBJECT_CONTROL_STATE         MemObjCtrl;
+            VPHAL_SET_SURF_MEMOBJCTL(pVeboxState->DnDiSurfMemObjCtl.CurrentOutputSurfMemObjCtl, MOS_MP_RESOURCE_USAGE_DEFAULT);
+        }
 
         VPHAL_RENDER_CHK_STATUS(pRenderState->Render(
                                                 pcRenderParams,
