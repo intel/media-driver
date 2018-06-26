@@ -5914,11 +5914,6 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::EncodeKernelFunctions()
     }
 #ifdef HEVC_FEI_ENABLE_CMRT
 
-    if (m_cmEvent != nullptr)
-    {
-        m_cmKernelMap["2xScaling"]->WaitAndDestroyEvent(m_cmEvent);
-    }
-
     for (CmKernelMapType::iterator it = m_cmKernelMap.begin(); it != m_cmKernelMap.end(); it++)
     {
         it->second->DestroySurfResources();
