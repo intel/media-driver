@@ -804,6 +804,8 @@ MOS_STATUS CodechalDecodeVp8::ParseFrameHead(uint8_t* bitstreamBuffer, uint32_t 
     CodechalResLock ResourceLock(m_osInterface, &m_resCoefProbBuffer);
     auto data = (uint8_t*)ResourceLock.Lock(CodechalResLock::writeOnly);
 
+    CODECHAL_DECODE_CHK_NULL_RETURN(data);
+
     MOS_SecureMemcpy(
         data,
         sizeof(m_vp8FrameHead.FrameContext.CoefProbs),
