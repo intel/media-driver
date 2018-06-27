@@ -166,7 +166,8 @@ typedef struct _MHW_VEBOX_MODE
     uint32_t    SFCParallelWriteEnable              : 1;  // Gen9+
     uint32_t    ScalarMode                          : 1;  // Gen10+
     uint32_t    ForwardGammaCorrectionEnable        : 1;  // Gen9+
-    uint32_t                                        : 10; // Reserved
+    uint32_t    Hdr1DLutEnable                      : 1;
+    uint32_t                                        : 9; // Reserved
 } MHW_VEBOX_MODE, *PMHW_VEBOX_MODE;
 
 typedef enum _MHW_VEBOX_ADDRESS_SHIFT
@@ -208,6 +209,7 @@ typedef struct _MHW_VEBOX_STATE_CMD_PARAMS
     PMOS_RESOURCE                       pLaceLookUpTables;
     PMOS_RESOURCE                       pVeboxParamSurf;
     PMOS_RESOURCE                       pVebox3DLookUpTables;
+    PMOS_RESOURCE                       pVebox1DLookUpTables;
     MOS_RESOURCE                        DummyIecpResource;
     MHW_MEMORY_OBJECT_CONTROL_PARAMS    LaceLookUpTablesSurfCtrl;
     MHW_MEMORY_OBJECT_CONTROL_PARAMS    Vebox3DLookUpTablesSurfCtrl;
@@ -550,6 +552,18 @@ typedef struct _MHW_3DLUT_PARAMS
     uint8_t *pLUT;                       //!< Pointer to the LUT value
 } MHW_3DLUT_PARAMS, *PMHW_3DLUT_PARAMS;
 
+//! 
+//! \brief  VEBOX HDR PARAMS
+//! \details For CCM settings, move 1DLut to here later
+typedef struct _MHW_1DLUT_PARAMS
+{
+    uint32_t bActive;
+    uint32_t *p1DLUT;
+    uint32_t *LUTSize;
+    int32_t *pCCM;
+    uint32_t *CCMSize;
+} MHW_1DLUT_PARAMS, *PMHW_1DLUT_PARAMS;
+
 //!
 //! \brief  VEBOX IECP parameters
 //!
@@ -574,6 +588,7 @@ typedef struct _MHW_VEBOX_IECP_PARAMS
     bool                            bAce;
 
     MHW_3DLUT_PARAMS                s3DLutParams;
+    MHW_1DLUT_PARAMS                s1DLutParams;
 } MHW_VEBOX_IECP_PARAMS, *PMHW_VEBOX_IECP_PARAMS;
 
 //!
@@ -749,6 +764,7 @@ typedef struct _MHW_VEBOX_HEAP
     uint32_t                uiCapturePipeStateOffset;                           // Capture Pipe state offset
     uint32_t                uiGammaCorrectionStateOffset;                       // Gamma Correction state offset
     uint32_t                ui3DLUTStateOffset;                                 // 3D LUT state offset
+    uint32_t                ui1DLUTStateOffset;                                 // Hdr State offset
     uint32_t                uiInstanceSize;                                     // Size of single instance of VEBOX states
     uint32_t                uiStateHeapSize;                                    // Total size of VEBOX States heap
     PMHW_VEBOX_HEAP_STATE   pStates;                                            // Array of VEBOX Heap States
@@ -776,6 +792,7 @@ typedef struct
     uint32_t            uiCapturePipeStateSize;                                 // Capture Pipe State Size (Gen8+)
     uint32_t            uiGammaCorrectionStateSize;                             // Gamma Correction State Size (Gen9+)
     uint32_t            ui3DLUTStateSize;                                       // 3D LUT State Size (Gen10+)
+    uint32_t            ui1DLUTStateSize;                                       // VEBOX Hdr 1DLUT State Size
 } MHW_VEBOX_SETTINGS, *PMHW_VEBOX_SETTINGS;
 typedef const MHW_VEBOX_SETTINGS CMHW_VEBOX_SETTINGS, *PCMHW_VEBOX_SETTINGS;
 

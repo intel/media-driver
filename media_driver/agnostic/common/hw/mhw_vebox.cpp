@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -255,6 +255,9 @@ MOS_STATUS MhwVeboxInterface::CreateHeap( )
 
     m_veboxHeap->ui3DLUTStateOffset = uiOffset;
     uiOffset += m_veboxSettings.ui3DLUTStateSize;
+
+    m_veboxHeap->ui1DLUTStateOffset = uiOffset;
+    uiOffset += m_veboxSettings.ui1DLUTStateSize;
 
     m_veboxHeap->uiInstanceSize = uiOffset;
 
