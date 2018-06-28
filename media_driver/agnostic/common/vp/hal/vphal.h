@@ -415,18 +415,6 @@ struct VPHAL_RENDER_PARAMS
 };
 
 typedef VPHAL_RENDER_PARAMS *PVPHAL_RENDER_PARAMS;
-
-//!
-//! Structure VPHAL_GET_SURFACE_INFO
-//! \brief VPHAL Get Surface Infomation Parameters
-//!
-struct VPHAL_GET_SURFACE_INFO
-{
-    uint32_t          ArraySlice;
-    uint32_t          MipSlice;
-    MOS_S3D_CHANNEL   S3dChannel;
-};
-
 typedef const VPHAL_RENDER_PARAMS  *PCVPHAL_RENDER_PARAMS;
 
 //!
