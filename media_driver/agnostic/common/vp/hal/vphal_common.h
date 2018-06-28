@@ -1055,7 +1055,18 @@ float VpHal_Lanczos(
     uint32_t    dwNumEntries,
     float        fLanczosT);
 
+//!
+//! Structure VPHAL_GET_SURFACE_INFO
+//! \brief VPHAL Get Surface Infomation Parameters
+//!
+
 typedef struct VPHAL_GET_SURFACE_INFO  *PVPHAL_GET_SURFACE_INFO;
+struct VPHAL_GET_SURFACE_INFO
+{
+  uint32_t          ArraySlice;
+  uint32_t          MipSlice;
+  MOS_S3D_CHANNEL   S3dChannel;
+};
 
 //!
 //! \brief    Get Surface Info from OsResource
