@@ -6028,12 +6028,16 @@ MOS_STATUS CodechalVdencVp9State::AllocateResources()
         // keep current logic unchanged but increase the buffer size for now in case regression before we know how to correctly program these.
         m_mvOffset = MOS_ALIGN_CEIL((maxPicSizeInSb * 4 * sizeof(uint32_t)), CODECHAL_PAGE_SIZE); // 3 uint32_t for HCP_PAK_OBJECT and 1 uint32_t for padding zero in kernel
 
+        // we need additional buffer for (1) 1 CL for size info at the beginning of each tile column (max of 4 vdbox in scalability mode)
+        // (2) CL alignment at end of every tile column for every SB of width
+        // as a result, increase the height by 1 for allocation purposes
+        uint32_t numOfLCU = maxPicSizeInSb + maxPicWidthInSb;
+
         //the following code used to calculate ulMBCodeSize:
         //pakObjCmdStreamOutDataSize = 2*BYTES_PER_DWORD*(numOfLcu*NUM_PAK_DWS_PER_LCU + numOfLcu*maxNumOfCUperLCU*NUM_DWS_PER_CU); // Multiply by 2 for sideband
         //const uint32_t maxNumOfCUperLCU = (64/8)*(64/8);
         // NUM_PAK_DWS_PER_LCU 5
         // NUM_DWS_PER_CU 8
-        uint32_t numOfLCU = maxPicSizeInSb;
         m_mbCodeSize = MOS_ALIGN_CEIL(2 * sizeof(uint32_t) * numOfLCU * (5 + 64 * 8), CODECHAL_PAGE_SIZE);
 
         uint32_t formatMultiFactor = (m_chromaFormat == VP9_ENCODED_CHROMA_FORMAT_YUV444) ? 3 : 2;
