@@ -1756,7 +1756,7 @@ public:
     MOS_RESOURCE                                m_resVdencIntraRowStoreScratchBuffer;  // Handle of intra row store surface
     MOS_RESOURCE                                m_resVdencBrcStatsBuffer;
     MOS_RESOURCE                                m_resVdencSegmentMapStreamOut;
-    MOS_RESOURCE                                m_resVdencPictureState2NdLevelBatchBufferRead[CODECHAL_VP9_ENCODE_RECYCLED_BUFFER_NUM];
+    MOS_RESOURCE                                m_resVdencPictureState2NdLevelBatchBufferRead[3][CODECHAL_VP9_ENCODE_RECYCLED_BUFFER_NUM];
     MOS_RESOURCE                                m_resVdencPictureState2NdLevelBatchBufferWrite[CODECHAL_VP9_ENCODE_RECYCLED_BUFFER_NUM];
     uint16_t                                    m_vdencPictureState2ndLevelBBIndex = 0;
     MOS_RESOURCE                                m_resVdencDysPictureState2NdLevelBatchBuffer;

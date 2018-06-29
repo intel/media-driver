@@ -1068,7 +1068,7 @@ MOS_STATUS CodechalVdencVp9State::HuCVp9Prob()
     virtualAddrParams.regionParams[0].presRegion = &m_resProbBuffer[m_vp9PicParams->PicFlags.fields.frame_context_idx];
     virtualAddrParams.regionParams[0].isWritable = true;        // Region 0 is both read and write for HuC. Has input probabilities before running HuC and updated probabilities after running HuC, which will then be input to next pass
     virtualAddrParams.regionParams[1].presRegion = &m_resProbabilityCounterBuffer;
-    virtualAddrParams.regionParams[7].presRegion = m_vdencBrcEnabled ? &m_resVdencPictureState2NdLevelBatchBufferWrite[m_vdencPictureState2ndLevelBBIndex] : &m_resVdencPictureState2NdLevelBatchBufferRead[m_currPass];
+    virtualAddrParams.regionParams[7].presRegion = m_vdencBrcEnabled ? &m_resVdencPictureState2NdLevelBatchBufferWrite[m_vdencPictureState2ndLevelBBIndex] : &m_resVdencPictureState2NdLevelBatchBufferRead[m_currPass][m_vdencPictureState2ndLevelBBIndex];
     virtualAddrParams.regionParams[8].presRegion = &m_resHucPakInsertUncompressedHeaderReadBuffer;
     virtualAddrParams.regionParams[9].presRegion = &m_resHucDefaultProbBuffer;
 
@@ -1540,7 +1540,7 @@ MOS_STATUS CodechalVdencVp9State::HuCBrcUpdate()
         virtualAddrParams.regionParams[0].isWritable = true;
         virtualAddrParams.regionParams[1].presRegion = &m_resVdencBrcStatsBuffer;
         virtualAddrParams.regionParams[2].presRegion = &m_resFrameStatStreamOutBuffer;
-        virtualAddrParams.regionParams[3].presRegion = &m_resVdencPictureState2NdLevelBatchBufferRead[m_currPass];
+        virtualAddrParams.regionParams[3].presRegion = &m_resVdencPictureState2NdLevelBatchBufferRead[m_currPass][m_vdencPictureState2ndLevelBBIndex];
         virtualAddrParams.regionParams[4].presRegion = &m_brcBuffers.resBrcHucDataBuffer;
         virtualAddrParams.regionParams[4].isWritable = true;
         virtualAddrParams.regionParams[5].presRegion = &m_brcBuffers.resBrcConstantDataBuffer;
@@ -1643,7 +1643,7 @@ MOS_STATUS CodechalVdencVp9State::HuCBrcUpdate()
 
     // Input SLBB (second level batch buffer) - IN
     //For Dys + BRC Pass 0, use the resVdencDysPictureState2ndLevelBatchBuffer as input buffer
-    virtualAddrParams.regionParams[3].presRegion = (m_dysRefFrameFlags != DYS_REF_NONE && m_dysVdencMultiPassEnabled) ? &m_resVdencDysPictureState2NdLevelBatchBuffer : &m_resVdencPictureState2NdLevelBatchBufferRead[m_currPass];
+    virtualAddrParams.regionParams[3].presRegion = (m_dysRefFrameFlags != DYS_REF_NONE && m_dysVdencMultiPassEnabled) ? &m_resVdencDysPictureState2NdLevelBatchBuffer : &m_resVdencPictureState2NdLevelBatchBufferRead[m_currPass][m_vdencPictureState2ndLevelBBIndex];
 
     // BRC Data - OUT
     virtualAddrParams.regionParams[4].presRegion = &m_brcBuffers.resBrcHucDataBuffer;
@@ -2013,10 +2013,10 @@ MOS_STATUS CodechalVdencVp9State::SoftwareBRC(bool update)
 
         // Set SLBB IN
         data = (uint8_t *)m_osInterface->pfnLockResource(
-            m_osInterface, &m_resVdencPictureState2NdLevelBatchBufferRead[m_vdencPictureState2ndLevelBBIndex], &lpReadOnly);
+            m_osInterface, &m_resVdencPictureState2NdLevelBatchBufferRead[m_currPass][m_vdencPictureState2ndLevelBBIndex], &lpReadOnly);
         CODECHAL_ENCODE_CHK_NULL_RETURN(data);
         CODECHAL_ENCODE_CHK_STATUS_RETURN(pfnSetBuffer(data, eVp9INPUT_SLBB_BUFF, pvBrcIfHandle));
-        m_osInterface->pfnUnlockResource(m_osInterface, &m_resVdencPictureState2NdLevelBatchBufferRead[m_vdencPictureState2ndLevelBBIndex]);
+        m_osInterface->pfnUnlockResource(m_osInterface, &m_resVdencPictureState2NdLevelBatchBufferRead[m_currPass][m_vdencPictureState2ndLevelBBIndex]);
 
         // Set BRC data OUT
         data = (uint8_t*)m_osInterface->pfnLockResource(
@@ -3840,7 +3840,7 @@ MOS_STATUS CodechalVdencVp9State::ExecutePictureLevel()
     }
     else
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(ConstructPicStateBatchBuf(&m_resVdencPictureState2NdLevelBatchBufferRead[m_currPass]));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(ConstructPicStateBatchBuf(&m_resVdencPictureState2NdLevelBatchBufferRead[m_currPass][m_vdencPictureState2ndLevelBBIndex]));
     }
 
     if (m_vdencBrcEnabled)
@@ -4102,7 +4102,7 @@ MOS_STATUS CodechalVdencVp9State::ExecutePictureLevel()
         }
         else
         {
-            secondLevelBatchBuffer.OsResource = m_resVdencPictureState2NdLevelBatchBufferRead[m_currPass];
+            secondLevelBatchBuffer.OsResource = m_resVdencPictureState2NdLevelBatchBufferRead[m_currPass][m_vdencPictureState2ndLevelBBIndex];
         }
     }
 
@@ -6409,10 +6409,13 @@ MOS_STATUS CodechalVdencVp9State::AllocateResources()
 
     for (auto i = 0; i < CODECHAL_VP9_ENCODE_RECYCLED_BUFFER_NUM; i++)
     {
-        eStatus = (MOS_STATUS)m_osInterface->pfnAllocateResource(
-            m_osInterface,
-            &allocParamsForBufferLinear,
-            &m_resVdencPictureState2NdLevelBatchBufferRead[i]);
+        for (auto j = 0; j < 3; j++)
+        {
+            eStatus = (MOS_STATUS)m_osInterface->pfnAllocateResource(
+                m_osInterface,
+                &allocParamsForBufferLinear,
+                &m_resVdencPictureState2NdLevelBatchBufferRead[j][i]);
+        }
     }
 
     if (eStatus != MOS_STATUS_SUCCESS)
@@ -6757,10 +6760,12 @@ void CodechalVdencVp9State::FreeResources()
 
     for (auto i = 0; i < CODECHAL_VP9_ENCODE_RECYCLED_BUFFER_NUM; i++)
     {
-        m_osInterface->pfnFreeResource(
-            m_osInterface,
-            &m_resVdencPictureState2NdLevelBatchBufferRead[i]);
-
+        for (auto j = 0; j < 3; j++)
+        {
+            m_osInterface->pfnFreeResource(
+                m_osInterface,
+                &m_resVdencPictureState2NdLevelBatchBufferRead[j][i]);
+        }
         m_osInterface->pfnFreeResource(
             m_osInterface,
             &m_resVdencPictureState2NdLevelBatchBufferWrite[i]);
@@ -7021,7 +7026,11 @@ CodechalVdencVp9State::CodechalVdencVp9State(
 
     for (auto i = 0; i < CODECHAL_VP9_ENCODE_RECYCLED_BUFFER_NUM; i++)
     {
-        MOS_ZeroMemory(&m_resVdencPictureState2NdLevelBatchBufferRead[i], sizeof(m_resVdencPictureState2NdLevelBatchBufferRead[i]));
+        for (auto j = 0; j < 3; j++)
+        {
+            MOS_ZeroMemory(&m_resVdencPictureState2NdLevelBatchBufferRead[j][i], sizeof(m_resVdencPictureState2NdLevelBatchBufferRead[j][i]));
+        }
+
         MOS_ZeroMemory(&m_resVdencPictureState2NdLevelBatchBufferWrite[i], sizeof(m_resVdencPictureState2NdLevelBatchBufferWrite[i]));
     }
 
