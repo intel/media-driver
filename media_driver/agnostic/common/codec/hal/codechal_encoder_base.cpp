@@ -1234,7 +1234,7 @@ MOS_STATUS CodechalEncoderState::AllocateResources()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    uint32_t numMbs = m_picWidthInMb * m_picHeightInMb;
+    uint32_t numMbs = m_picWidthInMb * ((m_picHeightInMb+1)>>1)<<1;
 
     // initiate allocation paramters and lock flags
     MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferLinear;
@@ -1623,7 +1623,7 @@ MOS_STATUS CodechalEncoderState::AllocateScalingResources()
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     //Allocate the Batch Buffer for scaling Kernel.
-    numMBs = m_picWidthInMb * m_picHeightInMb;
+    numMBs = m_picWidthInMb * ((m_picHeightInMb + 1) >> 1) << 1;
     size = m_hwInterface->GetMediaObjectBufferSize(
         numMBs,
         64);
