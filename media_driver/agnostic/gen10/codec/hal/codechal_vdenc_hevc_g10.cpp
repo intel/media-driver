@@ -2426,17 +2426,6 @@ MOS_STATUS CodechalVdencHevcStateG10::Initialize(CodechalSetting * settings)
     // common initilization
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalVdencHevcState::Initialize(settings));
 
-    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-
-    m_hevcVdencAcqpEnabled = true;
-
-    /*    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_ACQP_ENABLE_ID,
-        &userFeatureData);
-    m_hevcVdencAcqpEnabled = (userFeatureData.i32Data) ? true : false;*/
-
     // Overriding the defaults here with 32 aligned dimensions
     // HME Scaling WxH
     m_downscaledWidthInMb4x =
