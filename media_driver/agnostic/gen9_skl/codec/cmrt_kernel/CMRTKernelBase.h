@@ -78,6 +78,7 @@ public:
     CM_RETURN_CODE LoadProgramISA(const uint32_t *isaCode, uint32_t isaSize, CmProgram * &program);
     CM_RETURN_CODE AddKernel(CmEvent *&cmEvent, bool destroyEvent, bool isEnqueue);
     CM_RETURN_CODE WaitAndDestroyEvent(CmEvent *&cmEvent);
+    int32_t CreateThreadSpace(uint32_t threadSpaceWidth, uint32_t threadSpaceHeight);
     virtual CM_RETURN_CODE Init(void *osContext = nullptr, CmDevice *cmDev = nullptr, CmQueue *cmQueue = nullptr, CmTask *cmTask = nullptr, CmProgram *cmProgram = nullptr);
     virtual CM_RETURN_CODE SetupCurbe(void *curbe) = 0;
     virtual CM_RETURN_CODE AllocateSurfaces(void *params) = 0;

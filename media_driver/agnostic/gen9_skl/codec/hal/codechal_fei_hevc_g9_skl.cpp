@@ -4547,6 +4547,9 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode2xScalingKernel()
     )
 
     m_cmKernelMap["2xScaling"]->AllocateSurfaces(&scalingParams);
+
+    //No need to wait for task finished
+    m_cmEvent = CM_NO_EVENT;
     m_cmKernelMap["2xScaling"]->CreateAndDispatchKernel(m_cmEvent, false, (!m_singleTaskPhaseSupported));
 
     return eStatus;
@@ -4629,6 +4632,9 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode32x32PuModeDecisionKernel()
     )
 
     m_cmKernelMap["I_32X32"]->AllocateSurfaces(&I32x32Params);
+
+    //No need to wait for task finished
+    m_cmEvent = CM_NO_EVENT;
     m_cmKernelMap["I_32X32"]->CreateAndDispatchKernel(m_cmEvent, false, (!m_singleTaskPhaseSupported));
 
     return eStatus;
@@ -4694,6 +4700,9 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode16x16SadPuComputationKernel()
     )
 
     m_cmKernelMap["I_16X16_SAD"]->AllocateSurfaces(&I16x16SadParams);
+
+    //No need to wait for task finished
+    m_cmEvent = CM_NO_EVENT;
     m_cmKernelMap["I_16X16_SAD"]->CreateAndDispatchKernel(m_cmEvent, false, (!m_singleTaskPhaseSupported));
 
     return eStatus;
@@ -4828,6 +4837,9 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode16x16PuModeDecisionKernel()
     )
 
     m_cmKernelMap["I_16X16_MODE"]->AllocateSurfaces(&I16x16ModeParams);
+
+    //No need to wait for task finished
+    m_cmEvent = CM_NO_EVENT;
     m_cmKernelMap["I_16X16_MODE"]->CreateAndDispatchKernel(m_cmEvent, false, (!m_singleTaskPhaseSupported));
 
     return eStatus;
@@ -4920,6 +4932,9 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PUKernel()
     )
 
     m_cmKernelMap["I_8X8"]->AllocateSurfaces(&I8x8Params);
+
+    //No need to wait for task finished
+    m_cmEvent = CM_NO_EVENT;
     m_cmKernelMap["I_8X8"]->CreateAndDispatchKernel(m_cmEvent, false, (!m_singleTaskPhaseSupported));
 
     return eStatus;
@@ -5014,6 +5029,9 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PUFMODEKernel()
     )
 
     m_cmKernelMap["I_8X8_MODE"]->AllocateSurfaces(&I8x8ModeParams);
+
+    //No need to wait for task finished
+    m_cmEvent = CM_NO_EVENT;
     m_cmKernelMap["I_8X8_MODE"]->CreateAndDispatchKernel(m_cmEvent, false, ((!m_singleTaskPhaseSupported)|| m_lastTaskInPhase));
 
     return eStatus;
@@ -5086,6 +5104,9 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode32X32BIntraCheckKernel()
     )
 
     m_cmKernelMap["PB_32x32"]->AllocateSurfaces(&PB32x32Params);
+
+    //No need to wait for task finished
+    m_cmEvent = CM_NO_EVENT;
     m_cmKernelMap["PB_32x32"]->CreateAndDispatchKernel(m_cmEvent, false, (!m_singleTaskPhaseSupported));
 
     return eStatus;
@@ -5156,6 +5177,9 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8BPakKernel(
     )
 
     m_cmKernelMap["PB_8x8_PAK"]->AllocateSurfaces(&PB8x8PakParams);
+
+    //No need to wait for task finished
+    m_cmEvent = CM_NO_EVENT;
     m_cmKernelMap["PB_8x8_PAK"]->CreateAndDispatchKernel(m_cmEvent, false, ((!m_singleTaskPhaseSupported)|| m_lastTaskInPhase));
 
     return eStatus;
@@ -5607,6 +5631,9 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PBMbEncKernel()
 
         m_cmKernelMap["I_8x8_MBENC"]->SetupCurbe(curbe);
         m_cmKernelMap["I_8x8_MBENC"]->AllocateSurfaces(&PB8x8MbEncParams);
+
+        //No need to wait for task finished
+        m_cmEvent = CM_NO_EVENT;
         m_cmKernelMap["I_8x8_MBENC"]->CreateAndDispatchKernel(m_cmEvent, false, (!m_singleTaskPhaseSupported));
     }
     else if (m_pictureCodingType == B_TYPE)
@@ -5619,6 +5646,9 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PBMbEncKernel()
 
         m_cmKernelMap["B_8x8_MBENC"]->SetupCurbe(curbe);
         m_cmKernelMap["B_8x8_MBENC"]->AllocateSurfaces(&PB8x8MbEncParams);
+
+        //No need to wait for task finished
+        m_cmEvent = CM_NO_EVENT;
         m_cmKernelMap["B_8x8_MBENC"]->CreateAndDispatchKernel(m_cmEvent, false, (!m_singleTaskPhaseSupported));
     }
     else if (m_pictureCodingType == P_TYPE)
@@ -5630,6 +5660,9 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PBMbEncKernel()
         }
         m_cmKernelMap["P_8x8_MBENC"]->SetupCurbe(curbe);
         m_cmKernelMap["P_8x8_MBENC"]->AllocateSurfaces(&PB8x8MbEncParams);
+
+        //No need to wait for task finished
+        m_cmEvent = CM_NO_EVENT;
         m_cmKernelMap["P_8x8_MBENC"]->CreateAndDispatchKernel(m_cmEvent, false, (!m_singleTaskPhaseSupported));
     }
 

@@ -169,7 +169,7 @@ CM_RETURN_CODE CMRTKernelPB8x8MbEnc::CreateAndDispatchKernel(CmEvent *&cmEvent, 
     {
         CM_CHK_STATUS_RETURN(m_cmKernel->SetThreadCount(((threadSpaceWidth + 1) & 0xFFFE) * threadSpaceHeight * colorCount));
         //create Thread Space
-        result = m_cmDev->CreateThreadSpace(((threadSpaceWidth + 1) & 0xFFFE), threadSpaceHeight, m_cmThreadSpace);
+        result = CreateThreadSpace(((threadSpaceWidth + 1) & 0xFFFE), threadSpaceHeight);
         if (result != CM_SUCCESS)
         {
             printf("CM Create ThreadSpace error : %d", result);
@@ -182,7 +182,7 @@ CM_RETURN_CODE CMRTKernelPB8x8MbEnc::CreateAndDispatchKernel(CmEvent *&cmEvent, 
         tempHeight = ((threadSpaceWidth + 3) >> 2) + (((threadSpaceWidth + 1) >> 1) + 2 * (((threadSpaceHeight + 1) >> 1) - 1) + (2 * splitCount - 1)) / (2 * splitCount);
         CM_CHK_STATUS_RETURN(m_cmKernel->SetThreadCount(((threadSpaceWidth + 3) & 0xFFFC) * 2 * tempHeight * colorCount));
         //create Thread Space
-        result = m_cmDev->CreateThreadSpace(((threadSpaceWidth + 3) & 0xFFFC) >> 1, 4 * tempHeight, m_cmThreadSpace);
+        result = CreateThreadSpace(((threadSpaceWidth + 3) & 0xFFFC) >> 1, 4 * tempHeight);
         SetupMwScoreboard26Zig(mbEncWalkParams.m_walkParams, mbEncWalkParams.m_scoreboardParams, threadSpaceWidth, threadSpaceHeight, splitCount, colorCount);
     }
 
