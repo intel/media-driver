@@ -21,11 +21,13 @@
 project( media )
 
 bs_set_if_undefined(LIB_NAME iHD_drv_video)
-set (LIB_NAME_EXTERNAL_LIBS "pciaccess m pthread dl rt")
+set (LIB_NAME_EXTERNAL_LIBS "pciaccess;m;pthread;dl;rt")
 
 include (FindPkgConfig)
 # find external libs, if not found, cmake will abort
-pkg_check_modules (pciaccess REQUIRED)
+foreach (LIB ${LIB_NAME_EXTERNAL_LIBS})
+    pkg_check_modules (${LIB} REQUIRED)
+endforeach ()
 
 option (MEDIA_RUN_TEST_SUITE "run google test module after install" ON) 
 include(${MEDIA_DRIVER_CMAKE}/media_gen_flags.cmake)
