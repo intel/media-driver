@@ -3748,15 +3748,18 @@ MOS_STATUS Mos_Specific_CreateGpuContext(
         auto cmdBufMgr = pOsContextSpecific->GetCmdBufMgr();
         MOS_OS_CHK_NULL_RETURN(cmdBufMgr);
 
-        auto gpuContext = gpuContextMgr->CreateGpuContext(GpuNode, cmdBufMgr, mosGpuCxt);
-        MOS_OS_CHK_NULL_RETURN(gpuContext);
+        if (pOsContextSpecific->GetGpuContextHandle(mosGpuCxt) == MOS_GPU_CONTEXT_INVALID_HANDLE)
+        {
+            auto gpuContext = gpuContextMgr->CreateGpuContext(GpuNode, cmdBufMgr, mosGpuCxt);
+            MOS_OS_CHK_NULL_RETURN(gpuContext);
 
-        auto gpuContextSpecific  = static_cast<GpuContextSpecific *>(gpuContext);
-        MOS_OS_CHK_NULL_RETURN(gpuContextSpecific);
+            auto gpuContextSpecific  = static_cast<GpuContextSpecific *>(gpuContext);
+            MOS_OS_CHK_NULL_RETURN(gpuContextSpecific);
 
-        MOS_OS_CHK_STATUS_RETURN(gpuContextSpecific->Init(gpuContextMgr->GetOsContext()));
+            MOS_OS_CHK_STATUS_RETURN(gpuContextSpecific->Init(gpuContextMgr->GetOsContext()));
 
-        pOsContextSpecific->SetGpuContextHandle(mosGpuCxt, gpuContextSpecific->GetGpuContextHandle());
+            pOsContextSpecific->SetGpuContextHandle(mosGpuCxt, gpuContextSpecific->GetGpuContextHandle());
+        }
 
         return MOS_STATUS_SUCCESS;
     }
