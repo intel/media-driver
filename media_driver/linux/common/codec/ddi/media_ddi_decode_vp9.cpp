@@ -458,6 +458,12 @@ VAStatus DdiDecodeVP9::CodecHalInit(
     m_codechalSettings->standard       = CODECHAL_VP9;
     m_codechalSettings->chromaFormat = HCP_CHROMA_FORMAT_YUV420;
 
+    if(m_ddiDecodeAttr->profile == VAProfileVP9Profile1 ||
+       m_ddiDecodeAttr->profile == VAProfileVP9Profile3)
+    {
+        m_codechalSettings->chromaFormat = HCP_CHROMA_FORMAT_YUV444;
+    }
+    
     m_ddiDecodeCtx->DecodeParams.m_iqMatrixBuffer = MOS_AllocAndZeroMemory(sizeof(CODEC_VP9_SEGMENT_PARAMS));
     if (m_ddiDecodeCtx->DecodeParams.m_iqMatrixBuffer == nullptr)
     {
