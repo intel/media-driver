@@ -25,7 +25,7 @@ set (LIB_NAME_EXTERNAL_LIBS "pciaccess m pthread dl rt")
 
 include (FindPkgConfig)
 # find external libs, if not found, cmake will abort
-pkg_check_modules (${LIB_NAME_EXTERNAL_LIBS} REQUIRED)
+pkg_check_modules (pciaccess REQUIRED)
 
 option (MEDIA_RUN_TEST_SUITE "run google test module after install" ON) 
 include(${MEDIA_DRIVER_CMAKE}/media_gen_flags.cmake)
