@@ -17,7 +17,6 @@
 # OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
-include (FindPkgConfig)
 
 # Only can include subdirectory which has a media_srcs.cmake
 # the effect is like include(${CMAKE_CURRENT_LIST_DIR}/<subd>/media_srcs.cmake)
@@ -59,16 +58,5 @@ macro (MediaAddCommonTargetDefines target)
         )
     endif()
 endmacro()
-
-# find external libs, if not found, print an error message and abort cmake
-macro (find_external_libs EXTERNAL_LIBS)
-    string (REPLACE " " ";" EXTERNAL_LIBS_LIST "${EXTERNAL_LIBS}")
-    foreach (LIB ${EXTERNAL_LIBS_LIST})
-        pkg_check_modules (${LIB} REQUIRED)
-        if (NOT ${LIB}_FOUND)
-            message (FATAL_ERROR "cannot find enternal lib: ${LIB}")
-        endif ()
-    endforeach ()
-endmacro ()
 
 include( ${MEDIA_DRIVER_CMAKE}/ext/media_utils_ext.cmake OPTIONAL)
