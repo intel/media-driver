@@ -2421,6 +2421,8 @@ MOS_STATUS CodechalVdencHevcStateG10::Initialize(CodechalSetting * settings)
     auto cmdInitializer = MOS_New(CodechalCmdInitializer, this);
     m_hucCmdInitializer = cmdInitializer;
 
+    m_hucCmdInitializerUsed = true;
+
     // common initilization
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalVdencHevcState::Initialize(settings));
 
