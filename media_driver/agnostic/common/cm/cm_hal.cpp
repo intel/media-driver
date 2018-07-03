@@ -4889,6 +4889,7 @@ MOS_STATUS HalCm_SetupSampler8x8SurfaceState(
         surfaceParam.Boundary = RENDERHAL_SS_BOUNDARY_ORIGINAL;
         surfaceParam.bVASurface = ( argParam->kind == CM_ARGUMENT_SURFACE_SAMPLER8X8_VA ) ? 1 : 0;
         surfaceParam.AddressControl = argParam->nCustomValue;
+        surfaceParam.bAVS = true;
 
         //Set memory object control
         state->cmHalInterface->HwSetSurfaceMemoryObjectControl(memObjCtl, &surfaceParam);
