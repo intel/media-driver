@@ -7854,7 +7854,7 @@ MOS_STATUS HalCm_Allocate(
     CM_CHK_MOSSTATUS(state->pfnEnableTurboBoost(state));
 
     state->tsFrequency = HalCm_GetTsFrequency(state->osInterface);
-
+    
     hr = MOS_STATUS_SUCCESS;
 
 finish:
@@ -9042,99 +9042,6 @@ MOS_STATUS HalCm_UnRegisterSampler8x8(
     MOS_ZeroMemory(entry, sizeof(MHW_SAMPLER_STATE_PARAM));
 finish:
     return hr;
-} 
-
-//*-----------------------------------------------------------------------------
-//| Purpose:    Allocates memories for CmBuffer/CmBufferUP/CmBufferSVM.
-//| Returns:    Result of the operation.
-//*-----------------------------------------------------------------------------
-MOS_STATUS HalCm_AllocateBuffer(CM_HAL_STATE *state, // [in]  Pointer to CM State
-                                CM_HAL_BUFFER_PARAM *param) // [in]  Pointer to Buffer Param
-{
-    MOS_STATUS hr = MOS_STATUS_SUCCESS;
-    MOS_INTERFACE *osInterface = state->renderHal->pOsInterface;
-    CM_HAL_BUFFER_ENTRY *entry = nullptr;
-    
-    //-----------------------------------------------
-    CM_ASSERT(param->size > 0);
-    //-----------------------------------------------
-
-    // Find a free slot
-    for (uint32_t i = 0; i < state->cmDeviceParam.maxBufferTableSize; ++i)
-    {
-        if (state->bufferTable[i].size == 0)
-        {
-            entry = &state->bufferTable[i];
-            param->handle = i;
-            break;
-        }
-    }
-    if (!entry)
-    {
-        CM_ERROR_ASSERT("Buffer table is full");
-        return hr;
-    }
-
-    // State buffer doesn't need any MOS RESOURCE, so it will return directly after getting a position in the buffer table
-    if ( param->type == CM_BUFFER_STATE )
-    {
-        entry->size = param->size;
-        entry->isAllocatedbyCmrtUmd = false;
-        return hr;
-    }
-
-    if (param->isAllocatedbyCmrtUmd)
-    {
-        MOS_ALLOC_GFXRES_PARAMS allocParams;
-        MOS_ZeroMemory(&allocParams, sizeof(allocParams));
-        allocParams.Type          = MOS_GFXRES_BUFFER;
-        allocParams.TileType      = MOS_TILE_LINEAR;
-        allocParams.dwBytes       = param->size;
-        allocParams.pSystemMemory = param->data;
-        allocParams.Format        = Format_Buffer;  //used in VpHal_OsAllocateResource_Linux!
-
-        if (nullptr == param->data)
-        {
-            allocParams.pBufName = "CmBuffer";
-        }
-        else if (CM_BUFFER_SVM == param->type)
-        {
-            allocParams.pBufName = "CmBufferSVM";
-            allocParams.Flags.bSVM = true;
-            allocParams.bBypassMODImpl = true;
-        }
-        else
-        {
-            allocParams.pBufName = "CmBufferUP";
-            allocParams.Flags.bSVM = false;
-            allocParams.bBypassMODImpl = true;
-        }
-
-        Mos_ResetResource(&entry->osResource);        
-        CM_HRESULT2MOSSTATUS_AND_CHECK(osInterface->pfnAllocateResource(
-            osInterface,
-            &allocParams,
-            &entry->osResource));
-    }
-    else
-    {
-        entry->osResource = *param->mosResource;
-    }
-
-    entry->size = param->size;
-    entry->isAllocatedbyCmrtUmd = param->isAllocatedbyCmrtUmd;
-    entry->surfaceStateEntry[0].surfaceStateSize = entry->size;
-    entry->surfaceStateEntry[0].surfaceStateOffset = 0;
-    entry->surfaceStateEntry[0].surfaceStateMOCS = 0;
-
-    if (CM_BUFFER_SVM == param->type)
-    {
-        entry->address = param->data;
-        state->svmBufferUsed = true;
-    }
-
-finish:
-    return hr;
 }
 
 //*-----------------------------------------------------------------------------
@@ -10301,7 +10208,6 @@ MOS_STATUS HalCm_Create(
     state->pfnUnRegisterSampler           = HalCm_UnRegisterSampler;
     state->pfnRegisterSampler8x8          = HalCm_RegisterSampler8x8;
     state->pfnUnRegisterSampler8x8        = HalCm_UnRegisterSampler8x8;
-    state->pfnAllocateBuffer              = HalCm_AllocateBuffer;
     state->pfnFreeBuffer                  = HalCm_FreeBuffer;
     state->pfnLockBuffer                  = HalCm_LockBuffer;
     state->pfnUnlockBuffer                = HalCm_UnlockBuffer;
