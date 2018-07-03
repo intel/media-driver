@@ -454,6 +454,147 @@ uint32_t HalCm_GetSurf2DUPBaseWidth( uint32_t width, uint32_t pitch, MOS_FORMAT 
     return baseWidth;
 }
 
+//*-----------------------------------------------------------------------------
+//| Purpose:    Allocate Linear Buffer or BufferUP
+//| Returns:    Result of the operation.
+//*-----------------------------------------------------------------------------
+MOS_STATUS HalCm_AllocateBuffer_Linux(
+    PCM_HAL_STATE           state,                                             // [in]  Pointer to CM State
+    PCM_HAL_BUFFER_PARAM    param)                                             // [in]  Pointer to Buffer Param
+{
+    MOS_STATUS              hr;
+    PMOS_INTERFACE          osInterface;
+    PCM_HAL_BUFFER_ENTRY    entry = nullptr;
+    MOS_ALLOC_GFXRES_PARAMS allocParams;
+    uint32_t                i;
+    uint32_t                size;
+    uint32_t                tileformat;
+    const char              *fmt;
+    PMOS_RESOURCE           osResource;
+    MOS_LINUX_BO             *bo = nullptr;
+
+    size  = param->size;
+    tileformat = I915_TILING_NONE;
+
+    //-----------------------------------------------
+    CM_ASSERT(param->size > 0);
+    //-----------------------------------------------
+
+    hr              = MOS_STATUS_SUCCESS;
+    osInterface    = state->renderHal->pOsInterface;
+
+    // Find a free slot
+    for (i = 0; i < state->cmDeviceParam.maxBufferTableSize; i++)
+    {
+        if (state->bufferTable[i].size == 0)
+        {
+            entry              = &state->bufferTable[i];
+            param->handle      = (uint32_t)i;
+            break;
+        }
+    }
+
+    if (!entry)
+    {
+        CM_ERROR_ASSERT("Buffer table is full");
+        goto finish;
+    }
+
+    // State buffer doesn't need any MOS RESOURCE, so it will return directly after getting a position in the buffer table
+    if ( param->type == CM_BUFFER_STATE )
+    {
+        entry->size = param->size;
+        entry->isAllocatedbyCmrtUmd = false;
+        return hr;
+    }
+
+    osResource = &(entry->osResource);
+
+    if (param->isAllocatedbyCmrtUmd)
+    {
+        // Resets the Resource
+        Mos_ResetResource(osResource);
+
+        if (param->data == nullptr)
+        {
+            MOS_ZeroMemory(&allocParams, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+            allocParams.Type          = MOS_GFXRES_BUFFER;
+            allocParams.TileType      = MOS_TILE_LINEAR;
+            allocParams.dwBytes       = param->size;
+            allocParams.pSystemMemory = param->data;
+            allocParams.Format        = Format_Buffer;  //used in VpHal_OsAllocateResource_Linux!
+            allocParams.pBufName      = "CmBuffer";
+
+            CM_HRESULT2MOSSTATUS_AND_CHECK(osInterface->pfnAllocateResource(
+                osInterface,
+                &allocParams,
+                &entry->osResource));
+        }
+        else  //BufferUP
+        {
+#if defined(DRM_IOCTL_I915_GEM_USERPTR)
+           bo =  mos_bo_alloc_userptr(osInterface->pOsContext->bufmgr,
+                                 "CM Buffer UP",
+                                 (void *)(param->data),
+                                 tileformat,
+                                 ROUND_UP_TO(size,MOS_PAGE_SIZE),
+                                 ROUND_UP_TO(size,MOS_PAGE_SIZE),
+#if defined(ANDROID)
+                                 I915_USERPTR_UNSYNCHRONIZED
+#else
+                 0
+#endif
+                 );
+#else
+           bo =  mos_bo_alloc_vmap(osInterface->pOsContext->bufmgr,
+                                "CM Buffer UP",
+                                (void *)(param->data),
+                                tileformat,
+                                ROUND_UP_TO(size,MOS_PAGE_SIZE),
+                                ROUND_UP_TO(size,MOS_PAGE_SIZE),
+#if defined(ANDROID)
+                                 I915_USERPTR_UNSYNCHRONIZED
+#else
+                 0
+#endif
+                 );
+#endif
+
+            osResource->bMapped = false;
+            if (bo)
+            {
+                osResource->Format   = Format_Buffer;
+                osResource->iWidth   = ROUND_UP_TO(size,MOS_PAGE_SIZE);
+                osResource->iHeight  = 1;
+                osResource->iPitch   = ROUND_UP_TO(size,MOS_PAGE_SIZE);
+                osResource->bo       = bo;
+                osResource->TileType = LinuxToMosTileType(tileformat);
+                osResource->pData    = (uint8_t*) bo->virt;
+            }
+            else
+            {
+                fmt = "BufferUP";
+                CM_DDI_ASSERTMESSAGE("Fail to Alloc BufferUP %7d bytes (%d x %d %s resource)\n",size, size, 1, fmt);
+                hr = MOS_STATUS_UNKNOWN;
+            }
+            osResource->bConvertedFromDDIResource = true;
+        }
+    }
+    else
+    {
+        entry->osResource = *param->mosResource;
+        HalCm_OsResource_Reference(&entry->osResource);
+    }
+
+    entry->size = param->size;
+    entry->isAllocatedbyCmrtUmd = param->isAllocatedbyCmrtUmd;
+    entry->surfaceStateEntry[0].surfaceStateSize = entry->size;
+    entry->surfaceStateEntry[0].surfaceStateOffset = 0;
+    entry->surfaceStateEntry[0].surfaceStateMOCS = 0;
+
+finish:
+    return hr;
+}
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Allocate Surface2DUP (zero-copy, map system memory to video address space)
@@ -1003,6 +1144,7 @@ void HalCm_OsInitInterface(
 
     cmState->pfnGetSurface2DPitchAndSize            = HalCm_GetSurface2DPitchAndSize_Linux;
     cmState->pfnRegisterUMDNotifyEventHandle        = HalCm_RegisterUMDNotifyEventHandle_Linux;
+    cmState->pfnAllocateBuffer                      = HalCm_AllocateBuffer_Linux;
     cmState->pfnAllocateSurface2DUP                 = HalCm_AllocateSurface2DUP_Linux;
     cmState->pfnGetGPUCurrentFrequency              = HalCm_GetGPUCurrentFrequency_Linux;
     cmState->pfnGetGpuTime                          = HalCm_GetGpuTime_Linux;
