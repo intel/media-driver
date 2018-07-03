@@ -633,6 +633,16 @@ int32_t Mos_ResourceIsNull(
     PMOS_RESOURCE pOsResource);
 
 //!
+//! \brief    Get Buffer Type
+//! \details  Returns the type of buffer, 1D, 2D or volume
+//! \param    PMOS_RESOURCE pOsResource
+//!           [in] Pointer to OS Resource
+//! \return   GFX resource Type
+//!
+MOS_GFXRES_TYPE GetResType(
+    PMOS_RESOURCE pOsResource);
+
+//!
 //! \brief    OS reset resource
 //! \details  Resets the OS resource
 //! \param    PMOS_RESOURCE pOsResource

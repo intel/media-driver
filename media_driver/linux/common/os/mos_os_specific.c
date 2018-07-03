@@ -1024,6 +1024,38 @@ uint32_t Linux_GetDmaBufID (PMOS_CONTEXT pOsContext )
 }
 
 //!
+//! \brief    Get Buffer Type
+//! \details  Returns the type of buffer, 1D, 2D or volume
+//! \param    PMOS_RESOURCE pOsResource
+//!           [in] Pointer to OS Resource
+//! \return   GFX resource Type
+//!
+MOS_GFXRES_TYPE GetResType(PMOS_RESOURCE pOsResource)
+{
+    GMM_RESOURCE_INFO *pGmmResourceInfo;
+    MOS_GFXRES_TYPE    ResType = MOS_GFXRES_INVALID;
+    GMM_RESOURCE_TYPE  GMMResType;
+
+    pGmmResourceInfo = (GMM_RESOURCE_INFO *)pOsResource->pGmmResInfo;
+    GMMResType = pGmmResourceInfo->GetResourceType();
+
+    switch (GMMResType)
+    {
+    case RESOURCE_BUFFER:
+        ResType = MOS_GFXRES_BUFFER;
+        break;
+    case RESOURCE_3D:
+        ResType = MOS_GFXRES_VOLUME;
+        break;
+    case RESOURCE_2D:
+        ResType = MOS_GFXRES_2D;
+        break;
+    default:
+        MOS_OS_ASSERT(false);
+    }
+    return ResType;
+}
+//!
 //! \brief    Set the DMA Buffer ID
 //! \details  Sets the buffer ID in perf data
 //! \param    PMOS_CONTEXT pOsContext
