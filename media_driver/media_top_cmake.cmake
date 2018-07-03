@@ -21,13 +21,6 @@
 project( media )
 
 bs_set_if_undefined(LIB_NAME iHD_drv_video)
-set (LIB_NAME_EXTERNAL_LIBS "pciaccess;m;pthread;dl;rt")
-
-include (FindPkgConfig)
-# find external libs, if not found, cmake will abort
-foreach (LIB ${LIB_NAME_EXTERNAL_LIBS})
-    pkg_check_modules (${LIB} REQUIRED)
-endforeach ()
 
 option (MEDIA_RUN_TEST_SUITE "run google test module after install" ON) 
 include(${MEDIA_DRIVER_CMAKE}/media_gen_flags.cmake)
@@ -82,10 +75,18 @@ set_target_properties(${LIB_NAME_STATIC} PROPERTIES PREFIX "")
 
 MediaAddCommonTargetDefines(${LIB_NAME_OBJ})
 
+include (FindPkgConfig)
+# find external libs, if not found, cmake will abort
+pkg_check_modules (pciaccess REQUIRED)
+pkg_check_modules (m REQUIRED)
+pkg_check_modules (pthread REQUIRED)
+pkg_check_modules (dl REQUIRED)
+pkg_check_modules (rt REQUIRED)
+
 bs_ufo_link_libraries_noBsymbolic(
     ${LIB_NAME}
     "${INCLUDED_LIBS}"
-    "${LIB_NAME_EXTERNAL_LIBS}"
+    "pciaccess m pthread dl rt"
 )
 
 if (NOT DEFINED INCLUDED_LIBS OR "${INCLUDED_LIBS}" STREQUAL "")
