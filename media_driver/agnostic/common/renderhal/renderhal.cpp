@@ -3176,6 +3176,10 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
                     // Set up chroma direction
                     Direction = pRenderHal->pfnSetChromaDirection(pRenderHal, pRenderHalSurface);
                 }
+                else if (pParams->bAVS)
+                {
+                    PlaneDefinition = RENDERHAL_PLANES_P016_2PLANES_ADV;
+                }
                 else
                 {
                     // Format not supported with AVS - use regular format
