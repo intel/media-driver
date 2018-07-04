@@ -920,7 +920,8 @@ MOS_STATUS Mos_CheckVirtualEngineSupported(
         osInterface->bSupportVirtualEngine = userFeatureData.u32Data ? true : false;
 
         // force bSupportVirtualEngine to false when virtual engine not enabled by default
-        if ((!veDefaultEnable || !osInterface->veDefaultEnable) && eStatus == MOS_STATUS_USER_FEATURE_KEY_READ_FAILED)
+        if ((!veDefaultEnable || !osInterface->veDefaultEnable) && 
+            (eStatus == MOS_STATUS_USER_FEATURE_KEY_READ_FAILED || eStatus == MOS_STATUS_USER_FEATURE_KEY_OPEN_FAILED))
         {
             osInterface->bSupportVirtualEngine = false;
         }
@@ -948,7 +949,7 @@ MOS_STATUS Mos_CheckVirtualEngineSupported(
         osInterface->bSupportVirtualEngine = userFeatureData.u32Data ? true : false;
 
         // force bSupportVirtualEngine to false when virtual engine not enabled by default
-        if (!osInterface->veDefaultEnable && eStatus == MOS_STATUS_USER_FEATURE_KEY_READ_FAILED)
+        if (!osInterface->veDefaultEnable && (eStatus == MOS_STATUS_USER_FEATURE_KEY_READ_FAILED || eStatus == MOS_STATUS_USER_FEATURE_KEY_OPEN_FAILED))
         {
             osInterface->bSupportVirtualEngine = false;
         }
