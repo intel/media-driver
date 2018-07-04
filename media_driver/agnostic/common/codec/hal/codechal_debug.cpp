@@ -561,7 +561,11 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
         break;
     }
 
+#ifdef LINUX
+    data = surfBaseAddr + surface->UPlaneOffset.iSurfaceOffset;
+#else
     data = surfBaseAddr + surface->UPlaneOffset.iLockSurfaceOffset;
+#endif
 
     // write chroma data to file
     for (uint32_t h = 0; h < height; h++)
