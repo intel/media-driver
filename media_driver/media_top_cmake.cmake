@@ -75,6 +75,14 @@ set_target_properties(${LIB_NAME_STATIC} PROPERTIES PREFIX "")
 
 MediaAddCommonTargetDefines(${LIB_NAME_OBJ})
 
+include (FindPkgConfig)
+# find external libs, if not found, cmake will abort
+pkg_check_modules (pciaccess REQUIRED)
+pkg_check_modules (m REQUIRED)
+pkg_check_modules (pthread REQUIRED)
+pkg_check_modules (dl REQUIRED)
+pkg_check_modules (rt REQUIRED)
+
 bs_ufo_link_libraries_noBsymbolic(
     ${LIB_NAME}
     "${INCLUDED_LIBS}"
