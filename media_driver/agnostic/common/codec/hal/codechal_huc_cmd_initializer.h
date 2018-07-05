@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -205,6 +205,8 @@ struct Vp9CmdInitializerParams
 class CodechalCmdInitializer
 {
 public:
+    static constexpr uint32_t m_hucCmdInitializerKernelDescriptor = 14; //!< VDBox Huc cmd initializer kernel descriptoer
+
     bool                                        m_pakOnlyPass;
     bool                                        m_acqpEnabled;
     bool                                        m_brcEnabled;
@@ -227,8 +229,8 @@ public:
     Vp9CmdInitializerParams                     m_vp9Params;
 #endif
     CodechalHwInterface*                        m_hwInterface;
-    MOS_RESOURCE                                m_cmdInitializerDmemBuffer[3];
-    MOS_RESOURCE                                m_cmdInitializerDataBuffer[3];
+    MOS_RESOURCE                                m_cmdInitializerDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][3];
+    MOS_RESOURCE                                m_cmdInitializerDataBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][3];
     MOS_RESOURCE                                m_cmdInitializerDysScalingDmemBuffer;
     MOS_RESOURCE                                m_cmdInitializerDysScalingDataBuffer;
 
@@ -350,7 +352,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS CmdInitializerVp9SetDmem();
+    virtual MOS_STATUS CmdInitializerVp9SetDmem();
 
     //!
     //! \brief    Executes VP9 command initializer HuC FW
@@ -363,7 +365,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS CmdInitializerVp9Execute(PMOS_COMMAND_BUFFER cmdBuffer, PMOS_RESOURCE picStateBuffer);
+    virtual MOS_STATUS CmdInitializerVp9Execute(PMOS_COMMAND_BUFFER cmdBuffer, PMOS_RESOURCE picStateBuffer);
 
     //!
     //! \brief    Set Add Commands to BatchBuffer for VP9
