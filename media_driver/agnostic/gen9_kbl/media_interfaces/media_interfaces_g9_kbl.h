@@ -84,16 +84,18 @@
 #include "codechal_encode_jpeg.h"
 #endif
 
-#ifdef _MPEG2_ENCODE_SUPPORTED
+#ifdef _MPEG2_ENCODE_VME_SUPPORTED
 #include "codechal_encode_mpeg2_g9.h"
 #endif
 
-#ifdef _HEVC_ENCODE_SUPPORTED
+#ifdef _HEVC_ENCODE_VME_SUPPORTED
 #include "codechal_encode_hevc_g9_kbl.h"
 #endif
 
-#ifdef _AVC_ENCODE_SUPPORTED
+#ifdef _AVC_ENCODE_VME_SUPPORTED
 #include "codechal_encode_avc_g9_kbl.h"
+#endif
+#ifdef _AVC_ENCODE_VDENC_SUPPORTED
 #include "codechal_vdenc_avc_g9_kbl.h"
 #endif
 #include "codechal_encode_csc_ds_g9.h"
@@ -181,17 +183,20 @@ public:
 #ifdef _JPEG_ENCODE_SUPPORTED
     using Jpeg = CodechalEncodeJpegState;
 #endif
-#ifdef _MPEG2_ENCODE_SUPPORTED
+#ifdef _MPEG2_ENCODE_VME_SUPPORTED
     using Mpeg2 = CodechalEncodeMpeg2G9;
 #endif
 
     using CscDs = CodechalEncodeCscDsG9;
 
-#ifdef _HEVC_ENCODE_SUPPORTED
+#ifdef _HEVC_ENCODE_VME_SUPPORTED
     using HevcEnc = CodechalEncHevcStateG9Kbl;
 #endif
-#ifdef _AVC_ENCODE_SUPPORTED
+
+#ifdef _AVC_ENCODE_VME_SUPPORTED
     using AvcEnc   = CodechalEncodeAvcEncG9Kbl;
+#endif
+#ifdef _AVC_ENCODE_VDENC_SUPPORTED
     using AvcVdenc = CodechalVdencAvcStateG9Kbl;
 #endif
 };

@@ -25,12 +25,12 @@
 //!
 
 #include "codec_def_encode_hevc.h"
-#ifdef _HEVC_ENCODE_SUPPORTED
+#if defined (_HEVC_ENCODE_VME_SUPPORTED) || defined (_HEVC_ENCODE_VDENC_SUPPORTED)
 #include "codechal_encode_hevc_base.h"
 #endif
 #include "codechal_huc_cmd_initializer.h"
 #include "codechal_encoder_base.h"
-#ifdef _VP9_ENCODE_SUPPORTED
+#ifdef _VP9_ENCODE_VDENC_SUPPORTED
 #include "codechal_vdenc_vp9_base.h"
 #endif
 
@@ -146,7 +146,7 @@ void CodechalCmdInitializer::CmdInitializerFreeResources()
 
 }
 
-#ifdef _HEVC_ENCODE_SUPPORTED
+#if defined (_HEVC_ENCODE_VME_SUPPORTED) || defined (_HEVC_ENCODE_VDENC_SUPPORTED)
 MOS_STATUS CodechalCmdInitializer::CmdInitializerSetDmem(bool brcEnabled)
 {
     HucComDmem*             hucCmdInitializerDmem;
@@ -477,7 +477,7 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerExecute(bool brcEnabled, PMOS_R
 }
 #endif
 
-#ifdef _VP9_ENCODE_SUPPORTED
+#ifdef _VP9_ENCODE_VDENC_SUPPORTED
 //VP9 Specific functions
 
 MOS_STATUS CodechalCmdInitializer::CommandInitializerSetVp9Params(CodechalVdencVp9State *state)

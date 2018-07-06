@@ -21,7 +21,7 @@
 set(TMP_SOURCES_ "")
 set(TMP_HEADERS_ "")
 
-if(${HEVC_Encode_Supported} STREQUAL "yes")
+if(${HEVC_Encode_VME_Supported} STREQUAL "yes")
 
 set(TMP_SOURCES_
     ${TMP_SOURCES_}
@@ -35,18 +35,29 @@ set(TMP_HEADERS_
 
 endif()
 
-if(${AVC_Encode_Supported} STREQUAL "yes")
-    set(TMP_SOURCES_
-        ${TMP_SOURCES_}
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_avc_g9_bxt.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_vdenc_avc_g9_bxt.cpp
-    )
-    set(TMP_HEADERS_
-        ${TMP_HEADERS_}
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_avc_g9_bxt.h
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_vdenc_avc_g9_bxt.h
-    )
-endif()
+if ("${AVC_Encode_VME_Supported}" STREQUAL "yes" OR "${AVC_Encode_VDEnc_Supported}" STREQUAL "yes")
+    if ("${AVC_Encode_VME_Supported}" STREQUAL "yes")
+        set (TMP_SOURCES_
+            ${TMP_SOURCES_}
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_avc_g9_bxt.cpp
+        )
+        set (TMP_HEADERS_
+            ${TMP_HEADERS_}
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_avc_g9_bxt.h
+        )
+    endif ()
+
+    if ("${AVC_Encode_VDEnc_Supported}" STREQUAL "yes")
+        set (TMP_SOURCES_
+            ${TMP_SOURCES_}
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_vdenc_avc_g9_bxt.cpp
+        )
+        set (TMP_HEADERS_
+            ${TMP_HEADERS_}
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_vdenc_avc_g9_bxt.h
+        )
+    endif ()
+endif ()
 
 set(SOURCES_
     ${SOURCES_}

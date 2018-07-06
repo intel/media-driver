@@ -241,7 +241,7 @@ MOS_STATUS CodechalInterfacesG8Bdw::Initialize(
     else if (CodecHalIsEncode(CodecFunction))
     {
         CodechalEncoderState *encoder = nullptr;
-#ifdef _MPEG2_ENCODE_SUPPORTED
+#ifdef _MPEG2_ENCODE_VME_SUPPORTED
         if (info->Mode == CODECHAL_ENCODE_MODE_MPEG2)
         {
             // Setup encode interface functions
@@ -277,7 +277,7 @@ MOS_STATUS CodechalInterfacesG8Bdw::Initialize(
         }
         else
 #endif
-#ifdef _AVC_ENCODE_SUPPORTED
+#ifdef _AVC_ENCODE_VME_SUPPORTED
         if (info->Mode == CODECHAL_ENCODE_MODE_AVC)
         {
             if (CodecHalIsFeiEncode(info->CodecFunction))

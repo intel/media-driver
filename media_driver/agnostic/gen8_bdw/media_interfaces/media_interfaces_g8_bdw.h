@@ -79,11 +79,11 @@
 #include "codechal_encode_jpeg.h"
 #endif
 
-#ifdef _MPEG2_ENCODE_SUPPORTED
+#ifdef _MPEG2_ENCODE_VME_SUPPORTED
 #include "codechal_encode_mpeg2_g8.h"
 #endif
 #include "codechal_encode_csc_ds_g8.h"
-#ifdef _AVC_ENCODE_SUPPORTED
+#ifdef _AVC_ENCODE_VME_SUPPORTED
 #include "codechal_encode_avc_g8.h"
 #include "codechal_fei_avc_g8.h"
 #endif
@@ -139,11 +139,11 @@ public:
 #ifdef _JPEG_ENCODE_SUPPORTED
     using Jpeg = CodechalEncodeJpegState;
 #endif
-#ifdef _MPEG2_ENCODE_SUPPORTED
+#ifdef _MPEG2_ENCODE_VME_SUPPORTED
     using Mpeg2 = CodechalEncodeMpeg2G8;
 #endif
     using CscDs = CodechalEncodeCscDsG8;
-#ifdef _AVC_ENCODE_SUPPORTED
+#ifdef _AVC_ENCODE_VME_SUPPORTED
     using AvcEnc = CodechalEncodeAvcEncG8;
     using AvcFei = CodechalEncodeAvcEncFeiG8;
 #endif
