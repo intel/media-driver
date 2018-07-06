@@ -1534,6 +1534,8 @@ typedef struct _CM_HAL_STATE
     CMRT_UMD::CSync             criticalSectionDSH;
 
     uint64_t                    tsFrequency;
+
+    bool                        forceKernelReload;
 //------------------------------------------------------------------------------
 // Macros to replace HR macros in oscl.h
 //------------------------------------------------------------------------------

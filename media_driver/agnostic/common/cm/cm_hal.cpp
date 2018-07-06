@@ -2998,7 +2998,7 @@ int32_t HalCm_DSH_LoadKernelArray(
                 if (memoryBlock)
                 {
                     // Kernel needs to be reloaded in current heap
-                    if (memoryBlock->pStateHeap != renderHal->pMhwStateHeap->GetISHPointer()) //pInstructionStateHeaps
+                    if (memoryBlock->pStateHeap != renderHal->pMhwStateHeap->GetISHPointer() || state->forceKernelReload) //pInstructionStateHeaps
                     {
                         renderHal->pMhwStateHeap->FreeDynamicBlockDyn(MHW_ISH_TYPE, memoryBlock, currId);
                         krnAllocation[i]->pMemoryBlock = nullptr;
