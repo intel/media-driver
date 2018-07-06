@@ -25,6 +25,15 @@ include(os_release_info.cmake)
 
 get_os_release_info(os_name os_version)
 
+if(NOT DEFINED CMAKE_INSTALL_PREFIX OR CMAKE_INSTALL_PREFIX STREQUAL "")
+    set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "..." FORCE)
+endif()
+message(STATUS "CMAKE_INSTALL_PREFIX = ${CMAKE_INSTALL_PREFIX}")
+
+if(NOT DEFINED MEDIA_VERSION OR MEDIA_VERSION STREQUAL "")
+    set(MEDIA_VERSION "1.0.0")
+endif()
+
 if("${os_name}" STREQUAL "clear-linux-os")
     # clear-linux-os distribution avoids /etc for distribution defaults.
     # Set this variable explicitly before including GNUInstallDirs.
