@@ -4,13 +4,8 @@
 # Full-open-source means only using open source EU kernels and fixed function hardware.
 
 cmake ../media-driver \
--DMEDIA_VERSION="2.0.0" \
 -DGEN8_Supported="no" \
 -DGEN8_BDW_Supported="no" \
 -DGEN9_Supported="no" \
 -DGEN9_SKL_Supported="no" \
--DFull_Open_Source_Support="yes" \
--DBS_DIR_GMMLIB=`pwd`/../gmmlib/Source/GmmLib/ \
--DBS_DIR_COMMON=`pwd`/../gmmlib/Source/Common/ \
--DBS_DIR_INC=`pwd`/../gmmlib/Source/inc/ \
--DBS_DIR_MEDIA=`pwd`/../media-driver $@
+-DFull_Open_Source_Support="yes" $@
