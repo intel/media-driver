@@ -1772,7 +1772,6 @@ public:
     uint8_t                                     m_chromaFormat;
     uint32_t                                    m_sizeOfSseSrcPixelRowStoreBufferPerLcu;
     PCODECHAL_CMD_INITIALIZER                   m_hucCmdInitializer = nullptr;
-    bool                                        m_hucCmdInitializerUsed = false;
 
 protected:
     //!

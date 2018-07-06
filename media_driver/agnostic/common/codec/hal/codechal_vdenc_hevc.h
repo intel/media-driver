@@ -121,7 +121,6 @@ public:
     bool                                    m_vdencHuCConditional2ndPass = false;              //!< HuC conditional 2nd pass enable flag
     bool                                    m_vdencNativeROIEnabled = false;                   //!< Native ROI enable flag
     bool                                    m_pakOnlyPass = false;                             //!< flag to signal VDEnc+PAK vs. PAK only
-    bool                                    m_hucCmdInitializerUsed = false;                   //!< Command initializer HuC used flag
 
     //Resources for VDEnc
     MOS_RESOURCE                            m_sliceCountBuffer;                                //!< Slice count buffer
