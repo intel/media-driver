@@ -40,7 +40,8 @@ class CodechalVdencVp9State;
 typedef enum _CODECHAL_CMD_INITIALIZER_CMDTYPE
 {
     CODECHAL_CMD1 = 1,
-    CODECHAL_CMD2 = 2
+    CODECHAL_CMD2 = 2,
+    CODECHAL_CMD3 = 3
 } CODECHAL_CMD_INITIALIZER_CMDTYPE;
 
 //!
@@ -258,7 +259,7 @@ public:
     //!
     //! \brief    Free Resources
     //!
-    void CmdInitializerFreeResources();
+    virtual void CmdInitializerFreeResources();
 
     //!
     //! \brief    Allocate resources for VP9
@@ -266,7 +267,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS CmdInitializerAllocateResources(CodechalHwInterface*    m_hwInterface);
+    virtual MOS_STATUS CmdInitializerAllocateResources(CodechalHwInterface*    m_hwInterface);
 
     //!
     //! \brief    Set all the data of the InputCom of command initializer HuC FW
