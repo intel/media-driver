@@ -1160,11 +1160,27 @@ MOS_STATUS CodechalVdencHevcStateG10::SendMeSurfaces(bool using4xMe, PMOS_COMMAN
             uint8_t scaledIdx       = m_refList[refPicIdx]->ucScalingIdx;
             if (using4xMe)
             {
-                refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
+                MOS_SURFACE* p4xSurface = m_trackedBuf->Get4xDsSurface(scaledIdx);
+                if (p4xSurface != nullptr)
+                {
+                    refScaledSurface.OsResource = p4xSurface->OsResource;
+                }
+                else
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
+                }
             }
             else
             {
-                refScaledSurface.OsResource = m_trackedBuf->Get16xDsSurface(scaledIdx)->OsResource;
+                MOS_SURFACE* p16xSurface = m_trackedBuf->Get16xDsSurface(scaledIdx);
+                if (p16xSurface != nullptr)
+                {
+                    refScaledSurface.OsResource = p16xSurface->OsResource;
+                }
+                else
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
+                }
             }
             uint32_t refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
 
