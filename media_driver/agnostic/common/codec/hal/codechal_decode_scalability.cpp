@@ -1672,8 +1672,10 @@ MOS_STATUS CodecHalDecodeScalability_ReadCSEngineIDReg(
     MHW_MI_STORE_REGISTER_MEM_PARAMS  StoreRegParams;
     MhwMiInterface                    *pMiInterface;
     MmioRegistersHcp                  *pMmioRegisters;
-    uint8_t                           ucPhaseIndex;
-    uint32_t                          dwOffset, dwCurrIndex, dwPreIndex;
+    uint8_t                           ucPhaseIndex = 0;
+    uint32_t                          dwOffset = 0;
+    uint32_t                          dwCurrIndex = 0;
+    uint32_t                          dwPreIndex = 0;
     MOS_STATUS                        eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_DECODE_FUNCTION_ENTER;

@@ -310,8 +310,8 @@ MOS_STATUS MediaMemDecompState::MemoryDecompress(
     {
         if (m_osInterface->osCpInterface->IsHardwareProtectionRequired((void **)&targetResource, 1, true))
         {
-            uint32_t *kernelBase;
-            uint32_t kernelSize;
+            uint32_t *kernelBase = nullptr;
+            uint32_t kernelSize = 0;
             m_osInterface->osCpInterface->GetTK(
                     &kernelBase, 
                     &kernelSize,
