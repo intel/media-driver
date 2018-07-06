@@ -31,12 +31,14 @@
 #include "media_interfaces_vphal.h"
 #include "media_interfaces_decode_histogram.h"
 
-#ifdef _HEVC_ENCODE_SUPPORTED
+#ifdef _HEVC_ENCODE_VME_SUPPORTED
 #include "codechal_encode_hevc_g9_glk.h"
 #endif
 
-#ifdef _AVC_ENCODE_SUPPORTED
+#ifdef _AVC_ENCODE_VME_SUPPORTED
 #include "codechal_encode_avc_g9_kbl.h"
+#endif
+#ifdef _AVC_ENCODE_VDENC_SUPPORTED
 #include "codechal_vdenc_avc_g9_kbl.h"
 #endif
 #include "codechal_decode_nv12top010_g9_glk.h"
@@ -70,15 +72,17 @@ public:
 #ifdef _JPEG_ENCODE_SUPPORTED
     using Jpeg = CodechalEncodeJpegState;
 #endif
-#ifdef _MPEG2_ENCODE_SUPPORTED
+#ifdef _MPEG2_ENCODE_VME_SUPPORTED
     using Mpeg2 = CodechalEncodeMpeg2G9;
 #endif
     using CscDs = CodechalEncodeCscDsG9;
-#ifdef _HEVC_ENCODE_SUPPORTED
+#ifdef _HEVC_ENCODE_VME_SUPPORTED
     using HevcEnc = CodechalEncHevcStateG9Glk;
 #endif
-#ifdef _AVC_ENCODE_SUPPORTED
+#ifdef _AVC_ENCODE_VME_SUPPORTED
     using AvcEnc = CodechalEncodeAvcEncG9Kbl;
+#endif
+#ifdef _AVC_ENCODE_VDENC_SUPPORTED
     using AvcVdenc = CodechalVdencAvcStateG9Kbl;
 #endif
 };

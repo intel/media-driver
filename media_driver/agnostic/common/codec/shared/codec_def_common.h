@@ -201,7 +201,7 @@ typedef struct _CODEC_PIC_ID
     bool      bValid;
 } CODEC_PIC_ID, *PCODEC_PIC_ID;
 
-#ifdef _AVC_ENCODE_SUPPORTED
+#if defined (_AVC_ENCODE_VME_SUPPORTED) || defined (_AVC_ENCODE_VDENC_SUPPORTED)
 struct _CODEC_AVC_REF_PIC_SELECT_LIST;
 typedef struct _CODEC_AVC_REF_PIC_SELECT_LIST   *PCODEC_AVC_REF_PIC_SELECT_LIST;
 #endif
@@ -266,7 +266,7 @@ struct _CODEC_REF_LIST
            uint16_t                             usNonExistingFrameFlags;
            bool                                 bUsedAsInterViewRef;
            uint32_t                             uiUsedForReferenceFlags;
-#ifdef _AVC_ENCODE_SUPPORTED
+#if defined (_AVC_ENCODE_VME_SUPPORTED) || defined (_AVC_ENCODE_VDENC_SUPPORTED)
            PCODEC_AVC_REF_PIC_SELECT_LIST       pRefPicSelectListEntry;
 #endif
            MOS_RESOURCE                         resRefTopFieldMbCodeBuffer;

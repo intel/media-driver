@@ -27,12 +27,12 @@
 #ifndef __CODECHAL_CMD_INITIALIZER_H__
 #define __CODECHAL_CMD_INITIALIZER_H__
 
-#ifdef _HEVC_ENCODE_SUPPORTED
+#if defined (_HEVC_ENCODE_VME_SUPPORTED) || defined (_HEVC_ENCODE_VDENC_SUPPORTED)
 #include "codechal_encode_hevc_base.h"
 #endif
 #include "codechal_encoder_base.h"
 
-#ifdef _VP9_ENCODE_SUPPORTED
+#ifdef _VP9_ENCODE_VDENC_SUPPORTED
 class CodechalVdencVp9State;
 #endif
 
@@ -158,7 +158,7 @@ struct HucInputCmd2
     uint8_t RSVD[3];
 };
 
-#ifdef _VP9_ENCODE_SUPPORTED
+#ifdef _VP9_ENCODE_VDENC_SUPPORTED
 //!
 //! \struct Vp9CmdInitializerParams
 //! \brief  VP9 Params struct for huc initializer
@@ -225,7 +225,7 @@ public:
     void*                                       m_seqParams = nullptr;               //!< Pointer to sequence parameter
     void*                                       m_sliceParams = nullptr;             //!< Pointer to slice parameter
 
-#ifdef _VP9_ENCODE_SUPPORTED
+#ifdef _VP9_ENCODE_VDENC_SUPPORTED
     //VP9 related changes
     Vp9CmdInitializerParams                     m_vp9Params;
 #endif
@@ -336,7 +336,7 @@ public:
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
         return eStatus;
     }
-#ifdef _VP9_ENCODE_SUPPORTED
+#ifdef _VP9_ENCODE_VDENC_SUPPORTED
     //!
     //! \brief    Set all const VP9 data of the InputCom of command initializer HuC FW
     //!

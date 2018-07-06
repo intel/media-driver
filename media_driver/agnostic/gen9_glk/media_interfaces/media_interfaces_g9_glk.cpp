@@ -215,7 +215,7 @@ MOS_STATUS CodechalInterfacesG9Glk::Initialize(
     else if (CodecHalIsEncode(CodecFunction))
     {
         CodechalEncoderState *encoder = nullptr;
-#ifdef _MPEG2_ENCODE_SUPPORTED
+#ifdef _MPEG2_ENCODE_VME_SUPPORTED
         if (info->Mode == CODECHAL_ENCODE_MODE_MPEG2)
         {
             // Setup encode interface functions
@@ -251,7 +251,7 @@ MOS_STATUS CodechalInterfacesG9Glk::Initialize(
         }
         else
 #endif
-#ifdef _HEVC_ENCODE_SUPPORTED
+#ifdef _HEVC_ENCODE_VME_SUPPORTED
         if (info->Mode == CODECHAL_ENCODE_MODE_HEVC)
         {
             encoder = MOS_New(Encode::HevcEnc, hwInterface, debugInterface, info);
@@ -269,16 +269,20 @@ MOS_STATUS CodechalInterfacesG9Glk::Initialize(
         }
         else
 #endif
-#ifdef _AVC_ENCODE_SUPPORTED
+#if defined (_AVC_ENCODE_VME_SUPPORTED) || defined (_AVC_ENCODE_VDENC_SUPPORTED)
         if (info->Mode == CODECHAL_ENCODE_MODE_AVC)
         {
             if (CodecHalUsesVdencEngine(info->CodecFunction))
             {
+            #ifdef _AVC_ENCODE_VDENC_SUPPORTED
                 encoder = MOS_New(Encode::AvcVdenc, hwInterface, debugInterface, info);
+            #endif
             }
             else
             {
+            #ifdef _AVC_ENCODE_VME_SUPPORTED
                 encoder = MOS_New(Encode::AvcEnc, hwInterface, debugInterface, info);
+            #endif
             }
 
             if (encoder == nullptr)
