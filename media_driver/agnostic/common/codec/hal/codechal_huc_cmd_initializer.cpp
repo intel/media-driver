@@ -186,28 +186,14 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerSetDmem(bool brcEnabled)
     hucCmdInitializerDmem->FrameType = m_encoder->m_pictureCodingType - 1;
     hucCmdInitializerDmem->OutputCOM[0].ID           = 2;
     hucCmdInitializerDmem->OutputCOM[0].Type         = 1;
-    if (brcEnabled)
-    {
-        hucCmdInitializerDmem->OutputCOM[0].StartInBytes = VDBOX_HUC_CMD_INITIALIZER_HEVC_CMD1_STARTOFFSERT;
-    }
-    else
-    {
-        hucCmdInitializerDmem->OutputCOM[0].StartInBytes = offset;
-    }
+    hucCmdInitializerDmem->OutputCOM[0].StartInBytes = GetCmd1StartOffset(brcEnabled);
 
     offset += CODECHAL_CMDINITIALIZER_MAX_CMD_SIZE;
 
     // Command ID 1
     hucCmdInitializerDmem->OutputCOM[1].ID           = 1;
     hucCmdInitializerDmem->OutputCOM[1].Type         = 1;
-    if (brcEnabled)
-    {
-        hucCmdInitializerDmem->OutputCOM[1].StartInBytes = VDBOX_HUC_CMD_INITIALIZER_HEVC_CMD2_STARTOFFSERT;
-    }
-    else
-    {
-        hucCmdInitializerDmem->OutputCOM[1].StartInBytes = VDBOX_HUC_CMD_INITIALIZER_HEVC_CQP_CMD2_STARTOFFSET;
-    }
+    hucCmdInitializerDmem->OutputCOM[1].StartInBytes = GetCmd2StartOffset(brcEnabled);
 
     offset += CODECHAL_CMDINITIALIZER_MAX_CMD_SIZE;
 
@@ -216,6 +202,128 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerSetDmem(bool brcEnabled)
     m_osInterface->pfnUnlockResource(m_osInterface, &m_cmdInitializerDmemBuffer[m_encoder->m_currRecycledBufIdx][m_currentPass]);
 
     return eStatus;
+}
+
+MOS_STATUS CodechalCmdInitializer::ConstructHevcHucCmd1ConstData(
+    PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS seqParams,
+    PCODEC_HEVC_ENCODE_PICTURE_PARAMS  picParams,
+    PCODEC_HEVC_ENCODE_SLICE_PARAMS    sliceParams,
+    struct HucComData *                hucConstData)
+{
+    hucConstData->InputCOM[1].ID         = 1;
+    hucConstData->InputCOM[1].SizeOfData = sizeof(HucInputCmd1) / sizeof(uint8_t);
+
+    auto   qpPrimeYAC = 10;  //This is constant from Arch C Model
+    double qpScale    = (picParams->CodingType == I_TYPE) ? 0.60 : 0.65;
+
+    HucInputCmd1 cmd1;
+    MOS_ZeroMemory(&cmd1, sizeof(HucInputCmd1));
+
+    // Shared HEVC/VP9
+    cmd1.FrameWidthInMinCbMinus1  = seqParams->wFrameWidthInMinCbMinus1;
+    cmd1.FrameHeightInMinCbMinus1 = seqParams->wFrameHeightInMinCbMinus1;
+
+    cmd1.log2_min_coding_block_size_minus3 = seqParams->log2_min_coding_block_size_minus3;
+
+    cmd1.VdencStreamInEnabled         = (uint8_t)m_streamInEnabled;
+    cmd1.PakOnlyMultipassEnable       = m_pakOnlyPass;
+    cmd1.num_ref_idx_l0_active_minus1 = sliceParams->num_ref_idx_l0_active_minus1;
+
+    auto   qpPrimeYac = CodecHal_Clip3(0, 51, picParams->QpY + sliceParams->slice_qp_delta);
+    double lambda     = sqrt(qpScale * pow(2.0, MOS_MAX(0, qpPrimeYac - 12) / 3.0));
+    cmd1.SADQPLambda  = (uint16_t)(lambda * 4 + 0.5);
+    cmd1.RDQPLambda   = (uint16_t)(qpScale * pow(2.0, MOS_MAX(0, picParams->QpY - 12) / 3.0) * 4 + 0.5);  //U14.2
+
+    cmd1.num_ref_idx_l1_active_minus1 = sliceParams->num_ref_idx_l1_active_minus1;
+    cmd1.ROIStreamInEnabled           = (uint8_t)m_roiStreamInEnabled;
+    cmd1.UseDefaultQpDeltas           = 0;
+    cmd1.TemporalMvpEnableFlag        = seqParams->sps_temporal_mvp_enable_flag;
+    cmd1.PanicEnabled                 = m_panicEnabled;
+
+    if (m_roiStreamInEnabled)
+    {
+        for (int8_t i = 0; i < ENCODE_VDENC_HEVC_MAX_STREAMINROI_G10; i++)
+        {
+            cmd1.ROIDeltaQp[i] = picParams->ROIDistinctDeltaQp[i];
+        }
+    }
+
+    // default
+    cmd1.FwdPocNumForRefId0inL0 = 0x01;
+    cmd1.FwdPocNumForRefId0inL1 = 0xff;
+    cmd1.FwdPocNumForRefId1inL0 = 0x02;
+    cmd1.FwdPocNumForRefId1inL1 = 0xfe;
+    cmd1.FwdPocNumForRefId2inL0 = 0x03;
+    cmd1.FwdPocNumForRefId2inL1 = 0xfd;
+    cmd1.FwdPocNumForRefId3inL0 = 0x04;
+    cmd1.FwdPocNumForRefId3inL1 = 0xfc;
+
+    if (picParams->CodingType != I_TYPE)
+    {
+        uint8_t refFrameID;
+        char    diff_poc;
+
+        refFrameID                  = sliceParams->RefPicList[0][0].FrameIdx;
+        diff_poc                    = picParams->RefFramePOCList[refFrameID] - picParams->CurrPicOrderCnt;
+        cmd1.FwdPocNumForRefId0inL0 = -diff_poc;
+        cmd1.FwdPocNumForRefId0inL1 = -diff_poc;
+
+        refFrameID                  = sliceParams->RefPicList[0][1].FrameIdx;
+        diff_poc                    = picParams->RefFramePOCList[refFrameID] - picParams->CurrPicOrderCnt;
+        cmd1.FwdPocNumForRefId1inL0 = -diff_poc;
+        cmd1.FwdPocNumForRefId1inL1 = -diff_poc;
+
+        refFrameID                  = sliceParams->RefPicList[0][2].FrameIdx;
+        diff_poc                    = picParams->RefFramePOCList[refFrameID] - picParams->CurrPicOrderCnt;
+        cmd1.FwdPocNumForRefId2inL0 = -diff_poc;
+        cmd1.FwdPocNumForRefId2inL1 = -diff_poc;
+    }
+
+    cmd1.EnableRollingIntraRefresh          = picParams->bEnableRollingIntraRefresh;
+    cmd1.QpDeltaForInsertedIntra            = picParams->QpDeltaForInsertedIntra;
+    cmd1.IntraInsertionSize                 = picParams->IntraInsertionSize;
+    cmd1.IntraInsertionLocation             = picParams->IntraInsertionLocation;
+    cmd1.IntraInsertionReferenceLocation[0] = picParams->RollingIntraReferenceLocation[0];
+    cmd1.IntraInsertionReferenceLocation[1] = picParams->RollingIntraReferenceLocation[1];
+    cmd1.IntraInsertionReferenceLocation[2] = picParams->RollingIntraReferenceLocation[2];
+
+    cmd1.QpY             = picParams->QpY + sliceParams->slice_qp_delta;
+    cmd1.RoundingEnabled = (uint8_t)m_roundingEnabled;
+
+    MOS_SecureMemcpy(hucConstData->InputCOM[1].data, sizeof(HucInputCmd1), &cmd1, sizeof(HucInputCmd1));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalCmdInitializer::ConstructHevcHucCmd2ConstData(
+    PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS seqParams,
+    PCODEC_HEVC_ENCODE_PICTURE_PARAMS  picParams,
+    PCODEC_HEVC_ENCODE_SLICE_PARAMS    sliceParams,
+    struct HucComData *                hucConstData)
+{
+    hucConstData->InputCOM[0].ID         = 2;
+    hucConstData->InputCOM[0].SizeOfData = 2;
+
+    auto qpPrimeYAC = 10;  //This is constant from Arch C Model
+
+    double qpScale        = (picParams->CodingType == I_TYPE) ? 0.60 : 0.65;
+    double lambdaInputCom = sqrt(qpScale * pow(2.0, MOS_MAX(0, qpPrimeYAC - 12) / 3.0));
+
+    // SADQPLambda
+    hucConstData->InputCOM[0].data[0] = (uint32_t)(lambdaInputCom * 4 + 0.5);
+    hucConstData->InputCOM[0].data[1] = m_roiStreamInEnabled;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+uint16_t CodechalCmdInitializer::GetCmd1StartOffset(bool brcEnabled)
+{
+    return brcEnabled ? VDBOX_HUC_CMD_INITIALIZER_HEVC_CMD1_STARTOFFSERT : 0;
+}
+
+uint16_t CodechalCmdInitializer::GetCmd2StartOffset(bool brcEnabled)
+{
+    return brcEnabled ? VDBOX_HUC_CMD_INITIALIZER_HEVC_CMD2_STARTOFFSERT : VDBOX_HUC_CMD_INITIALIZER_HEVC_CQP_CMD2_STARTOFFSET;
 }
 
 MOS_STATUS CodechalCmdInitializer::CmdInitializerSetConstData(
@@ -277,104 +385,21 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerSetConstData(
     hucConstData->TotalCommands = 2;
 
     // Command ID 2
-    hucConstData->InputCOM[0].ID = 2;
-    hucConstData->InputCOM[0].SizeOfData = 2;
-
-    auto qpPrimeYAC = 10; //This is constant from Arch C Model
-
-    double qpScale = (picParams->CodingType == I_TYPE) ? 0.60 : 0.65;
-    double lambdaInputCom = sqrt(qpScale * pow(2.0, MOS_MAX(0, qpPrimeYAC - 12) / 3.0));
-
-    // SADQPLambda
-    hucConstData->InputCOM[0].data[0] = (uint32_t)(lambdaInputCom * 4 + 0.5);
-    hucConstData->InputCOM[0].data[1] = m_roiStreamInEnabled;
+    ConstructHevcHucCmd2ConstData(seqParams, picParams, sliceParams, hucConstData);
 
     // Command ID 1
-    hucConstData->InputCOM[1].ID = 1;
-    hucConstData->InputCOM[1].SizeOfData = 0x17;
-
-    HucInputCmd1  hucInputCmd1;
-    // Shared HEVC/VP9
-    hucInputCmd1.FrameWidthInMinCbMinus1  = seqParams->wFrameWidthInMinCbMinus1;
-    hucInputCmd1.FrameHeightInMinCbMinus1 = seqParams->wFrameHeightInMinCbMinus1;
-
-    hucInputCmd1.log2_min_coding_block_size_minus3 = seqParams->log2_min_coding_block_size_minus3;
-
-    hucInputCmd1.VdencStreamInEnabled   = (uint8_t)m_streamInEnabled; // same flag as StreamInEnable?
-    hucInputCmd1.PakOnlyMultipassEnable = m_pakOnlyPass;
-    hucInputCmd1.num_ref_idx_l0_active_minus1 = sliceParams->num_ref_idx_l0_active_minus1;
-
-    auto   qpPrimeYac = CodecHal_Clip3(0, 51, picParams->QpY + sliceParams->slice_qp_delta);
-    double lambda = sqrt(qpScale * pow(2.0, MOS_MAX(0, qpPrimeYac - 12) / 3.0));
-    hucInputCmd1.SADQPLambda = (uint16_t)(lambda * 4 + 0.5);
-    hucInputCmd1.RDQPLambda  = (uint16_t)(qpScale * pow(2.0, MOS_MAX(0, picParams->QpY - 12) / 3.0) * 4 + 0.5); //U14.2
-
-    hucInputCmd1.num_ref_idx_l1_active_minus1 = sliceParams->num_ref_idx_l1_active_minus1;
-    hucInputCmd1.ROIStreamInEnabled           = (uint8_t)m_roiStreamInEnabled;
-    hucInputCmd1.UseDefaultQpDeltas           = 0;
-    hucInputCmd1.TemporalMvpEnableFlag        = seqParams->sps_temporal_mvp_enable_flag;
-    hucInputCmd1.PanicEnabled                 = m_panicEnabled;
-
-    if (m_roiStreamInEnabled)
-    {
-        for (int8_t i = 0; i < ENCODE_VDENC_HEVC_MAX_STREAMINROI_G10; i++)
-        {
-            hucInputCmd1.ROIDeltaQp[i] = picParams->ROIDistinctDeltaQp[i];
-        }
-    }
-
-    // default
-    hucInputCmd1.FwdPocNumForRefId0inL0 = 0x01;
-    hucInputCmd1.FwdPocNumForRefId0inL1 = 0xff;
-    hucInputCmd1.FwdPocNumForRefId1inL0 = 0x02;
-    hucInputCmd1.FwdPocNumForRefId1inL1 = 0xfe;
-    hucInputCmd1.FwdPocNumForRefId2inL0 = 0x03;
-    hucInputCmd1.FwdPocNumForRefId2inL1 = 0xfd;
-    hucInputCmd1.FwdPocNumForRefId3inL0 = 0x04;
-    hucInputCmd1.FwdPocNumForRefId3inL1 = 0xfc;
-
-    if (picParams->CodingType != I_TYPE)
-    {
-        uint8_t   refFrameID;
-        char    diff_poc;
-
-        refFrameID = sliceParams->RefPicList[0][0].FrameIdx;
-        diff_poc     = picParams->RefFramePOCList[refFrameID] - picParams->CurrPicOrderCnt;
-        hucInputCmd1.FwdPocNumForRefId0inL0 = -diff_poc;
-        hucInputCmd1.FwdPocNumForRefId0inL1 = -diff_poc;
-
-        refFrameID = sliceParams->RefPicList[0][1].FrameIdx;
-        diff_poc     = picParams->RefFramePOCList[refFrameID] - picParams->CurrPicOrderCnt;
-        hucInputCmd1.FwdPocNumForRefId1inL0 = -diff_poc;
-        hucInputCmd1.FwdPocNumForRefId1inL1 = -diff_poc;
-
-        refFrameID = sliceParams->RefPicList[0][2].FrameIdx;
-        diff_poc = picParams->RefFramePOCList[refFrameID] - picParams->CurrPicOrderCnt;
-        hucInputCmd1.FwdPocNumForRefId2inL0 = -diff_poc;
-        hucInputCmd1.FwdPocNumForRefId2inL1 = -diff_poc;
-    }
-
-    hucInputCmd1.EnableRollingIntraRefresh = picParams->bEnableRollingIntraRefresh;
-    hucInputCmd1.QpDeltaForInsertedIntra   = picParams->QpDeltaForInsertedIntra;
-    hucInputCmd1.IntraInsertionSize        = picParams->IntraInsertionSize;
-    hucInputCmd1.IntraInsertionLocation    = picParams->IntraInsertionLocation;
-    hucInputCmd1.IntraInsertionReferenceLocation[0] = picParams->RollingIntraReferenceLocation[0];
-    hucInputCmd1.IntraInsertionReferenceLocation[1] = picParams->RollingIntraReferenceLocation[1];
-    hucInputCmd1.IntraInsertionReferenceLocation[2] = picParams->RollingIntraReferenceLocation[2];
-
-    hucInputCmd1.QpY                    = picParams->QpY + sliceParams->slice_qp_delta;
-    hucInputCmd1.RoundingEnabled        = (uint8_t)m_roundingEnabled;
-
-    MOS_SecureMemcpy(hucConstData->InputCOM[1].data, sizeof(HucInputCmd1), &hucInputCmd1, sizeof(HucInputCmd1));
+    ConstructHevcHucCmd1ConstData(seqParams, picParams, sliceParams, hucConstData);
 
     m_osInterface->pfnUnlockResource(m_osInterface, &m_cmdInitializerDataBuffer[m_encoder->m_currRecycledBufIdx][currentPass]);
 
     return eStatus;
 }
 
-MOS_STATUS CodechalCmdInitializer::CmdInitializerExecute(bool brcEnabled, PMOS_RESOURCE secondlevelBB)
+MOS_STATUS CodechalCmdInitializer::CmdInitializerExecute(
+    bool                brcEnabled,
+    PMOS_RESOURCE       secondlevelBB,
+    MOS_COMMAND_BUFFER* cmdBuffer)
 {
-    MOS_COMMAND_BUFFER                      cmdBuffer;
     MHW_MI_FLUSH_DW_PARAMS                  flushDwParams;
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS       pipeModeSelectParams;
     MHW_VDBOX_HUC_IMEM_STATE_PARAMS         imemParams;
@@ -387,6 +412,7 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerExecute(bool brcEnabled, PMOS_R
     MOS_STATUS                              eStatus = MOS_STATUS_SUCCESS;
     bool                                    renderingFlags;
     CodechalHwInterface                     *hwInterface;
+    bool                                    externCmdBuffer = (cmdBuffer != nullptr);
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
@@ -394,36 +420,37 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerExecute(bool brcEnabled, PMOS_R
     m_osInterface  = m_encoder->GetOsInterface();
     m_miInterface  = hwInterface->GetMiInterface();
 
-    // needs update for HEVC VDEnc
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
+    // for scalability, the cmdbuffer is passed outside
+    // otherwise the cmdbuffer is fetched here
+    if (cmdBuffer == nullptr)
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, cmdBuffer, 0));
 
     if (!m_encoder->m_singleTaskPhaseSupported || m_encoder->m_firstTaskInPhase)
     {
         // Send command buffer header at the beginning (OS dependent)
-        requestFrameTracking = m_encoder->m_singleTaskPhaseSupported ?
-            m_encoder->m_firstTaskInPhase : 0;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->SendPrologWithFrameTracking(&cmdBuffer, requestFrameTracking));
+        requestFrameTracking = m_encoder->m_singleTaskPhaseSupported ? m_encoder->m_firstTaskInPhase : 0;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->SendPrologWithFrameTracking(cmdBuffer, requestFrameTracking));
     }
 
     // load kernel from WOPCM into L2 storage RAM
     MOS_ZeroMemory(&imemParams, sizeof(imemParams));
     imemParams.dwKernelDescriptor = m_hucCmdInitializerKernelDescriptor;
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->GetHwInterface()->GetHucInterface()->AddHucImemStateCmd(&cmdBuffer, &imemParams));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->GetHwInterface()->GetHucInterface()->AddHucImemStateCmd(cmdBuffer, &imemParams));
 
     // HUC_PIPE_MODE_SELECT
     MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode = m_encoder->m_mode;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->GetHwInterface()->GetHucInterface()->AddHucPipeModeSelectCmd(&cmdBuffer, &pipeModeSelectParams));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->GetHwInterface()->GetHucInterface()->AddHucPipeModeSelectCmd(cmdBuffer, &pipeModeSelectParams));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CmdInitializerSetDmem(brcEnabled));
 
     // set HuC DMEM param
     MOS_ZeroMemory(&dmemParams, sizeof(dmemParams));
     dmemParams.presHucDataSource = &m_cmdInitializerDmemBuffer[m_encoder->m_currRecycledBufIdx][m_currentPass];
-    dmemParams.dwDataLength = MOS_ALIGN_CEIL(sizeof(HucComDmem), CODECHAL_CACHELINE_SIZE);
-    dmemParams.dwDmemOffset = HUC_DMEM_OFFSET_RTOS_GEMS;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->GetHwInterface()->GetHucInterface()->AddHucDmemStateCmd(&cmdBuffer, &dmemParams));
+    dmemParams.dwDataLength      = MOS_ALIGN_CEIL(sizeof(HucComDmem), CODECHAL_CACHELINE_SIZE);
+    dmemParams.dwDmemOffset      = HUC_DMEM_OFFSET_RTOS_GEMS;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->GetHwInterface()->GetHucInterface()->AddHucDmemStateCmd(cmdBuffer, &dmemParams));
 
     MOS_ZeroMemory(&virtualAddrParams, sizeof(virtualAddrParams));
     virtualAddrParams.regionParams[0].presRegion = &m_cmdInitializerDataBuffer[m_encoder->m_currRecycledBufIdx][m_currentPass];
@@ -432,47 +459,50 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerExecute(bool brcEnabled, PMOS_R
 
     virtualAddrParams.regionParams[1].isWritable = true;
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->GetHwInterface()->GetHucInterface()->AddHucVirtualAddrStateCmd(&cmdBuffer, &virtualAddrParams));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->GetHwInterface()->GetHucInterface()->AddHucVirtualAddrStateCmd(cmdBuffer, &virtualAddrParams));
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->GetHwInterface()->GetHucInterface()->AddHucStartCmd(&cmdBuffer, true));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->GetHwInterface()->GetHucInterface()->AddHucStartCmd(cmdBuffer, true));
 
     // wait Huc completion (use HEVC bit for now)
     MOS_ZeroMemory(&vdPipeFlushParams, sizeof(vdPipeFlushParams));
     vdPipeFlushParams.Flags.bFlushHEVC = 1;
     vdPipeFlushParams.Flags.bWaitDoneHEVC = 1;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->GetHwInterface()->GetVdencInterface()->AddVdPipelineFlushCmd(&cmdBuffer, &vdPipeFlushParams));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->GetHwInterface()->GetVdencInterface()->AddVdPipelineFlushCmd(cmdBuffer, &vdPipeFlushParams));
 
     // Flush the engine to ensure memory written out
     MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
     flushDwParams.bVideoPipelineCacheInvalidate = true;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(&cmdBuffer, &flushDwParams));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(cmdBuffer, &flushDwParams));
 
     if (!m_encoder->m_singleTaskPhaseSupported && (m_osInterface->bNoParsingAssistanceInKmd))
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(&cmdBuffer, &flushDwParams));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(cmdBuffer, &flushDwParams));
     }
 
     if ((!m_encoder->m_singleTaskPhaseSupported))
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(cmdBuffer, nullptr));
     }
 
-    // needs update for HEVC VDEnc
-    m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBuffer, 0);
+    // if the cmdbuffer is passed outside, then we don't need to submit, just return
+    if (externCmdBuffer)
+        return eStatus;
+
+    m_osInterface->pfnReturnCommandBuffer(m_osInterface, cmdBuffer, 0);
 
     if (!m_encoder->m_singleTaskPhaseSupported)
     {
         renderingFlags = m_encoder->m_videoContextUsesNullHw;
 
         CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->GetDebugInterface()->DumpCmdBuffer(
-            &cmdBuffer,
+            cmdBuffer,
             CODECHAL_NUM_MEDIA_STATES,
-            nullptr)));
+            "HucCmd")));
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, renderingFlags));
-
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, cmdBuffer, renderingFlags));
+        CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(DumpHucCmdInit(secondlevelBB)));
     }
-    CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(DumpHucCmdInit(secondlevelBB)));
+
     return eStatus;
 }
 #endif

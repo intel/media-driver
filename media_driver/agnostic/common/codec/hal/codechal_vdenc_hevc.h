@@ -145,8 +145,8 @@ public:
     uint32_t                                m_brcRoiBufferSize;                                //!< BRC ROI input buffer size
 
     // Batch Buffer for VDEnc
-    MHW_BATCH_BUFFER                        m_vdenc2ndLevelBatchBuffer;                        //!< VDEnc 2nd level batch buffer
-    uint32_t                                m_vdenc2ndLevelBatchBufferSize = 0;
+    MHW_BATCH_BUFFER                        m_vdenc2ndLevelBatchBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];  //!< VDEnc 2nd level batch buffer
+    uint32_t                                m_vdenc2ndLevelBatchBufferSize[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM] = {0};
     uint32_t                                m_vdencBatchBufferPerSliceVarSize[ENCODE_HEVC_VDENC_NUM_MAX_SLICES] = { 0 };    //!< VDEnc batch buffer slice size array
     uint32_t                                m_1stPakInsertObjectCmdSize = 0;                   //!< Size of 1st PAK_INSERT_OBJ cmd
     uint32_t                                m_hcpWeightOffsetStateCmdSize = 0;                 //!< Size of HCP_WEIGHT_OFFSET_STATE cmd

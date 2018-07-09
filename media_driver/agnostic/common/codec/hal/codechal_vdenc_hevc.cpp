@@ -1010,7 +1010,7 @@ MOS_STATUS CodechalVdencHevcState::SetRegionsHuCBrcUpdate(PMHW_VDBOX_HUC_VIRTUAL
     virtualAddrParams->regionParams[2].presRegion = &m_resFrameStatStreamOutBuffer;          // Region 2  PAK Statistics Buffer (Input) - MFX_PAK_FRAME_STATISTICS
     virtualAddrParams->regionParams[3].presRegion = &m_vdencReadBatchBuffer[m_currRecycledBufIdx][currentPass];    // Region 3 - Input SLB Buffer (Input)
     virtualAddrParams->regionParams[4].presRegion = &m_vdencBrcConstDataBuffer[m_currRecycledBufIdx];              // Region 4 - Constant Data (Input)
-    virtualAddrParams->regionParams[5].presRegion = &m_vdenc2ndLevelBatchBuffer.OsResource;     // Region 5 - Output SLB Buffer (Output)
+    virtualAddrParams->regionParams[5].presRegion = &m_vdenc2ndLevelBatchBuffer[m_currRecycledBufIdx].OsResource;  // Region 5 - Output SLB Buffer (Output)
     virtualAddrParams->regionParams[5].isWritable = true;
     virtualAddrParams->regionParams[6].presRegion = &m_dataFromPicsBuffer;                   // Region 6 - Data Buffer of Current and Reference Pictures for Weighted Prediction (Input/Output)
     virtualAddrParams->regionParams[6].isWritable = true;
@@ -1335,7 +1335,7 @@ void CodechalVdencHevcState::SetHcpSliceStateCommonParams(MHW_VDBOX_HEVC_SLICE_S
     sliceStateParams.bVdencInUse = true;
     sliceStateParams.bVdencHucInUse     = m_hevcVdencAcqpEnabled || m_brcEnabled;
     sliceStateParams.bWeightedPredInUse = m_hevcVdencWeightedPredEnabled;
-    sliceStateParams.pVdencBatchBuffer = &m_vdenc2ndLevelBatchBuffer;
+    sliceStateParams.pVdencBatchBuffer  = &m_vdenc2ndLevelBatchBuffer[m_currRecycledBufIdx];
 
     // This bit disables Top intra Reference pixel fetch in VDENC mode.
     // In PAK only second pass, this bit should be set to one.
@@ -1818,7 +1818,7 @@ MOS_STATUS CodechalVdencHevcState::ExecutePictureLevel()
     }
     else
     {
-        ConstructBatchBufferHuCCQP(&m_vdenc2ndLevelBatchBuffer.OsResource);
+        ConstructBatchBufferHuCCQP(&m_vdenc2ndLevelBatchBuffer[m_currRecycledBufIdx].OsResource);
     }
 
     MOS_COMMAND_BUFFER cmdBuffer;
@@ -1931,14 +1931,14 @@ MOS_STATUS CodechalVdencHevcState::ExecutePictureLevel()
     if (m_vdencHucUsed && m_b2NdSaoPassNeeded)
     {
         // current location to add cmds in 2nd level batch buffer
-        m_vdenc2ndLevelBatchBuffer.iCurrent = 0;
+        m_vdenc2ndLevelBatchBuffer[m_currRecycledBufIdx].iCurrent = 0;
         // reset starting location (offset) executing 2nd level batch buffer for each frame & each pass
-        m_vdenc2ndLevelBatchBuffer.dwOffset = 0;
+        m_vdenc2ndLevelBatchBuffer[m_currRecycledBufIdx].dwOffset = 0;
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(&cmdBuffer, &m_vdenc2ndLevelBatchBuffer));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(&cmdBuffer, &m_vdenc2ndLevelBatchBuffer[m_currRecycledBufIdx]));
 
         // save offset for next 2nd level batch buffer usage
-        m_vdenc2ndLevelBatchBuffer.dwOffset = m_hwInterface->m_vdencBatchBuffer1stGroupSize;
+        m_vdenc2ndLevelBatchBuffer[m_currRecycledBufIdx].dwOffset = m_hwInterface->m_vdencBatchBuffer1stGroupSize;
     }
     else
     {
@@ -1978,21 +1978,21 @@ MOS_STATUS CodechalVdencHevcState::ExecutePictureLevel()
     if (m_vdencHucUsed)
     {
         // 2nd level batch buffer
-        m_vdenc2ndLevelBatchBuffer.dwOffset = m_hwInterface->m_vdencBatchBuffer1stGroupSize;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(&cmdBuffer, &m_vdenc2ndLevelBatchBuffer));
+        m_vdenc2ndLevelBatchBuffer[m_currRecycledBufIdx].dwOffset = m_hwInterface->m_vdencBatchBuffer1stGroupSize;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(&cmdBuffer, &m_vdenc2ndLevelBatchBuffer[m_currRecycledBufIdx]));
 
         // save offset for next 2nd level batch buffer usage
-        m_vdenc2ndLevelBatchBuffer.dwOffset += m_hwInterface->m_vdencBatchBuffer2ndGroupSize;
+        m_vdenc2ndLevelBatchBuffer[m_currRecycledBufIdx].dwOffset += m_hwInterface->m_vdencBatchBuffer2ndGroupSize;
     }
     else
     {
         // current location to add cmds in 2nd level batch buffer
-        m_vdenc2ndLevelBatchBuffer.iCurrent = 0;
+        m_vdenc2ndLevelBatchBuffer[m_currRecycledBufIdx].iCurrent = 0;
         // reset starting location (offset) executing 2nd level batch buffer for each frame & each pass
-        m_vdenc2ndLevelBatchBuffer.dwOffset = 0;
+        m_vdenc2ndLevelBatchBuffer[m_currRecycledBufIdx].dwOffset = 0;
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(&cmdBuffer, &m_vdenc2ndLevelBatchBuffer));
-        m_vdenc2ndLevelBatchBuffer.dwOffset = m_hwInterface->m_vdencBatchBuffer2ndGroupSize;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(&cmdBuffer, &m_vdenc2ndLevelBatchBuffer[m_currRecycledBufIdx]));
+        m_vdenc2ndLevelBatchBuffer[m_currRecycledBufIdx].dwOffset = m_hwInterface->m_vdencBatchBuffer2ndGroupSize;
     }
 
     // Send HEVC_VP9_RDOQ_STATE command
@@ -2079,7 +2079,7 @@ MOS_STATUS CodechalVdencHevcState::ExecuteSliceLevel()
     SetHcpSliceStateCommonParams(*m_sliceStateParams);
 
     // starting location for executing slice level cmds
-    m_vdenc2ndLevelBatchBuffer.dwOffset = m_hwInterface->m_vdencBatchBuffer1stGroupSize + m_hwInterface->m_vdencBatchBuffer2ndGroupSize;
+    m_vdenc2ndLevelBatchBuffer[m_currRecycledBufIdx].dwOffset = m_hwInterface->m_vdencBatchBuffer1stGroupSize + m_hwInterface->m_vdencBatchBuffer2ndGroupSize;
 
     PCODEC_ENCODER_SLCDATA slcData = m_slcData;
     for (uint32_t startLcu = 0, slcCount = 0; slcCount < m_numSlices; slcCount++)
@@ -2103,8 +2103,7 @@ MOS_STATUS CodechalVdencHevcState::ExecuteSliceLevel()
             // This is because we don't know how many times HCP_WEIGHTOFFSET_STATE & HCP_PAK_INSERT_OBJECT will be inserted for each slice
             // dwVdencBatchBufferPerSliceConstSize: constant size for each slice
             // m_vdencBatchBufferPerSliceVarSize:   variable size for each slice
-            m_vdenc2ndLevelBatchBuffer.dwOffset
-                += m_hwInterface->m_vdencBatchBufferPerSliceConstSize + m_vdencBatchBufferPerSliceVarSize[slcCount];
+            m_vdenc2ndLevelBatchBuffer[m_currRecycledBufIdx].dwOffset += m_hwInterface->m_vdencBatchBufferPerSliceConstSize + m_vdencBatchBufferPerSliceVarSize[slcCount];
         }
 
         // Send VD_PIPELINE_FLUSH command
@@ -2916,6 +2915,18 @@ MOS_STATUS CodechalVdencHevcState::AllocateBrcResources()
         }
     }
 
+    for (auto j = 0; j < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; j++)
+    {
+        // VDENC uses second level batch buffer
+        MOS_ZeroMemory(&m_vdenc2ndLevelBatchBuffer[j], sizeof(MHW_BATCH_BUFFER));
+        m_vdenc2ndLevelBatchBuffer[j].bSecondLevel = true;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(Mhw_AllocateBb(
+            m_osInterface,
+            &m_vdenc2ndLevelBatchBuffer[j],
+            nullptr,
+            m_hwInterface->m_vdenc2ndLevelBatchBufferSize));
+    }
+
     // BRC history buffer
     allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(m_brcHistoryBufSize, CODECHAL_PAGE_SIZE);
     allocParamsForBufferLinear.pBufName = "VDENC BRC History Buffer";
@@ -2946,15 +2957,6 @@ MOS_STATUS CodechalVdencHevcState::AllocateBrcResources()
         &allocParamsForBufferLinear,
         &m_vdencOutputROIStreaminBuffer));
 
-    // VDENC uses second level batch buffer
-    MOS_ZeroMemory(&m_vdenc2ndLevelBatchBuffer, sizeof(m_vdenc2ndLevelBatchBuffer));
-    m_vdenc2ndLevelBatchBuffer.bSecondLevel = true;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(Mhw_AllocateBb(
-        m_osInterface,
-        &m_vdenc2ndLevelBatchBuffer,
-        nullptr,
-        m_hwInterface->m_vdenc2ndLevelBatchBufferSize));
-
     return eStatus;
 }
 
@@ -2984,11 +2986,15 @@ MOS_STATUS CodechalVdencHevcState::FreeBrcResources()
         m_osInterface->pfnFreeResource(m_osInterface, &m_vdencBrcInitDmemBuffer[k]);
         m_osInterface->pfnFreeResource(m_osInterface, &m_vdencBrcConstDataBuffer[k]);
     }
+
+    for (auto j = 0; j < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; j++)
+    {
+        Mhw_FreeBb(m_osInterface, &m_vdenc2ndLevelBatchBuffer[j], nullptr);
+    }
+
     m_osInterface->pfnFreeResource(m_osInterface, &m_vdencBrcHistoryBuffer);
     m_osInterface->pfnFreeResource(m_osInterface, &m_vdencBrcDbgBuffer);
     m_osInterface->pfnFreeResource(m_osInterface, &m_vdencOutputROIStreaminBuffer);
-
-    Mhw_FreeBb(m_osInterface, &m_vdenc2ndLevelBatchBuffer, nullptr);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -3322,7 +3328,7 @@ MOS_STATUS CodechalVdencHevcState::DumpHucBrcUpdate(bool isInput)
     {
         // Region 5 - Output SLB Buffer
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucRegion(
-            &m_vdenc2ndLevelBatchBuffer.OsResource,
+            &m_vdenc2ndLevelBatchBuffer[m_currRecycledBufIdx].OsResource,
             0,
             m_hwInterface->m_vdenc2ndLevelBatchBufferSize,
             5,

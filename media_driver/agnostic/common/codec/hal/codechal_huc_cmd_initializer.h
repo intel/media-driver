@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -310,11 +310,13 @@ public:
     //!           Indicate if brc is enabled
     //! \param    [in] secondlevelBB
     //!           Second level batch buffer
+    //! \param    [in] cmdBuffer
+    //!           cmdBuffer provided by outside
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS CmdInitializerExecute(bool brcEnabled, PMOS_RESOURCE secondlevelBB);
+    MOS_STATUS CmdInitializerExecute(bool brcEnabled, PMOS_RESOURCE secondlevelBB, MOS_COMMAND_BUFFER* cmdBuffer = nullptr);
 
     //!
     //! \brief    Set Add Commands to BatchBuffer
@@ -395,6 +397,24 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS DumpHucCmdInit(PMOS_RESOURCE secondlevelBB);
+#endif
+
+protected:
+#if defined (_HEVC_ENCODE_VME_SUPPORTED) || defined (_HEVC_ENCODE_VDENC_SUPPORTED)
+    virtual MOS_STATUS ConstructHevcHucCmd1ConstData(
+        PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS seqParams,
+        PCODEC_HEVC_ENCODE_PICTURE_PARAMS  picParams,
+        PCODEC_HEVC_ENCODE_SLICE_PARAMS    sliceParams,
+        struct HucComData *                hucConstData);
+
+    virtual MOS_STATUS ConstructHevcHucCmd2ConstData(
+        PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS seqParams,
+        PCODEC_HEVC_ENCODE_PICTURE_PARAMS  picParams,
+        PCODEC_HEVC_ENCODE_SLICE_PARAMS    sliceParams,
+        struct HucComData *                hucConstData);
+
+    virtual uint16_t GetCmd1StartOffset(bool brcEnabled);
+    virtual uint16_t GetCmd2StartOffset(bool brcEnabled);
 #endif
 };
 using PCODECHAL_CMD_INITIALIZER = class CodechalCmdInitializer*;
