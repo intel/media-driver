@@ -76,17 +76,14 @@ set_target_properties(${LIB_NAME_STATIC} PROPERTIES PREFIX "")
 MediaAddCommonTargetDefines(${LIB_NAME_OBJ})
 
 include (FindPkgConfig)
-# find external libs, if not found, cmake will abort
-pkg_check_modules (pciaccess REQUIRED)
-pkg_check_modules (m REQUIRED)
-pkg_check_modules (pthread REQUIRED)
-pkg_check_modules (dl REQUIRED)
-pkg_check_modules (rt REQUIRED)
+pkg_check_modules (PKG_PCIACCESS REQUIRED pciaccess)
+include_directories (BEFORE ${PKG_PCIACCESS_INCLUDE_DIRS})
+link_directories (${PKG_PCIACCESS_LIBRARY_DIRS})
 
 bs_ufo_link_libraries_noBsymbolic(
     ${LIB_NAME}
     "${INCLUDED_LIBS}"
-    "pciaccess m pthread dl rt"
+    "${PKG_PCIACCESS_LIBRARIES} m pthread dl rt"
 )
 
 if (NOT DEFINED INCLUDED_LIBS OR "${INCLUDED_LIBS}" STREQUAL "")
