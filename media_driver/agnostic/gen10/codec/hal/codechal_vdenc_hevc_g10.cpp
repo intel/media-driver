@@ -1937,10 +1937,10 @@ MOS_STATUS CodechalVdencHevcStateG10::SetDmemHuCBrcUpdate()
     MOS_SecureMemcpy(hucVdencBrcUpdateDmem->startGAdjFrame_U16, 4 * sizeof(uint16_t), (void*)m_startGAdjFrame, 4 * sizeof(uint16_t));
     hucVdencBrcUpdateDmem->TargetSliceSize_U16 = (uint16_t)m_hevcPicParams->MaxSliceSizeInBytes;
 
-    m_vdenc2ndLevelBatchBufferSize = ((m_hwInterface->m_vdenc2ndLevelBatchBufferSize - m_hwInterface->m_vdencBatchBuffer1stGroupSize
+    m_vdenc2ndLevelBatchBufferSize[m_currRecycledBufIdx] = ((m_hwInterface->m_vdenc2ndLevelBatchBufferSize - m_hwInterface->m_vdencBatchBuffer1stGroupSize
         - m_hwInterface->m_vdencBatchBuffer2ndGroupSize)/ ENCODE_HEVC_VDENC_NUM_MAX_SLICES)*m_numSlices +
         m_hwInterface->m_vdencBatchBuffer1stGroupSize + m_hwInterface->m_vdencBatchBuffer2ndGroupSize;
-    hucVdencBrcUpdateDmem->SLB_Data_SizeInBytes = (uint16_t)m_vdenc2ndLevelBatchBufferSize;
+    hucVdencBrcUpdateDmem->SLB_Data_SizeInBytes = (uint16_t)m_vdenc2ndLevelBatchBufferSize[m_currRecycledBufIdx];
     hucVdencBrcUpdateDmem->PIPE_MODE_SELECT_StartInBytes = 0;
     hucVdencBrcUpdateDmem->CMD1_StartInBytes = (uint16_t)m_hwInterface->m_vdencBatchBuffer1stGroupSize;
     hucVdencBrcUpdateDmem->PIC_STATE_StartInBytes = (uint16_t)m_picStateCmdStartInBytes;
