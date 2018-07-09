@@ -607,6 +607,21 @@ typedef enum _CM_HAL_MEMORY_OBJECT_CONTROL_G9
     CM_MEMORY_OBJECT_CONTROL_SKL_NO_CACHE    = 0x7
 }CM_HAL_MEMORY_OBJECT_CONTROL_G9;
 
+// Unified  CM_MEMORY_OBJECT_CONTROL enumeration
+typedef enum _CM_HAL_MEMORY_OBJECT_CONTROL
+{
+    CM_MEMORY_OBJECT_CONTROL_DEFAULT          = 0x0,
+    CM_MEMORY_OBJECT_CONTROL_NO_L3            = 0x1,
+    CM_MEMORY_OBJECT_CONTROL_NO_LLC_ELLC      = 0x2,
+    CM_MEMORY_OBJECT_CONTROL_NO_LLC           = 0x3,
+    CM_MEMORY_OBJECT_CONTROL_NO_ELLC          = 0x4,
+    CM_MEMORY_OBJECT_CONTROL_NO_LLC_L3        = 0x5,
+    CM_MEMORY_OBJECT_CONTROL_NO_ELLC_L3       = 0x6,
+    CM_MEMORY_OBJECT_CONTROL_NO_CACHE         = 0x7,
+    CM_MEMORY_OBJECT_CONTROL_L1_ENABLED       = 0x8
+}CM_HAL_MEMORY_OBJECT_CONTROL;
+
+
 typedef struct _CM_POWER_OPTION
 {
     uint16_t nSlice;                      // set number of slice to use: 0(default number), 1, 2...
