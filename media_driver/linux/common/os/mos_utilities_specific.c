@@ -53,10 +53,45 @@
 
 void PerfUtility::startTick(std::string tag)
 {
+    Tick newTick = {};
+    struct timespec ts = {};
+
+    // get start tick count
+    clock_gettime(CLOCK_REALTIME, &ts);
+    newTick.start = int(ts.tv_sec * 1000000) + int(ts.tv_nsec / 1000); // us
+
+    std::vector<Tick> *perf = nullptr;
+    std::map<std::string, std::vector<Tick>*>::iterator it;
+    it = records.find(tag);
+    if (it == records.end())
+    {
+        perf = new std::vector<Tick>;
+        perf->push_back(newTick);
+        records[tag] = perf;
+    }
+    else
+    {
+        it->second->push_back(newTick);
+    }
 }
 
 void PerfUtility::stopTick(std::string tag)
 {
+    struct timespec ts = {};
+    std::map<std::string, std::vector<Tick>*>::iterator it;
+    it = records.find(tag);
+    if (it == records.end())
+    {
+        // should not happen
+        return;
+    }
+
+    // get stop tick count
+    clock_gettime(CLOCK_REALTIME, &ts);
+    it->second->back().stop = int(ts.tv_sec * 1000000) + int(ts.tv_nsec / 1000); // us
+
+    // calculate time interval
+    it->second->back().time = double(it->second->back().stop - it->second->back().start) / 1000.0; // ms
 }
 
 #endif // __cplusplus
