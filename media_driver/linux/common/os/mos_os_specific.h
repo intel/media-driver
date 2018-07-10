@@ -584,6 +584,9 @@ struct _MOS_OS_CONTEXT
         PMOS_INTERFACE             pOsInterface,
         MOS_GPU_CONTEXT            GpuContext);
 
+    GMM_CLIENT_CONTEXT* (* GetGmmClientContext)(
+        PMOS_CONTEXT               pOsContext);
+
 };
 
 //!

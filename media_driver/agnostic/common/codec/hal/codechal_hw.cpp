@@ -201,7 +201,9 @@ MOS_STATUS CodechalHwInterface::CachePolicyGetMemoryObject(
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     m_cacheabilitySettings[mosUsage].Value =
-        (m_osInterface->pfnCachePolicyGetMemoryObject(mosUsage)).DwordValue;
+        (m_osInterface->pfnCachePolicyGetMemoryObject(
+            mosUsage, 
+            m_osInterface->pfnGetGmmClientContext(m_osInterface))).DwordValue;
 
     m_cacheabilitySettings[mosUsage].Value = ComposeSurfaceCacheabilityControl(
         mosUsage,
