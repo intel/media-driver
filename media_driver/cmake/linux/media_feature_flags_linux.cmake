@@ -31,6 +31,8 @@ bs_set_if_undefined(Full_Open_Source_Support "no")
 
 if(${Full_Open_Source_Support} STREQUAL "yes")
     # full-open-source
+    bs_set_if_undefined(AVC_Encode_VME_Supported "no")
+    bs_set_if_undefined(HEVC_Encode_VME_Supported "no")
     bs_set_if_undefined(MPEG2_Encode_VME_Supported "no")
     bs_set_if_undefined(CMRT_HEVC_ENC_FEI_Supported "no")
     bs_set_if_undefined(MMC_Supported "no")
@@ -40,6 +42,8 @@ if(${Full_Open_Source_Support} STREQUAL "yes")
     bs_set_if_undefined(VP8_Encode_Supported "no")
 else()
     # full-feature
+    bs_set_if_undefined(AVC_Encode_VME_Supported "${Encode_VME_Supported}")
+    bs_set_if_undefined(HEVC_Encode_VME_Supported "${Encode_VME_Supported}")
     bs_set_if_undefined(MPEG2_Encode_VME_Supported "${Encode_VME_Supported}")
     bs_set_if_undefined(CMRT_HEVC_ENC_FEI_Supported "yes")
     bs_set_if_undefined(MMC_Supported "yes")
@@ -60,10 +64,8 @@ bs_set_if_undefined(VP_SFC_Supported "yes")
 bs_set_if_undefined(Common_Encode_Supported "yes")
 bs_set_if_undefined(Media_Scalability_Supported "yes")
 
-# features controlled by global flags Encode_VME_Supported and Encode_VDEnc_Supported
-bs_set_if_undefined(AVC_Encode_VME_Supported "${Encode_VME_Supported}")
+# features controlled by global flag Encode_VDEnc_Supported
 bs_set_if_undefined(AVC_Encode_VDEnc_Supported "${Encode_VDEnc_Supported}")
-bs_set_if_undefined(HEVC_Encode_VME_Supported "${Encode_VME_Supported}")
 bs_set_if_undefined(HEVC_Encode_VDEnc_Supported "${Encode_VDEnc_Supported}")
 bs_set_if_undefined(VP9_Encode_VDEnc_Supported "${Encode_VDEnc_Supported}")
 bs_set_if_undefined(JPEG_Encode_Supported "${Encode_VDEnc_Supported}")
