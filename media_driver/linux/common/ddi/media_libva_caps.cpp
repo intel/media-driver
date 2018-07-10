@@ -1190,6 +1190,13 @@ VAStatus MediaLibvaCaps::LoadVp8EncProfileEntrypoints()
     return status;
 }
 
+VAStatus MediaLibvaCaps::LoadAdvancedDecProfileEntrypoints()
+{
+    VAStatus status = VA_STATUS_SUCCESS;
+
+    return status;
+}
+
 VAStatus MediaLibvaCaps::LoadVp9DecProfileEntrypoints()
 {
     VAStatus status = VA_STATUS_SUCCESS;

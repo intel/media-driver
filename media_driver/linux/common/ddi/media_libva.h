@@ -272,6 +272,8 @@ typedef struct _DDI_CODEC_COM_BUFFER_MGR
     VAProcPipelineParameterBuffer                ProcPipelineParamBuffer;
     VAProcFilterParameterBuffer                  ProcFilterParamBuffer;
     VACodedBufferSegment                        *pCodedBufferSegmentForStatusReport; // for extended Status report such as long-term reference for VP8-F encode
+    void                                        *pCodecParamReserved;
+    uint32_t                                     bitstreamBufferOffset = 0;
 
     // for External decode StreamOut Buffer
     MOS_RESOURCE                                 resExternalStreamOutBuffer;
