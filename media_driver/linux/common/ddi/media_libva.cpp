@@ -2799,6 +2799,9 @@ VAStatus DdiMedia_MapBufferInternal (
                 case CODECHAL_DECODE_MODE_VP9VLD:
                     *pbuf = (void *)((uint8_t*)(bufMgr->Codec_Param.Codec_Param_VP9.pVASliceParaBufVP9) + buf->uiOffset);
                     break;
+                case CODECHAL_DECODE_RESERVED_0:
+                    *pbuf = (void *)((uint8_t*)(bufMgr->pCodecParamReserved) + bufMgr->bitstreamBufferOffset + buf->uiOffset); ;
+                    break;
                 default:
                     break;
             }

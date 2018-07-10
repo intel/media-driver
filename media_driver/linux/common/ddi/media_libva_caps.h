@@ -1071,6 +1071,11 @@ protected:
     VAStatus LoadNoneProfileEntrypoints();
 
     //!
+    //! \brief    Initialize Advanced decode profiles, entrypoints and attributes
+    //!
+    virtual VAStatus LoadAdvancedDecProfileEntrypoints();
+
+    //!
     //! \brief    Initialize encode/decode/vp profiles, entrypoints and attributes
     //!
     virtual VAStatus LoadProfileEntrypoints() = 0;
