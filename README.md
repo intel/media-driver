@@ -101,24 +101,52 @@ BDW (Broadwell)
 
 SKL (Skylake)
 
-BXT (Broxton) / APL (Apollolake)
+BXT (Broxton) / APL (Apollo Lake)
+
+KBL (Kaby Lake)
+
+CFL (Coffee Lake)
 
 CNL (Cannonlake)
 
 ## Supported Codecs
 
-| CODEC      | BDW | SKL | BXT/APL | CNL |
-|------------|-----|-----|---------|-----|
-| H.264      | D/E | D/E |   D/E   | D/E |
-| MPEG-2     | D/E | D/E |    D    | D/E |
-| VC-1       |  D  |  D  |    D    |  D  |
-| JPEG       |  D  | D/E |   D/E   | D/E |
-| VP8        |  D  |  D  |    D    | D/E |
-| HEVC       |     | D/E |   D/E   | D/E |
-| HEVC 10bit |     |     |    D    | D/E |
-| VP9        |     |     |    D    | D/E |
-| VP9 10bit  |     |     |         |  D  |
+| CODEC      | BDW  | SKL  | BXT/APL |   KBL   |   CFL   |   CNL   |
+|------------|------|------|---------|---------|---------|---------|
+| H.264      | D/E1 | D/E1 | D/E1/E2 | D/E1/E2 | D/E1/E2 | D/E1/E2 |
+| MPEG-2     | D/E1 | D/E1 | D       | D/E1    | D/E1    | D/E1    |
+| VC-1       | D    | D    | D       | D       | D       | D       |
+| JPEG       | D    | D/E2 | D/E2    | D/E2    | D/E2    | D/E2    |
+| VP8        | D    | D    | D       | D       | D       | D/E1    |
+| HEVC       |      | D/E1 | D/E1    | D/E1    | D/E1    | D/E1/E2 |
+| HEVC 10bit |      |      | D       | D       | D       | D/E1/E2 |
+| VP9        |      |      | D       | D       | D       | D/E2    |
+| VP9 10bit  |      |      |         | D       | D       | D       |
 
+D  - decoding
+
+E1 - VME based encoding
+
+E2 - Low power encoding
+
+## Supported Video Processing
+
+| Video Processing                             | BDW | SKL | BXT/APL | KBL | CFL | CNL |
+|----------------------------------------------|-----|-----|---------|-----|-----|-----|
+| Blending                                     |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |
+| CSC (Color Space Conversion)                 |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |
+| De-interlace                                 |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |
+| De-noise                                     |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |
+| Luma Key                                     |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |
+| Mirroring                                    |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |
+| ProcAmp (brightness,contrast,hue,saturation) |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |
+| Rotation                                     |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |
+| Scaling                                      |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |
+| Sharpening                                   |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |
+| STD/E (Skin Tone Detect & Enhancement)       |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |
+| TCC (Total Color Control)                    |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |
+| Color fill                                   |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |
+| Chroma Sitting                               |  N  |  Y  |    Y    |  Y  |  Y  |  Y  |
 
 ## Known Issues and Limitations
 
@@ -137,6 +165,12 @@ later kernel to work.
 power encoding, and VP9 low power encoding require the kernel patch for GuC support to work.
 
 5. CNL: HEVC encoding does not support P frame.
+
+6. CFL: BRC functionalities requiring HuC for AVC low power encoding require 4.15 or later kernel to work.
+
+7. KBL: BRC functionalities requiring HuC for AVC low power encoding require 4.11 or later kernel to work.
+
+8. Restriction in implementation of vaGetImage: Source format (surface) should be same with destination format (image).
 
 ##### (*) Other names and brands may be claimed as property of others.
 
