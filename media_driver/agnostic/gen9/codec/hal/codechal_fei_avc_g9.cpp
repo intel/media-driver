@@ -7091,17 +7091,18 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::EncodeMbEncKernelFunctions()
         {
             CodechalEncoderState *encoder = m_mfeEncodeSharedState->encoders[0];
 
-            // The owner stream is responsible for destroying the shared event
-            if (encoder->m_sharedCmEvent[encoder->m_sharedCmEventIdx])
-            {
-                encoder->m_cmQueue->DestroyEvent(encoder->m_sharedCmEvent[encoder->m_sharedCmEventIdx]);
-            }
             encoder->m_sharedCmEvent[encoder->m_cmEventIdx] = kernelRes->e;
             encoder->m_sharedCmEventIdx++;
             encoder->m_sharedCmEventIdx %= CM_EVENT_NUM;
 
             int32_t dwTimeOutMs = -1;
             encoder->m_sharedCmEvent[encoder->m_cmEventIdx]->WaitForTaskFinished(dwTimeOutMs);
+
+            // The owner stream is responsible for destroying the shared event
+            if (encoder->m_sharedCmEvent[encoder->m_sharedCmEventIdx])
+            {
+                encoder->m_cmQueue->DestroyEvent(encoder->m_sharedCmEvent[encoder->m_sharedCmEventIdx]);
+            }
 
             // All the Mfe streams wait for the same event
             for (uint32_t i = 0; i < m_mfeEncodeSharedState->encoders.size(); i++)
@@ -7124,6 +7125,8 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::EncodeMbEncKernelFunctions()
             m_cmEventIdx++;
             m_cmEventIdx %= CM_EVENT_NUM;
         }
+
+        m_cmDev->DestroyThreadSpace(kernelRes->pTS);
 
         FreeMDFKernelSurfaces(kernelRes);
     }
