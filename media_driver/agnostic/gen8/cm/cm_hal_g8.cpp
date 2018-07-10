@@ -589,16 +589,16 @@ MOS_STATUS CM_HAL_G8_X::HwSetSurfaceMemoryObjectControl(
     uint16_t                        memObjCtl,
     PRENDERHAL_SURFACE_STATE_PARAMS surfStateParams )
 {
-    MOS_STATUS                      hr = MOS_STATUS_SUCCESS;
+    MOS_STATUS                      hr        = MOS_STATUS_SUCCESS;
+    PRENDERHAL_INTERFACE            renderHal = m_cmState->renderHal;
     CM_HAL_MEMORY_OBJECT_CONTROL_G8 cacheType;
 
     MOS_ZeroMemory( &cacheType, sizeof( CM_HAL_MEMORY_OBJECT_CONTROL_G8 ) );
 
     if ( ( memObjCtl & CM_MEMOBJCTL_CACHE_MASK ) >> 8 == CM_INVALID_MEMOBJCTL )
     {
-        CM_CHK_NULL_RETURN(pGmmGlobalContext);
-        CM_CHK_NULL_RETURN(pGmmGlobalContext->GetCachePolicyObj());
-        cacheType.value = pGmmGlobalContext->GetCachePolicyObj()->CachePolicyGetMemoryObject( nullptr, CM_RESOURCE_USAGE_SurfaceState ).DwordValue;
+        CM_CHK_NULL_RETURN(renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface));
+        cacheType.value = renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)->CachePolicyGetMemoryObject(nullptr, CM_RESOURCE_USAGE_SurfaceState).DwordValue;
 
         // for default value and SVM surface, override the cache control from WB to WT
         if ( ( ( memObjCtl & 0xF0 ) >> 4 ) == 2 )

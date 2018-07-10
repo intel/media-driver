@@ -483,7 +483,8 @@ typedef struct _MOS_INTERFACE
 #endif // (_DEBUG || _RELEASE_INTERNAL)
 
     MEMORY_OBJECT_CONTROL_STATE (* pfnCachePolicyGetMemoryObject) (
-        MOS_HW_RESOURCE_DEF         Usage);
+        MOS_HW_RESOURCE_DEF         Usage,
+        GMM_CLIENT_CONTEXT          *pGmmClientContext);
 
     MOS_STATUS (* pfnCreateGpuContext) (
         PMOS_INTERFACE              pOsInterface,
@@ -513,6 +514,9 @@ typedef struct _MOS_INTERFACE
 #endif
 
     MOS_GPU_CONTEXT (* pfnGetGpuContext) (
+        PMOS_INTERFACE              pOsInterface);
+
+    GMM_CLIENT_CONTEXT* (* pfnGetGmmClientContext) (
         PMOS_INTERFACE              pOsInterface);
 
     MOS_STATUS (* pfnIsGpuContextValid) (
@@ -1080,11 +1084,13 @@ MOS_STATUS Mos_AddCommand(
 //! \details  Get memory object based on resource usage
 //! \param    MOS_HW_RESOURCE_DEF MosUsage
 //!           [in] Current usage for resource
+//!           [in] Gmm client context
 //! \return   MEMORY_OBJECT_CONTROL_STATE
 //!           Populated memory object
 //!
 MEMORY_OBJECT_CONTROL_STATE Mos_CachePolicyGetMemoryObject(
-    MOS_HW_RESOURCE_DEF         MosUsage);
+    MOS_HW_RESOURCE_DEF MosUsage,
+    GMM_CLIENT_CONTEXT  *pGmmClientContext);
 #endif
 
 #ifdef __cplusplus

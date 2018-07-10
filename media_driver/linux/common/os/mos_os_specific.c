@@ -874,6 +874,11 @@ void Linux_IncGpuCtxBufferTag(
     }
 }
 
+GMM_CLIENT_CONTEXT* Linux_GetGmmClientContext(PMOS_CONTEXT pOsContext)
+{
+    return pOsContext->pGmmClientContext;
+}
+
 //!
 //! \brief    Get GPU tag for the given GPU context from the status buffer
 //! \details  Get GPU tag for the given GPU context from the status buffer
@@ -1297,6 +1302,7 @@ MOS_STATUS Linux_InitContext(
     pContext->pfnGetGpuCtxBufferTag      = Linux_GetGpuCtxBufferTag;
     pContext->pfnIncGpuCtxBufferTag      = Linux_IncGpuCtxBufferTag;
     pContext->GetGPUTag                  = Linux_GetGPUTag;
+    pContext->GetGmmClientContext        = Linux_GetGmmClientContext;
 
 finish:
     if (!modularizedGpuCtxEnabled)
@@ -1356,6 +1362,20 @@ MOS_GPU_CONTEXT Mos_Specific_GetGpuContext(
     PMOS_INTERFACE     pOsInterface)
 {
     return pOsInterface->CurrentGpuContextOrdinal;
+}
+
+//!
+//! \brief    Get current GMM client context
+//! \details  Get current GMM client context
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] Pointer to OS Interface
+//! \return   GMM_CLIENT_CONTEXT
+//!           Return current GMM client context
+//!
+GMM_CLIENT_CONTEXT *Mos_Specific_GetGmmClientContext(
+    PMOS_INTERFACE pOsInterface)
+{
+    return pOsInterface->pOsContext->GetGmmClientContext(pOsInterface->pOsContext);
 }
 
 //!
@@ -1963,11 +1983,11 @@ MOS_STATUS Mos_Specific_GetResourceInfo(
     pResDetails->dwPitch         = GFX_ULONG_CAST(pGmmResourceInfo->GetRenderPitch());
     pResDetails->dwDepth         = MOS_MAX(1, pGmmResourceInfo->GetBaseDepth());
     pResDetails->dwLockPitch     = GFX_ULONG_CAST(pGmmResourceInfo->GetRenderPitch());
-    if (GFX_GET_CURRENT_RENDERCORE(pGmmGlobalContext->GetPlatformInfo().Platform) < IGFX_GEN8_CORE)
+    if (GFX_GET_CURRENT_RENDERCORE(pOsInterface->pfnGetGmmClientContext(pOsInterface)->GetPlatformInfo().Platform) < IGFX_GEN8_CORE)
     {
         pResDetails->bArraySpacing = pGmmResourceInfo->IsArraySpacingSingleLod();
     }
-    if (GFX_GET_CURRENT_RENDERCORE(pGmmGlobalContext->GetPlatformInfo().Platform) >= IGFX_GEN9_CORE)
+    if (GFX_GET_CURRENT_RENDERCORE(pOsInterface->pfnGetGmmClientContext(pOsInterface)->GetPlatformInfo().Platform) >= IGFX_GEN9_CORE)
     {
         pResDetails->dwQPitch = pGmmResourceInfo->GetQPitch();
     }
@@ -5526,13 +5546,15 @@ finish:
 //! \details  Get the memory object for cache policy
 //! \param    MOS_HW_RESOURCE_DEF MosUsage
 //!           [in] HW resource
+//!           [in] Gmm client context
 //! \return   MEMORY_OBJECT_CONTROL_STATE
 //!           Return the memory object
 //!
 MEMORY_OBJECT_CONTROL_STATE Mos_Specific_CachePolicyGetMemoryObject(
-    MOS_HW_RESOURCE_DEF         MosUsage)
+    MOS_HW_RESOURCE_DEF         MosUsage,
+    GMM_CLIENT_CONTEXT          *pGmmClientContext)
 {
-    return Mos_CachePolicyGetMemoryObject(MosUsage);
+    return Mos_CachePolicyGetMemoryObject(MosUsage, pGmmClientContext);
 }
 
 //*-----------------------------------------------------------------------------
@@ -5820,6 +5842,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnGetGpuContext                          = Mos_Specific_GetGpuContext;
     pOsInterface->pfnSetEncodePakContext                    = Mos_Specific_SetEncodePakContext;
     pOsInterface->pfnSetEncodeEncContext                    = Mos_Specific_SetEncodeEncContext;
+    pOsInterface->pfnGetGmmClientContext                    = Mos_Specific_GetGmmClientContext;
 
     pOsInterface->pfnGetPlatform                            = Mos_Specific_GetPlatform;
     pOsInterface->pfnDestroy                                = Mos_Specific_Destroy;

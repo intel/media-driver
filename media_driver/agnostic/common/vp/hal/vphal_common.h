@@ -132,7 +132,7 @@ extern "C" {
 #define VPHAL_SET_SURF_MEMOBJCTL(VpField, GmmUsageEnum)                                                         \
     {                                                                                                           \
         Usage = GmmUsageEnum;                                                                                   \
-        MemObjCtrl = pOsInterface->pfnCachePolicyGetMemoryObject(Usage);                                        \
+        MemObjCtrl = pOsInterface->pfnCachePolicyGetMemoryObject(Usage, pOsInterface->pfnGetGmmClientContext(pOsInterface));                                        \
         VpField = MemObjCtrl.DwordValue;                                                                        \
     }
 

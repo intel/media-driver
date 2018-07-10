@@ -573,35 +573,53 @@ MOS_STATUS CM_HAL_G10_X::HwSetSurfaceMemoryObjectControl(
 
     if ((uint16_t)cacheType == CM_INVALID_MEMOBJCTL)
     {
-        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(MOS_CM_RESOURCE_USAGE_SurfaceState).DwordValue;
+        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
+            MOS_CM_RESOURCE_USAGE_SurfaceState,
+            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
         return hr;
     }
 
     switch (cacheType)
     {
     case CM_MEMORY_OBJECT_CONTROL_SKL_DEFAULT:
-        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(MOS_CM_RESOURCE_USAGE_SurfaceState).DwordValue;
+        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
+            MOS_CM_RESOURCE_USAGE_SurfaceState,
+            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
         break;
     case CM_MEMORY_OBJECT_CONTROL_SKL_NO_L3:
-        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(MOS_CM_RESOURCE_USAGE_NO_L3_SurfaceState).DwordValue;
+        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
+            MOS_CM_RESOURCE_USAGE_NO_L3_SurfaceState,
+            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
         break;
     case CM_MEMORY_OBJECT_CONTROL_SKL_NO_LLC_ELLC:
-        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(MOS_CM_RESOURCE_USAGE_NO_LLC_ELLC_SurfaceState).DwordValue;
+        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
+            MOS_CM_RESOURCE_USAGE_NO_LLC_ELLC_SurfaceState,
+            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
         break;
     case CM_MEMORY_OBJECT_CONTROL_SKL_NO_LLC:
-        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(MOS_CM_RESOURCE_USAGE_NO_LLC_SurfaceState).DwordValue;
+        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
+            MOS_CM_RESOURCE_USAGE_NO_LLC_SurfaceState,
+            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
         break;
     case CM_MEMORY_OBJECT_CONTROL_SKL_NO_ELLC:
-        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(MOS_CM_RESOURCE_USAGE_NO_ELLC_SurfaceState).DwordValue;
+        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
+            MOS_CM_RESOURCE_USAGE_NO_ELLC_SurfaceState,
+            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
         break;
     case CM_MEMORY_OBJECT_CONTROL_SKL_NO_LLC_L3:
-        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(MOS_CM_RESOURCE_USAGE_NO_LLC_L3_SurfaceState).DwordValue;
+        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
+            MOS_CM_RESOURCE_USAGE_NO_LLC_L3_SurfaceState,
+            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
         break;
     case CM_MEMORY_OBJECT_CONTROL_SKL_NO_ELLC_L3:
-        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(MOS_CM_RESOURCE_USAGE_NO_ELLC_L3_SurfaceState).DwordValue;
+        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
+            MOS_CM_RESOURCE_USAGE_NO_ELLC_L3_SurfaceState,
+            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
         break;
     case CM_MEMORY_OBJECT_CONTROL_SKL_NO_CACHE:
-        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(MOS_CM_RESOURCE_USAGE_NO_CACHE_SurfaceState).DwordValue;
+        surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
+            MOS_CM_RESOURCE_USAGE_NO_CACHE_SurfaceState,
+            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
         break;
     default:
         hr = MOS_STATUS_UNKNOWN;

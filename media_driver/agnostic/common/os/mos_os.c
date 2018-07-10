@@ -731,7 +731,8 @@ MOS_STATUS Mos_InitInterface(
 
 #if !EMUL
 MEMORY_OBJECT_CONTROL_STATE Mos_CachePolicyGetMemoryObject(
-    MOS_HW_RESOURCE_DEF         MosUsage)
+    MOS_HW_RESOURCE_DEF MosUsage,
+    GMM_CLIENT_CONTEXT  *pGmmClientContext)
 {
     GMM_RESOURCE_USAGE_TYPE GmmResourceUsage[MOS_HW_RESOURCE_DEF_MAX] =
     {
@@ -878,17 +879,16 @@ MEMORY_OBJECT_CONTROL_STATE Mos_CachePolicyGetMemoryObject(
 
     };
 
-    MOS_OS_ASSERT(pGmmGlobalContext);
-    MOS_OS_ASSERT(pGmmGlobalContext->GetCachePolicyObj());
+    MOS_OS_ASSERT(pGmmClientContext);
 
     GMM_RESOURCE_USAGE_TYPE usage = GmmResourceUsage[MosUsage];
-    if (pGmmGlobalContext->GetCachePolicyElement(usage).Initialized)
+    if (pGmmClientContext->GetCachePolicyElement(usage).Initialized)
     {
-        return pGmmGlobalContext->GetCachePolicyObj()->CachePolicyGetMemoryObject(nullptr, usage);
+        return pGmmClientContext->CachePolicyGetMemoryObject(nullptr, usage);
     }
     else
     {
-        return pGmmGlobalContext->GetCachePolicyUsage()[GMM_RESOURCE_USAGE_UNKNOWN].MemoryObjectOverride;
+        return pGmmClientContext->GetCachePolicyUsage()[GMM_RESOURCE_USAGE_UNKNOWN].MemoryObjectOverride;
     }
 }
 #endif

@@ -201,7 +201,7 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
             return MOS_STATUS_UNKNOWN;
         }
 
-        gmmParams.ExistingSysMemSize = GmmResGetRenderSize(tmpGmmResInfoPtr);
+        gmmParams.ExistingSysMemSize = GFX_ULONG_CAST(tmpGmmResInfoPtr->GetSizeSurface());
         gmmParams.pExistingSysMem = (GMM_VOIDPTR64)params.m_pSystemMemory;
         gmmParams.NoGfxMemory = false;
         gmmParams.Flags.Info.ExistingSysMem = true;
