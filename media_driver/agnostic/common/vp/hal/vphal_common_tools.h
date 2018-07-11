@@ -195,40 +195,5 @@ typedef struct _VPHAL_BATCHQUERYVARIANCE_PARAMS
     void                *pBuffer;
 } VPHAL_BATCHQUERYVARIANCE_PARAMS, *PVPHAL_BATCHQUERYVARIANCE_PARAMS;
 
-//!
-//! Structure VPHAL_SPLIT_SCREEN_DEMO_POSITION
-//! \brief Split-Screen Demo Mode Position
-//!
-typedef enum _VPHAL_SPLIT_SCREEN_DEMO_POSITION
-{
-    SPLIT_SCREEN_DEMO_DISABLED  = 0,
-    SPLIT_SCREEN_DEMO_LEFT,
-    SPLIT_SCREEN_DEMO_RIGHT,
-    SPLIT_SCREEN_DEMO_TOP,
-    SPLIT_SCREEN_DEMO_BOTTOM,
-    SPLIT_SCREEN_DEMO_END_POS_LIST
-} VPHAL_SPLIT_SCREEN_DEMO_POSITION;
-
-//!
-//! Structure VPHAL_SPLIT_SCREEN_DEMO_MODE_PARAMS
-//! \brief Split-Screen Demo Mode Parameters
-//!
-typedef struct _VPHAL_SPLIT_SCREEN_DEMO_MODE_PARAMS
-{
-    VPHAL_SPLIT_SCREEN_DEMO_POSITION        Position;            //!< Position of split mode area (disable features)
-    bool                                    bDisableACE     : 1; //!< Disable ACE
-    bool                                    bDisableAVS     : 1; //!< Disable AVS
-    bool                                    bDisableDN      : 1; //!< Disable DN
-    bool                                    bDisableFMD     : 1; //!< Disable FMD
-    bool                                    bDisableIEF     : 1; //!< Disable IEF
-    bool                                    bDisableProcamp : 1; //!< Disable Procamp
-    bool                                    bDisableSTE     : 1; //!< Disable STE
-    bool                                    bDisableTCC     : 1; //!< Disable TCC
-    bool                                    bDisableIS      : 1; //!< Disable IS
-    bool                                    bDisableDrDb    : 1; //!< Disable DRDB
-    bool                                    bDisableDNUV    : 1; //!< Disable DNUV
-    bool                                    bDisableFRC     : 1; //!< Disable FRC
-    bool                                    bDisableLACE    : 1; //!< Disable LACE
-} VPHAL_SPLIT_SCREEN_DEMO_MODE_PARAMS, *PVPHAL_SPLIT_SCREEN_DEMO_MODE_PARAMS;
 
 #endif  // __VPHAL_COMMON_TOOLS_H__
