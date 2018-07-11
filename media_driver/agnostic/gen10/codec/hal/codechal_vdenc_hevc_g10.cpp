@@ -1989,7 +1989,7 @@ MOS_STATUS CodechalVdencHevcStateG10::SetDmemHuCBrcUpdate()
     MOS_SecureMemcpy(hucVdencBrcUpdateDmem->startGAdjDiv_U8, 5 * sizeof(uint8_t), (void*)m_startGAdjDiv, 5 * sizeof(uint8_t));
     MOS_SecureMemcpy(hucVdencBrcUpdateDmem->gRateRatioThresholdQP_U8, 8 * sizeof(uint8_t), (void*)m_rateRatioThresholdQP, 8 * sizeof(uint8_t));
 
-    if (m_hevcVdencAcqpEnabled || m_brcEnabled)
+    if ((m_hevcVdencAcqpEnabled && m_hevcSeqParams->QpAdjustment) || (m_brcEnabled && (m_hevcSeqParams->MBBRC != 2)))
     {
         if (m_hevcPicParams->CodingType == I_TYPE)
         {

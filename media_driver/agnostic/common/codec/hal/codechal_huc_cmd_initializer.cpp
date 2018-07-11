@@ -236,7 +236,7 @@ MOS_STATUS CodechalCmdInitializer::ConstructHevcHucCmd1ConstData(
 
     cmd1.num_ref_idx_l1_active_minus1 = sliceParams->num_ref_idx_l1_active_minus1;
     cmd1.ROIStreamInEnabled           = (uint8_t)m_roiStreamInEnabled;
-    cmd1.UseDefaultQpDeltas           = 0;
+    cmd1.UseDefaultQpDeltas           = (m_acqpEnabled && seqParams->QpAdjustment) || (m_brcEnabled && seqParams->MBBRC != mbBrcDisabled);
     cmd1.TemporalMvpEnableFlag        = seqParams->sps_temporal_mvp_enable_flag;
     cmd1.PanicEnabled                 = m_panicEnabled;
 
