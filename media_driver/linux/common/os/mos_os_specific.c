@@ -44,10 +44,6 @@
 #endif // MOS_MEDIASOLO_SUPPORTED
 #include "mos_solo_generic.h"
 
-#ifdef ANDROID
-#include <ufo/gralloc.h>
-#endif
-
 #ifndef ANDROID
 #include <sys/ipc.h>
 #include <sys/shm.h>
@@ -1902,17 +1898,6 @@ MOS_STATUS Mos_Specific_AllocateResource(
     pOsResource->bMapped = false;
     if (bo)
     {
-#ifdef ANDROID
-        intel_ufo_bo_datatype_t datatype;
-
-        datatype.value = 0;
-        mos_bo_get_datatype(bo, &datatype.value);
-        datatype.compression_mode = (uint32_t)pParams->CompressionMode;
-        datatype.is_mmc_capable   = (uint32_t)GmmParams.Flags.Gpu.MMC;
-        datatype.compression_hint = INTEL_UFO_BUFFER_HINT_MMC_COMPRESSED;
-        mos_bo_set_datatype(bo, datatype.value);
-#endif
-
         pOsResource->Format       = pParams->Format;
         pOsResource->iWidth       = pParams->dwWidth;
         pOsResource->iHeight      = iHeight;
@@ -1954,9 +1939,6 @@ MOS_STATUS Mos_Specific_GetResourceInfo(
     PMOS_RESOURCE               pOsResource,
     PMOS_SURFACE                pResDetails)
 {
-#ifdef ANDROID
-    intel_ufo_bo_datatype_t datatype;
-#endif
     GMM_RESOURCE_INFO       *pGmmResourceInfo;
     GMM_DISPLAY_FRAME       gmmChannel;
     GMM_REQ_OFFSET_INFO     reqInfo[3];
@@ -1992,28 +1974,10 @@ MOS_STATUS Mos_Specific_GetResourceInfo(
         pResDetails->dwQPitch = pGmmResourceInfo->GetQPitch();
     }
 
-#ifdef ANDROID
-    if(pOsResource->bo)
-    {
-        datatype.value = 0;
-        mos_bo_get_datatype(pOsResource->bo, &datatype.value);
-        pResDetails->bCompressible   =
-            (datatype.is_mmc_capable && (datatype.compression_hint == INTEL_UFO_BUFFER_HINT_MMC_COMPRESSED)) ? true : false;
-        pResDetails->bIsCompressed   = datatype.compression_mode ? true : false;
-        pResDetails->CompressionMode = (MOS_RESOURCE_MMC_MODE)datatype.compression_mode;
-    }
-    else
-    {
-        pResDetails->bCompressible   = false;
-        pResDetails->bIsCompressed   = false;
-        pResDetails->CompressionMode = MOS_MMC_DISABLED;
-    }
-#else
     pResDetails->bCompressible   = GmmFlags.Gpu.MMC ?
         (pGmmResourceInfo->GetMmcHint(0) == GMM_MMC_HINT_ON) : false;
     pResDetails->bIsCompressed   = pGmmResourceInfo->IsMediaMemoryCompressed(0);
     pResDetails->CompressionMode = (MOS_RESOURCE_MMC_MODE)pGmmResourceInfo->GetMmcMode(0);
-#endif
 
     if (0 == pResDetails->dwPitch)
     {
@@ -5108,24 +5072,12 @@ MOS_STATUS Mos_Specific_GetMemoryCompressionMode(
     PMOS_RESOURCE       pOsResource,
     PMOS_MEMCOMP_STATE  pResMmcMode)
 {
-#ifdef ANDROID
-    intel_ufo_bo_datatype_t datatype;
-#else
     PGMM_RESOURCE_INFO      pGmmResourceInfo;
-#endif
     MOS_STATUS              eStatus = MOS_STATUS_UNKNOWN;
     MOS_UNUSED(pOsInterface);
     MOS_OS_FUNCTION_ENTER;
-
     MOS_OS_CHK_NULL(pOsResource);
 
-#ifdef ANDROID
-    MOS_OS_CHK_NULL(pOsResource->bo);
-
-    datatype.value = 0;
-    mos_bo_get_datatype(pOsResource->bo, &datatype.value);
-    *pResMmcMode = (MOS_MEMCOMP_STATE)datatype.compression_mode;
-#else
     // Get Gmm resource info
     pGmmResourceInfo = (GMM_RESOURCE_INFO*)pOsResource->pGmmResInfo;
     MOS_OS_CHK_NULL(pGmmResourceInfo);
@@ -5143,7 +5095,6 @@ MOS_STATUS Mos_Specific_GetMemoryCompressionMode(
             *pResMmcMode = MOS_MEMCOMP_DISABLED;
             break;
     }
-#endif
 
     eStatus = MOS_STATUS_SUCCESS;
 
@@ -5168,27 +5119,13 @@ MOS_STATUS Mos_Specific_SetMemoryCompressionMode(
     PMOS_RESOURCE       pOsResource,
     MOS_MEMCOMP_STATE   ResMmcMode)
 {
-#ifdef ANDROID
-    intel_ufo_bo_datatype_t datatype;
-#else
     PGMM_RESOURCE_INFO      pGmmResourceInfo;
     GMM_RESOURCE_MMC_INFO   GmmResMmcMode = GMM_MMC_DISABLED;
-#endif
     MOS_STATUS              eStatus = MOS_STATUS_UNKNOWN;
     MOS_UNUSED(pOsInterface);
     MOS_OS_FUNCTION_ENTER;
-
     MOS_OS_CHK_NULL(pOsResource);
 
-#ifdef ANDROID
-    MOS_OS_CHK_NULL(pOsResource->bo);
-
-    datatype.value = 0;
-    mos_bo_get_datatype(pOsResource->bo, &datatype.value);
-
-    datatype.compression_mode = (uint32_t)ResMmcMode;
-    mos_bo_set_datatype(pOsResource->bo, datatype.value);
-#else
     // Get Gmm resource info
     pGmmResourceInfo = (GMM_RESOURCE_INFO*)pOsResource->pGmmResInfo;
     MOS_OS_CHK_NULL(pGmmResourceInfo);
@@ -5208,7 +5145,6 @@ MOS_STATUS Mos_Specific_SetMemoryCompressionMode(
     }
 
     pGmmResourceInfo->SetMmcMode(GmmResMmcMode, 0);
-#endif
 
     eStatus = MOS_STATUS_SUCCESS;
 
@@ -5233,34 +5169,19 @@ MOS_STATUS Mos_Specific_SetMemoryCompressionHint(
     PMOS_RESOURCE       pOsResource,
     int32_t             bHintOn)
 {
-#ifdef ANDROID
-    intel_ufo_bo_datatype_t datatype;
-#else
     PGMM_RESOURCE_INFO      pGmmResourceInfo;
     uint32_t                uiArrayIndex = 0;
-#endif
     MOS_STATUS              eStatus;
     MOS_UNUSED(pOsInterface);
     MOS_OS_FUNCTION_ENTER;
-
     eStatus = MOS_STATUS_UNKNOWN;
     MOS_OS_CHK_NULL(pOsResource);
 
-#ifdef ANDROID
-    MOS_OS_CHK_NULL(pOsResource->bo);
-
-    datatype.value = 0;
-    mos_bo_get_datatype(pOsResource->bo, &datatype.value);
-
-    datatype.compression_hint = (uint32_t) (bHintOn ? INTEL_UFO_BUFFER_HINT_MMC_COMPRESSED : INTEL_UFO_BUFFER_HINT_MMC_UNCOMPRESSED);
-    mos_bo_set_datatype(pOsResource->bo, datatype.value);
-#else
     // Get Gmm resource info
     pGmmResourceInfo = (GMM_RESOURCE_INFO*)pOsResource->pGmmResInfo;
     MOS_OS_CHK_NULL(pGmmResourceInfo);
 
     pGmmResourceInfo->SetMmcHint(bHintOn ? GMM_MMC_HINT_ON : GMM_MMC_HINT_OFF, uiArrayIndex);
-#endif
 
     eStatus = MOS_STATUS_SUCCESS;
 
