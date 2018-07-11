@@ -205,6 +205,11 @@ extern "C" {
 #define NLAS_NONLINEARCROP_DEFAULT    0.0F
 #define NLAS_NONLINEARCROP_STEP       0.001F
 
+#define VPHAL_MAX_SOURCES               17       //!< worst case: 16 sub-streams + 1 pri video
+#define VPHAL_MAX_CHANNELS              2
+#define VPHAL_MAX_TARGETS               2        //!< dual output support for Android
+#define VPHAL_MAX_FUTURE_FRAMES         18       //!< maximum future frames supported in VPHAL
+
 typedef struct _VPHAL_COMPOSITE_CACHE_CNTL
 {
     bool                           bL3CachingEnabled;
@@ -586,6 +591,17 @@ typedef enum _VPHAL_OUTPUT_PIPE_MODE
 //! Set the Component
 //!
 #define SET_VPHAL_MMC_STATE(_a, _bEnableMMC)          (_a->bEnableMMC =  _bEnableMMC)                    // Set the Component
+
+//-----------------------------------------------------------------------------
+// Forward declaration -
+// IMPORTANT - DDI interfaces are NOT to access internal VPHAL states
+//-----------------------------------------------------------------------------
+typedef struct _RENDERHAL_INTERFACE     *PRENDERHAL_INTERFACE;
+typedef class MhwVeboxInterface         *PMHW_VEBOX_INTERFACE;
+typedef class MhwSfcInterface           *PMHW_SFC_INTERFACE;
+class VphalRenderer;
+
+class MhwCpInterface;
 
 //!
 //! Union   VPHAL_COLOR_SAMPLE_8
@@ -984,6 +1000,108 @@ typedef struct _VPHAL_CONSTRICTION_PARAMS
 {
     RECT                rcConstriction;
 } VPHAL_CONSTRICTION_PARAMS, *PVPHAL_CONSTRICTION_PARAMS;
+
+//!
+//! Structure VPHAL_SPLIT_SCREEN_DEMO_POSITION
+//! \brief Split-Screen Demo Mode Position
+//!
+typedef enum _VPHAL_SPLIT_SCREEN_DEMO_POSITION
+{
+    SPLIT_SCREEN_DEMO_DISABLED = 0,
+    SPLIT_SCREEN_DEMO_LEFT,
+    SPLIT_SCREEN_DEMO_RIGHT,
+    SPLIT_SCREEN_DEMO_TOP,
+    SPLIT_SCREEN_DEMO_BOTTOM,
+    SPLIT_SCREEN_DEMO_END_POS_LIST
+} VPHAL_SPLIT_SCREEN_DEMO_POSITION;
+
+//!
+//! Structure VPHAL_SPLIT_SCREEN_DEMO_MODE_PARAMS
+//! \brief Split-Screen Demo Mode Parameters
+//!
+typedef struct _VPHAL_SPLIT_SCREEN_DEMO_MODE_PARAMS
+{
+    VPHAL_SPLIT_SCREEN_DEMO_POSITION        Position;            //!< Position of split mode area (disable features)
+    bool                                    bDisableACE : 1; //!< Disable ACE
+    bool                                    bDisableAVS : 1; //!< Disable AVS
+    bool                                    bDisableDN : 1; //!< Disable DN
+    bool                                    bDisableFMD : 1; //!< Disable FMD
+    bool                                    bDisableIEF : 1; //!< Disable IEF
+    bool                                    bDisableProcamp : 1; //!< Disable Procamp
+    bool                                    bDisableSTE : 1; //!< Disable STE
+    bool                                    bDisableTCC : 1; //!< Disable TCC
+    bool                                    bDisableIS : 1; //!< Disable IS
+    bool                                    bDisableDrDb : 1; //!< Disable DRDB
+    bool                                    bDisableDNUV : 1; //!< Disable DNUV
+    bool                                    bDisableFRC : 1; //!< Disable FRC
+    bool                                    bDisableLACE : 1; //!< Disable LACE
+} VPHAL_SPLIT_SCREEN_DEMO_MODE_PARAMS, *PVPHAL_SPLIT_SCREEN_DEMO_MODE_PARAMS;
+
+//!
+//! Structure VPHAL_RENDER_PARAMS
+//! \brief VPHAL Rendering Parameters
+//!
+struct VPHAL_RENDER_PARAMS
+{
+    // Input/output surfaces
+    uint32_t                                uSrcCount;                  //!< Num sources
+    VPHAL_SURFACE                           *pSrc[VPHAL_MAX_SOURCES];   //!< Source Samples
+    uint32_t                                uDstCount;                  //!< Num Targets
+    VPHAL_SURFACE                           *pTarget[VPHAL_MAX_TARGETS];//!< Render Target
+
+                                                                        // Additional parameters not included in PVPHAL_SURFACE
+    PRECT                                   pConstriction;              //!< Constriction rectangle
+    PVPHAL_COLORFILL_PARAMS                 pColorFillParams;           //!< ColorFill - BG only
+    bool                                    bTurboMode;                 //!< Enable Media Turbo Mode
+    bool                                    bStereoMode;                //!< Stereo BLT mode
+    PVPHAL_ALPHA_PARAMS                     pCompAlpha;                 //!< Alpha for composited surfaces
+    bool                                    bDisableDemoMode;           //!< Enable/Disable demo mode function calls
+    PVPHAL_SPLIT_SCREEN_DEMO_MODE_PARAMS    pSplitScreenDemoModeParams; //!< Split-screen demo mode for VP features
+    bool                                    bIsDefaultStream;           //!< Identifier to differentiate default stream
+
+                                                                        // Debugging parameters
+    MOS_COMPONENT                           Component;                  //!< DDI component (for DEBUGGING only)
+
+                                                                        // Status Report
+    bool                                    bReportStatus;              //!< Report current media BB status (Pre-Processing)
+    uint32_t                                StatusFeedBackID;           //!< Unique Staus ID;
+#if (_DEBUG || _RELEASE_INTERNAL)
+    bool                                    bTriggerGPUHang;            //!< Trigger GPU HANG
+#endif
+
+    bool                                    bCalculatingAlpha;          //!< Alpha calculation parameters
+
+                                                                        // extension parameters
+    void                                    *pExtensionData;            //!< Extension data
+
+    VPHAL_RENDER_PARAMS() :
+        uSrcCount(0),
+        pSrc(),
+        uDstCount(0),
+        pTarget(),
+        pConstriction(nullptr),
+        pColorFillParams(nullptr),
+        bTurboMode(false),
+        bStereoMode(false),
+        pCompAlpha(nullptr),
+        bDisableDemoMode(false),
+        pSplitScreenDemoModeParams(nullptr),
+        bIsDefaultStream(false),
+        Component(),
+        bReportStatus(false),
+        StatusFeedBackID(0),
+#if (_DEBUG || _RELEASE_INTERNAL)
+        bTriggerGPUHang(false),
+#endif
+        bCalculatingAlpha(false),
+        pExtensionData(nullptr)
+    {
+    }
+
+};
+
+typedef VPHAL_RENDER_PARAMS *PVPHAL_RENDER_PARAMS;
+typedef const VPHAL_RENDER_PARAMS  *PCVPHAL_RENDER_PARAMS;
 
 //!
 //! \brief    Performs Color Space Convert for Sample 8 bit

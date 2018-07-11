@@ -39,11 +39,6 @@
 // Incremental size for allocating/reallocating resource
 #define VPHAL_BUFFER_SIZE_INCREMENT     128
 
-#define VPHAL_MAX_SOURCES               17       //!< worst case: 16 sub-streams + 1 pri video
-#define VPHAL_MAX_CHANNELS              2
-#define VPHAL_MAX_TARGETS               2        //!< dual output support for Android
-#define VPHAL_MAX_FUTURE_FRAMES         18       //!< maximum future frames supported in VPHAL
-
 // YUV input ranges
 #define YUV_RANGE_16_235                1
 #define YUV_RANGE_0_255                 2
@@ -260,17 +255,6 @@ struct VphalSseuSetting
 };
 
 //-----------------------------------------------------------------------------
-// Forward declaration -
-// IMPORTANT - DDI interfaces are NOT to access internal VPHAL states
-//-----------------------------------------------------------------------------
-typedef struct _RENDERHAL_INTERFACE     *PRENDERHAL_INTERFACE;
-typedef class MhwVeboxInterface         *PMHW_VEBOX_INTERFACE;
-typedef class MhwSfcInterface           *PMHW_SFC_INTERFACE;
-class VphalRenderer;
-
-class MhwCpInterface;
-
-//-----------------------------------------------------------------------------
 // VPHAL-DDI RENDERING INTERFACE
 //
 //      Params that may apply to more than one layer are part of VPHAL_SURFACE
@@ -350,72 +334,6 @@ struct VphalFeatureReport
     bool                            VEFeatureInUse;     //!< If any VEBOX feature is in use, excluding pure bypass for SFC
     bool                            DiScdMode;          //!< Scene change detection
 };
-
-//!
-//! Structure VPHAL_RENDER_PARAMS
-//! \brief VPHAL Rendering Parameters
-//!
-struct VPHAL_RENDER_PARAMS
-{
-    // Input/output surfaces
-    uint32_t                                uSrcCount;                  //!< Num sources
-    VPHAL_SURFACE                           *pSrc[VPHAL_MAX_SOURCES];   //!< Source Samples
-    uint32_t                                uDstCount;                  //!< Num Targets
-    VPHAL_SURFACE                           *pTarget[VPHAL_MAX_TARGETS];//!< Render Target
-
-    // Additional parameters not included in PVPHAL_SURFACE
-    PRECT                                   pConstriction;              //!< Constriction rectangle
-    PVPHAL_COLORFILL_PARAMS                 pColorFillParams;           //!< ColorFill - BG only
-    bool                                    bTurboMode;                 //!< Enable Media Turbo Mode
-    bool                                    bStereoMode;                //!< Stereo BLT mode
-    PVPHAL_ALPHA_PARAMS                     pCompAlpha;                 //!< Alpha for composited surfaces
-    bool                                    bDisableDemoMode;           //!< Enable/Disable demo mode function calls
-    PVPHAL_SPLIT_SCREEN_DEMO_MODE_PARAMS    pSplitScreenDemoModeParams; //!< Split-screen demo mode for VP features
-    bool                                    bIsDefaultStream;           //!< Identifier to differentiate default stream
-
-    // Debugging parameters
-    MOS_COMPONENT                           Component;                  //!< DDI component (for DEBUGGING only)
-
-    // Status Report
-    bool                                    bReportStatus;              //!< Report current media BB status (Pre-Processing)
-    uint32_t                                StatusFeedBackID;           //!< Unique Staus ID;
-#if (_DEBUG || _RELEASE_INTERNAL)
-    bool                                    bTriggerGPUHang;            //!< Trigger GPU HANG
-#endif
-
-    bool                                    bCalculatingAlpha;          //!< Alpha calculation parameters
-
-    // extension parameters
-    void                                    *pExtensionData;            //!< Extension data
-
-    VPHAL_RENDER_PARAMS():
-        uSrcCount(0),
-        pSrc(),
-        uDstCount(0),
-        pTarget(),
-        pConstriction(nullptr),
-        pColorFillParams(nullptr),
-        bTurboMode(false),
-        bStereoMode(false),
-        pCompAlpha(nullptr),
-        bDisableDemoMode(false),
-        pSplitScreenDemoModeParams(nullptr),
-        bIsDefaultStream(false),
-        Component(),
-        bReportStatus(false),
-        StatusFeedBackID(0),
-#if (_DEBUG || _RELEASE_INTERNAL)
-        bTriggerGPUHang(false),
-#endif
-        bCalculatingAlpha(false),
-        pExtensionData(nullptr)
-    {
-    }
-
-};
-
-typedef VPHAL_RENDER_PARAMS *PVPHAL_RENDER_PARAMS;
-typedef const VPHAL_RENDER_PARAMS  *PCVPHAL_RENDER_PARAMS;
 
 //!
 //! Class VphalState
