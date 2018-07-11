@@ -479,6 +479,12 @@ LOCAL_CPPFLAGS = \
     -DiHD_drv_video_EXPORTS \
 	-Wno-error
 
+LOCAL_CPPFLAGS += \
+    -msse2 \
+    -msse3 \
+    -mssse3 \
+    -msse4.1 \
+    -msse4.2
 
 LOCAL_CONLYFLAGS = -x c++
 LOCAL_CFLAGS = $(LOCAL_CPPFLAGS)
