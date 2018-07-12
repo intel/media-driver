@@ -548,17 +548,18 @@ VAStatus DdiMediaDecode::AllocBsBuffer(
         buf->uiOffset                           = 0;
         bufMgr->pSliceData[index].bIsUseExtBuf  = true;
         bufMgr->pSliceData[index].pSliceBuf     = sliceBuf;
+        buf->bCFlushReq                         = false;
     }
     else
     {
         buf->pData                              = (uint8_t*)(bufMgr->pBitStreamBase[bufMgr->dwBitstreamIndex]);
         bufMgr->pSliceData[index].bIsUseExtBuf  = false;
         bufMgr->pSliceData[index].pSliceBuf     = nullptr;
+        buf->bCFlushReq                         = true;
     }
 
     bufMgr->dwNumSliceData ++;
     buf->bo                            = bufMgr->pBitStreamBuffObject[bufMgr->dwBitstreamIndex]->bo;
-    buf->bCFlushReq                    = true;
 
     return VA_STATUS_SUCCESS;
 }
