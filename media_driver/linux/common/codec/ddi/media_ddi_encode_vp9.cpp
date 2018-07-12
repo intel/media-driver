@@ -858,7 +858,11 @@ VAStatus DdiEncodeVp9::ParseMiscParamQualityLevel(void *data)
     }
     else if (vaEncMiscParamQualityLevel->quality_level <= TARGETUSAGE_HI_QUALITY)
     {
+#ifdef _FULL_OPEN_SOURCE
+        vp9TargetUsage = TARGETUSAGE_RT_SPEED;
+#else
         vp9TargetUsage = TARGETUSAGE_BEST_QUALITY;
+#endif
     }
     else
     {
