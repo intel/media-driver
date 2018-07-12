@@ -1825,28 +1825,41 @@ MOS_STATUS CodechalEncodeMpeg2::SetPictureStructs()
 
     if (m_pictureCodingType == I_TYPE)
     {
-        m_picParams->m_fcode00 = fcodeX;
-        m_picParams->m_fcode01 = fcodeY;
-
+        if ((m_picParams->m_fcode00 > fcodeX) ||
+            (m_picParams->m_fcode01 > fcodeY) ||
+            (m_picParams->m_fcode00 == 0) ||
+            (m_picParams->m_fcode01 == 0))
+        {
+            m_picParams->m_fcode00 = fcodeX;
+            m_picParams->m_fcode01 = fcodeY;
+        }
     }
     else if (m_pictureCodingType == P_TYPE)
     {
-        if ((m_picParams->m_fcode00 != fcodeX) ||
-            (m_picParams->m_fcode01 != fcodeY))
+        if ((m_picParams->m_fcode00 > fcodeX) ||
+            (m_picParams->m_fcode01 > fcodeY) ||
+            (m_picParams->m_fcode00 == 0) ||
+            (m_picParams->m_fcode01 == 0))
         {
-            eStatus = MOS_STATUS_INVALID_PARAMETER;
-            return eStatus;
+            m_picParams->m_fcode00 = fcodeX;
+            m_picParams->m_fcode01 = fcodeY;
         }
     }
     else // B picture
     {
-        if ((m_picParams->m_fcode00 != fcodeX) ||
-            (m_picParams->m_fcode01 != fcodeY) ||
-            (m_picParams->m_fcode10 != fcodeX) ||
-            (m_picParams->m_fcode11 != fcodeY))
+        if ((m_picParams->m_fcode00 > fcodeX) ||
+            (m_picParams->m_fcode01 > fcodeY) ||
+            (m_picParams->m_fcode10 > fcodeX) ||
+            (m_picParams->m_fcode11 > fcodeY) ||
+            (m_picParams->m_fcode00 == 0) ||
+            (m_picParams->m_fcode01 == 0) ||
+            (m_picParams->m_fcode10 == 0) ||
+            (m_picParams->m_fcode11 == 0))
         {
-            eStatus = MOS_STATUS_INVALID_PARAMETER;
-            return eStatus;
+            m_picParams->m_fcode00 = fcodeX;
+            m_picParams->m_fcode01 = fcodeY;
+            m_picParams->m_fcode10 = fcodeX;
+            m_picParams->m_fcode11 = fcodeY;
         }
     }
 
