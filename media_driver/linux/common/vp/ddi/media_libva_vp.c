@@ -1401,7 +1401,14 @@ VAStatus DdiVp_GetColorSpace(PVPHAL_SURFACE pVpHalSurf, VAProcColorStandardType 
             }//1080p
             else
             {
-                pVpHalSurf->ColorSpace = CSpace_BT2020;
+                if (Format_P010 != pVpHalSurf->Format)
+                {
+                    pVpHalSurf->ColorSpace = CSpace_BT709;
+                }
+                else
+                {
+                    pVpHalSurf->ColorSpace = CSpace_BT2020;
+                }
             }//4K
         }
         else
