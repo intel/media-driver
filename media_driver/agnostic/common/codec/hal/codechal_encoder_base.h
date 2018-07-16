@@ -1412,6 +1412,7 @@ public:
     bool                            m_inlineEncodeStatusUpdate = false;             //!< check whether use inline encode status update or seperate BB
     AtomicScratchBuffer             m_atomicScratchBuf;                             //!< Stores atomic operands and result
     bool                            m_skipFrameBasedHWCounterRead = false;          //!< Skip reading Frame base HW counter for status report
+    bool                            m_disableStatusReport = false;                  //!< Indicate status report is not needed.
 
     // Shared Parameters
     BSBuffer                        m_bsBuffer;                                     //!< Bitstream buffer
