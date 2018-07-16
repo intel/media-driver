@@ -977,6 +977,8 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSetPerfTag(
 
         case Format_A16B16G16R16:
         case Format_A16R16G16B16:
+        case Format_A16B16G16R16F:
+        case Format_A16R16G16B16F:
             *pPerfTag = VPHAL_NONE;
             break;
 
