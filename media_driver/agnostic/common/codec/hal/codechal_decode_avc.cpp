@@ -1498,9 +1498,16 @@ MOS_STATUS CodechalDecodeAvc::DecodeStateLevel()
     PIC_MHW_PARAMS picMhwParams;
     CODECHAL_DECODE_CHK_STATUS_RETURN(InitPicMhwParams(&picMhwParams));
 
-    if (m_cencDecoder)
+    if (m_cencDecoder && m_cencDecoder->IsCheckStatusReportNeeded())
     {
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_cencDecoder->CheckStatusReportNum(this, m_hwInterface, &cmdBuffer, m_vdboxIndex));
+        CODECHAL_DECODE_COND_ASSERTMESSAGE((m_vdboxIndex > m_hwInterface->GetMfxInterface()->GetMaxVdboxIndex()), "ERROR - vdbox index exceed the maximum");
+        auto mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
+
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_hwInterface->GetCpInterface()->CheckStatusReportNum(
+            mmioRegisters, 
+            m_avcRefList[m_avcPicParams->CurrPic.FrameIdx]->ucCencBufIdx[0], 
+            m_cencDecoder->GetStatusReportResource(), 
+            &cmdBuffer));
     }
 
     if (m_statusQueryReportingEnabled)

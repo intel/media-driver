@@ -28,18 +28,11 @@
 #ifndef __MHW_CP_H__
 #define __MHW_CP_H__
 
-#include <cstdint>
-#include <map>
-#include <new>
-
 #include "mhw_mi.h"
 #include "mos_os.h"
 #include "mos_util_debug.h"
 #include "codec_def_common.h"
-
 class MhwMiInterface;
-
-class CpHwUnit;
 
 typedef enum _CP_SECURITY_TYPE
 {
@@ -78,10 +71,6 @@ public:
 
     ~MhwCpInterface();
 
-    static MhwCpInterface* CpFactory(
-        PMOS_INTERFACE osInterface,
-        MOS_STATUS&    eStatus);
-
     MOS_STATUS AddProlog(
         PMOS_INTERFACE      osInterface,
         PMOS_COMMAND_BUFFER cmdBuffer);
@@ -96,6 +85,19 @@ public:
     MOS_STATUS AddCheckForEarlyExit(
         PMOS_INTERFACE      osInterface,
         PMOS_COMMAND_BUFFER cmdBuffer);
+
+    MOS_STATUS UpdateStatusReportNum(
+        uint32_t            cencBufIndex,
+        uint32_t            statusReportNum,
+        uint8_t*            lockAddress,
+        PMOS_RESOURCE       resource,
+        PMOS_COMMAND_BUFFER cmdBuffer);
+
+    MOS_STATUS CheckStatusReportNum(
+        void*                       mfxRegisters,
+        uint32_t                    cencBufIndex,
+        PMOS_RESOURCE               resource,
+        PMOS_COMMAND_BUFFER         cmdBuffer);
 
     MOS_STATUS SetCpCopy(
         PMOS_INTERFACE      osInterface,
@@ -144,12 +146,6 @@ public:
 
     void SetCpSecurityType(CP_SECURITY_TYPE type = CP_SECURITY_NONE);
 };
-
-MOS_STATUS Mhw_Cp_InitCpCmdProps(
-    PLATFORM                     platform,
-    const MOS_HW_COMMAND         hwCommandType,
-    MOS_CP_COMMAND_PROPERTIES*   cpCmdProps,
-    const uint32_t               forceDwordOffset);
 
 MOS_STATUS Mhw_Cp_InitInterface(
     MhwCpInterface**   cpInterface,
