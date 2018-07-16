@@ -3120,6 +3120,26 @@ MOS_STATUS CodechalVdencHevcState::Initialize(CodechalSetting * settings)
         m_32xMeSupported = true;
     }
 
+    if (m_16xMeSupported)
+    {
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_16xME_ENABLE_ID,
+            &userFeatureData);
+        m_16xMeSupported = (userFeatureData.i32Data) ? true : false;
+    }
+
+    if (m_32xMeSupported)
+    {
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_32xME_ENABLE_ID,
+            &userFeatureData);
+        m_32xMeSupported = (userFeatureData.i32Data) ? true : false;
+    }
+
     return eStatus;
 }
 
