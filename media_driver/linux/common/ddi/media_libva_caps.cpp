@@ -1664,6 +1664,12 @@ VAStatus MediaLibvaCaps::CreateVpConfig(
         int32_t numAttribs,
         VAConfigID *configId)
 {
+    // attribList and numAttribs are for future usage.
+    DDI_UNUSED(attribList);
+    DDI_UNUSED(numAttribs);
+
+    DDI_CHK_NULL(configId, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+
     *configId = m_profileEntryTbl[profileTableIdx].m_configStartIdx
         + DDI_VP_GEN_CONFIG_ATTRIBUTES_BASE;
 
