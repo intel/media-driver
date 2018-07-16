@@ -4250,6 +4250,10 @@ MOS_STATUS CodechalEncHevcStateG9::SendMeSurfaces(
                 {
                     refScaledSurface.OsResource = p32xSurface->OsResource;
                 }
+                else
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
+                }
             }
             else if (params->b16xMeInUse)
             {
@@ -4258,6 +4262,10 @@ MOS_STATUS CodechalEncHevcStateG9::SendMeSurfaces(
                 {
                     refScaledSurface.OsResource = p16xSurface->OsResource;
                 }
+                else
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
+                }
             }
             else
             {
@@ -4265,6 +4273,10 @@ MOS_STATUS CodechalEncHevcStateG9::SendMeSurfaces(
                 if (p4xSurface != nullptr)
                 {
                     refScaledSurface.OsResource = p4xSurface->OsResource;
+                }
+                else
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
                 }
             }
             // L0 Reference picture Y - VME
@@ -4318,6 +4330,10 @@ MOS_STATUS CodechalEncHevcStateG9::SendMeSurfaces(
                 {
                     refScaledSurface.OsResource = p32xSurface->OsResource;
                 }
+                else
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
+                }
             }
             else if (params->b16xMeInUse)
             {
@@ -4326,6 +4342,10 @@ MOS_STATUS CodechalEncHevcStateG9::SendMeSurfaces(
                 {
                     refScaledSurface.OsResource = p16xSurface->OsResource;
                 }
+                else
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
+                }
             }
             else
             {
@@ -4333,6 +4353,10 @@ MOS_STATUS CodechalEncHevcStateG9::SendMeSurfaces(
                 if (p4xSurface != nullptr)
                 {
                     refScaledSurface.OsResource = p4xSurface->OsResource;
+                }
+                else
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
                 }
             }
             // L1 Reference picture Y - VME

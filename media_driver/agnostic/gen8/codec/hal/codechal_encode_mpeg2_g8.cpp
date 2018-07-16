@@ -2021,6 +2021,10 @@ MOS_STATUS CodechalEncodeMpeg2G8::SendMeSurfaces(
         {
             refScaledSurface.OsResource = p4xSurface->OsResource;
         }
+        else
+        {
+            CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
+        }
         refScaledBottomFieldOffset = refBottomField ? (uint32_t)m_scaledBottomFieldOffset : 0;
 
         // L0 Reference Picture Y - VME
@@ -2074,6 +2078,10 @@ MOS_STATUS CodechalEncodeMpeg2G8::SendMeSurfaces(
         if (p4xSurface != nullptr)
         {
             refScaledSurface.OsResource = p4xSurface->OsResource;
+        }
+        else
+        {
+            CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
         }
         refScaledBottomFieldOffset = refBottomField ? (uint32_t)m_scaledBottomFieldOffset : 0;
 

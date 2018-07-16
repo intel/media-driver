@@ -2037,6 +2037,10 @@ MOS_STATUS CodechalEncodeMpeg2G10::SendMeSurfaces(
         {
             refScaledSurface.OsResource = p4xSurface->OsResource;
         }
+        else
+        {
+            CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
+        }
         refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
         refScaledBottomFieldOffset = refBottomField ? (uint32_t)m_scaledBottomFieldOffset : 0;
 
@@ -2091,6 +2095,10 @@ MOS_STATUS CodechalEncodeMpeg2G10::SendMeSurfaces(
         if (p4xSurface != nullptr)
         {
             refScaledSurface.OsResource = p4xSurface->OsResource;
+        }
+        else
+        {
+            CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
         }
         refScaledBottomFieldOffset = refBottomField ? (uint32_t)m_scaledBottomFieldOffset : 0;
 

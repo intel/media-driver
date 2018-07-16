@@ -4996,6 +4996,10 @@ MOS_STATUS CodechalVdencAvcState::SendMeSurfaces(PMOS_COMMAND_BUFFER cmdBuffer, 
                 {
                     refScaledSurface.OsResource = p32xSurface->OsResource;
                 }
+                else
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
+                }
                 refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
             }
             else if (params->b16xMeInUse)
@@ -5005,6 +5009,10 @@ MOS_STATUS CodechalVdencAvcState::SendMeSurfaces(PMOS_COMMAND_BUFFER cmdBuffer, 
                 {
                     refScaledSurface.OsResource = p16xSurface->OsResource;
                 }
+                else
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
+                }
                 refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
             }
             else
@@ -5013,6 +5021,10 @@ MOS_STATUS CodechalVdencAvcState::SendMeSurfaces(PMOS_COMMAND_BUFFER cmdBuffer, 
                 if (p4xSurface != nullptr)
                 {
                     refScaledSurface.OsResource = p4xSurface->OsResource;
+                }
+                else
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
                 }
                 refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
             }
@@ -5069,6 +5081,10 @@ MOS_STATUS CodechalVdencAvcState::SendMeSurfaces(PMOS_COMMAND_BUFFER cmdBuffer, 
                 {
                     refScaledSurface.OsResource = p32xSurface->OsResource;
                 }
+                else
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
+                }
                 refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
             }
             else if (params->b16xMeInUse)
@@ -5078,6 +5094,10 @@ MOS_STATUS CodechalVdencAvcState::SendMeSurfaces(PMOS_COMMAND_BUFFER cmdBuffer, 
                 {
                     refScaledSurface.OsResource = p16xSurface->OsResource;
                 }
+                else
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
+                }
                 refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
             }
             else
@@ -5086,6 +5106,10 @@ MOS_STATUS CodechalVdencAvcState::SendMeSurfaces(PMOS_COMMAND_BUFFER cmdBuffer, 
                 if (p4xSurface != nullptr)
                 {
                     refScaledSurface.OsResource = p4xSurface->OsResource;
+                }
+                else
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
                 }
                 refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
             }
