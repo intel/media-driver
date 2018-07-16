@@ -167,7 +167,8 @@ typedef struct _MHW_VEBOX_MODE
     uint32_t    ScalarMode                          : 1;  // Gen10+
     uint32_t    ForwardGammaCorrectionEnable        : 1;  // Gen9+
     uint32_t    Hdr1DLutEnable                      : 1;
-    uint32_t                                        : 9; // Reserved
+    uint32_t    Fp16ModeEnable                      : 1;
+    uint32_t                                        : 8; // Reserved
 } MHW_VEBOX_MODE, *PMHW_VEBOX_MODE;
 
 typedef enum _MHW_VEBOX_ADDRESS_SHIFT
