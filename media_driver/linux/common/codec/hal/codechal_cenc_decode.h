@@ -116,18 +116,9 @@ public:
         return MOS_STATUS_UNIMPLEMENTED;
     };
 
-    //!
-    //! \brief  Check Status Report Num
-    //! \return MOS_STATUS_UNIMPLEMENTED
-    //!
-    MOS_STATUS CheckStatusReportNum(
-        void                         *state,
-        CodechalHwInterface          *hwInterface,
-        PMOS_COMMAND_BUFFER          cmdBuffer,
-        MHW_VDBOX_NODE_IND           vdboxIndex)
-    {
-        return MOS_STATUS_UNIMPLEMENTED;
-    };
+    PMOS_RESOURCE GetStatusReportResource() { return nullptr; }
+
+    bool IsCheckStatusReportNeeded() { return false; }
 
     PMOS_INTERFACE                  m_osInterface = nullptr;
 

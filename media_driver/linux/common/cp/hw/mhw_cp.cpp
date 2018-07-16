@@ -36,17 +36,6 @@ MhwCpInterface::MhwCpInterface() {}
 
 MhwCpInterface::~MhwCpInterface() {}
 
-static MhwCpInterface* CpFactory(
-    PMOS_INTERFACE osInterface,
-    MOS_STATUS&    eStatus)
-{
-    MhwStubMessage();
-    auto cpInterface = MOS_New(MhwCpInterface);
-    eStatus =
-        (cpInterface == nullptr) ? MOS_STATUS_NULL_POINTER : MOS_STATUS_SUCCESS;
-    return cpInterface;
-}
-
 MOS_STATUS MhwCpInterface::AddProlog(
     PMOS_INTERFACE      osInterface,
     PMOS_COMMAND_BUFFER cmdBuffer)
@@ -88,6 +77,39 @@ MOS_STATUS MhwCpInterface::AddCheckForEarlyExit(
     MhwStubMessage();
     return MOS_STATUS_SUCCESS;
 }
+
+MOS_STATUS MhwCpInterface::UpdateStatusReportNum(
+    uint32_t            cencBufIndex,
+    uint32_t            statusReportNum,
+    uint8_t*            lockAddress,
+    PMOS_RESOURCE       resource,
+    PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    MOS_UNUSED(cencBufIndex);
+    MOS_UNUSED(statusReportNum);
+    MOS_UNUSED(lockAddress);
+    MOS_UNUSED(resource);
+    MOS_UNUSED(cmdBuffer);
+
+    MhwStubMessage();
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MhwCpInterface::CheckStatusReportNum(
+    void*                       mfxRegisters,
+    uint32_t                    cencBufIndex,
+    PMOS_RESOURCE               resource,
+    PMOS_COMMAND_BUFFER         cmdBuffer)
+{
+    MOS_UNUSED(mfxRegisters);
+    MOS_UNUSED(cencBufIndex);
+    MOS_UNUSED(resource);
+    MOS_UNUSED(cmdBuffer);
+
+    MhwStubMessage();
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS MhwCpInterface::SetCpCopy(
     PMOS_INTERFACE      osInterface,
     PMOS_COMMAND_BUFFER cmdBuffer,
@@ -229,21 +251,6 @@ void MhwCpInterface::SetCpSecurityType(CP_SECURITY_TYPE type)
     MOS_UNUSED(type);
 
     MhwStubMessage();
-}
-
-MOS_STATUS Mhw_Cp_InitCpCmdProps(
-    PLATFORM                     platform,
-    const MOS_HW_COMMAND         hwCommandType,
-    MOS_CP_COMMAND_PROPERTIES*   cpCmdProps,
-    const uint32_t               forceDwordOffset)
-{
-    MOS_UNUSED(platform);
-    MOS_UNUSED(hwCommandType);
-    MOS_UNUSED(cpCmdProps);
-    MOS_UNUSED(forceDwordOffset);
-
-    MhwStubMessage();
-    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS Mhw_Cp_InitInterface(
