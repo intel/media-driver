@@ -1926,7 +1926,7 @@ MOS_STATUS CodechalEncHevcStateG10::AllocateEncResources()
             "Kernel 1D Debug Surface"));
     }
 
-    m_allocator->AllocateResource(m_standard, m_brcCombinedEncBufferSize, 1, brcInputForEncKernel, true);
+    m_allocator->AllocateResource(m_standard, m_brcCombinedEncBufferSize, 1, brcInputForEncKernel, "brcInputForEncKernel", true);
 
     // Surfaces used by I-kernel
     // Enc Constant Table for I

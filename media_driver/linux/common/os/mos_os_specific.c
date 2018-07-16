@@ -1678,6 +1678,7 @@ MOS_STATUS Mos_Specific_AllocateResource(
         return  MOS_STATUS_INVALID_PARAMETER;
     }
 
+    bufname                                = pParams->pBufName;
     pOsResource->bConvertedFromDDIResource = false;
 
     bool osContextValid = false;
@@ -1723,13 +1724,13 @@ MOS_STATUS Mos_Specific_AllocateResource(
 
         MosMemAllocCounterGfx = GraphicsResource::GetMemAllocCounterGfx();
         MOS_OS_CHK_NULL(pOsResource->pGmmResInfo);
-        MOS_MEMNINJA_GFX_ALLOC_MESSAGE(pOsResource->pGmmResInfo, (uint32_t)pOsResource->pGmmResInfo->GetSizeSurface(), functionName, filename, line);
+        MOS_MEMNINJA_GFX_ALLOC_MESSAGE(pOsResource->pGmmResInfo, bufname, pOsInterface->Component,
+            (uint32_t)pOsResource->pGmmResInfo->GetSizeSurface(), pParams->dwArraySize, functionName, filename, line);
 
         return eStatus;
     }
 
     caller              = nullptr;
-    bufname             = pParams->pBufName;
     tileformat_linux    = I915_TILING_NONE;
     iAlignedHeight      = iHeight = pParams->dwHeight;
     eStatus             = MOS_STATUS_SUCCESS;
@@ -1916,7 +1917,8 @@ MOS_STATUS Mos_Specific_AllocateResource(
     }
 
     MosMemAllocCounterGfx++;
-    MOS_MEMNINJA_GFX_ALLOC_MESSAGE(pOsResource->pGmmResInfo, (uint32_t)pOsResource->pGmmResInfo->GetSizeSurface(), functionName, filename, line);
+    MOS_MEMNINJA_GFX_ALLOC_MESSAGE(pOsResource->pGmmResInfo, bufname, pOsInterface->Component,
+        (uint32_t)pOsResource->pGmmResInfo->GetSizeSurface(), pParams->dwArraySize, functionName, filename, line);
 
 finish:
     return eStatus;
