@@ -33,8 +33,6 @@
 
 typedef struct
 {
-    uint32_t  m_width;
-    bool      m_resetPic;
     void     *m_cmSurfDS_TopIn;
     void     *m_cmSurfDS_TopOut;
     void     *m_cmSurfTopVProc;
