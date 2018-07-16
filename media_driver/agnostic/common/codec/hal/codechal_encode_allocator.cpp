@@ -145,7 +145,7 @@ void CodechalEncodeAllocator::MosToAllocatorTile(MOS_TILE_TYPE type)
 }
 
 void* CodechalEncodeAllocator::AllocateResource(
-    uint32_t codec, uint32_t width, uint32_t height, ResourceName name,
+    uint32_t codec, uint32_t width, uint32_t height, ResourceName name, const char *bufName,
     uint8_t index, bool zeroOnAllocation, MOS_FORMAT format, MOS_TILE_TYPE tile)
 {
     // set buffer name and index
@@ -184,11 +184,11 @@ void* CodechalEncodeAllocator::AllocateResource(
     void* buffer = nullptr;
     if (allocator1D == m_type)
     {
-        buffer = Allocate1DBuffer(m_tag, width, zeroOnAllocation);
+        buffer = Allocate1DBuffer(m_tag, width, zeroOnAllocation, bufName);
     }
     else if (allocator2D == m_type)
     {
-        buffer = Allocate2DBuffer(m_tag, width, height, format, tile, zeroOnAllocation);
+        buffer = Allocate2DBuffer(m_tag, width, height, format, tile, zeroOnAllocation, bufName);
     }
     else if (allocatorBatch == m_type)
     {

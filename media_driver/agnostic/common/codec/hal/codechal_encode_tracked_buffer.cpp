@@ -332,7 +332,7 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateMbCodeResources(uint8_t bufIndex
 
     // Must reserve at least 8 cachelines after MI_BATCH_BUFFER_END_CMD since HW prefetch max 8 cachelines from BB everytime
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBufCurrMbCode = (MOS_RESOURCE*)m_allocator->AllocateResource(
-        m_standard, m_encoder->m_mbCodeSize + 8 * CODECHAL_CACHELINE_SIZE, 1, mbCodeBuffer, bufIndex, true));
+        m_standard, m_encoder->m_mbCodeSize + 8 * CODECHAL_CACHELINE_SIZE, 1, mbCodeBuffer, "mbCodeBuffer", bufIndex, true));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -348,7 +348,7 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateMvDataResources(uint8_t bufIndex
     }
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBufCurrMvData = (MOS_RESOURCE*)m_allocator->AllocateResource(
-        m_standard, m_encoder->m_mvDataSize, 1, mvDataBuffer, bufIndex, true));
+        m_standard, m_encoder->m_mvDataSize, 1, mvDataBuffer, "mvDataBuffer", bufIndex, true));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -376,7 +376,7 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateSurfaceCsc()
 
     // allocating Csc surface
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBufCurrCsc = (MOS_SURFACE*)m_allocator->AllocateResource(
-        m_standard, width, height, cscSurface, m_cscBufCurrIdx, false, format, MOS_TILE_Y));
+        m_standard, width, height, cscSurface, "cscSurface", m_cscBufCurrIdx, false, format, MOS_TILE_Y));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, m_trackedBufCurrCsc));
 
@@ -436,7 +436,7 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateSurfaceDS()
 
     // allocating 4x DS surface
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBufCurrDs4x = (MOS_SURFACE*)m_allocator->AllocateResource(
-        m_standard, downscaledSurfaceWidth4x, downscaledSurfaceHeight4x, ds4xSurface, m_trackedBufCurrIdx, false, Format_NV12, MOS_TILE_Y));
+        m_standard, downscaledSurfaceWidth4x, downscaledSurfaceHeight4x, ds4xSurface, "ds4xSurface", m_trackedBufCurrIdx, false, Format_NV12, MOS_TILE_Y));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, m_trackedBufCurrDs4x));
 
@@ -444,7 +444,7 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateSurfaceDS()
     if (m_encoder->m_16xMeSupported)
     {
         CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBufCurrDs16x = (MOS_SURFACE*)m_allocator->AllocateResource(
-            m_standard, downscaledSurfaceWidth16x, downscaledSurfaceHeight16x, ds16xSurface, m_trackedBufCurrIdx, false, Format_NV12, MOS_TILE_Y));
+            m_standard, downscaledSurfaceWidth16x, downscaledSurfaceHeight16x, ds16xSurface, "ds16xSurface", m_trackedBufCurrIdx, false, Format_NV12, MOS_TILE_Y));
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, m_trackedBufCurrDs16x));
     }
@@ -453,7 +453,7 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateSurfaceDS()
     if (m_encoder->m_32xMeSupported)
     {
         CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBufCurrDs32x = (MOS_SURFACE*)m_allocator->AllocateResource(
-            m_standard, downscaledSurfaceWidth32x, downscaledSurfaceHeight32x, ds32xSurface, m_trackedBufCurrIdx, false, Format_NV12, MOS_TILE_Y));
+            m_standard, downscaledSurfaceWidth32x, downscaledSurfaceHeight32x, ds32xSurface, "ds32xSurface", m_trackedBufCurrIdx, false, Format_NV12, MOS_TILE_Y));
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, m_trackedBufCurrDs32x));
     }
@@ -523,7 +523,7 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateSurface2xDS()
 
     // allocate 2x DS surface
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBufCurrDs2x = (MOS_SURFACE*)m_allocator->AllocateResource(
-        m_standard, surfaceWidth, surfaceHeight, ds2xSurface, m_trackedBufCurrIdx, false, format, MOS_TILE_Y));
+        m_standard, surfaceWidth, surfaceHeight, ds2xSurface, "ds2xSurface", m_trackedBufCurrIdx, false, format, MOS_TILE_Y));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, m_trackedBufCurrDs2x));
 
@@ -557,13 +557,13 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateDsReconSurfacesVdenc()
 
     // Allocating VDEnc 4x DsRecon surface
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBufCurr4xDsRecon = (MOS_SURFACE*)m_allocator->AllocateResource(
-        m_standard, downscaledSurfaceWidth4x, downscaledSurfaceHeight4x, ds4xRecon, m_trackedBufCurrIdx, false, Format_NV12, MOS_TILE_Y));
+        m_standard, downscaledSurfaceWidth4x, downscaledSurfaceHeight4x, ds4xRecon, "ds4xRecon", m_trackedBufCurrIdx, false, Format_NV12, MOS_TILE_Y));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, m_trackedBufCurr4xDsRecon));
 
     // Allocating VDEnc 8x DsRecon surfaces
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBufCurr8xDsRecon = (MOS_SURFACE*)m_allocator->AllocateResource(
-        m_standard, downscaledSurfaceWidth4x >> 1, downscaledSurfaceHeight4x >> 1, ds8xRecon, m_trackedBufCurrIdx, false, Format_NV12, MOS_TILE_Y));
+        m_standard, downscaledSurfaceWidth4x >> 1, downscaledSurfaceHeight4x >> 1, ds8xRecon, "ds8xRecon", m_trackedBufCurrIdx, false, Format_NV12, MOS_TILE_Y));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, m_trackedBufCurr8xDsRecon));
 

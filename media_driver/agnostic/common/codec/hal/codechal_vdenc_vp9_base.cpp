@@ -6106,8 +6106,8 @@ MOS_STATUS CodechalVdencVp9State::AllocateResources()
 
         // Current MV temporal buffer
         size = maxPicSizeInSb * 9 * CODECHAL_CACHELINE_SIZE;
-        CODECHAL_ENCODE_CHK_NULL_RETURN(m_allocator->AllocateResource(m_standard, size, 1, mvTemporalBuffer, 0));
-        CODECHAL_ENCODE_CHK_NULL_RETURN(m_allocator->AllocateResource(m_standard, size, 1, mvTemporalBuffer, 1));
+        CODECHAL_ENCODE_CHK_NULL_RETURN(m_allocator->AllocateResource(m_standard, size, 1, mvTemporalBuffer, "mvTemporalBuffer", 0));
+        CODECHAL_ENCODE_CHK_NULL_RETURN(m_allocator->AllocateResource(m_standard, size, 1, mvTemporalBuffer, "mvTemporalBuffer", 1));
 
         // Probability buffer
         size = 32 * CODECHAL_CACHELINE_SIZE;

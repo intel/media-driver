@@ -2682,7 +2682,7 @@ MOS_STATUS CodechalVdencHevcState::AllocatePakResources()
     // PAK Statistics buffer
     size = MOS_ALIGN_CEIL(m_vdencBrcPakStatsBufferSize, CODECHAL_PAGE_SIZE);
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_allocator->AllocateResource(
-        m_standard, size, 1, pakStats));
+        m_standard, size, 1, pakStats, "pakStats"));
 
     // Slice Count buffer 1 DW = 4 Bytes
     allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(4, CODECHAL_CACHELINE_SIZE);
@@ -2751,13 +2751,13 @@ MOS_STATUS CodechalVdencHevcState::AllocateEncResources()
     // 1 cacheline per MB
     uint32_t size = m_picWidthInMb * CODECHAL_CACHELINE_SIZE;
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_allocator->AllocateResource(
-        m_standard, size, 1, vdencIntraRowStoreScratch));
+        m_standard, size, 1, vdencIntraRowStoreScratch, "vdencIntraRowStoreScratch"));
 
     // VDENC Statistics buffer, only needed for BRC
     // The size is 19 CL for each tile, allocated with worst case, optimize later
     size = MOS_ALIGN_CEIL(m_vdencBrcStatsBufferSize * m_maxTileNumber, CODECHAL_PAGE_SIZE);
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_allocator->AllocateResource(
-        m_standard, size, 1, vdencStats));
+        m_standard, size, 1, vdencStats, "vdencStats"));
 
     if (m_hucCmdInitializer)
     {
@@ -2823,7 +2823,7 @@ MOS_STATUS CodechalVdencHevcState::AllocateBrcResources()
     // PAK Info buffer
     uint32_t size = MOS_ALIGN_CEIL(sizeof(CodechalVdencHevcPakInfo), CODECHAL_PAGE_SIZE);
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_allocator->AllocateResource(
-        m_standard, size, 1, pakInfo));
+        m_standard, size, 1, pakInfo, "pakInfo"));
 
     // HuC FW Region 6: Data Buffer of Current Picture
     // Data (1024 bytes) for current

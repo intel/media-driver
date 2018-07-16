@@ -6205,7 +6205,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::AllocateEncResources()
         uiHeight,
         "Simplest Intra surface"));
 
-    m_allocator->AllocateResource(m_standard, 1024, 1, brcInputForEncKernel, true);
+    m_allocator->AllocateResource(m_standard, 1024, 1, brcInputForEncKernel, "brcInputForEncKernel", true);
 
     if (MEDIA_IS_SKU(m_skuTable, FtrEncodeHEVC10bit))
     {
