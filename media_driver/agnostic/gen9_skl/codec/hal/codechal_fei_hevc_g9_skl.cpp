@@ -4525,12 +4525,6 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode2xScalingKernel()
     scalingParams.m_cmSurfDS_TopOut = &m_scaled2xSurface.OsResource;
     scalingParams.m_cmSurfTopVProc = nullptr;
 
-    if (m_rawSurfaceToEnc->dwPitch != m_rawSurfaceToEnc->dwWidth)
-    {
-        scalingParams.m_resetPic = true;
-        scalingParams.m_width = m_rawSurfaceToEnc->dwWidth / 2;
-    }
-
     if (m_cmKernelMap.count("2xScaling") == 0)
     {
         m_cmKernelMap["2xScaling"] = new CMRTKernelDownScalingUMD();
@@ -5242,8 +5236,8 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PBMbEncKernel()
     bool transform_8x8_mode_flag = true;
     uint32_t SearchPath              = (m_feiPicParams->SearchWindow == 5) ? 2 : 1;  // 2 means full search, 1 means diamand search
     uint32_t LenSP                   = m_feiPicParams->LenSP;
-    uint32_t RefWidth                = m_feiPicParams->RefWidth;
-    uint32_t RefHeight               = m_feiPicParams->RefHeight;
+    uint32_t RefWidth                = (m_feiPicParams->RefWidth < 20) ? 20 : m_feiPicParams->RefWidth;
+    uint32_t RefHeight               = (m_feiPicParams->RefHeight < 20) ? 20 : m_feiPicParams->RefHeight;
 
     switch (m_feiPicParams->SearchWindow)
     {

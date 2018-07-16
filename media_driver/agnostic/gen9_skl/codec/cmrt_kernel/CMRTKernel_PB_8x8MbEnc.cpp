@@ -497,8 +497,8 @@ CM_RETURN_CODE CMRTKernelB8x8MbEncUMD::AllocateSurfaces(void *params)
     }
     else
     {
-        CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfMVPredictor, m_cmBuffer[8]));
-        CM_CHK_STATUS_RETURN(m_cmBuffer[8]->GetIndex(m_surfIndex[idx++]));
+        CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfMVPredictor, m_cmBuffer[7]));
+        CM_CHK_STATUS_RETURN(m_cmBuffer[7]->GetIndex(m_surfIndex[idx++]));
     }
     if (PB8x8MbEncParams->m_cmSurfPerCTBInput == nullptr)
     {
@@ -506,8 +506,8 @@ CM_RETURN_CODE CMRTKernelB8x8MbEncUMD::AllocateSurfaces(void *params)
     }
     else
     {
-        CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE*)PB8x8MbEncParams->m_cmSurfPerCTBInput, m_cmBuffer[9]));
-        CM_CHK_STATUS_RETURN(m_cmBuffer[9]->GetIndex(m_surfIndex[idx++]));
+        CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE*)PB8x8MbEncParams->m_cmSurfPerCTBInput, m_cmBuffer[8]));
+        CM_CHK_STATUS_RETURN(m_cmBuffer[8]->GetIndex(m_surfIndex[idx++]));
     }
 
     for (; idx < NUM_MBENC_PB_MB_SURFACES; idx++)
@@ -602,8 +602,8 @@ CM_RETURN_CODE CMRTKernelP8x8MbEncUMD::AllocateSurfaces(void *params)
     }
     else
     {
-        CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfMVPredictor, m_cmBuffer[8]));
-        CM_CHK_STATUS_RETURN(m_cmBuffer[8]->GetIndex(m_surfIndex[idx++]));
+        CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfMVPredictor, m_cmBuffer[7]));
+        CM_CHK_STATUS_RETURN(m_cmBuffer[7]->GetIndex(m_surfIndex[idx++]));
     }
     if (PB8x8MbEncParams->m_cmSurfPerCTBInput == nullptr)
     {
@@ -611,8 +611,8 @@ CM_RETURN_CODE CMRTKernelP8x8MbEncUMD::AllocateSurfaces(void *params)
     }
     else
     {
-        CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE*)PB8x8MbEncParams->m_cmSurfPerCTBInput, m_cmBuffer[9]));
-        CM_CHK_STATUS_RETURN(m_cmBuffer[9]->GetIndex(m_surfIndex[idx++]));
+        CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE*)PB8x8MbEncParams->m_cmSurfPerCTBInput, m_cmBuffer[8]));
+        CM_CHK_STATUS_RETURN(m_cmBuffer[8]->GetIndex(m_surfIndex[idx++]));
     }
 
     for (; idx < NUM_MBENC_P_MB_SURFACES; idx++)
