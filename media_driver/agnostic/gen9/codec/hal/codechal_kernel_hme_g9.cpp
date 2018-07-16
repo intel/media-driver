@@ -360,6 +360,10 @@ MOS_STATUS CodechalKernelHmeG9::SendSurfaces(PMOS_COMMAND_BUFFER cmd, MHW_KERNEL
                 {
                     refScaledSurface.OsResource = p32xSurface->OsResource;
                 }
+                else
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
+                }
                 refScaledBottomFieldOffset = refBottomField ? m_surfaceParam.downScaledBottomFieldOffset : 0;
             }
             else if (m_16xMeInUse)
@@ -369,6 +373,10 @@ MOS_STATUS CodechalKernelHmeG9::SendSurfaces(PMOS_COMMAND_BUFFER cmd, MHW_KERNEL
                 {
                     refScaledSurface.OsResource = p16xSurface->OsResource;
                 }
+                else
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
+                }
                 refScaledBottomFieldOffset = refBottomField ? m_surfaceParam.downScaledBottomFieldOffset : 0;
             }
             else
@@ -377,6 +385,10 @@ MOS_STATUS CodechalKernelHmeG9::SendSurfaces(PMOS_COMMAND_BUFFER cmd, MHW_KERNEL
                 if (p4xSurface != nullptr)
                 {
                     refScaledSurface.OsResource = p4xSurface->OsResource;
+                }
+                else
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
                 }
                 refScaledBottomFieldOffset = refBottomField ? m_surfaceParam.downScaledBottomFieldOffset : 0;
             }
@@ -437,6 +449,10 @@ MOS_STATUS CodechalKernelHmeG9::SendSurfaces(PMOS_COMMAND_BUFFER cmd, MHW_KERNEL
                 {
                     refScaledSurface.OsResource = p32xSurface->OsResource;
                 }
+                else
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
+                }
                 refScaledBottomFieldOffset = refBottomField ? m_surfaceParam.downScaledBottomFieldOffset : 0;
             }
             else if (m_16xMeInUse)
@@ -446,6 +462,10 @@ MOS_STATUS CodechalKernelHmeG9::SendSurfaces(PMOS_COMMAND_BUFFER cmd, MHW_KERNEL
                 {
                     refScaledSurface.OsResource = p16xSurface->OsResource;
                 }
+                else
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
+                }
                 refScaledBottomFieldOffset = refBottomField ? m_surfaceParam.downScaledBottomFieldOffset : 0;
             }
             else
@@ -454,6 +474,10 @@ MOS_STATUS CodechalKernelHmeG9::SendSurfaces(PMOS_COMMAND_BUFFER cmd, MHW_KERNEL
                 if (p4xSurface != nullptr)
                 {
                     refScaledSurface.OsResource = p4xSurface->OsResource;
+                }
+                else
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
                 }
                 refScaledBottomFieldOffset = refBottomField ? m_surfaceParam.downScaledBottomFieldOffset : 0;
             }

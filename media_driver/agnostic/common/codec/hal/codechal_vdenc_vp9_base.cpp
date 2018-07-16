@@ -3029,6 +3029,10 @@ MOS_STATUS CodechalVdencVp9State::VdencSendHmeSurfaces(
                 {
                     refScaledSurface.OsResource = p16xSurface->OsResource;
                 }
+                else
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
+                }
             }
             else
             {
@@ -3036,6 +3040,10 @@ MOS_STATUS CodechalVdencVp9State::VdencSendHmeSurfaces(
                 if (p4xSurface != nullptr)
                 {
                     refScaledSurface.OsResource = p4xSurface->OsResource;
+                }
+                else
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
                 }
             }
             uint32_t refScaledBottomFieldOffset = isRefBottomField ? currScaledBottomFieldOffset : 0;
@@ -3092,6 +3100,10 @@ MOS_STATUS CodechalVdencVp9State::VdencSendHmeSurfaces(
                 {
                     refScaledSurface.OsResource = p16xSurface->OsResource;
                 }
+                else
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
+                }
             }
             else
             {
@@ -3099,6 +3111,10 @@ MOS_STATUS CodechalVdencVp9State::VdencSendHmeSurfaces(
                 if (p4xSurface != nullptr)
                 {
                     refScaledSurface.OsResource = p4xSurface->OsResource;
+                }
+                else
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
                 }
             }
             

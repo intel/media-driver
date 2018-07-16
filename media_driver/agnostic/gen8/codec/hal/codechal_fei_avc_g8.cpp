@@ -6689,6 +6689,10 @@ MOS_STATUS CodechalEncodeAvcEncFeiG8::SendMeSurfaces(PMOS_COMMAND_BUFFER cmdBuff
             {
                 refScaledSurface.OsResource = p4xSurface->OsResource;
             }
+            else
+            {
+                CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
+            }
             uint32_t refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
 
             // L0 Reference Picture Y - VME
@@ -6753,6 +6757,10 @@ MOS_STATUS CodechalEncodeAvcEncFeiG8::SendMeSurfaces(PMOS_COMMAND_BUFFER cmdBuff
             if (p4xSurface != nullptr)
             {
                 refScaledSurface.OsResource = p4xSurface->OsResource;
+            }
+            else
+            {
+                CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
             }
             uint32_t refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
 
