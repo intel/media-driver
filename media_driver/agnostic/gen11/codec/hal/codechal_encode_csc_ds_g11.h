@@ -188,7 +188,7 @@ public:
     //!
     ~CodechalEncodeCscDsG11();
 
-    virtual const uint8_t GetBTCount() override;
+    virtual uint8_t GetBTCount() const override;
 
 protected:
     virtual MOS_STATUS AllocateSurfaceCsc() override;
