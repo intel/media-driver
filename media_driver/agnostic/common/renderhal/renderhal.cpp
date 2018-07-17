@@ -653,13 +653,6 @@ extern const MHW_SURFACE_PLANES g_cRenderHal_SurfacePlanes[RENDERHAL_PLANES_DEFI
             { MHW_U_PLANE      , 2, 2, 1, 1, 1, 0, MHW_GFX3DSTATE_SURFACEFORMAT_R16G16_UNORM }
         }
     },
-    // RENDERHAL_PLANES_P010_ADV
-    {   2,
-        {
-            { MHW_Y_PLANE      , 1, 1, 1, 1, 2, 1, MHW_MEDIASTATE_SURFACEFORMAT_R16_UNORM   },
-            { MHW_U_PLANE      , 2, 2, 1, 1, 1, 1, MHW_MEDIASTATE_SURFACEFORMAT_R16B16_UNORM }
-        }
-    },
     // RENDERHAL_PLANES_P010_1PLANE
     {   1,
         {
@@ -3182,12 +3175,6 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
 
                     // Set up chroma direction
                     Direction = pRenderHal->pfnSetChromaDirection(pRenderHal, pRenderHalSurface);
-                }
-                else if (pParams->bVASurface == 0 &&
-                    (pRenderHalSurface->SurfType != RENDERHAL_SURF_OUT_RENDERTARGET))
-                {
-                    // For AVS surface
-                    PlaneDefinition = RENDERHAL_PLANES_P010_ADV;
                 }
                 else
                 {
