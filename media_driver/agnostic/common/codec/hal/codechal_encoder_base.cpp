@@ -934,6 +934,8 @@ MOS_STATUS CodechalEncoderState::Initialize(
     return eStatus;
 }
 
+CmDevice * CodechalEncoderState::m_cmDev = nullptr;
+
 MOS_STATUS CodechalEncoderState::AllocateMDFResources()
 {
     uint32_t devOp;
