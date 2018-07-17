@@ -509,6 +509,26 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     }
     (*attribList)[attrib.type] = attrib.value;
 
+    attrib.type = VAConfigAttribEncPackedHeaders;
+    attrib.value = VA_ATTRIB_NOT_SUPPORTED;
+    if ((IsAvcProfile(profile))||(IsHevcProfile(profile)))
+    {
+        attrib.value = VA_ENC_PACKED_HEADER_PICTURE    |
+            VA_ENC_PACKED_HEADER_SEQUENCE   |
+            VA_ENC_PACKED_HEADER_SLICE      |
+            VA_ENC_PACKED_HEADER_RAW_DATA   |
+            VA_ENC_PACKED_HEADER_MISC;
+    }
+    else if (IsMpeg2Profile(profile))
+    {
+        attrib.value = VA_ENC_PACKED_HEADER_RAW_DATA;
+    }
+    else if(IsJpegProfile(profile))
+    {
+        attrib.value = VA_ENC_PACKED_HEADER_RAW_DATA;
+    }
+
+    (*attribList)[attrib.type] = attrib.value;
     if(IsJpegProfile(profile))
     {
         return status;
@@ -537,22 +557,6 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     else if(entrypoint == VAEntrypointStats)
     {
         attrib.value = VA_RC_NONE;
-    }
-    (*attribList)[attrib.type] = attrib.value;
-
-    attrib.type = VAConfigAttribEncPackedHeaders;
-    attrib.value = VA_ATTRIB_NOT_SUPPORTED;
-    if ((IsAvcProfile(profile))||(IsHevcProfile(profile)))
-    {
-        attrib.value = VA_ENC_PACKED_HEADER_PICTURE    |
-            VA_ENC_PACKED_HEADER_SEQUENCE   |
-            VA_ENC_PACKED_HEADER_SLICE      |
-            VA_ENC_PACKED_HEADER_RAW_DATA   |
-            VA_ENC_PACKED_HEADER_MISC;
-    }
-    else if (IsMpeg2Profile(profile))
-    {
-        attrib.value = VA_ENC_PACKED_HEADER_NONE;
     }
     (*attribList)[attrib.type] = attrib.value;
 

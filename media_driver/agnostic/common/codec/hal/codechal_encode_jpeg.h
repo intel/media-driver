@@ -203,6 +203,7 @@ public:
     // Other
     uint32_t                                    m_appDataSize         = 0;                                     //!< Pointer to Application data size
     bool                                        m_jpegQuantMatrixSent  = false;                                //!< JPEG: bool to tell if quant matrix was sent by the app or not
+    bool                                        m_fullHeaderInAppData  = false;
 
 protected:
     //!
