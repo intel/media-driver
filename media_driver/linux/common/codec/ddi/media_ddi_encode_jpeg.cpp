@@ -79,6 +79,8 @@ VAStatus DdiEncodeJpeg::ContextInitialize(CodechalSetting *codecHalSettings)
 
     m_quantSupplied                 = false;
     m_appDataSize      = 0;
+    m_appDataTotalSize = 0;
+    m_appDataWholeHeader  = false;
 
     m_encodeCtx->pPicParams = (void *)MOS_AllocAndZeroMemory(sizeof(CodecEncodeJpegPictureParams));
     DDI_CHK_NULL(m_encodeCtx->pPicParams, "nullptr m_encodeCtx->pPicParams.", VA_STATUS_ERROR_ALLOCATION_FAILED);
@@ -160,15 +162,36 @@ VAStatus DdiEncodeJpeg::RenderPicture(
         }
 
         case VAEncPackedHeaderParameterBufferType:
-            if (*((int32_t *)data) != VA_ENC_PACKED_HEADER_MISC)
+            if ((*((int32_t *)data) == VAEncPackedHeaderRawData) || (*((int32_t *)data) == VA_ENC_PACKED_HEADER_MISC))
+            {
+                m_appDataSize = (((VAEncPackedHeaderParameterBuffer *)data)->bit_length + 7) >> 3;
+            }
+            else
             {
                 vaStatus = VA_STATUS_ERROR_INVALID_BUFFER;
             }
             break;
 
         case VAEncPackedHeaderDataBufferType:
-        case VAEncPackedHeaderRawData:
-            vaStatus = ParseAppData(data, buf->iSize);
+            {
+                uint8_t *tmpAppData = (uint8_t *)data;
+                //by default m_appDataWholeHeader is false, it means it only include headers between 0xFFE0 to 0xFFEF;
+                //follow JPEG spec definition of application segment definition
+                //if the packed header is start with 0xFFD8, a new SOI, it should include whole jpeg headers
+                if((tmpAppData[0] == 0xFF) && (tmpAppData[1] == 0xD8))
+                {
+                    m_appDataWholeHeader = true;
+                }
+                if(m_appDataWholeHeader)
+                {
+                    vaStatus = ParseAppData(data,m_appDataSize);
+                }
+                else
+                {
+                    vaStatus = ParseAppData(data, buf->iSize);
+                }
+                m_appDataSize = 0;
+            }
             break;
 
         case VAHuffmanTableBufferType:
@@ -203,6 +226,9 @@ VAStatus DdiEncodeJpeg::ResetAtFrameLevel()
     picParams->m_inputSurfaceFormat = ConvertMediaFormatToInputSurfaceFormat(m_encodeCtx->RTtbl.pCurrentRT->format);
 
     m_appDataSize = 0;
+    m_appDataTotalSize = 0;
+    m_appDataWholeHeader = false;
+    m_quantSupplied = false;
 
     return VA_STATUS_SUCCESS;
 }
@@ -424,7 +450,7 @@ VAStatus DdiEncodeJpeg::ParseAppData(void *ptr, int32_t size)
     DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx.", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(ptr, "nullptr ptr.", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    uint32_t prevAppDataSize = m_appDataSize;
+    uint32_t prevAppDataSize = m_appDataTotalSize;
 
     if (m_appData == nullptr)
     {
@@ -460,7 +486,7 @@ VAStatus DdiEncodeJpeg::ParseAppData(void *ptr, int32_t size)
 
     }
 
-    m_appDataSize += size;
+    m_appDataTotalSize += size;
 
     return VA_STATUS_SUCCESS;
 }
@@ -523,7 +549,8 @@ VAStatus DdiEncodeJpeg::EncodeInCodecHal(uint32_t numSlices)
     // Slice level data
     encodeParams.dwNumSlices      = numSlices;
     encodeParams.dwNumHuffBuffers = picParams->m_numCodingTable;
-    encodeParams.dwAppDataSize    = m_appDataSize;
+    encodeParams.dwAppDataSize    = m_appDataTotalSize;
+    encodeParams.fullHeaderInAppData = m_appDataWholeHeader;
 
     encodeParams.pQuantizationTable = m_encodeCtx->pQmatrixParams;
     encodeParams.pHuffmanTable      = m_huffmanTable;
