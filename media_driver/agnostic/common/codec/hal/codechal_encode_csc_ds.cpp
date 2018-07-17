@@ -1018,7 +1018,7 @@ MOS_STATUS CodechalEncodeCscDs::SendSurfaceDS(PMOS_COMMAND_BUFFER cmdBuffer)
     return eStatus;
 }
 
-const uint8_t CodechalEncodeCscDs::GetBTCount()
+uint8_t CodechalEncodeCscDs::GetBTCount() const
 {
     return (uint8_t)cscNumSurfaces;
 }
