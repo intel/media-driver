@@ -128,6 +128,8 @@ struct EncoderParams
     MOS_SURFACE                     mbQpSurface;
     MOS_SURFACE                     disableSkipMapSurface;          //!< [AVC] MB disable skip map provided by framework
     HANDLE                          gpuAppTaskEvent;                // MSDK event handling
+
+    bool                            fullHeaderInAppData;         //!< [JPEG]
 };
 
 #endif // !__CODEC_DEF_ENCODE_H__
