@@ -438,10 +438,10 @@ void OsContextSpecific::SetSliceCount(uint32_t *pSliceCount)
         for (int sliceCountShm = m_gtSystemInfo.SliceCount; sliceCountShm > 0; sliceCountShm--)
         {
             uint64_t* pTimestampShm = (uint64_t*)m_sseuShm + sliceCountShm;
-            uint64_t   timestampShm = __atomic_load_8(pTimestampShm, __ATOMIC_SEQ_CST);
+            uint64_t   timestampShm = __atomic_load_n(pTimestampShm, __ATOMIC_SEQ_CST);
             if (sliceNum == sliceCountShm)
             {
-                __atomic_store_8(pTimestampShm, timestamp, __ATOMIC_SEQ_CST);
+                __atomic_store_n(pTimestampShm, timestamp, __ATOMIC_SEQ_CST);
                 break;
             }
             else if (sliceNum < sliceCountShm
