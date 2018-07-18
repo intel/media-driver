@@ -3910,7 +3910,7 @@ MOS_STATUS CodechalEncHevcStateG9::AllocateEncResources()
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hmeKernel->AllocateResources());
     }
-  
+
     // BRC Distortion Surface which will be used in ME as the output, too
     // In addition, this surface should also be allocated as BRC resource once ENC is enabled
     width = MOS_ALIGN_CEIL((m_downscaledWidthInMb4x * 8), 64);
@@ -9456,7 +9456,7 @@ MOS_STATUS CodechalEncHevcStateG9::EncodeKernelFunctions()
         }
 
         //Step 1: perform 2:1 down-scaling
-        if ((m_hevcSeqParams->bit_depth_luma_minus8 == 0))  // use this for 8 bit only case.
+        if (m_hevcSeqParams->bit_depth_luma_minus8 == 0)  // use this for 8 bit only case.
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(Encode2xScalingKernel());
         }

@@ -200,7 +200,7 @@ MOS_STATUS CodechalEncodeCscDsG9::SetCurbeDS4x()
         curbe.DW4_OutputYBTIBottomField = ds4xDstYPlaneBtmField;
     }
 
-    if (curbe.DW6_EnableMBFlatnessCheck = m_curbeParams.bFlatnessCheckEnabled)
+    if ((curbe.DW6_EnableMBFlatnessCheck = m_curbeParams.bFlatnessCheckEnabled))
     {
         curbe.DW5_FlatnessThreshold = 128;
     }

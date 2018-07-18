@@ -40,7 +40,7 @@ MOS_STATUS CodechalEncodeTrackedBufferHevc::AllocateMvTemporalBuffer()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    if (m_trackedBufCurrMvTemporal = (MOS_RESOURCE*)m_allocator->GetResource(m_standard, mvTemporalBuffer, m_trackedBufCurrIdx))
+    if ((m_trackedBufCurrMvTemporal = (MOS_RESOURCE*)m_allocator->GetResource(m_standard, mvTemporalBuffer, m_trackedBufCurrIdx)))
     {
         return MOS_STATUS_SUCCESS;
     }

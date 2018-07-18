@@ -325,7 +325,7 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateMbCodeResources(uint8_t bufIndex
         "No MbCode buffer is available!");
 
     // early exit if already allocated
-    if (m_trackedBufCurrMbCode = (MOS_RESOURCE*)m_allocator->GetResource(m_standard, mbCodeBuffer, bufIndex))
+    if ((m_trackedBufCurrMbCode = (MOS_RESOURCE*)m_allocator->GetResource(m_standard, mbCodeBuffer, bufIndex)))
     {
         return MOS_STATUS_SUCCESS;
     }
@@ -342,7 +342,7 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateMvDataResources(uint8_t bufIndex
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     // early exit if already allocated
-    if (m_trackedBufCurrMvData = (MOS_RESOURCE*)m_allocator->GetResource(m_standard, mvDataBuffer, bufIndex))
+    if ((m_trackedBufCurrMvData = (MOS_RESOURCE*)m_allocator->GetResource(m_standard, mvDataBuffer, bufIndex)))
     {
         return MOS_STATUS_SUCCESS;
     }
@@ -365,7 +365,7 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateSurfaceCsc()
     // wait to re-use once # of non-ref slots being used reaches 3
     m_waitCscSurface = (m_cscBufCurrIdx >= CODEC_NUM_REF_BUFFERS && m_cscBufCountNonRef > CODEC_NUM_NON_REF_BUFFERS);
 
-    if (m_trackedBufCurrCsc = (MOS_SURFACE*)m_allocator->GetResource(m_standard, cscSurface, m_cscBufCurrIdx))
+    if ((m_trackedBufCurrCsc = (MOS_SURFACE*)m_allocator->GetResource(m_standard, cscSurface, m_cscBufCurrIdx)))
     {
         return MOS_STATUS_SUCCESS;
     }
@@ -388,7 +388,7 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateSurfaceDS()
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     // early exit if already allocated
-    if (m_trackedBufCurrDs4x = (MOS_SURFACE*)m_allocator->GetResource(m_standard, ds4xSurface, m_trackedBufCurrIdx))
+    if ((m_trackedBufCurrDs4x = (MOS_SURFACE*)m_allocator->GetResource(m_standard, ds4xSurface, m_trackedBufCurrIdx)))
     {
         if (m_encoder->m_16xMeSupported)
         {
@@ -496,7 +496,7 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateSurface2xDS()
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     // early exit if already allocated
-    if (m_trackedBufCurrDs2x = (MOS_SURFACE*)m_allocator->GetResource(m_standard, ds2xSurface, m_trackedBufCurrIdx))
+    if ((m_trackedBufCurrDs2x = (MOS_SURFACE*)m_allocator->GetResource(m_standard, ds2xSurface, m_trackedBufCurrIdx)))
     {
         return MOS_STATUS_SUCCESS;
     }
@@ -542,7 +542,7 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateDsReconSurfacesVdenc()
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     // early exit if already allocated
-    if (m_trackedBufCurr4xDsRecon = (MOS_SURFACE*)m_allocator->GetResource(m_standard, ds4xRecon, m_trackedBufCurrIdx))
+    if ((m_trackedBufCurr4xDsRecon = (MOS_SURFACE*)m_allocator->GetResource(m_standard, ds4xRecon, m_trackedBufCurrIdx)))
     {
         m_trackedBufCurr8xDsRecon = (MOS_SURFACE*)m_allocator->GetResource(m_standard, ds8xRecon, m_trackedBufCurrIdx);
         return MOS_STATUS_SUCCESS;

@@ -3928,7 +3928,7 @@ MOS_STATUS CodechalEncodeAvcEnc::MbEncKernel(bool mbEncIFrameDistInUse)
             m_lastTaskInPhase = false;
         }
     }
-        
+
     CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
         &BrcBuffers.sBrcMbQpBuffer.OsResource,
         CodechalDbgAttr::attrInput,
@@ -5567,7 +5567,7 @@ MOS_STATUS CodechalEncodeAvcEnc::SetPictureStructs()
         bBrcRoiEnabled = (seqParams->RateControlMethod != RATECONTROL_CQP) && picParams->NumROI;
 
         // allocated resource for MB-level BRC
-        if (bMbBrcEnabled = (bMbBrcEnabled || bBrcRoiEnabled))
+        if ((bMbBrcEnabled = (bMbBrcEnabled || bBrcRoiEnabled)))
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateResourcesMbBrc());
         }
