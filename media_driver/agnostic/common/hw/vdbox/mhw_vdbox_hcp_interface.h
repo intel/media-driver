@@ -56,6 +56,7 @@ typedef struct _MHW_VDBOX_HEVC_PIC_STATE
     bool                                    bRDOQIntraTUDisable;
     uint16_t                                wRDOQIntraTUThreshold;
     uint32_t                                brcNumPakPasses;
+    bool                                    rhodomainRCEnable;
 
     //FEI multiple passes PAK ---max frame size
     uint8_t                                 currPass;
