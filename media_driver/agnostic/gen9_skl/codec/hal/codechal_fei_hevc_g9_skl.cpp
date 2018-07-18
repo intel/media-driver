@@ -5811,7 +5811,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::EncodeKernelFunctions()
     else
     {
         //Step 1: perform 2:1 down-scaling
-        if ((m_hevcSeqParams->bit_depth_luma_minus8 == 0))  // use this for 8 bit only case.
+        if (m_hevcSeqParams->bit_depth_luma_minus8 == 0)  // use this for 8 bit only case.
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(Encode2xScalingKernel());
         }

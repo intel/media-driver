@@ -93,7 +93,7 @@ uint32_t CodechalEncHevcState::GetPicHdrSize()
                     numEmuBytes++;   //increment by prevention byte
                 }
 
-                if ((*hdrPtr == 0x00))
+                if (*hdrPtr == 0x00)
                 {
                     zeroCount++;
                 }
@@ -511,7 +511,7 @@ MOS_STATUS CodechalEncHevcState::AddHcpWeightOffsetStateCmd(
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(hevcSlcParams);
-    
+
     if (cmdBuffer == nullptr && batchBuffer == nullptr)
     {
         CODECHAL_ENCODE_ASSERTMESSAGE("There was no valid buffer to add the HW command to.");
@@ -800,7 +800,7 @@ MOS_STATUS CodechalEncHevcState::ReadHcpStatus(PMOS_COMMAND_BUFFER cmdBuffer)
 }
 
 uint8_t CodechalEncHevcState::CalculateROIRatio()
-{   
+{
     uint32_t roiSize = 0;
     for (uint32_t i = 0; i < m_hevcPicParams->NumROI; ++i)
     {
@@ -815,7 +815,7 @@ uint8_t CodechalEncHevcState::CalculateROIRatio()
         roiRatio = 2 * (numMBs * 256 / roiSize - 1);
         roiRatio = MOS_MIN(51, roiRatio);
     }
-    
+
     return (uint8_t)roiRatio;
 }
 

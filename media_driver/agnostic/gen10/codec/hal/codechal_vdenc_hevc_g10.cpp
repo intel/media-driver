@@ -1716,7 +1716,7 @@ MOS_STATUS CodechalVdencHevcStateG10::SetDmemHuCBrcInitReset()
         hucVdencBrcInitDmem->CuQpCtrl_U8 = 0;  // wPictureCodingType I:0, P:1, B:2
     }
 
-    if (hucVdencBrcInitDmem->LowDelayMode_U8 = (m_hevcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_EXTREMELY_LOW))  // Low Delay BRC
+    if ((hucVdencBrcInitDmem->LowDelayMode_U8 = (m_hevcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_EXTREMELY_LOW)))  // Low Delay BRC
     {
 
         MOS_SecureMemcpy(hucVdencBrcInitDmem->DevThreshPB0_S8, 8 * sizeof(int8_t), (void *)m_lowdelayDevThreshPB, 8 * sizeof(int8_t));
@@ -1822,7 +1822,7 @@ MOS_STATUS CodechalVdencHevcStateG10::SetConstDataHuCBrcUpdate()
         for (int i=0; i < numEstrateThreshlds +1; i++)
         {
             for (int j=0; j < m_numDevThreshlds +1; j++)
-            { 
+            {
                 hucConstData->FrmSzAdjTabI_S8[(numEstrateThreshlds +1)*j+i]= m_lowdelayDeltaFrmszI[j][i];
                 hucConstData->FrmSzAdjTabP_S8[(numEstrateThreshlds +1)*j+i]= m_lowdelayDeltaFrmszP[j][i];
                 hucConstData->FrmSzAdjTabB_S8[(numEstrateThreshlds +1)*j+i]= m_lowdelayDeltaFrmszB[j][i];
