@@ -1463,6 +1463,37 @@ MOS_STATUS CodechalEncHevcState::Initialize(CodechalSetting * settings)
     return eStatus;
 }
 
+MOS_STATUS CodechalEncHevcState::GetFrameBrcLevel()
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    if (m_pictureCodingType == I_TYPE)
+    {
+        m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_I;
+    }
+    else if (m_pictureCodingType == B_TYPE)
+    {
+        m_currFrameBrcLevel = (m_lowDelay) ? HEVC_BRC_FRAME_TYPE_P_OR_LB : HEVC_BRC_FRAME_TYPE_B;
+    }
+    else if (m_pictureCodingType == B1_TYPE)
+    {
+        m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_B1;
+    }
+    else if (m_pictureCodingType == B2_TYPE)
+    {
+        m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_B2;
+    }
+    else
+    {
+        CODECHAL_ENCODE_ASSERT(false);
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    return eStatus;
+}
+
 MOS_STATUS CodechalEncHevcState::InitializePicture(const EncoderParams& params)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
@@ -1470,7 +1501,8 @@ MOS_STATUS CodechalEncHevcState::InitializePicture(const EncoderParams& params)
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncodeHevcBase::InitializePicture(params));
-
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(GetFrameBrcLevel());
+    
     return eStatus;
 }
 
