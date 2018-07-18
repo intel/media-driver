@@ -213,7 +213,7 @@ uint32_t CodechalEncodeAllocator::GetResourceSize(uint32_t codec, ResourceName n
     RESOURCE_TAG resTag;
     MOS_ZeroMemory(&resTag, sizeof(resTag));
 
-    if (resTag.tag = GetResourceTag(SetResourceID(codec, name, index), matchLevel1))
+    if ((resTag.tag = GetResourceTag(SetResourceID(codec, name, index), matchLevel1)))
     {
         return resTag.size;
     }
