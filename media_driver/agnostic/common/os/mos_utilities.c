@@ -2954,6 +2954,15 @@ MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_ID,
      MOS_USER_FEATURE_VALUE_TYPE_BOOL,
      "0", 
      "HEVC Vme encode force scalability for low (< 4K) resolution. (Default 0"),    
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_HCP_DECODE_BE_SEMA_RESET_DELAY_ID,
+     "BE Semaphore Reset Delay",
+     __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+     __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+     "Codec",
+     MOS_USER_FEATURE_TYPE_USER,
+     MOS_USER_FEATURE_VALUE_TYPE_UINT32,
+     "15", 
+     "Control the num of placeholder cmds which are used for the delay of reset BE sync semaphore"),    
 };
 
 #define MOS_NUM_USER_FEATURE_VALUES     (sizeof(MOSUserFeatureDescFields) / sizeof(MOSUserFeatureDescFields[0]))

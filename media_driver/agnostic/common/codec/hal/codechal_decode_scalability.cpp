@@ -220,6 +220,33 @@ MOS_STATUS CodecHalDecodeScalability_AllocateResources_FixedSizes(
         pOsInterface,
         &pScalabilityState->resSemaMemBEs));
 
+    AllocParamsForBufferLinear.dwBytes = sizeof(uint32_t);
+    AllocParamsForBufferLinear.pBufName = "DelayMinusMemory";
+
+    eStatus = (MOS_STATUS)pOsInterface->pfnAllocateResource(
+        pOsInterface,
+        &AllocParamsForBufferLinear,
+        &pScalabilityState->resDelayMinus);
+
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        CODECHAL_DECODE_ASSERTMESSAGE("Failed to allocate delay minus memory.");
+        return eStatus;
+    }
+
+    pData = (uint8_t*)pOsInterface->pfnLockResource(
+        pOsInterface,
+        &pScalabilityState->resDelayMinus,
+        &LockFlagsWriteOnly);
+
+    CODECHAL_DECODE_CHK_NULL_RETURN(pData);
+
+    MOS_ZeroMemory(pData, sizeof(uint32_t));
+
+    CODECHAL_DECODE_CHK_STATUS_RETURN(pOsInterface->pfnUnlockResource(
+        pOsInterface,
+        &pScalabilityState->resDelayMinus));
+
     if (pScalabilityState->pHwInterface->GetMfxInterface()->GetNumVdbox() > 2)
     {
         if (pScalabilityState->bFESeparateSubmission)
@@ -593,6 +620,9 @@ void CodecHalDecodeScalability_Destroy (
     pOsInterface->pfnFreeResource(
         pOsInterface,
         &pScalabilityState->resSemaMemBEs);
+    pOsInterface->pfnFreeResource(
+        pOsInterface,
+        &pScalabilityState->resDelayMinus);
     if (pOsInterface->bUseHwSemaForResSyncInVE)
     {
         pOsInterface->pfnFreeResource(
@@ -1586,6 +1616,8 @@ MOS_STATUS CodecHalDecodeScalability_FEBESync(
         }
         else
         {
+            pMiInterface->AddWatchdogTimerStopCmd(pCmdBufferInUse);
+
             CODECHAL_DECODE_CHK_STATUS_RETURN(pScalabilityState->pHwInterface->SendHwSemaphoreWaitCmd(&pScalabilityState->resSemaMemFEBE, 1, MHW_MI_SAD_EQUAL_SDD, pCmdBufferInUse));
             //reset semaphore. mi atomic decrease 1
             CODECHAL_DECODE_CHK_STATUS_RETURN(pScalabilityState->pHwInterface->SendMiAtomicDwordCmd(&pScalabilityState->resSemaMemFEBE, 1, MHW_MI_ATOMIC_DEC, pCmdBufferInUse));
@@ -1604,6 +1636,19 @@ MOS_STATUS CodecHalDecodeScalability_FEBESync(
             pScalabilityState->ucScalablePipeNum,
             MHW_MI_SAD_EQUAL_SDD,
             pCmdBufferInUse));
+
+        // Program some placeholder cmds to resolve the hazard between BEs sync
+        MHW_MI_STORE_DATA_PARAMS dataParams;
+        dataParams.pOsResource = &pScalabilityState->resDelayMinus;
+        dataParams.dwResourceOffset = 0;
+        dataParams.dwValue = 0xDE1A;
+        for (uint32_t i = 0; i < pScalabilityState->numDelay; i++)
+        {
+            CODECHAL_DECODE_CHK_STATUS_RETURN(pScalabilityState->pHwInterface->GetMiInterface()->AddMiStoreDataImmCmd(
+                pCmdBufferInUse,
+                &dataParams));
+        }
+
         //reset HW semaphore
         CODECHAL_DECODE_CHK_STATUS_RETURN(pScalabilityState->pHwInterface->SendMiAtomicDwordCmd(&pScalabilityState->resSemaMemBEs, 1, MHW_MI_ATOMIC_DEC, pCmdBufferInUse));
 
@@ -1799,6 +1844,8 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState (
     pScalabilityState->VideoContextForSP = MOS_GPU_CONTEXT_INVALID_HANDLE;
     pScalabilityState->VideoContextForMP = MOS_GPU_CONTEXT_INVALID_HANDLE;
 
+    pScalabilityState->numDelay = 15;
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     // Reg key of the threshold for mode switch single pipe <-> 2 pipe. Using pic width value to control mode switch for now
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
@@ -1821,6 +1868,13 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState (
         __MEDIA_USER_FEATURE_VALUE_SCALABILITY_OVERRIDE_SPLIT_WIDTH_IN_MINCB,
         &UserFeatureData);
     pScalabilityState->dbgOvrdWidthInMinCb = UserFeatureData.u32Data;
+
+    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_HCP_DECODE_BE_SEMA_RESET_DELAY_ID,
+        &UserFeatureData);
+    pScalabilityState->numDelay = UserFeatureData.u32Data;
 #endif
 
     // enable FE separate submission by default in multi-pipe mode
