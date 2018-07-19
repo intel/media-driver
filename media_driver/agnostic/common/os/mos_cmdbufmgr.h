@@ -94,6 +94,15 @@ public:
     CommandBuffer *PickupOneCmdBuf(uint32_t size);
 
     //!
+    //! \brief    insert the command buffer into available pool in proper location.
+    //! \details  This function will find a the first cmd buffer which equal or  
+    //!           small cmd buf size in available pool, and then insert it.
+    //! \param    [in] cmdBuf
+    //!           command buffer to be released
+    //!
+    void UpperInsert(CommandBuffer *cmdBuf);
+
+    //!
     //! \brief    Release command buffer from in-use status to standby status
     //! \details  This function designed for situations which need retire or 
     //!           discard in use command buffer, it directly erase command buf
