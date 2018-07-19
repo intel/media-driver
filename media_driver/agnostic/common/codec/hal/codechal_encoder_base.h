@@ -353,8 +353,6 @@ struct MfeParams
     uint32_t                           streamId;             //!< Unique id
     uint32_t                           submitIndex;          //!< Index during this submission
     uint32_t                           submitNumber;         //!< Total stream number during this submission
-    uint32_t                           maxWidth;             //!< Maximum width for all frames
-    uint32_t                           maxHeight;            //!< Maximum height for all frames
 };
 
 //!
@@ -1662,7 +1660,7 @@ public:
     bool m_mmcUserFeatureUpdated;  //!< indicate if the user feature is updated with MMC state
 #endif
 
-    static CmDevice *m_cmDev;
+    CmDevice *m_cmDev     = nullptr;
     CmTask *  m_cmTask    = nullptr;
     CmQueue * m_cmQueue   = nullptr;
     CmDevice *m_origCmDev = nullptr;
