@@ -123,6 +123,8 @@ struct _CODECHAL_DECODE_SCALABILITY_STATE
     MOS_RESOURCE                    resSemaMemCompletion;
     MOS_RESOURCE                    resFEStatusBuffer;
     MOS_RESOURCE                    resFeBeSyncObject;
+    MOS_RESOURCE                    resDelayMinus;
+    uint32_t                        numDelay;
     uint32_t                        dwCABACSyntaxStreamOutBufferSize;
     bool                            bIsEnableEndCurrentBatchBuffLevel;
 #if (_DEBUG || _RELEASE_INTERNAL)
