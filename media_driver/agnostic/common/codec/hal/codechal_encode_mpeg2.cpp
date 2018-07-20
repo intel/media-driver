@@ -2357,7 +2357,7 @@ MOS_STATUS CodechalEncodeMpeg2::PackPicCodingExtension()
     PutBits(bsBuffer, (!m_picParams->m_fieldCodingFlag) ? 3 : ((m_picParams->m_interleavedFieldBFF) ? 2 : 1), 2);
 
     bool progressiveSequence = m_seqParams->m_progressiveSequence & 0x1;
-    bool actual_tff = !m_picParams->m_fieldCodingFlag && !progressiveSequence || (m_picParams->m_repeatFirstField != 0);
+    bool actual_tff = (!m_picParams->m_fieldCodingFlag && !progressiveSequence) || (m_picParams->m_repeatFirstField != 0);
 
     // top_field_first
     PutBit(bsBuffer, (actual_tff ) ? (!m_picParams->m_interleavedFieldBFF) : 0);

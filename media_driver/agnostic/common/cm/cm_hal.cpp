@@ -6889,9 +6889,9 @@ uint32_t HalCm_ThreadsNumberPerGroup_MW(PCM_HAL_WALKER_PARAMS walkerParams)
 
     //do global_outer_looper initialization
     while (((globalOuterX >= globalresX) && (globalInnerStepX < 0)) ||
-        ((globalOuterX + localblockresX) < 0) && (globalInnerStepX > 0) ||
+        (((globalOuterX + localblockresX) < 0) && (globalInnerStepX > 0)) ||
         ((globalOuterY >= globalresY) && (globalInnerStepY < 0)) ||
-        ((globalOuterX + localblockresY) < 0) && (globalInnerStepY > 0))
+        (((globalOuterX + localblockresY) < 0) && (globalInnerStepY > 0)))
     {
         globalOuterX += globalInnerStepX;
         globalOuterY += globalInnerStepY;
@@ -7028,9 +7028,9 @@ uint32_t HalCm_ThreadsNumberPerGroup_MW(PCM_HAL_WALKER_PARAMS walkerParams)
         globalOuterX += globalOuterStepX;
         globalOuterY += globalOuterStepY;
         while (((globalOuterX >= globalresX) && (globalInnerStepX < 0)) ||
-            ((globalOuterX + localblockresX) < 0) && (globalInnerStepX > 0) ||
+            (((globalOuterX + localblockresX) < 0) && (globalInnerStepX > 0)) ||
             ((globalOuterY >= globalresY) && (globalInnerStepY < 0)) ||
-            ((globalOuterX + localblockresY) < 0) && (globalInnerStepY > 0))
+            (((globalOuterX + localblockresY) < 0) && (globalInnerStepY > 0)))
         {
             globalOuterX += globalInnerStepX;
             globalOuterY += globalInnerStepY;

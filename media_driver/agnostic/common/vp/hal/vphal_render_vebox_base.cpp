@@ -2352,9 +2352,9 @@ void VPHAL_VEBOX_STATE::VeboxSetRenderingFlags(
                                         (pSrc->pColorPipeParams->bEnableSTE     ||
                                          pSrc->pColorPipeParams->bEnableTCC));
 
-    pRenderData->bIECP              = (pSrc->pColorPipeParams &&
+    pRenderData->bIECP              = ((pSrc->pColorPipeParams &&
                                         (pSrc->pColorPipeParams->bEnableSTE     ||
-                                         pSrc->pColorPipeParams->bEnableTCC)    ||
+                                         pSrc->pColorPipeParams->bEnableTCC))   ||
                                         pRenderData->bBeCsc                     ||
                                         pRenderData->bProcamp);
 

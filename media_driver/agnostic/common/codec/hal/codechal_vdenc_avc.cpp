@@ -2613,7 +2613,7 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcUpdate()
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
 
-    if ((!m_singleTaskPhaseSupported) || (m_firstTaskInPhase) && (!m_brcInit))
+    if (!m_singleTaskPhaseSupported || (m_firstTaskInPhase && !m_brcInit))
     {
         // Send command buffer header at the beginning (OS dependent)
         bool bRequestFrameTracking = m_singleTaskPhaseSupported ?
