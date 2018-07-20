@@ -3175,9 +3175,9 @@ void CodechalEncodeAvcEncG9Skl::UpdateSSDSliceCount()
         {
             sliceCount = 3;
         }
-        else if (m_frameHeight * m_frameWidth >= 3840*2160 ||
-            m_frameHeight * m_frameWidth >= 1920*1080 && m_targetUsage > 4 ||
-            m_frameHeight * m_frameWidth >= 1280*720 && m_targetUsage <= 4)
+        else if ((m_frameHeight * m_frameWidth >= 3840*2160) ||
+            (m_frameHeight * m_frameWidth >= 1920*1080 && m_targetUsage > 4) ||
+            (m_frameHeight * m_frameWidth >= 1280*720 && m_targetUsage <= 4))
         {
             sliceCount = 2;
         }
@@ -3188,9 +3188,9 @@ void CodechalEncodeAvcEncG9Skl::UpdateSSDSliceCount()
     }
     else
     {
-        if (m_frameHeight * m_frameWidth >= 1920*1080 && m_targetUsage <= 4 ||
-            m_frameHeight * m_frameWidth >= 1280*720 && m_targetUsage <= 2 ||
-            m_frameHeight * m_frameWidth >= 3840*2160)
+        if ((m_frameHeight * m_frameWidth >= 1920*1080 && m_targetUsage <= 4) ||
+            (m_frameHeight * m_frameWidth >= 1280*720 && m_targetUsage <= 2) ||
+            (m_frameHeight * m_frameWidth >= 3840*2160))
         {
             sliceCount = 2;
         }

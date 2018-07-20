@@ -283,9 +283,9 @@ MOS_STATUS VPHAL_VEBOX_STATE_G9_BASE::GetFFDISurfParams(
     // output surface's SampleType should be same to input's. Bob is being
     // done in Composition part
     if (pRenderData->bIECP &&
-        (m_currentSurface->pDeinterlaceParams                         &&
+        ((m_currentSurface->pDeinterlaceParams                         &&
          m_currentSurface->pDeinterlaceParams->DIMode == DI_MODE_BOB) ||
-         m_currentSurface->bInterlacedScaling)
+         m_currentSurface->bInterlacedScaling))
     {
         SampleType = m_currentSurface->SampleType;
     }
