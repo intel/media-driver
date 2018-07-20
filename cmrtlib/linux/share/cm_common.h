@@ -19,28 +19,6 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
-/**
-*** -----------------------------------------------------------------------------------------------
-*** cvs_id[] = "$Id: cm_common.h 25899 2011-08-05 18:44:07Z kchen24 $"
-*** -----------------------------------------------------------------------------------------------
-***
-*** Copyright  (C) 1985-2016 Intel Corporation. All rights reserved.
-***
-*** The information and source code contained herein is the exclusive
-*** property of Intel Corporation. and may not be disclosed, examined
-*** or reproduced in whole or in part without explicit written authorization
-*** from the company.
-***
-***
-*** Authors:             Kaiyu Chen
-***
-***
-***
-***
-*** Description: Cm sampler APIs
-***
-*** -----------------------------------------------------------------------------------------------
-**/
 
 #ifndef CMRTLIB_LINUX_SHARE_CM_COMMON_H_
 #define CMRTLIB_LINUX_SHARE_CM_COMMON_H_
