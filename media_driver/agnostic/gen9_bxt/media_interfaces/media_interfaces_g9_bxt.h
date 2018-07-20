@@ -37,7 +37,7 @@
 #include "media_interfaces_nv12top010.h"
 #include "media_interfaces_decode_histogram.h"
 
-#include "mhw_cp.h"
+#include "mhw_cp_interface.h"
 #include "mhw_mi_g9_X.h"
 #include "mhw_render_g9_X.h"
 #include "mhw_sfc_g9_X.h"

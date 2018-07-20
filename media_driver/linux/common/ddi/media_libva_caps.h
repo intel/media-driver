@@ -33,6 +33,7 @@
 #include <map>
 
 struct DDI_MEDIA_CONTEXT;
+class MediaLibvaCapsCpInterface;
 
 typedef std::map<VAConfigAttribType, uint32_t> AttribMap;
 
@@ -750,6 +751,8 @@ protected:
     static const uint32_t m_encJpegMaxHeight =
         ENCODE_JPEG_MAX_PIC_HEIGHT; //!< Maximum height for JPEG encoding
     DDI_MEDIA_CONTEXT *m_mediaCtx; //!< Pointer to media context
+
+    MediaLibvaCapsCpInterface* m_CapsCp;
 
     //!
     //! \brief  Store all the supported encode format

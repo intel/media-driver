@@ -27,7 +27,7 @@
 #ifndef __MHW_SFC_H__
 #define __MHW_SFC_H__
 
-#include "mhw_cp.h"
+#include "mhw_cp_interface.h"
 #include "mhw_state_heap.h"
 #include "mhw_utilities.h"
 #include "mos_os.h"

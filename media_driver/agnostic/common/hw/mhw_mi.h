@@ -32,7 +32,7 @@ class MhwCpInterface;
 
 #include "mos_os.h"
 #include "mhw_utilities.h"
-#include "mhw_cp.h"
+#include "mhw_cp_interface.h"
 
 #define MHW_MI_WATCHDOG_ENABLE_COUNTER                 0x0
 #define MHW_MI_WATCHDOG_DISABLE_COUNTER                0x1

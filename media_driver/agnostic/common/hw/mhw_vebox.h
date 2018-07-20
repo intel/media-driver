@@ -30,7 +30,7 @@
 
 #include "mos_os.h"
 #include "mhw_utilities.h"
-#include "mhw_cp.h"
+#include "mhw_cp_interface.h"
 
 #include <math.h>
 

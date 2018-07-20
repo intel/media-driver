@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2017, Intel Corporation
+* Copyright (c) 2015-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,29 +20,52 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     media_libva_cp.cpp
-//! \brief    DDI interface for content protection parameters and operations.
-//! \details  Other components will call this interface for content protection  operations directly
+//! \file     media_libva_cp_interface.cpp
+//! \brief    The class implementation of DdiCpInterface
 //!
 
 #include "media_libva_util.h"
 #include "media_libva_decoder.h"
 #include "media_libva_encoder.h"
+#include "media_libva_cp_interface.h"
 #include "media_libva_vp.h"
-#include "media_libva_cp.h"
+#include "cplib_utils.h"
+#include <typeinfo>
 
 static void DdiStubMessage()
 {
-    DDI_NORMALMESSAGE("This function is stubbed as CP is not enabled.");
+    MOS_NORMALMESSAGE(
+        MOS_COMPONENT_CP, 
+        MOS_CP_SUBCOMP_DDI, 
+        CP_STUB_MESSAGE);
 }
 
-DdiCpInterface::DdiCpInterface(MOS_CONTEXT& mosCtx)
+DdiCpInterface* Create_DdiCpInterface(MOS_CONTEXT& mosCtx)
 {
-    DdiStubMessage();
+    DdiCpInterface* pDdiCpInterface = nullptr;
+    using Create_DdiCpFuncType = DdiCpInterface* (*)(MOS_CONTEXT* pMosCtx);
+    CPLibUtils::InvokeCpFunc<Create_DdiCpFuncType>(
+        pDdiCpInterface, 
+        CPLibUtils::FUNC_CREATE_DDICP, &mosCtx);
+
+    if(nullptr == pDdiCpInterface) DdiStubMessage();
+
+    return nullptr == pDdiCpInterface ? MOS_New(DdiCpInterface, mosCtx) : pDdiCpInterface;
 }
 
-DdiCpInterface::~DdiCpInterface()
+void Delete_DdiCpInterface(DdiCpInterface* pDdiCpInterface)
 {
+    if(typeid(*pDdiCpInterface) == typeid(DdiCpInterface))
+    {
+        MOS_Delete(pDdiCpInterface);
+    }
+    else
+    {
+        using Delete_DdiCp= void (*)(DdiCpInterface*);
+        CPLibUtils::InvokeCpFunc<Delete_DdiCp>(
+            CPLibUtils::FUNC_DELETE_DDICP, 
+            pDdiCpInterface);
+    }
 }
 
 void DdiCpInterface::SetCpParams(uint32_t encryptionType, CodechalSetting *setting)

@@ -28,7 +28,7 @@
 #define __MEDIA_LIBVA_DECODER_H__
 
 #include "media_libva.h"
-#include "media_libva_cp.h"
+#include "media_libva_cp_interface.h"
 #include "media_ddi_decode_base.h"
 
 #define DDI_DECODE_SFC_MAX_WIDTH                    4096

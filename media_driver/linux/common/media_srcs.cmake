@@ -20,11 +20,7 @@
 
 media_include_subdirectory(cm)
 media_include_subdirectory(codec)
-
-if(${Use_CP_Stub} STREQUAL "yes")
 media_include_subdirectory(cp)
-endif()
-
 media_include_subdirectory(ddi)
 media_include_subdirectory(media_interfaces)
 media_include_subdirectory(os)

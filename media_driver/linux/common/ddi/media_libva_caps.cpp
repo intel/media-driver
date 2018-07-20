@@ -29,7 +29,7 @@
 #include "media_libva_vp.h"
 #include "media_libva_common.h"
 #include "media_libva_caps.h"
-#include "media_libva_caps_cp.h"
+#include "media_libva_caps_cp_interface.h"
 #include "media_ddi_decode_const.h"
 #include "media_ddi_encode_const.h"
 #include "media_libva_caps_factory.h"
@@ -129,13 +129,15 @@ const VAImageFormat MediaLibvaCaps::m_supportedImageformats[] =
 MediaLibvaCaps::MediaLibvaCaps(DDI_MEDIA_CONTEXT *mediaCtx)
 {
     m_mediaCtx = mediaCtx;
-
-    m_isEntryptSupported = MediaLibvaCapsCp::IsDecEncryptionSupported(m_mediaCtx);
+    m_CapsCp = Create_MediaLibvaCapsCpInterface();
+    m_isEntryptSupported = m_CapsCp->IsDecEncryptionSupported(m_mediaCtx);
 }
 
 MediaLibvaCaps::~MediaLibvaCaps()
 {
     FreeAttributeList();
+    Delete_MediaLibvaCapsCpInterface(m_CapsCp);
+    m_CapsCp = nullptr;
 }
 
 VAStatus MediaLibvaCaps::PopulateColorMaskInfo(VAImageFormat *vaImgFmt)
@@ -646,7 +648,7 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     if (m_isEntryptSupported)
     {
         uint32_t encryptTypes[3] = {0};
-        int32_t  numTypes =  MediaLibvaCapsCp::GetEncryptionTypes(profile,
+        int32_t  numTypes =  m_CapsCp->GetEncryptionTypes(profile,
                  encryptTypes, 3);
         if (numTypes > 0)
         {
@@ -856,7 +858,7 @@ VAStatus MediaLibvaCaps::CreateDecAttributes(
     if (m_isEntryptSupported)
     {
         uint32_t encryptTypes[3] = {0};
-        int32_t numTypes =  MediaLibvaCapsCp::GetEncryptionTypes(profile,
+        int32_t numTypes =  m_CapsCp->GetEncryptionTypes(profile,
                 encryptTypes, 3);
         if (numTypes > 0)
         {
@@ -930,7 +932,7 @@ VAStatus MediaLibvaCaps::LoadAvcDecProfileEntrypoints()
                     {
                         uint32_t encrytTypes[3];
 
-                        int32_t numTypes = MediaLibvaCapsCp::GetEncryptionTypes(profile[i],
+                        int32_t numTypes = m_CapsCp->GetEncryptionTypes(profile[i],
                                 encrytTypes, 3);
 
                         if (numTypes > 0)
@@ -1218,7 +1220,7 @@ VAStatus MediaLibvaCaps::LoadVp9DecProfileEntrypoints()
                 {
                     uint32_t encrytTypes[3];
 
-                    int32_t numTypes = MediaLibvaCapsCp::GetEncryptionTypes(VAProfileVP9Profile0,
+                    int32_t numTypes = m_CapsCp->GetEncryptionTypes(VAProfileVP9Profile0,
                             encrytTypes, 3);
 
                     if (numTypes > 0)
@@ -1254,7 +1256,7 @@ VAStatus MediaLibvaCaps::LoadVp9DecProfileEntrypoints()
 
                         uint32_t encrytTypes[3];
 
-                        int32_t numTypes = MediaLibvaCapsCp::GetEncryptionTypes(VAProfileVP9Profile2,
+                        int32_t numTypes = m_CapsCp->GetEncryptionTypes(VAProfileVP9Profile2,
                                 encrytTypes, 3);
 
                         if (numTypes > 0)
@@ -1287,7 +1289,7 @@ VAStatus MediaLibvaCaps::LoadVp9DecProfileEntrypoints()
                     {
                         uint32_t encrytTypes[3];
             
-                        int32_t numTypes = MediaLibvaCapsCp::GetEncryptionTypes(VAProfileVP9Profile1,
+                        int32_t numTypes = m_CapsCp->GetEncryptionTypes(VAProfileVP9Profile1,
                                 encrytTypes, 3);
             
                         if (numTypes > 0)
@@ -1321,7 +1323,7 @@ VAStatus MediaLibvaCaps::LoadVp9DecProfileEntrypoints()
                     {
                         uint32_t encrytTypes[3];
             
-                        int32_t numTypes = MediaLibvaCapsCp::GetEncryptionTypes(VAProfileVP9Profile3,
+                        int32_t numTypes = m_CapsCp->GetEncryptionTypes(VAProfileVP9Profile3,
                                 encrytTypes, 3);
             
                         if (numTypes > 0)
@@ -1416,7 +1418,7 @@ VAStatus MediaLibvaCaps::LoadDecProfileEntrypoints(VAProfile profile)
             {
                 uint32_t encrytTypes[3];
 
-                int32_t numTypes = MediaLibvaCapsCp::GetEncryptionTypes(profile,
+                int32_t numTypes = m_CapsCp->GetEncryptionTypes(profile,
                         encrytTypes, 3);
 
                 if (numTypes > 0)

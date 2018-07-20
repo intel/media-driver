@@ -31,7 +31,7 @@
 #include "GmmLib.h"
 #include "mos_resource_defs.h"
 #include "mos_defs.h"
-#include "mos_os_cp_specific.h"
+#include "mos_os_cp_interface_specific.h"
 #ifdef ANDROID
 #include <utils/Log.h>
 #endif
@@ -350,7 +350,7 @@ typedef struct _PATCHLOCATIONLIST
     uint32_t                    AllocationIndex;
     uint32_t                    AllocationOffset;
     uint32_t                    PatchOffset;
-    MOS_CP_COMMAND_PROPERTIES   cpCmdProps;
+    uint32_t                    cpCmdProps;
     int32_t                     uiRelocFlag;
     uint32_t                    uiWriteOperation;
 } PATCHLOCATIONLIST, *PPATCHLOCATIONLIST;

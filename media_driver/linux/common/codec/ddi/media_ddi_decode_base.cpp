@@ -343,7 +343,7 @@ void DdiMediaDecode::DestroyContext(VADriverContextP ctx)
 
     if (m_ddiDecodeCtx->pCpDdiInterface)
     {
-        MOS_Delete(m_ddiDecodeCtx->pCpDdiInterface);
+        Delete_DdiCpInterface(m_ddiDecodeCtx->pCpDdiInterface);
         m_ddiDecodeCtx->pCpDdiInterface = nullptr;
     }
 

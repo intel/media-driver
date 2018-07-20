@@ -20,26 +20,49 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     mos_os_cp_specific.cpp
+//! \file     mos_os_cp_interface_specific.cpp
 //! \brief    OS specific implement for CP related functions
 //!
 
-#include "mos_os_cp_specific.h"
+#include "mos_os_cp_interface_specific.h"
 #include "mos_os.h"
-#include "mos_util_debug.h"
-#include "mhw_cp.h"
+#include "mhw_cp_interface.h"
+#include "cplib_utils.h"
 
 static void OsStubMessage()
 {
-    MOS_NORMALMESSAGE(MOS_COMPONENT_CP, MOS_CP_SUBCOMP_MHW, "This function is stubbed as CP is not enabled.");
+    MOS_NORMALMESSAGE(
+        MOS_COMPONENT_CP, 
+        MOS_CP_SUBCOMP_OS, 
+        CP_STUB_MESSAGE);
 }
 
-MosCpInterface::MosCpInterface(void  *pvOsInterface)
+MosCpInterface* Create_MosCpInterface(void* pvOsInterface)
 {
+    MosCpInterface* pMosCpInterface = nullptr;
+    using Create_MosCpFuncType = MosCpInterface* (*)(void* pvOsResource);
+    CPLibUtils::InvokeCpFunc<Create_MosCpFuncType>(
+        pMosCpInterface, 
+        CPLibUtils::FUNC_CREATE_MOSCP, pvOsInterface);
+
+    if(nullptr == pMosCpInterface) OsStubMessage();
+
+    return nullptr == pMosCpInterface ? MOS_New(MosCpInterface) : pMosCpInterface;
 }
 
-MosCpInterface::~MosCpInterface()
+void Delete_MosCpInterface(MosCpInterface* pMosCpInterface)
 {
+    if(typeid(MosCpInterface) == typeid(*pMosCpInterface))
+    {
+        MOS_Delete(pMosCpInterface);
+    }
+    else
+    {
+        using Delete_MosCpFuncType = void (*)(MosCpInterface*);
+        CPLibUtils::InvokeCpFunc<Delete_MosCpFuncType>(
+            CPLibUtils::FUNC_DELETE_MOSCP, 
+            pMosCpInterface);
+    }
 }
 
 MOS_STATUS MosCpInterface::RegisterPatchForHM(

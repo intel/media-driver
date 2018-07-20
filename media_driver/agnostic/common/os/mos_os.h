@@ -31,7 +31,7 @@
 #include "media_skuwa_specific.h"
 #include "mos_utilities.h"
 #include "mos_os_hw.h"         //!< HW specific details that flow through OS pathes
-#include "mos_os_cp_specific.h"         //!< CP specific OS functionality 
+#include "mos_os_cp_interface_specific.h"         //!< CP specific OS functionality 
 #if (_RELEASE_INTERNAL || _DEBUG)
 #if defined(CM_DIRECT_GUC_SUPPORT)
 #include "work_queue_mngr.h"

@@ -28,7 +28,7 @@
 #define _MEDIA_LIBVA_VP_H_
 
 #include "media_libva_common.h"
-#include "media_libva_cp.h"
+#include "media_libva_cp_interface.h"
 #include <va/va.h>
 #include <va/va_vpp.h>
 #include <va/va_backend_vpp.h>

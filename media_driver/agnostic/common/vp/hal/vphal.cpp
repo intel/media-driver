@@ -660,7 +660,8 @@ VphalState::~VphalState()
 
     if (m_cpInterface)
     {
-        MOS_Delete(m_cpInterface);
+        Delete_MhwCpInterface(m_cpInterface);
+        m_cpInterface = nullptr;
     }
 
     if (m_sfcInterface)
