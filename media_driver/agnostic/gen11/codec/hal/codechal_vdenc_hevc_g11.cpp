@@ -3346,7 +3346,7 @@ MOS_STATUS CodechalVdencHevcStateG11::SetDmemHuCBrcInitReset()
     hucVdencBrcInitDmem->LumaBitDepth_U8   = m_hevcSeqParams->bit_depth_luma_minus8 + 8;
     hucVdencBrcInitDmem->ChromaBitDepth_U8 = m_hevcSeqParams->bit_depth_chroma_minus8 + 8;
 
-    if (hucVdencBrcInitDmem->LowDelayMode_U8 = (m_hevcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_EXTREMELY_LOW))
+    if ((hucVdencBrcInitDmem->LowDelayMode_U8 = (m_hevcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_EXTREMELY_LOW)))
     {
         MOS_SecureMemcpy(hucVdencBrcInitDmem->DevThreshPB0_S8, 8 * sizeof(int8_t), (void *)m_lowdelayDevThreshPB, 8 * sizeof(int8_t));
         MOS_SecureMemcpy(hucVdencBrcInitDmem->DevThreshVBR0_S8, 8 * sizeof(int8_t), (void*)m_lowdelayDevThreshVBR, 8 * sizeof(int8_t));
@@ -5871,7 +5871,7 @@ MOS_STATUS CodechalVdencHevcStateG11::HuCBrcUpdate()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(ConstructHucCmdForBRC(&m_vdencReadBatchBuffer[m_currRecycledBufIdx][currentPass]));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(GetCommandBuffer(&cmdBuffer));
-    if (((!m_singleTaskPhaseSupported) || (m_firstTaskInPhase) && (!m_brcInit)) && (m_numPipe == 1))
+    if ((!m_singleTaskPhaseSupported || (m_firstTaskInPhase && !m_brcInit)) && (m_numPipe == 1))
     {
         // Send command buffer header at the beginning (OS dependent)
         bool requestFrameTracking = m_singleTaskPhaseSupported ?

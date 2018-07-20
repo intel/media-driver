@@ -3811,8 +3811,7 @@ MOS_STATUS CodechalEncodeVp8::ExecuteSliceLevel()
 
         if (m_brcEnabled)
         {
-            if (m_currPass == (m_numPasses - 1) ||
-                m_currPass == (m_numPasses) &&
+            if ((m_currPass == (m_numPasses - 1) || m_currPass == (m_numPasses)) &&
                 m_signalEnc &&
                 !Mos_ResourceIsNull(&m_resSyncObjectVideoContextInUse)
                 )
