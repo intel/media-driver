@@ -332,6 +332,7 @@ enum GPU_PLATFORM{
     PLATFORM_INTEL_CNL         = 9,
     PLATFORM_INTEL_KBL         = 11,
     PLATFORM_INTEL_GLK         = 16,
+    PLATFORM_INTEL_CFL         = 17,
 };
 
 enum GPU_GT_PLATFORM{
