@@ -1662,7 +1662,7 @@ public:
     bool m_mmcUserFeatureUpdated;  //!< indicate if the user feature is updated with MMC state
 #endif
 
-    static CmDevice *m_cmDev;
+    CmDevice *m_cmDev     = nullptr;
     CmTask *  m_cmTask    = nullptr;
     CmQueue * m_cmQueue   = nullptr;
     CmDevice *m_origCmDev = nullptr;
