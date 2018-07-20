@@ -383,4 +383,4 @@ protected:
         BSBuffer                        *buffer);
 };
 
-#endif __CODECHAL_ENCODER_JPEG_H__
+#endif //__CODECHAL_ENCODER_JPEG_H__
