@@ -53,6 +53,8 @@
 #include "media_libva_caps.h"
 #include "media_interfaces_mmd.h"
 #include "mos_util_user_interface.h"
+#include "cplib_utils.h"
+#include "media_interfaces.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -61,6 +63,8 @@ extern VAStatus DdiDestroyContextCM (VADriverContextP   vaDrvCtx, VAContextID   
 #ifdef __cplusplus
 }
 #endif
+
+extern template class MediaInterfacesFactory<MhwInterfaces>;
 
 VAProcFilterType vp_supported_filters[DDI_VP_MAX_NUM_FILTERS] = {
     VAProcFilterNoiseReduction,
@@ -1152,6 +1156,11 @@ VAStatus DdiMedia__Initialize (
     struct drm_state *pDRMState = (struct drm_state *)ctx->drm_state;
     DDI_CHK_NULL(pDRMState,    "nullptr pDRMState", VA_STATUS_ERROR_INVALID_CONTEXT);
 
+    if(CPLibUtils::LoadCPLib())
+    {
+        DDI_NORMALMESSAGE("CPLIB not loaded.");
+    }
+
     // If libva failes to open the graphics card, try to open it again within Media Driver
     if(pDRMState->fd < 0 || pDRMState->fd == 0 )
     {
@@ -1455,6 +1464,12 @@ VAStatus DdiMedia__Initialize (
         }
     }
 
+    if(CPLibUtils::IsCPLibLoaded())
+    {
+        using InitCPLibGmmFuncType = void (*)(GMM_GLOBAL_CONTEXT* pCtx);
+        CPLibUtils::InvokeCpFunc<InitCPLibGmmFuncType>(CPLibUtils::FUNC_INIT_CPLIB_GMM, pGmmGlobalContext);
+    }
+
     DdiMediaUtil_UnLockMutex(&GlobalMutex);
 
     return VA_STATUS_SUCCESS;
@@ -1474,6 +1489,7 @@ static VAStatus DdiMedia_Terminate (
     PDDI_MEDIA_CONTEXT mediaCtx   = DdiMedia_GetMediaContext(ctx);
     DDI_CHK_NULL(mediaCtx, "nullptr mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
 
+    CPLibUtils::UnloadCPLib();
     DdiMediaUtil_LockMutex(&GlobalMutex);
 
     if (mediaCtx->modularizedGpuCtxEnabled)

@@ -26,7 +26,6 @@
 #include <unistd.h>
 #include "media_libva_encoder.h"
 #include "media_ddi_encode_base.h"
-#include "media_libva_cp.h"
 #include "media_libva_util.h"
 #include "media_libva_caps.h"
 #include "media_ddi_factory.h"
@@ -182,7 +181,7 @@ void DdiEncodeCleanUp(PDDI_ENCODE_CONTEXT encCtx)
 
     if (encCtx->pCpDdiInterface)
     {
-        MOS_Delete(encCtx->pCpDdiInterface);
+        Delete_DdiCpInterface(encCtx->pCpDdiInterface);
         encCtx->pCpDdiInterface = nullptr;
     }
 
@@ -257,7 +256,7 @@ VAStatus DdiEncode_CreateContext(
 
     //initialize DDI level cp interface
     MOS_CONTEXT mosCtx = { };
-    encCtx->pCpDdiInterface = MOS_New(DdiCpInterface, mosCtx);
+    encCtx->pCpDdiInterface = Create_DdiCpInterface(mosCtx);
     if (nullptr == encCtx->pCpDdiInterface)
     {
         vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
@@ -453,7 +452,7 @@ VAStatus DdiEncode_DestroyContext(VADriverContextP ctx, VAContextID context)
 
     if (encCtx->pCpDdiInterface)
     {
-        MOS_Delete(encCtx->pCpDdiInterface);
+        Delete_DdiCpInterface(encCtx->pCpDdiInterface);
         encCtx->pCpDdiInterface = nullptr;
     }
 

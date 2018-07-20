@@ -20,18 +20,22 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     media_libva_caps_cp.h
+//! \file     media_libva_caps_cp_interface.h
 //! \brief    This file defines the C++ class/interface for encryption related capbilities. 
 //!
 
-#ifndef __MEDIA_LIBVA_CAPS_CP_H__
-#define __MEDIA_LIBVA_CAPS_CP_H__
+#ifndef __MEDIA_LIBVA_CAPS_CP_INTERFACE_H__
+#define __MEDIA_LIBVA_CAPS_CP_INTERFACE_H__
 
 #include "media_libva.h"
+#include "cplib.h"
 
-class MediaLibvaCapsCp
+class MediaLibvaCapsCpInterface
 {
 public:
+    MediaLibvaCapsCpInterface() {}
+    virtual ~MediaLibvaCapsCpInterface() {}
+    
     //!
     //! \brief    Return if decode encrytion is supported 
     //!
@@ -41,11 +45,8 @@ public:
     //! \return   false: decode encrytion isn't supported on current platform
     //!           true: decode encrytion is supported on current platform
     //!
-    static bool IsDecEncryptionSupported(DDI_MEDIA_CONTEXT *mediaCtx)
-    {
-        return false;
-    }
-
+    virtual bool IsDecEncryptionSupported(DDI_MEDIA_CONTEXT *mediaCtx);
+ 
     //!
     //! \brief    Get the supported decode encrytion types 
     //!
@@ -61,10 +62,25 @@ public:
     //! \return   Return the real number of supported decode encrytion types 
     //!           Return -1 if arraySize is too small or profile is invalide 
     //!
-
-    static int32_t GetEncryptionTypes(VAProfile profile, uint32_t *encrytionType, uint32_t arraySize)
-    {
-        return -1;
-    }
+    virtual int32_t GetEncryptionTypes(
+        VAProfile profile, 
+        uint32_t *encrytionType, 
+        uint32_t arraySize);
 };
+
+//!
+//! \brief    Create MediaLibvaCapsCpInterface Object according CPLIB loading status
+//!           Must use Delete_MediaLibvaCapsCpInterface to delete created Object to avoid ULT Memory Leak errors
+//!
+//! \return   Return CP Wrapper Object if CPLIB not loaded
+//!
+MediaLibvaCapsCpInterface* Create_MediaLibvaCapsCpInterface();
+
+//!
+//! \brief    Delete the MediaLibvaCapsCpInterface Object according CPLIB  loading status
+//!
+//! \param    [in] pMediaLibvaCapsCpInterface 
+//!           MediaLibvaCapsCpInterface
+//!
+void Delete_MediaLibvaCapsCpInterface(MediaLibvaCapsCpInterface* pMediaLibvaCapsCpInterface);
 #endif

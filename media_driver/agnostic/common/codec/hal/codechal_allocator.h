@@ -28,6 +28,7 @@
 #define __CODECHAL_ALLOCATOR_H__
 
 #include "codechal.h"
+#include <map>
 
 //!
 //! This class provides a generic resource allocation service.

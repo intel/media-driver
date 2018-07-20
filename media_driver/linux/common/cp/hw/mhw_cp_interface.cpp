@@ -20,21 +20,46 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     mhw_cp.cpp
-//! \brief    MHW interface for content protection 
+//! \file     mhw_cp_interface.cpp
+//! \brief    Implement MHW interface for content protection 
 //! \details  Impelements the functionalities across all platforms for content protection
 //!
 
-#include "mhw_cp.h"
+#include "mhw_cp_interface.h"
+#include "cplib_utils.h"
 
 static void MhwStubMessage()
 {
-    MOS_NORMALMESSAGE(MOS_COMPONENT_CP, MOS_CP_SUBCOMP_MHW, "This function is stubbed as CP is not enabled.");
+    MOS_NORMALMESSAGE(MOS_COMPONENT_CP, MOS_CP_SUBCOMP_MHW, CP_STUB_MESSAGE);
 }
 
-MhwCpInterface::MhwCpInterface() {}
+MhwCpInterface* Create_MhwCpInterface(PMOS_INTERFACE osInterface)
+{
+    MhwCpInterface* pMhwCpInterface = nullptr;
+    using Create_MhwCpFuncType = MhwCpInterface* (*)(PMOS_INTERFACE osInterface);
+    CPLibUtils::InvokeCpFunc<Create_MhwCpFuncType>(
+        pMhwCpInterface, 
+        CPLibUtils::FUNC_CREATE_MHWCP, osInterface);
 
-MhwCpInterface::~MhwCpInterface() {}
+    if(nullptr == pMhwCpInterface) MhwStubMessage();
+
+    return nullptr == pMhwCpInterface? MOS_New(MhwCpInterface) : pMhwCpInterface;
+}
+
+void Delete_MhwCpInterface(MhwCpInterface* pMhwCpInterface)
+{
+    if(typeid(*pMhwCpInterface) == typeid(MhwCpInterface))
+    {
+        MOS_Delete(pMhwCpInterface);
+    }
+    else
+    {
+        using Delete_MhwCpFuncType = void (*)(MhwCpInterface*);
+        CPLibUtils::InvokeCpFunc<Delete_MhwCpFuncType>(
+            CPLibUtils::FUNC_DELETE_MHWCP, 
+            pMhwCpInterface);
+    }
+}
 
 MOS_STATUS MhwCpInterface::AddProlog(
     PMOS_INTERFACE      osInterface,
@@ -47,13 +72,13 @@ MOS_STATUS MhwCpInterface::AddProlog(
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS MhwCpInterface::IsHWCounterAutoIncrementEnforced(
+bool MhwCpInterface::IsHWCounterAutoIncrementEnforced(
     PMOS_INTERFACE osInterface)
 {
     MOS_UNUSED(osInterface);
 
     MhwStubMessage();
-    return MOS_STATUS_SUCCESS;
+    return false;
 }
 
 MOS_STATUS MhwCpInterface::AddEpilog(
@@ -75,6 +100,36 @@ MOS_STATUS MhwCpInterface::AddCheckForEarlyExit(
     MOS_UNUSED(cmdBuffer);
 
     MhwStubMessage();
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS UpdateStatusReportNum(
+    uint32_t            cencBufIndex,
+    uint32_t            statusReportNum,
+    uint8_t *           lockAddress,
+    PMOS_RESOURCE       resource,
+    PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    MOS_UNUSED(cencBufIndex);
+    MOS_UNUSED(statusReportNum);
+    MOS_UNUSED(lockAddress);
+    MOS_UNUSED(resource);
+    MOS_UNUSED(cmdBuffer);
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CheckStatusReportNum(
+    void *              mfxRegisters,
+    uint32_t            cencBufIndex,
+    PMOS_RESOURCE       resource,
+    PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    MOS_UNUSED(mfxRegisters);
+    MOS_UNUSED(cencBufIndex);
+    MOS_UNUSED(resource);
+    MOS_UNUSED(cmdBuffer);
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -236,6 +291,7 @@ void MhwCpInterface::RegisterParams(void* params)
 
 MOS_STATUS MhwCpInterface::UpdateParams(bool isInput)
 {
+    MOS_UNUSED(isInput);
     MhwStubMessage();
     return MOS_STATUS_SUCCESS;
 }
@@ -249,17 +305,5 @@ CP_MODE MhwCpInterface::GetHostEncryptMode() const
 void MhwCpInterface::SetCpSecurityType(CP_SECURITY_TYPE type)
 {
     MOS_UNUSED(type);
-
     MhwStubMessage();
 }
-
-MOS_STATUS Mhw_Cp_InitInterface(
-    MhwCpInterface**   cpInterface,
-    PMOS_INTERFACE     osInterface)
-{
-    (*cpInterface) = MOS_New(MhwCpInterface);
-
-    MhwStubMessage();
-    return MOS_STATUS_SUCCESS;
-}
-

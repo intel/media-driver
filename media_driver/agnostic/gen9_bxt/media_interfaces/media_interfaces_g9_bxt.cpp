@@ -92,7 +92,7 @@ MOS_STATUS MhwInterfacesG9Bxt::Initialize(
 
     // MHW_CP and MHW_MI must always be created
     MOS_STATUS status;
-    Mhw_Cp_InitInterface(&m_cpInterface, osInterface);
+    m_cpInterface = Create_MhwCpInterface(osInterface);
     m_miInterface = MOS_New(Mi, m_cpInterface, osInterface);
 
     if (params.Flags.m_render)

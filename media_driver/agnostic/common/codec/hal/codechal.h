@@ -29,7 +29,7 @@
 #include "mos_os.h"
 #include "mos_util_debug.h"
 #include "codec_def_common.h"
-#include "mhw_cp.h"
+#include "mhw_cp_interface.h"
 
 #ifdef __cplusplus
 extern "C" {

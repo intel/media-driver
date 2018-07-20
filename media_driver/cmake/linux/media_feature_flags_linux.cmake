@@ -70,12 +70,6 @@ bs_set_if_undefined(HEVC_Encode_VDEnc_Supported "${Encode_VDEnc_Supported}")
 bs_set_if_undefined(VP9_Encode_VDEnc_Supported "${Encode_VDEnc_Supported}")
 bs_set_if_undefined(JPEG_Encode_Supported "${Encode_VDEnc_Supported}")
 
-# Use_CP_stub is just a flag to control whether real_cp or stub_cp
-# source files should be compiled for a <OS>.
-# so no definitions passed to source codes inside for now.
-bs_set_if_undefined(Use_CP_Stub "yes")
-
-
 if(${Common_Encode_Supported} STREQUAL "yes")
     add_definitions(-D_COMMON_ENCODE_SUPPORTED)
 endif()

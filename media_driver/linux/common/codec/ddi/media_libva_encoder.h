@@ -28,7 +28,7 @@
 #define  __MEDIA_LIBVA_ENCODER_H__
 
 #include "media_libva.h"
-#include "media_libva_cp.h"
+#include "media_libva_cp_interface.h"
 #include <vector>
 
 // change to 0x1000 for memory optimization, double check when implement slice header packing in app

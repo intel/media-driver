@@ -10099,7 +10099,8 @@ MOS_STATUS HalCm_Create(
 
         // MhwInterfaces always create CP and MI interfaces, so we have to delete those we don't need.
         MOS_Delete(mhwInterfaces->m_miInterface);
-        MOS_Delete(mhwInterfaces->m_cpInterface);
+        Delete_MhwCpInterface(mhwInterfaces->m_cpInterface);
+        mhwInterfaces->m_cpInterface = nullptr;
         MOS_Delete(mhwInterfaces);
     }
     else
@@ -10307,7 +10308,8 @@ void HalCm_Destroy(
     {
         //Delete CmHal Interface
         MosSafeDelete(state->cmHalInterface);
-        MosSafeDelete(state->cpInterface);
+        Delete_MhwCpInterface(state->cpInterface);
+        state->cpInterface = nullptr;
         MosSafeDelete(state->state_buffer_list_ptr);
 
         // Delete the unified media profiler

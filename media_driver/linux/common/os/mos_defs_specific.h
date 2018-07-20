@@ -46,7 +46,7 @@ typedef VAStatus                            MOS_OSRESULT;
 #define MOS_EXPORT_DECL
 
 #ifndef __UFO_PORTABLE_DATATYPE_DEFINED__
-typedef struct _RECT
+typedef struct tagRECT
 {
     int32_t left;
     int32_t top;

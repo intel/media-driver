@@ -1440,8 +1440,8 @@ void Mos_Specific_Destroy(
 
     if (pOsInterface->osCpInterface)
     {
-        MOS_Delete(pOsInterface->osCpInterface);
-        pOsInterface->osCpInterface = nullptr;
+        Delete_MosCpInterface(pOsInterface->osCpInterface);
+        pOsInterface->osCpInterface = NULL;
     }
 
     if (pOsInterface &&
@@ -3204,7 +3204,7 @@ MOS_STATUS Mos_Specific_SubmitCommandBuffer(
 #endif // (_DEBUG || _RELEASE_INTERNAL)
     int32_t                 ResourceOffset,PatchOffset;
     uint32_t                dwBatchBufferEndCmd;
-    MOS_CP_COMMAND_PROPERTIES           cpCmdProps;
+    uint32_t                            cpCmdProps;
     uint32_t                            dwAddCb2;
     PLATFORM                            platform;
     int32_t                             PerfData;
@@ -5891,7 +5891,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->umdMediaResetEnable = false;
 
     // initialize MOS_CP interface
-    pOsInterface->osCpInterface = MOS_New(MosCpInterface, pOsInterface);
+    pOsInterface->osCpInterface = Create_MosCpInterface(pOsInterface);
     if (pOsInterface->osCpInterface == nullptr)
     {
         MOS_OS_ASSERTMESSAGE("fail to create osCpInterface.");

@@ -31,6 +31,7 @@ set(INTERNAL_INC_PATH
     ./googletest/include
     ./gpu_cmd
     ${agnostic_cm_tests}
+    ../../../linux/common/cp/shared
 )
 include_directories(${INTERNAL_INC_PATH} ${LIBVA_PATH})
 if (NOT "${BS_DIR_GMMLIB}" STREQUAL "")
@@ -68,14 +69,6 @@ if (DEFINED BYPASS_MEDIA_ULT AND "${BYPASS_MEDIA_ULT}" STREQUAL "yes")
 else ()
     if (NOT "${Full_Open_Source_Support}" STREQUAL "yes")
         add_custom_target(RunULT ALL DEPENDS ${LIB_NAME} devult)
-
-        if(${Use_CP_Stub} STREQUAL "no")
-            add_custom_command(
-                TARGET RunULT
-                COMMENT "copying coreu"
-                COMMAND cp ${CMAKE_BINARY_DIR}/coreu/libcoreuclient/libcoreuclient.so ${CMAKE_BINARY_DIR}/
-                COMMAND cp ${CMAKE_BINARY_DIR}/coreu/coreu_interface/libcoreuinterface.so ${CMAKE_BINARY_DIR}/)
-        endif ()
 
         add_custom_command(
             TARGET RunULT

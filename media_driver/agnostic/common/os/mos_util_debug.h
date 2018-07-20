@@ -130,6 +130,8 @@ typedef enum
     MOS_CP_SUBCOMP_MHW              = 12,            // CP MHW classes
     MOS_CP_SUBCOMP_PROTECTEDSESSION = 13,            // Protected session class
     MOS_CP_SUBCOMP_PROTECTED_RESOURCE_SESSION = 14,  // Protected Resource session class
+    MOS_CP_SUBCOMP_CAPS             = 16,            // CP CAPS clas
+    MOS_CP_SUBCOMP_CPLIB            = 17,            // CP CPLIB interacting
     MOS_CP_SUBCOMP_COUNT                             // Must be last in the list
 } MOS_CP_SUBCOMP_ID;
 

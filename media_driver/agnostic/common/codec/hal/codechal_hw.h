@@ -33,7 +33,7 @@
 #include "mhw_vdbox.h"
 #include "mhw_vebox.h"
 #include "mhw_sfc.h"
-#include "mhw_cp.h"
+#include "mhw_cp_interface.h"
 
 #include "mhw_vdbox_mfx_interface.h"
 #include "mhw_vdbox_hcp_interface.h"
@@ -417,7 +417,7 @@ public:
 
         m_osInterface->pfnFreeResource(m_osInterface, &m_conditionalBbEndDummy);
 
-        MOS_Delete(m_cpInterface); 
+        Delete_MhwCpInterface(m_cpInterface); 
         m_cpInterface = nullptr;
 
         if (m_miInterface)

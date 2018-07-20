@@ -1201,7 +1201,7 @@ VAStatus DdiVp_InitCtx(VADriverContextP pVaDrvCtx, PDDI_VP_CONTEXT pVpCtx)
     }
 
     // initialize DDI level cp interface
-    pVpCtx->pCpDdiInterface = MOS_New(DdiCpInterface, pVpCtx->MosDrvCtx);
+    pVpCtx->pCpDdiInterface = Create_DdiCpInterface(pVpCtx->MosDrvCtx);
     if (nullptr == pVpCtx->pCpDdiInterface)
     {
          vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
@@ -1287,8 +1287,8 @@ FINISH:
 
     if (pVpCtx->pCpDdiInterface)
     {
-        MOS_Delete(pVpCtx->pCpDdiInterface);
-        pVpCtx->pCpDdiInterface = nullptr;
+        Delete_DdiCpInterface(pVpCtx->pCpDdiInterface);
+        pVpCtx->pCpDdiInterface = NULL;
     }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -2225,7 +2225,7 @@ DdiVp_SetProcFilterTotalColorCorrectionParams(
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 VAStatus DdiVp_CreateBuffer(
     VADriverContextP           pVaDrvCtx,
-    void                       *pVpCtx,
+    void                       *pCtx,
     VABufferType               vaBufType,
     uint32_t                   uiSize,
     uint32_t                   uiNumElements,
@@ -2240,7 +2240,7 @@ VAStatus DdiVp_CreateBuffer(
     MOS_STATUS                     eStatus = MOS_STATUS_SUCCESS;
 
     VP_DDI_FUNCTION_ENTER;
-    DDI_CHK_NULL(pVpCtx, "Null pVpCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(pCtx, "Null pCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CHK_NULL(pVaDrvCtx,
                     "Null pVaDrvCtx.",
                     VA_STATUS_ERROR_INVALID_CONTEXT);
@@ -2253,10 +2253,14 @@ VAStatus DdiVp_CreateBuffer(
                     "Null pMediaCtx.",
                     VA_STATUS_ERROR_INVALID_CONTEXT);
 
+    PDDI_VP_CONTEXT  pVpCtx = (PDDI_VP_CONTEXT)pCtx;
+
+    DDI_CHK_NULL(pVpCtx->pCpDdiInterface, "Null pVpCtx->pCpDdiInterface.", VA_STATUS_ERROR_INVALID_CONTEXT);
+
     // only for VAProcFilterParameterBufferType and VAProcPipelineParameterBufferType
     if (vaBufType != VAProcFilterParameterBufferType
         && vaBufType != VAProcPipelineParameterBufferType
-        && (DdiCpInterface::CheckSupportedBufferForVp(vaBufType) != true)
+        && (pVpCtx->pCpDdiInterface->CheckSupportedBufferForVp(vaBufType) != true)
         )
     {
         VP_DDI_ASSERTMESSAGE("Unsupported Va Buffer Type.");
@@ -2560,8 +2564,8 @@ VAStatus DdiVp_DestroyContext (
 
     if (pVpCtx->pCpDdiInterface)
     {
-        MOS_Delete(pVpCtx->pCpDdiInterface);
-        pVpCtx->pCpDdiInterface = nullptr;
+        Delete_DdiCpInterface(pVpCtx->pCpDdiInterface);
+        pVpCtx->pCpDdiInterface = NULL;
     }
 
     // destroy vphal

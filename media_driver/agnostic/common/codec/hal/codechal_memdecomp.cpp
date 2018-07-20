@@ -147,7 +147,7 @@ MediaMemDecompState::~MediaMemDecompState()
 {
     MHW_FUNCTION_ENTER;
 
-    MOS_Delete(m_cpInterface);
+    Delete_MhwCpInterface(m_cpInterface); 
     m_cpInterface = nullptr;
 
     if (m_cmdBufIdGlobal)
