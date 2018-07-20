@@ -91,4 +91,4 @@ public:
     MOS_STATUS SetGpuCtxCreatOption();
 
 };
-#endif __CODECHAL_ENCODER_JPEG_G11_H__
+#endif //__CODECHAL_ENCODER_JPEG_G11_H__

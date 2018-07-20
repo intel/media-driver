@@ -25,7 +25,6 @@ set(MEDIA_COMPILER_FLAGS_COMMON
     -Wpointer-arith
     -Wno-unused
     -Wno-unknown-pragmas
-    -Wno-endif-labels
     -Wno-comments
     -Wno-sign-compare
     -Wno-attributes
