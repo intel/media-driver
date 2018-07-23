@@ -466,7 +466,8 @@ enum EncOperation
     VDENC_ME_P,
     VDENC_ME_B,
     VDENC_STREAMIN,
-    VDENC_STREAMIN_HEVC
+    VDENC_STREAMIN_HEVC,
+    VDENC_STREAMIN_HEVC_RAB
 };
 
 //!
@@ -1602,7 +1603,8 @@ public:
     MHW_KERNEL_STATE                m_vdencMeKernelState;               //!< Vdenc ME kernel state
 
     GenericBindingTable             m_vdencStreaminKernelBindingTable;  //!< Vdenc stream in kernel binding table
-    MHW_KERNEL_STATE                m_vdencStreaminKernelState;         //!< Vdenc stream in kernel state
+    MHW_KERNEL_STATE                m_vdencStreaminKernelState;         //!< Vdenc stream in kernel state for Low Delay B
+    MHW_KERNEL_STATE                m_vdencStreaminKernelStateRAB;      //!< Vdenc stream in kernel state for Random Access B
 
     // Common kernel
     uint32_t                        m_kuidCommon = 0;                    //!< Common kernel UID
