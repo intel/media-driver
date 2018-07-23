@@ -69,6 +69,38 @@ enum ResourceName
     recycledBufferEnd = brcReadSurface
 };
 
+typedef union _RESOURCE_TAG
+{
+    struct
+    {
+        union
+        {
+            struct
+            {
+                uint16_t        trackedRecycleBufferIndex : MOS_BITFIELD_RANGE(0, 4);
+                uint16_t        trackedRecycleBufferName : MOS_BITFIELD_RANGE(5, 10);
+                uint16_t        codec : MOS_BITFIELD_RANGE(11, 13);
+                uint16_t        type : MOS_BITFIELD_RANGE(14, 15);
+            };
+            uint16_t            typeID;
+        };
+        uint16_t                format : MOS_BITFIELD_RANGE(0, 3);
+        uint16_t                tile : MOS_BITFIELD_RANGE(4, 6);
+        uint16_t                zeroOnAllocation : MOS_BITFIELD_BIT(7);
+        uint16_t                reserved : MOS_BITFIELD_RANGE(8, 15);
+        union
+        {
+            struct
+            {
+                uint16_t        width;
+                uint16_t        height;
+            };
+            uint32_t            size;
+        };
+    };
+    uint64_t                    tag;
+}RESOURCE_TAG, *PRESOURCE_TAG;
+
 //!
 //! \class    CodechalEncodeAllocator
 //! \brief    This class provides resource management for all codecs to
@@ -119,9 +151,9 @@ private:
     CodechalEncodeAllocator(const CodechalEncodeAllocator&) = delete;
     CodechalEncodeAllocator& operator=(const CodechalEncodeAllocator&) = delete;
 
-    void MosToAllocatorCodec(uint32_t);
-    void MosToAllocatorFormat(MOS_FORMAT format);
-    void MosToAllocatorTile(MOS_TILE_TYPE type);
+    uint16_t MosToAllocatorCodec(uint32_t);
+    uint16_t MosToAllocatorFormat(MOS_FORMAT format);
+    uint16_t MosToAllocatorTile(MOS_TILE_TYPE type);
 
     inline bool IsTrackedBuffer(ResourceName name)
     {
@@ -140,37 +172,5 @@ private:
 
     static const uint16_t           m_bufIndexMask = (1 << 5) - 1;
     static const uint16_t           m_bufNameMask = (1 << 14) - 1;
-
-    union
-    {
-        struct
-        {
-            union
-            {
-                struct
-                {
-                    uint16_t        m_trackedRecycleBufferIndex : MOS_BITFIELD_RANGE(0, 4);
-                    uint16_t        m_trackedRecycleBufferName : MOS_BITFIELD_RANGE(5, 10);
-                    uint16_t        m_codec : MOS_BITFIELD_RANGE(11, 13);
-                    uint16_t        m_type : MOS_BITFIELD_RANGE(14, 15);
-                };
-                uint16_t            m_typeID;
-            };
-            uint16_t                m_format : MOS_BITFIELD_RANGE(0, 3);
-            uint16_t                m_tile : MOS_BITFIELD_RANGE(4, 6);
-            uint16_t                m_zeroOnAllocation : MOS_BITFIELD_BIT(7);
-            uint16_t                m_reserved : MOS_BITFIELD_RANGE(8, 15);
-            union
-            {
-                struct
-                {
-                    uint16_t        m_width;
-                    uint16_t        m_height;
-                };
-                uint32_t            m_size;
-            };
-        };
-        uint64_t                    m_tag;
-    };
 };
 #endif  // __CODECHAL_ENCODE_ALLOCATOR_H__
