@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -2527,6 +2527,64 @@ void MOS_TraceEvent(
     uint32_t         dwSize1,
     void * const     pArg2,
     uint32_t         dwSize2);
+
+//!
+//! \brief    MOS gfx info initialize
+//! \details  Load igdinfoXX.dll library and get gfx info function pointer
+//! \param    void
+//! \return   MOS_STATUS
+//!           Returns one of the MOS_STATUS error codes if failed,
+//!           else MOS_STATUS_SUCCESS
+//!
+MOS_STATUS MOS_GfxInfoInit();
+
+//!
+//! \brief    MOS gfx info close
+//! \details  Release igdinfoXX.dll library
+//! \param    void
+//! \return   void
+//!
+void MOS_GfxInfoClose();
+
+//!
+//! \brief    MOS_GfxInfo_RTErr
+//! \details  Custom gfx info trace to report runtime errors detected by each component.
+//! \param    [in] ver
+//!           Version
+//! \param    [in] compId
+//!           Component ID defined in GFXINFO_COMP_ID
+//! \param    [in] FtrId
+//!           Feature ID, an unique identifier for each component.
+//! \param    [in] ErrorCode
+//!           Error code that will be recorded.
+//! \return   void
+//!
+void MOS_GfxInfo_RTErr(uint8_t ver, uint16_t compId, uint16_t FtrId, uint32_t ErrorCode);
+
+//!
+//! \brief    MOS_GfxInfo
+//! \details  A helper function to help to compose gfx info xml string
+//! \param    [in] ver
+//!           Version
+//! \param    [in] compId
+//!           Component ID defined in GFXINFO_COMP_ID
+//! \param    [in] tmtryID
+//!           Gfx info ID, an unique identifier for each component.
+//! \param    [in] num_of_triples
+//!           Number of triples (name, type, value) to be compose as an <I N='name'>value</I> XML element
+//! \param    [in] ...
+//!           Triples (name, type, value), for example
+//!             int8_t i = 3;
+//!             "Name1", GFXINFO_PTYPE_UINT8, &i
+//!             "Name2", GFXINFO_PTYPE_ANSISTRING, "string value"
+//! \return   void
+//!
+void MOS_GfxInfo(
+    uint8_t         ver,
+    uint16_t        compId,
+    uint32_t        tmtryID,
+    uint8_t         num_of_triples,
+    ...);
 
 #ifdef __cplusplus
 }
