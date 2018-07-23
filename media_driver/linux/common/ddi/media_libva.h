@@ -50,7 +50,7 @@
 #include "codechal_encoder_base.h"
 #include "media_libva_common.h"
 
-#define DDI_CODEC_GEN_MAX_PROFILES                 26   //  the number of va profiles, some profiles in va_private.h
+#define DDI_CODEC_GEN_MAX_PROFILES                 31   //  the number of va profiles, some profiles in va_private.h
 #define DDI_CODEC_GEN_MAX_ENTRYPOINTS              7    // VAEntrypointVLD, VAEntrypointEncSlice, VAEntrypointEncSliceLP, VAEntrypointVideoProc
 
 #define DDI_CODEC_GEN_MAX_IMAGE_FORMATS            2    // NV12 and P010
@@ -217,7 +217,7 @@ typedef struct _DDI_CODEC_BUFFER_PARAM_HEVC
 
     //one picture buffer for range extension
     VAPictureParameterBufferHEVCExtension        PicParamHEVCRext;
-        
+
     // one IQ buffer
     VAIQMatrixBufferHEVC                         IQmHEVC;
 } DDI_CODEC_BUFFER_PARAM_HEVC;
@@ -273,7 +273,7 @@ typedef struct _DDI_CODEC_COM_BUFFER_MGR
     VAProcFilterParameterBuffer                  ProcFilterParamBuffer;
     VACodedBufferSegment                        *pCodedBufferSegmentForStatusReport; // for extended Status report such as long-term reference for VP8-F encode
     void                                        *pCodecParamReserved;
-    uint32_t                                     bitstreamBufferOffset = 0;
+    void                                        *pCodecSlcParamReserved;
 
     // for External decode StreamOut Buffer
     MOS_RESOURCE                                 resExternalStreamOutBuffer;
