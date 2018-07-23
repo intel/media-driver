@@ -338,6 +338,14 @@ MOS_STATUS CodechalEncodeAvcBase::SendSlice(
         }
     }
 
+    uint8_t *dataBase = (uint8_t*)(params->pBsBuffer->pBase + params->dwOffset);
+    uint32_t data = ((*dataBase) << 24) + ((*(dataBase + 1)) << 16) + ((*(dataBase + 2)) << 8) + (*(dataBase + 3));
+
+    if (data == 0x00000001)
+    {
+        insertZeroByteWA = true;
+    }
+
     // Insert 0x00 for super slice case when PPS/AUD is not inserted
     if (MEDIA_IS_WA(m_hwInterface->GetWaTable(), WaSuperSliceHeaderPacking) && insertZeroByteWA && params->bVdencInUse && m_hwInterface->m_isVdencSuperSliceEnabled)
     {
