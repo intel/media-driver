@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -2899,3 +2899,33 @@ void MOS_TraceEvent(
     return;
 }
 
+MOS_STATUS MOS_GfxInfoInit()
+{
+    // not implemented
+    return MOS_STATUS_SUCCESS;
+}
+
+void MOS_GfxInfoClose()
+{
+    // not implemented
+}
+
+void MOS_GfxInfo(uint8_t ver, uint16_t compId, uint16_t tmtryID, char const* xmlTmtryStr)
+{
+    // not implemented
+}
+
+void MOS_GfxInfo_RTErr(uint8_t ver, uint16_t compId, uint16_t FtrId, uint32_t ErrorCode)
+{
+    // not implemented
+}
+
+void MOS_GfxInfo_Params(
+    uint8_t         ver,
+    uint16_t        compId,
+    uint32_t        tmtryID,
+    uint8_t         num_of_triples,
+    ...)
+{
+    // not implemented
+}
