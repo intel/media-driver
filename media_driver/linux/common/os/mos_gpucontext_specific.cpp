@@ -562,6 +562,7 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
     }
     else
     {
+#ifndef ANDROID
         if (osContext->bKMDHasVCS2)
         {
             if (osContext->bPerCmdBufferBalancing && osInterface->pfnGetVdboxNodeId)
@@ -577,6 +578,11 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
                 execFlag = I915_EXEC_BSD | I915_EXEC_BSD_RING2;
             }
         }
+#else
+	// WA for hevc/vp9 decoder on KBL+ android
+	// Revert it when IPC issue fixed
+	execFlag = I915_EXEC_BSD | I915_EXEC_BSD_RING1;
+#endif
     }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
