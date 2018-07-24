@@ -40,6 +40,18 @@
 
 #ifdef __cplusplus
 
+PerfUtility *PerfUtility::instance = nullptr;
+
+PerfUtility *PerfUtility::getInstance()
+{
+    if (instance == nullptr)
+    {
+        instance = new PerfUtility();
+    }
+
+    return instance;
+}
+
 PerfUtility::PerfUtility()
 {
 }

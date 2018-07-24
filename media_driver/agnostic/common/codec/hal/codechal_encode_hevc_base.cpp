@@ -1256,7 +1256,7 @@ MOS_STATUS CodechalEncodeHevcBase::SetSliceStructs()
     
     if (m_lowDelay && !m_sameRefList)
     {
-        CODECHAL_ENCODE_ASSERTMESSAGE("Attention: LDB frame but with different L0/L1 list !");
+        CODECHAL_ENCODE_NORMALMESSAGE("Attention: LDB frame but with different L0/L1 list !");
     }
 
     if (m_hevcSeqParams->RateControlMethod == RATECONTROL_VCM && m_pictureCodingType == B_TYPE && !m_lowDelay)

@@ -1285,7 +1285,7 @@ MOS_STATUS CodechalEncoderState::AllocateResources()
          ((m_mode == CODECHAL_ENCODE_MODE_AVC)                              ||
           (m_mode == CODECHAL_ENCODE_MODE_VP9 && m_vdencEnabled)))
     {
-        MHW_VDBOX_ROWSTORE_PARAMS rowstoreParams;
+        MHW_VDBOX_ROWSTORE_PARAMS rowstoreParams = {};
         rowstoreParams.Mode         = m_mode;
         rowstoreParams.dwPicWidth   = m_frameWidth;
         rowstoreParams.bMbaff       = false;
@@ -4346,6 +4346,11 @@ MOS_STATUS CodechalEncoderState::ExecuteEnc(
 
         m_currRecycledBufIdx =
             (m_currRecycledBufIdx + 1) % CODECHAL_ENCODE_RECYCLED_BUFFER_NUM;
+
+        if (m_currRecycledBufIdx == 0)
+        {
+            MOS_ZeroMemory(m_recycledBufStatusNum, sizeof(m_recycledBufStatusNum));
+        }
 
         // Flush encode eStatus buffer
         CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(ResetStatusReport(),
