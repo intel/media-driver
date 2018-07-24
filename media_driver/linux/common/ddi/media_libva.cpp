@@ -3828,18 +3828,38 @@ VAStatus DdiMedia_CreateImage(
     }
     else if(vaimg->format.fourcc == VA_FOURCC('P','0','1','0'))
     {
-        pitch = MOS_ALIGN_CEIL(width, 128) * 2;
+
+        GMM_RESCREATE_PARAMS        gmmParams;
+        GMM_RESOURCE_INFO          *gmmResourceInfo;
+
+        MOS_ZeroMemory(&gmmParams, sizeof(gmmParams));
+        gmmParams.BaseWidth         = width;
+        uint32_t alignedHeight = MOS_ALIGN_CEIL(height, 32);
+        gmmParams.BaseHeight        = alignedHeight;
+        gmmParams.Format    = GMM_FORMAT_P010_TYPE;
+        gmmParams.ArraySize             = 1;
+        gmmParams.Type                  = RESOURCE_2D;
+        gmmParams.Flags.Info.TiledY    = true;
+        gmmParams.Flags.Gpu.Video = true;
+        gmmResourceInfo = GmmResCreate(&gmmParams);
+        uint32_t    gmmPitch;
+        uint32_t    gmmSize;
+        uint32_t    gmmHeight;
+        gmmPitch    = (uint32_t)gmmResourceInfo->GetRenderPitch();
+        gmmSize     = (uint32_t)gmmResourceInfo->GetSizeSurface();
+        gmmHeight   = gmmResourceInfo->GetBaseHeight();
+        GmmResFree(gmmResourceInfo);
 
         vaimg->format.byte_order        = VA_LSB_FIRST;
-        vaimg->format.bits_per_pixel    = format->bits_per_pixel;
+        vaimg->format.bits_per_pixel    = 24;
         vaimg->width                    = width;
         vaimg->height                   = height;
-        vaimg->data_size                = pitch * height * 3;
+        vaimg->data_size                = gmmPitch * gmmHeight * 3/2;
         vaimg->num_planes               = 2;
-        vaimg->pitches[0]               = pitch;
+        vaimg->pitches[0]               = gmmPitch;
         vaimg->pitches[1]               =
-        vaimg->pitches[2]               = pitch;
-        vaimg->offsets[1]               = MOS_ALIGN_CEIL(height,32) * pitch * 2;
+        vaimg->pitches[2]               = gmmPitch;
+        vaimg->offsets[1]               = MOS_ALIGN_CEIL(height,32) * gmmPitch;
         vaimg->offsets[2]               = vaimg->offsets[1] + 2;
     }
     else if(vaimg->format.fourcc == VA_FOURCC_I420)
