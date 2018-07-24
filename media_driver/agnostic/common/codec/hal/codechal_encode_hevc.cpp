@@ -1485,6 +1485,10 @@ MOS_STATUS CodechalEncHevcState::GetFrameBrcLevel()
     {
         m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_B2;
     }
+    else if (m_pictureCodingType == P_TYPE)
+    {
+        m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_P_OR_LB;
+    }
     else
     {
         CODECHAL_ENCODE_ASSERT(false);
