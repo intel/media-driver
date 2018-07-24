@@ -1531,7 +1531,7 @@ typedef struct _CM_HAL_STATE
 
     bool                        svmBufferUsed;
 
-    CMRT_UMD::CSync             criticalSectionDSH;
+    CMRT_UMD::CSync             *criticalSectionDSH;
 
     uint64_t                    tsFrequency;
 

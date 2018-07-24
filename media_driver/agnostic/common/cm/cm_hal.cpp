@@ -2975,7 +2975,7 @@ int32_t HalCm_DSH_LoadKernelArray(
     renderHal = state->renderHal;
     nextId = renderHal->pfnGetNextTrackerId(renderHal);
     currId = renderHal->pfnGetCurrentTrackerId(renderHal);
-    state->criticalSectionDSH.Acquire();
+    state->criticalSectionDSH->Acquire();
     do
     {
         blockCount = 0;
@@ -3162,7 +3162,7 @@ finish:
             renderHal->pfnTouchDynamicKernel(renderHal, krnAllocation[i]);
         }
     }
-    state->criticalSectionDSH.Release();
+    state->criticalSectionDSH->Release();
     return hr;
 }
 
@@ -3295,9 +3295,9 @@ MOS_STATUS HalCm_DSH_UnregisterKernel(
     PRENDERHAL_KRN_ALLOCATION krnAllocation = renderHal->pfnSearchDynamicKernel(renderHal, static_cast<int>((kernelId >> 32)), -1);
     if (krnAllocation)
     {
-        state->criticalSectionDSH.Acquire();
+        state->criticalSectionDSH->Acquire();
         renderHal->pfnUnregisterKernel(renderHal, krnAllocation);
-        state->criticalSectionDSH.Release();
+        state->criticalSectionDSH->Release();
     }
     return MOS_STATUS_SUCCESS;
 }
@@ -8075,20 +8075,20 @@ MOS_STATUS HalCm_ExecuteTask(
             // update current state to dsh
             renderHal->pStateHeap->pCurMediaState = mediaState;
             // Refresh sync tag for all media states in submitted queue
-            state->criticalSectionDSH.Acquire();
+            state->criticalSectionDSH->Acquire();
             renderHal->pfnRefreshSync( renderHal );
-            state->criticalSectionDSH.Release();
+            state->criticalSectionDSH->Release();
         }
         else
         {
             // Obtain media state configuration - Curbe, Samplers (3d/AVS/VA), 8x8 sampler table, Media IDs, Kernel Spill area
             RENDERHAL_DYNAMIC_MEDIA_STATE_PARAMS params;
-            state->criticalSectionDSH.Acquire();
+            state->criticalSectionDSH->Acquire();
             HalCm_DSH_GetDynamicStateConfiguration( state, &params, execParam->numKernels, execParam->kernels, execParam->kernelCurbeOffset );
 
             // Prepare Media States to accommodate all parameters - Curbe, Samplers (3d/AVS/VA), 8x8 sampler table, Media IDs
             mediaState = renderHal->pfnAssignDynamicState( renderHal, &params, RENDERHAL_COMPONENT_CM );
-            state->criticalSectionDSH.Release();
+            state->criticalSectionDSH->Release();
         }
     }
     else
@@ -8239,7 +8239,7 @@ finish:
 
     if (state->dshEnabled)
     {
-        state->criticalSectionDSH.Acquire();
+        state->criticalSectionDSH->Acquire();
         if (mediaState && hr != MOS_STATUS_SUCCESS)
         {
             // Failed, release media state and heap resources
@@ -8249,7 +8249,7 @@ finish:
         {
             renderHal->pfnSubmitDynamicState(renderHal, mediaState);
         }
-        state->criticalSectionDSH.Release();
+        state->criticalSectionDSH->Release();
     }
 
     if (batchBuffer)  // for Media Walker, batchBuffer is empty
@@ -8387,10 +8387,10 @@ MOS_STATUS HalCm_ExecuteGroupTask(
 
             // update current state to dsh
             renderHal->pStateHeap->pCurMediaState = mediaState;
-            state->criticalSectionDSH.Acquire();
+            state->criticalSectionDSH->Acquire();
             // Refresh sync tag for all media states in submitted queue
             renderHal->pfnRefreshSync( renderHal );
-            state->criticalSectionDSH.Release();
+            state->criticalSectionDSH->Release();
         }
         else
         {
@@ -8400,11 +8400,11 @@ MOS_STATUS HalCm_ExecuteGroupTask(
             // Obtain media state configuration - Curbe, Samplers (3d/AVS/VA), 8x8 sampler table, Media IDs, Kernel Spill area
             RENDERHAL_DYNAMIC_MEDIA_STATE_PARAMS params;
 
-            state->criticalSectionDSH.Acquire();
+            state->criticalSectionDSH->Acquire();
             HalCm_DSH_GetDynamicStateConfiguration(state, &params, execGroupParam->numKernels, execGroupParam->kernels, execGroupParam->kernelCurbeOffset);
             // Prepare Media States to accommodate all parameters
             mediaState = renderHal->pfnAssignDynamicState(renderHal, &params, RENDERHAL_COMPONENT_CM);
-            state->criticalSectionDSH.Release();
+            state->criticalSectionDSH->Release();
         }
     }
     else
@@ -8495,7 +8495,7 @@ finish:
 
     if (state->dshEnabled)
     {
-        state->criticalSectionDSH.Acquire();
+        state->criticalSectionDSH->Acquire();
         if (mediaState && hr != MOS_STATUS_SUCCESS)
         {
             // Failed, release media state and heap resources
@@ -8505,7 +8505,7 @@ finish:
         {
             renderHal->pfnSubmitDynamicState(renderHal, mediaState);
         }
-        state->criticalSectionDSH.Release();
+        state->criticalSectionDSH->Release();
     }
 
     return hr;
@@ -8651,20 +8651,20 @@ MOS_STATUS HalCm_ExecuteHintsTask(
             // update current state to dsh
             renderHal->pStateHeap->pCurMediaState = mediaState;
             // Refresh sync tag for all media states in submitted queue
-            state->criticalSectionDSH.Acquire();
+            state->criticalSectionDSH->Acquire();
             renderHal->pfnRefreshSync( renderHal );
-            state->criticalSectionDSH.Release();
+            state->criticalSectionDSH->Release();
         }
         else
         {
             // Obtain media state configuration - Curbe, Samplers (3d/AVS/VA), 8x8 sampler table, Media IDs, Kernel Spill area
             RENDERHAL_DYNAMIC_MEDIA_STATE_PARAMS params;
-            state->criticalSectionDSH.Acquire();
+            state->criticalSectionDSH->Acquire();
             HalCm_DSH_GetDynamicStateConfiguration(state, &params, execHintsParam->numKernels, execHintsParam->kernels, execHintsParam->kernelCurbeOffset);
 
             // Prepare Media States to accommodate all parameters - Curbe, Samplers (3d/AVS/VA), 8x8 sampler table, Media IDs
             mediaState = renderHal->pfnAssignDynamicState(renderHal, &params, RENDERHAL_COMPONENT_CM);
-            state->criticalSectionDSH.Release();
+            state->criticalSectionDSH->Release();
         }
     }
     else
@@ -8820,7 +8820,7 @@ finish:
 
     if (state->dshEnabled)
     {
-        state->criticalSectionDSH.Acquire();
+        state->criticalSectionDSH->Acquire();
         if (mediaState && hr != MOS_STATUS_SUCCESS)
         {
             // Failed, release media state and heap resources
@@ -8830,7 +8830,7 @@ finish:
         {
             renderHal->pfnSubmitDynamicState(renderHal, mediaState);
         }
-        state->criticalSectionDSH.Release();
+        state->criticalSectionDSH->Release();
     }
 
     if (batchBuffer) // for MediaWalker, batchBuffer is empty
@@ -10205,7 +10205,8 @@ MOS_STATUS HalCm_Create(
     CM_CHK_NULL_RETURN_MOSSTATUS(state->perfProfiler);
     CM_CHK_MOSSTATUS(state->perfProfiler->Initialize((void*)state, state->osInterface));
 
-    state->criticalSectionDSH = CMRT_UMD::CSync();
+    state->criticalSectionDSH = MOS_New(CMRT_UMD::CSync);
+    CM_CHK_NULL_RETURN_MOSSTATUS(state->criticalSectionDSH);
 
     state->cmDeviceParam.maxKernelsPerTask        = CM_MAX_KERNELS_PER_TASK;
     state->cmDeviceParam.maxSamplerTableSize      = CM_MAX_SAMPLER_TABLE_SIZE;
@@ -10339,6 +10340,7 @@ void HalCm_Destroy(
         Delete_MhwCpInterface(state->cpInterface);
         state->cpInterface = nullptr;
         MosSafeDelete(state->state_buffer_list_ptr);
+        MosSafeDelete(state->criticalSectionDSH);
 
         // Delete the unified media profiler
         if (state->perfProfiler)
