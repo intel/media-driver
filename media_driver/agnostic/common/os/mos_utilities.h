@@ -63,7 +63,7 @@ public:
     };
 
 public:
-    PerfUtility();
+    static PerfUtility *getInstance();
     ~PerfUtility();
 
     void startTick(std::string tag);
@@ -71,6 +71,7 @@ public:
     void savePerfData();
 
 private:
+    PerfUtility();
     void printPerfSummary();
     void printPerfDetails();
     void printHeader(std::ofstream& fout);
@@ -81,6 +82,7 @@ private:
     std::string getDashString(uint32_t num);
 
 private:
+    static PerfUtility *instance;
     std::map<std::string, std::vector<Tick>*> records;
 };
 
@@ -152,7 +154,7 @@ extern uint8_t MosUltFlag;
 
 #define MOS_MEMNINJA_GFX_ALLOC_MESSAGE(ptr, bufName, component, size, arraySize, functionName, filename, line) \
     MOS_OS_VERBOSEMESSAGE(                                                                                     \
-        "MemNinjaGfxAlloc: MemNinjaCounterGfx = %d, memPtr = %p, bufName = %s, component = %d, size = %d,"     \
+        "MemNinjaGfxAlloc: MemNinjaCounterGfx = %d, memPtr = %p, bufName = %s, component = %d, size = %d, "    \
         "arraySize = %d, functionName = \"%s\", filename = \"%s\", line = %d/", MosMemAllocCounterGfx, ptr,    \
         bufName, component, size, arraySize, functionName, filename, line)
 

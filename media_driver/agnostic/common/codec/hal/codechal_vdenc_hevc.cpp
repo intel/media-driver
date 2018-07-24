@@ -1317,7 +1317,6 @@ void CodechalVdencHevcState::SetVdencPipeBufAddrParams(
     if (idxForTempMVP == 0xFF && m_hevcSliceParams->slice_temporal_mvp_enable_flag)
     {
         // Temporal reference MV index is invalid and so disable the temporal MVP
-        CODECHAL_ENCODE_ASSERT(false);
         m_hevcSliceParams->slice_temporal_mvp_enable_flag = false;
     }
     else
