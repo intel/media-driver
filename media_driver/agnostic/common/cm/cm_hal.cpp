@@ -7228,6 +7228,34 @@ MOS_STATUS HalCm_SetupMediaWalkerParams(
 
                     break;
 
+                case CM_WALK_WAVEFRONT26D:
+                    walkerParams->localLoopExecCount = 0x7ff;
+                    walkerParams->globalLoopExecCount = 0x7ff;
+
+                    walkerParams->localStart.x = kernelThreadSpace.threadSpaceWidth;
+                    walkerParams->localOutLoopStride.x = 1;
+                    walkerParams->localOutLoopStride.y = 0;
+                    walkerParams->localInnerLoopUnit.x = 0xFFFE;  // -2 in uint32_t:16
+                    walkerParams->localInnerLoopUnit.y = 1;
+                    break;
+
+                case CM_WALK_WAVEFRONT26XD:
+                    walkerParams->localLoopExecCount = 0x7ff;
+                    walkerParams->globalLoopExecCount = 0x7ff;
+
+                    // Local
+                    walkerParams->localStart.x = kernelThreadSpace.threadSpaceWidth;
+                    walkerParams->localOutLoopStride.x = 1;
+                    walkerParams->localOutLoopStride.y = 0;
+                    walkerParams->localInnerLoopUnit.x = 0xFFFE;  // -2 in uint32_t:16
+                    walkerParams->localInnerLoopUnit.y = 2;
+
+                    // Mid
+                    walkerParams->middleLoopExtraSteps = 1;
+                    walkerParams->midLoopUnitX = 0;
+                    walkerParams->midLoopUnitY = 1;
+                    break;
+
                 default:
                     walkerParams->localLoopExecCount = MOS_MIN(kernelParam->numThreads, 0x3FF);
 

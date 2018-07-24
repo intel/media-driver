@@ -553,6 +553,8 @@ CM_RT_API int32_t CmThreadSpaceRT::SelectMediaWalkingPattern( CM_WALKING_PATTERN
         case CM_WALK_WAVEFRONT26XALT:
         case CM_WALK_WAVEFRONT45D:
         case CM_WALK_WAVEFRONT45XD_2:
+        case CM_WALK_WAVEFRONT26D:
+        case CM_WALK_WAVEFRONT26XD:
             m_walkingPattern = pattern;
             break;
         default:
