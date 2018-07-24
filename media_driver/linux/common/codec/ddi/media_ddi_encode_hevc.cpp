@@ -267,6 +267,14 @@ VAStatus DdiEncodeHevc::EncodeInCodecHal(uint32_t numSlices)
     {
         rawSurface.Format = Format_P010;
     }
+    else if (m_encodeCtx->vaProfile == VAProfileHEVCMain444)
+    {
+        rawSurface.Format = Format_AYUV;
+    }
+    else if (m_encodeCtx->vaProfile == VAProfileHEVCMain444_10)
+    {
+        rawSurface.Format = Format_Y410;
+    }
     else  //VAProfileHEVCMain
     {
         rawSurface.Format = Format_NV12;
@@ -281,6 +289,14 @@ VAStatus DdiEncodeHevc::EncodeInCodecHal(uint32_t numSlices)
     if (m_encodeCtx->vaProfile == VAProfileHEVCMain10)
     {
         reconSurface.Format = Format_P010;
+    }
+    else if (m_encodeCtx->vaProfile == VAProfileHEVCMain444)
+    {
+        reconSurface.Format = Format_AYUV;
+    }
+    else if (m_encodeCtx->vaProfile == VAProfileHEVCMain444_10)
+    {
+        reconSurface.Format = Format_Y410;
     }
     else  //VAProfileHEVCMain
     {
