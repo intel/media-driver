@@ -95,6 +95,7 @@ VAStatus DdiEncodeHevc::ContextInitialize(
     if (true == m_encodeCtx->bVdencActive)
     {
         codecHalSettings->codecFunction = CODECHAL_FUNCTION_ENC_VDENC_PAK;
+        codecHalSettings->disableUltraHME = true;
     }
     else
     {
