@@ -131,38 +131,11 @@ public:
         void        *pResource,
         bool        bEncryption);
 
-    //!
-    //! \brief    Check whether need to enable hardware protection based on current surface states
-    //! \details  The function checks hardware protection states in pOsResource, and determine whether to
-    //!           enable/disable hardware proection.
-    //! \param    [in] ppvOsResource
-    //!           Refernce to list of OsResources
-    //! \param    [in] uiNumOfResources
-    //!           Refernce to the number of OsResources
-    //! \param    [in] bForceNoneCp
-    //!           indicate if force none cp is enbeld.
-    //! \return   bool
-    //!           true if requries hardware protection, otherwise false 
-    //!
-    virtual bool IsHardwareProtectionRequired(
-        void        *ppvOsResource[],
-        uint32_t    uiNumOfResources,
-        bool        bForceNoneCp);
-
-    //!
-    //! \brief    Reset the HardwareProtection State to non-protected status.
-    //! \details  The function is unimplemnted in Linux/Android.
-    //! \param    [in] pvOsResource
-    //!           Refernce to the OsResources
-    //! \param    [in] isShared
-    //!           indicate if this resource shared by kmd and umd. if yes, will 
-    //!           reset KMD hardware protection states.
-    //! \return   MOS_STATUS
-    //!           Always return MOS_STATUS_SUCCESS
-    //!
-    virtual MOS_STATUS ResetHardwareProtectionState(
-        void        *pvOsResource,
-        bool        isShared);
+    virtual MOS_STATUS PrepareResources(
+        void        *source[],
+        uint32_t    sourceCount,
+        void        *target[],
+        uint32_t    targetCount);
 
     //!
     //! \brief    Determines whether or not render has access to content.

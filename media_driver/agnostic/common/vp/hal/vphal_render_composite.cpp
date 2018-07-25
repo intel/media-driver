@@ -2613,9 +2613,6 @@ MOS_STATUS CompositeState::CheckIfNoneCpCompNeeded(
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
-    // Set the flag to false by default
-    m_bForceNoneCpCompCall = false;
-
     return eStatus;
 }
 
@@ -5539,8 +5536,6 @@ MOS_STATUS CompositeState::RenderPhase(
     PMHW_WALKER_PARAMS              pWalkerParams;
     bool                            bKernelEntryUpdate;
     bool                            bColorfill;
-    PMOS_RESOURCE                   ppOsResource[VPHAL_MAX_SOURCES] = { nullptr };
-
     eStatus                 = MOS_STATUS_UNKNOWN;
     pMediaState             = nullptr;
     pWalkerParams           = nullptr;
@@ -5652,8 +5647,6 @@ MOS_STATUS CompositeState::RenderPhase(
             goto finish;
         }
 
-        ppOsResource[iLayer] = &pSource->OsResource;
-
         // The parameter YOffset of surface state should be
         // a multiple of 4 when the input is accessed in field mode.For interlaced NV12
         // input, if its height is not a multiple of 4, the YOffset of UV plane will not
@@ -5725,17 +5718,6 @@ MOS_STATUS CompositeState::RenderPhase(
          VPHAL_RENDER_ASSERTMESSAGE("Failed to set Render Target.");
          eStatus = MOS_STATUS_UNKNOWN;
          goto finish;
-    }
-
-    VPHAL_RENDER_CHK_STATUS(CheckIfNoneCpCompNeeded(
-        pCompParams,
-        ppOsResource,
-        pCompParams->uSourceCount)
-    );
-    // disable cp if it is required.
-    if (m_bForceNoneCpCompCall)
-    {
-        pOsInterface->osCpInterface->SetCpEnabled(false);
     }
 
     //============================
@@ -5968,10 +5950,6 @@ MOS_STATUS CompositeState::RenderPhase(
         kernelCombinedFc));
 
 finish:
-    if (m_bForceNoneCpCompCall && pOsInterface && pOsInterface->osCpInterface)
-    {
-        pOsInterface->osCpInterface->SetCpEnabled(true);
-    }
     // clean rendering data
     CleanRenderingData(&RenderingData);
     pRenderHal->bCmfcCoeffUpdate  = false;
@@ -6645,7 +6623,6 @@ CompositeState::CompositeState(
     m_bAvsTableBalancedFilter(false),
     m_bNullHwRenderComp(false),
     m_b8TapAdaptiveEnable(false),
-    m_bForceNoneCpCompCall(false),
     m_pKernelDllState(nullptr),
     m_ThreadCountPrimary(0),
     m_iBatchBufferCount(0),
