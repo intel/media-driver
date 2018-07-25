@@ -139,6 +139,11 @@ CM_RT_API int32_t CmSurface2DRT::WriteSurfaceHybridStrides( const unsigned char*
     }
 
     widthInBytes = m_width * sizePerPixel;
+    if(sysMem == nullptr || horizontalStride < widthInBytes || verticalStride < m_height)
+    {
+        CM_ASSERTMESSAGE("Error: Invalid input arguments.")
+        return CM_INVALID_ARG_VALUE;
+    }
 
     if( event )
     {
@@ -321,11 +326,11 @@ CM_RT_API int32_t CmSurface2DRT::ReadSurfaceHybridStrides( unsigned char* sysMem
     }
 
     widthInBytes = m_width * sizePerPixel;
-    //if(sysMem == nullptr || horizontalStride < widthInBytes || verticalStride < m_height)
-    //{
-    //    CM_ASSERTMESSAGE("Error: Invalid input arguments.")
-    //    return CM_INVALID_ARG_VALUE;
-    //}
+    if(sysMem == nullptr || horizontalStride < widthInBytes || verticalStride < m_height)
+    {
+        CM_ASSERTMESSAGE("Error: Invalid input arguments.")
+        return CM_INVALID_ARG_VALUE;
+    }
 
     if( event )
     {
