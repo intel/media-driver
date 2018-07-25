@@ -968,7 +968,7 @@ int32_t CmQueueRT::EnqueueUnalignedCopyInternal( CmSurface2DRT* surface, unsigne
 
         CMCHK_HR(kernel->SetKernelArg( 0, sizeof( SurfaceIndex ), surf2DIndexCM ));
         CMCHK_HR(kernel->SetKernelArg( 1, sizeof( SurfaceIndex ), bufferIndexCM ));
-        CMCHK_HR(kernel->SetKernelArg( 5, sizeof( uint32_t ), &widthByte ));
+        CMCHK_HR(kernel->SetKernelArg( 5, sizeof( uint32_t ), &copyWidthByte ));
         CMCHK_HR(kernel->SetKernelArg( 6, sizeof( SurfaceIndex ), hybridCopyAuxIndexCM ));
     }
 
@@ -1033,9 +1033,9 @@ int32_t CmQueueRT::EnqueueUnalignedCopyInternal( CmSurface2DRT* surface, unsigne
             }
 
             //copy end of line
-            alignedWrites = (widthByte - beginLineCopySize) &~ (BLOCK_WIDTH - 1);
+            alignedWrites = (copyWidthByte - beginLineCopySize) &~ (BLOCK_WIDTH - 1);
             endLineWriteOffset = beginLineWriteOffset + alignedWrites + beginLineCopySize;
-            endLineCopySize = dstAddShiftOffset+ i * strideInBytes + widthByte - endLineWriteOffset;
+            endLineCopySize = dstAddShiftOffset+ i * strideInBytes + copyWidthByte - endLineWriteOffset;
             if(endLineCopySize > 0 && endLineWriteOffset > beginLineWriteOffset)
             {
                 CmSafeMemCopy((void *)((unsigned char *)startBuffer + endLineWriteOffset), (void *)(hybridCopyAuxSysMem + readOffset + BLOCK_WIDTH), endLineCopySize);
