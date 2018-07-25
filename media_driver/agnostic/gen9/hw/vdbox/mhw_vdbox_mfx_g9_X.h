@@ -571,30 +571,26 @@ protected:
             else // CODECHAL_ENCODE_MODE_AVC
             {
                 // 1 PAK_INSERT_OBJECT inserted for every end of frame/stream with 1 DW payload
-                maxSize = TMfxCmds::MFX_PAK_INSERT_OBJECT_CMD::byteSize + sizeof(uint32_t);
-                patchListMaxSize = PATCH_LIST_COMMAND(MFC_AVC_PAK_INSERT_OBJECT_CMD);
-
-                if (isModeSpecific)
-                {
-                    // isModeSpecific = bSingleTaskPhaseSupported for AVC encode
-                    maxSize += (2 * mhw_mi_g9_X::MI_BATCH_BUFFER_START_CMD::byteSize);
-                    patchListMaxSize += (2 * PATCH_LIST_COMMAND(MI_BATCH_BUFFER_START_CMD));
-                }
-                else
-                {
-                    maxSize +=
+                maxSize = TMfxCmds::MFX_PAK_INSERT_OBJECT_CMD::byteSize + sizeof(uint32_t) +
                         TMfxCmds::MFX_AVC_SLICE_STATE_CMD::byteSize +
                         (2 * TMfxCmds::MFX_AVC_REF_IDX_STATE_CMD::byteSize) +
                         (2 * TMfxCmds::MFX_AVC_WEIGHTOFFSET_STATE_CMD::byteSize) +
                         TMfxCmds::MFX_PAK_INSERT_OBJECT_CMD::byteSize +
                         MHW_VDBOX_PAK_BITSTREAM_OVERFLOW_SIZE + // slice header payload
-                        mhw_mi_g9_X::MI_BATCH_BUFFER_END_CMD::byteSize;
+                        mhw_mi_g9_X::MI_BATCH_BUFFER_START_CMD::byteSize;
 
-                    patchListMaxSize +=
+                patchListMaxSize = PATCH_LIST_COMMAND(MFC_AVC_PAK_INSERT_OBJECT_CMD) +
                         PATCH_LIST_COMMAND(MFX_AVC_SLICE_STATE_CMD) +
                         (2 * PATCH_LIST_COMMAND(MFX_AVC_REF_IDX_STATE_CMD)) +
                         (2 * PATCH_LIST_COMMAND(MFX_AVC_WEIGHTOFFSET_STATE_CMD)) +
-                        PATCH_LIST_COMMAND(MFC_AVC_PAK_INSERT_OBJECT_CMD);
+                        PATCH_LIST_COMMAND(MFC_AVC_PAK_INSERT_OBJECT_CMD) +
+                        PATCH_LIST_COMMAND(MI_BATCH_BUFFER_START_CMD);
+
+                if (isModeSpecific)
+                {
+                    // isModeSpecific = bSingleTaskPhaseSupported for AVC encode
+                    maxSize += mhw_mi_g9_X::MI_BATCH_BUFFER_START_CMD::byteSize;
+                    patchListMaxSize += PATCH_LIST_COMMAND(MI_BATCH_BUFFER_START_CMD);
                 }
             }
         }
