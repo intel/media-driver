@@ -1850,15 +1850,10 @@ VAStatus MediaLibvaCaps::QueryConfigProfiles(
     DDI_CHK_NULL(numProfiles, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     std::set<int32_t> profiles;
     int32_t i;
-
     for (i = 0; i < m_profileEntryCount; i++)
     {
         profiles.insert((int32_t)m_profileEntryTbl[i].m_profile);
     }
-
-    DDI_CHK_CONDITION((i > DDI_CODEC_GEN_MAX_PROFILES),
-                      "Execeed maximum number of profiles!", VA_STATUS_ERROR_MAX_NUM_EXCEEDED);
-    *numProfiles = static_cast<int32_t>(profiles.size());
 
     std::set<int32_t>::iterator it;
     for (it = profiles.begin(), i = 0; it != profiles.end(); ++it, i++)
@@ -1866,6 +1861,10 @@ VAStatus MediaLibvaCaps::QueryConfigProfiles(
         profileList[i] = (VAProfile)*it;
     }
 
+    *numProfiles = i;
+
+    DDI_CHK_CONDITION((i > DDI_CODEC_GEN_MAX_PROFILES),
+            "Execeed maximum number of profiles!", VA_STATUS_ERROR_MAX_NUM_EXCEEDED);
     return VA_STATUS_SUCCESS;
 }
 
