@@ -729,8 +729,8 @@ protected:
     static const uint32_t m_decMpeg2MaxHeight = 2048; //!< Maximum height for Mpeg2 decode
     static const uint32_t m_decVc1MaxWidth = 3840; //!< Maximum width for VC1 decode
     static const uint32_t m_decVc1MaxHeight = 3840; //!< Maximum height for VC1 decode
-    static const uint32_t m_decJpegMaxWidth = 16352;  //!< Maximum width for JPEG decode
-    static const uint32_t m_decJpegMaxHeight = 16352; //!< Maximum height for JPEG decode
+    static const uint32_t m_decJpegMaxWidth = 16384;  //!< Maximum width for JPEG decode
+    static const uint32_t m_decJpegMaxHeight = 16384; //!< Maximum height for JPEG decode
     static const uint32_t m_decHevcMaxWidth = 8192; //!< Maximum width for HEVC decode
     static const uint32_t m_decHevcMaxHeight = 8192; //!< Maximum height for HEVC decode
     static const uint32_t m_decVp9MaxWidth = 8192; //!< Maximum width for VP9 decode
