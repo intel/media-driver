@@ -878,7 +878,6 @@ int32_t CmQueueRT::EnqueueUnalignedCopyInternal( CmSurface2DRT* surface, unsigne
     CmProgram              *gpuCopyProgram            = nullptr;
     CM_STATUS              status;
     CM_SURFACE_FORMAT      format;
-    uint64_t               start, end, freq;
 
     if ( surface )
     {
@@ -969,12 +968,12 @@ int32_t CmQueueRT::EnqueueUnalignedCopyInternal( CmSurface2DRT* surface, unsigne
 
         CMCHK_HR(kernel->SetKernelArg( 0, sizeof( SurfaceIndex ), surf2DIndexCM ));
         CMCHK_HR(kernel->SetKernelArg( 1, sizeof( SurfaceIndex ), bufferIndexCM ));
-        CMCHK_HR(kernel->SetKernelArg( 5, sizeof( uint32_t ), &copyWidthByte ));
+        CMCHK_HR(kernel->SetKernelArg( 5, sizeof( uint32_t ), &widthByte ));
         CMCHK_HR(kernel->SetKernelArg( 6, sizeof( SurfaceIndex ), hybridCopyAuxIndexCM ));
     }
 
     CMCHK_HR(kernel->SetKernelArg( 2, sizeof( uint32_t ), &strideInBytes ));
-    CMCHK_HR(kernel->SetKernelArg( 3, sizeof( uint32_t ), &copyHeightRow ));
+    CMCHK_HR(kernel->SetKernelArg( 3, sizeof( uint32_t ), &heightStrideInRows ));
     CMCHK_HR(kernel->SetKernelArg( 4, sizeof( uint32_t ), &dstAddShiftOffset ));
 
     threadWidth = ( uint32_t )ceil( ( double )copyWidthByte/BLOCK_WIDTH );
@@ -1001,12 +1000,7 @@ int32_t CmQueueRT::EnqueueUnalignedCopyInternal( CmSurface2DRT* surface, unsigne
             }
             CMCHK_HR(event->GetStatus(status));
         }
-        uint64_t time;
-        event->GetExecutionTime(time);
-        printf("Kernel execution time is %f ms\n", ((double)time)/1000000.0);
     }
-
-    MOS_QueryPerformanceCounter(&start);
     // CPU copy unaligned data
     if( direction == CM_FASTCOPY_GPU2CPU)
     {
@@ -1039,21 +1033,16 @@ int32_t CmQueueRT::EnqueueUnalignedCopyInternal( CmSurface2DRT* surface, unsigne
             }
 
             //copy end of line
-            alignedWrites = (copyWidthByte - beginLineCopySize) &~ (BLOCK_WIDTH - 1);
+            alignedWrites = (widthByte - beginLineCopySize) &~ (BLOCK_WIDTH - 1);
             endLineWriteOffset = beginLineWriteOffset + alignedWrites + beginLineCopySize;
-            endLineCopySize = dstAddShiftOffset+ i * strideInBytes + copyWidthByte - endLineWriteOffset;
+            endLineCopySize = dstAddShiftOffset+ i * strideInBytes + widthByte - endLineWriteOffset;
             if(endLineCopySize > 0 && endLineWriteOffset > beginLineWriteOffset)
             {
                 CmSafeMemCopy((void *)((unsigned char *)startBuffer + endLineWriteOffset), (void *)(hybridCopyAuxSysMem + readOffset + BLOCK_WIDTH), endLineCopySize);
             }
             readOffset += (BLOCK_WIDTH * 2);
         }
-
     }
-    MOS_QueryPerformanceCounter(&end);
-    MOS_QueryPerformanceFrequency(&freq);
-
-    printf("The boarder copy time is %f ms\n", ((double)(end - start))/((double)freq) * 1000.0);
 
     CMCHK_HR(m_device->DestroyTask(gpuCopyTask));
     CMCHK_HR(m_device->DestroyThreadSpace(threadSpace));
