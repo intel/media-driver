@@ -3290,7 +3290,7 @@ static VAStatus DdiMedia_SyncSurface (
         CodechalDecode *decoder = dynamic_cast<CodechalDecode *>(codecHal);
         DDI_CHK_NULL(decoder, "nullptr codecHal->pDecoder", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-        if (decoder->IsStatusQueryReportingEnabled() && decoder->GetStandard() != CODECHAL_JPEG)
+        if (decoder->IsStatusQueryReportingEnabled())
         {
             if (surface->curStatusReportQueryState == DDI_MEDIA_STATUS_REPORT_QUREY_STATE_PENDING)
             {
@@ -3366,7 +3366,11 @@ static VAStatus DdiMedia_SyncSurface (
             // check the report ptr of current surface.
             if (surface->curStatusReportQueryState == DDI_MEDIA_STATUS_REPORT_QUREY_STATE_COMPLETED)
             {
-                if (surface->curStatusReport.decode.status == CODECHAL_STATUS_ERROR)
+                if (surface->curStatusReport.decode.status == CODECHAL_STATUS_SUCCESSFUL)
+                {
+                    return VA_STATUS_SUCCESS;
+                }            
+                else if (surface->curStatusReport.decode.status == CODECHAL_STATUS_ERROR)
                 {
                     return VA_STATUS_ERROR_DECODING_ERROR;
                 }
