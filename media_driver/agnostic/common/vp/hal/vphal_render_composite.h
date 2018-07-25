@@ -1011,8 +1011,6 @@ protected:
 
     static const int                AVS_CACHE_SIZE = 4;           //!< AVS coefficients cache size
     AvsCoeffsCache<AVS_CACHE_SIZE>  m_AvsCoeffsCache;             //!< AVS coefficients calculation is expensive, add cache to mitigate
-
-    bool                            m_bForceNoneCpCompCall;       //!< Force None CP Comp call on demand
 };
 
 typedef CompositeState * PCComposite;

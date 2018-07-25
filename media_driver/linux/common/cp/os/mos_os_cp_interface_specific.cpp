@@ -143,25 +143,16 @@ MOS_STATUS MosCpInterface::SetResourceEncryption(
     return MOS_STATUS_UNIMPLEMENTED;
 }
 
-bool MosCpInterface::IsHardwareProtectionRequired(
-    void        *ppvOsResource[],
-    uint32_t    uiNumOfResources,
-    bool        bForceNoneCp)
+MOS_STATUS MosCpInterface::PrepareResources(
+    void        *source[],
+    uint32_t    sourceCount,
+    void        *target[],
+    uint32_t    targetCount)
 {
-    MOS_UNUSED(ppvOsResource);
-    MOS_UNUSED(uiNumOfResources);
-    MOS_UNUSED(bForceNoneCp);
-
-    OsStubMessage();
-    return false;
-}
-
-MOS_STATUS MosCpInterface::ResetHardwareProtectionState(
-    void        *pvOsResource,
-    bool        isShared)
-{
-    MOS_UNUSED(pvOsResource);
-    MOS_UNUSED(isShared);
+    MOS_UNUSED(source);
+    MOS_UNUSED(sourceCount);
+    MOS_UNUSED(target);
+    MOS_UNUSED(targetCount);
 
     OsStubMessage();
     return MOS_STATUS_SUCCESS;

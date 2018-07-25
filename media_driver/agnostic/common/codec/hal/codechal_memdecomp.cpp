@@ -303,13 +303,13 @@ MOS_STATUS MediaMemDecompState::MemoryDecompress(
     auto kernelState = &m_kernelStates[kernelStateIdx];
     kernelState->m_currTrackerId = m_currCmdBufId;
 
+    // preprocess in cp first
+    m_osInterface->osCpInterface->PrepareResources((void **)&targetResource, 1, nullptr, 0);
+
     bool overrideKernel = false;
-    bool cpState = false;
     if (m_osInterface->osCpInterface->IsSMEnabled() &&
         kernelStateIdx == decompKernelStatePl2)
     {
-        if (m_osInterface->osCpInterface->IsHardwareProtectionRequired((void **)&targetResource, 1, true))
-        {
             uint32_t *kernelBase = nullptr;
             uint32_t kernelSize = 0;
             m_osInterface->osCpInterface->GetTK(
@@ -323,18 +323,12 @@ MOS_STATUS MediaMemDecompState::MemoryDecompress(
                 return eStatus;
             }
 
-            overrideKernel = true;
+        overrideKernel = true;
 
-            kernelState->KernelParams.pBinary = (uint8_t *)kernelBase;
-            kernelState->KernelParams.iSize   = kernelSize;
-        }
-        else
-        {
-            cpState = true;
-            m_osInterface->osCpInterface->SetCpEnabled(false);
-        }
+        kernelState->KernelParams.pBinary = (uint8_t *)kernelBase;
+        kernelState->KernelParams.iSize   = kernelSize;
     }
-    
+
     MHW_CHK_STATUS_RETURN(m_stateHeapInterface->pfnRequestSshSpaceForCmdBuf(
         m_stateHeapInterface,
         kernelState->KernelParams.iBTCount));
@@ -675,11 +669,6 @@ MOS_STATUS MediaMemDecompState::MemoryDecompress(
         //restore kernel state
         kernelState->KernelParams.pBinary = m_kernelBinary[kernelStateIdx];
         kernelState->KernelParams.iSize   = m_kernelSize[kernelStateIdx];
-    }
-
-    if (cpState)
-    {
-        m_osInterface->osCpInterface->SetCpEnabled(true);
     }
 
     return eStatus;
