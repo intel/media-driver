@@ -3737,136 +3737,145 @@ VAStatus DdiMedia_CreateImage(
 
     VAImage *vaimg           = (VAImage*)MOS_AllocAndZeroMemory(sizeof(VAImage));
     DDI_CHK_NULL(vaimg,  "Insufficient to allocate an VAImage.",  VA_STATUS_ERROR_ALLOCATION_FAILED);
-    vaimg->format   = *format;
+    
+    GMM_RESCREATE_PARAMS        gmmParams;
+    GMM_RESOURCE_INFO          *gmmResourceInfo;
+    MOS_ZeroMemory(&gmmParams, sizeof(gmmParams));
 
-    int32_t pitch      = 0;
-    int32_t halfwidth  = 0;
-    int32_t halfheight = 0;
-    if(vaimg->format.fourcc == VA_FOURCC_RGBA 
-       || vaimg->format.fourcc == VA_FOURCC_BGRA
-       || vaimg->format.fourcc == VA_FOURCC_BGRX
-       || vaimg->format.fourcc == VA_FOURCC_RGBX)
-    {
-        pitch = width * 4;
-        vaimg->format.byte_order        = VA_LSB_FIRST;
-        vaimg->format.bits_per_pixel    = 32;
-        vaimg->width                    = width;
-        vaimg->height                   = height;
-        vaimg->data_size                = pitch * height;
-        vaimg->num_planes               = 1;
-        vaimg->pitches[0]               = pitch;
-    }
-    else if (vaimg->format.fourcc == VA_FOURCC_YV12)
-    {
-        pitch      = width;
-        halfwidth   = (width  + 1) / 2;
-        halfheight  = (height + 1) / 2;
-        vaimg->format.byte_order        = VA_LSB_FIRST;
-        vaimg->format.bits_per_pixel    = 12;
-        vaimg->width                    = width;
-        vaimg->height                   = height;
-        //should be width*height  + 2*width2*height2;
-        vaimg->data_size                = width * height + 4 * halfwidth * halfheight;
-        vaimg->num_planes               = 3;
-        vaimg->pitches[0]               = pitch;
-        vaimg->pitches[1]               =
-        vaimg->pitches[2]               = halfwidth;
-        vaimg->offsets[1]               = height * pitch;
-        vaimg->offsets[2]               = height * pitch + halfwidth * halfheight;
-    }
-    else if(vaimg->format.fourcc == VA_FOURCC_YUY2)
-    {
-        pitch = 2 * width;
-        vaimg->format.byte_order        = VA_LSB_FIRST;
-        vaimg->format.bits_per_pixel    = 16;
-        vaimg->width                    = width;
-        vaimg->height                   = height;
-        vaimg->data_size                = pitch * height;
-        vaimg->num_planes               = 1;
-        vaimg->pitches[0]               = pitch;
-        vaimg->pitches[1]               = 0;
-        vaimg->pitches[2]               = 0;
-        vaimg->offsets[1]               = 0;
-        vaimg->offsets[2]               = 0;
+    gmmParams.BaseWidth             = width;
+    gmmParams.BaseHeight            = height;
+    gmmParams.ArraySize             = 1;
+    gmmParams.Type                  = RESOURCE_2D;
+    gmmParams.Flags.Gpu.Video       = true;
 
-    }
-    else if(vaimg->format.fourcc == VA_FOURCC_NV12)
+    switch(format->fourcc)
     {
-        pitch = MOS_ALIGN_CEIL(width, 128);
-
-        vaimg->format.byte_order        = VA_LSB_FIRST;
-        vaimg->format.bits_per_pixel    = format->bits_per_pixel;
-        vaimg->width                    = width;
-        vaimg->height                   = height;
+        case VA_FOURCC_RGBA:
+            gmmParams.Format = GMM_FORMAT_R8G8B8A8_UNORM_TYPE;
+            gmmParams.Flags.Info.Linear = true;
+            break;
+        case VA_FOURCC_BGRA:
+            gmmParams.Format = GMM_FORMAT_B8G8R8A8_UNORM_TYPE;
+            gmmParams.Flags.Info.Linear = true;
+            break;
+        case VA_FOURCC_RGBX:
+            gmmParams.Format = GMM_FORMAT_R8G8B8X8_UNORM_TYPE;
+            gmmParams.Flags.Info.Linear = true;
+            break;
+        case VA_FOURCC_BGRX:
+            gmmParams.Format = GMM_FORMAT_B8G8R8X8_UNORM_TYPE;
+            gmmParams.Flags.Info.Linear = true;
+            break;
+        case VA_FOURCC_I420:
+            gmmParams.Format = GMM_FORMAT_I420_TYPE;
+            gmmParams.Flags.Info.Linear = true;
+            break;
+        case VA_FOURCC_YV12:
+            gmmParams.Format = GMM_FORMAT_YV12_TYPE;
+            gmmParams.Flags.Info.Linear = true;
+            break;
+        case VA_FOURCC_NV21:
+            gmmParams.Format = GMM_FORMAT_NV21_TYPE;
+            gmmParams.Flags.Info.Linear = true;
+            break;
+        case VA_FOURCC_YUY2:
+            gmmParams.Format = GMM_FORMAT_YUY2;
+            gmmParams.Flags.Info.TiledY = true;
 #if UFO_GRALLOC_NEW_FORMAT
-        vaimg->data_size                = pitch *  MOS_ALIGN_CEIL(height,64) * 3 / 2;
+            //Planar type surface align 64 to improve performance.
+            gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 64);
 #else
-        vaimg->data_size                = pitch *  MOS_ALIGN_CEIL(height,32) * 3 / 2;
+            //Planar type surface align 32 to improve performance.
+            gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 32);
 #endif
-        vaimg->num_planes               = 2;
-        vaimg->pitches[0]               = pitch;
-        vaimg->pitches[1]               =
-        vaimg->pitches[2]               = pitch;
+            break;
+        case VA_FOURCC_NV12:
+            gmmParams.Format = GMM_FORMAT_NV12_TYPE;
+            gmmParams.Flags.Info.TiledY = true;
 #if UFO_GRALLOC_NEW_FORMAT
-        vaimg->offsets[1]               = MOS_ALIGN_CEIL(height,64) * pitch;
+            //Planar type surface align 64 to improve performance.
+            gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 64);
 #else
-        vaimg->offsets[1]               = MOS_ALIGN_CEIL(height,32) * pitch;
+            //Planar type surface align 32 to improve performance.
+            gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 32);
 #endif
-        vaimg->offsets[2]               = vaimg->offsets[1] + 1;
+            break;
+        case VA_FOURCC_P010:
+            gmmParams.Format = GMM_FORMAT_P010_TYPE;
+            gmmParams.Flags.Info.TiledY = true;
+#if UFO_GRALLOC_NEW_FORMAT
+            //Planar type surface align 64 to improve performance.
+            gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 64);
+#else
+            //Planar type surface align 32 to improve performance.
+            gmmParams.BaseHeight = MOS_ALIGN_CEIL(height, 32);
+#endif
+            break;
+        default:
+            MOS_FreeMemory(vaimg);
+            return VA_STATUS_ERROR_UNIMPLEMENTED;
     }
-    else if(vaimg->format.fourcc == VA_FOURCC_NV21)
-    {
-        pitch = width;
 
-        vaimg->format.byte_order        = VA_LSB_FIRST;
-        vaimg->format.bits_per_pixel    = format->bits_per_pixel;
-        vaimg->width                    = width;
-        vaimg->height                   = height;
-        vaimg->data_size                = pitch * height * 3 / 2;
-        vaimg->num_planes               = 2;
-        vaimg->pitches[0]               = pitch;
-        vaimg->pitches[1]               =
-        vaimg->pitches[2]               = pitch;
-        vaimg->offsets[1]               = MOS_ALIGN_CEIL(height,32) * pitch;
-        vaimg->offsets[2]               = vaimg->offsets[1] + 1;
-    }
-    else if(vaimg->format.fourcc == VA_FOURCC('P','0','1','0'))
-    {
-        pitch = MOS_ALIGN_CEIL(width, 128) * 2;
+    gmmResourceInfo = GmmResCreate(&gmmParams);
 
-        vaimg->format.byte_order        = VA_LSB_FIRST;
-        vaimg->format.bits_per_pixel    = format->bits_per_pixel;
-        vaimg->width                    = width;
-        vaimg->height                   = height;
-        vaimg->data_size                = pitch * height * 3;
-        vaimg->num_planes               = 2;
-        vaimg->pitches[0]               = pitch;
-        vaimg->pitches[1]               =
-        vaimg->pitches[2]               = pitch;
-        vaimg->offsets[1]               = MOS_ALIGN_CEIL(height,32) * pitch * 2;
-        vaimg->offsets[2]               = vaimg->offsets[1] + 2;
-    }
-    else if(vaimg->format.fourcc == VA_FOURCC_I420)
+    uint32_t    gmmPitch;
+    uint32_t    gmmSize;
+    uint32_t    gmmHeight;
+    gmmPitch    = (uint32_t)gmmResourceInfo->GetRenderPitch();
+    gmmSize     = (uint32_t)gmmResourceInfo->GetSizeSurface();
+    gmmHeight   = (uint32_t)gmmResourceInfo->GetBaseHeight();
+
+    vaimg->format                   = *format;
+    vaimg->format.byte_order        = VA_LSB_FIRST;
+    vaimg->width                    = width;
+    vaimg->height                   = height;
+    vaimg->data_size                = gmmSize;
+    vaimg->format.bits_per_pixel    = format->bits_per_pixel;
+
+    switch(format->fourcc)
     {
-        pitch = width;
-        vaimg->format.byte_order        = VA_LSB_FIRST;
-        vaimg->format.bits_per_pixel    = format->bits_per_pixel;
-        vaimg->width                    = width;
-        vaimg->height                   = height;
-        vaimg->data_size                = pitch * height * 3 / 2;
-        vaimg->num_planes               = 3;
-        vaimg->pitches[0]               = pitch;
-        vaimg->pitches[1]               = pitch/2;
-        vaimg->pitches[2]               = pitch/2;
-        vaimg->offsets[0]               = 0;
-        vaimg->offsets[1]               = pitch * height;
-        vaimg->offsets[2]               = vaimg->offsets[1] + pitch * height / 4;
+        case VA_FOURCC_RGBA:
+        case VA_FOURCC_BGRA:
+        case VA_FOURCC_BGRX:
+        case VA_FOURCC_RGBX:
+            vaimg->format.bits_per_pixel = 32;
+            vaimg->num_planes = 1;
+            vaimg->pitches[0] = gmmPitch;
+            break;
+        case VA_FOURCC_YV12:
+        case VA_FOURCC_I420:
+            vaimg->num_planes = 3;
+            vaimg->pitches[0] = gmmPitch;
+            vaimg->pitches[1] = gmmPitch / 2;
+            vaimg->pitches[2] = gmmPitch / 2;
+            vaimg->offsets[1] = gmmPitch * gmmHeight;
+            vaimg->offsets[2] = vaimg->offsets[1] + gmmPitch * gmmHeight / 4;
+            break;
+        case VA_FOURCC_YUY2:
+            vaimg->num_planes = 1;
+            vaimg->pitches[0] = gmmPitch;
+            break;
+        case VA_FOURCC_NV12:
+        case VA_FOURCC_NV21:
+            vaimg->num_planes = 2;
+            vaimg->pitches[0] = gmmPitch;
+            vaimg->pitches[1] = gmmPitch;
+            vaimg->pitches[2] = gmmPitch;
+            vaimg->offsets[1] = gmmPitch * gmmHeight;
+            vaimg->offsets[2] = vaimg->offsets[1] + 1;
+            break;
+        case VA_FOURCC_P010:
+            vaimg->format.bits_per_pixel = 24;
+            vaimg->num_planes = 2;
+            vaimg->pitches[0] = gmmPitch;
+            vaimg->pitches[1] = gmmPitch;
+            vaimg->pitches[2] = gmmPitch;
+            vaimg->offsets[1] = gmmPitch * gmmHeight;
+            vaimg->offsets[2] = vaimg->offsets[1] + 2;
+            break;
     }
-    else
-    {
-       MOS_FreeMemory(vaimg);
-       return VA_STATUS_ERROR_UNIMPLEMENTED;
-    }
+
+    GmmResFree(gmmResourceInfo);
 
     DDI_MEDIA_BUFFER *buf  = (DDI_MEDIA_BUFFER *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_BUFFER));
     if (nullptr == buf)
