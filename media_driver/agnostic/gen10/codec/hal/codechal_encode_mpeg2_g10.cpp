@@ -2041,7 +2041,6 @@ MOS_STATUS CodechalEncodeMpeg2G10::SendMeSurfaces(
         {
             CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
         }
-        refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
         refScaledBottomFieldOffset = refBottomField ? (uint32_t)m_scaledBottomFieldOffset : 0;
 
         // L0 Reference Picture Y - VME
