@@ -283,6 +283,8 @@ typedef struct _MHW_SFC_OUT_SURFACE_PARAMS
     uint32_t                    dwPitch;            //!<  Surface pitch
     MOS_TILE_TYPE               TileType;           //!<  Tile Type
     uint32_t                    dwStreamID;         //!<  Surface StreamID
+    uint32_t                    dwSurfaceXOffset;   //!<  Surface X offset
+    uint32_t                    dwSurfaceYOffset;   //!<  Surface Y offset
     uint32_t                    dwUYoffset;         //!<  Surface Uoffset in Vertical
     PMOS_RESOURCE               pOsResource;        //!<  Surface resource
     bool                        bCompressible;      //!<  Surface can be compressed
