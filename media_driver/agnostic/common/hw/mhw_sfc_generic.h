@@ -301,12 +301,12 @@ public:
        cmd.DW5.SourceRegionHeight           = pSfcStateParams->dwSourceRegionHeight - 1;
        cmd.DW6.SourceRegionHorizontalOffset = pSfcStateParams->dwSourceRegionHorizontalOffset;
        cmd.DW6.SourceRegionVerticalOffset   = pSfcStateParams->dwSourceRegionVerticalOffset;
-       cmd.DW7.OutputFrameWidth             = pSfcStateParams->dwOutputFrameWidth - 1;
-       cmd.DW7.OutputFrameHeight            = pSfcStateParams->dwOutputFrameHeight + pSfcStateParams->dwOutputSurfaceOffset -1;
+       cmd.DW7.OutputFrameWidth             = pSfcStateParams->dwOutputFrameWidth + pOutSurface->dwSurfaceXOffset - 1;
+       cmd.DW7.OutputFrameHeight            = pSfcStateParams->dwOutputFrameHeight + pOutSurface->dwSurfaceYOffset - 1;
        cmd.DW8.ScaledRegionSizeWidth        = pSfcStateParams->dwScaledRegionWidth - 1;
        cmd.DW8.ScaledRegionSizeHeight       = pSfcStateParams->dwScaledRegionHeight - 1;
-       cmd.DW9.ScaledRegionHorizontalOffset = pSfcStateParams->dwScaledRegionHorizontalOffset;
-       cmd.DW9.ScaledRegionVerticalOffset   = pSfcStateParams->dwScaledRegionVerticalOffset + pSfcStateParams->dwOutputSurfaceOffset;
+       cmd.DW9.ScaledRegionHorizontalOffset = pSfcStateParams->dwScaledRegionHorizontalOffset + pOutSurface->dwSurfaceXOffset;
+       cmd.DW9.ScaledRegionVerticalOffset   = pSfcStateParams->dwScaledRegionVerticalOffset + pOutSurface->dwSurfaceYOffset;
 
        // Vertical line issue for SFC 270 degree rotation & NV12 output
        // HW requires Scaled Region Size Width < Output Frame Width && Scaled Region Size Height < Output Frame Height.
