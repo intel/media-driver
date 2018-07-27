@@ -3817,6 +3817,12 @@ VAStatus DdiMedia_CreateImage(
     }
 
     gmmResourceInfo = GmmResCreate(&gmmParams);
+    if(nullptr == gmmResourceInfo)
+    {
+        DDI_ASSERTMESSAGE("Gmm Create Resource Failed.");
+        MOS_FreeMemory(vaimg);
+        return VA_STATUS_ERROR_ALLOCATION_FAILED;
+    }
 
     uint32_t    gmmPitch;
     uint32_t    gmmSize;
