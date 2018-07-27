@@ -2466,6 +2466,7 @@ bool CMRT_UMD::CmSurfaceManager::IsSupportedForSamplerSurface2D(CM_SURFACE_FORMA
         case CM_SURFACE_FORMAT_L16:
         case CM_SURFACE_FORMAT_R16_FLOAT:
         case CM_SURFACE_FORMAT_R16G16_UNORM:
+        case CM_SURFACE_FORMAT_R16_UNORM:
         case CM_SURFACE_FORMAT_NV12:
         case CM_SURFACE_FORMAT_L8:
         case CM_SURFACE_FORMAT_AYUV:
