@@ -173,7 +173,9 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSendVecsStatusTag(
 #endif
 
     // Get GPU Status buffer
-    pOsInterface->pfnGetGpuStatusBufferResource(pOsInterface, &GpuStatusBuffer);
+    VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnGetGpuStatusBufferResource(
+        pOsInterface, 
+        &GpuStatusBuffer));
 
     // Register the buffer
     VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnRegisterResource(
