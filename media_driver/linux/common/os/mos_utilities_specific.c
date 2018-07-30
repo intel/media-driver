@@ -97,6 +97,19 @@ void PerfUtility::stopTick(std::string tag)
 #endif // __cplusplus
 
 //!
+//! \brief    Get current run time
+//! \details  Get current run time in us
+//! \return   double
+//!           Returns time in us
+//!
+double MOS_GetTime()
+{
+    struct timespec ts = {};
+    clock_gettime(CLOCK_REALTIME, &ts);
+    return double(ts.tv_sec) * 1000000.0 + double(ts.tv_nsec) / 1000.0;
+}
+
+//!
 //! \brief Linux specific user feature define, used in MOS_UserFeature_ParsePath
 //!        They can be unified with the win definitions, since they are identical.
 //!
