@@ -42,6 +42,7 @@ CodechalCmdInitializer::CodechalCmdInitializer(
     CodechalEncoderState *encoder)
 {
     m_encoder = encoder;
+    m_cmdCount = 0;
 }
 
 MOS_STATUS CodechalCmdInitializer::CmdInitializerAllocateResources(
@@ -166,7 +167,8 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerSetDmem(bool brcEnabled)
         m_osInterface, &m_cmdInitializerDmemBuffer[m_encoder->m_currRecycledBufIdx][m_currentPass], &lockFlagsWriteOnly);
 
     MOS_ZeroMemory(hucCmdInitializerDmem, sizeof(HucComDmem));
-
+    
+    CODECHAL_ENCODE_ASSERT(m_cmdCount == 2);
     hucCmdInitializerDmem->TotalOutputCommands = 2;
 
     hucCmdInitializerDmem->TargetUsage         = 4;
@@ -382,13 +384,17 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerSetConstData(
     hucConstData = (HucComData *)m_osInterface->pfnLockResource(m_osInterface, &m_cmdInitializerDataBuffer[m_encoder->m_currRecycledBufIdx][currentPass], &lockFlagsWriteOnly);
 
     MOS_ZeroMemory(hucConstData, sizeof(HucComData));
-    hucConstData->TotalCommands = 2;
+    m_cmdCount = 0;
 
     // Command ID 2
     ConstructHevcHucCmd2ConstData(seqParams, picParams, sliceParams, hucConstData);
+    m_cmdCount++;
 
     // Command ID 1
     ConstructHevcHucCmd1ConstData(seqParams, picParams, sliceParams, hucConstData);
+    m_cmdCount++;
+
+    hucConstData->TotalCommands = m_cmdCount;
 
     m_osInterface->pfnUnlockResource(m_osInterface, &m_cmdInitializerDataBuffer[m_encoder->m_currRecycledBufIdx][currentPass]);
 
@@ -768,7 +774,7 @@ MOS_STATUS CodechalCmdInitializer::DumpHucCmdInit(PMOS_RESOURCE secondlevelBB)
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->GetDebugInterface()->DumpHucRegion(
         &m_cmdInitializerDataBuffer[idx][m_currentPass],
         0,
-        sizeof(HucComDmem),
+        sizeof(HucComData),
         0,
         "",
         true,

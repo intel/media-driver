@@ -41,7 +41,8 @@ typedef enum _CODECHAL_CMD_INITIALIZER_CMDTYPE
 {
     CODECHAL_CMD1 = 1,
     CODECHAL_CMD2 = 2,
-    CODECHAL_CMD3 = 3
+    CODECHAL_CMD3 = 3,
+    CODECHAL_CMD5 = 5,
 } CODECHAL_CMD_INITIALIZER_CMDTYPE;
 
 //!
@@ -216,6 +217,7 @@ public:
     bool                                        m_panicEnabled;
     bool                                        m_roiStreamInEnabled;
     int32_t                                     m_currentPass;
+    int32_t                                     m_cmdCount;
 
     CodechalEncoderState                        *m_encoder = nullptr;                //!< Pointer to ENCODER base class
     MOS_INTERFACE                               *m_osInterface = nullptr;            //!< OS interface
@@ -301,7 +303,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS CmdInitializerSetDmem(bool brcEnabled);
+    virtual MOS_STATUS CmdInitializerSetDmem(bool brcEnabled);
 
     //!
     //! \brief    Executes command initializer HuC FW
@@ -316,7 +318,10 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS CmdInitializerExecute(bool brcEnabled, PMOS_RESOURCE secondlevelBB, MOS_COMMAND_BUFFER* cmdBuffer = nullptr);
+    MOS_STATUS CmdInitializerExecute(
+            bool brcEnabled, 
+            PMOS_RESOURCE secondlevelBB, 
+            MOS_COMMAND_BUFFER* cmdBuffer = nullptr);
 
     //!
     //! \brief    Set Add Commands to BatchBuffer
