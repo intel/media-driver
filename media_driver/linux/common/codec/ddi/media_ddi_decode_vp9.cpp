@@ -573,6 +573,7 @@ MOS_FORMAT DdiDecodeVP9::GetFormat()
 {
     slcFlag = false;
     MOS_FORMAT Format = Format_NV12;
+    DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_ddiDecodeCtx->RTtbl);
     CodechalDecodeParams *decodeParams = &m_ddiDecodeCtx->DecodeParams;
 
     CODEC_VP9_PIC_PARAMS *picParams = (CODEC_VP9_PIC_PARAMS *)decodeParams->m_picParams;
@@ -586,7 +587,7 @@ MOS_FORMAT DdiDecodeVP9::GetFormat()
         (picParams->BitDepthMinus8 > 0))
     {
         Format = Format_P010;
-        if(picParams->BitDepthMinus8 > 2)
+        if((picParams->BitDepthMinus8 > 2) || (rtTbl->pCurrentRT->format == Media_Format_P016))
         {
             Format = Format_P016;
         }
@@ -599,6 +600,12 @@ MOS_FORMAT DdiDecodeVP9::GetFormat()
             if(picParams->BitDepthMinus8 == 2)
             {
                 Format = Format_Y410;
+
+                //10bit decode in 12bit
+                if(rtTbl->pCurrentRT->format == Media_Format_Y416)
+                {
+                    Format = Format_Y416;
+                }
             }
             else if(picParams->BitDepthMinus8 > 2)
             {
