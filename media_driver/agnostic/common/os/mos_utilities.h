@@ -88,6 +88,14 @@ private:
 
 #endif // __cplusplus
 
+//!
+//! \brief    Get current run time
+//! \details  Get current run time in us
+//! \return   double
+//!           Returns time in us
+//!
+double MOS_GetTime();
+
 #ifndef __MOS_USER_FEATURE_WA_
 #define  __MOS_USER_FEATURE_WA_
 #endif
@@ -142,26 +150,26 @@ extern int32_t MosMemAllocCounterGfx;
 extern uint8_t MosUltFlag;
 
 //! Helper Macros for MEMNINJA debug messages
-#define MOS_MEMNINJA_ALLOC_MESSAGE(ptr, size, functionName, filename, line)                                    \
-    MOS_OS_VERBOSEMESSAGE(                                                                                     \
-        "MemNinjaSysAlloc: MemNinjaCounter = %d, memPtr = %p, size = %d, functionName = \"%s\", "              \
-        "filename = \"%s\", line = %d/", MosMemAllocCounter, ptr, size, functionName, filename, line)
+#define MOS_MEMNINJA_ALLOC_MESSAGE(ptr, size, functionName, filename, line)                                                \
+    MOS_OS_VERBOSEMESSAGE(                                                                                                 \
+        "MemNinjaSysAlloc: Time = %f, MemNinjaCounter = %d, memPtr = %p, size = %d, functionName = \"%s\", "               \
+        "filename = \"%s\", line = %d/", MOS_GetTime(), MosMemAllocCounter, ptr, size, functionName, filename, line)
 
-#define MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line)                                           \
-    MOS_OS_VERBOSEMESSAGE(                                                                                     \
-       "MemNinjaSysFree: MemNinjaCounter = %d, memPtr = %p, functionName = \"%s\", "                           \
-       "filename = \"%s\", line = %d/", MosMemAllocCounter, ptr, functionName, filename, line)
+#define MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line)                                                       \
+    MOS_OS_VERBOSEMESSAGE(                                                                                                 \
+       "MemNinjaSysFree: Time = %f, MemNinjaCounter = %d, memPtr = %p, functionName = \"%s\", "                            \
+       "filename = \"%s\", line = %d/", MOS_GetTime(), MosMemAllocCounter, ptr, functionName, filename, line)
 
-#define MOS_MEMNINJA_GFX_ALLOC_MESSAGE(ptr, bufName, component, size, arraySize, functionName, filename, line) \
-    MOS_OS_VERBOSEMESSAGE(                                                                                     \
-        "MemNinjaGfxAlloc: MemNinjaCounterGfx = %d, memPtr = %p, bufName = %s, component = %d, size = %d, "    \
-        "arraySize = %d, functionName = \"%s\", filename = \"%s\", line = %d/", MosMemAllocCounterGfx, ptr,    \
+#define MOS_MEMNINJA_GFX_ALLOC_MESSAGE(ptr, bufName, component, size, arraySize, functionName, filename, line)             \
+    MOS_OS_VERBOSEMESSAGE(                                                                                                 \
+        "MemNinjaGfxAlloc: Time = %f, MemNinjaCounterGfx = %d, memPtr = %p, bufName = %s, component = %d, size = %d, "     \
+        "arraySize = %d, functionName = \"%s\", filename = \"%s\", line = %d/", MOS_GetTime(), MosMemAllocCounterGfx, ptr, \
         bufName, component, size, arraySize, functionName, filename, line)
 
-#define MOS_MEMNINJA_GFX_FREE_MESSAGE(ptr, functionName, filename, line)                                       \
-    MOS_OS_VERBOSEMESSAGE(                                                                                     \
-        "MemNinjaGfxFree: MemNinjaCounterGfx = %d, memPtr = %p, functionName = \"%s\", "                       \
-        "filename = \"%s\", line = %d/", MosMemAllocCounterGfx, ptr, functionName, filename, line)
+#define MOS_MEMNINJA_GFX_FREE_MESSAGE(ptr, functionName, filename, line)                                                   \
+    MOS_OS_VERBOSEMESSAGE(                                                                                                 \
+        "MemNinjaGfxFree: Time = %f, MemNinjaCounterGfx = %d, memPtr = %p, functionName = \"%s\", "                        \
+        "filename = \"%s\", line = %d/", MOS_GetTime(), MosMemAllocCounterGfx, ptr, functionName, filename, line)
 
 //!
 //! \brief User Feature Value IDs
