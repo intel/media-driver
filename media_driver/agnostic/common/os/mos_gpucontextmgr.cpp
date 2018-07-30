@@ -147,6 +147,12 @@ GpuContext *GpuContextMgr::GetGpuContext(GPU_CONTEXT_HANDLE gpuContextHandle)
 {
     MOS_OS_FUNCTION_ENTER;
 
+    if (gpuContextHandle == MOS_GPU_CONTEXT_INVALID_HANDLE)
+    {
+        MOS_OS_ASSERTMESSAGE("Input gpucontext handle cannot be MOS_GPU_CONTEXT_INVALID_HANDLE!");
+        return nullptr;
+    }
+
     if (!m_gpuContextArray.empty() && gpuContextHandle <= m_gpuContextArray.size())
     {
         return m_gpuContextArray.at(gpuContextHandle);
