@@ -1244,6 +1244,19 @@ protected:
         int32_t                                 &iRemaining);
 
     //!
+    //! \brief    Check whether the Vebox command parameters are correct
+    //! \param    [in] VeboxStateCmdParams
+    //!           MHW vebox state cmd params
+    //! \param    [in] VeboxDiIecpCmdParams
+    //!           DiIecpCmd params struct
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS VeboxIsCmdParamsValid(
+        const MHW_VEBOX_STATE_CMD_PARAMS        &VeboxStateCmdParams,
+        const MHW_VEBOX_DI_IECP_CMD_PARAMS      &VeboxDiIecpCmdParams);
+
+    //!
     //! \brief    Render the Vebox Cmd buffer for VeboxSendVeboxCmd
     //!           Parameters might remain unchanged in case
     //! \param    [in,out] CmdBuffer
