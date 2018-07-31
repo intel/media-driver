@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -173,6 +173,13 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
             gmmParams.Flags.Info.TiledY   = true;
             gmmParams.Flags.Gpu.MMC       = params.m_isCompressed;
             tileFormatLinux               = I915_TILING_Y;
+            if (params.m_isCompressed && pOsContextSpecific->GetAuxTableMgr())
+            {
+                gmmParams.Flags.Info.MediaCompressed = 1;
+                gmmParams.Flags.Gpu.CCS = 1;
+                gmmParams.Flags.Gpu.UnifiedAuxSurface = 1;
+                gmmParams.Flags.Gpu.RenderTarget = 1;
+            }
             break;
         case MOS_TILE_X:
             gmmParams.Flags.Info.TiledX   = true;
@@ -348,6 +355,11 @@ void GraphicsResourceSpecific::Free(OsContext* osContextPtr, uint32_t  freeFlag)
 
     if (boPtr)
     {
+        AuxTableMgr *auxTableMgr = pOsContextSpecific->GetAuxTableMgr();
+        if (auxTableMgr)
+        {
+            auxTableMgr->UnmapResource(m_gmmResInfo, boPtr);
+        }
         mos_bo_unreference(boPtr);
         m_bo = nullptr;
         if (nullptr != m_gmmResInfo)

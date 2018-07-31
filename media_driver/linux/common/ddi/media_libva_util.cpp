@@ -479,6 +479,14 @@ VAStatus DdiMediaUtil_AllocateSurface(
             gmmParams.Flags.Info.TiledY    = true;
             // Disable MMC for application required surfaces, because some cases' output streams have corruption.
             gmmParams.Flags.Gpu.MMC    = false;
+            if ( mediaDrvCtx->m_auxTableMgr )
+            {
+                gmmParams.Flags.Gpu.MMC = true;
+                gmmParams.Flags.Info.MediaCompressed = 1;
+                gmmParams.Flags.Gpu.CCS = 1;
+                gmmParams.Flags.Gpu.UnifiedAuxSurface = 1;
+                gmmParams.Flags.Gpu.RenderTarget = 1;
+            }
             break;
         case I915_TILING_X:
             gmmParams.Flags.Info.TiledX    = true;
@@ -1026,6 +1034,13 @@ void DdiMediaUtil_FreeSurface(DDI_MEDIA_SURFACE *surface)
 { 
     DDI_CHK_NULL(surface, "nullptr surface", );
     DDI_CHK_NULL(surface->bo, "nullptr surface->bo", );
+
+    // Unmap Aux mapping if the surface was mapped
+    if (surface->pMediaCtx->m_auxTableMgr)
+    {
+        surface->pMediaCtx->m_auxTableMgr->UnmapResource(surface->pGmmResourceInfo, surface->bo);
+    }
+
     // For External Buffer, only needs to destory SurfaceDescriptor
     if ( DdiMediaUtil_IsExternalSurface(surface) )
     {

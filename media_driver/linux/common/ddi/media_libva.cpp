@@ -1409,6 +1409,10 @@ VAStatus DdiMedia__Initialize (
         return VA_STATUS_ERROR_OPERATION_FAILED;
     }
 
+    // Create GMM page table manager 
+    mediaCtx->m_auxTableMgr = AuxTableMgr::CreateAuxTableMgr(mediaCtx->pDrmBufMgr,
+        &mediaCtx->SkuTable, &mediaCtx->WaTable);
+
     mediaCtx->modularizedGpuCtxEnabled = true;
 
     if (mediaCtx->modularizedGpuCtxEnabled)
@@ -1432,6 +1436,7 @@ VAStatus DdiMedia__Initialize (
         mosCtx.platform              = mediaCtx->platform;
         mosCtx.ppMediaMemDecompState = &mediaCtx->pMediaMemDecompState;
         mosCtx.pfnMemoryDecompress   = mediaCtx->pfnMemoryDecompress;
+        mosCtx.m_auxTableMgr         = mediaCtx->m_auxTableMgr;
 
         eStatus = mediaCtx->m_osContext->Init(&mosCtx);
         if (MOS_STATUS_SUCCESS != eStatus)
@@ -1491,6 +1496,12 @@ static VAStatus DdiMedia_Terminate (
 
     CPLibUtils::UnloadCPLib();
     DdiMediaUtil_LockMutex(&GlobalMutex);
+
+    if (mediaCtx->m_auxTableMgr != nullptr)
+    {
+        MOS_Delete(mediaCtx->m_auxTableMgr);
+        mediaCtx->m_auxTableMgr = nullptr;
+    }
 
     if (mediaCtx->modularizedGpuCtxEnabled)
     {

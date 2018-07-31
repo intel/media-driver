@@ -45,6 +45,7 @@
 typedef unsigned int MOS_OS_FORMAT;
 
 class GraphicsResource;
+class AuxTableMgr;
 
 ////////////////////////////////////////////////////////////////////
 
@@ -517,6 +518,7 @@ struct _MOS_OS_CONTEXT
     void                *pLibdrmHandle;
 
     GMM_CLIENT_CONTEXT  *pGmmClientContext;   //UMD specific ClientContext object in GMM
+    AuxTableMgr         *m_auxTableMgr;
 
     // GPU Status Buffer
     PMOS_RESOURCE   pGPUStatusBuffer;

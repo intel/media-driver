@@ -179,6 +179,13 @@ public:
     void                ClearCmdResPtrs() { m_cmdResPtrs.clear(); }
     const std::vector<const void *> &GetCmdResPtrs() const { return m_cmdResPtrs; }
 #endif // MOS_COMMAND_RESINFO_DUMP_SUPPORTED
+protected:
+    //!
+    //! \brief    Map resources with aux plane to aux table
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS MapResourcesToAuxTable(mos_linux_bo *cmd_bo);
 
 private:
     //! \brief    internal command buffer pool per gpu context
