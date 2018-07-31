@@ -1726,6 +1726,38 @@ finish:
 }
 
 //!
+//! \brief    Check whether the Vebox command parameters are correct
+//! \param    [in] VeboxStateCmdParams
+//!           MHW vebox state cmd params
+//! \param    [in] VeboxDiIecpCmdParams
+//!           DiIecpCmd params struct
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+//!
+MOS_STATUS VPHAL_VEBOX_STATE::VeboxIsCmdParamsValid(
+    const MHW_VEBOX_STATE_CMD_PARAMS        &VeboxStateCmdParams,
+    const MHW_VEBOX_DI_IECP_CMD_PARAMS      &VeboxDiIecpCmdParams)
+{
+    const MHW_VEBOX_MODE    &veboxMode          = VeboxStateCmdParams.VeboxMode;
+
+    if (veboxMode.DIEnable)
+    {
+        if (nullptr == VeboxDiIecpCmdParams.pOsResPrevOutput &&
+            (MEDIA_VEBOX_DI_OUTPUT_PREVIOUS == veboxMode.DIOutputFrames || MEDIA_VEBOX_DI_OUTPUT_BOTH == veboxMode.DIOutputFrames))
+        {
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+        if (nullptr == VeboxDiIecpCmdParams.pOsResCurrOutput &&
+            (MEDIA_VEBOX_DI_OUTPUT_CURRENT == veboxMode.DIOutputFrames || MEDIA_VEBOX_DI_OUTPUT_BOTH == veboxMode.DIOutputFrames))
+        {
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
 //! \brief    Render the Vebox Cmd buffer for VeboxSendVeboxCmd
 //!           Parameters might remain unchanged in case
 //! \param    [in,out] CmdBuffer
@@ -1804,6 +1836,10 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderVeboxCmd(
     VPHAL_RENDER_CHK_STATUS(pVeboxState->SetupDiIecpState(
         bDiVarianceEnable,
         &VeboxDiIecpCmdParams));
+
+    VPHAL_RENDER_CHK_STATUS(pVeboxState->VeboxIsCmdParamsValid(
+        VeboxStateCmdParams,
+        VeboxDiIecpCmdParams));
 
     // Ensure output is ready to be written
     if (VeboxDiIecpCmdParams.pOsResCurrOutput)
@@ -3518,9 +3554,17 @@ GFX_MEDIA_VEBOX_DI_OUTPUT_MODE VPHAL_VEBOX_STATE::SetDIOutputFrame(
     // for 30i->60fps or other 30i->30fps cases
     else
     {
-        return pVeboxMode->DNDIFirstFrame ?
-            MEDIA_VEBOX_DI_OUTPUT_CURRENT :
-            MEDIA_VEBOX_DI_OUTPUT_BOTH;
+        if (IS_VPHAL_OUTPUT_PIPE_VEBOX(pRenderData))
+        {
+            // Align with the logic in SetupDiIecpState. The previous output surface is not needed for OUTPUT_PIPE_VEBOX case.
+            return MEDIA_VEBOX_DI_OUTPUT_CURRENT;
+        }
+        else
+        {
+            return pVeboxMode->DNDIFirstFrame ?
+                MEDIA_VEBOX_DI_OUTPUT_CURRENT :
+                MEDIA_VEBOX_DI_OUTPUT_BOTH;
+        }
     }
 }
 
