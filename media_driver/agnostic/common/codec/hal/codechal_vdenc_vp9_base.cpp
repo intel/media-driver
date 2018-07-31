@@ -5385,9 +5385,12 @@ MOS_STATUS CodechalVdencVp9State::SetPictureStructs()
 
     if (m_vp9SeqParams->SeqFlags.fields.EnableDynamicScaling)
     {
-        // set the correct raw surface width/height (in case of padding)
-        m_rawSurface.dwWidth  = m_vp9PicParams->SrcFrameWidthMinus1 + 1;
-        m_rawSurface.dwHeight = m_vp9PicParams->SrcFrameHeightMinus1 + 1;
+        if ((m_vp9PicParams->SrcFrameWidthMinus1 + 1 != m_oriFrameWidth) || (m_vp9PicParams->SrcFrameHeightMinus1 + 1 != m_oriFrameHeight))
+        {
+            // set the correct raw surface width/height (in case of padding)
+            m_rawSurface.dwWidth  = m_vp9PicParams->SrcFrameWidthMinus1 + 1;
+            m_rawSurface.dwHeight = m_vp9PicParams->SrcFrameHeightMinus1 + 1;
+        }
     }
 
     if (Mos_ResourceIsNull(&m_reconSurface.OsResource) &&
