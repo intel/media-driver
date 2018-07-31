@@ -412,6 +412,26 @@ uint32_t GetVcsExecFlag(PMOS_INTERFACE osInterface,
      return vcsExecFlag;
 }
 
+MOS_STATUS GpuContextSpecific::MapResourcesToAuxTable(mos_linux_bo *cmd_bo)
+{
+    OsContextSpecific *osCtx = static_cast<OsContextSpecific*>(m_osContext);
+    AuxTableMgr *auxTableMgr = osCtx->GetAuxTableMgr();
+    if (auxTableMgr)
+    {
+        // Map compress allocations to aux table if it is not mapped.
+        for (int i = 0; i < m_numAllocations; i++)
+        {
+            auto res = (PMOS_RESOURCE)m_allocationList[i].hAllocation;
+            MOS_OS_CHK_NULL_RETURN(res);
+            
+            MOS_OS_CHK_STATUS_RETURN(auxTableMgr->MapResource(res->pGmmResInfo, res->bo));
+        }
+        MOS_OS_CHK_STATUS_RETURN(auxTableMgr->EmitAuxTableBOList(cmd_bo));
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
+
 MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
     PMOS_INTERFACE      osInterface,
     PMOS_COMMAND_BUFFER cmdBuffer,
@@ -435,6 +455,9 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
     // Command buffer object DRM pointer
     m_cmdBufFlushed = true;
     auto cmd_bo     = cmdBuffer->OsResource.bo;
+
+    // Map Resource to Aux if needed
+    MapResourcesToAuxTable(cmd_bo);
 
     // Now, the patching will be done, based on the patch list.
     for (uint32_t patchIndex = 0; patchIndex < m_currentNumPatchLocations; patchIndex++)

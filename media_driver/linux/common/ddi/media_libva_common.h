@@ -39,6 +39,7 @@
 #include "mos_cmdbufmgr.h"
 
 #include "mos_os.h"
+#include "mos_auxtable_mgr.h"
 
 #include <va/va.h>
 #include <va/va_backend.h>
@@ -435,6 +436,9 @@ struct DDI_MEDIA_CONTEXT
     MediaLibvaCaps     *m_caps;
 
     GMM_CLIENT_CONTEXT  *pGmmClientContext;
+
+    // Aux Table Manager
+    AuxTableMgr         *m_auxTableMgr;
 
 #ifndef ANDROID
     // X11 Func table, for vpgPutSurface (Linux)

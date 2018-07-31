@@ -2127,6 +2127,15 @@ void Mos_Specific_FreeResource(
 
     if (pOsResource && pOsResource->bo)
     {
+        OsContextSpecific *osCtx = static_cast<OsContextSpecific *>(pOsInterface->osContextPtr);
+        AuxTableMgr *auxTableMgr = osCtx->GetAuxTableMgr();
+
+        // Unmap Resource from Aux Table
+        if (auxTableMgr)
+        {
+            auxTableMgr->UnmapResource(pOsResource->pGmmResInfo, pOsResource->bo);
+        }
+
         mos_bo_unreference((MOS_LINUX_BO *)(pOsResource->bo));
 
 #ifndef ANDROID
@@ -5075,6 +5084,7 @@ MOS_STATUS Mos_Specific_GetMemoryCompressionMode(
     PMOS_MEMCOMP_STATE  pResMmcMode)
 {
     PGMM_RESOURCE_INFO      pGmmResourceInfo;
+    GMM_RESOURCE_FLAG       flags; 
     MOS_STATUS              eStatus = MOS_STATUS_UNKNOWN;
     MOS_UNUSED(pOsInterface);
     MOS_OS_FUNCTION_ENTER;
@@ -5084,18 +5094,26 @@ MOS_STATUS Mos_Specific_GetMemoryCompressionMode(
     pGmmResourceInfo = (GMM_RESOURCE_INFO*)pOsResource->pGmmResInfo;
     MOS_OS_CHK_NULL(pGmmResourceInfo);
 
-    switch (pGmmResourceInfo->GetMmcMode(0))
+    flags = pOsResource->pGmmResInfo->GetResFlags();
+    if (flags.Info.MediaCompressed || flags.Info.RenderCompressed)
     {
-        case GMM_MMC_HORIZONTAL:
-            *pResMmcMode = MOS_MEMCOMP_HORIZONTAL;
-            break;
-        case GMM_MMC_VERTICAL:
-            *pResMmcMode = MOS_MEMCOMP_VERTICAL;
-            break;
-        case GMM_MMC_DISABLED:
-        default:
-            *pResMmcMode = MOS_MEMCOMP_DISABLED;
-            break;
+        *pResMmcMode = flags.Info.RenderCompressed ? MOS_MEMCOMP_RC : MOS_MEMCOMP_MC;
+    }
+    else
+    {
+        switch  (pGmmResourceInfo->GetMmcMode(0))
+        {
+            case GMM_MMC_HORIZONTAL:
+                *pResMmcMode = MOS_MEMCOMP_HORIZONTAL;
+                break;
+            case GMM_MMC_VERTICAL:
+                *pResMmcMode = MOS_MEMCOMP_VERTICAL;
+                break;
+            case GMM_MMC_DISABLED:
+            default:
+                *pResMmcMode = MOS_MEMCOMP_DISABLED;
+                break;
+        }
     }
 
     eStatus = MOS_STATUS_SUCCESS;
@@ -5602,9 +5620,12 @@ finish:
 }
 
 uint64_t Mos_Specific_GetAuxTableBaseAddr(
-    PMOS_INTERFACE              pOsInterface)
+    PMOS_INTERFACE              osInterface)
 {
-    return 0;
+    auto osCtx = static_cast<OsContextSpecific *>(osInterface->osContextPtr);
+    AuxTableMgr *auxTableMgr = osCtx->GetAuxTableMgr();
+
+    return auxTableMgr ? auxTableMgr->GetAuxTableBase() : 0;
 }
 
 //!

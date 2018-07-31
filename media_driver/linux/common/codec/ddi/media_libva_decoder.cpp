@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -314,6 +314,7 @@ VAStatus DdiDecode_CreateContext (
     mosCtx.ppMediaMemDecompState = &mediaCtx->pMediaMemDecompState;
     mosCtx.pfnMemoryDecompress   = mediaCtx->pfnMemoryDecompress;
     mosCtx.pPerfData             = (PERF_DATA *)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
+    mosCtx.m_auxTableMgr         = mediaCtx->m_auxTableMgr;
 
     if (nullptr == mosCtx.pPerfData)
     {
