@@ -3609,8 +3609,7 @@ int32_t CmKernelRT::CreateKernelDataInternal(
     CM_ARG                *tempArgs = nullptr;
     uint32_t              argSize = 0;
     uint32_t              surfNum = 0; //Pass needed BT entry numbers to HAL CM
-    CmKernelRT            *cmKernel = nullptr;
-    uint32_t              minKernelPlayloadOffset = 0;
+    CmKernelRT             *cmKernel = nullptr;
 
     CMCHK_HR(CmKernelData::Create(this, kernelData));
     halKernelParam = kernelData->GetHalCmKernelData();
@@ -3659,28 +3658,6 @@ int32_t CmKernelRT::CreateKernelDataInternal(
 
     for (uint32_t i = 0; i < numArgs; i++)
     {
-        // get the min kernel payload offset
-        if ((halKernelParam->cmFlags & CM_KERNEL_FLAGS_CURBE) && IsKernelArg(tempArgs[i]))
-        {
-            if ((m_program->m_cisaMajorVersion == 3) && (m_program->m_cisaMinorVersion < 3)) 
-            {
-                if (minKernelPlayloadOffset == 0 || minKernelPlayloadOffset > tempArgs[i].unitOffsetInPayload)
-                {
-                    minKernelPlayloadOffset = tempArgs[i].unitOffsetInPayload;
-                }
-            }
-            else
-            {
-                if ((minKernelPlayloadOffset == 0 || minKernelPlayloadOffset > tempArgs[i].unitOffsetInPayload) && (tempArgs[i].unitKind != ARG_KIND_IMPLICIT_LOCALID))
-                {
-                    minKernelPlayloadOffset = tempArgs[i].unitOffsetInPayload;
-                }
-            }
-        }
-    }
-
-    for (uint32_t i = 0; i < numArgs; i++)
-    {
         halKernelParam->argParams[i].unitCount = tempArgs[i].unitCount;
         halKernelParam->argParams[i].kind = (CM_HAL_KERNEL_ARG_KIND)(tempArgs[i].unitKind);
         halKernelParam->argParams[i].unitSize = tempArgs[i].unitSize;
@@ -3713,11 +3690,7 @@ int32_t CmKernelRT::CreateKernelDataInternal(
             if (IsKernelArg(halKernelParam->argParams[i]))
             {
                 // Kernel arg : calculate curbe size & adjust payloadoffset
-                if (tempArgs[i].unitKind != ARG_KIND_IMPLICIT_LOCALID)
-                {
-                    halKernelParam->argParams[i].payloadOffset -= minKernelPlayloadOffset;
-                }
-
+                halKernelParam->argParams[i].payloadOffset -= CM_PAYLOAD_OFFSET;
                 if ((m_program->m_cisaMajorVersion == 3) && (m_program->m_cisaMinorVersion < 3)) {
                     if ((halKernelParam->argParams[i].payloadOffset + halKernelParam->argParams[i].unitSize > kernelCurbeSize))
                     {  // The largest one

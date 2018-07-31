@@ -7381,10 +7381,13 @@ MOS_STATUS HalCm_SetupStatesForKernelInitial(
     uint32_t                        idZ;
     uint32_t                        idY;
     uint32_t                        idX;
+    uint32_t                        localIdIndex;
     CM_SURFACE_BTI_INFO             surfBTIInfo;
 
     bool                            vmeUsed = false;
     CM_PLATFORM_INFO                platformInfo;
+
+    localIdIndex = kernelParam->localIdIndex;
 
     state->cmHalInterface->GetHwSurfaceBTIInfo(&surfBTIInfo);
 
@@ -7547,6 +7550,7 @@ MOS_STATUS HalCm_SetupStatesForKernelInitial(
             case CM_ARGUMENT_GENERAL:
             case CM_ARGUMENT_IMPLICT_GROUPSIZE:
             case CM_ARGUMENT_IMPLICT_LOCALSIZE:
+            case CM_ARGUMENT_IMPLICIT_LOCALID:
             case CM_ARGUMENT_GENERAL_DEPVEC:
                 HalCm_SetArgData(argParam, 0, data);
                 break;
@@ -7604,8 +7608,7 @@ MOS_STATUS HalCm_SetupStatesForKernelInitial(
                 break;
 
             case CM_ARGUMENT_SURFACE:
-            case CM_ARGUMENT_IMPLICIT_LOCALID:
-                // Allow null surface and implicit local id
+                // Allow null surface
                 break;
             case CM_ARGUMENT_SURFACE2D_SCOREBOARD:
                 CM_CHK_MOSSTATUS(HalCm_Setup2DSurfaceState(
@@ -7623,6 +7626,9 @@ MOS_STATUS HalCm_SetupStatesForKernelInitial(
         {
             uint32_t offset = 0;
 
+            uint32_t localIdXOffset = kernelParam->argParams[localIdIndex].payloadOffset;
+            uint32_t localIdYOffset = localIdXOffset + 4;
+            uint32_t localIdZOffset = localIdXOffset + 8;
 
             //totalCurbeSize aligned when parsing task
             int32_t crossThreadSize = kernelParam->crossThreadConstDataLen;
@@ -7638,9 +7644,9 @@ MOS_STATUS HalCm_SetupStatesForKernelInitial(
                 {
                     for (idX = 0; idX < perKernelGpGpuWalkerParames->threadWidth; idX++)
                     {
-                        *((uint32_t *)(data + crossThreadSize)) = idX;
-                        *((uint32_t *)(data + crossThreadSize + 4)) = idY;
-                        *((uint32_t *)(data + crossThreadSize + 8)) = idZ;
+                        *((uint32_t *)(data + localIdXOffset)) = idX;
+                        *((uint32_t *)(data + localIdYOffset)) = idY;
+                        *((uint32_t *)(data + localIdZOffset)) = idZ;
                         MOS_SecureMemcpy(curbe + offset, kernelParam->curbeSizePerThread, data + crossThreadSize, kernelParam->curbeSizePerThread);
                         offset += kernelParam->curbeSizePerThread;
                     }
