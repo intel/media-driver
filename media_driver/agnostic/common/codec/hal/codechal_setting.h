@@ -58,6 +58,7 @@ public:
     bool                    downsamplingHinted = false;    //!< Applies to decode only, application may request field scaling.
 
     bool                    disableUltraHME = false;       //!< Applies currently to HEVC VDEnc only to disable UHME
+    bool                    disableSuperHME = false;       //!< Applies currently to HEVC VDEnc only to disable SHME
 
     //!
     //! \brief    Destructor 
