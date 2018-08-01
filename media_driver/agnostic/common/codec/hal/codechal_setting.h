@@ -56,6 +56,8 @@ public:
 
     // Decode Downsampling
     bool                    downsamplingHinted = false;    //!< Applies to decode only, application may request field scaling.
+    // Decode SFC enabling
+    bool                    sfcEnablingHinted = true;      //!< Applies to decode only, application may request field sfc.
 
     bool                    disableUltraHME = false;       //!< Applies currently to HEVC VDEnc only to disable UHME
 

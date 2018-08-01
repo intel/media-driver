@@ -509,6 +509,13 @@ MOS_STATUS CodechalDecodeJpeg::SetFrameStates()
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     m_sfcState->CheckAndInitialize(&m_destSurface, m_jpegPicParams);
+
+    if (m_sfcState->m_sfcPipeOut && m_videoGpuNode != MOS_GPU_NODE_VIDEO)
+    {
+        // Switch Context func will avoid recreate if Context already meet the requirment
+        CODECHAL_DECODE_CHK_STATUS_RETURN(SwitchGpuContext());
+        m_osInterface->pfnSetGpuContext(m_osInterface, m_videoContext);
+    }
 #endif
 
     CODECHAL_DEBUG_TOOL(
@@ -537,6 +544,33 @@ MOS_STATUS CodechalDecodeJpeg::SetFrameStates()
                 0,
                 CODECHAL_NUM_MEDIA_STATES));
         })
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalDecodeJpeg::SwitchGpuContext()
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    MHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit;
+    gpuNodeLimit.bHuCInUse = (m_cencDecoder != nullptr);
+    gpuNodeLimit.bHcpInUse = m_hcpInUse;
+    gpuNodeLimit.bSfcInUse = true; // Switch to the Context which sfc supported
+
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_mfxInterface->FindGpuNodeToUse(
+        &gpuNodeLimit));
+
+    m_videoGpuNode = (MOS_GPU_NODE)(gpuNodeLimit.dwGpuNodeToUse);
+
+    CODECHAL_UPDATE_VDBOX_USER_FEATURE(m_videoGpuNode);
+    CodecHalDecodeMapGpuNodeToGpuContex(m_videoGpuNode, m_videoContext, false);
+
+    CODECHAL_DECODE_CHK_STATUS_RETURN(SetGpuCtxCreatOption(nullptr));
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
+        m_osInterface,
+        m_videoContext,
+        m_videoGpuNode,
+        m_gpuCtxCreatOpt));
 
     return eStatus;
 }
