@@ -1622,6 +1622,8 @@ GMM_RESOURCE_FORMAT Mos_Specific_ConvertMosFmtToGmmFmt(
         case Format_Y216        : return GMM_FORMAT_Y216_TYPE;
         case Format_Y416        : return GMM_FORMAT_Y416_TYPE;
         case Format_P208        : return GMM_FORMAT_P208_TYPE;
+        case Format_Y210        : return GMM_FORMAT_Y210_TYPE;
+        case Format_Y410        : return GMM_FORMAT_Y410_TYPE;
         default                 : return GMM_FORMAT_INVALID;
     }
 }
