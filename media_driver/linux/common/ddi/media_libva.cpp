@@ -5252,6 +5252,17 @@ DdiMedia_QueryVideoProcPipelineCaps(
         pipeline_caps->min_output_width           = DDI_DECODE_SFC_MIN_WIDTH;
         pipeline_caps->min_output_height          = DDI_DECODE_SFC_MIN_HEIGHT;
     }
+    else if ((context & DDI_MEDIA_MASK_VACONTEXT_TYPE) == DDI_MEDIA_VACONTEXTID_OFFSET_VP)
+    {
+        pipeline_caps->max_input_width            = VP_MAX_PIC_WIDTH;
+        pipeline_caps->max_input_height           = VP_MAX_PIC_HEIGHT;
+        pipeline_caps->min_input_width            = VP_MIN_PIC_WIDTH;
+        pipeline_caps->min_input_height           = VP_MIN_PIC_HEIGHT;
+        pipeline_caps->max_output_width           = VP_MAX_PIC_WIDTH;
+        pipeline_caps->max_output_height          = VP_MAX_PIC_HEIGHT;
+        pipeline_caps->min_output_width           = VP_MIN_PIC_WIDTH;
+        pipeline_caps->min_output_height          = VP_MIN_PIC_WIDTH;
+    }
     return VA_STATUS_SUCCESS;
 }
 
