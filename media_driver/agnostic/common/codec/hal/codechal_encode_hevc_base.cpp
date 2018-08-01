@@ -3083,7 +3083,6 @@ MOS_STATUS CodechalEncodeHevcBase::DumpSeqParams(
     oss << "SAO_enabled_flag = " << +seqParams->SAO_enabled_flag << std::endl;
     oss << "pcm_enabled_flag = " << +seqParams->pcm_enabled_flag << std::endl;
     oss << "pcm_loop_filter_disable_flag = " << +seqParams->pcm_loop_filter_disable_flag << std::endl;
-    oss << "tiles_fixed_structure_flag = " << +seqParams->tiles_fixed_structure_flag << std::endl;
     oss << "chroma_format_idc = " << +seqParams->chroma_format_idc << std::endl;
     oss << "separate_colour_plane_flag = " << +seqParams->separate_colour_plane_flag << std::endl;
     oss << "log2_max_coding_block_size_minus3 = " << +seqParams->log2_max_coding_block_size_minus3 << std::endl;

@@ -369,7 +369,7 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
             */
             uint32_t    pcm_enabled_flag                    : 1;
             uint32_t    pcm_loop_filter_disable_flag        : 1;    //!< Same as HEVC syntax element
-            uint32_t    tiles_fixed_structure_flag          : 1;    //!< Same as HEVC syntax element
+            uint32_t    reserved                            : 1;
             uint32_t    chroma_format_idc                   : 2;    //!< Same as HEVC syntax element
             uint32_t    separate_colour_plane_flag          : 1;    //!< Same as HEVC syntax element
             uint32_t                                        : 21;
