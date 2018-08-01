@@ -915,6 +915,11 @@ MOS_STATUS CodechalDecodeHevc::InitializeBitstreamCat ()
 
     CODECHAL_DECODE_FUNCTION_ENTER;
 
+    if (m_cencBuf)
+    {
+        return eStatus;
+    }
+
     m_incompletePicture = false;
     m_copyDataBufferInUse = false;
     m_copyDataOffset      = 0;
@@ -1012,6 +1017,11 @@ MOS_STATUS CodechalDecodeHevc::CheckAndCopyBitstream()
 
     CODECHAL_DECODE_FUNCTION_ENTER;
 
+    if (m_cencBuf)
+    {
+        return eStatus;
+    }
+
     if (m_firstExecuteCall)    // first exec to decide allocate a larger buf or not
     {
         if (m_estiBytesInBitstream > MOS_ALIGN_CEIL(m_dataOffset + m_dataSize, 64))  // bitstream contains more bytes than current data.
@@ -1094,55 +1104,41 @@ MOS_STATUS CodechalDecodeHevc::SetFrameStates ()
         return MOS_STATUS_UNKNOWN;
     }
 
-    if(m_cencDecoder)
+    m_cencBuf = m_decodeParams.m_cencBuf;
+    
+    if (m_firstExecuteCall)    // For DRC Multiple Execution Call, no need to update every value in pHevcState except first execute
     {
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_cencDecoder->SetParamsForDecode(this, m_hwInterface, m_debugInterface, &m_decodeParams));
+        m_dataSize   = m_decodeParams.m_dataSize;
+        m_dataOffset = m_decodeParams.m_dataOffset;
+        m_numSlices  = m_decodeParams.m_numSlices;
 
-        CODECHAL_DEBUG_TOOL(
-            CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-                &m_resDataBuffer,
-                CodechalDbgAttr::attrBitstream,
-                "_DEC",
-                m_dataSize,
-                m_dataOffset,
-                CODECHAL_NUM_MEDIA_STATES));)
+        if (m_numSlices > CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6)
+        {
+            CODECHAL_DECODE_ASSERTMESSAGE("Slice number doesn't support!");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        m_hevcPicParams = (PCODEC_HEVC_PIC_PARAMS)m_decodeParams.m_picParams;
+        CODECHAL_DECODE_CHK_NULL_RETURN(m_decodeParams.m_sliceParams);
+        m_hevcSliceParams    = (PCODEC_HEVC_SLICE_PARAMS)m_decodeParams.m_sliceParams;
+        m_hevcIqMatrixParams = (PCODECHAL_HEVC_IQ_MATRIX_PARAMS)m_decodeParams.m_iqMatrixBuffer;
+        m_destSurface        = *(m_decodeParams.m_destSurface);
+        m_resDataBuffer      = *(m_decodeParams.m_dataBuffer);
+
+        CODECHAL_DECODE_CHK_STATUS_RETURN(InitializeBitstreamCat());
     }
     else
     {
-        if (m_firstExecuteCall)    // For DRC Multiple Execution Call, no need to update every value in pHevcState except first execute
-        {
-            m_dataSize   = m_decodeParams.m_dataSize;
-            m_dataOffset = m_decodeParams.m_dataOffset;
-            m_numSlices  = m_decodeParams.m_numSlices;
-
-            if (m_numSlices > CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6)
-            {
-                CODECHAL_DECODE_ASSERTMESSAGE("Slice number doesn't support!");
-                return MOS_STATUS_INVALID_PARAMETER;
-            }
-
-            m_hevcPicParams = (PCODEC_HEVC_PIC_PARAMS)m_decodeParams.m_picParams;
-            CODECHAL_DECODE_CHK_NULL_RETURN(m_decodeParams.m_sliceParams);
-            m_hevcSliceParams    = (PCODEC_HEVC_SLICE_PARAMS)m_decodeParams.m_sliceParams;
-            m_hevcIqMatrixParams = (PCODECHAL_HEVC_IQ_MATRIX_PARAMS)m_decodeParams.m_iqMatrixBuffer;
-            m_destSurface        = *(m_decodeParams.m_destSurface);
-            m_resDataBuffer      = *(m_decodeParams.m_dataBuffer);
-
-            CODECHAL_DECODE_CHK_STATUS_RETURN(InitializeBitstreamCat());
-        }
-        else
-        {
-            m_dataSize      = m_decodeParams.m_dataSize;
-            m_dataOffset    = 0;
-            m_resDataBuffer = *(m_decodeParams.m_dataBuffer);
-        }
-
-        CODECHAL_DECODE_CHK_STATUS_RETURN(CheckAndCopyBitstream());
-
-        //For CENC case, the Entry has been initialized with value in SetParamsForDecode
-        PCODEC_REF_LIST destEntry = m_hevcRefList[m_hevcPicParams->CurrPic.FrameIdx];
-        MOS_ZeroMemory(destEntry, sizeof(CODEC_REF_LIST));
+        m_dataSize      = m_decodeParams.m_dataSize;
+        m_dataOffset    = 0;
+        m_resDataBuffer = *(m_decodeParams.m_dataBuffer);
     }
+
+    CODECHAL_DECODE_CHK_STATUS_RETURN(CheckAndCopyBitstream());
+
+    //For CENC case, the Entry has been initialized with value in SetParamsForDecode
+    PCODEC_REF_LIST destEntry = m_hevcRefList[m_hevcPicParams->CurrPic.FrameIdx];
+    MOS_ZeroMemory(destEntry, sizeof(CODEC_REF_LIST));
 
     if (m_incompletePicture)
     {
@@ -2155,19 +2151,9 @@ MOS_STATUS CodechalDecodeHevc::DecodePrimitiveLevel()
                     "DEC"));)
         }
 
-        // Jump to 2nd level batch buffer.
-        if(m_cencDecoder)
+        if (m_cencBuf)
         {
-            // pass the correct 2nd level batch buffer index set in CencDecode()
-            uint8_t        sliceBatchBufferIdx;
-
-            sliceBatchBufferIdx = m_hevcRefList[m_currPic.FrameIdx]->ucCencBufIdx[0];
-
-            CODECHAL_DECODE_CHK_STATUS_RETURN(m_cencDecoder->SetBatchBufferForDecode(
-                m_hwInterface,
-                m_debugInterface,
-                sliceBatchBufferIdx,
-                cmdBufferInUse));
+            CODECHAL_DECODE_CHK_STATUS_RETURN(SetCencBatchBuffer(cmdBufferInUse));
         }
         else
         {

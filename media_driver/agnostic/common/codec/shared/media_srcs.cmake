@@ -1,4 +1,4 @@
-# Copyright (c) 2017, Intel Corporation
+# Copyright (c) 2017-2018, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -43,6 +43,7 @@ set(TMP_2_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_encode_vp9.h
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_encode_vp8.h
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_encode.h
+    ${CMAKE_CURRENT_LIST_DIR}/codec_def_cenc_decode.h
 )
 
 set(HEADERS_

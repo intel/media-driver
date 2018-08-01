@@ -189,7 +189,6 @@ CodechalDecodeVp9 ::CodechalDecodeVp9(
     MOS_ZeroMemory(&m_resVp9SegmentIdBuffer, sizeof(m_resVp9SegmentIdBuffer));
     MOS_ZeroMemory(&m_resVp9MvTemporalBuffer, sizeof(m_resVp9MvTemporalBuffer));
     MOS_ZeroMemory(&m_resCopyDataBuffer, sizeof(m_resCopyDataBuffer));
-    MOS_ZeroMemory(&m_refFrameMap, sizeof(m_refFrameMap));
     MOS_ZeroMemory(&m_segTreeProbs, sizeof(m_segTreeProbs));
     MOS_ZeroMemory(&m_segPredProbs, sizeof(m_segPredProbs));
     MOS_ZeroMemory(&m_interProbSaved, sizeof(m_interProbSaved));
@@ -1129,43 +1128,29 @@ MOS_STATUS CodechalDecodeVp9::SetFrameStates ()
     CODECHAL_DECODE_CHK_NULL_RETURN(m_decodeParams.m_destSurface);
     CODECHAL_DECODE_CHK_NULL_RETURN(m_decodeParams.m_dataBuffer);
 
-    if (m_cencDecoder)
+    m_dataSize         = m_decodeParams.m_dataSize;
+    m_dataOffset       = m_decodeParams.m_dataOffset;
+    m_vp9PicParams     = (PCODEC_VP9_PIC_PARAMS)m_decodeParams.m_picParams;
+    m_vp9SegmentParams = (PCODEC_VP9_SEGMENT_PARAMS)m_decodeParams.m_iqMatrixBuffer;
+    m_vp9SliceParams   = (PCODEC_VP9_SLICE_PARAMS)m_decodeParams.m_sliceParams;
+
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_vp9SegmentParams);
+
+    m_destSurface   = *(m_decodeParams.m_destSurface);
+    m_resDataBuffer = *(m_decodeParams.m_dataBuffer);
+    if (m_decodeParams.m_coefProbBuffer)        // This is an optional buffer passed from App. To be removed once VP9 FF Decode Driver is mature.
     {
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_cencDecoder->SetParamsForDecode(this, m_hwInterface, m_debugInterface, &m_decodeParams));
-
-        CODECHAL_DEBUG_TOOL(
-            CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-                &m_resDataBuffer,
-                CodechalDbgAttr::attrBitstream,
-                "_DEC",
-                m_dataSize,
-                m_dataOffset,
-                CODECHAL_NUM_MEDIA_STATES));)
+        m_resCoefProbBuffer = *(m_decodeParams.m_coefProbBuffer);
     }
-    else
+
+    if (m_firstExecuteCall)
     {
-        m_dataSize         = m_decodeParams.m_dataSize;
-        m_dataOffset       = m_decodeParams.m_dataOffset;
-        m_vp9PicParams     = (PCODEC_VP9_PIC_PARAMS)m_decodeParams.m_picParams;
-        m_vp9SegmentParams = (PCODEC_VP9_SEGMENT_PARAMS)m_decodeParams.m_iqMatrixBuffer;
-        m_vp9SliceParams   = (PCODEC_VP9_SLICE_PARAMS)m_decodeParams.m_sliceParams;
-
-        CODECHAL_DECODE_CHK_NULL_RETURN(m_vp9SegmentParams);
-
-        m_destSurface   = *(m_decodeParams.m_destSurface);
-        m_resDataBuffer = *(m_decodeParams.m_dataBuffer);
-        if (m_decodeParams.m_coefProbBuffer)        // This is an optional buffer passed from App. To be removed once VP9 FF Decode Driver is mature.
-        {
-            m_resCoefProbBuffer = *(m_decodeParams.m_coefProbBuffer);
-        }
-
-        if (m_firstExecuteCall)
-        {
-            CODECHAL_DECODE_CHK_STATUS_RETURN(InitializeBeginFrame());
-        }
-
-        CODECHAL_DECODE_CHK_STATUS_RETURN(CheckAndCopyBitStream());
+        CODECHAL_DECODE_CHK_STATUS_RETURN(InitializeBeginFrame());
     }
+
+    CODECHAL_DECODE_CHK_STATUS_RETURN(CheckAndCopyBitStream());
+
+    m_cencBuf = m_decodeParams.m_cencBuf;
 
     // Bitstream is incomplete, don't do any decoding work.
     if (m_incompletePicture)
@@ -1569,15 +1554,9 @@ MOS_STATUS CodechalDecodeVp9 :: AddPicStateMhwCmds(
         cmdBuffer,
         m_picMhwParams.IndObjBaseAddrParams));
 
-    if (m_cencDecoder)
+    if (m_cencBuf)
     {
-        uint8_t   frameIdx, sliceBatchBufferIdx;
-
-        // pass the correct 2nd level batch buffer index set in CencDecode()
-        frameIdx            = m_vp9PicParams->CurrPic.FrameIdx;
-        sliceBatchBufferIdx = m_vp9RefList[frameIdx]->ucCencBufIdx[0];
-
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_cencDecoder->SetBatchBufferForDecode(m_hwInterface, m_debugInterface, sliceBatchBufferIdx, cmdBuffer));
+        CODECHAL_DECODE_CHK_STATUS_RETURN(SetCencBatchBuffer(cmdBuffer));
     }
     else
     {

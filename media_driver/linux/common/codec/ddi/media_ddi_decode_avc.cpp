@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -565,6 +565,8 @@ VAStatus DdiDecodeAVC::CodecHalInit(
     VAStatus     vaStatus = VA_STATUS_SUCCESS;
     MOS_CONTEXT *mosCtx = (MOS_CONTEXT *)ptr;
 
+    m_codechalSettings->shortFormatInUse = m_ddiDecodeCtx->bShortFormatInUse;
+
     CODECHAL_FUNCTION codecFunction = CODECHAL_FUNCTION_DECODE;
     m_ddiDecodeCtx->pCpDdiInterface->SetCpParams(m_ddiDecodeAttr->uiEncryptionType, m_codechalSettings);
 
@@ -583,8 +585,6 @@ VAStatus DdiDecodeAVC::CodecHalInit(
     m_codechalSettings->intelEntrypointInUse = false;
 
     m_codechalSettings->lumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_8_BITS;
-
-    m_codechalSettings->shortFormatInUse = m_ddiDecodeCtx->bShortFormatInUse;
 
     m_codechalSettings->mode     = CODECHAL_DECODE_MODE_AVCVLD;
     m_codechalSettings->standard = CODECHAL_AVC;

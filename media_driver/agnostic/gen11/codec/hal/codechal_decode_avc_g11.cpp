@@ -174,14 +174,9 @@ MOS_STATUS CodechalDecodeAvcG11::DecodePrimitiveLevel()
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
 
-    if (m_cencDecoder)
+    if (m_cencBuf)
     {
-        // pass the correct 2nd level batch buffer index set in CencDecode()
-        uint8_t sliceBatchBufferIdx;
-
-        sliceBatchBufferIdx = m_avcRefList[m_currPic.FrameIdx]->ucCencBufIdx[m_isSecondField];
-
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_cencDecoder->SetBatchBufferForDecode(m_hwInterface, m_debugInterface, sliceBatchBufferIdx, &cmdBuffer));
+        CODECHAL_DECODE_CHK_STATUS_RETURN(SetCencBatchBuffer(&cmdBuffer));
     }
     else
     {

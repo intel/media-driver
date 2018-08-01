@@ -600,24 +600,32 @@ VAStatus DdiMediaDecode::SetDecodeParams()
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
-    (&m_ddiDecodeCtx->DecodeParams)->m_destSurface = &m_destSurface;
-    (&m_ddiDecodeCtx->DecodeParams)->m_deblockSurface = nullptr;
-    (&m_ddiDecodeCtx->DecodeParams)->m_dataBuffer    = &bufMgr->resBitstreamBuffer;
-    (&m_ddiDecodeCtx->DecodeParams)->m_bitStreamBufData = bufMgr->pBitstreamBuffer;
-    Mos_Solo_OverrideBufferSize((&m_ddiDecodeCtx->DecodeParams)->m_dataSize, (&m_ddiDecodeCtx->DecodeParams)->m_dataBuffer);
+    m_ddiDecodeCtx->DecodeParams.m_destSurface = &m_destSurface;
+    m_ddiDecodeCtx->DecodeParams.m_deblockSurface = nullptr;
 
-    (&m_ddiDecodeCtx->DecodeParams)->m_bitplaneBuffer = nullptr;
+    m_ddiDecodeCtx->DecodeParams.m_dataBuffer    = &bufMgr->resBitstreamBuffer;
+    m_ddiDecodeCtx->DecodeParams.m_bitStreamBufData = bufMgr->pBitstreamBuffer;
+
+    m_ddiDecodeCtx->DecodeParams.m_bitplaneBuffer = nullptr;
 
     if (m_streamOutEnabled)
     {
-        (&m_ddiDecodeCtx->DecodeParams)->m_streamOutEnabled           = true;
-        (&m_ddiDecodeCtx->DecodeParams)->m_externalStreamOutBuffer    = &bufMgr->resExternalStreamOutBuffer;
+        m_ddiDecodeCtx->DecodeParams.m_streamOutEnabled           = true;
+        m_ddiDecodeCtx->DecodeParams.m_externalStreamOutBuffer    = &bufMgr->resExternalStreamOutBuffer;
     }
     else
     {
-        (&m_ddiDecodeCtx->DecodeParams)->m_streamOutEnabled           = false;
-        (&m_ddiDecodeCtx->DecodeParams)->m_externalStreamOutBuffer    = nullptr;
+        m_ddiDecodeCtx->DecodeParams.m_streamOutEnabled           = false;
+        m_ddiDecodeCtx->DecodeParams.m_externalStreamOutBuffer    = nullptr;
     }
+
+    if (m_ddiDecodeCtx->pCpDdiInterface)
+    {
+        DDI_CHK_RET(m_ddiDecodeCtx->pCpDdiInterface->SetDecodeParams(&m_ddiDecodeCtx->DecodeParams),"SetDecodeParams failed!");
+    }
+
+    Mos_Solo_OverrideBufferSize(m_ddiDecodeCtx->DecodeParams.m_dataSize, m_ddiDecodeCtx->DecodeParams.m_dataBuffer);
+
     return VA_STATUS_SUCCESS;
 }
 
@@ -873,8 +881,6 @@ VAStatus DdiMediaDecode::CreateCodecHal(
     }
     m_ddiDecodeCtx->pCodecHal = codecHal;
 
-    m_ddiDecodeCtx->pCpDdiInterface->CreateCencDecode(decoder, mosCtx, m_codechalSettings);
-
     if (codecHal->Allocate(m_codechalSettings) != MOS_STATUS_SUCCESS)
     {
         DDI_ASSERTMESSAGE("Failure in decode allocate.\n");
@@ -898,5 +904,8 @@ VAStatus DdiMediaDecode::CreateCodecHal(
             static_cast<MediaMemDecompState *>(MmdDevice::CreateFactory(mosCtx));
     }
 #endif
+
+    m_ddiDecodeCtx->pCpDdiInterface->CreateCencDecode(decoder, mosCtx, m_codechalSettings);
+
     return vaStatus;
 }

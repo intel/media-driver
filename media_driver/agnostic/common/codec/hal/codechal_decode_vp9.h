@@ -258,8 +258,6 @@ public:
     MOS_RESOURCE    m_resSyncObjectVideoContextInUse;                       //!< signals on the video contex
     uint32_t        m_hcpDecPhase;                                          //!< Hcp Decode phase
 
-    uint8_t m_refFrameMap[CODEC_VP9_NUM_REF_FRAMES];  //!< Reference frame map for DPB management
-
     union
     {
         struct
