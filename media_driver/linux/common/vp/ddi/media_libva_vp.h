@@ -174,6 +174,12 @@ VAStatus DdiVp_QueryVideoProcFilterCaps(
     uint32_t            *num_filter_caps
 );
 
+VAStatus DdiVp_SetProcPipelineParams(
+    VADriverContextP                pVaDrvCtx,
+    PDDI_VP_CONTEXT                 pVpCtx,
+    VAProcPipelineParameterBuffer*  pPipelineParam
+);
+
 PVPHAL_RENDER_PARAMS VpGetRenderParams(PDDI_VP_CONTEXT pVpCtx);
 
 PDDI_VP_CONTEXT DdiVp_GetVpContextFromContextID(VADriverContextP ctx, VAContextID vaCtxID);
