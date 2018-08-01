@@ -7094,44 +7094,12 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::EncodeMbEncKernelFunctions()
         }
         CODECHAL_ENCODE_CHK_STATUS_RETURN(DispatchKernelMbEnc(&dispatchParams));
 
+        kernelRes->e = CM_NO_EVENT;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(AddKernelMdf(m_cmDev, m_cmQueue, kernelRes->ppKernel[0], m_cmTask, kernelRes->pTS, kernelRes->e, true));
         if (IsMfeMbEncEnabled())
         {
-            CodechalEncoderState *encoder = m_mfeEncodeSharedState->encoders[0];
-
-            encoder->m_sharedCmEvent[encoder->m_cmEventIdx] = kernelRes->e;
-            encoder->m_sharedCmEventIdx++;
-            encoder->m_sharedCmEventIdx %= CM_EVENT_NUM;
-
-            int32_t dwTimeOutMs = -1;
-            encoder->m_sharedCmEvent[encoder->m_cmEventIdx]->WaitForTaskFinished(dwTimeOutMs);
-
-            // The owner stream is responsible for destroying the shared event
-            if (encoder->m_sharedCmEvent[encoder->m_sharedCmEventIdx])
-            {
-                encoder->m_cmQueue->DestroyEvent(encoder->m_sharedCmEvent[encoder->m_sharedCmEventIdx]);
-            }
-
-            // All the Mfe streams wait for the same event
-            for (uint32_t i = 0; i < m_mfeEncodeSharedState->encoders.size(); i++)
-            {
-                encoder = m_mfeEncodeSharedState->encoders[i];
-                encoder->m_cmEvent[encoder->m_cmEventIdx] = kernelRes->e;
-                encoder->m_cmEventIdx++;
-                encoder->m_cmEventIdx %= CM_EVENT_NUM;
-            }
             m_mfeEncodeSharedState->encoders.clear();
             m_mfeEncodeSharedState->encoders.shrink_to_fit();
-        }
-        else
-        {
-            if (m_cmEvent[m_cmEventIdx])
-            {
-                m_cmQueue->DestroyEvent(m_cmEvent[m_cmEventIdx]);
-            }
-            m_cmEvent[m_cmEventIdx] = kernelRes->e;
-            m_cmEventIdx++;
-            m_cmEventIdx %= CM_EVENT_NUM;
         }
 
         m_cmDev->DestroyThreadSpace(kernelRes->pTS);

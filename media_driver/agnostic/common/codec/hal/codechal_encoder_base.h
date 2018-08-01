@@ -1673,8 +1673,6 @@ public:
     CmEvent *m_cmEvent[CM_EVENT_NUM] = {nullptr};
     short    m_cmEventIdx;  // current  event idx
     short    m_cmEventCheckIdx;
-    CmEvent *m_sharedCmEvent[CM_EVENT_NUM] = {nullptr};
-    short    m_sharedCmEventIdx;
 
 #ifdef FEI_ENABLE_CMRT
     CodechalEncodeMdfKernelResource resDSKernel;
