@@ -792,7 +792,8 @@ bool VPHAL_VEBOX_STATE_G11_BASE::IsMMCEnabledForCurrOutputSurf()
     VPHAL_RENDER_CHK_NULL_NO_STATUS(pRenderData);
     VPHAL_RENDER_CHK_NULL_NO_STATUS(pRenderData->pRenderTarget);
 
-    return IsFormatMMCSupported(pRenderData->pRenderTarget->Format)             &&
+    return bEnableMMC   &&
+            IsFormatMMCSupported(pRenderData->pRenderTarget->Format)             &&
             (pRenderData->Component                      == COMPONENT_VPreP)    &&
             (pRenderData->pRenderTarget->CompressionMode == MOS_MMC_HORIZONTAL);
 finish:
@@ -870,13 +871,16 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::SetupDiIecpStateForOutputSurf(
             pVeboxState->DnDiSurfMemObjCtl.CurrentOutputSurfMemObjCtl;
 
         // Update control bits for Current Output Surf
-        pSurface = pVeboxState->FFDISurfaces[pRenderData->iFrame1];
-        MOS_ZeroMemory(&VeboxSurfCntlParams, sizeof(VeboxSurfCntlParams));
-        VeboxSurfCntlParams.bIsCompressed       = pSurface->bIsCompressed;
-        VeboxSurfCntlParams.CompressionMode     = pSurface->CompressionMode;
-        VPHAL_RENDER_CHK_STATUS(pVeboxInterface->AddVeboxSurfaceControlBits(
-            &VeboxSurfCntlParams,
-            (uint32_t *)&(pVeboxDiIecpCmdParams->CurrOutputSurfCtrl.Value)));
+        if (bEnableMMC)
+        {
+            pSurface = pVeboxState->FFDISurfaces[pRenderData->iFrame1];
+            MOS_ZeroMemory(&VeboxSurfCntlParams, sizeof(VeboxSurfCntlParams));
+            VeboxSurfCntlParams.bIsCompressed       = pSurface->bIsCompressed;
+            VeboxSurfCntlParams.CompressionMode     = pSurface->CompressionMode;
+            VPHAL_RENDER_CHK_STATUS(pVeboxInterface->AddVeboxSurfaceControlBits(
+                &VeboxSurfCntlParams,
+                (uint32_t *)&(pVeboxDiIecpCmdParams->CurrOutputSurfCtrl.Value)));
+        }
 
         VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnRegisterResource(
             pOsInterface,
@@ -890,13 +894,16 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::SetupDiIecpStateForOutputSurf(
             pVeboxState->DnDiSurfMemObjCtl.CurrentOutputSurfMemObjCtl;
 
         // Update control bits for PrevOutput surface
-        pSurface = pVeboxState->FFDISurfaces[pRenderData->iFrame0];
-        MOS_ZeroMemory(&VeboxSurfCntlParams, sizeof(VeboxSurfCntlParams));
-        VeboxSurfCntlParams.bIsCompressed       = pSurface->bIsCompressed;
-        VeboxSurfCntlParams.CompressionMode     = pSurface->CompressionMode;
-        VPHAL_RENDER_CHK_STATUS(pVeboxInterface->AddVeboxSurfaceControlBits(
-            &VeboxSurfCntlParams,
-            (uint32_t *)&(pVeboxDiIecpCmdParams->PrevOutputSurfCtrl.Value)));
+        if (bEnableMMC)
+        {
+            pSurface = pVeboxState->FFDISurfaces[pRenderData->iFrame0];
+            MOS_ZeroMemory(&VeboxSurfCntlParams, sizeof(VeboxSurfCntlParams));
+            VeboxSurfCntlParams.bIsCompressed       = pSurface->bIsCompressed;
+            VeboxSurfCntlParams.CompressionMode     = pSurface->CompressionMode;
+            VPHAL_RENDER_CHK_STATUS(pVeboxInterface->AddVeboxSurfaceControlBits(
+                &VeboxSurfCntlParams,
+                (uint32_t *)&(pVeboxDiIecpCmdParams->PrevOutputSurfCtrl.Value)));
+        }
     }
     else if (IsIECPEnabled()) // IECP output surface without DI
     {
@@ -912,13 +919,16 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::SetupDiIecpStateForOutputSurf(
             pVeboxState->DnDiSurfMemObjCtl.CurrentOutputSurfMemObjCtl;
 
         // Update control bits for CurrOutputSurf surface
-        pSurface = pVeboxState->FFDISurfaces[pRenderData->iCurDNOut];
-        MOS_ZeroMemory(&VeboxSurfCntlParams, sizeof(VeboxSurfCntlParams));
-        VeboxSurfCntlParams.bIsCompressed       = pSurface->bIsCompressed;
-        VeboxSurfCntlParams.CompressionMode     = pSurface->CompressionMode;
-        VPHAL_RENDER_CHK_STATUS(pVeboxInterface->AddVeboxSurfaceControlBits(
-            &VeboxSurfCntlParams,
-            (uint32_t *)&(pVeboxDiIecpCmdParams->CurrOutputSurfCtrl.Value)));
+        if (bEnableMMC)
+        {
+            pSurface = pVeboxState->FFDISurfaces[pRenderData->iCurDNOut];
+            MOS_ZeroMemory(&VeboxSurfCntlParams, sizeof(VeboxSurfCntlParams));
+            VeboxSurfCntlParams.bIsCompressed       = pSurface->bIsCompressed;
+            VeboxSurfCntlParams.CompressionMode     = pSurface->CompressionMode;
+            VPHAL_RENDER_CHK_STATUS(pVeboxInterface->AddVeboxSurfaceControlBits(
+                &VeboxSurfCntlParams,
+                (uint32_t *)&(pVeboxDiIecpCmdParams->CurrOutputSurfCtrl.Value)));
+        }
     }
 
 finish:
@@ -986,13 +996,16 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::SetupDiIecpState(
         pVeboxState->DnDiSurfMemObjCtl.CurrentInputSurfMemObjCtl;
 
     // Update control bits for current surface
-    pSurface = pVeboxState->m_currentSurface;
-    MOS_ZeroMemory(&VeboxSurfCntlParams, sizeof(VeboxSurfCntlParams));
-    VeboxSurfCntlParams.bIsCompressed       = pSurface->bIsCompressed;
-    VeboxSurfCntlParams.CompressionMode     = pSurface->CompressionMode;
-    VPHAL_RENDER_CHK_STATUS(pVeboxInterface->AddVeboxSurfaceControlBits(
-        &VeboxSurfCntlParams,
-        (uint32_t *)&(pVeboxDiIecpCmdParams->CurrInputSurfCtrl.Value)));
+    if (bEnableMMC)
+    {
+        pSurface = pVeboxState->m_currentSurface;
+        MOS_ZeroMemory(&VeboxSurfCntlParams, sizeof(VeboxSurfCntlParams));
+        VeboxSurfCntlParams.bIsCompressed       = pSurface->bIsCompressed;
+        VeboxSurfCntlParams.CompressionMode     = pSurface->CompressionMode;
+        VPHAL_RENDER_CHK_STATUS(pVeboxInterface->AddVeboxSurfaceControlBits(
+            &VeboxSurfCntlParams,
+            (uint32_t *)&(pVeboxDiIecpCmdParams->CurrInputSurfCtrl.Value)));
+    }
 
     // Reference surface
     if (pRenderData->bRefValid)
@@ -1011,13 +1024,16 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::SetupDiIecpState(
             pVeboxState->DnDiSurfMemObjCtl.PreviousInputSurfMemObjCtl;
 
         // Update control bits for PreviousSurface surface
-        pSurface = pVeboxState->m_previousSurface;
-        MOS_ZeroMemory(&VeboxSurfCntlParams, sizeof(VeboxSurfCntlParams));
-        VeboxSurfCntlParams.bIsCompressed       = pSurface->bIsCompressed;
-        VeboxSurfCntlParams.CompressionMode     = pSurface->CompressionMode;
-        VPHAL_RENDER_CHK_STATUS(pVeboxInterface->AddVeboxSurfaceControlBits(
-            &VeboxSurfCntlParams,
-            (uint32_t *)&(pVeboxDiIecpCmdParams->PrevInputSurfCtrl.Value)));
+        if (bEnableMMC)
+        {
+            pSurface = pVeboxState->m_previousSurface;
+            MOS_ZeroMemory(&VeboxSurfCntlParams, sizeof(VeboxSurfCntlParams));
+            VeboxSurfCntlParams.bIsCompressed       = pSurface->bIsCompressed;
+            VeboxSurfCntlParams.CompressionMode     = pSurface->CompressionMode;
+            VPHAL_RENDER_CHK_STATUS(pVeboxInterface->AddVeboxSurfaceControlBits(
+                &VeboxSurfCntlParams,
+                (uint32_t *)&(pVeboxDiIecpCmdParams->PrevInputSurfCtrl.Value)));
+        }
     }
 
     // VEBOX final output surface
@@ -1038,13 +1054,16 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::SetupDiIecpState(
             pVeboxState->DnDiSurfMemObjCtl.DnOutSurfMemObjCtl;
 
         // Update control bits for DenoisedCurrOutputSurf surface
-        pSurface = pVeboxState->FFDNSurfaces[pRenderData->iCurDNOut];
-        MOS_ZeroMemory(&VeboxSurfCntlParams, sizeof(VeboxSurfCntlParams));
-        VeboxSurfCntlParams.bIsCompressed       = pSurface->bIsCompressed;
-        VeboxSurfCntlParams.CompressionMode     = pSurface->CompressionMode;
-        VPHAL_RENDER_CHK_STATUS(pVeboxInterface->AddVeboxSurfaceControlBits(
-            &VeboxSurfCntlParams,
-            (uint32_t *)&(pVeboxDiIecpCmdParams->DenoisedCurrOutputSurfCtrl.Value)));
+        if (bEnableMMC)
+        {
+            pSurface = pVeboxState->FFDNSurfaces[pRenderData->iCurDNOut];
+            MOS_ZeroMemory(&VeboxSurfCntlParams, sizeof(VeboxSurfCntlParams));
+            VeboxSurfCntlParams.bIsCompressed       = pSurface->bIsCompressed;
+            VeboxSurfCntlParams.CompressionMode     = pSurface->CompressionMode;
+            VPHAL_RENDER_CHK_STATUS(pVeboxInterface->AddVeboxSurfaceControlBits(
+                &VeboxSurfCntlParams,
+                (uint32_t *)&(pVeboxDiIecpCmdParams->DenoisedCurrOutputSurfCtrl.Value)));
+        }
 
         // For DN + SFC scenario, allocate FFDISurfaces also
         // since this usage needs IECP implicitly
@@ -1063,13 +1082,16 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::SetupDiIecpState(
                 pVeboxState->DnDiSurfMemObjCtl.CurrentOutputSurfMemObjCtl;
 
             // Update control bits for CurrOutputSurf surface
-            pSurface = pVeboxState->FFDISurfaces[pRenderData->iCurDNOut];
-            MOS_ZeroMemory(&VeboxSurfCntlParams, sizeof(VeboxSurfCntlParams));
-            VeboxSurfCntlParams.bIsCompressed       = pSurface->bIsCompressed;
-            VeboxSurfCntlParams.CompressionMode     = pSurface->CompressionMode;
-            VPHAL_RENDER_CHK_STATUS(pVeboxInterface->AddVeboxSurfaceControlBits(
-                &VeboxSurfCntlParams,
-                (uint32_t *)&(pVeboxDiIecpCmdParams->CurrOutputSurfCtrl.Value)));
+            if (bEnableMMC)
+            {
+                pSurface = pVeboxState->FFDISurfaces[pRenderData->iCurDNOut];
+                MOS_ZeroMemory(&VeboxSurfCntlParams, sizeof(VeboxSurfCntlParams));
+                VeboxSurfCntlParams.bIsCompressed       = pSurface->bIsCompressed;
+                VeboxSurfCntlParams.CompressionMode     = pSurface->CompressionMode;
+                VPHAL_RENDER_CHK_STATUS(pVeboxInterface->AddVeboxSurfaceControlBits(
+                    &VeboxSurfCntlParams,
+                    (uint32_t *)&(pVeboxDiIecpCmdParams->CurrOutputSurfCtrl.Value)));
+            }
         }
     }
 
@@ -1089,13 +1111,16 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::SetupDiIecpState(
             pVeboxState->DnDiSurfMemObjCtl.STMMInputSurfMemObjCtl;
 
         // Update control bits for stmm input surface
-        pSurface = &(pVeboxState->STMMSurfaces[pRenderData->iCurHistIn]);
-        MOS_ZeroMemory(&VeboxSurfCntlParams, sizeof(VeboxSurfCntlParams));
-        VeboxSurfCntlParams.bIsCompressed       = pSurface->bIsCompressed;
-        VeboxSurfCntlParams.CompressionMode     = pSurface->CompressionMode;
-        VPHAL_RENDER_CHK_STATUS(pVeboxInterface->AddVeboxSurfaceControlBits(
-            &VeboxSurfCntlParams,
-            (uint32_t *)&(pVeboxDiIecpCmdParams->StmmInputSurfCtrl.Value)));
+        if (bEnableMMC)
+        {
+            pSurface = &(pVeboxState->STMMSurfaces[pRenderData->iCurHistIn]);
+            MOS_ZeroMemory(&VeboxSurfCntlParams, sizeof(VeboxSurfCntlParams));
+            VeboxSurfCntlParams.bIsCompressed       = pSurface->bIsCompressed;
+            VeboxSurfCntlParams.CompressionMode     = pSurface->CompressionMode;
+            VPHAL_RENDER_CHK_STATUS(pVeboxInterface->AddVeboxSurfaceControlBits(
+                &VeboxSurfCntlParams,
+                (uint32_t *)&(pVeboxDiIecpCmdParams->StmmInputSurfCtrl.Value)));
+        }
 
         // STMM out
         VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnRegisterResource(
@@ -1110,13 +1135,16 @@ MOS_STATUS VPHAL_VEBOX_STATE_G11_BASE::SetupDiIecpState(
             pVeboxState->DnDiSurfMemObjCtl.STMMOutputSurfMemObjCtl;
 
         // Update control bits for stmm output surface
-        pSurface = &(pVeboxState->STMMSurfaces[pRenderData->iCurHistOut]);
-        MOS_ZeroMemory(&VeboxSurfCntlParams, sizeof(VeboxSurfCntlParams));
-        VeboxSurfCntlParams.bIsCompressed       = pSurface->bIsCompressed;
-        VeboxSurfCntlParams.CompressionMode     = pSurface->CompressionMode;
-        VPHAL_RENDER_CHK_STATUS(pVeboxInterface->AddVeboxSurfaceControlBits(
-            &VeboxSurfCntlParams,
-            (uint32_t *)&(pVeboxDiIecpCmdParams->StmmOutputSurfCtrl.Value)));
+        if (bEnableMMC)
+        {
+            pSurface = &(pVeboxState->STMMSurfaces[pRenderData->iCurHistOut]);
+            MOS_ZeroMemory(&VeboxSurfCntlParams, sizeof(VeboxSurfCntlParams));
+            VeboxSurfCntlParams.bIsCompressed       = pSurface->bIsCompressed;
+            VeboxSurfCntlParams.CompressionMode     = pSurface->CompressionMode;
+            VPHAL_RENDER_CHK_STATUS(pVeboxInterface->AddVeboxSurfaceControlBits(
+                &VeboxSurfCntlParams,
+                (uint32_t *)&(pVeboxDiIecpCmdParams->StmmOutputSurfCtrl.Value)));
+        }
     }
 
     // Statistics data: GNE, FMD
