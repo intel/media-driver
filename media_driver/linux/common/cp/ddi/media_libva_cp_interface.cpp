@@ -189,3 +189,10 @@ VAStatus DdiCpInterface::CreateCencDecode(
     DdiStubMessage();
     return VA_STATUS_SUCCESS;
 }
+
+VAStatus DdiCpInterface::SetDecodeParams(
+    CodechalDecodeParams    *decodeParams)
+{
+    DdiStubMessage();
+    return VA_STATUS_SUCCESS;
+}

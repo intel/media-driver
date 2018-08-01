@@ -1739,6 +1739,45 @@ MOS_STATUS CodechalDecode::SendMarkerCommand(
     return eStatus;
 }
 
+MOS_STATUS CodechalDecode::SetCencBatchBuffer(
+    PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    CODECHAL_DECODE_CHK_NULL_RETURN(cmdBuffer);
+
+    MHW_BATCH_BUFFER        batchBuffer;
+    MOS_ZeroMemory(&batchBuffer, sizeof(MHW_BATCH_BUFFER));
+    MOS_RESOURCE *resHeap = nullptr;
+    CODECHAL_DECODE_CHK_NULL_RETURN(resHeap = m_cencBuf->secondLvlBbBlock->GetResource());
+    batchBuffer.OsResource   = *resHeap;
+    batchBuffer.dwOffset     = m_cencBuf->secondLvlBbBlock->GetOffset();
+    batchBuffer.iSize        = m_cencBuf->secondLvlBbBlock->GetSize();
+    batchBuffer.bSecondLevel = true;
+#if (_DEBUG || _RELEASE_INTERNAL)
+    batchBuffer.iLastCurrent = batchBuffer.iSize;
+#endif  // (_DEBUG || _RELEASE_INTERNAL)
+
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(
+        cmdBuffer,
+        &batchBuffer));
+
+    CODECHAL_DEBUG_TOOL(
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->Dump2ndLvlBatch(
+            &batchBuffer,
+            CODECHAL_NUM_MEDIA_STATES,
+            "_2ndLvlBatch"));)
+
+    // Update GlobalCmdBufId
+    MHW_MI_STORE_DATA_PARAMS miStoreDataParams;
+    MOS_ZeroMemory(&miStoreDataParams, sizeof(miStoreDataParams));
+    miStoreDataParams.pOsResource = m_cencBuf->resTracker;
+    miStoreDataParams.dwValue     = m_cencBuf->trackerId;
+    CODECHAL_DECODE_VERBOSEMESSAGE("dwCmdBufId = %d", miStoreDataParams.dwValue);
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(
+        cmdBuffer,
+        &miStoreDataParams));
+    return MOS_STATUS_SUCCESS;
+}
+
 #if USE_CODECHAL_DEBUG_TOOL
 #ifdef _DECODE_PROCESSING_SUPPORTED
 MOS_STATUS CodechalDecode::DumpProcessingParams(PCODECHAL_DECODE_PROCESSING_PARAMS decProcParams)

@@ -38,6 +38,7 @@
 #include "codechal_utilities.h"
 #include "cm_wrapper.h"
 #include "media_perf_profiler.h"
+#include "codec_def_cenc_decode.h"
 
 class CodechalSecureDecode;
 class CodechalCencDecode;
@@ -299,6 +300,7 @@ struct CodechalDecodeParams
 
     //! \brief [CENC Decode] Status reporting number associated with the current frame.
     uint16_t                m_cencDecodeStatusReportNum = 0;
+    CencDecodeShareBuf      *m_cencBuf = nullptr;
 
     //! \brief Picture level parameters to be used for decoding
     void                    *m_picParams = nullptr;
@@ -677,6 +679,15 @@ public:
     //! \return The cenc decoder interface
     //!
     void SetCencDecoder(CodechalCencDecode* cencDecoder) { m_cencDecoder = cencDecoder; }
+
+    //!
+    //! \brief  Sets cenc decoder batch buffer
+    //! \param    [in] cmdBuffer
+    //!           Pointer of command buffer.
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS SetCencBatchBuffer( PMOS_COMMAND_BUFFER cmdBuffer);
 
     //!
     //! \brief  Indicates whether or not the status query reporting is enabled
@@ -1144,6 +1155,9 @@ protected:
 
     //! \brief Performance data profiler
     MediaPerfProfiler           *m_perfProfiler    = nullptr;
+
+    // CencDecode buffer
+    CencDecodeShareBuf          *m_cencBuf    = nullptr;
 };
 
 //!

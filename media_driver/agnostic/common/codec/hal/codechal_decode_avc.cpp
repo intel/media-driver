@@ -1137,37 +1137,21 @@ MOS_STATUS CodechalDecodeAvc::SetFrameStates()
 
     CODECHAL_DECODE_CHK_NULL_RETURN(m_decodeParams.m_destSurface);
 
-    if (m_cencDecoder)
-    {
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_cencDecoder->SetParamsForDecode(this, m_hwInterface, m_debugInterface, &m_decodeParams));
+    m_dataSize          = m_decodeParams.m_dataSize;
+    m_dataOffset        = m_decodeParams.m_dataOffset;
+    m_numSlices         = m_decodeParams.m_numSlices;
+    m_avcPicParams      = (PCODEC_AVC_PIC_PARAMS)m_decodeParams.m_picParams;
+    m_mvcExtPicParams   = (PCODEC_MVC_EXT_PIC_PARAMS)m_decodeParams.m_extPicParams;
+    m_avcSliceParams    = (PCODEC_AVC_SLICE_PARAMS)m_decodeParams.m_sliceParams;
+    m_avcIqMatrixParams = (PCODEC_AVC_IQ_MATRIX_PARAMS)m_decodeParams.m_iqMatrixBuffer;
+    m_destSurface       = *(m_decodeParams.m_destSurface);
+    m_refFrameSurface   = m_decodeParams.m_refFrameSurface;
+    m_refSurfaceNum     = m_decodeParams.m_refSurfaceNum;
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_decodeParams.m_dataBuffer);
+    m_resDataBuffer       = *(m_decodeParams.m_dataBuffer);
+    m_picIdRemappingInUse = (m_decodeParams.m_picIdRemappingInUse) ? true : false;
 
-        CODECHAL_DEBUG_TOOL(
-            CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-                &m_resDataBuffer,
-                CodechalDbgAttr::attrBitstream,
-                "_DEC",
-                m_dataSize,
-                m_dataOffset,
-                CODECHAL_NUM_MEDIA_STATES));)
-    }
-    else
-    {
-        m_dataSize          = m_decodeParams.m_dataSize;
-        m_dataOffset        = m_decodeParams.m_dataOffset;
-        m_numSlices         = m_decodeParams.m_numSlices;
-        m_avcPicParams      = (PCODEC_AVC_PIC_PARAMS)m_decodeParams.m_picParams;
-        m_mvcExtPicParams   = (PCODEC_MVC_EXT_PIC_PARAMS)m_decodeParams.m_extPicParams;
-        m_avcSliceParams    = (PCODEC_AVC_SLICE_PARAMS)m_decodeParams.m_sliceParams;
-        m_avcIqMatrixParams = (PCODEC_AVC_IQ_MATRIX_PARAMS)m_decodeParams.m_iqMatrixBuffer;
-        m_destSurface       = *(m_decodeParams.m_destSurface);
-        m_refFrameSurface   = m_decodeParams.m_refFrameSurface;
-        m_refSurfaceNum     = m_decodeParams.m_refSurfaceNum;
-        CODECHAL_DECODE_CHK_NULL_RETURN(m_decodeParams.m_dataBuffer);
-        m_resDataBuffer       = *(m_decodeParams.m_dataBuffer);
-        m_picIdRemappingInUse = (m_decodeParams.m_picIdRemappingInUse) ? true : false;
-
-        CODECHAL_DECODE_CHK_NULL_RETURN(m_avcSliceParams);
-    }
+    m_cencBuf = m_decodeParams.m_cencBuf;
 
     CODECHAL_DECODE_CHK_NULL_RETURN(m_avcPicParams);
     CODECHAL_DECODE_CHK_NULL_RETURN(m_avcIqMatrixParams);
@@ -1505,7 +1489,7 @@ MOS_STATUS CodechalDecodeAvc::DecodeStateLevel()
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_hwInterface->GetCpInterface()->CheckStatusReportNum(
             mmioRegisters, 
-            m_avcRefList[m_avcPicParams->CurrPic.FrameIdx]->ucCencBufIdx[0], 
+            m_cencBuf->bufIdx,
             m_cencDecoder->GetStatusReportResource(), 
             &cmdBuffer));
     }
@@ -1710,13 +1694,9 @@ MOS_STATUS CodechalDecodeAvc::DecodePrimitiveLevel()
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
 
-    if (m_cencDecoder)
+    if (m_cencBuf)
     {
-        // Pass the correct 2nd level batch buffer index set in CencDecode()
-        uint8_t sliceBatchBufferIdx;
-        sliceBatchBufferIdx = m_avcRefList[m_currPic.FrameIdx]->ucCencBufIdx[m_isSecondField];
-
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_cencDecoder->SetBatchBufferForDecode(m_hwInterface, m_debugInterface, sliceBatchBufferIdx, &cmdBuffer));
+        CODECHAL_DECODE_CHK_STATUS_RETURN(SetCencBatchBuffer(&cmdBuffer));
     }
     else
     {

@@ -33,6 +33,7 @@
 
 typedef struct _DDI_ENCODE_STATUS_REPORT_INFO *PDDI_ENCODE_STATUS_REPORT_INFO;
 class CodechalSetting;
+struct CodechalDecodeParams;
 
 class DdiCpInterface
 {
@@ -195,6 +196,8 @@ public:
         CodechalDecode              *decoder,
         PMOS_CONTEXT                osContext,
         CodechalSetting *           settings);
+
+    virtual VAStatus SetDecodeParams(CodechalDecodeParams    *decodeParams);
 };
 
 //!

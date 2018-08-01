@@ -90,35 +90,19 @@ public:
         return MOS_STATUS_UNIMPLEMENTED;
     };
 
-    //!
-    //! \brief  Set Params For Decode
-    //! \return MOS_STATUS_UNIMPLEMENTED
-    //!
-    MOS_STATUS SetParamsForDecode(
-        void                        *state,
-        CodechalHwInterface         *hwInterface,
-        CodechalDebugInterface      *debugInterface,
-        CodechalDecodeParams        *decodeParams)
-    {
-        return MOS_STATUS_UNIMPLEMENTED;
-    };
-
-    //!
-    //! \brief  Set Batch Buffer For Decode
-    //! \return MOS_STATUS_UNIMPLEMENTED
-    //!
-    MOS_STATUS SetBatchBufferForDecode(
-        CodechalHwInterface          *hwInterface,
-        CodechalDebugInterface       *debugInterface,
-        uint8_t                      sliceBatchBufferIdx,
-        PMOS_COMMAND_BUFFER          cmdBuffer)
-    {
-        return MOS_STATUS_UNIMPLEMENTED;
-    };
-
-    PMOS_RESOURCE GetStatusReportResource() { return nullptr; }
+   PMOS_RESOURCE GetStatusReportResource() { return nullptr; }
 
     bool IsCheckStatusReportNeeded() { return false; }
+    //!
+    //! \brief  Set decode parameters
+    //! \return MOS_STATUS_SUCCESS
+    //!
+    MOS_STATUS SetDecodeParams(
+        CodechalDecodeParams    *decodeParams,
+        void                    *cpParams)
+    {
+        return MOS_STATUS_SUCCESS;
+    };
 
     PMOS_INTERFACE                  m_osInterface = nullptr;
 
