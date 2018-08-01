@@ -3788,6 +3788,17 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PBMbEncKernel()
         RefWidth  = 48;
         RefHeight = 40;
         LenSP     = 48;
+        if (m_hevcSeqParams->TargetUsage != 7) 
+        {
+            if (m_pictureCodingType == B_TYPE)
+            {
+                LenSP = 48;
+            } else {
+                LenSP = 57;
+            }
+        } else {
+            LenSP = 25;
+        }
         break;
     default:
         CODECHAL_ENCODE_ASSERTMESSAGE("Invalid picture FEI MB ENC SearchWindow value for HEVC FEI on SKL!!!.");
@@ -5286,6 +5297,17 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PBMbEncKernel()
         RefWidth  = 48;
         RefHeight = 40;
         LenSP     = 48;
+        if (m_hevcSeqParams->TargetUsage != 7)
+        {
+            if (m_pictureCodingType == B_TYPE)
+            {
+                LenSP = 48;
+            } else {
+                LenSP = 57;
+            }
+        } else {
+            LenSP = 25;
+        }
         break;
     default:
         CODECHAL_ENCODE_ASSERTMESSAGE("Invalid picture FEI MB ENC SearchWindow value for HEVC FEI on SKL!!!.");
