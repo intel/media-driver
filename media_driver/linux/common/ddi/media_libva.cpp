@@ -3675,17 +3675,14 @@ static VAStatus DdiMedia_PutSurface(
 #ifdef ANDROID
        return VA_STATUS_ERROR_UNIMPLEMENTED;
 #else
-    if(nullptr != vpCtx)
+    if(nullptr == vpCtx)
     {
-        return DdiCodec_PutSurfaceLinuxHW(
-                ctx, surface, draw, srcx, srcy, srcw, srch, destx, desty, destw, desth, cliprects, number_cliprects, flags);
-
+        VAContextID context = VA_INVALID_ID;
+        VAStatus vaStatus = DdiVp_CreateContext(ctx, 0, 0, 0, 0, 0, 0, &context);
+        DDI_CHK_RET(vaStatus, "Create VP Context failed");       
     }
-    else
-    {
-        return DdiMedia_PutSurfaceLinuxSW(
-          ctx, surface, draw, srcx, srcy, srcw, srch, destx, desty, destw, desth, cliprects, number_cliprects, flags);
-    }
+  
+    return DdiCodec_PutSurfaceLinuxHW(ctx, surface, draw, srcx, srcy, srcw, srch, destx, desty, destw, desth, cliprects, number_cliprects, flags);
 #endif
 
 }
