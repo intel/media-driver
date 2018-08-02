@@ -31,6 +31,7 @@
 #include "drm.h"
 #include "i915_drm.h"
 #include "mos_bufmgr.h"
+#include "mos_os.h"
 
 //!
 //! \class  AuxTableMgr
