@@ -3098,8 +3098,8 @@ MOS_STATUS CodechalVdencHevcState::Initialize(CodechalSetting * settings)
         m_vdencPakObjCmdStreamOutEnabled = userFeatureData.i32Data ? true : false;
     }
 
-    m_minScaledDimension = CODECHAL_ENCODE_HEVC_MIN_SCALED_SURFACE_SIZE;
-    m_minScaledDimensionInMb = (CODECHAL_ENCODE_HEVC_MIN_SCALED_SURFACE_SIZE + 15) >> 4;
+    m_minScaledDimension = CODECHAL_ENCODE_MIN_SCALED_SURFACE_SIZE;
+    m_minScaledDimensionInMb = (CODECHAL_ENCODE_MIN_SCALED_SURFACE_SIZE + 15) >> 4;
 
     if (m_frameWidth < 128 || m_frameHeight < 128)
     {
