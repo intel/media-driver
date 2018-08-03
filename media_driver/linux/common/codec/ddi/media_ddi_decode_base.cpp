@@ -905,7 +905,7 @@ VAStatus DdiMediaDecode::CreateCodecHal(
     }
 #endif
 
-    m_ddiDecodeCtx->pCpDdiInterface->CreateCencDecode(decoder, mosCtx, m_codechalSettings);
+    m_ddiDecodeCtx->pCpDdiInterface->CreateCencDecode(decoder->GetDebugInterface(), mosCtx, m_codechalSettings);
 
     return vaStatus;
 }

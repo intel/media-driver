@@ -31,8 +31,10 @@ struct CencDecodeShareBuf
 {
     uint32_t                       bufIdx = 0;
     uint32_t                       trackerId = 0;
+    bool                           checkStatusRequired = 0;
     MOS_RESOURCE                   *resTracker = nullptr;
     MemoryBlock                    *secondLvlBbBlock = nullptr;
+    MOS_RESOURCE                   *resStatus = nullptr;
 };
 
 #endif  // __CODEC_DEF_CENC_DECODE_H__

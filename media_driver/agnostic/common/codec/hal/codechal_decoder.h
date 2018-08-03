@@ -41,7 +41,6 @@
 #include "codec_def_cenc_decode.h"
 
 class CodechalSecureDecode;
-class CodechalCencDecode;
 class CodechalDecodeHistogram;
 
 //------------------------------------------------------------------------------
@@ -667,18 +666,6 @@ public:
     //! \return The video WA context \see m_videoContextForWa
     //!
     MOS_GPU_CONTEXT GetVideoWAContext() { return m_videoContextForWa; }
-
-    //!
-    //! \brief  Gets cenc decoder interface
-    //! \return The cenc decoder interface
-    //!
-    CodechalCencDecode* GetCencDecoder() { return m_cencDecoder; }
-
-    //!
-    //! \brief  Gets cenc decoder interface
-    //! \return The cenc decoder interface
-    //!
-    void SetCencDecoder(CodechalCencDecode* cencDecoder) { m_cencDecoder = cencDecoder; }
 
     //!
     //! \brief  Sets cenc decoder batch buffer

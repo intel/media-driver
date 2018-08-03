@@ -25,7 +25,6 @@
 //!
 
 #include "media_interfaces_g9_kbl.h"
-#include "codechal_cenc_decode.h"
 #include "igcodeckrn_g9.h"
 
 extern template class MediaInterfacesFactory<MhwInterfaces>;

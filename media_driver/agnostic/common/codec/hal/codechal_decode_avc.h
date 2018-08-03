@@ -52,24 +52,6 @@
 #define CODECHAL_DECODE_AVC_INVALID_REFPIC_VALUE          0x80
 
 //!
-//! \def CODECHAL_DECODE_MAX_SLICE_HDR_SET_SIZE
-//! max slice header set size
-//!
-#define CODECHAL_DECODE_MAX_SLICE_HDR_SET_SIZE            256
-
-//!
-//! \def CODECHAL_DECODE_MAX_SLICE_HDR_LEN_SIZE
-//! max slice header length size
-//!
-#define CODECHAL_DECODE_MAX_SLICE_HDR_LEN_SIZE            2
-
-//!
-//! \def CODECHAL_DECODE_MAX_SLICE_HDR_SET_BUF_SIZE
-//! max slice header buf size
-//!
-#define CODECHAL_DECODE_MAX_SLICE_HDR_SET_BUF_SIZE        CODECHAL_DECODE_MAX_SLICE_HDR_SET_SIZE - CODECHAL_DECODE_MAX_SLICE_HDR_LEN_SIZE
-
-//!
 //! \def CODECHAL_DECODE_AVC_MAX_NUM_MVC_VIEWS
 //! max mvc views
 //!

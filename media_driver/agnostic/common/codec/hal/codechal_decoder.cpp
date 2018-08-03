@@ -27,7 +27,6 @@
 
 #include "codechal_decoder.h"
 #include "codechal_secure_decode.h"
-#include "codechal_cenc_decode.h"
 #include "mos_solo_generic.h"
 #include "codechal_debug.h"
 #include "codechal_decode_histogram.h"
@@ -273,7 +272,7 @@ MOS_STATUS CodechalDecode::CreateGpuContexts(
     CODECHAL_DECODE_CHK_NULL_RETURN(codecHalSettings);
 
     MHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit;
-    gpuNodeLimit.bHuCInUse = (m_cencDecoder != nullptr);
+    gpuNodeLimit.bHuCInUse = false;
     gpuNodeLimit.bHcpInUse = m_hcpInUse;
     gpuNodeLimit.bSfcInUse = IsSfcInUse(codecHalSettings);
 
@@ -696,20 +695,11 @@ void CodechalDecode::CalcRequestedSpace(
     uint32_t       &additionalSizeNeeded,
     uint32_t       &requestedPatchListSize)
 {
-    if (m_cencDecoder != nullptr)
-    {
-        requestedSize = m_commandBufferSizeNeeded;
-        requestedPatchListSize = m_commandPatchListSizeNeeded;
-        additionalSizeNeeded = 0;
-    }
-    else
-    {
-        requestedSize = m_commandBufferSizeNeeded +
-            (m_standardDecodeSizeNeeded * (m_decodeParams.m_numSlices + 1));
-        requestedPatchListSize = m_commandPatchListSizeNeeded +
-            (m_standardDecodePatchListSizeNeeded * (m_decodeParams.m_numSlices + 1));
-        additionalSizeNeeded = COMMAND_BUFFER_RESERVED_SPACE;
-    }
+    requestedSize = m_commandBufferSizeNeeded +
+        (m_standardDecodeSizeNeeded * (m_decodeParams.m_numSlices + 1));
+    requestedPatchListSize = m_commandPatchListSizeNeeded +
+        (m_standardDecodePatchListSizeNeeded * (m_decodeParams.m_numSlices + 1));
+    additionalSizeNeeded = COMMAND_BUFFER_RESERVED_SPACE;
 }
 
 MOS_STATUS CodechalDecode::VerifySpaceAvailable ()
@@ -950,13 +940,10 @@ MOS_STATUS CodechalDecode::Execute(void *params)
     CODECHAL_DEBUG_TOOL(
         m_debugInterface->m_bufferDumpFrameNum = m_frameNum;)
 
-    if (m_cencDecoder != nullptr)
+    if (m_cencBuf!= nullptr)
     {
         CODECHAL_DECODE_CHK_STATUS_RETURN(Mos_Solo_DisableAubcaptureOptimizations(
             m_osInterface,
-            m_firstExecuteCall));
-        CODECHAL_DECODE_CHK_STATUS_RETURN(Mos_Solo_DisableAubcaptureOptimizations(
-            m_cencDecoder->m_osInterface,
             m_firstExecuteCall));
     }
 
@@ -1062,7 +1049,7 @@ MOS_STATUS CodechalDecode::Execute(void *params)
     CODECHAL_DEBUG_TOOL(
 
         if (decodeParams->m_dataBuffer &&
-            (m_standard != CODECHAL_JPEG && m_cencDecoder == nullptr) &&
+            (m_standard != CODECHAL_JPEG && m_cencBuf == nullptr) &&
             !(m_standard == CODECHAL_HEVC && m_isHybridDecoder) &&
             !(m_standard == CODECHAL_HEVC && (m_incompletePicture || !m_firstExecuteCall)))
         {

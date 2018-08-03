@@ -27,7 +27,6 @@
 #define __CODECHAL_CENC_DECODE_H__
 
 #include "codechal.h"
-#include "codechal_decoder.h"
 #include "mos_defs.h"
 
 //!
@@ -89,8 +88,6 @@ public:
     {
         return MOS_STATUS_UNIMPLEMENTED;
     };
-
-   PMOS_RESOURCE GetStatusReportResource() { return nullptr; }
 
     bool IsCheckStatusReportNeeded() { return false; }
     //!

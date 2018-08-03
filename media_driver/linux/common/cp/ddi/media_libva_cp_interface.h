@@ -193,7 +193,7 @@ public:
     virtual bool CheckSupportedBufferForVp(VABufferType type);
 
     virtual VAStatus CreateCencDecode(
-        CodechalDecode              *decoder,
+        CodechalDebugInterface      *debugInterface,
         PMOS_CONTEXT                osContext,
         CodechalSetting *           settings);
 

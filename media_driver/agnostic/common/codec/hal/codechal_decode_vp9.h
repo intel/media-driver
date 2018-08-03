@@ -33,33 +33,6 @@
 #include "codec_def_vp9_probs.h"
 
 //!
-//! \enum CODECHAL_DECODE_VP9_SEG_LVL_FEATURES
-//! VP9 decode segment level
-//!
-typedef enum
-{
-    CODECHAL_DECODE_VP9_SEG_LVL_ALT_Q = 0,          //!< Use alternate Quantizer
-    CODECHAL_DECODE_VP9_SEG_LVL_ALT_LF = 1,         //!< Use alternate loop filter value
-    CODECHAL_DECODE_VP9_SEG_LVL_REF_FRAME = 2,      //!< Optional Segment reference frame
-    CODECHAL_DECODE_VP9_SEG_LVL_SKIP = 3,           //!< Optional Segment (0,0) + skip mode
-    CODECHAL_DECODE_VP9_SEG_LVL_MAX = 4             //!< Number of features supported
-} CODECHAL_DECODE_VP9_SEG_LVL_FEATURES;
-
-//!
-//! \enum CODECHAL_DECODE_VP9_MV_REFERENCE_FRAME
-//! VP9 decode mv reference
-//!
-typedef enum
-{
-    CODECHAL_DECODE_VP9_NONE = -1,
-    CODECHAL_DECODE_VP9_INTRA_FRAME = 0,
-    CODECHAL_DECODE_VP9_LAST_FRAME = 1,
-    CODECHAL_DECODE_VP9_GOLDEN_FRAME = 2,
-    CODECHAL_DECODE_VP9_ALTREF_FRAME = 3,
-    CODECHAL_DECODE_VP9_MAX_REF_FRAMES = 4
-} CODECHAL_DECODE_VP9_MV_REFERENCE_FRAME;
-
-//!
 //! \struct _CODECHAL_DECODE_VP9_PROB_UPDATE
 //! \brief  Define variables for VP9 decode probabilty updated
 //!

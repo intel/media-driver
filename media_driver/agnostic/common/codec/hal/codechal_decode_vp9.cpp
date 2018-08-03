@@ -27,7 +27,6 @@
 
 #include "codechal_decoder.h"
 #include "codechal_secure_decode.h"
-#include "codechal_cenc_decode.h"
 #include "codechal_decode_vp9.h"
 #include "codechal_mmc_decode_vp9.h"
 #if USE_CODECHAL_DEBUG_TOOL
@@ -1186,7 +1185,7 @@ MOS_STATUS CodechalDecodeVp9::SetFrameStates ()
     PCODEC_REF_LIST destEntry = m_vp9RefList[m_vp9PicParams->CurrPic.FrameIdx];
 
     // Clear FilterLevel Array inside segment data when filter_level inside picparam is zero
-    if (m_cencDecoder == nullptr)
+    if (m_cencBuf == nullptr)
     {
         MOS_ZeroMemory(destEntry, sizeof(CODEC_REF_LIST));
         // Clear FilterLevel Array inside segment data when filter_level inside picparam is zero
@@ -1723,7 +1722,7 @@ MOS_STATUS CodechalDecodeVp9 :: DecodePrimitiveLevel()
         &cmdBuffer,
         0));
 
-    if (m_cencDecoder == nullptr)
+    if (m_cencBuf == nullptr)
     {
         MHW_VDBOX_HCP_BSD_PARAMS bsdParams;
         MOS_ZeroMemory(&bsdParams, sizeof(bsdParams));
