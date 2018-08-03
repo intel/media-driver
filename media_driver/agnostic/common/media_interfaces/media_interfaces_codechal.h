@@ -31,7 +31,6 @@
 
 #include "codechal.h"
 #include "codechal_hw.h"
-#include "codechal_cenc_decode.h"
 
 //!
 //! \class    CodechalDevice

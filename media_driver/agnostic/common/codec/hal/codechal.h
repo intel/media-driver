@@ -48,8 +48,6 @@ class CodechalSetting;
 // Forward Declarations
 class USERMODE_DEVICE_CONTEXT;
 
-class CodechalCencDecode;
-
 #if (_DEBUG || _RELEASE_INTERNAL)
 
 #define CODECHAL_UPDATE_ENCODE_MMC_USER_FEATURE(surface)                                                           \
@@ -308,12 +306,6 @@ public:
     virtual void Destroy();
 
     //!
-    //! \brief  Set cenc decode
-    //! \return No return
-    //!
-    void SetCencDecode(CodechalCencDecode *  cencDecoder) { m_cencDecoder = cencDecoder; }
-
-    //!
     //! \brief    Gets hardware interface.
     //! \return   CodechalHwInterface
     //!           return hardware interface
@@ -352,12 +344,6 @@ protected:
     //! \brief    Interface used for debug dumps in GetStatusReport.
     //! \details  This interface is only valid for release internal and debug builds.
     CodechalDebugInterface  *m_statusReportDebugInterface   = nullptr;
-
-    /*! \brief CENC interface used by Huc, such as 2nd level BB, extra surface to eStatus register.
-    *
-    *   The decypt interface is only valid for a particular codec standard/funciton/mode combination and may not be re-used for something else. If pDecoder is valid, pEncoder should be nullptr.
-    */
-    CodechalCencDecode      *m_cencDecoder      = nullptr;
 
     //! \brief    Indicates whether or not using null hardware
     bool                    m_useNullHw[MOS_GPU_CONTEXT_MAX] = { false };

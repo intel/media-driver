@@ -29,7 +29,6 @@
 #include "codechal_decode_sfc_avc.h"
 #include "codechal_mmc_decode_avc.h"
 #include "codechal_secure_decode.h"
-#include "codechal_cenc_decode.h"
 #if USE_CODECHAL_DEBUG_TOOL
 #include "codechal_debug.h"
 #endif
@@ -1482,7 +1481,7 @@ MOS_STATUS CodechalDecodeAvc::DecodeStateLevel()
     PIC_MHW_PARAMS picMhwParams;
     CODECHAL_DECODE_CHK_STATUS_RETURN(InitPicMhwParams(&picMhwParams));
 
-    if (m_cencDecoder && m_cencDecoder->IsCheckStatusReportNeeded())
+    if (m_cencBuf && m_cencBuf->checkStatusRequired)
     {
         CODECHAL_DECODE_COND_ASSERTMESSAGE((m_vdboxIndex > m_hwInterface->GetMfxInterface()->GetMaxVdboxIndex()), "ERROR - vdbox index exceed the maximum");
         auto mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
@@ -1490,7 +1489,7 @@ MOS_STATUS CodechalDecodeAvc::DecodeStateLevel()
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_hwInterface->GetCpInterface()->CheckStatusReportNum(
             mmioRegisters, 
             m_cencBuf->bufIdx,
-            m_cencDecoder->GetStatusReportResource(), 
+            m_cencBuf->resStatus,
             &cmdBuffer));
     }
 

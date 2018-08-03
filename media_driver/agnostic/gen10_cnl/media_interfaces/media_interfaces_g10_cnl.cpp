@@ -25,7 +25,6 @@
 //!
 
 #include "media_interfaces_g10_cnl.h"
-#include "codechal_cenc_decode.h"
 #include "codechal_encoder_base.h"
 #include "codechal_vdenc_hevc_g10.h"
 #ifndef _FULL_OPEN_SOURCE

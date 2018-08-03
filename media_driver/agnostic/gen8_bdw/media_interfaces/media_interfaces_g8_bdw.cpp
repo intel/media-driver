@@ -25,8 +25,6 @@
 //!
 
 #include "media_interfaces_g8_bdw.h"
-
-#include "codechal_cenc_decode.h"
 #include "igcodeckrn_g8.h"
 
 #ifdef _HYBRID_HEVC_DECODE_SUPPORTED

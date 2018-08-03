@@ -41,6 +41,24 @@
 #define CODECHAL_HEVC_MIN_LCU               16
 #define CODECHAL_HEVC_MAX_DIM_FOR_MIN_LCU   4222
 
+const uint8_t CODECHAL_DECODE_HEVC_Qmatrix_Scan_4x4[16] = { 0, 4, 1, 8, 5, 2, 12, 9, 6, 3, 13, 10, 7, 14, 11, 15 };
+const uint8_t CODECHAL_DECODE_HEVC_Qmatrix_Scan_8x8[64] =
+{ 0, 8, 1, 16, 9, 2, 24, 17, 10, 3, 32, 25, 18, 11, 4, 40,
+33, 26, 19, 12, 5, 48, 41, 34, 27, 20, 13, 6, 56, 49, 42, 35,
+28, 21, 14, 7, 57, 50, 43, 36, 29, 22, 15, 58, 51, 44, 37, 30,
+23, 59, 52, 45, 38, 31, 60, 53, 46, 39, 61, 54, 47, 62, 55, 63 };
+const uint8_t CODECHAL_DECODE_HEVC_Default_4x4[16] = { 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16 };
+const uint8_t CODECHAL_DECODE_HEVC_Default_8x8_Intra[64] =
+{ 16, 16, 16, 16, 17, 18, 21, 24, 16, 16, 16, 16, 17, 19, 22, 25,
+16, 16, 17, 18, 20, 22, 25, 29, 16, 16, 18, 21, 24, 27, 31, 36,
+17, 17, 20, 24, 30, 35, 41, 47, 18, 19, 22, 27, 35, 44, 54, 65,
+21, 22, 25, 31, 41, 54, 70, 88, 24, 25, 29, 36, 47, 65, 88, 115 };
+const uint8_t CODECHAL_DECODE_HEVC_Default_8x8_Inter[64] =
+{ 16, 16, 16, 16, 17, 18, 20, 24, 16, 16, 16, 17, 18, 20, 24, 25,
+16, 16, 17, 18, 20, 24, 25, 28, 16, 17, 18, 20, 24, 25, 28, 33,
+17, 18, 20, 24, 25, 28, 33, 41, 18, 20, 24, 25, 28, 33, 41, 54,
+20, 24, 25, 28, 33, 41, 54, 71, 24, 25, 28, 33, 41, 54, 71, 91 };
+
 /*! \brief Picture-level parameters of a compressed picture for HEVC decoding.
  *
  *   Note 1: Application only pass in the first num_tile_columns_minus1 tile column widths and first num_tile_rows_minus1 tile row heights. The last width and height need to be calculated by driver from the picture dimension. Values used for data type alignement. Their values should be set to 0, and can be ignored by decoder.

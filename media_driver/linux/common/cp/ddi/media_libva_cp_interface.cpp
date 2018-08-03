@@ -182,7 +182,7 @@ bool DdiCpInterface::CheckSupportedBufferForVp(VABufferType type)
 }
 
 VAStatus DdiCpInterface::CreateCencDecode(
-    CodechalDecode              *decoder,
+    CodechalDebugInterface      *debugInterface,
     PMOS_CONTEXT                osContext,
     CodechalSetting *           settings)
 {

@@ -27,7 +27,6 @@
 
 #include "codechal_decoder.h"
 #include "codechal_secure_decode.h"
-#include "codechal_cenc_decode.h"
 #include "codechal_decode_hevc.h"
 #include "codechal_mmc_decode_hevc.h"
 #include "codechal_decode_nv12top010.h"
@@ -2136,7 +2135,7 @@ MOS_STATUS CodechalDecodeHevc::DecodePrimitiveLevel()
     // ... jump to 2nd level batch buffer.
     if ((m_shortFormatInUse &&
             m_hcpDecPhase == CodechalHcpDecodePhaseLegacyLong) ||
-        m_cencDecoder)
+        m_cencBuf)
     {
         if (m_enableSf2DmaSubmits)
         {
@@ -2525,7 +2524,7 @@ MOS_STATUS CodechalDecodeHevc::AllocateStandard (
     m_height                        = settings->height;
     m_is10BitHevc                   = (settings->lumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_10_BITS) ? true : false;
     m_chromaFormatinProfile         = settings->chromaFormat;
-    m_shortFormatInUse              = (m_cencDecoder == nullptr) && settings->shortFormatInUse;
+    m_shortFormatInUse              = settings->shortFormatInUse;
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     m_sfcState = MOS_New(CodechalHevcSfcState);

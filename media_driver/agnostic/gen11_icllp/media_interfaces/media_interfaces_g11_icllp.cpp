@@ -25,7 +25,6 @@
 //!
 
 #include "media_interfaces_g11_icllp.h"
-#include "codechal_cenc_decode.h"
 #include "codechal_encoder_base.h"
 #include "igcodeckrn_g11.h"
 

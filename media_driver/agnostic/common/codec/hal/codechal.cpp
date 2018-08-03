@@ -28,8 +28,8 @@
 #include "codechal.h"
 #include "codechal_hw.h"
 #include "codechal_debug.h"
-#include "codechal_cenc_decode.h"
 #include "mos_solo_generic.h"
+#include "codechal_setting.h"
 
 Codechal::Codechal(
     CodechalHwInterface*    hwInterface,
@@ -50,7 +50,7 @@ Codechal::Codechal(
     }
 
 #if USE_CODECHAL_DEBUG_TOOL
-    CODECHAL_DECODE_CHK_NULL_NO_STATUS_RETURN(debugInterface);
+    CODECHAL_PUBLIC_CHK_NULL_NO_STATUS_RETURN(debugInterface);
     m_debugInterface    = debugInterface;
 #endif // USE_CODECHAL_DEBUG_TOOL
 }
