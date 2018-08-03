@@ -22,7 +22,6 @@ if(NOT "${Cenc_Decode_Supported}" STREQUAL "yes")
 
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/codechal_secure_decode.h
-    ${CMAKE_CURRENT_LIST_DIR}/codechal_cenc_decode.h
 )
 
 set(HEADERS_
