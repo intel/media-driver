@@ -36,12 +36,17 @@
 #include "mos_os.h"
 
 // Maximum primary surface number in VP
-#define VP_MAX_PRIMARY_SURFS 1
+#define VP_MAX_PRIMARY_SURFS     1
 
-#define VP_MAX_PIC_WIDTH    16384
-#define VP_MAX_PIC_HEIGHT   16384
-#define VP_MIN_PIC_WIDTH    16
-#define VP_MIN_PIC_HEIGHT   16
+//For Gen8, only support max 16k-32
+#define VP_MAX_PIC_WIDTH_Gen8    16352
+#define VP_MAX_PIC_HEIGHT_Gen8   16352
+//For Gen9+ platform, supprot 16k
+#define VP_MAX_PIC_WIDTH         16384
+#define VP_MAX_PIC_HEIGHT        16384
+
+#define VP_MIN_PIC_WIDTH         16
+#define VP_MIN_PIC_HEIGHT        16
 
 // surface flag : 1 secure;  0 clear
 #if (VA_MAJOR_VERSION < 1)
