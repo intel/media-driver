@@ -4838,7 +4838,7 @@ MOS_STATUS CodechalEncHevcStateG9::InitKernelStateMbEnc()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    if (MEDIA_IS_SKU(m_hwInterface->GetSkuTable(), FtrEncodeHEVC10bit))
+    if(MEDIA_IS_SKU(m_hwInterface->GetSkuTable(), FtrEncodeHEVC10bit) && m_is10BitHevc)
     {
         m_numMbEncEncKrnStates = CODECHAL_HEVC_MBENC_NUM_KBL;
     }
