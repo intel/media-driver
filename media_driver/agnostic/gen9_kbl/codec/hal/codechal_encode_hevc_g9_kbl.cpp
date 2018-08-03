@@ -52,6 +52,8 @@ struct CODECHAL_ENC_HEVC_KERNEL_HEADER_G9_KBL
     CODECHAL_KERNEL_HEADER Hevc_LCUEnc_PB_Adv;                              //!< P/B frame Adv kernel
     CODECHAL_KERNEL_HEADER Hevc_LCUEnc_BRC_Blockcopy;                       //!< BRC blockcopy kerenel
     CODECHAL_KERNEL_HEADER Hevc_LCUEnc_DS_Combined;                         //!< Down scale and format conversion kernel
+    CODECHAL_KERNEL_HEADER HEVC_LCUEnc_P_MB;                                //!< P frame MbEnc kernel
+    CODECHAL_KERNEL_HEADER Hevc_LCUEnc_P_Adv;                               //!< P frame Adv kernel
 };
 
 //! \brief  typedef of struct CODECHAL_ENC_HEVC_KERNEL_HEADER_G9_KBL
@@ -109,7 +111,15 @@ MOS_STATUS CodechalEncHevcStateG9Kbl::GetKernelHeaderAndSize(
     }
     else if (operation == ENC_ME)
     {
-        currKrnHeader = &kernelHeaderTable->Hevc_LCUEnc_B_HME;
+        // KBL supports P frame. P HME index CODECHAL_ENCODE_ME_IDX_P is 0 and B HME index CODECHAL_ENCODE_ME_IDX_B is 1
+        if (krnStateIdx == 0)
+        {
+            currKrnHeader = &kernelHeaderTable->Hevc_LCUEnc_P_HME;
+        }
+        else
+        {
+            currKrnHeader = &kernelHeaderTable->Hevc_LCUEnc_B_HME;
+        }
     }
     else if (operation == ENC_BRC)
     {
@@ -169,6 +179,14 @@ MOS_STATUS CodechalEncHevcStateG9Kbl::GetKernelHeaderAndSize(
             currKrnHeader = &kernelHeaderTable->Hevc_LCUEnc_DS_Combined;
             break;
 
+        case CODECHAL_HEVC_MBENC_PENC:
+            currKrnHeader = &kernelHeaderTable->HEVC_LCUEnc_P_MB;
+            break;
+
+        case CODECHAL_HEVC_MBENC_ADV_P:
+            currKrnHeader = &kernelHeaderTable->Hevc_LCUEnc_P_Adv;
+            break;
+
         default:
             CODECHAL_ENCODE_ASSERTMESSAGE("Unsupported ENC mode requested");
             eStatus = MOS_STATUS_INVALID_PARAMETER;
@@ -219,6 +237,7 @@ CodechalEncHevcStateG9Kbl::CodechalEncHevcStateG9Kbl(
 {
     m_kernelBase = (uint8_t *)IGCODECKRN_G9;
     pfnGetKernelHeaderAndSize = GetKernelHeaderAndSize;
+    m_noMeKernelForPFrame = false;
 
     MOS_STATUS eStatus = InitMhw();
     if (eStatus != MOS_STATUS_SUCCESS)
