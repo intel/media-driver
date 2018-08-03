@@ -5289,6 +5289,7 @@ DdiMedia_QueryVideoProcPipelineCaps(
 
     if ((context & DDI_MEDIA_MASK_VACONTEXT_TYPE) == DDI_MEDIA_VACONTEXTID_OFFSET_DECODER)
     {
+        //Decode+SFC, go SFC path, the restriction here is the capability of SFC
         pipeline_caps->num_input_pixel_formats    = 1;
         pipeline_caps->input_pixel_format[0]      = VA_FOURCC_NV12;
         pipeline_caps->num_output_pixel_formats   = 1;
@@ -5312,12 +5313,23 @@ DdiMedia_QueryVideoProcPipelineCaps(
     }
     else if ((context & DDI_MEDIA_MASK_VACONTEXT_TYPE) == DDI_MEDIA_VACONTEXTID_OFFSET_VP)
     {
-        pipeline_caps->max_input_width            = VP_MAX_PIC_WIDTH;
-        pipeline_caps->max_input_height           = VP_MAX_PIC_HEIGHT;
+        if(mediaCtx->platform.eRenderCoreFamily <= IGFX_GEN8_CORE)
+        {
+            //Capability of Gen8- platform
+            pipeline_caps->max_input_width            = VP_MAX_PIC_WIDTH_Gen8;
+            pipeline_caps->max_input_height           = VP_MAX_PIC_HEIGHT_Gen8;
+            pipeline_caps->max_output_width           = VP_MAX_PIC_WIDTH_Gen8;
+            pipeline_caps->max_output_height          = VP_MAX_PIC_HEIGHT_Gen8;
+        }else
+        {
+            //Capability of Gen9+ platform
+            pipeline_caps->max_input_width            = VP_MAX_PIC_WIDTH;
+            pipeline_caps->max_input_height           = VP_MAX_PIC_HEIGHT;
+            pipeline_caps->max_output_width           = VP_MAX_PIC_WIDTH;
+            pipeline_caps->max_output_height          = VP_MAX_PIC_HEIGHT;
+        }
         pipeline_caps->min_input_width            = VP_MIN_PIC_WIDTH;
         pipeline_caps->min_input_height           = VP_MIN_PIC_HEIGHT;
-        pipeline_caps->max_output_width           = VP_MAX_PIC_WIDTH;
-        pipeline_caps->max_output_height          = VP_MAX_PIC_HEIGHT;
         pipeline_caps->min_output_width           = VP_MIN_PIC_WIDTH;
         pipeline_caps->min_output_height          = VP_MIN_PIC_WIDTH;
     }
