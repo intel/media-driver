@@ -366,6 +366,11 @@ MOS_STATUS CodecHalSetRcsSurfaceState(
             ((surfaceCodecParams->bUseHalfHeight) ? (surfaceCodecParams->psSurface->dwHeight / 2) : surfaceCodecParams->psSurface->dwHeight)
             : surfaceCodecParams->dwHeightInUse;
         surfaceRcsParams.dwBindingTableOffset[MHW_Y_PLANE]    = surfaceCodecParams->dwBindingTableOffset;
+        
+        CodecHalGetResourceInfo(
+               osInterface,
+               surfaceCodecParams->psSurface);
+        
         surfaceRcsParams.dwYOffset[MHW_Y_PLANE]               = surfaceCodecParams->psSurface->YPlaneOffset.iYOffset;
         surfaceRcsParams.bVertLineStride                      = surfaceCodecParams->dwVerticalLineStride;
         surfaceRcsParams.bVertLineStrideOffs                  = surfaceCodecParams->dwVerticalLineStrideOffset;
