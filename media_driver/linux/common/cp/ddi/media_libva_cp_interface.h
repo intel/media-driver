@@ -30,6 +30,7 @@
 #include "media_libva.h"
 #include "codechal_encoder_base.h"
 #include "cplib.h"
+#include "mos_os.h"
 
 typedef struct _DDI_ENCODE_STATUS_REPORT_INFO *PDDI_ENCODE_STATUS_REPORT_INFO;
 class CodechalSetting;
@@ -161,6 +162,14 @@ public:
     //! \return   [in] bool
     //!           true if hdcp2 enabled, otherwise false
     virtual bool IsHdcp2Enabled();
+
+    //! \brief    Set cp tag for an input resource
+    //! \param    [in] osInterface
+    //!           pointer of mos interface
+    //! \param    [in] resource
+    //!           pointer of the os resource
+    //! \return
+    virtual void SetInputResourceEncryption(PMOS_INTERFACE osInterface, PMOS_RESOURCE resource);
 
     //! \brief    reset cp context for vp
     //! \detail   reset cp context for ench flame.

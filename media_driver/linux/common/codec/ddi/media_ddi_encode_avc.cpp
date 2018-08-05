@@ -911,6 +911,7 @@ VAStatus DdiEncodeAvc::EncodeInCodecHal(uint32_t numSlices)
 
     DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(m_encodeCtx->pMediaCtx, "nullptr m_encodeCtx->pMediaCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(m_encodeCtx->pCpDdiInterface, "nullptr m_encodeCtx->pCpDdiInterface.", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     DDI_CODEC_RENDER_TARGET_TABLE *rtTbl     = &(m_encodeCtx->RTtbl);
 
@@ -936,6 +937,9 @@ VAStatus DdiEncodeAvc::EncodeInCodecHal(uint32_t numSlices)
     rawSurface->dwOffset = 0;
 
     DdiMedia_MediaSurfaceToMosResource(rtTbl->pCurrentRT, &(rawSurface->OsResource));
+
+    PMOS_INTERFACE osInterface = m_encodeCtx->pCodecHal->GetOsInterface();
+    m_encodeCtx->pCpDdiInterface->SetInputResourceEncryption(osInterface, &(rawSurface->OsResource));
 
     // Recon Surface
     PMOS_SURFACE reconSurface = &encodeParams->reconSurface;
