@@ -143,6 +143,11 @@ MOS_STATUS DdiCpInterface::StoreCounterToStatusReport(
     return MOS_STATUS_SUCCESS;
 }
 
+void DdiCpInterface::SetInputResourceEncryption(PMOS_INTERFACE osInterface, PMOS_RESOURCE resource)
+{
+    DdiStubMessage();
+}
+
 VAStatus DdiCpInterface::ParseCpParamsForEncode()
 {
     DdiStubMessage();
