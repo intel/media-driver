@@ -1313,7 +1313,7 @@ MOS_STATUS CodechalDecodeHevc::SetFrameStates ()
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     // Check if SFC can be supported
-    CODECHAL_DECODE_CHK_STATUS_RETURN(m_sfcState->CheckAndInitialize(m_decodeParams.m_procParams, m_hevcPicParams));
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_sfcState->CheckAndInitialize((CODECHAL_DECODE_PROCESSING_PARAMS *)m_decodeParams.m_procParams, m_hevcPicParams));
 #endif
     CODECHAL_DEBUG_TOOL(
         if (!m_incompletePicture && !m_firstExecuteCall) {

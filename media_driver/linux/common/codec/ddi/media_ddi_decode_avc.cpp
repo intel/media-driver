@@ -468,8 +468,8 @@ VAStatus DdiDecodeAVC::SetDecodeParams()
         // Bridge the SFC input with VDBOX output
     if (m_decProcessingType == VA_DEC_PROCESSING)
     {
-        PCODECHAL_DECODE_PROCESSING_PARAMS procParams = nullptr;
-        procParams                  = (&m_ddiDecodeCtx->DecodeParams)->m_procParams;
+        auto procParams = 
+            (PCODECHAL_DECODE_PROCESSING_PARAMS)m_ddiDecodeCtx->DecodeParams.m_procParams;
         procParams->pInputSurface = (&m_ddiDecodeCtx->DecodeParams)->m_destSurface;
         // codechal_decode_sfc.c expects Input Width/Height information.
         procParams->pInputSurface->dwWidth    = procParams->pInputSurface->OsResource.iWidth;
@@ -671,9 +671,8 @@ CleanUpandReturn:
 #ifdef _DECODE_PROCESSING_SUPPORTED
     if (m_ddiDecodeCtx->DecodeParams.m_procParams)
     {
-        PCODECHAL_DECODE_PROCESSING_PARAMS procParams;
-
-        procParams = m_ddiDecodeCtx->DecodeParams.m_procParams;
+        auto procParams = 
+            (PCODECHAL_DECODE_PROCESSING_PARAMS)m_ddiDecodeCtx->DecodeParams.m_procParams;
         MOS_FreeMemory(procParams->pOutputSurface);
 
         MOS_FreeMemory(m_ddiDecodeCtx->DecodeParams.m_procParams);
