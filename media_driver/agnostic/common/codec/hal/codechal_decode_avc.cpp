@@ -1206,7 +1206,7 @@ MOS_STATUS CodechalDecodeAvc::SetFrameStates()
         m_perfType = MIXED_TYPE;
     }
 #ifdef _DECODE_PROCESSING_SUPPORTED
-    CODECHAL_DECODE_PROCESSING_PARAMS *decProcessingParams = m_decodeParams.m_procParams;
+    auto decProcessingParams = (CODECHAL_DECODE_PROCESSING_PARAMS *)m_decodeParams.m_procParams;
     if (decProcessingParams != nullptr)
     {
         CODECHAL_DECODE_CHK_NULL_RETURN(m_fieldScalingInterface);
@@ -1808,7 +1808,7 @@ MOS_STATUS CodechalDecodeAvc::DecodePrimitiveLevel()
         m_mmc->UpdateUserFeatureKey(&m_destSurface);)
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
-    CODECHAL_DECODE_PROCESSING_PARAMS *decProcessingParams = m_decodeParams.m_procParams;
+    auto decProcessingParams = (CODECHAL_DECODE_PROCESSING_PARAMS *)m_decodeParams.m_procParams;
     if (decProcessingParams != nullptr && !m_sfcState->m_sfcPipeOut && (m_isSecondField || m_avcPicParams->seq_fields.mb_adaptive_frame_field_flag))
     {
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_fieldScalingInterface->DoFieldScaling(

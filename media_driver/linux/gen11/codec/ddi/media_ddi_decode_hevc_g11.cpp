@@ -860,9 +860,8 @@ CleanUpandReturn:
 #ifdef _DECODE_PROCESSING_SUPPORTED
     if (m_ddiDecodeCtx->DecodeParams.m_procParams)
     {
-        PCODECHAL_DECODE_PROCESSING_PARAMS procParams;
-        
-        procParams = m_ddiDecodeCtx->DecodeParams.m_procParams;
+        auto procParams =
+            (PCODECHAL_DECODE_PROCESSING_PARAMS)m_ddiDecodeCtx->DecodeParams.m_procParams;
         MOS_FreeMemory(procParams->pOutputSurface);
         
         MOS_FreeMemory(m_ddiDecodeCtx->DecodeParams.m_procParams);

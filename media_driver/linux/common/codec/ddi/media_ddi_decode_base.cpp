@@ -89,12 +89,10 @@ VAStatus DdiMediaDecode::ParseProcessingBuffer(
 
     if (m_decProcessingType == VA_DEC_PROCESSING)
     {
-        PCODECHAL_DECODE_PROCESSING_PARAMS decProcessingParams;
-        PMOS_SURFACE                       decProcessingSurface;
+        auto decProcessingParams =
+            (PCODECHAL_DECODE_PROCESSING_PARAMS)m_ddiDecodeCtx->DecodeParams.m_procParams;
 
-        decProcessingParams = m_ddiDecodeCtx->DecodeParams.m_procParams;
-
-        decProcessingSurface = decProcessingParams->pOutputSurface;
+        auto decProcessingSurface = decProcessingParams->pOutputSurface;
 
         memset(decProcessingSurface, 0, sizeof(MOS_SURFACE));
 
@@ -362,9 +360,8 @@ void DdiMediaDecode::DestroyContext(VADriverContextP ctx)
 #ifdef _DECODE_PROCESSING_SUPPORTED
     if (m_ddiDecodeCtx->DecodeParams.m_procParams != nullptr)
     {
-        PCODECHAL_DECODE_PROCESSING_PARAMS procParams;
-
-        procParams = m_ddiDecodeCtx->DecodeParams.m_procParams;
+        auto procParams =
+            (PCODECHAL_DECODE_PROCESSING_PARAMS)m_ddiDecodeCtx->DecodeParams.m_procParams;
         MOS_FreeMemory(procParams->pOutputSurface);
         procParams->pOutputSurface = nullptr;
 
