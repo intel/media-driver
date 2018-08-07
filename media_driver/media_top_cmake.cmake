@@ -20,11 +20,23 @@
 
 project( media )
 
+find_package(PkgConfig)
+
 bs_set_if_undefined(LIB_NAME iHD_drv_video)
 
 option (MEDIA_RUN_TEST_SUITE "run google test module after install" ON) 
 include(${MEDIA_DRIVER_CMAKE}/media_gen_flags.cmake)
 include(${MEDIA_DRIVER_CMAKE}/media_feature_flags.cmake)
+
+# checking dependencies
+pkg_check_modules(LIBGMM igdgmm)
+
+if(LIBGMM_FOUND)
+    include_directories(BEFORE ${LIBGMM_INCLUDE_DIRS})
+    # link_directories() should appear before add_library and the like
+    # otherwise it will not take effect
+    link_directories(${LIBGMM_LIBRARY_DIRS})
+endif()
 
 message("-- media -- PLATFORM = ${PLATFORM}")
 message("-- media -- ARCH = ${ARCH}")
@@ -75,7 +87,6 @@ set_target_properties(${LIB_NAME_STATIC} PROPERTIES PREFIX "")
 
 MediaAddCommonTargetDefines(${LIB_NAME_OBJ})
 
-include (FindPkgConfig)
 pkg_check_modules (PKG_PCIACCESS REQUIRED pciaccess)
 include_directories (BEFORE ${PKG_PCIACCESS_INCLUDE_DIRS})
 link_directories (${PKG_PCIACCESS_LIBRARY_DIRS})
@@ -88,17 +99,24 @@ bs_ufo_link_libraries_noBsymbolic(
 
 if (NOT DEFINED INCLUDED_LIBS OR "${INCLUDED_LIBS}" STREQUAL "")
     # dep libs (gmmlib for now) can be passed through INCLUDED_LIBS, but if not, we need try to setup dep through including dep projects
-    if (NOT TARGET gmm_umd)
-        add_subdirectory("${BS_DIR_GMMLIB}" "${CMAKE_BINARY_DIR}/gmmlib")
+    if(NOT LIBGMM_FOUND)
+        # If we failed to setup dependency from gmmlib via pkg-config we will try to
+        # add gmmlib as a target from sources. We need to do this here, after
+        # add_library() for iHD driver since gmmlib needs this information.
+        if (NOT TARGET igfx_gmmumd_dll)
+            add_subdirectory("${BS_DIR_GMMLIB}" "${CMAKE_BINARY_DIR}/gmmlib")
+        endif()
+        if (NOT TARGET igfx_gmmumd_dll)
+            message(FATAL_ERROR "gmm library not found on the system")
+        endif()
+        set(LIBGMM_CFLAGS_OTHER -DGMM_LIB_DLL)
+        set(LIBGMM_LIBRARIES igfx_gmmumd_dll)
     endif()
 
-    if (TARGET gmm_umd)
-        target_link_libraries ( ${LIB_NAME}
-            gmm_umd
-        )
-    endif()
+    target_compile_options( ${LIB_NAME} PUBLIC ${LIBGMM_CFLAGS_OTHER})
+    target_link_libraries ( ${LIB_NAME} ${LIBGMM_LIBRARIES})
 
-include(${MEDIA_DRIVER_CMAKE}/ext/media_feature_include_ext.cmake OPTIONAL)
+    include(${MEDIA_DRIVER_CMAKE}/ext/media_feature_include_ext.cmake OPTIONAL)
 
 endif(NOT DEFINED INCLUDED_LIBS OR "${INCLUDED_LIBS}" STREQUAL "")
 
