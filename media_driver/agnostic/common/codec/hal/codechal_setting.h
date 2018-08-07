@@ -28,7 +28,7 @@
 
 #include "codec_def_common.h"
 //!
-//! \class  CodechalSettingExt 
+//! \class  CodechalSetting 
 //! \brief  Settings used to finalize the creation of the CodecHal device 
 //!
 class CodechalSetting
@@ -59,7 +59,7 @@ public:
 
     bool                    disableUltraHME = false;       //!< Applies currently to HEVC VDEnc only to disable UHME
     bool                    disableSuperHME = false;       //!< Applies currently to HEVC VDEnc only to disable SHME
-
+    void                    *cpParams = nullptr;           //!< CP params
     //!
     //! \brief    Destructor 
     //!
@@ -68,7 +68,17 @@ public:
     //!
     //! \brief    Return the pointer to CP parameters 
     //!
-    virtual void *GetCpParams();
+    void *GetCpParams() { return cpParams; };
+
+    //!
+    //! \brief    Return the indicate if cenc advance is used or not 
+    //!
+    virtual bool CheckCencAdvance() {return false; };
+
+    //!
+    //! \brief    Return the decode enc type 
+    //!
+    virtual uint32_t DecodeEncType() {return 0; };
 
     //!
     //! \brief    Create CodechalSetting instance 
