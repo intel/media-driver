@@ -417,6 +417,12 @@ public:
         PMHW_VDBOX_SURFACE_PARAMS            params,
         uint8_t                              numSurfaces) = 0;
 
+    virtual MOS_STATUS AddVdencCostStateCmd(
+        PMHW_BATCH_BUFFER batchBuffer)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
     //!
     //! \brief    Adds VDENC AVC Image State command in command buffer
     //! \details  Client facing function to add VDENC AVC Image State command in command buffer
@@ -493,6 +499,12 @@ public:
         PMOS_COMMAND_BUFFER                     cmdBuffer,
         PMHW_BATCH_BUFFER                       batchBuffer,
         PMHW_VDBOX_VDENC_WEIGHT_OFFSET_PARAMS   params) = 0;
+
+    virtual MOS_STATUS AddVdencSliceStateCmd(
+        PMOS_COMMAND_BUFFER cmdBuffer)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
 
     //!
     //! \brief    Adds CMD1 command in command buffer
