@@ -2498,9 +2498,7 @@ bool MediaLibvaCaps::IsVp9Profile(VAProfile profile)
 {
     return (
             (profile == VAProfileVP9Profile0) ||
-            (profile == VAProfileVP9Profile2) ||
-            (profile == VAProfileVP9Profile1) ||
-            (profile == VAProfileVP9Profile3)
+            (profile == VAProfileVP9Profile2)
             );
 }
 
