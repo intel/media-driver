@@ -805,8 +805,8 @@ VAStatus MediaLibvaCaps::CreateDecAttributes(
             attrib.value |= VA_DEC_SLICE_MODE_NORMAL;
             vp9ProfileSupported = true;
         }
-        if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelVP9VLDProfile2Decodingfor12bit420)
-            || MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelVP9VLDProfile3Decodingfor12bit444))
+        if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelVP9VLDProfile2Decoding12bit420)
+            || MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelVP9VLDProfile3Decoding12bit444))
         {
             attrib.value |= VA_DEC_SLICE_MODE_NORMAL;
             vp9ProfileSupported = true;
@@ -1240,7 +1240,7 @@ VAStatus MediaLibvaCaps::LoadVp9DecProfileEntrypoints()
     }
 
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrVP9VLD10bProfile2Decoding)
-            || MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelVP9VLDProfile2Decodingfor12bit420))
+            || MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelVP9VLDProfile2Decoding12bit420))
         {
             status = CreateDecAttributes(VAProfileVP9Profile2, VAEntrypointVLD, &attributeList);
             DDI_CHK_RET(status, "Failed to initialize Caps!");
@@ -1308,7 +1308,7 @@ VAStatus MediaLibvaCaps::LoadVp9DecProfileEntrypoints()
         }
 
         if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelVP9VLDProfile3Decoding10bit444)
-                || MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelVP9VLDProfile3Decodingfor12bit444))
+                || MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelVP9VLDProfile3Decoding12bit444))
         {
             status = CreateDecAttributes(VAProfileVP9Profile3, VAEntrypointVLD, &attributeList);
             DDI_CHK_RET(status, "Failed to initialize Caps!");
