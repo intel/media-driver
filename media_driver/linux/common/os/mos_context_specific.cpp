@@ -505,7 +505,7 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
     MOS_SecureMemcpy(&m_perfData, sizeof(PERF_DATA), pOsDriverContext->pPerfData, sizeof(PERF_DATA));
     mos_bufmgr_gem_enable_reuse(pOsDriverContext->bufmgr);
     m_cpContext = pOsDriverContext->pCpContext;
-    m_pGmmClientContext = GmmCreateClientContext((GMM_CLIENT)GMM_LIBVA_LINUX);
+    m_pGmmClientContext = pOsDriverContext->pGmmClientContext;
     m_auxTableMgr = pOsDriverContext->m_auxTableMgr;
 
     // DDI layer can pass over the DeviceID.
@@ -656,7 +656,6 @@ void OsContextSpecific::Destroy()
     {
         mos_gem_context_destroy(m_intelContext);
     }
-    GmmDeleteClientContext(m_pGmmClientContext);
     SetOsContextValid(false);
 }
 
