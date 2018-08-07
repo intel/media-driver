@@ -506,6 +506,7 @@ typedef struct _CODEC_HEVC_ENCODE_PICTURE_PARAMS
     *    \n For B1 and B2 explanation refer to NumOfBInGop[]
     */
     uint8_t                 CodingType;
+    uint8_t                 FrameLevel;
     uint16_t                NumSlices;
 
     union
