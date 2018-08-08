@@ -793,6 +793,9 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
     surfaceCodecParams.bForceChromaFormat         = true;
     surfaceCodecParams.ChromaType                 = MHW_GFX3DSTATE_SURFACEFORMAT_R8G8_UNORM;
 
+    PMOS_INTERFACE osInterface = m_osInterface;
+    CodecHalGetResourceInfo(osInterface,surfaceCodecParams.psSurface);
+    
 #ifdef _MMC_SUPPORTED
     if (m_mmcState)
     {
@@ -841,6 +844,7 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
     }
 #endif
 
+    CodecHalGetResourceInfo(osInterface,surfaceCodecParams.psSurface);
     CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         &cmdBuffer,
