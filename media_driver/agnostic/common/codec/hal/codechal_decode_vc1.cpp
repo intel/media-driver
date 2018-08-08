@@ -3645,6 +3645,29 @@ MOS_STATUS CodechalDecodeVc1::DecodePrimitiveLevelVLD()
             int32_t length = slc->slice_data_size >> 3;
             int32_t offset = slc->macroblock_offset >> 3;
 
+            CodechalResLock ResourceLock(m_osInterface, &m_resDataBuffer);
+            auto buf = (uint8_t*)ResourceLock.Lock(CodechalResLock::readOnly);
+            if (offset >= 1 && buf != nullptr &&
+                m_vc1PicParams->sequence_fields.AdvancedProfileFlag)
+            {
+                int i = 0;
+                int j = 0;
+                for ( i = 0, j = 0; i < offset - 1; i++, j++)
+                    if (!buf[j] && !buf[j + 1] && buf[j + 2] == 3 && buf[j + 3] < 4)
+                        i++, j += 2;
+
+                if (i == offset - 1) {
+                    if (!buf[j] && !buf[j + 1] && buf[j + 2] == 3 && buf[j + 3] < 4) {
+                        buf[j + 2] = 0;
+                        j++;
+                    }
+
+                    j++;
+                }
+
+                offset = (8 * j + slc->macroblock_offset % 8)>>3;
+            }
+
             // Check that the slice data does not overrun the bitstream buffer size
             if (((uintptr_t)(slc->slice_data_offset) + length) > m_dataSize)
             {
