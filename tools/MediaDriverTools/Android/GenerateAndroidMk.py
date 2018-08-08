@@ -35,7 +35,7 @@ import os.path as path
 import re
 
 INDENT = "    "
-TOOL_DIR = "Tools/MediaDriverTools/Android/"
+TOOL_DIR = "tools/MediaDriverTools/Android/"
 TEMPLATE_DIR = path.join(TOOL_DIR, "mk")
 
 
