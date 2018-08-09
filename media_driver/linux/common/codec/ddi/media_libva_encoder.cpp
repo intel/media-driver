@@ -299,10 +299,21 @@ VAStatus DdiEncode_CreateContext(
         encCtx->bVdencActive  = true;
     }
 
-    //Both dual pipe and LP pipe should support 10bit for HEVCMain10 profile
-    if (profile == VAProfileHEVCMain10)
+    //Both dual pipe and LP pipe should support 10bit for below profiles
+    // - HEVCMain10 profile
+    // - VAProfileVP9Profile2
+    // - VAProfileVP9Profile3
+    if (profile == VAProfileHEVCMain10 ||
+        profile == VAProfileVP9Profile2 ||
+        profile == VAProfileVP9Profile3)
     {
         encCtx->m_encode->m_is10Bit = true;
+    }
+
+    if (profile == VAProfileVP9Profile1 ||
+        profile == VAProfileVP9Profile3)
+    {
+        encCtx->m_encode->m_chromaFormat = DdiEncodeBase::yuv444;
     }
 
     CODECHAL_STANDARD_INFO standardInfo;

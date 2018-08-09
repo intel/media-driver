@@ -41,9 +41,39 @@ public:
     //!
     MediaLibvaCapsG11(DDI_MEDIA_CONTEXT *mediaCtx) : MediaLibvaCaps(mediaCtx)
     {
-        LoadProfileEntrypoints();
+        // ICL supported Encode format
+        static struct EncodeFormatTable encodeFormatTableICL[] =
+        {
+            {AVC, DualPipe, VA_RT_FORMAT_YUV420},
+            {AVC, Vdenc, VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV444},
+            {HEVC, DualPipe, VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV420_10BPP},
+            {HEVC, Vdenc, VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV420_10BPP | VA_RT_FORMAT_YUV444 | VA_RT_FORMAT_YUV444_10 | VA_RT_FORMAT_RGB32 | VA_RT_FORMAT_RGB32_10BPP},
+            {VP9, Vdenc, VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV420_10BPP | VA_RT_FORMAT_YUV444 | VA_RT_FORMAT_YUV444_10 | VA_RT_FORMAT_RGB32 | VA_RT_FORMAT_RGB32_10BPP},
+        };
+        m_encodeFormatTable = (struct EncodeFormatTable*)(&encodeFormatTableICL[0]);
+        m_encodeFormatCount = sizeof(encodeFormatTableICL)/sizeof(struct EncodeFormatTable);
+
         return;
     }
+
+    //!
+    virtual VAStatus Init()
+    {
+        return LoadProfileEntrypoints();
+    }
+
+    //!
+    //! \brief    Return internal encode mode for given profile and entrypoint 
+    //!
+    //! \param    [in] profile 
+    //!           Specify the VAProfile 
+    //!
+    //! \param    [in] entrypoint 
+    //!           Specify the VAEntrypoint 
+    //!
+    //! \return   Codehal mode 
+    //!
+    CODECHAL_MODE GetEncodeCodecMode(VAProfile profile, VAEntrypoint entrypoint) override;
 
     //!
     //! \brief    Return the decode codec key for given profile 
@@ -56,6 +86,19 @@ public:
     virtual std::string GetDecodeCodecKey(VAProfile profile) override;
 
     //!
+    //! \brief    Return the encode codec key for given profile and entrypoint 
+    //!
+    //! \param    [in] profile 
+    //!           Specify the VAProfile 
+    //!
+    //! \param    [in] entrypoint 
+    //!           Specify the entrypoint 
+    //!
+    //! \return   Std::string encode codec key 
+    //!
+    std::string GetEncodeCodecKey(VAProfile profile, VAEntrypoint entrypoint) override;
+
+    //!
     //! \brief convert Media Format to Gmm Format for GmmResCreate parameter.
     //!
     //! \param    [in] format
@@ -66,11 +109,38 @@ public:
     //!
     virtual GMM_RESOURCE_FORMAT ConvertMediaFmtToGmmFmt(DDI_MEDIA_FORMAT format) override;
 
+    //!
+    //! \brief    Get surface attributes for a given config ID 
+    //!
+    //! \param    [in] configId 
+    //!           VA configuration
+    //!
+    //! \param    [in,out] attribList 
+    //!           Pointer to VASurfaceAttrib array. It returns
+    //!           the supported  surface attributes 
+    //!
+    //! \param    [in,out] numAttribs 
+    //!           The number of elements allocated on input
+    //!           Return the number of elements actually filled in output 
+    //!
+    //! \return   VAStatus 
+    //!           VA_STATUS_SUCCESS if success
+    //!           VA_STATUS_ERROR_MAX_NUM_EXCEEDED if size of attribList is too small
+    //!
+    VAStatus QuerySurfaceAttributes(
+            VAConfigID configId,
+            VASurfaceAttrib *attribList,
+            uint32_t *numAttribs)                                                override;
+
 protected:
     static const uint32_t m_maxHevcEncWidth =
         CODEC_8K_MAX_PIC_WIDTH; //!< maxinum width for HEVC encode
     static const uint32_t m_maxHevcEncHeight =
         CODEC_8K_MAX_PIC_HEIGHT; //!< maxinum height for HEVC encode
+    static const uint32_t m_maxVp9EncWidth =
+        CODEC_8K_MAX_PIC_WIDTH; //!< maxinum width for VP9 encode
+    static const uint32_t m_maxVp9EncHeight =
+        CODEC_8K_MAX_PIC_HEIGHT; //!< maxinum height for VP9 encode
 
     virtual VAStatus GetPlatformSpecificAttrib(VAProfile profile,
             VAEntrypoint entrypoint,

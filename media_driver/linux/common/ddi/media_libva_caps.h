@@ -466,7 +466,7 @@ public:
     //!
     //! \return   Codehal mode 
     //!
-    CODECHAL_MODE GetEncodeCodecMode(VAProfile profile, VAEntrypoint entrypoint);
+    virtual CODECHAL_MODE GetEncodeCodecMode(VAProfile profile, VAEntrypoint entrypoint);
 
     //!
     //! \brief    Return internal decode mode for given profile 
@@ -499,7 +499,7 @@ public:
     //!
     //! \return   Std::string encode codec key 
     //!
-    std::string GetEncodeCodecKey(VAProfile profile, VAEntrypoint entrypoint);
+    virtual std::string GetEncodeCodecKey(VAProfile profile, VAEntrypoint entrypoint);
 
     //!
     //! \brief    Query the suppported image formats 
