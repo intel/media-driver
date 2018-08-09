@@ -409,12 +409,6 @@ enum CM_QUEUE_TYPE
     CM_QUEUE_TYPE_VEBOX = 3
 };
 
-enum CM_QUEUE_SSEU_USAGE_HINT_TYPE
-{
-    CM_QUEUE_SSEU_USAGE_HINT_DEFAULT = 0,
-    CM_QUEUE_SSEU_USAGE_HINT_VME  = 1
-};
-
 struct CM_QUEUE_CREATE_OPTION
 {
     CM_QUEUE_TYPE QueueType : 3;
@@ -422,11 +416,10 @@ struct CM_QUEUE_CREATE_OPTION
     unsigned int Reserved0  : 3;
     bool UserGPUContext     : 1;
     unsigned int GPUContext : 8; // user provided GPU CONTEXT in enum MOS_GPU_CONTEXT, this will override CM_QUEUE_TYPE if set
-    CM_QUEUE_SSEU_USAGE_HINT_TYPE SseuUsageHint : 3;
-    unsigned int Reserved2  : 13;
+    unsigned int Reserved2  : 16;
 };
 
-const CM_QUEUE_CREATE_OPTION CM_DEFAULT_QUEUE_CREATE_OPTION = { CM_QUEUE_TYPE_RENDER, false, 0, false, 0, CM_QUEUE_SSEU_USAGE_HINT_DEFAULT, 0 };
+const CM_QUEUE_CREATE_OPTION CM_DEFAULT_QUEUE_CREATE_OPTION = { CM_QUEUE_TYPE_RENDER, false, 0, 0, 0, 0 };
 
 //------------------------------------------------------------------------------
 //|GT-PIN
