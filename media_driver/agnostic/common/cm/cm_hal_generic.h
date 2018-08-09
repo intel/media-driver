@@ -154,8 +154,7 @@ public:
 
     CM_HAL_GENERIC(PCM_HAL_STATE cmState):
         m_cmState(cmState),
-        m_requestShutdownSubslicesForVmeUsage(false),
-        m_overridePowerOptionPerGpuContext(false) {};
+        m_sliceShutdownEnabled(false) {};
 
     virtual ~CM_HAL_GENERIC(){};
 
@@ -385,18 +384,18 @@ public:
     //! \brief    enable or disable the slice downdown feature
     //! \param    [in]  enabled
     //!           true: enable slice shutdown; false: disable slice shutdown
-    virtual void SetRequestShutdownSubslicesForVmeUsage(bool enabled)
+    virtual void EnableSliceShutdown(bool enabled)
     {
-        m_requestShutdownSubslicesForVmeUsage = enabled;
+        m_sliceShutdownEnabled = enabled;
     }
 
     //!
     //! \brief    return whether the slice downdown feature is enabled
     //! \return   bool
     //!           true: slice shutdown enabled; false: slice shutdown disabled
-    virtual bool IsRequestShutdownSubslicesForVmeUsage()
+    virtual bool IsSliceShutdownEnabled()
     {
-        return m_requestShutdownSubslicesForVmeUsage;
+        return m_sliceShutdownEnabled;
     }
 
     //!
@@ -586,31 +585,12 @@ public:
     //!
     virtual uint64_t ConverTicksToNanoSecondsDefault(uint64_t ticks) = 0;
 
-    //!
-    //! \brief    enable or disable the power option per GPU context
-    //! \param    [in]  enabled
-    //!           true: enable per GPU context; false: disable per Batch command
-    virtual void SetOverridePowerOptionPerGpuContext(bool enabled)
-    {
-        m_overridePowerOptionPerGpuContext = enabled;
-    }
-
-    //!
-    //! \brief    return whether the power option per GPU context is enabled
-    //! \return   bool
-    //!           true: enable per GPU context; false: disable per Batch command
-    virtual bool IsOverridePowerOptionPerGpuContext()
-    {
-        return m_overridePowerOptionPerGpuContext;
-    }
-
 protected:
     uint32_t m_platformID;
     uint32_t m_genGT;
     const char *m_platformStr;
     std::vector<uint32_t> m_cisaGenIDs;
-    bool m_requestShutdownSubslicesForVmeUsage;
-    bool m_overridePowerOptionPerGpuContext;
+    bool m_sliceShutdownEnabled;
 };
 
 #endif  // #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMHALGENERIC_H_

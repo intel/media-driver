@@ -31,7 +31,6 @@ struct CM_CREATEQUEUE_PARAM
     unsigned int cmQueueType;   // [in]
     bool cmRunAloneMode;        // [in]
     unsigned int cmGPUContext;  // [in]
-    unsigned int cmSSEUUsageHint; // [in]
     void *cmQueueHandle;        // [out]
     int32_t returnValue;        // [out]
 };
@@ -155,7 +154,6 @@ int32_t CmQueue_RT::Initialize(CM_QUEUE_CREATE_OPTION queueCreateOption)
     inParam.cmQueueType = queueCreateOption.QueueType;
     inParam.cmRunAloneMode = queueCreateOption.RunAloneMode;
     inParam.cmGPUContext = CM_DEFAULT_QUEUE_CREATE_OPTION.Reserved1;
-    inParam.cmSSEUUsageHint = queueCreateOption.SseuUsageHint;
 
     int32_t hr = m_cmDev->OSALExtensionExecute(CM_FN_CMDEVICE_CREATEQUEUE,
                                                 &inParam, sizeof(inParam));
