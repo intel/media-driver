@@ -169,6 +169,8 @@ int32_t CmQueueRT::Initialize()
     PCM_HAL_STATE cmHalState = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
     CM_HAL_MAX_VALUES_EX* halMaxValuesEx = nullptr;
     CM_RETURN_CODE hr = CM_SUCCESS;
+    MOS_GPUCTX_CREATOPTIONS createOption;
+    
     m_device->GetHalMaxValues(m_halMaxValues, halMaxValuesEx);
 
     // Creates or gets GPU Context for the test
@@ -187,12 +189,62 @@ int32_t CmQueueRT::Initialize()
         // Create MDF preset GPU context, update GPUContext in m_queueOption
         if (m_queueOption.QueueType == CM_QUEUE_TYPE_RENDER)
         {
-            CHK_MOSSTATUS_RETURN_CMERROR(cmHalState->pfnCreateGPUContext(cmHalState, cmHalState->gpuContext, MOS_GPU_NODE_3D));
+            // command buffer number
+            createOption.CmdBufferNumScale = HalCm_GetNumCmdBuffers(cmHalState->osInterface, cmHalState->cmDeviceParam.maxTasks);
+
+            // SSEU overriding
+            if (cmHalState->cmHalInterface->IsOverridePowerOptionPerGpuContext())
+            {
+                // checking if need shutdown sub-slices for VME usage
+                if (m_queueOption.SseuUsageHint == CM_QUEUE_SSEU_USAGE_HINT_VME
+                 && cmHalState->cmHalInterface->IsRequestShutdownSubslicesForVmeUsage())
+                {
+                    MEDIA_SYSTEM_INFO *gtSystemInfo = cmHalState->osInterface->pfnGetGtSystemInfo(cmHalState->osInterface);
+                    createOption.packed.SliceCount    = (uint8_t)gtSystemInfo->SliceCount;
+                    createOption.packed.SubSliceCount = (gtSystemInfo->SubSliceCount / gtSystemInfo->SliceCount) >> 1; // set to half
+                    createOption.packed.MaxEUcountPerSubSlice = gtSystemInfo->EUCount/gtSystemInfo->SubSliceCount;
+                    createOption.packed.MinEUcountPerSubSlice = gtSystemInfo->EUCount/gtSystemInfo->SubSliceCount;
+                }
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+                MOS_USER_FEATURE_VALUE_DATA UserFeatureData = {0};
+                MOS_UserFeature_ReadValue_ID(
+                    nullptr,
+                    __MEDIA_USER_FEATURE_VALUE_SSEU_SETTING_OVERRIDE_ID,
+                    &UserFeatureData);
+               
+                // +---------------+----------------+----------------+----------------+
+                // |   EUCountMax  |   EUCountMin   |     SSCount    |   SliceCount   |
+                // +-------------24+--------------16+---------------8+---------------0+
+                if (UserFeatureData.u32Data != 0xDEADC0DE)
+                {
+                    createOption.packed.SliceCount            = UserFeatureData.u32Data         & 0xFF;       // Bits 0-7
+                    createOption.packed.SubSliceCount         = (UserFeatureData.u32Data >>  8) & 0xFF;       // Bits 8-15
+                    createOption.packed.MaxEUcountPerSubSlice = (UserFeatureData.u32Data >> 16) & 0xFF;       // Bits 16-23
+                    createOption.packed.MinEUcountPerSubSlice = (UserFeatureData.u32Data >> 24) & 0xFF;       // Bits 24-31
+                }
+#endif
+            }
+
+            // Create Render GPU Context
+            CHK_MOSSTATUS_RETURN_CMERROR(cmHalState->pfnCreateGPUContext(cmHalState, cmHalState->gpuContext, MOS_GPU_NODE_3D, &createOption));
+
+            // Set current GPU context
+            CHK_MOSSTATUS_RETURN_CMERROR(cmHalState->osInterface->pfnSetGpuContext(cmHalState->osInterface, cmHalState->gpuContext));
+                
+#if (_RELEASE_INTERNAL || _DEBUG)
+#if defined(CM_DIRECT_GUC_SUPPORT)
+            //init GuC
+            CHK_MOSSTATUS_RETURN_CMERROR(cmHalState->osInterface->pfnInitGuC(cmHalState->osInterface, MOS_GPU_NODE_3D));
+#endif
+#endif
             m_queueOption.GPUContext = cmHalState->gpuContext;
         }
         else if (m_queueOption.QueueType == CM_QUEUE_TYPE_COMPUTE)
         {
-            CHK_MOSSTATUS_RETURN_CMERROR(cmHalState->pfnCreateGPUContext(cmHalState, MOS_GPU_CONTEXT_CM_COMPUTE, MOS_GPU_NODE_COMPUTE));
+            createOption.CmdBufferNumScale = cmHalState->cmDeviceParam.maxTasks;
+            
+            CHK_MOSSTATUS_RETURN_CMERROR(cmHalState->pfnCreateGPUContext(cmHalState, MOS_GPU_CONTEXT_CM_COMPUTE, MOS_GPU_NODE_COMPUTE, &createOption));
             m_queueOption.GPUContext = MOS_GPU_CONTEXT_CM_COMPUTE;
         }
         else
