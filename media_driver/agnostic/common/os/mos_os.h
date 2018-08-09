@@ -354,7 +354,6 @@ class GpuCmdResInfoDump
 public:
 
     static const GpuCmdResInfoDump *GetInstance();
-
     GpuCmdResInfoDump();
 
     void Dump(PMOS_INTERFACE pOsInterface) const;
@@ -377,7 +376,7 @@ private:
 
 private:
 
-    static GpuCmdResInfoDump *m_instance;
+    static std::shared_ptr<GpuCmdResInfoDump> m_instance;
     mutable uint32_t         m_cnt         = 0;
     bool                     m_dumpEnabled = false;
     std::string              m_path;
