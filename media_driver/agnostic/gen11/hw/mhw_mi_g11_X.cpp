@@ -28,6 +28,7 @@
 
 #include "mhw_mi_g11_X.h"
 #include "mhw_mi_hwcmd_g11_X.h"
+#include "mhw_mmio_g11.h"
 
 MOS_STATUS MhwMiInterfaceG11::AddMiSemaphoreWaitCmd(
     PMOS_COMMAND_BUFFER             cmdBuffer,
@@ -291,28 +292,28 @@ MOS_STATUS MhwMiInterfaceG11::SetWatchdogTimerRegisterOffset(
     case MOS_GPU_CONTEXT_RENDER2:
     case MOS_GPU_CONTEXT_RENDER3:
     case MOS_GPU_CONTEXT_RENDER4:
-        MediaResetParam.watchdogCountCtrlOffset = 0x2178;
-        MediaResetParam.watchdogCountThresholdOffset = 0x217C;
+        MediaResetParam.watchdogCountCtrlOffset = WATCHDOG_COUNT_CTRL_OFFSET_RCS_G11;
+        MediaResetParam.watchdogCountThresholdOffset = WATCHDOG_COUNT_THRESTHOLD_OFFSET_RCS_G11;
         break;
         // VCS0
     case MOS_GPU_CONTEXT_VIDEO:
     case MOS_GPU_CONTEXT_VIDEO2:
     case MOS_GPU_CONTEXT_VIDEO3:
     case MOS_GPU_CONTEXT_VIDEO4:
-        MediaResetParam.watchdogCountCtrlOffset = 0x1C0178;
-        MediaResetParam.watchdogCountThresholdOffset = 0x1C017C;
+        MediaResetParam.watchdogCountCtrlOffset = WATCHDOG_COUNT_CTRL_OFFSET_VCS0_G11;
+        MediaResetParam.watchdogCountThresholdOffset = WATCHDOG_COUNT_THRESTHOLD_OFFSET_VCS0_G11;
         break;
         // VCS1
     case MOS_GPU_CONTEXT_VDBOX2_VIDEO:
     case MOS_GPU_CONTEXT_VDBOX2_VIDEO2:
     case MOS_GPU_CONTEXT_VDBOX2_VIDEO3:
-        MediaResetParam.watchdogCountCtrlOffset = 0x1C4178;
-        MediaResetParam.watchdogCountThresholdOffset = 0x1C417C;
+        MediaResetParam.watchdogCountCtrlOffset = WATCHDOG_COUNT_CTRL_OFFSET_VCS1_G11;
+        MediaResetParam.watchdogCountThresholdOffset = WATCHDOG_COUNT_THRESTHOLD_OFFSET_VCS1_G11;
         break;
         // VECS
     case MOS_GPU_CONTEXT_VEBOX:
-        MediaResetParam.watchdogCountCtrlOffset = 0x1C8178;
-        MediaResetParam.watchdogCountThresholdOffset = 0x1C817C;
+        MediaResetParam.watchdogCountCtrlOffset = WATCHDOG_COUNT_CTRL_OFFSET_VECS_G11;
+        MediaResetParam.watchdogCountThresholdOffset = WATCHDOG_COUNT_THRESTHOLD_OFFSET_VECS_G11;
         break;
         // Default
     default:
@@ -390,8 +391,8 @@ void MhwMiInterfaceG11::InitMmioRegisters()
 {
     MHW_MI_MMIOREGISTERS *mmioRegisters = &m_mmioRegisters;
 
-    mmioRegisters->generalPurposeRegister0LoOffset            = 0x1C8600;
-    mmioRegisters->generalPurposeRegister0HiOffset            = 0x1C8604;
-    mmioRegisters->generalPurposeRegister4LoOffset            = 0x1C8620;
-    mmioRegisters->generalPurposeRegister4HiOffset            = 0x1C8624;
+    mmioRegisters->generalPurposeRegister0LoOffset            = GP_REGISTER0_LO_OFFSET_G11;
+    mmioRegisters->generalPurposeRegister0HiOffset            = GP_REGISTER0_HI_OFFSET_G11;
+    mmioRegisters->generalPurposeRegister4LoOffset            = GP_REGISTER4_LO_OFFSET_G11;
+    mmioRegisters->generalPurposeRegister4HiOffset            = GP_REGISTER4_HI_OFFSET_G11;
 }

@@ -25,20 +25,21 @@
 
 #include "mhw_vdbox_huc_g10_X.h"
 #include "mhw_vdbox_vdenc_hwcmd_g10_X.h"
+#include "mhw_mmio_g10.h"
 
 void MhwVdboxHucInterfaceG10::InitMmioRegisters()
 {
     MmioRegistersHuc *mmioRegisters = &m_mmioRegisters[MHW_VDBOX_NODE_1];
 
-    mmioRegisters->hucUKernelHdrInfoRegOffset = 0x0D014;
-    mmioRegisters->hucStatusRegOffset         = 0x0D000;
-    mmioRegisters->hucStatus2RegOffset        = 0x0D3B0;
+    mmioRegisters->hucUKernelHdrInfoRegOffset = HUC_UKERNEL_HDR_INFO_REG_OFFSET_NODE_1_INIT_G10;
+    mmioRegisters->hucStatusRegOffset         = HUC_STATUS_REG_OFFSET_NODE_1_INIT_G10;
+    mmioRegisters->hucStatus2RegOffset        = HUC_STATUS2_REG_OFFSET_NODE_1_INIT_G10;
 
     mmioRegisters = &m_mmioRegisters[MHW_VDBOX_NODE_2];
 
-    mmioRegisters->hucUKernelHdrInfoRegOffset = 0x14814;
-    mmioRegisters->hucStatusRegOffset         = 0x14800;
-    mmioRegisters->hucStatus2RegOffset        = 0x14BB0;
+    mmioRegisters->hucUKernelHdrInfoRegOffset = HUC_UKERNEL_HDR_INFO_REG_OFFSET_NODE_2_INIT_G10;
+    mmioRegisters->hucStatusRegOffset         = HUC_STATUS_REG_OFFSET_NODE_2_INIT_G10;
+    mmioRegisters->hucStatus2RegOffset        = HUC_STATUS2_REG_OFFSET_NODE_2_INIT_G10;
 }
 
 MOS_STATUS MhwVdboxHucInterfaceG10::GetHucStateCommandSize(

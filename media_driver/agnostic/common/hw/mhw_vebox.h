@@ -807,14 +807,7 @@ typedef struct _MHW_VEBOX_GPUNODE_LIMIT
     uint32_t dwGpuNodeToUse;
 } MHW_VEBOX_GPUNODE_LIMIT, *PMHW_VEBOX_GPUNODE_LIMIT;
 
-//!
-//! \brief  MHW VEBOX MMIO Structure
-//!
-typedef struct _MHW_VEBOX_MMIO
-{
-    uint32_t dwWatchdogCountCtrlOffset;
-    uint32_t dwWatchdogCountThresholdOffset;
-} MHW_VEBOX_MMIO, *PMHW_VEBOX_MMIO;
+
 
 class MhwVeboxInterface
 {

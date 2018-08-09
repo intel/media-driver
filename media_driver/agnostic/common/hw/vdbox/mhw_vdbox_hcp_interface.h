@@ -318,32 +318,7 @@ typedef enum _MHW_VDBOX_HCP_INTERNAL_BUFFER_TYPE
     MHW_VDBOX_VP9_INTERNAL_BUFFER_HVD_TILE
 } MHW_VDBOX_HCP_INTERNAL_BUFFER_TYPE;
 
-//!
-//! \struct   MmioRegistersHcp
-//! \brief    MMIO registers HCP
-//!
-struct MmioRegistersHcp
-{
-    uint32_t                   watchdogCountCtrlOffset;
-    uint32_t                   watchdogCountThresholdOffset;
-    uint32_t                   hcpDebugFEStreamOutSizeRegOffset;
-    uint32_t                   hcpEncImageStatusMaskRegOffset;
-    uint32_t                   hcpEncImageStatusCtrlRegOffset;
-    uint32_t                   hcpEncBitstreamBytecountFrameRegOffset;
-    uint32_t                   hcpEncBitstreamSeBitcountFrameRegOffset;
-    uint32_t                   hcpEncBitstreamBytecountFrameNoHeaderRegOffset;
-    uint32_t                   hcpEncQpStatusCountRegOffset;
-    uint32_t                   hcpEncSliceCountRegOffset;
-    uint32_t                   hcpEncVdencModeTimerRegOffset;
-    uint32_t                   hcpVp9EncBitstreamBytecountFrameRegOffset;
-    uint32_t                   hcpVp9EncBitstreamBytecountFrameNoHeaderRegOffset;
-    uint32_t                   hcpVp9EncImageStatusMaskRegOffset;
-    uint32_t                   hcpVp9EncImageStatusCtrlRegOffset;
-    uint32_t                   csEngineIdOffset;
-    uint32_t                   hcpDecStatusRegOffset;
-    uint32_t                   hcpCabacStatusRegOffset;
-    uint32_t                   hcpFrameCrcRegOffset;
-};
+
 
 //!  MHW Vdbox Hcp interface
 /*!

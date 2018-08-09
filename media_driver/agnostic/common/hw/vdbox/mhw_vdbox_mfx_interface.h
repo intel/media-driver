@@ -73,40 +73,7 @@ typedef enum _MHW_VDBOX_DECODE_JPEG_FORMAT_CODE
     MHW_VDBOX_DECODE_JPEG_FORMAT_YUY2 = 3
 } MHW_VDBOX_DECODE_JPEG_FORMAT_CODE;
 
-//!
-//! \struct    MmioRegistersMfx
-//! \brief     MM IO register MFX
-//!
-struct MmioRegistersMfx
-{
-    uint32_t            generalPurposeRegister0LoOffset = 0;
-    uint32_t            generalPurposeRegister0HiOffset = 0;
-    uint32_t            generalPurposeRegister4LoOffset = 0;
-    uint32_t            generalPurposeRegister4HiOffset = 0;
-    uint32_t            mfcImageStatusMaskRegOffset = 0;
-    uint32_t            mfcImageStatusCtrlRegOffset = 0;
-    uint32_t            mfcAvcNumSlicesRegOffset = 0;
-    uint32_t            mfcQPStatusCountOffset = 0;
-    uint32_t            mfxErrorFlagsRegOffset = 0;
-    uint32_t            mfxFrameCrcRegOffset = 0;
-    uint32_t            mfxMBCountRegOffset = 0;
-    uint32_t            mfcBitstreamBytecountFrameRegOffset = 0;
-    uint32_t            mfcBitstreamSeBitcountFrameRegOffset = 0;
-    uint32_t            mfcBitstreamBytecountSliceRegOffset = 0;
-    uint32_t            mfcVP8BitstreamBytecountFrameRegOffset = 0;
-    uint32_t            mfcVP8ImageStatusMaskRegOffset = 0;
-    uint32_t            mfcVP8ImageStatusCtrlRegOffset = 0;
-    uint32_t            mfxVP8BrcDQIndexRegOffset = 0;
-    uint32_t            mfxVP8BrcDLoopFilterRegOffset = 0;
-    uint32_t            mfxVP8BrcCumulativeDQIndex01RegOffset = 0;
-    uint32_t            mfxVP8BrcCumulativeDQIndex23RegOffset = 0;
-    uint32_t            mfxVP8BrcCumulativeDLoopFilter01RegOffset = 0;
-    uint32_t            mfxVP8BrcCumulativeDLoopFilter23RegOffset = 0;
-    uint32_t            mfxVP8BrcConvergenceStatusRegOffset = 0;
-    uint32_t            mfxLra0RegOffset = 0;
-    uint32_t            mfxLra1RegOffset = 0;
-    uint32_t            mfxLra2RegOffset = 0;
-};
+
 
 typedef struct _MHW_VDBOX_MPEG2_SLICE_STATE
 {

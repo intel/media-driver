@@ -66,6 +66,7 @@ set(TMP_3_SOURCES_
 set(TMP_3_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_mi_g11_X.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_mi_hwcmd_g11_X.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_mmio_g11.h
 )
 
 set(TMP_4_SOURCES_

@@ -28,14 +28,15 @@
 
 #include "mhw_render_g8_X.h"
 #include "mhw_render_hwcmd_g8_X.h"
+#include "mhw_mmio_g8.h"
 
-static const uint32_t l3CacheSqc1RegisterOffset = 0xB100;
-static const uint32_t l3CacheSqc1RegisterValue = 0x610000;
+static const uint32_t l3CacheSqc1RegisterOffset = L3_CACHE_SQC1_REG_OFFSET_G8;
+static const uint32_t l3CacheSqc1RegisterValue = L3_CACHE_SQC1_REG_VALUE_G8;
 
 //! \brief      for BDW GT2 with WA for D0 hang
 //!              SLM     URB     DC      RO      Rest
 //!              256     128      0       0      384 (KB chunks based on GT2)
-static const uint32_t l3CacheCntlRegisterValueAllocateSlmD0Wa = 0x60000021;
+static const uint32_t l3CacheCntlRegisterValueAllocateSlmD0Wa = L3_CACHE_CNTL_REG_VALUE_ALLOCATE_SLM_D0WA_G8;
 
 MOS_STATUS MhwRenderInterfaceG8::AddMediaVfeCmd(
     PMOS_COMMAND_BUFFER             cmdBuffer,

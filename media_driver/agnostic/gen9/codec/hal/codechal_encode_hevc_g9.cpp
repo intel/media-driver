@@ -28,11 +28,11 @@
 #include "codechal_kernel_hme_g9.h"
 #include "igcodeckrn_g9.h"
 #include "codeckrnheader.h"
+#include "mhw_mmio_g9.h"
 
 #define CS_ALU_COMMAND_LOAD(bSrcRegA, GprReg)           ((0x80 << 20) | (((bSrcRegA) ? 0x20 : 0x21) << 10) | ((GprReg) & 0x0F))
 #define CS_ALU_COMMAND_STORE_ACCU(GprReg)               ((0x180 << 20) | (((GprReg) & 0x0F) << 10) | 0x31)
-#define MHW_CS_GENERAL_PURPOSE_REGISTER_BASE_G9         (0x2600)
-#define CS_GPR_REGISTER_INDEX(index)                    (MHW_CS_GENERAL_PURPOSE_REGISTER_BASE_G9 + 8 * (index))
+
 
 #define GPUMMU_WA_PADDING                               (64 * 1024)
 

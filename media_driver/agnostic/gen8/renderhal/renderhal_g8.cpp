@@ -441,7 +441,7 @@ MOS_STATUS XRenderHal_Interface_g8::EnableL3Caching(
 
     pRenderHal->pOsInterface->pfnGetPlatform(pRenderHal->pOsInterface, &Platform);
 
-    pCacheConfig->dwSqcReg1  = RENDERHAL_L3_CACHE_SQC_REG1_VALUE_G8;
+    pCacheConfig->dwSqcReg1  = L3_CACHE_SQC1_REG_VALUE_G8;
 
     pCacheConfig->dwCntlReg = GetL3CacheCntlRegWithSLM();
 

@@ -28,6 +28,7 @@
 
 #include "mhw_mi_g8_X.h"
 #include "mhw_mi_hwcmd_g8_X.h"
+#include "mhw_mmio_g8.h"
 
 MOS_STATUS MhwMiInterfaceG8::AddMiBatchBufferStartCmd(
     PMOS_COMMAND_BUFFER                 cmdBuffer,
@@ -155,8 +156,8 @@ void MhwMiInterfaceG8::InitMmioRegisters()
 {
     MHW_MI_MMIOREGISTERS *mmioRegisters = &m_mmioRegisters;
 
-    mmioRegisters->generalPurposeRegister0LoOffset            = 0x1A600;
-    mmioRegisters->generalPurposeRegister0HiOffset            = 0x1A604;
-    mmioRegisters->generalPurposeRegister4LoOffset            = 0x1A620;
-    mmioRegisters->generalPurposeRegister4HiOffset            = 0x1A624;
+    mmioRegisters->generalPurposeRegister0LoOffset            = GP_REGISTER0_LO_OFFSET_G8;
+    mmioRegisters->generalPurposeRegister0HiOffset            = GP_REGISTER0_HI_OFFSET_G8;
+    mmioRegisters->generalPurposeRegister4LoOffset            = GP_REGISTER4_LO_OFFSET_G8;
+    mmioRegisters->generalPurposeRegister4HiOffset            = GP_REGISTER4_HI_OFFSET_G8;
 }

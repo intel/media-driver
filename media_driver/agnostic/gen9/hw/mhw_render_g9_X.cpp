@@ -28,10 +28,11 @@
 
 #include "mhw_render_g9_X.h"
 #include "mhw_render_hwcmd_g9_X.h"
+#include "mhw_mmio_g9.h"
 
-static const uint32_t l3CacheCntl2RegisterOffset = 0xB020;
-static const uint32_t l3CacheCntl3RegisterOffset = 0xB024;
-static const uint32_t l3CacheSqc1RegisterOffset = 0xB100;
+static const uint32_t l3CacheCntl2RegisterOffset = L3_CACHE_CNTL2_REG_OFFSET_G9;
+static const uint32_t l3CacheCntl3RegisterOffset = L3_CACHE_CNTL3_REG_OFFSET_G9;
+static const uint32_t l3CacheSqc1RegisterOffset = L3_CACHE_SQC_REG_OFFSET_G9;
 
 // SLM   URB     DC      RO      I/S     C       T
 // { 0,    248,    8,     256,    0,      0,      0,      }, // default for GT1/GT2
