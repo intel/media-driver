@@ -105,45 +105,75 @@ VAStatus DdiEncodeVp9::EncodeInCodecHal(uint32_t numSlices)
         }
     }
 
-    MOS_FORMAT expectedFormat = Format_NV12;
-
-    if (m_encodeCtx->vaProfile == VAProfileVP9Profile0)
-    {
-        expectedFormat = Format_NV12;
-    }
-    else if (m_encodeCtx->vaProfile == (VAProfileVP9Profile0 + 2))
-    {
-        expectedFormat = Format_P010;
-    }
-    else
-    {
-        DDI_ASSERTMESSAGE("DDI: unsupported VP9 Profile\n!");
-        return VA_STATUS_ERROR_UNIMPLEMENTED;
-    }
-
     // Raw Surface
     MOS_SURFACE rawSurface;
     MOS_ZeroMemory(&rawSurface, sizeof(MOS_SURFACE));
-    rawSurface.Format   = expectedFormat;
-    rawSurface.dwOffset = 0;
 
     DdiMedia_MediaSurfaceToMosResource(rtTbl->pCurrentRT, &(rawSurface.OsResource));
 
-    if (expectedFormat != rawSurface.OsResource.Format)
+    bool surfaceFormatInvalid = true;
+    if (m_encodeCtx->vaProfile == VAProfileVP9Profile0 &&
+        rawSurface.OsResource.Format == Format_NV12)
+    {
+        surfaceFormatInvalid = false;
+        seqParams->SeqFlags.fields.SourceFormat = VP9_ENCODED_CHROMA_FORMAT_YUV420;
+        seqParams->SeqFlags.fields.SourceBitDepth = VP9_ENCODED_BIT_DEPTH_8;
+        seqParams->SeqFlags.fields.EncodedFormat = VP9_ENCODED_CHROMA_FORMAT_YUV420;
+        seqParams->SeqFlags.fields.EncodedBitDepth = VP9_ENCODED_BIT_DEPTH_8;
+    }
+    else if (m_encodeCtx->vaProfile == VAProfileVP9Profile1 &&
+        (rawSurface.OsResource.Format == Format_AYUV ||
+         rawSurface.OsResource.Format == Format_A8R8G8B8 ||
+         rawSurface.OsResource.Format == Format_A8B8G8R8))
+    {
+        surfaceFormatInvalid = false;
+        seqParams->SeqFlags.fields.SourceFormat = VP9_ENCODED_CHROMA_FORMAT_YUV444;
+        seqParams->SeqFlags.fields.SourceBitDepth = VP9_ENCODED_BIT_DEPTH_8;
+        seqParams->SeqFlags.fields.EncodedFormat = VP9_ENCODED_CHROMA_FORMAT_YUV444;
+        seqParams->SeqFlags.fields.EncodedBitDepth = VP9_ENCODED_BIT_DEPTH_8;
+    }
+    else if (m_encodeCtx->vaProfile == VAProfileVP9Profile2 &&
+        (rawSurface.OsResource.Format == Format_P010 ||
+         rawSurface.OsResource.Format == Format_P016))
+    {
+        surfaceFormatInvalid = false;
+        seqParams->SeqFlags.fields.SourceFormat = VP9_ENCODED_CHROMA_FORMAT_YUV420;
+        seqParams->SeqFlags.fields.SourceBitDepth = VP9_ENCODED_BIT_DEPTH_10;
+        seqParams->SeqFlags.fields.EncodedFormat = VP9_ENCODED_CHROMA_FORMAT_YUV420;
+        seqParams->SeqFlags.fields.EncodedBitDepth = VP9_ENCODED_BIT_DEPTH_10;
+    }
+    else if (m_encodeCtx->vaProfile == VAProfileVP9Profile3 &&
+        (rawSurface.OsResource.Format == Format_Y410 ||
+         rawSurface.OsResource.Format == Format_Y416 ||
+         rawSurface.OsResource.Format == Format_R10G10B10A2 ||
+         rawSurface.OsResource.Format == Format_B10G10R10A2))
+    {
+        surfaceFormatInvalid = false;
+        seqParams->SeqFlags.fields.SourceFormat = VP9_ENCODED_CHROMA_FORMAT_YUV444;
+        seqParams->SeqFlags.fields.SourceBitDepth = VP9_ENCODED_BIT_DEPTH_10;
+        seqParams->SeqFlags.fields.EncodedFormat = VP9_ENCODED_CHROMA_FORMAT_YUV444;
+        seqParams->SeqFlags.fields.EncodedBitDepth = VP9_ENCODED_BIT_DEPTH_10;
+    }
+
+    if (surfaceFormatInvalid)
     {
         DDI_ASSERTMESSAGE("DDI:Incorrect Format for input surface\n!");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
+    else
+    {
+        rawSurface.Format = rawSurface.OsResource.Format;
     }
 
     // Recon Surface
     MOS_SURFACE reconSurface;
     MOS_ZeroMemory(&reconSurface, sizeof(MOS_SURFACE));
-    reconSurface.Format   = expectedFormat;
+    reconSurface.Format   = rawSurface.OsResource.Format;
     reconSurface.dwOffset = 0;
 
     DdiMedia_MediaSurfaceToMosResource(rtTbl->pCurrentReconTarget, &(reconSurface.OsResource));
 
-    if (expectedFormat != reconSurface.OsResource.Format)
+    if (rawSurface.OsResource.Format != reconSurface.OsResource.Format)
     {
         DDI_ASSERTMESSAGE("DDI:Incorrect Format for Reconstructed surface\n!");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
@@ -277,6 +307,13 @@ VAStatus DdiEncodeVp9::ContextInitialize(CodechalSetting *codecHalSettings)
     codecHalSettings->height      = m_encodeCtx->dwFrameHeight;
     codecHalSettings->mode          = m_encodeCtx->wModeType;
     codecHalSettings->standard      = CODECHAL_VP9;
+    codecHalSettings->chromaFormat  = (m_chromaFormat == yuv444) ?
+        VP9_ENCODED_CHROMA_FORMAT_YUV444 : VP9_ENCODED_CHROMA_FORMAT_YUV420;
+    codecHalSettings->lumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_8_BITS;
+    if (m_is10Bit)
+    {
+        codecHalSettings->lumaChromaDepth |= CODECHAL_LUMA_CHROMA_DEPTH_10_BITS;
+    }
 
     VAStatus vaStatus = VA_STATUS_SUCCESS;
 

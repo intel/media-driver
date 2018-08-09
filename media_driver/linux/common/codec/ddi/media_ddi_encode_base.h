@@ -39,6 +39,15 @@
 class DdiEncodeBase : public DdiMediaBase
 {
 public:
+    //! \brief chroma format
+    enum ChromaFormat
+    {
+        monochrome  = 0,
+        yuv420      = 1,
+        yuv422      = 2,
+        yuv444      = 3
+    };
+
     //!
     //! \brief Constructor
     //!
@@ -255,6 +264,7 @@ public:
 
     DDI_ENCODE_CONTEXT *m_encodeCtx = nullptr; //!< The referred DDI_ENCODE_CONTEXT object.
     bool m_is10Bit                  = false;   //!< 10 bit flag.
+    ChromaFormat m_chromaFormat     = yuv420;  //!< HCP chroma format.
     CodechalSetting    *m_codechalSettings = nullptr;    //!< Codechal Settings
 protected:
     //!

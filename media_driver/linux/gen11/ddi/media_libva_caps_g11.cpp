@@ -30,7 +30,45 @@
 #include "media_libva_caps_g11.h"
 #include "media_libva_caps_factory.h"
 #include "media_ddi_decode_const.h"
+#include "media_ddi_encode_const.h"
 #include "media_ddi_decode_const_g11.h"
+#include "media_libva_vp.h"
+
+CODECHAL_MODE MediaLibvaCapsG11::GetEncodeCodecMode(VAProfile profile, VAEntrypoint entrypoint)
+{
+    if (entrypoint == VAEntrypointStats)
+    {
+        return  CODECHAL_ENCODE_MODE_AVC;
+    }
+
+    switch (profile)
+    {
+        case VAProfileH264High:
+        case VAProfileH264Main:
+        case VAProfileH264ConstrainedBaseline:
+            return CODECHAL_ENCODE_MODE_AVC;
+        case VAProfileMPEG2Main:
+        case VAProfileMPEG2Simple:
+            return CODECHAL_ENCODE_MODE_MPEG2;
+        case VAProfileJPEGBaseline:
+            return CODECHAL_ENCODE_MODE_JPEG;
+        case VAProfileVP8Version0_3:
+            return CODECHAL_ENCODE_MODE_VP8;
+        case VAProfileVP9Profile0:
+        case VAProfileVP9Profile1:
+        case VAProfileVP9Profile2:
+        case VAProfileVP9Profile3:
+            return CODECHAL_ENCODE_MODE_VP9;
+        case VAProfileHEVCMain:
+        case VAProfileHEVCMain10:
+        case VAProfileHEVCMain444:
+        case VAProfileHEVCMain444_10:
+            return CODECHAL_ENCODE_MODE_HEVC;
+        default:
+            DDI_ASSERTMESSAGE("Invalid Encode Mode");
+            return CODECHAL_UNSUPPORTED_MODE;
+    }
+}
 
 std::string MediaLibvaCapsG11::GetDecodeCodecKey(VAProfile profile)
 {
@@ -54,7 +92,7 @@ std::string MediaLibvaCapsG11::GetDecodeCodecKey(VAProfile profile)
             return DECODE_ID_VP9;
         case VAProfileHEVCMain:
         case VAProfileHEVCMain10:
-        case VAProfileHEVCMain12:    
+        case VAProfileHEVCMain12:
         case VAProfileHEVCMain422_10:
         case VAProfileHEVCMain422_12:
         case VAProfileHEVCMain444:
@@ -68,6 +106,59 @@ std::string MediaLibvaCapsG11::GetDecodeCodecKey(VAProfile profile)
         default:
             DDI_ASSERTMESSAGE("Invalid Encode Mode");
             return DECODE_ID_NONE;
+    }
+}
+
+std::string MediaLibvaCapsG11::GetEncodeCodecKey(VAProfile profile, VAEntrypoint entrypoint)
+{
+    switch (profile)
+    {
+        case VAProfileH264High:
+        case VAProfileH264Main:
+        case VAProfileH264ConstrainedBaseline:
+            if (IsEncFei(entrypoint))
+            {
+                return ENCODE_ID_AVCFEI;
+            }
+            else
+            {
+                return ENCODE_ID_AVC;
+            }
+        case VAProfileMPEG2Main:
+        case VAProfileMPEG2Simple:
+            return ENCODE_ID_MPEG2;
+        case VAProfileJPEGBaseline:
+            return ENCODE_ID_JPEG;
+        case VAProfileVP8Version0_3:
+            return ENCODE_ID_VP8;
+        case VAProfileVP9Profile0:
+        case VAProfileVP9Profile1:
+        case VAProfileVP9Profile2:
+        case VAProfileVP9Profile3:
+            return ENCODE_ID_VP9;
+        case VAProfileHEVCMain:
+        case VAProfileHEVCMain10:
+        case VAProfileHEVCMain444:
+        case VAProfileHEVCMain444_10:
+            if (IsEncFei(entrypoint))
+            {
+                return ENCODE_ID_HEVCFEI;
+            }
+            else
+            {
+                return ENCODE_ID_HEVC;
+            }
+        case VAProfileNone:
+            if (IsEncFei(entrypoint))
+            {
+                return ENCODE_ID_AVCFEI;
+            }
+            else
+            {
+                return ENCODE_ID_NONE;
+            }
+        default:
+            return ENCODE_ID_NONE;
     }
 }
 
@@ -253,17 +344,60 @@ VAStatus MediaLibvaCapsG11::LoadVp9EncProfileEntrypoints()
 
 #ifdef _VP9_ENCODE_VDENC_SUPPORTED
     AttribMap *attributeList;
-    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeVP9Vdenc) &&
-        MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels))
+
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels) &&
+        (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeVP9Vdenc) ||
+         MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeVP9Vdenc8bit444) ||
+         MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeVP9Vdenc10bit420) ||
+         MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeVP9Vdenc10bit444)))
     {
         status = CreateEncAttributes(VAProfileVP9Profile0, VAEntrypointEncSliceLP, &attributeList);
         DDI_CHK_RET(status, "Failed to initialize Caps!");
+        (*attributeList)[VAConfigAttribMaxPictureWidth] = m_maxVp9EncWidth;
+        (*attributeList)[VAConfigAttribMaxPictureHeight] = m_maxVp9EncHeight;
+    }
 
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeVP9Vdenc) &&
+        MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels))
+    {
         uint32_t configStartIdx = m_encConfigs.size();
         AddEncConfig(VA_RC_CQP);
         AddEncConfig(VA_RC_CBR);
         AddEncConfig(VA_RC_VBR);
         AddProfileEntry(VAProfileVP9Profile0, VAEntrypointEncSliceLP, attributeList,
+                configStartIdx, m_encConfigs.size() - configStartIdx);
+    }
+
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeVP9Vdenc8bit444) &&
+        MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels))
+    {
+        uint32_t configStartIdx = m_encConfigs.size();
+        AddEncConfig(VA_RC_CQP);
+        AddEncConfig(VA_RC_CBR);
+        AddEncConfig(VA_RC_VBR);
+        AddProfileEntry(VAProfileVP9Profile1, VAEntrypointEncSliceLP, attributeList,
+                configStartIdx, m_encConfigs.size() - configStartIdx);
+    }
+
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeVP9Vdenc10bit420) &&
+        MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels))
+    {
+        uint32_t configStartIdx = m_encConfigs.size();
+        AddEncConfig(VA_RC_CQP);
+        AddEncConfig(VA_RC_CBR);
+        AddEncConfig(VA_RC_VBR);
+        AddProfileEntry(VAProfileVP9Profile2, VAEntrypointEncSliceLP, attributeList,
+                configStartIdx, m_encConfigs.size() - configStartIdx);
+    }
+
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeVP9Vdenc10bit444) &&
+        MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels))
+    {
+        uint32_t configStartIdx = m_encConfigs.size();
+        AddEncConfig(VA_RC_CQP);
+        AddEncConfig(VA_RC_CBR);
+        AddEncConfig(VA_RC_VBR);
+        AddProfileEntry(VAProfileVP9Profile3, VAEntrypointEncSliceLP, attributeList,
                 configStartIdx, m_encConfigs.size() - configStartIdx);
     }
 #endif
@@ -337,9 +471,12 @@ VAStatus MediaLibvaCapsG11::CheckEncodeResolution(
             }
             break;
         case VAProfileVP9Profile0:
-            if ((width > m_encMax4kWidth) ||
+        case VAProfileVP9Profile1:
+        case VAProfileVP9Profile2:
+        case VAProfileVP9Profile3:
+            if ((width > m_maxVp9EncWidth) ||
                 (width < m_encMinWidth) ||
-                (height > m_encMax4kHeight) ||
+                (height > m_maxVp9EncHeight) ||
                 (height < m_encMinHeight) ||
                 (width % 8) ||
                 (height % 8))
@@ -477,6 +614,373 @@ GMM_RESOURCE_FORMAT MediaLibvaCapsG11::ConvertMediaFmtToGmmFmt(
         case Media_Format_Y410       : return GMM_FORMAT_Y410_TYPE;
         default                      : return GMM_FORMAT_INVALID;
     }
+}
+
+VAStatus MediaLibvaCapsG11::QuerySurfaceAttributes(
+        VAConfigID configId,
+        VASurfaceAttrib *attribList,
+        uint32_t *numAttribs)
+{
+    DDI_CHK_NULL(numAttribs, "Null num_attribs", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    if (attribList == nullptr)
+    {
+        *numAttribs = DDI_CODEC_GEN_MAX_SURFACE_ATTRIBUTES;
+        return VA_STATUS_SUCCESS;
+    }
+
+    int32_t profileTableIdx = -1;
+    VAEntrypoint entrypoint;
+    VAProfile profile;
+    VAStatus status = GetProfileEntrypointFromConfigId(configId, &profile, &entrypoint, &profileTableIdx);
+    DDI_CHK_RET(status, "Invalid config_id!");
+    if (profileTableIdx < 0 || profileTableIdx >= m_profileEntryCount)
+    {
+        return VA_STATUS_ERROR_INVALID_CONFIG;
+    }
+
+    VASurfaceAttrib *attribs = (VASurfaceAttrib *)MOS_AllocAndZeroMemory(DDI_CODEC_GEN_MAX_SURFACE_ATTRIBUTES * sizeof(*attribs));
+    if (attribs == nullptr)
+    {
+        return VA_STATUS_ERROR_ALLOCATION_FAILED;
+    }
+
+    int32_t i = 0;
+
+    if (entrypoint == VAEntrypointVideoProc)   /* vpp */
+    {
+        attribs[i].type = VASurfaceAttribPixelFormat;
+        attribs[i].value.type = VAGenericValueTypeInteger;
+        attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+        attribs[i].value.value.i = VA_FOURCC('N', 'V', '1', '2');
+        i++;
+
+        attribs[i].type = VASurfaceAttribMaxWidth;
+        attribs[i].value.type = VAGenericValueTypeInteger;
+        attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+        attribs[i].value.value.i = VP_MAX_PIC_WIDTH;
+        i++;
+
+        attribs[i].type = VASurfaceAttribMaxHeight;
+        attribs[i].value.type = VAGenericValueTypeInteger;
+        attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+        attribs[i].value.value.i = VP_MAX_PIC_HEIGHT;
+        i++;
+
+        attribs[i].type = VASurfaceAttribMinWidth;
+        attribs[i].value.type = VAGenericValueTypeInteger;
+        attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+        attribs[i].value.value.i = VP_MIN_PIC_WIDTH;
+        i++;
+
+        attribs[i].type = VASurfaceAttribMinHeight;
+        attribs[i].value.type = VAGenericValueTypeInteger;
+        attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+        attribs[i].value.value.i = VP_MIN_PIC_HEIGHT;
+        i++;
+
+        for (int32_t j = 0; j < m_numVpSurfaceAttr; j++)
+        {
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = m_vpSurfaceAttr[j];
+            i++;
+        }
+
+        attribs[i].type = VASurfaceAttribMemoryType;
+        attribs[i].value.type = VAGenericValueTypeInteger;
+        attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+#ifdef ANDROID
+        attribs[i].value.value.i = VA_SURFACE_ATTRIB_MEM_TYPE_VA |
+            VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR |
+            VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM |
+            VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME |
+            VA_SURFACE_ATTRIB_MEM_TYPE_ANDROID_GRALLOC;
+#else
+        attribs[i].value.value.i = VA_SURFACE_ATTRIB_MEM_TYPE_VA |
+            VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR |
+            VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM |
+            VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME;
+#endif
+        i++;
+
+        attribs[i].type = VASurfaceAttribExternalBufferDescriptor;
+        attribs[i].value.type = VAGenericValueTypePointer;
+        attribs[i].flags = VA_SURFACE_ATTRIB_SETTABLE;
+        attribs[i].value.value.p = nullptr; /* ignore */
+        i++;
+    }
+    else if (entrypoint == VAEntrypointVLD)    /* vld */
+    {
+        if (profile == VAProfileHEVCMain10 || profile == VAProfileVP9Profile2)
+        {
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC_P010;
+            i++;
+
+            if(profile == VAProfileVP9Profile2)
+            {
+                attribs[i].type = VASurfaceAttribPixelFormat;
+                attribs[i].value.type = VAGenericValueTypeInteger;
+                attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+                attribs[i].value.value.i = VA_FOURCC_P016;
+                i++;
+            }
+        }
+        else if(profile == VAProfileHEVCMain12)
+        {
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC_P016;
+            i++;
+        }
+        else if(profile == VAProfileHEVCMain422_10)
+        {
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC_YUY2;
+            i++;
+            
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC_Y210;
+            i++;
+        }
+        else if(profile == VAProfileHEVCMain422_12)
+        {
+            //hevc  rext: Y216 12/16bit 422
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC_Y216;
+            i++;
+        }
+        else if(profile == VAProfileHEVCMain444 || profile == VAProfileVP9Profile1)
+        {
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC_AYUV;
+            i++;
+        }
+        else if(profile == VAProfileHEVCMain444_10 || profile == VAProfileVP9Profile3)
+        {
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC_Y410;
+            i++;
+
+            if(profile == VAProfileVP9Profile3)
+            {
+                attribs[i].type = VASurfaceAttribPixelFormat;
+                attribs[i].value.type = VAGenericValueTypeInteger;
+                attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+                attribs[i].value.value.i = VA_FOURCC_Y416;
+                i++;
+            }
+        }
+        else if(profile == VAProfileHEVCMain444_12)
+        {
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC_Y416;
+            i++;
+        }
+        else if (profile == VAProfileJPEGBaseline)
+        {
+            for (int32_t j = 0; j < m_numJpegSurfaceAttr; j++)
+            {
+                attribs[i].type = VASurfaceAttribPixelFormat;
+                attribs[i].value.type = VAGenericValueTypeInteger;
+                attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+                attribs[i].value.value.i = m_jpegSurfaceAttr[j];
+                i++;
+            }
+        }
+        else
+        {
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC('N', 'V', '1', '2');
+            i++;
+        }
+
+        auto maxWidth = m_decDefaultMaxWidth;
+        auto maxHeight = m_decDefaultMaxHeight;
+        if(IsMpeg2Profile(profile))
+        {
+            maxWidth = m_decMpeg2MaxWidth;
+            maxHeight = m_decMpeg2MaxHeight;
+        }
+        else if(IsHevcProfile(profile))
+        {
+            maxWidth = m_decHevcMaxWidth;
+            maxHeight = m_decHevcMaxHeight;
+        }
+        else if(IsVc1Profile(profile))
+        {
+            maxWidth = m_decVc1MaxWidth;
+            maxHeight = m_decVc1MaxHeight;
+        }
+        else if(IsJpegProfile(profile))
+        {
+            maxWidth = m_decJpegMaxWidth;
+            maxHeight = m_decJpegMaxHeight;
+        }
+
+        attribs[i].type = VASurfaceAttribMaxWidth;
+        attribs[i].value.type = VAGenericValueTypeInteger;
+        attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE;
+        attribs[i].value.value.i = maxWidth;
+        i++;
+
+        attribs[i].type = VASurfaceAttribMaxHeight;
+        attribs[i].value.type = VAGenericValueTypeInteger;
+        attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE;
+        attribs[i].value.value.i = maxHeight;
+        i++;
+    }
+    else if(entrypoint == VAEntrypointEncSlice || entrypoint == VAEntrypointEncSliceLP || entrypoint == VAEntrypointEncPicture || entrypoint == VAEntrypointFEI)
+    {
+        if (profile == VAProfileHEVCMain10 || profile == VAProfileVP9Profile2)
+        {
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC('P', '0', '1', '0');
+            i++;
+        }
+        else if (profile == VAProfileVP9Profile1)
+        {
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC('A', 'Y', 'U', 'V');
+            i++;
+        }
+        else if (profile == VAProfileVP9Profile3)
+        {
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC('Y', '4', '1', '6');
+            i++;
+
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC('A', 'R', 'G', 'B');
+            i++;
+
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC('A', 'B', 'G', 'R');
+            i++;
+        }
+        else if (profile == VAProfileJPEGBaseline)
+        {
+            for (int32_t j = 0; j < m_numJpegEncSurfaceAttr; j++)
+            {
+                attribs[i].type = VASurfaceAttribPixelFormat;
+                attribs[i].value.type = VAGenericValueTypeInteger;
+                attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+                attribs[i].value.value.i = m_jpegEncSurfaceAttr[j];
+                i++;
+            }
+        }
+        else
+        {
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC('N', 'V', '1', '2');
+            i++;
+        }
+        attribs[i].type = VASurfaceAttribMaxWidth;
+        attribs[i].value.type = VAGenericValueTypeInteger;
+        attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE;
+        attribs[i].value.value.i = CODEC_MAX_PIC_WIDTH;
+
+        if(profile == VAProfileJPEGBaseline)
+        {
+            attribs[i].value.value.i = ENCODE_JPEG_MAX_PIC_WIDTH;
+        }
+        else if(IsAvcProfile(profile)||IsHevcProfile(profile))
+        {
+            attribs[i].value.value.i = CODEC_4K_MAX_PIC_WIDTH;
+        }
+        else if (IsVp9Profile(profile))
+        {
+            attribs[i].value.value.i = m_maxVp9EncWidth;
+        }
+        i++;
+
+        attribs[i].type = VASurfaceAttribMaxHeight;
+        attribs[i].value.type = VAGenericValueTypeInteger;
+        attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE;
+        attribs[i].value.value.i = CODEC_MAX_PIC_HEIGHT;
+        if(profile == VAProfileJPEGBaseline)
+        {
+            attribs[i].value.value.i = ENCODE_JPEG_MAX_PIC_HEIGHT;
+        }
+        else if(IsAvcProfile(profile)||IsHevcProfile(profile))
+        {
+            attribs[i].value.value.i = CODEC_4K_MAX_PIC_HEIGHT;
+        }
+        else if (IsVp9Profile(profile))
+        {
+            attribs[i].value.value.i = m_maxVp9EncHeight;
+        }
+        i++;
+
+        attribs[i].type = VASurfaceAttribMinWidth;
+        attribs[i].value.type = VAGenericValueTypeInteger;
+        attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE;
+        attribs[i].value.value.i = m_encMinWidth;
+        if(profile == VAProfileJPEGBaseline)
+        {
+            attribs[i].value.value.i = m_encJpegMinWidth;
+        }
+        i++;
+
+        attribs[i].type = VASurfaceAttribMinHeight;
+        attribs[i].value.type = VAGenericValueTypeInteger;
+        attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE;
+        attribs[i].value.value.i = m_encMinHeight;
+        if(profile == VAProfileJPEGBaseline)
+        {
+            attribs[i].value.value.i = m_encJpegMinHeight;
+        }
+        i++;
+    }
+    else
+    {
+        MOS_FreeMemory(attribs);
+        return VA_STATUS_ERROR_UNIMPLEMENTED;
+    }
+
+    if (i > *numAttribs)
+    {
+        *numAttribs = i;
+        MOS_FreeMemory(attribs);
+        return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
+    }
+
+    *numAttribs = i;
+    MOS_SecureMemcpy(attribList, i * sizeof(*attribs), attribs, i * sizeof(*attribs));
+
+    MOS_FreeMemory(attribs);
+    return status;
 }
 
 extern template class MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>;

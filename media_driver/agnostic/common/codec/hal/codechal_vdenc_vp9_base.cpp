@@ -7487,6 +7487,11 @@ MOS_STATUS CodechalVdencVp9State::DumpSeqParams(
     oss << "# UseRawReconRef = " << std::dec << +seqParams->SeqFlags.fields.bUseRawReconRef << std::endl;
     oss << "# MBBRC = " << std::dec << +seqParams->SeqFlags.fields.MBBRC << std::endl;
     oss << "EnableDynamicScaling = " << std::dec << +seqParams->SeqFlags.fields.EnableDynamicScaling << std::endl;
+    oss << "SourceFormat = " << std::dec << +seqParams->SeqFlags.fields.SourceFormat << std::endl;
+    oss << "SourceBitDepth = " << std::dec << +seqParams->SeqFlags.fields.SourceBitDepth << std::endl;
+    oss << "EncodedFormat = " << std::dec << +seqParams->SeqFlags.fields.EncodedFormat << std::endl;
+    oss << "EncodedBitDepth = " << std::dec << +seqParams->SeqFlags.fields.EncodedBitDepth << std::endl;
+    oss << "DisplayFormatSwizzle = " << std::dec << +seqParams->SeqFlags.fields.DisplayFormatSwizzle << std::endl;
     // end of union/struct
 
     oss << "UserMaxFrameSize = " << std::dec << +seqParams->UserMaxFrameSize << std::endl;
