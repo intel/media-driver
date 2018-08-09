@@ -376,6 +376,17 @@ int32_t CmProgramRT::Initialize( void* cisaCode, const uint32_t cisaCodeSize, co
                 return CM_OUT_OF_HOST_MEMORY;
             }
         }
+
+        // Pass "-loadPayload" to jitter. Will remove it after jitter enables compute walker by default
+        if (numJitFlags >= CM_RT_JITTER_MAX_NUM_FLAGS)
+        {
+            CM_ASSERTMESSAGE("Error: Invalid jitter user flags number.");
+            hr = CM_FAILURE;
+            goto finish;
+        }
+        jitFlags[numJitFlags] = "-loadPayload";
+        numJitFlags++;
+        
     }
 
     if (useVisaApi)
