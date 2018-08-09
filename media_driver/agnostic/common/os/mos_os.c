@@ -559,15 +559,15 @@ finish:
 
 #if MOS_COMMAND_RESINFO_DUMP_SUPPORTED
 
-GpuCmdResInfoDump *GpuCmdResInfoDump::m_instance = nullptr;
+std::shared_ptr<GpuCmdResInfoDump> GpuCmdResInfoDump::m_instance = nullptr;
 
 const GpuCmdResInfoDump *GpuCmdResInfoDump::GetInstance()
 {
     if (m_instance == nullptr)
     {
-        m_instance = new GpuCmdResInfoDump();
+        m_instance = std::make_shared<GpuCmdResInfoDump>();
     }
-    return m_instance;
+    return m_instance.get();
 }
 
 GpuCmdResInfoDump::GpuCmdResInfoDump()
