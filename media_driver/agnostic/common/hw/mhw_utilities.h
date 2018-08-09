@@ -29,6 +29,7 @@
 #include "mos_os.h"
 #include <math.h>
 #include "mos_util_debug.h"
+#include "mhw_mmio.h"
 
 typedef struct _MHW_RCS_SURFACE_PARAMS MHW_RCS_SURFACE_PARAMS, *PMHW_RCS_SURFACE_PARAMS;
 typedef struct _MHW_BATCH_BUFFER MHW_BATCH_BUFFER, *PMHW_BATCH_BUFFER;
@@ -65,7 +66,7 @@ typedef struct _MHW_BATCH_BUFFER MHW_BATCH_BUFFER, *PMHW_BATCH_BUFFER;
 #define POLYPHASE_Y_COEFFICIENT_TABLE_SIZE_G10   (NUM_POLYPHASE_Y_ENTRIES  * NUM_HW_POLYPHASE_TABLES_G10 * sizeof(int32_t))
 #define POLYPHASE_UV_COEFFICIENT_TABLE_SIZE_G10  (NUM_POLYPHASE_UV_ENTRIES * NUM_HW_POLYPHASE_TABLES_G10 * sizeof(int32_t))
 
-#define MHW__PWR_CLK_STATE_REG    0x20C8  //MMIO register for power clock state
+
 
 // Calculates the number of bits between the startbit and the endbit (0 based).
 #ifndef MHW_BITFIELD_RANGE

@@ -76,12 +76,7 @@ typedef struct _MHW_VDBOX_HUC_VIRTUAL_ADDR_PARAMS
     MHW_VDBOX_HUC_REGION_PARAMS  regionParams[16];                                 // region [0~15] for VIRTUAL_ADDR command
 } MHW_VDBOX_HUC_VIRTUAL_ADDR_PARAMS, *PMHW_VDBOX_HUC_VIRTUAL_ADDR_PARAMS;
 
-struct MmioRegistersHuc
-{
-    uint32_t                    hucStatusRegOffset = 0;
-    uint32_t                    hucUKernelHdrInfoRegOffset = 0;
-    uint32_t                    hucStatus2RegOffset = 0;
-};
+
 
 //!  MHW Vdbox Huc interface
 /*!

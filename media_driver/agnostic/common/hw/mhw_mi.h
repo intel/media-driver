@@ -33,6 +33,7 @@ class MhwCpInterface;
 #include "mos_os.h"
 #include "mhw_utilities.h"
 #include "mhw_cp_interface.h"
+#include "mhw_mmio.h"
 
 #define MHW_MI_WATCHDOG_ENABLE_COUNTER                 0x0
 #define MHW_MI_WATCHDOG_DISABLE_COUNTER                0x1
@@ -295,13 +296,6 @@ typedef struct _MHW_MI_FORCE_WAKEUP_PARAMS
     uint32_t               Reserved31_26                   : 6; //!< Reserved Mask
 } MHW_MI_FORCE_WAKEUP_PARAMS, *PMHW_MI_FORCE_WAKEUP_PARAMS;
 
-typedef struct _MHW_MI_MMIOREGISTERS
-{
-    uint32_t            generalPurposeRegister0LoOffset;
-    uint32_t            generalPurposeRegister0HiOffset;
-    uint32_t            generalPurposeRegister4LoOffset;
-    uint32_t            generalPurposeRegister4HiOffset;
-} MHW_MI_MMIOREGISTERS, *PMHW_MI_MMIOREGISTERS;
 
 class MhwMiInterface
 {

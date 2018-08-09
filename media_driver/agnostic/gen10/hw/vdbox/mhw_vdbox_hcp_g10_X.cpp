@@ -26,6 +26,7 @@
 #include "mhw_vdbox_hcp_g10_X.h"
 #include "mhw_mi_hwcmd_g10_X.h"
 #include "mhw_vdbox_vdenc_hwcmd_g10_X.h"
+#include "mhw_mmio_g10.h"
 
 static uint16_t RDOQLamdas8bits[2][2][2][52] = //[Intra Slice/Inter Slice][Intra/Inter][Luma/Chroma][QP]
 {
@@ -215,24 +216,24 @@ void MhwVdboxHcpInterfaceG10::InitMmioRegisters()
 {
     MmioRegistersHcp *mmioRegisters = &m_mmioRegisters[MHW_VDBOX_NODE_1];
 
-    mmioRegisters->watchdogCountCtrlOffset                           = 0;
-    mmioRegisters->watchdogCountThresholdOffset                      = 0;
-    mmioRegisters->hcpDebugFEStreamOutSizeRegOffset                  = 0;
-    mmioRegisters->hcpEncImageStatusMaskRegOffset                    = 0x1E9B8;
-    mmioRegisters->hcpEncImageStatusCtrlRegOffset                    = 0x1E9BC;
-    mmioRegisters->hcpEncBitstreamBytecountFrameRegOffset            = 0x1E9A0;
-    mmioRegisters->hcpEncBitstreamSeBitcountFrameRegOffset           = 0x1E9A8;
-    mmioRegisters->hcpEncBitstreamBytecountFrameNoHeaderRegOffset    = 0x1E9A4;
-    mmioRegisters->hcpEncQpStatusCountRegOffset                      = 0x1E9C0;
-    mmioRegisters->hcpEncSliceCountRegOffset                         = 0x1E9C8;
-    mmioRegisters->hcpEncVdencModeTimerRegOffset                     = 0x1E9DC;
-    mmioRegisters->hcpVp9EncBitstreamBytecountFrameRegOffset         = 0x1E9E0;
-    mmioRegisters->hcpVp9EncBitstreamBytecountFrameNoHeaderRegOffset = 0x1E9E4;
-    mmioRegisters->hcpVp9EncImageStatusMaskRegOffset                 = 0x1E9F0;
-    mmioRegisters->hcpVp9EncImageStatusCtrlRegOffset                 = 0x1E9F4;
-    mmioRegisters->csEngineIdOffset                                  = 0;
-    mmioRegisters->hcpDecStatusRegOffset                             = 0x1E900;
-    mmioRegisters->hcpCabacStatusRegOffset                           = 0x1E904;
+    mmioRegisters->watchdogCountCtrlOffset                           = WATCHDOG_COUNT_CTRL_OFFSET_INIT_G10;
+    mmioRegisters->watchdogCountThresholdOffset                      = WATCHDOG_COUNT_THRESTHOLD_OFFSET_INIT_G10;
+    mmioRegisters->hcpDebugFEStreamOutSizeRegOffset                  = HCP_DEBUG_FE_STREAM_OUT_SIZE_REG_OFFSET_INIT_G10;
+    mmioRegisters->hcpEncImageStatusMaskRegOffset                    = HCP_ENC_IMAGE_STATUS_MASK_REG_OFFSET_INIT_G10;
+    mmioRegisters->hcpEncImageStatusCtrlRegOffset                    = HCP_ENC_IMAGE_STATUS_CTRL_REG_OFFSET_INIT_G10;
+    mmioRegisters->hcpEncBitstreamBytecountFrameRegOffset            = HCP_ENC_BIT_STREAM_BYTE_COUNT_FRAME_REG_OFFSET_INIT_G10;
+    mmioRegisters->hcpEncBitstreamSeBitcountFrameRegOffset           = HCP_ENC_BIT_STREAM_SE_BIT_COUNT_FRAME_REG_OFFSET_INIT_G10;
+    mmioRegisters->hcpEncBitstreamBytecountFrameNoHeaderRegOffset    = HCP_ENC_BIT_STREAM_BYTE_COUNT_FRAME_NO_HEADER_REG_OFFSET_INIT_G10;
+    mmioRegisters->hcpEncQpStatusCountRegOffset                      = HCP_ENC_QP_STATUS_COUNT_REG_OFFSET_INIT_G10;
+    mmioRegisters->hcpEncSliceCountRegOffset                         = HCP_ENC_SLICE_COUNT_REG_OFFSET_INIT_G10;
+    mmioRegisters->hcpEncVdencModeTimerRegOffset                     = HCP_ENC_VDENC_MODE_TIMER_REG_OFFSET_INIT_G10;
+    mmioRegisters->hcpVp9EncBitstreamBytecountFrameRegOffset         = HCP_VP9_ENC_BITSTREAM_BYTE_COUNT_FRAME_REG_OFFSET_INIT_G10;
+    mmioRegisters->hcpVp9EncBitstreamBytecountFrameNoHeaderRegOffset = HCP_VP9_ENC_BITSTREAM_BYTE_COUNT_FRAME_NO_HEADER_REG_OFFSET_INIT_G10;
+    mmioRegisters->hcpVp9EncImageStatusMaskRegOffset                 = HCP_VP9_ENC_IMAGE_STATUS_MASK_REG_OFFSET_INIT_G10;
+    mmioRegisters->hcpVp9EncImageStatusCtrlRegOffset                 = HCP_VP9_ENC_IMAGE_STATUS_CTRL_REG_OFFSET_INIT_G10;
+    mmioRegisters->csEngineIdOffset                                  = CS_ENGINE_ID_OFFSET_INIT_G10;
+    mmioRegisters->hcpDecStatusRegOffset                             = HCP_DEC_STATUS_REG_OFFSET_INIT_G10;
+    mmioRegisters->hcpCabacStatusRegOffset                           = HCP_CABAC_STATUS_REG_OFFSET_INIT_G10;
 
 }
 

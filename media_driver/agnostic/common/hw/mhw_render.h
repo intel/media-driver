@@ -33,6 +33,7 @@
 #include "mhw_state_heap.h"
 #include "mhw_mi.h"
 
+
 #define MHW_RENDER_ENGINE_SSH_SURFACES_PER_BT_MAX           256
 #define MHW_RENDER_ENGINE_SAMPLERS_MAX                      16
 #define MHW_RENDER_ENGINE_SAMPLERS_AVS_MAX                  8
@@ -44,11 +45,6 @@
 #define MHW_RENDER_ENGINE_SIZE_REGISTERS_PER_THREAD         0x1800
 
 #define MHW_MAX_DEPENDENCY_COUNT                    8
-
-#define MHW_RENDER_ENGINE_PREEMPTION_CONTROL_OFFSET                 0x2580
-#define MHW_RENDER_ENGINE_MID_THREAD_PREEMPT_VALUE                  0x00060000
-#define MHW_RENDER_ENGINE_THREAD_GROUP_PREEMPT_VALUE                0x00060002
-#define MHW_RENDER_ENGINE_MID_BATCH_PREEMPT_VALUE                   0x00060004
 
 typedef struct _MHW_RENDER_ENGINE_L3_CACHE_SETTINGS
 {
@@ -634,8 +630,8 @@ protected:
     uint32_t    m_preemptionCntlRegisterOffset = 0;
     uint32_t    m_preemptionCntlRegisterValue = 0;
 
-    uint32_t    m_l3CacheCntlRegisterOffset = 0x7034;
-    uint32_t    m_l3CacheCntlRegisterValueDefault = 0;
+    uint32_t    m_l3CacheCntlRegisterOffset = M_L3_CACHE_CNTL_REG_OFFSET;
+    uint32_t    m_l3CacheCntlRegisterValueDefault = M_L3_CACHE_CNTL_REG_VALUE_DEFAULT;
 
     //!
     //! \brief    Adds a resource to the command buffer or indirect state (SSH)

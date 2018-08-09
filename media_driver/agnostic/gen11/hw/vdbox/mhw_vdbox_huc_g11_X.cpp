@@ -25,14 +25,15 @@
 
 #include "mhw_vdbox_huc_g11_X.h"
 #include "mhw_vdbox_vdenc_hwcmd_g11_X.h"
+#include "mhw_mmio_g11.h"
 
 void MhwVdboxHucInterfaceG11::InitMmioRegisters()
 {
     MmioRegistersHuc *mmioRegisters = &m_mmioRegisters[MHW_VDBOX_NODE_1];
 
-    mmioRegisters->hucUKernelHdrInfoRegOffset = 0x1C2014;
-    mmioRegisters->hucStatusRegOffset         = 0x1C2000;
-    mmioRegisters->hucStatus2RegOffset        = 0x1C23B0;
+    mmioRegisters->hucUKernelHdrInfoRegOffset = HUC_UKERNEL_HDR_INFO_REG_OFFSET_NODE_1_INIT_G11;
+    mmioRegisters->hucStatusRegOffset         = HUC_STATUS_REG_OFFSET_NODE_1_INIT_G11;
+    mmioRegisters->hucStatus2RegOffset        = HUC_STATUS2_REG_OFFSET_NODE_1_INIT_G11;
 
     m_mmioRegisters[MHW_VDBOX_NODE_2] = m_mmioRegisters[MHW_VDBOX_NODE_1];
 }

@@ -33,6 +33,7 @@
 #include "cm_hal.h"
 #include "mhw_vebox_hwcmd_g8_X.h"
 #include "mhw_render_hwcmd_g8_X.h"
+#include "mhw_mmio_g8.h"
 
 #define CM_NUM_HW_POLYPHASE_TABLES_G8          17
 
@@ -65,11 +66,7 @@ static const L3ConfigRegisterValues BDW_L3_PLANE[CM_BDW_L3_CONFIG_NUM] =
     { 0, 0, 0, 0x00808021 }                       //{192,   128,      0,   256,   128,    0,    0,    0,    768}
 };
 
-// BDW GT2
-// SLM     URB    Rest   DC       RO     I/S     C     T      Sum
-// {192,   128,    0,    256,     128,   0,      0,    0       }
-#define CM_L3_CACHE_CONFIG_SQCREG1_VALUE_G8         0x00610000
-#define CM_L3_CACHE_CONFIG_CNTLREG_VALUE_G8         0x00808021
+
 
 //! \brief      for BDW GT2 WA
 //!              SLM     URB     Rest     DC     RO    I/S     C       T

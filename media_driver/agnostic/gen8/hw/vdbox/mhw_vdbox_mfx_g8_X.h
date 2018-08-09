@@ -29,6 +29,7 @@
 
 #include "mhw_vdbox_mfx_generic.h"
 #include "mhw_mi_hwcmd_g8_X.h"
+#include "mhw_mmio_g8.h"
 
 //!  MHW Vdbox Mfx interface for Gen8
 /*!
@@ -152,63 +153,63 @@ protected:
     {
         MmioRegistersMfx *mmioRegisters = &this->m_mmioRegisters[MHW_VDBOX_NODE_1];
 
-        mmioRegisters->generalPurposeRegister0LoOffset            = 0x12600;
-        mmioRegisters->generalPurposeRegister0HiOffset            = 0x12604;
-        mmioRegisters->generalPurposeRegister4LoOffset            = 0x12620;
-        mmioRegisters->generalPurposeRegister4HiOffset            = 0x12624;
-        mmioRegisters->mfcImageStatusMaskRegOffset                = 0x128B4;
-        mmioRegisters->mfcImageStatusCtrlRegOffset                = 0x128B8;
-        mmioRegisters->mfcAvcNumSlicesRegOffset                   = 0;
-        mmioRegisters->mfcQPStatusCountOffset                     = 0x128BC;
-        mmioRegisters->mfxErrorFlagsRegOffset                     = 0x12800;
-        mmioRegisters->mfxFrameCrcRegOffset                       = 0x12850;
-        mmioRegisters->mfxMBCountRegOffset                        = 0x12868;
-        mmioRegisters->mfcBitstreamBytecountFrameRegOffset        = 0x128A0;
-        mmioRegisters->mfcBitstreamSeBitcountFrameRegOffset       = 0x128A4;
-        mmioRegisters->mfcBitstreamBytecountSliceRegOffset        = 0x128D0;
-        mmioRegisters->mfcVP8BitstreamBytecountFrameRegOffset     = 0x12908;
-        mmioRegisters->mfcVP8ImageStatusMaskRegOffset             = 0x12900;
-        mmioRegisters->mfcVP8ImageStatusCtrlRegOffset             = 0x12904;
-        mmioRegisters->mfxVP8BrcDQIndexRegOffset                  = 0x12910;
-        mmioRegisters->mfxVP8BrcDLoopFilterRegOffset              = 0x12914;
-        mmioRegisters->mfxVP8BrcCumulativeDQIndex01RegOffset      = 0X12918;
-        mmioRegisters->mfxVP8BrcCumulativeDQIndex23RegOffset      = 0X1291C;
-        mmioRegisters->mfxVP8BrcCumulativeDLoopFilter01RegOffset  = 0X12920;
-        mmioRegisters->mfxVP8BrcCumulativeDLoopFilter23RegOffset  = 0X12924;
-        mmioRegisters->mfxVP8BrcConvergenceStatusRegOffset        = 0X12928;
-        mmioRegisters->mfxLra0RegOffset                           = 0;
-        mmioRegisters->mfxLra1RegOffset                           = 0;
-        mmioRegisters->mfxLra2RegOffset                           = 0;
+        mmioRegisters->generalPurposeRegister0LoOffset            = GENERAL_PURPOSE_REGISTER0_LO_OFFSET_NODE_1_INIT_G8;
+        mmioRegisters->generalPurposeRegister0HiOffset            = GENERAL_PURPOSE_REGISTER0_HI_OFFSET_NODE_1_INIT_G8;
+        mmioRegisters->generalPurposeRegister4LoOffset            = GENERAL_PURPOSE_REGISTER4_LO_OFFSET_NODE_1_INIT_G8;
+        mmioRegisters->generalPurposeRegister4HiOffset            = GENERAL_PURPOSE_REGISTER4_HI_OFFSET_NODE_1_INIT_G8;
+        mmioRegisters->mfcImageStatusMaskRegOffset                = MFC_IMAGE_STATUS_MASK_REG_OFFSET_NODE_1_INIT_G8;
+        mmioRegisters->mfcImageStatusCtrlRegOffset                = MFC_IMAGE_STATUS_CTRL_REG_OFFSET_NODE_1_INIT_G8;
+        mmioRegisters->mfcAvcNumSlicesRegOffset                   = MFC_AVC_NUM_SLICES_REG_OFFSET_NODE_1_INIT_G8;
+        mmioRegisters->mfcQPStatusCountOffset                     = MFC_QP_STATUS_COUNT_OFFSET_NODE_1_INIT_G8;
+        mmioRegisters->mfxErrorFlagsRegOffset                     = MFX_ERROR_FLAG_REG_OFFSET_NODE_1_INIT_G8;
+        mmioRegisters->mfxFrameCrcRegOffset                       = MFX_FRAME_CRC_REG_OFFSET_NODE_1_INIT_G8;
+        mmioRegisters->mfxMBCountRegOffset                        = MFX_MB_COUNT_REG_OFFSET_NODE_1_INIT_G8;
+        mmioRegisters->mfcBitstreamBytecountFrameRegOffset        = MFC_BITSTREAM_BYTECOUNT_FRAME_REG_OFFSET_NODE_1_INIT_G8;
+        mmioRegisters->mfcBitstreamSeBitcountFrameRegOffset       = MFC_BITSTREAM_SE_BITCOUNT_FRAME_REG_OFFSET_NODE_1_INIT_G8;
+        mmioRegisters->mfcBitstreamBytecountSliceRegOffset        = MFC_BITSTREAM_BYTECOUNT_SLICE_REG_OFFSET_NODE_1_INIT_G8;
+        mmioRegisters->mfcVP8BitstreamBytecountFrameRegOffset     = MFC_VP8_BITSTREAM_BYTECOUNT_FRAME_REG_OFFSET_NODE_1_INIT_G8;
+        mmioRegisters->mfcVP8ImageStatusMaskRegOffset             = MFC_VP8_IMAGE_STATUS_MASK_REG_OFFSET_NODE_1_INIT_G8;
+        mmioRegisters->mfcVP8ImageStatusCtrlRegOffset             = MFC_VP8_IMAGE_STATUS_CTRL_REG_OFFSET_NODE_1_INIT_G8;
+        mmioRegisters->mfxVP8BrcDQIndexRegOffset                  = MFX_VP8_BRC_DQ_INDEX_REG_OFFSET_NODE_1_INIT_G8;
+        mmioRegisters->mfxVP8BrcDLoopFilterRegOffset              = MFX_VP8_BRC_LOOP_FILTER_REG_OFFSET_NODE_1_INIT_G8;
+        mmioRegisters->mfxVP8BrcCumulativeDQIndex01RegOffset      = MFX_VP8_BRC_CUMULATIVE_DQ_INDEX01_REG_OFFSET_NODE_1_INIT_G8;
+        mmioRegisters->mfxVP8BrcCumulativeDQIndex23RegOffset      = MFX_VP8_BRC_CUMULATIVE_DQ_INDEX23_REG_OFFSET_NODE_1_INIT_G8;
+        mmioRegisters->mfxVP8BrcCumulativeDLoopFilter01RegOffset  = MFX_VP8_BRC_CUMULATIVE_LOOP_FILTER01_REG_OFFSET_NODE_1_INIT_G8;
+        mmioRegisters->mfxVP8BrcCumulativeDLoopFilter23RegOffset  = MFX_VP8_BRC_CUMULATIVE_LOOP_FILTER23_REG_OFFSET_NODE_1_INIT_G8;
+        mmioRegisters->mfxVP8BrcConvergenceStatusRegOffset        = MFX_VP8_BRC_CONVERGENCE_STATUS_REG_OFFSET_NODE_1_INIT_G8;
+        mmioRegisters->mfxLra0RegOffset                           = MFX_LRA0_REG_OFFSET_NODE_1_INIT_G8;
+        mmioRegisters->mfxLra1RegOffset                           = MFX_LRA1_REG_OFFSET_NODE_1_INIT_G8;
+        mmioRegisters->mfxLra2RegOffset                           = MFX_LRA2_REG_OFFSET_NODE_1_INIT_G8;
 
         mmioRegisters = &this->m_mmioRegisters[MHW_VDBOX_NODE_2];
 
-        mmioRegisters->generalPurposeRegister0LoOffset            = 0x1C600;
-        mmioRegisters->generalPurposeRegister0HiOffset            = 0x1C604;
-        mmioRegisters->generalPurposeRegister4LoOffset            = 0x1C620;
-        mmioRegisters->generalPurposeRegister4HiOffset            = 0x1C624;
-        mmioRegisters->mfcImageStatusMaskRegOffset                = 0x1C8B4;
-        mmioRegisters->mfcImageStatusCtrlRegOffset                = 0x1C8B8;
-        mmioRegisters->mfcAvcNumSlicesRegOffset                   = 0;
-        mmioRegisters->mfcQPStatusCountOffset                     = 0x1C8BC;
-        mmioRegisters->mfxErrorFlagsRegOffset                     = 0x1C800;
-        mmioRegisters->mfxFrameCrcRegOffset                       = 0x1C850;
-        mmioRegisters->mfxMBCountRegOffset                        = 0x1C868;
-        mmioRegisters->mfcBitstreamBytecountFrameRegOffset        = 0x1C8A0;
-        mmioRegisters->mfcBitstreamSeBitcountFrameRegOffset       = 0x1C8A4;
-        mmioRegisters->mfcBitstreamBytecountSliceRegOffset        = 0x1C8D0;
-        mmioRegisters->mfcVP8BitstreamBytecountFrameRegOffset     = 0x1C908;
-        mmioRegisters->mfcVP8ImageStatusMaskRegOffset             = 0x1C900;
-        mmioRegisters->mfcVP8ImageStatusCtrlRegOffset             = 0x1C904;
-        mmioRegisters->mfxVP8BrcDQIndexRegOffset                  = 0x1C910;
-        mmioRegisters->mfxVP8BrcDLoopFilterRegOffset              = 0x1C914;
-        mmioRegisters->mfxVP8BrcCumulativeDQIndex01RegOffset      = 0X1C918;
-        mmioRegisters->mfxVP8BrcCumulativeDQIndex23RegOffset      = 0X1C91C;
-        mmioRegisters->mfxVP8BrcCumulativeDLoopFilter01RegOffset  = 0X1C920;
-        mmioRegisters->mfxVP8BrcCumulativeDLoopFilter23RegOffset  = 0X1C924;
-        mmioRegisters->mfxVP8BrcConvergenceStatusRegOffset        = 0X1C928;
-        mmioRegisters->mfxLra0RegOffset                           = 0;
-        mmioRegisters->mfxLra1RegOffset                           = 0;
-        mmioRegisters->mfxLra2RegOffset                           = 0;
+        mmioRegisters->generalPurposeRegister0LoOffset            = GENERAL_PURPOSE_REGISTER0_LO_OFFSET_NODE_2_INIT_G8;
+        mmioRegisters->generalPurposeRegister0HiOffset            = GENERAL_PURPOSE_REGISTER0_HI_OFFSET_NODE_2_INIT_G8;
+        mmioRegisters->generalPurposeRegister4LoOffset            = GENERAL_PURPOSE_REGISTER4_LO_OFFSET_NODE_2_INIT_G8;
+        mmioRegisters->generalPurposeRegister4HiOffset            = GENERAL_PURPOSE_REGISTER4_HI_OFFSET_NODE_2_INIT_G8;
+        mmioRegisters->mfcImageStatusMaskRegOffset                = MFC_IMAGE_STATUS_MASK_REG_OFFSET_NODE_2_INIT_G8;
+        mmioRegisters->mfcImageStatusCtrlRegOffset                = MFC_IMAGE_STATUS_CTRL_REG_OFFSET_NODE_2_INIT_G8;
+        mmioRegisters->mfcAvcNumSlicesRegOffset                   = MFC_AVC_NUM_SLICES_REG_OFFSET_NODE_2_INIT_G8;
+        mmioRegisters->mfcQPStatusCountOffset                     = MFC_QP_STATUS_COUNT_OFFSET_NODE_2_INIT_G8;
+        mmioRegisters->mfxErrorFlagsRegOffset                     = MFX_ERROR_FLAG_REG_OFFSET_NODE_2_INIT_G8;
+        mmioRegisters->mfxFrameCrcRegOffset                       = MFX_FRAME_CRC_REG_OFFSET_NODE_2_INIT_G8;
+        mmioRegisters->mfxMBCountRegOffset                        = MFX_MB_COUNT_REG_OFFSET_NODE_2_INIT_G8;
+        mmioRegisters->mfcBitstreamBytecountFrameRegOffset        = MFC_BITSTREAM_BYTECOUNT_FRAME_REG_OFFSET_NODE_2_INIT_G8;
+        mmioRegisters->mfcBitstreamSeBitcountFrameRegOffset       = MFC_BITSTREAM_SE_BITCOUNT_FRAME_REG_OFFSET_NODE_2_INIT_G8;
+        mmioRegisters->mfcBitstreamBytecountSliceRegOffset        = MFC_BITSTREAM_BYTECOUNT_SLICE_REG_OFFSET_NODE_2_INIT_G8;
+        mmioRegisters->mfcVP8BitstreamBytecountFrameRegOffset     = MFC_VP8_BITSTREAM_BYTECOUNT_FRAME_REG_OFFSET_NODE_2_INIT_G8;
+        mmioRegisters->mfcVP8ImageStatusMaskRegOffset             = MFC_VP8_IMAGE_STATUS_MASK_REG_OFFSET_NODE_2_INIT_G8;
+        mmioRegisters->mfcVP8ImageStatusCtrlRegOffset             = MFC_VP8_IMAGE_STATUS_CTRL_REG_OFFSET_NODE_2_INIT_G8;
+        mmioRegisters->mfxVP8BrcDQIndexRegOffset                  = MFX_VP8_BRC_DQ_INDEX_REG_OFFSET_NODE_2_INIT_G8;
+        mmioRegisters->mfxVP8BrcDLoopFilterRegOffset              = MFX_VP8_BRC_LOOP_FILTER_REG_OFFSET_NODE_2_INIT_G8;
+        mmioRegisters->mfxVP8BrcCumulativeDQIndex01RegOffset      = MFX_VP8_BRC_CUMULATIVE_DQ_INDEX01_REG_OFFSET_NODE_2_INIT_G8;
+        mmioRegisters->mfxVP8BrcCumulativeDQIndex23RegOffset      = MFX_VP8_BRC_CUMULATIVE_DQ_INDEX23_REG_OFFSET_NODE_2_INIT_G8;
+        mmioRegisters->mfxVP8BrcCumulativeDLoopFilter01RegOffset  = MFX_VP8_BRC_CUMULATIVE_LOOP_FILTER01_REG_OFFSET_NODE_2_INIT_G8;
+        mmioRegisters->mfxVP8BrcCumulativeDLoopFilter23RegOffset  = MFX_VP8_BRC_CUMULATIVE_LOOP_FILTER23_REG_OFFSET_NODE_2_INIT_G8;
+        mmioRegisters->mfxVP8BrcConvergenceStatusRegOffset        = MFX_VP8_BRC_CONVERGENCE_STATUS_REG_OFFSET_NODE_2_INIT_G8;
+        mmioRegisters->mfxLra0RegOffset                           = MFX_LRA0_REG_OFFSET_NODE_2_INIT_G8;
+        mmioRegisters->mfxLra1RegOffset                           = MFX_LRA1_REG_OFFSET_NODE_2_INIT_G8;
+        mmioRegisters->mfxLra2RegOffset                           = MFX_LRA2_REG_OFFSET_NODE_2_INIT_G8;
     }
 
     MOS_STATUS FindGpuNodeToUse(

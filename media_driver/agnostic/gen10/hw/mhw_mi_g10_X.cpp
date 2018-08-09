@@ -28,6 +28,7 @@
 
 #include "mhw_mi_g10_X.h"
 #include "mhw_mi_hwcmd_g10_X.h"
+#include "mhw_mmio_g10.h"
 
 MOS_STATUS MhwMiInterfaceG10::AddMiSemaphoreWaitCmd(
     PMOS_COMMAND_BUFFER             cmdBuffer,
@@ -135,10 +136,10 @@ void MhwMiInterfaceG10::InitMmioRegisters()
 {
     MHW_MI_MMIOREGISTERS *mmioRegisters = &m_mmioRegisters;
 
-    mmioRegisters->generalPurposeRegister0LoOffset            = 0x1A600;
-    mmioRegisters->generalPurposeRegister0HiOffset            = 0x1A604;
-    mmioRegisters->generalPurposeRegister4LoOffset            = 0x1A620;
-    mmioRegisters->generalPurposeRegister4HiOffset            = 0x1A624;
+    mmioRegisters->generalPurposeRegister0LoOffset            = GP_REGISTER0_LO_OFFSET_G10;
+    mmioRegisters->generalPurposeRegister0HiOffset            = GP_REGISTER0_HI_OFFSET_G10;
+    mmioRegisters->generalPurposeRegister4LoOffset            = GP_REGISTER4_LO_OFFSET_G10;
+    mmioRegisters->generalPurposeRegister4HiOffset            = GP_REGISTER4_HI_OFFSET_G10;
 }
 
 MOS_STATUS MhwMiInterfaceG10::SetWatchdogTimerThreshold(uint32_t frameWidth, uint32_t frameHeight)
@@ -204,28 +205,28 @@ MOS_STATUS MhwMiInterfaceG10::SetWatchdogTimerRegisterOffset(
         case MOS_GPU_CONTEXT_RENDER2:
         case MOS_GPU_CONTEXT_RENDER3:
         case MOS_GPU_CONTEXT_RENDER4:
-            MediaResetParam.watchdogCountCtrlOffset = 0x2178;
-            MediaResetParam.watchdogCountThresholdOffset = 0x217C;
+            MediaResetParam.watchdogCountCtrlOffset = WATCHDOG_COUNT_CTRL_OFFSET_RCS_G10;
+            MediaResetParam.watchdogCountThresholdOffset = WATCHDOG_COUNT_THRESTHOLD_OFFSET_RCS_G10;
             break;
         // VCS0
         case MOS_GPU_CONTEXT_VIDEO:
         case MOS_GPU_CONTEXT_VIDEO2:
         case MOS_GPU_CONTEXT_VIDEO3:
         case MOS_GPU_CONTEXT_VIDEO4:
-            MediaResetParam.watchdogCountCtrlOffset = 0x12178;
-            MediaResetParam.watchdogCountThresholdOffset = 0x1217C;
+            MediaResetParam.watchdogCountCtrlOffset = WATCHDOG_COUNT_CTRL_OFFSET_VCS0_G10;
+            MediaResetParam.watchdogCountThresholdOffset = WATCHDOG_COUNT_THRESTHOLD_OFFSET_VCS0_G10;
             break;
         // VCS1
         case MOS_GPU_CONTEXT_VDBOX2_VIDEO:
         case MOS_GPU_CONTEXT_VDBOX2_VIDEO2:
         case MOS_GPU_CONTEXT_VDBOX2_VIDEO3:
-            MediaResetParam.watchdogCountCtrlOffset = 0x1C178;
-            MediaResetParam.watchdogCountThresholdOffset = 0x1C17C;
+            MediaResetParam.watchdogCountCtrlOffset = WATCHDOG_COUNT_CTRL_OFFSET_VCS1_G10;
+            MediaResetParam.watchdogCountThresholdOffset = WATCHDOG_COUNT_THRESTHOLD_OFFSET_VCS1_G10;
             break;
         // VECS
         case MOS_GPU_CONTEXT_VEBOX:
-            MediaResetParam.watchdogCountCtrlOffset = 0x1A178;
-            MediaResetParam.watchdogCountThresholdOffset = 0x1A17C;
+            MediaResetParam.watchdogCountCtrlOffset = WATCHDOG_COUNT_CTRL_OFFSET_VECS_G10;
+            MediaResetParam.watchdogCountThresholdOffset = WATCHDOG_COUNT_THRESTHOLD_OFFSET_VECS_G10;
             break;
         // Default
         default:

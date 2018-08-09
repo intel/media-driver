@@ -25,14 +25,15 @@
 
 #include "mhw_vdbox_huc_g9_bxt.h"
 #include "mhw_vdbox_vdenc_hwcmd_g9_bxt.h"
+#include "mhw_mmio_g9.h"
 
 void MhwVdboxHucInterfaceG9Bxt::InitMmioRegisters()
 {
     MmioRegistersHuc *mmioRegisters = &m_mmioRegisters[MHW_VDBOX_NODE_1];
 
-    mmioRegisters->hucUKernelHdrInfoRegOffset = 0x0D014;
-    mmioRegisters->hucStatusRegOffset         = 0x0D000;
-    mmioRegisters->hucStatus2RegOffset        = 0x0D3B0;
+    mmioRegisters->hucUKernelHdrInfoRegOffset = HUC_UKERNEL_HDR_INFO_REG_OFFSET_NODE_1_INIT_G9;
+    mmioRegisters->hucStatusRegOffset         = HUC_STATUS_REG_OFFSET_NODE_1_INIT_G9;
+    mmioRegisters->hucStatus2RegOffset        = HUC_STATUS2_REG_OFFSET_NODE_1_INIT_G9;
 }
 
 MOS_STATUS MhwVdboxHucInterfaceG9Bxt::GetHucStateCommandSize(

@@ -40,6 +40,7 @@
 #include "cm_hal_hashtable.h"
 #include "media_perf_profiler.h"
 
+
 class XRenderHal_Platform_Interface;
 
 //------------------------------------------------------------------------------
@@ -262,20 +263,8 @@ class XRenderHal_Platform_Interface;
 //*-----------------------------------------------------------------------------
 //| MMIO register offsets used for the EU debug support
 //*-----------------------------------------------------------------------------
-#define INSTPM                          0x20c0
-#define INSTPM_GLOBAL_DEBUG_ENABLE      (1 << 4)
-#define INSTPM_SET_BITS_G8              (0x3 << 13)
 
-#define CS_DEBUG_MODE1                  0x20ec
-#define CS_DEBUG_MODE1_GLOBAL_DEBUG     (1 << 6)
 
-#define CS_DEBUG_MODE2                  0x20d8
-#define CS_DEBUG_MODE2_GLOBAL_DEBUG     (1 << 5)
-
-#define TD_CTL                          0xe400
-
-#define TD_CTL_FORCE_THREAD_BKPT_ENABLE             (1 << 4)
-#define TD_CTL_FORCE_EXT_EXCEPTION_ENABLE           (1 << 7)
 
 #define MEDIASTATE_AVS_MAX_DERIVATIVE_4_PIXELS  7
 #define MEDIASTATE_AVS_MAX_DERIVATIVE_8_PIXELS  20
