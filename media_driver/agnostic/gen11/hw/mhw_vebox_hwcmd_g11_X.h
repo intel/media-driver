@@ -4633,7 +4633,8 @@ public:
             struct
             {
                 uint32_t                 Lut3DStatePointerHigh                            : __CODEGEN_BITFIELD( 0, 15)    ; //!< 3D LUT State Pointer High
-                uint32_t                 Reserved560                                      : __CODEGEN_BITFIELD(16, 29)    ; //!< Reserved
+                uint32_t                 Lut3DMOCStable                                   : __CODEGEN_BITFIELD(16, 21)    ; //!< 3D LUT MOCS table
+                uint32_t                 Reserved560                                      : __CODEGEN_BITFIELD(22, 29)    ; //!< Reserved
                 uint32_t                 ArbitrationPriorityControlForLut3D               : __CODEGEN_BITFIELD(30, 31)    ; //!< ARBITRATION_PRIORITY_CONTROL__FOR_3D_LUT
             };
             uint32_t                     Value;

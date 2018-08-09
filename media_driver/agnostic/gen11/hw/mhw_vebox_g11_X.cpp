@@ -920,6 +920,9 @@ MOS_STATUS MhwVeboxInterfaceG11::AddVeboxState(
     cmd.DW1.ForwardGammaCorrectionEnable = pVeboxMode->ForwardGammaCorrectionEnable;
 
     cmd.DW17.ArbitrationPriorityControlForLut3D = pLUT3D->ArbitrationPriorityControl;
+    // In GmmCachePolicyExt.h, Gen9/Gen10/Gen11 has the same definition for MEMORY_OBJECT_CONTROL_STATE.
+    // In MHW_MEMORY_OBJECT_CONTROL_PARAMS, we only defined Gen9 which intended to use for Gen9 later, so reuse Gen9 index.
+    cmd.DW17.Lut3DMOCStable                     = pVeboxStateCmdParams->Vebox3DLookUpTablesSurfCtrl.Gen9.Index;
     cmd.DW18.Lut3DEnable                        = pLUT3D->Lut3dEnable;
     cmd.DW18.Lut3DSize                          = pLUT3D->Lut3dSize;
 
