@@ -1305,10 +1305,30 @@ VAStatus DdiMedia__Initialize (
         return VA_STATUS_ERROR_OPERATION_FAILED;
     }
 
+    GMM_SKU_FEATURE_TABLE        gmmSkuTable;
+    memset(&gmmSkuTable, 0, sizeof(gmmSkuTable));
+
+    GMM_WA_TABLE                 gmmWaTable;
+    memset(&gmmWaTable, 0, sizeof(gmmWaTable));
+
+    GMM_GT_SYSTEM_INFO           gmmGtInfo;
+    memset(&gmmGtInfo, 0, sizeof(gmmGtInfo));
+
+    eStatus = HWInfo_GetGmmInfo(mediaCtx->fd, &gmmSkuTable, &gmmWaTable, &gmmGtInfo);
+    if( MOS_STATUS_SUCCESS != eStatus)
+    {
+        DDI_ASSERTMESSAGE("Fatal error - unsuccesfull Gmm Sku/Wa/GtSystemInfo initialization");
+        FreeForMediaContext(mediaCtx);
+        return VA_STATUS_ERROR_OPERATION_FAILED;
+    }
+
     eStatus = Mos_Solo_DdiInitializeDeviceId(
                  (void*)mediaCtx->pDrmBufMgr,
                  &mediaCtx->SkuTable,
                  &mediaCtx->WaTable,
+                 &gmmSkuTable,
+                 &gmmWaTable,
+                 &gmmGtInfo,
                  &mediaCtx->iDeviceId,
                  &mediaCtx->fd,
                  &platform);
@@ -1377,23 +1397,6 @@ VAStatus DdiMedia__Initialize (
 #ifndef ANDROID
     output_dri_init(ctx);
 #endif
-
-    GMM_SKU_FEATURE_TABLE        gmmSkuTable;
-    memset(&gmmSkuTable, 0, sizeof(gmmSkuTable));
-
-    GMM_WA_TABLE                 gmmWaTable;
-    memset(&gmmWaTable, 0, sizeof(gmmWaTable));
-
-    GMM_GT_SYSTEM_INFO           gmmGtInfo;
-    memset(&gmmGtInfo, 0, sizeof(gmmGtInfo));
-
-    eStatus = HWInfo_GetGmmInfo(mediaCtx->fd, &gmmSkuTable, &gmmWaTable, &gmmGtInfo);
-    if( MOS_STATUS_SUCCESS != eStatus)
-    {
-        DDI_ASSERTMESSAGE("Fatal error - unsuccesfull Gmm Sku/Wa/GtSystemInfo initialization");
-        FreeForMediaContext(mediaCtx);
-        return VA_STATUS_ERROR_OPERATION_FAILED;
-    }
 
     // init GMM context
     GMM_STATUS gmmStatus = GmmInitGlobalContext(mediaCtx->platform,
