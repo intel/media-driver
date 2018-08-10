@@ -536,6 +536,7 @@ MOS_STATUS CodechalCmdInitializer::CommandInitializerSetVp9Params(CodechalVdencV
     m_vp9Params.vdencPakOnlyMultipassEnabled = state->m_vdencPakonlyMultipassEnabled;
     m_vp9Params.pictureCodingType            = state->m_pictureCodingType;
     m_vp9Params.currentPass                  = state->GetCurrentPass();
+    m_currentPass                            = m_vp9Params.currentPass;
     m_vp9Params.singleTaskPhaseSupported     = state->m_singleTaskPhaseSupported;
     m_vp9Params.lastTaskInPhase              = state->m_lastTaskInPhase;
     m_vp9Params.firstTaskInPhase             = state->m_firstTaskInPhase;
