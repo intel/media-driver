@@ -173,7 +173,8 @@ CmThreadSpaceRT::CmThreadSpaceRT( CmDeviceRT* device , uint32_t indexTsArray, ui
     m_threadSpaceOrderSet(false),
     m_swBoardSurf(nullptr),
     m_swBoard(nullptr),
-    m_swScoreBoardEnabled(false)
+    m_swScoreBoardEnabled(false),
+    m_threadGroupSpace(nullptr)
 {
     CmSafeMemSet( &m_dependency, 0, sizeof(CM_HAL_DEPENDENCY) );
     CmSafeMemSet( &m_wavefront26ZDispatchInfo, 0, sizeof(CM_HAL_WAVEFRONT26Z_DISPATCH_INFO) );
@@ -206,6 +207,11 @@ CmThreadSpaceRT::~CmThreadSpaceRT( void )
             m_device->DestroySurface(m_swBoardSurf);
         }
     }
+
+    if (m_threadGroupSpace != nullptr) 
+    {
+        m_device->DestroyThreadGroupSpace(m_threadGroupSpace);
+    }
 }
 
 //*-----------------------------------------------------------------------------
@@ -232,6 +238,11 @@ int32_t CmThreadSpaceRT::Initialize( void )
 
     PCM_HAL_STATE cmHalState = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
     m_swScoreBoardEnabled = !(cmHalState->cmHalInterface->IsScoreboardParamNeeded());
+
+    if (cmHalState->cmHalInterface->CheckMediaModeAvailability() == false)
+    {
+        CMCHK_STATUS_AND_RETURN(m_device->CreateThreadGroupSpaceEx(1, 1, 1, m_width, m_height, 1, m_threadGroupSpace));
+    }
 
     return CM_SUCCESS;
 }
@@ -2156,4 +2167,9 @@ std::string CmThreadSpaceRT::Log()
     return oss.str();
 }
 #endif
+
+CmThreadGroupSpace *CmThreadSpaceRT::GetThreadGroupSpace() const
+{
+    return m_threadGroupSpace;
+}
 }

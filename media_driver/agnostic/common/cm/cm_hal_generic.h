@@ -585,6 +585,15 @@ public:
     //!
     virtual uint64_t ConverTicksToNanoSecondsDefault(uint64_t ticks) = 0;
 
+    //!
+    //! \brief    Check if the platform has media mode or not
+    //! \details  Check if the platform has media mode or not
+    //! \return   bool
+    //!           true: the platform has media mode; false the platform 
+    //!           does not have media mode.
+    //!
+    virtual bool CheckMediaModeAvailability() { return true; }
+
 protected:
     uint32_t m_platformID;
     uint32_t m_genGT;

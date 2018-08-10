@@ -250,6 +250,20 @@ CM_RT_API int32_t CmQueueRT::Enqueue(
     INSERT_API_CALL_LOG();
 
     int32_t result;
+    const CmThreadSpaceRT *threadSpaceRTConst = static_cast<const CmThreadSpaceRT *>(threadSpace);
+    PCM_HAL_STATE cmHalState = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
+    if (cmHalState->cmHalInterface->CheckMediaModeAvailability() == false) 
+    {
+        if (threadSpaceRTConst != nullptr) 
+        {
+            result = EnqueueWithGroup(kernelArray, event, threadSpaceRTConst->GetThreadGroupSpace());
+        }
+        else
+        {
+            result = EnqueueWithGroup(kernelArray, event, nullptr);
+        }
+        return result;
+    }
 
     if(kernelArray == nullptr)
     {
@@ -272,7 +286,6 @@ CM_RT_API int32_t CmQueueRT::Enqueue(
         return CM_EXCEED_MAX_KERNEL_PER_ENQUEUE;
     }
 
-    const CmThreadSpaceRT *threadSpaceRTConst = static_cast<const CmThreadSpaceRT *>(threadSpace);
     if (threadSpaceRTConst && threadSpaceRTConst->IsThreadAssociated())
     {
         if (threadSpaceRTConst->GetNeedSetKernelPointer() && threadSpaceRTConst->KernelPointerIsNULL())
