@@ -707,7 +707,8 @@ enum CM_ARG_KIND
     ARG_KIND_IMPLICIT_LOCALID = 0x10,
     ARG_KIND_STATE_BUFFER = 0x11,
     ARG_KIND_GENERAL_DEPVEC = 0x20,
-    ARG_KIND_SURFACE_2D_SCOREBOARD = 0x2A  //used for SW scoreboarding
+    ARG_KIND_SURFACE_2D_SCOREBOARD = 0x2A,  //used for SW scoreboarding
+    ARG_KIND_GENERAL_DEPCNT = 0x30          //dependency count, used for SW scoreboarding
 };
 
 //non-depend on rtti::dynamic_cast
