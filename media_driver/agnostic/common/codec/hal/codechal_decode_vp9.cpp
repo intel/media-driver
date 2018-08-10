@@ -1658,13 +1658,13 @@ MOS_STATUS CodechalDecodeVp9 :: DecodeStateLevel()
 
     CODECHAL_DECODE_FUNCTION_ENTER;
 
-    //HCP Decode Phase State Machine
-    DetermineDecodePhase();
-
-    if (m_secureDecoder)
+    if (m_secureDecoder && m_hcpDecPhase == CodechalHcpDecodePhaseInitialized)
     {
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_secureDecoder->Execute(this));
     }
+
+    //HCP Decode Phase State Machine
+    DetermineDecodePhase();
 
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(
