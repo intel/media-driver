@@ -653,6 +653,9 @@ int32_t CmKernelRT::Initialize( const char* kernelName, const char* options )
         else if (kind == 0x20) {
             kind = ARG_KIND_GENERAL_DEPVEC;
         }
+        else if (kind == 0x30) {
+            kind = ARG_KIND_GENERAL_DEPCNT;
+        }
 
         m_args[i].unitKind = kind;
         m_args[i].unitKindOrig = kind;
@@ -1463,7 +1466,7 @@ int32_t CmKernelRT::SetArgsInternal( CM_KERNEL_INTERNAL_ARG_TYPE nArgType, uint3
 
     //Clear "set" flag in case user call API to set the same one argument multiple times.
     m_args[index].isSet = false;
-    if( m_args[ index ].unitKind == ARG_KIND_GENERAL || (m_args[index].unitKind == ARG_KIND_GENERAL_DEPVEC))
+    if( m_args[ index ].unitKind == ARG_KIND_GENERAL || (m_args[index].unitKind == ARG_KIND_GENERAL_DEPVEC) || (m_args[index].unitKind == ARG_KIND_GENERAL_DEPCNT))
     {
         if( size != m_args[ index ].unitSize )
         {

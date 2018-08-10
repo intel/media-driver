@@ -2039,6 +2039,10 @@ int32_t CmThreadSpaceRT::SetDependencyArgToKernel(CmKernelRT *pKernel) const
             }
             CMCHK_STATUS_AND_RETURN(pKernel->SetKernelArg(k, (sizeof(char)*CM_MAX_DEPENDENCY_COUNT * 2), vectors));
         }
+        else if (pKernel->m_args[k].unitKind == ARG_KIND_GENERAL_DEPCNT)
+        {
+            CMCHK_STATUS_AND_RETURN(pKernel->SetKernelArg(k, sizeof(uint32_t), &(m_dependency.count)));
+        }
     }
 
     return CM_SUCCESS;
