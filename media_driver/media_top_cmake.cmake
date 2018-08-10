@@ -81,19 +81,34 @@ bs_ufo_link_libraries_noBsymbolic(
     "pciaccess m pthread dl rt"
 )
 
+find_package(PkgConfig)
+
 if (NOT DEFINED INCLUDED_LIBS OR "${INCLUDED_LIBS}" STREQUAL "")
+
+    # checking gmm dependencies
+    pkg_check_modules(LIBGMM igdgmm)
+
+    if(LIBGMM_FOUND)
+        include_directories(BEFORE ${LIBGMM_INCLUDE_DIRS})
+        link_directories(${LIBGMM_LIBRARY_DIRS})
+        target_link_libraries ( ${LIB_NAME} ${LIBGMM_LIBRARIES})
+    endif()
+
     # dep libs (gmmlib for now) can be passed through INCLUDED_LIBS, but if not, we need try to setup dep through including dep projects
-    if (NOT TARGET gmm_umd)
-        add_subdirectory("${BS_DIR_GMMLIB}" "${CMAKE_BINARY_DIR}/gmmlib")
+    if (NOT LIBGMM_FOUND)
+        if (NOT TARGET igfx_gmmumd_dll)
+            add_subdirectory("${BS_DIR_GMMLIB}" "${CMAKE_BINARY_DIR}/gmmlib")
+        endif()
+
+        if (TARGET igfx_gmmumd_dll)
+            target_link_libraries ( ${LIB_NAME}
+                igfx_gmmumd_dll
+            )
+        endif()
     endif()
 
-    if (TARGET gmm_umd)
-        target_link_libraries ( ${LIB_NAME}
-            gmm_umd
-        )
-    endif()
-
-include(${MEDIA_DRIVER_CMAKE}/ext/media_feature_include_ext.cmake OPTIONAL)
+    target_compile_definitions(${LIB_NAME} PUBLIC GMM_LIB_DLL)
+    include(${MEDIA_DRIVER_CMAKE}/ext/media_feature_include_ext.cmake OPTIONAL)
 
 endif(NOT DEFINED INCLUDED_LIBS OR "${INCLUDED_LIBS}" STREQUAL "")
 

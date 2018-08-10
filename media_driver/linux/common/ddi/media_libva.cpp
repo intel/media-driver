@@ -1398,12 +1398,15 @@ VAStatus DdiMedia__Initialize (
     output_dri_init(ctx);
 #endif
 
+    void *gmm_handle = dlopen(GMM_UMD_DLL, RTLD_NOW);
+    auto openGmmFunc = reinterpret_cast<decltype(&OpenGmm)>(dlsym(gmm_handle, GMM_ENTRY_NAME));
+    openGmmFunc(&mediaCtx->GmmFuncs);
+
     // init GMM context
-    GMM_STATUS gmmStatus = GmmInitGlobalContext(mediaCtx->platform,
+    GMM_STATUS gmmStatus = mediaCtx->GmmFuncs.pfnCreateSingletonContext(mediaCtx->platform,
                                      &gmmSkuTable,
                                      &gmmWaTable,
-                                     &gmmGtInfo,
-                                     (GMM_CLIENT)GMM_LIBVA_LINUX);
+                                     &gmmGtInfo);
 
     if(gmmStatus != GMM_SUCCESS)
     {
@@ -1411,6 +1414,9 @@ VAStatus DdiMedia__Initialize (
         FreeForMediaContext(mediaCtx);
         return VA_STATUS_ERROR_OPERATION_FAILED;
     }
+
+    // Create GMM Client Context
+    mediaCtx->pGmmClientContext = mediaCtx->GmmFuncs.pfnCreateClientContext((GMM_CLIENT)GMM_LIBVA_LINUX);
 
     // Create GMM page table manager 
     mediaCtx->m_auxTableMgr = AuxTableMgr::CreateAuxTableMgr(mediaCtx->pDrmBufMgr,
@@ -1470,12 +1476,6 @@ VAStatus DdiMedia__Initialize (
             MOS_OS_ASSERTMESSAGE(" nullptr returned by GpuContextMgr::GetObject");
             return VA_STATUS_ERROR_OPERATION_FAILED;
         }
-    }
-
-    if(CPLibUtils::IsCPLibLoaded())
-    {
-        using InitCPLibGmmFuncType = void (*)(GMM_GLOBAL_CONTEXT* pCtx);
-        CPLibUtils::InvokeCpFunc<InitCPLibGmmFuncType>(CPLibUtils::FUNC_INIT_CPLIB_GMM, pGmmGlobalContext);
     }
 
     DdiMediaUtil_UnLockMutex(&GlobalMutex);
@@ -1627,14 +1627,15 @@ static VAStatus DdiMedia_Terminate (
         mediaCtx->m_caps = nullptr;
     }
 
+    // Free GMM memory.
+    mediaCtx->GmmFuncs.pfnDeleteClientContext(mediaCtx->pGmmClientContext);
+    mediaCtx->GmmFuncs.pfnDestroySingletonContext();
+
     // release media driver context
     MOS_FreeMemory(mediaCtx);
 
     ctx->pDriverData = nullptr;
     MOS_utilities_close();
-
-    // Free GMM memory.
-    GmmDestroyGlobalContext();
 
     DdiMediaUtil_UnLockMutex(&GlobalMutex);
 
@@ -3748,6 +3749,7 @@ VAStatus DdiMedia_CreateImage(
 
     PDDI_MEDIA_CONTEXT mediaCtx        = DdiMedia_GetMediaContext(ctx);
     DDI_CHK_NULL(mediaCtx,   "nullptr mediaCtx.",   VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(mediaCtx->pGmmClientContext, "nullptr mediaCtx->pGmmClientContext.", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     VAImage *vaimg           = (VAImage*)MOS_AllocAndZeroMemory(sizeof(VAImage));
     DDI_CHK_NULL(vaimg,  "Insufficient to allocate an VAImage.",  VA_STATUS_ERROR_ALLOCATION_FAILED);
@@ -3830,7 +3832,7 @@ VAStatus DdiMedia_CreateImage(
             return VA_STATUS_ERROR_UNIMPLEMENTED;
     }
 
-    gmmResourceInfo = GmmResCreate(&gmmParams);
+    gmmResourceInfo = mediaCtx->pGmmClientContext->CreateResInfoObject(&gmmParams);
     if(nullptr == gmmResourceInfo)
     {
         DDI_ASSERTMESSAGE("Gmm Create Resource Failed.");
@@ -3895,7 +3897,7 @@ VAStatus DdiMedia_CreateImage(
             break;
     }
 
-    GmmResFree(gmmResourceInfo);
+    mediaCtx->pGmmClientContext->DestroyResInfoObject(gmmResourceInfo);
 
     DDI_MEDIA_BUFFER *buf  = (DDI_MEDIA_BUFFER *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_BUFFER));
     if (nullptr == buf)
@@ -5720,8 +5722,9 @@ VAStatus DdiMedia_ExportSurfaceHandle(
     DDI_CHK_LESS((uint32_t)(surface_id), mediaCtx->pSurfaceHeap->uiAllocatedHeapElements, "Invalid surfaces", VA_STATUS_ERROR_INVALID_SURFACE);
 
     DDI_MEDIA_SURFACE  *mediaSurface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, surface_id);
-    DDI_CHK_NULL(mediaSurface,               "nullptr mediaSurface",               VA_STATUS_ERROR_INVALID_SURFACE);
-    DDI_CHK_NULL(mediaSurface->bo,           "nullptr mediaSurface bo",               VA_STATUS_ERROR_INVALID_SURFACE);
+    DDI_CHK_NULL(mediaSurface,                   "nullptr mediaSurface",                   VA_STATUS_ERROR_INVALID_SURFACE);
+    DDI_CHK_NULL(mediaSurface->bo,               "nullptr mediaSurface->bo",               VA_STATUS_ERROR_INVALID_SURFACE);
+    DDI_CHK_NULL(mediaSurface->pGmmResourceInfo, "nullptr mediaSurface->pGmmResourceInfo", VA_STATUS_ERROR_INVALID_SURFACE);
 
     int32_t ret = mos_bo_gem_export_to_prime(mediaSurface->bo, (int32_t*)&mediaSurface->name);
     if (ret)
@@ -5745,7 +5748,7 @@ VAStatus DdiMedia_ExportSurfaceHandle(
 
     desc->num_objects     = 1;
     desc->objects[0].fd   = mediaSurface->name;
-    desc->objects[0].size = GmmResGetSizeSurface(mediaSurface->pGmmResourceInfo);
+    desc->objects[0].size = mediaSurface->pGmmResourceInfo->GetSizeSurface();
     switch (tiling) {
     case I915_TILING_X:
         desc->objects[0].drm_format_modifier = I915_FORMAT_MOD_X_TILED;

@@ -1001,7 +1001,7 @@ void Linux_Destroy(
         mos_gem_context_destroy(pOsContext->intel_context);
     }
 
-    GmmDeleteClientContext(pOsContext->pGmmClientContext);
+    pOsContext->GmmFuncs.pfnDeleteClientContext(pOsContext->pGmmClientContext);
 
     MOS_FreeMemAndSetNull(pOsContext);
 }
@@ -5701,12 +5701,16 @@ MOS_STATUS Mos_Specific_InitInterface(
     uint32_t                        dwResetCount;
     int32_t                         ret;
     bool                            modularizedGpuCtxEnabled;
+    void                           *gmm_handle;
 
     MOS_OS_FUNCTION_ENTER;
 
     eStatus                 = MOS_STATUS_SUCCESS;
     pOsContext              = nullptr;
     pOsUserFeatureInterface = (PMOS_USER_FEATURE_INTERFACE)&pOsInterface->UserFeatureInterface;
+
+    gmm_handle = dlopen(GMM_UMD_DLL, RTLD_NOW);
+    auto openGmmFunc = reinterpret_cast<decltype(&OpenGmm)>(dlsym(gmm_handle, GMM_ENTRY_NAME));
 
     MOS_OS_NORMALMESSAGE("mm:Mos_Specific_InitInterface called.");
 
@@ -5724,6 +5728,8 @@ MOS_STATUS Mos_Specific_InitInterface(
         eStatus = MOS_STATUS_NO_SPACE;
         goto finish;
     }
+
+    openGmmFunc(&pOsContext->GmmFuncs);
 
     pOsContext->intel_context = nullptr;
     if (pOsInterface->modulizedMosEnabled && !Mos_Solo_IsEnabled())
@@ -5755,7 +5761,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     }
     else
     {
-        pOsContext->pGmmClientContext = GmmCreateClientContext((GMM_CLIENT)GMM_LIBVA_LINUX);
+        pOsContext->pGmmClientContext = pOsContext->GmmFuncs.pfnCreateClientContext((GMM_CLIENT)GMM_LIBVA_LINUX);
     }
 
     // Initialize
