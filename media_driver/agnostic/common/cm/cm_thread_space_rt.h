@@ -60,6 +60,7 @@ class CmTaskRT;
 class CmSurface2D;
 class CmThreadSpaceRT;
 class CmThreadSpaceEx;
+class CmThreadGroupSpace;
 
 class CmThreadSpaceRT: public CmThreadSpace
 {
@@ -189,6 +190,8 @@ public:
     std::string Log();
 #endif
 
+    CmThreadGroupSpace *GetThreadGroupSpace() const;
+
 protected:
     CmThreadSpaceRT(CmDeviceRT *device,
                     uint32_t indexTsArray,
@@ -241,6 +244,9 @@ protected:
     CmSurface2D *m_swBoardSurf; // SWSB 2D atomic
     uint32_t *m_swBoard; // SWSB system memory store
     bool m_swScoreBoardEnabled;
+
+    // used to emulate thread space when media walker is not available
+    CmThreadGroupSpace *m_threadGroupSpace; 
 
 private:
     CmThreadSpaceRT(const CmThreadSpaceRT &other);
