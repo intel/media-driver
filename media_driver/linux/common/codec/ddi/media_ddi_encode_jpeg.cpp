@@ -512,9 +512,16 @@ VAStatus DdiEncodeJpeg::EncodeInCodecHal(uint32_t numSlices)
     encodeParams.ExecCodecFunction = CODECHAL_FUNCTION_PAK;
 
     // Check if Qunt table was sent by application
+    // if it is not sent  by application, driver will use default and scaled by quality setting
+    // if it is sent by application, and it also packed header with scaled qmatrix
+    // scal the qmatrix to change with quality setting
     if (!m_quantSupplied)
     {
         DefaultQmatrix();
+    }
+    else if(m_appDataWholeHeader)
+    {
+        QualityScaleQmatrix();
     }
 
     // Raw Surface
@@ -635,6 +642,55 @@ VAStatus DdiEncodeJpeg::DefaultQmatrix()
             {
                 quantValue = (defaultChromaQuant[i] * quality + 50) / 100;
             }
+
+            // Clamp the value to range between 1 and 255
+            if (quantValue < 1)
+            {
+                quantValue = 1;
+            }
+            else if (quantValue > 255)
+            {
+                quantValue = 255;
+            }
+
+            quantMatrix->m_quantTable[qMatrixCount].m_qm[i] = (uint16_t)quantValue;
+        }
+    }
+
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiEncodeJpeg::QualityScaleQmatrix()
+{
+    DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    CodecEncodeJpegQuantTable *quantMatrix = (CodecEncodeJpegQuantTable *)m_encodeCtx->pQmatrixParams;
+    DDI_CHK_NULL(quantMatrix, "nullptr quantMatrix", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    // To get Quality from Pic Params
+    CodecEncodeJpegPictureParams *picParams = (CodecEncodeJpegPictureParams *)m_encodeCtx->pPicParams;
+    DDI_CHK_NULL(picParams, "nullptr picParams", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    uint32_t quality = 0;
+    if (picParams->m_quality < 50)
+    {
+        quality = 5000 / picParams->m_quality;
+    }
+    else
+    {
+        quality = 200 - (picParams->m_quality * 2);
+    }
+
+    // 2 tables - one for luma and one for chroma
+    for (int32_t qMatrixCount = 0; qMatrixCount < picParams->m_numQuantTable; qMatrixCount++)
+    {
+        quantMatrix->m_quantTable[qMatrixCount].m_precision = 0;
+        quantMatrix->m_quantTable[qMatrixCount].m_tableID   = qMatrixCount;
+
+        for (int32_t i = 0; i < numQuantMatrix; i++)
+        {
+            uint32_t quantValue = 0;
+            quantValue = ( ((uint32_t)(quantMatrix->m_quantTable[qMatrixCount].m_qm[i])) * quality + 50) / 100;
 
             // Clamp the value to range between 1 and 255
             if (quantValue < 1)
