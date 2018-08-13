@@ -1233,6 +1233,8 @@ MOS_STATUS VphalSfcState::SetAvsStateParams()
         }
     }
 
+    m_renderData.pAvsParams->bForcePolyPhaseCoefs = m_renderData.bForcePolyPhaseCoefs;
+
     VPHAL_RENDER_CHK_STATUS(m_sfcInterface->SetSfcSamplerTable(
         &m_avsState.LumaCoeffs,
         &m_avsState.ChromaCoeffs,

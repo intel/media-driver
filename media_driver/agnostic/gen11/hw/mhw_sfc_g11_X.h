@@ -50,5 +50,15 @@ public:
         PMOS_COMMAND_BUFFER            pCmdBuffer,
         PMHW_SFC_AVS_STATE             pSfcAvsState);
 
+    virtual MOS_STATUS SetSfcSamplerTable(
+        PMHW_SFC_AVS_LUMA_TABLE         pLumaTable,
+        PMHW_SFC_AVS_CHROMA_TABLE       pChromaTable,
+        PMHW_AVS_PARAMS                 pAvsParams,
+        MOS_FORMAT                      SrcFormat,
+        float                           fScaleX,
+        float                           fScaleY,
+        uint32_t                        dwChromaSiting,
+        bool                            bUse8x8Filter);
+
 };
 #endif // __MHW_SFC_G11_X_H__
