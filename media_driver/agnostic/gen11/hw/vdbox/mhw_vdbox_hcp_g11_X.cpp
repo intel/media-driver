@@ -2864,7 +2864,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpEncodeSliceStateCmd(
         ? 0 : 1; //8 bit will have 0 as sign bit adn 10 bit might have 1 as sign bit depending on Qp
     cmd.DW3.DependentSliceFlag          = 0; // Not supported on encoder
     cmd.DW3.SliceTemporalMvpEnableFlag  = hevcSliceParams->slice_temporal_mvp_enable_flag;
-    cmd.DW3.Sliceqp                     = hevcSliceParams->slice_qp_delta + hevcPicParams->QpY;
+    cmd.DW3.Sliceqp                     = abs(hevcSliceParams->slice_qp_delta + hevcPicParams->QpY);
     cmd.DW3.SliceCbQpOffset             = hevcSliceParams->slice_cb_qp_offset;
     cmd.DW3.SliceCbQpOffset             = hevcSliceParams->slice_cr_qp_offset;
     cmd.DW3.Intrareffetchdisable        = hevcSliceState->bIntraRefFetchDisable;
