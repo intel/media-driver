@@ -3312,6 +3312,15 @@ MOS_STATUS Mos_Specific_SubmitCommandBuffer(
                 ExecFlag = I915_EXEC_BSD | I915_EXEC_BSD_RING2;
             }
         }
+	else
+	{
+	    // WA for hevc/vp9 decoder on KBL android
+	    // as hevc/vp9 only works on the first VDBOX
+	    if (GpuNode == MOS_GPU_NODE_VIDEO)
+	    {
+                ExecFlag = I915_EXEC_BSD | I915_EXEC_BSD_RING1;
+	    }
+	}
     }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
