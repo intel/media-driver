@@ -283,6 +283,193 @@ MOS_STATUS MhwSfcInterfaceG11::AddSfcAvsState(
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS MhwSfcInterfaceG11::SetSfcSamplerTable(
+    PMHW_SFC_AVS_LUMA_TABLE      pLumaTable, 
+    PMHW_SFC_AVS_CHROMA_TABLE    pChromaTable, 
+    PMHW_AVS_PARAMS              pAvsParams, 
+    MOS_FORMAT                   SrcFormat, 
+    float                        fScaleX, 
+    float                        fScaleY, 
+    uint32_t                     dwChromaSiting, 
+    bool                         bUse8x8Filter)
+{
+    float       fHPStrength;
+    int32_t     *piYCoefsX, *piYCoefsY;
+    int32_t     *piUVCoefsX, *piUVCoefsY;
+    MHW_PLANE   Plane;
+
+    MHW_CHK_NULL_RETURN(pLumaTable);
+    MHW_CHK_NULL_RETURN(pChromaTable);
+    MHW_CHK_NULL_RETURN(pAvsParams);
+
+    fHPStrength = 0.0F;
+    piYCoefsX = pAvsParams->piYCoefsX;
+    piYCoefsY = pAvsParams->piYCoefsY;
+    piUVCoefsX = pAvsParams->piUVCoefsX;
+    piUVCoefsY = pAvsParams->piUVCoefsY;
+
+    //  Skip calculation if no changes to AVS parameters
+    if (SrcFormat == pAvsParams->Format  &&
+        fScaleX == pAvsParams->fScaleX &&
+        fScaleY == pAvsParams->fScaleY)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    // AVS Coefficients don't change for Scaling Factors > 1.0x
+    // Hence recalculation is avoided
+    if (fScaleX > 1.0F && pAvsParams->fScaleX > 1.0F)
+    {
+        pAvsParams->fScaleX = fScaleX;
+    }
+
+    // AVS Coefficients don't change for Scaling Factors > 1.0x
+    // Hence recalculation is avoided
+    if (fScaleY > 1.0F && pAvsParams->fScaleY > 1.0F)
+    {
+        pAvsParams->fScaleY = fScaleY;
+    }
+
+    // Recalculate Horizontal scaling table
+    if (SrcFormat != pAvsParams->Format || fScaleX != pAvsParams->fScaleX)
+    {
+        MOS_ZeroMemory(
+            piYCoefsX,
+            8 * 32 * sizeof(int32_t));
+
+        MOS_ZeroMemory(
+            piUVCoefsX,
+            4 * 32 * sizeof(int32_t));
+
+        // 4-tap filtering for RGB format G-channel.
+        Plane = IS_RGB32_FORMAT(SrcFormat) ? MHW_U_PLANE : MHW_Y_PLANE;
+
+        pAvsParams->fScaleX = fScaleX;
+        printf("\n pAvsParams->bForcePolyPhaseCoefs = %d \n", pAvsParams->bForcePolyPhaseCoefs);
+        // For 1x scaling in horizontal direction and not force polyphase coefs, use special coefficients for filtering
+        if (fScaleX == 1.0F && !pAvsParams->bForcePolyPhaseCoefs)
+        {
+            MHW_CHK_STATUS_RETURN(Mhw_SetNearestModeTable(
+                piYCoefsX,
+                Plane,
+                true));
+
+            MHW_CHK_STATUS_RETURN(Mhw_SetNearestModeTable(
+                piUVCoefsX,
+                MHW_U_PLANE,
+                true));
+        }
+        else
+        {
+            // Clamp the Scaling Factor if > 1.0x
+            fScaleX = MOS_MIN(1.0F, fScaleX);
+
+            MHW_CHK_STATUS_RETURN(Mhw_CalcPolyphaseTablesY(
+                piYCoefsX,
+                fScaleX,
+                Plane,
+                SrcFormat,
+                fHPStrength,
+                bUse8x8Filter,
+                NUM_HW_POLYPHASE_TABLES));
+        }
+
+        // If Chroma Siting info is present
+        if (dwChromaSiting & MHW_CHROMA_SITING_HORZ_LEFT)
+        {
+            // No Chroma Siting
+            MHW_CHK_STATUS_RETURN(Mhw_CalcPolyphaseTablesUV(
+                piUVCoefsX,
+                2.0F,
+                fScaleX));
+        }
+        else
+        {
+            // Chroma siting offset will be add in the HW cmd
+            MHW_CHK_STATUS_RETURN(Mhw_CalcPolyphaseTablesUV(
+                piUVCoefsX,
+                3.0F,
+                fScaleX));
+        }
+    }
+
+    // Recalculate Vertical scaling table
+    if (SrcFormat != pAvsParams->Format || fScaleY != pAvsParams->fScaleY)
+    {
+        MOS_ZeroMemory(piYCoefsY, 8 * 32 * sizeof(int32_t));
+
+        MOS_ZeroMemory(piUVCoefsY, 4 * 32 * sizeof(int32_t));
+
+        // 4-tap filtering for RGB format G-channel.
+        Plane = IS_RGB32_FORMAT(SrcFormat) ? MHW_U_PLANE : MHW_Y_PLANE;
+
+        pAvsParams->fScaleY = fScaleY;
+
+        // For 1x scaling in vertical direction and not force polyphase coefs, use special coefficients for filtering
+        if (fScaleY == 1.0F && !pAvsParams->bForcePolyPhaseCoefs)
+        {
+            MHW_CHK_STATUS_RETURN(Mhw_SetNearestModeTable(
+                piYCoefsY,
+                Plane,
+                true));
+
+            MHW_CHK_STATUS_RETURN(Mhw_SetNearestModeTable(
+                piUVCoefsY,
+                MHW_U_PLANE,
+                true));
+        }
+        else
+        {
+            // Clamp the Scaling Factor if > 1.0x
+            fScaleY = MOS_MIN(1.0F, fScaleY);
+
+            MHW_CHK_STATUS_RETURN(Mhw_CalcPolyphaseTablesY(
+                piYCoefsY,
+                fScaleY,
+                Plane,
+                SrcFormat,
+                fHPStrength,
+                bUse8x8Filter,
+                NUM_HW_POLYPHASE_TABLES));
+        }
+
+        // If Chroma Siting info is present
+        if (dwChromaSiting & MHW_CHROMA_SITING_VERT_TOP)
+        {
+            // No Chroma Siting
+            MHW_CHK_STATUS_RETURN(Mhw_CalcPolyphaseTablesUV(
+                piUVCoefsY,
+                2.0F,
+                fScaleY));
+        }
+        else
+        {
+            // Chroma siting offset will be add in the HW cmd
+            MHW_CHK_STATUS_RETURN(Mhw_CalcPolyphaseTablesUV(
+                piUVCoefsY,
+                3.0F,
+                fScaleY));
+        }
+    }
+
+    // Save format used to calculate AVS parameters
+    pAvsParams->Format = SrcFormat;
+
+    SetSfcAVSLumaTable(
+        SrcFormat,
+        pLumaTable->LumaTable,
+        piYCoefsX,
+        piYCoefsY,
+        false);
+
+    SetSfcAVSChromaTable(
+        pChromaTable->ChromaTable,
+        piUVCoefsX,
+        piUVCoefsY);
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MhwSfcInterfaceG11::MhwSfcInterfaceG11(PMOS_INTERFACE pOsInterface) : MhwSfcInterfaceGeneric(pOsInterface)
 {
     // Get Memory control object directly from MOS.

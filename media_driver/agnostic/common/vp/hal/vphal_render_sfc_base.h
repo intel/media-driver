@@ -551,7 +551,7 @@ protected:
     PMHW_SFC_INTERFACE              m_sfcInterface;                             //!< Pointer to SFC Structure Interface
 
                                                                                 // AVS related params
-    MHW_AVS_PARAMS                  m_AvsParameters;                            //!< AVS parameters
+    MHW_AVS_PARAMS                  m_AvsParameters       = {};                 //!< AVS parameters
     VPHAL_SFC_AVS_STATE             m_avsState            = {};                 //!< AVS State and Coeff. table
 
                                                                                 // ColorFill CSC related params
