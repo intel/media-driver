@@ -77,20 +77,6 @@ struct HucPakStitchDmemEncG11
     uint8_t      RSVD[16];    //mbz
 };
 
-//!
-//! \struct HucCommandData
-//! \brief  The struct of Huc commands data
-//!
-struct HucCommandData
-{
-    uint32_t        TotalCommands;       //!< Total Commands in the Data buffer
-    struct
-    {
-        uint16_t    ID;              //!< Command ID, defined and order must be same as that in DMEM
-        uint16_t    SizeOfData;      //!< data size in uint32_t
-        uint32_t    data[40];
-    } InputCOM[10];
-};
 
 //!
 //! \struct HucInputCmdG11

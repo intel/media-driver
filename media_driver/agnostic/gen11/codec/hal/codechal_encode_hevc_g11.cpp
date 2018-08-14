@@ -42,8 +42,6 @@
 #define RDEBITS62(mode, lcu, slice)         (GetU62ModeBits((float)((m_modeBits[(lcu)][(mode)][(slice)]) * (m_modeBitsScale[(mode)][(slice)]))))
 //! \endcond
 
-#define CMD_LIST_MODE 1
-#define BATCH_BUFFER_END 0x05000000
 
 MOS_STATUS CodechalEncHevcStateG11::AddHcpPipeModeSelectCmd(MOS_COMMAND_BUFFER* cmdBuffer)
 {
@@ -6585,7 +6583,7 @@ MOS_STATUS CodechalEncHevcStateG11::SetDmemHuCPakIntegrate(
 
     hucPakStitchDmem->StitchEnable = true;
     hucPakStitchDmem->StitchCommandOffset = 0;
-    hucPakStitchDmem->BBEndforStitch = BATCH_BUFFER_END;
+    hucPakStitchDmem->BBEndforStitch = HUC_BATCH_BUFFER_END;
     hucPakStitchDmem->brcUnderFlowEnable      = false; //temporally disable underflow bit rate control in HUC fw since it need more tuning.
     
     PCODEC_ENCODER_SLCDATA slcData = m_slcData;
@@ -6728,7 +6726,7 @@ MOS_STATUS CodechalEncHevcStateG11::SetDmemHuCPakIntegrateCqp(
 
     hucPakStitchDmem->StitchEnable = true;
     hucPakStitchDmem->StitchCommandOffset = 0;
-    hucPakStitchDmem->BBEndforStitch = BATCH_BUFFER_END;
+    hucPakStitchDmem->BBEndforStitch = HUC_BATCH_BUFFER_END;
 
     //Set the kernel output offsets
     hucPakStitchDmem->TileSizeRecord_offset[0] = m_hevcFrameStatsOffset.uiTileSizeRecord;
@@ -6784,7 +6782,7 @@ MOS_STATUS CodechalEncHevcStateG11::ConfigStitchDataBuffer()
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_osInterface->osCpInterface);
     hucInputCmd.SelectionForIndData = m_osInterface->osCpInterface->IsCpEnabled() ? 4 : 0;
-    hucInputCmd.CmdMode = CMD_LIST_MODE;
+    hucInputCmd.CmdMode = HUC_CMD_LIST_MODE;
     hucInputCmd.LengthOfTable = (uint8_t)(m_numTiles);
     hucInputCmd.CopySize = m_hwInterface->m_tileRecordSize;;
 
