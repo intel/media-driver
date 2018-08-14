@@ -214,6 +214,8 @@ MOS_STATUS CodechalDecodeVp8G11::DecodePrimitiveLevel()
 
     CODECHAL_DECODE_FUNCTION_ENTER;
 
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_osInterface);
+
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
 

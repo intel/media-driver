@@ -527,7 +527,7 @@ void CodechalCmdInitializerG11::CmdInitializerFreeResources()
 {
     CodechalCmdInitializer::CmdInitializerFreeResources();
 
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < CODECHAL_VDENC_BRC_NUM_OF_PASSES; i++)
     {
         for (int j = 0; j < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; j++)
         {

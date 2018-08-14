@@ -3555,6 +3555,12 @@ MOS_STATUS CodechalEncodeAvcEncG8::GetKernelHeaderAndSize(
         eStatus = MOS_STATUS_INVALID_PARAMETER;
     }
 
+    if (currKrnHeader == nullptr)
+    {
+        eStatus = MOS_STATUS_INVALID_PARAMETER;
+        return eStatus;
+    }
+
     currKrnHeader += krnStateIdx;
     *((PCODECHAL_KERNEL_HEADER)pvKrnHeader) = *currKrnHeader;
 

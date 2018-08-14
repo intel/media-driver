@@ -109,6 +109,8 @@ MOS_STATUS CodechalDecodeMpeg2G11::DecodeStateLevel()
         bwdRefIdx = m_picParams->m_currPic.FrameIdx;
     }
 
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_osInterface);
+
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
 
@@ -334,6 +336,8 @@ MOS_STATUS CodechalDecodeMpeg2G11::SliceLevel()
             }
         }
     }
+
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_osInterface);
 
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(

@@ -859,12 +859,14 @@ MOS_STATUS CM_HAL_G10_X::RegisterSampler8x8(
             }
         }
 
-        MOS_ZeroMemory(&samplerEntry->Convolve, sizeof(samplerEntry->Convolve));
 
         if (samplerEntry == nullptr)
         {
             return MOS_STATUS_INVALID_HANDLE;
         }
+
+        MOS_ZeroMemory(&samplerEntry->Convolve, sizeof(samplerEntry->Convolve));
+
         samplerEntry->SamplerType = MHW_SAMPLER_TYPE_CONV;
 
         samplerEntry->Convolve.ui8Height = param->sampler8x8State.convolveState.height;
