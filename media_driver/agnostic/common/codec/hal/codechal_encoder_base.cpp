@@ -892,12 +892,6 @@ MOS_STATUS CodechalEncoderState::Initialize(
     {
         m_frameTrackingEnabled = m_osInterface->bEnableKmdMediaFrameTracking ? true: false;
     }
-
-    if (m_standard == CODECHAL_VP9)
-    {
-        m_frameTrackingEnabled = false;
-    }
-
     if (m_standard == CODECHAL_AVC)
     {
         if (CodecHalUsesVideoEngine(m_codecFunction))
@@ -3417,7 +3411,6 @@ MOS_STATUS CodechalEncoderState::ResetStatusReport()
     EncodeStatus* encodeStatus =
         (EncodeStatus*)(encodeStatusBuf->pEncodeStatus +
         encodeStatusBuf->wCurrIndex * encodeStatusBuf->dwReportSize);
-
     if (!m_frameTrackingEnabled && !m_inlineEncodeStatusUpdate)
     {
         bool renderEngineInUse = m_osInterface->pfnGetGpuContext(m_osInterface) == m_renderContext;
@@ -4070,7 +4063,6 @@ MOS_STATUS CodechalEncoderState::SendPrologWithFrameTracking(
     cmdBuffer->Attributes.dwNumRequestedSubSlices  = m_hwInterface->m_numRequestedSubSlices;
     cmdBuffer->Attributes.dwNumRequestedEUs        = m_hwInterface->m_numRequestedEus;
     cmdBuffer->Attributes.bValidPowerGatingRequest = true;
-
     if (frameTrackingRequested && m_frameTrackingEnabled)
     {
         cmdBuffer->Attributes.bEnableMediaFrameTracking        = true;
