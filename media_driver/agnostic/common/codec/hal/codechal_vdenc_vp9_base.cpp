@@ -4234,9 +4234,9 @@ MOS_STATUS CodechalVdencVp9State::SetHcpSrcSurfaceParams(MHW_VDBOX_SURFACE_PARAM
 
         if (m_dysCurrFrameFlag)
         {
-            surfaceParams[CODECHAL_HCP_LAST_SURFACE_ID].dwReconSurfHeight = MOS_ALIGN_CEIL((refSurface[0] ? refSurface[0]->dwHeight : 0), CODEC_VP9_MIN_BLOCK_WIDTH);
-            surfaceParams[CODECHAL_HCP_GOLDEN_SURFACE_ID].dwReconSurfHeight = MOS_ALIGN_CEIL((refSurface[1] ? refSurface[1]->dwHeight : 0), CODEC_VP9_MIN_BLOCK_WIDTH);
-            surfaceParams[CODECHAL_HCP_ALTREF_SURFACE_ID].dwReconSurfHeight = MOS_ALIGN_CEIL((refSurface[2] ? refSurface[2]->dwHeight : 0), CODEC_VP9_MIN_BLOCK_WIDTH);
+            surfaceParams[CODECHAL_HCP_LAST_SURFACE_ID].dwReconSurfHeight = MOS_ALIGN_CEIL(refSurface[0]->dwHeight, CODEC_VP9_MIN_BLOCK_WIDTH);
+            surfaceParams[CODECHAL_HCP_GOLDEN_SURFACE_ID].dwReconSurfHeight = MOS_ALIGN_CEIL(refSurface[1]->dwHeight, CODEC_VP9_MIN_BLOCK_WIDTH);
+            surfaceParams[CODECHAL_HCP_ALTREF_SURFACE_ID].dwReconSurfHeight = MOS_ALIGN_CEIL(refSurface[2]->dwHeight, CODEC_VP9_MIN_BLOCK_WIDTH);
         }
         else
         {
@@ -4930,9 +4930,9 @@ MOS_STATUS CodechalVdencVp9State::ExecuteDysPictureLevel()
         surfaceParams[CODECHAL_HCP_GOLDEN_SURFACE_ID].psSurface             = refSurface[1];
         surfaceParams[CODECHAL_HCP_ALTREF_SURFACE_ID].psSurface             = refSurface[2];
 
-        surfaceParams[CODECHAL_HCP_LAST_SURFACE_ID].dwReconSurfHeight   = MOS_ALIGN_CEIL((refSurface[0] ? refSurface[0]->dwHeight : 0), CODEC_VP9_MIN_BLOCK_WIDTH);
-        surfaceParams[CODECHAL_HCP_GOLDEN_SURFACE_ID].dwReconSurfHeight = MOS_ALIGN_CEIL((refSurface[1] ? refSurface[1]->dwHeight : 0), CODEC_VP9_MIN_BLOCK_WIDTH);
-        surfaceParams[CODECHAL_HCP_ALTREF_SURFACE_ID].dwReconSurfHeight = MOS_ALIGN_CEIL((refSurface[2] ? refSurface[2]->dwHeight : 0), CODEC_VP9_MIN_BLOCK_WIDTH);
+        surfaceParams[CODECHAL_HCP_LAST_SURFACE_ID].dwReconSurfHeight   = MOS_ALIGN_CEIL(refSurface[0]->dwHeight, CODEC_VP9_MIN_BLOCK_WIDTH);
+        surfaceParams[CODECHAL_HCP_GOLDEN_SURFACE_ID].dwReconSurfHeight = MOS_ALIGN_CEIL(refSurface[1]->dwHeight, CODEC_VP9_MIN_BLOCK_WIDTH);
+        surfaceParams[CODECHAL_HCP_ALTREF_SURFACE_ID].dwReconSurfHeight = MOS_ALIGN_CEIL(refSurface[2]->dwHeight, CODEC_VP9_MIN_BLOCK_WIDTH);
     }
 
     // recon
@@ -7487,6 +7487,11 @@ MOS_STATUS CodechalVdencVp9State::DumpSeqParams(
     oss << "# UseRawReconRef = " << std::dec << +seqParams->SeqFlags.fields.bUseRawReconRef << std::endl;
     oss << "# MBBRC = " << std::dec << +seqParams->SeqFlags.fields.MBBRC << std::endl;
     oss << "EnableDynamicScaling = " << std::dec << +seqParams->SeqFlags.fields.EnableDynamicScaling << std::endl;
+    oss << "SourceFormat = " << std::dec << +seqParams->SeqFlags.fields.SourceFormat << std::endl;
+    oss << "SourceBitDepth = " << std::dec << +seqParams->SeqFlags.fields.SourceBitDepth << std::endl;
+    oss << "EncodedFormat = " << std::dec << +seqParams->SeqFlags.fields.EncodedFormat << std::endl;
+    oss << "EncodedBitDepth = " << std::dec << +seqParams->SeqFlags.fields.EncodedBitDepth << std::endl;
+    oss << "DisplayFormatSwizzle = " << std::dec << +seqParams->SeqFlags.fields.DisplayFormatSwizzle << std::endl;
     // end of union/struct
 
     oss << "UserMaxFrameSize = " << std::dec << +seqParams->UserMaxFrameSize << std::endl;
