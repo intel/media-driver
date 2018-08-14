@@ -42,16 +42,23 @@ enum CM_QUEUE_TYPE
     CM_QUEUE_TYPE_VEBOX     = 3
 };
 
+enum CM_QUEUE_SSEU_USAGE_HINT_TYPE
+{
+    CM_QUEUE_SSEU_USAGE_HINT_DEFAULT = 0,
+    CM_QUEUE_SSEU_USAGE_HINT_VME     = 1
+};
+
 struct CM_QUEUE_CREATE_OPTION
 {
     CM_QUEUE_TYPE QueueType : 3;
     bool RunAloneMode       : 1;
     unsigned int Reserved0  : 4;
     unsigned int Reserved1  : 8;
-    unsigned int Reserved2  : 16;
+    CM_QUEUE_SSEU_USAGE_HINT_TYPE SseuUsageHint : 3;
+    unsigned int Reserved2  : 13;
 };
 
-const CM_QUEUE_CREATE_OPTION CM_DEFAULT_QUEUE_CREATE_OPTION = { CM_QUEUE_TYPE_RENDER, false, 0, 0, 0 };
+const CM_QUEUE_CREATE_OPTION CM_DEFAULT_QUEUE_CREATE_OPTION = { CM_QUEUE_TYPE_RENDER, false, 0, 0, CM_QUEUE_SSEU_USAGE_HINT_DEFAULT, 0 };
 
 //!
 //! \brief CM task queue management.
