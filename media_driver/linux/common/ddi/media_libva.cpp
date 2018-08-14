@@ -2329,7 +2329,7 @@ static VAStatus DdiMedia_AddContextInternal(
 
     encoder->m_mfeEnabled = true;
     // Assign one unique id to this sub context/stream
-    encoder->m_mfeEncodeParams.streamId = encodeMfeContext->currentStreamId;
+    encoder->m_mfeEncodeParams.streamId = 0;
     encoder->m_mfeEncodeSharedState     = encodeMfeContext->mfeEncodeSharedState;
 
     encodeMfeContext->currentStreamId++;
