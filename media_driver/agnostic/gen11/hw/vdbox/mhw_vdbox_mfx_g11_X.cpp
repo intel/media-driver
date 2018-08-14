@@ -246,6 +246,7 @@ MOS_STATUS MhwVdboxMfxInterfaceG11::CheckScalabilityOverrideValidity()
     bool                    scalableDecMode;
     bool                    useVD1, useVD2;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     scalableDecMode = (m_osInterface != nullptr) && m_osInterface->bHcpDecScalabilityMode ? true : false;
     forceVdbox = m_osInterface->eForceVdbox;
     gtSystemInfo = m_osInterface->pfnGetGtSystemInfo(m_osInterface);

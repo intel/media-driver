@@ -1975,6 +1975,13 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState (
 bool CodecHalDecodeScalabilityIsToSubmitCmdBuffer(
     PCODECHAL_DECODE_SCALABILITY_STATE pScalabilityState)
 {
-    return (CodecHalDecodeScalabilityIsFinalBEPhase(pScalabilityState) ||
-        (pScalabilityState->HcpDecPhase == CODECHAL_HCP_DECODE_PHASE_FE && pScalabilityState->bFESeparateSubmission));
+    if (pScalabilityState == nullptr)
+    {
+        return false;
+    }
+    else
+    { 
+        return (CodecHalDecodeScalabilityIsFinalBEPhase(pScalabilityState) ||
+            (pScalabilityState->HcpDecPhase == CODECHAL_HCP_DECODE_PHASE_FE && pScalabilityState->bFESeparateSubmission));
+    }
 }
