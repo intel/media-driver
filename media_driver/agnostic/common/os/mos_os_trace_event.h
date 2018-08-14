@@ -63,6 +63,8 @@ typedef enum _MEDIA_EVENT
     EVENT_CP_DESTROY,               //! event for cp session destroy
     EVENT_HECI_IOMSG,               //! event for heci IO message send receive
     EVENT_CP_CHECK_SESSION_STATUS,  //! event for cp session status check
+    EVENT_CP_RESOURCR_SESSION,      //! event for cp resource session create
+    EVENT_PREPARE_RESOURCES,        //! event for prepare resource
 } MEDIA_EVENT;
 
 typedef enum _MEDIA_EVENT_TYPE
