@@ -43,7 +43,6 @@ CodechalCmdInitializer::CodechalCmdInitializer(
 {
     m_encoder = encoder;
     m_cmdCount = 0;
-    m_currentPass = 0;
 }
 
 MOS_STATUS CodechalCmdInitializer::CmdInitializerAllocateResources(
