@@ -649,6 +649,16 @@ protected:
         return false;
     }
 
+    //!
+    //! \brief    Check whether parameters for composition valid or not.
+    //! \param    [in] CompositeParams
+    //!           Parameters for composition
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS IsCompositeParamsValid(
+        const VPHAL_COMPOSITE_PARAMS& CompositeParams);
+
 private:
     //!
     //! \brief    Prepare phases for composite and determine intermediate colorspace

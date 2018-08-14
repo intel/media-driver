@@ -4087,6 +4087,24 @@ finish:
 }
 
 //!
+//! \brief    Check whether parameters for composition valid or not.
+//! \param    [in] CompositeParams
+//!           Parameters for composition
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+//!
+MOS_STATUS CompositeState::IsCompositeParamsValid(
+    const VPHAL_COMPOSITE_PARAMS& CompositeParams)
+{
+    if (CompositeParams.uSourceCount > VPHAL_COMP_MAX_LAYERS)
+    {
+        VPHAL_RENDER_ASSERTMESSAGE("Invalid number of sources.");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
 //! \brief    Calculate and set inline data size
 //! \param    [in] pRenderingData
 //!           pointer to render data
@@ -5554,11 +5572,8 @@ MOS_STATUS CompositeState::RenderPhase(
 
     //VPHAL_DBG_STATE_DUMPPER_SET_CURRENT_STAGE(VPHAL_DBG_STAGE_COMP);
 
-    if (pCompParams->uSourceCount > VPHAL_COMP_MAX_LAYERS)
-    {
-        VPHAL_RENDER_ASSERTMESSAGE("Invalid number of sources.");
-        goto finish;
-    }
+    // Check whether composition parameters are valid.
+    VPHAL_RENDER_CHK_STATUS(IsCompositeParamsValid(*pCompParams));
 
     //============================
     // Allocate states for rendering
