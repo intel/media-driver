@@ -4234,9 +4234,9 @@ MOS_STATUS CodechalVdencVp9State::SetHcpSrcSurfaceParams(MHW_VDBOX_SURFACE_PARAM
 
         if (m_dysCurrFrameFlag)
         {
-            surfaceParams[CODECHAL_HCP_LAST_SURFACE_ID].dwReconSurfHeight = MOS_ALIGN_CEIL(refSurface[0]->dwHeight, CODEC_VP9_MIN_BLOCK_WIDTH);
-            surfaceParams[CODECHAL_HCP_GOLDEN_SURFACE_ID].dwReconSurfHeight = MOS_ALIGN_CEIL(refSurface[1]->dwHeight, CODEC_VP9_MIN_BLOCK_WIDTH);
-            surfaceParams[CODECHAL_HCP_ALTREF_SURFACE_ID].dwReconSurfHeight = MOS_ALIGN_CEIL(refSurface[2]->dwHeight, CODEC_VP9_MIN_BLOCK_WIDTH);
+            surfaceParams[CODECHAL_HCP_LAST_SURFACE_ID].dwReconSurfHeight = MOS_ALIGN_CEIL((refSurface[0] ? refSurface[0]->dwHeight : 0), CODEC_VP9_MIN_BLOCK_WIDTH);
+            surfaceParams[CODECHAL_HCP_GOLDEN_SURFACE_ID].dwReconSurfHeight = MOS_ALIGN_CEIL((refSurface[1] ? refSurface[1]->dwHeight : 0), CODEC_VP9_MIN_BLOCK_WIDTH);
+            surfaceParams[CODECHAL_HCP_ALTREF_SURFACE_ID].dwReconSurfHeight = MOS_ALIGN_CEIL((refSurface[2] ? refSurface[2]->dwHeight : 0), CODEC_VP9_MIN_BLOCK_WIDTH);
         }
         else
         {
@@ -4930,9 +4930,9 @@ MOS_STATUS CodechalVdencVp9State::ExecuteDysPictureLevel()
         surfaceParams[CODECHAL_HCP_GOLDEN_SURFACE_ID].psSurface             = refSurface[1];
         surfaceParams[CODECHAL_HCP_ALTREF_SURFACE_ID].psSurface             = refSurface[2];
 
-        surfaceParams[CODECHAL_HCP_LAST_SURFACE_ID].dwReconSurfHeight   = MOS_ALIGN_CEIL(refSurface[0]->dwHeight, CODEC_VP9_MIN_BLOCK_WIDTH);
-        surfaceParams[CODECHAL_HCP_GOLDEN_SURFACE_ID].dwReconSurfHeight = MOS_ALIGN_CEIL(refSurface[1]->dwHeight, CODEC_VP9_MIN_BLOCK_WIDTH);
-        surfaceParams[CODECHAL_HCP_ALTREF_SURFACE_ID].dwReconSurfHeight = MOS_ALIGN_CEIL(refSurface[2]->dwHeight, CODEC_VP9_MIN_BLOCK_WIDTH);
+        surfaceParams[CODECHAL_HCP_LAST_SURFACE_ID].dwReconSurfHeight   = MOS_ALIGN_CEIL((refSurface[0] ? refSurface[0]->dwHeight : 0), CODEC_VP9_MIN_BLOCK_WIDTH);
+        surfaceParams[CODECHAL_HCP_GOLDEN_SURFACE_ID].dwReconSurfHeight = MOS_ALIGN_CEIL((refSurface[1] ? refSurface[1]->dwHeight : 0), CODEC_VP9_MIN_BLOCK_WIDTH);
+        surfaceParams[CODECHAL_HCP_ALTREF_SURFACE_ID].dwReconSurfHeight = MOS_ALIGN_CEIL((refSurface[2] ? refSurface[2]->dwHeight : 0), CODEC_VP9_MIN_BLOCK_WIDTH);
     }
 
     // recon

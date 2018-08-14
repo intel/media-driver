@@ -424,6 +424,8 @@ MOS_STATUS CodechalDecodeVc1G11::DecodePrimitiveLevelVLD()
         m_picHeightInMb,
         frameFieldHeightInMb);
 
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_osInterface);
+
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
 
@@ -764,6 +766,8 @@ MOS_STATUS CodechalDecodeVc1G11::DecodePrimitiveLevelIT()
         m_vc1PicParams->CurrPic,
         m_picHeightInMb,
         frameFieldHeightInMb);
+
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_osInterface);
 
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
