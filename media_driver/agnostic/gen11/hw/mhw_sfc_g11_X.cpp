@@ -345,7 +345,7 @@ MOS_STATUS MhwSfcInterfaceG11::SetSfcSamplerTable(
         Plane = IS_RGB32_FORMAT(SrcFormat) ? MHW_U_PLANE : MHW_Y_PLANE;
 
         pAvsParams->fScaleX = fScaleX;
-        printf("\n pAvsParams->bForcePolyPhaseCoefs = %d \n", pAvsParams->bForcePolyPhaseCoefs);
+
         // For 1x scaling in horizontal direction and not force polyphase coefs, use special coefficients for filtering
         if (fScaleX == 1.0F && !pAvsParams->bForcePolyPhaseCoefs)
         {
