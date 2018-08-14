@@ -30,29 +30,11 @@
 #include "codechal_encode_hevc_base.h"
 #include "codechal_kernel_hme.h"
 
-#define  HUC_CMD_LIST_MODE 1
-#define  HUC_BATCH_BUFFER_END 0x05000000
-
 //! QP type
 enum {
     QP_TYPE_CONSTANT = 0,
     QP_TYPE_FRAME,
     QP_TYPE_CU_LEVEL
-};
-
-//!
-//! \struct HucCommandData
-//! \brief  The struct of Huc commands data
-//!
-struct HucCommandData
-{
-    uint32_t        TotalCommands;       //!< Total Commands in the Data buffer
-    struct
-    {
-        uint16_t    ID;              //!< Command ID, defined and order must be same as that in DMEM
-        uint16_t    SizeOfData;      //!< data size in uint32_t
-        uint32_t    data[40];
-    } InputCOM[10];
 };
 
 //! \class    CodechalEncHevcState
