@@ -1,4 +1,4 @@
-/*
+﻿/*
 * Copyright (c) 2017, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
@@ -92,7 +92,7 @@ MOS_STATUS CodechalEncodeCscDsG11::CheckRawColorFormat(MOS_FORMAT format)
         break;
     case Format_A8R8G8B8:
         m_colorRawSurface = cscColorARGB;
-        m_cscUsingSfc = IsSfcEnabled()?1:0;
+        m_cscUsingSfc = 0;// IsSfcEnabled() ? 1 : 0;
         m_cscRequireColor = 1;
         //Use EU for better performance in big resolution cases
         if (m_cscRawSurfWidth * m_cscRawSurfHeight > 1920 * 1088)
