@@ -2413,7 +2413,7 @@ MOS_STATUS CodechalEncodeAvcBase::SetPictureStructs()
         {
             picParams->pic_scaling_list_present_flag[i] = 0;
         }
-        picParams->second_chroma_qp_index_offset = 0;
+        picParams->second_chroma_qp_index_offset = picParams->chroma_qp_index_offset;
     }
     if (picParams->QpY < 0)
     {
