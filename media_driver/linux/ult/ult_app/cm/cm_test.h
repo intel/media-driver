@@ -57,8 +57,6 @@ public:
             result &= (function_return == expected_return);
 
             ReleaseMockDevice();
-
-            MemoryLeakDetector::Detect(m_driverLoader, platforms[i]);
         }
         return result;
     }//===============

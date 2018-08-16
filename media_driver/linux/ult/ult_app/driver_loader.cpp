@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "driver_loader.h"
+#include "memory_leak_detector.h"
 
 using namespace std;
 
@@ -78,21 +79,29 @@ DriverDllLoader::DriverDllLoader(char *path)
     m_driver_path = path;
 }
 
-VAStatus DriverDllLoader::CloseDriver()
+VAStatus DriverDllLoader::CloseDriver(bool detectMemLeak)
 {
     VAStatus vaStatus = m_ctx.vtable->vaTerminate(&m_ctx);
+
+    if (detectMemLeak)
+    {
+        MemoryLeakDetector::Detect(m_drvSyms.MOS_GetMemNinjaCounter(),
+                                m_drvSyms.MOS_GetMemNinjaCounterGfx(),
+                                m_currentPlatform);
+    }
 
     m_drvSyms.Clear();
 
     if(m_umdhandle)
     {
         dlclose(m_umdhandle);
+        m_umdhandle = nullptr;
     }
 
     return vaStatus;
 }
 
-VAStatus DriverDllLoader::InitDriver(int platform_id)
+VAStatus DriverDllLoader::InitDriver(Platform_t platform_id)
 {
     int drm_fd           = platform_id + 1 < 0 ? 1 : platform_id + 1;
     m_drmstate.fd        = drm_fd;
@@ -100,6 +109,7 @@ VAStatus DriverDllLoader::InitDriver(int platform_id)
     m_ctx.vtable         = &m_vtable;
     m_ctx.vtable_vpp     = &m_vtable_vpp;
     m_ctx.drm_state      = &m_drmstate;
+    m_currentPlatform    = platform_id;
 
     if (LoadDriverSymbols() != VA_STATUS_SUCCESS)
     {
@@ -115,7 +125,7 @@ VAStatus DriverDllLoader::LoadDriverSymbols()
     const int buf_len         = 256;
     char init_func_s[buf_len] = {};
 
-    m_umdhandle = dlopen(m_driver_path, RTLD_NOW | RTLD_GLOBAL | RTLD_NODELETE);
+    m_umdhandle = dlopen(m_driver_path, RTLD_NOW | RTLD_GLOBAL);
     if (!m_umdhandle)
     {
         printf("ERROR: dlopen of %s failed.\n", m_driver_path);
