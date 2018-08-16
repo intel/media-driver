@@ -142,6 +142,7 @@ static const char *kernelEncNormal                    = "MbEncNorm";
 static const char *kernelEncPerf                      = "MbEncPerf";
 static const char *kernelEncQuality                   = "MbEncQlty";
 static const char *kernelEncIFrameDist                = "IFrameDist";
+static const char *kernelEncIFrameChroma              = "MbEncIframeChroma";
 static const char *kernel32xScaling                   = "32xScaling";
 static const char *kernel16xScaling                   = "16xScaling";
 static const char *kernel4xScaling                    = "4xScaling";
@@ -186,12 +187,15 @@ static const char *kernelHevcLcu64BMbenc              = "HEVC_LCU64_B_MBENC";
 static const char *kernelMbBrcUpdate                  = "MbBrcUpdate";
 static const char *kernelStaticFrameDetection         = "StaticFrameDetection";
 static const char *kernelHevcRoi                      = "HEVC_ROI";
+static const char *kernelMpuFhb                       = "MpuFhb";
+static const char *kernelTpuFhb                       = "TpuFhb";
 
 static bool regOlp                          = KernelStateMap::RegisterKernelStr(CODECHAL_MEDIA_STATE_OLP, kernelOlp);
 static bool regEncNormal                    = KernelStateMap::RegisterKernelStr(CODECHAL_MEDIA_STATE_ENC_NORMAL, kernelEncNormal);
 static bool regEncQuality                   = KernelStateMap::RegisterKernelStr(CODECHAL_MEDIA_STATE_ENC_PERFORMANCE, kernelEncPerf);
 static bool regEncPerf                      = KernelStateMap::RegisterKernelStr(CODECHAL_MEDIA_STATE_ENC_QUALITY, kernelEncQuality);
 static bool regEncIFrameDist                = KernelStateMap::RegisterKernelStr(CODECHAL_MEDIA_STATE_ENC_I_FRAME_DIST, kernelEncIFrameDist);
+static bool regEncIFrameChroma              = KernelStateMap::RegisterKernelStr(CODECHAL_MEDIA_STATE_ENC_I_FRAME_CHROMA, kernelEncIFrameChroma);
 static bool reg32xScaling                   = KernelStateMap::RegisterKernelStr(CODECHAL_MEDIA_STATE_32X_SCALING, kernel32xScaling);
 static bool reg16xScaling                   = KernelStateMap::RegisterKernelStr(CODECHAL_MEDIA_STATE_16X_SCALING, kernel16xScaling);
 static bool reg4xScaling                    = KernelStateMap::RegisterKernelStr(CODECHAL_MEDIA_STATE_4X_SCALING, kernel4xScaling);
@@ -236,6 +240,8 @@ static bool regHevcLcu64BMbenc              = KernelStateMap::RegisterKernelStr(
 static bool regMbBrcUpdate                  = KernelStateMap::RegisterKernelStr(CODECHAL_MEDIA_STATE_MB_BRC_UPDATE, kernelMbBrcUpdate);
 static bool regStaticFrameDetection         = KernelStateMap::RegisterKernelStr(CODECHAL_MEDIA_STATE_STATIC_FRAME_DETECTION, kernelStaticFrameDetection);
 static bool regHevcRoi                      = KernelStateMap::RegisterKernelStr(CODECHAL_MEDIA_STATE_HEVC_ROI, kernelHevcRoi);
+static bool regMpuFhb                       = KernelStateMap::RegisterKernelStr(CODECHAL_MEDIA_STATE_MPU_FHB, kernelMpuFhb);
+static bool regTpuFhb                       = KernelStateMap::RegisterKernelStr(CODECHAL_MEDIA_STATE_TPU_FHB, kernelTpuFhb);
 };
 
 struct KernelDumpConfig
