@@ -2479,9 +2479,8 @@ finish:
 bool VPHAL_VEBOX_STATE_G11_BASE::IsFormatSupported(
     PVPHAL_SURFACE              pSrcSurface)
 {
-    bool    bRet;
-
-    bRet = false;
+    bool    bRet = false;
+    VPHAL_RENDER_CHK_NULL_NO_STATUS(pSrcSurface);
 
     // Check if Sample Format is supported
     // Vebox only support P016 format, P010 format can be supported by faking it as P016
@@ -2516,9 +2515,13 @@ bool VPHAL_VEBOX_STATE_G11_BASE::IsRTFormatSupported(
     PVPHAL_SURFACE              pSrcSurface,
     PVPHAL_SURFACE              pRTSurface)
 {
-    bool                        bRet;
+    bool                        bRet = false;
 
-    bRet = false;
+    if ((nullptr == pSrcSurface) || (nullptr == pRTSurface))
+    {
+        VPHAL_RENDER_ASSERTMESSAGE(" invalid surface");
+        return false;
+    }
 
     // Check if RT Format is supported by Vebox
     if (IS_PA_FORMAT(pRTSurface->Format) ||
@@ -2551,29 +2554,34 @@ bool VPHAL_VEBOX_STATE_G11_BASE::IsRTFormatSupported(
 bool VPHAL_VEBOX_STATE_G11_BASE::IsDnFormatSupported(
     PVPHAL_SURFACE              pSrcSurface)
 {
-    bool    bRet;
-
-    bRet = false;
-    VPHAL_RENDER_CHK_NULL_NO_STATUS(pSrcSurface);
-
-    if ((pSrcSurface->Format != Format_YUYV)         &&
-        (pSrcSurface->Format != Format_VYUY)         &&
-        (pSrcSurface->Format != Format_YVYU)         &&
-        (pSrcSurface->Format != Format_UYVY)         &&
-        (pSrcSurface->Format != Format_YUY2)         &&
-        (pSrcSurface->Format != Format_Y8)           &&
-        (pSrcSurface->Format != Format_NV12)         &&
-        (pSrcSurface->Format != Format_A8B8G8R8)     &&
+    if (nullptr == pSrcSurface)
+    {
+        VPHAL_RENDER_ASSERTMESSAGE(" invalid surface");
+        return false;
+    }
+    if ((pSrcSurface->Format != Format_YUYV) &&
+        (pSrcSurface->Format != Format_VYUY) &&
+        (pSrcSurface->Format != Format_YVYU) &&
+        (pSrcSurface->Format != Format_UYVY) &&
+        (pSrcSurface->Format != Format_YUY2) &&
+        (pSrcSurface->Format != Format_Y8) &&
+        (pSrcSurface->Format != Format_NV12) &&
+        (pSrcSurface->Format != Format_AYUV) &&
+        (pSrcSurface->Format != Format_Y216) &&
+        (pSrcSurface->Format != Format_Y210) &&
+        (pSrcSurface->Format != Format_Y416) &&
+        (pSrcSurface->Format != Format_Y410) &&
+        (pSrcSurface->Format != Format_P216) &&
+        (pSrcSurface->Format != Format_P010) &&
+        (pSrcSurface->Format != Format_P016) &&
+        (pSrcSurface->Format != Format_A8B8G8R8) &&
         (pSrcSurface->Format != Format_A16B16G16R16))
     {
         VPHAL_RENDER_NORMALMESSAGE("Unsupported Format '0x%08x' for VEBOX DN.", pSrcSurface->Format);
-        goto finish;
+        return false;
     }
 
-    bRet = true;
-
-finish:
-    return bRet;
+    return true;
 }
 
 //!
