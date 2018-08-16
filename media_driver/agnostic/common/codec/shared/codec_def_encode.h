@@ -127,6 +127,7 @@ struct EncoderParams
     MOS_RESOURCE                    resBitstreamBuffer;             //!< Output buffer for bitstream data.
     MOS_SURFACE                     mbQpSurface;
     MOS_SURFACE                     disableSkipMapSurface;          //!< [AVC] MB disable skip map provided by framework
+    HANDLE                          gpuAppTaskEvent;                // MSDK event handling
 };
 
 #endif // !__CODEC_DEF_ENCODE_H__
