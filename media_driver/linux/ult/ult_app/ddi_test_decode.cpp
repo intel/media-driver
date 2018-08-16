@@ -49,7 +49,6 @@ void MediaDecodeDdiTest::ExectueDecodeTest(DecTestData *pDecData)
         {
             CmdValidator::GpuCmdsValidationInit(m_GpuCmdFactory, platforms[i]);
             DecodeExecute(pDecData, platforms[i]);
-            MemoryLeakDetector::Detect(m_driverLoader, platforms[i]);
         }
     }
 }
