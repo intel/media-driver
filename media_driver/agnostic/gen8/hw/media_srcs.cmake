@@ -87,7 +87,7 @@ set(HEADERS_
     ${HEADERS_}
     ${TMP_3_HEADERS_}
     ${TMP_4_HEADERS_}
-    ${TMP_5_SOURCES_}
+    ${TMP_5_HEADERS_}
 )
 
 source_group("MHW\\Common MI" FILES ${TMP_3_SOURCES_} ${TMP_3_HEADERS_})
