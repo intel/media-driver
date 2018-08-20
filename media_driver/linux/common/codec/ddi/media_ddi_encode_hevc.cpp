@@ -96,7 +96,6 @@ VAStatus DdiEncodeHevc::ContextInitialize(
     {
         codecHalSettings->codecFunction = CODECHAL_FUNCTION_ENC_VDENC_PAK;
         codecHalSettings->disableUltraHME = true;
-        codecHalSettings->disableSuperHME = true;
     }
     else
     {
@@ -372,6 +371,12 @@ VAStatus DdiEncodeHevc::EncodeInCodecHal(uint32_t numSlices)
 
     encodeParams.pBSBuffer      = m_encodeCtx->pbsBuffer;
     encodeParams.pSlcHeaderData = (void *)m_encodeCtx->pSliceHeaderData;
+    
+    CodechalEncoderState *encoder = dynamic_cast<CodechalEncoderState *>(m_encodeCtx->pCodecHal);
+
+    encoder->m_mfeEncodeParams.submitIndex  = 0;
+    encoder->m_mfeEncodeParams.submitNumber = 1; //By default we only use one stream
+    encoder->m_mfeEncodeParams.streamId  = 0;
 
     MOS_STATUS status = m_encodeCtx->pCodecHal->Execute(&encodeParams);
     if (MOS_STATUS_SUCCESS != status)
