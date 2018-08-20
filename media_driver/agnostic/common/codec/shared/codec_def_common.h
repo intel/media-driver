@@ -235,9 +235,7 @@ struct _CODEC_REF_LIST
     uint8_t                             ucAvcPictureCodingType; // used for PAFF case, 0: frame, 1: tff field, 2: invalid, 3: bff field
     CODEC_PICTURE                       RefList[CODEC_MAX_NUM_REF_FRAME];
     int16_t                             sFrameNumber;
-    // Cenc Decode: stored 2nd level batch buffer and Pic Param index
-    uint8_t                             ucCencBufIdx[2]; // 0 - frame/top field, 1 - bottom field
-
+ 
     // Shared encoding parameters
     uint8_t                             ucMbCodeIdx;
     uint8_t                             ucScalingIdx;
