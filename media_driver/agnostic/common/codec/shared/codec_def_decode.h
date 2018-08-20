@@ -29,6 +29,7 @@
 #define __CODEC_DEF_DECODE_H__
 
 #include "mos_os.h"
+#include "codec_def_decode_jpeg.h"
 
 struct CencDecodeShareBuf;
 
@@ -156,4 +157,51 @@ struct CodechalDecodeParams
     uint32_t                setMarkerNumTs = 0;
 };
 
+
+//!
+//! \class CodechalDecodeRestoreData
+//! \brief This class restore the data when destory, used as temporal storage and restore automatically.
+//!
+template   <typename T>
+class CodechalDecodeRestoreData
+{
+public:
+    //!
+    //! \brief    Constructor
+    //!
+    CodechalDecodeRestoreData(T *mem):
+        m_mem(mem)
+    {
+        if (m_mem != nullptr)
+        {
+            m_restoreValue = *mem;
+        }
+    }
+    //!
+    //! \brief    Constructor
+    //!
+    CodechalDecodeRestoreData(T *mem, T restoreValue):
+        m_mem(mem)
+    {
+        if (m_mem != nullptr)
+        {
+            m_restoreValue = restoreValue;
+        }
+    }
+
+    //!
+    //! \brief    Destructor
+    //!
+    ~CodechalDecodeRestoreData()
+    {
+        if (m_mem != nullptr)
+        {
+            *m_mem = m_restoreValue;
+        }
+    }
+
+private:
+    T * m_mem = nullptr;          //!< Point to the memory need to be restored when this class destroy
+    T m_restoreValue = {};   //!< The value to be restored to memory when this class destroy
+};
 #endif  // __CODEC_DEF_DECODE_H__
