@@ -7109,7 +7109,7 @@ MOS_STATUS CodechalEncodeAvcEncG11::UserFeatureKeyReport()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncodeAvcBase::UserFeatureKeyReport());
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncodeAvcEnc::UserFeatureKeyReport());
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 
