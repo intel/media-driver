@@ -87,7 +87,7 @@ struct DriverSymbols
     void Clear()
     {
         auto p = (const void **)this;
-        for (auto i = 0; i < sizeof(this) / sizeof(const void *); i++)
+        for (auto i = 0; i < sizeof(*this) / sizeof(const void *); i++)
         {
             p[i] = nullptr;
         }
@@ -96,7 +96,7 @@ struct DriverSymbols
     bool Initialized() const
     {
         auto p = (const void * const *)this;
-        for (auto i = 0; i < sizeof(this) / sizeof(const void *); i++)
+        for (auto i = 0; i < sizeof(*this) / sizeof(const void *); i++)
         {
             if (p[i] == nullptr)
             {
@@ -131,9 +131,9 @@ public:
 
     const DriverSymbols &GetDriverSymbols() const { return m_drvSyms; }
 
-    VAStatus InitDriver(int platform_id);
+    VAStatus InitDriver(Platform_t platform_id);
 
-    VAStatus CloseDriver();
+    VAStatus CloseDriver(bool detectMemLeak = true);
 
 public:
 
@@ -147,11 +147,12 @@ private:
 
 private:
 
-    const char                  *m_driver_path;
-    void                        *m_umdhandle;
-    DriverSymbols               m_drvSyms;
+    const char                  *m_driver_path    = nullptr;
+    void                        *m_umdhandle      = nullptr;
+    DriverSymbols               m_drvSyms         = {};
+    drm_state                   m_drmstate        = {};
+    Platform_t                  m_currentPlatform = igfxSKLAKE;
     std::vector<Platform_t>     m_platformArray;
-    drm_state                   m_drmstate;
 };
 
 #endif // __DRIVER_LOADER_H__

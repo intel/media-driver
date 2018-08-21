@@ -83,6 +83,4 @@ typedef enum
     igfx_MAX       = 4,
 } Platform_t;
 
-extern const char *g_platformName[];
-
 #endif // __DEVCONFIG_H__
