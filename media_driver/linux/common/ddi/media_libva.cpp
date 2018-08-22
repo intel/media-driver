@@ -4299,11 +4299,6 @@ VAStatus DdiMedia_GetImage(
     VAImageID        image
 )
 {
-    DDI_UNUSED(x);
-    DDI_UNUSED(y);
-    DDI_UNUSED(width);
-    DDI_UNUSED(height);
-
     DDI_FUNCTION_ENTER();
 
     DDI_CHK_NULL(ctx,                     "nullptr ctx.",                    VA_STATUS_ERROR_INVALID_CONTEXT);
@@ -4332,7 +4327,7 @@ VAStatus DdiMedia_GetImage(
     DDI_CHK_NULL(buf,         "nullptr buf.",          VA_STATUS_ERROR_INVALID_PARAMETER);
 
     if (mediaSurface->format != DdiMedia_OsFormatAlphaMaskToMediaFormat(vaimg->format.fourcc, vaimg->format.alpha_mask) ||
-        mediaSurface->pGmmResourceInfo->GetSizeSurface() != vaimg->data_size)
+        width != vaimg->width || height != vaimg->height)
     {
         //Get VP Context from heap or create VP Context
         VAContextID         context = VA_INVALID_ID ;
@@ -4365,6 +4360,12 @@ VAStatus DdiMedia_GetImage(
         
         //Set parameters
         VAProcPipelineParameterBuffer* pInputPipelineParam = (VAProcPipelineParameterBuffer*)MOS_AllocAndZeroMemory(sizeof(VAProcPipelineParameterBuffer));
+        VARectangle surface_region;
+        surface_region.x = x;
+        surface_region.y = y;
+        surface_region.width = width;
+        surface_region.height = height;
+        pInputPipelineParam->surface_region = &surface_region;
         pInputPipelineParam->surface = surface;
         DdiVp_SetProcPipelineParams(ctx, pVpCtx, pInputPipelineParam);
         MOS_FreeMemory(pInputPipelineParam);
