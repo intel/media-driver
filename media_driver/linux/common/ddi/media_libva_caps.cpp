@@ -124,6 +124,8 @@ const VAImageFormat MediaLibvaCaps::m_supportedImageformats[] =
     {VA_FOURCC_BGRP, VA_LSB_FIRST, 24, 24, 0x0000ff, 0x00ff00, 0xff0000, 0},
     {VA_FOURCC_P208, VA_LSB_FIRST, 8, 0,0,0,0,0},
     {VA_FOURCC('P','0','1','0'), VA_LSB_FIRST, 24, 0,0,0,0,0},
+    {VA_FOURCC_AYUV, VA_LSB_FIRST, 24, 0,0,0,0,0},
+    {VA_FOURCC_Y410, VA_LSB_FIRST, 24, 0,0,0,0,0}
 };
 
 MediaLibvaCaps::MediaLibvaCaps(DDI_MEDIA_CONTEXT *mediaCtx)
@@ -389,6 +391,14 @@ VAStatus MediaLibvaCaps::CheckEncRTFormat(
     {
         attrib->value = VA_RT_FORMAT_YUV420_10;
     }
+    else if(profile == VAProfileHEVCMain444)
+    {
+        attrib->value = VA_RT_FORMAT_YUV444;
+    }
+    else if(profile == VAProfileHEVCMain444_10)
+    {
+        attrib->value = VA_RT_FORMAT_YUV444_10;
+    }
     else    
     {
         attrib->value = VA_RT_FORMAT_YUV420;
@@ -449,7 +459,11 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     {
         attrib.value = ENCODE_JPEG_MAX_PIC_WIDTH;
     }
-    if(IsAvcProfile(profile)||IsHevcProfile(profile))
+    if(IsHevcProfile(profile))
+    {
+        attrib.value = CODEC_8K_MAX_PIC_WIDTH;
+    }
+    if(IsAvcProfile(profile))
     {
         attrib.value = CODEC_4K_MAX_PIC_WIDTH;
     }
@@ -461,7 +475,11 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     {
         attrib.value = ENCODE_JPEG_MAX_PIC_HEIGHT;
     }
-    if(IsAvcProfile(profile)||IsHevcProfile(profile))
+    if(IsHevcProfile(profile))
+    {
+        attrib.value = CODEC_8K_MAX_PIC_HEIGHT;
+    }
+    if(IsAvcProfile(profile))
     {
         attrib.value = CODEC_4K_MAX_PIC_HEIGHT;
     }

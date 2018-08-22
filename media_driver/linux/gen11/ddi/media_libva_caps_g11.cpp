@@ -462,6 +462,8 @@ VAStatus MediaLibvaCapsG11::CheckEncodeResolution(
             break;
         case VAProfileHEVCMain:
         case VAProfileHEVCMain10:
+        case VAProfileHEVCMain444:
+        case VAProfileHEVCMain444_10:
             if (width > m_maxHevcEncWidth 
                     || width < m_encMinWidth
                     || height > m_maxHevcEncHeight 
@@ -859,6 +861,22 @@ VAStatus MediaLibvaCapsG11::QuerySurfaceAttributes(
             attribs[i].value.value.i = VA_FOURCC('P', '0', '1', '0');
             i++;
         }
+        else if(profile == VAProfileHEVCMain444)
+        {
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC_AYUV;
+            i++;
+        }
+        else if(profile == VAProfileHEVCMain444_10)
+        {
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC_Y410;
+            i++;
+        }
         else if (profile == VAProfileVP9Profile1)
         {
             attribs[i].type = VASurfaceAttribPixelFormat;
@@ -915,7 +933,11 @@ VAStatus MediaLibvaCapsG11::QuerySurfaceAttributes(
         {
             attribs[i].value.value.i = ENCODE_JPEG_MAX_PIC_WIDTH;
         }
-        else if(IsAvcProfile(profile)||IsHevcProfile(profile))
+        else if(IsHevcProfile(profile))
+        {
+            attribs[i].value.value.i = CODEC_8K_MAX_PIC_WIDTH;
+        }
+        else if(IsAvcProfile(profile))
         {
             attribs[i].value.value.i = CODEC_4K_MAX_PIC_WIDTH;
         }
@@ -933,7 +955,11 @@ VAStatus MediaLibvaCapsG11::QuerySurfaceAttributes(
         {
             attribs[i].value.value.i = ENCODE_JPEG_MAX_PIC_HEIGHT;
         }
-        else if(IsAvcProfile(profile)||IsHevcProfile(profile))
+        else if(IsHevcProfile(profile))
+        {
+            attribs[i].value.value.i = CODEC_8K_MAX_PIC_HEIGHT;
+        }
+        else if(IsAvcProfile(profile))
         {
             attribs[i].value.value.i = CODEC_4K_MAX_PIC_HEIGHT;
         }
