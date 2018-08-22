@@ -7658,10 +7658,12 @@ MOS_STATUS HalCm_SetupStatesForKernelInitial(
             {
                 PRENDERHAL_DYNAMIC_STATE dynamicState = stateHeap->pCurMediaState->pDynamicState;
                 dynamicState->Curbe.iCurrent -= MOS_ALIGN_CEIL(kernelParam->totalCurbeSize, state->renderHal->dwCurbeBlockAlign);
+                kernelParam->curbeOffset = dynamicState->Curbe.iCurrent;
             }
             else
             {
                 stateHeap->pCurMediaState->iCurbeOffset -= MOS_ALIGN_CEIL(kernelParam->totalCurbeSize, state->renderHal->dwCurbeBlockAlign);
+                kernelParam->curbeOffset = stateHeap->pCurMediaState->iCurbeOffset;
             }
             // update curbe with data.
             renderHal->pfnLoadCurbeData(renderHal,
@@ -7678,10 +7680,12 @@ MOS_STATUS HalCm_SetupStatesForKernelInitial(
             {
                 PRENDERHAL_DYNAMIC_STATE dynamicState = stateHeap->pCurMediaState->pDynamicState;
                 dynamicState->Curbe.iCurrent -= MOS_ALIGN_CEIL(kernelParam->totalCurbeSize, state->renderHal->dwCurbeBlockAlign);
+                kernelParam->curbeOffset = dynamicState->Curbe.iCurrent;
             }
             else
             {
                 stateHeap->pCurMediaState->iCurbeOffset -= MOS_ALIGN_CEIL(kernelParam->totalCurbeSize, state->renderHal->dwCurbeBlockAlign);
+                kernelParam->curbeOffset = stateHeap->pCurMediaState->iCurbeOffset;
             }
             // update curbe with data.
             renderHal->pfnLoadCurbeData(renderHal,
