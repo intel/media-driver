@@ -733,6 +733,7 @@ struct CM_HAL_KERNEL_PARAM
     uint32_t numSurfaces;           // [in] Number of Surfaces used in this kernel
     uint32_t payloadSize;           // [in] Kernel Payload Size
     uint32_t totalCurbeSize;        // [in] total CURBE size, GPGPU
+    uint32_t curbeOffset;           // [in] curbe offset of kernel
     uint32_t curbeSizePerThread;    // [in] CURBE size per thread
     uint32_t crossThreadConstDataLen;    // [in] Cross-thread constant data length HSW+
     uint32_t barrierMode;           // [in] Barrier mode, 0-No barrier, 1-local barrier, 2-global barrier
