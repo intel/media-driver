@@ -1954,6 +1954,9 @@ DdiMedia_CreateSurfaces2(
         case VA_RT_FORMAT_YUV444:
             expected_fourcc = VA_FOURCC_444P;
             break;
+        case VA_RT_FORMAT_YUV444_10:
+            expected_fourcc = VA_FOURCC_Y410;
+            break;
         case VA_RT_FORMAT_YUV411:
             expected_fourcc = VA_FOURCC_411P;
             break;
