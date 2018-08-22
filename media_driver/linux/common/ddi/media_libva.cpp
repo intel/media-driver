@@ -3024,6 +3024,7 @@ VAStatus DdiMedia_DestroyBuffer (
         case VAProcFilterParameterBufferType:
             MOS_FreeMemory(buf->pData);
             break;
+        case VASubsetsParameterBufferType:
         case VAIQMatrixBufferType:
         case VAHuffmanTableBufferType:
         case VAEncSliceParameterBufferType:

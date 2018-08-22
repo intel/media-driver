@@ -357,6 +357,18 @@ void DdiMediaDecode::DestroyContext(VADriverContextP ctx)
     MOS_FreeMemory(m_ddiDecodeCtx->DecodeParams.m_sliceParams);
     m_ddiDecodeCtx->DecodeParams.m_sliceParams = nullptr;
 
+    MOS_FreeMemory(m_ddiDecodeCtx->DecodeParams.m_extPicParams);
+    m_ddiDecodeCtx->DecodeParams.m_sliceParams = nullptr;
+
+    MOS_FreeMemory(m_ddiDecodeCtx->DecodeParams.m_advPicParams);
+    m_ddiDecodeCtx->DecodeParams.m_sliceParams = nullptr;
+
+    MOS_FreeMemory(m_ddiDecodeCtx->DecodeParams.m_extSliceParams);
+    m_ddiDecodeCtx->DecodeParams.m_sliceParams = nullptr;
+
+    MOS_FreeMemory(m_ddiDecodeCtx->DecodeParams.m_subsetParams);
+    m_ddiDecodeCtx->DecodeParams.m_sliceParams = nullptr;
+
 #ifdef _DECODE_PROCESSING_SUPPORTED
     if (m_ddiDecodeCtx->DecodeParams.m_procParams != nullptr)
     {
@@ -713,19 +725,29 @@ VAStatus DdiMediaDecode::CreateBuffer(
             if(va != VA_STATUS_SUCCESS)
             {
                 goto CleanUpandReturn;
-        }
+            }
 
             break;
         case VASliceParameterBufferType:
             va = AllocSliceControlBuffer(buf);
-        if(va != VA_STATUS_SUCCESS)
+            if(va != VA_STATUS_SUCCESS)
             {
                 goto CleanUpandReturn;
-        }
+            }
             buf->format     = Media_Format_CPU;
             break;
         case VAPictureParameterBufferType:
             buf->pData      = GetPicParamBuf(&(m_ddiDecodeCtx->BufMgr));
+            buf->format     = Media_Format_CPU;
+            break;
+        case VASubsetsParameterBufferType:
+            //maximum entry point supported should not be more than 440
+            if(numElements > 440)
+            {
+                va = VA_STATUS_ERROR_INVALID_PARAMETER;
+                goto CleanUpandReturn;
+            }
+            buf->pData      = (uint8_t*)MOS_AllocAndZeroMemory(size * numElements);
             buf->format     = Media_Format_CPU;
             break;
         case VAIQMatrixBufferType:

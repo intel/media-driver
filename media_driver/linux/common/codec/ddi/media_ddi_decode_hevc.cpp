@@ -431,6 +431,11 @@ VAStatus DdiDecodeHEVC::RenderPicture(
             DDI_CHK_RET(ParsePicParams(mediaCtx, picParam),"ParsePicParams failed!");
             break;
         }
+        case VASubsetsParameterBufferType:
+        {
+            MOS_SecureMemcpy(m_ddiDecodeCtx->DecodeParams.m_subsetParams, dataSize, data, dataSize);
+            break;
+        }
         case VAProcPipelineParameterBufferType:
         {
             DDI_CHK_RET(ParseProcessingBuffer(mediaCtx, data),"ParseProcessingBuffer failed!");
