@@ -10113,8 +10113,9 @@ MOS_STATUS HalCm_Create(
     mhwInterfaces = MhwInterfaces::CreateFactory(params, state->osInterface);
     if (mhwInterfaces)
     {
-        state->veboxInterface = mhwInterfaces->m_veboxInterface;
-
+        CM_CHK_NULL_RETURN_MOSSTATUS(mhwInterfaces->m_veboxInterface);
+        state->veboxInterface = mhwInterfaces->m_veboxInterface;       
+        
         // MhwInterfaces always create CP and MI interfaces, so we have to delete those we don't need.
         MOS_Delete(mhwInterfaces->m_miInterface);
         Delete_MhwCpInterface(mhwInterfaces->m_cpInterface);
@@ -10298,6 +10299,7 @@ MOS_STATUS HalCm_Create(
 #endif
 
     state->cmHalInterface = CMHalDevice::CreateFactory(state);
+    CM_CHK_NULL_RETURN_MOSSTATUS(state->cmHalInterface);
 
     if (!state->cmHalInterface->IsOverridePowerOptionPerGpuContext())
     {

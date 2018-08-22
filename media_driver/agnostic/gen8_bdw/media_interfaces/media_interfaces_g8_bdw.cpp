@@ -142,8 +142,18 @@ MOS_STATUS CodechalInterfacesG8Bdw::Initialize(
 
     CodechalHwInterface *hwInterface = MOS_New(Hw, osInterface, CodecFunction, mhwInterfaces);
 
+    if (hwInterface == nullptr)
+    {
+        CODECHAL_PUBLIC_ASSERTMESSAGE("hwInterface is not valid!");
+        return MOS_STATUS_NO_SPACE;
+    }
 #if USE_CODECHAL_DEBUG_TOOL
     CodechalDebugInterface *debugInterface = MOS_New(CodechalDebugInterface);
+    if (debugInterface == nullptr)
+    {
+        CODECHAL_PUBLIC_ASSERTMESSAGE("debugInterface is not valid!");
+        return MOS_STATUS_NO_SPACE;
+    }
     if (debugInterface->Initialize(hwInterface, CodecFunction) != MOS_STATUS_SUCCESS)
     {
         CODECHAL_PUBLIC_ASSERTMESSAGE("Debug interface creation failed!");
@@ -321,31 +331,18 @@ MOS_STATUS CodechalInterfacesG8Bdw::Initialize(
     return MOS_STATUS_SUCCESS;
 }
 
-CodechalHwInterface *CodechalInterfacesG8Bdw::CreateCodechalHwInterface(
-    CODECHAL_FUNCTION CodecFunction,
-    MhwInterfaces *mhwInterfaces,
-    PMOS_INTERFACE osInterface)
-{
-    if (mhwInterfaces == nullptr)
-    {
-        CODECHAL_PUBLIC_ASSERTMESSAGE("Create Codechal hardware interfaces failed.");
-        return nullptr;
-    }
-
-    CodechalHwInterface *codechalHwInterface = MOS_New(Hw,
-        osInterface,
-        CodecFunction,
-        mhwInterfaces);
-
-    return codechalHwInterface;
-}
-
 static bool bdwRegisteredCMHal =
     MediaInterfacesFactory<CMHalDevice>::
     RegisterHal<CMHalInterfacesG8Bdw>((uint32_t)IGFX_BROADWELL);
 
 MOS_STATUS CMHalInterfacesG8Bdw::Initialize(CM_HAL_STATE *pCmState)
 {
+    if (pCmState == nullptr)
+    {
+        MHW_ASSERTMESSAGE("pCmState is nullptr.")
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
     m_cmhalDevice = MOS_New(CMHal, pCmState);
     if (m_cmhalDevice == nullptr)
     {
