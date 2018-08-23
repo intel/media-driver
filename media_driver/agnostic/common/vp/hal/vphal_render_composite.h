@@ -579,22 +579,6 @@ protected:
         PVPHAL_RENDERING_DATA_COMPOSITE pRenderingData);
 
     //!
-    //! \brief    Check if None Cp Composite is needed
-    //! \param    [in,out] pCompParams
-    //!           Pointer to Composite parameters
-    //! \param    [in] ppOsResource
-    //!           Pointer to MOS_RESOURCE
-    //! \param    [in] resourceCount
-    //!           The count of input resource
-    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-    //! \return   MOS_STATUS
-    //!
-    virtual MOS_STATUS CheckIfNoneCpCompNeeded(
-        PVPHAL_COMPOSITE_PARAMS pCompParams,
-        PMOS_RESOURCE           ppOsResource[],
-        uint32_t                resourceCount);
-
-    //!
     //! \brief    Fill in Gen specific static data
     //! \details  Fill in Gen specific static data
     //! \param    pRenderingData
