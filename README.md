@@ -91,19 +91,21 @@ CFL (Coffee Lake)
 
 CNL (Cannonlake)
 
+ICL (Ice Lake)
+
 ## Supported Codecs
 
-| CODEC      | BDW  | SKL  | BXT/APL |   KBL   |   CFL   | CNL  |
-|------------|------|------|---------|---------|---------|------|
-| H.264      | D/E1 | D/E1 | D/E1/E2 | D/E1/E2 | D/E1/E2 | D/E1 |
-| MPEG-2     | D/E1 | D/E1 | D       | D/E1    | D/E1    | D/E1 |
-| VC-1       | D    | D    | D       | D       | D       | D    |
-| JPEG       | D    | D/E2 | D/E2    | D/E2    | D/E2    | D/E2 |
-| VP8        | D    | D    | D       | D       | D       | D/E1 |
-| HEVC       |      | D/E1 | D/E1    | D/E1    | D/E1    | D/E1 |
-| HEVC 10bit |      |      | D       | D       | D       | D/E1 |
-| VP9        |      |      | D       | D       | D       | D    |
-| VP9 10bit  |      |      |         | D       | D       | D    |
+| CODEC      | BDW  | SKL  | BXT/APL |   KBL   |   CFL   | CNL  |   ICL   |
+|------------|------|------|---------|---------|---------|------|---------|
+| H.264      | D/E1 | D/E1 | D/E1/E2 | D/E1/E2 | D/E1/E2 | D/E1 | D/E1/E2 |
+| MPEG-2     | D/E1 | D/E1 | D       | D/E1    | D/E1    | D/E1 | D/E1    |
+| VC-1       | D    | D    | D       | D       | D       | D    | D       |
+| JPEG       | D    | D/E2 | D/E2    | D/E2    | D/E2    | D/E2 | D/E2    |
+| VP8        | D    | D    | D       | D       | D       | D/E1 | D/E1    |
+| HEVC       |      | D/E1 | D/E1    | D/E1    | D/E1    | D/E1 |         |
+| HEVC 10bit |      |      | D       | D       | D       | D/E1 |         |
+| VP9        |      |      | D       | D       | D       | D    |         |
+| VP9 10bit  |      |      |         | D       | D       | D    |         |
 
 D  - decoding
 
@@ -113,22 +115,22 @@ E2 - Low power encoding
 
 ## Supported Video Processing
 
-| Video Processing                             | BDW | SKL | BXT/APL | KBL | CFL | CNL |
-|----------------------------------------------|-----|-----|---------|-----|-----|-----|
-| Blending                                     |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |
-| CSC (Color Space Conversion)                 |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |
-| De-interlace                                 |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |
-| De-noise                                     |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |
-| Luma Key                                     |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |
-| Mirroring                                    |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |
-| ProcAmp (brightness,contrast,hue,saturation) |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |
-| Rotation                                     |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |
-| Scaling                                      |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |
-| Sharpening                                   |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |
-| STD/E (Skin Tone Detect & Enhancement)       |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |
-| TCC (Total Color Control)                    |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |
-| Color fill                                   |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |
-| Chroma Siting                                |  N  |  Y  |    Y    |  Y  |  Y  |  Y  |
+| Video Processing                             | BDW | SKL | BXT/APL | KBL | CFL | CNL | ICL |
+|----------------------------------------------|-----|-----|---------|-----|-----|-----|-----|
+| Blending                                     |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |
+| CSC (Color Space Conversion)                 |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |
+| De-interlace                                 |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |
+| De-noise                                     |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |
+| Luma Key                                     |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |
+| Mirroring                                    |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |
+| ProcAmp (brightness,contrast,hue,saturation) |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |
+| Rotation                                     |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |
+| Scaling                                      |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |
+| Sharpening                                   |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |
+| STD/E (Skin Tone Detect & Enhancement)       |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |
+| TCC (Total Color Control)                    |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |
+| Color fill                                   |  Y  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |
+| Chroma Siting                                |  N  |  Y  |    Y    |  Y  |  Y  |  Y  |  Y  |
 
 ## Known Issues and Limitations
 
@@ -140,13 +142,13 @@ YV12/I420 as input format for csc/scaling/blending/rotation, etc. on Ubuntu 16.0
 (with kernel 4.10). The issue can be addressed with the kernel patch:
 WaEnableYV12BugFixInHalfSliceChicken7 [commit 0b71cea29fc29bbd8e9dd9c641fee6bd75f6827](https://cgit.freedesktop.org/drm-tip/commit/?id=0b71cea29fc29bbd8e9dd9c641fee6bd75f68274)
 
-3. CNL: HEVC encoding does not support P frame.
-
-4. HuC firmware is needed for AVC low power encoding bitrate control, including CBR, VBR, etc. As of now, HuC firmware support is disabled in Linux kernels by default. Please, refer to i915 kernel mode driver documentation to learn how to enable it. Mind that HuC firmware support presents in the following kernels for the specified platforms:
+3. HuC firmware is needed for AVC low power encoding bitrate control, including CBR, VBR, etc. As of now, HuC firmware support is disabled in Linux kernels by default. Please, refer to i915 kernel mode driver documentation to learn how to enable it. Mind that HuC firmware support presents in the following kernels for the specified platforms:
    * APL, KBL: starting from kernel 4.11
    * CFL: starting from kernel 4.15
 
-5. Restriction in implementation of vaGetImage: Source format (surface) should be same with destination format (image).
+4. Restriction in implementation of vaGetImage: Source format (surface) should be same with destination format (image).
+
+5. ICL encoding and decoding require special kernel mode driver ([issue#267](https://github.com/intel/media-driver/issues/267)/[PR#271](https://github.com/intel/media-driver/pull/271)), please refer to i915 kernel mode driver documentation for supporting status.
 
 ##### (*) Other names and brands may be claimed as property of others.
 
