@@ -1509,6 +1509,9 @@ MOS_STATUS HalCm_ParseGroupTask(
 
     taskParam->numKernels = execGroupParam->numKernels;
     taskParam->syncBitmap = execGroupParam->syncBitmap;
+    taskParam->conditionalEndBitmap = execGroupParam->conditionalEndBitmap;
+    MOS_SecureMemcpy(taskParam->conditionalEndInfo, sizeof(taskParam->conditionalEndInfo), execGroupParam->conditionalEndInfo, sizeof(execGroupParam->conditionalEndInfo));
+
     taskParam->taskConfig = execGroupParam->taskConfig;
     for (uint32_t krn = 0; krn < execGroupParam->numKernels; krn ++)
     {
@@ -8444,6 +8447,11 @@ MOS_STATUS HalCm_ExecuteGroupTask(
             bti, mediaID, krnAllocations[i]));
 
         vfeCurbeSize += MOS_ALIGN_CEIL(kernelParam->totalCurbeSize, state->renderHal->dwCurbeBlockAlign);
+
+        if (execGroupParam->conditionalEndBitmap & (uint64_t)1 << i)
+        {
+            CM_CHK_MOSSTATUS(HalCm_SetConditionalEndInfo(state, taskParam->conditionalEndInfo, taskParam->conditionalBBEndParams, i));
+        }
     }
 
     // Store the Max Payload Sizes in the Task params

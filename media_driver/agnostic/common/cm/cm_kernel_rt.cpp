@@ -4958,10 +4958,26 @@ CM_RT_API int32_t CmKernelRT::AssociateThreadSpace(CmThreadSpace *&threadSpace)
         CM_ASSERTMESSAGE("Error: Pointer to thread space is null.");
         return CM_INVALID_ARG_VALUE;
     }
-    if (m_threadGroupSpace != nullptr)
+
+    PCM_HAL_STATE cmHalState = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
+    if (cmHalState->cmHalInterface->CheckMediaModeAvailability() == false)
     {
-        CM_ASSERTMESSAGE("Error: It's exclusive with AssociateThreadGroupSpace().");
-        return CM_INVALID_KERNEL_THREADSPACE;
+        CmThreadSpaceRT *threadSpaceRTConst = static_cast<CmThreadSpaceRT *>(threadSpace);
+        if (threadSpaceRTConst == nullptr)
+        {
+            CM_ASSERTMESSAGE("Error: Pointer to thread space is null.");
+            return CM_INVALID_ARG_VALUE;
+        }
+        CmThreadGroupSpace *threadGroupSpace = threadSpaceRTConst->GetThreadGroupSpace();
+        return AssociateThreadGroupSpace(threadGroupSpace);
+    }
+    else 
+    {
+        if (m_threadGroupSpace != nullptr)
+        {
+            CM_ASSERTMESSAGE("Error: It's exclusive with AssociateThreadGroupSpace().");
+            return CM_INVALID_KERNEL_THREADSPACE;
+        }
     }
 
     bool threadSpaceChanged = false;

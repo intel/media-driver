@@ -307,6 +307,27 @@ CM_RT_API int32_t CmQueueRT::Enqueue(
 {
     INSERT_API_CALL_LOG();
 
+    if (kernelArray == nullptr)
+    {
+        CM_ASSERTMESSAGE("Error: Kernel array is null.");
+        return CM_INVALID_ARG_VALUE;
+    }
+
+    CmTaskRT *kernelArrayRT = static_cast<CmTaskRT *>(kernelArray);
+    uint32_t kernelCount = 0;
+    kernelCount = kernelArrayRT->GetKernelCount();
+    if (kernelCount == 0)
+    {
+        CM_ASSERTMESSAGE("Error: Invalid kernel count.");
+        return CM_FAILURE;
+    }
+
+    if (kernelCount > m_halMaxValues->maxKernelsPerTask)
+    {
+        CM_ASSERTMESSAGE("Error: Kernel count exceeds max kernel per enqueue.");
+        return CM_EXCEED_MAX_KERNEL_PER_ENQUEUE;
+    }
+
     int32_t result;
     const CmThreadSpaceRT *threadSpaceRTConst = static_cast<const CmThreadSpaceRT *>(threadSpace);
     PCM_HAL_STATE cmHalState = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
@@ -318,30 +339,49 @@ CM_RT_API int32_t CmQueueRT::Enqueue(
         }
         else
         {
-            result = EnqueueWithGroup(kernelArray, event, nullptr);
+            // If there isn't any shared thread space or associated thread space, 
+            // create a temporary (maxThreadCount x 1) thread group space whose
+            // size equal to the max thread count of kernel who doesn't have a
+            // thread space associated.
+            uint32_t maxThreadCount = 1;
+            bool usedCommonTGS = false;
+            for (uint32_t i = 0; i < kernelCount; i++)
+            {
+                CmKernelRT *tmpKernel = kernelArrayRT->GetKernelPointer(i);
+                CmThreadGroupSpace *tmpTGS = nullptr;
+                tmpKernel->GetThreadGroupSpace(tmpTGS);
+
+                if (tmpTGS == nullptr)
+                {
+                    usedCommonTGS = true;
+                    uint32_t singleThreadCount = 0;
+                    tmpKernel->GetThreadCount(singleThreadCount);
+                    if (maxThreadCount < singleThreadCount)
+                    {
+                        maxThreadCount = singleThreadCount;
+                    }
+                }
+            }
+
+            CmThreadGroupSpace *threadGroupSpaceTemp = nullptr;
+            if (usedCommonTGS == true)
+            {
+                result = m_device->CreateThreadGroupSpace(1, 1, maxThreadCount, 1, threadGroupSpaceTemp);
+                if (result != CM_SUCCESS)
+                {
+                    CM_ASSERTMESSAGE("Error: Creating temporary thread group space failure.");
+                    return result;
+                }
+            }
+
+            result = EnqueueWithGroup(kernelArray, event, threadGroupSpaceTemp);
+
+            if (threadGroupSpaceTemp != nullptr)
+            {
+                m_device->DestroyThreadGroupSpace(threadGroupSpaceTemp);
+            }
         }
         return result;
-    }
-
-    if(kernelArray == nullptr)
-    {
-        CM_ASSERTMESSAGE("Error: Kernel array is null.");
-        return CM_INVALID_ARG_VALUE;
-    }
-
-    CmTaskRT *kernelArrayRT = static_cast<CmTaskRT *>(kernelArray);
-    uint32_t kernelCount = 0;
-    kernelCount = kernelArrayRT->GetKernelCount();
-    if( kernelCount == 0 )
-    {
-        CM_ASSERTMESSAGE("Error: Invalid kernel count.");
-        return CM_FAILURE;
-    }
-
-    if( kernelCount > m_halMaxValues->maxKernelsPerTask )
-    {
-        CM_ASSERTMESSAGE("Error: Kernel count exceeds max kernel per enqueue.");
-        return CM_EXCEED_MAX_KERNEL_PER_ENQUEUE;
     }
 
     if (threadSpaceRTConst && threadSpaceRTConst->IsThreadAssociated())
@@ -501,6 +541,8 @@ int32_t CmQueueRT::Enqueue_RT(CmKernelRT* kernelArray[],
                         const CmThreadGroupSpace* threadGroupSpace,
                         uint64_t    syncBitmap,
                         PCM_POWER_OPTION powerOption,
+                        uint64_t    conditionalEndBitmap,
+                        CM_HAL_CONDITIONAL_BB_END_INFO* conditionalEndInfo,
                         PCM_TASK_CONFIG  taskConfig)
 {
     if(kernelArray == nullptr)
@@ -518,7 +560,7 @@ int32_t CmQueueRT::Enqueue_RT(CmKernelRT* kernelArray[],
     CLock Locker(m_criticalSectionTaskInternal);
 
     CmTaskInternal* task = nullptr;
-    int32_t result = CmTaskInternal::Create( kernelCount, totalThreadCount, kernelArray, threadGroupSpace, m_device, syncBitmap, task );
+    int32_t result = CmTaskInternal::Create( kernelCount, totalThreadCount, kernelArray, threadGroupSpace, m_device, syncBitmap, task, conditionalEndBitmap, conditionalEndInfo);
     if( result != CM_SUCCESS )
     {
         CM_ASSERTMESSAGE("Error: Create CmTaskInternal failure.");
@@ -742,6 +784,7 @@ CM_RT_API int32_t CmQueueRT::EnqueueWithGroup( CmTask* task, CmEvent* & event, c
     result = Enqueue_RT( tmp, count, totalThreadNumber, eventRT,
                          threadGroupSpace, taskRT->GetSyncBitmap(),
                          taskRT->GetPowerOption(),
+                         taskRT->GetConditionalEndBitmap(), taskRT->GetConditionalEndInfo(),
                          taskRT->GetTaskConfig());
 
     if (eventRT)
@@ -2663,7 +2706,9 @@ int32_t CmQueueRT::FlushGroupTask(CmTaskInternal* task)
     }
 
     param.syncBitmap = task->GetSyncBitmap();
+    param.conditionalEndBitmap = task->GetConditionalEndBitmap();
     param.userDefinedMediaState = task->GetMediaStatePtr();
+    CmSafeMemCopy(param.conditionalEndInfo, task->GetConditionalEndInfo(), sizeof(param.conditionalEndInfo));
 
     // Call HAL layer to execute pfnExecuteGroupTask
     cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
