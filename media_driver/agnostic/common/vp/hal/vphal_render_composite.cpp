@@ -2596,27 +2596,6 @@ void CompositeState::CleanRenderingData(
 }
 
 //!
-//! \brief    Check if None Cp Composite is needed
-//! \param    [in,out] pCompParams
-//!           Pointer to Composite parameters
-//! \param    [in] ppOsResource
-//!           Pointer to MOS_RESOURCE
-//! \param    [in] resourceCount
-//!           The count of input resource
-//! \return   MOS_STATUS
-//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-//!
-MOS_STATUS CompositeState::CheckIfNoneCpCompNeeded(
-    PVPHAL_COMPOSITE_PARAMS pCompParams,
-    PMOS_RESOURCE           ppOsResource[],
-    uint32_t                resourceCount)
-{
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
-    return eStatus;
-}
-
-//!
 //! \brief    Get Binding Table Index associated with a given source for composite
 //! \param    [in] pSource
 //!           Pointer to Source Surface
