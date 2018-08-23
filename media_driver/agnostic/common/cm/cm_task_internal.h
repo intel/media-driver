@@ -84,7 +84,7 @@ public:
 
     static int32_t Create(const uint32_t kernelCount, const uint32_t totalThreadCount, CmKernelRT* kernelArray[], const CmThreadSpaceRT* threadSpace, CmDeviceRT* device, const uint64_t syncBitmap, CmTaskInternal*& task, const uint64_t conditionalEndBitmap, PCM_HAL_CONDITIONAL_BB_END_INFO conditionalEndInfo);
     static int32_t Destroy( CmTaskInternal* &task );
-    static int32_t Create( const uint32_t kernelCount, const uint32_t totalThreadCount, CmKernelRT* kernelArray[], const CmThreadGroupSpace* threadGroupSpace, CmDeviceRT* device, const uint64_t syncBitmap, CmTaskInternal*& task);
+    static int32_t Create( const uint32_t kernelCount, const uint32_t totalThreadCount, CmKernelRT* kernelArray[], const CmThreadGroupSpace* threadGroupSpace, CmDeviceRT* device, const uint64_t syncBitmap, CmTaskInternal*& task, const uint64_t conditionalEndBitmap, PCM_HAL_CONDITIONAL_BB_END_INFO conditionalEndInfo);
     static int32_t Create( CmDeviceRT* device, CmVeboxRT* vebox, CmTaskInternal*& task );
     static int32_t Create( const uint32_t kernelCount, const uint32_t totalThreadCount, CmKernelRT* kernelArray[], CmTaskInternal*& task, uint32_t numGeneratedTasks, bool isLastTask, uint32_t hints, CmDeviceRT* device);
 
