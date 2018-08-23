@@ -75,10 +75,10 @@ MOS_STATUS CodechalDecodeHevc::AllocateResourcesFixedSizes()
         m_hevcRefList,
         CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC);
 
+    MOS_ZeroMemory(&m_secondLevelBatchBuffer, sizeof(m_secondLevelBatchBuffer));
     if (m_shortFormatInUse)
     {
         // Second level batch buffer for HuC FW to use
-        MOS_ZeroMemory(&m_secondLevelBatchBuffer, sizeof(m_secondLevelBatchBuffer));
         uint32_t u32Size = MOS_ALIGN_CEIL(CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6 * m_standardDecodeSizeNeeded,
             CODECHAL_PAGE_SIZE);
         CODECHAL_DECODE_CHK_STATUS_RETURN(Mhw_AllocateBb(
