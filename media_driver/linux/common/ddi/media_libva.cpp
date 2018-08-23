@@ -1156,9 +1156,9 @@ VAStatus DdiMedia__Initialize (
     struct drm_state *pDRMState = (struct drm_state *)ctx->drm_state;
     DDI_CHK_NULL(pDRMState,    "nullptr pDRMState", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    if(CPLibUtils::LoadCPLib())
+    if(!CPLibUtils::LoadCPLib())
     {
-        DDI_NORMALMESSAGE("CPLIB not loaded.");
+        DDI_NORMALMESSAGE("CPLIB is not loaded.");
     }
 
     // If libva failes to open the graphics card, try to open it again within Media Driver
@@ -1497,7 +1497,6 @@ static VAStatus DdiMedia_Terminate (
     PDDI_MEDIA_CONTEXT mediaCtx   = DdiMedia_GetMediaContext(ctx);
     DDI_CHK_NULL(mediaCtx, "nullptr mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    CPLibUtils::UnloadCPLib();
     DdiMediaUtil_LockMutex(&GlobalMutex);
 
     if (mediaCtx->m_auxTableMgr != nullptr)
@@ -1632,6 +1631,8 @@ static VAStatus DdiMedia_Terminate (
 
     ctx->pDriverData = nullptr;
     MOS_utilities_close();
+
+    CPLibUtils::UnloadCPLib();
 
     // Free GMM memory.
     GmmDestroyGlobalContext();

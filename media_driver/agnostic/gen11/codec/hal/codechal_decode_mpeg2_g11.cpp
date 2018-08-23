@@ -27,7 +27,7 @@
 
 #include "codechal_decoder.h"
 #include "codechal_decode_mpeg2_g11.h"
-#include "codechal_secure_decode.h"
+#include "codechal_secure_decode_interface.h"
 #include "mhw_vdbox_mfx_g11_X.h"
 
 CodechalDecodeMpeg2G11::~CodechalDecodeMpeg2G11 ()

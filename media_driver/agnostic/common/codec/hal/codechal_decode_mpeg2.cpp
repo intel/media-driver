@@ -27,7 +27,7 @@
 
 #include "codechal_decoder.h"
 #include "codechal_decode_mpeg2.h"
-#include "codechal_secure_decode.h"
+#include "codechal_secure_decode_interface.h"
 #include "codechal_mmc_decode_mpeg2.h"
 #if USE_CODECHAL_DEBUG_TOOL
 #include <sstream>

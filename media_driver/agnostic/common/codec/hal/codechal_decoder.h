@@ -41,7 +41,7 @@
 #include "media_perf_profiler.h"
 #include "codec_def_cenc_decode.h"
 
-class CodechalSecureDecode;
+class CodechalSecureDecodeInterface;
 class CodechalDecodeHistogram;
 
 //------------------------------------------------------------------------------
@@ -894,7 +894,7 @@ protected:
     MhwCpInterface              *m_cpInterface      = nullptr;
 
     //! \brief Security Decode
-    CodechalSecureDecode        *m_secureDecoder    = nullptr;
+    CodechalSecureDecodeInterface *m_secureDecoder    = nullptr;
 
     //! \brief WA table
     MEDIA_WA_TABLE              *m_waTable           = nullptr;

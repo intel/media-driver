@@ -52,6 +52,11 @@ MosCpInterface* Create_MosCpInterface(void* pvOsInterface)
 
 void Delete_MosCpInterface(MosCpInterface* pMosCpInterface)
 {
+    if(nullptr == pMosCpInterface) 
+    {
+        return;
+    }
+
     if(typeid(MosCpInterface) == typeid(*pMosCpInterface))
     {
         MOS_Delete(pMosCpInterface);

@@ -26,7 +26,7 @@
 
 #include "codechal_decoder.h"
 #include "codechal_decode_avc_g11.h"
-#include "codechal_secure_decode.h"
+#include "codechal_secure_decode_interface.h"
 #include "mhw_vdbox_mfx_g11_X.h"
 
 MOS_STATUS CodechalDecodeAvcG11::AllocateStandard(

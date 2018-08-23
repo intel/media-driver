@@ -37,6 +37,9 @@
 #define CPLIB_NORMALMESSAGE(_message, ...)                                    \
 MOS_NORMALMESSAGE(MOS_COMPONENT_CPLIB, MOS_CP_SUBCOMP_CPLIB, _message, ##__VA_ARGS__)
 
+#define CPLIB_ASSERTMESSAGE(_message, ...)                                    \
+MOS_ASSERTMESSAGE(MOS_COMPONENT_CPLIB, MOS_CP_SUBCOMP_CPLIB, _message, ##__VA_ARGS__)
+
 class CPLibUtils
 {
 public:
@@ -98,6 +101,8 @@ public:
     static const char* FUNC_DELETE_MOSCP;
     static const char* FUNC_CREATE_MEDIALIBVACAPSCP;
     static const char* FUNC_DELETE_MEDIALIBVACAPSCP;
+    static const char* FUNC_CREATE_SECUREDECODE;
+    static const char* FUNC_DELETE_SECUREDECODE;
 
     static std::unordered_map<const char*, void*> m_symbols;
 

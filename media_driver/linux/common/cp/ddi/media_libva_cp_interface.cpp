@@ -55,6 +55,11 @@ DdiCpInterface* Create_DdiCpInterface(MOS_CONTEXT& mosCtx)
 
 void Delete_DdiCpInterface(DdiCpInterface* pDdiCpInterface)
 {
+    if(nullptr == pDdiCpInterface)
+    {
+         return;
+    }
+
     if(typeid(*pDdiCpInterface) == typeid(DdiCpInterface))
     {
         MOS_Delete(pDdiCpInterface);

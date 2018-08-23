@@ -28,7 +28,6 @@
 std::unordered_map<const char*, void*> CPLibUtils::m_symbols;
 
 void *      CPLibUtils::m_phandle                    = nullptr;
-
 const char *CPLibUtils::CPLIB_PATH                   = "cplib.so";
 const char *CPLibUtils::FUNC_INIT_CPLIB_SYMBOLS      = "Init_CPLib_Symbols";
 const char *CPLibUtils::FUNC_INIT_CPLIB_GMM          = "Init_CPLib_Gmm";
@@ -41,11 +40,12 @@ const char *CPLibUtils::FUNC_CREATE_MOSCP            = "Create_MosCp";
 const char *CPLibUtils::FUNC_DELETE_MOSCP            = "Delete_MosCp";
 const char *CPLibUtils::FUNC_CREATE_MEDIALIBVACAPSCP = "Create_MediaLibvaCapsCp";
 const char *CPLibUtils::FUNC_DELETE_MEDIALIBVACAPSCP = "Delete_MediaLibvaCapsCp";
+const char *CPLibUtils::FUNC_CREATE_SECUREDECODE     = "Create_SecureDecode";
+const char *CPLibUtils::FUNC_DELETE_SECUREDECODE     = "Delete_SecureDecode";
 
 bool CPLibUtils::LoadCPLib()
 {
-    if(nullptr == m_phandle)
-        m_phandle = dlopen(CPLIB_PATH, RTLD_NOW | RTLD_LOCAL);
+    m_phandle = dlopen(CPLIB_PATH, RTLD_NOW | RTLD_LOCAL);
 
     if(nullptr == m_phandle)
     {
@@ -67,6 +67,8 @@ bool CPLibUtils::LoadCPLib()
         m_symbols[FUNC_DELETE_MOSCP]            = dlsym(m_phandle, FUNC_DELETE_MOSCP);
         m_symbols[FUNC_CREATE_MEDIALIBVACAPSCP] = dlsym(m_phandle, FUNC_CREATE_MEDIALIBVACAPSCP);
         m_symbols[FUNC_DELETE_MEDIALIBVACAPSCP] = dlsym(m_phandle, FUNC_DELETE_MEDIALIBVACAPSCP);
+        m_symbols[FUNC_CREATE_SECUREDECODE]     = dlsym(m_phandle, FUNC_CREATE_SECUREDECODE);
+        m_symbols[FUNC_DELETE_SECUREDECODE]     = dlsym(m_phandle, FUNC_DELETE_SECUREDECODE);
 
         // confirm if all symbols exported from CPLIB are exist
         for(auto item : m_symbols)
@@ -102,9 +104,8 @@ void CPLibUtils::UnloadCPLib()
     if(nullptr != m_phandle)
     {
         m_symbols.clear();
-        dlclose(m_phandle);
-        m_phandle = nullptr;
-        CPLIB_NORMALMESSAGE("CPLIB Unloaded Successfully");
+        if(0 != dlclose(m_phandle)) // dlclose will return 0 if execution sucecceed
+            CPLIB_ASSERTMESSAGE("Failed to close CPLIB %s", dlerror());
     }
 }
 

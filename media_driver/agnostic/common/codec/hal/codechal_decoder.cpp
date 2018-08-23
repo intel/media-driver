@@ -26,7 +26,7 @@
 //!
 
 #include "codechal_decoder.h"
-#include "codechal_secure_decode.h"
+#include "codechal_secure_decode_interface.h"
 #include "mos_solo_generic.h"
 #include "codechal_debug.h"
 #include "codechal_decode_histogram.h"
@@ -510,7 +510,7 @@ MOS_STATUS CodechalDecode::Allocate (CodechalSetting * codecHalSettings)
         m_mmc = MOS_New(CodecHalMmcState, m_hwInterface);
     }
 
-    CodechalSecureDecode::CreateSecureDecode(codecHalSettings, m_hwInterface, &m_secureDecoder);
+    m_secureDecoder = Create_SecureDecodeInterface(codecHalSettings, m_hwInterface); 
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     m_downsamplingHinted = codecHalSettings->downsamplingHinted ? true : false;
@@ -618,7 +618,7 @@ CodechalDecode::~CodechalDecode()
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
 
-    MOS_Delete(m_secureDecoder);
+    Delete_SecureDecodeInterface(m_secureDecoder);
     m_secureDecoder = nullptr;
 
     if (m_mmc)
