@@ -26,7 +26,7 @@
 //!
 
 #include "codechal_decoder.h"
-#include "codechal_secure_decode.h"
+#include "codechal_secure_decode_interface.h"
 #include "codechal_decode_hevc.h"
 #include "codechal_mmc_decode_hevc.h"
 #include "codechal_decode_nv12top010.h"

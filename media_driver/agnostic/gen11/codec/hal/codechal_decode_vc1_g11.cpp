@@ -32,7 +32,7 @@
 #endif
 #include "igcodeckrn_g11_icllp.h"
 #include "codechal_decode_vc1_g11.h"
-#include "codechal_secure_decode.h"
+#include "codechal_secure_decode_interface.h"
 #include "mhw_vdbox_mfx_g11_X.h"
 
 MOS_STATUS CodechalDecodeVc1G11::AllocateStandard(

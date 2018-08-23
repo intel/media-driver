@@ -54,6 +54,11 @@ MediaLibvaCapsCpInterface* Create_MediaLibvaCapsCpInterface()
 
 void Delete_MediaLibvaCapsCpInterface(MediaLibvaCapsCpInterface* pMediaLibvaCapsCpInterface)
 {
+    if(nullptr == pMediaLibvaCapsCpInterface) 
+    {
+        return;
+    }
+
     if(typeid(*pMediaLibvaCapsCpInterface) == typeid(MediaLibvaCapsCpInterface))
     {
         MOS_Delete(pMediaLibvaCapsCpInterface);

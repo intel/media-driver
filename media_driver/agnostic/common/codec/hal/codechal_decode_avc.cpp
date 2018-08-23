@@ -28,7 +28,7 @@
 #include "codechal_decode_avc.h"
 #include "codechal_decode_sfc_avc.h"
 #include "codechal_mmc_decode_avc.h"
-#include "codechal_secure_decode.h"
+#include "codechal_secure_decode_interface.h"
 #if USE_CODECHAL_DEBUG_TOOL
 #include "codechal_debug.h"
 #endif

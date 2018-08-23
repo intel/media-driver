@@ -79,6 +79,7 @@ set(TMP_2_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_histogram_vebox.h
     ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_singlepipe_virtualengine.h
     ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_scalability.h
+    ${CMAKE_CURRENT_LIST_DIR}/codechal_secure_decode_interface.h
 )
 if(${Decode_Processing_Supported} STREQUAL "yes")
     set(TMP_2_SOURCES_

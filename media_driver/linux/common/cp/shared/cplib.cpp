@@ -26,13 +26,14 @@
 #include "cplib.h"
 #include "cplib_utils.h"
 
-
-
 namespace GmmLib{ class Context; } 
 class MediaLibvaCapsCpInterface;
 class DdiCpInterface;
 class MhwCpInterface;
 class MosCpInterface;
+class CodechalSecureDecodeInterface;
+class CodechalSetting;
+class CodechalHwInterface;
 typedef struct _MOS_INTERFACE* PMOS_INTERFACE;
 typedef struct _MOS_OS_CONTEXT MOS_CONTEXT;
 
@@ -48,6 +49,10 @@ extern "C" CPLIB_EXPORT MosCpInterface* Create_MosCp(void *osInterface);
 extern "C" CPLIB_EXPORT void Delete_MosCp(MosCpInterface* pMosCpInterface);
 extern "C" CPLIB_EXPORT MhwCpInterface* Create_MhwCp(PMOS_INTERFACE   osInterface);
 extern "C" CPLIB_EXPORT void Delete_MhwCp(MhwCpInterface* pMhwCpInterface);
+extern "C" CPLIB_EXPORT CodechalSecureDecodeInterface *Create_SecureDecode(
+    CodechalSetting *      codecHalSettings,
+    CodechalHwInterface *  hwInterfaceInput);
+extern "C" CPLIB_EXPORT void Delete_SecureDecode(CodechalSecureDecodeInterface *pCodechalSecureDecoeInterface);
 
 extern "C" CPLIB_EXPORT uint32_t Get_CPLib_Major_Version()
 {
@@ -67,6 +72,8 @@ extern "C" CPLIB_EXPORT void Init_CPLib_Symbols()
     CPLibUtils::m_symbols[CPLibUtils::FUNC_DELETE_MOSCP]            = reinterpret_cast<void*>(Delete_MosCp);
     CPLibUtils::m_symbols[CPLibUtils::FUNC_CREATE_MEDIALIBVACAPSCP] = reinterpret_cast<void*>(Create_MediaLibvaCapsCp);
     CPLibUtils::m_symbols[CPLibUtils::FUNC_DELETE_MEDIALIBVACAPSCP] = reinterpret_cast<void*>(Delete_MediaLibvaCapsCp);
+    CPLibUtils::m_symbols[CPLibUtils::FUNC_CREATE_SECUREDECODE]     = reinterpret_cast<void*>(Create_SecureDecode);
+    CPLibUtils::m_symbols[CPLibUtils::FUNC_DELETE_SECUREDECODE]     = reinterpret_cast<void*>(Delete_SecureDecode);
 }
 
 extern "C" CPLIB_EXPORT void Init_CPLib_Gmm(GMM_GLOBAL_CONTEXT* pCtx)

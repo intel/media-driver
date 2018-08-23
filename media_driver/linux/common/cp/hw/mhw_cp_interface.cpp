@@ -48,6 +48,11 @@ MhwCpInterface* Create_MhwCpInterface(PMOS_INTERFACE osInterface)
 
 void Delete_MhwCpInterface(MhwCpInterface* pMhwCpInterface)
 {
+    if(nullptr == pMhwCpInterface)
+    {
+        return;
+    }
+
     if(typeid(*pMhwCpInterface) == typeid(MhwCpInterface))
     {
         MOS_Delete(pMhwCpInterface);
