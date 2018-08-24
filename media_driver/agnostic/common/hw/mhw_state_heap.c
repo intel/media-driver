@@ -714,7 +714,6 @@ MOS_STATUS Mhw_StateHeapInterface_InitInterface(
     mhwInterfaces = MhwInterfaces::CreateFactory(params, pOsInterface);
     if (mhwInterfaces)
     {
-        MHW_CHK_NULL(mhwInterfaces->m_stateHeapInterface);
         pCommonStateHeapInterface->pStateHeapInterface = mhwInterfaces->m_stateHeapInterface;
         // MhwInterfaces always create CP and MI interfaces, so we have to delete those we don't need.
         MOS_Delete(mhwInterfaces->m_miInterface);
