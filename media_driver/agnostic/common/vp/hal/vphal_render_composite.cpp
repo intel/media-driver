@@ -6109,6 +6109,15 @@ bool CompositeState::BuildFilter(
             pFilter->format = Format_YV12_Planar;
         }
 
+        if (pFilter->format == Format_A8R8G8B8 ||
+            pFilter->format == Format_X8R8G8B8 ||
+            pFilter->format == Format_A8B8G8R8 ||
+            pFilter->format == Format_X8B8G8R8 ||
+            pFilter->format == Format_R5G6B5)
+        {
+            pFilter->format = Format_RGB;
+        }
+
         //--------------------------------
         // Set layer rotation
         //--------------------------------
