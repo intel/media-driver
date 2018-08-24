@@ -163,7 +163,7 @@ CmKernel* CmContext::CloneKernel(CmKernel *kernel)
     auto it = std::find(mAddedKernels.begin(), mAddedKernels.end(), kernel);
     if (it != mAddedKernels.end())
     {
-        CmKernel *newKernel;
+        CmKernel *newKernel = nullptr;
         int result = mCmDevice->CloneKernel(newKernel, kernel);
         if (result != CM_SUCCESS)
         {
