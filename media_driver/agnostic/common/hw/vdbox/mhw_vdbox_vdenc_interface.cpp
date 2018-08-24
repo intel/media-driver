@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -41,6 +41,8 @@ MhwVdboxVdencInterface::MhwVdboxVdencInterface(PMOS_INTERFACE osInterface)
 
     m_osInterface = osInterface;
 
+    MHW_ASSERT(m_osInterface);
+
     if (m_osInterface->bUsesGfxAddress)
     {
         AddResourceToCmd = Mhw_AddResourceToCmd_GfxAddress;
@@ -49,9 +51,6 @@ MhwVdboxVdencInterface::MhwVdboxVdencInterface(PMOS_INTERFACE osInterface)
     {
         AddResourceToCmd = Mhw_AddResourceToCmd_PatchList;
     }
-
-    MOS_ZeroMemory(&m_vdencRowStoreCache, sizeof(m_vdencRowStoreCache));
-    MOS_ZeroMemory(m_cacheabilitySettings, sizeof(m_cacheabilitySettings));
 }
 
 uint32_t MhwVdboxVdencInterface::MosToMediaStateFormat(MOS_FORMAT format)

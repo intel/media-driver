@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -37,6 +37,11 @@ MhwVdboxHucInterface::MhwVdboxHucInterface(
     m_osInterface = osInterface;
     m_MiInterface = miInterface;
     m_cpInterface = cpInterface;
+
+    MHW_ASSERT(m_osInterface);
+    MHW_ASSERT(m_MiInterface);
+    MHW_ASSERT(m_cpInterface);
+
     m_waTable = osInterface->pfnGetWaTable(osInterface);
 
     if (m_osInterface->bUsesGfxAddress)

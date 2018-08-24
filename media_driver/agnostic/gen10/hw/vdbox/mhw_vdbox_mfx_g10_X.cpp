@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -609,7 +609,7 @@ MOS_STATUS MhwVdboxMfxInterfaceG10::AddMfxPipeModeSelectCmd(
 
     mhw_vdbox_mfx_g10_X::MFX_PIPE_MODE_SELECT_CMD cmd;
 
-    m_cpInterface->SetProtectionSettingsForMfxPipeModeSelect((uint32_t *)&cmd);
+    MHW_MI_CHK_STATUS(m_cpInterface->SetProtectionSettingsForMfxPipeModeSelect((uint32_t *)&cmd));
 
     cmd.DW1.StreamOutEnable = params->bStreamOutEnabled;
     cmd.DW1.DeblockerStreamOutEnable = params->bDeblockerStreamOutEnable;
@@ -1700,11 +1700,11 @@ MOS_STATUS MhwVdboxMfxInterfaceG10::AddMfdAvcSliceAddrCmd(
     sliceInfoParam.dwDataStartOffset[0] = cmd.DW2.IndirectBsdDataStartAddress;
     sliceInfoParam.dwDataStartOffset[1] = avcSliceState->pAvcSliceParams->slice_data_offset;
 
-    m_cpInterface->SetMfxProtectionState(
+    MHW_MI_CHK_STATUS(m_cpInterface->SetMfxProtectionState(
         m_decodeInUse,
         cmdBuffer,
         nullptr,
-        &sliceInfoParam);
+        &sliceInfoParam));
 
     MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
@@ -1767,11 +1767,11 @@ MOS_STATUS MhwVdboxMfxInterfaceG10::AddMfdAvcBsdObjectCmd(
     sliceInfoParam.dwDataStartOffset[1] = sliceParams->slice_data_offset;
     sliceInfoParam.dwDataLength[1] = sliceParams->slice_data_offset;
 
-    m_cpInterface->SetMfxProtectionState(
+    MHW_MI_CHK_STATUS(m_cpInterface->SetMfxProtectionState(
         m_decodeInUse,
         cmdBuffer,
         nullptr,
-        &sliceInfoParam);
+        &sliceInfoParam));
 
     MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
@@ -2621,9 +2621,9 @@ MOS_STATUS MhwVdboxMfxInterfaceG10::InitMfxVp8EncoderCfgCmd(
     mhw_mi_g10_X::MI_BATCH_BUFFER_END_CMD *miBatchBufferEndCmd = (mhw_mi_g10_X::MI_BATCH_BUFFER_END_CMD *)data;
     *miBatchBufferEndCmd = mhw_mi_g10_X::MI_BATCH_BUFFER_END_CMD();
 
-    m_osInterface->pfnUnlockResource(
+    MHW_MI_CHK_STATUS(m_osInterface->pfnUnlockResource(
         m_osInterface,
-        cfgCmdBuffer);
+        cfgCmdBuffer));
 
     return eStatus;
 }

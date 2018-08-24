@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -903,7 +903,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpPipeModeSelectCmd(
         batchBuffer            = params->pBatchBuffer;
     }
 
-    m_cpInterface->SetProtectionSettingsForMfxPipeModeSelect((uint32_t *)&cmd);
+    MHW_MI_CHK_STATUS(m_cpInterface->SetProtectionSettingsForMfxPipeModeSelect((uint32_t *)&cmd));
 
     cmd.DW1.AdvancedRateControlEnable    = params->bAdvancedRateControlEnable;
     cmd.DW1.SaoFirstPass                 = params->bSaoFirstPass;
@@ -2583,17 +2583,49 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpHevcVp9RdoqStateCmd(
     MOS_ZeroMemory(lambdaTab, sizeof(lambdaTab));
     if (params->pHevcEncSeqParams->bit_depth_luma_minus8 == 0)
     {
-        MOS_SecureMemcpy(lambdaTab[0][0], sizeof(RDOQLamdas8bits[sliceTypeIdx][0][0]), RDOQLamdas8bits[sliceTypeIdx][0][0], sizeof(RDOQLamdas8bits[sliceTypeIdx][0][0]));
-        MOS_SecureMemcpy(lambdaTab[0][1], sizeof(RDOQLamdas8bits[sliceTypeIdx][0][1]), RDOQLamdas8bits[sliceTypeIdx][0][1], sizeof(RDOQLamdas8bits[sliceTypeIdx][0][1]));
-        MOS_SecureMemcpy(lambdaTab[1][0], sizeof(RDOQLamdas8bits[sliceTypeIdx][1][0]), RDOQLamdas8bits[sliceTypeIdx][1][0], sizeof(RDOQLamdas8bits[sliceTypeIdx][1][0]));
-        MOS_SecureMemcpy(lambdaTab[1][1], sizeof(RDOQLamdas8bits[sliceTypeIdx][1][1]), RDOQLamdas8bits[sliceTypeIdx][1][1], sizeof(RDOQLamdas8bits[sliceTypeIdx][1][1]));
+        MHW_MI_CHK_STATUS(MOS_SecureMemcpy(
+            lambdaTab[0][0], 
+            sizeof(RDOQLamdas8bits[sliceTypeIdx][0][0]), 
+            RDOQLamdas8bits[sliceTypeIdx][0][0], 
+            sizeof(RDOQLamdas8bits[sliceTypeIdx][0][0])));
+        MHW_MI_CHK_STATUS(MOS_SecureMemcpy(
+            lambdaTab[0][1], 
+            sizeof(RDOQLamdas8bits[sliceTypeIdx][0][1]), 
+            RDOQLamdas8bits[sliceTypeIdx][0][1], 
+            sizeof(RDOQLamdas8bits[sliceTypeIdx][0][1])));
+        MHW_MI_CHK_STATUS(MOS_SecureMemcpy(
+            lambdaTab[1][0], 
+            sizeof(RDOQLamdas8bits[sliceTypeIdx][1][0]), 
+            RDOQLamdas8bits[sliceTypeIdx][1][0], 
+            sizeof(RDOQLamdas8bits[sliceTypeIdx][1][0])));
+        MHW_MI_CHK_STATUS(MOS_SecureMemcpy(
+            lambdaTab[1][1], 
+            sizeof(RDOQLamdas8bits[sliceTypeIdx][1][1]), 
+            RDOQLamdas8bits[sliceTypeIdx][1][1], 
+            sizeof(RDOQLamdas8bits[sliceTypeIdx][1][1])));
     }
     else if (params->pHevcEncSeqParams->bit_depth_luma_minus8 == 2)
     {
-        MOS_SecureMemcpy(lambdaTab[0][0], sizeof(RDOQLamdas10bits[sliceTypeIdx][0][0]), RDOQLamdas10bits[sliceTypeIdx][0][0], sizeof(RDOQLamdas10bits[sliceTypeIdx][0][0]));
-        MOS_SecureMemcpy(lambdaTab[0][1], sizeof(RDOQLamdas10bits[sliceTypeIdx][0][1]), RDOQLamdas10bits[sliceTypeIdx][0][1], sizeof(RDOQLamdas10bits[sliceTypeIdx][0][1]));
-        MOS_SecureMemcpy(lambdaTab[1][0], sizeof(RDOQLamdas10bits[sliceTypeIdx][1][0]), RDOQLamdas10bits[sliceTypeIdx][1][0], sizeof(RDOQLamdas10bits[sliceTypeIdx][1][0]));
-        MOS_SecureMemcpy(lambdaTab[1][1], sizeof(RDOQLamdas10bits[sliceTypeIdx][1][1]), RDOQLamdas10bits[sliceTypeIdx][1][1], sizeof(RDOQLamdas10bits[sliceTypeIdx][1][1]));
+        MHW_MI_CHK_STATUS(MOS_SecureMemcpy(
+            lambdaTab[0][0], 
+            sizeof(RDOQLamdas10bits[sliceTypeIdx][0][0]), 
+            RDOQLamdas10bits[sliceTypeIdx][0][0], 
+            sizeof(RDOQLamdas10bits[sliceTypeIdx][0][0])));
+        MHW_MI_CHK_STATUS(MOS_SecureMemcpy(
+            lambdaTab[0][1], 
+            sizeof(RDOQLamdas10bits[sliceTypeIdx][0][1]), 
+            RDOQLamdas10bits[sliceTypeIdx][0][1], 
+            sizeof(RDOQLamdas10bits[sliceTypeIdx][0][1])));
+        MHW_MI_CHK_STATUS(MOS_SecureMemcpy(
+            lambdaTab[1][0], 
+            sizeof(RDOQLamdas10bits[sliceTypeIdx][1][0]), 
+            RDOQLamdas10bits[sliceTypeIdx][1][0], 
+            sizeof(RDOQLamdas10bits[sliceTypeIdx][1][0])));
+        MHW_MI_CHK_STATUS(MOS_SecureMemcpy(
+            lambdaTab[1][1], 
+            sizeof(RDOQLamdas10bits[sliceTypeIdx][1][1]), 
+            RDOQLamdas10bits[sliceTypeIdx][1][1], 
+            sizeof(RDOQLamdas10bits[sliceTypeIdx][1][1])));
     }
 
     for (uint8_t i = 0; i < 32; i++)
@@ -2670,7 +2702,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG10::AddHcpHevcPicBrcBuffer(
         data += BRC_IMG_STATE_SIZE_PER_PASS_G10;
     }
 
-    m_osInterface->pfnUnlockResource(m_osInterface, hcpImgStates);
+    MHW_MI_CHK_STATUS(m_osInterface->pfnUnlockResource(m_osInterface, hcpImgStates));
 
     return eStatus;
 }

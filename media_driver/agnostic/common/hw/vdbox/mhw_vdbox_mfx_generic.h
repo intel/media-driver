@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1111,11 +1111,11 @@ protected:
         sliceInfoParam.presDataBuffer = params->presDataBuffer;
         sliceInfoParam.dwDataStartOffset[0] = sliceParams->m_sliceDataOffset + offset;
 
-        m_cpInterface->SetMfxProtectionState(
+        MHW_MI_CHK_STATUS(m_cpInterface->SetMfxProtectionState(
             m_decodeInUse,
             cmdBuffer,
             batchBuffer,
-            &sliceInfoParam);
+            &sliceInfoParam));
 
         MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
@@ -2307,11 +2307,11 @@ protected:
         sliceInfoParam.presDataBuffer = vc1SliceState->presDataBuffer;
         sliceInfoParam.dwDataStartOffset[0] = cmd.DW2.IndirectDataStartAddress;
 
-        m_cpInterface->SetMfxProtectionState(
+        MHW_MI_CHK_STATUS(m_cpInterface->SetMfxProtectionState(
             m_decodeInUse,
             cmdBuffer,
             nullptr,
-            &sliceInfoParam);
+            &sliceInfoParam));
 
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
@@ -2344,6 +2344,12 @@ protected:
         const uint8_t PATTERN_CODE_INTRA_MB = 0xF;
         uint8_t intra8x8Flag = 0;
 
+        if(mbState == nullptr || mbParams == nullptr)
+        {
+            MHW_ASSERTMESSAGE("mbState or mbParams is nullptr!");
+            return 0;
+        }
+        
         if (mbParams->mb_type.intra_mb)
         {
             intra8x8Flag = PATTERN_CODE_INTRA_MB;
@@ -2376,7 +2382,7 @@ protected:
     //! \param    [in] mbVertOrigin
     //!           Mb vertical origin
     //!
-    void Vc1ItObjectSetOverlapSmoothingFilter(
+    MOS_STATUS Vc1ItObjectSetOverlapSmoothingFilter(
         typename TMfxCmds::MFD_IT_OBJECT_VC1_INLINE_DATA_CMD *inlineDataVc1,
         PMHW_VDBOX_VC1_MB_STATE mbState,
         PCODEC_VC1_MB_PARAMS mbParams,
@@ -2387,8 +2393,12 @@ protected:
         {
             0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1
         };
+        MHW_CHK_NULL_RETURN(inlineDataVc1);
+        MHW_CHK_NULL_RETURN(mbState);
+        MHW_CHK_NULL_RETURN(mbParams);
 
         auto vc1PicParams = mbState->pVc1PicParams;
+        MHW_CHK_NULL_RETURN(vc1PicParams);
 
         //------------------------------------
         // Overlap smoothing enabled for this mb?
@@ -2412,7 +2422,7 @@ protected:
                 inlineDataVc1->DW1.Osedgemaskluma = 0;
                 inlineDataVc1->DW1.Osedgemaskchroma = 0;
 
-                return;
+                return MOS_STATUS_SUCCESS;
             }
 
             //------------------------------------
@@ -2501,7 +2511,7 @@ protected:
             inlineDataVc1->DW1.Osedgemaskchroma = 0;
         }
 
-        return;
+        return MOS_STATUS_SUCCESS;
     }
 
     MOS_STATUS AddMfdVc1ItObjectCmd(
@@ -2628,12 +2638,12 @@ protected:
             // Intra MB
             inlineDataVc1->DW0.CodedBlockPattern = 63;
 
-            Vc1ItObjectSetOverlapSmoothingFilter(
+            MHW_MI_CHK_STATUS(Vc1ItObjectSetOverlapSmoothingFilter(
                 inlineDataVc1,
                 mbState,
                 mbParams,
                 mbState->bMbHorizOrigin,
-                mbState->bMbVertOrigin);
+                mbState->bMbVertOrigin));
 
             MHW_MI_CHK_STATUS(Mhw_AddCommandBB(batchBuffer, &cmd, sizeof(cmd)));
         }
@@ -2682,12 +2692,12 @@ protected:
 
             if (!mbParams->mb_skips_following)
             {
-                Vc1ItObjectSetOverlapSmoothingFilter(
+                MHW_MI_CHK_STATUS(Vc1ItObjectSetOverlapSmoothingFilter(
                     inlineDataVc1,
                     mbState,
                     mbParams,
                     mbState->bMbHorizOrigin,
-                    mbState->bMbVertOrigin);
+                    mbState->bMbVertOrigin));
 
                 MHW_MI_CHK_STATUS(Mhw_AddCommandBB(batchBuffer, &cmd, sizeof(cmd)));
             }
@@ -2731,12 +2741,32 @@ protected:
 
         cmd.DW1.Hufftableid1Bit = params->HuffTableID;
 
-        MOS_SecureMemcpy(cmd.DcBits128BitArray, sizeof(cmd.DcBits128BitArray), params->pDCBits, sizeof(cmd.DcBits128BitArray));
-        MOS_SecureMemcpy(cmd.DcHuffval128BitArray, sizeof(cmd.DcHuffval128BitArray), params->pDCValues, sizeof(cmd.DcHuffval128BitArray));
-        MOS_SecureMemcpy(cmd.AcBits168BitArray, sizeof(cmd.AcBits168BitArray), params->pACBits, sizeof(cmd.AcBits168BitArray));
-        MOS_SecureMemcpy(cmd.AcHuffval1608BitArray, sizeof(cmd.AcHuffval1608BitArray), params->pACValues, sizeof(cmd.AcHuffval1608BitArray));
+        MHW_MI_CHK_STATUS(MOS_SecureMemcpy(
+            cmd.DcBits128BitArray, 
+            sizeof(cmd.DcBits128BitArray), 
+            params->pDCBits, 
+            sizeof(cmd.DcBits128BitArray)));
+        MHW_MI_CHK_STATUS(MOS_SecureMemcpy(
+            cmd.DcHuffval128BitArray, 
+            sizeof(cmd.DcHuffval128BitArray), 
+            params->pDCValues, 
+            sizeof(cmd.DcHuffval128BitArray)));
+        MHW_MI_CHK_STATUS(MOS_SecureMemcpy(
+            cmd.AcBits168BitArray, 
+            sizeof(cmd.AcBits168BitArray), 
+            params->pACBits, 
+            sizeof(cmd.AcBits168BitArray)));
+        MHW_MI_CHK_STATUS(MOS_SecureMemcpy(
+            cmd.AcHuffval1608BitArray, 
+            sizeof(cmd.AcHuffval1608BitArray), 
+            params->pACValues, 
+            sizeof(cmd.AcHuffval1608BitArray)));
 
-        MOS_SecureMemcpy(&cmd.DW52.Value, sizeof(uint16_t), (uint8_t*)params->pACValues + sizeof(cmd.AcHuffval1608BitArray), sizeof(uint16_t));
+        MHW_MI_CHK_STATUS(MOS_SecureMemcpy(
+            &cmd.DW52.Value, 
+            sizeof(uint16_t), 
+            (uint8_t*)params->pACValues + sizeof(cmd.AcHuffval1608BitArray), 
+            sizeof(uint16_t)));
 
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 

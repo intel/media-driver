@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -67,6 +67,10 @@ MhwVdboxHcpInterface::MhwVdboxHcpInterface(
     m_cpInterface = cpInterface;
     m_decodeInUse = decodeInUse;
 
+    MHW_ASSERT(m_osInterface);
+    MHW_ASSERT(m_miInterface);
+    MHW_ASSERT(m_cpInterface);
+
     m_waTable = osInterface->pfnGetWaTable(osInterface);
     m_skuTable = osInterface->pfnGetSkuTable(osInterface);
 
@@ -78,16 +82,7 @@ MhwVdboxHcpInterface::MhwVdboxHcpInterface(
     {
         pfnAddResourceToCmd = Mhw_AddResourceToCmd_PatchList;
     }
-
-    MOS_ZeroMemory(m_cacheabilitySettings, sizeof(m_cacheabilitySettings));
-    MOS_ZeroMemory(&m_hevcDatRowStoreCache, sizeof(m_hevcDatRowStoreCache));
-    MOS_ZeroMemory(&m_hevcDfRowStoreCache, sizeof(m_hevcDfRowStoreCache));
-    MOS_ZeroMemory(&m_hevcSaoRowStoreCache, sizeof(m_hevcSaoRowStoreCache));
-    MOS_ZeroMemory(&m_hevcHSaoRowStoreCache, sizeof(m_hevcHSaoRowStoreCache));
-    MOS_ZeroMemory(&m_vp9HvdRowStoreCache, sizeof(m_vp9HvdRowStoreCache));
-    MOS_ZeroMemory(&m_vp9DfRowStoreCache, sizeof(m_vp9DfRowStoreCache));
-    MOS_ZeroMemory(&m_vp9DatRowStoreCache, sizeof(m_vp9DatRowStoreCache));
-}
+ }
 
 MOS_STATUS MhwVdboxHcpInterface::AddHcpPicStateCmd(
     PMOS_COMMAND_BUFFER              cmdBuffer,

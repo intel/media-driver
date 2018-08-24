@@ -584,7 +584,7 @@ protected:
 
         typename TMfxCmds::MFX_PIPE_MODE_SELECT_CMD cmd;
 
-        this->m_cpInterface->SetProtectionSettingsForMfxPipeModeSelect((uint32_t *)&cmd);
+        MHW_MI_CHK_STATUS(this->m_cpInterface->SetProtectionSettingsForMfxPipeModeSelect((uint32_t *)&cmd));
 
         cmd.DW1.StreamOutEnable = params->bStreamOutEnabled;
         cmd.DW1.DeblockerStreamOutEnable = params->bDeblockerStreamOutEnable;
@@ -1186,11 +1186,11 @@ protected:
         sliceInfoParam.dwDataStartOffset[0] = cmd.DW2.IndirectBsdDataStartAddress;
         sliceInfoParam.dwDataStartOffset[1] = avcSliceState->pAvcSliceParams->slice_data_offset;
 
-        this->m_cpInterface->SetMfxProtectionState(
+        MHW_MI_CHK_STATUS(this->m_cpInterface->SetMfxProtectionState(
             this->m_decodeInUse,
             cmdBuffer,
             nullptr,
-            &sliceInfoParam);
+            &sliceInfoParam));
 
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
@@ -1254,11 +1254,11 @@ protected:
         sliceInfoParam.dwDataStartOffset[1] = sliceParams->slice_data_offset;
         sliceInfoParam.dwDataLength[1] = sliceParams->slice_data_size;
 
-        this->m_cpInterface->SetMfxProtectionState(
+        MHW_MI_CHK_STATUS(this->m_cpInterface->SetMfxProtectionState(
             this->m_decodeInUse,
             cmdBuffer,
             nullptr,
-            &sliceInfoParam);
+            &sliceInfoParam));
 
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 

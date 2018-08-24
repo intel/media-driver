@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -509,6 +509,7 @@ protected:
         if (cmdBuffer == nullptr && batchBuffer == nullptr)
         {
             MHW_ASSERTMESSAGE("There was no valid buffer to add the HW command to.");
+            return MOS_STATUS_INVALID_PARAMETER;
         }
 
         MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, cmd.byteSize));
@@ -553,6 +554,7 @@ protected:
         if (cmdBuffer == nullptr && batchBuffer == nullptr)
         {
             MHW_ASSERTMESSAGE("There was no valid buffer to add the HW command to.");
+            return MOS_STATUS_INVALID_PARAMETER;
         }
 
         MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, cmd.byteSize));
@@ -683,7 +685,7 @@ protected:
             }
             else
             {
-                MHW_ASSERT(*(hevcSliceState->pRefIdxMapping + collocatedFrameIdx) >= 0);
+                MHW_CHK_COND(*(hevcSliceState->pRefIdxMapping + collocatedFrameIdx) < 0, "Invalid parameter");
                 cmd.DW4.Collocatedrefidx = *(hevcSliceState->pRefIdxMapping + collocatedFrameIdx);
             }
         }
@@ -868,7 +870,7 @@ protected:
             }
             else
             {
-                MHW_ASSERT(*(hevcSliceState->pRefIdxMapping + collocatedFrameIdx) >= 0);
+                MHW_CHK_COND(*(hevcSliceState->pRefIdxMapping + collocatedFrameIdx) < 0, "Invalid parameter");
                 cmd.DW4.Collocatedrefidx = *(hevcSliceState->pRefIdxMapping + collocatedFrameIdx);
             }
         }
