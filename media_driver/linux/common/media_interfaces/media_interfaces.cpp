@@ -361,10 +361,6 @@ void* MmdDevice::CreateFactory(
     }
 
     mhwInterfaces = device->CreateMhwInterface(osInterface);
-    if (mhwInterfaces == nullptr)
-    {
-        MMD_FAILURE();
-    }
     device->Initialize(osInterface, mhwInterfaces);
     if (device->m_mmdDevice == nullptr)
     {
