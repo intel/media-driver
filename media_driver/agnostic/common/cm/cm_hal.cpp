@@ -7697,17 +7697,14 @@ MOS_STATUS HalCm_SetupStatesForKernelInitial(
                 kernelParam->totalCurbeSize);
         }
 
-        if (state->cmHalInterface->IsOverridePowerOptionPerGpuContext() == false) // false means override per Batch.
+        if ((vmeUsed == true) && state->cmHalInterface->IsSliceShutdownEnabled())
         {
-            if ((vmeUsed == true) && state->cmHalInterface->IsRequestShutdownSubslicesForVmeUsage())
-            {
-                CM_CHK_MOSSTATUS(state->pfnGetPlatformInfo(state, &platformInfo, true));
-                CM_POWER_OPTION  cmPower;
-                cmPower.nSlice = 1;
-                cmPower.nSubSlice = platformInfo.numSubSlices / 2;
-                cmPower.nEU = (uint16_t)platformInfo.numEUsPerSubSlice;
-                state->pfnSetPowerOption(state, &cmPower);
-            }
+            CM_CHK_MOSSTATUS(state->pfnGetPlatformInfo(state, &platformInfo, true));
+            CM_POWER_OPTION  cmPower;
+            cmPower.nSlice = 1;
+            cmPower.nSubSlice = platformInfo.numSubSlices / 2;
+            cmPower.nEU = (uint16_t)platformInfo.numEUsPerSubSlice;
+            state->pfnSetPowerOption(state, &cmPower);
         }
     }
 
@@ -9775,12 +9772,6 @@ MOS_STATUS HalCm_SetPowerOption(
     PCM_HAL_STATE               state,
     PCM_POWER_OPTION            powerOption )
 {
-    if (state->cmHalInterface->IsOverridePowerOptionPerGpuContext())
-    {
-        CM_NORMALMESSAGE("WARNING: Deprecated function due to per context SSEU overriding is enabled.\n");
-        return MOS_STATUS_SUCCESS;
-    }
-    
     MOS_SecureMemcpy( &state->powerOption, sizeof( state->powerOption ), powerOption, sizeof( state->powerOption ) );
     return MOS_STATUS_SUCCESS;
 }
@@ -9836,13 +9827,6 @@ MOS_STATUS HalCm_UpdatePowerOption(
     PCM_POWER_OPTION            powerOption )
 {
     MOS_STATUS hr = MOS_STATUS_SUCCESS;
-    
-    if (state->cmHalInterface->IsOverridePowerOptionPerGpuContext())
-    {
-        CM_NORMALMESSAGE("WARNING: Deprecated function due to per context SSEU overriding is enabled.\n");
-        return MOS_STATUS_SUCCESS;
-    }
-    
     PRENDERHAL_INTERFACE renderHal = state->renderHal;
 
     RENDERHAL_POWEROPTION renderPowerOption;
@@ -10015,19 +9999,20 @@ CM_STATE_BUFFER_TYPE HalCm_GetStateBufferTypeForKernel(
 }
 
 MOS_STATUS HalCm_CreateGPUContext(
-    PCM_HAL_STATE            state,
-    MOS_GPU_CONTEXT          gpuContext,
-    MOS_GPU_NODE             gpuNode,
-    PMOS_GPUCTX_CREATOPTIONS pMosGpuContextCreateOption)
+    PCM_HAL_STATE   state,
+    MOS_GPU_CONTEXT gpuContext,
+    MOS_GPU_NODE    gpuNode)
 {
     MOS_STATUS hr = MOS_STATUS_SUCCESS;
+    MOS_GPUCTX_CREATOPTIONS createOption;
+    createOption.CmdBufferNumScale = state->cmDeviceParam.maxTasks;
 
     // Create Compute Context on Compute Node
     CM_HRESULT2MOSSTATUS_AND_CHECK(state->osInterface->pfnCreateGpuContext(
         state->osInterface,
         gpuContext,
         gpuNode,
-        pMosGpuContextCreateOption));
+        &createOption));
 
     // Register Compute Context with the Batch Buffer completion event
     CM_HRESULT2MOSSTATUS_AND_CHECK(state->osInterface->pfnRegisterBBCompleteNotifyEvent(
@@ -10088,15 +10073,44 @@ MOS_STATUS HalCm_Create(
 
     {
         MOS_GPUCTX_CREATOPTIONS createOption;
-        
+        createOption.CmdBufferNumScale = HalCm_GetNumCmdBuffers(state->osInterface, param->maxTaskNumber);
+
+        // Create Render GPU Context
+        CM_HRESULT2MOSSTATUS_AND_CHECK(state->osInterface->pfnCreateGpuContext(
+            state->osInterface,
+            state->gpuContext,
+            MOS_GPU_NODE_3D,
+            &createOption));
+
+        // Set current GPU context
+        CM_HRESULT2MOSSTATUS_AND_CHECK(state->osInterface->pfnSetGpuContext(
+            state->osInterface,
+            state->gpuContext));
+#if (_RELEASE_INTERNAL || _DEBUG)
+#if defined(CM_DIRECT_GUC_SUPPORT)
+    //init GuC
+    CM_HRESULT2MOSSTATUS_AND_CHECK(state->osInterface->pfnInitGuC(
+        state->osInterface,
+        MOS_GPU_NODE_3D));
+#endif
+#endif
+        // Register Render GPU context with the event
+        CM_HRESULT2MOSSTATUS_AND_CHECK(state->osInterface->pfnRegisterBBCompleteNotifyEvent(
+            state->osInterface,
+            state->gpuContext));
+
         // Create VEBOX Context
         createOption.CmdBufferNumScale = MOS_GPU_CONTEXT_CREATE_DEFAULT;
-        CM_CHK_MOSSTATUS(HalCm_CreateGPUContext(
-            state,
+        CM_HRESULT2MOSSTATUS_AND_CHECK(state->osInterface->pfnCreateGpuContext(
+            state->osInterface,
             MOS_GPU_CONTEXT_VEBOX,
             MOS_GPU_NODE_VE,
             &createOption));
     }
+    // Register Vebox GPU context with the Batch Buffer completion event
+    CM_HRESULT2MOSSTATUS_AND_CHECK(state->osInterface->pfnRegisterBBCompleteNotifyEvent(
+        state->osInterface,
+        MOS_GPU_CONTEXT_VEBOX));
 
     // Allocate/Initialize CM Rendering Interface
     state->renderHal = (PRENDERHAL_INTERFACE)
@@ -10307,36 +10321,6 @@ MOS_STATUS HalCm_Create(
 
     state->cmHalInterface = CMHalDevice::CreateFactory(state);
 
-    if (!state->cmHalInterface->IsOverridePowerOptionPerGpuContext())
-    {
-        MOS_GPUCTX_CREATOPTIONS createOption;
-        createOption.CmdBufferNumScale = HalCm_GetNumCmdBuffers(state->osInterface, param->maxTaskNumber);
-
-        // Create Render GPU Context
-        CM_HRESULT2MOSSTATUS_AND_CHECK(state->osInterface->pfnCreateGpuContext(
-            state->osInterface,
-            state->gpuContext,
-            MOS_GPU_NODE_3D,
-            &createOption));
-
-        // Set current GPU context
-        CM_HRESULT2MOSSTATUS_AND_CHECK(state->osInterface->pfnSetGpuContext(
-            state->osInterface,
-            state->gpuContext));
-#if (_RELEASE_INTERNAL || _DEBUG)
-#if defined(CM_DIRECT_GUC_SUPPORT)
-        //init GuC
-        CM_HRESULT2MOSSTATUS_AND_CHECK(state->osInterface->pfnInitGuC(
-            state->osInterface,
-            MOS_GPU_NODE_3D));
-#endif
-#endif
-        // Register Render GPU context with the event
-        CM_HRESULT2MOSSTATUS_AND_CHECK(state->osInterface->pfnRegisterBBCompleteNotifyEvent(
-            state->osInterface,
-            state->gpuContext));
-    }
-    
 finish:
     if (hr != MOS_STATUS_SUCCESS)
     {

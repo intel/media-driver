@@ -1724,16 +1724,6 @@ public:
     //!             \n
     //!             <b>RunAloneMode</b> decides if the queue will occupy GPU
     //!             exclusively during execution.
-    //!             \n
-    //!             <b>CM_QUEUE_SSEU_USAGE_HINT_TYPE</b> indicates SSEU setting, will
-    //!             be created for:\n
-    //!             \code
-    //!             enum CM_QUEUE_SSEU_USAGE_HINT_TYPE
-    //!             {
-    //!                 CM_QUEUE_SSEU_USAGE_HINT_DEFAULT = 0,
-    //!                 CM_QUEUE_SSEU_USAGE_HINT_VME     = 1
-    //!             };
-    //!             \endcode
     //! \retval     CM_SUCCESS if the CmQueue object is created.
     //! \note       This API is implemented in hardware mode only. Only
     //!             CM_QUEUE_TYPE_RENDER and CM_QUEUE_TYPE_COMPUTE are
