@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -73,7 +73,7 @@ MOS_STATUS MhwVdboxHucInterfaceG11::AddHucPipeModeSelectCmd(
 
     if (!params->disableProtectionSetting)
     {
-        m_cpInterface->SetProtectionSettingsForHucPipeModeSelect((uint32_t *)&cmd);
+        MHW_MI_CHK_STATUS(m_cpInterface->SetProtectionSettingsForHucPipeModeSelect((uint32_t *)&cmd));
     }
 
     cmd.DW1.IndirectStreamOutEnable = params->bStreamOutEnabled;

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -282,7 +282,7 @@ public:
     {
         MHW_FUNCTION_ENTER;
 
-        MHW_ASSERT(rowstoreParams);
+        MHW_CHK_NULL_RETURN(rowstoreParams);
 
         if (this->m_vdencRowStoreCache.bSupported)
         {

@@ -193,7 +193,15 @@ public:
     //!
     inline MmioRegistersHuc* GetMmioRegisters(MHW_VDBOX_NODE_IND index)
     {
-        return &m_mmioRegisters[index];
+        if (index < MHW_VDBOX_NODE_MAX)
+        {
+            return &m_mmioRegisters[index];
+        }
+        else
+        {
+            MHW_ASSERT("index is out of range!");
+            return &m_mmioRegisters[MHW_VDBOX_NODE_1];
+        }
     }
 
     //!

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1195,7 +1195,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpPipeModeSelectCmd(
     
     // Secure scalable encode workloads requires special handling for Gen11+
     scalableEncode = (paramsG11->MultiEngineMode != MHW_VDBOX_HCP_MULTI_ENGINE_MODE_FE_LEGACY && !m_decodeInUse);
-    m_cpInterface->SetProtectionSettingsForHcpPipeModeSelect((uint32_t *)&cmd, scalableEncode);
+    MHW_MI_CHK_STATUS(m_cpInterface->SetProtectionSettingsForHcpPipeModeSelect((uint32_t *)&cmd, scalableEncode));
 
     cmd.DW1.AdvancedRateControlEnable    = params->bAdvancedRateControlEnable;
     cmd.DW1.CodecStandardSelect          = CodecHal_GetStandardFromMode(params->Mode) - CODECHAL_HCP_BASE;
@@ -2454,8 +2454,8 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpTileStateCmd(
 
     auto hevcPicParams = params->pHevcPicParams;
 
-    MHW_ASSERT(hevcPicParams->num_tile_rows_minus1 < HEVC_NUM_MAX_TILE_ROW);
-    MHW_ASSERT(hevcPicParams->num_tile_columns_minus1 < HEVC_NUM_MAX_TILE_COLUMN);
+    MHW_CHK_COND(hevcPicParams->num_tile_rows_minus1 >= HEVC_NUM_MAX_TILE_ROW, "num_tile_rows_minus1 is out of range!");
+    MHW_CHK_COND(hevcPicParams->num_tile_columns_minus1 >= HEVC_NUM_MAX_TILE_COLUMN, "num_tile_columns_minus1 is out of range!");
 
     cmd.DW1.Numtilecolumnsminus1 = hevcPicParams->num_tile_columns_minus1;
     cmd.DW1.Numtilerowsminus1    = hevcPicParams->num_tile_rows_minus1;
@@ -3456,17 +3456,49 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpHevcVp9RdoqStateCmd(
     MOS_ZeroMemory(lambdaTab, sizeof(lambdaTab));
     if (params->pHevcEncSeqParams->bit_depth_luma_minus8 == 0)
     {
-        MOS_SecureMemcpy(lambdaTab[0][0], sizeof(RDOQLamdas8bits[sliceTypeIdx][0][0]), RDOQLamdas8bits[sliceTypeIdx][0][0], sizeof(RDOQLamdas8bits[sliceTypeIdx][0][0]));
-        MOS_SecureMemcpy(lambdaTab[0][1], sizeof(RDOQLamdas8bits[sliceTypeIdx][0][1]), RDOQLamdas8bits[sliceTypeIdx][0][1], sizeof(RDOQLamdas8bits[sliceTypeIdx][0][1]));
-        MOS_SecureMemcpy(lambdaTab[1][0], sizeof(RDOQLamdas8bits[sliceTypeIdx][1][0]), RDOQLamdas8bits[sliceTypeIdx][1][0], sizeof(RDOQLamdas8bits[sliceTypeIdx][1][0]));
-        MOS_SecureMemcpy(lambdaTab[1][1], sizeof(RDOQLamdas8bits[sliceTypeIdx][1][1]), RDOQLamdas8bits[sliceTypeIdx][1][1], sizeof(RDOQLamdas8bits[sliceTypeIdx][1][1]));
+        MHW_MI_CHK_STATUS(MOS_SecureMemcpy(
+            lambdaTab[0][0], 
+            sizeof(RDOQLamdas8bits[sliceTypeIdx][0][0]), 
+            RDOQLamdas8bits[sliceTypeIdx][0][0], 
+            sizeof(RDOQLamdas8bits[sliceTypeIdx][0][0])));
+        MHW_MI_CHK_STATUS(MOS_SecureMemcpy(
+            lambdaTab[0][1], 
+            sizeof(RDOQLamdas8bits[sliceTypeIdx][0][1]), 
+            RDOQLamdas8bits[sliceTypeIdx][0][1], 
+            sizeof(RDOQLamdas8bits[sliceTypeIdx][0][1])));
+        MHW_MI_CHK_STATUS(MOS_SecureMemcpy(
+            lambdaTab[1][0], 
+            sizeof(RDOQLamdas8bits[sliceTypeIdx][1][0]), 
+            RDOQLamdas8bits[sliceTypeIdx][1][0], 
+            sizeof(RDOQLamdas8bits[sliceTypeIdx][1][0])));
+        MHW_MI_CHK_STATUS(MOS_SecureMemcpy(
+            lambdaTab[1][1], 
+            sizeof(RDOQLamdas8bits[sliceTypeIdx][1][1]), 
+            RDOQLamdas8bits[sliceTypeIdx][1][1], 
+            sizeof(RDOQLamdas8bits[sliceTypeIdx][1][1])));
     }
     else if (params->pHevcEncSeqParams->bit_depth_luma_minus8 == 2)
     {
-        MOS_SecureMemcpy(lambdaTab[0][0], sizeof(RDOQLamdas10bits[sliceTypeIdx][0][0]), RDOQLamdas10bits[sliceTypeIdx][0][0], sizeof(RDOQLamdas10bits[sliceTypeIdx][0][0]));
-        MOS_SecureMemcpy(lambdaTab[0][1], sizeof(RDOQLamdas10bits[sliceTypeIdx][0][1]), RDOQLamdas10bits[sliceTypeIdx][0][1], sizeof(RDOQLamdas10bits[sliceTypeIdx][0][1]));
-        MOS_SecureMemcpy(lambdaTab[1][0], sizeof(RDOQLamdas10bits[sliceTypeIdx][1][0]), RDOQLamdas10bits[sliceTypeIdx][1][0], sizeof(RDOQLamdas10bits[sliceTypeIdx][1][0]));
-        MOS_SecureMemcpy(lambdaTab[1][1], sizeof(RDOQLamdas10bits[sliceTypeIdx][1][1]), RDOQLamdas10bits[sliceTypeIdx][1][1], sizeof(RDOQLamdas10bits[sliceTypeIdx][1][1]));
+        MHW_MI_CHK_STATUS(MOS_SecureMemcpy(
+            lambdaTab[0][0], 
+            sizeof(RDOQLamdas10bits[sliceTypeIdx][0][0]), 
+            RDOQLamdas10bits[sliceTypeIdx][0][0], 
+            sizeof(RDOQLamdas10bits[sliceTypeIdx][0][0])));
+        MHW_MI_CHK_STATUS(MOS_SecureMemcpy(
+            lambdaTab[0][1], 
+            sizeof(RDOQLamdas10bits[sliceTypeIdx][0][1]), 
+            RDOQLamdas10bits[sliceTypeIdx][0][1], 
+            sizeof(RDOQLamdas10bits[sliceTypeIdx][0][1])));
+        MHW_MI_CHK_STATUS(MOS_SecureMemcpy(
+            lambdaTab[1][0], 
+            sizeof(RDOQLamdas10bits[sliceTypeIdx][1][0]), 
+            RDOQLamdas10bits[sliceTypeIdx][1][0], 
+            sizeof(RDOQLamdas10bits[sliceTypeIdx][1][0])));
+        MHW_MI_CHK_STATUS(MOS_SecureMemcpy(
+            lambdaTab[1][1], 
+            sizeof(RDOQLamdas10bits[sliceTypeIdx][1][1]), 
+            RDOQLamdas10bits[sliceTypeIdx][1][1], 
+            sizeof(RDOQLamdas10bits[sliceTypeIdx][1][1])));
     }
 
     for (uint8_t i = 0; i < 32; i++)
@@ -3636,7 +3668,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpHevcPicBrcBuffer(
         data += BRC_IMG_STATE_SIZE_PER_PASS_G11;
     }
 
-    m_osInterface->pfnUnlockResource(m_osInterface, hcpImgStates);
+    MHW_MI_CHK_STATUS(m_osInterface->pfnUnlockResource(m_osInterface, hcpImgStates));
 
     return eStatus;
 }

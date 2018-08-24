@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -668,25 +668,25 @@ protected:
     MEDIA_WA_TABLE              *m_waTable = nullptr; //!< Pointer to WA table
     bool                        m_decodeInUse = false; //!< Flag to indicate if the interface is for decoder or encoder use
 
-    PLATFORM                    m_platform; //!< Gen platform
+    PLATFORM                    m_platform = {}; //!< Gen platform
 
-    MHW_MEMORY_OBJECT_CONTROL_PARAMS m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_END_CODEC]; //!< Cacheability settings
+    MHW_MEMORY_OBJECT_CONTROL_PARAMS m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_END_CODEC] = {}; //!< Cacheability settings
 
     uint32_t                    m_numBrcPakPasses = 4; //!< Number of BRC PAK passes
     bool                        m_rhoDomainStatsEnabled = false; //!< Flag to indicate if Rho domain stats is enabled
     bool                        m_rowstoreCachingSupported = false; //!< Flag to indicate if row store cache is supported
 
-    MHW_VDBOX_ROWSTORE_CACHE    m_intraRowstoreCache; //!< Intra rowstore cache
-    MHW_VDBOX_ROWSTORE_CACHE    m_deblockingFilterRowstoreCache; //!< Deblocking filter row store cache
-    MHW_VDBOX_ROWSTORE_CACHE    m_bsdMpcRowstoreCache; //!< BSD/MPC row store cache
-    MHW_VDBOX_ROWSTORE_CACHE    m_mprRowstoreCache; //!< MPR row store cache
-    MHW_VDBOX_NODE_IND          m_maxVdboxIndex; //!< max vdbox index
+    MHW_VDBOX_ROWSTORE_CACHE    m_intraRowstoreCache = {}; //!< Intra rowstore cache
+    MHW_VDBOX_ROWSTORE_CACHE    m_deblockingFilterRowstoreCache = {}; //!< Deblocking filter row store cache
+    MHW_VDBOX_ROWSTORE_CACHE    m_bsdMpcRowstoreCache = {}; //!< BSD/MPC row store cache
+    MHW_VDBOX_ROWSTORE_CACHE    m_mprRowstoreCache = {}; //!< MPR row store cache
+    MHW_VDBOX_NODE_IND          m_maxVdboxIndex = MHW_VDBOX_NODE_1; //!< max vdbox index
 
     uint32_t                    m_avcImgStateSize = 0;  //!< size of avcImgState
     uint8_t                     m_numVdbox = 1; //!< vdbox num
     uint32_t                    m_brcNumPakPasses = 4; //!< Number of brc pak passes
 
-    MmioRegistersMfx            m_mmioRegisters[MHW_VDBOX_NODE_MAX];  //!< mfx mmio registers
+    MmioRegistersMfx            m_mmioRegisters[MHW_VDBOX_NODE_MAX] = {};  //!< mfx mmio registers
 
     //!
     //! \brief    Constructor
@@ -1040,7 +1040,15 @@ public:
     //!
     inline MmioRegistersMfx* GetMmioRegisters(MHW_VDBOX_NODE_IND index)
     {
-        return &m_mmioRegisters[index];
+        if (index < MHW_VDBOX_NODE_MAX)
+        {
+            return &m_mmioRegisters[index];
+        }
+        else
+        {
+            MHW_ASSERT("index is out of range!");
+            return &m_mmioRegisters[MHW_VDBOX_NODE_1];
+        }
     }
 
     //!

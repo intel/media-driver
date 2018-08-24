@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1780,7 +1780,7 @@ protected:
             data += BRC_IMG_STATE_SIZE_PER_PASS;
         }
 
-        this->m_osInterface->pfnUnlockResource(this->m_osInterface, hcpImgStates);
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnUnlockResource(this->m_osInterface, hcpImgStates));
 
         return eStatus;
     }
