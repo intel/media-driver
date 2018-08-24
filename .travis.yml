@@ -20,7 +20,7 @@ script:
       -v ${TRAVIS_BUILD_DIR}:/opt/src
       -w /opt/src/build
       -e CCACHE_DIR=/opt/ccache
-      intelmedia/media-driver-docker
+      intelmediadriver/media-driver-docker
       cmake
       -DBS_DIR_GMMLIB=/opt/src/deps/gmmlib/Source/GmmLib/
       -DBS_DIR_COMMON=/opt/src/deps/gmmlib/Source/Common/
@@ -35,6 +35,6 @@ script:
       -v ${TRAVIS_BUILD_DIR}:/opt/src
       -w /opt/src/build
       -e CCACHE_DIR=/opt/ccache
-      intelmedia/media-driver-docker
+      intelmediadriver/media-driver-docker
       cmake  --build . -- -j 8
   - ccache -s
