@@ -22,13 +22,6 @@ script:
       -e CCACHE_DIR=/opt/ccache
       intelmediadriver/media-driver-docker
       cmake
-      -DBS_DIR_GMMLIB=/opt/src/deps/gmmlib/Source/GmmLib/
-      -DBS_DIR_COMMON=/opt/src/deps/gmmlib/Source/Common/
-      -DBS_DIR_INC=/opt/src/deps/gmmlib/Source/inc/
-      -DBS_DIR_MEDIA=/opt/src
-      -DMEDIA_VERSION="0.1.0"
-      -DBUILD_TYPE=Release
-      ..
   - >
       docker run
       -v $HOME/.ccache:/opt/ccache
