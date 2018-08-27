@@ -338,7 +338,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS SetAddCommands(uint32_t commandtype, PMOS_COMMAND_BUFFER cmdBuffer, bool addToBatchBufferHuCBRC, bool isLowDelayB = true)
+    virtual MOS_STATUS SetAddCommands(uint32_t commandtype, PMOS_COMMAND_BUFFER cmdBuffer, bool addToBatchBufferHuCBRC, bool isLowDelayB = true, int8_t * pRefIdxMapping = nullptr)
     {
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
         return eStatus;
