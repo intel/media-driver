@@ -57,6 +57,7 @@
 #define Mos_Solo_OverrideBufferSize(a, b)
 #define Mos_Solo_SetOsResource(a, b)
 #define Mos_Solo_SetGpuAppTaskEvent(a, b)  MOS_STATUS_SUCCESS
+#define Mos_Solo_SetReadyToExecute(a, b)
 
 #endif // MOS_MEDIASOLO_SUPPORTED
 #endif
