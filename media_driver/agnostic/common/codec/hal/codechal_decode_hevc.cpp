@@ -1237,7 +1237,7 @@ MOS_STATUS CodechalDecodeHevc::SetFrameStates ()
         }
     }
 
-    CODECHAL_DECODE_CHK_COND_RETURN(curRefIdx > 8,"bitstream has more than 8 references");
+    CODECHAL_DECODE_ASSERT(curRefIdx <= 8);
 
     m_minCtbSize = 1 << (m_hevcPicParams->log2_min_luma_coding_block_size_minus3 + 3);
     m_width      = m_hevcPicParams->PicWidthInMinCbsY * m_minCtbSize;
