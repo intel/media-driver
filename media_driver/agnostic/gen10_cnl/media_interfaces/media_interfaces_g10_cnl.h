@@ -233,11 +233,6 @@ public:
         void *settings,
         MhwInterfaces *mhwInterfaces,
         PMOS_INTERFACE osInterface) override;
-
-    CodechalHwInterface *CreateCodechalHwInterface(
-        CODECHAL_FUNCTION CodecFunction,
-        MhwInterfaces *mhwInterfaces,
-        PMOS_INTERFACE osInterface) override;
 };
 
 class CMHalInterfacesG10Cnl : public CMHalDevice

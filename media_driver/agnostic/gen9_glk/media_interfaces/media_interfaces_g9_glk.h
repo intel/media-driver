@@ -99,11 +99,6 @@ public:
         void *settings,
         MhwInterfaces *mhwInterfaces,
         PMOS_INTERFACE osInterface) override;
-
-    CodechalHwInterface *CreateCodechalHwInterface(
-        CODECHAL_FUNCTION CodecFunction,
-        MhwInterfaces *mhwInterfaces,
-        PMOS_INTERFACE osInterface) override;
 };
 
 class Nv12ToP010DeviceG9Glk : public Nv12ToP010Device
