@@ -36,6 +36,7 @@
 
 #define  VDBOX_HUC_PAK_INTEGRATION_KERNEL_DESCRIPTOR 15
 #define  HEVC_BRC_HISTORY_BUFFER_SIZE_G11            (1088)
+#define  HEVC_BRC_LONG_TERM_REFRENCE_FLAG            0x8000
 
 //!
 //! \struct HucPakStitchDmemEncG11
@@ -675,8 +676,11 @@ public:
         // DWORD 16
         uint32_t   DW16_UserMaxFrameSize : MOS_BITFIELD_RANGE(0, 31);        
 
-        // DWORD 17 - 23 reserved
-        uint32_t   DW17_Reserved_0 : MOS_BITFIELD_RANGE(0, 31);
+        // DWORD 17
+        uint32_t   DW17_LongTerm_Current : MOS_BITFIELD_RANGE(0, 7);
+        uint32_t   DW17_Reserved_0 : MOS_BITFIELD_RANGE(8, 31);
+
+        // DWORD 18 - 23 reserved
         uint32_t   DW18_Reserved_0 : MOS_BITFIELD_RANGE(0, 31);
         uint32_t   DW19_Reserved_0 : MOS_BITFIELD_RANGE(0, 31);
         uint32_t   DW20_Reserved_0 : MOS_BITFIELD_RANGE(0, 31);
@@ -1175,8 +1179,9 @@ public:
     uint32_t                m_threadTaskBufferSize = 0;
     uint32_t                m_threadTaskBufferOffset = 0;
     bool                    m_initEncConstTable = true;
-    bool                    m_enableBrcLTR; //!< flag to enable long term reference BRC feature.
-    uint32_t                m_ltrInterval;  //!< long term reference interval
+    bool                    m_enableBrcLTR = 1;  //!< flag to enable long term reference BRC feature.
+    bool                    m_isFrameLTR = 0;    //!<flag to check if current frame is set as long term reference
+    uint32_t                m_ltrInterval = 0;   //!< long term reference interval
 
     CodechalKernelIntraDist *m_intraDistKernel = nullptr;
     CodechalEncodeSwScoreboard *m_swScoreboardState = nullptr;    //!< pointer to SW scoreboard ini state.

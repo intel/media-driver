@@ -5594,6 +5594,7 @@ const CodechalEncHevcStateG11::BRCUPDATE_CURBE CodechalEncHevcStateG11::m_brcUpd
     4,          // DW14_ParallelMode
     0,          // DW15_SizeOfSkippedFrames
     0,          // DW16_UserMaxFrameSize
+    0,          // DW17_LongTerm_Current
     0,          // DW17_Reserved_0
     0,          // DW18_Reserved_0
     0,          // DW19_Reserved_0

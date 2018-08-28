@@ -3112,20 +3112,20 @@ MOS_STATUS CodechalEncHevcStateG11::Initialize(CodechalSetting * settings)
         __MEDIA_USER_FEATURE_VALUE_HEVC_VME_FORCE_SCALABILITY_ID,
         &userFeatureData);
     m_forceScalability = userFeatureData.i32Data ? true : false;
-#endif
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_HEVC_VME_BRC_LTR_ENABLE_ID,
-        &userFeatureData);
-    m_enableBrcLTR = (userFeatureData.i32Data) ? true : false;
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_HEVC_VME_BRC_LTR_INTERVAL_ID,
         &userFeatureData);
-    m_ltrInterval = (uint32_t)(userFeatureData.i32Data);  
+    m_ltrInterval = (uint32_t)(userFeatureData.i32Data);
+#endif
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_HEVC_VME_BRC_LTR_ENABLE_ID,
+        &userFeatureData);
+    m_enableBrcLTR = (userFeatureData.i32Data) ? true : false; 
 
      if (m_codecFunction != CODECHAL_FUNCTION_PAK)
      {
@@ -3816,7 +3816,15 @@ MOS_STATUS CodechalEncHevcStateG11::SetCurbeBrcInitReset(
         curbe.DW1_InitBufFull = (uint32_t)(0.75 * curbe.DW2_BufSize);
     }
 
-    curbe.DW15_LongTermInterval = m_enableBrcLTR ? m_ltrInterval : 0;
+   
+    if (m_hevcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_EXTREMELY_LOW)
+    {
+        curbe.DW15_LongTermInterval = 0; // no LTR for low delay brc
+    }
+    else
+    {
+        curbe.DW15_LongTermInterval = (m_enableBrcLTR && m_ltrInterval) ? m_ltrInterval : m_enableBrcLTR ? HEVC_BRC_LONG_TERM_REFRENCE_FLAG : 0; 
+    }
 
     double bpsRatio = inputBitsPerFrame / ((curbe.DW2_BufSize) / 30);
     bpsRatio = (bpsRatio < 0.1) ? 0.1 : (bpsRatio > 3.5) ? 3.5 : bpsRatio;
@@ -3951,6 +3959,16 @@ MOS_STATUS CodechalEncHevcStateG11::SetCurbeBrcUpdate(
         curbe.DW12_gRateRatioThreshold5 = (uint32_t)((100 + (m_usAvbrAccuracy / (double)30) * (160 - 100)));
     }
 
+    if (m_hevcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_EXTREMELY_LOW)
+    {
+        curbe.DW17_LongTerm_Current = 0; // no LTR for low delay brc
+    }
+    else
+    {
+        m_isFrameLTR = (CodecHal_PictureIsLongTermRef(m_currReconstructedPic));
+        curbe.DW17_LongTerm_Current = (m_enableBrcLTR && m_isFrameLTR) ? 1 : 0;
+    }
+    
     PMHW_KERNEL_STATE kernelState = &m_brcKernelStates[brcKrnIdx];
     CODECHAL_ENCODE_CHK_STATUS_RETURN(kernelState->m_dshRegion.AddData(
         &curbe,
