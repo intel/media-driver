@@ -121,6 +121,7 @@ typedef struct _MHW_VDBOX_VDENC_CMD2_STATE
     PMHW_VDBOX_VP9_SEGMENT_STATE            pVp9SegmentState;
     PCODEC_VP9_ENCODE_SEQUENCE_PARAMS       pVp9EncSeqParams;
     bool                                    bPrevFrameSegEnabled;
+    uint8_t                                 temporalMVpEnable;
     uint8_t                                 ucNumRefIdxL0ActiveMinus1;
     bool                                    bDynamicScalingEnabled;
 

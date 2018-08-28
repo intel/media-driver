@@ -547,6 +547,7 @@ MOS_STATUS CodechalCmdInitializer::CommandInitializerSetVp9Params(CodechalVdencV
     m_vp9Params.debugInterface               = state->GetDebugInterface();
     m_vp9Params.dynamicScalingEnabled        = (state->m_dysRefFrameFlags != DYS_REF_NONE) ? true : false;
     m_vp9Params.segmentParams                = state->m_vp9SegmentParams;
+    m_vp9Params.bPrevFrameKey                = state->m_prevFrameInfo.KeyFrame;
     return eStatus;
 }
 
