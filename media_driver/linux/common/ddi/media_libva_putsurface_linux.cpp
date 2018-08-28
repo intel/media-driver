@@ -374,7 +374,6 @@ VAStatus DdiCodec_PutSurfaceLinuxHW(
     DDI_CHK_NULL(mediaCtx, "Null mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CHK_NULL(mediaCtx->dri_output, "Null mediaDrvCtx->dri_output", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(mediaCtx->pSurfaceHeap, "Null mediaDrvCtx->pSurfaceHeap", VA_STATUS_ERROR_INVALID_PARAMETER);
-    DDI_CHK_NULL(mediaCtx->pGmmClientContext, "Null mediaCtx->pGmmClientContext", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_LESS((uint32_t)surface, mediaCtx->pSurfaceHeap->uiAllocatedHeapElements, "Invalid surfaceId", VA_STATUS_ERROR_INVALID_SURFACE);
 
     struct dri_vtable * const dri_vtable = &mediaCtx->dri_output->vtable;
@@ -486,7 +485,7 @@ VAStatus DdiCodec_PutSurfaceLinuxHW(
     gmmParams.Type                  = RESOURCE_2D;
     gmmParams.Format                = GMM_FORMAT_R8G8B8A8_UNORM_TYPE;
     //gmmParams.Format                = GMM_FORMAT_B8G8R8A8_UNORM_TYPE;
-    target.OsResource.pGmmResInfo = mediaCtx->pGmmClientContext->CreateResInfoObject(&gmmParams);
+    target.OsResource.pGmmResInfo   = GmmResCreate(&gmmParams);
     if (nullptr == target.OsResource.pGmmResInfo)
     {
         mos_bo_unreference(drawable_bo);
@@ -530,7 +529,7 @@ VAStatus DdiCodec_PutSurfaceLinuxHW(
     dri_vtable->swap_buffer(ctx, dri_drawable);
     DdiMediaUtil_UnLockMutex(&mediaCtx->PutSurfaceSwapBufferMutex);
 
-    mediaCtx->pGmmClientContext->DestroyResInfoObject(target.OsResource.pGmmResInfo);
+    GmmResFree(target.OsResource.pGmmResInfo);
     target.OsResource.pGmmResInfo = nullptr;
 
     return VA_STATUS_SUCCESS;

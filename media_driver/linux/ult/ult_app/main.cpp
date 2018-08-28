@@ -27,7 +27,7 @@
 
 using namespace std;
 
-const char*        g_driverPath;
+const char*        g_dirverPath;
 vector<Platform_t> g_platform;
 
 static bool ParseCmd(int argc, char *argv[]);
@@ -49,7 +49,7 @@ static bool ParseDriverPath(const char *str);
 
 static bool ParseCmd(int argc, char *argv[])
 {
-    g_driverPath = nullptr;
+    g_dirverPath = nullptr;
     g_platform.clear();
 
     for (int i = 1; i < argc; i++)
@@ -95,9 +95,9 @@ static bool ParsePlatform(const char *str)
 
 static bool ParseDriverPath(const char *str)
 {
-    if (g_driverPath == nullptr && strstr(str, "iHD_drv_video.so") != nullptr)
+    if (g_dirverPath == nullptr && strstr(str, "iHD_drv_video.so") != nullptr)
     {
-        g_driverPath = str;
+        g_dirverPath = str;
         return true;
     }
 

@@ -37,6 +37,10 @@ class CodechalHwInterface;
 typedef struct _MOS_INTERFACE* PMOS_INTERFACE;
 typedef struct _MOS_OS_CONTEXT MOS_CONTEXT;
 
+typedef GmmLib::Context GMM_GLOBAL_CONTEXT;
+
+extern GMM_GLOBAL_CONTEXT *pGmmGlobalContext;
+
 extern "C" CPLIB_EXPORT MediaLibvaCapsCpInterface* Create_MediaLibvaCapsCp();
 extern "C" CPLIB_EXPORT void Delete_MediaLibvaCapsCp(MediaLibvaCapsCpInterface* pMediaLibvaCapsCpInterface);
 extern "C" CPLIB_EXPORT DdiCpInterface* Create_DdiCp(MOS_CONTEXT* pMosCtx);
@@ -72,4 +76,7 @@ extern "C" CPLIB_EXPORT void Init_CPLib_Symbols()
     CPLibUtils::m_symbols[CPLibUtils::FUNC_DELETE_SECUREDECODE]     = reinterpret_cast<void*>(Delete_SecureDecode);
 }
 
-
+extern "C" CPLIB_EXPORT void Init_CPLib_Gmm(GMM_GLOBAL_CONTEXT* pCtx)
+{
+    pGmmGlobalContext = pCtx;
+}

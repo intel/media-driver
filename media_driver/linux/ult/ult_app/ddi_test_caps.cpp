@@ -109,5 +109,7 @@ TEST_F(MediaCapsDdiTest, DecodeEncodeProfile)
         ret = m_driverLoader.CloseDriver();
         EXPECT_EQ (VA_STATUS_SUCCESS , ret) << "Platform = " << g_platformName[platforms[i]]
             << ", Failed function = m_driverLoader.CloseDriver" << endl;
+
+        MemoryLeakDetector::Detect(m_driverLoader, platforms[i]);
     }
 }
