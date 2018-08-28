@@ -49,6 +49,7 @@ void MediaEncodeDdiTest::ExectueEncodeTest(EncTestData *pEncData)
         {
             CmdValidator::GpuCmdsValidationInit(m_GpuCmdFactory, platforms[i]);
             EncodeExecute(pEncData, platforms[i]);
+            MemoryLeakDetector::Detect(m_driverLoader, platforms[i]);
         }
     }
 }
