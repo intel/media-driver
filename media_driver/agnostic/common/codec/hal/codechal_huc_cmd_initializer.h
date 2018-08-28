@@ -191,7 +191,7 @@ struct Vp9CmdInitializerParams
     bool                                videoContextUsesNullHw;
     CodechalDebugInterface*             debugInterface;
     bool                                dynamicScalingEnabled;
-
+    bool                                bPrevFrameKey;
     // Common
     uint16_t                            sadQpLambda;
     uint16_t                            rdQpLambda;
