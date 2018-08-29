@@ -2172,6 +2172,18 @@ public:
     void SetHcpDsSurfaceParams(MHW_VDBOX_SURFACE_PARAMS* dsSurfaceParams);
 
     //!
+    //! \brief      Resize 4x and 8x DS recon Surfaces to VDEnc
+    //!
+    //! \param      [in] bufIdx
+    //!             Index of the surface
+    //!
+    //! \return     MOS_STATUS
+    //!             MOS_STATUS_SUCCESS if success, else fail reason 
+    //!
+    MOS_STATUS Resize4x8xforDS(
+        uint8_t bufIdx);
+
+    //!
     //! \brief      Set hcp source surface parameters
     //!
     //! \param      [in] surfaceParams
@@ -2188,6 +2200,7 @@ public:
     //! \return     MOS_STATUS
     //!             MOS_STATUS_SUCCESS if success, else fail reason 
     //!
+
     MOS_STATUS SetHcpSrcSurfaceParams(MHW_VDBOX_SURFACE_PARAMS* surfaceParams,
         PMOS_SURFACE* refSurface,
         PMOS_SURFACE* refSurfaceNonScaled,

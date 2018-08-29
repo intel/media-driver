@@ -2176,16 +2176,16 @@ MOS_STATUS CodechalVdencVp9State::DysRefFrames()
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
-    MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferNV12;
-    MOS_ZeroMemory(&allocParamsForBufferNV12, sizeof(MOS_ALLOC_GFXRES_PARAMS));
-    allocParamsForBufferNV12.Type = MOS_GFXRES_2D;
-    allocParamsForBufferNV12.TileType = MOS_TILE_Y;
-    allocParamsForBufferNV12.Format = Format_NV12;
-    allocParamsForBufferNV12.bIsCompressed = IsToBeCompressed(true);
+    MOS_ALLOC_GFXRES_PARAMS allocParamsForBuffer;
+    MOS_ZeroMemory(&allocParamsForBuffer, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+    allocParamsForBuffer.Type = MOS_GFXRES_2D;
+    allocParamsForBuffer.TileType = MOS_TILE_Y;
+    allocParamsForBuffer.Format = m_reconSurface.Format;
+    allocParamsForBuffer.bIsCompressed = IsToBeCompressed(true);
 
     PCODEC_REF_LIST *refList = &m_refList[0];
     if (Mos_ResourceIsNull(&refList[idx]->sDysSurface.OsResource) ||
-        (refList[idx]->sDysSurface.dwWidth != m_oriFrameWidth) || (refList[idx]->sDysSurface.dwHeight != m_oriFrameHeight))
+        (refList[idx]->sDysSurface.dwWidth != m_reconSurface.dwWidth) || (refList[idx]->sDysSurface.dwHeight != m_reconSurface.dwHeight))
     {
         // free existing resource first if resolution changes
         if (!Mos_ResourceIsNull(&refList[idx]->sDysSurface.OsResource))
@@ -2195,22 +2195,22 @@ MOS_STATUS CodechalVdencVp9State::DysRefFrames()
                 &refList[idx]->sDysSurface.OsResource);
         }
 
-        allocParamsForBufferNV12.dwWidth = MOS_ALIGN_CEIL(m_oriFrameWidth, CODEC_VP9_SUPER_BLOCK_WIDTH);
-        allocParamsForBufferNV12.dwHeight = MOS_ALIGN_CEIL(m_oriFrameHeight, CODEC_VP9_SUPER_BLOCK_HEIGHT);
-        allocParamsForBufferNV12.pBufName = "Dynamic Scaled Surface for VP9";
+        allocParamsForBuffer.dwWidth = MOS_ALIGN_CEIL(m_reconSurface.dwWidth, CODEC_VP9_SUPER_BLOCK_WIDTH);
+        allocParamsForBuffer.dwHeight = MOS_ALIGN_CEIL(m_reconSurface.dwHeight, CODEC_VP9_SUPER_BLOCK_HEIGHT);
+        allocParamsForBuffer.pBufName = "Dynamic Scaled Surface for VP9";
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnAllocateResource(
             m_osInterface,
-            &allocParamsForBufferNV12,
+            &allocParamsForBuffer,
             &refList[idx]->sDysSurface.OsResource));
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(
             m_osInterface,
             &refList[idx]->sDysSurface));
-
-        refList[idx]->sDysSurface.dwWidth = m_oriFrameWidth;
-        refList[idx]->sDysSurface.dwHeight = m_oriFrameHeight;
     }
+
+    refList[idx]->sDysSurface.dwWidth = m_oriFrameWidth;
+    refList[idx]->sDysSurface.dwHeight = m_oriFrameHeight;
 
     // We use PAK to perform dynamic scaling for reference frame, basically if every CU is inter and skipped, the reconstructed picture will be
     // the down scaled copy of reference frame.
@@ -4131,6 +4131,109 @@ MOS_STATUS CodechalVdencVp9State::ExecutePictureLevel()
     return eStatus;
 }
 
+MOS_STATUS CodechalVdencVp9State::Resize4x8xforDS(uint8_t bufIdx)
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    
+    // calculate the expected 4x dimensions
+    uint32_t downscaledSurfaceWidth4x = m_downscaledWidthInMb4x * CODECHAL_MACROBLOCK_WIDTH;
+    uint32_t downscaledSurfaceHeight4x = ((m_downscaledHeightInMb4x + 1) >> 1) * CODECHAL_MACROBLOCK_HEIGHT;
+
+    // calculate the expected 8x dimensions
+    uint32_t downscaledSurfaceWidth8x = downscaledSurfaceWidth4x >> 1;
+    uint32_t downscaledSurfaceHeight8x = downscaledSurfaceHeight4x >> 1;
+
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBuf);
+
+    // get the 8x and 4x ds downscaled surfaces from tracked buffers
+    auto m_trackedBuf8xDsReconSurface = m_trackedBuf->Get8xDsReconSurface(bufIdx);
+    auto m_trackedBuf4xDsReconSurface = m_trackedBuf->Get4xDsReconSurface(bufIdx);
+
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBuf8xDsReconSurface);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBuf4xDsReconSurface);
+
+    // If any dimension of allocated surface is smaller, realloc needed
+    if (m_trackedBuf8xDsReconSurface->dwWidth < downscaledSurfaceWidth8x || m_trackedBuf8xDsReconSurface->dwHeight < downscaledSurfaceHeight8x) {
+        
+        // Get the previously assigned dimensions to make sure we do not lower any dimension
+        auto previous8xWidth = m_trackedBuf8xDsReconSurface->dwWidth;
+        auto previous8xHeight = m_trackedBuf8xDsReconSurface->dwHeight;
+
+        auto new8xWidth = MOS_MAX(previous8xWidth, downscaledSurfaceWidth8x);
+        auto new8xHeight = MOS_MAX(previous8xHeight, downscaledSurfaceHeight8x);
+        
+        // Release the smaller resource
+        m_allocator->ReleaseResource(m_standard, ds8xRecon, bufIdx);
+
+        // Re alloc larger resource
+        CODECHAL_ENCODE_CHK_NULL_RETURN(
+            m_trackedBuf8xDsReconSurface = (MOS_SURFACE*)m_allocator->AllocateResource(
+                m_standard, new8xWidth, new8xHeight, ds8xRecon, "ds8xRecon", bufIdx, false, Format_NV12, MOS_TILE_Y));
+        
+        // Initialize the surface to zero
+        uint32_t size = new8xWidth * new8xHeight;
+        MOS_LOCK_PARAMS lockFlagsWriteOnly;
+        MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
+        lockFlagsWriteOnly.WriteOnly = 1;
+
+        uint8_t *data = (uint8_t *)m_osInterface->pfnLockResource(
+            m_osInterface,
+            &(m_trackedBuf8xDsReconSurface->OsResource),
+            &lockFlagsWriteOnly);
+
+        if (data == nullptr)
+        {
+            CODECHAL_ENCODE_ASSERTMESSAGE("Failed to Lock 8x Ds Recon Surface.");
+            return MOS_STATUS_UNKNOWN;
+        }
+
+        MOS_ZeroMemory(data, size);
+        m_osInterface->pfnUnlockResource(m_osInterface, &(m_trackedBuf8xDsReconSurface->OsResource));
+    }
+
+    if (m_trackedBuf4xDsReconSurface->dwWidth < downscaledSurfaceWidth4x || m_trackedBuf4xDsReconSurface->dwHeight < downscaledSurfaceHeight4x) {
+        
+        // Get the previously assigned dimensions to make sure we do not lower any dimension
+        auto previous4xWidth = m_trackedBuf4xDsReconSurface->dwWidth;
+        auto previous4xHeight = m_trackedBuf4xDsReconSurface->dwHeight;
+
+        auto new4xWidth = MOS_MAX(previous4xWidth, downscaledSurfaceWidth4x);
+        auto new4xHeight = MOS_MAX(previous4xHeight, downscaledSurfaceHeight4x);
+
+        // Release the smaller resource
+        m_allocator->ReleaseResource(m_standard, ds4xRecon, bufIdx);
+
+        // Re alloc larger resource
+        CODECHAL_ENCODE_CHK_NULL_RETURN(
+            m_trackedBuf4xDsReconSurface = (MOS_SURFACE*)m_allocator->AllocateResource(
+                m_standard, new4xWidth, new4xHeight, ds4xRecon, "ds4xRecon", bufIdx, false, Format_NV12, MOS_TILE_Y));
+
+        // Initialize the surface to zero
+        uint32_t size = new4xWidth * new4xHeight;
+        MOS_LOCK_PARAMS lockFlagsWriteOnly;
+        MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
+        lockFlagsWriteOnly.WriteOnly = 1;
+
+        uint8_t *data = (uint8_t *)m_osInterface->pfnLockResource(
+            m_osInterface,
+            &(m_trackedBuf4xDsReconSurface->OsResource),
+            &lockFlagsWriteOnly);
+
+        if (data == nullptr)
+        {
+            CODECHAL_ENCODE_ASSERTMESSAGE("Failed to Lock 4x Ds Recon Surface.");
+            return MOS_STATUS_UNKNOWN;
+        }
+
+        MOS_ZeroMemory(data, size);
+        m_osInterface->pfnUnlockResource(m_osInterface, &(m_trackedBuf4xDsReconSurface->OsResource));
+
+    }
+    return eStatus;
+}
+
 MOS_STATUS CodechalVdencVp9State::SetHcpSrcSurfaceParams(MHW_VDBOX_SURFACE_PARAMS* surfaceParams,
     PMOS_SURFACE* refSurface,
     PMOS_SURFACE* refSurfaceNonScaled,
@@ -4153,6 +4256,8 @@ MOS_STATUS CodechalVdencVp9State::SetHcpSrcSurfaceParams(MHW_VDBOX_SURFACE_PARAM
             refSurface[0]          = (m_dysRefFrameFlags & DYS_REF_LAST) ? &(m_refList[m_vp9PicParams->RefFrameList[refPicIndex].FrameIdx]->sDysSurface) : refSurfaceNonScaled[0];
 
             scalingIdx        = m_refList[m_vp9PicParams->RefFrameList[refPicIndex].FrameIdx]->ucScalingIdx;
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(Resize4x8xforDS(scalingIdx));
+            
             dsRefSurface4x[0] = m_trackedBuf->Get4xDsReconSurface(scalingIdx);
             CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, dsRefSurface4x[0]));
             dsRefSurface8x[0] = m_trackedBuf->Get8xDsReconSurface(scalingIdx);
@@ -4168,6 +4273,8 @@ MOS_STATUS CodechalVdencVp9State::SetHcpSrcSurfaceParams(MHW_VDBOX_SURFACE_PARAM
             refSurface[1]          = (m_dysRefFrameFlags & DYS_REF_GOLDEN) ? &(m_refList[m_vp9PicParams->RefFrameList[refPicIndex].FrameIdx]->sDysSurface) : refSurfaceNonScaled[1];
 
             scalingIdx        = m_refList[m_vp9PicParams->RefFrameList[refPicIndex].FrameIdx]->ucScalingIdx;
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(Resize4x8xforDS(scalingIdx));
+
             dsRefSurface4x[1] = m_trackedBuf->Get4xDsReconSurface(scalingIdx);
             CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, dsRefSurface4x[1]));
             dsRefSurface8x[1] = m_trackedBuf->Get8xDsReconSurface(scalingIdx);
@@ -4183,6 +4290,8 @@ MOS_STATUS CodechalVdencVp9State::SetHcpSrcSurfaceParams(MHW_VDBOX_SURFACE_PARAM
             refSurface[2]          = (m_dysRefFrameFlags & DYS_REF_ALT) ? &(m_refList[m_vp9PicParams->RefFrameList[refPicIndex].FrameIdx]->sDysSurface) : refSurfaceNonScaled[2];
 
             scalingIdx        = m_refList[m_vp9PicParams->RefFrameList[refPicIndex].FrameIdx]->ucScalingIdx;
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(Resize4x8xforDS(scalingIdx));
+            
             dsRefSurface4x[2] = m_trackedBuf->Get4xDsReconSurface(scalingIdx);
             CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, dsRefSurface4x[2]));
             dsRefSurface8x[2] = m_trackedBuf->Get8xDsReconSurface(scalingIdx);
