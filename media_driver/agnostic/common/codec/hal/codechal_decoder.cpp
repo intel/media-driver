@@ -935,7 +935,11 @@ MOS_STATUS CodechalDecode::Execute(void *params)
 
     CodechalDecodeParams *decodeParams = (CodechalDecodeParams *)params;
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+
     MOS_TraceEvent(EVENT_CODEC_DECODE, EVENT_TYPE_START, &m_standard, sizeof(uint32_t), &m_frameNum, sizeof(uint32_t));
+
+#endif  // _DEBUG || _RELEASE_INTERNAL
 
     CODECHAL_DEBUG_TOOL(
         m_debugInterface->m_bufferDumpFrameNum = m_frameNum;)
@@ -1152,7 +1156,11 @@ MOS_STATUS CodechalDecode::Execute(void *params)
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(Mos_Solo_PostProcessDecode(m_osInterface, m_decodeParams.m_destSurface));
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+
     MOS_TraceEvent(EVENT_CODEC_DECODE, EVENT_TYPE_END, &eStatus, sizeof(eStatus), nullptr, 0);
+
+#endif  // _DEBUG || _RELEASE_INTERNAL
 
     return eStatus;
 }
