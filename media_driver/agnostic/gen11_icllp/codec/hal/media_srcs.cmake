@@ -67,6 +67,13 @@ if ("${AVC_Encode_VME_Supported}" STREQUAL "yes" OR "${AVC_Encode_VDEnc_Supporte
             ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_avc_g11_lp.h
         )
     endif ()
+
+    if ("${AVC_Encode_VDEnc_Supported}" STREQUAL "yes")
+        set (TMP_3_HEADERS_
+            ${TMP_3_HEADERS_}
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_vdenc_avc_g11_lp.h
+        )
+    endif ()
 endif ()
 
 set(SOURCES_
