@@ -56,7 +56,7 @@
 
 #include "codechal_decode_downsampling_g11_icllp.h"
 
-#ifdef _HEVC_DECODE_GEN11_SUPPORTED
+#ifdef _HEVC_DECODE_SUPPORTED
 #include "codechal_decode_hevc_g11.h"
 #endif
 
@@ -76,7 +76,7 @@
 #include "codechal_decode_vp8_g11.h"
 #endif
 
-#ifdef _VP9_DECODE_GEN11_SUPPORTED
+#ifdef _VP9_DECODE_SUPPORTED
 #include "codechal_decode_vp9_g11.h"
 #endif
 
@@ -84,13 +84,13 @@
 #ifdef _AVC_ENCODE_VME_SUPPORTED
 #include "codechal_encode_avc_g11_lp.h"
 #endif
-#ifdef _AVC_ENCODE_VDENC_GEN11_SUPPORTED
+#ifdef _AVC_ENCODE_VDENC_SUPPORTED
 #include "codechal_vdenc_avc_g11_lp.h"
 #endif
 #include "codechal_encode_sfc.h"
 #include "codechal_encode_csc_ds_g11.h"
 
-#ifdef _VP9_ENCODE_VDENC_GEN11_SUPPORTED
+#ifdef _VP9_ENCODE_VDENC_SUPPORTED
 #include "codechal_vdenc_vp9_g11.h"
 #endif
 
@@ -105,7 +105,7 @@
 #ifdef _HEVC_ENCODE_VME_SUPPORTED
 #include "codechal_encode_hevc_g11.h"
 #endif
-#ifdef _HEVC_ENCODE_VDENC_GEN11_SUPPORTED
+#ifdef _HEVC_ENCODE_VDENC_SUPPORTED
 #include "codechal_vdenc_hevc_g11.h"
 #endif
 
@@ -164,7 +164,7 @@ public:
 #ifdef _AVC_DECODE_SUPPORTED
     using Avc = CodechalDecodeAvcG11;
 #endif
-#ifdef _HEVC_DECODE_GEN11_SUPPORTED
+#ifdef _HEVC_DECODE_SUPPORTED
     using Hevc = CodechalDecodeHevcG11;
 #endif
 #ifdef _JPEG_DECODE_SUPPORTED
@@ -179,7 +179,7 @@ public:
 #ifdef _VP8_DECODE_SUPPORTED
     using Vp8 = CodechalDecodeVp8G11;
 #endif
-#ifdef _VP9_DECODE_GEN11_SUPPORTED
+#ifdef _VP9_DECODE_SUPPORTED
     using Vp9 = CodechalDecodeVp9G11;
 #endif
 #ifdef _DECODE_PROCESSING_SUPPORTED
@@ -193,11 +193,11 @@ public:
 #ifdef _AVC_ENCODE_VME_SUPPORTED
     using AvcEnc = CodechalEncodeAvcEncG11LP;
 #endif
-#ifdef _AVC_ENCODE_VDENC_GEN11_SUPPORTED
+#ifdef _AVC_ENCODE_VDENC_SUPPORTED
     using AvcVdenc = CodechalVdencAvcStateG11LP;
 #endif
     using CscDs = CodechalEncodeCscDsG11;
-#ifdef _VP9_ENCODE_VDENC_GEN11_SUPPORTED
+#ifdef _VP9_ENCODE_VDENC_SUPPORTED
     using Vp9 = CodechalVdencVp9StateG11;
 #endif
 #ifdef _JPEG_ENCODE_SUPPORTED
@@ -209,7 +209,7 @@ public:
 #ifdef _HEVC_ENCODE_VME_SUPPORTED
     using HevcEnc = CodechalEncHevcStateG11;
 #endif
-#ifdef _HEVC_ENCODE_VDENC_GEN11_SUPPORTED
+#ifdef _HEVC_ENCODE_VDENC_SUPPORTED
     using HevcVdenc = CodechalVdencHevcStateG11;
 #endif
 #ifdef _VP8_ENCODE_SUPPORTED

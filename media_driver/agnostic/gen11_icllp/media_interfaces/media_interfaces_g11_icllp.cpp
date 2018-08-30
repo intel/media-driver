@@ -309,14 +309,14 @@ MOS_STATUS CodechalInterfacesG11Icllp::Initialize(
         }
         else
     #endif
-    #ifdef _HEVC_DECODE_GEN11_SUPPORTED
+    #ifdef _HEVC_DECODE_SUPPORTED
         if (info->Mode == CODECHAL_DECODE_MODE_HEVCVLD)
         {
             m_codechalDevice = MOS_New(Decode::Hevc, hwInterface, debugInterface, info);
         }
         else
     #endif
-    #ifdef _VP9_DECODE_GEN11_SUPPORTED
+    #ifdef _VP9_DECODE_SUPPORTED
         if (info->Mode == CODECHAL_DECODE_MODE_VP9VLD)
         {
             m_codechalDevice = MOS_New(Decode::Vp9, hwInterface, debugInterface, info);
@@ -339,12 +339,12 @@ MOS_STATUS CodechalInterfacesG11Icllp::Initialize(
     else if (CodecHalIsEncode(CodecFunction))
     {
         CodechalEncoderState *encoder = nullptr;
-#if defined (_AVC_ENCODE_VME_SUPPORTED) || defined (_AVC_ENCODE_VDENC_GEN11_SUPPORTED)
+#if defined (_AVC_ENCODE_VME_SUPPORTED) || defined (_AVC_ENCODE_VDENC_SUPPORTED)
         if (info->Mode == CODECHAL_ENCODE_MODE_AVC)
         {
             if (CodecHalUsesVdencEngine(info->CodecFunction))
             {
-            #ifdef _AVC_ENCODE_VDENC_GEN11_SUPPORTED
+            #ifdef _AVC_ENCODE_VDENC_SUPPORTED
                 encoder = MOS_New(Encode::AvcVdenc, hwInterface, debugInterface, info);
             #endif
             }
@@ -366,7 +366,7 @@ MOS_STATUS CodechalInterfacesG11Icllp::Initialize(
         }
         else
 #endif
-#ifdef _VP9_ENCODE_VDENC_GEN11_SUPPORTED
+#ifdef _VP9_ENCODE_VDENC_SUPPORTED
         if (info->Mode == CODECHAL_ENCODE_MODE_VP9)
         {
             encoder = MOS_New(Encode::Vp9, hwInterface, debugInterface, info);
@@ -419,12 +419,12 @@ MOS_STATUS CodechalInterfacesG11Icllp::Initialize(
         }
         else
 #endif
-#if defined (_HEVC_ENCODE_VME_SUPPORTED) || defined (_HEVC_ENCODE_VDENC_GEN11_SUPPORTED)
+#if defined (_HEVC_ENCODE_VME_SUPPORTED) || defined (_HEVC_ENCODE_VDENC_SUPPORTED)
         if (info->Mode == CODECHAL_ENCODE_MODE_HEVC)
         {
             if (CodecHalUsesVdencEngine(info->CodecFunction))
             {
-            #ifdef _HEVC_ENCODE_VDENC_GEN11_SUPPORTED
+            #ifdef _HEVC_ENCODE_VDENC_SUPPORTED
                 encoder = MOS_New(Encode::HevcVdenc, hwInterface, debugInterface, info);
             #endif
             }

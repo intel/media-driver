@@ -48,6 +48,17 @@ if(${AVC_Decode_Supported} STREQUAL "yes")
     )
 endif()
 
+if(${HEVC_Decode_Supported} STREQUAL "yes")
+    set(TMP_2_SOURCES_
+        ${TMP_2_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_hevc_g11.cpp
+    )
+    set(TMP_2_HEADERS_
+        ${TMP_2_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_hevc_g11.h
+    )
+endif()
+
 if(${JPEG_Decode_Supported} STREQUAL "yes")
     set(TMP_2_SOURCES_
         ${TMP_2_SOURCES_}
@@ -93,6 +104,17 @@ if(${VP8_Decode_Supported} STREQUAL "yes")
     )
 endif()
 
+if(${VP9_Decode_Supported} STREQUAL "yes")
+    set(TMP_2_SOURCES_
+        ${TMP_2_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_vp9_g11.cpp
+    )
+    set(TMP_2_HEADERS_
+        ${TMP_2_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_vp9_g11.h
+    )
+endif()
+
 
 # encode
 if(${Common_Encode_Supported} STREQUAL "yes")
@@ -127,6 +149,17 @@ if ("${AVC_Encode_VME_Supported}" STREQUAL "yes" OR "${AVC_Encode_VDEnc_Supporte
             ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_avc_g11.h
         )
     endif ()
+
+    if ("${AVC_Encode_VDEnc_Supported}" STREQUAL "yes")
+        set (TMP_3_SOURCES_
+            ${TMP_3_SOURCES_}
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_vdenc_avc_g11.cpp
+        )
+        set (TMP_3_HEADERS_
+            ${TMP_3_HEADERS_}
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_vdenc_avc_g11.h
+        )
+    endif ()
 endif ()
 
 if ("${HEVC_Encode_VME_Supported}" STREQUAL "yes" OR "${HEVC_Encode_VDEnc_Supported}" STREQUAL "yes")
@@ -145,7 +178,29 @@ if ("${HEVC_Encode_VME_Supported}" STREQUAL "yes" OR "${HEVC_Encode_VDEnc_Suppor
             ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_hevc_g11.h
         )
     endif ()
+
+    if ("${HEVC_Encode_VDEnc_Supported}" STREQUAL "yes")
+        set (TMP_3_SOURCES_
+            ${TMP_3_SOURCES_}
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_vdenc_hevc_g11.cpp
+        )
+        set (TMP_3_HEADERS_
+            ${TMP_3_HEADERS_}
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_vdenc_hevc_g11.h
+        )
+    endif ()
 endif ()
+
+if(${VP9_Encode_VDEnc_Supported} STREQUAL "yes")
+    set(TMP_3_SOURCES_
+        ${TMP_3_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_vdenc_vp9_g11.cpp
+    )
+    set(TMP_3_HEADERS_
+        ${TMP_3_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_vdenc_vp9_g11.h
+    )
+endif()
 
 if(${MPEG2_Encode_VME_Supported} STREQUAL "yes")
     set(TMP_3_SOURCES_
