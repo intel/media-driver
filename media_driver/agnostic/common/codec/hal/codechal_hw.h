@@ -1214,6 +1214,23 @@ public:
                        MHW_VDBOX_NODE_IND index,
                        PMOS_COMMAND_BUFFER pCmdBuffer);
 
+    //!
+    //! \brief    Send mi store data imm cmd
+    //! \param    [in] resource
+    //!           Reource used in mi store data imm cmd
+    //! \param    [in] immData
+    //!           Immediate data
+    //! \param    [in,out] cmdBuffer
+    //!           command buffer
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS SendMiStoreDataImm(
+        PMOS_RESOURCE       resource,
+        uint32_t            immData,
+        PMOS_COMMAND_BUFFER cmdBuffer);
+
     //! \brief    default disable vdbox balancing by UMD
     bool bEnableVdboxBalancingbyUMD = false;
     
