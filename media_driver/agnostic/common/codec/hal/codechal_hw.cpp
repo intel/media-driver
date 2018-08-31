@@ -1299,3 +1299,28 @@ MmioRegistersMfx * CodechalHwInterface::SelectVdboxAndGetMmioRegister(
 
     return m_mfxInterface->GetMmioRegisters(index);
 }
+
+MOS_STATUS CodechalHwInterface::SendMiStoreDataImm(
+    PMOS_RESOURCE       resource,
+    uint32_t            immData,
+    PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_HW_FUNCTION_ENTER;
+
+    CODECHAL_HW_CHK_NULL_RETURN(resource);
+    CODECHAL_HW_CHK_NULL_RETURN(cmdBuffer);
+
+    MHW_MI_STORE_DATA_PARAMS storeDataParams;
+    MOS_ZeroMemory(&storeDataParams, sizeof(storeDataParams));
+    storeDataParams.pOsResource = resource;
+    storeDataParams.dwResourceOffset = 0;
+    storeDataParams.dwValue = immData;
+
+    CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(
+        cmdBuffer,
+        &storeDataParams));
+
+    return eStatus;
+}
