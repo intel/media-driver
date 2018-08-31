@@ -101,10 +101,10 @@ ICL (Ice Lake)
 | VC-1       | D    | D    | D       | D       | D       | D    | D       |
 | JPEG       | D    | D/E2 | D/E2    | D/E2    | D/E2    | D/E2 | D/E2    |
 | VP8        | D    | D    | D       | D       | D       | D/E1 | D/E1    |
-| HEVC       |      | D/E1 | D/E1    | D/E1    | D/E1    | D/E1 |         |
-| HEVC 10bit |      |      | D       | D       | D       | D/E1 |         |
-| VP9        |      |      | D       | D       | D       | D    |         |
-| VP9 10bit  |      |      |         | D       | D       | D    |         |
+| HEVC       |      | D/E1 | D/E1    | D/E1    | D/E1    | D/E1 | D/E1/E2 |
+| HEVC 10bit |      |      | D       | D       | D       | D/E1 | D/E1/E2 |
+| VP9        |      |      | D       | D       | D       | D    | D/E2    |
+| VP9 10bit  |      |      |         | D       | D       | D    | D/E2    |
 
 D  - decoding
 
