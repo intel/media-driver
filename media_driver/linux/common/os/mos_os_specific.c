@@ -1161,6 +1161,8 @@ MOS_STATUS Linux_InitContext(
     }
 
     pContext->bUse64BitRelocs = true;
+    pContext->bUseSwSwizzling = MEDIA_IS_SKU(&pContext->SkuTable, FtrSimulationMode);
+
 #ifndef ANDROID
     // when MODS enabled, intel_context will be created by pOsContextSpecific, should not recreate it here, or will cause memory leak.
     if (!MODSEnabled)
@@ -2329,8 +2331,28 @@ void  *Mos_Specific_LockResource(
 #else
                 if (pOsResource->TileType != MOS_TILE_LINEAR && !pLockFlags->TiledAsTiled)
                 {
-                    mos_gem_bo_map_gtt(bo);
-                    pOsResource->MmapOperation = MOS_MMAP_OPERATION_MMAP_GTT;
+                    if (pContext->bUseSwSwizzling)
+                    {
+                        mos_bo_map(bo, (OSKM_LOCKFLAG_WRITEONLY&pLockFlags->WriteOnly));
+                        pOsResource->MmapOperation = MOS_MMAP_OPERATION_MMAP;
+                        if (pOsResource->pSystemShadow == nullptr)
+                        {
+                            pOsResource->pSystemShadow = (uint8_t *)MOS_AllocMemory(bo->size);
+                            MOS_OS_CHECK_CONDITION((pOsResource->pSystemShadow == nullptr), "Failed to allocate shadow surface", nullptr);
+                        }
+                        if (pOsResource->pSystemShadow)
+                        {
+                            MOS_OS_CHECK_CONDITION((pOsResource->TileType != MOS_TILE_Y), "Unsupported tile type", nullptr);
+                            MOS_OS_CHECK_CONDITION((bo->size <= 0 || pOsResource->iPitch <= 0), "Invalid BO size or pitch", nullptr);
+                            Mos_SwizzleData((uint8_t*)bo->virt, pOsResource->pSystemShadow, 
+                                    MOS_TILE_Y, MOS_TILE_LINEAR, bo->size / pOsResource->iPitch, pOsResource->iPitch);
+                        }
+                    }
+                    else
+                    {
+                        mos_gem_bo_map_gtt(bo);
+                        pOsResource->MmapOperation = MOS_MMAP_OPERATION_MMAP_GTT;
+                    }
                 }
                 else if (pLockFlags->Uncached)
                 {
@@ -2344,7 +2366,7 @@ void  *Mos_Specific_LockResource(
                 }
 #endif
             }
-            pOsResource->pData   = (uint8_t*)bo->virt;
+            pOsResource->pData   = pOsResource->pSystemShadow ? pOsResource->pSystemShadow : (uint8_t*)bo->virt;
             pOsResource->bMapped = true;
         }
 
@@ -2437,6 +2459,14 @@ MOS_STATUS Mos_Specific_UnlockResource(
                    mos_gem_bo_unmap_gtt(pOsResource->bo);
                }
 #else
+               if (pOsResource->pSystemShadow)
+               {
+                   Mos_SwizzleData(pOsResource->pSystemShadow, (uint8_t*)pOsResource->bo->virt, 
+                           MOS_TILE_LINEAR, MOS_TILE_Y, pOsResource->bo->size / pOsResource->iPitch, pOsResource->iPitch);
+                   MOS_FreeMemory(pOsResource->pSystemShadow);
+                   pOsResource->pSystemShadow = nullptr;
+               }
+
                switch(pOsResource->MmapOperation)
                {
                    case MOS_MMAP_OPERATION_MMAP_GTT:

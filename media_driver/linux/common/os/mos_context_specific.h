@@ -175,6 +175,8 @@ public:
 
     AuxTableMgr* GetAuxTableMgr() { return m_auxTableMgr; }
 
+    bool UseSwSwizzling() { return m_useSwSwizzling; }
+
 #ifndef ANDROID
 
     //!
@@ -291,6 +293,11 @@ private:
     //! \brief  switch for 64bit KMD relocation
     //!
     bool                m_use64BitRelocs = false;
+
+    //!
+    //! \brief  tiling/untiling with CPU
+    //!
+    bool                m_useSwSwizzling = false;
 
     //!
     //! \brief  flag to mark the existance of the second VDBox

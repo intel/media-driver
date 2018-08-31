@@ -480,8 +480,28 @@ void* GraphicsResourceSpecific::Lock(OsContext* osContextPtr, LockParams& params
 #else
                 if (m_tileType != MOS_TILE_LINEAR && !params.m_tileAsTiled)
                 {
-                    mos_gem_bo_map_gtt(boPtr);
-                    m_mmapOperation = MOS_MMAP_OPERATION_MMAP_GTT;
+                    if (pOsContextSpecific->UseSwSwizzling())
+                    {
+                        mos_bo_map(boPtr, ( OSKM_LOCKFLAG_WRITEONLY & params.m_writeRequest ));
+                        m_mmapOperation = MOS_MMAP_OPERATION_MMAP;
+                        if (m_systemShadow == nullptr)
+                        {
+                            m_systemShadow = (uint8_t *)MOS_AllocMemory(boPtr->size);
+                            MOS_OS_CHECK_CONDITION((m_systemShadow == nullptr), "Failed to allocate shadow surface", nullptr);
+                        }
+                        if (m_systemShadow)
+                        {
+                            MOS_OS_CHECK_CONDITION((m_tileType != MOS_TILE_Y), "Unsupported tile type", nullptr);
+                            MOS_OS_CHECK_CONDITION((boPtr->size <= 0 || m_pitch <= 0), "Invalid BO size or pitch", nullptr);
+                            Mos_SwizzleData((uint8_t*)boPtr->virt, m_systemShadow, 
+                                    MOS_TILE_Y, MOS_TILE_LINEAR, boPtr->size / m_pitch, m_pitch);
+                        }
+                    }
+                    else
+                    {
+                        mos_gem_bo_map_gtt(boPtr);
+                        m_mmapOperation = MOS_MMAP_OPERATION_MMAP_GTT;
+                    }
                 }
                 else if (params.m_uncached)
                 {
@@ -496,7 +516,7 @@ void* GraphicsResourceSpecific::Lock(OsContext* osContextPtr, LockParams& params
 #endif
             }
             m_mapped = true;
-            m_pData  = (uint8_t *)boPtr->virt;
+            m_pData  = m_systemShadow ? m_systemShadow : (uint8_t *)boPtr->virt;
         }
 
         dataPtr = boPtr->virt;
@@ -546,6 +566,14 @@ MOS_STATUS GraphicsResourceSpecific::Unlock(OsContext* osContextPtr)
                    mos_gem_bo_unmap_gtt(boPtr);
                }
 #else
+               if (m_systemShadow)
+               {
+                   Mos_SwizzleData(m_systemShadow, (uint8_t*)boPtr->virt, 
+                           MOS_TILE_LINEAR, MOS_TILE_Y, boPtr->size / m_pitch, m_pitch);
+                   MOS_FreeMemory(m_systemShadow);
+                   m_systemShadow = nullptr;
+               }
+
                switch(m_mmapOperation)
                {
                    case MOS_MMAP_OPERATION_MMAP_GTT:

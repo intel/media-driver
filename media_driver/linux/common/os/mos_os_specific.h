@@ -247,7 +247,8 @@ struct _MOS_SPECIFIC_RESOURCE
     uint32_t            name;
     GMM_RESOURCE_INFO   *pGmmResInfo;        //!< GMM resource descriptor
     MOS_MMAP_OPERATION  MmapOperation;
-
+    uint8_t             *pSystemShadow;
+    
     //!< to sync render target for multi-threading decoding mode
     struct
     {
@@ -499,6 +500,7 @@ struct _MOS_OS_CONTEXT
     int                 fd;                     //!< handle for /dev/dri/card0
 
     int32_t             bUse64BitRelocs;
+    bool                bUseSwSwizzling;
 
     void                **ppMediaMemDecompState; //!<Media memory decompression data structure
 
@@ -519,7 +521,7 @@ struct _MOS_OS_CONTEXT
 
     GMM_CLIENT_CONTEXT  *pGmmClientContext;   //UMD specific ClientContext object in GMM
     AuxTableMgr         *m_auxTableMgr;
-
+   
     // GPU Status Buffer
     PMOS_RESOURCE   pGPUStatusBuffer;
 
