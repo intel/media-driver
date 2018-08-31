@@ -272,6 +272,8 @@ typedef struct _DDI_MEDIA_SURFACE
     PDDI_MEDIA_CONTEXT      pMediaCtx; // Media driver Context
     PMEDIA_SEM_T            pCurrentFrameSemaphore;   // to sync render target for hybrid decoding multi-threading mode
     PMEDIA_SEM_T            pReferenceFrameSemaphore; // to sync reference frame surface. when this semaphore is posted, the surface is not used as reference frame, and safe to be destroied
+
+    uint8_t                 *pSystemShadow;           // Shadow surface in system memory
 } DDI_MEDIA_SURFACE, *PDDI_MEDIA_SURFACE;
 
 typedef struct _DDI_MEDIA_BUFFER
@@ -439,6 +441,8 @@ struct DDI_MEDIA_CONTEXT
 
     // Aux Table Manager
     AuxTableMgr         *m_auxTableMgr;
+
+    bool                m_useSwSwizzling;
 
 #ifndef ANDROID
     // X11 Func table, for vpgPutSurface (Linux)

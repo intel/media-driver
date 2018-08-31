@@ -1416,6 +1416,7 @@ VAStatus DdiMedia__Initialize (
     mediaCtx->m_auxTableMgr = AuxTableMgr::CreateAuxTableMgr(mediaCtx->pDrmBufMgr,
         &mediaCtx->SkuTable, &mediaCtx->WaTable);
 
+    mediaCtx->m_useSwSwizzling = MEDIA_IS_SKU(&mediaCtx->SkuTable, FtrSimulationMode);
     mediaCtx->modularizedGpuCtxEnabled = true;
 
     if (mediaCtx->modularizedGpuCtxEnabled)

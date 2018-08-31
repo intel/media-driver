@@ -859,6 +859,22 @@ void* DdiMediaUtil_LockSurface(DDI_MEDIA_SURFACE  *surface, uint32_t flag)
             {
                 mos_bo_map(surface->bo, flag & MOS_LOCKFLAG_WRITEONLY);
             }
+            else if (surface->pMediaCtx->m_useSwSwizzling)
+            {
+                mos_bo_map(surface->bo, flag & MOS_LOCKFLAG_WRITEONLY);
+                if (surface->pSystemShadow == nullptr)
+                {
+                    surface->pSystemShadow = (uint8_t*)MOS_AllocMemory(surface->bo->size);
+                    DDI_CHK_CONDITION((surface->pSystemShadow == nullptr), "Failed to allocate shadow surface", nullptr);
+                }
+                if (surface->pSystemShadow)
+                {
+                    DDI_CHK_CONDITION((surface->TileType != I915_TILING_Y), "Unsupported tile type", nullptr);
+                    DDI_CHK_CONDITION((surface->bo->size <= 0 || surface->iPitch <= 0), "Invalid BO size or pitch", nullptr);
+                    Mos_SwizzleData((uint8_t*)surface->bo->virt, (uint8_t*)surface->pSystemShadow, 
+                            MOS_TILE_Y, MOS_TILE_LINEAR, surface->bo->size / surface->iPitch, surface->iPitch);
+                }
+            }
             else if (flag & MOS_LOCKFLAG_WRITEONLY)
             {
                 mos_gem_bo_map_gtt(surface->bo);
@@ -869,7 +885,7 @@ void* DdiMediaUtil_LockSurface(DDI_MEDIA_SURFACE  *surface, uint32_t flag)
                 mos_gem_bo_start_gtt_access(surface->bo, 0);    // set to GTT domain,0 means readonly
             }
         }
-        surface->pData   = (uint8_t*) surface->bo->virt;
+        surface->pData   = surface->pSystemShadow ? surface->pSystemShadow : (uint8_t*) surface->bo->virt;
         surface->bMapped = true;
     }
     else
@@ -913,6 +929,15 @@ void DdiMediaUtil_UnlockSurface(DDI_MEDIA_SURFACE  *surface)
             if (surface->TileType == I915_TILING_NONE)
             {
                mos_bo_unmap(surface->bo);
+            }
+            else if (surface->pSystemShadow)
+            {
+                Mos_SwizzleData((uint8_t*)surface->pSystemShadow, (uint8_t*)surface->bo->virt, 
+                        MOS_TILE_LINEAR, MOS_TILE_Y, surface->bo->size/surface->iPitch, surface->iPitch);
+                MOS_FreeMemory(surface->pSystemShadow);
+                surface->pSystemShadow = nullptr;
+                
+                mos_bo_unmap(surface->bo);
             }
             else
             {

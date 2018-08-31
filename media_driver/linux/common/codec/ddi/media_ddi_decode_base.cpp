@@ -38,6 +38,7 @@ DdiMediaDecode::DdiMediaDecode(DDI_DECODE_CONFIG_ATTR *ddiDecodeAttr)
 {
     m_ddiDecodeAttr = ddiDecodeAttr;
     m_ddiDecodeCtx  = nullptr;
+    MOS_ZeroMemory(&m_destSurface, sizeof(m_destSurface));
     m_codechalSettings = CodechalSetting::CreateCodechalSetting();
 }
 
