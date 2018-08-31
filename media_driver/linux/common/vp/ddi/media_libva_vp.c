@@ -861,6 +861,14 @@ DdiVp_SetProcPipelineParams(
         pVpHalSrcSurf->rcDst.left   = pPipelineParam->output_region->x;
         pVpHalSrcSurf->rcDst.right  = pPipelineParam->output_region->x + pPipelineParam->output_region->width;
         pVpHalSrcSurf->rcDst.bottom = pPipelineParam->output_region->y + pPipelineParam->output_region->height;
+        // According to libva  definition, if alpha in output background color is zero, then colorfill is not needed
+        if ((pPipelineParam->output_background_color >> 24) == 0)
+        {
+            pVpHalTgtSurf->rcDst.top    = pPipelineParam->output_region->y;
+            pVpHalTgtSurf->rcDst.left   = pPipelineParam->output_region->x;
+            pVpHalTgtSurf->rcDst.right  = pPipelineParam->output_region->x + pPipelineParam->output_region->width;
+            pVpHalTgtSurf->rcDst.bottom = pPipelineParam->output_region->y + pPipelineParam->output_region->height;
+        }
     }
     else
     {
