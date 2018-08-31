@@ -25,7 +25,7 @@
 
 using namespace std;
 
-void MemoryLeakDetector::Detect(const DriverDllLoader &drvLoader, Platform_t platform)
+void MemoryLeakDetector::Detect(int32_t memNinjaCnt, int32_t memNinjaCntGfx, Platform_t platform)
 {
     static bool delReport = true;
     if (delReport)
@@ -34,8 +34,6 @@ void MemoryLeakDetector::Detect(const DriverDllLoader &drvLoader, Platform_t pla
         delReport = false;
     }
 
-    int32_t memNinjaCnt    = drvLoader.GetDriverSymbols().MOS_GetMemNinjaCounter();
-    int32_t memNinjaCntGfx = drvLoader.GetDriverSymbols().MOS_GetMemNinjaCounterGfx();
     if (memNinjaCnt != 0 || memNinjaCntGfx != 0)
     {
         const ::testing::TestInfo* curTest = ::testing::UnitTest::GetInstance()->current_test_info();
