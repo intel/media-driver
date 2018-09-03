@@ -6487,7 +6487,7 @@ MOS_STATUS CodechalEncHevcStateG10::GetCustomDispatchPattern(
 
             walkerParams->LocalOutLoopStride.x = 1;
             walkerParams->LocalOutLoopStride.y = 0;
-            walkerParams->LocalInnerLoopUnit.x = -Mw_26zx_H_Factor * 2;
+            walkerParams->LocalInnerLoopUnit.x = 0xFFFF - Mw_26zx_H_Factor * 2 + 1;
             walkerParams->LocalInnerLoopUnit.y = walkerCodecParams->usTotalThreadNumPerLcu;
             walkerParams->MiddleLoopExtraSteps = walkerCodecParams->usTotalThreadNumPerLcu - 1;
             walkerParams->MidLoopUnitX = 0;
