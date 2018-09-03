@@ -383,6 +383,7 @@ private:
 };
 #endif // MOS_COMMAND_RESINFO_DUMP_SUPPORTED
 
+class GpuContextMgr;
 //!
 //! \brief Structure to Unified HAL OS resources
 //!
@@ -498,6 +499,15 @@ typedef struct _MOS_INTERFACE
     MOS_STATUS (* pfnSetGpuContext) (
         PMOS_INTERFACE              pOsInterface,
         MOS_GPU_CONTEXT             GpuContext);
+
+    MOS_STATUS (*pfnSetGpuContextHandle) (
+        PMOS_INTERFACE     pOsInterface,
+        GPU_CONTEXT_HANDLE gpuContextHandle,
+        MOS_GPU_CONTEXT    GpuContext);
+
+    GpuContextMgr* (*pfnGetGpuContextMgr) (
+        PMOS_INTERFACE     pOsInterface);
+
 #if (_RELEASE_INTERNAL || _DEBUG)
 #if defined(CM_DIRECT_GUC_SUPPORT)
     MOS_STATUS(*pfnDestroyGuC) (
