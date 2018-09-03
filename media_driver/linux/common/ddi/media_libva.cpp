@@ -3781,6 +3781,10 @@ VAStatus DdiMedia_CreateImage(
             gmmParams.Format = GMM_FORMAT_NV21_TYPE;
             gmmParams.Flags.Info.Linear = true;
             break;
+        case VA_FOURCC_RGBP:
+            gmmParams.Format = GMM_FORMAT_RGBP;
+            gmmParams.Flags.Info.Linear = true;
+            break;
         case VA_FOURCC_YUY2:
             gmmParams.Format = GMM_FORMAT_YUY2;
             gmmParams.Flags.Info.TiledY = true;
@@ -3919,6 +3923,14 @@ VAStatus DdiMedia_CreateImage(
             vaimg->pitches[0] = vaimg->pitches[1] = vaimg->pitches[2] = gmmPitch;
             vaimg->offsets[1] = gmmPitch * gmmHeight;
             vaimg->offsets[2] = vaimg->offsets[1] + gmmPitch * gmmHeight / 2;
+        case VA_FOURCC_RGBP:
+            vaimg->format.bits_per_pixel = 24;
+            vaimg->num_planes = 3;
+            vaimg->pitches[0] = gmmPitch;
+            vaimg->pitches[1] = gmmPitch;
+            vaimg->pitches[2] = gmmPitch;
+            vaimg->offsets[1] = gmmPitch * gmmHeight;
+            vaimg->offsets[2] = gmmPitch * gmmHeight * 2;
             break;
     }
 

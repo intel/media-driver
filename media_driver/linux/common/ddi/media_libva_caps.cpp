@@ -74,6 +74,7 @@ const uint32_t MediaLibvaCaps::m_vpSurfaceAttr[m_numVpSurfaceAttr] =
     VA_FOURCC('4', '2', '2', 'V'),
     VA_FOURCC('R', 'G', 'B', 'A'),
     VA_FOURCC('B', 'G', 'R', 'A'),
+    VA_FOURCC('R', 'G', 'B', 'P'),
     VA_FOURCC('R', 'G', 'B', 'X'),
     VA_FOURCC('P', '0', '1', '0'),
     VA_FOURCC('R','G','2', '4')
