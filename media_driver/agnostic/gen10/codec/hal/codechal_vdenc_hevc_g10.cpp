@@ -1908,7 +1908,7 @@ MOS_STATUS CodechalVdencHevcStateG10::SetConstDataHuCBrcUpdate()
         }
         else
         {
-            hucConstData->Slice[slcCount].SliceSaoLumaFlag_StartInBits = (uint16_t)0xFFFF;
+            hucConstData->Slice[slcCount].SliceSaoLumaFlag_StartInBits = (uint16_t)0x7FFF;
         }
 
         if (m_hevcVdencWeightedPredEnabled)
