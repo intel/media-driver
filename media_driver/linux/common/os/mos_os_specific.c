@@ -1363,6 +1363,59 @@ MOS_GPU_CONTEXT Mos_Specific_GetGpuContext(
 }
 
 //!
+//! \brief    Set GPU context Handle
+//! \details  Set GPU context handle for the following rendering operations
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] Pointer to OS Interface
+//! \param    GPU_CONTEXT_HANDLE gpuContextHandle
+//!           [in] GPU Context Handle
+//! \param    MOS_GPU_CONTEXT GpuContext
+//!           [in] GPU Context
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+//!
+MOS_STATUS Mos_Specific_SetGpuContextHandle(
+    PMOS_INTERFACE     pOsInterface,
+    GPU_CONTEXT_HANDLE gpuContextHandle,
+    MOS_GPU_CONTEXT    GpuContext)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    MOS_OS_CHK_NULL_RETURN(pOsInterface);
+    MOS_OS_CHK_NULL_RETURN(pOsInterface->osContextPtr);
+
+    auto pOsContextSpecific = static_cast<OsContextSpecific*>(pOsInterface->osContextPtr);
+    MOS_OS_CHK_NULL_RETURN(pOsContextSpecific);
+
+    pOsContextSpecific->SetGpuContextHandle(GpuContext, gpuContextHandle);
+
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    Get GPU context Manager
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] Pointer to OS Interface
+//! \return   GpuContextMgr
+//!           GPU context Manager got from Os interface
+//!
+GpuContextMgr* Mos_Specific_GetGpuContextMgr(
+    PMOS_INTERFACE     pOsInterface)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    if (pOsInterface && pOsInterface->osContextPtr)
+    {
+        auto pOsContextSpecific = static_cast<OsContextSpecific*>(pOsInterface->osContextPtr);
+        return pOsContextSpecific->GetGpuContextMgr();
+    }
+    else
+    {
+        return nullptr;
+    }
+}
+
+//!
 //! \brief    Get current GMM client context
 //! \details  Get current GMM client context
 //! \param    PMOS_INTERFACE pOsInterface
@@ -5920,6 +5973,9 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnIsSetMarkerEnabled                     = Mos_Specific_IsSetMarkerEnabled;
     pOsInterface->pfnGetMarkerResource                      = Mos_Specific_GetMarkerResource;
     pOsInterface->pfnNotifyStreamIndexSharing               = Mos_Specific_NotifyStreamIndexSharing;
+
+    pOsInterface->pfnSetGpuContextHandle                    = Mos_Specific_SetGpuContextHandle;
+    pOsInterface->pfnGetGpuContextMgr                       = Mos_Specific_GetGpuContextMgr;
 
     pOsUserFeatureInterface->bIsNotificationSupported   = false;
     pOsUserFeatureInterface->pOsInterface               = pOsInterface;
