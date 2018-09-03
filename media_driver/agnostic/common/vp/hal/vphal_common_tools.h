@@ -150,6 +150,10 @@ typedef struct _VP_CONFIG
     uint32_t   dwReportedHdrMode;          // Reported Hdr Mode
     uint32_t   dwCurrentScdMode;           // Current Scd Mode
     uint32_t   dwReportedScdMode;          // Reported Scd Mode
+    uint32_t   dwTCCPreprocessInUse;                // Vebox TCC Pre-process for HDR
+    uint32_t   dwTCCPreprocessInUseReported;        // Reported Vebox TCC Pre-process for HDR
+    uint32_t   dwIEFPreprocessInUse;                // Vebox IEF Pre-process for HDR
+    uint32_t   dwIEFPreprocessInUseReported;        // Reported Vebox IEF Pre-process for HDR
 
     // Configurations for cache control
     uint32_t   dwDndiReferenceBuffer;
