@@ -2794,7 +2794,7 @@ VAStatus DdiMedia_MapBufferInternal (
             }
             break;
 
-        case VAImageBufferType:
+        case VABufferTypeMax:
             if (DdiMedia_MediaFormatToOsFormat(buf->format) != VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT)
             {
                 DdiMediaUtil_LockMutex(&mediaCtx->BufferMutex);
@@ -2829,6 +2829,7 @@ VAStatus DdiMedia_MapBufferInternal (
             }
             break;
 
+        case VAImageBufferType:
         default:
             *pbuf = (void *)(buf->pData + buf->uiOffset);
             break;
@@ -2928,7 +2929,7 @@ VAStatus DdiMedia_UnmapBuffer (
             }
             break;
 
-        case VAImageBufferType:
+        case VABufferTypeMax:
             if (DdiMedia_MediaFormatToOsFormat(buf->format) != VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT)
             {
                 DdiMediaUtil_LockMutex(&mediaCtx->BufferMutex);
@@ -2944,6 +2945,7 @@ VAStatus DdiMedia_UnmapBuffer (
             }
             break;
 
+        case VAImageBufferType:
          default:
             break;
     }
@@ -3017,6 +3019,9 @@ VAStatus DdiMedia_DestroyBuffer (
             break;
         case VAPictureParameterBufferType:
             break;
+        case VAImageBufferType:
+            MOS_FreeMemory(buf->pData);
+            break;
         case VAProcPipelineParameterBufferType:
         case VAProcFilterParameterBufferType:
             MOS_FreeMemory(buf->pData);
@@ -3031,7 +3036,7 @@ VAStatus DdiMedia_DestroyBuffer (
         case VAEncPackedHeaderParameterBufferType:
             MOS_FreeMemory(buf->pData);
             break;
-        case VAImageBufferType:
+        case VABufferTypeMax:
             DdiMediaUtil_UnRefBufObjInMediaBuffer(buf);
             break;
         case VAEncMacroblockMapBufferType:
@@ -4200,7 +4205,7 @@ VAStatus DdiMedia_DeriveImage (
     }
     buf->iNumElements = 1;
     buf->iSize        = vaimg->data_size;
-    buf->uiType       = VAImageBufferType;
+    buf->uiType       = VABufferTypeMax;
     buf->format       = mediaSurface->format;
     buf->uiOffset     = 0;
 
