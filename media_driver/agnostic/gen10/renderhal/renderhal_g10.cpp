@@ -291,7 +291,7 @@ MOS_STATUS XRenderHal_Interface_g10::SetupSurfaceState (
         }
 
         // Call MHW to setup the Surface State Heap entry
-        pRenderHal->pMhwStateHeap->SetSurfaceStateEntry(&SurfStateParams);
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwStateHeap->SetSurfaceStateEntry(&SurfStateParams));
 
         // Setup OS specific states
         MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSetupSurfaceStateOs(pRenderHal, pRenderHalSurface, pParams, pSurfaceEntry));
@@ -347,8 +347,8 @@ void XRenderHal_Interface_g10::ConvertToNanoSeconds(
 {
     //-----------------------------
     MHW_RENDERHAL_UNUSED(pRenderHal);
-    MHW_RENDERHAL_ASSERT(pRenderHal);
-    MHW_RENDERHAL_ASSERT(piNs);
+    MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(piNs);
     //-----------------------------
 
     *piNs = (uint64_t)(iTicks * RENDERHAL_NS_PER_TICK_RENDER_G10);
@@ -451,7 +451,7 @@ uint8_t XRenderHal_Interface_g10::SetChromaDirection(
 void XRenderHal_Interface_g10::InitStateHeapSettings(
     PRENDERHAL_INTERFACE    pRenderHal)
 {
-    MHW_RENDERHAL_ASSERT(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(pRenderHal);
     // Set State Heap settings for g10
     pRenderHal->StateHeapSettings = g_cRenderHal_State_Heap_Settings_g10;
 }
@@ -636,7 +636,7 @@ finish:
 void XRenderHal_Interface_g10::InitDynamicHeapSettings(
     PRENDERHAL_INTERFACE  pRenderHal)
 {
-    MHW_RENDERHAL_ASSERT(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(pRenderHal);
 
     // Additional Dynamic State Heap settings for g10
     pRenderHal->DynamicHeapSettings           = g_cRenderHal_DSH_Settings_g10;

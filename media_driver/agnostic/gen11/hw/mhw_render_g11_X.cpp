@@ -44,6 +44,7 @@ MOS_STATUS MhwRenderInterfaceG11::AddMediaVfeCmd(
     
     MHW_MI_CHK_STATUS(MhwRenderInterfaceGeneric<mhw_render_g11_X>::AddMediaVfeCmd(cmdBuffer, params));
 
+    MHW_MI_CHK_NULL(cmd);
     cmd->DW4.MaximumNumberOfDualSubslices = params->eVfeSliceDisable;
 
     return MOS_STATUS_SUCCESS;
@@ -63,6 +64,7 @@ MOS_STATUS MhwRenderInterfaceG11::AddPipelineSelectCmd(
 
     MHW_MI_CHK_STATUS(MhwRenderInterfaceGeneric<mhw_render_g11_X>::AddPipelineSelectCmd(cmdBuffer, gpGpuPipe));
 
+    MHW_MI_CHK_NULL(cmd);
     cmd->DW0.MaskBits = 0x13;
 
     return MOS_STATUS_SUCCESS;
@@ -94,6 +96,7 @@ MOS_STATUS MhwRenderInterfaceG11::AddMediaObject(
 
     MHW_MI_CHK_STATUS(MhwRenderInterfaceGeneric<mhw_render_g11_X>::AddMediaObject(cmdBuffer, batchBuffer, params));
 
+    MHW_MI_CHK_NULL(cmd);
     cmd->DW4.XPosition = params->VfeScoreboard.Value[0];
     cmd->DW4.YPosition = params->VfeScoreboard.Value[1];
 
