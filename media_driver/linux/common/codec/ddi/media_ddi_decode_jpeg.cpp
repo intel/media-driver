@@ -609,8 +609,10 @@ VAStatus DdiDecodeJPEG::SetDecodeParams()
     {
         m_ddiDecodeCtx->RTtbl.pCurrentRT = DdiMedia_ReplaceSurfaceWithNewFormat(m_ddiDecodeCtx->RTtbl.pCurrentRT, Media_Format_444P);
     }
-
-    DdiMedia_MediaSurfaceToMosResource((&(m_ddiDecodeCtx->RTtbl))->pCurrentRT, &(m_destSurface.OsResource));
+    if(m_ddiDecodeCtx->RTtbl.pCurrentRT != nullptr)
+    {
+        DdiMedia_MediaSurfaceToMosResource((&(m_ddiDecodeCtx->RTtbl))->pCurrentRT, &(m_destSurface.OsResource));
+    }
 
     (&m_ddiDecodeCtx->DecodeParams)->m_destSurface = &m_destSurface;
 

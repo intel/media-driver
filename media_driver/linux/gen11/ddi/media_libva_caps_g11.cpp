@@ -343,7 +343,7 @@ VAStatus MediaLibvaCapsG11::LoadVp9EncProfileEntrypoints()
     VAStatus status = VA_STATUS_SUCCESS;
 
 #ifdef _VP9_ENCODE_VDENC_SUPPORTED
-    AttribMap *attributeList;
+    AttribMap *attributeList = nullptr;
 
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels) &&
         (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeVP9Vdenc) ||

@@ -322,6 +322,7 @@ PDDI_MEDIA_SURFACE DdiMedia_ReplaceSurfaceWithNewFormat(PDDI_MEDIA_SURFACE surfa
         return nullptr;
     }
     MOS_SecureMemcpy(dstSurface,sizeof(DDI_MEDIA_SURFACE),surface,sizeof(DDI_MEDIA_SURFACE));
+    DDI_CHK_NULL(dstSurface, "nullptr dstSurface", nullptr);
     dstSurface->format = expectedFormat;
     dstSurface->uiLockedBufID = VA_INVALID_ID;
     dstSurface->uiLockedImageID = VA_INVALID_ID;
