@@ -216,8 +216,8 @@ public:
     bool                                        m_roundingEnabled;
     bool                                        m_panicEnabled;
     bool                                        m_roiStreamInEnabled;
-    int32_t                                     m_currentPass;
-    int32_t                                     m_cmdCount;
+    int32_t                                     m_currentPass = 0;
+    int32_t                                     m_cmdCount = 0 ;
 
     CodechalEncoderState                        *m_encoder = nullptr;                //!< Pointer to ENCODER base class
     MOS_INTERFACE                               *m_osInterface = nullptr;            //!< OS interface
