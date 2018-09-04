@@ -3283,7 +3283,7 @@ MOS_STATUS CodechalVdencHevcStateG11::SetConstDataHuCBrcUpdate()
         m_osInterface, &m_vdencBrcConstDataBuffer[m_currRecycledBufIdx], &lockFlagsWriteOnly);
     CODECHAL_ENCODE_CHK_NULL_RETURN(hucConstData);
 
-    MOS_SecureMemcpy(hucConstData->SLCSZ_THRDELTAI_U16, sizeof(m_hucConstantData), m_hucConstantData, sizeof(m_hucConstantData));
+    MOS_SecureMemcpy(hucConstData->SLCSZ_THRDELTAI_U16, sizeof(hucConstData->SLCSZ_THRDELTAI_U16), m_hucConstantData, sizeof(hucConstData->SLCSZ_THRDELTAI_U16));
 
     MOS_SecureMemcpy(hucConstData->RDQPLambdaI, sizeof(m_rdQpLambdaI), m_rdQpLambdaI, sizeof(m_rdQpLambdaI));
     MOS_SecureMemcpy(hucConstData->RDQPLambdaP, sizeof(m_rdQpLambdaP), m_rdQpLambdaP, sizeof(m_rdQpLambdaP));
@@ -4564,7 +4564,7 @@ MOS_STATUS CodechalVdencHevcStateG11::SetDmemHuCPakIntegrate(
     lockFlagsWriteOnly.WriteOnly = true;
 
     int32_t currentPass = GetCurrentPass();
-    if (currentPass < 0 || currentPass >= CODECHAL_HEVC_MAX_NUM_BRC_PASSES)
+    if (currentPass < 0 || currentPass >= 2)
     {
         eStatus = MOS_STATUS_INVALID_PARAMETER;
         return eStatus;
