@@ -129,7 +129,11 @@ VAStatus DriverDllLoader::LoadDriverSymbols()
     if (!m_umdhandle)
     {
         printf("ERROR: dlopen of %s failed.\n", m_driver_path);
-        printf("ERROR: %s\n", dlerror());
+        char* pErrorStr = dlerror();
+        if(nullptr != pErrorStr)
+        {
+            printf("ERROR: %s\n", dlerror());
+        }
         return VA_STATUS_ERROR_UNKNOWN;
     }
 
