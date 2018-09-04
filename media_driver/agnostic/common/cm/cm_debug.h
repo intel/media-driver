@@ -232,5 +232,5 @@ bool RequestSipBinary(PLATFORM platform,
                       uint32_t& resSize);
 
 /*===================== end EU Debugger related stuff =======================*/
-
+uint32_t GetLogFileLocation(std::string &logFile,std::ostringstream &outputFileName, char fileNamePrefix[]);
 #endif // __CM_DEBUG_H__
