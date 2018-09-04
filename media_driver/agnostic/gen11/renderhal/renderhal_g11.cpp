@@ -302,7 +302,7 @@ MOS_STATUS XRenderHal_Interface_g11::SetupSurfaceState (
         }
 
         // Call MHW to setup the Surface State Heap entry
-        pRenderHal->pMhwStateHeap->SetSurfaceStateEntry(&SurfStateParams);
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwStateHeap->SetSurfaceStateEntry(&SurfStateParams));
 
         // Setup OS specific states
         MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSetupSurfaceStateOs(pRenderHal, pRenderHalSurface, pParams, pSurfaceEntry));
@@ -358,8 +358,8 @@ void XRenderHal_Interface_g11::ConvertToNanoSeconds(
 {
     //-----------------------------
     MHW_RENDERHAL_UNUSED(pRenderHal);
-    MHW_RENDERHAL_ASSERT(pRenderHal);
-    MHW_RENDERHAL_ASSERT(piNs);
+    MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(piNs);
     //-----------------------------
     *piNs = (uint64_t)(iTicks * RENDERHAL_NS_PER_TICK_RENDER_G11);
 }
@@ -460,7 +460,7 @@ uint8_t XRenderHal_Interface_g11::SetChromaDirection(
 void XRenderHal_Interface_g11::InitStateHeapSettings(
     PRENDERHAL_INTERFACE    pRenderHal)
 {
-    MHW_RENDERHAL_ASSERT(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(pRenderHal);
     // Set State Heap settings for g11
     pRenderHal->StateHeapSettings = g_cRenderHal_State_Heap_Settings_g11;
 }
@@ -474,7 +474,7 @@ void XRenderHal_Interface_g11::InitStateHeapSettings(
 void XRenderHal_Interface_g11::InitSurfaceTypes(
     PRENDERHAL_INTERFACE    pRenderHal)
 {
-    MHW_RENDERHAL_ASSERT(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(pRenderHal);
     // Set default / advanced surface types
     pRenderHal->SurfaceTypeDefault            = RENDERHAL_SURFACE_TYPE_G10;
     pRenderHal->SurfaceTypeAdvanced           = RENDERHAL_SURFACE_TYPE_ADV_G10;
@@ -642,7 +642,7 @@ finish:
 void XRenderHal_Interface_g11::InitDynamicHeapSettings(
     PRENDERHAL_INTERFACE  pRenderHal)
 {
-    MHW_RENDERHAL_ASSERT(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(pRenderHal);
 
     // Additional Dynamic State Heap settings for g11
     pRenderHal->DynamicHeapSettings           = g_cRenderHal_DSH_Settings_g11;

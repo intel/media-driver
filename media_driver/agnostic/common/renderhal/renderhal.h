@@ -76,6 +76,13 @@ class XRenderHal_Platform_Interface;
 #define MHW_RENDERHAL_CHK_NULL_NO_STATUS(_ptr)                                            \
     MOS_CHK_NULL_NO_STATUS(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_RENDERHAL, _ptr)
 
+#define MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(_ptr)                                            \
+    MOS_CHK_NULL_NO_STATUS_RETURN(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_RENDERHAL, _ptr)
+
+#define MHW_RENDERHAL_CHK_NULL_RETURN(_ptr)                                            \
+    MOS_CHK_NULL_RETURN(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_RENDERHAL, _ptr)
+
+
 #define MHW_RENDERHAL_UNUSED(x)                                                         \
     MOS_UNUSED(x)
 

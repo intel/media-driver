@@ -49,7 +49,8 @@ MOS_STATUS RenderHal_DSH_ExtendMediaStatePool(
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     //---------------------------------------
-    MHW_RENDERHAL_ASSERT(pStateHeap);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pStateHeap);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pStateHeap->pMediaStatesMemPool);
     //---------------------------------------
 
     int32_t iCount = RENDERHAL_DSH_DYN_STATE_INC;
@@ -112,7 +113,11 @@ PRENDERHAL_MEDIA_STATE RenderHal_DSH_GetMediaStateFromPool(
     PRENDERHAL_MEDIA_STATE pMediaState = nullptr;
 
     //---------------------------------------
-    MHW_RENDERHAL_ASSERT(pStateHeap);
+    if (pStateHeap == nullptr)
+    {
+        MHW_RENDERHAL_ASSERTMESSAGE("Null pointer detected!");
+        return nullptr;
+    }
     //---------------------------------------
 
     PRENDERHAL_MEDIA_STATE_LIST pList = &pStateHeap->FreeStates;
@@ -162,8 +167,8 @@ void RenderHal_DSH_ReturnMediaStateToPool(
     PRENDERHAL_MEDIA_STATE  pMediaState)
 {
     //---------------------------------------
-    MHW_RENDERHAL_ASSERT(pStateHeap);
-    MHW_RENDERHAL_ASSERT(pMediaState);
+    MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(pStateHeap);
+    MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(pMediaState);
     //---------------------------------------
 
     PRENDERHAL_MEDIA_STATE_LIST pList = &pStateHeap->FreeStates;
@@ -200,7 +205,8 @@ MOS_STATUS RenderHal_DSH_ExtendKernelAllocPool(
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     //---------------------------------------
-    MHW_RENDERHAL_ASSERT(pStateHeap);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pStateHeap);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pStateHeap->pKernelAllocMemPool);
     //---------------------------------------
 
     int32_t iCount = RENDERHAL_DSH_KRN_ALLOC_INC;
@@ -361,7 +367,7 @@ PRENDERHAL_KRN_ALLOCATION RenderHal_DSH_GetKernelAllocationFromPool(PRENDERHAL_S
 
     if (pStateHeap->KernelAllocationPool.iCount == 0)
     {
-        RenderHal_DSH_ExtendKernelAllocPool(pStateHeap);
+        MHW_RENDERHAL_CHK_STATUS(RenderHal_DSH_ExtendKernelAllocPool(pStateHeap));
     }
 
     pKernelAllocation = pStateHeap->KernelAllocationPool.pHead;
@@ -819,7 +825,7 @@ MOS_STATUS RenderHal_DSH_AssignSpaceInStateHeap(
         blockSizes[0] = size;
     }
 
-    heapManager->AcquireSpace(acquireParams, blocks, spaceNeeded);
+    MHW_RENDERHAL_CHK_STATUS(heapManager->AcquireSpace(acquireParams, blocks, spaceNeeded));
 
     if (blocks.empty())
     {
@@ -1072,7 +1078,7 @@ MOS_STATUS RenderHal_DSH_ExpandKernelStateHeap(
         if (pKrnAllocation->pMemoryBlock)
         {
             pKrnAllocation->pMemoryBlock->bStatic = false;
-            pMhwStateHeap->FreeDynamicBlockDyn(MHW_ISH_TYPE, pKrnAllocation->pMemoryBlock, dwFrameId);
+            MHW_RENDERHAL_CHK_STATUS(pMhwStateHeap->FreeDynamicBlockDyn(MHW_ISH_TYPE, pKrnAllocation->pMemoryBlock, dwFrameId));
             pKrnAllocation->pMemoryBlock = nullptr;
         }
     }
@@ -1083,7 +1089,7 @@ MOS_STATUS RenderHal_DSH_ExpandKernelStateHeap(
         pKrnAllocation->dwFlags = RENDERHAL_KERNEL_ALLOCATION_STALE;
         if (pKrnAllocation->pMemoryBlock)
         {
-            pMhwStateHeap->FreeDynamicBlockDyn(MHW_ISH_TYPE, pKrnAllocation->pMemoryBlock, dwFrameId);
+            MHW_RENDERHAL_CHK_STATUS(pMhwStateHeap->FreeDynamicBlockDyn(MHW_ISH_TYPE, pKrnAllocation->pMemoryBlock, dwFrameId));
             pKrnAllocation->pMemoryBlock = nullptr;
         }
     }
@@ -1099,7 +1105,7 @@ MOS_STATUS RenderHal_DSH_ExpandKernelStateHeap(
     // Copy SIP kernel into the newly loaded ISH, mark old SIP block to be released when no longer in use
     if (pOldSipKernelBlock)
     {
-        pRenderHal->pfnLoadSipKernel(pRenderHal, pOldSipKernelBlock->pDataPtr, pOldSipKernelBlock->dwDataSize);
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnLoadSipKernel(pRenderHal, pOldSipKernelBlock->pDataPtr, pOldSipKernelBlock->dwDataSize));
         pOldSipKernelBlock->bStatic = false;
         pOldInstructionHeap->pDebugKernel = nullptr;
     }
@@ -1192,7 +1198,7 @@ MOS_STATUS RenderHal_DSH_RefreshDynamicKernels(
                 dwSpaceNeeded -= MOS_MIN(dwSpaceNeeded, pKrnAllocation->pMemoryBlock->dwBlockSize);
             }
 
-            pMhwStateHeap->FreeDynamicBlockDyn(MHW_ISH_TYPE, pKrnAllocation->pMemoryBlock, pStateHeap->dwFrameId);
+            MHW_RENDERHAL_CHK_STATUS(pMhwStateHeap->FreeDynamicBlockDyn(MHW_ISH_TYPE, pKrnAllocation->pMemoryBlock, pStateHeap->dwFrameId));
             pKrnAllocation->pMemoryBlock = nullptr;
             pKrnAllocation->dwOffset     = 0;
             pKrnAllocation->dwFlags      = RENDERHAL_KERNEL_ALLOCATION_REMOVED;
@@ -1438,7 +1444,7 @@ MOS_STATUS RenderHal_DSH_LoadSipKernel(
     uint32_t                dwSipSize)
 {
     PXMHW_STATE_HEAP_INTERFACE   pMhwStateHeap;
-    PMHW_STATE_HEAP              pInstructionStateHeap;
+    PMHW_STATE_HEAP              pInstructionStateHeap = nullptr;
     PMHW_STATE_HEAP_MEMORY_BLOCK pIshMemoryBlock;
     MHW_STATE_HEAP_DYNAMIC_ALLOC_PARAMS Params;
     MOS_STATUS                   eStatus = MOS_STATUS_SUCCESS;
@@ -1450,6 +1456,7 @@ MOS_STATUS RenderHal_DSH_LoadSipKernel(
 
     // Mark previous SIP kernel for auto-release so it can be replaced
     pInstructionStateHeap = pMhwStateHeap->GetISHPointer();
+    MHW_RENDERHAL_CHK_NULL(pInstructionStateHeap);
     if (pInstructionStateHeap->pDebugKernel)
     {
         pInstructionStateHeap->pDebugKernel->bStatic = false;
@@ -1681,11 +1688,16 @@ int32_t RenderHal_DSH_AllocateDynamicMediaID(
     }
 
     // Setup Media ID entry - this call could be HW dependent
-    pRenderHal->pfnSetupInterfaceDescriptor(
-        pRenderHal,
-        pMediaState,
-        pKernelAllocation,
-        &InterfaceDescriptorParams);
+    if (MOS_STATUS_SUCCESS != pRenderHal->pfnSetupInterfaceDescriptor(
+                                             pRenderHal,
+                                             pMediaState,
+                                             pKernelAllocation,
+                                             &InterfaceDescriptorParams))
+    {
+        MHW_RENDERHAL_ASSERTMESSAGE("Failed to setup Interface Descriptor.");
+        iInterfaceDescriptor = -1;
+        goto finish;
+    }
 
     // Set kernel allocation for the current Media ID
     pKrnAllocationTable[iInterfaceDescriptor] = pKernelAllocation;
@@ -2005,17 +2017,11 @@ PRENDERHAL_MEDIA_STATE RenderHal_DSH_AssignDynamicState(
     }
 
     // Use generic heap manager to allocate memory block for dynamic general state heap
-    eStatus = pRenderHal->pfnAssignSpaceInStateHeap(
+    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnAssignSpaceInStateHeap(
         &pRenderHal->trackerResource,
         pRenderHal->dgsheapManager,
         &pDynamicState->memoryBlock,
-        dwSizeMediaState);
-    if (eStatus != MOS_STATUS_SUCCESS)
-    {
-        RenderHal_DSH_ReturnMediaStateToPool(pRenderHal->pStateHeap, pMediaState);
-        pMediaState = nullptr;
-        goto finish;
-    }
+        dwSizeMediaState)); 
 
     // Register the DGSH block
      MHW_RENDERHAL_CHK_STATUS(pRenderHal->pOsInterface->pfnRegisterResource(
@@ -2064,15 +2070,23 @@ finish:
 
     MOS_SafeFreeMemory(performanceMemory);
 
-    if (pRenderHal && pRenderHal->pStateHeap)
+    if (eStatus == MOS_STATUS_SUCCESS)
     {
-        pRenderHal->pStateHeap->pCurMediaState = pMediaState;
-    }
+        if (pRenderHal && pRenderHal->pStateHeap)
+        {
+            pRenderHal->pStateHeap->pCurMediaState = pMediaState;
+        }
 
-    if (pRenderHal)
+        if (pRenderHal)
+        {
+            // Refresh sync tag for all media states in submitted queue
+            pRenderHal->pfnRefreshSync(pRenderHal);
+        }
+    }
+    else
     {
-        // Refresh sync tag for all media states in submitted queue
-        pRenderHal->pfnRefreshSync(pRenderHal);
+        RenderHal_DSH_ReturnMediaStateToPool(pRenderHal->pStateHeap, pMediaState);
+        pMediaState = nullptr;
     }
 
     return pMediaState;
@@ -2196,6 +2210,13 @@ int32_t RenderHal_DSH_LoadCurbeData(
     int32_t                  iCurbeSize;
     PRENDERHAL_DYNAMIC_STATE pDynamicState;
     iOffset    = -1;
+
+    if (pRenderHal == nullptr || pMediaState == nullptr || pData == nullptr)
+    {
+        MHW_RENDERHAL_ASSERTMESSAGE("Null pointer found.");
+        eStatus = MOS_STATUS_INVALID_PARAMETER;
+        goto finish;
+    }
 
     if (pMediaState && pMediaState->pDynamicState)
     {

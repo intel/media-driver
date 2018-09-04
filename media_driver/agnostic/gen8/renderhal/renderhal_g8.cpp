@@ -273,7 +273,7 @@ MOS_STATUS XRenderHal_Interface_g8::SetupSurfaceState(
         }
 
         // Call MHW to setup the Surface State Heap entry
-        pRenderHal->pMhwStateHeap->SetSurfaceStateEntry(&SurfStateParams);
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwStateHeap->SetSurfaceStateEntry(&SurfStateParams));
 
         // Setup OS specific states
         MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSetupSurfaceStateOs(pRenderHal, pRenderHalSurface, pParams, pSurfaceEntry));
@@ -297,6 +297,12 @@ finish:
 bool XRenderHal_Interface_g8::PerThreadScratchSpaceStart2K(
     PRENDERHAL_INTERFACE pRenderHal)
 {
+    if (pRenderHal == nullptr)
+    {
+        MHW_RENDERHAL_ASSERTMESSAGE("Null pointer detected.");
+        return false;
+    }
+
     // true for BDW GT1/2/3 A0 stepping
     if (pRenderHal->Platform.usRevId == 0)
         return true;
@@ -370,8 +376,8 @@ void XRenderHal_Interface_g8::ConvertToNanoSeconds(
 {
     //-----------------------------
     MHW_RENDERHAL_UNUSED(pRenderHal);
-    MHW_RENDERHAL_ASSERT(pRenderHal);
-    MHW_RENDERHAL_ASSERT(piNs);
+    MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(piNs);
     //-----------------------------
 
     *piNs = iTicks * RENDERHAL_NS_PER_TICK_RENDER_G8;
@@ -386,7 +392,7 @@ void XRenderHal_Interface_g8::ConvertToNanoSeconds(
 void XRenderHal_Interface_g8::InitStateHeapSettings(
     PRENDERHAL_INTERFACE    pRenderHal)
 {
-    MHW_RENDERHAL_ASSERT(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(pRenderHal);
     // Set State Heap settings for g8
     pRenderHal->StateHeapSettings = g_cRenderHal_State_Heap_Settings_g8;
 }
@@ -400,7 +406,7 @@ void XRenderHal_Interface_g8::InitStateHeapSettings(
 void XRenderHal_Interface_g8::InitSurfaceTypes(
     PRENDERHAL_INTERFACE    pRenderHal)
 {
-    MHW_RENDERHAL_ASSERT(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(pRenderHal);
     // Set default / advanced surface types
     pRenderHal->SurfaceTypeDefault            = RENDERHAL_SURFACE_TYPE_G8;
     pRenderHal->SurfaceTypeAdvanced           = RENDERHAL_SURFACE_TYPE_ADV_G8;
@@ -567,7 +573,7 @@ finish:
 void XRenderHal_Interface_g8::InitDynamicHeapSettings(
     PRENDERHAL_INTERFACE  pRenderHal)
 {
-    MHW_RENDERHAL_ASSERT(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(pRenderHal);
 
     // Additional Dynamic State Heap settings for g8
     pRenderHal->DynamicHeapSettings           = g_cRenderHal_DSH_Settings_g8;

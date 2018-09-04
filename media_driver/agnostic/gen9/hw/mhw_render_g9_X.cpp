@@ -60,6 +60,7 @@ MOS_STATUS MhwRenderInterfaceG9::AddMediaVfeCmd(
 
     MHW_MI_CHK_STATUS(MhwRenderInterfaceGeneric<mhw_render_g9_X>::AddMediaVfeCmd(cmdBuffer, params));
 
+    MHW_MI_CHK_NULL(cmd);
     cmd->DW4.SliceDisable = params->eVfeSliceDisable;
 
     cmd->DW6.ScoreboardType = params->Scoreboard.ScoreboardType;
@@ -101,6 +102,7 @@ MOS_STATUS MhwRenderInterfaceG9::AddPipelineSelectCmd(
 
     MHW_MI_CHK_STATUS(MhwRenderInterfaceGeneric<mhw_render_g9_X>::AddPipelineSelectCmd(cmdBuffer, gpGpuPipe));
 
+    MHW_MI_CHK_NULL(cmd);
     cmd->DW0.MaskBits = 0x13;
 
     return MOS_STATUS_SUCCESS;
@@ -120,6 +122,7 @@ MOS_STATUS MhwRenderInterfaceG9::AddMediaObjectWalkerCmd(
 
     MHW_MI_CHK_STATUS(MhwRenderInterfaceGeneric<mhw_render_g9_X>::AddMediaObjectWalkerCmd(cmdBuffer, params));
 
+    MHW_MI_CHK_NULL(cmd);
     cmd->DW2.UseScoreboard     = params->UseScoreboard;
     cmd->DW5.ScoreboardMask    = params->ScoreboardMask;
 
@@ -152,6 +155,7 @@ MOS_STATUS MhwRenderInterfaceG9::AddMediaObject(
 
     MHW_MI_CHK_STATUS(MhwRenderInterfaceGeneric<mhw_render_g9_X>::AddMediaObject(cmdBuffer, batchBuffer, params));
 
+    MHW_MI_CHK_NULL(cmd);
     cmd->DW2.UseScoreboard     = params->VfeScoreboard.ScoreboardEnable;
     cmd->DW4.ScoreboardX       = params->VfeScoreboard.Value[0];
     cmd->DW4.ScoredboardY      = params->VfeScoreboard.Value[1];
