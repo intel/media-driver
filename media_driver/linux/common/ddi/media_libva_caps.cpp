@@ -657,7 +657,14 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     attrib.type = VAConfigAttribEncSkipFrame;
     if (entrypoint == VAEntrypointEncSliceLP)
     {
-        attrib.value = 0;
+        if (IsAvcProfile(profile))
+        {
+            attrib.value = 1;
+        }
+        else
+        {
+            attrib.value = 0;
+        }
     }
     else
     {
