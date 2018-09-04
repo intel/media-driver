@@ -5108,12 +5108,34 @@ CM_RT_API int32_t CmKernelRT::DeAssociateThreadSpace(CmThreadSpace * &threadSpac
         CM_ASSERTMESSAGE("Error: Pointer to thread space is null.");
         return CM_NULL_POINTER;
     }
-    if (m_threadSpace != static_cast<CmThreadSpaceRT *>(threadSpace))
+
+    PCM_HAL_STATE cmHalState = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
+    if (cmHalState->cmHalInterface->CheckMediaModeAvailability() == false)
     {
-        CM_ASSERTMESSAGE("Error: Invalid thread space handle.");
-        return CM_INVALID_ARG_VALUE;
+        CmThreadSpaceRT *threadSpaceRTConst = static_cast<CmThreadSpaceRT *>(threadSpace);
+        if (threadSpaceRTConst == nullptr)
+        {
+            CM_ASSERTMESSAGE("Error: Pointer to thread space is null.");
+            return CM_INVALID_ARG_VALUE;
+        }
+
+        CmThreadGroupSpace *threadGroupSpace = threadSpaceRTConst->GetThreadGroupSpace();
+        if (m_threadGroupSpace != threadGroupSpace)
+        {
+            CM_ASSERTMESSAGE("Error: Invalid thread group space handle.");
+            return CM_INVALID_ARG_VALUE;
+        }
+        m_threadGroupSpace = nullptr;
     }
-    m_threadSpace = nullptr;
+    else
+    {
+        if (m_threadSpace != static_cast<CmThreadSpaceRT *>(threadSpace))
+        {
+            CM_ASSERTMESSAGE("Error: Invalid thread space handle.");
+            return CM_INVALID_ARG_VALUE;
+        }
+        m_threadSpace = nullptr;
+    }
 
     return CM_SUCCESS;
 }
