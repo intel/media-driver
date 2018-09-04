@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      cm_log.h 
-//! \brief     Contains Class Cm Logger definitions 
+//! \file      cm_log.h
+//! \brief     Contains Class Cm Logger definitions
 //!
 
 #include <iostream>
@@ -33,8 +33,8 @@
 #if CM_LOG_ON
 
 // Definition (and initialization) of static attributes
-CmLogger* CmLogger::m_globalCmLogger = nullptr;
-CMRT_UMD::CSync     globalCmLogLock;
+CmLogger *      CmLogger::m_globalCmLogger = nullptr;
+CMRT_UMD::CSync globalCmLogLock;
 
 /**
  * Logger Constructor.
@@ -46,40 +46,42 @@ CMRT_UMD::CSync     globalCmLogLock;
  */
 CmLogger::CmLogger()
 {
-
     //Get Verbosity Level
     GetVerbosityLevel();
 
-    if(m_verbosityLevel == CM_LOG_LEVEL_NONE)
-    {// if it is not set, no file will be generated.
-        return ;
+    if (m_verbosityLevel == CM_LOG_LEVEL_NONE)
+    {  // if it is not set, no file will be generated.
+        return;
     }
 
     //Get Log File name
     std::ostringstream OutPutFile;
+    std::string        DriverLogFilePath;
+    char               fileNamePrefix[MAX_PATH];
+    size_t             maxFileSize;
 
     SYSTEMTIME systime;
     GetLocalTime(&systime);
 
     OutPutFile << "CM_LOG_" << CmGetCurProcessId() << "_" << systime.wMonth
-                << "_" << systime.wDay << "_" << systime.wHour
-                << "_" << systime.wMinute << "_" << systime.wSecond<<".log";
-
-    m_logFile = OutPutFile.str();
+               << "_" << systime.wDay << "_" << systime.wHour
+               << "_" << systime.wMinute << "_" << systime.wSecond << ".log";
+    GetLogFileLocation(m_logFile, OutPutFile, fileNamePrefix);  
 
     // Open file
-    m_streamOut.open(m_logFile.c_str(), std::ios::app);
-
+    m_streamOut.open(fileNamePrefix, std::ios::app);     
+    if (!m_streamOut)
+    {
+        CM_ASSERTMESSAGE("Open file failed!");
+    }
 }
 
 CmLogger::~CmLogger()
 {
-
-    if(m_logFile.empty())
+    if (m_logFile.empty())
     {  // empty, dump to screen
         m_streamOut.close();
     }
-
 }
 
 /**
@@ -87,7 +89,7 @@ CmLogger::~CmLogger()
  * It is a static method.
  * @return Reference to the object.
  */
-CmLogger& CmLogger::GetInstance()
+CmLogger &CmLogger::GetInstance()
 {
     CmLogger::Lock();
 
@@ -103,16 +105,16 @@ CmLogger& CmLogger::GetInstance()
 void CmLogger::GetVerbosityLevel()
 {
     // Read VerbosityLevel from RegisterKey
-    MOS_USER_FEATURE_VALUE      userFeatureValue;
-    MOS_USER_FEATURE            userFeature;
+    MOS_USER_FEATURE_VALUE userFeatureValue;
+    MOS_USER_FEATURE       userFeature;
     // User feature key reads
     MOS_ZeroMemory(&userFeatureValue, sizeof(MOS_USER_FEATURE_VALUE));
-    userFeature.Type            = MOS_USER_FEATURE_TYPE_USER;
-    userFeature.pPath           = __MEDIA_USER_FEATURE_SUBKEY_INTERNAL;
-    userFeature.pValues         = &userFeatureValue;
-    userFeature.uiNumValues     = 1;
+    userFeature.Type        = MOS_USER_FEATURE_TYPE_USER;
+    userFeature.pPath       = __MEDIA_USER_FEATURE_SUBKEY_INTERNAL;
+    userFeature.pValues     = &userFeatureValue;
+    userFeature.uiNumValues = 1;
 
-    userFeatureValue.u32Data = CM_LOG_LEVEL_NONE; // default value
+    userFeatureValue.u32Data = CM_LOG_LEVEL_NONE;  // default value
 
     MOS_UserFeature_ReadValue(
         nullptr,
@@ -121,7 +123,6 @@ void CmLogger::GetVerbosityLevel()
         MOS_USER_FEATURE_VALUE_TYPE_UINT32);
 
     m_verbosityLevel = userFeatureValue.u32Data;
-
 }
 
 /**
@@ -135,14 +136,13 @@ void CmLogger::GetVerbosityLevel()
  * @param Message
  */
 void CmLogger::Print(const unsigned int verbosityLevel,
-                    const std::string& file,
-                    const int line,
-                    const std::string& message)
+    const std::string &                 file,
+    const int                           line,
+    const std::string &                 message)
 {
-
     CmLogger::Lock();
 
-    if(verbosityLevel <= m_verbosityLevel)
+    if (verbosityLevel <= m_verbosityLevel)
     {
         switch (verbosityLevel)
         {
@@ -164,17 +164,16 @@ void CmLogger::Print(const unsigned int verbosityLevel,
         }
 
         m_streamOut << "[PID :" << CmGetCurProcessId() << "][TID :" << CmGetCurThreadId() << "]"
-                   << "[" << file << ":" << line << "] @ " <<
-                   ":" << message << std::endl;
-
+                    << "[" << file << ":" << line << "] @ "
+                    << ":" << message << std::endl;
     }
 
     CmLogger::Unlock();
 }
 
-void CmLogger::LogDataArrayHex(std::ostringstream &oss, unsigned char * data, unsigned int size )
+void CmLogger::LogDataArrayHex(std::ostringstream &oss, unsigned char *data, unsigned int size)
 {
-    std::ios::fmtflags f(oss.flags()); // store the oss flags
+    std::ios::fmtflags f(oss.flags());  // store the oss flags
 
     oss << "Data[Hex] : ";
 
@@ -184,14 +183,12 @@ void CmLogger::LogDataArrayHex(std::ostringstream &oss, unsigned char * data, un
     }
     oss << std::endl;
 
-    oss.flags(f);// restore the flags
-
+    oss.flags(f);  // restore the flags
 }
 
 void CmLogger::Lock()
 {
     globalCmLogLock.Acquire();
-
 }
 
 void CmLogger::Unlock()
@@ -199,9 +196,8 @@ void CmLogger::Unlock()
     globalCmLogLock.Release();
 }
 
-CmLogTimer::CmLogTimer(std::string str) :
-    m_string(str),
-    m_timer (str)
+CmLogTimer::CmLogTimer(std::string str) : m_string(str),
+                                          m_timer(str)
 {
 }
 
