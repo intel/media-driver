@@ -2185,27 +2185,40 @@ void Mos_Specific_FreeResource(
     if (pOsResource && pOsResource->bo)
     {
         OsContextSpecific *osCtx = static_cast<OsContextSpecific *>(pOsInterface->osContextPtr);
-        AuxTableMgr *auxTableMgr = osCtx->GetAuxTableMgr();
-
-        // Unmap Resource from Aux Table
-        if (auxTableMgr)
+        if(osCtx == nullptr)
         {
-            auxTableMgr->UnmapResource(pOsResource->pGmmResInfo, pOsResource->bo);
+            MOS_OS_ASSERTMESSAGE("osCtx is nullptr!");
+            return;
+        }
+        else
+        {
+            AuxTableMgr *auxTableMgr = osCtx->GetAuxTableMgr();
+
+            // Unmap Resource from Aux Table
+            if (auxTableMgr)
+            {
+                auxTableMgr->UnmapResource(pOsResource->pGmmResInfo, pOsResource->bo);
+            }
         }
 
         mos_bo_unreference((MOS_LINUX_BO *)(pOsResource->bo));
 
 #ifndef ANDROID
-        if ( pOsInterface->pOsContext != nullptr && pOsInterface->pOsContext->contextOffsetList.size()) {
+        if ( pOsInterface->pOsContext != nullptr && pOsInterface->pOsContext->contextOffsetList.size()) 
+        {
           MOS_CONTEXT *pOsCtx = pOsInterface->pOsContext;
           auto item_ctx = pOsCtx->contextOffsetList.begin();
 
           for (;item_ctx != pOsCtx->contextOffsetList.end();)
           {
              if (item_ctx->target_bo == pOsResource->bo)
+             {
                 item_ctx = pOsCtx->contextOffsetList.erase(item_ctx);
+             }
              else
+             {
                 item_ctx++;
+             }
           }
         }
 #endif
