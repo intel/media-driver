@@ -930,12 +930,11 @@ MOS_STATUS Mos_CheckVirtualEngineSupported(
         MOS_OS_CHK_NULL_RETURN(skuTable);
         if (osInterface->bSupportVirtualEngine && MEDIA_IS_SKU(skuTable, FtrContextBasedScheduling))
         {
-            memset(&userFeatureData, 0, sizeof(userFeatureData));
-            eStatus = MOS_UserFeature_ReadValue_ID(
-                nullptr,
-                __MEDIA_USER_FEATURE_VALUE_ENABLE_DECODE_VE_CTXSCHEDULING_ID,
-                &userFeatureData);
-            osInterface->ctxBasedScheduling = userFeatureData.u32Data ? true : false;
+            osInterface->ctxBasedScheduling = true;
+        }
+        else
+        {
+            osInterface->ctxBasedScheduling = false;
         }
     }
     else
@@ -958,12 +957,11 @@ MOS_STATUS Mos_CheckVirtualEngineSupported(
         MOS_OS_CHK_NULL_RETURN(skuTable);
         if (osInterface->bSupportVirtualEngine && MEDIA_IS_SKU(skuTable, FtrContextBasedScheduling))
         {
-            memset(&userFeatureData, 0, sizeof(userFeatureData));
-            eStatus = MOS_UserFeature_ReadValue_ID(
-                nullptr,
-                __MEDIA_USER_FEATURE_VALUE_ENABLE_ENCODE_VE_CTXSCHEDULING_ID,
-                &userFeatureData);
-            osInterface->ctxBasedScheduling = userFeatureData.u32Data ? true : false;
+            osInterface->ctxBasedScheduling = true;
+        }
+        else
+        {
+            osInterface->ctxBasedScheduling = false;
         }
     }
 
