@@ -749,7 +749,7 @@ MOS_STATUS VphalState::GetStatusReport(
 {
     MOS_STATUS                     eStatus = MOS_STATUS_SUCCESS;
 
-#if (!EMUL && !ANDROID)        // this function is dummy for android and emul
+#if (!EMUL)        // this function is dummy for emul
     uint32_t                       i;
     uint32_t                       uiTableLen;
     PVPHAL_STATUS_TABLE            pStatusTable;
@@ -789,8 +789,7 @@ MOS_STATUS VphalState::GetStatusReport(
             pQueryReport[i].StatusFeedBackID = pStatusEntry->StatusFeedBackID;
             continue;
         }
-
-#if LINUX
+#if (LINUX || ANDROID)
         dwGpuTag           = pOsContext->GetGPUTag(m_osInterface, pStatusEntry->GpuContextOrdinal);
 #else
         dwGpuTag           = pOsContext->GetGPUTag(pOsContext->GetGpuContextHandle(pStatusEntry->GpuContextOrdinal, m_osInterface->streamIndex));
@@ -817,11 +816,12 @@ MOS_STATUS VphalState::GetStatusReport(
         }
         else
         {   // here we have the first not ready entry.
-#if LINUX
+#if (LINUX || ANDROID)
             uiNewHead = (uiIndex + 1) & (VPHAL_STATUS_TABLE_MAX_SIZE - 1);
 #else
             uiNewHead = uiIndex;
 #endif
+
             bMarkNotReadyForRemains = true;
         }
 
@@ -862,7 +862,7 @@ MOS_STATUS VphalState::GetStatusReportEntryLength(
     uint32_t*                      puiLength)
 {
     MOS_STATUS                     eStatus = MOS_STATUS_SUCCESS;
-#if __linux__  // this function is only for Linux now
+#if(!EMUL)        // this function is dummy for emul
     PVPHAL_STATUS_TABLE            pStatusTable;
 
     VPHAL_PUBLIC_CHK_NULL(m_renderer);
