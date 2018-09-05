@@ -4380,8 +4380,8 @@ MOS_STATUS CodechalVdencHevcStateG11::Initialize(CodechalSetting * settings)
 
     m_deltaQpRoiBufferSize = m_deltaQpBufferSize;
     m_brcRoiBufferSize = m_roiStreamInBufferSize;
-    m_maxTileNumber = CODECHAL_GET_WIDTH_IN_BLOCKS(m_frameWidth, CODECHAL_HEVC_VDENC_MIN_TILE_WIDTH_SIZE) *
-        CODECHAL_GET_HEIGHT_IN_BLOCKS(m_frameHeight, CODECHAL_HEVC_VDENC_MIN_TILE_HEIGHT_SIZE);
+    m_maxTileNumber = CODECHAL_GET_WIDTH_IN_BLOCKS(m_frameWidth, CODECHAL_HEVC_MIN_TILE_SIZE) *
+        CODECHAL_GET_HEIGHT_IN_BLOCKS(m_frameHeight, CODECHAL_HEVC_MIN_TILE_SIZE);
 
     // we need additional buffer for (1) 1 CL for size info at the beginning of each tile column (max of 4 vdbox in scalability mode)
     // (2) CL alignment at end of every tile column
@@ -4796,7 +4796,8 @@ MOS_STATUS CodechalVdencHevcStateG11::SetTileData(
     }
 
     m_numTiles = numTileRows * numTileColumns;
-    if (m_numTiles > m_maxTileNumber)
+    if (m_numTiles > CODECHAL_GET_WIDTH_IN_BLOCKS(m_frameWidth, CODECHAL_HEVC_VDENC_MIN_TILE_WIDTH_SIZE) *
+        CODECHAL_GET_HEIGHT_IN_BLOCKS(m_frameHeight, CODECHAL_HEVC_VDENC_MIN_TILE_HEIGHT_SIZE))
     {
         return MOS_STATUS_INVALID_PARAMETER;
     }
