@@ -107,5 +107,5 @@ bs_set_post_target()
 
 if(MEDIA_RUN_TEST_SUITE)
     add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/linux/ult)
-    include(${CMAKE_CURRENT_LIST_DIR}/../media_driver_next/ult/ult_top_cmake_linux.cmake OPTIONAL)
+    include(${CMAKE_CURRENT_LIST_DIR}/../media_driver_next/ult/ult_top_cmake.cmake OPTIONAL)
 endif(MEDIA_RUN_TEST_SUITE)
