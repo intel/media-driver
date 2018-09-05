@@ -457,10 +457,6 @@ void CmBuffer_RT::DumpContent(uint32_t kernelNumber, char *kernelName, int32_t t
 #if MDF_SURFACE_CONTENT_DUMP
     std::ostringstream outputFileName;
     static uint32_t bufferDumpNumber = 0;
-    char               fileNamePrefix[MAX_PATH];
-    std::ofstream      outputFileStream;
-    std::string        logFile;
-
     outputFileName << "t_" << taskId
         << "_k_" << kernelNumber
         << "_" << kernelName
@@ -469,11 +465,8 @@ void CmBuffer_RT::DumpContent(uint32_t kernelNumber, char *kernelName, int32_t t
         <<"_w_"<< m_size
         <<"_"<< bufferDumpNumber;
 
-    GetLogFileLocation(logFile,outputFileName, fileNamePrefix);
-
-    // Open file
-    outputFileStream.open(fileNamePrefix, std::ios::app);
-    CM_ASSERT(outputFileStream);
+    std::ofstream  outputFileStream;
+    outputFileStream.open(outputFileName.str().c_str(), std::ofstream::binary);
 
     if (m_sysMem != nullptr)
     { // Buffer Up
