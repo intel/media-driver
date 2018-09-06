@@ -2187,7 +2187,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS DestroyMDFResources();
+    virtual MOS_STATUS DestroyMDFResources();
 
     //!
     //! \brief  Function to add MDF kernel
