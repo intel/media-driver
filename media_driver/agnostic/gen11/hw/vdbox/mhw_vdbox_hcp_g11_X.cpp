@@ -2513,11 +2513,11 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpTileStateCmd(
         uint32_t i = count;
         uint32_t &CtbColumnMsbValue = ((i << 3) >> 5) == 0 ? cmd.CtbColumnPositionMsb.DW0.Value : cmd.CtbColumnPositionMsb.DW1.Value;
 
-        cmd.CtbColumnPositionOfTileColumn[i].DW0.Ctbpos0I   = colCumulativeValue & 0xFF;//lower 8bits
-        CtbColumnMsbValue                                   = CtbColumnMsbValue |
-                                                              (((colCumulativeValue >> 8) & 0x3) << ((i * 8) + 0));//MSB 2bits
-        if(i < 5)
+        if (i < 5)
         {
+            cmd.CtbColumnPositionOfTileColumn[i].DW0.Ctbpos0I   = colCumulativeValue & 0xFF;//lower 8bits
+            CtbColumnMsbValue                                   = CtbColumnMsbValue |
+                                                                  (((colCumulativeValue >> 8) & 0x3) << ((i * 8) + 0));//MSB 2bits
             if (lastDwEleNum > 1)
             {
                 colCumulativeValue += params->pTileColWidth[4 * i];
