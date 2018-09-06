@@ -30,10 +30,10 @@
 #define __MHW_MMIO_G11_H__
 
 //Common MI
-#define GP_REGISTER0_LO_OFFSET_G11                                                 0x1A600
-#define GP_REGISTER0_HI_OFFSET_G11                                                 0x1A604
-#define GP_REGISTER4_LO_OFFSET_G11                                                 0x1A620
-#define GP_REGISTER4_HI_OFFSET_G11                                                 0x1A624
+#define GP_REGISTER0_LO_OFFSET_G11                                                 0x1C8600
+#define GP_REGISTER0_HI_OFFSET_G11                                                 0x1C8604
+#define GP_REGISTER4_LO_OFFSET_G11                                                 0x1C8620
+#define GP_REGISTER4_HI_OFFSET_G11                                                 0x1C8624
 
 //VEBOX
 #define WATCHDOG_COUNT_CTRL_OFFSET_RCS_G11                                         0x2178
