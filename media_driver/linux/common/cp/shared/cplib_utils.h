@@ -92,7 +92,6 @@ public:
     static const char* CPLIB_PATH;
     static const char* FUNC_GET_CPLIB_MAJOR_VERSION;
     static const char* FUNC_INIT_CPLIB_SYMBOLS;
-    static const char* FUNC_INIT_CPLIB_GMM;
     static const char* FUNC_CREATE_DDICP;
     static const char* FUNC_DELETE_DDICP;
     static const char* FUNC_CREATE_MHWCP;

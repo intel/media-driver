@@ -108,7 +108,7 @@ public:
     uint64_t    GetAuxTableBase();
 
 private:
-    void *m_gmmClientContext = nullptr;     //!<  GMM Client Context for GMM Page table manager
+    GMM_CLIENT_CONTEXT *m_gmmClientContext = nullptr;     //!<  GMM Client Context for GMM Page table manager
     void *m_gmmPageTableMgr = nullptr;      //!<  The GMM Page Table Manager
     bool  m_AuxTable64KAligned = false;     //!<  If Aux Table is 64K aligned or 16K aligned.
 };

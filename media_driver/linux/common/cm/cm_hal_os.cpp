@@ -335,7 +335,7 @@ finish:
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 MOS_STATUS HalCm_GetSurfPitchSize(
-    uint32_t width, uint32_t height, MOS_FORMAT format, uint32_t *pitch, uint32_t *physicalSize)
+    uint32_t width, uint32_t height, MOS_FORMAT format, uint32_t *pitch, uint32_t *physicalSize, PCM_HAL_STATE state)
 {
 
     MOS_STATUS      hr = MOS_STATUS_SUCCESS;
@@ -367,12 +367,18 @@ MOS_STATUS HalCm_GetSurfPitchSize(
     gmmParams.NoGfxMemory    = true;
 
     // get pitch and size
-    gmmResInfo = GmmResCreate( &gmmParams );
+    if (nullptr == state ||
+        nullptr == state->osInterface)
+    {
+        hr = MOS_STATUS_NULL_POINTER;
+        goto finish;
+    }
+    gmmResInfo = state->osInterface->pfnGetGmmClientContext(state->osInterface)->CreateResInfoObject(&gmmParams);
     if (gmmResInfo != nullptr)
     {
         *pitch             = static_cast<uint32_t>( gmmResInfo->GetRenderPitch() );
         *physicalSize      = static_cast<uint32_t>( gmmResInfo->GetSizeSurface() );
-        GmmResFree( gmmResInfo );
+        state->osInterface->pfnGetGmmClientContext(state->osInterface)->DestroyResInfoObject(gmmResInfo);
     }
     else
     {
@@ -395,7 +401,7 @@ MOS_STATUS HalCm_GetSurface2DPitchAndSize_Linux(
 {
     UNUSED(state);
     return HalCm_GetSurfPitchSize(param->width, param->height, param->format,
-                                  &param->pitch, &param->physicalSize);
+                                  &param->pitch, &param->physicalSize, state);
 }
 
 //*-----------------------------------------------------------------------------

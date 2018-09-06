@@ -297,6 +297,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
 
     DDI_CHK_NULL(mediaSurface, "mediaSurface is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
     DDI_CHK_NULL(mediaDrvCtx, "mediaDrvCtx is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
+    DDI_CHK_NULL(mediaDrvCtx->pGmmClientContext, "mediaDrvCtx->pGmmClientContext is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
 
     int32_t size          = 0;
     uint32_t tileformat   = I915_TILING_NONE;
@@ -497,7 +498,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
        
     gmmParams.Flags.Gpu.Video = true;
 
-    mediaSurface->pGmmResourceInfo = gmmResourceInfo = GmmResCreate(&gmmParams);
+    mediaSurface->pGmmResourceInfo = gmmResourceInfo = mediaDrvCtx->pGmmClientContext->CreateResInfoObject(&gmmParams);
 
     if(nullptr == gmmResourceInfo)
     {
@@ -638,6 +639,8 @@ VAStatus DdiMediaUtil_AllocateBuffer(
 {
 
     DDI_CHK_NULL(mediaBuffer, "mediaBuffer is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
+    DDI_CHK_NULL(mediaBuffer->pMediaCtx, "mediaBuffer->pMediaCtx is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
+    DDI_CHK_NULL(mediaBuffer->pMediaCtx->pGmmClientContext, "mediaBuffer->pMediaCtx->pGmmClientContext is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
     if(format >= Media_Format_Count)
        return VA_STATUS_ERROR_INVALID_PARAMETER;
 
@@ -673,12 +676,12 @@ VAStatus DdiMediaUtil_AllocateBuffer(
     gmmParams.Flags.Gpu.Video       = true;
     gmmParams.Flags.Info.Linear     = true;
 
-    mediaBuffer->pGmmResourceInfo = GmmResCreate(&gmmParams);
+    mediaBuffer->pGmmResourceInfo = mediaBuffer->pMediaCtx->pGmmClientContext->CreateResInfoObject(&gmmParams);
 
     DDI_CHK_NULL(mediaBuffer->pGmmResourceInfo, "pGmmResourceInfo is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
-    GmmResOverrideAllocationSize(mediaBuffer->pGmmResourceInfo, mediaBuffer->iSize);
-    GmmResOverrideAllocationBaseWidth(mediaBuffer->pGmmResourceInfo, mediaBuffer->iSize);
-    GmmResOverrideAllocationPitch(mediaBuffer->pGmmResourceInfo, mediaBuffer->iSize);
+    mediaBuffer->pGmmResourceInfo->OverrideSize(mediaBuffer->iSize);
+    mediaBuffer->pGmmResourceInfo->OverrideBaseWidth(mediaBuffer->iSize);
+    mediaBuffer->pGmmResourceInfo->OverridePitch(mediaBuffer->iSize);
 finish:
     return hRes;
 }
@@ -705,6 +708,8 @@ VAStatus DdiMediaUtil_Allocate2DBuffer(
     MOS_BUFMGR                 *bufmgr)
 {
     DDI_CHK_NULL(mediaBuffer, "mediaBuffer is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
+    DDI_CHK_NULL(mediaBuffer->pMediaCtx, "mediaBuffer->pMediaCtx is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
+    DDI_CHK_NULL(mediaBuffer->pMediaCtx->pGmmClientContext, "mediaBuffer->pMediaCtx->pGmmClientContext is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
 
     int32_t  size           = 0;
     uint32_t tileformat     = I915_TILING_NONE;
@@ -726,7 +731,7 @@ VAStatus DdiMediaUtil_Allocate2DBuffer(
     gmmParams.Flags.Info.Linear = true;
     gmmParams.Flags.Gpu.Video   = true;
     GMM_RESOURCE_INFO          *gmmResourceInfo;
-    mediaBuffer->pGmmResourceInfo = gmmResourceInfo = GmmResCreate(&gmmParams);
+    mediaBuffer->pGmmResourceInfo = gmmResourceInfo = mediaBuffer->pMediaCtx->pGmmClientContext->CreateResInfoObject(&gmmParams);
 
     if(nullptr == gmmResourceInfo)
     {
@@ -1059,6 +1064,8 @@ void DdiMediaUtil_FreeSurface(DDI_MEDIA_SURFACE *surface)
 { 
     DDI_CHK_NULL(surface, "nullptr surface", );
     DDI_CHK_NULL(surface->bo, "nullptr surface->bo", );
+    DDI_CHK_NULL(surface->pMediaCtx, "nullptr surface->pMediaCtx", );
+    DDI_CHK_NULL(surface->pMediaCtx->pGmmClientContext, "nullptr surface->pMediaCtx->pGmmClientContext", );
 
     // Unmap Aux mapping if the surface was mapped
     if (surface->pMediaCtx->m_auxTableMgr)
@@ -1089,7 +1096,7 @@ void DdiMediaUtil_FreeSurface(DDI_MEDIA_SURFACE *surface)
 
     if (nullptr != surface->pGmmResourceInfo)
     {
-        GmmResFree(surface->pGmmResourceInfo);
+        surface->pMediaCtx->pGmmClientContext->DestroyResInfoObject(surface->pGmmResourceInfo);
         surface->pGmmResourceInfo = nullptr;
     }
 }
@@ -1099,6 +1106,8 @@ void DdiMediaUtil_FreeSurface(DDI_MEDIA_SURFACE *surface)
 void DdiMediaUtil_FreeBuffer(DDI_MEDIA_BUFFER  *buf)
 {
     DDI_CHK_NULL(buf, "nullptr", );
+    DDI_CHK_NULL(buf->pMediaCtx, "nullptr", );
+    DDI_CHK_NULL(buf->pMediaCtx->pGmmClientContext, "nullptr", );
     // calling sequence checking
     if (buf->bMapped)
     {
@@ -1118,7 +1127,7 @@ void DdiMediaUtil_FreeBuffer(DDI_MEDIA_BUFFER  *buf)
 
     if (nullptr != buf->pGmmResourceInfo)
     {
-        GmmResFree(buf->pGmmResourceInfo);
+        buf->pMediaCtx->pGmmClientContext->DestroyResInfoObject(buf->pGmmResourceInfo);
         buf->pGmmResourceInfo = nullptr;
     }
 }
