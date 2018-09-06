@@ -1001,7 +1001,7 @@ void Linux_Destroy(
         mos_gem_context_destroy(pOsContext->intel_context);
     }
 
-    GmmDeleteClientContext(pOsContext->pGmmClientContext);
+    pOsContext->GmmFuncs.pfnDeleteClientContext(pOsContext->pGmmClientContext);
 
     MOS_FreeMemAndSetNull(pOsContext);
 }
@@ -5821,6 +5821,13 @@ MOS_STATUS Mos_Specific_InitInterface(
         goto finish;
     }
 
+    if (GMM_SUCCESS != OpenGmm(&pOsContext->GmmFuncs))
+    {
+        MOS_OS_ASSERTMESSAGE("Unable to open gmm");
+        eStatus = MOS_STATUS_INVALID_PARAMETER;
+        goto finish;
+    }
+
     pOsContext->intel_context = nullptr;
     if (pOsInterface->modulizedMosEnabled && !Mos_Solo_IsEnabled())
     {
@@ -5851,7 +5858,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     }
     else
     {
-        pOsContext->pGmmClientContext = GmmCreateClientContext((GMM_CLIENT)GMM_LIBVA_LINUX);
+        pOsContext->pGmmClientContext = pOsContext->GmmFuncs.pfnCreateClientContext((GMM_CLIENT)GMM_LIBVA_LINUX);
     }
 
     // Initialize

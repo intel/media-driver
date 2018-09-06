@@ -30,7 +30,6 @@ std::unordered_map<const char*, void*> CPLibUtils::m_symbols;
 void *      CPLibUtils::m_phandle                    = nullptr;
 const char *CPLibUtils::CPLIB_PATH                   = "cplib.so";
 const char *CPLibUtils::FUNC_INIT_CPLIB_SYMBOLS      = "Init_CPLib_Symbols";
-const char *CPLibUtils::FUNC_INIT_CPLIB_GMM          = "Init_CPLib_Gmm";
 const char *CPLibUtils::FUNC_GET_CPLIB_MAJOR_VERSION = "Get_CPLib_Major_Version";
 const char *CPLibUtils::FUNC_CREATE_DDICP            = "Create_DdiCp";
 const char *CPLibUtils::FUNC_DELETE_DDICP            = "Delete_DdiCp";
@@ -58,7 +57,6 @@ bool CPLibUtils::LoadCPLib()
 
         m_symbols[FUNC_GET_CPLIB_MAJOR_VERSION] = dlsym(m_phandle, FUNC_GET_CPLIB_MAJOR_VERSION);
         m_symbols[FUNC_INIT_CPLIB_SYMBOLS]      = dlsym(m_phandle, FUNC_INIT_CPLIB_SYMBOLS);
-        m_symbols[FUNC_INIT_CPLIB_GMM]          = dlsym(m_phandle, FUNC_INIT_CPLIB_GMM);
         m_symbols[FUNC_CREATE_DDICP]            = dlsym(m_phandle, FUNC_CREATE_DDICP);
         m_symbols[FUNC_DELETE_DDICP]            = dlsym(m_phandle, FUNC_DELETE_DDICP);
         m_symbols[FUNC_CREATE_MHWCP]            = dlsym(m_phandle, FUNC_CREATE_MHWCP);
