@@ -328,6 +328,8 @@ public:
     //!
     MOS_STATUS AllocateSurfaceCsc();
 
+    MOS_STATUS ResizeSurfaceDS();
+
     //!
     //! \brief    Allocate DS surface or pick an existing one from the pool
     //!

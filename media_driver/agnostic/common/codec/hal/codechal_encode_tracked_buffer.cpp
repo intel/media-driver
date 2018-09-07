@@ -383,6 +383,125 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateSurfaceCsc()
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS CodechalEncodeTrackedBuffer::ResizeSurfaceDS() {
+
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    //Get the 4x 16x and 32x DS surfaces
+    m_trackedBufCurrDs4x = (MOS_SURFACE*)m_allocator->GetResource(m_standard, ds4xSurface, m_trackedBufCurrIdx);
+
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBufCurrDs4x);
+    
+    if (m_encoder->m_16xMeSupported)
+    {
+        m_trackedBufCurrDs16x = (MOS_SURFACE*)m_allocator->GetResource(m_standard, ds16xSurface, m_trackedBufCurrIdx);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBufCurrDs16x);
+    }
+
+    if (m_encoder->m_32xMeSupported)
+    {
+        m_trackedBufCurrDs32x = (MOS_SURFACE*)m_allocator->GetResource(m_standard, ds32xSurface, m_trackedBufCurrIdx);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBufCurrDs32x);
+    }
+
+    uint32_t downscaledSurfaceWidth4x, downscaledSurfaceHeight4x;
+    uint32_t downscaledSurfaceWidth16x, downscaledSurfaceHeight16x;
+    uint32_t downscaledSurfaceWidth32x, downscaledSurfaceHeight32x;
+    //Get the dimensions of the 4x 16x and 32x surfaces
+    if (m_encoder->m_useCommonKernel)
+    {
+        downscaledSurfaceWidth4x = CODECHAL_GET_4xDS_SIZE_32ALIGNED(m_encoder->m_frameWidth);
+        downscaledSurfaceHeight4x = CODECHAL_GET_4xDS_SIZE_32ALIGNED(m_encoder->m_frameHeight);
+
+        downscaledSurfaceWidth16x = CODECHAL_GET_4xDS_SIZE_32ALIGNED(downscaledSurfaceWidth4x);
+        downscaledSurfaceHeight16x = CODECHAL_GET_4xDS_SIZE_32ALIGNED(downscaledSurfaceHeight4x);
+
+        downscaledSurfaceWidth32x = CODECHAL_GET_2xDS_SIZE_32ALIGNED(downscaledSurfaceWidth16x);
+        downscaledSurfaceHeight32x = CODECHAL_GET_2xDS_SIZE_32ALIGNED(downscaledSurfaceHeight16x);
+    }
+    else
+    {
+        // MB-alignment not required since dataport handles out-of-bound pixel replication, but IME requires this.
+        downscaledSurfaceWidth4x = m_encoder->m_downscaledWidth4x;
+        // Account for field case, offset needs to be 4K aligned if tiled for DI surface state.
+        // Width will be allocated tile Y aligned, so also tile align height.
+        downscaledSurfaceHeight4x = ((m_encoder->m_downscaledHeight4x / CODECHAL_MACROBLOCK_HEIGHT + 1) >> 1) * CODECHAL_MACROBLOCK_HEIGHT;
+        downscaledSurfaceHeight4x = MOS_ALIGN_CEIL(downscaledSurfaceHeight4x, MOS_YTILE_H_ALIGNMENT) << 1;
+
+        downscaledSurfaceWidth16x = m_encoder->m_downscaledWidth16x;
+        downscaledSurfaceHeight16x = ((m_encoder->m_downscaledHeight16x / CODECHAL_MACROBLOCK_HEIGHT + 1) >> 1) * CODECHAL_MACROBLOCK_HEIGHT;
+        downscaledSurfaceHeight16x = MOS_ALIGN_CEIL(downscaledSurfaceHeight16x, MOS_YTILE_H_ALIGNMENT) << 1;
+
+        downscaledSurfaceWidth32x = m_encoder->m_downscaledWidth32x;
+        downscaledSurfaceHeight32x = ((m_encoder->m_downscaledHeight32x / CODECHAL_MACROBLOCK_HEIGHT + 1) >> 1) * CODECHAL_MACROBLOCK_HEIGHT;
+        downscaledSurfaceHeight32x = MOS_ALIGN_CEIL(downscaledSurfaceHeight32x, MOS_YTILE_H_ALIGNMENT) << 1;
+    }
+    
+    bool dsCurr4xAvailable = true;
+    bool dsCurr16xAvailable = true;
+    bool dsCurr32xAvailable = true;
+
+    if ((m_trackedBufCurrDs4x->dwWidth < downscaledSurfaceWidth4x) || (m_trackedBufCurrDs4x->dwHeight < downscaledSurfaceHeight4x))
+    {
+        m_allocator->ReleaseResource(m_standard, ds4xSurface, m_trackedBufCurrIdx);
+        dsCurr4xAvailable = false;
+    }
+
+    if (m_encoder->m_16xMeSupported)
+    {
+        if ((m_trackedBufCurrDs16x->dwWidth < downscaledSurfaceWidth16x) || (m_trackedBufCurrDs16x->dwHeight < downscaledSurfaceHeight16x))
+        {
+            m_allocator->ReleaseResource(m_standard, ds16xSurface, m_trackedBufCurrIdx);
+            dsCurr16xAvailable = false;
+        }
+    }
+
+    if (m_encoder->m_32xMeSupported)
+    {
+        if ((m_trackedBufCurrDs32x->dwWidth < downscaledSurfaceWidth32x) || (m_trackedBufCurrDs32x->dwHeight < downscaledSurfaceHeight32x))
+        {
+            m_allocator->ReleaseResource(m_standard, ds32xSurface, m_trackedBufCurrIdx);
+            dsCurr32xAvailable = false;
+        }
+    }
+
+    if (dsCurr4xAvailable && dsCurr16xAvailable && dsCurr32xAvailable)
+    {
+        //No need to resize
+        return MOS_STATUS_SUCCESS;
+    }
+
+    if (!dsCurr4xAvailable)
+    {
+        // allocating 4x DS surface
+        CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBufCurrDs4x = (MOS_SURFACE*)m_allocator->AllocateResource(
+            m_standard, downscaledSurfaceWidth4x, downscaledSurfaceHeight4x, ds4xSurface, "ds4xSurface", m_trackedBufCurrIdx, false, Format_NV12, MOS_TILE_Y));
+
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, m_trackedBufCurrDs4x));
+    }
+
+    if (m_encoder->m_16xMeSupported && !dsCurr16xAvailable)
+    {
+        CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBufCurrDs16x = (MOS_SURFACE*)m_allocator->AllocateResource(
+            m_standard, downscaledSurfaceWidth16x, downscaledSurfaceHeight16x, ds16xSurface, "ds16xSurface", m_trackedBufCurrIdx, false, Format_NV12, MOS_TILE_Y));
+
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, m_trackedBufCurrDs16x));
+    }
+
+    // allocate 32x DS surface
+    if (m_encoder->m_32xMeSupported && !dsCurr32xAvailable)
+    {
+        CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBufCurrDs32x = (MOS_SURFACE*)m_allocator->AllocateResource(
+            m_standard, downscaledSurfaceWidth32x, downscaledSurfaceHeight32x, ds32xSurface, "ds32xSurface", m_trackedBufCurrIdx, false, Format_NV12, MOS_TILE_Y));
+
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, m_trackedBufCurrDs32x));
+    }
+
+    return eStatus;
+}
+
 MOS_STATUS CodechalEncodeTrackedBuffer::AllocateSurfaceDS()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
