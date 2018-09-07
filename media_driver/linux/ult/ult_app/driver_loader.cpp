@@ -132,7 +132,7 @@ VAStatus DriverDllLoader::LoadDriverSymbols()
         char* pErrorStr = dlerror();
         if(nullptr != pErrorStr)
         {
-            printf("ERROR: %s\n", dlerror());
+            printf("ERROR: %s\n", pErrorStr);
         }
         return VA_STATUS_ERROR_UNKNOWN;
     }
