@@ -4564,7 +4564,7 @@ MOS_STATUS CodechalVdencHevcStateG11::SetDmemHuCPakIntegrate(
     lockFlagsWriteOnly.WriteOnly = true;
 
     int32_t currentPass = GetCurrentPass();
-    if (currentPass < 0 || currentPass >= CODECHAL_HEVC_MAX_NUM_BRC_PASSES)
+    if (currentPass < 0 || currentPass >= CODECHAL_VDENC_BRC_NUM_OF_PASSES)
     {
         eStatus = MOS_STATUS_INVALID_PARAMETER;
         return eStatus;
