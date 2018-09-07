@@ -36,24 +36,25 @@ GmmLib - https://github.com/intel/gmmlib (please check https://github.com/intel/
 ## Building
 
 1. Build and install libva master
-2. Get media repo and format the workspace folder as below (suggest the workspace to be a dedicated one for media driver build):
+2. Build and install gmmlib master
+3. Get media repo and format the workspace folder as below (suggest the workspace to be a dedicated one for media driver build):
 ```
 <workspace>
     |- media-driver
 ```
-3. 
+4. 
 ```
 $ mkdir <workspace>/build_media
 ```
-4. 
+5. 
 ```
 $ cd <workspace>/build_media
 ```
-5. 
+6. 
 ```
 $ cmake ../media-driver
 ```
-6. 
+7. 
 ```
 $ make -j8
 ```
