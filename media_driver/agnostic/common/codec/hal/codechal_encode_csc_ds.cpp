@@ -1201,6 +1201,14 @@ MOS_STATUS CodechalEncodeCscDs::CscKernel(
     if (m_scalingEnabled)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_trackedBuf->AllocateSurfaceDS());
+        if (m_standard == CODECHAL_VP9)
+        {
+            auto seqParams = (PCODEC_VP9_ENCODE_SEQUENCE_PARAMS)(m_encoder->m_encodeParams.pSeqParams);
+            CODECHAL_ENCODE_CHK_NULL_RETURN(seqParams);
+            if (seqParams->SeqFlags.fields.EnableDynamicScaling) {
+                m_encoder->m_trackedBuf->ResizeSurfaceDS();
+            }
+        }
     }
 
     if (m_2xScalingEnabled)
@@ -1370,6 +1378,14 @@ MOS_STATUS CodechalEncodeCscDs::DsKernel(
     if (m_scalingEnabled)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_trackedBuf->AllocateSurfaceDS());
+        if (m_standard == CODECHAL_VP9)
+        {
+            auto seqParams = (PCODEC_VP9_ENCODE_SEQUENCE_PARAMS)(m_encoder->m_encodeParams.pSeqParams);
+            CODECHAL_ENCODE_CHK_NULL_RETURN(seqParams);
+            if (seqParams->SeqFlags.fields.EnableDynamicScaling) {
+                m_encoder->m_trackedBuf->ResizeSurfaceDS();
+            }
+        }
     }
 
     if (m_2xScalingEnabled)
