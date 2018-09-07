@@ -3311,7 +3311,8 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
                 // The max value is 16383. So use PL3 kernel to avoid out of range when Y_Uoffset is larger than 16383.
                 // Use PL3 plane to avoid YV12 bleeding issue with DI enabled
                 PlaneDefinition = (pRenderHal->bEnableYV12SinglePass                              &&
-                                   (!pRenderHalSurface->pDeinterlaceParams)                       &&
+                                   !pRenderHalSurface->pDeinterlaceParams                         &&
+                                   !pRenderHalSurface->bInterlacedScaling                         &&
                                    pRenderHalSurface->SurfType != RENDERHAL_SURF_OUT_RENDERTARGET &&
                                    (pSurface->dwHeight * 2 + pSurface->dwHeight / 2) < RENDERHAL_MAX_YV12_PLANE_Y_U_OFFSET_G9)?
                                    RENDERHAL_PLANES_YV12 : RENDERHAL_PLANES_PL3;

@@ -6103,7 +6103,8 @@ bool CompositeState::BuildFilter(
             (pSrc->bIEF        != true)                  &&
             (pSrc->SurfType    != SURF_OUT_RENDERTARGET) &&
             m_pRenderHal->bEnableYV12SinglePass          &&
-            (!pSrc->pDeinterlaceParams)                  &&
+            !pSrc->pDeinterlaceParams                    &&
+            !pSrc->bInterlacedScaling                    &&
             ((pSrc->dwHeight * 2 + pSrc->dwHeight / 2) < RENDERHAL_MAX_YV12_PLANE_Y_U_OFFSET_G9))
         {
             pFilter->format = Format_YV12_Planar;
