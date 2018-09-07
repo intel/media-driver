@@ -2570,7 +2570,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpTileStateCmd(
     {
         uint32_t i = count;
         uint32_t &CtbRowMsbValue = ((i << 3) >> 5) == 0 ? cmd.CtbRowPositionMsb.DW0.Value : cmd.CtbRowPositionMsb.DW1.Value;
-        if(i < 5)
+        if(i < 6)
         {
             cmd.CtbRowPositionOfTileRow[i].DW0.Ctbpos0I = rowCumulativeValue & 0xFF;//lower 8bits
             CtbRowMsbValue                              = CtbRowMsbValue |
