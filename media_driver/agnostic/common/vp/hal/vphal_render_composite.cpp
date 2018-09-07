@@ -6224,7 +6224,14 @@ bool CompositeState::BuildFilter(
                 pSrc->Format == Format_Y410        ||
                 pSrc->Format == Format_Y416)
             {
-                pFilter->sampler = Sample_Scaling_034x;
+                // Not support Dscale+rotation for sublayer
+                if (pSrc->SurfType == SURF_IN_SUBSTREAM && pSrc->Rotation != VPHAL_ROTATION_IDENTITY)
+                {
+                    pFilter->sampler = Sample_Scaling;
+                }else
+                {
+                    pFilter->sampler = Sample_Scaling_034x;
+                }
             }
             else
             {
