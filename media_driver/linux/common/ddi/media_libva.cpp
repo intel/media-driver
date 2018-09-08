@@ -3926,11 +3926,17 @@ VAStatus DdiMedia_CreateImage(
             vaimg->offsets[2] = vaimg->offsets[1] + gmmPitch * gmmHeight;
             break;
         case VA_FOURCC_422H:
-        case VA_FOURCC_422V:
             vaimg->format.bits_per_pixel = 16;
             vaimg->num_planes = 3;
             vaimg->pitches[0] = gmmPitch;
             vaimg->pitches[1] = vaimg->pitches[2] = gmmPitch / 2;
+            vaimg->offsets[1] = gmmPitch * gmmHeight;
+            vaimg->offsets[2] = vaimg->offsets[1] + gmmPitch * gmmHeight / 2;
+            break;
+        case VA_FOURCC_422V:
+            vaimg->format.bits_per_pixel = 16;
+            vaimg->num_planes = 3;
+            vaimg->pitches[0] = vaimg->pitches[1] = vaimg->pitches[2] = gmmPitch;
             vaimg->offsets[1] = gmmPitch * gmmHeight;
             vaimg->offsets[2] = vaimg->offsets[1] + gmmPitch * gmmHeight / 2;
             break;
