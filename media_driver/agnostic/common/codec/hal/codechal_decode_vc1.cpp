@@ -3647,24 +3647,28 @@ MOS_STATUS CodechalDecodeVc1::DecodePrimitiveLevelVLD()
 
             CodechalResLock ResourceLock(m_osInterface, &m_resDataBuffer);
             auto buf = (uint8_t*)ResourceLock.Lock(CodechalResLock::readOnly);
-            if (offset >= 1 && buf != nullptr &&
+            buf += slc->slice_data_offset;
+            if (offset > 3 && buf != nullptr &&
                 m_vc1PicParams->sequence_fields.AdvancedProfileFlag)
             {
                 int i = 0;
                 int j = 0;
-                for ( i = 0, j = 0; i < offset - 1; i++, j++)
+                for (i = 0, j = 0; i < offset - 1; i++, j++)
+                {
                     if (!buf[j] && !buf[j + 1] && buf[j + 2] == 3 && buf[j + 3] < 4)
+                    {
                         i++, j += 2;
-
-                if (i == offset - 1) {
-                    if (!buf[j] && !buf[j + 1] && buf[j + 2] == 3 && buf[j + 3] < 4) {
+                    }
+                }
+                if (i == offset - 1)
+                {
+                    if (!buf[j] && !buf[j + 1] && buf[j + 2] == 3 && buf[j + 3] < 4)
+                    {
                         buf[j + 2] = 0;
                         j++;
                     }
-
                     j++;
                 }
-
                 offset = (8 * j + slc->macroblock_offset % 8)>>3;
             }
 
