@@ -28,6 +28,7 @@
 #include "codechal_decoder.h"
 #include "codechal_decode_scalability.h"
 #include "mos_util_user_interface.h"
+#include "mos_solo_generic.h"
 
 
 //!
@@ -1083,7 +1084,7 @@ MOS_STATUS CodecHalDecodeScalability_DecidePipeNum(
 
     pVEInterface = pScalState->pVEInterface;
 
-    pScalState->ucScalablePipeNum  = CODECHAL_DECODE_HCP_Legacy_PIPE_NUM_1;
+    pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_Legacy_PIPE_NUM_1;
     if (pInitParams->usingSFC)
     {
         //using SFC can only work in single pipe mode.
@@ -1093,39 +1094,70 @@ MOS_STATUS CodecHalDecodeScalability_DecidePipeNum(
 #if (_DEBUG || _RELEASE_INTERNAL)
     if (pScalState->bAlwaysFrameSplit)
     {
-        if (pScalState->ucNumVdbox == 2)
+        if (pScalState->ucNumVdbox != 1)
         {
-            pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2;
-        }
-        else
-        {
-            CODECHAL_DECODE_ASSERTMESSAGE("Decode scalability only support platform with 2 Vdbox for now.");
-            return MOS_STATUS_INVALID_PARAMETER;
+            if (pScalState->ucNumVdbox == 2)
+            {
+                pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2;
+            }
+            else
+            {
+                pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_RESERVED;
+            }
         }
     }
     else
 #endif
     {
-        if (pScalState->ucNumVdbox == 2)
+        if (pScalState->ucNumVdbox != 1)
         {
-            if (pScalState->dwHcpDecModeSwtichTh1Width != 0)
+            if (pScalState->ucNumVdbox == 2)
             {
-                if (pInitParams->u32PicWidthInPixel >= pScalState->dwHcpDecModeSwtichTh1Width)
+                if (pScalState->dwHcpDecModeSwtichTh1Width != 0)
                 {
-                    pScalState->ucScalablePipeNum   = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2;
+                    if (pInitParams->u32PicWidthInPixel >= pScalState->dwHcpDecModeSwtichTh1Width)
+                    {
+                        pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2;
+                    }
+                }
+                else if (pInitParams->u32PicWidthInPixel * pInitParams->u32PicHeightInPixel >= CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD1_WIDTH * CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD1_HEIGHT)
+                {
+                    pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2;
+                }
+
+                if (pScalState->bIsEvenSplit == false)
+                {
+                    // disable scalability for clips with width less than split condition when MMC is on
+                    if (pInitParams->u32PicWidthInPixel <= CODEC_SCALABILITY_FIRST_TILE_WIDTH_4K)
+                    {
+                        pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_Legacy_PIPE_NUM_1;
+                    }
                 }
             }
-            else if (pInitParams->u32PicWidthInPixel * pInitParams->u32PicHeightInPixel >= CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD1_WIDTH * CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD1_HEIGHT)
+            else
             {
-                pScalState->ucScalablePipeNum   = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2;
-            }
-
-            if (pScalState->bIsEvenSplit == false)
-            {
-                // disable scalability for clips with width less than split condition when MMC is on
-                if (pInitParams->u32PicWidthInPixel <= CODEC_SCALABILITY_FIRST_TILE_WIDTH_4K)
+                if (pScalState->dwHcpDecModeSwtichTh1Width != 0 &&
+                    pScalState->dwHcpDecModeSwtichTh2Width != 0)
                 {
-                    pScalState->ucScalablePipeNum   = CODECHAL_DECODE_HCP_Legacy_PIPE_NUM_1;
+                    if (pInitParams->u32PicWidthInPixel >= pScalState->dwHcpDecModeSwtichTh2Width)
+                    {
+                        pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_RESERVED;
+                    }
+                    else if (pInitParams->u32PicWidthInPixel >= pScalState->dwHcpDecModeSwtichTh1Width)
+                    {
+                        pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2;
+                    }
+                }
+                else
+                {
+                    if (pInitParams->u32PicWidthInPixel * pInitParams->u32PicHeightInPixel >= CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD2_WIDTH * CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD2_HEIGHT)
+                    {
+                        pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_RESERVED;
+                    }
+                    else if (pInitParams->u32PicWidthInPixel * pInitParams->u32PicHeightInPixel >= CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD1_WIDTH * CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD1_HEIGHT)
+                    {
+                        pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2;
+                    }
                 }
             }
         }
@@ -1149,16 +1181,19 @@ MOS_STATUS CodechalDecodeScalability_MapPipeNumToLRCACount(
 
     switch (pScalState->ucScalablePipeNum)
     {
-        case CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2:
-            // on GT2 or debug override enabled, FE separate submission = false, FE run on the same engine of BEs;
-            // on GT3, FE separate submission = true, scalability submission includes only BEs.
-            *LRCACount = 2;
-            break;
-        case CODECHAL_DECODE_HCP_Legacy_PIPE_NUM_1:
-            *LRCACount = 1;
-            break;
-        default:
-            CODECHAL_DECODE_ASSERTMESSAGE("invalid pipe number.")
+    case CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_RESERVED:
+        *LRCACount = pScalState->bFESeparateSubmission ? 3 : 4;
+        break;
+    case CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2:
+        // on GT2 or debug override enabled, FE separate submission = false, FE run on the same engine of BEs;
+        // on GT3, FE separate submission = true, scalability submission includes only BEs.
+        *LRCACount = 2;
+        break;
+    case CODECHAL_DECODE_HCP_Legacy_PIPE_NUM_1:
+        *LRCACount = 1;
+        break;
+    default:
+        CODECHAL_DECODE_ASSERTMESSAGE("invalid pipe number.")
             return MOS_STATUS_INVALID_PARAMETER;
     }
 
@@ -1265,12 +1300,19 @@ MOS_STATUS CodechalDecodeScalability_DebugOvrdDecidePipeNum(
     // debug override for virtual tile
     if (pVEInterface->ucEngineCount == 1)
     {
-        pScalState->ucScalablePipeNum   = CODECHAL_DECODE_HCP_Legacy_PIPE_NUM_1;
+        pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_Legacy_PIPE_NUM_1;
     }
     else if (pVEInterface->ucEngineCount == 2)
     {
         //engine count = 2, only support FE run on the same engine as one of BE for now.
-        pScalState->ucScalablePipeNum   = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2;
+        pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2;
+    }
+    else if (pVEInterface->ucEngineCount == 4 &&
+        pVEInterface->EngineLogicId[3] != pVEInterface->EngineLogicId[0] &&
+        pVEInterface->EngineLogicId[3] != pVEInterface->EngineLogicId[1] &&
+        pVEInterface->EngineLogicId[3] != pVEInterface->EngineLogicId[2])
+    {
+        pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_RESERVED;
     }
     else
     {
@@ -1889,7 +1931,7 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState (
     }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    if (osInterface->bEnableDbgOvrdInVE)
+    if (osInterface->bEnableDbgOvrdInVE || Mos_Solo_IsInUse(osInterface))
     {
         //if DbgOverride is enabled, FE separate submission is not supported
         pScalabilityState->bFESeparateSubmission = false;
