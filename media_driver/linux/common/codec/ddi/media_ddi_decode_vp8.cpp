@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2017, Intel Corporation
+* Copyright (c) 2015-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -87,9 +87,8 @@ VAStatus DdiDecodeVP8::ParseSliceParams(
     picParams->uiFirstMbByteOffset = slcParam->slice_data_offset + ((slcParam->macroblock_offset + 8) >> 3);
 
     memcpy(picParams->uiPartitionSize, slcParam->partition_size, sizeof(picParams->uiPartitionSize));
-
     //partition 0 size in command buffer includes the one byte in bool decoder if remaining bits of bool decoder is not zero.
-    picParams->uiPartitionSize[0] += (slcParam->macroblock_offset & 0x7) ? 1 : 0;
+    picParams->uiPartitionSize[0] -= (slcParam->macroblock_offset & 0x7) ? 0 : 1;
 
     return VA_STATUS_SUCCESS;
 }
