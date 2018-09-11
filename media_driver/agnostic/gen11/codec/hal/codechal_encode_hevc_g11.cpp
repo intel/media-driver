@@ -3119,13 +3119,14 @@ MOS_STATUS CodechalEncHevcStateG11::Initialize(CodechalSetting * settings)
         __MEDIA_USER_FEATURE_VALUE_HEVC_VME_BRC_LTR_INTERVAL_ID,
         &userFeatureData);
     m_ltrInterval = (uint32_t)(userFeatureData.i32Data);
-#endif
+
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
-        __MEDIA_USER_FEATURE_VALUE_HEVC_VME_BRC_LTR_ENABLE_ID,
+        __MEDIA_USER_FEATURE_VALUE_HEVC_VME_BRC_LTR_DISABLE_ID,
         &userFeatureData);
-    m_enableBrcLTR = (userFeatureData.i32Data) ? true : false; 
+    m_enableBrcLTR = (userFeatureData.i32Data) ? false : true;
+#endif
 
      if (m_codecFunction != CODECHAL_FUNCTION_PAK)
      {
