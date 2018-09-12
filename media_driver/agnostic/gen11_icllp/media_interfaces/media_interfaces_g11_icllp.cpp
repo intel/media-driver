@@ -510,7 +510,8 @@ MOS_STATUS CMHalInterfacesG11Icllp::Initialize(CM_HAL_STATE *pCmState)
     m_cmhalDevice->SetGenPlatformInfo(PLATFORM_INTEL_ICLLP, PLATFORM_INTEL_GT2, "ICLLP");
     uint32_t cisaID = GENX_ICLLP;
     m_cmhalDevice->AddSupportedCisaIDs(&cisaID);
-    m_cmhalDevice->EnableSliceShutdown(true);
+    m_cmhalDevice->SetOverridePowerOptionPerGpuContext(true);
+    m_cmhalDevice->SetRequestShutdownSubslicesForVmeUsage(true);
     return MOS_STATUS_SUCCESS;
 }
 
