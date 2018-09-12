@@ -7697,7 +7697,7 @@ MOS_STATUS HalCm_SetupStatesForKernelInitial(
                 kernelParam->totalCurbeSize);
         }
 
-        if ((vmeUsed == true) && state->cmHalInterface->IsSliceShutdownEnabled())
+        if ((vmeUsed == true) && state->cmHalInterface->IsRequestShutdownSubslicesForVmeUsage())
         {
             CM_CHK_MOSSTATUS(state->pfnGetPlatformInfo(state, &platformInfo, true));
             CM_POWER_OPTION  cmPower;
