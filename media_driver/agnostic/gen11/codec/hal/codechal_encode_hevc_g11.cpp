@@ -3125,7 +3125,7 @@ MOS_STATUS CodechalEncHevcStateG11::Initialize(CodechalSetting * settings)
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_HEVC_VME_BRC_LTR_DISABLE_ID,
         &userFeatureData);
-    m_enableBrcLTR = (userFeatureData.i32Data) ? false : true;
+    m_enableBrcLTR = (userFeatureData.i32Data) ? false : false;
 #endif
 
      if (m_codecFunction != CODECHAL_FUNCTION_PAK)
