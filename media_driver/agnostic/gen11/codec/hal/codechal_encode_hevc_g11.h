@@ -1179,7 +1179,7 @@ public:
     uint32_t                m_threadTaskBufferSize = 0;
     uint32_t                m_threadTaskBufferOffset = 0;
     bool                    m_initEncConstTable = true;
-    bool                    m_enableBrcLTR = 1;  //!< flag to enable long term reference BRC feature.
+    bool                    m_enableBrcLTR = 0;  //!< flag to enable long term reference BRC feature.
     bool                    m_isFrameLTR = 0;    //!<flag to check if current frame is set as long term reference
     uint32_t                m_ltrInterval = 0;   //!< long term reference interval
 
