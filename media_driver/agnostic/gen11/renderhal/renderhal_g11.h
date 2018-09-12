@@ -30,10 +30,11 @@
 #include "renderhal_platform_interface.h"
 #include "mhw_render_hwcmd_g11_X.h" 
 #include "mhw_state_heap_hwcmd_g11_X.h"
+#include "mhw_render_g11_X.h"
 
 typedef struct _RENDERHAL_GENERIC_PROLOG_PARAMS_G11 : _RENDERHAL_GENERIC_PROLOG_PARAMS
 {
-    MOS_VIRTUALENGINE_HINT_PARAMS          VEngineHintParams;
+    MOS_VIRTUALENGINE_HINT_PARAMS          VEngineHintParams = {{0}, 0, {{0},{0},{0},{0}}, {0,0,0,0}};
 }RENDERHAL_GENERIC_PROLOG_PARAMS_G11, *PRENDERHAL_GENERIC_PROLOG_PARAMS_G11;
 
 //! \brief      for Gen11 VP and MDF

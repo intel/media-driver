@@ -1059,11 +1059,11 @@ typedef struct _RENDERHAL_SURFACE_STATE_ENTRY
 //!
 typedef struct _RENDERHAL_GENERIC_PROLOG_PARAMS
 {
-    bool                            bMmcEnabled;
-    bool                            bEnableMediaFrameTracking;
-    uint32_t                        dwMediaFrameTrackingTag;
-    uint32_t                        dwMediaFrameTrackingAddrOffset;
-    PMOS_RESOURCE                   presMediaFrameTrackingSurface;
+    bool                            bMmcEnabled = 0;
+    bool                            bEnableMediaFrameTracking = 0;
+    uint32_t                        dwMediaFrameTrackingTag = 0;
+    uint32_t                        dwMediaFrameTrackingAddrOffset = 0;
+    PMOS_RESOURCE                   presMediaFrameTrackingSurface = nullptr;
 } RENDERHAL_GENERIC_PROLOG_PARAMS, *PRENDERHAL_GENERIC_PROLOG_PARAMS;
 
 //!
