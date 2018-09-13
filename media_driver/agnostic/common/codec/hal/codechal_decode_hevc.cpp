@@ -1481,7 +1481,6 @@ MOS_STATUS CodechalDecodeHevc::AddPictureS2LCmds(
 
     // Pipe mode select
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams;
-    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode               = m_mode;
     pipeModeSelectParams.bStreamOutEnabled  = m_streamOutEnabled;
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_hucInterface->AddHucPipeModeSelectCmd(
@@ -1575,12 +1574,12 @@ MOS_STATUS CodechalDecodeHevc::InitPicLongFormatMhwParams()
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     // Reset all pic Mhw Params
-    MOS_ZeroMemory(m_picMhwParams.PipeModeSelectParams, sizeof(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS ));
+    *m_picMhwParams.PipeModeSelectParams = {};
+    *m_picMhwParams.PipeBufAddrParams = {};
+    *m_picMhwParams.HevcPicState = {};
     MOS_ZeroMemory(m_picMhwParams.SurfaceParams,        sizeof(MHW_VDBOX_SURFACE_PARAMS          ));
-    MOS_ZeroMemory(m_picMhwParams.PipeBufAddrParams,    sizeof(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS    ));
     MOS_ZeroMemory(m_picMhwParams.IndObjBaseAddrParams, sizeof(MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS));
     MOS_ZeroMemory(m_picMhwParams.QmParams,             sizeof(MHW_VDBOX_QM_PARAMS               ));
-    MOS_ZeroMemory(m_picMhwParams.HevcPicState,         sizeof(MHW_VDBOX_HEVC_PIC_STATE          ));
     MOS_ZeroMemory(m_picMhwParams.HevcTileState,        sizeof(MHW_VDBOX_HEVC_TILE_STATE         ));
 
     PMOS_SURFACE destSurface = nullptr;
@@ -2166,7 +2165,6 @@ MOS_STATUS CodechalDecodeHevc::DecodePrimitiveLevel()
     {
         // Setup static slice state parameters
         MHW_VDBOX_HEVC_SLICE_STATE hevcSliceState;
-        MOS_ZeroMemory(&hevcSliceState, sizeof(hevcSliceState));
         hevcSliceState.presDataBuffer = m_copyDataBufferInUse ? &m_resCopyDataBuffer : &m_resDataBuffer;
         hevcSliceState.pHevcPicParams = m_hevcPicParams;
         hevcSliceState.pRefIdxMapping = &m_refIdxMapping[0];
@@ -2554,7 +2552,6 @@ MOS_STATUS CodechalDecodeHevc::AllocateStandard (
     }
 
     MHW_VDBOX_STATE_CMDSIZE_PARAMS stateCmdSizeParams;
-    MOS_ZeroMemory(&stateCmdSizeParams, sizeof(stateCmdSizeParams));
     stateCmdSizeParams.bShortFormat    = m_shortFormatInUse;
     stateCmdSizeParams.bHucDummyStream = (m_secureDecoder ? m_secureDecoder->IsDummyStreamEnabled() : false);
 
@@ -2583,12 +2580,9 @@ MOS_STATUS CodechalDecodeHevc::AllocateStandard (
     m_picMhwParams.HevcPicState         = MOS_New(MHW_VDBOX_HEVC_PIC_STATE);
     m_picMhwParams.HevcTileState        = MOS_New(MHW_VDBOX_HEVC_TILE_STATE);
 
-    MOS_ZeroMemory(m_picMhwParams.PipeModeSelectParams, sizeof(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS));
     MOS_ZeroMemory(m_picMhwParams.SurfaceParams, sizeof(MHW_VDBOX_SURFACE_PARAMS));
-    MOS_ZeroMemory(m_picMhwParams.PipeBufAddrParams, sizeof(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS));
     MOS_ZeroMemory(m_picMhwParams.IndObjBaseAddrParams, sizeof(MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS));
     MOS_ZeroMemory(m_picMhwParams.QmParams, sizeof(MHW_VDBOX_QM_PARAMS));
-    MOS_ZeroMemory(m_picMhwParams.HevcPicState, sizeof(MHW_VDBOX_HEVC_PIC_STATE));
     MOS_ZeroMemory(m_picMhwParams.HevcTileState, sizeof(MHW_VDBOX_HEVC_TILE_STATE));
 
     return eStatus;

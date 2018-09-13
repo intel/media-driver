@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -212,41 +212,43 @@ enum SLICE_THRESHOLD_TABLE_MODE
     USE_SLICE_THRESHOLD_TABLE_90_PERCENT = 2
 };
 
-typedef struct _MHW_VDBOX_PIPE_MODE_SELECT_PARAMS
+struct MHW_VDBOX_PIPE_MODE_SELECT_PARAMS
 {
-    uint32_t                    Mode;
-    bool                        bStreamOutEnabled;
-    bool                        bShortFormatInUse;
-    bool                        bVC1OddFrameHeight;
-    bool                        pakFrmLvlStrmoutEnable;
-    bool                        pakPiplnStrmoutEnabled;
+    uint32_t                    Mode = 0;
+    bool                        bStreamOutEnabled = false;
+    bool                        bShortFormatInUse = false;
+    bool                        bVC1OddFrameHeight = false;
+    bool                        pakFrmLvlStrmoutEnable = false;
+    bool                        pakPiplnStrmoutEnabled = false;
 
-    bool                        bDeblockerStreamOutEnable;
-    bool                        bPostDeblockOutEnable;
-    bool                        bPreDeblockOutEnable;
-    bool                        bDynamicSliceEnable;
-    bool                        bSaoFirstPass;
-    bool                        bRdoqEnable;
+    bool                        bDeblockerStreamOutEnable = false;
+    bool                        bPostDeblockOutEnable = false;
+    bool                        bPreDeblockOutEnable = false;
+    bool                        bDynamicSliceEnable = false;
+    bool                        bSaoFirstPass = false;
+    bool                        bRdoqEnable = false;
 
     // VDEnc specific
-    bool                        bVdencEnabled;
-    bool                        bVdencStreamInEnable;
-    uint8_t                     ucVdencBitDepthMinus8;
-    bool                        bPakThresholdCheckEnable;
-    bool                        bVdencPakObjCmdStreamOutEnable;
-    bool                        bBatchBufferInUse;
-    bool                        bTlbPrefetchEnable;
-    PMHW_BATCH_BUFFER           pBatchBuffer;
-    uint32_t                    ChromaType;
-    MOS_FORMAT                  Format;
+    bool                        bVdencEnabled = false;
+    bool                        bVdencStreamInEnable = false;
+    uint8_t                     ucVdencBitDepthMinus8 = 0;
+    bool                        bPakThresholdCheckEnable = false;
+    bool                        bVdencPakObjCmdStreamOutEnable = false;
+    bool                        bBatchBufferInUse = false;
+    bool                        bTlbPrefetchEnable = 0;
+    PMHW_BATCH_BUFFER           pBatchBuffer = nullptr;
+    uint32_t                    ChromaType = 0;
+    MOS_FORMAT                  Format = {};
 
     // HuC specific
-    uint32_t                    dwMediaSoftResetCounterValue;
-    bool                        bAdvancedRateControlEnable;
-    bool                        bStreamObjectUsed;
+    uint32_t                    dwMediaSoftResetCounterValue = 0;
+    bool                        bAdvancedRateControlEnable = false;
+    bool                        bStreamObjectUsed = false;
     // No need to set protection settings
-    bool                        disableProtectionSetting;
-} MHW_VDBOX_PIPE_MODE_SELECT_PARAMS, *PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS;
+    bool                        disableProtectionSetting = false;
+    virtual ~MHW_VDBOX_PIPE_MODE_SELECT_PARAMS() {}
+};
+using PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS = MHW_VDBOX_PIPE_MODE_SELECT_PARAMS * ;
 
 typedef struct _MHW_VDBOX_SURFACE_PARAMS
 {
@@ -269,75 +271,77 @@ typedef struct _MHW_VDBOX_SURFACE_PARAMS
     uint8_t                     mmcSkipMask;
 } MHW_VDBOX_SURFACE_PARAMS, *PMHW_VDBOX_SURFACE_PARAMS;
 
-typedef struct _MHW_VDBOX_PIPE_BUF_ADDR_PARAMS
+struct MHW_VDBOX_PIPE_BUF_ADDR_PARAMS
 {
-    uint32_t                    Mode;
-    PMOS_SURFACE                psPreDeblockSurface;                            // Pointer to MOS_SURFACE of render surface
-    MOS_MEMCOMP_STATE           PreDeblockSurfMmcState;
-    PMOS_SURFACE                psPostDeblockSurface;                           // Pointer to MOS_SURFACE of render surface
-    MOS_MEMCOMP_STATE           PostDeblockSurfMmcState;
-    PMOS_SURFACE                psRawSurface;                                   // Pointer to MOS_SURFACE of raw surface
-    MOS_MEMCOMP_STATE           RawSurfMmcState;
-    PMOS_SURFACE                ps4xDsSurface;
-    MOS_MEMCOMP_STATE           Ps4xDsSurfMmcState;
-    PMOS_SURFACE                ps8xDsSurface;
-    MOS_MEMCOMP_STATE           Ps8xDsSurfMmcState;
-    PMOS_RESOURCE               presDataBuffer;                                 // Handle of residual difference surface
-    PMOS_RESOURCE               presReferences[CODEC_MAX_NUM_REF_FRAME];
-    PMOS_RESOURCE               presMfdIntraRowStoreScratchBuffer;              // Handle of MFD Intra Row Store Scratch data surface
-    PMOS_RESOURCE               presMfdDeblockingFilterRowStoreScratchBuffer;   // Handle of MFD Deblocking Filter Row Store Scratch data surface
-    PMOS_RESOURCE               presStreamOutBuffer;
-    MOS_MEMCOMP_STATE           StreamOutBufMmcState;
-    PMOS_RESOURCE               presMacroblockIldbStreamOutBuffer1;
-    PMOS_RESOURCE               presMacroblockIldbStreamOutBuffer2;
-    PMOS_RESOURCE               presSliceSizeStreamOutBuffer;
+    uint32_t                    Mode = 0;
+    PMOS_SURFACE                psPreDeblockSurface = nullptr;                            // Pointer to MOS_SURFACE of render surface
+    MOS_MEMCOMP_STATE           PreDeblockSurfMmcState = MOS_MEMCOMP_DISABLED;
+    PMOS_SURFACE                psPostDeblockSurface = nullptr;                           // Pointer to MOS_SURFACE of render surface
+    MOS_MEMCOMP_STATE           PostDeblockSurfMmcState = MOS_MEMCOMP_DISABLED;
+    PMOS_SURFACE                psRawSurface = nullptr;                                   // Pointer to MOS_SURFACE of raw surface
+    MOS_MEMCOMP_STATE           RawSurfMmcState = MOS_MEMCOMP_DISABLED;
+    PMOS_SURFACE                ps4xDsSurface = nullptr;
+    MOS_MEMCOMP_STATE           Ps4xDsSurfMmcState = MOS_MEMCOMP_DISABLED;
+    PMOS_SURFACE                ps8xDsSurface = nullptr;
+    MOS_MEMCOMP_STATE           Ps8xDsSurfMmcState = MOS_MEMCOMP_DISABLED;
+    PMOS_RESOURCE               presDataBuffer = nullptr;                                 // Handle of residual difference surface
+    PMOS_RESOURCE               presReferences[CODEC_MAX_NUM_REF_FRAME] = {};
+    PMOS_RESOURCE               presMfdIntraRowStoreScratchBuffer = nullptr;              // Handle of MFD Intra Row Store Scratch data surface
+    PMOS_RESOURCE               presMfdDeblockingFilterRowStoreScratchBuffer = nullptr;   // Handle of MFD Deblocking Filter Row Store Scratch data surface
+    PMOS_RESOURCE               presStreamOutBuffer = nullptr;
+    MOS_MEMCOMP_STATE           StreamOutBufMmcState = MOS_MEMCOMP_DISABLED;
+    PMOS_RESOURCE               presMacroblockIldbStreamOutBuffer1 = nullptr;
+    PMOS_RESOURCE               presMacroblockIldbStreamOutBuffer2 = nullptr;
+    PMOS_RESOURCE               presSliceSizeStreamOutBuffer = nullptr;
 
-    PMOS_RESOURCE               presVdencIntraRowStoreScratchBuffer;            // For VDEnc, Handle of VDEnc Intra Row Store Scratch data surface
-    PMOS_RESOURCE               presVdencTileRowStoreBuffer;
-    PMOS_RESOURCE               presVdencStreamOutBuffer;
-    PMOS_RESOURCE               presVdencCuObjStreamOutBuffer;
-    PMOS_RESOURCE               presVdencPakObjCmdStreamOutBuffer;
-    PMOS_RESOURCE               presVdencStreamInBuffer;
-    PMOS_RESOURCE               presVdencReferences[CODEC_MAX_NUM_REF_FRAME];
-    PMOS_RESOURCE               presVdenc4xDsSurface[CODEC_MAX_NUM_REF_FRAME];
-    PMOS_RESOURCE               presVdenc8xDsSurface[CODEC_MAX_NUM_REF_FRAME];
+    PMOS_RESOURCE               presVdencIntraRowStoreScratchBuffer = nullptr;            // For VDEnc, Handle of VDEnc Intra Row Store Scratch data surface
+    PMOS_RESOURCE               presVdencTileRowStoreBuffer = nullptr;
+    PMOS_RESOURCE               presVdencStreamOutBuffer = nullptr;
+    PMOS_RESOURCE               presVdencCuObjStreamOutBuffer = nullptr;
+    PMOS_RESOURCE               presVdencPakObjCmdStreamOutBuffer = nullptr;
+    PMOS_RESOURCE               presVdencStreamInBuffer = nullptr;
+    PMOS_RESOURCE               presVdencReferences[CODEC_MAX_NUM_REF_FRAME] = {};
+    PMOS_RESOURCE               presVdenc4xDsSurface[CODEC_MAX_NUM_REF_FRAME] = {};
+    PMOS_RESOURCE               presVdenc8xDsSurface[CODEC_MAX_NUM_REF_FRAME] = {};
 
-    PMOS_RESOURCE               presDeblockingFilterTileRowStoreScratchBuffer;   // For HEVC, VP9
-    PMOS_RESOURCE               presDeblockingFilterColumnRowStoreScratchBuffer; // For HEVC, VP9
-    PMOS_RESOURCE               presMetadataLineBuffer;                          // For HEVC, VP9
-    PMOS_RESOURCE               presMetadataTileLineBuffer;                      // For HEVC, VP9
-    PMOS_RESOURCE               presMetadataTileColumnBuffer;                    // For HEVC, VP9
-    PMOS_RESOURCE               presSaoLineBuffer;                               // For HEVC only
-    PMOS_RESOURCE               presSaoTileLineBuffer;                           // For HEVC only
-    PMOS_RESOURCE               presSaoTileColumnBuffer;                         // For HEVC only
-    PMOS_RESOURCE               presCurMvTempBuffer;                             // For HEVC, VP9
-    PMOS_RESOURCE               presColMvTempBuffer[CODEC_MAX_NUM_REF_FRAME];    // For HEVC, VP9
-    PMOS_RESOURCE               presLcuBaseAddressBuffer;                        // For HEVC only
-    PMOS_RESOURCE               presLcuILDBStreamOutBuffer;                      // For HEVC only
-    PMOS_RESOURCE               presVp9ProbBuffer;                               // For VP9 only
-    PMOS_RESOURCE               presVp9SegmentIdBuffer;                          // For VP9 only
-    PMOS_RESOURCE               presHvdLineRowStoreBuffer;                       // For VP9 only
-    PMOS_RESOURCE               presHvdTileRowStoreBuffer;                       // For VP9 only
-    PMOS_RESOURCE               presSaoStreamOutBuffer;                          // For HEVC only
-    PMOS_RESOURCE               presSaoRowStoreBuffer;                           // For HEVC only
-    PMOS_SURFACE                presP010RTSurface;                               // For HEVC only
-    PMOS_RESOURCE               presFrameStatStreamOutBuffer;
-    PMOS_RESOURCE               presSseSrcPixelRowStoreBuffer;
-    PMOS_RESOURCE               presSegmentMapStreamOut;
-    PMOS_RESOURCE               presPakCuLevelStreamoutBuffer;
-    PMHW_VDBOX_SURFACE_PARAMS   pRawSurfParam;
-    PMHW_VDBOX_SURFACE_PARAMS   pDecodedReconParam;
-    bool                        bVdencEnabled;
-    bool                        bRawIs10Bit;
-    bool                        bDecodecReconIs10Bit;
-    uint32_t                    dwNumRefIdxL0ActiveMinus1;
-    uint32_t                    dwNumRefIdxL1ActiveMinus1;
-    uint32_t                    dwLcuStreamOutOffset;
-    uint32_t                    dwFrameStatStreamOutOffset;
-    uint32_t                    dwVdencStatsStreamOutOffset;
+    PMOS_RESOURCE               presDeblockingFilterTileRowStoreScratchBuffer = nullptr;   // For HEVC, VP9
+    PMOS_RESOURCE               presDeblockingFilterColumnRowStoreScratchBuffer = nullptr; // For HEVC, VP9
+    PMOS_RESOURCE               presMetadataLineBuffer = nullptr;                          // For HEVC, VP9
+    PMOS_RESOURCE               presMetadataTileLineBuffer = nullptr;                      // For HEVC, VP9
+    PMOS_RESOURCE               presMetadataTileColumnBuffer = nullptr;                    // For HEVC, VP9
+    PMOS_RESOURCE               presSaoLineBuffer = nullptr;                               // For HEVC only
+    PMOS_RESOURCE               presSaoTileLineBuffer = nullptr;                           // For HEVC only
+    PMOS_RESOURCE               presSaoTileColumnBuffer = nullptr;                         // For HEVC only
+    PMOS_RESOURCE               presCurMvTempBuffer = nullptr;                             // For HEVC, VP9
+    PMOS_RESOURCE               presColMvTempBuffer[CODEC_MAX_NUM_REF_FRAME] = {};    // For HEVC, VP9
+    PMOS_RESOURCE               presLcuBaseAddressBuffer = nullptr;                        // For HEVC only
+    PMOS_RESOURCE               presLcuILDBStreamOutBuffer = nullptr;                      // For HEVC only
+    PMOS_RESOURCE               presVp9ProbBuffer = nullptr;                               // For VP9 only
+    PMOS_RESOURCE               presVp9SegmentIdBuffer = nullptr;                          // For VP9 only
+    PMOS_RESOURCE               presHvdLineRowStoreBuffer = nullptr;                       // For VP9 only
+    PMOS_RESOURCE               presHvdTileRowStoreBuffer = nullptr;                       // For VP9 only
+    PMOS_RESOURCE               presSaoStreamOutBuffer = nullptr;                          // For HEVC only
+    PMOS_RESOURCE               presSaoRowStoreBuffer = nullptr;                           // For HEVC only
+    PMOS_SURFACE                presP010RTSurface = nullptr;                               // For HEVC only
+    PMOS_RESOURCE               presFrameStatStreamOutBuffer = nullptr;
+    PMOS_RESOURCE               presSseSrcPixelRowStoreBuffer = nullptr;
+    PMOS_RESOURCE               presSegmentMapStreamOut = nullptr;
+    PMOS_RESOURCE               presPakCuLevelStreamoutBuffer = nullptr;
+    PMHW_VDBOX_SURFACE_PARAMS   pRawSurfParam = nullptr;
+    PMHW_VDBOX_SURFACE_PARAMS   pDecodedReconParam = nullptr;
+    bool                        bVdencEnabled = false;
+    bool                        bRawIs10Bit = false;
+    bool                        bDecodecReconIs10Bit = false;
+    uint32_t                    dwNumRefIdxL0ActiveMinus1 = 0;
+    uint32_t                    dwNumRefIdxL1ActiveMinus1 = 0;
+    uint32_t                    dwLcuStreamOutOffset = 0;
+    uint32_t                    dwFrameStatStreamOutOffset = 0;
+    uint32_t                    dwVdencStatsStreamOutOffset = 0;
     bool                        oneOnOneMapping = false;                 // Flag for indicating using 1:1 ref index mapping for vdenc
     bool                        isLowDelayB = true;                      // Flag to indicate if it is LDB
-} MHW_VDBOX_PIPE_BUF_ADDR_PARAMS, *PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS;
+    virtual ~MHW_VDBOX_PIPE_BUF_ADDR_PARAMS() {}
+};
+using PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS = MHW_VDBOX_PIPE_BUF_ADDR_PARAMS * ;
 
 typedef struct _MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS
 {
@@ -371,46 +375,48 @@ typedef struct _MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS
     uint32_t                    dwStreamOutObjectOffset;
 } MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS, *PMHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS;
 
-typedef struct _MHW_VDBOX_AVC_IMG_PARAMS
+struct MHW_VDBOX_AVC_IMG_PARAMS
 {
     // Decoding Params
-    PCODEC_AVC_PIC_PARAMS                   pAvcPicParams;
-    PCODEC_MVC_EXT_PIC_PARAMS               pMvcExtPicParams;
-    uint8_t                                 ucActiveFrameCnt;
+    PCODEC_AVC_PIC_PARAMS                   pAvcPicParams = nullptr;
+    PCODEC_MVC_EXT_PIC_PARAMS               pMvcExtPicParams = nullptr;
+    uint8_t                                 ucActiveFrameCnt = 0;
     // Encoding Params
-    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS       pEncodeAvcSeqParams;
-    PCODEC_AVC_ENCODE_PIC_PARAMS            pEncodeAvcPicParams;
-    PCODEC_AVC_ENCODE_SLICE_PARAMS          pEncodeAvcSliceParams;
-    PCODEC_REF_LIST                        *ppRefList;
-    uint32_t                                dwTqEnabled;
-    uint32_t                                dwTqRounding;
-    uint32_t                                dwMaxVmvR;
-    uint16_t                                wPicWidthInMb;
-    uint16_t                                wPicHeightInMb;
-    uint16_t                                wSlcHeightInMb;
-    uint8_t                                 ucKernelMode;     // normal, performance, quality.
+    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS       pEncodeAvcSeqParams = nullptr;
+    PCODEC_AVC_ENCODE_PIC_PARAMS            pEncodeAvcPicParams = nullptr;
+    PCODEC_AVC_ENCODE_SLICE_PARAMS          pEncodeAvcSliceParams = nullptr;
+    PCODEC_REF_LIST                        *ppRefList = nullptr;
+    uint32_t                                dwTqEnabled = 0;
+    uint32_t                                dwTqRounding = 0;
+    uint32_t                                dwMaxVmvR = 0;
+    uint16_t                                wPicWidthInMb = 0;
+    uint16_t                                wPicHeightInMb = 0;
+    uint16_t                                wSlcHeightInMb = 0;
+    uint8_t                                 ucKernelMode = 0;     // normal, performance, quality.
 
     //FEI multiple passes PAK ---max frame size
-    uint8_t                                 ucCurrPass;
-    uint8_t                                *pDeltaQp;
-    uint32_t                                dwMaxFrameSize;
+    uint8_t                                 ucCurrPass = 0;
+    uint8_t                                *pDeltaQp = nullptr;
+    uint32_t                                dwMaxFrameSize = 0;
 
-    bool                                    bIPCMPass;
+    bool                                    bIPCMPass = false;
     // VDEnc specific
-    bool                                    bVdencEnabled;
-    bool                                    bVDEncPerfModeEnabled;
-    bool                                    bVdencStreamInEnabled;
-    bool                                    bVdencBRCEnabled;
-    bool                                    bSliceSizeStreamOutEnabled;
-    bool                                    bCrePrefetchEnable;
+    bool                                    bVdencEnabled = false;
+    bool                                    bVDEncPerfModeEnabled = false;
+    bool                                    bVdencStreamInEnabled = false;
+    bool                                    bVdencBRCEnabled = false;
+    bool                                    bSliceSizeStreamOutEnabled = false;
+    bool                                    bCrePrefetchEnable = false;
 
-    uint32_t                                dwMbSlcThresholdValue;  // For VDENC dynamic slice size control
-    uint32_t                                dwSliceThresholdTable;
-    uint32_t                                dwVdencSliceMinusBytes;
-    uint8_t                                *pVDEncModeCost;
-    uint8_t                                *pVDEncMvCost;
-    uint8_t                                *pVDEncHmeMvCost;
-} MHW_VDBOX_AVC_IMG_PARAMS, *PMHW_VDBOX_AVC_IMG_PARAMS;
+    uint32_t                                dwMbSlcThresholdValue = 0;  // For VDENC dynamic slice size control
+    uint32_t                                dwSliceThresholdTable = 0;
+    uint32_t                                dwVdencSliceMinusBytes = 0;
+    uint8_t                                *pVDEncModeCost = nullptr;
+    uint8_t                                *pVDEncMvCost = nullptr;
+    uint8_t                                *pVDEncHmeMvCost = nullptr;
+    virtual ~MHW_VDBOX_AVC_IMG_PARAMS(){}
+};
+using PMHW_VDBOX_AVC_IMG_PARAMS = MHW_VDBOX_AVC_IMG_PARAMS * ;
 
 typedef struct _MHW_VDBOX_QM_PARAMS
 {
@@ -495,11 +501,13 @@ typedef struct _MHW_VDBOX_ROWSTORE_CACHE
     uint32_t   dwAddress;
 } MHW_VDBOX_ROWSTORE_CACHE, *PMHW_VDBOX_ROWSTORE_CACHE;
 
-typedef struct _MHW_VDBOX_STATE_CMDSIZE_PARAMS
+struct MHW_VDBOX_STATE_CMDSIZE_PARAMS
 {
-    bool       bShortFormat;
-    bool       bHucDummyStream;
-    bool       bSfcInUse;
-}MHW_VDBOX_STATE_CMDSIZE_PARAMS, *PMHW_VDBOX_STATE_CMDSIZE_PARAMS;
+    bool       bShortFormat = false;
+    bool       bHucDummyStream = false;
+    bool       bSfcInUse = false;
+    virtual ~MHW_VDBOX_STATE_CMDSIZE_PARAMS() {}
+};
+using PMHW_VDBOX_STATE_CMDSIZE_PARAMS = MHW_VDBOX_STATE_CMDSIZE_PARAMS * ;
 
 #endif

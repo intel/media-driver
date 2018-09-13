@@ -1272,7 +1272,21 @@ MOS_STATUS CodechalDecodeAvc::InitPicMhwParams(
 
     CODECHAL_DECODE_CHK_NULL_RETURN(picMhwParams);
 
-    MOS_ZeroMemory(picMhwParams, sizeof(*picMhwParams));
+    picMhwParams->PipeModeSelectParams = {};
+    picMhwParams->PipeBufAddrParams = {};
+    picMhwParams->ImgParams = {};
+    MOS_ZeroMemory(&picMhwParams->SurfaceParams, 
+        sizeof(picMhwParams->SurfaceParams));
+    MOS_ZeroMemory(&picMhwParams->IndObjBaseAddrParams, 
+        sizeof(picMhwParams->IndObjBaseAddrParams));
+    MOS_ZeroMemory(&picMhwParams->BspBufBaseAddrParams, 
+        sizeof(picMhwParams->BspBufBaseAddrParams));
+    MOS_ZeroMemory(&picMhwParams->QmParams, 
+        sizeof(picMhwParams->QmParams));
+    MOS_ZeroMemory(&picMhwParams->PicIdParams, 
+        sizeof(picMhwParams->SurfaceParams));
+    MOS_ZeroMemory(&picMhwParams->AvcDirectmodeParams, 
+        sizeof(picMhwParams->AvcDirectmodeParams));
 
     picMhwParams->PipeModeSelectParams.Mode = CODECHAL_DECODE_MODE_AVCVLD;
     //enable decodestreamout if either app or codechal dump need it

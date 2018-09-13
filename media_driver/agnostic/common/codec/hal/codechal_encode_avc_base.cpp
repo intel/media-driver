@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -394,7 +394,6 @@ MOS_STATUS CodechalEncodeAvcBase::SendSlice(
 
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencSliceStateCmd(cmdBuffer));
 
-            MOS_ZeroMemory(&vdencWalkerStateParams, sizeof(vdencWalkerStateParams));
             vdencWalkerStateParams.Mode             = CODECHAL_ENCODE_MODE_AVC;
             vdencWalkerStateParams.pAvcSeqParams    = params->pEncodeAvcSeqParams;
             vdencWalkerStateParams.pAvcPicParams    = params->pEncodeAvcPicParams;
@@ -3239,7 +3238,7 @@ void CodechalEncodeAvcBase::SetMfxPipeModeSelectParams(
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS& param)
 {
     // set MFX_PIPE_MODE_SELECT values
-    MOS_ZeroMemory(&param, sizeof(param));
+    param = {};
     param.Mode                      = m_mode;
     param.bStreamOutEnabled         = (m_currPass != m_numPasses);// Disable Stream Out for final pass; its important for multiple passes, because , next pass will take the qp from stream out
     param.bVdencEnabled             = m_vdencEnabled;
@@ -3365,7 +3364,7 @@ void  CodechalEncodeAvcBase::SetMfxQmStateParams(MHW_VDBOX_QM_PARAMS& qmParams, 
 
 void CodechalEncodeAvcBase::SetMfxAvcImgStateParams(MHW_VDBOX_AVC_IMG_PARAMS& param)
 {
-    MOS_ZeroMemory(&param, sizeof(param));
+    param = {};
     param.ucCurrPass = m_currPass;
     param.pEncodeAvcPicParams = m_avcPicParam;
     param.pEncodeAvcSeqParams = m_avcSeqParam;
