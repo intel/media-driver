@@ -655,8 +655,8 @@ MOS_STATUS FieldScalingInterface::SetupMediaVfe(
     PMOS_COMMAND_BUFFER  cmdBuffer,
     MHW_KERNEL_STATE     *kernelState)
 {
-    MHW_VFE_PARAMS vfeParams;
-    memset(&vfeParams, 0, sizeof(vfeParams));
+    MHW_VFE_PARAMS vfeParams = {};
+
     vfeParams.pKernelState = kernelState;
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_renderInterface->AddMediaVfeCmd(cmdBuffer, &vfeParams));
 
