@@ -4462,6 +4462,28 @@ void KernelDll_StartKernelSearch(
                 }
             }
         }
+        else
+        {
+            //For Gen9+, kernel don't support sublayer DScale+rotation
+            for (nLayer = 0; nLayer < iFilterSize; nLayer++)
+            {
+                if (pFilter[nLayer].layer == Layer_SubVideo && pFilter[nLayer].rotation != VPHAL_ROTATION_IDENTITY)
+                {
+                    if (pFilter[nLayer].sampler == Sample_Scaling_034x)
+                    {
+                        pSearchState->pFilter[nLayer].sampler = Sample_Scaling;
+                    }
+                    else if (pFilter[nLayer].sampler == Sample_iScaling_034x)
+                    {
+                        pSearchState->pFilter[nLayer].sampler = Sample_iScaling;
+                    }
+                    else if (pFilter[nLayer].sampler == Sample_iScaling_AVS)
+                    {
+                        pSearchState->pFilter[nLayer].sampler = Sample_iScaling_AVS;
+                    }
+                }
+            }
+        }
 
         // Copy the render target format
         pSearchState->target_format = pSearchState->pFilter[iFilterSize - 1].format;
