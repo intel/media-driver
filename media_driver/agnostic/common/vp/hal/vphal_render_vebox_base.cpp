@@ -1271,9 +1271,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxFlushUpdateStateCmdBuffer()
 
         if (MEDIA_IS_WA(pRenderHal->pWaTable, WaSendDummyVFEafterPipelineSelect))
         {
-            MHW_VFE_PARAMS VfeStateParams;
-
-            MOS_ZeroMemory(&VfeStateParams, sizeof(VfeStateParams));
+            MHW_VFE_PARAMS VfeStateParams = {};
             VfeStateParams.dwNumberofURBEntries = 1;
             VPHAL_RENDER_CHK_STATUS(pMhwRender->AddMediaVfeCmd(&CmdBuffer, &VfeStateParams));
         }
@@ -1685,6 +1683,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSendVeboxCmd_Prepare(
 
     // initialize the command buffer struct
     MOS_ZeroMemory(&CmdBuffer, sizeof(MOS_COMMAND_BUFFER));
+    GenericPrologParams = {};
 
     VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnGetCommandBuffer(pOsInterface, &CmdBuffer, 0));
 
@@ -1697,8 +1696,6 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSendVeboxCmd_Prepare(
     VPHAL_RENDER_CHK_STATUS(pVeboxState->VeboxSetPerfTag(pVeboxState->m_currentSurface->Format));
     pOsInterface->pfnResetPerfBufferID(pOsInterface);
     pOsInterface->pfnSetPerfTag(pOsInterface, pRenderData->PerfTag);
-
-    MOS_ZeroMemory(&GenericPrologParams, sizeof(GenericPrologParams));
 
     // Linux will do nothing here since currently no frame tracking support
 
@@ -2005,7 +2002,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSendVeboxCmd()
     MHW_VEBOX_STATE_CMD_PARAMS              VeboxStateCmdParams;
     MHW_MI_FLUSH_DW_PARAMS                  FlushDwParams;
     PMHW_VEBOX_INTERFACE                    pVeboxInterface;
-    RENDERHAL_GENERIC_PROLOG_PARAMS         GenericPrologParams;
+    RENDERHAL_GENERIC_PROLOG_PARAMS         GenericPrologParams = {};
     MOS_RESOURCE                            GpuStatusBuffer;
     PVPHAL_VEBOX_STATE                      pVeboxState = this;
     PVPHAL_VEBOX_RENDER_DATA                pRenderData = GetLastExecRenderData();
