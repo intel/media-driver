@@ -486,8 +486,7 @@ MOS_STATUS MediaMemDecompState::MemoryDecompress(
         &cmdBuffer,
         &stateBaseAddrParams));
 
-    MHW_VFE_PARAMS vfeParams;
-    MOS_ZeroMemory(&vfeParams, sizeof(vfeParams));
+    MHW_VFE_PARAMS vfeParams = {};
     vfeParams.pKernelState = kernelState;
     auto waTable          = m_osInterface->pfnGetWaTable(m_osInterface);
 
@@ -620,9 +619,7 @@ MOS_STATUS MediaMemDecompState::MemoryDecompress(
 
         if (MEDIA_IS_WA(m_osInterface->pfnGetWaTable(m_osInterface), WaSendDummyVFEafterPipelineSelect))
         {
-            MHW_VFE_PARAMS vfeStateParams;
-
-            MOS_ZeroMemory(&vfeStateParams, sizeof(vfeStateParams));
+            MHW_VFE_PARAMS vfeStateParams = {};
             vfeStateParams.dwNumberofURBEntries = 1;
             MHW_CHK_STATUS_RETURN(m_renderInterface->AddMediaVfeCmd(&cmdBuffer, &vfeStateParams));
         }

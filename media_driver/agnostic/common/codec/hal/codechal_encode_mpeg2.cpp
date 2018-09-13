@@ -5169,8 +5169,7 @@ MOS_STATUS CodechalEncodeMpeg2::AddMediaVfeCmd(
 {
     CODECHAL_ENCODE_CHK_NULL_RETURN(params);
 
-    MHW_VFE_PARAMS vfeParams;
-    MOS_ZeroMemory(&vfeParams, sizeof(vfeParams));
+    MHW_VFE_PARAMS vfeParams = {};
     vfeParams.pKernelState                      = params->pKernelState;
     vfeParams.eVfeSliceDisable                  = MHW_VFE_SLICE_ALL;
     vfeParams.dwMaximumNumberofThreads          = m_encodeVfeMaxThreads;

@@ -2380,8 +2380,7 @@ MOS_STATUS CodechalEncoderState::AddMediaVfeCmd(
 {
     CODECHAL_ENCODE_CHK_NULL_RETURN(params);
 
-    MHW_VFE_PARAMS vfeParams;
-    MOS_ZeroMemory(&vfeParams, sizeof(vfeParams));
+    MHW_VFE_PARAMS vfeParams = {};
     vfeParams.pKernelState                      = params->pKernelState;
     vfeParams.eVfeSliceDisable                  = MHW_VFE_SLICE_ALL;
     vfeParams.Scoreboard.ScoreboardEnable       = m_useHwScoreboard;
@@ -2989,9 +2988,7 @@ MOS_STATUS CodechalEncoderState::EndStatusReport(
 
         if (MEDIA_IS_WA(m_waTable, WaSendDummyVFEafterPipelineSelect))
         {
-            MHW_VFE_PARAMS vfeStateParams;
-
-            MOS_ZeroMemory(&vfeStateParams, sizeof(vfeStateParams));
+            MHW_VFE_PARAMS vfeStateParams = {};
             vfeStateParams.dwNumberofURBEntries = 1;
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_renderEngineInterface->AddMediaVfeCmd(cmdBuffer, &vfeStateParams));
         }
