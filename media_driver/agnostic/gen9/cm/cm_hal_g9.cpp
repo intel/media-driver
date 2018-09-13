@@ -579,11 +579,9 @@ MOS_STATUS CM_HAL_G9_X::SubmitDummyCommands(
     int64_t                      *taskSyncLocation;
     int32_t                      syncOffset;
     int32_t                      tmp;
-    RENDERHAL_GENERIC_PROLOG_PARAMS genericPrologParams;
+    RENDERHAL_GENERIC_PROLOG_PARAMS genericPrologParams = {};
 
     MOS_ZeroMemory(&mosCmdBuffer, sizeof(MOS_COMMAND_BUFFER));
-    MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
-
 
     // Get the task sync offset
     syncOffset = state->pfnGetTaskSyncLocation(taskId);
@@ -740,7 +738,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     bool                         csrEnable = renderHal->bCSRKernel? true: false;
     PCM_HAL_BB_ARGS              bbCmArgs;
     uint32_t                     i;
-    RENDERHAL_GENERIC_PROLOG_PARAMS genericPrologParams;
+    RENDERHAL_GENERIC_PROLOG_PARAMS genericPrologParams = {};
     MOS_RESOURCE                 osResource;
     uint32_t                     tag;
     CM_HAL_MI_REG_OFFSETS  miRegG9 = { REG_TIMESTAMP_BASE_G9, REG_GPR_BASE_G9 };
@@ -751,7 +749,6 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
 #endif
 
     MOS_ZeroMemory(&mosCmdBuffer, sizeof(MOS_COMMAND_BUFFER));  
-    MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
 
     // Get the task sync offset
     syncOffset = state->pfnGetTaskSyncLocation(state, taskId);
@@ -1136,9 +1133,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
 
     if (MEDIA_IS_WA(renderHal->pWaTable, WaSendDummyVFEafterPipelineSelect))
     {
-        MHW_VFE_PARAMS vfeStateParams;
-
-        MOS_ZeroMemory(&vfeStateParams, sizeof(vfeStateParams));
+        MHW_VFE_PARAMS vfeStateParams = {};
         vfeStateParams.dwNumberofURBEntries = 1;
         CM_CHK_MOSSTATUS(mhwRender->AddMediaVfeCmd(&mosCmdBuffer, &vfeStateParams));
     }

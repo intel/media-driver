@@ -88,13 +88,12 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
     uint32_t                        i;
     PCM_HAL_TASK_PARAM              taskParam = state->taskParam;
     PCM_HAL_BB_ARGS                 bbCmArgs;
-    RENDERHAL_GENERIC_PROLOG_PARAMS genericPrologParams;
+    RENDERHAL_GENERIC_PROLOG_PARAMS genericPrologParams = {};
     MOS_RESOURCE                    osResource;
     uint32_t                        tag;
     bool                            slmUsed = false;
 
     MOS_ZeroMemory(&mosCmdBuffer, sizeof(MOS_COMMAND_BUFFER));
-    MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
 
     // Get the task sync offset
     syncOffset     = state->pfnGetTaskSyncLocation(state, taskId);
