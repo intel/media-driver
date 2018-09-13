@@ -32,9 +32,8 @@
 //! \brief Forward declarations
 //!
 typedef struct _MHW_PIPE_CONTROL_PARAMS        *PMHW_PIPE_CONTROL_PARAMS;
-typedef struct _MHW_VDBOX_PIPE_BUF_ADDR_PARAMS *PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS;
 typedef struct _MHW_VDBOX_SURFACE_PARAMS       *PMHW_VDBOX_SURFACE_PARAMS;
-
+using PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS = MHW_VDBOX_PIPE_BUF_ADDR_PARAMS * ;
 //! \class CodecHalMmcState
 //! \brief Media memory compression state. This class defines the member fields
 //!        functions etc used by memory compression. 

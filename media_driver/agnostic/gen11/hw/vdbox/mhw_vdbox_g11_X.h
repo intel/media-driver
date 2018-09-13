@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -36,14 +36,15 @@
 
 struct MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G11 : public MHW_VDBOX_PIPE_MODE_SELECT_PARAMS
 {
-    MHW_VDBOX_HCP_PIPE_WORK_MODE      PipeWorkMode;
-    MHW_VDBOX_HCP_MULTI_ENGINE_MODE   MultiEngineMode;
+    MHW_VDBOX_HCP_PIPE_WORK_MODE      PipeWorkMode = MHW_VDBOX_HCP_PIPE_WORK_MODE_LEGACY;
+    MHW_VDBOX_HCP_MULTI_ENGINE_MODE   MultiEngineMode = MHW_VDBOX_HCP_MULTI_ENGINE_MODE_FE_LEGACY;
+    virtual ~MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G11(){}
 };
 using PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G11 = MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G11 *;
 
 struct MHW_VDBOX_STATE_CMDSIZE_PARAMS_G11 : public MHW_VDBOX_STATE_CMDSIZE_PARAMS
 {
-    bool                        bScalableMode;
+    bool                        bScalableMode = false;
 };
 using PMHW_VDBOX_STATE_CMDSIZE_PARAMS_G11 = MHW_VDBOX_STATE_CMDSIZE_PARAMS_G11 *;
 

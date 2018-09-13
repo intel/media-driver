@@ -283,7 +283,6 @@ MOS_STATUS CodechalCmdInitializerG11::CmdInitializerVp9Execute(PMOS_COMMAND_BUFF
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetHucInterface()->AddHucImemStateCmd(cmdBuffer, &imemParams));
 
     // HUC_PIPE_MODE_SELECT
-    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode = m_vp9Params.mode;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetHucInterface()->AddHucPipeModeSelectCmd(cmdBuffer, &pipeModeSelectParams));
 
@@ -558,7 +557,6 @@ MOS_STATUS CodechalCmdInitializerG11::AddCopyCmds(
 
     // pipe mode select
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams;
-    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_encoder);
     pipeModeSelectParams.Mode = m_encoder->m_mode;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetHucInterface()->AddHucPipeModeSelectCmd(cmdBuffer, &pipeModeSelectParams));
