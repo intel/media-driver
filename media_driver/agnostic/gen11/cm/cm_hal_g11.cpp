@@ -389,13 +389,12 @@ MOS_STATUS CM_HAL_G11_X::SubmitCommands(
     bool                         sipEnable = renderHal->bSIPKernel?true: false;
     bool                         csrEnable = renderHal->bCSRKernel?true: false;
     uint32_t                     i;
-    RENDERHAL_GENERIC_PROLOG_PARAMS genericPrologParams;
+    RENDERHAL_GENERIC_PROLOG_PARAMS genericPrologParams = {};
     MOS_RESOURCE                 osResource;
     uint32_t                     tag;
     MHW_RENDER_ENGINE_L3_CACHE_SETTINGS_G11 cacheSettings = {};
 
     MOS_ZeroMemory(&mosCmdBuffer, sizeof(MOS_COMMAND_BUFFER));
-    MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
 
     // Get the task sync offset
     syncOffset = state->pfnGetTaskSyncLocation(state, taskId);

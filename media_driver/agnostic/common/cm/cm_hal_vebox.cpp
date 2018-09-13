@@ -53,7 +53,7 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
     int64_t                             *taskSyncLocation;
     uint32_t                            tag;
 
-    RENDERHAL_GENERIC_PROLOG_PARAMS     genericPrologParams;
+    RENDERHAL_GENERIC_PROLOG_PARAMS     genericPrologParams = {};
     MOS_RESOURCE                        osResource;
     CM_VEBOX_SURFACE_DATA               cmVeboxSurfaceData;
     PRENDERHAL_INTERFACE                renderHal = state->renderHal;
@@ -67,7 +67,6 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
 
     // initialize
     MOS_ZeroMemory(&cmdBuffer, sizeof(MOS_COMMAND_BUFFER));
-    MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
 
     veboxInterface = state->veboxInterface;
     veboxHeap = veboxInterface->m_veboxHeap;
@@ -306,9 +305,7 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
 
     if (MEDIA_IS_WA(renderHal->pWaTable, WaSendDummyVFEafterPipelineSelect))
     {
-        MHW_VFE_PARAMS vfeStateParams;
-
-        MOS_ZeroMemory(&vfeStateParams, sizeof(vfeStateParams));
+        MHW_VFE_PARAMS vfeStateParams = {};
         vfeStateParams.dwNumberofURBEntries = 1;
         CM_CHK_MOSSTATUS(renderHal->pMhwRenderInterface->AddMediaVfeCmd(&cmdBuffer, &vfeStateParams));
     }
