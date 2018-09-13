@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2018, Intel Corporation
+* Copyright (c) 2017, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -387,6 +387,7 @@ MOS_STATUS CodechalVdencHevcState::HuCBrcInitReset()
 
     // pipe mode select
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams;
+    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode = m_mode;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucPipeModeSelectCmd(&cmdBuffer, &pipeModeSelectParams));
 
@@ -1070,6 +1071,7 @@ MOS_STATUS CodechalVdencHevcState::HuCBrcUpdate()
 
     // pipe mode select
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams;
+    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode = m_mode;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucPipeModeSelectCmd(&cmdBuffer, &pipeModeSelectParams));
 
@@ -1241,7 +1243,7 @@ void CodechalVdencHevcState::SetVdencSurfaceStateParams(
 void CodechalVdencHevcState::SetVdencPipeBufAddrParams(
     MHW_VDBOX_PIPE_BUF_ADDR_PARAMS& pipeBufAddrParams)
 {
-    pipeBufAddrParams = {};
+    MOS_ZeroMemory(&pipeBufAddrParams, sizeof(pipeBufAddrParams));
     pipeBufAddrParams.Mode = CODECHAL_ENCODE_MODE_HEVC;
     pipeBufAddrParams.psRawSurface = m_rawSurfaceToPak;
     pipeBufAddrParams.ps4xDsSurface = m_trackedBuf->Get4xDsReconSurface(CODEC_CURR_TRACKED_BUFFER);
@@ -1524,6 +1526,7 @@ MOS_STATUS CodechalVdencHevcState::AddVdencWalkerStateCmd(
     CODECHAL_ENCODE_CHK_NULL_RETURN(params);
 
     MHW_VDBOX_VDENC_WALKER_STATE_PARAMS vdencWalkerStateParams;
+    MOS_ZeroMemory(&vdencWalkerStateParams, sizeof(vdencWalkerStateParams));
     vdencWalkerStateParams.Mode = CODECHAL_ENCODE_MODE_HEVC;
     vdencWalkerStateParams.pHevcEncSeqParams = params->pEncodeHevcSeqParams;
     vdencWalkerStateParams.pHevcEncPicParams = params->pEncodeHevcPicParams;
@@ -1915,7 +1918,7 @@ MOS_STATUS CodechalVdencHevcState::ExecutePictureLevel()
     MHW_VDBOX_SURFACE_PARAMS reconSurfaceParams;
     SetHcpReconSurfaceParams(reconSurfaceParams);
 
-    *m_pipeBufAddrParams = {};
+    MOS_ZeroMemory(m_pipeBufAddrParams, sizeof(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS));
     SetHcpPipeBufAddrParams(*m_pipeBufAddrParams);
     m_pipeBufAddrParams->pRawSurfParam = &srcSurfaceParams;
     m_pipeBufAddrParams->pDecodedReconParam = &reconSurfaceParams;

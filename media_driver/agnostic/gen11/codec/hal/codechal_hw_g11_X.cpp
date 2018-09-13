@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2018, Intel Corporation
+* Copyright (c) 2014-2017, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -238,6 +238,7 @@ MOS_STATUS CodechalHwInterfaceG11::GetStreamoutCommandSize(
     CODECHAL_HW_FUNCTION_ENTER;
 
     MHW_VDBOX_STATE_CMDSIZE_PARAMS_G11 stateCmdSizeParams;
+    MOS_ZeroMemory(&stateCmdSizeParams, sizeof(MHW_VDBOX_STATE_CMDSIZE_PARAMS_G11));
 
     stateCmdSizeParams.bShortFormat = false;
     stateCmdSizeParams.bHucDummyStream = MEDIA_IS_WA(m_waTable, WaHucStreamoutEnable);

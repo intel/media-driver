@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2018, Intel Corporation
+* Copyright (c) 2011-2017, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -119,6 +119,7 @@ MOS_STATUS CodechalDecodeVp8G11::DecodeStateLevel()
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
 
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams;
+    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode               = m_mode;
     pipeModeSelectParams.bStreamOutEnabled  = m_streamOutEnabled;
     pipeModeSelectParams.bPostDeblockOutEnable = m_deblockingEnabled;
@@ -131,6 +132,7 @@ MOS_STATUS CodechalDecodeVp8G11::DecodeStateLevel()
     surfaceParams.psSurface = destSurface;
 
     MHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams;
+    MOS_ZeroMemory(&pipeBufAddrParams, sizeof(pipeBufAddrParams));
     pipeBufAddrParams.Mode = m_mode;
     // MMC is only enabled for frame decoding and no interlaced support in VP8
     // So no need to check frame/field type here.

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2018, Intel Corporation
+* Copyright (c) 2017, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -2130,6 +2130,7 @@ MOS_STATUS CodechalVdencHevcStateG10::ConstructBatchBufferHuCBRC(PMOS_RESOURCE b
     // 1st Group : HCP_PIPE_MODE_SELECT
     // set HCP_PIPE_MODE_SELECT command
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams;
+    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode = m_mode;
     pipeModeSelectParams.bVdencEnabled = true;
     pipeModeSelectParams.bStreamOutEnabled = true;
@@ -2169,6 +2170,7 @@ MOS_STATUS CodechalVdencHevcStateG10::ConstructBatchBufferHuCBRC(PMOS_RESOURCE b
 
     // 3rd Group : HCP_WEIGHTSOFFSETS_STATE + HCP_SLICE_STATE + HCP_PAK_INSERT_OBJECT + VDENC_WEIGHT_OFFSETS_STATE
     MHW_VDBOX_HEVC_SLICE_STATE sliceState;
+    MOS_ZeroMemory(&sliceState, sizeof(sliceState));
     sliceState.presDataBuffer = &m_resMbCodeSurface;
     sliceState.pHevcPicIdx           = &m_picIdx[0];
     sliceState.pEncodeHevcSeqParams  = m_hevcSeqParams;

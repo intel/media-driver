@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2018, Intel Corporation
+* Copyright (c) 2017, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -57,7 +57,7 @@ void CodechalEncHevcStateG11::SetHcpPipeModeSelectParams(MHW_VDBOX_PIPE_MODE_SEL
 {
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G11& pipeModeSelectParams =
         static_cast<MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G11&>(vdboxPipeModeSelectParams);
-    pipeModeSelectParams = {};
+    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     CodechalEncodeHevcBase::SetHcpPipeModeSelectParams(vdboxPipeModeSelectParams);
 
     pipeModeSelectParams.pakPiplnStrmoutEnabled = m_pakPiplStrmOutEnable;
@@ -2856,6 +2856,7 @@ MOS_STATUS CodechalEncHevcStateG11::HucPakIntegrate(
 
     // pipe mode select
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams;
+    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode = m_mode;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetHucInterface()->AddHucPipeModeSelectCmd(cmdBuffer, &pipeModeSelectParams));
 
@@ -4662,6 +4663,7 @@ MOS_STATUS CodechalEncHevcStateG11::SendBrcFrameUpdateSurfaces(
     // Fill HCP_IMG_STATE so that BRC kernel can use it to generate the write buffer for PAK
     PMOS_RESOURCE            brcHcpStateReadBuffer = &m_brcBuffers.resBrcImageStatesReadBuffer[m_currRecycledBufIdx];
     MHW_VDBOX_HEVC_PIC_STATE mhwHevcPicState;
+    MOS_ZeroMemory(&mhwHevcPicState, sizeof(mhwHevcPicState));
     mhwHevcPicState.pHevcEncSeqParams = m_hevcSeqParams;
     mhwHevcPicState.pHevcEncPicParams = m_hevcPicParams;
     mhwHevcPicState.bUseVDEnc = m_vdencEnabled ? 1 : 0;
@@ -7974,6 +7976,7 @@ MOS_STATUS CodechalEncHevcStateG11::CalculatePictureStateCommandSize()
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     MHW_VDBOX_STATE_CMDSIZE_PARAMS_G11 stateCmdSizeParams;
+    MOS_ZeroMemory(&stateCmdSizeParams, sizeof(stateCmdSizeParams));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(
         m_hwInterface->GetHxxStateCommandSize(
             CODECHAL_ENCODE_MODE_HEVC,
@@ -7991,7 +7994,7 @@ MOS_STATUS CodechalEncHevcStateG11::AddHcpPipeBufAddrCmd(
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    *m_pipeBufAddrParams = {};
+    MOS_ZeroMemory(m_pipeBufAddrParams, sizeof(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS_G11));
     SetHcpPipeBufAddrParams(*m_pipeBufAddrParams);
 #ifdef _MMC_SUPPORTED
     m_mmcState->SetPipeBufAddr(m_pipeBufAddrParams);
