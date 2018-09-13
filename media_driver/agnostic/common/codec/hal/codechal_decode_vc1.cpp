@@ -4459,8 +4459,7 @@ MOS_STATUS CodechalDecodeVc1::PerformVc1Olp()
     stateBaseAddrParams.dwInstructionBufferSize = kernelState->m_ishRegion.GetHeapSize();
     CODECHAL_DECODE_CHK_STATUS_RETURN(renderEngineInterface->AddStateBaseAddrCmd(&cmdBuffer, &stateBaseAddrParams));
 
-    MHW_VFE_PARAMS vfeParams;
-    MOS_ZeroMemory(&vfeParams, sizeof(vfeParams));
+    MHW_VFE_PARAMS vfeParams = {};
     vfeParams.pKernelState = kernelState;
     CODECHAL_DECODE_CHK_STATUS_RETURN(renderEngineInterface->AddMediaVfeCmd(&cmdBuffer, &vfeParams));
 
@@ -4538,9 +4537,7 @@ MOS_STATUS CodechalDecodeVc1::PerformVc1Olp()
 
         if (MEDIA_IS_WA(m_hwInterface->GetWaTable(), WaSendDummyVFEafterPipelineSelect))
         {
-            MHW_VFE_PARAMS vfeStateParams;
-
-            MOS_ZeroMemory(&vfeStateParams, sizeof(vfeStateParams));
+            MHW_VFE_PARAMS vfeStateParams = {};
             vfeStateParams.dwNumberofURBEntries = 1;
             CODECHAL_DECODE_CHK_STATUS_RETURN(renderEngineInterface->AddMediaVfeCmd(&cmdBuffer, &vfeStateParams));
         }
