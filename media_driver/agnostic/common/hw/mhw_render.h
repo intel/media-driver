@@ -163,16 +163,16 @@ typedef struct _MHW_VFE_SCOREBOARD
 
 struct MHW_VFE_PARAMS
 {
-    uint32_t                        dwDebugCounterControl;      // Debug Counter Control
-    uint32_t                        dwMaximumNumberofThreads;
-    uint32_t                        dwNumberofURBEntries;
-    uint32_t                        dwCURBEAllocationSize;
-    uint32_t                        dwURBEntryAllocationSize;
-    uint32_t                        dwPerThreadScratchSpace;
-    uint32_t                        dwScratchSpaceBasePointer;
-    MHW_VFE_SLICE_DISABLE           eVfeSliceDisable;
-    MHW_VFE_SCOREBOARD              Scoreboard;
-    PMHW_KERNEL_STATE               pKernelState;
+    uint32_t                        dwDebugCounterControl = 0;      // Debug Counter Control
+    uint32_t                        dwMaximumNumberofThreads = 0;
+    uint32_t                        dwNumberofURBEntries = 0;
+    uint32_t                        dwCURBEAllocationSize = 0;
+    uint32_t                        dwURBEntryAllocationSize = 0;
+    uint32_t                        dwPerThreadScratchSpace = 0;
+    uint32_t                        dwScratchSpaceBasePointer = 0;
+    MHW_VFE_SLICE_DISABLE           eVfeSliceDisable = MHW_VFE_SLICE_ALL;
+    MHW_VFE_SCOREBOARD              Scoreboard = {};
+    PMHW_KERNEL_STATE               pKernelState = nullptr;
 };
 typedef MHW_VFE_PARAMS *PMHW_VFE_PARAMS;
 
