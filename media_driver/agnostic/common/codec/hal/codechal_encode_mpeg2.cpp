@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2018, Intel Corporation
+* Copyright (c) 2017, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -4293,6 +4293,7 @@ MOS_STATUS CodechalEncodeMpeg2::ExecutePictureLevel()
 
     // set MFX_PIPE_MODE_SELECT values
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams;
+    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode = m_mode;
     pipeModeSelectParams.bStreamOutEnabled = true;
     bool suppressReconPic =
@@ -4303,6 +4304,7 @@ MOS_STATUS CodechalEncodeMpeg2::ExecutePictureLevel()
 
     // set MFX_PIPE_BUF_ADDR_STATE values
     MHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams;
+    MOS_ZeroMemory(&pipeBufAddrParams, sizeof(pipeBufAddrParams));
     pipeBufAddrParams.Mode = m_mode;
     pipeBufAddrParams.psPreDeblockSurface = &m_reconSurface;
 

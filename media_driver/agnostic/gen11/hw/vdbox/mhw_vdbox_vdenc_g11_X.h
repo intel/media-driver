@@ -41,9 +41,9 @@
 struct MHW_VDBOX_VDENC_WALKER_STATE_PARAMS_G11 : public MHW_VDBOX_VDENC_WALKER_STATE_PARAMS
 {
     // GEN11+ tiling support
-    PMHW_VDBOX_HCP_TILE_CODING_PARAMS_G11   pTileCodingParams = nullptr;
-    uint32_t                                dwNumberOfPipes = 0;
-    uint32_t                                dwTileId = 0;
+    PMHW_VDBOX_HCP_TILE_CODING_PARAMS_G11   pTileCodingParams;
+    uint32_t                                dwNumberOfPipes;
+    uint32_t                                dwTileId;
 };
 using PMHW_VDBOX_VDENC_WALKER_STATE_PARAMS_G11 = MHW_VDBOX_VDENC_WALKER_STATE_PARAMS_G11 *;
 
@@ -448,9 +448,8 @@ public:
 
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
- 
-        auto paramsG11 = dynamic_cast<PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G11>(params);
-        MHW_MI_CHK_NULL(paramsG11);
+
+        PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G11 paramsG11 = static_cast<PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G11>(params);
         typename TVdencCmds::VDENC_PIPE_MODE_SELECT_CMD cmd;
 
         cmd.DW1.StandardSelect                 = CodecHal_GetStandardFromMode(params->Mode);
@@ -1373,6 +1372,9 @@ public:
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
 
+        PMHW_VDBOX_VDENC_WALKER_STATE_PARAMS_G11 paramsG11 =
+            static_cast<PMHW_VDBOX_VDENC_WALKER_STATE_PARAMS_G11>(params);
+
         typename TVdencCmds::VDENC_WALKER_STATE_CMD cmd;
 
         if (params->Mode == CODECHAL_ENCODE_MODE_AVC)
@@ -1398,8 +1400,6 @@ public:
         }
         else if (params->Mode == CODECHAL_ENCODE_MODE_HEVC)
         {
-            auto paramsG11 = dynamic_cast<PMHW_VDBOX_VDENC_WALKER_STATE_PARAMS_G11>(params);
-            MHW_MI_CHK_NULL(paramsG11);
             MHW_MI_CHK_NULL(params->pHevcEncSeqParams);
             MHW_MI_CHK_NULL(params->pHevcEncPicParams);
             MHW_MI_CHK_NULL(params->pEncodeHevcSliceParams);
@@ -1478,8 +1478,6 @@ public:
         }
         else if (params->Mode == CODECHAL_ENCODE_MODE_VP9)
         {
-            auto paramsG11 = dynamic_cast<PMHW_VDBOX_VDENC_WALKER_STATE_PARAMS_G11>(params);
-            MHW_MI_CHK_NULL(paramsG11);
             MHW_MI_CHK_NULL(params->pVp9EncPicParams);
             auto vp9PicParams     = params->pVp9EncPicParams;
             auto tileCodingParams = paramsG11->pTileCodingParams;

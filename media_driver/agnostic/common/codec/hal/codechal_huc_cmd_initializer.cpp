@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2018, Intel Corporation
+* Copyright (c) 2017, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -445,7 +445,8 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerExecute(
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->GetHwInterface()->GetHucInterface()->AddHucImemStateCmd(cmdBuffer, &imemParams));
 
-    // HUC_PIPE_MODE_SELECT    
+    // HUC_PIPE_MODE_SELECT
+    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode = m_encoder->m_mode;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->GetHwInterface()->GetHucInterface()->AddHucPipeModeSelectCmd(cmdBuffer, &pipeModeSelectParams));
 
@@ -573,6 +574,7 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerVp9Execute(PMOS_COMMAND_BUFFER 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetHucInterface()->AddHucImemStateCmd(cmdBuffer, &imemParams));
 
     // HUC_PIPE_MODE_SELECT
+    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode = m_vp9Params.mode;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetHucInterface()->AddHucPipeModeSelectCmd(cmdBuffer, &pipeModeSelectParams));
 

@@ -99,54 +99,49 @@ typedef struct _MHW_VDBOX_VDENC_CMD1_PARAMS
     uint8_t                                *pucVdencModeCosts;
 } MHW_VDBOX_VDENC_CMD1_PARAMS, *PMHW_VDBOX_VDENC_CMD1_PARAMS;
 
-struct MHW_VDBOX_VDENC_CMD2_STATE
+typedef struct _MHW_VDBOX_VDENC_CMD2_STATE
 {
-    uint32_t                                Mode = 0;
+    uint32_t                                Mode;
 
     // HEVC
-    PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS      pHevcEncSeqParams = nullptr;
-    PCODEC_HEVC_ENCODE_PICTURE_PARAMS       pHevcEncPicParams = nullptr;
-    PCODEC_HEVC_ENCODE_SLICE_PARAMS         pHevcEncSlcParams = nullptr;
-    bool                                    bSAOEnable = false;
-    bool                                    bRoundingEnabled = false;
-    bool                                    bStreamInEnabled = false;
-    bool                                    bROIStreamInEnabled = false;
-    bool                                    bUseDefaultQpDeltas = false;
-    bool                                    bPanicEnabled = false;
-    bool                                    bPartialFrameUpdateEnable = false;
+    PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS      pHevcEncSeqParams;
+    PCODEC_HEVC_ENCODE_PICTURE_PARAMS       pHevcEncPicParams;
+    PCODEC_HEVC_ENCODE_SLICE_PARAMS         pHevcEncSlcParams;
+    bool                                    bSAOEnable;
+    bool                                    bRoundingEnabled;
+    bool                                    bStreamInEnabled;
+    bool                                    bROIStreamInEnabled;
+    bool                                    bUseDefaultQpDeltas;
+    bool                                    bPanicEnabled;
+    bool                                    bPartialFrameUpdateEnable;
 
     // VP9
-    PCODEC_VP9_ENCODE_PIC_PARAMS            pVp9EncPicParams = nullptr;
-    bool                                    bSegmentationEnabled = false;
-    PMHW_VDBOX_VP9_SEGMENT_STATE            pVp9SegmentState = nullptr;
-    PCODEC_VP9_ENCODE_SEQUENCE_PARAMS       pVp9EncSeqParams = nullptr;
+    PCODEC_VP9_ENCODE_PIC_PARAMS            pVp9EncPicParams;
+    bool                                    bSegmentationEnabled;
+    PMHW_VDBOX_VP9_SEGMENT_STATE            pVp9SegmentState;
+    PCODEC_VP9_ENCODE_SEQUENCE_PARAMS       pVp9EncSeqParams;
     bool                                    bPrevFrameSegEnabled;
-    uint8_t                                 temporalMVpEnable = 0;
-    uint8_t                                 ucNumRefIdxL0ActiveMinus1 = 0;
-    bool                                    bDynamicScalingEnabled = false;
+    uint8_t                                 temporalMVpEnable;
+    uint8_t                                 ucNumRefIdxL0ActiveMinus1;
+    bool                                    bDynamicScalingEnabled;
 
     // Common
-    uint16_t                                usSADQPLambda = 0;
-    uint16_t                                usRDQPLambda = 0;
-    bool                                    bPakOnlyMultipassEnable = false;
-    virtual ~MHW_VDBOX_VDENC_CMD2_STATE() {}
-};
-using PMHW_VDBOX_VDENC_CMD2_STATE = MHW_VDBOX_VDENC_CMD2_STATE *;
+    uint16_t                                usSADQPLambda;
+    uint16_t                                usRDQPLambda;
+    bool                                    bPakOnlyMultipassEnable;
+} MHW_VDBOX_VDENC_CMD2_STATE, *PMHW_VDBOX_VDENC_CMD2_STATE;
 
-struct MHW_VDBOX_VDENC_WALKER_STATE_PARAMS
+typedef struct _MHW_VDBOX_VDENC_WALKER_STATE_PARAMS
 {
-    uint32_t                                Mode = 0;
-    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS       pAvcSeqParams = nullptr;
-    PCODEC_AVC_ENCODE_PIC_PARAMS            pAvcPicParams = nullptr;
-    PCODEC_AVC_ENCODE_SLICE_PARAMS          pAvcSlcParams = nullptr;
-    PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS      pHevcEncSeqParams = nullptr;
-    PCODEC_HEVC_ENCODE_PICTURE_PARAMS       pHevcEncPicParams = nullptr;
-    PCODEC_HEVC_ENCODE_SLICE_PARAMS         pEncodeHevcSliceParams = nullptr;
-    PCODEC_VP9_ENCODE_PIC_PARAMS            pVp9EncPicParams = nullptr;
-    virtual ~MHW_VDBOX_VDENC_WALKER_STATE_PARAMS() {}
-};
-using PMHW_VDBOX_VDENC_WALKER_STATE_PARAMS = MHW_VDBOX_VDENC_WALKER_STATE_PARAMS * ;
-
+    uint32_t                                Mode;
+    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS       pAvcSeqParams;
+    PCODEC_AVC_ENCODE_PIC_PARAMS            pAvcPicParams;
+    PCODEC_AVC_ENCODE_SLICE_PARAMS          pAvcSlcParams;
+    PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS      pHevcEncSeqParams;
+    PCODEC_HEVC_ENCODE_PICTURE_PARAMS       pHevcEncPicParams;
+    PCODEC_HEVC_ENCODE_SLICE_PARAMS         pEncodeHevcSliceParams;
+    PCODEC_VP9_ENCODE_PIC_PARAMS            pVp9EncPicParams;
+} MHW_VDBOX_VDENC_WALKER_STATE_PARAMS, *PMHW_VDBOX_VDENC_WALKER_STATE_PARAMS;
 
 //!  MHW Vdbox Vdenc interface
 /*!

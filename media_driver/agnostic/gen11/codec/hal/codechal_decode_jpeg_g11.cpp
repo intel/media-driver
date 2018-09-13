@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2018, Intel Corporation
+* Copyright (c) 2011-2017, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -152,6 +152,7 @@ MOS_STATUS CodechalDecodeJpegG11::DecodeStateLevel()
 
     // Set PIPE_MODE_SELECT
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams;
+    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode = CODECHAL_DECODE_MODE_JPEG;
     pipeModeSelectParams.bStreamOutEnabled = m_streamOutEnabled;
     pipeModeSelectParams.bDeblockerStreamOutEnable = false;
@@ -174,6 +175,7 @@ MOS_STATUS CodechalDecodeJpegG11::DecodeStateLevel()
 
     // Set MFX_PIPE_BUF_ADDR_STATE_CMD
     MHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams;
+    MOS_ZeroMemory(&pipeBufAddrParams, sizeof(pipeBufAddrParams));
     pipeBufAddrParams.Mode = CODECHAL_DECODE_MODE_JPEG;
     // Predeblock surface is the same as destination surface here because there is no deblocking for JPEG
     pipeBufAddrParams.psPreDeblockSurface = &m_destSurface;

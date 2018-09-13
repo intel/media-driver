@@ -524,10 +524,6 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::GetHcpStateCommandSize(
     uint32_t            patchListMaxSize = 0;
     uint32_t            standard = CodecHal_GetStandardFromMode(mode);
 
-    MHW_CHK_NULL_RETURN(params);
-    auto paramsG11 = dynamic_cast<PMHW_VDBOX_STATE_CMDSIZE_PARAMS_G11>(params);
-    MHW_CHK_NULL_RETURN(paramsG11);
-
     if (standard == CODECHAL_HEVC)
     {
         maxSize =
@@ -600,7 +596,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::GetHcpStateCommandSize(
                 PATCH_LIST_COMMAND(HCP_TILE_STATE_CMD) +
                 PATCH_LIST_COMMAND(HCP_TILE_CODING_COMMAND);
 
-            if (paramsG11->bScalableMode)
+            if (static_cast<PMHW_VDBOX_STATE_CMDSIZE_PARAMS_G11>(params)->bScalableMode)
             {
                 // Due to the fact that there is no slice level command in BE status, we mainly consider commands in FE. 
                 maxSize +=
@@ -687,7 +683,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::GetHcpStateCommandSize(
 
             patchListMaxSize += PATCH_LIST_COMMAND(HCP_VP9_PIC_STATE_CMD);
 
-            if (paramsG11->bScalableMode)
+            if (static_cast<PMHW_VDBOX_STATE_CMDSIZE_PARAMS_G11>(params)->bScalableMode)
             {
                 maxSize +=
                     mhw_vdbox_hcp_g11_X::HCP_TILE_CODING_CMD::byteSize +
@@ -1190,8 +1186,8 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpPipeModeSelectCmd(
     MHW_FUNCTION_ENTER;
 
     MHW_MI_CHK_NULL(params);
-    auto paramsG11 = dynamic_cast<PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G11>(params);
-    MHW_MI_CHK_NULL(paramsG11);
+
+    PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G11 paramsG11 = static_cast<PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G11>(params);
     mhw_vdbox_hcp_g11_X::HCP_PIPE_MODE_SELECT_CMD   cmd;
 
     //for gen 11, we need to add MFX wait for both KIN and VRT before and after HCP Pipemode select...
@@ -1960,8 +1956,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpPipeBufAddrCmd(
     }
 
     //Gen11 new added buffer
-    auto paramsG11 = dynamic_cast<PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS_G11>(params);
-    MHW_MI_CHK_NULL(paramsG11);
+    auto paramsG11 = static_cast<PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS_G11>(params);
     
     // Slice state stream out buffer
     if (paramsG11->presSliceStateStreamOutBuffer != nullptr)
@@ -2277,8 +2272,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpDecodePicStateCmd(
 
     MHW_MI_CHK_STATUS(MhwVdboxHcpInterfaceGeneric<mhw_vdbox_hcp_g11_X>::AddHcpDecodePicStateCmd(cmdBuffer, params));
 
-    auto paramsG11 = dynamic_cast<PMHW_VDBOX_HEVC_PIC_STATE_G11>(params);
-    MHW_MI_CHK_NULL(paramsG11);
+    auto paramsG11 = static_cast<PMHW_VDBOX_HEVC_PIC_STATE_G11>(params);
     auto hevcPicParams = paramsG11->pHevcPicParams;
     auto hevcExtPicParams = paramsG11->pHevcExtPicParams;
 
@@ -2787,12 +2781,10 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpDecodeSliceStateCmd(
     MHW_MI_CHK_NULL(hevcSliceState->pHevcPicParams);
     MHW_MI_CHK_NULL(hevcSliceState->pHevcSliceParams);
 
-    auto hevcSliceStateG11  = dynamic_cast<PMHW_VDBOX_HEVC_SLICE_STATE_G11>(hevcSliceState);
-    MHW_MI_CHK_NULL(hevcSliceStateG11);
     auto hevcSliceParams    = hevcSliceState->pHevcSliceParams;
-    auto hevcExtSliceParams = hevcSliceStateG11->pHevcExtSliceParams;
+    auto hevcExtSliceParams = static_cast<PMHW_VDBOX_HEVC_SLICE_STATE_G11>(hevcSliceState)->pHevcExtSliceParams;
     auto hevcPicParams      = hevcSliceState->pHevcPicParams;
-    auto hevcExtPicParams   = hevcSliceStateG11->pHevcExtPicParam;
+    auto hevcExtPicParams   = static_cast<PMHW_VDBOX_HEVC_SLICE_STATE_G11>(hevcSliceState)->pHevcExtPicParam;
 
     uint32_t ctbSize      = 1 << (hevcPicParams->log2_diff_max_min_luma_coding_block_size +
                             hevcPicParams->log2_min_luma_coding_block_size_minus3 + 3);
