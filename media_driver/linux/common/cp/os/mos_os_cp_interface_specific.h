@@ -161,6 +161,15 @@ public:
         uint32_t                    **ppTKs,
         uint32_t                    *pTKsSize,
         uint32_t                    *pTKsUpdateCnt);
+
+    //!
+    //! \brief    Read Counter Nounce Register
+    //! \param    [in] readCtr0
+    //!           Read counter 0 register
+    //! \param    [out] pCounter
+    //!           Pointer to hw counter
+    //!
+    MOS_STATUS ReadCtrNounceRegister(bool readCtr0, uint32_t *pCounter);
 };
 
 //!

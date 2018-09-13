@@ -2907,6 +2907,11 @@ MOS_STATUS CodechalEncoderState::StartStatusReport(
 
         if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface) && m_skipFrameBasedHWCounterRead == false )
         {
+            if (MEDIA_IS_WA(m_waTable, WaReadCtrNounceRegister))
+            {
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->osCpInterface->ReadCtrNounceRegister(true, (uint32_t *)&m_regHwCount[encodeStatusBuf->wCurrIndex]));
+            }
+
             uint32_t writeOffset = sizeof(HwCounter) * CODECHAL_ENCODE_STATUS_NUM;
 
             CODECHAL_ENCODE_CHK_NULL_RETURN(m_hwInterface->GetCpInterface());
@@ -3711,6 +3716,11 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                         //Report out counter read from HW
                         uint64_t *address2Counter = (uint64_t *)(((char *)(m_dataHwCount)) + (index * sizeof(HwCounter)));
 
+                        if (MEDIA_IS_WA(m_waTable, WaReadCtrNounceRegister))
+                        {
+                            address2Counter = (uint64_t *)&m_regHwCount[index];
+                        }
+
                         hwCounterValue.Count = *address2Counter;
                         hwCounterValue.Count = SwapEndianness(hwCounterValue.Count); //Report back in Big endian
 
@@ -3742,6 +3752,11 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                     {
                         //Report out counter read from HW
                         uint64_t *address2Counter = (uint64_t *)(((char *)(m_dataHwCount))+(index*sizeof(HwCounter)));
+
+                        if (MEDIA_IS_WA(m_waTable, WaReadCtrNounceRegister))
+                        {
+                            address2Counter = (uint64_t *)&m_regHwCount[index];
+                        }
 
                         hwCounterValue.Count     = *address2Counter;
                         hwCounterValue.Count = SwapEndianness(hwCounterValue.Count); //Report back in Big endian
