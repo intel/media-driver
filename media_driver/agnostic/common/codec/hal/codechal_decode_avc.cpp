@@ -1284,7 +1284,7 @@ MOS_STATUS CodechalDecodeAvc::InitPicMhwParams(
     MOS_ZeroMemory(&picMhwParams->QmParams, 
         sizeof(picMhwParams->QmParams));
     MOS_ZeroMemory(&picMhwParams->PicIdParams, 
-        sizeof(picMhwParams->SurfaceParams));
+        sizeof(picMhwParams->PicIdParams));
     MOS_ZeroMemory(&picMhwParams->AvcDirectmodeParams, 
         sizeof(picMhwParams->AvcDirectmodeParams));
 
