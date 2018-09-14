@@ -51,7 +51,7 @@ public:
         mOwner(owner)
     {
     }
-    ~EventManager()
+    virtual ~EventManager()
     {
         Clear();
     }
