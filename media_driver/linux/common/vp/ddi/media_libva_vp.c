@@ -1044,6 +1044,12 @@ DdiVp_SetProcPipelineParams(
             pVpHalSrcSurf->ScalingMode = VPHAL_SCALING_AVS;
             pVpHalSrcSurf->bInterlacedScaling = true;
         }
+
+        // Kernel does not support 3-plane interlaced AVS, so for 3-plane interlaced scaling, need to use bilinear.
+        if (pVpHalSrcSurf->bInterlacedScaling && IS_PL3_FORMAT(pVpHalSrcSurf->Format))
+        {
+            pVpHalSrcSurf->ScalingMode = VPHAL_SCALING_BILINEAR;
+        }
     }
     // For weave DI
     if (pVpHalSrcSurf->pDeinterlaceParams == nullptr)
