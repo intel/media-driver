@@ -5565,8 +5565,16 @@ MOS_STATUS RenderHal_SetupInterfaceDescriptor(
     Params.dwMediaIdOffset      = pMediaState->dwOffset + pStateHeap->dwOffsetMediaID;
     Params.iMediaId             = pInterfaceDescriptorParams->iMediaID;
     Params.dwKernelOffset       = pKernelAllocation->dwOffset;
-    Params.dwSamplerOffset      = pMediaState->dwOffset + pStateHeap->dwOffsetSampler +
-                                  pInterfaceDescriptorParams->iMediaID * pStateHeap->dwSizeSampler;
+    if (pRenderHal->bIsAVS)
+    {
+        Params.dwSamplerOffset  = pMediaState->dwOffset + pStateHeap->dwOffsetSamplerAVS +
+                                      pInterfaceDescriptorParams->iMediaID * pStateHeap->dwSizeSamplerAVS;
+    }
+    else
+    {
+        Params.dwSamplerOffset  = pMediaState->dwOffset + pStateHeap->dwOffsetSampler +
+                                      pInterfaceDescriptorParams->iMediaID * pStateHeap->dwSizeSampler;
+    }
     Params.dwSamplerCount       = pKernelAllocation->Params.Sampler_Count;
     Params.dwBindingTableOffset = pInterfaceDescriptorParams->iBindingTableID * pStateHeap->iBindingTableSize;
     Params.iCurbeOffset         = pInterfaceDescriptorParams->iCurbeOffset;

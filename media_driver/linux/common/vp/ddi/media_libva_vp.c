@@ -81,7 +81,8 @@ VAStatus     DdiVp_SetProcPipelineBlendingParams(PDDI_VP_CONTEXT pVpCtx, uint32_
 VAStatus     DdiVp_ConvertSurface (VADriverContextP ctx, DDI_MEDIA_SURFACE  *srcSurface, int16_t srcx,  int16_t srcy, uint16_t srcw,  uint16_t srch,  DDI_MEDIA_SURFACE  *dstSurface,  int16_t destx,  int16_t desty, uint16_t destw, uint16_t desth );
 VAStatus     DdiVp_UpdateProcPipelineForwardReferenceFrames(PDDI_VP_CONTEXT pVpCtx, VADriverContextP pVaDrvCtx, PVPHAL_SURFACE pVpHalSrcSurf, VAProcPipelineParameterBuffer* pPipelineParam);
 VAStatus     DdiVp_UpdateProcPipelineBackwardReferenceFrames(PDDI_VP_CONTEXT pVpCtx, VADriverContextP pVaDrvCtx, PVPHAL_SURFACE pVpHalSrcSurf, VAProcPipelineParameterBuffer* pPipelineParam);
-VAStatus     DdiVp_UpdateVphalTargetSurfColorSpace(VADriverContextP, PDDI_VP_CONTEXT, VAProcPipelineParameterBuffer*);
+VAStatus     DdiVp_UpdateVphalTargetSurfColorSpace(VADriverContextP, PDDI_VP_CONTEXT, VAProcPipelineParameterBuffer*, uint32_t targetIndex);
+VAStatus     DdiVp_BeginPictureInt(VADriverContextP pVaDrvCtx, PDDI_VP_CONTEXT pVpCtx, VASurfaceID vaSurfID);
 
 #if (VA_MAJOR_VERSION < 1)
 VAStatus     DdiVp_GetColorSpace(PVPHAL_SURFACE pVpHalSurf, VAProcColorStandardType colorStandard, uint32_t flag);
@@ -1126,9 +1127,17 @@ DdiVp_SetProcPipelineParams(
     }
 
     // Update the Render Target params - this needs to be done once when Render Target is passed via BeginPicture
-    vaStatus = DdiVp_UpdateVphalTargetSurfColorSpace(pVaDrvCtx, pVpCtx, pPipelineParam);
+    vaStatus = DdiVp_UpdateVphalTargetSurfColorSpace(pVaDrvCtx, pVpCtx, pPipelineParam, 0);
     DDI_CHK_RET(vaStatus, "Failed to update vphal target surface color space!");
 
+    //Using additional_outputs processing as 1:N case.
+    for (i = 0; i < pPipelineParam->num_additional_outputs; i++)
+    {
+        vaStatus = DdiVp_BeginPictureInt(pVaDrvCtx, pVpCtx, pPipelineParam->additional_outputs[i]);
+        DDI_CHK_RET(vaStatus, "Failed to update vphal target surface buffers!");
+        vaStatus = DdiVp_UpdateVphalTargetSurfColorSpace(pVaDrvCtx, pVpCtx, pPipelineParam, i+1);
+        DDI_CHK_RET(vaStatus, "Failed to update vphal target surface color space!");
+    }
     return VA_STATUS_SUCCESS;
 }
 
@@ -1529,7 +1538,8 @@ VAStatus
 DdiVp_UpdateVphalTargetSurfColorSpace(
     VADriverContextP                pVaDrvCtx,
     PDDI_VP_CONTEXT                 pVpCtx,
-    VAProcPipelineParameterBuffer*  pPipelineParam)
+    VAProcPipelineParameterBuffer*  pPipelineParam,
+    uint32_t                        targetIndex)
 {
     PVPHAL_RENDER_PARAMS      pVpHalRenderParams;
     PVPHAL_SURFACE            pVpHalTgtSurf;
@@ -1541,7 +1551,7 @@ DdiVp_UpdateVphalTargetSurfColorSpace(
     // initialize
     pVpHalRenderParams = VpGetRenderParams(pVpCtx);
     DDI_CHK_NULL(pVpHalRenderParams, "Null pVpHalRenderParams.", VA_STATUS_ERROR_INVALID_PARAMETER);
-    pVpHalTgtSurf      = pVpHalRenderParams->pTarget[0];
+    pVpHalTgtSurf      = pVpHalRenderParams->pTarget[targetIndex];
     DDI_CHK_NULL(pVpHalTgtSurf, "Null pVpHalTgtSurf.", VA_STATUS_ERROR_INVALID_SURFACE);
 
     // update target surface color space
@@ -2734,14 +2744,126 @@ VAStatus DdiVp_BeginPicture(
 
     pVpHalTgtSurf->Format = pVpHalTgtSurf->OsResource.Format;
 
-    // increase render target count
-    pVpHalRenderParams->uDstCount++;
-
     // reset source surface count
     pVpHalRenderParams->uSrcCount = 0;
 
     pVpHalRenderParams->bReportStatus    = true;
     pVpHalRenderParams->StatusFeedBackID = vaSurfID;
+    if (pMediaTgtSurf->pSurfDesc)
+    {
+        pVpHalRenderParams->bUserPrt_16Align[pVpHalRenderParams->uDstCount] =
+                (pMediaTgtSurf->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR);
+        if (pVpHalRenderParams->bUserPrt_16Align[pVpHalRenderParams->uDstCount])
+        {
+            pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.iPitch = pMediaTgtSurf->iPitch;
+        }
+    }
+    else
+    {
+        pVpHalRenderParams->bUserPrt_16Align[pVpHalRenderParams->uDstCount] = false;
+    }
+    // increase render target count
+    pVpHalRenderParams->uDstCount++;
+
+    return VA_STATUS_SUCCESS;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//! \purpose Get ready to process a picture to a target surface
+//! \params
+//! [in]  pVaDrvCtx : VA Driver Context
+//! [in]  vaCtxID : VA context ID
+//! [in]  vaSurfID : target surface ID
+//! [out] None
+//! \returns VA_STATUS_SUCCESS if call succeeds
+////////////////////////////////////////////////////////////////////////////////
+VAStatus DdiVp_BeginPictureInt(
+        VADriverContextP    pVaDrvCtx,
+        PDDI_VP_CONTEXT     pVpCtx,
+        VASurfaceID         vaSurfID)
+{
+    PDDI_MEDIA_CONTEXT          pMediaDrvCtx;
+    uint32_t                    ctxType;
+    VAStatus                    vaStatus;
+    PVPHAL_RENDER_PARAMS        pVpHalRenderParams;
+    PVPHAL_SURFACE              pVpHalTgtSurf;
+    PDDI_MEDIA_SURFACE          pMediaTgtSurf;
+
+    VP_DDI_FUNCTION_ENTER;
+    DDI_CHK_NULL(pVaDrvCtx,
+                    "Null pVaDrvCtx.",
+                    VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    // initialize
+    pMediaDrvCtx         = DdiMedia_GetMediaContext(pVaDrvCtx);
+    DDI_CHK_NULL(pMediaDrvCtx,
+                    "Null pMediaDrvCtx.",
+                    VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(pVpCtx,
+                    "Null pVpCtx.",
+                    VA_STATUS_ERROR_INVALID_CONTEXT);
+    pVpCtx->TargetSurfID = vaSurfID;
+    pVpHalRenderParams   = VpGetRenderParams(pVpCtx);
+    DDI_CHK_NULL(pVpHalRenderParams,
+                    "Null pVpHalRenderParams.",
+                    VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    // uDstCount == 0 means no render target is set yet.
+    // uDstCount == 1 means 1 render target has been set already.
+    // uDstCount == 2 means 2 render targets have been set already.
+    DDI_CHK_LESS(pVpHalRenderParams->uDstCount, VPHAL_MAX_TARGETS,
+        "Too many render targets for VP.",
+        VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    pVpHalTgtSurf = pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount];
+    DDI_CHK_NULL(pVpHalTgtSurf,
+                    "Null pVpHalTgtSurf.",
+                    VA_STATUS_ERROR_INVALID_SURFACE);
+    pMediaTgtSurf        = DdiMedia_GetSurfaceFromVASurfaceID(pMediaDrvCtx, vaSurfID);
+    DDI_CHK_NULL(pMediaTgtSurf,
+                    "Null pMediaTgtSurf.",
+                    VA_STATUS_ERROR_INVALID_SURFACE);
+
+    pMediaTgtSurf->pVpCtx = pVpCtx;
+
+    // Setup Target VpHal Surface
+    pVpHalTgtSurf->SurfType      = SURF_OUT_RENDERTARGET;
+    pVpHalTgtSurf->rcSrc.top     = 0;
+    pVpHalTgtSurf->rcSrc.left    = 0;
+    pVpHalTgtSurf->rcSrc.right   = pMediaTgtSurf->iWidth;
+    pVpHalTgtSurf->rcSrc.bottom  = pMediaTgtSurf->iRealHeight;
+    pVpHalTgtSurf->rcDst.top     = 0;
+    pVpHalTgtSurf->rcDst.left    = 0;
+    pVpHalTgtSurf->rcDst.right   = pMediaTgtSurf->iWidth;
+    pVpHalTgtSurf->rcDst.bottom  = pMediaTgtSurf->iRealHeight;
+    pVpHalTgtSurf->ExtendedGamut = false;
+
+    DDI_CHK_NULL(pVpCtx->pCpDdiInterface, "Null pVpCtx->pCpDdiInterface.", VA_STATUS_ERROR_INVALID_CONTEXT);
+    pVpCtx->pCpDdiInterface->ResetCpContext();
+
+    // Set os resource for VPHal render
+    vaStatus = VpSetOsResource(pVpCtx, pMediaTgtSurf, pVpHalRenderParams->uDstCount);
+    DDI_CHK_RET(vaStatus, "Call VpSetOsResource failed");
+
+    pVpHalTgtSurf->Format = pVpHalTgtSurf->OsResource.Format;
+
+    pVpHalRenderParams->bReportStatus    = true;
+    pVpHalRenderParams->StatusFeedBackID = vaSurfID;
+    if (pMediaTgtSurf->pSurfDesc)
+    {
+        pVpHalRenderParams->bUserPrt_16Align[pVpHalRenderParams->uDstCount] =
+                (pMediaTgtSurf->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR);
+        if (pVpHalRenderParams->bUserPrt_16Align[pVpHalRenderParams->uDstCount])
+        {
+            pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.iPitch = pMediaTgtSurf->iPitch;
+        }
+    }
+    else
+    {
+        pVpHalRenderParams->bUserPrt_16Align[pVpHalRenderParams->uDstCount] = false;
+    }
+    // increase render target count
+    pVpHalRenderParams->uDstCount++;
 
     return VA_STATUS_SUCCESS;
 }

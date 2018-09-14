@@ -1639,6 +1639,13 @@ bool VPHAL_VEBOX_STATE_G9_BASE::IsNeeded(
         goto finish;
     }
 
+    // check if UserPtr enabling.
+    if (pcRenderParams->bUserPrt_16Align[0])
+    {
+        pRenderPassData->bCompNeeded = true;
+        goto finish;
+    }
+
     // Check if the Surface size is greater than 64x16 which is the minimum Width and Height VEBOX can handle
     if (pSrcSurface->dwWidth < MHW_VEBOX_MIN_WIDTH || pSrcSurface->dwHeight < MHW_VEBOX_MIN_HEIGHT)
     {

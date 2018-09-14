@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -32,6 +32,7 @@
 #include "vphal_render_common.h"
 #include "vphal_render_renderstate.h"
 #include "vphal_render_vebox_base.h"
+#include "vphal_render_16alignment.h"
 
 #include "vphal_debug.h"
 
@@ -111,6 +112,8 @@ C_ASSERT(VPHAL_RENDER_ID_COUNT == 3);      //!< When adding, update assert
 class VphalRenderer
 {
 public:
+    // 16 Bytes Alignment state
+    VPHAL_16_ALIGN_STATE        Align16State;
     // Rendering engines
     VPHAL_VEBOX_EXEC_STATE      VeboxExecState[VPHAL_MAX_CHANNELS];             //!< Vebox Execution State
 

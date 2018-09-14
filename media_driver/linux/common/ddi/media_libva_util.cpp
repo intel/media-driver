@@ -409,7 +409,6 @@ VAStatus DdiMediaUtil_AllocateSurface(
 
             pitch    = mediaSurface->pSurfDesc->uiPitches[0];
 
-#ifdef ANDROID
 #ifdef DRM_IOCTL_I915_GEM_USERPTR
             bo = mos_bo_alloc_userptr( mediaDrvCtx->pDrmBufMgr,
                                           "SysSurface",
@@ -428,9 +427,6 @@ VAStatus DdiMediaUtil_AllocateSurface(
                                           mediaSurface->pSurfDesc->uiBuffserSize,
                                           0
                                          );
-#endif
-#else
-            bo = nullptr;
 #endif
             if( bo != nullptr )
             {
@@ -558,6 +554,10 @@ VAStatus DdiMediaUtil_AllocateSurface(
                 pitch = (int32_t)ulPitch;
             }
         }
+    }
+    else if(mediaSurface->pSurfDesc->uiFlags & VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR)
+    {
+        gmmHeight = height;
     }
     else
     {
