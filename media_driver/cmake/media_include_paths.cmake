@@ -20,14 +20,17 @@
 
 # external dependency
 # Common path we need to include for now.
-include_directories(${BS_DIR_INC})
-include_directories(${BS_DIR_INC}/common)
-include_directories(${BS_DIR_INC}/platform/iAlm)
-include_directories(${BS_DIR_INC}/umKmInc)
+
+if(NOT LIBGMM_FOUND)
+    include_directories(${BS_DIR_INC})
+    include_directories(${BS_DIR_INC}/common)
+    include_directories(${BS_DIR_INC}/platform/iAlm)
+    include_directories(${BS_DIR_INC}/umKmInc)
+    include_directories(${BS_DIR_GMMLIB}/inc)
+endif()
 
 # external components' header path which media depends on now
-include_directories(${BS_DIR_SKUWA})
-include_directories(${BS_DIR_GMMLIB}/inc)
+include_directories(${BS_DIR_SKUWA})    
 include_directories(${BS_DIR_SOURCE}/huc/inc)
 
 if(${PLATFORM} STREQUAL "linux")
