@@ -265,43 +265,15 @@ bool DdiMediaUtil_IsExternalSurface(PDDI_MEDIA_SURFACE surface)
     return true;
 }
 
-//!
-//! \brief  Allocate surface
-//! 
-//! \param  [in] format
-//!         Ddi media format
-//! \param  [in] width
-//!         Width of the region
-//! \param  [in] height
-//!         Height of the region
-//! \param  [out] mediaSurface
-//!         Pointer to ddi media surface
-//! \param  [in] mediaDrvCtx
-//!         Pointer to ddi media context
-//!         
-//! \return VAStatus
-//!     VA_STATUS_SUCCESS if success, else fail reason
-//!
-VAStatus DdiMediaUtil_AllocateSurface(
-    DDI_MEDIA_FORMAT            format,
-    int32_t                     width,
-    int32_t                     height,
-    PDDI_MEDIA_SURFACE          mediaSurface,
-    PDDI_MEDIA_CONTEXT          mediaDrvCtx)
+VAStatus DdiMediaUtil_GetExpectTileAndHeight(
+    DDI_MEDIA_FORMAT format,
+    uint32_t surface_hint,
+    int32_t height,
+    int32_t *aligned_height,
+    uint32_t *tile_format)
 {
-    uint32_t                    pitch = 0;
-    MOS_LINUX_BO               *bo = nullptr;
-    GMM_RESCREATE_PARAMS        gmmParams;
-    GMM_RESOURCE_INFO          *gmmResourceInfo;
-    bool                        grallocAllocation;
-
-    DDI_CHK_NULL(mediaSurface, "mediaSurface is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
-    DDI_CHK_NULL(mediaDrvCtx, "mediaDrvCtx is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
-    DDI_CHK_NULL(mediaDrvCtx->pGmmClientContext, "mediaDrvCtx->pGmmClientContext is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
-
-    int32_t size          = 0;
-    uint32_t tileformat   = I915_TILING_NONE;
-    VAStatus hRes         = VA_STATUS_SUCCESS;
+    DDI_CHK_NULL(aligned_height, "aligned_height is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
+    int32_t tileformat   = I915_TILING_NONE;
     int32_t alignedHeight = height;
 
     switch (format)
@@ -314,7 +286,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case Media_Format_R8G8B8:
         case Media_Format_R10G10B10A2:
         case Media_Format_B10G10R10A2: 
-            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint)
+            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != surface_hint)
             {
                  tileformat = I915_TILING_NONE;
                  break;
@@ -323,7 +295,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case Media_Format_YV12:
         case Media_Format_I420:
         case Media_Format_IYUV:
-            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint)
+            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != surface_hint)
             {
                  tileformat = I915_TILING_NONE;
                  break;
@@ -331,8 +303,8 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case Media_Format_RGBP:
         case Media_Format_UYVY:
         case Media_Format_A8R8G8B8:
-            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint &&
-                !(mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_DECODER))
+            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != surface_hint &&
+                !(surface_hint & VA_SURFACE_ATTRIB_USAGE_HINT_DECODER))
             {
                  tileformat = I915_TILING_NONE;
                  break;
@@ -352,7 +324,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case Media_Format_AYUV:
         case Media_Format_Y410:
         case Media_Format_Y416:     
-            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint)
+            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != surface_hint)
             {
 #if UFO_GRALLOC_NEW_FORMAT
                  //Planar type surface align 64 to improve performance.
@@ -363,16 +335,67 @@ VAStatus DdiMediaUtil_AllocateSurface(
 #endif
             }
             tileformat  = I915_TILING_Y;
+            if(0x80000000 == surface_hint)
+                tileformat = I915_TILING_NONE;
             break;
         case Media_Format_Buffer:
             tileformat = I915_TILING_NONE;
             break;
         default:
             DDI_ASSERTMESSAGE("Unsupported format");
-            hRes = VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
-            goto finish;
+            return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
     }
+    *aligned_height = alignedHeight;
+    if(tile_format)
+    {
+        *tile_format = tileformat;
+    }
+    return VA_STATUS_SUCCESS;
+}
 
+//!
+//! \brief  Allocate surface
+//!
+//! \param  [in] format
+//!         Ddi media format
+//! \param  [in] width
+//!         Width of the region
+//! \param  [in] height
+//!         Height of the region
+//! \param  [out] mediaSurface
+//!         Pointer to ddi media surface
+//! \param  [in] mediaDrvCtx
+//!         Pointer to ddi media context
+//!
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
+VAStatus DdiMediaUtil_AllocateSurface(
+    DDI_MEDIA_FORMAT            format,
+    int32_t                     width,
+    int32_t                     height,
+    PDDI_MEDIA_SURFACE          mediaSurface,
+    PDDI_MEDIA_CONTEXT          mediaDrvCtx)
+{
+    int32_t                     pitch = 0;
+    MOS_LINUX_BO               *bo = nullptr;
+    GMM_RESCREATE_PARAMS        gmmParams;
+    GMM_RESOURCE_INFO          *gmmResourceInfo;
+    bool                        grallocAllocation;
+
+    DDI_CHK_NULL(mediaSurface, "mediaSurface is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
+    DDI_CHK_NULL(mediaDrvCtx, "mediaDrvCtx is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
+    DDI_CHK_NULL(mediaDrvCtx->pGmmClientContext, "mediaDrvCtx->pGmmClientContext is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
+
+    int32_t size          = 0;
+    uint32_t tileformat   = I915_TILING_NONE;
+    VAStatus hRes         = VA_STATUS_SUCCESS;
+    int32_t alignedHeight = height;
+    hRes = DdiMediaUtil_GetExpectTileAndHeight(format, mediaSurface->surfaceUsageHint, height, &alignedHeight, &tileformat);
+    if(hRes != VA_STATUS_SUCCESS)
+    {
+        goto finish;
+    }
     if( DdiMediaUtil_IsExternalSurface(mediaSurface) )
     { 
         // DRM buffer allocated by Application, No need to re-allocate new DRM buffer
