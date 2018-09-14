@@ -240,6 +240,9 @@ enum VpKernelID
     kernelVeboxSecureBlockCopy,
     kernelVeboxUpdateDnState,
 
+    // User Ptr
+    kernelUserPtr,
+
     baseKernelMaxNumID
 };
 

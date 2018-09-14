@@ -1228,7 +1228,7 @@ mos_gem_bo_alloc_userptr(struct mos_bufmgr *bufmgr,
     memclear(userptr);
     userptr.user_ptr = (__u64)((unsigned long)addr);
     userptr.user_size = size;
-    userptr.flags = flags;
+    userptr.flags = 0;
 
     ret = drmIoctl(bufmgr_gem->fd,
             DRM_IOCTL_I915_GEM_USERPTR,

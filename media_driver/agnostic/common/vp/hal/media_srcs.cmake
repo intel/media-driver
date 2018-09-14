@@ -37,6 +37,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/vphal_renderer.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vphal_mdf_wrapper.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vphal_render_vebox_denoise.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/vphal_render_16alignment.cpp
 )
 
 set(TMP_HEADERS_
@@ -59,6 +60,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/vphal_renderer.h
     ${CMAKE_CURRENT_LIST_DIR}/vphal_mdf_wrapper.h
     ${CMAKE_CURRENT_LIST_DIR}/vphal_render_vebox_denoise.h
+    ${CMAKE_CURRENT_LIST_DIR}/vphal_render_16alignment.h
 )
 
 

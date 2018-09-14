@@ -371,34 +371,6 @@ VAStatus DdiMedia_SetFrameID(
     return VA_STATUS_SUCCESS;
 }
 
-/*
- * vaCreateSurfaces - Create an array of surfaces used for decode and display
- *  dpy: display
- *  width: surface width
- *  height: surface height
- *  format: VA_RT_FORMAT_YUV420, VA_RT_FORMAT_YUV422 or VA_RT_FORMAT_YUV444
- *  num_surfaces: number of surfaces to be created
- *  surfaces: array of surfaces created upon return
- */
-static DDI_MEDIA_FORMAT  DdiMedia_VaFmtToMediaFmt (int32_t format, int32_t fourcc)
-{
-    switch (format)
-    {
-        case VA_RT_FORMAT_YUV420:
-            return (fourcc == VA_FOURCC('P','0','1','0')) ? Media_Format_P010 : Media_Format_NV12;
-        case VA_RT_FORMAT_YUV422:
-            return Media_Format_422H;
-        case VA_RT_FORMAT_YUV444:
-            return Media_Format_444P;
-        case VA_RT_FORMAT_YUV400:
-            return Media_Format_400P;
-        case VA_RT_FORMAT_YUV411:
-            return Media_Format_411P;
-        default:
-            return Media_Format_Count;
-    }
-}
-
 //!
 //! \brief  Convert media format to OS format 
 //! 
@@ -1831,7 +1803,7 @@ static VAStatus DdiMedia_CreateSurfaces (
         return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
     }
 
-    DDI_MEDIA_FORMAT mediaFmt = DdiMedia_VaFmtToMediaFmt(format, VA_FOURCC_NV12);
+    DDI_MEDIA_FORMAT mediaFmt = DdiMedia_OsFormatToMediaFormat(VA_FOURCC_NV12,format);
 
     height = MOS_ALIGN_CEIL(height, 16);
     for(int32_t i = 0; i < num_surfaces; i++)
@@ -2090,7 +2062,6 @@ DdiMedia_CreateSurfaces2(
                       {
                            memTypeFlag = attrib_list[i].value.value.i;
                            surfIsUserPtr = (attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR);
-                           surfIsUserPtr = false;
                       }
                       else
                       {

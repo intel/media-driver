@@ -207,7 +207,7 @@ extern "C" {
 
 #define VPHAL_MAX_SOURCES               17       //!< worst case: 16 sub-streams + 1 pri video
 #define VPHAL_MAX_CHANNELS              2
-#define VPHAL_MAX_TARGETS               2        //!< dual output support for Android
+#define VPHAL_MAX_TARGETS               8        //!< multi output support
 #define VPHAL_MAX_FUTURE_FRAMES         18       //!< maximum future frames supported in VPHAL
 
 typedef struct _VPHAL_COMPOSITE_CACHE_CNTL
@@ -246,6 +246,15 @@ typedef struct _VPHAL_LACE_CACHE_CNTL
     VPHAL_MEMORY_OBJECT_CONTROL    WeitCoefSurfaceMemObjCtl;
     VPHAL_MEMORY_OBJECT_CONTROL    GlobalToneMappingCurveLUTSurfaceMemObjCtl;
 } VPHAL_LACE_CACHE_CNTL, *PVPHAL_LACE_CACHE_CNTL;
+
+typedef struct _VPHAL_16_ALIGN_CACHE_CNTL
+{
+    bool                           bL3CachingEnabled;
+    VPHAL_MEMORY_OBJECT_CONTROL    SourceSurfMemObjCtl;
+    VPHAL_MEMORY_OBJECT_CONTROL    TargetSurfMemObjCtl;
+    VPHAL_MEMORY_OBJECT_CONTROL    SamplerParamsSurfMemObjCtl;
+    VPHAL_MEMORY_OBJECT_CONTROL    SamplerParamsStatsSurfMemObjCtl;
+}VPHAL_16_ALIGN_CACHE_CNTL, *PVPHAL_16_ALIGN_CACHE_CNTL;
 
 //!
 //! \brief  Feature specific cache control settings
@@ -1078,6 +1087,7 @@ struct VPHAL_RENDER_PARAMS
 
                                                                         // Status Report
     bool                                    bReportStatus;              //!< Report current media BB status (Pre-Processing)
+    bool                                    bUserPrt_16Align[VPHAL_MAX_TARGETS];           //!< is system memory 16 bytes alignment requirement.
     uint32_t                                StatusFeedBackID;           //!< Unique Staus ID;
 #if (_DEBUG || _RELEASE_INTERNAL)
     bool                                    bTriggerGPUHang;            //!< Trigger GPU HANG
@@ -1110,6 +1120,10 @@ struct VPHAL_RENDER_PARAMS
         bCalculatingAlpha(false),
         pExtensionData(nullptr)
     {
+        for (int i=0; i<VPHAL_MAX_TARGETS; i++)
+        {
+            bUserPrt_16Align[i] = false;
+        }
     }
 
 };
