@@ -469,12 +469,8 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
         auto currentPatch = &m_patchLocationList[patchIndex];
         MOS_OS_CHK_NULL_RETURN(currentPatch);
 
-        auto allocationIndex = currentPatch->AllocationIndex;
-        auto resourceOffset  = currentPatch->AllocationOffset;
-        auto patchOffset     = currentPatch->PatchOffset;
-
         // This is the resource for which patching will be done
-        auto resource = (PMOS_RESOURCE)m_allocationList[allocationIndex].hAllocation;
+        auto resource = (PMOS_RESOURCE)m_allocationList[currentPatch->AllocationIndex].hAllocation;
         MOS_OS_CHK_NULL_RETURN(resource);
 
         // For now, we'll assume the system memory's DRM bo pointer
@@ -506,39 +502,43 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
         }
         if (osContext->bUse64BitRelocs)
         {
-            *((uint64_t *)((uint8_t *)cmd_bo->virt + patchOffset)) = boOffset + resourceOffset;
+            *((uint64_t *)((uint8_t *)cmd_bo->virt + currentPatch->PatchOffset)) =
+                    boOffset + currentPatch->AllocationOffset;
         }
         else
         {
-            *((uint32_t *)((uint8_t *)cmd_bo->virt + patchOffset)) = boOffset + resourceOffset;
+            *((uint32_t *)((uint8_t *)cmd_bo->virt + currentPatch->PatchOffset)) =
+                    boOffset + currentPatch->AllocationOffset;
         }
 
         // This call will patch the command buffer with the offsets of the indirect state region of the command buffer
         ret = mos_bo_emit_reloc2(
-            cmd_bo,                                                              // Command buffer
-            patchOffset,                                                         // Offset in the command buffer
-            alloc_bo,                                                            // Allocation object for which the patch will be made.
-            resourceOffset,                                                      // Offset to the indirect state
-            I915_GEM_DOMAIN_RENDER,                                              // Read domain
+            cmd_bo,                                                            // Command buffer
+            currentPatch->PatchOffset,                                         // Offset in the command buffer
+            alloc_bo,                                                          // Allocation object for which the patch will be made.
+            currentPatch->AllocationOffset,                                    // Offset to the indirect state
+            I915_GEM_DOMAIN_RENDER,                                            // Read domain
             (currentPatch->uiWriteOperation) ? I915_GEM_DOMAIN_RENDER : 0x0,   // Write domain
             boOffset);
 #else
             if (osContext->bUse64BitRelocs)
             {
-                *((uint64_t*)((uint8_t*)cmd_bo->virt + patchOffset)) = alloc_bo->offset64 + resourceOffset;
+                *((uint64_t*)((uint8_t*)cmd_bo->virt + currentPatch->PatchOffset)) =
+                        alloc_bo->offset64 + currentPatch->AllocationOffset;
             }
             else
             {
-                *((uint32_t*)((uint8_t*)cmd_bo->virt + patchOffset)) = alloc_bo->offset64 + resourceOffset;
+                *((uint32_t*)((uint8_t*)cmd_bo->virt + currentPatch->PatchOffset)) =
+                        alloc_bo->offset64 + currentPatch->AllocationOffset;
             }
 
         // This call will patch the command buffer with the offsets of the indirect state region of the command buffer
         ret = mos_bo_emit_reloc(
-            cmd_bo,  // Command buffer
-            patchOffset,  // Offset in the command buffer
-            alloc_bo,  // Allocation object for which the patch will be made.
-            resourceOffset,  // Offset to the indirect state
-            I915_GEM_DOMAIN_RENDER,  // Read domain
+            cmd_bo,                          // Command buffer
+            currentPatch->PatchOffset,       // Offset in the command buffer
+            alloc_bo,                        // Allocation object for which the patch will be made.
+            currentPatch->AllocationOffset,  // Offset to the indirect state
+            I915_GEM_DOMAIN_RENDER,          // Read domain
             (currentPatch->uiWriteOperation) ? I915_GEM_DOMAIN_RENDER : 0x0);  // Write domain
 #endif
         if (ret != 0)

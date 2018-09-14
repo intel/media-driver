@@ -3299,7 +3299,7 @@ MOS_STATUS Mos_Specific_SubmitCommandBuffer(
     PMOS_OS_GPU_CONTEXT     pOsGpuContext;
     MOS_GPU_CONTEXT         GpuContext;
     MOS_GPU_NODE            GpuNode;
-    uint32_t                PatchIndex, AllocationIndex, CmdBufferSize;
+    uint32_t                PatchIndex, CmdBufferSize;
     MOS_STATUS              eStatus;
     PPATCHLOCATIONLIST      pPatchList,pCurrentPatch;
     MOS_LINUX_BO            *alloc_bo, *cmd_bo;
@@ -3309,7 +3309,6 @@ MOS_STATUS Mos_Specific_SubmitCommandBuffer(
     uint32_t                dwComponentTag;
     uint32_t                dwCallType;
 #endif // (_DEBUG || _RELEASE_INTERNAL)
-    int32_t                 ResourceOffset,PatchOffset;
     uint32_t                dwBatchBufferEndCmd;
     uint32_t                            cpCmdProps;
     uint32_t                            dwAddCb2;
@@ -3361,12 +3360,8 @@ MOS_STATUS Mos_Specific_SubmitCommandBuffer(
         pCurrentPatch   = &pPatchList[PatchIndex];
         MOS_OS_CHK_NULL(pCurrentPatch);
 
-        AllocationIndex = pCurrentPatch->AllocationIndex;
-        ResourceOffset  = pCurrentPatch->AllocationOffset;
-        PatchOffset     = pCurrentPatch->PatchOffset;
-
         // This is the resource for which patching will be done
-        pResource       = (PMOS_RESOURCE)pOsGpuContext->pAllocationList[AllocationIndex].hAllocation;
+        pResource       = (PMOS_RESOURCE)pOsGpuContext->pAllocationList[pCurrentPatch->AllocationIndex].hAllocation;
         MOS_OS_CHK_NULL(pResource);
 
         // For now, we'll assume the system memory's DRM bo pointer
@@ -3398,38 +3393,42 @@ MOS_STATUS Mos_Specific_SubmitCommandBuffer(
         }
         if (pOsContext->bUse64BitRelocs)
         {
-            *((uint64_t*)((uint8_t*)cmd_bo->virt + PatchOffset)) = boOffset + ResourceOffset;
+            *((uint64_t*)((uint8_t*)cmd_bo->virt + pCurrentPatch->PatchOffset)) =
+                    boOffset + pCurrentPatch->AllocationOffset;
         }
         else
         {
-            *((uint32_t*)((uint8_t*)cmd_bo->virt + PatchOffset)) = boOffset + ResourceOffset;
+            *((uint32_t*)((uint8_t*)cmd_bo->virt + pCurrentPatch->PatchOffset)) =
+                    boOffset + pCurrentPatch->AllocationOffset;
         }
 
         // This call will patch the command buffer with the offsets of the indirect state region of the command buffer
         ret = mos_bo_emit_reloc2(
                           cmd_bo,                                                              // Command buffer
-                          PatchOffset,                                                         // Offset in the command buffer
+                          pCurrentPatch->PatchOffset,                                          // Offset in the command buffer
                           alloc_bo,                                                            // Allocation object for which the patch will be made.
-                          ResourceOffset,                                                      // Offset to the indirect state
+                          pCurrentPatch->AllocationOffset,                                     // Offset to the indirect state
                           I915_GEM_DOMAIN_RENDER,                                              // Read domain
                           (pCurrentPatch->uiWriteOperation) ? I915_GEM_DOMAIN_RENDER : 0x0,   // Write domain
                           boOffset);
 #else
         if (pOsContext->bUse64BitRelocs)
         {
-            *((uint64_t*)((uint8_t*)cmd_bo->virt + PatchOffset)) = alloc_bo->offset64 + ResourceOffset;
+            *((uint64_t*)((uint8_t*)cmd_bo->virt + pCurrentPatch->PatchOffset)) =
+                    alloc_bo->offset64 + pCurrentPatch->AllocationOffset;
         }
         else
         {
-            *((uint32_t*)((uint8_t*)cmd_bo->virt + PatchOffset)) = alloc_bo->offset64 + ResourceOffset;
+            *((uint32_t*)((uint8_t*)cmd_bo->virt + pCurrentPatch->PatchOffset)) =
+                    alloc_bo->offset64 + pCurrentPatch->AllocationOffset;
         }
 
         // This call will patch the command buffer with the offsets of the indirect state region of the command buffer
         ret = mos_bo_emit_reloc(
                           cmd_bo,                                                              // Command buffer
-                          PatchOffset,                                                         // Offset in the command buffer
+                          pCurrentPatch->PatchOffset,                                          // Offset in the command buffer
                           alloc_bo,                                                            // Allocation object for which the patch will be made.
-                          ResourceOffset,                                                      // Offset to the indirect state
+                          pCurrentPatch->AllocationOffset,                                     // Offset to the indirect state
                           I915_GEM_DOMAIN_RENDER,                                              // Read domain
                           (pCurrentPatch->uiWriteOperation) ? I915_GEM_DOMAIN_RENDER : 0x0);   // Write domain
 
