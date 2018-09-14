@@ -1064,6 +1064,7 @@ typedef struct _RENDERHAL_GENERIC_PROLOG_PARAMS
     uint32_t                        dwMediaFrameTrackingTag = 0;
     uint32_t                        dwMediaFrameTrackingAddrOffset = 0;
     PMOS_RESOURCE                   presMediaFrameTrackingSurface = nullptr;
+    virtual ~_RENDERHAL_GENERIC_PROLOG_PARAMS() {}
 } RENDERHAL_GENERIC_PROLOG_PARAMS, *PRENDERHAL_GENERIC_PROLOG_PARAMS;
 
 //!

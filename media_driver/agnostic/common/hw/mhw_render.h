@@ -54,6 +54,7 @@ typedef struct _MHW_RENDER_ENGINE_L3_CACHE_SETTINGS
     uint32_t   dwSqcReg1  = 0;
     uint32_t   dwSqcReg4  = 0;
     uint32_t   dwLra1Reg  = 0;
+    virtual ~_MHW_RENDER_ENGINE_L3_CACHE_SETTINGS() {}
 } MHW_RENDER_ENGINE_L3_CACHE_SETTINGS, *PMHW_RENDER_ENGINE_L3_CACHE_SETTINGS;
 
 typedef struct _MHW_RENDER_ENGINE_L3_CACHE_CONFIG
@@ -173,6 +174,7 @@ struct MHW_VFE_PARAMS
     MHW_VFE_SLICE_DISABLE           eVfeSliceDisable = MHW_VFE_SLICE_ALL;
     MHW_VFE_SCOREBOARD              Scoreboard = {};
     PMHW_KERNEL_STATE               pKernelState = nullptr;
+    virtual ~MHW_VFE_PARAMS() {}
 };
 typedef MHW_VFE_PARAMS *PMHW_VFE_PARAMS;
 
