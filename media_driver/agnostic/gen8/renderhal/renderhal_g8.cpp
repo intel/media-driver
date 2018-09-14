@@ -427,7 +427,7 @@ MOS_STATUS XRenderHal_Interface_g8::EnableL3Caching(
 {
     MOS_STATUS                           eStatus;
     PLATFORM                             Platform;
-    MHW_RENDER_ENGINE_L3_CACHE_SETTINGS  mHwL3CacheConfig;
+    MHW_RENDER_ENGINE_L3_CACHE_SETTINGS  mHwL3CacheConfig = {};
     PMHW_RENDER_ENGINE_L3_CACHE_SETTINGS pCacheConfig;
     MhwRenderInterface                   *pMhwRender;
 
@@ -443,7 +443,6 @@ MOS_STATUS XRenderHal_Interface_g8::EnableL3Caching(
 
     // customize the cache config for renderhal and let mhw_render overwrite it
     pCacheConfig = &mHwL3CacheConfig;
-    MOS_ZeroMemory(pCacheConfig, sizeof(MHW_RENDER_ENGINE_L3_CACHE_SETTINGS));
 
     pRenderHal->pOsInterface->pfnGetPlatform(pRenderHal->pOsInterface, &Platform);
 

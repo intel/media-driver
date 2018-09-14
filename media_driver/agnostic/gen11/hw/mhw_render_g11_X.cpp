@@ -153,13 +153,18 @@ MOS_STATUS MhwRenderInterfaceG11::EnableL3Caching(
     PMHW_RENDER_ENGINE_L3_CACHE_SETTINGS    cacheSettings )
 {
     // L3 Caching enabled by default
-    PMHW_RENDER_ENGINE_L3_CACHE_SETTINGS_G11 cacheSettingsG11 = static_cast< PMHW_RENDER_ENGINE_L3_CACHE_SETTINGS_G11 >( cacheSettings );
     m_l3CacheConfig.bL3CachingEnabled = true;
     m_l3CacheConfig.dwL3CacheCntlReg_Register = m_l3CacheCntlRegisterOffset;
     m_l3CacheConfig.dwL3CacheTcCntlReg_Register = m_l3CacheTcCntlRegisterOffset;
 
-    if ( cacheSettingsG11 )
+    if ( cacheSettings )
     {
+        PMHW_RENDER_ENGINE_L3_CACHE_SETTINGS_G11 cacheSettingsG11 = dynamic_cast< PMHW_RENDER_ENGINE_L3_CACHE_SETTINGS_G11 >( cacheSettings );
+        if (cacheSettingsG11 == nullptr)
+        {
+            MHW_ASSERTMESSAGE("Gen11-Specific Params are needed.");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
         m_l3CacheConfig.dwL3CacheCntlReg_Setting = cacheSettingsG11->dwCntlReg;
         m_l3CacheConfig.dwL3CacheTcCntlReg_Setting = cacheSettingsG11->dwTcCntlReg;
     }
