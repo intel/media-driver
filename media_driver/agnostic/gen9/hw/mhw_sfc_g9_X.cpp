@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -57,6 +57,11 @@ MhwSfcInterfaceG9::MhwSfcInterfaceG9(PMOS_INTERFACE pOsInterface)
     // If any override is needed, something like pfnOverrideMemoryObjectCtrl() / pfnComposeSurfaceCacheabilityControl()
     // will need to be implemented.
     // Caching policy if any of below modes are true
+    if (m_osInterface == nullptr)
+    {
+        MHW_ASSERTMESSAGE("Invalid Input Parameter: m_osInterface is nullptr");
+        return;
+    }
 
     if (m_osInterface->osCpInterface != nullptr)
     {
