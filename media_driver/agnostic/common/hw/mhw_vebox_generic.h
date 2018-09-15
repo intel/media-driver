@@ -80,6 +80,10 @@ public:
         {
             MOS_SecureMemcpy(pVertexTable, uSize, g_VeboxVertexTableBT709, uSize);
         }
+        else
+        {
+            MHW_NORMALMESSAGE("Unhandled ColorSpace");
+        }
 
     finish:
         return eStatus;
@@ -255,8 +259,8 @@ protected:
         typename TVeboxCmds::VEBOX_ALPHA_AOI_STATE_CMD   *pVeboxAlphaAoiState,
         bool                                             bEnableLACE)
     {
-        MHW_ASSERT(pVeboxAceLaceState);
-        MHW_ASSERT(pVeboxAlphaAoiState);
+        MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxAceLaceState);
+        MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxAlphaAoiState);
 
         // ACE improves the overall contrast of the image and emphasizing
         // details when relevant (such as in dark areas)
@@ -289,8 +293,8 @@ protected:
         typename TVeboxCmds::VEBOX_TCC_STATE_CMD *pVeboxTccState,
         PMHW_COLORPIPE_PARAMS                    pColorPipeParams)
     {
-        MHW_ASSERT(pVeboxTccState);
-        MHW_ASSERT(pColorPipeParams);
+        MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxTccState);
+        MHW_CHK_NULL_NO_STATUS_RETURN(pColorPipeParams);
 
         // TCC allows users to custom the color scheme by choosing different
         // grades of saturation for each of the six basic colors (red, green,
@@ -317,12 +321,13 @@ protected:
         typename TVeboxCmds::VEBOX_FRONT_END_CSC_STATE_CMD *pVeboxFecscState,
         PMHW_VEBOX_IECP_PARAMS                pVeboxIecpParams)
     {
-        PMHW_CAPPIPE_PARAMS pCapPipeParams;
+        PMHW_CAPPIPE_PARAMS pCapPipeParams = nullptr;
 
-        MHW_ASSERT(pVeboxFecscState);
-        MHW_ASSERT(pVeboxIecpParams);
+        MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxFecscState);
+        MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxIecpParams);
 
         pCapPipeParams = &pVeboxIecpParams->CapPipeParams;
+        MHW_CHK_NULL_NO_STATUS_RETURN(pCapPipeParams);
         MHW_ASSERT(pCapPipeParams->bActive);
 
 #define SET_COEFS(_c0, _c1, _c2, _c3, _c4, _c5, _c6, _c7, _c8)   \
@@ -424,13 +429,14 @@ protected:
     {
         typename TVeboxCmds::VEBOX_CCM_STATE_CMD *pCcm = nullptr;
 
-        pCcm = &pVeboxIecpState->CcmState;
+        MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxIecpState);
+        MHW_CHK_NULL_NO_STATUS_RETURN(pCapPipeParams);
 
-        MHW_ASSERT(pVeboxIecpState);
-        MHW_ASSERT(pCapPipeParams);
+        pCcm = &pVeboxIecpState->CcmState;
 
         if (pCapPipeParams->ColorCorrectionParams.bActive)
         {
+            MHW_CHK_NULL_NO_STATUS_RETURN(pCcm);
             pCcm->DW0.ColorCorrectionMatrixEnable = true;
 
             pCcm->DW0.C1 =
@@ -467,8 +473,8 @@ protected:
         typename TVeboxCmds::VEBOX_PROCAMP_STATE_CMD *pVeboxProcampState,
         PMHW_PROCAMP_PARAMS                           pProcAmpParams)
     {
-        MHW_ASSERT(pVeboxProcampState);
-        MHW_ASSERT(pProcAmpParams);
+        MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxProcampState);
+        MHW_CHK_NULL_NO_STATUS_RETURN(pProcAmpParams);
 
         pVeboxProcampState->DW0.ProcampEnable = true;
         pVeboxProcampState->DW0.Brightness    = pProcAmpParams->brightness;  // S7.4
@@ -493,11 +499,12 @@ protected:
         int32_t                     uiOffset;
         MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
 
-        MHW_ASSERT(pVeboxIecpState);
+        MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxIecpParams);
 
         if (pVeboxIecpParams->ColorPipeParams.bActive &&
             pVeboxIecpParams->ColorPipeParams.bEnableACE)
         {
+            MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxIecpState);
             pAceParams = &pVeboxIecpParams->AceParams;
             MHW_ASSERT(pAceParams->bActive);
 
@@ -544,7 +551,8 @@ protected:
         PMHW_VEBOX_HEAP pVeboxHeap;
         uint32_t        uiOffset;
 
-        MHW_ASSERT(pCapPipeParams);
+        MHW_CHK_NULL_NO_STATUS_RETURN(pCapPipeParams);
+        MHW_CHK_NULL_NO_STATUS_RETURN(m_veboxHeap);
 
         pVeboxHeap = m_veboxHeap;
         uiOffset   = pVeboxHeap->uiCurState * pVeboxHeap->uiInstanceSize;
@@ -553,6 +561,7 @@ protected:
             (typename TVeboxCmds::VEBOX_CAPTURE_PIPE_STATE_CMD *)(pVeboxHeap->pLockedDriverResourceMem +
                                                                   pVeboxHeap->uiCapturePipeStateOffset +
                                                                   uiOffset);
+        MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxCapPipeState);
         *pVeboxCapPipeState = CapPipCmd;
 
         if (pCapPipeParams->BlackLevelParams.bActive)

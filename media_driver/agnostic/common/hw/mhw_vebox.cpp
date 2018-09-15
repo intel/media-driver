@@ -109,6 +109,7 @@ MOS_STATUS MhwVeboxInterface::AssignVeboxState()
     // Check validity of  current vebox heap instance
     // The code below is unlikely to be executed - unless all Vebox states are in use
     // If this ever happens, please consider increasing the number of media states
+    MHW_CHK_NULL(pVeboxCurState);
     if (pVeboxCurState->bBusy)
     {
         // Get current vebox instance sync tag
