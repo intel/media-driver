@@ -133,6 +133,9 @@ typedef struct _MHW_BATCH_BUFFER MHW_BATCH_BUFFER, *PMHW_BATCH_BUFFER;
 #define MHW_CHK_NULL_NO_STATUS(_ptr)                                            \
     MOS_CHK_NULL_NO_STATUS(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _ptr)
 
+#define MHW_CHK_NULL_NO_STATUS_RETURN(_ptr) \
+    MOS_CHK_NULL_NO_STATUS_RETURN(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _ptr)
+
 #define MHW_CHK_COND(_condition,  _message, ...)                                \
     MOS_CHK_COND_RETURN(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, (_condition),  (_message),  ##__VA_ARGS__)
 

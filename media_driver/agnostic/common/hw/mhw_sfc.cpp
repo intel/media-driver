@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -65,9 +65,9 @@ void MhwSfcInterface::SetSfcAVSChromaTable(
 {
     int32_t i;
 
-    MHW_ASSERT(pUVCoeffTable);
-    MHW_ASSERT(piUVCoefsX);
-    MHW_ASSERT(piUVCoefsY);
+    MHW_CHK_NULL_NO_STATUS_RETURN(pUVCoeffTable);
+    MHW_CHK_NULL_NO_STATUS_RETURN(piUVCoefsX);
+    MHW_CHK_NULL_NO_STATUS_RETURN(piUVCoefsY);
 
     for (i = 0; i < NUM_HW_POLYPHASE_TABLES; i++, pUVCoeffTable++)
     {
@@ -92,9 +92,9 @@ void MhwSfcInterface::SetSfcAVSLumaTable(
 {
     int32_t i;
 
-    MHW_ASSERT(pCoeffTable);
-    MHW_ASSERT(piYCoefsX);
-    MHW_ASSERT(piYCoefsY);
+    MHW_CHK_NULL_NO_STATUS_RETURN(pCoeffTable);
+    MHW_CHK_NULL_NO_STATUS_RETURN(piYCoefsX);
+    MHW_CHK_NULL_NO_STATUS_RETURN(piYCoefsY);
 
     for (i = 0; i < NUM_HW_POLYPHASE_TABLES; i++, pCoeffTable++)
     {
