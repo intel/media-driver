@@ -221,8 +221,8 @@ void MhwVeboxInterfaceG10::SetVeboxIecpStateBecsc(
     PMHW_CAPPIPE_PARAMS pCapPipeParams;
     MOS_FORMAT          dstFormat;
 
-    MHW_ASSERT(pVeboxIecpState);
-    MHW_ASSERT(pVeboxIecpParams);
+    MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxIecpState);
+    MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxIecpParams);
 
     pCapPipeParams = &pVeboxIecpParams->CapPipeParams;
     dstFormat      = pVeboxIecpParams->dstFormat;
@@ -376,10 +376,13 @@ void MhwVeboxInterfaceG10::SetVeboxSurfaces(
     uint8_t  bBayerStride;
 
     mhw_vebox_g10_X::VEBOX_SURFACE_STATE_CMD VeboxSurfaceState;
-    MHW_ASSERT(pSurfaceParam);
-    MHW_ASSERT(pVeboxSurfaceState);
+    MHW_CHK_NULL_NO_STATUS_RETURN(pSurfaceParam);
+    MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxSurfaceState);
 
     // Initialize
+    dwSurfaceWidth      = 0;
+    dwSurfaceHeight     = 0;
+    dwSurfacePitch      = 0;
     bHalfPitchForChroma = false;
     bInterleaveChroma   = false;
     wUXOffset           = 0;
@@ -1105,8 +1108,8 @@ MOS_STATUS MhwVeboxInterfaceG10::AddVeboxGamutState(
                                                                   pVeboxHeap->uiGamutStateOffset +
                                                                   uiOffset);
 
-    MHW_ASSERT(pIecpState);
-    MHW_ASSERT(pVeboxGEGammaCorrection);
+    MHW_CHK_NULL(pIecpState);
+    MHW_CHK_NULL(pVeboxGEGammaCorrection);
 
     // Must initialize VeboxIecpState even if it is not used because GCE
     // requires GlobalIECP enable bit to be turned on
@@ -1136,6 +1139,10 @@ MOS_STATUS MhwVeboxInterfaceG10::AddVeboxGamutState(
             pGamutState->DW15.DOutDefault            = pVeboxGamutParams->iDoutDefault;
             pGamutState->DW15.DInDefault             = pVeboxGamutParams->iDinDefault;
             pGamutState->DW16.D1In                   = pVeboxGamutParams->iDin;
+        }
+        else
+        {
+            MHW_ASSERTMESSAGE("Unknown GAMUT Mode");
         }
 
         // Set Vertex Table if Gamut Compression is enabled
@@ -1326,6 +1333,10 @@ MOS_STATUS MhwVeboxInterfaceG10::AddVeboxGamutState(
         {
             dInverseGamma = 2.6;
         }
+        else
+        {
+            MHW_ASSERTMESSAGE("Unknown InputGammaValue");
+        }
 
         if (pVeboxGamutParams->OutputGammaValue == MHW_GAMMA_1P0)
         {
@@ -1338,6 +1349,10 @@ MOS_STATUS MhwVeboxInterfaceG10::AddVeboxGamutState(
         else if (pVeboxGamutParams->OutputGammaValue == MHW_GAMMA_2P6)
         {
             dForwardGamma = 2.6;
+        }
+        else
+        {
+            MHW_ASSERTMESSAGE("Unknown GOutputGammaValue");
         }
 
         for (i = 0; i < 255; i++)
@@ -1443,7 +1458,7 @@ MOS_STATUS MhwVeboxInterfaceG10::AddVeboxScalarState(
         (mhw_vebox_g10_X::VEBOX_Scalar_State_CMD *)(pVeboxHeap->pLockedDriverResourceMem +
                                                     pVeboxHeap->uiDndiStateOffset +
                                                     uiOffset);
-    MHW_ASSERT(pVeboxScalarState);
+    MHW_CHK_NULL(pVeboxScalarState);
     *pVeboxScalarState = ScalarState;
 
     // Initialize the values to default for media driver.
@@ -1554,7 +1569,7 @@ MOS_STATUS MhwVeboxInterfaceG10::AddVeboxDndiState(
         (mhw_vebox_g10_X::VEBOX_DNDI_STATE_CMD *)(pVeboxHeap->pLockedDriverResourceMem +
                                                   pVeboxHeap->uiDndiStateOffset +
                                                   uiOffset);
-    MHW_ASSERT(pVeboxDndiState);
+    MHW_CHK_NULL(pVeboxDndiState);
     *pVeboxDndiState = VeboxDndiState;
 
     pVeboxDndiState->DW0.DenoiseMovingPixelThreshold =
@@ -1760,7 +1775,7 @@ MOS_STATUS MhwVeboxInterfaceG10::AddVeboxIecpState(
     pVeboxIecpState = (mhw_vebox_g10_X::VEBOX_IECP_STATE_CMD *)(pVeboxHeap->pLockedDriverResourceMem +
                                                                 pVeboxHeap->uiIecpStateOffset +
                                                                 uiOffset);
-    MHW_ASSERT(pVeboxIecpState);
+    MHW_CHK_NULL(pVeboxIecpState);
     IecpStateInitialization(pVeboxIecpState);
 
     if (pVeboxIecpParams->ColorPipeParams.bActive)
@@ -1860,6 +1875,8 @@ MOS_STATUS MhwVeboxInterfaceG10::AddVeboxIecpState(
                                      pVeboxHeap->uiGammaCorrectionStateOffset +
                                      uiOffset);
 
+        MHW_CHK_NULL(pFwdGammaSeg);
+
         MOS_SecureMemcpy(
             pFwdGammaSeg,
             sizeof(MHW_FORWARD_GAMMA_SEG) * MHW_FORWARD_GAMMA_SEGMENT_CONTROL_POINT,
@@ -1891,7 +1908,7 @@ MOS_STATUS MhwVeboxInterfaceG10::AddVeboxIecpAceState(
     pVeboxIecpState = (mhw_vebox_g10_X::VEBOX_IECP_STATE_CMD *)(pVeboxHeap->pLockedDriverResourceMem +
                                                                 pVeboxHeap->uiIecpStateOffset +
                                                                 uiOffset);
-    MHW_ASSERT(pVeboxIecpState);
+    MHW_CHK_NULL(pVeboxIecpState);
 
     MhwVeboxInterfaceGeneric<mhw_vebox_g10_X>::SetVeboxAceLaceState(pVeboxIecpParams, pVeboxIecpState);
 
@@ -2018,8 +2035,8 @@ MOS_STATUS MhwVeboxInterfaceG10::VeboxInterface_H2SManualMode(
         + pVeboxHeap->uiGamutStateOffset + uiOffset);
     fMaxCLL = (65535 * (float)pVeboxGamutParams->uiMaxCLL) / 10000;
 
-    MHW_ASSERT(pIecpState);
-    MHW_ASSERT(pVeboxGEGammaCorrection);
+    MHW_CHK_NULL(pIecpState);
+    MHW_CHK_NULL(pVeboxGEGammaCorrection);
 
     // Must initialize VeboxIecpState even if it is not used because GCE
     // requires GlobalIECP enable bit to be turned on
@@ -2114,7 +2131,7 @@ finish:
 
 void MhwVeboxInterfaceG10::IecpStateInitialization(mhw_vebox_g10_X::VEBOX_IECP_STATE_CMD    *pVeboxIecpState)
 {
-    MHW_ASSERT(pVeboxIecpState);
+    MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxIecpState);
 
     mhw_vebox_g10_X::VEBOX_IECP_STATE_CMD IecpState;
     *pVeboxIecpState = IecpState;
@@ -2217,7 +2234,7 @@ MOS_STATUS MhwVeboxInterfaceG10::AddVeboxSurfaceControlBits(
     PMHW_VEBOX_SURFACE_CNTL_PARAMS pVeboxSurfCntlParams,
     uint32_t                       *pSurfCtrlBits)
 {
-    PLATFORM   Platform;
+    PLATFORM   Platform = {};
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     mhw_vebox_g10_X::VEB_DI_IECP_COMMAND_SURFACE_CONTROL_BITS_CMD *pVeboxSurfCtrlBits;
