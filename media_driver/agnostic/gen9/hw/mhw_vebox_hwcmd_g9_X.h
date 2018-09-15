@@ -1049,7 +1049,7 @@ public:
         //!     Coefficient of 3x3 Transform matrix
         enum C5
         {
-            C5_524096                                                        = 2097100, //!< No additional details
+            C5_524096                                                        = 131020, //!< No additional details
         };
 
         //! \brief C4
@@ -1073,7 +1073,7 @@ public:
         //!     Coefficient of 3x3 Transform matrix
         enum C6
         {
-            C6_124096                                                        = 2097140, //!< No additional details
+            C6_124096                                                        = 131060, //!< No additional details
         };
 
         //! \brief C8
