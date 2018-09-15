@@ -30,7 +30,6 @@
 #include "vphal_render_sfc_g9_base.h"
 #include "vphal_render_vebox_util_base.h"
 #include "vpkrnheader.h"
-#include "igvpkrn_isa_g9.h"
 
 #define MAX_INPUT_PREC_BITS         16
 #define DOWNSHIFT_WITH_ROUND(x, n)  (((x) + (((n) > 0) ? (1 << ((n) - 1)) : 0)) >> (n))
@@ -1250,8 +1249,6 @@ MOS_STATUS VPHAL_VEBOX_STATE_G9_BASE::SetDNDIParams(
     eStatus             = MOS_STATUS_SUCCESS;
     pDNParams           = pSrcSurface->pDenoiseParams;
 
-    VPHAL_RENDER_ASSERT(pDNParams);
-
     // Set Luma DN params
     if (pRenderData->bDenoise)
     {
@@ -1335,11 +1332,6 @@ MOS_STATUS VPHAL_VEBOX_STATE_G9_BASE::SetDNDIParams(
             pChromaParams->dwSTADThresholdU =
             pChromaParams->dwSTADThresholdV = dwSTADThresholdUV[dwDenoiseFactor];
         }
-    }
-
-    if (pDNParams->bEnableHVSDenoise)
-    {        
-        VPHAL_VEBOX_STATE::VeboxSetHVSDNParams(pSrcSurface);
     }
 
     return eStatus;
@@ -2217,7 +2209,5 @@ VPHAL_VEBOX_STATE_G9_BASE::VPHAL_VEBOX_STATE_G9_BASE(
     pKernelParamTable                   = (PRENDERHAL_KERNEL_PARAM)g_Vebox_KernelParam_g9;
     iNumFFDISurfaces                    = 2;  // PE on: 4 used. PE off: 2 used
 
-    m_hvsKernelBinary                   = (uint8_t *)IGVP_HVS_DENOISE_G900;
-    m_hvsKernelBinarySize               = IGVP_HVS_DENOISE_G900_SIZE;
 }
 

@@ -35,7 +35,6 @@
 #include "vphal_render_common.h"
 #include "vphal_render_vebox_iecp.h"
 #include "vphal_render_sfc_base.h"
-#include "vphal_render_vebox_denoise.h"
 
 #define VPHAL_MAX_NUM_FFDI_SURFACES     4                                       //!< 2 for ADI plus additional 2 for parallel execution on HSW+
 #define VPHAL_NUM_FFDN_SURFACES         2                                       //!< Number of FFDN surfaces
@@ -944,10 +943,6 @@ public:
 
     MOS_GPU_CONTEXT                  RenderGpuContext;                           //!< Render GPU context
 
-    VphalHVSDenoiser                 *m_hvsDenoiser = nullptr;                   //!< Human Vision System Based Denoiser - Media Kernel to generate DN parameter
-    uint8_t                          *m_hvsKernelBinary = nullptr;               //!< Human Vision System Based Denoiser - Pointer to HVS kernel Binary
-    uint32_t                         m_hvsKernelBinarySize = 0;                  //!< Human Vision System Based Denoiser - Size of HVS kernel Binary
-
 protected:
     PVPHAL_VEBOX_IECP_RENDERER      m_IECP;                                     //!< pointer to IECP Renderer module, which contains more filters like TCC, STE.
 
@@ -1758,16 +1753,6 @@ protected:
     //!
     virtual VphalSfcState* CreateSfcState() = 0;
 
-    //!
-    //! \brief    Vebox Set Human Vision System based Denoise parameter
-    //! \details  Vebox Set Human Vision System based Denoise parameter
-    //! \param    [in] pSrcSurface
-    //!           Pointer to input surface of Vebox
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-    //!
-    virtual MOS_STATUS VeboxSetHVSDNParams(
-        PVPHAL_SURFACE pSrcSurface);
 };
 
 //!
