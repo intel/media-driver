@@ -1403,8 +1403,17 @@ public:
     //!
     virtual MOS_STATUS Initialize();
 
+
     //!
-    //! \brief    AVC Resource Allocation.
+    //! \brief    AVC Resource Allocation for ENC.
+    //! 
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success
+    //!
+    virtual MOS_STATUS AllocateEncResources();
+
+    //!
+    //! \brief    AVC Resource Allocation for Encoder.
     //! 
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success
