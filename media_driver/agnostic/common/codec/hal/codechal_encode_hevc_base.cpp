@@ -2329,8 +2329,36 @@ void CodechalEncodeHevcBase::SetHcpPicStateParams(MHW_VDBOX_HEVC_PIC_STATE& picS
 #if (_DEBUG || _RELEASE_INTERNAL)
     if (m_rdoqIntraTuOverride)
     {
-        picStateParams.bRDOQIntraTUDisable      = m_rdoqIntraTuDisableOverride;
-        picStateParams.wRDOQIntraTUThreshold    = m_rdoqIntraTuThresholdOverride;
+        int32_t RDOQIntraTUThreshold = 0;
+
+        if (m_rdoqIntraTuThresholdOverride >= 100)
+        {
+            RDOQIntraTUThreshold = 65535;
+        }
+        else if (m_rdoqIntraTuThresholdOverride > 0)
+        {
+            uint32_t frameWidth = (m_hevcSeqParams->wFrameWidthInMinCbMinus1 + 1) << (m_hevcSeqParams->log2_min_coding_block_size_minus3 + 3);
+            uint32_t frameHeight = (m_hevcSeqParams->wFrameHeightInMinCbMinus1 + 1) << (m_hevcSeqParams->log2_min_coding_block_size_minus3 + 3);
+            int32_t frameSize = frameWidth * frameHeight;
+            RDOQIntraTUThreshold = (((frameSize * m_rdoqIntraTuThreshold) / 100) >> 8);
+
+            uint16_t numPipe = m_numVdbox;
+            if ((m_hevcPicParams->num_tile_columns_minus1 + 1) > m_numVdbox)
+            {
+                numPipe = 1;
+            }
+            if ((m_hevcPicParams->tiles_enabled_flag) && (numPipe > 1))
+            {
+                RDOQIntraTUThreshold /= numPipe;
+            }
+            if (RDOQIntraTUThreshold > 65535)
+            {
+                RDOQIntraTUThreshold = 65535;
+            }
+        }
+
+        picStateParams.bRDOQIntraTUDisable = m_rdoqIntraTuDisableOverride;
+        picStateParams.wRDOQIntraTUThreshold = (uint16_t)RDOQIntraTUThreshold;
     }
 #endif
 
