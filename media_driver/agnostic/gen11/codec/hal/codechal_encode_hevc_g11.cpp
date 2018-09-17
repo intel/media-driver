@@ -3788,9 +3788,8 @@ MOS_STATUS CodechalEncHevcStateG11::SetCurbeBrcInitReset(
     }
 
     // Set dynamic thresholds
-    double inputBitsPerFrame =
-        ((curbe.DW4_MaximumBitRate) * (curbe.DW7_FrameRateD) /
-        (curbe.DW6_FrameRateM));
+    double inputBitsPerFrame = (double)((double)curbe.DW4_MaximumBitRate * (double)curbe.DW7_FrameRateD);
+    inputBitsPerFrame = (double)(inputBitsPerFrame / curbe.DW6_FrameRateM);
 
     if (curbe.DW2_BufSize < (uint32_t)inputBitsPerFrame * 4)
     {
@@ -3827,7 +3826,7 @@ MOS_STATUS CodechalEncHevcStateG11::SetCurbeBrcInitReset(
         curbe.DW15_LongTermInterval = (m_enableBrcLTR && m_ltrInterval) ? m_ltrInterval : m_enableBrcLTR ? HEVC_BRC_LONG_TERM_REFRENCE_FLAG : 0; 
     }
 
-    double bpsRatio = inputBitsPerFrame / ((curbe.DW2_BufSize) / 30);
+    double bpsRatio = ( (double) inputBitsPerFrame / ( (double)(curbe.DW2_BufSize) / 30));
     bpsRatio = (bpsRatio < 0.1) ? 0.1 : (bpsRatio > 3.5) ? 3.5 : bpsRatio;
 
     curbe.DW19_DeviationThreshold0_PBframe = (uint32_t)(-50 * pow(0.90, bpsRatio));
