@@ -78,6 +78,9 @@
 #define CODECHAL_HW_CHK_NULL_NO_STATUS(_ptr)                                            \
     MOS_CHK_NULL_NO_STATUS(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_HW, _ptr)
 
+#define CODECHAL_HW_CHK_COND_RETURN(_expr, _message, ...)                           \
+    MOS_CHK_COND_RETURN(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_HW,_expr,_message, ##__VA_ARGS__)
+
 #define CODECHAL_CACHELINE_SIZE                 64
 #define CODECHAL_PAGE_SIZE                      0x1000
 
