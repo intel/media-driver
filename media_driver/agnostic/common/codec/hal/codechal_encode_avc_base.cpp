@@ -2167,25 +2167,11 @@ int32_t CodechalEncodeAvcBase::GetBiWeight(
     return biWeight;
 }
 
-MOS_STATUS CodechalEncodeAvcBase::AllocateResources()
+
+MOS_STATUS CodechalEncodeAvcBase::AllocateEncResources()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncoderState::AllocateResources());
-
-    // initiate allocation parameters and lock flags
-    MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferLinear;
-    MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
-    allocParamsForBufferLinear.Type = MOS_GFXRES_BUFFER;
-    allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
-    allocParamsForBufferLinear.Format = Format_Buffer;
-
-    MOS_ALLOC_GFXRES_PARAMS allocParamsForBuffer2D;
-    MOS_ZeroMemory(&allocParamsForBuffer2D, sizeof(MOS_ALLOC_GFXRES_PARAMS));
-    allocParamsForBuffer2D.Type = MOS_GFXRES_2D;
-    allocParamsForBuffer2D.TileType = MOS_TILE_LINEAR;
-    allocParamsForBuffer2D.Format = Format_Buffer_2D;
 
     uint32_t fieldNumMBs = m_picWidthInMb * ((m_picHeightInMb + 1) >> 1);
 
@@ -2207,30 +2193,6 @@ MOS_STATUS CodechalEncodeAvcBase::AllocateResources()
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_trackedBuf->AllocateMbCodeResources(CODEC_NUM_REF_BUFFERS + k));
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_trackedBuf->AllocateMvDataResources(CODEC_NUM_REF_BUFFERS + k));
-        }
-    }
-
-    // Allocate Ref Lists
-    CodecHalAllocateDataList(
-        m_refList,
-        CODEC_AVC_NUM_UNCOMPRESSED_SURFACE);
-
-    if (m_pakEnabled && m_mfxInterface->IsIntraRowstoreCacheEnabled() == false)
-    {
-        // Intra Row Store Scratch buffer
-        // 1 cacheline per MB
-        allocParamsForBufferLinear.dwBytes = m_picWidthInMb * CODECHAL_CACHELINE_SIZE;
-        allocParamsForBufferLinear.pBufName = "Intra Row Store Scratch Buffer";
-
-        eStatus = (MOS_STATUS)m_osInterface->pfnAllocateResource(
-            m_osInterface,
-            &allocParamsForBufferLinear,
-            &m_intraRowStoreScratchBuffer);
-
-        if (eStatus != MOS_STATUS_SUCCESS)
-        {
-            CODECHAL_ENCODE_ASSERTMESSAGE("Failed to allocate Intra Row Store Scratch Buffer.");
-            return eStatus;
         }
     }
 
@@ -2261,6 +2223,50 @@ MOS_STATUS CodechalEncodeAvcBase::AllocateResources()
             }
         }
     }
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalEncodeAvcBase::AllocateResources()
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncoderState::AllocateResources());
+
+    // initiate allocation parameters and lock flags
+    MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferLinear;
+    MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+    allocParamsForBufferLinear.Type = MOS_GFXRES_BUFFER;
+    allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
+    allocParamsForBufferLinear.Format = Format_Buffer;
+
+    AllocateEncResources();
+
+    // Allocate Ref Lists
+    CodecHalAllocateDataList(
+        m_refList,
+        CODEC_AVC_NUM_UNCOMPRESSED_SURFACE);
+
+    if (m_pakEnabled && m_mfxInterface->IsIntraRowstoreCacheEnabled() == false)
+    {
+        // Intra Row Store Scratch buffer
+        // 1 cacheline per MB
+        allocParamsForBufferLinear.dwBytes = m_picWidthInMb * CODECHAL_CACHELINE_SIZE;
+        allocParamsForBufferLinear.pBufName = "Intra Row Store Scratch Buffer";
+
+        eStatus = (MOS_STATUS)m_osInterface->pfnAllocateResource(
+            m_osInterface,
+            &allocParamsForBufferLinear,
+            &m_intraRowStoreScratchBuffer);
+
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            CODECHAL_ENCODE_ASSERTMESSAGE("Failed to allocate Intra Row Store Scratch Buffer.");
+            return eStatus;
+        }
+    }
+
 
     if (m_sliceSizeStreamoutSupported)
     {
