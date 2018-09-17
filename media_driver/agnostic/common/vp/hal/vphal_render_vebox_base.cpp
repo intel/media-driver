@@ -1700,7 +1700,10 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSendVeboxCmd_Prepare(
     // Linux will do nothing here since currently no frame tracking support
 
 #ifndef EMUL
-    if (pOsInterface->bEnableKmdMediaFrameTracking)
+    // Don't enable MediaFrame Track on Vebox if one VPBlit Still need to do compostion. It can avoid the kmd notify
+    // the frame be handling finished twice for one VPBLIT. 
+    if ((pRenderData->OutputPipe != VPHAL_OUTPUT_PIPE_MODE_COMP) &&
+        pOsInterface->bEnableKmdMediaFrameTracking)
     {
         // Get GPU Status buffer
         VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnGetGpuStatusBufferResource(pOsInterface, &GpuStatusBuffer));
