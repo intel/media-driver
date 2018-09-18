@@ -58,11 +58,11 @@ const uint32_t MediaLibvaCaps::m_decProcessMode[2] =
     VA_DEC_PROCESSING
 };
 
-const uint32_t MediaLibvaCaps::m_encRcMode[7] =
+const uint32_t MediaLibvaCaps::m_encRcMode[8] =
 {
     VA_RC_CQP, VA_RC_CBR, VA_RC_VBR,
     VA_RC_CBR | VA_RC_MB, VA_RC_VBR | VA_RC_MB,
-    VA_RC_ICQ, VA_RC_VCM
+    VA_RC_ICQ, VA_RC_VCM, VA_RC_QVBR
 };
 
 const uint32_t MediaLibvaCaps::m_vpSurfaceAttr[m_numVpSurfaceAttr] =
@@ -567,7 +567,7 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     }
     if (IsAvcProfile(profile) && (entrypoint != VAEntrypointEncSliceLP))
     {
-        attrib.value |= VA_RC_ICQ | VA_RC_VCM;
+        attrib.value |= VA_RC_ICQ | VA_RC_VCM | VA_RC_QVBR;
     }
     if(entrypoint == VAEntrypointFEI)
     {
@@ -1039,7 +1039,7 @@ VAStatus MediaLibvaCaps::LoadAvcEncProfileEntrypoints()
             for (int32_t i = 0; i < 3; i++)
             {
                 configStartIdx = m_encConfigs.size();
-                int32_t maxRcMode = (entrypoint[e] == VAEntrypointEncSlice ? 7 : 1);
+                int32_t maxRcMode = (entrypoint[e] == VAEntrypointEncSlice ? 8 : 1);
                 for (int32_t j = 0; j < maxRcMode; j++)
                 {
                     AddEncConfig(m_encRcMode[j]);

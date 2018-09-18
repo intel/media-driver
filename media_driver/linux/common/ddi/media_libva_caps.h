@@ -719,7 +719,7 @@ protected:
     static const uint16_t m_maxEntrypoints = 7; //!<  Maximum number of supported entrypoints
     static const uint32_t m_decSliceMode[2]; //!< Store 2 decode slices modes
     static const uint32_t m_decProcessMode[2]; //!< Store 2 decode process modes
-    static const uint32_t m_encRcMode[7]; //!< Store 7 encode rate control modes
+    static const uint32_t m_encRcMode[8]; //!< Store 8 encode rate control modes
     static const uint32_t m_vpSurfaceAttr[m_numVpSurfaceAttr]; //!< Store the VP surface attributes
     static const uint32_t m_jpegSurfaceAttr[m_numJpegSurfaceAttr]; //!< Store the JPEG surface attributes
     static const uint32_t m_jpegEncSurfaceAttr[m_numJpegEncSurfaceAttr]; //!< Store the JPEG encode surface attributes
