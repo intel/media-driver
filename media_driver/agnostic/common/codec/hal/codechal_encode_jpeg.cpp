@@ -1045,7 +1045,7 @@ MOS_STATUS CodechalEncodeJpegState::ExecuteSliceLevel()
 
     m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBuffer, 0);
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_renderContextUsesNullHw));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(SubmitCommandBuffer(&cmdBuffer, m_renderContextUsesNullHw));
 
     if (tempJpegQuantMatrix != nullptr)
     {

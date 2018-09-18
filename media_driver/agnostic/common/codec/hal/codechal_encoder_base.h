@@ -1789,6 +1789,21 @@ public:
     virtual MOS_STATUS UserFeatureKeyReport();
 
     //!
+    //! \brief    Help function to submit a command buffer
+    //!
+    //! \param    [in] cmdBuffer
+    //!           Pointer to command buffer
+    //! \param    [in] nullRendering
+    //!           Null rendering flag
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SubmitCommandBuffer(
+        PMOS_COMMAND_BUFFER cmdBuffer,
+        int32_t             nullRendering);
+
+    //!
     //! \brief  Check Supported Format
     //! \param  [in] surface
     //!         Input surface to check

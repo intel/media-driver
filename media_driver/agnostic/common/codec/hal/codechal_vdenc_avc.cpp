@@ -4094,7 +4094,7 @@ MOS_STATUS CodechalVdencAvcState::ExecuteSliceLevel()
             CODECHAL_ENCODE_CHK_STATUS_RETURN(RestoreTLBAllocation(&cmdBuffer, &m_vdencTlbMmioBuffer));
         }
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, renderingFlags));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SubmitCommandBuffer(&cmdBuffer, renderingFlags));
 
         CODECHAL_DEBUG_TOOL(
             if (m_mmcState)
