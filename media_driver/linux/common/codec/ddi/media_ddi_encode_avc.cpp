@@ -265,6 +265,12 @@ VAStatus DdiEncodeAvc::ParseMiscParamRC(void *data)
         seqParams->MinBitRate    = (uint32_t)((uint64_t)seqParams->TargetBitRate * (2 * encMiscParamRC->target_percentage - 100) / 100);
         seqParams->TargetBitRate = (uint32_t)((uint64_t)seqParams->TargetBitRate * encMiscParamRC->target_percentage / 100);
         vuiParam->cbr_flag       = 0x0;
+
+        if (VA_RC_QVBR == m_encodeCtx->uiRCMethod)
+        {
+            seqParams->ICQQualityFactor = encMiscParamRC->quality_factor;
+        }
+
         if ((m_encodeCtx->uiTargetBitRate != seqParams->TargetBitRate) ||
             (m_encodeCtx->uiMaxBitRate != seqParams->MaxBitRate))
         {
