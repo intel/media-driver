@@ -4014,6 +4014,20 @@ MOS_STATUS CodechalEncoderState::UserFeatureKeyReport()
     return eStatus;
 }
 
+MOS_STATUS CodechalEncoderState::SubmitCommandBuffer(
+    PMOS_COMMAND_BUFFER cmdBuffer,
+    int32_t         nullRendering)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, cmdBuffer, nullRendering));
+    return eStatus;
+}
+
 void CodechalEncoderState::MotionEstimationDisableCheck()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;

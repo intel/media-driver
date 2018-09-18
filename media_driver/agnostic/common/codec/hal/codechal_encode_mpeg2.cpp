@@ -4705,10 +4705,7 @@ MOS_STATUS CodechalEncodeMpeg2::ExecuteSliceLevel()
     if (!m_singleTaskPhaseSupported ||
         m_lastTaskInPhase)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(
-            m_osInterface,
-            &cmdBuffer,
-            m_videoContextUsesNullHw));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SubmitCommandBuffer(&cmdBuffer, m_videoContextUsesNullHw));
 
         CODECHAL_DEBUG_TOOL(
             if (m_mmcState)
