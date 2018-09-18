@@ -1,5 +1,5 @@
 ﻿/*
-* Copyright (c) 2011-2017, Intel Corporation
+* Copyright (c) 2011-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -4223,7 +4223,6 @@ MOS_STATUS CodechalEncodeAvcEnc::BrcFrameUpdateKernel()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(InitBrcConstantBuffer(&initBrcConstantBufferParams));
 
         MHW_VDBOX_AVC_IMG_PARAMS imageStateParams;
-        MOS_ZeroMemory(&imageStateParams, sizeof(imageStateParams));
         imageStateParams.pEncodeAvcPicParams = m_avcPicParam;
         imageStateParams.pEncodeAvcSeqParams = m_avcSeqParam;
         imageStateParams.wPicWidthInMb = m_picWidthInMb;
@@ -4330,7 +4329,6 @@ MOS_STATUS CodechalEncodeAvcEnc::BrcFrameUpdateKernel()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitBrcConstantBuffer(&initBrcConstantBufferParams));
 
     MHW_VDBOX_AVC_IMG_PARAMS imageStateParams;
-    MOS_ZeroMemory(&imageStateParams, sizeof(imageStateParams));
     imageStateParams.pEncodeAvcPicParams = m_avcPicParam;
     imageStateParams.pEncodeAvcSeqParams = m_avcSeqParam;
     imageStateParams.wPicWidthInMb = m_picWidthInMb;
@@ -8671,7 +8669,6 @@ MOS_STATUS CodechalEncodeAvcEnc::GenericEncodePictureLevel(PCODECHAL_ENCODE_AVC_
 
     // set MFX_PIPE_MODE_SELECT values
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams;
-    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode = m_mode;
     pipeModeSelectParams.bStreamOutEnabled = (m_currPass != m_numPasses);// Disable Stream Out for final pass; its important for multiple passes, because , next pass will take the qp from stream out
 
@@ -8682,7 +8679,6 @@ MOS_STATUS CodechalEncodeAvcEnc::GenericEncodePictureLevel(PCODECHAL_ENCODE_AVC_
 
     // set MFX_PIPE_BUF_ADDR_STATE values
     MHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams;
-    MOS_ZeroMemory(&pipeBufAddrParams, sizeof(pipeBufAddrParams));
     pipeBufAddrParams.Mode = m_mode;
     pipeBufAddrParams.psPreDeblockSurface = params->psPreDeblockSurface;
     pipeBufAddrParams.psPostDeblockSurface = params->psPostDeblockSurface;
@@ -8907,7 +8903,6 @@ MOS_STATUS CodechalEncodeAvcEnc::GenericEncodePictureLevel(PCODECHAL_ENCODE_AVC_
     {
         //Set MFX_AVC_IMG_STATE command
         MHW_VDBOX_AVC_IMG_PARAMS imageStateParams;
-        MOS_ZeroMemory(&imageStateParams, sizeof(imageStateParams));
         imageStateParams.ucCurrPass = m_currPass;
         imageStateParams.pEncodeAvcPicParams = m_avcPicParam;
         imageStateParams.pEncodeAvcSeqParams = m_avcSeqParam;

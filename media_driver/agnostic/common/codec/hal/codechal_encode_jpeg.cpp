@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -581,7 +581,6 @@ MOS_STATUS CodechalEncodeJpegState::ExecutePictureLevel()
 
     // set MFX_PIPE_MODE_SELECT
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams;
-    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode                   = m_mode;
     pipeModeSelectParams.bStreamOutEnabled      = false;
     pipeModeSelectParams.bShortFormatInUse      = false;
@@ -596,7 +595,6 @@ MOS_STATUS CodechalEncodeJpegState::ExecutePictureLevel()
 
     // set MFX_PIPE_BUF_ADDR_STATE
     MHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams;
-    MOS_ZeroMemory(&pipeBufAddrParams, sizeof(pipeBufAddrParams));
     pipeBufAddrParams.Mode          = m_mode;
     pipeBufAddrParams.psRawSurface  = &m_rawSurface; // original picture to be encoded
 

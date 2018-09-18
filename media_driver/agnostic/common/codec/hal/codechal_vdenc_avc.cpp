@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2017, Intel Corporation
+* Copyright (c) 2011-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -3612,7 +3612,6 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
     surfaceParams.bDisplayFormatSwizzle = m_avcPicParam->bDisplayFormatSwizzle;
 
     MHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams;
-    MOS_ZeroMemory(&pipeBufAddrParams, sizeof(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS));
     pipeBufAddrParams.pRawSurfParam = &surfaceParams;
     pipeBufAddrParams.pDecodedReconParam = &reconSurfaceParams;
     SetMfxPipeBufAddrStateParams(encodePictureLevelParams, pipeBufAddrParams);
@@ -5220,15 +5219,12 @@ void CodechalVdencAvcState::SetMfxAvcImgStateParams(MHW_VDBOX_AVC_IMG_PARAMS& pa
 PMHW_VDBOX_STATE_CMDSIZE_PARAMS CodechalVdencAvcState::CreateMhwVdboxStateCmdsizeParams()
 {
     PMHW_VDBOX_STATE_CMDSIZE_PARAMS stateCmdSizeParams = MOS_New(MHW_VDBOX_STATE_CMDSIZE_PARAMS);
-    MOS_ZeroMemory(stateCmdSizeParams, sizeof(MHW_VDBOX_STATE_CMDSIZE_PARAMS));
-
     return stateCmdSizeParams;
 }
 
 PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS CodechalVdencAvcState::CreateMhwVdboxPipeModeSelectParams()
 {
     PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams = MOS_New(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS);
-    MOS_ZeroMemory(pipeModeSelectParams, sizeof(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS));
 
     return pipeModeSelectParams;
 }
@@ -5236,7 +5232,6 @@ PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS CodechalVdencAvcState::CreateMhwVdboxPipeMode
 PMHW_VDBOX_AVC_IMG_PARAMS CodechalVdencAvcState::CreateMhwVdboxAvcImgParams()
 {
     PMHW_VDBOX_AVC_IMG_PARAMS avcImgParams = MOS_New(MHW_VDBOX_AVC_IMG_PARAMS);
-    MOS_ZeroMemory(avcImgParams, sizeof(MHW_VDBOX_AVC_IMG_PARAMS));
 
     return avcImgParams;
 }
@@ -5244,7 +5239,6 @@ PMHW_VDBOX_AVC_IMG_PARAMS CodechalVdencAvcState::CreateMhwVdboxAvcImgParams()
 PMHW_VDBOX_VDENC_WALKER_STATE_PARAMS CodechalVdencAvcState::CreateMhwVdboxVdencWalkerStateParams()
 {
     PMHW_VDBOX_VDENC_WALKER_STATE_PARAMS vdencWalkerStateParams = MOS_New(MHW_VDBOX_VDENC_WALKER_STATE_PARAMS);
-    MOS_ZeroMemory(vdencWalkerStateParams, sizeof(MHW_VDBOX_VDENC_WALKER_STATE_PARAMS));
 
     return vdencWalkerStateParams;
 }

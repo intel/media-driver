@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -6432,7 +6432,6 @@ MOS_STATUS CodechalEncHevcStateG9::EncodeBrcUpdateKernel()
     // Fill HCP_IMG_STATE so that BRC kernel can use it to generate the write buffer for PAK
     auto                     brcHcpStateReadBuffer = &m_brcBuffers.resBrcImageStatesReadBuffer[m_currRecycledBufIdx];
     MHW_VDBOX_HEVC_PIC_STATE mhwHevcPicState;
-    MOS_ZeroMemory(&mhwHevcPicState, sizeof(mhwHevcPicState));
     mhwHevcPicState.pHevcEncSeqParams = m_hevcSeqParams;
     mhwHevcPicState.pHevcEncPicParams = m_hevcPicParams;
     mhwHevcPicState.brcNumPakPasses = m_mfxInterface->GetBrcNumPakPasses();

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -121,7 +121,7 @@ struct EncodeHevcCuDataG11
 
 struct MHW_VDBOX_HEVC_PIC_STATE_G11 : public MHW_VDBOX_HEVC_PIC_STATE
 {
-    PCODEC_HEVC_EXT_PIC_PARAMS              pHevcExtPicParams;
+    PCODEC_HEVC_EXT_PIC_PARAMS              pHevcExtPicParams = nullptr;
 };
 using PMHW_VDBOX_HEVC_PIC_STATE_G11 = MHW_VDBOX_HEVC_PIC_STATE_G11 *;
 
@@ -129,24 +129,24 @@ using PMHW_VDBOX_HEVC_PIC_STATE_G11 = MHW_VDBOX_HEVC_PIC_STATE_G11 *;
 struct MHW_VDBOX_HEVC_SLICE_STATE_G11 : public MHW_VDBOX_HEVC_SLICE_STATE
 {
     // GEN11+ Tile coding params
-    PMHW_VDBOX_HCP_TILE_CODING_PARAMS_G11   pTileCodingParams;
-    uint32_t                                dwTileID;
-    uint32_t                                dwNumPipe;
+    PMHW_VDBOX_HCP_TILE_CODING_PARAMS_G11   pTileCodingParams = nullptr;
+    uint32_t                                dwTileID = 0;
+    uint32_t                                dwNumPipe = 0;
 
-    PCODEC_HEVC_EXT_SLICE_PARAMS    pHevcExtSliceParams;
-    PCODEC_HEVC_EXT_PIC_PARAMS      pHevcExtPicParam;
+    PCODEC_HEVC_EXT_SLICE_PARAMS    pHevcExtSliceParams = nullptr;
+    PCODEC_HEVC_EXT_PIC_PARAMS      pHevcExtPicParam = nullptr;
 };
 using PMHW_VDBOX_HEVC_SLICE_STATE_G11 = MHW_VDBOX_HEVC_SLICE_STATE_G11 *;
 
 struct MHW_VDBOX_PIPE_BUF_ADDR_PARAMS_G11 : public MHW_VDBOX_PIPE_BUF_ADDR_PARAMS
 {
     //Scalable
-    PMOS_RESOURCE               presSliceStateStreamOutBuffer;
-    PMOS_RESOURCE               presMvUpRightColStoreBuffer;
-    PMOS_RESOURCE               presIntraPredUpRightColStoreBuffer;
-    PMOS_RESOURCE               presIntraPredLeftReconColStoreBuffer;
-    PMOS_RESOURCE               presCABACSyntaxStreamOutBuffer;
-    PMOS_RESOURCE               presCABACSyntaxStreamOutMaxAddr;
+    PMOS_RESOURCE               presSliceStateStreamOutBuffer = nullptr;
+    PMOS_RESOURCE               presMvUpRightColStoreBuffer = nullptr;
+    PMOS_RESOURCE               presIntraPredUpRightColStoreBuffer = nullptr;
+    PMOS_RESOURCE               presIntraPredLeftReconColStoreBuffer = nullptr;
+    PMOS_RESOURCE               presCABACSyntaxStreamOutBuffer = nullptr;
+    PMOS_RESOURCE               presCABACSyntaxStreamOutMaxAddr = nullptr;
 };
 using PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS_G11 = MHW_VDBOX_PIPE_BUF_ADDR_PARAMS_G11 *;
 

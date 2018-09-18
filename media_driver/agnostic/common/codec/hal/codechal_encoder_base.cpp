@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -2625,7 +2625,7 @@ MOS_STATUS CodechalEncoderState::ReadImageStatus(
         // Need a dummy MFX_PIPE_MODE_SELECT to decoder and read this register.
         if (m_waReadVDEncOverflowStatus)
         {
-            MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
+            pipeModeSelectParams = {};
             pipeModeSelectParams.Mode               = CODECHAL_DECODE_MODE_AVCVLD;
             m_hwInterface->GetMfxInterface()->SetDecodeInUse(true);
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetMfxInterface()->AddMfxPipeModeSelectCmd(cmdBuffer, &pipeModeSelectParams));
@@ -2646,7 +2646,7 @@ MOS_STATUS CodechalEncoderState::ReadImageStatus(
         // Restore MFX_PIPE_MODE_SELECT to encode mode
         if (m_waReadVDEncOverflowStatus)
         {
-            MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
+            pipeModeSelectParams = {};
             pipeModeSelectParams.Mode               = m_mode;
             pipeModeSelectParams.bVdencEnabled      = true;
             m_hwInterface->GetMfxInterface()->SetDecodeInUse(false);

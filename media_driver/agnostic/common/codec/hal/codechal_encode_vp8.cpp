@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -3264,7 +3264,6 @@ MOS_STATUS CodechalEncodeVp8::ExecutePictureLevel()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
 
     // set MFX_PIPE_MODE_SELECT values
-    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode = m_mode;
     pipeModeSelectParams.bStreamOutEnabled = false;
     deblockingEnable                       = ((m_vp8PicParams->version == 0) || (m_vp8PicParams->version == 1)) ? 1 : 0;
@@ -3274,7 +3273,6 @@ MOS_STATUS CodechalEncodeVp8::ExecutePictureLevel()
     pipeModeSelectParams.bPostDeblockOutEnable = deblockingEnable && !suppressReconPic;
 
     // set MFX_PIPE_BUF_ADDR_STATE values
-    MOS_ZeroMemory(&pipeBufAddrParams, sizeof(pipeBufAddrParams));
     pipeBufAddrParams.Mode = m_mode;
     pipeBufAddrParams.psPreDeblockSurface = &m_reconSurface;
     pipeBufAddrParams.psPostDeblockSurface = &m_reconSurface;
