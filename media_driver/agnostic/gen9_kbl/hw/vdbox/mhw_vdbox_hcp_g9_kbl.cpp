@@ -383,10 +383,21 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpPipeBufAddrCmd(
         resourceParams.dwLocationInCmd = 1;
         resourceParams.bIsWritable = true;
 
-        MHW_MI_CHK_STATUS(pfnAddResourceToCmd(
-            m_osInterface,
-            cmdBuffer,
-            &resourceParams));
+        if (m_osInterface->bAllowExtraPatchToSameLoc)
+        {
+            MHW_MI_CHK_STATUS(pfnAddResourceToCmd(
+                m_osInterface,
+                cmdBuffer,
+                &resourceParams));
+        }
+        else //if not allowed to patch another OsResource to same location in cmd, just register resource here
+        {
+            MHW_MI_CHK_STATUS(m_osInterface->pfnRegisterResource(
+                m_osInterface,
+                resourceParams.presResource,
+                resourceParams.bIsWritable,
+                resourceParams.bIsWritable));
+        }
     }
 
     resourceParams.presResource = &(params->psPreDeblockSurface->OsResource);

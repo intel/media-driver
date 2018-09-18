@@ -727,11 +727,22 @@ protected:
             resourceParams.pdwCmd = (cmd.DecodedPicture.DW0_1.Value);
             resourceParams.dwLocationInCmd = 1;
             resourceParams.bIsWritable = true;
-
-            MHW_MI_CHK_STATUS(this->pfnAddResourceToCmd(
-                this->m_osInterface,
-                cmdBuffer,
-                &resourceParams));
+            
+            if (this->m_osInterface->bAllowExtraPatchToSameLoc)
+            {
+                MHW_MI_CHK_STATUS(this->pfnAddResourceToCmd(
+                    this->m_osInterface,
+                    cmdBuffer,
+                    &resourceParams));
+            }
+            else //if not allowed to patch another OsResource to same location in cmd, just register resource here
+            {
+                MHW_MI_CHK_STATUS(this->m_osInterface->pfnRegisterResource(
+                    this->m_osInterface,
+                    resourceParams.presResource,
+                    resourceParams.bIsWritable,
+                    resourceParams.bIsWritable));
+            }
         }
 
         resourceParams.presResource = &(params->psPreDeblockSurface->OsResource);

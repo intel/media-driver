@@ -5880,6 +5880,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->dwNumNalUnitBytesIncluded   = MOS_NAL_UNIT_LENGTH - MOS_NAL_UNIT_STARTCODE_LENGTH;
 
     pOsInterface->bInlineCodecStatusUpdate    = true;
+    pOsInterface->bAllowExtraPatchToSameLoc   = false;
 
     //Added by Ben for video memory allocation
     pOsInterface->pOsContext->bufmgr = pOsDriverContext->bufmgr;
