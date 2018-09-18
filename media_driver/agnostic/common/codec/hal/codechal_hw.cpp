@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2017, Intel Corporation
+* Copyright (c) 2011-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -440,7 +440,6 @@ MOS_STATUS CodechalHwInterface::GetStreamoutCommandSize(
     CODECHAL_HW_FUNCTION_ENTER;
 
     MHW_VDBOX_STATE_CMDSIZE_PARAMS stateCmdSizeParams;
-    MOS_ZeroMemory(&stateCmdSizeParams, sizeof(MHW_VDBOX_STATE_CMDSIZE_PARAMS));
 
     stateCmdSizeParams.bShortFormat = false;
     stateCmdSizeParams.bHucDummyStream = MEDIA_IS_WA(m_waTable, WaHucStreamoutEnable);
@@ -784,7 +783,6 @@ MOS_STATUS CodechalHwInterface::AddHucDummyStreamOut(
     CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(cmdBuffer, &flushDwParams));
 
     // pipe mode select
-    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.dwMediaSoftResetCounterValue = 2400;
 
     // pass bit-stream buffer by Ind Obj Addr command. Set size to 1 for dummy stream
@@ -853,7 +851,6 @@ MOS_STATUS CodechalHwInterface::PerformHucStreamOut(
 
     // pipe mode select
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS   pipeModeSelectParams;
-    MOS_ZeroMemory(&pipeModeSelectParams, sizeof(pipeModeSelectParams));
     pipeModeSelectParams.Mode = hucStreamOutParams->mode;
     pipeModeSelectParams.dwMediaSoftResetCounterValue = 2400;
     pipeModeSelectParams.bStreamObjectUsed = true;
