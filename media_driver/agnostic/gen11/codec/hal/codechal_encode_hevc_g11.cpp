@@ -2729,7 +2729,7 @@ MOS_STATUS CodechalEncHevcStateG11::PlatformCapabilityCheck()
             (PMOS_GPUCTX_CREATOPTIONS_ENHANCED)m_gpuCtxCreatOpt));
     }
 
-    if (m_frameWidth * m_frameHeight > ENCODE_HEVC_8K_PIC_WIDTH * ENCODE_HEVC_8K_PIC_HEIGHT)
+    if (m_frameWidth * m_frameHeight > ENCODE_HEVC_MAX_8K_PIC_WIDTH * ENCODE_HEVC_MAX_8K_PIC_HEIGHT)
     {
         eStatus = MOS_STATUS_INVALID_PARAMETER;
         CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(eStatus, "Frame resolution greater than 8k not supported");
