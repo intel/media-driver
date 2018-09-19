@@ -38,6 +38,7 @@ MOS_STATUS MhwMiInterfaceG10::AddMiSemaphoreWaitCmd(
 
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(cmdBuffer->pCmdPtr);
+    MHW_MI_CHK_NULL(params);
 
     mhw_mi_g10_X::MI_SEMAPHORE_WAIT_CMD *cmd =
         (mhw_mi_g10_X::MI_SEMAPHORE_WAIT_CMD*)cmdBuffer->pCmdPtr;
