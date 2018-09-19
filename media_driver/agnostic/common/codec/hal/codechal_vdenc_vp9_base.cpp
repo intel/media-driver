@@ -2090,41 +2090,6 @@ uint32_t CodechalVdencVp9State::CalculateBufferOffset(
     return addr;
 }
 
-MOS_STATUS CodechalVdencVp9State::DysSrcFrame()
-{
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
-    CODECHAL_ENCODE_FUNCTION_ENTER;
-
-    // scale source frame
-    if ((m_vp9PicParams->SrcFrameWidthMinus1 + 1 != m_oriFrameWidth) || (m_vp9PicParams->SrcFrameHeightMinus1 + 1 != m_oriFrameHeight))
-    {
-        uint8_t idx = m_currReconstructedPic.FrameIdx;
-        PCODEC_REF_LIST *refList = &m_refList[0];
-
-        DysKernelParams dysKernelParams;
-        MOS_ZeroMemory(&dysKernelParams, sizeof(dysKernelParams));
-        dysKernelParams.dwInputWidth    = m_vp9PicParams->SrcFrameWidthMinus1 + 1;
-        dysKernelParams.dwInputHeight   = m_vp9PicParams->SrcFrameHeightMinus1 + 1;
-        dysKernelParams.dwOutputWidth = m_oriFrameWidth;
-        dysKernelParams.dwOutputHeight = m_oriFrameHeight;
-        dysKernelParams.psInputSurface = m_rawSurfaceToEnc;
-        dysKernelParams.psOutputSurface = &refList[idx]->sDysSurface;
-
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(DysKernel(&dysKernelParams));
-        m_rawSurfaceToEnc =
-        m_rawSurfaceToPak = &refList[idx]->sDysSurface;
-
-        CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
-            m_rawSurfaceToEnc,
-            CodechalDbgAttr::attrEncodeRawInputSurface,
-            "DysSrcScaledSurf")));
-
-    }
-
-    return eStatus;
-}
-
 bool CodechalVdencVp9State::IsToBeCompressed(bool isDownScaledSurface)
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
@@ -5450,19 +5415,8 @@ MOS_STATUS CodechalVdencVp9State::SetPictureStructs()
 
     // setup internal parameters
     // dwOriFrameWidth and dwOriFrameHeight are encoded resolutions which might be different from source resoultions if dynamic scaling is enabled
-    if (!m_vp9SeqParams->SeqFlags.fields.EnableDynamicScaling)
-    {
-        m_oriFrameWidth  = m_vp9PicParams->SrcFrameWidthMinus1 + 1;
-        m_oriFrameHeight = m_vp9PicParams->SrcFrameHeightMinus1 + 1;
-
-        m_vp9PicParams->DstFrameWidthMinus1  = m_vp9PicParams->SrcFrameWidthMinus1;
-        m_vp9PicParams->DstFrameHeightMinus1 = m_vp9PicParams->SrcFrameHeightMinus1;
-    }
-    else
-    {
-        m_oriFrameWidth  = m_vp9PicParams->DstFrameWidthMinus1 + 1;
-        m_oriFrameHeight = m_vp9PicParams->DstFrameHeightMinus1 + 1;
-    }
+    m_oriFrameWidth  = m_vp9PicParams->SrcFrameWidthMinus1 + 1;
+    m_oriFrameHeight = m_vp9PicParams->SrcFrameHeightMinus1 + 1;
 
     if (m_oriFrameWidth == 0 || m_oriFrameWidth > m_maxPicWidth ||
         m_oriFrameHeight == 0 || m_oriFrameHeight > m_maxPicHeight)
@@ -7654,8 +7608,6 @@ MOS_STATUS CodechalVdencVp9State::DumpPicParams(
     oss << "# DDI Parameters:" << std::endl;
     oss << "SrcFrameHeightMinus1 = " << std::dec << +picParams->SrcFrameHeightMinus1 << std::endl;
     oss << "SrcFrameWidthMinus1 = " << std::dec << +picParams->SrcFrameWidthMinus1 << std::endl;
-    oss << "DstFrameHeightMinus1 = " << std::dec << +picParams->DstFrameHeightMinus1 << std::endl;
-    oss << "DstFrameWidthMinus1 = " << std::dec << +picParams->DstFrameWidthMinus1 << std::endl;
     oss << "CurrOriginalPic = " << std::dec << +picParams->CurrOriginalPic.FrameIdx << std::endl;
     oss << "CurrReconstructedPic = " << std::dec << +picParams->CurrReconstructedPic.FrameIdx << std::endl;
 

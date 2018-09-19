@@ -134,8 +134,8 @@ struct HucInputCmd1
     uint8_t  RSVD[1];
 
     // VP9
-    uint16_t DstFrameWidthMinus1;
-    uint16_t DstFrameHeightMinus1;
+    uint16_t SrcFrameWidthMinus1;
+    uint16_t SrcFrameHeightMinus1;
 
     uint8_t  SegmentationEnabled;
     uint8_t  PrevFrameSegEnabled;

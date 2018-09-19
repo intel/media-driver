@@ -1562,11 +1562,6 @@ MOS_STATUS CodechalVdencVp9StateG11::ExecuteKernelFunctions()
     }
     );
 
-    // Check if we need to dynamic scale the source
-    if (m_vp9SeqParams->SeqFlags.fields.EnableDynamicScaling)
-    {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(DysSrcFrame());
-    }
 
     m_setRequestedEUSlices = ((m_frameHeight * m_frameWidth) >= m_ssdResolutionThreshold &&
         m_targetUsage <= m_ssdTargetUsageThreshold) ? true : false;
@@ -1946,7 +1941,7 @@ MOS_STATUS CodechalVdencVp9StateG11::PlatformCapabilityCheck()
     }
 
     // Tile width needs to be minimum size 256, error out if less
-    if ((col != 1) && ((m_vp9PicParams->DstFrameWidthMinus1 + 1) < col * CODECHAL_ENCODE_VP9_MIN_TILE_SIZE_WIDTH))
+    if ((col != 1) && ((m_vp9PicParams->SrcFrameWidthMinus1 + 1) < col * CODECHAL_ENCODE_VP9_MIN_TILE_SIZE_WIDTH))
     {
         CODECHAL_ENCODE_ASSERTMESSAGE("Incorrect number of columns input parameter, Tile width is < 256");
         return MOS_STATUS_INVALID_PARAMETER;
@@ -2078,8 +2073,8 @@ MOS_STATUS CodechalVdencVp9StateG11::SetTileData()
         tileWidthInSb  = (isLastTileCol ? m_picWidthInSb : (((tileX + 1) * m_picWidthInSb) >> m_vp9PicParams->log2_tile_columns)) - tileStartSbX;
         tileHeightInSb = (isLastTileRow ? m_picHeightInSb : (((tileY + 1) * m_picHeightInSb) >> m_vp9PicParams->log2_tile_rows)) - tileStartSbY;
 
-        lastTileColWidth  = (MOS_ALIGN_CEIL((m_vp9PicParams->DstFrameWidthMinus1 + 1 - tileStartSbX * CODEC_VP9_SUPER_BLOCK_WIDTH), CODEC_VP9_MIN_BLOCK_WIDTH) / CODEC_VP9_MIN_BLOCK_WIDTH) - 1;
-        lastTileRowHeight = (MOS_ALIGN_CEIL((m_vp9PicParams->DstFrameHeightMinus1 + 1 - tileStartSbY * CODEC_VP9_SUPER_BLOCK_HEIGHT), CODEC_VP9_MIN_BLOCK_HEIGHT) / CODEC_VP9_MIN_BLOCK_HEIGHT) - 1;
+        lastTileColWidth  = (MOS_ALIGN_CEIL((m_vp9PicParams->SrcFrameWidthMinus1 + 1 - tileStartSbX * CODEC_VP9_SUPER_BLOCK_WIDTH), CODEC_VP9_MIN_BLOCK_WIDTH) / CODEC_VP9_MIN_BLOCK_WIDTH) - 1;
+        lastTileRowHeight = (MOS_ALIGN_CEIL((m_vp9PicParams->SrcFrameHeightMinus1 + 1 - tileStartSbY * CODEC_VP9_SUPER_BLOCK_HEIGHT), CODEC_VP9_MIN_BLOCK_HEIGHT) / CODEC_VP9_MIN_BLOCK_HEIGHT) - 1;
 
         numLcuInTile = tileWidthInSb * tileHeightInSb;
         tileCodingParams[tileCntr].NumberOfActiveBePipes     = m_numPipe;

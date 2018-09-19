@@ -1489,10 +1489,10 @@ public:
 
             if (tileCodingParams == nullptr)
             {
-                cmd.DW2.NextsliceMbLcuStartXPosition = CODECHAL_GET_WIDTH_IN_BLOCKS(vp9PicParams->DstFrameWidthMinus1, CODEC_VP9_SUPER_BLOCK_WIDTH);
-                cmd.DW2.NextsliceMbStartYPosition    = CODECHAL_GET_HEIGHT_IN_BLOCKS(vp9PicParams->DstFrameHeightMinus1, CODEC_VP9_SUPER_BLOCK_HEIGHT);
-                cmd.DW5.TileWidth                    = vp9PicParams->DstFrameWidthMinus1;
-                cmd.DW5.TileHeight                   = vp9PicParams->DstFrameHeightMinus1;
+                cmd.DW2.NextsliceMbLcuStartXPosition = CODECHAL_GET_WIDTH_IN_BLOCKS(vp9PicParams->SrcFrameWidthMinus1, CODEC_VP9_SUPER_BLOCK_WIDTH);
+                cmd.DW2.NextsliceMbStartYPosition    = CODECHAL_GET_HEIGHT_IN_BLOCKS(vp9PicParams->SrcFrameHeightMinus1, CODEC_VP9_SUPER_BLOCK_HEIGHT);
+                cmd.DW5.TileWidth                    = vp9PicParams->SrcFrameWidthMinus1;
+                cmd.DW5.TileHeight                   = vp9PicParams->SrcFrameHeightMinus1;
                 cmd.DW1.FirstSuperSlice              = 1;
             }
             else
@@ -1517,7 +1517,7 @@ public:
                 uint32_t tileStartYInSBs = (cmd.DW4.TileStartCtbY / CODEC_VP9_SUPER_BLOCK_HEIGHT);
                 //Aligned Tile height & frame width
                 uint32_t tileHeightInSBs = (cmd.DW5.TileHeight + 1 + (CODEC_VP9_SUPER_BLOCK_HEIGHT - 1)) / CODEC_VP9_SUPER_BLOCK_HEIGHT;
-                uint32_t frameWidthInSBs = (vp9PicParams->DstFrameWidthMinus1 + 1 + (CODEC_VP9_SUPER_BLOCK_WIDTH - 1)) / CODEC_VP9_SUPER_BLOCK_WIDTH;
+                uint32_t frameWidthInSBs = (vp9PicParams->SrcFrameWidthMinus1 + 1 + (CODEC_VP9_SUPER_BLOCK_WIDTH - 1)) / CODEC_VP9_SUPER_BLOCK_WIDTH;
 
                 cmd.DW6.TileStreaminOffset = (tileStartYInSBs * frameWidthInSBs + tileStartXInSBs * tileHeightInSBs) * (4); //StreamIn data is 4 CLs per LCU
 
@@ -1534,7 +1534,7 @@ public:
 
                     //Aligned Tile width & frame height
                     uint32_t widthInSBs                    = (cmd.DW4.TileStartCtbX) / CODEC_VP9_SUPER_BLOCK_WIDTH;
-                    uint32_t frameHeightInSBs              = ((vp9PicParams->DstFrameHeightMinus1 + 1) + (CODEC_VP9_SUPER_BLOCK_HEIGHT - 1)) / CODEC_VP9_SUPER_BLOCK_HEIGHT;
+                    uint32_t frameHeightInSBs              = ((vp9PicParams->SrcFrameHeightMinus1 + 1) + (CODEC_VP9_SUPER_BLOCK_HEIGHT - 1)) / CODEC_VP9_SUPER_BLOCK_HEIGHT;
                     uint32_t numOfSBs                      = widthInSBs * (frameHeightInSBs + 1);
                     uint32_t maxNumOfCUInSB                = (CODEC_VP9_SUPER_BLOCK_HEIGHT / CODEC_VP9_MIN_BLOCK_HEIGHT)*(CODEC_VP9_SUPER_BLOCK_WIDTH / CODEC_VP9_MIN_BLOCK_WIDTH); //max LCU size is 64, min Cu size is 8
                     uint32_t tileLCUStreamOutOffsetInBytes = 2 * 4 * ((numOfSBs * 5) + (numOfSBs*maxNumOfCUInSB * 8));

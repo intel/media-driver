@@ -2035,14 +2035,6 @@ public:
         PMOS_RESOURCE picStateBuffer);
 
     //!
-    //! \brief      Dys Source frames
-    //!
-    //! \return     MOS_STATUS
-    //!             MOS_STATUS_SUCCESS if success, else fail reason 
-    //!
-    MOS_STATUS DysSrcFrame();
-
-    //!
     //! \brief      Return if this surface has to be compressed
     //!
     //! \param      [in] isDownScaledSurface
