@@ -424,10 +424,13 @@ LOCAL_SRC_FILES := \
     linux/gen9_kbl/ddi/media_libva_caps_g9_kbl.cpp \
     linux/gen9_skl/ddi/media_libva_caps_g9_skl.cpp \
 
+LOCAL_SHARED_LIBRARIES += libnativewindow
 LOCAL_SHARED_LIBRARIES += libsync
 LOCAL_SHARED_LIBRARIES += libbinder
 LOCAL_SHARED_LIBRARIES += libcutils
 LOCAL_SHARED_LIBRARIES += libutils
+LOCAL_SHARED_LIBRARIES += libgui
+LOCAL_SHARED_LIBRARIES += libui
 LOCAL_SHARED_LIBRARIES += libdrm
 LOCAL_SHARED_LIBRARIES += libva
 LOCAL_SHARED_LIBRARIES += liblog
