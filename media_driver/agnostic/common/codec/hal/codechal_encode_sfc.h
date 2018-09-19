@@ -163,7 +163,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if call success, else fail reason
     //!
-    virtual MOS_STATUS AddSfcCommands(
+    MOS_STATUS AddSfcCommands(
         PMHW_SFC_INTERFACE              sfcInterface,
         PMOS_COMMAND_BUFFER             cmdBuffer);
 
@@ -242,7 +242,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if call success, else fail reason
     //!
-    virtual MOS_STATUS SetVeboxDiIecpParams(
+    MOS_STATUS SetVeboxDiIecpParams(
         PMHW_VEBOX_DI_IECP_CMD_PARAMS         params);
 
     //!

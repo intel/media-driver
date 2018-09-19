@@ -25,7 +25,6 @@
 //!
 
 #include "codechal_encoder_base.h"
-#include "codechal_encode_sfc_g11.h"
 #include "codechal_encode_csc_ds_g11.h"
 #include "codechal_kernel_header_g11.h"
 #include "codeckrnheader.h"
@@ -93,7 +92,7 @@ MOS_STATUS CodechalEncodeCscDsG11::CheckRawColorFormat(MOS_FORMAT format)
         break;
     case Format_A8R8G8B8:
         m_colorRawSurface = cscColorARGB;
-        m_cscUsingSfc = IsSfcEnabled() ? 1 : 0;
+        m_cscUsingSfc = 0;// IsSfcEnabled() ? 1 : 0;
         m_cscRequireColor = 1;
         //Use EU for better performance in big resolution cases
         if (m_cscRawSurfWidth * m_cscRawSurfHeight > 1920 * 1088)
@@ -720,23 +719,6 @@ MOS_STATUS CodechalEncodeCscDsG11::SetCurbeDS4x()
 
     return MOS_STATUS_SUCCESS;
 }
-
-MOS_STATUS CodechalEncodeCscDsG11::InitSfcState()
-{
-    CODECHAL_ENCODE_FUNCTION_ENTER;
-
-    if (!m_sfcState)
-    {
-        m_sfcState = (CodecHalEncodeSfc*)MOS_New(CodecHalEncodeSfcG11);
-        CODECHAL_ENCODE_CHK_NULL_RETURN(m_sfcState);
-
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_sfcState->Initialize(m_hwInterface, m_osInterface));
-
-        m_sfcState->SetInputColorSpace(MHW_CSpace_sRGB);
-    }
-    return MOS_STATUS_SUCCESS;
-}
-
 
 CodechalEncodeCscDsG11::CodechalEncodeCscDsG11(CodechalEncoderState* encoder)
     : CodechalEncodeCscDs(encoder)
