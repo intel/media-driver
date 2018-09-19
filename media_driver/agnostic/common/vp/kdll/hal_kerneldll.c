@@ -552,6 +552,7 @@ const char    *KernelDll_GetRuleIDString(Kdll_RuleID RID)
         case RID_IsSrc1Format       : return _T("IsSrc1Format");
         case RID_IsSrc1Sampling     : return _T("IsSrc1Sampling");
         case RID_IsSrc1LumaKey      : return _T("IsSrc1LumaKey");
+        case RID_IsSrc1SamplerLumaKey: return _T("IsSrc1SamplerLumaKey");
         case RID_IsSrc1Internal     : return _T("IsSrc1Internal");
         case RID_IsSrc1Coeff        : return _T("IsSrc1Coeff");
         case RID_IsSrc1Processing   : return _T("IsSrc1Processing");
@@ -578,6 +579,7 @@ const char    *KernelDll_GetRuleIDString(Kdll_RuleID RID)
         case RID_SetSrc1Sampling    : return _T("SetSrc1Sampling");
         case RID_SetSrc1Rotation    : return _T("SetSrc1Rotation");
         case RID_SetSrc1LumaKey     : return _T("SetSrc1LumaKey");
+        case RID_SetSrc1SamplerLumaKey: return _T("SetSrc1SamplerLumaKey");
         case RID_SetSrc1Procamp     : return _T("SetSrc1Procamp");
         case RID_SetSrc1Internal    : return _T("SetSrc1Internal");
         case RID_SetSrc1Coeff       : return _T("SetSrc1Coeff");
@@ -680,10 +682,12 @@ int32_t KernelDll_PrintRule(
             }
             break;
 
-        case RID_IsSrc0LumaKey    :
-        case RID_IsSrc1LumaKey    :
-        case RID_SetSrc0LumaKey   :
-        case RID_SetSrc1LumaKey   :
+        case RID_IsSrc0LumaKey          :
+        case RID_IsSrc1LumaKey          :
+        case RID_SetSrc0LumaKey         :
+        case RID_SetSrc1LumaKey         :
+        case RID_IsSrc1SamplerLumaKey   :
+        case RID_SetSrc1SamplerLumaKey  :
             if (pEntry->value == LumaKey_Source)
             {
                 szValue = _T("Current Layer");
@@ -2216,6 +2220,17 @@ bool KernelDll_FindRule(
                     {
                         break;
                     }
+                    
+                // Match Src1 Sampler LumaKey
+                case RID_IsSrc1SamplerLumaKey:
+                    if (pSearchState->src1_samplerlumakey == (int32_t)pRuleEntry->value)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        break;
+                    }
 
                 // Match Src1 Procamp
                 case RID_IsSrc1Procamp:
@@ -2863,6 +2878,18 @@ bool KernelDll_UpdateState(
                 else
                 {
                     pSearchState->src1_lumakey = (int32_t)pRuleEntry->value;
+                }
+                break;
+
+            // Set Src1 Sampler LumaKey
+            case RID_SetSrc1SamplerLumaKey:
+                if (pRuleEntry->value == LumaKey_Source)
+                {
+                    pSearchState->src1_samplerlumakey = pSearchState->pFilter->samplerlumakey;
+                }
+                else
+                {
+                    pSearchState->src1_samplerlumakey = (int32_t)pRuleEntry->value;
                 }
                 break;
 
@@ -3572,6 +3599,7 @@ bool KernelDll_SearchKernel(Kdll_State       *pState,
     pSearchState->src1_format   = Format_None;
     pSearchState->src1_sampling = Sample_None;
     pSearchState->src1_lumakey   = LumaKey_False;
+    pSearchState->src1_samplerlumakey = LumaKey_False;
     pSearchState->src1_coeff    = CoeffID_None;
     pSearchState->src1_internal = Internal_None;
     pSearchState->src1_process  = Process_None;

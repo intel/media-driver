@@ -2962,25 +2962,27 @@ MOS_STATUS CompositeState::CalculateCropParams(
 //!           Pointer to Composite Rendering data
 //! \param    [in] pSource
 //!           Pointer to Source Surface
-//! \param    [in,out] pRenderHalSurface
-//!           Pointer to Source RenderHal Surface related to VPHAL Surface
-//! \param    [in,out] pRenderHalSurfaceSrcField
-//!           Pointer to Source RenderHal Surface (FieldWeaving) related to VPHAL Surface
+//! \param    [in] iLayerIdInCompParams
+//!           Index of pSource in pCompParams
+//! \param    [in,out] pCompParams
+//!           Pointer to Composite parameters
 //! \return   int32_t
 //!           Return 1 if set layer successful, otherwise -1
 //!
 int32_t CompositeState::SetLayer(
     PVPHAL_RENDERING_DATA_COMPOSITE pRenderingData,
     PVPHAL_SURFACE                  pSource,
-    PRENDERHAL_SURFACE              pRenderHalSurfaceSrc,
-    PRENDERHAL_SURFACE              pRenderHalSurfaceSrcField)
+    int                             iLayerIdInCompParams,
+    PVPHAL_COMPOSITE_PARAMS         pCompParams)
 {
     // Result
     MOS_STATUS                          eStatus;
+    PRENDERHAL_SURFACE                  pRenderHalSurfaceSrc = nullptr;         // Pointer to Source RenderHal Surface related to VPHAL Surface
+    PRENDERHAL_SURFACE                  pRenderHalSurfaceSrcField = nullptr;    // Pointer to Source RenderHal Surface (FieldWeaving) related to VPHAL Surface
 
     // States
     PRENDERHAL_INTERFACE                pRenderHal;
-    int32_t                             iLayer;
+    int32_t                             iLayer; // The index of pSource in pRenderingData->pLayers.
     MEDIA_OBJECT_KA2_STATIC_DATA        *pStatic;
     MEDIA_OBJECT_KA2_INLINE_DATA        *pInline;
 
@@ -2996,6 +2998,7 @@ int32_t CompositeState::SetLayer(
     int32_t                             iSamplerID;     // Sampler ID
     MHW_SAMPLER_TYPE                    SamplerType;    // Sampler Type
     PMHW_SAMPLER_STATE_PARAM            pSamplerStateParams;
+    VPHAL_SCALING_MODE                  ScalingMode;
 
     // Constant alpha
     uint16_t                            wAlpha;         // Constant Alpha (8.8)
@@ -3011,7 +3014,7 @@ int32_t CompositeState::SetLayer(
     float       fOriginX, fOriginY;                 // x,y layer origin
     PRECT       pTargetRect;                        // Clipping rectangle (RT)
     RECT        DestRect;                           // Clipped dest rectangle
-    int32_t     iResult;
+    int32_t     iResult = 0;                        // Default result = 0 (don't render the current plane)
     float       fHorizgap, fVertgap;                // horizontal gap and vertical gap: based on Sampler need
     uint32_t    dwLow, dwHigh;
     bool        bForceNearestForUV = false;
@@ -3021,6 +3024,19 @@ int32_t CompositeState::SetLayer(
 
     // Temp variable for iScaling/Field Weaving
     PVPHAL_SURFACE               pTempSurf;
+
+    if (nullptr == pRenderingData || nullptr == pSource || nullptr == pCompParams ||
+        iLayerIdInCompParams < 0 || iLayerIdInCompParams >= (int)pCompParams->uSourceCount)
+    {
+        VPHAL_RENDER_ASSERTMESSAGE("invalid input parameters");
+        iResult = -1;
+        goto finish;
+    }
+
+    pRenderHalSurfaceSrc        = &pCompParams->RenderHalSurfaceSrc[iLayerIdInCompParams];
+    pRenderHalSurfaceSrcField   = &pCompParams->RenderHalSurfaceSrcField[iLayerIdInCompParams];
+
+    ScalingMode = pSource->ScalingMode;
 
     // init surface parameters
     MOS_ZeroMemory(&SurfaceParams, sizeof(SurfaceParams));
@@ -3032,9 +3048,6 @@ int32_t CompositeState::SetLayer(
     fOffsetY = 0;
     fShiftX  = 0;
     fShiftY  = 0;
-
-    // Default result = 0 (don't render the current plane)
-    iResult     = 0;
 
     // Initialize States
     pRenderHal   = m_pRenderHal;
@@ -3108,6 +3121,11 @@ int32_t CompositeState::SetLayer(
     // Set layer ID - necessary to bind surface states
     //-------------------------------------------
     pSource->iLayerID = iLayer;
+
+    pSource->bUseSampleUnorm = IsUsingSampleUnorm(pCompParams, pSource);
+    // Check whether sampler lumakey is needed. It will be used in SetSurfaceParams
+    // when IsNV12SamplerLumakeyNeeded being called.
+    pSource->bUseSamplerLumakey = IsSamplerLumakeySupported(pSource);
 
     //-------------------------------------------
     // Setup surface states
@@ -3189,6 +3207,15 @@ int32_t CompositeState::SetLayer(
     {
         iResult = -1;
         goto finish;
+    }
+
+    if (ScalingMode != pSource->ScalingMode)
+    {
+        // The AVS may be modified to Bilinear in RenderHal_SetupSurfaceState->RenderHal_GetSurfaceStateEntries if AVS
+        // is not supported by the format of source.
+        // Both bUseSampleUnorm and bUseSamplerLumakey need be updated.
+        pSource->bUseSampleUnorm = IsUsingSampleUnorm(pCompParams, pSource);
+        pSource->bUseSamplerLumakey = IsSamplerLumakeySupported(pSource);
     }
 
     //--------------------------------------------------------
@@ -3341,17 +3368,7 @@ int32_t CompositeState::SetLayer(
             pSamplerStateParams->Unorm.AddressV = MHW_GFX3DSTATE_TEXCOORDMODE_CLAMP;
             pSamplerStateParams->Unorm.AddressW = MHW_GFX3DSTATE_TEXCOORDMODE_CLAMP;
 
-            // Enable the sampler luma key feature only if this lumakey layer is not the bottom layer,
-            // and only on YUY2 and NV12 surfaces at this moment.
-            // The kernel difference b/w sampler luma key and EU computed luma key.
-            // Sampler based: IDR_VP_Prepare_LumaKey_SampleUnorm
-            // EU computed:   IDR_VP_Compute_Lumakey
-            // Disable sampler luma key solution if there's no AVS as back up for layer 0
-            if (iSamplerID == VPHAL_SAMPLER_Y   &&
-                pSource->pLumaKeyParams != NULL &&
-                !m_need3DSampler                &&
-                (pSource->Format == Format_YUY2 || pSource->Format == Format_NV12) &&
-                iLayer)
+            if (iSamplerID == VPHAL_SAMPLER_Y && pSource->bUseSamplerLumakey)
             {
                 if (IsNV12SamplerLumakeyNeeded(pSource, pRenderHal))
                 {
@@ -5673,8 +5690,8 @@ MOS_STATUS CompositeState::RenderPhase(
         iRes = SetLayer(
                     &RenderingData,
                     pSource,
-                    &pCompParams->RenderHalSurfaceSrc[iLayer],
-                    &pCompParams->RenderHalSurfaceSrcField[iLayer]);
+                    iLayer,
+                    pCompParams);
         if (iRes < 0)
         {
             VPHAL_RENDER_ASSERTMESSAGE("Failed to set layer parameters.");
@@ -5975,8 +5992,6 @@ bool CompositeState::BuildFilter(
     VPHAL_CSPACE                cspace_main;
     int32_t                     iMaxFilterSize;
     bool                        bColorFill, bLumaKey;
-    float                       fStepX, fStepY;
-    float                       fAdjustX, fAdjustY;
     int32_t                     i;
     PRECT                       pTargetRect;
     RENDERHAL_SURFACE           RenderHalSurface;
@@ -5991,18 +6006,6 @@ bool CompositeState::BuildFilter(
     *piFilterSize  = 0;
     iMaxFilterSize = DL_MAX_SEARCH_FILTER_SIZE - 1; // Save one entry for Render Target
     pTargetRect    = &(pCompParams->Target[0].rcDst);
-
-    if (pCompParams->pConstriction)
-    {
-        fAdjustX = (pTargetRect->right  - pTargetRect->left) * 1.0f /
-            pCompParams->pConstriction->right;
-        fAdjustY = (pTargetRect->bottom - pTargetRect->top ) * 1.0f /
-            pCompParams->pConstriction->bottom;
-    }
-    else
-    {
-        fAdjustX = fAdjustY = 1.0f;
-    }
 
     // Initialize ColorFill flag
     bColorFill = (pCompParams->pColorFillParams != nullptr);
@@ -6147,90 +6150,18 @@ bool CompositeState::BuildFilter(
         //--------------------------------
         // Set sampling mode
         //--------------------------------
-        // Calculate scaling factor for X and Y (include BOB DI)
-        if (pFilter->rotation == VPHAL_ROTATION_IDENTITY ||
-            pFilter->rotation == VPHAL_ROTATION_180      ||
-            pFilter->rotation == VPHAL_MIRROR_HORIZONTAL ||
-            pFilter->rotation == VPHAL_MIRROR_VERTICAL)
-        {
-            fStepX = (pSrc->rcSrc.right  - pSrc->rcSrc.left) * fAdjustX /
-                     ((pSrc->rcDst.right  - pSrc->rcDst.left) > 0 ?
-                     (pSrc->rcDst.right  - pSrc->rcDst.left) : 1);
-            fStepY = (pSrc->rcSrc.bottom - pSrc->rcSrc.top ) * fAdjustY /
-                     ((pSrc->rcDst.bottom - pSrc->rcDst.top ) > 0 ?
-                     (pSrc->rcDst.bottom - pSrc->rcDst.top ) : 1);
-        }
-        else
-        {
-            // VPHAL_ROTATION_90 || VPHAL_ROTATION_270 ||
-            fStepX = (pSrc->rcSrc.right  - pSrc->rcSrc.left) * fAdjustX /
-                     ((pSrc->rcDst.bottom - pSrc->rcDst.top ) > 0 ?
-                     (pSrc->rcDst.bottom - pSrc->rcDst.top ) : 1);
-            fStepY = (pSrc->rcSrc.bottom - pSrc->rcSrc.top ) * fAdjustY /
-                     ((pSrc->rcDst.right  - pSrc->rcDst.left) > 0 ?
-                     (pSrc->rcDst.right  - pSrc->rcDst.left) : 1);
-        }
-        if (IsBobDiEnabled(pSrc) &&
-            pSrc->ScalingMode != VPHAL_SCALING_AVS)
-        {
-            fStepY *= 0.5f;
-        }
-
         bLumaKey = (pSrc->pLumaKeyParams != nullptr);
 
         // Progressive main video (except RGB format) or for RGB10, use AVS
-        if ((pSrc->ScalingMode == VPHAL_SCALING_AVS) &&
-            !IsBobDiEnabled(pSrc))
+        if (pSrc->bUseSampleUnorm)
         {
-            if (pSrc->bInterlacedScaling)
-            {
-                // GEN8 cannot support YV12 input format for iAVS scaling
-                if (!m_bYV12iAvsScaling && pSrc->Format == Format_YV12)
-                {
-                    pFilter->sampler = Sample_iScaling;
-                }
-                else
-                {
-                    pFilter->sampler = Sample_iScaling_AVS;
-                }
-            }
-            else
-            {
-                pFilter->sampler = Sample_Scaling_AVS;
-            }
-        }
-        // interlaced scaling/field weaving
-        else if (((pSrc->ScalingMode == VPHAL_SCALING_NEAREST || pSrc->ScalingMode == VPHAL_SCALING_BILINEAR) && pSrc->bInterlacedScaling) || pSrc->bFieldWeaving)
-        {
-            if (fStepX >= 3.0f                       ||
-                fStepY >= 3.0f                       ||
-                pSrc->Format == Format_R10G10B10A2   ||
-                pSrc->Format == Format_B10G10R10A2   ||
-                pSrc->Format == Format_Y410          ||
-                pSrc->Format == Format_Y416)
-            {
-                pFilter->sampler = Sample_iScaling_034x;
-            }
-            else
-            {
-                pFilter->sampler = Sample_iScaling;
-            }
+            pFilter->sampler = (pSrc->bInterlacedScaling || pSrc->bFieldWeaving) ? Sample_iScaling : Sample_Scaling;
         }
         else
         {
-            if (fStepX >= 3.0f                     ||
-                fStepY >= 3.0f                     ||
-                pSrc->Format == Format_R10G10B10A2 ||
-                pSrc->Format == Format_B10G10R10A2 ||
-                pSrc->Format == Format_Y410        ||
-                pSrc->Format == Format_Y416)
-            {
-                pFilter->sampler = Sample_Scaling_034x;
-            }
-            else
-            {
-                pFilter->sampler = Sample_Scaling;
-            }
+            pFilter->sampler = (pSrc->ScalingMode == VPHAL_SCALING_AVS && !IsBobDiEnabled(pSrc)) ?
+                (pSrc->bInterlacedScaling ? Sample_iScaling_AVS : Sample_Scaling_AVS) :
+                (pSrc->bInterlacedScaling || pSrc->bFieldWeaving) ? Sample_iScaling_034x : Sample_Scaling_034x;
         }
 
         // When input format is Format_R10G10B10A2/Format_B10G10R10A2/Y410(kernel regards Y410 as Format_R10G10B10A2)
@@ -6253,10 +6184,12 @@ bool CompositeState::BuildFilter(
         if (bLumaKey)
         {
             pFilter->lumakey = LumaKey_True;
+            pFilter->samplerlumakey = pSrc->bUseSamplerLumakey ? LumaKey_True : LumaKey_False;
         }
         else
         {
             pFilter->lumakey = LumaKey_False;
+            pFilter->samplerlumakey = LumaKey_False;
         }
 
         //--------------------------------
@@ -6302,6 +6235,12 @@ bool CompositeState::BuildFilter(
         else
         {
             pFilter->process = Process_Composite;
+        }
+
+        if (pFilter->samplerlumakey && pFilter->process != Process_Composite)
+        {
+            VPHAL_RENDER_ASSERTMESSAGE("Invalid kll processing for sampler lumakey! Sampler lumakey can only work with composition.");
+            pFilter->samplerlumakey = LumaKey_False;
         }
 
         //--------------------------------
@@ -6457,6 +6396,141 @@ void CompositeState::InitColorFillParams()
     m_csDst.dwValue   = 0;
     m_CSpaceSrc       = CSpace_None;
     m_CSpaceDst       = CSpace_None;
+}
+
+//!
+//! \brief    Check if sample unorm being used for source surface.
+//! \param    [in] pCompParams
+//!           Pointer to Composite parameters
+//! \param    pSrc
+//!           [in] Pointer to Source Surface
+//! \return   bool
+//!           Return TRUE if use sample unorm, otherwise FALSE
+//!
+bool CompositeState::IsUsingSampleUnorm(
+    PVPHAL_COMPOSITE_PARAMS         pCompParams,
+    PVPHAL_SURFACE                  pSrc)
+{
+    float                       fStepX = 0, fStepY = 0;
+    float                       fAdjustX = 0, fAdjustY = 0;
+    PRECT                       pTargetRect = {0};
+
+    if (nullptr == pCompParams || nullptr == pSrc)
+    {
+        VPHAL_RENDER_ASSERTMESSAGE("nullptr for input parameters");
+        return false;
+    }
+
+    pTargetRect    = &(pCompParams->Target[0].rcDst);
+    if (pCompParams->pConstriction)
+    {
+        fAdjustX = (pTargetRect->right  - pTargetRect->left) * 1.0f /
+            pCompParams->pConstriction->right;
+        fAdjustY = (pTargetRect->bottom - pTargetRect->top ) * 1.0f /
+            pCompParams->pConstriction->bottom;
+    }
+    else
+    {
+        fAdjustX = fAdjustY = 1.0f;
+    }
+    // Calculate scaling factor for X and Y (include BOB DI)
+    if (pSrc->Rotation == VPHAL_ROTATION_IDENTITY ||
+        pSrc->Rotation == VPHAL_ROTATION_180      ||
+        pSrc->Rotation == VPHAL_MIRROR_HORIZONTAL ||
+        pSrc->Rotation == VPHAL_MIRROR_VERTICAL)
+    {
+        fStepX = (pSrc->rcSrc.right  - pSrc->rcSrc.left) * fAdjustX /
+                    ((pSrc->rcDst.right  - pSrc->rcDst.left) > 0 ?
+                    (pSrc->rcDst.right  - pSrc->rcDst.left) : 1);
+        fStepY = (pSrc->rcSrc.bottom - pSrc->rcSrc.top ) * fAdjustY /
+                    ((pSrc->rcDst.bottom - pSrc->rcDst.top ) > 0 ?
+                    (pSrc->rcDst.bottom - pSrc->rcDst.top ) : 1);
+    }
+    else
+    {
+        // VPHAL_ROTATION_90 || VPHAL_ROTATION_270 ||
+        fStepX = (pSrc->rcSrc.right  - pSrc->rcSrc.left) * fAdjustX /
+                    ((pSrc->rcDst.bottom - pSrc->rcDst.top ) > 0 ?
+                    (pSrc->rcDst.bottom - pSrc->rcDst.top ) : 1);
+        fStepY = (pSrc->rcSrc.bottom - pSrc->rcSrc.top ) * fAdjustY /
+                    ((pSrc->rcDst.right  - pSrc->rcDst.left) > 0 ?
+                    (pSrc->rcDst.right  - pSrc->rcDst.left) : 1);
+    }
+    if (IsBobDiEnabled(pSrc) &&
+        pSrc->ScalingMode != VPHAL_SCALING_AVS)
+    {
+        fStepY *= 0.5f;
+    }
+
+    // Progressive main video (except RGB format) or for RGB10, use AVS
+    if ((pSrc->ScalingMode == VPHAL_SCALING_AVS) &&
+        !IsBobDiEnabled(pSrc))
+    {
+        // GEN8 cannot support YV12 input format for iAVS scaling
+        if (pSrc->bInterlacedScaling && !m_bYV12iAvsScaling && pSrc->Format == Format_YV12)
+        {
+            return true;
+        }
+        else
+        {
+            return false;   // AVS
+        }
+    }
+    else
+    {
+        if (pSrc->Format == Format_R10G10B10A2   ||
+            pSrc->Format == Format_B10G10R10A2   ||
+            pSrc->Format == Format_Y410          ||
+            pSrc->Format == Format_Y416)
+        {
+            return false;   // DScaler
+        }
+        else if (fStepX >= 3.0f || fStepY >= 3.0f)
+        {
+            return !MEDIA_IS_WA(m_pWaTable, WaEnableDscale);
+        }
+        else
+        {
+            return true;
+        }
+    }
+}
+
+//!
+//! \brief    Check if sampler lumakey being supported or not for source surface.
+//! \param    pSrc
+//!           [in] Pointer to Source Surface
+//! \return   bool
+//!           Return TRUE if support, otherwise FALSE
+//!
+bool CompositeState::IsSamplerLumakeySupported(PVPHAL_SURFACE pSrc)
+{
+    // The kernel is different b/w sampler luma key and EU computed luma key.
+    // Sampler based: IDR_VP_Prepare_LumaKey_SampleUnorm
+    // EU computed:   IDR_VP_Compute_Lumakey
+    // When sampler lumakey being enabled by set pUnormSampler->DW1.ChromakeyEnable to 1, a lumakey mask will be generated
+    // during sampler scaling.
+    // IDR_VP_Prepare_LumaKey_SampleUnorm is used to prepare lumakey related parameters for composition according to the
+    // lumakey mask, and the result will be put in the common registers. To avoid the result being overwriten by other
+    // operation, IDR_VP_Prepare_LumaKey_SampleUnorm need to be called rigth before IDR_VP_Call_Composite.
+    // Following are the conditions to enable sampler lumakey.
+    // 1 Flag m_bEnableSamplerLumakey is set to true.
+    // 2 Lumakey is needed for current layer.
+    // 3 Enable sampler lumakey only for composition.
+    // 4 Disable sampler lumakey if there's no AVS as back up for layer 0
+    // 5 Enable sampler lumakey only on YUY2 and NV12 surfaces due to hw limitation.
+    // 6 Enable sampler lumakey feature only if this lumakey layer is not the bottom layer.
+    // 7 Enable sampler lumakey only when sample unorm being used.
+    // 8 Disable sampler lumakey for mirror case, since mirror is done after sampler scaling, which cause the lumakey mask
+    //   not matching the layer any more.
+    return m_bEnableSamplerLumakey                                                              &&
+            pSrc->pLumaKeyParams != NULL                                                        &&
+            (pSrc->pBlendingParams == NULL || pSrc->pBlendingParams->BlendType == BLEND_NONE)   &&
+            !m_need3DSampler                                                                    &&
+            (pSrc->Format == Format_YUY2 || pSrc->Format == Format_NV12)                        &&
+            pSrc->iLayerID                                                                      &&
+            pSrc->bUseSampleUnorm                                                               &&
+            pSrc->Rotation < VPHAL_MIRROR_HORIZONTAL;
 }
 
 //!
@@ -6632,6 +6706,7 @@ CompositeState::CompositeState(
     m_iBatchBufferCount(0),
     m_iCallID(0),
     m_need3DSampler(false),
+    m_bEnableSamplerLumakey(false),
     m_bYV12iAvsScaling(false),
     m_bLastPhase(false)
 {

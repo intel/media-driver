@@ -65,6 +65,7 @@ public:
         m_bAvsTableBalancedFilter       = false;
         m_bApplyTwoLayersCompOptimize   = true;
         m_bYV12iAvsScaling              = false;
+        m_bEnableSamplerLumakey         = false;    // Disable sampler lumakey on Gen8.
 
         if (*peStatus != MOS_STATUS_SUCCESS)
         {
