@@ -38,6 +38,7 @@ MOS_STATUS MhwMiInterfaceG11::AddMiSemaphoreWaitCmd(
 
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(cmdBuffer->pCmdPtr);
+    MHW_MI_CHK_NULL(params);
 
     mhw_mi_g11_X::MI_SEMAPHORE_WAIT_CMD *cmd =
         (mhw_mi_g11_X::MI_SEMAPHORE_WAIT_CMD*)cmdBuffer->pCmdPtr;
@@ -140,6 +141,7 @@ MOS_STATUS MhwMiInterfaceG11::AddMiStoreRegisterMemCmd(
 
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(cmdBuffer->pCmdPtr);
+    MHW_MI_CHK_NULL(params);
 
     mhw_mi_g11_X::MI_STORE_REGISTER_MEM_CMD *cmd =
         (mhw_mi_g11_X::MI_STORE_REGISTER_MEM_CMD*)cmdBuffer->pCmdPtr;
@@ -163,6 +165,7 @@ MOS_STATUS MhwMiInterfaceG11::AddMiLoadRegisterMemCmd(
 
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(cmdBuffer->pCmdPtr);
+    MHW_MI_CHK_NULL(params);
 
     mhw_mi_g11_X::MI_LOAD_REGISTER_MEM_CMD *cmd =
         (mhw_mi_g11_X::MI_LOAD_REGISTER_MEM_CMD*)cmdBuffer->pCmdPtr;
@@ -186,6 +189,7 @@ MOS_STATUS MhwMiInterfaceG11::AddMiLoadRegisterImmCmd(
 
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(cmdBuffer->pCmdPtr);
+    MHW_MI_CHK_NULL(params);
 
     mhw_mi_g11_X::MI_LOAD_REGISTER_IMM_CMD *cmd =
         (mhw_mi_g11_X::MI_LOAD_REGISTER_IMM_CMD*)cmdBuffer->pCmdPtr;
@@ -209,6 +213,7 @@ MOS_STATUS MhwMiInterfaceG11::AddMiLoadRegisterRegCmd(
 
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(cmdBuffer->pCmdPtr);
+    MHW_MI_CHK_NULL(params);
 
     mhw_mi_g11_X::MI_LOAD_REGISTER_REG_CMD *cmd =
         (mhw_mi_g11_X::MI_LOAD_REGISTER_REG_CMD*)cmdBuffer->pCmdPtr;
