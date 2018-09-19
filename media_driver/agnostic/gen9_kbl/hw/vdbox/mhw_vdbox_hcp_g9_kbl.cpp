@@ -1343,8 +1343,8 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpVp9PicStateEncCmd(
     auto vp9PicParams = params->pVp9PicParams;
     auto vp9RefList = params->ppVp9RefList;
 
-    cmd.DW1.FrameWidthInPixelsMinus1    = vp9PicParams->DstFrameWidthMinus1;
-    cmd.DW1.FrameHeightInPixelsMinus1   = vp9PicParams->DstFrameHeightMinus1;
+    cmd.DW1.FrameWidthInPixelsMinus1    = vp9PicParams->SrcFrameWidthMinus1;
+    cmd.DW1.FrameHeightInPixelsMinus1   = vp9PicParams->SrcFrameHeightMinus1;
 
     cmd.DW2.FrameType                   = vp9PicParams->PicFlags.fields.frame_type;
     cmd.DW2.AdaptProbabilitiesFlag      = !vp9PicParams->PicFlags.fields.error_resilient_mode && !vp9PicParams->PicFlags.fields.frame_parallel_decoding_mode;
@@ -1373,8 +1373,8 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpVp9PicStateEncCmd(
    
     if (vp9PicParams->PicFlags.fields.frame_type && !vp9PicParams->PicFlags.fields.intra_only)
     {
-        uint32_t curFrameWidth         = vp9PicParams->DstFrameWidthMinus1 + 1;
-        uint32_t curFrameHeight        = vp9PicParams->DstFrameHeightMinus1 + 1;
+        uint32_t curFrameWidth         = vp9PicParams->SrcFrameWidthMinus1 + 1;
+        uint32_t curFrameHeight        = vp9PicParams->SrcFrameHeightMinus1 + 1;
      
         PCODEC_PICTURE refFrameList    = &(vp9PicParams->RefFrameList[0]);
 

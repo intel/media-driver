@@ -87,8 +87,8 @@ struct HucInputCmd1G11
     uint8_t  TransformSkip;
 
     // VP9
-    uint16_t DstFrameWidthMinus1;
-    uint16_t DstFrameHeightMinus1;
+    uint16_t SrcFrameWidthMinus1;
+    uint16_t SrcFrameHeightMinus1;
 
     uint8_t  SegmentationEnabled;
     uint8_t  PrevFrameSegEnabled;

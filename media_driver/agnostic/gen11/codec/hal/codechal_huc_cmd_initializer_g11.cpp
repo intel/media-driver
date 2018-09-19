@@ -389,8 +389,8 @@ MOS_STATUS CodechalCmdInitializerG11::CmdInitializerVp9SetDmem()
     hucInputCmd1.SADQPLambda = (uint16_t)(lambda * 4 + 0.5);
     hucInputCmd1.RDQPLambda = (uint16_t)(lambda * lambda * 4 + 0.5); //U14.2
 
-    hucInputCmd1.DstFrameHeightMinus1 = m_vp9Params.picParams->DstFrameHeightMinus1;
-    hucInputCmd1.DstFrameWidthMinus1 = m_vp9Params.picParams->DstFrameWidthMinus1;
+    hucInputCmd1.SrcFrameHeightMinus1 = m_vp9Params.picParams->SrcFrameHeightMinus1;
+    hucInputCmd1.SrcFrameWidthMinus1 = m_vp9Params.picParams->SrcFrameWidthMinus1;
     hucInputCmd1.SegmentationEnabled = m_vp9Params.segmentationEnabled;
     hucInputCmd1.PrevFrameSegEnabled = m_vp9Params.prevFrameSegEnabled;
     hucInputCmd1.LumaACQIndex = m_vp9Params.picParams->LumaACQIndex;
