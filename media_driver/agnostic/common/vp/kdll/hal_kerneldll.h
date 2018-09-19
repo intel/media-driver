@@ -295,6 +295,7 @@ typedef enum tagKdll_RuleID
     RID_IsSrc1Format     ,     // Current Src1 source (surface) format
     RID_IsSrc1Sampling   ,     // Current Src1 sampling mode
     RID_IsSrc1LumaKey    ,     // Current Src1 LumaKey flag
+    RID_IsSrc1SamplerLumaKey,  // Current Src1 Samper LumaKey flag
     RID_IsSrc1Procamp    ,     // Match Src1 Procamp flag
     RID_IsSrc1Internal   ,     // Current Src1 internal pixel format
     RID_IsSrc1Coeff      ,     // Current Src1 CSC coefficients
@@ -328,6 +329,7 @@ typedef enum tagKdll_RuleID
     RID_SetSrc1Sampling  ,     // Set Src1 sampling mode
     RID_SetSrc1Rotation  ,     // Set Src1 rotation
     RID_SetSrc1LumaKey   ,     // Set Src1 LumaKey
+    RID_SetSrc1SamplerLumaKey, // Set Src1 Sampler LumaKey
     RID_SetSrc1Procamp   ,     // Set Src1 Procamp flag
     RID_SetSrc1Internal  ,     // Set Src1 pixel format
     RID_SetSrc1Coeff     ,     // Set Src1 CSC coefficients
@@ -424,6 +426,7 @@ typedef struct tagKdll_FilterEntry
     Kdll_Sampling   sampler;          // sampling mode      (AVS, Scaling, ColorFill, Luma Keying, ...)
     int32_t         colorfill : 16;   // colorfill          (true/false)
     int32_t         lumakey   : 16;   // Luma key           (true/false)
+    int32_t         samplerlumakey;   // Sampler Lumakey    (true/false)
     Kdll_Processing process;          // processing mode    (Compositing, Constant Blending, Source Blending, ...)
     int             procamp;          // index to procamp parameters (-1 of Procamp disabled)
     int             matrix;           // index to CSC matrix entry   (-1 if CSC not required)
@@ -723,6 +726,7 @@ typedef struct tagKdll_SearchState
     MOS_FORMAT           src1_format;               // Src1 source format
     Kdll_Sampling        src1_sampling;             // Src1 sampling mode
     int32_t              src1_lumakey;              // Src1 luma key
+    int32_t              src1_samplerlumakey;       // Src1 sampler luma key
     int32_t              src1_procamp;              // Src1 procamp
     Kdll_CoeffID         src1_coeff;                // Src1 CSC coefficients
     Kdll_IntFormat       src1_internal;             // Src1 internal format
