@@ -125,7 +125,6 @@ if(${Common_Encode_Supported} STREQUAL "yes")
         ${CMAKE_CURRENT_LIST_DIR}/codechal_debug_encode_par_g11.cpp
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_sw_scoreboard_g11.cpp
         ${CMAKE_CURRENT_LIST_DIR}/codechal_huc_cmd_initializer_g11.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_sfc_g11.cpp
     )
 
     set(TMP_3_HEADERS_
@@ -136,7 +135,6 @@ if(${Common_Encode_Supported} STREQUAL "yes")
         ${CMAKE_CURRENT_LIST_DIR}/codechal_debug_encode_par_g11.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_sw_scoreboard_g11.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_huc_cmd_initializer_g11.h
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_sfc_g11.h
     )
 endif()
 
