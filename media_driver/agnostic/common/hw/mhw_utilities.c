@@ -56,6 +56,7 @@ MOS_STATUS Mhw_AddResourceToCmd_GfxAddress(
     uint8_t                 *pbCmdBufBase = nullptr;
 
     MHW_CHK_NULL(pOsInterface);
+    MHW_CHK_NULL(pParams);
     MHW_CHK_NULL(pParams->presResource);
     MHW_CHK_NULL(pCmdBuffer);
     MHW_CHK_NULL(pCmdBuffer->pCmdBase);
@@ -172,7 +173,9 @@ MOS_STATUS Mhw_AddResourceToCmd_PatchList(
     MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
 
     MHW_CHK_NULL(pOsInterface);
+    MHW_CHK_NULL(pParams);
     MHW_CHK_NULL(pParams->presResource);
+    MHW_CHK_NULL(pCmdBuffer);
 
     MHW_CHK_STATUS(pOsInterface->pfnRegisterResource(
         pOsInterface,
@@ -194,7 +197,6 @@ MOS_STATUS Mhw_AddResourceToCmd_PatchList(
     }
     else
     {
-        MHW_CHK_NULL(pCmdBuffer);
         // Calculate the patch offset to command buffer
         uiPatchOffset = pCmdBuffer->iOffset + (pParams->dwLocationInCmd * sizeof(uint32_t));
     }
@@ -288,6 +290,7 @@ MOS_STATUS Mhw_SurfaceFormatToType(
     MHW_FUNCTION_ENTER;
 
     MHW_CHK_NULL(psSurface);
+    MHW_CHK_NULL(pdwSurfaceType);
 
     switch ( dwForceSurfaceFormat )
     {
@@ -349,6 +352,7 @@ MOS_STATUS Mhw_SendGenericPrologCmd (
 
     MHW_CHK_NULL(pParams->pvMiInterface);
     pMiInterface = (MhwMiInterface *)pParams->pvMiInterface;
+    MHW_CHK_NULL(pMiInterface);
 
     pSkuTable = pOsInterface->pfnGetSkuTable(pOsInterface);
     MHW_CHK_NULL(pSkuTable);

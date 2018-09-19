@@ -181,6 +181,11 @@ protected:
         HEAP_FUNCTION_ENTER_VERBOSE;
         if (!m_keepLocked)
         {
+            if (m_osInterface == nullptr)
+            {
+                HEAP_ASSERTMESSAGE("Invalid m_osInterface(nullptr)");
+            }
+
             m_osInterface->pfnUnlockResource(m_osInterface, m_resource);
         }
     }
