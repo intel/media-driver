@@ -79,9 +79,9 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G8_X::SetSurfaceState(
     PMHW_RCS_SURFACE_PARAMS     pParams)
 {
     PMOS_INTERFACE              pOsInterface;
-    uint8_t                     *pIndirectState;
+    uint8_t                     *pIndirectState = nullptr;
     MHW_RESOURCE_PARAMS         ResourceParams;
-    uint32_t                    uiIndirectStateOffset, uiIndirectStateSize;
+    uint32_t                    uiIndirectStateOffset = 0, uiIndirectStateSize = 0;
     PMHW_STATE_HEAP             pStateHeap;
     uint32_t                    dwSurfaceType = GFX3DSTATE_SURFACETYPE_NULL;                // GFX3DSTATE_SURFACETYPE
     uint32_t                    i; // Plane Index
@@ -103,6 +103,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G8_X::SetSurfaceState(
     pOsInterface    = m_pOsInterface;
     pStateHeap      = &m_SurfaceStateHeap;
 
+    MHW_MI_CHK_NULL(pOsInterface);
     MHW_MI_CHK_STATUS(pOsInterface->pfnGetIndirectStatePointer(pOsInterface, &pIndirectState));
     MHW_MI_CHK_STATUS(pOsInterface->pfnGetIndirectState(pOsInterface, &uiIndirectStateOffset, &uiIndirectStateSize));
 
@@ -112,6 +113,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G8_X::SetSurfaceState(
     for ( i = 0; i < pParams->dwNumPlanes; i++)
     {
         MHW_ASSERT_INVALID_BINDING_TABLE_IDX(pParams->dwBindingTableOffset[i]);
+        MHW_MI_CHK_NULL(pKernelState);
         uint32_t u32SurfaceOffsetInSsh =
             pKernelState->dwSshOffset + pKernelState->dwBindingTableSize + // offset within SSH to start of surfaces for this kernel
             (m_HwSizes.dwMaxSizeSurfaceState * pParams->dwBindingTableOffset[i]); // offset to the current surface
@@ -127,7 +129,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G8_X::SetSurfaceState(
         {
             mhw_state_heap_g8_X::MEDIA_SURFACE_STATE_CMD *pCmd =
                 (mhw_state_heap_g8_X::MEDIA_SURFACE_STATE_CMD*)pLocationOfSurfaceInSsh;
-
+            MHW_MI_CHK_NULL(pCmd);
             *pCmd = mhw_state_heap_g8_X::MEDIA_SURFACE_STATE_CMD();
 
             pCmd->DW1.Width                         = (pParams->dwWidthToUse[i] == 0) ?
@@ -294,6 +296,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G8_X::SetInterfaceDescriptorEntry(
                (pStateHeapBase +               // State Heap Base
                 pParams->dwMediaIdOffset +     // Offset to first Media ID
                 pParams->iMediaId * m_wSizeOfInterfaceDescriptor); // Offset to current ID
+    MHW_MI_CHK_NULL(pInterfaceDescriptor);
     *pInterfaceDescriptor = mhw_state_heap_g8_X::INTERFACE_DESCRIPTOR_DATA_CMD();
 
     pInterfaceDescriptor->DW0.KernelStartPointer                 = pParams->dwKernelOffset  >> MHW_KERNEL_OFFSET_SHIFT;
@@ -355,6 +358,8 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G8_X::AddInterfaceDescriptorData(
 MOS_STATUS MHW_STATE_HEAP_INTERFACE_G8_X::SetSurfaceStateEntry(
     PMHW_SURFACE_STATE_PARAMS   pParams)
 {
+    MHW_MI_CHK_NULL(pParams);
+
     uint32_t TileMode = (pParams->bTiledSurface) ? ((pParams->bTileWalk == 0) ? 2 /*x-tile*/: 3 /*y-tile*/) : 0; /*linear*/
 
     if (pParams->bUseAdvState)
@@ -362,6 +367,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G8_X::SetSurfaceStateEntry(
         // Obtain the Pointer to the Surface state from SSH Buffer
         mhw_state_heap_g8_X::MEDIA_SURFACE_STATE_CMD *pSurfaceStateAdv =
             (mhw_state_heap_g8_X::MEDIA_SURFACE_STATE_CMD *)pParams->pSurfaceState;
+        MHW_MI_CHK_NULL(pSurfaceStateAdv);
 
         // Initialize Surface State
         *pSurfaceStateAdv = mhw_state_heap_g8_X::MEDIA_SURFACE_STATE_CMD();
@@ -391,6 +397,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G8_X::SetSurfaceStateEntry(
         // Obtain the Pointer to the Surface state from SSH Buffer
         mhw_state_heap_g8_X::RENDER_SURFACE_STATE_CMD *pSurfaceState =
             (mhw_state_heap_g8_X::RENDER_SURFACE_STATE_CMD *)pParams->pSurfaceState;
+        MHW_MI_CHK_NULL(pSurfaceState);
 
         // Initialize Surface State
         *pSurfaceState = mhw_state_heap_g8_X::RENDER_SURFACE_STATE_CMD();
@@ -632,6 +639,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G8_X::SetSamplerState(
             {
                 mhw_state_heap_g8_X::SAMPLER_INDIRECT_STATE_CMD *pUnormSamplerBorderColor =
                     (mhw_state_heap_g8_X::SAMPLER_INDIRECT_STATE_CMD*)pParam->Unorm.pIndirectState;
+                MHW_MI_CHK_NULL(pUnormSamplerBorderColor);
 
                 mhw_state_heap_g8_X::SAMPLER_INDIRECT_STATE_CMD UnormSamplerBorderColorInit;
                 *pUnormSamplerBorderColor = UnormSamplerBorderColorInit;
@@ -816,6 +824,9 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G8_X::AddSamplerStateData(
     PMHW_SAMPLER_STATE_PARAM    pParam)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    MHW_MI_CHK_NULL(memoryBlock);
+    MHW_MI_CHK_NULL(pParam);
 
     if (pParam->SamplerType == MHW_SAMPLER_TYPE_3D)
     {
