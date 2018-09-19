@@ -170,9 +170,9 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G9_X::SetSurfaceState(
     PMHW_RCS_SURFACE_PARAMS     pParams)
 {
     PMOS_INTERFACE              pOsInterface;
-    uint8_t                     *pIndirectState;
+    uint8_t                     *pIndirectState = nullptr;
     MHW_RESOURCE_PARAMS         ResourceParams;
-    uint32_t                    uiIndirectStateOffset, uiIndirectStateSize;
+    uint32_t                    uiIndirectStateOffset = 0, uiIndirectStateSize = 0;
     PMHW_STATE_HEAP             pStateHeap;
     uint32_t                    dwSurfaceType = GFX3DSTATE_SURFACETYPE_NULL;                // GFX3DSTATE_SURFACETYPE
     uint32_t                    i; // Plane Index
@@ -194,6 +194,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G9_X::SetSurfaceState(
     pOsInterface    = m_pOsInterface;
     pStateHeap      = &m_SurfaceStateHeap;
 
+    MHW_MI_CHK_NULL(pOsInterface);
     MHW_MI_CHK_STATUS(pOsInterface->pfnGetIndirectStatePointer(pOsInterface, &pIndirectState));
     MHW_MI_CHK_STATUS(pOsInterface->pfnGetIndirectState(pOsInterface, &uiIndirectStateOffset, &uiIndirectStateSize));
 
@@ -203,6 +204,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G9_X::SetSurfaceState(
     for ( i = 0; i < pParams->dwNumPlanes; i++)
     {
         MHW_ASSERT_INVALID_BINDING_TABLE_IDX(pParams->dwBindingTableOffset[i]);
+        MHW_MI_CHK_NULL(pKernelState);
         uint32_t u32SurfaceOffsetInSsh =
             pKernelState->dwSshOffset + pKernelState->dwBindingTableSize + // offset within SSH to start of surfaces for this kernel
             (m_HwSizes.dwMaxSizeSurfaceState * pParams->dwBindingTableOffset[i]); // offset to the current surface
@@ -218,7 +220,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G9_X::SetSurfaceState(
         {
             mhw_state_heap_g9_X::MEDIA_SURFACE_STATE_CMD *pCmd =
                 (mhw_state_heap_g9_X::MEDIA_SURFACE_STATE_CMD*)pLocationOfSurfaceInSsh;
-
+            MHW_MI_CHK_NULL(pCmd);
             *pCmd = mhw_state_heap_g9_X::MEDIA_SURFACE_STATE_CMD();
 
             pCmd->DW1.Width                         = (pParams->dwWidthToUse[i] == 0) ?
@@ -425,6 +427,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G9_X::SetSurfaceStateEntry(
         // Obtain the Pointer to the Surface state from SSH Buffer
         mhw_state_heap_g9_X::MEDIA_SURFACE_STATE_CMD* pSurfaceStateAdv =
                 (mhw_state_heap_g9_X::MEDIA_SURFACE_STATE_CMD*) pParams->pSurfaceState;
+        MHW_MI_CHK_NULL(pSurfaceStateAdv);
 
         // Initialize Surface State
         *pSurfaceStateAdv = mhw_state_heap_g9_X::MEDIA_SURFACE_STATE_CMD();
@@ -461,6 +464,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G9_X::SetSurfaceStateEntry(
         // Obtain the Pointer to the Surface state from SSH Buffer
         mhw_state_heap_g9_X::RENDER_SURFACE_STATE_CMD* pSurfaceState =
             (mhw_state_heap_g9_X::RENDER_SURFACE_STATE_CMD*) pParams->pSurfaceState;
+        MHW_MI_CHK_NULL(pSurfaceState);
 
         // Initialize Surface State
         *pSurfaceState = mhw_state_heap_g9_X::RENDER_SURFACE_STATE_CMD();
@@ -598,6 +602,8 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G9_X::LoadSamplerAvsTable(
         PMHW_AVS_COEFFICIENT_PARAM   pCoeffParam = &pMhwSamplerAvsTableParam->paMhwAvsCoeffParam[u32CoeffTableIdx];
         mhw_state_heap_g9_X::SAMPLER_STATE_8x8_AVS_COEFFICIENTS_CMD *pCoeffTable =
             &pSampler8x8Avs->FilterCoefficient016[u32CoeffTableIdx];
+        MHW_MI_CHK_NULL(pCoeffParam);
+        MHW_MI_CHK_NULL(pCoeffTable);
 
         pCoeffTable->DW0.Table0XFilterCoefficientN0 = pCoeffParam->ZeroXFilterCoefficient[0];
         pCoeffTable->DW0.Table0YFilterCoefficientN0 = pCoeffParam->ZeroYFilterCoefficient[0];
@@ -650,6 +656,8 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G9_X::LoadSamplerAvsTable(
         PMHW_AVS_COEFFICIENT_PARAM   pCoeffParamExtra = &pMhwSamplerAvsTableParam->paMhwAvsCoeffParamExtra[u32CoeffTableIdx];
         mhw_state_heap_g9_X::SAMPLER_STATE_8x8_AVS_COEFFICIENTS_CMD *pCoeffTableExtra =
             &pSampler8x8Avs->FilterCoefficient1731[u32CoeffTableIdx];
+        MHW_MI_CHK_NULL(pCoeffParamExtra);
+        MHW_MI_CHK_NULL(pCoeffTableExtra);
 
         pCoeffTableExtra->DW0.Table0XFilterCoefficientN0 = pCoeffParamExtra->ZeroXFilterCoefficient[0];
         pCoeffTableExtra->DW0.Table0YFilterCoefficientN0 = pCoeffParamExtra->ZeroYFilterCoefficient[0];
@@ -1021,6 +1029,9 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G9_X::AddSamplerStateData(
     PMHW_SAMPLER_STATE_PARAM    pParam)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    MHW_MI_CHK_NULL(memoryBlock);
+    MHW_MI_CHK_NULL(pParam);
 
     if (pParam->SamplerType == MHW_SAMPLER_TYPE_3D)
     {
