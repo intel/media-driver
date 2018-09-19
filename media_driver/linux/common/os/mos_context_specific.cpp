@@ -32,7 +32,9 @@
 #include "hwinfo_linux.h"
 #include <stdlib.h>
 
-#ifndef ANDROID
+#ifdef ANDROID
+#include <ufo/gralloc.h>
+#else
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <sys/sem.h>

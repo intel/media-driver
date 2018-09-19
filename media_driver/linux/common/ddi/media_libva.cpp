@@ -32,6 +32,11 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
+#ifdef ANDROID
+#include <va/va_android.h>
+#include <ufo/gralloc.h>
+#endif
+
 #ifndef ANDROID
 #include <X11/Xutil.h>
 #endif
@@ -1019,8 +1024,15 @@ VAStatus DdiMedia_MediaMemoryDecompress(PDDI_MEDIA_CONTEXT mediaCtx, DDI_MEDIA_S
 {
     VAStatus vaStatus = VA_STATUS_SUCCESS;
     DDI_ASSERT(mediaSurface);
-
+#ifdef ANDROID
+    DDI_ASSERT(mediaSurface->bo);
+    intel_ufo_bo_datatype_t datatype;
+    datatype.value = 0;
+    mos_bo_get_datatype(mediaSurface->bo, &datatype.value);
+    if ((MOS_MEMCOMP_STATE)datatype.compression_mode != MOS_MEMCOMP_DISABLED)
+#else
     if (GmmResIsMediaMemoryCompressed(mediaSurface->pGmmResourceInfo, 0))
+#endif
     {
 #ifdef _MMC_SUPPORTED
         MOS_CONTEXT  mosCtx;
@@ -1956,6 +1968,8 @@ DdiMedia_CreateSurfaces2(
     int32_t  memTypeFlag      = 0;
     uint32_t surfaceUsageHint = VA_SURFACE_ATTRIB_USAGE_HINT_GENERIC;
     bool     surfDescProvided = false;
+    bool     surfIsGralloc    = false;
+    bool     surfIsUserPtr    = false;
     for (int32_t i = 0; i < num_attribs && attrib_list; i++)
     {
         if (attrib_list[i].flags & VA_SURFACE_ATTRIB_SETTABLE)
@@ -1978,10 +1992,20 @@ DdiMedia_CreateSurfaces2(
                       }
                       else if ( (attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM)
                                 ||(attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)
+#ifdef ANDROID
+                                ||(attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_ANDROID_GRALLOC)
+#endif
                                 ||(attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR)
                           )
                       {
                           memTypeFlag = attrib_list[i].value.value.i;
+#ifdef ANDROID
+                          surfIsGralloc = (attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_ANDROID_GRALLOC);
+#else
+                          surfIsUserPtr = (attrib_list[i].value.value.i == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR);
+                          surfIsGralloc = false;
+                          surfIsUserPtr = false;
+#endif
                       }
                       else
                       {
@@ -2005,12 +2029,25 @@ DdiMedia_CreateSurfaces2(
                       height           = externalBufDesc->height;
                       surfDescProvided = true;
                       // the following code is for backward compatible and it will be removed in the future
-                     // new implemention should use VASurfaceAttribMemoryType attrib and set its value to VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM or VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME
+                     // new implemention should use VASurfaceAttribMemoryType attrib and set its value to VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM
                      if( (externalBufDesc->flags & VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM )
                          || (externalBufDesc->flags & VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)
+#ifdef ANDROID
+                         || (externalBufDesc->flags & VA_SURFACE_ATTRIB_MEM_TYPE_ANDROID_GRALLOC)
+
+                         || (externalBufDesc->flags & VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR)
+#endif
                          )
                       {
+
                            memTypeFlag       = externalBufDesc->flags;
+#ifdef ANDROID
+                           surfIsGralloc = ((externalBufDesc->flags & VA_SURFACE_ATTRIB_MEM_TYPE_ANDROID_GRALLOC) != 0);
+                           surfIsUserPtr = ((externalBufDesc->flags & VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR) != 0);
+#else
+                           surfIsGralloc = false;
+                           surfIsUserPtr = false;
+#endif
                       }
 
                       break;
@@ -2033,6 +2070,9 @@ DdiMedia_CreateSurfaces2(
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
+    uintptr_t            *bo_names  = nullptr;
+    GMM_RESCREATE_PARAMS *gmmParams = nullptr;
+
     for(int32_t i = 0; i < num_surfaces; i++)
     {
         PDDI_MEDIA_SURFACE_DESCRIPTOR surfDesc = nullptr;
@@ -2043,6 +2083,8 @@ DdiMedia_CreateSurfaces2(
             surfDesc = (PDDI_MEDIA_SURFACE_DESCRIPTOR)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_SURFACE_DESCRIPTOR));
             if( surfDesc == nullptr )
             {
+                MOS_FreeMemory(bo_names);
+                MOS_FreeMemory(gmmParams);
                 return VA_STATUS_ERROR_ALLOCATION_FAILED;
             }
             memset(surfDesc,0,sizeof(DDI_MEDIA_SURFACE_DESCRIPTOR));
@@ -2057,17 +2099,39 @@ DdiMedia_CreateSurfaces2(
             if (eStatus != MOS_STATUS_SUCCESS)
             {
                 DDI_VERBOSEMESSAGE("DDI:Failed to copy surface buffer data!");
+                MOS_FreeMemory(bo_names);
+                MOS_FreeMemory(gmmParams);
                 return VA_STATUS_ERROR_OPERATION_FAILED;
             }
             eStatus = MOS_SecureMemcpy(surfDesc->uiOffsets, sizeof(surfDesc->uiOffsets), externalBufDesc->offsets, sizeof(externalBufDesc->offsets));
             if (eStatus != MOS_STATUS_SUCCESS)
             {
                 DDI_VERBOSEMESSAGE("DDI:Failed to copy surface buffer data!");
+                MOS_FreeMemory(bo_names);
+                MOS_FreeMemory(gmmParams);
                 return VA_STATUS_ERROR_OPERATION_FAILED;
             }
 
+            // get the gmmParams for Gralloc buffer
+            if( surfIsGralloc == true )
+            {
+                surfDesc->bIsGralloc = true;
+                surfDesc->GmmParam = gmmParams[i];
             }
 
+            if( surfIsUserPtr )
+            {
+                surfDesc->uiTile = I915_TILING_NONE;
+
+                if (surfDesc->ulBuffer % 4096 != 0)
+                {
+                    DDI_VERBOSEMESSAGE("Buffer Address is invalid");
+                    MOS_FreeMemory(bo_names);
+                    MOS_FreeMemory(gmmParams);
+                    return VA_STATUS_ERROR_INVALID_PARAMETER;
+                }
+            }
+        }
         VASurfaceID vaSurfaceID = (VASurfaceID)DdiMedia_CreateRenderTarget(mediaCtx, mediaFmt, width, height, (surfDescProvided ? surfDesc : nullptr), surfaceUsageHint );
         if (VA_INVALID_ID != vaSurfaceID)
         {
@@ -2080,9 +2144,14 @@ DdiMedia_CreateSurfaces2(
             {
                 MOS_FreeMemory(surfDesc);
             }
+            MOS_FreeMemory(bo_names);
+            MOS_FreeMemory(gmmParams);
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
     }
+
+    MOS_FreeMemory(bo_names);
+    MOS_FreeMemory(gmmParams);
 
     return VA_STATUS_SUCCESS;
 }
