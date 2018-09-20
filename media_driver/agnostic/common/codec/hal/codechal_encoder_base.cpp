@@ -2906,11 +2906,6 @@ MOS_STATUS CodechalEncoderState::StartStatusReport(
 
         if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface) && m_skipFrameBasedHWCounterRead == false )
         {
-            if (MEDIA_IS_WA(m_waTable, WaReadCtrNounceRegister))
-            {
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->osCpInterface->ReadCtrNounceRegister(true, (uint32_t *)&m_regHwCount[encodeStatusBuf->wCurrIndex]));
-            }
-
             uint32_t writeOffset = sizeof(HwCounter) * CODECHAL_ENCODE_STATUS_NUM;
 
             CODECHAL_ENCODE_CHK_NULL_RETURN(m_hwInterface->GetCpInterface());
@@ -3699,6 +3694,11 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
             else
             {
                 HwCounter hwCounterValue;
+                if (MEDIA_IS_WA(m_waTable, WaReadCtrNounceRegister))
+                {
+                    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->osCpInterface->ReadCtrNounceRegister(true,
+                        (uint32_t *)&m_regHwCount[index]));
+                }
                 if (m_codecGetStatusReportDefined)
                 {
                     // Call corresponding CODEC's status report function if existing
@@ -3716,6 +3716,9 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                         if (MEDIA_IS_WA(m_waTable, WaReadCtrNounceRegister))
                         {
                             address2Counter = (uint64_t *)&m_regHwCount[index];
+                            CODECHAL_ENCODE_NORMALMESSAGE("MMIO returns end ctr is %llx", *address2Counter);
+                            CODECHAL_ENCODE_NORMALMESSAGE("bitstream size = %d.", encodeStatusReport->bitstreamSize);
+                            *address2Counter = *address2Counter - (((encodeStatusReport->bitstreamSize + 63) >> 6) << 2);
                         }
 
                         hwCounterValue.Count = *address2Counter;
@@ -3725,7 +3728,8 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                         hwCounterValue.IV = SwapEndianness(hwCounterValue.IV);
 
                         encodeStatusReport->HWCounterValue = hwCounterValue;
-                        CODECHAL_ENCODE_NORMALMESSAGE("hwCounterValue.Count = 0x%llx, hwCounterValue.IV = 0x%llx", hwCounterValue.Count, hwCounterValue.IV);
+                        CODECHAL_ENCODE_NORMALMESSAGE("hwCounterValue.Count = 0x%llx, hwCounterValue.IV = 0x%llx",
+                            hwCounterValue.Count, hwCounterValue.IV);
                     }
                 }
                 else
@@ -3753,6 +3757,9 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                         if (MEDIA_IS_WA(m_waTable, WaReadCtrNounceRegister))
                         {
                             address2Counter = (uint64_t *)&m_regHwCount[index];
+                            CODECHAL_ENCODE_NORMALMESSAGE("lingzhiw: MMIO returns end ctr is %llx", *address2Counter);
+                            CODECHAL_ENCODE_NORMALMESSAGE("bitstream size = %d.", encodeStatusReport->bitstreamSize);
+                            *address2Counter = *address2Counter - (((encodeStatusReport->bitstreamSize + 63) >> 6) << 2);
                         }
 
                         hwCounterValue.Count     = *address2Counter;
@@ -3763,6 +3770,8 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                         hwCounterValue.IV = SwapEndianness(hwCounterValue.IV);
 
                         encodeStatusReport->HWCounterValue = hwCounterValue;
+                        CODECHAL_ENCODE_NORMALMESSAGE("hwCounterValue.Count = 0x%llx, hwCounterValue.IV = 0x%llx",
+                            hwCounterValue.Count, hwCounterValue.IV);
                     }
 
                     if (m_picWidthInMb != 0 && m_frameFieldHeightInMb != 0)
