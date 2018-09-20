@@ -865,7 +865,7 @@ VAStatus MediaLibvaCaps::CreateDecAttributes(
     }
     if(IsAvcProfile(profile)||IsHevcProfile(profile)||IsVp9Profile(profile))
     {
-        attrib.value = CODEC_4K_MAX_PIC_WIDTH;
+        attrib.value = CODEC_8K_MAX_PIC_WIDTH;
     }
     (*attribList)[attrib.type] = attrib.value;
 
@@ -877,7 +877,7 @@ VAStatus MediaLibvaCaps::CreateDecAttributes(
     }
     if(IsAvcProfile(profile)||IsHevcProfile(profile)||IsVp9Profile(profile))
     {
-        attrib.value = CODEC_4K_MAX_PIC_HEIGHT;
+        attrib.value = CODEC_8K_MAX_PIC_HEIGHT;
     }
     (*attribList)[attrib.type] = attrib.value;
 
