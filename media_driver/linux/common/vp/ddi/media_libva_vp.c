@@ -882,10 +882,11 @@ DdiVp_SetProcPipelineParams(
     //---------------------------------------
     // Set color space for src
 #if (VA_MAJOR_VERSION < 1)
-    DdiVp_GetColorSpace(pVpHalSrcSurf, pPipelineParam->surface_color_standard, pPipelineParam->input_surface_flag);
+    vaStatus = DdiVp_GetColorSpace(pVpHalSrcSurf, pPipelineParam->surface_color_standard, pPipelineParam->input_surface_flag);
 #else
-    DdiVp_GetColorSpace(pVpHalSrcSurf, pPipelineParam->surface_color_standard, pPipelineParam->input_color_properties.color_range);
+    vaStatus = DdiVp_GetColorSpace(pVpHalSrcSurf, pPipelineParam->surface_color_standard, pPipelineParam->input_color_properties.color_range);
 #endif
+    DDI_CHK_RET(vaStatus, "Unsupport Color space!");
 
     if(pMediaSrcSurf->format == Media_Format_400P)
     {
@@ -1395,12 +1396,20 @@ VAStatus DdiVp_GetColorSpace(PVPHAL_SURFACE pVpHalSurf, VAProcColorStandardType 
     VP_DDI_FUNCTION_ENTER;
     
     // Convert VAProcColorStandardType to VPHAL_CSPACE
-    // When application set colorStandard as BT601/BT709 for RGB formats, driver will always force 
-    // to use sRGB for RGB formats since BT601/BT709 is very close to sRGB for RGB formats
-    if (IS_RGB_FORMAT(pVpHalSurf->Format))
+    if (IS_RGB_FORMAT(pVpHalSurf->Format) || (pVpHalSurf->Format == Format_P8))
     {
-        pVpHalSurf->ColorSpace = CSpace_sRGB;
-    }else
+        switch (colorStandard)
+        {
+            case VAProcColorStandardSTRGB:
+                pVpHalSurf->ColorSpace = CSpace_stRGB;
+                break;
+            case VAProcColorStandardSRGB:
+            default:
+                pVpHalSurf->ColorSpace = CSpace_sRGB;
+                break;
+        }
+    }
+    else
     {
         // Set colorspace by default to avoid application don't set ColorStandard
         if (colorStandard == 0)
@@ -1462,12 +1471,16 @@ VAStatus DdiVp_GetColorSpace(PVPHAL_SURFACE pVpHalSurf, VAProcColorStandardType 
                 case VAProcColorStandardSMPTE170M:
                 case VAProcColorStandardSMPTE240M:
                 case VAProcColorStandardGenericFilm:
+                case VAProcColorStandardXVYCC601:
+                case VAProcColorStandardXVYCC709:
+                    pVpHalSurf->ColorSpace == CSpace_None;
                 default:
+                    pVpHalSurf->ColorSpace == CSpace_BT601;
                     break;
             }
         }
     }
-    DDI_CHK_CONDITION((pVpHalSurf->ColorSpace == CSpace_None), "Invalid output color standard", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_CONDITION((pVpHalSurf->ColorSpace == CSpace_None), "Invalid color standard", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_CONDITION(((pVpHalSurf->ColorSpace == CSpace_BT2020) && (pVpHalSurf->Format != Format_P010)), "Invalid surface color standard", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     return VA_STATUS_SUCCESS;
@@ -1534,6 +1547,7 @@ DdiVp_UpdateVphalTargetSurfColorSpace(
 {
     PVPHAL_RENDER_PARAMS      pVpHalRenderParams;
     PVPHAL_SURFACE            pVpHalTgtSurf;
+    VAStatus                  vaStatus;
     DDI_UNUSED(pVaDrvCtx);
 
     VP_DDI_FUNCTION_ENTER;
@@ -1547,15 +1561,15 @@ DdiVp_UpdateVphalTargetSurfColorSpace(
 
     // update target surface color space
 #if (VA_MAJOR_VERSION < 1)
-    DdiVp_GetColorSpace(pVpHalTgtSurf, pPipelineParam->output_color_standard, pPipelineParam->output_surface_flag);
+    vaStatus = DdiVp_GetColorSpace(pVpHalTgtSurf, pPipelineParam->output_color_standard, pPipelineParam->output_surface_flag);
 #else
-    DdiVp_GetColorSpace(pVpHalTgtSurf, pPipelineParam->output_color_standard, pPipelineParam->output_color_properties.color_range);
+    vaStatus = DdiVp_GetColorSpace(pVpHalTgtSurf, pPipelineParam->output_color_standard, pPipelineParam->output_color_properties.color_range);
 #endif
 
     // extended gamut?
     pVpHalRenderParams->pTarget[0]->ExtendedGamut = false;
 
-    return VA_STATUS_SUCCESS;
+    return vaStatus;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
