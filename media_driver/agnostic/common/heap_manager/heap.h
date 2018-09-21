@@ -184,6 +184,7 @@ protected:
             if (m_osInterface == nullptr)
             {
                 HEAP_ASSERTMESSAGE("Invalid m_osInterface(nullptr)");
+                return;
             }
 
             m_osInterface->pfnUnlockResource(m_osInterface, m_resource);

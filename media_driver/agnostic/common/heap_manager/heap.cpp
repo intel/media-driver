@@ -119,6 +119,7 @@ uint8_t* Heap::Lock()
     if (m_osInterface == nullptr)
     {
         HEAP_ASSERTMESSAGE("Invalid m_osInterface(nullptr)");
+        return nullptr;
     }
 
     MOS_LOCK_PARAMS lockParams;
