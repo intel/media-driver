@@ -65,6 +65,7 @@ GpuContextMgr::~GpuContextMgr()
     if (m_gpuContextArrayMutex)
     {
         MOS_DestroyMutex(m_gpuContextArrayMutex);
+        m_gpuContextArrayMutex = nullptr;
     }
 }
 
@@ -117,6 +118,12 @@ GpuContext *GpuContextMgr::CreateGpuContext(
 {
     MOS_OS_FUNCTION_ENTER;
 
+    if (cmdBufMgr == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("nullptr of cmdbufmgr.");
+        return nullptr;
+    }
+
     GpuContext *reusedContext = nullptr;
     if (ContextReuseNeeded())
     {
@@ -167,6 +174,7 @@ GpuContext *GpuContextMgr::GetGpuContext(GPU_CONTEXT_HANDLE gpuContextHandle)
 void GpuContextMgr::DestroyGpuContext(GpuContext *gpuContext)
 {
     MOS_OS_FUNCTION_ENTER;
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(gpuContext);
 
     GpuContext*       curGpuContext = nullptr;
     bool              found         = false;

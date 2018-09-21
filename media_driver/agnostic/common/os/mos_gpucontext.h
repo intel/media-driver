@@ -222,7 +222,7 @@ protected:
     MOS_GPU_NODE m_nodeOrdinal;
 
     //! \brief    Indirect heap size (SSH area in DMA buffer)
-    uint32_t m_IndirectHeapSize;
+    uint32_t m_IndirectHeapSize = 0;
 
     //! \brief    Related command buffer manager
     CmdBufMgr *m_cmdBufMgr = nullptr;

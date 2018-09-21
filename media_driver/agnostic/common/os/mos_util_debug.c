@@ -159,6 +159,12 @@ void MOS_SetSubCompMessageLevel(MOS_COMPONENT_ID compID, uint8_t subCompID, MOS_
         return;
     }
 
+    if (msgLevel >= MOS_MESSAGE_LVL_COUNT)
+    {
+        MOS_OS_ASSERTMESSAGE("Invalid msg level %d.", msgLevel);
+        return;
+    }
+
     g_MosMsgParams.components[compID].subComponents[subCompID].uiMessageLevel = msgLevel;
 }
 
@@ -179,6 +185,11 @@ void MOS_SetCompMessageLevel(MOS_COMPONENT_ID compID, MOS_MESSAGE_LEVEL msgLevel
         return;
     }
 
+    if (msgLevel >= MOS_MESSAGE_LVL_COUNT)
+    {
+        MOS_OS_ASSERTMESSAGE("Invalid msg level %d.", msgLevel);
+        return;
+    }
     g_MosMsgParams.components[compID].component.uiMessageLevel = msgLevel;
 }
 
@@ -191,7 +202,13 @@ void MOS_SetCompMessageLevel(MOS_COMPONENT_ID compID, MOS_MESSAGE_LEVEL msgLevel
 //!
 void MOS_SetCompMessageLevelAll(MOS_MESSAGE_LEVEL msgLevel)
 {
-    uint32_t i;
+    if (msgLevel >= MOS_MESSAGE_LVL_COUNT)
+    {
+        MOS_OS_ASSERTMESSAGE("Invalid msg level %d.", msgLevel);
+        return;
+    }
+
+    uint32_t i = 0;
 
     for(i = 0; i < MOS_COMPONENT_COUNT; i++)
     {
@@ -257,9 +274,9 @@ void MOS_CompAssertEnableDisable(MOS_COMPONENT_ID compID, int32_t bEnable)
 //!
 void MOS_MessageInitComponent(MOS_COMPONENT_ID compID)
 {
-    uint32_t                                    uiCompUserFeatureSetting;
-    uint64_t                                    uiSubCompUserFeatureSetting;
-    uint8_t                                     i;
+    uint32_t                                    uiCompUserFeatureSetting = 0;
+    uint64_t                                    uiSubCompUserFeatureSetting = 0;
+    uint8_t                                     i = 0;
     MOS_USER_FEATURE_VALUE_ID                   MessageKey = __MOS_USER_FEATURE_KEY_INVALID_ID;
     MOS_USER_FEATURE_VALUE_ID                   BySubComponentsKey = __MOS_USER_FEATURE_KEY_INVALID_ID;
     MOS_USER_FEATURE_VALUE_ID                   SubComponentsKey = __MOS_USER_FEATURE_KEY_INVALID_ID;
@@ -363,7 +380,7 @@ MOS_STATUS MOS_HLTInit()
     int32_t                                     bUseHybridLogTrace = false;
     MOS_USER_FEATURE_VALUE_DATA                 UserFeatureData;
     MOS_USER_FEATURE_VALUE_WRITE_DATA           UserFeatureWriteData;
-    MOS_STATUS                                  eStatus;
+    MOS_STATUS                                  eStatus = MOS_STATUS_SUCCESS;
 
     if (g_MosMsgParams.uiCounter != 0)
     {
@@ -462,7 +479,7 @@ MOS_STATUS MOS_DDIDumpInit()
     char                                        fileNamePrefix[MOS_MAX_HLT_FILENAME_LEN];
     MOS_USER_FEATURE_VALUE_DATA                 UserFeatureData;
     char                                        cDDIDumpFilePath[MOS_MAX_HLT_FILENAME_LEN] = { 0 };
-    MOS_STATUS                                  eStatus;
+    MOS_STATUS                                  eStatus = MOS_STATUS_SUCCESS;
 
     g_MosMsgParams_DDI_Dump.bUseHybridLogTrace = false;
     g_MosMsgParams_DDI_Dump.pLogFile = nullptr;
@@ -509,7 +526,7 @@ MOS_STATUS MOS_DDIDumpInit()
 //!
 void MOS_MessageInit()
 {
-    uint8_t                                     i;
+    uint8_t                                     i = 0;
     MOS_USER_FEATURE_VALUE_DATA                 UserFeatureData;
     MOS_USER_FEATURE_VALUE_WRITE_DATA           UserFeatureWriteData;
     MOS_STATUS                                  eStatus = MOS_STATUS_SUCCESS;
@@ -655,8 +672,10 @@ int32_t MOS_ShouldPrintMessage(
     }
 
     if (compID    >= MOS_COMPONENT_COUNT      ||
-        subCompID >= MOS_MAX_SUBCOMPONENT_COUNT)
+        subCompID >= MOS_MAX_SUBCOMPONENT_COUNT ||
+        level >= MOS_MESSAGE_LVL_COUNT)
     {
+        MOS_OS_ASSERTMESSAGE("Invalid compoent ID %d, subCompID %d, and msg level %d.", compID, subCompID, level);
         return false;
     }
 
@@ -692,6 +711,7 @@ int32_t MOS_ShouldAssert(MOS_COMPONENT_ID compID, uint8_t subCompID)
     if (compID    >= MOS_COMPONENT_COUNT      ||
         subCompID >= MOS_MAX_SUBCOMPONENT_COUNT)
     {
+        MOS_OS_ASSERTMESSAGE("Invalid compoent ID %d, subCompID %d", compID, subCompID);
         return false;
     }
 

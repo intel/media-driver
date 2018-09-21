@@ -96,7 +96,9 @@ void CmdBufMgr::CleanUp()
 {
     MOS_OS_FUNCTION_ENTER;
 
-    CommandBuffer* cmdBuf = nullptr;
+    CommandBuffer *cmdBuf = nullptr;
+    MOS_LockMutex(m_availablePoolMutex);
+
     for (auto& cmdBuf : m_availableCmdBufPool)
     {
         if (cmdBuf != nullptr)
@@ -111,9 +113,9 @@ void CmdBufMgr::CleanUp()
     }
 
     // clear available command buffer pool
-    MOS_LockMutex(m_availablePoolMutex);
     m_availableCmdBufPool.clear();
     MOS_UnlockMutex(m_availablePoolMutex);
+    MOS_LockMutex(m_inUsePoolMutex);
 
     if (!m_inUseCmdBufPool.empty())
     {
@@ -129,14 +131,15 @@ void CmdBufMgr::CleanUp()
     }
 
     // clear in-use command buffer pool
-    MOS_LockMutex(m_inUsePoolMutex);
     m_inUseCmdBufPool.clear();
     MOS_UnlockMutex(m_inUsePoolMutex);
 
     m_cmdBufTotalNum = 0;
     m_initialized    = false;
     MOS_DestroyMutex(m_inUsePoolMutex);
+    m_inUsePoolMutex = nullptr;
     MOS_DestroyMutex(m_availablePoolMutex);
+    m_availablePoolMutex = nullptr;
 }
 
 CommandBuffer *CmdBufMgr::PickupOneCmdBuf(uint32_t size)
@@ -160,6 +163,13 @@ CommandBuffer *CmdBufMgr::PickupOneCmdBuf(uint32_t size)
     if (!m_availableCmdBufPool.empty())
     {
         cmdBuf = *(m_availableCmdBufPool.begin());
+        if (cmdBuf == nullptr)
+        {
+            MOS_OS_ASSERTMESSAGE("available command buf pool is null.");
+            MOS_UnlockMutex(m_inUsePoolMutex);
+            MOS_UnlockMutex(m_availablePoolMutex);
+            return nullptr;
+        }
 
         // find available buf
         if (size <= cmdBuf->GetCmdBufSize())

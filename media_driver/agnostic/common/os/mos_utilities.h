@@ -784,6 +784,10 @@ _Ty* MOS_NewUtil(_Types&&... _Args)
             MosMemAllocCounter++;
             MOS_MEMNINJA_ALLOC_MESSAGE(ptr, sizeof(_Ty), functionName, filename, line);
         }
+        else
+        {
+            MOS_OS_ASSERTMESSAGE("Fail to create class.");
+        }
         return ptr;
 }
 
