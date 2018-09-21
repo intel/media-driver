@@ -50,11 +50,12 @@ MOS_STATUS Mos_VirtualEngineInterface_Initialize(
     PMOS_INTERFACE                    pOsInterface,
     PMOS_VIRTUALENGINE_INIT_PARAMS    pVEInitParms)
 {
-    PMOS_VIRTUALENGINE_INTERFACE  pVEInterf;
-    uint32_t                      i;
+    PMOS_VIRTUALENGINE_INTERFACE  pVEInterf = nullptr;
+    uint32_t                      i = 0;
     MOS_STATUS                    eStatus = MOS_STATUS_SUCCESS;
 
     MOS_OS_CHK_NULL(pOsInterface);
+    MOS_OS_CHK_NULL(pVEInitParms);
 
     if (!MOS_VE_SUPPORTED(pOsInterface))
     {

@@ -41,9 +41,9 @@ void Mos_VirtualEngine_SinglePipe_Destroy(
 MOS_STATUS Mos_VirtualEngine_SinglePipe_PopulateDbgOvrdParams(
     PMOS_VIRTUALENGINE_INTERFACE pVEInterface)
 {
-    PMOS_INTERFACE          pOsInterface;
-    int32_t                 iForceEngine;
-    MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
+    PMOS_INTERFACE          pOsInterface = nullptr;
+    int32_t                 iForceEngine = 0;
+    MOS_STATUS              eStatus = MOS_STATUS_UNKNOWN;
 
     MOS_OS_FUNCTION_ENTER;
 
@@ -76,7 +76,7 @@ MOS_STATUS Mos_VirtualEngine_SinglePipe_PopulateDbgOvrdParams(
     }
     else
     {
-        uint8_t ui8EngineId;
+        uint8_t ui8EngineId = 0;
         switch (iForceEngine & MOS_FORCEENGINE_MASK)
         {
             case 1:
@@ -100,7 +100,7 @@ MOS_STATUS Mos_VirtualEngine_SinglePipe_PopulateDbgOvrdParams(
     }
 
     pVEInterface->ucEngineCount  = 1;
-
+    eStatus = MOS_STATUS_SUCCESS;
 finish:
     return eStatus;
 }

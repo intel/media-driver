@@ -45,7 +45,7 @@ extern "C" {
 //!
 //! \brief Max number or sub-components per debug component
 //!
-#define MOS_MAX_SUBCOMPONENT_COUNT  16
+#define MOS_MAX_SUBCOMPONENT_COUNT  20
 
 //!
 //! \brief Mos message max buffer size
