@@ -1471,6 +1471,7 @@ public:
     bool                            m_multipassBrcSupported = false;      //!< Multi-pass bitrate control supported flag
     uint8_t                         m_targetUsageOverride = 0;            //!< Target usage override
     bool                            m_userFeatureKeyReport = false;       //!< User feature key report flag
+    bool                            m_singlePassDys = false;              //!< sungle pass dynamic scaling supported flag
 
     // CmdGen HuC FW for HEVC/VP9 VDEnc
     MOS_RESOURCE                    m_resVdencCmdInitializerDmemBuffer;   //!< Resource of vdenc command initializer DMEM buffer

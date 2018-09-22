@@ -936,7 +936,14 @@ MOS_STATUS CodechalVdencVp9State::SetDmemHuCVp9Prob()
     dmem->PrevFrameInfo = m_prevFrameInfo;
     // For DyS CQP or BRC case there is no Repak on last pass. So disable the Repak flag here
     // We also disable repak pass in TU7 speed mode usage for performance reasons.
-    dmem->RePak = (m_numPasses > 0 && IsLastPass() && !(m_dysCqp || m_dysBrc) && (m_vp9SeqParams->TargetUsage != TU_PERFORMANCE));
+    if (m_dysVdencMultiPassEnabled)
+    {
+        dmem->RePak = (m_numPasses > 0 && IsLastPass() && !(m_dysCqp || m_dysBrc) && (m_vp9SeqParams->TargetUsage != TU_PERFORMANCE));
+    }
+    else
+    {
+        dmem->RePak = (m_numPasses > 0 && IsLastPass() && (m_vp9SeqParams->TargetUsage != TU_PERFORMANCE));
+    }
     if (dmem->RePak && m_adaptiveRepakSupported)
     {
         MOS_SecureMemcpy(dmem->RePakThreshold, sizeof(uint32_t) * CODEC_VP9_QINDEX_RANGE, m_rePakThreshold, sizeof(uint32_t) * CODEC_VP9_QINDEX_RANGE);
@@ -2285,7 +2292,7 @@ MOS_STATUS CodechalVdencVp9State::DysRefFrames()
     m_waitForEnc = origWaitForENC;
     m_reconSurface = origReconSurface;
     m_numPasses = origNumPasses;
-
+    m_hucEnabled = (m_dysHucEnabled && !m_dysVdencMultiPassEnabled);
     for (auto i = 0; i < CODEC_VP9_MAX_SEGMENTS; i++)
     {
         m_vp9SegmentParams->SegData[i].SegmentFlags.fields.SegmentSkipped = origSegmentSkip[i];
@@ -4038,8 +4045,14 @@ MOS_STATUS CodechalVdencVp9State::ExecutePictureLevel()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencRefSurfaceStateCmd(&cmdBuffer, &surfaceParams[CODECHAL_HCP_LAST_SURFACE_ID]));
         if ((m_dysRefFrameFlags != DYS_REF_NONE) && !m_dysVdencMultiPassEnabled)
         {
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencRefSurfaceStateCmd(&cmdBuffer, &surfaceParams[CODECHAL_HCP_GOLDEN_SURFACE_ID]));
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencRefSurfaceStateCmd(&cmdBuffer, &surfaceParams[CODECHAL_HCP_ALTREF_SURFACE_ID]));
+            if (m_refFrameFlags & 0x02)
+            {
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencRefSurfaceStateCmd(&cmdBuffer, &surfaceParams[CODECHAL_HCP_GOLDEN_SURFACE_ID]));
+            }
+            if (m_refFrameFlags & 0x04)
+            {
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencRefSurfaceStateCmd(&cmdBuffer, &surfaceParams[CODECHAL_HCP_ALTREF_SURFACE_ID]));
+            }
         }
     }
 
