@@ -123,6 +123,11 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
     }
 
     OsContextSpecific *pOsContextSpecific  = static_cast<OsContextSpecific *>(osContextPtr);
+    if (pOsContextSpecific == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("Convert OsContextSpecific failed.");
+        return MOS_STATUS_INVALID_HANDLE;
+    }
 
     MOS_STATUS         status          = MOS_STATUS_SUCCESS;
     uint32_t           tileFormatLinux = I915_TILING_NONE;
@@ -220,6 +225,7 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
 
     if (gmmResourceInfoPtr == nullptr)
     {
+        MOS_OS_ASSERTMESSAGE("Get gmmResourceInfoPtr failed.");
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
@@ -256,15 +262,15 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
 
 #if defined(I915_PARAM_CREATE_VERSION)
     drm_i915_getparam_t gp;
-    int32_t gpvalue;
-    int32_t ret;
+    int32_t gpvalue = 0;
+    int32_t ret = 0;
     gpvalue = 0;
     ret = -1;
     memset( &gp, 0, sizeof(gp) );
     gp.value = &gpvalue;
     gp.param = I915_PARAM_CREATE_VERSION;
 
-    ret = drmIoctl(pOsContextSpecific->m_fd, DRM_IOCTL_I915_GETPARAM, &gp );
+    ret = drmIoctl(pOsContextSpecific->m_fd, DRM_IOCTL_I915_GETPARAM, &gp);
 
     if ((0 == ret) && ( tileFormatLinux != I915_TILING_NONE))
     {

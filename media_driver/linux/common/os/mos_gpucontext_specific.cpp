@@ -53,7 +53,7 @@ GpuContextSpecific::GpuContextSpecific(
 
     if (reusedContext)
     {
-        MOS_OS_NORMALMESSAGE("gpucontex reusing not enabled on Linux");
+        MOS_OS_NORMALMESSAGE("gpucontex reusing not enabled on Linux.");
     }
 }
 
@@ -68,7 +68,20 @@ MOS_STATUS GpuContextSpecific::Init(OsContext *osContext)
 {
     MOS_OS_FUNCTION_ENTER;
 
+    MOS_OS_CHK_NULL_RETURN(osContext);
+
+    if (m_cmdBufPoolMutex == nullptr)
+    {
+        m_cmdBufPoolMutex = MOS_CreateMutex();
+    }
+
+    MOS_OS_CHK_NULL_RETURN(m_cmdBufPoolMutex);
+
+    MOS_LockMutex(m_cmdBufPoolMutex);
+
     m_cmdBufPool.clear();
+
+    MOS_UnlockMutex(m_cmdBufPoolMutex);
 
     m_commandBufferSize = COMMAND_BUFFER_SIZE;
 
@@ -81,6 +94,8 @@ MOS_STATUS GpuContextSpecific::Init(OsContext *osContext)
     MOS_OS_CHK_STATUS_RETURN(AllocateGPUStatusBuf());
 
     m_commandBuffer = (PMOS_COMMAND_BUFFER)MOS_AllocAndZeroMemory(sizeof(MOS_COMMAND_BUFFER));
+
+    MOS_OS_CHK_NULL_RETURN(m_commandBuffer);
 
     m_IndirectHeapSize = 0;
 
@@ -119,15 +134,25 @@ void GpuContextSpecific::Clear()
         MOS_Delete(m_statusBufferResource);
     }
 
-    for (auto& curCommandBuffer : m_cmdBufPool)
+    MOS_LockMutex(m_cmdBufPoolMutex);
+
+    if (m_cmdBufMgr)
     {
-        auto curCommandBufferSpecific = static_cast<CommandBufferSpecific *>(curCommandBuffer);
-        curCommandBufferSpecific->waitReady(); // wait ready and return to comamnd buffer manager.
-        m_cmdBufMgr->ReleaseCmdBuf(curCommandBuffer);
+        for (auto& curCommandBuffer : m_cmdBufPool)
+        {
+            auto curCommandBufferSpecific = static_cast<CommandBufferSpecific *>(curCommandBuffer);
+            if (curCommandBufferSpecific == nullptr)
+                continue;
+            curCommandBufferSpecific->waitReady(); // wait ready and return to comamnd buffer manager.
+            m_cmdBufMgr->ReleaseCmdBuf(curCommandBuffer);
+        }
     }
 
     m_cmdBufPool.clear();
 
+    MOS_UnlockMutex(m_cmdBufPoolMutex);
+    MOS_DestroyMutex(m_cmdBufPoolMutex);
+    m_cmdBufPoolMutex = nullptr;
     MOS_SafeFreeMemory(m_commandBuffer);
     MOS_SafeFreeMemory(m_allocationList);
     MOS_SafeFreeMemory(m_patchLocationList);
@@ -166,6 +191,12 @@ MOS_STATUS GpuContextSpecific::RegisterResource(
         }
 
         // Set allocation
+        if (m_gpuContext >= MOS_GPU_CONTEXT_MAX)
+        {
+            MOS_OS_ASSERTMESSAGE("Gpu context exceeds max.");
+            return MOS_STATUS_UNKNOWN; 
+        }
+
         osResource->iAllocationIndex[m_gpuContext] = (allocationIndex);
         m_attachedResources[allocationIndex]           = *osResource;
         m_writeModeList[allocationIndex] |= writeFlag;
@@ -200,13 +231,16 @@ MOS_STATUS GpuContextSpecific::SetPatchEntry(
     if (osInterface->osCpInterface &&
         osInterface->osCpInterface->IsHMEnabled())
     {
-        osInterface->osCpInterface->RegisterPatchForHM(
+        if (MOS_STATUS_SUCCESS != osInterface->osCpInterface->RegisterPatchForHM(
             (uint32_t *)(params->cmdBufBase + params->uiPatchOffset),
             params->bWrite,
             params->HwCommandType,
             params->forceDwordOffset,
             params->presResource,
-            &m_patchLocationList[m_currentNumPatchLocations]);
+            &m_patchLocationList[m_currentNumPatchLocations]))
+        {
+            MOS_OS_ASSERTMESSAGE("Failed to RegisterPatchForHM.");
+        }
     }
 
     m_currentNumPatchLocations++;
@@ -221,32 +255,69 @@ MOS_STATUS GpuContextSpecific::GetCommandBuffer(
     MOS_OS_FUNCTION_ENTER;
 
     MOS_OS_CHK_NULL_RETURN(comamndBuffer);
+    MOS_OS_CHK_NULL_RETURN(m_cmdBufMgr);
+    MOS_OS_CHK_NULL_RETURN(m_commandBuffer);
 
+    MOS_STATUS      eStatus = MOS_STATUS_SUCCESS;
     CommandBuffer* cmdBuf = nullptr;
 
     if (m_cmdBufFlushed)
     {
+        MOS_LockMutex(m_cmdBufPoolMutex);
         if (m_cmdBufPool.size() < MAX_CMD_BUF_NUM)
         {
             cmdBuf = m_cmdBufMgr->PickupOneCmdBuf(m_commandBufferSize);
-            MOS_OS_CHK_NULL_RETURN(cmdBuf);
-            MOS_OS_CHK_STATUS_RETURN(cmdBuf->BindToGpuContext(this));
+            if (cmdBuf == nullptr)
+            {
+                MOS_OS_ASSERTMESSAGE("Invalid (nullptr) Pointer.");
+                MOS_UnlockMutex(m_cmdBufPoolMutex);
+                return MOS_STATUS_NULL_POINTER;
+            }
+            if ((eStatus = cmdBuf->BindToGpuContext(this)) != MOS_STATUS_SUCCESS)
+            {
+                MOS_OS_ASSERTMESSAGE("Invalid status of BindToGpuContext.");
+                MOS_UnlockMutex(m_cmdBufPoolMutex);
+                return eStatus;
+            }
             m_cmdBufPool.push_back(cmdBuf);
         }
-        else if (m_cmdBufPool.size() == MAX_CMD_BUF_NUM)
+        else if (m_cmdBufPool.size() == MAX_CMD_BUF_NUM && m_nextFetchIndex < m_cmdBufPool.size())
         {
             auto cmdBufOld = m_cmdBufPool[m_nextFetchIndex];
             auto cmdBufSpecificOld = static_cast<CommandBufferSpecific *>(cmdBufOld);
+            if (cmdBufSpecificOld == nullptr)
+            {
+                MOS_OS_ASSERTMESSAGE("Invalid (nullptr) Pointer.");
+                MOS_UnlockMutex(m_cmdBufPoolMutex);
+                return MOS_STATUS_NULL_POINTER;
+            }
             cmdBufSpecificOld->waitReady();
             cmdBufSpecificOld->UnBindToGpuContext();
             m_cmdBufMgr->ReleaseCmdBuf(cmdBufOld);  // here just return old command buffer to available pool
 
             //pick up new comamnd buffer
             cmdBuf = m_cmdBufMgr->PickupOneCmdBuf(m_commandBufferSize);
-            MOS_OS_CHK_NULL_RETURN(cmdBuf);
-            MOS_OS_CHK_STATUS_RETURN(cmdBuf->BindToGpuContext(this));
+            if (cmdBuf == nullptr)
+            {
+                MOS_OS_ASSERTMESSAGE("Invalid (nullptr) Pointer.");
+                MOS_UnlockMutex(m_cmdBufPoolMutex);
+                return MOS_STATUS_NULL_POINTER;
+            }
+            if ((eStatus = cmdBuf->BindToGpuContext(this)) != MOS_STATUS_SUCCESS)
+            {
+                MOS_OS_ASSERTMESSAGE("Invalid status of BindToGpuContext.");
+                MOS_UnlockMutex(m_cmdBufPoolMutex);
+                return eStatus;
+            }
             m_cmdBufPool[m_nextFetchIndex] = cmdBuf;
         }
+        else
+        {
+            MOS_OS_ASSERTMESSAGE("Command buffer bool size exceed max.");
+            MOS_UnlockMutex(m_cmdBufPoolMutex);
+            return MOS_STATUS_UNKNOWN;
+        }
+        MOS_UnlockMutex(m_cmdBufPoolMutex);
 
         // util now, we got new command buffer from CmdBufMgr, next step to fill in the input command buffer
         MOS_OS_CHK_STATUS_RETURN(cmdBuf->GetResource()->ConvertToMosResource(&comamndBuffer->OsResource));
@@ -292,6 +363,7 @@ void GpuContextSpecific::ReturnCommandBuffer(
     MOS_OS_FUNCTION_ENTER;
 
     MOS_OS_ASSERT(cmdBuffer);
+    MOS_OS_ASSERT(m_commandBuffer);
 
     m_commandBuffer->iOffset    = cmdBuffer->iOffset;
     m_commandBuffer->iRemaining = cmdBuffer->iRemaining;
@@ -389,6 +461,13 @@ uint32_t GetVcsExecFlag(PMOS_INTERFACE osInterface,
                             PMOS_COMMAND_BUFFER cmdBuffer,
                             MOS_GPU_NODE gpuNode)
 {
+    if (osInterface == 0 ||
+        cmdBuffer == 0)
+    {
+        MOS_OS_ASSERTMESSAGE("Input invalid(null) parameter.");
+        return I915_EXEC_DEFAULT;
+    }
+
     uint32_t vcsExecFlag = I915_EXEC_BSD | I915_EXEC_BSD_RING1;
 
     if (MOS_VDBOX_NODE_INVALID == cmdBuffer->iVdboxNodeIndex)
@@ -418,7 +497,11 @@ uint32_t GetVcsExecFlag(PMOS_INTERFACE osInterface,
 
 MOS_STATUS GpuContextSpecific::MapResourcesToAuxTable(mos_linux_bo *cmd_bo)
 {
+    MOS_OS_CHK_NULL_RETURN(cmd_bo);
+
     OsContextSpecific *osCtx = static_cast<OsContextSpecific*>(m_osContext);
+    MOS_OS_CHK_NULL_RETURN(osCtx);
+
     AuxTableMgr *auxTableMgr = osCtx->GetAuxTableMgr();
     if (auxTableMgr)
     {
@@ -427,14 +510,12 @@ MOS_STATUS GpuContextSpecific::MapResourcesToAuxTable(mos_linux_bo *cmd_bo)
         {
             auto res = (PMOS_RESOURCE)m_allocationList[i].hAllocation;
             MOS_OS_CHK_NULL_RETURN(res);
-            
             MOS_OS_CHK_STATUS_RETURN(auxTableMgr->MapResource(res->pGmmResInfo, res->bo));
         }
         MOS_OS_CHK_STATUS_RETURN(auxTableMgr->EmitAuxTableBOList(cmd_bo));
     }
     return MOS_STATUS_SUCCESS;
 }
-
 
 MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
     PMOS_INTERFACE      osInterface,
@@ -607,18 +688,19 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
             {
                 execFlag = I915_EXEC_BSD | I915_EXEC_BSD_RING2;
             }
+            else
+            {
+                MOS_OS_ASSERTMESSAGE("Invalid gpuNode.");
+            }
         }
     }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 
-    MOS_LINUX_BO *bad_cmd_bo;
-    MOS_LINUX_BO *nop_cmd_bo;
-    uint32_t      dwComponentTag;
-    uint32_t      dwCallType;
-
-    // trigger GPU HANG if bTriggerCodecHang is set
-    bad_cmd_bo = nullptr;
+    MOS_LINUX_BO *bad_cmd_bo = nullptr;
+    MOS_LINUX_BO *nop_cmd_bo = nullptr;
+    uint32_t      dwComponentTag = 0;
+    uint32_t      dwCallType = 0;
 
     //dwComponentTag 3: decode,5: vpp,6: encode
     //dwCallType     8: PAK(CODECHAL_ENCODE_PERFTAG_CALL_PAK_ENGINE)
@@ -642,6 +724,10 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
                 0,
                 execFlag);
         }
+        else
+        {
+            MOS_OS_ASSERTMESSAGE("Mos_GetBadCommandBuffer_Linux failed!");
+        }
     }
     else if (osInterface->bTriggerVPHang == true)
     {
@@ -655,6 +741,10 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
                 0,
                 0,
                 execFlag);
+        }
+        else
+        {
+            MOS_OS_ASSERTMESSAGE("Mos_GetBadCommandBuffer_Linux failed!");
         }
 
         osInterface->bTriggerVPHang = false;
@@ -673,6 +763,10 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
                 0,
                 0,
                 execFlag);
+        }
+        else
+        {
+            MOS_OS_ASSERTMESSAGE("Mos_GetNopCommandBuffer_Linux failed!");
         }
     }
 

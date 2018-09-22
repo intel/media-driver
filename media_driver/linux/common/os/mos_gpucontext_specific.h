@@ -191,11 +191,14 @@ private:
     //! \brief    internal command buffer pool per gpu context
     std::vector<CommandBuffer *> m_cmdBufPool;
 
+    //! \brief    internal command buffer pool per gpu context
+    PMOS_MUTEX m_cmdBufPoolMutex = nullptr;
+
     //! \brief    next fetch index of m_cmdBufPool
-    uint32_t m_nextFetchIndex;
+    uint32_t m_nextFetchIndex = 0;
 
     //! \brief    initialized comamnd buffer size
-    uint32_t m_commandBufferSize;
+    uint32_t m_commandBufferSize = 0;
 
     //! \brief    Flag to indicate current command buffer flused or not, if not
     //!           re-use it
@@ -207,7 +210,7 @@ private:
     //! \brief    Allcoation List related struct
     ALLOCATION_LIST *m_allocationList = nullptr;
     uint32_t         m_numAllocations = 0;  //!< number of registered allocation list
-    uint32_t         m_maxNumAllocations;  //!< max number of allocation list
+    uint32_t         m_maxNumAllocations = 0;  //!< max number of allocation list
 
     //! \brief    Pathc List related struct
     PATCHLOCATIONLIST *m_patchLocationList = nullptr;
@@ -220,10 +223,10 @@ private:
     bool         *m_writeModeList     = nullptr;  //!< Write mode
 
     //! \brief    GPU Status tag
-    uint32_t m_GPUStatusTag;
+    uint32_t m_GPUStatusTag = 0;
 
     //! \brief    Os context
-    OsContext *m_osContext;
+    OsContext *m_osContext = nullptr;
 
 #if MOS_COMMAND_RESINFO_DUMP_SUPPORTED
     std::vector<const void *> m_cmdResPtrs; //!< Command OS resource pointers registered by pfnRegisterResource

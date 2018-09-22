@@ -100,6 +100,13 @@ int CommandBufferSpecific::isBusy()
 {
     MOS_OS_FUNCTION_ENTER;
 
+    if (m_graphicsResource == nullptr)
+    {
+         MOS_OS_ASSERTMESSAGE("Graphicresource is not initialized.");
+            // return not busy here to avoid dead lock
+         return 0;
+    }
+
     GraphicsResourceSpecific * graphicsResourceSpecific  = static_cast<GraphicsResourceSpecific *>(m_graphicsResource);
     MOS_LINUX_BO* cmdBufBo = graphicsResourceSpecific->GetBufferObject();
     if (cmdBufBo == nullptr)
@@ -115,6 +122,13 @@ int CommandBufferSpecific::isBusy()
 void CommandBufferSpecific::waitReady()
 {
     MOS_OS_FUNCTION_ENTER;
+
+    if (m_graphicsResource == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("Graphicresource is not initialized.");
+        // return not busy here to avoid dead lock
+        return;
+    }
 
     GraphicsResourceSpecific * graphicsResourceSpecific  = static_cast<GraphicsResourceSpecific *>(m_graphicsResource);
     MOS_LINUX_BO* cmdBufBo = graphicsResourceSpecific->GetBufferObject();

@@ -2600,6 +2600,7 @@ MOS_THREADHANDLE MOS_CreateThread(
     if (0 != pthread_create(&Thread, nullptr, (void *(*)(void *))ThreadFunction, ThreadData))
     {
         Thread = 0;
+        MOS_OS_ASSERTMESSAGE("Create thread failed.");
     }
 
     return Thread;
@@ -2622,8 +2623,14 @@ MOS_STATUS MOS_WaitThread(
 {
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
 
-    if (0 != pthread_join(hThread, nullptr))
+    if (hThread == 0)
     {
+        MOS_OS_ASSERTMESSAGE("MOS wait thread failed, invalid thread handle.");
+        eStatus = MOS_STATUS_INVALID_PARAMETER; 
+    }
+    else if (0 != pthread_join(hThread, nullptr))
+    {
+        MOS_OS_ASSERTMESSAGE("Failed to join thread.");
         eStatus = MOS_STATUS_UNKNOWN;
     }
 
@@ -2664,6 +2671,8 @@ MOS_STATUS MOS_DestroyMutex(PMOS_MUTEX pMutex)
 
 MOS_STATUS MOS_LockMutex(PMOS_MUTEX pMutex)
 {
+    MOS_OS_CHK_NULL_RETURN(pMutex);
+
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     if (pthread_mutex_lock(pMutex))
@@ -2676,6 +2685,8 @@ MOS_STATUS MOS_LockMutex(PMOS_MUTEX pMutex)
 
 MOS_STATUS MOS_UnlockMutex(PMOS_MUTEX pMutex)
 {
+    MOS_OS_CHK_NULL_RETURN(pMutex);
+
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     if (pthread_mutex_unlock(pMutex))
