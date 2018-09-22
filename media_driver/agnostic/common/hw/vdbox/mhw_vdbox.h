@@ -227,6 +227,7 @@ struct MHW_VDBOX_PIPE_MODE_SELECT_PARAMS
     bool                        bDynamicSliceEnable = false;
     bool                        bSaoFirstPass = false;
     bool                        bRdoqEnable = false;
+    bool                        bDynamicScalingEnabled = false;
 
     // VDEnc specific
     bool                        bVdencEnabled = false;
@@ -293,6 +294,10 @@ struct MHW_VDBOX_PIPE_BUF_ADDR_PARAMS
     PMOS_RESOURCE               presMacroblockIldbStreamOutBuffer1 = nullptr;
     PMOS_RESOURCE               presMacroblockIldbStreamOutBuffer2 = nullptr;
     PMOS_RESOURCE               presSliceSizeStreamOutBuffer = nullptr;
+    PMOS_SURFACE                psFwdRefSurface0 = nullptr;
+    PMOS_SURFACE                psFwdRefSurface1 = nullptr;
+    PMOS_SURFACE                psFwdRefSurface2 = nullptr;
+    bool                        bDynamicScalingEnable = false;
 
     PMOS_RESOURCE               presVdencIntraRowStoreScratchBuffer = nullptr;            // For VDEnc, Handle of VDEnc Intra Row Store Scratch data surface
     PMOS_RESOURCE               presVdencTileRowStoreBuffer = nullptr;
