@@ -106,6 +106,7 @@ MOS_STATUS OsContextSpecific::UnLockSemaphore(int32_t semid)
 int16_t OsContextSpecific::ShmAttachedNumber(unsigned int shmid)
 {
     struct shmid_ds buf;
+    MOS_ZeroMemory(&buf, sizeof(buf));
 
     if (shmctl(shmid, IPC_STAT, &buf) < 0)
     {
@@ -117,7 +118,7 @@ int16_t OsContextSpecific::ShmAttachedNumber(unsigned int shmid)
 
 MOS_STATUS OsContextSpecific::DestroySemaphore(unsigned int semid)
 {
-    int32_t nwait;
+    int32_t nwait = 0;
 
     if (semid < 0)
     {
@@ -141,10 +142,15 @@ MOS_STATUS OsContextSpecific::DestroySemaphore(unsigned int semid)
 
 MOS_STATUS OsContextSpecific::ConnectCreateShm(long key, uint32_t size, int32_t *pShmid, void* *ppShm)
 {
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    MOS_OS_CHK_NULL_RETURN(pShmid);
+    MOS_OS_CHK_NULL_RETURN(ppShm);
+
     struct shmid_ds buf;
-    int32_t         shmid;
+    int32_t         shmid = 0;
     key_t           key_value = (key_t)key;
     void            *shmptr = nullptr;
+    MOS_ZeroMemory(&buf, sizeof(buf));
 
     shmid = shmget(key_value, size, IPC_CREAT | 0666);
     if (shmid < 0)
@@ -174,7 +180,11 @@ MOS_STATUS OsContextSpecific::ConnectCreateShm(long key, uint32_t size, int32_t 
 
 MOS_STATUS OsContextSpecific::DetachDestroyShm(int32_t shmid, void  *pShm)
 {
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    MOS_OS_CHK_NULL_RETURN(pShm);
+
     struct shmid_ds buf;
+    MOS_ZeroMemory(&buf, sizeof(buf));
 
     if (shmid < 0)
     {
@@ -203,12 +213,17 @@ MOS_STATUS OsContextSpecific::DetachDestroyShm(int32_t shmid, void  *pShm)
 
 MOS_STATUS OsContextSpecific::ConnectCreateSemaphore(long key, int32_t *pSemid)
 {
-    int32_t         semid;
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    MOS_OS_CHK_NULL_RETURN(pSemid);
+
+    int32_t         semid = 0;
     struct sembuf   sop;
     struct semid_ds buf;
-    uint32_t        i;
     key_t           key_value = (key_t)key;
     int32_t         val = 0;
+
+    MOS_ZeroMemory(&sop, sizeof(sop));
+    MOS_ZeroMemory(&buf, sizeof(buf));
 
     semid = semget(key, 1, IPC_CREAT | IPC_EXCL | 0666);
 
@@ -229,7 +244,6 @@ MOS_STATUS OsContextSpecific::ConnectCreateSemaphore(long key, int32_t *pSemid)
         {
             return MOS_STATUS_UNKNOWN;
         }
-
     }
     else
     {
@@ -255,11 +269,16 @@ MOS_STATUS OsContextSpecific::CreateIPC()
     m_shm   = MOS_LINUX_SHM_INVALID;
 
     struct semid_ds buf;
+    MOS_ZeroMemory(&buf, sizeof(buf));
     //wait and retry till to get a valid semphore
     for(int i = 0; i < MOS_LINUX_SEM_MAX_TRIES; i++)
     {
         ConnectCreateSemaphore(m_dualVdboxKey, &m_semId);
 
+        if (m_semId == MOS_LINUX_IPC_INVALID_ID)
+        {
+            return MOS_STATUS_UNKNOWN;
+        }
         //check wether the semid is initialized or not
         if (semctl(m_semId, 0, IPC_STAT, &buf) == -1)
         {
@@ -383,8 +402,8 @@ void OsContextSpecific::DestroySSEUIPC()
 
 void OsContextSpecific::SetSliceCount(uint32_t *pSliceCount)
 {
-    uint32_t sliceCount;
-    uint32_t sliceMask;
+    uint32_t sliceCount = 0;
+    uint32_t sliceMask = 0;
 
     if (pSliceCount == nullptr)
     {
@@ -482,9 +501,9 @@ void OsContextSpecific::SetSliceCount(uint32_t *pSliceCount)
 
 MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
 {
-    uint32_t      iDeviceId;
+    uint32_t      iDeviceId = 0;
     MOS_STATUS    eStatus;
-    uint32_t      i;
+    uint32_t      i = 0;
 
     MOS_OS_FUNCTION_ENTER;
 
@@ -517,6 +536,10 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
         MEDIA_WA_TABLE       waTable;
         MEDIA_SYSTEM_INFO    gtSystemInfo;
 
+        MOS_ZeroMemory(&platformInfo, sizeof(platformInfo));
+        MOS_ZeroMemory(&skuTable, sizeof(skuTable));
+        MOS_ZeroMemory(&waTable, sizeof(waTable));
+        MOS_ZeroMemory(&gtSystemInfo, sizeof(gtSystemInfo));
         eStatus = HWInfo_GetGfxInfo(pOsDriverContext->fd, &platformInfo, &skuTable, &waTable, &gtSystemInfo);
         if (eStatus != MOS_STATUS_SUCCESS)
         {
@@ -634,6 +657,11 @@ void OsContextSpecific::Destroy()
     {
         if (m_GpuContextHandle[i] != MOS_GPU_CONTEXT_INVALID_HANDLE)
         {
+            if (m_gpuContextMgr == nullptr)
+            {
+                MOS_OS_ASSERTMESSAGE("GpuContextMgr is null when destroy GpuContext");
+                break;
+            }
             auto gpuContext = m_gpuContextMgr->GetGpuContext(m_GpuContextHandle[i]);
             if (gpuContext == nullptr)
             {
