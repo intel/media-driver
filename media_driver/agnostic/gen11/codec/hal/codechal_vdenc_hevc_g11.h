@@ -306,7 +306,7 @@ class CodechalVdencHevcStateG11 : public CodechalVdencHevcState
 {
 public:
     static const uint32_t       m_minScaledSurfaceSize = 64;           //!< Minimum scaled surface size
-    static const uint32_t       m_brcPakStatsBufSize = 464;            //!< Pak statistic buffer size
+    static const uint32_t       m_brcPakStatsBufSize = 512;            //!< Pak statistic buffer size
     static const uint32_t       m_brcStatsBufSize = 1216;              //!< BRC Statistic buf size: 48DWs (3CLs) of HMDC Frame Stats + 256 DWs (16CLs) of Histogram Stats = 1216 bytes
     static const uint32_t       m_brcConstantSurfaceWidth = 64;        //!< BRC constant surface width
     static const uint32_t       m_brcConstantSurfaceHeight = 35;       //!< BRC constant surface height
