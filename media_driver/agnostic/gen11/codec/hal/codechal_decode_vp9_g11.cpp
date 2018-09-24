@@ -87,6 +87,28 @@ MOS_STATUS CodechalDecodeVp9G11::SetGpuCtxCreatOption(
                 m_scalabilityState,
                 (PMOS_GPUCTX_CREATOPTIONS_ENHANCED)m_gpuCtxCreatOpt,
                 codecHalSetting));
+
+            if (((PMOS_GPUCTX_CREATOPTIONS_ENHANCED)m_gpuCtxCreatOpt)->LRCACount == 2)
+            {
+                m_videoContext = MOS_GPU_CONTEXT_VDBOX2_VIDEO;
+
+                CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
+                    m_osInterface,
+                    m_videoContext,
+                    MOS_GPU_NODE_VIDEO,
+                    m_gpuCtxCreatOpt));
+
+                MOS_GPUCTX_CREATOPTIONS createOption;
+                CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
+                    m_osInterface,
+                    MOS_GPU_CONTEXT_VIDEO,
+                    MOS_GPU_NODE_VIDEO,
+                    &createOption));
+            }
+            else
+            {
+                m_videoContext = MOS_GPU_CONTEXT_VIDEO;
+            }
         }
         else
         {
@@ -94,6 +116,8 @@ MOS_STATUS CodechalDecodeVp9G11::SetGpuCtxCreatOption(
                 m_sinlgePipeVeState,
                 (PMOS_GPUCTX_CREATOPTIONS_ENHANCED)m_gpuCtxCreatOpt,
                 false));
+
+            m_videoContext = MOS_GPU_CONTEXT_VIDEO;
         }
     }
 
