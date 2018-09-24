@@ -1252,24 +1252,19 @@ MOS_STATUS CodechalDecodeScalability_ChkGpuCtxReCreation(
         if (pScalabilityState->VideoContextForSP == MOS_GPU_CONTEXT_INVALID_HANDLE ||
             pScalabilityState->VideoContextForMP == MOS_GPU_CONTEXT_INVALID_HANDLE)
         {
+            auto contextToCreate = (NewLRCACount == 2) ? MOS_GPU_CONTEXT_VDBOX2_VIDEO : MOS_GPU_CONTEXT_VIDEO;
+            
             CODECHAL_DECODE_CHK_STATUS_RETURN(pOsInterface->pfnCreateGpuContext(
                 pOsInterface,
-                MOS_GPU_CONTEXT_VIDEO4,
+                contextToCreate,
                 MOS_GPU_NODE_VIDEO,
                 CurgpuCtxCreatOpts));
             CODECHAL_DECODE_CHK_STATUS_RETURN(pOsInterface->pfnRegisterBBCompleteNotifyEvent(
                 pOsInterface,
-                MOS_GPU_CONTEXT_VIDEO4));
-            if (NewLRCACount > PreLRCACount)
-            {
-                pScalabilityState->VideoContextForMP = MOS_GPU_CONTEXT_VIDEO4;
-                pScalabilityState->VideoContextForSP = pScalabilityState->VideoContext;
-            }
-            else
-            {
-                pScalabilityState->VideoContextForSP = MOS_GPU_CONTEXT_VIDEO4;
-                pScalabilityState->VideoContextForMP = pScalabilityState->VideoContext;
-            }
+                contextToCreate));
+
+            pScalabilityState->VideoContextForMP = MOS_GPU_CONTEXT_VDBOX2_VIDEO;
+            pScalabilityState->VideoContextForSP = MOS_GPU_CONTEXT_VIDEO;
         }
 
         // Switch across single pipe/ scalable mode gpu contexts
