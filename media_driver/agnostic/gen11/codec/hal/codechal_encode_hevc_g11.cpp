@@ -3164,29 +3164,24 @@ MOS_STATUS CodechalEncHevcStateG11::Initialize(CodechalSetting * settings)
          }
      }
 
-     {
-         m_minScaledDimension     = CODECHAL_ENCODE_HEVC_MIN_SCALED_SURFACE_SIZE;
-         m_minScaledDimensionInMb = (CODECHAL_ENCODE_HEVC_MIN_SCALED_SURFACE_SIZE + 15) >> 4;
 
-        if (m_frameWidth < 128 || m_frameHeight < 128)
-        {
-            m_16xMeSupported = false;
-            m_32xMeSupported = false;
-        }
+    if (m_frameWidth < 128 || m_frameHeight < 128)
+    {
+        m_16xMeSupported = false;
+        m_32xMeSupported = false;
+    }
 
-        else if (m_frameWidth < 512 || m_frameHeight < 512)
-        {
-            m_16xMeSupported = true;
-            m_32xMeSupported = false;
-        }
+    else if (m_frameWidth < 512 || m_frameHeight < 512)
+    {
+        m_16xMeSupported = true;
+        m_32xMeSupported = false;
+    }
 
-        else
-        {
-            m_16xMeSupported = true;
-            m_32xMeSupported = true;
-        }
-
-     }
+    else
+    {
+        m_16xMeSupported = true;
+        m_32xMeSupported = true;
+    }
 
     char    stringData[MOS_USER_CONTROL_MAX_DATA_SIZE];
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));

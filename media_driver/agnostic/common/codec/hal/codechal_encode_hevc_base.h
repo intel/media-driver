@@ -140,7 +140,6 @@
 #define CODECHAL_HEVC_P_SLICE          1
 #define CODECHAL_HEVC_B_SLICE          0
 #define CODECHAL_HEVC_NUM_SLICE_TYPES  3
-#define CODECHAL_ENCODE_HEVC_MIN_SCALED_SURFACE_SIZE       64
 
 #define CODECHAL_HEVC_NUM_MODE_MV_COSTS             171
 #define CODECHAL_HEVC_MAX_BSTRUCTRUE_GOP_SIZE       16
@@ -2415,6 +2414,8 @@ public:
     //! \brief    Update the slice count according to the slice shutdown policy
     //!
     virtual void UpdateSSDSliceCount() { return; };
+
+    void MotionEstimationDisableCheck();
 
     //!
     //! \brief    Allocate 4x ME resources

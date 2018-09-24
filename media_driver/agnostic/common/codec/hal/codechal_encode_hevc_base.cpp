@@ -890,8 +890,6 @@ MOS_STATUS CodechalEncodeHevcBase::SetSequenceStructs()
     // Calculate 4x, 16x, 32x dimensions as applicable
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CalcScaledDimensions());
 
-    MotionEstimationDisableCheck();
-
     // It is assumed to be frame-mode always
     m_frameFieldHeight = m_frameHeight;
     m_frameFieldHeightInMb = m_picHeightInMb;
@@ -3016,6 +3014,53 @@ MOS_STATUS CodechalEncodeHevcBase::DestroyMEResources(
     }
 
     return eStatus;
+}
+
+void CodechalEncodeHevcBase::MotionEstimationDisableCheck()
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    if (m_downscaledWidth4x < m_minScaledDimension || m_downscaledWidthInMb4x < m_minScaledDimensionInMb ||
+        m_downscaledHeight4x < m_minScaledDimension || m_downscaledHeightInMb4x < m_minScaledDimensionInMb)
+    {
+        if (m_downscaledWidth4x < m_minScaledDimension || m_downscaledWidthInMb4x < m_minScaledDimensionInMb)
+        {
+            m_downscaledWidth4x = m_minScaledDimension;
+            m_downscaledWidthInMb4x = CODECHAL_GET_WIDTH_IN_MACROBLOCKS(m_downscaledWidth4x);
+        }
+        if (m_downscaledHeight4x < m_minScaledDimension || m_downscaledHeightInMb4x < m_minScaledDimensionInMb)
+        {
+            m_downscaledHeight4x = m_minScaledDimension;
+            m_downscaledHeightInMb4x = CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(m_downscaledHeight4x);
+        }
+    }
+
+    if (m_downscaledWidth16x < m_minScaledDimension || m_downscaledWidthInMb16x < m_minScaledDimensionInMb ||
+        m_downscaledHeight16x < m_minScaledDimension || m_downscaledHeightInMb16x < m_minScaledDimensionInMb)
+    {
+        if (m_downscaledWidth16x < m_minScaledDimension || m_downscaledWidthInMb16x < m_minScaledDimensionInMb)
+        {
+            m_downscaledWidth16x = m_minScaledDimension;
+            m_downscaledWidthInMb16x = CODECHAL_GET_WIDTH_IN_MACROBLOCKS(m_downscaledWidth16x);
+        }
+        if (m_downscaledHeight16x < m_minScaledDimension || m_downscaledHeightInMb16x < m_minScaledDimensionInMb)
+        {
+            m_downscaledHeight16x = m_minScaledDimension;
+            m_downscaledHeightInMb16x = CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(m_downscaledHeight16x);
+        }
+    }
+
+    if (m_downscaledWidth32x < m_minScaledDimension || m_downscaledWidthInMb32x < m_minScaledDimensionInMb)
+    {
+        m_downscaledWidth32x = m_minScaledDimension;
+        m_downscaledWidthInMb32x = CODECHAL_GET_WIDTH_IN_MACROBLOCKS(m_downscaledWidth32x);
+    }
+    if (m_downscaledHeight32x < m_minScaledDimension || m_downscaledHeightInMb32x < m_minScaledDimensionInMb)
+    {
+        m_downscaledHeight32x = m_minScaledDimension;
+        m_downscaledHeightInMb32x = CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(m_downscaledHeight32x);
+    }
+
 }
 
 MOS_STATUS CodechalEncodeHevcBase::ExecuteKernelFunctions()

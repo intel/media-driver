@@ -236,8 +236,8 @@ MOS_STATUS CodechalEncodeCscDsG11::SetKernelParamsCsc(KernelParams* params)
     else
     {
         // do 16x/32x downscaling
-        inputFrameWidth = CODECHAL_GET_4xDS_SIZE_32ALIGNED(inputFrameWidth);
-        inputFrameHeight = CODECHAL_GET_4xDS_SIZE_32ALIGNED(inputFrameHeight);
+        inputFrameWidth = m_encoder->m_downscaledWidth4x;
+        inputFrameHeight = m_encoder->m_downscaledHeight4x;
         m_curbeParams.bConvertFlag = false;
         mbStatsSurface = nullptr;
 
@@ -255,8 +255,8 @@ MOS_STATUS CodechalEncodeCscDsG11::SetKernelParamsCsc(KernelParams* params)
             m_currRefList->b32xScalingUsed = true;
             m_lastTaskInPhase = params->bLastTaskInPhase32xDS;
             m_curbeParams.downscaleStage = dsStage2x;
-            inputFrameWidth = CODECHAL_GET_4xDS_SIZE_32ALIGNED(inputFrameWidth);
-            inputFrameHeight = CODECHAL_GET_4xDS_SIZE_32ALIGNED(inputFrameHeight);
+            inputFrameWidth = m_encoder->m_downscaledWidth16x;
+            inputFrameHeight = m_encoder->m_downscaledHeight16x;
             inputSurface = m_encoder->m_trackedBuf->Get16xDsSurface(CODEC_CURR_TRACKED_BUFFER);
             output4xDsSurface = nullptr;
             output2xDsSurface = m_encoder->m_trackedBuf->Get32xDsSurface(CODEC_CURR_TRACKED_BUFFER);
