@@ -318,6 +318,16 @@ public:
     virtual void SetCpSecurityType(
         CP_SECURITY_TYPE type = static_cast<CP_SECURITY_TYPE>(1));
 
+    /////////////////////////////////////////////////////////////////////////////
+    /// \brief       get the address of internal counter value
+    /// \details 
+    /// \param       ctr [in, out] pointer to counter
+    ///
+    /// \return      If success, return MOS_STATUS_SUCCESS
+    ///              If fail, return other MOS errors
+    /////////////////////////////////////////////////////////////////////////////
+    virtual MOS_STATUS GetCounterValue(uint32_t* ctr){return MOS_STATUS_SUCCESS;}
+
 };
 
 //!
