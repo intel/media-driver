@@ -3518,6 +3518,60 @@ MOS_STATUS CodechalEncoderState::ResetStatusReport()
     return eStatus;
 }
 
+MOS_STATUS CodechalEncoderState::ReadCounterValue(uint16_t index, EncodeStatusReport* encodeStatusReport)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+    CODECHAL_ENCODE_CHK_NULL_RETURN(encodeStatusReport);
+    uint64_t *address2Counter = nullptr;
+
+    // Report out counter read from HW
+    if (m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface))
+    {
+        address2Counter = (uint64_t *)(((char *)(m_dataHwCount)) + (index * sizeof(HwCounter)));
+
+        if (MEDIA_IS_WA(m_waTable, WaReadCtrNounceRegister))
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(
+                m_osInterface->osCpInterface->ReadCtrNounceRegister(
+                    true,
+                    (uint32_t *)&m_regHwCount[index]));
+            address2Counter = (uint64_t *)&m_regHwCount[index];
+            CODECHAL_ENCODE_NORMALMESSAGE("MMIO returns end ctr is %llx", *address2Counter);
+            CODECHAL_ENCODE_NORMALMESSAGE("bitstream size = %d.", encodeStatusReport->bitstreamSize);
+
+            // Here gets the end counter of current bit stream, which should minus counter increment.
+            *address2Counter = *address2Counter - (((encodeStatusReport->bitstreamSize + 63) >> 6) << 2);
+        }
+    }
+
+    // KBL- cann't read counter from HW
+    else
+    {
+        uint32_t ctr[4] = { 0 };
+        eStatus = m_hwInterface->GetCpInterface()->GetCounterValue(ctr);
+        if (MOS_STATUS_SUCCESS == eStatus)
+        {
+            address2Counter = (uint64_t *)ctr;
+        }
+        else
+        {
+            return eStatus;
+        }
+    }
+    encodeStatusReport->HWCounterValue.Count = *address2Counter;
+    //Report back in Big endian
+    encodeStatusReport->HWCounterValue.Count = SwapEndianness(encodeStatusReport->HWCounterValue.Count);
+    //IV value computation
+    encodeStatusReport->HWCounterValue.IV = *(++address2Counter); 
+    encodeStatusReport->HWCounterValue.IV = SwapEndianness(encodeStatusReport->HWCounterValue.IV);
+    CODECHAL_ENCODE_NORMALMESSAGE(
+        "encodeStatusReport->HWCounterValue.Count = 0x%llx, encodeStatusReport->HWCounterValue.IV = 0x%llx",
+        encodeStatusReport->HWCounterValue.Count,
+        encodeStatusReport->HWCounterValue.IV);
+    return eStatus;
+}
+
 //------------------------------------------------------------------------------
 //| Purpose:    Gets available eStatus report data
 //| Return:     N/A
@@ -3696,12 +3750,6 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
             }
             else
             {
-                HwCounter hwCounterValue;
-                if (MEDIA_IS_WA(m_waTable, WaReadCtrNounceRegister))
-                {
-                    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->osCpInterface->ReadCtrNounceRegister(true,
-                        (uint32_t *)&m_regHwCount[index]));
-                }
                 if (m_codecGetStatusReportDefined)
                 {
                     // Call corresponding CODEC's status report function if existing
@@ -3711,28 +3759,13 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                         return eStatus;
                     }
 
-                    if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface) && m_skipFrameBasedHWCounterRead == false)
+                    if (m_osInterface->osCpInterface->IsCpEnabled() && m_skipFrameBasedHWCounterRead == false)
                     {
-                        //Report out counter read from HW
-                        uint64_t *address2Counter = (uint64_t *)(((char *)(m_dataHwCount)) + (index * sizeof(HwCounter)));
-
-                        if (MEDIA_IS_WA(m_waTable, WaReadCtrNounceRegister))
+                        eStatus = ReadCounterValue(index, encodeStatusReport);
+                        if (MOS_STATUS_SUCCESS != eStatus)
                         {
-                            address2Counter = (uint64_t *)&m_regHwCount[index];
-                            CODECHAL_ENCODE_NORMALMESSAGE("MMIO returns end ctr is %llx", *address2Counter);
-                            CODECHAL_ENCODE_NORMALMESSAGE("bitstream size = %d.", encodeStatusReport->bitstreamSize);
-                            *address2Counter = *address2Counter - (((encodeStatusReport->bitstreamSize + 63) >> 6) << 2);
+                            return eStatus;
                         }
-
-                        hwCounterValue.Count = *address2Counter;
-                        hwCounterValue.Count = SwapEndianness(hwCounterValue.Count); //Report back in Big endian
-
-                        hwCounterValue.IV = *(++address2Counter);          //IV value computation
-                        hwCounterValue.IV = SwapEndianness(hwCounterValue.IV);
-
-                        encodeStatusReport->HWCounterValue = hwCounterValue;
-                        CODECHAL_ENCODE_NORMALMESSAGE("hwCounterValue.Count = 0x%llx, hwCounterValue.IV = 0x%llx",
-                            hwCounterValue.Count, hwCounterValue.IV);
                     }
                 }
                 else
@@ -3752,29 +3785,13 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
 
                     CODECHAL_ENCODE_CHK_NULL_RETURN(m_skuTable);
 
-                    if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface) && m_skipFrameBasedHWCounterRead == false)
+                    if (m_osInterface->osCpInterface->IsCpEnabled() && m_skipFrameBasedHWCounterRead == false)
                     {
-                        //Report out counter read from HW
-                        uint64_t *address2Counter = (uint64_t *)(((char *)(m_dataHwCount))+(index*sizeof(HwCounter)));
-
-                        if (MEDIA_IS_WA(m_waTable, WaReadCtrNounceRegister))
+                        eStatus = ReadCounterValue(index, encodeStatusReport);
+                        if (MOS_STATUS_SUCCESS != eStatus)
                         {
-                            address2Counter = (uint64_t *)&m_regHwCount[index];
-                            CODECHAL_ENCODE_NORMALMESSAGE("lingzhiw: MMIO returns end ctr is %llx", *address2Counter);
-                            CODECHAL_ENCODE_NORMALMESSAGE("bitstream size = %d.", encodeStatusReport->bitstreamSize);
-                            *address2Counter = *address2Counter - (((encodeStatusReport->bitstreamSize + 63) >> 6) << 2);
+                            return eStatus;
                         }
-
-                        hwCounterValue.Count     = *address2Counter;
-                        hwCounterValue.Count = SwapEndianness(hwCounterValue.Count); //Report back in Big endian
-
-                        //IV value computation:
-                        hwCounterValue.IV        = *(++address2Counter);
-                        hwCounterValue.IV = SwapEndianness(hwCounterValue.IV);
-
-                        encodeStatusReport->HWCounterValue = hwCounterValue;
-                        CODECHAL_ENCODE_NORMALMESSAGE("hwCounterValue.Count = 0x%llx, hwCounterValue.IV = 0x%llx",
-                            hwCounterValue.Count, hwCounterValue.IV);
                     }
 
                     if (m_picWidthInMb != 0 && m_frameFieldHeightInMb != 0)

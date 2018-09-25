@@ -1716,6 +1716,17 @@ public:
     MOS_STATUS GetStatusReport(void *status, uint16_t numStatus) override;
 
     //!
+    //! \brief  Read counter value for encode.
+    //! \param  [in] index
+    //!         The index of status report number
+    //! \param  [in, out] encodeStatusReport
+    //!         The address of encodeStatusReport
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS ReadCounterValue(uint16_t index, EncodeStatusReport* encodeStatusReport);
+
+    //!
     //! \brief  Initialize the encoder state
     //! \param  [in] settings
     //!         Pointer to the initialize settings
