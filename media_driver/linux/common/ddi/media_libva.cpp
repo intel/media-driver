@@ -1506,14 +1506,23 @@ static VAStatus DdiMedia_Terminate (
 
     if (mediaCtx->modularizedGpuCtxEnabled)
     {
-        mediaCtx->m_gpuContextMgr->CleanUp();
-        MOS_Delete(mediaCtx->m_gpuContextMgr);
+        if (mediaCtx->m_gpuContextMgr)
+        {
+            mediaCtx->m_gpuContextMgr->CleanUp();
+            MOS_Delete(mediaCtx->m_gpuContextMgr);
+        }
 
-        mediaCtx->m_cmdBufMgr->CleanUp();
-        MOS_Delete(mediaCtx->m_cmdBufMgr);
+        if (mediaCtx->m_cmdBufMgr)
+        {
+            mediaCtx->m_cmdBufMgr->CleanUp();
+            MOS_Delete(mediaCtx->m_cmdBufMgr);
+        }
 
-        mediaCtx->m_osContext->CleanUp();
-        MOS_Delete(mediaCtx->m_osContext);
+        if (mediaCtx->m_osContext)
+        {
+            mediaCtx->m_osContext->CleanUp();
+            MOS_Delete(mediaCtx->m_osContext);
+        }
     }
 
     if (mediaCtx->uiRef > 1)
