@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -2588,7 +2588,7 @@ MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_ID,
      "VP",
      MOS_USER_FEATURE_TYPE_USER,
      MOS_USER_FEATURE_VALUE_TYPE_UINT32,
-     "0",
+     "1",
      "VP Parameters Dump Start Frame"),
      MOS_DECLARE_UF_KEY(__VPHAL_DBG_PARAM_DUMP_END_FRAME_KEY_NAME_ID,
      "endxmlFrame",
@@ -2597,8 +2597,17 @@ MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_ID,
      "VP",
      MOS_USER_FEATURE_TYPE_USER,
      MOS_USER_FEATURE_VALUE_TYPE_UINT32,
-     MOS_USER_FEATURE_MAX_UINT32_STR_VALUE,
+     "0",
      "VP Parameters Dump End Frame"),
+    MOS_DECLARE_UF_KEY(__VPHAL_DBG_DUMP_OUTPUT_DIRECTORY_ID,
+    "Vphal Debug Dump Output Directory",
+    __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+    __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+    "VP",
+    MOS_USER_FEATURE_TYPE_USER,
+    MOS_USER_FEATURE_VALUE_TYPE_STRING,
+    "",
+    "Vphal Debug Dump Output Directory"),
 #endif
     MOS_DECLARE_UF_KEY_DBGONLY(__VPHAL_SET_SINGLE_SLICE_VEBOX_ID,
      "SetSingleSliceVeboxEnable",
