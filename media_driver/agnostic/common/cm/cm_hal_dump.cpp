@@ -92,6 +92,8 @@ int32_t HalCm_InitDumpCommandBuffer(PCM_HAL_STATE state)
     userFeature.uiNumValues = 1;
     userFeatureValue.bData = false;
 
+    GetLogFileLocation(HALCM_COMMAND_BUFFER_OUTPUT_DIR, fileName);
+
     eStatus = MOS_UserFeature_ReadValue(
         nullptr,
         &userFeature,
@@ -104,7 +106,7 @@ int32_t HalCm_InitDumpCommandBuffer(PCM_HAL_STATE state)
     }
     if (userFeatureValue.bData)
     {
-        PlatformSNPrintf(fileName, MOS_MAX_HLT_FILENAME_LEN, HALCM_COMMAND_BUFFER_OUTPUT_DIR);
+       
         eStatus = MOS_CreateDirectory(fileName);
         if (eStatus != MOS_STATUS_SUCCESS)
         {
@@ -150,8 +152,10 @@ int32_t HalCm_DumpCommadBuffer(PCM_HAL_STATE state, PMOS_COMMAND_BUFFER cmdBuffe
     MOS_OS_ASSERT(state);
     MOS_OS_ASSERT(cmdBuffer);
 
-    // Set the file name.
-    PlatformSNPrintf(fileName, MOS_MAX_HLT_FILENAME_LEN, HALCM_COMMAND_BUFFER_OUTPUT_DIR);
+    GetLogFileLocation(HALCM_COMMAND_BUFFER_OUTPUT_DIR, fileName);
+
+    // Set the file name. linux
+    //PlatformSNPrintf(fileName, MOS_MAX_HLT_FILENAME_LEN, HALCM_COMMAND_BUFFER_OUTPUT_DIR);
     PlatformSNPrintf(fileName + strlen(fileName), MOS_MAX_HLT_FILENAME_LEN - strlen(fileName), PLATFORM_DIR_SEPERATOR);
     PlatformSNPrintf(fileName + strlen(fileName), MOS_MAX_HLT_FILENAME_LEN - strlen(fileName), "%s_%d.txt", HALCM_COMMAND_BUFFER_OUTPUT_FILE, commandBufferNumber);
 
@@ -240,7 +244,8 @@ int32_t HalCm_InitDumpCurbeData(PCM_HAL_STATE state)
     }
     if (userFeatureValue.bData)
     {
-        PlatformSNPrintf(fileName, MOS_MAX_HLT_FILENAME_LEN, HALCM_CURBE_DATA_OUTPUT_DIR);
+        GetLogFileLocation(HALCM_CURBE_DATA_OUTPUT_DIR, fileName);
+        //PlatformSNPrintf(fileName, MOS_MAX_HLT_FILENAME_LEN, HALCM_CURBE_DATA_OUTPUT_DIR);
         eStatus = MOS_CreateDirectory(fileName);
         if (eStatus != MOS_STATUS_SUCCESS)
         {
@@ -279,7 +284,9 @@ int32_t HalCm_DumpCurbeData(PCM_HAL_STATE state)
     MOS_OS_ASSERT(state);
 
     // Set the file name.
-    PlatformSNPrintf(fileName, MOS_MAX_HLT_FILENAME_LEN, HALCM_CURBE_DATA_OUTPUT_DIR);
+    GetLogFileLocation(HALCM_CURBE_DATA_OUTPUT_DIR, fileName);
+
+   // PlatformSNPrintf(fileName, MOS_MAX_HLT_FILENAME_LEN, HALCM_CURBE_DATA_OUTPUT_DIR);
     PlatformSNPrintf(fileName + strlen(fileName), MOS_MAX_HLT_FILENAME_LEN - strlen(fileName), PLATFORM_DIR_SEPERATOR);
     PlatformSNPrintf(fileName + strlen(fileName), MOS_MAX_HLT_FILENAME_LEN - strlen(fileName), "%s_%d.txt", HALCM_CURBE_DATA_OUTPUT_FILE, curbeDataNumber);
 

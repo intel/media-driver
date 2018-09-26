@@ -536,7 +536,10 @@ void CmSurface3DRT::DumpContent(uint32_t kernelNumber, char *kernelName, int32_t
 {
 #if MDF_SURFACE_CONTENT_DUMP
     std::ostringstream outputFileName;
-    static uint32_t surface3DDumpNumber = 0;
+    static uint32_t    surface3DDumpNumber = 0;
+    char               fileNamePrefix[MAX_PATH];
+    std::ofstream      outputFileStream;
+
     outputFileName << "t_" << taskId
         << "_k_" << kernelNumber
         << "_" << kernelName
@@ -548,8 +551,11 @@ void CmSurface3DRT::DumpContent(uint32_t kernelNumber, char *kernelName, int32_t
         << "_f_" << GetFormatString(m_format)
         << "_" << surface3DDumpNumber;
 
-    std::ofstream outputFileStream;
-    outputFileStream.open(outputFileName.str().c_str(), std::ofstream::binary);
+    GetLogFileLocation(outputFileName.str().c_str(), fileNamePrefix);   
+
+    // Open file
+    outputFileStream.open(fileNamePrefix, std::ios::app);
+    CM_ASSERT(outputFileStream);
 
     uint32_t        surfaceSize = 0;
     uint32_t        sizePerPixel = 0;
