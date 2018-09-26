@@ -78,7 +78,7 @@ export LIBVA_DRIVER_NAME=iHD
 
 ## Docker Image
 
-To simplify media stack installation you can use docker images. They are located in [hub.docker/intelmediadriver](https://hub.docker.com/r/intelmediadriver/media-driver/tags/). Latest image is based on Ubuntu 18.04 and downloaded by below command.
+To simplify media stack installation you can use docker images. To generate your own docker image, read Tools/dockers/README.md. Alternatively you can use generated images located in [hub.docker/intelmediadriver](https://hub.docker.com/r/intelmediadriver/media-driver/tags/). Latest image is based on Ubuntu 18.04 and downloaded by below command.
 ```
 $ docker pull intelmediadriver/media-driver
 ```
