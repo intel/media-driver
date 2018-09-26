@@ -1156,8 +1156,11 @@ void CmSurface2DRT::Log(std::ostringstream &oss)
 void CmSurface2DRT::DumpContent(uint32_t kernelNumber, char *kernelName, int32_t taskId, uint32_t argIndex)
 {
 #if MDF_SURFACE_CONTENT_DUMP
-    std::ostringstream outputFileName;
-    static uint32_t surface2DDumpNumber = 0;
+    std::ostringstream         outputFileName;
+    static uint32_t            surface2DDumpNumber = 0;
+    char                       fileNamePrefix[MAX_PATH];
+    std::ofstream              outputFileStream;
+
     outputFileName << "t_" << taskId
         << "_k_" << kernelNumber
         << "_" << kernelName        
@@ -1169,8 +1172,11 @@ void CmSurface2DRT::DumpContent(uint32_t kernelNumber, char *kernelName, int32_t
         << "_f_" << GetFormatString(m_format)
         << "_" << surface2DDumpNumber;
 
-    std::ofstream outputFileStream;
-    outputFileStream.open(outputFileName.str().c_str(), std::ofstream::binary);
+    GetLogFileLocation(outputFileName.str().c_str(), fileNamePrefix);     
+
+    // Open file
+    outputFileStream.open(fileNamePrefix, std::ios::app);
+    CM_ASSERT(outputFileStream);
 
     CmDeviceRT * cmDevice = nullptr;
     m_surfaceMgr->GetCmDevice(cmDevice);
