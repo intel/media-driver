@@ -341,7 +341,7 @@ public:
         PCODEC_AVC_IQ_MATRIX_PARAMS matrixData);
 #endif
 
-private:
+protected:
     //!
     //! \brief  Indicates whether or not the SFC is inuse
     //! \return If SFC is inuse
