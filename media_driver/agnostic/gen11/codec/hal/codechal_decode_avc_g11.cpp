@@ -81,10 +81,34 @@ MOS_STATUS CodechalDecodeAvcG11::SetGpuCtxCreatOption(
     {
         m_gpuCtxCreatOpt = MOS_New(MOS_GPUCTX_CREATOPTIONS_ENHANCED);
 
+        bool sfcInUse = IsSfcInUse(codecHalSetting);
+
         CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalDecodeSinglePipeVE_ConstructParmsForGpuCtxCreation(    
             m_veState,
             (PMOS_GPUCTX_CREATOPTIONS_ENHANCED)m_gpuCtxCreatOpt,
-            false));
+            sfcInUse));
+
+        if (sfcInUse)
+        {
+            m_videoContext = MOS_GPU_CONTEXT_VIDEO4;
+
+            CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
+                m_osInterface,
+                m_videoContext,
+                MOS_GPU_NODE_VIDEO,
+                m_gpuCtxCreatOpt));
+
+            MOS_GPUCTX_CREATOPTIONS createOption;
+            CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
+                m_osInterface,
+                MOS_GPU_CONTEXT_VIDEO,
+                MOS_GPU_NODE_VIDEO,
+                &createOption));
+        }
+        else
+        {
+            m_videoContext = MOS_GPU_CONTEXT_VIDEO;
+        }
     }
         
     return eStatus;

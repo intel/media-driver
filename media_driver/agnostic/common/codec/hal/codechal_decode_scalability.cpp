@@ -1935,7 +1935,7 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState (
 
     if (pScalabilityState->bFESeparateSubmission)
     {
-        MOS_GPU_CONTEXT         GpuContext = MOS_GPU_CONTEXT_VIDEO4;
+        MOS_GPU_CONTEXT         GpuContext = MOS_VE_CTXBASEDSCHEDULING_SUPPORTED(osInterface) ? MOS_GPU_CONTEXT_VIDEO : MOS_GPU_CONTEXT_VIDEO4;
         MOS_GPUCTX_CREATOPTIONS createOpts;
         MHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit;
 
