@@ -95,46 +95,6 @@ MOS_STATUS HalCm_SetCommandBufResource_Linux(
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Convert Mos format to Gmm Fmt
-//| Returns:    Gmm Fmt
-//*-----------------------------------------------------------------------------
-GMM_RESOURCE_FORMAT HalCm_ConvertMosFmtToGmmFmt(
-    MOS_FORMAT format)
-{
-    switch (format)
-    {
-        case Format_Buffer      : return GMM_FORMAT_GENERIC_8BIT;
-        case Format_Buffer_2D   : return GMM_FORMAT_GENERIC_8BIT;               // matching size as format
-        case Format_L8          : return GMM_FORMAT_GENERIC_8BIT;               // matching size as format
-        case Format_STMM        : return GMM_FORMAT_R8_UNORM_TYPE;              // matching size as format
-        case Format_AI44        : return GMM_FORMAT_GENERIC_8BIT;               // matching size as format
-        case Format_IA44        : return GMM_FORMAT_GENERIC_8BIT;               // matching size as format
-        case Format_R5G6B5      : return GMM_FORMAT_B5G6R5_UNORM_TYPE;
-        case Format_R8G8B8      : return GMM_FORMAT_R8G8B8_UNORM;
-        case Format_X8R8G8B8    : return GMM_FORMAT_B8G8R8X8_UNORM_TYPE;
-        case Format_A8R8G8B8    : return GMM_FORMAT_B8G8R8A8_UNORM_TYPE;
-        case Format_A8B8G8R8    : return GMM_FORMAT_R8G8B8A8_UNORM_TYPE;
-        case Format_R32F        : return GMM_FORMAT_R32_FLOAT_TYPE;
-        case Format_V8U8        : return GMM_FORMAT_GENERIC_16BIT;              // matching size as format
-        case Format_YUY2        : return GMM_FORMAT_YUY2;
-        case Format_UYVY        : return GMM_FORMAT_UYVY;
-        case Format_P8          : return GMM_FORMAT_RENDER_8BIT_TYPE;           // matching size as format
-        case Format_A8          : return GMM_FORMAT_A8_UNORM_TYPE;
-        case Format_AYUV        : return GMM_FORMAT_R8G8B8A8_UNORM_TYPE;
-        case Format_NV12        : return GMM_FORMAT_NV12_TYPE;
-        case Format_NV21        : return GMM_FORMAT_NV21_TYPE;
-        case Format_YV12        : return GMM_FORMAT_YV12_TYPE;
-        case Format_R32U        : return GMM_FORMAT_R32_UINT_TYPE;
-        case Format_RAW         : return GMM_FORMAT_GENERIC_8BIT;
-        case Format_P010        : return GMM_FORMAT_P010_TYPE;
-        case Format_P016        : return GMM_FORMAT_P016_TYPE;
-        case Format_Y216        : return GMM_FORMAT_Y216_TYPE;
-        case Format_Y416        : return GMM_FORMAT_Y416_TYPE;
-        case Format_A16B16G16R16: return GMM_FORMAT_R16G16B16A16_UNORM_TYPE;
-        default                 : return GMM_FORMAT_INVALID;
-    }
-}
-//*-----------------------------------------------------------------------------
 //| Purpose:    Get 2D surface info and register to OS-Command-Buffer's patch list.
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
@@ -221,7 +181,7 @@ MOS_STATUS HalCm_GetSurfaceAndRegister(
                 &info,
                 surface));
 
-            if ( (surface->Format == Format_NV12 || surface->Format == Format_YV12 || surface->Format == Format_Y216)
+            if ( (surface->Format == Format_NV12 || surface->Format == Format_YV12 || surface->Format == Format_Y210 || surface->Format == Format_Y216)
                   && (!pixelPitch))
             {
                 renderHalSurface->SurfType = RENDERHAL_SURF_OUT_RENDERTARGET;
@@ -248,7 +208,7 @@ MOS_STATUS HalCm_GetSurfaceAndRegister(
             //surface->Channel    = MOS_S3D_NONE;
             surface->dwOffset   = 0;
 
-            if ( (surface->Format == Format_NV12 || surface->Format == Format_YV12)
+            if ( (surface->Format == Format_NV12 || surface->Format == Format_YV12 || surface->Format == Format_Y210 || surface->Format == Format_Y216)
                   && (!pixelPitch))
             {
                 renderHalSurface->SurfType = RENDERHAL_SURF_OUT_RENDERTARGET;
@@ -346,7 +306,9 @@ MOS_STATUS HalCm_GetSurfPitchSize(
     MOS_ZeroMemory( &gmmFlags, sizeof( GMM_RESOURCE_FLAG ) );
     MOS_ZeroMemory( &gmmParams, sizeof( GMM_RESCREATE_PARAMS ) );
 
-    if( nullptr == pitch ||
+    if( nullptr == state || 
+        nullptr == state->osInterface ||
+        nullptr == pitch ||
         nullptr == physicalSize)
     {
         hr = MOS_STATUS_NULL_POINTER;
@@ -358,7 +320,7 @@ MOS_STATUS HalCm_GetSurfPitchSize(
     gmmFlags.Gpu.Texture    = true;
 
     gmmParams.Type           = RESOURCE_2D;
-    gmmParams.Format         = HalCm_ConvertMosFmtToGmmFmt( format );
+    gmmParams.Format         = state->osInterface->pfnFmt_MosToGmm( format );
     gmmParams.Flags          = gmmFlags;
     gmmParams.BaseWidth      = width;
     gmmParams.BaseHeight     = height;
@@ -399,7 +361,6 @@ MOS_STATUS HalCm_GetSurface2DPitchAndSize_Linux(
     PCM_HAL_STATE                   state,                                             // [in]  Pointer to CM State
     PCM_HAL_SURFACE2D_UP_PARAM      param)                                             // [in]  Pointer to Buffer Param
 {
-    UNUSED(state);
     return HalCm_GetSurfPitchSize(param->width, param->height, param->format,
                                   &param->pitch, &param->physicalSize, state);
 }

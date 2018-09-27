@@ -58,6 +58,9 @@ int32_t CmSurfaceManager::Surface2DSanityCheck(uint32_t width,
     case CM_SURFACE_FORMAT_R8_UINT:
     case CM_SURFACE_FORMAT_Y216:
     case CM_SURFACE_FORMAT_Y416:
+    case CM_SURFACE_FORMAT_AYUV:
+    case CM_SURFACE_FORMAT_Y210:
+    case CM_SURFACE_FORMAT_Y410:
         break;
 
     case CM_SURFACE_FORMAT_UYVY:

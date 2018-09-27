@@ -1994,6 +1994,8 @@ MOS_STATUS Mos_Specific_AllocateResource(
         case Format_Y216:
         case Format_Y416:
         case Format_P208:
+        case Format_Y210:
+        case Format_Y410:
             resourceType                = RESOURCE_2D;
             //indicate buffer Restriction is Planar surface restrictions.
             GmmParams.Flags.Gpu.Video   = true;
@@ -4421,6 +4423,8 @@ MOS_FORMAT Mos_Specific_FmtOsToMos(
         case FOURCC_P016             : return Format_P016;
         case FOURCC_Y216             : return Format_Y216;
         case FOURCC_Y416             : return Format_Y416;
+        case FOURCC_Y210             : return Format_Y210;
+        case FOURCC_Y410             : return Format_Y410;
         default                      : return Format_Invalid;
     }
 }
@@ -4485,6 +4489,8 @@ MOS_OS_FORMAT Mos_Specific_FmtMosToOs(
     case Format_Y216         : return (MOS_OS_FORMAT)FOURCC_Y216;
     case Format_Y416         : return (MOS_OS_FORMAT)FOURCC_Y416;
     case Format_A16B16G16R16 : return (MOS_OS_FORMAT)DDI_FORMAT_A16B16G16R16;
+    case Format_Y210         : return (MOS_OS_FORMAT)FOURCC_Y216;
+    case Format_Y410         : return (MOS_OS_FORMAT)FOURCC_Y410;
     default                  : return (MOS_OS_FORMAT)DDI_FORMAT_UNKNOWN;
     }
 }
