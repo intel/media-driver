@@ -118,7 +118,9 @@ public:
         case Format_YUYV:
         case Format_A8R8G8B8:
         case Format_P010:
+        case Format_AYUV:
         case Format_Y210:
+        case Format_Y410:
         case Format_P208:
             isColorFormatSupported = true;
             break;

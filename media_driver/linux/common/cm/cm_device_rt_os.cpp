@@ -352,7 +352,10 @@ CmDeviceRT::QuerySurface2DFormatsInternal(PCM_QUERY_CAPS queryCaps)
             CM_SURFACE_FORMAT_YV12,
             CM_SURFACE_FORMAT_R8_UINT,
             CM_SURFACE_FORMAT_R16_UINT,
-            CM_SURFACE_FORMAT_P208
+            CM_SURFACE_FORMAT_P208,
+            CM_SURFACE_FORMAT_AYUV,
+            CM_SURFACE_FORMAT_Y210,
+            CM_SURFACE_FORMAT_Y410,
         };
         CmSafeMemCopy( queryCaps->surface2DFormats, formats, CM_MAX_SURFACE2D_FORMAT_COUNT_INTERNAL  * sizeof( GMM_RESOURCE_FORMAT ) );
     }
@@ -396,7 +399,10 @@ int32_t CmDeviceRT::QuerySurface2DFormats(void *capValue,
             CM_SURFACE_FORMAT_YV12,
             CM_SURFACE_FORMAT_R8_UINT,
             CM_SURFACE_FORMAT_R16_UINT,
-            CM_SURFACE_FORMAT_P208
+            CM_SURFACE_FORMAT_P208,
+            CM_SURFACE_FORMAT_AYUV,
+            CM_SURFACE_FORMAT_Y210,
+            CM_SURFACE_FORMAT_Y410,
         };
         CmSafeMemCopy( capValue, formats, capValueSize );
         return CM_SUCCESS;
