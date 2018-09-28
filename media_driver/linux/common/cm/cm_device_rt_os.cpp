@@ -179,6 +179,25 @@ int32_t CmDeviceRT::GetJITCompileFnt(pJITCompile &jitCompile)
     return CM_SUCCESS;
 }
 
+int32_t CmDeviceRT::GetJITCompileFntV2(pJITCompile_v2 &jitCompile_v2)
+{
+    if (m_fJITCompile_v2)
+    {
+        jitCompile_v2 = m_fJITCompile_v2;
+    }
+    else
+    {
+        int ret = LoadJITDll();
+        if (ret != CM_SUCCESS)
+        {
+            return ret;
+        }
+        jitCompile_v2 = m_fJITCompile_v2;
+    }
+    return CM_SUCCESS;
+}
+
+
 //*----------------------------------------------------------------------------
 //| Purpose:    Get JIT Free Block function from igfxcmjit64/32.dll
 //| Returns:    Result of the operation.
@@ -254,14 +273,15 @@ int32_t CmDeviceRT::LoadJITDll()
             CM_ASSERTMESSAGE("Error: Failed to load either IGC or JIT library.");
             return result;
         }
-        if (nullptr == m_fJITCompile || nullptr == m_fFreeBlock || nullptr == m_fJITVersion)
+        if ((nullptr == m_fJITCompile && nullptr == m_fJITCompile_v2) || nullptr == m_fFreeBlock || nullptr == m_fJITVersion)
         {
             m_fJITCompile = (pJITCompile)MOS_GetProcAddress(m_hJITDll, JITCOMPILE_FUNCTION_STR);
+            m_fJITCompile_v2 = (pJITCompile_v2)MOS_GetProcAddress(m_hJITDll, JITCOMPILEV2_FUNCTION_STR);
             m_fFreeBlock = (pFreeBlock)MOS_GetProcAddress(m_hJITDll, FREEBLOCK_FUNCTION_STR);
             m_fJITVersion = (pJITVersion)MOS_GetProcAddress(m_hJITDll, JITVERSION_FUNCTION_STR);
         }
 
-        if ((NULL==m_fJITCompile) || (NULL==m_fFreeBlock) || (NULL==m_fJITVersion))
+        if ((nullptr == m_fJITCompile && nullptr == m_fJITCompile_v2) || (nullptr == m_fFreeBlock) || (nullptr == m_fJITVersion))
         {
             result = CM_JITDLL_LOAD_FAILURE;
             CM_ASSERTMESSAGE("Error: Failed to get JIT functions.");

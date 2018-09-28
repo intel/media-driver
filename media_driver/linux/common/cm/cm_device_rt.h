@@ -300,6 +300,8 @@ public:
 
     int32_t GetJITCompileFnt(pJITCompile &jitCompile);
 
+    int32_t GetJITCompileFntV2(pJITCompile_v2 &fJITCompile_v2);
+
     int32_t GetFreeBlockFnt(pFreeBlock &freeBlock);
 
     int32_t GetJITVersionFnt(pJITVersion &jitVersion);
@@ -487,6 +489,8 @@ protected:
     HMODULE m_hJITDll;
 
     pJITCompile m_fJITCompile;
+
+    pJITCompile_v2 m_fJITCompile_v2;
 
     pFreeBlock m_fFreeBlock;
 
