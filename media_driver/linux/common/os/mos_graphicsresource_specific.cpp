@@ -92,6 +92,9 @@ GMM_RESOURCE_FORMAT GraphicsResourceSpecific::ConvertMosFmtToGmmFmt(MOS_FORMAT f
         case Format_422V        : return GMM_FORMAT_MFX_JPEG_YUV422V_TYPE;
         case Format_IMC3        : return GMM_FORMAT_IMC3_TYPE;
         case Format_411P        : return GMM_FORMAT_MFX_JPEG_YUV411_TYPE;
+        case Format_411R        : return GMM_FORMAT_MFX_JPEG_YUV411R_TYPE;
+        case Format_RGBP        : return GMM_FORMAT_RGBP_TYPE;
+        case Format_BGRP        : return GMM_FORMAT_BGRP_TYPE;
         case Format_R8U         : return GMM_FORMAT_R8_UINT_TYPE;
         case Format_R16U        : return GMM_FORMAT_R16_UINT_TYPE;
         case Format_P010        : return GMM_FORMAT_P010_TYPE;

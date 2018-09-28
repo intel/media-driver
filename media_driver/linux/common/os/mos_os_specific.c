@@ -1816,6 +1816,9 @@ GMM_RESOURCE_FORMAT Mos_Specific_ConvertMosFmtToGmmFmt(
         case Format_422V        : return GMM_FORMAT_MFX_JPEG_YUV422V_TYPE;
         case Format_IMC3        : return GMM_FORMAT_IMC3_TYPE;
         case Format_411P        : return GMM_FORMAT_MFX_JPEG_YUV411_TYPE;
+        case Format_411R        : return GMM_FORMAT_MFX_JPEG_YUV411R_TYPE;
+        case Format_RGBP        : return GMM_FORMAT_RGBP_TYPE;
+        case Format_BGRP        : return GMM_FORMAT_BGRP_TYPE;
         case Format_R8U         : return GMM_FORMAT_R8_UINT_TYPE;
         case Format_R16U        : return GMM_FORMAT_R16_UINT_TYPE;
         case Format_P010        : return GMM_FORMAT_P010_TYPE;
@@ -1987,6 +1990,9 @@ MOS_STATUS Mos_Specific_AllocateResource(
         case Format_422V:
         case Format_IMC3:
         case Format_411P:
+        case Format_411R:
+        case Format_RGBP:
+        case Format_BGRP:
         case Format_R16U:
         case Format_R8U:
         case Format_P010:
@@ -4414,6 +4420,7 @@ MOS_FORMAT Mos_Specific_FmtOsToMos(
         case FOURCC_IA44             : return Format_IA44;
         case FOURCC_400P             : return Format_400P;
         case FOURCC_411P             : return Format_411P;
+        case FOURCC_411R             : return Format_411R;
         case FOURCC_422H             : return Format_422H;
         case FOURCC_422V             : return Format_422V;
         case FOURCC_444P             : return Format_444P;
@@ -4478,6 +4485,7 @@ MOS_OS_FORMAT Mos_Specific_FmtMosToOs(
     case Format_IA44         : return (MOS_OS_FORMAT)FOURCC_IA44;
     case Format_400P         : return (MOS_OS_FORMAT)FOURCC_400P;
     case Format_411P         : return (MOS_OS_FORMAT)FOURCC_411P;
+    case Format_411R         : return (MOS_OS_FORMAT)FOURCC_411R;
     case Format_422H         : return (MOS_OS_FORMAT)FOURCC_422H;
     case Format_422V         : return (MOS_OS_FORMAT)FOURCC_422V;
     case Format_444P         : return (MOS_OS_FORMAT)FOURCC_444P;
