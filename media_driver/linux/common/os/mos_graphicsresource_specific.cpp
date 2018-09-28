@@ -525,7 +525,7 @@ void* GraphicsResourceSpecific::Lock(OsContext* osContextPtr, LockParams& params
             m_pData  = m_systemShadow ? m_systemShadow : (uint8_t *)boPtr->virt;
         }
 
-        dataPtr = boPtr->virt;
+        dataPtr = m_pData;
     }
 
     MOS_OS_ASSERT(dataPtr);
