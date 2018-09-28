@@ -3697,7 +3697,7 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
 
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxAvcImgCmd(nullptr, secondLevelBatchBufferUsed, imageStateParams));
 
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencCostStateCmd(secondLevelBatchBufferUsed));
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencCostStateCmd(secondLevelBatchBufferUsed, imageStateParams));
 
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencImgStateCmd(nullptr, secondLevelBatchBufferUsed, imageStateParams));
 
