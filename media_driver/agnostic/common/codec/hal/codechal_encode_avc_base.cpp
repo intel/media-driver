@@ -400,9 +400,12 @@ MOS_STATUS CodechalEncodeAvcBase::SendSlice(
             weightOffsetParams.pAvcPicParams = params->pEncodeAvcPicParams;
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencAvcWeightsOffsetsStateCmd(cmdBuffer, &weightOffsetParams));
 
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencSliceStateCmd(cmdBuffer));
+            PMHW_VDBOX_VDENC_AVC_SLICE_STATE_PARAMS vdencSliceStateParams = std::make_shared<MHW_VDBOX_VDENC_AVC_SLICE_STATE_PARAMS>();
+            vdencSliceStateParams->pAvcSlcParams = avcSlcParams;
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencSliceStateCmd(cmdBuffer, vdencSliceStateParams));
 
             vdencWalkerStateParams.Mode             = CODECHAL_ENCODE_MODE_AVC;
+            vdencWalkerStateParams.slcIdx           = params->dwSliceIndex;
             vdencWalkerStateParams.pAvcSeqParams    = params->pEncodeAvcSeqParams;
             vdencWalkerStateParams.pAvcPicParams    = params->pEncodeAvcPicParams;
             vdencWalkerStateParams.pAvcSlcParams    = avcSlcParams;
@@ -3262,6 +3265,7 @@ void CodechalEncodeAvcBase::SetMfxPipeModeSelectParams(
     param.bDynamicSliceEnable       = m_avcSeqParam->EnableSliceLevelRateCtrl;
     param.bVdencStreamInEnable      = m_vdencStreamInEnabled;
     param.bTlbPrefetchEnable        = m_tlbPrefetchEnable;
+    param.ChromaType                = m_avcSeqParam->chroma_format_idc;
     param.Format                    = m_rawSurfaceToPak->Format;
 }
 
@@ -3386,6 +3390,7 @@ void CodechalEncodeAvcBase::SetMfxAvcImgStateParams(MHW_VDBOX_AVC_IMG_PARAMS& pa
     param.wPicWidthInMb = m_picWidthInMb;
     param.wPicHeightInMb = m_picHeightInMb;
     param.ppRefList = &(m_refList[0]);
+    param.pPicIdx = &(m_picIdx[0]);
     param.dwTqEnabled = m_trellisQuantParams.dwTqEnabled;
     param.dwTqRounding = m_trellisQuantParams.dwTqRounding;
     param.ucKernelMode = m_kernelMode;

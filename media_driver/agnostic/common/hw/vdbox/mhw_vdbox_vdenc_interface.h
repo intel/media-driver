@@ -138,6 +138,7 @@ using PMHW_VDBOX_VDENC_CMD2_STATE = MHW_VDBOX_VDENC_CMD2_STATE *;
 struct MHW_VDBOX_VDENC_WALKER_STATE_PARAMS
 {
     uint32_t                                Mode = 0;
+    uint32_t                                slcIdx = 0;
     PCODEC_AVC_ENCODE_SEQUENCE_PARAMS       pAvcSeqParams = nullptr;
     PCODEC_AVC_ENCODE_PIC_PARAMS            pAvcPicParams = nullptr;
     PCODEC_AVC_ENCODE_SLICE_PARAMS          pAvcSlcParams = nullptr;
@@ -149,6 +150,12 @@ struct MHW_VDBOX_VDENC_WALKER_STATE_PARAMS
 };
 using PMHW_VDBOX_VDENC_WALKER_STATE_PARAMS = MHW_VDBOX_VDENC_WALKER_STATE_PARAMS * ;
 
+
+struct MHW_VDBOX_VDENC_AVC_SLICE_STATE_PARAMS
+{
+    PCODEC_AVC_ENCODE_SLICE_PARAMS          pAvcSlcParams = nullptr;
+};
+using PMHW_VDBOX_VDENC_AVC_SLICE_STATE_PARAMS = std::shared_ptr<MHW_VDBOX_VDENC_AVC_SLICE_STATE_PARAMS>;
 
 //!  MHW Vdbox Vdenc interface
 /*!
@@ -426,7 +433,8 @@ public:
         uint8_t                              numSurfaces) = 0;
 
     virtual MOS_STATUS AddVdencCostStateCmd(
-        PMHW_BATCH_BUFFER batchBuffer)
+        PMHW_BATCH_BUFFER         batchBuffer,
+        PMHW_VDBOX_AVC_IMG_PARAMS params)
     {
         return MOS_STATUS_SUCCESS;
     }
@@ -509,7 +517,8 @@ public:
         PMHW_VDBOX_VDENC_WEIGHT_OFFSET_PARAMS   params) = 0;
 
     virtual MOS_STATUS AddVdencSliceStateCmd(
-        PMOS_COMMAND_BUFFER cmdBuffer)
+        PMOS_COMMAND_BUFFER                     cmdBuffer,
+        PMHW_VDBOX_VDENC_AVC_SLICE_STATE_PARAMS params)
     {
         return MOS_STATUS_SUCCESS;
     }

@@ -391,6 +391,7 @@ struct MHW_VDBOX_AVC_IMG_PARAMS
     PCODEC_AVC_ENCODE_PIC_PARAMS            pEncodeAvcPicParams = nullptr;
     PCODEC_AVC_ENCODE_SLICE_PARAMS          pEncodeAvcSliceParams = nullptr;
     PCODEC_REF_LIST                        *ppRefList = nullptr;
+    CODEC_PIC_ID                           *pPicIdx = nullptr;
     uint32_t                                dwTqEnabled = 0;
     uint32_t                                dwTqRounding = 0;
     uint32_t                                dwMaxVmvR = 0;
