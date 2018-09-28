@@ -72,6 +72,12 @@ public:
         // if the derived class doesn't implement this, just return 0
         return 0;
     }
+
+    virtual int NotifyCallingJitter(void **extraInfo)
+    {
+        // if the derived class doesn't implement this, just return 0
+        return 0;
+    }
 };
 
 class CmNotifierGroup
@@ -165,6 +171,19 @@ public:
         for (unsigned int i = 0; i < m_notifiers.size(); i++)
         {
             if (m_notifiers[i]->NotifyTaskCompleted(task) != 0)
+            {
+                ret = -1;
+            }
+        }
+        return ret;
+    }
+
+    int NotifyCallingJitter(void **extraInfo)
+    {
+        int ret = 0;
+        for (unsigned int i = 0; i < m_notifiers.size(); i++)
+        {
+            if (m_notifiers[i]->NotifyCallingJitter(extraInfo) != 0)
             {
                 ret = -1;
             }

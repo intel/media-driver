@@ -173,6 +173,7 @@ CmDeviceRT::CmDeviceRT(uint32_t options):
     m_threadSpaceCount( 0 ),
     m_hJITDll(nullptr),
     m_fJITCompile(nullptr),
+    m_fJITCompile_v2(nullptr),
     m_fFreeBlock(nullptr),
     m_fJITVersion(nullptr),
     m_ddiVersion( 0 ),
