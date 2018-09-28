@@ -127,6 +127,16 @@ public:
     //!
     MOS_STATUS ResizeOneCmdBuf(CommandBuffer *cmdBufToResize, uint32_t newSize);
 
+    //!
+    //! \brief    Get the validity flag
+    //! \return   bool
+    //!           Get the validity flag of cmdBufMgr
+    //!
+    bool IsInitialized()
+    {
+        return m_initialized;
+    }
+
 private:
     //!
     //! \brief    Self define compare method as std:sort input 
