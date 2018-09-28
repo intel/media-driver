@@ -31,6 +31,7 @@
 GpuContextMgr::GpuContextMgr(GT_SYSTEM_INFO *gtSystemInfo, OsContext *osContext)
 {
     MOS_OS_FUNCTION_ENTER;
+    m_initialized = false;
 
     m_gpuContextArrayMutex = MOS_CreateMutex();
     MOS_OS_CHK_NULL_NO_STATUS_RETURN(m_gpuContextArrayMutex);
@@ -46,6 +47,7 @@ GpuContextMgr::GpuContextMgr(GT_SYSTEM_INFO *gtSystemInfo, OsContext *osContext)
     else
     {
         MOS_OS_ASSERTMESSAGE("Input GTSystemInfo cannot be nullptr");
+        return;
     }
 
     if (osContext)
@@ -55,7 +57,10 @@ GpuContextMgr::GpuContextMgr(GT_SYSTEM_INFO *gtSystemInfo, OsContext *osContext)
     else
     {
         MOS_OS_ASSERTMESSAGE("Input osContext cannot be nullptr");
+        return;
     }
+
+    m_initialized = true;
 }
 
 GpuContextMgr::~GpuContextMgr()
@@ -86,11 +91,16 @@ void GpuContextMgr::CleanUp()
 {
     MOS_OS_FUNCTION_ENTER;
 
-    DestroyAllGpuContexts();
-
-    MOS_LockMutex(m_gpuContextArrayMutex);
-    m_gpuContextArray.clear();
-    MOS_UnlockMutex(m_gpuContextArrayMutex);
+    if (m_initialized)
+    {
+        DestroyAllGpuContexts();
+    
+        MOS_LockMutex(m_gpuContextArrayMutex);
+        m_gpuContextArray.clear();
+        MOS_UnlockMutex(m_gpuContextArrayMutex);
+    
+        m_initialized = false;
+    }
 
     return;
 }
