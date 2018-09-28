@@ -79,6 +79,9 @@ int32_t CmSurfaceManager::Surface2DSanityCheck(uint32_t width,
     case CM_SURFACE_FORMAT_444P:
     case CM_SURFACE_FORMAT_422V:
     case CM_SURFACE_FORMAT_411P:
+    case CM_SURFACE_FORMAT_411R:
+    case CM_SURFACE_FORMAT_RGBP:
+    case CM_SURFACE_FORMAT_BGRP:
     case CM_SURFACE_FORMAT_IMC3:
     case CM_SURFACE_FORMAT_P208:
         if (width & 0x1)
