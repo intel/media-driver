@@ -265,9 +265,97 @@ bool DdiMediaUtil_IsExternalSurface(PDDI_MEDIA_SURFACE surface)
     return true;
 }
 
+VAStatus DdiMediaUtil_GetExpectTileAndHeight(
+    DDI_MEDIA_FORMAT format,
+    uint32_t surface_hint,
+    int32_t height,
+    int32_t *aligned_height,
+    uint32_t *tile_format)
+{
+    DDI_CHK_NULL(aligned_height, "aligned_height is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
+    int32_t tileformat   = I915_TILING_NONE;
+    int32_t alignedHeight = height;
+
+    switch (format)
+    {
+        case Media_Format_X8R8G8B8:
+        case Media_Format_X8B8G8R8:
+        case Media_Format_A8B8G8R8:
+        case Media_Format_R8G8B8A8:
+        case Media_Format_R5G6B5:
+        case Media_Format_R8G8B8:
+        case Media_Format_R10G10B10A2:
+        case Media_Format_B10G10R10A2: 
+            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != surface_hint)
+            {
+                 tileformat = I915_TILING_NONE;
+                 break;
+            }
+        case Media_Format_NV21:
+        case Media_Format_YV12:
+        case Media_Format_I420:
+        case Media_Format_IYUV:
+            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != surface_hint)
+            {
+                 tileformat = I915_TILING_NONE;
+                 break;
+            }
+        case Media_Format_RGBP:
+        case Media_Format_UYVY:
+        case Media_Format_A8R8G8B8:
+            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != surface_hint &&
+                !(surface_hint & VA_SURFACE_ATTRIB_USAGE_HINT_DECODER))
+            {
+                 tileformat = I915_TILING_NONE;
+                 break;
+            }
+        case Media_Format_NV12:
+        case Media_Format_444P:
+        case Media_Format_422H:
+        case Media_Format_411P:
+        case Media_Format_422V:
+        case Media_Format_IMC3:
+        case Media_Format_400P:
+        case Media_Format_P010:
+        case Media_Format_P016:
+        case Media_Format_YUY2:
+        case Media_Format_Y210:
+        case Media_Format_Y216:
+        case Media_Format_AYUV:
+        case Media_Format_Y410:
+        case Media_Format_Y416:     
+            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != surface_hint)
+            {
+#if UFO_GRALLOC_NEW_FORMAT
+                 //Planar type surface align 64 to improve performance.
+                alignedHeight = MOS_ALIGN_CEIL(height, 64);
+#else
+                //Planar type surface align 32 to improve performance.
+                alignedHeight = MOS_ALIGN_CEIL(height, 32);
+#endif
+            }
+            tileformat  = I915_TILING_Y;
+            if(0x80000000 == surface_hint)
+                tileformat = I915_TILING_NONE;
+            break;
+        case Media_Format_Buffer:
+            tileformat = I915_TILING_NONE;
+            break;
+        default:
+            DDI_ASSERTMESSAGE("Unsupported format");
+            return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
+    }
+    *aligned_height = alignedHeight;
+    if(tile_format)
+    {
+        *tile_format = tileformat;
+    }
+    return VA_STATUS_SUCCESS;
+}
+
 //!
 //! \brief  Allocate surface
-//! 
+//!
 //! \param  [in] format
 //!         Ddi media format
 //! \param  [in] width
@@ -278,7 +366,7 @@ bool DdiMediaUtil_IsExternalSurface(PDDI_MEDIA_SURFACE surface)
 //!         Pointer to ddi media surface
 //! \param  [in] mediaDrvCtx
 //!         Pointer to ddi media context
-//!         
+//!
 //! \return VAStatus
 //!     VA_STATUS_SUCCESS if success, else fail reason
 //!
@@ -303,76 +391,11 @@ VAStatus DdiMediaUtil_AllocateSurface(
     uint32_t tileformat   = I915_TILING_NONE;
     VAStatus hRes         = VA_STATUS_SUCCESS;
     int32_t alignedHeight = height;
-
-    switch (format)
+    hRes = DdiMediaUtil_GetExpectTileAndHeight(format, mediaSurface->surfaceUsageHint, height, &alignedHeight, &tileformat);
+    if(hRes != VA_STATUS_SUCCESS)
     {
-        case Media_Format_X8R8G8B8:
-        case Media_Format_X8B8G8R8:
-        case Media_Format_A8B8G8R8:
-        case Media_Format_R8G8B8A8:
-        case Media_Format_R5G6B5:
-        case Media_Format_R8G8B8:
-        case Media_Format_R10G10B10A2:
-        case Media_Format_B10G10R10A2: 
-            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint)
-            {
-                 tileformat = I915_TILING_NONE;
-                 break;
-            }
-        case Media_Format_NV21:
-        case Media_Format_YV12:
-        case Media_Format_I420:
-        case Media_Format_IYUV:
-            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint)
-            {
-                 tileformat = I915_TILING_NONE;
-                 break;
-            }
-        case Media_Format_RGBP:
-        case Media_Format_UYVY:
-        case Media_Format_A8R8G8B8:
-            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint &&
-                !(mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_DECODER))
-            {
-                 tileformat = I915_TILING_NONE;
-                 break;
-            }
-        case Media_Format_NV12:
-        case Media_Format_444P:
-        case Media_Format_422H:
-        case Media_Format_411P:
-        case Media_Format_422V:
-        case Media_Format_IMC3:
-        case Media_Format_400P:
-        case Media_Format_P010:
-        case Media_Format_P016:
-        case Media_Format_YUY2:
-        case Media_Format_Y210:
-        case Media_Format_Y216:
-        case Media_Format_AYUV:
-        case Media_Format_Y410:
-        case Media_Format_Y416:     
-            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint)
-            {
-#if UFO_GRALLOC_NEW_FORMAT
-                 //Planar type surface align 64 to improve performance.
-                alignedHeight = MOS_ALIGN_CEIL(height, 64);
-#else
-                //Planar type surface align 32 to improve performance.
-                alignedHeight = MOS_ALIGN_CEIL(height, 32);
-#endif
-            }
-            tileformat  = I915_TILING_Y;
-            break;
-        case Media_Format_Buffer:
-            tileformat = I915_TILING_NONE;
-            break;
-        default:
-            DDI_ASSERTMESSAGE("Unsupported format");
-            hRes = VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
-            goto finish;
+        goto finish;
     }
-
     if( DdiMediaUtil_IsExternalSurface(mediaSurface) )
     { 
         // DRM buffer allocated by Application, No need to re-allocate new DRM buffer
