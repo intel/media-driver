@@ -1283,24 +1283,27 @@ void CodechalVdencHevcState::SetVdencPipeBufAddrParams(
         }
     }
 
-    PCODEC_PICTURE l1RefFrameList = m_hevcSliceParams->RefPicList[LIST_1];
-    for (uint8_t refIdx = 0; refIdx <= m_hevcSliceParams->num_ref_idx_l1_active_minus1; refIdx++)
+    if (!m_lowDelay)
     {
-        CODEC_PICTURE refPic = l1RefFrameList[refIdx];
-
-        if (!CodecHal_PictureIsInvalid(refPic) && m_picIdx[refPic.FrameIdx].bValid)
+        PCODEC_PICTURE l1RefFrameList = m_hevcSliceParams->RefPicList[LIST_1];
+        for (uint8_t refIdx = 0; refIdx <= m_hevcSliceParams->num_ref_idx_l1_active_minus1; refIdx++)
         {
-            // L1 references
-            uint8_t refPicIdx = m_picIdx[refPic.FrameIdx].ucPicIdx;
-            pipeBufAddrParams.presVdencReferences[refIdx + m_hevcSliceParams->num_ref_idx_l0_active_minus1 + 1] = 
-                &m_refList[refPicIdx]->sRefReconBuffer.OsResource;
+            CODEC_PICTURE refPic = l1RefFrameList[refIdx];
 
-            // 4x/8x DS surface for VDEnc
-            uint8_t scaledIdx = m_refList[refPicIdx]->ucScalingIdx;
-            pipeBufAddrParams.presVdenc4xDsSurface[refIdx + m_hevcSliceParams->num_ref_idx_l0_active_minus1 + 1] =
-                &(m_trackedBuf->Get4xDsReconSurface(scaledIdx))->OsResource;
-            pipeBufAddrParams.presVdenc8xDsSurface[refIdx + m_hevcSliceParams->num_ref_idx_l0_active_minus1 + 1] = 
-                &(m_trackedBuf->Get8xDsReconSurface(scaledIdx))->OsResource;
+            if (!CodecHal_PictureIsInvalid(refPic) && m_picIdx[refPic.FrameIdx].bValid)
+            {
+                // L1 references
+                uint8_t refPicIdx = m_picIdx[refPic.FrameIdx].ucPicIdx;
+                pipeBufAddrParams.presVdencReferences[refIdx + m_hevcSliceParams->num_ref_idx_l0_active_minus1 + 1] = 
+                    &m_refList[refPicIdx]->sRefReconBuffer.OsResource;
+
+                // 4x/8x DS surface for VDEnc
+                uint8_t scaledIdx = m_refList[refPicIdx]->ucScalingIdx;
+                pipeBufAddrParams.presVdenc4xDsSurface[refIdx + m_hevcSliceParams->num_ref_idx_l0_active_minus1 + 1] =
+                    &(m_trackedBuf->Get4xDsReconSurface(scaledIdx))->OsResource;
+                pipeBufAddrParams.presVdenc8xDsSurface[refIdx + m_hevcSliceParams->num_ref_idx_l0_active_minus1 + 1] = 
+                    &(m_trackedBuf->Get8xDsReconSurface(scaledIdx))->OsResource;
+            }
         }
     }
 
