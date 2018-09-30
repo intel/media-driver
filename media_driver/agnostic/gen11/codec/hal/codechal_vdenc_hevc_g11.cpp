@@ -4592,7 +4592,7 @@ MOS_STATUS CodechalVdencHevcStateG11::SetDmemHuCPakIntegrate(
     hucPakStitchDmem->MAXPass                  = m_brcEnabled ? CODECHAL_VDENC_BRC_NUM_OF_PASSES : 1;
     hucPakStitchDmem->CurrentPass              = (uint8_t) currentPass+1;      // // Current BRC pass [1..MAXPass]
     hucPakStitchDmem->MinCUSize                = m_hevcSeqParams->log2_min_coding_block_size_minus3 + 3;
-    hucPakStitchDmem->CabacZeroWordFlag        = true;
+    hucPakStitchDmem->CabacZeroWordFlag        = false;
     hucPakStitchDmem->bitdepth_luma            = m_hevcSeqParams->bit_depth_luma_minus8 + 8;    // default: 8
     hucPakStitchDmem->bitdepth_chroma          = m_hevcSeqParams->bit_depth_chroma_minus8 + 8;  // default: 8
     hucPakStitchDmem->ChromaFormatIdc          = m_hevcSeqParams->chroma_format_idc;
