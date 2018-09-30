@@ -164,6 +164,9 @@ public:
 
     PCODECHAL_CMD_INITIALIZER               m_hucCmdInitializer = nullptr;
 
+    MOS_RESOURCE                            m_resDelayMinus;
+    uint32_t                                m_numDelay;
+
 protected:
     //!
     //! \brief    Constructor
