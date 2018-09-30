@@ -4840,7 +4840,7 @@ MOS_STATUS CodechalEncHevcStateG9::InitKernelStateMbEnc()
 
     if(MEDIA_IS_SKU(m_hwInterface->GetSkuTable(), FtrEncodeHEVC10bit) && m_is10BitHevc)
     {
-        m_numMbEncEncKrnStates = CODECHAL_HEVC_MBENC_NUM_KBL;
+        m_numMbEncEncKrnStates = CODECHAL_HEVC_MBENC_NUM_BXT_SKL;
     }
     else if (!m_noMeKernelForPFrame)
     {
@@ -4865,14 +4865,7 @@ MOS_STATUS CodechalEncHevcStateG9::InitKernelStateMbEnc()
         auto kernelSize = m_combinedKernelSize;
         CODECHAL_KERNEL_HEADER currKrnHeader;
 
-        if (krnStateIdx == CODECHAL_HEVC_MBENC_DS_COMBINED &&
-            m_numMbEncEncKrnStates == CODECHAL_HEVC_MBENC_NUM_BXT_SKL)  //Ignore. It isn't used on BXT.
-        {
-            kernelStatePtr++;
-            continue;
-        }
-
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(pfnGetKernelHeaderAndSize(
+        CODECHAL_ENCODE_CHK_STATUS(pfnGetKernelHeaderAndSize(
             m_kernelBinary,
             ENC_MBENC,
             krnStateIdx,
@@ -4898,6 +4891,7 @@ MOS_STATUS CodechalEncHevcStateG9::InitKernelStateMbEnc()
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->MhwInitISH(m_stateHeapInterface, kernelStatePtr));
 
+finish:
         kernelStatePtr++;
     }
 
