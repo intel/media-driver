@@ -784,7 +784,9 @@ DdiVp_SetProcPipelineParams(
 
     pVpHalSrcSurf = pVpHalRenderParams->pSrc[uSurfIndex];
 
-    pVpHalSrcSurf->Format = VpGetFormatFromMediaFormat(pMediaSrcSurf->format);
+    pVpHalSrcSurf->Format   = VpGetFormatFromMediaFormat(pMediaSrcSurf->format);
+    pVpHalSrcSurf->TileType = VpGetTileTypeFromMediaTileType(pMediaSrcSurf->TileType);
+    
     DDI_CHK_CONDITION((Format_Invalid == pVpHalSrcSurf->Format),
             "Invalid surface media format!", VA_STATUS_ERROR_INVALID_PARAMETER);
 
@@ -2695,7 +2697,8 @@ VAStatus DdiVp_BeginPicture(
     vaStatus = VpSetOsResource(pVpCtx, pMediaTgtSurf, pVpHalRenderParams->uDstCount);
     DDI_CHK_RET(vaStatus, "Call VpSetOsResource failed");
 
-    pVpHalTgtSurf->Format = pVpHalTgtSurf->OsResource.Format;
+    pVpHalTgtSurf->Format   = pVpHalTgtSurf->OsResource.Format;
+    pVpHalTgtSurf->TileType = pVpHalTgtSurf->OsResource.TileType;
 
     // reset source surface count
     pVpHalRenderParams->uSrcCount = 0;
