@@ -240,6 +240,8 @@ MOS_STATUS MhwMiInterfaceG10::SetWatchdogTimerRegisterOffset(
 MOS_STATUS MhwMiInterfaceG10::AddWatchdogTimerStartCmd(
     PMOS_COMMAND_BUFFER                 cmdBuffer)
 {
+    MOS_GPU_CONTEXT gpuContext;
+
     MHW_FUNCTION_ENTER;
 
     if (m_osInterface->bMediaReset == false ||
@@ -249,6 +251,10 @@ MOS_STATUS MhwMiInterfaceG10::AddWatchdogTimerStartCmd(
     }
 
     MHW_MI_CHK_NULL(cmdBuffer);
+
+    // Set Watchdog Timer Register Offset
+    gpuContext = m_osInterface->pfnGetGpuContext(m_osInterface);
+    MHW_MI_CHK_STATUS(SetWatchdogTimerRegisterOffset(gpuContext));
 
     // Send Stop before Start is to help recover from incorrect wdt state if previous submission
     // cause hang and not have a chance to execute the stop cmd in the end of batch buffer.
@@ -279,6 +285,8 @@ MOS_STATUS MhwMiInterfaceG10::AddWatchdogTimerStartCmd(
 MOS_STATUS MhwMiInterfaceG10::AddWatchdogTimerStopCmd(
     PMOS_COMMAND_BUFFER                 cmdBuffer)
 {
+    MOS_GPU_CONTEXT gpuContext;
+
     MHW_FUNCTION_ENTER;
 
     if (m_osInterface->bMediaReset == false ||
@@ -288,6 +296,10 @@ MOS_STATUS MhwMiInterfaceG10::AddWatchdogTimerStopCmd(
     }
 
     MHW_MI_CHK_NULL(cmdBuffer);
+
+    // Set Watchdog Timer Register Offset
+    gpuContext = m_osInterface->pfnGetGpuContext(m_osInterface);
+    MHW_MI_CHK_STATUS(SetWatchdogTimerRegisterOffset(gpuContext));
 
     //Stop Watchdog Timer
     MHW_MI_LOAD_REGISTER_IMM_PARAMS registerImmParams;
