@@ -1161,6 +1161,32 @@ MOS_STATUS CodechalVdencHevcStateG11::AllocatePakResources()
         m_osInterface->pfnUnlockResource(m_osInterface, &m_resBrcDataBuffer);
     }
 
+    if (m_numDelay)
+    {
+        allocParamsForBufferLinear.dwBytes = sizeof(uint32_t);
+        allocParamsForBufferLinear.pBufName = "DelayMinusMemory";
+
+        CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
+            m_osInterface,
+            &allocParamsForBufferLinear,
+            &m_resDelayMinus), "Failed to allocate delay minus memory.");
+
+        uint8_t* data;
+        MOS_LOCK_PARAMS lockFlags;
+        MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+        lockFlags.WriteOnly = 1;
+        data = (uint8_t*)m_osInterface->pfnLockResource(
+            m_osInterface,
+            &m_resDelayMinus,
+            &lockFlags);
+
+        CODECHAL_ENCODE_CHK_NULL_RETURN(data);
+
+        MOS_ZeroMemory(data, sizeof(uint32_t));
+
+        m_osInterface->pfnUnlockResource(m_osInterface, &m_resDelayMinus);
+    }
+
     return eStatus;
 }
 
@@ -1243,6 +1269,11 @@ MOS_STATUS CodechalVdencHevcStateG11::FreePakResources()
                 m_osInterface->pfnFreeResource(m_osInterface, &m_resHucPakStitchDmemBuffer[k][i]);
             }
         }
+    }
+
+    if (m_numDelay)
+    {
+        m_osInterface->pfnFreeResource(m_osInterface, &m_resDelayMinus);
     }
 
     return CodechalVdencHevcState::FreePakResources();
@@ -1923,6 +1954,19 @@ MOS_STATUS CodechalVdencHevcStateG11::ExecutePictureLevel()
                 &m_resPipeStartSemaMem,
                 &cmdBuffer,
                 m_numPipe));
+
+            // Program some placeholder cmds to resolve the hazard between pipe sync
+            MHW_MI_STORE_DATA_PARAMS dataParams;
+            dataParams.pOsResource = &m_resDelayMinus;
+            dataParams.dwResourceOffset = 0;
+            dataParams.dwValue = 0xDE1A;
+            for (uint32_t i = 0; i < m_numDelay; i++)
+            {
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(
+                    &cmdBuffer,
+                    &dataParams));
+            }
+
             //clean HW semaphore memory
             CODECHAL_ENCODE_CHK_STATUS_RETURN(SendMIAtomicCmd(&m_resPipeStartSemaMem, 1, MHW_MI_ATOMIC_DEC, &cmdBuffer));
 
@@ -2011,6 +2055,19 @@ MOS_STATUS CodechalVdencHevcStateG11::ExecutePictureLevel()
                 &m_resSyncSemaMem,
                 &cmdBuffer,
                 m_numPipe));
+
+            // Program some placeholder cmds to resolve the hazard between pipe sync
+            MHW_MI_STORE_DATA_PARAMS dataParams;
+            dataParams.pOsResource = &m_resDelayMinus;
+            dataParams.dwResourceOffset = 0;
+            dataParams.dwValue = 0xDE1A;
+            for (uint32_t i = 0; i < m_numDelay; i++)
+            {
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(
+                    &cmdBuffer,
+                    &dataParams));
+            }
+
             //clean HW semaphore memory
             CODECHAL_ENCODE_CHK_STATUS_RETURN(SendMIAtomicCmd(&m_resSyncSemaMem, 1, MHW_MI_ATOMIC_DEC, &cmdBuffer));
             ReturnCommandBuffer(&cmdBuffer);
@@ -2050,6 +2107,19 @@ MOS_STATUS CodechalVdencHevcStateG11::ExecutePictureLevel()
             &m_resBrcPakSemaphoreMem.sResource,
             &cmdBuffer,
             m_numPipe));
+
+        // Program some placeholder cmds to resolve the hazard between pipe sync
+        MHW_MI_STORE_DATA_PARAMS dataParams;
+        dataParams.pOsResource = &m_resDelayMinus;
+        dataParams.dwResourceOffset = 0;
+        dataParams.dwValue = 0xDE1A;
+        for (uint32_t i = 0; i < m_numDelay; i++)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(
+                &cmdBuffer,
+                &dataParams));
+        }
+
         //clean HW semaphore memory
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SendMIAtomicCmd(&m_resBrcPakSemaphoreMem.sResource, 1, MHW_MI_ATOMIC_DEC, &cmdBuffer));
     }
@@ -4420,6 +4490,8 @@ MOS_STATUS CodechalVdencHevcStateG11::Initialize(CodechalSetting * settings)
         &userFeatureData);
     m_enableVdBoxHWSemaphore = userFeatureData.i32Data ? true : false;
 
+    m_numDelay = 15;
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
@@ -4427,6 +4499,13 @@ MOS_STATUS CodechalVdencHevcStateG11::Initialize(CodechalSetting * settings)
         __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_ENABLE_VE_DEBUG_OVERRIDE,
         &userFeatureData);
     m_kmdVeOveride.Value = (uint64_t)userFeatureData.i64Data;
+
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_HCP_DECODE_BE_SEMA_RESET_DELAY_ID,
+        &userFeatureData);
+    m_numDelay = userFeatureData.u32Data;
 #endif
 
     if (settings->disableUltraHME)
