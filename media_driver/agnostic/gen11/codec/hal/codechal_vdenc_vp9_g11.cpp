@@ -3209,7 +3209,7 @@ MOS_STATUS CodechalVdencVp9StateG11::HuCVp9Prob()
 
     MHW_VDBOX_HUC_DMEM_STATE_PARAMS dmemParams;
     MOS_ZeroMemory(&dmemParams, sizeof(dmemParams));
-    dmemParams.presHucDataSource = &m_resHucProbDmemBuffer[currPass];
+    dmemParams.presHucDataSource = &m_resHucProbDmemBuffer[currPass != 0];
     dmemParams.dwDataLength = MOS_ALIGN_CEIL(sizeof(HucProbDmem), CODECHAL_CACHELINE_SIZE);
     dmemParams.dwDmemOffset = HUC_DMEM_OFFSET_RTOS_GEMS;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucDmemStateCmd(&cmdBuffer, &dmemParams));
@@ -3376,7 +3376,7 @@ MOS_STATUS CodechalVdencVp9StateG11::HuCVp9Prob()
 
         CODECHAL_DEBUG_TOOL(
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucDmem(
-                &m_resHucProbDmemBuffer[currPass],
+                &m_resHucProbDmemBuffer[currPass != 0],
                 sizeof(HucProbDmem),
                 currPass,
                 CodechalHucRegionDumpType::hucRegionDumpHpu));
@@ -3630,6 +3630,23 @@ MOS_STATUS CodechalVdencVp9StateG11::HuCBrcUpdate()
     MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
     flushDwParams.bVideoPipelineCacheInvalidate = true;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(&cmdBuffer, &flushDwParams));
+
+    // In case of other pipes running other tiles, signal the vdenc/pak hw commands there to proceed because brc update is done and no HPU in 2nd pass
+    if (m_scalableMode && m_isTilingSupported && !IsFirstPass() && !IsLastPass())
+    {
+        for (auto i = 1; i < m_numPipe; i++)
+        {
+            if (!Mos_ResourceIsNull(&m_hucDoneSemaphoreMem[i].sResource))
+            {
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(
+                    SetSemaphoreMem(
+                        &m_hucDoneSemaphoreMem[i].sResource,
+                        &cmdBuffer,
+                        (currPass + 1))
+                );
+            }
+        }
+    }
 
     if (!m_singleTaskPhaseSupported && (m_osInterface->bNoParsingAssistanceInKmd) && !m_scalableMode)
     {
@@ -4107,7 +4124,7 @@ MOS_STATUS CodechalVdencVp9StateG11::ExecutePictureLevel()
     // run HuC_VP9Prob first pass (it runs in parallel with ENC)
     if (m_hucEnabled)
     {
-        if (IsFirstPipe() && (IsFirstPass() || IsLastPass() || (m_vdencBrcEnabled)))  // Before the first PAK pass and for RePak pass; for RePak pass; and for BRC case, HuC_VP9Prob needs to be called on Pass 1 as well
+        if (IsFirstPipe() && (IsFirstPass() || IsLastPass()))  // Before the first PAK pass and for RePak pass
         {
             if (!m_singleTaskPhaseSupported)
             {
@@ -4208,7 +4225,7 @@ MOS_STATUS CodechalVdencVp9StateG11::ExecutePictureLevel()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(&cmdBuffer, requestFrameTracking));
     }
 
-    // Place hw semaphore on all other pipe to wait for first pipe HUC to finish. Apply for all passes after extend the Dmen HPU buffer size
+    // Place hw semaphore on all other pipe to wait for first pipe HUC to finish.
     int currPipe = GetCurrentPipe();
     if (m_scalableMode && m_hucEnabled && m_isTilingSupported)
     {

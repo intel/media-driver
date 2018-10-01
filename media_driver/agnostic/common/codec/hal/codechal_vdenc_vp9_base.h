@@ -228,8 +228,8 @@ enum VP9_MBBRC_MODE
 enum TU_MODE
 {
     TU_QUALITY = 1,
-    TU_NORMAL = 4,
-    TU_PERFORMANCE = 7
+    TU_NORMAL = 2,
+    TU_PERFORMANCE = 3
 };
 
 //!
@@ -1696,7 +1696,7 @@ public:
 
     bool                                        m_hucEnabled = false;
     bool                                        m_segmentMapAllocated = false;
-    MOS_RESOURCE                                m_resHucProbDmemBuffer[3];
+    MOS_RESOURCE                                m_resHucProbDmemBuffer[2];
     MOS_RESOURCE                                m_resHucDefaultProbBuffer;
     MOS_RESOURCE                                m_resHucProbOutputBuffer;
     MOS_RESOURCE                                m_resHucPakInsertUncompressedHeaderReadBuffer;
