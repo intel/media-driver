@@ -336,6 +336,8 @@ VAStatus DdiEncode_CreateContext(
     encCtx->pCodecHal = pCodecHal;
 
     // Setup some initial data
+    encCtx->dworiFrameWidth   = picture_width;
+    encCtx->dworiFrameHeight  = picture_height;
     encCtx->wPicWidthInMB     = (uint16_t)(DDI_CODEC_NUM_MACROBLOCKS_WIDTH(picture_width));
     encCtx->wPicHeightInMB    = (uint16_t)(DDI_CODEC_NUM_MACROBLOCKS_HEIGHT(picture_height));
     encCtx->dwFrameWidth      = encCtx->wPicWidthInMB * CODECHAL_MACROBLOCK_WIDTH;

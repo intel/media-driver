@@ -101,10 +101,10 @@ VAStatus DdiEncodeHevc::ContextInitialize(
     {
         codecHalSettings->codecFunction = CODECHAL_FUNCTION_ENC_PAK;
     }
-    codecHalSettings->height          = m_encodeCtx->dwFrameHeight;
-    codecHalSettings->width           = m_encodeCtx->dwFrameWidth;
-    codecHalSettings->mode              = m_encodeCtx->wModeType;
-    codecHalSettings->standard          = CODECHAL_HEVC;
+    codecHalSettings->height          = m_encodeCtx->dworiFrameHeight;
+    codecHalSettings->width           = m_encodeCtx->dworiFrameWidth;
+    codecHalSettings->mode            = m_encodeCtx->wModeType;
+    codecHalSettings->standard        = CODECHAL_HEVC;
     codecHalSettings->chromaFormat    = HCP_CHROMA_FORMAT_YUV420;
     codecHalSettings->lumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_8_BITS;
     if (m_is10Bit)
