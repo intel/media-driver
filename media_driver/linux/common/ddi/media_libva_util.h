@@ -335,26 +335,6 @@ int32_t  DdiMediaUtil_OpenGraphicsAdaptor(char *devName);
 //!
 VAStatus DdiMediaUtil_UnRegisterRTSurfaces(VADriverContextP    ctx,PDDI_MEDIA_SURFACE surface);
 
-//!
-//! \brief get expected surface height and tile format
-//!
-//! \param [in] format
-//!     expect media format
-//! \param [in] surface_hint
-//!     surface hint
-//! \param [in] height
-//!     height;
-//! \param [out] aligned_height
-//!     expected aligned height
-//! \param [out] tile_format
-//!     expected tile format
-//!
-VAStatus DdiMediaUtil_GetExpectTileAndHeight(
-    DDI_MEDIA_FORMAT format,
-    uint32_t surface_hint,
-    int32_t height,
-    int32_t *aligned_height,
-    uint32_t *tile_format);
 //------------------------------------------------------------------------------
 // Macros for debug messages, Assert, Null check and condition check within ddi files
 //------------------------------------------------------------------------------
