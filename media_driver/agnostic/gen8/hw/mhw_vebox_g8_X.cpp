@@ -290,7 +290,7 @@ MOS_STATUS MhwVeboxInterfaceG8::AddVeboxState(
     PMOS_RESOURCE                    pVeboxHeapResource  = nullptr;
     PMHW_VEBOX_HEAP                  pVeboxHeap;
     PMHW_VEBOX_MODE                  pVeboxMode;
-    uint32_t                         uiInstanceBaseAddr;
+    uint32_t                         uiInstanceBaseAddr  = 0;
     MHW_RESOURCE_PARAMS              ResourceParams;
     mhw_vebox_g8_X::VEBOX_STATE_CMD  cmd;
 
