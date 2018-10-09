@@ -677,6 +677,7 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     attrib.value = VA_ATTRIB_NOT_SUPPORTED;
     if (m_isEntryptSupported)
     {
+        attrib.value = 0;
         uint32_t encryptTypes[3] = {0};
         int32_t  numTypes =  m_CapsCp->GetEncryptionTypes(profile,
                  encryptTypes, 3);
@@ -883,10 +884,10 @@ VAStatus MediaLibvaCaps::CreateDecAttributes(
     (*attribList)[attrib.type] = attrib.value;
 
     attrib.type = VAConfigAttribEncryption;
-
     attrib.value = VA_ATTRIB_NOT_SUPPORTED;
     if (m_isEntryptSupported)
     {
+        attrib.value = 0;
         uint32_t encryptTypes[3] = {0};
         int32_t numTypes =  m_CapsCp->GetEncryptionTypes(profile,
                 encryptTypes, 3);
