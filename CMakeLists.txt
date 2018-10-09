@@ -54,7 +54,7 @@ message(STATUS "LIBVA_DRIVERS_PATH = ${LIBVA_DRIVERS_PATH}")
 install (FILES ${CMAKE_CURRENT_BINARY_DIR}/media_driver/iHD_drv_video.so DESTINATION ${LIBVA_DRIVERS_PATH} COMPONENT media)
 install (FILES ${CMAKE_CURRENT_BINARY_DIR}/cmrtlib/linux/igfxcmrt64.so DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT media)
 
-option (INSTALL_DRIVER_SYSCONF "Install driver system configuration file" ON)
+option (INSTALL_DRIVER_SYSCONF "Install driver system configuration file" OFF)
 if (INSTALL_DRIVER_SYSCONF)
     configure_file (
         ${CMAKE_CURRENT_SOURCE_DIR}/media_driver/cmake/linux/intel-media.sh.in
