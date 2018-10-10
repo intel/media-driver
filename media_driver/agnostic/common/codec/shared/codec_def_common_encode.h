@@ -413,6 +413,10 @@ typedef enum _CODEC_SLICE_STRUCTS
 #define CodecHalUsesVdencEngine(codecFunction)   \
         (codecFunction == CODECHAL_FUNCTION_ENC_VDENC_PAK)
 
+#define CodecHalUsesPakEngine(codecFunction)   \
+    (codecFunction == CODECHAL_FUNCTION_PAK       ||  \
+     codecFunction == CODECHAL_FUNCTION_ENC_PAK)
+
 #define CodecHalIsRateControlBrc(rateControl, standard) (\
     (rateControl == RATECONTROL_CBR)                || \
     (rateControl == RATECONTROL_VBR)                || \
