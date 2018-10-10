@@ -40,6 +40,7 @@ static const uint16_t vuiKbps = 1024;
 static const uint8_t sliceTypeP = 0;
 static const uint8_t sliceTypeB = 1;
 static const uint8_t sliceTypeI = 2;
+static const uint8_t maxPassesNum = 4;
 
 //Inter MB partition 16x16 can't be disabled.
 static const uint8_t disMbPartMask      = 0x7E;
@@ -335,6 +336,42 @@ VAStatus DdiEncodeAvc::ParseMiscParamMaxFrameSize(void *data)
 
     // populate MaxFrameSize from DDI
     seqParams->UserMaxFrameSize = vaEncMiscParamMaxFrameSize->max_frame_size >> 3;  // convert to byte
+
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiEncodeAvc::ParseMiscParamMultiPassFrameSize(void *data)
+{
+    DDI_CHK_NULL(data, "nullptr data", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    PCODEC_AVC_ENCODE_PIC_PARAMS picParams = (PCODEC_AVC_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams) + current_pic_parameter_set_id;
+    VAEncMiscParameterBufferMultiPassFrameSize *vaEncMiscParamMultiPassFrameSize = (VAEncMiscParameterBufferMultiPassFrameSize *)data;
+    DDI_CHK_NULL(picParams, "nullptr picParams", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    //add for multiple pass pak
+    picParams->dwMaxFrameSize = vaEncMiscParamMultiPassFrameSize->max_frame_size;
+    if (picParams->dwMaxFrameSize)
+    {
+        picParams->dwNumPasses = vaEncMiscParamMultiPassFrameSize->num_passes;
+        if ((picParams->dwNumPasses == 0) || (picParams->dwNumPasses > maxPassesNum))
+        {
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
+        if (picParams->pDeltaQp != nullptr)
+        {
+            MOS_FreeMemory(picParams->pDeltaQp);
+        }
+        picParams->pDeltaQp = (uint8_t *)MOS_AllocAndZeroMemory(sizeof(uint8_t) * picParams->dwNumPasses);
+        if (!picParams->pDeltaQp)
+        {
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
+
+        if (MOS_STATUS_SUCCESS != MOS_SecureMemcpy(picParams->pDeltaQp, picParams->dwNumPasses, vaEncMiscParamMultiPassFrameSize->delta_qp, picParams->dwNumPasses))
+        {
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
+    }
 
     return VA_STATUS_SUCCESS;
 }
@@ -1882,6 +1919,10 @@ VAStatus DdiEncodeAvc::ParseMiscParams(void *ptr)
 
     case VAEncMiscParameterTypeMaxFrameSize:
         status = ParseMiscParamMaxFrameSize((void *)miscParamBuf->data);
+        break;
+
+    case VAEncMiscParameterTypeMultiPassFrameSize:
+        status = ParseMiscParamMultiPassFrameSize((void *)miscParamBuf->data);
         break;
 
     case VAEncMiscParameterTypeQualityLevel:
