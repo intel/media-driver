@@ -63,29 +63,9 @@ MhwSfcInterfaceG9::MhwSfcInterfaceG9(PMOS_INTERFACE pOsInterface)
         return;
     }
 
-    if (m_osInterface->osCpInterface != nullptr)
-    {
-        if (m_osInterface->osCpInterface->IsHMEnabled() ||
-            m_osInterface->osCpInterface->IsIDMEnabled() ||
-            m_osInterface->osCpInterface->IsSMEnabled())
-        {
-            m_outputSurfCtrl.Value = m_osInterface->pfnCachePolicyGetMemoryObject(
-                MOS_MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface_PartialEncSurface,
-                m_osInterface->pfnGetGmmClientContext(m_osInterface)).DwordValue;
-        }
-        else
-        {
-            m_outputSurfCtrl.Value = m_osInterface->pfnCachePolicyGetMemoryObject(
-                MOS_MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface,
-                m_osInterface->pfnGetGmmClientContext(m_osInterface)).DwordValue;
-        }
-    }
-    else
-    {
-        m_outputSurfCtrl.Value = m_osInterface->pfnCachePolicyGetMemoryObject(
-            MOS_MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface,
-            m_osInterface->pfnGetGmmClientContext(m_osInterface)).DwordValue;
-    }
+    m_outputSurfCtrl.Value = m_osInterface->pfnCachePolicyGetMemoryObject(
+        MOS_MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface,
+        m_osInterface->pfnGetGmmClientContext(m_osInterface)).DwordValue;
 
     m_avsLineBufferCtrl.Value = m_osInterface->pfnCachePolicyGetMemoryObject(
         MOS_MHW_RESOURCE_USAGE_Sfc_AvsLineBufferSurface,

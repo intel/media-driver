@@ -211,6 +211,7 @@ public:
        MHW_RESOURCE_PARAMS         ResourceParams;
        MEDIA_WA_TABLE              *pWaTable = nullptr;
        typename TSfcCmds::SFC_STATE_CMD cmd;
+       MHW_MEMORY_OBJECT_CONTROL_PARAMS outputSurfCtrl;
 
        MHW_CHK_NULL_RETURN(pCmdBuffer);
        MHW_CHK_NULL_RETURN(pSfcStateParams);
@@ -228,6 +229,14 @@ public:
        wUYOffset           = 0;
        wVXOffset           = 0;
        wVYOffset           = 0;
+
+       outputSurfCtrl.Value = m_outputSurfCtrl.Value;
+       if (pOsInterface->osCpInterface && pOsInterface->osCpInterface->IsHMEnabled())
+       {
+           outputSurfCtrl.Value = pOsInterface->pfnCachePolicyGetMemoryObject(
+               MOS_MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface_PartialEncSurface,
+               pOsInterface->pfnGetGmmClientContext(pOsInterface)).DwordValue;
+       }
 
        // Check input/output size
        MHW_ASSERT(pSfcStateParams->dwInputFrameWidth   >= MHW_SFC_MIN_WIDTH);
@@ -351,7 +360,7 @@ public:
 
        // Set DW19
        cmd.DW19.OutputFrameSurfaceBaseAddressMemoryCompressionEnable                   = pSfcStateParams->bMMCEnable;
-       cmd.DW19.OutputFrameSurfaceBaseAddressIndexToMemoryObjectControlStateMocsTables = m_outputSurfCtrl.Gen9.Index;
+       cmd.DW19.OutputFrameSurfaceBaseAddressIndexToMemoryObjectControlStateMocsTables = outputSurfCtrl.Gen9.Index;
 
        if (pSfcStateParams->MMCMode == MOS_MMC_VERTICAL)
        {
