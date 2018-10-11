@@ -4007,6 +4007,7 @@ VAStatus DdiMedia_CreateImage(
         case VA_FOURCC_UYVY:
         case VA_FOURCC_YUY2:
             vaimg->num_planes = 1;
+            vaimg->format.bits_per_pixel = 16;
             vaimg->pitches[0] = gmmPitch;
             break;
         case VA_FOURCC_NV12:
@@ -4048,6 +4049,7 @@ VAStatus DdiMedia_CreateImage(
             vaimg->pitches[0] = vaimg->pitches[1] = vaimg->pitches[2] = gmmPitch;
             vaimg->offsets[1] = gmmPitch * gmmHeight;
             vaimg->offsets[2] = vaimg->offsets[1] + gmmPitch * gmmHeight / 2;
+            break;
         case VA_FOURCC_RGBP:
             vaimg->format.bits_per_pixel = 24;
             vaimg->num_planes = 3;
