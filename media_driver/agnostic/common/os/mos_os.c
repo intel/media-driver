@@ -945,6 +945,12 @@ MOS_STATUS Mos_CheckVirtualEngineSupported(
         {
             osInterface->ctxBasedScheduling = false;
         }
+#if (_DEBUG || _RELEASE_INTERNAL)
+        MOS_USER_FEATURE_VALUE_WRITE_DATA  userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
+        userFeatureWriteData.Value.i32Data = osInterface->ctxBasedScheduling ? true : false;
+        userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_ENABLE_DECODE_VE_CTXSCHEDULING_ID;
+        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+#endif
     }
     else
     {
