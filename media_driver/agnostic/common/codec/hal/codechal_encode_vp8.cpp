@@ -5608,4 +5608,30 @@ MOS_STATUS CodechalEncodeVp8::DumpVp8EncodeSeqParams(
 
     return MOS_STATUS_SUCCESS;
 }
+
+MOS_STATUS CodechalEncodeVp8::DumpMbEncPakOutput(PCODEC_REF_LIST currRefList, CodechalDebugInterface* debugInterface)
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+    CODECHAL_ENCODE_CHK_NULL_RETURN(currRefList);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(debugInterface);
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBuffer(
+            &currRefList->resRefMbCodeBuffer,
+            CodechalDbgAttr::attrOutput,
+            "MbCode",
+            m_picWidthInMb * m_picHeightInMb * 16 * 4,
+            0,
+            CODECHAL_MEDIA_STATE_ENC_NORMAL));
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBuffer(
+            &currRefList->resRefMbCodeBuffer,
+            CodechalDbgAttr::attrOutput,
+            "MVData",
+            m_picWidthInMb * m_picHeightInMb * 16 * 4,
+            m_mvOffset,
+            CODECHAL_MEDIA_STATE_ENC_NORMAL));
+    
+    return MOS_STATUS_SUCCESS;
+}
+
 #endif
