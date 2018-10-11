@@ -140,7 +140,6 @@ GpuContext *GpuContextMgr::CreateGpuContext(
     {
         if(curGpuContext == nullptr)
         {
-            gpuContextHandle = index;
             break;
         }
         index++;
