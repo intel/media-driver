@@ -3593,6 +3593,8 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(StartStatusReport(&cmdBuffer, CODECHAL_NUM_MEDIA_STATES));
 
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencControlStateCmd(&cmdBuffer));
+
     // set MFX_SURFACE_STATE values
     // Ref surface
     MHW_VDBOX_SURFACE_PARAMS reconSurfaceParams;
@@ -5209,6 +5211,7 @@ void CodechalVdencAvcState::SetMfxAvcImgStateParams(MHW_VDBOX_AVC_IMG_PARAMS& pa
             m_vdencSliceMinusI : m_vdencSliceMinusP;
     }
 
+    param.bVdencEnabled = true;
     param.pVDEncModeCost = m_vdencModeCostTbl;
     param.pVDEncHmeMvCost = m_vdencHmeMvCostTbl;
     param.pVDEncMvCost = m_vdencMvCostTbl;
