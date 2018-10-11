@@ -523,6 +523,12 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+    virtual MOS_STATUS AddVdencControlStateCmd(
+        PMOS_COMMAND_BUFFER cmdBuffer)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
     //!
     //! \brief    Adds CMD1 command in command buffer
     //! \details  Client facing function to add CMD1 command in command buffer
