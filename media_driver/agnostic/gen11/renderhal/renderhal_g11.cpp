@@ -283,7 +283,7 @@ MOS_STATUS XRenderHal_Interface_g11::SetupSurfaceState (
                     {
                         SurfStateParams.bSeperateUVPlane = false;
                         SurfStateParams.dwXOffsetForU    = 0;
-                        SurfStateParams.dwYOffsetForU    = (uint32_t)pSurface->UPlaneOffset.iSurfaceOffset / pSurface->dwPitch;
+                        SurfStateParams.dwYOffsetForU    = (uint32_t)((pSurface->UPlaneOffset.iSurfaceOffset - pSurface->YPlaneOffset.iSurfaceOffset) / pSurface->dwPitch) + pSurface->UPlaneOffset.iYOffset;
                         SurfStateParams.dwXOffsetForV    = 0;
                         SurfStateParams.dwYOffsetForV    = 0;
                     }
@@ -294,7 +294,7 @@ MOS_STATUS XRenderHal_Interface_g11::SetupSurfaceState (
                 {
                     SurfStateParams.bSeperateUVPlane = false;
                     SurfStateParams.dwXOffsetForU    = 0;
-                    SurfStateParams.dwYOffsetForU    = (uint32_t)pSurface->UPlaneOffset.iSurfaceOffset / pSurface->dwPitch;
+                    SurfStateParams.dwYOffsetForU    = (uint32_t)((pSurface->UPlaneOffset.iSurfaceOffset - pSurface->YPlaneOffset.iSurfaceOffset) / pSurface->dwPitch) + pSurface->UPlaneOffset.iYOffset;
                     SurfStateParams.dwXOffsetForV    = 0;
                     SurfStateParams.dwYOffsetForV    = 0;
                 }
