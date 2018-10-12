@@ -1736,7 +1736,7 @@ MOS_STATUS CodechalVdencHevcStateG10::SetDmemHuCBrcInitReset()
         if (bps_ratio < m_bpsRatioLow) bps_ratio = m_bpsRatioLow;
         if (bps_ratio > m_bpsRatioHigh) bps_ratio = m_bpsRatioHigh;
 
-        for (int i = 0; i < m_numDevThreshlds / 2; i++) {
+        for (uint32_t i = 0; i < m_numDevThreshlds / 2; i++) {
             DevThreshPB0_S8[i] = (signed char)(m_negMultPB*pow(m_devThreshPBFPNEG[i], bps_ratio));
             DevThreshPB0_S8[i + m_numDevThreshlds / 2] = (signed char)(m_postMultPB*pow(m_devThreshPBFPPOS[i], bps_ratio));
 
@@ -1821,7 +1821,7 @@ MOS_STATUS CodechalVdencHevcStateG10::SetConstDataHuCBrcUpdate()
 
         for (int i=0; i < numEstrateThreshlds +1; i++)
         {
-            for (int j=0; j < m_numDevThreshlds +1; j++)
+            for (uint32_t j = 0; j < m_numDevThreshlds + 1; j++)
             {
                 hucConstData->FrmSzAdjTabI_S8[(numEstrateThreshlds +1)*j+i]= m_lowdelayDeltaFrmszI[j][i];
                 hucConstData->FrmSzAdjTabP_S8[(numEstrateThreshlds +1)*j+i]= m_lowdelayDeltaFrmszP[j][i];

@@ -6803,12 +6803,12 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::EncodeMbEncKernelFunctions()
 
         if (m_mfeFirstStream)
         {
-            for (int i = 0; i < m_vmeSurfaceSize; i++)
+            for (uint32_t i = 0; i < m_vmeSurfaceSize; i++)
             {
                 m_vmeSurface[i] = CM_NULL_SURFACE;
             }
 
-            for (int i = 0; i < m_commonSurfaceSize; i++)
+            for (uint32_t i = 0; i < m_commonSurfaceSize; i++)
             {
                 m_commonSurface[i] = CM_NULL_SURFACE;
             }
