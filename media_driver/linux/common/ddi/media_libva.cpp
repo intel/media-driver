@@ -252,7 +252,7 @@ static bool DdiMedia_ReleaseBsBuffer(
 
     if (buf->format == Media_Format_CPU)
     {
-        for(int32_t i = 0; i < bufMgr->dwNumSliceData; i++)
+        for(uint32_t i = 0; i < bufMgr->dwNumSliceData; i++)
         {
             if(bufMgr->pSliceData[i].pBaseAddress == buf->pData)
             {
@@ -2044,7 +2044,7 @@ DdiMedia_CreateSurfaces2(
     bool     surfDescProvided = false;
     bool     surfIsUserPtr    = false;
 
-    for (int32_t i = 0; i < num_attribs && attrib_list; i++)
+    for (uint32_t i = 0; i < num_attribs && attrib_list; i++)
     {
         if (attrib_list[i].flags & VA_SURFACE_ATTRIB_SETTABLE)
         {
@@ -2123,7 +2123,7 @@ DdiMedia_CreateSurfaces2(
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
-    for(int32_t i = 0; i < num_surfaces; i++)
+    for(uint32_t i = 0; i < num_surfaces; i++)
     {
         PDDI_MEDIA_SURFACE_DESCRIPTOR surfDesc = nullptr;
         MOS_STATUS                    eStatus = MOS_STATUS_SUCCESS;
@@ -2351,7 +2351,7 @@ static VAStatus DdiMedia_ReleaseContextInternal(
 
     bool contextErased = false;
     DdiMediaUtil_LockMutex(&encodeMfeContext->encodeMfeMutex);
-    for (int32_t i = 0; i < encodeMfeContext->pDdiEncodeContexts.size(); i++)
+    for (uint32_t i = 0; i < encodeMfeContext->pDdiEncodeContexts.size(); i++)
     {
         if (encodeMfeContext->pDdiEncodeContexts[i] == encodeContext)
         {
@@ -3285,7 +3285,7 @@ static VAStatus DdiMedia_SyncSurface (
         // Just loop while gem_bo_wait times-out.
     }
 
-    int32_t i = 0;
+    uint32_t i = 0;
     PDDI_DECODE_CONTEXT decCtx = (PDDI_DECODE_CONTEXT)surface->pDecCtx;
     if (decCtx && surface->curCtxType == DDI_MEDIA_CONTEXT_TYPE_DECODER)
     {
@@ -3338,7 +3338,7 @@ static VAStatus DdiMedia_SyncSurface (
                         DdiMediaUtil_LockMutex(&mediaCtx->SurfaceMutex);
                         PDDI_MEDIA_SURFACE_HEAP_ELEMENT mediaSurfaceHeapElmt = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)mediaCtx->pSurfaceHeap->pHeapBase;
 
-                        int32_t j = 0;
+                        uint32_t j = 0;
                         for (j = 0; j < mediaCtx->pSurfaceHeap->uiAllocatedHeapElements; j++, mediaSurfaceHeapElmt++)
                         {
                             if (mediaSurfaceHeapElmt != nullptr &&

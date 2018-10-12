@@ -289,7 +289,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
     PDDI_MEDIA_SURFACE          mediaSurface,
     PDDI_MEDIA_CONTEXT          mediaDrvCtx)
 {
-    int32_t                     pitch = 0;
+    uint32_t                    pitch = 0;
     MOS_LINUX_BO               *bo = nullptr;
     GMM_RESCREATE_PARAMS        gmmParams;
     GMM_RESOURCE_INFO          *gmmResourceInfo;
@@ -518,7 +518,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
 
     if (!DdiMediaUtil_IsExternalSurface(mediaSurface))
     {
-        unsigned long  ulPitch;
+        unsigned long  ulPitch = 0;
 #if defined(I915_PARAM_CREATE_VERSION)
         int32_t value = 0;
         int32_t ret = -1;
@@ -538,7 +538,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
             {
                 DDI_VERBOSEMESSAGE("Stolen memory is created sucessfully on AllocateSurface");
             }
-            pitch = (int32_t)ulPitch;
+            pitch = ulPitch;
         }
         else
 #endif  
@@ -551,7 +551,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
             else
             {
                 bo = mos_bo_alloc_tiled(mediaDrvCtx->pDrmBufMgr, "MEDIA", gmmPitch, gmmSize/gmmPitch, 1, &tileformat, (unsigned long *)&ulPitch, 0);
-                pitch = (int32_t)ulPitch;
+                pitch = ulPitch;
             }
         }
     }
@@ -1448,7 +1448,7 @@ VAStatus DdiMediaUtil_UnRegisterRTSurfaces(
 
         DdiMediaUtil_LockMutex(&mediaCtx->DecoderMutex);
         decVACtxHeapBase  = (PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT)mediaCtx->pDecoderCtxHeap->pHeapBase;
-        for (int32_t j = 0; j < mediaCtx->pDecoderCtxHeap->uiAllocatedHeapElements; j++)
+        for (uint32_t j = 0; j < mediaCtx->pDecoderCtxHeap->uiAllocatedHeapElements; j++)
         {
             if (decVACtxHeapBase[j].pVaContext != nullptr)
             {
@@ -1468,7 +1468,7 @@ VAStatus DdiMediaUtil_UnRegisterRTSurfaces(
 
         DdiMediaUtil_LockMutex(&mediaCtx->EncoderMutex);
         pEncVACtxHeapBase  = (PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT)mediaCtx->pEncoderCtxHeap->pHeapBase;
-        for (int32_t j = 0; j < mediaCtx->pEncoderCtxHeap->uiAllocatedHeapElements; j++)
+        for (uint32_t j = 0; j < mediaCtx->pEncoderCtxHeap->uiAllocatedHeapElements; j++)
         {
             if (pEncVACtxHeapBase[j].pVaContext != nullptr)
             {

@@ -506,7 +506,7 @@ MOS_STATUS GpuContextSpecific::MapResourcesToAuxTable(mos_linux_bo *cmd_bo)
     if (auxTableMgr)
     {
         // Map compress allocations to aux table if it is not mapped.
-        for (int i = 0; i < m_numAllocations; i++)
+        for (uint32_t i = 0; i < m_numAllocations; i++)
         {
             auto res = (PMOS_RESOURCE)m_allocationList[i].hAllocation;
             MOS_OS_CHK_NULL_RETURN(res);

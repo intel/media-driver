@@ -4699,7 +4699,7 @@ int mos_get_slice_mask(uint32_t slice_count)
 {
     uint32_t bitflag = 1;
     uint32_t bitmask = 0;
-    int count = 0;
+    uint32_t count = 0;
 
     while (count < slice_count)
     {
