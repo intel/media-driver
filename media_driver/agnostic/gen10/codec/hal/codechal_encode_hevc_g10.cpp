@@ -1926,7 +1926,7 @@ MOS_STATUS CodechalEncHevcStateG10::AllocateEncResources()
             "Kernel 1D Debug Surface"));
     }
 
-    m_allocator->AllocateResource(m_standard, m_brcCombinedEncBufferSize, 1, brcInputForEncKernel, true);
+    m_allocator->AllocateResource(m_standard, m_brcCombinedEncBufferSize, 1, brcInputForEncKernel, "brcInputForEncKernel", true);
 
     // Surfaces used by I-kernel
     // Enc Constant Table for I
@@ -2723,31 +2723,8 @@ MOS_STATUS CodechalEncHevcStateG10::SetCurbeBrcUpdate(CODECHAL_HEVC_BRC_KRNIDX b
     curbe.DW1_FrameNumber       = m_storeData - 1;
 
     curbe.DW2_PictureHeaderSize = GetPicHdrSize();
-
-    if(m_pictureCodingType == I_TYPE)
-    {
-        curbe.DW5_CurrFrameBrcLevel = HEVC_BRC_FRAME_TYPE_I;
-    }
-    else if(m_pictureCodingType == B_TYPE)
-    {
-        curbe.DW5_CurrFrameBrcLevel = (m_lowDelay) ? HEVC_BRC_FRAME_TYPE_P_OR_LB : HEVC_BRC_FRAME_TYPE_B;
-    }
-    else if (m_pictureCodingType == B1_TYPE)
-    {
-        curbe.DW5_CurrFrameBrcLevel = HEVC_BRC_FRAME_TYPE_B1;
-    }
-    else if (m_pictureCodingType == B2_TYPE)
-    {
-        curbe.DW5_CurrFrameBrcLevel = HEVC_BRC_FRAME_TYPE_B2;
-    }
-    else
-    {
-        CODECHAL_ENCODE_ASSERT(false);
-        eStatus = MOS_STATUS_INVALID_PARAMETER;
-        return eStatus;
-    }
-
-    curbe.DW5_MaxNumPAKs = m_mfxInterface->GetBrcNumPakPasses();
+    curbe.DW5_CurrFrameBrcLevel = m_currFrameBrcLevel;
+    curbe.DW5_MaxNumPAKs        = m_mfxInterface->GetBrcNumPakPasses();
 
     if (m_hevcSeqParams->RateControlMethod == RATECONTROL_CQP)
     {
@@ -5582,6 +5559,7 @@ MOS_STATUS CodechalEncHevcStateG10::EncodeBrcFrameUpdateKernel()
     mhwHevcPicState.pHevcEncPicParams = m_hevcPicParams;
     mhwHevcPicState.bUseVDEnc = false;
     mhwHevcPicState.brcNumPakPasses = m_mfxInterface->GetBrcNumPakPasses();
+    mhwHevcPicState.bSAOEnable = m_hevcSeqParams->SAO_enabled_flag ? (m_hevcSliceParams->slice_sao_luma_flag || m_hevcSliceParams->slice_sao_chroma_flag) : 0;
 
     PMOS_RESOURCE brcHcpStateReadBuffer = &m_brcBuffers.resBrcImageStatesReadBuffer[m_currRecycledBufIdx];
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpHevcPicBrcBuffer(brcHcpStateReadBuffer, &mhwHevcPicState));

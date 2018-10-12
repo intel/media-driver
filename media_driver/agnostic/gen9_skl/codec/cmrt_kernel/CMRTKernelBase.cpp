@@ -153,6 +153,29 @@ CM_RETURN_CODE CMRTKernelBase::Init(void *osContext, CmDevice *cmDev, CmQueue *c
     return CM_SUCCESS;
 }
 
+int32_t CMRTKernelBase::CreateThreadSpace(uint32_t threadSpaceWidth, uint32_t threadSpaceHeight)
+{
+    int32_t result = CM_SUCCESS;
+
+    if (!m_cmThreadSpace)
+    {
+        result = m_cmDev->CreateThreadSpace(threadSpaceWidth, threadSpaceHeight, m_cmThreadSpace);
+    }
+    else
+    {
+        //Destory thread space used before
+        result = m_cmDev->DestroyThreadSpace(m_cmThreadSpace);
+        if (result != CM_SUCCESS)
+        {
+            printf("CM Destroy ThreadSpace error : %d", result);
+            return (CM_RETURN_CODE)result;
+        }
+        result = m_cmDev->CreateThreadSpace(threadSpaceWidth, threadSpaceHeight, m_cmThreadSpace);
+    }
+
+    return result;
+}
+
 CM_RETURN_CODE CMRTKernelBase::AddKernel(CmEvent *&cmEvent, bool destroyEvent, bool isEnqueue)
 {
     if (m_cmTask == nullptr)

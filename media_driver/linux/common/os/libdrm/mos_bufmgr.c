@@ -1,7 +1,7 @@
 /**************************************************************************
  *
  * Copyright © 2007 Red Hat Inc.
- * Copyright © 2007-2012 Intel Corporation
+ * Copyright © 2007-2018 Intel Corporation
  * Copyright 2006 Tungsten Graphics, Inc., Bismarck, ND., USA
  * All Rights Reserved.
  *
@@ -2233,6 +2233,32 @@ int
 mos_gem_bo_unmap_gtt(struct mos_linux_bo *bo)
 {
     return mos_gem_bo_unmap(bo);
+}
+
+int mos_gem_bo_get_fake_offset(struct mos_linux_bo *bo)
+{
+    int ret;
+    struct drm_i915_gem_mmap_gtt mmap_arg;
+    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bo->bufmgr;
+    struct mos_bo_gem *bo_gem = (struct mos_bo_gem *) bo;
+
+    memclear(mmap_arg);
+    mmap_arg.handle = bo_gem->gem_handle;
+
+    ret = drmIoctl(bufmgr_gem->fd,
+            DRM_IOCTL_I915_GEM_MMAP_GTT,
+            &mmap_arg);
+    if (ret != 0) {
+        ret = -errno;
+        MOS_DBG("%s:%d: Error to get buffer fake offset %d (%s): %s .\n",
+            __FILE__, __LINE__,
+            bo_gem->gem_handle, bo_gem->name,
+            strerror(errno));
+    }
+    else {
+        bo->offset64 = mmap_arg.offset;
+    }
+    return ret;
 }
 
 drm_export int
@@ -4705,7 +4731,6 @@ mos_get_context_param_sseu(struct mos_linux_context *ctx,
     ret = drmIoctl(bufmgr_gem->fd,
             DRM_IOCTL_I915_GEM_CONTEXT_GETPARAM,
             &context_param);
-    sseu->value = context_param.value;
 
     return ret;
 }

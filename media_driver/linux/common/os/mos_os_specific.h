@@ -31,7 +31,7 @@
 #include "GmmLib.h"
 #include "mos_resource_defs.h"
 #include "mos_defs.h"
-#include "mos_os_cp_specific.h"
+#include "mos_os_cp_interface_specific.h"
 #ifdef ANDROID
 #include <utils/Log.h>
 #endif
@@ -45,6 +45,7 @@
 typedef unsigned int MOS_OS_FORMAT;
 
 class GraphicsResource;
+class AuxTableMgr;
 
 ////////////////////////////////////////////////////////////////////
 
@@ -246,7 +247,8 @@ struct _MOS_SPECIFIC_RESOURCE
     uint32_t            name;
     GMM_RESOURCE_INFO   *pGmmResInfo;        //!< GMM resource descriptor
     MOS_MMAP_OPERATION  MmapOperation;
-
+    uint8_t             *pSystemShadow;
+    
     //!< to sync render target for multi-threading decoding mode
     struct
     {
@@ -350,7 +352,7 @@ typedef struct _PATCHLOCATIONLIST
     uint32_t                    AllocationIndex;
     uint32_t                    AllocationOffset;
     uint32_t                    PatchOffset;
-    MOS_CP_COMMAND_PROPERTIES   cpCmdProps;
+    uint32_t                    cpCmdProps;
     int32_t                     uiRelocFlag;
     uint32_t                    uiWriteOperation;
 } PATCHLOCATIONLIST, *PPATCHLOCATIONLIST;
@@ -498,6 +500,7 @@ struct _MOS_OS_CONTEXT
     int                 fd;                     //!< handle for /dev/dri/card0
 
     int32_t             bUse64BitRelocs;
+    bool                bUseSwSwizzling;
 
     void                **ppMediaMemDecompState; //!<Media memory decompression data structure
 
@@ -517,7 +520,9 @@ struct _MOS_OS_CONTEXT
     void                *pLibdrmHandle;
 
     GMM_CLIENT_CONTEXT  *pGmmClientContext;   //UMD specific ClientContext object in GMM
-
+    GmmExportEntries    GmmFuncs;
+    AuxTableMgr         *m_auxTableMgr;
+   
     // GPU Status Buffer
     PMOS_RESOURCE   pGPUStatusBuffer;
 
@@ -584,6 +589,9 @@ struct _MOS_OS_CONTEXT
         PMOS_INTERFACE             pOsInterface,
         MOS_GPU_CONTEXT            GpuContext);
 
+    GMM_CLIENT_CONTEXT* (* GetGmmClientContext)(
+        PMOS_CONTEXT               pOsContext);
+
 };
 
 //!
@@ -630,6 +638,16 @@ extern "C" {
 //!           Return true if nullptr, otherwise false
 //!
 int32_t Mos_ResourceIsNull(
+    PMOS_RESOURCE pOsResource);
+
+//!
+//! \brief    Get Buffer Type
+//! \details  Returns the type of buffer, 1D, 2D or volume
+//! \param    PMOS_RESOURCE pOsResource
+//!           [in] Pointer to OS Resource
+//! \return   GFX resource Type
+//!
+MOS_GFXRES_TYPE GetResType(
     PMOS_RESOURCE pOsResource);
 
 //!

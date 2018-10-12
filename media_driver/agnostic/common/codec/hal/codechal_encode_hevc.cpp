@@ -93,7 +93,7 @@ uint32_t CodechalEncHevcState::GetPicHdrSize()
                     numEmuBytes++;   //increment by prevention byte
                 }
 
-                if ((*hdrPtr == 0x00))
+                if (*hdrPtr == 0x00)
                 {
                     zeroCount++;
                 }
@@ -152,6 +152,8 @@ MOS_STATUS CodechalEncHevcState::SetSequenceStructs()
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncodeHevcBase::SetSequenceStructs());
+
+    m_cqpEnabled = (m_hevcSeqParams->RateControlMethod == RATECONTROL_CQP);
 
     if (m_hevcSeqParams->ParallelBRC == false)
     {
@@ -509,7 +511,7 @@ MOS_STATUS CodechalEncHevcState::AddHcpWeightOffsetStateCmd(
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(hevcSlcParams);
-    
+
     if (cmdBuffer == nullptr && batchBuffer == nullptr)
     {
         CODECHAL_ENCODE_ASSERTMESSAGE("There was no valid buffer to add the HW command to.");
@@ -798,7 +800,7 @@ MOS_STATUS CodechalEncHevcState::ReadHcpStatus(PMOS_COMMAND_BUFFER cmdBuffer)
 }
 
 uint8_t CodechalEncHevcState::CalculateROIRatio()
-{   
+{
     uint32_t roiSize = 0;
     for (uint32_t i = 0; i < m_hevcPicParams->NumROI; ++i)
     {
@@ -813,7 +815,7 @@ uint8_t CodechalEncHevcState::CalculateROIRatio()
         roiRatio = 2 * (numMBs * 256 / roiSize - 1);
         roiRatio = MOS_MIN(51, roiRatio);
     }
-    
+
     return (uint8_t)roiRatio;
 }
 
@@ -1461,6 +1463,41 @@ MOS_STATUS CodechalEncHevcState::Initialize(CodechalSetting * settings)
     return eStatus;
 }
 
+MOS_STATUS CodechalEncHevcState::GetFrameBrcLevel()
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    if (m_pictureCodingType == I_TYPE)
+    {
+        m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_I;
+    }
+    else if (m_pictureCodingType == B_TYPE)
+    {
+        m_currFrameBrcLevel = (m_lowDelay) ? HEVC_BRC_FRAME_TYPE_P_OR_LB : HEVC_BRC_FRAME_TYPE_B;
+    }
+    else if (m_pictureCodingType == B1_TYPE)
+    {
+        m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_B1;
+    }
+    else if (m_pictureCodingType == B2_TYPE)
+    {
+        m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_B2;
+    }
+    else if (m_pictureCodingType == P_TYPE)
+    {
+        m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_P_OR_LB;
+    }
+    else
+    {
+        CODECHAL_ENCODE_ASSERT(false);
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    return eStatus;
+}
+
 MOS_STATUS CodechalEncHevcState::InitializePicture(const EncoderParams& params)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
@@ -1468,7 +1505,8 @@ MOS_STATUS CodechalEncHevcState::InitializePicture(const EncoderParams& params)
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncodeHevcBase::InitializePicture(params));
-
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(GetFrameBrcLevel());
+    
     return eStatus;
 }
 
@@ -1640,7 +1678,7 @@ MOS_STATUS CodechalEncHevcState::SetupROISurface()
     for (uint32_t uMB = 0; uMB <= numMBs; uMB++)
     {
         int32_t curMbY = uMB / m_picWidthInMb;
-        int32_t curMbX = uMB - curMbY * m_picHeightInMb;
+        int32_t curMbX = uMB - curMbY * m_picWidthInMb;
 
         uint32_t outdata = 0;
         for (int32_t roiIdx = (m_hevcPicParams->NumROI - 1); roiIdx >= 0; roiIdx--)

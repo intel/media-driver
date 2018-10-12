@@ -173,7 +173,9 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSendVecsStatusTag(
 #endif
 
     // Get GPU Status buffer
-    pOsInterface->pfnGetGpuStatusBufferResource(pOsInterface, &GpuStatusBuffer);
+    VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnGetGpuStatusBufferResource(
+        pOsInterface, 
+        &GpuStatusBuffer));
 
     // Register the buffer
     VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnRegisterResource(
@@ -977,6 +979,8 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSetPerfTag(
 
         case Format_A16B16G16R16:
         case Format_A16R16G16B16:
+        case Format_A16B16G16R16F:
+        case Format_A16R16G16B16F:
             *pPerfTag = VPHAL_NONE;
             break;
 
@@ -1722,6 +1726,38 @@ finish:
 }
 
 //!
+//! \brief    Check whether the Vebox command parameters are correct
+//! \param    [in] VeboxStateCmdParams
+//!           MHW vebox state cmd params
+//! \param    [in] VeboxDiIecpCmdParams
+//!           DiIecpCmd params struct
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+//!
+MOS_STATUS VPHAL_VEBOX_STATE::VeboxIsCmdParamsValid(
+    const MHW_VEBOX_STATE_CMD_PARAMS        &VeboxStateCmdParams,
+    const MHW_VEBOX_DI_IECP_CMD_PARAMS      &VeboxDiIecpCmdParams)
+{
+    const MHW_VEBOX_MODE    &veboxMode          = VeboxStateCmdParams.VeboxMode;
+
+    if (veboxMode.DIEnable)
+    {
+        if (nullptr == VeboxDiIecpCmdParams.pOsResPrevOutput &&
+            (MEDIA_VEBOX_DI_OUTPUT_PREVIOUS == veboxMode.DIOutputFrames || MEDIA_VEBOX_DI_OUTPUT_BOTH == veboxMode.DIOutputFrames))
+        {
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+        if (nullptr == VeboxDiIecpCmdParams.pOsResCurrOutput &&
+            (MEDIA_VEBOX_DI_OUTPUT_CURRENT == veboxMode.DIOutputFrames || MEDIA_VEBOX_DI_OUTPUT_BOTH == veboxMode.DIOutputFrames))
+        {
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
 //! \brief    Render the Vebox Cmd buffer for VeboxSendVeboxCmd
 //!           Parameters might remain unchanged in case
 //! \param    [in,out] CmdBuffer
@@ -1800,6 +1836,10 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderVeboxCmd(
     VPHAL_RENDER_CHK_STATUS(pVeboxState->SetupDiIecpState(
         bDiVarianceEnable,
         &VeboxDiIecpCmdParams));
+
+    VPHAL_RENDER_CHK_STATUS(pVeboxState->VeboxIsCmdParamsValid(
+        VeboxStateCmdParams,
+        VeboxDiIecpCmdParams));
 
     // Ensure output is ready to be written
     if (VeboxDiIecpCmdParams.pOsResCurrOutput)
@@ -3469,6 +3509,7 @@ finish:
     // Vebox feature report -- set the output pipe
     m_reporting->OutputPipeMode = pRenderData->OutputPipe;
     m_reporting->VEFeatureInUse = !pRenderData->bVeboxBypass;
+    m_reporting->DiScdMode      = pRenderData->VeboxDNDIParams.bSyntheticFrame;
 
     return eStatus;
 }
@@ -3513,9 +3554,17 @@ GFX_MEDIA_VEBOX_DI_OUTPUT_MODE VPHAL_VEBOX_STATE::SetDIOutputFrame(
     // for 30i->60fps or other 30i->30fps cases
     else
     {
-        return pVeboxMode->DNDIFirstFrame ?
-            MEDIA_VEBOX_DI_OUTPUT_CURRENT :
-            MEDIA_VEBOX_DI_OUTPUT_BOTH;
+        if (IS_VPHAL_OUTPUT_PIPE_VEBOX(pRenderData))
+        {
+            // Align with the logic in SetupDiIecpState. The previous output surface is not needed for OUTPUT_PIPE_VEBOX case.
+            return MEDIA_VEBOX_DI_OUTPUT_CURRENT;
+        }
+        else
+        {
+            return pVeboxMode->DNDIFirstFrame ?
+                MEDIA_VEBOX_DI_OUTPUT_CURRENT :
+                MEDIA_VEBOX_DI_OUTPUT_BOTH;
+        }
     }
 }
 
@@ -3641,6 +3690,7 @@ void VPHAL_VEBOX_STATE::CopyResourceReporting(VphalFeatureReport* pReporting)
     pReporting->STMMCompressMode   = m_reporting->STMMCompressMode;
     pReporting->ScalerCompressible = m_reporting->ScalerCompressible;
     pReporting->ScalerCompressMode = m_reporting->ScalerCompressMode;
+    pReporting->DiScdMode          = m_reporting->DiScdMode;
 }
 
 //!
@@ -3681,6 +3731,8 @@ MOS_STATUS VpHal_RndrRenderVebox(
     VphalFeatureReport*      pReport;
     PVPHAL_SURFACE           pOutSurface = nullptr;
     RECT                     rcTemp;
+    PVPHAL_VEBOX_STATE       pVeboxState;
+    PVPHAL_VEBOX_RENDER_DATA pRenderData;
 
     //------------------------------------------------------
     VPHAL_RENDER_ASSERT(pRenderer);
@@ -3693,10 +3745,13 @@ MOS_STATUS VpHal_RndrRenderVebox(
     pReport                 = pRenderer->GetReport();
     pRenderState            = pRenderer->pRender[VPHAL_RENDER_ID_VEBOX + pRenderer->uiCurrentChannel];
     pOutSurface             = pRenderPassData->GetTempOutputSurface();
+    pVeboxState             = (PVPHAL_VEBOX_STATE)pRenderState;
+    pRenderData             = pVeboxState->GetLastExecRenderData();
 
     pRenderPassData->bOutputGenerated  = false;
 
     VPHAL_RENDER_CHK_NULL(pRenderState);
+    VPHAL_RENDER_CHK_NULL(pVeboxState);
     VPHAL_RENDER_ASSERT(pRenderState->GetRenderHalInterface());
 
     pRenderPassData->bCompNeeded  = true;
@@ -3723,6 +3778,14 @@ MOS_STATUS VpHal_RndrRenderVebox(
 
         pRenderPassData->pOutSurface    = pOutSurface;
 
+        //Disable cache for output surface in vebox only condition
+        if (IS_VPHAL_OUTPUT_PIPE_VEBOX(pRenderData))
+        {
+            MOS_HW_RESOURCE_DEF                 Usage;
+            MEMORY_OBJECT_CONTROL_STATE         MemObjCtrl;
+            VPHAL_SET_SURF_MEMOBJCTL(pVeboxState->DnDiSurfMemObjCtl.CurrentOutputSurfMemObjCtl, MOS_MP_RESOURCE_USAGE_DEFAULT);
+        }
+
         VPHAL_RENDER_CHK_STATUS(pRenderState->Render(
                                                 pcRenderParams,
                                                 pRenderPassData))
@@ -3740,6 +3803,9 @@ finish:
     {
         pRenderPassData->pOutSurface = pRenderPassData->pOutSurface;
     }
+    VPHAL_RENDER_NORMALMESSAGE("VPOutputPipe = %d, VEFeatureInUse = %d", 
+        pRenderer->GetReport()->OutputPipeMode, pRenderer->GetReport()->VEFeatureInUse);    
+
     return eStatus;
 }
 

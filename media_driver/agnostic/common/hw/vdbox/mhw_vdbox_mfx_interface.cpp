@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -236,6 +236,10 @@ MhwVdboxMfxInterface::MhwVdboxMfxInterface(
     m_cpInterface = cpInterface;
     m_decodeInUse = decodeInUse;
 
+    MHW_ASSERT(m_osInterface);
+    MHW_ASSERT(m_MiInterface);
+    MHW_ASSERT(m_cpInterface);
+
     m_waTable = osInterface->pfnGetWaTable(osInterface);
     m_skuTable = osInterface->pfnGetSkuTable(osInterface);
     m_osInterface->pfnGetPlatform(m_osInterface, &m_platform);
@@ -249,12 +253,6 @@ MhwVdboxMfxInterface::MhwVdboxMfxInterface(
     {
         AddResourceToCmd = Mhw_AddResourceToCmd_PatchList;
     }
-
-    MOS_ZeroMemory(m_cacheabilitySettings, sizeof(m_cacheabilitySettings));
-    MOS_ZeroMemory(&m_intraRowstoreCache, sizeof(m_intraRowstoreCache));
-    MOS_ZeroMemory(&m_deblockingFilterRowstoreCache, sizeof(m_deblockingFilterRowstoreCache));
-    MOS_ZeroMemory(&m_bsdMpcRowstoreCache, sizeof(m_bsdMpcRowstoreCache));
-    MOS_ZeroMemory(&m_mprRowstoreCache, sizeof(m_mprRowstoreCache));
 
     auto gtSystemInfo = m_osInterface->pfnGetGtSystemInfo(m_osInterface);
     m_numVdbox = (uint8_t)gtSystemInfo->VDBoxInfo.NumberOfVDBoxEnabled;
@@ -286,6 +284,8 @@ uint32_t MhwVdboxMfxInterface::GetViewOrder(
     uint32_t currIdx,
     uint32_t list)
 {
+    MHW_CHK_NULL_RETURN(params);
+
     auto avcPicParams = params->pAvcPicParams;
     auto mvcExtPicParams = params->pMvcExtPicParams;
     auto avcRefList = params->ppAvcRefList;

@@ -115,6 +115,12 @@ MOS_USER_FEATURE_VALUE_ID pcComponentUserFeatureKeys[MOS_COMPONENT_COUNT][3] = {
     __MOS_USER_FEATURE_KEY_MESSAGE_CM_TAG_ID,
     __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_CM_ID,
     __MOS_USER_FEATURE_KEY_SUB_COMPONENT_CM_TAG_ID
+    },
+
+    {
+    __MOS_USER_FEATURE_KEY_MESSAGE_SCALABILITY_TAG_ID,
+    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_SCALABILITY_ID,
+    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_SCALABILITY_TAG_ID
     }
 };
 
@@ -549,8 +555,9 @@ void MOS_MessageInit()
         MOS_DDIDumpInit();
 
         // all above action should not be covered by memninja since its destroy is behind memninja counter report to test result.
-        MosMemAllocCounter  = 0;
-        MosMemAllocCounterGfx = 0;
+        MosMemAllocCounter     = 0;
+        MosMemAllocFakeCounter = 0;
+        MosMemAllocCounterGfx  = 0;
         MOS_OS_VERBOSEMESSAGE("MemNinja leak detection begin");
     }
 

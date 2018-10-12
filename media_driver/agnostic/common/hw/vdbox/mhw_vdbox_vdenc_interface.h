@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -121,6 +121,7 @@ typedef struct _MHW_VDBOX_VDENC_CMD2_STATE
     PMHW_VDBOX_VP9_SEGMENT_STATE            pVp9SegmentState;
     PCODEC_VP9_ENCODE_SEQUENCE_PARAMS       pVp9EncSeqParams;
     bool                                    bPrevFrameSegEnabled;
+    uint8_t                                 temporalMVpEnable;
     uint8_t                                 ucNumRefIdxL0ActiveMinus1;
     bool                                    bDynamicScalingEnabled;
 
@@ -152,10 +153,10 @@ protected:
 
     PMOS_INTERFACE              m_osInterface = nullptr; //!< Pointer to OS interface
 
-    MHW_MEMORY_OBJECT_CONTROL_PARAMS m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_END_CODEC]; //!< Cacheability settings
+    MHW_MEMORY_OBJECT_CONTROL_PARAMS m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_END_CODEC] = {}; //!< Cacheability settings
 
-    bool                        m_rowstoreCachingSupported;
-    MHW_VDBOX_ROWSTORE_CACHE    m_vdencRowStoreCache;    //!< vdenc row store cache
+    bool                        m_rowstoreCachingSupported = 0;
+    MHW_VDBOX_ROWSTORE_CACHE    m_vdencRowStoreCache = {};    //!< vdenc row store cache
     bool                        m_rhoDomainStatsEnabled = false; //! indicate if rho domain stats is enabled
     bool                        m_perfModeSupported = true; //! indicate perf mode is supported
 
@@ -417,6 +418,12 @@ public:
         PMHW_VDBOX_SURFACE_PARAMS            params,
         uint8_t                              numSurfaces) = 0;
 
+    virtual MOS_STATUS AddVdencCostStateCmd(
+        PMHW_BATCH_BUFFER batchBuffer)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
     //!
     //! \brief    Adds VDENC AVC Image State command in command buffer
     //! \details  Client facing function to add VDENC AVC Image State command in command buffer
@@ -493,6 +500,12 @@ public:
         PMOS_COMMAND_BUFFER                     cmdBuffer,
         PMHW_BATCH_BUFFER                       batchBuffer,
         PMHW_VDBOX_VDENC_WEIGHT_OFFSET_PARAMS   params) = 0;
+
+    virtual MOS_STATUS AddVdencSliceStateCmd(
+        PMOS_COMMAND_BUFFER cmdBuffer)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
 
     //!
     //! \brief    Adds CMD1 command in command buffer

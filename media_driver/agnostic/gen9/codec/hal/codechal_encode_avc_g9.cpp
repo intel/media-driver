@@ -1574,7 +1574,7 @@ MOS_STATUS CodechalEncodeAvcEncG9::SetCurbeAvcFrameBrcUpdate(PCODECHAL_ENCODE_AV
 
     cmd.DW6.MinimumQP               = params->ucMinQP;
     cmd.DW6.MaximumQP               = params->ucMaxQP;
-    cmd.DW6.EnableForceToSkip       = bForceToSkipEnable;
+    cmd.DW6.EnableForceToSkip       = (bForceToSkipEnable && !m_avcPicParam->bDisableFrameSkip);
     cmd.DW6.EnableSlidingWindow     = (seqParams->FrameSizeTolerance == EFRAMESIZETOL_LOW);
     cmd.DW6.EnableExtremLowDelay    = (seqParams->FrameSizeTolerance == EFRAMESIZETOL_EXTREMELY_LOW);
 

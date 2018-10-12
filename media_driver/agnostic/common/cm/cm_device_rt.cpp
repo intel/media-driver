@@ -2321,7 +2321,9 @@ CmDeviceRT::CreateSampler8x8Surface(CmSurface2D* surface2D,
                                     CM_SURFACE_ADDRESS_CONTROL_MODE mode)
 {
     INSERT_API_CALL_LOG();
-    uint32_t width, height, sizeperpixel;
+    uint32_t width = 0;
+    uint32_t height = 0;
+    uint32_t sizeperpixel = 0;
 
     CmSurface2DRT* currentRT = static_cast<CmSurface2DRT *>(surface2D);
     if( ! currentRT )  {
@@ -2386,8 +2388,10 @@ CmDeviceRT::CreateSamplerSurface2DEx(CmSurface2D* surface2d,
         return CM_NULL_POINTER;
     }
 
-    uint32_t width, height, sizeperpixel;
-    CM_SURFACE_FORMAT format;
+    uint32_t width = 0;
+    uint32_t height = 0;
+    uint32_t sizeperpixel = 0;
+    CM_SURFACE_FORMAT format = CM_SURFACE_FORMAT_INVALID;
     CmSurface2DRT* surface2dRT = static_cast<CmSurface2DRT *>(surface2d);
     surface2dRT->GetSurfaceDesc(width, height, format, sizeperpixel);
     if (!m_surfaceMgr->IsSupportedForSamplerSurface2D(format))
@@ -2789,8 +2793,10 @@ CmDeviceRT::CreateSamplerSurface2D(CmSurface2D* Surface2d,
         return CM_NULL_POINTER;
     }
 
-    uint32_t width, height, sizeperpixel;
-    CM_SURFACE_FORMAT format;
+    uint32_t width = 0;
+    uint32_t height = 0;
+    uint32_t sizeperpixel = 0;
+    CM_SURFACE_FORMAT format = CM_SURFACE_FORMAT_INVALID;
 
     CmSurface2DRT* surface2dRT = static_cast<CmSurface2DRT *>(Surface2d);
     surface2dRT->GetSurfaceDesc(width, height, format, sizeperpixel);
@@ -2823,8 +2829,10 @@ CmDeviceRT::CreateSamplerSurface2DUP(CmSurface2DUP* surface2dUP,
         return CM_NULL_POINTER;
     }
 
-    uint32_t width, height, sizeperpixel;
-    CM_SURFACE_FORMAT format;
+    uint32_t width = 0;
+    uint32_t height = 0;
+    uint32_t sizeperpixel = 0;
+    CM_SURFACE_FORMAT format = CM_SURFACE_FORMAT_INVALID;
     CmSurface2DUPRT *surface2DRT = static_cast<CmSurface2DUPRT *>(surface2dUP);
     surface2DRT->GetSurfaceDesc(width, height, format, sizeperpixel);
     if (!m_surfaceMgr->IsSupportedForSamplerSurface2D(format))
@@ -2854,8 +2862,10 @@ CmDeviceRT::CreateSamplerSurface3D(CmSurface3D* p3DSurface,
         return CM_NULL_POINTER;
     }
 
-    uint32_t width, height, depth;
-    CM_SURFACE_FORMAT  format;
+    uint32_t width = 0;
+    uint32_t height = 0;
+    uint32_t depth = 0;
+    CM_SURFACE_FORMAT  format = CM_SURFACE_FORMAT_INVALID;
     CmSurface3DRT *surfaceRT = static_cast<CmSurface3DRT *>(p3DSurface);
     surfaceRT->GetProperties(width, height, depth, format);
     switch(format)

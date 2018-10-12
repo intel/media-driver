@@ -169,7 +169,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS Execute(KernelParams *params);
+    virtual MOS_STATUS Execute(KernelParams *params);
 
     //!
     //! \brief    Allocate weighted prediction surface

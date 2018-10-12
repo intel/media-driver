@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -43,6 +43,7 @@
 #include "media_ddi_encode_base.h"
 #include "media_libva_decoder.h"
 #include "media_libva_encoder.h"
+#include "media_libva_caps.h"
 
 #ifdef DEBUG
 static int32_t         frameCountFps   = -1;
@@ -217,7 +218,7 @@ static bool NeedSwizzleData(PDDI_MEDIA_SURFACE surface, bool lock)
     DDI_CHK_NULL(surface, "nullptr surface", false);
     DDI_CHK_NULL(surface->pGmmResourceInfo, "nullptr pGmmResourceInfo", false);
     uint32_t pitch = (uint32_t)surface->pGmmResourceInfo->GetRenderPitch();
-    uint32_t size  = GmmResGetRenderSize(surface->pGmmResourceInfo);
+    uint32_t size  = (uint32_t)surface->pGmmResourceInfo->GetSizeSurface();
     GMM_RESOURCE_FLAG gmmFlags = surface->pGmmResourceInfo->GetResFlags();
 
     if (gmmFlags.Gpu.RenderTarget      &&
@@ -264,42 +265,6 @@ bool DdiMediaUtil_IsExternalSurface(PDDI_MEDIA_SURFACE surface)
     return true;
 }
 
-/*
- * DdiMediaUtil_ConvertMediaFmtToGmmFmt
- *    Descripion: convert Media Format to Gmm Format for GmmResCreate parameter.
-*/
-static GMM_RESOURCE_FORMAT DdiMediaUtil_ConvertMediaFmtToGmmFmt(
-    DDI_MEDIA_FORMAT format)
-{
-    switch (format)
-    {
-        case Media_Format_X8R8G8B8   : return GMM_FORMAT_B8G8R8X8_UNORM_TYPE;
-        case Media_Format_A8R8G8B8   : return GMM_FORMAT_B8G8R8A8_UNORM_TYPE;
-        case Media_Format_X8B8G8R8   : return GMM_FORMAT_R8G8B8X8_UNORM_TYPE;
-        case Media_Format_A8B8G8R8   : return GMM_FORMAT_R8G8B8A8_UNORM_TYPE;
-        case Media_Format_R5G6B5     : return GMM_FORMAT_B5G6R5_UNORM_TYPE;
-        case Media_Format_R8G8B8     : return GMM_FORMAT_R8G8B8_UNORM;
-        case Media_Format_NV12       : return GMM_FORMAT_NV12_TYPE;
-        case Media_Format_NV21       : return GMM_FORMAT_NV21_TYPE;
-        case Media_Format_YUY2       : return GMM_FORMAT_YUY2;
-        case Media_Format_UYVY       : return GMM_FORMAT_UYVY;
-        case Media_Format_YV12       : return GMM_FORMAT_YV12_TYPE;
-        case Media_Format_IYUV       : return GMM_FORMAT_IYUV_TYPE;
-        case Media_Format_I420       : return GMM_FORMAT_I420_TYPE;
-        case Media_Format_444P       : return GMM_FORMAT_MFX_JPEG_YUV444_TYPE;
-        case Media_Format_422H       : return GMM_FORMAT_MFX_JPEG_YUV422H_TYPE;
-        case Media_Format_411P       : return GMM_FORMAT_MFX_JPEG_YUV411_TYPE;
-        case Media_Format_422V       : return GMM_FORMAT_MFX_JPEG_YUV422V_TYPE;
-        case Media_Format_IMC3       : return GMM_FORMAT_IMC3_TYPE;
-        case Media_Format_400P       : return GMM_FORMAT_GENERIC_8BIT;
-        case Media_Format_Buffer     : return GMM_FORMAT_RENDER_8BIT;
-        case Media_Format_P010       : return GMM_FORMAT_P010_TYPE;
-        case Media_Format_R10G10B10A2: return GMM_FORMAT_R10G10B10A2_UNORM_TYPE;
-        case Media_Format_B10G10R10A2: return GMM_FORMAT_B10G10R10A2_UNORM_TYPE;   
-        default                      : return GMM_FORMAT_INVALID;
-    }
-}
-
 //!
 //! \brief  Allocate surface
 //! 
@@ -328,9 +293,11 @@ VAStatus DdiMediaUtil_AllocateSurface(
     MOS_LINUX_BO               *bo = nullptr;
     GMM_RESCREATE_PARAMS        gmmParams;
     GMM_RESOURCE_INFO          *gmmResourceInfo;
+    bool                        grallocAllocation;
 
     DDI_CHK_NULL(mediaSurface, "mediaSurface is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
     DDI_CHK_NULL(mediaDrvCtx, "mediaDrvCtx is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
+    DDI_CHK_NULL(mediaDrvCtx->pGmmClientContext, "mediaDrvCtx->pGmmClientContext is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
 
     int32_t size          = 0;
     uint32_t tileformat   = I915_TILING_NONE;
@@ -342,6 +309,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case Media_Format_X8R8G8B8:
         case Media_Format_X8B8G8R8:
         case Media_Format_A8B8G8R8:
+        case Media_Format_R8G8B8A8:
         case Media_Format_R5G6B5:
         case Media_Format_R8G8B8:
         case Media_Format_R10G10B10A2:
@@ -360,7 +328,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
                  tileformat = I915_TILING_NONE;
                  break;
             }
-        case Media_Format_YUY2:
+        case Media_Format_RGBP:
         case Media_Format_UYVY:
         case Media_Format_A8R8G8B8:
             if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint &&
@@ -377,6 +345,13 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case Media_Format_IMC3:
         case Media_Format_400P:
         case Media_Format_P010:
+        case Media_Format_P016:
+        case Media_Format_YUY2:
+        case Media_Format_Y210:
+        case Media_Format_Y216:
+        case Media_Format_AYUV:
+        case Media_Format_Y410:
+        case Media_Format_Y416:     
             if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint)
             {
 #if UFO_GRALLOC_NEW_FORMAT
@@ -478,33 +453,41 @@ VAStatus DdiMediaUtil_AllocateSurface(
         }
     }
 
-	// Create GmmResourceInfo
-	MOS_ZeroMemory(&gmmParams, sizeof(gmmParams));
-	if (DdiMediaUtil_IsExternalSurface(mediaSurface))
-	{
-		gmmParams.BaseWidth         = mediaSurface->iWidth;
-		gmmParams.BaseHeight        = mediaSurface->iHeight;
-	}
-	else
-	{
-		gmmParams.BaseWidth         = width;
-		gmmParams.BaseHeight        = alignedHeight;
-	}
-
-	gmmParams.ArraySize             = 1;
-	gmmParams.Type                  = RESOURCE_2D;
-	gmmParams.Format                = DdiMediaUtil_ConvertMediaFmtToGmmFmt(format);
-
-	DDI_CHK_CONDITION(gmmParams.Format == GMM_FORMAT_INVALID, 
-		                 "Unsupported format", 
-		                 VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT);
+    // Create GmmResourceInfo
+    MOS_ZeroMemory(&gmmParams, sizeof(gmmParams));
+    if (DdiMediaUtil_IsExternalSurface(mediaSurface))
+    {
+        gmmParams.BaseWidth         = mediaSurface->iWidth;
+        gmmParams.BaseHeight        = mediaSurface->iHeight;
+    }
+    else
+    {
+        gmmParams.BaseWidth         = width;
+        gmmParams.BaseHeight        = alignedHeight;
+    }
     
+    gmmParams.ArraySize             = 1;
+    gmmParams.Type                  = RESOURCE_2D;
+    //gmmParams.Format                = DdiMediaUtil_ConvertMediaFmtToGmmFmt(format);
+    gmmParams.Format                = mediaDrvCtx->m_caps->ConvertMediaFmtToGmmFmt(format);
+    
+    DDI_CHK_CONDITION(gmmParams.Format == GMM_FORMAT_INVALID, 
+                         "Unsupported format", 
+                         VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT);
     switch (tileformat)
     {
         case I915_TILING_Y:
             gmmParams.Flags.Info.TiledY    = true;
             // Disable MMC for application required surfaces, because some cases' output streams have corruption.
             gmmParams.Flags.Gpu.MMC    = false;
+            if ( mediaDrvCtx->m_auxTableMgr )
+            {
+                gmmParams.Flags.Gpu.MMC = true;
+                gmmParams.Flags.Info.MediaCompressed = 1;
+                gmmParams.Flags.Gpu.CCS = 1;
+                gmmParams.Flags.Gpu.UnifiedAuxSurface = 1;
+                gmmParams.Flags.Gpu.RenderTarget = 1;
+            }
             break;
         case I915_TILING_X:
             gmmParams.Flags.Info.TiledX    = true;
@@ -515,7 +498,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
        
     gmmParams.Flags.Gpu.Video = true;
 
-    mediaSurface->pGmmResourceInfo = gmmResourceInfo = GmmResCreate(&gmmParams);
+    mediaSurface->pGmmResourceInfo = gmmResourceInfo = mediaDrvCtx->pGmmClientContext->CreateResInfoObject(&gmmParams);
 
     if(nullptr == gmmResourceInfo)
     {
@@ -527,7 +510,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
     uint32_t    gmmSize;
     uint32_t    gmmHeight;
     gmmPitch    = (uint32_t)gmmResourceInfo->GetRenderPitch();
-    gmmSize     = GmmResGetRenderSize(gmmResourceInfo);
+    gmmSize     = (uint32_t)gmmResourceInfo->GetSizeSurface();
     gmmHeight   = gmmResourceInfo->GetBaseHeight();
 
     if ( 0 == gmmPitch || 0 == gmmSize || 0 == gmmHeight)
@@ -656,6 +639,8 @@ VAStatus DdiMediaUtil_AllocateBuffer(
 {
 
     DDI_CHK_NULL(mediaBuffer, "mediaBuffer is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
+    DDI_CHK_NULL(mediaBuffer->pMediaCtx, "mediaBuffer->pMediaCtx is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
+    DDI_CHK_NULL(mediaBuffer->pMediaCtx->pGmmClientContext, "mediaBuffer->pMediaCtx->pGmmClientContext is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
     if(format >= Media_Format_Count)
        return VA_STATUS_ERROR_INVALID_PARAMETER;
 
@@ -691,12 +676,12 @@ VAStatus DdiMediaUtil_AllocateBuffer(
     gmmParams.Flags.Gpu.Video       = true;
     gmmParams.Flags.Info.Linear     = true;
 
-    mediaBuffer->pGmmResourceInfo = GmmResCreate(&gmmParams);
+    mediaBuffer->pGmmResourceInfo = mediaBuffer->pMediaCtx->pGmmClientContext->CreateResInfoObject(&gmmParams);
 
     DDI_CHK_NULL(mediaBuffer->pGmmResourceInfo, "pGmmResourceInfo is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
-    GmmResOverrideAllocationSize(mediaBuffer->pGmmResourceInfo, mediaBuffer->iSize);
-    GmmResOverrideAllocationBaseWidth(mediaBuffer->pGmmResourceInfo, mediaBuffer->iSize);
-    GmmResOverrideAllocationPitch(mediaBuffer->pGmmResourceInfo, mediaBuffer->iSize);
+    mediaBuffer->pGmmResourceInfo->OverrideSize(mediaBuffer->iSize);
+    mediaBuffer->pGmmResourceInfo->OverrideBaseWidth(mediaBuffer->iSize);
+    mediaBuffer->pGmmResourceInfo->OverridePitch(mediaBuffer->iSize);
 finish:
     return hRes;
 }
@@ -723,6 +708,8 @@ VAStatus DdiMediaUtil_Allocate2DBuffer(
     MOS_BUFMGR                 *bufmgr)
 {
     DDI_CHK_NULL(mediaBuffer, "mediaBuffer is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
+    DDI_CHK_NULL(mediaBuffer->pMediaCtx, "mediaBuffer->pMediaCtx is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
+    DDI_CHK_NULL(mediaBuffer->pMediaCtx->pGmmClientContext, "mediaBuffer->pMediaCtx->pGmmClientContext is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
 
     int32_t  size           = 0;
     uint32_t tileformat     = I915_TILING_NONE;
@@ -744,7 +731,7 @@ VAStatus DdiMediaUtil_Allocate2DBuffer(
     gmmParams.Flags.Info.Linear = true;
     gmmParams.Flags.Gpu.Video   = true;
     GMM_RESOURCE_INFO          *gmmResourceInfo;
-    mediaBuffer->pGmmResourceInfo = gmmResourceInfo = GmmResCreate(&gmmParams);
+    mediaBuffer->pGmmResourceInfo = gmmResourceInfo = mediaBuffer->pMediaCtx->pGmmClientContext->CreateResInfoObject(&gmmParams);
 
     if(nullptr == gmmResourceInfo)
     {
@@ -756,7 +743,7 @@ VAStatus DdiMediaUtil_Allocate2DBuffer(
     uint32_t    gmmSize;
     uint32_t    gmmHeight;
     gmmPitch    = (uint32_t)gmmResourceInfo->GetRenderPitch();
-    gmmSize     = GmmResGetRenderSize(gmmResourceInfo);
+    gmmSize     = (uint32_t)gmmResourceInfo->GetSizeSurface();
     gmmHeight   = gmmResourceInfo->GetBaseHeight();
 
     MOS_LINUX_BO  *bo;
@@ -877,6 +864,22 @@ void* DdiMediaUtil_LockSurface(DDI_MEDIA_SURFACE  *surface, uint32_t flag)
             {
                 mos_bo_map(surface->bo, flag & MOS_LOCKFLAG_WRITEONLY);
             }
+            else if (surface->pMediaCtx->m_useSwSwizzling)
+            {
+                mos_bo_map(surface->bo, flag & MOS_LOCKFLAG_WRITEONLY);
+                if (surface->pSystemShadow == nullptr)
+                {
+                    surface->pSystemShadow = (uint8_t*)MOS_AllocMemory(surface->bo->size);
+                    DDI_CHK_CONDITION((surface->pSystemShadow == nullptr), "Failed to allocate shadow surface", nullptr);
+                }
+                if (surface->pSystemShadow)
+                {
+                    DDI_CHK_CONDITION((surface->TileType != I915_TILING_Y), "Unsupported tile type", nullptr);
+                    DDI_CHK_CONDITION((surface->bo->size <= 0 || surface->iPitch <= 0), "Invalid BO size or pitch", nullptr);
+                    Mos_SwizzleData((uint8_t*)surface->bo->virt, (uint8_t*)surface->pSystemShadow, 
+                            MOS_TILE_Y, MOS_TILE_LINEAR, surface->bo->size / surface->iPitch, surface->iPitch);
+                }
+            }
             else if (flag & MOS_LOCKFLAG_WRITEONLY)
             {
                 mos_gem_bo_map_gtt(surface->bo);
@@ -887,7 +890,7 @@ void* DdiMediaUtil_LockSurface(DDI_MEDIA_SURFACE  *surface, uint32_t flag)
                 mos_gem_bo_start_gtt_access(surface->bo, 0);    // set to GTT domain,0 means readonly
             }
         }
-        surface->pData   = (uint8_t*) surface->bo->virt;
+        surface->pData   = surface->pSystemShadow ? surface->pSystemShadow : (uint8_t*) surface->bo->virt;
         surface->bMapped = true;
     }
     else
@@ -931,6 +934,15 @@ void DdiMediaUtil_UnlockSurface(DDI_MEDIA_SURFACE  *surface)
             if (surface->TileType == I915_TILING_NONE)
             {
                mos_bo_unmap(surface->bo);
+            }
+            else if (surface->pSystemShadow)
+            {
+                Mos_SwizzleData((uint8_t*)surface->pSystemShadow, (uint8_t*)surface->bo->virt, 
+                        MOS_TILE_LINEAR, MOS_TILE_Y, surface->bo->size/surface->iPitch, surface->iPitch);
+                MOS_FreeMemory(surface->pSystemShadow);
+                surface->pSystemShadow = nullptr;
+                
+                mos_bo_unmap(surface->bo);
             }
             else
             {
@@ -1052,6 +1064,15 @@ void DdiMediaUtil_FreeSurface(DDI_MEDIA_SURFACE *surface)
 { 
     DDI_CHK_NULL(surface, "nullptr surface", );
     DDI_CHK_NULL(surface->bo, "nullptr surface->bo", );
+    DDI_CHK_NULL(surface->pMediaCtx, "nullptr surface->pMediaCtx", );
+    DDI_CHK_NULL(surface->pMediaCtx->pGmmClientContext, "nullptr surface->pMediaCtx->pGmmClientContext", );
+
+    // Unmap Aux mapping if the surface was mapped
+    if (surface->pMediaCtx->m_auxTableMgr)
+    {
+        surface->pMediaCtx->m_auxTableMgr->UnmapResource(surface->pGmmResourceInfo, surface->bo);
+    }
+
     // For External Buffer, only needs to destory SurfaceDescriptor
     if ( DdiMediaUtil_IsExternalSurface(surface) )
     {
@@ -1075,7 +1096,7 @@ void DdiMediaUtil_FreeSurface(DDI_MEDIA_SURFACE *surface)
 
     if (nullptr != surface->pGmmResourceInfo)
     {
-        GmmResFree(surface->pGmmResourceInfo);
+        surface->pMediaCtx->pGmmClientContext->DestroyResInfoObject(surface->pGmmResourceInfo);
         surface->pGmmResourceInfo = nullptr;
     }
 }
@@ -1085,6 +1106,8 @@ void DdiMediaUtil_FreeSurface(DDI_MEDIA_SURFACE *surface)
 void DdiMediaUtil_FreeBuffer(DDI_MEDIA_BUFFER  *buf)
 {
     DDI_CHK_NULL(buf, "nullptr", );
+    DDI_CHK_NULL(buf->pMediaCtx, "nullptr", );
+    DDI_CHK_NULL(buf->pMediaCtx->pGmmClientContext, "nullptr", );
     // calling sequence checking
     if (buf->bMapped)
     {
@@ -1104,7 +1127,7 @@ void DdiMediaUtil_FreeBuffer(DDI_MEDIA_BUFFER  *buf)
 
     if (nullptr != buf->pGmmResourceInfo)
     {
-        GmmResFree(buf->pGmmResourceInfo);
+        buf->pMediaCtx->pGmmClientContext->DestroyResInfoObject(buf->pGmmResourceInfo);
         buf->pGmmResourceInfo = nullptr;
     }
 }
@@ -1417,7 +1440,7 @@ VAStatus DdiMediaUtil_UnRegisterRTSurfaces(
     PDDI_MEDIA_CONTEXT mediaCtx   = DdiMedia_GetMediaContext(ctx);
     DDI_CHK_NULL(mediaCtx,"nullptr mediaCtx!", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CHK_NULL(surface, "nullptr surface!", VA_STATUS_ERROR_INVALID_PARAMETER);
-    
+
     //Look through all decode contexts to unregister the surface in each decode context's RTtable.
     if (mediaCtx->pDecoderCtxHeap != nullptr)
     {

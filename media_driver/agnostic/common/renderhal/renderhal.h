@@ -40,6 +40,7 @@
 #include "cm_hal_hashtable.h"
 #include "media_perf_profiler.h"
 
+
 class XRenderHal_Platform_Interface;
 
 //------------------------------------------------------------------------------
@@ -74,6 +75,13 @@ class XRenderHal_Platform_Interface;
 
 #define MHW_RENDERHAL_CHK_NULL_NO_STATUS(_ptr)                                            \
     MOS_CHK_NULL_NO_STATUS(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_RENDERHAL, _ptr)
+
+#define MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(_ptr)                                            \
+    MOS_CHK_NULL_NO_STATUS_RETURN(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_RENDERHAL, _ptr)
+
+#define MHW_RENDERHAL_CHK_NULL_RETURN(_ptr)                                            \
+    MOS_CHK_NULL_RETURN(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_RENDERHAL, _ptr)
+
 
 #define MHW_RENDERHAL_UNUSED(x)                                                         \
     MOS_UNUSED(x)
@@ -262,20 +270,8 @@ class XRenderHal_Platform_Interface;
 //*-----------------------------------------------------------------------------
 //| MMIO register offsets used for the EU debug support
 //*-----------------------------------------------------------------------------
-#define INSTPM                          0x20c0
-#define INSTPM_GLOBAL_DEBUG_ENABLE      (1 << 4)
-#define INSTPM_SET_BITS_G8              (0x3 << 13)
 
-#define CS_DEBUG_MODE1                  0x20ec
-#define CS_DEBUG_MODE1_GLOBAL_DEBUG     (1 << 6)
 
-#define CS_DEBUG_MODE2                  0x20d8
-#define CS_DEBUG_MODE2_GLOBAL_DEBUG     (1 << 5)
-
-#define TD_CTL                          0xe400
-
-#define TD_CTL_FORCE_THREAD_BKPT_ENABLE             (1 << 4)
-#define TD_CTL_FORCE_EXT_EXCEPTION_ENABLE           (1 << 7)
 
 #define MEDIASTATE_AVS_MAX_DERIVATIVE_4_PIXELS  7
 #define MEDIASTATE_AVS_MAX_DERIVATIVE_8_PIXELS  20
@@ -705,6 +701,7 @@ typedef enum _RENDERHAL_PLANE_DEFINITION
     RENDERHAL_PLANES_R32_FLOAT_X8X24_TYPELESS,
     RENDERHAL_PLANES_P208,
     RENDERHAL_PLANES_P208_1PLANE_ADV,
+    RENDERHAL_PLANES_Y416_RT,
 
     RENDERHAL_PLANES_DEFINITION_COUNT
 } RENDERHAL_PLANE_DEFINITION, *PRENDERHAL_PLANE_DEFINITION;
@@ -1320,6 +1317,10 @@ typedef struct _RENDERHAL_INTERFACE
     uint32_t (* pfnSetSurfacesPerBT) (
                 PRENDERHAL_INTERFACE            pRenderHal,
                 uint32_t                        dwSurfacesPerBT);
+
+    uint16_t (* pfnCalculateYOffset) (
+                PMOS_INTERFACE                  pOsInterface, 
+                PMOS_RESOURCE                   pOsResource);
 
     MOS_STATUS (* pfnAssignBindingTable) (
                 PRENDERHAL_INTERFACE            pRenderHal,

@@ -64,6 +64,9 @@
 //! Command buffer dumps are a debug feature so should not be enabled in release builds
 #define MOS_COMMAND_BUFFER_DUMP_SUPPORTED   (_DEBUG || _RELEASE_INTERNAL)
 
+//! Command res info dumps are a debug feature so should not be enabled in release builds
+#define MOS_COMMAND_RESINFO_DUMP_SUPPORTED (_DEBUG || _RELEASE_INTERNAL)
+
 typedef FILE*                   PFILE;                      //!< Pointer to a File
 typedef FILE**                  PPFILE;                     //!< Pointer to a PFILE
 typedef HMODULE*                PHMODULE;                   //!< Pointer to an HMODULE
@@ -329,7 +332,8 @@ typedef enum _MOS_STATUS
     MOS_STATUS_PLATFORM_NOT_SUPPORTED            = 27,
     MOS_STATUS_CLIENT_AR_NO_SPACE                = 28,
     MOS_STATUS_HUC_KERNEL_FAILED                 = 29,
-    MOS_STATUS_UNKNOWN                           = 30
+    MOS_STATUS_NOT_ENOUGH_BUFFER                 = 30,
+    MOS_STATUS_UNKNOWN                           = 31
 } MOS_STATUS;
 
 //!
@@ -470,5 +474,7 @@ enum MOS_MEMCOMP_STATE
 };
 typedef enum MOS_MEMCOMP_STATE *PMOS_MEMCOMP_STATE;
 typedef uint32_t               GPU_CONTEXT_HANDLE;
+
+#define MOS_MAX_ENGINE_INSTANCE_PER_CLASS   4
 
 #endif // __MOS_DEFS_H__

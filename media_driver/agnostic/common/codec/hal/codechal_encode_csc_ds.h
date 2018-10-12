@@ -267,6 +267,7 @@ public:
     const uint32_t GetRawSurfHeight() { return m_cscRawSurfHeight; }
     const bool RequireCsc() { return m_cscFlag != 0; }
     const bool UseSfc() { return m_cscUsingSfc != 0; }
+    const bool IsSfcEnabled() { return m_cscEnableSfc != 0; }
     const bool RenderConsumesCscSurface() { return m_cscRequireCopy || m_cscRequireColor || m_cscRequireConvTo8bPlanar; }
     const bool VdboxConsumesCscSurface() { return m_cscRequireCopy || m_cscRequireColor || m_cscRequireMmc; }
     // 0 for native HW support; 1 for CSC kernel; 2 for VEBOX

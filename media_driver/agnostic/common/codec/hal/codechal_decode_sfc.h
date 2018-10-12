@@ -290,7 +290,7 @@ protected:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS SetSfcAvsStateParams();
+    virtual MOS_STATUS SetSfcAvsStateParams();
 
     //!
     //! \brief    Set Sfc Ief State Params

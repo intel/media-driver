@@ -1603,7 +1603,7 @@ protected:
     //! \return   void
     //!
     virtual void SetMfxPipeModeSelectParams(
-        CODECHAL_ENCODE_AVC_GENERIC_PICTURE_LEVEL_PARAMS genericParam,
+        const CODECHAL_ENCODE_AVC_GENERIC_PICTURE_LEVEL_PARAMS& genericParam,
         MHW_VDBOX_PIPE_MODE_SELECT_PARAMS& param);
 
     //!

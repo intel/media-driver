@@ -288,6 +288,8 @@ struct CodechalBindingTableVp8Mbenc
     uint32_t   dwVp8MBEncBRCDist;
     uint32_t   dwVp8MBEncVMECoarseIntra;
     uint32_t   dwVp8MbEncCurrYDownscaled;
+    uint32_t   dwVp8MbEncSwscoreboardI;
+    uint32_t   dwVp8MbEncSwscoreboardP;
 };
 
 struct CodechalBindingTableVp8Me
@@ -763,6 +765,19 @@ struct CodecEncodeVp8DumpState
     MOS_RESOURCE                        *resHistogram;
 };
 
+struct CodechalEncodeVp8InitKernelStateParams
+{
+   PMHW_KERNEL_STATE               pKernelState;
+   MhwRenderInterface             *pRenderEngineInterface;
+   uint8_t*                        pui8Binary;
+   EncOperation                    Operation;
+   uint32_t                        dwKrnStateIdx;
+   uint32_t                        dwCombinedKernelSize;
+   int32_t                         iBtCount;
+   int32_t                         iCurbeCount;
+};
+
+
 //!
 //! \class   CodechalEncodeVp8
 //! \brief   VP8 dual-pipe encoder base class
@@ -1208,7 +1223,7 @@ protected:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS SendMbEncSurfaces(
+    virtual MOS_STATUS SendMbEncSurfaces(
         PMOS_COMMAND_BUFFER cmdBuffer,
         struct CodechalVp8MbencSurfaceParams*  params);
 

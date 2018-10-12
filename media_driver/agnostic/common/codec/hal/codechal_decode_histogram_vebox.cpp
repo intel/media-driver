@@ -303,6 +303,7 @@ MOS_STATUS CodechalDecodeHistogramVebox::RenderHistogram(
 
     if (Mos_ResourceIsNull(&m_inputHistogramSurfaces[m_histogramComponent].OsResource))
     {
+        CODECHAL_DECODE_VERBOSEMESSAGE("Input histogram surface is null");
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
@@ -453,6 +454,12 @@ MOS_STATUS CodechalDecodeHistogramVebox::RenderHistogram(
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSetGpuContext(
         m_osInterface,
         m_decoder->GetVideoContext()));
+
+    MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData;
+    MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
+    userFeatureWriteData.Value.i32Data = 1;
+    userFeatureWriteData.ValueID       = __MEDIA_USER_FEATURE_VALUE_DECODE_HISTOGRAM_FROM_VEBOX_ID;
+    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
 
     return eStatus;
 }

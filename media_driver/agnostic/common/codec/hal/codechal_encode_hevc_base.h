@@ -43,6 +43,8 @@
 #define CODECHAL_HEVC_MIN_LCU_SIZE             16
 #define CODECHAL_HEVC_MIN_CU_SIZE              8
 #define CODECHAL_HEVC_MIN_TILE_SIZE            128
+#define CODECHAL_HEVC_VDENC_MIN_TILE_WIDTH_SIZE      256
+#define CODECHAL_HEVC_VDENC_MIN_TILE_HEIGHT_SIZE     128
 #define CODECHAL_HEVC_FRAME_BRC_BLOCK_SIZE     32
 #define CODECHAL_HEVC_LCU_BRC_BLOCK_SIZE       128
 
@@ -57,6 +59,8 @@
 
 #define CODECHAL_HEVC_MAX_NUM_HCP_PIPE      8
 #define CODECHAL_HEVC_MAX_NUM_BRC_PASSES    4
+
+#define CODECHAL_HEVC_SAO_STRMOUT_SIZE_PERLCU   16
 
 #define ENCODE_HEVC_4K_PIC_WIDTH     3840
 #define ENCODE_HEVC_4K_PIC_HEIGHT    2160
@@ -1418,6 +1422,11 @@ public:
     bool          m_encode4KSequence                      = false;                        //!< Flag to specify if input sequence is 4k size
     bool          m_hevcRdoqEnabled                       = false;                        //!< RDOQ enable flag
     uint32_t      m_rdoqIntraTuThreshold                  = 0;                            //!< RDOQ intra threshold
+#if (_DEBUG || _RELEASE_INTERNAL)
+    bool          m_rdoqIntraTuOverride                   = false;                        //!< Override RDOQ intra TU or not
+    bool          m_rdoqIntraTuDisableOverride            = false;                        //!< Override RDOQ intra TU disable 
+    uint16_t      m_rdoqIntraTuThresholdOverride          = 0;                            //!< Override RDOQ intra TU threshold
+#endif
     bool          m_is10BitHevc                           = false;                        //!< 10bit encoding flag
     unsigned char m_chromaFormat                          = HCP_CHROMA_FORMAT_YUV420;     //!< Chroma format(420, 422 etc)
     unsigned char m_bitDepth                              = 8;                            //!< Bit depth
@@ -1645,18 +1654,6 @@ public:
         uint32_t semValue);
 
     //!
-    //! \brief      Send watchdog timer start command
-    //!
-    //! \param    [in] cmdBuffer
-    //!           Pointer to command buffer
-    //!
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    virtual MOS_STATUS SendWatchdogTimerStartCmd(
-        PMOS_COMMAND_BUFFER cmdBuffer);
-
-    //!
     //! \brief      Send MI atomic command
     //!
     //! \param    [in] semaMem
@@ -1848,13 +1845,6 @@ public:
     //! \return   Max frame size in bytes 
     //!
     uint32_t GetProfileLevelMaxFrameSize();
-
-    //!
-    //! \brief    Help function to calculate bit stream buffer size
-    //!
-    //! \return   Calcuated bitstream buffer size
-    //!
-    uint32_t GetBitstreamBufferSize();
 
     //!
     //! \brief    Help function to create a flat scaling list (when scaling list is not passed in sequence parameter)

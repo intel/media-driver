@@ -3555,6 +3555,12 @@ MOS_STATUS CodechalEncodeAvcEncG8::GetKernelHeaderAndSize(
         eStatus = MOS_STATUS_INVALID_PARAMETER;
     }
 
+    if (currKrnHeader == nullptr)
+    {
+        eStatus = MOS_STATUS_INVALID_PARAMETER;
+        return eStatus;
+    }
+
     currKrnHeader += krnStateIdx;
     *((PCODECHAL_KERNEL_HEADER)pvKrnHeader) = *currKrnHeader;
 
@@ -5156,7 +5162,7 @@ MOS_STATUS CodechalEncodeAvcEncG8::SetCurbeAvcFrameBrcUpdate(PCODECHAL_ENCODE_AV
 
     cmd.DW6.MinimumQP           = params->ucMinQP;
     cmd.DW6.MaximumQP           = params->ucMaxQP;
-    cmd.DW6.EnableForceToSkip   = bForceToSkipEnable;
+    cmd.DW6.EnableForceToSkip   = (bForceToSkipEnable && !m_avcPicParam->bDisableFrameSkip);
     auto seqParams = m_avcSeqParam;
     cmd.DW6.EnableSlidingWindow = (seqParams->FrameSizeTolerance == EFRAMESIZETOL_LOW);
 

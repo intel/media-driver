@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -52,9 +52,9 @@ public:
     //! \brief MEMORYADDRESSATTRIBUTES
     //! \details
     //!     This field controls the priority of arbitration used in the GAC/GAM
-    //!     pipeline for this surface. It defines the CHV/SKL+ 32-bit memory address
-    //!     attributes for the third DWord of the HCP command buffer address.
-    //!
+    //!     pipeline for this surface. It defines the attributes for VDBOX addresses
+    //!     on BDW+.
+    //!     
     struct MEMORYADDRESSATTRIBUTES_CMD
     {
         union
@@ -86,7 +86,7 @@ public:
 
         //! \brief BASE_ADDRESS_TILED_RESOURCE_MODE
         //! \details
-        //!     <b>For Media Surfaces:</b> This field specifies the tiled resource mode.
+        //!     For Media Surfaces: This field specifies the tiled resource mode.
         enum BASE_ADDRESS_TILED_RESOURCE_MODE
         {
             BASE_ADDRESS_TILED_RESOURCE_MODE_TRMODENONE                      = 0, //!< TileY resources
@@ -108,7 +108,7 @@ public:
     //! \details
     //!     Specifies a 64-bit (48-bit canonical) 64-byte aligned memory base
     //!     address.
-    //!
+    //!     
     struct SPLITBASEADDRESS64BYTEALIGNED_CMD
     {
         union
@@ -139,7 +139,7 @@ public:
     //!     Specifies a 64-bit (48-bit canonical) 4K-byte aligned memory base
     //!     address. GraphicsAddress is a 64-bit value [63:0], but only a portion of
     //!     it is used by hardware. The upper reserved bits are ignored and MBZ.
-    //!
+    //!     
     struct SPLITBASEADDRESS4KBYTEALIGNED_CMD
     {
         union
@@ -170,11 +170,11 @@ public:
     //!     The HUC is selected with the Media Instruction Opcode "Bh" for all HUC
     //!     Commands. Each HUC command has assigned a media instruction command as
     //!     defined in DWord 0, BitField 22:16.
-    //! 
+    //!     
     //!     The HUC_PIPE_MODE_SELECT command is responsible for general pipeline
     //!     level configuration that would normally be set once for a single stream
     //!     decode and would not be modified on a frame workload basis.
-    //!
+    //!     
     struct HUC_PIPE_MODE_SELECT_CMD
     {
         union
@@ -249,12 +249,12 @@ public:
         //! \details
         //!     In decoder modes, this counter value specifies the number of clocks (per
         //!     1000) of GAC inactivity
-        //!                         before a media soft-reset is applied to the HCP and HuC. If counter
+        //!     before a media soft-reset is applied to the HCP and HuC. If counter
         //!     value is set to 0, the media
-        //!                         soft-reset feature is disabled and no reset will occur.
-        //!                         <p>In encoder modes, this counter must be set to 0 to disable media
+        //!     soft-reset feature is disabled and no reset will occur.
+        //!     In encoder modes, this counter must be set to 0 to disable media
         //!     soft reset. This feature is not
-        //!                             supported for the encoder.</p>
+        //!     supported for the encoder.
         enum MEDIA_SOFT_RESET_COUNTER_PER_1000_CLOCKS
         {
             MEDIA_SOFT_RESET_COUNTER_PER_1000_CLOCKS_DISABLE                 = 0, //!< No additional details
@@ -275,7 +275,7 @@ public:
     //!     The HUC is selected with the Media Instruction Opcode "Bh" for all HUC
     //!     Commands. Each HUC command has assigned a media instruction command as
     //!     defined in DWord 0, BitField 22:16.
-    //! 
+    //!     
     //!     The HUC_IMEM_STATE command is used to fetch the HUC firmware from the
     //!     WOPCM region and load it into the HUC 96KB L2 storage RAM. The
     //!     HUC_IMEM_STATE specifies the firmware's offset in WOPCM which is a cache
@@ -291,7 +291,7 @@ public:
     //!     register is asserted high in the. If the authentication signal is not
     //!     asserted, the DMA aborts the HUC_IMEM_STATE command, the firmware is not
     //!     loaded, and the VALID IMEM LOADED bit remains low.
-    //!
+    //!     
     struct HUC_IMEM_STATE_CMD
     {
         union
@@ -368,9 +368,9 @@ public:
 
         //! \brief HUC_FIRMWARE_DESCRIPTOR
         //! \details
-        //!     <p>This field specifies 1 of 255 firmware descriptors which describe
+        //!     This field specifies 1 of 255 firmware descriptors which describe
         //!     which firmware is be loaded in the L2 storage RAM. If the firmware
-        //!     descriptor is set to zero, the HUC will not load the firmware.</p>
+        //!     descriptor is set to zero, the HUC will not load the firmware.
         enum HUC_FIRMWARE_DESCRIPTOR
         {
             HUC_FIRMWARE_DESCRIPTOR_UNNAMED0                                 = 0, //!< Illegal
@@ -391,18 +391,18 @@ public:
     //!      The HUC is selected with the Media Instruction Opcode "Bh" for all HUC
     //!     Commands. Each HUC command has assigned a media instruction command as
     //!     defined in DWord 0, BitField 22:16.
-    //! 
+    //!     
     //!     The HUC_DMEM_STATE command is used to fetch the HUC data from the
     //!     graphics memory and load it into the HUC 96KB L2 storage RAM. The
     //!     HUC_DMEM_STATE specifies the data source base address in graphics
     //!     memory.
-    //! 
+    //!     
     //!     When the HUC_DMEM_STATE command is received, the data is loaded by the
     //!     HUC DMA into the 96KB L2 storage RAM at the location provided in the
     //!     HUC_DMEM_STATE command. This command also specifies the length of the
     //!     data, which is specified in bytes but must be in increments of 64 byte
     //!     cache lines.
-    //!
+    //!     
     struct HUC_DMEM_STATE_CMD
     {
         union
@@ -418,8 +418,8 @@ public:
             };
             uint32_t                     Value;
         } DW0;
-        SPLITBASEADDRESS64BYTEALIGNED_CMD        HucDataSourceBaseAddress;                                                //!< HUC Data Source - Base Address
-        MEMORYADDRESSATTRIBUTES_CMD              HucDataSourceAttributes;                                                 //!< HUC Data Source - Attributes
+        SPLITBASEADDRESS64BYTEALIGNED_CMD        HucDataSourceBaseAddress;                                                //!< DW1..2, HUC Data Source - Base Address
+        MEMORYADDRESSATTRIBUTES_CMD              HucDataSourceAttributes;                                                 //!< DW3, HUC Data Source - Attributes
         union
         {
             struct
@@ -481,13 +481,13 @@ public:
     //!     The HUC is selected with the Media Instruction Opcode "Bh" for all HUC
     //!     Commands. Each HUC command has assigned a media instruction command as
     //!     defined in DWord 0, BitField 22:16.
-    //! 
+    //!     
     //!     The HUC_CFG_STATE command is used to force the P24C (MinuteIA) into a
     //!     reset condition as well as forcing it out of a reset condition. This
     //!     command is not normally required since the hardware will handle placing
     //!     the P24C into a reset condition and releasing it from reset, but there
     //!     may be conditions that require a forced reset.
-    //!
+    //!     
     struct HUC_CFG_STATE_CMD
     {
         union
@@ -556,12 +556,12 @@ public:
     //!
     //! \brief HUC_VIRTUAL_ADDR_REGION
     //! \details
-    //! 
-    //!
+    //!     
+    //!     
     struct HUC_VIRTUAL_ADDR_REGION_CMD
     {
-        SPLITBASEADDRESS4KBYTEALIGNED_CMD        HucSurfaceBaseAddressVirtualaddrregion015;                               //!< HUC Surface Base Address (VirtualAddrRegion[0-15])
-        MEMORYADDRESSATTRIBUTES_CMD              HucSurfaceVirtualaddrregion015;                                          //!< HUC Surface (VirtualAddrRegion[0-15])
+        SPLITBASEADDRESS4KBYTEALIGNED_CMD        HucSurfaceBaseAddressVirtualaddrregion015;                               //!< DW0..2, HUC Surface Base Address (VirtualAddrRegion[0-15])
+        MEMORYADDRESSATTRIBUTES_CMD              HucSurfaceVirtualaddrregion015;                                          //!< DW0..2, HUC Surface (VirtualAddrRegion[0-15])
 
         //! \name Local enumerations
 
@@ -580,10 +580,10 @@ public:
     //!     HUC is selected with the Media Instruction Opcode "Bh" for all HUC
     //!     Commands. Each HUC command has assigned a media instruction command as
     //!     defined in DWord 0, BitField 22:16.
-    //! 
+    //!     
     //!     The HUC_VIRTUAL_ADDR_STATE command is used to define the 48-bit HUC
     //!     Surface Base Address and HUC Surface for each region.
-    //!
+    //!     
     struct HUC_VIRTUAL_ADDR_STATE_CMD
     {
         union
@@ -599,7 +599,7 @@ public:
             };
             uint32_t                     Value;
         } DW0;
-        HUC_VIRTUAL_ADDR_REGION_CMD              HucVirtualAddressRegion[16];                                             //!< Huc Virtual Address Region
+        HUC_VIRTUAL_ADDR_REGION_CMD              HucVirtualAddressRegion[16];                                             //!< DW1..48, Huc Virtual Address Region
 
         //! \name Local enumerations
 
@@ -641,11 +641,11 @@ public:
     //!     The HUC is selected with the Media Instruction Opcode "Bh" for all HUC
     //!     Commands. Each HUC command has assigned a media instruction command as
     //!     defined in DWord 0, BitField 22:16.
-    //! 
+    //!     
     //!     The HUC_IND_OBJ_BASE_ADDR_STATE command is used to define the indirect
     //!     object base address of the stream in graphics memory. This is a frame
     //!     level command.
-    //!
+    //!     
     struct HUC_IND_OBJ_BASE_ADDR_STATE_CMD
     {
         union
@@ -661,12 +661,12 @@ public:
             };
             uint32_t                     Value;
         } DW0;
-        SPLITBASEADDRESS4KBYTEALIGNED_CMD        HucIndirectStreamInObjectbaseAddress;                                    //!< HUC Indirect Stream In ObjectBase Address
-        MEMORYADDRESSATTRIBUTES_CMD              HucIndirectStreamInObjectbaseAttributes;                                 //!< HUC Indirect Stream In ObjectBase Attributes
-        SPLITBASEADDRESS4KBYTEALIGNED_CMD        HucIndirectStreamInObjectaccessUpperBound;                               //!< HUC Indirect Stream In ObjectAccess Upper Bound
-        SPLITBASEADDRESS4KBYTEALIGNED_CMD        HucIndirectStreamOutObjectbaseAddress;                                   //!< HUC Indirect Stream Out ObjectBase Address
-        MEMORYADDRESSATTRIBUTES_CMD              HucIndirectStreamOutObjectbaseAttributes;                                //!< HUC Indirect Stream Out ObjectBase Attributes
-        SPLITBASEADDRESS4KBYTEALIGNED_CMD        HucIndirectStreamOutObjectaccessUpperBound;                              //!< HUC Indirect Stream Out ObjectAccess Upper Bound
+        SPLITBASEADDRESS4KBYTEALIGNED_CMD        HucIndirectStreamInObjectbaseAddress;                                    //!< DW1..2, HUC Indirect Stream In ObjectBase Address
+        MEMORYADDRESSATTRIBUTES_CMD              HucIndirectStreamInObjectbaseAttributes;                                 //!< DW3, HUC Indirect Stream In ObjectBase Attributes
+        SPLITBASEADDRESS4KBYTEALIGNED_CMD        HucIndirectStreamInObjectaccessUpperBound;                               //!< DW4..5, HUC Indirect Stream In ObjectAccess Upper Bound
+        SPLITBASEADDRESS4KBYTEALIGNED_CMD        HucIndirectStreamOutObjectbaseAddress;                                   //!< DW6..7, HUC Indirect Stream Out ObjectBase Address
+        MEMORYADDRESSATTRIBUTES_CMD              HucIndirectStreamOutObjectbaseAttributes;                                //!< DW8, HUC Indirect Stream Out ObjectBase Attributes
+        SPLITBASEADDRESS4KBYTEALIGNED_CMD        HucIndirectStreamOutObjectaccessUpperBound;                              //!< DW9..10, HUC Indirect Stream Out ObjectAccess Upper Bound
 
         //! \name Local enumerations
 
@@ -708,12 +708,12 @@ public:
     //!     The HUC is selected with the Media Instruction Opcode "Bh" for all HUC
     //!     Commands. Each HUC command has assigned a media instruction command as
     //!     defined in DWord 0, BitField 22:16.
-    //! 
+    //!     
     //!     The HUC_STREAM_OBJECT command is used to define the bit stream address
     //!     offset to the Stream Indirect Object base Address and the length of the
     //!     bit stream.  The bitstream buffer the HUC operates upon is specified
     //!     through indirect addressing.
-    //!
+    //!     
     struct HUC_STREAM_OBJECT_CMD
     {
         union
@@ -800,9 +800,9 @@ public:
 
         //! \brief HUC_PROCESSING
         //! \details
-        //!     <p>Disables the HEVC Decoder CABAC engine to prevent it from starting
+        //!     Disables the HEVC Decoder CABAC engine to prevent it from starting
         //!     while the HuC is processing. Must be set to "1" for HUC processing so
-        //!     that the stream is directed to the HuC and not the CABAC engine.</p>
+        //!     that the stream is directed to the HuC and not the CABAC engine.
         enum HUC_PROCESSING
         {
             HUC_PROCESSING_DISABLE                                           = 1, //!< No additional details
@@ -837,8 +837,8 @@ public:
 
         //! \brief HUC_BITSTREAM_ENABLE
         //! \details
-        //!     <span style="color: rgb(0, 0, 0); font-family: Arial, sans-serif;
-        //!     line-height: normal;">Enables the bitstream to be sent to the HuC</span>
+        //!     style="color: rgb(0, 0, 0); font-family: Arial, sans-serif;
+        //!     line-height: normal;">Enables the bitstream to be sent to the HuC
         enum HUC_BITSTREAM_ENABLE
         {
             HUC_BITSTREAM_ENABLE_DISABLE                                     = 0, //!< No additional details
@@ -860,7 +860,7 @@ public:
     //!     The HUC is selected with the Media Instruction Opcode "Bh" for all HUC
     //!     Commands. Each HUC command has assigned a media instruction command as
     //!     defined in DWord 0, BitField 22:16.
-    //!
+    //!     
     struct HUC_START_CMD
     {
         union

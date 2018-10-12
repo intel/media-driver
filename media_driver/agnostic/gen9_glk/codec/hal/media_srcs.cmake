@@ -18,7 +18,7 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-if(${HEVC_Encode_Supported} STREQUAL "yes")
+if(${HEVC_Encode_VME_Supported} STREQUAL "yes")
 
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_hevc_g9_glk.cpp

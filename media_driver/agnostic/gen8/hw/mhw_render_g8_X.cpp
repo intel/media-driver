@@ -28,14 +28,15 @@
 
 #include "mhw_render_g8_X.h"
 #include "mhw_render_hwcmd_g8_X.h"
+#include "mhw_mmio_g8.h"
 
-static const uint32_t l3CacheSqc1RegisterOffset = 0xB100;
-static const uint32_t l3CacheSqc1RegisterValue = 0x610000;
+static const uint32_t l3CacheSqc1RegisterOffset = L3_CACHE_SQC1_REG_OFFSET_G8;
+static const uint32_t l3CacheSqc1RegisterValue = L3_CACHE_SQC1_REG_VALUE_G8;
 
 //! \brief      for BDW GT2 with WA for D0 hang
 //!              SLM     URB     DC      RO      Rest
 //!              256     128      0       0      384 (KB chunks based on GT2)
-static const uint32_t l3CacheCntlRegisterValueAllocateSlmD0Wa = 0x60000021;
+static const uint32_t l3CacheCntlRegisterValueAllocateSlmD0Wa = L3_CACHE_CNTL_REG_VALUE_ALLOCATE_SLM_D0WA_G8;
 
 MOS_STATUS MhwRenderInterfaceG8::AddMediaVfeCmd(
     PMOS_COMMAND_BUFFER             cmdBuffer,
@@ -51,6 +52,7 @@ MOS_STATUS MhwRenderInterfaceG8::AddMediaVfeCmd(
 
     MHW_MI_CHK_STATUS(MhwRenderInterfaceGeneric<mhw_render_g8_X>::AddMediaVfeCmd(cmdBuffer, params));
 
+    MHW_MI_CHK_NULL(cmd);
     cmd->DW4.SliceDisable = params->eVfeSliceDisable;
 
     cmd->DW6.ScoreboardType = params->Scoreboard.ScoreboardType;
@@ -92,6 +94,7 @@ MOS_STATUS MhwRenderInterfaceG8::AddMediaObjectWalkerCmd(
 
     MHW_MI_CHK_STATUS(MhwRenderInterfaceGeneric<mhw_render_g8_X>::AddMediaObjectWalkerCmd(cmdBuffer, params));
 
+    MHW_MI_CHK_NULL(cmd);
     cmd->DW2.UseScoreboard     = params->UseScoreboard;
     cmd->DW5.ScoreboardMask    = params->ScoreboardMask;
 
@@ -170,6 +173,7 @@ MOS_STATUS MhwRenderInterfaceG8::AddMediaObject(
 
     MHW_MI_CHK_STATUS(MhwRenderInterfaceGeneric<mhw_render_g8_X>::AddMediaObject(cmdBuffer, batchBuffer, params));
 
+    MHW_MI_CHK_NULL(cmd);
     cmd->DW2.UseScoreboard     = params->VfeScoreboard.ScoreboardEnable;
     cmd->DW4.ScoreboardX       = params->VfeScoreboard.Value[0];
     cmd->DW4.ScoredboardY      = params->VfeScoreboard.Value[1];

@@ -31,7 +31,7 @@
 #include "media_skuwa_specific.h"
 #include "mos_utilities.h"
 #include "mos_os_hw.h"         //!< HW specific details that flow through OS pathes
-#include "mos_os_cp_specific.h"         //!< CP specific OS functionality 
+#include "mos_os_cp_interface_specific.h"         //!< CP specific OS functionality 
 #if (_RELEASE_INTERNAL || _DEBUG)
 #if defined(CM_DIRECT_GUC_SUPPORT)
 #include "work_queue_mngr.h"
@@ -43,6 +43,7 @@
 //! \brief OS specific includes and definitions
 //!
 #include "mos_os_specific.h"
+#include "mos_os_virtualengine_specific.h"
 
 #define MOS_NAL_UNIT_LENGTH                 4
 #define MOS_NAL_UNIT_STARTCODE_LENGTH       3
@@ -143,7 +144,28 @@ typedef enum _MOS_FORCE_VDBOX
     MOS_FORCE_VDBOX_NONE    = 0,
     MOS_FORCE_VDBOX_1       = 0x0001,
     MOS_FORCE_VDBOX_2       = 0x0002,
+    //below is for scalability case,
+    //format is FE vdbox is specified as lowest 4 bits; BE0 is 2nd low 4 bits; BE1 is 3rd low 4bits.
+    MOS_FORCE_VDBOX_1_1_2   = 0x0211,
+    //FE-VDBOX2, BE0-VDBOX1, BE2-VDBOX2
+    MOS_FORCE_VDBOX_2_1_2   = 0x0212,
 } MOS_FORCE_VDBOX;
+
+//!
+//! \brief Enum for forcing VEBOX
+//!
+typedef enum _MOS_FORCE_VEBOX
+{
+    MOS_FORCE_VEBOX_NONE = 0,
+    MOS_FORCE_VEBOX_1 = 0x0001,
+    MOS_FORCE_VEBOX_2 = 0x0002,
+    // For scalability case
+    MOS_FORCE_VEBOX_1_2 = 0x0012
+} MOS_FORCE_VEBOX;
+
+#define MOS_FORCEVEBOX_VEBOXID_BITSNUM              4 //each VEBOX ID occupies 4 bits see defintion MOS_FORCE_VEBOX
+#define MOS_FORCEVEBOX_MASK                         0xf
+
 
 #define MOS_FORCEVDBOX_VDBOXID_BITSNUM              4 //each VDBOX ID occupies 4 bits see defintion MOS_FORCE_VDBOX
 #define MOS_FORCEVDBOX_MASK                         0xF
@@ -152,6 +174,10 @@ typedef enum _MOS_FORCE_VDBOX
 #define MOS_FORCEENGINE_ENGINEID_BITSNUM             4 //each VDBOX ID occupies 4 bits see defintion MOS_FORCE_VDBOX
 #define MOS_INVALID_FORCEENGINE_VALUE                0xffffffff
 #endif
+
+typedef struct _MOS_VIRTUALENGINE_INTERFACE *PMOS_VIRTUALENGINE_INTERFACE;
+typedef struct _MOS_CMD_BUF_ATTRI_VE MOS_CMD_BUF_ATTRI_VE, *PMOS_CMD_BUF_ATTRI_VE;
+
 
 typedef struct _MOS_COMMAND_BUFFER_ATTRIBUTES
 {
@@ -167,7 +193,7 @@ typedef struct _MOS_COMMAND_BUFFER_ATTRIBUTES
     uint32_t                    dwMediaFrameTrackingAddrOffset;
     MOS_RESOURCE                resMediaFrameTrackingSurface;
     int32_t                     bUmdSSEUEnable;
-    void*                       pAttriExt;
+    void*                       pAttriVe;
 } MOS_COMMAND_BUFFER_ATTRIBUTES, *PMOS_COMMAND_BUFFER_ATTRIBUTES;
 
 //!
@@ -319,6 +345,45 @@ struct _MOS_GPUCTX_CREATOPTIONS
 
 class OsContext;
 
+#if MOS_COMMAND_RESINFO_DUMP_SUPPORTED
+//!
+//! \brief Class to Dump GPU Command Info
+//!
+class GpuCmdResInfoDump
+{
+public:
+
+    static const GpuCmdResInfoDump *GetInstance();
+    GpuCmdResInfoDump();
+
+    void Dump(PMOS_INTERFACE pOsInterface) const;
+
+    void StoreCmdResPtr(PMOS_INTERFACE pOsInterface, const void *pRes) const;
+
+    void ClearCmdResPtrs(PMOS_INTERFACE pOsInterface) const;
+
+private:
+
+    struct GpuCmdResInfo;
+
+    void Dump(const void *pRes, std::ofstream &outputFile) const;
+
+    const std::vector<const void *> &GetCmdResPtrs(PMOS_INTERFACE pOsInterface) const;
+
+    const char *GetResType(MOS_GFXRES_TYPE resType) const;
+
+    const char *GetTileType(MOS_TILE_TYPE tileType) const;
+
+private:
+
+    static std::shared_ptr<GpuCmdResInfoDump> m_instance;
+    mutable uint32_t         m_cnt         = 0;
+    bool                     m_dumpEnabled = false;
+    std::string              m_path;
+};
+#endif // MOS_COMMAND_RESINFO_DUMP_SUPPORTED
+
+class GpuContextMgr;
 //!
 //! \brief Structure to Unified HAL OS resources
 //!
@@ -418,7 +483,8 @@ typedef struct _MOS_INTERFACE
 #endif // (_DEBUG || _RELEASE_INTERNAL)
 
     MEMORY_OBJECT_CONTROL_STATE (* pfnCachePolicyGetMemoryObject) (
-        MOS_HW_RESOURCE_DEF         Usage);
+        MOS_HW_RESOURCE_DEF         Usage,
+        GMM_CLIENT_CONTEXT          *pGmmClientContext);
 
     MOS_STATUS (* pfnCreateGpuContext) (
         PMOS_INTERFACE              pOsInterface,
@@ -433,6 +499,15 @@ typedef struct _MOS_INTERFACE
     MOS_STATUS (* pfnSetGpuContext) (
         PMOS_INTERFACE              pOsInterface,
         MOS_GPU_CONTEXT             GpuContext);
+
+    MOS_STATUS (*pfnSetGpuContextHandle) (
+        PMOS_INTERFACE     pOsInterface,
+        GPU_CONTEXT_HANDLE gpuContextHandle,
+        MOS_GPU_CONTEXT    GpuContext);
+
+    GpuContextMgr* (*pfnGetGpuContextMgr) (
+        PMOS_INTERFACE     pOsInterface);
+
 #if (_RELEASE_INTERNAL || _DEBUG)
 #if defined(CM_DIRECT_GUC_SUPPORT)
     MOS_STATUS(*pfnDestroyGuC) (
@@ -448,6 +523,9 @@ typedef struct _MOS_INTERFACE
 #endif
 
     MOS_GPU_CONTEXT (* pfnGetGpuContext) (
+        PMOS_INTERFACE              pOsInterface);
+
+    GMM_CLIENT_CONTEXT* (* pfnGetGmmClientContext) (
         PMOS_INTERFACE              pOsInterface);
 
     MOS_STATUS (* pfnIsGpuContextValid) (
@@ -953,8 +1031,26 @@ typedef struct _MOS_INTERFACE
     void (*pfnNotifyStreamIndexSharing)(
         PMOS_INTERFACE              pOsInterface);
 
-    //!< os interface extension
-    void                            *pOsExt;
+    // Virtual Engine related
+    int32_t                         bSupportVirtualEngine;                        //!< Enable virtual engine flag
+    int32_t                         bUseHwSemaForResSyncInVE;                     //!< Flag to indicate if UMD need to send HW sema cmd under this OS when there is a resource sync need with Virtual Engine interface 
+    PMOS_VIRTUALENGINE_INTERFACE    pVEInterf;
+    bool                            ctxBasedScheduling;                           //!< Flag to indicate if context based scheduling enabled for virtual engine, that is VE2.0.
+    bool                            veDefaultEnable = true;                       //!< Flag to indicate if virtual engine is enabled by default
+
+    MOS_CMD_BUF_ATTRI_VE            bufAttriVe[MOS_GPU_CONTEXT_MAX];
+
+#if MOS_MEDIASOLO_SUPPORTED
+    int32_t                         bSupportMediaSoloVirtualEngine;               //!< Flag to indicate if MediaSolo uses VE solution in cmdbuffer submission.
+#endif // MOS_MEDIASOLO_SUPPORTED
+    bool                            VEEnable;
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_FORCE_VEBOX                 eForceVebox;                                  //!< Force select Vebox
+    int32_t                         bHcpDecScalabilityMode;                       //!< enable scalability decode
+    int32_t                         bEnableDbgOvrdInVE;                           //!< It is for all scalable engines: used together with KMD VE for UMD to specify an engine directly
+    int32_t                         bVeboxScalabilityMode;                        //!< Enable scalability vebox
+    int32_t                         bSoftReset;                                   //!< trigger soft reset
+#endif // (_DEBUG || _RELEASE_INTERNAL)
 } MOS_INTERFACE;
 
 #ifdef __cplusplus
@@ -997,15 +1093,89 @@ MOS_STATUS Mos_AddCommand(
 //! \details  Get memory object based on resource usage
 //! \param    MOS_HW_RESOURCE_DEF MosUsage
 //!           [in] Current usage for resource
+//!           [in] Gmm client context
 //! \return   MEMORY_OBJECT_CONTROL_STATE
 //!           Populated memory object
 //!
 MEMORY_OBJECT_CONTROL_STATE Mos_CachePolicyGetMemoryObject(
-    MOS_HW_RESOURCE_DEF         MosUsage);
+    MOS_HW_RESOURCE_DEF MosUsage,
+    GMM_CLIENT_CONTEXT  *pGmmClientContext);
 #endif
 
 #ifdef __cplusplus
 }
 #endif
+
+typedef struct _MOS_GPUCTX_CREATOPTIONS_ENHANCED MOS_GPUCTX_CREATOPTIONS_ENHANCED, *PMOS_GPUCTX_CREATOPTIONS_ENHANCED;
+struct _MOS_GPUCTX_CREATOPTIONS_ENHANCED : public _MOS_GPUCTX_CREATOPTIONS
+{
+    union
+    {
+        struct
+        {
+            uint32_t    UsingSFC : 1;
+            uint32_t    Reserved1 : 1; // remove HWRestrictedEngine
+#if (_DEBUG || _RELEASE_INTERNAL)
+            uint32_t    Reserved : 29;
+            uint32_t    DebugOverride : 1; // Debug & validation usage only
+#else
+            uint32_t    Reserved : 30;
+#endif
+        };
+        uint32_t    Flags;
+    };
+
+    uint32_t    LRCACount;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Logical engine instances used by this context; valid only if flag DebugOverride is set.
+    uint8_t    EngineInstance[MOS_MAX_ENGINE_INSTANCE_PER_CLASS];
+#endif
+
+    _MOS_GPUCTX_CREATOPTIONS_ENHANCED()
+        : Flags(0),
+        LRCACount(0)
+    {
+#if (_DEBUG || _RELEASE_INTERNAL)
+        for (auto i = 0; i < MOS_MAX_ENGINE_INSTANCE_PER_CLASS; i++)
+        {
+            EngineInstance[i] = 0xff;
+        }
+#endif
+    }
+};
+
+#define MOS_VE_SUPPORTED(pOsInterface) \
+    (pOsInterface ? pOsInterface->bSupportVirtualEngine : false)
+
+#define MOS_VE_CTXBASEDSCHEDULING_SUPPORTED(pOsInterface) \
+    (pOsInterface ? pOsInterface->ctxBasedScheduling : false)
+
+#if MOS_MEDIASOLO_SUPPORTED
+#define MOS_MEDIASOLO_VE_SUPPORTED(pOsInterface) \
+    (pOsInterface ? pOsInterface->bSupportMediaSoloVirtualEngine : false)
+#endif
+
+__inline void Mos_SetVirtualEngineSupported(PMOS_INTERFACE pOsInterface, bool bEnabled)
+{
+    if (pOsInterface && pOsInterface->veDefaultEnable)
+    {
+        pOsInterface->bSupportVirtualEngine = bEnabled;
+    }
+}
+
+//!
+//! \brief    Check virtual engine is supported
+//! \details  Check virtual engine is supported
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] OS Interface
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if succeeded, otherwise error code
+//!
+MOS_STATUS Mos_CheckVirtualEngineSupported(
+    PMOS_INTERFACE osInterface,
+    bool           isDecode,
+    bool           veDefaultEnable);
+
 
 #endif  // __MOS_OS_H__

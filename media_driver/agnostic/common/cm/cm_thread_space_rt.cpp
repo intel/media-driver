@@ -30,6 +30,7 @@
 #include "cm_task_rt.h"
 #include "cm_mem.h"
 #include "cm_device_rt.h"
+#include "cm_surface_2d.h"
 #include "cm_extension_creator.h"
 
 enum CM_TS_FLAG
@@ -97,8 +98,6 @@ static CM_DEPENDENCY waveFront26ZIGPattern =
 
 namespace CMRT_UMD
 {
-static bool threadSpaceExRegistered = CmExtensionCreator<CmThreadSpaceEx>::RegisterClass<CmThreadSpaceEx>();
-
 //*-----------------------------------------------------------------------------
 //| Purpose:    Reset task and clear all the kernel
 //| Returns:    Result of the operation.
@@ -171,7 +170,11 @@ CmThreadSpaceRT::CmThreadSpaceRT( CmDeviceRT* device , uint32_t indexTsArray, ui
     m_dependencyVectorsSet(false),
     m_dirtyStatus(nullptr),
     m_groupSelect(CM_MW_GROUP_NONE),
-    m_threadSpaceOrderSet(false)
+    m_threadSpaceOrderSet(false),
+    m_swBoardSurf(nullptr),
+    m_swBoard(nullptr),
+    m_swScoreBoardEnabled(false),
+    m_threadGroupSpace(nullptr)
 {
     CmSafeMemSet( &m_dependency, 0, sizeof(CM_HAL_DEPENDENCY) );
     CmSafeMemSet( &m_wavefront26ZDispatchInfo, 0, sizeof(CM_HAL_WAVEFRONT26Z_DISPATCH_INFO) );
@@ -190,11 +193,24 @@ CmThreadSpaceRT::~CmThreadSpaceRT( void )
     MosSafeDeleteArray(m_boardOrderList);
     CmSafeDelete( m_dirtyStatus );
     CmSafeDelete(m_kernel);
-    MosSafeDelete(m_threadSpaceEx);
 
     if (m_wavefront26ZDispatchInfo.numThreadsInWave)
     {
         MOS_FreeMemory(m_wavefront26ZDispatchInfo.numThreadsInWave);
+    }
+    
+    if (m_swScoreBoardEnabled)
+    {
+        MosSafeDeleteArray(m_swBoard);
+        if (m_swBoardSurf != nullptr)
+        {
+            m_device->DestroySurface(m_swBoardSurf);
+        }
+    }
+
+    if (m_threadGroupSpace != nullptr) 
+    {
+        m_device->DestroyThreadGroupSpace(m_threadGroupSpace);
     }
 }
 
@@ -220,13 +236,13 @@ int32_t CmThreadSpaceRT::Initialize( void )
     }
     *m_kernel = nullptr;
 
-    m_threadSpaceEx = CmExtensionCreator<CmThreadSpaceEx>::CreateClass();
-    if (m_threadSpaceEx == nullptr)
+    PCM_HAL_STATE cmHalState = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
+    m_swScoreBoardEnabled = !(cmHalState->cmHalInterface->IsScoreboardParamNeeded());
+
+    if (cmHalState->cmHalInterface->CheckMediaModeAvailability() == false)
     {
-        CM_ASSERTMESSAGE("Error: Failed to initialize CmThreadSpace extension.");
-        return CM_OUT_OF_HOST_MEMORY;
+        CMCHK_STATUS_AND_RETURN(m_device->CreateThreadGroupSpaceEx(1, 1, 1, m_width, m_height, 1, m_threadGroupSpace));
     }
-    m_threadSpaceEx->Initialize(this);
 
     return CM_SUCCESS;
 }
@@ -513,7 +529,7 @@ CM_RT_API int32_t CmThreadSpaceRT::SelectThreadDependencyPattern (CM_DEPENDENCY_
             break;
     }
 
-    m_threadSpaceEx->UpdateDependency();
+    UpdateDependency();
 
     if( m_dependencyPatternType != m_currentDependencyPattern )
     {
@@ -548,6 +564,8 @@ CM_RT_API int32_t CmThreadSpaceRT::SelectMediaWalkingPattern( CM_WALKING_PATTERN
         case CM_WALK_WAVEFRONT26XALT:
         case CM_WALK_WAVEFRONT45D:
         case CM_WALK_WAVEFRONT45XD_2:
+        case CM_WALK_WAVEFRONT26D:
+        case CM_WALK_WAVEFRONT26XD:
             m_walkingPattern = pattern;
             break;
         default:
@@ -724,7 +742,7 @@ CM_RT_API int32_t CmThreadSpaceRT::Set26ZIMacroBlockSize( uint32_t width, uint32
     int32_t hr = CM_SUCCESS;
     m_26ZIBlockWidth = width;
     m_26ZIBlockHeight = height;
-    hr = m_threadSpaceEx->UpdateDependency();
+    hr = UpdateDependency();
     return hr;
 }
 
@@ -1972,6 +1990,168 @@ int32_t CmThreadSpaceRT::GetMediaWalkerGroupSelect(CM_MW_GROUP_SELECT &groupSele
     return CM_SUCCESS;
 }
 
+int32_t CmThreadSpaceRT::UpdateDependency()
+{
+    //Init SW scoreboard
+    if (!m_swScoreBoardEnabled)
+    {
+        return CM_SUCCESS;
+    }
+    if (m_swBoard == nullptr)
+    {
+        m_swBoard = MOS_NewArray(uint32_t, (m_height * m_width));
+        if (m_swBoard)
+        {
+            CmSafeMemSet(m_swBoard, 0, sizeof(uint32_t)* m_height * m_width);
+        }
+        else
+        {
+            CM_ASSERTMESSAGE("Error: Out of system memory.");
+            MosSafeDeleteArray(m_swBoard);
+            return CM_OUT_OF_HOST_MEMORY;
+        }
+    }
+    if (m_swBoardSurf == nullptr)
+    {
+        //for 2D atomic
+        CMCHK_STATUS_AND_RETURN(m_device->CreateSurface2D(m_width,
+                m_height, 
+                Format_R32S,
+                m_swBoardSurf));
+    }
+    CMCHK_STATUS_AND_RETURN(InitSwScoreBoard());
+    CMCHK_STATUS_AND_RETURN(m_swBoardSurf->WriteSurface((uint8_t *)m_swBoard, nullptr));
+    return CM_SUCCESS;
+}
+
+int32_t CmThreadSpaceRT::SetDependencyArgToKernel(CmKernelRT *pKernel) const
+{
+    if (!m_swScoreBoardEnabled)
+    {
+        return CM_SUCCESS;
+    }
+    int32_t hr = CM_SUCCESS;
+
+    for (uint32_t k = 0; k < pKernel->m_argCount; k++)
+    {
+        if (pKernel->m_args[k].unitKind == ARG_KIND_SURFACE_2D_SCOREBOARD)
+        {
+            SurfaceIndex* ScoreboardIndex = nullptr;
+            CMCHK_STATUS_AND_RETURN(m_swBoardSurf->GetIndex(ScoreboardIndex));
+            CMCHK_STATUS_AND_RETURN(pKernel->SetKernelArg(k, sizeof(SurfaceIndex), ScoreboardIndex));
+        }
+        else if (pKernel->m_args[k].unitKind == ARG_KIND_GENERAL_DEPVEC)
+        {
+            char vectors[CM_MAX_DEPENDENCY_COUNT * 2];
+            for (int ii = 0; ii < CM_MAX_DEPENDENCY_COUNT; ii++) 
+            {
+                vectors[ii] = (char)m_dependency.deltaX[ii];
+                vectors[ii + CM_MAX_DEPENDENCY_COUNT] = (char)m_dependency.deltaY[ii];
+            }
+            CMCHK_STATUS_AND_RETURN(pKernel->SetKernelArg(k, (sizeof(char)*CM_MAX_DEPENDENCY_COUNT * 2), vectors));
+        }
+        else if (pKernel->m_args[k].unitKind == ARG_KIND_GENERAL_DEPCNT)
+        {
+            CMCHK_STATUS_AND_RETURN(pKernel->SetKernelArg(k, sizeof(uint32_t), &(m_dependency.count)));
+        }
+    }
+
+    return CM_SUCCESS;
+}
+
+int32_t CmThreadSpaceRT::InitSwScoreBoard()
+{
+    int SB_BufLen = m_height * m_width;
+    int x = 0, y = 0;
+    int bufIdx = 0;
+    int temp_x = 0, temp_y = 0;
+    for (int i = 0; i < SB_BufLen; i++)
+    {
+        x = i % m_width;
+        y = i / m_width;
+        uint32_t entry_value = 0;   //only support for 8 dependencies, but in uint32_t type
+        for (uint32_t j = 0; j < m_dependency.count; j++)
+        {
+            if (((x + m_dependency.deltaX[j]) >= 0) &&
+                ((x + m_dependency.deltaX[j]) < (int)m_width)
+                && ((y + m_dependency.deltaY[j]) >= 0)
+                && ((y + m_dependency.deltaY[j]) < (int)m_height))
+            {
+                entry_value |= (1 << j);
+            }
+        }
+        switch (m_dependencyPatternType)
+        {
+            case CM_WAVEFRONT26Z: 
+            case CM_WAVEFRONT26ZIG:
+                if ((x % 2) == 1 && (y % 2) == 1) {
+                    entry_value &= 0xE; // force 0 bit and 4th bit to be zero
+                }
+                else if ((x % 2) != 0 || (y % 2) != 0) {
+                    entry_value &= 0x1E; // force 0 bit to be zero
+                }
+                break;
+            case CM_WAVEFRONT26X:
+                if ((y % 4) == 3) {
+                    entry_value &= 0x3C; // force 0, 1 and 6th bit of dependency value to be zero. 7th is by default 0
+                }
+                else if ((y % 4) != 0) {
+                    entry_value &= 0x7E; // force 0th bit of dependency value to be zero.
+                }
+                break;
+            case CM_WAVEFRONT26ZI:
+                temp_x = x % m_26ZIBlockWidth;
+                temp_y = y % m_26ZIBlockHeight;
+                if (temp_x == 0) {
+                    if (temp_y == m_26ZIBlockHeight - 1)
+                        entry_value &= 0x1E;
+                    else if (temp_y == 0)
+                        entry_value &= 0x3F;
+                    else
+                        entry_value &= 0x1F;
+                }
+                else if (temp_x == m_26ZIBlockWidth - 1) {
+                    if (m_26ZIBlockWidth % 2 == 0) {
+                        if (temp_y == m_26ZIBlockHeight - 1)
+                            entry_value &= 0x1E;
+                        else if (temp_y == 0)
+                            entry_value &= 0x3F;
+                        else
+                            entry_value &= 0x1F;
+                    }
+                    else {
+                        if (temp_y == 0)
+                            entry_value &= 0x1A;
+                        else
+                            entry_value &= 0x12;
+                    }
+
+                }
+                else if ((temp_x % 2) != 0) {
+                    if (temp_y == m_26ZIBlockHeight - 1)
+                        entry_value &= 0x7E;
+                }
+                else if ((temp_x % 2) == 0) {
+                    if (temp_y == 0)
+                        entry_value &= 0x3A;
+                    else
+                        entry_value &= 0x12;
+                }
+                break;
+            case CM_NONE_DEPENDENCY:
+            case CM_WAVEFRONT:
+            case CM_WAVEFRONT26:
+            case CM_VERTICAL_WAVE:
+            case CM_HORIZONTAL_WAVE:
+            default:
+                break;
+        }
+
+        *(m_swBoard + i) = entry_value;
+    }
+    return CM_SUCCESS;
+}
+
 #if CM_LOG_ON
 std::string CmThreadSpaceRT::Log()
 {
@@ -1987,4 +2167,9 @@ std::string CmThreadSpaceRT::Log()
     return oss.str();
 }
 #endif
+
+CmThreadGroupSpace *CmThreadSpaceRT::GetThreadGroupSpace() const
+{
+    return m_threadGroupSpace;
+}
 }

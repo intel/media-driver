@@ -27,7 +27,7 @@
 
 #include "codechal_decoder.h"
 #include "codechal_decode_mpeg2.h"
-#include "codechal_secure_decode.h"
+#include "codechal_secure_decode_interface.h"
 #include "codechal_mmc_decode_mpeg2.h"
 #if USE_CODECHAL_DEBUG_TOOL
 #include <sstream>
@@ -115,10 +115,13 @@ MOS_STATUS CodechalDecodeMpeg2::InsertDummySlices(
     uint16_t                        endMB)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    bool      cpEnable = false;
 
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     CODECHAL_DECODE_CHK_NULL_RETURN(batchBuffer);
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_osInterface);
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_osInterface->osCpInterface);
 
     //  A copied data buffer must be present
     if (m_nextCopiedDataOffset && !m_dummySliceDataPresent)
@@ -133,7 +136,12 @@ MOS_STATUS CodechalDecodeMpeg2::InsertDummySlices(
         m_dummySliceDataPresent = true;
     }
 
-    m_hwInterface->GetCpInterface()->SetCpForceDisabled(true);
+    // force disable cp for dummy slices
+    cpEnable = m_osInterface->osCpInterface->IsCpEnabled();
+    if (cpEnable)
+    {
+        m_osInterface->osCpInterface->SetCpEnabled(false);
+    }
 
     uint16_t intraVLDFormat                = m_picParams->W0.m_intraVlcFormat;
     uint16_t quantizerScaleType            = m_picParams->W0.m_quantizerScaleType;
@@ -176,7 +184,11 @@ MOS_STATUS CodechalDecodeMpeg2::InsertDummySlices(
         startMB++;
     }
 
-    m_hwInterface->GetCpInterface()->SetCpForceDisabled(false);
+    // restore Cp state
+    if (cpEnable)
+    {
+        m_osInterface->osCpInterface->SetCpEnabled(true);
+    }
 
     if (isLastSlice)
     {
@@ -415,6 +427,8 @@ MOS_STATUS CodechalDecodeMpeg2::AllocateResources ()
 
         CodechalResLock DummyBitstreamLock(m_osInterface, &m_resMpeg2DummyBistream);
         auto data = DummyBitstreamLock.Lock(CodechalResLock::writeOnly);
+        
+        CODECHAL_DECODE_CHK_NULL_RETURN(data);
 
         MOS_ZeroMemory(data, size);
         CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(MOS_SecureMemcpy(
@@ -423,6 +437,7 @@ MOS_STATUS CodechalDecodeMpeg2::AllocateResources ()
             (void *)CODECHAL_DECODE_MPEG2_WaDummyBitstream,
             sizeof(CODECHAL_DECODE_MPEG2_WaDummyBitstream)),
             "Failed to copy memory.");
+
     }
 
     if (m_mode == CODECHAL_DECODE_MODE_MPEG2IDCT)

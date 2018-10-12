@@ -1825,28 +1825,41 @@ MOS_STATUS CodechalEncodeMpeg2::SetPictureStructs()
 
     if (m_pictureCodingType == I_TYPE)
     {
-        m_picParams->m_fcode00 = fcodeX;
-        m_picParams->m_fcode01 = fcodeY;
-
+        if ((m_picParams->m_fcode00 > fcodeX) ||
+            (m_picParams->m_fcode01 > fcodeY) ||
+            (m_picParams->m_fcode00 == 0) ||
+            (m_picParams->m_fcode01 == 0))
+        {
+            m_picParams->m_fcode00 = fcodeX;
+            m_picParams->m_fcode01 = fcodeY;
+        }
     }
     else if (m_pictureCodingType == P_TYPE)
     {
-        if ((m_picParams->m_fcode00 != fcodeX) ||
-            (m_picParams->m_fcode01 != fcodeY))
+        if ((m_picParams->m_fcode00 > fcodeX) ||
+            (m_picParams->m_fcode01 > fcodeY) ||
+            (m_picParams->m_fcode00 == 0) ||
+            (m_picParams->m_fcode01 == 0))
         {
-            eStatus = MOS_STATUS_INVALID_PARAMETER;
-            return eStatus;
+            m_picParams->m_fcode00 = fcodeX;
+            m_picParams->m_fcode01 = fcodeY;
         }
     }
     else // B picture
     {
-        if ((m_picParams->m_fcode00 != fcodeX) ||
-            (m_picParams->m_fcode01 != fcodeY) ||
-            (m_picParams->m_fcode10 != fcodeX) ||
-            (m_picParams->m_fcode11 != fcodeY))
+        if ((m_picParams->m_fcode00 > fcodeX) ||
+            (m_picParams->m_fcode01 > fcodeY) ||
+            (m_picParams->m_fcode10 > fcodeX) ||
+            (m_picParams->m_fcode11 > fcodeY) ||
+            (m_picParams->m_fcode00 == 0) ||
+            (m_picParams->m_fcode01 == 0) ||
+            (m_picParams->m_fcode10 == 0) ||
+            (m_picParams->m_fcode11 == 0))
         {
-            eStatus = MOS_STATUS_INVALID_PARAMETER;
-            return eStatus;
+            m_picParams->m_fcode00 = fcodeX;
+            m_picParams->m_fcode01 = fcodeY;
+            m_picParams->m_fcode10 = fcodeX;
+            m_picParams->m_fcode11 = fcodeY;
         }
     }
 
@@ -2709,7 +2722,7 @@ MOS_STATUS CodechalEncodeMpeg2::InitializePicture(const EncoderParams& params)
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetStatusReportParams(
         m_refList[m_currReconstructedPic.FrameIdx]));
 
-    m_bitstreamUpperBound = m_frameWidth * m_frameHeight * 3 / 2;
+    m_bitstreamUpperBound = m_encodeParams.dwBitstreamSize;
 
     return eStatus;
 }
@@ -4218,8 +4231,8 @@ MOS_STATUS CodechalEncodeMpeg2::ExecuteKernelFunctions()
                 &m_brcBuffers.resBrcPakStatisticBuffer[m_brcPakStatisticsSize],
                 CodechalDbgAttr::attrOutput,
                 "MbQp",
-                m_brcBuffers.dwBrcMbQpBottomFieldOffset,
                 m_brcBuffers.sBrcMbQpBuffer.dwPitch*m_brcBuffers.sBrcMbQpBuffer.dwHeight,
+                m_brcBuffers.dwBrcMbQpBottomFieldOffset,
                 CODECHAL_MEDIA_STATE_BRC_UPDATE));
         }
 
@@ -4557,14 +4570,14 @@ MOS_STATUS CodechalEncodeMpeg2::ExecuteSliceLevel()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    CODECHAL_ENCODE_CHK_NULL_RETURN(m_hwInterface->GetCpInterface());
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_osInterface->osCpInterface);
 
     auto cpInterface = m_hwInterface->GetCpInterface();
 
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
 
-    if (m_hwInterface->GetCpInterface()->IsCpEnabled())
+    if (m_osInterface->osCpInterface->IsCpEnabled())
     {
         MHW_CP_SLICE_INFO_PARAMS sliceInfoParam;
         sliceInfoParam.bLastPass = (m_currPass == m_numPasses) ? true : false;

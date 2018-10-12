@@ -208,6 +208,19 @@
 //!
 #define __MOS_USER_FEATURE_KEY_SUB_COMPONENT_CM_TAG                 "CM Sub Components Tags"
 
+//!
+//! \brief User feature keys for component SCALABILITY:
+//!
+#define __MOS_USER_FEATURE_KEY_MESSAGE_SCALABILITY_TAG              "SCALABILITY Message Tags"
+#define __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_SCALABILITY         "SCALABILITY Tags By Sub Component"
+//!
+//! \brief 63____________________________________________________________________________3__________0
+//!         |                                                                            |   Self   |
+//!         |                    Reserved (can create SCALABILITY subcomponents)         |Asrt|level|
+//!         |____________________________________________________________________________|__________|
+//!
+#define __MOS_USER_FEATURE_KEY_SUB_COMPONENT_SCALABILITY_TAG        "SCALABILITY Sub Components Tags"
+
 #endif // MOS_MESSAGES_ENABLED
 
 //User feature key for MDF
@@ -216,6 +229,7 @@
 #define __MEDIA_USER_FEATURE_VALUE_MDF_UMD_ULT_ENABLE                       "MDF UMD ULT Enable"
 #define __MEDIA_USER_FEATURE_VALUE_MDF_CURBE_DUMP_ENABLE                    "MDF Curbe Dump Enable"
 #define __MEDIA_USER_FEATURE_VALUE_MDF_SURFACE_DUMP_ENABLE                  "MDF Surface Dump Enable"
+#define __MEDIA_USER_FEATURE_VALUE_MDF_EMU_MODE_ENABLE                      "MDF EMU Enable"
 //User feature key for VP
 #define __MEDIA_USER_FEATURE_VALUE_VP_3P_DUMP_UFKEY_LOCATION                "Software\\Intel\\VPPDPI"
 

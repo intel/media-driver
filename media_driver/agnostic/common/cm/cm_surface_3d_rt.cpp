@@ -150,6 +150,8 @@ CM_RT_API int32_t CmSurface3DRT::WriteSurface( const unsigned char* sysMem,
     m_surfaceMgr->GetCmDevice( device );
     CM_ASSERT( device );
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)device->GetAccelData();
+    CMCHK_NULL_AND_RETURN(cmData);
+    CMCHK_NULL_AND_RETURN(cmData->cmHalState);
 
     inParam.handle = m_handle;
     inParam.data = (void*)sysMem; //Any non-nullptr value will work
@@ -282,6 +284,8 @@ CM_RT_API int32_t CmSurface3DRT::ReadSurface( unsigned char* sysMem, CmEvent* ev
     m_surfaceMgr->GetCmDevice( device );
     CM_ASSERT( device );
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)device->GetAccelData();
+    CMCHK_NULL_AND_RETURN(cmData);
+    CMCHK_NULL_AND_RETURN(cmData->cmHalState);
 
     inParam.handle = m_handle;
     inParam.data = (void*)sysMem; //Any non-nullptr value will work
@@ -409,6 +413,8 @@ CM_RT_API int32_t CmSurface3DRT::InitSurface(const uint32_t initValue, CmEvent* 
     m_surfaceMgr->GetCmDevice( device );
     CM_ASSERT( device );
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)device->GetAccelData();
+    CMCHK_NULL_AND_RETURN(cmData);
+    CMCHK_NULL_AND_RETURN(cmData->cmHalState);
 
     uint32_t sizePerPixel = 0;
     uint32_t updatedHeight = 0;
@@ -493,8 +499,10 @@ int32_t CmSurface3DRT::SetMemoryObjectControl( MEMORY_OBJECT_CONTROL memCtrl, ME
 
     CmDeviceRT *cmDevice = nullptr;
     m_surfaceMgr->GetCmDevice(cmDevice);
+    CMCHK_NULL_AND_RETURN(cmDevice);
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)cmDevice->GetAccelData();
-    CMCHK_NULL(cmData);
+    CMCHK_NULL_AND_RETURN(cmData);
+    CMCHK_NULL_AND_RETURN(cmData->cmHalState);
 
     mocs = (m_memObjCtrl.mem_ctrl << 8) | (m_memObjCtrl.mem_type<<4) | m_memObjCtrl.age;
 
@@ -562,6 +570,8 @@ void CmSurface3DRT::DumpContent(uint32_t kernelNumber, char *kernelName, int32_t
     m_surfaceMgr->GetCmDevice(device);
     CM_ASSERT(device);
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)device->GetAccelData();
+    CM_ASSERT(cmData);
+    CM_ASSERT(cmData->cmHalState);
 
     inParam.handle = m_handle;
     inParam.data = (void*)&surface[0];

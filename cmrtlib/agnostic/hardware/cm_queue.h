@@ -142,8 +142,10 @@ public:
 
     CM_RT_API int32_t EnqueueVebox(CmVebox *vebox, CmEvent *&event);
 
+    CM_QUEUE_CREATE_OPTION GetQueueOption();
+
 protected:
-    CmQueue_RT(CmDevice_RT *device);
+    CmQueue_RT(CmDevice_RT *device, CM_QUEUE_CREATE_OPTION queueCreateOption);
 
     ~CmQueue_RT();
 
@@ -160,6 +162,8 @@ protected:
     CmDevice_RT *m_cmDev;
 
     void  *m_cmQueueHandle;  //pointer used in driver
+
+    CM_QUEUE_CREATE_OPTION m_queueOption;
 
     CSync m_criticalSection;
 

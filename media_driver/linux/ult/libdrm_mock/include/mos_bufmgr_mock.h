@@ -1,5 +1,5 @@
 /*
- * Copyright © 2008-2012 Intel Corporation
+ * Copyright © 2008-2018 Intel Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -98,6 +98,11 @@ struct mos_linux_bo {
      * entries when calling drm_intel_bo_emit_reloc()
      */
     uint64_t offset64;
+
+    /**
+     * indicate if the bo mapped into aux table
+     */
+    bool aux_mapped;
 };
 
 enum mos_aub_dump_bmp_format {

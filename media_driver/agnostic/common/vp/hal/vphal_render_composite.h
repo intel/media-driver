@@ -579,22 +579,6 @@ protected:
         PVPHAL_RENDERING_DATA_COMPOSITE pRenderingData);
 
     //!
-    //! \brief    Check if None Cp Composite is needed
-    //! \param    [in,out] pCompParams
-    //!           Pointer to Composite parameters
-    //! \param    [in] ppOsResource
-    //!           Pointer to MOS_RESOURCE
-    //! \param    [in] resourceCount
-    //!           The count of input resource
-    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-    //! \return   MOS_STATUS
-    //!
-    virtual MOS_STATUS CheckIfNoneCpCompNeeded(
-        PVPHAL_COMPOSITE_PARAMS pCompParams,
-        PMOS_RESOURCE           ppOsResource[],
-        uint32_t                resourceCount);
-
-    //!
     //! \brief    Fill in Gen specific static data
     //! \details  Fill in Gen specific static data
     //! \param    pRenderingData
@@ -648,6 +632,16 @@ protected:
     {
         return false;
     }
+
+    //!
+    //! \brief    Check whether parameters for composition valid or not.
+    //! \param    [in] CompositeParams
+    //!           Parameters for composition
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS IsCompositeParamsValid(
+        const VPHAL_COMPOSITE_PARAMS& CompositeParams);
 
 private:
     //!
@@ -1011,8 +1005,6 @@ protected:
 
     static const int                AVS_CACHE_SIZE = 4;           //!< AVS coefficients cache size
     AvsCoeffsCache<AVS_CACHE_SIZE>  m_AvsCoeffsCache;             //!< AVS coefficients calculation is expensive, add cache to mitigate
-
-    bool                            m_bForceNoneCpCompCall;       //!< Force None CP Comp call on demand
 };
 
 typedef CompositeState * PCComposite;

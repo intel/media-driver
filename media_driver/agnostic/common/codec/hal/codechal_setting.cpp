@@ -26,10 +26,6 @@
 
 #include "codechal_setting.h"
 
-void *CodechalSetting::GetCpParams()
-{
-    return nullptr;
-}
 
 CodechalSetting *CodechalSetting::CreateCodechalSetting()
 {

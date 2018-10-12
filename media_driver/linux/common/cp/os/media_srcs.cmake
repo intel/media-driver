@@ -19,10 +19,10 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 set(TMP_SOURCES_
-    ${CMAKE_CURRENT_LIST_DIR}/mos_os_cp_specific.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_os_cp_interface_specific.cpp
 )
 set(TMP_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/mos_os_cp_specific.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_os_cp_interface_specific.h
 )
 
 set(SOURCES_

@@ -75,6 +75,7 @@ set(TMP_4_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_state_heap.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_state_heap_generic.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_utilities.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_mmio.h
 )
 
 set(SOURCES_

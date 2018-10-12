@@ -3788,6 +3788,17 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PBMbEncKernel()
         RefWidth  = 48;
         RefHeight = 40;
         LenSP     = 48;
+        if (m_hevcSeqParams->TargetUsage != 7) 
+        {
+            if (m_pictureCodingType == B_TYPE)
+            {
+                LenSP = 48;
+            } else {
+                LenSP = 57;
+            }
+        } else {
+            LenSP = 25;
+        }
         break;
     default:
         CODECHAL_ENCODE_ASSERTMESSAGE("Invalid picture FEI MB ENC SearchWindow value for HEVC FEI on SKL!!!.");
@@ -4525,12 +4536,6 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode2xScalingKernel()
     scalingParams.m_cmSurfDS_TopOut = &m_scaled2xSurface.OsResource;
     scalingParams.m_cmSurfTopVProc = nullptr;
 
-    if (m_rawSurfaceToEnc->dwPitch != m_rawSurfaceToEnc->dwWidth)
-    {
-        scalingParams.m_resetPic = true;
-        scalingParams.m_width = m_rawSurfaceToEnc->dwWidth / 2;
-    }
-
     if (m_cmKernelMap.count("2xScaling") == 0)
     {
         m_cmKernelMap["2xScaling"] = new CMRTKernelDownScalingUMD();
@@ -4547,6 +4552,9 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode2xScalingKernel()
     )
 
     m_cmKernelMap["2xScaling"]->AllocateSurfaces(&scalingParams);
+
+    //No need to wait for task finished
+    m_cmEvent = CM_NO_EVENT;
     m_cmKernelMap["2xScaling"]->CreateAndDispatchKernel(m_cmEvent, false, (!m_singleTaskPhaseSupported));
 
     return eStatus;
@@ -4629,6 +4637,9 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode32x32PuModeDecisionKernel()
     )
 
     m_cmKernelMap["I_32X32"]->AllocateSurfaces(&I32x32Params);
+
+    //No need to wait for task finished
+    m_cmEvent = CM_NO_EVENT;
     m_cmKernelMap["I_32X32"]->CreateAndDispatchKernel(m_cmEvent, false, (!m_singleTaskPhaseSupported));
 
     return eStatus;
@@ -4671,8 +4682,8 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode16x16SadPuComputationKernel()
     I16x16SadParams.m_cmSurfSliceMap = &m_sliceMapSurface.OsResource;
     I16x16SadParams.m_cmSurfSIF = &m_simplestIntraSurface.OsResource;
 
-    //in case I_32x32 isn't initialized when using FastIntraMode for per-frame control
-    if (m_feiPicParams->FastIntraMode == 0 && m_cmKernelMap.count("I_32X32") == 0)
+    //in case I_32x32 isn't initialized when using FastIntraMode for per-frame control (I: enable; P/B: disable)
+    if (m_cmKernelMap.count("I_32X32") == 0)
     {
         m_cmKernelMap["I_32X32"] = new CMRTKernelI32x32UMD();
         m_cmKernelMap["I_32X32"]->Init(nullptr, m_cmKernelMap["2xScaling"]->m_cmDev, m_cmKernelMap["2xScaling"]->m_cmQueue, m_cmKernelMap["2xScaling"]->m_cmTask, nullptr);
@@ -4694,6 +4705,9 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode16x16SadPuComputationKernel()
     )
 
     m_cmKernelMap["I_16X16_SAD"]->AllocateSurfaces(&I16x16SadParams);
+
+    //No need to wait for task finished
+    m_cmEvent = CM_NO_EVENT;
     m_cmKernelMap["I_16X16_SAD"]->CreateAndDispatchKernel(m_cmEvent, false, (!m_singleTaskPhaseSupported));
 
     return eStatus;
@@ -4828,6 +4842,9 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode16x16PuModeDecisionKernel()
     )
 
     m_cmKernelMap["I_16X16_MODE"]->AllocateSurfaces(&I16x16ModeParams);
+
+    //No need to wait for task finished
+    m_cmEvent = CM_NO_EVENT;
     m_cmKernelMap["I_16X16_MODE"]->CreateAndDispatchKernel(m_cmEvent, false, (!m_singleTaskPhaseSupported));
 
     return eStatus;
@@ -4920,6 +4937,9 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PUKernel()
     )
 
     m_cmKernelMap["I_8X8"]->AllocateSurfaces(&I8x8Params);
+
+    //No need to wait for task finished
+    m_cmEvent = CM_NO_EVENT;
     m_cmKernelMap["I_8X8"]->CreateAndDispatchKernel(m_cmEvent, false, (!m_singleTaskPhaseSupported));
 
     return eStatus;
@@ -5014,6 +5034,9 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PUFMODEKernel()
     )
 
     m_cmKernelMap["I_8X8_MODE"]->AllocateSurfaces(&I8x8ModeParams);
+
+    //No need to wait for task finished
+    m_cmEvent = CM_NO_EVENT;
     m_cmKernelMap["I_8X8_MODE"]->CreateAndDispatchKernel(m_cmEvent, false, ((!m_singleTaskPhaseSupported)|| m_lastTaskInPhase));
 
     return eStatus;
@@ -5086,6 +5109,9 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode32X32BIntraCheckKernel()
     )
 
     m_cmKernelMap["PB_32x32"]->AllocateSurfaces(&PB32x32Params);
+
+    //No need to wait for task finished
+    m_cmEvent = CM_NO_EVENT;
     m_cmKernelMap["PB_32x32"]->CreateAndDispatchKernel(m_cmEvent, false, (!m_singleTaskPhaseSupported));
 
     return eStatus;
@@ -5143,14 +5169,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8BPakKernel(
     if (m_cmKernelMap.count("PB_8x8_PAK") == 0)
     {
         m_cmKernelMap["PB_8x8_PAK"] = new CMRTKernelPB8x8PakUMD();
-        if (m_feiPicParams->FastIntraMode)
-        {
-            m_cmKernelMap["PB_8x8_PAK"]->Init(nullptr, m_cmKernelMap["I_8x8_MBENC"]->m_cmDev, m_cmKernelMap["I_8x8_MBENC"]->m_cmQueue, m_cmKernelMap["I_8x8_MBENC"]->m_cmTask, m_cmKernelMap["I_8x8_MBENC"]->m_cmProgram);
-        }
-        else
-        {
-            m_cmKernelMap["PB_8x8_PAK"]->Init(nullptr, m_cmKernelMap["2xScaling"]->m_cmDev, m_cmKernelMap["2xScaling"]->m_cmQueue, m_cmKernelMap["2xScaling"]->m_cmTask, m_cmKernelMap["PB_32x32"]->m_cmProgram);
-        }
+        m_cmKernelMap["PB_8x8_PAK"]->Init(nullptr, m_cmKernelMap["2xScaling"]->m_cmDev, m_cmKernelMap["2xScaling"]->m_cmQueue, m_cmKernelMap["2xScaling"]->m_cmTask, m_cmKernelMap["PB_32x32"]->m_cmProgram);
     }
 
     m_cmKernelMap["PB_8x8_PAK"]->SetupCurbe(curbe);
@@ -5163,6 +5182,9 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8BPakKernel(
     )
 
     m_cmKernelMap["PB_8x8_PAK"]->AllocateSurfaces(&PB8x8PakParams);
+
+    //No need to wait for task finished
+    m_cmEvent = CM_NO_EVENT;
     m_cmKernelMap["PB_8x8_PAK"]->CreateAndDispatchKernel(m_cmEvent, false, ((!m_singleTaskPhaseSupported)|| m_lastTaskInPhase));
 
     return eStatus;
@@ -5225,8 +5247,8 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PBMbEncKernel()
     bool transform_8x8_mode_flag = true;
     uint32_t SearchPath              = (m_feiPicParams->SearchWindow == 5) ? 2 : 1;  // 2 means full search, 1 means diamand search
     uint32_t LenSP                   = m_feiPicParams->LenSP;
-    uint32_t RefWidth                = m_feiPicParams->RefWidth;
-    uint32_t RefHeight               = m_feiPicParams->RefHeight;
+    uint32_t RefWidth                = (m_feiPicParams->RefWidth < 20) ? 20 : m_feiPicParams->RefWidth;
+    uint32_t RefHeight               = (m_feiPicParams->RefHeight < 20) ? 20 : m_feiPicParams->RefHeight;
 
     switch (m_feiPicParams->SearchWindow)
     {
@@ -5275,6 +5297,17 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PBMbEncKernel()
         RefWidth  = 48;
         RefHeight = 40;
         LenSP     = 48;
+        if (m_hevcSeqParams->TargetUsage != 7)
+        {
+            if (m_pictureCodingType == B_TYPE)
+            {
+                LenSP = 48;
+            } else {
+                LenSP = 57;
+            }
+        } else {
+            LenSP = 25;
+        }
         break;
     default:
         CODECHAL_ENCODE_ASSERTMESSAGE("Invalid picture FEI MB ENC SearchWindow value for HEVC FEI on SKL!!!.");
@@ -5590,16 +5623,33 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PBMbEncKernel()
         PB8x8MbEncParams.m_cmSurfPerCTBInput = nullptr;
     }
 
+    //to avoid multi contexts in case per-frame control of FastIntraMode, always use 2xScaling kernel to initialize the context.
+    if (m_cmKernelMap.count("2xScaling") == 0)
+    {
+        m_cmKernelMap["2xScaling"] = new CMRTKernelDownScalingUMD();
+        m_cmKernelMap["2xScaling"]->Init((void *)m_osInterface->pOsContext);
+    }
+
+    //in case PB_32x32 isn't initialized when using FastIntraMode for per-frame control (I: disable; P/B: enable)
+    if (m_cmKernelMap.count("PB_32x32") == 0)
+    {
+        m_cmKernelMap["PB_32x32"] = new CMRTKernelPB32x32UMD();
+        m_cmKernelMap["PB_32x32"]->Init(nullptr, m_cmKernelMap["2xScaling"]->m_cmDev, m_cmKernelMap["2xScaling"]->m_cmQueue, m_cmKernelMap["2xScaling"]->m_cmTask, nullptr);
+    }
+
     if (m_pictureCodingType == I_TYPE && m_feiPicParams->FastIntraMode)
     {
         if (m_cmKernelMap.count("I_8x8_MBENC") == 0)
         {
             m_cmKernelMap["I_8x8_MBENC"] = new CMRTKernelB8x8MbEncUMD();
-            m_cmKernelMap["I_8x8_MBENC"]->Init((void *)m_osInterface->pOsContext);
+            m_cmKernelMap["I_8x8_MBENC"]->Init(nullptr, m_cmKernelMap["2xScaling"]->m_cmDev, m_cmKernelMap["2xScaling"]->m_cmQueue, m_cmKernelMap["2xScaling"]->m_cmTask, m_cmKernelMap["PB_32x32"]->m_cmProgram);
         }
 
         m_cmKernelMap["I_8x8_MBENC"]->SetupCurbe(curbe);
         m_cmKernelMap["I_8x8_MBENC"]->AllocateSurfaces(&PB8x8MbEncParams);
+
+        //No need to wait for task finished
+        m_cmEvent = CM_NO_EVENT;
         m_cmKernelMap["I_8x8_MBENC"]->CreateAndDispatchKernel(m_cmEvent, false, (!m_singleTaskPhaseSupported));
     }
     else if (m_pictureCodingType == B_TYPE)
@@ -5607,18 +5657,14 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PBMbEncKernel()
         if (m_cmKernelMap.count("B_8x8_MBENC") == 0)
         {
             m_cmKernelMap["B_8x8_MBENC"] = new CMRTKernelB8x8MbEncUMD();
-            if (m_feiPicParams->FastIntraMode)
-            {
-                m_cmKernelMap["B_8x8_MBENC"]->Init(nullptr, m_cmKernelMap["I_8x8_MBENC"]->m_cmDev, m_cmKernelMap["I_8x8_MBENC"]->m_cmQueue, m_cmKernelMap["I_8x8_MBENC"]->m_cmTask, m_cmKernelMap["I_8x8_MBENC"]->m_cmProgram);
-            }
-            else
-            {
-                m_cmKernelMap["B_8x8_MBENC"]->Init(nullptr, m_cmKernelMap["2xScaling"]->m_cmDev, m_cmKernelMap["2xScaling"]->m_cmQueue, m_cmKernelMap["2xScaling"]->m_cmTask, m_cmKernelMap["PB_32x32"]->m_cmProgram);
-            }
+            m_cmKernelMap["B_8x8_MBENC"]->Init(nullptr, m_cmKernelMap["2xScaling"]->m_cmDev, m_cmKernelMap["2xScaling"]->m_cmQueue, m_cmKernelMap["2xScaling"]->m_cmTask, m_cmKernelMap["PB_32x32"]->m_cmProgram);
         }
 
         m_cmKernelMap["B_8x8_MBENC"]->SetupCurbe(curbe);
         m_cmKernelMap["B_8x8_MBENC"]->AllocateSurfaces(&PB8x8MbEncParams);
+
+        //No need to wait for task finished
+        m_cmEvent = CM_NO_EVENT;
         m_cmKernelMap["B_8x8_MBENC"]->CreateAndDispatchKernel(m_cmEvent, false, (!m_singleTaskPhaseSupported));
     }
     else if (m_pictureCodingType == P_TYPE)
@@ -5626,17 +5672,13 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Encode8x8PBMbEncKernel()
         if (m_cmKernelMap.count("P_8x8_MBENC") == 0)
         {
             m_cmKernelMap["P_8x8_MBENC"] = new CMRTKernelP8x8MbEncUMD();
-            if (m_feiPicParams->FastIntraMode)
-            {
-                m_cmKernelMap["P_8x8_MBENC"]->Init(nullptr, m_cmKernelMap["I_8x8_MBENC"]->m_cmDev, m_cmKernelMap["I_8x8_MBENC"]->m_cmQueue, m_cmKernelMap["I_8x8_MBENC"]->m_cmTask, m_cmKernelMap["I_8x8_MBENC"]->m_cmProgram);
-            }
-            else
-            {
-                m_cmKernelMap["P_8x8_MBENC"]->Init(nullptr, m_cmKernelMap["2xScaling"]->m_cmDev, m_cmKernelMap["2xScaling"]->m_cmQueue, m_cmKernelMap["2xScaling"]->m_cmTask, m_cmKernelMap["PB_32x32"]->m_cmProgram);
-            }
+            m_cmKernelMap["P_8x8_MBENC"]->Init(nullptr, m_cmKernelMap["2xScaling"]->m_cmDev, m_cmKernelMap["2xScaling"]->m_cmQueue, m_cmKernelMap["2xScaling"]->m_cmTask, m_cmKernelMap["PB_32x32"]->m_cmProgram);
         }
         m_cmKernelMap["P_8x8_MBENC"]->SetupCurbe(curbe);
         m_cmKernelMap["P_8x8_MBENC"]->AllocateSurfaces(&PB8x8MbEncParams);
+
+        //No need to wait for task finished
+        m_cmEvent = CM_NO_EVENT;
         m_cmKernelMap["P_8x8_MBENC"]->CreateAndDispatchKernel(m_cmEvent, false, (!m_singleTaskPhaseSupported));
     }
 
@@ -5769,7 +5811,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::EncodeKernelFunctions()
     else
     {
         //Step 1: perform 2:1 down-scaling
-        if ((m_hevcSeqParams->bit_depth_luma_minus8 == 0))  // use this for 8 bit only case.
+        if (m_hevcSeqParams->bit_depth_luma_minus8 == 0)  // use this for 8 bit only case.
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(Encode2xScalingKernel());
         }
@@ -5920,18 +5962,6 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::EncodeKernelFunctions()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(Encode8x8PBMbEncKernel());
     }
 #ifdef HEVC_FEI_ENABLE_CMRT
-
-    if (m_cmEvent != nullptr)
-    {
-        if (m_feiPicParams->FastIntraMode)
-        {
-            m_cmKernelMap["I_8x8_MBENC"]->WaitAndDestroyEvent(m_cmEvent);
-        }
-        else
-        {
-            m_cmKernelMap["2xScaling"]->WaitAndDestroyEvent(m_cmEvent);
-        }
-    }
 
     for (CmKernelMapType::iterator it = m_cmKernelMap.begin(); it != m_cmKernelMap.end(); it++)
     {
@@ -6191,7 +6221,7 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::AllocateEncResources()
         uiHeight,
         "Simplest Intra surface"));
 
-    m_allocator->AllocateResource(m_standard, 1024, 1, brcInputForEncKernel, true);
+    m_allocator->AllocateResource(m_standard, 1024, 1, brcInputForEncKernel, "brcInputForEncKernel", true);
 
     if (MEDIA_IS_SKU(m_skuTable, FtrEncodeHEVC10bit))
     {

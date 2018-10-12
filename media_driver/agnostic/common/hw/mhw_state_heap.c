@@ -28,7 +28,7 @@
 #include "mhw_block_manager.h"
 #include "media_interfaces_mhw.h"
 #include "mhw_mi.h"
-#include "mhw_cp.h"
+#include "mhw_cp_interface.h"
 
 extern const uint8_t g_cMhw_VDirection[MHW_NUM_FRAME_FIELD_TYPES] = {
     MEDIASTATE_VDIRECTION_FULL_FRAME,
@@ -714,10 +714,12 @@ MOS_STATUS Mhw_StateHeapInterface_InitInterface(
     mhwInterfaces = MhwInterfaces::CreateFactory(params, pOsInterface);
     if (mhwInterfaces)
     {
+        MHW_CHK_NULL(mhwInterfaces->m_stateHeapInterface);
         pCommonStateHeapInterface->pStateHeapInterface = mhwInterfaces->m_stateHeapInterface;
         // MhwInterfaces always create CP and MI interfaces, so we have to delete those we don't need.
         MOS_Delete(mhwInterfaces->m_miInterface);
-        MOS_Delete(mhwInterfaces->m_cpInterface);
+        Delete_MhwCpInterface(mhwInterfaces->m_cpInterface);
+        mhwInterfaces->m_cpInterface = NULL;
         MOS_Delete(mhwInterfaces);
     }
     else

@@ -370,7 +370,7 @@ static bool InitKblMediaSku(struct GfxDeviceInfo *devInfo,
     {
         MEDIA_WR_SKU(skuTable, FtrSingleVeboxSlice, 1);
     }
-    MEDIA_WR_SKU(skuTable, FtrSFCPipe, 0);
+    MEDIA_WR_SKU(skuTable, FtrSFCPipe, 1);
     MEDIA_WR_SKU(skuTable, FtrSSEUPowerGating, 1);
     MEDIA_WR_SKU(skuTable, FtrMemoryCompression, 0);
     MEDIA_WR_SKU(skuTable, trHcpDecMemoryCompression, 0);

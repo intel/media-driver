@@ -249,9 +249,7 @@ CM_RT_API int32_t CmQueueRT::Enqueue(
 {
     INSERT_API_CALL_LOG();
 
-    int32_t result;
-
-    if(kernelArray == nullptr)
+    if (kernelArray == nullptr)
     {
         CM_ASSERTMESSAGE("Error: Kernel array is null.");
         return CM_INVALID_ARG_VALUE;
@@ -260,19 +258,74 @@ CM_RT_API int32_t CmQueueRT::Enqueue(
     CmTaskRT *kernelArrayRT = static_cast<CmTaskRT *>(kernelArray);
     uint32_t kernelCount = 0;
     kernelCount = kernelArrayRT->GetKernelCount();
-    if( kernelCount == 0 )
+    if (kernelCount == 0)
     {
         CM_ASSERTMESSAGE("Error: Invalid kernel count.");
         return CM_FAILURE;
     }
 
-    if( kernelCount > m_halMaxValues->maxKernelsPerTask )
+    if (kernelCount > m_halMaxValues->maxKernelsPerTask)
     {
         CM_ASSERTMESSAGE("Error: Kernel count exceeds max kernel per enqueue.");
         return CM_EXCEED_MAX_KERNEL_PER_ENQUEUE;
     }
 
+    int32_t result;
     const CmThreadSpaceRT *threadSpaceRTConst = static_cast<const CmThreadSpaceRT *>(threadSpace);
+    PCM_HAL_STATE cmHalState = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
+    if (cmHalState->cmHalInterface->CheckMediaModeAvailability() == false) 
+    {
+        if (threadSpaceRTConst != nullptr) 
+        {
+            result = EnqueueWithGroup(kernelArray, event, threadSpaceRTConst->GetThreadGroupSpace());
+        }
+        else
+        {
+            // If there isn't any shared thread space or associated thread space, 
+            // create a temporary (maxThreadCount x 1) thread group space whose
+            // size equal to the max thread count of kernel who doesn't have a
+            // thread space associated.
+            uint32_t maxThreadCount = 1;
+            bool usedCommonTGS = false;
+            for (uint32_t i = 0; i < kernelCount; i++)
+            {
+                CmKernelRT *tmpKernel = kernelArrayRT->GetKernelPointer(i);
+                CmThreadGroupSpace *tmpTGS = nullptr;
+                tmpKernel->GetThreadGroupSpace(tmpTGS);
+
+                if (tmpTGS == nullptr)
+                {
+                    usedCommonTGS = true;
+                    uint32_t singleThreadCount = 0;
+                    tmpKernel->GetThreadCount(singleThreadCount);
+                    if (maxThreadCount < singleThreadCount)
+                    {
+                        maxThreadCount = singleThreadCount;
+                    }
+                }
+            }
+
+            CmThreadGroupSpace *threadGroupSpaceTemp = nullptr;
+            if (usedCommonTGS == true)
+            {
+                result = m_device->CreateThreadGroupSpace(1, 1, maxThreadCount, 1, threadGroupSpaceTemp);
+                if (result != CM_SUCCESS)
+                {
+                    CM_ASSERTMESSAGE("Error: Creating temporary thread group space failure.");
+                    return result;
+                }
+            }
+
+            result = EnqueueWithGroup(kernelArray, event, threadGroupSpaceTemp);
+
+            if (threadGroupSpaceTemp != nullptr)
+            {
+                m_device->DestroyThreadGroupSpace(threadGroupSpaceTemp);
+            }
+        }
+        return result;
+    }
+
     if (threadSpaceRTConst && threadSpaceRTConst->IsThreadAssociated())
     {
         if (threadSpaceRTConst->GetNeedSetKernelPointer() && threadSpaceRTConst->KernelPointerIsNULL())
@@ -430,6 +483,8 @@ int32_t CmQueueRT::Enqueue_RT(CmKernelRT* kernelArray[],
                         const CmThreadGroupSpace* threadGroupSpace,
                         uint64_t    syncBitmap,
                         PCM_POWER_OPTION powerOption,
+                        uint64_t    conditionalEndBitmap,
+                        CM_HAL_CONDITIONAL_BB_END_INFO* conditionalEndInfo,
                         PCM_TASK_CONFIG  taskConfig)
 {
     if(kernelArray == nullptr)
@@ -447,7 +502,7 @@ int32_t CmQueueRT::Enqueue_RT(CmKernelRT* kernelArray[],
     CLock Locker(m_criticalSectionTaskInternal);
 
     CmTaskInternal* task = nullptr;
-    int32_t result = CmTaskInternal::Create( kernelCount, totalThreadCount, kernelArray, threadGroupSpace, m_device, syncBitmap, task );
+    int32_t result = CmTaskInternal::Create( kernelCount, totalThreadCount, kernelArray, threadGroupSpace, m_device, syncBitmap, task, conditionalEndBitmap, conditionalEndInfo);
     if( result != CM_SUCCESS )
     {
         CM_ASSERTMESSAGE("Error: Create CmTaskInternal failure.");
@@ -671,6 +726,7 @@ CM_RT_API int32_t CmQueueRT::EnqueueWithGroup( CmTask* task, CmEvent* & event, c
     result = Enqueue_RT( tmp, count, totalThreadNumber, eventRT,
                          threadGroupSpace, taskRT->GetSyncBitmap(),
                          taskRT->GetPowerOption(),
+                         taskRT->GetConditionalEndBitmap(), taskRT->GetConditionalEndInfo(),
                          taskRT->GetTaskConfig());
 
     if (eventRT)
@@ -968,7 +1024,7 @@ int32_t CmQueueRT::EnqueueUnalignedCopyInternal( CmSurface2DRT* surface, unsigne
 
         CMCHK_HR(kernel->SetKernelArg( 0, sizeof( SurfaceIndex ), surf2DIndexCM ));
         CMCHK_HR(kernel->SetKernelArg( 1, sizeof( SurfaceIndex ), bufferIndexCM ));
-        CMCHK_HR(kernel->SetKernelArg( 5, sizeof( uint32_t ), &widthByte ));
+        CMCHK_HR(kernel->SetKernelArg( 5, sizeof( uint32_t ), &copyWidthByte ));
         CMCHK_HR(kernel->SetKernelArg( 6, sizeof( SurfaceIndex ), hybridCopyAuxIndexCM ));
     }
 
@@ -1033,9 +1089,9 @@ int32_t CmQueueRT::EnqueueUnalignedCopyInternal( CmSurface2DRT* surface, unsigne
             }
 
             //copy end of line
-            alignedWrites = (widthByte - beginLineCopySize) &~ (BLOCK_WIDTH - 1);
+            alignedWrites = (copyWidthByte - beginLineCopySize) &~ (BLOCK_WIDTH - 1);
             endLineWriteOffset = beginLineWriteOffset + alignedWrites + beginLineCopySize;
-            endLineCopySize = dstAddShiftOffset+ i * strideInBytes + widthByte - endLineWriteOffset;
+            endLineCopySize = dstAddShiftOffset+ i * strideInBytes + copyWidthByte - endLineWriteOffset;
             if(endLineCopySize > 0 && endLineWriteOffset > beginLineWriteOffset)
             {
                 CmSafeMemCopy((void *)((unsigned char *)startBuffer + endLineWriteOffset), (void *)(hybridCopyAuxSysMem + readOffset + BLOCK_WIDTH), endLineCopySize);
@@ -1262,6 +1318,8 @@ int32_t CmQueueRT::EnqueueCopyInternal_1Plane(CmSurface2DRT* surface,
 
         kernel = nullptr;
         CMCHK_HR( m_device->CreateBufferUP(  sliceCopyBufferUPSize, ( void * )linearAddressAligned, cmbufferUP ));
+        CMCHK_NULL(cmbufferUP);
+        
         //Configure memory object control for BufferUP to solve the cache-line issue.
         if (cmHalState->cmHalInterface->IsGPUCopySurfaceNoCacheWARequired())
         {
@@ -1521,8 +1579,10 @@ int32_t CmQueueRT::EnqueueCopyInternal_2Planes(CmSurface2DRT* surface,
 
     kernel = nullptr;
     CMCHK_HR(m_device->CreateBufferUP(bufferUPYSize, (void *)linearAddressAlignedY, cmbufferUPY));
+    CMCHK_NULL(cmbufferUPY);
     CMCHK_HR(m_device->CreateBufferUP(bufferUPUVSize, (void *)linearAddressAlignedUV, cmbufferUPUV));
-
+    CMCHK_NULL(cmbufferUPUV);
+    
     //Configure memory object control for the two BufferUP to solve the same cache-line coherency issue.
     if (cmHalState->cmHalInterface->IsGPUCopySurfaceNoCacheWARequired())
     {
@@ -2588,7 +2648,9 @@ int32_t CmQueueRT::FlushGroupTask(CmTaskInternal* task)
     }
 
     param.syncBitmap = task->GetSyncBitmap();
+    param.conditionalEndBitmap = task->GetConditionalEndBitmap();
     param.userDefinedMediaState = task->GetMediaStatePtr();
+    CmSafeMemCopy(param.conditionalEndInfo, task->GetConditionalEndInfo(), sizeof(param.conditionalEndInfo));
 
     // Call HAL layer to execute pfnExecuteGroupTask
     cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();

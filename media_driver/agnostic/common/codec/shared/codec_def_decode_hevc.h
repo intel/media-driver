@@ -38,6 +38,27 @@
 #define CODECHAL_HEVC_MAX_NUM_SLICES_LVL_5  200
 #define CODECHAL_HEVC_NUM_DMEM_BUFFERS      8
 
+#define CODECHAL_HEVC_MIN_LCU               16
+#define CODECHAL_HEVC_MAX_DIM_FOR_MIN_LCU   4222
+
+const uint8_t CODECHAL_DECODE_HEVC_Qmatrix_Scan_4x4[16] = { 0, 4, 1, 8, 5, 2, 12, 9, 6, 3, 13, 10, 7, 14, 11, 15 };
+const uint8_t CODECHAL_DECODE_HEVC_Qmatrix_Scan_8x8[64] =
+{ 0, 8, 1, 16, 9, 2, 24, 17, 10, 3, 32, 25, 18, 11, 4, 40,
+33, 26, 19, 12, 5, 48, 41, 34, 27, 20, 13, 6, 56, 49, 42, 35,
+28, 21, 14, 7, 57, 50, 43, 36, 29, 22, 15, 58, 51, 44, 37, 30,
+23, 59, 52, 45, 38, 31, 60, 53, 46, 39, 61, 54, 47, 62, 55, 63 };
+const uint8_t CODECHAL_DECODE_HEVC_Default_4x4[16] = { 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16 };
+const uint8_t CODECHAL_DECODE_HEVC_Default_8x8_Intra[64] =
+{ 16, 16, 16, 16, 17, 18, 21, 24, 16, 16, 16, 16, 17, 19, 22, 25,
+16, 16, 17, 18, 20, 22, 25, 29, 16, 16, 18, 21, 24, 27, 31, 36,
+17, 17, 20, 24, 30, 35, 41, 47, 18, 19, 22, 27, 35, 44, 54, 65,
+21, 22, 25, 31, 41, 54, 70, 88, 24, 25, 29, 36, 47, 65, 88, 115 };
+const uint8_t CODECHAL_DECODE_HEVC_Default_8x8_Inter[64] =
+{ 16, 16, 16, 16, 17, 18, 20, 24, 16, 16, 16, 17, 18, 20, 24, 25,
+16, 16, 17, 18, 20, 24, 25, 28, 16, 17, 18, 20, 24, 25, 28, 33,
+17, 18, 20, 24, 25, 28, 33, 41, 18, 20, 24, 25, 28, 33, 41, 54,
+20, 24, 25, 28, 33, 41, 54, 71, 24, 25, 28, 33, 41, 54, 71, 91 };
+
 /*! \brief Picture-level parameters of a compressed picture for HEVC decoding.
  *
  *   Note 1: Application only pass in the first num_tile_columns_minus1 tile column widths and first num_tile_rows_minus1 tile row heights. The last width and height need to be calculated by driver from the picture dimension. Values used for data type alignement. Their values should be set to 0, and can be ignored by decoder.
@@ -407,4 +428,84 @@ typedef struct _CODEC_HEVC_SLICE_PARAMS
     uint16_t            num_entry_point_offsets;                // [0..540]
     uint16_t            EntryOffsetToSubsetArray;               // [0..540]
 } CODEC_HEVC_SLICE_PARAMS, *PCODEC_HEVC_SLICE_PARAMS;
+
+
+/*! \brief Additional picture-level parameters of a compressed picture for HEVC decoding.
+*
+*   Defined for profiles main12, main4:2:2 10, main4:2:2 12, main4:4:4, main4:4:4 10, main4:4:4 12 and their related intra and still picture profiles.
+*/
+typedef struct _CODEC_HEVC_EXT_PIC_PARAMS
+{
+    union
+    {
+        struct
+        {
+            uint32_t        transform_skip_rotation_enabled_flag : 1;    //!< Same as HEVC syntax element
+            uint32_t        transform_skip_context_enabled_flag : 1;    //!< Same as HEVC syntax element
+            uint32_t        implicit_rdpcm_enabled_flag : 1;    //!< Same as HEVC syntax element
+            uint32_t        explicit_rdpcm_enabled_flag : 1;    //!< Same as HEVC syntax element
+            uint32_t        extended_precision_processing_flag : 1;    //!< Same as HEVC syntax element
+            uint32_t        intra_smoothing_disabled_flag : 1;    //!< Same as HEVC syntax element
+            uint32_t        high_precision_offsets_enabled_flag : 1;    //!< Same as HEVC syntax element
+            uint32_t        persistent_rice_adaptation_enabled_flag : 1;    //!< Same as HEVC syntax element
+            uint32_t        cabac_bypass_alignment_enabled_flag : 1;    //!< Same as HEVC syntax element
+            uint32_t        cross_component_prediction_enabled_flag : 1;    //!< Same as HEVC syntax element
+            uint32_t        chroma_qp_offset_list_enabled_flag : 1;    //!< Same as HEVC syntax element
+            uint32_t        BitDepthLuma16 : 1;    //!< Same as HEVC syntax element
+            uint32_t        BitDepthChroma16 : 1;    //!< Same as HEVC syntax element
+            uint32_t        ReservedBits5 : 19;   //!< Value is used for alignemnt and has no meaning, set to 0.
+        } fields;
+        uint32_t            dwRangeExtensionPropertyFlags;
+    } PicRangeExtensionFlags;
+
+    uint8_t            diff_cu_chroma_qp_offset_depth;             //!< Same as HEVC syntax element, [0..3]
+    uint8_t            chroma_qp_offset_list_len_minus1;           //!< Same as HEVC syntax element, [0..5]
+    uint8_t            log2_sao_offset_scale_luma;                 //!< Same as HEVC syntax element, [0..6]
+    uint8_t            log2_sao_offset_scale_chroma;               //!< Same as HEVC syntax element, [0..6]
+    uint8_t         log2_max_transform_skip_block_size_minus2;  //!< Same as HEVC syntax element
+    char            cb_qp_offset_list[6];                       //!< Same as HEVC syntax element, [-12..12]
+    char            cr_qp_offset_list[6];                       //!< Same as HEVC syntax element, [-12..12]
+} CODEC_HEVC_EXT_PIC_PARAMS, *PCODEC_HEVC_EXT_PIC_PARAMS;
+
+
+/*! \brief Additional range extention slice-level parameters of a compressed picture for HEVC decoding.
+*
+*   HEVC range extension profiles extend the luma and chroma offset values from 8 bits to 16 bits.
+*/
+typedef struct _CODEC_HEVC_EXT_SLICE_PARAMS
+{
+    /*! \brief Same as HEVC syntax element.
+    *
+    *   These set of values are the most significant 8-bit part of the corresponding luma_offset_l0[]. Combining with the luma_offset_l0[] will give the final values respectively.  The sign for each parameter is determined by the sign of corresponding luma_offset_l0[].
+    */
+    int16_t                luma_offset_l0[15];
+    /*! \brief Same as HEVC syntax element.
+    *
+    *   These set of values are the most significant 8-bit part of the corresponding chroma_offset_l0[]. Combining with the chroma_offset_l0[] will give the final values respectively.  The sign for each parameter is determined by the sign of corresponding chroma_offset_l0[].
+    */
+    int16_t                ChromaOffsetL0[15][2];
+    /*! \brief Same as HEVC syntax element.
+    *
+    *   These set of values are the most significant 8-bit part of the corresponding luma_offset_l1[]. Combining with the luma_offset_l1[] will give the final values respectively.  The sign for each parameter is determined by the sign of corresponding luma_offset_l1[].
+    */
+    int16_t                luma_offset_l1[15];
+    /*! \brief Same as HEVC syntax element.
+    *
+    *   These set of values are the most significant 8-bit part of the corresponding chroma_offset_l1[]. Combining with the chroma_offset_l1[] will give the final values respectively.  The sign for each parameter is determined by the sign of corresponding chroma_offset_l1[].
+    */
+    int16_t                ChromaOffsetL1[15][2];
+
+    bool                   cu_chroma_qp_offset_enabled_flag;  //!< Same as HEVC syntax element
+
+                                                              // For Screen Content Extension
+    char                   slice_act_y_qp_offset;      // [-12..12]
+    char                   slice_act_cb_qp_offset;     // [-12..12]
+    char                   slice_act_cr_qp_offset;     // [-12..12]
+    unsigned char          use_integer_mv_flag;
+} CODEC_HEVC_EXT_SLICE_PARAMS, *PCODEC_HEVC_EXT_SLICE_PARAMS;
+
+typedef struct _CODEC_HEVC_SUBSET_PARAMS
+{
+    uint32_t                 entry_point_offset_minus1[440];
+} CODEC_HEVC_SUBSET_PARAMS, *PCODEC_HEVC_SUBSET_PARAMS;
 #endif  // __CODEC_DEF_DECODE_HEVC_H__

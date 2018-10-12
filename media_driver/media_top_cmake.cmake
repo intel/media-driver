@@ -20,11 +20,23 @@
 
 project( media )
 
+find_package(PkgConfig)
+
 bs_set_if_undefined(LIB_NAME iHD_drv_video)
 
 option (MEDIA_RUN_TEST_SUITE "run google test module after install" ON) 
 include(${MEDIA_DRIVER_CMAKE}/media_gen_flags.cmake)
 include(${MEDIA_DRIVER_CMAKE}/media_feature_flags.cmake)
+
+# checking dependencies
+pkg_check_modules(LIBGMM igdgmm)
+
+if(LIBGMM_FOUND)
+    include_directories(BEFORE ${LIBGMM_INCLUDE_DIRS})
+    # link_directories() should appear before add_library and the like
+    # otherwise it will not take effect
+    link_directories(${LIBGMM_LIBRARY_DIRS})
+endif()
 
 message("-- media -- PLATFORM = ${PLATFORM}")
 message("-- media -- ARCH = ${ARCH}")
@@ -34,14 +46,16 @@ message("-- media -- LIB_NAME = ${LIB_NAME}")
 message("-- media -- OUTPUT_NAME = ${OUTPUT_NAME}")
 message("-- media -- BUILD_TYPE/UFO_BUILD_TYPE/CMAKE_BUILD_TYPE = ${BUILD_TYPE}/${UFO_BUILD_TYPE}/${CMAKE_BUILD_TYPE}")
 message("-- media -- LIBVA_INSTALL_PATH = ${LIBVA_INSTALL_PATH}")
-message("-- media -- BUILD_ALONG_WITH_CMRTLIB = ${BUILD_ALONG_WITH_CMRTLIB}")
 Message("-- media -- MEDIA_VERSION = ${MEDIA_VERSION}")
 
+set(LIB_NAME_OBJ    "${LIB_NAME}_OBJ")
+set(LIB_NAME_STATIC "${LIB_NAME}_STATIC")
 set(SOURCES_ "")
 
 # add source
 media_include_subdirectory(agnostic)
 media_include_subdirectory(linux)
+media_include_subdirectory(../media_driver_next)
 include(${CMAKE_CURRENT_LIST_DIR}/media_srcs_ext.cmake OPTIONAL)
 
 include(${MEDIA_DRIVER_CMAKE}/media_include_paths.cmake)
@@ -55,43 +69,61 @@ bs_set_defines()
 
 set_source_files_properties(${SOURCES_} PROPERTIES LANGUAGE "CXX")
 
-add_library( ${LIB_NAME} SHARED ${SOURCES_})
+add_library(${LIB_NAME_OBJ} OBJECT ${SOURCES_})
+set_property(TARGET ${LIB_NAME_OBJ} PROPERTY POSITION_INDEPENDENT_CODE 1)
 
-if(MEDIA_RUN_TEST_SUITE)
-	add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/linux/ult)
-endif(MEDIA_RUN_TEST_SUITE)
+add_library(${LIB_NAME}        SHARED $<TARGET_OBJECTS:${LIB_NAME_OBJ}>)
+add_library(${LIB_NAME_STATIC} STATIC $<TARGET_OBJECTS:${LIB_NAME_OBJ}>)
+set_target_properties(${LIB_NAME_STATIC} PROPERTIES OUTPUT_NAME ${LIB_NAME})
 
 option(MEDIA_BUILD_FATAL_WARNINGS "Turn compiler warnings into fatal errors" ON)
 if(MEDIA_BUILD_FATAL_WARNINGS)
-    set_target_properties(${LIB_NAME} PROPERTIES COMPILE_FLAGS "-Werror")
+    set_target_properties(${LIB_NAME_OBJ} PROPERTIES COMPILE_FLAGS "-Werror")
 endif()
 
 set_target_properties(${LIB_NAME} PROPERTIES LINK_FLAGS "-Wl,--no-as-needed -Wl,--gc-sections -z relro -z now -fstack-protector -fPIC")
-set_target_properties(${LIB_NAME} PROPERTIES PREFIX "")
+set_target_properties(${LIB_NAME}        PROPERTIES PREFIX "")
+set_target_properties(${LIB_NAME_STATIC} PROPERTIES PREFIX "")
 
-MediaAddCommonTargetDefines(${LIB_NAME})
+MediaAddCommonTargetDefines(${LIB_NAME_OBJ})
+
+pkg_check_modules (PKG_PCIACCESS REQUIRED pciaccess)
+include_directories (BEFORE ${PKG_PCIACCESS_INCLUDE_DIRS})
+link_directories (${PKG_PCIACCESS_LIBRARY_DIRS})
 
 bs_ufo_link_libraries_noBsymbolic(
     ${LIB_NAME}
     "${INCLUDED_LIBS}"
-    "pciaccess m pthread dl rt"
+    "${PKG_PCIACCESS_LIBRARIES} m pthread dl rt"
 )
 
 if (NOT DEFINED INCLUDED_LIBS OR "${INCLUDED_LIBS}" STREQUAL "")
     # dep libs (gmmlib for now) can be passed through INCLUDED_LIBS, but if not, we need try to setup dep through including dep projects
-    if (NOT TARGET gmm_umd)
-        add_subdirectory("${BS_DIR_GMMLIB}" "${CMAKE_BINARY_DIR}/gmmlib")
+    if(NOT LIBGMM_FOUND)
+        # If we failed to setup dependency from gmmlib via pkg-config we will try to
+        # add gmmlib as a target from sources. We need to do this here, after
+        # add_library() for iHD driver since gmmlib needs this information.
+        if (NOT TARGET igfx_gmmumd_dll)
+            add_subdirectory("${BS_DIR_GMMLIB}" "${CMAKE_BINARY_DIR}/gmmlib")
+        endif()
+        if (NOT TARGET igfx_gmmumd_dll)
+            message(FATAL_ERROR "gmm library not found on the system")
+        endif()
+        set(LIBGMM_CFLAGS_OTHER -DGMM_LIB_DLL)
+        set(LIBGMM_LIBRARIES igfx_gmmumd_dll)
     endif()
 
-    if (TARGET gmm_umd)
-        target_link_libraries ( ${LIB_NAME}
-            gmm_umd
-        )
-    endif()
+    target_compile_options( ${LIB_NAME} PUBLIC ${LIBGMM_CFLAGS_OTHER})
+    target_link_libraries ( ${LIB_NAME} ${LIBGMM_LIBRARIES})
 
-include(${MEDIA_DRIVER_CMAKE}/ext/media_feature_include_ext.cmake OPTIONAL)
+    include(${MEDIA_DRIVER_CMAKE}/ext/media_feature_include_ext.cmake OPTIONAL)
 
 endif(NOT DEFINED INCLUDED_LIBS OR "${INCLUDED_LIBS}" STREQUAL "")
 
 # post target attributes
 bs_set_post_target()
+
+if(MEDIA_RUN_TEST_SUITE)
+    add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/linux/ult)
+    include(${CMAKE_CURRENT_LIST_DIR}/../media_driver_next/ult/ult_top_cmake.cmake OPTIONAL)
+endif(MEDIA_RUN_TEST_SUITE)

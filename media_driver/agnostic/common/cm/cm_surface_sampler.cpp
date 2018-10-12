@@ -124,8 +124,10 @@ int32_t CmSurfaceSampler::SetMemoryObjectControl( MEMORY_OBJECT_CONTROL memCtrl,
 
     CmDeviceRT *cmDevice = nullptr;
     m_surfaceMgr->GetCmDevice(cmDevice);
+    CMCHK_NULL_AND_RETURN(cmDevice);
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)cmDevice->GetAccelData();
-    CMCHK_NULL(cmData);
+    CMCHK_NULL_AND_RETURN(cmData);
+    CMCHK_NULL_AND_RETURN(cmData->cmHalState);
 
     mocs = (m_memObjCtrl.mem_ctrl << 8) | (m_memObjCtrl.mem_type<<4) | m_memObjCtrl.age;
 
