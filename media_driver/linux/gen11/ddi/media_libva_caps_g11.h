@@ -141,6 +141,8 @@ protected:
         CODEC_8K_MAX_PIC_WIDTH; //!< maxinum width for VP9 encode
     static const uint32_t m_maxVp9EncHeight =
         CODEC_8K_MAX_PIC_HEIGHT; //!< maxinum height for VP9 encode
+    static const uint32_t m_numHevcMainEncSurfaceAttr = 3; //!< Number of HEVC Main encode surface attributes
+    static const uint32_t m_hevcMainEncSurfaceAttr[m_numHevcMainEncSurfaceAttr]; //!< Store the HEVC Main encode surface attributes
 
     virtual VAStatus GetPlatformSpecificAttrib(VAProfile profile,
             VAEntrypoint entrypoint,

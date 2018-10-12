@@ -34,6 +34,13 @@
 #include "media_ddi_decode_const_g11.h"
 #include "media_libva_vp.h"
 
+const uint32_t MediaLibvaCapsG11::m_hevcMainEncSurfaceAttr[m_numHevcMainEncSurfaceAttr] =
+{
+    VA_FOURCC_NV12,
+    VA_FOURCC_YUY2,
+    VA_FOURCC_UYVY
+};
+
 CODECHAL_MODE MediaLibvaCapsG11::GetEncodeCodecMode(VAProfile profile, VAEntrypoint entrypoint)
 {
     if (entrypoint == VAEntrypointStats)
@@ -914,6 +921,17 @@ VAStatus MediaLibvaCapsG11::QuerySurfaceAttributes(
                 attribs[i].value.type = VAGenericValueTypeInteger;
                 attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
                 attribs[i].value.value.i = m_jpegEncSurfaceAttr[j];
+                i++;
+            }
+        }
+        else if (profile == VAProfileHEVCMain)
+        {
+            for (int32_t j = 0; j < m_numHevcMainEncSurfaceAttr; j++)
+            {
+                attribs[i].type = VASurfaceAttribPixelFormat;
+                attribs[i].value.type = VAGenericValueTypeInteger;
+                attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+                attribs[i].value.value.i = m_hevcMainEncSurfaceAttr[j];
                 i++;
             }
         }
