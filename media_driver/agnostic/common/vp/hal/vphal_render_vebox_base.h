@@ -1293,8 +1293,8 @@ protected:
     //!           [in] Pointers to Vebox Interface
     //! \param    pMhwMiInterface
     //!           [in] Pointers to MI HW Interface
-    //! \param    pInputSurfaceParams
-    //!           [in] Pointers to Vebox Input Interface
+    //! \param    pVeboxSurfaceParams
+    //!           [in] Pointers to Vebox Surface Params Interface
     //! \param    pVeboxDiIecpCmdParams
     //!           [in] Pointers to DI/IECP CMD Params Interface
     //! \param    pCmdBuffer
@@ -1303,11 +1303,11 @@ protected:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     virtual MOS_STATUS VeboxRenderMMCPipeCmd(
-        PMHW_VEBOX_INTERFACE          pVeboxInterface,
-        MhwMiInterface *              pMhwMiInterface,
-        PMHW_VEBOX_SURFACE_PARAMS     pInputSurfaceParams,
-        PMHW_VEBOX_DI_IECP_CMD_PARAMS pVeboxDiIecpCmdParams,
-        PMOS_COMMAND_BUFFER           pCmdBuffer)
+        PMHW_VEBOX_INTERFACE                pVeboxInterface,
+        MhwMiInterface *                    pMhwMiInterface,
+        PMHW_VEBOX_SURFACE_STATE_CMD_PARAMS pVeboxSurfaceParams,
+        PMHW_VEBOX_DI_IECP_CMD_PARAMS       pVeboxDiIecpCmdParams,
+        PMOS_COMMAND_BUFFER                 pCmdBuffer)
     {
         MOS_UNUSED(*pCmdBuffer);
         return MOS_STATUS_SUCCESS;

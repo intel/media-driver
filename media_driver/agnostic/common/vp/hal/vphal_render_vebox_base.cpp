@@ -1900,7 +1900,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderVeboxCmd(
     VPHAL_RENDER_CHK_STATUS_RETURN(VeboxRenderMMCPipeCmd(
         pVeboxInterface,
         pMhwMiInterface,
-        &(MhwVeboxSurfaceStateCmdParams.SurfInput),
+        &(MhwVeboxSurfaceStateCmdParams),
         &VeboxDiIecpCmdParams,
         &CmdBuffer));
 
@@ -1994,23 +1994,23 @@ finish:
 //!
 MOS_STATUS VPHAL_VEBOX_STATE::VeboxSendVeboxCmd()
 {
-    PRENDERHAL_INTERFACE                    pRenderHal;
-    PMOS_INTERFACE                          pOsInterface;
-    MOS_COMMAND_BUFFER                      CmdBuffer;
-    MOS_STATUS                              eStatus;
-    int32_t                                 iRemaining, i;
-    MHW_VEBOX_DI_IECP_CMD_PARAMS            VeboxDiIecpCmdParams;
-    VPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS    VeboxSurfaceStateCmdParams;
-    MHW_VEBOX_SURFACE_STATE_CMD_PARAMS      MhwVeboxSurfaceStateCmdParams;
-    MHW_VEBOX_STATE_CMD_PARAMS              VeboxStateCmdParams;
-    MHW_MI_FLUSH_DW_PARAMS                  FlushDwParams;
-    PMHW_VEBOX_INTERFACE                    pVeboxInterface;
-    RENDERHAL_GENERIC_PROLOG_PARAMS         GenericPrologParams = {};
-    MOS_RESOURCE                            GpuStatusBuffer;
-    PVPHAL_VEBOX_STATE                      pVeboxState = this;
-    PVPHAL_VEBOX_RENDER_DATA                pRenderData = GetLastExecRenderData();
+    PRENDERHAL_INTERFACE                    pRenderHal                      = nullptr;
+    PMOS_INTERFACE                          pOsInterface                    = {};
+    MOS_COMMAND_BUFFER                      CmdBuffer                       = {};
+    MOS_STATUS                              eStatus                         = MOS_STATUS_SUCCESS;
+    int32_t                                 iRemaining                      = 0;
+    int32_t                                 i                               = 0;
+    MHW_VEBOX_DI_IECP_CMD_PARAMS            VeboxDiIecpCmdParams            = {};
+    VPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS    VeboxSurfaceStateCmdParams      = {};
+    MHW_VEBOX_SURFACE_STATE_CMD_PARAMS      MhwVeboxSurfaceStateCmdParams   = {};
+    MHW_VEBOX_STATE_CMD_PARAMS              VeboxStateCmdParams             = {};
+    MHW_MI_FLUSH_DW_PARAMS                  FlushDwParams                   = {};
+    PMHW_VEBOX_INTERFACE                    pVeboxInterface                 = {};
+    RENDERHAL_GENERIC_PROLOG_PARAMS         GenericPrologParams             = {};
+    MOS_RESOURCE                            GpuStatusBuffer                 = {};
+    PVPHAL_VEBOX_STATE                      pVeboxState                     = this;
+    PVPHAL_VEBOX_RENDER_DATA                pRenderData                     = GetLastExecRenderData();
 
-    eStatus                 = MOS_STATUS_SUCCESS;
     if (pVeboxState == nullptr)
     {
         VPHAL_RENDER_ASSERTMESSAGE("pVeboxState not available.");
