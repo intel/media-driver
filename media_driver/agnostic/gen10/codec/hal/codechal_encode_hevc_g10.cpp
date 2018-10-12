@@ -2085,7 +2085,7 @@ MOS_STATUS CodechalEncHevcStateG10::AllocateEncResources()
     if (m_is10BitHevc)
     {
         //Output surface for format conversion from 10bit to 8 bit
-        for(auto i = 0 ; i < NUM_FORMAT_CONV_FRAMES ; i++)
+        for(uint32_t i = 0 ; i < NUM_FORMAT_CONV_FRAMES ; i++)
         {
             if (Mos_ResourceIsNull(&m_formatConvertedSurface[i].OsResource))
             {
@@ -2281,7 +2281,7 @@ MOS_STATUS CodechalEncHevcStateG10::FreeEncResources()
         &m_residualDataScratchSurfaceForBLcu64.OsResource);
 
     // Release Output surfaces for format conversion from 10bit to 8 bit
-    for(auto i = 0 ; i < NUM_FORMAT_CONV_FRAMES; i++)
+    for(uint32_t i = 0 ; i < NUM_FORMAT_CONV_FRAMES; i++)
     {
         m_osInterface->pfnFreeResource(
             m_osInterface,
