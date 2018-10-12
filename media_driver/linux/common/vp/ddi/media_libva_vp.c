@@ -3310,7 +3310,7 @@ DdiVp_UpdateProcPipelineForwardReferenceFrames(
 {
     PVPHAL_RENDER_PARAMS pVpHalRenderParams;
     PVPHAL_SURFACE       pSurface;
-    int i;
+    uint32_t i;
 
     PDDI_MEDIA_CONTEXT pMediaCtx;
 
@@ -3399,7 +3399,7 @@ DdiVp_UpdateProcPipelineBackwardReferenceFrames(
 {
     PVPHAL_RENDER_PARAMS pVpHalRenderParams;
     PVPHAL_SURFACE       pSurface;
-    int i;
+    uint32_t i;
 
     PDDI_MEDIA_CONTEXT pMediaCtx;
 

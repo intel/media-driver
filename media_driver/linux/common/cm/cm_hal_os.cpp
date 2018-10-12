@@ -754,10 +754,10 @@ MOS_STATUS HalCm_GetGTSystemInfo_Linux(
     // if valid, set the number slice/subSlice to enabled for numSlices/numSubSlices
     if(pSystemInfo->isSliceInfoValid)
     {
-        for(int i = 0; i < gtSystemInfo->SliceCount; ++i)
+        for(uint32_t i = 0; i < gtSystemInfo->SliceCount; ++i)
         {
             pSystemInfo->sliceInfo[i].Enabled = true;
-            for(int j = 0; j < gtSystemInfo->SubSliceCount; ++j)
+            for(uint32_t j = 0; j < gtSystemInfo->SubSliceCount; ++j)
             {
                 pSystemInfo->sliceInfo[i].SubSliceInfo[j].Enabled = true;
             }

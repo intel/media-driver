@@ -334,7 +334,7 @@ VAStatus MediaLibvaCaps::CreateAttributeList(AttribMap **attributeList)
 int32_t MediaLibvaCaps::GetAttributeIndex(std::vector<VAConfigAttrib> *attribList, VAConfigAttribType type)
 {
     uint32_t attribSize = attribList->size();
-    for (int32_t i = 0; i < attribSize; i++)
+    for (uint32_t i = 0; i < attribSize; i++)
     {
         if ((*attribList)[i].type == type)
         {
@@ -2192,7 +2192,7 @@ VAStatus MediaLibvaCaps::QuerySurfaceAttributes(
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
 
-    int32_t i = 0;
+    uint32_t i = 0;
 
     if (entrypoint == VAEntrypointVideoProc)   /* vpp */
     {
@@ -2226,7 +2226,7 @@ VAStatus MediaLibvaCaps::QuerySurfaceAttributes(
         attribs[i].value.value.i = VP_MIN_PIC_HEIGHT;
         i++;
 
-        for (int32_t j = 0; j < m_numVpSurfaceAttr; j++)
+        for (uint32_t j = 0; j < m_numVpSurfaceAttr; j++)
         {
             attribs[i].type = VASurfaceAttribPixelFormat;
             attribs[i].value.type = VAGenericValueTypeInteger;
@@ -2343,7 +2343,7 @@ VAStatus MediaLibvaCaps::QuerySurfaceAttributes(
         }
         else if (profile == VAProfileJPEGBaseline)
         {
-            for (int32_t j = 0; j < m_numJpegSurfaceAttr; j++)
+            for (uint32_t j = 0; j < m_numJpegSurfaceAttr; j++)
             {
                 attribs[i].type = VASurfaceAttribPixelFormat;
                 attribs[i].value.type = VAGenericValueTypeInteger;
@@ -2408,7 +2408,7 @@ VAStatus MediaLibvaCaps::QuerySurfaceAttributes(
         }
         else if (profile == VAProfileJPEGBaseline)
         {
-            for (int32_t j = 0; j < m_numJpegEncSurfaceAttr; j++)
+            for (uint32_t j = 0; j < m_numJpegEncSurfaceAttr; j++)
             {
                 attribs[i].type = VASurfaceAttribPixelFormat;
                 attribs[i].value.type = VAGenericValueTypeInteger;
@@ -2777,7 +2777,7 @@ VAStatus MediaLibvaCaps::QueryImageFormats(VAImageFormat *formatList, int32_t *n
     uint32_t maxNum = GetImageFormatsMaxNum();
 
     memset(formatList, 0,  sizeof(m_supportedImageformats));
-    for (int32_t idx = 0; idx < maxNum; idx++)
+    for (uint32_t idx = 0; idx < maxNum; idx++)
     {
         if (!supportP010 && m_supportedImageformats[idx].fourcc == VA_FOURCC('P','0','1','0') )
         {
