@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -183,10 +183,11 @@ typedef enum _MOS_FORMAT
     Format_R24G8        ,
     Format_R32          ,
     Format_R32G8X24     ,
+    Format_R8UN         ,           //!< R8 UNORM
     // Last Format
     Format_Count
 } MOS_FORMAT, *PMOS_FORMAT;
-C_ASSERT(Format_Count == 101); //!< When adding, update assert & vphal_solo_scenario.cpp::VpFromXml_GetFormat().
+C_ASSERT(Format_Count == 102); //!< When adding, update assert & vphal_solo_scenario.cpp::VpFromXml_GetFormat().
 
 //!
 //! \brief Macros for format checking
@@ -339,6 +340,7 @@ C_ASSERT(Format_Count == 101); //!< When adding, update assert & vphal_solo_scen
             ( (format == Format_A8B8G8R8)      || \
               (format == Format_X8B8G8R8)      || \
               (format == Format_A16B16G16R16)  || \
+              (format == Format_A16B16G16R16F)  || \
               (format == Format_R10G10B10A2) )
 
 #define IS_RGB_SWAP(format)                  \

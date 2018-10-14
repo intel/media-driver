@@ -60,4 +60,12 @@ if(${GEN10_CNL_Supported} STREQUAL "yes")
     media_include_subdirectory(gen10_cnl)
 endif()
 
+if(${GEN11_Supported} STREQUAL "yes")
+    media_include_subdirectory(gen11)
+endif()
+
+if(${GEN11_ICLLP_Supported} STREQUAL "yes")
+    media_include_subdirectory(gen11_icllp)
+endif()
+
 include(${CMAKE_CURRENT_LIST_DIR}/media_srcs_ext.cmake OPTIONAL)

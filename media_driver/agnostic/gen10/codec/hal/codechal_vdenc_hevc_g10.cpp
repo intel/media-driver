@@ -1160,11 +1160,27 @@ MOS_STATUS CodechalVdencHevcStateG10::SendMeSurfaces(bool using4xMe, PMOS_COMMAN
             uint8_t scaledIdx       = m_refList[refPicIdx]->ucScalingIdx;
             if (using4xMe)
             {
-                refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
+                MOS_SURFACE* p4xSurface = m_trackedBuf->Get4xDsSurface(scaledIdx);
+                if (p4xSurface != nullptr)
+                {
+                    refScaledSurface.OsResource = p4xSurface->OsResource;
+                }
+                else
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
+                }
             }
             else
             {
-                refScaledSurface.OsResource = m_trackedBuf->Get16xDsSurface(scaledIdx)->OsResource;
+                MOS_SURFACE* p16xSurface = m_trackedBuf->Get16xDsSurface(scaledIdx);
+                if (p16xSurface != nullptr)
+                {
+                    refScaledSurface.OsResource = p16xSurface->OsResource;
+                }
+                else
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
+                }
             }
             uint32_t refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
 
@@ -1216,11 +1232,27 @@ MOS_STATUS CodechalVdencHevcStateG10::SendMeSurfaces(bool using4xMe, PMOS_COMMAN
 
             if (using4xMe)
             {
-                refScaledSurface.OsResource = m_trackedBuf->Get4xDsSurface(scaledIdx)->OsResource;
+                MOS_SURFACE* p4xSurface = m_trackedBuf->Get4xDsSurface(scaledIdx);
+                if (p4xSurface != nullptr)
+                {
+                    refScaledSurface.OsResource = p4xSurface->OsResource;
+                }
+                else
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
+                }
             }
             else
             {
-                refScaledSurface.OsResource = m_trackedBuf->Get16xDsSurface(scaledIdx)->OsResource;
+                MOS_SURFACE* p16xSurface = m_trackedBuf->Get16xDsSurface(scaledIdx);
+                if (p16xSurface != nullptr)
+                {
+                    refScaledSurface.OsResource = p16xSurface->OsResource;
+                }
+                else
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("NULL pointer of DsSurface");
+                }
             }
             uint32_t refScaledBottomFieldOffset = refBottomField ? currScaledBottomFieldOffset : 0;
 
@@ -1662,7 +1694,7 @@ MOS_STATUS CodechalVdencHevcStateG10::SetDmemHuCBrcInitReset()
     hucVdencBrcInitDmem->MaxBRCLevel_U8 = 1;
     hucVdencBrcInitDmem->LumaBitDepth_U8 = 8;    // default: 8
     hucVdencBrcInitDmem->ChromaBitDepth_U8 = 8;    // default: 8
-    if (m_hevcSeqParams->SourceBitDepth == 1)
+    if (m_hevcSeqParams->SourceBitDepth == ENCODE_HEVC_BIT_DEPTH_10)
     {
 
         hucVdencBrcInitDmem->LumaBitDepth_U8 = 10;    // default: 8
@@ -1684,7 +1716,7 @@ MOS_STATUS CodechalVdencHevcStateG10::SetDmemHuCBrcInitReset()
         hucVdencBrcInitDmem->CuQpCtrl_U8 = 0;  // wPictureCodingType I:0, P:1, B:2
     }
 
-    if (hucVdencBrcInitDmem->LowDelayMode_U8 = (m_hevcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_EXTREMELY_LOW))  // Low Delay BRC
+    if ((hucVdencBrcInitDmem->LowDelayMode_U8 = (m_hevcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_EXTREMELY_LOW)))  // Low Delay BRC
     {
 
         MOS_SecureMemcpy(hucVdencBrcInitDmem->DevThreshPB0_S8, 8 * sizeof(int8_t), (void *)m_lowdelayDevThreshPB, 8 * sizeof(int8_t));
@@ -1790,7 +1822,7 @@ MOS_STATUS CodechalVdencHevcStateG10::SetConstDataHuCBrcUpdate()
         for (int i=0; i < numEstrateThreshlds +1; i++)
         {
             for (int j=0; j < m_numDevThreshlds +1; j++)
-            { 
+            {
                 hucConstData->FrmSzAdjTabI_S8[(numEstrateThreshlds +1)*j+i]= m_lowdelayDeltaFrmszI[j][i];
                 hucConstData->FrmSzAdjTabP_S8[(numEstrateThreshlds +1)*j+i]= m_lowdelayDeltaFrmszP[j][i];
                 hucConstData->FrmSzAdjTabB_S8[(numEstrateThreshlds +1)*j+i]= m_lowdelayDeltaFrmszB[j][i];
@@ -1921,10 +1953,10 @@ MOS_STATUS CodechalVdencHevcStateG10::SetDmemHuCBrcUpdate()
     MOS_SecureMemcpy(hucVdencBrcUpdateDmem->startGAdjFrame_U16, 4 * sizeof(uint16_t), (void*)m_startGAdjFrame, 4 * sizeof(uint16_t));
     hucVdencBrcUpdateDmem->TargetSliceSize_U16 = (uint16_t)m_hevcPicParams->MaxSliceSizeInBytes;
 
-    m_vdenc2ndLevelBatchBufferSize = ((m_hwInterface->m_vdenc2ndLevelBatchBufferSize - m_hwInterface->m_vdencBatchBuffer1stGroupSize
+    m_vdenc2ndLevelBatchBufferSize[m_currRecycledBufIdx] = ((m_hwInterface->m_vdenc2ndLevelBatchBufferSize - m_hwInterface->m_vdencBatchBuffer1stGroupSize
         - m_hwInterface->m_vdencBatchBuffer2ndGroupSize)/ ENCODE_HEVC_VDENC_NUM_MAX_SLICES)*m_numSlices +
         m_hwInterface->m_vdencBatchBuffer1stGroupSize + m_hwInterface->m_vdencBatchBuffer2ndGroupSize;
-    hucVdencBrcUpdateDmem->SLB_Data_SizeInBytes = (uint16_t)m_vdenc2ndLevelBatchBufferSize;
+    hucVdencBrcUpdateDmem->SLB_Data_SizeInBytes = (uint16_t)m_vdenc2ndLevelBatchBufferSize[m_currRecycledBufIdx];
     hucVdencBrcUpdateDmem->PIPE_MODE_SELECT_StartInBytes = 0;
     hucVdencBrcUpdateDmem->CMD1_StartInBytes = (uint16_t)m_hwInterface->m_vdencBatchBuffer1stGroupSize;
     hucVdencBrcUpdateDmem->PIC_STATE_StartInBytes = (uint16_t)m_picStateCmdStartInBytes;
@@ -1973,7 +2005,7 @@ MOS_STATUS CodechalVdencHevcStateG10::SetDmemHuCBrcUpdate()
     MOS_SecureMemcpy(hucVdencBrcUpdateDmem->startGAdjDiv_U8, 5 * sizeof(uint8_t), (void*)m_startGAdjDiv, 5 * sizeof(uint8_t));
     MOS_SecureMemcpy(hucVdencBrcUpdateDmem->gRateRatioThresholdQP_U8, 8 * sizeof(uint8_t), (void*)m_rateRatioThresholdQP, 8 * sizeof(uint8_t));
 
-    if (m_hevcVdencAcqpEnabled || m_brcEnabled)
+    if ((m_hevcVdencAcqpEnabled && m_hevcSeqParams->QpAdjustment) || (m_brcEnabled && (m_hevcSeqParams->MBBRC != 2)))
     {
         if (m_hevcPicParams->CodingType == I_TYPE)
         {
@@ -2421,21 +2453,8 @@ MOS_STATUS CodechalVdencHevcStateG10::Initialize(CodechalSetting * settings)
     auto cmdInitializer = MOS_New(CodechalCmdInitializer, this);
     m_hucCmdInitializer = cmdInitializer;
 
-    m_hucCmdInitializerUsed = true;
-
     // common initilization
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalVdencHevcState::Initialize(settings));
-
-    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-
-    m_hevcVdencAcqpEnabled = true;
-
-    /*    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_ACQP_ENABLE_ID,
-        &userFeatureData);
-    m_hevcVdencAcqpEnabled = (userFeatureData.i32Data) ? true : false;*/
 
     // Overriding the defaults here with 32 aligned dimensions
     // HME Scaling WxH

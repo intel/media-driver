@@ -589,16 +589,16 @@ MOS_STATUS CM_HAL_G8_X::HwSetSurfaceMemoryObjectControl(
     uint16_t                        memObjCtl,
     PRENDERHAL_SURFACE_STATE_PARAMS surfStateParams )
 {
-    MOS_STATUS                      hr = MOS_STATUS_SUCCESS;
+    MOS_STATUS                      hr        = MOS_STATUS_SUCCESS;
+    PRENDERHAL_INTERFACE            renderHal = m_cmState->renderHal;
     CM_HAL_MEMORY_OBJECT_CONTROL_G8 cacheType;
 
     MOS_ZeroMemory( &cacheType, sizeof( CM_HAL_MEMORY_OBJECT_CONTROL_G8 ) );
 
     if ( ( memObjCtl & CM_MEMOBJCTL_CACHE_MASK ) >> 8 == CM_INVALID_MEMOBJCTL )
     {
-        CM_CHK_NULL_RETURN(pGmmGlobalContext);
-        CM_CHK_NULL_RETURN(pGmmGlobalContext->GetCachePolicyObj());
-        cacheType.value = pGmmGlobalContext->GetCachePolicyObj()->CachePolicyGetMemoryObject( nullptr, CM_RESOURCE_USAGE_SurfaceState ).DwordValue;
+        CM_CHK_NULL_RETURN(renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface));
+        cacheType.value = renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)->CachePolicyGetMemoryObject(nullptr, CM_RESOURCE_USAGE_SurfaceState).DwordValue;
 
         // for default value and SVM surface, override the cache control from WB to WT
         if ( ( ( memObjCtl & 0xF0 ) >> 4 ) == 2 )
@@ -722,12 +722,13 @@ MOS_STATUS CM_HAL_G8_X::RegisterSampler8x8(
             }
         }
 
-        MOS_ZeroMemory(&samplerEntry->Convolve, sizeof(samplerEntry->Convolve));
-
         if ( samplerEntry == nullptr )
         {
             return MOS_STATUS_INVALID_HANDLE;
         }
+
+        MOS_ZeroMemory(&samplerEntry->Convolve, sizeof(samplerEntry->Convolve));
+
         samplerEntry->SamplerType  = MHW_SAMPLER_TYPE_CONV;
 
         samplerEntry->Convolve.ui8Height               = param->sampler8x8State.convolveState.height;
@@ -1124,7 +1125,7 @@ MOS_STATUS CM_HAL_G8_X::GetSamplerParamInfoForSamplerType(
     return MOS_STATUS_SUCCESS;
 }
 
-uint64_t CM_HAL_G8_X::ConvertTicksToNanoSeconds(uint64_t ticks)
+uint64_t CM_HAL_G8_X::ConverTicksToNanoSecondsDefault(uint64_t ticks)
 {
     return (uint64_t)(ticks * CM_NS_PER_TICK_RENDER_G8);
 }

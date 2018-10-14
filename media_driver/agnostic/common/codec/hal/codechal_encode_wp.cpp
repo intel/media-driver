@@ -249,10 +249,12 @@ MOS_STATUS CodechalEncodeWP::Execute(KernelParams *params)
 
     if (params->useRefPicList1)
     {
+        *(params->useWeightedSurfaceForL1) = true;
         m_surfaceParams.wpOutListIdx = CODEC_WP_OUTPUT_L1_START + params->wpIndex;
     }
     else
     {
+        *(params->useWeightedSurfaceForL0) = true;
         m_surfaceParams.wpOutListIdx = CODEC_WP_OUTPUT_L0_START + params->wpIndex;
     }
     if (m_surfaceParams.wpOutListIdx >= CODEC_NUM_WP_FRAME)

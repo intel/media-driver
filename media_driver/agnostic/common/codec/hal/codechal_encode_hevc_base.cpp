@@ -82,9 +82,8 @@ MOS_STATUS CodechalEncodeHevcBase::Initialize(CodechalSetting * settings)
     m_bitDepth     = (settings->lumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_8_BITS) ? 8 : ((settings->lumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_10_BITS) ? 10 : 12);
     m_frameNum = 0;
 
-    const uint32_t minLcuSize = 16;
-    const uint32_t picWidthInLCU = MOS_ROUNDUP_DIVIDE(m_frameWidth, minLcuSize);        //assume smallest LCU to get max width
-    const uint32_t picHeightInLCU = MOS_ROUNDUP_DIVIDE(m_frameHeight, minLcuSize);      //assume smallest LCU to get max height                                                                                            // MaxNumLcu is when LCU size is min lcu size(16)
+    const uint32_t picWidthInLCU = MOS_ROUNDUP_DIVIDE(m_frameWidth, CODECHAL_HEVC_MIN_LCU_SIZE);        //assume smallest LCU to get max width
+    const uint32_t picHeightInLCU = MOS_ROUNDUP_DIVIDE(m_frameHeight, CODECHAL_HEVC_MIN_LCU_SIZE);      //assume smallest LCU to get max height                                                                                            // MaxNumLcu is when LCU size is min lcu size(16)
     const uint32_t maxNumLCUs = picWidthInLCU *  picHeightInLCU;
     m_mvOffset = MOS_ALIGN_CEIL((maxNumLCUs * (m_hcpInterface->GetHcpPakObjSize()) * sizeof(uint32_t)), CODECHAL_PAGE_SIZE);
 
@@ -97,7 +96,7 @@ MOS_STATUS CodechalEncodeHevcBase::Initialize(CodechalSetting * settings)
     m_widthAlignedMaxLcu  = MOS_ALIGN_CEIL(m_frameWidth, MAX_LCU_SIZE);
     m_heightAlignedMaxLcu = MOS_ALIGN_CEIL(m_frameHeight, MAX_LCU_SIZE);
 
-    m_hevcBrcPakStatisticsSize = HEVC_BRC_PAK_STATISTCS_SIZE;
+    m_hevcBrcPakStatisticsSize = HEVC_BRC_PAK_STATISTCS_SIZE; // size for sturcture: CODECHAL_ENCODE_HEVC_PAK_STATS_BUFFER
     m_sizeOfHcpPakFrameStats   = 8 * CODECHAL_CACHELINE_SIZE;
 
     // Initialize kernel State
@@ -117,6 +116,30 @@ MOS_STATUS CodechalEncodeHevcBase::Initialize(CodechalSetting * settings)
             &m_defaultSlicePatchListSize,
             m_singleTaskPhaseSupported));
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_CODECHAL_RDOQ_INTRA_TU_OVERRIDE_ID,
+        &userFeatureData);
+    m_rdoqIntraTuOverride = (uint32_t)userFeatureData.u32Data;
+
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_CODECHAL_RDOQ_INTRA_TU_DISABLE_ID,
+        &userFeatureData);
+    m_rdoqIntraTuDisableOverride = (uint32_t)userFeatureData.u32Data;
+
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_CODECHAL_RDOQ_INTRA_TU_THRESHOLD_ID,
+        &userFeatureData);
+    m_rdoqIntraTuThresholdOverride = (uint32_t)userFeatureData.u32Data;
+#endif
     return eStatus;
 }
 
@@ -889,10 +912,9 @@ MOS_STATUS CodechalEncodeHevcBase::SetSequenceStructs()
 
     if (m_brcReset &&
         (!m_brcEnabled ||
-            m_hevcSeqParams->RateControlMethod == RATECONTROL_CBR ||
             m_hevcSeqParams->RateControlMethod == RATECONTROL_ICQ))
     {
-        CODECHAL_ENCODE_ASSERTMESSAGE("BRC Reset cannot be trigerred in CQP/CBR/ICQ modes - invalid BRC parameters.");
+        CODECHAL_ENCODE_ASSERTMESSAGE("BRC Reset cannot be trigerred in CQP/ICQ modes - invalid BRC parameters.");
         m_brcReset = false;
     }
 
@@ -1231,6 +1253,11 @@ MOS_STATUS CodechalEncodeHevcBase::SetSliceStructs()
             startLCU += slcParams->NumLCUsInSlice;
         }
     }
+    
+    if (m_lowDelay && !m_sameRefList)
+    {
+        CODECHAL_ENCODE_NORMALMESSAGE("Attention: LDB frame but with different L0/L1 list !");
+    }
 
     if (m_hevcSeqParams->RateControlMethod == RATECONTROL_VCM && m_pictureCodingType == B_TYPE && !m_lowDelay)
     {
@@ -1404,26 +1431,6 @@ MOS_STATUS CodechalEncodeHevcBase::UpdateYUY2SurfaceInfo(
     surface->VPlaneOffset.iYOffset = surface->dwHeight;
 
     return eStatus;
-}
-
-uint32_t CodechalEncodeHevcBase::GetBitstreamBufferSize()
-{
-    CODECHAL_ENCODE_FUNCTION_ENTER;
-
-    // 4:2:0 uncompression buffer size
-    uint32_t frameWidth = MOS_ALIGN_CEIL(m_frameWidth, MAX_LCU_SIZE);
-    uint32_t frameHeight = (MOS_ALIGN_CEIL(m_frameHeight, MAX_LCU_SIZE) * 3) / (m_is10BitHevc ? 1 : 2);
-
-    if (m_hevcSeqParams->chroma_format_idc == HCP_CHROMA_FORMAT_YUV422)
-    {
-        frameWidth = (frameWidth * 8) / 6; //4:2:2 v.s 4:2:0
-    }
-    else if (m_hevcSeqParams->chroma_format_idc == HCP_CHROMA_FORMAT_YUV444)
-    {
-        frameWidth = (frameWidth * 12) / 6; //4:4:4 v.s 4:2:0
-    }
-
-    return frameWidth * frameHeight;
 }
 
 void CodechalEncodeHevcBase::CreateFlatScalingList()
@@ -1780,35 +1787,6 @@ MOS_STATUS CodechalEncodeHevcBase::SendHWWaitCommand(
     miSemaphoreWaitParams.CompareOperation = MHW_MI_SAD_EQUAL_SDD;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiSemaphoreWaitCmd(cmdBuffer, &miSemaphoreWaitParams));
-
-    return eStatus;
-}
-
-MOS_STATUS CodechalEncodeHevcBase::SendWatchdogTimerStartCmd(
-    PMOS_COMMAND_BUFFER                 cmdBuffer)
-{
-    MmioRegistersHcp                    *mmioRegisters;
-    MHW_MI_LOAD_REGISTER_IMM_PARAMS     registerImmParams;
-    MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
-
-    CODECHAL_ENCODE_FUNCTION_ENTER;
-
-    mmioRegisters      = m_hcpInterface->GetMmioRegisters(m_vdboxIndex);
-
-    //Configure Watchdog timer Threshold
-    MOS_ZeroMemory(&registerImmParams, sizeof(registerImmParams));
-    registerImmParams.dwData      = m_hcpInterface->GetTimeStampCountsPerMillisecond() * m_hcpInterface->GetWatchDogTimerThrehold();
-    registerImmParams.dwRegister  = mmioRegisters->watchdogCountThresholdOffset;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterImmCmd(
-        cmdBuffer,
-        &registerImmParams));
-
-    //Start Watchdog Timer
-    registerImmParams.dwData        = 0;
-    registerImmParams.dwRegister    = mmioRegisters->watchdogCountCtrlOffset;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterImmCmd(
-        cmdBuffer,
-        &registerImmParams));
 
     return eStatus;
 }
@@ -2188,7 +2166,7 @@ MOS_STATUS CodechalEncodeHevcBase::InitializePicture(const EncoderParams& params
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetStatusReportParams(
         m_refList[m_currReconstructedPic.FrameIdx]));
 
-    m_bitstreamUpperBound = GetBitstreamBufferSize();
+    m_bitstreamUpperBound = m_encodeParams.dwBitstreamSize;
 
     return eStatus;
 }
@@ -2347,6 +2325,14 @@ void CodechalEncodeHevcBase::SetHcpPicStateParams(MHW_VDBOX_HEVC_PIC_STATE& picS
     picStateParams.bHevcRdoqEnabled      = m_hevcRdoqEnabled;
     picStateParams.bRDOQIntraTUDisable   = m_hevcRdoqEnabled && (1 != m_hevcSeqParams->TargetUsage);
     picStateParams.wRDOQIntraTUThreshold = (uint16_t)m_rdoqIntraTuThreshold;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_rdoqIntraTuOverride)
+    {
+        picStateParams.bRDOQIntraTUDisable      = m_rdoqIntraTuDisableOverride;
+        picStateParams.wRDOQIntraTUThreshold    = m_rdoqIntraTuThresholdOverride;
+    }
+#endif
 
     picStateParams.currPass = m_currPass;
     if (CodecHalIsFeiEncode(m_codecFunction) && m_hevcFeiPicParams && m_hevcFeiPicParams->dwMaxFrameSize)
@@ -3097,7 +3083,6 @@ MOS_STATUS CodechalEncodeHevcBase::DumpSeqParams(
     oss << "SAO_enabled_flag = " << +seqParams->SAO_enabled_flag << std::endl;
     oss << "pcm_enabled_flag = " << +seqParams->pcm_enabled_flag << std::endl;
     oss << "pcm_loop_filter_disable_flag = " << +seqParams->pcm_loop_filter_disable_flag << std::endl;
-    oss << "tiles_fixed_structure_flag = " << +seqParams->tiles_fixed_structure_flag << std::endl;
     oss << "chroma_format_idc = " << +seqParams->chroma_format_idc << std::endl;
     oss << "separate_colour_plane_flag = " << +seqParams->separate_colour_plane_flag << std::endl;
     oss << "log2_max_coding_block_size_minus3 = " << +seqParams->log2_max_coding_block_size_minus3 << std::endl;

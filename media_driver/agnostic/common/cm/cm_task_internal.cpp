@@ -69,10 +69,10 @@ int32_t CmTaskInternal::Create(const uint32_t kernelCount, const uint32_t totalT
 //| Purpose:    Create Task internal with Thread Group Space
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmTaskInternal::Create( const uint32_t kernelCount, const uint32_t totalThreadCount, CmKernelRT* kernelArray[], const CmThreadGroupSpace* threadGroupSpace, CmDeviceRT* device, const uint64_t syncBitmap, CmTaskInternal*& task )
+int32_t CmTaskInternal::Create( const uint32_t kernelCount, const uint32_t totalThreadCount, CmKernelRT* kernelArray[], const CmThreadGroupSpace* threadGroupSpace, CmDeviceRT* device, const uint64_t syncBitmap, CmTaskInternal*& task, const uint64_t conditionalEndBitmap, PCM_HAL_CONDITIONAL_BB_END_INFO conditionalEndInfo)
 {
     int32_t result = CM_SUCCESS;
-    task = new (std::nothrow) CmTaskInternal(kernelCount, totalThreadCount, kernelArray, device, syncBitmap, CM_NO_CONDITIONAL_END, nullptr);
+    task = new (std::nothrow) CmTaskInternal(kernelCount, totalThreadCount, kernelArray, device, syncBitmap, conditionalEndBitmap, conditionalEndInfo);
 
     if( task )
     {

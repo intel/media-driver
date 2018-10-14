@@ -28,10 +28,11 @@
 
 #include "mhw_render_g9_X.h"
 #include "mhw_render_hwcmd_g9_X.h"
+#include "mhw_mmio_g9.h"
 
-static const uint32_t l3CacheCntl2RegisterOffset = 0xB020;
-static const uint32_t l3CacheCntl3RegisterOffset = 0xB024;
-static const uint32_t l3CacheSqc1RegisterOffset = 0xB100;
+static const uint32_t l3CacheCntl2RegisterOffset = L3_CACHE_CNTL2_REG_OFFSET_G9;
+static const uint32_t l3CacheCntl3RegisterOffset = L3_CACHE_CNTL3_REG_OFFSET_G9;
+static const uint32_t l3CacheSqc1RegisterOffset = L3_CACHE_SQC_REG_OFFSET_G9;
 
 // SLM   URB     DC      RO      I/S     C       T
 // { 0,    248,    8,     256,    0,      0,      0,      }, // default for GT1/GT2
@@ -59,6 +60,7 @@ MOS_STATUS MhwRenderInterfaceG9::AddMediaVfeCmd(
 
     MHW_MI_CHK_STATUS(MhwRenderInterfaceGeneric<mhw_render_g9_X>::AddMediaVfeCmd(cmdBuffer, params));
 
+    MHW_MI_CHK_NULL(cmd);
     cmd->DW4.SliceDisable = params->eVfeSliceDisable;
 
     cmd->DW6.ScoreboardType = params->Scoreboard.ScoreboardType;
@@ -100,6 +102,7 @@ MOS_STATUS MhwRenderInterfaceG9::AddPipelineSelectCmd(
 
     MHW_MI_CHK_STATUS(MhwRenderInterfaceGeneric<mhw_render_g9_X>::AddPipelineSelectCmd(cmdBuffer, gpGpuPipe));
 
+    MHW_MI_CHK_NULL(cmd);
     cmd->DW0.MaskBits = 0x13;
 
     return MOS_STATUS_SUCCESS;
@@ -119,6 +122,7 @@ MOS_STATUS MhwRenderInterfaceG9::AddMediaObjectWalkerCmd(
 
     MHW_MI_CHK_STATUS(MhwRenderInterfaceGeneric<mhw_render_g9_X>::AddMediaObjectWalkerCmd(cmdBuffer, params));
 
+    MHW_MI_CHK_NULL(cmd);
     cmd->DW2.UseScoreboard     = params->UseScoreboard;
     cmd->DW5.ScoreboardMask    = params->ScoreboardMask;
 
@@ -151,6 +155,7 @@ MOS_STATUS MhwRenderInterfaceG9::AddMediaObject(
 
     MHW_MI_CHK_STATUS(MhwRenderInterfaceGeneric<mhw_render_g9_X>::AddMediaObject(cmdBuffer, batchBuffer, params));
 
+    MHW_MI_CHK_NULL(cmd);
     cmd->DW2.UseScoreboard     = params->VfeScoreboard.ScoreboardEnable;
     cmd->DW4.ScoreboardX       = params->VfeScoreboard.Value[0];
     cmd->DW4.ScoredboardY      = params->VfeScoreboard.Value[1];

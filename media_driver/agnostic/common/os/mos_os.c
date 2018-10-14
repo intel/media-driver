@@ -31,6 +31,7 @@
 
 #include "mos_os.h"
 #include "mos_util_debug.h"
+#include "mos_util_user_interface.h"
 
 //!
 //! \brief GLOBAL INITIALIZERS
@@ -556,6 +557,127 @@ finish:
 }
 #endif // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
 
+#if MOS_COMMAND_RESINFO_DUMP_SUPPORTED
+
+std::shared_ptr<GpuCmdResInfoDump> GpuCmdResInfoDump::m_instance = nullptr;
+
+const GpuCmdResInfoDump *GpuCmdResInfoDump::GetInstance()
+{
+    if (m_instance == nullptr)
+    {
+        m_instance = std::make_shared<GpuCmdResInfoDump>();
+    }
+    return m_instance.get();
+}
+
+GpuCmdResInfoDump::GpuCmdResInfoDump()
+{
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_INFO_ENABLE_ID,
+        &userFeatureData);
+    m_dumpEnabled = userFeatureData.bData;
+
+    if (!m_dumpEnabled)
+    {
+        return;
+    }
+
+    char path[MOS_MAX_PATH_LENGTH + 1];
+    MOS_ZeroMemory(path, sizeof(path));
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    userFeatureData.StringData.pStringData = path;
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_INFO_PATH_ID,
+        &userFeatureData);
+    if (userFeatureData.StringData.uSize > MOS_MAX_PATH_LENGTH)
+    {
+        userFeatureData.StringData.uSize = 0;
+    }
+    if (userFeatureData.StringData.uSize > 0)
+    {
+        userFeatureData.StringData.pStringData[userFeatureData.StringData.uSize] = '\0';
+        userFeatureData.StringData.uSize++;
+    }
+
+    auto tmpPath = std::string(path);
+    if (tmpPath.back() != '/' && tmpPath.back() != '\\')
+    {
+        tmpPath += '/';
+    }
+    m_path = tmpPath + "gpuCmdResInfo_" + std::to_string(MOS_GetPid()) + ".txt";
+}
+
+void GpuCmdResInfoDump::Dump(PMOS_INTERFACE pOsInterface) const
+{
+    if (!m_dumpEnabled)
+    {
+        return;
+    }
+
+    using std::endl;
+
+    std::ofstream outputFile;
+    outputFile.open(m_path, std::ios_base::app);
+    MOS_OS_ASSERT(outputFile.is_open());
+
+    auto &cmdResInfoPtrs = GetCmdResPtrs(pOsInterface);
+
+    outputFile << "--PerfTag: " << std::to_string(pOsInterface->pfnGetPerfTag(pOsInterface)) << " --Cmd Num: "
+        << cmdResInfoPtrs.size() << " --Dump Count: " << ++m_cnt << endl;
+
+    outputFile << "********************************CMD Paket Begin********************************" << endl;
+    for (auto e : cmdResInfoPtrs)
+    {
+        Dump(e, outputFile);
+    }
+    outputFile << "********************************CMD Paket End**********************************" << endl << endl;
+
+    outputFile.close();
+}
+
+const char *GpuCmdResInfoDump::GetResType(MOS_GFXRES_TYPE resType) const
+{
+    switch (resType)
+    {
+    case MOS_GFXRES_INVALID:
+        return "MOS_GFXRES_INVALID";
+    case MOS_GFXRES_BUFFER:
+        return "MOS_GFXRES_BUFFER";
+    case MOS_GFXRES_2D:
+        return "MOS_GFXRES_2D";
+    case MOS_GFXRES_VOLUME:
+        return "MOS_GFXRES_VOLUME";
+    default:
+        return "";
+    }
+}
+
+const char *GpuCmdResInfoDump::GetTileType(MOS_TILE_TYPE tileType) const
+{
+    switch (tileType)
+    {
+    case MOS_TILE_X:
+        return "MOS_TILE_X";
+    case MOS_TILE_Y:
+        return "MOS_TILE_Y";
+    case MOS_TILE_YF:
+        return "MOS_TILE_YF";
+    case MOS_TILE_YS:
+        return "MOS_TILE_YS";
+    case MOS_TILE_LINEAR:
+        return "MOS_TILE_LINEAR";
+    case MOS_TILE_INVALID:
+        return "MOS_TILE_INVALID";
+    default:
+        return "";
+    }
+}
+#endif // MOS_COMMAND_RESINFO_DUMP_SUPPORTED
+
 //! \brief    Unified OS Initializes OS Interface
 //! \details  OS Interface initilization
 //! \param    PMOS_INTERFACE pOsInterface
@@ -586,6 +708,7 @@ MOS_STATUS Mos_InitInterface(
     pOsInterface->Component             = component;
     pOsInterface->modulizedMosEnabled   = true;
     pOsInterface->osContextPtr          = nullptr;
+    pOsInterface->veDefaultEnable       = true;
 
     pOsInterface->streamIndex = 0;
 
@@ -608,7 +731,8 @@ MOS_STATUS Mos_InitInterface(
 
 #if !EMUL
 MEMORY_OBJECT_CONTROL_STATE Mos_CachePolicyGetMemoryObject(
-    MOS_HW_RESOURCE_DEF         MosUsage)
+    MOS_HW_RESOURCE_DEF MosUsage,
+    GMM_CLIENT_CONTEXT  *pGmmClientContext)
 {
     GMM_RESOURCE_USAGE_TYPE GmmResourceUsage[MOS_HW_RESOURCE_DEF_MAX] =
     {
@@ -755,17 +879,97 @@ MEMORY_OBJECT_CONTROL_STATE Mos_CachePolicyGetMemoryObject(
 
     };
 
-    MOS_OS_ASSERT(pGmmGlobalContext);
-    MOS_OS_ASSERT(pGmmGlobalContext->GetCachePolicyObj());
+    MOS_OS_ASSERT(pGmmClientContext);
 
     GMM_RESOURCE_USAGE_TYPE usage = GmmResourceUsage[MosUsage];
-    if (pGmmGlobalContext->GetCachePolicyElement(usage).Initialized)
+    if (pGmmClientContext->GetCachePolicyElement(usage).Initialized)
     {
-        return pGmmGlobalContext->GetCachePolicyObj()->CachePolicyGetMemoryObject(nullptr, usage);
+        return pGmmClientContext->CachePolicyGetMemoryObject(nullptr, usage);
     }
     else
     {
-        return pGmmGlobalContext->GetCachePolicyUsage()[GMM_RESOURCE_USAGE_UNKNOWN].MemoryObjectOverride;
+        return pGmmClientContext->GetCachePolicyUsage()[GMM_RESOURCE_USAGE_UNKNOWN].MemoryObjectOverride;
     }
 }
 #endif
+
+#ifndef SKIP_VE_DEFINE
+MOS_STATUS Mos_CheckVirtualEngineSupported(
+    PMOS_INTERFACE      osInterface,
+    bool                isDecode,
+    bool                veDefaultEnable)
+{
+    MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
+    PLATFORM                    platform;
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+
+    MOS_OS_ASSERT(osInterface);
+
+    osInterface->pfnGetPlatform(osInterface, &platform);
+
+    if (isDecode)
+    {
+        //UMD Decode Virtual Engine Override
+        // 0: disable. can set to 1 only when KMD VE is enabled.
+        // Default value is 1 if not set this key
+        memset(&userFeatureData, 0, sizeof(userFeatureData));
+        eStatus = MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_ENABLE_DECODE_VIRTUAL_ENGINE_ID,
+            &userFeatureData);
+        osInterface->bSupportVirtualEngine = userFeatureData.u32Data ? true : false;
+
+        // force bSupportVirtualEngine to false when virtual engine not enabled by default
+        if ((!veDefaultEnable || !osInterface->veDefaultEnable) && 
+            (eStatus == MOS_STATUS_USER_FEATURE_KEY_READ_FAILED || eStatus == MOS_STATUS_USER_FEATURE_KEY_OPEN_FAILED))
+        {
+            osInterface->bSupportVirtualEngine = false;
+        }
+
+        auto skuTable = osInterface->pfnGetSkuTable(osInterface);
+        MOS_OS_CHK_NULL_RETURN(skuTable);
+        if (osInterface->bSupportVirtualEngine && MEDIA_IS_SKU(skuTable, FtrContextBasedScheduling))
+        {
+            osInterface->ctxBasedScheduling = true;
+        }
+        else
+        {
+            osInterface->ctxBasedScheduling = false;
+        }
+    }
+    else
+    {
+        //UMD Encode Virtual Engine Override
+        memset(&userFeatureData, 0, sizeof(userFeatureData));
+        eStatus = MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_ENABLE_ENCODE_VIRTUAL_ENGINE_ID,
+            &userFeatureData);
+        osInterface->bSupportVirtualEngine = userFeatureData.u32Data ? true : false;
+
+        // force bSupportVirtualEngine to false when virtual engine not enabled by default
+        if (!osInterface->veDefaultEnable && (eStatus == MOS_STATUS_USER_FEATURE_KEY_READ_FAILED || eStatus == MOS_STATUS_USER_FEATURE_KEY_OPEN_FAILED))
+        {
+            osInterface->bSupportVirtualEngine = false;
+        }
+
+        auto skuTable = osInterface->pfnGetSkuTable(osInterface);
+        MOS_OS_CHK_NULL_RETURN(skuTable);
+        if (osInterface->bSupportVirtualEngine && MEDIA_IS_SKU(skuTable, FtrContextBasedScheduling))
+        {
+            osInterface->ctxBasedScheduling = true;
+        }
+        else
+        {
+            osInterface->ctxBasedScheduling = false;
+        }
+    }
+
+    MOS_OS_VERBOSEMESSAGE("Virtual Engine Context based SCheduling enabled:%d.\n", osInterface->ctxBasedScheduling);
+
+    return eStatus;
+}
+#endif // !SKIP_VE_DEFINE
+
+
+

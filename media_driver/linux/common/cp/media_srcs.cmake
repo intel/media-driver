@@ -21,3 +21,4 @@
 media_include_subdirectory(ddi)
 media_include_subdirectory(hw)
 media_include_subdirectory(os)
+media_include_subdirectory(shared)

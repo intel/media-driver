@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -27,12 +27,12 @@
 #ifndef __CODECHAL_CMD_INITIALIZER_H__
 #define __CODECHAL_CMD_INITIALIZER_H__
 
-#ifdef _HEVC_ENCODE_SUPPORTED
+#if defined (_HEVC_ENCODE_VME_SUPPORTED) || defined (_HEVC_ENCODE_VDENC_SUPPORTED)
 #include "codechal_encode_hevc_base.h"
 #endif
 #include "codechal_encoder_base.h"
 
-#ifdef _VP9_ENCODE_SUPPORTED
+#ifdef _VP9_ENCODE_VDENC_SUPPORTED
 class CodechalVdencVp9State;
 #endif
 
@@ -40,7 +40,9 @@ class CodechalVdencVp9State;
 typedef enum _CODECHAL_CMD_INITIALIZER_CMDTYPE
 {
     CODECHAL_CMD1 = 1,
-    CODECHAL_CMD2 = 2
+    CODECHAL_CMD2 = 2,
+    CODECHAL_CMD3 = 3,
+    CODECHAL_CMD5 = 5,
 } CODECHAL_CMD_INITIALIZER_CMDTYPE;
 
 //!
@@ -157,7 +159,7 @@ struct HucInputCmd2
     uint8_t RSVD[3];
 };
 
-#ifdef _VP9_ENCODE_SUPPORTED
+#ifdef _VP9_ENCODE_VDENC_SUPPORTED
 //!
 //! \struct Vp9CmdInitializerParams
 //! \brief  VP9 Params struct for huc initializer
@@ -189,7 +191,7 @@ struct Vp9CmdInitializerParams
     bool                                videoContextUsesNullHw;
     CodechalDebugInterface*             debugInterface;
     bool                                dynamicScalingEnabled;
-
+    bool                                bPrevFrameKey;
     // Common
     uint16_t                            sadQpLambda;
     uint16_t                            rdQpLambda;
@@ -205,6 +207,8 @@ struct Vp9CmdInitializerParams
 class CodechalCmdInitializer
 {
 public:
+    static constexpr uint32_t m_hucCmdInitializerKernelDescriptor = 14; //!< VDBox Huc cmd initializer kernel descriptoer
+
     bool                                        m_pakOnlyPass;
     bool                                        m_acqpEnabled;
     bool                                        m_brcEnabled;
@@ -212,7 +216,8 @@ public:
     bool                                        m_roundingEnabled;
     bool                                        m_panicEnabled;
     bool                                        m_roiStreamInEnabled;
-    int32_t                                     m_currentPass;
+    int32_t                                     m_currentPass = 0;
+    int32_t                                     m_cmdCount = 0 ;
 
     CodechalEncoderState                        *m_encoder = nullptr;                //!< Pointer to ENCODER base class
     MOS_INTERFACE                               *m_osInterface = nullptr;            //!< OS interface
@@ -222,13 +227,13 @@ public:
     void*                                       m_seqParams = nullptr;               //!< Pointer to sequence parameter
     void*                                       m_sliceParams = nullptr;             //!< Pointer to slice parameter
 
-#ifdef _VP9_ENCODE_SUPPORTED
+#ifdef _VP9_ENCODE_VDENC_SUPPORTED
     //VP9 related changes
     Vp9CmdInitializerParams                     m_vp9Params;
 #endif
     CodechalHwInterface*                        m_hwInterface;
-    MOS_RESOURCE                                m_cmdInitializerDmemBuffer[3];
-    MOS_RESOURCE                                m_cmdInitializerDataBuffer[3];
+    MOS_RESOURCE                                m_cmdInitializerDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][3];
+    MOS_RESOURCE                                m_cmdInitializerDataBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][3];
     MOS_RESOURCE                                m_cmdInitializerDysScalingDmemBuffer;
     MOS_RESOURCE                                m_cmdInitializerDysScalingDataBuffer;
 
@@ -256,7 +261,7 @@ public:
     //!
     //! \brief    Free Resources
     //!
-    void CmdInitializerFreeResources();
+    virtual void CmdInitializerFreeResources();
 
     //!
     //! \brief    Allocate resources for VP9
@@ -264,7 +269,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS CmdInitializerAllocateResources(CodechalHwInterface*    m_hwInterface);
+    virtual MOS_STATUS CmdInitializerAllocateResources(CodechalHwInterface*    m_hwInterface);
 
     //!
     //! \brief    Set all the data of the InputCom of command initializer HuC FW
@@ -298,7 +303,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS CmdInitializerSetDmem(bool brcEnabled);
+    virtual MOS_STATUS CmdInitializerSetDmem(bool brcEnabled);
 
     //!
     //! \brief    Executes command initializer HuC FW
@@ -307,11 +312,16 @@ public:
     //!           Indicate if brc is enabled
     //! \param    [in] secondlevelBB
     //!           Second level batch buffer
+    //! \param    [in] cmdBuffer
+    //!           cmdBuffer provided by outside
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS CmdInitializerExecute(bool brcEnabled, PMOS_RESOURCE secondlevelBB);
+    MOS_STATUS CmdInitializerExecute(
+            bool brcEnabled, 
+            PMOS_RESOURCE secondlevelBB, 
+            MOS_COMMAND_BUFFER* cmdBuffer = nullptr);
 
     //!
     //! \brief    Set Add Commands to BatchBuffer
@@ -322,16 +332,18 @@ public:
     //!           Command buffer
     //! \param    [in] addToBatchBufferHuCBRC
     //!           Flag to mention if the scenario is BRC or CQP
+    //! \param    [in] isLowDelayB
+    //!           Flag to indicate if it is LDB or not
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS SetAddCommands(uint32_t commandtype, PMOS_COMMAND_BUFFER cmdBuffer, bool addToBatchBufferHuCBRC)
+    virtual MOS_STATUS SetAddCommands(uint32_t commandtype, PMOS_COMMAND_BUFFER cmdBuffer, bool addToBatchBufferHuCBRC, bool isLowDelayB = true, int8_t * pRefIdxMapping = nullptr)
     {
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
         return eStatus;
     }
-#ifdef _VP9_ENCODE_SUPPORTED
+#ifdef _VP9_ENCODE_VDENC_SUPPORTED
     //!
     //! \brief    Set all const VP9 data of the InputCom of command initializer HuC FW
     //!
@@ -348,7 +360,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS CmdInitializerVp9SetDmem();
+    virtual MOS_STATUS CmdInitializerVp9SetDmem();
 
     //!
     //! \brief    Executes VP9 command initializer HuC FW
@@ -361,7 +373,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS CmdInitializerVp9Execute(PMOS_COMMAND_BUFFER cmdBuffer, PMOS_RESOURCE picStateBuffer);
+    virtual MOS_STATUS CmdInitializerVp9Execute(PMOS_COMMAND_BUFFER cmdBuffer, PMOS_RESOURCE picStateBuffer);
 
     //!
     //! \brief    Set Add Commands to BatchBuffer for VP9
@@ -390,6 +402,24 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS DumpHucCmdInit(PMOS_RESOURCE secondlevelBB);
+#endif
+
+protected:
+#if defined (_HEVC_ENCODE_VME_SUPPORTED) || defined (_HEVC_ENCODE_VDENC_SUPPORTED)
+    virtual MOS_STATUS ConstructHevcHucCmd1ConstData(
+        PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS seqParams,
+        PCODEC_HEVC_ENCODE_PICTURE_PARAMS  picParams,
+        PCODEC_HEVC_ENCODE_SLICE_PARAMS    sliceParams,
+        struct HucComData *                hucConstData);
+
+    virtual MOS_STATUS ConstructHevcHucCmd2ConstData(
+        PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS seqParams,
+        PCODEC_HEVC_ENCODE_PICTURE_PARAMS  picParams,
+        PCODEC_HEVC_ENCODE_SLICE_PARAMS    sliceParams,
+        struct HucComData *                hucConstData);
+
+    virtual uint16_t GetCmd1StartOffset(bool brcEnabled);
+    virtual uint16_t GetCmd2StartOffset(bool brcEnabled);
 #endif
 };
 using PCODECHAL_CMD_INITIALIZER = class CodechalCmdInitializer*;

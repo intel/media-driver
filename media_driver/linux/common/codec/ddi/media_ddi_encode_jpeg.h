@@ -228,7 +228,14 @@ private:
     //!           VA_STATUS_SUCCESS if success, else fail reason
     //!
     VAStatus DefaultQmatrix();
-
+    //!
+    //! \brief    scale Qmatrix buffer to Encode Context,
+    //!           if qmatrix and full jpeg headers are supplied by application
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success, else fail reason
+    //!
+    VAStatus QualityScaleQmatrix();
     //!
     //! \brief    Convert Media Format To Input Surface Format
     //!
@@ -243,6 +250,8 @@ private:
     CodecEncodeJpegHuffmanDataArray    *m_huffmanTable = nullptr;    //!< Huffman table.
     void                               *m_appData      = nullptr;    //!< Application data.
     bool                               m_quantSupplied = false;      //!< whether Quant table is supplied by the app for JPEG encoder.
-    uint32_t                           m_appDataSize   = 0;          //!< Size of application size.
+    uint32_t                           m_appDataTotalSize   = 0;          //!< Total size of application data.
+    uint32_t                           m_appDataSize   = 0;          //!< Size of application data.
+    uint32_t                           m_appDataWholeHeader = false; //!< whether the app data include whole headers , such as SOI, DQT ...
 };
 #endif /* __MEDIA_LIBVA_ENCODER_JPEG_H__ */

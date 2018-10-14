@@ -61,6 +61,8 @@ public:
         VADriverContextP ctx,
         VAContextID      context) override;
 
+    virtual VAStatus SetDecodeParams() override;
+    
     virtual MOS_FORMAT GetFormat() override;
 
     /*virtual VAStatus EndPicture(

@@ -56,8 +56,12 @@ MOS_STATUS CmdBufMgr::Initialize(OsContext *osContext, uint32_t cmdBufSize)
     if (!m_initialized)
     {
         m_osContext          = osContext;
+
         m_inUsePoolMutex     = MOS_CreateMutex();
+        MOS_OS_CHK_NULL_RETURN(m_inUsePoolMutex);
+
         m_availablePoolMutex = MOS_CreateMutex();
+        MOS_OS_CHK_NULL_RETURN(m_availablePoolMutex);
 
         for (int i = 0; i < m_initBufNum; i++)
         {
@@ -245,6 +249,12 @@ CommandBuffer *CmdBufMgr::PickupOneCmdBuf(uint32_t size)
     return retbuf;
 }
 
+void CmdBufMgr::UpperInsert(CommandBuffer *cmdBuf)
+{
+    auto it = std::find_if(m_availableCmdBufPool.begin(), m_availableCmdBufPool.end(), [=](CommandBuffer * p1){return p1->GetCmdBufSize() < cmdBuf->GetCmdBufSize();});
+    m_availableCmdBufPool.emplace(it, cmdBuf);
+}
+
 MOS_STATUS CmdBufMgr::ReleaseCmdBuf(CommandBuffer *cmdBuf)
 {
     MOS_OS_FUNCTION_ENTER;
@@ -279,10 +289,10 @@ MOS_STATUS CmdBufMgr::ReleaseCmdBuf(CommandBuffer *cmdBuf)
         MOS_OS_ASSERTMESSAGE("Cannot find the specified cmdbuf in inusepool, sth must be wrong!");
         eStatus = MOS_STATUS_UNKNOWN;
     }
-
-    m_availableCmdBufPool.push_back(cmdBuf);
-    // sort by decent order
-    std::sort(m_availableCmdBufPool.begin(), m_availableCmdBufPool.end(), &CmdBufMgr::GreaterSizeSort);
+    else
+    {
+        UpperInsert(cmdBuf);
+    }
 
     // unlock after release buffer
     MOS_UnlockMutex(m_inUsePoolMutex);

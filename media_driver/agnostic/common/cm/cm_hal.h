@@ -345,6 +345,20 @@ enum CM_HAL_TASK_STATUS
 };
 
 //------------------------------------------------------------------------------
+//| CM conditional batch buffer end information
+//------------------------------------------------------------------------------
+struct CM_HAL_CONDITIONAL_BB_END_INFO
+{
+    uint32_t bufferTableIndex;
+    uint32_t offset;
+    uint32_t compareValue;
+    bool  disableCompareMask;
+    bool  endCurrentLevel;
+    uint32_t  operatorCode;
+};
+typedef CM_HAL_CONDITIONAL_BB_END_INFO *PCM_HAL_CONDITIONAL_BB_END_INFO;
+
+//------------------------------------------------------------------------------
 //| HAL CM Query Task Param
 //------------------------------------------------------------------------------
 struct CM_HAL_QUERY_TASK_PARAM
@@ -387,6 +401,8 @@ struct CM_HAL_EXEC_TASK_GROUP_PARAM
     CM_TASK_CONFIG taskConfig;       // [in] task Config
     void *userDefinedMediaState;     // [in] pointer to a user defined media state heap block
     CM_QUEUE_CREATE_OPTION queueOption;  // [in] multiple contexts queue option
+    uint64_t conditionalEndBitmap;       // [in] bit map for conditional end b/w kernels
+    CM_HAL_CONDITIONAL_BB_END_INFO conditionalEndInfo[CM_MAX_CONDITIONAL_END_CMDS];
 };
 typedef CM_HAL_EXEC_TASK_GROUP_PARAM *PCM_HAL_EXEC_GROUP_TASK_PARAM;
 
@@ -440,20 +456,6 @@ struct CM_HAL_DEPENDENCY
     int32_t deltaX[CM_HAL_MAX_DEPENDENCY_COUNT];
     int32_t deltaY[CM_HAL_MAX_DEPENDENCY_COUNT];
 };
-
-//------------------------------------------------------------------------------
-//| CM conditional batch buffer end information
-//------------------------------------------------------------------------------
-struct CM_HAL_CONDITIONAL_BB_END_INFO
-{
-    uint32_t bufferTableIndex;
-    uint32_t offset;
-    uint32_t compareValue;
-    bool  disableCompareMask;
-    bool  endCurrentLevel;
-    uint32_t  operatorCode;
-};
-typedef CM_HAL_CONDITIONAL_BB_END_INFO *PCM_HAL_CONDITIONAL_BB_END_INFO;
 
 struct CM_HAL_EXEC_TASK_PARAM
 {
@@ -733,6 +735,7 @@ struct CM_HAL_KERNEL_PARAM
     uint32_t numSurfaces;           // [in] Number of Surfaces used in this kernel
     uint32_t payloadSize;           // [in] Kernel Payload Size
     uint32_t totalCurbeSize;        // [in] total CURBE size, GPGPU
+    uint32_t curbeOffset;           // [in] curbe offset of kernel
     uint32_t curbeSizePerThread;    // [in] CURBE size per thread
     uint32_t crossThreadConstDataLen;    // [in] Cross-thread constant data length HSW+
     uint32_t barrierMode;           // [in] Barrier mode, 0-No barrier, 1-local barrier, 2-global barrier
@@ -1531,7 +1534,11 @@ typedef struct _CM_HAL_STATE
 
     bool                        svmBufferUsed;
 
-    CMRT_UMD::CSync             criticalSectionDSH;
+    CMRT_UMD::CSync             *criticalSectionDSH;
+
+    uint64_t                    tsFrequency;
+
+    bool                        forceKernelReload;
 //------------------------------------------------------------------------------
 // Macros to replace HR macros in oscl.h
 //------------------------------------------------------------------------------
@@ -2267,6 +2274,10 @@ MOS_STATUS HalCm_SetupSampler8x8SurfaceState(
     int32_t                     bindingTable,
     uint32_t                    threadIndex,
     uint8_t                     *buffer);
+
+uint64_t HalCm_ConvertTicksToNanoSeconds(
+    PCM_HAL_STATE               state,
+    uint64_t                    ticks);
 
 //*-----------------------------------------------------------------------------
 //| Helper functions for EnqueueWithHints

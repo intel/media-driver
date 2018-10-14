@@ -19,12 +19,18 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 cmake_minimum_required(VERSION 3.1)
 
-if ("${BUILD_TYPE}" STREQUAL "release")
-    set(CMAKE_BUILD_TYPE "Release")
+if ("${BUILD_TYPE}" STREQUAL "debug")
+    set(CMAKE_BUILD_TYPE "Debug")
+    add_definitions(-D_DEBUG)
 elseif ("${BUILD_TYPE}" STREQUAL "release-internal")
     set(CMAKE_BUILD_TYPE "ReleaseInternal")
-elseif ("${BUILD_TYPE}" STREQUAL "debug")
-    set(CMAKE_BUILD_TYPE "Debug")
+    add_definitions(-D_RELEASE_INTERNAL)
+else ()
+    if (NOT "${BUILD_TYPE}" STREQUAL "release")
+        message("-- devult -- No valid build type specified, set to release as default")
+    endif ()
+    set(CMAKE_BUILD_TYPE "Release")
+    add_definitions(-D_RELEASE)
 endif ()
 
 #-fno-plt is a GCC option to disable the use of PLT for external function calls in position-independent code.

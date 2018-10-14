@@ -38,6 +38,7 @@ DdiMediaDecode::DdiMediaDecode(DDI_DECODE_CONFIG_ATTR *ddiDecodeAttr)
 {
     m_ddiDecodeAttr = ddiDecodeAttr;
     m_ddiDecodeCtx  = nullptr;
+    MOS_ZeroMemory(&m_destSurface, sizeof(m_destSurface));
     m_codechalSettings = CodechalSetting::CreateCodechalSetting();
 }
 
@@ -89,12 +90,10 @@ VAStatus DdiMediaDecode::ParseProcessingBuffer(
 
     if (m_decProcessingType == VA_DEC_PROCESSING)
     {
-        PCODECHAL_DECODE_PROCESSING_PARAMS decProcessingParams;
-        PMOS_SURFACE                       decProcessingSurface;
+        auto decProcessingParams =
+            (PCODECHAL_DECODE_PROCESSING_PARAMS)m_ddiDecodeCtx->DecodeParams.m_procParams;
 
-        decProcessingParams = m_ddiDecodeCtx->DecodeParams.m_procParams;
-
-        decProcessingSurface = decProcessingParams->pOutputSurface;
+        auto decProcessingSurface = decProcessingParams->pOutputSurface;
 
         memset(decProcessingSurface, 0, sizeof(MOS_SURFACE));
 
@@ -343,7 +342,7 @@ void DdiMediaDecode::DestroyContext(VADriverContextP ctx)
 
     if (m_ddiDecodeCtx->pCpDdiInterface)
     {
-        MOS_Delete(m_ddiDecodeCtx->pCpDdiInterface);
+        Delete_DdiCpInterface(m_ddiDecodeCtx->pCpDdiInterface);
         m_ddiDecodeCtx->pCpDdiInterface = nullptr;
     }
 
@@ -359,12 +358,23 @@ void DdiMediaDecode::DestroyContext(VADriverContextP ctx)
     MOS_FreeMemory(m_ddiDecodeCtx->DecodeParams.m_sliceParams);
     m_ddiDecodeCtx->DecodeParams.m_sliceParams = nullptr;
 
+    MOS_FreeMemory(m_ddiDecodeCtx->DecodeParams.m_extPicParams);
+    m_ddiDecodeCtx->DecodeParams.m_sliceParams = nullptr;
+
+    MOS_FreeMemory(m_ddiDecodeCtx->DecodeParams.m_advPicParams);
+    m_ddiDecodeCtx->DecodeParams.m_sliceParams = nullptr;
+
+    MOS_FreeMemory(m_ddiDecodeCtx->DecodeParams.m_extSliceParams);
+    m_ddiDecodeCtx->DecodeParams.m_sliceParams = nullptr;
+
+    MOS_FreeMemory(m_ddiDecodeCtx->DecodeParams.m_subsetParams);
+    m_ddiDecodeCtx->DecodeParams.m_sliceParams = nullptr;
+
 #ifdef _DECODE_PROCESSING_SUPPORTED
     if (m_ddiDecodeCtx->DecodeParams.m_procParams != nullptr)
     {
-        PCODECHAL_DECODE_PROCESSING_PARAMS procParams;
-
-        procParams = m_ddiDecodeCtx->DecodeParams.m_procParams;
+        auto procParams =
+            (PCODECHAL_DECODE_PROCESSING_PARAMS)m_ddiDecodeCtx->DecodeParams.m_procParams;
         MOS_FreeMemory(procParams->pOutputSurface);
         procParams->pOutputSurface = nullptr;
 
@@ -600,24 +610,32 @@ VAStatus DdiMediaDecode::SetDecodeParams()
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
-    (&m_ddiDecodeCtx->DecodeParams)->m_destSurface = &m_destSurface;
-    (&m_ddiDecodeCtx->DecodeParams)->m_deblockSurface = nullptr;
-    (&m_ddiDecodeCtx->DecodeParams)->m_dataBuffer    = &bufMgr->resBitstreamBuffer;
-    (&m_ddiDecodeCtx->DecodeParams)->m_bitStreamBufData = bufMgr->pBitstreamBuffer;
-    Mos_Solo_OverrideBufferSize((&m_ddiDecodeCtx->DecodeParams)->m_dataSize, (&m_ddiDecodeCtx->DecodeParams)->m_dataBuffer);
+    m_ddiDecodeCtx->DecodeParams.m_destSurface = &m_destSurface;
+    m_ddiDecodeCtx->DecodeParams.m_deblockSurface = nullptr;
 
-    (&m_ddiDecodeCtx->DecodeParams)->m_bitplaneBuffer = nullptr;
+    m_ddiDecodeCtx->DecodeParams.m_dataBuffer    = &bufMgr->resBitstreamBuffer;
+    m_ddiDecodeCtx->DecodeParams.m_bitStreamBufData = bufMgr->pBitstreamBuffer;
+
+    m_ddiDecodeCtx->DecodeParams.m_bitplaneBuffer = nullptr;
 
     if (m_streamOutEnabled)
     {
-        (&m_ddiDecodeCtx->DecodeParams)->m_streamOutEnabled           = true;
-        (&m_ddiDecodeCtx->DecodeParams)->m_externalStreamOutBuffer    = &bufMgr->resExternalStreamOutBuffer;
+        m_ddiDecodeCtx->DecodeParams.m_streamOutEnabled           = true;
+        m_ddiDecodeCtx->DecodeParams.m_externalStreamOutBuffer    = &bufMgr->resExternalStreamOutBuffer;
     }
     else
     {
-        (&m_ddiDecodeCtx->DecodeParams)->m_streamOutEnabled           = false;
-        (&m_ddiDecodeCtx->DecodeParams)->m_externalStreamOutBuffer    = nullptr;
+        m_ddiDecodeCtx->DecodeParams.m_streamOutEnabled           = false;
+        m_ddiDecodeCtx->DecodeParams.m_externalStreamOutBuffer    = nullptr;
     }
+
+    if (m_ddiDecodeCtx->pCpDdiInterface)
+    {
+        DDI_CHK_RET(m_ddiDecodeCtx->pCpDdiInterface->SetDecodeParams(&m_ddiDecodeCtx->DecodeParams),"SetDecodeParams failed!");
+    }
+
+    Mos_Solo_OverrideBufferSize(m_ddiDecodeCtx->DecodeParams.m_dataSize, m_ddiDecodeCtx->DecodeParams.m_dataBuffer);
+
     return VA_STATUS_SUCCESS;
 }
 
@@ -708,19 +726,29 @@ VAStatus DdiMediaDecode::CreateBuffer(
             if(va != VA_STATUS_SUCCESS)
             {
                 goto CleanUpandReturn;
-        }
+            }
 
             break;
         case VASliceParameterBufferType:
             va = AllocSliceControlBuffer(buf);
-        if(va != VA_STATUS_SUCCESS)
+            if(va != VA_STATUS_SUCCESS)
             {
                 goto CleanUpandReturn;
-        }
+            }
             buf->format     = Media_Format_CPU;
             break;
         case VAPictureParameterBufferType:
             buf->pData      = GetPicParamBuf(&(m_ddiDecodeCtx->BufMgr));
+            buf->format     = Media_Format_CPU;
+            break;
+        case VASubsetsParameterBufferType:
+            //maximum entry point supported should not be more than 440
+            if(numElements > 440)
+            {
+                va = VA_STATUS_ERROR_INVALID_PARAMETER;
+                goto CleanUpandReturn;
+            }
+            buf->pData      = (uint8_t*)MOS_AllocAndZeroMemory(size * numElements);
             buf->format     = Media_Format_CPU;
             break;
         case VAIQMatrixBufferType:
@@ -859,8 +887,6 @@ VAStatus DdiMediaDecode::CreateCodecHal(
     MOS_CONTEXT    *mosCtx   = (MOS_CONTEXT *)ptr;
     VAStatus        vaStatus = VA_STATUS_SUCCESS;
 
-    m_ddiDecodeCtx->pCpDdiInterface->SetCodechalSetting(m_codechalSettings);
-
     Codechal *codecHal = CodechalDevice::CreateFactory(
         nullptr,
         mosCtx,
@@ -874,19 +900,6 @@ VAStatus DdiMediaDecode::CreateCodecHal(
         return vaStatus;
     }
     m_ddiDecodeCtx->pCodecHal = codecHal;
-
-    CodechalCencDecode *cencDecoder = nullptr;
-    if (m_codechalSettings->codecFunction == CODECHAL_FUNCTION_CENC_DECODE)
-    {
-        CodechalCencDecode::CreateCencDecode((CODECHAL_STANDARD)m_codechalSettings->standard, &cencDecoder);
-        if (nullptr == cencDecoder)
-        {
-            DDI_ASSERTMESSAGE("Failure in CreateCencDecode create.\n");
-            vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
-            return vaStatus;
-        }
-        decoder->SetCencDecoder(cencDecoder);
-    }
 
     if (codecHal->Allocate(m_codechalSettings) != MOS_STATUS_SUCCESS)
     {
@@ -912,15 +925,7 @@ VAStatus DdiMediaDecode::CreateCodecHal(
     }
 #endif
 
-    if (m_codechalSettings->codecFunction == CODECHAL_FUNCTION_CENC_DECODE)
-    {
-        if (cencDecoder->Initialize(decoder, osInterface->pOsContext, m_codechalSettings) != MOS_STATUS_SUCCESS)
-        {
-            DDI_ASSERTMESSAGE("Failure in CreateCencDecode create.\n");
-            vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
-            return vaStatus;
-        }
-    }
+    m_ddiDecodeCtx->pCpDdiInterface->CreateCencDecode(decoder->GetDebugInterface(), mosCtx, m_codechalSettings);
 
     return vaStatus;
 }

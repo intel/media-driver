@@ -28,8 +28,7 @@
 #include "codechal_decode_avc.h"
 #include "codechal_decode_sfc_avc.h"
 #include "codechal_mmc_decode_avc.h"
-#include "codechal_secure_decode.h"
-#include "codechal_cenc_decode.h"
+#include "codechal_secure_decode_interface.h"
 #if USE_CODECHAL_DEBUG_TOOL
 #include "codechal_debug.h"
 #endif
@@ -1137,37 +1136,21 @@ MOS_STATUS CodechalDecodeAvc::SetFrameStates()
 
     CODECHAL_DECODE_CHK_NULL_RETURN(m_decodeParams.m_destSurface);
 
-    if (m_cencDecoder)
-    {
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_cencDecoder->SetParamsForDecode(this, m_hwInterface, m_debugInterface, &m_decodeParams));
+    m_dataSize          = m_decodeParams.m_dataSize;
+    m_dataOffset        = m_decodeParams.m_dataOffset;
+    m_numSlices         = m_decodeParams.m_numSlices;
+    m_avcPicParams      = (PCODEC_AVC_PIC_PARAMS)m_decodeParams.m_picParams;
+    m_mvcExtPicParams   = (PCODEC_MVC_EXT_PIC_PARAMS)m_decodeParams.m_extPicParams;
+    m_avcSliceParams    = (PCODEC_AVC_SLICE_PARAMS)m_decodeParams.m_sliceParams;
+    m_avcIqMatrixParams = (PCODEC_AVC_IQ_MATRIX_PARAMS)m_decodeParams.m_iqMatrixBuffer;
+    m_destSurface       = *(m_decodeParams.m_destSurface);
+    m_refFrameSurface   = m_decodeParams.m_refFrameSurface;
+    m_refSurfaceNum     = m_decodeParams.m_refSurfaceNum;
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_decodeParams.m_dataBuffer);
+    m_resDataBuffer       = *(m_decodeParams.m_dataBuffer);
+    m_picIdRemappingInUse = (m_decodeParams.m_picIdRemappingInUse) ? true : false;
 
-        CODECHAL_DEBUG_TOOL(
-            CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-                &m_resDataBuffer,
-                CodechalDbgAttr::attrBitstream,
-                "_DEC",
-                m_dataSize,
-                m_dataOffset,
-                CODECHAL_NUM_MEDIA_STATES));)
-    }
-    else
-    {
-        m_dataSize          = m_decodeParams.m_dataSize;
-        m_dataOffset        = m_decodeParams.m_dataOffset;
-        m_numSlices         = m_decodeParams.m_numSlices;
-        m_avcPicParams      = (PCODEC_AVC_PIC_PARAMS)m_decodeParams.m_picParams;
-        m_mvcExtPicParams   = (PCODEC_MVC_EXT_PIC_PARAMS)m_decodeParams.m_extPicParams;
-        m_avcSliceParams    = (PCODEC_AVC_SLICE_PARAMS)m_decodeParams.m_sliceParams;
-        m_avcIqMatrixParams = (PCODEC_AVC_IQ_MATRIX_PARAMS)m_decodeParams.m_iqMatrixBuffer;
-        m_destSurface       = *(m_decodeParams.m_destSurface);
-        m_refFrameSurface   = m_decodeParams.m_refFrameSurface;
-        m_refSurfaceNum     = m_decodeParams.m_refSurfaceNum;
-        CODECHAL_DECODE_CHK_NULL_RETURN(m_decodeParams.m_dataBuffer);
-        m_resDataBuffer       = *(m_decodeParams.m_dataBuffer);
-        m_picIdRemappingInUse = (m_decodeParams.m_picIdRemappingInUse) ? true : false;
-
-        CODECHAL_DECODE_CHK_NULL_RETURN(m_avcSliceParams);
-    }
+    m_cencBuf = m_decodeParams.m_cencBuf;
 
     CODECHAL_DECODE_CHK_NULL_RETURN(m_avcPicParams);
     CODECHAL_DECODE_CHK_NULL_RETURN(m_avcIqMatrixParams);
@@ -1223,7 +1206,7 @@ MOS_STATUS CodechalDecodeAvc::SetFrameStates()
         m_perfType = MIXED_TYPE;
     }
 #ifdef _DECODE_PROCESSING_SUPPORTED
-    CODECHAL_DECODE_PROCESSING_PARAMS *decProcessingParams = m_decodeParams.m_procParams;
+    auto decProcessingParams = (CODECHAL_DECODE_PROCESSING_PARAMS *)m_decodeParams.m_procParams;
     if (decProcessingParams != nullptr)
     {
         CODECHAL_DECODE_CHK_NULL_RETURN(m_fieldScalingInterface);
@@ -1498,9 +1481,16 @@ MOS_STATUS CodechalDecodeAvc::DecodeStateLevel()
     PIC_MHW_PARAMS picMhwParams;
     CODECHAL_DECODE_CHK_STATUS_RETURN(InitPicMhwParams(&picMhwParams));
 
-    if (m_cencDecoder)
+    if (m_cencBuf && m_cencBuf->checkStatusRequired)
     {
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_cencDecoder->CheckStatusReportNum(this, &cmdBuffer, m_vdboxIndex));
+        CODECHAL_DECODE_COND_ASSERTMESSAGE((m_vdboxIndex > m_hwInterface->GetMfxInterface()->GetMaxVdboxIndex()), "ERROR - vdbox index exceed the maximum");
+        auto mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
+
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_hwInterface->GetCpInterface()->CheckStatusReportNum(
+            mmioRegisters, 
+            m_cencBuf->bufIdx,
+            m_cencBuf->resStatus,
+            &cmdBuffer));
     }
 
     if (m_statusQueryReportingEnabled)
@@ -1703,13 +1693,9 @@ MOS_STATUS CodechalDecodeAvc::DecodePrimitiveLevel()
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
 
-    if (m_cencDecoder)
+    if (m_cencBuf)
     {
-        // Pass the correct 2nd level batch buffer index set in CencDecode()
-        uint8_t sliceBatchBufferIdx;
-        sliceBatchBufferIdx = m_avcRefList[m_currPic.FrameIdx]->ucCencBufIdx[m_isSecondField];
-
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_cencDecoder->SetBatchBufferForDecode(m_hwInterface, m_debugInterface, sliceBatchBufferIdx, &cmdBuffer));
+        CODECHAL_DECODE_CHK_STATUS_RETURN(SetCencBatchBuffer(&cmdBuffer));
     }
     else
     {
@@ -1822,7 +1808,7 @@ MOS_STATUS CodechalDecodeAvc::DecodePrimitiveLevel()
         m_mmc->UpdateUserFeatureKey(&m_destSurface);)
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
-    CODECHAL_DECODE_PROCESSING_PARAMS *decProcessingParams = m_decodeParams.m_procParams;
+    auto decProcessingParams = (CODECHAL_DECODE_PROCESSING_PARAMS *)m_decodeParams.m_procParams;
     if (decProcessingParams != nullptr && !m_sfcState->m_sfcPipeOut && (m_isSecondField || m_avcPicParams->seq_fields.mb_adaptive_frame_field_flag))
     {
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_fieldScalingInterface->DoFieldScaling(

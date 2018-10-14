@@ -31,6 +31,7 @@
 std::map<uint32_t, PMOS_USER_FEATURE_VALUE>  MosUtilUserInterface::m_userFeatureKeyMap;
 MosUtilUserInterface* MosUtilUserInterface::m_inst = nullptr;
 uint32_t MosUtilUserInterface::m_refCount = 0;
+bool MosUtilUserInterface::m_defaultValueChanged = false;
 
 MosUtilUserInterface::MosUtilUserInterface()
 {

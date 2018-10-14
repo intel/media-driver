@@ -292,6 +292,16 @@ public:
         uint32_t               numElements,
         void                   *data,
         VABufferID             *bufId);
+    
+    //!
+    //! \brief    if it is  range extention
+    //!
+    //! \return   true or false
+    //!
+    virtual bool IsRextProfile()
+    {
+        return false;
+    }
 protected:
     //! \brief    the decode_config_attr related with Decode_CONTEXT
     DDI_DECODE_CONFIG_ATTR *m_ddiDecodeAttr = nullptr;

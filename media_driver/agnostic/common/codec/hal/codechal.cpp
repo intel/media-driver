@@ -28,8 +28,8 @@
 #include "codechal.h"
 #include "codechal_hw.h"
 #include "codechal_debug.h"
-#include "codechal_cenc_decode.h"
 #include "mos_solo_generic.h"
+#include "codechal_setting.h"
 
 Codechal::Codechal(
     CodechalHwInterface*    hwInterface,
@@ -50,7 +50,7 @@ Codechal::Codechal(
     }
 
 #if USE_CODECHAL_DEBUG_TOOL
-    CODECHAL_DECODE_CHK_NULL_NO_STATUS_RETURN(debugInterface);
+    CODECHAL_PUBLIC_CHK_NULL_NO_STATUS_RETURN(debugInterface);
     m_debugInterface    = debugInterface;
 #endif // USE_CODECHAL_DEBUG_TOOL
 }
@@ -74,13 +74,6 @@ Codechal::~Codechal()
         m_statusReportDebugInterface = nullptr;
     }
 #endif // USE_CODECHAL_DEBUG_TOOL
-
-    // Destroy decypting objects (intermediate surfaces, BBs, etc)
-    if (m_cencDecoder != nullptr)
-    {
-        MOS_Delete(m_cencDecoder);
-        m_cencDecoder = nullptr;
-    }
 
     // Destroy HW interface objects (GSH, SSH, etc)
     if (m_hwInterface != nullptr)
@@ -111,6 +104,13 @@ MOS_STATUS Codechal::Allocate(CodechalSetting * codecHalSettings)
     CODECHAL_PUBLIC_CHK_NULL_RETURN(codecHalSettings);
     CODECHAL_PUBLIC_CHK_NULL_RETURN(m_hwInterface);
     CODECHAL_PUBLIC_CHK_NULL_RETURN(m_osInterface);
+
+    MOS_TraceEvent(EVENT_CODECHAL_CREATE,
+                   EVENT_TYPE_INFO,
+                   &codecHalSettings->codecFunction,
+                   sizeof(uint32_t),
+                   nullptr,
+                   0);
 
     CODECHAL_PUBLIC_CHK_STATUS_RETURN(m_hwInterface->Initialize(codecHalSettings));
 

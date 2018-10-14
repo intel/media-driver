@@ -75,125 +75,129 @@ enum AllocatorTile
     allocatorTileYs = 3
 };
 
-void CodechalEncodeAllocator::MosToAllocatorCodec(uint32_t codec)
+uint16_t CodechalEncodeAllocator::MosToAllocatorCodec(uint32_t codec)
 {
+    uint16_t allocCodec = 0;
+
     if (CODECHAL_AVC == codec)
     {
-        m_codec = allocatorAVC;
+        allocCodec = allocatorAVC;
     }
     else if (CODECHAL_HEVC == codec)
     {
-        m_codec = allocatorHEVC;
+        allocCodec = allocatorHEVC;
     }
     else if (CODECHAL_JPEG == codec)
     {
-        m_codec = allocatorJPEG;
+        allocCodec = allocatorJPEG;
     }
     else if (CODECHAL_MPEG2 == codec)
     {
-        m_codec = allocatorMPEG2;
+        allocCodec = allocatorMPEG2;
     }
     else if (CODECHAL_VP9 == codec)
     {
-        m_codec = allocatorVP9;
+        allocCodec = allocatorVP9;
     }
     else if (CODECHAL_VP8 == codec)
     {
-        m_codec = allocatorVP8;
+        allocCodec = allocatorVP8;
     }
+
+    return allocCodec;
 }
 
-void CodechalEncodeAllocator::MosToAllocatorFormat(MOS_FORMAT format)
+uint16_t CodechalEncodeAllocator::MosToAllocatorFormat(MOS_FORMAT format)
 {
+    uint16_t allocFormat = 0;
+
     switch (format)
     {
     case Format_Buffer :
-        m_format = allocatorLinearBuffer;
+        allocFormat = allocatorLinearBuffer;
         break;
     case Format_Any :
-        m_format = allocatorBatchBuffer;
+        allocFormat = allocatorBatchBuffer;
         break;
     case Format_NV12 :
     case Format_YUY2 :
     case Format_P208 :
-        m_format = allocatorSurface;
+        allocFormat = allocatorSurface;
         break;
     default :
         CODECHAL_ENCODE_ASSERTMESSAGE("Invalid format type = %d", format);
         break;
     }
+
+    return allocFormat;
 }
 
-void CodechalEncodeAllocator::MosToAllocatorTile(MOS_TILE_TYPE type)
+uint16_t CodechalEncodeAllocator::MosToAllocatorTile(MOS_TILE_TYPE type)
 {
+    uint16_t allocTile = 0;
+
     if (MOS_TILE_LINEAR == type)
     {
-        m_tile = allocatorTileLinear;
+        allocTile = allocatorTileLinear;
     }
     else if (MOS_TILE_Y == type)
     {
-        m_tile = allocatorTileY;
+        allocTile = allocatorTileY;
     }
     else if (MOS_TILE_YF == type)
     {
-        m_tile = allocatorTileYf;
+        allocTile = allocatorTileYf;
     }
     else
     {
-        m_tile = allocatorTileYs;
+        allocTile = allocatorTileYs;
     }
+
+    return allocTile;
 }
 
 void* CodechalEncodeAllocator::AllocateResource(
-    uint32_t codec, uint32_t width, uint32_t height, ResourceName name,
+    uint32_t codec, uint32_t width, uint32_t height, ResourceName name, const char *bufName,
     uint8_t index, bool zeroOnAllocation, MOS_FORMAT format, MOS_TILE_TYPE tile)
 {
+    RESOURCE_TAG resTag;
+    MOS_ZeroMemory(&resTag, sizeof(resTag));
+
     // set buffer name and index
-    SetResourceID(codec, name, index);
+    resTag.typeID = SetResourceID(codec, name, index);
 
-    MosToAllocatorFormat(format);
-    MosToAllocatorTile(tile);
-    m_zeroOnAllocation = zeroOnAllocation;
+    resTag.format = MosToAllocatorFormat(format);
+    resTag.tile   = MosToAllocatorTile(tile);
+    resTag.zeroOnAllocation = zeroOnAllocation;
 
-    // set type and size info
-    if (allocatorLinearBuffer == m_format)
+    // set type and size info, and allocate buffer
+    void* buffer = nullptr;
+    if (allocatorLinearBuffer == resTag.format)
     {
-        m_size = width;
-        m_type = allocator1D;
+        resTag.size = width;
+        resTag.type = allocator1D;
+        buffer = Allocate1DBuffer(resTag.tag, width, zeroOnAllocation);
     }
-    else if (allocatorBatchBuffer == m_format)
+    else if (allocatorBatchBuffer == resTag.format)
     {
-        m_size = width;
-        m_type = allocatorBatch;
+        resTag.size = width;
+        resTag.type = allocatorBatch;
+        buffer = AllocateBatchBuffer(resTag.tag, width, zeroOnAllocation);
     }
-    else if (allocatorSurface == m_format)
+    else if (allocatorSurface == resTag.format)
     {
-        m_width = (uint16_t)width;
-        m_height = (uint16_t)height;
-        m_type = allocator2D;
+        resTag.width = (uint16_t)width;
+        resTag.height = (uint16_t)height;
+        resTag.type = allocator2D;
+        buffer = Allocate2DBuffer(resTag.tag, width, height, format, tile, zeroOnAllocation);
     }
     else
     {
         CODECHAL_ENCODE_ASSERTMESSAGE("Invalid format type = %d", format);
-        return nullptr;
     }
 
     CODECHAL_ENCODE_NORMALMESSAGE("Alloc ID = 0x%x, type = %d, codec = %d, format = %d, tile = %d, zero = %d, width = %d, height = %d, size = %d",
-        m_typeID, m_type, m_codec, m_format, m_tile, m_zeroOnAllocation, m_width, m_height, m_size);
-
-    void* buffer = nullptr;
-    if (allocator1D == m_type)
-    {
-        buffer = Allocate1DBuffer(m_tag, width, zeroOnAllocation);
-    }
-    else if (allocator2D == m_type)
-    {
-        buffer = Allocate2DBuffer(m_tag, width, height, format, tile, zeroOnAllocation);
-    }
-    else if (allocatorBatch == m_type)
-    {
-        buffer = AllocateBatchBuffer(m_tag, width, zeroOnAllocation);
-    }
+        resTag.typeID, resTag.type, resTag.codec, resTag.format, resTag.tile, resTag.zeroOnAllocation, resTag.width, resTag.height, resTag.size);
 
     return buffer;
 }
@@ -206,9 +210,12 @@ void* CodechalEncodeAllocator::GetResource(uint32_t codec, ResourceName name, ui
 
 uint32_t CodechalEncodeAllocator::GetResourceSize(uint32_t codec, ResourceName name, uint8_t index)
 {
-    if (m_tag = GetResourceTag(SetResourceID(codec, name, index), matchLevel1))
+    RESOURCE_TAG resTag;
+    MOS_ZeroMemory(&resTag, sizeof(resTag));
+
+    if ((resTag.tag = GetResourceTag(SetResourceID(codec, name, index), matchLevel1)))
     {
-        return m_size;
+        return resTag.size;
     }
     else
     {
@@ -223,32 +230,38 @@ void CodechalEncodeAllocator::ReleaseResource(uint32_t codec, ResourceName name,
 
 uint16_t CodechalEncodeAllocator::SetResourceID(uint32_t codec, ResourceName name, uint8_t index)
 {
-    m_typeID = name;
-    MosToAllocatorCodec(codec);
+    RESOURCE_TAG resTag;
+    MOS_ZeroMemory(&resTag, sizeof(resTag));
+
+    resTag.typeID = name;
+    resTag.codec  = MosToAllocatorCodec(codec);
     if (IsTrackedBuffer(name) || IsRecycleBuffer(name))
     {
-        m_trackedRecycleBufferIndex = index;
+        resTag.trackedRecycleBufferIndex = index;
     }
-    return m_typeID;
+    return resTag.typeID;
 }
 
 uint16_t CodechalEncodeAllocator::GetResourceID(uint64_t resourceTag, Match level)
 {
-    m_tag = resourceTag;
+    RESOURCE_TAG resTag;
+    MOS_ZeroMemory(&resTag, sizeof(resTag));
+
+    resTag.tag = resourceTag;
     if (matchLevel0 == level)
     {
         // extract codec/name/indx
-        m_typeID &= m_bufNameMask;
+        resTag.typeID &= m_bufNameMask;
 
         // only match name, clear index for tracked/recycled buffer
-        m_typeID |= m_bufIndexMask;
+        resTag.typeID |= m_bufIndexMask;
     }
     else if (matchLevel1 == level)
     {
         // extract codec/name/indx
-        m_typeID &= m_bufNameMask;
+        resTag.typeID &= m_bufNameMask;
     }
-    return m_typeID;
+    return resTag.typeID;
 }
 
 CodechalEncodeAllocator::CodechalEncodeAllocator(CodechalEncoderState* encoder)
@@ -256,7 +269,6 @@ CodechalEncodeAllocator::CodechalEncodeAllocator(CodechalEncoderState* encoder)
 {
     // Initilize interface pointers
     m_encoder = encoder;
-    m_tag = 0;
 }
 
 CodechalEncodeAllocator::~CodechalEncodeAllocator()

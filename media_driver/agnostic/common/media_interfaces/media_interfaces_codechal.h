@@ -31,7 +31,6 @@
 
 #include "codechal.h"
 #include "codechal_hw.h"
-#include "codechal_cenc_decode.h"
 
 //!
 //! \class    CodechalDevice
@@ -81,22 +80,7 @@ public:
         void *settings,
         MhwInterfaces *mhwInterfaces,
         PMOS_INTERFACE osInterface) = 0;
-
-    //!
-    //! \brief    Create Codechal HW interface
-    //! \param    [in] CodecFunction
-    //!           High level codec functionality requested.
-    //! \param    [in] mhwInterfaces
-    //!           MHW interfaces used to init codechal hw interface.
-    //! \param    [in] osInterface
-    //!           OS interface for codechal
-    //! \return   Pointer of CodechalHwInterface if succeeded, else null pointer.
-    //!
-    virtual CodechalHwInterface *CreateCodechalHwInterface(
-        CODECHAL_FUNCTION CodecFunction,
-        MhwInterfaces *mhwInterfaces,
-        PMOS_INTERFACE osInterface) = 0;
-};
+ };
 
 extern template class MediaInterfacesFactory<CodechalDevice>;
 

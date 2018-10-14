@@ -28,7 +28,7 @@
 #define _MEDIA_LIBVA_VP_H_
 
 #include "media_libva_common.h"
-#include "media_libva_cp.h"
+#include "media_libva_cp_interface.h"
 #include <va/va.h>
 #include <va/va_vpp.h>
 #include <va/va_backend_vpp.h>
@@ -36,12 +36,17 @@
 #include "mos_os.h"
 
 // Maximum primary surface number in VP
-#define VP_MAX_PRIMARY_SURFS 1
+#define VP_MAX_PRIMARY_SURFS     1
 
-#define VP_MAX_PIC_WIDTH    16384
-#define VP_MAX_PIC_HEIGHT   16384
-#define VP_MIN_PIC_WIDTH    16
-#define VP_MIN_PIC_HEIGHT   16
+//For Gen8, only support max 16k-32
+#define VP_MAX_PIC_WIDTH_Gen8    16352
+#define VP_MAX_PIC_HEIGHT_Gen8   16352
+//For Gen9+ platform, supprot 16k
+#define VP_MAX_PIC_WIDTH         16384
+#define VP_MAX_PIC_HEIGHT        16384
+
+#define VP_MIN_PIC_WIDTH         16
+#define VP_MIN_PIC_HEIGHT        16
 
 // surface flag : 1 secure;  0 clear
 #if (VA_MAJOR_VERSION < 1)
@@ -166,12 +171,29 @@ VAStatus DdiVp_RenderPicture(
     int32_t             num_buffers
 );
 
+VAStatus DdiVp_VideoProcessPipeline(
+    VADriverContextP    pVaDrvCtx,
+    VAContextID         vpCtxID,
+    VASurfaceID         src_surface,
+    int32_t             x,     
+    int32_t             y,
+    uint32_t            width, 
+    uint32_t            height,
+    VASurfaceID         dst_surface
+);
+
 VAStatus DdiVp_QueryVideoProcFilterCaps(
     VADriverContextP    ctx,
     VAContextID         context,
     int32_t             type,
     void                *filter_caps,
     uint32_t            *num_filter_caps
+);
+
+VAStatus DdiVp_SetProcPipelineParams(
+    VADriverContextP                pVaDrvCtx,
+    PDDI_VP_CONTEXT                 pVpCtx,
+    VAProcPipelineParameterBuffer*  pPipelineParam
 );
 
 PVPHAL_RENDER_PARAMS VpGetRenderParams(PDDI_VP_CONTEXT pVpCtx);

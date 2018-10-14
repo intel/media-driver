@@ -123,6 +123,7 @@ MOS_STATUS RenderHal_GetSurfaceInfo(
     pSurface->dwQPitch        = ResDetails.dwQPitch;
     pSurface->TileType        = ResDetails.TileType;
     pSurface->dwDepth         = ResDetails.dwDepth;
+    pSurface->Format          = ResDetails.Format;
     pSurface->bCompressible   = ResDetails.bCompressible;
     pSurface->bIsCompressed   = ResDetails.bIsCompressed;
     pSurface->CompressionMode = ResDetails.CompressionMode;
@@ -183,6 +184,7 @@ MOS_STATUS RenderHal_GetSurfaceInfo(
             pSurface->VPlaneOffset.iYOffset       = 0;
             break;
         case Format_444P:
+        case Format_RGBP:
             pSurface->UPlaneOffset.iSurfaceOffset = pSurface->dwHeight * pSurface->dwPitch;
             pSurface->UPlaneOffset.iYOffset       = 0;
             pSurface->VPlaneOffset.iSurfaceOffset = pSurface->dwHeight * pSurface->dwPitch * 2;
@@ -361,18 +363,17 @@ MOS_STATUS RenderHal_SetSurfaceStateToken(
 //! \return   uint16_t
 //!           [out] the Y offset
 //!
-uint16_t RenderHal_CalculateYOffset(PMOS_INTERFACE pOsInterface, PMOS_SURFACE pSurface)
+uint16_t RenderHal_CalculateYOffset(PMOS_INTERFACE pOsInterface, PMOS_RESOURCE pOsResource)
 {
     // This is for MMCD/Non-MMCD, GMM will allocate the surface 32 height align surface, the the UV offset will not equal to the surface height.
     MOS_SURFACE    ResDetails;
     uint16_t       UYoffset = 0;
 
-    MHW_RENDERHAL_ASSERT(pSurface);
-    MHW_RENDERHAL_ASSERT(!Mos_ResourceIsNull(&pSurface->OsResource));
+    MHW_RENDERHAL_ASSERT(!Mos_ResourceIsNull(pOsResource));
     MHW_RENDERHAL_ASSERT(pOsInterface);
     MOS_ZeroMemory(&ResDetails, sizeof(MOS_SURFACE));
 
-    pOsInterface->pfnGetResourceInfo(pOsInterface, &pSurface->OsResource, &ResDetails);
+    pOsInterface->pfnGetResourceInfo(pOsInterface, pOsResource, &ResDetails);
 
     if (ResDetails.dwPitch)
     {

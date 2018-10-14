@@ -25,6 +25,7 @@
 #include "cm_device_base.h"
 #include "cm_def_hw.h"
 #include "cm_kernel_debugger.h"
+#include <vector>
 
 class CmQueue_RT;
 class CmSurfaceManager;
@@ -144,8 +145,6 @@ protected:
 
     int32_t SetCapsInternal(CM_DEVICE_CAP_NAME capName, size_t capValueSize, void* capValue);
 
-    int32_t CreateQueue_Internel( void );
-
     int32_t CreateProgram(void* commonISACode,
                           const uint32_t size,
                           CmProgram*& program,
@@ -155,7 +154,6 @@ protected:
 
     int32_t FlushPrintBufferInternal(const char *filename);
 
-    CmQueue_RT*                m_queue;
     CmSurfaceManager *         m_surfaceManager;
 
     uint32_t m_cmVersion;
@@ -177,8 +175,8 @@ protected:
 #endif
     int32_t InitializeLibvaDisplay( void );
     
-    pvaCmExtSendReqMsg    m_fvaCmExtSendReqMsg;
     VADisplay m_vaDisplay;
+    pvaCmExtSendReqMsg    m_fvaCmExtSendReqMsg;
 
 #if !defined(ANDROID)
     static uint32_t m_vaReferenceCount;
@@ -207,6 +205,10 @@ protected:
 
     // Kernel debugger
     CmKernelDebugger *m_kernelDebugger;
+
+    // Queue list and Queue critical section
+    CSync          m_criticalSectionQueue;
+    std::vector<CmQueue_RT *> m_queue;
 
 private:
     CmDevice_RT(const CmDevice_RT &other);

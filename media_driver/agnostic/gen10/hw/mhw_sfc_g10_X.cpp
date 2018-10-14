@@ -64,23 +64,28 @@ MhwSfcInterfaceG10::MhwSfcInterfaceG10(PMOS_INTERFACE pOsInterface)
             m_osInterface->osCpInterface->IsIDMEnabled() ||
             m_osInterface->osCpInterface->IsSMEnabled())
         {
-            m_outputSurfCtrl.Value =
-                m_osInterface->pfnCachePolicyGetMemoryObject(MOS_MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface_PartialEncSurface).DwordValue;
+            m_outputSurfCtrl.Value = m_osInterface->pfnCachePolicyGetMemoryObject(
+                MOS_MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface_PartialEncSurface,
+                m_osInterface->pfnGetGmmClientContext(m_osInterface)).DwordValue;
         }
         else
         {
-            m_outputSurfCtrl.Value =
-                m_osInterface->pfnCachePolicyGetMemoryObject(MOS_MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface).DwordValue;
+            m_outputSurfCtrl.Value = m_osInterface->pfnCachePolicyGetMemoryObject(
+                MOS_MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface,
+                m_osInterface->pfnGetGmmClientContext(m_osInterface)).DwordValue;
         }
     }
     else
     {
-        m_outputSurfCtrl.Value =
-            m_osInterface->pfnCachePolicyGetMemoryObject(MOS_MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface).DwordValue;
+        m_outputSurfCtrl.Value = m_osInterface->pfnCachePolicyGetMemoryObject(
+            MOS_MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface,
+            m_osInterface->pfnGetGmmClientContext(m_osInterface)).DwordValue;
     }
 
-    m_avsLineBufferCtrl.Value =
-        m_osInterface->pfnCachePolicyGetMemoryObject(MOS_MHW_RESOURCE_USAGE_Sfc_AvsLineBufferSurface).DwordValue;
-    m_iefLineBufferCtrl.Value =
-        m_osInterface->pfnCachePolicyGetMemoryObject(MOS_MHW_RESOURCE_USAGE_Sfc_IefLineBufferSurface).DwordValue;
+    m_avsLineBufferCtrl.Value = m_osInterface->pfnCachePolicyGetMemoryObject(
+        MOS_MHW_RESOURCE_USAGE_Sfc_AvsLineBufferSurface,
+        m_osInterface->pfnGetGmmClientContext(m_osInterface)).DwordValue;
+    m_iefLineBufferCtrl.Value = m_osInterface->pfnCachePolicyGetMemoryObject(
+        MOS_MHW_RESOURCE_USAGE_Sfc_IefLineBufferSurface,
+        m_osInterface->pfnGetGmmClientContext(m_osInterface)).DwordValue;
 }

@@ -25,6 +25,15 @@ include(os_release_info.cmake)
 
 get_os_release_info(os_name os_version)
 
+if(NOT DEFINED CMAKE_INSTALL_PREFIX OR CMAKE_INSTALL_PREFIX STREQUAL "")
+    set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "..." FORCE)
+endif()
+message(STATUS "CMAKE_INSTALL_PREFIX = ${CMAKE_INSTALL_PREFIX}")
+
+if(NOT DEFINED MEDIA_VERSION OR MEDIA_VERSION STREQUAL "")
+    set(MEDIA_VERSION "1.0.0")
+endif()
+
 if("${os_name}" STREQUAL "clear-linux-os")
     # clear-linux-os distribution avoids /etc for distribution defaults.
     # Set this variable explicitly before including GNUInstallDirs.
@@ -56,11 +65,17 @@ endif()
 
 include(${CMAKE_CURRENT_LIST_DIR}/pack_ext.cmake OPTIONAL)
 
-set(CPACK_GENERATOR "DEB")
+if (NOT MEDIA_PACKING)
+    set(CPACK_GENERATOR "DEB" "RPM")
+else()
+    set(CPACK_GENERATOR ${MEDIA_PACKAGING})
+endif()
 set(CPACK_PACKAGE_NAME "intel-media")
 set(CPACK_PACKAGE_VENDOR "Intel")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "intel-media deb package for internal usage only")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "intel-media Open Source Driver")
 set(CPACK_RPM_PACKAGE_ARCHITECTURE "x86_64")
+set(CPACK_RPM_PACKAGE_GROUP "System Environment/Libraries")
+set(CPACK_RPM_PACKAGE_LICENSE "Intel")
 
 if (DEFINED MEDIA_VERSION)
     string(REPLACE "." ";" MEDIA_VERSION_LIST ${MEDIA_VERSION})

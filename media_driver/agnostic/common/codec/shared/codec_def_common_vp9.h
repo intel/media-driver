@@ -77,7 +77,6 @@ distinct bands). */
 #define CODEC_VP9_NUM_CONTEXTS                4
 #define CODEC_VP9_MAX_REF_LF_DELTAS           4
 #define CODEC_VP9_MAX_MODE_LF_DELTAS          2
-#define CODEC_VP9_MAX_SEGMENTS                8
 #define CODECHAL_VP9_SEG_TREE_PROBS              (CODEC_VP9_MAX_SEGMENTS - 1)
 #define CODEC_VP9_PREDICTION_PROBS            3
 #define CODEC_VP9_MAX_LOOP_FILTER             63

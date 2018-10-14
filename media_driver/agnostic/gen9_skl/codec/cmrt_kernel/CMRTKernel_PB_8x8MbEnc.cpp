@@ -169,7 +169,7 @@ CM_RETURN_CODE CMRTKernelPB8x8MbEnc::CreateAndDispatchKernel(CmEvent *&cmEvent, 
     {
         CM_CHK_STATUS_RETURN(m_cmKernel->SetThreadCount(((threadSpaceWidth + 1) & 0xFFFE) * threadSpaceHeight * colorCount));
         //create Thread Space
-        result = m_cmDev->CreateThreadSpace(((threadSpaceWidth + 1) & 0xFFFE), threadSpaceHeight, m_cmThreadSpace);
+        result = CreateThreadSpace(((threadSpaceWidth + 1) & 0xFFFE), threadSpaceHeight);
         if (result != CM_SUCCESS)
         {
             printf("CM Create ThreadSpace error : %d", result);
@@ -182,7 +182,7 @@ CM_RETURN_CODE CMRTKernelPB8x8MbEnc::CreateAndDispatchKernel(CmEvent *&cmEvent, 
         tempHeight = ((threadSpaceWidth + 3) >> 2) + (((threadSpaceWidth + 1) >> 1) + 2 * (((threadSpaceHeight + 1) >> 1) - 1) + (2 * splitCount - 1)) / (2 * splitCount);
         CM_CHK_STATUS_RETURN(m_cmKernel->SetThreadCount(((threadSpaceWidth + 3) & 0xFFFC) * 2 * tempHeight * colorCount));
         //create Thread Space
-        result = m_cmDev->CreateThreadSpace(((threadSpaceWidth + 3) & 0xFFFC) >> 1, 4 * tempHeight, m_cmThreadSpace);
+        result = CreateThreadSpace(((threadSpaceWidth + 3) & 0xFFFC) >> 1, 4 * tempHeight);
         SetupMwScoreboard26Zig(mbEncWalkParams.m_walkParams, mbEncWalkParams.m_scoreboardParams, threadSpaceWidth, threadSpaceHeight, splitCount, colorCount);
     }
 
@@ -497,8 +497,8 @@ CM_RETURN_CODE CMRTKernelB8x8MbEncUMD::AllocateSurfaces(void *params)
     }
     else
     {
-        CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfMVPredictor, m_cmBuffer[8]));
-        CM_CHK_STATUS_RETURN(m_cmBuffer[8]->GetIndex(m_surfIndex[idx++]));
+        CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfMVPredictor, m_cmBuffer[7]));
+        CM_CHK_STATUS_RETURN(m_cmBuffer[7]->GetIndex(m_surfIndex[idx++]));
     }
     if (PB8x8MbEncParams->m_cmSurfPerCTBInput == nullptr)
     {
@@ -506,8 +506,8 @@ CM_RETURN_CODE CMRTKernelB8x8MbEncUMD::AllocateSurfaces(void *params)
     }
     else
     {
-        CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE*)PB8x8MbEncParams->m_cmSurfPerCTBInput, m_cmBuffer[9]));
-        CM_CHK_STATUS_RETURN(m_cmBuffer[9]->GetIndex(m_surfIndex[idx++]));
+        CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE*)PB8x8MbEncParams->m_cmSurfPerCTBInput, m_cmBuffer[8]));
+        CM_CHK_STATUS_RETURN(m_cmBuffer[8]->GetIndex(m_surfIndex[idx++]));
     }
 
     for (; idx < NUM_MBENC_PB_MB_SURFACES; idx++)
@@ -602,8 +602,8 @@ CM_RETURN_CODE CMRTKernelP8x8MbEncUMD::AllocateSurfaces(void *params)
     }
     else
     {
-        CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfMVPredictor, m_cmBuffer[8]));
-        CM_CHK_STATUS_RETURN(m_cmBuffer[8]->GetIndex(m_surfIndex[idx++]));
+        CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE *)PB8x8MbEncParams->m_cmSurfMVPredictor, m_cmBuffer[7]));
+        CM_CHK_STATUS_RETURN(m_cmBuffer[7]->GetIndex(m_surfIndex[idx++]));
     }
     if (PB8x8MbEncParams->m_cmSurfPerCTBInput == nullptr)
     {
@@ -611,8 +611,8 @@ CM_RETURN_CODE CMRTKernelP8x8MbEncUMD::AllocateSurfaces(void *params)
     }
     else
     {
-        CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE*)PB8x8MbEncParams->m_cmSurfPerCTBInput, m_cmBuffer[9]));
-        CM_CHK_STATUS_RETURN(m_cmBuffer[9]->GetIndex(m_surfIndex[idx++]));
+        CM_CHK_STATUS_RETURN(m_cmDev->CreateBuffer((MOS_RESOURCE*)PB8x8MbEncParams->m_cmSurfPerCTBInput, m_cmBuffer[8]));
+        CM_CHK_STATUS_RETURN(m_cmBuffer[8]->GetIndex(m_surfIndex[idx++]));
     }
 
     for (; idx < NUM_MBENC_P_MB_SURFACES; idx++)

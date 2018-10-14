@@ -38,6 +38,7 @@
 #include "codechal_encode_allocator.h"
 #include "codechal_mmc.h"
 #include "codechal_utilities.h"
+#include "codec_def_encode.h"
 #include "cm_rt_umd.h"
 #include "media_perf_profiler.h"
 #include <algorithm> // std::reverse
@@ -352,6 +353,8 @@ struct MfeParams
     uint32_t                           streamId;             //!< Unique id
     uint32_t                           submitIndex;          //!< Index during this submission
     uint32_t                           submitNumber;         //!< Total stream number during this submission
+    uint32_t                           maxWidth;             //!< Maximum width for all frames
+    uint32_t                           maxHeight;            //!< Maximum height for all frames
 };
 
 //!
@@ -463,7 +466,8 @@ enum EncOperation
     VDENC_ME_P,
     VDENC_ME_B,
     VDENC_STREAMIN,
-    VDENC_STREAMIN_HEVC
+    VDENC_STREAMIN_HEVC,
+    VDENC_STREAMIN_HEVC_RAB
 };
 
 //!
@@ -514,106 +518,6 @@ struct HmeParams
     PMOS_SURFACE            ps4xMeDistortionBuffer;
     PMOS_RESOURCE           presMvAndDistortionSumSurface;
     bool                    b4xMeDistortionBufferSupported;
-};
-
-//!
-//! \struct CodechalEncodeSeiData
-//! \brief  Indicate the SeiData parameters
-//!
-struct CodechalEncodeSeiData
-{
-    bool       newSEIData;
-    uint32_t   dwSEIDataSize;
-    uint32_t   dwSEIBufSize;
-    uint8_t*   pSEIBuffer;
-};
-
-//!
-//! \struct EncoderParams
-//! \brief  Encoder parameters
-//!
-struct EncoderParams
-{
-    CODECHAL_FUNCTION               ExecCodecFunction;          //!< High level codec functionality requested.
-
-    PMOS_SURFACE                    psRawSurface;               //!< Raw surface
-    PMOS_SURFACE                    psReconSurface;             //!< reconstructed surface
-    PMOS_RESOURCE                   presBitstreamBuffer;        //!< Output buffer for bitstream data.
-    PMOS_RESOURCE                   presMbCodeSurface;          //!< PAK objects provided by framework.
-    PMOS_SURFACE                    psMbSegmentMapSurface;      //!< [VP9]
-    /* \brief [AVC & MPEG2] MB QP data provided by framework.
-    *
-    *    When in CQP mode, the framework can provide this surface that contains a single QpY value for each macroblock to be used for encoding. If it is not provided, the frame level QpY(QpY + slice_qp_delta) will be used for all macroblocks.
-    */
-    PMOS_SURFACE                    psMbQpDataSurface;          //!< pointer to surface of Mb QP Data
-    PCODEC_ENCODE_MB_CONTROL        pMbCtrlBuffer;              //!< [AVC] MB contrl map provided by framework
-    PMOS_SURFACE                    psMbDisableSkipMapSurface;  //!< [AVC] MB disable skip map provided by framework
-    PMOS_SURFACE                    psCoeffSurface;             //!< [VP9]
-    PMOS_RESOURCE                   presCoeffProbabilityBuffer; //!< [VP9] Coefficient probabilities provided by framework.
-    bool                            bNewSeq;                    //!< Indicates the start of a new sequence.
-    bool                            bPicQuant;                  //!< Indicates whether the scaling list is for SPS (0) or PPS (1).
-    bool                            bNewQmatrixData;            //!< Indicates that new QM data was provided by framework.
-    CodechalEncodeSeiData           *pSeiData;                   //!< [AVC & HEVC] Information pertaining to pSeiParamBuffer.
-    uint32_t                        dwSEIDataOffset;            //!< [AVC & HEVC] Offset to the first SEI message within pSeiParamBuffer.
-    uint8_t                         *pSeiParamBuffer;           //!< [AVC & HEVC] Packed SEI messages provided by the framework
-    uint32_t                        dwNumSlices;                //!< Number of slice data structures in pSliceParams.
-    uint32_t                        dwAppDataSize;              //!< [JPEG]
-    uint32_t                        dwNumHuffBuffers;           //!< [JPEG]
-    uint32_t                        dwMbDataBufferSize;         //!< Size of the data contained in presMbCodeSurface
-    uint32_t                        dwBitstreamSize;            //!< Maximum amount of data to be output to presBitstreamBuffer.
-    bool                            bNewVuiData;                //!< [AVC & MPEG2] Indicates that pVuiParams is present and expected to be valid.
-    bool                            bJpegQuantMatrixSent;       //!< [JPEG] Indicates whether a quant matrix was sent by the framework.
-    PBSBuffer                       pBSBuffer;                  //!< Packed header data provided by the framework to be inserted in the bitstream.
-    PCODECHAL_NAL_UNIT_PARAMS       *ppNALUnitParams;           //!< Information about the packed header data in pBSBuffer.
-    uint32_t                        uiNumNalUnits;              //!< Number of NAL units in ppNALUnitParams.
-    void                            *pSlcHeaderData;            //!< [AVC, HEVC, & MPEG2] Packed slice header data provided by the framework.
-    bool                            bAcceleratorHeaderPackingCaps;  //!< [AVC] Indicates whether or not the driver is packing the slice headers.
-    uint32_t                        uiSlcStructCaps;            //!< [AVC] Slice capability information, formatted as CODEC_SLICE_STRUCTS
-    bool                            bMADEnabled;                //!< MAD is enabled
-    bool                            bMbQpDataEnabled;           //!< [AVC & MPEG2] Indicates that psMbQpDataSurface is present.
-    bool                            bMbDisableSkipMapEnabled;   //!< [AVC] Indicates that psMbDisableSkipMapSurface is present.
-    bool                            bReportStatisticsEnabled;   //!< [HEVC] Indicates whether statistic reporting is enabled, disabled by default.
-    bool                            bQualityImprovementEnable;  //!< [HEVC] Indicates whether quality improvement is enabled, disabled by default.
-    bool                            newSeqHeader;               //!< [AVC] Flag for new Sequence Header.
-    bool                            newPpsHeader;               //!< [AVC] Flag for new PPS Header.
-    bool                            arbitraryNumMbsInSlice;     //!< [AVC] Flag to indicate if the sliceMapSurface needs to be programmed or not.
-
-    void                            *pSeqParams;                 //!< Sequence parameter set structure defined per standard.
-    void                            *pPicParams;                 //!< Picture parameter set structure defined per standard.
-    void                            *pVuiParams;                 //!< [AVC & MPEG2] Picture parameter set structure defined per standard.
-    void                            *pSliceParams;               //!< Slice data array defined per standard, expect dwNumSlices entries.
-    void                            *pSegmentParams;             //!< [VP9]
-    void                            *pIQMatrixBuffer;            //!< [AVC, HEVC, & MPEG2] IQ parameter structure defined per standard.
-
-    // AVC Specific Parameters
-    void                            *pIQWeightScaleLists;        //!< list of IQ Weight scale
-    void                            *pAVCQCParams;               //!< AVC QC parameters
-    void                            *pAVCRoundingParams;         //!< AVC rounding parameters
-
-    void                            *pQuantData;
-    PMOS_RESOURCE                   presDistortionDataSurface;
-    uint32_t                        uiFrameRate;
-
-    bool                            bSegmentMapProvided;        //!< [VP9]
-
-    void                            *pMpeg2UserDataListHead;     //!< [MPEG2]
-
-    void                            *pHuffmanTable;              //!< [JPEG]
-    void                            *pQuantizationTable;         //!< [JPEG]
-    void                            *pApplicationData;           //!< [JPEG]
-
-    void                            *pFeiPicParams;              //!< [FEI]
-    void                            *pPreEncParams;              //!< [FEI]
-
-    // HEVC Specific Parameters
-    bool                            bVdencActive;               //!< Indicate if vdenc is active
-    bool                            advanced;                       //!< Indicate if vdenc is active
-
-    MOS_SURFACE                     rawSurface;                     //!< Raw surface
-    MOS_SURFACE                     reconSurface;                   //!< reconstructed surface
-    MOS_RESOURCE                    resBitstreamBuffer;             //!< Output buffer for bitstream data.
-    MOS_SURFACE                     mbQpSurface;
-    MOS_SURFACE                     disableSkipMapSurface;          //!< [AVC] MB disable skip map provided by framework
 };
 
 //!
@@ -1511,6 +1415,7 @@ public:
     bool                            m_inlineEncodeStatusUpdate = false;             //!< check whether use inline encode status update or seperate BB
     AtomicScratchBuffer             m_atomicScratchBuf;                             //!< Stores atomic operands and result
     bool                            m_skipFrameBasedHWCounterRead = false;          //!< Skip reading Frame base HW counter for status report
+    bool                            m_disableStatusReport = false;                  //!< Indicate status report is not needed.
 
     // Shared Parameters
     BSBuffer                        m_bsBuffer;                                     //!< Bitstream buffer
@@ -1698,7 +1603,8 @@ public:
     MHW_KERNEL_STATE                m_vdencMeKernelState;               //!< Vdenc ME kernel state
 
     GenericBindingTable             m_vdencStreaminKernelBindingTable;  //!< Vdenc stream in kernel binding table
-    MHW_KERNEL_STATE                m_vdencStreaminKernelState;         //!< Vdenc stream in kernel state
+    MHW_KERNEL_STATE                m_vdencStreaminKernelState;         //!< Vdenc stream in kernel state for Low Delay B
+    MHW_KERNEL_STATE                m_vdencStreaminKernelStateRAB;      //!< Vdenc stream in kernel state for Random Access B
 
     // Common kernel
     uint32_t                        m_kuidCommon = 0;                    //!< Common kernel UID
@@ -1767,8 +1673,6 @@ public:
     CmEvent *m_cmEvent[CM_EVENT_NUM] = {nullptr};
     short    m_cmEventIdx;  // current  event idx
     short    m_cmEventCheckIdx;
-    CmEvent *m_sharedCmEvent[CM_EVENT_NUM] = {nullptr};
-    short    m_sharedCmEventIdx;
 
 #ifdef FEI_ENABLE_CMRT
     CodechalEncodeMdfKernelResource resDSKernel;
@@ -2050,7 +1954,7 @@ public:
     //!
     //! \return void
     //!
-    void MotionEstimationDisableCheck();
+    virtual void MotionEstimationDisableCheck();
 
     //!
     //! \brief  Execute the encode
@@ -2190,7 +2094,7 @@ public:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS ExecuteMeKernel(
+    virtual MOS_STATUS ExecuteMeKernel(
         MeCurbeParams *meParams,
         MeSurfaceParams *meSurfaceParams,
         HmeLevel hmeLevel);
@@ -2283,7 +2187,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS DestroyMDFResources();
+    virtual MOS_STATUS DestroyMDFResources();
 
     //!
     //! \brief  Function to add MDF kernel
@@ -2380,6 +2284,34 @@ public:
 #if USE_CODECHAL_DEBUG_TOOL
     virtual MOS_STATUS DumpMbEncPakOutput(PCODEC_REF_LIST currRefList, CodechalDebugInterface* debugInterface);
     virtual MOS_STATUS DumpFrameStatsBuffer(CodechalDebugInterface* debugInterface) { return MOS_STATUS_SUCCESS; }
+
+    //!
+    //! \brief  Add/Subtract a value to specified gfx memory
+    //!
+    //! \param  [in] cmdBuffer
+    //!         command buffer
+    //! \param  [in] presStoreBuffer
+    //!         buffer to modify
+    //! \param  [in] offset
+    //!         member offset in the buffer
+    //! \param  [in] value
+    //!         value to add/subtract
+    //! \param  [in] bAdd
+    //!         add or subtract
+    //!
+    //! \return MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS AddBufferWithIMMValue(
+        PMOS_COMMAND_BUFFER         cmdBuffer,
+        PMOS_RESOURCE               presStoreBuffer,
+        uint32_t                    offset,
+        uint32_t                    value,
+        bool                        bAdd);
+
+    bool          m_enableFakeHrdSize   = false;
+    int32_t       m_fakeIFrameHrdSize   = 0;
+    int32_t       m_fakePBFrameHrdSize  = 0;
 #endif
 };
 

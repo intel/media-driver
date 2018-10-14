@@ -88,13 +88,13 @@ VAStatus MediaLibvaCapsG9::GetPlatformSpecificAttrib(VAProfile profile,
             {
                 // the capacity is differnt for CQP and BRC mode, set it as larger one here
                 roi_attr.bits.num_roi_regions = ENCODE_DP_AVC_MAX_ROI_NUM_BRC;
-                roi_attr.bits.roi_rc_priority_support = 1;
+                roi_attr.bits.roi_rc_priority_support = 0;
                 roi_attr.bits.roi_rc_qp_delta_support = 1;
             }
             else if (IsHevcProfile(profile))
             {
                 roi_attr.bits.num_roi_regions = ENCODE_DP_HEVC_MAX_NUM_ROI;
-                roi_attr.bits.roi_rc_priority_support = 1;
+                roi_attr.bits.roi_rc_priority_support = 0;
                 roi_attr.bits.roi_rc_qp_delta_support = 1;
             }
 

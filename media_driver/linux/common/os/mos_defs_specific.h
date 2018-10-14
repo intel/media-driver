@@ -42,10 +42,11 @@ typedef uint32_t                UFKEY, *PUFKEY;                           //!< H
 typedef VAStatus                            MOS_OSRESULT;
 #include <stdarg.h>
 #define MOS_FUNC_EXPORT                     __attribute__((visibility("default")))
+#define MOS_DATA_EXPORT                     __attribute__((visibility("default")))
 #define MOS_EXPORT_DECL
 
 #ifndef __UFO_PORTABLE_DATATYPE_DEFINED__
-typedef struct _RECT
+typedef struct tagRECT
 {
     int32_t left;
     int32_t top;
@@ -105,12 +106,7 @@ typedef struct _TP_CALLBACK_INSTANCE TP_CALLBACK_INSTANCE, *PTP_CALLBACK_INSTANC
 #define _stprintf                                           sprintf
 #define _sntprintf                                          snprintf
 
-#if defined(__ANDROID__)
 #define vsprintf_s(pBuffer, size, format, arg)              vsnprintf(pBuffer, size, format, arg)
-#define sprintf_s(pBuffer, size, format, arg)               snprintf(pBuffer, size, format, arg)
-#else
-#define vsprintf_s(pBuffer, size, format, arg)              vsprintf(pBuffer, format, arg)
-#define sprintf_s(pBuffer, size, format, arg)               sprintf(pBuffer, format, arg)
-#endif
+#define sprintf_s(pBuffer, size, format, ...)               snprintf(pBuffer, size, format, ##__VA_ARGS__)
 
 #endif // __MOS_DEFS_SPECIFIC_H__
