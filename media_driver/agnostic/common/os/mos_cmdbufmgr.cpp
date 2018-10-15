@@ -63,7 +63,7 @@ MOS_STATUS CmdBufMgr::Initialize(OsContext *osContext, uint32_t cmdBufSize)
         m_availablePoolMutex = MOS_CreateMutex();
         MOS_OS_CHK_NULL_RETURN(m_availablePoolMutex);
 
-        for (int i = 0; i < m_initBufNum; i++)
+        for (uint32_t i = 0; i < m_initBufNum; i++)
         {
             auto cmdBuf = CommandBuffer::CreateCmdBuf();
             if (cmdBuf == nullptr)
@@ -217,7 +217,7 @@ CommandBuffer *CmdBufMgr::PickupOneCmdBuf(uint32_t size)
         if (m_cmdBufTotalNum < m_maxPoolSize)
         {
             MOS_OS_VERBOSEMESSAGE("Increase the cmd buf pool size by %d", m_bufIncStepSize);
-            for (int i = 0; i < m_bufIncStepSize; i++)
+            for (uint32_t i = 0; i < m_bufIncStepSize; i++)
             {
                 cmdBuf = CommandBuffer::CreateCmdBuf();
                 if (cmdBuf == nullptr)

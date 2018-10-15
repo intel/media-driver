@@ -56,7 +56,7 @@ bool CodechalDecodeMpeg2::DetectSliceError(
     bool                        result         = false;
     CODECHAL_VLD_SLICE_RECORD   currSliceRecord = m_vldSliceRecord[slcNum];
 
-    if (currSliceRecord.dwLength == 0 || currSliceRecord.dwLength > (1 << (sizeof(uint32_t) * 8 - 1)))
+    if (currSliceRecord.dwLength == 0 || currSliceRecord.dwLength > (uint32_t)(1 << (sizeof(uint32_t) * 8 - 1)))
     {
         result = true;
     }

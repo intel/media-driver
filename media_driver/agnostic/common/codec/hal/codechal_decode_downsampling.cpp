@@ -741,7 +741,7 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
     memset(&samplerParams[0], 0, sizeof(MHW_SAMPLER_STATE_PARAM) * m_samplerNum);
     samplerParams[0].bInUse                 = false;
     samplerParams[0].pKernelState           = kernelState;
-    for (auto index = 1; index < m_samplerNum - 1; index++)
+    for (uint32_t index = 1; index < m_samplerNum - 1; index++)
     {
         samplerParams[index].bInUse       = true;
         samplerParams[index].pKernelState = kernelState;
