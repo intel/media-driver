@@ -424,7 +424,7 @@ MOS_STATUS CodechalEncodeHevcBase::AllocateResources()
         CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC);
 
     // Create the sync objects which will be used by each reference frame
-    for (auto i = 0; i < CODECHAL_GET_ARRAY_LENGTH(m_refSync); i++)
+    for (uint32_t i = 0; i < CODECHAL_GET_ARRAY_LENGTH(m_refSync); i++)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateSyncResource(m_osInterface, &m_refSync[i].resSyncObject));
         m_refSync[i].bInUsed = false;
@@ -772,7 +772,7 @@ void CodechalEncodeHevcBase::FreeResources()
     // Release Ref Lists
     CodecHalFreeDataList(m_refList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC);
 
-    for (auto i = 0; i < CODECHAL_GET_ARRAY_LENGTH(m_refSync); i++)
+    for (uint32_t i = 0; i < CODECHAL_GET_ARRAY_LENGTH(m_refSync); i++)
     {
         m_osInterface->pfnDestroySyncResource(m_osInterface, &m_refSync[i].resSyncObject);
     }

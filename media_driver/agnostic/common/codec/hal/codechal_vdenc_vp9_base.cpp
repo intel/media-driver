@@ -3720,7 +3720,7 @@ MOS_STATUS CodechalVdencVp9State::RefreshFrameInternalBuffers()
         &lockFlagsWriteOnly);
     CODECHAL_ENCODE_CHK_NULL_RETURN(data);
 
-    for (auto i = 0; i < PAK_COMPRESSED_HDR_SYNTAX_ELEMS; i += 2)
+    for (uint32_t i = 0; i < PAK_COMPRESSED_HDR_SYNTAX_ELEMS; i += 2)
     {
         data[i>>1] = (compressedHdr[i + 1].value << 0x04) | (compressedHdr[i].value);
     }
@@ -6675,7 +6675,7 @@ void CodechalVdencVp9State::FreeResources()
     PCODEC_REF_LIST *refList = &m_refList[0];
 
     // Release Ref Lists
-    for (auto i = 0; i < m_numUncompressedSurface; i++)
+    for (uint32_t i = 0; i < m_numUncompressedSurface; i++)
     {
         if (!Mos_ResourceIsNull(&refList[i]->sDysSurface.OsResource))
         {

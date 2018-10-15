@@ -75,7 +75,7 @@ public:
 
     virtual MOS_STATUS AllocateTempOutputSurfaces()
     {
-        for (int32_t i = 0 ; i < TempSurfaceAmount; i++ )
+        for (uint32_t i = 0 ; i < TempSurfaceAmount; i++ )
         {
             // only allocate if it is null
             if (TempOutputSurfaces[i] == nullptr)
@@ -85,14 +85,10 @@ public:
                 // if allocation failed
                 if(TempOutputSurfaces[i] == nullptr)
                 {
-                    // get tail index of allocated surfaces
-                    i--;
-
                     // free all allocated surfaces
-                    while (i >= 0)
+                    while (i > 0)
                     {
-                        MOS_FreeMemAndSetNull(TempOutputSurfaces[i]);
-                        i--;
+                        MOS_FreeMemAndSetNull(TempOutputSurfaces[--i]);
                     }
                     return MOS_STATUS_NO_SPACE;
                 }

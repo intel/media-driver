@@ -814,9 +814,9 @@ MOS_STATUS CodechalDecodeJpeg::DecodePrimitiveLevel()
                 huffTableID = 1;
             }
 
-            int32_t AcTableSelector =
+            uint32_t AcTableSelector =
                 m_jpegScanParams->ScanHeader[scanCount].AcHuffTblSelector[scanComponent];
-            int32_t DcTableSelector =
+            uint32_t DcTableSelector =
                 m_jpegScanParams->ScanHeader[scanCount].DcHuffTblSelector[scanComponent];
 
             // Send the huffman table state command only if the table changed

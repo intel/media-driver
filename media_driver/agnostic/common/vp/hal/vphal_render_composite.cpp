@@ -2123,7 +2123,7 @@ MOS_STATUS CompositeState::Render(
     VPHAL_CSPACE            ColorSpace;     // Temporary colorspace
     PVPHAL_SURFACE          pTarget;        // Render target
     PVPHAL_SURFACE          pOutput;        // Compositing output
-    uint32_t                index;          // Current source index
+    int32_t                 index;          // Current source index
     bool                    bMultiplePhases;
     PVPHAL_RNDR_PERF_DATA   pPerfData;
 
