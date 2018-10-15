@@ -489,7 +489,7 @@ VAStatus DdiDecodeVC1::ParsePicParams(
 VAStatus DdiDecodeVC1::ParseSliceParams(
         DDI_MEDIA_CONTEXT            *mediaCtx,
         VASliceParameterBufferVC1    *slcParam,
-        int32_t                      numSlices)
+        uint32_t                      numSlices)
 {
     PCODEC_VC1_SLICE_PARAMS codecSlcParam = (PCODEC_VC1_SLICE_PARAMS)(m_ddiDecodeCtx->DecodeParams.m_sliceParams);
 
@@ -536,7 +536,7 @@ VAStatus DdiDecodeVC1::AllocBitPlaneBuffer()
 }
 
 VAStatus DdiDecodeVC1::AllocSliceParamContext(
-    int32_t numSlices)
+    uint32_t numSlices)
 {
     uint32_t baseSize = sizeof(CODEC_VC1_SLICE_PARAMS);
 
@@ -544,7 +544,7 @@ VAStatus DdiDecodeVC1::AllocSliceParamContext(
     {
         // in order to avoid that the buffer is reallocated multi-times,
         // extra 10 slices are added.
-        int32_t extraSlices = numSlices + 10;
+        uint32_t extraSlices = numSlices + 10;
 
         m_ddiDecodeCtx->DecodeParams.m_sliceParams = realloc(m_ddiDecodeCtx->DecodeParams.m_sliceParams,
             baseSize * (m_sliceParamBufNum + extraSlices));
@@ -657,7 +657,7 @@ void DdiDecodeVC1::ParseBitPlane(
 
         uint32_t srcIdx, dstIdx;
         uint32_t srcShift;
-        int32_t  i, j;
+        uint32_t i, j;
         uint8_t  srcValue = 0;
         for (i = 0; i < heightInMbs; i++)
         {
@@ -716,7 +716,7 @@ VAStatus DdiDecodeVC1::RenderPicture(
         {
         case VABitPlaneBufferType:
         {
-            uint32_t index = m_ddiDecodeCtx->BufMgr.Codec_Param.Codec_Param_VC1.dwVC1BitPlaneIndex;
+            int32_t index = m_ddiDecodeCtx->BufMgr.Codec_Param.Codec_Param_VC1.dwVC1BitPlaneIndex;
             if (index == DDI_CODEC_INVALID_BUFFER_INDEX)
             {
                 return VA_STATUS_ERROR_INVALID_BUFFER;
@@ -764,9 +764,9 @@ VAStatus DdiDecodeVC1::RenderPicture(
 
             VASliceParameterBufferVC1 *slcInfo =
                 (VASliceParameterBufferVC1 *)data;
-            int32_t numSlices = buf->iNumElements;
+            uint32_t numSlices = buf->iNumElements;
             DDI_CHK_RET(AllocSliceParamContext(numSlices),"AllocSliceParamContext failed!");
-        DDI_CHK_RET(ParseSliceParams(mediaCtx, slcInfo, numSlices),"ParseSliceParams failed!");
+            DDI_CHK_RET(ParseSliceParams(mediaCtx, slcInfo, numSlices),"ParseSliceParams failed!");
             m_ddiDecodeCtx->DecodeParams.m_numSlices += numSlices;
             m_groupIndex++;
             break;

@@ -37,7 +37,7 @@
 VAStatus DdiDecodeHEVC::ParseSliceParams(
     DDI_MEDIA_CONTEXT           *mediaCtx,
     VASliceParameterBufferHEVC  *slcParam,
-    int32_t                     numSlices)
+    uint32_t                     numSlices)
 {
     VASliceParameterBufferHEVC *slc     = slcParam;
     VASliceParameterBufferBase *slcBase = (VASliceParameterBufferBase *)slcParam;
@@ -412,7 +412,7 @@ VAStatus DdiDecodeHEVC::RenderPicture(
             }
 
             VASliceParameterBufferHEVC *slcInfoHEVC = (VASliceParameterBufferHEVC *)data;
-            int32_t                     numSlices   = buf->iNumElements;
+            uint32_t                     numSlices   = buf->iNumElements;
             DDI_CHK_RET(AllocSliceParamContext(numSlices),"AllocSliceParamContext failed!");
             DDI_CHK_RET(ParseSliceParams(mediaCtx, slcInfoHEVC, numSlices),"ParseSliceParams failed!");
             m_ddiDecodeCtx->DecodeParams.m_numSlices += numSlices;
@@ -543,7 +543,7 @@ VAStatus DdiDecodeHEVC::SetDecodeParams()
 }
 
 VAStatus DdiDecodeHEVC::AllocSliceParamContext(
-    int32_t numSlices)
+    uint32_t numSlices)
 {
     uint32_t baseSize = sizeof(CODEC_HEVC_SLICE_PARAMS);
 
@@ -551,7 +551,7 @@ VAStatus DdiDecodeHEVC::AllocSliceParamContext(
     {
         // in order to avoid that the buffer is reallocated multi-times,
         // extra 10 slices are added.
-        int32_t extraSlices = numSlices + 10;
+        uint32_t extraSlices = numSlices + 10;
 
         m_ddiDecodeCtx->DecodeParams.m_sliceParams = realloc(m_ddiDecodeCtx->DecodeParams.m_sliceParams,
             baseSize * (m_sliceParamBufNum + extraSlices));

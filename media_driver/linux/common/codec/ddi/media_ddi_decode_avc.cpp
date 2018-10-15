@@ -36,7 +36,7 @@
 VAStatus DdiDecodeAVC::ParseSliceParams(
     DDI_MEDIA_CONTEXT           *mediaCtx,
     VASliceParameterBufferH264  *slcParam,
-    int32_t                     numSlices)
+    uint32_t                     numSlices)
 {
     PCODEC_AVC_SLICE_PARAMS avcSliceParams;
     avcSliceParams = (PCODEC_AVC_SLICE_PARAMS)(m_ddiDecodeCtx->DecodeParams.m_sliceParams);
@@ -62,7 +62,7 @@ VAStatus DdiDecodeAVC::ParseSliceParams(
     uint32_t sliceBaseOffset;
     sliceBaseOffset = GetBsBufOffset(m_groupIndex);
 
-    int32_t i, slcCount;
+    uint32_t i, slcCount;
     for (slcCount = 0; slcCount < numSlices; slcCount++)
     {
         if (m_ddiDecodeCtx->bShortFormatInUse)
@@ -340,7 +340,7 @@ VAStatus DdiDecodeAVC::ParseIQMatrix(
 }
 
 VAStatus DdiDecodeAVC::AllocSliceParamContext(
-    int32_t numSlices)
+    uint32_t numSlices)
 {
     uint32_t baseSize = sizeof(CODEC_AVC_SLICE_PARAMS);
 
@@ -348,7 +348,7 @@ VAStatus DdiDecodeAVC::AllocSliceParamContext(
     {
         // in order to avoid that the buffer is reallocated multi-times,
         // extra 10 slices are added.
-        int32_t extraSlices                           = numSlices + 10;
+        uint32_t extraSlices                           = numSlices + 10;
         m_ddiDecodeCtx->DecodeParams.m_sliceParams = realloc(m_ddiDecodeCtx->DecodeParams.m_sliceParams,
             baseSize * (m_sliceParamBufNum + extraSlices));
 

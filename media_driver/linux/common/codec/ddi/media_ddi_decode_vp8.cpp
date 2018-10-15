@@ -169,7 +169,7 @@ VAStatus DdiDecodeVP8::ParsePicParams(
 
     int32_t frameIdx;
     frameIdx = GetRenderTargetID(&m_ddiDecodeCtx->RTtbl, currentSurface);
-    if (frameIdx == DDI_CODEC_INVALID_FRAME_INDEX)
+    if (frameIdx == (int32_t)DDI_CODEC_INVALID_FRAME_INDEX)
     {
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
@@ -330,10 +330,10 @@ VAStatus DdiDecodeVP8::RenderPicture(
             {
                 return VA_STATUS_ERROR_INVALID_BUFFER;
             }
-            int32_t numSlices = buf->iNumElements;
+            uint32_t numSlices = buf->iNumElements;
 
             VASliceParameterBufferVP8 *slcInfoVP8 = (VASliceParameterBufferVP8 *)data;
-            for(int32_t j = 0; j < numSlices; j++)
+            for(uint32_t j = 0; j < numSlices; j++)
             {
                 slcInfoVP8[j].slice_data_offset += GetBsBufOffset(m_groupIndex);
             }

@@ -85,14 +85,14 @@ private:
     //! \param   [in] *slcParam
     //!          VASliceParameterBufferMPEG2
     //! \param   [in] numSlices
-    //!             int32_t
+    //!             uint32_t
     //!
     //! \return  VA_STATUS_SUCCESS is returned if it is parsed successfully.
     //!          else fail reason
     VAStatus ParseSliceParams(
         DDI_MEDIA_CONTEXT            *mediaCtx,
         VASliceParameterBufferMPEG2  *slcParam,
-        int32_t                      numSlices);
+        uint32_t                      numSlices);
 
     //!
     //! \brief   ParseIQMatrixParam for MPEG2
@@ -127,12 +127,12 @@ private:
     //! \details Alloc/resize SlicePram content for MPEG2 decoding
     //!
     //! \param   [in] numSlices
-    //!          int32_t the required number of slices
+    //!          uint32_t the required number of slices
     //!
     //! \return  VA_STATUS_SUCCESS is returned if it is parsed successfully.
     //!          else fail reason
     VAStatus AllocSliceParamContext(
-        int32_t numSlices);
+        uint32_t numSlices);
 
     //!
     //! \brief   Parse and Refine the number of MBs for MPEG2

@@ -41,7 +41,7 @@ void DdiDecodeMPEG2::ParseNumMbsForSlice(
 
     CodecDecodeMpeg2SliceParams *sliceParam = (CodecDecodeMpeg2SliceParams *)(m_ddiDecodeCtx->DecodeParams.m_sliceParams);
 
-    int16_t widthInMB, heightInMB, numMBInSlc;
+    uint16_t widthInMB, heightInMB, numMBInSlc;
     widthInMB  = m_picWidthInMB;
     heightInMB = m_picHeightInMB;
 
@@ -74,7 +74,7 @@ void DdiDecodeMPEG2::ParseNumMbsForSlice(
 VAStatus DdiDecodeMPEG2::ParseSliceParams(
     DDI_MEDIA_CONTEXT            *mediaCtx,
     VASliceParameterBufferMPEG2  *slcParam,
-    int32_t                      numSlices)
+    uint32_t                      numSlices)
 {
     CodecDecodeMpeg2PicParams *picParams = (CodecDecodeMpeg2PicParams *)(m_ddiDecodeCtx->DecodeParams.m_picParams);
     CodecDecodeMpeg2SliceParams *codecSlcParams = (CodecDecodeMpeg2SliceParams *)(m_ddiDecodeCtx->DecodeParams.m_sliceParams);
@@ -99,7 +99,7 @@ VAStatus DdiDecodeMPEG2::ParseSliceParams(
     }
 
     uint32_t sliceBaseOffset = GetBsBufOffset(m_groupIndex);
-    int32_t slcCount;
+    uint32_t slcCount;
     for (slcCount = 0; slcCount < numSlices; slcCount++)
     {
         codecSlcParams->m_sliceHorizontalPosition = slcParam->slice_horizontal_position;
@@ -380,7 +380,7 @@ VAStatus DdiDecodeMPEG2::RenderPicture(
 
             VASliceParameterBufferMPEG2 *slcInfoMpeg2 =
                 (VASliceParameterBufferMPEG2 *)data;
-            int32_t numSlices = buf->iNumElements;
+            uint32_t numSlices = buf->iNumElements;
             DDI_CHK_RET(AllocSliceParamContext(numSlices),"AllocSliceParamContext failed!");
             DDI_CHK_RET(ParseSliceParams(mediaCtx, slcInfoMpeg2, numSlices),"ParseSliceParams failed!");
             m_ddiDecodeCtx->DecodeParams.m_numSlices += numSlices;
@@ -425,7 +425,7 @@ VAStatus DdiDecodeMPEG2::SetDecodeParams()
 }
 
 VAStatus DdiDecodeMPEG2::AllocSliceParamContext(
-    int32_t numSlices)
+    uint32_t numSlices)
 {
     uint32_t baseSize = sizeof(CodecDecodeMpeg2SliceParams);
 
@@ -433,7 +433,7 @@ VAStatus DdiDecodeMPEG2::AllocSliceParamContext(
     {
         // in order to avoid that the buffer is reallocated multi-times,
         // extra 10 slices are added.
-        int32_t extraSlices = numSlices + 10;
+        uint32_t extraSlices = numSlices + 10;
 
         m_ddiDecodeCtx->DecodeParams.m_sliceParams = realloc(m_ddiDecodeCtx->DecodeParams.m_sliceParams,
             baseSize * (m_sliceParamBufNum + extraSlices));
