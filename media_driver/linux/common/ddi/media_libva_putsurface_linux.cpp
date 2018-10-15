@@ -70,9 +70,9 @@ void dso_close(struct dso_handle *h)
 /* Opens the named shared library */
 struct dso_handle * dso_open(const char *path)
 {
-    struct dso_handle *h;
+    struct dso_handle *h = nullptr;
 
-    h = (dso_handle*) calloc(1, sizeof(*h));
+    h = (dso_handle *)calloc(1, sizeof(*h));
     if (!h){
         return nullptr;
     }
@@ -95,9 +95,12 @@ error:
 /* Load function name from one dynamic lib */
 static bool get_symbol(struct dso_handle *h, void *func_vptr, const char *name)
 {
+    DDI_CHK_NULL(h, "nullptr h", false);
+    DDI_CHK_NULL(func_vptr, "nullptr func_vptr", false);
+
     dso_generic_func func;
     dso_generic_func * const func_ptr = (dso_generic_func*) func_vptr;
-    const char *error;
+    const char *error = nullptr;
 
     dlerror();
     func = (dso_generic_func)dlsym(h->handle, name);
@@ -133,7 +136,9 @@ dso_get_symbols(
     const struct dso_symbol    *symbols
 )
 {
-    const struct dso_symbol *s;
+    DDI_CHK_NULL(h, "nullptr h", false);
+
+    const struct dso_symbol *s = nullptr;
     if (nullptr == symbols)
     {
         return VA_STATUS_ERROR_INVALID_PARAMETER;
@@ -149,11 +154,14 @@ dso_get_symbols(
 
 bool output_dri_init(VADriverContextP ctx)
 {
-    PDDI_MEDIA_CONTEXT mediaDrvCtx;
-    mediaDrvCtx = DdiMedia_GetMediaContext(ctx);
+    DDI_CHK_NULL(ctx, "nullptr ctx", false);
 
-    struct dso_handle *dso_handle;
-    struct dri_vtable *dri_vtable;
+    PDDI_MEDIA_CONTEXT mediaDrvCtx = nullptr;
+    mediaDrvCtx = DdiMedia_GetMediaContext(ctx);
+    DDI_CHK_NULL(mediaDrvCtx, "nullptr ctx", false);
+
+    struct dso_handle *dso_handle = nullptr;
+    struct dri_vtable *dri_vtable = nullptr;
 
     mediaDrvCtx->dri_output = nullptr;
 
@@ -365,8 +373,8 @@ VAStatus DdiCodec_PutSurfaceLinuxHW(
 
     uint32_t                ctxType;
     PDDI_VP_CONTEXT         vpCtx;
-    struct dri_drawable*    dri_drawable;
-    union dri_buffer*       buffer;
+    struct dri_drawable*    dri_drawable = nullptr;
+    union dri_buffer*       buffer = nullptr;
 
     GMM_RESCREATE_PARAMS    gmmParams;
 
@@ -378,6 +386,8 @@ VAStatus DdiCodec_PutSurfaceLinuxHW(
     DDI_CHK_LESS((uint32_t)surface, mediaCtx->pSurfaceHeap->uiAllocatedHeapElements, "Invalid surfaceId", VA_STATUS_ERROR_INVALID_SURFACE);
 
     struct dri_vtable * const dri_vtable = &mediaCtx->dri_output->vtable;
+    DDI_CHK_NULL(dri_vtable, "Null dri_vtable", VA_STATUS_ERROR_INVALID_PARAMETER);
+
     dri_drawable = dri_vtable->get_drawable(ctx, (Drawable)draw);
     assert(dri_drawable);
     buffer = dri_vtable->get_rendering_buffer(ctx, dri_drawable);
@@ -553,6 +563,7 @@ static void DdiMedia_yuv2pixel(uint32_t *pixel, int32_t y, int32_t u, int32_t v,
                                unsigned long gshift, unsigned long gmask,
                                unsigned long bshift, unsigned long bmask)
 {
+    DDI_CHK_NULL(pixel, "nullptr pixel", );
     /* Warning, magic values ahead */
     int32_t r = y + ((351 * (v-128)) >> 8);
     int32_t g = y - (((179 * (v-128)) + (86 * (u-128))) >> 8);
