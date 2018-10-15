@@ -3699,7 +3699,7 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
 
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxAvcImgCmd(nullptr, secondLevelBatchBufferUsed, imageStateParams));
 
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencCostStateCmd(secondLevelBatchBufferUsed, imageStateParams));
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencAvcCostStateCmd(secondLevelBatchBufferUsed, imageStateParams));
 
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencImgStateCmd(nullptr, secondLevelBatchBufferUsed, imageStateParams));
 
@@ -5182,6 +5182,8 @@ MOS_STATUS CodechalVdencAvcState::SetMfxPipeBufAddrStateParams(
                 param.presVdencReferences[refIdx] = &m_refList[refPicIdx]->sRefReconBuffer.OsResource;
                 param.presVdenc4xDsSurface[refIdx] =
                     &(m_trackedBuf->Get4xDsReconSurface(m_refList[refPicIdx]->ucScalingIdx))->OsResource;
+                param.presVdenc8xDsSurface[refIdx] =
+                    &(m_trackedBuf->Get8xDsReconSurface(m_refList[refPicIdx]->ucScalingIdx))->OsResource;
             }
         }
     }
