@@ -264,7 +264,7 @@ VAStatus DdiMediaDecode::DecodeCombineBitstream(DDI_MEDIA_CONTEXT *mediaCtx)
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
 
-    int32_t slcInd;
+    uint32_t slcInd;
     //copy data to new bit stream
     for (slcInd = 0; slcInd < bufMgr->dwNumSliceData; slcInd++)
     {
@@ -404,7 +404,7 @@ VAStatus DdiMediaDecode::AllocBsBuffer(
     DDI_CODEC_COM_BUFFER_MGR    *bufMgr,
     DDI_MEDIA_BUFFER            *buf)
 {
-    int32_t           index, i;
+    uint32_t          index, i;
     VAStatus          vaStatus;
     uint8_t          *sliceBuf;
     DDI_MEDIA_BUFFER *bsBufObj = nullptr;

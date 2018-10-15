@@ -39,7 +39,7 @@
 VAStatus DdiDecodeHEVCG11::ParseSliceParams(
     DDI_MEDIA_CONTEXT           *mediaCtx,
     VASliceParameterBufferHEVC  *slcParam,
-    int32_t                     numSlices)
+    uint32_t                     numSlices)
 {
     VASliceParameterBufferHEVC *slc     = slcParam;
     VASliceParameterBufferBase *slcBase = (VASliceParameterBufferBase *)slcParam;
@@ -459,7 +459,7 @@ MOS_FORMAT DdiDecodeHEVCG11::GetFormat()
 }
 
 VAStatus DdiDecodeHEVCG11::AllocSliceParamContext(
-    int32_t numSlices)
+    uint32_t numSlices)
 {
     uint32_t baseSize = sizeof(CODEC_HEVC_SLICE_PARAMS);
 
@@ -467,7 +467,7 @@ VAStatus DdiDecodeHEVCG11::AllocSliceParamContext(
     {
         // in order to avoid that the buffer is reallocated multi-times,
         // extra 10 slices are added.
-        int32_t extraSlices = numSlices + 10;
+        uint32_t extraSlices = numSlices + 10;
 
         m_ddiDecodeCtx->DecodeParams.m_sliceParams = realloc(m_ddiDecodeCtx->DecodeParams.m_sliceParams,
             baseSize * (m_sliceParamBufNum + extraSlices));

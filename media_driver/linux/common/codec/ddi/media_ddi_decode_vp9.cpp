@@ -112,7 +112,7 @@ VAStatus DdiDecodeVP9::ParsePicParams(
 
     int32_t frameIdx;
     frameIdx = GetRenderTargetID(&m_ddiDecodeCtx->RTtbl, m_ddiDecodeCtx->RTtbl.pCurrentRT);
-    if (frameIdx == DDI_CODEC_INVALID_FRAME_INDEX)
+    if (frameIdx == (int32_t)DDI_CODEC_INVALID_FRAME_INDEX)
     {
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
