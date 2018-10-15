@@ -432,7 +432,7 @@ public:
         PMHW_VDBOX_SURFACE_PARAMS            params,
         uint8_t                              numSurfaces) = 0;
 
-    virtual MOS_STATUS AddVdencCostStateCmd(
+    virtual MOS_STATUS AddVdencAvcCostStateCmd(
         PMHW_BATCH_BUFFER         batchBuffer,
         PMHW_VDBOX_AVC_IMG_PARAMS params)
     {
