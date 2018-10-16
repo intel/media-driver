@@ -509,6 +509,8 @@ int32_t CmThinExecuteInternal(CmDevice *device,
         CM_QUEUE_CREATE_OPTION queueCreateOption = CM_DEFAULT_QUEUE_CREATE_OPTION;
         queueCreateOption.QueueType = (CM_QUEUE_TYPE)cmCreateQueParam->queueType;
         queueCreateOption.RunAloneMode = cmCreateQueParam->runAloneMode;
+        queueCreateOption.GPUContext = cmCreateQueParam->gpuContext;
+        queueCreateOption.SseuUsageHint = (CM_QUEUE_SSEU_USAGE_HINT_TYPE)cmCreateQueParam->sseuUsageHint;
         cmRet = device->CreateQueueEx(cmQueue, queueCreateOption);
 
         cmCreateQueParam->returnValue = cmRet;
