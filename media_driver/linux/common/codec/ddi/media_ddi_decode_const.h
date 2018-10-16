@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2017, Intel Corporation
+* Copyright (c) 2016-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -40,5 +40,26 @@
 #define DECODE_ID_MPEG2     "VIDEO_DEC_MPEG2"
 #define DECODE_ID_JPEG      "VIDEO_DEC_JPEG"
 #define DECODE_ID_VC1       "VIDEO_DEC_VC1"
+
+#define AVC_DECODE_MAX_WIDTH          8192
+#define AVC_DECODE_MAX_HEIGHT         8192
+
+#define HEVC_DECODE_MAX_WIDTH         8192
+#define HEVC_DECODE_MAX_HEIGHT        8192
+
+#define JPEG_DECODE_MAX_WIDTH         16384
+#define JPEG_DECODE_MAX_HEIGHT        16384
+
+#define MPEG2_DECODE_MAX_WIDTH        2048
+#define MPEG2_DECODE_MAX_HEIGHT       2048
+
+#define VC1_DECODE_MAX_WIDTH          3840
+#define VC1_DECODE_MAX_HEIGHT         3840
+
+#define VP9_DECODE_MAX_WIDTH          8192
+#define VP9_DECODE_MAX_HEIGHT         8192
+
+#define DEFAULT_DECODE_MAX_WIDTH      4096
+#define DEFAULT_DECODE_MAX_HEIGHT     4096
 
 #endif /*  _MEDIA_LIBVA_DECODE_CONST_H_ */
