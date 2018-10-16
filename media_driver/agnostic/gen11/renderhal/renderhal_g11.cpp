@@ -660,55 +660,8 @@ MOS_STATUS XRenderHal_Interface_g11::SetPowerOptionStatus(
     PRENDERHAL_INTERFACE         pRenderHal,
     PMOS_COMMAND_BUFFER          pCmdBuffer)
 {
-    PMOS_INTERFACE              pOsInterface;
-    MOS_STATUS                  eStatus;
-    MEDIA_SYSTEM_INFO           *pGtSystemInfo;
-
-    MHW_RENDERHAL_CHK_NULL(pRenderHal);
-    MHW_RENDERHAL_CHK_NULL(pCmdBuffer);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface);
-
-    eStatus         = MOS_STATUS_SUCCESS;
-    pOsInterface    = pRenderHal->pOsInterface;
-    pGtSystemInfo   = pOsInterface->pfnGetGtSystemInfo(pOsInterface);
-    MHW_RENDERHAL_CHK_NULL(pGtSystemInfo);
-
-    // Check if Slice Shutdown can be enabled
-    if (pRenderHal->bRequestSingleSlice)
-    {
-        pCmdBuffer->Attributes.dwNumRequestedEUSlices = 1;
-    }
-    else if (pRenderHal->bEUSaturationNoSSD)
-    {
-        pCmdBuffer->Attributes.dwNumRequestedEUSlices = 2;
-    }
-
-    if ((pRenderHal->pSkuTable) && (MEDIA_IS_SKU(pRenderHal->pSkuTable, FtrSSEUPowerGating) || MEDIA_IS_SKU(pRenderHal->pSkuTable, FtrSSEUPowerGatingControlByUMD)))
-    {
-        // VP does not request subslice shutdown according to the array VpHalDefaultSSEUTableGxx
-        if (((pRenderHal->PowerOption.nSlice != 0) || (pRenderHal->PowerOption.nSubSlice != 0) || (pRenderHal->PowerOption.nEU != 0)) &&
-            ((pGtSystemInfo->SliceCount != 0) && (pGtSystemInfo->SubSliceCount != 0)))
-        {
-            if ((pRenderHal->PowerOption.nSubSlice > ((pGtSystemInfo->SubSliceCount / pGtSystemInfo->SliceCount) / 2)) && (pGtSystemInfo->SubSliceCount > 1))
-            {
-                // Treated 1-slice model as 2-slice model in SSEU power gating control register programming
-                pCmdBuffer->Attributes.dwNumRequestedEUSlices    = 2;
-                pCmdBuffer->Attributes.dwNumRequestedSubSlices   = MOS_MIN(pRenderHal->PowerOption.nSubSlice, (pGtSystemInfo->SubSliceCount / pGtSystemInfo->SliceCount));
-                pCmdBuffer->Attributes.dwNumRequestedSubSlices   = pCmdBuffer->Attributes.dwNumRequestedSubSlices / 2;
-            }
-            else
-            {
-                pCmdBuffer->Attributes.dwNumRequestedEUSlices    = MOS_MIN(pRenderHal->PowerOption.nSlice, pGtSystemInfo->SliceCount);
-                pCmdBuffer->Attributes.dwNumRequestedSubSlices   = MOS_MIN(pRenderHal->PowerOption.nSubSlice, (pGtSystemInfo->SubSliceCount / pGtSystemInfo->SliceCount));
-            }
-            pCmdBuffer->Attributes.dwNumRequestedEUs         = MOS_MIN(pRenderHal->PowerOption.nEU, (pGtSystemInfo->EUCount / pGtSystemInfo->SubSliceCount));
-            pCmdBuffer->Attributes.bValidPowerGatingRequest  = true;
-            pCmdBuffer->Attributes.bUmdSSEUEnable            = true;
-        }
-    }
-
-finish:
-    return eStatus;
+    // deprecated after enabled per-context SSEU. 
+    return MOS_STATUS_SUCCESS;
 }
 
 //!

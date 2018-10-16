@@ -184,15 +184,84 @@ int32_t CmQueueRT::Initialize()
     }
     else
     {
+        MOS_GPUCTX_CREATOPTIONS ctxCreateOption;
+        ctxCreateOption.CmdBufferNumScale = cmHalState->cmDeviceParam.maxTasks;
+
         // Create MDF preset GPU context, update GPUContext in m_queueOption
         if (m_queueOption.QueueType == CM_QUEUE_TYPE_RENDER)
         {
-            CHK_MOSSTATUS_RETURN_CMERROR(cmHalState->pfnCreateGPUContext(cmHalState, cmHalState->gpuContext, MOS_GPU_NODE_3D));
-            m_queueOption.GPUContext = cmHalState->gpuContext;
+            // command buffer number
+            ctxCreateOption.CmdBufferNumScale = HalCm_GetNumCmdBuffers(cmHalState->osInterface, cmHalState->cmDeviceParam.maxTasks);
+
+            MOS_GPU_CONTEXT tmpGpuCtx = (m_queueOption.GPUContext == 0) ? cmHalState->gpuContext : (MOS_GPU_CONTEXT)m_queueOption.GPUContext;
+
+            // check if context handle was specified by user.
+            if (m_queueOption.GPUContext != 0)
+            {
+                tmpGpuCtx = (MOS_GPU_CONTEXT)m_queueOption.GPUContext;
+            }
+            else
+            {
+                tmpGpuCtx = cmHalState->gpuContext;
+            }
+
+            // sanity check of context handle for CM
+            if (tmpGpuCtx != MOS_GPU_CONTEXT_RENDER3 && tmpGpuCtx != MOS_GPU_CONTEXT_RENDER4)
+            {
+                return CM_INVALID_USER_GPU_CONTEXT_FOR_QUEUE_EX;
+            }
+            
+            // SSEU overriding
+            if (cmHalState->cmHalInterface->IsOverridePowerOptionPerGpuContext())
+            {
+                // checking if need shutdown sub-slices for VME usage
+                if (m_queueOption.SseuUsageHint == CM_QUEUE_SSEU_USAGE_HINT_VME
+                 && cmHalState->cmHalInterface->IsRequestShutdownSubslicesForVmeUsage())
+                {
+                    MEDIA_SYSTEM_INFO *gtSystemInfo = cmHalState->osInterface->pfnGetGtSystemInfo(cmHalState->osInterface);
+                    ctxCreateOption.packed.SliceCount    = (uint8_t)gtSystemInfo->SliceCount;
+                    ctxCreateOption.packed.SubSliceCount = (gtSystemInfo->SubSliceCount / gtSystemInfo->SliceCount) >> 1; // set to half
+                    ctxCreateOption.packed.MaxEUcountPerSubSlice = gtSystemInfo->EUCount/gtSystemInfo->SubSliceCount;
+                    ctxCreateOption.packed.MinEUcountPerSubSlice = gtSystemInfo->EUCount/gtSystemInfo->SubSliceCount;
+                }
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+                MOS_USER_FEATURE_VALUE_DATA UserFeatureData = {0};
+                MOS_UserFeature_ReadValue_ID(
+                    nullptr,
+                    __MEDIA_USER_FEATURE_VALUE_SSEU_SETTING_OVERRIDE_ID,
+                    &UserFeatureData);
+               
+                // +---------------+----------------+----------------+----------------+
+                // |   EUCountMax  |   EUCountMin   |     SSCount    |   SliceCount   |
+                // +-------------24+--------------16+---------------8+---------------0+
+                if (UserFeatureData.u32Data != 0xDEADC0DE)
+                {
+                    ctxCreateOption.packed.SliceCount            = UserFeatureData.u32Data         & 0xFF;       // Bits 0-7
+                    ctxCreateOption.packed.SubSliceCount         = (UserFeatureData.u32Data >>  8) & 0xFF;       // Bits 8-15
+                    ctxCreateOption.packed.MaxEUcountPerSubSlice = (UserFeatureData.u32Data >> 16) & 0xFF;       // Bits 16-23
+                    ctxCreateOption.packed.MinEUcountPerSubSlice = (UserFeatureData.u32Data >> 24) & 0xFF;       // Bits 24-31
+                }
+#endif
+            }
+
+            // Create Render GPU Context
+            CHK_MOSSTATUS_RETURN_CMERROR(cmHalState->pfnCreateGPUContext(cmHalState, tmpGpuCtx, MOS_GPU_NODE_3D, &ctxCreateOption));
+
+            // Set current GPU context
+            CHK_MOSSTATUS_RETURN_CMERROR(cmHalState->osInterface->pfnSetGpuContext(cmHalState->osInterface, tmpGpuCtx));
+                    
+#if (_RELEASE_INTERNAL || _DEBUG)
+#if defined(CM_DIRECT_GUC_SUPPORT)
+            //init GuC
+            CHK_MOSSTATUS_RETURN_CMERROR(cmHalState->osInterface->pfnInitGuC(cmHalState->osInterface, MOS_GPU_NODE_3D));
+#endif
+#endif
+            m_queueOption.GPUContext = tmpGpuCtx;
         }
         else if (m_queueOption.QueueType == CM_QUEUE_TYPE_COMPUTE)
         {
-            CHK_MOSSTATUS_RETURN_CMERROR(cmHalState->pfnCreateGPUContext(cmHalState, MOS_GPU_CONTEXT_CM_COMPUTE, MOS_GPU_NODE_COMPUTE));
+            CHK_MOSSTATUS_RETURN_CMERROR(cmHalState->pfnCreateGPUContext(cmHalState, MOS_GPU_CONTEXT_CM_COMPUTE, MOS_GPU_NODE_COMPUTE, &ctxCreateOption));
             m_queueOption.GPUContext = MOS_GPU_CONTEXT_CM_COMPUTE;
         }
         else

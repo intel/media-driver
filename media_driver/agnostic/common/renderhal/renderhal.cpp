@@ -1430,9 +1430,6 @@ MOS_STATUS RenderHal_AllocateStateHeaps(
     pStateHeap->dwSshIntanceSize   = dwSizeSSH;
     pRenderHal->dwIndirectHeapSize = MOS_ALIGN_CEIL(dwSizeSSH, MHW_PAGE_SIZE);
 
-    // Set indirect heap size - limits the size of the command buffer available for rendering
-    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pOsInterface->pfnSetIndirectStateSize(pRenderHal->pOsInterface, pRenderHal->dwIndirectHeapSize));
-
     // Allocate SSH buffer in system memory, not Gfx
     pStateHeap->dwSizeSSH  = dwSizeSSH; // Single SSH instance
     pStateHeap->pSshBuffer = (uint8_t*)MOS_AllocAndZeroMemory(dwSizeSSH);
