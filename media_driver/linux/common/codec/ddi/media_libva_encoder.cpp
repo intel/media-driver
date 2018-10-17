@@ -303,8 +303,7 @@ VAStatus DdiEncode_CreateContext(
     // - HEVCMain10 profile
     // - VAProfileVP9Profile2
     // - VAProfileVP9Profile3
-    if (profile == VAProfileHEVCMain10 ||
-        profile == VAProfileVP9Profile2 ||
+    if (profile == VAProfileVP9Profile2 ||
         profile == VAProfileVP9Profile3)
     {
         encCtx->m_encode->m_is10Bit = true;

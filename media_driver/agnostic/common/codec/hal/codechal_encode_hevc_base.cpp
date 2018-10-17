@@ -2210,8 +2210,7 @@ void CodechalEncodeHevcBase::SetHcpSrcSurfaceParams(MHW_VDBOX_SURFACE_PARAMS& sr
     srcSurfaceParams.ucBitDepthChromaMinus8 = m_hevcSeqParams->bit_depth_chroma_minus8;
     srcSurfaceParams.bDisplayFormatSwizzle  = m_hevcPicParams->bDisplayFormatSwizzle;
     srcSurfaceParams.ChromaType = m_outputChromaFormat;
-    srcSurfaceParams.bSrc8Pak10Mode         = (!m_hevcSeqParams->SourceBitDepth) &&
-                                      (m_hevcSeqParams->bit_depth_luma_minus8 == 2);
+    srcSurfaceParams.bSrc8Pak10Mode         = false; //No usage for 8->10 bit encode
     srcSurfaceParams.dwActualHeight = ((m_hevcSeqParams->wFrameHeightInMinCbMinus1 + 1) << (m_hevcSeqParams->log2_min_coding_block_size_minus3 + 3));
 }
 

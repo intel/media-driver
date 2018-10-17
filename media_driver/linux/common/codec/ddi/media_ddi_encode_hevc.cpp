@@ -96,6 +96,7 @@ VAStatus DdiEncodeHevc::ContextInitialize(
     {
         codecHalSettings->codecFunction = CODECHAL_FUNCTION_ENC_VDENC_PAK;
         codecHalSettings->disableUltraHME = true;
+        codecHalSettings->disableSuperHME = true;
     }
     else
     {
@@ -105,11 +106,31 @@ VAStatus DdiEncodeHevc::ContextInitialize(
     codecHalSettings->width           = m_encodeCtx->dworiFrameWidth;
     codecHalSettings->mode            = m_encodeCtx->wModeType;
     codecHalSettings->standard        = CODECHAL_HEVC;
-    codecHalSettings->chromaFormat    = HCP_CHROMA_FORMAT_YUV420;
-    codecHalSettings->lumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_8_BITS;
-    if (m_is10Bit)
+
+    if(m_encodeCtx->vaProfile==VAProfileHEVCMain)
     {
-        codecHalSettings->lumaChromaDepth |= CODECHAL_LUMA_CHROMA_DEPTH_10_BITS;
+       codecHalSettings->chromaFormat    = HCP_CHROMA_FORMAT_YUV420;
+       codecHalSettings->lumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_8_BITS;
+    }
+    else if(m_encodeCtx->vaProfile==VAProfileHEVCMain10)
+    {
+       codecHalSettings->chromaFormat    = HCP_CHROMA_FORMAT_YUV420;
+       codecHalSettings->lumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_10_BITS;
+    }
+    else if(m_encodeCtx->vaProfile == VAProfileHEVCMain12)
+    {
+       codecHalSettings->chromaFormat    = HCP_CHROMA_FORMAT_YUV420;
+       codecHalSettings->lumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_12_BITS;
+    }
+    else if(m_encodeCtx->vaProfile == VAProfileHEVCMain422_10)
+    {
+        codecHalSettings->chromaFormat    = HCP_CHROMA_FORMAT_YUV422;
+        codecHalSettings->lumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_10_BITS;
+    }    
+    else if(m_encodeCtx->vaProfile == VAProfileHEVCMain422_12)
+    {
+        codecHalSettings->chromaFormat    = HCP_CHROMA_FORMAT_YUV422;
+        codecHalSettings->lumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_12_BITS;
     }
 
     VAStatus eStatus = VA_STATUS_SUCCESS;
@@ -264,22 +285,6 @@ VAStatus DdiEncodeHevc::EncodeInCodecHal(uint32_t numSlices)
     MOS_SURFACE rawSurface;
     MOS_ZeroMemory(&rawSurface, sizeof(rawSurface));
     rawSurface.dwOffset = 0;
-    if (m_encodeCtx->vaProfile == VAProfileHEVCMain10)
-    {
-        rawSurface.Format = Format_P010;
-    }
-    else if (m_encodeCtx->vaProfile == VAProfileHEVCMain444)
-    {
-        rawSurface.Format = Format_AYUV;
-    }
-    else if (m_encodeCtx->vaProfile == VAProfileHEVCMain444_10)
-    {
-        rawSurface.Format = Format_Y410;
-    }
-    else  //VAProfileHEVCMain
-    {
-        rawSurface.Format = Format_NV12;
-    }
 
     DdiMedia_MediaSurfaceToMosResource(rtTbl->pCurrentRT, &(rawSurface.OsResource));
 
@@ -287,22 +292,6 @@ VAStatus DdiEncodeHevc::EncodeInCodecHal(uint32_t numSlices)
     MOS_SURFACE reconSurface;
     MOS_ZeroMemory(&reconSurface, sizeof(reconSurface));
     reconSurface.dwOffset = 0;
-    if (m_encodeCtx->vaProfile == VAProfileHEVCMain10)
-    {
-        reconSurface.Format = Format_P010;
-    }
-    else if (m_encodeCtx->vaProfile == VAProfileHEVCMain444)
-    {
-        reconSurface.Format = Format_AYUV;
-    }
-    else if (m_encodeCtx->vaProfile == VAProfileHEVCMain444_10)
-    {
-        reconSurface.Format = Format_Y410;
-    }
-    else  //VAProfileHEVCMain
-    {
-        reconSurface.Format = Format_NV12;
-    }
 
     DdiMedia_MediaSurfaceToMosResource(rtTbl->pCurrentReconTarget, &(reconSurface.OsResource));
 
