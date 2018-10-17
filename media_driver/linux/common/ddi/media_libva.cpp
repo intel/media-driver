@@ -1950,8 +1950,17 @@ DdiMedia_CreateSurfaces2(
         case VA_RT_FORMAT_YUV420:
             expected_fourcc = VA_FOURCC_NV12;
             break;
+        case VA_RT_FORMAT_YUV420_12:
+            expected_fourcc = VA_FOURCC_P016;
+            break;
         case VA_RT_FORMAT_YUV422:
-            expected_fourcc = VA_FOURCC_422H;
+            expected_fourcc = VA_FOURCC_YUY2;
+            break;
+        case VA_RT_FORMAT_YUV422_10:
+            expected_fourcc = VA_FOURCC_Y210;
+            break;
+        case VA_RT_FORMAT_YUV422_12:
+            expected_fourcc = VA_FOURCC_Y216;
             break;
         case VA_RT_FORMAT_YUV444:
             expected_fourcc = VA_FOURCC_444P;
