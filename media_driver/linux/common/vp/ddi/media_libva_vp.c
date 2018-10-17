@@ -1957,6 +1957,7 @@ DdiVp_SetProcFilterDinterlaceParams(
             pSrc->bFieldWeaving = true;;
             return VA_STATUS_SUCCESS;
         case VAProcDeinterlacingNone:
+            return VA_STATUS_SUCCESS;
         case VAProcDeinterlacingMotionCompensated:
         default:
             VP_DDI_ASSERTMESSAGE("Deinterlacing type is unsupported.");
