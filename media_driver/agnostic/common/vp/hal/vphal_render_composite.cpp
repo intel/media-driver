@@ -5951,8 +5951,6 @@ MOS_STATUS CompositeState::RenderPhase(
     VPHAL_DBG_STATE_DUMPPER_DUMP_SSH(pRenderHal);
     VPHAL_DBG_STATE_DUMPPER_DUMP_BATCH_BUFFER(pRenderHal, pBatchBuffer);
 
-    // Just set the last cmdbuffer submission's frametrack as true to aviod the KMD return multi event for one VPBLIT.
-    pOsInterface->bEnableKmdMediaFrameTracking = m_bLastPhase ? true : false;
     VPHAL_RENDER_CHK_STATUS(VpHal_RndrSubmitCommands(
         pRenderHal,
         pBatchBuffer,
