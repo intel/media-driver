@@ -472,10 +472,10 @@ public:
 
         // DWORD 8
         uint32_t   DW8_BRCFlag : MOS_BITFIELD_RANGE(0, 15);
-        uint32_t   DW8_BRC_Param_A : MOS_BITFIELD_RANGE(16, 31);
+        uint32_t   DW8_BRCGopP : MOS_BITFIELD_RANGE(16, 31);
 
         // DWORD 9
-        uint32_t   DW9_BRC_Param_B : MOS_BITFIELD_RANGE(0, 15);
+        uint32_t   DW9_BRCGopB : MOS_BITFIELD_RANGE(0, 15);
         uint32_t   DW9_FrameWidth : MOS_BITFIELD_RANGE(16, 31);
 
         // DWORD 10
@@ -492,10 +492,10 @@ public:
 
         // DWORD 13
         uint32_t   DW13_Reserved_0 : MOS_BITFIELD_RANGE(0, 15);
-        uint32_t   DW13_BRC_Param_C : MOS_BITFIELD_RANGE(16, 31);
+        uint32_t   DW13_BRCGopB1 : MOS_BITFIELD_RANGE(16, 31);
 
         // DWORD 14
-        uint32_t   DW14_BRC_Param_D : MOS_BITFIELD_RANGE(0, 15);
+        uint32_t   DW14_BRCGopB2 : MOS_BITFIELD_RANGE(0, 15);
         uint32_t   DW14_MaxBRCLevel : MOS_BITFIELD_RANGE(16, 31);
 
         // DWORD 15

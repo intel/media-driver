@@ -3758,10 +3758,10 @@ MOS_STATUS CodechalEncHevcStateG11::SetCurbeBrcInitReset(
     // BPyramid GOP
     if (m_hevcSeqParams->NumOfBInGop[1] != 0 || m_hevcSeqParams->NumOfBInGop[2] != 0)
     {
-        curbe.DW8_BRC_Param_A  = ((m_hevcSeqParams->GopPicSize) / m_hevcSeqParams->GopRefDist);
-        curbe.DW9_BRC_Param_B = curbe.DW8_BRC_Param_A;
-        curbe.DW13_BRC_Param_C = curbe.DW8_BRC_Param_A * 2;
-        curbe.DW14_BRC_Param_D = ((m_hevcSeqParams->GopPicSize) - (curbe.DW8_BRC_Param_A) - (curbe.DW13_BRC_Param_C) - (curbe.DW9_BRC_Param_B));
+        curbe.DW8_BRCGopP      = ((m_hevcSeqParams->GopPicSize) / m_hevcSeqParams->GopRefDist);
+        curbe.DW9_BRCGopB      = curbe.DW8_BRCGopP;
+        curbe.DW13_BRCGopB1    = curbe.DW8_BRCGopP * 2;
+        curbe.DW14_BRCGopB2    = ((m_hevcSeqParams->GopPicSize) - (curbe.DW8_BRCGopP) - (curbe.DW13_BRCGopB1) - (curbe.DW9_BRCGopB));
         // B1 Level GOP
         if (m_hevcSeqParams->NumOfBInGop[2] == 0)
         {
@@ -3777,8 +3777,8 @@ MOS_STATUS CodechalEncHevcStateG11::SetCurbeBrcInitReset(
     else
     {
         curbe.DW14_MaxBRCLevel = 1;
-        curbe.DW8_BRC_Param_A  = (m_hevcSeqParams->GopRefDist) ? ((m_hevcSeqParams->GopPicSize - 1) / m_hevcSeqParams->GopRefDist) : 0;
-        curbe.DW9_BRC_Param_B  = m_hevcSeqParams->GopPicSize - 1 - curbe.DW8_BRC_Param_A;
+        curbe.DW8_BRCGopP      = (m_hevcSeqParams->GopRefDist) ? ((m_hevcSeqParams->GopPicSize - 1) / m_hevcSeqParams->GopRefDist) : 0;
+        curbe.DW9_BRCGopB      = m_hevcSeqParams->GopPicSize - 1 - curbe.DW8_BRCGopP;
     }
 
     // Set dynamic thresholds
@@ -3852,6 +3852,8 @@ MOS_STATUS CodechalEncHevcStateG11::SetCurbeBrcInitReset(
     curbe.DW24_DeviationThreshold5_Iframe = (uint32_t)(50 * pow(0.4, bpsRatio));
     curbe.DW24_DeviationThreshold6_Iframe = (uint32_t)(50 * pow(0.66, bpsRatio));
     curbe.DW24_DeviationThreshold7_Iframe = (uint32_t)(50 * pow(0.9, bpsRatio));
+
+    curbe.DW26_RandomAccess = !m_lowDelay;
 
     if (m_brcInit)
     {
