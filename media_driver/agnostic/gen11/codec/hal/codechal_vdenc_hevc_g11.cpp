@@ -1759,7 +1759,7 @@ MOS_STATUS CodechalVdencHevcStateG11::ReadSliceSize(PMOS_COMMAND_BUFFER cmdBuffe
         return eStatus;
     }
 
-    uint32_t sizeOfSliceSizesBuffer = MOS_ALIGN_CEIL(CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6 * CODECHAL_CACHELINE_SIZE, CODECHAL_PAGE_SIZE);
+    uint32_t sizeOfSliceSizesBuffer = MOS_ALIGN_CEIL(m_numLcu * CODECHAL_CACHELINE_SIZE, CODECHAL_PAGE_SIZE);
 
     if (IsFirstPipe())
     {
@@ -4455,8 +4455,8 @@ MOS_STATUS CodechalVdencHevcStateG11::Initialize(CodechalSetting * settings)
     // we need additional buffer for (1) 1 CL for size info at the beginning of each tile column (max of 4 vdbox in scalability mode)
     // (2) CL alignment at end of every tile column
     // as a result, increase the height by 1 for allocation purposes
-    uint32_t numOfLCU = MOS_ROUNDUP_DIVIDE(m_frameWidth, MAX_LCU_SIZE) * (MOS_ROUNDUP_DIVIDE(m_frameHeight, MAX_LCU_SIZE) + 1);
-    m_mbCodeSize = MOS_ALIGN_CEIL(2 * sizeof(uint32_t) * (numOfLCU * 5 + numOfLCU * 64 * 8), CODECHAL_PAGE_SIZE);
+    m_numLcu = MOS_ROUNDUP_DIVIDE(m_frameWidth, MAX_LCU_SIZE) * (MOS_ROUNDUP_DIVIDE(m_frameHeight, MAX_LCU_SIZE) + 1);
+    m_mbCodeSize = MOS_ALIGN_CEIL(2 * sizeof(uint32_t) * (m_numLcu * 5 + m_numLcu * 64 * 8), CODECHAL_PAGE_SIZE);
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(GetSystemPipeNumberCommon());
 
@@ -5412,7 +5412,7 @@ MOS_STATUS CodechalVdencHevcStateG11::AllocateTileStatistics()
     m_hevcFrameStatsOffset.uiHevcSliceStreamout = MOS_ALIGN_CEIL(m_hevcFrameStatsOffset.uiVdencStatistics + m_hevcStatsSize.uiVdencStatistics, CODECHAL_PAGE_SIZE);
 
     // Frame level statistics
-    m_hwInterface->m_pakIntAggregatedFrameStatsSize = MOS_ALIGN_CEIL(m_hevcFrameStatsOffset.uiHevcSliceStreamout + (m_hevcStatsSize.uiHevcSliceStreamout * CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6), CODECHAL_PAGE_SIZE);
+    m_hwInterface->m_pakIntAggregatedFrameStatsSize = MOS_ALIGN_CEIL(m_hevcFrameStatsOffset.uiHevcSliceStreamout + (m_hevcStatsSize.uiHevcSliceStreamout * m_numLcu), CODECHAL_PAGE_SIZE);
 
     // HEVC Frame Statistics Buffer - Output from HuC PAK Integration kernel
     if (Mos_ResourceIsNull(&m_resHuCPakAggregatedFrameStatsBuffer.sResource))
@@ -5448,7 +5448,7 @@ MOS_STATUS CodechalVdencHevcStateG11::AllocateTileStatistics()
     m_hevcTileStatsOffset.uiVdencStatistics    = MOS_ALIGN_CEIL(m_hevcTileStatsOffset.uiHevcPakStatistics + (m_hevcStatsSize.uiHevcPakStatistics * num_tiles), CODECHAL_PAGE_SIZE);
     m_hevcTileStatsOffset.uiHevcSliceStreamout = MOS_ALIGN_CEIL(m_hevcTileStatsOffset.uiVdencStatistics + (m_hevcStatsSize.uiVdencStatistics * num_tiles), CODECHAL_PAGE_SIZE);
     // Combined statistics size for all tiles
-    m_hwInterface->m_pakIntTileStatsSize = MOS_ALIGN_CEIL(m_hevcTileStatsOffset.uiHevcSliceStreamout + m_hevcStatsSize.uiHevcSliceStreamout * CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6, CODECHAL_PAGE_SIZE);
+    m_hwInterface->m_pakIntTileStatsSize = MOS_ALIGN_CEIL(m_hevcTileStatsOffset.uiHevcSliceStreamout + m_hevcStatsSize.uiHevcSliceStreamout * m_numLcu, CODECHAL_PAGE_SIZE);
 
     // Tile size record size for all tiles
     m_hwInterface->m_tileRecordSize = m_hevcStatsSize.uiTileSizeRecord * num_tiles;
@@ -6009,8 +6009,7 @@ MOS_STATUS CodechalVdencHevcStateG11::DumpVdencOutputs()
         {
             PMOS_RESOURCE presLcuBaseAddressBuffer = &m_resTileBasedStatisticsBuffer[m_virtualEngineBbIndex].sResource;
             auto          sliceStreamoutOffset     = m_hevcTileStatsOffset.uiHevcSliceStreamout;
-            // maximum number of dynamic slice = 600
-            uint32_t size = CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6*CODECHAL_CACHELINE_SIZE;
+            uint32_t size = m_numLcu * CODECHAL_CACHELINE_SIZE;
             // Slice Size StreamOut Surface
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
                 presLcuBaseAddressBuffer,

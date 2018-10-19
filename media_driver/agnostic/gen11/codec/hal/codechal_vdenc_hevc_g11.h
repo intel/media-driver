@@ -366,6 +366,7 @@ public:
     CODECHAL_ENCODE_BUFFER                m_resPakSliceLevelStreamoutData;  //!< Surface for slice level stream out data from PAK
     CODECHAL_HEVC_VIRTUAL_ENGINE_OVERRIDE m_kmdVeOveride;                   //!< KMD override virtual engine index
     uint32_t                              m_numTiles = 1;                   //!< Number of tiles
+    uint32_t                              m_numLcu = 1;                     //!< LCU number
     CODECHAL_ENCODE_BUFFER                m_resHcpScalabilitySyncBuffer;    //!< Hcp sync buffer for scalability
     CODECHAL_ENCODE_BUFFER                m_resTileBasedStatisticsBuffer[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC];
     CODECHAL_ENCODE_BUFFER                m_resHuCPakAggregatedFrameStatsBuffer;
