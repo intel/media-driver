@@ -1721,6 +1721,14 @@ typedef struct _CM_HAL_STATE
     (   PCM_HAL_STATE               state,
         PCM_HAL_SURFACE2D_PARAM     param);
 
+    MOS_STATUS (*pfnUpdateSurface2D)
+    (   PCM_HAL_STATE                state,
+        PCM_HAL_SURFACE2D_PARAM      param);
+
+    MOS_STATUS (*pfnUpdateBuffer)
+    (   PCM_HAL_STATE           state,
+        PCM_HAL_BUFFER_PARAM    param);
+
     MOS_STATUS (*pfnFreeSurface2D)
     (   PCM_HAL_STATE               state,
         uint32_t                    handle);

@@ -531,4 +531,22 @@ void CmBuffer_RT::DumpContent(uint32_t kernelNumber, char *kernelName, int32_t t
     bufferDumpNumber++;
 #endif
 }
+
+int32_t CmBuffer_RT::UpdateResource(MOS_RESOURCE *resource)
+{
+    // get index
+    int index = m_index->get_data();
+    return m_surfaceMgr->UpdateBuffer(resource, index, m_handle);
+}
+
+int32_t CmBuffer_RT::UpdateProperty(uint32_t size)
+{
+    if( ( size < CM_MIN_SURF_WIDTH ) || ( size > CM_MAX_1D_SURF_WIDTH ) )
+    {
+        CM_ASSERTMESSAGE("Error: Invalid buffer size.");
+        return CM_INVALID_WIDTH;
+    }
+    m_size = size;
+    return CM_SUCCESS;
+}
 }

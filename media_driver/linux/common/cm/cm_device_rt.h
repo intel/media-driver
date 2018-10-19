@@ -271,6 +271,12 @@ public:
                   CM_QUEUE_CREATE_OPTION QueueCreateOption
                       = CM_DEFAULT_QUEUE_CREATE_OPTION);
 
+    CM_RT_API int32_t UpdateBuffer(PMOS_RESOURCE mosResource,
+                                           CmBuffer* &surface);
+
+    CM_RT_API int32_t UpdateSurface2D(PMOS_RESOURCE mosResource,
+                                              CmSurface2D* &surface);
+
     void* GetAccelData() { return m_accelData; }
 
     MOS_CONTEXT* GetUMDCtx() { return m_mosContext; }

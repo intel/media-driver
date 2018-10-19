@@ -1296,4 +1296,27 @@ CM_RT_API int32_t CmSurface2DRT::SetProperty(CM_FRAME_TYPE frameType)
     m_surfaceMgr->UpdateSurface2DTableFrameType(m_handle, frameType);
     return CM_SUCCESS;
 }
+
+int32_t CmSurface2DRT::UpdateResource(MOS_RESOURCE *resource)
+{
+    // get index
+    int index = m_index->get_data();
+    return m_surfaceMgr->UpdateSurface2D(resource, index, m_handle);
+}
+
+int32_t CmSurface2DRT::UpdateSurfaceProperty(uint32_t width, uint32_t height, uint32_t pitch, CM_SURFACE_FORMAT format)
+{
+    int result = m_surfaceMgr->Surface2DSanityCheck(width, height, format);
+    if( result != CM_SUCCESS )
+    {
+        CM_ASSERTMESSAGE("Error: Surface 2D sanity check failure.");
+        return result;
+    }
+    m_width = width;
+    m_height = height;
+    m_pitch = pitch;
+    m_format = format;
+    return CM_SUCCESS;
+}
+
 }
