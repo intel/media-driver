@@ -3750,4 +3750,33 @@ int32_t CmDeviceRT::GetVISAVersion(uint32_t& majorVersion,
 
     return CM_SUCCESS;
 }
+
+CM_RT_API int32_t CmDeviceRT::UpdateBuffer(PMOS_RESOURCE mosResource,
+                                           CmBuffer* &surface)
+{
+    if (surface)
+    {
+        CmBuffer_RT *bufferRT = static_cast<CmBuffer_RT *>(surface);
+        return bufferRT->UpdateResource(mosResource);
+    }
+    else
+    {
+        return CreateBuffer(mosResource, surface);
+    }
+}
+
+CM_RT_API int32_t CmDeviceRT::UpdateSurface2D(PMOS_RESOURCE mosResource,
+                                          CmSurface2D* &surface)
+{
+    if (surface)
+    {
+        CmSurface2DRT *surfaceRT = static_cast<CmSurface2DRT *>(surface);
+        return surfaceRT->UpdateResource(mosResource);
+    }
+    else
+    {
+        return CreateSurface2D(mosResource, surface);
+    }
+}
+
 }  // namespace

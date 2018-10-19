@@ -2501,4 +2501,38 @@ bool CMRT_UMD::CmSurfaceManager::IsSupportedForSamplerSurface2D(CM_SURFACE_FORMA
             return false;
     }
 }
+
+int32_t CmSurfaceManager::UpdateBuffer(MOS_RESOURCE * mosResource, int index, uint32_t handle)
+{
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
+    PCM_HAL_STATE state = cmData->cmHalState;
+
+    MOS_SURFACE mosSurfDetails;
+    MOS_ZeroMemory(&mosSurfDetails, sizeof(mosSurfDetails));
+    int hr = state->osInterface->pfnGetResourceInfo(state->osInterface, mosResource, &mosSurfDetails);
+    if(hr != MOS_STATUS_SUCCESS)
+    {
+        CM_ASSERTMESSAGE("Error: Get resource info failure.");
+        return hr;
+    }
+
+    uint32_t size = mosSurfDetails.dwWidth;
+
+    CM_HAL_BUFFER_PARAM inParam;
+    CmSafeMemSet( &inParam, 0, sizeof( CM_HAL_BUFFER_PARAM ) );
+    inParam.size = size;
+    inParam.handle = handle;
+
+    inParam.type = CM_BUFFER_N;
+    inParam.mosResource = mosResource;
+    inParam.isAllocatedbyCmrtUmd = false;
+
+    state->pfnUpdateBuffer(state, &inParam);
+
+    CmBuffer_RT *buffer = static_cast<CmBuffer_RT*>(m_surfaceArray[index]);
+    int ret = buffer->UpdateProperty(size);
+
+    return ret;
+}
+
 }

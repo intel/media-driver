@@ -58,12 +58,14 @@ public:
 
     int32_t CreateBuffer(uint32_t size, CM_BUFFER_TYPE type, bool svmAllocatedByCm, CmBuffer_RT* &buffer, MOS_RESOURCE *mosResource, void* &sysMem, bool isConditionalBuffer, uint32_t comparisonValue );
     int32_t DestroySurface( CmBuffer_RT* &buffer, SURFACE_DESTROY_KIND destroyKind);
+    int32_t UpdateBuffer(MOS_RESOURCE * mosResource, int index, uint32_t handle);
 
     int32_t CreateSurface2DUP(uint32_t width, uint32_t height, CM_SURFACE_FORMAT format, void* sysMem, CmSurface2DUPRT* &surface);
     int32_t DestroySurface( CmSurface2DUPRT* &surface2dUP,  SURFACE_DESTROY_KIND destroyKind);
 
     int32_t CreateSurface2D(uint32_t width, uint32_t height, uint32_t pitch, bool createdByCm, CM_SURFACE_FORMAT format, CmSurface2DRT* &surface);
     int32_t CreateSurface2D(MOS_RESOURCE * mosResource, bool createdByCm, CmSurface2DRT* &surface);
+    int32_t UpdateSurface2D(MOS_RESOURCE * mosResource, int index, uint32_t handle);
 
     int32_t DestroySurface( CmSurface2DRT* &surface2d, SURFACE_DESTROY_KIND destroyKind);
     int32_t CreateSurface3D(uint32_t width, uint32_t height, uint32_t depth, CM_SURFACE_FORMAT format, CmSurface3DRT* &surface);

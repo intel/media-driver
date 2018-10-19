@@ -9504,6 +9504,101 @@ finish:
 }
 
 //*-----------------------------------------------------------------------------
+//| Purpose:    Allocate surface 2D
+//| Returns:    Result of the operation.
+//*-----------------------------------------------------------------------------
+MOS_STATUS HalCm_UpdateSurface2D(
+    PCM_HAL_STATE                state,                                             // [in]  Pointer to CM State
+    PCM_HAL_SURFACE2D_PARAM      param)                                             // [in]  Pointer to surface 2D Param
+{
+    MOS_STATUS              hr;
+    PMOS_INTERFACE          osInterface;
+    PCM_HAL_SURFACE2D_ENTRY entry = nullptr;
+    MOS_ALLOC_GFXRES_PARAMS allocParams;
+    uint32_t                i = param->handle;
+
+    //-----------------------------------------------
+    CM_ASSERT(param->width > 0);
+    //-----------------------------------------------
+
+    hr              = MOS_STATUS_SUCCESS;
+    osInterface    = state->osInterface;
+
+    entry = &state->umdSurf2DTable[i];
+
+    HalCm_OsResource_Unreference(&entry->osResource);
+
+    entry->width  = param->width;
+    entry->height = param->height;
+    entry->format  = param->format;
+    entry->isAllocatedbyCmrtUmd = false;
+    entry->osResource = *param->mosResource;
+
+    HalCm_OsResource_Reference(&entry->osResource);
+
+    if (state->advExecutor)
+    {
+        state->advExecutor->Delete2DStateMgr(entry->surfStateMgr);
+        entry->surfStateMgr = state->advExecutor->Create2DStateMgr(&entry->osResource);
+    }
+    
+    for (int i = 0; i < CM_HAL_GPU_CONTEXT_COUNT; i++)
+    {
+        entry->readSyncs[i] = false;
+    }
+
+    return hr;
+}
+
+//*-----------------------------------------------------------------------------
+//| Purpose:    Allocate Linear Buffer or BufferUP
+//| Returns:    Result of the operation.
+//*-----------------------------------------------------------------------------
+MOS_STATUS HalCm_UpdateBuffer(
+    PCM_HAL_STATE           state,                                             // [in]  Pointer to CM State
+    PCM_HAL_BUFFER_PARAM    param)                                             // [in]  Pointer to Buffer Param
+{
+    MOS_STATUS              hr;
+    PMOS_INTERFACE          osInterface;
+    PCM_HAL_BUFFER_ENTRY    entry = nullptr;
+    MOS_ALLOC_GFXRES_PARAMS allocParams;
+    uint32_t                i = param->handle;
+    uint32_t                size;
+    const char              *fmt;
+    PMOS_RESOURCE           osResource;
+
+    size  = param->size;
+
+    //-----------------------------------------------
+    CM_ASSERT(param->size > 0);
+    //-----------------------------------------------
+
+    hr              = MOS_STATUS_SUCCESS;
+    osInterface    = state->renderHal->pOsInterface;
+
+    entry              = &state->bufferTable[i];
+
+    HalCm_OsResource_Unreference(&entry->osResource);
+    entry->osResource = *param->mosResource;
+    HalCm_OsResource_Reference(&entry->osResource);
+
+    entry->size = param->size;
+    entry->isAllocatedbyCmrtUmd = false;
+    entry->surfaceStateEntry[0].surfaceStateSize = entry->size;
+    entry->surfaceStateEntry[0].surfaceStateOffset = 0;
+    entry->surfaceStateEntry[0].surfaceStateMOCS = 0;
+
+    if (state->advExecutor)
+    {
+        state->advExecutor->DeleteBufferStateMgr(entry->surfStateMgr);
+        entry->surfStateMgr = state->advExecutor->CreateBufferStateMgr(&entry->osResource);
+        state->advExecutor->SetBufferOrigSize(entry->surfStateMgr, entry->size);
+    }
+    
+    return hr;
+}
+
+//*-----------------------------------------------------------------------------
 //| Purpose:    Frees the surface 2D and removes from the table
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
@@ -9520,6 +9615,11 @@ MOS_STATUS HalCm_FreeSurface2D(
 
     // Get the Buffer Entry
     CM_CHK_MOSSTATUS(HalCm_GetSurface2DEntry(state, handle, &entry));
+    if (state->advExecutor)
+    {
+        state->advExecutor->Delete2DStateMgr(entry->surfStateMgr);
+    }
+    
     if(entry->isAllocatedbyCmrtUmd)
     {
         osInterface->pfnFreeResourceWithFlag(osInterface, &entry->osResource, SURFACE_FLAG_ASSUME_NOT_IN_USE);
@@ -9534,11 +9634,6 @@ MOS_STATUS HalCm_FreeSurface2D(
     entry->width = 0;
     entry->height = 0;
     entry->frameType = CM_FRAME;
-
-    if (state->advExecutor)
-    {
-        state->advExecutor->Delete2DStateMgr(entry->surfStateMgr);
-    }
 
     for (int i = 0; i < CM_HAL_GPU_CONTEXT_COUNT; i++)
     {
@@ -10328,6 +10423,9 @@ MOS_STATUS HalCm_Create(
     state->pfnGetStateBufferTypeForKernel = HalCm_GetStateBufferTypeForKernel;
     state->pfnCreateGPUContext            = HalCm_CreateGPUContext;
     state->pfnDSHUnregisterKernel         = HalCm_DSH_UnregisterKernel;
+
+    state->pfnUpdateBuffer                = HalCm_UpdateBuffer;
+    state->pfnUpdateSurface2D             = HalCm_UpdateSurface2D;
 
     //==========<Initialize 5 OS-dependent DDI functions: pfnAllocate3DResource, pfnAllocateSurface2DUP====
     //                 pfnAllocateBuffer,pfnRegisterKMDNotifyEventHandle, pfnGetSurface2DPitchAndSize >====
