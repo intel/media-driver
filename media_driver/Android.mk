@@ -556,7 +556,17 @@ LOCAL_CPPFLAGS = \
     -D__VPHAL_SFC_SUPPORTED=1 \
     -DiHD_drv_video_EXPORTS \
     -D_RELEASE \
-	-Wno-error
+    -Wno-error \
+    -Wno-unused-parameter \
+    -Wno-reorder \
+    -Wno-missing-field-initializers \
+    -Wno-overloaded-virtual \
+    -Wno-missing-braces \
+    -Wno-sign-compare \
+    -Wno-ignored-qualifiers \
+    -Wno-logical-op-parentheses \
+    -Wno-parentheses \
+    -Wno-bitfield-constant-conversion \
 
 
 LOCAL_CONLYFLAGS = -x c++
