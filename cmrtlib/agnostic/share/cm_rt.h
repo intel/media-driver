@@ -1161,6 +1161,19 @@ struct _CM_TASK_CONFIG {
     uint32_t reserved1;
     uint32_t reserved2;
 };
+
+typedef enum _CM_KERNEL_EXEC_MODE{
+    CM_KERNEL_EXECUTION_CONCURRENT,  /*Kernel can occupy part of DSS  and concurrently execute together with other workloads */
+    CM_KERNEL_EXECUTION_MONOPOLIZED, /*Kernel need occupy all DSS for execution */
+} CM_KERNEL_EXEC_MODE;
+
+typedef struct _CM_EXECUTION_CONFIG
+{
+    CM_KERNEL_EXEC_MODE kernelExecutionMode;  //0-Monopolized mode, 1-Concurrent mode. Default mode is Monopolized.
+    int                 concurrentPolicy;     /*Reserve for future extension, how we split all DSS for concurrent execution,
+                             for now, it's not necessary because only half-half splits is supported*/
+} CM_EXECUTION_CONFIG;
+
 #define CM_TASK_CONFIG _CM_TASK_CONFIG
 
 // parameters used to set the surface state of the buffer
@@ -1300,7 +1313,8 @@ public:
     CM_RT_API virtual INT AddSync(void) = 0;
     CM_RT_API virtual INT SetPowerOption( PCM_POWER_OPTION pCmPowerOption ) = 0;
     CM_RT_API virtual INT AddConditionalEnd(SurfaceIndex* pSurface, UINT offset, CM_CONDITIONAL_END_PARAM *pCondParam) = 0;
-    CM_RT_API virtual INT SetProperty(const CM_TASK_CONFIG &taskConfig) = 0; 
+    CM_RT_API virtual INT SetProperty(const CM_TASK_CONFIG &taskConfig) = 0;
+    CM_RT_API virtual INT AddKernelWithConfig( CmKernel *pKernel, const CM_EXECUTION_CONFIG *config ) = 0;
 protected:
    ~CmTask(){};
 }; 
