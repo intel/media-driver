@@ -1690,16 +1690,8 @@ MOS_STATUS MhwVdboxMfxInterfaceG10::AddMfdAvcSliceAddrCmd(
 
     mhw_vdbox_mfx_g10_X::MFD_AVC_SLICEADDR_CMD cmd;
 
-    if (avcSliceState->bFullFrameData)
-    {
-        cmd.DW1.IndirectBsdDataLength       = avcSliceState->dwNextLength;
-        cmd.DW2.IndirectBsdDataStartAddress = avcSliceState->dwNextOffset;
-    }
-    else
-    {
-        cmd.DW1.IndirectBsdDataLength       = (avcSliceState->dwNextLength + 1 - m_osInterface->dwNumNalUnitBytesIncluded);
-        cmd.DW2.IndirectBsdDataStartAddress = (avcSliceState->dwNextOffset - 1 + m_osInterface->dwNumNalUnitBytesIncluded);
-    }
+    cmd.DW1.IndirectBsdDataLength = (avcSliceState->dwNextLength + 1 - m_osInterface->dwNumNalUnitBytesIncluded);
+    cmd.DW2.IndirectBsdDataStartAddress = (avcSliceState->dwNextOffset - 1 + m_osInterface->dwNumNalUnitBytesIncluded);
 
     MHW_CP_SLICE_INFO_PARAMS sliceInfoParam;
     sliceInfoParam.presDataBuffer = avcSliceState->presDataBuffer;
@@ -1743,17 +1735,9 @@ MOS_STATUS MhwVdboxMfxInterfaceG10::AddMfdAvcBsdObjectCmd(
 
     if (avcSliceState->bShortFormatInUse)
     {
-        if (avcSliceState->bFullFrameData)
-        {
-            cmd.DW1.IndirectBsdDataLength = avcSliceState->dwLength;
-            cmd.DW2.IndirectBsdDataStartAddress = sliceParams->slice_data_offset;
-        }
-        else
-        {
-            cmd.DW1.IndirectBsdDataLength = avcSliceState->dwLength + 1 - m_osInterface->dwNumNalUnitBytesIncluded;
-            cmd.DW2.IndirectBsdDataStartAddress =
-                sliceParams->slice_data_offset - 1 + m_osInterface->dwNumNalUnitBytesIncluded;
-        }
+        cmd.DW1.IndirectBsdDataLength = avcSliceState->dwLength + 1 - m_osInterface->dwNumNalUnitBytesIncluded;
+        cmd.DW2.IndirectBsdDataStartAddress =
+            sliceParams->slice_data_offset - 1 + m_osInterface->dwNumNalUnitBytesIncluded;
         cmd.DW4.FirstMbByteOffsetOfSliceDataOrSliceHeader = 0;
     }
     else
