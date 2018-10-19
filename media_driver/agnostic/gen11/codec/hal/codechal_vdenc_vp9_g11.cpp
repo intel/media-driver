@@ -613,7 +613,8 @@ MOS_STATUS CodechalVdencVp9StateG11::SetupSegmentationStreamIn()
     if (GetResType(&m_mbSegmentMapSurface.OsResource) == MOS_GFXRES_BUFFER)
     {
         //application can send 1D or 2D buffer, based on that change the pitch to correctly access the map buffer
-        dwPitch = CODEC_VP9_SUPER_BLOCK_WIDTH;
+        //driver reads the seg ids from the buffer for each 16x16 block. Reads 4 values for each 32x32 block
+        dwPitch = MOS_ALIGN_CEIL(m_frameWidth, CODECHAL_MACROBLOCK_WIDTH) / CODECHAL_MACROBLOCK_WIDTH;
     }
     // set seg ID's of streamin states
     for (uint32_t i = 0 ; i < blockHeight * blockWidth ; ++i)
