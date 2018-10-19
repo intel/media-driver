@@ -148,8 +148,9 @@ MOS_STATUS CodechalEncHevcStateG9Skl::GetKernelHeaderAndSize(
             break;
 
         case CODECHAL_HEVC_MBENC_DS_COMBINED:
-            currKrnHeader = &kernelHeaderTable->Hevc_LCUEnc_DS_Combined;
-            break;
+            // Ignore this kernel on SKL.
+            *krnSize = 0;
+            return eStatus;
 
         case CODECHAL_HEVC_MBENC_PENC:
             currKrnHeader = &kernelHeaderTable->HEVC_LCUEnc_P_MB;

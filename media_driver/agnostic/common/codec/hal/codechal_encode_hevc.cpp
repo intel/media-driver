@@ -1428,6 +1428,8 @@ bool CodechalEncHevcState::CheckSupportedFormat(PMOS_SURFACE surface)
     case Format_NV12:
         isColorFormatSupported = IS_Y_MAJOR_TILE_FORMAT(surface->TileType);
         break;
+    case Format_P010:
+        isColorFormatSupported = true;
     case Format_YUY2:
     case Format_YUYV:
     case Format_A8R8G8B8:
