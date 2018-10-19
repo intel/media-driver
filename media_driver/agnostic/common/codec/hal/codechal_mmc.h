@@ -221,6 +221,17 @@ public:
     MOS_STATUS UpdateUserFeatureKey(PMOS_SURFACE surface);
 #endif
 
+    //!
+    //! \brief    Is extension MMC
+    //! \details  Report if is extension MMC
+    //!
+    //! \return   bool
+    //!
+    bool IsMmcExtensionEnabled()
+    {
+        return m_mmcExtensionEnabled;
+    }
+
 protected:
 
     static bool             m_mmcEnabled;                           //!< Indicate if media memory compression is enabled
@@ -234,6 +245,7 @@ protected:
     uint32_t                m_compressibleId  = 0;
     uint32_t                m_compressModeId  = 0;
 #endif
+    bool                    m_mmcExtensionEnabled = false;          //!< Indicate if extension MMC
 };
 
 #endif  // __CODECHAL_MMC_H__
