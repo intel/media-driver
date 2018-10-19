@@ -121,7 +121,15 @@ CM_RT_API int32_t CmBuffer_RT::WriteSurface( const unsigned char* sysMem, CmEven
     // Update: using event not to flush the whole enqueued tasks
     if( event )
     {
-        FlushDeviceQueue( static_cast<CmEventRT*>(event) ); // wait specific owner task finished
+        CmEventRT *eventRT = dynamic_cast<CmEventRT *>(event);
+        if (eventRT)
+        {
+            FlushDeviceQueue(eventRT);
+        }
+        else
+        {
+            event->WaitForTaskFinished();
+        }
     }
 
     WaitForReferenceFree(); // wait all owner task finished
@@ -184,7 +192,15 @@ CM_RT_API int32_t CmBuffer_RT::ReadSurface( unsigned char* sysMem, CmEvent* even
     // Update: using event not to flush the whole enqueued tasks
     if( event )
     {
-        FlushDeviceQueue( static_cast<CmEventRT *>(event) ); // wait specific owner task finished
+        CmEventRT *eventRT = dynamic_cast<CmEventRT *>(event);
+        if (eventRT)
+        {
+            FlushDeviceQueue(eventRT);
+        }
+        else
+        {
+            event->WaitForTaskFinished();
+        }
     }
 
     WaitForReferenceFree();    // wait all owner task finished
@@ -235,7 +251,15 @@ CM_RT_API int32_t CmBuffer_RT::InitSurface(const uint32_t initValue, CmEvent* ev
     // Update: using event not to flush the whole enqueued tasks
     if( event )
     {
-        FlushDeviceQueue( static_cast<CmEventRT *>(event) );
+        CmEventRT *eventRT = dynamic_cast<CmEventRT *>(event);
+        if (eventRT)
+        {
+            FlushDeviceQueue(eventRT);
+        }
+        else
+        {
+            event->WaitForTaskFinished();
+        }
     }
 
     CmDeviceRT* cmDevice = nullptr;

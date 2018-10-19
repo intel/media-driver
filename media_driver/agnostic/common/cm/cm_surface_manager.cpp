@@ -38,6 +38,7 @@
 #include "cm_surface_sampler.h"
 #include "cm_surface_sampler8x8.h"
 #include "cm_device_rt.h"
+#include "cm_execution_adv.h"
 
 namespace CMRT_UMD
 {
@@ -2258,6 +2259,10 @@ int32_t CmSurfaceManager::UpdateSurface2DTableFrameType(uint32_t index, CM_FRAME
     PCM_HAL_SURFACE2D_ENTRY entry = nullptr;
     entry = &state->umdSurf2DTable[index];
     entry->frameType = frameType;
+    if(state->advExecutor)
+    {
+        state->advExecutor->Set2DFrameType(entry->surfStateMgr, frameType);
+    }
 
     return CM_SUCCESS;
 }

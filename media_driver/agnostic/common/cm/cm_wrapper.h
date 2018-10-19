@@ -542,6 +542,8 @@ enum CM_FUNCTION_ID
     CM_FN_CMQUEUE_ENQUEUECOPY_L2L   = 0x1507,
     CM_FN_CMQUEUE_ENQUEUEVEBOX      = 0x1508,
     CM_FN_CMQUEUE_ENQUEUEWITHHINTS  = 0x1509,
+    CM_FN_CMQUEUE_ENQUEUEFAST       = 0x150a,
+    CM_FN_CMQUEUE_DESTROYEVENTFAST  = 0x150b,
 };
 
 //*-----------------------------------------------------------------------------

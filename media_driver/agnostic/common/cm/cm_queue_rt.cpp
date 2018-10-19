@@ -40,6 +40,7 @@
 #include "cm_surface_manager.h"
 #include "cm_surface_2d_rt.h"
 #include "cm_vebox_rt.h"
+#include "cm_execution_adv.h"
 
 // Used by GPUCopy
 #define BLOCK_PIXEL_WIDTH            (32)
@@ -3504,4 +3505,34 @@ int32_t CmQueueRT::AllocateGPUCopyKernel( uint32_t widthInByte, uint32_t height,
 finish:
     return hr;
 }
+
+CM_RT_API int32_t CmQueueRT::EnqueueFast(CmTask *task,
+                              CmEvent *&event,
+                              const CmThreadSpace *threadSpace)
+{
+    CM_HAL_STATE * state = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
+    if (state == nullptr || state->advExecutor == nullptr)
+    {
+        return CM_NULL_POINTER;
+    }
+    else
+    {
+        return state->advExecutor->SubmitTask(this, task, event, threadSpace, (MOS_GPU_CONTEXT)m_queueOption.GPUContext);
+    }
+}
+
+CM_RT_API int32_t CmQueueRT::DestroyEventFast(CmEvent *&event)
+{
+    CM_HAL_STATE * state = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
+    
+    if (state == nullptr || state->advExecutor == nullptr)
+    {
+        return CM_NULL_POINTER;
+    }
+    else
+    {
+        return state->advExecutor->DestoryEvent(this, event);
+    }
+}
+
 }

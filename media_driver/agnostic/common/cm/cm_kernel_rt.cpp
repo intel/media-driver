@@ -45,6 +45,7 @@
 #include "cm_sampler8x8_state_rt.h"
 #include "cm_visa.h"
 #include "cm_extension_creator.h"
+#include "cm_execution_adv.h"
 
 #define GENERATE_GLOBAL_SURFACE_INDEX
 
@@ -182,7 +183,17 @@ int32_t CmKernelRT::Create(CmDeviceRT *device,
                            const char *options)
 {
     int32_t result = CM_SUCCESS;
-    kernel = new (std::nothrow) CmKernelRT( device, program, kernelIndex, kernelSeqNum );
+    CM_HAL_STATE * state = ((PCM_CONTEXT_DATA)device->GetAccelData())->cmHalState;
+
+    if (state && state->advExecutor)
+    {
+        kernel = state->advExecutor->CreateKernelRT(device, program, kernelIndex, kernelSeqNum);
+    }
+    else
+    {
+        return CM_FAILURE;
+    }
+    
     if( kernel )
     {
         kernel->Acquire();

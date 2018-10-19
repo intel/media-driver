@@ -744,3 +744,64 @@ CM_QUEUE_CREATE_OPTION CmQueue_RT::GetQueueOption()
 {
     return m_queueOption;
 }
+
+CM_RT_API int32_t CmQueue_RT::EnqueueFast(CmTask *task,
+                              CmEvent *&event,
+                              const CmThreadSpace *threadSpace)
+{
+    INSERT_PROFILER_RECORD();
+    if (task == nullptr)
+    {
+        CmAssert(0);
+        CmDebugMessage(("Kernel array is NULL."));
+        return CM_INVALID_ARG_VALUE;
+    }
+    m_criticalSection.Acquire();
+
+    CM_ENQUEUE_PARAM inParam;
+    CmSafeMemSet(&inParam, 0, sizeof(inParam));
+    inParam.cmTaskHandle = task;
+    inParam.cmQueueHandle = m_cmQueueHandle;
+    inParam.cmThreadSpaceHandle = (void *)threadSpace;
+    inParam.cmEventHandle = event;  // to support invisiable event, this field is used for input/output.
+
+    int32_t hr = m_cmDev->OSALExtensionExecute(CM_FN_CMQUEUE_ENQUEUEFAST,
+                                                &inParam, sizeof(inParam));
+    if (FAILED(hr))
+    {
+        CmAssert(0);
+        m_criticalSection.Release();
+        return hr;
+    }
+    if (inParam.returnValue != CM_SUCCESS)
+    {
+        m_criticalSection.Release();
+        return inParam.returnValue;
+    }
+
+    event = static_cast<CmEvent *>(inParam.cmEventHandle);
+    m_criticalSection.Release();
+    return CM_SUCCESS;
+}
+
+CM_RT_API int32_t CmQueue_RT::DestroyEventFast(CmEvent *&event)
+{
+    INSERT_PROFILER_RECORD();
+    if (event == nullptr)
+    {
+        return CM_INVALID_ARG_VALUE;
+    }
+
+    CM_DESTROYEVENT_PARAM inParam;
+    CmSafeMemSet(&inParam, 0, sizeof(inParam));
+    inParam.cmQueueHandle = m_cmQueueHandle;
+    inParam.cmEventHandle = event;
+
+    int32_t hr = m_cmDev->OSALExtensionExecute(CM_FN_CMQUEUE_DESTROYEVENTFAST,
+                                                &inParam, sizeof(inParam));
+    CHK_FAILURE_RETURN(hr);
+    CHK_FAILURE_RETURN(inParam.returnValue);
+    event = nullptr;
+    return CM_SUCCESS;
+}
+

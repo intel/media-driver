@@ -519,6 +519,7 @@ int32_t CmThinExecuteInternal(CmDevice *device,
     }
 
     case CM_FN_CMQUEUE_ENQUEUE:
+    {
         PCM_ENQUEUE_PARAM cmEnqueueParam;
         cmEnqueueParam = (PCM_ENQUEUE_PARAM)(cmPrivateInputData);
         cmQueue        = (CmQueue *)cmEnqueueParam->queueHandle;
@@ -533,6 +534,26 @@ int32_t CmThinExecuteInternal(CmDevice *device,
 
         cmEnqueueParam->eventHandle = cmEvent;
         cmEnqueueParam->returnValue = cmRet;
+    }
+        break;
+
+     case CM_FN_CMQUEUE_ENQUEUEFAST:
+     {
+        PCM_ENQUEUE_PARAM cmEnqueueParam;
+        cmEnqueueParam = (PCM_ENQUEUE_PARAM)(cmPrivateInputData);
+        cmQueue        = (CmQueue *)cmEnqueueParam->queueHandle;
+        cmTask         = (CmTask  *)cmEnqueueParam->taskHandle;
+        cmThreadSpace           = (CmThreadSpace *)cmEnqueueParam->threadSpaceHandle;
+        cmEvent        = (CmEvent*)cmEnqueueParam->eventHandle; // used as input
+
+        CM_ASSERT(cmQueue);
+        CM_ASSERT(cmTask);
+
+        cmRet = cmQueue->EnqueueFast(cmTask,cmEvent,cmThreadSpace);
+
+        cmEnqueueParam->eventHandle = cmEvent;
+        cmEnqueueParam->returnValue = cmRet;
+     }
         break;
 
      case CM_FN_CMQUEUE_ENQUEUEWITHHINTS:
@@ -552,18 +573,35 @@ int32_t CmThinExecuteInternal(CmDevice *device,
         break;
 
     case CM_FN_CMQUEUE_DESTROYEVENT:
+    {
         PCM_DESTROYEVENT_PARAM cmDestroyEventParam;
         cmDestroyEventParam = (PCM_DESTROYEVENT_PARAM)(cmPrivateInputData);
         cmQueue        = (CmQueue *)cmDestroyEventParam->queueHandle;
         cmEvent        = (CmEvent *)cmDestroyEventParam->eventHandle;
         CM_ASSERT(cmQueue);
         CM_ASSERT(cmEvent);
-
+        
         cmRet = cmQueue->DestroyEvent(cmEvent);
 
         cmDestroyEventParam->returnValue = cmRet;
+    }
         break;
 
+    case CM_FN_CMQUEUE_DESTROYEVENTFAST:
+    {
+        PCM_DESTROYEVENT_PARAM cmDestroyEventParam;
+        cmDestroyEventParam = (PCM_DESTROYEVENT_PARAM)(cmPrivateInputData);
+        cmQueue        = (CmQueue *)cmDestroyEventParam->queueHandle;
+        cmEvent        = (CmEvent *)cmDestroyEventParam->eventHandle;
+        CM_ASSERT(cmQueue);
+        CM_ASSERT(cmEvent);
+        
+        cmRet = cmQueue->DestroyEventFast(cmEvent);
+
+        cmDestroyEventParam->returnValue = cmRet;
+    }
+        break;
+        
     case CM_FN_CMDEVICE_CREATETHREADSPACE:
         PCM_CREATETHREADSPACE_PARAM cmCreateTsParam;
         cmCreateTsParam = (PCM_CREATETHREADSPACE_PARAM)(cmPrivateInputData);
