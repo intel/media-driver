@@ -1170,8 +1170,7 @@ typedef enum _CM_KERNEL_EXEC_MODE{
 typedef struct _CM_EXECUTION_CONFIG
 {
     CM_KERNEL_EXEC_MODE kernelExecutionMode;  //0-Monopolized mode, 1-Concurrent mode. Default mode is Monopolized.
-    int                 concurrentPolicy;     /*Reserve for future extension, how we split all DSS for concurrent execution,
-                             for now, it's not necessary because only half-half splits is supported*/
+    int                 concurrentPolicy;     //Reserve for future extension
 } CM_EXECUTION_CONFIG;
 
 #define CM_TASK_CONFIG _CM_TASK_CONFIG
