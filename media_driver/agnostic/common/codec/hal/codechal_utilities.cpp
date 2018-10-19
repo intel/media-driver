@@ -466,26 +466,18 @@ MOS_STATUS CodecHalSetRcsSurfaceState(
         MOS_SecureMemcpy(&bufferSurface.OsResource, sizeof(MOS_RESOURCE), surfaceCodecParams->presBuffer, sizeof(MOS_RESOURCE));
 
         surfaceRcsParams.psSurface = &bufferSurface;
-        uint32_t bufferSize = surfaceCodecParams->dwSize;
 
-        if (surfaceCodecParams->bRawSurface)
-        {
-            surfaceRcsParams.ForceSurfaceFormat[MHW_Y_PLANE] = MHW_GFX3DSTATE_SURFACEFORMAT_RAW;
-        }
-        else
-        {
-            surfaceRcsParams.ForceSurfaceFormat[MHW_Y_PLANE] = MHW_GFX3DSTATE_SURFACEFORMAT_R32_UINT;
-            bufferSize = (bufferSize >> 2); //R32_UINT is four bytes per element.
-        }
+        surfaceRcsParams.ForceSurfaceFormat[MHW_Y_PLANE]      = surfaceCodecParams->bRawSurface ?
+            MHW_GFX3DSTATE_SURFACEFORMAT_RAW : MHW_GFX3DSTATE_SURFACEFORMAT_R32_UINT;
         surfaceRcsParams.dwBindingTableOffset[MHW_Y_PLANE]    = surfaceCodecParams->dwBindingTableOffset;
 
         surfaceRcsParams.psSurface->Type            = MOS_GFXRES_BUFFER;
         surfaceRcsParams.psSurface->Format          = Format_Buffer;
         surfaceRcsParams.psSurface->TileType        = MOS_TILE_LINEAR;
-        surfaceRcsParams.psSurface->dwSize          = bufferSize;
-        surfaceRcsParams.psSurface->dwWidth         = (bufferSize - 1) & 0x7F;
-        surfaceRcsParams.psSurface->dwHeight        = ((bufferSize - 1) & 0x1FFF80) >> 7;
-        surfaceRcsParams.psSurface->dwDepth         = ((bufferSize - 1) & 0xFE00000) >> 21;
+        surfaceRcsParams.psSurface->dwSize          = surfaceCodecParams->dwSize;
+        surfaceRcsParams.psSurface->dwWidth         = (surfaceCodecParams->dwSize - 1) & 0x7F;
+        surfaceRcsParams.psSurface->dwHeight        = ((surfaceCodecParams->dwSize - 1) & 0x1FFF80) >> 7;
+        surfaceRcsParams.psSurface->dwDepth         = ((surfaceCodecParams->dwSize - 1) & 0xFE00000) >> 21;
         // GMM doesn't provide pitch info from surface
         surfaceRcsParams.psSurface->dwPitch         = surfaceCodecParams->bRawSurface ? sizeof(uint8_t) : sizeof(uint32_t);
         surfaceRcsParams.psSurface->bArraySpacing   = true;
