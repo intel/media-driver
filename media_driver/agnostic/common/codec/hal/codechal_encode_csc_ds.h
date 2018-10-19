@@ -278,6 +278,7 @@ public:
     void EnableColor() { m_cscEnableColor = 1; }
     void EnableMmc() { m_cscEnableMmc = 1; }
     void EnableSfc() { m_cscEnableSfc = 1; }
+    void DisableSfc() { m_cscEnableSfc = 0; }
     void ResetCscFlag() { m_cscFlag = 0; }
     //! \endcond
 
