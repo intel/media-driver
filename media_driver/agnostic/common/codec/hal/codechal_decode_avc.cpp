@@ -1151,6 +1151,7 @@ MOS_STATUS CodechalDecodeAvc::SetFrameStates()
     m_picIdRemappingInUse = (m_decodeParams.m_picIdRemappingInUse) ? true : false;
 
     m_cencBuf = m_decodeParams.m_cencBuf;
+    m_fullFrameData = m_decodeParams.m_bFullFrameData;
 
     CODECHAL_DECODE_CHK_NULL_RETURN(m_avcPicParams);
     CODECHAL_DECODE_CHK_NULL_RETURN(m_avcIqMatrixParams);
@@ -1682,6 +1683,7 @@ MOS_STATUS CodechalDecodeAvc::ParseSlice(
         avcSliceState.dwNextLength = length;
         avcSliceState.dwSliceIndex = slcCount;
         avcSliceState.bLastSlice = (slcCount == lastValidSlice);
+        avcSliceState.bFullFrameData = m_fullFrameData;
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(SendSlice(&avcSliceState, cmdBuf));
 
@@ -1981,6 +1983,8 @@ CodechalDecodeAvc::CodechalDecodeAvc(
 
     //Currently, crc calculation is only supported in AVC decoder
     m_reportFrameCrc = true;
+
+    m_fullFrameData = false;
 
 };
 
