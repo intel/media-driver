@@ -31,6 +31,8 @@
 #include "cm_hal_vebox.h"
 #include "cm_mem.h"
 #include "renderhal_platform_interface.h"
+#include "cm_execution_adv.h"
+#include "cm_extension_creator.h"
 
 #define INDEX_ALIGN(index, elemperIndex, base) ((index * elemperIndex)/base + ( (index *elemperIndex % base))? 1:0)
 
@@ -7891,6 +7893,21 @@ MOS_STATUS HalCm_Allocate(
     CM_CHK_MOSSTATUS(state->pfnEnableTurboBoost(state));
 
     state->tsFrequency = HalCm_GetTsFrequency(state->osInterface);
+
+    if (state->refactor)
+    {
+        state->advExecutor = CmExtensionCreator<CmExecutionAdv>::CreateClass();
+    }
+    else
+    {
+        state->advExecutor = CmExtensionCreator<CmExecutionAdv>::CreateBaseClass();
+    }
+    if (state->advExecutor == nullptr)
+    {
+        CM_ERROR_ASSERT("Could not allocate enough memory for state->advExecutor\n");
+        hr = MOS_STATUS_NO_SPACE;
+    }
+    state->advExecutor->Initialize(state);
     
     hr = MOS_STATUS_SUCCESS;
 
@@ -9103,6 +9120,11 @@ MOS_STATUS HalCm_FreeBuffer(
 
     // Get the Buffer Entry
     CM_CHK_MOSSTATUS(HalCm_GetBufferEntry(state, handle, &entry));
+
+    if (state->advExecutor)
+    {
+        state->advExecutor->DeleteBufferStateMgr(entry->surfStateMgr);
+    }
     if (entry->isAllocatedbyCmrtUmd)
     {
         osInterface->pfnFreeResourceWithFlag(osInterface, &entry->osResource, SURFACE_FLAG_ASSUME_NOT_IN_USE);
@@ -9138,6 +9160,7 @@ MOS_STATUS HalCm_SetSurfaceReadFlag(
     if ( ( state->gpuContext == MOS_GPU_CONTEXT_RENDER3 ) || ( state->gpuContext == MOS_GPU_CONTEXT_RENDER4 ) )
     {
         entry->readSyncs[state->gpuContext - MOS_GPU_CONTEXT_RENDER3] = readSync;
+        state->advExecutor->Set2DRenderTarget(entry->surfStateMgr, !readSync);
     }
     else
     {
@@ -9236,6 +9259,11 @@ MOS_STATUS HalCm_FreeSurface2DUP(
     // Get the Buffer Entry
     CM_CHK_MOSSTATUS(HalCm_GetResourceUPEntry(state, handle, &entry));
 
+    if (state->advExecutor)
+    {
+        state->advExecutor->Delete2DStateMgr(entry->surfStateMgr);
+    }
+
     osInterface->pfnFreeResourceWithFlag(osInterface, &entry->osResource, SURFACE_FLAG_ASSUME_NOT_IN_USE);
 
     osInterface->pfnResetResourceAllocationIndex(osInterface, &entry->osResource);
@@ -9307,6 +9335,10 @@ MOS_STATUS HalCm_Set2DSurfaceStateParam(
     CM_CHK_NULL_RETURN_MOSSTATUS(param);
 
     hr     = MOS_STATUS_SUCCESS;
+    if (aliasIndex < state->surfaceArraySize)
+    {
+        state->umdSurf2DTable[handle].surfStateSet = true;
+    }
     state->umdSurf2DTable[handle].surfaceStateParam[aliasIndex / state->surfaceArraySize] = *param;
 
 finish:
@@ -9334,6 +9366,9 @@ MOS_STATUS HalCm_SetBufferSurfaceStateParameters(
     index = param->handle;
     aliasIndex = param->aliasIndex;
 
+    if (aliasIndex < state->surfaceArraySize)
+        state->bufferTable[index].surfStateSet = true;
+
     state->bufferTable[index].surfaceStateEntry[aliasIndex / state->surfaceArraySize].surfaceStateSize = param->size;
     state->bufferTable[index].surfaceStateEntry[aliasIndex / state->surfaceArraySize].surfaceStateOffset = param->offset;
     state->bufferTable[index].surfaceStateEntry[aliasIndex / state->surfaceArraySize].surfaceStateMOCS = param->mocs;
@@ -9358,16 +9393,19 @@ MOS_STATUS HalCm_SetSurfaceMOCS(
     {
         case CM_ARGUMENT_SURFACEBUFFER:
             state->bufferTable[handle].memObjCtl = mocs;
+            state->advExecutor->SetBufferMemoryObjectControl(state->bufferTable[handle].surfStateMgr, mocs);
             break;
         case CM_ARGUMENT_SURFACE2D:
         case CM_ARGUMENT_SURFACE2D_SAMPLER:
         case CM_ARGUMENT_SURFACE_SAMPLER8X8_AVS:
         case CM_ARGUMENT_SURFACE_SAMPLER8X8_VA:
             state->umdSurf2DTable[handle].memObjCtl = mocs;
+            state->advExecutor->Set2DMemoryObjectControl(state->umdSurf2DTable[handle].surfStateMgr, mocs);
             break;
         case CM_ARGUMENT_SURFACE2D_UP:
         case CM_ARGUMENT_SURFACE2DUP_SAMPLER:
             state->surf2DUPTable[handle].memObjCtl = mocs;
+            state->advExecutor->Set2DMemoryObjectControl(state->surf2DUPTable[handle].surfStateMgr, mocs);
             break;
         case CM_ARGUMENT_SURFACE3D:
             state->surf3DTable[handle].memObjCtl = mocs;
@@ -9451,6 +9489,11 @@ MOS_STATUS HalCm_AllocateSurface2D(
         HalCm_OsResource_Reference(&entry->osResource);
     }
 
+    if (state->advExecutor)
+    {
+        entry->surfStateMgr = state->advExecutor->Create2DStateMgr(&entry->osResource);
+    }
+   
     for (int i = 0; i < CM_HAL_GPU_CONTEXT_COUNT; i++)
     {
         entry->readSyncs[i] = false;
@@ -9491,6 +9534,11 @@ MOS_STATUS HalCm_FreeSurface2D(
     entry->width = 0;
     entry->height = 0;
     entry->frameType = CM_FRAME;
+
+    if (state->advExecutor)
+    {
+        state->advExecutor->Delete2DStateMgr(entry->surfStateMgr);
+    }
 
     for (int i = 0; i < CM_HAL_GPU_CONTEXT_COUNT; i++)
     {
@@ -10309,6 +10357,44 @@ MOS_STATUS HalCm_Create(
     state->cmHalInterface = CMHalDevice::CreateFactory(state);
     CM_CHK_NULL_RETURN_MOSSTATUS(state->cmHalInterface);
 
+    if (param->refactor)
+    {
+        state->refactor = true;
+    }
+    else
+    {
+        state->refactor = false;
+    }
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    {
+        FILE *fp1 = nullptr;
+        MOS_SecureFileOpen(&fp1, "refactor.key", "r");
+        if (fp1 != nullptr)
+        {
+            state->refactor = true;
+            fclose(fp1);
+        }
+
+        FILE *fp2 = nullptr;
+        MOS_SecureFileOpen(&fp2, "origin.key", "r");
+        if (fp2 != nullptr)
+        {
+            state->refactor = false;
+            fclose(fp2);
+        }
+    }
+    if (state->refactor)
+    {
+        CM_NORMALMESSAGE("Use refactor path!\n");
+    }
+    else
+    {
+        CM_NORMALMESSAGE("Use origin path!\n");
+    }
+
+#endif
+
 finish:
     if (hr != MOS_STATUS_SUCCESS)
     {
@@ -10383,6 +10469,9 @@ void HalCm_Destroy(
 
         // Delete tracker resource
         HalCm_FreeTrackerResources(state);
+
+        // Delete advance executor
+        MOS_Delete(state->advExecutor);
 
         // Delete heap manager
         if (state->renderHal)

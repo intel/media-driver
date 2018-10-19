@@ -1437,6 +1437,11 @@ public:
     
     CM_RT_API virtual INT EnqueueWithHints( CmTask* pTask, CmEvent* & pEvent, UINT hints = 0) = 0;
     CM_RT_API virtual INT EnqueueVebox( CmVebox* pVebox, CmEvent* & pEvent ) = 0;
+
+    CM_RT_API virtual INT EnqueueFast(CmTask *task,
+                              CmEvent *&event,
+                              const CmThreadSpace *threadSpace = nullptr) = 0;
+    CM_RT_API virtual INT DestroyEventFast(CmEvent *&event) = 0;
 protected:
     ~CmQueue(){};
 };

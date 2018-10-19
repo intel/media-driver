@@ -27,6 +27,7 @@
 #include "cm_surface_vme.h"
 #include "cm_mem.h"
 #include "cm_hal.h"
+#include "cm_execution_adv.h"
 
 namespace CMRT_UMD
 {
@@ -116,7 +117,10 @@ CmSurfaceVme::CmSurfaceVme(
     m_backwardCmIndexArray(nullptr),
     m_isGen75(false),
     m_surfStateWidth(0),
-    m_surfStateHeight(0)
+    m_surfStateHeight(0),
+    m_argValue(nullptr),
+    m_surfState(nullptr),
+    m_advExec(nullptr)
 {
     if (indexForForward != CM_INVALID_VME_SURFACE)
     {
@@ -162,7 +166,10 @@ CmSurfaceVme::CmSurfaceVme(
                             m_surfaceBCount(surfaceBCount),
                             m_isGen75(true),
                             m_surfStateWidth(0),
-                            m_surfStateHeight(0)
+                            m_surfStateHeight(0),
+                            m_argValue(nullptr),
+                            m_surfState(nullptr),
+                            m_advExec(nullptr)
 {
 }
 
@@ -172,6 +179,11 @@ CmSurfaceVme::~CmSurfaceVme( void )
     MosSafeDeleteArray(m_backwardSurfaceArray);
     MosSafeDeleteArray(m_forwardCmIndexArray);
     MosSafeDeleteArray(m_backwardCmIndexArray);
+    MosSafeDeleteArray(m_argValue);
+    if (m_advExec)
+    {
+        m_advExec->DeleteSurfStateVme(m_surfState);
+    }
 
 }
 
@@ -288,5 +300,19 @@ int32_t CmSurfaceVme::GetVmeCmArgSize()
 {
     return sizeof(CM_HAL_VME_ARG_VALUE) + (m_surfaceFCount + m_surfaceBCount) * sizeof(uint32_t);
 }
+
+void CmSurfaceVme::SetSurfState(CmExecutionAdv *advExec, uint8_t *argValue, CmSurfaceStateVME *surfState)
+{
+    MosSafeDeleteArray(m_argValue);
+    if (advExec)
+    {
+        advExec->DeleteSurfStateVme(m_surfState);
+    }
+
+    m_advExec = advExec;
+    m_argValue = argValue;
+    m_surfState = surfState;
+}
+
 }
 

@@ -27,6 +27,7 @@
 #include "cm_hal.h"
 #include "cm_def_os.h"
 #include "i915_drm.h"
+#include "cm_execution_adv.h"
 
 #define Y_TILE_WIDTH  128
 #define Y_TILE_HEIGHT 32
@@ -558,6 +559,11 @@ MOS_STATUS HalCm_AllocateBuffer_Linux(
     entry->surfaceStateEntry[0].surfaceStateSize = entry->size;
     entry->surfaceStateEntry[0].surfaceStateOffset = 0;
     entry->surfaceStateEntry[0].surfaceStateMOCS = 0;
+    if (state->advExecutor)
+    {
+        entry->surfStateMgr = state->advExecutor->CreateBufferStateMgr(&entry->osResource);
+        state->advExecutor->SetBufferOrigSize(entry->surfStateMgr, entry->size);
+    }
 
 finish:
     return hr;
@@ -614,6 +620,11 @@ MOS_STATUS HalCm_AllocateSurface2DUP_Linux(
     entry->width  = param->width;
     entry->height = param->height;
     entry->format  = param->format;
+
+    if (state->advExecutor)
+    {
+        entry->surfStateMgr = state->advExecutor->Create2DStateMgr(&entry->osResource);
+    }
 
 finish:
     return hr;

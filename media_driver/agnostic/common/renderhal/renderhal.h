@@ -1244,6 +1244,8 @@ typedef struct _RENDERHAL_INTERFACE
     // Indicates whether it's AVS or not
     bool                        bIsAVS;
 
+    bool                        isMMCEnabled;
+
     MediaPerfProfiler               *pPerfProfiler = nullptr;  //!< Performance data profiler
 
     //---------------------------

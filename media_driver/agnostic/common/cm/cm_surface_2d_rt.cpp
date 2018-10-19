@@ -142,8 +142,15 @@ CM_RT_API int32_t CmSurface2DRT::WriteSurfaceHybridStrides( const unsigned char*
 
     if( event )
     {
-        CmEventRT *eventRT = static_cast<CmEventRT *>(event);
-        FlushDeviceQueue( eventRT ); //wait specific task finished
+        CmEventRT *eventRT = dynamic_cast<CmEventRT *>(event);
+        if (eventRT)
+        {
+            FlushDeviceQueue(eventRT);
+        }
+        else
+        {
+            event->WaitForTaskFinished();
+        }
     }
     WaitForReferenceFree();   // wait all owner task finished
 
@@ -222,8 +229,15 @@ CM_RT_API int32_t CmSurface2DRT::WriteSurface( const unsigned char* sysMem, CmEv
 
     if( event )
     {
-        CmEventRT *eventRT = static_cast<CmEventRT *>(event);
-        FlushDeviceQueue( eventRT ); //wait specific task finished
+        CmEventRT *eventRT = dynamic_cast<CmEventRT *>(event);
+        if (eventRT)
+        {
+            FlushDeviceQueue(eventRT);
+        }
+        else
+        {
+            event->WaitForTaskFinished();
+        }
     }
     WaitForReferenceFree();   // wait all owner task finished
 
@@ -324,8 +338,15 @@ CM_RT_API int32_t CmSurface2DRT::ReadSurfaceHybridStrides( unsigned char* sysMem
 
     if( event )
     {
-        CmEventRT *eventRT = static_cast<CmEventRT *>(event);
-        FlushDeviceQueue( eventRT );
+        CmEventRT *eventRT = dynamic_cast<CmEventRT *>(event);
+        if (eventRT)
+        {
+            FlushDeviceQueue(eventRT);
+        }
+        else
+        {
+            event->WaitForTaskFinished();
+        }
     }
 
     WaitForReferenceFree();   // wait all owner task finished
@@ -405,8 +426,15 @@ CM_RT_API int32_t CmSurface2DRT::ReadSurface( unsigned char* sysMem, CmEvent* ev
 
     if( event )
     {
-        CmEventRT *eventRT = static_cast<CmEventRT *>(event);
-        FlushDeviceQueue( eventRT );
+        CmEventRT *eventRT = dynamic_cast<CmEventRT *>(event);
+        if (eventRT)
+        {
+            FlushDeviceQueue(eventRT);
+        }
+        else
+        {
+            event->WaitForTaskFinished();
+        }
     }
 
     WaitForReferenceFree();   // wait all owner task finished
@@ -509,8 +537,15 @@ CM_RT_API int32_t CmSurface2DRT::WriteSurfaceStride( const unsigned char* sysMem
 
     if( event )
     {
-        CmEventRT *eventRT = static_cast<CmEventRT *>(event);
-        FlushDeviceQueue( eventRT ); // wait specific owner task finished
+        CmEventRT *eventRT = dynamic_cast<CmEventRT *>(event);
+        if (eventRT)
+        {
+            FlushDeviceQueue(eventRT);
+        }
+        else
+        {
+            event->WaitForTaskFinished();
+        }
     }
 
     WaitForReferenceFree();   // wait all owner tasks finished
@@ -640,8 +675,15 @@ CM_RT_API int32_t CmSurface2DRT::ReadSurfaceFullStride( unsigned char* sysMem, C
 
     if( event )
     {
-        CmEventRT *eventRT = static_cast<CmEventRT *>(event);
-        FlushDeviceQueue( eventRT ); //wait specific task finished
+        CmEventRT *eventRT = dynamic_cast<CmEventRT *>(event);
+        if (eventRT)
+        {
+            FlushDeviceQueue(eventRT);
+        }
+        else
+        {
+            event->WaitForTaskFinished();
+        }
     }
 
     WaitForReferenceFree();   // wait all owner task finished
@@ -756,8 +798,15 @@ CM_RT_API int32_t CmSurface2DRT::WriteSurfaceFullStride( const unsigned char* sy
 
     if( event )
     {
-        CmEventRT *eventRT = static_cast<CmEventRT *>(event);
-        FlushDeviceQueue( eventRT ); // wait specific owner task finished
+        CmEventRT *eventRT = dynamic_cast<CmEventRT *>(event);
+        if (eventRT)
+        {
+            FlushDeviceQueue(eventRT);
+        }
+        else
+        {
+            event->WaitForTaskFinished();
+        }
     }
 
     WaitForReferenceFree();   // wait all owner tasks finished
@@ -952,8 +1001,15 @@ CM_RT_API int32_t CmSurface2DRT::InitSurface(const unsigned int initValue, CmEve
 
     if( event )
     {
-        CmEventRT *eventRT = static_cast<CmEventRT *>(event);
-        FlushDeviceQueue( eventRT );
+        CmEventRT *eventRT = dynamic_cast<CmEventRT *>(event);
+        if (eventRT)
+        {
+            FlushDeviceQueue(eventRT);
+        }
+        else
+        {
+            event->WaitForTaskFinished();
+        }
     }
 
     WaitForReferenceFree();   // wait all owner task finished

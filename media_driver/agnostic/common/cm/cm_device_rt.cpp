@@ -3447,6 +3447,9 @@ int32_t CmDeviceRT::InitDevCreateOption(CM_HAL_CREATE_PARAM & cmHalCreateParam,
     kernelBinarySizeInGSH = kernelBinarySizeInGSH * CM_KERNELBINARY_BLOCKSIZE_2MB;
     cmHalCreateParam.kernelBinarySizeinGSH = kernelBinarySizeInGSH;
 
+    // [30] fast path
+    cmHalCreateParam.refactor = (option & CM_DEVICE_CONFIG_FAST_PATH_ENABLE)?true:false;
+    
     return CM_SUCCESS;
 }
 

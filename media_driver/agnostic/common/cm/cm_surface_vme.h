@@ -27,6 +27,8 @@
 
 #include "cm_surface.h"
 
+class CmSurfaceStateVME;
+class CmExecutionAdv;
 namespace CMRT_UMD
 {
 
@@ -77,6 +79,10 @@ public:
 
     bool IsVmeSurfaceGen7_5();
 
+    void SetSurfState(CmExecutionAdv *advExec, uint8_t *argValue, CmSurfaceStateVME *surfState);
+
+    inline CmSurfaceStateVME *GetSurfaceState() { return m_surfState; }
+
     CM_ENUM_CLASS_TYPE Type() const {return CM_ENUM_CLASS_TYPE_CMSURFACEVME;};
 
     // calculate the size needed for the pValue
@@ -126,6 +132,10 @@ protected:
 
     uint32_t m_surfStateWidth;
     uint32_t m_surfStateHeight;
+
+    uint8_t *m_argValue;
+    CmSurfaceStateVME *m_surfState;
+    CmExecutionAdv *m_advExec;
 
     bool m_isGen75;
 
