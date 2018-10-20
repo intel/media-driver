@@ -1445,15 +1445,7 @@ MOS_STATUS CodechalDecodeVp9 :: InitPicStateMhwParams()
     {
         if (!m_picMhwParams.PipeBufAddrParams->presReferences[i])
         {
-            if (MEDIA_IS_WA(m_waTable, WaDummyReference) &&
-                !Mos_ResourceIsNull(&m_dummyReference.OsResource))
-            {
-                m_picMhwParams.PipeBufAddrParams->presReferences[i] = &m_dummyReference.OsResource;
-            }
-            else
-            {
-                m_picMhwParams.PipeBufAddrParams->presReferences[i] = &(m_destSurface.OsResource);
-            }
+            m_picMhwParams.PipeBufAddrParams->presReferences[i] = &(m_destSurface.OsResource);
         }
     }
 

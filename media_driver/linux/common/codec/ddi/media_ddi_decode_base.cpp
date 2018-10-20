@@ -663,59 +663,6 @@ VAStatus DdiMediaDecode::EndPicture(
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
 
-    if (MEDIA_IS_WA(&m_ddiDecodeCtx->pMediaCtx->WaTable, WaDummyReference))
-    {
-        CodechalDecode *decoder = dynamic_cast<CodechalDecode *>(m_ddiDecodeCtx->pCodecHal);
-        PMOS_SURFACE dummyReference = decoder->GetDummyReference();
-
-        // If dummy reference is from decode output surface, need to update frame by frame
-        if (decoder->GetDummyReferenceStatus() == CODECHAL_DUMMY_REFERENCE_DEST_SURFACE)
-        {
-            MOS_ZeroMemory(dummyReference, sizeof(MOS_SURFACE));
-            decoder->SetDummyReferenceStatus(CODECHAL_DUMMY_REFERENCE_INVALID);
-        }
-
-        Mos_Specific_GetResourceInfo(
-            m_ddiDecodeCtx->pCodecHal->GetOsInterface(), 
-            &m_ddiDecodeCtx->DecodeParams.m_destSurface->OsResource,
-            m_ddiDecodeCtx->DecodeParams.m_destSurface);
-
-        if (!Mos_ResourceIsNull(&dummyReference->OsResource))
-        {
-            Mos_Specific_GetResourceInfo(decoder->GetOsInterface(), &dummyReference->OsResource, dummyReference);
-
-            // Check if need to re-get dummy reference from DPB or re-allocated
-            if (dummyReference->dwWidth < m_ddiDecodeCtx->DecodeParams.m_destSurface->dwWidth ||
-                dummyReference->dwHeight < m_ddiDecodeCtx->DecodeParams.m_destSurface->dwHeight)
-            {
-                // Check if the dummy reference needs to be re-allocated
-                if (decoder->GetDummyReferenceStatus() == CODECHAL_DUMMY_REFERENCE_ALLOCATED)
-                {
-                    decoder->GetOsInterface()->pfnFreeResource(decoder->GetOsInterface(), &dummyReference->OsResource);
-                }
-
-                // Reset dummy reference
-                MOS_ZeroMemory(dummyReference, sizeof(MOS_SURFACE));
-                decoder->SetDummyReferenceStatus(CODECHAL_DUMMY_REFERENCE_INVALID);
-
-                GetDummyReferenceFromDPB(m_ddiDecodeCtx);
-
-                if (!Mos_ResourceIsNull(&dummyReference->OsResource))
-                {
-                    decoder->SetDummyReferenceStatus(CODECHAL_DUMMY_REFERENCE_DPB);
-                }
-            }
-        }
-        else
-        {
-            GetDummyReferenceFromDPB(m_ddiDecodeCtx);
-            if (!Mos_ResourceIsNull(&dummyReference->OsResource))
-            {
-                decoder->SetDummyReferenceStatus(CODECHAL_DUMMY_REFERENCE_DPB);
-            }
-        }
-    }
-
     MOS_STATUS status = m_ddiDecodeCtx->pCodecHal->Execute((void *)(&m_ddiDecodeCtx->DecodeParams));
     if (status != MOS_STATUS_SUCCESS)
     {
@@ -982,58 +929,4 @@ VAStatus DdiMediaDecode::CreateCodecHal(
     m_ddiDecodeCtx->pCpDdiInterface->CreateCencDecode(decoder->GetDebugInterface(), mosCtx, m_codechalSettings);
 
     return vaStatus;
-}
-
-void DdiMediaDecode::GetDummyReferenceFromDPB(
-    DDI_DECODE_CONTEXT      *decodeCtx)
-{
-    MOS_SURFACE     *destSurface = decodeCtx->DecodeParams.m_destSurface;
-    MOS_SURFACE     dummyReference;
-    MOS_STATUS      eStatus;
-    uint32_t        i;
-
-    if (destSurface == nullptr)
-    {
-        DDI_ASSERTMESSAGE("Decode output surface is NULL.\n");
-        return;
-    }
-
-    for (i = 0; i < DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT; i++)
-    {
-        if (decodeCtx->RTtbl.pRT[i] != nullptr && 
-            decodeCtx->RTtbl.pRT[i] != decodeCtx->RTtbl.pCurrentRT)
-        {
-            MOS_ZeroMemory(&dummyReference, sizeof(MOS_SURFACE));
-            DdiMedia_MediaSurfaceToMosResource(decodeCtx->RTtbl.pRT[i], &(dummyReference.OsResource));
-
-            if (!Mos_ResourceIsNull(&dummyReference.OsResource))
-            {
-                eStatus = MOS_STATUS_SUCCESS;
-                dummyReference.Format = Format_Invalid;
-                eStatus = Mos_Specific_GetResourceInfo(decodeCtx->pCodecHal->GetOsInterface(), &dummyReference.OsResource, &dummyReference);
-                if (eStatus != MOS_STATUS_SUCCESS)
-                {
-                    continue;
-                }
-
-                if (dummyReference.Type == destSurface->Type && 
-                    dummyReference.Format == destSurface->Format && 
-                    dummyReference.bIsCompressed == destSurface->bIsCompressed && 
-                    dummyReference.CompressionMode == destSurface->CompressionMode && 
-                    dummyReference.TileType == destSurface->TileType && 
-                    dummyReference.dwPitch >= destSurface->dwPitch && 
-                    dummyReference.dwWidth >= destSurface->dwWidth && 
-                    dummyReference.dwHeight >= destSurface->dwHeight)
-                {
-                    break;
-                }
-            }
-        }
-    }
-
-    if (i < DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT)
-    {
-        CodechalDecode *decoder = dynamic_cast<CodechalDecode *>(decodeCtx->pCodecHal);
-        decoder->GetDummyReference()->OsResource = dummyReference.OsResource;
-    }
 }
