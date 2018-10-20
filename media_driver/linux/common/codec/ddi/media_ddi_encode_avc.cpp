@@ -739,8 +739,8 @@ VAStatus DdiEncodeAvc::ContextInitialize(CodechalSetting * codecHalSettings)
         codecHalSettings->codecFunction = m_encodeCtx->codecFunction;
     }
 
-    codecHalSettings->width  = m_encodeCtx->dwFrameWidth;
-    codecHalSettings->height = m_encodeCtx->dwFrameHeight;
+    codecHalSettings->width  = m_encodeCtx->dworiFrameWidth;
+    codecHalSettings->height = m_encodeCtx->dworiFrameHeight;
     codecHalSettings->mode     = m_encodeCtx->wModeType;
     codecHalSettings->standard = CODECHAL_AVC;
 
