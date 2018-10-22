@@ -898,10 +898,21 @@ DdiVp_SetProcPipelineParams(
     // extended gamut? RGB can't have extended gamut flag
     pVpHalSrcSurf->ExtendedGamut = false;
 
-    // set background colorfill option
-    pVpHalRenderParams->pColorFillParams->Color     = pPipelineParam->output_background_color;
-    pVpHalRenderParams->pColorFillParams->bYCbCr    = false;
-    pVpHalRenderParams->pColorFillParams->CSpace    = CSpace_sRGB;
+    // Background Colorfill
+    // According to libva  definition, if alpha in output background color is zero, then colorfill is not needed
+    if ((pPipelineParam->output_background_color >> 24) != 0)
+    {
+        pVpHalRenderParams->pColorFillParams = (PVPHAL_COLORFILL_PARAMS)MOS_AllocAndZeroMemory(sizeof(VPHAL_COLORFILL_PARAMS));
+        if( nullptr == pVpHalRenderParams->pColorFillParams)
+        {
+            vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
+            return vaStatus;
+        }
+        // set background colorfill option
+        pVpHalRenderParams->pColorFillParams->Color     = pPipelineParam->output_background_color;
+        pVpHalRenderParams->pColorFillParams->bYCbCr    = false;
+        pVpHalRenderParams->pColorFillParams->CSpace    = CSpace_sRGB;
+    }
 
     // Set Demo Mode option
     if (pVpHalRenderParams->bDisableDemoMode == false)
@@ -1255,14 +1266,6 @@ VAStatus DdiVp_InitCtx(VADriverContextP pVaDrvCtx, PDDI_VP_CONTEXT pVpCtx)
             vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
             goto FINISH;
         }
-    }
-
-    // background Colorfill
-    pVpHalRenderParams->pColorFillParams = (PVPHAL_COLORFILL_PARAMS)MOS_AllocAndZeroMemory(sizeof(VPHAL_COLORFILL_PARAMS));
-    if( nullptr == pVpHalRenderParams->pColorFillParams)
-    {
-        vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
-        goto FINISH;
     }
 
     // reset source surface count
