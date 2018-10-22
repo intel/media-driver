@@ -2694,8 +2694,11 @@ PMOS_SEMAPHORE MOS_CreateSemaphore(
     MOS_UNUSED(uiMaximumCount);
 
     pSemaphore = (PMOS_SEMAPHORE)MOS_AllocMemory(sizeof(*pSemaphore));
+    if (!pSemaphore)
+        return NULL;
     if (sem_init(pSemaphore, 0, uiInitialCount))
     {
+        MOS_SafeFreeMemory(pSemaphore);
         pSemaphore = nullptr;
     }
 
