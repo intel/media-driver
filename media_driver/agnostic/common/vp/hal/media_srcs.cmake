@@ -1,4 +1,4 @@
-# Copyright (c) 2017, Intel Corporation
+# Copyright (c) 2018, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -59,6 +59,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/vphal_renderer.h
     ${CMAKE_CURRENT_LIST_DIR}/vphal_mdf_wrapper.h
     ${CMAKE_CURRENT_LIST_DIR}/vphal_render_16alignment.h
+    ${CMAKE_CURRENT_LIST_DIR}/vphal_common_hdr.h
 )
 
 

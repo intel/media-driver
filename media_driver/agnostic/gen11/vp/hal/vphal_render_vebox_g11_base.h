@@ -28,6 +28,7 @@
 #define __VPHAL_RENDER_VEBOX_G11_BASE_H__
 
 #include "vphal_render_vebox_base.h"
+#include "vphal_render_hdr_g11.h"
 
 #define VPHAL_VEBOX_MAX_SLICES_G11                              4
 
@@ -443,6 +444,25 @@ protected:
         PMHW_VEBOX_CHROMA_SAMPLING      pChromaSampling);
 
     virtual VphalSfcState* CreateSfcState();
+
+    //!
+    //! \brief    Vebox set rendering flag
+    //! \details  Setup Rendering Flags due to different usage case - main entrance
+    //! \param    [in] pSrc
+    //!           Pointer to input surface of Vebox
+    //! \param    [in] pRenderTarget
+    //!           Pointer to Render targe surface of VPP BLT
+    //! \return   void
+    //!
+    virtual void VeboxSetRenderingFlags(
+        PVPHAL_SURFACE              pSrc,
+        PVPHAL_SURFACE              pRenderTarget);
+
+protected:
+    // Vebox 3DLut to Process HDR Tone Mapping
+    VPHAL_SURFACE               Vebox3DLookUpTables             = {};
+    VPHAL_SURFACE               Vebox3DLutOutputSurface         = {};
+    Hdr3DLutGenerator           *m_hdr3DLutGenerator            = nullptr;    
 };
 
 #endif // __VPHAL_RENDER_VEBOX_G11_BASE_H__
