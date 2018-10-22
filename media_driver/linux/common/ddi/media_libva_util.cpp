@@ -877,10 +877,11 @@ void* DdiMediaUtil_LockSurface(DDI_MEDIA_SURFACE  *surface, uint32_t flag)
                 }
                 if (surface->pSystemShadow)
                 {
+                    int32_t flags = surface->pMediaCtx->m_tileYFlag ? 0 : 1;
                     DDI_CHK_CONDITION((surface->TileType != I915_TILING_Y), "Unsupported tile type", nullptr);
                     DDI_CHK_CONDITION((surface->bo->size <= 0 || surface->iPitch <= 0), "Invalid BO size or pitch", nullptr);
                     Mos_SwizzleData((uint8_t*)surface->bo->virt, (uint8_t*)surface->pSystemShadow, 
-                            MOS_TILE_Y, MOS_TILE_LINEAR, surface->bo->size / surface->iPitch, surface->iPitch);
+                            MOS_TILE_Y, MOS_TILE_LINEAR, surface->bo->size / surface->iPitch, surface->iPitch, flags);
                 }
             }
             else if (flag & MOS_LOCKFLAG_WRITEONLY)
@@ -940,8 +941,9 @@ void DdiMediaUtil_UnlockSurface(DDI_MEDIA_SURFACE  *surface)
             }
             else if (surface->pSystemShadow)
             {
+                int32_t flags = surface->pMediaCtx->m_tileYFlag ? 0 : 1;
                 Mos_SwizzleData((uint8_t*)surface->pSystemShadow, (uint8_t*)surface->bo->virt, 
-                        MOS_TILE_LINEAR, MOS_TILE_Y, surface->bo->size/surface->iPitch, surface->iPitch);
+                        MOS_TILE_LINEAR, MOS_TILE_Y, surface->bo->size/surface->iPitch, surface->iPitch, flags);
                 MOS_FreeMemory(surface->pSystemShadow);
                 surface->pSystemShadow = nullptr;
                 
