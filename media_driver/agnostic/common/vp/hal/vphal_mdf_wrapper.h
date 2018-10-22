@@ -51,7 +51,7 @@ public:
         mOwner(owner)
     {
     }
-    virtual ~EventManager()
+    ~EventManager()
     {
         Clear();
     }
@@ -179,9 +179,6 @@ GMM_RESOURCE_FORMAT ConvertMosFmtToGmmFmt(MOS_FORMAT format)
         case Format_R32F:          return GMM_FORMAT_R32_FLOAT_TYPE;
         case Format_AYUV:          return GMM_FORMAT_AYUV_TYPE;
         case Format_Buffer:        return GMM_FORMAT_A8_UNORM_TYPE;
-        // Format_A16R16G16B16 and Format_A16B16G16R16 are using the same surface layout.
-        case Format_A16R16G16B16:  return GMM_FORMAT_R16G16B16A16_UNORM_TYPE;
-        case Format_A16B16G16R16:  return GMM_FORMAT_R16G16B16A16_UNORM_TYPE;
         default:
         {
             VPHAL_RENDER_ASSERTMESSAGE("Unsupported format %d\n", format);
@@ -202,7 +199,6 @@ MOS_FORMAT ConvertGmmFmtToMosFmt(GMM_RESOURCE_FORMAT format)
         case GMM_FORMAT_R8G8_UNORM_TYPE :          return Format_R8G8UN;
         case GMM_FORMAT_R32_FLOAT_TYPE :           return Format_R32F;
         case GMM_FORMAT_AYUV_TYPE :                return Format_AYUV;
-        case GMM_FORMAT_R16G16B16A16_UNORM_TYPE:   return Format_A16R16G16B16;
         default:
         {
             VPHAL_RENDER_ASSERTMESSAGE("Unsupported format %d\n", format);
@@ -223,8 +219,6 @@ int GetBitsPerPixel(GMM_RESOURCE_FORMAT format)
         case GMM_FORMAT_R8G8_UNORM_TYPE:         return 16;
         case GMM_FORMAT_R32_FLOAT_TYPE:          return 32;
         case GMM_FORMAT_AYUV_TYPE:               return 32;
-        case GMM_FORMAT_R16G16B16A16_UNORM_TYPE: return 64;
-        case GMM_FORMAT_R16G16B16X16_UNORM_TYPE: return 64;
         default:
         {
             VPHAL_RENDER_ASSERTMESSAGE("Unsupported format %d\n", format);
