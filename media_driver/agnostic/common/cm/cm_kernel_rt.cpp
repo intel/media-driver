@@ -90,7 +90,8 @@ typedef CM_ARG* PCM_ARG;
 #define CM_KERNEL_DATA_PAYLOAD_DATA_SIZE_DIRTY (1 << 3)  // indirect payload data size changes
 #define CM_KERNEL_DATA_GLOBAL_SURFACE_DIRTY    (1 << 4)  // global surface dirty
 #define CM_KERNEL_DATA_THREAD_COUNT_DIRTY      (1 << 5)  // thread count dirty, reset() be called
-#define cMKERNELDATASAMPLERBTIDIRTY       (1 << 6)  // sampler bti dirty
+#define cMKERNELDATASAMPLERBTIDIRTY            (1 << 6)  // sampler bti dirty
+#define CM_KERNEL_DATA_THREAD_GROUP_SPACE_DIRTY      (1 << 7)       // threadgroupspace dirty
 
 int32_t Partition( PCM_ARG* args, int32_t p, int32_t r )
 {
@@ -3521,7 +3522,7 @@ int32_t CmKernelRT::CreateKernelData(
     }
     else
     {
-        if(!(m_dirty & CM_KERNEL_DATA_KERNEL_ARG_DIRTY))
+        if (!((m_dirty & CM_KERNEL_DATA_KERNEL_ARG_DIRTY) || (m_dirty & CM_KERNEL_DATA_THREAD_GROUP_SPACE_DIRTY)))
         {
             // nothing changed; Reuse m_lastKernelData
             kernelData = m_lastKernelData;
@@ -4719,6 +4720,13 @@ int32_t CmKernelRT::UpdateKernelData(
     uint32_t thrdSpaceWidth, thrdSpaceHeight, thrdSpaceDepth, grpSpaceWidth, grpSpaceHeight, grpSpaceDepth;
     threadGroupSpace->GetThreadGroupSpaceSize(thrdSpaceWidth, thrdSpaceHeight, thrdSpaceDepth, grpSpaceWidth, grpSpaceHeight, grpSpaceDepth);
 
+    halKernelParam->gpgpuWalkerParams.groupDepth = grpSpaceDepth;
+    halKernelParam->gpgpuWalkerParams.groupHeight = grpSpaceHeight;
+    halKernelParam->gpgpuWalkerParams.groupWidth  = grpSpaceWidth;
+    halKernelParam->gpgpuWalkerParams.threadDepth = thrdSpaceDepth;
+    halKernelParam->gpgpuWalkerParams.threadWidth  = thrdSpaceWidth;
+    halKernelParam->gpgpuWalkerParams.threadHeight = thrdSpaceHeight;
+
     if (getVersionAsInt(m_program->m_cisaMajorVersion, m_program->m_cisaMinorVersion) < getVersionAsInt(3, 3))
     {
         CMCHK_HR(CreateKernelArgDataGroup (halKernelParam->argParams[argIndex + 0].firstValue, thrdSpaceWidth));
@@ -5047,7 +5055,7 @@ CM_RT_API int32_t CmKernelRT::AssociateThreadGroupSpace(CmThreadGroupSpace *&thr
         return CM_INVALID_KERNEL_THREADGROUPSPACE;
     }
 
-    m_threadGroupSpace = threadGroupSpace;
+    m_threadGroupSpace = threadGroupSpace;   
 
     return CM_SUCCESS;
 }
@@ -5192,6 +5200,7 @@ int32_t CmKernelRT::DeAssociateThreadGroupSpace(CmThreadGroupSpace * &threadGrou
         return CM_INVALID_ARG_VALUE;
     }
     m_threadGroupSpace = nullptr;
+    m_dirty            = CM_KERNEL_DATA_THREAD_GROUP_SPACE_DIRTY;
 
     return CM_SUCCESS;
 }
