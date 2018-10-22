@@ -2022,7 +2022,10 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSendVeboxCmd()
     iRemaining              = 0;
     pVeboxInterface         = pVeboxState->m_pVeboxInterface;
 
-    VPHAL_RENDER_CHK_NULL(pRenderData);
+    if (!pRenderData) {
+        VPHAL_RENDER_ASSERTMESSAGE("pRenderData is NULL");
+        return MOS_STATUS_NULL_POINTER;
+    }
 
     VPHAL_RENDER_CHK_STATUS(VeboxSendVeboxCmd_Prepare(
         CmdBuffer,
