@@ -953,7 +953,7 @@ CM_RT_API int32_t CmDeviceRT::GetSurface2DInfo(uint32_t width,
     PCM_CONTEXT_DATA            cmData;
     PCM_HAL_STATE               cmHalState;
 
-    CMCHK_HR(m_surfaceMgr->Surface2DSanityCheck(width, height, format));
+    CM_CHK_CMSTATUS_GOTOFINISH(m_surfaceMgr->Surface2DSanityCheck(width, height, format));
 
     CmSafeMemSet( &inParam, 0, sizeof( CM_HAL_SURFACE2D_UP_PARAM ) );
     inParam.width  = width;
@@ -962,7 +962,7 @@ CM_RT_API int32_t CmDeviceRT::GetSurface2DInfo(uint32_t width,
 
     cmData = (PCM_CONTEXT_DATA)GetAccelData();
     cmHalState = cmData->cmHalState;
-    CHK_MOSSTATUS_RETURN_CMERROR(cmHalState->pfnGetSurface2DPitchAndSize(cmHalState, &inParam));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmHalState->pfnGetSurface2DPitchAndSize(cmHalState, &inParam));
 
     pitch = inParam.pitch;
     physicalSize = inParam.physicalSize;
@@ -1081,10 +1081,10 @@ int32_t CmDeviceRT::GetCapsInternal(void  *caps, uint32_t *size)
     }
 
     cmData = (PCM_CONTEXT_DATA)GetAccelData();
-    CMCHK_NULL(cmData);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(cmData);
 
     cmHalState = cmData->cmHalState;
-    CMCHK_NULL(cmHalState);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(cmHalState);
 
     switch (queryCaps->type)
     {
@@ -1092,11 +1092,11 @@ int32_t CmDeviceRT::GetCapsInternal(void  *caps, uint32_t *size)
         queryCaps->hRegistration   = QueryRegHandleInternal(cmHalState);
         break;
     case CM_QUERY_MAX_VALUES:
-        CHK_MOSSTATUS_RETURN_CMERROR(cmHalState->pfnGetMaxValues(cmHalState, &queryCaps->maxValues));
+        CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmHalState->pfnGetMaxValues(cmHalState, &queryCaps->maxValues));
         break;
 
     case CM_QUERY_MAX_VALUES_EX:
-        CHK_MOSSTATUS_RETURN_CMERROR(cmHalState->pfnGetMaxValuesEx(cmHalState, &queryCaps->maxValuesEx));
+        CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmHalState->pfnGetMaxValuesEx(cmHalState, &queryCaps->maxValuesEx));
         break;
 
     case CM_QUERY_GPU:
@@ -1121,7 +1121,7 @@ int32_t CmDeviceRT::GetCapsInternal(void  *caps, uint32_t *size)
         break;
 
     case CM_QUERY_PLATFORM_INFO:
-        CHK_MOSSTATUS_RETURN_CMERROR(cmHalState->pfnGetPlatformInfo(cmHalState, &queryCaps->platformInfo, false));
+        CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmHalState->pfnGetPlatformInfo(cmHalState, &queryCaps->platformInfo, false));
         break;
     default:
         hr = CM_FAILURE;
@@ -2007,11 +2007,11 @@ CM_RT_API int32_t CmDeviceRT::SetVmeSurfaceStateParam(SurfaceIndex* vmeIndex, CM
     CmSurface *cmSurface = nullptr;
     CmSurfaceVme *vmeSurface = nullptr;
 
-    CMCHK_NULL(vmeIndex);
-    CMCHK_NULL(surfStateParam);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(vmeIndex);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(surfStateParam);
 
     m_surfaceMgr->GetSurface(vmeIndex->get_data(), cmSurface);
-    CMCHK_NULL(cmSurface);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(cmSurface);
 
     // check if it is a vme index
     if (cmSurface->Type() != CM_ENUM_CLASS_TYPE_CMSURFACEVME)
@@ -2156,7 +2156,7 @@ int32_t CmDeviceRT::RegisterSamplerState(const CM_SAMPLER_STATE& samplerState,
     param.minFilter = samplerState.minFilterType;
     param.handle = 0;
 
-    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnRegisterSampler(cmData->cmHalState, &param));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnRegisterSampler(cmData->cmHalState, &param));
 
     index = param.handle;
 
@@ -2205,7 +2205,7 @@ CmDeviceRT::RegisterSamplerStateEx(const CM_SAMPLER_STATE_EX& samplerState,
             param.borderColorAlphaF = samplerState.BorderColorAlphaF;
     }
 
-    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnRegisterSampler(cmData->cmHalState, &param));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnRegisterSampler(cmData->cmHalState, &param));
 
     index = param.handle;
 
@@ -2223,7 +2223,7 @@ int32_t CmDeviceRT::UnregisterSamplerState(uint32_t index)
 
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)GetAccelData();
 
-    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnUnRegisterSampler(cmData->cmHalState, index));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnUnRegisterSampler(cmData->cmHalState, index));
 
 finish:
     return hr;
@@ -2583,7 +2583,7 @@ int32_t CmDeviceRT::RegisterSampler8x8State(
 
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)GetAccelData();
 
-    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnRegisterSampler8x8(cmData->cmHalState, &param));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnRegisterSampler8x8(cmData->cmHalState, &param));
 
     index = param.handle >> 16;
 
@@ -2601,7 +2601,7 @@ int32_t CmDeviceRT::UnregisterSampler8x8State(uint32_t index)
 
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)GetAccelData();
 
-    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnUnRegisterSampler8x8(cmData->cmHalState, index));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnUnRegisterSampler8x8(cmData->cmHalState, index));
 
 finish:
     return hr;
@@ -2773,7 +2773,7 @@ int32_t CmDeviceRT::GetGenStepInfo(char*& stepinfostr)
 
     cmHalState = ((PCM_CONTEXT_DATA)GetAccelData())->cmHalState;
 
-    CHK_MOSSTATUS_RETURN_CMERROR(cmHalState->cmHalInterface->GetGenStepInfo(stepinfostr));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmHalState->cmHalInterface->GetGenStepInfo(stepinfostr));
 
 finish:
     return hr;
@@ -2948,7 +2948,7 @@ CM_RT_API int32_t CmDeviceRT::SetSuggestedL3Config(L3_SUGGEST_CONFIG l3SuggestCo
     CM_RETURN_CODE  hr          = CM_SUCCESS;
 
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)this->GetAccelData();
-    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->cmHalInterface->SetSuggestedL3Conf(l3SuggestConfig));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->cmHalInterface->SetSuggestedL3Conf(l3SuggestConfig));
 
 finish:
     return hr;
@@ -3031,7 +3031,7 @@ int32_t CmDeviceRT::SetCaps(CM_DEVICE_CAP_NAME capName,
     }
 
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)this->GetAccelData();
-    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnSetCaps(cmData->cmHalState, (PCM_HAL_MAX_SET_CAPS_PARAM)&setCaps));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnSetCaps(cmData->cmHalState, (PCM_HAL_MAX_SET_CAPS_PARAM)&setCaps));
 
 finish:
     return hr;
@@ -3051,7 +3051,7 @@ int32_t CmDeviceRT::RegisterSyncEvent(void *syncEventHandle)
     PCM_CONTEXT_DATA  cmData = (PCM_CONTEXT_DATA)GetAccelData();
     PCM_HAL_STATE  cmHalState = cmData->cmHalState;
     // Call HAL layer to wait for Task finished with event-driven mechanism
-    CHK_MOSSTATUS_RETURN_CMERROR(cmHalState->pfnRegisterUMDNotifyEventHandle(cmHalState, &syncParam));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmHalState->pfnRegisterUMDNotifyEventHandle(cmHalState, &syncParam));
 
     m_osSyncEvent = syncParam.osSyncEvent;
 

@@ -47,7 +47,7 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
     MHW_VEBOX_SURFACE_STATE_CMD_PARAMS  veboxSurfaceStateCmdParams;
     MHW_VEBOX_DI_IECP_CMD_PARAMS        veboxDiIecpCmdParams;
     MHW_MI_FLUSH_DW_PARAMS              miFlushDwParams;
-    MOS_STATUS                          hr;
+    MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
     uint32_t                            index;
     int32_t                             taskId, i, remaining, syncOffset;
     int64_t                             *taskSyncLocation;
@@ -59,11 +59,10 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
     PRENDERHAL_INTERFACE                renderHal = state->renderHal;
 
     //-----------------------------------
-    CM_PUBLIC_ASSERT(state);
-    CM_PUBLIC_ASSERT(veboxTaskParam);
+    CM_CHK_NULL_RETURN_MOSERROR(state);
+    CM_CHK_NULL_RETURN_MOSERROR(state->osInterface);
+    CM_CHK_NULL_RETURN_MOSERROR(veboxTaskParam);
     //-----------------------------------
-
-    hr = MOS_STATUS_SUCCESS;
 
     // initialize
     MOS_ZeroMemory(&cmdBuffer, sizeof(MOS_COMMAND_BUFFER));
@@ -93,10 +92,10 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
     osInterface->pfnResetOsStates(osInterface);
 
     // reset HW
-    CM_CHK_MOSSTATUS(state->renderHal->pfnReset(state->renderHal));
+    CM_CHK_MOSSTATUS_GOTOFINISH(state->renderHal->pfnReset(state->renderHal));
 
     // get the Task Id
-    CM_CHK_MOSSTATUS(HalCm_GetNewTaskId(state, &taskId));
+    CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_GetNewTaskId(state, &taskId));
 
     // get the task sync offset
     syncOffset = state->pfnGetTaskSyncLocation(state, taskId);
@@ -118,7 +117,7 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
     }
 
     // register Timestamp Buffer
-    CM_CHK_MOSSTATUS(osInterface->pfnRegisterResource(
+    CM_CHK_MOSSTATUS_GOTOFINISH(osInterface->pfnRegisterResource(
         osInterface,
         &state->veboxTimeStampResource.osResource,
         true,
@@ -132,7 +131,7 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
             continue;
         }
 
-        CM_CHK_MOSSTATUS(HalCm_GetSurfaceAndRegister(
+        CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_GetSurfaceAndRegister(
             state,
             &state->cmVeboxSurfaces[index],
             CM_ARGUMENT_SURFACE2D,
@@ -146,7 +145,7 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
     //----------------------------------
     if ((veboxTaskParam->cmVeboxState.DNDIFirstFrame) && ((veboxTaskParam->cmVeboxState.DIEnable) || (veboxTaskParam->cmVeboxState.DNEnable)))
     {
-        CM_CHK_MOSSTATUS(HalCm_VeboxInitSTMMHistory(
+        CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_VeboxInitSTMMHistory(
             osInterface,
             &state->cmVeboxSurfaces[VEBOX_STMM_INPUT_SURF]));
     }
@@ -154,7 +153,7 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
     //----------------------------------
     // Allocate and reset VEBOX state
     //----------------------------------
-    CM_CHK_MOSSTATUS(veboxInterface->AssignVeboxState());
+    CM_CHK_MOSSTATUS_GOTOFINISH(veboxInterface->AssignVeboxState());
 
     //----------------------------------
     // set vebox state heap and vebox cmd parameters
@@ -162,7 +161,7 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
     MOS_ZeroMemory(&veboxStateCmdParams, sizeof(MHW_VEBOX_STATE_CMD_PARAMS));
 
     //set vebox param buffer
-    CM_CHK_MOSSTATUS(HalCm_GetSurfaceAndRegister(
+    CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_GetSurfaceAndRegister(
         state,
         &state->cmVebeboxParamSurf,
         CM_ARGUMENT_SURFACEBUFFER,
@@ -188,7 +187,7 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
     //----------------------------------
     // get vebox command buffer
     //----------------------------------
-    CM_CHK_MOSSTATUS(osInterface->pfnGetCommandBuffer(osInterface, &cmdBuffer, 0));
+    CM_CHK_MOSSTATUS_GOTOFINISH(osInterface->pfnGetCommandBuffer(osInterface, &cmdBuffer, 0));
     remaining = cmdBuffer.iRemaining;
 
     //---------------------------------
@@ -201,7 +200,7 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
     //---------------------------------
     // send command buffer header at the beginning (OS dependent)
     //---------------------------------
-    CM_CHK_MOSSTATUS(state->renderHal->pfnInitCommandBuffer(
+    CM_CHK_MOSSTATUS_GOTOFINISH(state->renderHal->pfnInitCommandBuffer(
         state->renderHal,
         &cmdBuffer,
         &genericPrologParams));
@@ -216,7 +215,7 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
     miFlushDwParams.postSyncOperation    = MHW_FLUSH_WRITE_TIMESTAMP_REG;
     miFlushDwParams.bQWordEnable         = 1;
 
-    CM_CHK_MOSSTATUS(renderHal->pMhwMiInterface->AddMiFlushDwCmd(
+    CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pMhwMiInterface->AddMiFlushDwCmd(
         &cmdBuffer,
         &miFlushDwParams));
 
@@ -228,7 +227,7 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
     //---------------------------------
     // send vebox state commands
     //---------------------------------
-    CM_CHK_MOSSTATUS(veboxInterface->AddVeboxState(
+    CM_CHK_MOSSTATUS_GOTOFINISH(veboxInterface->AddVeboxState(
         &cmdBuffer,
         &veboxStateCmdParams, 1));
 
@@ -236,16 +235,16 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
     // send Vebox_Surface_State cmd
     //---------------------------------
     MOS_ZeroMemory(&veboxSurfaceStateCmdParams, sizeof(MHW_VEBOX_SURFACE_STATE_CMD_PARAMS));
-    CM_CHK_MOSSTATUS(HalCm_SetVeboxSurfaceStateCmdParams(state, &veboxSurfaceStateCmdParams));
-    CM_CHK_MOSSTATUS(veboxInterface->AddVeboxSurfaces(
+    CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_SetVeboxSurfaceStateCmdParams(state, &veboxSurfaceStateCmdParams));
+    CM_CHK_MOSSTATUS_GOTOFINISH(veboxInterface->AddVeboxSurfaces(
         &cmdBuffer,
         &veboxSurfaceStateCmdParams));
     //---------------------------------
     // send Vebox_DI_IECP cmd
     //---------------------------------
     MOS_ZeroMemory(&veboxDiIecpCmdParams, sizeof(MHW_VEBOX_DI_IECP_CMD_PARAMS));
-    CM_CHK_MOSSTATUS(HalCm_SetVeboxDiIecpCmdParams(state, &veboxDiIecpCmdParams, (PCM_VEBOX_SURFACE_DATA)&cmVeboxSurfaceData));
-    CM_CHK_MOSSTATUS(veboxInterface->AddVeboxDiIecp(
+    CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_SetVeboxDiIecpCmdParams(state, &veboxDiIecpCmdParams, (PCM_VEBOX_SURFACE_DATA)&cmVeboxSurfaceData));
+    CM_CHK_MOSSTATUS_GOTOFINISH(veboxInterface->AddVeboxDiIecp(
         &cmdBuffer,
         &veboxDiIecpCmdParams));
 
@@ -258,7 +257,7 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
     miFlushDwParams.postSyncOperation  = MHW_FLUSH_WRITE_TIMESTAMP_REG;
     miFlushDwParams.bQWordEnable       = 1;
 
-    CM_CHK_MOSSTATUS(renderHal->pMhwMiInterface->AddMiFlushDwCmd(
+    CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pMhwMiInterface->AddMiFlushDwCmd(
         &cmdBuffer,
         &miFlushDwParams));
 
@@ -270,12 +269,12 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
     miFlushDwParams.dwResourceOffset  = veboxHeap->uiOffsetSync;
     miFlushDwParams.dwDataDW1         = veboxHeap->dwNextTag;
     miFlushDwParams.bQWordEnable      = 1;
-    CM_CHK_MOSSTATUS(renderHal->pMhwMiInterface->AddMiFlushDwCmd(
+    CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pMhwMiInterface->AddMiFlushDwCmd(
         &cmdBuffer,
         &miFlushDwParams));
 
     // Update tracker resource
-    CM_CHK_MOSSTATUS(state->pfnUpdateTrackerResource(state, &cmdBuffer, tag));
+    CM_CHK_MOSSTATUS_GOTOFINISH(state->pfnUpdateTrackerResource(state, &cmdBuffer, tag));
 
     //---------------------------------
     // Make sure copy kernel and update kernels are finished before submitting
@@ -301,17 +300,17 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
     pipeControlParams.bGenericMediaStateClear = true;
     pipeControlParams.bIndirectStatePointersDisable = true;
     pipeControlParams.bDisableCSStall = false;
-    CM_CHK_MOSSTATUS(renderHal->pMhwMiInterface->AddPipeControl(&cmdBuffer, nullptr, &pipeControlParams));
+    CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pMhwMiInterface->AddPipeControl(&cmdBuffer, nullptr, &pipeControlParams));
 
     if (MEDIA_IS_WA(renderHal->pWaTable, WaSendDummyVFEafterPipelineSelect))
     {
         MHW_VFE_PARAMS vfeStateParams = {};
         vfeStateParams.dwNumberofURBEntries = 1;
-        CM_CHK_MOSSTATUS(renderHal->pMhwRenderInterface->AddMediaVfeCmd(&cmdBuffer, &vfeStateParams));
+        CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pMhwRenderInterface->AddMediaVfeCmd(&cmdBuffer, &vfeStateParams));
     }
 
     //Couple to the BB_START , otherwise GPU Hang without it in KMD.
-    CM_CHK_MOSSTATUS(renderHal->pMhwMiInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
+    CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pMhwMiInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
 
     //---------------------------------
     // Return unused command buffer space to OS
@@ -323,7 +322,7 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
     //---------------------------------
     // submit the command buffer
     //---------------------------------
-    CM_CHK_MOSSTATUS(osInterface->pfnSubmitCommandBuffer(
+    CM_CHK_MOSSTATUS_GOTOFINISH(osInterface->pfnSubmitCommandBuffer(
         osInterface,
         &cmdBuffer,
         state->nullHwRenderCm));
@@ -344,17 +343,17 @@ MOS_STATUS HalCm_ExecuteVeboxTask(
         veboxHeap->pStates[veboxHeap->uiCurState].bBusy = true;
     }
 
-    hr = MOS_STATUS_SUCCESS;
+    eStatus = MOS_STATUS_SUCCESS;
 
 finish:
 
     // Failed -> discard all changes in Command Buffer
-    if (hr != MOS_STATUS_SUCCESS)
+    if (eStatus != MOS_STATUS_SUCCESS)
     {
         // Buffer overflow - display overflow size
         if (cmdBuffer.iRemaining < 0)
         {
-            CM_PUBLIC_ASSERTMESSAGE("Command Buffer overflow by %d bytes", cmdBuffer.iRemaining);
+            CM_ASSERTMESSAGE("Command Buffer overflow by %d bytes", cmdBuffer.iRemaining);
         }
 
         // Move command buffer back to beginning
@@ -367,7 +366,7 @@ finish:
         osInterface->pfnReturnCommandBuffer(osInterface, &cmdBuffer, 0);
     }
 
-    return hr;
+    return eStatus;
 }
 
 //!
@@ -522,13 +521,12 @@ MOS_STATUS HalCm_VeboxInitSTMMHistory(
     PMOS_INTERFACE          osInterface,
     PRENDERHAL_SURFACE      renderHalSTMMSurface)
 {
-    MOS_STATUS          hr;
+    MOS_STATUS          eStatus = MOS_STATUS_SUCCESS;
     uint32_t            size;
     int32_t             x, y;
     uint8_t             *bytes;
     MOS_LOCK_PARAMS     lockFlags;
 
-    hr = MOS_STATUS_SUCCESS;
     PMOS_SURFACE stmmSurface = &renderHalSTMMSurface->OsSurface;
 
     MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
@@ -541,7 +539,7 @@ MOS_STATUS HalCm_VeboxInitSTMMHistory(
         &stmmSurface->OsResource,
         &lockFlags);
 
-    CM_CHK_NULL_RETURN_MOSSTATUS(bytes);
+    CM_CHK_NULL_GOTOFINISH_MOSERROR(bytes);
 
     size = stmmSurface->dwWidth >> 2;
 
@@ -559,10 +557,10 @@ MOS_STATUS HalCm_VeboxInitSTMMHistory(
     }
 
     // Unlock the surface
-    CM_HRESULT2MOSSTATUS_AND_CHECK(osInterface->pfnUnlockResource(
+    CM_CHK_HRESULT_GOTOFINISH_MOSERROR(osInterface->pfnUnlockResource(
         osInterface,
         &stmmSurface->OsResource));
 
 finish:
-    return hr;
+    return eStatus;
 }

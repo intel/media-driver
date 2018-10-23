@@ -85,20 +85,20 @@ int32_t CmDeviceRT::CreateAuxDevice(MOS_CONTEXT *mosContext)  //VADriverContextP
 
     m_mosContext = mosContext;
 
-    CHK_MOSSTATUS_RETURN_CMERROR(HalCm_Create(mosContext, &m_cmHalCreateOption, &cmHalState ));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(HalCm_Create(mosContext, &m_cmHalCreateOption, &cmHalState ));
 
-    CHK_MOSSTATUS_RETURN_CMERROR(cmHalState->pfnCmAllocate(cmHalState));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmHalState->pfnCmAllocate(cmHalState));
 
     // allocate cmContext
     cmContext = (PCM_CONTEXT)MOS_AllocAndZeroMemory(sizeof(CM_CONTEXT));
-    CMCHK_NULL(cmContext);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(cmContext);
     cmContext->mosCtx     = *mosContext; // mos context
     cmContext->cmHalState = cmHalState;
 
     m_accelData =  (void *)cmContext;
 
-    CMCHK_HR_MESSAGE(GetMaxValueFromCaps(m_halMaxValues, m_halMaxValuesEx), "Failed to get Max values.");
-    CMCHK_HR_MESSAGE(GetGenPlatform(m_platform), "Failed to get GPU type.");
+    CM_CHK_CMSTATUS_GOTOFINISH_WITH_MSG(GetMaxValueFromCaps(m_halMaxValues, m_halMaxValuesEx), "Failed to get Max values.");
+    CM_CHK_CMSTATUS_GOTOFINISH_WITH_MSG(GetGenPlatform(m_platform), "Failed to get GPU type.");
 
     //  Get version from Driver
     m_ddiVersion = CM_VERSION;
@@ -303,10 +303,10 @@ CM_RETURN_CODE CmDeviceRT::QueryGPUInfoInternal(PCM_QUERY_CAPS queryCaps)
     CM_RETURN_CODE          hr = CM_SUCCESS;
 
     cmData = (PCM_CONTEXT_DATA)GetAccelData();
-    CMCHK_NULL(cmData);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(cmData);
 
     cmHalState = cmData->cmHalState;
-    CMCHK_NULL(cmHalState);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(cmHalState);
 
     switch(queryCaps->type)
     {
@@ -331,7 +331,7 @@ CM_RETURN_CODE CmDeviceRT::QueryGPUInfoInternal(PCM_QUERY_CAPS queryCaps)
             break;
 
         case CM_QUERY_GPU_FREQ:
-            CHK_MOSSTATUS_RETURN_CMERROR(cmHalState->pfnGetGPUCurrentFrequency(cmHalState, &queryCaps->gpuCurrentFreq));
+            CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmHalState->pfnGetGPUCurrentFrequency(cmHalState, &queryCaps->gpuCurrentFreq));
             break;
 
         default:
