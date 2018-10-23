@@ -50,6 +50,10 @@
 #define VPHAL_COMP_SAMPLER_LUMAKEY  4
 #define VPHAL_COMP_MAX_SAMPLER      (VPHAL_COMP_SAMPLER_NEAREST | VPHAL_COMP_SAMPLER_BILINEAR | VPHAL_COMP_SAMPLER_LUMAKEY)
 
+#define VPHAL_COMP_COMPUTE_WALKER_THREAD_SPACE_WIDTH    1
+#define VPHAL_COMP_COMPUTE_WALKER_THREAD_SPACE_HEIGHT   1
+#define VPHAL_COMP_COMPUTE_WALKER_THREAD_SPACE_DEPTH    1
+
 // GRF 8 for unified kernel inline data (NLAS is enabled)
 struct MEDIA_OBJECT_NLAS_INLINE_DATA
 {
@@ -173,6 +177,7 @@ typedef struct _VPHAL_COMPOSITE_PARAMS
     PVPHAL_ALPHA_PARAMS     pCompAlpha;           //!< Alpha for composited surface
     bool                    bAlphaCalculateEnable;
     bool                    bForceSkipColorFill;  //!< Force skip colorfill even the first layer is translucent
+    bool                    bComputeWlaker;       //!< Compute walker in use
 
     // Resource counters
     int32_t                 nLayers;
@@ -201,6 +206,8 @@ typedef struct _VPHAL_RENDERING_DATA_COMPOSITE
     int32_t                             iBlocksY;
     int32_t                             iBindingTable;
     int32_t                             iMediaID;
+    int32_t                             iCurbeOffset;
+    int32_t                             iCurbeLength;
     RECT                                rcOutput;
 
     // Constriction parameters
@@ -844,6 +851,24 @@ private:
         PMHW_WALKER_PARAMS              pWalkerParams);
 
     //!
+    //! \brief    Render Compute Walker Buffer
+    //! \details  Render Compute Walker Buffer, fill Walker static data fields and set walker
+    //!           cmd params
+    //! \param    [in] pBatchBuffer
+    //!           Pointer to BatchBuffer
+    //! \param    [in] pRenderingData
+    //!           Pointer to Rendering Data
+    //! \param    [in] pWalkerParams
+    //!           Pointer to Walker parameters
+    //! \return   bool
+    //!           Return true if successful, otherwise false
+    //!
+    bool RenderBufferComputeWalker(
+        PMHW_BATCH_BUFFER               pBatchBuffer,
+        PVPHAL_RENDERING_DATA_COMPOSITE pRenderingData,
+        PMHW_GPGPU_WALKER_PARAMS        pWalkerParams);
+
+    //!
     //! \brief    Judge whether  media walker pattern  will be vertical or not
     //! \details  if input layer is one , and input is linear format and rotation 90
     //!           or 270 is needed then the media walker pattern should be vertical
@@ -1008,6 +1033,7 @@ protected:
     float                           m_fSamplerLinearBiasX;        //!< Linear sampler bias X
     float                           m_fSamplerLinearBiasY;        //!< Linear sampler bias Y
     bool                            m_bFtrMediaWalker;            //!< Media Object Walker enabled
+    bool                            m_bFtrComputeWalker;          //!< Compute Walker enabled
     bool                            m_bFtrCSCCoeffPatchMode;      //!< Set CSC Coeff using patch mode
     bool                            m_bSamplerSupportRotation;    //!< Use sampler for Rotation
     bool                            m_bChromaUpSampling;          //!< Chroma Up Sampling needed

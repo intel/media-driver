@@ -5278,14 +5278,23 @@ MOS_STATUS RenderHal_SendMediaStates(
     }
 
     // Send VFE State
-    pVfeStateParams = pRenderHal->pRenderHalPltInterface->GetVfeStateParameters();
-    MHW_RENDERHAL_CHK_STATUS(pMhwRender->AddMediaVfeCmd(pCmdBuffer, pVfeStateParams));
+    if (!pRenderHal->bComputeContextInUse)
+    {
+        pVfeStateParams = pRenderHal->pRenderHalPltInterface->GetVfeStateParameters();
+        MHW_RENDERHAL_CHK_STATUS(pMhwRender->AddMediaVfeCmd(pCmdBuffer, pVfeStateParams));
+    }
 
     // Send CURBE Load
-    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSendCurbeLoad(pRenderHal, pCmdBuffer));
+    if (!pRenderHal->bComputeContextInUse)
+    {
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSendCurbeLoad(pRenderHal, pCmdBuffer));
+    }
 
     // Send Interface Descriptor Load
-    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSendMediaIdLoad(pRenderHal, pCmdBuffer));
+    if (!pRenderHal->bComputeContextInUse)
+    {
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSendMediaIdLoad(pRenderHal, pCmdBuffer));
+    }
 
     // Send Chroma Keys
     MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSendChromaKey(pRenderHal, pCmdBuffer));
@@ -5300,9 +5309,16 @@ MOS_STATUS RenderHal_SendMediaStates(
             pCmdBuffer,
             pWalkerParams));
     }
-    else if (pGpGpuWalkerParams)
+    else if (pGpGpuWalkerParams && (!pRenderHal->bComputeContextInUse))
     {
         MHW_RENDERHAL_CHK_STATUS(pMhwRender->AddGpGpuWalkerStateCmd(
+            pCmdBuffer,
+            pGpGpuWalkerParams));
+    }
+    else if (pGpGpuWalkerParams && pRenderHal->bComputeContextInUse)
+    {
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->SendComputeWalker(
+            pRenderHal,
             pCmdBuffer,
             pGpGpuWalkerParams));
     }
@@ -6818,6 +6834,7 @@ MOS_STATUS RenderHal_InitInterface(
     pRenderHal->bHasCombinedAVSSamplerState   = true;
     pRenderHal->bEnableYV12SinglePass         = pRenderHal->pRenderHalPltInterface->IsEnableYV12SinglePass(pRenderHal);
     pRenderHal->dwSamplerAvsIncrement         = pRenderHal->pRenderHalPltInterface->GetSizeSamplerStateAvs(pRenderHal);
+    pRenderHal->bComputeContextInUse          = pRenderHal->pRenderHalPltInterface->IsComputeContextInUse(pRenderHal);
 
     pRenderHal->dwMaskCrsThdConDataRdLn       = (uint32_t) -1;
     pRenderHal->dwMinNumberThreadsInGroup     = 1;

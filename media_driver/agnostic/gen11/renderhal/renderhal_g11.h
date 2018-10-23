@@ -291,6 +291,16 @@ public:
     //! \return     size_t
     //!             the size of binding table state command
     virtual size_t GetBTStateCmdSize() {return mhw_state_heap_g11_X::BINDING_TABLE_STATE_CMD::byteSize;}
+
+    //! \brief    Check if compute context in use
+    //! \param    PRENDERHAL_INTERFACE    pRenderHal
+    //!           [in]  Pointer to Hardware Interface
+    //! \return   true of false
+    virtual bool IsComputeContextInUse(PRENDERHAL_INTERFACE pRenderHal)
+    {
+        MOS_UNUSED(pRenderHal);
+        return false;
+    }
 protected:
     MHW_VFE_PARAMS               m_vfeStateParams;
     mhw_render_g11_X::PALETTE_ENTRY_CMD
