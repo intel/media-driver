@@ -128,8 +128,6 @@ const VAImageFormat MediaLibvaCaps::m_supportedImageformats[] =
     {VA_FOURCC_P208, VA_LSB_FIRST, 8, 0,0,0,0,0},
     {VA_FOURCC_P016, VA_LSB_FIRST, 12, 0,0,0,0,0},
     {VA_FOURCC('P','0','1','0'), VA_LSB_FIRST, 24, 0,0,0,0,0},
-    {VA_FOURCC_AYUV, VA_LSB_FIRST, 24, 0,0,0,0,0},
-    {VA_FOURCC_Y410, VA_LSB_FIRST, 24, 0,0,0,0,0}
 };
 
 MediaLibvaCaps::MediaLibvaCaps(DDI_MEDIA_CONTEXT *mediaCtx)
@@ -165,7 +163,7 @@ VAStatus MediaLibvaCaps::PopulateColorMaskInfo(VAImageFormat *vaImgFmt)
         }
     }
 
-    return VA_STATUS_SUCCESS;
+    return VA_STATUS_ERROR_INVALID_IMAGE_FORMAT;
 }
 
 bool MediaLibvaCaps::CheckEntrypointCodecType(VAEntrypoint entrypoint, CodecType codecType)
@@ -2899,7 +2897,7 @@ VAStatus MediaLibvaCaps::QueryImageFormats(VAImageFormat *formatList, int32_t *n
     DDI_CHK_NULL(numFormats, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     int32_t num = 0;
     bool supportP010 = IsP010Supported();
-    uint32_t maxNum = GetImageFormatsMaxNum();
+    uint32_t maxNum = MediaLibvaCaps::GetImageFormatsMaxNum();
 
     memset(formatList, 0,  sizeof(m_supportedImageformats));
     for (uint32_t idx = 0; idx < maxNum; idx++)
