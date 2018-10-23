@@ -42,6 +42,10 @@ GpuContextSpecific::GpuContextSpecific(
 {
     MOS_OS_FUNCTION_ENTER;
 
+    MOS_OS_ASSERT(gpuNode != MOS_GPU_NODE_MAX);
+    MOS_OS_ASSERT(mosGpuCtx != MOS_GPU_CONTEXT_INVALID_HANDLE);
+    MOS_OS_ASSERT(cmdBufMgr);
+
     m_nodeOrdinal          = gpuNode;
     m_cmdBufMgr            = cmdBufMgr;
     m_gpuContext           = mosGpuCtx;
