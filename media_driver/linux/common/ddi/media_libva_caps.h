@@ -514,7 +514,7 @@ public:
     //! \return   VAStatus 
     //!           VA_STATUS_SUCCESS if succeed 
     //!
-    VAStatus QueryImageFormats(VAImageFormat *formatList, int32_t *num_formats);
+    virtual VAStatus QueryImageFormats(VAImageFormat *formatList, int32_t *num_formats);
 
     //!
     //! \brief    Populate the color masks info 
@@ -526,7 +526,7 @@ public:
     //! \return   VAStatus 
     //!           VA_STATUS_SUCCESS if succeed 
     //!
-    VAStatus PopulateColorMaskInfo(VAImageFormat *vaImgFmt);
+    virtual VAStatus PopulateColorMaskInfo(VAImageFormat *vaImgFmt);
     
     //!
     //! \brief    Query AVC ROI maxinum numbers and if support ROI in delta QP 
@@ -553,7 +553,7 @@ public:
     //!
     //! \return   The maxinum number of supported image formats 
     //!
-    static uint32_t GetImageFormatsMaxNum();
+    virtual uint32_t GetImageFormatsMaxNum();
 
     //!
     //! \brief    Check if the configID is a valid decode config 

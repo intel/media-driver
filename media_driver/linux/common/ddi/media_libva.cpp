@@ -1345,7 +1345,7 @@ VAStatus DdiMedia__Initialize (
         FreeForMediaContext(mediaCtx);
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
-
+    ctx->max_image_formats = mediaCtx->m_caps->GetImageFormatsMaxNum();
 #ifdef _MMC_SUPPORTED
     mediaCtx->pfnMemoryDecompress = DdiMedia_MediaMemoryDecompressInternal;
 #endif
@@ -5934,7 +5934,6 @@ VAStatus __vaDriverInit(VADriverContextP ctx )
     ctx->max_profiles                        = DDI_CODEC_GEN_MAX_PROFILES;
     ctx->max_entrypoints                     = DDI_CODEC_GEN_MAX_ENTRYPOINTS;
     ctx->max_attributes                      = (int32_t)VAConfigAttribTypeMax;
-    ctx->max_image_formats                   = MediaLibvaCaps::GetImageFormatsMaxNum();
     ctx->max_subpic_formats                  = DDI_CODEC_GEN_MAX_SUBPIC_FORMATS;
     ctx->max_display_attributes              = DDI_CODEC_GEN_MAX_DISPLAY_ATTRIBUTES ;
     ctx->str_vendor                          = DDI_CODEC_GEN_STR_VENDOR;
