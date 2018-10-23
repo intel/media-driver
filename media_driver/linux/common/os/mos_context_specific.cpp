@@ -576,7 +576,6 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
     
         m_use64BitRelocs = true;
         m_useSwSwizzling = MEDIA_IS_SKU(&m_skuTable, FtrSimulationMode); 
-        m_tileYFlag      = MEDIA_IS_SKU(&m_skuTable, FtrTileY);
     
     #ifndef ANDROID
         m_intelContext = mos_gem_context_create(pOsDriverContext->bufmgr);
