@@ -152,6 +152,7 @@ struct mos_bufmgr_gem {
     unsigned int no_exec : 1;
     unsigned int has_vebox : 1;
     unsigned int has_ext_mmap : 1;
+    unsigned int has_ext_mmap2 : 1;
     bool fenced_relocs;
 
     struct {
@@ -1819,7 +1820,45 @@ map_wc(struct mos_linux_bo *bo)
         mos_gem_bo_open_vma(bufmgr_gem, bo_gem);
 
     /* Get a mapping of the buffer if we haven't before. */
-    if (bo_gem->mem_wc_virtual == nullptr) {
+    if (bo_gem->mem_wc_virtual == nullptr && bufmgr_gem->has_ext_mmap2) {
+        struct drm_i915_gem_mmap2 mmap_arg;
+
+        MOS_DBG("bo_map_wc: mmap2 %d (%s), map_count=%d\n",
+            bo_gem->gem_handle, bo_gem->name, bo_gem->map_count);
+
+        memclear(mmap_arg);
+        mmap_arg.handle = bo_gem->gem_handle;
+        /* To indicate the uncached virtual mapping to KMD */
+        mmap_arg.flags = I915_MMAP_WC;
+        ret = drmIoctl(bufmgr_gem->fd,
+                   DRM_IOCTL_I915_GEM_MMAP2,
+                   &mmap_arg);
+        if (ret != 0) {
+            ret = -errno;
+            MOS_DBG("%s:%d: Error mapping buffer %d (%s): %s .\n",
+                __FILE__, __LINE__, bo_gem->gem_handle,
+                bo_gem->name, strerror(errno));
+            if (--bo_gem->map_count == 0)
+                mos_gem_bo_close_vma(bufmgr_gem, bo_gem);
+            return ret;
+        }
+
+        /* and mmap it */
+        bo_gem->mem_wc_virtual = drm_mmap(0, bo->size, PROT_READ | PROT_WRITE,
+                           MAP_SHARED, bufmgr_gem->fd,
+                           mmap_arg.offset);
+        if (bo_gem->mem_wc_virtual == MAP_FAILED) {
+            bo_gem->mem_wc_virtual = nullptr;
+            ret = -errno;
+            MOS_DBG("%s:%d: Error mapping buffer %d (%s): %s .\n",
+                __FILE__, __LINE__,
+                bo_gem->gem_handle, bo_gem->name,
+                strerror(errno));
+            if (--bo_gem->map_count == 0)
+                mos_gem_bo_close_vma(bufmgr_gem, bo_gem);
+        }
+    }
+    else if (bo_gem->mem_wc_virtual == nullptr) {
         struct drm_i915_gem_mmap mmap_arg;
 
         MOS_DBG("bo_map_wc: mmap %d (%s), map_count=%d\n",
@@ -1946,7 +1985,44 @@ drm_export int mos_gem_bo_map(struct mos_linux_bo *bo, int write_enable)
     if (bo_gem->map_count++ == 0)
         mos_gem_bo_open_vma(bufmgr_gem, bo_gem);
 
-    if (!bo_gem->mem_virtual) {
+    if (!bo_gem->mem_virtual && bufmgr_gem->has_ext_mmap2) {
+        struct drm_i915_gem_mmap2 mmap_arg;
+
+        MOS_DBG("bo_map: %d (%s), map_count=%d\n",
+            bo_gem->gem_handle, bo_gem->name, bo_gem->map_count);
+
+        memclear(mmap_arg);
+        mmap_arg.handle = bo_gem->gem_handle;
+        ret = drmIoctl(bufmgr_gem->fd,
+                   DRM_IOCTL_I915_GEM_MMAP2,
+                   &mmap_arg);
+        if (ret != 0) {
+            ret = -errno;
+            MOS_DBG("%s:%d: Error mapping buffer %d (%s): %s .\n",
+                __FILE__, __LINE__, bo_gem->gem_handle,
+                bo_gem->name, strerror(errno));
+            if (--bo_gem->map_count == 0)
+                mos_gem_bo_close_vma(bufmgr_gem, bo_gem);
+            pthread_mutex_unlock(&bufmgr_gem->lock);
+            return ret;
+        }
+
+        /* and mmap it */
+        bo_gem->mem_virtual = drm_mmap(0, bo->size, PROT_READ | PROT_WRITE,
+                           MAP_SHARED, bufmgr_gem->fd,
+                           mmap_arg.offset);
+        if (bo_gem->mem_virtual == MAP_FAILED) {
+            bo_gem->mem_virtual = nullptr;
+            ret = -errno;
+            MOS_DBG("%s:%d: Error mapping buffer %d (%s): %s .\n",
+                __FILE__, __LINE__,
+                bo_gem->gem_handle, bo_gem->name,
+                strerror(errno));
+            if (--bo_gem->map_count == 0)
+                mos_gem_bo_close_vma(bufmgr_gem, bo_gem);
+        }
+    }
+    else if (!bo_gem->mem_virtual) {
         struct drm_i915_gem_mmap mmap_arg;
 
         MOS_DBG("bo_map: %d (%s), map_count=%d\n",
@@ -2020,18 +2096,38 @@ map_gtt(struct mos_linux_bo *bo)
 
     /* Get a mapping of the buffer if we haven't before. */
     if (bo_gem->gtt_virtual == nullptr) {
-        struct drm_i915_gem_mmap_gtt mmap_arg;
+        __u64 offset = 0;
+        if (bufmgr_gem->has_ext_mmap2) {
+            struct drm_i915_gem_mmap2 mmap_arg;
 
-        MOS_DBG("bo_map_gtt: mmap %d (%s), map_count=%d\n",
-            bo_gem->gem_handle, bo_gem->name, bo_gem->map_count);
+            MOS_DBG("map_gtt: mmap2 %d (%s), map_count=%d\n",
+                bo_gem->gem_handle, bo_gem->name, bo_gem->map_count);
 
-        memclear(mmap_arg);
-        mmap_arg.handle = bo_gem->gem_handle;
+            memclear(mmap_arg);
+            mmap_arg.handle = bo_gem->gem_handle;
 
-        /* Get the fake offset back... */
-        ret = drmIoctl(bufmgr_gem->fd,
-                   DRM_IOCTL_I915_GEM_MMAP_GTT,
-                   &mmap_arg);
+            /* Get the fake offset back... */
+            ret = drmIoctl(bufmgr_gem->fd,
+                       DRM_IOCTL_I915_GEM_MMAP2,
+                       &mmap_arg);
+            offset = mmap_arg.offset;
+        }
+        else
+        {
+            struct drm_i915_gem_mmap_gtt mmap_arg;
+
+            MOS_DBG("bo_map_gtt: mmap %d (%s), map_count=%d\n",
+                bo_gem->gem_handle, bo_gem->name, bo_gem->map_count);
+
+            memclear(mmap_arg);
+            mmap_arg.handle = bo_gem->gem_handle;
+
+            /* Get the fake offset back... */
+            ret = drmIoctl(bufmgr_gem->fd,
+                       DRM_IOCTL_I915_GEM_MMAP_GTT,
+                       &mmap_arg);
+            offset = mmap_arg.offset;
+        }
         if (ret != 0) {
             ret = -errno;
             MOS_DBG("%s:%d: Error preparing buffer map %d (%s): %s .\n",
@@ -2046,7 +2142,7 @@ map_gtt(struct mos_linux_bo *bo)
         /* and mmap it */
         bo_gem->gtt_virtual = drm_mmap(0, bo->size, PROT_READ | PROT_WRITE,
                            MAP_SHARED, bufmgr_gem->fd,
-                           mmap_arg.offset);
+                           offset);
         if (bo_gem->gtt_virtual == MAP_FAILED) {
             bo_gem->gtt_virtual = nullptr;
             ret = -errno;
@@ -2238,16 +2334,31 @@ mos_gem_bo_unmap_gtt(struct mos_linux_bo *bo)
 int mos_gem_bo_get_fake_offset(struct mos_linux_bo *bo)
 {
     int ret;
-    struct drm_i915_gem_mmap_gtt mmap_arg;
+    __u64  offset = 0;
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bo->bufmgr;
     struct mos_bo_gem *bo_gem = (struct mos_bo_gem *) bo;
 
-    memclear(mmap_arg);
-    mmap_arg.handle = bo_gem->gem_handle;
+    if (bufmgr_gem->has_ext_mmap2) {
+        struct drm_i915_gem_mmap2 mmap_arg;
 
-    ret = drmIoctl(bufmgr_gem->fd,
-            DRM_IOCTL_I915_GEM_MMAP_GTT,
-            &mmap_arg);
+        memclear(mmap_arg);
+        mmap_arg.handle = bo_gem->gem_handle;
+        
+        ret = drmIoctl(bufmgr_gem->fd,
+                   DRM_IOCTL_I915_GEM_MMAP2,
+                   &mmap_arg);
+        offset = mmap_arg.offset;
+    } else {
+        struct drm_i915_gem_mmap_gtt mmap_arg;
+
+        memclear(mmap_arg);
+        mmap_arg.handle = bo_gem->gem_handle;
+
+        ret = drmIoctl(bufmgr_gem->fd,
+                DRM_IOCTL_I915_GEM_MMAP_GTT,
+                &mmap_arg);
+        offset = mmap_arg.offset;  
+    }
     if (ret != 0) {
         ret = -errno;
         MOS_DBG("%s:%d: Error to get buffer fake offset %d (%s): %s .\n",
@@ -2256,7 +2367,7 @@ int mos_gem_bo_get_fake_offset(struct mos_linux_bo *bo)
             strerror(errno));
     }
     else {
-        bo->offset64 = mmap_arg.offset;
+        bo->offset64 = offset;
     }
     return ret;
 }
@@ -5055,6 +5166,7 @@ mos_bufmgr_gem_init(int fd, int batch_size)
     gp.param = I915_PARAM_MMAP_VERSION;
     ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GETPARAM, &gp);
     bufmgr_gem->has_ext_mmap = (ret == 0) & (*gp.value > 0);
+    bufmgr_gem->has_ext_mmap2 = (ret == 0) & (*gp.value == 2);
 
     gp.param = I915_PARAM_HAS_EXEC_SOFTPIN;
     ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GETPARAM, &gp);
