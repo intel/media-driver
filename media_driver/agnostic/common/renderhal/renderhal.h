@@ -1175,6 +1175,7 @@ typedef struct _RENDERHAL_INTERFACE
     bool                        bEUSaturationNoSSD;                             // No slice shutdown, must request 2 slices [CM EU saturation on]
     bool                        bEnableGpgpuMidBatchPreEmption;                 // Middle Batch Buffer Preemption
     bool                        bEnableGpgpuMidThreadPreEmption;                // Middle Thread Preemption
+    bool                        bComputeContextInUse;                           // Compute Context use for media
 
     uint32_t                    dwMaskCrsThdConDataRdLn;                        // Unifies pfnSetupInterfaceDescriptor for g75,g8,...
     uint32_t                    dwMinNumberThreadsInGroup;                      // Unifies pfnSetupInterfaceDescriptor for g75,g8,...

@@ -4619,6 +4619,9 @@ bool CompositeState::SubmitStates(
         goto finish;
     }
 
+    pRenderingData->iCurbeOffset = iCurbeOffset;
+    pRenderingData->iCurbeLength = iCurbeLength;
+
     // Set Sampler states for this Media ID
     eStatus = pRenderHal->pfnSetSamplerStates(
         pRenderHal,
@@ -5474,6 +5477,133 @@ bool CompositeState::RenderBufferMediaWalker(
 }
 
 //!
+//! \brief    Render GpGpu Walker Buffer
+//! \details  Render GpGpu Walker Buffer, fill Walker static data fields and set walker
+//!           cmd params
+//! \param    [in] pBatchBuffer
+//!           Pointer to BatchBuffer
+//! \param    [in] pRenderingData
+//!           Pointer to Rendering Data
+//! \param    [in] pWalkerParams
+//!           Pointer to Walker parameters
+//! \return   bool
+//!           Return true if successful, otherwise false
+//!
+bool CompositeState::RenderBufferComputeWalker(
+    PMHW_BATCH_BUFFER               pBatchBuffer,
+    PVPHAL_RENDERING_DATA_COMPOSITE pRenderingData,
+    PMHW_GPGPU_WALKER_PARAMS        pWalkerParams)
+{
+    PRENDERHAL_INTERFACE                pRenderHal;
+    MEDIA_WALKER_KA2_STATIC_DATA        *pWalkerStatic;
+    PVPHAL_BB_COMP_ARGS                 pBbArgs;
+    bool                                bResult;
+    int32_t                             iLayers;
+    uint32_t                            uiMediaWalkerBlockSize;
+    uint32_t*                           pdwDestXYTopLeft;
+    uint32_t*                           pdwDestXYBottomRight;
+    RECT                                AlignedRect;
+    bool                                bVerticalPattern;
+
+    MOS_UNUSED(pBatchBuffer);
+
+    bResult          = false;
+    pRenderHal       = m_pRenderHal;
+    bVerticalPattern = false;
+    pBbArgs          = &pRenderingData->BbArgs;
+    pWalkerStatic    = &pRenderingData->WalkerStatic;
+
+    VPHAL_RENDER_ASSERT(m_bFtrMediaWalker && !pBatchBuffer);
+
+    pdwDestXYTopLeft     = (uint32_t*)(&pWalkerStatic->DW48);
+    pdwDestXYBottomRight = (uint32_t*)(&pWalkerStatic->DW56);
+
+    // GRF7.0-7, GRF8.0-7
+    for (iLayers = 0;
+         iLayers < pBbArgs->iLayers;
+         iLayers++, pdwDestXYBottomRight++, pdwDestXYTopLeft++)
+    {
+        *pdwDestXYTopLeft     = (pBbArgs->rcDst[iLayers].top    << 16 ) |
+                                 pBbArgs->rcDst[iLayers].left;
+        *pdwDestXYBottomRight = ((pBbArgs->rcDst[iLayers].bottom - 1) << 16 ) |
+                                 (pBbArgs->rcDst[iLayers].right - 1);
+    }
+
+    // GRF 9.0-4
+    pWalkerStatic->DW64.MainVideoXScalingStepLeft                   =
+        (float)pRenderingData->Inline.DW04.VideoXScalingStep;
+    pWalkerStatic->DW65.VideoStepDeltaForNonLinearRegion            = 0;
+    pWalkerStatic->DW66.StartofLinearScalingInPixelPositionC0       = 0;
+    pWalkerStatic->DW66.StartofRHSNonLinearScalingInPixelPositionC1 = 0;
+    pWalkerStatic->DW67.MainVideoXScalingStepCenter                 = 0;
+    pWalkerStatic->DW68.MainVideoXScalingStepRight                  = 0;
+
+    if (pRenderingData->pTarget[1] == nullptr)
+    {
+        pWalkerStatic->DW69.DestHorizontalBlockOrigin                  =
+             (uint16_t)pRenderingData->pTarget[0]->rcDst.left;
+        pWalkerStatic->DW69.DestVerticalBlockOrigin                    =
+             (uint16_t)pRenderingData->pTarget[0]->rcDst.top;
+
+        AlignedRect   = pRenderingData->pTarget[0]->rcDst;
+    }
+    else
+    {
+        // Horizontal and Vertical base on non-rotated in case of dual output
+        pWalkerStatic->DW69.DestHorizontalBlockOrigin                   =
+            (uint16_t)pRenderingData->pTarget[1]->rcDst.left;
+        pWalkerStatic->DW69.DestVerticalBlockOrigin                     =
+             (uint16_t)pRenderingData->pTarget[1]->rcDst.top;
+
+         AlignedRect   = pRenderingData->pTarget[1]->rcDst;
+    }
+
+    ModifyMediaWalkerStaticData(pRenderingData);
+
+    // Get media walker kernel block size
+    uiMediaWalkerBlockSize = pRenderHal->pHwSizes->dwSizeMediaWalkerBlock;
+    bVerticalPattern       = MediaWalkerVertical(pRenderingData);
+
+    // Calculate aligned output area in order to determine the total # blocks
+    // to process in case of non-16x16 aligned target.
+    AlignedRect.right  += uiMediaWalkerBlockSize  - 1;
+    AlignedRect.bottom += uiMediaWalkerBlockSize - 1;
+    AlignedRect.left   -= AlignedRect.left   % uiMediaWalkerBlockSize;
+    AlignedRect.top    -= AlignedRect.top    % uiMediaWalkerBlockSize;
+    AlignedRect.right  -= AlignedRect.right  % uiMediaWalkerBlockSize;
+    AlignedRect.bottom -= AlignedRect.bottom % uiMediaWalkerBlockSize;
+
+    // Set walker cmd params - Rasterscan
+    pWalkerParams->InterfaceDescriptorOffset    = pRenderingData->iMediaID;
+
+    if(bVerticalPattern)
+    {
+        pWalkerParams->GroupStartingX = (AlignedRect.top / uiMediaWalkerBlockSize);
+        pWalkerParams->GroupStartingY = (AlignedRect.left / uiMediaWalkerBlockSize);
+        pWalkerParams->GroupWidth     = pRenderingData->iBlocksY;
+        pWalkerParams->GroupHeight    = pRenderingData->iBlocksX;
+    }
+    else
+    {
+        pWalkerParams->GroupStartingX = (AlignedRect.left / uiMediaWalkerBlockSize);
+        pWalkerParams->GroupStartingY = (AlignedRect.top / uiMediaWalkerBlockSize);
+        pWalkerParams->GroupWidth     = pRenderingData->iBlocksX;
+        pWalkerParams->GroupHeight    = pRenderingData->iBlocksY;
+    }
+
+    pWalkerParams->ThreadWidth  = VPHAL_COMP_COMPUTE_WALKER_THREAD_SPACE_WIDTH;
+    pWalkerParams->ThreadHeight = VPHAL_COMP_COMPUTE_WALKER_THREAD_SPACE_HEIGHT;
+    pWalkerParams->ThreadDepth  = VPHAL_COMP_COMPUTE_WALKER_THREAD_SPACE_DEPTH;
+    pWalkerParams->IndirectDataStartAddress = pRenderingData->iCurbeOffset;
+    pWalkerParams->IndirectDataLength       = MOS_ROUNDUP_SHIFT(pRenderingData->iCurbeLength, MHW_COMPUTE_INDIRECT_SHIFT);
+    pWalkerParams->BindingTableID = pRenderingData->iBindingTable;
+
+    bResult = true;
+
+    return bResult;
+}
+
+//!
 //! \brief    Calculate Composite parameter and render data
 //! \param    [in] pCompParams
 //!           Pointer to Composite parameters. For both input and output.
@@ -5548,11 +5678,14 @@ MOS_STATUS CompositeState::RenderPhase(
     int32_t                         iRes;
     MHW_WALKER_PARAMS               WalkerParams;
     PMHW_WALKER_PARAMS              pWalkerParams;
+    MHW_GPGPU_WALKER_PARAMS         ComputeWalkerParams;
+    PMHW_GPGPU_WALKER_PARAMS        pComputeWalkerParams;
     bool                            bKernelEntryUpdate;
     bool                            bColorfill;
     eStatus                 = MOS_STATUS_UNKNOWN;
     pMediaState             = nullptr;
     pWalkerParams           = nullptr;
+    pComputeWalkerParams    = nullptr;
     bKernelEntryUpdate      = false;
     bColorfill              = false;
 
@@ -5736,6 +5869,7 @@ MOS_STATUS CompositeState::RenderPhase(
     //============================
     pFilter = m_SearchFilter;
     MOS_ZeroMemory(pFilter, sizeof(m_SearchFilter));
+    pCompParams->bComputeWlaker = pRenderHal->bComputeContextInUse;
 
     if (!BuildFilter(
              pCompParams,
@@ -5875,7 +6009,7 @@ MOS_STATUS CompositeState::RenderPhase(
         }
     }
 
-    if (m_bFtrMediaWalker)
+    if (m_bFtrMediaWalker && (!m_bFtrComputeWalker))
     {
         pBatchBuffer  = nullptr;
         pWalkerParams = &WalkerParams;
@@ -5904,6 +6038,33 @@ MOS_STATUS CompositeState::RenderPhase(
         // The VfeScoreboard is set after Vphal_CompSubmitStates calls pRenderHal->pfnSetVfeStateParams()
         pWalkerParams->UseScoreboard  = pRenderHal->VfeScoreboard.ScoreboardEnable;
         pWalkerParams->ScoreboardMask = pRenderHal->VfeScoreboard.ScoreboardMask;
+    }
+    else if (m_bFtrComputeWalker)
+    {
+        pBatchBuffer         = nullptr;
+        pWalkerParams        = nullptr;
+        pComputeWalkerParams = &ComputeWalkerParams;
+
+        MOS_ZeroMemory(&ComputeWalkerParams, sizeof(ComputeWalkerParams));
+
+        // calculates media object walker static data fields
+        if (!RenderBufferComputeWalker(
+                 pBatchBuffer,
+                 &RenderingData,
+                 &ComputeWalkerParams))
+        {
+            VPHAL_RENDER_ASSERTMESSAGE("Failed to render media walker batch.");
+            eStatus = MOS_STATUS_UNKNOWN;
+            goto finish;
+        }
+
+        // Send Media states for compositing
+        if (!SubmitStates(&RenderingData))
+        {
+            VPHAL_RENDER_ASSERTMESSAGE("Failed to submit compositing states.");
+            eStatus = MOS_STATUS_UNKNOWN;
+            goto finish;
+        }
     }
     else
     {
@@ -5956,7 +6117,7 @@ MOS_STATUS CompositeState::RenderPhase(
         pBatchBuffer,
         m_bNullHwRenderComp,
         pWalkerParams,
-        nullptr,
+        pComputeWalkerParams,
         &m_StatusTableUpdateParams,
         kernelCombinedFc));
 
@@ -6176,6 +6337,11 @@ bool CompositeState::BuildFilter(
         else
         {
             pFilter->bWaEnableDscale = MEDIA_IS_WA(m_pWaTable, WaEnableDscale);
+        }
+
+        if (m_bFtrComputeWalker)
+        {
+            pFilter->bWaEnableDscale = true;
         }
 
         //--------------------------------
@@ -6413,12 +6579,21 @@ bool CompositeState::IsUsingSampleUnorm(
 {
     float                       fStepX = 0, fStepY = 0;
     float                       fAdjustX = 0, fAdjustY = 0;
+    bool                        bRet;
     PRECT                       pTargetRect = {0};
 
     if (nullptr == pCompParams || nullptr == pSrc)
     {
         VPHAL_RENDER_ASSERTMESSAGE("nullptr for input parameters");
-        return false;
+        bRet = false;
+        goto finish;
+    }
+
+    // Force using sampler16 when compute walker in use
+    if (m_bFtrComputeWalker)
+    {
+        bRet = false;
+        goto finish;
     }
 
     pTargetRect    = &(pCompParams->Target[0].rcDst);
@@ -6469,11 +6644,13 @@ bool CompositeState::IsUsingSampleUnorm(
         // GEN8 cannot support YV12 input format for iAVS scaling
         if (pSrc->bInterlacedScaling && !m_bYV12iAvsScaling && pSrc->Format == Format_YV12)
         {
-            return true;
+            bRet = true;
+            goto finish;
         }
         else
         {
-            return false;   // AVS
+            bRet = false;  // AVS
+            goto finish;
         }
     }
     else
@@ -6483,7 +6660,8 @@ bool CompositeState::IsUsingSampleUnorm(
             pSrc->Format == Format_Y410          ||
             pSrc->Format == Format_Y416)
         {
-            return false;   // DScaler
+            bRet = false;  // DScaler
+            goto finish;
         }
         else if (fStepX >= 3.0f || fStepY >= 3.0f)
         {
@@ -6491,9 +6669,13 @@ bool CompositeState::IsUsingSampleUnorm(
         }
         else
         {
-            return true;
+            bRet = true;
+            goto finish;
         }
     }
+
+finish:
+    return bRet;
 }
 
 //!
@@ -6689,6 +6871,7 @@ CompositeState::CompositeState(
     m_fSamplerLinearBiasX(0),
     m_fSamplerLinearBiasY(0),
     m_bFtrMediaWalker(false),
+    m_bFtrComputeWalker(false),
     m_bFtrCSCCoeffPatchMode(false),
     m_bSamplerSupportRotation(false),
     m_bChromaUpSampling(false),
