@@ -501,7 +501,6 @@ struct _MOS_OS_CONTEXT
 
     int32_t             bUse64BitRelocs;
     bool                bUseSwSwizzling;
-    bool                bTileYFlag;
 
     void                **ppMediaMemDecompState; //!<Media memory decompression data structure
 

@@ -445,7 +445,6 @@ struct DDI_MEDIA_CONTEXT
     AuxTableMgr         *m_auxTableMgr;
 
     bool                m_useSwSwizzling;
-    bool                m_tileYFlag;
 
 #ifndef ANDROID
     // X11 Func table, for vpgPutSurface (Linux)

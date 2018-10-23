@@ -2486,34 +2486,6 @@ MOS_STATUS MOS_GetLocalTime(
     struct tm* tm);
 
 //!
-//! \brief    Swizzles the given linear offset via the specified tiling params.
-//! \details  Swizzles the given linear offset via the specified tiling parameters. 
-//!           Used to provide linear access to raw, tiled data.
-//! \param    [in] OffsetX
-//!           Horizontal byte offset from left edge of tiled surface.
-//! \param    [in] OffsetY
-//!           Vertical offset from top of tiled surface.
-//! \param    [in] Pitch
-//!           Row-to-row byte stride.
-//! \param    [in] TileFormat
-//!           Either 'x' or 'y'--for X-Major or Y-Major tiling, respectively.
-//! \param    [in] CsxSwizzle
-//!           (Boolean) Additionally perform Channel Select XOR swizzling.
-//! \param    [in] flags
-//!           More flags to indicate different tileY.
-//! \return   int32_t
-//!           Return SwizzleOffset
-//!    
-int32_t __Mos_SwizzleOffset(
-    int32_t         OffsetX,
-    int32_t         OffsetY,
-    int32_t         Pitch,
-    MOS_TILE_TYPE   TileFormat,
-    int32_t         CsxSwizzle,
-    int32_t         flags);
-#define Mos_SwizzleOffset __Mos_SwizzleOffset
-
-//!
 //! \brief    Wrapper function for SwizzleOffset
 //! \details  Wrapper function for SwizzleOffset in Mos 
 //! \param    [in] pSrc
@@ -2528,8 +2500,6 @@ int32_t __Mos_SwizzleOffset(
 //!           Height
 //! \param    [in] iPitch
 //!           Pitch
-//! \param    [in] extended flags
-//!           Pitch
 //! \return   void
 //!
 void Mos_SwizzleData(
@@ -2538,8 +2508,7 @@ void Mos_SwizzleData(
     MOS_TILE_TYPE   SrcTiling,
     MOS_TILE_TYPE   DstTiling,
     int32_t         iHeight,
-    int32_t         iPitch,
-    int32_t         extFlags);
+    int32_t         iPitch);
 
 //!
 //! \brief    MOS trace event initialize
