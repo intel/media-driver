@@ -86,12 +86,12 @@ VAStatus vaCmExtSendReqMsg(
     DDI_UNUSED(outputFunId);
     DDI_UNUSED(outputDataLen);
 
-    CM_DDI_FUNCTION_ENTER;
+    CM_FUNCTION_ENTER_DDI;
 
     hr        = VA_STATUS_ERROR_UNKNOWN;
-    CM_DDI_CHK_NULL(display, "Null VADisplay!", VA_STATUS_ERROR_INVALID_PARAMETER);
+    CM_CHK_NULL_RETURN_WITH_MSG(display, VA_STATUS_ERROR_INVALID_PARAMETER, "Null VADisplay!");
     vaDriverCtx = CTX(display);
-    CM_DDI_CHK_NULL(vaDriverCtx, "Null vaDriverCtx!", VA_STATUS_ERROR_INVALID_PARAMETER);
+    CM_CHK_NULL_RETURN_WITH_MSG(vaDriverCtx, VA_STATUS_ERROR_INVALID_PARAMETER, "Null vaDriverCtx!");
     funcID    = *(int *)inputFunId;
 
     deviceHandle  = outputData;
@@ -103,7 +103,7 @@ VAStatus vaCmExtSendReqMsg(
     hr = CmThinExecute(vaDriverCtx, deviceHandle, *inputFunId, inputData, *inputDataLen);
     if(hr != VA_STATUS_SUCCESS)
     {
-        CM_DDI_ASSERTMESSAGE("CmThinExecute Failed FunctionID %x, ret %d \n", *inputFunId, hr);
+        CM_ASSERTMESSAGE_DDI("CmThinExecute Failed FunctionID %x, ret %d \n", *inputFunId, hr);
     }
 
     return hr;

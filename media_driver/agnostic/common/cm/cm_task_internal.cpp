@@ -854,24 +854,24 @@ int32_t CmTaskInternal::VtuneInitProfilingInfo(const CmThreadSpaceRT *perTaskThr
 
     //  Currently, the Kernel/ThreadSpace/ThreadGroupSpace could not be deleted before task finished.
     m_taskProfilingInfo.kernelNames = MOS_NewArray(char, (CM_MAX_KERNEL_NAME_SIZE_IN_BYTE * m_kernelCount));
-    CMCHK_NULL(m_taskProfilingInfo.kernelNames);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(m_taskProfilingInfo.kernelNames);
 
     m_taskProfilingInfo.localWorkWidth = MOS_NewArray(uint32_t, m_kernelCount);
-    CMCHK_NULL(m_taskProfilingInfo.localWorkWidth);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(m_taskProfilingInfo.localWorkWidth);
 
     m_taskProfilingInfo.localWorkHeight = MOS_NewArray(uint32_t, m_kernelCount);
-    CMCHK_NULL(m_taskProfilingInfo.localWorkHeight);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(m_taskProfilingInfo.localWorkHeight);
 
     m_taskProfilingInfo.globalWorkWidth = MOS_NewArray(uint32_t, m_kernelCount);
-    CMCHK_NULL(m_taskProfilingInfo.globalWorkWidth);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(m_taskProfilingInfo.globalWorkWidth);
 
     m_taskProfilingInfo.globalWorkHeight = MOS_NewArray(uint32_t, m_kernelCount);
-    CMCHK_NULL(m_taskProfilingInfo.globalWorkHeight);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(m_taskProfilingInfo.globalWorkHeight);
 
     for (uint32_t i = 0; i < m_kernelCount; i++)
     {
-        CMCHK_HR(GetKernel(i, cmKernel));
-        CMCHK_NULL(cmKernel);
+        CM_CHK_CMSTATUS_GOTOFINISH(GetKernel(i, cmKernel));
+        CM_CHK_NULL_GOTOFINISH_CMERROR(cmKernel);
 
         //Copy Kernel Name
         MOS_SecureStrcpy(m_taskProfilingInfo.kernelNames + m_taskProfilingInfo.kernelNameLen,
@@ -880,7 +880,7 @@ int32_t CmTaskInternal::VtuneInitProfilingInfo(const CmThreadSpaceRT *perTaskThr
         //Add Kernel Name Length
         m_taskProfilingInfo.kernelNameLen += strlen(cmKernel->GetName()) + 1;
 
-        CMCHK_HR(cmKernel->GetThreadSpace(perKernelThreadSpace));
+        CM_CHK_CMSTATUS_GOTOFINISH(cmKernel->GetThreadSpace(perKernelThreadSpace));
 
         if (perTaskThreadSpace)
         {
@@ -954,24 +954,24 @@ int32_t CmTaskInternal::VtuneInitProfilingInfo(const CmThreadGroupSpace *perTask
     MOS_QueryPerformanceCounter((uint64_t*)&m_taskProfilingInfo.enqueueTime.QuadPart); // Get Enqueue Time
 
     m_taskProfilingInfo.kernelNames = MOS_NewArray(char, (CM_MAX_KERNEL_NAME_SIZE_IN_BYTE * m_kernelCount));
-    CMCHK_NULL(m_taskProfilingInfo.kernelNames);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(m_taskProfilingInfo.kernelNames);
 
     m_taskProfilingInfo.localWorkWidth = MOS_NewArray(uint32_t, m_kernelCount);
-    CMCHK_NULL(m_taskProfilingInfo.localWorkWidth);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(m_taskProfilingInfo.localWorkWidth);
 
     m_taskProfilingInfo.localWorkHeight = MOS_NewArray(uint32_t, m_kernelCount);
-    CMCHK_NULL(m_taskProfilingInfo.localWorkHeight);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(m_taskProfilingInfo.localWorkHeight);
 
     m_taskProfilingInfo.globalWorkWidth = MOS_NewArray(uint32_t, m_kernelCount);
-    CMCHK_NULL(m_taskProfilingInfo.globalWorkWidth);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(m_taskProfilingInfo.globalWorkWidth);
 
     m_taskProfilingInfo.globalWorkHeight = MOS_NewArray(uint32_t, m_kernelCount);
-    CMCHK_NULL(m_taskProfilingInfo.globalWorkHeight);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(m_taskProfilingInfo.globalWorkHeight);
 
     for (uint32_t i = 0; i < m_kernelCount; i++)
     {
-        CMCHK_HR(GetKernel(i, cmKernel));
-        CMCHK_NULL(cmKernel);
+        CM_CHK_CMSTATUS_GOTOFINISH(GetKernel(i, cmKernel));
+        CM_CHK_NULL_GOTOFINISH_CMERROR(cmKernel);
 
         //Copy Kernel Name
         MOS_SecureStrcpy(m_taskProfilingInfo.kernelNames + m_taskProfilingInfo.kernelNameLen,
@@ -980,7 +980,7 @@ int32_t CmTaskInternal::VtuneInitProfilingInfo(const CmThreadGroupSpace *perTask
         //Add Kernel Name Length
         m_taskProfilingInfo.kernelNameLen += strlen(cmKernel->GetName()) + 1;
 
-        CMCHK_HR(cmKernel->GetThreadGroupSpace(perKernelGroupSpace));
+        CM_CHK_CMSTATUS_GOTOFINISH(cmKernel->GetThreadGroupSpace(perKernelGroupSpace));
 
         if (perTaskThreadGroupSpace)
         {  // Per Thread Group Space
@@ -1047,9 +1047,9 @@ int32_t CmTaskInternal::ResetKernelDataStatus()
     for(uint32_t krnDataIndex =0 ; krnDataIndex < m_kernelCount; krnDataIndex++ )
     {
         CmKernelData    *kernelData;
-        CMCHK_HR(GetKernelData(krnDataIndex, kernelData));
-        CMCHK_NULL(kernelData);
-        CMCHK_HR(kernelData->ResetStatus());
+        CM_CHK_CMSTATUS_GOTOFINISH(GetKernelData(krnDataIndex, kernelData));
+        CM_CHK_NULL_GOTOFINISH_CMERROR(kernelData);
+        CM_CHK_CMSTATUS_GOTOFINISH(kernelData->ResetStatus());
     }
 
 finish:
@@ -1069,18 +1069,18 @@ int32_t CmTaskInternal::CreateThreadSpaceData(const CmThreadSpaceRT* threadSpace
     CmThreadSpaceRT *threadSpaceRT = const_cast<CmThreadSpaceRT*>(threadSpace);
     CmKernelRT* kernelInThreadSpace = nullptr;
     CmKernelRT* kernelInTask = nullptr;
-    CMCHK_NULL_RETURN(threadSpaceRT, CM_NULL_POINTER);
+    CM_CHK_NULL_GOTOFINISH(threadSpaceRT, CM_NULL_POINTER);
 
     threadSpaceRT->GetThreadSpaceSize(m_threadSpaceWidth, m_threadSpaceHeight);
 
     if (threadSpaceRT->IsThreadAssociated())
     {
         m_threadCoordinates = MOS_NewArray(PCM_HAL_SCOREBOARD, m_kernelCount);
-        CMCHK_NULL_RETURN(m_threadCoordinates, CM_FAILURE);
+        CM_CHK_NULL_GOTOFINISH(m_threadCoordinates, CM_FAILURE);
         CmSafeMemSet(m_threadCoordinates, 0, m_kernelCount*sizeof(PCM_HAL_SCOREBOARD));
 
         m_dependencyMasks = MOS_NewArray(PCM_HAL_MASK_AND_RESET, m_kernelCount);
-        CMCHK_NULL_RETURN(m_dependencyMasks, CM_FAILURE);
+        CM_CHK_NULL_GOTOFINISH(m_dependencyMasks, CM_FAILURE);
         CmSafeMemSet(m_dependencyMasks, 0, m_kernelCount*sizeof(PCM_HAL_MASK_AND_RESET));
 
         kernelCoordinateIndex = MOS_NewArray(uint32_t, m_kernelCount);
@@ -1198,7 +1198,7 @@ int32_t CmTaskInternal::CreateThreadSpaceData(const CmThreadSpaceRT* threadSpace
     if( m_mediaWalkerParamsSet )
     {
         CM_WALKING_PARAMETERS tmpMWParams;
-        CMCHK_HR(threadSpaceRT->GetWalkingParameters(tmpMWParams));
+        CM_CHK_CMSTATUS_GOTOFINISH(threadSpaceRT->GetWalkingParameters(tmpMWParams));
         CmSafeMemCopy(&m_walkingParameters, &tmpMWParams, sizeof(tmpMWParams));
     }
 
@@ -1206,7 +1206,7 @@ int32_t CmTaskInternal::CreateThreadSpaceData(const CmThreadSpaceRT* threadSpace
     if( m_dependencyVectorsSet )
     {
         CM_HAL_DEPENDENCY tmpDepVectors;
-        CMCHK_HR(threadSpaceRT->GetDependencyVectors(tmpDepVectors));
+        CM_CHK_CMSTATUS_GOTOFINISH(threadSpaceRT->GetDependencyVectors(tmpDepVectors));
         CmSafeMemCopy(&m_dependencyVectors, &tmpDepVectors, sizeof(tmpDepVectors));
     }
 
