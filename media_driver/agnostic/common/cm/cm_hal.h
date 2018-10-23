@@ -1553,71 +1553,7 @@ typedef struct _CM_HAL_STATE
     CmExecutionAdv              *advExecutor = nullptr;
 
     bool                        refactor = false;
-//------------------------------------------------------------------------------
-// Macros to replace HR macros in oscl.h
-//------------------------------------------------------------------------------
-#ifndef CM_CHK_MOSSTATUS
-#define CM_CHK_MOSSTATUS(_stmt)                                                 \
-{                                                                               \
-    hr = (MOS_STATUS)(_stmt);                                                   \
-    if (hr != MOS_STATUS_SUCCESS)                                               \
-    {                                                                           \
-        CM_NORMALMESSAGE("hr check failed.");                                   \
-        goto finish;                                                            \
-    }                                                                           \
-}
-#endif
 
-#ifndef CM_CHK_NULL_RETURN_MOSSTATUS
-#define CM_CHK_NULL_RETURN_MOSSTATUS(_ptr)                                      \
-{                                                                               \
-    if ((_ptr) == nullptr)                                                         \
-    {                                                                           \
-        CM_ASSERTMESSAGE("Invalid (nullptr) Pointer");                             \
-        hr = MOS_STATUS_NULL_POINTER;                                           \
-        goto finish;                                                            \
-    }                                                                           \
-}
-#endif // CM_CHK_NULL_RETURN_MOSSTATUS
-
-#ifndef CM_HRESULT2MOSSTATUS_AND_CHECK
-#define CM_HRESULT2MOSSTATUS_AND_CHECK(_stmt)                                   \
-{                                                                               \
-    hr = (MOS_STATUS)OsResultToMOS_Status(_stmt);                               \
-    if (hr != MOS_STATUS_SUCCESS)                                               \
-    {                                                                           \
-        CM_NORMALMESSAGE("hr check failed.");                                   \
-        goto finish;                                                            \
-    }                                                                           \
-}
-#endif
-
-#ifndef CM_CHK_MOSSTATUS_RETURN
-#define CM_CHK_MOSSTATUS_RETURN(_stmt)                                          \
-{                                                                               \
-    hr = (MOS_STATUS)(_stmt);                                                   \
-    if (hr != MOS_STATUS_SUCCESS)                                               \
-    {                                                                           \
-        return hr;                                                              \
-    }                                                                           \
-}
-#endif
-
-#ifndef CM_CHK_NULL_RETURN
-#define CM_CHK_NULL_RETURN(_ptr)                                                \
-{                                                                               \
-    if ((_ptr) == nullptr)                                                         \
-    {                                                                           \
-        return MOS_STATUS_NULL_POINTER;                                         \
-    }                                                                           \
-}
-#endif
-
-#define CM_PUBLIC_ASSERT(_expr)                                                 \
-    MOS_ASSERT(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_PUBLIC, _expr)
-
-#define CM_PUBLIC_ASSERTMESSAGE(_message, ...)                                  \
-    MOS_ASSERTMESSAGE(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_PUBLIC, _message, ##__VA_ARGS__)
 
     //********************************************************************************
     // Export Interface methods called by CMRT@UMD <START>

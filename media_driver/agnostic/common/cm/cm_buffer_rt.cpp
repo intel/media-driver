@@ -137,11 +137,11 @@ CM_RT_API int32_t CmBuffer_RT::WriteSurface( const unsigned char* sysMem, CmEven
     // Lock Buffer first
     CmDeviceRT * cmDevice = nullptr;
     m_surfaceMgr->GetCmDevice(cmDevice);
-    CMCHK_NULL_AND_RETURN(cmDevice);
+    CM_CHK_NULL_RETURN_CMERROR(cmDevice);
     
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)cmDevice->GetAccelData();
-    CMCHK_NULL_AND_RETURN(cmData);
-    CMCHK_NULL_AND_RETURN(cmData->cmHalState);
+    CM_CHK_NULL_RETURN_CMERROR(cmData);
+    CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
 
     CM_HAL_BUFFER_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_HAL_BUFFER_PARAM ) );
@@ -150,8 +150,8 @@ CM_RT_API int32_t CmBuffer_RT::WriteSurface( const unsigned char* sysMem, CmEven
 
     // Lock Buffer:
     // Lock Buffer may fail due to the out of memory/out of page-in in KMD.
-    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnLockBuffer(cmData->cmHalState, &inParam));
-    CMCHK_NULL(inParam.data);
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnLockBuffer(cmData->cmHalState, &inParam));
+    CM_CHK_NULL_GOTOFINISH_CMERROR(inParam.data);
 
     // Memory copy : Source ->System Memory  Dest -> Vedio Memory
     dst  = ( uint8_t *)(inParam.data);
@@ -160,7 +160,7 @@ CM_RT_API int32_t CmBuffer_RT::WriteSurface( const unsigned char* sysMem, CmEven
     CmFastMemCopyWC(dst, surf, copySize);
 
     //Unlock Buffer
-    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnUnlockBuffer(cmData->cmHalState, &inParam));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnUnlockBuffer(cmData->cmHalState, &inParam));
 
 finish:
     if (hr < CM_MOS_STATUS_CONVERTED_CODE_OFFSET) {
@@ -208,24 +208,24 @@ CM_RT_API int32_t CmBuffer_RT::ReadSurface( unsigned char* sysMem, CmEvent* even
     // Lock Buffer first
     CmDeviceRT * cmDevice = nullptr;
     m_surfaceMgr->GetCmDevice(cmDevice);
-    CMCHK_NULL_AND_RETURN(cmDevice);
+    CM_CHK_NULL_RETURN_CMERROR(cmDevice);
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)cmDevice->GetAccelData();
-    CMCHK_NULL_AND_RETURN(cmData);
-    CMCHK_NULL_AND_RETURN(cmData->cmHalState);
+    CM_CHK_NULL_RETURN_CMERROR(cmData);
+    CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
 
     CM_HAL_BUFFER_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_HAL_BUFFER_PARAM ) );
     inParam.lockFlag = CM_HAL_LOCKFLAG_READONLY;
     inParam.handle = m_handle;
 
-    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnLockBuffer(cmData->cmHalState, &inParam));
-    CMCHK_NULL(inParam.data);
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnLockBuffer(cmData->cmHalState, &inParam));
+    CM_CHK_NULL_GOTOFINISH_CMERROR(inParam.data);
 
     // Memory copy : Dest ->System Memory  Source -> Vedio Memory
     CmFastMemCopyFromWC(sysMem, inParam.data, copySize, GetCpuInstructionLevel());
 
     //Unlock Buffer
-    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnUnlockBuffer(cmData->cmHalState, &inParam));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnUnlockBuffer(cmData->cmHalState, &inParam));
 
 finish:
     if (hr < CM_MOS_STATUS_CONVERTED_CODE_OFFSET) {
@@ -264,24 +264,24 @@ CM_RT_API int32_t CmBuffer_RT::InitSurface(const uint32_t initValue, CmEvent* ev
 
     CmDeviceRT* cmDevice = nullptr;
     m_surfaceMgr->GetCmDevice( cmDevice );
-    CMCHK_NULL_AND_RETURN(cmDevice);
+    CM_CHK_NULL_RETURN_CMERROR(cmDevice);
 
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)cmDevice->GetAccelData();
-    CMCHK_NULL_AND_RETURN(cmData);
-    CMCHK_NULL_AND_RETURN(cmData->cmHalState);
+    CM_CHK_NULL_RETURN_CMERROR(cmData);
+    CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
 
     CM_HAL_BUFFER_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( CM_HAL_BUFFER_PARAM ) );
     inParam.handle = m_handle;
     inParam.lockFlag = CM_HAL_LOCKFLAG_WRITEONLY;
 
-    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnLockBuffer(cmData->cmHalState, &inParam));
-    CMCHK_NULL(inParam.data);
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnLockBuffer(cmData->cmHalState, &inParam));
+    CM_CHK_NULL_GOTOFINISH_CMERROR(inParam.data);
 
     CmDwordMemSet(inParam.data, initValue, m_size);
 
     // unlock
-    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnUnlockBuffer(cmData->cmHalState, &inParam));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnUnlockBuffer(cmData->cmHalState, &inParam));
 
 finish:
     if (hr < CM_MOS_STATUS_CONVERTED_CODE_OFFSET) {
@@ -301,14 +301,14 @@ int32_t CmBuffer_RT::SetMemoryObjectControl( MEMORY_OBJECT_CONTROL memCtrl, MEMO
 
     CmDeviceRT *cmDevice = nullptr;
     m_surfaceMgr->GetCmDevice(cmDevice);
-    CMCHK_NULL_AND_RETURN(cmDevice);
+    CM_CHK_NULL_RETURN_CMERROR(cmDevice);
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)cmDevice->GetAccelData();
-    CMCHK_NULL_AND_RETURN(cmData);
-    CMCHK_NULL_AND_RETURN(cmData->cmHalState);
+    CM_CHK_NULL_RETURN_CMERROR(cmData);
+    CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
 
     mocs = (m_memObjCtrl.mem_ctrl << 8) | (m_memObjCtrl.mem_type<<4) | m_memObjCtrl.age;
 
-    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnSetSurfaceMOCS(cmData->cmHalState, m_handle, mocs, ARG_KIND_SURFACE_1D));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnSetSurfaceMOCS(cmData->cmHalState, m_handle, mocs, ARG_KIND_SURFACE_1D));
 
 finish:
     return hr;
@@ -344,11 +344,11 @@ CM_RT_API int32_t CmBuffer_RT::SetSurfaceStateParam(SurfaceIndex *surfIndex, con
     }
     CmDeviceRT* cmDevice = nullptr;
     m_surfaceMgr->GetCmDevice( cmDevice );
-    CMCHK_NULL_AND_RETURN(cmDevice);
+    CM_CHK_NULL_RETURN_CMERROR(cmDevice);
 
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)cmDevice->GetAccelData();
-    CMCHK_NULL_AND_RETURN(cmData);
-    CMCHK_NULL_AND_RETURN(cmData->cmHalState);
+    CM_CHK_NULL_RETURN_CMERROR(cmData);
+    CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
 
     CM_HAL_BUFFER_SURFACE_STATE_PARAM inParam;
     CmSafeMemSet( &inParam, 0, sizeof( inParam ) );
@@ -366,7 +366,7 @@ CM_RT_API int32_t CmBuffer_RT::SetSurfaceStateParam(SurfaceIndex *surfIndex, con
     inParam.size    = newSize;
     inParam.mocs    = (uint16_t)((bufferStateParam->mocs.mem_ctrl << 8)|(bufferStateParam->mocs.mem_type << 4)|(bufferStateParam->mocs.age));
 
-    CHK_MOSSTATUS_RETURN_CMERROR(cmData->cmHalState->pfnSetBufferSurfaceStatePara(cmData->cmHalState, &inParam));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnSetBufferSurfaceStatePara(cmData->cmHalState, &inParam));
 
 finish:
     return hr;

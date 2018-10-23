@@ -239,8 +239,8 @@ bool CmTaskRT::IntegrityCheckKernelThreadspace( void )
     threadSpaceMapping = MOS_NewArray(byte*, kernelCount);
     kernelInScoreboard = MOS_NewArray(byte, kernelCount);
 
-    CMCHK_NULL_RETURN(threadSpaceMapping, CM_OUT_OF_HOST_MEMORY);
-    CMCHK_NULL_RETURN(kernelInScoreboard, CM_OUT_OF_HOST_MEMORY);
+    CM_CHK_NULL_GOTOFINISH(threadSpaceMapping, CM_OUT_OF_HOST_MEMORY);
+    CM_CHK_NULL_GOTOFINISH(kernelInScoreboard, CM_OUT_OF_HOST_MEMORY);
 
     CmSafeMemSet(threadSpaceMapping, 0, kernelCount*sizeof(byte *));
     CmSafeMemSet(kernelInScoreboard, 0, kernelCount*sizeof(byte));
@@ -248,13 +248,13 @@ bool CmTaskRT::IntegrityCheckKernelThreadspace( void )
     for( i = 0; i < kernelCount; ++i )
     {
         kernelRT = this->GetKernelPointer(i);
-        CMCHK_NULL(kernelRT);
+        CM_CHK_NULL_GOTOFINISH_CMERROR(kernelRT);
 
-        CMCHK_HR(kernelRT->GetThreadSpace(kernelThreadSpace));
-        CMCHK_NULL_RETURN(kernelThreadSpace, CM_KERNEL_THREADSPACE_NOT_SET);
+        CM_CHK_CMSTATUS_GOTOFINISH(kernelRT->GetThreadSpace(kernelThreadSpace));
+        CM_CHK_NULL_GOTOFINISH(kernelThreadSpace, CM_KERNEL_THREADSPACE_NOT_SET);
 
-        CMCHK_HR(kernelThreadSpace->GetThreadSpaceSize(width, height));
-        CMCHK_HR(kernelRT->GetThreadCount(threadCount));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernelThreadSpace->GetThreadSpaceSize(width, height));
+        CM_CHK_CMSTATUS_GOTOFINISH(kernelRT->GetThreadCount(threadCount));
         if (threadCount == 0)
         {
             threadCount = width * height;
@@ -263,7 +263,7 @@ bool CmTaskRT::IntegrityCheckKernelThreadspace( void )
         if( kernelThreadSpace->IsThreadAssociated() )
         {
             threadSpaceMapping[i] = MOS_NewArray(byte, threadCount);
-            CMCHK_NULL_RETURN(threadSpaceMapping[i], CM_OUT_OF_HOST_MEMORY);
+            CM_CHK_NULL_GOTOFINISH(threadSpaceMapping[i], CM_OUT_OF_HOST_MEMORY);
             CmSafeMemSet(threadSpaceMapping[i], 0, threadCount * sizeof(byte));
             kernelInScoreboard[i] = false;
 

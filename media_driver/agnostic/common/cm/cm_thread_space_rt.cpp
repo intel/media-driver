@@ -241,7 +241,7 @@ int32_t CmThreadSpaceRT::Initialize( void )
 
     if (cmHalState->cmHalInterface->CheckMediaModeAvailability() == false)
     {
-        CMCHK_STATUS_AND_RETURN(m_device->CreateThreadGroupSpaceEx(1, 1, 1, m_width, m_height, 1, m_threadGroupSpace));
+        CM_CHK_CMSTATUS_RETURN(m_device->CreateThreadGroupSpaceEx(1, 1, 1, m_width, m_height, 1, m_threadGroupSpace));
     }
 
     return CM_SUCCESS;
@@ -420,27 +420,27 @@ CM_RT_API int32_t CmThreadSpaceRT::SelectThreadDependencyPattern (CM_DEPENDENCY_
     {
         case CM_VERTICAL_WAVE:
             m_dependencyPatternType = CM_VERTICAL_WAVE;
-            CMCHK_HR(SetThreadDependencyPattern(verticalPattern.count, verticalPattern.deltaX, verticalPattern.deltaY));
+            CM_CHK_CMSTATUS_GOTOFINISH(SetThreadDependencyPattern(verticalPattern.count, verticalPattern.deltaX, verticalPattern.deltaY));
             break;
 
         case CM_HORIZONTAL_WAVE:
             m_dependencyPatternType = CM_HORIZONTAL_WAVE;
-            CMCHK_HR(SetThreadDependencyPattern(horizontalPattern.count, horizontalPattern.deltaX, horizontalPattern.deltaY));
+            CM_CHK_CMSTATUS_GOTOFINISH(SetThreadDependencyPattern(horizontalPattern.count, horizontalPattern.deltaX, horizontalPattern.deltaY));
             break;
 
         case CM_WAVEFRONT:
             m_dependencyPatternType = CM_WAVEFRONT;
-            CMCHK_HR(SetThreadDependencyPattern(waveFrontPattern.count, waveFrontPattern.deltaX, waveFrontPattern.deltaY));
+            CM_CHK_CMSTATUS_GOTOFINISH(SetThreadDependencyPattern(waveFrontPattern.count, waveFrontPattern.deltaX, waveFrontPattern.deltaY));
             break;
 
         case CM_WAVEFRONT26:
             m_dependencyPatternType = CM_WAVEFRONT26;
-            CMCHK_HR(SetThreadDependencyPattern(waveFront26Pattern.count, waveFront26Pattern.deltaX, waveFront26Pattern.deltaY));
+            CM_CHK_CMSTATUS_GOTOFINISH(SetThreadDependencyPattern(waveFront26Pattern.count, waveFront26Pattern.deltaX, waveFront26Pattern.deltaY));
             break;
 
         case CM_WAVEFRONT26Z:
             m_dependencyPatternType = CM_WAVEFRONT26Z;
-            CMCHK_HR(SetThreadDependencyPattern(waveFront26ZPattern.count, waveFront26ZPattern.deltaX, waveFront26ZPattern.deltaY));
+            CM_CHK_CMSTATUS_GOTOFINISH(SetThreadDependencyPattern(waveFront26ZPattern.count, waveFront26ZPattern.deltaX, waveFront26ZPattern.deltaY));
             m_wavefront26ZDispatchInfo.numThreadsInWave = (uint32_t*)MOS_AllocAndZeroMemory(sizeof(uint32_t) * m_width * m_height);
             if (m_threadSpaceUnit == nullptr && !CheckThreadSpaceOrderSet())
             {
@@ -476,7 +476,7 @@ CM_RT_API int32_t CmThreadSpaceRT::SelectThreadDependencyPattern (CM_DEPENDENCY_
 
         case CM_WAVEFRONT26ZI:
             m_dependencyPatternType = CM_WAVEFRONT26ZI;
-            CMCHK_HR(SetThreadDependencyPattern(waveFront26ZIPattern.count, waveFront26ZIPattern.deltaX, waveFront26ZIPattern.deltaY));
+            CM_CHK_CMSTATUS_GOTOFINISH(SetThreadDependencyPattern(waveFront26ZIPattern.count, waveFront26ZIPattern.deltaX, waveFront26ZIPattern.deltaY));
             if (m_threadSpaceUnit == nullptr&& !CheckThreadSpaceOrderSet())
             {
                 m_threadSpaceUnit = MOS_NewArray(CM_THREAD_SPACE_UNIT, (m_height * m_width));
@@ -511,12 +511,12 @@ CM_RT_API int32_t CmThreadSpaceRT::SelectThreadDependencyPattern (CM_DEPENDENCY_
 
         case CM_WAVEFRONT26X:
             m_dependencyPatternType = CM_WAVEFRONT26X;
-            CMCHK_HR(SetThreadDependencyPattern(waveFront26XPattern.count, waveFront26XPattern.deltaX, waveFront26XPattern.deltaY));
+            CM_CHK_CMSTATUS_GOTOFINISH(SetThreadDependencyPattern(waveFront26XPattern.count, waveFront26XPattern.deltaX, waveFront26XPattern.deltaY));
             break;
 
         case CM_WAVEFRONT26ZIG:
             m_dependencyPatternType = CM_WAVEFRONT26ZIG;
-            CMCHK_HR(SetThreadDependencyPattern(waveFront26ZIGPattern.count, waveFront26ZIGPattern.deltaX, waveFront26ZIGPattern.deltaY));
+            CM_CHK_CMSTATUS_GOTOFINISH(SetThreadDependencyPattern(waveFront26ZIGPattern.count, waveFront26ZIGPattern.deltaX, waveFront26ZIGPattern.deltaY));
             break;
 
         case CM_NONE_DEPENDENCY:
@@ -889,7 +889,7 @@ bool CmThreadSpaceRT::IntegrityCheck(CmTaskRT* task)
     }
 
     kernelRT = task->GetKernelPointer(0);
-    CMCHK_NULL(kernelRT);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(kernelRT);
 
     //To check if the thread space size is matched with thread count
     kernelRT->GetThreadCount(threadNumber);
@@ -902,8 +902,8 @@ bool CmThreadSpaceRT::IntegrityCheck(CmTaskRT* task)
         threadSpaceMapping = MOS_NewArray(byte*, kernelCount);
         kernelInScoreboard = MOS_NewArray(byte, kernelCount);
 
-        CMCHK_NULL(threadSpaceMapping);
-        CMCHK_NULL(kernelInScoreboard);
+        CM_CHK_NULL_GOTOFINISH_CMERROR(threadSpaceMapping);
+        CM_CHK_NULL_GOTOFINISH_CMERROR(kernelInScoreboard);
 
         CmSafeMemSet(threadSpaceMapping, 0, kernelCount*sizeof(byte *));
         CmSafeMemSet(kernelInScoreboard, 0, kernelCount*sizeof(byte));
@@ -911,14 +911,14 @@ bool CmThreadSpaceRT::IntegrityCheck(CmTaskRT* task)
         for (i = 0; i < kernelCount; i++)
         {
             kernelRT = task->GetKernelPointer(i);
-            CMCHK_NULL(kernelRT);
+            CM_CHK_NULL_GOTOFINISH_CMERROR(kernelRT);
             kernelRT->GetThreadCount(threadNumber);
             if (threadNumber == 0)
             {
                 threadNumber = m_width * m_height;
             }
             threadSpaceMapping[i] = MOS_NewArray(byte, threadNumber);
-            CMCHK_NULL(threadSpaceMapping[i]);
+            CM_CHK_NULL_GOTOFINISH_CMERROR(threadSpaceMapping[i]);
             CmSafeMemSet(threadSpaceMapping[i], 0, threadNumber * sizeof(byte));
             kernelInScoreboard[i] = 0;
         }
@@ -933,7 +933,7 @@ bool CmThreadSpaceRT::IntegrityCheck(CmTaskRT* task)
                     kernelRT = *m_kernel;
                 }
             }
-            CMCHK_NULL(kernelRT);
+            CM_CHK_NULL_GOTOFINISH_CMERROR(kernelRT);
 
             kernelIndex = kernelRT->GetIndexInTask();
             threadSpaceMapping[kernelIndex][m_threadSpaceUnit[i].threadId] = 1;
@@ -945,7 +945,7 @@ bool CmThreadSpaceRT::IntegrityCheck(CmTaskRT* task)
             if(kernelInScoreboard[i])
             {
                 kernelRT = task->GetKernelPointer(i);
-                CMCHK_NULL(kernelRT);
+                CM_CHK_NULL_GOTOFINISH_CMERROR(kernelRT);
 
                 kernelRT->GetThreadCount(threadNumber);
                 if (threadNumber == 0)
@@ -2014,13 +2014,13 @@ int32_t CmThreadSpaceRT::UpdateDependency()
     if (m_swBoardSurf == nullptr)
     {
         //for 2D atomic
-        CMCHK_STATUS_AND_RETURN(m_device->CreateSurface2D(m_width,
+        CM_CHK_CMSTATUS_RETURN(m_device->CreateSurface2D(m_width,
                 m_height, 
                 Format_R32S,
                 m_swBoardSurf));
     }
-    CMCHK_STATUS_AND_RETURN(InitSwScoreBoard());
-    CMCHK_STATUS_AND_RETURN(m_swBoardSurf->WriteSurface((uint8_t *)m_swBoard, nullptr));
+    CM_CHK_CMSTATUS_RETURN(InitSwScoreBoard());
+    CM_CHK_CMSTATUS_RETURN(m_swBoardSurf->WriteSurface((uint8_t *)m_swBoard, nullptr));
     return CM_SUCCESS;
 }
 
@@ -2037,8 +2037,8 @@ int32_t CmThreadSpaceRT::SetDependencyArgToKernel(CmKernelRT *pKernel) const
         if (pKernel->m_args[k].unitKind == ARG_KIND_SURFACE_2D_SCOREBOARD)
         {
             SurfaceIndex* ScoreboardIndex = nullptr;
-            CMCHK_STATUS_AND_RETURN(m_swBoardSurf->GetIndex(ScoreboardIndex));
-            CMCHK_STATUS_AND_RETURN(pKernel->SetKernelArg(k, sizeof(SurfaceIndex), ScoreboardIndex));
+            CM_CHK_CMSTATUS_RETURN(m_swBoardSurf->GetIndex(ScoreboardIndex));
+            CM_CHK_CMSTATUS_RETURN(pKernel->SetKernelArg(k, sizeof(SurfaceIndex), ScoreboardIndex));
         }
         else if (pKernel->m_args[k].unitKind == ARG_KIND_GENERAL_DEPVEC)
         {
@@ -2048,11 +2048,11 @@ int32_t CmThreadSpaceRT::SetDependencyArgToKernel(CmKernelRT *pKernel) const
                 vectors[ii] = (char)m_dependency.deltaX[ii];
                 vectors[ii + CM_MAX_DEPENDENCY_COUNT] = (char)m_dependency.deltaY[ii];
             }
-            CMCHK_STATUS_AND_RETURN(pKernel->SetKernelArg(k, (sizeof(char)*CM_MAX_DEPENDENCY_COUNT * 2), vectors));
+            CM_CHK_CMSTATUS_RETURN(pKernel->SetKernelArg(k, (sizeof(char)*CM_MAX_DEPENDENCY_COUNT * 2), vectors));
         }
         else if (pKernel->m_args[k].unitKind == ARG_KIND_GENERAL_DEPCNT)
         {
-            CMCHK_STATUS_AND_RETURN(pKernel->SetKernelArg(k, sizeof(uint32_t), &(m_dependency.count)));
+            CM_CHK_CMSTATUS_RETURN(pKernel->SetKernelArg(k, sizeof(uint32_t), &(m_dependency.count)));
         }
     }
 

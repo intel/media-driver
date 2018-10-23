@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -31,197 +31,171 @@
 #include "mos_utilities.h"
 #include "mos_util_debug.h"
 
-#define CM_ASSERT(_expr)                                                       \
-    MOS_ASSERT(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_SELF, _expr)
-
-#define CM_CHK_NULL(_ptr)                                                      \
-    MOS_CHK_NULL(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_SELF, _ptr)
-
-#define CM_CHK_STATUS(_stmt)                                                   \
-    MOS_CHK_STATUS(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_SELF, _stmt)
-
-#define CM_ASSERTMESSAGE(_message, ...)                                         \
-    MOS_ASSERTMESSAGE(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_SELF, _message, ##__VA_ARGS__)
-
-#define CM_NORMALMESSAGE(_message, ...)                                         \
-    MOS_NORMALMESSAGE(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_SELF, _message, ##__VA_ARGS__)
-
-#define CM_ERROR_ASSERT(message, ...)                                           \
-    CM_ASSERTMESSAGE(message, ##__VA_ARGS__);                                   \
-    hr = MOS_STATUS_UNKNOWN;
-
-#define CM_ERROR_ASSERT_RETURN(_ret, message, ...)                              \
-    CM_ASSERTMESSAGE(message, ##__VA_ARGS__);                                   \
-    hr = _ret;
-
-#define CM_DDI_ASSERT(_expr)                                                    \
-    MOS_ASSERT(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_DDI, _expr)
-
-#define CM_DDI_ASSERTMESSAGE(_message, ...)                                     \
-    MOS_ASSERTMESSAGE(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_DDI, _message, ##__VA_ARGS__)
-
-#define CM_DDI_NORMALMESSAGE(_message, ...)                                     \
-    MOS_NORMALMESSAGE(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_DDI, _message, ##__VA_ARGS__)
-
-#define CM_DDI_FUNCTION_ENTER                                                   \
-    MOS_FUNCTION_ENTER(MOS_COMPONENT_CM, MOS_DDI_SUBCOMP_SELF)
-
-#define CM_MOS_CHK_NULL_RETURN( _ptr )                                          \
-    MOS_CHK_NULL_RETURN( MOS_COMPONENT_CM, MOS_CM_SUBCOMP_SELF, _ptr )
-
-#define CM_MOS_CHK_STATUS_RETURN( _stmt )                                       \
-    MOS_CHK_STATUS_RETURN( MOS_COMPONENT_CM, MOS_CM_SUBCOMP_SELF, _stmt )
-
-// Check the condition, if true, print the error message
-// and return the specified value, do nothing otherwise.
-#define CM_DDI_CHK_CONDITION(condition, _str, _ret)                             \
-    if (condition) {                                                            \
-        CM_DDI_ASSERTMESSAGE(_str);                                             \
-        return _ret;                                                            \
-    }
-
-// If pointer is nullptr, print the error message and return the specified value.
-#define CM_DDI_CHK_NULL(_ptr, _str, _ret)                                       \
-    CM_DDI_CHK_CONDITION((nullptr == (_ptr)), _str, _ret)
-
-#define CM_CHK_LESS(p, upper, str, ret)                                         \
-    CM_DDI_CHK_CONDITION((p >= upper),str,ret)
-
-#define CM_CHK_LESS_THAN(a, b, ret)                                             \
-    CM_DDI_CHK_CONDITION(((a)<(b)),"Less Than",ret)
-
-#define CM_FAILED(_cmstatus)                ((CM_RETURN_CODE)(_cmstatus) != CM_SUCCESS)
-#define MOSSTATUS2CM(_mosstatus, _cmstatus)                                     \
-{                                                                               \
-    switch((MOS_STATUS)_mosstatus) {                                            \
-        case MOS_STATUS_SUCCESS:                                                \
-            _cmstatus = CM_SUCCESS;                                             \
-            break;                                                              \
-        case MOS_STATUS_NULL_POINTER:                                           \
-            _cmstatus = CM_NULL_POINTER;                                        \
-            break;                                                              \
-        case MOS_STATUS_EXCEED_MAX_BB_SIZE:                                     \
-            _cmstatus = CM_TOO_MUCH_THREADS;                                    \
-            break;                                                              \
-        default:                                                                \
-            _cmstatus = (CM_RETURN_CODE)(0 - _mosstatus + CM_MOS_STATUS_CONVERTED_CODE_OFFSET);   \
-            break;                                                              \
-    }                                                                           \
-}
-
-#define MOSSTATUS2CM_AND_CHECK(_mosstatus, _cmstatus)                           \
-{                                                                               \
-    MOSSTATUS2CM(_mosstatus, _cmstatus);                                        \
-    if (_cmstatus != CM_SUCCESS)                                                \
-    {                                                                           \
-        CM_ASSERT(0);                                                           \
-        goto finish;                                                            \
-    }                                                                           \
-}
-
-#ifndef CHK_MOSSTATUS_RETURN_CMERROR
-#define CHK_MOSSTATUS_RETURN_CMERROR(_stmt)                                     \
-{                                                                               \
-    MOS_STATUS hr_mos = (MOS_STATUS)(_stmt);                                    \
-    if (hr_mos != MOS_STATUS_SUCCESS)                                           \
-    {                                                                           \
-        CM_ASSERT(0);                                                           \
-        MOSSTATUS2CM(hr_mos, hr);                                               \
-        goto finish;                                                            \
-    }                                                                           \
-}
-#endif
+//*-----------------------------------------------------------------------------
+//| Assert Definitions
+//*-----------------------------------------------------------------------------
+#define CM_ASSERT(expr) \
+    MOS_ASSERT(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_SELF, expr)
+#define CM_ASSERT_DDI(expr) \
+    MOS_ASSERT(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_DDI, expr)
+#define CM_ASSERT_PUBLIC(expr) \
+    MOS_ASSERT(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_PUBLIC, expr)
+#define CM_ASSERT_RENDERHAL(expr) \
+    MOS_ASSERT(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_RENDERHAL, expr)
 
 //*-----------------------------------------------------------------------------
-//| Macro checks the CM Results
+//| Message Print Definitions
 //*-----------------------------------------------------------------------------
-#define CMCHK_HR(stmt)                                                          \
-{                                                                               \
-    hr = (CM_RETURN_CODE)(stmt);                                                \
-    if (hr != CM_SUCCESS)                                                       \
-    {                                                                           \
-        CM_ASSERTMESSAGE("hr check failed.");                                   \
-        goto finish;                                                            \
-    }                                                                           \
+#define CM_ASSERTMESSAGE(msg, ...) \
+    MOS_ASSERTMESSAGE(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_SELF, msg, ##__VA_ARGS__)
+#define CM_ASSERTMESSAGE_DDI(msg, ...) \
+    MOS_ASSERTMESSAGE(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_DDI, msg, ##__VA_ARGS__)
+#define CM_ASSERTMESSAGE_PUBLIC(msg, ...) \
+    MOS_ASSERTMESSAGE(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_PUBLIC, msg, ##__VA_ARGS__)
+#define CM_ASSERTMESSAGE_RENDERHAL(msg, ...) \
+    MOS_ASSERTMESSAGE(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_RENDERHAL, msg, ##__VA_ARGS__)
+    
+#define CM_NORMALMESSAGE(msg, ...) \
+    MOS_NORMALMESSAGE(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_SELF, msg, ##__VA_ARGS__)   
+#define CM_NORMALMESSAGE_DDI(msg, ...) \
+    MOS_NORMALMESSAGE(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_DDI, msg, ##__VA_ARGS__)
+#define CM_NORMALMESSAGE_PUBLIC(msg, ...) \
+    MOS_NORMALMESSAGE(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_PUBLIC, msg, ##__VA_ARGS__)   
+#define CM_NORMALMESSAGE_RENDERHAL(msg, ...) \
+    MOS_NORMALMESSAGE(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_RENDERHAL, msg, ##__VA_ARGS__)   
+   
+#define CM_FUNCTION_ENTER \
+    MOS_FUNCTION_ENTER(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_SELF)
+#define CM_FUNCTION_ENTER_DDI \
+    MOS_FUNCTION_ENTER(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_DDI)
+#define CM_FUNCTION_ENTER_PUBLIC \
+    MOS_FUNCTION_ENTER(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_PUBLIC)
+#define CM_FUNCTION_ENTER_RENDERHAL \
+    MOS_FUNCTION_ENTER(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_RENDERHAL)
+
+
+//*-----------------------------------------------------------------------------
+//| Private Definitions (not suggest to use in other file)
+//*-----------------------------------------------------------------------------
+#define _CHECK_AND_GOTO_FINISH(cond, ret, retval, msg, ...) \
+{ \
+    if (cond) \
+    { \
+        ret = retval; \
+        CM_ASSERTMESSAGE(msg, ##__VA_ARGS__); \
+        goto finish;\
+    } \
+}
+
+#define _CHECK_AND_RETURN(cond, retval, msg, ...) \
+{ \
+    if (cond) \
+    {\
+        CM_ASSERTMESSAGE(msg, ##__VA_ARGS__); \
+        return retval;\
+    }\
+}
+
+#define _CHECK_AND_RETURN_VOID(cond, msg, ...) \
+{ \
+    if(cond) \
+    { \
+        CM_ASSERTMESSAGE(msg, ##__VA_ARGS__); \
+        return; \
+    } \
+}
+
+#define _MOSSTATUS2CM(mosstatus, cmstatus) \
+{ \
+    switch((MOS_STATUS)mosstatus) { \
+        case MOS_STATUS_SUCCESS: \
+            cmstatus = CM_SUCCESS; \
+            break; \
+        case MOS_STATUS_NULL_POINTER: \
+            cmstatus = CM_NULL_POINTER; \
+            break;  \
+        case MOS_STATUS_EXCEED_MAX_BB_SIZE: \
+            cmstatus = CM_TOO_MUCH_THREADS; \
+            break; \
+        default: \
+            cmstatus = (CM_RETURN_CODE)(0 - mosstatus + CM_MOS_STATUS_CONVERTED_CODE_OFFSET); \
+            break; \
+    } \
 }
 
 //*-----------------------------------------------------------------------------
-//| Macro checks the CM Results
+//| Public Check Definitions
 //*-----------------------------------------------------------------------------
-#define CMCHK_HR_MESSAGE(stmt, _str)                                            \
-{                                                                               \
-    hr = (stmt);                                                                \
-    if (hr != CM_SUCCESS)                                                       \
-    {                                                                           \
-        CM_DDI_ASSERTMESSAGE("%s [%d].", _str, hr);                             \
-        goto finish;                                                            \
-    }                                                                           \
+// Check general condition.
+#define CM_CHK_COND_GOTOFINISH(cond, retval, msg, ...) \
+    _CHECK_AND_GOTO_FINISH(cond, eStatus, retval, msg, ##__VA_ARGS__)
+#define CM_CHK_COND_RETURN(cond, retval, msg, ...) \
+    _CHECK_AND_RETURN(cond, retval, msg, ##__VA_ARGS__)
+
+// Check nullptr then goto finish.
+#define CM_CHK_NULL_GOTOFINISH_MOSERROR(ptr) \
+    _CHECK_AND_GOTO_FINISH((ptr == nullptr), eStatus, MOS_STATUS_NULL_POINTER, "Null pointer found!")
+#define CM_CHK_NULL_GOTOFINISH_CMERROR(ptr) \
+    _CHECK_AND_GOTO_FINISH((ptr == nullptr), hr, CM_NULL_POINTER, "Null pointer found!")
+#define CM_CHK_NULL_GOTOFINISH(ptr, retval) \
+    _CHECK_AND_GOTO_FINISH((ptr == nullptr), hr, retval, "Null pointer found!")
+#define CM_CHK_NULL_GOTOFINISH_WITH_MSG(ptr, retval, msg, ...) \
+    _CHECK_AND_GOTO_FINISH((ptr == nullptr), hr, retval, msg, ##__VA_ARGS__);
+
+// Check nullptr then return.
+#define CM_CHK_NULL_RETURN_MOSERROR(ptr) \
+    _CHECK_AND_RETURN((ptr == nullptr), MOS_STATUS_NULL_POINTER, "Null pointer found!");
+#define CM_CHK_NULL_RETURN_CMERROR(ptr) \
+    _CHECK_AND_RETURN((ptr == nullptr), CM_NULL_POINTER, "Null pointer found!");
+#define CM_CHK_NULL_RETURN(ptr, retval) \
+    _CHECK_AND_RETURN((ptr == nullptr), retval, "Null pointer found!");
+#define CM_CHK_NULL_RETURN_WITH_MSG(ptr, retval, msg, ...) \
+    _CHECK_AND_RETURN((ptr == nullptr), retval, msg, ##__VA_ARGS__);
+#define CM_CHK_NULL_RETURN_VOID(ptr) \
+    _CHECK_AND_RETURN_VOID((ptr == nullptr), "Null pointer found!");
+
+// Check return status.
+#define CM_CHK_MOSSTATUS_GOTOFINISH(stmt) \
+{ \
+    eStatus = (MOS_STATUS)(stmt); \
+    _CHECK_AND_GOTO_FINISH((eStatus != MOS_STATUS_SUCCESS), eStatus, eStatus , "MOS return error [%d]", eStatus); \
 }
-
-//*-----------------------------------------------------------------------------
-//| Macro checks for nullptr and sets the long32
-//*-----------------------------------------------------------------------------
-#define CMCHK_NULL(ptr)                                                         \
-{                                                                               \
-    if ((ptr) == nullptr)                                                          \
-    {                                                                           \
-        CM_ASSERTMESSAGE("Invalid (nullptr) Pointer.");                            \
-        hr = CM_NULL_POINTER;                                                   \
-        goto finish;                                                            \
-    }                                                                           \
+#define CM_CHK_MOSSTATUS_RETURN(stmt) \
+{ \
+    MOS_STATUS _tmp = (MOS_STATUS)(stmt); \
+    _CHECK_AND_RETURN((_tmp != MOS_STATUS_SUCCESS), _tmp, "MOS return error [%d]", _tmp) \
 }
-
-//*-----------------------------------------------------------------------------
-//| Macro checks for nullptr and returns
-//*-----------------------------------------------------------------------------
-#define CMCHK_NULL_AND_RETURN(ptr)                                              \
-{                                                                               \
-    if ((ptr) == nullptr)                                                       \
-    {                                                                           \
-        CM_ASSERTMESSAGE("Invalid (nullptr) Pointer.");                         \
-        return CM_NULL_POINTER;                                                 \
-    }                                                                           \
+#define CM_CHK_CMSTATUS_GOTOFINISH(stmt) \
+{ \
+    hr = (CM_RETURN_CODE)(stmt); \
+    _CHECK_AND_GOTO_FINISH((hr != CM_SUCCESS), hr, hr, "CM return error [%d]", hr); \
 }
-
-//*-----------------------------------------------------------------------------
-//| Macro checks status and returns
-//*-----------------------------------------------------------------------------
-#define CMCHK_STATUS_AND_RETURN(stmt)                                          \
-{                                                                               \
-    CM_RETURN_CODE _tmp = (CM_RETURN_CODE)(stmt);                               \
-    if (_tmp != CM_SUCCESS)                                                     \
-    {                                                                           \
-      CM_ASSERT(0);                                                             \
-      return _tmp;                                                              \
-    }                                                                           \
+#define CM_CHK_CMSTATUS_RETURN(stmt) \
+{ \
+    CM_RETURN_CODE _tmp = (CM_RETURN_CODE)(stmt); \
+    _CHECK_AND_RETURN((_tmp != CM_SUCCESS), _tmp, "CM return error [%d]", _tmp) \
+} 
+#define CM_CHK_CMSTATUS_GOTOFINISH_WITH_MSG(stmt, msg, ...) \
+{ \
+    hr = (CM_RETURN_CODE)(stmt); \
+    _CHECK_AND_GOTO_FINISH((hr != CM_SUCCESS), hr, hr, msg,  ##__VA_ARGS__); \
 }
-
-
-//*-----------------------------------------------------------------------------
-//| Macro checks for nullptr and return a specific value
-//*-----------------------------------------------------------------------------
-#define CMCHK_NULL_RETURN(ptr, returnValue)                                     \
-{                                                                               \
-    if ((ptr) == nullptr)                                                          \
-    {                                                                           \
-        CM_ASSERTMESSAGE("Invalid (nullptr) Pointer.");                            \
-        hr = returnValue;                                                       \
-        goto finish;                                                            \
-    }                                                                           \
+#define CM_CHK_CMSTATUS_RETURN_WITH_MSG(stmt, msg, ...) \
+{ \
+    CM_RETURN_CODE _tmp = (CM_RETURN_CODE)(stmt); \
+    _CHECK_AND_RETURN((_tmp != CM_SUCCESS), _tmp, msg,  ##__VA_ARGS__) \
 }
-
-//*-----------------------------------------------------------------------------
-//| Notes:
-//| Below two are old MACRO definitions, please don't use them!!
-//| Somehow they are used by other components, can't removed
-//*-----------------------------------------------------------------------------
-#ifndef CHK_HR
-#define CHK_HR(_stmt)       CMCHK_HR(_stmt)
-#endif
-
-#ifndef CHK_NULL
-#define CHK_NULL(_ptr)      CMCHK_NULL(_ptr)
-#endif
+#define CM_CHK_HRESULT_GOTOFINISH_MOSERROR(stmt) \
+{ \
+    eStatus = (MOS_STATUS)OsResultToMOS_Status(stmt); \
+    _CHECK_AND_GOTO_FINISH((eStatus != MOS_STATUS_SUCCESS), eStatus, eStatus, "hr check failed [%d]", eStatus); \
+}
+#define CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(stmt) \
+{ \
+    MOS_STATUS hr_mos = (MOS_STATUS)(stmt); \
+    _MOSSTATUS2CM(hr_mos, hr); \
+    _CHECK_AND_GOTO_FINISH((hr_mos != MOS_STATUS_SUCCESS), hr, hr, "MOS return error [%d]", hr_mos); \
+}
 
 /*===================== EU Debugger related stuff ===========================*/
 

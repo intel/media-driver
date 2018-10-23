@@ -177,11 +177,11 @@ int32_t CmProgramRT::ReadUserFeatureValue(const char *pcMessageKey, uint32_t &va
     userFeature.pValues         = &userFeatureValue;
     userFeature.uiNumValues     = 1;
 
-    CHK_MOSSTATUS_RETURN_CMERROR(MOS_UserFeature_ReadValue(
-                                nullptr,
-                                &userFeature,
-                                pcMessageKey,
-                                MOS_USER_FEATURE_VALUE_TYPE_UINT32));
+    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(MOS_UserFeature_ReadValue(
+                                  nullptr,
+                                  &userFeature,
+                                  pcMessageKey,
+                                  MOS_USER_FEATURE_VALUE_TYPE_UINT32));
 
     value = userFeature.pValues->u32Data;
 
@@ -302,7 +302,7 @@ int32_t CmProgramRT::Initialize( void* cisaCode, const uint32_t cisaCodeSize, co
 
     PCM_HAL_STATE  cmHalState = \
         ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
-    CMCHK_NULL(cmHalState);
+    CM_CHK_NULL_GOTOFINISH_CMERROR(cmHalState);
 
     cmHalState->cmHalInterface->GetGenPlatformInfo(nullptr, nullptr, &platform);
 
