@@ -267,7 +267,6 @@ struct drm_i915_cmd_parser_append {
 #define DRM_I915_GEM_USERPTR        0x33
 #define DRM_I915_GEM_CONTEXT_GETPARAM    0x34
 #define DRM_I915_GEM_CONTEXT_SETPARAM    0x35
-#define DRM_I915_GEM_MMAP2               0x3a
 #define DRM_I915_PERFMON        0x3e
 
 #ifndef ANDROID
@@ -330,7 +329,6 @@ struct drm_i915_cmd_parser_append {
 #define DRM_IOCTL_I915_GEM_USERPTR            DRM_IOWR (DRM_COMMAND_BASE + DRM_I915_GEM_USERPTR, struct drm_i915_gem_userptr)
 #define DRM_IOCTL_I915_GEM_CONTEXT_GETPARAM    DRM_IOWR (DRM_COMMAND_BASE + DRM_I915_GEM_CONTEXT_GETPARAM, struct drm_i915_gem_context_param)
 #define DRM_IOCTL_I915_GEM_CONTEXT_SETPARAM    DRM_IOWR (DRM_COMMAND_BASE + DRM_I915_GEM_CONTEXT_SETPARAM, struct drm_i915_gem_context_param)
-#define DRM_IOCTL_I915_GEM_MMAP2               DRM_IOWR (DRM_COMMAND_BASE + DRM_I915_GEM_MMAP2, struct drm_i915_gem_mmap2)
 
 #ifndef ANDROID
 #define DRM_IOCTL_I915_LOAD_BALANCING_HINT        DRM_IOWR(DRM_COMMAND_BASE + DRM_I915_LOAD_BALANCING_HINT, struct drm_i915_ring_load_query)
@@ -665,19 +663,6 @@ struct drm_i915_gem_mmap_gtt {
      * This is a fixed-size type for 32/64 compatibility.
      */
     __u64 offset;
-};
-
-struct drm_i915_gem_mmap2 {
-    /** Handle for the object being mapped. */
-    __u32 handle;
-    __u32 pad;
-    /**
-     * Fake offset to use for subsequent mmap call
-     *
-     * This is a fixed-size type for 32/64 compatibility.
-     */
-    __u64 offset;
-    __u64 flags;
 };
 
 struct drm_i915_gem_set_domain {
