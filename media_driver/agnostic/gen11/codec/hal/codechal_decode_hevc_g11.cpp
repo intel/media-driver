@@ -171,6 +171,23 @@ MOS_STATUS CodechalDecodeHevcG11::SetGpuCtxCreatOption(
                     MOS_GPU_NODE_VIDEO,
                     &createOption));
             }
+            else if (((PMOS_GPUCTX_CREATOPTIONS_ENHANCED)m_gpuCtxCreatOpt)->LRCACount == 3)
+            {
+                m_videoContext = MOS_GPU_CONTEXT_VDBOX2_VIDEO2;
+
+                CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
+                    m_osInterface,
+                    m_videoContext,
+                    MOS_GPU_NODE_VIDEO,
+                    m_gpuCtxCreatOpt));
+
+                MOS_GPUCTX_CREATOPTIONS createOption;
+                CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
+                    m_osInterface,
+                    MOS_GPU_CONTEXT_VIDEO,
+                    MOS_GPU_NODE_VIDEO,
+                    &createOption));
+            }
             else
             {
                 m_videoContext = MOS_GPU_CONTEXT_VIDEO;
