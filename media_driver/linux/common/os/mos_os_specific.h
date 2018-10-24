@@ -169,7 +169,7 @@ typedef enum _MOS_MEDIA_OPERATION
 typedef enum _MOS_GPU_NODE
 {
     MOS_GPU_NODE_3D      = I915_EXEC_RENDER,
-    MOS_GPU_NODE_COMPUTE = I915_EXEC_RENDER, //To change to compute CS later when linux define the name
+    MOS_GPU_NODE_COMPUTE = (6<<0), //To change to compute CS later when linux define the name
     MOS_GPU_NODE_VE      = I915_EXEC_VEBOX,
     MOS_GPU_NODE_VIDEO   = I915_EXEC_BSD,
     MOS_GPU_NODE_VIDEO2  = I915_EXEC_VCS2,

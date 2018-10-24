@@ -196,6 +196,12 @@ public:
     MOS_GPU_NODE GetContextNode() { return m_nodeOrdinal; }
 
     //!
+    //! \brief    Set Gpu context Node
+    //! \details  Set the hardware node for current gpu context 
+    //!
+    void SetContextNode(MOS_GPU_NODE nodeOrdinal) { m_nodeOrdinal = nodeOrdinal; }
+
+    //!
     //! \brief    Get Gpu context ID
     //! \details  Return the umd side gpu context id for current gpu context 
     //!
