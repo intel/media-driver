@@ -396,7 +396,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    MOS_STATUS Allocate(
+    virtual MOS_STATUS Allocate(
         const VphalSettings     *pVpHalSettings);
 
     //!
@@ -417,7 +417,7 @@ public:
     //! \return   VphalFeatureReport*
     //!           Pointer to VPHAL_FEATURE_REPOR: rendering features reported
     //!
-    VphalFeatureReport*       GetRenderFeatureReport();
+    virtual VphalFeatureReport*       GetRenderFeatureReport();
 
     //!
     //! \brief    Get Status Report
