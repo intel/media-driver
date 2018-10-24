@@ -969,6 +969,9 @@ bool VphalRenderer::IsFormatSupported(
             case Format_P010:
                 bFormatSupported = MEDIA_IS_SKU(m_pSkuTable, FtrVpP010Output) ? true : false;
                 break;
+            case Format_P016:
+                bFormatSupported = MEDIA_IS_SKU(m_pSkuTable, FtrVpP010Output) ? true : false;
+                break;
             case Format_Y210:
                 bFormatSupported = MEDIA_IS_SKU(m_pSkuTable, FtrVp10BitSupport) ? true : false;
                 break;
