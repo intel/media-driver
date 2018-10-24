@@ -35,7 +35,8 @@
 #include "vphal_render_ief.h"
 #include "vphal_renderer.h"
 
-#define AVS_SAMPLE_INDEX        0
+#define AVS_SAMPLE_INDEX        1
+
 #define ALIGN16_SRC_Y_INDEX     0
 #define ALIGN16_SRC_U_INDEX     1
 #define ALIGN16_SRC_UV_INDEX    1

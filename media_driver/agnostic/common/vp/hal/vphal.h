@@ -242,6 +242,8 @@ enum VpKernelID
 
     // User Ptr
     kernelUserPtr,
+    // Fast 1toN
+    kernelFast1toN,
 
     baseKernelMaxNumID
 };

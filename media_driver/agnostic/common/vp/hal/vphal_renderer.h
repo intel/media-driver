@@ -33,7 +33,7 @@
 #include "vphal_render_renderstate.h"
 #include "vphal_render_vebox_base.h"
 #include "vphal_render_16alignment.h"
-
+#include "vphal_render_fast1ton.h"
 #include "vphal_debug.h"
 
 #define VPHAL_RNDR_TEMP_OUT_SURFS            2
@@ -114,6 +114,8 @@ class VphalRenderer
 public:
     // 16 Bytes Alignment state
     VPHAL_16_ALIGN_STATE        Align16State;
+    // Fast 1toN state
+    VPHAL_FAST1TON_STATE        Fast1toNState;
     // Rendering engines
     VPHAL_VEBOX_EXEC_STATE      VeboxExecState[VPHAL_MAX_CHANNELS];             //!< Vebox Execution State
 
@@ -367,6 +369,20 @@ protected:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     virtual MOS_STATUS RenderSingleStream(
+        PVPHAL_RENDER_PARAMS    pRenderParams,
+        RenderpassData          *pRenderPassData);
+
+    //!
+    //! \brief    Compose input streams as fast 1toN
+    //! \details  Use composite render to multi output streams
+    //! \param    [in] pRenderParams
+    //!           Pointer to VPHAL render parameter
+    //! \param    [in,out] pRenderPassData
+    //!           Pointer to the VPHAL render pass data
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS RenderFast1toNComposite(
         PVPHAL_RENDER_PARAMS    pRenderParams,
         RenderpassData          *pRenderPassData);
 
