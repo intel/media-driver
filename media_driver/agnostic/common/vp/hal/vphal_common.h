@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -255,6 +255,16 @@ typedef struct _VPHAL_16_ALIGN_CACHE_CNTL
     VPHAL_MEMORY_OBJECT_CONTROL    SamplerParamsSurfMemObjCtl;
     VPHAL_MEMORY_OBJECT_CONTROL    SamplerParamsStatsSurfMemObjCtl;
 }VPHAL_16_ALIGN_CACHE_CNTL, *PVPHAL_16_ALIGN_CACHE_CNTL;
+
+typedef struct _VPHAL_FAST1TON_CACHE_CNTL
+{
+    bool                           bL3CachingEnabled;
+    VPHAL_MEMORY_OBJECT_CONTROL    SourceSurfMemObjCtl;
+    VPHAL_MEMORY_OBJECT_CONTROL    TargetSurfMemObjCtl;
+    VPHAL_MEMORY_OBJECT_CONTROL    SamplerParamsSurfMemObjCtl;
+    VPHAL_MEMORY_OBJECT_CONTROL    SamplerParamsStatsSurfMemObjCtl;
+}VPHAL_FAST1TON_CACHE_CNTL, *PVPHAL_FAST1TON_CACHE_CNTL;
+
 
 //!
 //! \brief  Feature specific cache control settings

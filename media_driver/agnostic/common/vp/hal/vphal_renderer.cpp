@@ -694,52 +694,62 @@ MOS_STATUS VphalRenderer::RenderPass(
         RenderPassData.pSrcSurface          = pSrcSurface;
         RenderPassData.uiSrcIndex           = uiIndex;
 
-        // loop through the dst for every src input.
-        for (uiIndex_out = 0;
-             uiIndex_out < pRenderParams->uDstCount;
-             uiIndex_out++)
+        if (VpHal_RndrIsFast1toNSupport(&Fast1toNState, pRenderParams, pSrcSurface))
         {
-            VPHAL_RENDER_PARAMS     TPRenderParams;
-            TPRenderParams  = *pRenderParams;
-            if (pRenderParams->pTarget[uiIndex_out] == nullptr)
-            {
-                continue;
-            }
-            // update the first target point, set the dst_count as 1 to compatible with legacy path
-            TPRenderParams.pTarget[0]                = pRenderParams->pTarget[uiIndex_out];
-            TPRenderParams.bUserPrt_16Align[0]       = pRenderParams->bUserPrt_16Align[uiIndex_out];
-            TPRenderParams.uDstCount                 = 1;
-            if (pRenderParams->uDstCount > 1)
-            {
-                // for multi output, support different scaling ratio but doesn't support cropping.
-                RenderPassData.pSrcSurface->rcDst.top    = TPRenderParams.pTarget[0]->rcSrc.top;
-                RenderPassData.pSrcSurface->rcDst.left   = TPRenderParams.pTarget[0]->rcSrc.left;
-                RenderPassData.pSrcSurface->rcDst.bottom = TPRenderParams.pTarget[0]->rcSrc.bottom;
-                RenderPassData.pSrcSurface->rcDst.right  = TPRenderParams.pTarget[0]->rcSrc.right;
-            }
-            RenderSingleStream(&TPRenderParams, &RenderPassData);
-
-            if (!RenderPassData.bCompNeeded &&
-                TPRenderParams.pTarget[0] &&
-                TPRenderParams.pTarget[0]->bFastColorFill)
-            {
-                // with fast color fill enabled, we seperate target surface into two parts:
-                // (1) upper rectangle rendered by vebox
-                // (2) bottom rectangle with back ground color fill by composition
-                pRenderParams->uSrcCount = 0; // set to zero for color fill
-                TPRenderParams.pTarget[0]->rcDst.top = TPRenderParams.pTarget[0]->rcDst.bottom;
-                RenderPassData.bCompNeeded = true;
-                VPHAL_RENDER_ASSERTMESSAGE("Critical: enter fast color fill");
-            }
-            
-            if (RenderPassData.bCompNeeded)
-            {
-                VPHAL_RENDER_CHK_STATUS(RenderComposite(&TPRenderParams, &RenderPassData));
-            }
-            
-            // Report Render modes
-            UpdateReport(pRenderParams, &RenderPassData);
+            // new 1toN path for multi ouput with scaling only case.
+            VPHAL_RENDER_NORMALMESSAGE("Enter fast 1to N render.");
+            VPHAL_RENDER_CHK_STATUS(RenderFast1toNComposite(pRenderParams, &RenderPassData));
         }
+        else
+        {
+            // loop through the dst for every src input.
+            for (uiIndex_out = 0;
+                 uiIndex_out < pRenderParams->uDstCount;
+                 uiIndex_out++)
+            {
+                VPHAL_RENDER_PARAMS     TPRenderParams;
+                TPRenderParams  = *pRenderParams;
+                if (pRenderParams->pTarget[uiIndex_out] == nullptr)
+                {
+                    continue;
+                }
+                // update the first target point, set the dst_count as 1 to compatible with legacy path
+                TPRenderParams.pTarget[0]                = pRenderParams->pTarget[uiIndex_out];
+                TPRenderParams.bUserPrt_16Align[0]       = pRenderParams->bUserPrt_16Align[uiIndex_out];
+                TPRenderParams.uDstCount                 = 1;
+                if (pRenderParams->uDstCount > 1)
+                {
+                    // for multi output, support different scaling ratio but doesn't support cropping.
+                    RenderPassData.pSrcSurface->rcDst.top    = TPRenderParams.pTarget[0]->rcSrc.top;
+                    RenderPassData.pSrcSurface->rcDst.left   = TPRenderParams.pTarget[0]->rcSrc.left;
+                    RenderPassData.pSrcSurface->rcDst.bottom = TPRenderParams.pTarget[0]->rcSrc.bottom;
+                    RenderPassData.pSrcSurface->rcDst.right  = TPRenderParams.pTarget[0]->rcSrc.right;
+                }
+                RenderSingleStream(&TPRenderParams, &RenderPassData);
+
+                if (!RenderPassData.bCompNeeded &&
+                    TPRenderParams.pTarget[0] &&
+                    TPRenderParams.pTarget[0]->bFastColorFill)
+                {
+                    // with fast color fill enabled, we seperate target surface into two parts:
+                    // (1) upper rectangle rendered by vebox
+                    // (2) bottom rectangle with back ground color fill by composition
+                    pRenderParams->uSrcCount = 0; // set to zero for color fill
+                    TPRenderParams.pTarget[0]->rcDst.top = TPRenderParams.pTarget[0]->rcDst.bottom;
+                    RenderPassData.bCompNeeded = true;
+                    VPHAL_RENDER_ASSERTMESSAGE("Critical: enter fast color fill");
+                }
+                
+                if (RenderPassData.bCompNeeded)
+                {
+                    VPHAL_RENDER_CHK_STATUS(RenderComposite(&TPRenderParams, &RenderPassData));
+                }
+                
+                // Report Render modes
+                UpdateReport(pRenderParams, &RenderPassData);
+            }
+        }
+
     }
 
     //------------------------------------------
@@ -820,6 +830,26 @@ MOS_STATUS VphalRenderer::RenderSingleStream(
     }
 
 finish:
+    return eStatus;
+}
+
+//!
+//! \brief    Compose input streams as fast 1toN
+//! \details  Use composite render to multi output streams
+//! \param    [in] pRenderParams
+//!           Pointer to VPHAL render parameter
+//! \param    [in,out] pRenderPassData
+//!           Pointer to the VPHAL render pass data
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+//!
+MOS_STATUS VphalRenderer::RenderFast1toNComposite(
+    PVPHAL_RENDER_PARAMS    pRenderParams,
+    RenderpassData          *pRenderPassData)
+{
+    MOS_STATUS              eStatus;
+    eStatus             = MOS_STATUS_SUCCESS;
+    eStatus = Fast1toNState.pfnRender(&Fast1toNState, pRenderParams);
     return eStatus;
 }
 
@@ -1160,6 +1190,7 @@ MOS_STATUS VphalRenderer::Initialize(
     pFcPatchBin     = nullptr;
 
     Align16State.pPerfData   = &PerfData;
+    Fast1toNState.pPerfData  = &PerfData;
     // Current KDLL expects a writable memory for kernel binary. For that reason,
     // we need to copy the memory to a new location so that KDLL can overwrite.
     // !!! WARNING !!!
@@ -1244,6 +1275,13 @@ MOS_STATUS VphalRenderer::Initialize(
            pSettings,
            pKernelDllState))
 
+    // Initialize fast 1to N Interface and render
+    VpHal_Fast1toNInitInterface(&Fast1toNState, m_pRenderHal);
+    VPHAL_RENDER_CHK_STATUS(Fast1toNState.pfnInitialize(
+           &Fast1toNState,
+           pSettings,
+           pKernelDllState))
+
     AllocateDebugDumper();
 
     if (MEDIA_IS_SKU(m_pSkuTable, FtrVpDisableFor4K))
@@ -1304,6 +1342,12 @@ VphalRenderer::~VphalRenderer()
     if (Align16State.pfnDestroy)
     {
         Align16State.pfnDestroy(&Align16State);
+    }
+
+    // Destory resources allocated for fast1toN
+    if (Fast1toNState.pfnDestroy)
+    {
+        Fast1toNState.pfnDestroy(&Fast1toNState);
     }
 
     // Destroy surface dumper
@@ -1462,6 +1506,7 @@ VphalRenderer::VphalRenderer(
     m_pSkuTable(nullptr),
     m_modifyKdllFunctionPointers(nullptr),
     Align16State(),
+    Fast1toNState(),
     uiSsdControl(0),
     bDpRotationUsed(false),
     bSkuDisableVpFor4K(false),
